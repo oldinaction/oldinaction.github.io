@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/404.html</loc>
+    
+    <lastmod>2017-07-03T13:33:15.752Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/</loc>
     
     <lastmod>2017-07-03T09:44:32.051Z</lastmod>
