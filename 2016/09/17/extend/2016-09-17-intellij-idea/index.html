@@ -1,0 +1,830 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="IDE," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的">
+<meta name="keywords" content="IDE">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IntelliJ IDEA">
+<meta property="og:url" content="http://blog.aezo.cn/2016/09/17/extend/2016-09-17-intellij-idea/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug2.png">
+<meta property="og:updated_time" content="2017-05-04T13:57:50.708Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IntelliJ IDEA">
+<meta name="twitter:description" content="目录{:toc}  IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/09/17/extend/2016-09-17-intellij-idea/"/>
+
+
+
+
+
+  <title>IntelliJ IDEA | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/09/17/extend/2016-09-17-intellij-idea/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">IntelliJ IDEA</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-17T15:37:00+08:00">
+                2016-09-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
+                    <span itemprop="name">tools</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="IntelliJ-IDEA简介"><a href="#IntelliJ-IDEA简介" class="headerlink" title="IntelliJ IDEA简介"></a>IntelliJ IDEA简介</h2><h2 id="常用设置"><a href="#常用设置" class="headerlink" title="常用设置"></a>常用设置</h2><h3 id="java-web项目配置-1"><a href="#java-web项目配置-1" class="headerlink" title="java web项目配置 [^1]"></a>java web项目配置 [^1]</h3><ol>
+<li>进入到Project Structure：<code>File - Project Structure</code></li>
+<li>配置步骤<ul>
+<li><code>Project</code> 项目级别<ul>
+<li>主要是project compiler output的位置(src的编译位置)：如<code>\myproject\WebRoot\WEB-INF\classes</code>，为对应WEB-INF下的classes目录</li>
+</ul>
+</li>
+<li><code>Modules</code> 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块<ul>
+<li><code>Sources</code> 将src目录标记成Sources目录</li>
+<li><code>Paths</code> 使用modules compiler output path，设置路径为<code>\myproject\WebRoot\WEB-INF\classes</code></li>
+<li><code>Dependencies</code> 加入jdk、tomcat、其他依赖jar(如<code>\WEB-INF\lib</code>中的jar)</li>
+</ul>
+</li>
+<li><code>Libraries</code> 如将<code>\WEB-INF\lib</code>中的所有jar定义一个目录，直接加入到<code>Dependencies</code>中</li>
+<li><code>Facets</code><ul>
+<li>点击<code>+</code> - <code>web</code></li>
+<li><code>Web Module Deployment Descriptor</code>为<code>\myproject\WebRoot\WEB-INF\web.xml</code></li>
+<li><code>Web Resource</code>为<code>\myproject\WebRoot</code></li>
+<li>勾选<code>Source Roots</code></li>
+</ul>
+</li>
+<li><code>Artifacts</code> 根据上面的配置，最终打包成一个war包部署到tomcat中<ul>
+<li>点击<code>+</code> - <code>Web Application: Exploded</code> - <code>From Modules</code></li>
+<li><code>Output directory</code>为<code>\testStruts2\WebRoot</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Run configuration</code>配置tomcat<ul>
+<li><code>JRE</code>填写jdk路径</li>
+<li><code>Deployment</code>中将刚刚的war配置进入</li>
+<li>在<code>Before launch</code>中加入Build这个war包</li>
+</ul>
+</li>
+</ol>
+<h2 id="IDEA开发PHP程序"><a href="#IDEA开发PHP程序" class="headerlink" title="IDEA开发PHP程序"></a>IDEA开发PHP程序</h2><h3 id="安装php插件-2"><a href="#安装php插件-2" class="headerlink" title="安装php插件 [^2]"></a>安装php插件 [^2]</h3><ol>
+<li>setting -&gt; plugins -&gt; browse repositories -&gt; 输入php</li>
+<li>没看到的话，往下翻几页看看，找到PHP(LANGUAGES)，安装次数较多的那个</li>
+</ol>
+<h3 id="xdebug使用"><a href="#xdebug使用" class="headerlink" title="xdebug使用"></a>xdebug使用</h3><ol>
+<li>找到php.ini，搜索xdebug</li>
+<li>下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能</li>
+<li><p>替换下面代码</p>
+ <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">[xdebug]  </div><div class="line">xdebug.remote_enable=on  </div><div class="line">xdebug.remote_host=localhost  </div><div class="line">xdebug.remote_port=9000  </div><div class="line">;下面两项和Intellij idea里的对应  </div><div class="line">xdebug.idekey=idekey  </div><div class="line">xdebug.remote_handler=dbgp  </div><div class="line">xdebug.remote_mode=req  </div><div class="line">;下面这句很关键，不设置intellij idea无法调试  </div><div class="line">xdebug.remote_autostart=1  </div><div class="line">;调试配置，详细的可以参考phpinfo页面进行配置  </div><div class="line">xdebug.auto_trace=on  </div><div class="line">xdebug.collect_params=on  </div><div class="line">xdebug.collect_return=on  </div><div class="line">xdebug.trace_output_dir="../xdebug"  </div><div class="line">xdebug.profiler_enable=on  </div><div class="line">xdebug.profiler_enable_trigger = on</div><div class="line">xdebug.profiler_output_name = cachegrind.out.%t.%p</div><div class="line">xdebug.profiler_output_dir="../xdebug"  </div><div class="line">xdebug.collect_vars=on  </div><div class="line">xdebug.cli_color=on</div></pre></td></tr></table></figure>
+</li>
+<li><p>在idea中设置php的安装路径</p>
+<p> 添加php interpreters指向php的主目录，点击这边的show info按钮，在Loaded extensions里应该可以看到xDebug</p>
+<p> <img src="/data/images/2016/09/php-xdebug.png" alt="php-xdebug"></p>
+</li>
+<li><p>启动xdebug调试</p>
+<ul>
+<li>点击intellij idea工具栏里的 start listen php debug connections.开启调试模式。</li>
+<li><p>点击工具栏里向下的小三角-&gt;edit configuration-&gt;add new configuartion-&gt;php web Application Server里选aezo.cn</p>
+<p><img src="/data/images/2016/09/php-xdebug2.png" alt="php-xdebug"></p>
+</li>
+</ul>
+</li>
+<li><p>打断点，运行程序即可进行调试</p>
+</li>
+</ol>
+<hr>
+<p>参考文章</p>
+<p>[^1]: <a href="https://github.com/judasn/IntelliJ-IDEA-Tutorial/blob/newMaster/eclipse-java-web-project-introduce.md" target="_blank" rel="external">java web项目配置</a><br>[^2]: <a href="http://blog.csdn.net/ysjjovo/article/details/13292787" target="_blank" rel="external">intellij idea12 搭建php开发环境</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/IDE/" rel="tag"># IDE</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/09/01/java/others/2016-09-01-javaconception/" rel="next" title="java web相关概念(名词)汇总">
+                <i class="fa fa-chevron-left"></i> java web相关概念(名词)汇总
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/12/db/2016-10-12-oracleDBA/" rel="prev" title="oracleDBA">
+                oracleDBA <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#IntelliJ-IDEA简介"><span class="nav-number">1.</span> <span class="nav-text">IntelliJ IDEA简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用设置"><span class="nav-number">2.</span> <span class="nav-text">常用设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#java-web项目配置-1"><span class="nav-number">2.1.</span> <span class="nav-text">java web项目配置 [^1]</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDEA开发PHP程序"><span class="nav-number">3.</span> <span class="nav-text">IDEA开发PHP程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装php插件-2"><span class="nav-number">3.1.</span> <span class="nav-text">安装php插件 [^2]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xdebug使用"><span class="nav-number">3.2.</span> <span class="nav-text">xdebug使用</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

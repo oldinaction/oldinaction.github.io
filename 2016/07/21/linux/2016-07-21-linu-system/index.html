@@ -1,0 +1,1078 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,shell," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon">
+<meta name="keywords" content="linux,shell">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux系统命令">
+<meta property="og:url" content="http://blog.aezo.cn/2016/07/21/linux/2016-07-21-linu-system/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
+<meta property="og:image" content="http://data/images/2017/02/类型与权限.gif">
+<meta property="og:updated_time" content="2017-05-08T06:09:11.579Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux系统命令">
+<meta name="twitter:description" content="目录{:toc}  系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/07/21/linux/2016-07-21-linu-system/"/>
+
+
+
+
+
+  <title>linux系统命令 | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/21/linux/2016-07-21-linu-system/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">linux系统命令</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-21T19:19:00+08:00">
+                2016-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index">
+                    <span itemprop="name">linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="系统命令"><a href="#系统命令" class="headerlink" title="系统命令"></a>系统命令</h2><ul>
+<li><p>查看系统信息</p>
+<ul>
+<li><p>查看操作系统版本 <code>cat /proc/version</code></p>
+<blockquote>
+<p>如腾讯云服务器 <code>Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016</code> 中的 <code>3.10.0</code> 表示内核版本 <code>x86_64</code> 表示是64位系统</p>
+</blockquote>
+</li>
+<li><p>查看CentOS版本 <code>cat /etc/redhat-release</code> 如：CentOS Linux release 7.2.1511 (Core)</p>
+</li>
+<li>查看内存 <code>grep MemTotal /proc/meminfo</code></li>
+</ul>
+</li>
+<li><p>查看启动的服务(不包括系统的)：<code>chkconfig --list</code></p>
+</li>
+<li><code>shutdown -r now</code> root登录可立刻重启</li>
+<li><code>df -hl</code> 查看磁盘使用情况</li>
+<li><code>netstat -lnp</code> 查看所有进场信息(端口、PID)<ul>
+<li><code>ss -ant</code> CentOS 7 查看所有监听端口</li>
+<li><code>netstat -tnl</code> 查看开放的端口</li>
+<li><code>netstat -lnp | grep tomcat</code> 查看含有tomcat相关的进程</li>
+</ul>
+</li>
+<li>安装程序包 <code>rpm -ivh 安装包名</code></li>
+<li>查看安装程序(支持模糊查询) <code>rpm -qa | grep vsftpd</code> 查看是否安装vsftpd(一款ftp服务器软件)</li>
+<li>检查网络连接 <code>ping 192.168.1.1</code>(或者<code>ping www.baidu.com</code>)，检查端口：<code>telnet 192.168.1.1 8080</code></li>
+<li>查看进程信息 <code>top</code>, 推荐安装功能更强大的htop</li>
+<li>关闭某个PID进程 <code>kill PID</code><ul>
+<li><code>netstat -lnp</code> 查看所有进场信息(端口、PID)</li>
+<li>强制杀进程 <code>kill -s 9 PID</code></li>
+</ul>
+</li>
+<li>运行sh文件：进入到该文件目录，运行<code>./xxx.sh</code></li>
+<li>脱机后台运行sh文件：<code>nohup bash startofbiz.sh &gt; my.log 2&gt;&amp;1 &amp;</code><ul>
+<li>可解决利用客户端连接服务器，执行的程序当客户端退出后，服务器的程序也停止了</li>
+<li><code>nohup</code>这个表示脱机执行，默认在当前目录生成一个<code>nohup.out</code>的日志文件</li>
+<li><code>&amp;</code> 最后面的&amp;表示放在后台执行</li>
+<li><code>startofbiz.sh &gt; my.log</code> 表示startofbiz.sh的输出重定向到my.log</li>
+<li><code>2&gt;&amp;1</code> 表示将错误输出重定向到标准输出<ul>
+<li><code>0</code>：键盘输入；<code>1</code>：标准输入；<code>2</code>：错误输出</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>查看内网ip <code>ip addr</code></li>
+</ul>
+<h2 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h2><h3 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a>磁盘</h3><ol>
+<li>查看磁盘使用情况 <code>df -hl</code></li>
+<li>查看数据盘 <code>fdisk -l</code>(如：Disk：/dev/vda … Disk：/dev/vdb表示有两块磁盘)</li>
+<li>格式化磁盘 <code>mkfs.ext4 /dev/vdb</code> (一般云服务器买的磁盘未进行格式化文件系统和挂载)</li>
+<li>挂载磁盘 <code>mount /dev/vdb /home/</code> 挂载磁盘到<code>/home</code>目录</li>
+<li>修改fstab以便系统启动时自动挂载磁盘 <code>echo &#39;/dev/vdb  /home ext4    defaults    0  0&#39; &gt;&gt; /etc/fstab</code> 重新挂载了磁盘需要重启(<code>reboot</code>)</li>
+</ol>
+<h3 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h3><ul>
+<li><code>cat &lt;fileName&gt;</code> 查看文件</li>
+<li><code>touch &lt;fileName&gt;</code> 新建文件</li>
+<li><code>vi &lt;fileName&gt;</code> 编辑文件<ul>
+<li><code>vim &lt;fireName&gt;</code> 编辑文件，有的可能默认没有安装vim</li>
+</ul>
+</li>
+<li><code>rm &lt;file&gt;</code> 删除文件<ul>
+<li>提示 <code>rm: remove regular file &#39;test&#39;?</code> 时，在后面输入 <code>yes</code> 回车</li>
+</ul>
+</li>
+<li><code>cp xxx.txt /usr/local/xxx</code> 复制文件(将xxx.txt移动到/usr/local/xxx)<ul>
+<li>复制文件到远程服务器：<code>scp /home/test root@192.168.1.1:/home</code> 将本地linux系统的test文件或者文件夹复制到远程的home目录下</li>
+</ul>
+</li>
+<li>重命名文件或目录、将文件由一个目录移入另一个目录中<ul>
+<li><code>mv a.txt b.txt</code> (将a.txt重命名为b.txt)</li>
+<li><code>mv a.txt /home/b.txt</code> 移动并重名名</li>
+</ul>
+</li>
+<li><p><code>ls</code> 列举文件 <a href="[Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)">^3</a></p>
+<ul>
+<li><code>ll</code> 列举文件详细<ul>
+<li><code>ls *.txt</code>、<code>ll test*</code> 模糊查询</li>
+<li><code>ll -rt *.txt</code> 按时间排序 (<code>-r</code>表示逆序、<code>-t</code>按时间排序)</li>
+<li><code>ll -Sh</code> 按文件大小排序 (<code>-S</code>按文件大小排序、<code>-h</code>将文件大小按1024进行转换显示)</li>
+</ul>
+</li>
+<li><code>ls -al</code> 列举所有文件详细<blockquote>
+<p>文件详细如下图</p>
+<p><img src="/data/images/2017/02/文件详细.gif" alt="文件详细"></p>
+<p>类型与权限如下图</p>
+<p><img src="//data/images/2017/02/类型与权限.gif" alt="类型与权限"></p>
+<ul>
+<li>第一个字符代表这个文件的类型(如目录、文件或链接文件等等)：<ul>
+<li>[ d ]则是目录、[ - ]则是文件、[ l ]则表示为连结档(link file)、[ b ]则表示为装置文件里面的可供储存的接口设备(可随机存取装置)、[ c ]则表示为装置文件里面的串行端口设备,例如键盘、鼠标(一次性读取装置)</li>
+</ul>
+</li>
+<li>接下来的字符中,以三个为一组,且均为『rwx』 的三个参数的组合&lt; [ r ]代表可读(read)、[ w ]代表可写(write)、[ x ]代表可执行(execute) 要注意的是,这三个权限的位置不会改变,如果没有权限,就会出现减号[ - ]而已&gt;<ul>
+<li>第一组为『文件拥有者的权限』、第二组为『同群组的权限』、第三组为『其他非本群组的权限』</li>
+<li>当 s 标志出现在文件拥有者的 x 权限上时即为特殊权限。特殊权限如 SUID, SGID, SBIT</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p><code>file &lt;fileName&gt;</code> 查看文件属性</p>
+</li>
+<li><code>whereis &lt;fileName&gt;</code> 查询文件<ul>
+<li><code>which &lt;exeName&gt;</code> 查询可执行文件位置 (在PATH路径中寻找)</li>
+</ul>
+</li>
+<li><code>find / -name nginx.conf</code> 查询文件位置(查看<code>nginx.conf</code>文件所在位置)</li>
+</ul>
+<h3 id="文件夹-目录"><a href="#文件夹-目录" class="headerlink" title="文件夹/目录"></a>文件夹/目录</h3><ol>
+<li>新建文件夹 <strong><code>mkdir [DirName]</code></strong> (或者用绝对路径 <code>mkdir /usr/local/DirName</code>)</li>
+<li><p>删除文件夹</p>
+<ul>
+<li>删除文件夹 <code>rmdir [DirName]</code> (如果文件夹不为空则无法删除)</li>
+<li>强制删除文件夹和其子文件夹 <strong><code>rm -rf [DirName]</code></strong><blockquote>
+<p>-r 就是向下递归，不管有多少级目录，一并删除<br>-f 就是直接强行删除，不作任何提示的意思</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>切换目录</p>
+<ul>
+<li>进入目录 <strong><code>cd</code> DirName</strong></li>
+<li>返回上一级目录 <code>cd ..</code></li>
+<li>返回某一级目录 <strong><code>cd</code> /usr/local/xxx</strong></li>
+<li>返回根目录 <code>cd ~</code> 或者 <code>cd $HOME</code></li>
+</ul>
+</li>
+<li><p>查看当前目录绝对路径 <code>pwd</code></p>
+</li>
+<li>查看目录结构 <code>ls</code><ul>
+<li>查看目录结构包括隐藏文件 <code>ls -a</code></li>
+</ul>
+</li>
+</ol>
+<h3 id="压缩包-推荐tar-1"><a href="#压缩包-推荐tar-1" class="headerlink" title="压缩包(推荐tar) ^1"></a>压缩包(推荐tar) <a href="[文件压缩与解压](http://www.jb51.net/LINUXjishu/43356.html)">^1</a></h3><ol>
+<li><p>解压</p>
+<ul>
+<li><p><code>tar -xvf archive.tar</code> 解压tar包(tar不存在乱码问题)</p>
+<ul>
+<li><p>参数说明</p>
+<ul>
+<li>独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个<ul>
+<li><code>-c</code>: 建立压缩档案</li>
+<li><code>-x</code>：解压</li>
+<li><code>-t</code>：查看 tarfile 里面的文件</li>
+<li><code>-r</code>：向压缩归档文件末尾追加文件</li>
+<li><code>-u</code>：更新原压缩包中的文件</li>
+</ul>
+</li>
+<li>必须<ul>
+<li><code>-f</code>：使用档案名字，切记，这个参数是最后一个参数，后面只能接档案名</li>
+</ul>
+</li>
+<li>可选<ul>
+<li><code>-z</code>：有gzip属性的</li>
+<li><code>-j</code>：有bz2属性的</li>
+<li><code>-Z</code>：有compress属性的</li>
+<li><code>-v</code>：显示所有过程</li>
+<li><code>-O</code>：将文件解开到标准输出    </li>
+<li><code>-p</code> 使用原文件的原来属性（属性不会依据使用者而变）</li>
+<li><code>-P</code> 可以使用绝对路径来压缩        </li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>常用命令</p>
+<ul>
+<li><code>tar -xvf archive.tar -C /tmp</code> 将压缩包释放到 /tmp目录下</li>
+<li><code>tar -xzvf archive.tar.gz</code> 解压tar.gz</li>
+<li><code>tar -xjvf archive.tar.bz2</code> 解压tar.bz2</li>
+<li><code>tar -xZvf archive.tar.Z</code> 解压tar.Z</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>unzip file.zip</code> 解压zip</li>
+<li><code>unrar e archive.rar</code> 解压rar</li>
+</ul>
+</li>
+<li>压缩<ul>
+<li><strong><code>tar -czf aezocn.tar.gz *.jpg dir1</code></strong> 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10)</li>
+<li><code>tar -cvf aezocn.tar file1 file2 dir1</code> 同时压缩 file1, file2 以及目录 dir1。windows可使用7-zip</li>
+<li><code>tar -cvf aezocn.tar *.jpg</code> 将目录里所有jpg文件打包成aezocn.jpg</li>
+<li><code>tar -cjf aezocn.tar.bz2 *.jpg</code> 将目录里所有jpg文件打包成aezocn.tar后，并且将其用bzip2压缩，生成一个bzip2压缩过的包，命名为jpg.tar.bz2</li>
+<li><code>tar -cZf aezocn.tar.Z *.jpg</code> 将目录里所有jpg文件打包成aezocn.tar后，并且将其用compress压缩，生成一个umcompress压缩过的包，命名为jpg.tar.Z</li>
+<li><code>rar a aezocn.rar *.jpg</code> rar格式的压缩，需要先下载rar for linux</li>
+<li><code>zip aezocn.zip *.jpg</code> zip格式的压缩，需要先下载zip for linux</li>
+</ul>
+</li>
+<li><p>unzip乱码</p>
+<ul>
+<li><p>使用python解决(只能解决部分问题)</p>
+<ul>
+<li><code>vi pyzip</code> 新建文件pyzip</li>
+<li><p>加入代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/env python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"><span class="comment"># pyzip.py</span></div><div class="line"></div><div class="line"><span class="keyword">import</span> os</div><div class="line"><span class="keyword">import</span> sys</div><div class="line"><span class="keyword">import</span> zipfile</div><div class="line"></div><div class="line"><span class="keyword">print</span> <span class="string">"Processing File "</span> + sys.argv[<span class="number">1</span>]</div><div class="line"></div><div class="line">file=zipfile.ZipFile(sys.argv[<span class="number">1</span>],<span class="string">"r"</span>);</div><div class="line"><span class="keyword">for</span> name <span class="keyword">in</span> file.namelist():</div><div class="line">    utf8name=name.decode(<span class="string">'gbk'</span>)</div><div class="line">    <span class="keyword">print</span> <span class="string">"Extracting "</span> + utf8name</div><div class="line">    pathname = os.path.dirname(utf8name)</div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(pathname) <span class="keyword">and</span> pathname!= <span class="string">""</span>:</div><div class="line">        os.makedirs(pathname)</div><div class="line">    data = file.read(name)</div><div class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(utf8name):</div><div class="line">        fo = open(utf8name, <span class="string">"w"</span>)</div><div class="line">        fo.write(data)</div><div class="line">        fo.close</div><div class="line">file.close()</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>chmod +x pyzip</code> 将pyzip设置成可执行文件</p>
+</li>
+<li><code>./uzip /home/xxxx.zip</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>rar安装问题，unzip乱码问题</p>
+</li>
+</ol>
+<h2 id="权限系统"><a href="#权限系统" class="headerlink" title="权限系统"></a>权限系统</h2><h3 id="用户"><a href="#用户" class="headerlink" title="用户"></a>用户</h3><ol>
+<li>添加用户<code>useradd aezo –d /home/aezo/</code><ul>
+<li>修改用户宿主目录<code>usermod -d /home/home_dir -U aezo</code></li>
+</ul>
+</li>
+<li>设置密码<code>passwd aezo</code></li>
+<li>查看用户<code>vi /etc/passwd</code></li>
+</ol>
+<h3 id="文件-1"><a href="#文件-1" class="headerlink" title="文件"></a>文件</h3><ul>
+<li>文件属性<code>chgrp</code>、<code>chown</code>、<code>chmod</code>、<code>umask</code> <a href="[Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)">^3</a><ul>
+<li><code>chgrp</code> 改变文件所属群组。<code>chgrp [-R] 组名 文件或目录</code><ul>
+<li><code>-R</code> 递归设置子目录下所有文件和目录</li>
+</ul>
+</li>
+<li><code>chown</code> 改变文件/目录拥有者。如：<code>chown [-R] aezo /home/aezo</code></li>
+<li><code>chmod</code> 改变文件的权限。<ul>
+<li>数字类型改变文件权限 <code>chmod [-R] xyzw 文件或目录</code> 如：<code>chmod -R 755 /home/ftproot</code><ul>
+<li>x : 可有可无,代表的是特殊权限,即 SUID/SGID/SBIT。yzw : 就是刚刚提到的数字类型的权限属性，为 rwx 属性数值的相加</li>
+<li>各权限的分数对照表为：r:4、w:2、x:1、SUID:4、SGID:2、SBIT:1。如rwx = 4+2+1 = 7，r-s = 4+1 = 5</li>
+</ul>
+</li>
+<li>符号类型改变文件权限 <code>chmod 对象 操作符 文件/目录</code><ul>
+<li>对象取值为<code>ugoa</code>：u=user, g=group, o=others, a=all</li>
+<li>操作符取值为：<code>+-=</code>：+ 为增加，- 为除去，= 为设定</li>
+<li>如：<code>chmod u=rwx,go=rx test</code>、<code>chmod g+s,o+t test</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>umask</code> 创建文件时的默认权限<ul>
+<li><code>umask</code> 查看umask分数值。如0022(一般umask分数值指后面三个数字)<ul>
+<li><code>umask -S</code> 查看umask。如u=rwx,g=rx,o=rx</li>
+</ul>
+</li>
+<li>系统默认新建文件的权限为666(3个rw)，文件夹为777(3个rwx)。最终新建文件的默认权限为系统默认权限减去umask分数值。如umask为002，新建的文件为-rw-r–r–，文件夹为drw-r-xr-x</li>
+</ul>
+</li>
+<li>常用命令<ul>
+<li><code>find . -type d -exec chmod 755 {} \;</code> 修改当前目录的所有目录为775</li>
+<li><code>find . -type f -exec chmod 644 {} \;</code> 修改当前目录的所有文件为644</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="ssh-2"><a href="#ssh-2" class="headerlink" title="ssh ^2"></a>ssh <a href="[ssh登录](http://www.linuxidc.com/Linux/2016-03/129204.htm)">^2</a></h2><h3 id="ssh介绍"><a href="#ssh介绍" class="headerlink" title="ssh介绍"></a>ssh介绍</h3><ol>
+<li>SSH是建立在传输层和应用层上面的一种安全的传输协议。SSH目前较为可靠，专为远程登录和其他网络提供的安全协议。在主机远程登录的过程中有两种认证方式：<ul>
+<li><code>基于口令认证</code>：只要你知道自己帐号和口令，就可以登录到远程主机。所有传输的数据都会被加密，但是不能保证你正在连接的服务器就是你想连接的服务器。可能会有别的服务器在冒充真正的服务器，也就是受到“中间人”这种方式的攻击。</li>
+<li><code>基于秘钥认证</code>：需要依靠秘钥，也就是你必须为自己创建一对秘钥，并把公用的秘钥放到你要访问的服务器上，客户端软件就会向服务器发出请求，请求用你的秘钥进行安全验证。服务器收到请求之后，现在该服务器你的主目录下寻找你的公用秘钥，然后吧它和你发送过来的公用秘钥进行比较。弱两个秘钥一致服务器就用公用秘钥加密“质询”并把它发送给客户端软件，客户端软件收到质询之后，就可以用你的私人秘钥进行解密再把它发送给服务器。</li>
+</ul>
+</li>
+<li>用基于秘钥认证，你必须要知道自己的秘钥口令。但是与第一种级别相比，这种不需要再网络上传输口令。第二种级别不仅加密所有传送的数据，而且“中间人”这种攻击方式也是不可能的（因为他没有你的私人密匙）。但是整个登录的过程可能需要10秒。</li>
+</ol>
+<h3 id="查看SSH服务"><a href="#查看SSH服务" class="headerlink" title="查看SSH服务"></a>查看SSH服务</h3><p>CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下命令来查看ssh服务是否启动</p>
+<ol>
+<li>查看开放的端口 <code>netstat -tnl</code> ssh默认端口为22</li>
+<li>查看服务是否启动 <code>systemctl status sshd.service</code> 查看ssh服务是否启动</li>
+</ol>
+<h3 id="SSH客户端连接服务器（口令认证）"><a href="#SSH客户端连接服务器（口令认证）" class="headerlink" title="SSH客户端连接服务器（口令认证）"></a>SSH客户端连接服务器（口令认证）</h3><ol>
+<li>直接连接到对方的主机，这样登录服务器的默认用户<ul>
+<li><code>ssh 192.168.1.1</code> 回车输入密码即可</li>
+<li><code>exit</code> 退出登录</li>
+</ul>
+</li>
+<li>使用账号登录对方主机aezocn用户<ul>
+<li><code>ssh aezocn@192.168.1.1</code></li>
+</ul>
+</li>
+</ol>
+<h3 id="SSH客户端连接服务器（秘钥认证）"><a href="#SSH客户端连接服务器（秘钥认证）" class="headerlink" title="SSH客户端连接服务器（秘钥认证）"></a>SSH客户端连接服务器（秘钥认证）</h3><ol>
+<li>命令行生成<ul>
+<li>生成公钥(.pub)和私钥(.ppk)<ul>
+<li><code>ssh-keygen</code> 运行命令后再按三次回车会看到<code>RSA</code>（生成的秘钥默认路径为<code>/root/.ssh/</code>，会包括<code>id_rsa</code>(密钥)、<code>id_rsa.pub</code>(公钥)、<code>known_hosts</code> 3 个文件）</li>
+</ul>
+</li>
+<li>把生成的公钥发送到对方的主机上去（在本地为服务器生成公钥）<ul>
+<li><code>ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1</code> （自动保存在对方主机的<code>/root/.ssh/authorized_keys</code>文件中去）</li>
+<li>输入该服务器密码实现发送</li>
+</ul>
+</li>
+<li>登录该服务器：<code>ssh 192.168.1.1</code> 此时不需要输入密码（默认生成密钥的服务器已经有了私钥）</li>
+<li><strong>注：</strong> 如果是为了让root用户登录则将公钥放入到/root/.ssh目录；如果密钥提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下。<code>.ssh</code>目录默认已经存在（可通过<code>ll -al</code>查看）</li>
+</ul>
+</li>
+<li>Putty/WinSCP 和 xshell/xftp<ul>
+<li>Putty是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。它包含Puttygen等工具，Puttygen可用于生成公钥和密钥（还可以将如AWS亚马逊云的密钥文件.pem转换为.ppk的通用密钥文件）<ul>
+<li>在知道密钥文件时，可以通过Putty连接到服务器(命令行)，通过WinSCP连接到服务器的文件系统(FTP形式显示)</li>
+<li>Puttygen使用：<code>类型选择RSA，大小2048</code> - <code>点击生成</code> - <code>鼠标在空白处滑动</code> - <code>保存公钥和密钥</code></li>
+<li>Putty使用：<code>Session的Host Name输入username@ip，端口22</code> - <code>Connection-SSH-Auth选择密钥文件</code> - <code>回到Session，在save session输入一个会话名称</code> - <code>点击保存会话</code> - <code>点击open登录服务器</code> - <code>下次可直接点击会话名称登录</code></li>
+</ul>
+</li>
+<li>xshell/xftp是一个连接ssh的客户端<ul>
+<li>登录方法：连接 - 用户身份验证 - 方法选择”public key” 公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录<code>mv /home/aezo/id_rsa.pub /home/aezo/.ssh/authorized_keys</code>)。必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="定时任务-4"><a href="#定时任务-4" class="headerlink" title="定时任务 ^4"></a>定时任务 <a href="[定时任务](http://www.360doc.com/content/16/1013/10/15398874_598063092.shtml)">^4</a></h2><ol>
+<li><p>配置式</p>
+<ul>
+<li><p>添加定时配置：<code>sudo vim /etc/crontab</code>，配置说明如下，如：<code>30 2 1 * * root /sbin/reboot</code>表示每月第一天的第2个小时的第30分钟，使用root执行命令/sbin/reboot(重启)</p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> Example of job definition:</span></div><div class="line"><span class="meta">#</span><span class="bash"> .---------------- minute (0 - 59)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  .------------- hour (0 - 23)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  .---------- day of month (1 - 31)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  |</span></div><div class="line"><span class="meta">#</span><span class="bash"> *  *  *  *  * user-name  <span class="built_in">command</span> to be executed</span></div><div class="line"><span class="meta">#</span><span class="bash"> (1) 其中用户名一般可以省略</span></div><div class="line"><span class="meta">#</span><span class="bash"> (2) 精确到秒解决方案, 以下3行表示每20秒执行一次</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 20; user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 40; user-name my-command</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>systemctl reload crond</code> 重新加载配置</p>
+</li>
+<li><code>systemctl restart crond</code> 重启crond</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p>参考文章</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/shell/" rel="tag"># shell</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/17/design/2016-07-17-uml/" rel="next" title="UML">
+                <i class="fa fa-chevron-left"></i> UML
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/14/middleware/2016-08-14-rabbitmq/" rel="prev" title="RabbitMQ">
+                RabbitMQ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统命令"><span class="nav-number">1.</span> <span class="nav-text">系统命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统"><span class="nav-number">2.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘"><span class="nav-number">2.1.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件"><span class="nav-number">2.2.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件夹-目录"><span class="nav-number">2.3.</span> <span class="nav-text">文件夹/目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩包-推荐tar-1"><span class="nav-number">2.4.</span> <span class="nav-text">压缩包(推荐tar) ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限系统"><span class="nav-number">3.</span> <span class="nav-text">权限系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户"><span class="nav-number">3.1.</span> <span class="nav-text">用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-2"><span class="nav-number">4.</span> <span class="nav-text">ssh ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh介绍"><span class="nav-number">4.1.</span> <span class="nav-text">ssh介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看SSH服务"><span class="nav-number">4.2.</span> <span class="nav-text">查看SSH服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（口令认证）"><span class="nav-number">4.3.</span> <span class="nav-text">SSH客户端连接服务器（口令认证）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（秘钥认证）"><span class="nav-number">4.4.</span> <span class="nav-text">SSH客户端连接服务器（秘钥认证）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务-4"><span class="nav-number">5.</span> <span class="nav-text">定时任务 ^4</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

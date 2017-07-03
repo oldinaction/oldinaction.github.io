@@ -1,0 +1,879 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="system,install,disk,bois," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  Ubuntu介绍 Ubuntu（乌班图）是一个以桌面应用为主的Linux操作系统，是比较流行的一款linux桌面系统，还有如：Ubuntu是属于Debian系列、CentOS则是属于Redhat系列 Ubuntu下载地址：http://releases.ubuntu.com/ 本文以Ubuntu 16.04.1 LTS为例记录U盘、硬盘安装方法(windows安装类似)  B">
+<meta name="keywords" content="system,install,disk,bois">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ubuntu">
+<meta property="og:url" content="http://blog.aezo.cn/2016/11/20/linux/2017-04-24-ubuntu/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  Ubuntu介绍 Ubuntu（乌班图）是一个以桌面应用为主的Linux操作系统，是比较流行的一款linux桌面系统，还有如：Ubuntu是属于Debian系列、CentOS则是属于Redhat系列 Ubuntu下载地址：http://releases.ubuntu.com/ 本文以Ubuntu 16.04.1 LTS为例记录U盘、硬盘安装方法(windows安装类似)  B">
+<meta property="og:updated_time" content="2017-04-24T05:10:10.361Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ubuntu">
+<meta name="twitter:description" content="目录{:toc}  Ubuntu介绍 Ubuntu（乌班图）是一个以桌面应用为主的Linux操作系统，是比较流行的一款linux桌面系统，还有如：Ubuntu是属于Debian系列、CentOS则是属于Redhat系列 Ubuntu下载地址：http://releases.ubuntu.com/ 本文以Ubuntu 16.04.1 LTS为例记录U盘、硬盘安装方法(windows安装类似)  B">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/11/20/linux/2017-04-24-ubuntu/"/>
+
+
+
+
+
+  <title>Ubuntu | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/11/20/linux/2017-04-24-ubuntu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Ubuntu</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-20T13:16:00+08:00">
+                2016-11-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index">
+                    <span itemprop="name">linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="Ubuntu介绍"><a href="#Ubuntu介绍" class="headerlink" title="Ubuntu介绍"></a>Ubuntu介绍</h2><ol>
+<li><code>Ubuntu</code>（乌班图）是一个以桌面应用为主的<code>Linux</code>操作系统，是比较流行的一款linux桌面系统，还有如：<code>Ubuntu</code>是属于<code>Debian</code>系列、<code>CentOS</code>则是属于<code>Redhat</code>系列</li>
+<li>Ubuntu下载地址：<a href="http://releases.ubuntu.com/" target="_blank" rel="external">http://releases.ubuntu.com/</a></li>
+<li>本文以<code>Ubuntu 16.04.1 LTS</code>为例记录U盘、硬盘安装方法(windows安装类似)</li>
+</ol>
+<h2 id="Bios、分区、MBR"><a href="#Bios、分区、MBR" class="headerlink" title="Bios、分区、MBR"></a>Bios、分区、MBR</h2><ol>
+<li>设置电脑U盘启动<ul>
+<li>我在电脑启动时按F12即可进入Bios界面（进入Bios的快捷键一般为ESC/F1/F11/F12等，可以网上查询电脑型号对应的启动Bios快捷键）</li>
+<li>找到<code>Boot</code>选项(或者<code>启动选项</code>等字眼)，调整<code>USB</code>相关的选项到顶部(即优先U盘或者移动硬盘启动)</li>
+</ul>
+</li>
+<li>电脑分区 <a href="[https://zhidao.baidu.com/question/512380327.html](https://zhidao.baidu.com/question/512380327.html)">^1</a><ul>
+<li>windows进入分区界面：右键我的电脑 -&gt; 管理 -&gt; 存储 -&gt; 磁盘管理<ul>
+<li>扩展卷：将未使用的磁盘扩展到当前卷</li>
+<li>压缩卷：将当前卷未使用的空间压缩一定大小为未使用磁盘</li>
+</ul>
+</li>
+<li>硬盘分区一般只能有4个主分区，其他都为逻辑分区，打开磁盘管理，根据图示，一般可从做到右获取到分区的表达方式<ul>
+<li><code>(hd0, 1)</code> 表示第一块硬盘第二主分区; <code>(hd1, 4)</code> 表示第二块硬盘的第一逻辑分区(如移动硬盘，不论硬盘是否达到了4个主分区，逻辑分区都是从4开始计算)</li>
+</ul>
+</li>
+<li>linux上对磁盘和分区的命名<ul>
+<li><code>hda</code> 一般是指IDE接口的硬盘，hda一般指第一块硬盘，类似的有hdb,hdc等</li>
+<li><code>sda</code> 一般是指SATA接口的硬盘，sda一般指第一块硬盘，类似的有sdb,sdc等</li>
+<li>现在的内核都会把硬盘，移动硬盘，U盘之类的识别为sdX的形式</li>
+<li>分区同上，4个主分区，其他为逻辑分区。但是linux上<code>sda1</code>才表示为第一主分区，以此类推</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>MBR</code>: Master Boot Record. 即主引导记录，常被叫做引导程序 <a href="[http://www.2cto.com/os/201202/120564.html](http://www.2cto.com/os/201202/120564.html)">^2</a><ul>
+<li>操作系统启动过程中有 一个很重要的引导程序——MBR。MBR是由三段组成的其中最重要的两段：是由446个字节组成的boot locader（引导加载器），和64个字节的分区表。在MBR的446字节也就是boot locader这段程序对于引导操作系统很重要。Linux中有两种boot locader可选，一种是LILO,一种就是GRUB。LILO现在已不用了。现在主要是使用GRUB来引导</li>
+<li>GRUB是两段式的引导，第一阶段称为stage1,是存放在MBR中，主要来引导第二阶段stage2 这段主要放在/boot/grub/中的执行程序，主要是grub.conf这个文件</li>
+</ul>
+</li>
+<li>文件系统<ul>
+<li><code>NTFS</code> 为windows专用文件，具有良好的加密性，由于<code>FAT</code>、<code>FAT32</code>(linux可以失败)</li>
+<li><code>EXT4</code> 为Linux系统下的日志文件系统，是ext2、ext3的后续版本</li>
+</ul>
+</li>
+</ol>
+<h2 id="Ubuntu安装"><a href="#Ubuntu安装" class="headerlink" title="Ubuntu安装"></a>Ubuntu安装</h2><p>Ubuntu安装方式分为两种：物理安装和虚拟安装。</p>
+<ul>
+<li>物理安装：LiveCD、U盘、硬盘(包括移动硬盘)</li>
+<li>虚拟安装：WUBI、虚拟机。缺点：需要依赖于主系统，如windows</li>
+</ul>
+<h3 id="U盘安装-3"><a href="#U盘安装-3" class="headerlink" title="U盘安装 ^3"></a>U盘安装 <a href="[http://www.linuxidc.com/Linux/2014-10/108402.htm](http://www.linuxidc.com/Linux/2014-10/108402.htm)">^3</a></h3><ol>
+<li>首先下载好ubuntu64位镜像文件<code>ubuntu-16.04.1-desktop-amd64.iso</code>（进入<a href="http://releases.ubuntu.com/16.04/" target="_blank" rel="external">http://releases.ubuntu.com/16.04/</a>，找到<code>64-bit PC (AMD64) desktop image</code>）</li>
+<li>MD5校验：防止下载文件损坏（找到上述网址中的<code>MD5SUMS</code>文件，即可看到<code>17643c29e3c4609818f26becf76d29a3 *ubuntu-16.04.1-desktop-amd64.iso</code>）</li>
+<li>下载安装<code>UltraISO</code>，无需注册可以一直试用</li>
+<li>打开<code>UltraISO</code> -&gt; 文件 -&gt; 打开 -&gt; 选择ubuntu的iso镜像文件 -&gt; 启动 -&gt; 写入硬盘映像(硬盘驱动器选择U盘，写入方式USB-HDD+) -&gt; 写入(2分钟左右)。此时U盘已经刻录好系统</li>
+<li>将硬盘腾出一个未使用的空间，大小自己定义</li>
+<li>Bios启动 -&gt; 进入到刻录的U盘系统 -&gt; <code>Install Ubuntu</code>（或者选择使用而不安装，进入之后还是可以安装） -&gt; 点击桌面的<code>安装Ubuntu 16.04.1 LTS</code>进行安装 -&gt; 前面一直下一步，到安装类型选择“其他选项”（可以自己创建调整分区）</li>
+<li>选择“空闲”的磁盘，双击进行分区，主要分3个区<code>/</code>、<code>swap</code>、<code>/home</code>（还有其他分区方案）<ul>
+<li><code>/</code>：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点<code>/</code></li>
+<li><code>swap</code>：大小&lt;2G。逻辑分区，文件类型为交换空间，挂载点无</li>
+<li><code>/home</code>：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点<code>/home</code></li>
+</ul>
+</li>
+<li>安装启动引导的设备：选择<code>/</code>分区，如果有<code>/boot</code>分区则选择<code>/boot</code>分区</li>
+<li>一路下一步即可安装完成，重新启动即可。</li>
+</ol>
+<h3 id="硬盘安装-4"><a href="#硬盘安装-4" class="headerlink" title="硬盘安装 ^4"></a>硬盘安装 <a href="[http://v.youku.com/v_show/id_XMzEwODg2Njk2.html?f=16157628&amp;from=y1.2-3.2](http://v.youku.com/v_show/id_XMzEwODg2Njk2.html?f=16157628&amp;from=y1.2-3.2)">^4</a></h3><ol>
+<li><p>下载<code>EasyBCD</code> -&gt; 安装后打开 -&gt; 添加新条目 -&gt; NeoGrub -&gt; 安装 -&gt; 配置 -&gt; 在打开的配置文件（C:/NST/menu.lst）中写入如下代码。其中ro只读，splash显示启动画面；reboot重启；halt关机；<a href="[http://www.njliaohua.com/lhd_01ng13y9qv7k6x46aj4e_11.html](http://www.njliaohua.com/lhd_01ng13y9qv7k6x46aj4e_11.html)">^6</a> (hd0,0) 一般会是表示C盘，实际按照上述知识自行配置</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">title Install Ubuntu</div><div class="line">root (hd0,0)</div><div class="line">kernel (hd0,0)/vmlinuz.efi boot=casper iso-scan/filename=/ubuntu-16.04.1-desktop-amd64.iso ro splash  locale=zh_CN.UTF-8</div><div class="line">initrd (hd0,0)/initrd.lz</div><div class="line">title reboot</div><div class="line">reboot</div><div class="line">title halt</div><div class="line">halt</div></pre></td></tr></table></figure>
+</li>
+<li><p>将<code>ubuntu-16.04.1-desktop-amd64.iso</code>中casper文件夹下的initrd.lz和vmlinuz.efi复制到C盘根目录，并将镜像也复制进去。</p>
+</li>
+<li>重启电脑，启动界面选择<code>NeoGrub</code></li>
+<li>如果成功则会进入到buntu的桌面，首先<code>Ctrl+Alt+T</code>打开终端打开终端，运行<code>sudo umount -l /isodevice</code>去掉挂载的镜像文件</li>
+<li>安装U盘安装进行后续操作</li>
+</ol>
+<h3 id="移动硬盘安装-7"><a href="#移动硬盘安装-7" class="headerlink" title="移动硬盘安装 ^7"></a>移动硬盘安装 <a href="[http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124](http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124)">^7</a></h3><p>实况记录</p>
+<ol>
+<li>可用U盘中刻录的系统进行移动硬盘安装</li>
+<li>移动硬盘如果已经分区了，则最后留出前面一段装Ubuntu系统，防止启动时引导不成功，</li>
+<li>如第一段500G未分配，第二段1500G为NTFS文件系统，且电脑只有一块内置硬盘，分区按照上述分区<ul>
+<li>分好区后，<code>/</code>显示为<code>/dev/sdb2</code>；<code>swap</code>显示为<code>/dev/sdb5</code>；<code>/home</code>显示为<code>/dev/sdb6</code></li>
+<li>于是将安装启动引导的设备选择为<code>/dev/sdb2</code>。如果选择内置硬盘，则标识通过Grub来启动Ubuntu或者windows，当拔掉移动硬盘可以windows无法启动。选择<code>/dev/sdb2</code>则需要按照通过EasyBCD等程序进行引导启动Ubuntu</li>
+<li>此时使用电脑<code>compac 14</code>启动无法直接进入Ubuntu系统，需要按<code>F9</code>选择启动项(已经在Bios中设置了启动优先级也无效)<ul>
+<li>选择Efi启动可以（Efi -&gt; ubuntu -&gt; grubx64.efi）</li>
+<li>此时启动项中还会多出一个ubuntu(TS…..)，直接选择即可启动</li>
+<li>选择移动硬盘无法启动，按照文章 <a href="[http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124](http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124)">^7</a> 可以解决此问题，但是仍然需要按<code>ESC -&gt; F9</code>进行选择 (结合文章 <a href="[http://www.educity.cn/linux.1589874.html](http://www.educity.cn/linux.1589874.html)">^8</a> )。测试时必须将<code>grldr</code>放在<code>NTFS</code>那个分区，<code>menu.lst</code>可放在<code>NTFS</code>分区或者<code>sdb2</code>即根分区</li>
+</ul>
+</li>
+<li>按照文章 <a href="[http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124](http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124)">^7</a> <code>三、为移动使用做准备</code> 操作失败，且附加中的<code>grldr</code>文件不适用，可下载此文件 <a href="http://download.csdn.net/detail/hcx25909/5464025" target="_blank" rel="external">http://download.csdn.net/detail/hcx25909/5464025</a></li>
+</ul>
+</li>
+<li><p>(2017-02-16已解决，见下文) 使用电脑<code>Tinkpad E425</code>都未安装成功，U盘安装卡在logo页面；硬盘安装则报错<code>Error 13 invalid or unsupported executable format</code>；对于已经安装好的移动硬盘也是无法启动，于是利用U盘镜像进入到<code>Grub</code>命令行(也连接了移动硬盘)，运行一下命令仍然卡在命令行启动的最后一步。其中进入命令行后可输入<code>root (hd</code>，按<code>Tab</code>键进行提示磁盘</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">root (hd1,1)</div><div class="line">kernel (hd1,1)/vmlinuz root=/dev/sdb2 ro splash</div><div class="line">initrd (hd1,1)/initrd.img</div><div class="line">boot</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h3><ol>
+<li>2017-02-16解决ThinkPad E425在安装Ubuntu卡在安装界面的问题 [^9]<ul>
+<li>原因：主板BIOS设置中设置为双显卡切换的模式的时候，会出现这个问题</li>
+<li>解决方案：开机长按F1，进入BIOS设置。在config-&gt;Display-&gt;Graphics Device 设置显卡的模式为集成显卡 Integrated Graphics</li>
+</ul>
+</li>
+<li>2017-04-24解决ubuntu启动长时间黑屏问题<ul>
+<li>自己的笔记本是thinkpad e425，双显卡，装ubuntu一直卡在启动页面上，后来在bios中关闭了独显，所以成功将ubuntu装上<br>之后，开机时候直至显示用户登陆的页面时，屏幕都是黑屏</li>
+<li>安装 v86d 和 hwinfo，然后查看显卡支持的分辨率<ul>
+<li><code>sudo apt-get install v86d hwinfo</code></li>
+<li><code>sudo hwinfo --framebuffer</code></li>
+</ul>
+</li>
+<li>编辑<code>/etc/default/grub</code>，添加<code>GRUB_GFXPAYLOAD_LINUX=1024×768x24</code></li>
+<li>启用framebuffer：<code>echo FRAMEBUFFER=y | sudo tee /etc/initramfs-tools/conf.d/splash</code></li>
+<li>更新设置<ul>
+<li><code>sudo update-grub</code></li>
+<li><code>sudo update-grub2</code></li>
+<li><code>sudo update-initramfs -u</code></li>
+</ul>
+</li>
+<li>重启</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p>参考文章</p>
+<p>[^9]: <a href="http://blog.csdn.net/u014466412/article/details/53666122" target="_blank" rel="external">ThinkPad E425在安装Ubuntu卡在安装界面</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/system/" rel="tag"># system</a>
+          
+            <a href="/tags/install/" rel="tag"># install</a>
+          
+            <a href="/tags/disk/" rel="tag"># disk</a>
+          
+            <a href="/tags/bois/" rel="tag"># bois</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/20/extend/2017-04-24-gitlab/" rel="next" title="gitlab">
+                <i class="fa fa-chevron-left"></i> gitlab
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/11/db/2016-12-11-derby/" rel="prev" title="derby">
+                derby <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ubuntu介绍"><span class="nav-number">1.</span> <span class="nav-text">Ubuntu介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bios、分区、MBR"><span class="nav-number">2.</span> <span class="nav-text">Bios、分区、MBR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ubuntu安装"><span class="nav-number">3.</span> <span class="nav-text">Ubuntu安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#U盘安装-3"><span class="nav-number">3.1.</span> <span class="nav-text">U盘安装 ^3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#硬盘安装-4"><span class="nav-number">3.2.</span> <span class="nav-text">硬盘安装 ^4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移动硬盘安装-7"><span class="nav-number">3.3.</span> <span class="nav-text">移动硬盘安装 ^7</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见问题"><span class="nav-number">3.4.</span> <span class="nav-text">常见问题</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

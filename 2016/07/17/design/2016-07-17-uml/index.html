@@ -1,0 +1,926 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="UML," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  UML介绍 UML(Unified Modeling Language): 统一建模语言，是一种图形化的语言，它可以帮助我们在OOAD过程中标识元素、构建模块、分析过程并可通过文档说明系统中的重要细节。   OO(Object Oriented)：面向对象 OOAD(OOA&amp;amp;D)：面向对象的分析与设计 OOP(Object Oriented Programming)：">
+<meta name="keywords" content="UML">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UML">
+<meta property="og:url" content="http://blog.aezo.cn/2016/07/17/design/2016-07-17-uml/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  UML介绍 UML(Unified Modeling Language): 统一建模语言，是一种图形化的语言，它可以帮助我们在OOAD过程中标识元素、构建模块、分析过程并可通过文档说明系统中的重要细节。   OO(Object Oriented)：面向对象 OOAD(OOA&amp;amp;D)：面向对象的分析与设计 OOP(Object Oriented Programming)：">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/依赖.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/导航性.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/角色.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/多重性.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/聚合和组合.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/泛化.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/实现.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/UML建模图.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/用例图.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/08/用例图.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/类图.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/顺序图.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/协作图.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/08/状态图.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/08/活动图.png">
+<meta property="og:updated_time" content="2017-06-30T05:14:10.004Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UML">
+<meta name="twitter:description" content="目录{:toc}  UML介绍 UML(Unified Modeling Language): 统一建模语言，是一种图形化的语言，它可以帮助我们在OOAD过程中标识元素、构建模块、分析过程并可通过文档说明系统中的重要细节。   OO(Object Oriented)：面向对象 OOAD(OOA&amp;amp;D)：面向对象的分析与设计 OOP(Object Oriented Programming)：">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/07/依赖.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/07/17/design/2016-07-17-uml/"/>
+
+
+
+
+
+  <title>UML | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/17/design/2016-07-17-uml/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">UML</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-17T11:01:00+08:00">
+                2016-07-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/design/" itemprop="url" rel="index">
+                    <span itemprop="name">design</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="UML介绍"><a href="#UML介绍" class="headerlink" title="UML介绍"></a>UML介绍</h2><ol>
+<li><p><code>UML</code>(Unified Modeling Language): 统一建模语言，是一种图形化的语言，它可以帮助我们在OOAD过程中标识元素、构建模块、分析过程并可通过文档说明系统中的重要细节。</p>
+<blockquote>
+<ul>
+<li><code>OO</code>(Object Oriented)：面向对象</li>
+<li><code>OOAD</code>(OOA&amp;D)：面向对象的分析与设计</li>
+<li><code>OOP</code>(Object Oriented Programming)：面向对象编程</li>
+<li>OOP的主要特征：<code>抽象</code>(abstract)、<code>封装</code>(encapsulation)、<code>继承</code>(inheritance)、<code>多态</code>(polymorphism)、<code>关联</code>(association)、<code>聚合</code>(aggregation)、<code>组合</code>(composition)、<code>内聚与耦合</code>(cohesion &amp; coupling)</li>
+<li><code>RUP</code>(Rational Unified Process)：统一过程，是一个采用面向对象思想，使用UML作为软件分析设计语言，并结合了项目管理、质量管理等软件工程知识综合而成的软件方法。RUP分为四个阶段：<code>初始</code>，<code>精化</code>，<code>构建</code>（编码），<code>交付</code>（使用部署图）。RUP拥抱了需求的变化，好于瀑布式开发（照搬建筑模型，需求变化后修改很麻烦）</li>
+</ul>
+</blockquote>
+</li>
+<li>UML包括：事物、关系、图、扩展机制</li>
+<li>事物包括：<ul>
+<li>结构：类、接口、构件、节点等</li>
+<li>行为：交互（消息）、状态等</li>
+<li>分组：包、子系统等</li>
+<li>注释：注释</li>
+</ul>
+</li>
+<li><strong>关系</strong> 包括：<code>依赖</code>、<code>关联</code>、<code>泛化</code>(extend、继承)、<code>实现</code></li>
+<li><strong>九种建模图</strong> 即：<code>用例图</code>(User Case)、<code>类图</code>、<code>对象图</code>、<code>顺序图</code>(Sequence)、<code>协作图</code>(Collaboration)、<code>状态图</code>(Statechart)、<code>活动图</code>(Activity)、<code>组件图</code>、<code>配置图</code></li>
+<li>使用UML完成项目顺序<ol>
+<li>完成User Case以及document</li>
+<li>对于比较复杂的User Case 使用Activity活动图辅助说明或者Sequence顺序图</li>
+<li>根据User Case Document和Activity 分析业务领域的概念，抽象出概念模型</li>
+<li>根据概念模型抽象出类</li>
+<li>分析类的职责与关系做出类图，通常先不做方法，制作属性然后做6，然后根据这抽象出方法</li>
+<li>根据类图制作出Sequence顺序图、Collaboration协作图、Statechart状态图等各种图示</li>
+<li>根据图示重复迭代5-6，直至“完美”，没有完美，够用就行了</li>
+<li>Coding编码</li>
+<li>测试并修改，必要从前面开始改起，或从1，或从5（内部测试）</li>
+<li>部署并与用户一起测试</li>
+<li>从实施与测试的反馈驱动下一次的1-&gt;11（交付用户测试）</li>
+</ol>
+</li>
+</ol>
+<h2 id="关系"><a href="#关系" class="headerlink" title="关系"></a>关系</h2><p>UML中的关系包括：依赖、关联、泛化(extend)、实现</p>
+<ol>
+<li><p><code>依赖</code>(Dependence)：虚线箭头</p>
+<p> <img src="/data/images/2016/07/依赖.png" alt="依赖关系"></p>
+<p> 低耦合：表示要降低跟不稳定的对象之间的依赖关系</p>
+</li>
+<li><p><code>关联</code>(Associations)：实线箭头</p>
+<p> 相关概念：关联名、导航(单向关联/双向关联)、角色、多重性、聚合、组合</p>
+<ul>
+<li><p>导航性：</p>
+<p>  <img src="/data/images/2016/07/导航性.png" alt="导航性"></p>
+</li>
+<li><p>角色：</p>
+<p>  <img src="/data/images/2016/07/角色.png" alt="角色"></p>
+</li>
+<li><p>多重性：</p>
+<p>  <img src="/data/images/2016/07/多重性.png" alt="多重性"></p>
+</li>
+<li><p>聚合和组合（聚合是一种关联，组合是一种聚合）</p>
+<p>  <img src="/data/images/2016/07/聚合和组合.png" alt="聚合和组合"></p>
+</li>
+</ul>
+</li>
+<li><p><code>泛化</code>(Extend、继承)：实线三角箭头</p>
+<p> <img src="/data/images/2016/07/泛化.png" alt="泛化"></p>
+</li>
+<li><p><code>实现</code>(Implement/Realize)：虚线三角箭头</p>
+<p> <img src="/data/images/2016/07/实现.png" alt="实现"></p>
+</li>
+</ol>
+<h2 id="建模图"><a href="#建模图" class="headerlink" title="建模图"></a>建模图</h2><ul>
+<li>用于描述系统结构：<ul>
+<li>用例图：需求捕获，测试依据</li>
+<li>类图：静态系统架构</li>
+<li>对象图：对象之间的关联</li>
+<li>构件图：构件之间的关联</li>
+<li>部署图：构件的物理部署</li>
+</ul>
+</li>
+<li>用于描述系统行为：<ul>
+<li>顺序图：不活User Case 在某个时间场景上时间执行顺序</li>
+<li>协作图：强调对象之间的写作（顺序图与协作图之间可以互相转换，而其中的信息不会丢失）</li>
+<li>状态图：描述关键类生命周期的转化</li>
+<li>活动图：流程图，描述某个方法或User Case的执行过程。</li>
+</ul>
+</li>
+</ul>
+<p>通常合在一块使用，如下图：</p>
+<p><img src="/data/images/2016/07/UML建模图.png" alt="UML建模图"></p>
+<h3 id="用例图-user-case-diagram"><a href="#用例图-user-case-diagram" class="headerlink" title="用例图(user case diagram)"></a>用例图(user case diagram)</h3><ul>
+<li>用例(Use Case)是文本形式的情节描述，用于需求的发现和记录，用例会影响后续的OOA/D工作。用例是一组相关的成功或失败的集合</li>
+<li><p>用例的编写</p>
+<ul>
+<li>用例编号</li>
+<li>用例名</li>
+<li>用例描述</li>
+<li>参与者</li>
+<li>前置条件 //必须满足条件</li>
+<li>后置条件 //用例做完后，对系统的影响</li>
+<li>基本路径(1、2、3、) //最重要，主功能场景，只描述正常成功的场景，不要出现如果….;参与者动作，系统响应</li>
+<li>扩展点(2.a、3.a)</li>
+<li>补充说明 //对基本路径和扩展点的未尽事宜进行描述</li>
+</ul>
+<p><img src="/data/images/2016/07/用例图.png" alt="用例图"></p>
+<p><img src="/data/images/2016/08/用例图.png" alt="用例图"></p>
+</li>
+</ul>
+<h3 id="类图-class-diagram"><a href="#类图-class-diagram" class="headerlink" title="类图(class diagram)"></a>类图(class diagram)</h3><ul>
+<li>UML中使用最多的图形，可用于对概念建模（领域模型）、分析类图</li>
+<li><p>领域模型(domain model)：包括概念、关系、属性，业务领域的概念名词。可用于现实世界与软件实现之间的过渡。</p>
+<p><img src="/data/images/2016/07/类图.png" alt="类图"></p>
+</li>
+</ul>
+<h3 id="顺序图-sequence-diagram-与协作图-collaboration-diagram"><a href="#顺序图-sequence-diagram-与协作图-collaboration-diagram" class="headerlink" title="顺序图(sequence diagram)与协作图(collaboration diagram)"></a>顺序图(sequence diagram)与协作图(collaboration diagram)</h3><ul>
+<li><p>顺序图强调消息时间顺序的交互图</p>
+<p>  <img src="/data/images/2016/07/顺序图.png" alt="顺序图"></p>
+</li>
+<li><p>协作图则是强调发送和接收消息对象的结构组件的交互图</p>
+<p>  <img src="/data/images/2016/07/协作图.png" alt="协作图"></p>
+</li>
+<li><p>Rational Rose中顺序图转协作图：Browse -&gt; Go To Collaboration Diagram</p>
+</li>
+<li>Rational Rose中协作图转顺序图：Browse -&gt; Go To Sequence Diagram</li>
+</ul>
+<h3 id="状态图-statechart-diagram"><a href="#状态图-statechart-diagram" class="headerlink" title="状态图(statechart diagram)"></a>状态图(statechart diagram)</h3><p>  <img src="/data/images/2016/08/状态图.png" alt="状态图"></p>
+<h3 id="活动图-activity-diagram"><a href="#活动图-activity-diagram" class="headerlink" title="活动图(activity diagram)"></a>活动图(activity diagram)</h3><p>  <img src="/data/images/2016/08/活动图.png" alt="活动图"></p>
+<h2 id="StarUML使用-1"><a href="#StarUML使用-1" class="headerlink" title="StarUML使用 ^1"></a>StarUML使用 <a href="[StarUML工具介绍.ppt](https://wenku.baidu.com/view/bfc2d0d610a6f524ccbf85f2.html)">^1</a></h2><ul>
+<li><code>Model Explorer</code> 模型浏览区</li>
+<li><code>Diagram Explorer</code> 建模图浏览区</li>
+<li><code>Properties</code> 设置属性区域，可以修改某个元素的属性，如名称</li>
+<li><code>Documentation</code> 文档注释区域，可以为某个元素添加注释</li>
+<li><code>Attachments</code> 附件区，可以为某个元素添加附件，如图片说明等</li>
+<li>时序图<ul>
+<li>时序图中形如<code>:MyClass</code>的对象可以理解为<code>MyClass</code>的一个实例</li>
+<li>时序图中虚线返回线怎么画?<ul>
+<li>选中这个线，在右下角有个设置属性区域，把ActionKind的值由CALL改为RETURN</li>
+</ul>
+</li>
+<li><code>Combined Fragment</code> 交互片段<ul>
+<li><code>alt</code> 选择性片段，多条件分支；用虚线分割(<code>Interaction Operand</code>)，每个区域代表一个分支</li>
+<li><code>opt</code> 满足条件则执行分支</li>
+<li><code>loop</code> 循环</li>
+<li><code>par</code> 并行执行</li>
+<li><code>region</code> 只能执行一个线程的临界片段</li>
+<li><code>break</code> 中断</li>
+<li><code>assert</code> 断言</li>
+<li><code>ignore</code> 忽略</li>
+</ul>
+</li>
+<li><code>Interaction Operand</code> 结合Combined Fragment使用</li>
+<li><code>Frame</code> 框图，简化时序图复杂度<ul>
+<li><code>sd</code> 框图定义</li>
+<li><code>ref</code> 框图引用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>导出PDF：<code>File</code>-<code>Print</code>-<code>Size(Tile:1-1)</code></li>
+</ul>
+<hr>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/UML/" rel="tag"># UML</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/11/middleware/2016-07-11-rocketmq/" rel="next" title="RocketMQ">
+                <i class="fa fa-chevron-left"></i> RocketMQ
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/21/linux/2016-07-21-linu-system/" rel="prev" title="linux系统命令">
+                linux系统命令 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#UML介绍"><span class="nav-number">1.</span> <span class="nav-text">UML介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关系"><span class="nav-number">2.</span> <span class="nav-text">关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#建模图"><span class="nav-number">3.</span> <span class="nav-text">建模图</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用例图-user-case-diagram"><span class="nav-number">3.1.</span> <span class="nav-text">用例图(user case diagram)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类图-class-diagram"><span class="nav-number">3.2.</span> <span class="nav-text">类图(class diagram)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#顺序图-sequence-diagram-与协作图-collaboration-diagram"><span class="nav-number">3.3.</span> <span class="nav-text">顺序图(sequence diagram)与协作图(collaboration diagram)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#状态图-statechart-diagram"><span class="nav-number">3.4.</span> <span class="nav-text">状态图(statechart diagram)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#活动图-activity-diagram"><span class="nav-number">3.5.</span> <span class="nav-text">活动图(activity diagram)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#StarUML使用-1"><span class="nav-number">4.</span> <span class="nav-text">StarUML使用 ^1</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

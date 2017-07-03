@@ -1,0 +1,802 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="mq,alibaba," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  RocketMQ简介 RocketMQ是阿里巴巴开源的分布式、队列模型的消息中间件。 【GitHub源码】 【下载地址(v3.2.6)】 文档：RocketMQ Developer Guide.pdf  启动RocketMQ服务 启动mqnamesrv.exe（在bin目录下，也有对应Linux的启动程序） 启动mqbroker.exe 最好不要直接双击，而是应该在CMD中输">
+<meta name="keywords" content="mq,alibaba">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ">
+<meta property="og:url" content="http://blog.aezo.cn/2016/07/11/middleware/2016-07-11-rocketmq/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  RocketMQ简介 RocketMQ是阿里巴巴开源的分布式、队列模型的消息中间件。 【GitHub源码】 【下载地址(v3.2.6)】 文档：RocketMQ Developer Guide.pdf  启动RocketMQ服务 启动mqnamesrv.exe（在bin目录下，也有对应Linux的启动程序） 启动mqbroker.exe 最好不要直接双击，而是应该在CMD中输">
+<meta property="og:updated_time" content="2016-10-29T07:19:03.114Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RocketMQ">
+<meta name="twitter:description" content="目录{:toc}  RocketMQ简介 RocketMQ是阿里巴巴开源的分布式、队列模型的消息中间件。 【GitHub源码】 【下载地址(v3.2.6)】 文档：RocketMQ Developer Guide.pdf  启动RocketMQ服务 启动mqnamesrv.exe（在bin目录下，也有对应Linux的启动程序） 启动mqbroker.exe 最好不要直接双击，而是应该在CMD中输">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/07/11/middleware/2016-07-11-rocketmq/"/>
+
+
+
+
+
+  <title>RocketMQ | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/11/middleware/2016-07-11-rocketmq/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RocketMQ</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-11T09:26:00+08:00">
+                2016-07-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/middleware/" itemprop="url" rel="index">
+                    <span itemprop="name">middleware</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="RocketMQ简介"><a href="#RocketMQ简介" class="headerlink" title="RocketMQ简介"></a>RocketMQ简介</h2><ul>
+<li>RocketMQ是阿里巴巴开源的分布式、队列模型的消息中间件。</li>
+<li><a href="https://github.com/alibaba/RocketMQ" target="_blank" rel="external">【GitHub源码】</a> <a href="https://github.com/alibaba/RocketMQ/releases/download/v3.2.6/alibaba-rocketmq-3.2.6.tar.gz" target="_blank" rel="external">【下载地址(v3.2.6)】</a></li>
+<li>文档：<a href="/data/doc/middleware/RocketMQ Developer Guide.pdf">RocketMQ Developer Guide.pdf</a></li>
+</ul>
+<h2 id="启动RocketMQ服务"><a href="#启动RocketMQ服务" class="headerlink" title="启动RocketMQ服务"></a>启动RocketMQ服务</h2><ol>
+<li>启动mqnamesrv.exe（在bin目录下，也有对应Linux的启动程序）</li>
+<li>启动mqbroker.exe<ul>
+<li>最好不要直接双击，而是应该在CMD中输入<code>mqbroker.exe -n localhost:9876</code></li>
+<li><code>mqbroker.exe -h</code>查看相关命令帮助</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>关于命令行</p>
+<ol>
+<li>可启动mqadmin.exe查看相关命令（不能直接双击，要在cmd命令行中启动）<ul>
+<li>启动mqadmin.exe后可运行一些命令，如<code>mqadmin topicList -n 192.168.0.1:9876</code>查看该NameServer所有的topic</li>
+<li>可运行<code>mqadmin help 命令</code>或者某个命令的更多帮助</li>
+<li>mqadmin.exe启动后可以新增/更新Topic（因为Broker默认关闭了自动创建Topic功能，可能会导致Producer向Broker发送消息，服务器校验不通过，<a href="https://github.com/alibaba/RocketMQ/issues/38" target="_blank" rel="external">详细issure</a>）</li>
+</ul>
+</li>
+</ol>
+</blockquote>
+<h2 id="Producer生产者"><a href="#Producer生产者" class="headerlink" title="Producer生产者"></a>Producer生产者</h2><h3 id="Producer启动"><a href="#Producer启动" class="headerlink" title="Producer启动"></a>Producer启动</h3><ul>
+<li>一个应用创建一个Producer，由应用来维护此对象，可以设置为全局对象或者单例。</li>
+<li>ProducerGroupName需要由应用来保证唯一。ProducerGroup这个概念发送普通的消息时，作用不大，但是发送分布式事务消息时，比较关键，因为服务器会回查这个Group下的任意一个Producer</li>
+<li>Producer对象在使用之前必须要调用start初始化，初始化一次即可。可伴随应用启动而启动。切记不可以在每次发送消息时，都调用start方法</li>
+<li>代码如下：<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">DefaultMQProducer producer = <span class="keyword">new</span> DefaultMQProducer(<span class="string">"UniqueProducerGroupName"</span>); <span class="comment">// 保证UniqueProducerGroupName唯一</span></div><div class="line">producer.setNamesrvAddr(<span class="string">"127.0.0.1:9876"</span>); <span class="comment">// 设置NameServer地址</span></div><div class="line">producer.setInstanceName(<span class="string">"Producer"</span>); <span class="comment">// 客户端实例名称</span></div><div class="line">producer.start();</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="Producer发送消息"><a href="#Producer发送消息" class="headerlink" title="Producer发送消息"></a>Producer发送消息</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Message msg = <span class="keyword">new</span> Message(<span class="string">"TopicTest1"</span>, <span class="string">"TagA"</span>, <span class="string">"OrderID2016061001"</span>, (<span class="string">"Hello"</span>).getBytes());</div><div class="line">msg.putUserProperty(<span class="string">"orderId"</span>, <span class="string">"OrderID2016061001"</span>); <span class="comment">// 设置参数</span></div><div class="line">SendResult sendResult = producer.send(msg);</div><div class="line">System.out.println(sendResult);</div></pre></td></tr></table></figure>
+<ul>
+<li>此示例中实例化Message的参数分别为Topic(主题，必填唯一)、Tag(该主题下的细化类型，可选)、Key(可选唯一)、Body(消息的body)</li>
+<li>一个应用尽可能用一个 Topic，消息子类型用 tags 来标识</li>
+<li>如果是第一次发送/接收某主题的消息，broker中无此topic，可能会报错(No topic route info in name server for the topic:XXX，无此topic的路由信息)，第二次就不会报错。可以尝试发送消息前就将此topic加到broker中(如运行命令<code>mqadmin updateTopic -b 192.168.0.1:10911 -n 192.168.0.1:9876 -t NewTopicName</code>)</li>
+</ul>
+<h3 id="Producer关闭"><a href="#Producer关闭" class="headerlink" title="Producer关闭"></a>Producer关闭</h3><ul>
+<li>应用退出时，要调用shutdown来清理资源，关闭网络连接，从MetaQ(RocketMQ前身)服务器上注销自己</li>
+<li>建议应用在JBOSS、Tomcat等容器的退出钩子里调用shutdown方法</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">producer.shutdown();</div></pre></td></tr></table></figure>
+<h2 id="Consumer消费者"><a href="#Consumer消费者" class="headerlink" title="Consumer消费者"></a>Consumer消费者</h2><ul>
+<li>一个应用创建一个Consumer，由应用来维护此对象，可以设置为全局对象或者单例</li>
+<li>ConsumerGroupName需要由应用来保证唯一</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">DefaultMQPushConsumer consumer = <span class="keyword">new</span> DefaultMQPushConsumer(<span class="string">"UniqueConsumerGroupName"</span>);</div><div class="line">consumer.setNamesrvAddr(<span class="string">"127.0.0.1:9876"</span>);</div><div class="line">consumer.setInstanceName(<span class="string">"Consumber"</span>);</div><div class="line">consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET); <span class="comment">// 设置Consumer第一次启动是从队列头部开始消费还是队列尾部开始消费，如果非第一次启动，那么按照上次消费的位置继续消费</span></div><div class="line">  consumer.subscribe(<span class="string">"TopicTest1"</span>, <span class="string">"TagA"</span>); <span class="comment">// 订阅指定topic为TopicTest1下TagA类型的消息。一个consumer可订阅多个主题</span></div><div class="line">  consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerConcurrently() &#123;</div><div class="line">      <span class="meta">@Override</span></div><div class="line">      <span class="function"><span class="keyword">public</span> ConsumeConcurrentlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; msgs,</span></span></div><div class="line">              ConsumeConcurrentlyContext context) &#123;</div><div class="line">          <span class="comment">// 开始消费</span></div><div class="line">          System.out.println(Thread.currentThread().getName() + <span class="string">" Receive New Messages: "</span> + msgs);</div><div class="line">          String orderId = msg.getUserProperty(<span class="string">"orderId"</span>); <span class="comment">// 获取参数值</span></div><div class="line">          <span class="keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</div><div class="line">      &#125;</div><div class="line">  &#125;);</div><div class="line">  consumer.start();</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mq/" rel="tag"># mq</a>
+          
+            <a href="/tags/alibaba/" rel="tag"># alibaba</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/07/others/2016-07-07-projectrule/" rel="next" title="项目开发规范">
+                <i class="fa fa-chevron-left"></i> 项目开发规范
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/17/design/2016-07-17-uml/" rel="prev" title="UML">
+                UML <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#RocketMQ简介"><span class="nav-number">1.</span> <span class="nav-text">RocketMQ简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动RocketMQ服务"><span class="nav-number">2.</span> <span class="nav-text">启动RocketMQ服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Producer生产者"><span class="nav-number">3.</span> <span class="nav-text">Producer生产者</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Producer启动"><span class="nav-number">3.1.</span> <span class="nav-text">Producer启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Producer发送消息"><span class="nav-number">3.2.</span> <span class="nav-text">Producer发送消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Producer关闭"><span class="nav-number">3.3.</span> <span class="nav-text">Producer关闭</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Consumer消费者"><span class="nav-number">4.</span> <span class="nav-text">Consumer消费者</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

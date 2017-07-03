@@ -1,0 +1,1039 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ssh,mvc," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  介绍 struts2是 struts1和WebWork的结合 struts2的本质就是将请求与视图分开 (struts2原理：视频09) 官网：http://struts.apache.org/, 下文基于版本2.3.24(当前更新到2.5.10) 所需jar包：struts2/lib下的jar包  12345678commons-fileupload-1.3.1.jarco">
+<meta name="keywords" content="ssh,mvc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="struts2">
+<meta property="og:url" content="http://blog.aezo.cn/2017/05/06/java/2017-05-06-struts2/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  介绍 struts2是 struts1和WebWork的结合 struts2的本质就是将请求与视图分开 (struts2原理：视频09) 官网：http://struts.apache.org/, 下文基于版本2.3.24(当前更新到2.5.10) 所需jar包：struts2/lib下的jar包  12345678commons-fileupload-1.3.1.jarco">
+<meta property="og:updated_time" content="2017-06-02T02:57:06.818Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="struts2">
+<meta name="twitter:description" content="目录{:toc}  介绍 struts2是 struts1和WebWork的结合 struts2的本质就是将请求与视图分开 (struts2原理：视频09) 官网：http://struts.apache.org/, 下文基于版本2.3.24(当前更新到2.5.10) 所需jar包：struts2/lib下的jar包  12345678commons-fileupload-1.3.1.jarco">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2017/05/06/java/2017-05-06-struts2/"/>
+
+
+
+
+
+  <title>struts2 | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/05/06/java/2017-05-06-struts2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">struts2</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-06T18:06:00+08:00">
+                2017-05-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
+<li>struts2是 struts1和WebWork的结合</li>
+<li><strong>struts2的本质就是将请求与视图分开</strong> (struts2原理：<strong>视频09</strong>)</li>
+<li>官网：<a href="http://struts.apache.org/" target="_blank" rel="external">http://struts.apache.org/</a>, 下文基于版本2.3.24(当前更新到2.5.10)</li>
+<li><p>所需jar包：struts2/lib下的jar包</p>
+ <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">commons-fileupload-1.3.1.jar</div><div class="line">commons-io-2.2.jar</div><div class="line">commons-lang3-3.2.jar</div><div class="line">freemarker-2.3.22.jar</div><div class="line">javassist-3.11.0.GA.jar</div><div class="line">ognl-3.0.6.jar</div><div class="line">struts2-core-2.3.24.1.jar</div><div class="line">xwork-core-2.3.24.1.jar</div></pre></td></tr></table></figure>
+</li>
+<li><p>struts知识点</p>
+<ul>
+<li>Action<ul>
+<li>a)namespace（掌握）</li>
+<li>b)path（掌握）</li>
+<li>c)DMI（掌握）</li>
+<li>d)wildcard（掌握）</li>
+<li>e)接收参数（掌握前两种）</li>
+<li>f)访问request等（掌握Map IOC方式）</li>
+<li>g)简单数据验证（掌握addFieldError和<code>&lt;s:fieldError&gt;</code>）</li>
+</ul>
+</li>
+<li>Result<ul>
+<li>a)结果类型（掌握四种，重点两种）</li>
+<li>b)全局结果（掌握）</li>
+<li>c)动态结果（了解）</li>
+</ul>
+</li>
+<li><strong>OGNL表达式</strong>（精通）<ul>
+<li>a)# % $</li>
+</ul>
+</li>
+<li>Struts标签<ul>
+<li>a)掌握常用的</li>
+</ul>
+</li>
+<li>声明式异常处理（了解）</li>
+<li>I18N（了解）</li>
+<li>CRUD的过程（最重要是设计与规划）（精通）</li>
+<li>Interceptor的原理（掌握）<strong><em>视频中分析了Struts2源码</em></strong></li>
+<li>类型转换（掌握默认，了解自定义）</li>
+</ul>
+</li>
+</ol>
+<h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><ul>
+<li><p>web.xml中加入</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- struts2的核心拦截器 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">filter</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>struts2<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">filter</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>struts2<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>在src目录新建struts.xml(注意路径为src, 名称为struts.xml)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">struts</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">constant</span> <span class="attr">name</span>=<span class="string">"struts.devMode"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">package</span> <span class="attr">name</span>=<span class="string">"default"</span> <span class="attr">namespace</span>=<span class="string">"/"</span> <span class="attr">extends</span>=<span class="string">"struts-default"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">name</span>=<span class="string">"index"</span>&gt;</span><span class="comment">&lt;!-- 省略class, 则自动调用xwork的一个ActionSupport类 --&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">result</span>&gt;</span>/index.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">action</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">package</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">struts</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>扩展</p>
+<ul>
+<li><p>给jar包导入源码和doc文档</p>
+<blockquote>
+<ul>
+<li>（1）给jar包导入源码(给struts2-core-2.3.24.1.jar导入源码)：右键相应jar包-&gt;properties-&gt;Java Source Attachment-&gt;External location-&gt;External Folder-&gt;D:/Java/struts-2.3.24.1/src/core/src/main/java</li>
+<li>（2）给此jar包导入doc文档：右键相应jar包-&gt;properties-&gt;Javadoc Location-&gt;javadoc URL-&gt;D:/Java/struts-2.3.24.1/docs/struts2-core/apidocs(定位到相应类，按F1，点击javadoc查看相应文档)</li>
+</ul>
+</blockquote>
+</li>
+<li><p>添加XML文件自动提示功能</p>
+<blockquote>
+<ul>
+<li>（1）解压struts-2.3.24.1\lib\struts2-core-2.3.24.1.jar</li>
+<li>（2）记录struts.xml内DOCTYPE的一个值<a href="http://struts.apache.org/dtds/struts-2.3.dtd" target="_blank" rel="external">http://struts.apache.org/dtds/struts-2.3.dtd</a></li>
+<li>（3）Windows-&gt;搜索catalog-&gt;XML catalog-&gt;add-&gt;{Location:struts-2.3.24.1\lib\struts2-core-2.3.24.1\struts-2.3.dtd, Key type:URL, Key:<a href="http://struts.apache.org/dtds/struts-2.3.dtd}" target="_blank" rel="external">http://struts.apache.org/dtds/struts-2.3.dtd}</a></li>
+</ul>
+</blockquote>
+</li>
+<li><p>本地拷贝项目</p>
+<blockquote>
+<ul>
+<li>需要修改Web Context-root(项目右键-&gt;properties-&gt;MyEclipse-&gt;Project Facets-&gt;Web)</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="知识点"><a href="#知识点" class="headerlink" title="知识点"></a>知识点</h2><h3 id="struts-xml"><a href="#struts-xml" class="headerlink" title="struts.xml"></a>struts.xml</h3><ol>
+<li>package</li>
+</ol>
+<ul>
+<li><code>package</code>(是为了区分重名的action，类似于java中的包)<ul>
+<li>name:包名</li>
+<li>namespace:命名空间，此namespace和action中name的值的组合不能重复<ul>
+<li>（1）namespace决定了action的访问路径，默认为””，可以接受所有路径的action</li>
+<li>（2）namespace可以写为/，或者/xxx，或者/xxx/yyy，对应的action访问路径如/index.action，/xxx/index.action，或者/xxx/yyy/index.action(其中index为action的属性name值，后面的.action可省略)</li>
+<li>（3）package和namespace最好用模块来进行命名</li>
+</ul>
+</li>
+<li>extends:继承了那个包，所有的包都继承了<code>struts-default</code>，来自struts2-core-2.3.24.1.jar-&gt;struts-default.xml</li>
+</ul>
+</li>
+<li><code>package</code>&gt;<code>action</code><ul>
+<li>name:此action名称(在浏览器的url中要访问此action就要输入此名称)</li>
+<li>class:当访问此action时，就会调用相应的java类(如果没有就默认访问ActionSupport，ActionSupport是xwork的一个类，他实现了Action接口；<strong>实际中一般使用类继承ActionSupport</strong>)<ul>
+<li><strong>每一个访问请求都会重新new一个对象</strong></li>
+</ul>
+</li>
+<li>method:当访问此action时，要调用相应class类的相应的方法。默认调用<code>execute()</code>方法<ul>
+<li>动态方法调用：添加配置<code>&lt;constant name=&quot;struts.enable.DynamicMethodInvocation&quot; value=&quot;true&quot; /&gt;</code>，使用myAction!myMethod方式调用</li>
+<li>注：除了用method属性指定相应的action调用方法(缺点是产生太多action)；还可以在url地址中动态指定(动态方法调用DMI，使用!，视频13还没测试成功)；实际中多使用通配符</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>package</code>&gt;<code>action</code>&gt;<code>result</code><ul>
+<li>name:此result名称</li>
+<li>原理：访问时，先获取实现了Action接口的类或者其子类的execute()方法的返回值，然后匹配name属性为此返回值的result，再显示此result标签中的页面</li>
+<li>注：属性为successs时可省略此name属性，因为Action接口execute()方法默认返回的是success字符串</li>
+<li>注：默认有<code>SUCCESS</code>/<code>ERROR</code>/<code>INPUT</code>/<code>LOGIN</code>等常量，有时候使用SUCCESS可以解决，但仍用INPUT是为了作区分</li>
+</ul>
+</li>
+</ul>
+<ol>
+<li><p><strong>struts2中的路径问题</strong>（jsp文件中的href路径）</p>
+<ul>
+<li>struts2是根据action的路径而不是jsp路径来确定，所有尽量不要使用相对路径，虽然可以用redirect方式解决，但redirect方式并非必要</li>
+<li>解决办法<ul>
+<li>统一使用绝对路径(JSP页面的绝对路径中第一个”/“指的是服务器的根路径，而不是项目的根路径)</li>
+<li>在jsp中用request.getContextPath()方式来拿到webapp的路径,或者使用myeclipse常用的指定basePath</li>
+<li>参考源码：<code>WebRoot/others/testPath.jsp</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>通配符，可以将配置量降到最低</p>
+ <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- 如果namespace="/" --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">action</span> <span class="attr">name</span>=<span class="string">"*_*"</span> <span class="attr">class</span>=<span class="string">"cn.aezo.wildcard.&#123;1&#125;"</span> <span class="attr">method</span>=<span class="string">"&#123;2&#125;"</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">result</span>&gt;</span>/wildcard/&#123;1&#125;_&#123;2&#125;.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">action</span>&gt;</span></div></pre></td></tr></table></figure>
+<ul>
+<li>注释：{1}表示第一个<em>，{2}表示第二个</em>；如果访问<a href="http://localhost:8080/Student_add，则{1}为Student，{2}为add；匹配是以最佳匹配优先" target="_blank" rel="external">http://localhost:8080/Student_add，则{1}为Student，{2}为add；匹配是以最佳匹配优先</a></li>
+<li>建议使用到<code>*_*</code>，如果*太多程序可读性降低</li>
+</ul>
+</li>
+</ol>
+<h3 id="接收用户传入参数"><a href="#接收用户传入参数" class="headerlink" title="接收用户传入参数"></a>接收用户传入参数</h3><ul>
+<li>（1）用Action属性接收url中的参数</li>
+<li>（2）使用域模型DomainModel接收参数,一般使用的方法(可以同时使用vo/do/dto来对数据进行处理)<ul>
+<li>使用Domain Model时，在url地址中传<strong>user.username</strong>=smalle的话，Struts2会自动根据User类中无参构造方法帮忙new一个对象</li>
+<li>所以此时如果我们有自己的构造方法，则系统不会帮我们自动生成无参构造方法，则一定要自己写上这个无参构造方法供Struts2调用</li>
+</ul>
+</li>
+<li>（3）使用模型驱动ModelDriven接收参数，此方式不常用，但涉及了MVC的概念<br>Struts2中的MVC概念：M是各种类似User的类，V是各种jsp页面，C是各种Action；通过Action控制请求的处理和请求的展现；因此将请求的发生、处理、展现进行了分离</li>
+</ul>
+<h3 id="strtus常量（乱码问题）"><a href="#strtus常量（乱码问题）" class="headerlink" title="strtus常量（乱码问题）"></a>strtus常量（乱码问题）</h3><ul>
+<li>（1）struts2默认的常量都在struts2-core-2.3.24.1.jar-&gt;org.apache.struts2-&gt;default.properties中</li>
+<li>（2）struts2默认编码是UTF-8，设置方法<constant name="struts.i18n.encoding" value="UTF-8"></constant></li>
+<li>（3）internationalization(i18n，指的是i和n之间有18个字母)</li>
+<li>（4）还可以在web.xml中定义一个编码拦截器，在struts2拦截之前做一次编码处理</li>
+</ul>
+<h3 id="数据校验和strtus2标签初步"><a href="#数据校验和strtus2标签初步" class="headerlink" title="数据校验和strtus2标签初步"></a>数据校验和strtus2标签初步</h3><ul>
+<li>（1）在Action中使用<code>this.addFieldError(&quot;errname&quot;, &quot;errmsg&quot;);</code>设定字段错误信息，在JSP页面使用struts2标签<code>&lt;s:fielderror fieldName=&quot;errname&quot;/&gt;</code>获取errmsg</li>
+<li>（2）<code>&lt;%@ taglib uri=&quot;/struts-tags&quot; prefix=&quot;s&quot; %&gt;</code>在jsp页面导入struts2标签；<ul>
+<li>其中uri是文件(struts2-core-2.3.24.1.jar-&gt;META-INF-&gt;struts-tags.tld)中”<uri>/struts-tags</uri>“的值，prefix指标签前缀为s</li>
+</ul>
+</li>
+<li>（3）<code>&lt;s:debug&gt;&lt;/s:debug&gt;</code><!-- 使用debug模式可查看很多可以获取的值 --></li>
+<li>（4）<code>&lt;s:property value=&quot;...&quot;/&gt;</code><!-- 获取debug模式中的Value Stack(直接在value填写Property Name)和Stack Context(又称ActionContext，在value中填写"#key")中的值 --></li>
+</ul>
+<h3 id="action中访问web元素-request、session、application"><a href="#action中访问web元素-request、session、application" class="headerlink" title="action中访问web元素(request、session、application)**"></a>action中访问web元素(request、session、application)**</h3><ul>
+<li>（1）context就是上下文，也可以认为是运行环境，如servletContext就只servlet运行的环境</li>
+<li>（2）使用DI/IoC解决，即实现接口<code>RequestAware</code>、<code>SessionAware</code>、<code>ApplicationAware</code>（<strong>视频21-22</strong>）<ul>
+<li><code>DI</code>: dependency injection依赖注入</li>
+<li><code>IoC</code>: inverse of control控制反转</li>
+</ul>
+</li>
+</ul>
+<h3 id="包含模块配置文件"><a href="#包含模块配置文件" class="headerlink" title="包含模块配置文件"></a>包含模块配置文件</h3><ul>
+<li><code>&lt;include file=&quot;/cn/aezo/others/xxx.xml&quot; /&gt;</code> xxx.xml相当于一个普通的struts.xml文件</li>
+</ul>
+<h3 id="默认action"><a href="#默认action" class="headerlink" title="默认action"></a>默认action</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">default-action-ref</span> <span class="attr">name</span>=<span class="string">"def"</span>&gt;</span><span class="tag">&lt;/<span class="name">default-action-ref</span>&gt;</span><span class="comment">&lt;!-- 要写在此package的所有action之前 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">action</span> <span class="attr">name</span>=<span class="string">"def"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">result</span>&gt;</span>/default.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">action</span>&gt;</span></div></pre></td></tr></table></figure>
+<h3 id="result相关"><a href="#result相关" class="headerlink" title="result相关"></a>result相关</h3><ul>
+<li><code>package&gt;action&gt;result&gt;type</code>(Result类型)<ul>
+<li><code>dispatcher</code>    服务器端跳转，只能跳转到页面(jsp/html)，不能是action</li>
+<li><code>redirect</code>    客户端跳转，只能跳转到页面(jsp/html)，不能是action</li>
+<li><code>chain</code>        服务器端跳转，指forward到action,result中的action不要加/</li>
+<li><code>redirectAction</code>    客户端跳转，可跳转到action,result中的action不要加/</li>
+<li>freemarker</li>
+<li>httpheader</li>
+<li>stream</li>
+<li>xslt</li>
+<li>plaintext</li>
+<li>tiles</li>
+</ul>
+</li>
+<li>一次request只有一个值栈valueStack；以forward的形式跳转(dispatcher/chain)时，request没变，因此valueStack不变。而客户端跳转则值栈改变</li>
+<li><p>全局结果集global-results</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">global-results</span>&gt;</span><span class="comment">&lt;!-- 相当于该包和该包的子包所有的action中都包含这条result --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">result</span> <span class="attr">name</span>=<span class="string">"mainPage"</span>&gt;</span>/global/mainPage.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">global-results</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>动态结果集</p>
+<ul>
+<li>在action中使用属性定义结果集并动态赋值，在struts.xml中使用ognl表达式，如${属性}来获取valueStack中的这个属性(也是在action中定义的属性)</li>
+</ul>
+</li>
+<li>带参数的结果集(request值栈：<strong>视频32</strong>)<ul>
+<li>一次request只有一个值栈valueStack；以forward的形式跳转(dispatcher/chain)时，request没变，因此valueStack不变。而客户端跳转则值栈改变</li>
+<li>valueStack是request对象中的相关信息，如果是客户端跳转到jsp页面，则url上的带的参数在request域对象中是取不到到，只能在上下文中通过parameters获取</li>
+</ul>
+</li>
+</ul>
+<h3 id="OGNL-表达式"><a href="#OGNL-表达式" class="headerlink" title="OGNL 表达式"></a>OGNL 表达式</h3><blockquote>
+<p>OGNL表达式是通常要结合Struts2的标志一起使用，如<s:property value="#xx">，el表达式可以单独使用${sessionScope.username}。详细区别如：<a href="http://www.cnblogs.com/ycxyyzw/p/3493513.html" target="_blank" rel="external">http://www.cnblogs.com/ycxyyzw/p/3493513.html</a></s:property></p>
+</blockquote>
+<ul>
+<li>ognl表达式：如果标签对应的value的属性类型是Object时，且value中的值可以从值栈中获取就视为ognl表达式<ul>
+<li>如<s:property value="name">中s:property是struts2标签，而value中的字符串才是ognl表达式</s:property></li>
+</ul>
+</li>
+<li>ognl访问值栈中action的普通属性 <code>&lt;s:property value=&quot;user.age&quot; /&gt;</code></li>
+<li>ognl访问值栈中对象的普通属性 <code>&lt;s:property value=&quot;user.age&quot; /&gt;</code></li>
+<li>ognl访问静态成员<ul>
+<li>（1）格式为：”@类名@属性/方法”，而”@@方法”只适用于调用Math类中的方法</li>
+<li>（2）访问静态方法需要设置常量struts.ognl.allowStaticMethodAccess=true</li>
+</ul>
+</li>
+<li>ognl访问集合<ul>
+<li>（1）访问集合<s:property value="users"></s:property></li>
+<li>（2）访问集合中某个元素：List<s:property value="users[1]">，Map<s:property value="userMaps.userm1">(Set访问不到)</s:property></s:property></li>
+<li>（3）访问List、Set中元素的所有属性的集合<s:property value="users.{age}"></s:property></li>
+<li>（4）访问Map的所有Key和Value<s:property value="userMaps.keys"><s:property value="userMaps.values"></s:property></s:property></li>
+<li>（5）访问容器大小<s:property value="users.size()">或者value=”users.size”</s:property></li>
+</ul>
+</li>
+<li>ognl投影(过滤)<ul>
+<li>（1）获取user集合中age&gt;1的子集合中的第一个元素<s:property value="users.{?#this.age==1}[1]"></s:property></li>
+<li>（2）^表示获取开头的元素，$表示获取结尾的元素，如：<s:property value="users.{^#this.age>1}.{age}">、<s:property value="users.{$#this.age>1}.{age}"></s:property></s:property></li>
+</ul>
+</li>
+<li>ognl中的<code>[0]</code><ul>
+<li>使用[0]访问所有action和DefaultTextProvider组成集合的对象(只有服务器端跳转是才会有多个action),如：<s:property value="[0]"></s:property></li>
+</ul>
+</li>
+</ul>
+<h3 id="标签"><a href="#标签" class="headerlink" title="标签"></a>标签</h3><p>jsp中引入 <code>&lt;%@ taglib uri=&quot;/struts-tags&quot; prefix=&quot;s&quot; %&gt;</code>。其中uri是文件(struts2-core-2.3.24.1.jar-&gt;META-INF-&gt;struts-tags.tld)中”<uri>/struts-tags</uri>“的值，prefix指标签前缀为s</p>
+<ul>
+<li><code>&lt;s:debug&gt;&lt;/debug&gt;</code> 查看值栈，但是debug这行代码的位置可能会影响查看到的结果。如定义set、bean等的属性var，则会把这个var的值当做是键，和真正的值放到Stack Context中</li>
+<li><code>&lt;s:property value=&quot;&quot;/&gt;</code> 获取Value Stack中的值，其中的value前不需加#，获取Stack Context中的值，前面可加#也可不加#；但是当和Value Stack有重名时，不加#表示访问Value Stack，加#表示访问Stack Context；且获取Stack Context中的request必须加#。</li>
+<li><code>&lt;s:set var=&quot;adminName&quot; value=&quot;username&quot;/&gt;</code> 设置变量，默认是设在request和actionContext/StackContext中</li>
+<li><p>定义bean</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">s:bean</span> <span class="attr">name</span>=<span class="string">"cn.aezo.tags.model.Dog"</span> <span class="attr">var</span>=<span class="string">"myDog"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">s:param</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"'myDogName'"</span>&gt;</span><span class="tag">&lt;/<span class="name">s:param</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">s:bean</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>&lt;s:include value=&quot;include.html&quot;/&gt;</code> 导入外部文件(尽量不要使用，可使用jsp的include)</p>
+</li>
+<li><p>if elseif else</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">s:set</span> <span class="attr">var</span>=<span class="string">"age"</span> <span class="attr">value</span>=<span class="string">"#parameters.age[0]"</span>&gt;</span><span class="tag">&lt;/<span class="name">s:set</span>&gt;</span><span class="comment">&lt;!-- 此处要带上[0],即取第一个 --&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">s:if</span> <span class="attr">test</span>=<span class="string">"#age &lt; 0"</span>&gt;</span>wrong age!<span class="tag">&lt;/<span class="name">s:if</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">s:elseif</span> <span class="attr">test</span>=<span class="string">"#age &lt; 20"</span>&gt;</span>too yong!<span class="tag">&lt;/<span class="name">s:elseif</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">s:else</span>&gt;</span>yeah!<span class="tag">&lt;/<span class="name">s:else</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>iterator遍历</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">s:iterator</span> <span class="attr">value</span>=<span class="string">"&#123;1, 2, 3&#125;"</span> <span class="attr">var</span>=<span class="string">"item"</span> <span class="attr">status</span>=<span class="string">"status"</span>&gt;</span><span class="comment">&lt;!--status保存这循环的相关信息，如status.index表示下标--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">s:property</span> <span class="attr">value</span>=<span class="string">"#status.index"</span>/&gt;</span>: <span class="tag">&lt;<span class="name">s:property</span> <span class="attr">value</span>=<span class="string">"#item"</span>/&gt;</span>,</div><div class="line"><span class="tag">&lt;/<span class="name">s:iterator</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>%{}</code>，其中%可以将{}中的内容强制转换为ognl表达式</p>
+</li>
+<li><constant name="struts.ui.theme" value="simple">使用UI标签的主题（使用较少），默认是xhtml,还可以为simple等,也可自己定义,可通过查看源码得知他定义的一些html元素。自己定义的主题要在src目录下，最终才会被编译到classes下，且起名为”template.你的主题名”,其中的template是默认参数</constant></li>
+</ul>
+<h3 id="struts2拦截器interceptor"><a href="#struts2拦截器interceptor" class="headerlink" title="struts2拦截器interceptor"></a>struts2拦截器interceptor</h3><ul>
+<li>（1）自定义的拦截器实现xwork2的<code>Interceptor</code>接口</li>
+<li><p>（2）在struts.xml中进行配置</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">interceptors</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">interceptor</span> <span class="attr">name</span>=<span class="string">"myInterceptor"</span> <span class="attr">class</span>=<span class="string">"cn.aezo.others.MyInterceptor"</span>&gt;</span><span class="tag">&lt;/<span class="name">interceptor</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">interceptors</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>（3）在action中进行添加拦截器</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">action</span> <span class="attr">name</span>=<span class="string">"interceptor"</span> <span class="attr">class</span>=<span class="string">"cn.aezo.others.MyInterceptorAction"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">result</span>&gt;</span>/others/interceptor.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">interceptor-ref</span> <span class="attr">name</span>=<span class="string">"myInterceptor"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">interceptor-ref</span> <span class="attr">name</span>=<span class="string">"defaultStack"</span>/&gt;</span><span class="comment">&lt;!-- 要加上默认的拦截器 --&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">action</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>（4）token拦截器：可以产生一个随机字符串，可防止重复提交</p>
+<ul>
+<li>jsp页面使用<code>&lt;s:token&gt;&lt;/s:token&gt;</code>生成随机数</li>
+<li>action的配置中加入struts2提供的拦截器<code>&lt;interceptor-ref name=&quot;token&quot;/&gt;</code></li>
+</ul>
+</li>
+<li>（5）类型转换：实际上市struts2内置拦截器起的作用。只要在URL传参设参数值为约定的格式即可</li>
+</ul>
+<h3 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h3><ul>
+<li>strut2的声明式异常是使用拦截器来实现的</li>
+<li>声明式异常：在所有的action中都throws Exception，拦截到struts.xml文件中，寻找全局异常映射和结果集进行页面显示</li>
+</ul>
+<h3 id="i18n国际化"><a href="#i18n国际化" class="headerlink" title="i18n国际化"></a>i18n国际化</h3><ul>
+<li>（1）原理：使用java.util包中的ResourceBundle和Locale类，如ResourceBundle rb = ResourceBundle.getBundle(“app”, Locale.CHINA);</li>
+<li>（2）struts2资源文件(properties)级别<ul>
+<li>Action级别的国际化，properties文件前缀要是此Action的类名</li>
+<li>包级别的，properties文件前缀要是package</li>
+<li>全局级别的，前缀随便取。比较常用</li>
+</ul>
+</li>
+<li>（3）全局级别时，要设置properties的前缀，即常量<constant name="struts.custom.i18n.resources" value="testStruts2"></constant></li>
+<li>（4）在JSP页面可通过标签取值。<s:property value="getText('welcome.string')"><!-- 调用的Action的方法，实际中是ActionSupport的方法 --></s:property></li>
+<li>（5）处理资源文件中带参数的问题：properties文件中写成如：param.string=欢迎：{0} ，然后在页面用    <s:text name="param.string"><s:param value="username"></s:param></s:text>获取url中的参数值(或者post表单)</li>
+<li>（6）点击链接国际化：在链接后加参数request_locale=en_US或者request_locale=zh_CN，这样之后</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ssh/" rel="tag"># ssh</a>
+          
+            <a href="/tags/mvc/" rel="tag"># mvc</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/04/28/lang/2017-04-28-python/" rel="next" title="python">
+                <i class="fa fa-chevron-left"></i> python
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/10/extend/2017-05-10-windows/" rel="prev" title="windows">
+                windows <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World"><span class="nav-number">2.</span> <span class="nav-text">Hello World</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知识点"><span class="nav-number">3.</span> <span class="nav-text">知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#struts-xml"><span class="nav-number">3.1.</span> <span class="nav-text">struts.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接收用户传入参数"><span class="nav-number">3.2.</span> <span class="nav-text">接收用户传入参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#strtus常量（乱码问题）"><span class="nav-number">3.3.</span> <span class="nav-text">strtus常量（乱码问题）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据校验和strtus2标签初步"><span class="nav-number">3.4.</span> <span class="nav-text">数据校验和strtus2标签初步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#action中访问web元素-request、session、application"><span class="nav-number">3.5.</span> <span class="nav-text">action中访问web元素(request、session、application)**</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#包含模块配置文件"><span class="nav-number">3.6.</span> <span class="nav-text">包含模块配置文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#默认action"><span class="nav-number">3.7.</span> <span class="nav-text">默认action</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#result相关"><span class="nav-number">3.8.</span> <span class="nav-text">result相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OGNL-表达式"><span class="nav-number">3.9.</span> <span class="nav-text">OGNL 表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标签"><span class="nav-number">3.10.</span> <span class="nav-text">标签</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#struts2拦截器interceptor"><span class="nav-number">3.11.</span> <span class="nav-text">struts2拦截器interceptor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异常处理"><span class="nav-number">3.12.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#i18n国际化"><span class="nav-number">3.13.</span> <span class="nav-text">i18n国际化</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

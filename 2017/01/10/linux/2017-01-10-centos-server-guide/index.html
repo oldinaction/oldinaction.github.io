@@ -1,0 +1,854 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="CentOS,server," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  基本命令 yum install vsftpd 安装软件vsftpd，一路y下去 yum search vsftpd 查找软件vsftpd源 Centos 7使用firewalld代替了原来的iptables 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  常用软件安装安装jdk下载jdk文件 默认登">
+<meta name="keywords" content="CentOS,server">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CentOS服务器使用指导">
+<meta property="og:url" content="http://blog.aezo.cn/2017/01/10/linux/2017-01-10-centos-server-guide/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  基本命令 yum install vsftpd 安装软件vsftpd，一路y下去 yum search vsftpd 查找软件vsftpd源 Centos 7使用firewalld代替了原来的iptables 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  常用软件安装安装jdk下载jdk文件 默认登">
+<meta property="og:updated_time" content="2017-05-06T02:29:19.958Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CentOS服务器使用指导">
+<meta name="twitter:description" content="目录{:toc}  基本命令 yum install vsftpd 安装软件vsftpd，一路y下去 yum search vsftpd 查找软件vsftpd源 Centos 7使用firewalld代替了原来的iptables 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  常用软件安装安装jdk下载jdk文件 默认登">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2017/01/10/linux/2017-01-10-centos-server-guide/"/>
+
+
+
+
+
+  <title>CentOS服务器使用指导 | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/10/linux/2017-01-10-centos-server-guide/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CentOS服务器使用指导</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-10T13:19:00+08:00">
+                2017-01-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><ul>
+<li><code>yum install vsftpd</code> 安装软件vsftpd，一路y下去</li>
+<li><code>yum search vsftpd</code> 查找软件vsftpd源</li>
+<li>Centos 7使用firewalld代替了原来的iptables</li>
+<li>云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则</li>
+<li><strong>如果服务器磁盘未挂载，最好先挂载后再进行软件安装</strong></li>
+</ul>
+<h2 id="常用软件安装"><a href="#常用软件安装" class="headerlink" title="常用软件安装"></a>常用软件安装</h2><h3 id="安装jdk"><a href="#安装jdk" class="headerlink" title="安装jdk"></a>安装jdk</h3><h4 id="下载jdk文件"><a href="#下载jdk文件" class="headerlink" title="下载jdk文件"></a>下载jdk文件</h4><blockquote>
+<p>默认登录时候在 root 目录，直接下载和解压，软件包和解压目录都默认在 root 目录，可以切换到 hoom 目录进行下载</p>
+</blockquote>
+<ol>
+<li>下载rpm格式<ul>
+<li>获取rpm链接（下载到本地后上传到服务器）： oracle -&gt; Downloads -&gt; Java SE -&gt; Java Archive -&gt; Java SE 7 -&gt; Java SE Development Kit 7u80 -&gt; Accept License Agreement -&gt; jdk-7u80-linux-x64.rpm</li>
+<li>下载jdk，运行命令：<code>wget http://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-linux-x64.rpm</code>(这个链接会下载成html格式，<strong>不行</strong>)</li>
+<li><code>rmp -ivh jdk-7u80-linux-x64.rpm</code> 安装rpm文件</li>
+</ul>
+</li>
+<li>下载tar格式（推荐）<ul>
+<li>下载tar文件 <code>wget --no-check-certificate --no-cookies --header &quot;Cookie: oraclelicense=accept-securebackup-cookie&quot; http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz</code></li>
+<li>解压tar <code>tar -zxvf jdk-7u79-linux-x64.tar.gz</code><blockquote>
+<p>网上有很多深坑，如果报 gzip: stdin: not in gzip format 错请查看：<a href="http://www.cnblogs.com/gmq-sh/p/5380078.html" target="_blank" rel="external">http://www.cnblogs.com/gmq-sh/p/5380078.html</a></p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h4><ul>
+<li><code>vi /etc/profile</code> 使用vi打开profile文件</li>
+<li><p>在末尾输入并保存（注意JAVA_HOME需要按照实际路径）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">export JAVA_HOME=/root/jdk1.7.0_79</div><div class="line">export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib</div><div class="line">export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin</div></pre></td></tr></table></figure>
+<blockquote>
+<p><code>vi 文件名</code>打开某个文件进行编辑</p>
+<ul>
+<li>点击键盘<code>insert</code>，进入vi编辑模式，开始编辑；</li>
+<li>点击<code>esc</code>退出编辑模式，进入到vi命令行模式；</li>
+<li>输入<code>:x</code>/<code>ZZ</code>将刚刚修改的文件进行保存，退出编辑页面，回到初始命令行</li>
+<li><code>Ctrl+z</code> 退出 vi 编辑器</li>
+</ul>
+</blockquote>
+</li>
+<li><p>运行命令 <code>. /etc/profile</code> 使profile立即生效(注意 . 和 / 之间有空格)</p>
+</li>
+<li><code>java -version</code> 打印版本号</li>
+</ul>
+<h3 id="安装vsftpd-1"><a href="#安装vsftpd-1" class="headerlink" title="安装vsftpd ^1"></a>安装vsftpd <a href="[vsftpd](http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html)">^1</a></h3><blockquote>
+<p>ftp/sftp是协议，vsftpd是ftp服务器(只支持ftp协议)<br><code>yum install ftp</code>安装后可执行ftp命令，此时ftp相当于一个客户端，和window下的xftp类似</p>
+</blockquote>
+<ol>
+<li>安装<code>yum install vsftpd</code></li>
+<li><p>修改默认配置文件<code>vim /etc/vsftpd/vsftpd.conf</code></p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">#不允许匿名登录(NO)</div><div class="line">anonymous_enable=NO</div><div class="line">#禁止匿名用户上传</div><div class="line">anon_upload_enable=NO</div><div class="line"></div><div class="line">#禁止用户登出自己的FTP主目录(YES表示禁止登出主目录，NO表示不做限制)</div><div class="line">chroot_list_enable=YES</div><div class="line">#如果chroot_list_enable=YES，那么凡是加在文件chroot_list中的用户都是受限止的用户，即不可浏览其主目录的上级目录</div><div class="line">chroot_list_file=/etc/vsftpd/chroot_list</div><div class="line"></div><div class="line">#设定20端口进行通信，对外默认是21端口。防火墙要开放20、21端口</div><div class="line">#connect_from_port_20=YES</div><div class="line">#监听端口</div><div class="line">#listen_port=2121</div><div class="line"></div><div class="line">##加在最后</div><div class="line">#开启pam模式，/etc/vsftpd/ftpusers中为禁止登录的用户 [^2]</div><div class="line">pam_service_name=vsftpd</div><div class="line">#对vsftpd有用，否则因home目录权限为root权限而无法登录</div><div class="line">allow_writeable_chroot=YES</div><div class="line">#开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口</div><div class="line">#pasv_enable=YES</div><div class="line">pasv_min_port=30000</div><div class="line">pasv_max_port=30999</div><div class="line">#限定可登录用户列表</div><div class="line">userlist_enable=YES</div><div class="line">userlist_file=/etc/vsftpd/user_list</div><div class="line">#表示默认所有用户都不能登录，只有列表中用户才可以；如果userlist_deny=YES，则user_list中的用户就不允许登录ftp服务器</div><div class="line">userlist_deny=NO</div></pre></td></tr></table></figure>
+</li>
+<li><p>设置用户</p>
+<ul>
+<li>法一(应用程序内部使用推荐)：设置vsftpd服务的宿主用户 <code>useradd ftpadmin -d /home/ftproot -s /sbin/nologin</code><ul>
+<li><code>passwd ftpadmin</code> 给ftpadmin设置密码</li>
+<li>默认的vsftpd的服务宿主用户是root，但是这不符合安全性的需要。这里建立名字为ftpadmin的用户，用他来作为支持vsftpd的服务宿主用户。由于该用户仅用来支持vsftpd服务用，因此没有许可他登陆系统的必要，并设定他为不能登陆系统的用户（-s /sbin/nologin）。并设置ftpadmin的家目录为/home/ftproot(做为ftp服务器的根目录)</li>
+<li>将ftpadmin加到/etc/vsftpd/user_list中</li>
+<li>将ftpadmin加到/etc/vsftpd/chroot_list中</li>
+<li>文件/home/ftproot的所有者是ftpadmin，设置权限为755，包含子目录<ul>
+<li><code>chown -R ftpadmin /home/ftproot</code></li>
+<li><code>chmod -R 755 /home/ftproot</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>法二：设置vsftpd虚拟宿主用户 <code>useradd aezo -s /sbin/nologin</code><ul>
+<li><code>-d /home/nowhere</code> 使用-d参数指定用户的主目录，用户主目录并不是必须存在的。如果不设置会在<code>home</code>目录下建一个aezo的文件夹</li>
+<li><code>guest_username=aezo</code> 指定虚拟用户的宿主用户</li>
+<li><code>virtual_use_local_privs=YES</code> 设定虚拟用户的权限符合他们的宿主用户</li>
+<li><code>user_config_dir=/etc/vsftpd/vconf</code> 设定虚拟用户个人vsftp的配置文件存放路径</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>启动服务<code>systemctl start vsftpd</code></li>
+<li>命令行ftp可以登录，但是xftp可以登录确无法获取目录列表，IE浏览器访问<code>ftp://192.168.1.1</code>失败。谷歌浏览器正常访问并使用，或者ftp客户端登录</li>
+</ol>
+<h3 id="git安装"><a href="#git安装" class="headerlink" title="git安装"></a>git安装</h3><ol>
+<li>查看是否安装git/查看git是否安装成功：<code>git --version</code><ul>
+<li><code>-bash: git: command not found</code> 表示尚未安装</li>
+</ul>
+</li>
+<li>下载安装：<code>yum install git</code></li>
+</ol>
+<h3 id="htop安装"><a href="#htop安装" class="headerlink" title="htop安装"></a>htop安装</h3><ol>
+<li>htop是比top功能更多的进程管理工具</li>
+<li><code>yum install htop</code> 安装</li>
+<li><code>htop</code>查看进程信息(命令行上显示的界面可直接鼠标点击操作)</li>
+<li>小技巧<ul>
+<li>点击Tree/Sorted可切换视图</li>
+<li>选中一行，按下键可查看更多进程</li>
+<li>Nice：指的是nice值，这样就可以提高/降低对应进程的优先级</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p>参考文章</p>
+<p>[^2]: <a href="http://www.cnblogs.com/GaZeon/p/5393853.html" target="_blank" rel="external">ftp 530 Permission denied</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CentOS/" rel="tag"># CentOS</a>
+          
+            <a href="/tags/server/" rel="tag"># server</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/29/extend/2016-12-29-maven/" rel="next" title="maven">
+                <i class="fa fa-chevron-left"></i> maven
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/01/16/middleware/2017-01-16-nginx/" rel="prev" title="nginx">
+                nginx <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本命令"><span class="nav-number">1.</span> <span class="nav-text">基本命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用软件安装"><span class="nav-number">2.</span> <span class="nav-text">常用软件安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装jdk"><span class="nav-number">2.1.</span> <span class="nav-text">安装jdk</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#下载jdk文件"><span class="nav-number">2.1.1.</span> <span class="nav-text">下载jdk文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置环境变量"><span class="nav-number">2.1.2.</span> <span class="nav-text">配置环境变量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装vsftpd-1"><span class="nav-number">2.2.</span> <span class="nav-text">安装vsftpd ^1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#git安装"><span class="nav-number">2.3.</span> <span class="nav-text">git安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#htop安装"><span class="nav-number">2.4.</span> <span class="nav-text">htop安装</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,898 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="shading,shading-jdbc," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="Shading介绍   功能 Cobar Mycat Heisenberg TDDL Sharding-JDBC     是否开源 开源 开源 开源 部分开源 开源   架构模型 Proxy架构 Proxy架构 Proxy架构 应用集成架构 应用集成架构   数据库支持 MySQL 任意 任意 任意 MySQL(计划Oracle)   外围依赖 无 无 无 Diamond 无   使用复杂度 一般">
+<meta name="keywords" content="shading,shading-jdbc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="shading-jdbc">
+<meta property="og:url" content="http://blog.aezo.cn/2016/08/31/db/2016-08-31-shading-jdbc/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="Shading介绍   功能 Cobar Mycat Heisenberg TDDL Sharding-JDBC     是否开源 开源 开源 开源 部分开源 开源   架构模型 Proxy架构 Proxy架构 Proxy架构 应用集成架构 应用集成架构   数据库支持 MySQL 任意 任意 任意 MySQL(计划Oracle)   外围依赖 无 无 无 Diamond 无   使用复杂度 一般">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/08/shading-jdbc-architecture.png">
+<meta property="og:updated_time" content="2016-09-01T05:21:23.632Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="shading-jdbc">
+<meta name="twitter:description" content="Shading介绍   功能 Cobar Mycat Heisenberg TDDL Sharding-JDBC     是否开源 开源 开源 开源 部分开源 开源   架构模型 Proxy架构 Proxy架构 Proxy架构 应用集成架构 应用集成架构   数据库支持 MySQL 任意 任意 任意 MySQL(计划Oracle)   外围依赖 无 无 无 Diamond 无   使用复杂度 一般">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/08/shading-jdbc-architecture.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/08/31/db/2016-08-31-shading-jdbc/"/>
+
+
+
+
+
+  <title>shading-jdbc | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/08/31/db/2016-08-31-shading-jdbc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">shading-jdbc</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-31T19:13:00+08:00">
+                2016-08-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/db/" itemprop="url" rel="index">
+                    <span itemprop="name">db</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Shading介绍"><a href="#Shading介绍" class="headerlink" title="Shading介绍"></a>Shading介绍</h2><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>Cobar</th>
+<th>Mycat</th>
+<th>Heisenberg</th>
+<th>TDDL</th>
+<th>Sharding-JDBC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>是否开源</td>
+<td>开源</td>
+<td>开源</td>
+<td>开源</td>
+<td>部分开源</td>
+<td>开源</td>
+</tr>
+<tr>
+<td>架构模型</td>
+<td>Proxy架构</td>
+<td>Proxy架构</td>
+<td>Proxy架构</td>
+<td>应用集成架构</td>
+<td>应用集成架构</td>
+</tr>
+<tr>
+<td>数据库支持</td>
+<td>MySQL</td>
+<td>任意</td>
+<td>任意</td>
+<td>任意</td>
+<td>MySQL(计划Oracle)</td>
+</tr>
+<tr>
+<td>外围依赖</td>
+<td>无</td>
+<td>无</td>
+<td>无</td>
+<td>Diamond</td>
+<td>无</td>
+</tr>
+<tr>
+<td>使用复杂度</td>
+<td>一般</td>
+<td>一般</td>
+<td>一般</td>
+<td>复杂</td>
+<td>一般</td>
+</tr>
+<tr>
+<td>技术文档支持</td>
+<td>较少</td>
+<td>付费</td>
+<td>较少</td>
+<td>无</td>
+<td>一般</td>
+</tr>
+<tr>
+<td>开源组织</td>
+<td>阿里</td>
+<td>社区(Cobar衍生)</td>
+<td>社区(Cobar衍生)</td>
+<td>阿里</td>
+<td>当当</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>其中TDDL是文档较少，github上代码还是4年前更新。现在TDDL已经在阿里云上架，名为DRDS(Distribute Relational Database Service 分布式关系型数据库服务)</li>
+<li>基于Proxy的架构的缺点：网络消耗会产生性能问题，并且多一个外围系统依赖就意味着需要多增加和承担一份风险</li>
+</ol>
+<h2 id="Shading-JDBC简介"><a href="#Shading-JDBC简介" class="headerlink" title="Shading-JDBC简介"></a>Shading-JDBC简介</h2><ul>
+<li>Sharding-JDBC是当当开源的数据库分库分表中间件。Sharding-JDBC直接封装JDBC协议，可以理解为增强版的JDBC驱动，旧代码迁移成本几乎为零。Sharding-JDBC定位为轻量级java框架，使用客户端直连数据库，以jar包形式提供服务，无proxy代理层，无需额外部署，无其他依赖，DBA也无需改变原有的运维方式。</li>
+<li>主要特点<ul>
+<li>可适用于任何基于java的ORM框架，如：JPA, Hibernate, Mybatis, Spring JDBC Template或直接使用JDBC。</li>
+<li>理论上可支持任意实现JDBC规范的数据库。虽然目前仅支持MySQL，但已有支持Oracle，SQLServer，DB2等数据库的计划。</li>
+<li>分片策略灵活，可支持=，BETWEEN，IN等多维度分片，也可支持多分片键共用。</li>
+<li>SQL解析功能完善，支持聚合，分组，排序，Limit，OR等查询，并且支持Binding Table以及笛卡尔积的表查询。</li>
+<li>支持柔性事务(目前仅完成最大努力送达型)。支持读写分离。</li>
+<li>性能高。单库查询QPS为原生JDBC的99.8%；双库查询QPS比单库增加94%。</li>
+</ul>
+</li>
+<li><a href="https://github.com/dangdangdotcom/Sharding-JDBC/" target="_blank" rel="external">GitHub源码</a> 、 <a href="http://dangdangdotcom.github.io/sharding-jdbc/" target="_blank" rel="external">官方文档</a></li>
+</ul>
+<h2 id="整体架构图"><a href="#整体架构图" class="headerlink" title="整体架构图"></a>整体架构图</h2><p><img src="/data/images/2016/08/shading-jdbc-architecture.png" alt="shading-jdbc架构图"></p>
+<h2 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h2><h3 id="逻辑表与实际表映射关系"><a href="#逻辑表与实际表映射关系" class="headerlink" title="逻辑表与实际表映射关系"></a>逻辑表与实际表映射关系</h3><p>配置分库分表的目的是将原有一张表的数据分散到不同库不同表中，且不改变原有SQL语句的情况下来使用这一张表。那么从一张表到多张的映射关系需要使用逻辑表与实际表这两种概念。下面通过一个例子来解释一下。假设在使用PreparedStatement访问数据库，SQL如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t_order <span class="keyword">where</span> user_id = ? <span class="keyword">and</span> order_id = ?;</div></pre></td></tr></table></figure>
+<p>当<code>user_id=0</code>且<code>order_id=0</code>时，Sharding-JDBC将会将SQL语句转换为如下形式：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> * <span class="keyword">from</span> db0.t_order_0 <span class="keyword">where</span> user_id = ? <span class="keyword">and</span> order_id = ?;</div></pre></td></tr></table></figure>
+<p>其中原始SQL中的t_order就是逻辑表，而转换后的db0.t_order_0就是实际表。</p>
+<p>那么，为什么当<code>user_id=0</code>且<code>order_id=0</code>时会进行这样的转换，如果当<code>user_id=1</code>且<code>order_id=1</code>时又会是什么情况？<code>user_id</code>和<code>order_id</code>这两个字段有什么特殊含义吗？</p>
+<h3 id="分片键"><a href="#分片键" class="headerlink" title="分片键"></a>分片键</h3><p>官方解释：分片键是分片策略的第一个参数。分片键表示的是SQL语句中WHERE中的条件列。</p>
+<p>方言：分片键就是逻辑sql语句中的某个字段，通过某个字段(或者某几个字段)可以将逻辑sql语句转换成实际运行的sql语句。上例中的<code>user_id</code>和<code>order_id</code>就是分片键。</p>
+<h3 id="分片策略和分片算法"><a href="#分片策略和分片算法" class="headerlink" title="分片策略和分片算法"></a>分片策略和分片算法</h3><p>我将上面的分片键定义一个算法(如<code>user_id</code>对2取余<code>user_id % 2</code>的结果就是实际表的尾数，当然可以自己定义更复杂的算法)，对数据库或者表加上了如上的分片算法就属于分片策略。</p>
+<h2 id="柔性事物"><a href="#柔性事物" class="headerlink" title="柔性事物"></a>柔性事物</h2><ul>
+<li>柔性事务（遵循BASE理论）是指相对于ACID刚性事务而言的。柔性事务分为：两阶段型、补偿型、异步确保型、最大努力通知型几种。</li>
+</ul>
+<h2 id="其他-略"><a href="#其他-略" class="headerlink" title="其他(略)"></a>其他(略)</h2><ul>
+<li><p><code>CAP</code>理论、<code>ACID</code>、<code>BASE</code></p>
+<ul>
+<li><p><code>CAP</code>理论</p>
+<p>Web服务无法同时满足以下3个属性</p>
+<ul>
+<li>Consistency(一致性)，数据一致更新，所有数据变动都是同步的</li>
+<li>Availability(可用性)，每个操作都必须以可预期的响应结束</li>
+<li>Partition tolerance(分区容错性)，即使出现单个组件无法可用,操作依然可以完成</li>
+</ul>
+<p>在任何数据库设计中,一个Web应用至多只能同时支持上面的两个属性，不可能三者兼顾。对于分布式系统来说，分区容错是基本要求，所以必然要放弃一致性。对于大型网站来说， 分区容错和可用性的要求更高，所以一般都会选择适当放弃一致性。对应CAP理论，NoSQL追求的是AP，而传统数据库追求的是CA，这也可以解释为什么 传统数据库的扩展能力有限的原因。</p>
+</li>
+<li><p><code>ACID</code>解决方案</p>
+<p>ACID数据库事务极大地简化了应用开发人员的工作.正如其缩写标识所示,ACID事务提供以下几种保证:</p>
+<ul>
+<li>Atomicity（原子性），事务中的所有操作,要么全部成功,要么全部不做.</li>
+<li>Consistency（一致性）在事务开始与结束时,数据库处于一致状态.</li>
+<li>Isolation（隔离性） 事务如同只有这一个操作在被数据库所执行一样.</li>
+<li>Durability（持久性）. 在事务结束时,此操作将不可逆转.(也就是只要事务提交,系统将保证数据不会丢失,即使出现系统Crash,译者补充).</li>
+</ul>
+<p>数据库厂商在很久以前就认识到数据库分区的必要性,并引入了一种称为2PC(两阶段提交)的技术来提供跨越多个数据库实例的ACID保证</p>
+</li>
+<li><p><code>BASE</code>解决方案</p>
+<ul>
+<li>Basically Available（基本可用）</li>
+<li>Soft-state（ 软状态/柔性事务）</li>
+<li>Eventual Consistency（最终一致性）</li>
+</ul>
+<p>BASE模型是传统ACID模型的反面，不同与ACID，BASE强调牺牲高一致性，从而获得可用性，数据允许在一段时间内的不一致，只要保证最终一致就可以了。</p>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>参考文章</p>
+<ul>
+<li><p>[sharding-jdbc Wiki] <a href="http://dangdangdotcom.github.io/sharding-jdbc/" target="_blank" rel="external">http://dangdangdotcom.github.io/sharding-jdbc/</a></p>
+</li>
+<li><p>[柔性事物] <a href="http://www.zhihu.com/question/31813039/answer/53437637" target="_blank" rel="external">http://www.zhihu.com/question/31813039/answer/53437637</a></p>
+</li>
+<li><p>[CAP理论、ACID和BASE] <a href="http://blog.itpub.net/58054/viewspace-660826/" target="_blank" rel="external">http://blog.itpub.net/58054/viewspace-660826/</a></p>
+</li>
+</ul>
+</blockquote>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/shading/" rel="tag"># shading</a>
+          
+            <a href="/tags/shading-jdbc/" rel="tag"># shading-jdbc</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/08/31/java/ofbiz/2016-08-31-ofbiz-test/" rel="next" title="ofbiz单元测试">
+                <i class="fa fa-chevron-left"></i> ofbiz单元测试
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/31/db/2016-08-31-shading-jdbc源码解读/" rel="prev" title="sharding-jdbc 源码学习">
+                sharding-jdbc 源码学习 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Shading介绍"><span class="nav-number">1.</span> <span class="nav-text">Shading介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shading-JDBC简介"><span class="nav-number">2.</span> <span class="nav-text">Shading-JDBC简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#整体架构图"><span class="nav-number">3.</span> <span class="nav-text">整体架构图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关概念"><span class="nav-number">4.</span> <span class="nav-text">相关概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#逻辑表与实际表映射关系"><span class="nav-number">4.1.</span> <span class="nav-text">逻辑表与实际表映射关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分片键"><span class="nav-number">4.2.</span> <span class="nav-text">分片键</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分片策略和分片算法"><span class="nav-number">4.3.</span> <span class="nav-text">分片策略和分片算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#柔性事物"><span class="nav-number">5.</span> <span class="nav-text">柔性事物</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他-略"><span class="nav-number">6.</span> <span class="nav-text">其他(略)</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

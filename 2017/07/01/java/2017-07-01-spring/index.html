@@ -1,0 +1,899 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spring,spring-mvc," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  介绍 spring项目官网：https://spring.io/projects ，其中的spring-framework即是spring框架内容 历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) spring 3.x，java配置 spring模块(每个模块有个jar包)： 核心容器：spring-core, spring-">
+<meta name="keywords" content="spring,spring-mvc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring">
+<meta property="og:url" content="http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  介绍 spring项目官网：https://spring.io/projects ，其中的spring-framework即是spring框架内容 历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) spring 3.x，java配置 spring模块(每个模块有个jar包)： 核心容器：spring-core, spring-">
+<meta property="og:updated_time" content="2017-07-03T09:44:32.051Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spring">
+<meta name="twitter:description" content="目录{:toc}  介绍 spring项目官网：https://spring.io/projects ，其中的spring-framework即是spring框架内容 历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) spring 3.x，java配置 spring模块(每个模块有个jar包)： 核心容器：spring-core, spring-">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/"/>
+
+
+
+
+
+  <title>spring | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spring</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-01T18:47:00+08:00">
+                2017-07-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
+<li>spring项目官网：<a href="https://spring.io/projects" target="_blank" rel="external">https://spring.io/projects</a> ，其中的<code>spring-framework</code>即是spring框架内容</li>
+<li>历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) <strong>spring 3.x，java配置</strong></li>
+<li>spring模块(每个模块有个jar包)：<ul>
+<li>核心容器：<code>spring-core</code>, <code>spring-beans</code>, <code>spring-context</code>(运行时spring容器), <code>spring-context-support</code>(spring对第三方包的集成支持), <code>spring-expression</code>(使用表达式语言在运行时查询和操作对象)</li>
+<li>AOP：spring-aop, spring-aspects</li>
+<li>消息：spring-messaging</li>
+<li>数据访问：<code>spring-jdbc</code>, <code>spring-tx</code>(提供编程式和声明明式事物支持), <code>spring-orm</code>, <code>spring-oxm</code>(提供对对象/xml映射技术支持), <code>spring-jms</code>(提供jms支持)</li>
+<li>Web： <code>spring-web</code>(在web项目中提供spring容器), <code>spring-webmvc</code>(基于Servlet的SpringMVC), <code>spring-websocket</code>, <code>spring-webmvc-portlet</code></li>
+</ul>
+</li>
+<li>spring生态：<code>Spring Boot</code>(使用默认开发配置来快速开发)、<code>Spring Cloud</code>(为分布式系统开发提供工具集)等</li>
+<li>本文档基于spring4.3.8</li>
+</ol>
+<h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><ul>
+<li><p>maven依赖</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!--包含spring-core、spring-beans、spring-aop、spring-expression、spring-instrument--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-context<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.3.8.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>依赖注入</p>
+<ul>
+<li>声明Bean的注解(下面几个注解效果一样)：<ul>
+<li><code>@Component</code> 没有明确的角色</li>
+<li><code>@Service</code> 在业务逻辑层(cn.aezo.spring.aop_spel.service)使用</li>
+<li><code>@Repository</code> 在数据访问层(cn.aezo.spring.aop_spel.dao)使用</li>
+<li><code>@Controller</code> 在展现层使用</li>
+</ul>
+</li>
+<li>注入Bean的注解(效果一样)<ul>
+<li><code>@Autowired</code> Spring提供(默认按类型by type，如果想用byName，使用<code>@Qulifier</code>)</li>
+<li><code>@Resource</code> JSR-250提供(常用)</li>
+<li><code>@Inject</code> JSR-330提供</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>java配置<ul>
+<li><code>@Configuration</code> 注解类表示此类是一个配置类，里面有0个或者多个<code>@Bean</code><ul>
+<li><code>@ComponetScan(&quot;cn.aezo&quot;)</code> 定义需要扫描的包名，并将里面的<code>@Component</code>、<code>@Service</code>、<code>@Repository</code>、<code>@Controller</code>注解的类注册为Bean</li>
+</ul>
+</li>
+<li><code>@Bean</code> 注解方法，表示当前方法的返回值是一个Bean，Bean的名称是方法名</li>
+<li>一般公共类使用java配置进行Bean声明，业务相关类使用注解进行Bean声明</li>
+</ul>
+</li>
+<li><p>调用</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");</span></div><div class="line">ApplicationContext context = <span class="keyword">new</span> AnnotationConfigApplicationContext(AppConfig.class); <span class="comment">// AppConfig为定义的java配置类</span></div><div class="line"></div><div class="line">Hello hello = context.getBean(<span class="string">"hello"</span>, Hello.class);</div><div class="line">hello.hello();</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="知识点"><a href="#知识点" class="headerlink" title="知识点"></a>知识点</h2><h3 id="AOP"><a href="#AOP" class="headerlink" title="AOP"></a>AOP</h3><ul>
+<li>相关注解<ul>
+<li><code>@Aspect</code> 声明一个切面</li>
+<li><code>@Before</code>、<code>@After</code>、<code>@Around</code> 定义建言(advice)</li>
+</ul>
+</li>
+<li><p>maven依赖</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.aspectj<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>aspectjrt<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span><span class="comment">&lt;!--不要也可测试成功--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.8.10<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.aspectj<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>aspectjweaver<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.8.10<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>编写切面</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Aspect</span> <span class="comment">// 声明一个切面</span></div><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogAspect</span> </span>&#123;</div><div class="line">    <span class="comment">// 法一：简单</span></div><div class="line">    <span class="meta">@Before</span>(<span class="string">"execution(* cn.aezo.spring.base.annotation.aop.DemoMethodService.*(..))"</span>)</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</div><div class="line">        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();</div><div class="line">        Method method = methodSignature.getMethod();</div><div class="line">        System.out.println(<span class="string">"方法规则式拦截[@Before-execution]："</span> + method.getName());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>调用service</p>
+</li>
+</ul>
+<h3 id="Scope"><a href="#Scope" class="headerlink" title="Scope"></a>Scope</h3><ul>
+<li><code>@Scope(&quot;prototype&quot;)</code> 注解类(配置Bean的作用域)<ul>
+<li><code>singleton</code> 整个容器共享一个实例（默认配置）</li>
+<li><code>prototype</code> 每次调用新建一个实例</li>
+<li><code>request</code> Web项目中，每一个Http Request新建一个实例</li>
+<li><code>session</code></li>
+<li><code>globalSession</code> 用于portal应用</li>
+</ul>
+</li>
+</ul>
+<h3 id="EL-Spring-EL"><a href="#EL-Spring-EL" class="headerlink" title="EL(Spring-EL)"></a>EL(Spring-EL)</h3><ul>
+<li><code>@Value</code> 在其中输入EL表达式。可对资源进行注入</li>
+<li><p>实例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@ComponentScan</span>(<span class="string">"cn.aezo.spring.base.annotation.el"</span>)</div><div class="line"><span class="meta">@PropertySource</span>(<span class="string">"classpath:cn/aezo/spring/base/annotation/el/el.properties"</span>) <span class="comment">// 注入配置文件</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ELConfig</span> </span>&#123;</div><div class="line">    <span class="meta">@Value</span>(<span class="string">"I Love You"</span>)</div><div class="line">    <span class="keyword">private</span> String normal;</div><div class="line"></div><div class="line">    <span class="meta">@Value</span>(<span class="string">"#&#123;systemProperties['os.name']&#125;"</span>)</div><div class="line">    <span class="keyword">private</span> String osName;</div><div class="line"></div><div class="line">    <span class="meta">@Value</span>(<span class="string">"#&#123;T(java.lang.Math).random() * 100.0&#125;"</span>)</div><div class="line">    <span class="keyword">private</span> String randomNumber;</div><div class="line"></div><div class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;site.url&#125;"</span>) <span class="comment">// 读取配置文件(需要注入配置文件)，使用$而不是#</span></div><div class="line">    <span class="keyword">private</span> Resource siteUrl;</div><div class="line"></div><div class="line">    <span class="meta">@Value</span>(<span class="string">"#&#123;demoService.another&#125;"</span>) <span class="comment">// 读取其他类属性的@Value注解值</span></div><div class="line">    <span class="keyword">private</span> String fromAnother;</div><div class="line"></div><div class="line">    <span class="meta">@Value</span>(<span class="string">"classpath:cn/aezo/spring/base/annotation/el/test.txt"</span>)</div><div class="line">    <span class="keyword">private</span> Resource testFile;</div><div class="line"></div><div class="line">    <span class="meta">@Value</span>(<span class="string">"http://www.baidu.com"</span>)</div><div class="line">    <span class="keyword">private</span> Resource testUrl;</div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> Environment environment;</div><div class="line"></div><div class="line">    <span class="comment">// @Bean</span></div><div class="line">    <span class="comment">// public static PropertySourcesPlaceholderConfigurer propertyConfigurer() &#123;</span></div><div class="line">    <span class="comment">//     return new PropertySourcesPlaceholderConfigurer();</span></div><div class="line">    <span class="comment">// &#125;</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">outputResource</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"normal = "</span> + normal);</div><div class="line">        System.out.println(<span class="string">"osName = "</span> + osName);</div><div class="line">        System.out.println(<span class="string">"randomNumber = "</span> + randomNumber);</div><div class="line">        System.out.println(<span class="string">"normal = "</span> + siteUrl);</div><div class="line">        System.out.println(<span class="string">"fromAnother = "</span> + fromAnother);</div><div class="line">        System.out.println(<span class="string">"environment = "</span> + environment.getProperty(<span class="string">"site.url"</span>));</div><div class="line"></div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            System.out.println(<span class="string">"testFile = "</span> + IOUtils.toString(testFile.getInputStream(), <span class="string">"UTF-8"</span>));</div><div class="line">            System.out.println(<span class="string">"testUrl = "</span> + IOUtils.toString(testUrl.getInputStream(), <span class="string">"UTF-8"</span>));</div><div class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="Profile"><a href="#Profile" class="headerlink" title="Profile"></a>Profile</h3><ul>
+<li>不同的环境读取不同的配置文件：<code>dev</code>/<code>prod</code></li>
+</ul>
+<h3 id="Application-Event"><a href="#Application-Event" class="headerlink" title="Application Event"></a>Application Event</h3><ul>
+<li>事件：一个Bean(A)完成某个任务后，可以给另外一个Bean(B)发送事件，前提是B对A进行了监听</li>
+<li><p>方法：</p>
+<ul>
+<li><p>继承<code>ApplicationEvent</code> 进行事件定义</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoEvent</span> <span class="keyword">extends</span> <span class="title">ApplicationEvent</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> String message;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DemoEvent</span><span class="params">(Object source, String message)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>(source);</div><div class="line">        <span class="keyword">this</span>.message = message;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getMessage</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> message;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setMessage</span><span class="params">(String message)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.message = message;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>实现<code>ApplicationListener</code> 进行事件监听</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoListener</span> <span class="keyword">implements</span> <span class="title">ApplicationListener</span>&lt;<span class="title">DemoEvent</span>&gt; </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onApplicationEvent</span><span class="params">(DemoEvent demoEvent)</span> </span>&#123;</div><div class="line">        String message = demoEvent.getMessage();</div><div class="line">        System.out.println(<span class="string">"DemoListener.onApplicationEvent=="</span> + message);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>applicationContext.publishEvent(new DemoEvent(this, message));</code> 发布事件</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoPublisher</span> </span>&#123;</div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    ApplicationContext applicationContext;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">publish</span><span class="params">(String message)</span> </span>&#123;</div><div class="line">        applicationContext.publishEvent(<span class="keyword">new</span> DemoEvent(<span class="keyword">this</span>, message));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Spring-Aware"><a href="#Spring-Aware" class="headerlink" title="Spring Aware"></a>Spring Aware</h3><ul>
+<li>Spring依赖注入最大的亮点就是你所有的Bean对Spring容器的存在是无意识的。即你可以将容器换成其他容器，如Google Guice，这是Bean之间的耦合度很低。</li>
+<li>Spring Aware可以让你的Bean调用Spring提供的资源，缺点是Bean会和Spring框架耦合。</li>
+<li>相关接口<ul>
+<li><code>BeanNameAware</code> 获得容器中Bean的名称</li>
+<li><code>BeanFactoryAware</code> 获得当前Bean Factory，这样就有可以调用容器服务</li>
+<li><code>ApplicationContextAware</code> 获得当前Application Context，这样就有可以调用容器服务</li>
+<li><code>MessageSourceAware</code> 获得当前Message Source，可以获得文本信息</li>
+<li><code>ApplicationEventPublisherAware</code> 应用事件发布器，可以发布事件</li>
+<li><code>ResourceLoaderAware</code> 获得资源加载器，可以获取外部资源</li>
+</ul>
+</li>
+<li><p>实例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AwareService</span> <span class="keyword">implements</span> <span class="title">BeanNameAware</span>, <span class="title">ResourceLoaderAware</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> String beanName;</div><div class="line">    <span class="keyword">private</span> ResourceLoader loader;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBeanName</span><span class="params">(String s)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.beanName = s;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setResourceLoader</span><span class="params">(ResourceLoader resourceLoader)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.loader = resourceLoader;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">outputResult</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"beanName = "</span> + beanName);</div><div class="line">        Resource resource = loader.getResource(<span class="string">"classpath:cn/aezo/spring/base/annotation/springaware/test.txt"</span>);</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            String test = IOUtils.toString(resource.getInputStream(), <span class="string">"UTF-8"</span>);</div><div class="line">            System.out.println(<span class="string">"test = "</span> + test);</div><div class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h3><ul>
+<li>Spring通过任务执行器(TaskExecutor)来实现多线程和并发编程。使用<code>ThreadPoolTaskExecutor</code>可实现一个基于线程池的TaskExecutor。</li>
+<li><code>@EnableAsync</code> 可开启对异步任务的支持。需要对应的配置类实现</li>
+<li><code>@Async</code> 注解执行异步任务的方法</li>
+<li><p>示例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 获取线程池</span></div><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@ComponentScan</span>(<span class="string">"cn.aezo.spring.base.annotation.thread"</span>)</div><div class="line"><span class="meta">@EnableAsync</span> <span class="comment">// 开启异步任务支持</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TaskExecutorConfig</span> <span class="keyword">implements</span> <span class="title">AsyncConfigurer</span> </span>&#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Executor <span class="title">getAsyncExecutor</span><span class="params">()</span> </span>&#123;</div><div class="line">        ThreadPoolTaskExecutor taskExecutor = <span class="keyword">new</span> ThreadPoolTaskExecutor();</div><div class="line">        taskExecutor.setCorePoolSize(<span class="number">5</span>);</div><div class="line">        taskExecutor.setMaxPoolSize(<span class="number">10</span>);</div><div class="line">        taskExecutor.setQueueCapacity(<span class="number">25</span>);</div><div class="line">        taskExecutor.initialize();</div><div class="line">        <span class="keyword">return</span> taskExecutor;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> AsyncUncaughtExceptionHandler <span class="title">getAsyncUncaughtExceptionHandler</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 定义异步方法</span></div><div class="line"><span class="meta">@Service</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AsyncTaskService</span> </span>&#123;</div><div class="line">    <span class="meta">@Async</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeAsyncTask</span><span class="params">(Integer i)</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"i = "</span> + i);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Async</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">executeAsyncTaskPlus</span><span class="params">(Integer i)</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"i+1 = "</span> + (i+<span class="number">1</span>));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="计划任务"><a href="#计划任务" class="headerlink" title="计划任务"></a>计划任务</h3><ul>
+<li><code>@EnableScheduling</code> 开启定时任务</li>
+<li><p><code>@Scheduled</code> 执行任务的方法</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@ComponentScan</span>(<span class="string">"cn.aezo.spring.base.annotation.scheduled"</span>)</div><div class="line"><span class="meta">@EnableScheduling</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TaskScheduledConfig</span> </span>&#123;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Service</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ScheduledTaskService</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> SimpleDateFormat dateFormat = <span class="keyword">new</span> SimpleDateFormat(<span class="string">"HH:mm:ss"</span>);</div><div class="line"></div><div class="line">    <span class="meta">@Scheduled</span>(fixedRate = <span class="number">5000</span>) <span class="comment">// 5000毫秒. fixedRate每隔固定时间执行</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reportCurrentTime</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"每隔5秒执行一次："</span> + dateFormat.format(<span class="keyword">new</span> Date()));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Scheduled</span>(cron = <span class="string">"0 50 14 ? * *"</span>) <span class="comment">// 每天14.50执行</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fixTimeException</span><span class="params">()</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"在指定时间执行："</span> + dateFormat.format(<span class="keyword">new</span> Date()));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="条件注解-Condition"><a href="#条件注解-Condition" class="headerlink" title="条件注解(Condition)"></a>条件注解(Condition)</h3><ul>
+<li><code>@Condition</code> 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)</li>
+<li>方法<ul>
+<li>条件类实现<code>Condition</code>接口</li>
+<li>自定义服务接口，并有多种实现</li>
+<li>在<code>@Configuration</code>中<code>@Bean</code>的方法上注解<code>@Conditional(条件类.class)</code>表示符合此条件才会创建对应的Bean</li>
+</ul>
+</li>
+</ul>
+<h3 id="组合注解、元注解"><a href="#组合注解、元注解" class="headerlink" title="组合注解、元注解"></a>组合注解、元注解</h3><ul>
+<li>元注解是指可以注解到其他注解上的注解，被元注解注解之后的注解称之为组合注解</li>
+<li>如<code>@Configuration</code>是包含<code>@Component</code>的组合注解，<code>@Component</code>为元注解</li>
+<li><p>示例，将<code>@Configuration</code>和<code>@ComponentScan</code>组合成一个注解</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Target</span>(ElementType.TYPE)</div><div class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</div><div class="line"><span class="meta">@Documented</span></div><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="meta">@ComponentScan</span></div><div class="line"><span class="keyword">public</span> <span class="meta">@interface</span> WiselyConfiguration &#123;</div><div class="line">    String[] value() <span class="keyword">default</span> &#123;&#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+            <a href="/tags/spring-mvc/" rel="tag"># spring-mvc</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/21/java/2017-05-21-hibernate/" rel="next" title="hibernate">
+                <i class="fa fa-chevron-left"></i> hibernate
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/03/hello-world/" rel="prev" title="Hello World">
+                Hello World <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World"><span class="nav-number">2.</span> <span class="nav-text">Hello World</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#知识点"><span class="nav-number">3.</span> <span class="nav-text">知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AOP"><span class="nav-number">3.1.</span> <span class="nav-text">AOP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scope"><span class="nav-number">3.2.</span> <span class="nav-text">Scope</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EL-Spring-EL"><span class="nav-number">3.3.</span> <span class="nav-text">EL(Spring-EL)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Profile"><span class="nav-number">3.4.</span> <span class="nav-text">Profile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Application-Event"><span class="nav-number">3.5.</span> <span class="nav-text">Application Event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Aware"><span class="nav-number">3.6.</span> <span class="nav-text">Spring Aware</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多线程"><span class="nav-number">3.7.</span> <span class="nav-text">多线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计划任务"><span class="nav-number">3.8.</span> <span class="nav-text">计划任务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#条件注解-Condition"><span class="nav-number">3.9.</span> <span class="nav-text">条件注解(Condition)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组合注解、元注解"><span class="nav-number">3.10.</span> <span class="nav-text">组合注解、元注解</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

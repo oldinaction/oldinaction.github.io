@@ -1,0 +1,1152 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ssh,orm," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  介绍 ORM框架(对象关系映射) JDBC操作数据库很繁琐 Sql语句编写并不是面向对象的 可以在对象和关系表之间建立关联来简化编程 0/R Mapping 简化编程 0/R Mapping跨越数据库平台   ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现) O/RMapp">
+<meta name="keywords" content="ssh,orm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hibernate">
+<meta property="og:url" content="http://blog.aezo.cn/2017/05/21/java/2017-05-21-hibernate/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  介绍 ORM框架(对象关系映射) JDBC操作数据库很繁琐 Sql语句编写并不是面向对象的 可以在对象和关系表之间建立关联来简化编程 0/R Mapping 简化编程 0/R Mapping跨越数据库平台   ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现) O/RMapp">
+<meta property="og:updated_time" content="2017-05-21T07:47:59.284Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hibernate">
+<meta name="twitter:description" content="目录{:toc}  介绍 ORM框架(对象关系映射) JDBC操作数据库很繁琐 Sql语句编写并不是面向对象的 可以在对象和关系表之间建立关联来简化编程 0/R Mapping 简化编程 0/R Mapping跨越数据库平台   ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现) O/RMapp">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2017/05/21/java/2017-05-21-hibernate/"/>
+
+
+
+
+
+  <title>hibernate | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/05/21/java/2017-05-21-hibernate/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">hibernate</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-21T15:39:00+08:00">
+                2017-05-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
+<li>ORM框架(对象关系映射)<ul>
+<li>JDBC操作数据库很繁琐</li>
+<li>Sql语句编写并不是面向对象的</li>
+<li>可以在对象和关系表之间建立关联来简化编程</li>
+<li>0/R Mapping 简化编程</li>
+<li>0/R Mapping跨越数据库平台</li>
+</ul>
+</li>
+<li>ssh流程/hibernate流程(<strong>视频01、02</strong>)、hibernate原理(<strong>视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现</strong>)</li>
+<li>O/RMapping编程模型（<strong>映射接口使用jpa的，编程接口使用hibernate的</strong>）<ul>
+<li>映射模型<ul>
+<li>jpa annotation(java提供的annotation配置–常用)</li>
+<li>hibernate annotation extension(Hibernate扩展的annotation配置–较少用)</li>
+<li>hibernate xml(Hibernate的xml配置方式–常用)</li>
+<li>jpa xml(java提供的xml配置–较少用)</li>
+</ul>
+</li>
+<li>编程接口（做CRUD）<ul>
+<li>Jpa(不常用)</li>
+<li>hibernate(现在用)</li>
+</ul>
+</li>
+<li>数据査询语言<ul>
+<li>HQL(常用)</li>
+<li>EJBQL(JPQL)：是HQL的一个子集. EJB必须用在容器(application server)中，而hibernate可以在j2se中使用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>JPA：Java Persistence API. JPA是接口/规范，hibernate是其实现. JPA是hibernate的作者基于hibernate抽象出来的. JPA是EJB3.0的的一部分</li>
+<li>本文档基于hibernate3.3.2</li>
+<li>资源下载：<a href="https://sourceforge.net/projects/hibernate/files/hibernate3/3.3.2.GA/hibernate-distribution-3.3.2.GA-dist.tar.gz/download" target="_blank" rel="external">hibernate-distribution-3.3.2.GA</a>、<a href="https://sourceforge.net/projects/hibernate/files/hibernate-annotations/3.4.0.GA/hibernate-annotations-3.4.0.GA.zip/download" target="_blank" rel="external">hibernate-annotations-3.4.0.GA</a>、<a href="https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12/1.5.8" target="_blank" rel="external">slf4jl.5.8</a>、<a href="https://mvnrepository.com/artifact/log4j/log4j/1.2.15" target="_blank" rel="external">log4j-1.2.15</a></li>
+<li><p>jar包如下：(日志使用的log4j)</p>
+  <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">antlr-2.7.6.jar</div><div class="line">commons-collections-3.1.jar</div><div class="line">dom4j-1.6.1.jar</div><div class="line">ejb3-persistence.jar</div><div class="line">hibernate3.jar</div><div class="line">hibernate-annotations.jar</div><div class="line">hibernate-commons-annotations.jar</div><div class="line">javassist-3.9.0.GA.jar</div><div class="line">jta-1.1.jar</div><div class="line">junit-4.7.jar</div><div class="line">log4j-1.2.15.jar</div><div class="line">mysql-connector-java-5.1.26-bin.jar</div><div class="line">slf4j-api-1.5.8.jar</div><div class="line">slf4j-log4j12-1.5.8.jar</div></pre></td></tr></table></figure>
+<ul>
+<li><code>slf4j-api</code>是一个日志接口，其实现可以为<code>log4j</code>(需要对应的适配器进行接口转换，如<code>slf4j-log4j12-1.5.8.jar</code>)、<code>slf nodep</code>、<code>jdk logging api</code>、<code>apache commons-logging</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><h3 id="xml配置"><a href="#xml配置" class="headerlink" title="xml配置"></a>xml配置</h3><blockquote>
+<p><code>test/cn.aezo.hibernate.hello.StudentTest</code></p>
+</blockquote>
+<ol>
+<li><p>配置<code>hibernate.cfg.xml</code>(配置数据源、加入)</p>
+ <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0"?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE hibernate-mapping PUBLIC</span></div><div class="line">        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"</div><div class="line">        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd"&gt;</div><div class="line"></div><div class="line"><span class="comment">&lt;!-- hibernate使用xml配置数据库映射的helloworld案例。 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">hibernate-mapping</span> <span class="attr">package</span>=<span class="string">"cn.aezo.hibernate.hello"</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">class</span> <span class="attr">name</span>=<span class="string">"Student"</span> <span class="attr">table</span>=<span class="string">"student"</span>&gt;</span></div><div class="line"> 		<span class="tag">&lt;<span class="name">id</span> <span class="attr">name</span>=<span class="string">"id"</span> <span class="attr">column</span>=<span class="string">"id"</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">generator</span> <span class="attr">class</span>=<span class="string">"native"</span>&gt;</span><span class="tag">&lt;/<span class="name">generator</span>&gt;</span><span class="comment">&lt;!-- 定义id自动生成器 --&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">id</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">column</span>=<span class="string">"name"</span>/&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 当使用联合主键时的配置 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 因为使用UTF-8编码是主键长度不能超过256个字节，而默认id长度是int(11),name长度是varchar(255)，则超出长度，故此处应该定义长度 --&gt;</span></div><div class="line">        <span class="comment">&lt;!--</span></div><div class="line">        &lt;composite-id name="pk" class="cn.aezo.hibernate.model.StudentPK"&gt;</div><div class="line">        	&lt;key-property name="id"&gt;&lt;/key-property&gt;</div><div class="line">        	&lt;key-property name="name" length="50"&gt;&lt;/key-property&gt;</div><div class="line">        &lt;/composite-id&gt;</div><div class="line">        --&gt;</div><div class="line"></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"age"</span> <span class="attr">column</span>=<span class="string">"age"</span>/&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">class</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">hibernate-mapping</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>配置Student的映射关系(Student.hbm.xml，需要放在对应类的同级目录)，并将其加入hibernate.cfg.xml中(<code>&lt;mapping resource=&quot;cn/aezo/hibernate/hello/Student.hbm.xml&quot;/&gt;</code>)</p>
+</li>
+</ol>
+<h3 id="Annotation注解-常用"><a href="#Annotation注解-常用" class="headerlink" title="Annotation注解 (常用)"></a>Annotation注解 (常用)</h3><blockquote>
+<p><code>test/cn.aezo.hibernate.hello.TeacherTest</code></p>
+</blockquote>
+<ol>
+<li>配置<code>hibernate.cfg.xml</code>(配置数据源、加入)</li>
+<li>给Teacher加注解</li>
+<li>将Teacher映射加入到hibernate.cfg.xml中(<code>&lt;mapping class=&quot;cn.aezo.hibernate.hello.Teacher&quot;/&gt;</code>)</li>
+</ol>
+<h2 id="hibernate-cfg-xml配置"><a href="#hibernate-cfg-xml配置" class="headerlink" title="hibernate.cfg.xml配置"></a>hibernate.cfg.xml配置</h2><ul>
+<li>此配置文件需要放入在src目录</li>
+<li><p>配置如下</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version='1.0' encoding='utf-8'?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE hibernate-configuration PUBLIC</span></div><div class="line">        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"</div><div class="line">        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd"&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">hibernate-configuration</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 配置链接数据信息，配置后不需要自己写连接代码Database connection settings --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.driver_class"</span>&gt;</span>com.mysql.jdbc.Driver<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.url"</span>&gt;</span>jdbc:mysql://localhost:3306/hiber<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.username"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.password"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- JDBC connection pool (use the built-in) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- &lt;property name="connection.pool_size"&gt;1&lt;/property&gt; --&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 方言,告诉hibernate使用的sql语言是mysql规定的 SQL dialect--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dialect"</span>&gt;</span>org.hibernate.dialect.MySQLDialect<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 通过getCurrentSession()获取此上下文的session，没有则自动创建。thread表示线程级别,jta用于分布式事物管理(不同的数据库服务器),使用时需要中间件 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"current_session_context_class"</span>&gt;</span>thread<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- Disable the second-level cache  --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cache.provider_class"</span>&gt;</span>org.hibernate.cache.NoCacheProvider<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"show_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句是格式化一下，更加美观 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"format_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 自动生成建表语句,update有表时不会删除表,没表时自动创建。create没有表时自动创建,有表时删除再创建 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"hbm2ddl.auto"</span>&gt;</span>update<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!-- 测试那个就映射那个，将其他映射先去掉防止干扰 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">resource</span>=<span class="string">"cn/aezo/hibernate/hello/Student.hbm.xml"</span>/&gt;</span><span class="comment">&lt;!-- 使用xml方式需要的映射格式 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">class</span>=<span class="string">"cn.aezo.hibernate.hello.Teacher"</span>/&gt;</span><span class="comment">&lt;!-- 使用annotation方式需要的映射格式 --&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">hibernate-configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><ul>
+<li>注解应该导入jpa的注解，如<strong><code>javax.persistence.*</code></strong></li>
+<li><p>类级别</p>
+<ul>
+<li><strong><code>@Entity</code></strong>: 注解实体类, 最终会和数据库的表对应. <strong>注解了之后需要将该类加到hibernate.cfg.xml的mapping中</strong></li>
+<li><strong><code>@Table(name=&quot;_teacher&quot;)</code></strong> 当实体类的类名和对应的表名不一致时批注,此时对应表的实际名为_teacher</li>
+<li><p><code>@IdClass(TeacherPK.class)</code> 定义联合主键的类</p>
+<blockquote>
+<p>如 <code>cn.aezo.hibernate.hello.Teacher</code></p>
+</blockquote>
+<ul>
+<li><code>@EmbeddedlD</code>/<code>@ Embeddable</code>也可以定义联合主键</li>
+</ul>
+</li>
+<li><code>@SequenceGenerator(name = &quot;teacherSeq&quot;, sequenceName = &quot;teacherSeq_db&quot;)</code> Id生成策略使用能够sequence<ul>
+<li>在主键上加注解 <code>@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = &quot;teacherSeq&quot;)</code></li>
+<li>常用ID生成策略有native identity sequence uuid(xml配置)</li>
+</ul>
+</li>
+<li><code>@TableGenerator</code> 用一张表存储所有表主键的当前值(id生成策略)</li>
+<li><code>@BatchSize(size=5)</code> 发出sql语句时一次性取出5条数据</li>
+</ul>
+</li>
+<li><p>字段/方法级别</p>
+<ul>
+<li><strong><code>@Id</code></strong> 主键; <code>@Basic</code> 其他属性,可省略</li>
+<li><strong><code>@GeneratedValue</code></strong> 批注后主键会自动生成值，默认使用id生成策略是AUTO。@GeneratedValue(strategy=GenerationType.AUTO)，其中(strategy=GenerationType.AUTO)可以省略，会自动根据mysql/oracle转换，相当于xml方式中的native</li>
+<li><strong><code>@Column(name=&quot;_title&quot;)</code></strong> 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致</li>
+<li><code>@OrderBy(&quot;name ASC&quot;)</code> 排序</li>
+<li><code>@Transient</code> 透明的.表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可</li>
+<li><code>@Temporal(value=TemporalType.DATE)</code> 表示相应日期类型只记录日期,最终表的字段类型是DATE。不写的话默认是记录日期和时间,字段类型是TIMESTAMP。此处可以省略”value=”。不常用</li>
+<li><p><code>@Enumerated(EnumType.STRING)</code> 声明枚举类型。EnumType.STRING表示在表中生成的字段类型是varchar;EnumType.ORDINAL表示表中生成的字段类型是int，并且拿枚举的下表存储</p>
+<blockquote>
+<p>如 <code>test/cn.aezo.hibernate.hello.TeacherTest</code></p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>annotation字段映射位置：可以在field上或者get方法上(建议)，如果写在field则破坏了面向对象的机制，写在get方法是public的，所有一般写在get方法上</p>
+</li>
+</ul>
+<h2 id="核心开发接口"><a href="#核心开发接口" class="headerlink" title="核心开发接口"></a>核心开发接口</h2><ol>
+<li><p>示例</p>
+<blockquote>
+<p>如 <code>test/cn.aezo.hibernate.coreapi.TeacherTest</code></p>
+</blockquote>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Configuration cfg = Configuration().configure(); // xml可以使用</span></div><div class="line">AnnotationConfiguration acfg = <span class="keyword">new</span> AnnotationConfiguration().configure(); <span class="comment">// xml和Annotation都能使用</span></div><div class="line"></div><div class="line">SessionFactory　session = acfg.buildSessionFactory();</div><div class="line"></div><div class="line">Session session = sf.getCurrentSession(); <span class="comment">//从上下文找(要在hibernate配置文件中配置session运行的上下文)，如果有直接用，如果没有重新创建。事务提交自动close，下次获取的就是新的session</span></div><div class="line"><span class="comment">// Session session =  sf.openSession(); //每次都是新的，需要close</span></div><div class="line"></div><div class="line">session.beginTransaction(); <span class="comment">//开始一个事物</span></div><div class="line"></div><div class="line">session.save(teacher1);</div><div class="line">Teacher1 teacher1 = (Teacher1)session.load(Teacher1.class, <span class="number">1</span>); <span class="comment">// 存在懒加载</span></div><div class="line"><span class="comment">// Teacher1 teacher1 = (Teacher1)session.get(Teacher1.class, 1); // 不存在懒加载</span></div><div class="line"></div><div class="line">session.getTransaction().commit(); <span class="comment">//提交事物</span></div><div class="line"><span class="comment">// session.close();</span></div><div class="line"></div><div class="line">System.out.println(teacher1.getName()); <span class="comment">// 懒加载时，此处会报错</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>接口</p>
+<ul>
+<li><code>Configuration</code> / <code>AnnotationConfiguration</code>: 管理配置信息(hibernate.cfg.xml), 用来产生SessionFactory(使用buildSessionFactory方法产生Session)<ul>
+<li>方法：<code>buildSessionFactory</code></li>
+</ul>
+</li>
+<li><code>SessoinFactor</code>: 用来产生和管理Session, 通常情况下每个应用只需要一个SessionFactory(除非要访间多个数据库)<ul>
+<li>方法：<code>getCurrentsession</code>(从上下文中获取，如果上下文中没有则创建一个新的。常在事物中使用，事物提交后此session则关闭)、<code>openSession</code>(每次都是新的session，需要close)</li>
+<li>getCurrentsession的上下文配置：<code>&lt;property name=&quot;current_session_context_classs&quot;&gt;thread&lt;/property&gt;</code>(jta、thread常用 managed、custom.Class少用)<ul>
+<li>上下文主要有thread和jta两种。thread依赖于数据库本身的，简称Connection事务，只针对一个数据库。jta从分布式界定事物</li>
+<li><strong><code>jta</code>(全称java transaction api) java分布式事务管理（多数据库访问）, jta需要application server支持，由中间件提供（jboss、WebLogic等，tomcat不支持）</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Session</code>: 管理一个数据库的任务单元（简单说就是增 删 改 查）<ul>
+<li>方法：<code>sava</code>、<code>delete</code>、<code>get</code>、<code>load</code>、<code>update</code>、<code>saveOrUpdate</code>、<code>clear</code>、<code>flush</code></li>
+<li><strong>get与load的区别</strong><ul>
+<li>不存在对应记录时表现不一样</li>
+<li>load返回的是代理对象，等到真正用到对象的内容时才发出sql语句(懒加载的)</li>
+<li>get直接从数据库加载，不会延迟</li>
+<li><code>User3 user3 = (User3)session.get(User3.class, 1);</code>、<code>User3 user3 = (User3)session.load(User3.class, 1);</code></li>
+</ul>
+</li>
+<li>update(视频32)<ul>
+<li>用来更新detached对象，更新完成后转为persistent状态</li>
+<li>update时默认会更新全部字段，更新部分字段的解决办法<ul>
+<li>使用 HQL(EjBQL)(建议）</li>
+<li>xml设定property标签的update属性，annotation设定@Column的updatable=false，不过这种方式很少用，因为不灵活</li>
+<li>xml中使用dynamic-update。同一个session可以，跨session不行，不过可以用merge方法</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>clear：无论是load还是get,都会首先査找缓存（一级缓存)，如果没有才会去数据库査找。调用clear()方法可以强制清除session缓存</li>
+<li>flush<ul>
+<li>强制将内存(session缓存)与数据库同步. 默认情况下是session的事务提交(commit)时才同步!</li>
+<li>session的FlushMode设置, 可以设定在什么时候同步缓存与数据库(很少用)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>三种对象状态(transient、persistent、detached)</p>
+<ul>
+<li>三种状态：<ul>
+<li>transient：内存中一个对象，内存和缓存(session缓存)中都没有ID。刚new 对象之后</li>
+<li>persistent：ID在内存、缓存、数据库中都有。save了之后</li>
+<li>detached：ID在内存和数据库中有，在缓存中没有。事物提交后(session关闭)</li>
+</ul>
+</li>
+<li>三种状态的区分关键在于有没有ID，ID在数据库中有没有，在内存中有没有，在session缓存中有没有</li>
+</ul>
+</li>
+</ol>
+<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0ne20ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code></p>
+<ol>
+<li><p>一对一</p>
+<ul>
+<li><code>@0ne20ne</code> 指定关系, <code>@JoinColumn</code> 用于指定外键名称, 省略该注解则使用默认的外键名称,  <code>@JoinColumns</code> 联合主键使用, <code>@Embedded</code> 组件映射使用</li>
+<li><p><strong>一对一单向外键关联</strong>(src/cn.aezo.hibernate.one2one_uni_fk)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Husband类的被约束表字段的get方法上加@0ne20ne @JoinColumn. 最终会在Husband的表中生成外键</span></div><div class="line"><span class="meta">@OneToOne</span></div><div class="line"><span class="meta">@JoinColumn</span>(name=<span class="string">"wifeId"</span>)<span class="comment">// 指定生成的数据库字段名，不写@JoinColumn则默认生成外键名为wife_id</span></div><div class="line"><span class="function"><span class="keyword">public</span> Wife <span class="title">getWife</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> wife;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><strong>Husband表会多出一个字段wifeId, 即为外键</strong></li>
+<li><p>xml设置</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">class</span> <span class="attr">name</span>=<span class="string">"cn.aezo.hibernate.one2one_uni_fk.Husband"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">id</span> <span class="attr">name</span>=<span class="string">"id"</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">generator</span> <span class="attr">class</span>=<span class="string">"native"</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">id</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"age"</span>/&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">one-to-one</span> <span class="attr">name</span>=<span class="string">"wife"</span> <span class="attr">column</span>=<span class="string">"wifeId"</span> <span class="attr">unique</span>=<span class="string">"true"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">class</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><strong>一对一双向外键关联</strong>(src/cn.aezo.hibernate.one2one_bi_fk, 视频37)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Husband1类</span></div><div class="line"><span class="meta">@OneToOne</span></div><div class="line"><span class="meta">@JoinColumn</span>(name=<span class="string">"wife1Id"</span>)<span class="comment">//指定生成的数据库字段名，否则默认生成外键名为wife_id. 最终只会在Husband的表中生成外键</span></div><div class="line"><span class="function"><span class="keyword">public</span> Wife1 <span class="title">getWife1</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> wife1;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Wife1类</span></div><div class="line"><span class="comment">// 此处表示Husband中对"getWife"中的wife字段设置的外键是主导，此处只是指明关系但是并不会在Wife1表中生成外键。双向关系必须指明</span></div><div class="line"><span class="comment">// 双向时这个地方也需要一个关联关系，但是Husband1中wife1已经指明了关联关系且有一个外键了，故不应该再在Wife1生成一个外键。mappedBy就表明此处参考(映射到)Husband1中的wife1字段</span></div><div class="line"><span class="meta">@OneToOne</span>(mappedBy=<span class="string">"wife1"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> Husband1 <span class="title">getHusband1</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> husband1;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><strong>凡是双向关联，必设<code>mappedBy</code></strong></li>
+<li><strong><code>一对一单向外键关联与一对一双向外键关联在数据库的表的格式是一样的,区别在于java程序中. 双向外键关联可通过Hibernate在两个类间互相调用彼此,而单向外键关联只能单方向调用.</code></strong></li>
+</ul>
+</li>
+<li>一对一单向主键关联(<code>@OneToOne、@primaryKeyJoinColumn</code>)</li>
+<li>一对一双向主键关联(<code>@OneToOne、@primaryKeyJoinColumn</code>)</li>
+<li><p><strong>一对一的单向联合主键的外键关联</strong>(src/cn.aezo.hibernate.one2one_uni_fk_composite)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Husband2类(Wife2是一个联合主键类, name是只最终会在Husband2中生成的字段名即外键名, referencedColumnName指这个外键参考的字段)</span></div><div class="line"><span class="meta">@OneToOne</span></div><div class="line"><span class="meta">@JoinColumns</span>(&#123;</div><div class="line">    <span class="meta">@JoinColumn</span>(name=<span class="string">"wife2Id"</span>, referencedColumnName=<span class="string">"id"</span>),</div><div class="line">    <span class="meta">@JoinColumn</span>(name=<span class="string">"wife2Name"</span>, referencedColumnName=<span class="string">"name"</span>)</div><div class="line">&#125;)</div><div class="line"><span class="function"><span class="keyword">public</span> Wife2 <span class="title">getWife2</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> wife2;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>组件映射(src/cn.aezo.hibernate.component)</p>
+<ul>
+<li>一个对象是另外一个对象的一部分，java中有两个对象，但是保存在一张表中</li>
+<li><code>@Embedded</code> 注解的字段表明该对象是从别的位置嵌入过来的,是不需要单独映射的表</li>
+<li><code>@AttributeOverride</code> 注解需要写在getWife方法上, 可以重新指定生成的Wife类组件生成的字段名, 例如:Husband与Wife两个类中都有name字段,这样在生成表的时候会有冲突, 此时采用@AttributeOverride注解可以指定Wife类中的name属性对应新的字段名”wifename”</li>
+<li>xml中使用 <code>&lt;component&gt;</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>多对一、一对多</strong></p>
+<ul>
+<li>指当前类(写注解的类)相对于注解属性(对应的类)的关系</li>
+<li><p>多对一单向关联：<code>@ManyToOne</code>(src/cn.aezo.hibernate.many2one_uni)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// User类. 外键保存在User类中</span></div><div class="line"><span class="meta">@ManyToOne</span></div><div class="line"><span class="function"><span class="keyword">public</span> Group <span class="title">getGroup</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> group;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>xml中</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--</span></div><div class="line">    cascade取值all,none,save-update,delete,对象间的级联操作,只对增删改起作用.</div><div class="line">    在存储时User时,设置了cascade="all"会自动存储相应的t_group.而不用管user关联的对象(通常情况下会优先存储关联的对象,然后再存储user)</div><div class="line"> --&gt;</div><div class="line"><span class="tag">&lt;<span class="name">many-to-one</span> <span class="attr">name</span>=<span class="string">"group"</span> <span class="attr">column</span>=<span class="string">"groupid"</span> <span class="attr">cascade</span>=<span class="string">"all"</span>/&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>一对多单向关联：<code>@OneToMany</code>(src/cn.aezo.hibernate.one2many_uni)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Group1类. 外键保存在User1类中</span></div><div class="line"><span class="meta">@OneToMany</span></div><div class="line"><span class="meta">@JoinColumn</span>(name=<span class="string">"groupId"</span>)<span class="comment">// Hibernate默认将OneToMany理解为ManyToMany的特殊形式，如果不指定生成的外键列@JoinColumn(name="groupId")，则会默认生成多对多的关系,产生一张中间表</span></div><div class="line"><span class="function"><span class="keyword">public</span> Set&lt;User1&gt; <span class="title">getUsers</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> users;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>xml中</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">set</span> <span class="attr">name</span>=<span class="string">"users"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">key</span> <span class="attr">column</span>=<span class="string">"groupId"</span>/&gt;</span>指定生成外键字段的名字</div><div class="line">    <span class="tag">&lt;<span class="name">one-to-many</span> <span class="attr">class</span>=<span class="string">"cn.aezo.hibernate.one2many_uni.User1"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">set</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>一对多/多对一双向关联(src/cn.aezo.hibernate.one2many_many2one_bi)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// User2类</span></div><div class="line"><span class="meta">@ManyToOne</span> <span class="comment">// 配置规则:一般以多的一端为主,先配置多的一端</span></div><div class="line"><span class="function"><span class="keyword">public</span> Group2 <span class="title">getGroup</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> group;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Group2类</span></div><div class="line"><span class="meta">@OneToMany</span>(mappedBy=<span class="string">"group"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> Set&lt;User2&gt; <span class="title">getUsers</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> users;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>多对多(会生成中间表)</p>
+<ul>
+<li><code>@ManyToMany</code>、<code>@JoinTable</code></li>
+<li><p>多对多单向外键关联(src/cn.aezo.hibernate.many2many_uni)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Teacher2类</span></div><div class="line"><span class="meta">@ManyToMany</span><span class="comment">// 多对多关联 Teacher是主的一方 Student是附属的一方</span></div><div class="line"><span class="meta">@JoinTable</span>(</div><div class="line">    joinColumns=&#123;<span class="meta">@JoinColumn</span>(name=<span class="string">"teacherId"</span>)&#125;,<span class="comment">//本类主键在中间表生成的对应字段名</span></div><div class="line">    inverseJoinColumns=&#123;<span class="meta">@JoinColumn</span>(name=<span class="string">"student2Id"</span>)&#125;<span class="comment">//对方类主键在中间表生成的对应字段名</span></div><div class="line">)</div><div class="line"><span class="function"><span class="keyword">public</span> Set&lt;Student2&gt; <span class="title">getStudent2s</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> student2s;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>多对多双向外键关联</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">// 在Teacher这一端的students上配置</div><div class="line">@ManyToMany</div><div class="line">@JoinTable(</div><div class="line">    name=&quot;t_s&quot;,</div><div class="line">    joinColumns=&#123;@JoinColumn(name=&quot;teacher_id&quot;)&#125;,</div><div class="line">    inverseJoinColumns=&#123;@JoinColumn(name=&quot;student_id&quot;)&#125;</div><div class="line">)</div><div class="line"></div><div class="line">// 在Student一端的teachers只需要配置</div><div class="line">@ManyToMany(mappedBy=&quot;students&quot;)</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>关联关系中的CRUD、Cascade(级联)、Fetch(test/cn.aezo.hibernate.one2many_many2one_bi_curd)</p>
+<ul>
+<li><p><strong>设定<code>cascade</code>以设定在持久化时对于关联对象的操作（CUD，R归Fetch管）</strong></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Group3类</span></div><div class="line"><span class="meta">@OneToMany</span>(</div><div class="line">    mappedBy=<span class="string">"group"</span>,</div><div class="line">    cascade=&#123;CascadeType.ALL&#125;<span class="comment">//cascade=CascadeType.ALL表示存储user表时把与他相关联的表也存储，否则需要自己先手动存储关联的那个表</span></div><div class="line">    <span class="comment">//,fetch=FetchType.EAGER//取一对多时，默认只会取出一不会取出多,即fetch默认是lazy，此时设置了eager则会在取组的同时取出用户信息。一般不这么用</span></div><div class="line">)<span class="comment">//cascade设定CUD，fetch设定R</span></div><div class="line"><span class="function"><span class="keyword">public</span> Set&lt;User3&gt; <span class="title">getUsers</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> users;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// User3类</span></div><div class="line"><span class="meta">@ManyToOne</span>(cascade=&#123;CascadeType.ALL&#125;)<span class="comment">//cascade=CascadeType.ALL表示存储user表时把与他相关联的表也存储，否则需要自己先手动存储关联的那个表</span></div><div class="line"><span class="function"><span class="keyword">public</span> Group3 <span class="title">getGroup</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> group;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>只要有关联关系(包括所有关联类型)，默认保存A，hibernate不会自动保存B. 设置在A中设置cascade可以让hibernate在保存A的时候也保持B. 如果需要保存B也保存A，则需要在B中也设置cascade</li>
+<li>CascadeType取值：<ul>
+<li><code>ALL</code>      Cascade all operations所有情况(CUD)</li>
+<li><code>MERGE</code>    Cascade merge operation合并(merge=save+update)</li>
+<li><code>PERSIST</code>  Cascade persist operation存储 persist()</li>
+<li><code>REFRESH</code>  Cascade refresh operation刷新</li>
+<li><code>REMOVE</code>   Cascade remove operation删除</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong><code>fetch</code>获取数据的方式</strong></p>
+<ul>
+<li>查询时@ManyToOne默认会把一的那一方取出来(默认为EAGER)，@OneToMany则不会默认把多的那一方取出来(默认为LAZY). 修改fetch则可以改变默认取值方式</li>
+<li>取值有：<code>FetchType.LAZY</code>(懒惰) 和 <code>FetchType.EAGER</code>(渴望)</li>
+<li><p>示例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 示例一</span></div><div class="line">Session session = sf.getCurrentSession();</div><div class="line">session.beginTransaction();</div><div class="line"><span class="comment">// User3 user3 = (User3)session.load(User3.class, 1);</span></div><div class="line">User3 user3 = (User3)session.get(User3.class, <span class="number">1</span>); <span class="comment">//当多对一时，取多时，默认会把一也取出来。此时取用户的信息时也会把组的信息取出来放到内存中</span></div><div class="line">session.getTransaction().commit();</div><div class="line">System.out.println(user3.getGroup().getName()); <span class="comment">// 可以正常获取, @ManyToOne默认是EAGER。如果上面是load则此处会报错</span></div><div class="line"></div><div class="line"><span class="comment">// 示例二</span></div><div class="line">Session session = sf.getCurrentSession();</div><div class="line">session.beginTransaction();</div><div class="line">Group3 group3 = (Group3)session.get(Group3.class, <span class="number">1</span>);<span class="comment">//取一对多时，默认只会取出一不会取出多。但如果在关联的批注处设定了fetch=FetchType.EAGER，则会同时取出用户信息</span></div><div class="line"><span class="comment">// Set&lt;User3&gt; user3s = group3.getUsers(); // ### 如果fetch没有设定了eager，则可以在此处手动把User都拿出来放到内存中. 一般是一对多时手动获取多的那一方 ###</span></div><div class="line">session.getTransaction().commit();</div><div class="line"></div><div class="line"><span class="comment">// ### 如果fetch设定了eager则已经将用户信息取到内存中了. 否则此处会报错 ###</span></div><div class="line"><span class="keyword">for</span>(User3 u : group3.getUsers()) &#123;</div><div class="line">    System.out.println(u.getName());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>删除操作：如果Group和User都设置了CascadeType.ALL，则在删除user时也会把group删除. 解决办法</p>
+<ul>
+<li>直接写Hql语句执行删除（推荐）</li>
+<li>去掉@ManyToOne(cascade={CascadeType.All})设置, 手动执行CRU</li>
+<li><p>将user对象的group属性设为null，相当于打断User与Group间的关联</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">session.beginTransaction();</div><div class="line">User user = (User)session.load(User.class,<span class="number">1</span>);</div><div class="line">user.setGroup(<span class="keyword">null</span>);</div><div class="line">session.delete(user);</div><div class="line">session.getTransaction().commit();</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>集合映射(src/cn.aezo.hibernate.collections_mapping)</p>
+<ul>
+<li><p>多的一方是什么的存储方式：Set(常用)、List、Map</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 使用Map存储</span></div><div class="line"><span class="meta">@OneToMany</span>(mappedBy=<span class="string">"group"</span>,cascade=&#123;CascadeType.ALL&#125;)</div><div class="line"><span class="meta">@MapKey</span>(name=<span class="string">"id"</span>)<span class="comment">//以users中user的id作为map的key</span></div><div class="line"><span class="function"><span class="keyword">public</span> Map&lt;Integer, User4&gt; <span class="title">getUsers</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> users;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>继承映射(视频55)</p>
+<ul>
+<li><code>SINGLE_TABLE</code> 一张总表保存</li>
+<li><code>TABLE_PER_CLASS</code> 每个类分别一张表(最终也会生成3张表，使用@TableGenerator的id生成策略映射)<ul>
+<li>使用多态查询时会查3张表并进行合并</li>
+</ul>
+</li>
+<li><code>JOINED</code> 每个子类一张表(最终也会生成3张表，使用@Inheritance(strategy=InheritanceType.JOINED))<ul>
+<li>查询必须使用进行联合</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>树状结构设计(src/cn.aezo.hibernate.tree)</p>
+<ul>
+<li><p>在一个类中同时使用一对多和多对一</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Org组织类，对应表Org(id, pid, name)</span></div><div class="line"><span class="meta">@OneToMany</span>(</div><div class="line">    mappedBy=<span class="string">"parent"</span>,</div><div class="line">    cascade=&#123;CascadeType.ALL&#125;</div><div class="line">    <span class="comment">//,fetch=FetchType.EAGER//只适合小级别的树，同时取出所有的，打印就可以打印在一起了；否则就在需要的时候发起sql语句</span></div><div class="line">)</div><div class="line"><span class="function"><span class="keyword">public</span> Set&lt;Org&gt; <span class="title">getChildren</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> children;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@ManyToOne</span></div><div class="line"><span class="meta">@JoinColumn</span>(name=<span class="string">"parent_id"</span>)<span class="comment">//只需写在关联处即可，所有也可写在@OneToMany的下面</span></div><div class="line"><span class="function"><span class="keyword">public</span> Org <span class="title">getParent</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> parent;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="HQL-test-cn-aezo-hibernate-hql1-2"><a href="#HQL-test-cn-aezo-hibernate-hql1-2" class="headerlink" title="HQL (test/cn.aezo.hibernate.hql1/2)"></a>HQL (test/cn.aezo.hibernate.hql1/2)</h2><ol>
+<li>查询语言：NativeSQL(oracle/mysql原生) &gt; HQL(hibernate查询语言) &gt; EJBQL(JPQL 1.0, 可以跨ORM框架) &gt; QBC(Query By Criteria) &gt; QBE(Query By Example)</li>
+<li><p>举例(查询、修改、删除)</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div></pre></td><td class="code"><pre><div class="line">  <span class="keyword">import</span> org.hibernate.Query;</div><div class="line">  <span class="keyword">import</span> org.hibernate.Session;</div><div class="line"></div><div class="line">  <span class="comment">// HQL 面向对象的查询语言，此处要写类名而不是表名，可以省略 select *</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Category c where c.name &gt; 'c5' order by c.name desc"</span>);</div><div class="line">  List&lt;Category&gt; categories = (List&lt;Category&gt;) q.list(); <span class="comment">// q.iterate()</span></div><div class="line"></div><div class="line">  <span class="comment">// 链式编程</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Category c where c.id &gt; :min and c.id &lt; :max"</span>)</div><div class="line">                   .setInteger(<span class="string">"min"</span>, <span class="number">2</span>)</div><div class="line">                   .setInteger(<span class="string">"max"</span>, <span class="number">8</span>);</div><div class="line">  List&lt;Category&gt; categories = (List&lt;Category&gt;) q.list();</div><div class="line"></div><div class="line">  <span class="comment">// setParameter会自动转换参数类型</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Category c where c.id &gt; ? and c.id &lt; ?"</span>);</div><div class="line">  q.setParameter(<span class="number">0</span>, <span class="number">2</span>).setParameter(<span class="number">1</span>, <span class="number">8</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 分页(取第二条到第4条数据)</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Category c order by c.name desc"</span>);</div><div class="line">  q.setMaxResults(<span class="number">4</span>);</div><div class="line">  q.setFirstResult(<span class="number">2</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 获取Topic的Category类的属性id (Topic下的Category是@ManyToOne，默认在查询Topic的会取Category)</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Topic t where t.category.id = 1"</span>);</div><div class="line">  <span class="comment">// 如果设置成Lazy，则当调用t.getCategory()的时候才会查询Category</span></div><div class="line"></div><div class="line">  <span class="comment">// 从实体中取出一个VO/DTO（下面的MsgInfo不是一个实体，是一个VO/DTO，他需要一个对应的构造方法）</span></div><div class="line">  Query q = session.createQuery(<span class="string">"select new cn.aezo.hibernate.hql1.MsgInfo(m.id, m.cont, m.topic.title, m.topic.category.name) from Msg m"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// join连接(left join)</span></div><div class="line">  Query q = session.createQuery(<span class="string">"select t.title, c.name from Topic t join t.category c"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 对象查询（调用的是equals方法）</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Msg m where m = :MsgToSearch"</span>);</div><div class="line">  Msg m = <span class="keyword">new</span> Msg();</div><div class="line">  m.setId(<span class="number">1</span>);</div><div class="line">  q.setParameter(<span class="string">"MsgToSearch"</span>, m);</div><div class="line">  Msg mResult = (Msg) q.uniqueResult(); <span class="comment">// 返回唯一结果(确定里面只有一条)</span></div><div class="line"></div><div class="line">  <span class="comment">// is empty 和 is not empty（最终sql语句使用了exists、not exists）</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Topic1 t where t.msgs is empty"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"from Topic1 t where not exists (select m.id from Msg1 m where m.topic.id=t.id)"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 获取时间</span></div><div class="line">  Query q = session.createQuery(<span class="string">"select current_date, current_time, current_timestamp, t.id from Topic1 t"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 时间比较</span></div><div class="line">  Query q = session.createQuery(<span class="string">"from Topic1 t where t.createDate &lt; :date"</span>);</div><div class="line">  q.setParameter(<span class="string">"date"</span>, <span class="keyword">new</span> Date());</div><div class="line"></div><div class="line">  <span class="comment">// 分组</span></div><div class="line">  Query q = session.createQuery(<span class="string">"select t.title, count(*) from Topic1 t group by t.title"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"select t.title, count(*) from Topic1 t group by t.title having count(*) &gt;= 1"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 原生sql查询</span></div><div class="line">  SQLQuery q = session.createSQLQuery(<span class="string">"select * from category limit 2,4"</span>).addEntity(Category1.class);</div><div class="line">  List&lt;Category1&gt; categories = (List&lt;Category1&gt;)q.list();</div><div class="line"></div><div class="line">  <span class="comment">// 常用查询</span></div><div class="line">  Query q = session.createQuery(<span class="string">"select count(*) from Msg m"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"select max(m.id), min(m.id), avg(m.id), sum(m.id) from Msg m"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"from Msg m where m.id between 3 and 5"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"from Msg m where m.id in (3,4, 5)"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"from Msg m where m.cont is not null"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"from Topic1 t where t.title like '%5'"</span>);</div><div class="line">  Query q = session.createQuery(<span class="string">"from Topic1 t where t.title like '_5'"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 别名查询</span></div><div class="line">  <span class="comment">// (1) 在实体上进行注解查询语句，去别名topic.selectCertainTopic（原生sql语句查询别名注解@NamedNativeQueries）</span></div><div class="line">  <span class="meta">@NamedQueries</span>(&#123;</div><div class="line">     <span class="meta">@NamedQuery</span>(name=<span class="string">"topic.selectCertainTopic"</span>, query=<span class="string">"from Topic t where t.id = :id"</span>)</div><div class="line">&#125;)</div><div class="line">  <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Topic1</span> </span>&#123;...&#125;</div><div class="line">  <span class="comment">// (2) 使用上叙别名</span></div><div class="line">  Query q = session.getNamedQuery(<span class="string">"topic.selectCertainTopic"</span>);</div><div class="line">  q.setParameter(<span class="string">"id"</span>, <span class="number">5</span>);</div><div class="line"></div><div class="line">  <span class="comment">// 执行修改/删除</span></div><div class="line">  Query q = session.createQuery(<span class="string">"update Topic1 t set t.title = upper(t.title)"</span>) ;</div><div class="line">  q.executeUpdate();</div></pre></td></tr></table></figure>
+</li>
+<li><p>QBC/QBE (test/cn.aezo.hibernate.qbc/qbe)</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// QBC (Query By Criteria). 此时不需要sql语句, 纯面向对象了</span></div><div class="line"><span class="comment">// criterion 约束/标准/准则</span></div><div class="line">Criteria c = session.createCriteria(Topic2.class) <span class="comment">// from Topic</span></div><div class="line">             .add(Restrictions.gt(<span class="string">"id"</span>, <span class="number">2</span>)) <span class="comment">// greater than = id &gt; 2</span></div><div class="line">             .add(Restrictions.lt(<span class="string">"id"</span>, <span class="number">8</span>)) <span class="comment">// little than = id &lt; 8</span></div><div class="line">             .add(Restrictions.like(<span class="string">"title"</span>, <span class="string">"t_"</span>))</div><div class="line">             .createCriteria(<span class="string">"category"</span>)</div><div class="line">             .add(Restrictions.between(<span class="string">"id"</span>, <span class="number">3</span>, <span class="number">5</span>)) <span class="comment">// category.id &gt;= 3 and category.id &lt;=5</span></div><div class="line">             ;</div><div class="line"><span class="comment">// DetachedCriterea</span></div><div class="line"><span class="keyword">for</span>(Object o : c.list()) &#123;</div><div class="line">    Topic2 t = (Topic2) o;</div><div class="line">    System.out.println(t.getId() + <span class="string">"-"</span> + t.getTitle());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// QBE (Query By Example)</span></div><div class="line">Topic3 tExample = <span class="keyword">new</span> Topic3();</div><div class="line">tExample.setTitle(<span class="string">"T_"</span>);</div><div class="line"></div><div class="line">Example e = Example.create(tExample)</div><div class="line">            .ignoreCase().enableLike();</div><div class="line">Criteria c = session.createCriteria(Topic3.class)</div><div class="line">             .add(Restrictions.gt(<span class="string">"id"</span>, <span class="number">2</span>))</div><div class="line">             .add(Restrictions.lt(<span class="string">"id"</span>, <span class="number">8</span>))</div><div class="line">             .add(e)</div><div class="line">             ;</div><div class="line"></div><div class="line"><span class="keyword">for</span>(Object o : c.list()) &#123;</div><div class="line">    Topic3 t = (Topic3)o;</div><div class="line">    System.out.println(t.getId() + <span class="string">"-"</span> + t.getTitle());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="性能问题"><a href="#性能问题" class="headerlink" title="性能问题"></a>性能问题</h2><ol>
+<li><code>session.clear()</code>的运用，尤其在不断分页循环的时候<ul>
+<li>在一个大集合中进行遍历，遍历msg，取出其中的含有敏感字样的对象</li>
+<li>另外一种形式的内存泄露(面试题：Java在语法级别没有内存泄漏，但是可由java引起。例如：连接池不关闭或io读取后不关闭)</li>
+</ul>
+</li>
+<li>1+N问题<ul>
+<li>使用LAZY。<code>@ManyToOne</code> 默认是EAGER（默认在查询主表是，也会查询子表的数据，发出sql语句）。可将其改为<code>@ManyToOne(fetch=FetchType.LAZY)</code>，此时当使用的时候(如:t.getCategory().getName()时)才会发出sql语句</li>
+<li>hql语句中使用<code>join fetch</code>。如将hql语句改成<code>from Topic t left join fetch t.category c</code></li>
+<li>QBC。如使用createCriteria查询，会自动生成含join fetch的sql语句</li>
+</ul>
+</li>
+<li>list和iterate不同之处<ul>
+<li>list取所有；iterate先取ID，等用到的时候再根据ID来取对象</li>
+<li>session中list第二次发出仍会到数据库査询；iterate第二次首先找session级缓存</li>
+</ul>
+</li>
+<li><p>一级缓存和二级缓存和査询缓存(指两次查询的条件一样)</p>
+<ul>
+<li>一级缓存是session级别的缓存；二级缓存是SessionFactory级别的缓存，可以跨越session存在；</li>
+<li><p>二级缓存</p>
+<ul>
+<li><p>打开二级缓存，hibernate.cfg.xml设定：</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>= <span class="string">"cache.use_second_level_cache"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span><span class="comment">&lt;!--使用二级缓存--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cache.provider_class"</span>&gt;</span>org.hibernate.cache.EhCacheProvider<span class="tag">&lt;/<span class="name">property</span>&gt;</span><span class="comment">&lt;!--使用EhCache提供商提供的二级缓存--&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>使用<code>@Cache</code>注解(由hibernate扩展提供)</p>
+<ul>
+<li><code>@Cache(usage=CacheConcurrencyStrategy.READ_WRITE)</code></li>
+<li>使用EhCache二级缓存 需要导入ehcache-1.2.3.jar及commons-logging-1.0.4.jar包</li>
+</ul>
+</li>
+<li>二级缓存的使用场景：<strong>经常被访问、改动不大或不会经常改动、数重有限（如权限信息、组织信息）</strong></li>
+<li>load默认使用二级缓存；iterate默认使用二级缓存；list默认往二级缓存加数据，但是查询的时候不使用</li>
+<li>查询缓存(指两次查询的条件一样)<ul>
+<li><code>&lt;property name=&quot;cache.use_query_cache&quot;&gt;true&lt;/property&gt;</code> 查询缓存依赖与二级缓存，需要打开二级缓存</li>
+<li>调用Query的<code>setCachable(true)</code>方法指明使用二级缓存，如：<code>session.createQuery(&quot;from Category&quot;).setCacheable(true).list();</code></li>
+</ul>
+</li>
+<li>缓存算法：LRU、LFU、FIFO<ul>
+<li>LRU: Least Recently Used 最近很少被使用，按使用时间</li>
+<li>LFU: Least Frequently Used 按命中率高低</li>
+<li>FIFO: First In First Out 按顺序替换</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>事务并发处理<ul>
+<li>事务：ACID (Atomic原子性、Consistency一致性、Itegrity独立性、Durability持久性)</li>
+<li>事务并发时可能出现的问题<ul>
+<li><code>dirty read</code>脏读(读到了另一个事务在处理中还未提交的数据)</li>
+<li><code>non-repeatable read</code>不可重复读(一个事物中两次读取的数据不一致，被其他事物影响了)</li>
+<li><code>phantom read</code>幻读(主要针对插入和删除，在读的过程中，另外一个事物插入或删除了一条数据影响了读的结果)</li>
+</ul>
+</li>
+<li>数据库的事务隔离机制<ul>
+<li>查看 <code>java.sql.Connection</code> 文档</li>
+<li>1：<code>read-uncommitted</code> 2：<code>read-committed</code> 4：<code>repeatable read</code> 8：<code>serializable</code>（数字代表对应值或级别，级别越高越安全但是效率约低）           <ul>
+<li><code>read-uncommitted</code>(允许读取未提交的数据) 会出现dirty read, phantom-read, non-repeatable read 问题</li>
+<li><strong><code>read-commited</code></strong>(读取已提交的数据 项目中一般都使用这个)不会出现dirty read，因为只有另一个事务提交才会读出来结果，但仍然会出现 non-repeatable read 和 phantom-read。使用read-commited机制可用悲观锁、乐观锁来解决non-repeatable read 和 phantom-read问题</li>
+<li><code>repeatable read</code>(事务执行中其他事务无法执行修改或插入操作，较安全)</li>
+<li><code>serializable</code> 解决一切问题(顺序执行事务 不并发，实际中很少用)</li>
+<li>为什么取值要使用 1 2 4 8 而不是 1 2 3 4。1=0000  2=0010 4=0100 8=1000(位移计算效率高)</li>
+</ul>
+</li>
+<li>hibernate设置<ul>
+<li>设定hibernate的事务隔离级别(使用hibernate.connection.isolation配置，取值1、2、4、8)</li>
+<li>hibernate.connection.isolation = 2（如果不设 默认依赖数据库本身的级别）</li>
+<li>用悲观锁解决repeatable read的问题（依赖于数据库的锁）<ul>
+<li>法一：<code>select ... for update</code></li>
+<li>法二：使用另一种load方法：<code>load(xxx.class, i, LockMode.Upgrade)</code> i=1/2/4/8</li>
+</ul>
+</li>
+<li>Hibernate(JPA)乐观锁定(ReadCommitted)<ul>
+<li>实体类中增加version属性(数据库也会对应生成该字段,初始值为0)，并在其get方法前加<code>@Version</code>注解，则在操作过程中没更新一次该行数据则version值加1，即可在事务提交前判断该数据是否被其他事务修改过</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ssh/" rel="tag"># ssh</a>
+          
+            <a href="/tags/orm/" rel="tag"># orm</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/10/extend/2017-05-10-windows/" rel="next" title="windows">
+                <i class="fa fa-chevron-left"></i> windows
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/01/java/2017-07-01-spring/" rel="prev" title="spring">
+                spring <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World"><span class="nav-number">2.</span> <span class="nav-text">Hello World</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#xml配置"><span class="nav-number">2.1.</span> <span class="nav-text">xml配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Annotation注解-常用"><span class="nav-number">2.2.</span> <span class="nav-text">Annotation注解 (常用)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hibernate-cfg-xml配置"><span class="nav-number">3.</span> <span class="nav-text">hibernate.cfg.xml配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关注解类"><span class="nav-number">4.</span> <span class="nav-text">相关注解类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心开发接口"><span class="nav-number">5.</span> <span class="nav-text">核心开发接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关系映射-视频35-52"><span class="nav-number">6.</span> <span class="nav-text">关系映射 (视频35-52)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HQL-test-cn-aezo-hibernate-hql1-2"><span class="nav-number">7.</span> <span class="nav-text">HQL (test/cn.aezo.hibernate.hql1/2)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能问题"><span class="nav-number">8.</span> <span class="nav-text">性能问题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

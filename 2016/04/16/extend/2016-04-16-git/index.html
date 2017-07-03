@@ -1,0 +1,1003 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="git," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（rm -f ./.git/index.lock）。 运行命令git commit --amend、git diff后、打">
+<meta name="keywords" content="git">
+<meta property="og:type" content="article">
+<meta property="og:title" content="git">
+<meta property="og:url" content="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-git/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（rm -f ./.git/index.lock）。 运行命令git commit --amend、git diff后、打">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/04/git流程图.png">
+<meta property="og:updated_time" content="2017-05-24T05:38:46.865Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="git">
+<meta name="twitter:description" content="目录{:toc}  git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（rm -f ./.git/index.lock）。 运行命令git commit --amend、git diff后、打">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/04/git流程图.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-git/"/>
+
+
+
+
+
+  <title>git | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-git/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">git</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T12:40:00+08:00">
+                2016-04-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
+                    <span itemprop="name">tools</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="git入门-1"><a href="#git入门-1" class="headerlink" title="git入门 ^1"></a>git入门 <a href="[Git入门视频](http://edu.51cto.com/course/course_id-1838.html)">^1</a></h2><blockquote>
+<p>临时记录</p>
+<ul>
+<li><code>git add/rm</code> 、 <code>git cimmit</code> 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（<code>rm -f ./.git/index.lock</code>）。</li>
+<li>运行命令<code>git commit --amend</code>、<code>git diff</code>后、打开vi编辑器出错，退出快捷键<code>Ctrl+Z</code></li>
+<li><code>ls</code>或者<code>dir</code>都可以查看当前目录结构</li>
+<li>删除文件git rm、git add、git commit、git push</li>
+<li>网址<ul>
+<li><a href="http://www.jianshu.com/p/e2a15d01284c" target="_blank" rel="external">http://www.jianshu.com/p/e2a15d01284c</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2014/06/git_remote.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2014/06/git_remote.html</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html</a></li>
+<li><a href="http://blog.csdn.net/oldinaction/article/details/49704969" target="_blank" rel="external">http://blog.csdn.net/oldinaction/article/details/49704969</a></li>
+</ul>
+</li>
+</ul>
+<p>第二集有几个命令</p>
+</blockquote>
+<h3 id="git全局配置"><a href="#git全局配置" class="headerlink" title="git全局配置"></a>git全局配置</h3><ul>
+<li><code>git config --global user.name smalle</code> 设置用户名</li>
+<li><code>git config --global user.email oldinaction@qq.com</code> 设置邮箱</li>
+<li><code>git config --global color.ui true</code> 设置在命令行打印的代码带颜色</li>
+<li><code>git config --list</code>  列出所有配置</li>
+</ul>
+<p>以上操作其实是对git的根目录下.gitconfig（<code>~/.gitconfig</code>，<code>~</code>代表根目录，<code>cat  ~/.gitconfig</code>查看此文件）进行的操作，也可直接对这个文件进行修改</p>
+<blockquote>
+<p><code>cat 文件路径名</code>查看某个文件，如：<strong>cat ~/.gitconfig</strong>（<code>~</code>代表根目录）<br><code>vi 文件名</code>打开某个文件进行编辑</p>
+<ul>
+<li>点击键盘<code>insert</code>，进入vi编辑模式，开始编辑；</li>
+<li>点击<code>esc</code>退出编辑模式，进入到vi命令行模式；</li>
+<li>输入<code>:x</code>/<code>ZZ</code>将刚刚修改的文件进行保存，退出编辑页面，回到初始命令行<br><code>ls</code>查看当前目录结构，<code>ls -A</code>可以显示隐藏的目录</li>
+</ul>
+</blockquote>
+<h3 id="repository"><a href="#repository" class="headerlink" title="repository"></a>repository</h3><ol>
+<li><p>创建repository(并关联远程仓库)</p>
+<ul>
+<li><p><code>cd d:/git/demo/</code>进入到项目文件夹（可使用<code>mkdir 文件夹名</code>在当前目录创建文件夹或者手动创建）</p>
+<blockquote>
+<ul>
+<li>此时git bash上显示<code>smalle@ST-008 MINGW64 /d/git/demo</code>（直接在demo目录<code>右键-Git Bash Here</code>也是这个显示）</li>
+<li>如果直接点击桌面上的git图标进入命令行显示的是<code>smalle@ST-008 MINGW64 ~</code></li>
+<li>创建之后，d:/git/demo/目录就是后面提到到 working 区（其实就是本地磁盘）</li>
+</ul>
+</blockquote>
+</li>
+<li><p><code>git init</code> 初始化项目，提示 Initialized empty Git repository in D:/git/demo/.git/</p>
+<ul>
+<li>此时就产生了后面提到的 staging 和 history 区</li>
+</ul>
+</li>
+<li><code>git add .</code> 添加所有文件到本地索引</li>
+<li><code>git commit -am &#39;初始化提交&#39;</code> 提交修改到本地仓库</li>
+<li><code>git remote add origin https://github.com/oldinaction/jekyll_demo.git</code> 添加远程仓库地址，保存在origin变量中</li>
+<li><code>git push origin master</code> 按照前一条命令中origin给定的git远程地址推送到远程仓库的master分支（容易和远程产生冲突）</li>
+</ul>
+</li>
+<li>克隆repository<ul>
+<li><code>git clone https://github.com/UserName/ProjectName</code>，这是利用https方式克隆，还有其他如git、ssh等方式（克隆后git会在当前目录新建一个文件夹为 “ProjectName” 的项目）</li>
+<li><code>git clone -b &lt;remote branch&gt; &lt;remote address&gt;</code> 克隆远程仓库的某个分支（如：<code>git clone -b master http://192.168.1.1/test.git</code>）</li>
+</ul>
+</li>
+<li>克隆远程仓库的某个文件夹<ul>
+<li>建立本地仓库<ul>
+<li><code>mkdir project_folder</code></li>
+<li><code>cd project_folder</code></li>
+<li><code>git init</code></li>
+<li><code>git remote add -f origin &lt;url&gt;</code></li>
+</ul>
+</li>
+<li><code>git config core.sparsecheckout true</code> 允许使用Sparse Checkout模式</li>
+<li>保存需要下载的文件夹名到<code>.git/info/sparse-checkout</code>文件中。如<code>echo &quot;src&quot; &gt;&gt; .git/info/sparse-checkout</code></li>
+<li><code>git pull origin master</code> 拉取相应分支</li>
+</ul>
+</li>
+</ol>
+<h3 id="分支"><a href="#分支" class="headerlink" title="分支"></a>分支</h3><ol>
+<li>查看分支<ul>
+<li><code>git branch</code> 查看本地分支（<code>*</code>代表当前所处的分支）</li>
+<li><code>git branch -a</code> 查看本地和运程所有分支</li>
+</ul>
+</li>
+<li>创建分支<ul>
+<li><code>git branch 分支名</code> 创建一个新的分支。如果此分支和 master 是同一级分支（及在处于 master 时创建的分支），那么他们指向同一个 commit 对象</li>
+<li><code>git checkout -b &lt;localBranchName&gt;</code> 创建一个本地分支并且换到此分支（是<code>git branch 分支名</code> 和 <code>git checkout 分支名</code>的合并命令）</li>
+<li><code>git checkout -b &lt;localBranchName&gt; &lt;remotesBranchName&gt;</code> 相当于检出远程的某个分支到本地，远程分支名如origin/b1(使用 <code>git branch -a</code> 查看时显示为remotes/origin/b1)<ul>
+<li><strong><code>git checkout -b &lt;localBranchName&gt; --track &lt;remotesBranchName&gt;</code></strong> 检出分支并创建本地分支与远程分支的追踪</li>
+<li>勿使用 <code>git checkout 远程分支名</code> 命令会是当前HEAD变为一个游离的HEAD（即现在HEAD指向的是一个没有分支名字的修订版本，游离于已知的所有分支之外，如<code>HEAD detached at origin/b1</code>）</li>
+</ul>
+</li>
+<li><code>git push origin &lt;branch&gt;</code> 创建远程分支</li>
+</ul>
+</li>
+<li>切换分支<ul>
+<li><code>git checkout 分支名</code> 切换到此分支（<em>Switched to branch ‘分支名’</em>），此时 HEAD 指向此分支；并且本地磁盘（working 区）的内容会显示此分支的文件</li>
+</ul>
+</li>
+<li>合并分支<ul>
+<li><code>git merge 子分支名</code> 将子分支名合并到主分支，合并前必须切换到主分支。（子分支的文件会替换掉主分支的文件）</li>
+</ul>
+</li>
+<li>跟踪分支 <code>git branch --set-upstream-to=&lt;remotesBranchName&gt; &lt;localBranchName&gt;</code> 之后可以使用<code>git push/pull</code>直接对相应分支进行操作</li>
+<li>删除分支<ul>
+<li><code>git branch -d 分支名</code> 删除此分支（只能删除除当前分支以外的分支；如果当前分支有一次提交，则需要将此分支合并到主分支之后再进行删除）</li>
+</ul>
+</li>
+</ol>
+<h3 id="添加、提交文件"><a href="#添加、提交文件" class="headerlink" title="添加、提交文件"></a>添加、提交文件</h3><p>利用<code>git add &lt;file&gt;</code> / <code>git add .</code>将 working 中此文件或者所有文件添加到 staging 区（<strong>&lt;file&gt;</strong> 为必输的文件名）</p>
+<p>利用<code>git commit -m &#39;提交时的备注&#39;</code> 将 staging 区中的此文件提交到 history 区（如果不加<code>-m</code>则命令行会打开一个vi编辑器供用户填写提交时的备注）</p>
+<p>利用<code>git commit -a</code> 将 working 中此文件直接提交到文件到history 区（此时一般加上参数<code>-m</code>，即<code>git commit -am &#39;提交时的备注&#39;</code>）</p>
+<blockquote>
+<p>git运行流程图</p>
+<p><img src="/data/images/2016/04/git流程图.png" alt="git运行流程图"></p>
+</blockquote>
+<h3 id="撤销"><a href="#撤销" class="headerlink" title="撤销"></a>撤销</h3><ul>
+<li><code>git checkout .</code> #本地所有修改的。没有的提交的，都返回到原来的状态（删除不了请参考下方的<code>git clean</code>用法）<ul>
+<li><code>git checkout test.txt</code> 丢弃修改</li>
+</ul>
+</li>
+<li><code>git stash</code> #把所有没有提交的修改暂存到stash里面。可用git stash pop恢复。</li>
+<li><code>git reset --hard HASH</code> #返回到某个节点，不保留修改。如：<code>git reset --hard HEAD</code>，<code>git reset --hard 8a222ba</code></li>
+<li><code>git reset --soft HASH</code> #返回到某个节点。保留修改</li>
+</ul>
+<h3 id="删除文件"><a href="#删除文件" class="headerlink" title="删除文件"></a>删除文件</h3><p><strong>在用使用 <code>git clean</code> 前，强烈建议加上 -n 参数来先看看会删掉哪些文件，防止重要文件被误删</strong></p>
+<ul>
+<li><code>git clean -nf</code> <strong>查看删除文件</strong><ul>
+<li><code>git clean -f</code> 删除 untracked files</li>
+</ul>
+</li>
+<li><code>git clean -nfd</code><ul>
+<li><code>git clean -fd</code> 连 untracked 的目录也一起删掉</li>
+</ul>
+</li>
+<li><code>git clean -nxfd</code><ul>
+<li><code>git clean -xfd</code> 连 gitignore 的untrack 文件/目录也一起删掉 （慎用，一般这个是用来删掉编译出来的文件用的）</li>
+</ul>
+</li>
+</ul>
+<h3 id="与远程仓库同步"><a href="#与远程仓库同步" class="headerlink" title="与远程仓库同步"></a>与远程仓库同步</h3><ul>
+<li><code>git fetch 远程仓库地址</code> 下载远程仓库的变动到当前分支的历史区</li>
+<li><code>git pull 远程仓库地址</code> 取回远程仓库的变化到当前分支的工作区<ul>
+<li><code>git pull</code> 获取本分支追踪的远程分支</li>
+<li><code>git pull origin develop</code> 获取远程develop分支(使用 <code>git branch -a</code> 查看时显示为remotes/origin/develop)</li>
+<li><code>git pull origin master:master</code> 取回远程的master分支到本地master分支</li>
+</ul>
+</li>
+<li><code>git push 远程仓库地址</code> 将本地仓库内容同步到远程仓库，回车后输入用户名和密码即可</li>
+</ul>
+<h3 id="查看git状态和文件差别"><a href="#查看git状态和文件差别" class="headerlink" title="查看git状态和文件差别"></a>查看git状态和文件差别</h3><ul>
+<li>利用<code>git status</code>查看文件状态，<code>git status -s</code>显示文件扼要信息<ul>
+<li>Git内部只有三个状态，分别是未修改unmodified、修改modified、暂存staged。对于没有加入Git控制的文件，可以视为第四种状态未跟踪untracked</li>
+<li>提示 <em>Untracked files</em> 表示没有向 git 进行登记，需要增加到 git 进行版本控制（下面文件显示红色）。使用<code>git add &lt;file&gt;</code> / <code>git add .</code></li>
+<li>提示 <em>Changes to be committed</em> 表示文件被修改，等待提交（下面文件显示绿色）。使用<code>git commit -m &#39;提交时的备注&#39;</code></li>
+<li>提示 <em>nothing to commit, working directory clean</em> 表示没有文件需要提交</li>
+<li>运行<code>git status -s</code>命令，显示的标识位信息分别表示staging 和 working两个区<ul>
+<li><code>A_</code>其中 A 表示 staging 中新加的文件，空格表示 working 没有变化（其中<code>_</code>表示空格）</li>
+<li><code>_M</code>其中空格表示 staging 中没有改变，M 表示 working 做了修改</li>
+<li><code>MM</code>表示 staging 和 working 都发生了变化</li>
+<li><code>D_</code>表示 staging 中此文件被删除了</li>
+<li><code>R_</code>表示 staging 中此文件进行了重命名</li>
+<li><code>??</code>表示此文件没有被 git 进行版本控制</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>利用<code>git diff</code>查看文件差别，<code>git diff --stat</code>是对文件差别的扼要描述<ul>
+<li><code>-红色字体</code>表示删除的</li>
+<li><code>+绿色字体</code>表示增加的</li>
+<li><code>git diff</code>默人对<code>git status -s</code>的第二个标识位（working）进行详细描述；</li>
+<li>使用<code>git diff --staged</code> / <code>git diff --cached</code>则是对第一个标识位（staging）进行详细描述；</li>
+<li>使用<code>git diff HEAD</code>则是对 history 区此文件的描述</li>
+</ul>
+</li>
+<li>注意事项<ul>
+<li>git不监控文件权限属性变化</li>
+</ul>
+</li>
+</ul>
+<h3 id="移除文件"><a href="#移除文件" class="headerlink" title="移除文件"></a>移除文件</h3><p><code>git rm &lt;file&gt;</code> 将此文件从 repository 中删除</p>
+<p><code>git rm --cached &lt;file&gt;</code> 将此文件从 staging 区中删除，此时 working 区中还有</p>
+<h3 id="撤销操作"><a href="#撤销操作" class="headerlink" title="撤销操作"></a>撤销操作</h3><p><code>git reset &lt;file&gt;</code> 撤销对此文件的 commit 操作，他会从 history 区中将此文件取出并还原到 staging 区</p>
+<p><code>git checkout -- &lt;file&gt;</code> 撤销对文件的 add 操作，他会从 staging 区中将此文件取出并还原到 working 区</p>
+<p><code>git checkout HEAD &lt;file&gt;</code> 撤销对文件的 add 操作，他会从 history 区中将此文件取出并还原到 working 区（其中文件名为相对.git文件夹的路径名）</p>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><h4 id="查看日志和帮助"><a href="#查看日志和帮助" class="headerlink" title="查看日志和帮助"></a>查看日志和帮助</h4><ul>
+<li><p><code>git help</code> 查看帮助。<code>[]</code>为可选，<code>&lt;&gt;</code>为必输</p>
+</li>
+<li><p><code>git log</code>查看提交日志，<code>Ctrl+Z</code> 退出查看</p>
+<ul>
+<li><code>git log --oneline</code> 可以显示更加短小的提交ID</li>
+<li><code>git log --graph</code> 显示何时出现了分支和合并等信息</li>
+<li><code>git log --pretty=raw</code> 显示所有提交对象的parent属性</li>
+<li><code>git reflog</code> 查看每个提交版本信息(排在上面的为最新版本)</li>
+</ul>
+</li>
+<li><p><code>git cat-file -p 哈希码(或简写)或者对象名</code> 展示此对象的详细信息</p>
+</li>
+<li><p><code>git cat-file -t 哈希码(或简写)</code> 查看Git对象的类型，主要的git对象包括tree，commit，parent，和blob等</p>
+<ul>
+<li>如：<code>git cat-file -t HEAD</code>的结果是commit表示此HEAD指向一个commit 对象</li>
+</ul>
+</li>
+<li><p><code>cat .git/HEAD</code> 查看HEAD指向(当前分支)。如打印 <code>.git/refs/heads/master</code></p>
+</li>
+<li><code>cat .git/refs/heads/master</code> 查看HEAD的哈希码(简写取前7位)</li>
+<li><code>git rev-parse HEAD</code> 获取 HEAD 对象的哈希码</li>
+</ul>
+<h4 id="忽略控制文件"><a href="#忽略控制文件" class="headerlink" title="忽略控制文件"></a>忽略控制文件</h4><ol>
+<li><code>.gitignore</code> 文件创建和设置<ul>
+<li>git根目录运行命令：<code>touch .gitignore</code></li>
+<li>使用 vi 编辑器进行文件配置</li>
+</ul>
+</li>
+<li>配置语法<ul>
+<li>以斜杠<code>/</code>开头表示目录</li>
+<li>以星号<code>*</code>通配多个字符</li>
+<li>以问号<code>?</code>通配单个字符</li>
+<li>以方括号<code>[]</code>包含单个字符的匹配列表</li>
+<li>以叹号<code>!</code>表示不忽略(跟踪)匹配到的文件或目录</li>
+</ul>
+</li>
+<li><code>echo &#39;*~&#39; &gt; .gitignore</code>将文本<code>*~</code>保存到文件 .gitignore 中，再将此文件 add 并 commit 到 git 中即可，表示进行 git 相关操作时忽略以<code>~</code>结尾的文件</li>
+<li>已经提交的文件(git已经管理了此文件，仓库已经存在此文件)无法忽略解决办法：<ul>
+<li>将此文件加到.gitignore中</li>
+<li><code>git rm -r --cached my.txt</code> 将此文件的缓存在A分支删除并提交，如果my.txt有被修改则A分支还会保存此文件否则本地也会删除，远程将无此文件</li>
+<li>法一：切换到B分支，将my.txt备份，将A分支提交拉取到B分支，此时B分支也会没有此文件，再将my.txt加入进来</li>
+<li>法二：切换到B分支，修改my.txt，执行<code>git rm -r --cached my.txt</code>即可(拉取B进来也不会冲突)</li>
+</ul>
+</li>
+</ol>
+<h4 id="重命名文件"><a href="#重命名文件" class="headerlink" title="重命名文件"></a>重命名文件</h4><p><code>git mv README.txt README.md</code> 将 README.txt 文件重命名为 README.md（markdown格式）</p>
+<h4 id="暂存工作区"><a href="#暂存工作区" class="headerlink" title="暂存工作区"></a>暂存工作区</h4><p><code>git stash</code> 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）</p>
+<p><code>git stash pop</code> 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容。由于可能存在多个Stash的内容，所以用栈来管理，pop会从最近的一个stash中读取内容并恢复</p>
+<p><code>git stash list</code> 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复</p>
+<p><code>git stash clear</code> 清空Git栈</p>
+<h4 id="commit对象"><a href="#commit对象" class="headerlink" title="commit对象"></a>commit对象</h4><p>commit 对象中 parent 属性指向前一个 commit，tree 属性指向一个 tree 对象（此 tree 对象可以指向文件或者文件夹）</p>
+<p>HEAD 指向 master（只有一个分支的情况下），master 指向最新的 commit；HEAD~（或master~）表示前一个 commit；HEAD~2（或master~2）表示上上一个 commit，以此类推；HEAD~2^ 表示 HEAD~2 的父提交（此时和HEAD~3是同一个对象）</p>
+<p>HEAD 的哈希码存放在 <code>.git/refs/heads/xxx</code> 文件中(当前处于xxx分支)</p>
+<hr>
+<p>参考文章</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/git/" rel="tag"># git</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/10/web/jquery/2016-04-10-jQuery-Validation/" rel="next" title="jQuery Validation - Form表单验证插件">
+                <i class="fa fa-chevron-left"></i> jQuery Validation - Form表单验证插件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/16/extend/2016-04-16-jekyll/" rel="prev" title="jekyll">
+                jekyll <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#git入门-1"><span class="nav-number">1.</span> <span class="nav-text">git入门 ^1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#git全局配置"><span class="nav-number">1.1.</span> <span class="nav-text">git全局配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#repository"><span class="nav-number">1.2.</span> <span class="nav-text">repository</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分支"><span class="nav-number">1.3.</span> <span class="nav-text">分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加、提交文件"><span class="nav-number">1.4.</span> <span class="nav-text">添加、提交文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#撤销"><span class="nav-number">1.5.</span> <span class="nav-text">撤销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除文件"><span class="nav-number">1.6.</span> <span class="nav-text">删除文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#与远程仓库同步"><span class="nav-number">1.7.</span> <span class="nav-text">与远程仓库同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看git状态和文件差别"><span class="nav-number">1.8.</span> <span class="nav-text">查看git状态和文件差别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移除文件"><span class="nav-number">1.9.</span> <span class="nav-text">移除文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#撤销操作"><span class="nav-number">1.10.</span> <span class="nav-text">撤销操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">1.11.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看日志和帮助"><span class="nav-number">1.11.1.</span> <span class="nav-text">查看日志和帮助</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#忽略控制文件"><span class="nav-number">1.11.2.</span> <span class="nav-text">忽略控制文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重命名文件"><span class="nav-number">1.11.3.</span> <span class="nav-text">重命名文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#暂存工作区"><span class="nav-number">1.11.4.</span> <span class="nav-text">暂存工作区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#commit对象"><span class="nav-number">1.11.5.</span> <span class="nav-text">commit对象</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

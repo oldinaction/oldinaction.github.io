@@ -1,0 +1,900 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="jekyll," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  jekyll 介绍 ^1Jekyll（发音/‘dʒiːk əl/，”杰克尔”）是一个静态站点生成器，它会根据网页源码生成静态文件。它提供了模板、变量、插件等功能，所以实际上可以用来编写整个网站。  Github Pages  github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因此利用 jekyll 搭建网站的话，我们只需要编写好网页文件(或者md文">
+<meta name="keywords" content="jekyll">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jekyll">
+<meta property="og:url" content="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-jekyll/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  jekyll 介绍 ^1Jekyll（发音/‘dʒiːk əl/，”杰克尔”）是一个静态站点生成器，它会根据网页源码生成静态文件。它提供了模板、变量、插件等功能，所以实际上可以用来编写整个网站。  Github Pages  github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因此利用 jekyll 搭建网站的话，我们只需要编写好网页文件(或者md文">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/jekyll-0.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/jekyll-1.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/07/jekyll-2.png">
+<meta property="og:updated_time" content="2016-10-27T09:59:21.510Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="jekyll">
+<meta name="twitter:description" content="目录{:toc}  jekyll 介绍 ^1Jekyll（发音/‘dʒiːk əl/，”杰克尔”）是一个静态站点生成器，它会根据网页源码生成静态文件。它提供了模板、变量、插件等功能，所以实际上可以用来编写整个网站。  Github Pages  github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因此利用 jekyll 搭建网站的话，我们只需要编写好网页文件(或者md文">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/07/jekyll-0.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-jekyll/"/>
+
+
+
+
+
+  <title>jekyll | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-jekyll/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">jekyll</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T13:45:00+08:00">
+                2016-04-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="jekyll-介绍-1"><a href="#jekyll-介绍-1" class="headerlink" title="jekyll 介绍 ^1"></a>jekyll 介绍 <a href="[jekyll官方文档](http://jekyllrb.com/docs/home/)">^1</a></h2><p><a href="http://jekyllrb.com/" target="_blank" rel="external">Jekyll</a>（发音/‘dʒiːk əl/，”杰克尔”）是一个静态站点生成器，它会根据网页源码生成静态文件。它提供了模板、变量、插件等功能，所以实际上可以用来编写整个网站。</p>
+<blockquote>
+<p>Github Pages</p>
+<ul>
+<li>github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因此利用 jekyll 搭建网站的话，我们只需要编写好网页文件(或者md文件)上传到 Github 即可（上传的文件会经过 jekyll 程序处理，最终得到我们可以浏览的网页）<br><strong><a href="https://github.com/oldinaction/Git/tree/master/demo/jekyll" target="_blank" rel="external">本教程源码下载</a></strong></li>
+</ul>
+</blockquote>
+<h2 id="利用-jekyll-搭建博客初步-2"><a href="#利用-jekyll-搭建博客初步-2" class="headerlink" title="利用 jekyll 搭建博客初步 ^2"></a>利用 jekyll 搭建博客初步 <a href="[Github搭建jekyll博客](http://www.ruanyifeng.com/blog/2012/08/blogging_with_jekyll.html)">^2</a></h2><h3 id="新建GitHub项目"><a href="#新建GitHub项目" class="headerlink" title="新建GitHub项目"></a>新建GitHub项目</h3><blockquote>
+<p>在搭建之前，你必须已经安装了 <a href="https://git-scm.com/" target="_blank" rel="external">git</a>，并且有 <a href="https://github.com/" target="_blank" rel="external">github</a> 账户。</p>
+</blockquote>
+<ol>
+<li>假如 github 主页是 <code>https://github.com/oldinaction</code>, 那么新建一个仓库 (repository), 仓库起名为 <code>oldinaction.github.io</code>(一定要为<code>用户名.github.io</code>)</li>
+<li>克隆到本地仓库：<code>git clone https://github.com/oldinaction/oldinaction.github.io.git</code></li>
+</ol>
+<h3 id="在本地仓库创建相关文件"><a href="#在本地仓库创建相关文件" class="headerlink" title="在本地仓库创建相关文件"></a>在本地仓库创建相关文件</h3><ol>
+<li>创建配置文件：在项目根目录下，建立一个名为 <code>_config.yml</code> 的文本文件。它是jekyll的设置文件，我们暂时不需要加任何内容，有关配置可参考<a href="http://jekyllrb.com/docs/configuration/" target="_blank" rel="external">官方文档</a>。</li>
+<li><p>创建模板文件</p>
+<ul>
+<li>在项目根目录下，创建一个<code>_layouts</code>目录，用于存放模板文件</li>
+<li><p>进入该目录，创建一个<code>default.html</code>文件，作为Blog的默认模板。并在该文件中填入以下内容</p>
+<p><img src="/data/images/2016/07/jekyll-0.png" alt="创建模版文件"></p>
+<blockquote>
+<p>Jekyll使用<a href="https://github.com/shopify/liquid/wiki/liquid-for-designers" target="_blank" rel="external">Liquid模板语言</a>，更多模板变量请参考<a href="https://jekyllrb.com/docs/templates/" target="_blank" rel="external">官方文档</a>。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>创建文章</p>
+<ul>
+<li>回到项目根目录，创建一个<code>_posts</code>目录，用于存放blog文章</li>
+<li>新建文件 <code>2016-04-10-hello-world.html</code>(注意，文件名必须为”年-月-日-文章标题.后缀名”的格式。也支持 markdown 格式)。 在该文件中，填入以下内容：（注意，行首不能有空格）<br><img src="/data/images/2016/07/jekyll-1.png" alt="创建文章"></li>
+</ul>
+<blockquote>
+<ul>
+<li>每篇文章的头部，必须有一个yaml文件头，用来设置一些元数据。它用三根短划线”—“，标记开始和结束，里面每一行设置一种元数据。”layout:default”，表示该文章的模板使用_layouts目录下的default.html文件；”title: 你好，世界”，表示该文章的标题是”你好，世界”，如果不设置这个值，默认使用嵌入文件名的标题，即”hello world”。</li>
+<li>这里要注意的是，Liquid模板语言规定，<strong>输出内容使用两层大括号，单纯的命令使用一层大括号</strong></li>
+</ul>
+</blockquote>
+</li>
+<li><p>创建首页</p>
+<ul>
+<li>回到根目录，创建一个 <code>index.html</code> 文件，填入以下内容<br><img src="/data/images/2016/07/jekyll-2.png" alt="创建首页"></li>
+</ul>
+</li>
+</ol>
+<h3 id="提交到-github"><a href="#提交到-github" class="headerlink" title="提交到 github"></a>提交到 github</h3><ol>
+<li>添加内容到本地仓库: 先执行命令 <code>$ git add .</code> ，再执行命令 <code>$ git commit -am &#39;jekyll demo&#39;</code></li>
+<li>访问：打开 <code>http://oldinaction.github.io/</code> 即可看到我们的博客</li>
+</ol>
+<h3 id="绑定域名"><a href="#绑定域名" class="headerlink" title="绑定域名"></a>绑定域名</h3><p>如果你不想用<a href="http://oldinaction.github.io/这个域名，可以换成自己的域名。具体方法是：" target="_blank" rel="external">http://oldinaction.github.io/这个域名，可以换成自己的域名。具体方法是：</a></p>
+<ul>
+<li>在仓库的根目录下面，新建一个名为 <code>CNAME</code> 的文本文件，里面写入你要绑定的域名，比如 <code>example.com</code> 或者 <code>xxx.example.com</code>。</li>
+<li>如果绑定的是顶级域名，则DNS要新建一条A记录，指向 <code>204.232.175.78</code>。如果绑定的是二级域名，则DNS要新建一条CNAME记录，指向<code>username.github.com</code>（请将username换成你的用户名）；如果是组织类pages，则指向<code>username.github.io</code></li>
+<li>在_config.yml文件中写入<code>baseurl=&quot;&quot;</code></li>
+</ul>
+<hr>
+<h2 id="windows-在本地搭建jekyll博客-3"><a href="#windows-在本地搭建jekyll博客-3" class="headerlink" title="windows 在本地搭建jekyll博客 ^3"></a>windows 在本地搭建jekyll博客 <a href="[Windows本地安装jekyll](http://blog.csdn.net/itmyhome1990/article/details/41982625)">^3</a></h2><h3 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h3><h4 id="安装Ruby"><a href="#安装Ruby" class="headerlink" title="安装Ruby"></a>安装Ruby</h4><ul>
+<li>下载地址：<a href="http://rubyinstaller.org/downloads/" target="_blank" rel="external">Ruby</a></li>
+<li>安装时勾选<code>Add Ruby executables to your PATH</code> （将ruby加到环境变量的Path中）</li>
+<li>检测安装：在命令行运行 <code>ruby -v</code> 显示版本号则成功</li>
+</ul>
+<h4 id="安装Ruby的DevKit"><a href="#安装Ruby的DevKit" class="headerlink" title="安装Ruby的DevKit"></a>安装Ruby的DevKit</h4><ul>
+<li>下载地址：<a href="http://rubyinstaller.org/downloads/" target="_blank" rel="external">DEVELOPMENT KIT</a> 选择合适的版本</li>
+<li>运行解压到某目录，如 <code>D:\software\RubyDevKit</code></li>
+<li>初始化devkit并将其绑定到Ruby安装<ul>
+<li>在命令行cd到DevKit的安装目录RubyDevKit</li>
+<li>运行 <code>ruby dk.rb init</code></li>
+<li>运行 <code>ruby dk.rb install</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="安装jekyll"><a href="#安装jekyll" class="headerlink" title="安装jekyll"></a>安装jekyll</h4><p>打开命令行，运行 <code>gem install jekyll</code> ， 得一会运行</p>
+<h4 id="安装python"><a href="#安装python" class="headerlink" title="安装python"></a>安装python</h4><ul>
+<li>下载地址： <a href="https://www.python.org/downloads/" target="_blank" rel="external">python</a> 我下的是2.7.11</li>
+<li>勾选<code>Add python.exe to Path</code>（将python加到环境变量的Path中）</li>
+<li>检测安装：在命令行运行 <code>python -v</code>（如果运行失败，看环境变量中是否有python的安装目录）</li>
+</ul>
+<h4 id="安装pip"><a href="#安装pip" class="headerlink" title="安装pip"></a>安装pip</h4><p>pip是一个Python包的安装和管理工具。你会需要它的安装pygments,pygments.rb突出你的代码,使用Python包。</p>
+<p>如果Python 2 &gt;=2.7.9 or Python 3 &gt;=3.4，只需在命令行运行 <code>python -m pip install -U pip</code> 即可。此处是2.7.11，所有运行命令即可</p>
+<h3 id="运行jekyll"><a href="#运行jekyll" class="headerlink" title="运行jekyll"></a>运行jekyll</h3><ul>
+<li>打开命令行，cd 到 d:/note 目录（博客的目录将会在此处生成）</li>
+<li>运行 <code>jekyll new blog</code>，此时d:/note会产生一个blog目录</li>
+<li>cd到此目录</li>
+<li>运行 <code>jekyll serve</code> ，这是本地博客服务器的启动命令<ul>
+<li><code>Ctrl+C</code> 停止服务</li>
+</ul>
+</li>
+<li>访问 <a href="http://localhost:4000" target="_blank" rel="external">http://localhost:4000</a> 即可看到博客欢迎界面</li>
+</ul>
+<hr>
+<h2 id="jekyll使用笔记"><a href="#jekyll使用笔记" class="headerlink" title="jekyll使用笔记"></a>jekyll使用笔记</h2><h3 id="文章编写"><a href="#文章编写" class="headerlink" title="文章编写"></a>文章编写</h3><ol>
+<li>在atom中使用插件mdwriter写文章</li>
+<li>文章元信息中的categories可以有多个分类，如<code>categories: [web, js]</code></li>
+<li><code>_posts</code>中目录层级不限，文章的显示只根据元信息获取</li>
+<li>jekyll代码和markdown代码需要使用：\{% raw %\}代码\{% endraw %\}</li>
+</ol>
+<h3 id="jekyll博客主题样式"><a href="#jekyll博客主题样式" class="headerlink" title="jekyll博客主题样式"></a>jekyll博客主题样式</h3><ul>
+<li><p>主页文章分页 <a href="[jekyll文章分类](http://www.52ij.com/jishu/99014.html)">^4</a></p>
+<ul>
+<li><p><code>_config.yml</code>中加入</p>
+  
+            paginate: 10
+            paginate_path: "page:num"
+        
+</li>
+<li><p>见根目录下<code>index.xml</code></p>
+</li>
+</ul>
+</li>
+<li>文章分类：见<code>categories.html</code></li>
+<li>查看分类下的文章 [^5] (<strong>？？？</strong>)</li>
+<li><p>markdown文章标题生成目录 <a href="[markdown文章标题生成目录](http://www.111cn.net/sys/linux/70052.htm)">^6</a></p>
+  
+
+        * 目录(星号必须有，标题可随便取)
+        {:toc} // {:toc #myid} 则会生成id，默认是markdown-toc
+
+        ## 标题一
+
+            如果要把某标题从目录树中排除，则在该标题的下一行写上 {:.no_toc}
+
+    </li>
+<li>代码高亮<ul>
+<li>法一：常用<ul>
+<li><code>_config.yml</code>中加入<code>highlighter: rouge</code></li>
+<li>配上css样式文件</li>
+</ul>
+</li>
+<li>法二：使用原生高亮代码，如：{% highlight html %}代码{% endhighlight %}</li>
+</ul>
+</li>
+<li>文章搜索(<strong>？？？</strong>)</li>
+<li>页面新建<ul>
+<li>方法一：在根目录建立<code>pagetest.html</code>的文件，访问<code>http://localhost:4000/pagetest</code>即可看到该页面</li>
+<li>方法二：在根目录新建<code>pages</code>的目录，在里面新建<code>test1</code>目录，在test1目录新建<code>index.html</code>文件，访问<code>http://localhost:4000/pages/test1</code>即可看到该页面。注意test1目录只有名为index.html的文件才生效。同理在pages目录新建test2，亦可访问test2的链接</li>
+</ul>
+</li>
+</ul>
+<h3 id="jekyll语法"><a href="#jekyll语法" class="headerlink" title="jekyll语法"></a>jekyll语法</h3><h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ol>
+<li>本地运行的jekyll，修改了<code>_config.yml</code>需要重新启动，修改了所有的<code>.hmtl</code>，<code>.md</code>文件可以直接看到效果</li>
+</ol>
+<hr>
+<p>参考文章</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/jekyll/" rel="tag"># jekyll</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/16/extend/2016-04-16-git/" rel="next" title="git">
+                <i class="fa fa-chevron-left"></i> git
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/02/db/2016-07-02-redis/" rel="prev" title="redis">
+                redis <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#jekyll-介绍-1"><span class="nav-number">1.</span> <span class="nav-text">jekyll 介绍 ^1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用-jekyll-搭建博客初步-2"><span class="nav-number">2.</span> <span class="nav-text">利用 jekyll 搭建博客初步 ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新建GitHub项目"><span class="nav-number">2.1.</span> <span class="nav-text">新建GitHub项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在本地仓库创建相关文件"><span class="nav-number">2.2.</span> <span class="nav-text">在本地仓库创建相关文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#提交到-github"><span class="nav-number">2.3.</span> <span class="nav-text">提交到 github</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#绑定域名"><span class="nav-number">2.4.</span> <span class="nav-text">绑定域名</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#windows-在本地搭建jekyll博客-3"><span class="nav-number">3.</span> <span class="nav-text">windows 在本地搭建jekyll博客 ^3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#搭建环境"><span class="nav-number">3.1.</span> <span class="nav-text">搭建环境</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装Ruby"><span class="nav-number">3.1.1.</span> <span class="nav-text">安装Ruby</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装Ruby的DevKit"><span class="nav-number">3.1.2.</span> <span class="nav-text">安装Ruby的DevKit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装jekyll"><span class="nav-number">3.1.3.</span> <span class="nav-text">安装jekyll</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装python"><span class="nav-number">3.1.4.</span> <span class="nav-text">安装python</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装pip"><span class="nav-number">3.1.5.</span> <span class="nav-text">安装pip</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行jekyll"><span class="nav-number">3.2.</span> <span class="nav-text">运行jekyll</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jekyll使用笔记"><span class="nav-number">4.</span> <span class="nav-text">jekyll使用笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#文章编写"><span class="nav-number">4.1.</span> <span class="nav-text">文章编写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jekyll博客主题样式"><span class="nav-number">4.2.</span> <span class="nav-text">jekyll博客主题样式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jekyll语法"><span class="nav-number">4.3.</span> <span class="nav-text">jekyll语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">4.4.</span> <span class="nav-text">其他</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

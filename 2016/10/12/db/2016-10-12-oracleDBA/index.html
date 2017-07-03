@@ -1,0 +1,1021 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="oracle,dba," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录{:toc}  简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例   下载 数据库安装包：oracle    oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每">
+<meta name="keywords" content="oracle,dba">
+<meta property="og:type" content="article">
+<meta property="og:title" content="oracleDBA">
+<meta property="og:url" content="http://blog.aezo.cn/2016/10/12/db/2016-10-12-oracleDBA/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录{:toc}  简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例   下载 数据库安装包：oracle    oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每">
+<meta property="og:updated_time" content="2017-06-08T03:08:31.493Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="oracleDBA">
+<meta name="twitter:description" content="目录{:toc}  简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例   下载 数据库安装包：oracle    oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/10/12/db/2016-10-12-oracleDBA/"/>
+
+
+
+
+
+  <title>oracleDBA | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/10/12/db/2016-10-12-oracleDBA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">oracleDBA</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-12T21:06:00+08:00">
+                2016-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/db/" itemprop="url" rel="index">
+                    <span itemprop="name">db</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>目录<br>{:toc}</li>
+</ul>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
+<p>注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例</p>
+</blockquote>
+<ol>
+<li>下载<ul>
+<li>数据库安装包：<a href="http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html" target="_blank" rel="external">oracle</a></li>
+</ul>
+</li>
+</ol>
+<h3 id="oracle相关名词和原理"><a href="#oracle相关名词和原理" class="headerlink" title="oracle相关名词和原理"></a>oracle相关名词和原理</h3><ol>
+<li>数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) <a href="http://www.cnblogs.com/advocate/archive/2010/08/20/1804063.html" target="_blank" rel="external">^1</a><ul>
+<li><code>DB_NAME</code>: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。</li>
+<li><code>INSTANCE_NAME</code>: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。</li>
+<li><code>ORACLE_SID</code>: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE_SID。此参数与ORACLE_BASE、<code>ORACLE_HOME</code>等用法相同。在数据库安装之后，ORACLE_SID被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。</li>
+</ul>
+</li>
+<li><code>SERVICE_NAME</code>：是网络服务名(如：local_orcl)，可以随意设置。相当于某个数据库实例的别名方便记忆和访问。<code>tnsnames.ora</code>文件中设置的名称（如：<code>local_orcl=(...)</code>），也是登录pl/sql是填写的Database。</li>
+</ol>
+<h2 id="oracle及pl-sql安装和使用"><a href="#oracle及pl-sql安装和使用" class="headerlink" title="oracle及pl/sql安装和使用"></a>oracle及pl/sql安装和使用</h2><ul>
+<li>ORACLE_HOME为<code>D:/java/oracle/product/11.2.0/dbhome_1</code>，<code>%ORACLE_HOME%/bin</code>中为一些可执行程序（如：导入imp.exe、导出exp.exe）</li>
+<li>这个只是服务器端才会使用的到</li>
+</ul>
+<h3 id="pl-sql安装"><a href="#pl-sql安装" class="headerlink" title="pl/sql安装"></a>pl/sql安装</h3><p>Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call Interface)来连接，安装包可以去oracle官网下载Instant Client。</p>
+<ul>
+<li>将<code>instantclient_10_2</code>(oracle的客户端)，复制到oracle安装目录</li>
+<li>安装<code>pl/sql developer</code></li>
+<li>配置<code>pl/sql developer</code>首选项中连接项。设置oracle_home为instantclient_10_2的路径，oci为instantclient_10_2下的oci.dll</li>
+<li>环境变量中设置<code>TNS_ADMIN=D:\java\oracle\product\instantclient_10_2</code>，并在path末尾加入<code>%TNS_ADMIN%;</code>(否则容易报<code>TNS-12541</code>)</li>
+</ul>
+<h3 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h3><ol>
+<li>Net Manager的使用<ul>
+<li><code>本地-监听程序-LISTENER</code>中的主机要为计算机全名(如：ST-008)。对应文件<code>listener.ora</code></li>
+<li><code>本地-服务命名</code>下的都为<code>网络服务名</code>。对应文件<code>tnsnames.ora</code></li>
+</ul>
+</li>
+<li><p>文本操作</p>
+<ul>
+<li>使用sqlplus登录时，可直接修改<code>$ORACLE_HOME/NETWORK/ADMIN/tnsnames.ora</code></li>
+<li>安装了pl/sql，可能需要修改tnsnames.ora的文件路径类似与<code>D:\java\oracle\product\instantclient_10_2\tnsnames.ora</code>。此时oracle自带的tnsnames.ora将会失效</li>
+<li><p>配置实例：HOST/PORT分别为远程ip地址和端口，SERVICE_NAME为远程服务名，aezocn为远程服务名别名(本地服务名)</p>
+  <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">aezocn =</div><div class="line">  (DESCRIPTION =</div><div class="line">    (ADDRESS_LIST =</div><div class="line">      (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.1.1)(PORT = 1521))</div><div class="line">    )</div><div class="line">    (CONNECT_DATA =</div><div class="line">      (SERVER = DEDICATED)</div><div class="line">      (SERVICE_NAME = orcl)</div><div class="line">    )</div><div class="line">  )</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="创建表空间-2"><a href="#创建表空间-2" class="headerlink" title="创建表空间 ^2"></a>创建表空间 <a href="http://blog.csdn.net/starnight_cbj/article/details/6792364" target="_blank" rel="external">^2</a></h2><p>oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库。创建了表空间并没有创建数据库实例</p>
+<ol>
+<li>登录：<code>sqlplus / as sysdba</code></li>
+<li>创建表空间：<code>create tablespace aezocn datafile &#39;d:/tablespace/aezo&#39; size 800m extent management local segment space management auto;</code> ，要先建好路径 d:/tablespace ，最终会在该目录下建一个 AEZO 的文件(表空间之后可以修改)<ul>
+<li>删除表空间：<code>drop tablespace aezocn including contents and datafiles;</code></li>
+</ul>
+</li>
+<li>创建用户：<code>create user aezo identified by aezo default tablespace aezocn;</code></li>
+<li>授权<ul>
+<li><code>grant create session to aezo;</code></li>
+<li><code>grant unlimited tablespace to aezo;</code></li>
+<li><code>grant dba to aezo;</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="导入导出"><a href="#导入导出" class="headerlink" title="导入导出"></a>导入导出</h2><p><code>.dmp</code>适合大数据导出，<code>.sql</code>适合小数据导出(表中含有CLOB类型字段则不能导出)</p>
+<h3 id="命令行-4"><a href="#命令行-4" class="headerlink" title="命令行 ^4"></a>命令行 <a href="http://blog.csdn.net/studyvcmfc/article/details/5679235" target="_blank" rel="external">^4</a></h3><blockquote>
+<ul>
+<li>输入 <code>imp/exp 用户名/密码</code> 可根据提示导入导出。<strong>直接cmd运行</strong>。</li>
+<li>成功提示 <code>Export terminated successfully [with/without warnings]</code>；失败提示 <code>Export terminated unsuccessfully [with/without warnings]</code></li>
+</ul>
+</blockquote>
+<ol>
+<li><p>导出</p>
+<ul>
+<li><strong>用户模式</strong>：<code>exp system/manager file=d:/exp.dmp owner=scott</code> 导出scott用户的所有对象，前提是system有相关权限<ul>
+<li><strong>远程导出</strong>：此时system/manager默认连接的是本地数据库。如果使用<code>exp system/manager@remote_orcl file=d:/exp.dmp owner=scott</code>(remote_orcl为在本地建立的远程数据库网络服务名)则可导出远程数据库的相关数据，下同。</li>
+<li>加上 <code>compress=y</code> 表示压缩数据</li>
+<li>加上 <code>rows=n</code> 表示不导出数据行，只导出结构</li>
+</ul>
+</li>
+<li>表模式：<code>exp scott/tiger file=d:/exp.dmp tables=emp</code> 导出scott的emp表<ul>
+<li>导出其他用户的表：<code>exp system/manager file=d:/exp.dmp tables=scott.emp, scott.dept</code> 导出scott的emp、dept表，用户system需要相关权限</li>
+<li>导出部分表数据：<code>exp scott/tiger file=d:/exp.dmp tables=emp query=\&quot; where ename like &#39;%AR%&#39;\&quot;</code></li>
+<li>常见错误(EXP-00011)：原因为11g默认创建一个表时不分配segment，只有在插入数据时才会产生。 <a href="http://www.cnblogs.com/yzy-lengzhu/archive/2013/03/11/2953500.html" target="_blank" rel="external">^3</a></li>
+</ul>
+</li>
+<li>导出全部：<code>exp system/manager file=d:/exp.dmp full=y</code><ul>
+<li>用户 system/manager 必须具有相关权限</li>
+<li>导出的是整个数据库，包括所有的表空间</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>导入</p>
+<ul>
+<li><strong>用户模式</strong>：<code>imp system/manager file=d:/exp.dmp fromuser=scott touser=aezo ignore=y</code><ul>
+<li><code>ignore=y</code>忽略创建错误</li>
+<li>不少情况下要先将表彻底删除，然后导入</li>
+</ul>
+</li>
+<li>表模式：<code>imp system/manager file=d:/exp.dmp fromuser=scott tables=emp, dept touser=aezo ignore=y</code><ul>
+<li>将scott的表emp、dept导入到用户aezo</li>
+<li>此处 file/fromuser/touser 都可以指定多个</li>
+</ul>
+</li>
+<li>导入全部：<code>imp system/manager file=d:/exp.dmp full=y ignore=y</code><ul>
+<li>用户 system/manager 必须具有相关权限</li>
+<li>导入的是整个数据库，包括所有的表空间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="pl-sql"><a href="#pl-sql" class="headerlink" title="pl/sql"></a>pl/sql</h3><ul>
+<li>pl/sql提供dmp、sql、pde(pl/sql提供)格式的数据导入导出</li>
+<li>方法：<code>Tools - Export Tables/Import Tablse - 选择表导出</code></li>
+<li>其中Executable路径为 <code>%ORACLE_HOME%/BIN/exp.exe</code> 和 <code>%ORACLE_HOME%/BIN/imp.exe</code> 如：<code>D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe</code></li>
+</ul>
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><h3 id="操作相关"><a href="#操作相关" class="headerlink" title="操作相关"></a>操作相关</h3><ol>
+<li>系统<ul>
+<li><code>lsnrctl start</code> 启动监听程序(shell命令行运行)。<code>lsnrctl status</code> 查看服务状态</li>
+<li><code>sqlplus /nolog</code> 以nolog身份登录，进入sql命令行</li>
+<li><code>startup;</code> 正常启动（1启动实例，2打开控制文件，3打开数据文件）</li>
+<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接<ul>
+<li><code>shutdown;</code> 有用户连接就不关闭，直到所有用户断开连接</li>
+</ul>
+</li>
+<li><code>exit;</code> 退出sqlplus</li>
+</ul>
+</li>
+<li>管理员登录<ul>
+<li>sqlplus本地登录：<code>sqlplus / as sysdba</code>，以sys登录。sys为系统管理员，拥有最高权限；system为本地管理员，次高权限</li>
+<li>sqlplus远程登录：<code>sqlplus aezo/aezo@192.168.1.1:1521/orcl</code> (orcl为远程服务名)，失败可尝试如下命令：<ul>
+<li><code>sqlplus /nolog</code></li>
+<li><code>connect aezo/aezo@192.168.1.1:1521/orcl;</code>，或者使用配置好的服务名连接<code>conn aezo/aezo@remote_orcl</code></li>
+</ul>
+</li>
+<li>pl/slq管理员登录：用户名密码留空，Connect as 选择 SYSDBA 则默认以sys登录。登录远程只需要在tnsnames.ora进行网络配置即可</li>
+</ul>
+</li>
+<li>用户相关<ul>
+<li>创建用户：<code>create user aezo identified by aezo;</code><ul>
+<li>默认使用的表空间是<code>USERS</code>，使用<code>create user aezo identified by aezo default tablespace aezocn;</code>可设定默认表空间</li>
+<li>删除用户：<code>drop user aezo cascade;</code></li>
+</ul>
+</li>
+<li>修改用户密码：<code>alter user scott identified by tiger;</code></li>
+<li>修改用户表空间：<code>alter user aezo default tablespace aezocn;</code></li>
+<li>解锁用户：<code>alter user scott account unlock;</code> (新建数据库scott默认未解锁)</li>
+</ul>
+</li>
+<li><p>授权</p>
+<ul>
+<li><code>grant create session to aezo;</code> 授予aezo用户创建session的权限，即登陆权限</li>
+<li><code>grant unlimited tablespace to aezo;</code> 授予aezo用户使用表空间的权限</li>
+<li><code>grant dba to aezo;</code> 授予管理权限(有dba角色就有建表等权限)</li>
+</ul>
+</li>
+<li><p>连接数</p>
+<ul>
+<li>查询数据库最大连接数：<code>select value from v$parameter where name = &#39;processes;&#39;</code>、<code>show parameter processes</code></li>
+<li>查询数据库当前连接数：<code>select count(*) from v$session;</code></li>
+<li>修改数据库最大连接数：<code>alter system set processes = 500 scope = spfile;</code> 需要重启数据库</li>
+</ul>
+</li>
+</ol>
+<h3 id="查询相关"><a href="#查询相关" class="headerlink" title="查询相关"></a>查询相关</h3><ol>
+<li>系统<ul>
+<li>查看服务是否启动：<code>tnsping local_orcl</code> cmd直接运行<ul>
+<li>远程查看(cmd运行)：<code>tnsping 192.168.1.1:1521/orcl</code>、或者<code>tnsping remote_orcl</code>(其中remote_orcl已经在本地建立好了监听映射，如配置在tnsnames.ora)</li>
+<li>如果能够ping通，则说明客户端能解析listener的机器名，而且lister也已经启动，但是并不能说明数据库已经打开，而且tsnping的过程与真正客户端连接的过程也不一致。但是如果不能用tnsping通，则肯定连接不到数据库</li>
+</ul>
+</li>
+<li>查看表空间数据文件位置：<code>select file_name, tablespace_name from dba_data_files;</code></li>
+</ul>
+</li>
+<li>用户相关查询<ul>
+<li>查看当前用户默认表空间：<code>select username, default_tablespace from user_users;</code>(以dba登录则结果为SYS和SYSTEM)</li>
+<li>查看当前用户角色：<code>select * from user_role_privs;</code></li>
+<li>查看当前用户系统权限：<code>select * from user_sys_privs;</code></li>
+<li>查看当前用户表级权限：<code>select * from user_tab_privs;</code></li>
+<li>查看用户下所有表：<code>select * from user_tables;</code></li>
+<li>DBA相关查询见数据库字典</li>
+</ul>
+</li>
+<li>数据字典 <a href="http://blog.csdn.net/yitian20000/article/details/6256716" target="_blank" rel="external">^5</a><ul>
+<li><code>user_</code>：记录用户对象的信息，如user_tables包含用户创建的所有表，user_views，user_constraints等</li>
+<li><code>all_</code>：记录用户对象的信息及被授权访问的对象信息</li>
+<li><code>DBA_</code>：记录数据库实例的所有对象的信息，如DBA_USERS包含数据库实例中所有用户的信息。DBA的信息包含USER和ALL的信息。大部分是视图</li>
+<li><code>V$</code>：当前实例的动态视图，包含系统管理和优化使用的视图</li>
+<li><code>GV_</code>：分布环境下所有实例的动态视图，包含系统管理和优化使用的视图，这里的GV表示 Global v$的意思</li>
+</ul>
+</li>
+<li>基本数据字典<ul>
+<li>常用<ul>
+<li><code>DICT</code> 构成数据字典的所有表的信息</li>
+<li><code>DBA_USERS</code> 所有的用户信息（oracle密码是加密的，忘记密码只能修改）</li>
+<li><code>DBA_TABLES</code> 所有用户的所有表的信息</li>
+<li><code>DBA_TABLESPACES</code> 记录系统表空间的基本信息；</li>
+<li><code>DBA_DATA_FILES</code> 记录系统数据文件及表空间的基本信息；</li>
+<li><code>DBA_FREE_SPACE</code> 记录系统表空间的剩余空间的信息；</li>
+</ul>
+</li>
+<li>其他<ul>
+<li><code>CAT</code> 当前用户可以访问的所有的基表</li>
+<li><code>TAB</code> 当前用户创建的所有基表，视图，同义词等</li>
+<li><code>DBA_VIEWS</code> 所有用户的所有视图信息</li>
+<li><code>DBA_CONSTRAINTS</code> 所有用户的表约束信息</li>
+<li><code>DBA_INDEXES</code> 所有用户索引的简要信息</li>
+<li><code>DBA_IND_COLUMNS</code> 所有用户索引的列信息</li>
+<li><code>DBA_TRIGGERS</code> 所有用户触发器信息</li>
+<li><code>DBA_SOURCE</code> 所有用户存储过程源代码信息</li>
+<li><code>DBA_PROCEDUS</code> 所有用户存储过程</li>
+<li><code>DBA_SEGMENTS</code> 所有用户段（表，索引，Cluster）使用空间信息</li>
+<li><code>DBA_TAB_COLUMNS</code> 所有用户的表的列（字段）信息</li>
+<li><code>DBA_SYNONYMS</code> 所有用户同义词信息</li>
+<li><code>DBA_SEQUENCES</code> 所有用户序列信息</li>
+<li><code>DBA_EXTENTS</code> 所有用户段的扩展段信息</li>
+<li><code>DBA_OBJECTS</code> 所有用户对象的基本信息（包括素引，表，视图，序列等）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>数据库组件相关的数据字典(<code>v$</code>代表视图)<ul>
+<li>数据库：<ul>
+<li><code>V$DATABASE</code> 同义词V_$DATABASE，记录系统的运行情况</li>
+</ul>
+</li>
+<li>控制文件：<ul>
+<li><code>V$CONTROLFILE</code> 记录系统控制文件的路径信息</li>
+<li><code>v$parameter</code> 记录系统各参数的基本信息</li>
+<li><code>V$CONTROLFILE_RECORD_SECTION</code> 记录系统控制运行的基本信息</li>
+</ul>
+</li>
+<li>数据文件：<ul>
+<li><code>V$DATAFILE</code> 记录来自控制文件的数据文件信息</li>
+<li><code>V$FILESTAT</code> 记录数据文件读写的基本信息</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="常见错误"><a href="#常见错误" class="headerlink" title="常见错误"></a>常见错误</h3><ol>
+<li><p>常用技巧</p>
+<ul>
+<li>常看日志文件目录 <code>show parameter background_dump_dest</code></li>
+<li>在ORACLE 11g 以及ORACLE 12c中，告警日志文件的位置有了变化。主要是因为引入了ADR(Automatic Diagnostic Repository:一个存放数据库诊断日志、跟踪文件的目录)，关于ADR对应的目录位置可以通过查看v$diag_info系统视图。<code>select * from v$diag_info;</code></li>
+<li><code>alert_orcl.log</code> 该目录下的日志文件</li>
+<li>在日志文件目录列举文件：<code>ll -rt *.trc</code><ul>
+<li><code>*.trc</code>：Sql Trace Collection file，<code>*.trm</code>：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.（<strong>主要看*.trc文件</strong>）</li>
+<li>如：<code>dbcloud_cjq0_22515.trc</code> dbcloud为实例名，cjq0_22515为自动生成的索引</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>表空间数据文件丢失，删除表空间报错ORA-02449、ORA-01115 <a href="[强制删除表空间](http://blog.chinaunix.net/uid-11570547-id-59108.html)">^6</a></p>
+<ul>
+<li>oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉</li>
+<li><code>sqlplus / as sysdba</code></li>
+<li><code>shutdown abort</code> 强制关闭oracle</li>
+<li><code>startup mount</code> 启动挂载</li>
+<li><code>alter database datafile &#39;/home/oracle/xxx&#39; offline drop;</code> 从数据库删除该表空间的数据文件<ul>
+<li><code>select file_name, tablespace_name from dba_data_files;</code> 查看表空间数据文件位置</li>
+</ul>
+</li>
+<li><code>alter database open;</code></li>
+<li><code>drop tablespace 表空间名</code></li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/oracle/" rel="tag"># oracle</a>
+          
+            <a href="/tags/dba/" rel="tag"># dba</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/09/17/extend/2016-09-17-intellij-idea/" rel="next" title="IntelliJ IDEA">
+                <i class="fa fa-chevron-left"></i> IntelliJ IDEA
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/27/extend/2016-10-27-wiki/" rel="prev" title="wiki">
+                wiki <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美化</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#oracle相关名词和原理"><span class="nav-number">1.1.</span> <span class="nav-text">oracle相关名词和原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#oracle及pl-sql安装和使用"><span class="nav-number">2.</span> <span class="nav-text">oracle及pl/sql安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql安装"><span class="nav-number">2.1.</span> <span class="nav-text">pl/sql安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网络配置"><span class="nav-number">2.2.</span> <span class="nav-text">网络配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建表空间-2"><span class="nav-number">3.</span> <span class="nav-text">创建表空间 ^2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导入导出"><span class="nav-number">4.</span> <span class="nav-text">导入导出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行-4"><span class="nav-number">4.1.</span> <span class="nav-text">命令行 ^4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql"><span class="nav-number">4.2.</span> <span class="nav-text">pl/sql</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">5.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作相关"><span class="nav-number">5.1.</span> <span class="nav-text">操作相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询相关"><span class="nav-number">5.2.</span> <span class="nav-text">查询相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见错误"><span class="nav-number">5.3.</span> <span class="nav-text">常见错误</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
