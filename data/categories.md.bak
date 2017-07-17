@@ -1,0 +1,14 @@
+---
+layout: page
+title: 文章分类
+---
+
+{% for category in site.categories %}
+<h2>{{ category | first }}</h2>
+<span>{{ category | last | size }}</span>
+<ul class="">
+    {% for post in category.last %}
+        <li><a href="{{ post.url }}">{{ post.title }}</a> {{ post.date | date:"%Y-%m-%d"}}</li>
+    {% endfor %}
+</ul>
+{% endfor %}
