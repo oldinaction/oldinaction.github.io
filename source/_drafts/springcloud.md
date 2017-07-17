@@ -219,13 +219,275 @@ tags: [SpringCloud, 微服务]
         }
         ```
 
+## Zuul (API GateWay：网关)
+
+- 简介
+- 基本使用
+    - 引入依赖
+
+        ```xml
+        <!-- API网关。包含actuator、hystrix、ribbon -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-zuul</artifactId>
+		</dependency>
+        ```
+    - 启动类声明`@EnableZuulProxy`
+    - 基础配置application.yml
+
+        ```yml
+        zuul:
+          # 忽略表达式。当遇到路径中有admin的不进行路由
+          # ignored-patterns: /**/admin/**
+          # 路由前缀
+          # prefix: /api
+          # zuul默认会过滤路由前缀(strip-prefix=true)，此处是关闭此过滤
+          # strip-prefix: false
+          routes:
+            # 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录
+            # 此处路径在配置文件中越靠前的约优先（系统将所有路径放到LinkedHashMap中，当匹配到一个后就终止匹配）
+            # 此处自定义的key(api-user)必须和path中一致
+            # 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1 和 http://localhost:5555/api-movie/movie/1
+            api-movie:
+              path: /api-movie/**
+              # 从eureka中获取此服务(spring.application.name)的地址(面向服务的路由)
+              serviceId: consumer-movie-ribbon
+            api-user:
+              path: /api-user/**
+              serviceId: provider-user
+            # 本地跳转(当访问/api-local/**的时候，则会转到当前应用的/local/**的地址)
+            # api-local:
+            #   path: /api-local/**
+            #   url: forward:/local
+            # 禁用过滤器：zuul.<FilterClassName>.<filterType>.disable=true
+            # AccessFilter:
+            #   pre:
+            #     disable: true
+        ```
+- 自定义路由规则
+
+    ```java
+    @Bean
+    public PatternServiceRouteMapper serviceRouteMapper() {
+        // 将serviceName-v1映射成/v1/serviceName. 未匹配到则按照原始的
+        return new PatternServiceRouteMapper(
+                "(?<name>^.+)-(?<version>v.+$)",
+                "${version}/${name}");
+    }
+    ```
+- 过滤器
+    - Zuul过滤器核心处理器(`com.netflix.zuul.FilterProcessor`)
+    - 核心过滤器处理(对应包`org.springframework.cloud.netflix.zuul.filters`)
+    - 自定义过滤器
+
+        ```java
+        @Component
+        public class AccessFilter extends ZuulFilter {
+            private static Logger logger = LoggerFactory.getLogger(AccessFilter.class);
+
+            // 过滤器类型，决定过滤器在请求的哪个生命周期中执行
+            // pre：表示请求在路由之前执行
+            // routing：在路由请求时被执行(调用真实服务应用时)
+            // post：路由完成(服务调用完成)被执行
+            // error：出错时执行
+            @Override
+            public String filterType() {
+                return "pre";
+            }
+
+            // 多个过滤器时，控制过滤器的执行顺序（数值越小越优先）
+            @Override
+            public int filterOrder() {
+                return 0;
+            }
+
+            // 判断该过滤器是否需要被执行(true需要执行)，可根据实际情况进行范围限定
+            @Override
+            public boolean shouldFilter() {
+                return true;
+            }
+
+            // 过滤器的具体逻辑
+            @Override
+            public Object run() {
+                RequestContext ctx = RequestContext.getCurrentContext();
+                HttpServletRequest request = ctx.getRequest();
+
+                logger.info("send {} request to {}", request.getMethod(), request.getRequestURL().toString()); // send GET request to http://localhost:5555/api-movie/movie/1
+
+                Object accessToken = request.getParameter("accessToken");
+                if(accessToken == null) {
+                    logger.warn("access token is empty, add parameter like: accessToken=smalle");
+                    ctx.setSendZuulResponse(false); // 令zuul过滤此请求，不进行路由
+                    ctx.setResponseStatusCode(401);
+                    ctx.setResponseBody("zuul filter");
+                    return null;
+                }
+
+                logger.info("access token ok");
+
+                // 测试异常过滤器（org.springframework.cloud.netflix.zuul.filters.post.SendErrorFilter）
+                // doSomteing();
+
+                return null;
+            }
+
+            private void doSomteing() {
+                throw new RuntimeException("run error");
+            }
+        }
+        ```
+- 自定义异常信息：出现异常会forward到`/error`的端点，`/error`端点的实现来源于Spring Boot的`org.springframework.boot.autoconfigure.web.BasicErrorController`
+
+    ```java
+    // 最好使用postman等工具测试
+    public class CustomErrorAttributes extends DefaultErrorAttributes {
+        @Override
+        public Map<String, Object> getErrorAttributes(RequestAttributes requestAttributes, boolean includeStackTrace) {
+            Map<String, Object> map = super.getErrorAttributes(requestAttributes, includeStackTrace);
+            map.remove("exception"); // 移除exception信息，客户端将看不到此信息
+            map.put("myAttr", "hello");
+            return map;
+        }
+    }
+    ```
+- 动态路由
 
 
 
 
 
 
+## Config 分布式配置中心
 
+- 配置中心(Config服务器端)
+    - 引入依赖
+
+        ```xml
+        <!-- 配置中心 -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-config-server</artifactId>
+		</dependency>
+
+        <!-- 用于配置中心访问账号认证 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+        <!--向eureka注册，服务化配置中心-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-eureka</artifactId>
+		</dependency>
+        ```
+    - 启动类添加`@EnableConfigServer`，开启服务发现则还要加`@EnableDiscoveryClient`
+    - 配置文件
+
+        ```yml
+        spring:
+          cloud:
+            config:
+              server:
+                git:
+                  # 可以使用占位符{application}、{profile}、{label}
+                  uri: https://git.oschina.net/smalle/spring-cloud-config-test.git
+                  # 搜索此git仓库的配置文件目录
+                  search-paths: config-repo
+                  username: smalle
+                  password: aezocn
+
+          server:
+            port: 7000
+
+          security:
+            basic:
+              enabled: true # 开启权限验证(默认是false)
+            user:
+              name: smalle
+              password: smalle
+
+          # eureka客户端配置
+          eureka:
+            client:
+              serviceUrl:
+                defaultZone: http://smalle:smalle@localhost:8761/eureka/
+            instance:
+              # 启用ip访问
+              prefer-ip-address: true
+              instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+        ```
+    - 在git仓库的config-repo目录下添加配置文件: `consumer-movie-ribbon.yml`(写如配置如：from: git-default-1.0. 下同)、`consumer-movie-ribbon-dev.yml`、`consumer-movie-ribbon-test.yml`、`consumer-movie-ribbon-prod.yml`，并写入参数
+    - 访问：`http://localhost:7000/consumer-movie-ribbon/prod/master`即可获取应用为`consumer-movie-ribbon`，profile为`prod`，git分支为`master`的配置数据(`/{application}/{profile}/{label}`)
+        - 备注：访问配置路径后，程序默认会将配置数据下载到本地，当git仓库不可用时则获取本地的缓存数据
+        - 支持git/svn/本地文件等
+- 客户端配置映射
+    - 引入依赖
+
+        ```xml
+        <!-- 配置中心客户端 -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
+        ```
+    - 添加`bootstrap.yml`配置文件(不能放在application.yml中)
+
+        ```yml
+        # bootstrap.yml其优先级高于application.yml
+        spring:
+          # application:
+          #  name: consumer-movie-ribbon
+          cloud:
+            config:
+              # config server地址
+              # uri: http://localhost:7000/
+              # 配置中心实行服务化(向eureka注册了自己)，此处要开启服务发现，并指明配置中心服务id
+              discovery:
+                enabled: true
+                service-id: config-server
+              profile: prod
+              label: master
+              # 如果配置中心开启了权限验证，此处填写相应的用户名和密码
+              username: smalle
+              password: smalle
+
+        # eureka客户端配置(使用了spring cloud config, 则eureka的配置必须写在bootstrap.yml中，否则报找不到config server )
+        eureka:
+          client:
+            serviceUrl:
+              defaultZone: http://smalle:smalle@localhost:8761/eureka/
+          instance:
+            # 启用ip访问
+            prefer-ip-address: true
+            instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+        ```
+    - 测试程序
+
+        ```java
+        // @RefreshScope // 之后刷新config后可重新注入值
+        @RestController
+        public class ConfigController {
+            @Value("${from:none}")
+            private String from;
+
+            // 测试从配置中心获取配置数据，访问http://localhost:9000/from
+            @RequestMapping("from")
+            public String from() {
+                return this.from; // 会从git仓库中读取配置数据
+            }
+        }
+        ```
+- 动态刷新配置(可获取最新配置信息的git提交)
+    - config客户端重启会刷新配置(重新注入配置信息)
+    - 动态刷新
+        - 给 **config client** 加入权限验证依赖(`org.springframework.boot/spring-boot-starter-security`)，并在对应的application.yml中开启验证
+            - 否则访问`/refresh`端点会失败，报错：`Consider adding Spring Security or set 'management.security.enabled' to false.`(需要加入Spring Security或者关闭端点验证)
+        - 对应的需要注入配置的类加`@RefreshScope`
+        - `POST`请求`http://localhost:9000/refresh`(将Postman的Authorization选择Basic Auth和输入用户名/密码)
+        - 再次访问config client的 http://localhost:9000/from 即可获取最新git提交的数据(由于开启了验证，所有端点都需要输入用户名密码)
+            - 得到如`["from"]`的结果(from配置文件中改变的key)
 
 
 
