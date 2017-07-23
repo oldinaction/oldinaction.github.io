@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.aezo.cn/"/>
-  <updated>2017-07-15T04:34:58.755Z</updated>
+  <updated>2017-07-23T05:14:08.341Z</updated>
   <id>http://blog.aezo.cn/</id>
   
   <author>
@@ -20,12 +20,9 @@
     <link href="http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/"/>
     <id>http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/</id>
     <published>2017-07-01T10:47:00.000Z</published>
-    <updated>2017-07-15T04:34:58.755Z</updated>
+    <updated>2017-07-23T05:14:08.341Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
+    <content type="html"><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
 <li>spring项目官网：<a href="https://spring.io/projects" target="_blank" rel="external">https://spring.io/projects</a> ，其中的<code>spring-framework</code>即是spring框架内容</li>
 <li>历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) <strong>spring 3.x，java配置</strong></li>
 <li>spring模块(每个模块有个jar包)：<ul>
@@ -173,11 +170,8 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;介绍&quot;&gt;&lt;a href=&quot;#介绍&quot; class=&quot;headerlink&quot; title=&quot;介绍&quot;&gt;&lt;/a&gt;介绍&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;spring项目官网：&lt;a href=&quot;https://spr
+      &lt;h2 id=&quot;介绍&quot;&gt;&lt;a href=&quot;#介绍&quot; class=&quot;headerlink&quot; title=&quot;介绍&quot;&gt;&lt;/a&gt;介绍&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;spring项目官网：&lt;a href=&quot;https://spring.io/projects&quot; target=&quot;_blank&quot; 
     
     </summary>
     
@@ -195,12 +189,9 @@
     <link href="http://blog.aezo.cn/2017/05/21/java/2017-05-21-hibernate/"/>
     <id>http://blog.aezo.cn/2017/05/21/java/2017-05-21-hibernate/</id>
     <published>2017-05-21T07:39:00.000Z</published>
-    <updated>2017-07-17T12:19:24.566Z</updated>
+    <updated>2017-07-23T05:14:03.734Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
+    <content type="html"><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
 <li>ORM框架(对象关系映射)<ul>
 <li>JDBC操作数据库很繁琐</li>
 <li>Sql语句编写并不是面向对象的</li>
@@ -601,12 +592,10 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;介绍&quot;&gt;&lt;a href=&quot;#介绍&quot; class=&quot;headerlink&quot; title=&quot;介绍&quot;&gt;&lt;/a&gt;介绍&lt;/h2&gt;&lt;ul&gt;
+      &lt;h2 id=&quot;介绍&quot;&gt;&lt;a href=&quot;#介绍&quot; class=&quot;headerlink&quot; title=&quot;介绍&quot;&gt;&lt;/a&gt;介绍&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;ORM框架(对象关系映射)&lt;ul&gt;
-&lt;li&gt;JDBC操作数据库
+&lt;li&gt;JDBC操作数据库很繁琐&lt;/li&gt;
+&lt;li&gt;Sql语句编写并不是面向对象的&lt;/li&gt;
     
     </summary>
     
@@ -653,12 +642,9 @@
     <link href="http://blog.aezo.cn/2017/05/06/java/2017-05-06-struts2/"/>
     <id>http://blog.aezo.cn/2017/05/06/java/2017-05-06-struts2/</id>
     <published>2017-05-06T10:06:00.000Z</published>
-    <updated>2017-07-17T12:19:24.561Z</updated>
+    <updated>2017-07-23T05:13:59.004Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
+    <content type="html"><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
 <li>struts2是 struts1和WebWork的结合</li>
 <li><strong>struts2的本质就是将请求与视图分开</strong> (struts2原理：<strong>视频09</strong>)</li>
 <li>官网：<a href="http://struts.apache.org/" target="_blank" rel="external">http://struts.apache.org/</a>, 下文基于版本2.3.24(当前更新到2.5.10)</li>
@@ -946,11 +932,9 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;介绍&quot;&gt;&lt;a href=&quot;#介绍&quot; class=&quot;headerlink&quot; title=&quot;介绍&quot;&gt;&lt;/a&gt;介绍&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;struts2是 struts1和WebWork的结合&lt;/li
+      &lt;h2 id=&quot;介绍&quot;&gt;&lt;a href=&quot;#介绍&quot; class=&quot;headerlink&quot; title=&quot;介绍&quot;&gt;&lt;/a&gt;介绍&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;struts2是 struts1和WebWork的结合&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;struts2的本质就是将请求与视图分
     
     </summary>
     
@@ -1130,67 +1114,6 @@
   </entry>
   
   <entry>
-    <title>firebase</title>
-    <link href="http://blog.aezo.cn/2017/03/19/service/2017-03-19-firebase/"/>
-    <id>http://blog.aezo.cn/2017/03/19/service/2017-03-19-firebase/</id>
-    <published>2017-03-19T13:21:00.000Z</published>
-    <updated>2017-07-17T12:19:24.640Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
-<li>Firebase是google提供的快速构件应用的云服务。简单的可以说通过引入Firebase，你可以通过api去构建实时性的应用。</li>
-<li><a href="https://firebase.google.com/" target="_blank" rel="external">官网</a></li>
-</ul>
-<h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><h3 id="Firebase帐号注册"><a href="#Firebase帐号注册" class="headerlink" title="Firebase帐号注册"></a>Firebase帐号注册</h3><ul>
-<li>可通过google账户登录，选择免费版，新建一个项目。</li>
-<li>点击<code>Authentication</code> - <code>登录方法</code> - 启用Google登录</li>
-<li>点击<code>overview</code> - <code>将 Firebase 添加到您的网页应用</code> - 复制代码供下面使用</li>
-</ul>
-<h3 id="下载web版示例"><a href="#下载web版示例" class="headerlink" title="下载web版示例"></a>下载web版示例</h3><ul>
-<li><a href="https://github.com/firebase/quickstart-js" target="_blank" rel="external">quickstart-js</a></li>
-<li>该文件中包含了auth验证、database数据库、storage存储、messaging消息等示例</li>
-<li>找到database/index.html，将上文复制的代码放到head中</li>
-</ul>
-<h3 id="为开发运行本地-Web-服务器"><a href="#为开发运行本地-Web-服务器" class="headerlink" title="为开发运行本地 Web 服务器"></a>为开发运行本地 Web 服务器</h3><ul>
-<li>安装firebase命令行工具：<code>npm install -g firebase-tools</code>(重新运行安装命令，可更新此工具)</li>
-<li>cmd进入到下文的database文件夹</li>
-<li>启动服务器 <code>firebase serve</code></li>
-<li>访问：<code>http://localhost:5000</code></li>
-<li>点击登录，就会自动调用google登录验证api</li>
-<li>该示例登录进入可书写博文，数据可在控制面板的<code>Database</code>中查看</li>
-</ul>
-<h3 id="部署应用"><a href="#部署应用" class="headerlink" title="部署应用"></a>部署应用</h3><p>最终可在控制面板的Hosting中查看</p>
-<ul>
-<li>启动一个新的命令行，cmd进入到下文的database文件夹</li>
-<li>登录Google并授权 <code>firebase login</code></li>
-<li><p>初始化应用 <code>firebase init</code>，运行后确认 - 选择Hosting - 选择创建的项目，创建根目录（默认会在此目录创建一个public的目作为根目录）</p>
-<ul>
-<li>运行 firebase init 命令会在您的项目的根目录下创建 firebase.json</li>
-<li>当您初始化应用时，系统将提示您指定用作公共根目录的目录（默认为”public”）。如果您的公共根目录下不存在有效的 index.html 文件，系统将为您创建一个。</li>
-<li><p>如一个firebase.json</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">  <span class="attr">"hosting"</span>: &#123;</div><div class="line">    <span class="attr">"public"</span>: <span class="string">"./"</span>,</div><div class="line">    <span class="attr">"rewrites"</span>: [</div><div class="line">      &#123;</div><div class="line">        <span class="attr">"source"</span>: <span class="string">"**"</span>,</div><div class="line">        <span class="attr">"destination"</span>: <span class="string">"/index.html"</span></div><div class="line">      &#125;</div><div class="line">    ],</div><div class="line">    <span class="attr">"ignore"</span>: [</div><div class="line">      <span class="string">"firebase.json"</span>,</div><div class="line">      <span class="string">"**/.*"</span>,</div><div class="line">      <span class="string">"**/node_modules/**"</span>,</div><div class="line">      <span class="string">"functions"</span></div><div class="line">    ]</div><div class="line">  &#125;,</div><div class="line">  <span class="attr">"database"</span>: &#123;</div><div class="line">    <span class="attr">"rules"</span>: <span class="string">"database.rules.json"</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li><p>部署网站 <code>firebase deploy</code></p>
-</li>
-</ul>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;Firebase是google提供的快速构件应用的云服务。简单的可以说通过引入Firebase，你可以通过api去构建实时性的应
-    
-    </summary>
-    
-      <category term="service" scheme="http://blog.aezo.cn/categories/service/"/>
-    
-    
-      <category term="google" scheme="http://blog.aezo.cn/tags/google/"/>
-    
-  </entry>
-  
-  <entry>
     <title>atom</title>
     <link href="http://blog.aezo.cn/2017/03/19/extend/2017-03-19-atom/"/>
     <id>http://blog.aezo.cn/2017/03/19/extend/2017-03-19-atom/</id>
@@ -1254,22 +1177,16 @@
     <link href="http://blog.aezo.cn/2017/03/13/linux/2017-03-13-aws/"/>
     <id>http://blog.aezo.cn/2017/03/13/linux/2017-03-13-aws/</id>
     <published>2017-03-13T01:33:00.000Z</published>
-    <updated>2017-07-17T12:19:24.615Z</updated>
+    <updated>2017-07-23T05:14:26.694Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="选购"><a href="#选购" class="headerlink" title="选购"></a>选购</h2><p>1.</p>
+    <content type="html"><![CDATA[<h2 id="选购"><a href="#选购" class="headerlink" title="选购"></a>选购</h2><p>1.</p>
 <h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><p>需要在数据库所在安全组中把应用服务器IP加入</p>
 ]]></content>
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;选购&quot;&gt;&lt;a href=&quot;#选购&quot; class=&quot;headerlink&quot; title=&quot;选购&quot;&gt;&lt;/a&gt;选购&lt;/h2&gt;&lt;p&gt;1.&lt;/p&gt;
-&lt;h2 id=&quot;数据库&quot;&gt;&lt;a href=&quot;#数据库&quot; cl
+      &lt;h2 id=&quot;选购&quot;&gt;&lt;a href=&quot;#选购&quot; class=&quot;headerlink&quot; title=&quot;选购&quot;&gt;&lt;/a&gt;选购&lt;/h2&gt;&lt;p&gt;1.&lt;/p&gt;
+&lt;h2 id=&quot;数据库&quot;&gt;&lt;a href=&quot;#数据库&quot; class=&quot;headerlink&quot; title=&quot;数据库&quot;&gt;&lt;/a&gt;
     
     </summary>
     
@@ -1285,12 +1202,9 @@
     <link href="http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/"/>
     <id>http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/</id>
     <published>2017-01-16T08:54:00.000Z</published>
-    <updated>2017-07-17T12:19:24.395Z</updated>
+    <updated>2017-07-23T05:13:10.778Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="安装nginx"><a href="#安装nginx" class="headerlink" title="安装nginx"></a>安装nginx</h2><ol>
+    <content type="html"><![CDATA[<h2 id="安装nginx"><a href="#安装nginx" class="headerlink" title="安装nginx"></a>安装nginx</h2><ol>
 <li><code>yum install nginx</code> 安装</li>
 <li><code>systemctl start nginx</code> 启动</li>
 <li><code>ps -ef | grep nginx</code> 查看nginx安装位置(nginx的配置文件.conf在此目录下)</li>
@@ -1301,11 +1215,9 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;安装nginx&quot;&gt;&lt;a href=&quot;#安装nginx&quot; class=&quot;headerlink&quot; title=&quot;安装nginx&quot;&gt;&lt;/a&gt;安装nginx&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;&lt;code&gt;yum i
+      &lt;h2 id=&quot;安装nginx&quot;&gt;&lt;a href=&quot;#安装nginx&quot; class=&quot;headerlink&quot; title=&quot;安装nginx&quot;&gt;&lt;/a&gt;安装nginx&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;yum install nginx&lt;/code&gt; 安装&lt;/li&gt;
+&lt;li&gt;&lt;
     
     </summary>
     
@@ -1321,12 +1233,9 @@
     <link href="http://blog.aezo.cn/2017/01/10/linux/2017-01-10-centos-server-guide/"/>
     <id>http://blog.aezo.cn/2017/01/10/linux/2017-01-10-centos-server-guide/</id>
     <published>2017-01-10T05:19:00.000Z</published>
-    <updated>2017-07-17T12:19:24.606Z</updated>
+    <updated>2017-07-23T05:14:23.212Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><ul>
+    <content type="html"><![CDATA[<h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><ul>
 <li><code>yum install vsftpd</code> 安装软件vsftpd，一路y下去</li>
 <li><code>yum search vsftpd</code> 查找软件vsftpd源</li>
 <li>Centos 7使用firewalld代替了原来的iptables</li>
@@ -1429,11 +1338,9 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;基本命令&quot;&gt;&lt;a href=&quot;#基本命令&quot; class=&quot;headerlink&quot; title=&quot;基本命令&quot;&gt;&lt;/a&gt;基本命令&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;yum install vsftp
+      &lt;h2 id=&quot;基本命令&quot;&gt;&lt;a href=&quot;#基本命令&quot; class=&quot;headerlink&quot; title=&quot;基本命令&quot;&gt;&lt;/a&gt;基本命令&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;yum install vsftpd&lt;/code&gt; 安装软件vsftpd，一路y下去&lt;/li&gt;
+&lt;l
     
     </summary>
     
@@ -1488,12 +1395,9 @@
     <link href="http://blog.aezo.cn/2016/12/11/db/2016-12-11-derby/"/>
     <id>http://blog.aezo.cn/2016/12/11/db/2016-12-11-derby/</id>
     <published>2016-12-11T13:13:00.000Z</published>
-    <updated>2017-07-17T12:19:24.477Z</updated>
+    <updated>2017-07-23T05:13:34.803Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ol>
+    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ol>
 <li>Apache Derby是一个完全用java编写的数据库，非常小巧，核心部分derby.jar只有2M，所以既可以做为单独的数据库服务器使用，也可以内嵌在应用程序中使用。</li>
 <li>Derby数据库有两种运行模式<ul>
 <li>内嵌模式：Derby数据库与应用程序共享同一个JVM，通常由应用程序负责启动和停止，对除启动它的应用程序外的其它应用程序不可见，即其它应用程序不可访问它。如ofbiz自带的数据库即为derby</li>
@@ -1537,11 +1441,8 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;Apache Derby是一个完全用java编写的数据库，非常
+      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;Apache Derby是一个完全用java编写的数据库，非常小巧，核心部分derby.jar只有2M，所以既可以做为单独的数据
     
     </summary>
     
@@ -1559,12 +1460,9 @@
     <link href="http://blog.aezo.cn/2016/11/20/linux/2017-04-24-ubuntu/"/>
     <id>http://blog.aezo.cn/2016/11/20/linux/2017-04-24-ubuntu/</id>
     <published>2016-11-20T05:16:00.000Z</published>
-    <updated>2017-07-17T12:19:24.620Z</updated>
+    <updated>2017-07-23T05:14:31.609Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="Ubuntu介绍"><a href="#Ubuntu介绍" class="headerlink" title="Ubuntu介绍"></a>Ubuntu介绍</h2><ol>
+    <content type="html"><![CDATA[<h2 id="Ubuntu介绍"><a href="#Ubuntu介绍" class="headerlink" title="Ubuntu介绍"></a>Ubuntu介绍</h2><ol>
 <li><code>Ubuntu</code>（乌班图）是一个以桌面应用为主的<code>Linux</code>操作系统，是比较流行的一款linux桌面系统，还有如：<code>Ubuntu</code>是属于<code>Debian</code>系列、<code>CentOS</code>则是属于<code>Redhat</code>系列</li>
 <li>Ubuntu下载地址：<a href="http://releases.ubuntu.com/" target="_blank" rel="external">http://releases.ubuntu.com/</a></li>
 <li>本文以<code>Ubuntu 16.04.1 LTS</code>为例记录U盘、硬盘安装方法(windows安装类似)</li>
@@ -1688,11 +1586,8 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;Ubuntu介绍&quot;&gt;&lt;a href=&quot;#Ubuntu介绍&quot; class=&quot;headerlink&quot; title=&quot;Ubuntu介绍&quot;&gt;&lt;/a&gt;Ubuntu介绍&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;&lt;code&gt;U
+      &lt;h2 id=&quot;Ubuntu介绍&quot;&gt;&lt;a href=&quot;#Ubuntu介绍&quot; class=&quot;headerlink&quot; title=&quot;Ubuntu介绍&quot;&gt;&lt;/a&gt;Ubuntu介绍&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;Ubuntu&lt;/code&gt;（乌班图）是一个以桌面应用为主的&lt;code
     
     </summary>
     
@@ -2352,12 +2247,9 @@
     <link href="http://blog.aezo.cn/2016/10/12/db/2016-10-12-oracleDBA/"/>
     <id>http://blog.aezo.cn/2016/10/12/db/2016-10-12-oracleDBA/</id>
     <published>2016-10-12T13:06:00.000Z</published>
-    <updated>2017-07-17T12:19:24.430Z</updated>
+    <updated>2017-07-23T05:13:30.539Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
+    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
 <p>注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例</p>
 </blockquote>
 <ol>
@@ -2627,11 +2519,8 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;blockquote&gt;
-&lt;p&gt;注：本文中 aezo/aezo 一般指用户名/密
+      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_o
     
     </summary>
     
@@ -2742,12 +2631,9 @@
     <link href="http://blog.aezo.cn/2016/09/01/java/others/2016-09-01-javaconception/"/>
     <id>http://blog.aezo.cn/2016/09/01/java/others/2016-09-01-javaconception/</id>
     <published>2016-09-01T01:19:00.000Z</published>
-    <updated>2017-07-17T12:19:24.593Z</updated>
+    <updated>2017-07-23T05:13:54.042Z</updated>
     
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="未分类"><a href="#未分类" class="headerlink" title="未分类"></a>未分类</h2><ul>
+    <content type="html"><![CDATA[<h2 id="未分类"><a href="#未分类" class="headerlink" title="未分类"></a>未分类</h2><ul>
 <li><p><code>EJB</code>(Enterprise JavaBean)是sun的JavaEE服务器端组件模型。</p>
 <p>设计目标与核心应用是部署分布式应用程序。简单来说就是把已经编写好的程序（即：类）打包放在服务器上执行。 在J2EE里，EJB 称为Java 企业Bean，是Java的核心代码，分别是会话Bean（Session Bean），实体Bean（Entity Bean）和消息驱动Bean（MessageDriven Bean）</p>
 <ul>
@@ -2847,11 +2733,8 @@
     
     <summary type="html">
     
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;未分类&quot;&gt;&lt;a href=&quot;#未分类&quot; class=&quot;headerlink&quot; title=&quot;未分类&quot;&gt;&lt;/a&gt;未分类&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;&lt;code&gt;EJB&lt;/code&gt;(Enterpr
+      &lt;h2 id=&quot;未分类&quot;&gt;&lt;a href=&quot;#未分类&quot; class=&quot;headerlink&quot; title=&quot;未分类&quot;&gt;&lt;/a&gt;未分类&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;EJB&lt;/code&gt;(Enterprise JavaBean)是sun的JavaEE服务器端组件模型。
     
     </summary>
     
@@ -2859,6 +2742,485 @@
     
     
       <category term="comception" scheme="http://blog.aezo.cn/tags/comception/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>sharding-jdbc 源码学习</title>
+    <link href="http://blog.aezo.cn/2016/08/31/db/2016-08-31-shading-jdbc%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/"/>
+    <id>http://blog.aezo.cn/2016/08/31/db/2016-08-31-shading-jdbc源码解读/</id>
+    <published>2016-08-31T12:13:00.000Z</published>
+    <updated>2017-07-17T12:19:24.426Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote>
+<p>文档来源：胡翔宇。此处仅作存档学习！</p>
+</blockquote>
+<ol>
+<li><p>ShardingDataSource<br> 类图<br> <img src="http://i.imgur.com/3bajMxv.png" alt=""><br> 类解析（由父类向下）</p>
+<pre><code>WrapperAdapter：Wrapper适配类主要作用是额外记录jdbc方法调用以及回放。
+    /**
+     * 记录方法调用.
+     *
+     * @param targetClass 目标类
+        * @param methodName 方法名称
+     * @param argumentTypes 参数类型
+     * @param arguments 参数
+     */
+    protected final void recordMethodInvocation(final Class&lt;?&gt; targetClass, final String methodName, final Class&lt;?&gt;[] argumentTypes, final Object[] arguments) {
+        try {
+            jdbcMethodInvocations.add(new JdbcMethodInvocation(targetClass.getMethod(methodName, argumentTypes), arguments));
+        } catch (final NoSuchMethodException ex) {
+            throw new ShardingJdbcException(ex);
+        }
+    }
+
+    /**
+     * 回放记录的方法调用.
+     *
+     * @param target 目标对象
+     */
+    protected final void replayMethodsInvocation(final Object target) {
+        for (JdbcMethodInvocation each : jdbcMethodInvocations) {
+            each.invoke(target);
+        }
+    }
+
+AbstractUnsupportedOperationDataSource ： 声明不支持操作的数据源对象。
+AbstractDataSourceAdapter ： 适配基类没有实际的业务操作，拓展使用（如图后加入的读写分离就是最好的例子）。
+</code></pre><p> ShardingDataSource ： 支持分片的数据源。</p>
+<pre><code>重点内容  
+ShardingProperties 变量 ： 主要是jdbc的配置
+shardingContext :  数据源运行期上下文。   此处要注意的是上下文是分库分表规则的持有者，也是路由引擎，执行引擎的持有者
+方法  
+getDatabaseProductName ： 根据分库分表规则获取数据库类型（有主从的时候，与其他区分处理）。
+getConnection()： 获取数据库连接 返回 ShardingConnection 连接。
+</code></pre><p> 使用方法</p>
+<pre><code> DataSourceRule dataSourceRule = new DataSourceRule(createDataSourceMap());
+//order 分表
+TableRule orderTableRule = TableRule.builder(&quot;t_order&quot;).actualTables(Arrays.asList(&quot;t_order_0&quot;, &quot;t_order_1&quot;)).dataSourceRule(dataSourceRule).build();
+// order_iterm 分表
+TableRule orderItemTableRule = TableRule.builder(&quot;t_order_item&quot;).actualTables(Arrays.asList(&quot;t_order_item_0&quot;, &quot;t_order_item_1&quot;)).dataSourceRule(dataSourceRule).build();
+ShardingRule shardingRule = ShardingRule.builder().dataSourceRule(dataSourceRule).tableRules(Arrays.asList(orderTableRule, orderItemTableRule))
+        .bindingTableRules(Collections.singletonList(new BindingTableRule(Arrays.asList(orderTableRule, orderItemTableRule))))
+        .databaseShardingStrategy(new DatabaseShardingStrategy(&quot;user_id&quot;, new ModuloDatabaseShardingAlgorithm()))
+        .tableShardingStrategy(new TableShardingStrategy(&quot;order_id&quot;, new ModuloTableShardingAlgorithm())).build();
+//同时会new 一个 ShardingProperties初始化
+return new ShardingDataSource(shardingRule);
+
+//设置分库 ds_0,ds_1
+ private static Map&lt;String, DataSource&gt; createDataSourceMap() {
+    Map&lt;String, DataSource&gt; result = new HashMap&lt;&gt;(2);
+    result.put(&quot;ds_0&quot;, createDataSource(&quot;ds_0&quot;));
+    result.put(&quot;ds_1&quot;, createDataSource(&quot;ds_1&quot;));
+    return result;
+}
+</code></pre></li>
+<li><p>ShardingConnection<br>类图<br><img src="http://i.imgur.com/KFTd9ZT.png" alt=""><br>类解析（由父类向下）</p>
+<pre><code> AbstractUnsupportedOperationConnection： 声明不支持操作的数据库连接对象.主要就是自定义不支持异常抛出
+AbstractConnectionAdapter :  数据库连接适配器，公共方法（可拓展）。
+    setAutoCommit（） ： 设置分库分表自动提交。
+    commit（）： 提交操作
+    rollback（） ： 回滚
+
+ShardingConnection ： 分库分表connection
+    connectionMap 变量 connection的持有者（一个库对应一个connection）
+    shardingContext : 略
+    getConnectionInternal（）：getConnection（）实际调用该方法。
+         private Connection getConnectionInternal(final String dataSourceName, final SQLStatementType sqlStatementType) throws SQLException {
+            //已经生成的connection直接返回
+            if (connectionMap.containsKey(dataSourceName)) {
+                return connectionMap.get(dataSourceName);
+            }
+            //用到 guava [http://ifeve.com/google-guava/](http://ifeve.com/google-guava/ &quot;guava&quot;),计时
+            Context metricsContext = MetricsContext.start(Joiner.on(&quot;-&quot;).join(&quot;ShardingConnection-getConnection&quot;, dataSourceName));
+            DataSource dataSource = shardingContext.getShardingRule().getDataSourceRule().getDataSource(dataSourceName);
+            if (dataSource instanceof MasterSlaveDataSource) {
+                dataSource = ((MasterSlaveDataSource) dataSource).getDataSource(sqlStatementType);
+            }
+            Connection result = dataSource.getConnection();
+            MetricsContext.stop(metricsContext);
+            connectionMap.put(dataSourceName, result);
+            return result;
+        }
+
+    close（）： 连接关闭
+         @Override
+        public void close() throws SQLException {
+            super.close();
+            //清理线索分片管理器的本地线程持有者.（此处是一个问题，接下来要仔细分析一下）
+            HintManagerHolder.clear();
+            //此处是个问题
+            MasterSlaveDataSource.resetDMLFlag();
+        }
+</code></pre><p>使用</p>
+<pre><code>Connection conn = dataSource.getConnection();
+</code></pre></li>
+<li><p>ShardingStatement ： 支持分片的静态语句对象（不支持存储过程）.<br> 类图<br> <img src="http://i.imgur.com/Gd6DBKS.png" alt=""><br>  类解析（由父类向下）</p>
+<pre><code>AbstractStatementAdapter：静态语句对象适配类.
+    closed : 关闭标识
+    poolable ： 暂未看
+    fetchSize ： 条数
+    //获取更新条数
+     @Override
+    public final int getUpdateCount() throws SQLException {
+        int result = 0;
+        for (Statement each : getRoutedStatements()) {
+            result += each.getUpdateCount();
+        }
+        return result;
+    }
+    其他方法略
+
+    ShardingStatement ： 支持分片的静态语句对象.
+        shardingConnection：
+        resultSetType：
+        resultSetConcurrency ：
+        resultSetHoldability：
+        cachedRoutedStatements ： statemnets持有者
+        mergeContext ： 结果归并上下文.
+         currentResultSet ：
+        //执行查询
+         @Override
+        public ResultSet executeQuery(final String sql) throws SQLException {
+            if (null != currentResultSet &amp;&amp; !currentResultSet.isClosed()) {
+                currentResultSet.close();
+            }
+            //先生成执行器，然后执行查询（归并mergeContext页作为参数传过去以便最后归并），整个过程下面会详细说
+            currentResultSet = ResultSetFactory.getResultSet(generateExecutor(sql).executeQuery(), mergeContext);
+            return currentResultSet;
+        }
+
+        private StatementExecutor generateExecutor(final String sql) throws SQLException {
+            StatementExecutor result = new StatementExecutor(shardingConnection.getShardingContext().getExecutorEngine());
+            //路由sql 下面详细讲解
+            SQLRouteResult sqlRouteResult = shardingConnection.getShardingContext().getSqlRouteEngine().route(sql);
+            mergeContext = sqlRouteResult.getMergeContext();
+            //将路由结果放置到执行器中，以便后面执行（
+            for (SQLExecutionUnit each : sqlRouteResult.getExecutionUnits()) {
+                Statement statement = getStatement(shardingConnection.getConnection(each.getDataSource(), sqlRouteResult.getSqlStatementType()), each.getSql());
+                replayMethodsInvocation(statement);
+                //StatementExecutorWrapper 执行单位，和 statement组合放入执行器中
+                result.addStatement(new StatementExecutorWrapper(statement, each));
+            }
+            return result;
+        }
+</code></pre></li>
+</ol>
+<ol>
+<li>ShardingPreparedStatement ：  支持分片的预编译语句对象.</li>
+<li>解析</li>
+<li><p>路由<br> 类图<br> <img src="http://i.imgur.com/xeGFWga.png" alt=""></p>
+<pre><code> /**
+ * SQL路由.非预编译
+ *
+ * @param logicSql 逻辑SQL
+ * @return 路由结果
+ * @throws SQLParserException SQL解析失败异常
+ */
+public SQLRouteResult route(final String logicSql) throws SQLParserException {
+    return route(logicSql, Collections.emptyList());
+}
+/**
+ * SQL路由.
+ *
+ * @param logicSql 逻辑SQL
+ * @param parameters 参数列表
+ * @return 路由结果
+ * @throws SQLParserException SQL解析失败异常
+ */
+public SQLRouteResult route(final String logicSql, final List&lt;Object&gt; parameters) throws SQLParserException {
+    //先执行一遍，解析（接下载解析模块说明），解析的时候会设置SqlStatementType
+    return routeSQL(parseSQL(logicSql, parameters), parameters);
+}
+ SQLRouteResult routeSQL(final SQLParsedResult parsedResult, final List&lt;Object&gt; parameters) {
+    //计时
+    Context context = MetricsContext.start(&quot;Route SQL&quot;);
+    SQLRouteResult result = new SQLRouteResult(parsedResult.getRouteContext().getSqlStatementType(), parsedResult.getMergeContext());
+    //遍历解析结果
+    for (ConditionContext each : parsedResult.getConditionContexts()) {
+        //将实际路由的   执行单元加入路由结果中
+        result.getExecutionUnits().addAll(routeSQL(each, Sets.newLinkedHashSet(Collections2.transform(parsedResult.getRouteContext().getTables(), new Function&lt;Table, String&gt;() {
+
+            @Override
+            public String apply(final Table input) {
+                return input.getName();
+            }
+        })), parsedResult.getRouteContext().getSqlBuilder(), parsedResult.getRouteContext().getSqlStatementType()));
+    }
+    //判断是否有限定结果集计算.
+    processLimit(result.getExecutionUnits(), parsedResult, parameters);
+    //计时
+    MetricsContext.stop(context);
+    log.debug(&quot;final route result:{}&quot;, result.getExecutionUnits());
+    log.debug(&quot;merge context:{}&quot;, result.getMergeContext());
+    return result;
+}
+
+SQLParsedResult parseSQL(final String logicSql, final List&lt;Object&gt; parameters) {
+        Context context = MetricsContext.start(&quot;Parse SQL&quot;);
+        SQLParsedResult result = SQLParserFactory.create(databaseType, logicSql, parameters, shardingRule.getAllShardingColumns()).parse();
+        MetricsContext.stop(context);
+        return result;
+    }
+
+private Collection&lt;SQLExecutionUnit&gt; routeSQL(final ConditionContext conditionContext, final Set&lt;String&gt;     logicTables, final SQLBuilder sqlBuilder, final SQLStatementType type) {
+    RoutingResult result;
+    //判断逻辑表数量，就是看看是否是单表操作
+    if (1 == logicTables.size()) {
+        result = new SingleTableRouter(shardingRule, logicTables.iterator().next(), conditionContext, type).route();
+    }
+    //判断逻辑表名称集合是否全部属于Binding表.(绑定表代表一组表，这组表的逻辑表与实际表之间的映射关系是相同的。比如t_order与t_order_item就是这样一组绑定表关系,它们的分库与分表策略是完全相同的,那么可以使用它们的表规则将它们配置成绑定表)
+    else if (shardingRule.isAllBindingTables(logicTables)) {
+        result = new BindingTablesRouter(shardingRule, logicTables, conditionContext, type).route();
+    } else {
+        // TODO 可配置是否执行笛卡尔积
+        result = new MixedTablesRouter(shardingRule, logicTables, conditionContext, type).route();
+    }
+    if (null == result) {
+        throw new ShardingJdbcException(&quot;Sharding-JDBC: cannot route any result, please check your sharding rule.&quot;);
+    }
+    return result.getSQLExecutionUnits(sqlBuilder);
+}
+
+单表路由
+/**
+ * 路由.
+ *
+ * @return 路由结果
+ */
+public SingleRoutingResult route() {
+    //多库则返回多个库名称
+    Collection&lt;String&gt; routedDataSources = routeDataSources();
+    Collection&lt;String&gt; routedTables = routeTables(routedDataSources);
+    return generateRoutingResult(routedDataSources, routedTables);
+}
+
+//路由数据库
+private Collection&lt;String&gt; routeDataSources() {
+    DatabaseShardingStrategy strategy = shardingRule.getDatabaseShardingStrategy(tableRule);
+    List&lt;ShardingValue&lt;?&gt;&gt; shardingValues;
+    if (HintManagerHolder.isUseShardingHint()) {
+        shardingValues = getDatabaseShardingValuesFromHint(strategy.getShardingColumns());
+    } else {
+        //[ShardingValue(logicTableName=t_order, columnName=user_id, value=10, values=[], valueRange=null)]
+        //* @param logicTable 逻辑表名称 * @param shardingColumn 分片键  * @param value 分片值
+        shardingValues = getShardingValues(strategy.getShardingColumns());
+    }
+    logBeforeRoute(&quot;database&quot;, logicTable, tableRule.getActualDatasourceNames(), strategy.getShardingColumns(), shardingValues);
+    Collection&lt;String&gt; result = new HashSet&lt;&gt;(strategy.doStaticSharding(sqlStatementType, tableRule.getActualDatasourceNames(), shardingValues));
+    logAfterRoute(&quot;database&quot;, logicTable, result);
+    Preconditions.checkState(!result.isEmpty(), &quot;no database route info&quot;);
+    return result;
+}
+ /**
+ * 计算静态分片.
+ *
+ * @param sqlStatementType SQL语句的类型
+ * @param availableTargetNames 所有的可用分片资源集合
+ * @param shardingValues 分片值集合
+ * @return 分库后指向的数据源名称集合
+ */
+public Collection&lt;String&gt; doStaticSharding(final SQLStatementType sqlStatementType, final Collection&lt;String&gt; availableTargetNames, final Collection&lt;ShardingValue&lt;?&gt;&gt; shardingValues) {
+    if (shardingValues.isEmpty()) {
+        Preconditions.checkState(!isInsertMultiple(sqlStatementType, availableTargetNames), &quot;INSERT statement should contain sharding value.&quot;);
+        return availableTargetNames;
+    }
+    //分片算法是这边调用的，返回路由结果（实际表，实际数据库）
+    return doSharding(shardingValues, availableTargetNames);
+}
+//路由实际表
+ private Collection&lt;String&gt; routeTables(final Collection&lt;String&gt; routedDataSources) {
+    TableShardingStrategy strategy = shardingRule.getTableShardingStrategy(tableRule);
+    List&lt;ShardingValue&lt;?&gt;&gt; shardingValues;
+    if (HintManagerHolder.isUseShardingHint()) {
+        shardingValues = getTableShardingValuesFromHint(strategy.getShardingColumns());
+    } else {
+        shardingValues = getShardingValues(strategy.getShardingColumns());
+    }
+    logBeforeRoute(&quot;table&quot;, logicTable, tableRule.getActualTables(), strategy.getShardingColumns(), shardingValues);
+    Collection&lt;String&gt; result;
+    if (tableRule.isDynamic()) {
+        result = new HashSet&lt;&gt;(strategy.doDynamicSharding(shardingValues));
+    } else {
+        result = new HashSet&lt;&gt;(strategy.doStaticSharding(sqlStatementType, tableRule.getActualTableNames(routedDataSources), shardingValues));    
+    }
+    logAfterRoute(&quot;table&quot;, logicTable, result);
+    Preconditions.checkState(!result.isEmpty(), &quot;no table route info&quot;);
+    return result;
+}
+
+private SingleRoutingResult generateRoutingResult(final Collection&lt;String&gt; routedDataSources, final             Collection&lt;String&gt; routedTables) {
+    SingleRoutingResult result = new SingleRoutingResult();
+    //[DataNode(dataSourceName=ds_0, tableName=t_order_1), DataNode(dataSourceName=ds_1, tableName=t_order_1), DataNode(dataSourceName=ds_0, tableName=t_order_0), DataNode(dataSourceName=ds_1, tableName=t_order_0)]（第一次生成4个）
+    //该方法会调用多次
+    for (DataNode each : tableRule.getActualDataNodes(routedDataSources, routedTables)) {
+        result.put(each.getDataSourceName(), new SingleRoutingTableFactor(logicTable, each.getTableName()));
+    }
+    return result;
+}
+</code></pre></li>
+<li><p>执行<br> 类图<br> <img src="http://i.imgur.com/b1XLRum.png" alt=""></p>
+<pre><code>首先executeQuery 由 ShardingStatement（ShardingPreparedStatement）调用
+ @Override
+public ResultSet executeQuery(final String sql) throws SQLException {
+    if (null != currentResultSet &amp;&amp; !currentResultSet.isClosed()) {
+        currentResultSet.close();
+    }
+    currentResultSet = ResultSetFactory.getResultSet(generateExecutor(sql).executeQuery(), mergeContext);
+    return currentResultSet;
+}
+
+private StatementExecutor generateExecutor(final String sql) throws SQLException {
+    StatementExecutor result = new StatementExecutor(shardingConnection.getShardingContext().getExecutorEngine());
+    //路由sql
+    SQLRouteResult sqlRouteResult = shardingConnection.getShardingContext().getSqlRouteEngine().route(sql);
+    mergeContext = sqlRouteResult.getMergeContext();
+    for (SQLExecutionUnit each : sqlRouteResult.getExecutionUnits()) {
+        Statement statement = getStatement(shardingConnection.getConnection(each.getDataSource(), sqlRouteResult.getSqlStatementType()), each.getSql());
+        replayMethodsInvocation(statement);
+        //SQLExecutionUnit，statement 组装成发给StatementExecutorWrapper 给执行器执行
+        result.addStatement(new StatementExecutorWrapper(statement, each));
+    }
+    return result;
+}
+
+可以看出 generateExecutor 方法生成 StatementExecutor 执行器 接着调用 executeQuery
+ /**
+ * 执行SQL查询.
+ *
+ * @return 结果集列表
+ */
+public List&lt;ResultSet&gt; executeQuery() {
+    //计时
+    Context context = MetricsContext.start(&quot;ShardingStatement-executeQuery&quot;);
+    postExecutionEvents();//（此处是一个问题，接下来要仔细分析一下）
+    final boolean isExceptionThrown = ExecutorExceptionHandler.isExceptionThrown();
+    final Map&lt;String, Object&gt; dataMap = ExecutorDataMap.getDataMap();
+    List&lt;ResultSet&gt; result;
+    try {
+        if (1 == statementExecutorWrappers.size()) {
+            return Collections.singletonList(executeQueryInternal(statementExecutorWrappers.iterator().next(), isExceptionThrown, dataMap));
+        }
+        result = executorEngine.execute(statementExecutorWrappers, new ExecuteUnit&lt;StatementExecutorWrapper, ResultSet&gt;() {
+
+            @Override
+            public ResultSet execute(final StatementExecutorWrapper input) throws Exception {
+                return executeQueryInternal(input, isExceptionThrown, dataMap);
+            }
+        });
+    } finally {
+        MetricsContext.stop(context);
+    }
+    return result;
+}
+
+/**
+ * 多线程执行任务.（运用谷歌com.google.common.util.concurrent）
+ *
+ * @param inputs 输入参数
+ * @param executeUnit 执行单元
+ * @param &lt;I&gt; 入参类型
+ * @param &lt;O&gt; 出参类型
+ * @return 执行结果
+ */
+public &lt;I, O&gt; List&lt;O&gt; execute(final Collection&lt;I&gt; inputs, final ExecuteUnit&lt;I, O&gt; executeUnit) {
+    ListenableFuture&lt;List&lt;O&gt;&gt; futures = submitFutures(inputs, executeUnit);
+    addCallback(futures);
+    return getFutureResults(futures);
+}
+
+private ResultSet executeQueryInternal(final StatementExecutorWrapper statementExecutorWrapper, final boolean isExceptionThrown, final Map&lt;String, Object&gt; dataMap) {
+    ResultSet result;
+    ExecutorExceptionHandler.setExceptionThrown(isExceptionThrown);
+    ExecutorDataMap.setDataMap(dataMap);
+    try {
+        //statementExecutorWrapper.getSqlExecutionUnit().getSql() 要参考 SqlExecutionUnit 里面的 sql参数生成过程
+        result = statementExecutorWrapper.getStatement().executeQuery(statementExecutorWrapper.getSqlExecutionUnit().getSql());
+    } catch (final SQLException ex) {
+        postExecutionEventsAfterExecution(statementExecutorWrapper, EventExecutionType.EXECUTE_FAILURE, Optional.of(ex));
+        ExecutorExceptionHandler.handleException(ex);
+        return null;
+    }
+    postExecutionEventsAfterExecution(statementExecutorWrapper);
+    return result;
+}
+</code></pre></li>
+<li><p>归并<br> 类图<br> <img src="http://i.imgur.com/czM6sto.png" alt=""></p>
+<pre><code>ResultSetFactory ： 分片结果集归并工厂.
+ /**
+ * 获取结果集.
+ *
+ * @param resultSets 结果集列表
+ * @param mergeContext 结果归并上下文
+ * @return 结果集包装
+ */
+public static ResultSet getResultSet(final List&lt;ResultSet&gt; resultSets, final MergeContext mergeContext) throws SQLException {
+    ShardingResultSets shardingResultSets = new ShardingResultSets(resultSets);
+    log.trace(&quot;Sharding-JDBC: Sharding result sets type is &apos;{}&apos;&quot;, shardingResultSets.getType().toString());
+    switch (shardingResultSets.getType()) {
+        case EMPTY:
+            return buildEmpty(resultSets);
+        case SINGLE:
+            return buildSingle(shardingResultSets, mergeContext);
+        case MULTIPLE:
+            return buildMultiple(shardingResultSets, mergeContext);
+        default:
+            throw new UnsupportedOperationException(shardingResultSets.getType().toString());
+    }
+}
+//直接看buildMultiple 上面比较简单直接返回即可
+private static ResultSet buildMultiple(final ShardingResultSets shardingResultSets, final MergeContext mergeContext) throws SQLException {
+    //实例化 ResultSetMergeContext
+    ResultSetMergeContext resultSetMergeContext = new ResultSetMergeContext(shardingResultSets, mergeContext);
+    return buildCoupling(buildReducer(resultSetMergeContext), resultSetMergeContext);
+  }
+public ResultSetMergeContext(final ShardingResultSets shardingResultSets, final MergeContext mergeContext) throws SQLException {
+    this.shardingResultSets = shardingResultSets;
+    this.mergeContext = mergeContext;
+    currentOrderByKeys = new LinkedList&lt;&gt;();
+    init();
+}
+
+private void init() throws SQLException {
+    //初始化 AbstractResultSetAdapter 一个实例  看下 AbstractResultSetAdapter 初始化干了什么
+    setColumnIndex(((AbstractResultSetAdapter) shardingResultSets.getResultSets().get(0)).getColumnLabelIndexMap());
+    currentOrderByKeys.addAll(mergeContext.getOrderByColumns());
+}
+
+private void setColumnIndex(final Map&lt;String, Integer&gt; columnLabelIndexMap) {
+    for (IndexColumn each : getAllFocusedColumns()) {
+        if (each.getColumnIndex() &gt; 0) {
+            continue;
+        }
+        Preconditions.checkState(
+                columnLabelIndexMap.containsKey(each.getColumnLabel().orNull()) || columnLabelIndexMap.containsKey(each.getColumnName().orNull()), String.format(&quot;%s has not index&quot;, each));
+        if (each.getColumnLabel().isPresent() &amp;&amp; columnLabelIndexMap.containsKey(each.getColumnLabel().get())) {
+            each.setColumnIndex(columnLabelIndexMap.get(each.getColumnLabel().get()));
+        } else if (each.getColumnName().isPresent() &amp;&amp; columnLabelIndexMap.containsKey(each.getColumnName().get())) {
+            each.setColumnIndex(columnLabelIndexMap.get(each.getColumnName().get()));
+        }
+    }
+}
+</code></pre></li>
+</ol>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;blockquote&gt;
+&lt;p&gt;文档来源：胡翔宇。此处仅作存档学习！&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;ShardingDataSource&lt;br&gt; 类图&lt;br&gt; &lt;img src=&quot;http://i.imgur.com/3bajMxv.png&quot; alt
+    
+    </summary>
+    
+      <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
+    
+    
+      <category term="shading" scheme="http://blog.aezo.cn/tags/shading/"/>
+    
+      <category term="shading-jdbc" scheme="http://blog.aezo.cn/tags/shading-jdbc/"/>
     
   </entry>
   

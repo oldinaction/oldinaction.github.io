@@ -288,166 +288,6 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/02/db/2016-07-02-redis/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/07/02/db/2016-07-02-redis/" itemprop="url">redis</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-02T12:11:00+08:00">
-                2016-07-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/db/" itemprop="url" rel="index">
-                    <span itemprop="name">db</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          redis简介Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 string，hash，list，set，sorted set，bitmap 和 hyperloglog，所以常常被称为数据结构服务器。
-
-官网：http://redis.io/
-redis源码：redis Github
-redis windows客户端(64x，官网不提供window安装包)：https://github.com/MSOpenTech/redis
-java操作redis(jar)：jedis Github
-
-安装Redis服务
-Windows
-下载redis windows客户端（3.2.100）
-直接启动解压目录下的：redis-server.exe服务程序；redis-cli.exe客户端程序，即可在客户端使用命令行进行新增和查看数据（默认没有设置密码）
-设置密码
-修改redis.windows.conf，将# requirepass foobared 改成 requirepass yourpassword(行前不能有空格)
-cmd进入到redis解压目录，运行redis-server redis.windows.conf，之后登录则需要密码
-
-
-
-
-
-java中操作Redis
-引入ja
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/07/02/db/2016-07-02-redis/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/05/22/extend/2016-05-22-LoadRunner/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1396,11 +1236,10 @@ md文件中可以使用html标签
 
 
 
-github-hexo-markdown个人书写习惯相关命令
-hexo clean 清除缓存(如果未修改配置文件可不运行)
-hexo g/hexo generate 静态文件生成
-hexo s -p 5000/hexo server 启动本地服务器(本地测试)
-hexo d/hexo deploy
+github-hexo-markdown个人书写习惯博客源码管理和博客更新
+本地处于master分支，远程有master(为博客渲染后的代码)和source(博客源码, 可设为远程默认分支)两个分支
+修改文章后保存源码
+  123$ git add .$ git commit -am "updat
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1490,7 +1329,7 @@ hexo d/hexo deploy
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">36</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1512,7 +1351,7 @@ hexo d/hexo deploy
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-count">63</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

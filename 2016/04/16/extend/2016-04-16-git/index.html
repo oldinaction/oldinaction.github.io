@@ -103,7 +103,7 @@
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（rm -f ./.git/index.lock）。 运行命令git commit --amend、git diff后、打开vi编辑器出错，退出">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/04/git流程图.png">
-<meta property="og:updated_time" content="2017-07-17T12:19:24.505Z">
+<meta property="og:updated_time" content="2017-07-17T13:13:24.991Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="git">
 <meta name="twitter:description" content="git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（rm -f ./.git/index.lock）。 运行命令git commit --amend、git diff后、打开vi编辑器出错，退出">
@@ -489,6 +489,11 @@
 <li>跟踪分支 <code>git branch --set-upstream-to=&lt;remotesBranchName&gt; &lt;localBranchName&gt;</code> 之后可以使用<code>git push/pull</code>直接对相应分支进行操作</li>
 <li>删除分支<ul>
 <li><code>git branch -d 分支名</code> 删除此分支（只能删除除当前分支以外的分支；如果当前分支有一次提交，则需要将此分支合并到主分支之后再进行删除）</li>
+<li>删除远程分支：<code>git branch -r -d origin/branch-name</code>或者<code>git push origin :branch-name</code></li>
+</ul>
+</li>
+<li>重命名分支：<code>git branch -m old-branch-name new-branch-name</code><ul>
+<li>在git中重命名远程分支，其实就是先删除远程分支，然后重命名本地分支，再重新提交一个远程分支</li>
 </ul>
 </li>
 </ol>
@@ -750,7 +755,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">36</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -772,7 +777,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-count">63</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

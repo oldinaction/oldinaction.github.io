@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="目录{:toc}  RabbitMQ简介 rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。 RabbitMQ的官方站：http://www.rabbitmq.com/  RabbitMQ安装Rabbit MQ 是建立在强大的Erla">
+<meta name="description" content="RabbitMQ简介 rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。 RabbitMQ的官方站：http://www.rabbitmq.com/  RabbitMQ安装Rabbit MQ 是建立在强大的Erlang OTP平台上，因">
 <meta name="keywords" content="mq,rabbitMQ">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RabbitMQ">
 <meta property="og:url" content="http://blog.aezo.cn/2016/08/14/clound/2016-08-14-rabbitmq/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="目录{:toc}  RabbitMQ简介 rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。 RabbitMQ的官方站：http://www.rabbitmq.com/  RabbitMQ安装Rabbit MQ 是建立在强大的Erla">
-<meta property="og:updated_time" content="2017-07-17T12:19:24.390Z">
+<meta property="og:description" content="RabbitMQ简介 rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。 RabbitMQ的官方站：http://www.rabbitmq.com/  RabbitMQ安装Rabbit MQ 是建立在强大的Erlang OTP平台上，因">
+<meta property="og:updated_time" content="2017-07-23T05:13:00.233Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RabbitMQ">
-<meta name="twitter:description" content="目录{:toc}  RabbitMQ简介 rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。 RabbitMQ的官方站：http://www.rabbitmq.com/  RabbitMQ安装Rabbit MQ 是建立在强大的Erla">
+<meta name="twitter:description" content="RabbitMQ简介 rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。 RabbitMQ的官方站：http://www.rabbitmq.com/  RabbitMQ安装Rabbit MQ 是建立在强大的Erlang OTP平台上，因">
 
 
 
@@ -374,10 +374,7 @@
       
 
       
-        <ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="RabbitMQ简介"><a href="#RabbitMQ简介" class="headerlink" title="RabbitMQ简介"></a>RabbitMQ简介</h2><ul>
+        <h2 id="RabbitMQ简介"><a href="#RabbitMQ简介" class="headerlink" title="RabbitMQ简介"></a>RabbitMQ简介</h2><ul>
 <li>rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。</li>
 <li>RabbitMQ的官方站：<a href="http://www.rabbitmq.com/" target="_blank" rel="external">http://www.rabbitmq.com/</a></li>
 </ul>
@@ -385,7 +382,7 @@
 <ul>
 <li>安装 <a href="http://www.erlang.org/download/otp_win32_R16B03.exe" target="_blank" rel="external">Eralng OTP For Windows (vR16B03)</a></li>
 <li>安装 <a href="https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.5/rabbitmq-server-3.6.5.exe" target="_blank" rel="external">RabbitMQ Server (3.6.5)</a></li>
-<li>默认监听5672端口，后台使用端口15672</li>
+<li>默认监听<code>5672</code>端口(客户端连接使用此端口)，后台使用端口<code>15672</code></li>
 </ul>
 <h2 id="RabbitMQ启动"><a href="#RabbitMQ启动" class="headerlink" title="RabbitMQ启动"></a>RabbitMQ启动</h2><ul>
 <li>激活Rabbit MQ’s Management Plugin(可激活管理插件)<ul>
@@ -533,7 +530,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">36</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -555,7 +552,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-count">63</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

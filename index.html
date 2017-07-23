@@ -378,10 +378,7 @@
       
         
           
-          
-目录{:toc}
-
-介绍
+          介绍
 spring项目官网：https://spring.io/projects ，其中的spring-framework即是spring框架内容
 历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) spring 3.x，java配置
 spring模块(每个模块有个jar包)：
@@ -392,7 +389,7 @@ AOP：spring-aop, spring-aspects
 Web： spring-web(在web项目中提供spring容器), spring-webmvc(基于Servlet的SpringMVC), spring-websocket, spring-webmvc-portlet
 
 
-spring生态：Spri
+spring生态：Spring Boot(使用默
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -532,10 +529,7 @@ spring生态：Spri
       
         
           
-          
-目录{:toc}
-
-介绍
+          介绍
 ORM框架(对象关系映射)
 JDBC操作数据库很繁琐
 Sql语句编写并不是面向对象的
@@ -565,7 +559,7 @@ EJBQL(JPQL)：是HQL的一个子集. EJB必须用在容器(application server)�
 
 
 
-JPA：Java Persistence API. JPA是接口/规范，hibernate是其实现. JPA是hiberna
+JPA：Java Persistence API. JPA是接口/规范，hibernate是其实现. JPA是hibernate的作者基于hibe
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -852,10 +846,7 @@ title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存
       
         
           
-          
-目录{:toc}
-
-介绍
+          介绍
 struts2是 struts1和WebWork的结合
 struts2的本质就是将请求与视图分开 (struts2原理：视频09)
 官网：http://struts.apache.org/, 下文基于版本2.3.24(当前更新到2.5.10)
@@ -888,7 +879,8 @@ Struts标签
 a)掌握常用的
 
 
-声明式异常处
+声明式异常处理（了解）
+I18N（
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1424,171 +1416,6 @@ cmd进入到下文的database文件夹
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/03/19/service/2017-03-19-firebase/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/03/19/service/2017-03-19-firebase/" itemprop="url">firebase</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-19T21:21:00+08:00">
-                2017-03-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/service/" itemprop="url" rel="index">
-                    <span itemprop="name">service</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          简介
-Firebase是google提供的快速构件应用的云服务。简单的可以说通过引入Firebase，你可以通过api去构建实时性的应用。
-官网
-
-Hello WorldFirebase帐号注册
-可通过google账户登录，选择免费版，新建一个项目。
-点击Authentication - 登录方法 - 启用Google登录
-点击overview - 将 Firebase 添加到您的网页应用 - 复制代码供下面使用
-
-下载web版示例
-quickstart-js
-该文件中包含了auth验证、database数据库、storage存储、messaging消息等示例
-找到database/index.html，将上文复制的代码放到head中
-
-为开发运行本地 Web 服务器
-安装firebase命令行工具：npm install -g firebase-tools(重新运行安装命令，可更新此工具)
-cmd进入到下文的database文件夹
-启动服务器 firebase serve
-访问：http://localhost:5000
-点击登录，就会自动调用google登录验证api
-该示例登录进入可书写博文，数据可在控制面板的Database中查看
-
-部署应用最终可在控制面板的Hosting中查看
-
-启动一个新的命令行，cmd进入到下文的database文件夹
-登录Google并授权 fir
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/03/19/service/2017-03-19-firebase/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/03/19/extend/2017-03-19-atom/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1835,16 +1662,159 @@ atom-html-pr
       
         
           
-          
-目录{:toc}
-
-选购1.
+          选购1.
 数据库需要在数据库所在安全组中把应用服务器IP加入
 
           
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2017/03/13/linux/2017-03-13-aws/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/01/16/clound/2017-01-16-nginx/" itemprop="url">nginx</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-16T16:54:00+08:00">
+                2017-01-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/middleware/" itemprop="url" rel="index">
+                    <span itemprop="name">middleware</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          安装nginx
+yum install nginx 安装
+systemctl start nginx 启动
+ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.conf在此目录下)
+nginx -t 检查配置文件的配置是否合法(也会返回配置文件位置)
+
+nginx配置(nginx.conf)123456789101112131415161718192021222324   server &#123;       # 监听的端口       listen   80;       # 服务器的地址                     server_name www.aezo.cn;       # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)	location = / &#123;		rewrite / http://$server_name/hello break;       &#125;       # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin  
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/16/clound/2017-01-16-nginx/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1930,7 +1900,7 @@ atom-html-pr
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">36</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1952,7 +1922,7 @@ atom-html-pr
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">53</span>
+                <span class="site-state-item-count">63</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

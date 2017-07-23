@@ -2,6 +2,118 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/04/10/others/2016-04-10-hello-world/</loc>
+    
+    <lastmod>2017-07-23T09:38:15.345Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/11/20/linux/2017-04-24-ubuntu/</loc>
+    
+    <lastmod>2017-07-23T05:14:31.609Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/03/13/linux/2017-03-13-aws/</loc>
+    
+    <lastmod>2017-07-23T05:14:26.694Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/2017-01-10-centos-server-guide/</loc>
+    
+    <lastmod>2017-07-23T05:14:23.212Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/2016-07-21-linu-system/</loc>
+    
+    <lastmod>2017-07-23T05:14:19.736Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/</loc>
+    
+    <lastmod>2017-07-23T05:14:08.341Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/21/java/2017-05-21-hibernate/</loc>
+    
+    <lastmod>2017-07-23T05:14:03.734Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/06/java/2017-05-06-struts2/</loc>
+    
+    <lastmod>2017-07-23T05:13:59.004Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/01/java/others/2016-09-01-javaconception/</loc>
+    
+    <lastmod>2017-07-23T05:13:54.042Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/17/design/2016-07-17-uml/</loc>
+    
+    <lastmod>2017-07-23T05:13:42.673Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/12/11/db/2016-12-11-derby/</loc>
+    
+    <lastmod>2017-07-23T05:13:34.803Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/2016-10-12-oracleDBA/</loc>
+    
+    <lastmod>2017-07-23T05:13:30.539Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/</loc>
+    
+    <lastmod>2017-07-23T05:13:10.778Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/11/clound/2016-07-11-rocketmq/</loc>
+    
+    <lastmod>2017-07-23T05:13:06.123Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/08/14/clound/2016-08-14-rabbitmq/</loc>
+    
+    <lastmod>2017-07-23T05:13:00.233Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/04/16/extend/2016-04-16-git/</loc>
+    
+    <lastmod>2017-07-17T13:13:24.991Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/04/10/web/jquery/2016-04-10-jQuery-Validation/</loc>
     
     <lastmod>2017-07-17T12:19:24.670Z</lastmod>
@@ -16,13 +128,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/03/19/service/2017-03-19-firebase/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.640Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/07/07/others/2016-07-07-projectrule/</loc>
     
     <lastmod>2017-07-17T12:19:24.635Z</lastmod>
@@ -30,51 +135,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/04/10/others/2016-04-10-hello-world/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.630Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/11/20/linux/2017-04-24-ubuntu/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.620Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/03/13/linux/2017-03-13-aws/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.615Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/2017-01-10-centos-server-guide/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.606Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/2016-07-21-linu-system/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.601Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/04/28/lang/2017-04-28-python/</loc>
     
     <lastmod>2017-07-17T12:19:24.594Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/01/java/others/2016-09-01-javaconception/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.593Z</lastmod>
     
   </url>
   
@@ -89,20 +152,6 @@
     <loc>http://blog.aezo.cn/2016/08/31/java/ofbiz/2016-08-31-ofbiz-test/</loc>
     
     <lastmod>2017-07-17T12:19:24.586Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/21/java/2017-05-21-hibernate/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.566Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/06/java/2017-05-06-struts2/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.561Z</lastmod>
     
   </url>
   
@@ -163,37 +212,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/04/16/extend/2016-04-16-git/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.505Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/04/16/extend/2016-04-16-OpenShift/</loc>
     
     <lastmod>2017-07-17T12:19:24.492Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/17/design/2016-07-17-uml/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.483Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/12/11/db/2016-12-11-derby/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.477Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/2016-10-12-oracleDBA/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.430Z</lastmod>
     
   </url>
   
@@ -226,37 +247,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.395Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/08/14/clound/2016-08-14-rabbitmq/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.390Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/11/clound/2016-07-11-rocketmq/</loc>
-    
-    <lastmod>2017-07-17T12:19:24.389Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/404.html</loc>
     
     <lastmod>2017-07-17T12:19:24.279Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/2017-07-01-spring/</loc>
-    
-    <lastmod>2017-07-15T04:34:58.755Z</lastmod>
     
   </url>
   
