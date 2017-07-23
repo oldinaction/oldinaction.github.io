@@ -3,11 +3,8 @@ layout: "post"
 title: "SpringCloud"
 date: "2017-07-01 13:11"
 categories: [java]
-tags: [SpringCloud, 微服务]
+tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus]
 ---
-
-* 目录
-{:toc}
 
 ## 介绍
 
@@ -75,9 +72,11 @@ tags: [SpringCloud, 微服务]
         server:
           port: 8761
 
+        # 引入了spring-boot-starter-security则会默认开启认证
         security:
           basic:
             enabled: true #开启eureka后台登录认证
+          # 不配置user，则默认的用户名为user，密码为自动生成(在控制台可查看)
           user:
             name: smalle
             password: smalle
@@ -246,8 +245,8 @@ tags: [SpringCloud, 微服务]
           routes:
             # 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录
             # 此处路径在配置文件中越靠前的约优先（系统将所有路径放到LinkedHashMap中，当匹配到一个后就终止匹配）
-            # 此处自定义的key(api-user)必须和path中一致
             # 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1 和 http://localhost:5555/api-movie/movie/1
+            # api-movie为规则名, 可通过spring cloud config进行动态加载(覆盖)
             api-movie:
               path: /api-movie/**
               # 从eureka中获取此服务(spring.application.name)的地址(面向服务的路由)
@@ -351,14 +350,9 @@ tags: [SpringCloud, 微服务]
         }
     }
     ```
-- 动态路由
+- 动态路由：请见分布式配置中心(Config)部分
 
-
-
-
-
-
-## Config 分布式配置中心
+## Config 分布式配置中心(Spring Cloud Config)
 
 - 配置中心(Config服务器端)
     - 引入依赖
@@ -420,7 +414,8 @@ tags: [SpringCloud, 微服务]
         ```
     - 在git仓库的config-repo目录下添加配置文件: `consumer-movie-ribbon.yml`(写如配置如：from: git-default-1.0. 下同)、`consumer-movie-ribbon-dev.yml`、`consumer-movie-ribbon-test.yml`、`consumer-movie-ribbon-prod.yml`，并写入参数
     - 访问：`http://localhost:7000/consumer-movie-ribbon/prod/master`即可获取应用为`consumer-movie-ribbon`，profile为`prod`，git分支为`master`的配置数据(`/{application}/{profile}/{label}`)
-        - 备注：访问配置路径后，程序默认会将配置数据下载到本地，当git仓库不可用时则获取本地的缓存数据
+        - 某application对应的配置命名必须为`{application}-{profile}.yml`，其中`{profile}`和`{label}`可在对应的application的`bootstrap.yml`中指定
+        - 访问配置路径后，程序默认会将配置数据下载到本地，当git仓库不可用时则获取本地的缓存数据
         - 支持git/svn/本地文件等
 - 客户端配置映射
     - 引入依赖
@@ -441,9 +436,9 @@ tags: [SpringCloud, 微服务]
           #  name: consumer-movie-ribbon
           cloud:
             config:
-              # config server地址
+              # (1) config server地址
               # uri: http://localhost:7000/
-              # 配置中心实行服务化(向eureka注册了自己)，此处要开启服务发现，并指明配置中心服务id
+              # (2) 配置中心实行服务化(向eureka注册了自己)，此处要开启服务发现，并指明配置中心服务id
               discovery:
                 enabled: true
                 service-id: config-server
@@ -473,7 +468,7 @@ tags: [SpringCloud, 微服务]
             private String from;
 
             // 测试从配置中心获取配置数据，访问http://localhost:9000/from
-            @RequestMapping("from")
+            @RequestMapping("/from")
             public String from() {
                 return this.from; // 会从git仓库中读取配置数据
             }
@@ -482,20 +477,92 @@ tags: [SpringCloud, 微服务]
 - 动态刷新配置(可获取最新配置信息的git提交)
     - config客户端重启会刷新配置(重新注入配置信息)
     - 动态刷新
+        - 在需要动态加载配置的Bean上加注解`@RefreshScope`
         - 给 **config client** 加入权限验证依赖(`org.springframework.boot/spring-boot-starter-security`)，并在对应的application.yml中开启验证
             - 否则访问`/refresh`端点会失败，报错：`Consider adding Spring Security or set 'management.security.enabled' to false.`(需要加入Spring Security或者关闭端点验证)
         - 对应的需要注入配置的类加`@RefreshScope`
         - `POST`请求`http://localhost:9000/refresh`(将Postman的Authorization选择Basic Auth和输入用户名/密码)
         - 再次访问config client的 http://localhost:9000/from 即可获取最新git提交的数据(由于开启了验证，所有端点都需要输入用户名密码)
             - 得到如`["from"]`的结果(from配置文件中改变的key)
+- 动态加载网关配置
+    - 在`api-gateway-zuul`服务中同上述一样加`bootstrap.yml`，并对eureka和config server进行配置
+    - 在`application.yml`对
 
+        ```yml
+        zuul:
+          routes:
+            api-movie:
+              path: /api-movie/**
+              serviceId: consumer-movie-ribbon
+              # 如果consumer-movie-ribbon服务开启了权限验证，则需要防止zuul将头信息(Cookie/Set-Cookie/Authorization)过滤掉了.(多用于API网关下的权限验证等服务)
+              # 此方法是对指定规则开启自定义敏感头. 还有一中解决方法是设置路由敏感头为空(则不会过滤任何头信息)：zuul.routes.<route>.sensitiveHeaders=
+              customSensitiveHeaders: true
 
+        # 为了动态刷新配置(spring cloud config)，执行/refresh端点(此端点需要加入Spring Security或者关闭端点验证)
+        security:
+          basic:
+            enabled: true
+          user:
+            name: smalle
+            password: smalle
+        ```
+    - 在git仓库中加入`api-gateway-zuul-prod.yml`等配置文件，并加入配置
 
+        ```yml
+        zuul:
+          routes:
+            api-movie:
+              path: /api-movie-config/**
+              serviceId: consumer-movie-ribbon
+        ```
+    - `POST`请求`http://localhost:5555/refresh`即可刷新`api-gateway-zuul`的配置，因此动态加载了路由规则zuul.routes.api-movie
 
+## Bus 消息总线(Spring Cloud Bus)
 
+- 简介：本质是消息队列(如：ActiveMQ/Kafka/RabbitMQ/RocketMQ), Spring Cloud Bus暂时支持RabbitMQ和Kafka
 
+### 以RabbitMQ为例
 
+> RabbitMQ是实现了高级消息队列协议(AMQP)的开源消息代理软件，也称为面向消息的中间件。后续操作需要先安装RabbitMQ服务。关于RabbitMQ在SpringBoot中的使用参考SpringBoot章节
 
+- 在`config-server`和`consumer-movie-ribbon`两个服务中加入bus依赖
+
+    ```xml
+    <!-- 消息总线 -->
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-bus-amqp</artifactId>
+	</dependency>
+    ```
+- 启动一个`config-server`和两个`consumer-movie-ribbon`(9000、9002)
+- 修改上述【分布式配置中心】的git管理的配置字段`from`
+- 刷新`config-server`：`POST`访问http://localhost:7000/bus/refresh
+    - `POST`访问http://localhost:7000/refresh 只能刷新`config-server`本身
+    - `POST`访问http://localhost:7000/bus/refresh 可以刷新消息总线上所有的服务
+    - `POST`访问http://localhost:7000/bus/refresh?destination=consumer-movie-ribbon:9000 可以刷新的指定服务实例
+    - `POST`访问http://localhost:7000/bus/refresh?destination=consumer-movie-ribbon:** 可以刷新服务consumer-movie-ribbon下的所有实例
+    - 刷新消息总线上的任何一个服务都可以到达此效果(消息总线上的其他服务会收到触发刷新服务的消息，进行同步刷新)
+- 原理如下 [^3]
+
+    ![spring-cloud-bus](/data/images/2017/07/spring-cloud-bus.png)
+
+### 以Kafka为例
+
+> Kafka是有LinkedIn开发的分布式消息系统，现由Apache维护，使用Scala实现。
+
+- 更换依赖
+
+    ```xml
+    <dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-bus-kafka</artifactId>
+	</dependency>
+    ```
+- 只需更换依赖，其他地方同rabbitmq即可(使用kafka默认配置时会产生一个Topic为)
+- 启动kafka(包括zookeeper). 关于`Kafka`使用可查看Kafka章节
+- 启动应用后会产生一个名为springCloudBus的Topic
+
+## Stream 消息驱动(Spring Cloud Stream)
 
 
 
@@ -520,3 +587,4 @@ tags: [SpringCloud, 微服务]
 ---
 [^1]: [SOA和微服务架构的区别](https://www.zhihu.com/question/37808426)
 [^2]: [服务发现的可行方案以及实践案例](http://blog.daocloud.io/microservices-4/)
+[^3]: [Spring Cloud Bus原理](http://blog.csdn.net/sosfnima/article/details/53178326)

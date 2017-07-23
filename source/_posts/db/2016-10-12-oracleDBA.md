@@ -6,9 +6,6 @@ categories: [db]
 tags: [oracle, dba]
 ---
 
-* 目录
-{:toc}
-
 ## 简介
 
 > 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例

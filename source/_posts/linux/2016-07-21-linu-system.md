@@ -6,9 +6,6 @@ categories: linux
 tags: [linux, shell]
 ---
 
-* 目录
-{:toc}
-
 ## 系统命令
 
 - 查看系统信息

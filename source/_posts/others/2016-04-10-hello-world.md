@@ -62,12 +62,36 @@ categories和tage都可以有多个
 
 ## github-hexo-markdown个人书写习惯
 
+### 博客源码管理和博客更新
+
+- 本地处于master分支，远程有master(为博客渲染后的代码)和source(博客源码, 可设为远程默认分支)两个分支
+- 修改文章后保存源码
+
+    ```shell
+    $ git add .
+    $ git commit -am "update blog"
+    $ git push origin master:source
+    ```
+- 更新博客 `hexo d -g`
+    - `_config.yml`文件中需要指向master分支
+
+        ```yml
+        deploy:
+          type: git
+          repository: https://github.com/aezocn/aezocn.github.io.git
+          branch: master
+        ```
+
 ### 相关命令
 
 - `hexo clean` 清除缓存(如果未修改配置文件可不运行)
 - `hexo g`/`hexo generate` 静态文件生成
 - `hexo s -p 5000`/`hexo server` 启动本地服务器(本地测试)
 - `hexo d`/`hexo deploy` 部署到github
+
+### 说明
+
+- 图片格式如：`![hello](/data/images/2017/07/hello.png)`
 
 
 

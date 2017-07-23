@@ -6,9 +6,6 @@ categories: [linux]
 tags: [vmware, linux, centos]
 ---
 
-* 目录
-{:toc}
-
 ## 虚拟机安装
 
 - 下载安装VMware

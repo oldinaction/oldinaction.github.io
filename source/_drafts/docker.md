@@ -6,9 +6,6 @@ categories: [clound]
 tags: [docker, centos]
 ---
 
-* 目录
-{:toc}
-
 ## Docker介绍
 
 - 支持Linux、Windows、Mac等系统

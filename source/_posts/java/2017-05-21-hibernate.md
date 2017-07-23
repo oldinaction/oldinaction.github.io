@@ -6,9 +6,6 @@ categories: [java]
 tags: [ssh, orm]
 ---
 
-* 目录
-{:toc}
-
 ## 介绍
 
 - ORM框架(对象关系映射)

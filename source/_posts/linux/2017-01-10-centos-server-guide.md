@@ -6,9 +6,6 @@ categories: [extend]
 tags: [CentOS, server]
 ---
 
-* 目录
-{:toc}
-
 ## 基本命令
 
 - `yum install vsftpd` 安装软件vsftpd，一路y下去
