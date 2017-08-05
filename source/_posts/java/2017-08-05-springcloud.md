@@ -117,6 +117,9 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
             # 实例id
             instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
         ```
+    - 示例请看源码
+        - 示例中使用H2数据库，IDEA连接方式：path:`mem:testdb`, user:`sa`, password:空, url:`jdbc:h2:mem:testdb`, 使用`Embedded`或`In-memory`方式连接
+
 ## Ribbon负载均衡
 
 - 简介
@@ -519,7 +522,8 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 
 ## Bus 消息总线(Spring Cloud Bus)
 
-- 简介：本质是消息队列(如：ActiveMQ/Kafka/RabbitMQ/RocketMQ), Spring Cloud Bus暂时支持RabbitMQ和Kafka
+- 简介：使用轻量级的消息代理来构建一个公用的消息主题让系统中所有微服务都连接上来，由于该主题会被所有实例监听和消费所以称消息总线。各个实例都可以广播消息让其他实例消费。
+- 是基于消息队列(如：ActiveMQ/Kafka/RabbitMQ/RocketMQ), Spring Cloud Bus暂时支持RabbitMQ和Kafka
 
 ### 以RabbitMQ为例
 
@@ -533,6 +537,17 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-starter-bus-amqp</artifactId>
 	</dependency>
+    ```
+- 启动RabbitMQ服务(如果未修改默认配置，则SpringBoot会自动连接。自定义配置如下)
+
+    ```yml
+    # 这是springboot的默认配置，可根据实际情况修改
+    spring:
+      rabbitmq:
+        host: localhost
+        port: 5672
+        username: guest
+        password: guest
     ```
 - 启动一个`config-server`和两个`consumer-movie-ribbon`(9000、9002)
 - 修改上述【分布式配置中心】的git管理的配置字段`from`
@@ -559,27 +574,358 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 	</dependency>
     ```
 - 只需更换依赖，其他地方同rabbitmq即可(使用kafka默认配置时会产生一个Topic为)
-- 启动kafka(包括zookeeper). 关于`Kafka`使用可查看Kafka章节
+- 启动kafka(包括zookeeper). 关于`Kafka`使用可查看文章【Kafka】
 - 启动应用后会产生一个名为springCloudBus的Topic
 
 ## Stream 消息驱动(Spring Cloud Stream)
 
+- 简介
+    - Spring Cloud Stream本质上是整合了Spring Boot和Spring integration，主要包含发布-订阅、消息组、分区三个概念
+    - 其功能是为应用程序(Spring Boot)和消息中间件之间添加一个绑定器(Binder)，只对应用程序提供统一的Channel通道，从而应用程序不需要考虑不同消息中间件的实现(调用规则)
+    - 暂时只支持RabbitMQ和Kafka的自动化配置
+- 入门案例
+    - 引入依赖(以服务`consumer-movie-ribbon`为例)
 
+        ```xml
+        <!-- 消息驱动 -->
+		<!-- 基于rabbitmq(也可以引入spring-cloud-stream-binder-rabbit/kafka/redis) -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+		</dependency>
+        ```
+    - application.yml 部分配置(consumer-movie-ribbon)
 
+        ```yml
+        spring:
+          application:
+            name: consumer-movie-ribbon
+          cloud:
+            # Spring Cloud Stream配置
+            stream:
+              bindings:
+                # input为定义的通道名称
+                input:
+                  # 通道数据传输类型
+                  # content-type: text/plain # application/json
+                  # 将此实例的某个Stream(input)定义为某个消费组(同一个消费组里面的实例只有其中一个对消息进行消费, 否则所有的实例都会消费, 建议定义)
+                  group: group-movie
+                  # 应用中的监听的input通道对应中间件的主题(rabbitmq的Exchange, kafka的Topic)为xxx(默认是通道名称, 此时即input)
+                  # destination: xxx
+                # ...此处省略其他通道配置...
+        ```
+    - 消息接受者(consumer-movie-ribbon)
 
+        ```java
+        // 开启绑定，启动消息驱动。
+        // @EnableBinding属性value可指定多个关于消息通道的配置(类)，表示需要加载的类，即根据这些类中的注解(@Input、@Output生成bean)
+        @EnableBinding(value = {Processor.class, MyChannel.class})
+        public class SinkReceiver {
 
+            // 消息消费者监听的通道名称.
+            @StreamListener(Processor.INPUT)
+            public void receive(Object msg) {
+                System.out.println("msg = " + msg);
+            }
 
+            // @StreamListener可将收到的消息(json/xml数据格式)转换成具体的对象
+            @StreamListener(MyChannel.CHANNEL2_INPUT) // 接受rabbitmq的channel1_output
+            @SendTo(MyChannel.CHANNEL2_OUTPUT) // 收到消息后进行反馈(给rabbitmq的channel1_input发送)
+            public Object receive2(User user) {
+                System.out.println("user.getUsername() ==> " + user.getUsername());
+                return "SinkReceiver.receive2 = " + user; // 将此数据返回给消息发送这或者其他服务
+            }
+        }
 
+        // 定义通道
+        public interface MyChannel {
+            // 输入输出通道名称最好不要相同
+            String CHANNEL2_INPUT = "channel2_input";
+            String CHANNEL2_OUTPUT = "channel2_output";
 
+            @Input(MyChannel.CHANNEL2_INPUT)
+            SubscribableChannel channel2_input(); // 设置消息通道名称(默认使用方法名作为消息通道名)，表示从该通道发送数据
 
+            @Output(MyChannel.CHANNEL2_OUTPUT)
+            MessageChannel channel2_output();
+        }
+        ```
+        - 易错点：
+            - 在两个类中分别@EnableBinding绑定Processor，并同时监听@Input则报错 unknown.channel.name.(一个应用中不能绑定多个相同名称的@Input、@Output; 同理, Processor只能被一个类@EnableBinding绑定或者被两个类分别绑定@Input、@Output)
+            - 如果一个应用需要监听相同的主题(如：input)，可以重新命名一个@Input("xxx"), 然后通过spring.cloud.stream.bindings.xxx.destination=input来监听input主题。或者将监听程序写在一个类中
 
+    - 消息发送者(provider-user)
 
+        ```java
+        @EnableBinding(MyChannel.class)
+        public class SinkSender {
+            // 法一：注入绑定接口
+            @Autowired
+            private MyChannel myChannel;
 
+            // 法二：注入消息通道
+            @Autowired @Qualifier("input") // 此时有多个MessageChannel(根据SinkSender中@Output注入的), 需要指明
+            private MessageChannel channel;
 
+            private MessageChannel channel1_output;
 
+            // 也可以这样注入
+            @Autowired
+            public SinkSender(@Qualifier("channel1_output") MessageChannel channel) {
+                this.channel1_output = channel;
+            }
 
+            // 测试基本的消息发送和接受
+            public void sendMessage() {
+                // 此条消息会在测试程序中打印
+                myChannel.channel().send(MessageBuilder.withPayload("hello stream [from provider-user]").build());
 
+                // 此条消息会在消息消费者中显示
+                channel.send(MessageBuilder.withPayload("hello channel [from provider-user]").build());
+            }
 
+            // 测试@StreamListener对消息自动转换和消息反馈
+            public void msgTransform() {
+                channel1_output.send(MessageBuilder.withPayload("{\"id\": 1, \"username\": \"smalle\"}").build());
+            }
+        }
+
+        // 用于接受反馈消息
+        @EnableBinding(value = {MyChannel.class})
+        public class ChannelReceiver {
+            // 接受反馈的消息
+            @StreamListener(MyChannel.CHANNEL1_INPUT)
+            public void receiveSendTo(Object msg) {
+                System.out.println("ChannelReceiver.receiveSendTo ==> " + msg);
+            }
+        }
+
+        // 定义通道
+        public interface MyChannel {
+            String CHANNEL = "input";
+            String CHANNEL1_INPUT = "channel1_input";
+            String CHANNEL1_OUTPUT = "channel1_output";
+
+            @Input(MyChannel.CHANNEL1_INPUT)
+            SubscribableChannel channel1_input();
+
+            @Output(MyChannel.CHANNEL)
+            MessageChannel channel();
+
+            @Output(MyChannel.CHANNEL1_OUTPUT)
+            MessageChannel channel1_output();
+        }
+        ```
+- Spring integration原生支持(了解，Spring Cloud Stream是基于它实现的)
+    - 消息消费者(consumer-movie-ribbon)
+
+        ```java
+        @EnableBinding(value = {MyChannel.class}) // 收发消息的通道不能使用同一个MessageChannel
+        public class MyReceiver {
+            @ServiceActivator(inputChannel = MyChannel.POLLER_INPUT) // 收发消息的通道不能使用同一个MessageChannel
+            public void receive(Object msg) {
+                System.out.println("MyReceiver: msg = " + msg);
+            }
+
+            // 消息转换(也可放在MySender中)，@ServiceActivator本身不具备消息转换功能(如：json/xml转成具体的对象)
+            @Transformer(inputChannel = MyChannel.POLLER_INPUT, outputChannel = MyChannel.POLLER_OUTPUT)
+            public Object transform(Date msg) {
+                return new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(msg);
+            }
+        }
+        ```
+    - 消息生产者(provider-user)
+
+        ```java
+        @EnableBinding(value = {MyChannel.class})
+        public class MySender {
+
+            @Bean // 项目启动后便会执行
+            @InboundChannelAdapter(value = MyChannel.POLLER_OUTPUT, poller = @Poller(fixedDelay = "5000")) // 对MyChannel.POLLER_OUTPUT通道进行输出. poller表示轮询，此时为每5秒执行一次方法
+            public MessageSource<Date> timeMsgSource() {
+                return () -> new GenericMessage<>(new Date());
+            }
+        }
+        ```
+- 消息分区(未测试)
+
+    ```java
+    # 消费者配置
+    # 当前消费者的总实例数量(消息分区需要设置)
+    spring.cloud.stream.instanceCount=2
+    # 当前实例的索引号(消息分区需要设置，最大为instance-count - 1)
+    spring.cloud.stream.instanceIndex=0
+    # 开启消费者分区功能
+    spring.cloud.stream.bindings.input.consumer.partitioned=true
+
+    # 生成者配置
+    spring.cloud.stream.bindings.output.destination=input
+    # 可根据实际消息规则配置SpEL表达式生成分区键用于分配出站数据, 用于消息分区
+    spring.cloud.stream.bindings.output.producer.partitionKeyExpression=payload
+    # 分区数量
+    spring.cloud.stream.bindings.output.producer.partitionCount=2
+    ```
+- 绑定器SPI
+    - 绑定器是将程序(SpringBoot)中的输入/输出通道和消息中间件的输入输出做绑定
+    - Spring Cloud Stream暂时只实现了RabbitMQ和Kafka的绑定其，因此只支持此二者的自动化配置
+    - 可自己实现其他消息中间件的绑定器
+        - 一个实现Binder接口的类
+        - 一个Spring配置加载类，用来连接中间件
+        - 一个或多个能够在classpath下找到META-INF/spring.binders定义绑定器定的文件。如：
+
+            ```java
+            rabbit:\
+            org.springframework.cloud.stream.binder.rabbit.config.RabbitServiceAutoConfiguration
+            ```
+    - 绑定器配置
+
+        ```java
+        # 默认的绑定器为rabbit(名字是META-INF/spring.binders中定义的)
+        spring.cloud.stream.defaultBinder=rabbit
+        # 定义某个通道(input)的绑定器
+        spring.cloud.stream.bindings.input.binder=kafka
+
+        # 为不同通道定义同一类型不同环境的绑定器
+        spring.cloud.stream.bindings.input.binder=rabbit1
+        spring.cloud.stream.bindings.output.binder=rabbit2
+        # 定义rabbit1的类型和环境(此处省略rabbit2的配置)
+        spring.cloud.stream.binders.rabbit1.type=rabbit1
+        spring.cloud.stream.binders.rabbit1.environment.spring.rabbitmq.host=127.0.0.1
+        spring.cloud.stream.binders.rabbit1.environment.spring.rabbitmq.port=5672
+        spring.cloud.stream.binders.rabbit1.environment.spring.rabbitmq.username=guest
+        spring.cloud.stream.binders.rabbit1.environment.spring.rabbitmq.password=guest
+        ```
+
+## Sleuth 分布式服务跟踪(Spring Cloud Sleuth)
+
+- 简介
+    - 用来跟踪每个请求在全链路调用的过程，可快速发现每条链路上的性能瓶颈
+    - 构建后会自动监控RabbitMQ/Kafka传递的请求、Zuul代理传递的请求、RestTemplate发起的请求
+- 入门案例
+    - 引入依赖(在生产者和消费者中都引入)
+
+        ```xml
+        <!-- 服务跟踪 -->
+    	<dependency>
+    		<groupId>org.springframework.cloud</groupId>
+    		<artifactId>spring-cloud-starter-sleuth</artifactId>
+    	</dependency>
+        ```
+    - 访问生产者`http://localhost:8000/simple/1`，控制台输出类似`TRACE [provider-user,0ec3c3b4ee83efd5,0ec3c3b4ee83efd5,false]`的信息，信息中括号的值分别代表：应用名称、Trace ID(一个请求链路的唯一标识)、Span ID(一个基本工作单元，如一个Http请求)、是否将信息收集到Zipkin等服务中来收集和展示
+    - 添加配置`logging.level.org.springframework.web.servlet.DispatcherServlet=DEBUG`可打印更多信息
+- 请求头信息：`org.springframework.cloud.sleuth.Span`
+- 抽样收集
+    - Spring Cloud Sleuth收集策略通过Sampler接口实现(通过isSampled返回boolean判断是否收集)，默认会使用PercentageBasedSampler实现的抽样策略
+    - `spring.sleuth.sampler.percentage=0.1` 代表收集10%的请求跟踪信息
+    - 可收集请求头信息中包含某个tag的样品
+
+        ```java
+        public class TagSampler implements Sampler {
+            private String tag;
+
+            public TagSampler(String tag) {
+                this.tag = tag;
+            }
+
+            @Override
+            public boolean isSampled(Span span) {
+                return span.tags().get(tag) != null;
+            }
+        }
+        ```
+- 与Zipkin整合(推荐)
+    - 建立zipkin server
+        - 新建服务`zipkin-server`
+        - 引入依赖
+
+            ```xml
+            <!-- eureka客户端 -->
+    		<dependency>
+    			<groupId>org.springframework.cloud</groupId>
+    			<artifactId>spring-cloud-starter-eureka</artifactId>
+    		</dependency>
+
+    		<!-- Zipkin创建sleuth主题的stream -->
+    		<dependency>
+    			<groupId>org.springframework.cloud</groupId>
+    			<artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+    		</dependency>
+
+    		<!--包含Zipkin服务的核心依赖(zipkin-server)、消息中间件的核心依赖、扩展数据存依赖等. 不包含Zipkin前端界面依赖-->
+    		<dependency>
+    			<groupId>org.springframework.cloud</groupId>
+    			<artifactId>spring-cloud-sleuth-zipkin-stream</artifactId>
+    		</dependency>
+    		<!-- Zipkin前端界面依赖 -->
+    		<dependency>
+    			<groupId>io.zipkin.java</groupId>
+    			<artifactId>zipkin-autoconfigure-ui</artifactId>
+    			<scope>runtime</scope>
+    		</dependency>
+
+    		<!-- 存储Zipkin跟踪信息到mysql(可选. 使用mysql后, Zipkin前端界面显示的数据是通过Restful API从数据库中获取的. 不使用数据存储在Zipkin内部) -->
+    		<dependency>
+    			<groupId>org.springframework.boot</groupId>
+    			<artifactId>spring-boot-starter-data-jpa</artifactId>
+    		</dependency>
+    		<dependency>
+    			<groupId>mysql</groupId>
+    			<artifactId>mysql-connector-java</artifactId>
+    		</dependency>
+            ```
+        - 启动类加注解`@EnableEurekaClient`、`@EnableZipkinStreamServer`(用stream方式启动，包含常规启动@EnableZipkinServer和创建sleuth的stream主题)
+        - application.yml配置
+
+            ```yml
+            server:
+              port: 9411
+
+            spring:
+              application:
+                name: zipkin-server
+              datasource:
+                # 建表语句, 用来新建zipkin跟踪信息相关表(zipkin_spans、zipkin_annotations、zipkin_dependencies), 文件在Maven:io.zipkin.java:zipkin.storage.mysql目录下
+                schema: classpath:/mysql.sql
+                url: jdbc:mysql://localhost:3306/test
+                username: root
+                password: root
+                initialize: true
+                continue-on-error: true
+              # 不对此服务开启跟踪
+              sleuth:
+                enabled: false
+
+            # 改变zipkin日志跟踪信息存储方式为mysql(测试也可不使用mysql存储)
+            zipkin:
+              storage:
+                type: mysql
+            ```
+    - 被跟踪的应用(在生产者和消费者中都引入)
+        - 引入依赖
+
+            ```xml
+            <!--服务跟踪与Zipkin整合(可选)-->
+    		<dependency>
+    			<groupId>org.springframework.cloud</groupId>
+    			<artifactId>spring-cloud-starter-zipkin</artifactId>
+    		</dependency>
+            ```
+        - 如果zipkin没有使用eureka， 则需要在application.yml中添加`spring.zipkin.base-url: http://localhost:9411/`(zipkin server地址)
+    - 进入到zipkin server后台界面查看跟踪信息：http://localhost:9411/(跟踪信息可能会有延迟)
+- ELK日志分析系统(Logstash)
+    - ELK平台包含：ElasticSerch(分布式搜索引擎)、Logstash(日志收集-过滤-存储)、Kibana(界面展现)三个开源工具。(与Zipkin类似，二者不建议同时使用)
+    - 引入依赖
+
+        ```xml
+        <!--服务跟踪与ELK日志分析平台整合(可选，此包用于Logstash收集日志)-->
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>4.6</version>
+		</dependency>
+        ```
+    - 将spring.application.name配置到bootstrap.yml中
+    - 在resources目录加logback-spring.xml文件(请看源码)
 
 
 

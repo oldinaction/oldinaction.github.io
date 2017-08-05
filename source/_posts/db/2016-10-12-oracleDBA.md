@@ -105,7 +105,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 
 ### pl/sql
 
-- pl/sql提供dmp、sql、pde(pl/sql提供)格式的数据导入导出
+- pl/sql提供dmp、sql(不支持CLOB类型字段)、pde(pl/sql提供)格式的数据导入导出
 - 方法：`Tools - Export Tables/Import Tablse - 选择表导出`
 - 其中Executable路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
 
