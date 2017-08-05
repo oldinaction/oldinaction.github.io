@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2016/04/10/others/2016-04-10-hello-world/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="我的第一篇文章  github-jeykll-markdown个人书写习惯 2017-07-01 之后使用hexo书写博客, 格式依然可用  元信息categories和tage都可以有多个 12categories: [cat1, cat2]tags: [tag1, tag2, tag3] md语法 md文件中可以使用html标签 ---代表分割线  排版正文的第一级标题用h2(##)，标题和字">
-<meta property="og:updated_time" content="2017-07-23T09:38:15.345Z">
+<meta property="og:updated_time" content="2017-08-05T11:31:05.524Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="你好，世界">
 <meta name="twitter:description" content="我的第一篇文章  github-jeykll-markdown个人书写习惯 2017-07-01 之后使用hexo书写博客, 格式依然可用  元信息categories和tage都可以有多个 12categories: [cat1, cat2]tags: [tag1, tag2, tag3] md语法 md文件中可以使用html标签 ---代表分割线  排版正文的第一级标题用h2(##)，标题和字">
@@ -413,10 +413,10 @@
 
 <h2 id="github-hexo-markdown个人书写习惯"><a href="#github-hexo-markdown个人书写习惯" class="headerlink" title="github-hexo-markdown个人书写习惯"></a>github-hexo-markdown个人书写习惯</h2><h3 id="博客源码管理和博客更新"><a href="#博客源码管理和博客更新" class="headerlink" title="博客源码管理和博客更新"></a>博客源码管理和博客更新</h3><ul>
 <li>本地处于master分支，远程有master(为博客渲染后的代码)和source(博客源码, 可设为远程默认分支)两个分支</li>
-<li><p>修改文章后保存源码</p>
-  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">$</span><span class="bash"> git add .</span></div><div class="line"><span class="meta">$</span><span class="bash"> git commit -am <span class="string">"update blog"</span></span></div><div class="line"><span class="meta">$</span><span class="bash"> git push origin master:<span class="built_in">source</span></span></div></pre></td></tr></table></figure>
+<li><p><strong>修改文章后保存源码</strong></p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">$</span> git add .</div><div class="line"><span class="meta">$</span> git commit -am "update blog"</div><div class="line"><span class="meta">$</span> git push origin master:source</div></pre></td></tr></table></figure>
 </li>
-<li><p>更新博客 <code>hexo d -g</code></p>
+<li><p><strong>更新博客</strong> <code>hexo d -g</code></p>
 <ul>
 <li><p><code>_config.yml</code>文件中需要指向master分支</p>
   <figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="attr">deploy:</span></div><div class="line"><span class="attr">  type:</span> <span class="string">git</span></div><div class="line"><span class="attr">  repository:</span> <span class="attr">https://github.com/aezocn/aezocn.github.io.git</span></div><div class="line"><span class="attr">  branch:</span> <span class="string">master</span></div></pre></td></tr></table></figure>
@@ -556,7 +556,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">36</span>
+                <span class="site-state-item-count">37</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -567,7 +567,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>

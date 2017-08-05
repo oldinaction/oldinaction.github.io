@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="安装nginx yum install nginx 安装 systemctl start nginx 启动 ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.conf在此目录下) nginx -t 检查配置文件的配置是否合法(也会返回配置文件位置)  nginx配置(nginx.conf)1234567891011121314151617181920212223">
+<meta name="description" content="nginx使用 安装 yum install nginx 安装 程序包解压安装   启动 systemctl start nginx 启动 进入到nginx执行文件目录，运行sudo ./nginx   停止 systemctl stop nginx sudo ./nginx -s stop   相关命令 ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.con">
 <meta name="keywords" content="nginx">
 <meta property="og:type" content="article">
 <meta property="og:title" content="nginx">
-<meta property="og:url" content="http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/index.html">
+<meta property="og:url" content="http://blog.aezo.cn/2017/01/16/arch/2017-01-16-nginx/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="安装nginx yum install nginx 安装 systemctl start nginx 启动 ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.conf在此目录下) nginx -t 检查配置文件的配置是否合法(也会返回配置文件位置)  nginx配置(nginx.conf)1234567891011121314151617181920212223">
-<meta property="og:updated_time" content="2017-07-23T05:13:10.778Z">
+<meta property="og:description" content="nginx使用 安装 yum install nginx 安装 程序包解压安装   启动 systemctl start nginx 启动 进入到nginx执行文件目录，运行sudo ./nginx   停止 systemctl stop nginx sudo ./nginx -s stop   相关命令 ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.con">
+<meta property="og:updated_time" content="2017-08-05T05:59:09.885Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="nginx">
-<meta name="twitter:description" content="安装nginx yum install nginx 安装 systemctl start nginx 启动 ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.conf在此目录下) nginx -t 检查配置文件的配置是否合法(也会返回配置文件位置)  nginx配置(nginx.conf)1234567891011121314151617181920212223">
+<meta name="twitter:description" content="nginx使用 安装 yum install nginx 安装 程序包解压安装   启动 systemctl start nginx 启动 进入到nginx执行文件目录，运行sudo ./nginx   停止 systemctl stop nginx sudo ./nginx -s stop   相关命令 ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.con">
 
 
 
@@ -133,7 +133,7 @@
 
 
 
-  <link rel="canonical" href="http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/"/>
+  <link rel="canonical" href="http://blog.aezo.cn/2017/01/16/arch/2017-01-16-nginx/"/>
 
 
 
@@ -288,7 +288,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/16/clound/2017-01-16-nginx/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/16/arch/2017-01-16-nginx/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -340,8 +340,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/middleware/" itemprop="url" rel="index">
-                    <span itemprop="name">middleware</span>
+                  <a href="/categories/arch/" itemprop="url" rel="index">
+                    <span itemprop="name">arch</span>
                   </a>
                 </span>
 
@@ -374,13 +374,30 @@
       
 
       
-        <h2 id="安装nginx"><a href="#安装nginx" class="headerlink" title="安装nginx"></a>安装nginx</h2><ol>
+        <h2 id="nginx使用"><a href="#nginx使用" class="headerlink" title="nginx使用"></a>nginx使用</h2><ul>
+<li>安装<ul>
 <li><code>yum install nginx</code> 安装</li>
+<li>程序包解压安装</li>
+</ul>
+</li>
+<li>启动<ul>
 <li><code>systemctl start nginx</code> 启动</li>
+<li>进入到<code>nginx</code>执行文件目录，运行<code>sudo ./nginx</code></li>
+</ul>
+</li>
+<li>停止<ul>
+<li><code>systemctl stop nginx</code></li>
+<li><code>sudo ./nginx -s stop</code></li>
+</ul>
+</li>
+<li>相关命令<ul>
 <li><code>ps -ef | grep nginx</code> 查看nginx安装位置(nginx的配置文件.conf在此目录下)</li>
+<li><code>find / -name nginx.conf</code> 查看配置文件位置</li>
 <li><code>nginx -t</code> 检查配置文件的配置是否合法(也会返回配置文件位置)</li>
-</ol>
-<h2 id="nginx配置-nginx-conf"><a href="#nginx配置-nginx-conf" class="headerlink" title="nginx配置(nginx.conf)"></a>nginx配置(nginx.conf)</h2><pre><code><figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">   server &#123;</div><div class="line">       <span class="comment"># 监听的端口</span></div><div class="line">       listen   80;</div><div class="line">       <span class="comment"># 服务器的地址              </span></div><div class="line">       server_name www.aezo.cn;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)</span></div><div class="line">	location = / &#123;</div><div class="line">		rewrite / http://<span class="variable">$server_name</span>/hello <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin</span></div><div class="line">       location / &#123;</div><div class="line">		proxy_set_header X-Forward-For <span class="variable">$proxy_add_x_forwarded_for</span>;</div><div class="line">		proxy_set_header Host <span class="variable">$http_host</span>;</div><div class="line">		proxy_redirect off;</div><div class="line">		<span class="keyword">if</span> (!-f <span class="variable">$request_filename</span>) &#123;</div><div class="line">			proxy_pass http://127.0.0.1:8080;  </div><div class="line">			<span class="built_in">break</span>;</div><div class="line">		&#125;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment"># location后的地址可正则</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</ul>
+</li>
+</ul>
+<h2 id="nginx配置-nginx-conf"><a href="#nginx配置-nginx-conf" class="headerlink" title="nginx配置(nginx.conf)"></a>nginx配置(nginx.conf)</h2><pre><code><figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">   server &#123;</div><div class="line">       <span class="comment"># 监听的端口，注意要在服务器后台开启80端口外网访问权限</span></div><div class="line">       listen   80;</div><div class="line">       <span class="comment"># 服务器的地址              </span></div><div class="line">       server_name www.aezo.cn;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)</span></div><div class="line">	location = / &#123;</div><div class="line">		rewrite / http://<span class="variable">$server_name</span>/hello <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin</span></div><div class="line">       <span class="comment"># location后的地址可正则</span></div><div class="line">       location / &#123;</div><div class="line">		proxy_set_header X-Forward-For <span class="variable">$proxy_add_x_forwarded_for</span>;</div><div class="line">		proxy_set_header Host <span class="variable">$http_host</span>;</div><div class="line">		proxy_redirect off;</div><div class="line">		<span class="keyword">if</span> (!-f <span class="variable">$request_filename</span>) &#123;</div><div class="line">			proxy_pass http://127.0.0.1:8080;  </div><div class="line">			<span class="built_in">break</span>;</div><div class="line">		&#125;</div><div class="line">       &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">   <span class="comment"># 开启第二个站点监听</span></div><div class="line">   server &#123;</div><div class="line">       listen 80;</div><div class="line">       server_name hello.aezo.cn;</div><div class="line"></div><div class="line">       location = / &#123;</div><div class="line">           <span class="comment">#判断是否为手机移动端</span></div><div class="line">           <span class="keyword">if</span> (<span class="variable">$http_user_agent</span> ~* <span class="string">'(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)'</span>) &#123;</div><div class="line">               rewrite . http://<span class="variable">$server_name</span>/wap <span class="built_in">break</span>;</div><div class="line">           &#125;</div><div class="line">           rewrite . http://<span class="variable">$server_name</span>/pc <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       location / &#123;</div><div class="line">           proxy_pass http://127.0.0.1:8090;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
 </code></pre>
       
     </div>
@@ -507,7 +524,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">36</span>
+                <span class="site-state-item-count">37</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -518,7 +535,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -571,7 +588,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装nginx"><span class="nav-number">1.</span> <span class="nav-text">安装nginx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nginx配置-nginx-conf"><span class="nav-number">2.</span> <span class="nav-text">nginx配置(nginx.conf)</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#nginx使用"><span class="nav-number">1.</span> <span class="nav-text">nginx使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nginx配置-nginx-conf"><span class="nav-number">2.</span> <span class="nav-text">nginx配置(nginx.conf)</span></a></li></ol></div>
             
 
           </div>
