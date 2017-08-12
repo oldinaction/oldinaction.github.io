@@ -288,7 +288,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/02/db/2016-07-02-redis/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/06/java/others/javacodestyle/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -307,7 +307,191 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/07/02/db/2016-07-02-redis/" itemprop="url">redis</a></h1>
+                <a class="post-title-link" href="/2016/07/06/java/others/javacodestyle/" itemprop="url">javacodestyle - Java开发规范</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-06T08:39:00+08:00">
+                2016-07-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          源文件基础
+文件名：源文件以其最顶层的类名来命名，大小写敏感，文件扩展名为 .java
+文件编码：UTF-8
+特殊字符：注释明确
+
+源文件结构
+一个源文件包含(按顺序地，以下每个部分之间用一个空行隔开)：
+
+许可证或版权信息(如有需要)
+package语句：package语句不换行
+import语句
+一个顶级类(只有一个)
+
+
+import语句
+
+import不要使用通配符，即，不要出现类似这样的import语句：import java.util.*;
+每个import语句独立成行
+文件中不能含有无用的import语句
+
+
+类声明
+
+只有一个顶级类声明：每个顶级类都在一个与它同名的源文件中
+类成员顺序
+成员属性
+构造方法
+普通方法（按照某中逻辑顺序而非时间顺序）
+
+
+重载永不分离：当一个类有多个构造函数，或是多个同名方法，这些函数/方法应该按顺序出现在一起，中间不要放进其它函数/方法。
+
+
+
+格式
+大括号
+使用大括号(即使是可选的)：大括号与if, else, for, do, while语句一起使用，即使只有一条语句(或是空)，也应该把大括号写上。
+非空块：遵循Kernighan和Ritchie风格
+左大括号前不换行
+左大括号后换行
+右大括号前换行
+如果右大括号是一个语句、函数体或类的终止，则右大括号后换行; 否则不换行。例如，如果右大括号后面是else或逗号，则不换行。
+
+
+空
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/07/06/java/others/javacodestyle/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/02/db/redis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/07/02/db/redis/" itemprop="url">redis</a></h1>
         
 
         <div class="post-meta">
@@ -402,7 +586,7 @@ java中操作Redis
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/07/02/db/2016-07-02-redis/#more" rel="contents">
+            <a class="btn" href="/2016/07/02/db/redis/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -448,7 +632,7 @@ java中操作Redis
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/05/22/extend/2016-05-22-LoadRunner/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/05/22/extend/load-runner/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -467,7 +651,7 @@ java中操作Redis
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/05/22/extend/2016-05-22-LoadRunner/" itemprop="url">LoadRunner自动化测试工具</a></h1>
+                <a class="post-title-link" href="/2016/05/22/extend/load-runner/" itemprop="url">LoadRunner自动化测试工具</a></h1>
         
 
         <div class="post-meta">
@@ -582,7 +766,7 @@ Cont
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/05/22/extend/2016-05-22-LoadRunner/#more" rel="contents">
+            <a class="btn" href="/2016/05/22/extend/load-runner/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -628,7 +812,7 @@ Cont
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-OpenShift/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/open-shift/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -647,7 +831,7 @@ Cont
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/16/extend/2016-04-16-OpenShift/" itemprop="url">OpenShift空间</a></h1>
+                <a class="post-title-link" href="/2016/04/16/extend/open-shift/" itemprop="url">OpenShift空间</a></h1>
         
 
         <div class="post-meta">
@@ -745,7 +929,7 @@ Saved Session 随便取名，再点击 Save
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/extend/2016-04-16-OpenShift/#more" rel="contents">
+            <a class="btn" href="/2016/04/16/extend/open-shift/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -791,7 +975,7 @@ Saved Session 随便取名，再点击 Save
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-jekyll/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/jekyll/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -810,7 +994,7 @@ Saved Session 随便取名，再点击 Save
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/16/extend/2016-04-16-jekyll/" itemprop="url">jekyll</a></h1>
+                <a class="post-title-link" href="/2016/04/16/extend/jekyll/" itemprop="url">jekyll</a></h1>
         
 
         <div class="post-meta">
@@ -903,7 +1087,7 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/extend/2016-04-16-jekyll/#more" rel="contents">
+            <a class="btn" href="/2016/04/16/extend/jekyll/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -949,7 +1133,7 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/2016-04-16-git/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/git/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -968,7 +1152,7 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/16/extend/2016-04-16-git/" itemprop="url">git</a></h1>
+                <a class="post-title-link" href="/2016/04/16/extend/git/" itemprop="url">git</a></h1>
         
 
         <div class="post-meta">
@@ -1073,7 +1257,7 @@ git config --global user.email oldinaction@qq.com 设置邮箱
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/extend/2016-04-16-git/#more" rel="contents">
+            <a class="btn" href="/2016/04/16/extend/git/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1119,7 +1303,7 @@ git config --global user.email oldinaction@qq.com 设置邮箱
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/10/web/jquery/2016-04-10-jQuery-Validation/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/10/web/jquery/jquery-validation/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1138,7 +1322,7 @@ git config --global user.email oldinaction@qq.com 设置邮箱
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/10/web/jquery/2016-04-10-jQuery-Validation/" itemprop="url">jQuery Validation - Form表单验证插件</a></h1>
+                <a class="post-title-link" href="/2016/04/10/web/jquery/jquery-validation/" itemprop="url">jQuery Validation - Form表单验证插件</a></h1>
         
 
         <div class="post-meta">
@@ -1223,7 +1407,7 @@ GitHub 源码
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/10/web/jquery/2016-04-10-jQuery-Validation/#more" rel="contents">
+            <a class="btn" href="/2016/04/10/web/jquery/jquery-validation/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1269,7 +1453,7 @@ GitHub 源码
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/10/others/2016-04-10-hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/10/others/hello-world/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1288,7 +1472,7 @@ GitHub 源码
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/10/others/2016-04-10-hello-world/" itemprop="url">你好，世界</a></h1>
+                <a class="post-title-link" href="/2016/04/10/others/hello-world/" itemprop="url">你好，世界</a></h1>
         
 
         <div class="post-meta">
@@ -1403,7 +1587,7 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/10/others/2016-04-10-hello-world/#more" rel="contents">
+            <a class="btn" href="/2016/04/10/others/hello-world/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1489,7 +1673,7 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">38</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
