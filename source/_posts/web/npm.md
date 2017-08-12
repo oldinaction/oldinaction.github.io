@@ -10,9 +10,13 @@ tags: [node]
 
 ## 安装
 
+- 安装node的时候会默认包含npm
+- 安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
+    - 安装模块则是`cnpm install <module-name>`
+
 ## 常用命令
 
-- `npm install <module-name>` 安装xxx(在当前项目安装)
+- `npm install <module-name>` 安装xxx(在当前项目安装)，**更新模块也是此命令**
     - `npm i <module-name>` 简写方式
     - `-g` 全局安装
         - 如果以Windows管理员运行的命令行，则会安装在nodejs安装目录的node_modules目录下。如果以普通用户运行的命令行，则会安装在用户的AppData/Roaming/npm/node_modules的目录下。建议以管理员运行
