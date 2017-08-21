@@ -104,7 +104,7 @@
 <meta property="og:description" content="系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:0">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
 <meta property="og:image" content="http://data/images/2017/02/类型与权限.gif">
-<meta property="og:updated_time" content="2017-07-23T05:14:19.736Z">
+<meta property="og:updated_time" content="2017-08-16T12:49:33.934Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux系统命令">
 <meta name="twitter:description" content="系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:0">
@@ -403,7 +403,14 @@
 <li>安装程序包 <code>rpm -ivh 安装包名</code></li>
 <li>查看安装程序(支持模糊查询) <code>rpm -qa | grep vsftpd</code> 查看是否安装vsftpd(一款ftp服务器软件)</li>
 <li>检查网络连接 <code>ping 192.168.1.1</code>(或者<code>ping www.baidu.com</code>)，检查端口：<code>telnet 192.168.1.1 8080</code></li>
-<li>查看进程信息 <code>top</code>, 推荐安装功能更强大的htop</li>
+<li>查看进程信息<ul>
+<li><code>ps -ef | grep java | grep -v grep</code>(其中java可换成run.py等)<ul>
+<li>结果如：<code>root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py</code>. 运行用户、进场id、…</li>
+</ul>
+</li>
+<li>自带程序<code>top</code>查看, 推荐安装功能更强大的<code>htop</code></li>
+</ul>
+</li>
 <li>关闭某个PID进程 <code>kill PID</code><ul>
 <li><code>netstat -lnp</code> 查看所有进场信息(端口、PID)</li>
 <li>强制杀进程 <code>kill -s 9 PID</code></li>
@@ -687,7 +694,7 @@
 <li><p>配置式</p>
 <ul>
 <li><p>添加定时配置：<code>sudo vim /etc/crontab</code>，配置说明如下，如：<code>30 2 1 * * root /sbin/reboot</code>表示每月第一天的第2个小时的第30分钟，使用root执行命令/sbin/reboot(重启)</p>
-  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> Example of job definition:</span></div><div class="line"><span class="meta">#</span><span class="bash"> .---------------- minute (0 - 59)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  .------------- hour (0 - 23)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  .---------- day of month (1 - 31)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  |</span></div><div class="line"><span class="meta">#</span><span class="bash"> *  *  *  *  * user-name  <span class="built_in">command</span> to be executed</span></div><div class="line"><span class="meta">#</span><span class="bash"> (1) 其中用户名一般可以省略</span></div><div class="line"><span class="meta">#</span><span class="bash"> (2) 精确到秒解决方案, 以下3行表示每20秒执行一次</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 20; user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 40; user-name my-command</span></div></pre></td></tr></table></figure>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span> Example of job definition:</div><div class="line"><span class="meta">#</span> .---------------- minute (0 - 59)</div><div class="line"><span class="meta">#</span> |  .------------- hour (0 - 23)</div><div class="line"><span class="meta">#</span> |  |  .---------- day of month (1 - 31)</div><div class="line"><span class="meta">#</span> |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</div><div class="line"><span class="meta">#</span> |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</div><div class="line"><span class="meta">#</span> |  |  |  |  |</div><div class="line"><span class="meta">#</span> *  *  *  *  * user-name  command to be executed</div><div class="line"><span class="meta">#</span> (1) 其中用户名一般可以省略</div><div class="line"><span class="meta">#</span> (2) 精确到秒解决方案, 以下3行表示每20秒执行一次</div><div class="line"><span class="meta">#</span> * * * * * user-name my-command</div><div class="line"><span class="meta">#</span> * * * * * sleep 20; user-name my-command</div><div class="line"><span class="meta">#</span> * * * * * sleep 40; user-name my-command</div></pre></td></tr></table></figure>
 </li>
 <li><p><code>systemctl reload crond</code> 重新加载配置</p>
 </li>
@@ -825,7 +832,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">38</span>
+                <span class="site-state-item-count">39</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -847,7 +854,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-count">66</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

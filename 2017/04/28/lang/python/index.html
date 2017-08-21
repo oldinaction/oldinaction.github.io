@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块 pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将http">
+<meta name="description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块  pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将htt">
 <meta name="keywords" content="python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="python">
 <meta property="og:url" content="http://blog.aezo.cn/2017/04/28/lang/python/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块 pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将http">
-<meta property="og:updated_time" content="2017-07-17T13:08:57.068Z">
+<meta property="og:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块  pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将htt">
+<meta property="og:updated_time" content="2017-08-18T10:44:17.488Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="python">
-<meta name="twitter:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块 pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将http">
+<meta name="twitter:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块  pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将htt">
 
 
 
@@ -383,7 +383,8 @@
 <li>可在<code>/Scripts</code>和<code>/Lib/site-packages</code>中查看可执行文件和模块源码</li>
 </ul>
 </li>
-<li>常用模块<ul>
+<li><p>常用模块</p>
+<ul>
 <li><code>pip</code> 可用于安装管理python其他模块<ul>
 <li>安装（windows默认已经安装）<ul>
 <li>将<code>https://bootstrap.pypa.io/get-pip.py</code>中的内容保存到本地<code>get-pip.py</code>文件中</li>
@@ -395,6 +396,22 @@
 <li>常见问题<ul>
 <li>安装成功后，使用<code>pip list</code>仍然报错。windows执行<code>where pip</code>查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载</li>
 </ul>
+</li>
+</ul>
+</li>
+<li><code>ConfigParser</code> 配置文件读取(该模块ConfigParser在Python3中，已更名为configparser)<ul>
+<li><code>pip install ConfigParser</code></li>
+<li>介绍：<a href="http://www.cnblogs.com/snifferhu/p/4368904.html" target="_blank" rel="external">http://www.cnblogs.com/snifferhu/p/4368904.html</a></li>
+</ul>
+</li>
+<li><p><code>MySQLdb</code> mysql操作库</p>
+<ul>
+<li><p><code>pip install MySQL-python</code></p>
+<blockquote>
+<p>报错<code>win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director</code>。解决办法：安装<a href="https://pypi.python.org/pypi/MySQL-python/1.2.5" target="_blank" rel="external">MySQL-python-1.2.5.win32-py2.7.exe</a>（就相当于pip安装）</p>
+</blockquote>
+</li>
+<li><p>工具类：<a href="http://www.cnblogs.com/snifferhu/p/4369184.html" target="_blank" rel="external">http://www.cnblogs.com/snifferhu/p/4369184.html</a></p>
 </li>
 </ul>
 </li>
@@ -421,6 +438,7 @@
 </ul>
 </li>
 </ol>
+<hr>
 
       
     </div>
@@ -547,7 +565,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">38</span>
+                <span class="site-state-item-count">39</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -569,7 +587,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-count">66</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
