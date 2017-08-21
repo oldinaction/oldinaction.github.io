@@ -25,7 +25,10 @@ tags: [linux, shell]
 - 安装程序包 `rpm -ivh 安装包名`
 - 查看安装程序(支持模糊查询) `rpm -qa | grep vsftpd` 查看是否安装vsftpd(一款ftp服务器软件)
 - 检查网络连接 `ping 192.168.1.1`(或者`ping www.baidu.com`)，检查端口：`telnet 192.168.1.1 8080`
-- 查看进程信息 `top`, 推荐安装功能更强大的htop
+- 查看进程信息
+    - `ps -ef | grep java | grep -v grep`(其中java可换成run.py等)
+        - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进场id、...
+    - 自带程序`top`查看, 推荐安装功能更强大的`htop`
 - 关闭某个PID进程 `kill PID`
     - `netstat -lnp` 查看所有进场信息(端口、PID)
     - 强制杀进程 `kill -s 9 PID`

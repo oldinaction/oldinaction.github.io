@@ -27,6 +27,14 @@ tags: [python]
             - 检查是否安装成功：`pip list` 可查看已经被管理的模块
         - 常见问题
             - 安装成功后，使用`pip list`仍然报错。windows执行`where pip`查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
+    - `ConfigParser` 配置文件读取(该模块ConfigParser在Python3中，已更名为configparser)
+        - `pip install ConfigParser`
+        - 介绍：http://www.cnblogs.com/snifferhu/p/4368904.html
+    - `MySQLdb` mysql操作库
+        - `pip install MySQL-python`
+            > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装[MySQL-python-1.2.5.win32-py2.7.exe](https://pypi.python.org/pypi/MySQL-python/1.2.5)（就相当于pip安装）
+            
+        - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
     - `fabric` 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
         - `pip install fabric` 安装
         - 常见问题
@@ -37,3 +45,7 @@ tags: [python]
     - `scrapy` 主要用在python爬虫。可以css的形式方便的获取html的节点数据
         - `pip install scrapy` 安装
         - 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
+
+
+---
+[^1]:[MySQLdb安装报错](http://blog.csdn.net/bijiaoshenqi/article/details/44758055)
