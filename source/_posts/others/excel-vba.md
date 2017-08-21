@@ -1,7 +1,7 @@
 ---
 layout: "post"
 title: "Excel VBA"
-date: "2017-06-25 14:03"
+date: "2017-08-20 20:03"
 categories: [others]
 tags: [excel, vb]
 ---
@@ -64,7 +64,9 @@ tags: [excel, vb]
 破膜	|17.82	|22.89	|17.45	|5.44	|23.92	|13.92
 仔鱼	|16.97	|22.65	|16.15	|20.69	|22.86	|11.55
 
-- ![大概效果](data/images/2017/08/delacCt.png)
+- 效果如下
+
+    ![效果图](/data/images/2017/08/delacCt.png)
 
 - VBA处理源码(效率可能较低)
 
