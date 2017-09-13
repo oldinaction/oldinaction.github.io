@@ -133,7 +133,10 @@ tags: [ssh, orm]
             <!-- 展示sql语句是格式化一下，更加美观 -->
             <property name="format_sql">true</property>
 
-            <!-- 自动生成建表语句,update有表时不会删除表,没表时自动创建。create没有表时自动创建,有表时删除再创建 -->
+            <!-- 自动生成建表语句：hibernate建表后的字段顺序并不是和model字段顺序一致(内部使用TreeMap保存) -->
+            <!-- create：每次加载hibernate时都会删除上一次的生成的表，然后根据你的model类再重新来生成新表，哪怕两次没有任何改变也要这样执行，这就是导致数据库表数据丢失的一个重要原因。 -->
+            <!-- create-drop ：每次加载hibernate时根据model类生成表，但是sessionFactory一关闭,表就自动删除。 -->
+            <!-- update：最常用的属性，第一次加载hibernate时根据model类会自动建立起表的结构（前提是先建立好数据库），以后加载hibernate时根据 model类自动更新表结构，即使表结构改变了但表中的行仍然存在不会删除以前的行 -->
             <property name="hbm2ddl.auto">update</property>
 
     		<!-- 测试那个就映射那个，将其他映射先去掉防止干扰 -->
@@ -234,14 +237,14 @@ tags: [ssh, orm]
 
 ## 关系映射 (视频35-52)
 
-一对一：`@0ne20ne`、`@JoinColumn`；一对多/多对一：`@OneToMany`、`@ManyToOne`、`@JoinColumn`；多对多：`@ManyToMany`、`@JoinTable`
+一对一：`@0neTo0ne`、`@JoinColumn`；一对多/多对一：`@OneToMany`、`@ManyToOne`、`@JoinColumn`；多对多：`@ManyToMany`、`@JoinTable`
 
 1. 一对一
-    - `@0ne20ne` 指定关系, `@JoinColumn` 用于指定外键名称, 省略该注解则使用默认的外键名称,  `@JoinColumns` 联合主键使用, `@Embedded` 组件映射使用
+    - `@0neTo0ne` 指定关系, `@JoinColumn` 用于指定外键名称, 省略该注解则使用默认的外键名称,  `@JoinColumns` 联合主键使用, `@Embedded` 组件映射使用
     - **一对一单向外键关联**(src/cn.aezo.hibernate.one2one_uni_fk)
 
         ```java
-        // Husband类的被约束表字段的get方法上加@0ne20ne @JoinColumn. 最终会在Husband的表中生成外键
+        // Husband类的被约束表字段的get方法上加@0neTo0ne @JoinColumn. 最终会在Husband的表中生成外键
         @OneToOne
         @JoinColumn(name="wifeId")// 指定生成的数据库字段名，不写@JoinColumn则默认生成外键名为wife_id
         public Wife getWife() {
@@ -485,6 +488,10 @@ tags: [ssh, orm]
             return parent;
         }
         ```
+8. 易错点
+	- 在一个实体文件中，所有的注解要么全部放在字段上，要么全部放在get方法上，不能混合使用. 否则报错`Caused by: org.hibernate.MappingException: Could not determine type for...`
+		
+
 ## HQL (test/cn.aezo.hibernate.hql1/2)
 
 1. 查询语言：NativeSQL(oracle/mysql原生) > HQL(hibernate查询语言) > EJBQL(JPQL 1.0, 可以跨ORM框架) > QBC(Query By Criteria) > QBE(Query By Example)

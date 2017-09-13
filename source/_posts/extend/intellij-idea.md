@@ -37,14 +37,19 @@ tags: [IDE]
     - `Deployment`中将刚刚的war配置进入
     - 在`Before launch`中加入Build这个war包
 
-## IDEA开发PHP程序
+## 插件使用
 
-### 安装php插件 [^2]
+- `jerber` java热部署
+- `Lombox` 简化代码工具 [https://projectlombok.org/](https://projectlombok.org/)
+	
+### IDEA开发PHP程序
+
+#### 安装php插件 [^2]
 
 1. setting -> plugins -> browse repositories -> 输入php
 2. 没看到的话，往下翻几页看看，找到PHP(LANGUAGES)，安装次数较多的那个
 
-### xdebug使用
+#### xdebug使用
 
 1. 找到php.ini，搜索xdebug
 2. 下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能

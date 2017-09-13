@@ -185,12 +185,13 @@ tags: [linux, shell]
 
 ## 权限系统
 
-### 用户
+### 用户 [^6]
 
-1. 添加用户`useradd aezo –d /home/aezo/`
+- 添加用户(和设置宿主目录)`useradd -d /home/aezo -m aezo`
     - 修改用户宿主目录`usermod -d /home/home_dir -U aezo`
-2. 设置密码`passwd aezo`
-3. 查看用户`vi /etc/passwd`
+- 设置密码`passwd aezo`
+- 查看用户`cat /etc/passwd`
+- 删除用户`userdel -rf aezo`
 
 ### 文件
 
@@ -250,6 +251,7 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
         - 输入该服务器密码实现发送
     - 登录该服务器：`ssh 192.168.1.1` 此时不需要输入密码（默认生成密钥的服务器已经有了私钥）
     - **注：** 如果是为了让root用户登录则将公钥放入到/root/.ssh目录；如果密钥提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下。`.ssh`目录默认已经存在（可通过`ll -al`查看）
+	- 阿里云服务器root用户的authorized_keys和普通用户的不能一致 [^5]
 2. Putty/WinSCP 和 xshell/xftp
     - Putty是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。它包含Puttygen等工具，Puttygen可用于生成公钥和密钥（还可以将如AWS亚马逊云的密钥文件.pem转换为.ppk的通用密钥文件）
         - 在知道密钥文件时，可以通过Putty连接到服务器(命令行)，通过WinSCP连接到服务器的文件系统(FTP形式显示)
@@ -257,6 +259,12 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
         - Putty使用：`Session的Host Name输入username@ip，端口22` - `Connection-SSH-Auth选择密钥文件` - `回到Session，在save session输入一个会话名称` - `点击保存会话` - `点击open登录服务器` - `下次可直接点击会话名称登录`
     - xshell/xftp是一个连接ssh的客户端
         - 登录方法：连接 - 用户身份验证 - 方法选择"public key" 公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录`mv /home/aezo/id_rsa.pub /home/aezo/.ssh/authorized_keys`)。必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录。
+	- `cat /var/log/secure`查看登录日志
+3. ssh配置 [^7]
+    - `cat /etc/ssh/sshd_config` 查看配置
+        - `PermitRootLogin no` 是否允许root用户登陆(no不允许)
+        - `PasswordAuthentication no` 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录)
+
 
 ## 定时任务 [^4]
 
@@ -292,3 +300,6 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
 [^2]: [ssh登录](http://www.linuxidc.com/Linux/2016-03/129204.htm)
 [^3]: [Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)
 [^4]: [定时任务](http://www.360doc.com/content/16/1013/10/15398874_598063092.shtml)
+[^5]: [阿里云服务器ssh设置](https://www.douban.com/doulist/44111547/)
+[^6]: [用户配置](http://www.cnblogs.com/zutbaz/p/4248845.html)
+[^7]: [服务器安全ssh配置](https://www.xiaohui.com/dev/server/linux-centos-ssh-security.htm)
