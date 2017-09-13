@@ -104,7 +104,7 @@
 <meta property="og:description" content="系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:0">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
 <meta property="og:image" content="http://data/images/2017/02/类型与权限.gif">
-<meta property="og:updated_time" content="2017-08-16T12:49:33.934Z">
+<meta property="og:updated_time" content="2017-08-29T12:52:19.366Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux系统命令">
 <meta name="twitter:description" content="系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:0">
@@ -592,14 +592,15 @@
 <li><p>rar安装问题，unzip乱码问题</p>
 </li>
 </ol>
-<h2 id="权限系统"><a href="#权限系统" class="headerlink" title="权限系统"></a>权限系统</h2><h3 id="用户"><a href="#用户" class="headerlink" title="用户"></a>用户</h3><ol>
-<li>添加用户<code>useradd aezo –d /home/aezo/</code><ul>
+<h2 id="权限系统"><a href="#权限系统" class="headerlink" title="权限系统"></a>权限系统</h2><h3 id="用户-6"><a href="#用户-6" class="headerlink" title="用户 ^6"></a>用户 <a href="[用户配置](http://www.cnblogs.com/zutbaz/p/4248845.html)">^6</a></h3><ul>
+<li>添加用户(和设置宿主目录)<code>useradd -d /home/aezo -m aezo</code><ul>
 <li>修改用户宿主目录<code>usermod -d /home/home_dir -U aezo</code></li>
 </ul>
 </li>
 <li>设置密码<code>passwd aezo</code></li>
-<li>查看用户<code>vi /etc/passwd</code></li>
-</ol>
+<li>查看用户<code>cat /etc/passwd</code></li>
+<li>删除用户<code>userdel -rf aezo</code></li>
+</ul>
 <h3 id="文件-1"><a href="#文件-1" class="headerlink" title="文件"></a>文件</h3><ul>
 <li>文件属性<code>chgrp</code>、<code>chown</code>、<code>chmod</code>、<code>umask</code> <a href="[Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)">^3</a><ul>
 <li><code>chgrp</code> 改变文件所属群组。<code>chgrp [-R] 组名 文件或目录</code><ul>
@@ -674,6 +675,7 @@
 </li>
 <li>登录该服务器：<code>ssh 192.168.1.1</code> 此时不需要输入密码（默认生成密钥的服务器已经有了私钥）</li>
 <li><strong>注：</strong> 如果是为了让root用户登录则将公钥放入到/root/.ssh目录；如果密钥提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下。<code>.ssh</code>目录默认已经存在（可通过<code>ll -al</code>查看）</li>
+<li>阿里云服务器root用户的authorized_keys和普通用户的不能一致 <a href="[阿里云服务器ssh设置](https://www.douban.com/doulist/44111547/)">^5</a></li>
 </ul>
 </li>
 <li>Putty/WinSCP 和 xshell/xftp<ul>
@@ -685,6 +687,15 @@
 </li>
 <li>xshell/xftp是一个连接ssh的客户端<ul>
 <li>登录方法：连接 - 用户身份验证 - 方法选择”public key” 公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录<code>mv /home/aezo/id_rsa.pub /home/aezo/.ssh/authorized_keys</code>)。必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录。</li>
+</ul>
+</li>
+<li><code>cat /var/log/secure</code>查看登录日志</li>
+</ul>
+</li>
+<li>ssh配置 <a href="[服务器安全ssh配置](https://www.xiaohui.com/dev/server/linux-centos-ssh-security.htm)">^7</a><ul>
+<li><code>cat /etc/ssh/sshd_config</code> 查看配置<ul>
+<li><code>PermitRootLogin no</code> 是否允许root用户登陆(no不允许)</li>
+<li><code>PasswordAuthentication no</code> 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录)</li>
 </ul>
 </li>
 </ul>
@@ -832,7 +843,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-count">40</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -854,7 +865,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">66</span>
+                <span class="site-state-item-count">70</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -896,7 +907,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统命令"><span class="nav-number">1.</span> <span class="nav-text">系统命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统"><span class="nav-number">2.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘"><span class="nav-number">2.1.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件"><span class="nav-number">2.2.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件夹-目录"><span class="nav-number">2.3.</span> <span class="nav-text">文件夹/目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩包-推荐tar-1"><span class="nav-number">2.4.</span> <span class="nav-text">压缩包(推荐tar) ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限系统"><span class="nav-number">3.</span> <span class="nav-text">权限系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户"><span class="nav-number">3.1.</span> <span class="nav-text">用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-2"><span class="nav-number">4.</span> <span class="nav-text">ssh ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh介绍"><span class="nav-number">4.1.</span> <span class="nav-text">ssh介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看SSH服务"><span class="nav-number">4.2.</span> <span class="nav-text">查看SSH服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（口令认证）"><span class="nav-number">4.3.</span> <span class="nav-text">SSH客户端连接服务器（口令认证）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（秘钥认证）"><span class="nav-number">4.4.</span> <span class="nav-text">SSH客户端连接服务器（秘钥认证）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务-4"><span class="nav-number">5.</span> <span class="nav-text">定时任务 ^4</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统命令"><span class="nav-number">1.</span> <span class="nav-text">系统命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统"><span class="nav-number">2.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘"><span class="nav-number">2.1.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件"><span class="nav-number">2.2.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件夹-目录"><span class="nav-number">2.3.</span> <span class="nav-text">文件夹/目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩包-推荐tar-1"><span class="nav-number">2.4.</span> <span class="nav-text">压缩包(推荐tar) ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限系统"><span class="nav-number">3.</span> <span class="nav-text">权限系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户-6"><span class="nav-number">3.1.</span> <span class="nav-text">用户 ^6</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-2"><span class="nav-number">4.</span> <span class="nav-text">ssh ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh介绍"><span class="nav-number">4.1.</span> <span class="nav-text">ssh介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看SSH服务"><span class="nav-number">4.2.</span> <span class="nav-text">查看SSH服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（口令认证）"><span class="nav-number">4.3.</span> <span class="nav-text">SSH客户端连接服务器（口令认证）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（秘钥认证）"><span class="nav-number">4.4.</span> <span class="nav-text">SSH客户端连接服务器（秘钥认证）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务-4"><span class="nav-number">5.</span> <span class="nav-text">定时任务 ^4</span></a></li></ol></div>
             
 
           </div>

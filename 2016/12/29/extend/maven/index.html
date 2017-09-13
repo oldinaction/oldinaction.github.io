@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="maven镜像修改  在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到标签，添加如下子标签   12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun maven&amp;lt;/name&amp;gt;      &amp;lt;url&amp;gt;">
+<meta name="description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签      12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun mave">
 <meta name="keywords" content="maven">
 <meta property="og:type" content="article">
 <meta property="og:title" content="maven">
 <meta property="og:url" content="http://blog.aezo.cn/2016/12/29/extend/maven/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="maven镜像修改  在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到标签，添加如下子标签   12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun maven&amp;lt;/name&amp;gt;      &amp;lt;url&amp;gt;">
-<meta property="og:updated_time" content="2017-07-17T13:08:56.680Z">
+<meta property="og:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签      12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun mave">
+<meta property="og:updated_time" content="2017-09-09T08:59:38.040Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="maven">
-<meta name="twitter:description" content="maven镜像修改  在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到标签，添加如下子标签   12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun maven&amp;lt;/name&amp;gt;      &amp;lt;url&amp;gt;">
+<meta name="twitter:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签      12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun mave">
 
 
 
@@ -385,16 +385,39 @@
       
 
       
-        <ol>
-<li><p>maven镜像修改</p>
+        <h2 id="maven简介"><a href="#maven简介" class="headerlink" title="maven简介"></a>maven简介</h2><h2 id="maven实战"><a href="#maven实战" class="headerlink" title="maven实战"></a>maven实战</h2><h3 id="maven镜像修改"><a href="#maven镜像修改" class="headerlink" title="maven镜像修改"></a>maven镜像修改</h3><pre><code>- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&lt;mirrors&gt;标签，添加如下子标签
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>alimaven<span class="tag">&lt;/<span class="name">id</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>aliyun maven<span class="tag">&lt;/<span class="name">name</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public/<span class="tag">&lt;/<span class="name">url</span>&gt;</span>  <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span>          </div><div class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></div></pre></td></tr></table></figure>
+</code></pre><h3 id="maven父子项目"><a href="#maven父子项目" class="headerlink" title="maven父子项目"></a>maven父子项目</h3><pre><code>- parents主要配置如下：`pom.xml`
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="comment">&lt;!-- 打包类型必须为pom --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">description</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">description</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">modules</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">module</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">module</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">module</span>&gt;</span>demo<span class="tag">&lt;/<span class="name">module</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">modules</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"><span class="comment">&lt;!--依赖形式一：父项目的依赖会被子项目自动继承--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!--依赖形式二：该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用--&gt;</span></div><div class="line"><span class="comment">&lt;!--好处是子项目可以不用写版本号 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">dependencies</span>&gt;</span><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></div></pre></td></tr></table></figure>
+
+- child
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>demo<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!--声明父项目坐标--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。 --&gt;</span></div><div class="line">	<span class="comment">&lt;!-- &lt;relativePath/&gt;的默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom --&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 建议写上，否则仅打包子项目的时候会出错 --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">relativePath</span>&gt;</span>../pom.xml<span class="tag">&lt;/<span class="name">relativePath</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"><span class="comment">&lt;!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!--依赖于此项目的其他模块:此时idea的Dependencies可看到相应的依赖关系--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--project.version表示当前项目(此pom文件所在的模块/项目)的版本--&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;project.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div></pre></td></tr></table></figure>
+
+
+- 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
+</code></pre><h2 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h2><ul>
+<li><p>打包命令：<code>mvn install</code>、<code>mvn package</code></p>
 <ul>
-<li><p>在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签</mirrors></p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>alimaven<span class="tag">&lt;/<span class="name">id</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>aliyun maven<span class="tag">&lt;/<span class="name">name</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public/<span class="tag">&lt;/<span class="name">url</span>&gt;</span>  <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span>          </div><div class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></div></pre></td></tr></table></figure>
+<li><p>跳过测试进行打包：<code>mvn install -DskipTests</code>. 方式二</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-surefire-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">version</span>&gt;</span>2.18.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">				<span class="tag">&lt;<span class="name">skipTests</span>&gt;</span>true<span class="tag">&lt;/<span class="name">skipTests</span>&gt;</span></div><div class="line">			<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-</ol>
+<li><p>在idea中使用<code>Terminal</code>进行项目打包(<code>mvn package</code>)需要注意环境变量的java版本. 版本过低容易报错如：<code>maven Unsupported major.minor version 52.0</code>. 修改版本后可进行重启idea. (修改idea配置中的maven编译版本不能影响命令行)</p>
+</li>
+</ul>
+<h2 id="maven语法"><a href="#maven语法" class="headerlink" title="maven语法"></a>maven语法</h2><h3 id="maven项目基本结构"><a href="#maven项目基本结构" class="headerlink" title="maven项目基本结构"></a>maven项目基本结构</h3><pre><code>- pom.xml
 
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">"http://maven.apache.org/POM/4.0.0"</span> <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></div><div class="line">	<span class="attr">xsi:schemaLocation</span>=<span class="string">"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"</span>&gt;</div><div class="line">	<span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>minions<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 打包类型可以是jar、war、pom等 --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>minions<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">description</span>&gt;</span>Delegated the code to all minions<span class="tag">&lt;/<span class="name">description</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">properties</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">project.reporting.outputEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.reporting.outputEncoding</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">version</span>&gt;</span>4.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
+
+
+- maven文件结构
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">- src</div><div class="line">	- main</div><div class="line">		- java</div><div class="line">			- xxx</div><div class="line">		- resources</div><div class="line">		- WEB-INFO</div><div class="line">			- web.xml</div><div class="line">	- test</div></pre></td></tr></table></figure>
+</code></pre>
       
     </div>
 
@@ -495,8 +518,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
@@ -511,7 +543,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-count">40</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -533,7 +565,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">66</span>
+                <span class="site-state-item-count">70</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -565,6 +597,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#maven简介"><span class="nav-number">1.</span> <span class="nav-text">maven简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven实战"><span class="nav-number">2.</span> <span class="nav-text">maven实战</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven镜像修改"><span class="nav-number">2.1.</span> <span class="nav-text">maven镜像修改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maven父子项目"><span class="nav-number">2.2.</span> <span class="nav-text">maven父子项目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#打包"><span class="nav-number">3.</span> <span class="nav-text">打包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven语法"><span class="nav-number">4.</span> <span class="nav-text">maven语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven项目基本结构"><span class="nav-number">4.1.</span> <span class="nav-text">maven项目基本结构</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

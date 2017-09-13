@@ -288,6 +288,162 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/03/19/extend/atom/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/03/19/extend/atom/" itemprop="url">atom</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-19T15:33:00+08:00">
+                2017-03-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          atom安装atom快捷键
+快捷键查看：File - Settings - Keybindings
+编辑用户快捷键：File - Settings - Keymap(编辑后无需重启)
+插件快捷键可能会冲突。搜索某个快捷键时，后面表示会覆盖前面的
+
+
+常用快捷键设置
+ 123456789101112##### 我自己加的快捷键 START ###### 打开命令Panel: ctrl-shift-p# 删除一行(ctrl-d) / ctrl-shift-k(默认)'atom-text-editor:not([mini])':  'ctrl-d': 'editor:delete-line'# 上下移动一行 ctrl-up、ctrl-down# html预览切换（插件atom-html-preview）'atom-text-editor[data-grammar~=html]':  'ctrl-shift-b': 'atom-html-preview:toggle'##### 我自己加的快捷键 END #####
+
+
+atom插件
+插件排行榜
+minimap 代码地图
+atom-beautify 代码美化，Ctrl+Alt+B
+file-icons 文件图标美化
+script 脚本运行器，可运行几乎所有语言(有些需要运行环境)，Ctrl+Shift+B 运行脚本
+atom-html-pr
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/03/19/extend/atom/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/03/13/linux/aws/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -851,17 +1007,13 @@ rmp -ivh jdk-7u80-linux-x64.rpm 安装rpm文件
       
         
           
-          
-maven镜像修改
+          maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&lt;mirrors&gt;标签，添加如下子标签
 
-在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到标签，添加如下子标签
-  12345&lt;mirror&gt;      &lt;id&gt;alimaven&lt;/id&gt;      &lt;name&gt;aliyun maven&lt;/name&gt;      &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;  &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;          &lt;/mirror&gt;
+    12345&lt;mirror&gt;      &lt;id&gt;alimaven&lt;/id&gt;      &lt;name&gt;aliyun maven&lt;/name&gt;      &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;  &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;          &lt;/mirror&gt;
+maven父子项目- parents主要配置如下：`pom.xml`
 
-
-
-
-
-          
+    1234567891011121314151617181920212223&lt;groupId&gt;cn.aezo&lt;/groupId&gt;&lt;artifactId&gt;smtools&lt;/artifactId&gt;&lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;&lt;!-- 打包类型必须为pom --&gt;&lt;pack
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/12/29/extend/maven/#more" rel="contents">
@@ -1752,177 +1904,6 @@ ORACLE_SID: 有时候简称为SID。在实际中，对于数据库实例名的�
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/09/17/extend/intellij-idea/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/09/17/extend/intellij-idea/" itemprop="url">IntelliJ IDEA</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-17T15:37:00+08:00">
-                2016-09-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
-                  </a>
-                </span>
-
-                
-                
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
-                    <span itemprop="name">tools</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          
-目录{:toc}
-
-IntelliJ IDEA简介常用设置java web项目配置 [^1]
-进入到Project Structure：File - Project Structure
-配置步骤
-Project 项目级别
-主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的classes目录
-
-
-Modules 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
-Sources 将src目录标记成Sources目录
-Paths 使用modules compiler output path，设置路径为\myproject\WebRoot\WEB-INF\classes
-Dependencies 加入jdk、tomcat、其他依赖jar(如\WEB-INF\lib中的jar)
-
-
-Libraries 如将\WEB-INF\lib中的所有jar定义一个目录，直接加入到Dependencies中
-Facets
-点击+ - web
-Web Module Deployment Descriptor为\myproject\WebRoot\WEB-INF\web.xml
-Web Resource为\myproject\WebRoot
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/09/17/extend/intellij-idea/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1972,7 +1953,7 @@ Web Resource为\myproject\WebRoot
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-count">40</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1994,7 +1975,7 @@ Web Resource为\myproject\WebRoot
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">66</span>
+                <span class="site-state-item-count">70</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

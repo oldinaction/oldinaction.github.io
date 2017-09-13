@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.aezo.cn/"/>
-  <updated>2017-08-21T07:10:19.538Z</updated>
+  <updated>2017-08-26T04:14:38.140Z</updated>
   <id>http://blog.aezo.cn/</id>
   
   <author>
@@ -14,6 +14,38 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>mysql-procedure</title>
+    <link href="http://blog.aezo.cn/2017/08/24/db/mysql-procedure/"/>
+    <id>http://blog.aezo.cn/2017/08/24/db/mysql-procedure/</id>
+    <published>2017-08-24T12:33:00.000Z</published>
+    <updated>2017-08-26T04:14:38.140Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>存储过程调试工具：<code>dbForge Studio for MySQL</code></li>
+</ul>
+<h2 id="存储过程示例"><a href="#存储过程示例" class="headerlink" title="存储过程示例"></a>存储过程示例</h2><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line">CREATE DEFINER = 'root'@'localhost'</div><div class="line">PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)</div><div class="line">BEGIN</div><div class="line">  DECLARE v_sql varchar(1000);</div><div class="line">  DECLARE c_cityid integer;</div><div class="line">  DECLARE c_cityname varchar(20);</div><div class="line">  DECLARE c_countyname varchar(20);</div><div class="line">  DECLARE c_cityid_tmp integer;</div><div class="line"></div><div class="line">  # 是否未找到数据标记(要在游标之前定义)</div><div class="line">  DECLARE done INT DEFAULT FALSE;</div><div class="line"></div><div class="line">  -- 定义第一个游标</div><div class="line">  DECLARE cur1 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    t.N_CITYID,</div><div class="line">    t.S_CITYNAME</div><div class="line">  FROM dict_city t</div><div class="line">  WHERE t.N_PROVID = in_provid;</div><div class="line"></div><div class="line">  # 临时表游标</div><div class="line">  DECLARE cur2 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    S_COUNTYNAME,</div><div class="line">    N_CITYID AS cityid</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 循环终止的标志，游标中如果没有数据就设置done为TRUE(停止遍历)</div><div class="line">  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;</div><div class="line"></div><div class="line">  # 创建临时表</div><div class="line">  DROP TABLE IF EXISTS tmp_table;</div><div class="line">  CREATE TEMPORARY TABLE IF NOT EXISTS tmp_table (</div><div class="line">    ID int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,</div><div class="line">    S_COUNTYNAME varchar(20),</div><div class="line">    N_CITYID int(10)</div><div class="line">  );</div><div class="line"></div><div class="line">  # mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量</div><div class="line">  OPEN cur1;</div><div class="line">  flag_loop: LOOP</div><div class="line">    # 取出每条记录并赋值给相关变量，注意顺序</div><div class="line">    # 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！</div><div class="line">    FETCH cur1 INTO c_cityid, c_cityname;</div><div class="line"></div><div class="line">    # FETCH之后, 如果没有数据则会运行SET done = TRUE</div><div class="line">    IF done THEN</div><div class="line">      # 跳出循环</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    # 字符串截取，从第一位开始，截取2位</div><div class="line">    SET c_cityname = SUBSTRING(c_cityname, 1, 2);</div><div class="line"></div><div class="line">    # 动态sql执行后的结果记录集在MySQL中无法获取，因此需要转变思路将其放置到一个临时表中</div><div class="line">    # 动态sql需要使用CONCAT(a, b, c, ....)拼接</div><div class="line">    SET v_sql = CONCAT("insert into tmp_table(S_COUNTYNAME, N_CITYID) select t.`name`, ", c_cityid, " from sm_renthouse_url t where</div><div class="line">		t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");</div><div class="line"></div><div class="line">    # 如果以@开头的变量可以不用通过declare语句事先声明</div><div class="line">    SET @v_sql = v_sql;</div><div class="line">    # 预处理需要执行的动态SQL，其中stmt是一个变量</div><div class="line">    PREPARE stmt FROM @v_sql;</div><div class="line">    # 执行SQL语句</div><div class="line">    EXECUTE stmt;</div><div class="line">    # 释放掉预处理段</div><div class="line">    DEALLOCATE PREPARE stmt;</div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur1;</div><div class="line"></div><div class="line">  # 调试输出, 打印使用SELECT</div><div class="line">  SELECT</div><div class="line">    *</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 还原终止的标志, 用于第二个游标</div><div class="line">  SET done = FALSE;</div><div class="line"></div><div class="line">  OPEN cur2;</div><div class="line">  flag_loop: LOOP</div><div class="line">    FETCH cur2 INTO c_countyname, c_cityid_tmp;</div><div class="line">    IF done THEN</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    INSERT INTO dict_county (S_COUNTYNAME, N_CITYID, S_STATE)</div><div class="line">      VALUES (c_countyname, c_cityid_tmp, '1');</div><div class="line"></div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur2;</div><div class="line"></div><div class="line">  # 删除临时表</div><div class="line">  DROP TEMPORARY TABLE tmp_table;</div><div class="line">END</div></pre></td></tr></table></figure>
+<hr>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;存储过程调试工具：&lt;code&gt;dbForge Studio for MySQL&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id
+    
+    </summary>
+    
+      <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
+    
+    
+      <category term="mysql" scheme="http://blog.aezo.cn/tags/mysql/"/>
+    
+      <category term="procedure" scheme="http://blog.aezo.cn/tags/procedure/"/>
+    
+  </entry>
   
   <entry>
     <title>Excel VBA</title>
@@ -929,7 +961,7 @@
     <link href="http://blog.aezo.cn/2017/05/21/java/hibernate/"/>
     <id>http://blog.aezo.cn/2017/05/21/java/hibernate/</id>
     <published>2017-05-21T07:39:00.000Z</published>
-    <updated>2017-07-23T05:14:03.734Z</updated>
+    <updated>2017-09-11T12:42:50.314Z</updated>
     
     <content type="html"><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
 <li>ORM框架(对象关系映射)<ul>
@@ -992,7 +1024,7 @@
 <h2 id="hibernate-cfg-xml配置"><a href="#hibernate-cfg-xml配置" class="headerlink" title="hibernate.cfg.xml配置"></a>hibernate.cfg.xml配置</h2><ul>
 <li>此配置文件需要放入在src目录</li>
 <li><p>配置如下</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version='1.0' encoding='utf-8'?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE hibernate-configuration PUBLIC</span></div><div class="line">        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"</div><div class="line">        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd"&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">hibernate-configuration</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 配置链接数据信息，配置后不需要自己写连接代码Database connection settings --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.driver_class"</span>&gt;</span>com.mysql.jdbc.Driver<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.url"</span>&gt;</span>jdbc:mysql://localhost:3306/hiber<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.username"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.password"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- JDBC connection pool (use the built-in) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- &lt;property name="connection.pool_size"&gt;1&lt;/property&gt; --&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 方言,告诉hibernate使用的sql语言是mysql规定的 SQL dialect--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dialect"</span>&gt;</span>org.hibernate.dialect.MySQLDialect<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 通过getCurrentSession()获取此上下文的session，没有则自动创建。thread表示线程级别,jta用于分布式事物管理(不同的数据库服务器),使用时需要中间件 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"current_session_context_class"</span>&gt;</span>thread<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- Disable the second-level cache  --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cache.provider_class"</span>&gt;</span>org.hibernate.cache.NoCacheProvider<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"show_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句是格式化一下，更加美观 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"format_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 自动生成建表语句,update有表时不会删除表,没表时自动创建。create没有表时自动创建,有表时删除再创建 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"hbm2ddl.auto"</span>&gt;</span>update<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!-- 测试那个就映射那个，将其他映射先去掉防止干扰 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">resource</span>=<span class="string">"cn/aezo/hibernate/hello/Student.hbm.xml"</span>/&gt;</span><span class="comment">&lt;!-- 使用xml方式需要的映射格式 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">class</span>=<span class="string">"cn.aezo.hibernate.hello.Teacher"</span>/&gt;</span><span class="comment">&lt;!-- 使用annotation方式需要的映射格式 --&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">hibernate-configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version='1.0' encoding='utf-8'?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE hibernate-configuration PUBLIC</span></div><div class="line">        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"</div><div class="line">        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd"&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">hibernate-configuration</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 配置链接数据信息，配置后不需要自己写连接代码Database connection settings --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.driver_class"</span>&gt;</span>com.mysql.jdbc.Driver<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.url"</span>&gt;</span>jdbc:mysql://localhost:3306/hiber<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.username"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.password"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- JDBC connection pool (use the built-in) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- &lt;property name="connection.pool_size"&gt;1&lt;/property&gt; --&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 方言,告诉hibernate使用的sql语言是mysql规定的 SQL dialect--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dialect"</span>&gt;</span>org.hibernate.dialect.MySQLDialect<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 通过getCurrentSession()获取此上下文的session，没有则自动创建。thread表示线程级别,jta用于分布式事物管理(不同的数据库服务器),使用时需要中间件 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"current_session_context_class"</span>&gt;</span>thread<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- Disable the second-level cache  --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cache.provider_class"</span>&gt;</span>org.hibernate.cache.NoCacheProvider<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"show_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句是格式化一下，更加美观 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"format_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 自动生成建表语句：hibernate建表后的字段顺序并不是和model字段顺序一致(内部使用TreeMap保存) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create：每次加载hibernate时都会删除上一次的生成的表，然后根据你的model类再重新来生成新表，哪怕两次没有任何改变也要这样执行，这就是导致数据库表数据丢失的一个重要原因。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create-drop ：每次加载hibernate时根据model类生成表，但是sessionFactory一关闭,表就自动删除。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- update：最常用的属性，第一次加载hibernate时根据model类会自动建立起表的结构（前提是先建立好数据库），以后加载hibernate时根据 model类自动更新表结构，即使表结构改变了但表中的行仍然存在不会删除以前的行 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"hbm2ddl.auto"</span>&gt;</span>update<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!-- 测试那个就映射那个，将其他映射先去掉防止干扰 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">resource</span>=<span class="string">"cn/aezo/hibernate/hello/Student.hbm.xml"</span>/&gt;</span><span class="comment">&lt;!-- 使用xml方式需要的映射格式 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">class</span>=<span class="string">"cn.aezo.hibernate.hello.Teacher"</span>/&gt;</span><span class="comment">&lt;!-- 使用annotation方式需要的映射格式 --&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">hibernate-configuration</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
 <h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><ul>
@@ -1099,13 +1131,13 @@
 </ul>
 </li>
 </ol>
-<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0ne20ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code></p>
+<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0neTo0ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code></p>
 <ol>
 <li><p>一对一</p>
 <ul>
-<li><code>@0ne20ne</code> 指定关系, <code>@JoinColumn</code> 用于指定外键名称, 省略该注解则使用默认的外键名称,  <code>@JoinColumns</code> 联合主键使用, <code>@Embedded</code> 组件映射使用</li>
+<li><code>@0neTo0ne</code> 指定关系, <code>@JoinColumn</code> 用于指定外键名称, 省略该注解则使用默认的外键名称,  <code>@JoinColumns</code> 联合主键使用, <code>@Embedded</code> 组件映射使用</li>
 <li><p><strong>一对一单向外键关联</strong>(src/cn.aezo.hibernate.one2one_uni_fk)</p>
-  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Husband类的被约束表字段的get方法上加@0ne20ne @JoinColumn. 最终会在Husband的表中生成外键</span></div><div class="line"><span class="meta">@OneToOne</span></div><div class="line"><span class="meta">@JoinColumn</span>(name=<span class="string">"wifeId"</span>)<span class="comment">// 指定生成的数据库字段名，不写@JoinColumn则默认生成外键名为wife_id</span></div><div class="line"><span class="function"><span class="keyword">public</span> Wife <span class="title">getWife</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> wife;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Husband类的被约束表字段的get方法上加@0neTo0ne @JoinColumn. 最终会在Husband的表中生成外键</span></div><div class="line"><span class="meta">@OneToOne</span></div><div class="line"><span class="meta">@JoinColumn</span>(name=<span class="string">"wifeId"</span>)<span class="comment">// 指定生成的数据库字段名，不写@JoinColumn则默认生成外键名为wife_id</span></div><div class="line"><span class="function"><span class="keyword">public</span> Wife <span class="title">getWife</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> wife;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li><strong>Husband表会多出一个字段wifeId, 即为外键</strong></li>
 <li><p>xml设置</p>
@@ -1233,6 +1265,11 @@
 </li>
 </ul>
 </li>
+<li><p>易错点</p>
+<ul>
+<li>在一个实体文件中，所有的注解要么全部放在字段上，要么全部放在get方法上，不能混合使用. 否则报错<code>Caused by: org.hibernate.MappingException: Could not determine type for...</code></li>
+</ul>
+</li>
 </ol>
 <h2 id="HQL-test-cn-aezo-hibernate-hql1-2"><a href="#HQL-test-cn-aezo-hibernate-hql1-2" class="headerlink" title="HQL (test/cn.aezo.hibernate.hql1/2)"></a>HQL (test/cn.aezo.hibernate.hql1/2)</h2><ol>
 <li>查询语言：NativeSQL(oracle/mysql原生) &gt; HQL(hibernate查询语言) &gt; EJBQL(JPQL 1.0, 可以跨ORM框架) &gt; QBC(Query By Criteria) &gt; QBE(Query By Example)</li>
@@ -1353,27 +1390,39 @@
     <link href="http://blog.aezo.cn/2017/05/10/extend/windows/"/>
     <id>http://blog.aezo.cn/2017/05/10/extend/windows/</id>
     <published>2017-05-10T07:26:00.000Z</published>
-    <updated>2017-07-17T13:08:56.736Z</updated>
+    <updated>2017-08-28T06:17:37.054Z</updated>
     
-    <content type="html"><![CDATA[<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><ul>
-<li><p>后台运行bat文件</p>
-  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">@echo off</div><div class="line">if "%1" == "h" goto begin</div><div class="line">mshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&amp;&amp;exit</div><div class="line">:begin</div><div class="line">:: 此处运行脚本，如：java -jar my.jar</div></pre></td></tr></table></figure>
+    <content type="html"><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><ul>
+<li>注释：<code>::</code>、<code>rem</code>等 <a href="[注释](http://blog.csdn.net/wh_19910525/article/details/8125762)">^1</a></li>
+<li><code>title</code>: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)</li>
+</ul>
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><ul>
+<li><p>运行java</p>
+  <figure class="highlight bat"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">title</span>=<span class="built_in">cmd</span>窗口的标题</div><div class="line"><span class="built_in">echo</span> off</div><div class="line"><span class="comment">rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录</span></div><div class="line">%~d0</div><div class="line"><span class="built_in">set</span> MY_PROJECT_HOME=%~p0</div><div class="line"><span class="built_in">cd</span> <span class="variable">%MY_PROJECT_HOME%</span></div><div class="line"><span class="built_in">echo</span> on</div><div class="line">"<span class="variable">%JAVA_HOME%</span>\bin\java" -jar my.jar</div><div class="line"><span class="built_in">echo</span> off</div></pre></td></tr></table></figure>
+<ul>
+<li>此时配置文件应和jar包位于同一目录</li>
+<li>如果<code>set MY_PROJECT_HOME=%~p0..\</code>则表示设置bat文件所在目录的的上级目录为项目根目录</li>
+<li>如果不是系统默认jdk，可将<code>%JAVA_HOME%</code>换成对应的路径</li>
+</ul>
 </li>
-<li><p><code>title</code>: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)</p>
+<li><p>后台运行bat文件</p>
+  <figure class="highlight bat"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@<span class="built_in">echo</span> off</div><div class="line"><span class="keyword">if</span> "%<span class="number">1</span>" == "h" <span class="keyword">goto</span> begin</div><div class="line">mshta vbscript:createobject("wscript.shell").run("%~nx0 h",<span class="number">0</span>)(window.close)&amp;&amp;<span class="keyword">exit</span></div><div class="line">:begin</div><div class="line">:: 这是注释，后面运行脚本，如：</div><div class="line">java -jar my.jar</div></pre></td></tr></table></figure>
 </li>
 </ul>
+<hr>
 ]]></content>
     
     <summary type="html">
     
-      &lt;h3 id=&quot;常用命令&quot;&gt;&lt;a href=&quot;#常用命令&quot; class=&quot;headerlink&quot; title=&quot;常用命令&quot;&gt;&lt;/a&gt;常用命令&lt;/h3&gt;&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;后台运行bat文件&lt;/p&gt;
-  &lt;figure class=&quot;highlight shell&quot;&gt;&lt;tabl
+      &lt;h2 id=&quot;语法&quot;&gt;&lt;a href=&quot;#语法&quot; class=&quot;headerlink&quot; title=&quot;语法&quot;&gt;&lt;/a&gt;语法&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;注释：&lt;code&gt;::&lt;/code&gt;、&lt;code&gt;rem&lt;/code&gt;等 &lt;a href=&quot;[注释](http://blog.c
     
     </summary>
     
       <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
     
+    
+      <category term="bat" scheme="http://blog.aezo.cn/tags/bat/"/>
     
   </entry>
   
@@ -2140,26 +2189,45 @@
     <link href="http://blog.aezo.cn/2016/12/29/extend/maven/"/>
     <id>http://blog.aezo.cn/2016/12/29/extend/maven/</id>
     <published>2016-12-29T02:18:00.000Z</published>
-    <updated>2017-07-17T13:08:56.680Z</updated>
+    <updated>2017-09-09T08:59:38.040Z</updated>
     
-    <content type="html"><![CDATA[<ol>
-<li><p>maven镜像修改</p>
+    <content type="html"><![CDATA[<h2 id="maven简介"><a href="#maven简介" class="headerlink" title="maven简介"></a>maven简介</h2><h2 id="maven实战"><a href="#maven实战" class="headerlink" title="maven实战"></a>maven实战</h2><h3 id="maven镜像修改"><a href="#maven镜像修改" class="headerlink" title="maven镜像修改"></a>maven镜像修改</h3><pre><code>- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&lt;mirrors&gt;标签，添加如下子标签
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>alimaven<span class="tag">&lt;/<span class="name">id</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>aliyun maven<span class="tag">&lt;/<span class="name">name</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public/<span class="tag">&lt;/<span class="name">url</span>&gt;</span>  <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span>          </div><div class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></div></pre></td></tr></table></figure>
+</code></pre><h3 id="maven父子项目"><a href="#maven父子项目" class="headerlink" title="maven父子项目"></a>maven父子项目</h3><pre><code>- parents主要配置如下：`pom.xml`
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="comment">&lt;!-- 打包类型必须为pom --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">description</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">description</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">modules</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">module</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">module</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">module</span>&gt;</span>demo<span class="tag">&lt;/<span class="name">module</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">modules</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"><span class="comment">&lt;!--依赖形式一：父项目的依赖会被子项目自动继承--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!--依赖形式二：该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用--&gt;</span></div><div class="line"><span class="comment">&lt;!--好处是子项目可以不用写版本号 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">dependencies</span>&gt;</span><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></div></pre></td></tr></table></figure>
+
+- child
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>demo<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!--声明父项目坐标--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。 --&gt;</span></div><div class="line">	<span class="comment">&lt;!-- &lt;relativePath/&gt;的默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom --&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 建议写上，否则仅打包子项目的时候会出错 --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">relativePath</span>&gt;</span>../pom.xml<span class="tag">&lt;/<span class="name">relativePath</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"><span class="comment">&lt;!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!--依赖于此项目的其他模块:此时idea的Dependencies可看到相应的依赖关系--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--project.version表示当前项目(此pom文件所在的模块/项目)的版本--&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;project.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div></pre></td></tr></table></figure>
+
+
+- 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
+</code></pre><h2 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h2><ul>
+<li><p>打包命令：<code>mvn install</code>、<code>mvn package</code></p>
 <ul>
-<li><p>在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签</mirrors></p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>alimaven<span class="tag">&lt;/<span class="name">id</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>aliyun maven<span class="tag">&lt;/<span class="name">name</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public/<span class="tag">&lt;/<span class="name">url</span>&gt;</span>  <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span>          </div><div class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></div></pre></td></tr></table></figure>
+<li><p>跳过测试进行打包：<code>mvn install -DskipTests</code>. 方式二</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-surefire-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">version</span>&gt;</span>2.18.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">				<span class="tag">&lt;<span class="name">skipTests</span>&gt;</span>true<span class="tag">&lt;/<span class="name">skipTests</span>&gt;</span></div><div class="line">			<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
-</ol>
-]]></content>
+<li><p>在idea中使用<code>Terminal</code>进行项目打包(<code>mvn package</code>)需要注意环境变量的java版本. 版本过低容易报错如：<code>maven Unsupported major.minor version 52.0</code>. 修改版本后可进行重启idea. (修改idea配置中的maven编译版本不能影响命令行)</p>
+</li>
+</ul>
+<h2 id="maven语法"><a href="#maven语法" class="headerlink" title="maven语法"></a>maven语法</h2><h3 id="maven项目基本结构"><a href="#maven项目基本结构" class="headerlink" title="maven项目基本结构"></a>maven项目基本结构</h3><pre><code>- pom.xml
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">"http://maven.apache.org/POM/4.0.0"</span> <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></div><div class="line">	<span class="attr">xsi:schemaLocation</span>=<span class="string">"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"</span>&gt;</div><div class="line">	<span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>minions<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 打包类型可以是jar、war、pom等 --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>minions<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">description</span>&gt;</span>Delegated the code to all minions<span class="tag">&lt;/<span class="name">description</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">properties</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">project.reporting.outputEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.reporting.outputEncoding</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">version</span>&gt;</span>4.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
+
+
+- maven文件结构
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">- src</div><div class="line">	- main</div><div class="line">		- java</div><div class="line">			- xxx</div><div class="line">		- resources</div><div class="line">		- WEB-INFO</div><div class="line">			- web.xml</div><div class="line">	- test</div></pre></td></tr></table></figure>
+</code></pre>]]></content>
     
     <summary type="html">
     
-      &lt;ol&gt;
-&lt;li&gt;&lt;p&gt;maven镜像修改&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&lt;mirrors&gt;标签，添加如下子标签&lt;/mirrors&gt;&lt;/p&gt;
-  &lt;figu
+      &lt;h2 id=&quot;maven简介&quot;&gt;&lt;a href=&quot;#maven简介&quot; class=&quot;headerlink&quot; title=&quot;maven简介&quot;&gt;&lt;/a&gt;maven简介&lt;/h2&gt;&lt;h2 id=&quot;maven实战&quot;&gt;&lt;a href=&quot;#maven实战&quot; class=&quot;headerlink
     
     </summary>
     
@@ -3312,99 +3380,6 @@
       <category term="oracle" scheme="http://blog.aezo.cn/tags/oracle/"/>
     
       <category term="dba" scheme="http://blog.aezo.cn/tags/dba/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>IntelliJ IDEA</title>
-    <link href="http://blog.aezo.cn/2016/09/17/extend/intellij-idea/"/>
-    <id>http://blog.aezo.cn/2016/09/17/extend/intellij-idea/</id>
-    <published>2016-09-17T07:37:00.000Z</published>
-    <updated>2017-07-17T13:08:56.628Z</updated>
-    
-    <content type="html"><![CDATA[<ul>
-<li>目录<br>{:toc}</li>
-</ul>
-<h2 id="IntelliJ-IDEA简介"><a href="#IntelliJ-IDEA简介" class="headerlink" title="IntelliJ IDEA简介"></a>IntelliJ IDEA简介</h2><h2 id="常用设置"><a href="#常用设置" class="headerlink" title="常用设置"></a>常用设置</h2><h3 id="java-web项目配置-1"><a href="#java-web项目配置-1" class="headerlink" title="java web项目配置 [^1]"></a>java web项目配置 [^1]</h3><ol>
-<li>进入到Project Structure：<code>File - Project Structure</code></li>
-<li>配置步骤<ul>
-<li><code>Project</code> 项目级别<ul>
-<li>主要是project compiler output的位置(src的编译位置)：如<code>\myproject\WebRoot\WEB-INF\classes</code>，为对应WEB-INF下的classes目录</li>
-</ul>
-</li>
-<li><code>Modules</code> 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块<ul>
-<li><code>Sources</code> 将src目录标记成Sources目录</li>
-<li><code>Paths</code> 使用modules compiler output path，设置路径为<code>\myproject\WebRoot\WEB-INF\classes</code></li>
-<li><code>Dependencies</code> 加入jdk、tomcat、其他依赖jar(如<code>\WEB-INF\lib</code>中的jar)</li>
-</ul>
-</li>
-<li><code>Libraries</code> 如将<code>\WEB-INF\lib</code>中的所有jar定义一个目录，直接加入到<code>Dependencies</code>中</li>
-<li><code>Facets</code><ul>
-<li>点击<code>+</code> - <code>web</code></li>
-<li><code>Web Module Deployment Descriptor</code>为<code>\myproject\WebRoot\WEB-INF\web.xml</code></li>
-<li><code>Web Resource</code>为<code>\myproject\WebRoot</code></li>
-<li>勾选<code>Source Roots</code></li>
-</ul>
-</li>
-<li><code>Artifacts</code> 根据上面的配置，最终打包成一个war包部署到tomcat中<ul>
-<li>点击<code>+</code> - <code>Web Application: Exploded</code> - <code>From Modules</code></li>
-<li><code>Output directory</code>为<code>\testStruts2\WebRoot</code></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>Run configuration</code>配置tomcat<ul>
-<li><code>JRE</code>填写jdk路径</li>
-<li><code>Deployment</code>中将刚刚的war配置进入</li>
-<li>在<code>Before launch</code>中加入Build这个war包</li>
-</ul>
-</li>
-</ol>
-<h2 id="IDEA开发PHP程序"><a href="#IDEA开发PHP程序" class="headerlink" title="IDEA开发PHP程序"></a>IDEA开发PHP程序</h2><h3 id="安装php插件-2"><a href="#安装php插件-2" class="headerlink" title="安装php插件 [^2]"></a>安装php插件 [^2]</h3><ol>
-<li>setting -&gt; plugins -&gt; browse repositories -&gt; 输入php</li>
-<li>没看到的话，往下翻几页看看，找到PHP(LANGUAGES)，安装次数较多的那个</li>
-</ol>
-<h3 id="xdebug使用"><a href="#xdebug使用" class="headerlink" title="xdebug使用"></a>xdebug使用</h3><ol>
-<li>找到php.ini，搜索xdebug</li>
-<li>下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能</li>
-<li><p>替换下面代码</p>
- <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">[xdebug]  </div><div class="line">xdebug.remote_enable=on  </div><div class="line">xdebug.remote_host=localhost  </div><div class="line">xdebug.remote_port=9000  </div><div class="line">;下面两项和Intellij idea里的对应  </div><div class="line">xdebug.idekey=idekey  </div><div class="line">xdebug.remote_handler=dbgp  </div><div class="line">xdebug.remote_mode=req  </div><div class="line">;下面这句很关键，不设置intellij idea无法调试  </div><div class="line">xdebug.remote_autostart=1  </div><div class="line">;调试配置，详细的可以参考phpinfo页面进行配置  </div><div class="line">xdebug.auto_trace=on  </div><div class="line">xdebug.collect_params=on  </div><div class="line">xdebug.collect_return=on  </div><div class="line">xdebug.trace_output_dir="../xdebug"  </div><div class="line">xdebug.profiler_enable=on  </div><div class="line">xdebug.profiler_enable_trigger = on</div><div class="line">xdebug.profiler_output_name = cachegrind.out.%t.%p</div><div class="line">xdebug.profiler_output_dir="../xdebug"  </div><div class="line">xdebug.collect_vars=on  </div><div class="line">xdebug.cli_color=on</div></pre></td></tr></table></figure>
-</li>
-<li><p>在idea中设置php的安装路径</p>
-<p> 添加php interpreters指向php的主目录，点击这边的show info按钮，在Loaded extensions里应该可以看到xDebug</p>
-<p> <img src="/data/images/2016/09/php-xdebug.png" alt="php-xdebug"></p>
-</li>
-<li><p>启动xdebug调试</p>
-<ul>
-<li>点击intellij idea工具栏里的 start listen php debug connections.开启调试模式。</li>
-<li><p>点击工具栏里向下的小三角-&gt;edit configuration-&gt;add new configuartion-&gt;php web Application Server里选aezo.cn</p>
-<p><img src="/data/images/2016/09/php-xdebug2.png" alt="php-xdebug"></p>
-</li>
-</ul>
-</li>
-<li><p>打断点，运行程序即可进行调试</p>
-</li>
-</ol>
-<hr>
-<p>参考文章</p>
-<p>[^1]: <a href="https://github.com/judasn/IntelliJ-IDEA-Tutorial/blob/newMaster/eclipse-java-web-project-introduce.md" target="_blank" rel="external">java web项目配置</a><br>[^2]: <a href="http://blog.csdn.net/ysjjovo/article/details/13292787" target="_blank" rel="external">intellij idea12 搭建php开发环境</a></p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;ul&gt;
-&lt;li&gt;目录&lt;br&gt;{:toc}&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;IntelliJ-IDEA简介&quot;&gt;&lt;a href=&quot;#IntelliJ-IDEA简介&quot; class=&quot;headerlink&quot; title=&quot;IntelliJ IDEA简介&quot;&gt;&lt;/a&gt;IntelliJ
-    
-    </summary>
-    
-      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
-    
-      <category term="tools" scheme="http://blog.aezo.cn/categories/extend/tools/"/>
-    
-    
-      <category term="IDE" scheme="http://blog.aezo.cn/tags/IDE/"/>
     
   </entry>
   

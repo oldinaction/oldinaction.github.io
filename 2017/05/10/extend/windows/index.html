@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="smalle blog" />
+  <meta name="keywords" content="bat," />
 
 
 
@@ -95,16 +95,17 @@
 
 
 
-<meta name="description" content="常用命令 后台运行bat文件   12345@echo offif &quot;%1&quot; == &quot;h&quot; goto beginmshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;%~nx0 h&quot;,0)(window.close)&amp;amp;&amp;amp;exit:begin:: 此处运行脚本，如：java -jar my.jar  title: 设置cmd窗口标题(乱码">
+<meta name="description" content="语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用命令 运行java   123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on&quot;">
+<meta name="keywords" content="bat">
 <meta property="og:type" content="article">
 <meta property="og:title" content="windows">
 <meta property="og:url" content="http://blog.aezo.cn/2017/05/10/extend/windows/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="常用命令 后台运行bat文件   12345@echo offif &quot;%1&quot; == &quot;h&quot; goto beginmshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;%~nx0 h&quot;,0)(window.close)&amp;amp;&amp;amp;exit:begin:: 此处运行脚本，如：java -jar my.jar  title: 设置cmd窗口标题(乱码">
-<meta property="og:updated_time" content="2017-07-17T13:08:56.736Z">
+<meta property="og:description" content="语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用命令 运行java   123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on&quot;">
+<meta property="og:updated_time" content="2017-08-28T06:17:37.054Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="windows">
-<meta name="twitter:description" content="常用命令 后台运行bat文件   12345@echo offif &quot;%1&quot; == &quot;h&quot; goto beginmshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;%~nx0 h&quot;,0)(window.close)&amp;amp;&amp;amp;exit:begin:: 此处运行脚本，如：java -jar my.jar  title: 设置cmd窗口标题(乱码">
+<meta name="twitter:description" content="语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用命令 运行java   123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on&quot;">
 
 
 
@@ -373,13 +374,24 @@
       
 
       
-        <h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><ul>
-<li><p>后台运行bat文件</p>
-  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">@echo off</div><div class="line">if "%1" == "h" goto begin</div><div class="line">mshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&amp;&amp;exit</div><div class="line">:begin</div><div class="line">:: 此处运行脚本，如：java -jar my.jar</div></pre></td></tr></table></figure>
+        <h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><ul>
+<li>注释：<code>::</code>、<code>rem</code>等 <a href="[注释](http://blog.csdn.net/wh_19910525/article/details/8125762)">^1</a></li>
+<li><code>title</code>: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)</li>
+</ul>
+<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><ul>
+<li><p>运行java</p>
+  <figure class="highlight bat"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">title</span>=<span class="built_in">cmd</span>窗口的标题</div><div class="line"><span class="built_in">echo</span> off</div><div class="line"><span class="comment">rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录</span></div><div class="line">%~d0</div><div class="line"><span class="built_in">set</span> MY_PROJECT_HOME=%~p0</div><div class="line"><span class="built_in">cd</span> <span class="variable">%MY_PROJECT_HOME%</span></div><div class="line"><span class="built_in">echo</span> on</div><div class="line">"<span class="variable">%JAVA_HOME%</span>\bin\java" -jar my.jar</div><div class="line"><span class="built_in">echo</span> off</div></pre></td></tr></table></figure>
+<ul>
+<li>此时配置文件应和jar包位于同一目录</li>
+<li>如果<code>set MY_PROJECT_HOME=%~p0..\</code>则表示设置bat文件所在目录的的上级目录为项目根目录</li>
+<li>如果不是系统默认jdk，可将<code>%JAVA_HOME%</code>换成对应的路径</li>
+</ul>
 </li>
-<li><p><code>title</code>: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)</p>
+<li><p>后台运行bat文件</p>
+  <figure class="highlight bat"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">@<span class="built_in">echo</span> off</div><div class="line"><span class="keyword">if</span> "%<span class="number">1</span>" == "h" <span class="keyword">goto</span> begin</div><div class="line">mshta vbscript:createobject("wscript.shell").run("%~nx0 h",<span class="number">0</span>)(window.close)&amp;&amp;<span class="keyword">exit</span></div><div class="line">:begin</div><div class="line">:: 这是注释，后面运行脚本，如：</div><div class="line">java -jar my.jar</div></pre></td></tr></table></figure>
 </li>
 </ul>
+<hr>
 
       
     </div>
@@ -406,6 +418,12 @@
     </div>
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/bat/" rel="tag"># bat</a>
+          
+        </div>
       
 
       
@@ -500,7 +518,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-count">40</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -522,7 +540,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">66</span>
+                <span class="site-state-item-count">70</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -564,7 +582,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#常用命令"><span class="nav-number">1.</span> <span class="nav-text">常用命令</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#语法"><span class="nav-number">1.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">2.</span> <span class="nav-text">常用命令</span></a></li></ol></div>
             
 
           </div>
