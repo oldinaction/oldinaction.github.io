@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/05/21/java/hibernate/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="介绍 ORM框架(对象关系映射) JDBC操作数据库很繁琐 Sql语句编写并不是面向对象的 可以在对象和关系表之间建立关联来简化编程 0/R Mapping 简化编程 0/R Mapping跨越数据库平台   ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现) O/RMapping编程模型（映射接">
-<meta property="og:updated_time" content="2017-09-11T12:42:50.314Z">
+<meta property="og:updated_time" content="2017-09-25T13:27:45.478Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hibernate">
 <meta name="twitter:description" content="介绍 ORM框架(对象关系映射) JDBC操作数据库很繁琐 Sql语句编写并不是面向对象的 可以在对象和关系表之间建立关联来简化编程 0/R Mapping 简化编程 0/R Mapping跨越数据库平台   ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现) O/RMapping编程模型（映射接">
@@ -438,7 +438,8 @@
   <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version='1.0' encoding='utf-8'?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE hibernate-configuration PUBLIC</span></div><div class="line">        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"</div><div class="line">        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd"&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">hibernate-configuration</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 配置链接数据信息，配置后不需要自己写连接代码Database connection settings --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.driver_class"</span>&gt;</span>com.mysql.jdbc.Driver<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.url"</span>&gt;</span>jdbc:mysql://localhost:3306/hiber<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.username"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.password"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- JDBC connection pool (use the built-in) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- &lt;property name="connection.pool_size"&gt;1&lt;/property&gt; --&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 方言,告诉hibernate使用的sql语言是mysql规定的 SQL dialect--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dialect"</span>&gt;</span>org.hibernate.dialect.MySQLDialect<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 通过getCurrentSession()获取此上下文的session，没有则自动创建。thread表示线程级别,jta用于分布式事物管理(不同的数据库服务器),使用时需要中间件 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"current_session_context_class"</span>&gt;</span>thread<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- Disable the second-level cache  --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cache.provider_class"</span>&gt;</span>org.hibernate.cache.NoCacheProvider<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"show_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句是格式化一下，更加美观 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"format_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 自动生成建表语句：hibernate建表后的字段顺序并不是和model字段顺序一致(内部使用TreeMap保存) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create：每次加载hibernate时都会删除上一次的生成的表，然后根据你的model类再重新来生成新表，哪怕两次没有任何改变也要这样执行，这就是导致数据库表数据丢失的一个重要原因。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create-drop ：每次加载hibernate时根据model类生成表，但是sessionFactory一关闭,表就自动删除。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- update：最常用的属性，第一次加载hibernate时根据model类会自动建立起表的结构（前提是先建立好数据库），以后加载hibernate时根据 model类自动更新表结构，即使表结构改变了但表中的行仍然存在不会删除以前的行 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"hbm2ddl.auto"</span>&gt;</span>update<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!-- 测试那个就映射那个，将其他映射先去掉防止干扰 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">resource</span>=<span class="string">"cn/aezo/hibernate/hello/Student.hbm.xml"</span>/&gt;</span><span class="comment">&lt;!-- 使用xml方式需要的映射格式 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">class</span>=<span class="string">"cn.aezo.hibernate.hello.Teacher"</span>/&gt;</span><span class="comment">&lt;!-- 使用annotation方式需要的映射格式 --&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">hibernate-configuration</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
-<h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><ul>
+<h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><p><strong>注解要么写在字段上，要么写在get方法上，千万不能混合使用，否则会报：</strong> <code>Could not determine type for: java.util.List, at table</code></p>
+<ul>
 <li>注解应该导入jpa的注解，如<strong><code>javax.persistence.*</code></strong></li>
 <li><p>类级别</p>
 <ul>
@@ -466,6 +467,7 @@
 <li><strong><code>@Id</code></strong> 主键; <code>@Basic</code> 其他属性,可省略</li>
 <li><strong><code>@GeneratedValue</code></strong> 批注后主键会自动生成值，默认使用id生成策略是AUTO。@GeneratedValue(strategy=GenerationType.AUTO)，其中(strategy=GenerationType.AUTO)可以省略，会自动根据mysql/oracle转换，相当于xml方式中的native</li>
 <li><strong><code>@Column(name=&quot;_title&quot;)</code></strong> 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致</li>
+<li><code>@JoinColumn</code>、<code>@OneToMany</code>等见下文关系映射</li>
 <li><code>@OrderBy(&quot;name ASC&quot;)</code> 排序</li>
 <li><code>@Transient</code> 透明的.表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可</li>
 <li><code>@Temporal(value=TemporalType.DATE)</code> 表示相应日期类型只记录日期,最终表的字段类型是DATE。不写的话默认是记录日期和时间,字段类型是TIMESTAMP。此处可以省略”value=”。不常用</li>
@@ -542,7 +544,7 @@
 </ul>
 </li>
 </ol>
-<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0neTo0ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code></p>
+<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0neTo0ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code>（<strong>字段定义和set方法省略</strong>）</p>
 <ol>
 <li><p>一对一</p>
 <ul>
@@ -915,7 +917,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -926,7 +928,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">72</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

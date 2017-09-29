@@ -679,6 +679,9 @@ atom-html-pr
           nginx使用
 安装
 yum install nginx 安装
+默认可执行文件路径/usr/sbin/nginx(已加入到系统服务); 配置文件路径/etc/nginx/nginx.conf
+
+
 程序包解压安装
 
 
@@ -689,17 +692,23 @@ systemctl start nginx 启动
 
 停止
 systemctl stop nginx
+有时候启动失败可能是端口占用，listen对应的端口必须是空闲状态
+
+
 sudo ./nginx -s stop
 
 
 相关命令
 ps -ef | grep nginx 查看nginx安装位置(nginx的配置文件.conf在此目录下)
-find / -name nginx.conf 查看配置文件位置
-nginx -t 检查配置文件的配置是否合法(也会返回配置文件位置)
+sudo find / -name nginx.conf 查看配置文件位置
+/usr/sbin/nginx -t 检查配置文件的配置是否合法(也会返回配置文件位置)
 
 
 
-nginx配置(nginx.conf)1234567891011121314151617181920212223242526272829303132333435363738394041   server &#123;       # 监听的端口，注意要在服务器后台开启80端口外网访问权限       listen   80;       # 服务器的地址                     server_name www.aezo.cn;       # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)	location = / &#123;		rewrite
+nginx配置(nginx.conf)
+文件默认是只读的，需要root权限编辑。sudo vim nginx.conf
+配置如下
+  123456789101112131415161718192021222324252627282930313233343536373839404142   server &#123;       # 监听的端口，注意要在服务器后台开启80端口外网访问权限       lis
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -906,7 +915,7 @@ rmp -ivh jdk-7u80-linux-x64.rpm 安装rpm文件
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/12/29/extend/maven/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/12/29/arch/maven/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -925,7 +934,7 @@ rmp -ivh jdk-7u80-linux-x64.rpm 安装rpm文件
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/12/29/extend/maven/" itemprop="url">maven</a></h1>
+                <a class="post-title-link" href="/2016/12/29/arch/maven/" itemprop="url">maven</a></h1>
         
 
         <div class="post-meta">
@@ -960,8 +969,8 @@ rmp -ivh jdk-7u80-linux-x64.rpm 安装rpm文件
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
+                  <a href="/categories/arch/" itemprop="url" rel="index">
+                    <span itemprop="name">arch</span>
                   </a>
                 </span>
 
@@ -971,7 +980,7 @@ rmp -ivh jdk-7u80-linux-x64.rpm 安装rpm文件
                 
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
+                  <a href="/categories/arch/tools/" itemprop="url" rel="index">
                     <span itemprop="name">tools</span>
                   </a>
                 </span>
@@ -1016,7 +1025,7 @@ maven父子项目- parents主要配置如下：`pom.xml`
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/12/29/extend/maven/#more" rel="contents">
+            <a class="btn" href="/2016/12/29/arch/maven/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1853,17 +1862,11 @@ Disque 使用教
           简介
 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例
 
-
-下载
-数据库安装包：oracle
-
-
-
 oracle相关名词和原理
 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1
 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
 INSTANCE_NAME: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
-ORACLE_SID: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作
+ORACLE_SID: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1964,7 +1967,7 @@ ORACLE_SID: 有时候简称为SID。在实际中，对于数据库实例名的�
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -1975,7 +1978,7 @@ ORACLE_SID: 有时候简称为SID。在实际中，对于数据库实例名的�
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">72</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

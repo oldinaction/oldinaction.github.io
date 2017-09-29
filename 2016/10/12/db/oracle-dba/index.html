@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例   下载 数据库安装包：oracle    oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle">
+<meta name="description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
 <meta name="keywords" content="oracle,dba">
 <meta property="og:type" content="article">
 <meta property="og:title" content="oracleDBA">
 <meta property="og:url" content="http://blog.aezo.cn/2016/10/12/db/oracle-dba/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例   下载 数据库安装包：oracle    oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle">
-<meta property="og:updated_time" content="2017-07-31T07:08:29.062Z">
+<meta property="og:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
+<meta property="og:updated_time" content="2017-09-20T13:49:49.566Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="oracleDBA">
-<meta name="twitter:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例   下载 数据库安装包：oracle    oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle">
+<meta name="twitter:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
 
 
 
@@ -377,12 +377,6 @@
         <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
 <p>注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例</p>
 </blockquote>
-<ol>
-<li>下载<ul>
-<li>数据库安装包：<a href="http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html" target="_blank" rel="external">oracle</a></li>
-</ul>
-</li>
-</ol>
 <h3 id="oracle相关名词和原理"><a href="#oracle相关名词和原理" class="headerlink" title="oracle相关名词和原理"></a>oracle相关名词和原理</h3><ol>
 <li>数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) <a href="http://www.cnblogs.com/advocate/archive/2010/08/20/1804063.html" target="_blank" rel="external">^1</a><ul>
 <li><code>DB_NAME</code>: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。</li>
@@ -519,6 +513,7 @@
 <li>修改用户密码：<code>alter user scott identified by tiger;</code></li>
 <li>修改用户表空间：<code>alter user aezo default tablespace aezocn;</code></li>
 <li>解锁用户：<code>alter user scott account unlock;</code> (新建数据库scott默认未解锁)</li>
+<li>密码过期：(1) 重新设置密码即可<code>alter user aezo identified by aezo;</code> (2)设置永久不过期<code>alter profile default limit password_life_time unlimited;</code></li>
 </ul>
 </li>
 <li><p>授权</p>
@@ -640,7 +635,9 @@
 </ul>
 </li>
 </ol>
-
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>- 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
+- oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
+</code></pre>
       
     </div>
 
@@ -779,7 +776,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -790,7 +787,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">72</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -832,7 +829,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#oracle相关名词和原理"><span class="nav-number">1.1.</span> <span class="nav-text">oracle相关名词和原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#oracle及pl-sql安装和使用"><span class="nav-number">2.</span> <span class="nav-text">oracle及pl/sql安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql安装"><span class="nav-number">2.1.</span> <span class="nav-text">pl/sql安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网络配置"><span class="nav-number">2.2.</span> <span class="nav-text">网络配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建表空间-2"><span class="nav-number">3.</span> <span class="nav-text">创建表空间 ^2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导入导出"><span class="nav-number">4.</span> <span class="nav-text">导入导出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行-4"><span class="nav-number">4.1.</span> <span class="nav-text">命令行 ^4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql"><span class="nav-number">4.2.</span> <span class="nav-text">pl/sql</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">5.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作相关"><span class="nav-number">5.1.</span> <span class="nav-text">操作相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询相关"><span class="nav-number">5.2.</span> <span class="nav-text">查询相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见错误"><span class="nav-number">5.3.</span> <span class="nav-text">常见错误</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#oracle相关名词和原理"><span class="nav-number">1.1.</span> <span class="nav-text">oracle相关名词和原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#oracle及pl-sql安装和使用"><span class="nav-number">2.</span> <span class="nav-text">oracle及pl/sql安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql安装"><span class="nav-number">2.1.</span> <span class="nav-text">pl/sql安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网络配置"><span class="nav-number">2.2.</span> <span class="nav-text">网络配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建表空间-2"><span class="nav-number">3.</span> <span class="nav-text">创建表空间 ^2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导入导出"><span class="nav-number">4.</span> <span class="nav-text">导入导出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行-4"><span class="nav-number">4.1.</span> <span class="nav-text">命令行 ^4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql"><span class="nav-number">4.2.</span> <span class="nav-text">pl/sql</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">5.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作相关"><span class="nav-number">5.1.</span> <span class="nav-text">操作相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询相关"><span class="nav-number">5.2.</span> <span class="nav-text">查询相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见错误"><span class="nav-number">5.3.</span> <span class="nav-text">常见错误</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">6.</span> <span class="nav-text">安装</span></a></li></ol></div>
             
 
           </div>

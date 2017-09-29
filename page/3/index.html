@@ -1534,7 +1534,7 @@ CMD进入RabbitMQ安装目录，进入到rabbitmq_server-3.6.5/sbin目录
       
         
           
-          系统命令
+          系统命令信息查询
 查看系统信息
 
 查看操作系统版本 cat /proc/version
@@ -1545,20 +1545,16 @@ CMD进入RabbitMQ安装目录，进入到rabbitmq_server-3.6.5/sbin目录
 查看CentOS版本 cat /etc/redhat-release 如：CentOS Linux release 7.2.1511 (Core)
 
 查看内存 grep MemTotal /proc/meminfo
-
-
-查看启动的服务(不包括系统的)：chkconfig --list
-
-shutdown -r now root登录可立刻重启
 df -hl 查看磁盘使用情况
-netstat -lnp 查看所有进场信息(端口、PID)
-ss -ant CentOS 7 查看所有监听端口
-netstat -tnl 查看开放的端口
-netstat -lnp | grep tomcat 查看含有tomcat相关的进程
+查看内网ip ip addr
+检查网络连接 ping 192.168.1.1(或者ping www.baidu.com)，检查端口：telnet 192.168.1.1 8080
 
 
-安装程序包 rpm -ivh 安装包名
-查看安装程序(支持模糊查询) rpm -q
+查询程序信息
+
+查看安装程序(支持模糊查询) rpm -qa | grep vsftpd 查看是否安装vsftpd(一款ftp服务器软件)
+netstat -lnp 查看所有进程信息(端口、PID)
+root运行：sudo netstat -lnp 可查看使用r
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1949,7 +1945,7 @@ $.extend()用法
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -1960,7 +1956,7 @@ $.extend()用法
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">72</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

@@ -961,7 +961,7 @@
     <link href="http://blog.aezo.cn/2017/05/21/java/hibernate/"/>
     <id>http://blog.aezo.cn/2017/05/21/java/hibernate/</id>
     <published>2017-05-21T07:39:00.000Z</published>
-    <updated>2017-09-11T12:42:50.314Z</updated>
+    <updated>2017-09-25T13:27:45.478Z</updated>
     
     <content type="html"><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
 <li>ORM框架(对象关系映射)<ul>
@@ -1027,7 +1027,8 @@
   <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version='1.0' encoding='utf-8'?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE hibernate-configuration PUBLIC</span></div><div class="line">        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"</div><div class="line">        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd"&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">hibernate-configuration</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 配置链接数据信息，配置后不需要自己写连接代码Database connection settings --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.driver_class"</span>&gt;</span>com.mysql.jdbc.Driver<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.url"</span>&gt;</span>jdbc:mysql://localhost:3306/hiber<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.username"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.password"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- JDBC connection pool (use the built-in) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- &lt;property name="connection.pool_size"&gt;1&lt;/property&gt; --&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 方言,告诉hibernate使用的sql语言是mysql规定的 SQL dialect--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dialect"</span>&gt;</span>org.hibernate.dialect.MySQLDialect<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 通过getCurrentSession()获取此上下文的session，没有则自动创建。thread表示线程级别,jta用于分布式事物管理(不同的数据库服务器),使用时需要中间件 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"current_session_context_class"</span>&gt;</span>thread<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- Disable the second-level cache  --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cache.provider_class"</span>&gt;</span>org.hibernate.cache.NoCacheProvider<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"show_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句是格式化一下，更加美观 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"format_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 自动生成建表语句：hibernate建表后的字段顺序并不是和model字段顺序一致(内部使用TreeMap保存) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create：每次加载hibernate时都会删除上一次的生成的表，然后根据你的model类再重新来生成新表，哪怕两次没有任何改变也要这样执行，这就是导致数据库表数据丢失的一个重要原因。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create-drop ：每次加载hibernate时根据model类生成表，但是sessionFactory一关闭,表就自动删除。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- update：最常用的属性，第一次加载hibernate时根据model类会自动建立起表的结构（前提是先建立好数据库），以后加载hibernate时根据 model类自动更新表结构，即使表结构改变了但表中的行仍然存在不会删除以前的行 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"hbm2ddl.auto"</span>&gt;</span>update<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!-- 测试那个就映射那个，将其他映射先去掉防止干扰 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">resource</span>=<span class="string">"cn/aezo/hibernate/hello/Student.hbm.xml"</span>/&gt;</span><span class="comment">&lt;!-- 使用xml方式需要的映射格式 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">class</span>=<span class="string">"cn.aezo.hibernate.hello.Teacher"</span>/&gt;</span><span class="comment">&lt;!-- 使用annotation方式需要的映射格式 --&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">hibernate-configuration</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
-<h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><ul>
+<h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><p><strong>注解要么写在字段上，要么写在get方法上，千万不能混合使用，否则会报：</strong> <code>Could not determine type for: java.util.List, at table</code></p>
+<ul>
 <li>注解应该导入jpa的注解，如<strong><code>javax.persistence.*</code></strong></li>
 <li><p>类级别</p>
 <ul>
@@ -1055,6 +1056,7 @@
 <li><strong><code>@Id</code></strong> 主键; <code>@Basic</code> 其他属性,可省略</li>
 <li><strong><code>@GeneratedValue</code></strong> 批注后主键会自动生成值，默认使用id生成策略是AUTO。@GeneratedValue(strategy=GenerationType.AUTO)，其中(strategy=GenerationType.AUTO)可以省略，会自动根据mysql/oracle转换，相当于xml方式中的native</li>
 <li><strong><code>@Column(name=&quot;_title&quot;)</code></strong> 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致</li>
+<li><code>@JoinColumn</code>、<code>@OneToMany</code>等见下文关系映射</li>
 <li><code>@OrderBy(&quot;name ASC&quot;)</code> 排序</li>
 <li><code>@Transient</code> 透明的.表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可</li>
 <li><code>@Temporal(value=TemporalType.DATE)</code> 表示相应日期类型只记录日期,最终表的字段类型是DATE。不写的话默认是记录日期和时间,字段类型是TIMESTAMP。此处可以省略”value=”。不常用</li>
@@ -1131,7 +1133,7 @@
 </ul>
 </li>
 </ol>
-<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0neTo0ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code></p>
+<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0neTo0ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code>（<strong>字段定义和set方法省略</strong>）</p>
 <ol>
 <li><p>一对一</p>
 <ul>
@@ -2016,11 +2018,14 @@
     <link href="http://blog.aezo.cn/2017/01/16/arch/nginx/"/>
     <id>http://blog.aezo.cn/2017/01/16/arch/nginx/</id>
     <published>2017-01-16T08:54:00.000Z</published>
-    <updated>2017-08-05T05:59:09.885Z</updated>
+    <updated>2017-09-26T15:47:25.490Z</updated>
     
     <content type="html"><![CDATA[<h2 id="nginx使用"><a href="#nginx使用" class="headerlink" title="nginx使用"></a>nginx使用</h2><ul>
 <li>安装<ul>
-<li><code>yum install nginx</code> 安装</li>
+<li><code>yum install nginx</code> 安装<ul>
+<li>默认可执行文件路径<code>/usr/sbin/nginx</code>(已加入到系统服务); 配置文件路径<code>/etc/nginx/nginx.conf</code></li>
+</ul>
+</li>
 <li>程序包解压安装</li>
 </ul>
 </li>
@@ -2030,19 +2035,27 @@
 </ul>
 </li>
 <li>停止<ul>
-<li><code>systemctl stop nginx</code></li>
+<li><code>systemctl stop nginx</code><ul>
+<li>有时候启动失败可能是端口占用，<code>listen</code>对应的端口必须是空闲状态</li>
+</ul>
+</li>
 <li><code>sudo ./nginx -s stop</code></li>
 </ul>
 </li>
 <li>相关命令<ul>
 <li><code>ps -ef | grep nginx</code> 查看nginx安装位置(nginx的配置文件.conf在此目录下)</li>
-<li><code>find / -name nginx.conf</code> 查看配置文件位置</li>
-<li><code>nginx -t</code> 检查配置文件的配置是否合法(也会返回配置文件位置)</li>
+<li><code>sudo find / -name nginx.conf</code> 查看配置文件位置</li>
+<li><code>/usr/sbin/nginx -t</code> 检查配置文件的配置是否合法(也会返回配置文件位置)</li>
 </ul>
 </li>
 </ul>
-<h2 id="nginx配置-nginx-conf"><a href="#nginx配置-nginx-conf" class="headerlink" title="nginx配置(nginx.conf)"></a>nginx配置(nginx.conf)</h2><pre><code><figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">   server &#123;</div><div class="line">       <span class="comment"># 监听的端口，注意要在服务器后台开启80端口外网访问权限</span></div><div class="line">       listen   80;</div><div class="line">       <span class="comment"># 服务器的地址              </span></div><div class="line">       server_name www.aezo.cn;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)</span></div><div class="line">	location = / &#123;</div><div class="line">		rewrite / http://<span class="variable">$server_name</span>/hello <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin</span></div><div class="line">       <span class="comment"># location后的地址可正则</span></div><div class="line">       location / &#123;</div><div class="line">		proxy_set_header X-Forward-For <span class="variable">$proxy_add_x_forwarded_for</span>;</div><div class="line">		proxy_set_header Host <span class="variable">$http_host</span>;</div><div class="line">		proxy_redirect off;</div><div class="line">		<span class="keyword">if</span> (!-f <span class="variable">$request_filename</span>) &#123;</div><div class="line">			proxy_pass http://127.0.0.1:8080;  </div><div class="line">			<span class="built_in">break</span>;</div><div class="line">		&#125;</div><div class="line">       &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">   <span class="comment"># 开启第二个站点监听</span></div><div class="line">   server &#123;</div><div class="line">       listen 80;</div><div class="line">       server_name hello.aezo.cn;</div><div class="line"></div><div class="line">       location = / &#123;</div><div class="line">           <span class="comment">#判断是否为手机移动端</span></div><div class="line">           <span class="keyword">if</span> (<span class="variable">$http_user_agent</span> ~* <span class="string">'(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)'</span>) &#123;</div><div class="line">               rewrite . http://<span class="variable">$server_name</span>/wap <span class="built_in">break</span>;</div><div class="line">           &#125;</div><div class="line">           rewrite . http://<span class="variable">$server_name</span>/pc <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       location / &#123;</div><div class="line">           proxy_pass http://127.0.0.1:8090;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
-</code></pre>]]></content>
+<h2 id="nginx配置-nginx-conf"><a href="#nginx配置-nginx-conf" class="headerlink" title="nginx配置(nginx.conf)"></a>nginx配置(nginx.conf)</h2><ul>
+<li>文件默认是只读的，需要root权限编辑。<code>sudo vim nginx.conf</code></li>
+<li><p>配置如下</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line">   server &#123;</div><div class="line">       <span class="comment"># 监听的端口，注意要在服务器后台开启80端口外网访问权限</span></div><div class="line">       listen   80;</div><div class="line">       <span class="comment"># 服务器的地址              </span></div><div class="line">       server_name www.aezo.cn;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)</span></div><div class="line">	location = / &#123;</div><div class="line">		rewrite / http://<span class="variable">$server_name</span>/hello <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin</span></div><div class="line">       <span class="comment"># location后的地址可正则</span></div><div class="line">       location / &#123;</div><div class="line">		proxy_set_header X-Forward-For <span class="variable">$proxy_add_x_forwarded_for</span>;</div><div class="line">		proxy_set_header Host <span class="variable">$http_host</span>;</div><div class="line">		proxy_redirect off;</div><div class="line">		<span class="keyword">if</span> (!-f <span class="variable">$request_filename</span>) &#123;</div><div class="line">               <span class="comment"># 不能包含/等uri地址, 如果匹配到上面的uri则转向http://127.0.0.1:8080/xxxUri</span></div><div class="line">			proxy_pass http://127.0.0.1:8080;</div><div class="line">			<span class="built_in">break</span>;</div><div class="line">		&#125;</div><div class="line">       &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">   <span class="comment"># 开启第二个站点监听</span></div><div class="line">   server &#123;</div><div class="line">       listen 80;</div><div class="line">       server_name hello.aezo.cn;</div><div class="line"></div><div class="line">       location = / &#123;</div><div class="line">           <span class="comment">#判断是否为手机移动端</span></div><div class="line">           <span class="keyword">if</span> (<span class="variable">$http_user_agent</span> ~* <span class="string">'(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)'</span>) &#123;</div><div class="line">               rewrite . http://<span class="variable">$server_name</span>/wap <span class="built_in">break</span>;</div><div class="line">           &#125;</div><div class="line">           rewrite . http://<span class="variable">$server_name</span>/pc <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       location / &#123;</div><div class="line">           proxy_pass http://127.0.0.1:8090;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+]]></content>
     
     <summary type="html">
     
@@ -2186,10 +2199,10 @@
   
   <entry>
     <title>maven</title>
-    <link href="http://blog.aezo.cn/2016/12/29/extend/maven/"/>
-    <id>http://blog.aezo.cn/2016/12/29/extend/maven/</id>
+    <link href="http://blog.aezo.cn/2016/12/29/arch/maven/"/>
+    <id>http://blog.aezo.cn/2016/12/29/arch/maven/</id>
     <published>2016-12-29T02:18:00.000Z</published>
-    <updated>2017-09-09T08:59:38.040Z</updated>
+    <updated>2017-09-29T04:51:04.630Z</updated>
     
     <content type="html"><![CDATA[<h2 id="maven简介"><a href="#maven简介" class="headerlink" title="maven简介"></a>maven简介</h2><h2 id="maven实战"><a href="#maven实战" class="headerlink" title="maven实战"></a>maven实战</h2><h3 id="maven镜像修改"><a href="#maven镜像修改" class="headerlink" title="maven镜像修改"></a>maven镜像修改</h3><pre><code>- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&lt;mirrors&gt;标签，添加如下子标签
 
@@ -2202,28 +2215,55 @@
 
     <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>demo<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!--声明父项目坐标--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>smtools<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。 --&gt;</span></div><div class="line">	<span class="comment">&lt;!-- &lt;relativePath/&gt;的默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom --&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 建议写上，否则仅打包子项目的时候会出错 --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">relativePath</span>&gt;</span>../pom.xml<span class="tag">&lt;/<span class="name">relativePath</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"><span class="comment">&lt;!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!--依赖于此项目的其他模块:此时idea的Dependencies可看到相应的依赖关系--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--project.version表示当前项目(此pom文件所在的模块/项目)的版本--&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;project.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div></pre></td></tr></table></figure>
 
-
 - 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
-</code></pre><h2 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h2><ul>
-<li><p>打包命令：<code>mvn install</code>、<code>mvn package</code></p>
+</code></pre><h3 id="maven项目依赖本地jar包"><a href="#maven项目依赖本地jar包" class="headerlink" title="maven项目依赖本地jar包"></a>maven项目依赖本地jar包</h3><ul>
+<li>法一：将项目安装到本地maven库：<code>mvn install</code><strong>(推荐)</strong><ul>
+<li>如果有pom.xml建议安装到本地再进行引用，(下面两种方式)否则编译的时候不会报错，但是运行时这些本地jar依赖就找不到(如：<code>nested exception is java.lang.NoClassDefFoundError</code>)</li>
+<li>有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(<code>mvn install -DskipTests</code>)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此</li>
+</ul>
+</li>
+<li><p>法二：依赖写法(只能一个jar一个jar的添加)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--groupId等是从jar包的META-INF中获得; 其中scope必须加; $&#123;basedir&#125;为maven内置参数--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;basedir&#125;/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>法三：在<code>build-plugins</code>节点加以下插件(可获取到目录下所有jar)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!--</span></div><div class="line">        &lt;source&gt;1.8&lt;/source&gt;</div><div class="line">        &lt;target&gt;1.8&lt;/target&gt;</div><div class="line">        &lt;encoding&gt;UTF-8&lt;/encoding&gt;</div><div class="line">        --&gt;</div><div class="line">		<span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">extdirs</span>&gt;</span>src/main/resources/lib<span class="tag">&lt;/<span class="name">extdirs</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="安装和打包"><a href="#安装和打包" class="headerlink" title="安装和打包"></a>安装和打包</h2><ul>
+<li>安装：<code>mvn install</code><ul>
+<li>执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)</li>
+</ul>
+</li>
+<li>打包命令：<code>mvn package</code></li>
+<li><p>跳过测试进行打包：<code>mvn install -DskipTests</code> / <code>mvn package -DskipTests</code>.</p>
 <ul>
-<li><p>跳过测试进行打包：<code>mvn install -DskipTests</code>. 方式二</p>
+<li><p>方式二:</p>
   <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-surefire-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">version</span>&gt;</span>2.18.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">				<span class="tag">&lt;<span class="name">skipTests</span>&gt;</span>true<span class="tag">&lt;/<span class="name">skipTests</span>&gt;</span></div><div class="line">			<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
 <li><p>在idea中使用<code>Terminal</code>进行项目打包(<code>mvn package</code>)需要注意环境变量的java版本. 版本过低容易报错如：<code>maven Unsupported major.minor version 52.0</code>. 修改版本后可进行重启idea. (修改idea配置中的maven编译版本不能影响命令行)</p>
 </li>
+<li>mvn编译是根据pom.xml配置来的. 而idea的编译/语法校验等, 是根据Libraries中的jar包来的. <strong>idea默认会根据pom.xml中的依赖找到对应的jar(.m2路径下)并应用到Libraries中(只会加本地maven库中的).</strong> 如果手动加入了一些jar包, 有可能出现本地可正常编译, maven却编译打包失败, 具体参考上述”maven项目依赖本地jar包”.</li>
 </ul>
 <h2 id="maven语法"><a href="#maven语法" class="headerlink" title="maven语法"></a>maven语法</h2><h3 id="maven项目基本结构"><a href="#maven项目基本结构" class="headerlink" title="maven项目基本结构"></a>maven项目基本结构</h3><pre><code>- pom.xml
 
     <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">"http://maven.apache.org/POM/4.0.0"</span> <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></div><div class="line">	<span class="attr">xsi:schemaLocation</span>=<span class="string">"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"</span>&gt;</div><div class="line">	<span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>minions<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!-- 打包类型可以是jar、war、pom等 --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">packaging</span>&gt;</span>jar<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>minions<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">description</span>&gt;</span>Delegated the code to all minions<span class="tag">&lt;/<span class="name">description</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">properties</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">project.reporting.outputEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.reporting.outputEncoding</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">version</span>&gt;</span>4.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
 
-
 - maven文件结构
 
     <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">- src</div><div class="line">	- main</div><div class="line">		- java</div><div class="line">			- xxx</div><div class="line">		- resources</div><div class="line">		- WEB-INFO</div><div class="line">			- web.xml</div><div class="line">	- test</div></pre></td></tr></table></figure>
-</code></pre>]]></content>
+</code></pre><h3 id="标签介绍"><a href="#标签介绍" class="headerlink" title="标签介绍"></a>标签介绍</h3><ul>
+<li><code>scope</code>：取值有compile、runtime、test、provided、system和import。<ul>
+<li>compile：这是依赖项的默认作用范围，即当没有指定依赖项的scope时默认使用compile。compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时。</li>
+<li>cruntime：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。</li>
+<li>ctest：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。</li>
+<li>cprovided：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。</li>
+<li>csystem：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。</li>
+</ul>
+</li>
+</ul>
+]]></content>
     
     <summary type="html">
     
@@ -2231,9 +2271,9 @@
     
     </summary>
     
-      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
+      <category term="arch" scheme="http://blog.aezo.cn/categories/arch/"/>
     
-      <category term="tools" scheme="http://blog.aezo.cn/categories/extend/tools/"/>
+      <category term="tools" scheme="http://blog.aezo.cn/categories/arch/tools/"/>
     
     
       <category term="maven" scheme="http://blog.aezo.cn/tags/maven/"/>
@@ -3097,17 +3137,11 @@
     <link href="http://blog.aezo.cn/2016/10/12/db/oracle-dba/"/>
     <id>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</id>
     <published>2016-10-12T13:06:00.000Z</published>
-    <updated>2017-07-31T07:08:29.062Z</updated>
+    <updated>2017-09-20T13:49:49.566Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
 <p>注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例</p>
 </blockquote>
-<ol>
-<li>下载<ul>
-<li>数据库安装包：<a href="http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html" target="_blank" rel="external">oracle</a></li>
-</ul>
-</li>
-</ol>
 <h3 id="oracle相关名词和原理"><a href="#oracle相关名词和原理" class="headerlink" title="oracle相关名词和原理"></a>oracle相关名词和原理</h3><ol>
 <li>数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) <a href="http://www.cnblogs.com/advocate/archive/2010/08/20/1804063.html" target="_blank" rel="external">^1</a><ul>
 <li><code>DB_NAME</code>: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。</li>
@@ -3244,6 +3278,7 @@
 <li>修改用户密码：<code>alter user scott identified by tiger;</code></li>
 <li>修改用户表空间：<code>alter user aezo default tablespace aezocn;</code></li>
 <li>解锁用户：<code>alter user scott account unlock;</code> (新建数据库scott默认未解锁)</li>
+<li>密码过期：(1) 重新设置密码即可<code>alter user aezo identified by aezo;</code> (2)设置永久不过期<code>alter profile default limit password_life_time unlimited;</code></li>
 </ul>
 </li>
 <li><p>授权</p>
@@ -3365,7 +3400,9 @@
 </ul>
 </li>
 </ol>
-]]></content>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>- 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
+- oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
+</code></pre>]]></content>
     
     <summary type="html">
     

@@ -95,19 +95,19 @@
 
 
 
-<meta name="description" content="系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:0">
+<meta name="description" content="系统命令信息查询 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24">
 <meta name="keywords" content="linux,shell">
 <meta property="og:type" content="article">
 <meta property="og:title" content="linux系统命令">
 <meta property="og:url" content="http://blog.aezo.cn/2016/07/21/linux/linu-system/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:0">
+<meta property="og:description" content="系统命令信息查询 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
 <meta property="og:image" content="http://data/images/2017/02/类型与权限.gif">
-<meta property="og:updated_time" content="2017-08-29T12:52:19.366Z">
+<meta property="og:updated_time" content="2017-09-29T08:06:37.657Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux系统命令">
-<meta name="twitter:description" content="系统命令 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:0">
+<meta name="twitter:description" content="系统命令信息查询 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24">
 <meta name="twitter:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
 
 
@@ -377,7 +377,7 @@
       
 
       
-        <h2 id="系统命令"><a href="#系统命令" class="headerlink" title="系统命令"></a>系统命令</h2><ul>
+        <h2 id="系统命令"><a href="#系统命令" class="headerlink" title="系统命令"></a>系统命令</h2><h3 id="信息查询"><a href="#信息查询" class="headerlink" title="信息查询"></a>信息查询</h3><ul>
 <li><p>查看系统信息</p>
 <ul>
 <li><p>查看操作系统版本 <code>cat /proc/version</code></p>
@@ -388,21 +388,21 @@
 <li><p>查看CentOS版本 <code>cat /etc/redhat-release</code> 如：CentOS Linux release 7.2.1511 (Core)</p>
 </li>
 <li>查看内存 <code>grep MemTotal /proc/meminfo</code></li>
+<li><code>df -hl</code> 查看磁盘使用情况</li>
+<li>查看内网ip <code>ip addr</code></li>
+<li>检查网络连接 <code>ping 192.168.1.1</code>(或者<code>ping www.baidu.com</code>)，检查端口：<code>telnet 192.168.1.1 8080</code></li>
 </ul>
 </li>
-<li><p>查看启动的服务(不包括系统的)：<code>chkconfig --list</code></p>
-</li>
-<li><code>shutdown -r now</code> root登录可立刻重启</li>
-<li><code>df -hl</code> 查看磁盘使用情况</li>
-<li><code>netstat -lnp</code> 查看所有进场信息(端口、PID)<ul>
+<li><p>查询程序信息</p>
+<ul>
+<li>查看安装程序(支持模糊查询) <code>rpm -qa | grep vsftpd</code> 查看是否安装vsftpd(一款ftp服务器软件)</li>
+<li><code>netstat -lnp</code> 查看所有进程信息(端口、PID)<ul>
+<li>root运行：<code>sudo netstat -lnp</code> 可查看使用root权限运行的进程PID(否则PID隐藏)</li>
 <li><code>ss -ant</code> CentOS 7 查看所有监听端口</li>
 <li><code>netstat -tnl</code> 查看开放的端口</li>
 <li><code>netstat -lnp | grep tomcat</code> 查看含有tomcat相关的进程</li>
 </ul>
 </li>
-<li>安装程序包 <code>rpm -ivh 安装包名</code></li>
-<li>查看安装程序(支持模糊查询) <code>rpm -qa | grep vsftpd</code> 查看是否安装vsftpd(一款ftp服务器软件)</li>
-<li>检查网络连接 <code>ping 192.168.1.1</code>(或者<code>ping www.baidu.com</code>)，检查端口：<code>telnet 192.168.1.1 8080</code></li>
 <li>查看进程信息<ul>
 <li><code>ps -ef | grep java | grep -v grep</code>(其中java可换成run.py等)<ul>
 <li>结果如：<code>root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py</code>. 运行用户、进场id、…</li>
@@ -411,13 +411,30 @@
 <li>自带程序<code>top</code>查看, 推荐安装功能更强大的<code>htop</code></li>
 </ul>
 </li>
+</ul>
+</li>
+</ul>
+<h3 id="强制关闭重启"><a href="#强制关闭重启" class="headerlink" title="强制关闭重启"></a>强制关闭重启</h3><ul>
+<li><code>shutdown -r now</code> root登录可立刻重启</li>
 <li>关闭某个PID进程 <code>kill PID</code><ul>
 <li><code>netstat -lnp</code> 查看所有进场信息(端口、PID)</li>
 <li>强制杀进程 <code>kill -s 9 PID</code></li>
 </ul>
 </li>
+</ul>
+<h3 id="程序-服务"><a href="#程序-服务" class="headerlink" title="程序/服务"></a>程序/服务</h3><ul>
+<li>类似<code>produce_0.0.1_linux_amd64.tar.gz</code>压缩包安装<ul>
+<li>解压<code>tar -xvf produce_0.0.1_linux_amd64.tar.gz</code>, 会在当前目录生成一个<code>produce_0.0.1_linux_amd64</code>的文件夹</li>
+<li>进入文件加运行相应的二进制文件即可<code>./mybash</code></li>
+</ul>
+</li>
+<li>安装程序包 <code>rpm -ivh 安装包名</code></li>
+</ul>
+<h3 id="程序运行"><a href="#程序运行" class="headerlink" title="程序运行"></a>程序运行</h3><ul>
 <li>运行sh文件：进入到该文件目录，运行<code>./xxx.sh</code></li>
 <li>脱机后台运行sh文件：<code>nohup bash startofbiz.sh &gt; my.log 2&gt;&amp;1 &amp;</code><ul>
+<li>运行二进制文件：<code>nohup ./mybash &gt; my.log 2&gt;&amp;1 &amp;</code> 其中mybash为可执行的二进制文件</li>
+<li>sudo形式运行：<code>nohup sudo -b ./mybash &gt; my.log 2&gt;&amp;1 &amp;</code></li>
 <li>可解决利用客户端连接服务器，执行的程序当客户端退出后，服务器的程序也停止了</li>
 <li><code>nohup</code>这个表示脱机执行，默认在当前目录生成一个<code>nohup.out</code>的日志文件</li>
 <li><code>&amp;</code> 最后面的&amp;表示放在后台执行</li>
@@ -428,7 +445,30 @@
 </li>
 </ul>
 </li>
-<li>查看内网ip <code>ip addr</code></li>
+</ul>
+<h3 id="自定义服务-8"><a href="#自定义服务-8" class="headerlink" title="自定义服务 ^8"></a>自定义服务 <a href="[自定义服务](https://segmentfault.com/a/1190000009723940)">^8</a></h3><ul>
+<li>nginx安装一般会自动注册到服务中取，有些手动安装可能需要自己注册.以nginx手动注册成服务为例</li>
+<li><p>方法：建立服务文件<code>vim /usr/lib/systemd/system/nginx.service</code>(注意路径)，文件内容如下：</p>
+<pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">[Unit]</div><div class="line">Description=nginx - high performance web server</div><div class="line">After=network.target remote-fs.target nss-lookup.target</div><div class="line"></div><div class="line">[Service]</div><div class="line">Type=forking</div><div class="line">ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf</div><div class="line">ExecReload=/usr/local/nginx/sbin/nginx -s reload</div><div class="line">ExecStop=/usr/local/nginx/sbin/nginx -s stop</div><div class="line"></div><div class="line">[Install]</div><div class="line">WantedBy=multi-user.target</div></pre></td></tr></table></figure>
+</code></pre><ul>
+<li>说明  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">[Unit] 服务的说明</div><div class="line">Description 描述服务</div><div class="line">After 依赖，当依赖的服务启动之后再启动自定义的服务</div><div class="line"></div><div class="line">[Service] 服务运行参数的设置</div><div class="line">Type=forking 是后台运行的形式; Type=oneshot适用于只执行一项任务、随后立即退出的服务。</div><div class="line">ExecStart 为服务的具体运行命令</div><div class="line">ExecReload 为重启命令</div><div class="line">ExecStop 为停止命令</div><div class="line">PrivateTmp=True 表示给服务分配独立的临时空间</div><div class="line">注意：启动、重启、停止命令全部要求使用绝对路径</div><div class="line"></div><div class="line">[Install] 服务安装的相关设置，可设置为多用户</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>命令：</p>
+<ul>
+<li>启动：<code>systemctl start nginx.service</code></li>
+<li>查看状态：<code>systemctl status nginx.service</code></li>
+<li>重启服务：<code>systemctl restart nginx.service</code></li>
+<li>停止服务：<code>systemctl stop nginx.service</code></li>
+<li>查看所有服务：<code>systemctl list-units --type=service</code><ul>
+<li>查看所有：<code>systemctl list-unit-files</code></li>
+</ul>
+</li>
+<li>设置开机启动：<code>systemctl enable nginx.service</code></li>
+<li>停止开机启动：<code>systemctl disable nginx.service</code></li>
+</ul>
+</li>
 </ul>
 <h2 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h2><h3 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a>磁盘</h3><ol>
 <li>查看磁盘使用情况 <code>df -hl</code></li>
@@ -491,7 +531,7 @@
 <li><code>which &lt;exeName&gt;</code> 查询可执行文件位置 (在PATH路径中寻找)</li>
 </ul>
 </li>
-<li><code>find / -name nginx.conf</code> 查询文件位置(查看<code>nginx.conf</code>文件所在位置)</li>
+<li><code>sudo find / -name nginx.conf</code> 查询文件位置(查看<code>nginx.conf</code>文件所在位置)</li>
 </ul>
 <h3 id="文件夹-目录"><a href="#文件夹-目录" class="headerlink" title="文件夹/目录"></a>文件夹/目录</h3><ol>
 <li>新建文件夹 <strong><code>mkdir [DirName]</code></strong> (或者用绝对路径 <code>mkdir /usr/local/DirName</code>)</li>
@@ -705,7 +745,7 @@
 <li><p>配置式</p>
 <ul>
 <li><p>添加定时配置：<code>sudo vim /etc/crontab</code>，配置说明如下，如：<code>30 2 1 * * root /sbin/reboot</code>表示每月第一天的第2个小时的第30分钟，使用root执行命令/sbin/reboot(重启)</p>
-  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span> Example of job definition:</div><div class="line"><span class="meta">#</span> .---------------- minute (0 - 59)</div><div class="line"><span class="meta">#</span> |  .------------- hour (0 - 23)</div><div class="line"><span class="meta">#</span> |  |  .---------- day of month (1 - 31)</div><div class="line"><span class="meta">#</span> |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</div><div class="line"><span class="meta">#</span> |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</div><div class="line"><span class="meta">#</span> |  |  |  |  |</div><div class="line"><span class="meta">#</span> *  *  *  *  * user-name  command to be executed</div><div class="line"><span class="meta">#</span> (1) 其中用户名一般可以省略</div><div class="line"><span class="meta">#</span> (2) 精确到秒解决方案, 以下3行表示每20秒执行一次</div><div class="line"><span class="meta">#</span> * * * * * user-name my-command</div><div class="line"><span class="meta">#</span> * * * * * sleep 20; user-name my-command</div><div class="line"><span class="meta">#</span> * * * * * sleep 40; user-name my-command</div></pre></td></tr></table></figure>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> Example of job definition:</span></div><div class="line"><span class="meta">#</span><span class="bash"> .---------------- minute (0 - 59)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  .------------- hour (0 - 23)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  .---------- day of month (1 - 31)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  |</span></div><div class="line"><span class="meta">#</span><span class="bash"> *  *  *  *  * user-name  <span class="built_in">command</span> to be executed</span></div><div class="line"><span class="meta">#</span><span class="bash"> (1) 其中用户名一般可以省略</span></div><div class="line"><span class="meta">#</span><span class="bash"> (2) 精确到秒解决方案, 以下3行表示每20秒执行一次</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 20; user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 40; user-name my-command</span></div></pre></td></tr></table></figure>
 </li>
 <li><p><code>systemctl reload crond</code> 重新加载配置</p>
 </li>
@@ -854,7 +894,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -865,7 +905,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">72</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -907,7 +947,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统命令"><span class="nav-number">1.</span> <span class="nav-text">系统命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统"><span class="nav-number">2.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘"><span class="nav-number">2.1.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件"><span class="nav-number">2.2.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件夹-目录"><span class="nav-number">2.3.</span> <span class="nav-text">文件夹/目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩包-推荐tar-1"><span class="nav-number">2.4.</span> <span class="nav-text">压缩包(推荐tar) ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限系统"><span class="nav-number">3.</span> <span class="nav-text">权限系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户-6"><span class="nav-number">3.1.</span> <span class="nav-text">用户 ^6</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-2"><span class="nav-number">4.</span> <span class="nav-text">ssh ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh介绍"><span class="nav-number">4.1.</span> <span class="nav-text">ssh介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看SSH服务"><span class="nav-number">4.2.</span> <span class="nav-text">查看SSH服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（口令认证）"><span class="nav-number">4.3.</span> <span class="nav-text">SSH客户端连接服务器（口令认证）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（秘钥认证）"><span class="nav-number">4.4.</span> <span class="nav-text">SSH客户端连接服务器（秘钥认证）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务-4"><span class="nav-number">5.</span> <span class="nav-text">定时任务 ^4</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统命令"><span class="nav-number">1.</span> <span class="nav-text">系统命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#信息查询"><span class="nav-number">1.1.</span> <span class="nav-text">信息查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#强制关闭重启"><span class="nav-number">1.2.</span> <span class="nav-text">强制关闭重启</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序-服务"><span class="nav-number">1.3.</span> <span class="nav-text">程序/服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序运行"><span class="nav-number">1.4.</span> <span class="nav-text">程序运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义服务-8"><span class="nav-number">1.5.</span> <span class="nav-text">自定义服务 ^8</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统"><span class="nav-number">2.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘"><span class="nav-number">2.1.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件"><span class="nav-number">2.2.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件夹-目录"><span class="nav-number">2.3.</span> <span class="nav-text">文件夹/目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩包-推荐tar-1"><span class="nav-number">2.4.</span> <span class="nav-text">压缩包(推荐tar) ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限系统"><span class="nav-number">3.</span> <span class="nav-text">权限系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户-6"><span class="nav-number">3.1.</span> <span class="nav-text">用户 ^6</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件-1"><span class="nav-number">3.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-2"><span class="nav-number">4.</span> <span class="nav-text">ssh ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh介绍"><span class="nav-number">4.1.</span> <span class="nav-text">ssh介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看SSH服务"><span class="nav-number">4.2.</span> <span class="nav-text">查看SSH服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（口令认证）"><span class="nav-number">4.3.</span> <span class="nav-text">SSH客户端连接服务器（口令认证）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（秘钥认证）"><span class="nav-number">4.4.</span> <span class="nav-text">SSH客户端连接服务器（秘钥认证）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务-4"><span class="nav-number">5.</span> <span class="nav-text">定时任务 ^4</span></a></li></ol></div>
             
 
           </div>
