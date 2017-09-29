@@ -53,6 +53,15 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 	```
 - 至此，无需其他任何配置。浏览器访问：http://localhost:8080/
 
+## 配置文件(properties/yml)
+
+- profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`)
+- 使用配置文件(优先级从高到低)
+	- 外部配置：`java -jar aezocn.jar --spring.profiles.active=prod`
+	- 配置文件：`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
+- 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
+
+
 ## 常用配置
 
 - 随应用启动而运行(实现`CommandLineRunner`接口)
@@ -83,7 +92,7 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 ## 请求及响应
 
 - 相关配置
-	
+
 	```
 	# 端口
 	server.port=9090
@@ -91,7 +100,7 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 	server.context-path=/myapp
 	```
 - 请求协议
-	
+
 |request-method |content-type   |postman   |springboot   |说明
 --|---|---|---|---
 post |application/json   |row-json   |(@RequestBody User user)   |如果后台使用了@RequestBody，此时row-text等都无法请求到
@@ -101,7 +110,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 1. `'content-type': 'multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
 	- `javascript XHR`需要使用`new FormData()`进行数据传输(可查看postman代码)
 	- 还可使用`MultipartFile`来接受单个文件, 使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件 [^3]
-	
+
 	```java
 	// 此时User会根据前台参数和User类的set方法自动填充(调用的是User类的set方法)
 	@RequestMapping(path = "/edit-user", method = RequestMethod.POST)
@@ -114,12 +123,12 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		try {
 			// 为了获取文件项
 			Collection<Part> parts = request.getParts();
-			
+
 			// part中包含了所有数据(参数和文件)
 			for (Part part: parts) {
 				String originName = part.getSubmittedFileName(); // 上传文件对应的文件名
 				System.out.println("originName = " + originName);
-				
+
 				if(null != originName) {
 					// 此part为文件
 					InputStream inputStream = part.getInputStream();
@@ -133,7 +142,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		return result;
 	}
 	```
-	
+
 
 ## 数据访问
 
@@ -178,7 +187,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 
 	```properties
 	## spring.jpa.database=MYSQL
-	# 自动执行ddl语句(create/create-drop/update). 
+	# 自动执行ddl语句(create/create-drop/update).
 	spring.jpa.hibernate.ddl-auto=update
 	# 打印sql执行语句, 查询和建表
 	spring.jpa.show-sql=true
@@ -220,7 +229,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		List<Object[]> countUser(@Param("password") String password);
 
 		// 原生sql
-		@Query(value = "select u.* from user u, user_class uc where uc.class_id = u.class_id and uc.class_name = 'one'", 
+		@Query(value = "select u.* from user u, user_class uc where uc.class_id = u.class_id and uc.class_name = 'one'",
 				nativeQuery = true)
 		List<Object[]> findUsers();
 
@@ -359,6 +368,50 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 	</dependency>
 	```
 - 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml"})` // 声明需要扫描mapper的路径
+- 配置
+
+	```properties
+	# 基于xml配置时需指明映射文件扫描位置
+	mybatis.mapper-locations=classpath:mapper/*.xml
+	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置
+	mybatis.config-location=classpath:mybatis-config.xml
+
+	# 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
+	#mybatis.configuration.map-underscore-to-camel-case=true
+	# 类型别名定义扫描的包(可结合@Alias使用, 默认是类名首字母小写)
+	#mybatis.type-aliases-package=cn.aezo.springboot.mybatis.model
+	```
+- mybatis配置文件: `mybatis-config.xml`
+
+	```xml
+	<?xml version="1.0" encoding="UTF-8" ?>
+	<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+	<!--在application.properties中使用了mybatis.configuration进行配置，无需此文件(传统配置)-->
+	<configuration>
+		<settings>
+			<!--字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)-->
+			<setting name="mapUnderscoreToCamelCase" value="true"/>
+		</settings>
+
+		<!--类型别名定义-->
+		<typeAliases>
+			<!--定义需要扫描的包-->
+			<package name="cn.aezo.springboot.mybatis.model"/>
+
+			<!--定义后可在映射文件中间的parameterType等字段中使用userInfo代替cn.aezo.springboot.mybatis.model.UserInfo-->
+			<!--<typeAlias alias="userInfo" type="cn.aezo.springboot.mybatis.model.UserInfo" />-->
+		</typeAliases>
+
+		<plugins>
+			<!-- 分页插件 -->
+			<!-- 5.0.0以后使用com.github.pagehelper.PageInterceptor作为拦截器 -->
+			<plugin interceptor="com.github.pagehelper.PageInterceptor">
+				<!--更多参数配置：https://github.com/pagehelper/Mybatis-PageHelper/blob/master/wikis/zh/HowToUse.md-->
+				<!--<property name="pageSizeZero" value="true"/>-->
+			</plugin>
+		</plugins>
+	</configuration>
+	```
 - Model：UserInfo/ClassInfo等无需任何注解.(其中HobbyEnum是一个枚举类)
 - `annotation版本(适合简单业务)`
 	- Dao层：UserMapper.java
@@ -368,13 +421,16 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		public interface UserMapper {
 			// 此处注入变量可以使用#或者$, 区别：# 创建的是一个prepared statement语句, $ 符创建的是一个inlined statement语句
 			@Select("select * from user_info where nick_name = #{nickName}")
-			// 数据库字段名和model字段名或javaType不一致的均需要@Result转换, 此时获取不到groupId的值
-			@Results({
-					@Result(property = "hobby",  column = "hobby", javaType = HobbyEnum.class),
-					@Result(property = "nickName", column = "nick_name"),
-					// @Result(property = "groupId", column = "group_Id")
-			})
+			// (使用配置<setting name="mapUnderscoreToCamelCase" value="true"/>因此无需转换) 数据库字段名和model字段名或javaType不一致的均需要@Result转换
+			// @Results({
+			//         @Result(property = "hobby",  column = "hobby", javaType = HobbyEnum.class),
+			//         @Result(property = "nickName", column = "nick_name"),
+			//         @Result(property = "groupId", column = "group_Id")
+			// })
 			UserInfo findByNickName(String nickName);
+
+			@Select("select * from user_info")
+			List<UserInfo> findAll();
 
 			@Insert("insert into user_info(nick_name, group_id, hobby) values(#{nickName}, #{groupId}, #{hobby})")
 			void insert(UserInfo userInfo);
@@ -386,9 +442,66 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 			void delete(Long id);
 		}
 		```
+	- 分页
+
+		```java
+		// 分页查询：http://localhost:9526/api/users
+		@RequestMapping(value = "/users")
+		public PageInfo showAllUser(
+				@RequestParam(defaultValue = "1") Integer pageNum,
+				@RequestParam(defaultValue = "5") Integer pageSize) {
+			PageHelper.startPage(pageNum, pageSize); // 默认查询第一页，显示5条数据
+			List<UserInfo> users = userMapper.findAll(); // 第一条执行的SQL语句会被分页，实际上输出users是page对象
+			PageInfo<UserInfo> pageUser = new PageInfo<UserInfo>(users); // 将users对象绑定到pageInfo
+
+			return pageUser;
+		}
+		```
+
+		- 分页查询结果
+
+		```javascript
+		{
+			pageNum: 1,
+			pageSize: 5,
+			size: 2,
+			startRow: 1,
+			endRow: 2,
+			total: 2,
+			pages: 1,
+			list: [
+				{
+					id: 1,
+					groupId: 1,
+					nickName: "smalle",
+					hobby: "GAME"
+				},
+				{
+					id: 2,
+					groupId: 1,
+					nickName: "aezo",
+					hobby: "CODE"
+				}
+			],
+			prePage: 0,
+			nextPage: 0,
+			isFirstPage: true,
+			isLastPage: true,
+			hasPreviousPage: false,
+			hasNextPage: false,
+			navigatePages: 8,
+			navigatepageNums: [
+				1
+			],
+			navigateFirstPage: 1,
+			navigateLastPage: 1,
+			firstPage: 1,
+			lastPage: 1
+		}
+		```
 	- 测试
 
-		```
+		```java
 		@Test
 		public void testFindByNickName() {
 			UserInfo userInfo = userMapper.findByNickName("smalle");
@@ -401,19 +514,6 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		}
 		```
 - `xml版本(适合复杂操作)`
-	- 配置
-
-		```properties
-		# 基于xml配置时需指明映射文件扫描位置
-		mybatis.mapper-locations=classpath:mapper/*.xml
-		# 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
-		mybatis.configuration.map-underscore-to-camel-case=true
-		# 类型别名定义扫描的包(可结合@Alias使用, 默认是类名首字母小写)
-		mybatis.type-aliases-package=cn.aezo.springboot.mybatis.model
-
-		# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用)
-		# mybatis.config-location=classpath:mybatis-config.xml
-		```
 	- Dao层：UserMapperXml.java
 
 		```java
@@ -494,15 +594,14 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		</mapper>
 		```
 
-
-### 配置相关
+### 数据库相关配置
 
 - 数据库/表新建时命名策略(JPA) [doc](https://docs.spring.io/spring-boot/docs/1.5.6.RELEASE/reference/htmlsingle/#howto-configure-hibernate-naming-strategy)
-	
+
 	- `org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy`为springboot默认提供命令策略(实体驼峰转成数据库下划线)
 	- 示例：给表名加前缀
 		- 配置：`spring.jpa.hibernate.naming.physical-strategy=cn.aezo.springboot.CustomPhysicalNamingStrategy`
-	
+
 		```java
 		public class CustomPhysicalNamingStrategy extends SpringPhysicalNamingStrategy {
 			// 重写父类方法
@@ -514,7 +613,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 
 				return this.apply(Identifier.toIdentifier("th_" + name.getText()), jdbcEnvironment);
 			}
-			
+
 			// copy父类方法
 			private Identifier apply(Identifier name, JdbcEnvironment jdbcEnvironment) {
 				if(name == null) {
@@ -539,14 +638,14 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		}
 
 		```
-	
+
 ### 使用H2数据库
 
 - h2简介 [^1]：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库
 - [官网：http://h2database.com/html/main.html](http://h2database.com/html/main.html)
 - springboot整合
 	- 添加依赖(jpa等省略)
-	
+
 		```
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -555,13 +654,13 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		</dependency>
 		```
 	- 连接配置
-		
+
 		```
 		spring:
 		  datasource:
 			# 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)
 			url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;
-			# 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空). 
+			# 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).
 			# 如果已经生成了数据库文件(同时也生成了密码), 那么再修改此处用户名密码将无法连接数据库
 			username: sa
 			password: sa
@@ -591,7 +690,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		- 其他都不需要填写(url处可能报红可忽略)
 
 ## 企业级开发
-	
+
 ### rabbitmq
 
 - RabbitMQ是实现了高级消息队列协议(AMQP)的开源消息代理软件，也称为面向消息的中间件。后续操作需要先安装RabbitMQ服务
@@ -650,7 +749,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
     }
     ```
 
-	
+
 ---
 [^1]: [h2介绍](http://412887952-qq-com.iteye.com/blog/2322756)
 [^2]: [idea连接h2](https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache)

@@ -1,0 +1,810 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="smalle blog" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="纯js插件优点是依赖性小，不依赖于jQuery等函数库；缺点是比较繁琐；一般不涉及到Dom树的可使用纯js写插件（如：日期库插件moment.js） 基于jquery编写插件jQuery插件开发方式主要有三种：  通过$.extend()来扩展jQuery 通过$.fn 向jQuery添加新的方法 通过$.widget()应用jQuery UI的部件工厂方式创建  第一种方式太简单，仅仅是在jQu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jquery插件开发">
+<meta property="og:url" content="http://blog.aezo.cn/2016/07/12/web/jquery/jquery-plugin/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="纯js插件优点是依赖性小，不依赖于jQuery等函数库；缺点是比较繁琐；一般不涉及到Dom树的可使用纯js写插件（如：日期库插件moment.js） 基于jquery编写插件jQuery插件开发方式主要有三种：  通过$.extend()来扩展jQuery 通过$.fn 向jQuery添加新的方法 通过$.widget()应用jQuery UI的部件工厂方式创建  第一种方式太简单，仅仅是在jQu">
+<meta property="og:updated_time" content="2017-08-12T02:29:53.412Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="jquery插件开发">
+<meta name="twitter:description" content="纯js插件优点是依赖性小，不依赖于jQuery等函数库；缺点是比较繁琐；一般不涉及到Dom树的可使用纯js写插件（如：日期库插件moment.js） 基于jquery编写插件jQuery插件开发方式主要有三种：  通过$.extend()来扩展jQuery 通过$.fn 向jQuery添加新的方法 通过$.widget()应用jQuery UI的部件工厂方式创建  第一种方式太简单，仅仅是在jQu">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2016/07/12/web/jquery/jquery-plugin/"/>
+
+
+
+
+
+  <title>jquery插件开发 | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/12/web/jquery/jquery-plugin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">jquery插件开发</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-12T09:47:00+08:00">
+                2016-07-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="纯js插件"><a href="#纯js插件" class="headerlink" title="纯js插件"></a>纯js插件</h2><p>优点是依赖性小，不依赖于jQuery等函数库；缺点是比较繁琐；一般不涉及到Dom树的可使用纯js写插件（如：日期库插件moment.js）</p>
+<h2 id="基于jquery编写插件"><a href="#基于jquery编写插件" class="headerlink" title="基于jquery编写插件"></a>基于jquery编写插件</h2><p>jQuery插件开发方式主要有三种：</p>
+<ol>
+<li>通过$.extend()来扩展jQuery</li>
+<li>通过$.fn 向jQuery添加新的方法</li>
+<li>通过$.widget()应用jQuery UI的部件工厂方式创建</li>
+</ol>
+<p>第一种方式太简单，仅仅是在jQuery命名空间或者理解成jQuery身上添加了一个静态方法而以，通常我们使用第二种方法来进行简单插件开发，说简单是相对于第三种方式。第三种方式是用来开发更高级jQuery部件的，这里不细说。</p>
+<h3 id="extend-用法"><a href="#extend-用法" class="headerlink" title="$.extend()用法"></a>$.extend()用法</h3><ul>
+<li><p>给extend方法传递单个对象的情况下，这个对象会合并到jQuery身上，所以我们就可以在jQuery身上调用新合并对象里包含的方法了<code>$.extend(Object)</code></p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$.extend(&#123;</div><div class="line">  <span class="attr">log</span>: <span class="function"><span class="keyword">function</span>(<span class="params">str</span>) </span>&#123;</div><div class="line">      <span class="built_in">console</span>.log(str ? str : <span class="string">'Good!'</span>);</div><div class="line">  &#125;</div><div class="line">&#125;)</div><div class="line"><span class="comment">//调用</span></div><div class="line">$.log(); <span class="comment">// Good!</span></div><div class="line">$.log(<span class="string">'Hello!'</span>); <span class="comment">// Hello!</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>当给extend方法传递一个以上的参数时，它会将所有参数对象合并到第一个里。同时，如果对象中有同名属性时，合并的时候后面的会覆盖前面的（经常用于$.fn写法的参数处理上）<code>$.extend(target,object1,[objectN])</code>、<code>$.extend([deep],target,object1,[objectN])</code>（deep:如果设为true，则递归合并。target:待修改对象。object1和objectN:待合并到第一个对象的对象）</p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 用法一</span></div><div class="line"><span class="keyword">var</span> defaults = &#123;<span class="string">'name'</span>: <span class="string">'smalle'</span>, <span class="string">'age'</span>: <span class="number">18</span>&#125;;</div><div class="line"><span class="keyword">var</span> options = &#123;<span class="string">'name'</span>: <span class="string">'aezo'</span>, <span class="string">'sex'</span>: <span class="string">'boy'</span>&#125;;</div><div class="line"><span class="comment">//</span></div><div class="line"><span class="keyword">var</span> settings = $.extend(&#123;&#125;, defaults, options);</div><div class="line"><span class="built_in">console</span>.log(settings); <span class="comment">// Object &#123;name: "aezo", age: 18, sex: "boy"&#125;</span></div><div class="line"></div><div class="line"><span class="comment">// 用法二</span></div><div class="line"><span class="keyword">var</span> result = $.extend( <span class="literal">true</span>, &#123;&#125;,</div><div class="line">    &#123; <span class="attr">name</span>: <span class="string">"John"</span>, <span class="attr">location</span>: &#123;<span class="attr">city</span>: <span class="string">"Boston"</span>, <span class="attr">county</span>:<span class="string">"USA"</span>&#125; &#125;,</div><div class="line">    &#123; <span class="attr">name</span>: <span class="string">"smalle"</span>, <span class="attr">last</span>: <span class="string">"Resig"</span>, <span class="attr">location</span>: &#123;<span class="attr">state</span>: <span class="string">"MA"</span>, <span class="attr">county</span>:<span class="string">"China"</span>&#125; &#125; );</div><div class="line"><span class="comment">// deep为true，结果为：&#123;name: "smalle", last: "Resig", location:&#123;city:"Boston", state:"MA", county:"China"&#125;&#125; // name覆盖了，但是county没有覆盖</span></div><div class="line"><span class="comment">// deep为false时则为：&#123;name: "smalle", last: "Resig", location:&#123;city:"Boston", county:"China"&#125;&#125; // state未拷贝</span></div><div class="line"><span class="built_in">console</span>.log(result);</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="fn用法"><a href="#fn用法" class="headerlink" title="$.fn用法"></a>$.fn用法</h3><ul>
+<li><p>基本格式：</p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// $.fn. 后面接为插件名</span></div><div class="line">$.fn.pluginName = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="comment">//your code goes here</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>this说明：<strong>在插件名字定义的这个函数内部</strong> ，this指代的是我们在调用该插件时，用jQuery选择器选中的元素，一般是一个 <strong>jQuery类型</strong> 的集合。</p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$.fn.myPlugin = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">this</span>.css(<span class="string">'color'</span>, <span class="string">'red'</span>);</div><div class="line">&#125;</div><div class="line"><span class="comment">// 如：$('a').myPlugin(); 则 this = $('a')</span></div></pre></td></tr></table></figure>
+<blockquote>
+<ul>
+<li>比如 $(‘a’) 返回的是页面上所有 a 标签的集合，且这个集合已经是 jQuery 包装类型了，也就是说，在对其进行操作的时候可以直接调用jQuery的其他方法而不需要再用美元符号来包装一下。</li>
+<li>那么通过调用 jQuery 的 .each() 方法就可以处理合集中的每个元素了，但此刻要注意的是，在 each 方法内部，this 指带的是普通的 DOM 元素了，如果需要调用 jQuery 的方法那就需要用$来重新包装一下。</li>
+</ul>
+</blockquote>
+</li>
+<li><p>参数处理：包括默认参数和传入参数，可以使用<code>$.extend()</code>进行处理</p>
+</li>
+<li><p>支持链式调用：jQuery的一个特性是支持链式调用，选择好DOM元素后可以不断地调用其他方法。要让插件不打破这种链式调用，只需return一下即可。</p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">$.fn.myPlugin = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> defaults = &#123;</div><div class="line">      <span class="string">'color'</span>: <span class="string">'red'</span>,</div><div class="line">      <span class="string">'fontSize'</span>: <span class="string">'12px'</span></div><div class="line">  &#125;;</div><div class="line">  <span class="keyword">var</span> settings = $.extend(&#123;&#125;, defaults, options);</div><div class="line"></div><div class="line">  <span class="keyword">return</span> <span class="keyword">this</span>.each(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">      $(<span class="keyword">this</span>).css(&#123;</div><div class="line">        <span class="string">'color'</span>: settings.color,</div><div class="line">        <span class="string">'fontSize'</span>: settings.fontSize</div><div class="line">      &#125;);</div><div class="line">  &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>面向对象(方便维护、代码清晰)</p>
+<blockquote>
+<p>如果将需要的重要变量定义到对象的属性上，函数变成对象的方法，当我们需要的时候通过对象来获取，一来方便管理，二来不会影响外部命名空间，因为所有这些变量名还有方法名都是在对象内部。以后要加新功能新方法，只需向对象添加新变量及方法即可，然后在插件里实例化后即可调用新添加的东西。</p>
+</blockquote>
+</li>
+<li><p>命名空间</p>
+<ul>
+<li>不仅仅是jQuery插件的开发，我们在写任何JS代码时都应该注意的一点是不要污染全局命名空间。因为随着你代码的增多，如果有意无意在全局范围内定义一些变量的话，最后很难维护，也容易跟别人写的代码有冲突。</li>
+<li>比如你在代码中向全局window对象添加了一个变量status用于存放状态，同时页面中引用了另一个别人写的库，也向全局添加了这样一个同名变量，最后的结果肯定不是你想要的。所以不到万不得已，一般我们不会将变量定义成全局的。</li>
+<li><p>一个好的做法是始终用<code>自调用匿名函数</code>包裹你的代码，这样就可以完全放心，安全地将它用于任何地方了，绝对没有冲突。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">;(<span class="function"><span class="keyword">function</span>(<span class="params">$, window, document, undefined</span>) </span>&#123;</div><div class="line">  <span class="comment">//定义Beautifier的构造函数</span></div><div class="line">  <span class="keyword">var</span> Beautifier = <span class="function"><span class="keyword">function</span>(<span class="params">ele, opt</span>) </span>&#123;</div><div class="line">      <span class="keyword">this</span>.$element = ele,</div><div class="line">      <span class="keyword">this</span>.defaults = &#123;</div><div class="line">          <span class="string">'color'</span>: <span class="string">'red'</span>,</div><div class="line">          <span class="string">'fontSize'</span>: <span class="string">'12px'</span>,</div><div class="line">          <span class="string">'textDecoration'</span>: <span class="string">'none'</span></div><div class="line">      &#125;,</div><div class="line">      <span class="keyword">this</span>.options = $.extend(&#123;&#125;, <span class="keyword">this</span>.defaults, opt)</div><div class="line">  &#125;</div><div class="line">  <span class="comment">//定义Beautifier的方法</span></div><div class="line">  Beautifier.prototype = &#123;</div><div class="line">      <span class="attr">beautify</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">this</span>.$element.css(&#123;</div><div class="line">              <span class="string">'color'</span>: <span class="keyword">this</span>.options.color,</div><div class="line">              <span class="string">'fontSize'</span>: <span class="keyword">this</span>.options.fontSize,</div><div class="line">              <span class="string">'textDecoration'</span>: <span class="keyword">this</span>.options.textDecoration</div><div class="line">          &#125;);</div><div class="line">      &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">//在插件中使用Beautifier对象</span></div><div class="line">  $.fn.myPlugin = <span class="function"><span class="keyword">function</span>(<span class="params">options</span>) </span>&#123;</div><div class="line">      <span class="comment">//创建Beautifier的实体</span></div><div class="line">      <span class="keyword">var</span> beautifier = <span class="keyword">new</span> Beautifier(<span class="keyword">this</span>, options);</div><div class="line">      <span class="comment">//调用其方法</span></div><div class="line">      <span class="keyword">return</span> beautifier.beautify();</div><div class="line">  &#125;</div><div class="line">&#125;)(jQuery, <span class="built_in">window</span>, <span class="built_in">document</span>);</div></pre></td></tr></table></figure>
+</li>
+<li><p>开头的 <code>;</code> 防止别人的代码没有以分号结尾，导致我们的代码编译出错</p>
+</li>
+<li>传入系统变量，那么window等系统变量在插件内部就有了一个局部的引用，对访问速度有些许提升</li>
+<li>关于参数<code>undefined</code>：为了得到没有被修改的undefined，我们并没有传递这个参数，但却在接收时接收了它，因为实际并没有传，所以undefined那个位置接收到的就是真实的undefined了</li>
+</ul>
+</li>
+<li><p>jQuery选择器</p>
+<ul>
+<li><p>尽量使用Id选择器。jQuery的选择器使用的API都是基于getElementById或getElementsByTagName，因此可以知道 效率最高的是Id选择器，因为jQuery会直接调用getElementById去获取dom，而通过样式选择器获取jQuery对象时往往会使用 getElementsByTagName去获取然后筛选。</p>
+</li>
+<li><p>样式选择器应该尽量明确指定tagName, 如果开发人员使用样式选择器来获取dom，且这些dom属于同一类型，例如获取所有className为jquery的div，那么我们应该使用的写法 是<code>$(&#39;div.jquery&#39;)</code>而不是$(‘.jquery’)，这样写的好处非常明显，在获取dom时jQuery会获取div然后进行筛选，而不是 获取所有dom再筛选。</p>
+</li>
+<li><p>避免迭代，很多同学在使用jQuery获取指定上下文中的dom时喜欢使用迭代方式，如$(‘.jquery .child’)，获取className为jquery的dom下的所有className为child的节点，其实这样编写代码付出的代价是非常大 的，jQuery会不断的进行深层遍历来获取需要的元素，即使确实需要，我们也应该使用诸如<code>$(selector, context)</code>, <code>$(&#39;selector1&gt;selector2&#39;)</code>, <code>$(selector1).children(selector2)</code>, <code>$(selctor1).find(selector2)</code>之类的方式。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="插件开发注意事项"><a href="#插件开发注意事项" class="headerlink" title="插件开发注意事项"></a>插件开发注意事项</h3><ul>
+<li><p>变量定义：好的做法是把将要使用的变量名用一个var关键字一并定义在代码开头，变量名间用逗号隔开。原因有二</p>
+<ul>
+<li>一是便于理解，同时代码显得整洁且有规律，也方便管理，变量定义与逻辑代码分开；</li>
+<li>二是因为JavaScript中所有变量及函数名会自动提升，也称之为JavaScript的Hoist特性，即使你将变量的定义穿插在逻辑代码中，在代码解析运行期间，这些变量的声明还是被提升到了当前作用域最顶端的，所以我们将变量定义在一个作用域的开头是更符合逻辑的一种做法。当然，再次说明这只是一种约定，不是必需的。</li>
+</ul>
+</li>
+<li><p>变量及函数命名：一般使用驼峰命名法（CamelCase）。对于常量，所有字母采用大写，多个单词用下划线隔开；当变量是jQuery类型时，建议以$开头。</p>
+</li>
+<li><p>插件文件的命名：<code>.min</code> 表示压缩版；大小写字母敏感；如果基于 jquery 或者 bootstrap 等插件开发的，一般会以<code>jquery.</code> 开头（如：jquery.PluginName.js）；</p>
+</li>
+<li><p>插件的压缩：去掉换行、空格、注释，可以将进场出现的单词用某个字母代替，压缩后文件名一般加上<code>.min</code></p>
+</li>
+<li><p>插件相关的样式（或主题）文件：好处：用户可直接看到很好的效果，拿来即用；坏处：对用户局限太大（如果我们插件中使用bootstrap样式，那么用户向去掉这个风格会很麻烦）</p>
+</li>
+<li><p>插件的国际化</p>
+</li>
+<li><p>单元测试：一些最常见的JavaScript单元测试工具：QUnit(是jQuery团队开发并使用的单元测试框架)、YUI Test和JSTestDriver</p>
+</li>
+</ul>
+<blockquote>
+<p>参考文章</p>
+<ul>
+<li><a href="http://www.cnblogs.com/Wayou/p/jquery_plugin_tutorial.html#home" target="_blank" rel="external">http://www.cnblogs.com/Wayou/p/jquery_plugin_tutorial.html#home</a></li>
+</ul>
+</blockquote>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/11/arch/rocketmq/" rel="next" title="RocketMQ">
+                <i class="fa fa-chevron-left"></i> RocketMQ
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/17/design/uml/" rel="prev" title="UML">
+                UML <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美好</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#纯js插件"><span class="nav-number">1.</span> <span class="nav-text">纯js插件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于jquery编写插件"><span class="nav-number">2.</span> <span class="nav-text">基于jquery编写插件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#extend-用法"><span class="nav-number">2.1.</span> <span class="nav-text">$.extend()用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fn用法"><span class="nav-number">2.2.</span> <span class="nav-text">$.fn用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#插件开发注意事项"><span class="nav-number">2.3.</span> <span class="nav-text">插件开发注意事项</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

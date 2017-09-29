@@ -149,6 +149,8 @@ tags: [ssh, orm]
 
 ## 相关注解类
 
+**注解要么写在字段上，要么写在get方法上，千万不能混合使用，否则会报：** `Could not determine type for: java.util.List, at table`
+
 - 注解应该导入jpa的注解，如**`javax.persistence.*`**
 - 类级别
     - **`@Entity`**: 注解实体类, 最终会和数据库的表对应. **注解了之后需要将该类加到hibernate.cfg.xml的mapping中**
@@ -167,6 +169,7 @@ tags: [ssh, orm]
     - **`@Id`** 主键; `@Basic` 其他属性,可省略
     - **`@GeneratedValue`** 批注后主键会自动生成值，默认使用id生成策略是AUTO。@GeneratedValue(strategy=GenerationType.AUTO)，其中(strategy=GenerationType.AUTO)可以省略，会自动根据mysql/oracle转换，相当于xml方式中的native
     - **`@Column(name="_title")`** 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致
+    - `@JoinColumn`、`@OneToMany`等见下文关系映射
     - `@OrderBy("name ASC")` 排序
     - `@Transient` 透明的.表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可
     - `@Temporal(value=TemporalType.DATE)` 表示相应日期类型只记录日期,最终表的字段类型是DATE。不写的话默认是记录日期和时间,字段类型是TIMESTAMP。此处可以省略"value="。不常用
@@ -237,7 +240,7 @@ tags: [ssh, orm]
 
 ## 关系映射 (视频35-52)
 
-一对一：`@0neTo0ne`、`@JoinColumn`；一对多/多对一：`@OneToMany`、`@ManyToOne`、`@JoinColumn`；多对多：`@ManyToMany`、`@JoinTable`
+一对一：`@0neTo0ne`、`@JoinColumn`；一对多/多对一：`@OneToMany`、`@ManyToOne`、`@JoinColumn`；多对多：`@ManyToMany`、`@JoinTable`（**字段定义和set方法省略**）
 
 1. 一对一
     - `@0neTo0ne` 指定关系, `@JoinColumn` 用于指定外键名称, 省略该注解则使用默认的外键名称,  `@JoinColumns` 联合主键使用, `@Embedded` 组件映射使用
@@ -490,7 +493,7 @@ tags: [ssh, orm]
         ```
 8. 易错点
 	- 在一个实体文件中，所有的注解要么全部放在字段上，要么全部放在get方法上，不能混合使用. 否则报错`Caused by: org.hibernate.MappingException: Could not determine type for...`
-		
+
 
 ## HQL (test/cn.aezo.hibernate.hql1/2)
 

@@ -10,9 +10,6 @@ tags: [oracle, dba]
 
 > 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例
 
-1. 下载
-    - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
-
 ### oracle相关名词和原理
 
 1. 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) [^1]
@@ -133,6 +130,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - 修改用户密码：`alter user scott identified by tiger;`
     - 修改用户表空间：`alter user aezo default tablespace aezocn;`
     - 解锁用户：`alter user scott account unlock;` (新建数据库scott默认未解锁)
+    - 密码过期：(1) 重新设置密码即可`alter user aezo identified by aezo;` (2)设置永久不过期`alter profile default limit password_life_time unlimited;`
 4. 授权
     - `grant create session to aezo;` 授予aezo用户创建session的权限，即登陆权限
     - `grant unlimited tablespace to aezo;` 授予aezo用户使用表空间的权限
@@ -218,7 +216,9 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - `alter database open;`
     - `drop tablespace 表空间名`
 
-
+## 安装
+    - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
+    - oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
 
 [^1]: http://www.cnblogs.com/advocate/archive/2010/08/20/1804063.html
 [^2]: http://blog.csdn.net/starnight_cbj/article/details/6792364

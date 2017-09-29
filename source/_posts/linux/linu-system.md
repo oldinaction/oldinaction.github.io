@@ -8,39 +8,102 @@ tags: [linux, shell]
 
 ## 系统命令
 
+### 信息查询
+
 - 查看系统信息
   - 查看操作系统版本 `cat /proc/version`
   > 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
 
   - 查看CentOS版本 `cat /etc/redhat-release` 如：CentOS Linux release 7.2.1511 (Core)
   - 查看内存 `grep MemTotal /proc/meminfo`
+  - `df -hl` 查看磁盘使用情况
+  - 查看内网ip `ip addr`
+  - 检查网络连接 `ping 192.168.1.1`(或者`ping www.baidu.com`)，检查端口：`telnet 192.168.1.1 8080`
 
-- 查看启动的服务(不包括系统的)：`chkconfig --list`
-- `shutdown -r now` root登录可立刻重启
-- `df -hl` 查看磁盘使用情况
-- `netstat -lnp` 查看所有进场信息(端口、PID)
+- 查询程序信息
+  - 查看安装程序(支持模糊查询) `rpm -qa | grep vsftpd` 查看是否安装vsftpd(一款ftp服务器软件)
+  - `netstat -lnp` 查看所有进程信息(端口、PID)
+    - root运行：`sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
     - `ss -ant` CentOS 7 查看所有监听端口
     - `netstat -tnl` 查看开放的端口
     - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
-- 安装程序包 `rpm -ivh 安装包名`
-- 查看安装程序(支持模糊查询) `rpm -qa | grep vsftpd` 查看是否安装vsftpd(一款ftp服务器软件)
-- 检查网络连接 `ping 192.168.1.1`(或者`ping www.baidu.com`)，检查端口：`telnet 192.168.1.1 8080`
-- 查看进程信息
+  - 查看进程信息
     - `ps -ef | grep java | grep -v grep`(其中java可换成run.py等)
-        - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进场id、...
+      - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进场id、...
     - 自带程序`top`查看, 推荐安装功能更强大的`htop`
+
+### 强制关闭重启
+
+- `shutdown -r now` root登录可立刻重启
 - 关闭某个PID进程 `kill PID`
     - `netstat -lnp` 查看所有进场信息(端口、PID)
     - 强制杀进程 `kill -s 9 PID`
+
+### 程序/服务
+
+- 类似`produce_0.0.1_linux_amd64.tar.gz`压缩包安装
+    - 解压`tar -xvf produce_0.0.1_linux_amd64.tar.gz`, 会在当前目录生成一个`produce_0.0.1_linux_amd64`的文件夹
+    - 进入文件加运行相应的二进制文件即可`./mybash`
+- 安装程序包 `rpm -ivh 安装包名`
+
+### 程序运行
+
 - 运行sh文件：进入到该文件目录，运行`./xxx.sh`
 - 脱机后台运行sh文件：`nohup bash startofbiz.sh > my.log 2>&1 &`
+    - 运行二进制文件：`nohup ./mybash > my.log 2>&1 &` 其中mybash为可执行的二进制文件
+    - sudo形式运行：`nohup sudo -b ./mybash > my.log 2>&1 &`
     - 可解决利用客户端连接服务器，执行的程序当客户端退出后，服务器的程序也停止了
     - `nohup`这个表示脱机执行，默认在当前目录生成一个`nohup.out`的日志文件
     - `&` 最后面的&表示放在后台执行
     - `startofbiz.sh > my.log` 表示startofbiz.sh的输出重定向到my.log
     - `2>&1` 表示将错误输出重定向到标准输出
         - `0`：键盘输入；`1`：标准输入；`2`：错误输出
-- 查看内网ip `ip addr`
+
+### 自定义服务 [^8]
+
+- nginx安装一般会自动注册到服务中取，有些手动安装可能需要自己注册.以nginx手动注册成服务为例
+- 方法：建立服务文件`vim /usr/lib/systemd/system/nginx.service`(注意路径)，文件内容如下：
+
+        ```
+        [Unit]
+        Description=nginx - high performance web server
+        After=network.target remote-fs.target nss-lookup.target
+
+        [Service]
+        Type=forking
+        ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+        ExecReload=/usr/local/nginx/sbin/nginx -s reload
+        ExecStop=/usr/local/nginx/sbin/nginx -s stop
+
+        [Install]
+        WantedBy=multi-user.target
+        ```
+    - 说明
+        ```
+        [Unit] 服务的说明
+        Description 描述服务
+        After 依赖，当依赖的服务启动之后再启动自定义的服务
+
+        [Service] 服务运行参数的设置
+        Type=forking 是后台运行的形式; Type=oneshot适用于只执行一项任务、随后立即退出的服务。
+        ExecStart 为服务的具体运行命令
+        ExecReload 为重启命令
+        ExecStop 为停止命令
+        PrivateTmp=True 表示给服务分配独立的临时空间
+        注意：启动、重启、停止命令全部要求使用绝对路径
+
+        [Install] 服务安装的相关设置，可设置为多用户
+        ```
+- 命令：
+    - 启动：`systemctl start nginx.service`
+    - 查看状态：`systemctl status nginx.service`
+    - 重启服务：`systemctl restart nginx.service`
+    - 停止服务：`systemctl stop nginx.service`
+    - 查看所有服务：`systemctl list-units --type=service`
+        - 查看所有：`systemctl list-unit-files`
+    - 设置开机启动：`systemctl enable nginx.service`
+    - 停止开机启动：`systemctl disable nginx.service`
+
 
 ## 文件系统
 
@@ -87,7 +150,7 @@ tags: [linux, shell]
 - `file <fileName>` 查看文件属性
 - `whereis <fileName>` 查询文件
     - `which <exeName>` 查询可执行文件位置 (在PATH路径中寻找)
-- `find / -name nginx.conf` 查询文件位置(查看`nginx.conf`文件所在位置)
+- `sudo find / -name nginx.conf` 查询文件位置(查看`nginx.conf`文件所在位置)
 
 ### 文件夹/目录
 
@@ -303,3 +366,4 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
 [^5]: [阿里云服务器ssh设置](https://www.douban.com/doulist/44111547/)
 [^6]: [用户配置](http://www.cnblogs.com/zutbaz/p/4248845.html)
 [^7]: [服务器安全ssh配置](https://www.xiaohui.com/dev/server/linux-centos-ssh-security.htm)
+[^8]: [自定义服务](https://segmentfault.com/a/1190000009723940)

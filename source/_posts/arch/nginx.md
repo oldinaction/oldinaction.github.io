@@ -10,19 +10,24 @@ tags: [nginx]
 
 - 安装
     - `yum install nginx` 安装
+        - 默认可执行文件路径`/usr/sbin/nginx`(已加入到系统服务); 配置文件路径`/etc/nginx/nginx.conf`
     - 程序包解压安装
 - 启动
     - `systemctl start nginx` 启动
     - 进入到`nginx`执行文件目录，运行`sudo ./nginx`
 - 停止
     - `systemctl stop nginx`
+        - 有时候启动失败可能是端口占用，`listen`对应的端口必须是空闲状态
     - `sudo ./nginx -s stop`
 - 相关命令
     - `ps -ef | grep nginx` 查看nginx安装位置(nginx的配置文件.conf在此目录下)
-    - `find / -name nginx.conf` 查看配置文件位置
-    - `nginx -t` 检查配置文件的配置是否合法(也会返回配置文件位置)
+    - `sudo find / -name nginx.conf` 查看配置文件位置
+    - `/usr/sbin/nginx -t` 检查配置文件的配置是否合法(也会返回配置文件位置)
 
 ## nginx配置(nginx.conf)
+
+- 文件默认是只读的，需要root权限编辑。`sudo vim nginx.conf`
+- 配置如下
 
     ```sh
         server {
@@ -43,7 +48,8 @@ tags: [nginx]
     			proxy_set_header Host $http_host;
     			proxy_redirect off;
     			if (!-f $request_filename) {
-    				proxy_pass http://127.0.0.1:8080;  
+                    # 不能包含/等uri地址, 如果匹配到上面的uri则转向http://127.0.0.1:8080/xxxUri
+    				proxy_pass http://127.0.0.1:8080;
     				break;
     			}
             }
