@@ -750,6 +750,33 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
     ```
 
 
+
+
+
+
+## 其他
+
+### 替换项目运行时springboot的logo
+
+- 在`resources`添加`banner.txt`文件. 内容自定义(文字转字符：http://patorjk.com/software/taag/)，如：
+
+	```html
+
+
+	 .oooo.    .ooooo.    oooooooo  .ooooo.   .ooooo.  ooo. .oo.   
+	`P  )88b  d88' `88b  d'""7d8P  d88' `88b d88' `"Y8 `888P"Y88b  
+	 .oP"888  888ooo888    .d8P'   888   888 888        888   888  
+	d8(  888  888    .o  .d8P'  .P 888   888 888   .o8  888   888  
+	`Y888""8o `Y8bod8P' d8888888P  `Y8bod8P' `Y8bod8P' o888o o888o
+
+
+
+	```
+
+
+
+
+
 ---
 [^1]: [h2介绍](http://412887952-qq-com.iteye.com/blog/2322756)
 [^2]: [idea连接h2](https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache)

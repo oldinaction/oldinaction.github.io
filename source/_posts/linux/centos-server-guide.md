@@ -2,7 +2,7 @@
 layout: "post"
 title: "CentOS服务器使用指导"
 date: "2017-01-10 13:19"
-categories: [extend]
+categories: [linux]
 tags: [CentOS, server]
 ---
 

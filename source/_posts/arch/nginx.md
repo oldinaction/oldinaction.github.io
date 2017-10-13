@@ -29,7 +29,7 @@ tags: [nginx]
 - 文件默认是只读的，需要root权限编辑。`sudo vim nginx.conf`
 - 配置如下
 
-    ```sh
+    ```js
         server {
             # 监听的端口，注意要在服务器后台开启80端口外网访问权限
             listen   80;
@@ -73,3 +73,60 @@ tags: [nginx]
             }
         }
     ```
+
+## 配置
+
+- 多个server_name
+    - `server_name www.aezo.cn baidu.com;`
+    - 正则`server_name ~^.+-api-dev\.aezo\.cn$;` 匹配`xxx-api-dev.aezo.cn`
+
+## 匹配规则
+
+- 语法规则： `location [=|~|~*|^~] /uri/ { … }`
+    - `=` 开头表示精确匹配
+    - `^~` 开头表示uri以某个常规字符串开头，理解为匹配 url路径即可。nginx不对url做编码，因此请求为`/static/20%/aa`，可以被规则`^~ /static/ /aa`匹配到（注意是空格）。
+    - `~` 开头表示区分大小写的正则匹配
+    - `~*` 开头表示不区分大小写的正则匹配
+    - `!~`和`!~*`分别为区分大小写不匹配及不区分大小写不匹配的正则
+    - `/` 通用匹配，任何请求都会匹配到。
+- 多个location配置的情况下匹配顺序为:首先匹配 =，其次匹配^~, 其次是按文件中顺序的正则匹配，最后是交给 / 通用匹配。当有匹配成功时候，停止匹配，按当前匹配规则处理请求。
+- 常用配置
+    - 防盗链
+
+        ```txt
+        location ~* \.(gif|jpg|swf)$ {
+            valid_referers none blocked www.aezo.cn blog.aezo.cn;
+            if ($invalid_referer) {
+                rewrite ^/ http://$host/logo.png;
+            }
+        }
+        ```
+    - 根据文件类型设置过期时间
+
+        ```txt
+        location ~* \.(js|css|jpg|jpeg|gif|png|swf)$ {
+            if (-f $request_filename) {
+            expires 12h;
+                break;
+            }
+        }
+        ```
+    - 禁止访问某个目录
+
+        ```txt
+        location ~* \.(txt|doc)${
+            root /home/aezocn/www/doc;
+            deny all;
+        }
+        ```
+
+## 版本更新变化
+
+- v1.12.1
+    - 当访问`http://www.aezo.cn/index.html`不进入对应的页面，而是显示默认的`/usr/share/nginx/html/index.html`。解决办法：注释掉此文件即可
+
+
+
+
+
+---

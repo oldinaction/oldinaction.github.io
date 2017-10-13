@@ -2,8 +2,8 @@
 layout: "post"
 title: "javacodestyle - Java开发规范"
 date: "2016-07-06 08:39"
-categories: java
-tags: [rule]
+categories: others
+tags: [java, rule]
 ---
 
 ## 源文件基础

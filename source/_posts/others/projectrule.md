@@ -2,7 +2,7 @@
 layout: "post"
 title: "项目开发规范"
 date: "2016-07-07 09:38"
-categories: extend
+categories: others
 tags: [rule]
 ---
 
