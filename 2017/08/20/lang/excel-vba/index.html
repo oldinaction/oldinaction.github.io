@@ -1,0 +1,1008 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="excel,vb," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="简介 VBA：Visual Basic for Applications是Visual Basic的一种宏语言 官方VBA文档、官方Excel帮助、官方VB文档 基础语法、51自学视频(后面几章收费)  语法 不会写法的可以使用录制宏，然后进行代码查看  FormulaR1C1是公式输入方法  有中括号是相对于选定单元格的相对偏移量，”-“为向左或向上偏移，正数为右或下偏移。 无中括号为相对于选定">
+<meta name="keywords" content="excel,vb">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Excel VBA">
+<meta property="og:url" content="http://blog.aezo.cn/2017/08/20/lang/excel-vba/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="简介 VBA：Visual Basic for Applications是Visual Basic的一种宏语言 官方VBA文档、官方Excel帮助、官方VB文档 基础语法、51自学视频(后面几章收费)  语法 不会写法的可以使用录制宏，然后进行代码查看  FormulaR1C1是公式输入方法  有中括号是相对于选定单元格的相对偏移量，”-“为向左或向上偏移，正数为右或下偏移。 无中括号为相对于选定">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2017/08/delacCt.png">
+<meta property="og:updated_time" content="2017-08-21T07:10:19.538Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Excel VBA">
+<meta name="twitter:description" content="简介 VBA：Visual Basic for Applications是Visual Basic的一种宏语言 官方VBA文档、官方Excel帮助、官方VB文档 基础语法、51自学视频(后面几章收费)  语法 不会写法的可以使用录制宏，然后进行代码查看  FormulaR1C1是公式输入方法  有中括号是相对于选定单元格的相对偏移量，”-“为向左或向上偏移，正数为右或下偏移。 无中括号为相对于选定">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2017/08/delacCt.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2017/08/20/lang/excel-vba/"/>
+
+
+
+
+
+  <title>Excel VBA | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/08/20/lang/excel-vba/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Excel VBA</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T20:03:00+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/others/" itemprop="url" rel="index">
+                    <span itemprop="name">others</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li><code>VBA</code>：Visual Basic for Applications是Visual Basic的一种宏语言</li>
+<li><a href="https://msdn.microsoft.com/zh-cn/library/ee861528.aspx" target="_blank" rel="external">官方VBA文档</a>、<a href="https://support.office.com/zh-cn/excel" target="_blank" rel="external">官方Excel帮助</a>、<a href="https://docs.microsoft.com/zh-cn/dotnet/visual-basic/index" target="_blank" rel="external">官方VB文档</a></li>
+<li><a href="http://www.yiibai.com/vba/vba_for_loop.html" target="_blank" rel="external">基础语法</a>、<a href="http://www.51zxw.net/list.aspx?cid=539" target="_blank" rel="external">51自学视频(后面几章收费)</a></li>
+</ul>
+<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><ul>
+<li><p>不会写法的可以使用录制宏，然后进行代码查看</p>
+</li>
+<li><p><code>FormulaR1C1</code>是公式输入方法</p>
+<ul>
+<li>有中括号是相对于选定单元格的相对偏移量，”-“为向左或向上偏移，正数为右或下偏移。 无中括号为相对于选定单元格的绝对偏移量，没有负数。”R”和”C”对应行和列”</li>
+<li>如：C1单元格为”=A1+B1”。Range(“C1”).FormulaR1C1 = “=RC[-2]+RC[-1]”</li>
+<li>如：C1单元格为”=A2+E3” Range(“C1”).FormulaR1C1 = “=R[1]C[-2]+R[2]C[2]”</li>
+</ul>
+</li>
+<li><code>Selection.AutoFill Destination:=fillRange, Type:=xlFillDefault</code> 自动填充<ul>
+<li>此处<code>Selection</code>选中的Range即sourceRange(源)，根据sourceRange进行fillRange的填充。此时fillRange必须包含sourceRange。sourceRange中可以有公式等</li>
+</ul>
+</li>
+<li><code>ActiveWindow.SmallScroll Down:=6</code>等是对窗口进行移动，不影响计算</li>
+</ul>
+<h2 id="宏界面配置"><a href="#宏界面配置" class="headerlink" title="宏界面配置"></a>宏界面配置</h2><ul>
+<li>设置字体：工具-选项-编辑器格式-标准字体-Consolas (西方)</li>
+<li>设置语法检测：工具-选项-编辑器-自动语法检测去勾选。防止编辑时弹框提示语法错误，运行时语法错误会提示</li>
+</ul>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="Delat-Ct法计算候选基因稳定性"><a href="#Delat-Ct法计算候选基因稳定性" class="headerlink" title="Delat Ct法计算候选基因稳定性"></a>Delat Ct法计算候选基因稳定性</h3><blockquote>
+<p>此算法是临时帮朋友写的，可能与实际算法不符，仅供参考</p>
+</blockquote>
+<ul>
+<li>简介：这是一种常见的算法，叫做Delat Ct法计算候选基因稳定性。最后得到的是每个基因的mean SD值，首先计算两个基因的ΔCt值，再计算其ΔCt值的方差，最后得到该基因与其余每个基因ΔCt值的方差的平均值。</li>
+<li>excel表格数据如下：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>beta-Actin</th>
+<th>Tubulin-alpha</th>
+<th>EF1A</th>
+<th>GAPDH</th>
+<th>Tubulin-beta</th>
+<th>18S rRNA  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>卵子</td>
+<td>23.82</td>
+<td>23.82</td>
+<td>23.93</td>
+<td>25.48</td>
+<td>25.76</td>
+<td>17.67</td>
+</tr>
+<tr>
+<td>受精后</td>
+<td>22.47</td>
+<td>23.94</td>
+<td>22.51</td>
+<td>23.31</td>
+<td>23.91</td>
+<td>13.74  </td>
+</tr>
+<tr>
+<td>2cell</td>
+<td>23.29</td>
+<td>24.78</td>
+<td>22.83</td>
+<td>24.23</td>
+<td>25.05</td>
+<td>15.35</td>
+</tr>
+<tr>
+<td>4cell</td>
+<td>22.95</td>
+<td>24.84</td>
+<td>22.51</td>
+<td>23.39</td>
+<td>24.54</td>
+<td>14.6</td>
+</tr>
+<tr>
+<td>8cell</td>
+<td>21.75</td>
+<td>23.77</td>
+<td>21.8</td>
+<td>22.58</td>
+<td>23.66</td>
+<td>13.22</td>
+</tr>
+<tr>
+<td>16cell</td>
+<td>21.82</td>
+<td>24.21</td>
+<td>22.49</td>
+<td>23.45</td>
+<td>23.8</td>
+<td>12.73</td>
+</tr>
+<tr>
+<td>32cell</td>
+<td>21.92</td>
+<td>24.62</td>
+<td>22.33</td>
+<td>23.74</td>
+<td>21.12</td>
+<td>13.95</td>
+</tr>
+<tr>
+<td>64cell</td>
+<td>22.92</td>
+<td>24.83</td>
+<td>22.19</td>
+<td>24.39</td>
+<td>24.9</td>
+<td>15.76</td>
+</tr>
+<tr>
+<td>多cell</td>
+<td>21.62</td>
+<td>24.04</td>
+<td>21.26</td>
+<td>22.66</td>
+<td>24.04</td>
+<td>12.63</td>
+</tr>
+<tr>
+<td>高囊胚1</td>
+<td>23.06</td>
+<td>25.08</td>
+<td>23.08</td>
+<td>24.45</td>
+<td>25.09</td>
+<td>15.17</td>
+</tr>
+<tr>
+<td>高囊胚2</td>
+<td>22.98</td>
+<td>26.27</td>
+<td>22.22</td>
+<td>25.04</td>
+<td>25.72</td>
+<td>15.55</td>
+</tr>
+<tr>
+<td>低囊胚</td>
+<td>23</td>
+<td>26.24</td>
+<td>22.03</td>
+<td>26.31</td>
+<td>26.49</td>
+<td>17.04</td>
+</tr>
+<tr>
+<td>原肠胚前期</td>
+<td>21.23</td>
+<td>25.46</td>
+<td>20</td>
+<td>26.46</td>
+<td>25.87</td>
+<td>14.12</td>
+</tr>
+<tr>
+<td>原肠胚中期</td>
+<td>20.23</td>
+<td>24.6</td>
+<td>19.52</td>
+<td>26.57</td>
+<td>25.81</td>
+<td>14.03</td>
+</tr>
+<tr>
+<td>原肠胚后期</td>
+<td>19.56</td>
+<td>22.77</td>
+<td>18.5</td>
+<td>26.3</td>
+<td>24.91</td>
+<td>12.83</td>
+</tr>
+<tr>
+<td>神经</td>
+<td>19.46</td>
+<td>23.87</td>
+<td>17.66</td>
+<td>26.82</td>
+<td>24.58</td>
+<td>15.86</td>
+</tr>
+<tr>
+<td>肌节</td>
+<td>18.03</td>
+<td>22.7</td>
+<td>16.48</td>
+<td>23.35</td>
+<td>23.79</td>
+<td>12.86</td>
+</tr>
+<tr>
+<td>器官形成期1</td>
+<td>18.47</td>
+<td>23.71</td>
+<td>17.26</td>
+<td>24.89</td>
+<td>24.21</td>
+<td>15.3</td>
+</tr>
+<tr>
+<td>器官形成期2</td>
+<td>18.65</td>
+<td>23.6</td>
+<td>17.83</td>
+<td>23.94</td>
+<td>23.74</td>
+<td>15.92</td>
+</tr>
+<tr>
+<td>器官形成期3</td>
+<td>18.14</td>
+<td>23.24</td>
+<td>16.12</td>
+<td>23.66</td>
+<td>23.82</td>
+<td>16</td>
+</tr>
+<tr>
+<td>破膜</td>
+<td>17.82</td>
+<td>22.89</td>
+<td>17.45</td>
+<td>5.44</td>
+<td>23.92</td>
+<td>13.92</td>
+</tr>
+<tr>
+<td>仔鱼</td>
+<td>16.97</td>
+<td>22.65</td>
+<td>16.15</td>
+<td>20.69</td>
+<td>22.86</td>
+<td>11.55</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>效果如下</p>
+<p>  <img src="/data/images/2017/08/delacCt.png" alt="效果图"></p>
+</li>
+<li><p>VBA处理源码(效率可能较低)</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">Sub delacCt()</div><div class="line">&apos;</div><div class="line">&apos; Delac Ct算法计算基因mean SD 宏</div><div class="line">&apos;</div><div class="line">    Dim rows As Integer</div><div class="line">    Dim columns As Integer</div><div class="line">    Dim rangeItem1 As range</div><div class="line">    Dim rangeItem2 As range</div><div class="line">    Dim targetCellRange1 As range</div><div class="line">    Dim targetCellRange2 As range</div><div class="line">    Dim isStart As Boolean</div><div class="line"></div><div class="line">    &apos;dataCell为一个Range对象</div><div class="line">    Set myRange = Application.InputBox(prompt:=&quot;按住Shift选择数据所在区域（包含行标题不包含列标题）&quot;, Type:=8)</div><div class="line">    &apos;Set myRange = range(&quot;B1:D23&quot;)</div><div class="line"></div><div class="line">    &apos;获取此区域的总行数和总列数</div><div class="line">    rows = myRange.rows.count</div><div class="line">    columns = myRange.columns.count</div><div class="line"></div><div class="line">    &apos;循环其中两个基因</div><div class="line">    With myRange</div><div class="line">        For i = 1 To columns Step 1</div><div class="line">            &apos;每一行的方差</div><div class="line">            Dim total As Double</div><div class="line">            total = 0</div><div class="line"></div><div class="line">            For j = i + 1 To columns Step 1</div><div class="line">                &apos;此处.代表myRange(With中)</div><div class="line">                Set rangeItem1 = .columns(i)</div><div class="line">                Set rangeItem2 = .columns(j)</div><div class="line"></div><div class="line">                Dim cellRow As Integer</div><div class="line">                Dim cellColumn As Integer</div><div class="line">                cellRow = i * (rows + 3) + 1</div><div class="line">                cellColumn = (j - 2) * 4 + 2</div><div class="line"></div><div class="line">                &apos;目标单元格</div><div class="line">                Set targetCellRange1 = Worksheets(1).Cells(cellRow, cellColumn)</div><div class="line">                Set targetCellRange2 = Worksheets(1).Cells(cellRow, cellColumn + 1)</div><div class="line"></div><div class="line">                &apos;复制并粘贴其中某两个基因</div><div class="line">                Call geneCopy(rangeItem1, targetCellRange1)</div><div class="line">                Call geneCopy(rangeItem2, targetCellRange2)</div><div class="line"></div><div class="line">                &apos;计算方差</div><div class="line">                total = total + geneCalculate(range(targetCellRange1, targetCellRange1.Offset(rows - 1, 0)))</div><div class="line">            Next</div><div class="line"></div><div class="line">            &apos; 计算方差平均值</div><div class="line">            If i &lt; columns Then</div><div class="line">                &apos;MsgBox total / (columns - i)</div><div class="line">                Dim row As Integer</div><div class="line">                &apos;方差所在行</div><div class="line">                row = targetCellRange1.Offset(rows - 1, 0).row + 1</div><div class="line"></div><div class="line">                Worksheets(1).range(&quot;A&quot; &amp; row).Value = &quot;SD&quot;</div><div class="line">                Worksheets(1).range(&quot;A&quot; &amp; row + 1).Value = &quot;mean SD&quot;</div><div class="line">                Worksheets(1).range(&quot;B&quot; &amp; row + 1).Value = total / (columns - i)</div><div class="line">            End If</div><div class="line">        Next</div><div class="line">    End With</div><div class="line"></div><div class="line">    &apos;ActiveWorkbook.Save</div><div class="line">End Sub</div><div class="line"></div><div class="line">Private Sub geneCopy(rangeItem As range, targetCellRange As range)</div><div class="line">&apos;</div><div class="line">&apos; 复制并粘贴其中某两个基因</div><div class="line">&apos;</div><div class="line">    rangeItem.Select</div><div class="line">    Selection.Copy</div><div class="line"></div><div class="line">    targetCellRange.Select</div><div class="line">    ActiveSheet.Paste</div><div class="line">End Sub</div><div class="line"></div><div class="line">Private Function geneCalculate(targetRange1 As range) As Double</div><div class="line">&apos;</div><div class="line">&apos; 对两个基因进行计算</div><div class="line">&apos;</div><div class="line">    &apos;求差值</div><div class="line">    Call subValue(targetRange1)</div><div class="line"></div><div class="line">    &apos;求方差(targetRange1.Row是获取该单元格得在Sheet中是第几行)</div><div class="line">    geneCalculate = varianceValue(range(Worksheets(1).Cells(targetRange1.row + 1, targetRange1.Column + 2), _</div><div class="line">            Worksheets(1).Cells(targetRange1.row + targetRange1.rows.count - 1, targetRange1.Column + 2)))</div><div class="line"></div><div class="line">    &apos;MsgBox geneCalculate</div><div class="line">End Function</div><div class="line"></div><div class="line">Private Sub subValue(rangeItem1 As range)</div><div class="line">&apos;</div><div class="line">&apos; 求差值</div><div class="line">&apos;</div><div class="line">    Dim sourceRange As range</div><div class="line">    Dim fillRange As range</div><div class="line"></div><div class="line">    Set sourceRange = Worksheets(1).Cells(rangeItem1.row + 1, rangeItem1.Column + 2)</div><div class="line">    sourceRange.Select</div><div class="line">    ActiveCell.FormulaR1C1 = &quot;=RC[-2]-RC[-1]&quot;</div><div class="line"></div><div class="line">    Set fillRange = range(Worksheets(1).Cells(rangeItem1.row + 1, rangeItem1.Column + 2), _</div><div class="line">                            Worksheets(1).Cells(rangeItem1.row + rangeItem1.rows.count - 1, rangeItem1.Column + 2))</div><div class="line"></div><div class="line">    &apos;此处根据选中的sourceRange进行fillRange的填充，fillRange必须包含sourceRange</div><div class="line">    Selection.AutoFill Destination:=fillRange, Type:=xlFillDefault</div><div class="line">End Sub</div><div class="line"></div><div class="line">Private Function varianceValue(range As range) As Double</div><div class="line">&apos;</div><div class="line">&apos; 求方差</div><div class="line">&apos;</div><div class="line">    Dim targetCellRange As range</div><div class="line"></div><div class="line">    Set targetCellRange = Worksheets(1).Cells(range.row + range.rows.count, range.Column)</div><div class="line">    targetCellRange.Select</div><div class="line"></div><div class="line">    targetCellRange.FormulaR1C1 = &quot;=SQRT(VAR(R[-22]C[0]:R[-1]C[0]))&quot;</div><div class="line"></div><div class="line">    &apos;返回值</div><div class="line">    varianceValue = targetCellRange.Value</div><div class="line">End Function</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<hr>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/excel/" rel="tag"># excel</a>
+          
+            <a href="/tags/vb/" rel="tag"># vb</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/05/java/springcloud/" rel="next" title="SpringCloud">
+                <i class="fa fa-chevron-left"></i> SpringCloud
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/24/db/mysql-procedure/" rel="prev" title="mysql-procedure">
+                mysql-procedure <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美好</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">46</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">80</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#语法"><span class="nav-number">2.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宏界面配置"><span class="nav-number">3.</span> <span class="nav-text">宏界面配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#示例"><span class="nav-number">4.</span> <span class="nav-text">示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Delat-Ct法计算候选基因稳定性"><span class="nav-number">4.1.</span> <span class="nav-text">Delat Ct法计算候选基因稳定性</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

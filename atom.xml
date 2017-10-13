@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.aezo.cn/"/>
-  <updated>2017-08-26T04:14:38.140Z</updated>
+  <updated>2017-10-12T03:22:17.875Z</updated>
   <id>http://blog.aezo.cn/</id>
   
   <author>
@@ -16,17 +16,179 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>行业概念</title>
+    <link href="http://blog.aezo.cn/2017/10/12/others/business-conception/"/>
+    <id>http://blog.aezo.cn/2017/10/12/others/business-conception/</id>
+    <published>2017-10-12T03:22:00.000Z</published>
+    <updated>2017-10-12T03:22:17.875Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="通用"><a href="#通用" class="headerlink" title="通用"></a>通用</h2><ul>
+<li><code>ERP</code> 企业资源计划(Enterprise Resource Planning)</li>
+</ul>
+<h2 id="物流"><a href="#物流" class="headerlink" title="物流"></a>物流</h2><ul>
+<li><code>WMS</code> 仓库管理系统(Warehouse Management System)</li>
+<li><code>MES</code> 制造执行系统(Manufacturing Execution System) <a href="[MES七大功能-MES解决方案](https://wenku.baidu.com/view/1627cd0a844769eae009edfe.html)">^1</a><ul>
+<li>功能：库房管理、生产调度、制造过程管理、质量管理、设备工装管理、文档管理、物料批次跟踪</li>
+</ul>
+</li>
+</ul>
+<h2 id="营销-运营"><a href="#营销-运营" class="headerlink" title="营销/运营"></a>营销/运营</h2><ul>
+<li><code>MVP</code> 最小价值产品或最小可视化产品(Minimal Viable Product) <a href="[MVP是什么](https://www.zhihu.com/question/47489768?from=profile_question_card)">^2</a></li>
+</ul>
+<hr>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;通用&quot;&gt;&lt;a href=&quot;#通用&quot; class=&quot;headerlink&quot; title=&quot;通用&quot;&gt;&lt;/a&gt;通用&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ERP&lt;/code&gt; 企业资源计划(Enterprise Resource Planning)&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="others" scheme="http://blog.aezo.cn/categories/others/"/>
+    
+    
+      <category term="business" scheme="http://blog.aezo.cn/tags/business/"/>
+    
+      <category term="conception" scheme="http://blog.aezo.cn/tags/conception/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>内网穿透</title>
+    <link href="http://blog.aezo.cn/2017/10/09/extend/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/"/>
+    <id>http://blog.aezo.cn/2017/10/09/extend/内网穿透/</id>
+    <published>2017-10-09T12:18:00.000Z</published>
+    <updated>2017-10-09T13:50:29.710Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>内网穿透，即NAT穿透，让外网用户可通过公网ip访问到内网服务。有时想要让其他人通过域名访问或者测试我们在本地搭建的 web 服务，但是由于本地机器没有公网 IP，无法将域名解析到本地的机器，通过内网穿透就可以实现这一功能</li>
+<li>常见的内网穿透工具如ngrok(二级域名每次启动会变化)、花生壳(需要支付8元)、NATAPP(和ngrok类似，2-3天会更新二级域名)。当然本文不不会介绍这些xx.</li>
+<li>本文介绍的内网穿透工具：frp。(内网穿透仍然需要一台公网IP的服务器，如阿里云服务器)</li>
+</ul>
+<h2 id="frp实现内网穿透"><a href="#frp实现内网穿透" class="headerlink" title="frp实现内网穿透"></a>frp实现内网穿透</h2><h3 id="frp介绍"><a href="#frp介绍" class="headerlink" title="frp介绍"></a>frp介绍</h3><ul>
+<li>开源项目，支持<code>TCP</code>、<code>UDP</code>、<code>HTTP</code>、<code>HTTPS</code>，支持自定义域名绑定</li>
+<li><a href="https://github.com/fatedier/frp" target="_blank" rel="external">github链接</a>、<a href="https://github.com/fatedier/frp/blob/master/README_zh.md" target="_blank" rel="external">中文文档</a></li>
+</ul>
+<h3 id="frp使用"><a href="#frp使用" class="headerlink" title="frp使用"></a>frp使用</h3><blockquote>
+<ul>
+<li>本文配合nginx使用(本文公网服务器不是主要用于内网穿透，且解析了多个域名，所以有些端口，如80被占用)</li>
+<li>本文以微信公众号H5开发为例(微信H5开发需要绑定回调地址，此回调地址必须是备案的域名，因此本地开发比较麻烦故使用内网穿透解决)</li>
+</ul>
+</blockquote>
+<ul>
+<li>下载最新frp版本，本文使用<code>v0.13.0</code><ul>
+<li>需要下载公网IP服务器(以下简称”服务器”)适用版(如<code>frp_0.13.0_linux_amd64.tar.gz</code>)和本地适用版(如<code>frp_0.13.0_windows_amd64.zip</code>)</li>
+</ul>
+</li>
+<li><p>服务端</p>
+<ul>
+<li>解压后含有<code>frps.ini</code>(配置文件)、<code>frps</code>(可执行文件)</li>
+<li><p>对<code>frps.ini</code>进行配置</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">[common]</div><div class="line">bind_port = 7000</div><div class="line"># 使用泛域名*.frp.aezo.cn(需要将*.frp解析到此服务器)，此配置可忽略</div><div class="line">subdomain_host = frp.aezo.cn</div><div class="line"># 访问本地服务需要映射公网ip的端口</div><div class="line">vhost_http_port = 7070</div><div class="line"></div><div class="line"># dashboard(后台可视化管理)访问地址和用户名密码</div><div class="line">dashboard_port = 7500</div><div class="line">dashboard_user = smalle</div><div class="line">dashboard_pwd = smalle</div></pre></td></tr></table></figure>
+</li>
+<li><p>后台运行frp服务端：<code>nohup sudo -b ./frps &gt; my.log 2&gt;&amp;1 &amp;</code></p>
+</li>
+<li>服务器将开放相应端口：<strong>7000、7070、7050(入)；7000(出)</strong></li>
+<li><p>服务器nginx配置如下</p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">server &#123;</div><div class="line">    listen  <span class="number">80</span>;</div><div class="line">	server_name test.aezo.cn;</div><div class="line"></div><div class="line">	location / &#123;</div><div class="line">    		proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;</div><div class="line">    		proxy_set_header Host $http_host;</div><div class="line">    		proxy_redirect off;</div><div class="line">    		<span class="keyword">if</span> (!-f $request_filename) &#123;</div><div class="line">    			proxy_pass http:<span class="comment">//test.aezo.cn:7070;</span></div><div class="line">    			<span class="keyword">break</span>;</div><div class="line">    		&#125;</div><div class="line">    	&#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>需要将域名<code>test.aezo.cn</code>解析到此服务器(101.1.1.1)</p>
+</li>
+</ul>
+</li>
+<li><p>客户端</p>
+<ul>
+<li>解压后含有<code>frpc.ini</code>(配置文件)、<code>frpc</code>(可执行文件)</li>
+<li><p>对<code>frpc.ini</code>进行配置</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">[common]</div><div class="line"># 服务器公网ip</div><div class="line">server_addr = 101.1.1.1</div><div class="line">server_port = 7000</div><div class="line"></div><div class="line">[web]</div><div class="line">type = http</div><div class="line"># 访问本地服务的端口</div><div class="line">local_port = 80</div><div class="line">custom_domains = test.aezo.cn</div><div class="line"></div><div class="line"># 此配置可忽略</div><div class="line">[web01]</div><div class="line">type = http</div><div class="line">local_port = 80</div><div class="line"># 使用泛域名进行解析(映射到http://test.frp.aezo.cn)</div><div class="line">subdomain = test</div></pre></td></tr></table></figure>
+</li>
+<li><p>cmd运行<code>frpc -c ./frpc.ini</code>(可写成start.bat文件方便快速运行)</p>
+</li>
+<li>客户端也可配合使用nginx</li>
+</ul>
+</li>
+<li>请求流程<ul>
+<li>访问：<a href="http://test.aezo.cn，被nginx监听" target="_blank" rel="external">http://test.aezo.cn，被nginx监听</a></li>
+<li>服务端nginx转向：<a href="http://test.aezo.cn:7070，被frp监听" target="_blank" rel="external">http://test.aezo.cn:7070，被frp监听</a></li>
+<li>frp通过7000端口和frp客户端进行通信：<a href="http://127.0.0.1:80" target="_blank" rel="external">http://127.0.0.1:80</a></li>
+</ul>
+</li>
+<li>微信h5开发：将<code>test.aezo.cn</code>绑定到对应的回调地址上即可</li>
+</ul>
+<hr>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;内网穿透，即NAT穿透，让外网用户可通过公网ip访问到内网服务。有时想要让其他人通过域名访问或者测试我们在本地搭建的 web 服
+    
+    </summary>
+    
+      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
+    
+    
+      <category term="frp" scheme="http://blog.aezo.cn/tags/frp/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>oracle-function</title>
+    <link href="http://blog.aezo.cn/2017/09/30/db/oracle_function/"/>
+    <id>http://blog.aezo.cn/2017/09/30/db/oracle_function/</id>
+    <published>2017-09-30T04:51:00.000Z</published>
+    <updated>2017-10-09T04:21:31.938Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="常用函数"><a href="#常用函数" class="headerlink" title="常用函数"></a>常用函数</h2><h2 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h2><h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><ul>
+<li><code>wm_concat</code>行转列(默认用”,”分割，select的其他字段需要是group by字段)<ul>
+<li><code>select replace(wm_concat(name), &#39;,&#39;, &#39;|&#39;) from test;</code>替换分割符</li>
+</ul>
+</li>
+</ul>
+<h2 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h2><h3 id="字符串分割函数"><a href="#字符串分割函数" class="headerlink" title="字符串分割函数"></a>字符串分割函数</h3><ul>
+<li>创建字符串数组类型：<code>create or replace type sm_type_arr_str is table of varchar2 (60);</code> (一个数组，每个元素是varchar2 (60))</li>
+<li><p>创建自定义函数<code>sm_split</code></p>
+  <figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">create or replace function sm_split(p_str       in varchar2,</div><div class="line">                                p_delimiter in varchar2)</div><div class="line">  return sm_type_arr_str</div><div class="line">  pipelined is</div><div class="line">  j    int := 0;</div><div class="line">  i    int := 1;</div><div class="line">  len  int := 0;</div><div class="line">  len1 int := 0;</div><div class="line">  str  varchar2(4000);</div><div class="line">begin</div><div class="line">  len  := length(p_str);</div><div class="line">  len1 := length(p_delimiter);</div><div class="line"></div><div class="line">  while j &lt; len loop</div><div class="line">    j := instr(p_str, p_delimiter, i);</div><div class="line"></div><div class="line">    if j = 0 then</div><div class="line">      j   := len;</div><div class="line">      str := substr(p_str, i);</div><div class="line">      pipe row(str);</div><div class="line">      if i &gt;= len then</div><div class="line">        exit;</div><div class="line">      end if;</div><div class="line">    else</div><div class="line">      str := substr(p_str, i, j - i);</div><div class="line">      i   := j + len1;</div><div class="line">      pipe row(str);</div><div class="line">    end if;</div><div class="line">  end loop;</div><div class="line"></div><div class="line">  return;</div><div class="line">end sm_split;</div></pre></td></tr></table></figure>
+</li>
+<li><p>查询示例：<code>select * from table (cast (sm_split (&#39;aa,,bb,cc,,&#39;, &#39;,&#39;) as sm_type_arr_str));</code> 结果如下：</p>
+<pre><code><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">    COLUMN_VALUE</div><div class="line">1	aa</div><div class="line">2</div><div class="line">3	bb</div><div class="line">4	cc</div><div class="line">5</div></pre></td></tr></table></figure>
+</code></pre></li>
+<li><p>示例二</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> t.*</div><div class="line">  <span class="keyword">from</span> test_table t</div><div class="line"> <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> <span class="number">1</span></div><div class="line">          <span class="keyword">from</span> <span class="keyword">table</span>(<span class="keyword">cast</span>(sm_split(t.name, <span class="string">','</span>) <span class="keyword">as</span> sm_type_arr_str)) arr</div><div class="line">         <span class="keyword">where</span> <span class="keyword">trim</span>(arr.column_value) = <span class="string">'aa'</span>)</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<hr>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;常用函数&quot;&gt;&lt;a href=&quot;#常用函数&quot; class=&quot;headerlink&quot; title=&quot;常用函数&quot;&gt;&lt;/a&gt;常用函数&lt;/h2&gt;&lt;h2 id=&quot;聚合函数&quot;&gt;&lt;a href=&quot;#聚合函数&quot; class=&quot;headerlink&quot; title=&quot;聚合函数&quot;&gt;&lt;/a
+    
+    </summary>
+    
+      <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
+    
+    
+      <category term="oracle" scheme="http://blog.aezo.cn/tags/oracle/"/>
+    
+      <category term="function" scheme="http://blog.aezo.cn/tags/function/"/>
+    
+  </entry>
+  
+  <entry>
     <title>mysql-procedure</title>
     <link href="http://blog.aezo.cn/2017/08/24/db/mysql-procedure/"/>
     <id>http://blog.aezo.cn/2017/08/24/db/mysql-procedure/</id>
     <published>2017-08-24T12:33:00.000Z</published>
-    <updated>2017-08-26T04:14:38.140Z</updated>
+    <updated>2017-09-29T08:15:33.962Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li>存储过程调试工具：<code>dbForge Studio for MySQL</code></li>
 </ul>
-<h2 id="存储过程示例"><a href="#存储过程示例" class="headerlink" title="存储过程示例"></a>存储过程示例</h2><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line">CREATE DEFINER = 'root'@'localhost'</div><div class="line">PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)</div><div class="line">BEGIN</div><div class="line">  DECLARE v_sql varchar(1000);</div><div class="line">  DECLARE c_cityid integer;</div><div class="line">  DECLARE c_cityname varchar(20);</div><div class="line">  DECLARE c_countyname varchar(20);</div><div class="line">  DECLARE c_cityid_tmp integer;</div><div class="line"></div><div class="line">  # 是否未找到数据标记(要在游标之前定义)</div><div class="line">  DECLARE done INT DEFAULT FALSE;</div><div class="line"></div><div class="line">  -- 定义第一个游标</div><div class="line">  DECLARE cur1 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    t.N_CITYID,</div><div class="line">    t.S_CITYNAME</div><div class="line">  FROM dict_city t</div><div class="line">  WHERE t.N_PROVID = in_provid;</div><div class="line"></div><div class="line">  # 临时表游标</div><div class="line">  DECLARE cur2 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    S_COUNTYNAME,</div><div class="line">    N_CITYID AS cityid</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 循环终止的标志，游标中如果没有数据就设置done为TRUE(停止遍历)</div><div class="line">  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;</div><div class="line"></div><div class="line">  # 创建临时表</div><div class="line">  DROP TABLE IF EXISTS tmp_table;</div><div class="line">  CREATE TEMPORARY TABLE IF NOT EXISTS tmp_table (</div><div class="line">    ID int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,</div><div class="line">    S_COUNTYNAME varchar(20),</div><div class="line">    N_CITYID int(10)</div><div class="line">  );</div><div class="line"></div><div class="line">  # mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量</div><div class="line">  OPEN cur1;</div><div class="line">  flag_loop: LOOP</div><div class="line">    # 取出每条记录并赋值给相关变量，注意顺序</div><div class="line">    # 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！</div><div class="line">    FETCH cur1 INTO c_cityid, c_cityname;</div><div class="line"></div><div class="line">    # FETCH之后, 如果没有数据则会运行SET done = TRUE</div><div class="line">    IF done THEN</div><div class="line">      # 跳出循环</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    # 字符串截取，从第一位开始，截取2位</div><div class="line">    SET c_cityname = SUBSTRING(c_cityname, 1, 2);</div><div class="line"></div><div class="line">    # 动态sql执行后的结果记录集在MySQL中无法获取，因此需要转变思路将其放置到一个临时表中</div><div class="line">    # 动态sql需要使用CONCAT(a, b, c, ....)拼接</div><div class="line">    SET v_sql = CONCAT("insert into tmp_table(S_COUNTYNAME, N_CITYID) select t.`name`, ", c_cityid, " from sm_renthouse_url t where</div><div class="line">		t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");</div><div class="line"></div><div class="line">    # 如果以@开头的变量可以不用通过declare语句事先声明</div><div class="line">    SET @v_sql = v_sql;</div><div class="line">    # 预处理需要执行的动态SQL，其中stmt是一个变量</div><div class="line">    PREPARE stmt FROM @v_sql;</div><div class="line">    # 执行SQL语句</div><div class="line">    EXECUTE stmt;</div><div class="line">    # 释放掉预处理段</div><div class="line">    DEALLOCATE PREPARE stmt;</div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur1;</div><div class="line"></div><div class="line">  # 调试输出, 打印使用SELECT</div><div class="line">  SELECT</div><div class="line">    *</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 还原终止的标志, 用于第二个游标</div><div class="line">  SET done = FALSE;</div><div class="line"></div><div class="line">  OPEN cur2;</div><div class="line">  flag_loop: LOOP</div><div class="line">    FETCH cur2 INTO c_countyname, c_cityid_tmp;</div><div class="line">    IF done THEN</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    INSERT INTO dict_county (S_COUNTYNAME, N_CITYID, S_STATE)</div><div class="line">      VALUES (c_countyname, c_cityid_tmp, '1');</div><div class="line"></div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur2;</div><div class="line"></div><div class="line">  # 删除临时表</div><div class="line">  DROP TEMPORARY TABLE tmp_table;</div><div class="line">END</div></pre></td></tr></table></figure>
-<hr>
+<h2 id="存储过程示例"><a href="#存储过程示例" class="headerlink" title="存储过程示例"></a>存储过程示例</h2><pre><code><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line">CREATE DEFINER = 'root'@'localhost'</div><div class="line">PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)</div><div class="line">BEGIN</div><div class="line">  DECLARE v_sql varchar(1000);</div><div class="line">  DECLARE c_cityid integer;</div><div class="line">  DECLARE c_cityname varchar(20);</div><div class="line">  DECLARE c_countyname varchar(20);</div><div class="line">  DECLARE c_cityid_tmp integer;</div><div class="line"></div><div class="line">  # 是否未找到数据标记(要在游标之前定义)</div><div class="line">  DECLARE done INT DEFAULT FALSE;</div><div class="line"></div><div class="line">  -- 定义第一个游标</div><div class="line">  DECLARE cur1 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    t.N_CITYID,</div><div class="line">    t.S_CITYNAME</div><div class="line">  FROM dict_city t</div><div class="line">  WHERE t.N_PROVID = in_provid;</div><div class="line"></div><div class="line">  # 临时表游标</div><div class="line">  DECLARE cur2 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    S_COUNTYNAME,</div><div class="line">    N_CITYID AS cityid</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 循环终止的标志，游标中如果没有数据就设置done为TRUE(停止遍历)</div><div class="line">  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;</div><div class="line"></div><div class="line">  # 创建临时表</div><div class="line">  DROP TABLE IF EXISTS tmp_table;</div><div class="line">  CREATE TEMPORARY TABLE IF NOT EXISTS tmp_table (</div><div class="line">    ID int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,</div><div class="line">    S_COUNTYNAME varchar(20),</div><div class="line">    N_CITYID int(10)</div><div class="line">  );</div><div class="line"></div><div class="line">  # mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量</div><div class="line">  OPEN cur1;</div><div class="line">  flag_loop: LOOP</div><div class="line">    # 取出每条记录并赋值给相关变量，注意顺序</div><div class="line">    # 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！</div><div class="line">    FETCH cur1 INTO c_cityid, c_cityname;</div><div class="line"></div><div class="line">    # FETCH之后, 如果没有数据则会运行SET done = TRUE</div><div class="line">    IF done THEN</div><div class="line">      # 跳出循环</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    # 字符串截取，从第一位开始，截取2位</div><div class="line">    SET c_cityname = SUBSTRING(c_cityname, 1, 2);</div><div class="line"></div><div class="line">    # 动态sql执行后的结果记录集在MySQL中无法获取，因此需要转变思路将其放置到一个临时表中</div><div class="line">    # 动态sql需要使用CONCAT(a, b, c, ....)拼接</div><div class="line">    SET v_sql = CONCAT("insert into tmp_table(S_COUNTYNAME, N_CITYID) select t.`name`, ", c_cityid, " from sm_renthouse_url t where</div><div class="line">		t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");</div><div class="line"></div><div class="line">    # 如果以@开头的变量可以不用通过declare语句事先声明</div><div class="line">    SET @v_sql = v_sql;</div><div class="line">    # 预处理需要执行的动态SQL，其中stmt是一个变量</div><div class="line">    PREPARE stmt FROM @v_sql;</div><div class="line">    # 执行SQL语句</div><div class="line">    EXECUTE stmt;</div><div class="line">    # 释放掉预处理段</div><div class="line">    DEALLOCATE PREPARE stmt;</div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur1;</div><div class="line"></div><div class="line">  # 调试输出, 打印使用SELECT</div><div class="line">  SELECT</div><div class="line">    *</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 还原终止的标志, 用于第二个游标</div><div class="line">  SET done = FALSE;</div><div class="line"></div><div class="line">  OPEN cur2;</div><div class="line">  flag_loop: LOOP</div><div class="line">    FETCH cur2 INTO c_countyname, c_cityid_tmp;</div><div class="line">    IF done THEN</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    INSERT INTO dict_county (S_COUNTYNAME, N_CITYID, S_STATE)</div><div class="line">      VALUES (c_countyname, c_cityid_tmp, '1');</div><div class="line"></div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur2;</div><div class="line"></div><div class="line">  # 删除临时表</div><div class="line">  DROP TEMPORARY TABLE tmp_table;</div><div class="line">END</div></pre></td></tr></table></figure>
+</code></pre><hr>
 ]]></content>
     
     <summary type="html">
@@ -49,8 +211,8 @@
   
   <entry>
     <title>Excel VBA</title>
-    <link href="http://blog.aezo.cn/2017/08/20/others/excel-vba/"/>
-    <id>http://blog.aezo.cn/2017/08/20/others/excel-vba/</id>
+    <link href="http://blog.aezo.cn/2017/08/20/lang/excel-vba/"/>
+    <id>http://blog.aezo.cn/2017/08/20/lang/excel-vba/</id>
     <published>2017-08-20T12:03:00.000Z</published>
     <updated>2017-08-21T07:10:19.538Z</updated>
     
@@ -1870,8 +2032,8 @@
   
   <entry>
     <title>firebase</title>
-    <link href="http://blog.aezo.cn/2017/03/19/others/service/firebase/"/>
-    <id>http://blog.aezo.cn/2017/03/19/others/service/firebase/</id>
+    <link href="http://blog.aezo.cn/2017/03/19/service/firebase/"/>
+    <id>http://blog.aezo.cn/2017/03/19/service/firebase/</id>
     <published>2017-03-19T13:21:00.000Z</published>
     <updated>2017-07-17T13:08:57.135Z</updated>
     
@@ -2018,7 +2180,7 @@
     <link href="http://blog.aezo.cn/2017/01/16/arch/nginx/"/>
     <id>http://blog.aezo.cn/2017/01/16/arch/nginx/</id>
     <published>2017-01-16T08:54:00.000Z</published>
-    <updated>2017-09-26T15:47:25.490Z</updated>
+    <updated>2017-10-09T14:40:48.944Z</updated>
     
     <content type="html"><![CDATA[<h2 id="nginx使用"><a href="#nginx使用" class="headerlink" title="nginx使用"></a>nginx使用</h2><ul>
 <li>安装<ul>
@@ -2052,9 +2214,48 @@
 <h2 id="nginx配置-nginx-conf"><a href="#nginx配置-nginx-conf" class="headerlink" title="nginx配置(nginx.conf)"></a>nginx配置(nginx.conf)</h2><ul>
 <li>文件默认是只读的，需要root权限编辑。<code>sudo vim nginx.conf</code></li>
 <li><p>配置如下</p>
-  <figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line">   server &#123;</div><div class="line">       <span class="comment"># 监听的端口，注意要在服务器后台开启80端口外网访问权限</span></div><div class="line">       listen   80;</div><div class="line">       <span class="comment"># 服务器的地址              </span></div><div class="line">       server_name www.aezo.cn;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)</span></div><div class="line">	location = / &#123;</div><div class="line">		rewrite / http://<span class="variable">$server_name</span>/hello <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment"># 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin</span></div><div class="line">       <span class="comment"># location后的地址可正则</span></div><div class="line">       location / &#123;</div><div class="line">		proxy_set_header X-Forward-For <span class="variable">$proxy_add_x_forwarded_for</span>;</div><div class="line">		proxy_set_header Host <span class="variable">$http_host</span>;</div><div class="line">		proxy_redirect off;</div><div class="line">		<span class="keyword">if</span> (!-f <span class="variable">$request_filename</span>) &#123;</div><div class="line">               <span class="comment"># 不能包含/等uri地址, 如果匹配到上面的uri则转向http://127.0.0.1:8080/xxxUri</span></div><div class="line">			proxy_pass http://127.0.0.1:8080;</div><div class="line">			<span class="built_in">break</span>;</div><div class="line">		&#125;</div><div class="line">       &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">   <span class="comment"># 开启第二个站点监听</span></div><div class="line">   server &#123;</div><div class="line">       listen 80;</div><div class="line">       server_name hello.aezo.cn;</div><div class="line"></div><div class="line">       location = / &#123;</div><div class="line">           <span class="comment">#判断是否为手机移动端</span></div><div class="line">           <span class="keyword">if</span> (<span class="variable">$http_user_agent</span> ~* <span class="string">'(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)'</span>) &#123;</div><div class="line">               rewrite . http://<span class="variable">$server_name</span>/wap <span class="built_in">break</span>;</div><div class="line">           &#125;</div><div class="line">           rewrite . http://<span class="variable">$server_name</span>/pc <span class="built_in">break</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       location / &#123;</div><div class="line">           proxy_pass http://127.0.0.1:8090;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+  <figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line">   server &#123;</div><div class="line">       # 监听的端口，注意要在服务器后台开启80端口外网访问权限</div><div class="line">       listen   80;</div><div class="line">       # 服务器的地址              </div><div class="line">       server_name www.aezo.cn;</div><div class="line"></div><div class="line">       # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)</div><div class="line">	location = / &#123;</div><div class="line">		rewrite / http://$server_name/hello break;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin</div><div class="line">       # location后的地址可正则</div><div class="line">       location / &#123;</div><div class="line">		proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;</div><div class="line">		proxy_set_header Host $http_host;</div><div class="line">		proxy_redirect off;</div><div class="line">		if (!-f $request_filename) &#123;</div><div class="line">               # 不能包含/等uri地址, 如果匹配到上面的uri则转向http://127.0.0.1:8080/xxxUri</div><div class="line">			proxy_pass http://127.0.0.1:8080;</div><div class="line">			break;</div><div class="line">		&#125;</div><div class="line">       &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">   # 开启第二个站点监听</div><div class="line">   server &#123;</div><div class="line">       listen 80;</div><div class="line">       server_name hello.aezo.cn;</div><div class="line"></div><div class="line">       location = / &#123;</div><div class="line">           #判断是否为手机移动端</div><div class="line">           if ($http_user_agent ~* '(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)') &#123;</div><div class="line">               rewrite . http://$server_name/wap break;</div><div class="line">           &#125;</div><div class="line">           rewrite . http://$server_name/pc break;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       location / &#123;</div><div class="line">           proxy_pass http://127.0.0.1:8090;</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
 </li>
 </ul>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><ul>
+<li>多个server_name<ul>
+<li><code>server_name www.aezo.cn baidu.com;</code></li>
+<li>正则<code>server_name ~^.+-api-dev\.aezo\.cn$;</code> 匹配<code>xxx-api-dev.aezo.cn</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="匹配规则"><a href="#匹配规则" class="headerlink" title="匹配规则"></a>匹配规则</h2><ul>
+<li>语法规则： <code>location [=|~|~*|^~] /uri/ { … }</code><ul>
+<li><code>=</code> 开头表示精确匹配</li>
+<li><code>^~</code> 开头表示uri以某个常规字符串开头，理解为匹配 url路径即可。nginx不对url做编码，因此请求为<code>/static/20%/aa</code>，可以被规则<code>^~ /static/ /aa</code>匹配到（注意是空格）。</li>
+<li><code>~</code> 开头表示区分大小写的正则匹配</li>
+<li><code>~*</code> 开头表示不区分大小写的正则匹配</li>
+<li><code>!~</code>和<code>!~*</code>分别为区分大小写不匹配及不区分大小写不匹配的正则</li>
+<li><code>/</code> 通用匹配，任何请求都会匹配到。</li>
+</ul>
+</li>
+<li>多个location配置的情况下匹配顺序为:首先匹配 =，其次匹配^~, 其次是按文件中顺序的正则匹配，最后是交给 / 通用匹配。当有匹配成功时候，停止匹配，按当前匹配规则处理请求。</li>
+<li><p>常用配置</p>
+<ul>
+<li><p>防盗链</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">location ~* \.(gif|jpg|swf)$ &#123;</div><div class="line">    valid_referers none blocked www.aezo.cn blog.aezo.cn;</div><div class="line">    if ($invalid_referer) &#123;</div><div class="line">        rewrite ^/ http://$host/logo.png;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>根据文件类型设置过期时间</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">location ~* \.(js|css|jpg|jpeg|gif|png|swf)$ &#123;</div><div class="line">    if (-f $request_filename) &#123;</div><div class="line">    expires 12h;</div><div class="line">        break;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>禁止访问某个目录</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">location ~* \.(txt|doc)$&#123;</div><div class="line">    root /home/aezocn/www/doc;</div><div class="line">    deny all;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="版本更新变化"><a href="#版本更新变化" class="headerlink" title="版本更新变化"></a>版本更新变化</h2><ul>
+<li>v1.12.1<ul>
+<li>当访问<code>http://www.aezo.cn/index.html</code>不进入对应的页面，而是显示默认的<code>/usr/share/nginx/html/index.html</code>。解决办法：注释掉此文件即可</li>
+</ul>
+</li>
+</ul>
+<hr>
 ]]></content>
     
     <summary type="html">
@@ -2077,7 +2278,7 @@
     <link href="http://blog.aezo.cn/2017/01/10/linux/centos-server-guide/"/>
     <id>http://blog.aezo.cn/2017/01/10/linux/centos-server-guide/</id>
     <published>2017-01-10T05:19:00.000Z</published>
-    <updated>2017-07-23T05:14:23.212Z</updated>
+    <updated>2017-09-29T10:31:41.968Z</updated>
     
     <content type="html"><![CDATA[<h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><ul>
 <li><code>yum install vsftpd</code> 安装软件vsftpd，一路y下去</li>
@@ -2188,12 +2389,47 @@
     
     </summary>
     
-      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
+      <category term="linux" scheme="http://blog.aezo.cn/categories/linux/"/>
     
     
       <category term="CentOS" scheme="http://blog.aezo.cn/tags/CentOS/"/>
     
       <category term="server" scheme="http://blog.aezo.cn/tags/server/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>java相关脚本</title>
+    <link href="http://blog.aezo.cn/2017/01/10/linux/shell-java/"/>
+    <id>http://blog.aezo.cn/2017/01/10/linux/shell-java/</id>
+    <published>2017-01-10T05:19:00.000Z</published>
+    <updated>2017-09-29T11:22:30.963Z</updated>
+    
+    <content type="html"><![CDATA[<ul>
+<li>注意文件格式必须是Unix格式</li>
+<li>执行<code>sh ./my.sh</code></li>
+</ul>
+<h2 id="jar包运行-停止"><a href="#jar包运行-停止" class="headerlink" title="jar包运行/停止"></a>jar包运行/停止</h2><pre><code><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span>!/bin/sh</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>该脚本为Linux下启动java程序的通用脚本。即可以作为开机自启动service脚本被调用，</div><div class="line"><span class="meta">#</span>也可以作为启动java程序的独立脚本来使用。</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>Author: tudaxia.com, Date: 2011/6/7</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>警告!!!：该脚本stop部分使用系统kill命令来强制终止指定的java程序进程。</div><div class="line"><span class="meta">#</span>在杀死进程前，未作任何条件检查。在某些情况下，如程序正在进行文件或数据库写操作，</div><div class="line"><span class="meta">#</span>可能会造成数据丢失或数据不完整。如果必须要考虑到这类情况，则需要改写此脚本，</div><div class="line"><span class="meta">#</span>增加在执行kill命令前的一系列检查。</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>##################################</div><div class="line"><span class="meta">#</span> 以下这些注释设置可以被chkconfig命令读取</div><div class="line"><span class="meta">#</span> chkconfig: - 99 50</div><div class="line"><span class="meta">#</span> description: Java程序启动脚本</div><div class="line"><span class="meta">#</span> processname: test</div><div class="line"><span class="meta">#</span> config: 如果需要的话，可以配置</div><div class="line"><span class="meta">#</span>##################################</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>##################################</div><div class="line"><span class="meta">#</span>环境变量及程序执行参数</div><div class="line"><span class="meta">#</span>需要根据实际环境以及Java程序名称来修改这些参数</div><div class="line"><span class="meta">#</span>##################################</div><div class="line"><span class="meta">#</span>JDK所在路径(需要配置好$JAVA_HOME环境变量)</div><div class="line"><span class="meta">#</span> $JAVA_HOME=也可不使用系统jdk</div><div class="line">if [ -f "$JAVA_HOME/bin/java" ]; then</div><div class="line">  JAVA="$JAVA_HOME/bin/java"</div><div class="line">else</div><div class="line">  JAVA=java</div><div class="line">fi</div><div class="line"><span class="meta"></span></div><div class="line">#执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号</div><div class="line">RUNNING_USER=root</div><div class="line"><span class="meta"></span></div><div class="line">#Java程序所在的目录（将此文件和jar放在统一目录）</div><div class="line">APP_HOME="$( cd -P "$( dirname "$0" )" &amp;&amp; pwd )"</div><div class="line"><span class="meta"></span></div><div class="line">#需要启动的Java主程序（main方法类）</div><div class="line">APP_JAR="grouphelp-0.0.1-SNAPSHOT.jar"</div><div class="line"><span class="meta"></span></div><div class="line"># springboot参数</div><div class="line">PROFILES="--spring.profiles.active=prod"</div><div class="line">JAR_ARGS="$PROFILES"</div><div class="line"><span class="meta"></span></div><div class="line">#java虚拟机启动参数</div><div class="line"><span class="meta">#</span>DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"</div><div class="line"><span class="meta">#</span>MEMIF="-Xms128M -Xmx512M -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"</div><div class="line">VM_ARGS="$MEMIF $DEBUG"</div><div class="line"><span class="meta"></span></div><div class="line">###################################</div><div class="line"><span class="meta">#</span>(函数)判断程序是否已启动</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>说明：</div><div class="line"><span class="meta">#</span>使用JDK自带的JPS命令及grep命令组合，准确查找pid</div><div class="line"><span class="meta">#</span>jps 加 l 参数，表示显示java的完整包路径</div><div class="line"><span class="meta">#</span>使用awk，分割出pid ($1部分)，及Java程序名称($2部分)</div><div class="line"><span class="meta">#</span>##################################</div><div class="line"><span class="meta">#</span>初始化psid变量（全局）</div><div class="line">psid=0</div><div class="line"></div><div class="line">checkpid() &#123;</div><div class="line">   javaps=`$JAVA_HOME/bin/jps -l | grep $APP_JAR`</div><div class="line"></div><div class="line">   if [ -n "$javaps" ]; then</div><div class="line">      psid=`echo $javaps | awk '&#123;print $1&#125;'`</div><div class="line">   else</div><div class="line">      psid=0</div><div class="line">   fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">###################################</div><div class="line"><span class="meta">#</span>(函数)启动程序</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>说明：</div><div class="line"><span class="meta">#</span>1. 首先调用checkpid函数，刷新$psid全局变量</div><div class="line"><span class="meta">#</span>2. 如果程序已经启动（$psid不等于0），则提示程序已启动</div><div class="line"><span class="meta">#</span>3. 如果程序没有被启动，则执行启动命令行</div><div class="line"><span class="meta">#</span>4. 启动命令执行后，再次调用checkpid函数</div><div class="line"><span class="meta">#</span>5. 如果步骤4的结果能够确认程序的pid,则打印[OK]，否则打印[Failed]</div><div class="line"><span class="meta">#</span>注意：echo -n 表示打印字符后，不换行</div><div class="line"><span class="meta">#</span>注意: "nohup 某命令 &gt;/dev/null 2&gt;&amp;1 &amp;" 的用法</div><div class="line"><span class="meta">#</span>##################################</div><div class="line">start() &#123;</div><div class="line">   checkpid</div><div class="line"></div><div class="line">   if [ $psid -ne 0 ]; then</div><div class="line">      echo "================================"</div><div class="line">      echo "warn: $APP_JAR already started! (pid=$psid)"</div><div class="line">      echo "================================"</div><div class="line">   else</div><div class="line">      echo -n "Starting $APP_JAR ..."</div><div class="line">      JAVA_CMD="nohup $JAVA_HOME/bin/java -jar $APP_HOME/$APP_JAR $JAR_ARGS &gt; console.log 2&gt;&amp;1 &amp;"</div><div class="line">      su - $RUNNING_USER -c "$JAVA_CMD"</div><div class="line">      checkpid</div><div class="line">      if [ $psid -ne 0 ]; then</div><div class="line">         echo "(pid=$psid) [OK]"</div><div class="line">      else</div><div class="line">         echo "[Failed]"</div><div class="line">      fi</div><div class="line">   fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">###################################</div><div class="line"><span class="meta">#</span>(函数)停止程序</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>说明：</div><div class="line"><span class="meta">#</span>1. 首先调用checkpid函数，刷新$psid全局变量</div><div class="line"><span class="meta">#</span>2. 如果程序已经启动（$psid不等于0），则开始执行停止，否则，提示程序未运行</div><div class="line"><span class="meta">#</span>3. 使用kill -9 pid命令进行强制杀死进程</div><div class="line"><span class="meta">#</span>4. 执行kill命令行紧接其后，马上查看上一句命令的返回值: $?</div><div class="line"><span class="meta">#</span>5. 如果步骤4的结果$?等于0,则打印[OK]，否则打印[Failed]</div><div class="line"><span class="meta">#</span>6. 为了防止java程序被启动多次，这里增加反复检查进程，反复杀死的处理（递归调用stop）。</div><div class="line"><span class="meta">#</span>注意：echo -n 表示打印字符后，不换行</div><div class="line"><span class="meta">#</span>注意: 在shell编程中，"$?" 表示上一句命令或者一个函数的返回值</div><div class="line"><span class="meta">#</span>##################################</div><div class="line">stop() &#123;</div><div class="line">   checkpid</div><div class="line"></div><div class="line">   if [ $psid -ne 0 ]; then</div><div class="line">      echo -n "Stopping $APP_JAR ...(pid=$psid) "</div><div class="line">      su - $RUNNING_USER -c "kill -9 $psid"</div><div class="line">      if [ $? -eq 0 ]; then</div><div class="line">         echo "[OK]"</div><div class="line">      else</div><div class="line">         echo "[Failed]"</div><div class="line">      fi</div><div class="line"></div><div class="line">      checkpid</div><div class="line">      if [ $psid -ne 0 ]; then</div><div class="line">         stop</div><div class="line">      fi</div><div class="line">   else</div><div class="line">      echo "================================"</div><div class="line">      echo "warn: $APP_JAR is not running"</div><div class="line">      echo "================================"</div><div class="line">   fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">###################################</div><div class="line"><span class="meta">#</span>(函数)检查程序运行状态</div><div class="line"><span class="meta">#</span></div><div class="line"><span class="meta">#</span>说明：</div><div class="line"><span class="meta">#</span>1. 首先调用checkpid函数，刷新$psid全局变量</div><div class="line"><span class="meta">#</span>2. 如果程序已经启动（$psid不等于0），则提示正在运行并表示出pid</div><div class="line"><span class="meta">#</span>3. 否则，提示程序未运行</div><div class="line"><span class="meta">#</span>##################################</div><div class="line">status() &#123;</div><div class="line">   checkpid</div><div class="line"></div><div class="line">   if [ $psid -ne 0 ];  then</div><div class="line">      echo "$APP_JAR is running! (pid=$psid)"</div><div class="line">   else</div><div class="line">      echo "$APP_JAR is not running"</div><div class="line">   fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">###################################</div><div class="line"><span class="meta">#</span>(函数)打印系统环境参数</div><div class="line"><span class="meta">#</span>##################################</div><div class="line">info() &#123;</div><div class="line">   echo "System Information:"</div><div class="line">   echo "****************************"</div><div class="line">   echo `head -n 1 /etc/issue`</div><div class="line">   echo `uname -a`</div><div class="line">   echo</div><div class="line">   echo "JAVA_HOME=$JAVA_HOME"</div><div class="line">   echo `$JAVA_HOME/bin/java -version`</div><div class="line">   echo</div><div class="line">   echo "APP_HOME=$APP_HOME"</div><div class="line">   echo "APP_JAR=$APP_JAR"</div><div class="line">   echo "****************************"</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">###################################</div><div class="line"><span class="meta">#</span>读取脚本的第一个参数($1)，进行判断</div><div class="line"><span class="meta">#</span>参数取值范围：&#123;start|stop|restart|status|info&#125;</div><div class="line"><span class="meta">#</span>如参数不在指定范围之内，则打印帮助信息</div><div class="line"><span class="meta">#</span>##################################</div><div class="line">case "$1" in</div><div class="line">   'start')</div><div class="line">      start</div><div class="line">      ;;</div><div class="line">   'stop')</div><div class="line">     stop</div><div class="line">     ;;</div><div class="line">   'restart')</div><div class="line">     stop</div><div class="line">     start</div><div class="line">     ;;</div><div class="line">   'status')</div><div class="line">     status</div><div class="line">     ;;</div><div class="line">   'info')</div><div class="line">     info</div><div class="line">     ;;</div><div class="line">  *)</div><div class="line">     echo "Usage: $0 &#123;start|stop|restart|status|info&#125;"</div><div class="line">     exit 1</div><div class="line">esac</div><div class="line">exit 0</div></pre></td></tr></table></figure>
+</code></pre><hr>
+<p><a href="http://blog.csdn.net/clerk0324/article/details/50593882" target="_blank" rel="external">http://blog.csdn.net/clerk0324/article/details/50593882</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;ul&gt;
+&lt;li&gt;注意文件格式必须是Unix格式&lt;/li&gt;
+&lt;li&gt;执行&lt;code&gt;sh ./my.sh&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;jar包运行-停止&quot;&gt;&lt;a href=&quot;#jar包运行-停止&quot; class=&quot;headerlink&quot; title=&quot;jar
+    
+    </summary>
+    
+      <category term="linux" scheme="http://blog.aezo.cn/categories/linux/"/>
+    
+    
+      <category term="shell" scheme="http://blog.aezo.cn/tags/shell/"/>
+    
+      <category term="java" scheme="http://blog.aezo.cn/tags/java/"/>
     
   </entry>
   
@@ -2342,1081 +2578,6 @@
       <category term="db" scheme="http://blog.aezo.cn/tags/db/"/>
     
       <category term="apache" scheme="http://blog.aezo.cn/tags/apache/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Ubuntu</title>
-    <link href="http://blog.aezo.cn/2016/11/20/linux/ubuntu/"/>
-    <id>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</id>
-    <published>2016-11-20T05:16:00.000Z</published>
-    <updated>2017-07-23T05:14:31.609Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="Ubuntu介绍"><a href="#Ubuntu介绍" class="headerlink" title="Ubuntu介绍"></a>Ubuntu介绍</h2><ol>
-<li><code>Ubuntu</code>（乌班图）是一个以桌面应用为主的<code>Linux</code>操作系统，是比较流行的一款linux桌面系统，还有如：<code>Ubuntu</code>是属于<code>Debian</code>系列、<code>CentOS</code>则是属于<code>Redhat</code>系列</li>
-<li>Ubuntu下载地址：<a href="http://releases.ubuntu.com/" target="_blank" rel="external">http://releases.ubuntu.com/</a></li>
-<li>本文以<code>Ubuntu 16.04.1 LTS</code>为例记录U盘、硬盘安装方法(windows安装类似)</li>
-</ol>
-<h2 id="Bios、分区、MBR"><a href="#Bios、分区、MBR" class="headerlink" title="Bios、分区、MBR"></a>Bios、分区、MBR</h2><ol>
-<li>设置电脑U盘启动<ul>
-<li>我在电脑启动时按F12即可进入Bios界面（进入Bios的快捷键一般为ESC/F1/F11/F12等，可以网上查询电脑型号对应的启动Bios快捷键）</li>
-<li>找到<code>Boot</code>选项(或者<code>启动选项</code>等字眼)，调整<code>USB</code>相关的选项到顶部(即优先U盘或者移动硬盘启动)</li>
-</ul>
-</li>
-<li>电脑分区 <a href="[https://zhidao.baidu.com/question/512380327.html](https://zhidao.baidu.com/question/512380327.html)">^1</a><ul>
-<li>windows进入分区界面：右键我的电脑 -&gt; 管理 -&gt; 存储 -&gt; 磁盘管理<ul>
-<li>扩展卷：将未使用的磁盘扩展到当前卷</li>
-<li>压缩卷：将当前卷未使用的空间压缩一定大小为未使用磁盘</li>
-</ul>
-</li>
-<li>硬盘分区一般只能有4个主分区，其他都为逻辑分区，打开磁盘管理，根据图示，一般可从做到右获取到分区的表达方式<ul>
-<li><code>(hd0, 1)</code> 表示第一块硬盘第二主分区; <code>(hd1, 4)</code> 表示第二块硬盘的第一逻辑分区(如移动硬盘，不论硬盘是否达到了4个主分区，逻辑分区都是从4开始计算)</li>
-</ul>
-</li>
-<li>linux上对磁盘和分区的命名<ul>
-<li><code>hda</code> 一般是指IDE接口的硬盘，hda一般指第一块硬盘，类似的有hdb,hdc等</li>
-<li><code>sda</code> 一般是指SATA接口的硬盘，sda一般指第一块硬盘，类似的有sdb,sdc等</li>
-<li>现在的内核都会把硬盘，移动硬盘，U盘之类的识别为sdX的形式</li>
-<li>分区同上，4个主分区，其他为逻辑分区。但是linux上<code>sda1</code>才表示为第一主分区，以此类推</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>MBR</code>: Master Boot Record. 即主引导记录，常被叫做引导程序 <a href="[http://www.2cto.com/os/201202/120564.html](http://www.2cto.com/os/201202/120564.html)">^2</a><ul>
-<li>操作系统启动过程中有 一个很重要的引导程序——MBR。MBR是由三段组成的其中最重要的两段：是由446个字节组成的boot locader（引导加载器），和64个字节的分区表。在MBR的446字节也就是boot locader这段程序对于引导操作系统很重要。Linux中有两种boot locader可选，一种是LILO,一种就是GRUB。LILO现在已不用了。现在主要是使用GRUB来引导</li>
-<li>GRUB是两段式的引导，第一阶段称为stage1,是存放在MBR中，主要来引导第二阶段stage2 这段主要放在/boot/grub/中的执行程序，主要是grub.conf这个文件</li>
-</ul>
-</li>
-<li>文件系统<ul>
-<li><code>NTFS</code> 为windows专用文件，具有良好的加密性，由于<code>FAT</code>、<code>FAT32</code>(linux可以失败)</li>
-<li><code>EXT4</code> 为Linux系统下的日志文件系统，是ext2、ext3的后续版本</li>
-</ul>
-</li>
-</ol>
-<h2 id="Ubuntu安装"><a href="#Ubuntu安装" class="headerlink" title="Ubuntu安装"></a>Ubuntu安装</h2><p>Ubuntu安装方式分为两种：物理安装和虚拟安装。</p>
-<ul>
-<li>物理安装：LiveCD、U盘、硬盘(包括移动硬盘)</li>
-<li>虚拟安装：WUBI、虚拟机。缺点：需要依赖于主系统，如windows</li>
-</ul>
-<h3 id="U盘安装-3"><a href="#U盘安装-3" class="headerlink" title="U盘安装 ^3"></a>U盘安装 <a href="[http://www.linuxidc.com/Linux/2014-10/108402.htm](http://www.linuxidc.com/Linux/2014-10/108402.htm)">^3</a></h3><ol>
-<li>首先下载好ubuntu64位镜像文件<code>ubuntu-16.04.1-desktop-amd64.iso</code>（进入<a href="http://releases.ubuntu.com/16.04/" target="_blank" rel="external">http://releases.ubuntu.com/16.04/</a>，找到<code>64-bit PC (AMD64) desktop image</code>）</li>
-<li>MD5校验：防止下载文件损坏（找到上述网址中的<code>MD5SUMS</code>文件，即可看到<code>17643c29e3c4609818f26becf76d29a3 *ubuntu-16.04.1-desktop-amd64.iso</code>）</li>
-<li>下载安装<code>UltraISO</code>，无需注册可以一直试用</li>
-<li>打开<code>UltraISO</code> -&gt; 文件 -&gt; 打开 -&gt; 选择ubuntu的iso镜像文件 -&gt; 启动 -&gt; 写入硬盘映像(硬盘驱动器选择U盘，写入方式USB-HDD+) -&gt; 写入(2分钟左右)。此时U盘已经刻录好系统</li>
-<li>将硬盘腾出一个未使用的空间，大小自己定义</li>
-<li>Bios启动 -&gt; 进入到刻录的U盘系统 -&gt; <code>Install Ubuntu</code>（或者选择使用而不安装，进入之后还是可以安装） -&gt; 点击桌面的<code>安装Ubuntu 16.04.1 LTS</code>进行安装 -&gt; 前面一直下一步，到安装类型选择“其他选项”（可以自己创建调整分区）</li>
-<li>选择“空闲”的磁盘，双击进行分区，主要分3个区<code>/</code>、<code>swap</code>、<code>/home</code>（还有其他分区方案）<ul>
-<li><code>/</code>：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点<code>/</code></li>
-<li><code>swap</code>：大小&lt;2G。逻辑分区，文件类型为交换空间，挂载点无</li>
-<li><code>/home</code>：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点<code>/home</code></li>
-</ul>
-</li>
-<li>安装启动引导的设备：选择<code>/</code>分区，如果有<code>/boot</code>分区则选择<code>/boot</code>分区</li>
-<li>一路下一步即可安装完成，重新启动即可。</li>
-</ol>
-<h3 id="硬盘安装-4"><a href="#硬盘安装-4" class="headerlink" title="硬盘安装 ^4"></a>硬盘安装 <a href="[http://v.youku.com/v_show/id_XMzEwODg2Njk2.html?f=16157628&amp;from=y1.2-3.2](http://v.youku.com/v_show/id_XMzEwODg2Njk2.html?f=16157628&amp;from=y1.2-3.2)">^4</a></h3><ol>
-<li><p>下载<code>EasyBCD</code> -&gt; 安装后打开 -&gt; 添加新条目 -&gt; NeoGrub -&gt; 安装 -&gt; 配置 -&gt; 在打开的配置文件（C:/NST/menu.lst）中写入如下代码。其中ro只读，splash显示启动画面；reboot重启；halt关机；<a href="[http://www.njliaohua.com/lhd_01ng13y9qv7k6x46aj4e_11.html](http://www.njliaohua.com/lhd_01ng13y9qv7k6x46aj4e_11.html)">^6</a> (hd0,0) 一般会是表示C盘，实际按照上述知识自行配置</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">title Install Ubuntu</div><div class="line">root (hd0,0)</div><div class="line">kernel (hd0,0)/vmlinuz.efi boot=casper iso-scan/filename=/ubuntu-16.04.1-desktop-amd64.iso ro splash  locale=zh_CN.UTF-8</div><div class="line">initrd (hd0,0)/initrd.lz</div><div class="line">title reboot</div><div class="line">reboot</div><div class="line">title halt</div><div class="line">halt</div></pre></td></tr></table></figure>
-</li>
-<li><p>将<code>ubuntu-16.04.1-desktop-amd64.iso</code>中casper文件夹下的initrd.lz和vmlinuz.efi复制到C盘根目录，并将镜像也复制进去。</p>
-</li>
-<li>重启电脑，启动界面选择<code>NeoGrub</code></li>
-<li>如果成功则会进入到buntu的桌面，首先<code>Ctrl+Alt+T</code>打开终端打开终端，运行<code>sudo umount -l /isodevice</code>去掉挂载的镜像文件</li>
-<li>安装U盘安装进行后续操作</li>
-</ol>
-<h3 id="移动硬盘安装-7"><a href="#移动硬盘安装-7" class="headerlink" title="移动硬盘安装 ^7"></a>移动硬盘安装 <a href="[http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124](http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124)">^7</a></h3><p>实况记录</p>
-<ol>
-<li>可用U盘中刻录的系统进行移动硬盘安装</li>
-<li>移动硬盘如果已经分区了，则最后留出前面一段装Ubuntu系统，防止启动时引导不成功，</li>
-<li>如第一段500G未分配，第二段1500G为NTFS文件系统，且电脑只有一块内置硬盘，分区按照上述分区<ul>
-<li>分好区后，<code>/</code>显示为<code>/dev/sdb2</code>；<code>swap</code>显示为<code>/dev/sdb5</code>；<code>/home</code>显示为<code>/dev/sdb6</code></li>
-<li>于是将安装启动引导的设备选择为<code>/dev/sdb2</code>。如果选择内置硬盘，则标识通过Grub来启动Ubuntu或者windows，当拔掉移动硬盘可以windows无法启动。选择<code>/dev/sdb2</code>则需要按照通过EasyBCD等程序进行引导启动Ubuntu</li>
-<li>此时使用电脑<code>compac 14</code>启动无法直接进入Ubuntu系统，需要按<code>F9</code>选择启动项(已经在Bios中设置了启动优先级也无效)<ul>
-<li>选择Efi启动可以（Efi -&gt; ubuntu -&gt; grubx64.efi）</li>
-<li>此时启动项中还会多出一个ubuntu(TS…..)，直接选择即可启动</li>
-<li>选择移动硬盘无法启动，按照文章 <a href="[http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124](http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124)">^7</a> 可以解决此问题，但是仍然需要按<code>ESC -&gt; F9</code>进行选择 (结合文章 <a href="[http://www.educity.cn/linux.1589874.html](http://www.educity.cn/linux.1589874.html)">^8</a> )。测试时必须将<code>grldr</code>放在<code>NTFS</code>那个分区，<code>menu.lst</code>可放在<code>NTFS</code>分区或者<code>sdb2</code>即根分区</li>
-</ul>
-</li>
-<li>按照文章 <a href="[http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124](http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124)">^7</a> <code>三、为移动使用做准备</code> 操作失败，且附加中的<code>grldr</code>文件不适用，可下载此文件 <a href="http://download.csdn.net/detail/hcx25909/5464025" target="_blank" rel="external">http://download.csdn.net/detail/hcx25909/5464025</a></li>
-</ul>
-</li>
-<li><p>(2017-02-16已解决，见下文) 使用电脑<code>Tinkpad E425</code>都未安装成功，U盘安装卡在logo页面；硬盘安装则报错<code>Error 13 invalid or unsupported executable format</code>；对于已经安装好的移动硬盘也是无法启动，于是利用U盘镜像进入到<code>Grub</code>命令行(也连接了移动硬盘)，运行一下命令仍然卡在命令行启动的最后一步。其中进入命令行后可输入<code>root (hd</code>，按<code>Tab</code>键进行提示磁盘</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">root (hd1,1)</div><div class="line">kernel (hd1,1)/vmlinuz root=/dev/sdb2 ro splash</div><div class="line">initrd (hd1,1)/initrd.img</div><div class="line">boot</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h3 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h3><ol>
-<li>2017-02-16解决ThinkPad E425在安装Ubuntu卡在安装界面的问题 [^9]<ul>
-<li>原因：主板BIOS设置中设置为双显卡切换的模式的时候，会出现这个问题</li>
-<li>解决方案：开机长按F1，进入BIOS设置。在config-&gt;Display-&gt;Graphics Device 设置显卡的模式为集成显卡 Integrated Graphics</li>
-</ul>
-</li>
-<li>2017-04-24解决ubuntu启动长时间黑屏问题<ul>
-<li>自己的笔记本是thinkpad e425，双显卡，装ubuntu一直卡在启动页面上，后来在bios中关闭了独显，所以成功将ubuntu装上<br>之后，开机时候直至显示用户登陆的页面时，屏幕都是黑屏</li>
-<li>安装 v86d 和 hwinfo，然后查看显卡支持的分辨率<ul>
-<li><code>sudo apt-get install v86d hwinfo</code></li>
-<li><code>sudo hwinfo --framebuffer</code></li>
-</ul>
-</li>
-<li>编辑<code>/etc/default/grub</code>，添加<code>GRUB_GFXPAYLOAD_LINUX=1024×768x24</code></li>
-<li>启用framebuffer：<code>echo FRAMEBUFFER=y | sudo tee /etc/initramfs-tools/conf.d/splash</code></li>
-<li>更新设置<ul>
-<li><code>sudo update-grub</code></li>
-<li><code>sudo update-grub2</code></li>
-<li><code>sudo update-initramfs -u</code></li>
-</ul>
-</li>
-<li>重启</li>
-</ul>
-</li>
-</ol>
-<hr>
-<p>参考文章</p>
-<p>[^9]: <a href="http://blog.csdn.net/u014466412/article/details/53666122" target="_blank" rel="external">ThinkPad E425在安装Ubuntu卡在安装界面</a></p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;Ubuntu介绍&quot;&gt;&lt;a href=&quot;#Ubuntu介绍&quot; class=&quot;headerlink&quot; title=&quot;Ubuntu介绍&quot;&gt;&lt;/a&gt;Ubuntu介绍&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;&lt;code&gt;Ubuntu&lt;/code&gt;（乌班图）是一个以桌面应用为主的&lt;code
-    
-    </summary>
-    
-      <category term="linux" scheme="http://blog.aezo.cn/categories/linux/"/>
-    
-    
-      <category term="system" scheme="http://blog.aezo.cn/tags/system/"/>
-    
-      <category term="install" scheme="http://blog.aezo.cn/tags/install/"/>
-    
-      <category term="disk" scheme="http://blog.aezo.cn/tags/disk/"/>
-    
-      <category term="bois" scheme="http://blog.aezo.cn/tags/bois/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>gitlab</title>
-    <link href="http://blog.aezo.cn/2016/11/20/extend/gitlab/"/>
-    <id>http://blog.aezo.cn/2016/11/20/extend/gitlab/</id>
-    <published>2016-11-20T02:39:00.000Z</published>
-    <updated>2017-07-17T13:08:56.706Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="gitlab介绍"><a href="#gitlab介绍" class="headerlink" title="gitlab介绍"></a>gitlab介绍</h2><p><a href="https://docs.gitlab.com/omnibus/README.html" target="_blank" rel="external">gitlab官方文档</a>。如<a href="https://about.gitlab.com/downloads/#centos7" target="_blank" rel="external">centos7安装</a></p>
-<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><ul>
-<li>重新启动：<code>sudo gitlab-ctl restart</code></li>
-<li>重新配置：<code>sudo gitlab-ctl reconfigure</code>（运行中的项目，重新配置后，数据也不会丢失）</li>
-</ul>
-<h2 id="问题集锦"><a href="#问题集锦" class="headerlink" title="问题集锦"></a>问题集锦</h2><ul>
-<li>访问项目首页(如：<a href="http://114.55.888.888/)，结果页面不显示，地址栏的地址变成" target="_blank" rel="external">http://114.55.888.888/)，结果页面不显示，地址栏的地址变成</a> <a href="http://gitlab/users/sign_in" target="_blank" rel="external">http://gitlab/users/sign_in</a><ul>
-<li>尝试方法：首先确保<code>/etc/gitlab/gitlab.rb</code>中的设置了<code>external_url</code>（如：<code>external_url &quot;http://www.example.com&quot;</code>），如果设置了，运行命令重新配置（<code>sudo gitlab-ctl reconfigure</code>，无需重启）。</li>
-</ul>
-</li>
-</ul>
-<hr>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;gitlab介绍&quot;&gt;&lt;a href=&quot;#gitlab介绍&quot; class=&quot;headerlink&quot; title=&quot;gitlab介绍&quot;&gt;&lt;/a&gt;gitlab介绍&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://docs.gitlab.com/omnibus/READM
-    
-    </summary>
-    
-      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
-    
-    
-      <category term="git" scheme="http://blog.aezo.cn/tags/git/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>wiki</title>
-    <link href="http://blog.aezo.cn/2016/10/27/extend/wiki/"/>
-    <id>http://blog.aezo.cn/2016/10/27/extend/wiki/</id>
-    <published>2016-10-27T13:36:00.000Z</published>
-    <updated>2017-07-17T13:08:56.655Z</updated>
-    
-    <content type="html"><![CDATA[<blockquote>
-<p>原文地址：<a href="https://github.com/vhf/free-programming-books/blob/master/free-programming-books-zh.md" target="_blank" rel="external">https://github.com/vhf/free-programming-books/blob/master/free-programming-books-zh.md</a> <strong>branch:</strong> <code>2e467c3</code></p>
-</blockquote>
-<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
-<li><a href="#语言无关">语言无关</a><ul>
-<li><a href="#ide">IDE</a></li>
-<li><a href="#mysql">MySQL</a></li>
-<li><a href="#nosql">NoSQL</a></li>
-<li><a href="#postgresql">PostgreSQL</a></li>
-<li><a href="#web">Web</a></li>
-<li><a href="#web服务器">WEB服务器</a></li>
-<li><a href="#其它">其它</a></li>
-<li><a href="#函数式概念">函数式概念</a></li>
-<li><a href="#分布式系统">分布式系统</a></li>
-<li><a href="#在线教育">在线教育</a></li>
-<li><a href="#大数据">大数据</a></li>
-<li><a href="#操作系统">操作系统</a></li>
-<li><a href="#数据库">数据库</a></li>
-<li><a href="#智能系统">智能系统</a></li>
-<li><a href="#正则表达式">正则表达式</a></li>
-<li><a href="#版本控制">版本控制</a></li>
-<li><a href="#程序员杂谈">程序员杂谈</a></li>
-<li><a href="#管理和监控">管理和监控</a></li>
-<li><a href="#编程艺术">编程艺术</a></li>
-<li><a href="#编译原理">编译原理</a></li>
-<li><a href="#编辑器">编辑器</a></li>
-<li><a href="#计算机图形学">计算机图形学</a></li>
-<li><a href="#设计模式">设计模式</a></li>
-<li><a href="#软件开发方法">软件开发方法</a></li>
-<li><a href="#项目相关">项目相关</a></li>
-</ul>
-</li>
-<li><a href="#语言相关">语言相关</a><ul>
-<li><a href="#android">Android</a></li>
-<li><a href="#awk">AWK</a></li>
-<li><a href="#c">C</a></li>
-<li><a href="#c-sharp">C#</a></li>
-<li><a href="#c-1">C++</a></li>
-<li><a href="#coffeescript">CoffeeScript</a></li>
-<li><a href="#dart">Dart</a></li>
-<li><a href="#elasticsearch">Elasticsearch</a></li>
-<li><a href="#elixir">Elixir</a></li>
-<li><a href="#erlang">Erlang</a></li>
-<li><a href="#fortran">Fortran</a></li>
-<li><a href="#golang">Golang</a></li>
-<li><a href="#haskell">Haskell</a></li>
-<li><a href="#html--css">HTML / CSS</a></li>
-<li><a href="#http">HTTP</a></li>
-<li><a href="#ios">iOS</a></li>
-<li><a href="#java">Java</a></li>
-<li><a href="#javascript">JavaScript</a></li>
-<li><a href="#latex">LaTeX</a></li>
-<li><a href="#lisp">LISP</a></li>
-<li><a href="#lua">Lua</a></li>
-<li><a href="#markdown">Markdown</a></li>
-<li><a href="#nodejs">Node.js</a></li>
-<li><a href="#perl">Perl</a></li>
-<li><a href="#php">PHP</a></li>
-<li><a href="#python">Python</a></li>
-<li><a href="#r">R</a></li>
-<li><a href="#restructuredtext">reStructuredText</a></li>
-<li><a href="#ruby">Ruby</a></li>
-<li><a href="#rust">Rust</a></li>
-<li><a href="#scala">Scala</a></li>
-<li><a href="#scheme">Scheme</a></li>
-<li><a href="#shell">Shell</a></li>
-<li><a href="#swift">Swift</a></li>
-<li><a href="#vim">Vim</a></li>
-<li><a href="#visual-prolog">Visual Prolog</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="语言无关"><a href="#语言无关" class="headerlink" title="语言无关"></a>语言无关</h2><h3 id="IDE"><a href="#IDE" class="headerlink" title="IDE"></a>IDE</h3><ul>
-<li><a href="https://github.com/judasn/IntelliJ-IDEA-Tutorial" target="_blank" rel="external">IntelliJ IDEA 简体中文专题教程</a></li>
-</ul>
-<h3 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h3><ul>
-<li><a href="http://www.cnblogs.com/mr-wid/archive/2013/05/09/3068229.html" target="_blank" rel="external">21分钟MySQL入门教程</a></li>
-<li><a href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html" target="_blank" rel="external">MySQL索引背后的数据结构及算法原理</a></li>
-</ul>
-<h3 id="NoSQL"><a href="#NoSQL" class="headerlink" title="NoSQL"></a>NoSQL</h3><ul>
-<li><a href="http://disquebook.com" target="_blank" rel="external">Disque 使用教程</a></li>
-<li><a href="http://neo4j.tw" target="_blank" rel="external">Neo4j .rb 中文資源</a></li>
-<li><a href="http://docs.neo4j.org.cn" target="_blank" rel="external">Neo4j 简体中文手册 v1.8</a></li>
-<li><a href="http://redisdoc.com" target="_blank" rel="external">Redis 命令参考</a></li>
-<li><a href="http://redisbook.com" target="_blank" rel="external">Redis 设计与实现</a></li>
-<li><a href="https://github.com/justinyhuang/the-little-mongodb-book-cn/blob/master/mongodb.md" target="_blank" rel="external">The Little MongoDB Book</a></li>
-<li><a href="https://github.com/JasonLai256/the-little-redis-book/blob/master/cn/redis.md" target="_blank" rel="external">The Little Redis Book</a></li>
-<li><a href="https://github.com/huangz1990/annotated_redis_source" target="_blank" rel="external">带有详细注释的 Redis 2.6 代码</a></li>
-<li><a href="https://github.com/huangz1990/redis-3.0-annotated" target="_blank" rel="external">带有详细注释的 Redis 3.0 代码</a></li>
-</ul>
-<h3 id="PostgreSQL"><a href="#PostgreSQL" class="headerlink" title="PostgreSQL"></a>PostgreSQL</h3><ul>
-<li><a href="http://works.jinbuguo.com/postgresql/menu823/index.html" target="_blank" rel="external">PostgreSQL 8.2.3 中文文档</a></li>
-<li><a href="http://www.postgres.cn/docs/9.3/index.html" target="_blank" rel="external">PostgreSQL 9.3.1 中文文档</a></li>
-</ul>
-<h3 id="Web"><a href="#Web" class="headerlink" title="Web"></a>Web</h3><ul>
-<li><a href="https://www.gitbook.com/book/juntao/3-web-designs-in-3-weeks/details" target="_blank" rel="external">3 Web Designs in 3 Weeks</a></li>
-<li><a href="https://github.com/CN-Chrome-DevTools/CN-Chrome-DevTools" target="_blank" rel="external">Chrome 开发者工具中文手册</a></li>
-<li><a href="http://open.chrome.360.cn/extension_dev/overview.html" target="_blank" rel="external">Chrome扩展开发文档</a></li>
-<li><a href="https://github.com/phodal/growth-ebook" target="_blank" rel="external">Growth: 全栈增长工程师指南</a></li>
-<li><a href="http://www.gruntjs.net" target="_blank" rel="external">Grunt中文文档</a></li>
-<li><a href="https://github.com/nimojs/gulp-book" target="_blank" rel="external">Gulp 入门指南</a></li>
-<li><a href="http://www.gulpjs.com.cn/docs/" target="_blank" rel="external">gulp中文文档</a></li>
-<li><a href="https://github.com/bolasblack/http-api-guide" target="_blank" rel="external">HTTP 接口设计指北</a></li>
-<li><a href="http://yuedu.baidu.com/ebook/478d1a62376baf1ffc4fad99?pn=1" target="_blank" rel="external">HTTP/2.0 中文翻译</a></li>
-<li><a href="https://www.gitbook.com/book/ye11ow/http2-explained/details" target="_blank" rel="external">http2讲解</a></li>
-<li><a href="https://github.com/darcyliu/google-styleguide/blob/master/JSONStyleGuide.md" target="_blank" rel="external">JSON风格指南</a></li>
-<li><a href="http://man.lupaworld.com/content/network/wireshark/index.html" target="_blank" rel="external">Wireshark用户手册</a></li>
-<li><a href="https://community.emc.com/thread/194901" target="_blank" rel="external">一站式学习Wireshark</a></li>
-<li><a href="http://www.20thingsilearned.com/zh-CN/home" target="_blank" rel="external">关于浏览器和网络的 20 项须知</a></li>
-<li><a href="http://coderlmn.github.io/code-standards/" target="_blank" rel="external">前端代码规范 及 最佳实践</a></li>
-<li><a href="https://github.com/fouber/blog/issues/2" target="_blank" rel="external">前端开发体系建设日记</a></li>
-<li><a href="https://github.com/hacke2/hacke2.github.io/issues/1" target="_blank" rel="external">前端资源分享（一）</a></li>
-<li><a href="https://github.com/hacke2/hacke2.github.io/issues/3" target="_blank" rel="external">前端资源分享（二）</a></li>
-<li><a href="http://deerchao.net/tutorials/regex/regex.htm" target="_blank" rel="external">正则表达式30分钟入门教程</a></li>
-<li><a href="http://jinlong.github.io/2013/08/29/devtoolsecrets/" target="_blank" rel="external">浏览器开发工具的秘密</a></li>
-<li><a href="https://github.com/AlloyTeam/Mars" target="_blank" rel="external">移动Web前端知识库</a></li>
-<li><a href="https://github.com/hoosin/mobile-web-favorites" target="_blank" rel="external">移动前端开发收藏夹</a></li>
-</ul>
-<h3 id="WEB服务器"><a href="#WEB服务器" class="headerlink" title="WEB服务器"></a>WEB服务器</h3><ul>
-<li><a href="http://works.jinbuguo.com/apache/menu22/index.html" target="_blank" rel="external">Apache 中文手册</a></li>
-<li><a href="http://tengine.taobao.org/book/index.html" target="_blank" rel="external">Nginx开发从入门到精通</a> (淘宝团队出品)</li>
-<li><a href="http://www.ttlsa.com/nginx/nginx-stu-pdf/" target="_blank" rel="external">Nginx教程从入门到精通</a> (PDF版本，运维生存时间出品)</li>
-</ul>
-<h3 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h3><ul>
-<li><a href="https://softwaredownload.gitbooks.io/openwrt-fanqiang/content/" target="_blank" rel="external">OpenWrt智能、自动、透明翻墙路由器教程</a></li>
-<li><a href="https://community.emc.com/docs/DOC-16067" target="_blank" rel="external">SAN 管理入门系列</a></li>
-<li><a href="http://sketchcn.com/sketch-chinese-user-manual.html#introduce" target="_blank" rel="external">Sketch 中文手册</a></li>
-<li><a href="http://ifeve.com/perfbook/" target="_blank" rel="external">深入理解并行编程</a></li>
-</ul>
-<h3 id="函数式概念"><a href="#函数式概念" class="headerlink" title="函数式概念"></a>函数式概念</h3><ul>
-<li><a href="https://github.com/justinyhuang/Functional-Programming-For-The-Rest-of-Us-Cn" target="_blank" rel="external">傻瓜函数编程</a></li>
-</ul>
-<h3 id="分布式系统"><a href="#分布式系统" class="headerlink" title="分布式系统"></a>分布式系统</h3><ul>
-<li><a href="http://dcaoyuan.github.io/papers/pdfs/Scalability.pdf" target="_blank" rel="external">走向分布式</a> (PDF)</li>
-</ul>
-<h3 id="在线教育"><a href="#在线教育" class="headerlink" title="在线教育"></a>在线教育</h3><ul>
-<li><a href="http://edu.51cto.com" target="_blank" rel="external">51CTO学院</a></li>
-<li><a href="https://www.codecademy.com/?locale_code=zh" target="_blank" rel="external">Codecademy</a></li>
-<li><a href="https://www.codeschool.com" target="_blank" rel="external">CodeSchool</a></li>
-<li><a href="https://www.coursera.org/courses?orderby=upcoming&amp;lngs=zh" target="_blank" rel="external">Coursera</a></li>
-<li><a href="https://learnxinyminutes.com" target="_blank" rel="external">Learn X in Y minutes</a> (数十种语言快速入门教程)</li>
-<li><a href="https://www.shiyanlou.com" target="_blank" rel="external">shiyanlou</a></li>
-<li><a href="https://teamtreehouse.com" target="_blank" rel="external">TeamTreeHouse</a></li>
-<li><a href="https://www.udacity.com" target="_blank" rel="external">Udacity</a></li>
-<li><a href="https://www.xuetangx.com" target="_blank" rel="external">xuetangX</a></li>
-<li><a href="http://www.imooc.com/course/list" target="_blank" rel="external">慕课网</a> (丰富的移动端开发、php开发、web前端、html5教程以及css3视频教程等课程资源)</li>
-<li><a href="http://www.jikexueyuan.com" target="_blank" rel="external">极客学院</a></li>
-<li><a href="http://www.jisuanke.com" target="_blank" rel="external">计蒜客</a></li>
-</ul>
-<h3 id="大数据"><a href="#大数据" class="headerlink" title="大数据"></a>大数据</h3><ul>
-<li><a href="https://aiyanbo.gitbooks.io/spark-programming-guide-zh-cn/content/" target="_blank" rel="external">Spark 编程指南简体中文版</a></li>
-<li><a href="https://code.csdn.net/CODE_Translation/spark_matei_phd" target="_blank" rel="external">大型集群上的快速和通用数据处理架构</a></li>
-<li><a href="https://github.com/Flowerowl/Big-Data-Resources" target="_blank" rel="external">大数据/数据挖掘/推荐系统/机器学习相关资源</a></li>
-<li><a href="https://github.com/linyiqun/DataMiningAlgorithm" target="_blank" rel="external">数据挖掘中经典的算法实现和详细的注释</a></li>
-<li><a href="http://dataminingguide.books.yourtion.com" target="_blank" rel="external">面向程序员的数据挖掘指南</a></li>
-</ul>
-<h3 id="操作系统"><a href="#操作系统" class="headerlink" title="操作系统"></a>操作系统</h3><ul>
-<li><a href="http://man.chinaunix.net/linux/debian/reference/reference.zh-cn.html" target="_blank" rel="external">Debian 参考手册 </a></li>
-<li><a href="https://github.com/yeasy/docker_practice" target="_blank" rel="external">Docker —— 从入门到实践</a></li>
-<li><a href="https://github.com/widuu/chinese_docker" target="_blank" rel="external">Docker中文指南</a></li>
-<li><a href="http://yuedu.baidu.com/ebook/d817967416fc700abb68fca1" target="_blank" rel="external">Docker入门实战</a></li>
-<li><a href="http://www.freebsd.org/doc/zh_CN.UTF-8/books/handbook/" target="_blank" rel="external">FreeBSD 使用手册</a></li>
-<li><a href="http://freeradius.akagi201.org" target="_blank" rel="external">FreeRADIUS新手入门</a></li>
-<li><a href="https://tinylab.gitbooks.io/linux-doc/content/zh-cn/" target="_blank" rel="external">Linux Documentation (中文版)</a></li>
-<li><a href="http://happypeter.github.io/LGCB/book/" target="_blank" rel="external">Linux Guide for Complete Beginners</a></li>
-<li><a href="http://works.jinbuguo.com/lfs/lfs62/index.html" target="_blank" rel="external">Linux 构建指南</a></li>
-<li><a href="http://sourceforge.net/projects/elpi/" target="_blank" rel="external">Linux 系统高级编程</a></li>
-<li><a href="https://github.com/me115/linuxtools_rst" target="_blank" rel="external">Linux工具快速教程</a></li>
-<li><a href="https://aaaaaashu.gitbooks.io/mac-dev-setup/content/" target="_blank" rel="external">Mac 开发配置手册</a></li>
-<li><a href="http://pages.cs.wisc.edu/~remzi/OSTEP/" target="_blank" rel="external">Operating Systems: Three Easy Pieces</a></li>
-<li><a href="http://billie66.github.io/TLCL/index.html" target="_blank" rel="external">The Linux Command Line</a> (中英文版)</li>
-<li><a href="http://wiki.ubuntu.org.cn/UbuntuManual" target="_blank" rel="external">Ubuntu 参考手册 </a></li>
-<li><a href="https://www.gitbook.com/book/objectkuan/ucore-docs/details" target="_blank" rel="external">uCore Lab: Operating System Course in Tsinghua University</a></li>
-<li><a href="http://cb.vu/unixtoolbox_zh_CN.xhtml" target="_blank" rel="external">UNIX TOOLBOX</a></li>
-<li><a href="https://github.com/jlevy/the-art-of-command-line/blob/master/README-zh.md" target="_blank" rel="external">命令行的艺术</a></li>
-<li><a href="https://tinylab.gitbooks.io/elinux/content/zh/" target="_blank" rel="external">嵌入式 Linux 知识库 (eLinux.org 中文版)</a></li>
-<li><a href="http://i.linuxtoy.org/docs/guide/index.html" target="_blank" rel="external">开源世界旅行手册</a></li>
-<li><a href="http://www.kerneltravel.net/kernel-book/%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90Linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81.html" target="_blank" rel="external">深入分析Linux内核源码</a></li>
-<li><a href="https://github.com/tobegit3hub/understand_linux_process" target="_blank" rel="external">理解Linux进程</a></li>
-<li><a href="http://vbird.dic.ksu.edu.tw/linux_basic/linux_basic.php" target="_blank" rel="external">鸟哥的 Linux 私房菜 基础学习篇</a></li>
-<li><a href="http://vbird.dic.ksu.edu.tw/linux_server/" target="_blank" rel="external">鸟哥的 Linux 私房菜 服务器架设篇</a></li>
-</ul>
-<h3 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h3><ul>
-<li><a href="http://redisbook.com" target="_blank" rel="external">Redis 设计与实现</a></li>
-<li><a href="https://github.com/justinyhuang/the-little-mongodb-book-cn" target="_blank" rel="external">The Little MongoDB Book 中文版</a></li>
-</ul>
-<h3 id="智能系统"><a href="#智能系统" class="headerlink" title="智能系统"></a>智能系统</h3><ul>
-<li><a href="https://github.com/phodal/designiot" target="_blank" rel="external">一步步搭建物联网系统</a></li>
-</ul>
-<h3 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h3><ul>
-<li><a href="http://deerchao.net/tutorials/regex/regex.htm" target="_blank" rel="external">正则表达式30分钟入门教程</a></li>
-</ul>
-<h3 id="版本控制"><a href="#版本控制" class="headerlink" title="版本控制"></a>版本控制</h3><ul>
-<li><a href="http://rogerdudler.github.io/git-guide/index.zh.html" target="_blank" rel="external">Git - 简易指南</a></li>
-<li><a href="https://github.com/flyhigher139/Git-Cheat-Sheet" target="_blank" rel="external">Git-Cheat-Sheet</a> （感谢 @flyhigher139 翻译了中文版）</li>
-<li><a href="http://gitbook.liuhui998.com" target="_blank" rel="external">Git Community Book 中文版</a></li>
-<li><a href="http://danielkummer.github.io/git-flow-cheatsheet/index.zh_CN.html" target="_blank" rel="external">git-flow 备忘清单</a></li>
-<li><a href="http://www-cs-students.stanford.edu/~blynn/gitmagic/intl/zh_cn/" target="_blank" rel="external">Git magic</a></li>
-<li><a href="http://www-cs-students.stanford.edu/~blynn/gitmagic/intl/zh_cn/" target="_blank" rel="external">Git Magic</a></li>
-<li><a href="http://gitref.justjavac.com" target="_blank" rel="external">Git 参考手册</a></li>
-<li><a href="https://github.com/waylau/github-help" target="_blank" rel="external">Github帮助文档</a></li>
-<li><a href="https://snowdream86.gitbooks.io/github-cheat-sheet/content/zh/" target="_blank" rel="external">GitHub秘籍</a></li>
-<li><a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000" target="_blank" rel="external">Git教程</a> （本文由 <a href="http://weibo.com/liaoxuefeng" target="_blank" rel="external">@廖雪峰</a> 创作，如果觉得本教程对您有帮助，可以去 <a href="https://itunes.apple.com/cn/app/git-jiao-cheng/id876420437" target="_blank" rel="external">iTunes</a> 购买）</li>
-<li><a href="https://github.com/gotgit/gotgithub" target="_blank" rel="external">Got GitHub</a></li>
-<li><a href="http://www.worldhello.net/gotgithub/index.html" target="_blank" rel="external">GotGitHub</a></li>
-<li><a href="http://bucunzai.net/hginit/" target="_blank" rel="external">HgInit (中文版)</a></li>
-<li><a href="https://www.mercurial-scm.org/wiki/ChineseTutorial" target="_blank" rel="external">Mercurial 使用教程</a></li>
-<li><a href="https://git-scm.com/book/zh/v2" target="_blank" rel="external">Pro Git</a></li>
-<li><a href="https://www.gitbook.com/book/0532/progit/details" target="_blank" rel="external">Pro Git 中文版</a> (整理在gitbook上)</li>
-<li><a href="http://svnbook.red-bean.com/nightly/zh/index.html" target="_blank" rel="external">svn 手册</a></li>
-<li><a href="http://pcottle.github.io/learnGitBranching/" target="_blank" rel="external">学习 Git 分支</a> (点击右下角按钮可切换至简体及正体中文)</li>
-<li><a href="http://igit.linuxtoy.org/index.html" target="_blank" rel="external">沉浸式学 Git</a></li>
-<li><a href="http://backlogtool.com/git-guide/cn/" target="_blank" rel="external">猴子都能懂的GIT入门</a></li>
-</ul>
-<h3 id="程序员杂谈"><a href="#程序员杂谈" class="headerlink" title="程序员杂谈"></a>程序员杂谈</h3><ul>
-<li><a href="http://www.kancloud.cn/kancloud/a-programmer-prepares" target="_blank" rel="external">程序员的自我修养</a></li>
-</ul>
-<h3 id="管理和监控"><a href="#管理和监控" class="headerlink" title="管理和监控"></a>管理和监控</h3><ul>
-<li><a href="https://www.gitbook.com/book/fuxiaopang/learnelasticsearch/details" target="_blank" rel="external">ElasticSearch 权威指南</a></li>
-<li><a href="http://es.xiaoleilu.com" target="_blank" rel="external">Elasticsearch 权威指南（中文版）</a></li>
-<li><a href="http://kibana.logstash.es" target="_blank" rel="external">ELKstack 中文指南</a></li>
-<li><a href="https://github.com/chenryn/logstash-best-practice-cn" target="_blank" rel="external">Logstash 最佳实践</a></li>
-<li><a href="http://udn.yyuap.com/doc/mastering-elasticsearch/" target="_blank" rel="external">Mastering Elasticsearch(中文版)</a></li>
-<li><a href="http://bbs.konotes.org/workdoc/puppet-27/" target="_blank" rel="external">Puppet 2.7 Cookbook 中文版</a></li>
-</ul>
-<h3 id="编程艺术"><a href="#编程艺术" class="headerlink" title="编程艺术"></a>编程艺术</h3><ul>
-<li><a href="http://read.douban.com/ebook/4972883/" target="_blank" rel="external">取悦的工序：如何理解游戏</a> (豆瓣阅读，免费书籍)</li>
-<li><a href="http://www.oschina.net/translate/what-every-programmer-should-know-about-memory-part1?print" target="_blank" rel="external">每个程序员都应该了解的内存知识(译)</a>【第一部分】</li>
-<li><a href="https://github.com/julycoding/The-Art-Of-Programming-by-July" target="_blank" rel="external">程序员编程艺术</a></li>
-<li><a href="http://www.kancloud.cn/kancloud/intro-to-prog/52592" target="_blank" rel="external">编程入门指南</a></li>
-</ul>
-<h3 id="编译原理"><a href="#编译原理" class="headerlink" title="编译原理"></a>编译原理</h3><ul>
-<li><a href="https://github.com/DeathKing/Learning-SICP" target="_blank" rel="external">《计算机程序的结构和解释》公开课 翻译项目</a></li>
-</ul>
-<h3 id="编辑器"><a href="#编辑器" class="headerlink" title="编辑器"></a>编辑器</h3><ul>
-<li><a href="http://exvim.github.io/docs-zh/intro/" target="_blank" rel="external">exvim–vim 改良成IDE项目</a></li>
-<li><a href="https://github.com/vimcn/vimcdoc" target="_blank" rel="external">Vim中文文档</a></li>
-<li><a href="https://github.com/yangyangwithgnu/use_vim_as_ide" target="_blank" rel="external">所需即所获：像 IDE 一样使用 vim</a></li>
-<li><a href="http://learnvimscriptthehardway.onefloweroneworld.com" target="_blank" rel="external">笨方法学Vimscript 中译本</a></li>
-</ul>
-<h3 id="计算机图形学"><a href="#计算机图形学" class="headerlink" title="计算机图形学"></a>计算机图形学</h3><ul>
-<li><a href="https://github.com/zilongshanren/opengl-tutorials" target="_blank" rel="external">OpenGL 教程</a></li>
-</ul>
-<h3 id="设计模式"><a href="#设计模式" class="headerlink" title="设计模式"></a>设计模式</h3><ul>
-<li><a href="http://blog.csdn.net/lovelion/article/details/17517213" target="_blank" rel="external">史上最全设计模式导学目录</a></li>
-<li><a href="https://github.com/me115/design_patterns" target="_blank" rel="external">图说设计模式</a></li>
-</ul>
-<h3 id="软件开发方法"><a href="#软件开发方法" class="headerlink" title="软件开发方法"></a>软件开发方法</h3><ul>
-<li><a href="https://github.com/justinyhuang/Functional-Programming-For-The-Rest-of-Us-Cn" target="_blank" rel="external">傻瓜函数编程</a> (《Functional Programming For The Rest of Us》中文版)</li>
-<li><a href="http://www.infoq.com/cn/minibooks/scrum-xp-from-the-trenches" target="_blank" rel="external">硝烟中的 Scrum 和 XP</a></li>
-</ul>
-<h3 id="项目相关"><a href="#项目相关" class="headerlink" title="项目相关"></a>项目相关</h3><ul>
-<li><a href="http://docs.huihoo.com/gnu/linux/gmake.html" target="_blank" rel="external">GNU make 指南</a></li>
-<li><a href="https://github.com/waylau/Gradle-2-User-Guide" target="_blank" rel="external">Gradle 2 用户指南</a></li>
-<li><a href="http://yuedu.baidu.com/ebook/f23af265998fcc22bcd10da2" target="_blank" rel="external">Gradle 中文使用文档</a></li>
-<li><a href="http://local.joelonsoftware.com/wiki/Chinese_(Simplified" target="_blank" rel="external">Joel谈软件</a>)</li>
-<li><a href="https://github.com/fool2fish/selenium-doc" target="_blank" rel="external">selenium 中文文档</a></li>
-<li><a href="http://www.ituring.com.cn/book/1143" target="_blank" rel="external">开源软件架构</a></li>
-<li><a href="http://article.yeeyan.org/view/2251/94882" target="_blank" rel="external">持续集成（第二版）</a> (译言网)</li>
-<li><a href="http://local.joelonsoftware.com/wiki/%E9%A6%96%E9%A0%81" target="_blank" rel="external">約耳談軟體(Joel on Software)</a></li>
-<li><a href="https://github.com/ecomfe/spec" target="_blank" rel="external">编码规范</a></li>
-<li><a href="http://www.ibm.com/developerworks/cn/java/j-ap/" target="_blank" rel="external">让开发自动化系列专栏</a></li>
-<li><a href="http://www.ibm.com/developerworks/cn/java/j-cq/" target="_blank" rel="external">追求代码质量</a></li>
-</ul>
-<h2 id="语言相关"><a href="#语言相关" class="headerlink" title="语言相关"></a>语言相关</h2><h3 id="Android"><a href="#Android" class="headerlink" title="Android"></a>Android</h3><ul>
-<li><a href="http://www.apkbus.com/design/index.html" target="_blank" rel="external">Android Design(中文版)</a></li>
-<li><a href="https://github.com/CharonChui/AndroidNote" target="_blank" rel="external">Android Note(开发过程中积累的知识点)</a></li>
-<li><a href="http://leanote.com/blog/post/561658f938f41126b2000298?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="external">Android6.0新特性详解</a></li>
-<li><a href="http://stormzhang.github.io/android/2014/07/07/learn-android-from-rookie/" target="_blank" rel="external">Android学习之路</a></li>
-<li><a href="https://github.com/bboyfeiyu/android-tech-frontier" target="_blank" rel="external">Android开发技术前线(android-tech-frontier)</a></li>
-<li><a href="http://hukai.me/android-training-course-in-chinese/index.html" target="_blank" rel="external">Google Android官方培训课程中文版</a></li>
-<li>Google Material Design 正體中文版 (<a href="https://wcc723.gitbooks.io/google_design_translate/content/style-icons.html" target="_blank" rel="external">译本一</a> <a href="https://github.com/1sters/material_design_zh" target="_blank" rel="external">译本二</a>)</li>
-<li><a href="http://wiki.jikexueyuan.com/project/material-design/" target="_blank" rel="external">Material Design 中文版</a></li>
-<li><a href="https://github.com/FX-Max/Point-of-Android" target="_blank" rel="external">Point-of-Android</a> Android 一些重要知识点解析整理</li>
-</ul>
-<h3 id="AWK"><a href="#AWK" class="headerlink" title="AWK"></a>AWK</h3><ul>
-<li><a href="http://awk.readthedocs.org/en/latest/index.html" target="_blank" rel="external">awk中文指南</a></li>
-<li><a href="https://github.com/wuzhouhui/awk" target="_blank" rel="external">awk程序设计语言</a></li>
-</ul>
-<h3 id="C"><a href="#C" class="headerlink" title="C"></a>C</h3><ul>
-<li><a href="http://c-faq-chn.sourceforge.net/ccfaq/ccfaq.html" target="_blank" rel="external">C 语言常见问题集</a></li>
-<li><a href="http://doc.lellansin.com" target="_blank" rel="external">C/C++ 学习教程</a></li>
-<li><a href="http://docs.linuxtone.org/ebooks/C&amp;CPP/c/" target="_blank" rel="external">Linux C 编程一站式学习</a></li>
-<li><a href="https://github.com/limingth/NCCL" target="_blank" rel="external">新概念 C 语言教程</a></li>
-</ul>
-<h3 id="C-Sharp"><a href="#C-Sharp" class="headerlink" title="C Sharp"></a>C Sharp</h3><ul>
-<li><a href="http://book.douban.com/subject/24827879/" target="_blank" rel="external">精通C#(第6版) </a></li>
-</ul>
-<h3 id="C-1"><a href="#C-1" class="headerlink" title="C++"></a>C++</h3><ul>
-<li><a href="https://github.com/hellogcc/100-gcc-tips/blob/master/src/index.md" target="_blank" rel="external">100个gcc小技巧</a></li>
-<li><a href="https://github.com/hellogcc/100-gdb-tips/blob/master/src/index.md" target="_blank" rel="external">100个gdb小技巧</a></li>
-<li><a href="https://tinylab.gitbooks.io/cbook/content/" target="_blank" rel="external">C 语言编程透视</a></li>
-<li><a href="https://github.com/andycai/cprimer" target="_blank" rel="external">C/C++ Primer</a> - @andycai</li>
-<li><a href="http://www.sunistudio.com/cppfaq/" target="_blank" rel="external">C++ FAQ LITE(中文版)</a></li>
-<li><a href="https://github.com/Mooophy/Cpp-Primer" target="_blank" rel="external">C++ Primer 5th Answers</a></li>
-<li><a href="https://github.com/wuye9036/CppTemplateTutorial" target="_blank" rel="external">C++ Template 进阶指南</a></li>
-<li><a href="http://www.prglab.com/cms/" target="_blank" rel="external">C++ 基础教程</a></li>
-<li><a href="https://chenxiaowei.gitbooks.io/cpp_concurrency_in_action/content/" target="_blank" rel="external">C++ 并发编程(基于C++11)</a></li>
-<li><a href="https://github.com/forhappy/Cplusplus-Concurrency-In-Practice" target="_blank" rel="external">C++ 并发编程指南</a></li>
-<li><a href="https://github.com/leeyiw/cgdb-manual-in-chinese" target="_blank" rel="external">CGDB中文手册</a></li>
-<li><a href="http://sewm.pku.edu.cn/src/paradise/reference/CMake%20Practice.pdf" target="_blank" rel="external">Cmake 实践</a> (PDF版)</li>
-<li><a href="http://docs.huihoo.com/gnu/linux/gmake.html" target="_blank" rel="external">GNU make 指南</a></li>
-<li><a href="http://zh-google-styleguide.readthedocs.org/en/latest/google-cpp-styleguide/contents/" target="_blank" rel="external">Google C++ 风格指南</a></li>
-<li><a href="http://www.kuqin.com/qtdocument/tutorial.html" target="_blank" rel="external">QT 教程</a></li>
-<li><a href="https://github.com/anjuke/zguide-cn" target="_blank" rel="external">ZMQ 指南</a></li>
-<li><a href="http://www.ituring.com.cn/book/1203" target="_blank" rel="external">像计算机科学家一样思考（C++版)</a> (《How To Think Like a Computer Scientist: C++ Version》中文版)</li>
-<li><a href="http://www.nowamagic.net/librarys/books/contents/c" target="_blank" rel="external">简单易懂的C魔法</a></li>
-<li><a href="http://scc.qibebt.cas.cn/docs/linux/base/%B8%FA%CE%D2%D2%BB%C6%F0%D0%B4Makefile-%B3%C2%F0%A9.pdf" target="_blank" rel="external">跟我一起写Makefile(PDF)</a> (PDF)</li>
-</ul>
-<h3 id="CoffeeScript"><a href="#CoffeeScript" class="headerlink" title="CoffeeScript"></a>CoffeeScript</h3><ul>
-<li><a href="http://coffee-script.org" target="_blank" rel="external">CoffeeScript 中文</a></li>
-<li><a href="https://github.com/elrrrrrrr/coffeescript-style-guide/blob/master/README-ZH.md" target="_blank" rel="external">CoffeeScript 编程风格指南</a></li>
-</ul>
-<h3 id="Dart"><a href="#Dart" class="headerlink" title="Dart"></a>Dart</h3><ul>
-<li><a href="http://dart.lidian.info/wiki/Language_Tour" target="_blank" rel="external">Dart 语言导览</a></li>
-</ul>
-<h3 id="Elasticsearch"><a href="#Elasticsearch" class="headerlink" title="Elasticsearch"></a>Elasticsearch</h3><ul>
-<li><a href="https://github.com/looly/elasticsearch-definitive-guide-cn" target="_blank" rel="external">Elasticsearch 权威指南</a> （《Elasticsearch the definitive guide》中文版）</li>
-<li><a href="http://kibana.logstash.es" target="_blank" rel="external">ELKstack 中文指南</a></li>
-<li><a href="http://udn.yyuap.com/doc/mastering-elasticsearch/" target="_blank" rel="external">Mastering Elasticsearch(中文版)</a></li>
-</ul>
-<h3 id="Elixir"><a href="#Elixir" class="headerlink" title="Elixir"></a>Elixir</h3><ul>
-<li><a href="https://github.com/Ljzn/ElixrGettingStartedChinese" target="_blank" rel="external">Elixir Getting Started 中文翻译</a></li>
-<li><a href="https://elixirschool.com/cn/" target="_blank" rel="external">Elixir 编程语言教程</a> (Elixir School)</li>
-<li><a href="https://github.com/Ljzn/MetaProgrammingInElixirChinese" target="_blank" rel="external">Elixir元编程与DSL 中文翻译</a></li>
-<li><a href="https://mydearxym.gitbooks.io/phoenix-doc-in-chinese/content/" target="_blank" rel="external">Phoenix 框架中文文档</a></li>
-</ul>
-<h3 id="Erlang"><a href="#Erlang" class="headerlink" title="Erlang"></a>Erlang</h3><ul>
-<li><a href="https://github.com/liancheng/cpie-cn" target="_blank" rel="external">Erlang 并发编程</a> (《Concurrent Programming in Erlang (Part I)》中文版)</li>
-</ul>
-<h3 id="Fortran"><a href="#Fortran" class="headerlink" title="Fortran"></a>Fortran</h3><ul>
-<li><a href="http://micro.ustc.edu.cn/Fortran/ZJDing/" target="_blank" rel="external">Fortran77和90/95编程入门</a></li>
-</ul>
-<h3 id="Golang"><a href="#Golang" class="headerlink" title="Golang"></a>Golang</h3><ul>
-<li><a href="http://www.hellogcc.org/effective_go.html" target="_blank" rel="external">Effective Go</a></li>
-<li><a href="https://github.com/astaxie/build-web-application-with-golang" target="_blank" rel="external">Go Web 编程</a></li>
-<li><a href="https://github.com/Unknwon/the-way-to-go_ZH_CN" target="_blank" rel="external">Go 入门指南</a> (《The Way to Go》中文版)</li>
-<li><a href="https://github.com/golang-china/golangdoc.translations" target="_blank" rel="external">Go 官方文档翻译</a></li>
-<li><a href="http://go-tour-zh.appsp0t.com" target="_blank" rel="external">Go 指南</a> (《A Tour of Go》中文版)</li>
-<li><a href="https://github.com/songleo/the-little-go-book_ZH_CN" target="_blank" rel="external">Go 简易教程</a> (《<a href="https://github.com/karlseguin/the-little-go-book" target="_blank" rel="external">The Little Go Book</a>》中文版)</li>
-<li><a href="https://github.com/Unknwon/go-fundamental-programming" target="_blank" rel="external">Go 编程基础</a></li>
-<li><a href="https://github.com/polaris1119/The-Golang-Standard-Library-by-Example" target="_blank" rel="external">Go 语言标准库</a></li>
-<li><a href="https://github.com/hyper-carrot/go_command_tutorial" target="_blank" rel="external">Go命令教程</a></li>
-<li><a href="https://github.com/astaxie/Go-in-Action" target="_blank" rel="external">Go实战开发</a></li>
-<li><a href="https://github.com/achun/Go-Blog-In-Action" target="_blank" rel="external">Go语言博客实践</a></li>
-<li><a href="http://blog.csdn.net/dc_726/article/details/46565241" target="_blank" rel="external">Java程序员的Golang入门指南</a></li>
-<li><a href="https://github.com/astaxie/NPWG_zh" target="_blank" rel="external">Network programming with Go 中文翻译版本</a></li>
-<li><a href="http://gorevel.cn/docs/manual/index.html" target="_blank" rel="external">Revel 框架手册</a></li>
-<li><a href="http://mikespook.com/learning-go/" target="_blank" rel="external">学习Go语言</a></li>
-</ul>
-<h3 id="Groovy"><a href="#Groovy" class="headerlink" title="Groovy"></a>Groovy</h3><ul>
-<li><a href="http://www.ibm.com/developerworks/cn/java/j-pg/" target="_blank" rel="external">实战 Groovy 系列</a></li>
-</ul>
-<h3 id="Haskell"><a href="#Haskell" class="headerlink" title="Haskell"></a>Haskell</h3><ul>
-<li><a href="http://learnyoua.haskell.sg" target="_blank" rel="external">Haskell 趣学指南</a></li>
-<li><a href="http://cnhaskell.com" target="_blank" rel="external">Real World Haskell 中文版</a></li>
-</ul>
-<h3 id="HTML-CSS"><a href="#HTML-CSS" class="headerlink" title="HTML / CSS"></a>HTML / CSS</h3><ul>
-<li><a href="https://github.com/waylau/css3-tutorial" target="_blank" rel="external">CSS3 Tutorial 《CSS3 教程》</a></li>
-<li><a href="http://css.doyoe.com" target="_blank" rel="external">CSS参考手册</a></li>
-<li><a href="http://yanxyz.github.io/emmet-docs/" target="_blank" rel="external">Emmet 文档</a></li>
-<li><a href="http://www.w3school.com.cn/html5/" target="_blank" rel="external">HTML5 教程</a></li>
-<li><a href="http://codeguide.bootcss.com" target="_blank" rel="external">HTML和CSS编码规范</a></li>
-<li><a href="http://sass-guidelin.es/zh/" target="_blank" rel="external">Sass Guidelines 中文</a></li>
-<li><a href="http://alloyteam.github.io/CodeGuide/" target="_blank" rel="external">前端代码规范</a> (腾讯 AlloyTeam 团队)</li>
-<li><a href="http://zh.learnlayout.com" target="_blank" rel="external">学习CSS布局</a></li>
-<li><a href="https://github.com/chadluo/CSS-Guidelines/blob/master/README.md" target="_blank" rel="external">通用 CSS 笔记、建议与指导</a></li>
-</ul>
-<h3 id="iOS"><a href="#iOS" class="headerlink" title="iOS"></a>iOS</h3><ul>
-<li><a href="http://nilsun.github.io/apple-watch/" target="_blank" rel="external">Apple Watch开发初探</a></li>
-<li><a href="http://zh-google-styleguide.readthedocs.org/en/latest/google-objc-styleguide/" target="_blank" rel="external">Google Objective-C Style Guide 中文版</a></li>
-<li><a href="http://isux.tencent.com/ios-human-interface-guidelines-ui-design-basics-ios7.html" target="_blank" rel="external">iOS7人机界面指南</a></li>
-<li><a href="https://github.com/qinjx/30min_guides/blob/master/ios.md" target="_blank" rel="external">iOS开发60分钟入门</a></li>
-<li><a href="http://wileam.com/iphone-6-screen-cn/" target="_blank" rel="external">iPhone 6 屏幕揭秘</a></li>
-<li><a href="https://github.com/jkyin/Subtitle" target="_blank" rel="external">网易斯坦福大学公开课：iOS 7应用开发字幕文件</a></li>
-</ul>
-<h3 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h3><ul>
-<li><a href="https://github.com/waylau/activiti-5.x-user-guide" target="_blank" rel="external">Activiti 5.x 用户指南</a></li>
-<li><a href="https://github.com/waylau/apache-mina-2.x-user-guide" target="_blank" rel="external">Apache MINA 2 用户指南</a></li>
-<li><a href="https://github.com/waylau/apache-shiro-1.2.x-reference" target="_blank" rel="external">Apache Shiro 用户指南</a></li>
-<li><a href="http://www.hawstein.com/posts/google-java-style.html" target="_blank" rel="external">Google Java编程风格指南</a></li>
-<li><a href="https://github.com/waylau/h2-database-doc" target="_blank" rel="external">H2 Database 教程</a></li>
-<li><a href="https://github.com/waylau/servlet-3.1-specification" target="_blank" rel="external">Java Servlet 3.1 规范</a></li>
-<li><a href="https://github.com/waylau/java-code-conventions" target="_blank" rel="external">Java 编码规范</a></li>
-<li><a href="https://github.com/waylau/Jersey-2.x-User-Guide" target="_blank" rel="external">Jersey 2.x 用户指南</a></li>
-<li><a href="https://github.com/waylau/jsse-reference-guide" target="_blank" rel="external">JSSE 参考指南</a></li>
-<li><a href="http://mybatis.github.io/mybatis-3/zh/index.html" target="_blank" rel="external">MyBatis中文文档</a></li>
-<li><a href="https://github.com/waylau/netty-4-user-guide" target="_blank" rel="external">Netty 4.x 用户指南</a></li>
-<li><a href="https://github.com/waylau/essential-netty-in-action" target="_blank" rel="external">Netty 实战(精髓)</a></li>
-<li><a href="https://github.com/waylau/rest-in-action" target="_blank" rel="external">REST 实战</a></li>
-<li><a href="https://github.com/qibaoguang/Spring-Boot-Reference-Guide" target="_blank" rel="external">Spring Boot参考指南</a> (翻译中)</li>
-<li><a href="https://github.com/waylau/spring-framework-4-reference" target="_blank" rel="external">Spring Framework 4.x参考文档</a></li>
-<li><a href="https://github.com/waylau/RestDemo" target="_blank" rel="external">用jersey构建REST服务</a></li>
-</ul>
-<h3 id="Javascript"><a href="#Javascript" class="headerlink" title="Javascript"></a>Javascript</h3><ul>
-<li><a href="https://github.com/adamlu/javascript-style-guide" target="_blank" rel="external">Airbnb JavaScript 规范</a></li>
-<li>AngularJS<ul>
-<li><a href="https://github.com/peiransun/angularjs-cn" target="_blank" rel="external">AngularJS中译本</a></li>
-<li><a href="https://github.com/zensh/AngularjsTutorial_cn" target="_blank" rel="external">AngularJS入门教程</a></li>
-<li><a href="https://github.com/mgechev/angularjs-style-guide/blob/master/README-zh-cn.md" target="_blank" rel="external">AngularJS最佳实践和风格指南</a></li>
-<li><a href="http://www.waylau.com/build-angularjs-app-with-yeoman-in-windows/" target="_blank" rel="external">在Windows环境下用Yeoman构建AngularJS项目</a></li>
-<li><a href="https://github.com/xufei/Make-Your-Own-AngularJS/blob/master/01.md" target="_blank" rel="external">构建自己的AngularJS</a></li>
-</ul>
-</li>
-<li>backbone.js<ul>
-<li><a href="http://www.css88.com/doc/backbone/" target="_blank" rel="external">backbone.js中文文档</a></li>
-<li><a href="http://www.the5fire.com/backbone-js-tutorials-pdf-download.html" target="_blank" rel="external">backbone.js入门教程</a> (PDF)</li>
-<li><a href="https://github.com/the5fire/backbonejs-learning-note" target="_blank" rel="external">Backbone.js入门教程第二版</a></li>
-<li><a href="http://feliving.github.io/developing-backbone-applications" target="_blank" rel="external">Developing Backbone.js Applications(中文版)</a></li>
-</ul>
-</li>
-<li><a href="http://www.ituring.com.cn/minibook/950" target="_blank" rel="external">Chrome扩展及应用开发</a></li>
-<li>CoffeeScript<ul>
-<li><a href="https://github.com/geekplux/coffeescript-style-guide" target="_blank" rel="external">CoffeeScript 编码风格指南</a></li>
-</ul>
-</li>
-<li>D3.js<ul>
-<li><a href="http://www.ourd3js.com/wordpress/?cat=2" target="_blank" rel="external">D3.js 入门系列</a> (还有进阶、高级等系列)</li>
-<li><a href="https://github.com/mbostock/d3/wiki/API--%E4%B8%AD%E6%96%87%E6%89%8B%E5%86%8C" target="_blank" rel="external">官方API文档</a></li>
-<li><a href="http://blog.csdn.net/zhang__tianxu/article/category/1623437" target="_blank" rel="external">张天旭的D3教程</a></li>
-<li><a href="http://www.cnblogs.com/winleisure/tag/D3.js/" target="_blank" rel="external">楚狂人的D3教程</a></li>
-</ul>
-</li>
-<li><a href="http://es6.ruanyifeng.com" target="_blank" rel="external">ECMAScript 6 入门</a> (作者：阮一峰)</li>
-<li>ExtJS<ul>
-<li><a href="http://extjs-doc-cn.github.io/ext4api/" target="_blank" rel="external">Ext4.1.0 中文文档</a></li>
-</ul>
-</li>
-<li><a href="http://bq69.com/blog/articles/script/868/google-javascript-style-guide.html" target="_blank" rel="external">Google JavaScript 代码风格指南</a></li>
-<li><a href="https://github.com/darcyliu/google-styleguide/blob/master/JSONStyleGuide.md" target="_blank" rel="external">Google JSON 风格指南</a></li>
-<li>impress.js<ul>
-<li><a href="https://github.com/kokdemo/impress.js-tutorial-in-Chinese" target="_blank" rel="external">impress.js的中文教程</a></li>
-</ul>
-</li>
-<li><a href="http://liubin.github.io/promises-book/" target="_blank" rel="external">JavaScript Promise迷你书</a></li>
-<li><a href="http://typeof.net/s/jsmech/" target="_blank" rel="external">Javascript 原理</a></li>
-<li><a href="http://javascript.ruanyifeng.com" target="_blank" rel="external">JavaScript 标准参考教程（alpha）</a></li>
-<li><a href="https://github.com/jayli/javascript-patterns" target="_blank" rel="external">《JavaScript 模式》</a> “JavaScript patterns”中译本</li>
-<li><a href="https://github.com/justjavac/12-javascript-quirks" target="_blank" rel="external">javascript 的 12 个怪癖</a></li>
-<li><a href="http://bonsaiden.github.io/JavaScript-Garden/zh/" target="_blank" rel="external">JavaScript 秘密花园</a></li>
-<li><a href="http://icodeit.org/jsccp/" target="_blank" rel="external">JavaScript核心概念及实践</a> (PDF) (此书已由人民邮电出版社出版发行，但作者依然免费提供PDF版本，希望开发者们去购买，支持作者)</li>
-<li><a href="http://pij.robinqu.me" target="_blank" rel="external">Javascript编程指南</a> (<a href="https://github.com/RobinQu/Programing-In-Javascript" target="_blank" rel="external">源码</a>)</li>
-<li>jQuery<ul>
-<li><a href="http://i5ting.github.io/How-to-write-jQuery-plugin/build/jquery.plugin.html" target="_blank" rel="external">How to write jQuery plugin</a></li>
-<li><a href="http://www.nowamagic.net/librarys/books/contents/jquery" target="_blank" rel="external">简单易懂的JQuery魔法</a></li>
-</ul>
-</li>
-<li>Meteor<ul>
-<li><a href="http://zh.discovermeteor.com" target="_blank" rel="external">Discover Meteor</a></li>
-</ul>
-</li>
-<li>Node.js<ul>
-<li><a href="http://expressjs.jser.us" target="_blank" rel="external">express.js 中文文档</a></li>
-<li><a href="http://javascript.ruanyifeng.com/nodejs/express.html" target="_blank" rel="external">Express框架</a></li>
-<li><a href="https://github.com/guo-yu/koa-guide" target="_blank" rel="external">koa 中文文档</a></li>
-<li><a href="https://www.npmjs.com/package/learnyounode-zh-cn" target="_blank" rel="external">Learn You The Node.js For Much Win! (中文版)</a></li>
-<li><a href="http://i5ting.github.io/node-debug-tutorial/" target="_blank" rel="external">Node debug 三法三例</a></li>
-<li><a href="https://github.com/alsotang/node-lessons" target="_blank" rel="external">Node.js 包教不包会</a></li>
-<li><a href="https://github.com/nodejs-tw/nodejs-wiki-book" target="_blank" rel="external">Nodejs Wiki Book</a> (繁体中文)</li>
-<li><a href="https://www.gitbook.com/book/0532/nodejs/details" target="_blank" rel="external">nodejs中文文档</a></li>
-<li><a href="http://www.nodebeginner.org/index-zh-cn.html" target="_blank" rel="external">Node入门</a></li>
-<li><a href="http://nqdeng.github.io/7-days-nodejs/" target="_blank" rel="external">七天学会NodeJS</a></li>
-<li><a href="https://github.com/nswbmw/N-blog" target="_blank" rel="external">使用 Express + MongoDB 搭建多人博客</a></li>
-</ul>
-</li>
-<li>React.js<ul>
-<li><a href="https://github.com/theJian/build-a-hn-front-page" target="_blank" rel="external">Learn React &amp; Webpack by building the Hacker News front page</a></li>
-<li><a href="http://wiki.jikexueyuan.com/project/react-native/" target="_blank" rel="external">React Native 中文文档(含最新Android内容)</a></li>
-<li><a href="https://github.com/fakefish/react-webpack-cookbook" target="_blank" rel="external">React webpack-cookbook</a></li>
-<li><a href="http://fraserxu.me/intro-to-react/" target="_blank" rel="external">React 入门教程</a></li>
-<li><a href="http://reactjs.cn" target="_blank" rel="external">React.js 中文文档</a></li>
-</ul>
-</li>
-<li>underscore.js<ul>
-<li><a href="http://learningcn.com/underscore/" target="_blank" rel="external">Underscore.js中文文档</a></li>
-</ul>
-</li>
-<li><a href="https://github.com/getify/You-Dont-Know-JS" target="_blank" rel="external">You-Dont-Know-JS</a> (深入JavaScript语言核心机制的系列图书)</li>
-<li>Zepto.js<ul>
-<li><a href="http://mweb.baidu.com/zeptoapi/" target="_blank" rel="external">Zepto.js 中文文档</a></li>
-</ul>
-</li>
-<li><a href="http://justjavac.com/named-function-expressions-demystified.html" target="_blank" rel="external">命名函数表达式探秘</a>  (注:原文由<a href="http://www.cn-cuckoo.com" target="_blank" rel="external">为之漫笔</a> 翻译，原始地址无法打开，所以此处地址为我博客上的备份)</li>
-<li><a href="http://www.oschina.net/translate/learning-javascript-design-patterns" target="_blank" rel="external">学用 JavaScript 设计模式</a> (开源中国)</li>
-<li><a href="http://www.cnblogs.com/TomXu/archive/2011/12/15/2288411.html" target="_blank" rel="external">深入理解JavaScript系列</a></li>
-</ul>
-<h3 id="LaTeX"><a href="#LaTeX" class="headerlink" title="LaTeX"></a>LaTeX</h3><ul>
-<li><a href="http://www.dralpha.com/zh/tech/tech.htm" target="_blank" rel="external">LaTeX 笔记</a></li>
-<li><a href="http://ctan.org/pkg/lshort-zh-cn" target="_blank" rel="external">一份不太简短的 LaTeX2ε 介绍</a></li>
-<li><a href="https://github.com/49951331/graduate-project-102pj/blob/master/docs/latex123.pdf" target="_blank" rel="external">大家來學 LaTeX</a> (PDF)</li>
-</ul>
-<h3 id="LISP"><a href="#LISP" class="headerlink" title="LISP"></a>LISP</h3><ul>
-<li><a href="http://acl.readthedocs.org/en/latest/" target="_blank" rel="external">ANSI Common Lisp 中文翻译版</a></li>
-<li><a href="http://www.ituring.com.cn/minibook/862" target="_blank" rel="external">Common Lisp 高级编程技术</a> (《On Lisp》中文版)</li>
-</ul>
-<h3 id="Lua"><a href="#Lua" class="headerlink" title="Lua"></a>Lua</h3><ul>
-<li><a href="http://www.w3cschool.cc/manual/lua53doc/contents.html" target="_blank" rel="external">Lua 5.3 参考手册</a></li>
-</ul>
-<h3 id="Markdown"><a href="#Markdown" class="headerlink" title="Markdown"></a>Markdown</h3><ul>
-<li><a href="http://wowubuntu.com/markdown/basic.html" target="_blank" rel="external">Markdown 快速入门</a></li>
-<li><a href="http://www.jianshu.com/p/7bd23251da0a" target="_blank" rel="external">Markdown 简明教程</a></li>
-<li><a href="http://wowubuntu.com/markdown/" target="_blank" rel="external">Markdown 语法说明</a></li>
-<li><a href="http://www.jianshu.com/p/q81RER" target="_blank" rel="external">献给写作者的 Markdown 新手指南</a></li>
-</ul>
-<h3 id="Node-js"><a href="#Node-js" class="headerlink" title="Node.js"></a>Node.js</h3><ul>
-<li><a href="http://www.nodebeginner.org/index-zh-cn.html" target="_blank" rel="external">Node 入门</a></li>
-<li><a href="https://www.gitbook.com/book/0532/nodejs/details" target="_blank" rel="external">The NodeJS 中文文档</a>（社区翻译）</li>
-<li><a href="http://nqdeng.github.io/7-days-nodejs/" target="_blank" rel="external">七天学会NodeJS</a> 阿里出品，很好的入门资料</li>
-</ul>
-<h3 id="Perl"><a href="#Perl" class="headerlink" title="Perl"></a>Perl</h3><ul>
-<li><a href="https://github.com/fayland/chinese-perl-book" target="_blank" rel="external">Master Perl Today</a></li>
-<li><a href="https://github.com/horus/modern_perl_book" target="_blank" rel="external">《Modern Perl》中文版</a></li>
-<li><a href="http://www.cbi.pku.edu.cn/chinese/documents/perl/index.htm" target="_blank" rel="external">Perl 5 教程</a></li>
-<li><a href="http://www.yiibai.com/perl" target="_blank" rel="external">Perl 教程</a></li>
-</ul>
-<h3 id="PHP"><a href="#PHP" class="headerlink" title="PHP"></a>PHP</h3><ul>
-<li><a href="http://wulijun.github.io/php-the-right-way/" target="_blank" rel="external">PHP 之道</a></li>
-<li><a href="http://php.net/manual/zh/" target="_blank" rel="external">PHP5中文手册</a></li>
-<li><a href="http://www.walu.cc/phpbook/preface.md" target="_blank" rel="external">PHP扩展开发及内核应用</a></li>
-<li><a href="https://wusuopu.gitbooks.io/symfony2_tutorial/content" target="_blank" rel="external">Symfony2 实例教程</a></li>
-<li><a href="http://www.php-internals.com/book/" target="_blank" rel="external">深入理解 PHP 内核</a></li>
-</ul>
-<h3 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h3><ul>
-<li><a href="http://djangobook.py3k.cn/2.0/" target="_blank" rel="external">Django book 2.0</a></li>
-<li><a href="http://docspy3zh.readthedocs.org/en/latest/" target="_blank" rel="external">Python 3 文档(简体中文) 3.2.2 documentation</a></li>
-<li><a href="http://www.pythondoc.com" target="_blank" rel="external">Python 中文学习大本营</a></li>
-<li><a href="https://github.com/jiechic/diveintopython3" target="_blank" rel="external">深入 Python 3</a></li>
-<li><a href="http://old.sebug.net/paper/books/LearnPythonTheHardWay/" target="_blank" rel="external">笨办法学 Python</a></li>
-</ul>
-<h3 id="R"><a href="#R" class="headerlink" title="R"></a>R</h3><ul>
-<li><a href="http://cran.r-project.org/doc/contrib/Liu-FAQ.pdf" target="_blank" rel="external">153分钟学会 R</a> (PDF)</li>
-<li><a href="http://www.biosino.org/R/R-doc/files/R4beg_cn_2.0.pdf" target="_blank" rel="external">《R for beginners》中文版</a> (PDF)</li>
-<li><a href="http://cran.r-project.org/doc/contrib/Ding-R-intro_cn.pdf" target="_blank" rel="external">R 导论</a> (《An Introduction to R》中文版) (PDF)</li>
-<li><a href="http://yanping.me/shiny-tutorial/" target="_blank" rel="external">用 R 构建 Shiny 应用程序</a> (《Building ‘Shiny’ Applications with R》中文版)</li>
-<li><a href="http://cran.r-project.org/doc/contrib/Xu-Statistics_and_R.pdf" target="_blank" rel="external">统计学与 R 读书笔记</a> (PDF)</li>
-</ul>
-<h3 id="reStructuredText"><a href="#reStructuredText" class="headerlink" title="reStructuredText"></a>reStructuredText</h3><ul>
-<li><a href="http://www.pythondoc.com/sphinx/rest.html" target="_blank" rel="external">reStructuredText 入门</a></li>
-<li><a href="http://jwch.sdut.edu.cn/book/rst.html" target="_blank" rel="external">reStructuredText 简明教程</a></li>
-</ul>
-<h3 id="Ruby"><a href="#Ruby" class="headerlink" title="Ruby"></a>Ruby</h3><ul>
-<li><a href="https://github.com/JuanitoFatas/rails-style-guide/blob/master/README-zhCN.md" target="_blank" rel="external">Rails 风格指南</a></li>
-<li><a href="http://railstutorial-china.org" target="_blank" rel="external">Ruby on Rails Tutorial 原书第 2 版</a></li>
-<li><a href="https://ihower.tw/rails4/" target="_blank" rel="external">Ruby on Rails 实战圣经</a></li>
-<li><a href="https://github.com/JuanitoFatas/ruby-style-guide/blob/master/README-zhCN.md" target="_blank" rel="external">Ruby 风格指南</a></li>
-<li><a href="http://lrthw.github.io" target="_blank" rel="external">笨方法学 Ruby</a></li>
-</ul>
-<h3 id="Rust"><a href="#Rust" class="headerlink" title="Rust"></a>Rust</h3><ul>
-<li><a href="https://github.com/KaiserY/rust-book-chinese" target="_blank" rel="external">Rust 官方教程</a></li>
-<li><a href="https://github.com/photino/rust-notes" target="_blank" rel="external">Rust 语言学习笔记</a></li>
-<li><a href="https://github.com/rustcc/RustPrimer" target="_blank" rel="external">RustPrimer</a></li>
-<li><a href="https://github.com/rustcc/rust-by-example/" target="_blank" rel="external">通过例子学习 Rust</a></li>
-</ul>
-<h3 id="Scala"><a href="#Scala" class="headerlink" title="Scala"></a>Scala</h3><ul>
-<li><a href="http://twitter.github.io/effectivescala/index-cn.html" target="_blank" rel="external">Effective Scala</a></li>
-<li><a href="https://www.gitbook.com/book/windor/beginners-guide-to-scala/details" target="_blank" rel="external">Scala 初学者指南</a> (The Neophyte’s Guide to Scala)</li>
-<li><a href="http://twitter.github.io/scala_school/zh_cn/index.html" target="_blank" rel="external">Scala 课堂</a> (Twitter的Scala中文教程)</li>
-</ul>
-<h3 id="Scheme"><a href="#Scheme" class="headerlink" title="Scheme"></a>Scheme</h3><ul>
-<li><a href="http://deathking.github.io/yast-cn/" target="_blank" rel="external">Scheme 入门教程</a> (《Yet Another Scheme Tutorial》中文版)</li>
-</ul>
-<h3 id="Shell"><a href="#Shell" class="headerlink" title="Shell"></a>Shell</h3><ul>
-<li><a href="http://wiki.ubuntu.org.cn/Shell%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80" target="_blank" rel="external">Shell 编程基础</a></li>
-<li><a href="https://github.com/qinjx/30min_guides/blob/master/shell.md" target="_blank" rel="external">Shell 脚本编程30分钟入门</a></li>
-<li><a href="http://billie66.github.io/TLCL/book/zh" target="_blank" rel="external">The Linux Command Line 中文版</a></li>
-</ul>
-<h3 id="Swift"><a href="#Swift" class="headerlink" title="Swift"></a>Swift</h3><ul>
-<li><a href="https://www.gitbook.com/book/numbbbbb/-the-swift-programming-language-/details" target="_blank" rel="external">《The Swift Programming Language》中文版</a></li>
-</ul>
-<h3 id="Vim"><a href="#Vim" class="headerlink" title="Vim"></a>Vim</h3><ul>
-<li><a href="http://man.chinaunix.net/newsoft/vi/doc/help.html" target="_blank" rel="external">Vim Manual(中文版)</a></li>
-<li><a href="http://www.study-area.org/tips/vim/index.html" target="_blank" rel="external">大家來學 VIM</a></li>
-</ul>
-<h3 id="Visual-Prolog"><a href="#Visual-Prolog" class="headerlink" title="Visual Prolog"></a>Visual Prolog</h3><ul>
-<li><a href="http://wiki.visual-prolog.com/index.php?title=A_Beginners_Guide_to_Visual_Prolog_in_Chinese" target="_blank" rel="external">Visual Prolog 7初学指南</a></li>
-<li><a href="http://wiki.visual-prolog.com/index.php?title=Visual_Prolog_for_Tyros_in_Chinese" target="_blank" rel="external">Visual Prolog 7边练边学</a></li>
-</ul>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;blockquote&gt;
-&lt;p&gt;原文地址：&lt;a href=&quot;https://github.com/vhf/free-programming-books/blob/master/free-programming-books-zh.md&quot; target=&quot;_blank&quot; rel=&quot;e
-    
-    </summary>
-    
-      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
-    
-      <category term="tools" scheme="http://blog.aezo.cn/categories/extend/tools/"/>
-    
-    
-      <category term="wiki" scheme="http://blog.aezo.cn/tags/wiki/"/>
-    
-      <category term="book" scheme="http://blog.aezo.cn/tags/book/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>oracleDBA</title>
-    <link href="http://blog.aezo.cn/2016/10/12/db/oracle-dba/"/>
-    <id>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</id>
-    <published>2016-10-12T13:06:00.000Z</published>
-    <updated>2017-09-20T13:49:49.566Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
-<p>注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例</p>
-</blockquote>
-<h3 id="oracle相关名词和原理"><a href="#oracle相关名词和原理" class="headerlink" title="oracle相关名词和原理"></a>oracle相关名词和原理</h3><ol>
-<li>数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) <a href="http://www.cnblogs.com/advocate/archive/2010/08/20/1804063.html" target="_blank" rel="external">^1</a><ul>
-<li><code>DB_NAME</code>: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。</li>
-<li><code>INSTANCE_NAME</code>: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。</li>
-<li><code>ORACLE_SID</code>: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE_SID。此参数与ORACLE_BASE、<code>ORACLE_HOME</code>等用法相同。在数据库安装之后，ORACLE_SID被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。</li>
-</ul>
-</li>
-<li><code>SERVICE_NAME</code>：是网络服务名(如：local_orcl)，可以随意设置。相当于某个数据库实例的别名方便记忆和访问。<code>tnsnames.ora</code>文件中设置的名称（如：<code>local_orcl=(...)</code>），也是登录pl/sql是填写的Database。</li>
-</ol>
-<h2 id="oracle及pl-sql安装和使用"><a href="#oracle及pl-sql安装和使用" class="headerlink" title="oracle及pl/sql安装和使用"></a>oracle及pl/sql安装和使用</h2><ul>
-<li>ORACLE_HOME为<code>D:/java/oracle/product/11.2.0/dbhome_1</code>，<code>%ORACLE_HOME%/bin</code>中为一些可执行程序（如：导入imp.exe、导出exp.exe）</li>
-<li>这个只是服务器端才会使用的到</li>
-</ul>
-<h3 id="pl-sql安装"><a href="#pl-sql安装" class="headerlink" title="pl/sql安装"></a>pl/sql安装</h3><p>Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call Interface)来连接，安装包可以去oracle官网下载Instant Client。</p>
-<ul>
-<li>将<code>instantclient_10_2</code>(oracle的客户端)，复制到oracle安装目录</li>
-<li>安装<code>pl/sql developer</code></li>
-<li>配置<code>pl/sql developer</code>首选项中连接项。设置oracle_home为instantclient_10_2的路径，oci为instantclient_10_2下的oci.dll</li>
-<li>环境变量中设置<code>TNS_ADMIN=D:\java\oracle\product\instantclient_10_2</code>，并在path末尾加入<code>%TNS_ADMIN%;</code>(否则容易报<code>TNS-12541</code>)</li>
-</ul>
-<h3 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h3><ol>
-<li>Net Manager的使用<ul>
-<li><code>本地-监听程序-LISTENER</code>中的主机要为计算机全名(如：ST-008)。对应文件<code>listener.ora</code></li>
-<li><code>本地-服务命名</code>下的都为<code>网络服务名</code>。对应文件<code>tnsnames.ora</code></li>
-</ul>
-</li>
-<li><p>文本操作</p>
-<ul>
-<li>使用sqlplus登录时，可直接修改<code>$ORACLE_HOME/NETWORK/ADMIN/tnsnames.ora</code></li>
-<li>安装了pl/sql，可能需要修改tnsnames.ora的文件路径类似与<code>D:\java\oracle\product\instantclient_10_2\tnsnames.ora</code>。此时oracle自带的tnsnames.ora将会失效</li>
-<li><p>配置实例：HOST/PORT分别为远程ip地址和端口，SERVICE_NAME为远程服务名，aezocn为远程服务名别名(本地服务名)</p>
-  <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">aezocn =</div><div class="line">  (DESCRIPTION =</div><div class="line">    (ADDRESS_LIST =</div><div class="line">      (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.1.1)(PORT = 1521))</div><div class="line">    )</div><div class="line">    (CONNECT_DATA =</div><div class="line">      (SERVER = DEDICATED)</div><div class="line">      (SERVICE_NAME = orcl)</div><div class="line">    )</div><div class="line">  )</div></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="创建表空间-2"><a href="#创建表空间-2" class="headerlink" title="创建表空间 ^2"></a>创建表空间 <a href="http://blog.csdn.net/starnight_cbj/article/details/6792364" target="_blank" rel="external">^2</a></h2><p>oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库。创建了表空间并没有创建数据库实例</p>
-<ol>
-<li>登录：<code>sqlplus / as sysdba</code></li>
-<li>创建表空间：<code>create tablespace aezocn datafile &#39;d:/tablespace/aezo&#39; size 800m extent management local segment space management auto;</code> ，要先建好路径 d:/tablespace ，最终会在该目录下建一个 AEZO 的文件(表空间之后可以修改)<ul>
-<li>删除表空间：<code>drop tablespace aezocn including contents and datafiles;</code></li>
-</ul>
-</li>
-<li>创建用户：<code>create user aezo identified by aezo default tablespace aezocn;</code></li>
-<li>授权<ul>
-<li><code>grant create session to aezo;</code></li>
-<li><code>grant unlimited tablespace to aezo;</code></li>
-<li><code>grant dba to aezo;</code></li>
-</ul>
-</li>
-</ol>
-<h2 id="导入导出"><a href="#导入导出" class="headerlink" title="导入导出"></a>导入导出</h2><p><code>.dmp</code>适合大数据导出，<code>.sql</code>适合小数据导出(表中含有CLOB类型字段则不能导出)</p>
-<h3 id="命令行-4"><a href="#命令行-4" class="headerlink" title="命令行 ^4"></a>命令行 <a href="http://blog.csdn.net/studyvcmfc/article/details/5679235" target="_blank" rel="external">^4</a></h3><blockquote>
-<ul>
-<li>输入 <code>imp/exp 用户名/密码</code> 可根据提示导入导出。<strong>直接cmd运行</strong>。</li>
-<li>成功提示 <code>Export terminated successfully [with/without warnings]</code>；失败提示 <code>Export terminated unsuccessfully [with/without warnings]</code></li>
-</ul>
-</blockquote>
-<ol>
-<li><p>导出</p>
-<ul>
-<li><strong>用户模式</strong>：<code>exp system/manager file=d:/exp.dmp owner=scott</code> 导出scott用户的所有对象，前提是system有相关权限<ul>
-<li><strong>远程导出</strong>：此时system/manager默认连接的是本地数据库。如果使用<code>exp system/manager@remote_orcl file=d:/exp.dmp owner=scott</code>(remote_orcl为在本地建立的远程数据库网络服务名)则可导出远程数据库的相关数据，下同。</li>
-<li>加上 <code>compress=y</code> 表示压缩数据</li>
-<li>加上 <code>rows=n</code> 表示不导出数据行，只导出结构</li>
-</ul>
-</li>
-<li>表模式：<code>exp scott/tiger file=d:/exp.dmp tables=emp</code> 导出scott的emp表<ul>
-<li>导出其他用户的表：<code>exp system/manager file=d:/exp.dmp tables=scott.emp, scott.dept</code> 导出scott的emp、dept表，用户system需要相关权限</li>
-<li>导出部分表数据：<code>exp scott/tiger file=d:/exp.dmp tables=emp query=\&quot; where ename like &#39;%AR%&#39;\&quot;</code></li>
-<li>常见错误(EXP-00011)：原因为11g默认创建一个表时不分配segment，只有在插入数据时才会产生。 <a href="http://www.cnblogs.com/yzy-lengzhu/archive/2013/03/11/2953500.html" target="_blank" rel="external">^3</a></li>
-</ul>
-</li>
-<li>导出全部：<code>exp system/manager file=d:/exp.dmp full=y</code><ul>
-<li>用户 system/manager 必须具有相关权限</li>
-<li>导出的是整个数据库，包括所有的表空间</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>导入</p>
-<ul>
-<li><strong>用户模式</strong>：<code>imp system/manager file=d:/exp.dmp fromuser=scott touser=aezo ignore=y</code><ul>
-<li><code>ignore=y</code>忽略创建错误</li>
-<li>不少情况下要先将表彻底删除，然后导入</li>
-</ul>
-</li>
-<li>表模式：<code>imp system/manager file=d:/exp.dmp fromuser=scott tables=emp, dept touser=aezo ignore=y</code><ul>
-<li>将scott的表emp、dept导入到用户aezo</li>
-<li>此处 file/fromuser/touser 都可以指定多个</li>
-</ul>
-</li>
-<li>导入全部：<code>imp system/manager file=d:/exp.dmp full=y ignore=y</code><ul>
-<li>用户 system/manager 必须具有相关权限</li>
-<li>导入的是整个数据库，包括所有的表空间</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h3 id="pl-sql"><a href="#pl-sql" class="headerlink" title="pl/sql"></a>pl/sql</h3><ul>
-<li>pl/sql提供dmp、sql(不支持CLOB类型字段)、pde(pl/sql提供)格式的数据导入导出</li>
-<li>方法：<code>Tools - Export Tables/Import Tablse - 选择表导出</code></li>
-<li>其中Executable路径为 <code>%ORACLE_HOME%/BIN/exp.exe</code> 和 <code>%ORACLE_HOME%/BIN/imp.exe</code> 如：<code>D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe</code></li>
-</ul>
-<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><h3 id="操作相关"><a href="#操作相关" class="headerlink" title="操作相关"></a>操作相关</h3><ol>
-<li>系统<ul>
-<li><code>lsnrctl start</code> 启动监听程序(shell命令行运行)。<code>lsnrctl status</code> 查看服务状态</li>
-<li><code>sqlplus /nolog</code> 以nolog身份登录，进入sql命令行</li>
-<li><code>startup;</code> 正常启动（1启动实例，2打开控制文件，3打开数据文件）</li>
-<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接<ul>
-<li><code>shutdown;</code> 有用户连接就不关闭，直到所有用户断开连接</li>
-</ul>
-</li>
-<li><code>exit;</code> 退出sqlplus</li>
-</ul>
-</li>
-<li>管理员登录<ul>
-<li>sqlplus本地登录：<code>sqlplus / as sysdba</code>，以sys登录。sys为系统管理员，拥有最高权限；system为本地管理员，次高权限</li>
-<li>sqlplus远程登录：<code>sqlplus aezo/aezo@192.168.1.1:1521/orcl</code> (orcl为远程服务名)，失败可尝试如下命令：<ul>
-<li><code>sqlplus /nolog</code></li>
-<li><code>connect aezo/aezo@192.168.1.1:1521/orcl;</code>，或者使用配置好的服务名连接<code>conn aezo/aezo@remote_orcl</code></li>
-</ul>
-</li>
-<li>pl/slq管理员登录：用户名密码留空，Connect as 选择 SYSDBA 则默认以sys登录。登录远程只需要在tnsnames.ora进行网络配置即可</li>
-</ul>
-</li>
-<li>用户相关<ul>
-<li>创建用户：<code>create user aezo identified by aezo;</code><ul>
-<li>默认使用的表空间是<code>USERS</code>，使用<code>create user aezo identified by aezo default tablespace aezocn;</code>可设定默认表空间</li>
-<li>删除用户：<code>drop user aezo cascade;</code></li>
-</ul>
-</li>
-<li>修改用户密码：<code>alter user scott identified by tiger;</code></li>
-<li>修改用户表空间：<code>alter user aezo default tablespace aezocn;</code></li>
-<li>解锁用户：<code>alter user scott account unlock;</code> (新建数据库scott默认未解锁)</li>
-<li>密码过期：(1) 重新设置密码即可<code>alter user aezo identified by aezo;</code> (2)设置永久不过期<code>alter profile default limit password_life_time unlimited;</code></li>
-</ul>
-</li>
-<li><p>授权</p>
-<ul>
-<li><code>grant create session to aezo;</code> 授予aezo用户创建session的权限，即登陆权限</li>
-<li><code>grant unlimited tablespace to aezo;</code> 授予aezo用户使用表空间的权限</li>
-<li><code>grant dba to aezo;</code> 授予管理权限(有dba角色就有建表等权限)</li>
-</ul>
-</li>
-<li><p>连接数</p>
-<ul>
-<li>查询数据库最大连接数：<code>select value from v$parameter where name = &#39;processes;&#39;</code>、<code>show parameter processes</code></li>
-<li>查询数据库当前连接数：<code>select count(*) from v$session;</code></li>
-<li>修改数据库最大连接数：<code>alter system set processes = 500 scope = spfile;</code> 需要重启数据库</li>
-</ul>
-</li>
-</ol>
-<h3 id="查询相关"><a href="#查询相关" class="headerlink" title="查询相关"></a>查询相关</h3><ol>
-<li>系统<ul>
-<li>查看服务是否启动：<code>tnsping local_orcl</code> cmd直接运行<ul>
-<li>远程查看(cmd运行)：<code>tnsping 192.168.1.1:1521/orcl</code>、或者<code>tnsping remote_orcl</code>(其中remote_orcl已经在本地建立好了监听映射，如配置在tnsnames.ora)</li>
-<li>如果能够ping通，则说明客户端能解析listener的机器名，而且lister也已经启动，但是并不能说明数据库已经打开，而且tsnping的过程与真正客户端连接的过程也不一致。但是如果不能用tnsping通，则肯定连接不到数据库</li>
-</ul>
-</li>
-<li>查看表空间数据文件位置：<code>select file_name, tablespace_name from dba_data_files;</code></li>
-</ul>
-</li>
-<li>用户相关查询<ul>
-<li>查看当前用户默认表空间：<code>select username, default_tablespace from user_users;</code>(以dba登录则结果为SYS和SYSTEM)</li>
-<li>查看当前用户角色：<code>select * from user_role_privs;</code></li>
-<li>查看当前用户系统权限：<code>select * from user_sys_privs;</code></li>
-<li>查看当前用户表级权限：<code>select * from user_tab_privs;</code></li>
-<li>查看用户下所有表：<code>select * from user_tables;</code></li>
-<li>DBA相关查询见数据库字典</li>
-</ul>
-</li>
-<li>数据字典 <a href="http://blog.csdn.net/yitian20000/article/details/6256716" target="_blank" rel="external">^5</a><ul>
-<li><code>user_</code>：记录用户对象的信息，如user_tables包含用户创建的所有表，user_views，user_constraints等</li>
-<li><code>all_</code>：记录用户对象的信息及被授权访问的对象信息</li>
-<li><code>DBA_</code>：记录数据库实例的所有对象的信息，如DBA_USERS包含数据库实例中所有用户的信息。DBA的信息包含USER和ALL的信息。大部分是视图</li>
-<li><code>V$</code>：当前实例的动态视图，包含系统管理和优化使用的视图</li>
-<li><code>GV_</code>：分布环境下所有实例的动态视图，包含系统管理和优化使用的视图，这里的GV表示 Global v$的意思</li>
-</ul>
-</li>
-<li>基本数据字典<ul>
-<li>常用<ul>
-<li><code>DICT</code> 构成数据字典的所有表的信息</li>
-<li><code>DBA_USERS</code> 所有的用户信息（oracle密码是加密的，忘记密码只能修改）</li>
-<li><code>DBA_TABLES</code> 所有用户的所有表的信息</li>
-<li><code>DBA_TABLESPACES</code> 记录系统表空间的基本信息；</li>
-<li><code>DBA_DATA_FILES</code> 记录系统数据文件及表空间的基本信息；</li>
-<li><code>DBA_FREE_SPACE</code> 记录系统表空间的剩余空间的信息；</li>
-</ul>
-</li>
-<li>其他<ul>
-<li><code>CAT</code> 当前用户可以访问的所有的基表</li>
-<li><code>TAB</code> 当前用户创建的所有基表，视图，同义词等</li>
-<li><code>DBA_VIEWS</code> 所有用户的所有视图信息</li>
-<li><code>DBA_CONSTRAINTS</code> 所有用户的表约束信息</li>
-<li><code>DBA_INDEXES</code> 所有用户索引的简要信息</li>
-<li><code>DBA_IND_COLUMNS</code> 所有用户索引的列信息</li>
-<li><code>DBA_TRIGGERS</code> 所有用户触发器信息</li>
-<li><code>DBA_SOURCE</code> 所有用户存储过程源代码信息</li>
-<li><code>DBA_PROCEDUS</code> 所有用户存储过程</li>
-<li><code>DBA_SEGMENTS</code> 所有用户段（表，索引，Cluster）使用空间信息</li>
-<li><code>DBA_TAB_COLUMNS</code> 所有用户的表的列（字段）信息</li>
-<li><code>DBA_SYNONYMS</code> 所有用户同义词信息</li>
-<li><code>DBA_SEQUENCES</code> 所有用户序列信息</li>
-<li><code>DBA_EXTENTS</code> 所有用户段的扩展段信息</li>
-<li><code>DBA_OBJECTS</code> 所有用户对象的基本信息（包括素引，表，视图，序列等）</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>数据库组件相关的数据字典(<code>v$</code>代表视图)<ul>
-<li>数据库：<ul>
-<li><code>V$DATABASE</code> 同义词V_$DATABASE，记录系统的运行情况</li>
-</ul>
-</li>
-<li>控制文件：<ul>
-<li><code>V$CONTROLFILE</code> 记录系统控制文件的路径信息</li>
-<li><code>v$parameter</code> 记录系统各参数的基本信息</li>
-<li><code>V$CONTROLFILE_RECORD_SECTION</code> 记录系统控制运行的基本信息</li>
-</ul>
-</li>
-<li>数据文件：<ul>
-<li><code>V$DATAFILE</code> 记录来自控制文件的数据文件信息</li>
-<li><code>V$FILESTAT</code> 记录数据文件读写的基本信息</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h3 id="常见错误"><a href="#常见错误" class="headerlink" title="常见错误"></a>常见错误</h3><ol>
-<li><p>常用技巧</p>
-<ul>
-<li>常看日志文件目录 <code>show parameter background_dump_dest</code></li>
-<li>在ORACLE 11g 以及ORACLE 12c中，告警日志文件的位置有了变化。主要是因为引入了ADR(Automatic Diagnostic Repository:一个存放数据库诊断日志、跟踪文件的目录)，关于ADR对应的目录位置可以通过查看v$diag_info系统视图。<code>select * from v$diag_info;</code></li>
-<li><code>alert_orcl.log</code> 该目录下的日志文件</li>
-<li>在日志文件目录列举文件：<code>ll -rt *.trc</code><ul>
-<li><code>*.trc</code>：Sql Trace Collection file，<code>*.trm</code>：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.（<strong>主要看*.trc文件</strong>）</li>
-<li>如：<code>dbcloud_cjq0_22515.trc</code> dbcloud为实例名，cjq0_22515为自动生成的索引</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>表空间数据文件丢失，删除表空间报错ORA-02449、ORA-01115 <a href="[强制删除表空间](http://blog.chinaunix.net/uid-11570547-id-59108.html)">^6</a></p>
-<ul>
-<li>oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉</li>
-<li><code>sqlplus / as sysdba</code></li>
-<li><code>shutdown abort</code> 强制关闭oracle</li>
-<li><code>startup mount</code> 启动挂载</li>
-<li><code>alter database datafile &#39;/home/oracle/xxx&#39; offline drop;</code> 从数据库删除该表空间的数据文件<ul>
-<li><code>select file_name, tablespace_name from dba_data_files;</code> 查看表空间数据文件位置</li>
-</ul>
-</li>
-<li><code>alter database open;</code></li>
-<li><code>drop tablespace 表空间名</code></li>
-</ul>
-</li>
-</ol>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>- 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
-- oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
-</code></pre>]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;blockquote&gt;
-&lt;p&gt;注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_o
-    
-    </summary>
-    
-      <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
-    
-    
-      <category term="oracle" scheme="http://blog.aezo.cn/tags/oracle/"/>
-    
-      <category term="dba" scheme="http://blog.aezo.cn/tags/dba/"/>
     
   </entry>
   
