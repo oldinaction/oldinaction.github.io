@@ -12,7 +12,8 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 - 数据访问
 	- `hibernate`(1.5.6, mysql)
 	- `mybatis`(1.5.6)
-- `rabbitmq`(1.5.2)
+- `thymeleaf`(1.5.6)
+- `rabbitmq`(1.5.6)
 
 ## hello world
 
@@ -88,6 +89,68 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 		}
 	}
 	```
+
+- 拦截器
+	- 定义拦截器
+
+		```java
+		@Component
+		public class MyInterceptor implements HandlerInterceptor {
+
+			@Override
+			public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+					throws Exception {
+				System.out.println(">>>>>>>>>>在请求处理之前进行调用（Controller方法调用之前）");
+				return true; // 只有返回true才会继续向下执行，返回false取消当前请求
+			}
+
+			/**
+			* 这个方法只会在当前这个Interceptor的preHandle方法返回值为true的时候才会执行。
+			* postHandle是进行处理器拦截用的，它的执行时间是在处理器进行处理之后，也就是在Controller的方法调用之后执行，但是它会在DispatcherServlet进行视图的渲染之前执行，也就是说在这个方法中你可以对ModelAndView进行操作。
+			* 这个方法的链式结构跟正常访问的方向是相反的，也就是说先声明的Interceptor拦截器，该方法反而会后调用
+			*/
+			@Override
+			public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+								ModelAndView modelAndView) throws Exception {
+				System.out.println(">>>>>>>>>>请求处理之后进行调用（Controller方法调用之后），但是在视图被渲染之前");
+
+				if(response.getStatus() == 500) {
+					modelAndView.setViewName("/error/500");
+				} else if(response.getStatus() == 404) {
+					modelAndView.setViewName("/error/404");
+				} else if(response.getStatus() == 403) {
+					modelAndView.setViewName("/error/403");
+				}
+			}
+
+			/**
+			* 该方法也是需要当前对应的Interceptor的preHandle方法的返回值为true时才会执行。
+			* 该方法将在整个请求完成之后，也就是DispatcherServlet渲染了视图执行
+			* 这个方法的主要作用是用于清理资源的，当然这个方法也只能在当前这个Interceptor的preHandle方法的返回值为true时才会执行。
+			*/
+			@Override
+			public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+					throws Exception {
+				System.out.println(">>>>>>>>>>在整个请求结束之后被调用，也就是在DispatcherServlet 渲染了对应的视图之后执行（主要是用于进行资源清理工作）");
+			}
+		}
+		```
+	- 注册拦截器
+
+		```java
+		@Configuration
+		public class InterceptorConfig extends WebMvcConfigurerAdapter {
+			@Override
+			public void addInterceptors(InterceptorRegistry registry) {
+				// 多个拦截器组成一个拦截器链
+				// addPathPatterns 用于添加拦截规则
+				// excludePathPatterns 用于排除拦截
+				registry.addInterceptor(new MyInterceptor()).addPathPatterns("/**");
+
+				super.addInterceptors(registry);
+			}
+		}
+		```
 
 ## 请求及响应
 
@@ -173,6 +236,11 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 	```
 
 ### 对hibernate的默认支持(JPA)
+
+> [Spring Data JPA博文](http://www.cnblogs.com/rulian/tag/jpa/)
+> - 继承接口查询(JpaRepository/JpaSpecificationExecutor等)：[http://www.cnblogs.com/rulian/p/6557471.html](http://www.cnblogs.com/rulian/p/6557471.html)
+> - 方法定义规则查询：[http://www.cnblogs.com/rulian/p/6434631.html](http://www.cnblogs.com/rulian/p/6434631.html)
+> - Example实例查询：[http://www.cnblogs.com/rulian/p/6533109.html](http://www.cnblogs.com/rulian/p/6533109.html)
 
 - 引入数据库和jpa
 
@@ -357,6 +425,8 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 
 ### 整合mybatis [^5]
 
+#### 基本配置
+
 - 引入依赖(mybatis-spring-boot-starter为mybatis提供的自动配置插件)
 
 	```xml
@@ -367,7 +437,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		<version>1.3.1</version>
 	</dependency>
 	```
-- 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml"})` // 声明需要扫描mapper的路径
+- 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml"})` // 声明需要扫描mapper接口的路径
 - 配置
 
 	```properties
@@ -413,6 +483,9 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 	</configuration>
 	```
 - Model：UserInfo/ClassInfo等无需任何注解.(其中HobbyEnum是一个枚举类)
+
+#### annotation版本(适合简单业务)
+
 - `annotation版本(适合简单业务)`
 	- Dao层：UserMapper.java
 
@@ -513,6 +586,9 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 			userMapper.insert(new UserInfo("test", 1L, HobbyEnum.READ));
 		}
 		```
+
+#### xml版本(适合复杂操作)
+
 - `xml版本(适合复杂操作)`
 	- Dao层：UserMapperXml.java
 
@@ -594,6 +670,101 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		</mapper>
 		```
 
+#### MyBatis Generator
+
+- 使用`MyBatis Generator`自动生成model/dao/mapper
+- 官方文档：[http://www.mybatis.org/generator/index.html](http://www.mybatis.org/generator/index.html)
+- 生成方式有多种(此处介绍maven插件的方式)
+	- maven配置
+
+		```xml
+		<build>
+			<plugins>
+				<!-- mybatis(mapper等)自动生成 -->
+				<plugin>
+					<groupId>org.mybatis.generator</groupId>
+					<artifactId>mybatis-generator-maven-plugin</artifactId>
+					<version>1.3.5</version>
+					<!--maven可执行命令-->
+					<executions>
+						<execution>
+							<id>Generate MyBatis Artifacts</id>
+							<goals>
+								<goal>generate</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</build>
+		```
+	- resources目录添加文件：`generatorConfig.xml`
+
+		```xml
+		<?xml version="1.0" encoding="UTF-8"?>
+		<!DOCTYPE generatorConfiguration
+				PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+				"http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+		<generatorConfiguration>
+			<!--数据库驱动 -->
+			<classPathEntry location="C:\Users\smalle\.m2\repository\mysql\mysql-connector-java\5.1.43\mysql-connector-java-5.1.43.jar" />
+			<context id="MySQL2Tables" targetRuntime="MyBatis3" defaultModelType="flat">
+				
+				<commentGenerator>
+					<property name="suppressDate" value="true" />
+					<property name="suppressAllComments" value="true" />
+				</commentGenerator>
+
+				<!--数据库链接地址账号密码 -->
+				<jdbcConnection
+						driverClass="com.mysql.jdbc.Driver"
+						connectionURL="jdbc:mysql://localhost:3306/springboot"
+						userId="root"
+						password="root">
+				</jdbcConnection>
+
+				<javaTypeResolver>
+					<property name="forceBigDecimals" value="false" />
+				</javaTypeResolver>
+
+				<!--生成Model类存放位置 -->
+				<javaModelGenerator
+						targetPackage="cn.aezo.springboot.mybatis.generator.model"
+						targetProject="src/main/java">
+					<property name="enableSubPackages" value="true" />
+					<property name="trimStrings" value="true" />
+				</javaModelGenerator>
+
+				<!--生成映射文件存放位置 -->
+				<sqlMapGenerator
+						targetPackage="cn.aezo.springboot.mybatis.generator.mapper"
+						targetProject="src/main/java">
+					<property name="enableSubPackages" value="true" />
+				</sqlMapGenerator>
+
+				<!--生成Dao类存放位置 -->
+				<javaClientGenerator
+						type="XMLMAPPER"
+						targetPackage="cn.aezo.springboot.mybatis.generator.dao"
+						targetProject="src/main/java">
+					<property name="enableSubPackages" value="true" />
+				</javaClientGenerator>
+
+				<!--生成对应表及类名 -->
+				<table
+						tableName="%"
+						enableCountByExample="true"
+						enableUpdateByExample="true"
+						enableDeleteByExample="true"
+						enableSelectByExample="true"
+						selectByExampleQueryId="true">
+				</table>
+			</context>
+		</generatorConfiguration>
+		```
+	- 执行命令生成文件：`mvn mybatis-generator:generate`
+	- 生成Mapper中Example的使用：http://www.mybatis.org/generator/generatedobjects/exampleClassUsage.html
+
 ### 数据库相关配置
 
 - 数据库/表新建时命名策略(JPA) [doc](https://docs.spring.io/spring-boot/docs/1.5.6.RELEASE/reference/htmlsingle/#howto-configure-hibernate-naming-strategy)
@@ -639,55 +810,105 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 
 		```
 
-### 使用H2数据库
+### 使用H2数据库 [^1] [^2]
 
-- h2简介 [^1]：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库
+- h2简介：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库
 - [官网：http://h2database.com/html/main.html](http://h2database.com/html/main.html)
-- springboot整合
-	- 添加依赖(jpa等省略)
+- springboot整合：[文章：《h2》](../db/h2.md)
 
-		```
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		```
-	- 连接配置
+## thymeleaf模板引擎
 
+- 引入依赖
+
+	```xml
+	<!--thymeleaf模板引擎, 包含spring-boot-starter-web-->
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-thymeleaf</artifactId>
+	</dependency>
+
+	<!-- 可选：thymeleaf和springsecurity结合在页面级别进行权限控制 -->
+	<!--<dependency>
+		<groupId>org.thymeleaf.extras</groupId>
+		<artifactId>thymeleaf-extras-springsecurity4</artifactId>
+	</dependency>-->
+	```
+- properties配置
+
+	```yml
+	#spring:
+	#  thymeleaf:
+	#	# 将thymeleaf文件放在resources/templates/目录
+    #	prefix: classpath:/templates/
+    #	suffix: .html
+	```
+- thymeleaf缓存(热部署)
+	- 推荐使用`JRebel`(idea需要Ctrl+Shift+F9刷新)
+	- 使用`devtools`(也适用于java文件热部署)
+		- 增加maven配置
+			
+			```xml
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-devtools</artifactId>
+				<optional>true</optional>
+			</dependency>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<fork>true</fork>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+			```
+		- idea需要Ctrl+Shift+F9刷新，相当于重启项目，较普通项目重启快
+	- 配置中加`spring.thymeleaf.cache=false`
+		- 需要使用maven启动
+- 示例
+	- Controller：类的注解必须是`@Controller`
+
+		```java
+		@Controller // 此时不能是@RestController
+		public class ThymeleafController {
+
+			// 页面显示resources/templates/hello.html的内容
+			@RequestMapping("/hello")
+			public String hello(Map<String, Object> model) {
+				// 无需注入参数值时，则方法可不接收model参数
+				model.put("hello", "UserController.thymeleaf");
+
+				return "/hello";
+			}
+		}
 		```
-		spring:
-		  datasource:
-			# 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)
-			url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;
-			# 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).
-			# 如果已经生成了数据库文件(同时也生成了密码), 那么再修改此处用户名密码将无法连接数据库
-			username: sa
-			password: sa
-			driver-class-name: org.h2.Driver
-		# h2 web console
-		# 登录配置Generic H2 (Server)  jdbc:h2:~/.h2/minions;AUTO_SERVER=true;  sa/sa
-		# 推荐使用IDEA的数据库工具
-		#  h2:
-		#    console:
-		#      # 程序开启时就会启动h2 web consloe
-		#      enabled: true
-		#      # 访问路径: http://localhost:${server.port}/h2-console
-		#      path: /h2-console
-		#      settings:
-		#        # 运行远程访问h2 web consloe
-		#        web-allow-others: true
+	- hello.html文件
+
+		```html
+		<!DOCTYPE html>
+		<!-- xmlns:th="http://www.thymeleaf.org"声明后方可使用 th:* -->
+		<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+			<head>
+				<title>Hello World!</title>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+			</head>
+			<body>
+				<p th:text="${hello}">smalle</p>
+				<p>${hello}</p>
+			</body>
+		</html>
 		```
-	- 配置说明
-		- `jdbc:h2:file:~/.h2/minions;`文件型存储(默认可省略file:). `jdbc:h2:minions;`则代表在当前目录(运行h2 jar的位置)生成数据库文件
-		- `jdbc:h2:mem:my_db_name;`内存型存储(在连接的瞬间即可创建数据库)，程序关掉则内存数据丢失
-		- `~` 这个符号代表的就是当前登录到操作系统的用户对应的用户目录. `minions`代表数据库名(会在~/.h2目录生成minions.mv.db文件)
-		- `AUTO_SERVER=true;`表示以TCP服务形式启动数据库. 否则项目启动(数据库启动)后, idea无法连接数据库(`AUTO_SERVER_PORT=9092;`可指明端口, 不指明会的话自动识别)
-	- IDEA数据库工具使用 [^2]
-		- Url: `jdbc:h2:~/.h2/minions;AUTO_SERVER=true;`
-		- Url类型：`Remote`
-		- 用户名/密码：`sa/sa`
-		- 其他都不需要填写(url处可能报红可忽略)
+	- 显示结果(第二个${hello}并不能解析)
+
+		```txt
+		UserController.thymeleaf
+		${hello}
+		```
+- thymeleaf语法：[文章：《thymeleaf》](../lang/thymeleaf.md)
 
 ## 企业级开发
 
@@ -748,11 +969,25 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
         }
     }
     ```
+### session共享
 
+- 基于redis实现session共享. 多个项目需要都引入此依赖，并连接相同的redis
+- 引入依赖
 
+	```xml
+	<dependency>
+		<groupId>org.springframework.session</groupId>
+		<artifactId>spring-session-data-redis</artifactId>
+	</dependency>
 
-
-
+	<!-- redis依赖 -->
+	<!-- <dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-data-redis</artifactId>
+	</dependency> -->
+	```
+- 启动类加`@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 7200)` (maxInactiveIntervalInSeconds即session检测的最大时间间隔)
+- 可将一个项目启动两个端口进行测试
 
 ## 其他
 

@@ -2,7 +2,7 @@
 layout: "post"
 title: "Excel VBA"
 date: "2017-08-20 20:03"
-categories: [others]
+categories: [lang]
 tags: [excel, vb]
 ---
 

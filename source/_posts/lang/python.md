@@ -2,7 +2,7 @@
 layout: "post"
 title: "python"
 date: "2017-04-28 11:39"
-categories: [extend]
+categories: [lang]
 tags: [python]
 ---
 
