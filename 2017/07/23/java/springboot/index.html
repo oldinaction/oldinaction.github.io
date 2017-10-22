@@ -1,0 +1,1042 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="springboot,hibernate,rabbitmq,mybatis," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="目录 helloworld(1.5.6) 数据访问 hibernate(1.5.6, mysql) mybatis(1.5.6)   thymeleaf(1.5.6) rabbitmq(1.5.6)  hello world 引入依赖   1234567891011121314&amp;lt;parent&amp;gt;	&amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/gr">
+<meta name="keywords" content="springboot,hibernate,rabbitmq,mybatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springboot">
+<meta property="og:url" content="http://blog.aezo.cn/2017/07/23/java/springboot/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="目录 helloworld(1.5.6) 数据访问 hibernate(1.5.6, mysql) mybatis(1.5.6)   thymeleaf(1.5.6) rabbitmq(1.5.6)  hello world 引入依赖   1234567891011121314&amp;lt;parent&amp;gt;	&amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/gr">
+<meta property="og:updated_time" content="2017-10-22T10:59:56.655Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="springboot">
+<meta name="twitter:description" content="目录 helloworld(1.5.6) 数据访问 hibernate(1.5.6, mysql) mybatis(1.5.6)   thymeleaf(1.5.6) rabbitmq(1.5.6)  hello world 引入依赖   1234567891011121314&amp;lt;parent&amp;gt;	&amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/gr">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2017/07/23/java/springboot/"/>
+
+
+
+
+
+  <title>springboot | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/07/23/java/springboot/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">springboot</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-23T15:05:00+08:00">
+                2017-07-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><code>helloworld</code>(1.5.6)</li>
+<li>数据访问<ul>
+<li><code>hibernate</code>(1.5.6, mysql)</li>
+<li><code>mybatis</code>(1.5.6)</li>
+</ul>
+</li>
+<li><code>thymeleaf</code>(1.5.6)</li>
+<li><code>rabbitmq</code>(1.5.6)</li>
+</ul>
+<h2 id="hello-world"><a href="#hello-world" class="headerlink" title="hello world"></a>hello world</h2><ul>
+<li><p>引入依赖</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>1.4.3.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!--包含spring-boot-starter、hibernate-validator、jackson-databind、spring-web、spring-webmvc--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>启动类 <code>SpringbootApplication.java</code></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@RestController</span> <span class="comment">// @Controller</span></div><div class="line"><span class="meta">@EnableAutoConfiguration</span> <span class="comment">// 开启自动配置</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringbootApplication</span> </span>&#123;</div><div class="line">	<span class="comment">// 访问 http://localhost:8080/</span></div><div class="line">	<span class="meta">@RequestMapping</span>(<span class="string">"/"</span>)</div><div class="line">	<span class="function">String <span class="title">home</span><span class="params">()</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> <span class="string">"Hello World!"</span>;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">		SpringApplication.run(SpringbootApplication.class, args);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>至此，无需其他任何配置。浏览器访问：<a href="http://localhost:8080/" target="_blank" rel="external">http://localhost:8080/</a></p>
+</li>
+</ul>
+<h2 id="配置文件-properties-yml"><a href="#配置文件-properties-yml" class="headerlink" title="配置文件(properties/yml)"></a>配置文件(properties/yml)</h2><ul>
+<li>profile配置：可新建<code>application.properties</code>(默认)、<code>application-dev.properties</code>(会继承默认中的配置)、<code>application-prod.properties</code>、<code>application-test.properties</code>来针对不同的运行环境(<code>application-{profile}.properties</code>)</li>
+<li>使用配置文件(优先级从高到低)<ul>
+<li>外部配置：<code>java -jar aezocn.jar --spring.profiles.active=prod</code></li>
+<li>配置文件：<code>spring.profiles.active=dev</code> 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)</li>
+</ul>
+</li>
+<li>可以idea中修改默认profiles或者某些配置达到运行多个实例的目的</li>
+</ul>
+<h2 id="常用配置"><a href="#常用配置" class="headerlink" title="常用配置"></a>常用配置</h2><ul>
+<li><p>随应用启动而运行(实现<code>CommandLineRunner</code>接口)</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">@Component</div><div class="line">@Order(value = 1) // @Order值越小越优先</div><div class="line">public class HelpStartupRunner implements CommandLineRunner &#123;</div><div class="line">	@Value(&quot;$&#123;help.imageUploadRoot&#125;&quot;)</div><div class="line">	String imageUploadRoot;</div><div class="line"></div><div class="line">	@Override</div><div class="line">	public void run(String... args) throws Exception &#123;</div><div class="line">		initImageUploadRoot();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	private void initImageUploadRoot() &#123;</div><div class="line">		System.out.println(&quot;help.imageUploadRoot = &quot; + imageUploadRoot);</div><div class="line"></div><div class="line">		File dicFile = new File(imageUploadRoot);</div><div class="line">		if(!dicFile.exists() &amp;&amp; !dicFile.isDirectory()) &#123;</div><div class="line">			dicFile.mkdir();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>拦截器</p>
+<ul>
+<li><p>定义拦截器</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInterceptor</span> <span class="keyword">implements</span> <span class="title">HandlerInterceptor</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">preHandle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler)</span></span></div><div class="line">			<span class="keyword">throws</span> Exception &#123;</div><div class="line">		System.out.println(<span class="string">"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;在请求处理之前进行调用（Controller方法调用之前）"</span>);</div><div class="line">		<span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">// 只有返回true才会继续向下执行，返回false取消当前请求</span></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	* 这个方法只会在当前这个Interceptor的preHandle方法返回值为true的时候才会执行。</div><div class="line">	* postHandle是进行处理器拦截用的，它的执行时间是在处理器进行处理之后，也就是在Controller的方法调用之后执行，但是它会在DispatcherServlet进行视图的渲染之前执行，也就是说在这个方法中你可以对ModelAndView进行操作。</div><div class="line">	* 这个方法的链式结构跟正常访问的方向是相反的，也就是说先声明的Interceptor拦截器，该方法反而会后调用</div><div class="line">	*/</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postHandle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler,</span></span></div><div class="line">						ModelAndView modelAndView) <span class="keyword">throws</span> Exception &#123;</div><div class="line">		System.out.println(<span class="string">"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;请求处理之后进行调用（Controller方法调用之后），但是在视图被渲染之前"</span>);</div><div class="line"></div><div class="line">		<span class="keyword">if</span>(response.getStatus() == <span class="number">500</span>) &#123;</div><div class="line">			modelAndView.setViewName(<span class="string">"/error/500"</span>);</div><div class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span>(response.getStatus() == <span class="number">404</span>) &#123;</div><div class="line">			modelAndView.setViewName(<span class="string">"/error/404"</span>);</div><div class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span>(response.getStatus() == <span class="number">403</span>) &#123;</div><div class="line">			modelAndView.setViewName(<span class="string">"/error/403"</span>);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">/**</span></div><div class="line">	* 该方法也是需要当前对应的Interceptor的preHandle方法的返回值为true时才会执行。</div><div class="line">	* 该方法将在整个请求完成之后，也就是DispatcherServlet渲染了视图执行</div><div class="line">	* 这个方法的主要作用是用于清理资源的，当然这个方法也只能在当前这个Interceptor的preHandle方法的返回值为true时才会执行。</div><div class="line">	*/</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterCompletion</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)</span></span></div><div class="line">			<span class="keyword">throws</span> Exception &#123;</div><div class="line">		System.out.println(<span class="string">"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;在整个请求结束之后被调用，也就是在DispatcherServlet 渲染了对应的视图之后执行（主要是用于进行资源清理工作）"</span>);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>注册拦截器</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Configuration</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InterceptorConfig</span> <span class="keyword">extends</span> <span class="title">WebMvcConfigurerAdapter</span> </span>&#123;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addInterceptors</span><span class="params">(InterceptorRegistry registry)</span> </span>&#123;</div><div class="line">		<span class="comment">// 多个拦截器组成一个拦截器链</span></div><div class="line">		<span class="comment">// addPathPatterns 用于添加拦截规则</span></div><div class="line">		<span class="comment">// excludePathPatterns 用于排除拦截</span></div><div class="line">		registry.addInterceptor(<span class="keyword">new</span> MyInterceptor()).addPathPatterns(<span class="string">"/**"</span>);</div><div class="line"></div><div class="line">		<span class="keyword">super</span>.addInterceptors(registry);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="请求及响应"><a href="#请求及响应" class="headerlink" title="请求及响应"></a>请求及响应</h2><ul>
+<li><p>相关配置</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># 端口</div><div class="line">server.port=9090</div><div class="line"># context-path路径</div><div class="line">server.context-path=/myapp</div></pre></td></tr></table></figure>
+</li>
+<li><p>请求协议</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>request-method</th>
+<th>content-type</th>
+<th>postman</th>
+<th>springboot</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>post</td>
+<td>application/json</td>
+<td>row-json</td>
+<td>(@RequestBody User user)</td>
+<td>如果后台使用了@RequestBody，此时row-text等都无法请求到</td>
+</tr>
+<tr>
+<td>post</td>
+<td>multipart/form-data</td>
+<td>form-data</td>
+<td>(HttpServletRequest request, User user, @RequestParam(“hello”) String hello)</td>
+<td>参考实例1。可进行文件上传(包含参数)</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><p><code>&#39;content-type&#39;: &#39;multipart/form-data;</code>(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：</p>
+<ul>
+<li><code>javascript XHR</code>需要使用<code>new FormData()</code>进行数据传输(可查看postman代码)</li>
+<li><p>还可使用<code>MultipartFile</code>来接受单个文件, 使用<code>List&lt;MultipartFile&gt; files = ((MultipartHttpServletRequest) request).getFiles(&quot;file&quot;);</code>获取多个文件 <a href="[spring-boot文件上传](http://blog.csdn.net/coding13/article/details/54577076)">^3</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 此时User会根据前台参数和User类的set方法自动填充(调用的是User类的set方法)</span></div><div class="line"><span class="meta">@RequestMapping</span>(path = <span class="string">"/edit-user"</span>, method = RequestMethod.POST)</div><div class="line"><span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">editEvent</span><span class="params">(HttpServletRequest request, User user, @RequestParam(<span class="string">"hello"</span>)</span> String hello) </span>&#123;</div><div class="line">	Map&lt;String, Object&gt; result = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">	System.out.println(<span class="string">"hello = "</span> + hello); <span class="comment">// hello world</span></div><div class="line">	System.out.println(<span class="string">"user.getName() = "</span> + user.getName()); <span class="comment">// smalle</span></div><div class="line"></div><div class="line">	<span class="keyword">try</span> &#123;</div><div class="line">		<span class="comment">// 为了获取文件项</span></div><div class="line">		Collection&lt;Part&gt; parts = request.getParts();</div><div class="line"></div><div class="line">		<span class="comment">// part中包含了所有数据(参数和文件)</span></div><div class="line">		<span class="keyword">for</span> (Part part: parts) &#123;</div><div class="line">			String originName = part.getSubmittedFileName(); <span class="comment">// 上传文件对应的文件名</span></div><div class="line">			System.out.println(<span class="string">"originName = "</span> + originName);</div><div class="line"></div><div class="line">			<span class="keyword">if</span>(<span class="keyword">null</span> != originName) &#123;</div><div class="line">				<span class="comment">// 此part为文件</span></div><div class="line">				InputStream inputStream = part.getInputStream();</div><div class="line">				<span class="comment">// ...</span></div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;  <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">		e.printStackTrace();</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="数据访问"><a href="#数据访问" class="headerlink" title="数据访问"></a>数据访问</h2><ul>
+<li><p>数据库驱动</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--数据库驱动--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">scope</span>&gt;</span>runtime<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>配置</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">## spring.datasource.driver-class-name=com.mysql.jdbc.Driver</div><div class="line">spring.datasource.url=jdbc:mysql://localhost/springboot?useUnicode=true&amp;characterEncoding=utf-8</div><div class="line">spring.datasource.username=root</div><div class="line">spring.datasource.password=root</div><div class="line"></div><div class="line"># 每次启动都会执行, 且在hibernate建表语句之前执行</div><div class="line"># 若无此定义, springboot也会默认执行resources下的schema.sql(先)和data.sql(后)文件(如果存在)</div><div class="line"># 执行建表语句(也会执行插入等语句)</div><div class="line">spring.datasource.schema=classpath:schema.sql</div><div class="line"># 执行数据添加语句</div><div class="line">spring.datasource.data=classpath:data.sql</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="对hibernate的默认支持-JPA"><a href="#对hibernate的默认支持-JPA" class="headerlink" title="对hibernate的默认支持(JPA)"></a>对hibernate的默认支持(JPA)</h3><blockquote>
+<p><a href="http://www.cnblogs.com/rulian/tag/jpa/" target="_blank" rel="external">Spring Data JPA博文</a></p>
+<ul>
+<li>继承接口查询(JpaRepository/JpaSpecificationExecutor等)：<a href="http://www.cnblogs.com/rulian/p/6557471.html" target="_blank" rel="external">http://www.cnblogs.com/rulian/p/6557471.html</a></li>
+<li>方法定义规则查询：<a href="http://www.cnblogs.com/rulian/p/6434631.html" target="_blank" rel="external">http://www.cnblogs.com/rulian/p/6434631.html</a></li>
+<li>Example实例查询：<a href="http://www.cnblogs.com/rulian/p/6533109.html" target="_blank" rel="external">http://www.cnblogs.com/rulian/p/6533109.html</a></li>
+</ul>
+</blockquote>
+<ul>
+<li><p>引入数据库和jpa</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--jpa是ORM框架的API(基于hibernate完成), jdbc是java操作数据库的API(执行sql语句)--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-jpa<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>数据库添加配置</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">## spring.jpa.database=MYSQL</div><div class="line"># 自动执行ddl语句(create/create-drop/update).</div><div class="line">spring.jpa.hibernate.ddl-auto=update</div><div class="line"># 打印sql执行语句, 查询和建表</div><div class="line">spring.jpa.show-sql=true</div><div class="line"># 格式化打印语句</div><div class="line">spring.jpa.properties.hibernate.format_sql=true</div><div class="line"># 懒加载配置</div><div class="line">spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>UserDao.java</code>示例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 继承了JpaRepository(JpaRepository又继承了CrudRepository已经定义好了基本增删查改相关方法)</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserClassDao</span> <span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">UserClass</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">	<span class="comment">// spring data 根据属性名和查询关键字自动生成查询方法(spring data会自动实现)</span></div><div class="line">	<span class="function">UserClass <span class="title">findByClassName</span><span class="params">(String className)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>UserController.java</code>示例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Autowired</span></div><div class="line">   UserDao userDao;</div><div class="line"></div><div class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"/users"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> List&lt;User&gt; <span class="title">findUsers</span><span class="params">(User user)</span> </span>&#123;</div><div class="line">       <span class="comment">// 前台传一个类似的user对象，会把此对象做作为条件进行查询</span></div><div class="line">       Example&lt;User&gt; example = Example.of(user);</div><div class="line"></div><div class="line">       <span class="keyword">return</span> userDao.findAll(example);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>@Query</code>查询示例</p>
+<pre><code><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// UserDao定义的查询语句. org.springframework.data.jpa.repository.Query</span></div><div class="line"><span class="meta">@Query</span>(<span class="string">"select u.classId, u.sex, count(u.classId) as count from User u "</span> +</div><div class="line">		<span class="string">"   where u.password = :password "</span> +</div><div class="line">		<span class="string">"   group by u.classId, u.sex"</span>)</div><div class="line">List&lt;Object[]&gt; countUser(<span class="meta">@Param</span>(<span class="string">"password"</span>) String password);</div><div class="line"></div><div class="line"><span class="comment">// 原生sql</span></div><div class="line"><span class="meta">@Query</span>(value = <span class="string">"select u.* from user u, user_class uc where uc.class_id = u.class_id and uc.class_name = 'one'"</span>,</div><div class="line">		nativeQuery = <span class="keyword">true</span>)</div><div class="line">List&lt;Object[]&gt; findUsers();</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">// @Query自定义sql语句. http://127.0.0.1:9526/api/user-query</span></div><div class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"/user-query"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">query</span><span class="params">()</span> </span>&#123;</div><div class="line">	Map&lt;String, Object&gt; result = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">	result.put(<span class="string">"count"</span>, userDao.countUser(<span class="string">"123456"</span>));</div><div class="line">	result.put(<span class="string">"users"</span>, userDao.findUsers());</div><div class="line"></div><div class="line">	<span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+- 执行结果
+
+    <figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">	<span class="attr">count</span>: [</div><div class="line">		[</div><div class="line">			<span class="number">1</span>,</div><div class="line">			<span class="number">1</span>,</div><div class="line">			<span class="number">2</span></div><div class="line">		]</div><div class="line">	],</div><div class="line">	<span class="attr">users</span>: [</div><div class="line">		[</div><div class="line">			<span class="number">1</span>,</div><div class="line">			<span class="number">1</span>,</div><div class="line">			<span class="string">"smalle"</span>,</div><div class="line">			<span class="string">"123456"</span>,</div><div class="line">			<span class="number">1</span></div><div class="line">		],</div><div class="line">		[</div><div class="line">			<span class="number">2</span>,</div><div class="line">			<span class="number">1</span>,</div><div class="line">			<span class="string">"aezo"</span>,</div><div class="line">			<span class="string">"123456"</span>,</div><div class="line">			<span class="number">1</span></div><div class="line">		]</div><div class="line">	]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</code></pre></li>
+<li><p><code>Pageable</code>分页查询：Pageable里面常用参数<code>page</code>(页码, 0代表第一页)、<code>size</code>(页长)、<code>order</code>(排序规则) <a href="[hibernate查询分页](http://www.cnblogs.com/softidea/p/6287788.html)">^4</a></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 查询UserClass信息, 并获取子表User的前5条数据. http://127.0.0.1:9526/api/classes?className=one</span></div><div class="line">   <span class="meta">@RequestMapping</span>(value = <span class="string">"/classes"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">findClasses</span><span class="params">(UserClass userClass)</span> </span>&#123;</div><div class="line">       Map&lt;String, Object&gt; result = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">       <span class="comment">// 前台传一个类似的UserClass对象，会把此对象做作为条件进行查询</span></div><div class="line">       Example&lt;UserClass&gt; example = Example.of(userClass);</div><div class="line">       result.put(<span class="string">"userClass"</span>, userClassDao.findAll(example));</div><div class="line"></div><div class="line">       <span class="comment">// 分页获取User数据：如果使用classes.getUsers()获取则需要写实体对应关系(@OneToMany), 且会产生外键. 此时单表查询不需关联关系</span></div><div class="line">       Pageable pageable = <span class="keyword">new</span> PageRequest(<span class="number">0</span>, <span class="number">5</span>, <span class="keyword">new</span> Sort(Sort.Direction.DESC, <span class="string">"id"</span>)); <span class="comment">// 获取第1页, 每页显示5条, 按照id排序</span></div><div class="line">       result.put(<span class="string">"users"</span>, userDao.findAll(pageable));</div><div class="line"></div><div class="line">       <span class="keyword">return</span> result;</div><div class="line">   &#125;</div><div class="line"></div><div class="line"><span class="comment">// 分页(page为页码, 0代表第1页; size代表页长). http://127.0.0.1:9526/api/users-page?page=0</span></div><div class="line">   <span class="comment">// org.springframework.data.domain.Pageable、org.springframework.data.domain.Example</span></div><div class="line">   <span class="meta">@RequestMapping</span>(value = <span class="string">"/users-page"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> Page&lt;User&gt; <span class="title">findUsersPage</span><span class="params">(</span></span></div><div class="line">           @RequestParam(value = <span class="string">"username"</span>, defaultValue = <span class="string">"smalle"</span>) String username,</div><div class="line">           Pageable pageable) &#123;</div><div class="line">       <span class="comment">// 前台传一个类似的user对象，会把此对象做作为条件进行查询</span></div><div class="line">       Example&lt;User&gt; example = Example.of(<span class="keyword">new</span> User(username));</div><div class="line"></div><div class="line">       <span class="keyword">return</span> userDao.findAll(example, pageable);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>查询UserClass信息返回数据如下(已经美化去除引号)：</p>
+  <figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">	<span class="attr">userClass</span>: [</div><div class="line">		&#123;</div><div class="line">			<span class="attr">classId</span>: <span class="number">1</span>,</div><div class="line">			<span class="attr">className</span>: <span class="string">"one"</span></div><div class="line">		&#125;</div><div class="line">	],</div><div class="line">	<span class="attr">users</span>: &#123;</div><div class="line">		<span class="attr">content</span>: [</div><div class="line">			&#123;</div><div class="line">				<span class="attr">id</span>: <span class="number">2</span>,</div><div class="line">				<span class="attr">classId</span>: <span class="number">1</span>,</div><div class="line">				<span class="attr">username</span>: <span class="string">"aezo"</span>,</div><div class="line">				<span class="attr">password</span>: <span class="string">"123456"</span>,</div><div class="line">				<span class="attr">sex</span>: <span class="number">1</span></div><div class="line">			&#125;,</div><div class="line">			&#123;</div><div class="line">				<span class="attr">id</span>: <span class="number">1</span>,</div><div class="line">				<span class="attr">classId</span>: <span class="number">1</span>,</div><div class="line">				<span class="attr">username</span>: <span class="string">"smalle"</span>,</div><div class="line">				<span class="attr">password</span>: <span class="string">"123456"</span>,</div><div class="line">				<span class="attr">sex</span>: <span class="number">1</span></div><div class="line">			&#125;</div><div class="line">		],</div><div class="line">		<span class="attr">totalElements</span>: <span class="number">2</span>,</div><div class="line">		<span class="attr">totalPages</span>: <span class="number">1</span>,</div><div class="line">		<span class="attr">last</span>: <span class="literal">true</span>,</div><div class="line">		<span class="attr">number</span>: <span class="number">0</span>,</div><div class="line">		<span class="attr">size</span>: <span class="number">5</span>,</div><div class="line">		<span class="attr">first</span>: <span class="literal">true</span>,</div><div class="line">		<span class="attr">numberOfElements</span>: <span class="number">2</span>,</div><div class="line">		<span class="attr">sort</span>: [</div><div class="line">			&#123;</div><div class="line">				<span class="attr">direction</span>: <span class="string">"DESC"</span>,</div><div class="line">				<span class="attr">property</span>: <span class="string">"id"</span>,</div><div class="line">				<span class="attr">ignoreCase</span>: <span class="literal">false</span>,</div><div class="line">				<span class="attr">nullHandling</span>: <span class="string">"NATIVE"</span>,</div><div class="line">				<span class="attr">ascending</span>: <span class="literal">false</span>,</div><div class="line">				<span class="attr">descending</span>: <span class="literal">true</span></div><div class="line">			&#125;</div><div class="line">		]</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="整合mybatis-5"><a href="#整合mybatis-5" class="headerlink" title="整合mybatis ^5"></a>整合mybatis <a href="[整合mybatis](http://blog.csdn.net/gebitan505/article/details/54929287)">^5</a></h3><h4 id="基本配置"><a href="#基本配置" class="headerlink" title="基本配置"></a>基本配置</h4><ul>
+<li><p>引入依赖(mybatis-spring-boot-starter为mybatis提供的自动配置插件)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- https://github.com/mybatis/spring-boot-starter --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.mybatis.spring.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mybatis-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>1.3.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>启动类中加：<code>@MapperScan({&quot;cn.aezo.springboot.mybatis.mapper&quot;, &quot;cn.aezo.springboot.mybatis.mapperxml&quot;})</code> // 声明需要扫描mapper接口的路径</p>
+</li>
+<li><p>配置</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"># 基于xml配置时需指明映射文件扫描位置</div><div class="line">mybatis.mapper-locations=classpath:mapper/*.xml</div><div class="line"># mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置</div><div class="line">mybatis.config-location=classpath:mybatis-config.xml</div><div class="line"></div><div class="line"># 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)</div><div class="line">#mybatis.configuration.map-underscore-to-camel-case=true</div><div class="line"># 类型别名定义扫描的包(可结合@Alias使用, 默认是类名首字母小写)</div><div class="line">#mybatis.type-aliases-package=cn.aezo.springboot.mybatis.model</div></pre></td></tr></table></figure>
+</li>
+<li><p>mybatis配置文件: <code>mybatis-config.xml</code></p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8" ?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd"&gt;</span></div><div class="line"><span class="comment">&lt;!--在application.properties中使用了mybatis.configuration进行配置，无需此文件(传统配置)--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">settings</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)--&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">setting</span> <span class="attr">name</span>=<span class="string">"mapUnderscoreToCamelCase"</span> <span class="attr">value</span>=<span class="string">"true"</span>/&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">settings</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="comment">&lt;!--类型别名定义--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">typeAliases</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--定义需要扫描的包--&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">package</span> <span class="attr">name</span>=<span class="string">"cn.aezo.springboot.mybatis.model"</span>/&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!--定义后可在映射文件中间的parameterType等字段中使用userInfo代替cn.aezo.springboot.mybatis.model.UserInfo--&gt;</span></div><div class="line">		<span class="comment">&lt;!--&lt;typeAlias alias="userInfo" type="cn.aezo.springboot.mybatis.model.UserInfo" /&gt;--&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">typeAliases</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!-- 分页插件 --&gt;</span></div><div class="line">		<span class="comment">&lt;!-- 5.0.0以后使用com.github.pagehelper.PageInterceptor作为拦截器 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">plugin</span> <span class="attr">interceptor</span>=<span class="string">"com.github.pagehelper.PageInterceptor"</span>&gt;</span></div><div class="line">			<span class="comment">&lt;!--更多参数配置：https://github.com/pagehelper/Mybatis-PageHelper/blob/master/wikis/zh/HowToUse.md--&gt;</span></div><div class="line">			<span class="comment">&lt;!--&lt;property name="pageSizeZero" value="true"/&gt;--&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>Model：UserInfo/ClassInfo等无需任何注解.(其中HobbyEnum是一个枚举类)</p>
+</li>
+</ul>
+<h4 id="annotation版本-适合简单业务"><a href="#annotation版本-适合简单业务" class="headerlink" title="annotation版本(适合简单业务)"></a>annotation版本(适合简单业务)</h4><ul>
+<li><p><code>annotation版本(适合简单业务)</code></p>
+<ul>
+<li><p>Dao层：UserMapper.java</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// @Mapper // 在启动类中定义需要扫码mapper的包：@MapperScan("cn.aezo.springboot.mybatis.mapper"), 则此处无需声明@Mapper</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserMapper</span> </span>&#123;</div><div class="line">	<span class="comment">// 此处注入变量可以使用#或者$, 区别：# 创建的是一个prepared statement语句, $ 符创建的是一个inlined statement语句</span></div><div class="line">	<span class="meta">@Select</span>(<span class="string">"select * from user_info where nick_name = #&#123;nickName&#125;"</span>)</div><div class="line">	<span class="comment">// (使用配置&lt;setting name="mapUnderscoreToCamelCase" value="true"/&gt;因此无需转换) 数据库字段名和model字段名或javaType不一致的均需要@Result转换</span></div><div class="line">	<span class="comment">// @Results(&#123;</span></div><div class="line">	<span class="comment">//         @Result(property = "hobby",  column = "hobby", javaType = HobbyEnum.class),</span></div><div class="line">	<span class="comment">//         @Result(property = "nickName", column = "nick_name"),</span></div><div class="line">	<span class="comment">//         @Result(property = "groupId", column = "group_Id")</span></div><div class="line">	<span class="comment">// &#125;)</span></div><div class="line">	<span class="function">UserInfo <span class="title">findByNickName</span><span class="params">(String nickName)</span></span>;</div><div class="line"></div><div class="line">	<span class="meta">@Select</span>(<span class="string">"select * from user_info"</span>)</div><div class="line">	<span class="function">List&lt;UserInfo&gt; <span class="title">findAll</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">	<span class="meta">@Insert</span>(<span class="string">"insert into user_info(nick_name, group_id, hobby) values(#&#123;nickName&#125;, #&#123;groupId&#125;, #&#123;hobby&#125;)"</span>)</div><div class="line">	<span class="function"><span class="keyword">void</span> <span class="title">insert</span><span class="params">(UserInfo userInfo)</span></span>;</div><div class="line"></div><div class="line">	<span class="meta">@Update</span>(<span class="string">"update user_info set nick_name = #&#123;nickName&#125;, hobby = #&#123;hobby&#125; where id = #&#123;id&#125;"</span>)</div><div class="line">	<span class="function"><span class="keyword">void</span> <span class="title">update</span><span class="params">(UserInfo userInfo)</span></span>;</div><div class="line"></div><div class="line">	<span class="meta">@Delete</span>(<span class="string">"delete from user_info where id = #&#123;id&#125;"</span>)</div><div class="line">	<span class="function"><span class="keyword">void</span> <span class="title">delete</span><span class="params">(Long id)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>分页</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 分页查询：http://localhost:9526/api/users</span></div><div class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"/users"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> PageInfo <span class="title">showAllUser</span><span class="params">(</span></span></div><div class="line">		@RequestParam(defaultValue = <span class="string">"1"</span>) Integer pageNum,</div><div class="line">		@<span class="title">RequestParam</span><span class="params">(defaultValue = <span class="string">"5"</span>)</span> Integer pageSize) &#123;</div><div class="line">	PageHelper.startPage(pageNum, pageSize); <span class="comment">// 默认查询第一页，显示5条数据</span></div><div class="line">	List&lt;UserInfo&gt; users = userMapper.findAll(); <span class="comment">// 第一条执行的SQL语句会被分页，实际上输出users是page对象</span></div><div class="line">	PageInfo&lt;UserInfo&gt; pageUser = <span class="keyword">new</span> PageInfo&lt;UserInfo&gt;(users); <span class="comment">// 将users对象绑定到pageInfo</span></div><div class="line"></div><div class="line">	<span class="keyword">return</span> pageUser;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>分页查询结果</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">	<span class="attr">pageNum</span>: <span class="number">1</span>,</div><div class="line">	<span class="attr">pageSize</span>: <span class="number">5</span>,</div><div class="line">	<span class="attr">size</span>: <span class="number">2</span>,</div><div class="line">	<span class="attr">startRow</span>: <span class="number">1</span>,</div><div class="line">	<span class="attr">endRow</span>: <span class="number">2</span>,</div><div class="line">	<span class="attr">total</span>: <span class="number">2</span>,</div><div class="line">	<span class="attr">pages</span>: <span class="number">1</span>,</div><div class="line">	<span class="attr">list</span>: [</div><div class="line">		&#123;</div><div class="line">			<span class="attr">id</span>: <span class="number">1</span>,</div><div class="line">			<span class="attr">groupId</span>: <span class="number">1</span>,</div><div class="line">			<span class="attr">nickName</span>: <span class="string">"smalle"</span>,</div><div class="line">			<span class="attr">hobby</span>: <span class="string">"GAME"</span></div><div class="line">		&#125;,</div><div class="line">		&#123;</div><div class="line">			<span class="attr">id</span>: <span class="number">2</span>,</div><div class="line">			<span class="attr">groupId</span>: <span class="number">1</span>,</div><div class="line">			<span class="attr">nickName</span>: <span class="string">"aezo"</span>,</div><div class="line">			<span class="attr">hobby</span>: <span class="string">"CODE"</span></div><div class="line">		&#125;</div><div class="line">	],</div><div class="line">	<span class="attr">prePage</span>: <span class="number">0</span>,</div><div class="line">	<span class="attr">nextPage</span>: <span class="number">0</span>,</div><div class="line">	<span class="attr">isFirstPage</span>: <span class="literal">true</span>,</div><div class="line">	<span class="attr">isLastPage</span>: <span class="literal">true</span>,</div><div class="line">	<span class="attr">hasPreviousPage</span>: <span class="literal">false</span>,</div><div class="line">	<span class="attr">hasNextPage</span>: <span class="literal">false</span>,</div><div class="line">	<span class="attr">navigatePages</span>: <span class="number">8</span>,</div><div class="line">	<span class="attr">navigatepageNums</span>: [</div><div class="line">		<span class="number">1</span></div><div class="line">	],</div><div class="line">	<span class="attr">navigateFirstPage</span>: <span class="number">1</span>,</div><div class="line">	<span class="attr">navigateLastPage</span>: <span class="number">1</span>,</div><div class="line">	<span class="attr">firstPage</span>: <span class="number">1</span>,</div><div class="line">	<span class="attr">lastPage</span>: <span class="number">1</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>测试</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testFindByNickName</span><span class="params">()</span> </span>&#123;</div><div class="line">	UserInfo userInfo = userMapper.findByNickName(<span class="string">"smalle"</span>);</div><div class="line">	System.out.println(<span class="string">"userInfo = "</span> + userInfo);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testInsert</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">	userMapper.insert(<span class="keyword">new</span> UserInfo(<span class="string">"test"</span>, <span class="number">1L</span>, HobbyEnum.READ));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="xml版本-适合复杂操作"><a href="#xml版本-适合复杂操作" class="headerlink" title="xml版本(适合复杂操作)"></a>xml版本(适合复杂操作)</h4><ul>
+<li><p><code>xml版本(适合复杂操作)</code></p>
+<ul>
+<li><p>Dao层：UserMapperXml.java</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserMapperXml</span> </span>&#123;</div><div class="line">	<span class="function">List&lt;UserInfo&gt; <span class="title">findAll</span><span class="params">()</span></span>;</div><div class="line"></div><div class="line">	<span class="function">UserInfo <span class="title">getOne</span><span class="params">(Long id)</span></span>;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">void</span> <span class="title">insert</span><span class="params">(UserInfo user)</span></span>;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">void</span> <span class="title">update</span><span class="params">(UserInfo user)</span></span>;</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">void</span> <span class="title">delete</span><span class="params">(Long id)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>Dao实现(映射文件): UserMapper.xml(放在resources/mapper目录下)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8" ?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"&gt;</span></div><div class="line"><span class="comment">&lt;!--http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#--&gt;</span></div><div class="line"><span class="comment">&lt;!--sql映射文件: namespace必须为实现接口名；每个sql是一个statement--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">"cn.aezo.springboot.mybatis.mapperxml.UserMapperXml"</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!--resultMap结果集映射定义(用来描述如何从数据库结果集中来加载对象). resultType 与resultMap 不能并用--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">resultMap</span> <span class="attr">id</span>=<span class="string">"UserInfoResultMap"</span> <span class="attr">type</span>=<span class="string">"cn.aezo.springboot.mybatis.model.UserInfo"</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--设置mybatis.configuration.map-underscore-to-camel-case=true则会自动对格式进行转换, 无效下面转换--&gt;</span></div><div class="line">		<span class="comment">&lt;!--&lt;result column="group_id" property="groupId" jdbcType="BIGINT"/&gt;--&gt;</span></div><div class="line">		<span class="comment">&lt;!--&lt;result column="nick_name" property="nickName" jdbcType="VARCHAR"/&gt;--&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">resultMap</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="comment">&lt;!--sql:可被其他语句引用的可重用语句块. id:唯一的标识符，可被其它语句引用--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">"UserInfoColumns"</span>&gt;</span> id, group_id, nick_name, hobby <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="comment">&lt;!--id对应接口的方法名; resultType 与resultMap 不能并用; --&gt;</span></div><div class="line">	<span class="comment">&lt;!-- statementType: STATEMENT(statement)、PREPARED(preparedstatement, 默认)、CALLABLE(callablestatement)--&gt;</span></div><div class="line">	<span class="comment">&lt;!-- resultSetType: FORWARD_ONLY(游标向前滑动)，SCROLL_SENSITIVE(滚动敏感)，SCROLL_INSENSITIVE(不区分大小写的滚动)--&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"findAll"</span> <span class="attr">resultMap</span>=<span class="string">"UserInfoResultMap"</span>&gt;</span></div><div class="line">		select</div><div class="line">		<span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">"UserInfoColumns"</span>/&gt;</span></div><div class="line">		from user_info</div><div class="line">	<span class="tag">&lt;/<span class="name">select</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="comment">&lt;!--parameterType传入参数类型. 使用typeAliases进行类型别名映射后可写成resultType="userInfo"(自动扫描包mybatis.type-aliases-package, 默认该包下的类名首字母小写为别名) --&gt;</span></div><div class="line">	<span class="comment">&lt;!--如果返回结果使用resultType="cn.aezo.springboot.mybatis.model.UserInfo", 则nickName，groupId则为null. 此处使用resultMap指明字段对应关系--&gt;</span></div><div class="line">	<span class="comment">&lt;!-- #&#123;&#125;是实现的是PrepareStatement，$&#123;&#125;实现的是普通Statement --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"getOne"</span> <span class="attr">parameterType</span>=<span class="string">"java.lang.Long"</span> <span class="attr">resultType</span>=<span class="string">"userInfo"</span>&gt;</span></div><div class="line">		select</div><div class="line">		<span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">"UserInfoColumns"</span>/&gt;</span></div><div class="line">		from user_info</div><div class="line">		where id = #&#123;id&#125;</div><div class="line">	<span class="tag">&lt;/<span class="name">select</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">insert</span> <span class="attr">id</span>=<span class="string">"insert"</span> <span class="attr">parameterType</span>=<span class="string">"cn.aezo.springboot.mybatis.model.UserInfo"</span>&gt;</span></div><div class="line">		insert into</div><div class="line">		user_info</div><div class="line">		(nick_name, group_id, hobby)</div><div class="line">		values</div><div class="line">		(#&#123;nickName&#125;, #&#123;groupId&#125;, #&#123;hobby&#125;)</div><div class="line">	<span class="tag">&lt;/<span class="name">insert</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">update</span> <span class="attr">id</span>=<span class="string">"update"</span> <span class="attr">parameterType</span>=<span class="string">"cn.aezo.springboot.mybatis.model.UserInfo"</span>&gt;</span></div><div class="line">		update</div><div class="line">		user_info</div><div class="line">		set</div><div class="line">		<span class="comment">&lt;!--动态sql, 标签：if、choose (when, otherwise)、trim (where, set)、foreach--&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">"nickName != null"</span>&gt;</span>nick_name = #&#123;nickName&#125;,<span class="tag">&lt;/<span class="name">if</span>&gt;</span></div><div class="line">		hobby = #&#123;hobby&#125;</div><div class="line">		where</div><div class="line">		id = #&#123;id&#125;</div><div class="line">	<span class="tag">&lt;/<span class="name">update</span>&gt;</span></div><div class="line"></div><div class="line">	<span class="tag">&lt;<span class="name">delete</span> <span class="attr">id</span>=<span class="string">"delete"</span> <span class="attr">parameterType</span>=<span class="string">"java.lang.Long"</span>&gt;</span></div><div class="line">		delete from</div><div class="line">		user_info</div><div class="line">		where</div><div class="line">		id = #&#123;id&#125;</div><div class="line">	<span class="tag">&lt;/<span class="name">delete</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="MyBatis-Generator"><a href="#MyBatis-Generator" class="headerlink" title="MyBatis Generator"></a>MyBatis Generator</h4><ul>
+<li>使用<code>MyBatis Generator</code>自动生成model/dao/mapper</li>
+<li>官方文档：<a href="http://www.mybatis.org/generator/index.html" target="_blank" rel="external">http://www.mybatis.org/generator/index.html</a></li>
+<li><p>生成方式有多种(此处介绍maven插件的方式)</p>
+<ul>
+<li><p>maven配置</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!-- mybatis(mapper等)自动生成 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.mybatis.generator<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mybatis-generator-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">version</span>&gt;</span>1.3.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">			<span class="comment">&lt;!--maven可执行命令--&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">executions</span>&gt;</span></div><div class="line">				<span class="tag">&lt;<span class="name">execution</span>&gt;</span></div><div class="line">					<span class="tag">&lt;<span class="name">id</span>&gt;</span>Generate MyBatis Artifacts<span class="tag">&lt;/<span class="name">id</span>&gt;</span></div><div class="line">					<span class="tag">&lt;<span class="name">goals</span>&gt;</span></div><div class="line">						<span class="tag">&lt;<span class="name">goal</span>&gt;</span>generate<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></div><div class="line">					<span class="tag">&lt;/<span class="name">goals</span>&gt;</span></div><div class="line">				<span class="tag">&lt;/<span class="name">execution</span>&gt;</span></div><div class="line">			<span class="tag">&lt;/<span class="name">executions</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>resources目录添加文件：<code>generatorConfig.xml</code></p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE generatorConfiguration</span></div><div class="line">		PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"</div><div class="line">		"http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd"&gt;</div><div class="line"><span class="tag">&lt;<span class="name">generatorConfiguration</span>&gt;</span></div><div class="line">	<span class="comment">&lt;!--数据库驱动 --&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">classPathEntry</span> <span class="attr">location</span>=<span class="string">"C:\Users\smalle\.m2\repository\mysql\mysql-connector-java\5.1.43\mysql-connector-java-5.1.43.jar"</span> /&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">context</span> <span class="attr">id</span>=<span class="string">"MySQL2Tables"</span> <span class="attr">targetRuntime</span>=<span class="string">"MyBatis3"</span> <span class="attr">defaultModelType</span>=<span class="string">"flat"</span>&gt;</span></div><div class="line">		</div><div class="line">		<span class="tag">&lt;<span class="name">commentGenerator</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"suppressDate"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"suppressAllComments"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">commentGenerator</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!--数据库链接地址账号密码 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">jdbcConnection</span></span></div><div class="line">				<span class="attr">driverClass</span>=<span class="string">"com.mysql.jdbc.Driver"</span></div><div class="line">				<span class="attr">connectionURL</span>=<span class="string">"jdbc:mysql://localhost:3306/springboot"</span></div><div class="line">				<span class="attr">userId</span>=<span class="string">"root"</span></div><div class="line">				<span class="attr">password</span>=<span class="string">"root"</span>&gt;</div><div class="line">		<span class="tag">&lt;/<span class="name">jdbcConnection</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="tag">&lt;<span class="name">javaTypeResolver</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"forceBigDecimals"</span> <span class="attr">value</span>=<span class="string">"false"</span> /&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">javaTypeResolver</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!--生成Model类存放位置 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">javaModelGenerator</span></span></div><div class="line">				<span class="attr">targetPackage</span>=<span class="string">"cn.aezo.springboot.mybatis.generator.model"</span></div><div class="line">				<span class="attr">targetProject</span>=<span class="string">"src/main/java"</span>&gt;</div><div class="line">			<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"enableSubPackages"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"trimStrings"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">javaModelGenerator</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!--生成映射文件存放位置 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">sqlMapGenerator</span></span></div><div class="line">				<span class="attr">targetPackage</span>=<span class="string">"cn.aezo.springboot.mybatis.generator.mapper"</span></div><div class="line">				<span class="attr">targetProject</span>=<span class="string">"src/main/java"</span>&gt;</div><div class="line">			<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"enableSubPackages"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">sqlMapGenerator</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!--生成Dao类存放位置 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">javaClientGenerator</span></span></div><div class="line">				<span class="attr">type</span>=<span class="string">"XMLMAPPER"</span></div><div class="line">				<span class="attr">targetPackage</span>=<span class="string">"cn.aezo.springboot.mybatis.generator.dao"</span></div><div class="line">				<span class="attr">targetProject</span>=<span class="string">"src/main/java"</span>&gt;</div><div class="line">			<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"enableSubPackages"</span> <span class="attr">value</span>=<span class="string">"true"</span> /&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">javaClientGenerator</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!--生成对应表及类名 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">table</span></span></div><div class="line">				<span class="attr">tableName</span>=<span class="string">"%"</span></div><div class="line">				<span class="attr">enableCountByExample</span>=<span class="string">"true"</span></div><div class="line">				<span class="attr">enableUpdateByExample</span>=<span class="string">"true"</span></div><div class="line">				<span class="attr">enableDeleteByExample</span>=<span class="string">"true"</span></div><div class="line">				<span class="attr">enableSelectByExample</span>=<span class="string">"true"</span></div><div class="line">				<span class="attr">selectByExampleQueryId</span>=<span class="string">"true"</span>&gt;</div><div class="line">		<span class="tag">&lt;/<span class="name">table</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">context</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">generatorConfiguration</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>执行命令生成文件：<code>mvn mybatis-generator:generate</code></p>
+</li>
+<li>生成Mapper中Example的使用：<a href="http://www.mybatis.org/generator/generatedobjects/exampleClassUsage.html" target="_blank" rel="external">http://www.mybatis.org/generator/generatedobjects/exampleClassUsage.html</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="数据库相关配置"><a href="#数据库相关配置" class="headerlink" title="数据库相关配置"></a>数据库相关配置</h3><ul>
+<li><p>数据库/表新建时命名策略(JPA) <a href="https://docs.spring.io/spring-boot/docs/1.5.6.RELEASE/reference/htmlsingle/#howto-configure-hibernate-naming-strategy" target="_blank" rel="external">doc</a></p>
+<ul>
+<li><code>org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy</code>为springboot默认提供命令策略(实体驼峰转成数据库下划线)</li>
+<li><p>示例：给表名加前缀</p>
+<ul>
+<li><p>配置：<code>spring.jpa.hibernate.naming.physical-strategy=cn.aezo.springboot.CustomPhysicalNamingStrategy</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomPhysicalNamingStrategy</span> <span class="keyword">extends</span> <span class="title">SpringPhysicalNamingStrategy</span> </span>&#123;</div><div class="line">	<span class="comment">// 重写父类方法</span></div><div class="line">	<span class="function"><span class="keyword">public</span> Identifier <span class="title">toPhysicalTableName</span><span class="params">(Identifier name, JdbcEnvironment jdbcEnvironment)</span> </span>&#123;</div><div class="line">		<span class="comment">// System.out.println("name = " + name);</span></div><div class="line">		<span class="comment">// System.out.println("jdbcEnvironment = " + jdbcEnvironment);</span></div><div class="line">		<span class="comment">// System.out.println("name.getCanonicalName() = " + name.getCanonicalName());</span></div><div class="line">		<span class="comment">// System.out.println("name.getText() = " + name.getText());</span></div><div class="line"></div><div class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.apply(Identifier.toIdentifier(<span class="string">"th_"</span> + name.getText()), jdbcEnvironment);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">// copy父类方法</span></div><div class="line">	<span class="function"><span class="keyword">private</span> Identifier <span class="title">apply</span><span class="params">(Identifier name, JdbcEnvironment jdbcEnvironment)</span> </span>&#123;</div><div class="line">		<span class="keyword">if</span>(name == <span class="keyword">null</span>) &#123;</div><div class="line">			<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">		&#125; <span class="keyword">else</span> &#123;</div><div class="line">			StringBuilder builder = <span class="keyword">new</span> StringBuilder(name.getText().replace(<span class="string">'.'</span>, <span class="string">'_'</span>));</div><div class="line"></div><div class="line">			<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; builder.length() - <span class="number">1</span>; ++i) &#123;</div><div class="line">				<span class="keyword">if</span>(<span class="keyword">this</span>.isUnderscoreRequired(builder.charAt(i - <span class="number">1</span>), builder.charAt(i), builder.charAt(i + <span class="number">1</span>))) &#123;</div><div class="line">					builder.insert(i++, <span class="string">'_'</span>);</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line"></div><div class="line">			<span class="keyword">return</span> <span class="keyword">this</span>.getIdentifier(builder.toString(), name.isQuoted(), jdbcEnvironment);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">// copy父类方法</span></div><div class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isUnderscoreRequired</span><span class="params">(<span class="keyword">char</span> before, <span class="keyword">char</span> current, <span class="keyword">char</span> after)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> Character.isLowerCase(before) &amp;&amp; Character.isUpperCase(current) &amp;&amp; Character.isLowerCase(after);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用H2数据库-1"><a href="#使用H2数据库-1" class="headerlink" title="使用H2数据库 ^1"></a>使用H2数据库 <a href="[idea连接h2](https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache)">^1</a></h3><ul>
+<li>h2简介：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库</li>
+<li><a href="http://h2database.com/html/main.html" target="_blank" rel="external">官网：http://h2database.com/html/main.html</a></li>
+<li>springboot整合：<a href="../db/h2.md">文章：《h2》</a></li>
+</ul>
+<h2 id="thymeleaf模板引擎"><a href="#thymeleaf模板引擎" class="headerlink" title="thymeleaf模板引擎"></a>thymeleaf模板引擎</h2><ul>
+<li><p>引入依赖</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--thymeleaf模板引擎, 包含spring-boot-starter-web--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-thymeleaf<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!-- 可选：thymeleaf和springsecurity结合在页面级别进行权限控制 --&gt;</span></div><div class="line"><span class="comment">&lt;!--&lt;dependency&gt;</span></div><div class="line">	&lt;groupId&gt;org.thymeleaf.extras&lt;/groupId&gt;</div><div class="line">	&lt;artifactId&gt;thymeleaf-extras-springsecurity4&lt;/artifactId&gt;</div><div class="line">&lt;/dependency&gt;--&gt;</div></pre></td></tr></table></figure>
+</li>
+<li><p>properties配置</p>
+  <figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#spring:</span></div><div class="line"><span class="comment">#  thymeleaf:</span></div><div class="line"><span class="comment">#	# 将thymeleaf文件放在resources/templates/目录</span></div><div class="line">   <span class="comment">#	prefix: classpath:/templates/</span></div><div class="line">   <span class="comment">#	suffix: .html</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>thymeleaf缓存(热部署)</p>
+<ul>
+<li>推荐使用<code>JRebel</code>(idea需要Ctrl+Shift+F9刷新)</li>
+<li><p>使用<code>devtools</code>(也适用于java文件热部署)</p>
+<ul>
+<li><p>增加maven配置</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-devtools<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">optional</span>&gt;</span>true<span class="tag">&lt;/<span class="name">optional</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">				<span class="tag">&lt;<span class="name">fork</span>&gt;</span>true<span class="tag">&lt;/<span class="name">fork</span>&gt;</span></div><div class="line">			<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>idea需要Ctrl+Shift+F9刷新，相当于重启项目，较普通项目重启快</p>
+</li>
+</ul>
+</li>
+<li>配置中加<code>spring.thymeleaf.cache=false</code><ul>
+<li>需要使用maven启动</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>示例</p>
+<ul>
+<li><p>Controller：类的注解必须是<code>@Controller</code></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Controller</span> <span class="comment">// 此时不能是@RestController</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ThymeleafController</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="comment">// 页面显示resources/templates/hello.html的内容</span></div><div class="line">	<span class="meta">@RequestMapping</span>(<span class="string">"/hello"</span>)</div><div class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">(Map&lt;String, Object&gt; model)</span> </span>&#123;</div><div class="line">		<span class="comment">// 无需注入参数值时，则方法可不接收model参数</span></div><div class="line">		model.put(<span class="string">"hello"</span>, <span class="string">"UserController.thymeleaf"</span>);</div><div class="line"></div><div class="line">		<span class="keyword">return</span> <span class="string">"/hello"</span>;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>hello.html文件</p>
+  <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span></div><div class="line"><span class="comment">&lt;!-- xmlns:th="http://www.thymeleaf.org"声明后方可使用 th:* --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">xmlns</span>=<span class="string">"http://www.w3.org/1999/xhtml"</span> <span class="attr">xmlns:th</span>=<span class="string">"http://www.thymeleaf.org"</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">head</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">title</span>&gt;</span>Hello World!<span class="tag">&lt;/<span class="name">title</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"Content-Type"</span> <span class="attr">content</span>=<span class="string">"text/html; charset=UTF-8"</span>/&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">head</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">body</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">p</span> <span class="attr">th:text</span>=<span class="string">"$&#123;hello&#125;"</span>&gt;</span>smalle<span class="tag">&lt;/<span class="name">p</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">p</span>&gt;</span>$&#123;hello&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">body</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>显示结果(第二个${hello}并不能解析)</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">UserController.thymeleaf</div><div class="line">$&#123;hello&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>thymeleaf语法：<a href="../lang/thymeleaf.md">文章：《thymeleaf》</a></p>
+</li>
+</ul>
+<h2 id="企业级开发"><a href="#企业级开发" class="headerlink" title="企业级开发"></a>企业级开发</h2><h3 id="rabbitmq"><a href="#rabbitmq" class="headerlink" title="rabbitmq"></a>rabbitmq</h3><ul>
+<li><p>RabbitMQ是实现了高级消息队列协议(AMQP)的开源消息代理软件，也称为面向消息的中间件。后续操作需要先安装RabbitMQ服务</p>
+</li>
+<li><p>引入对amqp协议支持依赖</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-amqp<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>配置rabbitmq服务器链接</p>
+  <figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="attr">spring:</span></div><div class="line"><span class="attr">  rabbitmq:</span></div><div class="line"><span class="attr">    host:</span> <span class="string">localhost</span></div><div class="line"><span class="attr">    port:</span> <span class="number">5672</span></div><div class="line"><span class="attr">    username:</span> <span class="string">guest</span></div><div class="line"><span class="attr">    password:</span> <span class="string">guest</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>配置队列、生产者、消费者</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 配置队列 hello</span></div><div class="line"><span class="meta">@Bean</span></div><div class="line"><span class="function"><span class="keyword">public</span> Queue <span class="title">helloQueue</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Queue(<span class="string">"hello"</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 生产者</span></div><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Provider</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AmqpTemplate rabbitTemplate;</div><div class="line"></div><div class="line">    <span class="comment">// 发送消息</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">send</span><span class="params">()</span> </span>&#123;</div><div class="line">        String context = <span class="string">"hello "</span> + <span class="keyword">new</span> Date();</div><div class="line">        System.out.println(<span class="string">"Provider: "</span> + context);</div><div class="line">        <span class="keyword">this</span>.rabbitTemplate.convertAndSend(<span class="string">"hello"</span>, context);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 消费者</span></div><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="meta">@RabbitListener</span>(queues = <span class="string">"hello"</span>)</div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Consumer</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@RabbitHandler</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(String msg)</span> </span>&#123;</div><div class="line">        System.out.println(<span class="string">"Consumer: "</span> + msg);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="session共享"><a href="#session共享" class="headerlink" title="session共享"></a>session共享</h3><ul>
+<li>基于redis实现session共享. 多个项目需要都引入此依赖，并连接相同的redis</li>
+<li><p>引入依赖</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.session<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-session-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!-- redis依赖 --&gt;</span></div><div class="line"><span class="comment">&lt;!-- &lt;dependency&gt;</span></div><div class="line">	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</div><div class="line">	&lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;</div><div class="line">&lt;/dependency&gt; --&gt;</div></pre></td></tr></table></figure>
+</li>
+<li><p>启动类加<code>@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 7200)</code> (maxInactiveIntervalInSeconds即session检测的最大时间间隔)</p>
+</li>
+<li>可将一个项目启动两个端口进行测试</li>
+</ul>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="替换项目运行时springboot的logo"><a href="#替换项目运行时springboot的logo" class="headerlink" title="替换项目运行时springboot的logo"></a>替换项目运行时springboot的logo</h3><ul>
+<li><p>在<code>resources</code>添加<code>banner.txt</code>文件. 内容自定义(文字转字符：<a href="http://patorjk.com/software/taag/)，如：" target="_blank" rel="external">http://patorjk.com/software/taag/)，如：</a></p>
+  <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line"> .oooo.    .ooooo.    oooooooo  .ooooo.   .ooooo.  ooo. .oo.   </div><div class="line">`P  )88b  d88' `88b  d'""7d8P  d88' `88b d88' `"Y8 `888P"Y88b  </div><div class="line"> .oP"888  888ooo888    .d8P'   888   888 888        888   888  </div><div class="line">d8(  888  888    .o  .d8P'  .P 888   888 888   .o8  888   888  </div><div class="line">`Y888""8o `Y8bod8P' d8888888P  `Y8bod8P' `Y8bod8P' o888o o888o</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<hr>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/springboot/" rel="tag"># springboot</a>
+          
+            <a href="/tags/hibernate/" rel="tag"># hibernate</a>
+          
+            <a href="/tags/rabbitmq/" rel="tag"># rabbitmq</a>
+          
+            <a href="/tags/mybatis/" rel="tag"># mybatis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/01/java/spring/" rel="next" title="spring">
+                <i class="fa fa-chevron-left"></i> spring
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/05/java/springcloud/" rel="prev" title="SpringCloud">
+                SpringCloud <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美好</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">84</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#目录"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hello-world"><span class="nav-number">2.</span> <span class="nav-text">hello world</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置文件-properties-yml"><span class="nav-number">3.</span> <span class="nav-text">配置文件(properties/yml)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用配置"><span class="nav-number">4.</span> <span class="nav-text">常用配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求及响应"><span class="nav-number">5.</span> <span class="nav-text">请求及响应</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据访问"><span class="nav-number">6.</span> <span class="nav-text">数据访问</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#对hibernate的默认支持-JPA"><span class="nav-number">6.1.</span> <span class="nav-text">对hibernate的默认支持(JPA)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#整合mybatis-5"><span class="nav-number">6.2.</span> <span class="nav-text">整合mybatis ^5</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本配置"><span class="nav-number">6.2.1.</span> <span class="nav-text">基本配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#annotation版本-适合简单业务"><span class="nav-number">6.2.2.</span> <span class="nav-text">annotation版本(适合简单业务)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#xml版本-适合复杂操作"><span class="nav-number">6.2.3.</span> <span class="nav-text">xml版本(适合复杂操作)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MyBatis-Generator"><span class="nav-number">6.2.4.</span> <span class="nav-text">MyBatis Generator</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据库相关配置"><span class="nav-number">6.3.</span> <span class="nav-text">数据库相关配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用H2数据库-1"><span class="nav-number">6.4.</span> <span class="nav-text">使用H2数据库 ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#thymeleaf模板引擎"><span class="nav-number">7.</span> <span class="nav-text">thymeleaf模板引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#企业级开发"><span class="nav-number">8.</span> <span class="nav-text">企业级开发</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#rabbitmq"><span class="nav-number">8.1.</span> <span class="nav-text">rabbitmq</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#session共享"><span class="nav-number">8.2.</span> <span class="nav-text">session共享</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他"><span class="nav-number">9.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#替换项目运行时springboot的logo"><span class="nav-number">9.1.</span> <span class="nav-text">替换项目运行时springboot的logo</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
