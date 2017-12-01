@@ -169,6 +169,10 @@ tags: [ssh, orm]
     - **`@Id`** 主键; `@Basic` 其他属性,可省略
     - **`@GeneratedValue`** 批注后主键会自动生成值，默认使用id生成策略是AUTO。@GeneratedValue(strategy=GenerationType.AUTO)，其中(strategy=GenerationType.AUTO)可以省略，会自动根据mysql/oracle转换，相当于xml方式中的native
     - **`@Column(name="_title")`** 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致
+        - `@Column(columnDefinition=" BIT default 1 ")` 设置默认值(BIT对应Boolean，其中的空格不能少)
+        - `@Column(columnDefinition="TEXT")` 设置字段类型(java中的String对应db中的TEXT). 存储长文本
+            - 存储长文本建议使用TEXT：`TINYTEXT` 256bytes、`TEXT` 64kb、`MEDIUMTEXT` 16Mb、`LONGTEXT` 4GB (mysql)
+            - `CLOB`/`BLOB`以二进制存储，前台参数无法直接映射成类
     - `@JoinColumn`、`@OneToMany`等见下文关系映射
     - `@OrderBy("name ASC")` 排序
     - `@Transient` 透明的.表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可

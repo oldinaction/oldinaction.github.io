@@ -86,10 +86,21 @@ tags: [maven]
 
 ### maven项目依赖本地jar包
 
-- 法一：将项目安装到本地maven库：`mvn install`**(推荐)**
-    - 如果有pom.xml建议安装到本地再进行引用，(下面两种方式)否则编译的时候不会报错，但是运行时这些本地jar依赖就找不到(如：`nested exception is java.lang.NoClassDefFoundError`)
-    - 有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(`mvn install -DskipTests`)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此
-- 法二：依赖写法(只能一个jar一个jar的添加)
+- 安装jar包到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
+	- 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
+- 再按照常规的方式应用
+	
+	```xml
+	<dependency>
+    	<groupId>cn.aezo</groupId>
+    	<artifactId>test</artifactId>
+    	<version>=1.0.0</version>
+    </dependency>
+	```
+
+> 以下两种方法不推荐：这样添加之后，编译是可以通过的，但是打包还会会从本地maven库里取相应的jar（如果你本地maven库里没有，则不会打包到工程里），而不是把你配置的jar文件打包进去，所以需要打包完成后将对应的jar添加到项目jar的lib目录中
+
+- 法一：依赖写法(只能一个jar一个jar的添加)
 
     ```xml
     <!--groupId等是从jar包的META-INF中获得; 其中scope必须加; ${basedir}为maven内置参数-->
@@ -101,7 +112,9 @@ tags: [maven]
     	<systemPath>${basedir}/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar</systemPath>
     </dependency>
     ```
-- 法三：在`build-plugins`节点加以下插件(可获取到目录下所有jar)
+
+- 法二：在`build-plugins`节点加以下插件(可获取到目录下所有jar)(未测试通过)
+
     ```xml
     <plugin>
     	<artifactId>maven-compiler-plugin</artifactId>
@@ -118,10 +131,47 @@ tags: [maven]
     </plugin>
     ```
 
+### 利用github创建仓库 [^1]
+
+- github新建项目maven-repo，并下载到本地目录，如`D:/GitRepositories/maven-repo`
+- 进入到项目pom.xml所在目录，运行命令：
+	- `mvn deploy -DaltDeploymentRepository=oldinaction-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`
+	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`oldinaction-maven-repo`，`-DskipTests`跳过测试进行部署
+- 提交到github(**注意jar包不要习惯性的ignore**)
+- 配置maven远程仓库
+
+	```xml
+	<repositories>
+        <repository>
+            <id>oldinaction-maven-repo</id>
+            <url>https://raw.github.com/oldinaction/maven-repo/master/</url>
+			<!--或者访问本地-->
+			<!--<url>file:D:/GitRepositories/maven-repo/</url>-->
+        </repository>
+    </repositories>
+	```
+	- maven的repository并没有优先级的配置，也不能单独为某些依赖配置repository。所以如果项目配置了多个repository，在首次编绎时会依次尝试下载依赖，如果没有找到，尝试下一个
+	- 其中`<url>https://raw.github.com/{github-username}/{github-repository}/{github-branch}/</url>`，https://raw.github.com 是github的raw站点，浏览器不能访问目录只能访问单个文件
+- 配置依赖(会自动将仓库中的数据再下载到本地仓库`.m2`目录)
+
+	```xml
+	<dependency>
+		<groupId>cn.aezo</groupId>
+		<artifactId>utils</artifactId>
+		<version>sm-minions-1.0</version>
+	</dependency>
+	```
+
 ## 安装和打包
 
-- 安装：`mvn install`
-    - 执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)
+- 安装：
+	- 基于源码安装：`mvn install` (需要进入到源码的pom.xml目录)
+	- 基于jar包安装：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
+		- 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
+    - 说明
+		- 执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)
+		- 如果有pom.xml建议安装到本地再进行引用，(下面两种方式)否则编译的时候不会报错，但是运行时这些本地jar依赖就找不到(如：`nested exception is java.lang.NoClassDefFoundError`)
+		- 有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(`mvn install -DskipTests`)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此
 - 打包命令：`mvn package`
 - 跳过测试进行打包：`mvn install -DskipTests` / `mvn package -DskipTests`.
     - 方式二:
@@ -195,8 +245,14 @@ tags: [maven]
 ### 标签介绍
 
 - `scope`：取值有compile、runtime、test、provided、system和import。
-    - compile：这是依赖项的默认作用范围，即当没有指定依赖项的scope时默认使用compile。compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时。
-    - cruntime：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。
-    - ctest：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。
-    - cprovided：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。
-    - csystem：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。
+    - `compile`：这是依赖项的默认作用范围，即当没有指定依赖项的scope时默认使用compile。compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时。
+    - `runtime`：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。
+    - `test`：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。
+    - `provided`：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。
+    - `system`：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。
+
+
+
+---
+
+[^1]: [利用github搭建个人maven仓库](http://blog.csdn.net/hengyunabc/article/details/47308913)

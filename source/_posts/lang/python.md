@@ -35,6 +35,8 @@ tags: [python]
             > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装[MySQL-python-1.2.5.win32-py2.7.exe](https://pypi.python.org/pypi/MySQL-python/1.2.5)（就相当于pip安装）
             
         - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
+    - `pymongo` MongoDB操作库 [^2]
+        - `pip install pymongo`
     - `fabric` 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
         - `pip install fabric` 安装
         - 常见问题
@@ -48,4 +50,5 @@ tags: [python]
 
 
 ---
-[^1]:[MySQLdb安装报错](http://blog.csdn.net/bijiaoshenqi/article/details/44758055)
+[^1]: [MySQLdb安装报错](http://blog.csdn.net/bijiaoshenqi/article/details/44758055)
+[^2]: [Python连接MongoDB操作](http://www.yiibai.com/mongodb/mongodb_python.html)

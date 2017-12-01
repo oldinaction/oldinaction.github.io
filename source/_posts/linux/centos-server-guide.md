@@ -10,9 +10,19 @@ tags: [CentOS, server]
 
 - `yum install vsftpd` 安装软件vsftpd，一路y下去
 - `yum search vsftpd` 查找软件vsftpd源
-- Centos 7使用firewalld代替了原来的iptables
-- 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
 - **如果服务器磁盘未挂载，最好先挂载后再进行软件安装**
+
+### 防火墙
+
+决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
+
+- Centos 7使用firewalld代替了原来的iptables
+    - 查看状态：`systemctl status firewalld`
+    - 开放端口：`firewall-cmd --zone=public --add-port=80/tcp --permanent`（--permanent永久生效，没有此参数重启后失效）
+    - 重新载入：`firewall-cmd --reload`
+    - 查看端口：`firewall-cmd --zone= public --query-port=80/tcp`
+    - 删除端口：`firewall-cmd --zone= public --remove-port=80/tcp --permanent`
+- 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
 
 ## 常用软件安装
 

@@ -22,7 +22,8 @@ tags: [nginx]
 - 相关命令
     - `ps -ef | grep nginx` 查看nginx安装位置(nginx的配置文件.conf在此目录下)
     - `sudo find / -name nginx.conf` 查看配置文件位置
-    - `/usr/sbin/nginx -t` 检查配置文件的配置是否合法(也会返回配置文件位置)
+    - **校验配置**：`/usr/sbin/nginx -t` 检查配置文件的配置是否合法(也会返回配置文件位置)
+    - **重载配置文件**： `/usr/sbin/nginx -s reload` 无需重启nginx
 
 ## nginx配置(nginx.conf)
 
@@ -39,6 +40,12 @@ tags: [nginx]
             # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)
     		location = / {
     			rewrite / http://$server_name/hello break;
+            }
+
+            # 用于暴露静态文件，访问http://www.aezo.cn/static/logo.png，且无法访问到http://www.aezo.cn/static
+            # 文件实际路径为/home/aezocn/www/static/logo.png
+            location ^~ /static/ {
+                root /home/aezocn/www;
             }
 
             # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin
@@ -82,12 +89,13 @@ tags: [nginx]
 
 ## 匹配规则
 
-- 语法规则： `location [=|~|~*|^~] /uri/ { … }`
+- 语法规则： `location [=|~|~*|^~] /uri/ { … }` [^1] [^2]
     - `=` 开头表示精确匹配
-    - `^~` 开头表示uri以某个常规字符串开头，理解为匹配 url路径即可。nginx不对url做编码，因此请求为`/static/20%/aa`，可以被规则`^~ /static/ /aa`匹配到（注意是空格）。
     - `~` 开头表示区分大小写的正则匹配
     - `~*` 开头表示不区分大小写的正则匹配
-    - `!~`和`!~*`分别为区分大小写不匹配及不区分大小写不匹配的正则
+    - `!~` 开头为区分大小写不匹配的正则
+    - `!~*` 开头为不区分大小写不匹配的正则
+    - `^~` 开头表示uri以某个常规字符串开头，理解为匹配url路径即可（如果路径匹配那么不测试正则表达式）。nginx不对url做编码，因此请求为`/static/20%/aa`，可以被规则`^~ /static/ /aa`匹配到（注意是空格）。
     - `/` 通用匹配，任何请求都会匹配到。
 - 多个location配置的情况下匹配顺序为:首先匹配 =，其次匹配^~, 其次是按文件中顺序的正则匹配，最后是交给 / 通用匹配。当有匹配成功时候，停止匹配，按当前匹配规则处理请求。
 - 常用配置
@@ -130,3 +138,5 @@ tags: [nginx]
 
 
 ---
+[^1]: [location配置规则](http://outofmemory.cn/code-snippet/742/nginx-location-configuration-xiangxi-explain)
+[^2]: [location配置正则](http://blog.csdn.net/gzh0222/article/details/7845981)

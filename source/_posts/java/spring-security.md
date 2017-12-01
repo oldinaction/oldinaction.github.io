@@ -64,7 +64,7 @@ tags: [spring, springsecurity, springboot]
                     .anyRequest().authenticated() // (除上述忽略请求)所有的请求都需要权限认证
                     .and()
                 .formLogin()
-                    .loginPage("/manage/login").permitAll() // 登录界面(Get)和登录处理方法(Post). 登录成功后，如果从登录界面登录则跳到项目主页(http://localhost:9526)，如果从其他页面跳转到登录页面进行登录则成功后跳转到原始页面
+                    .loginPage("/manage/login").permitAll() // 登录界面(Get)和登录处理方法(Post。具体逻辑不需要写，并且会自动生成此端点的control). 登录成功后，如果从登录界面登录则跳到项目主页(http://localhost:9526)，如果从其他页面跳转到登录页面进行登录则成功后跳转到原始页面
                     .and()
                 .logout().permitAll() // 默认访问/logout(Get)即可登出
                     .and()
@@ -101,7 +101,7 @@ tags: [spring, springsecurity, springboot]
 - 此示例使用数据库用户名/密码(或扩展验证)进行用户登录验证，并且对登录成功做处理，资源权限控制
 - SpringSecurityConfig 访问权限规则设置
 
-    ```
+    ```java
     @Configuration
     @EnableGlobalMethodSecurity(prePostEnabled=true) // 开启方法级别权限控制
     public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -139,13 +139,13 @@ tags: [spring, springsecurity, springboot]
                     .anyRequest().authenticated() // (除上述忽略请求)所有的请求都需要权限认证
                     .and()
                 .formLogin()
-                    .loginPage("/manage/login").permitAll() // 登录界面(Get)和登录处理方法(Post). 登录成功后，如果从登录界面登录则跳到项目主页(http://localhost:9526)，如果从其他页面跳转到登录页面进行登录则成功后跳转到原始页面
-                    .loginProcessingUrl("/manage/login") // 或者通配符/**/login拦截对"/manage/login"和"/login"等
-                    .successHandler(authenticationSuccessHandler)
+                    .loginPage("/manage/login").permitAll() // 登录界面(Get)
+                    .loginProcessingUrl("/manage/login") // 或者通配符/**/login拦截对"/manage/login"和"/login"等的POST请求(登录请求。具体逻辑不需要写，并且会自动生成此端点的control，否则和loginPage一致)
+                    .successHandler(authenticationSuccessHandler) // 此处定义登录成功处理方法
                     .failureHandler(authenticationFailureHandler)
                     .authenticationDetailsSource(authenticationDetailsSource)
                     .and()
-                .logout().permitAll() // 默认访问/logout(Get)即可登出
+                .logout().logoutUrl("/manage/logout").logoutSuccessUrl("/manage/login").permitAll() // 访问"/manage/logout"登出，登出成功后跳转到"/manage/login"
                     .and()
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
         }
@@ -368,7 +368,7 @@ tags: [spring, springsecurity, springboot]
     public @interface HasAdminRole {
     }
     ```
-
+- 更多权限控制说明：https://docs.spring.io/spring-security/site/docs/4.2.3.RELEASE/reference/htmlsingle/#jc-authentication
 
 
 

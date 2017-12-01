@@ -19,6 +19,8 @@ tags: [plugins, debug]
 - `印象笔记·剪藏`
 - `Infinity新标签页` 标签管理
 
+- `Octo Mate` github单文件下载(也可右键github按钮raw另存为)
+
 ## 调试技巧
 
 - `ctrl + shift + i`/`F12` 打开开发者工具

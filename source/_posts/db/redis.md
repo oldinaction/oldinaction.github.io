@@ -13,6 +13,7 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
 - 官网：[http://redis.io/](http://redis.io/)
 - redis源码：[redis Github](https://github.com/antirez/redis)
 - redis windows客户端(64x，官网不提供window安装包)：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
+- redis客户端连接管理软件：`RedisDesktopManager`
 - java操作redis(jar)：[jedis Github](https://github.com/xetorthio/jedis)
 
 ## 安装Redis服务
@@ -23,6 +24,31 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
     - 设置密码
         - 修改`redis.windows.conf`，将`# requirepass foobared` 改成 `requirepass yourpassword`(行前不能有空格)
         - cmd进入到redis解压目录，运行`redis-server redis.windows.conf`，之后登录则需要密码
+
+## springboot使用redis
+
+- 引入依赖
+
+    ```xml
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    ```
+- 使用
+
+    ```java
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    // 存储Value
+    redisTemplate.opsForValue().set("myRedisKey", "hello world");
+    redisTemplate.opsForValue().get("myRedisKey");
+
+    // 存储Map
+    redisTemplate.opsForHash().put("myRedisKey", "myMapKey", "hello world");
+    redisTemplate.opsForHash().get("myRedisKey", "myMapKey");
+    ```
 
 ## java中操作Redis
 
@@ -37,7 +63,7 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
      * 构建redis连接池
      * @return JedisPool
      */  
-    public static JedisPool getPool() {  
+    public static JedisPool getPool() {
         if (pool == null) {  
             JedisPoolConfig config = new JedisPoolConfig();  
             //控制一个pool可分配多少个jedis实例，通过pool.getResource()来获取；  
@@ -56,7 +82,6 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
 
     /**
      * 返还到连接池
-     *  
      * @param pool  
      * @param redis
      */  
@@ -68,7 +93,6 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
 
     /**
      * 获取字符串数据示例
-     *  
      * @param key
      * @return
      */  
@@ -97,13 +121,14 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
 
 ## redis对模糊查询的缺陷及解决方案
 
+> redis本身适合作为缓存工具，不建议使用模糊查询等操作
+
 使用[https://code.google.com/archive/p/redis-search4j/](redis-search4j) ，使用了分词，解决了中文的模糊查询。（效果不好，测试发现会在服务器中存储大量无用的key）
 
+---
 
-> 参考文章
->
-> - [1] [http://www.runoob.com/redis/redis-tutorial.html](菜鸟教程)
->
-> - [2] [http://wiki.jikexueyuan.com/project/redis-guide/](极客学院 Wiki)
->
-> - [3] [http://www.cnblogs.com/edisonfeng/p/3571870.html](java对redis的基本操作)
+参考文章：
+
+[^1] [http://www.runoob.com/redis/redis-tutorial.html](菜鸟教程)
+[^2] [http://wiki.jikexueyuan.com/project/redis-guide/](极客学院 Wiki)
+[^3] [http://www.cnblogs.com/edisonfeng/p/3571870.html](java对redis的基本操作)

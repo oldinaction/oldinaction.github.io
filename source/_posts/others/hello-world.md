@@ -93,12 +93,17 @@ categories和tage都可以有多个
 
 - 图片格式如：`![hello](/data/images/2017/07/hello.png)`
 
+### 搜索
 
-
-
+- NexT主题本地搜索
+  - 安装：`npm install --save hexo-generator-search`
+  - 开启local_search
+  - 还可手动写本地搜索功能 [^1]
+- 基于Swiftype的搜索
 
 
 
 
 
 ---
+[^1]: [jQuery-based Local Search Engine for Hexo](http://www.hahack.com/codes/local-search-engine-for-hexo/)

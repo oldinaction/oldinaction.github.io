@@ -2,7 +2,7 @@
 layout: "post"
 title: "docker"
 date: "2017-06-25 14:03"
-categories: [clound]
+categories: arch
 tags: [docker, centos]
 ---
 
