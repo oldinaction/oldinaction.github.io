@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="mongodb简介 MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。 官网：https://www.mongodb.com  mongodb安装 下载地址 运行.msi文件，选择custom模式后可以选择安装位">
+<meta name="description" content="mongodb简介 MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。 官网：https://www.mongodb.com  mongodb安装windows 下载地址 运行.msi文件，选择custom模式后">
 <meta name="keywords" content="db,mongodb">
 <meta property="og:type" content="article">
 <meta property="og:title" content="mongodb">
 <meta property="og:url" content="http://blog.aezo.cn/2016/08/14/db/mongodb/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="mongodb简介 MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。 官网：https://www.mongodb.com  mongodb安装 下载地址 运行.msi文件，选择custom模式后可以选择安装位">
-<meta property="og:updated_time" content="2017-07-17T13:08:56.378Z">
+<meta property="og:description" content="mongodb简介 MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。 官网：https://www.mongodb.com  mongodb安装windows 下载地址 运行.msi文件，选择custom模式后">
+<meta property="og:updated_time" content="2017-11-09T08:15:34.080Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="mongodb">
-<meta name="twitter:description" content="mongodb简介 MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。 官网：https://www.mongodb.com  mongodb安装 下载地址 运行.msi文件，选择custom模式后可以选择安装位">
+<meta name="twitter:description" content="mongodb简介 MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。 官网：https://www.mongodb.com  mongodb安装windows 下载地址 运行.msi文件，选择custom模式后">
 
 
 
@@ -261,9 +261,43 @@
       
 
       
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -378,12 +412,13 @@
 <li>MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。</li>
 <li>官网：<a href="https://www.mongodb.com" target="_blank" rel="external">https://www.mongodb.com</a></li>
 </ul>
-<h2 id="mongodb安装"><a href="#mongodb安装" class="headerlink" title="mongodb安装"></a>mongodb安装</h2><ul>
+<h2 id="mongodb安装"><a href="#mongodb安装" class="headerlink" title="mongodb安装"></a>mongodb安装</h2><h3 id="windows"><a href="#windows" class="headerlink" title="windows"></a>windows</h3><ul>
 <li><a href="https://www.mongodb.com/dr/fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-3.2.8-signed.msi/download" target="_blank" rel="external">下载地址</a></li>
 <li>运行.msi文件，选择custom模式后可以选择安装位置(如：D:/software/mongodb)</li>
 <li>进入到安装目录D:/software/mongodb</li>
 <li>新建 <code>log</code> 和 <code>db</code> 两个文件夹</li>
 </ul>
+<h3 id="linux"><a href="#linux" class="headerlink" title="linux"></a>linux</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">sudo curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.0.6.tgz    # 下载（下载到了当前目录）</div><div class="line">tar -zxvf mongodb-linux-x86_64-3.0.6.tgz                                        # 解压（解压到了当前目录）</div><div class="line">sudo mv mongodb-linux-x86_64-3.0.6/ /usr/local/mongodb                          # 将解压包拷贝到指定目录</div><div class="line">export PATH=/usr/local/mongodb/bin:$PATH                                        # 将其添加到 PATH 路径</div><div class="line">sudo mkdir -p /data/db                                                          # 创建数据库目录 /data/db 是 MongoDB 默认的启动的数据库路径(--dbpath可指定数据库目录)</div><div class="line"><span class="meta"></span></div><div class="line"># 运行测试</div><div class="line">cd /usr/local/mongodb/bin</div><div class="line">sudo ./mongod                                                                   # 启动服务</div><div class="line">sudo ./mongo                                                                    # 登录后台管理</div><div class="line"><span class="meta"></span></div><div class="line">## 启动web服务</div><div class="line"><span class="meta">#</span> sudo ./mongod --dbpath=/data/db --rest                                        # 访问 http://localhost:28017 可进入web界面</div></pre></td></tr></table></figure>
 <h2 id="运行mongodb"><a href="#运行mongodb" class="headerlink" title="运行mongodb"></a>运行mongodb</h2><ol>
 <li>法一：命令行运行<ul>
 <li>cmd进入到安装目录的bin目录下</li>
@@ -395,19 +430,19 @@
 </li>
 <li>法二：将MongoDB服务器作为Windows服务运行<ul>
 <li>(以管理员运行)cmd进入到安装目录的<code>D:\software\mongodb\bin</code>目录下</li>
-<li>运行(注意参数说明) <code>mongod.exe --logpath &quot;D:\software\mongodb\log\mongodb.log&quot; --logappend --dbpath &quot;D:\software\mongodb\db&quot; --port 27017 --serviceName &quot;mongodb&quot; --serviceDisplayName &quot;mongodb&quot; --install</code><ul>
+<li>运行(注意参数说明) <code>mongod.exe --logpath &quot;D:\software\mongodb\log\mongodb.log&quot; --logappend --dbpath &quot;D:\software\mongodb\db&quot; --port 27018 --serviceName &quot;mongodb&quot; --serviceDisplayName &quot;mongodb&quot; --install</code><ul>
 <li>参数描述<ul>
 <li><code>--bind_ip 127.0.0.1</code>    绑定服务IP，若绑定127.0.0.1，数据库实例将只监听127.0.0.1的请求，即只能本机访问，不指定默认本地所有IP</li>
 <li><code>--logpath</code>    定MongoDB日志文件，注意是指定文件不是目录</li>
 <li><code>--logappend</code>    使用追加的方式写日志</li>
 <li><code>--dbpath</code>    指定数据库路径</li>
-<li><code>--port</code>    指定服务端口号，默认端口27017</li>
+<li><code>--port</code>    指定服务端口号(默认端口27017)</li>
 <li><code>--serviceName</code>    指定服务名称</li>
 <li><code>--serviceDisplayName</code>    指定服务名称，有多个mongodb服务时执行。</li>
 <li><code>--install</code>    指定作为一个Windows服务安装。</li>
 </ul>
 </li>
-<li><code>mongod.exe --auth --logpath &quot;D:\software\mongodb\log\mongodb.log&quot; --logappend --dbpath &quot;D:\software\mongodb\db&quot; --port 27017 --serviceName &quot;mongodb&quot; --serviceDisplayName &quot;mongodb&quot; --reinstall</code> 其中<code>--auth</code>表示开启安全验证、<code>--reinstall</code>表示重新注册服务</li>
+<li><code>mongod.exe --auth --logpath &quot;D:\software\mongodb\log\mongodb.log&quot; --logappend --dbpath &quot;D:\software\mongodb\db&quot; --port 27018 --serviceName &quot;mongodb&quot; --serviceDisplayName &quot;mongodb&quot; --reinstall</code> 其中<code>--auth</code>表示开启安全验证、<code>--reinstall</code>表示重新注册服务</li>
 </ul>
 </li>
 <li>卸载：管理员运行<code>sc delete 服务名称</code></li>
@@ -418,7 +453,7 @@
 <ul>
 <li>重启一个dos窗口，进入到安装目录的bin目录下</li>
 <li>运行命令 <code>mongo</code>, 看到版本号则运行成功。当你进入mongoDB后台后，它默认会链接到 test 文档（数据库），mongodb默认内置有两个数据库，一个名为admin，一个名为local<ul>
-<li><code>mongo --port 27017</code> 指定端口进行连接</li>
+<li><code>mongo --port 27018</code> 指定端口进行连接</li>
 </ul>
 </li>
 <li>牛刀小试<ul>
@@ -435,7 +470,7 @@
 <li><code>db.auth(&quot;root&quot;,&quot;root&quot;)</code> 验证登录</li>
 <li><code>exit</code> 退出</li>
 <li>重新启动，并以<code>--auth</code>模式启动</li>
-<li><code>mongo --port 27017 -u root -p root admin</code> 使用root/root登录admin数据库</li>
+<li><code>mongo --port 27018 -u root -p root admin</code> 使用root/root登录admin数据库</li>
 </ul>
 <h3 id="MongoDB管理工具robomongo"><a href="#MongoDB管理工具robomongo" class="headerlink" title="MongoDB管理工具robomongo"></a>MongoDB管理工具robomongo</h3><ol>
 <li>下载地址 <code>https://robomongo.org/download</code> (<code>Download portable version for Windows 64-bit</code>为免安装版)</li>
@@ -574,7 +609,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-count">52</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -585,7 +620,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -596,7 +631,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">84</span>
+                <span class="site-state-item-count">87</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -638,7 +673,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#mongodb简介"><span class="nav-number">1.</span> <span class="nav-text">mongodb简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mongodb安装"><span class="nav-number">2.</span> <span class="nav-text">mongodb安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行mongodb"><span class="nav-number">3.</span> <span class="nav-text">运行mongodb</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MongoDB牛刀小试"><span class="nav-number">4.</span> <span class="nav-text">MongoDB牛刀小试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MongoDB使用"><span class="nav-number">5.</span> <span class="nav-text">MongoDB使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设置用户名密码"><span class="nav-number">5.1.</span> <span class="nav-text">设置用户名密码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MongoDB管理工具robomongo"><span class="nav-number">5.2.</span> <span class="nav-text">MongoDB管理工具robomongo</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#mongodb简介"><span class="nav-number">1.</span> <span class="nav-text">mongodb简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mongodb安装"><span class="nav-number">2.</span> <span class="nav-text">mongodb安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#windows"><span class="nav-number">2.1.</span> <span class="nav-text">windows</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#linux"><span class="nav-number">2.2.</span> <span class="nav-text">linux</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行mongodb"><span class="nav-number">3.</span> <span class="nav-text">运行mongodb</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MongoDB牛刀小试"><span class="nav-number">4.</span> <span class="nav-text">MongoDB牛刀小试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MongoDB使用"><span class="nav-number">5.</span> <span class="nav-text">MongoDB使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设置用户名密码"><span class="nav-number">5.1.</span> <span class="nav-text">设置用户名密码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MongoDB管理工具robomongo"><span class="nav-number">5.2.</span> <span class="nav-text">MongoDB管理工具robomongo</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -803,6 +838,323 @@
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 

@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2016/12/29/arch/maven/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签      12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun mave">
-<meta property="og:updated_time" content="2017-09-29T04:51:04.630Z">
+<meta property="og:updated_time" content="2017-11-22T14:41:49.581Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="maven">
 <meta name="twitter:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签      12345&amp;lt;mirror&amp;gt;      &amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;      &amp;lt;name&amp;gt;aliyun mave">
@@ -261,9 +261,43 @@
       
 
       
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -398,21 +432,57 @@
 
 - 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
 </code></pre><h3 id="maven项目依赖本地jar包"><a href="#maven项目依赖本地jar包" class="headerlink" title="maven项目依赖本地jar包"></a>maven项目依赖本地jar包</h3><ul>
-<li>法一：将项目安装到本地maven库：<code>mvn install</code><strong>(推荐)</strong><ul>
+<li>安装jar包到本地：<code>mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar</code><ul>
+<li>如果jar包包含pom信息则可直接安装<code>mvn install:install-file -Dfile=D:/test-1.0.0.jar</code></li>
+</ul>
+</li>
+<li><p>再按照常规的方式应用</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">   	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">   	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">   	<span class="tag">&lt;<span class="name">version</span>&gt;</span>=1.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">   <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<blockquote>
+<p>以下两种方法不推荐：这样添加之后，编译是可以通过的，但是打包还会会从本地maven库里取相应的jar（如果你本地maven库里没有，则不会打包到工程里），而不是把你配置的jar文件打包进去，所以需要打包完成后将对应的jar添加到项目jar的lib目录中</p>
+</blockquote>
+<ul>
+<li><p>法一：依赖写法(只能一个jar一个jar的添加)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--groupId等是从jar包的META-INF中获得; 其中scope必须加; $&#123;basedir&#125;为maven内置参数--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;basedir&#125;/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>法二：在<code>build-plugins</code>节点加以下插件(可获取到目录下所有jar)(未测试通过)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!--</span></div><div class="line">        &lt;source&gt;1.8&lt;/source&gt;</div><div class="line">        &lt;target&gt;1.8&lt;/target&gt;</div><div class="line">        &lt;encoding&gt;UTF-8&lt;/encoding&gt;</div><div class="line">        --&gt;</div><div class="line">		<span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">extdirs</span>&gt;</span>src/main/resources/lib<span class="tag">&lt;/<span class="name">extdirs</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="利用github创建仓库-1"><a href="#利用github创建仓库-1" class="headerlink" title="利用github创建仓库 ^1"></a>利用github创建仓库 <a href="[利用github搭建个人maven仓库](http://blog.csdn.net/hengyunabc/article/details/47308913)">^1</a></h3><ul>
+<li>github新建项目maven-repo，并下载到本地目录，如<code>D:/GitRepositories/maven-repo</code></li>
+<li>进入到项目pom.xml所在目录，运行命令：<ul>
+<li><code>mvn deploy -DaltDeploymentRepository=oldinaction-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests</code></li>
+<li>将项目部署到<code>D:/GitRepositories/maven-repo</code>目录，项目id为<code>oldinaction-maven-repo</code>，<code>-DskipTests</code>跳过测试进行部署</li>
+</ul>
+</li>
+<li>提交到github(<strong>注意jar包不要习惯性的ignore</strong>)</li>
+<li><p>配置maven远程仓库</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></div><div class="line">       <span class="tag">&lt;<span class="name">repository</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">id</span>&gt;</span>oldinaction-maven-repo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://raw.github.com/oldinaction/maven-repo/master/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--或者访问本地--&gt;</span></div><div class="line">		<span class="comment">&lt;!--&lt;url&gt;file:D:/GitRepositories/maven-repo/&lt;/url&gt;--&gt;</span></div><div class="line">       <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></div><div class="line">   <span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></div></pre></td></tr></table></figure>
+<ul>
+<li>maven的repository并没有优先级的配置，也不能单独为某些依赖配置repository。所以如果项目配置了多个repository，在首次编绎时会依次尝试下载依赖，如果没有找到，尝试下一个</li>
+<li>其中<code>&lt;url&gt;https://raw.github.com/{github-username}/{github-repository}/{github-branch}/&lt;/url&gt;</code>，<a href="https://raw.github.com" target="_blank" rel="external">https://raw.github.com</a> 是github的raw站点，浏览器不能访问目录只能访问单个文件</li>
+</ul>
+</li>
+<li><p>配置依赖(会自动将仓库中的数据再下载到本地仓库<code>.m2</code>目录)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>sm-minions-1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="安装和打包"><a href="#安装和打包" class="headerlink" title="安装和打包"></a>安装和打包</h2><ul>
+<li>安装：<ul>
+<li>基于源码安装：<code>mvn install</code> (需要进入到源码的pom.xml目录)</li>
+<li>基于jar包安装：<code>mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar</code><ul>
+<li>如果jar包包含pom信息则可直接安装<code>mvn install:install-file -Dfile=D:/test-1.0.0.jar</code></li>
+</ul>
+</li>
+<li>说明<ul>
+<li>执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)</li>
 <li>如果有pom.xml建议安装到本地再进行引用，(下面两种方式)否则编译的时候不会报错，但是运行时这些本地jar依赖就找不到(如：<code>nested exception is java.lang.NoClassDefFoundError</code>)</li>
 <li>有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(<code>mvn install -DskipTests</code>)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此</li>
 </ul>
 </li>
-<li><p>法二：依赖写法(只能一个jar一个jar的添加)</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--groupId等是从jar包的META-INF中获得; 其中scope必须加; $&#123;basedir&#125;为maven内置参数--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;basedir&#125;/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
-</li>
-<li><p>法三：在<code>build-plugins</code>节点加以下插件(可获取到目录下所有jar)</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!--</span></div><div class="line">        &lt;source&gt;1.8&lt;/source&gt;</div><div class="line">        &lt;target&gt;1.8&lt;/target&gt;</div><div class="line">        &lt;encoding&gt;UTF-8&lt;/encoding&gt;</div><div class="line">        --&gt;</div><div class="line">		<span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">extdirs</span>&gt;</span>src/main/resources/lib<span class="tag">&lt;/<span class="name">extdirs</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div></pre></td></tr></table></figure>
-</li>
-</ul>
-<h2 id="安装和打包"><a href="#安装和打包" class="headerlink" title="安装和打包"></a>安装和打包</h2><ul>
-<li>安装：<code>mvn install</code><ul>
-<li>执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)</li>
 </ul>
 </li>
 <li>打包命令：<code>mvn package</code></li>
@@ -436,14 +506,15 @@
     <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">- src</div><div class="line">	- main</div><div class="line">		- java</div><div class="line">			- xxx</div><div class="line">		- resources</div><div class="line">		- WEB-INFO</div><div class="line">			- web.xml</div><div class="line">	- test</div></pre></td></tr></table></figure>
 </code></pre><h3 id="标签介绍"><a href="#标签介绍" class="headerlink" title="标签介绍"></a>标签介绍</h3><ul>
 <li><code>scope</code>：取值有compile、runtime、test、provided、system和import。<ul>
-<li>compile：这是依赖项的默认作用范围，即当没有指定依赖项的scope时默认使用compile。compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时。</li>
-<li>cruntime：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。</li>
-<li>ctest：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。</li>
-<li>cprovided：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。</li>
-<li>csystem：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。</li>
+<li><code>compile</code>：这是依赖项的默认作用范围，即当没有指定依赖项的scope时默认使用compile。compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时。</li>
+<li><code>runtime</code>：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。</li>
+<li><code>test</code>：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。</li>
+<li><code>provided</code>：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。</li>
+<li><code>system</code>：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。</li>
 </ul>
 </li>
 </ul>
+<hr>
 
       
     </div>
@@ -496,8 +567,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/01/10/linux/shell-java/" rel="prev" title="java相关脚本">
-                java相关脚本 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/01/10/linux/centos-server-guide/" rel="prev" title="CentOS服务器使用指导">
+                CentOS服务器使用指导 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -570,7 +641,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-count">52</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -581,7 +652,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -592,7 +663,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">84</span>
+                <span class="site-state-item-count">87</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -634,7 +705,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#maven简介"><span class="nav-number">1.</span> <span class="nav-text">maven简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven实战"><span class="nav-number">2.</span> <span class="nav-text">maven实战</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven镜像修改"><span class="nav-number">2.1.</span> <span class="nav-text">maven镜像修改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maven父子项目"><span class="nav-number">2.2.</span> <span class="nav-text">maven父子项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maven项目依赖本地jar包"><span class="nav-number">2.3.</span> <span class="nav-text">maven项目依赖本地jar包</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装和打包"><span class="nav-number">3.</span> <span class="nav-text">安装和打包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven语法"><span class="nav-number">4.</span> <span class="nav-text">maven语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven项目基本结构"><span class="nav-number">4.1.</span> <span class="nav-text">maven项目基本结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标签介绍"><span class="nav-number">4.2.</span> <span class="nav-text">标签介绍</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#maven简介"><span class="nav-number">1.</span> <span class="nav-text">maven简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven实战"><span class="nav-number">2.</span> <span class="nav-text">maven实战</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven镜像修改"><span class="nav-number">2.1.</span> <span class="nav-text">maven镜像修改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maven父子项目"><span class="nav-number">2.2.</span> <span class="nav-text">maven父子项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maven项目依赖本地jar包"><span class="nav-number">2.3.</span> <span class="nav-text">maven项目依赖本地jar包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用github创建仓库-1"><span class="nav-number">2.4.</span> <span class="nav-text">利用github创建仓库 ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装和打包"><span class="nav-number">3.</span> <span class="nav-text">安装和打包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven语法"><span class="nav-number">4.</span> <span class="nav-text">maven语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maven项目基本结构"><span class="nav-number">4.1.</span> <span class="nav-text">maven项目基本结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标签介绍"><span class="nav-number">4.2.</span> <span class="nav-text">标签介绍</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -799,6 +870,323 @@
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 
