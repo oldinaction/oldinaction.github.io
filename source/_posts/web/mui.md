@@ -8,6 +8,9 @@ tags: [UI, H5, App]
 
 ## mui简介
 
+- MUI不依赖任何第三方JS库，原生UI(MUI以iOS平台UI为基础，补充部分Android平台特有的UI控件)，结合H5 plus可实现更解决原生的APP应用
+- APP开发类型：原生开发、H5开发、混合开发(Hybrid App：一部分功能用native构建，一部分功能用html5构建，比如AppCan、PhoneGap(Cordova)等)
+- 官网：[http://dev.dcloud.net.cn/mui/](http://dev.dcloud.net.cn/mui/)
 
 ## mui零散知识
 
@@ -15,15 +18,15 @@ tags: [UI, H5, App]
 
 ```html
 <nav class="mui-bar mui-bar-tab">
-	<a data-href="index.html" class="mui-tab-item" href="javascript:;">
+	<a data-href="index.html" class="mui-tab-item sm-href" href="javascript:;">
 		<span class="mui-icon mui-icon-home"></span>
 		<span class="mui-tab-label">首页</span>
 	</a>
-	<a data-href="#" class="mui-tab-item" href="javascript:;">
+	<a data-href="#" class="mui-tab-item sm-href" href="javascript:;">
 		<span class="mui-icon mui-icon-contact"></span>
 		<span class="mui-tab-label">活动</span>
 	</a>
-	<a data-href="home.html" class="mui-tab-item mui-active" href="javascript:;">
+	<a data-href="home.html" class="mui-tab-item sm-href mui-active" href="javascript:;">
 		<span class="mui-icon mui-icon-contact"></span>
 		<span class="mui-tab-label">我的</span>
 	</a>
@@ -31,12 +34,17 @@ tags: [UI, H5, App]
 ```
 
 ```js
-// 菜单点击
-var pageTabs = document.getElementsByClassName("mui-tab-item");
-for(var i=0; i < pageTabs.length; i++) {
-	pageTabs[i].addEventListener('tap', function(event) {
-		window.location.href = this.getAttribute("data-href");
-	}, false);
+// a标签点击跳转:解决mui的a标签href无法跳转
+bindSmHref(document.getElementsByClassName("sm-href"));
+function bindSmHref(pageTabs) {
+	for(var i=0; i < pageTabs.length; i++) {
+		pageTabs[i].addEventListener('tap', function(event) {
+			var href = this.getAttribute("data-href");
+			if(href != null && href != "") {
+				window.location.href = href;
+			}
+		}, false);
+	}
 }
 ```
 

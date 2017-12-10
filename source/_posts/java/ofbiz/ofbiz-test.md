@@ -8,7 +8,7 @@ tags: [ofbiz, test]
 
 ## 测试方法书写
 
-- 在ofbiz-component.xml中加入<test-suite loader="main" location="testdef/AezoTests.xml" />运行测试方法的入口文件
+- 在ofbiz-component.xml中加入`<test-suite loader="main" location="testdef/AezoTests.xml" />`运行测试方法的入口文件
 - 在入口文件AezoTests.xml中加入一个测试案例smPerson-tests
 
   ```xml
@@ -67,10 +67,12 @@ tags: [ofbiz, test]
   - `run-test-suite` 运行一个test-suite，如上面的suite-name="Aezotests"，需要配置参数`-Dtest.suiteName=Aezotests`
   - `run-tests` 运行所有的test-cast，包括ofbiz自带的application，耗时较长
 - 如果选择`run-test`，则在配置`Main`选项卡中的`Arguments`，内容为
+
   ```text
   -Dtest.component=aezo
   -Dtest.case=smPerson-tests
   ```
+  - 参数分别标识ofbiz的component名称和testCase名称
 - 点击`Apply`，`Run`运行测试
 
 ## 测试结果分析
@@ -124,7 +126,7 @@ tags: [ofbiz, test]
     @Override
     protected void setUp() throws Exception {
       // 在测试方法运行之前运行
-    	userLogin = delegator.findOne("UserLogin", UtilMisc.toMap("userLoginId", "system"), false);
+      userLogin = delegator.findOne("UserLogin", UtilMisc.toMap("userLoginId", "system"), false);
     }
 
     @Override
@@ -135,8 +137,10 @@ tags: [ofbiz, test]
     // 测试方法命名必须以test开头。程序进到该测试类后会运行所有test开头的方法
     public void testCreateSmPerson() throws Exception {
     	Map<String, Object> ctx = UtilMisc.<String, Object>toMap("username", "smalleTestJava", "password", "12345678", "description", "这是ofbiz test的测试数据");
-        ctx.put("userLogin", userLogin);
+      ctx.put("userLogin", userLogin);
+      
       Map<String, Object> resp = dispatcher.runSync("createSmPersonOfTestJava", ctx);
+      
       String flag = (String) resp.get("flag");
       assertNotNull(flag);
       assertEquals("false", flag);

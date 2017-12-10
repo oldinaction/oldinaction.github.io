@@ -91,3 +91,7 @@ public class FtlU {
     }
 }
 ```
+
+## 知识点
+
+- 转义字符`${r"..."}`: 如：${r"${foo}"}、${r"C:\foo\bar"}

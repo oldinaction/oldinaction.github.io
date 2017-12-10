@@ -6,9 +6,6 @@ categories: [extend, tools]
 tags: [IDE]
 ---
 
-* 目录
-{:toc}
-
 ## IntelliJ IDEA简介
 
 ## 常用设置
@@ -39,44 +36,64 @@ tags: [IDE]
 
 ## 插件使用
 
-- `jerber` java热部署
+- `jrebel` java热部署. **修改代码后使用`Ctrl+Shif+F9`进行热部署**
+    - jrebel破解可使用`myJRebel`
 - `Lombox` 简化代码工具 [https://projectlombok.org/](https://projectlombok.org/)
-	
-### IDEA开发PHP程序
 
-#### 安装php插件 [^2]
+## 快捷键
+
+- 常用快捷键
+    - `Ctrl + Shif + F9` 热部署
+    - `Ctrl + Shifg + Space` 智能补全
+    - `Ctrl + P` 查看方法参数
+    - `Ctrl + E` 最近访问文件
+    - `Ctrl + W` 语句感知
+    - `Ctrl + B` 跳转到声明
+    - `Ctrl + N` 跳转到类
+    - `Ctrl + Shift + Entry` 完成整句
+    - `Ctrl + Alt + <-或->` 回退(退到上次浏览位置)/前进
+    - `Alt + Insert` 自动生成(Getter/Setter等)
+    - `Ctrl + Shift + F7` 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处
+
+- 快捷键图片
+
+![php-xdebug](/data/images/2016/09/idea-keys.png)
+
+## IDEA开发PHP程序
+
+### 安装php插件 [^2]
 
 1. setting -> plugins -> browse repositories -> 输入php
 2. 没看到的话，往下翻几页看看，找到PHP(LANGUAGES)，安装次数较多的那个
 
-#### xdebug使用
+### xdebug使用
 
 1. 找到php.ini，搜索xdebug
 2. 下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能
 3. 替换下面代码
 
     ```html
-        [xdebug]  
-        xdebug.remote_enable=on  
-        xdebug.remote_host=localhost  
-        xdebug.remote_port=9000  
-        ;下面两项和Intellij idea里的对应  
-        xdebug.idekey=idekey  
-        xdebug.remote_handler=dbgp  
-        xdebug.remote_mode=req  
-        ;下面这句很关键，不设置intellij idea无法调试  
-        xdebug.remote_autostart=1  
-        ;调试配置，详细的可以参考phpinfo页面进行配置  
-        xdebug.auto_trace=on  
-        xdebug.collect_params=on  
-        xdebug.collect_return=on  
-        xdebug.trace_output_dir="../xdebug"  
-        xdebug.profiler_enable=on  
-        xdebug.profiler_enable_trigger = on
-        xdebug.profiler_output_name = cachegrind.out.%t.%p
-        xdebug.profiler_output_dir="../xdebug"  
-        xdebug.collect_vars=on  
-        xdebug.cli_color=on
+    [xdebug]  
+    xdebug.remote_enable=on  
+    xdebug.remote_host=localhost  
+    xdebug.remote_port=9000  
+    ;下面两项和Intellij idea里的对应  
+    xdebug.idekey=idekey  
+    xdebug.remote_handler=dbgp  
+    xdebug.remote_mode=req  
+    ;下面这句很关键，不设置intellij idea无法调试  
+    xdebug.remote_autostart=1  
+    ;调试配置，详细的可以参考phpinfo页面进行配置  
+    xdebug.auto_trace=on  
+    xdebug.collect_params=on  
+    xdebug.collect_return=on  
+    xdebug.trace_output_dir="../xdebug"  
+    xdebug.profiler_enable=on  
+    xdebug.profiler_enable_trigger = on
+    xdebug.profiler_output_name = cachegrind.out.%t.%p
+    xdebug.profiler_output_dir="../xdebug"  
+    xdebug.collect_vars=on  
+    xdebug.cli_color=on
     ```
 
 4. 在idea中设置php的安装路径

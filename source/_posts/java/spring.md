@@ -318,6 +318,7 @@ tags: [spring, spring-mvc]
     public class ScheduledTaskService {
         private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
+        // 方法访问权限必须为protected或以下
         @Scheduled(fixedRate = 5000) // 5000毫秒. fixedRate每隔固定时间执行
         public void reportCurrentTime() {
             System.out.println("每隔5秒执行一次：" + dateFormat.format(new Date()));

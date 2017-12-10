@@ -12,124 +12,124 @@ tags: [oracle, mysql, procedure]
 
 ## Mysql存储过程示例
 
-  ```sql
-  CREATE DEFINER = 'root'@'localhost'
-  PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)
-  BEGIN
-    DECLARE v_sql varchar(1000);
-    DECLARE c_cityid integer;
-    DECLARE c_cityname varchar(20);
-    DECLARE c_countyname varchar(20);
-    DECLARE c_cityid_tmp integer;
+```sql
+CREATE DEFINER = 'root'@'localhost'
+PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)
+BEGIN
+  DECLARE v_sql varchar(1000);
+  DECLARE c_cityid integer;
+  DECLARE c_cityname varchar(20);
+  DECLARE c_countyname varchar(20);
+  DECLARE c_cityid_tmp integer;
 
-    # 是否未找到数据标记(要在游标之前定义)
-    DECLARE done INT DEFAULT FALSE;
+  # 是否未找到数据标记(要在游标之前定义)
+  DECLARE done INT DEFAULT FALSE;
 
-    -- 定义第一个游标
-    DECLARE cur1 CURSOR FOR
-    SELECT
-      t.N_CITYID,
-      t.S_CITYNAME
-    FROM dict_city t
-    WHERE t.N_PROVID = in_provid;
+  -- 定义第一个游标
+  DECLARE cur1 CURSOR FOR
+  SELECT
+    t.N_CITYID,
+    t.S_CITYNAME
+  FROM dict_city t
+  WHERE t.N_PROVID = in_provid;
 
-    # 临时表游标
-    DECLARE cur2 CURSOR FOR
-    SELECT
-      S_COUNTYNAME,
-      N_CITYID AS cityid
-    FROM tmp_table;
+  # 临时表游标
+  DECLARE cur2 CURSOR FOR
+  SELECT
+    S_COUNTYNAME,
+    N_CITYID AS cityid
+  FROM tmp_table;
 
-    # 循环终止的标志，游标中如果没有数据就设置done为TRUE(停止遍历)
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+  # 循环终止的标志，游标中如果没有数据就设置done为TRUE(停止遍历)
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    # 创建临时表
-    DROP TABLE IF EXISTS tmp_table;
-    CREATE TEMPORARY TABLE IF NOT EXISTS tmp_table (
-      ID int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      S_COUNTYNAME varchar(20),
-      N_CITYID int(10)
-    );
+  # 创建临时表
+  DROP TABLE IF EXISTS tmp_table;
+  CREATE TEMPORARY TABLE IF NOT EXISTS tmp_table (
+    ID int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    S_COUNTYNAME varchar(20),
+    N_CITYID int(10)
+  );
 
-    # mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量
-    OPEN cur1;
-    flag_loop: LOOP
-      # 取出每条记录并赋值给相关变量，注意顺序
-      # 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！
-      FETCH cur1 INTO c_cityid, c_cityname;
+  # mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量
+  OPEN cur1;
+  flag_loop: LOOP
+    # 取出每条记录并赋值给相关变量，注意顺序
+    # 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！
+    FETCH cur1 INTO c_cityid, c_cityname;
 
-      # FETCH之后, 如果没有数据则会运行SET done = TRUE
-      IF done THEN
-        # 跳出循环
-        LEAVE flag_loop;
-      END IF;
+    # FETCH之后, 如果没有数据则会运行SET done = TRUE
+    IF done THEN
+      # 跳出循环
+      LEAVE flag_loop;
+    END IF;
 
-      # 字符串截取，从第一位开始，截取2位
-      SET c_cityname = SUBSTRING(c_cityname, 1, 2);
+    # 字符串截取，从第一位开始，截取2位
+    SET c_cityname = SUBSTRING(c_cityname, 1, 2);
 
-      # 动态sql执行后的结果记录集在MySQL中无法获取，因此需要转变思路将其放置到一个临时表中
-      # 动态sql需要使用CONCAT(a, b, c, ....)拼接
-      SET v_sql = CONCAT("insert into tmp_table(S_COUNTYNAME, N_CITYID) select t.`name`, ", c_cityid, " from sm_renthouse_url t where
-      t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");
+    # 动态sql执行后的结果记录集在MySQL中无法获取，因此需要转变思路将其放置到一个临时表中
+    # 动态sql需要使用CONCAT(a, b, c, ....)拼接
+    SET v_sql = CONCAT("insert into tmp_table(S_COUNTYNAME, N_CITYID) select t.`name`, ", c_cityid, " from sm_renthouse_url t where
+    t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");
 
-      # 如果以@开头的变量可以不用通过declare语句事先声明
-      SET @v_sql = v_sql;
-      # 预处理需要执行的动态SQL，其中stmt是一个变量
-      PREPARE stmt FROM @v_sql;
-      # 执行SQL语句
-      EXECUTE stmt;
-      # 释放掉预处理段
-      DEALLOCATE PREPARE stmt;
-    END LOOP;
-    CLOSE cur1;
+    # 如果以@开头的变量可以不用通过declare语句事先声明
+    SET @v_sql = v_sql;
+    # 预处理需要执行的动态SQL，其中stmt是一个变量
+    PREPARE stmt FROM @v_sql;
+    # 执行SQL语句
+    EXECUTE stmt;
+    # 释放掉预处理段
+    DEALLOCATE PREPARE stmt;
+  END LOOP;
+  CLOSE cur1;
 
-    # 调试输出, 打印使用SELECT
-    SELECT
-      *
-    FROM tmp_table;
+  # 调试输出, 打印使用SELECT
+  SELECT
+    *
+  FROM tmp_table;
 
-    # 还原终止的标志, 用于第二个游标
-    SET done = FALSE;
+  # 还原终止的标志, 用于第二个游标
+  SET done = FALSE;
 
-    OPEN cur2;
-    flag_loop: LOOP
-      FETCH cur2 INTO c_countyname, c_cityid_tmp;
-      IF done THEN
-        LEAVE flag_loop;
-      END IF;
+  OPEN cur2;
+  flag_loop: LOOP
+    FETCH cur2 INTO c_countyname, c_cityid_tmp;
+    IF done THEN
+      LEAVE flag_loop;
+    END IF;
 
-      INSERT INTO dict_county (S_COUNTYNAME, N_CITYID, S_STATE)
-        VALUES (c_countyname, c_cityid_tmp, '1');
+    INSERT INTO dict_county (S_COUNTYNAME, N_CITYID, S_STATE)
+      VALUES (c_countyname, c_cityid_tmp, '1');
 
-    END LOOP;
-    CLOSE cur2;
+  END LOOP;
+  CLOSE cur2;
 
-    # 删除临时表
-    DROP TEMPORARY TABLE tmp_table;
-  END
-  ```
+  # 删除临时表
+  DROP TEMPORARY TABLE tmp_table;
+END
+```
 
 ## Oracle存储过程示例
 
-  ```sql
-  -- 定义
-  create or replace procedure up_user_role is
-    cursor c is select t.* from User_Login t; -- 游标
-  begin
-    delete from User_Login_Security_Group t where t.group_id = 'DW_DEPT_ADMIN';
-    for user_item in c loop
-        insert into User_Login_Security_Group(User_Login_Id, Group_Id, From_Date) 
-              values(user_item.user_login_id, 'DW_DEPT_ADMIN', '2017-11-01 00:00:00.000000');
-    end loop;
-    commit;
-  end;
+```sql
+-- 定义
+create or replace procedure up_user_role is
+  cursor c is select t.* from User_Login t; -- 游标
+begin
+  delete from User_Login_Security_Group t where t.group_id = 'DW_DEPT_ADMIN';
+  for user_item in c loop
+      insert into User_Login_Security_Group(User_Login_Id, Group_Id, From_Date) 
+            values(user_item.user_login_id, 'DW_DEPT_ADMIN', '2017-11-01 00:00:00.000000');
+  end loop;
+  commit;
+end;
 
-  -- 运行
-  call up_user_role();
-  
-  -- 删除
-  drop procedure up_user_role;
-  ```
+-- 运行
+call up_user_role();
+
+-- 删除
+drop procedure up_user_role;
+```
 
 
 

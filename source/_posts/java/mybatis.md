@@ -6,6 +6,11 @@ categories: [java]
 tags: [mybatis, springboot]
 ---
 
+## 简介
+
+- [MyBatis3中文文档](http://www.mybatis.org/mybatis-3/zh/index.html)
+- `MyBatis Generator`：mybatis代码生成(model/dao/mapper)，[文档](http://www.mybatis.org/generator/)
+
 ## SpringBoot整合mybatis [^1]
 
 ### 基本配置
@@ -51,6 +56,9 @@ tags: [mybatis, springboot]
 		<settings>
 			<!--字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)-->
 			<setting name="mapUnderscoreToCamelCase" value="true"/>
+
+			<!--打印mybatis运行的sql语句-->
+			<setting name="logImpl" value="STDOUT_LOGGING" />
 		</settings>
 
 		<!--类型别名定义-->
@@ -183,7 +191,7 @@ tags: [mybatis, springboot]
         
         ```java
         // Dao层，mybatis会基于此注解完成对应的实现
-        // 可以理解为查询sql语句返回的是一个List<Map>(List里面必须为Map或其子类)
+        // 可以理解为查询sql语句返回的是一个List<Map<String, Object>>(List里面必须为Map或其子类)。如果用Map<String, Object>接受返回值则默认取第一条数据
         @Select({ "<script>",
             "select h.help_id, h.apply_money, h.create_time, h.creator, h.description, h.is_comfort, h.is_valid, h.title, h.update_time, h.updater ",
             "   , e.name",
@@ -193,7 +201,7 @@ tags: [mybatis, springboot]
             " <when test='help.title != null'> AND h.title like concat('%', #{help.title}, '%')</when>", // 此处必须使用concat进行字符串连接
             " <when test='event.name != null'> AND e.name = #{event.name}", "</when>",
             "</script>" })
-        List<Map> findHelps(@Param("help") Help help, @Param("event") Event event); // 普通变量可以省略@Param, 对象则必须通过@Param指明其引用名称
+        List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event); // 普通变量可以省略@Param, 多个对象则可使用@Param指明其引用名称方可使用（如：help.title），否则只能写成title（多个对象可能存在相同字段，建议指明）
         
         // 配合分页插件使用
         public Object findHelps(Help help, Event event,
@@ -206,8 +214,12 @@ tags: [mybatis, springboot]
             return pageUser;
         }
 	    ```
-		- 双引号转义：`<when test='help.title != null and type = \"MY_TYPE\"'>`
+
 		- `<when>` 可进行嵌套使用
+		- 双引号转义：`<when test='help.title != null and type = \"MY_TYPE\"'>`
+		- 大于小于好需要转义（>：`&gt;`, <：`&lt;`）
+		- mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
+		- 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
 
     - 用Provider去实现SQL拼接(适用于复杂sql)
 
@@ -235,7 +247,6 @@ tags: [mybatis, springboot]
         }
         ```
 
-
 ### xml版本(适合复杂操作)
 
 - `xml版本(适合复杂操作)`
@@ -247,11 +258,11 @@ tags: [mybatis, springboot]
 
 			UserInfo getOne(Long id);
 
-			void insert(UserInfo user);
+			int insert(UserInfo user); // 成功返回1
 
-			void update(UserInfo user);
+			int update(UserInfo user);
 
-			void delete(Long id);
+			int delete(Long id);
 		}
 		```
 	- Dao实现(映射文件): UserMapper.xml(放在resources/mapper目录下)
@@ -291,7 +302,8 @@ tags: [mybatis, springboot]
 				where id = #{id}
 			</select>
 
-			<insert id="insert" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
+			<!-- keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)：userMapper.insert(userInfo); userInfo.getUserId(); -->
+			<insert id="insert" keyProperty="userId" useGeneratedKeys="true" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
 				insert into
 				user_info
 				(nick_name, group_id, hobby)
@@ -364,6 +376,7 @@ tags: [mybatis, springboot]
 	```
 	- `insuranceCompany`会对应ThMyInsuranceListView中的字段
 
+- xml文件修改无需重新部署，立即生效
 - 关于`<`、`>`转义字符
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
 	- 使用`<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
@@ -406,7 +419,7 @@ tags: [mybatis, springboot]
 		<generatorConfiguration>
 			<!--数据库驱动 -->
 			<classPathEntry location="C:\Users\smalle\.m2\repository\mysql\mysql-connector-java\5.1.43\mysql-connector-java-5.1.43.jar" />
-			<context id="MySQL2Tables" targetRuntime="MyBatis3" defaultModelType="flat">
+			<context id="MySQLTables" targetRuntime="MyBatis3" defaultModelType="flat">
 				
 				<commentGenerator>
 					<property name="suppressDate" value="true" />
@@ -425,7 +438,7 @@ tags: [mybatis, springboot]
 					<property name="forceBigDecimals" value="false" />
 				</javaTypeResolver>
 
-				<!--生成Model类存放位置 -->
+				<!--生成Model类存放位置：targetPackage为model对应的包名；targetProject为项目根目录，此处相对当前项目，还可写成D:/mydemo/src/main/java -->
 				<javaModelGenerator
 						targetPackage="cn.aezo.springboot.mybatis.generator.model"
 						targetProject="src/main/java">
@@ -433,10 +446,10 @@ tags: [mybatis, springboot]
 					<property name="trimStrings" value="true" />
 				</javaModelGenerator>
 
-				<!--生成映射文件存放位置 -->
+				<!--生成映射文件存放位置，会存放在src/main/resources/mapper目录下(自动创建mapper目录) -->
 				<sqlMapGenerator
-						targetPackage="cn.aezo.springboot.mybatis.generator.mapper"
-						targetProject="src/main/java">
+						targetPackage="mapper"
+						targetProject="src/main/resources">
 					<property name="enableSubPackages" value="true" />
 				</sqlMapGenerator>
 
@@ -448,21 +461,58 @@ tags: [mybatis, springboot]
 					<property name="enableSubPackages" value="true" />
 				</javaClientGenerator>
 
-				<!--生成对应表及类名 -->
-				<table
-						tableName="%"
-						enableCountByExample="true"
-						enableUpdateByExample="true"
-						enableDeleteByExample="true"
-						enableSelectByExample="true"
-						selectByExampleQueryId="true">
+				<!-- %标识根据表名生成，tableName="t_%"表示只生成t_开头的表名 -->
+				<table tableName="%">
+					<!-- 
+						1、生成selectKey语句，为mybatis生成自增主键(无需数据库字段设置成自增)
+						2、column表的字段名(不支持通配符，因此为了方便可将所有表的主键名设置为id)
+						3、sqlStatement="MySql/DB2/SqlServer等"
+						4、identity：true表示column代表的是主键，会在插入记录之后获取自增值替换对应model的id值(自增需要由数据库提供)，false表示非主键，会在插入记录获取自增值并替换model的id(如从序列中获取)
+						5、最终生成的语句如
+						<selectKey keyProperty="userId" order="AFTER" resultType="java.lang.Long">
+						SELECT LAST_INSERT_ID()
+						</selectKey>
+					-->
+					<generatedKey column="id" sqlStatement="MySql" identity="true" />
 				</table>
 			</context>
 		</generatorConfiguration>
 		```
-	- 执行命令生成文件：`mvn mybatis-generator:generate`
+	- 进入到pom.xml目录，cmd执行命令生成文件：`mvn mybatis-generator:generate`
 	- 生成Mapper中Example的使用：http://www.mybatis.org/generator/generatedobjects/exampleClassUsage.html
 
+		```java
+		UserExample userExample = new UserExample();
+        userExample.createCriteria().andUsernameEqualTo("smalle");
+
+        List<User> users =  userMapper.selectByExample(userExample);
+		```
+- 通过java代码调用mybatis-generator生成
+	- 引入依赖
+
+		```xml
+		<dependency>
+			<groupId>org.mybatis.generator</groupId>
+			<artifactId>mybatis-generator-core</artifactId>
+			<version>1.3.5</version>
+		</dependency>
+		```
+	- 关键代码
+
+		```java
+		List<String> warnings = new ArrayList<>();
+        boolean overwrite = true;
+        File configFile = new File("generatorConfig.xml");
+        ConfigurationParser cp = new ConfigurationParser(warnings);
+        try {
+            Configuration config = cp.parseConfiguration(configFile);
+            DefaultShellCallback callback = new DefaultShellCallback(overwrite);
+            MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, callback, warnings);
+            myBatisGenerator.generate(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		```
 
 ---
 

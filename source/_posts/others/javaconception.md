@@ -46,7 +46,10 @@ tags: [java, conception]
   - IO：面向流、阻塞IO
   - NIO：面向缓冲、非阻塞IO、有选择器
 
-
+- EL、OGNL、JSTL
+  - `EL`(Expression Language)：是为了使JSP写起来更加简单，语法如${expression}
+  - `OGNL`(Object-Graph Navigation Language)，主要有#%$三种符号，常与Struts2结合使用
+  - `JSTL`：JSP 标准标签库。如：`<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>`，`<c:if>`
 
 ## 网络编程
 
