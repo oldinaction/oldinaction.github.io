@@ -104,5 +104,11 @@ tags: [java, conception]
 
 - `CLI` 命令行界面（command-line interface）
 
+## Web
+
+- `CORS` 跨站资源共享(Cross Origin Resourse-Sharing)
+- `XSS` 跨站脚本攻击(Cross Site Scripting)
+- `CSRF` 跨站请求伪造(Cross-Site Request Forgery)
+  - CSRF 主流防御方式是在后端生成表单的时候生成一串随机 token ，内置到表单里成为一个字段，同时，将此串 token 置入 session 中。每次表单提交到后端时都会检查这两个值是否一致，以此来判断此次表单提交是否是可信的。
 
 ---

@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "oracleDBA"
+title: "Oracle DBA"
 date: "2016-10-12 21:06"
 categories: [db]
 tags: [oracle, dba]
@@ -53,6 +53,7 @@ Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call In
             )
           )
         ```
+3. 如果oracle服务在远程机器上，本地通过plsql连接，则不需要在本地启动任何和oracle相关的服务。如果本地机器作为oracle服务器，则需要启动OracleServiceORCL，此时只能在命令行连接数据库，如果需要通过plsql连接则需要启动类似"OracleOraDb11g_home1TNSListener"的TNS远程监听服务。
 
 ## 创建表空间 [^2]
 

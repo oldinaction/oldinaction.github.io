@@ -62,17 +62,19 @@ categories和tage都可以有多个
 
 ## github-hexo-markdown个人书写习惯
 
+### 修改文章后保存源码并更新博客
+
+  ```shell
+  $ git add .
+  $ git commit -am "update blog"
+  $ git push origin master:source
+  $ hexo d -g
+  ```
+
 ### 博客源码管理和博客更新
 
 - 本地处于master分支，远程有master(为博客渲染后的代码)和source(博客源码, 可设为远程默认分支)两个分支
-- **修改文章后保存源码**
-
-    ```shell
-    $ git add .
-    $ git commit -am "update blog"
-    $ git push origin master:source
-    ```
-- **更新博客** `hexo d -g`
+- 更新博客 `hexo d -g`
     - `_config.yml`文件中需要指向master分支
 
         ```yml

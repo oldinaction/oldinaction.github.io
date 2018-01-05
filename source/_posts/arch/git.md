@@ -6,6 +6,13 @@ categories: [arch, tools]
 tag: [git]
 ---
 
+## git简介
+
+- 官网：https://git-scm.com/
+- 安装
+	- windows：官网下载对应安装包
+	- Ubuntu：`sudo apt-get install git`
+
 ## git入门 [^1]
 
 > 临时记录

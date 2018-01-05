@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "java相关脚本"
+title: "java相关Shell脚本"
 date: "2017-01-10 13:19"
 categories: [linux]
 tags: [shell, java]

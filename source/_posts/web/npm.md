@@ -11,6 +11,7 @@ tags: [node]
 ## 安装
 
 - 安装node的时候会默认包含npm
+    - 更新：`npm install npm@latest -g`
 - 安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
     - 安装模块则是`cnpm install <module-name>`
 

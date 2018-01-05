@@ -20,6 +20,11 @@ tags: [spring, springsecurity, springboot]
     - spring security和Acegi不同，它不能修改默认filter了，但支持插入filter，所以根据这个，我们可以插入自己的filter来灵活使用**（可基于此数据库结构进行自定义参数认证）**
     - 暴力手段，修改源码，前面说的修改默认filter只是修改配置文件以替换filter而已，这种是直接改了里面的源码，但是这种不符合OO设计原则，而且不实际，不可用
 
+### 注意
+
+- spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
+- `axios`实现`x-www-form-urlencoded`请求：参数应该写到`param`中。如果写在`data`中则不行，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行
+
 ## springboot整合
 
 - 引入依赖
@@ -55,7 +60,7 @@ tags: [spring, springsecurity, springboot]
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.headers().frameOptions().disable(); // 解决spring boot项目中出现不能加载iframe
-            http.csrf().disable()
+            http.csrf().disable() // 关闭打开的csrf(跨站请求伪造)保护
                 .authorizeRequests()
                     .antMatchers("/manage/", "/manage/home", "/manage/about", "/manage/404", "/manage/403", "/thymeleaf/**").permitAll() // 这些端点不进行权限验证
                     .antMatchers("/resources/**").permitAll() // idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/resources/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）
@@ -102,7 +107,6 @@ tags: [spring, springsecurity, springboot]
 - SpringSecurityConfig 访问权限规则设置
 
     ```java
-    @Configuration
     @EnableGlobalMethodSecurity(prePostEnabled=true) // 开启方法级别权限控制
     public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     
@@ -130,7 +134,7 @@ tags: [spring, springsecurity, springboot]
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.headers().frameOptions().disable(); // 解决spring boot项目中出现不能加载iframe
-            http.csrf().disable()
+            http.csrf().disable() // 关闭打开的csrf(跨站请求伪造)保护
                 .authorizeRequests()
                     .antMatchers("/manage/", "/manage/home", "/manage/about", "/manage/404", "/manage/403", "/thymeleaf/**").permitAll() // 这些端点不进行权限验证
                     .antMatchers("/resources/**").permitAll() // idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/resources/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）
@@ -148,6 +152,26 @@ tags: [spring, springsecurity, springboot]
                 .logout().logoutUrl("/manage/logout").logoutSuccessUrl("/manage/login").permitAll() // 访问"/manage/logout"登出，登出成功后跳转到"/manage/login"
                     .and()
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+        }
+
+        // 密码加密器 (4)
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+
+        // 加密混淆器
+        @Bean
+        public SaltSource saltSource() {
+            return new CustomSaltSource();
+        }
+
+        // 混淆器实现
+        private class CustomSaltSource implements SaltSource {
+            @Override
+            public Object getSalt(UserDetails userDetails) {
+                return "aezocn";
+            }
         }
     }
     ```
@@ -233,12 +257,18 @@ tags: [spring, springsecurity, springboot]
         */
         private final static class CustomUserDetails extends User implements UserDetails {
             private CustomUserDetails(User user) {
+                // 初始化父类，需要父类有User(User user){...}的构造方法
                 super(user);
+
+                // 或者在此处初始化
+                // this.setUsername(user.getUsername());
+                // this.setPassword(user.getPassword());
+                // ...
             }
 
             @Override
             public Collection<? extends GrantedAuthority> getAuthorities() {
-                return AuthorityUtils.createAuthorityList("ROLE_" + this.getRoleCode()); // 组成如：ROLE_ADMIN/ROLE_USER，在资源权限定义时写法如：hasRole('ADMIN')
+                return AuthorityUtils.createAuthorityList("ROLE_" + this.getRoleCode()); // 组成如：ROLE_ADMIN/ROLE_USER，在资源权限定义时写法如：hasRole('ADMIN')。createAuthorityList接受一个数组，说明支持一个用户拥有多个角色
             }
 
             @Override
@@ -273,6 +303,9 @@ tags: [spring, springsecurity, springboot]
         @Autowired
         private CustomUserDetailsService customUserDetailsService;
 
+        @Autowired
+        private PasswordEncoder passwordEncoder;
+
         public CustomAuthenticationProvider() {
             super();
         }
@@ -288,18 +321,23 @@ tags: [spring, springsecurity, springboot]
 
             UserDetails userDetails = null;
             if(!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
-                try {
-                    userDetails = customUserDetailsService.loadUserByUsername(username);
-                } catch (UsernameNotFoundException e) {
-                    e.printStackTrace();
+                userDetails = customUserDetailsService.loadUserByUsername(username);
+                    
+                // 验证密码
+                if(userDetails == null || userDetails.getPassword() == null) {
+                    throw new BadCredentialsException("invalid password");
+                }
+                if(!passwordEncoder.matches(password, userDetails.getPassword())) {
+                    throw new BadCredentialsException("wrong password");
                 }
             } else if(!StringUtils.isEmpty(wxCode)) {
                 userDetails = customUserDetailsService.loadUserByWxCode(wxCode);
             } else {
-                throw new RuntimeException("invalid params: username,password and wxCode are invalid");
+                throw new BadCredentialsException("invalid params: username,password and wxCode are invalid");
             }
 
             if(userDetails != null) {
+                // 授权
                 final List<GrantedAuthority> grantedAuths = (List<GrantedAuthority>) userDetails.getAuthorities();
                 final Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, password, grantedAuths);
                 return auth;
@@ -314,6 +352,14 @@ tags: [spring, springsecurity, springboot]
         }
     }
     ```
+    - 上述抛出异常AuthenticationException会被下面的MyAuthenticationFailureHandler类捕获。提供的AuthenticationException有：
+        - `UsernameNotFoundException` 用户找不到
+        - `BadCredentialsException` 无效的凭据
+        - `AccountStatusException` 用户状态异常它包含如下子类
+            - `AccountExpiredException` 账户过期
+            - `LockedException` 账户锁定
+            - `DisabledException` 账户不可用
+            - `CredentialsExpiredException` 证书过期
 - (2)登录校验完成拦截：登录成功/失败处理
 
     ```java
@@ -340,12 +386,20 @@ tags: [spring, springsecurity, springboot]
         public class MyAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
             @Override
             public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
-                logger.info("登录失败");
+                logger.info("登录失败：" + e.getMessage());
             }
         }
     }
     ```
 - (3)AccessDeniedHandler访问受限拦截同上例
+- (4)密码保存
+    
+    ```java
+    // BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(16);
+    // 保存密码：$2a$16$YcrLwsfqGoKzkmAB9WwORulggKVCrpR7ZPfDCF4CsEoG0o75Nb3Xm
+    String password = passwordEncoder.encode("123456");
+    assertTrue(encoder.matches("123456", password));
+    ```
 
 ### 在方法(资源)上加权限控制
 
@@ -370,9 +424,33 @@ tags: [spring, springsecurity, springboot]
     ```
 - 更多权限控制说明：https://docs.spring.io/spring-security/site/docs/4.2.3.RELEASE/reference/htmlsingle/#jc-authentication
 
+### CSRF、CORS
 
+- `CSRF` 跨站请求伪造(Cross-Site Request Forgery). [csrf](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html)
+- `CORS` 跨站资源共享(Cross Origin Resourse-Sharing).
 
+- 开启cosr [cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
 
+    ```java
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable(); // 开启cors需要关闭csrf
+        http.cors();
+        // ...
+    }
+
+    // 配置cors
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+    ```
 
 
 

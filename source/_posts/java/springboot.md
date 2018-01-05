@@ -233,6 +233,25 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 		this.hello = hello;
 	}
 	```
+- 跨域资源共享（CORS）[^9]
+
+	```java
+	@Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurerAdapter() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedHeaders("*")
+                        .allowedMethods("*")
+                        .allowedOrigins("*")
+                        .allowCredentials(true);
+            }
+        };
+    }
+	```
+	- 使用spring security的CORS配置可参考相应文章
+
 
 ## 请求及响应
 
@@ -345,6 +364,33 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 	spring.jpa.properties.hibernate.format_sql=true
 	# 懒加载配置
 	spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+	```
+- `User.java`实体
+
+	```
+	@Entity
+	public class User {
+		@Id
+		@GeneratedValue
+		private Long userId;
+
+		@Column(nullable=false) // 不能为空
+		private Long username;
+
+		private String password;
+
+		private Long groupId;
+
+		@Generated(GenerationTime.INSERT)
+		@Column(columnDefinition=" BIT default 1 ") // 默认插入1(就算new User的时候设置成0最终保存的仍然是1)
+		private Boolean yesValid;
+
+		@Generated(GenerationTime.INSERT)
+		@Column(insertable = false, updatable = false, columnDefinition="timestamp default current_timestamp comment '加入时间'")
+		private Timestamp createTime;
+
+		// getter/setter...
+	}
 	```
 - `UserDao.java`示例
 
@@ -515,13 +561,41 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 
 ### JdbcTemplate访问数据
 
-```java
-@Autowired
-private JdbcTemplate jdbcTemplate;
+- 示例
 
-String sql = "SELECT h.*, e.name as event_name from th_help h, th_event e where h.event_id = e.event_id";
-List<Map<String, Object>> object = jdbcTemplate.queryForList(sql);
-```
+	```java
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	String sql = "SELECT h.*, e.name as event_name from th_help h, th_event e where h.event_id = e.event_id";
+	List<Map<String, Object>> object = jdbcTemplate.queryForList(sql);
+	```
+
+- jdbc批量执行sql语句
+
+	```java
+	// Message message = new Message(...);
+
+	final String sql = "insert into th_message(user_id, message_type, content, is_read, is_valid, create_time) values(?, ?, ?, ?, ?, ?)";
+
+	jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+		@Override
+		public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+			User user = users.get(i);
+			preparedStatement.setLong(1, user.getUserId());
+			preparedStatement.setObject(2, message.getMessageType());
+			preparedStatement.setString(3, message.getContent());
+			preparedStatement.setObject(4, 0);
+			preparedStatement.setObject(5, 1);
+			preparedStatement.setObject(6, DateU.nowTimestamp());
+		}
+
+		@Override
+		public int getBatchSize() {
+			return users.size();
+		}
+	});
+	```
 
 ### 数据库相关配置
 
@@ -816,3 +890,4 @@ List<Map<String, Object>> object = jdbcTemplate.queryForList(sql);
 [^6]: [Springboot中mongodb的使用](http://www.cnblogs.com/ityouknow/p/6828919.html)
 [^7]: [Spring在代码中获取bean的几种方式](http://www.cnblogs.com/yjbjingcha/p/6752265.html)
 [^8]: [异步调用Async](http://blog.csdn.net/v2sking/article/details/72795742)
+[^9]: [Spring对CORS的支持](https://spring.io/blog/2015/06/08/cors-support-in-spring-framework)

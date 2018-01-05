@@ -12,6 +12,29 @@ tags: [UI, H5, App]
 - APP开发类型：原生开发、H5开发、混合开发(Hybrid App：一部分功能用native构建，一部分功能用html5构建，比如AppCan、PhoneGap(Cordova)等)
 - 官网：[http://dev.dcloud.net.cn/mui/](http://dev.dcloud.net.cn/mui/)
 
+## 事件
+
+- js的`addEventListener()`方法只能监听某个特定元素上的事件(只能通过id获取元素，或者window对象等)
+- 可以使用`.on()`方法实现批量元素的事件绑定
+
+	```js
+	mui(".mui-table-view").on('tap', '.mui-table-view-cell', function(){
+		//获取id
+		var id = this.getAttribute("id");
+		//传值给详情页面，通知加载新数据
+		mui.fire(detail,'getDetail',{id:id});
+		//打开新闻详情
+		mui.openWindow({
+			id:'detail',
+			url:'detail.html'
+		});
+	}) 
+	```
+	- `tap`为mui定义的点击时间
+	- `mui(".mui-table-view")`根据class获取对象，只能获取非动态加入的DOM
+	- 此处实际是监听`.mui-table-view`下的`.mui-table-view-cell`的点击事件
+- `<a>`标签点击无法跳转到href指定的连接，解决办法见下文
+
 ## mui零散知识
 
 - H5底部导航跳转

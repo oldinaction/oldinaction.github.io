@@ -34,6 +34,13 @@ tags: [IDE]
     - `Deployment`中将刚刚的war配置进入
     - 在`Before launch`中加入Build这个war包
 
+### maven
+
+- idea自带maven插件
+- `pom.xml`检测通过，但是`Maven Projects`中部分依赖显示红色波浪线
+    - 法一：先将`pom.xml`中此种依赖删除，然后`reimport`刷新一下依赖，再将刚刚的依赖粘贴上去，重新`reimport`刷新一下
+    - 法二：删除`.m2`中此依赖的相关文件夹，重新下载
+
 ## 插件使用
 
 - `jrebel` java热部署. **修改代码后使用`Ctrl+Shif+F9`进行热部署**

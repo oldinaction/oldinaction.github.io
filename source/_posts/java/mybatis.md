@@ -98,13 +98,13 @@ tags: [mybatis, springboot]
 			//         @Result(property = "nickName", column = "nick_name"),
 			//         @Result(property = "groupId", column = "group_Id")
 			// })
-			UserInfo findByNickName(String nickName);
+			UserInfo findByNickName(String nickName); // 一个参数可以省略@Param，多个需要进行指定(反射机制)
 
 			@Select("select * from user_info")
 			List<UserInfo> findAll();
 
 			@Insert("insert into user_info(nick_name, group_id, hobby) values(#{nickName}, #{groupId}, #{hobby})")
-			void insert(UserInfo userInfo); // 一个参数可以省略@Param，多个需要进行指定
+			void insert(UserInfo userInfo);
 
 			@Update("update user_info set nick_name = #{nickName}, hobby = #{hobby} where id = #{id}")
 			void update(UserInfo userInfo);
@@ -197,11 +197,18 @@ tags: [mybatis, springboot]
             "   , e.name",
             " from th_help as h ",
             "   left join th_event e on e.event_id = h.event_id",
+			"   left join th_group g on g.group_id = h.group_id ",
             " where 1=1 ",
+			" <when test='plans != null and plans.size() > 0'>", // 其中大于号也可以使用`&gt;`来表示
+            "   and g.plan_id in ",
+            "   <foreach item='plan' index='index' collection='plans' open='(' separator=',' close=')'>",
+            "       #{plan.planId}",
+            "   </foreach>",
+            " </when>",
             " <when test='help.title != null'> AND h.title like concat('%', #{help.title}, '%')</when>", // 此处必须使用concat进行字符串连接
             " <when test='event.name != null'> AND e.name = #{event.name}", "</when>",
             "</script>" })
-        List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event); // 普通变量可以省略@Param, 多个对象则可使用@Param指明其引用名称方可使用（如：help.title），否则只能写成title（多个对象可能存在相同字段，建议指明）
+        List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans); // 普通变量可以省略@Param, 多个对象则可使用@Param指明其引用名称方可使用（如：help.title），否则只能写成title（多个对象可能存在相同字段，建议指明）
         
         // 配合分页插件使用
         public Object findHelps(Help help, Event event,
