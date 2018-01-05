@@ -98,13 +98,13 @@
 <meta name="description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
 <meta name="keywords" content="oracle,dba">
 <meta property="og:type" content="article">
-<meta property="og:title" content="oracleDBA">
+<meta property="og:title" content="Oracle DBA">
 <meta property="og:url" content="http://blog.aezo.cn/2016/10/12/db/oracle-dba/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
-<meta property="og:updated_time" content="2017-11-15T02:37:09.915Z">
+<meta property="og:updated_time" content="2017-12-17T09:33:13.572Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="oracleDBA">
+<meta name="twitter:title" content="Oracle DBA">
 <meta name="twitter:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
 
 
@@ -139,7 +139,7 @@
 
 
 
-  <title>oracleDBA | SmalleBlog | AEZOCN</title>
+  <title>Oracle DBA | SmalleBlog | AEZOCN</title>
   
 
 
@@ -339,7 +339,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">oracleDBA</h1>
+          <h1 class="post-title" itemprop="name headline">Oracle DBA</h1>
         
 
         <div class="post-meta">
@@ -445,6 +445,8 @@
   <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">aezocn =</div><div class="line">  (DESCRIPTION =</div><div class="line">    (ADDRESS_LIST =</div><div class="line">      (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.1.1)(PORT = 1521))</div><div class="line">    )</div><div class="line">    (CONNECT_DATA =</div><div class="line">      (SERVER = DEDICATED)</div><div class="line">      (SERVICE_NAME = orcl)</div><div class="line">    )</div><div class="line">  )</div></pre></td></tr></table></figure>
 </li>
 </ul>
+</li>
+<li><p>如果oracle服务在远程机器上，本地通过plsql连接，则不需要在本地启动任何和oracle相关的服务。如果本地机器作为oracle服务器，则需要启动OracleServiceORCL，此时只能在命令行连接数据库，如果需要通过plsql连接则需要启动类似”OracleOraDb11g_home1TNSListener”的TNS远程监听服务。</p>
 </li>
 </ol>
 <h2 id="创建表空间-2"><a href="#创建表空间-2" class="headerlink" title="创建表空间 ^2"></a>创建表空间 <a href="http://blog.csdn.net/starnight_cbj/article/details/6792364" target="_blank" rel="external">^2</a></h2><p>oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库。创建了表空间并没有创建数据库实例</p>
@@ -715,8 +717,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/09/17/extend/intellij-idea/" rel="next" title="IntelliJ IDEA">
-                <i class="fa fa-chevron-left"></i> IntelliJ IDEA
+              <a href="/2016/10/12/db/mysql-dba/" rel="next" title="Mysql DBA">
+                <i class="fa fa-chevron-left"></i> Mysql DBA
               </a>
             
           </div>
@@ -799,7 +801,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">54</span>
+                <span class="site-state-item-count">60</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -821,7 +823,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">90</span>
+                <span class="site-state-item-count">95</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -886,7 +888,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

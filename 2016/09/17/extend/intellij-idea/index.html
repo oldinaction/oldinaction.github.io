@@ -105,7 +105,7 @@
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/idea-keys.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug2.png">
-<meta property="og:updated_time" content="2017-12-10T11:32:15.560Z">
+<meta property="og:updated_time" content="2017-12-12T13:08:54.888Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="IntelliJ IDEA">
 <meta name="twitter:description" content="IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的classes目录">
@@ -458,6 +458,14 @@
 </ul>
 </li>
 </ol>
+<h3 id="maven"><a href="#maven" class="headerlink" title="maven"></a>maven</h3><ul>
+<li>idea自带maven插件</li>
+<li><code>pom.xml</code>检测通过，但是<code>Maven Projects</code>中部分依赖显示红色波浪线<ul>
+<li>法一：先将<code>pom.xml</code>中此种依赖删除，然后<code>reimport</code>刷新一下依赖，再将刚刚的依赖粘贴上去，重新<code>reimport</code>刷新一下</li>
+<li>法二：删除<code>.m2</code>中此依赖的相关文件夹，重新下载</li>
+</ul>
+</li>
+</ul>
 <h2 id="插件使用"><a href="#插件使用" class="headerlink" title="插件使用"></a>插件使用</h2><ul>
 <li><code>jrebel</code> java热部署. <strong>修改代码后使用<code>Ctrl+Shif+F9</code>进行热部署</strong><ul>
 <li>jrebel破解可使用<code>myJRebel</code></li>
@@ -565,8 +573,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/10/12/db/oracle-dba/" rel="prev" title="oracleDBA">
-                oracleDBA <i class="fa fa-chevron-right"></i>
+              <a href="/2016/10/12/db/mysql-dba/" rel="prev" title="Mysql DBA">
+                Mysql DBA <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -639,7 +647,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">54</span>
+                <span class="site-state-item-count">60</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -661,7 +669,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">90</span>
+                <span class="site-state-item-count">95</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -703,7 +711,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#IntelliJ-IDEA简介"><span class="nav-number">1.</span> <span class="nav-text">IntelliJ IDEA简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用设置"><span class="nav-number">2.</span> <span class="nav-text">常用设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#java-web项目配置-1"><span class="nav-number">2.1.</span> <span class="nav-text">java web项目配置 [^1]</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件使用"><span class="nav-number">3.</span> <span class="nav-text">插件使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快捷键"><span class="nav-number">4.</span> <span class="nav-text">快捷键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDEA开发PHP程序"><span class="nav-number">5.</span> <span class="nav-text">IDEA开发PHP程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装php插件-2"><span class="nav-number">5.1.</span> <span class="nav-text">安装php插件 [^2]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xdebug使用"><span class="nav-number">5.2.</span> <span class="nav-text">xdebug使用</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#IntelliJ-IDEA简介"><span class="nav-number">1.</span> <span class="nav-text">IntelliJ IDEA简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用设置"><span class="nav-number">2.</span> <span class="nav-text">常用设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#java-web项目配置-1"><span class="nav-number">2.1.</span> <span class="nav-text">java web项目配置 [^1]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maven"><span class="nav-number">2.2.</span> <span class="nav-text">maven</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件使用"><span class="nav-number">3.</span> <span class="nav-text">插件使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快捷键"><span class="nav-number">4.</span> <span class="nav-text">快捷键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDEA开发PHP程序"><span class="nav-number">5.</span> <span class="nav-text">IDEA开发PHP程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装php插件-2"><span class="nav-number">5.1.</span> <span class="nav-text">安装php插件 [^2]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xdebug使用"><span class="nav-number">5.2.</span> <span class="nav-text">xdebug使用</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -726,7 +734,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

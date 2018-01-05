@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/11/24/web/mui/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="mui简介 MUI不依赖任何第三方JS库，原生UI(MUI以iOS平台UI为基础，补充部分Android平台特有的UI控件)，结合H5 plus可实现更解决原生的APP应用 APP开发类型：原生开发、H5开发、混合开发(Hybrid App：一部分功能用native构建，一部分功能用html5构建，比如AppCan、PhoneGap(Cordova)等) 官网：http://dev.dcloud.">
-<meta property="og:updated_time" content="2017-12-09T04:42:46.664Z">
+<meta property="og:updated_time" content="2017-12-24T09:48:49.872Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="MUI">
 <meta name="twitter:description" content="mui简介 MUI不依赖任何第三方JS库，原生UI(MUI以iOS平台UI为基础，补充部分Android平台特有的UI控件)，结合H5 plus可实现更解决原生的APP应用 APP开发类型：原生开发、H5开发、混合开发(Hybrid App：一部分功能用native构建，一部分功能用html5构建，比如AppCan、PhoneGap(Cordova)等) 官网：http://dev.dcloud.">
@@ -413,6 +413,18 @@
 <li>APP开发类型：原生开发、H5开发、混合开发(Hybrid App：一部分功能用native构建，一部分功能用html5构建，比如AppCan、PhoneGap(Cordova)等)</li>
 <li>官网：<a href="http://dev.dcloud.net.cn/mui/" target="_blank" rel="external">http://dev.dcloud.net.cn/mui/</a></li>
 </ul>
+<h2 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h2><ul>
+<li>js的<code>addEventListener()</code>方法只能监听某个特定元素上的事件(只能通过id获取元素，或者window对象等)</li>
+<li><p>可以使用<code>.on()</code>方法实现批量元素的事件绑定</p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">mui(<span class="string">".mui-table-view"</span>).on(<span class="string">'tap'</span>, <span class="string">'.mui-table-view-cell'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">	<span class="comment">//获取id</span></div><div class="line">	<span class="keyword">var</span> id = <span class="keyword">this</span>.getAttribute(<span class="string">"id"</span>);</div><div class="line">	<span class="comment">//传值给详情页面，通知加载新数据</span></div><div class="line">	mui.fire(detail,<span class="string">'getDetail'</span>,&#123;<span class="attr">id</span>:id&#125;);</div><div class="line">	<span class="comment">//打开新闻详情</span></div><div class="line">	mui.openWindow(&#123;</div><div class="line">		<span class="attr">id</span>:<span class="string">'detail'</span>,</div><div class="line">		<span class="attr">url</span>:<span class="string">'detail.html'</span></div><div class="line">	&#125;);</div><div class="line">&#125;)</div></pre></td></tr></table></figure>
+<ul>
+<li><code>tap</code>为mui定义的点击时间</li>
+<li><code>mui(&quot;.mui-table-view&quot;)</code>根据class获取对象，只能获取非动态加入的DOM</li>
+<li>此处实际是监听<code>.mui-table-view</code>下的<code>.mui-table-view-cell</code>的点击事件</li>
+</ul>
+</li>
+<li><code>&lt;a&gt;</code>标签点击无法跳转到href指定的连接，解决办法见下文</li>
+</ul>
 <h2 id="mui零散知识"><a href="#mui零散知识" class="headerlink" title="mui零散知识"></a>mui零散知识</h2><ul>
 <li>H5底部导航跳转</li>
 </ul>
@@ -563,7 +575,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">54</span>
+                <span class="site-state-item-count">60</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -585,7 +597,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">90</span>
+                <span class="site-state-item-count">95</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -627,7 +639,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#mui简介"><span class="nav-number">1.</span> <span class="nav-text">mui简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mui零散知识"><span class="nav-number">2.</span> <span class="nav-text">mui零散知识</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#mui简介"><span class="nav-number">1.</span> <span class="nav-text">mui简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事件"><span class="nav-number">2.</span> <span class="nav-text">事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mui零散知识"><span class="nav-number">3.</span> <span class="nav-text">mui零散知识</span></a></li></ol></div>
             
 
           </div>
@@ -650,7 +662,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
