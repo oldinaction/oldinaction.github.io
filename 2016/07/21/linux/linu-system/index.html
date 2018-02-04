@@ -104,7 +104,7 @@
 <meta property="og:description" content="系统命令信息查询 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
 <meta property="og:image" content="http://data/images/2017/02/类型与权限.gif">
-<meta property="og:updated_time" content="2017-10-09T14:21:32.842Z">
+<meta property="og:updated_time" content="2018-02-04T09:10:38.600Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux系统命令">
 <meta name="twitter:description" content="系统命令信息查询 查看系统信息  查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24">
@@ -439,7 +439,15 @@
 </li>
 <li>查看进程信息<ul>
 <li><code>ps -ef | grep java | grep -v grep</code>(其中java可换成run.py等)<ul>
-<li>结果如：<code>root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py</code>. 运行用户、进场id、…</li>
+<li>结果如：<code>root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py</code>. 运行用户、进程id、…</li>
+</ul>
+</li>
+<li><code>ls -al /proc/进程id</code> 查看此进程信息<ul>
+<li><code>cwd</code>符号链接的是进程运行目录</li>
+<li><code>exe</code>符号连接就是执行程序的绝对路径</li>
+<li><code>cmdline</code>就是程序运行时输入的命令行命令</li>
+<li><code>environ</code>记录了进程运行时的环境变量</li>
+<li><code>fd</code>目录下是进程打开或使用的文件的符号连接</li>
 </ul>
 </li>
 <li>自带程序<code>top</code>查看, 推荐安装功能更强大的<code>htop</code></li>
@@ -467,6 +475,7 @@
 <h3 id="程序运行"><a href="#程序运行" class="headerlink" title="程序运行"></a>程序运行</h3><ul>
 <li>运行sh文件：进入到该文件目录，运行<code>./xxx.sh</code></li>
 <li>脱机后台运行sh文件：<code>nohup bash startofbiz.sh &gt; my.log 2&gt;&amp;1 &amp;</code><ul>
+<li>不打印日志后台运行<code>nohup java -jar /xxx/xxx.jar &gt; /dev/null 2&gt;&amp;1 &amp;</code></li>
 <li>运行二进制文件：<code>nohup ./mybash &gt; my.log 2&gt;&amp;1 &amp;</code> 其中mybash为可执行的二进制文件</li>
 <li>sudo形式运行：<code>nohup sudo -b ./mybash &gt; my.log 2&gt;&amp;1 &amp;</code></li>
 <li>可解决利用客户端连接服务器，执行的程序当客户端退出后，服务器的程序也停止了</li>
@@ -524,6 +533,7 @@
 </li>
 <li><code>cp xxx.txt /usr/local/xxx</code> 复制文件(将xxx.txt移动到/usr/local/xxx)<ul>
 <li>复制文件到远程服务器：<code>scp /home/test root@192.168.1.1:/home</code> 将本地linux系统的test文件或者文件夹复制到远程的home目录下</li>
+<li><code>cp -r /dir1 /dir2</code> 将dir1的数据复制到dir2中（<code>-r</code>递归复制，如果dir1下还有目录则需要）</li>
 </ul>
 </li>
 <li>重命名文件或目录、将文件由一个目录移入另一个目录中<ul>
@@ -566,6 +576,7 @@
 </ul>
 </li>
 <li><code>sudo find / -name nginx.conf</code> 查询文件位置(查看<code>nginx.conf</code>文件所在位置)</li>
+<li>下载文件: <code>sz 文件名</code> （需要安装<code>yum install lrzsz</code>）</li>
 </ul>
 <h3 id="vim编辑器"><a href="#vim编辑器" class="headerlink" title="vim编辑器"></a>vim编辑器</h3><ul>
 <li><code>vim my.txt</code> 打开编辑界面(命令模式)</li>
@@ -802,7 +813,7 @@
 <li><p>配置式</p>
 <ul>
 <li><p>添加定时配置：<code>sudo vim /etc/crontab</code>，配置说明如下，如：<code>30 2 1 * * root /sbin/reboot</code>表示每月第一天的第2个小时的第30分钟，使用root执行命令/sbin/reboot(重启)</p>
-  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> Example of job definition:</span></div><div class="line"><span class="meta">#</span><span class="bash"> .---------------- minute (0 - 59)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  .------------- hour (0 - 23)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  .---------- day of month (1 - 31)</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></div><div class="line"><span class="meta">#</span><span class="bash"> |  |  |  |  |</span></div><div class="line"><span class="meta">#</span><span class="bash"> *  *  *  *  * user-name  <span class="built_in">command</span> to be executed</span></div><div class="line"><span class="meta">#</span><span class="bash"> (1) 其中用户名一般可以省略</span></div><div class="line"><span class="meta">#</span><span class="bash"> (2) 精确到秒解决方案, 以下3行表示每20秒执行一次</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 20; user-name my-command</span></div><div class="line"><span class="meta">#</span><span class="bash"> * * * * * sleep 40; user-name my-command</span></div></pre></td></tr></table></figure>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span> Example of job definition:</div><div class="line"><span class="meta">#</span> .---------------- minute (0 - 59)</div><div class="line"><span class="meta">#</span> |  .------------- hour (0 - 23)</div><div class="line"><span class="meta">#</span> |  |  .---------- day of month (1 - 31)</div><div class="line"><span class="meta">#</span> |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</div><div class="line"><span class="meta">#</span> |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</div><div class="line"><span class="meta">#</span> |  |  |  |  |</div><div class="line"><span class="meta">#</span> *  *  *  *  * user-name  command to be executed</div><div class="line"><span class="meta">#</span> (1) 其中用户名一般可以省略</div><div class="line"><span class="meta">#</span> (2) 精确到秒解决方案, 以下3行表示每20秒执行一次</div><div class="line"><span class="meta">#</span> * * * * * user-name my-command</div><div class="line"><span class="meta">#</span> * * * * * sleep 20; user-name my-command</div><div class="line"><span class="meta">#</span> * * * * * sleep 40; user-name my-command</div></pre></td></tr></table></figure>
 </li>
 <li><p><code>systemctl reload crond</code> 重新加载配置</p>
 </li>
@@ -940,7 +951,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">60</span>
+                <span class="site-state-item-count">61</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -962,7 +973,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">95</span>
+                <span class="site-state-item-count">96</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

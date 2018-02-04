@@ -103,7 +103,7 @@
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Ubuntu：sudo apt-get install git    git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/04/git流程图.png">
-<meta property="og:updated_time" content="2017-12-11T12:17:23.481Z">
+<meta property="og:updated_time" content="2018-01-24T08:05:41.769Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="git">
 <meta name="twitter:description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Ubuntu：sudo apt-get install git    git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决">
@@ -515,6 +515,7 @@
 <li><code>git checkout -b &lt;localBranchName&gt; &lt;remotesBranchName&gt;</code> 相当于检出远程的某个分支到本地，远程分支名如origin/b1(使用 <code>git branch -a</code> 查看时显示为remotes/origin/b1)<ul>
 <li><strong><code>git checkout -b &lt;localBranchName&gt; --track &lt;remotesBranchName&gt;</code></strong> 检出分支并创建本地分支与远程分支的追踪</li>
 <li>勿使用 <code>git checkout 远程分支名</code> 命令会是当前HEAD变为一个游离的HEAD（即现在HEAD指向的是一个没有分支名字的修订版本，游离于已知的所有分支之外，如<code>HEAD detached at origin/b1</code>）</li>
+<li><code>git checkout -b test1 origin/develop</code> 拉取远程develop分支</li>
 </ul>
 </li>
 <li><code>git push origin &lt;branch&gt;</code> 创建远程分支</li>
@@ -797,7 +798,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">60</span>
+                <span class="site-state-item-count">61</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -819,7 +820,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">95</span>
+                <span class="site-state-item-count">96</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

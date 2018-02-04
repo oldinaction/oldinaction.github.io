@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2016/12/29/arch/maven/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签(windows/linux均可)      123456&amp;lt;mirror&amp;gt; 	&amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;  	&amp;lt;name&amp;gt;">
-<meta property="og:updated_time" content="2017-12-23T12:03:04.529Z">
+<meta property="og:updated_time" content="2018-01-05T13:15:22.754Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="maven">
 <meta name="twitter:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签(windows/linux均可)      123456&amp;lt;mirror&amp;gt; 	&amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;  	&amp;lt;name&amp;gt;">
@@ -460,7 +460,7 @@
 </li>
 <li>提交到github(<strong>注意jar包不要习惯性的ignore</strong>)</li>
 <li><p>配置maven远程仓库</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></div><div class="line">       <span class="tag">&lt;<span class="name">repository</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">id</span>&gt;</span>oldinaction-maven-repo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://raw.github.com/oldinaction/maven-repo/master/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--或者访问本地--&gt;</span></div><div class="line">		<span class="comment">&lt;!--&lt;url&gt;file:D:/GitRepositories/maven-repo/&lt;/url&gt;--&gt;</span></div><div class="line">       <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></div><div class="line">   <span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></div></pre></td></tr></table></figure>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!-- 优先读取本地库 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></div><div class="line">       <span class="tag">&lt;<span class="name">repository</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">id</span>&gt;</span>oldinaction-maven-repo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></div><div class="line">           <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://raw.github.com/oldinaction/maven-repo/master/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></div><div class="line">		<span class="comment">&lt;!--或者访问本地--&gt;</span></div><div class="line">		<span class="comment">&lt;!--&lt;url&gt;file:D:/GitRepositories/maven-repo/&lt;/url&gt;--&gt;</span></div><div class="line">       <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></div><div class="line">   <span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></div></pre></td></tr></table></figure>
 <ul>
 <li>maven的repository并没有优先级的配置，也不能单独为某些依赖配置repository。所以如果项目配置了多个repository，在首次编绎时会依次尝试下载依赖，如果没有找到，尝试下一个</li>
 <li>其中<code>&lt;url&gt;https://raw.github.com/{github-username}/{github-repository}/{github-branch}/&lt;/url&gt;</code>，<a href="https://raw.github.com" target="_blank" rel="external">https://raw.github.com</a> 是github的raw站点，浏览器不能访问目录只能访问单个文件</li>
@@ -572,8 +572,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/01/10/linux/centos-server-guide/" rel="prev" title="CentOS服务器使用指导">
-                CentOS服务器使用指导 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/01/10/linux/shell-java/" rel="prev" title="java相关Shell脚本">
+                java相关Shell脚本 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -646,7 +646,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">60</span>
+                <span class="site-state-item-count">61</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -668,7 +668,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">95</span>
+                <span class="site-state-item-count">96</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

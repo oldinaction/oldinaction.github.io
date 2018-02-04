@@ -1,0 +1,1125 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="oracle,mysql,procedure," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="SmalleBlog | AEZOCN" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="简介 Mysql存储过程调试工具：dbForge Studio for MySQL  Mysql存储过程示例12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777">
+<meta name="keywords" content="oracle,mysql,procedure">
+<meta property="og:type" content="article">
+<meta property="og:title" content="db-procedure">
+<meta property="og:url" content="http://blog.aezo.cn/2017/08/24/db/db-procedure/index.html">
+<meta property="og:site_name" content="SmalleBlog | AEZOCN">
+<meta property="og:description" content="简介 Mysql存储过程调试工具：dbForge Studio for MySQL  Mysql存储过程示例12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777">
+<meta property="og:updated_time" content="2018-01-09T06:08:55.402Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="db-procedure">
+<meta name="twitter:description" content="简介 Mysql存储过程调试工具：dbForge Studio for MySQL  Mysql存储过程示例12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.aezo.cn/2017/08/24/db/db-procedure/"/>
+
+
+
+
+
+  <title>db-procedure | SmalleBlog | AEZOCN</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">SmalleBlog | AEZOCN</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Better Code,Better Life</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-sitemap">
+          <a href="/sitemap.xml" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br />
+            
+            站点地图
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/08/24/db/db-procedure/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">db-procedure</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-24T20:33:00+08:00">
+                2017-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/db/" itemprop="url" rel="index">
+                    <span itemprop="name">db</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>Mysql存储过程调试工具：<code>dbForge Studio for MySQL</code></li>
+</ul>
+<h2 id="Mysql存储过程示例"><a href="#Mysql存储过程示例" class="headerlink" title="Mysql存储过程示例"></a>Mysql存储过程示例</h2><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line">CREATE DEFINER = 'root'@'localhost'</div><div class="line">PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)</div><div class="line">BEGIN</div><div class="line">  DECLARE v_sql varchar(1000);</div><div class="line">  DECLARE c_cityid integer;</div><div class="line">  DECLARE c_cityname varchar(20);</div><div class="line">  DECLARE c_countyname varchar(20);</div><div class="line">  DECLARE c_cityid_tmp integer;</div><div class="line"></div><div class="line">  # 是否未找到数据标记(要在游标之前定义)</div><div class="line">  DECLARE done INT DEFAULT FALSE;</div><div class="line"></div><div class="line">  -- 定义第一个游标</div><div class="line">  DECLARE cur1 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    t.N_CITYID,</div><div class="line">    t.S_CITYNAME</div><div class="line">  FROM dict_city t</div><div class="line">  WHERE t.N_PROVID = in_provid;</div><div class="line"></div><div class="line">  # 临时表游标</div><div class="line">  DECLARE cur2 CURSOR FOR</div><div class="line">  SELECT</div><div class="line">    S_COUNTYNAME,</div><div class="line">    N_CITYID AS cityid</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 循环终止的标志，游标中如果没有数据就设置done为TRUE(停止遍历)</div><div class="line">  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;</div><div class="line"></div><div class="line">  # 创建临时表</div><div class="line">  DROP TABLE IF EXISTS tmp_table;</div><div class="line">  CREATE TEMPORARY TABLE IF NOT EXISTS tmp_table (</div><div class="line">    ID int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,</div><div class="line">    S_COUNTYNAME varchar(20),</div><div class="line">    N_CITYID int(10)</div><div class="line">  );</div><div class="line"></div><div class="line">  # mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量</div><div class="line">  OPEN cur1;</div><div class="line">  flag_loop: LOOP</div><div class="line">    # 取出每条记录并赋值给相关变量，注意顺序</div><div class="line">    # 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！</div><div class="line">    FETCH cur1 INTO c_cityid, c_cityname;</div><div class="line"></div><div class="line">    # FETCH之后, 如果没有数据则会运行SET done = TRUE</div><div class="line">    IF done THEN</div><div class="line">      # 跳出循环</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    # 字符串截取，从第一位开始，截取2位</div><div class="line">    SET c_cityname = SUBSTRING(c_cityname, 1, 2);</div><div class="line"></div><div class="line">    # 动态sql执行后的结果记录集在MySQL中无法获取，因此需要转变思路将其放置到一个临时表中</div><div class="line">    # 动态sql需要使用CONCAT(a, b, c, ....)拼接</div><div class="line">    SET v_sql = CONCAT("insert into tmp_table(S_COUNTYNAME, N_CITYID) select t.`name`, ", c_cityid, " from sm_renthouse_url t where</div><div class="line">    t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");</div><div class="line"></div><div class="line">    # 如果以@开头的变量可以不用通过declare语句事先声明</div><div class="line">    SET @v_sql = v_sql;</div><div class="line">    # 预处理需要执行的动态SQL，其中stmt是一个变量</div><div class="line">    PREPARE stmt FROM @v_sql;</div><div class="line">    # 执行SQL语句</div><div class="line">    EXECUTE stmt;</div><div class="line">    # 释放掉预处理段</div><div class="line">    DEALLOCATE PREPARE stmt;</div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur1;</div><div class="line"></div><div class="line">  # 调试输出, 打印使用SELECT</div><div class="line">  SELECT</div><div class="line">    *</div><div class="line">  FROM tmp_table;</div><div class="line"></div><div class="line">  # 还原终止的标志, 用于第二个游标</div><div class="line">  SET done = FALSE;</div><div class="line"></div><div class="line">  OPEN cur2;</div><div class="line">  flag_loop: LOOP</div><div class="line">    FETCH cur2 INTO c_countyname, c_cityid_tmp;</div><div class="line">    IF done THEN</div><div class="line">      LEAVE flag_loop;</div><div class="line">    END IF;</div><div class="line"></div><div class="line">    INSERT INTO dict_county (S_COUNTYNAME, N_CITYID, S_STATE)</div><div class="line">      VALUES (c_countyname, c_cityid_tmp, '1');</div><div class="line"></div><div class="line">  END LOOP;</div><div class="line">  CLOSE cur2;</div><div class="line"></div><div class="line">  # 删除临时表</div><div class="line">  DROP TEMPORARY TABLE tmp_table;</div><div class="line">END</div></pre></td></tr></table></figure>
+<h2 id="Oracle存储过程示例"><a href="#Oracle存储过程示例" class="headerlink" title="Oracle存储过程示例"></a>Oracle存储过程示例</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 定义</span></div><div class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">procedure</span> p_up_user_role <span class="keyword">is</span></div><div class="line">  <span class="keyword">cursor</span> c <span class="keyword">is</span> </div><div class="line">    <span class="keyword">select</span> t.* <span class="keyword">from</span> User_Login t; <span class="comment">-- 游标</span></div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="keyword">delete</span> <span class="keyword">from</span> User_Login_Security_Group t <span class="keyword">where</span> t.group_id = <span class="string">'DW_DEPT_ADMIN'</span>;</div><div class="line">  <span class="comment">--for循环不需要声明变量，会自动将user_item声明为record变量</span></div><div class="line">  for user_item in c loop</div><div class="line">      <span class="keyword">insert</span> <span class="keyword">into</span> User_Login_Security_Group(User_Login_Id, <span class="keyword">Group_Id</span>, From_Date) </div><div class="line">            <span class="keyword">values</span>(user_item.user_login_id, <span class="string">'DW_DEPT_ADMIN'</span>, <span class="string">'2017-11-01 00:00:00.000000'</span>);</div><div class="line">  <span class="keyword">end</span> <span class="keyword">loop</span>;</div><div class="line">  <span class="keyword">commit</span>;</div><div class="line"><span class="keyword">end</span>;</div><div class="line"></div><div class="line"><span class="comment">-- 运行</span></div><div class="line"><span class="keyword">call</span> p_up_user_role();</div><div class="line"></div><div class="line"><span class="comment">-- 删除</span></div><div class="line"><span class="keyword">drop</span> <span class="keyword">procedure</span> p_up_user_role;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>示例二（动态游标、异常处理）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 创建错误日志表</span></div><div class="line"><span class="keyword">create</span> <span class="keyword">table</span> yimp_errorlog</div><div class="line">(</div><div class="line">      <span class="keyword">id</span> <span class="built_in">number</span> primary <span class="keyword">key</span>,</div><div class="line">      errcode <span class="built_in">number</span>,</div><div class="line">      errmsg varchar2(<span class="number">1024</span>),</div><div class="line">      errdate <span class="built_in">date</span></div><div class="line">);</div><div class="line"><span class="keyword">create</span> <span class="keyword">sequence</span> seq_errorlog_id <span class="keyword">start</span> <span class="keyword">with</span> <span class="number">1</span> <span class="keyword">increment</span> <span class="keyword">by</span> <span class="number">1</span>;</div><div class="line"></div><div class="line"><span class="comment">-- 创建存储过程</span></div><div class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">procedure</span> p_up_storage <span class="keyword">is</span></div><div class="line">  <span class="keyword">TYPE</span> ref_cursor_type <span class="keyword">IS</span> <span class="keyword">REF</span> <span class="keyword">CURSOR</span>; <span class="comment">--定义一个游标类型</span></div><div class="line"></div><div class="line">  cursor c is</div><div class="line">    <span class="keyword">select</span> yls.*</div><div class="line">      <span class="keyword">from</span> yyard_location_set yls, ybase_party_company ypc</div><div class="line">    <span class="keyword">where</span> ypc.party_id = yls.yard_party_id</div><div class="line">      <span class="keyword">and</span> ypc.company_num = <span class="string">'DW1'</span> </div><div class="line">      <span class="keyword">and</span> yls.region_num <span class="keyword">in</span> (<span class="string">'Y0'</span>);</div><div class="line"></div><div class="line">  v_cur_storage ref_cursor_type; <span class="comment">-- 动态游标</span></div><div class="line">  v_storage     ycross_storage%ROWTYPE;</div><div class="line">  v_sql         varchar2(1000);</div><div class="line">  v_x           number := 1;</div><div class="line">  v_y           number := 1;</div><div class="line"></div><div class="line">  v_errcode number;</div><div class="line">  v_errmsg  varchar2(1024);</div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="keyword">for</span> loc <span class="keyword">in</span> c <span class="keyword">loop</span></div><div class="line">    v_errmsg := <span class="string">'[code]p_up_storage==&gt;'</span> || loc.YARD_PARTY_ID || <span class="string">'-'</span> || loc.REGION_NUM || loc.SET_NUM;</div><div class="line">    <span class="comment">-- 更新此堆位下场存</span></div><div class="line">    v_x := 1;</div><div class="line">    v_y := 1;</div><div class="line">  </div><div class="line">    <span class="comment">--使用连接符拼接成一条完整SQL</span></div><div class="line">    v_sql := '<span class="keyword">select</span> * <span class="keyword">from</span> ycross_storage t <span class="keyword">where</span> t.yes_storage = <span class="number">1</span> <span class="keyword">and</span> t.location_id = <span class="string">' ||</span></div><div class="line">            loc.location_id;</div><div class="line">    --打开游标</div><div class="line">    open v_cur_storage for v_sql;</div><div class="line">  </div><div class="line">    loop</div><div class="line">      fetch v_cur_storage into v_storage;</div><div class="line">      exit when v_cur_storage%notfound;</div><div class="line">    </div><div class="line">      update ycross_storage t</div><div class="line">        set t.ycross_x = v_x, t.ycross_y = v_y</div><div class="line">      where t.id = v_storage.id;</div><div class="line"></div><div class="line">      if v_y &lt; 7 then</div><div class="line">        v_y := v_y + 1;</div><div class="line">      else</div><div class="line">        if v_x &lt; 30 then</div><div class="line">          v_x := v_x + 1;</div><div class="line">          v_y := 1;</div><div class="line">        else</div><div class="line">          RAISE_APPLICATION_ERROR(-20001, v_errmsg || '位置超出堆位结构<span class="string">'); -- 抛出异常</span></div><div class="line">        end if;</div><div class="line">      end if;</div><div class="line">    </div><div class="line">    end loop;</div><div class="line">  </div><div class="line">    close v_cur_storage;</div><div class="line">  </div><div class="line">  end loop;</div><div class="line"></div><div class="line">  commit;</div><div class="line">exception</div><div class="line">  -- 捕获异常</div><div class="line">  when others then</div><div class="line">    --WHEN excption_name THEN ...WHEN OTHERS THEN ...</div><div class="line">    rollback;</div><div class="line">    v_errcode := SQLCODE; --出错代码</div><div class="line">    v_errmsg  := v_errmsg || ', [msg]<span class="string">' || SQLERRM; --出错信息</span></div><div class="line">    insert into yimp_errorlog</div><div class="line">    values</div><div class="line">      (seq_errorlog_id.nextval, v_errcode, v_errmsg, sysdate);</div><div class="line">    commit;</div><div class="line">end;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h2><ul>
+<li><code>RAISE_APPLICATION_ERROR</code> 抛出异常函数，该函数是将应用程序专有的错误从服务器端转达到客户端应用程序(其他机器上的SQLPLUS或者前台开发语言)</li>
+<li><code>PROCEDURE RAISE_APPLICATION_ERROR( error_number_in IN NUMBER, error_msg_in IN VARCHAR2);</code><ul>
+<li><code>error_number_in</code>: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 ORACLE 的任何错误代码发生冲突。</li>
+<li><code>error_msg_in</code>: 长度不能超过 2k，否则截取 2k</li>
+</ul>
+</li>
+</ul>
+<h2 id="oracle函数"><a href="#oracle函数" class="headerlink" title="oracle函数"></a>oracle函数</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">declare</span> </div><div class="line">  i <span class="built_in">integer</span>;</div><div class="line"><span class="keyword">begin</span></div><div class="line">  dbms_output.put_line(<span class="string">'hello world'</span>);</div><div class="line">  p_up_user_role();</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure>
+<hr>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/oracle/" rel="tag"># oracle</a>
+          
+            <a href="/tags/mysql/" rel="tag"># mysql</a>
+          
+            <a href="/tags/procedure/" rel="tag"># procedure</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/lang/excel-vba/" rel="next" title="Excel VBA">
+                <i class="fa fa-chevron-left"></i> Excel VBA
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/13/extend/chrome/" rel="prev" title="chrome">
+                chrome <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
+               alt="Smalle" />
+          <p class="site-author-name" itemprop="name">Smalle</p>
+           
+              <p class="site-description motion-element" itemprop="description">代码，让生活更美好</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">61</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">96</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mysql存储过程示例"><span class="nav-number">2.</span> <span class="nav-text">Mysql存储过程示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Oracle存储过程示例"><span class="nav-number">3.</span> <span class="nav-text">Oracle存储过程示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常"><span class="nav-number">4.</span> <span class="nav-text">异常</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#oracle函数"><span class="nav-number">5.</span> <span class="nav-text">oracle函数</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Smalle</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

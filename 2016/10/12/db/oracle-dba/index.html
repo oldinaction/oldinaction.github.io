@@ -102,10 +102,12 @@
 <meta property="og:url" content="http://blog.aezo.cn/2016/10/12/db/oracle-dba/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
-<meta property="og:updated_time" content="2017-12-17T09:33:13.572Z">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/db/lsnrctl-status.png">
+<meta property="og:updated_time" content="2018-02-04T10:47:44.232Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Oracle DBA">
 <meta name="twitter:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/db/lsnrctl-status.png">
 
 
 
@@ -431,9 +433,18 @@
 <li>配置<code>pl/sql developer</code>首选项中连接项。设置oracle_home为instantclient_10_2的路径，oci为instantclient_10_2下的oci.dll</li>
 <li>环境变量中设置<code>TNS_ADMIN=D:\java\oracle\product\instantclient_10_2</code>，并在path末尾加入<code>%TNS_ADMIN%;</code>(否则容易报<code>TNS-12541</code>)</li>
 </ul>
+<h4 id="相关错误"><a href="#相关错误" class="headerlink" title="相关错误"></a>相关错误</h4><ul>
+<li>instantclient_10_2匹配11.2.0的oracle可能会报错（如OCI: not initialized、请确认安装了32位oracle client）<ul>
+<li>可到<a href="http://www.oracle.com/technetwork/topics/winsoft-085727.html" target="_blank" rel="external">Instant Client Downloads for Microsoft Windows (32-bit)</a>下载对应pl/sql的版本(instantclient-basic-nt-11.2.0.4.0.zip)，压缩包中没有<code>tnsnames.ora</code>和<code>listener.ora</code>可到<code>$ORACLE_HOME/NETWORK/ADMIN</code>中复制（64位机器可安装32位pl/sql，此时Instant Client也应该是32位）</li>
+</ul>
+</li>
+</ul>
 <h3 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h3><ol>
 <li>Net Manager的使用<ul>
-<li><code>本地-监听程序-LISTENER</code>中的主机要为计算机全名(如：ST-008)。对应文件<code>listener.ora</code></li>
+<li><code>本地-监听程序-LISTENER</code>中的主机要为计算机全名(如：ST-008)，对应文件<code>listener.ora</code><ul>
+<li>使用pl/sql也需要配置，且第一个地址需要类似配置为<code>TCP/IP，ST-008，1521</code></li>
+</ul>
+</li>
 <li><code>本地-服务命名</code>下的都为<code>网络服务名</code>。对应文件<code>tnsnames.ora</code></li>
 </ul>
 </li>
@@ -520,13 +531,16 @@
 </ul>
 <h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><h3 id="操作相关"><a href="#操作相关" class="headerlink" title="操作相关"></a>操作相关</h3><ol>
 <li>系统<ul>
-<li><code>lsnrctl start</code> 启动监听程序(shell命令行运行)。<code>lsnrctl status</code> 查看服务状态</li>
-<li><code>sqlplus /nolog</code> 以nolog身份登录，进入sql命令行</li>
-<li><code>startup;</code> 正常启动（1启动实例，2打开控制文件，3打开数据文件）</li>
-<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接<ul>
+<li><code>lsnrctl start</code> 启动监听程序(shell命令行运行)。<ul>
+<li><code>lsnrctl status</code> 查看服务状态（见下图”lsnrctl-status显示图片”）</li>
+</ul>
+</li>
+<li><code>sqlplus /nolog</code>、<code>sqlplus / as sysdba</code> 以nolog、sysdba身份登录，进入sql命令行</li>
+<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行)<ul>
 <li><code>shutdown;</code> 有用户连接就不关闭，直到所有用户断开连接</li>
 </ul>
 </li>
+<li><code>startup;</code> 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) </li>
 <li><code>exit;</code> 退出sqlplus</li>
 </ul>
 </li>
@@ -561,12 +575,14 @@
 </li>
 <li><p>连接数</p>
 <ul>
-<li>查询数据库最大连接数：<code>select value from v$parameter where name = &#39;processes;&#39;</code>、<code>show parameter processes</code></li>
+<li>查询数据库最大连接数：<code>select value from v$parameter where name = &#39;processes&#39;</code>、<code>show parameter processes</code></li>
 <li>查询数据库当前连接数：<code>select count(*) from v$session;</code></li>
 <li>修改数据库最大连接数：<code>alter system set processes = 500 scope = spfile;</code> 需要重启数据库</li>
 </ul>
 </li>
+<li>锁表</li>
 </ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询被锁表的信息</span></div><div class="line"><span class="keyword">select</span> s.sid, s.serial#, l.*, o.*, s.* <span class="keyword">FROM</span> gv$locked_object l, dba_objects o, gv$<span class="keyword">session</span> s </div><div class="line">    <span class="keyword">where</span> l.object_id　= o.object_id <span class="keyword">and</span> l.session_id = s.sid; </div><div class="line"><span class="comment">-- 关闭锁表的连接</span></div><div class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">kill</span> <span class="keyword">session</span> <span class="string">'某个sid, 某个serial#'</span>;</div></pre></td></tr></table></figure>
 <h3 id="查询相关"><a href="#查询相关" class="headerlink" title="查询相关"></a>查询相关</h3><ol>
 <li>系统<ul>
 <li>查看服务是否启动：<code>tnsping local_orcl</code> cmd直接运行<ul>
@@ -673,7 +689,14 @@
 </ol>
 <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>- 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
 - oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
-</code></pre>
+</code></pre><hr>
+<ul>
+<li><p>lsnrctl-status显示图片</p>
+<p>  <img src="/data/images/db/lsnrctl-status.png" alt="lsnrctl-status"></p>
+</li>
+</ul>
+<hr>
+
       
     </div>
 
@@ -801,7 +824,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">60</span>
+                <span class="site-state-item-count">61</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -823,7 +846,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">95</span>
+                <span class="site-state-item-count">96</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -865,7 +888,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#oracle相关名词和原理"><span class="nav-number">1.1.</span> <span class="nav-text">oracle相关名词和原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#oracle及pl-sql安装和使用"><span class="nav-number">2.</span> <span class="nav-text">oracle及pl/sql安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql安装"><span class="nav-number">2.1.</span> <span class="nav-text">pl/sql安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网络配置"><span class="nav-number">2.2.</span> <span class="nav-text">网络配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建表空间-2"><span class="nav-number">3.</span> <span class="nav-text">创建表空间 ^2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导入导出"><span class="nav-number">4.</span> <span class="nav-text">导入导出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行-4"><span class="nav-number">4.1.</span> <span class="nav-text">命令行 ^4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql"><span class="nav-number">4.2.</span> <span class="nav-text">pl/sql</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">5.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作相关"><span class="nav-number">5.1.</span> <span class="nav-text">操作相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询相关"><span class="nav-number">5.2.</span> <span class="nav-text">查询相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见错误"><span class="nav-number">5.3.</span> <span class="nav-text">常见错误</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">6.</span> <span class="nav-text">安装</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#oracle相关名词和原理"><span class="nav-number">1.1.</span> <span class="nav-text">oracle相关名词和原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#oracle及pl-sql安装和使用"><span class="nav-number">2.</span> <span class="nav-text">oracle及pl/sql安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql安装"><span class="nav-number">2.1.</span> <span class="nav-text">pl/sql安装</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#相关错误"><span class="nav-number">2.1.1.</span> <span class="nav-text">相关错误</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网络配置"><span class="nav-number">2.2.</span> <span class="nav-text">网络配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建表空间-2"><span class="nav-number">3.</span> <span class="nav-text">创建表空间 ^2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导入导出"><span class="nav-number">4.</span> <span class="nav-text">导入导出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行-4"><span class="nav-number">4.1.</span> <span class="nav-text">命令行 ^4</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pl-sql"><span class="nav-number">4.2.</span> <span class="nav-text">pl/sql</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">5.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#操作相关"><span class="nav-number">5.1.</span> <span class="nav-text">操作相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查询相关"><span class="nav-number">5.2.</span> <span class="nav-text">查询相关</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见错误"><span class="nav-number">5.3.</span> <span class="nav-text">常见错误</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">6.</span> <span class="nav-text">安装</span></a></li></ol></div>
             
 
           </div>

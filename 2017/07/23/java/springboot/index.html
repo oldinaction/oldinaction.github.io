@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/07/23/java/springboot/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="目录 helloworld(1.5.6) 数据访问 hibernate(1.5.6, mysql) mybatis(1.5.6)   thymeleaf-spring-security(1.5.6) rabbitmq(1.5.6)  hello world 引入依赖   1234567891011121314&amp;lt;parent&amp;gt;	&amp;lt;groupId&amp;gt;org.springframe">
-<meta property="og:updated_time" content="2017-12-27T13:34:36.025Z">
+<meta property="og:updated_time" content="2018-01-05T14:05:08.292Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="springboot">
 <meta name="twitter:description" content="目录 helloworld(1.5.6) 数据访问 hibernate(1.5.6, mysql) mybatis(1.5.6)   thymeleaf-spring-security(1.5.6) rabbitmq(1.5.6)  hello world 引入依赖   1234567891011121314&amp;lt;parent&amp;gt;	&amp;lt;groupId&amp;gt;org.springframe">
@@ -469,6 +469,18 @@
 <li>使用spring security的CORS配置可参考相应文章</li>
 </ul>
 </li>
+<li><p>国际化</p>
+<ul>
+<li>在resources目录增加两个properties文件：<code>messages.properties</code>(默认)、<code>messages_zh_CN.properties</code>(中文)<ul>
+<li>可通过<code>spring.messages.basename=i18n/messages</code>定义配置文件路径，此时应该将<code>messages.*</code>放在<code>resources/i18n</code>目录</li>
+</ul>
+</li>
+<li>在其中加入类似配置<code>error.unknowexception=未知错误</code></li>
+<li><p>调用</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Autowired</span></div><div class="line">  	<span class="keyword">private</span> MessageSource messageSource;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> String <span class="title">getLocalMessage</span><span class="params">(String code)</span> </span>&#123;</div><div class="line">	String localMessage = <span class="keyword">null</span>;</div><div class="line">	Locale locale = <span class="keyword">null</span>;</div><div class="line">	<span class="keyword">try</span> &#123;</div><div class="line">		locale = LocaleContextHolder.getLocale();</div><div class="line">		localMessage = messageSource.getMessage(code, <span class="keyword">null</span>, locale);</div><div class="line">	&#125; <span class="keyword">catch</span> (NoSuchMessageException e1) &#123;</div><div class="line">		logger.warn(<span class="string">"invalid i18n! code: "</span> + code + <span class="string">", local: "</span> + locale);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">return</span> localMessage;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
 </ul>
 <h2 id="请求及响应"><a href="#请求及响应" class="headerlink" title="请求及响应"></a>请求及响应</h2><ul>
 <li><p>相关配置</p>
@@ -815,7 +827,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">60</span>
+                <span class="site-state-item-count">61</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -837,7 +849,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">95</span>
+                <span class="site-state-item-count">96</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
