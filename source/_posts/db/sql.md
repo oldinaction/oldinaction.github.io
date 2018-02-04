@@ -329,7 +329,7 @@ mysql>select count(num) 	/*注释：组函数*/
     - ...还有很多，如用来存字节，可以把一张图片存在数据库（但是实际只是存图片存在硬盘，数据库中存图片路径）
 - Mysql注释使用`/**/`，Oracle注释使用`/**/`或`--`
 
-### 创建、删除、复制表
+### 创建、删除、复制表、更新
 
 - Mysql表相关约束constraint(起名不能为关键字)
     - 字段约束，加在字段的末尾加unique
@@ -407,11 +407,39 @@ mysql>select count(num) 	/*注释：组函数*/
 
 - 复制表结构及数据到新表 `CREATE TABLE 新表 AS SELECT * FROM 旧表`
 - 只复制表结构到新表 `CREATE TABLE 新表 AS SELECT * FROM 旧表 WHERE 1=2`
-- 创建临时表并复制数据 `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
 - 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
 - 复制旧表的数据到新表(假设两个表结构一样) `INSERT INTO 新表 SELECT * FROM 旧表`
 - 复制旧表的数据到新表(假设两个表结构不一样) `INSERT INTO 新表(字段1,字段2,.......) SELECT 字段1,字段2,...... FROM 旧表`
+- 创建临时表并复制数据 `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
 
+#### 更新表
+
+- **update set from where** 将一张表的数据同步到另外一张表
+    - Oracle: `UPDATE A SET (A1, A2, A3) = (SELECT B1, B2, B3 FROM B WHERE A.ID = B.ID) WHERE ID IN (SELECT B.ID FROM B WHERE A.ID = B.ID)`
+    - Mysql: `UPDATE A, B SET A1 = B1, A2 = B2, A3 = B3 WHERE A.ID = B.ID`
+    - 实例
+
+```sql
+update ycross_storage ys
+set (ys.location_id, ys.ycross_x, ys.ycross_y, ys.box_type_id) =
+    (select yls.location_id,
+            sc.ycrossx,
+            sc.ycrossy,
+            (select ybts.id from yyard_box_type_set ybts where ybts.box_type = sc.relclcd) boxtypeid --也可以不取别名
+        from yyard_location_set yls, sql_ctninfo sc -- sql_ctninfo为临时表
+        where 1 = 1
+        and yls.region_num = sc.regionnum
+        and yls.set_num = sc.setnum
+        and (select ypc.company_num
+                from ybase_party_company ypc
+                where ypc.party_id = yls.yard_party_id) = ('dw' || trim(sc.yardin))
+        and yls.yes_status = 1
+        and sc.isinvalid = 1
+        and ys.box_number = sc.ctnno
+        and ys.yes_storage = 1) -- 可以拿到update的表ycross_storage，且不能关联进去，否则容易出现一对多错误
+where exists (select 1 from sql_ctninfo sc where ys.box_number = sc.ctnno); -- where只能拿到update的表(不能拿到form的)
+-- 除了set(里面)限制了需要更新的范围，where(外面)也需要限制
+```
 
 ### 修改表结构
 

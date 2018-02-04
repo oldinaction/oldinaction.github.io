@@ -252,6 +252,29 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 	```
 	- 使用spring security的CORS配置可参考相应文章
 
+- 国际化
+	- 在resources目录增加两个properties文件：`messages.properties`(默认)、`messages_zh_CN.properties`(中文)
+		- 可通过`spring.messages.basename=i18n/messages`定义配置文件路径，此时应该将`messages.*`放在`resources/i18n`目录
+	- 在其中加入类似配置`error.unknowexception=未知错误`
+	- 调用
+
+		```java
+		@Autowired
+    	private MessageSource messageSource;
+
+		private String getLocalMessage(String code) {
+			String localMessage = null;
+			Locale locale = null;
+			try {
+				locale = LocaleContextHolder.getLocale();
+				localMessage = messageSource.getMessage(code, null, locale);
+			} catch (NoSuchMessageException e1) {
+				logger.warn("invalid i18n! code: " + code + ", local: " + locale);
+			}
+
+			return localMessage;
+		}
+		```
 
 ## 请求及响应
 

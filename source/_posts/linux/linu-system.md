@@ -29,7 +29,13 @@ tags: [linux, shell]
     - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
   - 查看进程信息
     - `ps -ef | grep java | grep -v grep`(其中java可换成run.py等)
-      - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进场id、...
+      - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
+    - `ls -al /proc/进程id` 查看此进程信息
+        - `cwd`符号链接的是进程运行目录
+        - `exe`符号连接就是执行程序的绝对路径
+        - `cmdline`就是程序运行时输入的命令行命令
+        - `environ`记录了进程运行时的环境变量
+        - `fd`目录下是进程打开或使用的文件的符号连接
     - 自带程序`top`查看, 推荐安装功能更强大的`htop`
 
 ### 强制关闭重启
@@ -50,6 +56,7 @@ tags: [linux, shell]
 
 - 运行sh文件：进入到该文件目录，运行`./xxx.sh`
 - 脱机后台运行sh文件：`nohup bash startofbiz.sh > my.log 2>&1 &`
+    - 不打印日志后台运行`nohup java -jar /xxx/xxx.jar > /dev/null 2>&1 &`
     - 运行二进制文件：`nohup ./mybash > my.log 2>&1 &` 其中mybash为可执行的二进制文件
     - sudo形式运行：`nohup sudo -b ./mybash > my.log 2>&1 &`
     - 可解决利用客户端连接服务器，执行的程序当客户端退出后，服务器的程序也停止了
@@ -125,6 +132,7 @@ tags: [linux, shell]
     - 提示 `rm: remove regular file 'test'?` 时，在后面输入 `yes` 回车
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
     - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件或者文件夹复制到远程的home目录下
+    - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
 - 重命名文件或目录、将文件由一个目录移入另一个目录中
     - `mv a.txt b.txt` (将a.txt重命名为b.txt)
     - `mv a.txt /home/b.txt` 移动并重名名
@@ -151,6 +159,7 @@ tags: [linux, shell]
 - `whereis <fileName>` 查询文件
     - `which <exeName>` 查询可执行文件位置 (在PATH路径中寻找)
 - `sudo find / -name nginx.conf` 查询文件位置(查看`nginx.conf`文件所在位置)
+- 下载文件: `sz 文件名` （需要安装`yum install lrzsz`）
 
 ### vim编辑器
 

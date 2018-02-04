@@ -31,10 +31,16 @@ Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call In
 - 配置`pl/sql developer`首选项中连接项。设置oracle_home为instantclient_10_2的路径，oci为instantclient_10_2下的oci.dll
 - 环境变量中设置`TNS_ADMIN=D:\java\oracle\product\instantclient_10_2`，并在path末尾加入`%TNS_ADMIN%;`(否则容易报`TNS-12541`)
 
+#### 相关错误
+
+- instantclient_10_2匹配11.2.0的oracle可能会报错（如OCI: not initialized、请确认安装了32位oracle client）
+    - 可到[Instant Client Downloads for Microsoft Windows (32-bit)](http://www.oracle.com/technetwork/topics/winsoft-085727.html)下载对应pl/sql的版本(instantclient-basic-nt-11.2.0.4.0.zip)，压缩包中没有`tnsnames.ora`和`listener.ora`可到`$ORACLE_HOME/NETWORK/ADMIN`中复制（64位机器可安装32位pl/sql，此时Instant Client也应该是32位）
+
 ### 网络配置
 
 1. Net Manager的使用
-    - `本地-监听程序-LISTENER`中的主机要为计算机全名(如：ST-008)。对应文件`listener.ora`
+    - `本地-监听程序-LISTENER`中的主机要为计算机全名(如：ST-008)，对应文件`listener.ora`
+        - 使用pl/sql也需要配置，且第一个地址需要类似配置为`TCP/IP，ST-008，1521`
     - `本地-服务命名`下的都为`网络服务名`。对应文件`tnsnames.ora`
 3. 文本操作
     - 使用sqlplus登录时，可直接修改`$ORACLE_HOME/NETWORK/ADMIN/tnsnames.ora`
@@ -112,11 +118,12 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 ### 操作相关
 
 1. 系统
-    - `lsnrctl start` 启动监听程序(shell命令行运行)。`lsnrctl status` 查看服务状态
-    - `sqlplus /nolog` 以nolog身份登录，进入sql命令行
-    - `startup;` 正常启动（1启动实例，2打开控制文件，3打开数据文件）
-    - `shutdown immediate` 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接
+    - `lsnrctl start` 启动监听程序(shell命令行运行)。
+        - `lsnrctl status` 查看服务状态（见下图"lsnrctl-status显示图片"）
+    - `sqlplus /nolog`、`sqlplus / as sysdba` 以nolog、sysdba身份登录，进入sql命令行
+    - `shutdown immediate` 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行)
         - `shutdown;` 有用户连接就不关闭，直到所有用户断开连接
+    - `startup;` 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) 
     - `exit;` 退出sqlplus
 2. 管理员登录
     - sqlplus本地登录：`sqlplus / as sysdba`，以sys登录。sys为系统管理员，拥有最高权限；system为本地管理员，次高权限
@@ -138,9 +145,18 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - `grant dba to aezo;` 授予管理权限(有dba角色就有建表等权限)
 
 5. 连接数
-    - 查询数据库最大连接数：`select value from v$parameter where name = 'processes;'`、`show parameter processes`
+    - 查询数据库最大连接数：`select value from v$parameter where name = 'processes'`、`show parameter processes`
     - 查询数据库当前连接数：`select count(*) from v$session;`
     - 修改数据库最大连接数：`alter system set processes = 500 scope = spfile;` 需要重启数据库
+6. 锁表
+
+```sql
+-- 查询被锁表的信息
+select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s 
+    where l.object_id　= o.object_id and l.session_id = s.sid; 
+-- 关闭锁表的连接
+alter system kill session '某个sid, 某个serial#';
+```
 
 ### 查询相关
 
@@ -220,6 +236,15 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 ## 安装
     - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
     - oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
+
+
+---
+
+- lsnrctl-status显示图片
+
+    ![lsnrctl-status](/data/images/db/lsnrctl-status.png)
+
+---
 
 [^1]: http://www.cnblogs.com/advocate/archive/2010/08/20/1804063.html
 [^2]: http://blog.csdn.net/starnight_cbj/article/details/6792364

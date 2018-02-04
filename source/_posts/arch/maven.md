@@ -142,6 +142,7 @@ tags: [maven]
 - 配置maven远程仓库
 
 	```xml
+	<!-- 优先读取本地库 -->
 	<repositories>
         <repository>
             <id>oldinaction-maven-repo</id>

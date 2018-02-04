@@ -73,7 +73,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 2. 将`ubuntu-16.04.1-desktop-amd64.iso`中casper文件夹下的initrd.lz和vmlinuz.efi复制到C盘根目录，并将镜像也复制进去。
 3. 重启电脑，启动界面选择`NeoGrub`
 4. 如果成功则会进入到buntu的桌面，首先`Ctrl+Alt+T`打开终端打开终端，运行`sudo umount -l /isodevice`去掉挂载的镜像文件
-5. 安装U盘安装进行后续操作
+5. 类似U盘安装进行后续操作
 
 ### 移动硬盘安装 [^7]
 

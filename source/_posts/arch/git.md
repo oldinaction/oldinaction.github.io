@@ -84,6 +84,7 @@ tag: [git]
 	- `git checkout -b <localBranchName> <remotesBranchName>` 相当于检出远程的某个分支到本地，远程分支名如origin/b1(使用 `git branch -a` 查看时显示为remotes/origin/b1)
 		- **`git checkout -b <localBranchName> --track <remotesBranchName>`** 检出分支并创建本地分支与远程分支的追踪
 		- 勿使用 `git checkout 远程分支名` 命令会是当前HEAD变为一个游离的HEAD（即现在HEAD指向的是一个没有分支名字的修订版本，游离于已知的所有分支之外，如`HEAD detached at origin/b1`）
+		- `git checkout -b test1 origin/develop` 拉取远程develop分支
 	- `git push origin <branch>` 创建远程分支
 3. 切换分支
 	- `git checkout 分支名` 切换到此分支（*Switched to branch '分支名'*），此时 HEAD 指向此分支；并且本地磁盘（working 区）的内容会显示此分支的文件

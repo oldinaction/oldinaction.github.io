@@ -41,6 +41,20 @@ tags: [bat]
     :: 这是注释，后面运行脚本，如：
     java -jar my.jar
     ```
+- 脚本示例
+    - 进入到当前目录、设置环境变量
+        - `%~dp0` %0代表批处理本身； ~dp是变量扩充， d扩充到分区，p扩充到路径
+        
+    ```bat
+    rem 设置临时环境变量oracle_home为当前bat文件所在目录(%~dp0)下的Oracle64目录
+    set oracle_home=%~dp0\Oracle64
+    rem 进入到当前目录
+    %~d0
+    cd %~dp0
+    rem 运行exe文件
+    start plsqlDev.exe
+    ```
+        
 
 ---
 [^1]: [注释](http://blog.csdn.net/wh_19910525/article/details/8125762)

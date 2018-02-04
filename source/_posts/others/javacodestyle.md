@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "javacodestyle - Java开发规范"
+title: "Java开发规范"
 date: "2016-07-06 08:39"
 categories: others
 tags: [java, rule]
@@ -74,12 +74,18 @@ tags: [java, rule]
 新增一个xml文件，将以下代码复制进去。Eclipse -> Window -> Preference -> Java -> Code Style -> Code Template –> Import 导入模版文件并保存。
 
 ```xml
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="false" context="typecomment_context" deleted="false" description="创建的类型的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.typecomment" name="typecomment">/**
- * @ClassName: ${type_name}
- * @Description: ${todo}
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="false" context="gettercomment_context" deleted="false" description="getter 方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.gettercomment" name="gettercomment">/**
+ * 返回 ${bare_field_name} 的值     
+ * @return ${bare_field_name}
+ */   
+</template><template autoinsert="false" context="settercomment_context" deleted="false" description="setter 方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.settercomment" name="settercomment">/**    
+ * 设置 ${bare_field_name} 的值    
+ * @param ${param}  
+ */</template><template autoinsert="false" context="methodcomment_context" deleted="false" description="非覆盖方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.methodcomment" name="methodcomment">/**
+ * @Description ${todo}
+ * ${tags}
  * @author ${user}
  * @date ${date} ${time}
- * ${tags}
  */</template><template autoinsert="false" context="filecomment_context" deleted="false" description="已创建的 Java 文件的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.filecomment" name="filecomment">/**  
  * @Title ${file_name}
  * @Package ${package_name}
@@ -87,37 +93,31 @@ tags: [java, rule]
  * @author ${user}
  * @date ${date} ${time}
  * @version v1.0
+ */</template><template autoinsert="false" context="constructorcomment_context" deleted="false" description="创建的构造函数的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.constructorcomment" name="constructorcomment">/**
+ * &lt;p&gt;Title: &lt;/p&gt;
+ * &lt;p&gt;Description: &lt;/p&gt;
+ * ${tags}
  */</template><template autoinsert="false" context="fieldcomment_context" deleted="false" description="字段的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.fieldcomment" name="fieldcomment">/**
  * @Description ${todo}
  * ${field}
  */  
-</template><template autoinsert="false" context="settercomment_context" deleted="false" description="setter 方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.settercomment" name="settercomment">/**    
- * 设置 ${bare_field_name} 的值    
- * @param ${param}  
- */</template><template autoinsert="false" context="delegatecomment_context" deleted="false" description="代表方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.delegatecomment" name="delegatecomment">/**
- * ${tags}
- * ${see_to_target}
- */
-</template><template autoinsert="false" context="constructorcomment_context" deleted="false" description="创建的构造函数的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.constructorcomment" name="constructorcomment">/**
- * &lt;p&gt;Title: &lt;/p&gt;
- * &lt;p&gt;Description: &lt;/p&gt;
- * ${tags}
- */</template><template autoinsert="false" context="methodcomment_context" deleted="false" description="非覆盖方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.methodcomment" name="methodcomment">/**
- * @Description ${todo}
- * ${tags}
- * @author ${user}
- * @date ${date} ${time}
- */</template><template autoinsert="false" context="gettercomment_context" deleted="false" description="getter 方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.gettercomment" name="gettercomment">/**
- * 返回 ${bare_field_name} 的值     
- * @return ${bare_field_name}
- */   
 </template><template autoinsert="false" context="overridecomment_context" deleted="false" description="覆盖方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.overridecomment" name="overridecomment">/* (非 Javadoc)
  * 覆盖方法
  * &lt;p&gt;Title: ${enclosing_method}&lt;/p&gt;
  * &lt;p&gt;Description: &lt;/p&gt;
  * ${tags}
  * ${see_to_overridden}
- */</template></templates>
+ */</template><template autoinsert="false" context="typecomment_context" deleted="false" description="创建的类型的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.typecomment" name="typecomment">/**
+ * @ClassName: ${type_name}
+ * @Description: ${todo}
+ * @author ${user}
+ * @date ${date} ${time}
+ * ${tags}
+ */</template><template autoinsert="false" context="delegatecomment_context" deleted="false" description="代表方法的注释" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.delegatecomment" name="delegatecomment">/**
+ * ${tags}
+ * ${see_to_target}
+ */
+</template></templates>
 ```
 
 
