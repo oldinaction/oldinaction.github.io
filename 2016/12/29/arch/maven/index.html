@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2016/12/29/arch/maven/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签(windows/linux均可)      123456&amp;lt;mirror&amp;gt; 	&amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;  	&amp;lt;name&amp;gt;">
-<meta property="og:updated_time" content="2018-01-05T13:15:22.754Z">
+<meta property="og:updated_time" content="2018-02-26T13:26:31.624Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="maven">
 <meta name="twitter:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签(windows/linux均可)      123456&amp;lt;mirror&amp;gt; 	&amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;  	&amp;lt;name&amp;gt;">
@@ -445,7 +445,7 @@
 </blockquote>
 <ul>
 <li><p>法一：依赖写法(只能一个jar一个jar的添加)</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--groupId等是从jar包的META-INF中获得; 其中scope必须加; $&#123;basedir&#125;为maven内置参数--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;basedir&#125;/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">   <span class="comment">&lt;!--groupId等是从jar包的META-INF中获得; 其中scope必须加; $&#123;basedir&#125;为maven内置参数，标识项目根目录--&gt;</span></div><div class="line">   <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">   	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>cn.aezo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">   	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>utils<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">   	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line">       <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></div><div class="line">   	<span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;basedir&#125;/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></div><div class="line">   <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!-- springboot专用 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">plugins</span>&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">				<span class="comment">&lt;!--把项目打成jar，同时把本地jar包也引入进去：直接给springboot的打包插件引入此行--&gt;</span></div><div class="line">				<span class="tag">&lt;<span class="name">includeSystemScope</span>&gt;</span>true<span class="tag">&lt;/<span class="name">includeSystemScope</span>&gt;</span></div><div class="line">			<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 <li><p>法二：在<code>build-plugins</code>节点加以下插件(可获取到目录下所有jar)(未测试通过)</p>
   <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!--</span></div><div class="line">        &lt;source&gt;1.8&lt;/source&gt;</div><div class="line">        &lt;target&gt;1.8&lt;/target&gt;</div><div class="line">        &lt;encoding&gt;UTF-8&lt;/encoding&gt;</div><div class="line">        --&gt;</div><div class="line">		<span class="tag">&lt;<span class="name">compilerArguments</span>&gt;</span></div><div class="line">			<span class="tag">&lt;<span class="name">extdirs</span>&gt;</span>src/main/resources/lib<span class="tag">&lt;/<span class="name">extdirs</span>&gt;</span></div><div class="line">		<span class="tag">&lt;/<span class="name">compilerArguments</span>&gt;</span></div><div class="line">	<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></div></pre></td></tr></table></figure>
@@ -572,8 +572,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/01/10/linux/shell-java/" rel="prev" title="java相关Shell脚本">
-                java相关Shell脚本 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/01/10/lang/shell/" rel="prev" title="Shell编程">
+                Shell编程 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -646,7 +646,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">61</span>
+                <span class="site-state-item-count">65</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -668,7 +668,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">96</span>
+                <span class="site-state-item-count">99</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

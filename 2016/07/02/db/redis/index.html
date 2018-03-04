@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="db,redis," />
+  <meta name="keywords" content="arch," />
 
 
 
@@ -96,13 +96,13 @@
 
 
 <meta name="description" content="redis简介Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 string，hash，list，set，sorted set，bitmap 和 hyperloglog，所以常常被称为数据结构服务器。  官网：http://redis.io/ redis源码：redis Github r">
-<meta name="keywords" content="db,redis">
+<meta name="keywords" content="arch">
 <meta property="og:type" content="article">
 <meta property="og:title" content="redis">
 <meta property="og:url" content="http://blog.aezo.cn/2016/07/02/db/redis/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="redis简介Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 string，hash，list，set，sorted set，bitmap 和 hyperloglog，所以常常被称为数据结构服务器。  官网：http://redis.io/ redis源码：redis Github r">
-<meta property="og:updated_time" content="2017-11-28T11:21:58.317Z">
+<meta property="og:updated_time" content="2018-03-03T08:31:35.239Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="redis">
 <meta name="twitter:description" content="redis简介Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 string，hash，list，set，sorted set，bitmap 和 hyperloglog，所以常常被称为数据结构服务器。  官网：http://redis.io/ redis源码：redis Github r">
@@ -416,7 +416,7 @@
 <li>redis客户端连接管理软件：<code>RedisDesktopManager</code></li>
 <li>java操作redis(jar)：<a href="https://github.com/xetorthio/jedis" target="_blank" rel="external">jedis Github</a></li>
 </ul>
-<h2 id="安装Redis服务"><a href="#安装Redis服务" class="headerlink" title="安装Redis服务"></a>安装Redis服务</h2><ol>
+<h2 id="安装Redis服务"><a href="#安装Redis服务" class="headerlink" title="安装Redis服务"></a>安装Redis服务</h2><ul>
 <li>Windows<ul>
 <li>下载redis windows客户端（3.2.100）</li>
 <li>直接启动解压目录下的：<code>redis-server.exe</code>服务程序；<code>redis-cli.exe</code>客户端程序，即可在客户端使用命令行进行新增和查看数据（默认没有设置密码）</li>
@@ -427,7 +427,11 @@
 </li>
 </ul>
 </li>
-</ol>
+<li><p>Linux</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 下载源码(或手动下载后上传)</span></div><div class="line">wget http://download.redis.io/releases/redis-3.2.11.tar.gz</div><div class="line">tar -zxvf redis-3.2.11.tar.gz</div><div class="line"><span class="built_in">cd</span> redis-3.2.11</div><div class="line"><span class="comment"># 编译测试(可能会提示：Redis need tcl 8.5 or newer。解决办法：yum install tcl。其他问题参考：http://blog.csdn.net/for_tech/article/details/51880647)</span></div><div class="line"><span class="comment"># 编译测试不通过也可正常运行</span></div><div class="line">make <span class="built_in">test</span></div><div class="line">make install</div><div class="line"></div><div class="line"><span class="comment"># 运行服务端，也可选择配置文件启动：src/redis-server redis.conf</span></div><div class="line"><span class="comment"># 修改配置文件`vi redis.conf`将bind的127.0.0.1修改为本机地址，否则只能本机访问了</span></div><div class="line">src/redis-server</div><div class="line"></div><div class="line"><span class="comment"># 运行客户端进行测试(新开一个命令行)</span></div><div class="line">src/redis-cli</div><div class="line"><span class="comment"># 设置</span></div><div class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> foo bar</div><div class="line"><span class="comment"># 取值</span></div><div class="line">127.0.0.1:6379&gt; get foo</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="解决session一致性-session共享"><a href="#解决session一致性-session共享" class="headerlink" title="解决session一致性(session共享)"></a>解决session一致性(session共享)</h2><p>参考《nginx》的【反向代理和负载均衡】部分</p>
 <h2 id="springboot使用redis"><a href="#springboot使用redis" class="headerlink" title="springboot使用redis"></a>springboot使用redis</h2><ul>
 <li><p>引入依赖</p>
   <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
@@ -483,9 +487,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/db/" rel="tag"># db</a>
-          
-            <a href="/tags/redis/" rel="tag"># redis</a>
+            <a href="/tags/arch/" rel="tag"># arch</a>
           
         </div>
       
@@ -582,7 +584,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">61</span>
+                <span class="site-state-item-count">65</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -604,7 +606,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">96</span>
+                <span class="site-state-item-count">99</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -646,7 +648,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#redis简介"><span class="nav-number">1.</span> <span class="nav-text">redis简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Redis服务"><span class="nav-number">2.</span> <span class="nav-text">安装Redis服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#springboot使用redis"><span class="nav-number">3.</span> <span class="nav-text">springboot使用redis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java中操作Redis"><span class="nav-number">4.</span> <span class="nav-text">java中操作Redis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#redis对模糊查询的缺陷及解决方案"><span class="nav-number">5.</span> <span class="nav-text">redis对模糊查询的缺陷及解决方案</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#redis简介"><span class="nav-number">1.</span> <span class="nav-text">redis简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Redis服务"><span class="nav-number">2.</span> <span class="nav-text">安装Redis服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决session一致性-session共享"><span class="nav-number">3.</span> <span class="nav-text">解决session一致性(session共享)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#springboot使用redis"><span class="nav-number">4.</span> <span class="nav-text">springboot使用redis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java中操作Redis"><span class="nav-number">5.</span> <span class="nav-text">java中操作Redis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#redis对模糊查询的缺陷及解决方案"><span class="nav-number">6.</span> <span class="nav-text">redis对模糊查询的缺陷及解决方案</span></a></li></ol></div>
             
 
           </div>

@@ -103,7 +103,7 @@
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/db/lsnrctl-status.png">
-<meta property="og:updated_time" content="2018-02-04T10:47:44.232Z">
+<meta property="og:updated_time" content="2018-02-09T06:06:02.484Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Oracle DBA">
 <meta name="twitter:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
@@ -536,7 +536,7 @@
 </ul>
 </li>
 <li><code>sqlplus /nolog</code>、<code>sqlplus / as sysdba</code> 以nolog、sysdba身份登录，进入sql命令行</li>
-<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行)<ul>
+<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)<ul>
 <li><code>shutdown;</code> 有用户连接就不关闭，直到所有用户断开连接</li>
 </ul>
 </li>
@@ -672,7 +672,7 @@
 </li>
 </ul>
 </li>
-<li><p>表空间数据文件丢失，删除表空间报错ORA-02449、ORA-01115 <a href="[强制删除表空间](http://blog.chinaunix.net/uid-11570547-id-59108.html)">^6</a></p>
+<li><p>表空间数据文件丢失，删除表空间报错<code>ORA-02449</code>、<code>ORA-01115</code> <a href="[强制删除表空间](http://blog.chinaunix.net/uid-11570547-id-59108.html)">^6</a></p>
 <ul>
 <li>oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉</li>
 <li><code>sqlplus / as sysdba</code></li>
@@ -686,7 +686,15 @@
 <li><code>drop tablespace 表空间名</code></li>
 </ul>
 </li>
+<li>表空间不足，报错<code>ORA-01653: unable to extend table</code> <a href="[表空间不足解决办法](http://blog.sina.com.cn/s/blog_9d4799c701017pw1.html)">^7</a><ul>
+<li>重设表空间文件大小：<code>alter database datafile &#39;数据库文件路径&#39; resize 2000M;</code></li>
+<li>开启/关闭表空间自动扩展：<code>alter database datafile &#39;/home/oracle/data/ofbiz&#39; autoextend on/off;</code></li>
+<li>为此表空间新增数据文件</li>
+<li>查看表空间状态</li>
+</ul>
+</li>
 </ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> a.tablespace_name <span class="string">"表空间名"</span>,</div><div class="line">    a.bytes / <span class="number">1024</span> / <span class="number">1024</span> <span class="string">"表空间大小(m)"</span>,</div><div class="line">    (a.bytes - b.bytes) / <span class="number">1024</span> / <span class="number">1024</span> <span class="string">"已使用空间(m)"</span>,</div><div class="line">    b.bytes / <span class="number">1024</span> / <span class="number">1024</span> <span class="string">"空闲空间(m)"</span>,</div><div class="line">    <span class="keyword">round</span>(((a.bytes - b.bytes) / a.bytes) * <span class="number">100</span>, <span class="number">2</span>) <span class="string">"使用比"</span>,</div><div class="line">    a.file_name <span class="string">"全路径的数据文件名称"</span>,</div><div class="line">    autoextensible <span class="string">"表空间自动扩展"</span>, </div><div class="line">    increment_by</div><div class="line"><span class="keyword">from</span> (<span class="keyword">select</span> tablespace_name, file_name, autoextensible, increment_by, <span class="keyword">sum</span>(<span class="keyword">bytes</span>) <span class="keyword">bytes</span></div><div class="line">        <span class="keyword">from</span> dba_data_files</div><div class="line">    <span class="keyword">group</span> <span class="keyword">by</span> tablespace_name, file_name, autoextensible, increment_by) a,</div><div class="line">    (<span class="keyword">select</span> tablespace_name, <span class="keyword">sum</span>(<span class="keyword">bytes</span>) <span class="keyword">bytes</span>, <span class="keyword">max</span>(<span class="keyword">bytes</span>) largest</div><div class="line">        <span class="keyword">from</span> dba_free_space</div><div class="line">    <span class="keyword">group</span> <span class="keyword">by</span> tablespace_name) b</div><div class="line"><span class="keyword">where</span> a.tablespace_name = b.tablespace_name</div></pre></td></tr></table></figure>
 <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>- 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
 - oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
 </code></pre><hr>
@@ -740,8 +748,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/10/12/db/mysql-dba/" rel="next" title="Mysql DBA">
-                <i class="fa fa-chevron-left"></i> Mysql DBA
+              <a href="/2016/09/17/extend/intellij-idea/" rel="next" title="IntelliJ IDEA">
+                <i class="fa fa-chevron-left"></i> IntelliJ IDEA
               </a>
             
           </div>
@@ -750,8 +758,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/10/27/extend/wiki/" rel="prev" title="wiki">
-                wiki <i class="fa fa-chevron-right"></i>
+              <a href="/2016/10/12/db/mysql-dba/" rel="prev" title="Mysql DBA">
+                Mysql DBA <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -824,7 +832,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">61</span>
+                <span class="site-state-item-count">65</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -846,7 +854,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">96</span>
+                <span class="site-state-item-count">99</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

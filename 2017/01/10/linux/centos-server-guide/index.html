@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="基本命令 yum install vsftpd 安装软件vsftpd，一路y下去 yum search vsftpd 查找软件vsftpd源 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  防火墙决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组  Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl sta">
+<meta name="description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
 <meta name="keywords" content="CentOS,server">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CentOS服务器使用指导">
 <meta property="og:url" content="http://blog.aezo.cn/2017/01/10/linux/centos-server-guide/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="基本命令 yum install vsftpd 安装软件vsftpd，一路y下去 yum search vsftpd 查找软件vsftpd源 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  防火墙决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组  Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl sta">
-<meta property="og:updated_time" content="2017-11-10T02:05:36.153Z">
+<meta property="og:description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
+<meta property="og:updated_time" content="2018-03-03T14:24:49.888Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CentOS服务器使用指导">
-<meta name="twitter:description" content="基本命令 yum install vsftpd 安装软件vsftpd，一路y下去 yum search vsftpd 查找软件vsftpd源 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  防火墙决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组  Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl sta">
+<meta name="twitter:description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
 
 
 
@@ -408,13 +408,13 @@
       
 
       
-        <h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><ul>
-<li><code>yum install vsftpd</code> 安装软件vsftpd，一路y下去</li>
-<li><code>yum search vsftpd</code> 查找软件vsftpd源</li>
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
+<li>基于centos7介绍</li>
 <li><strong>如果服务器磁盘未挂载，最好先挂载后再进行软件安装</strong></li>
 </ul>
-<h3 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h3><p>决定能否访问到服务器，或服务器能否访问其他服务，取决于<code>服务器防火墙</code>和<code>云服务器后台管理的安全组</code></p>
-<ul>
+<h3 id="基本配置"><a href="#基本配置" class="headerlink" title="基本配置"></a>基本配置</h3><ul>
+<li>关闭防火墙<ul>
+<li>决定能否访问到服务器，或服务器能否访问其他服务，取决于<code>服务器防火墙</code>和<code>云服务器后台管理的安全组</code></li>
 <li>Centos 7使用firewalld代替了原来的iptables<ul>
 <li>查看状态：<code>systemctl status firewalld</code></li>
 <li>开放端口：<code>firewall-cmd --zone=public --add-port=80/tcp --permanent</code>（–permanent永久生效，没有此参数重启后失效）</li>
@@ -425,53 +425,99 @@
 </li>
 <li>云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则</li>
 </ul>
-<h2 id="常用软件安装"><a href="#常用软件安装" class="headerlink" title="常用软件安装"></a>常用软件安装</h2><h3 id="安装jdk"><a href="#安装jdk" class="headerlink" title="安装jdk"></a>安装jdk</h3><h4 id="下载jdk文件"><a href="#下载jdk文件" class="headerlink" title="下载jdk文件"></a>下载jdk文件</h4><blockquote>
-<p>默认登录时候在 root 目录，直接下载和解压，软件包和解压目录都默认在 root 目录，可以切换到 hoom 目录进行下载</p>
-</blockquote>
-<ol>
-<li>下载rpm格式<ul>
-<li>获取rpm链接（下载到本地后上传到服务器）： oracle -&gt; Downloads -&gt; Java SE -&gt; Java Archive -&gt; Java SE 7 -&gt; Java SE Development Kit 7u80 -&gt; Accept License Agreement -&gt; jdk-7u80-linux-x64.rpm</li>
-<li>下载jdk，运行命令：<code>wget http://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-linux-x64.rpm</code>(这个链接会下载成html格式，<strong>不行</strong>)</li>
-<li><code>rmp -ivh jdk-7u80-linux-x64.rpm</code> 安装rpm文件</li>
+</li>
+<li>永久关闭SELinux<ul>
+<li><code>vi /etc/selinux/config</code> 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）</li>
 </ul>
 </li>
+</ul>
+<h2 id="常用软件安装"><a href="#常用软件安装" class="headerlink" title="常用软件安装"></a>常用软件安装</h2><h3 id="安装技巧"><a href="#安装技巧" class="headerlink" title="安装技巧"></a>安装技巧</h3><ul>
+<li><code>yum</code>安装：<code>yum install xxx</code>(基于包管理工具安装，可以更好的解决包依赖关系)<ul>
+<li><code>yum -y install nginx</code> 安装时回答全部问题为是</li>
+<li><code>yum remove nginx</code> 卸载</li>
+<li><code>yum search vsftpd</code> 查找软件vsftpd源</li>
+<li><code>cd /etc/yum.repos.d</code> 查看yum的配置文件，其中<code>CentOS-Base.repo</code>为镜像列表配置。可更换镜像列表 <a href="[更换yum镜像](http://blog.csdn.net/inslow/article/details/54177191)">^3</a></li>
+</ul>
+</li>
+<li><code>tar.gz</code>等绿色安装包：解压<strong><code>tar -xvf xxx_0.0.1_linux_amd64.tar.gz</code></strong>, 会在当前目录生成一个<code>xxx_0.0.1_linux_amd64</code>的文件夹<ul>
+<li>部分直接是绿色文件，解压后可运行</li>
+<li>部分需要在运行一些安装程序，进入文件加运行相应的二进制文件即可</li>
+</ul>
+</li>
+<li><code>.bin</code>等可执行文件安装：<code>./xxx.bin</code>(可能需要设置权限成可执行，本质是rpm安装)</li>
+<li><code>rpm</code>格式文件安装(redhat package manage)<ul>
+<li><strong><code>rpm -ivh jdk-7u80-linux-x64.rpm</code></strong> 安装程序包(jdk)<ul>
+<li><code>--force</code> 强行安装，可以实现重装或降级</li>
+<li><code>rpm -Uvh nginx</code> 如果装有老版本则升级，否则安装</li>
+<li><code>rpm -Fvh nginx</code> 如果装有老版本则升级，否则退出</li>
+</ul>
+</li>
+<li><code>rpm -qa</code> 查看安装的程序包(<code>rpm -qa | grep nginx</code> 查看是否安装nginx)</li>
+<li><code>rpm -ql jdk | more</code> 查询指定包安装后生成的文件列表</li>
+<li><strong><code>rpm -qc nginx</code></strong> 查询指定包安装的配置文件</li>
+<li><code>rpm -qi jdk</code> 查看jdk安装信息</li>
+<li><code>rpm -e rpm包名</code> 卸载某个包(程序)，其中的rpm包名可通过上述命令查看</li>
+</ul>
+</li>
+<li><p><code>源码安装</code>：<code>make</code>编译、<code>make install</code></p>
+<ul>
+<li>前提：准备开发环境(编译环境)，安装”Development Tools”和”Development Libraries” <ul>
+<li><code>yum groupinstall Development Tools Development Libraries</code></li>
+</ul>
+</li>
+<li><code>make test</code> 测试编译</li>
+<li><p>示例如</p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> 解压源码包</span></div><div class="line">tar -zxvf tengine-1.4.2.tar.gz</div><div class="line">cd tegnine-1.4.2</div><div class="line"><span class="meta">#</span><span class="bash"> configure配置</span></div><div class="line">./configure --prefix=/usr/local/tengine --conf-path=/etc/tengine/tengine.conf</div><div class="line"><span class="meta">#</span><span class="bash"> 编译安装</span></div><div class="line">make &amp;&amp; make install</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="安装jdk"><a href="#安装jdk" class="headerlink" title="安装jdk"></a>安装jdk</h3><h4 id="下载-上传jdk文件"><a href="#下载-上传jdk文件" class="headerlink" title="下载/上传jdk文件"></a>下载/上传jdk文件</h4><blockquote>
+<p>默认登录时候在 root 目录，直接下载和解压，软件包和解压目录都默认在 root 目录，可以切换到 hoom 目录进行下载</p>
+</blockquote>
+<ul>
+<li>通过ftp上传jdk对应tar压缩包到对应目录并进行解压</li>
 <li>下载tar格式（推荐）<ul>
-<li>下载tar文件 <code>wget --no-check-certificate --no-cookies --header &quot;Cookie: oraclelicense=accept-securebackup-cookie&quot; http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz</code></li>
+<li>下载tar文件 <code>wget --no-check-certificate --no-cookies --header &quot;Cookie: oraclelicense=accept-securebackup-cookie&quot; http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz</code><strong>（或者先下载到本地后上传到服务器）</strong></li>
 <li>解压tar <code>tar -zxvf jdk-7u79-linux-x64.tar.gz</code><blockquote>
 <p>网上有很多深坑，如果报 gzip: stdin: not in gzip format 错请查看：<a href="http://www.cnblogs.com/gmq-sh/p/5380078.html" target="_blank" rel="external">http://www.cnblogs.com/gmq-sh/p/5380078.html</a></p>
 </blockquote>
 </li>
 </ul>
 </li>
-</ol>
+<li>下载rpm格式<ul>
+<li>获取rpm链接（下载到本地后上传到服务器）： oracle -&gt; Downloads -&gt; Java SE -&gt; Java Archive -&gt; Java SE 7 -&gt; Java SE Development Kit 7u80 -&gt; Accept License Agreement -&gt; jdk-7u80-linux-x64.rpm</li>
+<li>下载jdk，运行命令：<code>wget http://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-linux-x64.rpm</code>(这个链接会下载成html格式，<strong>不行</strong>)</li>
+<li><code>rmp -ivh jdk-7u80-linux-x64.rpm</code> 安装rpm文件</li>
+</ul>
+</li>
+</ul>
 <h4 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h4><ul>
 <li><code>vi /etc/profile</code> 使用vi打开profile文件</li>
-<li><p>在末尾输入并保存（注意JAVA_HOME需要按照实际路径）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">export JAVA_HOME=/root/jdk1.7.0_79</div><div class="line">export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib</div><div class="line">export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin</div></pre></td></tr></table></figure>
-<blockquote>
-<p><code>vi 文件名</code>打开某个文件进行编辑</p>
-<ul>
-<li>点击键盘<code>insert</code>，进入vi编辑模式，开始编辑；</li>
-<li>点击<code>esc</code>退出编辑模式，进入到vi命令行模式；</li>
-<li>输入<code>:x</code>/<code>ZZ</code>将刚刚修改的文件进行保存，退出编辑页面，回到初始命令行</li>
-<li><code>Ctrl+z</code> 退出 vi 编辑器</li>
+<li>在末尾输入并保存（注意JAVA_HOME需要按照实际路径）</li>
 </ul>
-</blockquote>
-</li>
-<li><p>运行命令 <code>. /etc/profile</code> 使profile立即生效(注意 . 和 / 之间有空格)</p>
-</li>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">export</span> JAVA_HOME=/root/jdk1.7.0_79</div><div class="line"><span class="built_in">export</span> CLASSPATH=.:<span class="variable">$JAVA_HOME</span>/lib:<span class="variable">$JAVA_HOME</span>/jre/lib</div><div class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/jre/bin</div></pre></td></tr></table></figure>
+<ul>
+<li>运行命令 <code>. /etc/profile</code> 使profile立即生效(注意 . 和 / 之间有空格)</li>
 <li><code>java -version</code> 打印版本号</li>
 </ul>
-<h3 id="安装vsftpd-1"><a href="#安装vsftpd-1" class="headerlink" title="安装vsftpd ^1"></a>安装vsftpd <a href="[vsftpd](http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html)">^1</a></h3><blockquote>
-<p>ftp/sftp是协议，vsftpd是ftp服务器(只支持ftp协议)<br><code>yum install ftp</code>安装后可执行ftp命令，此时ftp相当于一个客户端，和window下的xftp类似</p>
-</blockquote>
-<ol>
-<li>安装<code>yum install vsftpd</code></li>
-<li><p>修改默认配置文件<code>vim /etc/vsftpd/vsftpd.conf</code></p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">#不允许匿名登录(NO)</div><div class="line">anonymous_enable=NO</div><div class="line">#禁止匿名用户上传</div><div class="line">anon_upload_enable=NO</div><div class="line"></div><div class="line">#禁止用户登出自己的FTP主目录(YES表示禁止登出主目录，NO表示不做限制)</div><div class="line">chroot_list_enable=YES</div><div class="line">#如果chroot_list_enable=YES，那么凡是加在文件chroot_list中的用户都是受限止的用户，即不可浏览其主目录的上级目录</div><div class="line">chroot_list_file=/etc/vsftpd/chroot_list</div><div class="line"></div><div class="line">#设定20端口进行通信，对外默认是21端口。防火墙要开放20、21端口</div><div class="line">#connect_from_port_20=YES</div><div class="line">#监听端口</div><div class="line">#listen_port=2121</div><div class="line"></div><div class="line">##加在最后</div><div class="line">#开启pam模式，/etc/vsftpd/ftpusers中为禁止登录的用户 [^2]</div><div class="line">pam_service_name=vsftpd</div><div class="line">#对vsftpd有用，否则因home目录权限为root权限而无法登录</div><div class="line">allow_writeable_chroot=YES</div><div class="line">#开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口</div><div class="line">#pasv_enable=YES</div><div class="line">pasv_min_port=30000</div><div class="line">pasv_max_port=30999</div><div class="line">#限定可登录用户列表</div><div class="line">userlist_enable=YES</div><div class="line">userlist_file=/etc/vsftpd/user_list</div><div class="line">#表示默认所有用户都不能登录，只有列表中用户才可以；如果userlist_deny=YES，则user_list中的用户就不允许登录ftp服务器</div><div class="line">userlist_deny=NO</div></pre></td></tr></table></figure>
+<h3 id="安装vsftpd-1"><a href="#安装vsftpd-1" class="headerlink" title="安装vsftpd ^1"></a>安装vsftpd <a href="[vsftpd](http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html)">^1</a></h3><ul>
+<li>安装vsftp服务器后方便上传软件安装包</li>
+<li>ftp/sftp是协议，vsftpd是ftp服务器(只支持ftp协议)</li>
+<li><code>yum install ftp</code>安装后可执行ftp命令，此时ftp相当于一个客户端，和window下的xftp类似（ftp登录<code>ftp localhost</code>；ftp命令行退出<code>bye</code>）</li>
+<li><code>sftp localhost</code> 输入密码后登录ftp；exit退出(无需安装vsftp，一般服务器都默认支持，相当于windows用xftp以sftp形式登录ftp服务器)</li>
+<li><strong>vsftp需要关闭防火墙才可访问</strong></li>
+</ul>
+<h4 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h4><ol>
+<li>安装<code>yum install vsftpd</code><ul>
+<li>ftp协议登录<code>ftp localhost</code>；ftp命令行退出<code>bye</code>(需要安装ftp)</li>
+</ul>
 </li>
-<li><p>设置用户</p>
-<ul>
+<li>修改默认配置文件<code>vim /etc/vsftpd/vsftpd.conf</code></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#不允许匿名登录(NO)</span></div><div class="line">anonymous_enable=NO</div><div class="line"><span class="comment">#禁止匿名用户上传</span></div><div class="line">anon_upload_enable=NO</div><div class="line"></div><div class="line"><span class="comment">#禁止用户登出自己的FTP主目录(YES表示禁止登出主目录，NO表示不做限制)</span></div><div class="line">chroot_list_enable=YES</div><div class="line"><span class="comment">#如果chroot_list_enable=YES，那么凡是加在文件chroot_list中的用户都是受限止的用户，即不可浏览其主目录的上级目录</span></div><div class="line">chroot_list_file=/etc/vsftpd/chroot_list</div><div class="line"></div><div class="line"><span class="comment">#设定20端口进行通信，对外默认是21端口。防火墙要开放20、21端口</span></div><div class="line"><span class="comment">#connect_from_port_20=YES</span></div><div class="line"><span class="comment">#监听端口</span></div><div class="line"><span class="comment">#listen_port=2121</span></div><div class="line"></div><div class="line"><span class="comment">##加在最后</span></div><div class="line"><span class="comment">#开启pam模式，/etc/vsftpd/ftpusers中为禁止登录的用户 [^2]</span></div><div class="line">pam_service_name=vsftpd</div><div class="line"><span class="comment">#对vsftpd有用，否则因home目录权限为root权限而无法登录</span></div><div class="line">allow_writeable_chroot=YES</div><div class="line"><span class="comment">#开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口</span></div><div class="line"><span class="comment">#pasv_enable=YES</span></div><div class="line">pasv_min_port=30000</div><div class="line">pasv_max_port=30999</div><div class="line"><span class="comment">#限定可登录用户列表</span></div><div class="line">userlist_enable=YES</div><div class="line">userlist_file=/etc/vsftpd/user_list</div><div class="line"><span class="comment">#表示默认所有用户都不能登录，只有列表中用户才可以；如果userlist_deny=YES，则user_list中的用户就不允许登录ftp服务器</span></div><div class="line">userlist_deny=NO</div></pre></td></tr></table></figure>
+<ol>
+<li>设置用户<ul>
 <li>法一(应用程序内部使用推荐)：设置vsftpd服务的宿主用户 <code>useradd ftpadmin -d /home/ftproot -s /sbin/nologin</code><ul>
 <li><code>passwd ftpadmin</code> 给ftpadmin设置密码</li>
 <li>默认的vsftpd的服务宿主用户是root，但是这不符合安全性的需要。这里建立名字为ftpadmin的用户，用他来作为支持vsftpd的服务宿主用户。由于该用户仅用来支持vsftpd服务用，因此没有许可他登陆系统的必要，并设定他为不能登陆系统的用户（-s /sbin/nologin）。并设置ftpadmin的家目录为/home/ftproot(做为ftp服务器的根目录)</li>
@@ -496,14 +542,17 @@
 <li>启动服务<code>systemctl start vsftpd</code></li>
 <li>命令行ftp可以登录，但是xftp可以登录确无法获取目录列表，IE浏览器访问<code>ftp://192.168.1.1</code>失败。谷歌浏览器正常访问并使用，或者ftp客户端登录</li>
 </ol>
-<h3 id="git安装"><a href="#git安装" class="headerlink" title="git安装"></a>git安装</h3><ol>
-<li>查看是否安装git/查看git是否安装成功：<code>git --version</code><ul>
-<li><code>-bash: git: command not found</code> 表示尚未安装</li>
+<h3 id="tomcat安装"><a href="#tomcat安装" class="headerlink" title="tomcat安装"></a>tomcat安装</h3><ul>
+<li><code>tar -zxvf apache-tomcat-7.0.61.tar.gz</code> 解压</li>
+<li><code>./opt/soft/apache-tomcat-7.0.61/bin/startup.sh</code> 运行(需要先安装好JDK)</li>
+<li>访问<a href="http://192.168.6.133:8080/" target="_blank" rel="external">http://192.168.6.133:8080/</a></li>
 </ul>
-</li>
-<li>下载安装：<code>yum install git</code></li>
-</ol>
-<h3 id="htop安装"><a href="#htop安装" class="headerlink" title="htop安装"></a>htop安装</h3><ol>
+<h3 id="nginx安装"><a href="#nginx安装" class="headerlink" title="nginx安装"></a>nginx安装</h3><p>参考<code>《nginx.md》(基于编译安装tengine)</code>(nginx同理)</p>
+<h2 id="yum安装"><a href="#yum安装" class="headerlink" title="yum安装"></a>yum安装</h2><ul>
+<li><code>yum -y install memcached</code> 安装memcached(默认端口11211)</li>
+<li><code>yum -y install git</code> 安装git</li>
+</ul>
+<h2 id="管理软件安装"><a href="#管理软件安装" class="headerlink" title="管理软件安装"></a>管理软件安装</h2><h3 id="htop安装"><a href="#htop安装" class="headerlink" title="htop安装"></a>htop安装</h3><ol>
 <li>htop是比top功能更多的进程管理工具</li>
 <li><code>yum install htop</code> 安装</li>
 <li><code>htop</code>查看进程信息(命令行上显示的界面可直接鼠标点击操作)</li>
@@ -561,8 +610,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/01/10/linux/shell-java/" rel="next" title="java相关Shell脚本">
-                <i class="fa fa-chevron-left"></i> java相关Shell脚本
+              <a href="/2017/01/10/lang/shell/" rel="next" title="Shell编程">
+                <i class="fa fa-chevron-left"></i> Shell编程
               </a>
             
           </div>
@@ -645,7 +694,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">61</span>
+                <span class="site-state-item-count">65</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -667,7 +716,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">96</span>
+                <span class="site-state-item-count">99</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -709,7 +758,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本命令"><span class="nav-number">1.</span> <span class="nav-text">基本命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#防火墙"><span class="nav-number">1.1.</span> <span class="nav-text">防火墙</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用软件安装"><span class="nav-number">2.</span> <span class="nav-text">常用软件安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装jdk"><span class="nav-number">2.1.</span> <span class="nav-text">安装jdk</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#下载jdk文件"><span class="nav-number">2.1.1.</span> <span class="nav-text">下载jdk文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置环境变量"><span class="nav-number">2.1.2.</span> <span class="nav-text">配置环境变量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装vsftpd-1"><span class="nav-number">2.2.</span> <span class="nav-text">安装vsftpd ^1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#git安装"><span class="nav-number">2.3.</span> <span class="nav-text">git安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#htop安装"><span class="nav-number">2.4.</span> <span class="nav-text">htop安装</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本配置"><span class="nav-number">1.1.</span> <span class="nav-text">基本配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用软件安装"><span class="nav-number">2.</span> <span class="nav-text">常用软件安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装技巧"><span class="nav-number">2.1.</span> <span class="nav-text">安装技巧</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装jdk"><span class="nav-number">2.2.</span> <span class="nav-text">安装jdk</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#下载-上传jdk文件"><span class="nav-number">2.2.1.</span> <span class="nav-text">下载/上传jdk文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置环境变量"><span class="nav-number">2.2.2.</span> <span class="nav-text">配置环境变量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装vsftpd-1"><span class="nav-number">2.3.</span> <span class="nav-text">安装vsftpd ^1</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装步骤"><span class="nav-number">2.3.1.</span> <span class="nav-text">安装步骤</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tomcat安装"><span class="nav-number">2.4.</span> <span class="nav-text">tomcat安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nginx安装"><span class="nav-number">2.5.</span> <span class="nav-text">nginx安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#yum安装"><span class="nav-number">3.</span> <span class="nav-text">yum安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理软件安装"><span class="nav-number">4.</span> <span class="nav-text">管理软件安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#htop安装"><span class="nav-number">4.1.</span> <span class="nav-text">htop安装</span></a></li></ol></li></ol></div>
             
 
           </div>

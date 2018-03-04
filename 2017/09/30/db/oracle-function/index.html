@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度只有1未就在前面加0，否则取本身    聚合函数">
+<meta name="description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) 只能判断=，不能判断like select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度为1那就在前面加0，">
 <meta name="keywords" content="oracle,function">
 <meta property="og:type" content="article">
 <meta property="og:title" content="oracle-function">
 <meta property="og:url" content="http://blog.aezo.cn/2017/09/30/db/oracle-function/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度只有1未就在前面加0，否则取本身    聚合函数">
-<meta property="og:updated_time" content="2017-12-16T05:00:40.734Z">
+<meta property="og:description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) 只能判断=，不能判断like select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度为1那就在前面加0，">
+<meta property="og:updated_time" content="2018-02-27T08:56:58.370Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="oracle-function">
-<meta name="twitter:description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度只有1未就在前面加0，否则取本身    聚合函数">
+<meta name="twitter:description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) 只能判断=，不能判断like select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度为1那就在前面加0，">
 
 
 
@@ -409,8 +409,14 @@
 
       
         <h2 id="常用函数"><a href="#常用函数" class="headerlink" title="常用函数"></a>常用函数</h2><ul>
-<li><code>decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)</code><ul>
-<li><code>select decode(length(ys.ycross_x), 1, &#39;0&#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys</code> 如果ys.ycross_x的长度只有1未就在前面加0，否则取本身</li>
+<li><code>decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)</code> 只能判断=，不能判断like<ul>
+<li><code>select decode(length(ys.ycross_x), 1, &#39;0&#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys</code> 如果ys.ycross_x的长度为1那就在前面加0，否则取本身</li>
+<li><code>select sum(decode(shipcomp.company_num, &#39;CMA&#39;, 1, 0)) cma, sum(decode(shipcomp.company_num, &#39;MSK&#39;, 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联)</code> 统计进出场记录中cma和msk的数量</li>
+</ul>
+</li>
+<li><code>case when else end</code> 比decode强大<ul>
+<li><code>case when t.name = &#39;admin&#39; then &#39;admin&#39; when t.name like &#39;admin%&#39; then &#39;admin_user&#39; else decode(t.role, &#39;admin&#39;, &#39;admin&#39;, &#39;admin_user&#39;) end</code></li>
+<li><code>sum(case when yior.plan_classification_code = &#39;Empty_Temporary_Fall_Into_Play&#39; and yardparty.company_num = &#39;DW1&#39; then 1 end) as count_dw1</code></li>
 </ul>
 </li>
 </ul>
@@ -429,7 +435,11 @@
 </ul>
 </li>
 </ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id</span></div><div class="line"><span class="keyword">select</span> *</div><div class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> ys.id</div><div class="line">               ,<span class="keyword">count</span>(*) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> ys.id) <span class="keyword">as</span> total</div><div class="line">               ,<span class="keyword">first_value</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> yvmp.storage_id <span class="keyword">order</span> <span class="keyword">by</span> yvmp.input_tm <span class="keyword">ASC</span> <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> first_id</div><div class="line">          <span class="keyword">from</span> ycross_storage ys</div><div class="line">          <span class="keyword">left</span> <span class="keyword">join</span> yyard_venue_move_plan yvmp</div><div class="line">            <span class="keyword">on</span> yvmp.storage_id = ys.id</div><div class="line">           <span class="keyword">and</span> yvmp.yes_status = <span class="number">0</span>) t</div><div class="line"> <span class="keyword">group</span> <span class="keyword">by</span> t.id, t.total, t.first_id</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id</span></div><div class="line"><span class="keyword">select</span> *</div><div class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> ys.id</div><div class="line">               ,<span class="keyword">count</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> ys.id) <span class="keyword">as</span> total</div><div class="line">               ,<span class="keyword">first_value</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> yvmp.storage_id <span class="keyword">order</span> <span class="keyword">by</span> yvmp.input_tm <span class="keyword">ASC</span> <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> first_id</div><div class="line">          <span class="keyword">from</span> ycross_storage ys</div><div class="line">          <span class="keyword">left</span> <span class="keyword">join</span> yyard_venue_move_plan yvmp</div><div class="line">            <span class="keyword">on</span> yvmp.storage_id = ys.id</div><div class="line">           <span class="keyword">and</span> yvmp.yes_status = <span class="number">0</span>) t</div><div class="line"> <span class="keyword">group</span> <span class="keyword">by</span> t.id, t.total, t.first_id</div></pre></td></tr></table></figure>
+<ul>
+<li>grouping、rollup：<a href="http://blog.csdn.net/damenggege123/article/details/38794351" target="_blank" rel="external">http://blog.csdn.net/damenggege123/article/details/38794351</a></li>
+<li>case when else end：<a href="https://www.cnblogs.com/luowz/p/5804639.html" target="_blank" rel="external">https://www.cnblogs.com/luowz/p/5804639.html</a></li>
+</ul>
 <h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h2 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h2><h3 id="字符串分割函数"><a href="#字符串分割函数" class="headerlink" title="字符串分割函数"></a>字符串分割函数</h3><ul>
 <li>创建字符串数组类型：<code>create or replace type sm_type_arr_str is table of varchar2 (60);</code> (一个数组，每个元素是varchar2 (60))</li>
 <li><p>创建自定义函数<code>sm_split</code></p>
@@ -571,7 +581,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">61</span>
+                <span class="site-state-item-count">65</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -593,7 +603,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">96</span>
+                <span class="site-state-item-count">99</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
