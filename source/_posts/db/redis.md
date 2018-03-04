@@ -3,7 +3,7 @@ layout: "post"
 title: "redis"
 date: "2016-07-02 12:11"
 categories: db
-tags: [redis, db]
+tags: arch
 ---
 
 ## redis简介
@@ -18,12 +18,39 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
 
 ## 安装Redis服务
 
-1. Windows
+- Windows
     - 下载redis windows客户端（3.2.100）
     - 直接启动解压目录下的：`redis-server.exe`服务程序；`redis-cli.exe`客户端程序，即可在客户端使用命令行进行新增和查看数据（默认没有设置密码）
     - 设置密码
         - 修改`redis.windows.conf`，将`# requirepass foobared` 改成 `requirepass yourpassword`(行前不能有空格)
         - cmd进入到redis解压目录，运行`redis-server redis.windows.conf`，之后登录则需要密码
+- Linux
+    
+    ```bash
+    # 下载源码(或手动下载后上传)
+    wget http://download.redis.io/releases/redis-3.2.11.tar.gz
+    tar -zxvf redis-3.2.11.tar.gz
+    cd redis-3.2.11
+    # 编译测试(可能会提示：Redis need tcl 8.5 or newer。解决办法：yum install tcl。其他问题参考：http://blog.csdn.net/for_tech/article/details/51880647)
+    # 编译测试不通过也可正常运行
+    make test
+    make install
+
+    # 运行服务端，也可选择配置文件启动：src/redis-server redis.conf
+    # 修改配置文件`vi redis.conf`将bind的127.0.0.1修改为本机地址，否则只能本机访问了
+    src/redis-server
+
+    # 运行客户端进行测试(新开一个命令行)
+    src/redis-cli
+    # 设置
+    127.0.0.1:6379> set foo bar
+    # 取值
+    127.0.0.1:6379> get foo
+    ```
+
+## 解决session一致性(session共享)
+
+参考《nginx》的【反向代理和负载均衡】部分
 
 ## springboot使用redis
 

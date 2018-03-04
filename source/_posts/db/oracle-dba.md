@@ -121,7 +121,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - `lsnrctl start` 启动监听程序(shell命令行运行)。
         - `lsnrctl status` 查看服务状态（见下图"lsnrctl-status显示图片"）
     - `sqlplus /nolog`、`sqlplus / as sysdba` 以nolog、sysdba身份登录，进入sql命令行
-    - `shutdown immediate` 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行)
+    - `shutdown immediate` 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)
         - `shutdown;` 有用户连接就不关闭，直到所有用户断开连接
     - `startup;` 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) 
     - `exit;` 退出sqlplus
@@ -223,7 +223,7 @@ alter system kill session '某个sid, 某个serial#';
         - `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.（**主要看*.trc文件**）
         - 如：`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
 
-2. 表空间数据文件丢失，删除表空间报错ORA-02449、ORA-01115 [^6]
+2. 表空间数据文件丢失，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
     - oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉
     - `sqlplus / as sysdba`
     - `shutdown abort` 强制关闭oracle
@@ -232,6 +232,29 @@ alter system kill session '某个sid, 某个serial#';
         - `select file_name, tablespace_name from dba_data_files;` 查看表空间数据文件位置
     - `alter database open;`
     - `drop tablespace 表空间名`
+3. 表空间不足，报错`ORA-01653: unable to extend table` [^7]
+    - 重设表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;`
+    - 开启/关闭表空间自动扩展：`alter database datafile '/home/oracle/data/ofbiz' autoextend on/off;`
+    - 为此表空间新增数据文件
+    - 查看表空间状态
+
+```sql
+select a.tablespace_name "表空间名",
+    a.bytes / 1024 / 1024 "表空间大小(m)",
+    (a.bytes - b.bytes) / 1024 / 1024 "已使用空间(m)",
+    b.bytes / 1024 / 1024 "空闲空间(m)",
+    round(((a.bytes - b.bytes) / a.bytes) * 100, 2) "使用比",
+    a.file_name "全路径的数据文件名称",
+    autoextensible "表空间自动扩展", 
+    increment_by
+from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes
+        from dba_data_files
+    group by tablespace_name, file_name, autoextensible, increment_by) a,
+    (select tablespace_name, sum(bytes) bytes, max(bytes) largest
+        from dba_free_space
+    group by tablespace_name) b
+where a.tablespace_name = b.tablespace_name
+```
 
 ## 安装
     - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
@@ -252,3 +275,4 @@ alter system kill session '某个sid, 某个serial#';
 [^4]: http://blog.csdn.net/studyvcmfc/article/details/5679235
 [^5]: http://blog.csdn.net/yitian20000/article/details/6256716
 [^6]: [强制删除表空间](http://blog.chinaunix.net/uid-11570547-id-59108.html)
+[^7]: [表空间不足解决办法](http://blog.sina.com.cn/s/blog_9d4799c701017pw1.html)

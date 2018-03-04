@@ -8,8 +8,12 @@ tags: [oracle, function]
 
 ## 常用函数
 
-- `decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)`
-  - `select decode(length(ys.ycross_x), 1, '0' || ys.ycross_x, ys.ycross_x) from ycross_storage ys` 如果ys.ycross_x的长度只有1未就在前面加0，否则取本身
+- `decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)` 只能判断=，不能判断like
+  - `select decode(length(ys.ycross_x), 1, '0' || ys.ycross_x, ys.ycross_x) from ycross_storage ys` 如果ys.ycross_x的长度为1那就在前面加0，否则取本身
+  - `select sum(decode(shipcomp.company_num, 'CMA', 1, 0)) cma, sum(decode(shipcomp.company_num, 'MSK', 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联)` 统计进出场记录中cma和msk的数量
+- `case when else end` 比decode强大
+  - `case when t.name = 'admin' then 'admin' when t.name like 'admin%' then 'admin_user' else decode(t.role, 'admin', 'admin', 'admin_user') end`
+  - `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1`
 
 ## 聚合函数
 
@@ -28,7 +32,7 @@ tags: [oracle, function]
 -- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id
 select *
   from (select ys.id
-               ,count(*) over(partition by ys.id) as total
+               ,count(yvmp.venue_move_plan_id) over(partition by ys.id) as total
                ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm ASC rows between unbounded preceding and unbounded following) as first_id
           from ycross_storage ys
           left join yyard_venue_move_plan yvmp
@@ -37,10 +41,10 @@ select *
  group by t.id, t.total, t.first_id
 ```
 
+- grouping、rollup：http://blog.csdn.net/damenggege123/article/details/38794351
+- case when else end：https://www.cnblogs.com/luowz/p/5804639.html
 
 ## 其他
-
-
 
 ## 自定义函数
 

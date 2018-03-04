@@ -64,6 +64,8 @@ categories和tage都可以有多个
 
 ### 修改文章后保存源码并更新博客
 
+- **更新步骤如下**
+
   ```shell
   $ git add .
   $ git commit -am "update blog"

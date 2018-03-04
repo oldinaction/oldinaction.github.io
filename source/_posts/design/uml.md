@@ -66,7 +66,7 @@ UML中的关系包括：依赖、关联、泛化(extend)、实现
 
         ![聚合和组合](/data/images/2016/07/聚合和组合.png)
 
-3. `泛化`(Extend、继承)：实线三角箭头
+3. `泛化`(Extend/Generalization、继承)：实线三角箭头
 
     ![泛化](/data/images/2016/07/泛化.png)
 

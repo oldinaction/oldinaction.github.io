@@ -104,7 +104,7 @@ tags: [maven]
 - 法一：依赖写法(只能一个jar一个jar的添加)
 
     ```xml
-    <!--groupId等是从jar包的META-INF中获得; 其中scope必须加; ${basedir}为maven内置参数-->
+    <!--groupId等是从jar包的META-INF中获得; 其中scope必须加; ${basedir}为maven内置参数，标识项目根目录-->
     <dependency>
     	<groupId>cn.aezo</groupId>
     	<artifactId>utils</artifactId>
@@ -112,6 +112,20 @@ tags: [maven]
         <scope>system</scope>
     	<systemPath>${basedir}/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar</systemPath>
     </dependency>
+
+	<!-- springboot专用 -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!--把项目打成jar，同时把本地jar包也引入进去：直接给springboot的打包插件引入此行-->
+					<includeSystemScope>true</includeSystemScope>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
     ```
 
 - 法二：在`build-plugins`节点加以下插件(可获取到目录下所有jar)(未测试通过)

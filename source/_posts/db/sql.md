@@ -19,6 +19,20 @@ tags: [mysql, oracle, sql]
 - 按字段顺序一一插入值 `insert into dept2 values(50, 'game', 'bj');`
 - 指定部分字段的值 `insert into dept2(deptno, dname) values(60, 'game2');` 未指定的字段取默认值
 - 根据从子查询的值插入 `insert into dept2 select * from dept;` 子查询拿出来的数据和表结构要一样
+- 产生100w条数据
+
+```sql
+-- 1	2018-02-27 10:45:16	64	7SNNAA85AH375N09Y5II	1
+create table t_test as
+    select 
+        rownum as id,
+        to_char(sysdate + rownum / 24 / 3600, 'yyyy-mm-dd hh24:mi:ss') as input_tm,
+        trunc(dbms_random.value(0, 100)) as random_no,
+        dbms_random.string('x', 20) username,
+        1 as is_valid
+    from dual
+    connect by level <= 1000000;
+```
 
 ### 更新记录
 
@@ -414,32 +428,38 @@ mysql>select count(num) 	/*注释：组函数*/
 
 #### 更新表
 
-- **update set from where** 将一张表的数据同步到另外一张表
-    - Oracle: `UPDATE A SET (A1, A2, A3) = (SELECT B1, B2, B3 FROM B WHERE A.ID = B.ID) WHERE ID IN (SELECT B.ID FROM B WHERE A.ID = B.ID)`
-    - Mysql: `UPDATE A, B SET A1 = B1, A2 = B2, A3 = B3 WHERE A.ID = B.ID`
+- **`update set from where`** 将一张表的数据同步到另外一张表
+    
+    ```sql
+    -- Oracle
+    update a set (a1, a2, a3) = (select b1, b2, b3 from b where a.id = b.id) where exists (select 1  from b where a.id = b.id)
+    -- Mysql
+    update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id
+    ```
+
     - 实例
 
-```sql
-update ycross_storage ys
-set (ys.location_id, ys.ycross_x, ys.ycross_y, ys.box_type_id) =
-    (select yls.location_id,
-            sc.ycrossx,
-            sc.ycrossy,
-            (select ybts.id from yyard_box_type_set ybts where ybts.box_type = sc.relclcd) boxtypeid --也可以不取别名
-        from yyard_location_set yls, sql_ctninfo sc -- sql_ctninfo为临时表
-        where 1 = 1
-        and yls.region_num = sc.regionnum
-        and yls.set_num = sc.setnum
-        and (select ypc.company_num
-                from ybase_party_company ypc
-                where ypc.party_id = yls.yard_party_id) = ('dw' || trim(sc.yardin))
-        and yls.yes_status = 1
-        and sc.isinvalid = 1
-        and ys.box_number = sc.ctnno
-        and ys.yes_storage = 1) -- 可以拿到update的表ycross_storage，且不能关联进去，否则容易出现一对多错误
-where exists (select 1 from sql_ctninfo sc where ys.box_number = sc.ctnno); -- where只能拿到update的表(不能拿到form的)
--- 除了set(里面)限制了需要更新的范围，where(外面)也需要限制
-```
+    ```sql
+    update ycross_storage ys
+    set (ys.location_id, ys.ycross_x, ys.ycross_y, ys.box_type_id) =
+        (select yls.location_id,
+                sc.ycrossx,
+                sc.ycrossy,
+                (select ybts.id from yyard_box_type_set ybts where ybts.box_type = sc.relclcd) boxtypeid --也可以不取别名
+            from yyard_location_set yls, sql_ctninfo sc -- sql_ctninfo为临时表
+            where 1 = 1
+            and yls.region_num = sc.regionnum
+            and yls.set_num = sc.setnum
+            and (select ypc.company_num
+                    from ybase_party_company ypc
+                    where ypc.party_id = yls.yard_party_id) = ('dw' || trim(sc.yardin))
+            and yls.yes_status = 1
+            and sc.isinvalid = 1
+            and ys.box_number = sc.ctnno
+            and ys.yes_storage = 1) -- 可以拿到update的表ycross_storage，且不能关联进去，否则容易出现一对多错误
+    where exists (select 1 from sql_ctninfo sc where ys.box_number = sc.ctnno); -- where只能拿到update的表(不能拿到form的)
+    -- 除了set(里面)限制了需要更新的范围，where(外面)也需要限制
+    ```
 
 ### 修改表结构
 
