@@ -121,9 +121,9 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - `lsnrctl start` 启动监听程序(shell命令行运行)。
         - `lsnrctl status` 查看服务状态（见下图"lsnrctl-status显示图片"）
     - `sqlplus /nolog`、`sqlplus / as sysdba` 以nolog、sysdba身份登录，进入sql命令行
-    - `shutdown immediate` 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)
+    - **`shutdown immediate`** 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)
         - `shutdown;` 有用户连接就不关闭，直到所有用户断开连接
-    - `startup;` 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) 
+    - **`startup;`** 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) 
     - `exit;` 退出sqlplus
 2. 管理员登录
     - sqlplus本地登录：`sqlplus / as sysdba`，以sys登录。sys为系统管理员，拥有最高权限；system为本地管理员，次高权限

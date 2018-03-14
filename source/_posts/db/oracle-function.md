@@ -2,8 +2,8 @@
 layout: "post"
 title: "oracle-function"
 date: "2017-09-30 12:51"
-categories: [db]
-tags: [oracle, function]
+categories: db
+tags: [oracle, sql]
 ---
 
 ## 常用函数
@@ -33,7 +33,7 @@ tags: [oracle, function]
 select *
   from (select ys.id
                ,count(yvmp.venue_move_plan_id) over(partition by ys.id) as total
-               ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm ASC rows between unbounded preceding and unbounded following) as first_id
+               ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm       ASC rows between unbounded preceding and unbounded following) as first_id
           from ycross_storage ys
           left join yyard_venue_move_plan yvmp
             on yvmp.storage_id = ys.id

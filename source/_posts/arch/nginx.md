@@ -2,8 +2,8 @@
 layout: "post"
 title: "nginx"
 date: "2017-01-16 16:54"
-categories: [arch]
-tags: [nginx]
+categories: arch
+tags: LB, HA
 ---
 
 ## nginx介绍
@@ -280,7 +280,7 @@ http {
 - nginx支持三种类型的虚拟主机配置
     - 基于域名的虚拟主机(server_name不同；listen相同，如80)
     - 基于端口的虚拟主机(server_name相同；listen不同)
-    - 基于ip的虚拟主机(如listen 192.168.6.130:80; server_name 192.168.1.1/www.aezo.cn)
+    - 基于ip的虚拟主机(如listen 192.168.6.131:80; server_name 192.168.1.1/www.aezo.cn)
 
 ### location匹配规则
 
@@ -381,7 +381,7 @@ location ~ /purge(/.*) {
     #allow          127.0.0.1;
 }
 ```
-- 访问`http://192.168.6.131/purge/tomcat.png`(提示`Successful purge`)，即可清除 `http://192.168.6.131/tomcat.png`的缓存
+- 访问`http://192.168.6.132/purge/tomcat.png`(提示`Successful purge`)，即可清除 `http://192.168.6.132/tomcat.png`的缓存
 
 ### 反向代理和负载均衡
 
@@ -415,7 +415,7 @@ server {
     }
 
     location ~ /link(/.*) {
-        # $1表示取出正则表达式(/.*)所匹配的内容，使用$1的效果例如请求 http://192.168.6.131/link/tomcat.png 则请求tomcat服务器 http://ip:port/tomcat.png。 如果不使用$1则会将/link/...加在tomcat服务地址之后访问，即 http://ip:port/link/tomcat.png（*）
+        # $1表示取出正则表达式(/.*)所匹配的内容，使用$1的效果例如请求 http://192.168.6.132/link/tomcat.png 则请求tomcat服务器 http://ip:port/tomcat.png。 如果不使用$1则会将/link/...加在tomcat服务地址之后访问，即 http://ip:port/link/tomcat.png（*）
         proxy_pass http://backend$1;
     }
 }
@@ -436,7 +436,7 @@ upstream backend {
 }
 
 server {
-    # 健康检查访问端点。如访问：http://192.168.6.133/status 显示检查面板
+    # 健康检查访问端点。如访问：http://192.168.6.131/status 显示检查面板
     location /status {
         check_status;
     }
@@ -467,6 +467,7 @@ server {
                 <h1>tomcat1</h1>
             </html>
             ```
+        - memcached集群需要多台服务器时间一致(30s以内)
     - redis方式
         - 安装redis缓存数据库(参考《redis》)
         - 修改配置文件`vi /etc/redis.conf`将bind的127.0.0.1修改为本机地址，否则只能本机访问了
@@ -508,7 +509,7 @@ if [ $A -eq 0 ];then
 fi
 ```
 - 配置Keepalived(抢占模式配置) 增加VIP 启动服务
-    - MASTER（192.168.6.133）配置信息
+    - MASTER（192.168.6.131）配置信息
 
         ```bash
         global_defs {
@@ -533,7 +534,7 @@ fi
             #虚拟路由的ID号,两个节点设置必须一样(*)
             virtual_router_id 51
             #本机的IP
-            mcast_src_ip 192.168.6.133
+            mcast_src_ip 192.168.6.131
             # 节点优先级，取值范围0～254，MASTER要比BACKUP高(*)
             priority 100
             advert_int 1
@@ -553,7 +554,7 @@ fi
             }
         }
         ```
-    - BACKUP（192.168.6.131）配置信息
+    - BACKUP（192.168.6.132）配置信息
 
         ```bash
         global_defs {
@@ -570,7 +571,7 @@ fi
             state BACKUP
             interface eth0
             virtual_router_id 51
-            mcast_src_ip 192.168.6.131
+            mcast_src_ip 192.168.6.132
             priority 99
             advert_int 1
             authentication {
@@ -679,9 +680,10 @@ fi
 
 
 
-
-
 ---
+
+参考文章
+
 [^1]: [location配置规则](http://outofmemory.cn/code-snippet/742/nginx-location-configuration-xiangxi-explain)
 [^2]: [location配置正则](http://blog.csdn.net/gzh0222/article/details/7845981)
 [^3]: [自定义服务](http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html)

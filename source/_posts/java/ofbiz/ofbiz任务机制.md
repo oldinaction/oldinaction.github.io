@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "ofbiz任务(定时/异步)"
+title: "ofbiz任务机制"
 date: "2018-02-24 16:27"
 categories: java
 tags: [ofbiz, async]

@@ -43,6 +43,7 @@ create table t_test as
 
 - `delete from emp2;` 清空表emp2
 - `delete from dept2 where deptno < 25;` 删除deptno < 25的条目
+- `delete from emp2 where deptno in (select deptno from dept2 where deptno < 25)` 子查询不能有别名(oracle)
 
 ### 事物
 
@@ -415,7 +416,6 @@ mysql>select count(num) 	/*注释：组函数*/
 #### 删除表
 
 - 删除表 `drop table table_name;` 如果存在外键约束，应该先删除含有外键约束的那个表，再删除被参考的那个表
-- 清空表数据 `delete from table_name;`
 
 #### 复制表
 

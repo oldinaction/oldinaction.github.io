@@ -18,6 +18,11 @@ tags: [vmware, linux, centos]
     - 使用`DVD ISO`可不关注
 - 开始安装，安装期间设置Root密码(root)，创建用户(smalle/smalle)并设置为管理员
 - **开启windows下和VMware相关的两块虚拟网卡**
+- **快照**：可对保留虚拟主机当前的配置状态
+- **克隆虚拟主机**：基于某个虚拟主机进行克隆出一台主机。克隆后需要进行以下修改
+    - `hostnamectl set-hostname aezocn` 修改主机名
+    - `vi /etc/sysconfig/network-scripts/ifcfg-ens33`，修改`IPADDR`的值从而修改机器ip
+    - vmware克隆时会自动改变mac地址，如果没有改变可在vmware控制台中重新生成一个mac地址：设置-网络适配器-高级-生成
 
 ## 远程连接虚拟机
 

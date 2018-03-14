@@ -1,9 +1,9 @@
 ---
 layout: "post"
-title: "CentOS服务器使用指导"
+title: "CentOS服务器使用说明"
 date: "2017-01-10 13:19"
 categories: [linux]
-tags: [CentOS, server]
+tags: [CentOS, linux]
 ---
 
 ## 介绍
@@ -24,13 +24,16 @@ tags: [CentOS, server]
     - 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
 - 永久关闭SELinux
     - `vi /etc/selinux/config` 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
+- centos7无法使用`ifconfig`命令解决方案
+    - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
+    - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
 
 ## 常用软件安装
 
 ### 安装技巧
 
 - `yum`安装：`yum install xxx`(基于包管理工具安装，可以更好的解决包依赖关系)
-    - `yum -y install nginx` 安装时回答全部问题为是
+    - `yum install nginx -y` 安装时回答全部问题为是
     - `yum remove nginx` 卸载
     - `yum search vsftpd` 查找软件vsftpd源
     - `cd /etc/yum.repos.d` 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。可更换镜像列表 [^3]

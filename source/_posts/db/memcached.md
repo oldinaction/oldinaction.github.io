@@ -9,6 +9,7 @@ tags: arch
 ## 简介
 
 - [菜鸟教程](http://www.runoob.com/memcached/memcached-tutorial.html)
+- memcached集群需要多台服务器时间一致(30s以内)
 
 ## 安装和使用
 
