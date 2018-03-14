@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="简介 菜鸟教程  安装和使用 yum –y install memcached 安装 systemctl start memcached 启动(默认端口11211) 测试存值取值   123456789telnet localhost 11211# 设置变量abc的长度为5set abc 0 0 5# 设置abc的值为12345，长度必须和上面一致12345# 获取abc的值get abc# 退出">
+<meta name="description" content="简介 菜鸟教程 memcached集群需要多台服务器时间一致(30s以内)  安装和使用 yum –y install memcached 安装 systemctl start memcached 启动(默认端口11211) 测试存值取值   123456789telnet localhost 11211# 设置变量abc的长度为5set abc 0 0 5# 设置abc的值为12345，长度必须">
 <meta name="keywords" content="arch">
 <meta property="og:type" content="article">
 <meta property="og:title" content="memcached缓存数据库">
 <meta property="og:url" content="http://blog.aezo.cn/2018/03/03/db/memcached/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="简介 菜鸟教程  安装和使用 yum –y install memcached 安装 systemctl start memcached 启动(默认端口11211) 测试存值取值   123456789telnet localhost 11211# 设置变量abc的长度为5set abc 0 0 5# 设置abc的值为12345，长度必须和上面一致12345# 获取abc的值get abc# 退出">
-<meta property="og:updated_time" content="2018-03-03T07:22:23.124Z">
+<meta property="og:description" content="简介 菜鸟教程 memcached集群需要多台服务器时间一致(30s以内)  安装和使用 yum –y install memcached 安装 systemctl start memcached 启动(默认端口11211) 测试存值取值   123456789telnet localhost 11211# 设置变量abc的长度为5set abc 0 0 5# 设置abc的值为12345，长度必须">
+<meta property="og:updated_time" content="2018-03-04T12:14:45.037Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="memcached缓存数据库">
-<meta name="twitter:description" content="简介 菜鸟教程  安装和使用 yum –y install memcached 安装 systemctl start memcached 启动(默认端口11211) 测试存值取值   123456789telnet localhost 11211# 设置变量abc的长度为5set abc 0 0 5# 设置abc的值为12345，长度必须和上面一致12345# 获取abc的值get abc# 退出">
+<meta name="twitter:description" content="简介 菜鸟教程 memcached集群需要多台服务器时间一致(30s以内)  安装和使用 yum –y install memcached 安装 systemctl start memcached 启动(默认端口11211) 测试存值取值   123456789telnet localhost 11211# 设置变量abc的长度为5set abc 0 0 5# 设置abc的值为12345，长度必须">
 
 
 
@@ -410,6 +410,7 @@
       
         <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li><a href="http://www.runoob.com/memcached/memcached-tutorial.html" target="_blank" rel="external">菜鸟教程</a></li>
+<li>memcached集群需要多台服务器时间一致(30s以内)</li>
 </ul>
 <h2 id="安装和使用"><a href="#安装和使用" class="headerlink" title="安装和使用"></a>安装和使用</h2><ul>
 <li><code>yum –y install memcached</code> 安装</li>
@@ -462,8 +463,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/02/24/java/ofbiz/ofbiz-job/" rel="next" title="ofbiz任务(定时/异步)">
-                <i class="fa fa-chevron-left"></i> ofbiz任务(定时/异步)
+              <a href="/2018/02/24/java/ofbiz/ofbiz任务机制/" rel="next" title="ofbiz任务机制">
+                <i class="fa fa-chevron-left"></i> ofbiz任务机制
               </a>
             
           </div>
@@ -546,7 +547,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -557,7 +558,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -568,7 +569,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

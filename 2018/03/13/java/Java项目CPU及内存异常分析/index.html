@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="CentOS,server," />
+  <meta name="keywords" content="ofbiz,CPU,内存,运维," />
 
 
 
@@ -95,17 +95,21 @@
 
 
 
-<meta name="description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
-<meta name="keywords" content="CentOS,server">
+<meta name="description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
+<meta name="keywords" content="ofbiz,CPU,内存,运维">
 <meta property="og:type" content="article">
-<meta property="og:title" content="CentOS服务器使用指导">
-<meta property="og:url" content="http://blog.aezo.cn/2017/01/10/linux/centos-server-guide/index.html">
+<meta property="og:title" content="Java项目CPU及内存异常分析">
+<meta property="og:url" content="http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
-<meta property="og:updated_time" content="2018-03-03T14:24:49.888Z">
+<meta property="og:description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-cpu.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-jstack.png">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-src.png">
+<meta property="og:updated_time" content="2018-03-14T03:44:31.371Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="CentOS服务器使用指导">
-<meta name="twitter:description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
+<meta name="twitter:title" content="Java项目CPU及内存异常分析">
+<meta name="twitter:description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/java/ofbiz-cpu.png">
 
 
 
@@ -133,13 +137,13 @@
 
 
 
-  <link rel="canonical" href="http://blog.aezo.cn/2017/01/10/linux/centos-server-guide/"/>
+  <link rel="canonical" href="http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/"/>
 
 
 
 
 
-  <title>CentOS服务器使用指导 | SmalleBlog | AEZOCN</title>
+  <title>Java项目CPU及内存异常分析 | SmalleBlog | AEZOCN</title>
   
 
 
@@ -322,7 +326,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/10/linux/centos-server-guide/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -339,7 +343,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">CentOS服务器使用指导</h1>
+          <h1 class="post-title" itemprop="name headline">Java项目CPU及内存异常分析</h1>
         
 
         <div class="post-meta">
@@ -351,8 +355,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-10T13:19:00+08:00">
-                2017-01-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-13T13:35:00+08:00">
+                2018-03-13
               </time>
             
 
@@ -374,8 +378,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index">
-                    <span itemprop="name">linux</span>
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
                   </a>
                 </span>
 
@@ -408,164 +412,69 @@
       
 
       
-        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
-<li>基于centos7介绍</li>
-<li><strong>如果服务器磁盘未挂载，最好先挂载后再进行软件安装</strong></li>
-</ul>
-<h3 id="基本配置"><a href="#基本配置" class="headerlink" title="基本配置"></a>基本配置</h3><ul>
-<li>关闭防火墙<ul>
-<li>决定能否访问到服务器，或服务器能否访问其他服务，取决于<code>服务器防火墙</code>和<code>云服务器后台管理的安全组</code></li>
-<li>Centos 7使用firewalld代替了原来的iptables<ul>
-<li>查看状态：<code>systemctl status firewalld</code></li>
-<li>开放端口：<code>firewall-cmd --zone=public --add-port=80/tcp --permanent</code>（–permanent永久生效，没有此参数重启后失效）</li>
-<li>重新载入：<code>firewall-cmd --reload</code></li>
-<li>查看端口：<code>firewall-cmd --zone= public --query-port=80/tcp</code></li>
-<li>删除端口：<code>firewall-cmd --zone= public --remove-port=80/tcp --permanent</code></li>
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>java应用常见故障：<strong>高CPU占用</strong>、<strong>高内存占用</strong>、<strong>高I/O占用</strong>(包括磁盘I/O、网络I/O、数据库I/O等)</li>
+<li>高CPU常见场景：死循环(如while导致的较多)、高内存导致<ul>
+<li>高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU</li>
 </ul>
 </li>
-<li>云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则</li>
+<li>高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) <a href="[线上应用故障排查之二：高内存占用](http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html)">^2</a><ul>
+<li><code>java.lang.OutOfMemoryError: PermGen space</code>，原因可能为<ul>
+<li>程序启动需要加载大量的第三方jar包。例如：在一个Tomcat下部署了太多的应用</li>
 </ul>
 </li>
-<li>永久关闭SELinux<ul>
-<li><code>vi /etc/selinux/config</code> 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）</li>
+<li><code>java.lang.OutOfMemoryError: Java heap space</code>，原因可能为<ul>
+<li>Java虚拟机的堆内存设置不够，可以通过参数-Xms、-Xmx来调整。</li>
+<li>代码中创建了大量大对象，并且长时间不能被垃圾收集器收集（存在被引用）</li>
 </ul>
 </li>
+<li>在Java虚拟机中，内存分为三个代<ul>
+<li>新生代New：新建的对象都存放这里</li>
+<li>老生代Old：存放从新生代New中迁移过来的生命周期较久的对象。新生代New和老生代Old共同组成了堆内存</li>
+<li>永久代Perm：是非堆内存的组成部分。主要存放加载的Class类级对象如class本身，method，field等等</li>
 </ul>
-<h2 id="常用软件安装"><a href="#常用软件安装" class="headerlink" title="常用软件安装"></a>常用软件安装</h2><h3 id="安装技巧"><a href="#安装技巧" class="headerlink" title="安装技巧"></a>安装技巧</h3><ul>
-<li><code>yum</code>安装：<code>yum install xxx</code>(基于包管理工具安装，可以更好的解决包依赖关系)<ul>
-<li><code>yum -y install nginx</code> 安装时回答全部问题为是</li>
-<li><code>yum remove nginx</code> 卸载</li>
-<li><code>yum search vsftpd</code> 查找软件vsftpd源</li>
-<li><code>cd /etc/yum.repos.d</code> 查看yum的配置文件，其中<code>CentOS-Base.repo</code>为镜像列表配置。可更换镜像列表 <a href="[更换yum镜像](http://blog.csdn.net/inslow/article/details/54177191)">^3</a></li>
-</ul>
-</li>
-<li><code>tar.gz</code>等绿色安装包：解压<strong><code>tar -xvf xxx_0.0.1_linux_amd64.tar.gz</code></strong>, 会在当前目录生成一个<code>xxx_0.0.1_linux_amd64</code>的文件夹<ul>
-<li>部分直接是绿色文件，解压后可运行</li>
-<li>部分需要在运行一些安装程序，进入文件加运行相应的二进制文件即可</li>
-</ul>
-</li>
-<li><code>.bin</code>等可执行文件安装：<code>./xxx.bin</code>(可能需要设置权限成可执行，本质是rpm安装)</li>
-<li><code>rpm</code>格式文件安装(redhat package manage)<ul>
-<li><strong><code>rpm -ivh jdk-7u80-linux-x64.rpm</code></strong> 安装程序包(jdk)<ul>
-<li><code>--force</code> 强行安装，可以实现重装或降级</li>
-<li><code>rpm -Uvh nginx</code> 如果装有老版本则升级，否则安装</li>
-<li><code>rpm -Fvh nginx</code> 如果装有老版本则升级，否则退出</li>
-</ul>
-</li>
-<li><code>rpm -qa</code> 查看安装的程序包(<code>rpm -qa | grep nginx</code> 查看是否安装nginx)</li>
-<li><code>rpm -ql jdk | more</code> 查询指定包安装后生成的文件列表</li>
-<li><strong><code>rpm -qc nginx</code></strong> 查询指定包安装的配置文件</li>
-<li><code>rpm -qi jdk</code> 查看jdk安装信息</li>
-<li><code>rpm -e rpm包名</code> 卸载某个包(程序)，其中的rpm包名可通过上述命令查看</li>
-</ul>
-</li>
-<li><p><code>源码安装</code>：<code>make</code>编译、<code>make install</code></p>
-<ul>
-<li>前提：准备开发环境(编译环境)，安装”Development Tools”和”Development Libraries” <ul>
-<li><code>yum groupinstall Development Tools Development Libraries</code></li>
-</ul>
-</li>
-<li><code>make test</code> 测试编译</li>
-<li><p>示例如</p>
-  <figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> 解压源码包</span></div><div class="line">tar -zxvf tengine-1.4.2.tar.gz</div><div class="line">cd tegnine-1.4.2</div><div class="line"><span class="meta">#</span><span class="bash"> configure配置</span></div><div class="line">./configure --prefix=/usr/local/tengine --conf-path=/etc/tengine/tengine.conf</div><div class="line"><span class="meta">#</span><span class="bash"> 编译安装</span></div><div class="line">make &amp;&amp; make install</div></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
 </ul>
-<h3 id="安装jdk"><a href="#安装jdk" class="headerlink" title="安装jdk"></a>安装jdk</h3><h4 id="下载-上传jdk文件"><a href="#下载-上传jdk文件" class="headerlink" title="下载/上传jdk文件"></a>下载/上传jdk文件</h4><blockquote>
-<p>默认登录时候在 root 目录，直接下载和解压，软件包和解压目录都默认在 root 目录，可以切换到 hoom 目录进行下载</p>
+<h2 id="相关命令介绍"><a href="#相关命令介绍" class="headerlink" title="相关命令介绍"></a>相关命令介绍</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%</span></div><div class="line"><span class="comment"># Windows可以使用ProcessExplorer.exe查看进程和线程信息</span></div><div class="line">top</div><div class="line"></div><div class="line"><span class="comment">## 2.显示某进程的线程列表。pid：进程id;</span></div><div class="line"><span class="comment"># 结果说明：（1）第一行为统计（2）%CPU为此线程CPU占用率（3）TIME为线程运行时间（4）%MEM为内存占用率</span></div><div class="line">ps -mp &lt;pid&gt; -o THREAD,tid,time,rss,size,%mem</div><div class="line"></div><div class="line"><span class="comment">## 3.Java的jstack命令：打印线程的堆栈信息</span></div><div class="line"><span class="comment"># pid：进程id; tid线程id; -A 30表示显示30行; `printf "%x\n" &lt;tid&gt;`获取线程ID的16进制格式</span></div><div class="line"><span class="comment"># 如"OFBiz-JobQueue-0"为线程名，prio=10为优先级，tid为线程id，RUNNABLE为运行中</span></div><div class="line"><span class="comment"># "OFBiz-JobQueue-0" prio=10 tid=0x00007f2c60007800 nid=0x96d runnable [0x00007f2cfe187000]</span></div><div class="line"><span class="comment">#    java.lang.Thread.State: RUNNABLE</span></div><div class="line"><span class="comment">#       at java.net.SocketInputStream.socketRead0(Native Method)</span></div><div class="line"><span class="comment">#       ......</span></div><div class="line">jstack &lt;pid&gt; | grep `<span class="built_in">printf</span> <span class="string">"%x\n"</span> &lt;tid&gt;` -A 30</div><div class="line"><span class="comment"># 获取thread dump到文件</span></div><div class="line">jstack &lt;pid&gt; &gt; jstack.out</div><div class="line"></div><div class="line"><span class="comment">## 4.Java的jmap命令：显示一个进程下具体线程的内存占用情况</span></div><div class="line"><span class="comment"># 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live &lt;pid&gt; &gt; /home/jmap.out）</span></div><div class="line">jmap -histo:live &lt;pid&gt; | head -n 100</div><div class="line"><span class="comment"># 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析</span></div><div class="line"><span class="comment"># （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟）</span></div><div class="line">jmap -dump:live,format=b,file=/home/dump.hprof &lt;pid&gt;</div><div class="line"><span class="comment"># （2）项目启动添加参数获取(不能实时获取)</span></div><div class="line">-XX:+HeapDumpOnOutOfMemoryError <span class="comment"># 出现 OOME 时生成堆 dump:</span></div><div class="line">-XX:HeapDumpPath=/home/jvmlogs/ <span class="comment"># 生成堆文件地址</span></div></pre></td></tr></table></figure>
+<h2 id="MAT工具使用"><a href="#MAT工具使用" class="headerlink" title="MAT工具使用"></a>MAT工具使用</h2><ul>
+<li><p>MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，<a href="http://www.eclipse.org/mat/downloads.php" target="_blank" rel="external">下载</a></p>
+</li>
+<li><p><a href="https://www.cnblogs.com/moonandstar08/p/5625164.html" target="_blank" rel="external">https://www.cnblogs.com/moonandstar08/p/5625164.html</a></p>
+</li>
+<li><a href="http://blog.csdn.net/aaa2832/article/details/19419679" target="_blank" rel="external">http://blog.csdn.net/aaa2832/article/details/19419679</a></li>
+</ul>
+<h2 id="OFBiz项目案例分析"><a href="#OFBiz项目案例分析" class="headerlink" title="OFBiz项目案例分析"></a>OFBiz项目案例分析</h2><blockquote>
+<p>案例介绍：此问题主要是ofbiz在清理历史任务时，任务数据过大导致内存溢出，从而CPU飙升，最终服务器时常宕机。</p>
 </blockquote>
 <ul>
-<li>通过ftp上传jdk对应tar压缩包到对应目录并进行解压</li>
-<li>下载tar格式（推荐）<ul>
-<li>下载tar文件 <code>wget --no-check-certificate --no-cookies --header &quot;Cookie: oraclelicense=accept-securebackup-cookie&quot; http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz</code><strong>（或者先下载到本地后上传到服务器）</strong></li>
-<li>解压tar <code>tar -zxvf jdk-7u79-linux-x64.tar.gz</code><blockquote>
-<p>网上有很多深坑，如果报 gzip: stdin: not in gzip format 错请查看：<a href="http://www.cnblogs.com/gmq-sh/p/5380078.html" target="_blank" rel="external">http://www.cnblogs.com/gmq-sh/p/5380078.html</a></p>
-</blockquote>
-</li>
+<li><code>htop</code>查看情况如下</li>
 </ul>
-</li>
-<li>下载rpm格式<ul>
-<li>获取rpm链接（下载到本地后上传到服务器）： oracle -&gt; Downloads -&gt; Java SE -&gt; Java Archive -&gt; Java SE 7 -&gt; Java SE Development Kit 7u80 -&gt; Accept License Agreement -&gt; jdk-7u80-linux-x64.rpm</li>
-<li>下载jdk，运行命令：<code>wget http://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-linux-x64.rpm</code>(这个链接会下载成html格式，<strong>不行</strong>)</li>
-<li><code>rmp -ivh jdk-7u80-linux-x64.rpm</code> 安装rpm文件</li>
-</ul>
-</li>
-</ul>
-<h4 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h4><ul>
-<li><code>vi /etc/profile</code> 使用vi打开profile文件</li>
-<li>在末尾输入并保存（注意JAVA_HOME需要按照实际路径）</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">export</span> JAVA_HOME=/root/jdk1.7.0_79</div><div class="line"><span class="built_in">export</span> CLASSPATH=.:<span class="variable">$JAVA_HOME</span>/lib:<span class="variable">$JAVA_HOME</span>/jre/lib</div><div class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/jre/bin</div></pre></td></tr></table></figure>
+<p>可以看到其中PID=2273的进程CPU占用到达710%(服务器为8核)，内存占用22%(服务器为16G*0.22=3.52G，jvm参数设置的内存大小为3G)，其中线程运行时间达到5h29m。以上数据说明程序运行存在问题</p>
+<p><img src="/data/images/java/ofbiz-cpu.png" alt="htop"></p>
 <ul>
-<li>运行命令 <code>. /etc/profile</code> 使profile立即生效(注意 . 和 / 之间有空格)</li>
-<li><code>java -version</code> 打印版本号</li>
+<li><code>ps -mp 2273 -o THREAD,tid,time,rss,size,%mem</code> 查看此进程下线程运行情况：实际中发现有7个进场运行时间达到几十分钟，且CPU和内存占用均非常高。(其中2个是ofbiz拉取历史任务进行清理的进程，5个为GC进行垃圾回收的进程)</li>
+<li><code>jstack 2273 | grep</code>printf “%x\n” 2413<code>-A 40</code> 查看2273进程下2413线程的堆栈信息如下(或者输出到文件进行查看)</li>
 </ul>
-<h3 id="安装vsftpd-1"><a href="#安装vsftpd-1" class="headerlink" title="安装vsftpd ^1"></a>安装vsftpd <a href="[vsftpd](http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html)">^1</a></h3><ul>
-<li>安装vsftp服务器后方便上传软件安装包</li>
-<li>ftp/sftp是协议，vsftpd是ftp服务器(只支持ftp协议)</li>
-<li><code>yum install ftp</code>安装后可执行ftp命令，此时ftp相当于一个客户端，和window下的xftp类似（ftp登录<code>ftp localhost</code>；ftp命令行退出<code>bye</code>）</li>
-<li><code>sftp localhost</code> 输入密码后登录ftp；exit退出(无需安装vsftp，一般服务器都默认支持，相当于windows用xftp以sftp形式登录ftp服务器)</li>
-<li><strong>vsftp需要关闭防火墙才可访问</strong></li>
+<p>可以看到线程有以下调用信息<code>org.ofbiz.service.job.PurgeJob.exec(PurgeJob.java:55)</code>，如是可以去查看PurgeJob的源码。(当然应该多次查看此线程的堆栈，查看一次可能存在偶发性)</p>
+<p><img src="/data/images/java/ofbiz-purgejob-jstack.png" alt="jstack"></p>
+<ul>
+<li>ofbiz的PurgeJob相关源码。详细可参考《ofbiz任务机制》</li>
 </ul>
-<h4 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h4><ol>
-<li>安装<code>yum install vsftpd</code><ul>
-<li>ftp协议登录<code>ftp localhost</code>；ftp命令行退出<code>bye</code>(需要安装ftp)</li>
-</ul>
+<p>ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行的任务时，则进行历史任务数据(JobSandbox等表数据)清理工作，即获取当前时间4天(默认的purge-job-days)前完成或者取消的任务数据进行删除。</p>
+<p>而此处是根据ofbiz实体引擎查询的历史数据放到一个EntityListIterator中进行遍历(查看源码可知本质并没有分页获取数据，而是将所有查询的数据放到ResultSet进行遍历)</p>
+<p>由于本项目前期并没有太多的关注任务调用周期，从而导致大量任务堆积，并且不能及时清理。一定数量后，再次触发任务数据清理时就会从数据库获取大量数据到内存，从而内存移除，GC频繁清理，CPU飙升，服务器宕机。</p>
+<p><img src="/data/images/java/ofbiz-purgejob-src.png" alt="ofbiz-purgejob-src"></p>
+<ul>
+<li><p>MAT分析：从服务器下载dump文件使用MAT进行分析，发现也可发现上述情况</p>
 </li>
-<li>修改默认配置文件<code>vim /etc/vsftpd/vsftpd.conf</code></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#不允许匿名登录(NO)</span></div><div class="line">anonymous_enable=NO</div><div class="line"><span class="comment">#禁止匿名用户上传</span></div><div class="line">anon_upload_enable=NO</div><div class="line"></div><div class="line"><span class="comment">#禁止用户登出自己的FTP主目录(YES表示禁止登出主目录，NO表示不做限制)</span></div><div class="line">chroot_list_enable=YES</div><div class="line"><span class="comment">#如果chroot_list_enable=YES，那么凡是加在文件chroot_list中的用户都是受限止的用户，即不可浏览其主目录的上级目录</span></div><div class="line">chroot_list_file=/etc/vsftpd/chroot_list</div><div class="line"></div><div class="line"><span class="comment">#设定20端口进行通信，对外默认是21端口。防火墙要开放20、21端口</span></div><div class="line"><span class="comment">#connect_from_port_20=YES</span></div><div class="line"><span class="comment">#监听端口</span></div><div class="line"><span class="comment">#listen_port=2121</span></div><div class="line"></div><div class="line"><span class="comment">##加在最后</span></div><div class="line"><span class="comment">#开启pam模式，/etc/vsftpd/ftpusers中为禁止登录的用户 [^2]</span></div><div class="line">pam_service_name=vsftpd</div><div class="line"><span class="comment">#对vsftpd有用，否则因home目录权限为root权限而无法登录</span></div><div class="line">allow_writeable_chroot=YES</div><div class="line"><span class="comment">#开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口</span></div><div class="line"><span class="comment">#pasv_enable=YES</span></div><div class="line">pasv_min_port=30000</div><div class="line">pasv_max_port=30999</div><div class="line"><span class="comment">#限定可登录用户列表</span></div><div class="line">userlist_enable=YES</div><div class="line">userlist_file=/etc/vsftpd/user_list</div><div class="line"><span class="comment">#表示默认所有用户都不能登录，只有列表中用户才可以；如果userlist_deny=YES，则user_list中的用户就不允许登录ftp服务器</span></div><div class="line">userlist_deny=NO</div></pre></td></tr></table></figure>
-<ol>
-<li>设置用户<ul>
-<li>法一(应用程序内部使用推荐)：设置vsftpd服务的宿主用户 <code>useradd ftpadmin -d /home/ftproot -s /sbin/nologin</code><ul>
-<li><code>passwd ftpadmin</code> 给ftpadmin设置密码</li>
-<li>默认的vsftpd的服务宿主用户是root，但是这不符合安全性的需要。这里建立名字为ftpadmin的用户，用他来作为支持vsftpd的服务宿主用户。由于该用户仅用来支持vsftpd服务用，因此没有许可他登陆系统的必要，并设定他为不能登陆系统的用户（-s /sbin/nologin）。并设置ftpadmin的家目录为/home/ftproot(做为ftp服务器的根目录)</li>
-<li>将ftpadmin加到/etc/vsftpd/user_list中</li>
-<li>将ftpadmin加到/etc/vsftpd/chroot_list中</li>
-<li>文件/home/ftproot的所有者是ftpadmin，设置权限为755，包含子目录<ul>
-<li><code>chown -R ftpadmin /home/ftproot</code></li>
-<li><code>chmod -R 755 /home/ftproot</code></li>
-</ul>
+<li><p>解决方案</p>
 </li>
 </ul>
-</li>
-<li>法二：设置vsftpd虚拟宿主用户 <code>useradd aezo -s /sbin/nologin</code><ul>
-<li><code>-d /home/nowhere</code> 使用-d参数指定用户的主目录，用户主目录并不是必须存在的。如果不设置会在<code>home</code>目录下建一个aezo的文件夹</li>
-<li><code>guest_username=aezo</code> 指定虚拟用户的宿主用户</li>
-<li><code>virtual_use_local_privs=YES</code> 设定虚拟用户的权限符合他们的宿主用户</li>
-<li><code>user_config_dir=/etc/vsftpd/vconf</code> 设定虚拟用户个人vsftp的配置文件存放路径</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>启动服务<code>systemctl start vsftpd</code></li>
-<li>命令行ftp可以登录，但是xftp可以登录确无法获取目录列表，IE浏览器访问<code>ftp://192.168.1.1</code>失败。谷歌浏览器正常访问并使用，或者ftp客户端登录</li>
-</ol>
-<h3 id="tomcat安装"><a href="#tomcat安装" class="headerlink" title="tomcat安装"></a>tomcat安装</h3><ul>
-<li><code>tar -zxvf apache-tomcat-7.0.61.tar.gz</code> 解压</li>
-<li><code>./opt/soft/apache-tomcat-7.0.61/bin/startup.sh</code> 运行(需要先安装好JDK)</li>
-<li>访问<a href="http://192.168.6.133:8080/" target="_blank" rel="external">http://192.168.6.133:8080/</a></li>
-</ul>
-<h3 id="nginx安装"><a href="#nginx安装" class="headerlink" title="nginx安装"></a>nginx安装</h3><p>参考<code>《nginx.md》(基于编译安装tengine)</code>(nginx同理)</p>
-<h2 id="yum安装"><a href="#yum安装" class="headerlink" title="yum安装"></a>yum安装</h2><ul>
-<li><code>yum -y install memcached</code> 安装memcached(默认端口11211)</li>
-<li><code>yum -y install git</code> 安装git</li>
-</ul>
-<h2 id="管理软件安装"><a href="#管理软件安装" class="headerlink" title="管理软件安装"></a>管理软件安装</h2><h3 id="htop安装"><a href="#htop安装" class="headerlink" title="htop安装"></a>htop安装</h3><ol>
-<li>htop是比top功能更多的进程管理工具</li>
-<li><code>yum install htop</code> 安装</li>
-<li><code>htop</code>查看进程信息(命令行上显示的界面可直接鼠标点击操作)</li>
-<li>小技巧<ul>
-<li>点击Tree/Sorted可切换视图</li>
-<li>选中一行，按下键可查看更多进程</li>
-<li>Nice：指的是nice值，这样就可以提高/降低对应进程的优先级</li>
-</ul>
-</li>
-</ol>
+<p>由于个人觉得ofbiz任务机制不太好用，决定不去清理历史数据，而是手动定时清理(或绕过ofbiz定时去清理)。因此可以修改<code>/framework/service/config/serviceengine.xml</code>中<code>purge-job-days</code>的值。重新启动服务器(之前占用的内存无法及时清除，必须重启服务器)和项目一切正常</p>
 <hr>
 <p>参考文章</p>
-<p>[^2]: <a href="http://www.cnblogs.com/GaZeon/p/5393853.html" target="_blank" rel="external">ftp 530 Permission denied</a></p>
 
       
     </div>
@@ -595,9 +504,13 @@
       
         <div class="post-tags">
           
-            <a href="/tags/CentOS/" rel="tag"># CentOS</a>
+            <a href="/tags/ofbiz/" rel="tag"># ofbiz</a>
           
-            <a href="/tags/server/" rel="tag"># server</a>
+            <a href="/tags/CPU/" rel="tag"># CPU</a>
+          
+            <a href="/tags/内存/" rel="tag"># 内存</a>
+          
+            <a href="/tags/运维/" rel="tag"># 运维</a>
           
         </div>
       
@@ -610,8 +523,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/01/10/lang/shell/" rel="next" title="Shell编程">
-                <i class="fa fa-chevron-left"></i> Shell编程
+              <a href="/2018/03/04/arch/lvs/" rel="next" title="lvs">
+                <i class="fa fa-chevron-left"></i> lvs
               </a>
             
           </div>
@@ -620,8 +533,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/01/16/arch/nginx/" rel="prev" title="nginx">
-                nginx <i class="fa fa-chevron-right"></i>
+              <a href="/2018/03/13/bigdata/lucene/" rel="prev" title="Lucene">
+                Lucene <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -694,7 +607,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -705,7 +618,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -716,7 +629,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -758,7 +671,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本配置"><span class="nav-number">1.1.</span> <span class="nav-text">基本配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用软件安装"><span class="nav-number">2.</span> <span class="nav-text">常用软件安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装技巧"><span class="nav-number">2.1.</span> <span class="nav-text">安装技巧</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装jdk"><span class="nav-number">2.2.</span> <span class="nav-text">安装jdk</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#下载-上传jdk文件"><span class="nav-number">2.2.1.</span> <span class="nav-text">下载/上传jdk文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置环境变量"><span class="nav-number">2.2.2.</span> <span class="nav-text">配置环境变量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装vsftpd-1"><span class="nav-number">2.3.</span> <span class="nav-text">安装vsftpd ^1</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装步骤"><span class="nav-number">2.3.1.</span> <span class="nav-text">安装步骤</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tomcat安装"><span class="nav-number">2.4.</span> <span class="nav-text">tomcat安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nginx安装"><span class="nav-number">2.5.</span> <span class="nav-text">nginx安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#yum安装"><span class="nav-number">3.</span> <span class="nav-text">yum安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理软件安装"><span class="nav-number">4.</span> <span class="nav-text">管理软件安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#htop安装"><span class="nav-number">4.1.</span> <span class="nav-text">htop安装</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关命令介绍"><span class="nav-number">2.</span> <span class="nav-text">相关命令介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MAT工具使用"><span class="nav-number">3.</span> <span class="nav-text">MAT工具使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OFBiz项目案例分析"><span class="nav-number">4.</span> <span class="nav-text">OFBiz项目案例分析</span></a></li></ol></div>
             
 
           </div>

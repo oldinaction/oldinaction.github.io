@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="oracle,function," />
+  <meta name="keywords" content="oracle,sql," />
 
 
 
@@ -96,13 +96,13 @@
 
 
 <meta name="description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) 只能判断=，不能判断like select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度为1那就在前面加0，">
-<meta name="keywords" content="oracle,function">
+<meta name="keywords" content="oracle,sql">
 <meta property="og:type" content="article">
 <meta property="og:title" content="oracle-function">
 <meta property="og:url" content="http://blog.aezo.cn/2017/09/30/db/oracle-function/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) 只能判断=，不能判断like select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度为1那就在前面加0，">
-<meta property="og:updated_time" content="2018-02-27T08:56:58.370Z">
+<meta property="og:updated_time" content="2018-03-08T04:19:11.130Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="oracle-function">
 <meta name="twitter:description" content="常用函数 decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) 只能判断=，不能判断like select decode(length(ys.ycross_x), 1, &amp;#39;0&amp;#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度为1那就在前面加0，">
@@ -435,7 +435,7 @@
 </ul>
 </li>
 </ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id</span></div><div class="line"><span class="keyword">select</span> *</div><div class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> ys.id</div><div class="line">               ,<span class="keyword">count</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> ys.id) <span class="keyword">as</span> total</div><div class="line">               ,<span class="keyword">first_value</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> yvmp.storage_id <span class="keyword">order</span> <span class="keyword">by</span> yvmp.input_tm <span class="keyword">ASC</span> <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> first_id</div><div class="line">          <span class="keyword">from</span> ycross_storage ys</div><div class="line">          <span class="keyword">left</span> <span class="keyword">join</span> yyard_venue_move_plan yvmp</div><div class="line">            <span class="keyword">on</span> yvmp.storage_id = ys.id</div><div class="line">           <span class="keyword">and</span> yvmp.yes_status = <span class="number">0</span>) t</div><div class="line"> <span class="keyword">group</span> <span class="keyword">by</span> t.id, t.total, t.first_id</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id</span></div><div class="line"><span class="keyword">select</span> *</div><div class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> ys.id</div><div class="line">               ,<span class="keyword">count</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> ys.id) <span class="keyword">as</span> total</div><div class="line">               ,<span class="keyword">first_value</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> yvmp.storage_id <span class="keyword">order</span> <span class="keyword">by</span> yvmp.input_tm       <span class="keyword">ASC</span> <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> first_id</div><div class="line">          <span class="keyword">from</span> ycross_storage ys</div><div class="line">          <span class="keyword">left</span> <span class="keyword">join</span> yyard_venue_move_plan yvmp</div><div class="line">            <span class="keyword">on</span> yvmp.storage_id = ys.id</div><div class="line">           <span class="keyword">and</span> yvmp.yes_status = <span class="number">0</span>) t</div><div class="line"> <span class="keyword">group</span> <span class="keyword">by</span> t.id, t.total, t.first_id</div></pre></td></tr></table></figure>
 <ul>
 <li>grouping、rollup：<a href="http://blog.csdn.net/damenggege123/article/details/38794351" target="_blank" rel="external">http://blog.csdn.net/damenggege123/article/details/38794351</a></li>
 <li>case when else end：<a href="https://www.cnblogs.com/luowz/p/5804639.html" target="_blank" rel="external">https://www.cnblogs.com/luowz/p/5804639.html</a></li>
@@ -484,7 +484,7 @@
           
             <a href="/tags/oracle/" rel="tag"># oracle</a>
           
-            <a href="/tags/function/" rel="tag"># function</a>
+            <a href="/tags/sql/" rel="tag"># sql</a>
           
         </div>
       
@@ -497,8 +497,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/09/30/db/sql/" rel="next" title="sql基础">
-                <i class="fa fa-chevron-left"></i> sql基础
+              <a href="/2017/09/13/extend/chrome/" rel="next" title="chrome">
+                <i class="fa fa-chevron-left"></i> chrome
               </a>
             
           </div>
@@ -507,8 +507,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/10/09/extend/内网穿透/" rel="prev" title="内网穿透">
-                内网穿透 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/09/30/db/sql/" rel="prev" title="sql基础">
+                sql基础 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -581,7 +581,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -592,7 +592,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -603,7 +603,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

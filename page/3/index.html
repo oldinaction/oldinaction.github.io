@@ -322,6 +322,494 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/08/20/lang/excel-vba/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/20/lang/excel-vba/" itemprop="url">Excel VBA</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T20:03:00+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/lang/" itemprop="url" rel="index">
+                    <span itemprop="name">lang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介
+VBA：Visual Basic for Applications是Visual Basic的一种宏语言
+官方VBA文档、官方Excel帮助、官方VB文档
+基础语法、51自学视频(后面几章收费)
+
+语法
+不会写法的可以使用录制宏，然后进行代码查看
+
+FormulaR1C1是公式输入方法
+
+有中括号是相对于选定单元格的相对偏移量，”-“为向左或向上偏移，正数为右或下偏移。 无中括号为相对于选定单元格的绝对偏移量，没有负数。”R”和”C”对应行和列”
+如：C1单元格为”=A1+B1”。Range(“C1”).FormulaR1C1 = “=RC[-2]+RC[-1]”
+如：C1单元格为”=A2+E3” Range(“C1”).FormulaR1C1 = “=R[1]C[-2]+R[2]C[2]”
+
+
+Selection.AutoFill Destination:=fillRange, Type:=xlFillDefault 自动填充
+此处Selection选中的Range即sourceRange(源)，根据sourceRange进行fillRange的填充。此时fillRange必须包含sourceRange。sourceRange中可以有公式等
+
+
+ActiveWindow.SmallScroll Down:=6等是对窗口进行移动，不影响计算
+
+宏界面配置
+设置字体：工具-选项
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/20/lang/excel-vba/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/08/05/java/springcloud/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/05/java/springcloud/" itemprop="url">SpringCloud</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-05T19:36:00+08:00">
+                2017-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          介绍
+架构演进
+单体架构：复杂度逐渐变高、部署速度慢、阻碍技术创新、无法按需伸缩
+SOA ^1
+微服务
+
+
+微服务特点
+微服务可独立运行在自己的进程里
+一系列独立运行的微服务构成整个系统
+每个服务独立开发维护
+微服务之间通过REST API或RPC等方式通信
+优点：易于开发和维护，启动快，技术栈不受限制，按需伸缩，DevOps
+挑战：运维要求较高，分布式的复杂性，接口调整成本高
+
+
+微服务设计原则：单一职责原则、服务自治原则、轻量级通信原则、接口明确原则
+微服务开发框架：Spring Cloud、Dubbo、Dropwizard、Consul等
+Spring Cloud是基于Spring Boot的用于快速构建分布式系统工具集
+Spring Cloud特点：约定优于配置、开箱即用，快速启动、轻量级组件、组件丰富、选型中立
+本文相关软件：JDK: 1.8，SpringCloud: Dalston.SR1
+
+微服务构建
+服务提供者、服务消费者
+服务消费者中通过restTemp调用服务提供者提供的服务
+如：User user = this.restTemplate.getForObject(&quot;http://localhost:7900/simple/&quot; + id, User.class);
+
+
+
+Eureka服务发现
+服务注册与发现
+  
+
+服务发现方式 ^2
+客户端
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/05/java/springcloud/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/07/23/java/springboot/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/07/23/java/springboot/" itemprop="url">springboot</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-23T15:05:00+08:00">
+                2017-07-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          目录
+helloworld(1.5.6)
+数据访问
+hibernate(1.5.6, mysql)
+mybatis(1.5.6)
+
+
+thymeleaf-spring-security(1.5.6)
+rabbitmq(1.5.6)
+
+hello world
+引入依赖
+  1234567891011121314&lt;parent&gt;	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;	&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;	&lt;version&gt;1.4.3.RELEASE&lt;/version&gt;	&lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;&lt;/parent&gt;&lt;dependencies&gt;	&lt;!--包含spring-boot-starter、hibernate-validator、jackson-databind、spring-web、spring-webmvc--&gt;	&lt;dependency&gt;		&lt;groupId&gt;org.springframework.boot&lt;/gr
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/07/23/java/springboot/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/07/01/java/spring/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -576,14 +1064,12 @@ spring生态：Spring Boot(使用默
 
 开始安装，安装期间设置Root密码(root)，创建用户(smalle/smalle)并设置为管理员
 开启windows下和VMware相关的两块虚拟网卡
-
-远程连接虚拟机
-ip addr查看虚拟机地址(ens33/eth0)，ipconfig查看windows主机地址，并看能否双向ping通
-systemctl status sshd 查看ssh服务是否启动(如果未安装，可手动安装sshd)
-使用xshell/xftp以ssh/sftp的方式连接，端口22，用户名要使用smalle/smalle（root连接失败）
-
-
-          
+快照：可对保留虚拟主机当前的配置状态
+克隆虚拟主机：基于某个虚拟主机进行克隆出一台主机。克隆后需要进行以下修改
+hostnamectl set-hostname aezocn 修改主机名
+vi /etc/sysconfig/network-scripts/ifcfg-ens33，修改IPADDR的值从而修改机器ip
+vmware克隆时会自动改变mac地址，如果没有改变
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2017/06/24/extend/vmware/#more" rel="contents">
@@ -1038,11 +1524,17 @@ JPA：Java Persistence API. JPA是接口/规范，hibernate是其实现. JPA是h
       
         
           
-          语法
+          常用命令
+ipconfig 查看ip地址
+arp -a 查看局域网下所有机器mac地址
+ping 192.168.1.1
+telnet 192.168.1.1 8080
+
+bat脚本语法
 注释：::、rem等 ^1
 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)
 
-常用命令
+常用脚本
 运行java
   123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on"%JAVA_HOME%\bin\java" -jar my.jarecho off
 
@@ -1052,15 +1544,7 @@ title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存
 
 
 后台运行bat文件
-  123456@echo offif "%1" == "h" goto beginmshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&amp;&amp;exit:begin:: 这是注释，后面运行脚本，如：java -jar my.jar
-
-脚本示例
-
-进入到当前目录、设置环境变量
-
-%~dp0 %0代表批处理本身； ~dp是变量扩充， d扩充到分区，p扩充到路径
-
-1
+  123456@echo offif "%1" == "h" goto beginmshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&amp;&amp;exit:begin:: 这是注释，后
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1418,504 +1902,6 @@ I18N（
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/04/28/lang/python/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/04/28/lang/python/" itemprop="url">python</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-28T11:39:00+08:00">
-                2017-04-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/lang/" itemprop="url" rel="index">
-                    <span itemprop="name">lang</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          python简介
-python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
-Linux下默认有python环境
-
-python基础(易混淆/常用)模块
-模块安装
-可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码
-
-
-常用模块
-
-pip 可用于安装管理python其他模块
-安装（windows默认已经安装）
-将https://bootstrap.pypa.io/get-pip.py中的内容保存到本地get-pip.py文件中
-上传get-pip.py至服务器，并设置为可执行
-python get-pip.py 安装
-检查是否安装成功：pip list 可查看已经被管理的模块
-
-
-常见问题
-安装成功后，使用pip list仍然报错。windows执行where pip查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
-
-
-
-
-ConfigParser 配置文件读取(该模块ConfigParser在Python3中，已更名为configparser)
-pip install ConfigParser
-介绍：http://www.cnblogs.com/snifferhu/p/4368904.html
-
-
-MySQLdb mys
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/04/28/lang/python/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/04/02/web/npm/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/04/02/web/npm/" itemprop="url">npm</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-02T11:13:00+08:00">
-                2017-04-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          npm介绍安装
-安装node的时候会默认包含npm
-更新：npm install npm@latest -g
-
-
-安装cnpm镜像(淘宝镜像下载较快)：npm install -g cnpm --registry=https://registry.npm.taobao.org
-安装模块则是cnpm install &lt;module-name&gt;
-
-
-
-常用命令
-npm install &lt;module-name&gt; 安装xxx(在当前项目安装)，更新模块也是此命令
-npm i &lt;module-name&gt; 简写方式
--g 全局安装
-如果以Windows管理员运行的命令行，则会安装在nodejs安装目录的node_modules目录下。如果以普通用户运行的命令行，则会安装在用户的AppData/Roaming/npm/node_modules的目录下。建议以管理员运行
-
-
---save(简写-S) 自动将依赖更新到package.json文件的dependencies(依赖)中
---save-dev(简写-D) 自动将依赖更新到package.json文件的devDependencies(运行时依赖)中
-
-
-npm init 初始化项目，生成package.json
-
-
-          
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/04/02/web/npm/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/03/19/service/firebase/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/03/19/service/firebase/" itemprop="url">firebase</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-19T21:21:00+08:00">
-                2017-03-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/service/" itemprop="url" rel="index">
-                    <span itemprop="name">service</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          简介
-Firebase是google提供的快速构件应用的云服务。简单的可以说通过引入Firebase，你可以通过api去构建实时性的应用。
-官网
-
-Hello WorldFirebase帐号注册
-可通过google账户登录，选择免费版，新建一个项目。
-点击Authentication - 登录方法 - 启用Google登录
-点击overview - 将 Firebase 添加到您的网页应用 - 复制代码供下面使用
-
-下载web版示例
-quickstart-js
-该文件中包含了auth验证、database数据库、storage存储、messaging消息等示例
-找到database/index.html，将上文复制的代码放到head中
-
-为开发运行本地 Web 服务器
-安装firebase命令行工具：npm install -g firebase-tools(重新运行安装命令，可更新此工具)
-cmd进入到下文的database文件夹
-启动服务器 firebase serve
-访问：http://localhost:5000
-点击登录，就会自动调用google登录验证api
-该示例登录进入可书写博文，数据可在控制面板的Database中查看
-
-部署应用最终可在控制面板的Hosting中查看
-
-启动一个新的命令行，cmd进入到下文的database文件夹
-登录Google并授权 fir
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/03/19/service/firebase/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1965,7 +1951,7 @@ cmd进入到下文的database文件夹
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1976,7 +1962,7 @@ cmd进入到下文的database文件夹
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -1987,7 +1973,7 @@ cmd进入到下文的database文件夹
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

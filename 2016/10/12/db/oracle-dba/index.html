@@ -103,7 +103,7 @@
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/db/lsnrctl-status.png">
-<meta property="og:updated_time" content="2018-02-09T06:06:02.484Z">
+<meta property="og:updated_time" content="2018-03-12T06:26:56.566Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Oracle DBA">
 <meta name="twitter:description" content="简介 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例  oracle相关名词和原理 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1 DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)">
@@ -536,11 +536,11 @@
 </ul>
 </li>
 <li><code>sqlplus /nolog</code>、<code>sqlplus / as sysdba</code> 以nolog、sysdba身份登录，进入sql命令行</li>
-<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)<ul>
+<li><strong><code>shutdown immediate</code></strong> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)<ul>
 <li><code>shutdown;</code> 有用户连接就不关闭，直到所有用户断开连接</li>
 </ul>
 </li>
-<li><code>startup;</code> 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) </li>
+<li><strong><code>startup;</code></strong> 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) </li>
 <li><code>exit;</code> 退出sqlplus</li>
 </ul>
 </li>
@@ -748,8 +748,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/09/17/extend/intellij-idea/" rel="next" title="IntelliJ IDEA">
-                <i class="fa fa-chevron-left"></i> IntelliJ IDEA
+              <a href="/2016/10/12/db/mysql-dba/" rel="next" title="Mysql DBA">
+                <i class="fa fa-chevron-left"></i> Mysql DBA
               </a>
             
           </div>
@@ -758,8 +758,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/10/12/db/mysql-dba/" rel="prev" title="Mysql DBA">
-                Mysql DBA <i class="fa fa-chevron-right"></i>
+              <a href="/2016/10/27/extend/wiki/" rel="prev" title="wiki">
+                wiki <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -832,7 +832,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -843,7 +843,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -854,7 +854,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/09/30/db/sql/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="未做特殊说明的语句都是基于Mysql的语法  数据库操作语言DML(Data Manipulation Language，即CRUD) 数据参考下文【数据库表信息】先登录并选择数据库mysql -uroot -proot sqltest先复制表emp、dept、salgrade，如：create table dept2 as select * from dept;  插入记录 按字段顺序一一插入">
-<meta property="og:updated_time" content="2018-02-27T02:47:23.755Z">
+<meta property="og:updated_time" content="2018-03-08T06:25:46.939Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="sql基础">
 <meta name="twitter:description" content="未做特殊说明的语句都是基于Mysql的语法  数据库操作语言DML(Data Manipulation Language，即CRUD) 数据参考下文【数据库表信息】先登录并选择数据库mysql -uroot -proot sqltest先复制表emp、dept、salgrade，如：create table dept2 as select * from dept;  插入记录 按字段顺序一一插入">
@@ -428,6 +428,7 @@
 <h3 id="删除记录-表结构不会删除"><a href="#删除记录-表结构不会删除" class="headerlink" title="删除记录(表结构不会删除)"></a>删除记录(表结构不会删除)</h3><ul>
 <li><code>delete from emp2;</code> 清空表emp2</li>
 <li><code>delete from dept2 where deptno &lt; 25;</code> 删除deptno &lt; 25的条目</li>
+<li><code>delete from emp2 where deptno in (select deptno from dept2 where deptno &lt; 25)</code> 子查询不能有别名(oracle)</li>
 </ul>
 <h3 id="事物"><a href="#事物" class="headerlink" title="事物"></a>事物</h3><ul>
 <li>Mysql和Oracle提交事物：<code>commit;</code>；Oracle的撤销操作：<code>rollback;</code></li>
@@ -707,7 +708,6 @@
 </ul>
 <h4 id="删除表"><a href="#删除表" class="headerlink" title="删除表"></a>删除表</h4><ul>
 <li>删除表 <code>drop table table_name;</code> 如果存在外键约束，应该先删除含有外键约束的那个表，再删除被参考的那个表</li>
-<li>清空表数据 <code>delete from table_name;</code></li>
 </ul>
 <h4 id="复制表"><a href="#复制表" class="headerlink" title="复制表"></a>复制表</h4><ul>
 <li>复制表结构及数据到新表 <code>CREATE TABLE 新表 AS SELECT * FROM 旧表</code></li>
@@ -877,8 +877,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/09/13/extend/chrome/" rel="next" title="chrome">
-                <i class="fa fa-chevron-left"></i> chrome
+              <a href="/2017/09/30/db/oracle-function/" rel="next" title="oracle-function">
+                <i class="fa fa-chevron-left"></i> oracle-function
               </a>
             
           </div>
@@ -887,8 +887,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/09/30/db/oracle-function/" rel="prev" title="oracle-function">
-                oracle-function <i class="fa fa-chevron-right"></i>
+              <a href="/2017/10/09/extend/内网穿透/" rel="prev" title="内网穿透">
+                内网穿透 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -961,7 +961,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -972,7 +972,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -983,7 +983,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

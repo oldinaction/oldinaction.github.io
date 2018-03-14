@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用命令 运行java   123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on&quot;">
+<meta name="description" content="常用命令 ipconfig 查看ip地址 arp -a 查看局域网下所有机器mac地址 ping 192.168.1.1 telnet 192.168.1.1 8080  bat脚本语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用脚本 运行java   123456789title=cmd窗口的标题echo offrem 我">
 <meta name="keywords" content="bat">
 <meta property="og:type" content="article">
 <meta property="og:title" content="windows">
 <meta property="og:url" content="http://blog.aezo.cn/2017/05/10/extend/windows/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用命令 运行java   123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on&quot;">
-<meta property="og:updated_time" content="2018-01-30T07:53:33.291Z">
+<meta property="og:description" content="常用命令 ipconfig 查看ip地址 arp -a 查看局域网下所有机器mac地址 ping 192.168.1.1 telnet 192.168.1.1 8080  bat脚本语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用脚本 运行java   123456789title=cmd窗口的标题echo offrem 我">
+<meta property="og:updated_time" content="2018-03-04T13:50:00.506Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="windows">
-<meta name="twitter:description" content="语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用命令 运行java   123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on&quot;">
+<meta name="twitter:description" content="常用命令 ipconfig 查看ip地址 arp -a 查看局域网下所有机器mac地址 ping 192.168.1.1 telnet 192.168.1.1 8080  bat脚本语法 注释：::、rem等 ^1 title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)  常用脚本 运行java   123456789title=cmd窗口的标题echo offrem 我">
 
 
 
@@ -408,11 +408,17 @@
       
 
       
-        <h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><ul>
+        <h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><ul>
+<li><code>ipconfig</code> 查看ip地址</li>
+<li><code>arp -a</code> 查看局域网下所有机器mac地址</li>
+<li><code>ping 192.168.1.1</code></li>
+<li><code>telnet 192.168.1.1 8080</code></li>
+</ul>
+<h2 id="bat脚本"><a href="#bat脚本" class="headerlink" title="bat脚本"></a>bat脚本</h2><h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><ul>
 <li>注释：<code>::</code>、<code>rem</code>等 <a href="[注释](http://blog.csdn.net/wh_19910525/article/details/8125762)">^1</a></li>
 <li><code>title</code>: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)</li>
 </ul>
-<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><ul>
+<h3 id="常用脚本"><a href="#常用脚本" class="headerlink" title="常用脚本"></a>常用脚本</h3><ul>
 <li><p>运行java</p>
   <figure class="highlight bat"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">title</span>=<span class="built_in">cmd</span>窗口的标题</div><div class="line"><span class="built_in">echo</span> off</div><div class="line"><span class="comment">rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录</span></div><div class="line">%~d0</div><div class="line"><span class="built_in">set</span> MY_PROJECT_HOME=%~p0</div><div class="line"><span class="built_in">cd</span> <span class="variable">%MY_PROJECT_HOME%</span></div><div class="line"><span class="built_in">echo</span> on</div><div class="line">"<span class="variable">%JAVA_HOME%</span>\bin\java" -jar my.jar</div><div class="line"><span class="built_in">echo</span> off</div></pre></td></tr></table></figure>
 <ul>
@@ -562,7 +568,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -573,7 +579,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -584,7 +590,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -626,7 +632,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#语法"><span class="nav-number">1.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">2.</span> <span class="nav-text">常用命令</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令"><span class="nav-number">1.</span> <span class="nav-text">常用命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bat脚本"><span class="nav-number">2.</span> <span class="nav-text">bat脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法"><span class="nav-number">2.1.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用脚本"><span class="nav-number">2.2.</span> <span class="nav-text">常用脚本</span></a></li></ol></li></ol></div>
             
 
           </div>

@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="nginx," />
+  <meta name="keywords" content="LB, HA," />
 
 
 
@@ -96,7 +96,7 @@
 
 
 <meta name="description" content="nginx介绍 nginx(“engine x”) 是一个高性能的 HTTP 和 反向代理 服务器，也是一个 IMAP/POP3/SMTP 代理服务器 轻量级，同样起web服务，比apache占用更少的内存及资源，抗并发，nginx 处理请求是异步非阻塞的，而apache则是阻塞型的。最核心的区别在于apache是同步多进程模型，一个连接对应一个进程；nginx是异步的，多个连接（万级别）可以对应">
-<meta name="keywords" content="nginx">
+<meta name="keywords" content="LB, HA">
 <meta property="og:type" content="article">
 <meta property="og:title" content="nginx">
 <meta property="og:url" content="http://blog.aezo.cn/2017/01/16/arch/nginx/index.html">
@@ -104,7 +104,7 @@
 <meta property="og:description" content="nginx介绍 nginx(“engine x”) 是一个高性能的 HTTP 和 反向代理 服务器，也是一个 IMAP/POP3/SMTP 代理服务器 轻量级，同样起web服务，比apache占用更少的内存及资源，抗并发，nginx 处理请求是异步非阻塞的，而apache则是阻塞型的。最核心的区别在于apache是同步多进程模型，一个连接对应一个进程；nginx是异步的，多个连接（万级别）可以对应">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/arch/nginx-arch.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/arch/keepalived-nginx.jpg">
-<meta property="og:updated_time" content="2018-03-04T09:33:40.886Z">
+<meta property="og:updated_time" content="2018-03-13T05:33:49.296Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="nginx">
 <meta name="twitter:description" content="nginx介绍 nginx(“engine x”) 是一个高性能的 HTTP 和 反向代理 服务器，也是一个 IMAP/POP3/SMTP 代理服务器 轻量级，同样起web服务，比apache占用更少的内存及资源，抗并发，nginx 处理请求是异步非阻塞的，而apache则是阻塞型的。最核心的区别在于apache是同步多进程模型，一个连接对应一个进程；nginx是异步的，多个连接（万级别）可以对应">
@@ -477,7 +477,7 @@
 <li>nginx支持三种类型的虚拟主机配置<ul>
 <li>基于域名的虚拟主机(server_name不同；listen相同，如80)</li>
 <li>基于端口的虚拟主机(server_name相同；listen不同)</li>
-<li>基于ip的虚拟主机(如listen 192.168.6.130:80; server_name 192.168.1.1/www.aezo.cn)</li>
+<li>基于ip的虚拟主机(如listen 192.168.6.131:80; server_name 192.168.1.1/www.aezo.cn)</li>
 </ul>
 </li>
 </ul>
@@ -534,7 +534,7 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">location ~ /purge(/.*) &#123;</div><div class="line">    <span class="comment"># 指定清空缓存的区域名称cache_one，要和上边proxy_cache_path缓存配置中指定的缓存区域名称一致（*）</span></div><div class="line">    <span class="comment"># 指定缓存的key规则$host$1$is_args$args，要和上边设置缓存的key一致$host$uri$is_args$args。注意$host$1$is_args$args中的$1表示当前请求的uri，$host$1$is_args$args=$host$uri$is_args$args</span></div><div class="line">    proxy_cache_purge cache_one <span class="variable">$host</span><span class="variable">$1</span><span class="variable">$is_args</span><span class="variable">$args</span>;</div><div class="line"></div><div class="line">    <span class="comment">#安全设置，指定请求客户端的IP或IP段才可以清除URL缓存</span></div><div class="line">    <span class="comment">#allow          127.0.0.1;</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
-<li>访问<code>http://192.168.6.131/purge/tomcat.png</code>(提示<code>Successful purge</code>)，即可清除 <code>http://192.168.6.131/tomcat.png</code>的缓存</li>
+<li>访问<code>http://192.168.6.132/purge/tomcat.png</code>(提示<code>Successful purge</code>)，即可清除 <code>http://192.168.6.132/tomcat.png</code>的缓存</li>
 </ul>
 <h3 id="反向代理和负载均衡"><a href="#反向代理和负载均衡" class="headerlink" title="反向代理和负载均衡"></a>反向代理和负载均衡</h3><ul>
 <li>代理一般指客户端代理(比如Google agent代理翻墙)，反向代理则指服务器代理</li>
@@ -544,14 +544,14 @@
 <ul>
 <li>负载均衡<code>upstream</code>(<a href="http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_upstream_module.html" target="_blank" rel="external">ngx_http_upstream_module</a>)</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># upstream和server平级配置，backend为定义的服务器集群名称</span></div><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># weight标识转发给此server的权重，默认是1</span></div><div class="line">    server backend1.example.com       weight=5;</div><div class="line">    server backend2.example.com:8080;</div><div class="line">    server unix:/tmp/backend3;</div><div class="line"></div><div class="line">    <span class="comment"># 标记为备用服务器。当主服务器不可用以后，请求会被传给这些服务器</span></div><div class="line">    server backup1.example.com:8080   backup;</div><div class="line">    server backup2.example.com:8080   backup;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    location / &#123;</div><div class="line">        <span class="comment"># 和上面定义的服务器集群名对应</span></div><div class="line">        proxy_pass http://backend;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    location ~ /link(/.*) &#123;</div><div class="line">        <span class="comment"># $1表示取出正则表达式(/.*)所匹配的内容，使用$1的效果例如请求 http://192.168.6.131/link/tomcat.png 则请求tomcat服务器 http://ip:port/tomcat.png。 如果不使用$1则会将/link/...加在tomcat服务地址之后访问，即 http://ip:port/link/tomcat.png（*）</span></div><div class="line">        proxy_pass http://backend<span class="variable">$1</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># upstream和server平级配置，backend为定义的服务器集群名称</span></div><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># weight标识转发给此server的权重，默认是1</span></div><div class="line">    server backend1.example.com       weight=5;</div><div class="line">    server backend2.example.com:8080;</div><div class="line">    server unix:/tmp/backend3;</div><div class="line"></div><div class="line">    <span class="comment"># 标记为备用服务器。当主服务器不可用以后，请求会被传给这些服务器</span></div><div class="line">    server backup1.example.com:8080   backup;</div><div class="line">    server backup2.example.com:8080   backup;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    location / &#123;</div><div class="line">        <span class="comment"># 和上面定义的服务器集群名对应</span></div><div class="line">        proxy_pass http://backend;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    location ~ /link(/.*) &#123;</div><div class="line">        <span class="comment"># $1表示取出正则表达式(/.*)所匹配的内容，使用$1的效果例如请求 http://192.168.6.132/link/tomcat.png 则请求tomcat服务器 http://ip:port/tomcat.png。 如果不使用$1则会将/link/...加在tomcat服务地址之后访问，即 http://ip:port/link/tomcat.png（*）</span></div><div class="line">        proxy_pass http://backend<span class="variable">$1</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li>tengine主动健康检查(<a href="http://tengine.taobao.org/document_cn/http_upstream_check_cn.html" target="_blank" rel="external">ngx_http_upstream_check_module</a>)<ul>
 <li>tengine特有。如果集群中有某个服务器挂掉则检查面板中会标记成红色</li>
 </ul>
 </li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># 省略其他配置</span></div><div class="line">    <span class="comment"># ...</span></div><div class="line"></div><div class="line">    <span class="comment"># fall=5 连续失败次数达到5次则认为服务器down，面板中会显示红色。</span></div><div class="line">    <span class="comment"># rise=2 连续成功次数达到2次则认为服务器up，面板中会显示白色。</span></div><div class="line">    check interval=3000 rise=2 fall=5 timeout=1000 <span class="built_in">type</span>=http;</div><div class="line">    check_http_send <span class="string">"HEAD / HTTP/1.0\r\n\r\n"</span>;</div><div class="line">    check_http_expect_alive http_2xx http_3xx;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    <span class="comment"># 健康检查访问端点。如访问：http://192.168.6.133/status 显示检查面板</span></div><div class="line">    location /status &#123;</div><div class="line">        check_status;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># 省略其他配置</span></div><div class="line">    <span class="comment"># ...</span></div><div class="line"></div><div class="line">    <span class="comment"># fall=5 连续失败次数达到5次则认为服务器down，面板中会显示红色。</span></div><div class="line">    <span class="comment"># rise=2 连续成功次数达到2次则认为服务器up，面板中会显示白色。</span></div><div class="line">    check interval=3000 rise=2 fall=5 timeout=1000 <span class="built_in">type</span>=http;</div><div class="line">    check_http_send <span class="string">"HEAD / HTTP/1.0\r\n\r\n"</span>;</div><div class="line">    check_http_expect_alive http_2xx http_3xx;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    <span class="comment"># 健康检查访问端点。如访问：http://192.168.6.131/status 显示检查面板</span></div><div class="line">    location /status &#123;</div><div class="line">        check_status;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li><p>session一致性问题解决方案：<code>memcached</code>或<code>redis</code>等缓存数据库保存所有的session(以tomcat-7.0.61为例)</p>
 <ul>
@@ -565,6 +565,8 @@
 </li>
 <li><p>修改tomcat的<code>webapps/ROOT/index.jsp</code></p>
   <figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">&lt;%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%&gt;</div><div class="line">&lt;html lang="en"&gt;</div><div class="line">    SessionID:&lt;%=session.getId()%&gt;&lt;/br&gt;   </div><div class="line">    SessionIP:&lt;%=request.getServerName()%&gt;&lt;/br&gt;</div><div class="line">    &lt;h1&gt;tomcat1&lt;/h1&gt;</div><div class="line">&lt;/html&gt;</div></pre></td></tr></table></figure>
+</li>
+<li><p>memcached集群需要多台服务器时间一致(30s以内)</p>
 </li>
 </ul>
 </li>
@@ -603,11 +605,11 @@
 <ul>
 <li><p>配置Keepalived(抢占模式配置) 增加VIP 启动服务</p>
 <ul>
-<li><p>MASTER（192.168.6.133）配置信息</p>
-  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    <span class="comment"># 用户标识本节点的名称，通常为hostname</span></div><div class="line">    router_id server1.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    <span class="comment">#检测nginx的脚本</span></div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    <span class="comment">#每2秒检测一次</span></div><div class="line">    interval 2</div><div class="line">    <span class="comment">#如果某一个nginx宕机 则权重减20</span></div><div class="line">    weight -20</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    <span class="comment">#状态 MASTER或BACKUP</span></div><div class="line">    state MASTER</div><div class="line">    <span class="comment">#绑定的网卡(如：eth0、ens33等)</span></div><div class="line">    interface eth0</div><div class="line">    <span class="comment">#虚拟路由的ID号,两个节点设置必须一样(*)</span></div><div class="line">    virtual_router_id 51</div><div class="line">    <span class="comment">#本机的IP</span></div><div class="line">    mcast_src_ip 192.168.6.133</div><div class="line">    <span class="comment"># 节点优先级，取值范围0～254，MASTER要比BACKUP高(*)</span></div><div class="line">    priority 100</div><div class="line">    advert_int 1</div><div class="line">    <span class="comment"># 设置验证信息，两个节点必须一致(*)</span></div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 虚拟IP，两个节点设置必须一样(*)</span></div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        <span class="comment"># 此虚拟ip为web服务对外提供访问的ip</span></div><div class="line">        192.168.6.100</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># nginx存活状态检测脚本</span></div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li><p>MASTER（192.168.6.131）配置信息</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    <span class="comment"># 用户标识本节点的名称，通常为hostname</span></div><div class="line">    router_id server1.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    <span class="comment">#检测nginx的脚本</span></div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    <span class="comment">#每2秒检测一次</span></div><div class="line">    interval 2</div><div class="line">    <span class="comment">#如果某一个nginx宕机 则权重减20</span></div><div class="line">    weight -20</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    <span class="comment">#状态 MASTER或BACKUP</span></div><div class="line">    state MASTER</div><div class="line">    <span class="comment">#绑定的网卡(如：eth0、ens33等)</span></div><div class="line">    interface eth0</div><div class="line">    <span class="comment">#虚拟路由的ID号,两个节点设置必须一样(*)</span></div><div class="line">    virtual_router_id 51</div><div class="line">    <span class="comment">#本机的IP</span></div><div class="line">    mcast_src_ip 192.168.6.131</div><div class="line">    <span class="comment"># 节点优先级，取值范围0～254，MASTER要比BACKUP高(*)</span></div><div class="line">    priority 100</div><div class="line">    advert_int 1</div><div class="line">    <span class="comment"># 设置验证信息，两个节点必须一致(*)</span></div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 虚拟IP，两个节点设置必须一样(*)</span></div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        <span class="comment"># 此虚拟ip为web服务对外提供访问的ip</span></div><div class="line">        192.168.6.100</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># nginx存活状态检测脚本</span></div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
-<li><p>BACKUP（192.168.6.131）配置信息</p>
-  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    router_id server2.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    interval 2                              </div><div class="line">    weight -20								</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    state BACKUP</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 51</div><div class="line">    mcast_src_ip 192.168.6.131</div><div class="line">    priority 99</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.6.110</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li><p>BACKUP（192.168.6.132）配置信息</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    router_id server2.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    interval 2                              </div><div class="line">    weight -20								</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    state BACKUP</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 51</div><div class="line">    mcast_src_ip 192.168.6.132</div><div class="line">    priority 99</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.6.110</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
@@ -674,6 +676,7 @@
 </li>
 </ul>
 <hr>
+<p>参考文章</p>
 
       
     </div>
@@ -703,7 +706,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/nginx/" rel="tag"># nginx</a>
+            <a href="/tags/LB-HA/" rel="tag"># LB, HA</a>
           
         </div>
       
@@ -716,8 +719,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/01/10/linux/centos-server-guide/" rel="next" title="CentOS服务器使用指导">
-                <i class="fa fa-chevron-left"></i> CentOS服务器使用指导
+              <a href="/2017/01/10/lang/shell/" rel="next" title="Shell编程">
+                <i class="fa fa-chevron-left"></i> Shell编程
               </a>
             
           </div>
@@ -800,7 +803,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -811,7 +814,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -822,7 +825,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

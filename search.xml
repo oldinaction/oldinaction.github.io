@@ -3,6 +3,271 @@
   
     
     <entry>
+      <title><![CDATA[Lucene]]></title>
+      <url>/2018/03/13/bigdata/lucene/</url>
+      <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li><code>Lucene</code>是一个基于java开发的全文搜索框架。本文基于<code>lucene-4.9.1</code>(文档/API在解压文件的/lucene-4.9.1/docs目录)</li>
+<li>倒排索引：根据属性的值来查找记录。这种索引表中的每一项都包括一个属性值和具有该属性值的各记录的地址。由于不是由记录来确定属性值，而是由属性值来确定记录的位置，因而称为倒排索引(invertedindex)</li>
+<li><p>lucene提供的服务实际包含两部分：一入一出。所谓入是写入，即将你提供的源（本质是字符串）写入索引或者将其从索引中删除；所谓出是读出，即向用户提供全文搜索服务，让用户可以通过关键词定位源</p>
+<ul>
+<li>写入流程：源字符串首先经过analyzer分词处理。将源中需要的信息加入Document的各个Field中，并把需要索引的Field索引起来，把需要存储的Field存储起来。将索引写入存储器(内存或磁盘)</li>
+<li>读出流程：用户提供搜索关键词，经过analyzer处理。对处理后的关键词搜索索引找出对应的Document。用户根据需要从找到的Document中提取需要的Field</li>
+</ul>
+</li>
+<li><p>企业海量数据搜索服务器架构</p>
+</li>
+</ul>
+<p><img src="/data/bigdata/solr-arch.png" alt="企业海量数据搜索服务器架构"></p>
+<h2 id="本地文件内容搜索实践"><a href="#本地文件内容搜索实践" class="headerlink" title="本地文件内容搜索实践"></a>本地文件内容搜索实践</h2><hr>
+<p>linliangyi2007.javaeye.com</p>
+]]></content>
+      
+        <categories>
+            
+            <category> bigdata </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> lucene </tag>
+            
+            <tag> solr </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Java项目CPU及内存异常分析]]></title>
+      <url>/2018/03/13/java/Java%E9%A1%B9%E7%9B%AECPU%E5%8F%8A%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</url>
+      <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>java应用常见故障：<strong>高CPU占用</strong>、<strong>高内存占用</strong>、<strong>高I/O占用</strong>(包括磁盘I/O、网络I/O、数据库I/O等)</li>
+<li>高CPU常见场景：死循环(如while导致的较多)、高内存导致<ul>
+<li>高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU</li>
+</ul>
+</li>
+<li>高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) <a href="[线上应用故障排查之二：高内存占用](http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html)">^2</a><ul>
+<li><code>java.lang.OutOfMemoryError: PermGen space</code>，原因可能为<ul>
+<li>程序启动需要加载大量的第三方jar包。例如：在一个Tomcat下部署了太多的应用</li>
+</ul>
+</li>
+<li><code>java.lang.OutOfMemoryError: Java heap space</code>，原因可能为<ul>
+<li>Java虚拟机的堆内存设置不够，可以通过参数-Xms、-Xmx来调整。</li>
+<li>代码中创建了大量大对象，并且长时间不能被垃圾收集器收集（存在被引用）</li>
+</ul>
+</li>
+<li>在Java虚拟机中，内存分为三个代<ul>
+<li>新生代New：新建的对象都存放这里</li>
+<li>老生代Old：存放从新生代New中迁移过来的生命周期较久的对象。新生代New和老生代Old共同组成了堆内存</li>
+<li>永久代Perm：是非堆内存的组成部分。主要存放加载的Class类级对象如class本身，method，field等等</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="相关命令介绍"><a href="#相关命令介绍" class="headerlink" title="相关命令介绍"></a>相关命令介绍</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%</span></div><div class="line"><span class="comment"># Windows可以使用ProcessExplorer.exe查看进程和线程信息</span></div><div class="line">top</div><div class="line"></div><div class="line"><span class="comment">## 2.显示某进程的线程列表。pid：进程id;</span></div><div class="line"><span class="comment"># 结果说明：（1）第一行为统计（2）%CPU为此线程CPU占用率（3）TIME为线程运行时间（4）%MEM为内存占用率</span></div><div class="line">ps -mp &lt;pid&gt; -o THREAD,tid,time,rss,size,%mem</div><div class="line"></div><div class="line"><span class="comment">## 3.Java的jstack命令：打印线程的堆栈信息</span></div><div class="line"><span class="comment"># pid：进程id; tid线程id; -A 30表示显示30行; `printf "%x\n" &lt;tid&gt;`获取线程ID的16进制格式</span></div><div class="line"><span class="comment"># 如"OFBiz-JobQueue-0"为线程名，prio=10为优先级，tid为线程id，RUNNABLE为运行中</span></div><div class="line"><span class="comment"># "OFBiz-JobQueue-0" prio=10 tid=0x00007f2c60007800 nid=0x96d runnable [0x00007f2cfe187000]</span></div><div class="line"><span class="comment">#    java.lang.Thread.State: RUNNABLE</span></div><div class="line"><span class="comment">#       at java.net.SocketInputStream.socketRead0(Native Method)</span></div><div class="line"><span class="comment">#       ......</span></div><div class="line">jstack &lt;pid&gt; | grep `<span class="built_in">printf</span> <span class="string">"%x\n"</span> &lt;tid&gt;` -A 30</div><div class="line"><span class="comment"># 获取thread dump到文件</span></div><div class="line">jstack &lt;pid&gt; &gt; jstack.out</div><div class="line"></div><div class="line"><span class="comment">## 4.Java的jmap命令：显示一个进程下具体线程的内存占用情况</span></div><div class="line"><span class="comment"># 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live &lt;pid&gt; &gt; /home/jmap.out）</span></div><div class="line">jmap -histo:live &lt;pid&gt; | head -n 100</div><div class="line"><span class="comment"># 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析</span></div><div class="line"><span class="comment"># （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟）</span></div><div class="line">jmap -dump:live,format=b,file=/home/dump.hprof &lt;pid&gt;</div><div class="line"><span class="comment"># （2）项目启动添加参数获取(不能实时获取)</span></div><div class="line">-XX:+HeapDumpOnOutOfMemoryError <span class="comment"># 出现 OOME 时生成堆 dump:</span></div><div class="line">-XX:HeapDumpPath=/home/jvmlogs/ <span class="comment"># 生成堆文件地址</span></div></pre></td></tr></table></figure>
+<h2 id="MAT工具使用"><a href="#MAT工具使用" class="headerlink" title="MAT工具使用"></a>MAT工具使用</h2><ul>
+<li><p>MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，<a href="http://www.eclipse.org/mat/downloads.php" target="_blank" rel="external">下载</a></p>
+</li>
+<li><p><a href="https://www.cnblogs.com/moonandstar08/p/5625164.html" target="_blank" rel="external">https://www.cnblogs.com/moonandstar08/p/5625164.html</a></p>
+</li>
+<li><a href="http://blog.csdn.net/aaa2832/article/details/19419679" target="_blank" rel="external">http://blog.csdn.net/aaa2832/article/details/19419679</a></li>
+</ul>
+<h2 id="OFBiz项目案例分析"><a href="#OFBiz项目案例分析" class="headerlink" title="OFBiz项目案例分析"></a>OFBiz项目案例分析</h2><blockquote>
+<p>案例介绍：此问题主要是ofbiz在清理历史任务时，任务数据过大导致内存溢出，从而CPU飙升，最终服务器时常宕机。</p>
+</blockquote>
+<ul>
+<li><code>htop</code>查看情况如下</li>
+</ul>
+<p>可以看到其中PID=2273的进程CPU占用到达710%(服务器为8核)，内存占用22%(服务器为16G*0.22=3.52G，jvm参数设置的内存大小为3G)，其中线程运行时间达到5h29m。以上数据说明程序运行存在问题</p>
+<p><img src="/data/images/java/ofbiz-cpu.png" alt="htop"></p>
+<ul>
+<li><code>ps -mp 2273 -o THREAD,tid,time,rss,size,%mem</code> 查看此进程下线程运行情况：实际中发现有7个进场运行时间达到几十分钟，且CPU和内存占用均非常高。(其中2个是ofbiz拉取历史任务进行清理的进程，5个为GC进行垃圾回收的进程)</li>
+<li><code>jstack 2273 | grep</code>printf “%x\n” 2413<code>-A 40</code> 查看2273进程下2413线程的堆栈信息如下(或者输出到文件进行查看)</li>
+</ul>
+<p>可以看到线程有以下调用信息<code>org.ofbiz.service.job.PurgeJob.exec(PurgeJob.java:55)</code>，如是可以去查看PurgeJob的源码。(当然应该多次查看此线程的堆栈，查看一次可能存在偶发性)</p>
+<p><img src="/data/images/java/ofbiz-purgejob-jstack.png" alt="jstack"></p>
+<ul>
+<li>ofbiz的PurgeJob相关源码。详细可参考《ofbiz任务机制》</li>
+</ul>
+<p>ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行的任务时，则进行历史任务数据(JobSandbox等表数据)清理工作，即获取当前时间4天(默认的purge-job-days)前完成或者取消的任务数据进行删除。</p>
+<p>而此处是根据ofbiz实体引擎查询的历史数据放到一个EntityListIterator中进行遍历(查看源码可知本质并没有分页获取数据，而是将所有查询的数据放到ResultSet进行遍历)</p>
+<p>由于本项目前期并没有太多的关注任务调用周期，从而导致大量任务堆积，并且不能及时清理。一定数量后，再次触发任务数据清理时就会从数据库获取大量数据到内存，从而内存移除，GC频繁清理，CPU飙升，服务器宕机。</p>
+<p><img src="/data/images/java/ofbiz-purgejob-src.png" alt="ofbiz-purgejob-src"></p>
+<ul>
+<li><p>MAT分析：从服务器下载dump文件使用MAT进行分析，发现也可发现上述情况</p>
+</li>
+<li><p>解决方案</p>
+</li>
+</ul>
+<p>由于个人觉得ofbiz任务机制不太好用，决定不去清理历史数据，而是手动定时清理(或绕过ofbiz定时去清理)。因此可以修改<code>/framework/service/config/serviceengine.xml</code>中<code>purge-job-days</code>的值。重新启动服务器(之前占用的内存无法及时清除，必须重启服务器)和项目一切正常</p>
+<hr>
+<p>参考文章</p>
+]]></content>
+      
+        <categories>
+            
+            <category> java </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> ofbiz </tag>
+            
+            <tag> CPU </tag>
+            
+            <tag> 内存 </tag>
+            
+            <tag> 运维 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[lvs]]></title>
+      <url>/2018/03/04/arch/lvs/</url>
+      <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li><code>LVS</code>是<code>Linux Virtual Server</code>的简称，也就是Linux虚拟服务器</li>
+<li>负载均衡解决方案主要分为硬件层面和软件层面<ul>
+<li>硬件如：F5等(一台一般15万)</li>
+<li><strong>软件可分为第四层和第七层协议</strong><ul>
+<li>第四层如：<code>lvs</code>(只能操作ip和端口，在操作系统内核中)</li>
+<li>第七层(应用层：http/ajp/https)如：<code>nginx</code>、<code>httpd</code>(apache)、<code>haproxy</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Lvs的组成包括 <code>ipvs</code> 和 <code>ipvsadm</code><ul>
+<li>ipvs(ip virtual server)：一段代码工作在内核空间，叫ipvs，是真正生效实现调度的代码(所有的linux都有此功能)</li>
+<li>ipvsadm：另外一段是工作在用户空间，叫ipvsadm，负责为ipvs内核框架编写规则，定义谁是集群服务，而谁是后端真实的服务器(Real Server)。安装<code>yum install ipvsadm -y</code></li>
+</ul>
+</li>
+<li>lvs默认是用的<code>wlc</code>调度算法：会根据后端 RS 的连接数来决定把请求分发给谁，比如 RS1 连接数比 RS2 连接数少，那么请求就优先发给 RS1。并考虑权重</li>
+<li>相关术语<ul>
+<li><code>DS</code>：Director Server。指的是前端负载均衡器节点</li>
+<li><code>RS</code>：Real Server。后端真实的工作服务器</li>
+<li><code>VIP</code>：向外部直接面向用户请求，作为用户请求的目标的IP地址</li>
+<li><code>DIP</code>：Director Server IP，主要用于和内部主机通讯的IP地址</li>
+<li><code>RIP</code>：Real Server IP，后端服务器的IP地址</li>
+<li><code>CIP</code>：Client IP，访问客户端的IP地址</li>
+</ul>
+</li>
+</ul>
+<h2 id="LVS的DR模式原理-1"><a href="#LVS的DR模式原理-1" class="headerlink" title="LVS的DR模式原理 ^1"></a>LVS的DR模式原理 <a href="[使用LVS实现负载均衡原理及安装配置详解](https://www.cnblogs.com/liwei0526vip/p/6370103.html)">^1</a></h2><p><img src="/data/images/arch/lvs-nat.png" alt="LVS/NAT"></p>
+<ol>
+<li>当用户请求到达Director Server，此时请求的数据报文会先到内核空间的PREROUTING链。 此时报文的源IP为CIP，目标IP为VIP </li>
+<li>PREROUTING检查发现数据包的目标IP是本机，将数据包送至INPUT链</li>
+<li>IPVS比对数据包请求的服务是否为集群服务，若是，修改数据包的目标IP地址为后端服务器IP，然后将数据包发至POSTROUTING链。 此时报文的源IP为CIP，目标IP为RIP </li>
+<li>POSTROUTING链通过选路，将数据包发送给Real Server</li>
+<li>Real Server比对发现目标为自己的IP，开始构建响应报文发回给Director Server。 此时报文的源IP为RIP，目标IP为CIP </li>
+<li>Director Server在响应客户端前，此时会将源IP地址修改为自己的VIP地址，然后响应给客户端。 此时报文的源IP为VIP，目标IP为CIP</li>
+</ol>
+<h2 id="LVS的DR模式实践"><a href="#LVS的DR模式实践" class="headerlink" title="LVS的DR模式实践"></a>LVS的DR模式实践</h2><h3 id="基本说明"><a href="#基本说明" class="headerlink" title="基本说明"></a>基本说明</h3><ul>
+<li>请求流程<ul>
+<li>CIP-VIP的请求数据包发送到DS<strong>(所以此时DS必须绑定可访问的VIP)</strong>RIP-CIP的返回</li>
+<li>CIP-RIP的请求数据包发送到RS(通过DS转发)<ul>
+<li>RIP-CIP的响应数据包可从RS发送，但是客户端不会接受，因为CIP请求的是VIP。所有必须是RS响应VIP-CIP的数据包(相当于IP欺骗)</li>
+</ul>
+</li>
+<li>VIP-CIP的响应数据包由RS返回到客户端<strong>(所以此时RS必须绑定隐藏的VIP)</strong></li>
+</ul>
+</li>
+<li>上述流程中DS和RS都绑定的VIP，但是一个网络中不能有两台机器同时绑定一个IP。但是RS是隐藏的VIP，<strong>隐藏VIP的前提是：不对外广播和不对外响应</strong></li>
+<li>通过修改以下内核参数来隐藏RS的VIP<ul>
+<li><code>arp_ignore</code>：定义接收到ARP请求时的<strong>响应级别</strong><ul>
+<li>0：只要在本地配置的有相应地址，就给予响应(默认)</li>
+<li>1：仅在请求的目标MAC地址与请求的网络接口匹配时，才给予响应(mac地址和ip地址匹配时才响应；lvs设置此级别)</li>
+</ul>
+</li>
+<li><code>arp_announce</code>：定义将自己地址向外<strong>通告级别</strong><ul>
+<li>0：将本地任何接口上的任何地址向外通过(默认)</li>
+<li>1：试图仅向目标网络通告与其网络匹配的地址</li>
+<li>2：仅向与本地接口MAC地址匹配的网络进行通告(mac地址和ip地址匹配时才通告；lvs设置此级别)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>步骤(可将以下步骤封装成脚本)<ul>
+<li>对DS创建网络接口并绑定VIP</li>
+<li>对所有RS隐藏VIP(进行网络配置)</li>
+<li>对所有RS绑定VIP(必须先隐藏在进行绑定，因为绑定的一瞬间就会对外通告)</li>
+<li>对所有RS修改其VIP路由</li>
+<li>通过ipvsadm进行相关配置</li>
+</ul>
+</li>
+<li><code>ip addr</code> 查看网络接口(其中<code>lo</code>不对外进行通信，<code>ens33</code>/<code>eth0</code>会对外通信)</li>
+<li>所需服务器列表(需要在同一网段)<ul>
+<li>Director节点：(ens33 192.168.6.134 vip ens33:0 192.168.6.120)</li>
+<li>Real server1：(ens33 192.168.6.131 vip lo:0 192.168.6.120)</li>
+<li>Real server2：(ens33 192.168.6.132 vip lo:0 192.168.6.120)</li>
+</ul>
+</li>
+<li><strong>重启服务器后RS的配置都丢失？？？</strong></li>
+</ul>
+<h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3><ul>
+<li>对DS(192.168.6.134)创建网络接口并绑定VIP：<code>ifconfig ens33:1 192.168.6.120</code></li>
+<li><p>对RS(<code>192.168.6.131</code>、<code>192.168.6.132</code>)隐藏VIP</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 修改arp_ignore的值为1(proc目录为内核映射文件，修改此目录的文件就会修改内存数据)</span></div><div class="line"><span class="comment"># ens33为对应网卡接口名称(也可能为eth0等)</span></div><div class="line"><span class="built_in">echo</span> <span class="string">"1"</span> &gt; /proc/sys/net/ipv4/conf/ens33/arp_ignore</div><div class="line"><span class="built_in">echo</span> <span class="string">"1"</span> &gt; /proc/sys/net/ipv4/conf/all/arp_ignore</div><div class="line"><span class="built_in">echo</span> <span class="string">"2"</span> &gt; /proc/sys/net/ipv4/conf/ens33/arp_announce</div><div class="line"><span class="built_in">echo</span> <span class="string">"2"</span> &gt; /proc/sys/net/ipv4/conf/all/arp_announce</div></pre></td></tr></table></figure>
+</li>
+<li><p>对所有RS绑定VIP：<code>ifconfig lo:1 192.168.6.120 netmask 255.255.255.255 broadcast 192.168.6.120</code>(所有RS命令一致)</p>
+<ul>
+<li>此处故意输入一个错误的子网掩码<code>255.255.255.255</code>，防止此ip对外通信</li>
+<li>前后输入<code>ifconfig</code>进行查看对比</li>
+</ul>
+</li>
+<li>对所有RS修改其VIP路由：<code>route add -host 192.168.6.120 lo:1</code>(所有RS命令一致)<ul>
+<li>前后输入<code>route</code>进行查看对比</li>
+</ul>
+</li>
+<li><p>通过ipvsadm进行相关配置</p>
+<ul>
+<li>在DS(192.168.6.134)上安装<code>yum install ipvsadm -y</code></li>
+<li><p>在DS上进行如下配置</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># -A：Add a virtual service; -t：tcp协议; -s rr：调度算法为wlc</span></div><div class="line">ipvsadm -A -t 192.168.6.120:80 -s wlc</div><div class="line"><span class="comment"># -a：Add a real server to a virtual service; -r：real server配置; -g：使用DR模式</span></div><div class="line">ipvsadm -a -t 192.168.6.120:80 -r 192.168.6.131 -g</div><div class="line">ipvsadm -a -t 192.168.6.120:80 -r 192.168.6.132 -g</div></pre></td></tr></table></figure>
+</li>
+<li><p>ipvsadm其他命令</p>
+<ul>
+<li><code>ipvsadm -ln</code> 查看lvs配置</li>
+<li><code>ipvsadm -lnc</code> 查看lvs分发记录</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><ul>
+<li>修改RS(<code>192.168.6.131</code>、<code>192.168.6.132</code>)的nginx安装目录下<code>html/50x.html</code>文件，分别加入<code>&lt;h1&gt;server1&lt;/h1&gt;</code>和<code>&lt;h1&gt;server2&lt;/h1&gt;</code>(前提是通过 <a href="http://192.168.6.131/50x.html" target="_blank" rel="external">http://192.168.6.131/50x.html</a> 可访问到对应的文件)</li>
+<li>访问<code>http://192.168.6.120/50x.html</code>观察显示页面</li>
+</ul>
+<h2 id="LVS结合keepalive"><a href="#LVS结合keepalive" class="headerlink" title="LVS结合keepalive"></a>LVS结合keepalive</h2><ul>
+<li><strong>LVS可以实现负载均衡，但是不能够进行健康检查</strong>，比如一个rs出现故障，LVS 仍然会把请求转发给故障的rs服务器，这样就会导致请求的无效性。<strong>keepalive 软件可以进行健康检查，而且能同时实现 LVS 的高可用性，解决 LVS 单点故障的问题</strong>。其实 keepalive 就是为 LVS 而生的。</li>
+</ul>
+<hr>
+<p>参考文章</p>
+]]></content>
+      
+        <categories>
+            
+            <category> arch </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> LB </tag>
+            
+            <tag> HA </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[keepalived]]></title>
       <url>/2018/03/03/arch/keepalived/</url>
       <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
@@ -49,6 +314,7 @@
       <url>/2018/03/03/db/memcached/</url>
       <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li><a href="http://www.runoob.com/memcached/memcached-tutorial.html" target="_blank" rel="external">菜鸟教程</a></li>
+<li>memcached集群需要多台服务器时间一致(30s以内)</li>
 </ul>
 <h2 id="安装和使用"><a href="#安装和使用" class="headerlink" title="安装和使用"></a>安装和使用</h2><ul>
 <li><code>yum –y install memcached</code> 安装</li>
@@ -77,8 +343,8 @@
     </entry>
     
     <entry>
-      <title><![CDATA[ofbiz任务(定时/异步)]]></title>
-      <url>/2018/02/24/java/ofbiz/ofbiz-job/</url>
+      <title><![CDATA[ofbiz任务机制]]></title>
+      <url>/2018/02/24/java/ofbiz/ofbiz%E4%BB%BB%E5%8A%A1%E6%9C%BA%E5%88%B6/</url>
       <content type="html"><![CDATA[<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><ul>
 <li><code>org.ofbiz.service.job.JobPoller</code> 加载时会启动一个自动执行任务的线程</li>
 </ul>
@@ -228,6 +494,38 @@
     </entry>
     
     <entry>
+      <title><![CDATA[ofbiz]]></title>
+      <url>/2017/12/09/java/ofbiz/ofbiz/</url>
+      <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><h2 id="安装编译启动"><a href="#安装编译启动" class="headerlink" title="安装编译启动"></a>安装编译启动</h2><h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><ul>
+<li><p>设置hot-deploy下组件(component)编译顺序</p>
+<ul>
+<li><p><code>hot-deploy/build.xml</code></p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">name</span>=<span class="string">"OFBiz hot-deploy Build"</span> <span class="attr">default</span>=<span class="string">"build"</span> <span class="attr">basedir</span>=<span class="string">"."</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">filelist</span> <span class="attr">id</span>=<span class="string">"hot-deploy-builds"</span> <span class="attr">dir</span>=<span class="string">"."</span></span></div><div class="line">        <span class="attr">files</span>=<span class="string">"ubase/build.xml,</span></div><div class="line">        aplcodecenter/build.xml"/&gt;</div><div class="line">    <span class="comment">&lt;!--运行build命令时--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"build"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">iterate</span> <span class="attr">target</span>=<span class="string">"jar"</span> <span class="attr">filelist</span>=<span class="string">"hot-deploy-builds"</span>/&gt;</span></div><div class="line">        <span class="comment">&lt;!--除去不需编译的组件--&gt;</span></div><div class="line">        <span class="comment">&lt;!--</span></div><div class="line">        &lt;externalsubant target="jar"&gt;</div><div class="line">            &lt;filelist refid="hot-deploy-builds"/&gt;</div><div class="line">        &lt;/externalsubant&gt;</div><div class="line">        --&gt;</div><div class="line">        <span class="tag">&lt;<span class="name">externalsubant</span> <span class="attr">target</span>=<span class="string">"build"</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">filelist</span> <span class="attr">dir</span>=<span class="string">"."</span>&gt;</span></div><div class="line">                <span class="tag">&lt;<span class="name">file</span> <span class="attr">name</span>=<span class="string">"umetro/build.xml"</span>/&gt;</span></div><div class="line">            <span class="tag">&lt;/<span class="name">filelist</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">externalsubant</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!--运行clean命令时执行--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"clean"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">iterate</span> <span class="attr">target</span>=<span class="string">"clean"</span> <span class="attr">filelist</span>=<span class="string">"hot-deploy-builds"</span>/&gt;</span></div><div class="line">        <span class="comment">&lt;!--除去不需clean的组件--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">externalsubant</span> <span class="attr">target</span>=<span class="string">"clean"</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">filelist</span> <span class="attr">dir</span>=<span class="string">"."</span>&gt;</span></div><div class="line">                <span class="tag">&lt;<span class="name">file</span> <span class="attr">name</span>=<span class="string">"umetro/build.xml"</span>/&gt;</span></div><div class="line">            <span class="tag">&lt;/<span class="name">filelist</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">externalsubant</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li></li>
+</ul>
+</li>
+<li><p>设置hot-deloy下组件单独clean：在项目根目录下的<code>build.xml</code>中加入</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">  <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"_clean-hot-deploy"</span> <span class="attr">description</span>=<span class="string">"clean hot-deploy jar"</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">hotdeployant</span> <span class="attr">target</span>=<span class="string">"clean"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div></pre></td></tr></table></figure></li>
+</ul>
+]]></content>
+      
+        <categories>
+            
+            <category> java </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> ofbiz </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[ofbiz模型图(UML)分析]]></title>
       <url>/2017/12/09/java/ofbiz/ofbiz-uml/</url>
       <content type="html"><![CDATA[<h2 id="模型列表"><a href="#模型列表" class="headerlink" title="模型列表"></a>模型列表</h2><ul>
@@ -255,38 +553,6 @@
             <tag> uml </tag>
             
             <tag> 源码 </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[ofbiz]]></title>
-      <url>/2017/12/09/java/ofbiz/ofbiz/</url>
-      <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><h2 id="安装编译启动"><a href="#安装编译启动" class="headerlink" title="安装编译启动"></a>安装编译启动</h2><h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><ul>
-<li><p>设置hot-deploy下组件(component)编译顺序</p>
-<ul>
-<li><p><code>hot-deploy/build.xml</code></p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">name</span>=<span class="string">"OFBiz hot-deploy Build"</span> <span class="attr">default</span>=<span class="string">"build"</span> <span class="attr">basedir</span>=<span class="string">"."</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">filelist</span> <span class="attr">id</span>=<span class="string">"hot-deploy-builds"</span> <span class="attr">dir</span>=<span class="string">"."</span></span></div><div class="line">        <span class="attr">files</span>=<span class="string">"ubase/build.xml,</span></div><div class="line">        aplcodecenter/build.xml"/&gt;</div><div class="line">    <span class="comment">&lt;!--运行build命令时--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"build"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">iterate</span> <span class="attr">target</span>=<span class="string">"jar"</span> <span class="attr">filelist</span>=<span class="string">"hot-deploy-builds"</span>/&gt;</span></div><div class="line">        <span class="comment">&lt;!--除去不需编译的组件--&gt;</span></div><div class="line">        <span class="comment">&lt;!--</span></div><div class="line">        &lt;externalsubant target="jar"&gt;</div><div class="line">            &lt;filelist refid="hot-deploy-builds"/&gt;</div><div class="line">        &lt;/externalsubant&gt;</div><div class="line">        --&gt;</div><div class="line">        <span class="tag">&lt;<span class="name">externalsubant</span> <span class="attr">target</span>=<span class="string">"build"</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">filelist</span> <span class="attr">dir</span>=<span class="string">"."</span>&gt;</span></div><div class="line">                <span class="tag">&lt;<span class="name">file</span> <span class="attr">name</span>=<span class="string">"umetro/build.xml"</span>/&gt;</span></div><div class="line">            <span class="tag">&lt;/<span class="name">filelist</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">externalsubant</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!--运行clean命令时执行--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"clean"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">iterate</span> <span class="attr">target</span>=<span class="string">"clean"</span> <span class="attr">filelist</span>=<span class="string">"hot-deploy-builds"</span>/&gt;</span></div><div class="line">        <span class="comment">&lt;!--除去不需clean的组件--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">externalsubant</span> <span class="attr">target</span>=<span class="string">"clean"</span>&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">filelist</span> <span class="attr">dir</span>=<span class="string">"."</span>&gt;</span></div><div class="line">                <span class="tag">&lt;<span class="name">file</span> <span class="attr">name</span>=<span class="string">"umetro/build.xml"</span>/&gt;</span></div><div class="line">            <span class="tag">&lt;/<span class="name">filelist</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">externalsubant</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></div></pre></td></tr></table></figure>
-</li>
-<li></li>
-</ul>
-</li>
-<li><p>设置hot-deloy下组件单独clean：在项目根目录下的<code>build.xml</code>中加入</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">  <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"_clean-hot-deploy"</span> <span class="attr">description</span>=<span class="string">"clean hot-deploy jar"</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">hotdeployant</span> <span class="attr">target</span>=<span class="string">"clean"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div></pre></td></tr></table></figure></li>
-</ul>
-]]></content>
-      
-        <categories>
-            
-            <category> java </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> ofbiz </tag>
             
         </tags>
         
@@ -627,73 +893,6 @@
     </entry>
     
     <entry>
-      <title><![CDATA[oracle-function]]></title>
-      <url>/2017/09/30/db/oracle-function/</url>
-      <content type="html"><![CDATA[<h2 id="常用函数"><a href="#常用函数" class="headerlink" title="常用函数"></a>常用函数</h2><ul>
-<li><code>decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)</code> 只能判断=，不能判断like<ul>
-<li><code>select decode(length(ys.ycross_x), 1, &#39;0&#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys</code> 如果ys.ycross_x的长度为1那就在前面加0，否则取本身</li>
-<li><code>select sum(decode(shipcomp.company_num, &#39;CMA&#39;, 1, 0)) cma, sum(decode(shipcomp.company_num, &#39;MSK&#39;, 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联)</code> 统计进出场记录中cma和msk的数量</li>
-</ul>
-</li>
-<li><code>case when else end</code> 比decode强大<ul>
-<li><code>case when t.name = &#39;admin&#39; then &#39;admin&#39; when t.name like &#39;admin%&#39; then &#39;admin_user&#39; else decode(t.role, &#39;admin&#39;, &#39;admin&#39;, &#39;admin_user&#39;) end</code></li>
-<li><code>sum(case when yior.plan_classification_code = &#39;Empty_Temporary_Fall_Into_Play&#39; and yardparty.company_num = &#39;DW1&#39; then 1 end) as count_dw1</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h2><ul>
-<li><code>wm_concat</code> 行转列 (默认用”,”分割，select的其他字段需要是group by字段)<ul>
-<li><code>select replace(wm_concat(name), &#39;,&#39;, &#39;|&#39;) from test;</code>替换分割符</li>
-</ul>
-</li>
-</ul>
-<h2 id="分析函数-1-3"><a href="#分析函数-1-3" class="headerlink" title="分析函数 ^1 ^3"></a>分析函数 <a href="[分析函数2](http://www.cnblogs.com/linjiqin/archive/2012/04/05/2433633.html)">^1</a> <a href="[分析函数3](http://www.cnblogs.com/linjiqin/archive/2012/04/06/2434806.html)">^3</a></h2><ul>
-<li>分析函数和聚合函数的不同之处是什么：普通的聚合函数用group by分组，每个分组返回一个统计值，而分析函数采用partition by分组，并且每组每行都可以返回一个统计值</li>
-<li>分析函数带有一个开窗函数<code>over()</code>，包含三个分析子句，形式如：<code>over(partition by xxx order by yyy rows between aaa and bbb)</code><ul>
-<li>分组(partition by)</li>
-<li>排序(order by)</li>
-<li>窗口(rows)：窗口子句包含rows方式的窗口，range方式和滑动窗口</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id</span></div><div class="line"><span class="keyword">select</span> *</div><div class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> ys.id</div><div class="line">               ,<span class="keyword">count</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> ys.id) <span class="keyword">as</span> total</div><div class="line">               ,<span class="keyword">first_value</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> yvmp.storage_id <span class="keyword">order</span> <span class="keyword">by</span> yvmp.input_tm <span class="keyword">ASC</span> <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> first_id</div><div class="line">          <span class="keyword">from</span> ycross_storage ys</div><div class="line">          <span class="keyword">left</span> <span class="keyword">join</span> yyard_venue_move_plan yvmp</div><div class="line">            <span class="keyword">on</span> yvmp.storage_id = ys.id</div><div class="line">           <span class="keyword">and</span> yvmp.yes_status = <span class="number">0</span>) t</div><div class="line"> <span class="keyword">group</span> <span class="keyword">by</span> t.id, t.total, t.first_id</div></pre></td></tr></table></figure>
-<ul>
-<li>grouping、rollup：<a href="http://blog.csdn.net/damenggege123/article/details/38794351" target="_blank" rel="external">http://blog.csdn.net/damenggege123/article/details/38794351</a></li>
-<li>case when else end：<a href="https://www.cnblogs.com/luowz/p/5804639.html" target="_blank" rel="external">https://www.cnblogs.com/luowz/p/5804639.html</a></li>
-</ul>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h2 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h2><h3 id="字符串分割函数"><a href="#字符串分割函数" class="headerlink" title="字符串分割函数"></a>字符串分割函数</h3><ul>
-<li>创建字符串数组类型：<code>create or replace type sm_type_arr_str is table of varchar2 (60);</code> (一个数组，每个元素是varchar2 (60))</li>
-<li><p>创建自定义函数<code>sm_split</code></p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">create or replace function sm_split(p_str       in varchar2,</div><div class="line">                                p_delimiter in varchar2)</div><div class="line">  return sm_type_arr_str</div><div class="line">  pipelined is</div><div class="line">  j    int := 0;</div><div class="line">  i    int := 1;</div><div class="line">  len  int := 0;</div><div class="line">  len1 int := 0;</div><div class="line">  str  varchar2(4000);</div><div class="line">begin</div><div class="line">  len  := length(p_str);</div><div class="line">  len1 := length(p_delimiter);</div><div class="line"></div><div class="line">  while j &lt; len loop</div><div class="line">    j := instr(p_str, p_delimiter, i);</div><div class="line"></div><div class="line">    if j = 0 then</div><div class="line">      j   := len;</div><div class="line">      str := substr(p_str, i);</div><div class="line">      pipe row(str);</div><div class="line">      if i &gt;= len then</div><div class="line">        exit;</div><div class="line">      end if;</div><div class="line">    else</div><div class="line">      str := substr(p_str, i, j - i);</div><div class="line">      i   := j + len1;</div><div class="line">      pipe row(str);</div><div class="line">    end if;</div><div class="line">  end loop;</div><div class="line"></div><div class="line">  return;</div><div class="line">end sm_split;</div></pre></td></tr></table></figure>
-</li>
-<li><p>查询示例：<code>select * from table (cast (sm_split (&#39;aa,,bb,cc,,&#39;, &#39;,&#39;) as sm_type_arr_str));</code> 结果如下：</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">  COLUMN_VALUE</div><div class="line">1	aa</div><div class="line">2</div><div class="line">3	bb</div><div class="line">4	cc</div><div class="line">5</div></pre></td></tr></table></figure>
-</li>
-<li><p>示例二</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> t.*</div><div class="line">  <span class="keyword">from</span> test_table t</div><div class="line">  <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> <span class="number">1</span></div><div class="line">          <span class="keyword">from</span> <span class="keyword">table</span>(<span class="keyword">cast</span>(sm_split(t.name, <span class="string">','</span>) <span class="keyword">as</span> sm_type_arr_str)) arr</div><div class="line">          <span class="keyword">where</span> <span class="keyword">trim</span>(arr.column_value) = <span class="string">'aa'</span>)</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<hr>
-]]></content>
-      
-        <categories>
-            
-            <category> db </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> oracle </tag>
-            
-            <tag> function </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
       <title><![CDATA[sql基础]]></title>
       <url>/2017/09/30/db/sql/</url>
       <content type="html"><![CDATA[<blockquote>
@@ -716,6 +915,7 @@
 <h3 id="删除记录-表结构不会删除"><a href="#删除记录-表结构不会删除" class="headerlink" title="删除记录(表结构不会删除)"></a>删除记录(表结构不会删除)</h3><ul>
 <li><code>delete from emp2;</code> 清空表emp2</li>
 <li><code>delete from dept2 where deptno &lt; 25;</code> 删除deptno &lt; 25的条目</li>
+<li><code>delete from emp2 where deptno in (select deptno from dept2 where deptno &lt; 25)</code> 子查询不能有别名(oracle)</li>
 </ul>
 <h3 id="事物"><a href="#事物" class="headerlink" title="事物"></a>事物</h3><ul>
 <li>Mysql和Oracle提交事物：<code>commit;</code>；Oracle的撤销操作：<code>rollback;</code></li>
@@ -995,7 +1195,6 @@
 </ul>
 <h4 id="删除表"><a href="#删除表" class="headerlink" title="删除表"></a>删除表</h4><ul>
 <li>删除表 <code>drop table table_name;</code> 如果存在外键约束，应该先删除含有外键约束的那个表，再删除被参考的那个表</li>
-<li>清空表数据 <code>delete from table_name;</code></li>
 </ul>
 <h4 id="复制表"><a href="#复制表" class="headerlink" title="复制表"></a>复制表</h4><ul>
 <li>复制表结构及数据到新表 <code>CREATE TABLE 新表 AS SELECT * FROM 旧表</code></li>
@@ -1133,6 +1332,73 @@
             <tag> oracle </tag>
             
             <tag> mysql </tag>
+            
+            <tag> sql </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[oracle-function]]></title>
+      <url>/2017/09/30/db/oracle-function/</url>
+      <content type="html"><![CDATA[<h2 id="常用函数"><a href="#常用函数" class="headerlink" title="常用函数"></a>常用函数</h2><ul>
+<li><code>decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)</code> 只能判断=，不能判断like<ul>
+<li><code>select decode(length(ys.ycross_x), 1, &#39;0&#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys</code> 如果ys.ycross_x的长度为1那就在前面加0，否则取本身</li>
+<li><code>select sum(decode(shipcomp.company_num, &#39;CMA&#39;, 1, 0)) cma, sum(decode(shipcomp.company_num, &#39;MSK&#39;, 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联)</code> 统计进出场记录中cma和msk的数量</li>
+</ul>
+</li>
+<li><code>case when else end</code> 比decode强大<ul>
+<li><code>case when t.name = &#39;admin&#39; then &#39;admin&#39; when t.name like &#39;admin%&#39; then &#39;admin_user&#39; else decode(t.role, &#39;admin&#39;, &#39;admin&#39;, &#39;admin_user&#39;) end</code></li>
+<li><code>sum(case when yior.plan_classification_code = &#39;Empty_Temporary_Fall_Into_Play&#39; and yardparty.company_num = &#39;DW1&#39; then 1 end) as count_dw1</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h2><ul>
+<li><code>wm_concat</code> 行转列 (默认用”,”分割，select的其他字段需要是group by字段)<ul>
+<li><code>select replace(wm_concat(name), &#39;,&#39;, &#39;|&#39;) from test;</code>替换分割符</li>
+</ul>
+</li>
+</ul>
+<h2 id="分析函数-1-3"><a href="#分析函数-1-3" class="headerlink" title="分析函数 ^1 ^3"></a>分析函数 <a href="[分析函数2](http://www.cnblogs.com/linjiqin/archive/2012/04/05/2433633.html)">^1</a> <a href="[分析函数3](http://www.cnblogs.com/linjiqin/archive/2012/04/06/2434806.html)">^3</a></h2><ul>
+<li>分析函数和聚合函数的不同之处是什么：普通的聚合函数用group by分组，每个分组返回一个统计值，而分析函数采用partition by分组，并且每组每行都可以返回一个统计值</li>
+<li>分析函数带有一个开窗函数<code>over()</code>，包含三个分析子句，形式如：<code>over(partition by xxx order by yyy rows between aaa and bbb)</code><ul>
+<li>分组(partition by)</li>
+<li>排序(order by)</li>
+<li>窗口(rows)：窗口子句包含rows方式的窗口，range方式和滑动窗口</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id</span></div><div class="line"><span class="keyword">select</span> *</div><div class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> ys.id</div><div class="line">               ,<span class="keyword">count</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> ys.id) <span class="keyword">as</span> total</div><div class="line">               ,<span class="keyword">first_value</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> yvmp.storage_id <span class="keyword">order</span> <span class="keyword">by</span> yvmp.input_tm       <span class="keyword">ASC</span> <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> first_id</div><div class="line">          <span class="keyword">from</span> ycross_storage ys</div><div class="line">          <span class="keyword">left</span> <span class="keyword">join</span> yyard_venue_move_plan yvmp</div><div class="line">            <span class="keyword">on</span> yvmp.storage_id = ys.id</div><div class="line">           <span class="keyword">and</span> yvmp.yes_status = <span class="number">0</span>) t</div><div class="line"> <span class="keyword">group</span> <span class="keyword">by</span> t.id, t.total, t.first_id</div></pre></td></tr></table></figure>
+<ul>
+<li>grouping、rollup：<a href="http://blog.csdn.net/damenggege123/article/details/38794351" target="_blank" rel="external">http://blog.csdn.net/damenggege123/article/details/38794351</a></li>
+<li>case when else end：<a href="https://www.cnblogs.com/luowz/p/5804639.html" target="_blank" rel="external">https://www.cnblogs.com/luowz/p/5804639.html</a></li>
+</ul>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h2 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h2><h3 id="字符串分割函数"><a href="#字符串分割函数" class="headerlink" title="字符串分割函数"></a>字符串分割函数</h3><ul>
+<li>创建字符串数组类型：<code>create or replace type sm_type_arr_str is table of varchar2 (60);</code> (一个数组，每个元素是varchar2 (60))</li>
+<li><p>创建自定义函数<code>sm_split</code></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">create or replace function sm_split(p_str       in varchar2,</div><div class="line">                                p_delimiter in varchar2)</div><div class="line">  return sm_type_arr_str</div><div class="line">  pipelined is</div><div class="line">  j    int := 0;</div><div class="line">  i    int := 1;</div><div class="line">  len  int := 0;</div><div class="line">  len1 int := 0;</div><div class="line">  str  varchar2(4000);</div><div class="line">begin</div><div class="line">  len  := length(p_str);</div><div class="line">  len1 := length(p_delimiter);</div><div class="line"></div><div class="line">  while j &lt; len loop</div><div class="line">    j := instr(p_str, p_delimiter, i);</div><div class="line"></div><div class="line">    if j = 0 then</div><div class="line">      j   := len;</div><div class="line">      str := substr(p_str, i);</div><div class="line">      pipe row(str);</div><div class="line">      if i &gt;= len then</div><div class="line">        exit;</div><div class="line">      end if;</div><div class="line">    else</div><div class="line">      str := substr(p_str, i, j - i);</div><div class="line">      i   := j + len1;</div><div class="line">      pipe row(str);</div><div class="line">    end if;</div><div class="line">  end loop;</div><div class="line"></div><div class="line">  return;</div><div class="line">end sm_split;</div></pre></td></tr></table></figure>
+</li>
+<li><p>查询示例：<code>select * from table (cast (sm_split (&#39;aa,,bb,cc,,&#39;, &#39;,&#39;) as sm_type_arr_str));</code> 结果如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">  COLUMN_VALUE</div><div class="line">1	aa</div><div class="line">2</div><div class="line">3	bb</div><div class="line">4	cc</div><div class="line">5</div></pre></td></tr></table></figure>
+</li>
+<li><p>示例二</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> t.*</div><div class="line">  <span class="keyword">from</span> test_table t</div><div class="line">  <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> <span class="number">1</span></div><div class="line">          <span class="keyword">from</span> <span class="keyword">table</span>(<span class="keyword">cast</span>(sm_split(t.name, <span class="string">','</span>) <span class="keyword">as</span> sm_type_arr_str)) arr</div><div class="line">          <span class="keyword">where</span> <span class="keyword">trim</span>(arr.column_value) = <span class="string">'aa'</span>)</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<hr>
+]]></content>
+      
+        <categories>
+            
+            <category> db </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> oracle </tag>
             
             <tag> sql </tag>
             
@@ -2509,6 +2775,13 @@
 </li>
 <li>开始安装，安装期间设置Root密码(root)，创建用户(smalle/smalle)并设置为管理员</li>
 <li><strong>开启windows下和VMware相关的两块虚拟网卡</strong></li>
+<li><strong>快照</strong>：可对保留虚拟主机当前的配置状态</li>
+<li><strong>克隆虚拟主机</strong>：基于某个虚拟主机进行克隆出一台主机。克隆后需要进行以下修改<ul>
+<li><code>hostnamectl set-hostname aezocn</code> 修改主机名</li>
+<li><code>vi /etc/sysconfig/network-scripts/ifcfg-ens33</code>，修改<code>IPADDR</code>的值从而修改机器ip</li>
+<li>vmware克隆时会自动改变mac地址，如果没有改变可在vmware控制台中重新生成一个mac地址：设置-网络适配器-高级-生成</li>
+</ul>
+</li>
 </ul>
 <h2 id="远程连接虚拟机"><a href="#远程连接虚拟机" class="headerlink" title="远程连接虚拟机"></a>远程连接虚拟机</h2><ul>
 <li><code>ip addr</code>查看虚拟机地址(<code>ens33</code>/<code>eth0</code>)，<code>ipconfig</code>查看windows主机地址，并看能否双向<code>ping</code>通</li>
@@ -3109,11 +3382,17 @@
     <entry>
       <title><![CDATA[windows]]></title>
       <url>/2017/05/10/extend/windows/</url>
-      <content type="html"><![CDATA[<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><ul>
+      <content type="html"><![CDATA[<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><ul>
+<li><code>ipconfig</code> 查看ip地址</li>
+<li><code>arp -a</code> 查看局域网下所有机器mac地址</li>
+<li><code>ping 192.168.1.1</code></li>
+<li><code>telnet 192.168.1.1 8080</code></li>
+</ul>
+<h2 id="bat脚本"><a href="#bat脚本" class="headerlink" title="bat脚本"></a>bat脚本</h2><h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><ul>
 <li>注释：<code>::</code>、<code>rem</code>等 <a href="[注释](http://blog.csdn.net/wh_19910525/article/details/8125762)">^1</a></li>
 <li><code>title</code>: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)</li>
 </ul>
-<h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><ul>
+<h3 id="常用脚本"><a href="#常用脚本" class="headerlink" title="常用脚本"></a>常用脚本</h3><ul>
 <li><p>运行java</p>
   <figure class="highlight bat"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">title</span>=<span class="built_in">cmd</span>窗口的标题</div><div class="line"><span class="built_in">echo</span> off</div><div class="line"><span class="comment">rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录</span></div><div class="line">%~d0</div><div class="line"><span class="built_in">set</span> MY_PROJECT_HOME=%~p0</div><div class="line"><span class="built_in">cd</span> <span class="variable">%MY_PROJECT_HOME%</span></div><div class="line"><span class="built_in">echo</span> on</div><div class="line">"<span class="variable">%JAVA_HOME%</span>\bin\java" -jar my.jar</div><div class="line"><span class="built_in">echo</span> off</div></pre></td></tr></table></figure>
 <ul>
@@ -3498,7 +3777,41 @@
 <li>python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护</li>
 <li>Linux下默认有python环境</li>
 </ul>
-<h2 id="python基础-易混淆-常用"><a href="#python基础-易混淆-常用" class="headerlink" title="python基础(易混淆/常用)"></a>python基础(易混淆/常用)</h2><h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><ol>
+<h2 id="python基础-易混淆-常用"><a href="#python基础-易混淆-常用" class="headerlink" title="python基础(易混淆/常用)"></a>python基础(易混淆/常用)</h2><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><ul>
+<li>变量<ul>
+<li>命名同java(区分大小写) </li>
+<li>变量无需声明类型：如<code>name=&#39;smalle&#39;，name=123</code></li>
+<li>变量销毁：<code>del name</code></li>
+<li><code>id(a), id(b), id(c)</code> 查看a、b、c三个变量的内存地址(0-255的数字python会做优化：<code>a=1、b=a、c=1</code>此时内存地址一致)</li>
+</ul>
+</li>
+<li>数据类型<ul>
+<li>数字类型：整型(布尔bool、长整型L、标准整型int)、浮点型(floot)、序列(字符串str、元组tuple、列表list)、映像类型(字典dict)、集合(可变set、不可变集合frozenset)</li>
+<li><code>a = True</code>(注意<code>True/False</code>首字母大写)</li>
+<li><code>type(a)</code> 查看a的数据类型</li>
+<li><code>a = &#39;10&#39;; int(a);</code> 强转成整形(floot、bool、str同理)</li>
+</ul>
+</li>
+<li>运算<ul>
+<li><code>2**32</code> 幂：为2的32次方</li>
+<li><code>10 % 3</code> 取余</li>
+<li><code>10 / 3 = 3; 10 // 3 = 3</code> ???</li>
+</ul>
+</li>
+<li>编程风格<ul>
+<li>使用缩进进行语句层级控制，不像java等语言的<code>{}</code></li>
+<li>每一行代表一个语句，语句结尾以分号<code>;</code>结束，也可省略此分号</li>
+<li>单引号/双引号效果一样，都可表示字符串；三个单引号/双引号可表示多行<ul>
+<li><code>name = &#39;smalle&#39;; age = 18; print &#39;name: %s, age: %s&#39; % (name, age);</code> 引号中的变量替换(如果只有一个变量可以省略括号，如果是数值也可以换成<code>%d</code>，<code>%.2f</code>表示浮点型保存两位小数)</li>
+</ul>
+</li>
+<li><code>,</code>或<code>+</code>为字符串连接符</li>
+</ul>
+</li>
+</ul>
+<h3 id="流程控制"><a href="#流程控制" class="headerlink" title="流程控制"></a>流程控制</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># if语句</span></div><div class="line"><span class="keyword">if</span> name == <span class="string">'smalle'</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"hi"</span></div><div class="line"><span class="keyword">elif</span> age &gt; <span class="number">18</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"old"</span></div><div class="line"><span class="keyword">else</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"error"</span></div><div class="line"></div><div class="line"><span class="comment"># while循环</span></div><div class="line"><span class="keyword">while</span> count &gt; <span class="number">3</span>:</div><div class="line">    <span class="comment"># ...</span></div><div class="line">    <span class="keyword">break</span></div><div class="line"><span class="keyword">else</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"此else语句可选"</span></div><div class="line"></div><div class="line"><span class="comment"># for循环</span></div><div class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">10</span>): <span class="comment"># range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)返回0-10(不包含是10)，且步长为2的数据：[0, 2, 4, 6, 8]</span></div><div class="line">    <span class="keyword">print</span> i</div></pre></td></tr></table></figure>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 1</span></div><div class="line"><span class="keyword">print</span> id(a) <span class="comment"># 返回变量a的地址</span></div><div class="line"><span class="keyword">print</span> type(a) <span class="comment"># 返回变量a的类型</span></div><div class="line"><span class="keyword">print</span> len(a) <span class="comment"># 获取变量a的长度</span></div><div class="line"><span class="keyword">print</span> <span class="string">"smalle "</span>.strip() <span class="comment"># 去除空格</span></div><div class="line"><span class="keyword">print</span> <span class="string">"10"</span>.isdigit() == <span class="keyword">True</span> <span class="comment"># 判断是为整数</span></div><div class="line"><span class="keyword">print</span> ord(<span class="string">'1'</span>) <span class="comment"># 返回ascii码，此时为49</span></div><div class="line"></div><div class="line"><span class="comment"># 2</span></div><div class="line">name = raw_input(<span class="string">"please input name:"</span>) <span class="comment"># 获取输入源（获取数据默认都是字符串）</span></div><div class="line"><span class="keyword">print</span> <span class="string">'name:'</span>, name <span class="comment"># 打印 "name: smalle"</span></div><div class="line"></div><div class="line"><span class="comment"># 3</span></div><div class="line"><span class="keyword">import</span> random <span class="comment"># 导入random模块</span></div><div class="line">num = random.randrange(<span class="number">10</span>) <span class="comment"># 获取0-9的随机整数(不包含10)</span></div></pre></td></tr></table></figure>
+<h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><ol>
 <li>模块安装<ul>
 <li>可在<code>/Scripts</code>和<code>/Lib/site-packages</code>中查看可执行文件和模块源码</li>
 </ul>
@@ -3854,7 +4167,7 @@
 <li>nginx支持三种类型的虚拟主机配置<ul>
 <li>基于域名的虚拟主机(server_name不同；listen相同，如80)</li>
 <li>基于端口的虚拟主机(server_name相同；listen不同)</li>
-<li>基于ip的虚拟主机(如listen 192.168.6.130:80; server_name 192.168.1.1/www.aezo.cn)</li>
+<li>基于ip的虚拟主机(如listen 192.168.6.131:80; server_name 192.168.1.1/www.aezo.cn)</li>
 </ul>
 </li>
 </ul>
@@ -3911,7 +4224,7 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">location ~ /purge(/.*) &#123;</div><div class="line">    <span class="comment"># 指定清空缓存的区域名称cache_one，要和上边proxy_cache_path缓存配置中指定的缓存区域名称一致（*）</span></div><div class="line">    <span class="comment"># 指定缓存的key规则$host$1$is_args$args，要和上边设置缓存的key一致$host$uri$is_args$args。注意$host$1$is_args$args中的$1表示当前请求的uri，$host$1$is_args$args=$host$uri$is_args$args</span></div><div class="line">    proxy_cache_purge cache_one <span class="variable">$host</span><span class="variable">$1</span><span class="variable">$is_args</span><span class="variable">$args</span>;</div><div class="line"></div><div class="line">    <span class="comment">#安全设置，指定请求客户端的IP或IP段才可以清除URL缓存</span></div><div class="line">    <span class="comment">#allow          127.0.0.1;</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
-<li>访问<code>http://192.168.6.131/purge/tomcat.png</code>(提示<code>Successful purge</code>)，即可清除 <code>http://192.168.6.131/tomcat.png</code>的缓存</li>
+<li>访问<code>http://192.168.6.132/purge/tomcat.png</code>(提示<code>Successful purge</code>)，即可清除 <code>http://192.168.6.132/tomcat.png</code>的缓存</li>
 </ul>
 <h3 id="反向代理和负载均衡"><a href="#反向代理和负载均衡" class="headerlink" title="反向代理和负载均衡"></a>反向代理和负载均衡</h3><ul>
 <li>代理一般指客户端代理(比如Google agent代理翻墙)，反向代理则指服务器代理</li>
@@ -3921,14 +4234,14 @@
 <ul>
 <li>负载均衡<code>upstream</code>(<a href="http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_upstream_module.html" target="_blank" rel="external">ngx_http_upstream_module</a>)</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># upstream和server平级配置，backend为定义的服务器集群名称</span></div><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># weight标识转发给此server的权重，默认是1</span></div><div class="line">    server backend1.example.com       weight=5;</div><div class="line">    server backend2.example.com:8080;</div><div class="line">    server unix:/tmp/backend3;</div><div class="line"></div><div class="line">    <span class="comment"># 标记为备用服务器。当主服务器不可用以后，请求会被传给这些服务器</span></div><div class="line">    server backup1.example.com:8080   backup;</div><div class="line">    server backup2.example.com:8080   backup;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    location / &#123;</div><div class="line">        <span class="comment"># 和上面定义的服务器集群名对应</span></div><div class="line">        proxy_pass http://backend;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    location ~ /link(/.*) &#123;</div><div class="line">        <span class="comment"># $1表示取出正则表达式(/.*)所匹配的内容，使用$1的效果例如请求 http://192.168.6.131/link/tomcat.png 则请求tomcat服务器 http://ip:port/tomcat.png。 如果不使用$1则会将/link/...加在tomcat服务地址之后访问，即 http://ip:port/link/tomcat.png（*）</span></div><div class="line">        proxy_pass http://backend<span class="variable">$1</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># upstream和server平级配置，backend为定义的服务器集群名称</span></div><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># weight标识转发给此server的权重，默认是1</span></div><div class="line">    server backend1.example.com       weight=5;</div><div class="line">    server backend2.example.com:8080;</div><div class="line">    server unix:/tmp/backend3;</div><div class="line"></div><div class="line">    <span class="comment"># 标记为备用服务器。当主服务器不可用以后，请求会被传给这些服务器</span></div><div class="line">    server backup1.example.com:8080   backup;</div><div class="line">    server backup2.example.com:8080   backup;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    location / &#123;</div><div class="line">        <span class="comment"># 和上面定义的服务器集群名对应</span></div><div class="line">        proxy_pass http://backend;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    location ~ /link(/.*) &#123;</div><div class="line">        <span class="comment"># $1表示取出正则表达式(/.*)所匹配的内容，使用$1的效果例如请求 http://192.168.6.132/link/tomcat.png 则请求tomcat服务器 http://ip:port/tomcat.png。 如果不使用$1则会将/link/...加在tomcat服务地址之后访问，即 http://ip:port/link/tomcat.png（*）</span></div><div class="line">        proxy_pass http://backend<span class="variable">$1</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li>tengine主动健康检查(<a href="http://tengine.taobao.org/document_cn/http_upstream_check_cn.html" target="_blank" rel="external">ngx_http_upstream_check_module</a>)<ul>
 <li>tengine特有。如果集群中有某个服务器挂掉则检查面板中会标记成红色</li>
 </ul>
 </li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># 省略其他配置</span></div><div class="line">    <span class="comment"># ...</span></div><div class="line"></div><div class="line">    <span class="comment"># fall=5 连续失败次数达到5次则认为服务器down，面板中会显示红色。</span></div><div class="line">    <span class="comment"># rise=2 连续成功次数达到2次则认为服务器up，面板中会显示白色。</span></div><div class="line">    check interval=3000 rise=2 fall=5 timeout=1000 <span class="built_in">type</span>=http;</div><div class="line">    check_http_send <span class="string">"HEAD / HTTP/1.0\r\n\r\n"</span>;</div><div class="line">    check_http_expect_alive http_2xx http_3xx;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    <span class="comment"># 健康检查访问端点。如访问：http://192.168.6.133/status 显示检查面板</span></div><div class="line">    location /status &#123;</div><div class="line">        check_status;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">upstream backend &#123;</div><div class="line">    <span class="comment"># 省略其他配置</span></div><div class="line">    <span class="comment"># ...</span></div><div class="line"></div><div class="line">    <span class="comment"># fall=5 连续失败次数达到5次则认为服务器down，面板中会显示红色。</span></div><div class="line">    <span class="comment"># rise=2 连续成功次数达到2次则认为服务器up，面板中会显示白色。</span></div><div class="line">    check interval=3000 rise=2 fall=5 timeout=1000 <span class="built_in">type</span>=http;</div><div class="line">    check_http_send <span class="string">"HEAD / HTTP/1.0\r\n\r\n"</span>;</div><div class="line">    check_http_expect_alive http_2xx http_3xx;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">    <span class="comment"># 健康检查访问端点。如访问：http://192.168.6.131/status 显示检查面板</span></div><div class="line">    location /status &#123;</div><div class="line">        check_status;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li><p>session一致性问题解决方案：<code>memcached</code>或<code>redis</code>等缓存数据库保存所有的session(以tomcat-7.0.61为例)</p>
 <ul>
@@ -3942,6 +4255,8 @@
 </li>
 <li><p>修改tomcat的<code>webapps/ROOT/index.jsp</code></p>
   <figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">&lt;%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%&gt;</div><div class="line">&lt;html lang="en"&gt;</div><div class="line">    SessionID:&lt;%=session.getId()%&gt;&lt;/br&gt;   </div><div class="line">    SessionIP:&lt;%=request.getServerName()%&gt;&lt;/br&gt;</div><div class="line">    &lt;h1&gt;tomcat1&lt;/h1&gt;</div><div class="line">&lt;/html&gt;</div></pre></td></tr></table></figure>
+</li>
+<li><p>memcached集群需要多台服务器时间一致(30s以内)</p>
 </li>
 </ul>
 </li>
@@ -3980,11 +4295,11 @@
 <ul>
 <li><p>配置Keepalived(抢占模式配置) 增加VIP 启动服务</p>
 <ul>
-<li><p>MASTER（192.168.6.133）配置信息</p>
-  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    <span class="comment"># 用户标识本节点的名称，通常为hostname</span></div><div class="line">    router_id server1.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    <span class="comment">#检测nginx的脚本</span></div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    <span class="comment">#每2秒检测一次</span></div><div class="line">    interval 2</div><div class="line">    <span class="comment">#如果某一个nginx宕机 则权重减20</span></div><div class="line">    weight -20</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    <span class="comment">#状态 MASTER或BACKUP</span></div><div class="line">    state MASTER</div><div class="line">    <span class="comment">#绑定的网卡(如：eth0、ens33等)</span></div><div class="line">    interface eth0</div><div class="line">    <span class="comment">#虚拟路由的ID号,两个节点设置必须一样(*)</span></div><div class="line">    virtual_router_id 51</div><div class="line">    <span class="comment">#本机的IP</span></div><div class="line">    mcast_src_ip 192.168.6.133</div><div class="line">    <span class="comment"># 节点优先级，取值范围0～254，MASTER要比BACKUP高(*)</span></div><div class="line">    priority 100</div><div class="line">    advert_int 1</div><div class="line">    <span class="comment"># 设置验证信息，两个节点必须一致(*)</span></div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 虚拟IP，两个节点设置必须一样(*)</span></div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        <span class="comment"># 此虚拟ip为web服务对外提供访问的ip</span></div><div class="line">        192.168.6.100</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># nginx存活状态检测脚本</span></div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li><p>MASTER（192.168.6.131）配置信息</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    <span class="comment"># 用户标识本节点的名称，通常为hostname</span></div><div class="line">    router_id server1.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    <span class="comment">#检测nginx的脚本</span></div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    <span class="comment">#每2秒检测一次</span></div><div class="line">    interval 2</div><div class="line">    <span class="comment">#如果某一个nginx宕机 则权重减20</span></div><div class="line">    weight -20</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    <span class="comment">#状态 MASTER或BACKUP</span></div><div class="line">    state MASTER</div><div class="line">    <span class="comment">#绑定的网卡(如：eth0、ens33等)</span></div><div class="line">    interface eth0</div><div class="line">    <span class="comment">#虚拟路由的ID号,两个节点设置必须一样(*)</span></div><div class="line">    virtual_router_id 51</div><div class="line">    <span class="comment">#本机的IP</span></div><div class="line">    mcast_src_ip 192.168.6.131</div><div class="line">    <span class="comment"># 节点优先级，取值范围0～254，MASTER要比BACKUP高(*)</span></div><div class="line">    priority 100</div><div class="line">    advert_int 1</div><div class="line">    <span class="comment"># 设置验证信息，两个节点必须一致(*)</span></div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 虚拟IP，两个节点设置必须一样(*)</span></div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        <span class="comment"># 此虚拟ip为web服务对外提供访问的ip</span></div><div class="line">        192.168.6.100</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># nginx存活状态检测脚本</span></div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
-<li><p>BACKUP（192.168.6.131）配置信息</p>
-  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    router_id server2.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    interval 2                              </div><div class="line">    weight -20								</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    state BACKUP</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 51</div><div class="line">    mcast_src_ip 192.168.6.131</div><div class="line">    priority 99</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.6.110</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li><p>BACKUP（192.168.6.132）配置信息</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">global_defs &#123;</div><div class="line">    router_id server2.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script check_nginx &#123;</div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    interval 2                              </div><div class="line">    weight -20								</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    state BACKUP</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 51</div><div class="line">    mcast_src_ip 192.168.6.132</div><div class="line">    priority 99</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.6.110</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        check_nginx</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
@@ -4051,6 +4366,7 @@
 </li>
 </ul>
 <hr>
+<p>参考文章</p>
 ]]></content>
       
         <categories>
@@ -4062,15 +4378,209 @@
         
         <tags>
             
-            <tag> nginx </tag>
+            <tag> LB, HA </tag>
             
         </tags>
         
     </entry>
     
     <entry>
-      <title><![CDATA[CentOS服务器使用指导]]></title>
-      <url>/2017/01/10/linux/centos-server-guide/</url>
+      <title><![CDATA[Shell编程]]></title>
+      <url>/2017/01/10/lang/shell/</url>
+      <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>shell是解释性语言，解释器为<code>bash</code></li>
+</ul>
+<h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><ul>
+<li>linux 引号<ul>
+<li>反引号：<strong>``</strong> 命令替换</li>
+<li>单引号：<strong>‘’</strong> 字符串</li>
+<li>双引号: <strong>“”</strong> 变量替换</li>
+</ul>
+</li>
+<li>命令替换：使用 <strong>``</strong>(反引号)包裹或<strong><code>$(cmd)</code></strong><ul>
+<li><code>wall</code>date`` 所有人都收到当前时间</li>
+<li><code>wall date</code> 所有人都收到date这个字符串</li>
+</ul>
+</li>
+<li>管道：将一个命令的输出传送给另外一个命令，作为另外一个命令的输入。如：<code>命令1|命令2|...|命令n</code><ul>
+<li><code>ls -Rl /etc | more</code> 分页显示/etc目录</li>
+<li><code>cat /etc/passwd | grep root</code> 查询root用户帐号信息</li>
+<li><code>ls -l * | grep &quot;^_&quot; | wc -l</code> 统计当前目录有多少个文件</li>
+</ul>
+</li>
+<li>重定向：将命令的结果重定向到某个地方<ul>
+<li><code>&gt;</code>、<code>&gt;&gt;</code>　输出重定向(<code>&gt;</code>覆盖，<code>&gt;&gt;</code>追加)<ul>
+<li><code>ls　&gt; ls.txt</code> 将ls的输出保存到ls.txt中</li>
+<li><code>&gt;</code> 如果文件不存在，就创建文件；如果文件存在，就将其清空。<code>&gt;&gt;</code> 如果文件不存在，就创建文件；如果文件存在，则将新的内容追加到那个文件的末尾</li>
+</ul>
+</li>
+<li><code>2&gt;</code> 错误重定向，如：<code>lsss　2&gt; ls.txt</code></li>
+<li><code>&amp;&gt;</code> 全部重定向：<code>ls &amp;&gt; /dev/null</code> 将结果全部传给数据黑洞</li>
+<li><code>&lt;</code>、<code>&lt;&lt;</code> 输入重定向<ul>
+<li><code>wall &lt; notice.txt</code> 将notice.txt中的数据发送给所有登录人</li>
+</ul>
+</li>
+<li>标准输入(stdin) 代码为 0 ，实际映射关系：/dev/stdin -&gt; /proc/self/fd/0 </li>
+<li>标准输出(stdout)代码为 1 ， 实际映射关系：/dev/stdout -&gt; /proc/self/fd/1<ul>
+<li><code>echo</code> 将输出放到标准输出中</li>
+</ul>
+</li>
+<li>标准错误输出(stderr)代码为 2 ，实际映射关系： /dev/stderr -&gt;/pro/self/fd/2</li>
+</ul>
+</li>
+<li>程序有两类返回值：执行结果、执行状态(即<code>$?</code>的值，<code>0</code> 表示正确，<code>1-255</code> 错误)</li>
+</ul>
+<h4 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h4><ul>
+<li>变量类型<ul>
+<li>环境变量(作用于可跨bash)：<code>export &lt;var_name&gt;=&lt;var_value&gt;</code></li>
+<li>本地变量(作用于当前bash)：<code>&lt;var_name&gt;=&lt;var_value&gt;</code></li>
+<li>局部变量(作用于当前代码段)：<code>local &lt;var_name&gt;=&lt;var_value&gt;</code></li>
+<li>位置变量(作用于脚本执行的参数)：<code>$1</code> 表示第一个参数，以次类推<code>$2</code>、<code>$3</code></li>
+<li>特殊变量<ul>
+<li><strong><code>$?</code></strong> 上一个命令的执行状态返回值(<code>0</code> 表示正确，其他为错误)</li>
+<li><code>$#</code> 传递到脚本的参数个数</li>
+<li><code>$*</code> 传递到脚本的参数，与位置变量不同，此选项参数可超过9个</li>
+<li><code>$$</code> 脚本运行时当前进程的ID号，常用作临时变量的后缀，如 haison.$$</li>
+<li><code>$!</code> 后台运行的（&amp;）最后一个进程的ID号</li>
+<li><code>$@</code> 与$#相同，使用时加引号，并在引号中返回参数个数</li>
+<li><code>$-</code> 上一个命令的最后一个参数</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>set</code> 查看shell中变量</li>
+<li><code>printenv</code>/<code>env</code> 查看shell中环境变量</li>
+<li><code>unset &lt;var_name&gt;</code> 撤销变量</li>
+<li>引用变量 <code>${var_name}</code>，一般可以省略{}</li>
+</ul>
+<h3 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h3><ul>
+<li>注意文件格式必须是Unix格式(否则执行报错：<code>: No such file or directory</code>)<ul>
+<li>解决办法：<code>vim my.sh</code> - <code>:set ff=unix</code> - <code>:x</code></li>
+</ul>
+</li>
+<li>执行<code>./my.sh</code>或<code>sh my.sh</code>或<code>bash my.sh</code>(有时需要添加可执行权限：<code>chmod +x my.sh</code>)<ul>
+<li><code>bash -n shell文件</code> 检查文件是否有语法错误</li>
+<li><code>bash -x shell 文件</code> debug 执行文件</li>
+</ul>
+</li>
+<li><code>#!/bin/bash</code> 脚本第一行必须以此开头</li>
+<li><code>#</code> 表示注释</li>
+<li><code>exit</code> 退出脚本<ul>
+<li>退出脚本可以指定脚本执行的状态：<code>exit 0</code> 成功退出，<code>exit 1</code>/<code>exit 2</code>/… 失败退出</li>
+</ul>
+</li>
+</ul>
+<h4 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h4><ul>
+<li>添加用户：<code>./test1.sh user1</code></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash"> 判断是否有且只有一个传入参数，否则退出(linux返回状态不为0都认为出错)</span></div><div class="line">[ ! $# -eq 1 ] &amp;&amp; echo "Args is error." &amp;&amp; exit 3</div><div class="line"><span class="meta">#</span><span class="bash"> 判断是否存在某个用户</span></div><div class="line">id $1 &amp;&gt;/dev/null &amp;&amp; echo "User $1 exist" &amp;&amp; exit 2</div><div class="line"><span class="meta">#</span><span class="bash"> 添加用户</span></div><div class="line">id $1 &amp;&gt;/dev/null || useradd $1</div><div class="line"><span class="meta">#</span><span class="bash"> 如果用户添加成功，将此用户名当作密码传递给标准输出，passwd通过--stdin从标准输出中读取密码进行密码修改</span></div><div class="line">id $1 &amp;&gt;/dev/null &amp;&amp;  echo "$1" | passwd --stdin  $1 &amp;&gt;/dev/null</div><div class="line">echo "Add user $1 success."</div><div class="line"><span class="meta">#</span><span class="bash"> 统计系统用户数(或者`wc -l /etc/passwd | cut -d<span class="string">' '</span> -f1`)</span></div><div class="line">COUNT=`wc -l /etc/passwd | awk '&#123;print $1&#125;'`</div><div class="line">echo "Total Users is $COUNT"</div></pre></td></tr></table></figure>
+<ul>
+<li>获取某目录下最大的文件：<code>./test2.sh /home/smalle</code></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> 必须传入一个参数，其值为目录</span></div><div class="line">if [ -f $1 ];then</div><div class="line">  echo "Arg is error."</div><div class="line">  exit 2</div><div class="line">fi</div><div class="line"></div><div class="line">if [ -d $1 ];then</div><div class="line"><span class="meta">  #</span><span class="bash"> 查看目录下所有文件大小，并降序排列，再统计个数</span></div><div class="line">  c=`du -a $1 | sort -nr | wc -l`</div><div class="line"><span class="meta">  #</span><span class="bash"> seq <span class="variable">$c</span>为一个序列 </span></div><div class="line">  for I in `seq $c`;do</div><div class="line">    # 降序排列，并显示前几行(head -$I)，再过滤出最后一行(tail -1)</div><div class="line">    f_size=`du -a $1 | sort -nr | head -$I | tail -1 | awk '&#123;print $1&#125;'`</div><div class="line">    f_path=`du -a $1 | sort -nr | head -$I | tail -1 | awk '&#123;print $2&#125;'`</div><div class="line">    if [ -f $f_path ];then</div><div class="line">      # 如果是文件则停止循环(du也会统计根目录)</div><div class="line">      echo -e "the biggest file is $f_path \t $f_size"</div><div class="line">      break</div><div class="line">    fi</div><div class="line">  done</div><div class="line">fi</div></pre></td></tr></table></figure>
+<h4 id="条件判断"><a href="#条件判断" class="headerlink" title="条件判断"></a>条件判断</h4><ul>
+<li>条件表达式 <code>[ expression ]</code> <strong>注意其中的空格</strong></li>
+<li>整数比较<ul>
+<li><code>-eq</code> 相等，比如：[ $A –eq  $B ]</li>
+<li><code>-ne</code> 不等</li>
+<li><code>-gt</code> 大于</li>
+<li><code>-lt</code> 小于</li>
+<li><code>-ge</code> 大于等于</li>
+<li><code>-le</code> 小于等于</li>
+</ul>
+</li>
+<li>文件测试(需要中括号)<ul>
+<li><code>-e &lt;file&gt;</code> 测试文件是否存在</li>
+<li><code>-f &lt;file&gt;</code> 测试文件是否为普通文件</li>
+<li><code>-d &lt;file&gt;</code> 测试文件(linux是基于文件进行编程的)是否为目录</li>
+<li><code>-r</code> 权限判断</li>
+<li><code>-w</code>   </li>
+<li><code>-x</code></li>
+</ul>
+</li>
+<li>字符串测试<ul>
+<li><code>==</code> 或 <code>=</code> <strong>等号两端需要空格</strong></li>
+<li><code>!=</code></li>
+<li><code>-n &lt;string&gt;</code> 判断字符串是否为空</li>
+<li><code>-s &lt;string&gt;</code> 判非空</li>
+</ul>
+</li>
+<li>条件表达式的逻辑关系<ul>
+<li><strong>在linux中命令执行状态：0 为真，其他为假</strong></li>
+<li><code>&amp;&amp;</code>(第一个表达式为true才会运行第二个)、<code>||</code>、<code>!</code></li>
+</ul>
+</li>
+<li><p>控制结构</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">if 条件表达式 ; then</div><div class="line">  语句</div><div class="line">elif 条件表达式 ; then</div><div class="line">  语句</div><div class="line">else</div><div class="line">  语句</div><div class="line">fi</div></pre></td></tr></table></figure>
+</li>
+<li><p>控制结构中的逻辑关系</p>
+<ul>
+<li><code>-a</code> 逻辑与，如：<code>if  [ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ] ; then</code></li>
+<li><code>-o</code> 或</li>
+</ul>
+</li>
+<li>算术运算(其中任意一种即可)<ul>
+<li><code>let C=$A+$B</code> <strong>(=、+附近不能有空格，下同。此时C不能有$，使用变量的使用才需要加$)</strong></li>
+<li><code>C=$[$A+$B]</code></li>
+<li><code>C=$(($A+$B))</code></li>
+<li>C=`expr $A + $B` (表达式中各操作数及运算符之间要有空格，而且要使用命令引用)</li>
+</ul>
+</li>
+</ul>
+<h4 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h4><ul>
+<li><p>控制结构</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">for</span></span></div><div class="line">for 变量 in 列表 ; do</div><div class="line">  语句</div><div class="line">done</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> <span class="keyword">while</span></span></div><div class="line">while 条件 ; do</div><div class="line">  语句</div><div class="line">  [break]</div><div class="line">done</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> <span class="keyword">while</span>死循环(<span class="literal">true</span>可以替换为[ 0 ]或[ 1 ])</span></div><div class="line">while true</div><div class="line">do</div><div class="line">    语句</div><div class="line">done</div></pre></td></tr></table></figure>
+</li>
+<li><p>如何生成列表</p>
+<ul>
+<li><code>{1..100}</code></li>
+<li><code>seq [起始数] [跨度数] 结束数</code> 如：<code>seq 10</code>、<code>seq 1 2 10</code></li>
+<li><code>ls /etc 文件列表</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="case语句"><a href="#case语句" class="headerlink" title="case语句"></a>case语句</h4><ul>
+<li>控制结构</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">case 变量 in</div><div class="line">  value1)</div><div class="line">    语句</div><div class="line">    ;;</div><div class="line">  value2)</div><div class="line">    语句</div><div class="line">    ;;</div><div class="line">  *)</div><div class="line">    语句</div><div class="line">    ;;</div><div class="line">esac</div></pre></td></tr></table></figure>
+<h3 id="linux命令"><a href="#linux命令" class="headerlink" title="linux命令"></a>linux命令</h3><ul>
+<li><code>basename &lt;file&gt;</code> 返回一个字符串参数的基本文件名称。如：basename /home/smalle/test.txt返回test.txt</li>
+</ul>
+<h2 id="functions模块"><a href="#functions模块" class="headerlink" title="functions模块"></a>functions模块</h2><ul>
+<li>位于<code>/etc/rc.d/init.d/functions</code>文件中</li>
+<li>在shell脚本中引用只需加入<code>. /etc/rc.d/init.d/functions</code>即可</li>
+</ul>
+<h3 id="方法介绍"><a href="#方法介绍" class="headerlink" title="方法介绍"></a>方法介绍</h3><ul>
+<li><code>killproc</code> 杀死进程</li>
+</ul>
+<h2 id="jar包运行-停止示例-1"><a href="#jar包运行-停止示例-1" class="headerlink" title="jar包运行/停止示例 ^1"></a>jar包运行/停止示例 <a href="http://blog.csdn.net/clerk0324/article/details/50593882" target="_blank" rel="external">^1</a></h2><ul>
+<li>参考<code>/etc/init.d</code>目录下的文件，如<code>network</code></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/bin/sh</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">该脚本为Linux下启动java程序的通用脚本。即可以作为开机自启动service脚本被调用，</span></div><div class="line"><span class="meta">#</span><span class="bash">也可以作为启动java程序的独立脚本来使用。</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">Author: tudaxia.com, Date: 2011/6/7</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">警告!!!：该脚本stop部分使用系统<span class="built_in">kill</span>命令来强制终止指定的java程序进程。</span></div><div class="line"><span class="meta">#</span><span class="bash">在杀死进程前，未作任何条件检查。在某些情况下，如程序正在进行文件或数据库写操作，</span></div><div class="line"><span class="meta">#</span><span class="bash">可能会造成数据丢失或数据不完整。如果必须要考虑到这类情况，则需要改写此脚本，</span></div><div class="line"><span class="meta">#</span><span class="bash">增加在执行<span class="built_in">kill</span>命令前的一系列检查。</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash"> 以下这些注释设置可以被chkconfig命令读取</span></div><div class="line"><span class="meta">#</span><span class="bash"> chkconfig: - 99 50</span></div><div class="line"><span class="meta">#</span><span class="bash"> description: Java程序启动脚本</span></div><div class="line"><span class="meta">#</span><span class="bash"> processname: <span class="built_in">test</span></span></div><div class="line"><span class="meta">#</span><span class="bash"> config: 如果需要的话，可以配置</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">环境变量及程序执行参数</span></div><div class="line"><span class="meta">#</span><span class="bash">需要根据实际环境以及Java程序名称来修改这些参数</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">JDK所在路径(需要配置好<span class="variable">$JAVA_HOME</span>环境变量)</span></div><div class="line"><span class="meta">#</span><span class="bash"> <span class="variable">$JAVA_HOME</span>=也可不使用系统jdk</span></div><div class="line">if [ -f "$JAVA_HOME/bin/java" ]; then</div><div class="line">  JAVA="$JAVA_HOME/bin/java"</div><div class="line">else</div><div class="line">  JAVA=java</div><div class="line">fi</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号</span></div><div class="line">RUNNING_USER=root</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">Java程序所在的目录（将此文件和jar放在统一目录）</span></div><div class="line">APP_HOME="$( cd -P "$( dirname "$0" )" &amp;&amp; pwd )"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">需要启动的Java主程序（main方法类）</span></div><div class="line">APP_JAR="grouphelp-0.0.1-SNAPSHOT.jar"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> springboot参数</span></div><div class="line">PROFILES="--spring.profiles.active=prod"</div><div class="line">JAR_ARGS="$PROFILES"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">java虚拟机启动参数</span></div><div class="line"><span class="meta">#</span><span class="bash">DEBUG=<span class="string">"-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"</span></span></div><div class="line"><span class="meta">#</span><span class="bash">MEMIF=<span class="string">"-Xms128M -Xmx512M -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"</span></span></div><div class="line">VM_ARGS="$MEMIF $DEBUG"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)判断程序是否已启动</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">使用JDK自带的JPS命令及grep命令组合，准确查找pid</span></div><div class="line"><span class="meta">#</span><span class="bash">jps 加 l 参数，表示显示java的完整包路径</span></div><div class="line"><span class="meta">#</span><span class="bash">使用awk，分割出pid (<span class="variable">$1</span>部分)，及Java程序名称(<span class="variable">$2</span>部分)</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">初始化psid变量（全局）</span></div><div class="line">psid=0</div><div class="line"></div><div class="line">checkpid() &#123;</div><div class="line">    javaps=`$JAVA_HOME/bin/jps -l | grep $APP_JAR`</div><div class="line"></div><div class="line">    if [ -n "$javaps" ]; then</div><div class="line">      psid=`echo $javaps | awk '&#123;print $1&#125;'`</div><div class="line">    else</div><div class="line">      psid=0</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)启动程序</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">1. 首先调用checkpid函数，刷新<span class="variable">$psid</span>全局变量</span></div><div class="line"><span class="meta">#</span><span class="bash">2. 如果程序已经启动（<span class="variable">$psid</span>不等于0），则提示程序已启动</span></div><div class="line"><span class="meta">#</span><span class="bash">3. 如果程序没有被启动，则执行启动命令行</span></div><div class="line"><span class="meta">#</span><span class="bash">4. 启动命令执行后，再次调用checkpid函数</span></div><div class="line"><span class="meta">#</span><span class="bash">5. 如果步骤4的结果能够确认程序的pid,则打印[OK]，否则打印[Failed]</span></div><div class="line"><span class="meta">#</span><span class="bash">注意：<span class="built_in">echo</span> -n 表示打印字符后，不换行</span></div><div class="line"><span class="meta">#</span><span class="bash">注意: <span class="string">"nohup 某命令 &gt;/dev/null 2&gt;&amp;1 &amp;"</span> 的用法</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">start() &#123;</div><div class="line">    checkpid</div><div class="line"></div><div class="line">    if [ $psid -ne 0 ]; then</div><div class="line">      echo "================================"</div><div class="line">      echo "warn: $APP_JAR already started! (pid=$psid)"</div><div class="line">      echo "================================"</div><div class="line">    else</div><div class="line">      echo -n "Starting $APP_JAR ..."</div><div class="line">      JAVA_CMD="nohup $JAVA_HOME/bin/java -jar $APP_HOME/$APP_JAR $JAR_ARGS &gt; console.log 2&gt;&amp;1 &amp;"</div><div class="line">      su - $RUNNING_USER -c "$JAVA_CMD"</div><div class="line">      checkpid</div><div class="line">      if [ $psid -ne 0 ]; then</div><div class="line">          echo "(pid=$psid) [OK]"</div><div class="line">      else</div><div class="line">          echo "[Failed]"</div><div class="line">      fi</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)停止程序</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">1. 首先调用checkpid函数，刷新<span class="variable">$psid</span>全局变量</span></div><div class="line"><span class="meta">#</span><span class="bash">2. 如果程序已经启动（<span class="variable">$psid</span>不等于0），则开始执行停止，否则，提示程序未运行</span></div><div class="line"><span class="meta">#</span><span class="bash">3. 使用<span class="built_in">kill</span> -9 pid命令进行强制杀死进程</span></div><div class="line"><span class="meta">#</span><span class="bash">4. 执行<span class="built_in">kill</span>命令行紧接其后，马上查看上一句命令的返回值: $?</span></div><div class="line"><span class="meta">#</span><span class="bash">5. 如果步骤4的结果$?等于0,则打印[OK]，否则打印[Failed]</span></div><div class="line"><span class="meta">#</span><span class="bash">6. 为了防止java程序被启动多次，这里增加反复检查进程，反复杀死的处理（递归调用stop）。</span></div><div class="line"><span class="meta">#</span><span class="bash">注意：<span class="built_in">echo</span> -n 表示打印字符后，不换行</span></div><div class="line"><span class="meta">#</span><span class="bash">注意: 在shell编程中，<span class="string">"$?"</span> 表示上一句命令或者一个函数的返回值</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">stop() &#123;</div><div class="line">    checkpid</div><div class="line"></div><div class="line">    if [ $psid -ne 0 ]; then</div><div class="line">      echo -n "Stopping $APP_JAR ...(pid=$psid) "</div><div class="line">      su - $RUNNING_USER -c "kill -9 $psid"</div><div class="line">      if [ $? -eq 0 ]; then</div><div class="line">          echo "[OK]"</div><div class="line">      else</div><div class="line">          echo "[Failed]"</div><div class="line">      fi</div><div class="line"></div><div class="line">      checkpid</div><div class="line">      if [ $psid -ne 0 ]; then</div><div class="line">          stop</div><div class="line">      fi</div><div class="line">    else</div><div class="line">      echo "================================"</div><div class="line">      echo "warn: $APP_JAR is not running"</div><div class="line">      echo "================================"</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)检查程序运行状态</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">1. 首先调用checkpid函数，刷新<span class="variable">$psid</span>全局变量</span></div><div class="line"><span class="meta">#</span><span class="bash">2. 如果程序已经启动（<span class="variable">$psid</span>不等于0），则提示正在运行并表示出pid</span></div><div class="line"><span class="meta">#</span><span class="bash">3. 否则，提示程序未运行</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">status() &#123;</div><div class="line">    checkpid</div><div class="line"></div><div class="line">    if [ $psid -ne 0 ];  then</div><div class="line">      echo "$APP_JAR is running! (pid=$psid)"</div><div class="line">    else</div><div class="line">      echo "$APP_JAR is not running"</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)打印系统环境参数</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">info() &#123;</div><div class="line">    echo "System Information:"</div><div class="line">    echo "****************************"</div><div class="line">    echo `head -n 1 /etc/issue`</div><div class="line">    echo `uname -a`</div><div class="line">    echo</div><div class="line">    echo "JAVA_HOME=$JAVA_HOME"</div><div class="line">    echo `$JAVA_HOME/bin/java -version`</div><div class="line">    echo</div><div class="line">    echo "APP_HOME=$APP_HOME"</div><div class="line">    echo "APP_JAR=$APP_JAR"</div><div class="line">    echo "****************************"</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">读取脚本的第一个参数(<span class="variable">$1</span>)，进行判断</span></div><div class="line"><span class="meta">#</span><span class="bash">参数取值范围：&#123;start|stop|restart|status|info&#125;</span></div><div class="line"><span class="meta">#</span><span class="bash">如参数不在指定范围之内，则打印帮助信息</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">case "$1" in</div><div class="line">    'start')</div><div class="line">      start</div><div class="line">      ;;</div><div class="line">    'stop')</div><div class="line">      stop</div><div class="line">      ;;</div><div class="line">    'restart')</div><div class="line">      stop</div><div class="line">      start</div><div class="line">      ;;</div><div class="line">    'status')</div><div class="line">      status</div><div class="line">      ;;</div><div class="line">    'info')</div><div class="line">      info</div><div class="line">      ;;</div><div class="line">  *)</div><div class="line">      echo "Usage: $0 &#123;start|stop|restart|status|info&#125;"</div><div class="line">      exit 1</div><div class="line">esac</div><div class="line">exit $?</div></pre></td></tr></table></figure>
+<hr>
+<p>参考文章</p>
+]]></content>
+      
+        <categories>
+            
+            <category> lang </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> linux </tag>
+            
+            <tag> shell </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[CentOS服务器使用说明]]></title>
+      <url>/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</url>
       <content type="html"><![CDATA[<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
 <li>基于centos7介绍</li>
 <li><strong>如果服务器磁盘未挂载，最好先挂载后再进行软件安装</strong></li>
@@ -4093,10 +4603,15 @@
 <li><code>vi /etc/selinux/config</code> 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）</li>
 </ul>
 </li>
+<li>centos7无法使用<code>ifconfig</code>命令解决方案<ul>
+<li>确保有<code>/sbin/ifconfg</code>文件，否则安装net-tools(<code>yum -y install net-tools</code>)，即可使用netstat、ifconfig等命令</li>
+<li>有则此文件则在<code>vi /etc/profile</code>中加<code>export PATH=$PATH:/usr/sbin</code>，并执行<code>source /etc/profile</code>使之生效</li>
+</ul>
+</li>
 </ul>
 <h2 id="常用软件安装"><a href="#常用软件安装" class="headerlink" title="常用软件安装"></a>常用软件安装</h2><h3 id="安装技巧"><a href="#安装技巧" class="headerlink" title="安装技巧"></a>安装技巧</h3><ul>
 <li><code>yum</code>安装：<code>yum install xxx</code>(基于包管理工具安装，可以更好的解决包依赖关系)<ul>
-<li><code>yum -y install nginx</code> 安装时回答全部问题为是</li>
+<li><code>yum install nginx -y</code> 安装时回答全部问题为是</li>
 <li><code>yum remove nginx</code> 卸载</li>
 <li><code>yum search vsftpd</code> 查找软件vsftpd源</li>
 <li><code>cd /etc/yum.repos.d</code> 查看yum的配置文件，其中<code>CentOS-Base.repo</code>为镜像列表配置。可更换镜像列表 <a href="[更换yum镜像](http://blog.csdn.net/inslow/article/details/54177191)">^3</a></li>
@@ -4240,202 +4755,9 @@
         
         <tags>
             
-            <tag> CentOS </tag>
-            
-            <tag> server </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[Shell编程]]></title>
-      <url>/2017/01/10/lang/shell/</url>
-      <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
-<li>shell是解释性语言，解释器为<code>bash</code></li>
-</ul>
-<h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><ul>
-<li>linux 引号<ul>
-<li>反引号：<strong>``</strong> 命令替换</li>
-<li>单引号：<strong>‘’</strong> 字符串</li>
-<li>双引号: <strong>“”</strong> 变量替换</li>
-</ul>
-</li>
-<li>命令替换：使用 <strong>``</strong>(反引号)包裹或<strong><code>$(cmd)</code></strong><ul>
-<li><code>wall</code>date`` 所有人都收到当前时间</li>
-<li><code>wall date</code> 所有人都收到date这个字符串</li>
-</ul>
-</li>
-<li>管道：将一个命令的输出传送给另外一个命令，作为另外一个命令的输入。如：<code>命令1|命令2|...|命令n</code><ul>
-<li><code>ls -Rl /etc | more</code> 分页显示/etc目录</li>
-<li><code>cat /etc/passwd | grep root</code> 查询root用户帐号信息</li>
-<li><code>ls -l * | grep &quot;^_&quot; | wc -l</code> 统计当前目录有多少个文件</li>
-</ul>
-</li>
-<li>重定向：将命令的结果重定向到某个地方<ul>
-<li><code>&gt;</code>、<code>&gt;&gt;</code>　输出重定向(<code>&gt;</code>覆盖，<code>&gt;&gt;</code>追加)<ul>
-<li><code>ls　&gt; ls.txt</code> 将ls的输出保存到ls.txt中</li>
-<li><code>&gt;</code> 如果文件不存在，就创建文件；如果文件存在，就将其清空。<code>&gt;&gt;</code> 如果文件不存在，就创建文件；如果文件存在，则将新的内容追加到那个文件的末尾</li>
-</ul>
-</li>
-<li><code>2&gt;</code> 错误重定向，如：<code>lsss　2&gt; ls.txt</code></li>
-<li><code>&amp;&gt;</code> 全部重定向：<code>ls &amp;&gt; /dev/null</code> 将结果全部传给数据黑洞</li>
-<li><code>&lt;</code>、<code>&lt;&lt;</code> 输入重定向<ul>
-<li><code>wall &lt; notice.txt</code> 将notice.txt中的数据发送给所有登录人</li>
-</ul>
-</li>
-<li>标准输入(stdin) 代码为 0 ，实际映射关系：/dev/stdin -&gt; /proc/self/fd/0 </li>
-<li>标准输出(stdout)代码为 1 ， 实际映射关系：/dev/stdout -&gt; /proc/self/fd/1<ul>
-<li><code>echo</code> 将输出放到标准输出中</li>
-</ul>
-</li>
-<li>标准错误输出(stderr)代码为 2 ，实际映射关系： /dev/stderr -&gt;/pro/self/fd/2</li>
-</ul>
-</li>
-<li>程序有两类返回值：执行结果、执行状态(即<code>$?</code>的值，<code>0</code> 表示正确，<code>1-255</code> 错误)</li>
-</ul>
-<h4 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h4><ul>
-<li>变量类型<ul>
-<li>环境变量(作用于可跨bash)：<code>export &lt;var_name&gt;=&lt;var_value&gt;</code></li>
-<li>本地变量(作用于当前bash)：<code>&lt;var_name&gt;=&lt;var_value&gt;</code></li>
-<li>局部变量(作用于当前代码段)：<code>local &lt;var_name&gt;=&lt;var_value&gt;</code></li>
-<li>位置变量(作用于脚本执行的参数)：<code>$1</code> 表示第一个参数，以次类推<code>$2</code>、<code>$3</code></li>
-<li>特殊变量<ul>
-<li><strong><code>$?</code></strong> 上一个命令的执行状态返回值(<code>0</code> 表示正确，其他为错误)</li>
-<li><code>$#</code> 传递到脚本的参数个数</li>
-<li><code>$*</code> 传递到脚本的参数，与位置变量不同，此选项参数可超过9个</li>
-<li><code>$$</code> 脚本运行时当前进程的ID号，常用作临时变量的后缀，如 haison.$$</li>
-<li><code>$!</code> 后台运行的（&amp;）最后一个进程的ID号</li>
-<li><code>$@</code> 与$#相同，使用时加引号，并在引号中返回参数个数</li>
-<li><code>$-</code> 上一个命令的最后一个参数</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>set</code> 查看shell中变量</li>
-<li><code>printenv</code>/<code>env</code> 查看shell中环境变量</li>
-<li><code>unset &lt;var_name&gt;</code> 撤销变量</li>
-<li>引用变量 <code>${var_name}</code>，一般可以省略{}</li>
-</ul>
-<h3 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h3><ul>
-<li>注意文件格式必须是Unix格式(否则执行报错：<code>: No such file or directory</code>)<ul>
-<li>解决办法：<code>vim my.sh</code> - <code>:set ff=unix</code> - <code>:x</code></li>
-</ul>
-</li>
-<li>执行<code>./my.sh</code>或<code>sh my.sh</code>或<code>bash my.sh</code>(有时需要添加可执行权限：<code>chmod +x my.sh</code>)<ul>
-<li><code>bash -n shell文件</code> 检查文件是否有语法错误</li>
-<li><code>bash -x shell 文件</code> debug 执行文件</li>
-</ul>
-</li>
-<li><code>#!/bin/bash</code> 脚本第一行必须以此开头</li>
-<li><code>#</code> 表示注释</li>
-<li><code>exit</code> 退出脚本<ul>
-<li>退出脚本可以指定脚本执行的状态：<code>exit 0</code> 成功退出，<code>exit 1</code>/<code>exit 2</code>/… 失败退出</li>
-</ul>
-</li>
-</ul>
-<h4 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h4><ul>
-<li>添加用户：<code>./test1.sh user1</code></li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash"> 判断是否有且只有一个传入参数，否则退出(linux返回状态不为0都认为出错)</span></div><div class="line">[ ! $# -eq 1 ] &amp;&amp; echo "Args is error." &amp;&amp; exit 3</div><div class="line"><span class="meta">#</span><span class="bash"> 判断是否存在某个用户</span></div><div class="line">id $1 &amp;&gt;/dev/null &amp;&amp; echo "User $1 exist" &amp;&amp; exit 2</div><div class="line"><span class="meta">#</span><span class="bash"> 添加用户</span></div><div class="line">id $1 &amp;&gt;/dev/null || useradd $1</div><div class="line"><span class="meta">#</span><span class="bash"> 如果用户添加成功，将此用户名当作密码传递给标准输出，passwd通过--stdin从标准输出中读取密码进行密码修改</span></div><div class="line">id $1 &amp;&gt;/dev/null &amp;&amp;  echo "$1" | passwd --stdin  $1 &amp;&gt;/dev/null</div><div class="line">echo "Add user $1 success."</div><div class="line"><span class="meta">#</span><span class="bash"> 统计系统用户数(或者`wc -l /etc/passwd | cut -d<span class="string">' '</span> -f1`)</span></div><div class="line">COUNT=`wc -l /etc/passwd | awk '&#123;print $1&#125;'`</div><div class="line">echo "Total Users is $COUNT"</div></pre></td></tr></table></figure>
-<ul>
-<li>获取某目录下最大的文件：<code>./test2.sh /home/smalle</code></li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> 必须传入一个参数，其值为目录</span></div><div class="line">if [ -f $1 ];then</div><div class="line">  echo "Arg is error."</div><div class="line">  exit 2</div><div class="line">fi</div><div class="line"></div><div class="line">if [ -d $1 ];then</div><div class="line"><span class="meta">  #</span><span class="bash"> 查看目录下所有文件大小，并降序排列，再统计个数</span></div><div class="line">  c=`du -a $1 | sort -nr | wc -l`</div><div class="line"><span class="meta">  #</span><span class="bash"> seq <span class="variable">$c</span>为一个序列 </span></div><div class="line">  for I in `seq $c`;do</div><div class="line">    # 降序排列，并显示前几行(head -$I)，再过滤出最后一行(tail -1)</div><div class="line">    f_size=`du -a $1 | sort -nr | head -$I | tail -1 | awk '&#123;print $1&#125;'`</div><div class="line">    f_path=`du -a $1 | sort -nr | head -$I | tail -1 | awk '&#123;print $2&#125;'`</div><div class="line">    if [ -f $f_path ];then</div><div class="line">      # 如果是文件则停止循环(du也会统计根目录)</div><div class="line">      echo -e "the biggest file is $f_path \t $f_size"</div><div class="line">      break</div><div class="line">    fi</div><div class="line">  done</div><div class="line">fi</div></pre></td></tr></table></figure>
-<h4 id="条件判断"><a href="#条件判断" class="headerlink" title="条件判断"></a>条件判断</h4><ul>
-<li>条件表达式 <code>[ expression ]</code> <strong>注意其中的空格</strong></li>
-<li>整数比较<ul>
-<li><code>-eq</code> 相等，比如：[ $A –eq  $B ]</li>
-<li><code>-ne</code> 不等</li>
-<li><code>-gt</code> 大于</li>
-<li><code>-lt</code> 小于</li>
-<li><code>-ge</code> 大于等于</li>
-<li><code>-le</code> 小于等于</li>
-</ul>
-</li>
-<li>文件测试(需要中括号)<ul>
-<li><code>-e &lt;file&gt;</code> 测试文件是否存在</li>
-<li><code>-f &lt;file&gt;</code> 测试文件是否为普通文件</li>
-<li><code>-d &lt;file&gt;</code> 测试文件(linux是基于文件进行编程的)是否为目录</li>
-<li><code>-r</code> 权限判断</li>
-<li><code>-w</code>   </li>
-<li><code>-x</code></li>
-</ul>
-</li>
-<li>字符串测试<ul>
-<li><code>==</code> 或 <code>=</code> <strong>等号两端需要空格</strong></li>
-<li><code>!=</code></li>
-<li><code>-n &lt;string&gt;</code> 判断字符串是否为空</li>
-<li><code>-s &lt;string&gt;</code> 判非空</li>
-</ul>
-</li>
-<li>条件表达式的逻辑关系<ul>
-<li><strong>在linux中命令执行状态：0 为真，其他为假</strong></li>
-<li><code>&amp;&amp;</code>(第一个表达式为true才会运行第二个)、<code>||</code>、<code>!</code></li>
-</ul>
-</li>
-<li><p>控制结构</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">if 条件表达式 ; then</div><div class="line">  语句</div><div class="line">elif 条件表达式 ; then</div><div class="line">  语句</div><div class="line">else</div><div class="line">  语句</div><div class="line">fi</div></pre></td></tr></table></figure>
-</li>
-<li><p>控制结构中的逻辑关系</p>
-<ul>
-<li><code>-a</code> 逻辑与，如：<code>if  [ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ] ; then</code></li>
-<li><code>-o</code> 或</li>
-</ul>
-</li>
-<li>算术运算(其中任意一种即可)<ul>
-<li><code>let C=$A+$B</code> (=、+附近不能有空格，下同)</li>
-<li><code>C=$[$A+$B]</code></li>
-<li><code>C=$(($A+$B))</code></li>
-<li>C=`expr $A + $B` (表达式中各操作数及运算符之间要有空格，而且要使用命令引用)</li>
-</ul>
-</li>
-</ul>
-<h4 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h4><ul>
-<li><p>控制结构</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">for</span></span></div><div class="line">for 变量 in 列表 ; do</div><div class="line">  语句</div><div class="line">done</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> <span class="keyword">while</span></span></div><div class="line">while 条件 ; do</div><div class="line">  语句</div><div class="line">  [break]</div><div class="line">done</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> <span class="keyword">while</span>死循环(<span class="literal">true</span>可以替换为[ 0 ]或[ 1 ])</span></div><div class="line">while true</div><div class="line">do</div><div class="line">    语句</div><div class="line">done</div></pre></td></tr></table></figure>
-</li>
-<li><p>如何生成列表</p>
-<ul>
-<li><code>{1..100}</code></li>
-<li><code>seq [起始数] [跨度数] 结束数</code> 如：<code>seq 10</code>、<code>seq 1 2 10</code></li>
-<li><code>ls /etc 文件列表</code></li>
-</ul>
-</li>
-</ul>
-<h4 id="case语句"><a href="#case语句" class="headerlink" title="case语句"></a>case语句</h4><ul>
-<li>控制结构</li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">case 变量 in</div><div class="line">  value1)</div><div class="line">    语句</div><div class="line">    ;;</div><div class="line">  value2)</div><div class="line">    语句</div><div class="line">    ;;</div><div class="line">  *)</div><div class="line">    语句</div><div class="line">    ;;</div><div class="line">esac</div></pre></td></tr></table></figure>
-<h3 id="linux命令"><a href="#linux命令" class="headerlink" title="linux命令"></a>linux命令</h3><ul>
-<li><code>basename &lt;file&gt;</code> 返回一个字符串参数的基本文件名称。如：basename /home/smalle/test.txt返回test.txt</li>
-</ul>
-<h2 id="functions模块"><a href="#functions模块" class="headerlink" title="functions模块"></a>functions模块</h2><ul>
-<li>位于<code>/etc/rc.d/init.d/functions</code>文件中</li>
-<li>在shell脚本中引用只需加入<code>. /etc/rc.d/init.d/functions</code>即可</li>
-</ul>
-<h3 id="方法介绍"><a href="#方法介绍" class="headerlink" title="方法介绍"></a>方法介绍</h3><ul>
-<li><code>killproc</code> 杀死进程</li>
-</ul>
-<h2 id="jar包运行-停止示例-1"><a href="#jar包运行-停止示例-1" class="headerlink" title="jar包运行/停止示例 ^1"></a>jar包运行/停止示例 <a href="http://blog.csdn.net/clerk0324/article/details/50593882" target="_blank" rel="external">^1</a></h2><ul>
-<li>参考<code>/etc/init.d</code>目录下的文件，如<code>network</code></li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/bin/sh</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">该脚本为Linux下启动java程序的通用脚本。即可以作为开机自启动service脚本被调用，</span></div><div class="line"><span class="meta">#</span><span class="bash">也可以作为启动java程序的独立脚本来使用。</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">Author: tudaxia.com, Date: 2011/6/7</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">警告!!!：该脚本stop部分使用系统<span class="built_in">kill</span>命令来强制终止指定的java程序进程。</span></div><div class="line"><span class="meta">#</span><span class="bash">在杀死进程前，未作任何条件检查。在某些情况下，如程序正在进行文件或数据库写操作，</span></div><div class="line"><span class="meta">#</span><span class="bash">可能会造成数据丢失或数据不完整。如果必须要考虑到这类情况，则需要改写此脚本，</span></div><div class="line"><span class="meta">#</span><span class="bash">增加在执行<span class="built_in">kill</span>命令前的一系列检查。</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash"> 以下这些注释设置可以被chkconfig命令读取</span></div><div class="line"><span class="meta">#</span><span class="bash"> chkconfig: - 99 50</span></div><div class="line"><span class="meta">#</span><span class="bash"> description: Java程序启动脚本</span></div><div class="line"><span class="meta">#</span><span class="bash"> processname: <span class="built_in">test</span></span></div><div class="line"><span class="meta">#</span><span class="bash"> config: 如果需要的话，可以配置</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">环境变量及程序执行参数</span></div><div class="line"><span class="meta">#</span><span class="bash">需要根据实际环境以及Java程序名称来修改这些参数</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">JDK所在路径(需要配置好<span class="variable">$JAVA_HOME</span>环境变量)</span></div><div class="line"><span class="meta">#</span><span class="bash"> <span class="variable">$JAVA_HOME</span>=也可不使用系统jdk</span></div><div class="line">if [ -f "$JAVA_HOME/bin/java" ]; then</div><div class="line">  JAVA="$JAVA_HOME/bin/java"</div><div class="line">else</div><div class="line">  JAVA=java</div><div class="line">fi</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号</span></div><div class="line">RUNNING_USER=root</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">Java程序所在的目录（将此文件和jar放在统一目录）</span></div><div class="line">APP_HOME="$( cd -P "$( dirname "$0" )" &amp;&amp; pwd )"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">需要启动的Java主程序（main方法类）</span></div><div class="line">APP_JAR="grouphelp-0.0.1-SNAPSHOT.jar"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"> springboot参数</span></div><div class="line">PROFILES="--spring.profiles.active=prod"</div><div class="line">JAR_ARGS="$PROFILES"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">java虚拟机启动参数</span></div><div class="line"><span class="meta">#</span><span class="bash">DEBUG=<span class="string">"-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"</span></span></div><div class="line"><span class="meta">#</span><span class="bash">MEMIF=<span class="string">"-Xms128M -Xmx512M -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"</span></span></div><div class="line">VM_ARGS="$MEMIF $DEBUG"</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)判断程序是否已启动</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">使用JDK自带的JPS命令及grep命令组合，准确查找pid</span></div><div class="line"><span class="meta">#</span><span class="bash">jps 加 l 参数，表示显示java的完整包路径</span></div><div class="line"><span class="meta">#</span><span class="bash">使用awk，分割出pid (<span class="variable">$1</span>部分)，及Java程序名称(<span class="variable">$2</span>部分)</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">初始化psid变量（全局）</span></div><div class="line">psid=0</div><div class="line"></div><div class="line">checkpid() &#123;</div><div class="line">    javaps=`$JAVA_HOME/bin/jps -l | grep $APP_JAR`</div><div class="line"></div><div class="line">    if [ -n "$javaps" ]; then</div><div class="line">      psid=`echo $javaps | awk '&#123;print $1&#125;'`</div><div class="line">    else</div><div class="line">      psid=0</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)启动程序</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">1. 首先调用checkpid函数，刷新<span class="variable">$psid</span>全局变量</span></div><div class="line"><span class="meta">#</span><span class="bash">2. 如果程序已经启动（<span class="variable">$psid</span>不等于0），则提示程序已启动</span></div><div class="line"><span class="meta">#</span><span class="bash">3. 如果程序没有被启动，则执行启动命令行</span></div><div class="line"><span class="meta">#</span><span class="bash">4. 启动命令执行后，再次调用checkpid函数</span></div><div class="line"><span class="meta">#</span><span class="bash">5. 如果步骤4的结果能够确认程序的pid,则打印[OK]，否则打印[Failed]</span></div><div class="line"><span class="meta">#</span><span class="bash">注意：<span class="built_in">echo</span> -n 表示打印字符后，不换行</span></div><div class="line"><span class="meta">#</span><span class="bash">注意: <span class="string">"nohup 某命令 &gt;/dev/null 2&gt;&amp;1 &amp;"</span> 的用法</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">start() &#123;</div><div class="line">    checkpid</div><div class="line"></div><div class="line">    if [ $psid -ne 0 ]; then</div><div class="line">      echo "================================"</div><div class="line">      echo "warn: $APP_JAR already started! (pid=$psid)"</div><div class="line">      echo "================================"</div><div class="line">    else</div><div class="line">      echo -n "Starting $APP_JAR ..."</div><div class="line">      JAVA_CMD="nohup $JAVA_HOME/bin/java -jar $APP_HOME/$APP_JAR $JAR_ARGS &gt; console.log 2&gt;&amp;1 &amp;"</div><div class="line">      su - $RUNNING_USER -c "$JAVA_CMD"</div><div class="line">      checkpid</div><div class="line">      if [ $psid -ne 0 ]; then</div><div class="line">          echo "(pid=$psid) [OK]"</div><div class="line">      else</div><div class="line">          echo "[Failed]"</div><div class="line">      fi</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)停止程序</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">1. 首先调用checkpid函数，刷新<span class="variable">$psid</span>全局变量</span></div><div class="line"><span class="meta">#</span><span class="bash">2. 如果程序已经启动（<span class="variable">$psid</span>不等于0），则开始执行停止，否则，提示程序未运行</span></div><div class="line"><span class="meta">#</span><span class="bash">3. 使用<span class="built_in">kill</span> -9 pid命令进行强制杀死进程</span></div><div class="line"><span class="meta">#</span><span class="bash">4. 执行<span class="built_in">kill</span>命令行紧接其后，马上查看上一句命令的返回值: $?</span></div><div class="line"><span class="meta">#</span><span class="bash">5. 如果步骤4的结果$?等于0,则打印[OK]，否则打印[Failed]</span></div><div class="line"><span class="meta">#</span><span class="bash">6. 为了防止java程序被启动多次，这里增加反复检查进程，反复杀死的处理（递归调用stop）。</span></div><div class="line"><span class="meta">#</span><span class="bash">注意：<span class="built_in">echo</span> -n 表示打印字符后，不换行</span></div><div class="line"><span class="meta">#</span><span class="bash">注意: 在shell编程中，<span class="string">"$?"</span> 表示上一句命令或者一个函数的返回值</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">stop() &#123;</div><div class="line">    checkpid</div><div class="line"></div><div class="line">    if [ $psid -ne 0 ]; then</div><div class="line">      echo -n "Stopping $APP_JAR ...(pid=$psid) "</div><div class="line">      su - $RUNNING_USER -c "kill -9 $psid"</div><div class="line">      if [ $? -eq 0 ]; then</div><div class="line">          echo "[OK]"</div><div class="line">      else</div><div class="line">          echo "[Failed]"</div><div class="line">      fi</div><div class="line"></div><div class="line">      checkpid</div><div class="line">      if [ $psid -ne 0 ]; then</div><div class="line">          stop</div><div class="line">      fi</div><div class="line">    else</div><div class="line">      echo "================================"</div><div class="line">      echo "warn: $APP_JAR is not running"</div><div class="line">      echo "================================"</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)检查程序运行状态</span></div><div class="line"><span class="meta">#</span><span class="bash"></span></div><div class="line"><span class="meta">#</span><span class="bash">说明：</span></div><div class="line"><span class="meta">#</span><span class="bash">1. 首先调用checkpid函数，刷新<span class="variable">$psid</span>全局变量</span></div><div class="line"><span class="meta">#</span><span class="bash">2. 如果程序已经启动（<span class="variable">$psid</span>不等于0），则提示正在运行并表示出pid</span></div><div class="line"><span class="meta">#</span><span class="bash">3. 否则，提示程序未运行</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">status() &#123;</div><div class="line">    checkpid</div><div class="line"></div><div class="line">    if [ $psid -ne 0 ];  then</div><div class="line">      echo "$APP_JAR is running! (pid=$psid)"</div><div class="line">    else</div><div class="line">      echo "$APP_JAR is not running"</div><div class="line">    fi</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">(函数)打印系统环境参数</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">info() &#123;</div><div class="line">    echo "System Information:"</div><div class="line">    echo "****************************"</div><div class="line">    echo `head -n 1 /etc/issue`</div><div class="line">    echo `uname -a`</div><div class="line">    echo</div><div class="line">    echo "JAVA_HOME=$JAVA_HOME"</div><div class="line">    echo `$JAVA_HOME/bin/java -version`</div><div class="line">    echo</div><div class="line">    echo "APP_HOME=$APP_HOME"</div><div class="line">    echo "APP_JAR=$APP_JAR"</div><div class="line">    echo "****************************"</div><div class="line">&#125;</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash"><span class="comment">##################################</span></span></div><div class="line"><span class="meta">#</span><span class="bash">读取脚本的第一个参数(<span class="variable">$1</span>)，进行判断</span></div><div class="line"><span class="meta">#</span><span class="bash">参数取值范围：&#123;start|stop|restart|status|info&#125;</span></div><div class="line"><span class="meta">#</span><span class="bash">如参数不在指定范围之内，则打印帮助信息</span></div><div class="line"><span class="meta">#</span><span class="bash"><span class="comment">##################################</span></span></div><div class="line">case "$1" in</div><div class="line">    'start')</div><div class="line">      start</div><div class="line">      ;;</div><div class="line">    'stop')</div><div class="line">      stop</div><div class="line">      ;;</div><div class="line">    'restart')</div><div class="line">      stop</div><div class="line">      start</div><div class="line">      ;;</div><div class="line">    'status')</div><div class="line">      status</div><div class="line">      ;;</div><div class="line">    'info')</div><div class="line">      info</div><div class="line">      ;;</div><div class="line">  *)</div><div class="line">      echo "Usage: $0 &#123;start|stop|restart|status|info&#125;"</div><div class="line">      exit 1</div><div class="line">esac</div><div class="line">exit $?</div></pre></td></tr></table></figure>
-<hr>
-]]></content>
-      
-        <categories>
-            
-            <category> lang </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
             <tag> linux </tag>
             
-            <tag> shell </tag>
+            <tag> CentOS </tag>
             
         </tags>
         
@@ -5406,73 +5728,6 @@
     </entry>
     
     <entry>
-      <title><![CDATA[Mysql DBA]]></title>
-      <url>/2016/10/12/db/mysql-dba/</url>
-      <content type="html"><![CDATA[<h2 id="基本"><a href="#基本" class="headerlink" title="基本"></a>基本</h2><h3 id="登录"><a href="#登录" class="headerlink" title="登录"></a>登录</h3><ul>
-<li>Mysql进入系统<ul>
-<li>普通登陆法一：将mysql.exe所在的目录放在path的环境变量中，再打开cmd，输入mysql回车即可</li>
-<li>普通登陆法二：在cmd中定位到mysql.exe所在目录，再输入mysql回车如果出现”Welcome to the MySQL monitor.”和”mysql-&gt;”的字样，即表示登陆成功。</li>
-<li>用户名登陆：将mysql.exe所在的目录放在path的环境变量中，再打开cmd，输入mysql -h 127.0.0.1 -u root -p回车后再输入密码root即可登陆</li>
-<li>用户名登陆并选择数据库简写：mysql -h服务器地址 -u用户名 -p密码 数据库名（-p和密码之间不能有空格；-h和-u有无空格均可；如果在本地-h可以省略；此时也可以不选择数据库(登陆进去后用 use 数据库名;选择)；末尾不能有分号）</li>
-<li>退出：quit或者exit(后面加不加分号都行)</li>
-</ul>
-</li>
-<li>Oracle进入系统(scott/tigger)<ul>
-<li>将用户当成超级管理员登陆到服务器：<code>sqlplus 用户名/密码 as sysdba</code>(或者<code>sqlplus / as sysbda</code>以管理员登录)</li>
-<li>解锁用户：<code>alter user 用户名 account unlock;</code></li>
-<li>可切换用户登陆：<code>conn 用户名/密码 &lt;as sysdba&gt;</code></li>
-<li>退出：<code>exit</code>、<code>quit</code>（或者<code>Ctrl+C</code>）</li>
-<li>利用sqlplus登陆，直接输入sqlplus回车，再输入用户名、密码</li>
-<li>给予用户授权创建表和视图：先以超级管理员登陆。再<code>grant creat table, creat view to 用户名;</code>回车。在重新登陆用户</li>
-<li>进入系统后，输入<code>ed</code>，将DOS中的数据展示到记事本上</li>
-</ul>
-</li>
-</ul>
-<h3 id="创建删除用户"><a href="#创建删除用户" class="headerlink" title="创建删除用户"></a>创建删除用户</h3><ul>
-<li>创建用户并设置权限 <code>grant all privileges on *.* to &#39;admin&#39;@&#39;localhost&#39; identified by &#39;pass&#39; with grant option;</code>(创建了一个admin/pass只能本地连接的超级用户)</li>
-<li>删除用户：<code>delete from user where user = &#39;用户名&#39;;</code>(删除系统mysql表中的记录)</li>
-<li>修改用户名和密码<ul>
-<li><code>update user set user=&#39;smalle&#39; where user=&#39;root&#39;;</code></li>
-<li><code>SET PASSWORD FOR &#39;root&#39;@&#39;localhost&#39; = PASSWORD(&#39;root&#39;);</code></li>
-</ul>
-</li>
-<li>创建数据库：<code>create database 库名;</code></li>
-</ul>
-<h2 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h2><ul>
-<li><code>grant select,insert,update,delete on mydb.* to my_admin@localhost identified by &quot;aezocn&quot;</code> 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限(如果有此用户？如果密码不对？)</li>
-<li><code>grant all on *.* to my_admin@&quot;%&quot; identified by &quot;aezocn&quot;</code> 创建一个用户my_admin/aezocn，让他可以在任何主机上登录，并对所有数据库有所有权限</li>
-</ul>
-<h2 id="数据备份-导入"><a href="#数据备份-导入" class="headerlink" title="数据备份/导入"></a>数据备份/导入</h2><ul>
-<li>导入数据：<code>登陆用户-&gt;选择数据库-&gt;source h:/demo/sqltest.sql</code></li>
-</ul>
-<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ul>
-<li>命令行执行sql<ul>
-<li>Mysql通过上下左右按键修改语句</li>
-<li>或者新建一个文本文件h:/demo/test.sql，将sql语句放在文件中，再在命令行输入<code>\. h:/demo/test.sql</code> 其中<code>\.</code>相当于<code>source</code>，末尾不要分号</li>
-<li>Oracle输入ed则打开记事本可进行修改修改DOS中的数据</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      
-        <categories>
-            
-            <category> db </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> mysql </tag>
-            
-            <tag> dba </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
       <title><![CDATA[Oracle DBA]]></title>
       <url>/2016/10/12/db/oracle-dba/</url>
       <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
@@ -5601,11 +5856,11 @@
 </ul>
 </li>
 <li><code>sqlplus /nolog</code>、<code>sqlplus / as sysdba</code> 以nolog、sysdba身份登录，进入sql命令行</li>
-<li><code>shutdown immediate</code> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)<ul>
+<li><strong><code>shutdown immediate</code></strong> 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)<ul>
 <li><code>shutdown;</code> 有用户连接就不关闭，直到所有用户断开连接</li>
 </ul>
 </li>
-<li><code>startup;</code> 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) </li>
+<li><strong><code>startup;</code></strong> 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) </li>
 <li><code>exit;</code> 退出sqlplus</li>
 </ul>
 </li>
@@ -5781,6 +6036,73 @@
         <tags>
             
             <tag> oracle </tag>
+            
+            <tag> dba </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Mysql DBA]]></title>
+      <url>/2016/10/12/db/mysql-dba/</url>
+      <content type="html"><![CDATA[<h2 id="基本"><a href="#基本" class="headerlink" title="基本"></a>基本</h2><h3 id="登录"><a href="#登录" class="headerlink" title="登录"></a>登录</h3><ul>
+<li>Mysql进入系统<ul>
+<li>普通登陆法一：将mysql.exe所在的目录放在path的环境变量中，再打开cmd，输入mysql回车即可</li>
+<li>普通登陆法二：在cmd中定位到mysql.exe所在目录，再输入mysql回车如果出现”Welcome to the MySQL monitor.”和”mysql-&gt;”的字样，即表示登陆成功。</li>
+<li>用户名登陆：将mysql.exe所在的目录放在path的环境变量中，再打开cmd，输入mysql -h 127.0.0.1 -u root -p回车后再输入密码root即可登陆</li>
+<li>用户名登陆并选择数据库简写：mysql -h服务器地址 -u用户名 -p密码 数据库名（-p和密码之间不能有空格；-h和-u有无空格均可；如果在本地-h可以省略；此时也可以不选择数据库(登陆进去后用 use 数据库名;选择)；末尾不能有分号）</li>
+<li>退出：quit或者exit(后面加不加分号都行)</li>
+</ul>
+</li>
+<li>Oracle进入系统(scott/tigger)<ul>
+<li>将用户当成超级管理员登陆到服务器：<code>sqlplus 用户名/密码 as sysdba</code>(或者<code>sqlplus / as sysbda</code>以管理员登录)</li>
+<li>解锁用户：<code>alter user 用户名 account unlock;</code></li>
+<li>可切换用户登陆：<code>conn 用户名/密码 &lt;as sysdba&gt;</code></li>
+<li>退出：<code>exit</code>、<code>quit</code>（或者<code>Ctrl+C</code>）</li>
+<li>利用sqlplus登陆，直接输入sqlplus回车，再输入用户名、密码</li>
+<li>给予用户授权创建表和视图：先以超级管理员登陆。再<code>grant creat table, creat view to 用户名;</code>回车。在重新登陆用户</li>
+<li>进入系统后，输入<code>ed</code>，将DOS中的数据展示到记事本上</li>
+</ul>
+</li>
+</ul>
+<h3 id="创建删除用户"><a href="#创建删除用户" class="headerlink" title="创建删除用户"></a>创建删除用户</h3><ul>
+<li>创建用户并设置权限 <code>grant all privileges on *.* to &#39;admin&#39;@&#39;localhost&#39; identified by &#39;pass&#39; with grant option;</code>(创建了一个admin/pass只能本地连接的超级用户)</li>
+<li>删除用户：<code>delete from user where user = &#39;用户名&#39;;</code>(删除系统mysql表中的记录)</li>
+<li>修改用户名和密码<ul>
+<li><code>update user set user=&#39;smalle&#39; where user=&#39;root&#39;;</code></li>
+<li><code>SET PASSWORD FOR &#39;root&#39;@&#39;localhost&#39; = PASSWORD(&#39;root&#39;);</code></li>
+</ul>
+</li>
+<li>创建数据库：<code>create database 库名;</code></li>
+</ul>
+<h2 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h2><ul>
+<li><code>grant select,insert,update,delete on mydb.* to my_admin@localhost identified by &quot;aezocn&quot;</code> 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限(如果有此用户？如果密码不对？)</li>
+<li><code>grant all on *.* to my_admin@&quot;%&quot; identified by &quot;aezocn&quot;</code> 创建一个用户my_admin/aezocn，让他可以在任何主机上登录，并对所有数据库有所有权限</li>
+</ul>
+<h2 id="数据备份-导入"><a href="#数据备份-导入" class="headerlink" title="数据备份/导入"></a>数据备份/导入</h2><ul>
+<li>导入数据：<code>登陆用户-&gt;选择数据库-&gt;source h:/demo/sqltest.sql</code></li>
+</ul>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ul>
+<li>命令行执行sql<ul>
+<li>Mysql通过上下左右按键修改语句</li>
+<li>或者新建一个文本文件h:/demo/test.sql，将sql语句放在文件中，再在命令行输入<code>\. h:/demo/test.sql</code> 其中<code>\.</code>相当于<code>source</code>，末尾不要分号</li>
+<li>Oracle输入ed则打开记事本可进行修改修改DOS中的数据</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      
+        <categories>
+            
+            <category> db </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> mysql </tag>
             
             <tag> dba </tag>
             
@@ -6898,16 +7220,31 @@ private void setColumnIndex(final Map&lt;String, Integer&gt; columnLabelIndexMap
 </li>
 <li><p>查看CentOS版本 <code>cat /etc/redhat-release</code> 如：CentOS Linux release 7.2.1511 (Core)</p>
 </li>
-<li><code>hostname</code> 查看hostname</li>
+<li><code>hostname</code> 查看hostname<ul>
+<li><code>hostnamectl set-hostname aezocn</code> 修改主机名并重启</li>
+</ul>
+</li>
 <li><code>grep MemTotal /proc/meminfo</code> 查看内存</li>
 <li><code>df -hl</code> 查看磁盘使用情况</li>
 </ul>
 <h3 id="查看网络信息"><a href="#查看网络信息" class="headerlink" title="查看网络信息"></a>查看网络信息</h3><ul>
-<li><code>ip addr</code> 查看内网ip<ul>
-<li>添加虚拟ip(centos7版本，centos老版本通过ifconfig配置)<ul>
+<li><code>ip addr</code>或<code>ifconfig</code> 查看内网ip<ul>
+<li>显示说明<ul>
+<li><code>lo</code>为内部网卡接口，不对外进行广播。<code>eth0</code>/<code>ens33</code>网卡接口会对外广播</li>
+<li><code>link/ether 00:0c:29:bb:ea:e2</code>中link/ether后为<code>mac</code>地址</li>
+<li><code>inet 192.168.6.130/24 brd 192.168.6.255 scope global ens33</code>中192.168.6.130/24为内网ip和子网掩码(24代表32位中有24个1其他都是0，即255.255.255.0) <code>brd</code>(broadcast)后为广播地址</li>
+</ul>
+</li>
+<li><code>ifconfig</code>命令(centos7无法使用解决方案参考《CentOS服务器使用指导》)<ul>
+<li><code>ifconfig ens33:1 192.168.6.10</code> 给网络接口ens33绑定一个虚拟ip</li>
+<li><code>ifconfig ens33:1 down</code> 删除此虚拟ip</li>
+<li>添加虚拟ip方式二<ul>
 <li>编辑类似文件<code>vi /etc/sysconfig/network-scripts/ifcfg-ens33</code></li>
-<li>加入代码<code>IPADDR=192.168.6.133</code>(本机ip)和<code>IPADDR1=192.168.6.135</code>(添加的虚拟ip，可添加多个)</li>
+<li>加入代码<code>IPADDR=192.168.6.130</code>(本机ip)和<code>IPADDR1=192.168.6.135</code>(添加的虚拟ip，可添加多个。删除虚拟ip则去掉IPADDR1)，可永久生效</li>
 <li>重启网卡<code>systemctl restart network</code></li>
+<li>修改ip即修改上述<code>IPADDR</code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -6920,7 +7257,7 @@ private void setColumnIndex(final Map&lt;String, Integer&gt; columnLabelIndexMap
 <li>root运行：<code>sudo netstat -lnp</code> 可查看使用root权限运行的进程PID(否则PID隐藏)</li>
 <li><code>netstat -tnl</code> 查看开放的端口</li>
 <li><code>netstat -lnp | grep tomcat</code> 查看含有tomcat相关的进程</li>
-<li>安装netstat：<code>yum install net-tools</code></li>
+<li><strong><code>yum install net-tools</code></strong> 安装net-tools即可使用netstat、ifconfig等命令</li>
 </ul>
 </li>
 </ul>
@@ -7595,7 +7932,10 @@ private void setColumnIndex(final Map&lt;String, Integer&gt; columnLabelIndexMap
 <li><code>/media</code> 即插即用型存储设备挂载点自动在这个目录下创建，如USB盘系统</li>
 <li><code>/mnt</code> 用于存放挂载存储设备的挂载目录</li>
 <li><code>/opt</code> 标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包</li>
-<li><strong><code>/proc</code></strong> 操作系统运行时，进场信息及内核信息(cpu，内存)存放在这里</li>
+<li><strong><code>/proc</code></strong> 操作系统运行时，进场信息及内核信息(cpu，内存)存放在这里<ul>
+<li>proc目录为内核映射文件，修改此目录的文件就会修改内存数据</li>
+</ul>
+</li>
 <li><code>/root</code> 超级权限用户root的家目录</li>
 <li><code>/sbin</code> 大多设计系统管理的命令存放，是超级权限用户root的可执行命令存放地，普通用户无法执行。和<code>/usr/sbin</code>、<code>/usr/local/sbin</code>目录类似</li>
 <li><code>/tmp</code> 临时文件目录。和<code>/var/tmp</code>目录类似</li>

@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/06/24/extend/vmware/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="虚拟机安装 下载安装VMware 下载centos7镜像文件 https://www.centos.org/download/. DVD ISO安装包含有桌面系统，Minimal ISO是最小安装包，不含桌面系统 虚拟机的安装位置选择在较空闲的磁盘，也可使用移动硬盘 除了安装位置，其他使用默认配置，点击安装（下面以Minimal ISO为例） 进入到Centos7安装界面，点击Install Li">
-<meta property="og:updated_time" content="2018-02-14T08:45:25.211Z">
+<meta property="og:updated_time" content="2018-03-04T13:14:40.419Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="vmware">
 <meta name="twitter:description" content="虚拟机安装 下载安装VMware 下载centos7镜像文件 https://www.centos.org/download/. DVD ISO安装包含有桌面系统，Minimal ISO是最小安装包，不含桌面系统 虚拟机的安装位置选择在较空闲的磁盘，也可使用移动硬盘 除了安装位置，其他使用默认配置，点击安装（下面以Minimal ISO为例） 进入到Centos7安装界面，点击Install Li">
@@ -421,6 +421,13 @@
 </li>
 <li>开始安装，安装期间设置Root密码(root)，创建用户(smalle/smalle)并设置为管理员</li>
 <li><strong>开启windows下和VMware相关的两块虚拟网卡</strong></li>
+<li><strong>快照</strong>：可对保留虚拟主机当前的配置状态</li>
+<li><strong>克隆虚拟主机</strong>：基于某个虚拟主机进行克隆出一台主机。克隆后需要进行以下修改<ul>
+<li><code>hostnamectl set-hostname aezocn</code> 修改主机名</li>
+<li><code>vi /etc/sysconfig/network-scripts/ifcfg-ens33</code>，修改<code>IPADDR</code>的值从而修改机器ip</li>
+<li>vmware克隆时会自动改变mac地址，如果没有改变可在vmware控制台中重新生成一个mac地址：设置-网络适配器-高级-生成</li>
+</ul>
+</li>
 </ul>
 <h2 id="远程连接虚拟机"><a href="#远程连接虚拟机" class="headerlink" title="远程连接虚拟机"></a>远程连接虚拟机</h2><ul>
 <li><code>ip addr</code>查看虚拟机地址(<code>ens33</code>/<code>eth0</code>)，<code>ipconfig</code>查看windows主机地址，并看能否双向<code>ping</code>通</li>
@@ -557,7 +564,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-count">68</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -568,7 +575,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -579,7 +586,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">99</span>
+                <span class="site-state-item-count">107</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
