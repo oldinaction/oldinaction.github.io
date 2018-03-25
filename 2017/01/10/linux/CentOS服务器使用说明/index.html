@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/01/10/linux/CentOS服务器使用说明/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
-<meta property="og:updated_time" content="2018-03-12T14:39:44.129Z">
+<meta property="og:updated_time" content="2018-03-25T07:19:47.669Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CentOS服务器使用说明">
 <meta name="twitter:description" content="介绍 基于centos7介绍 如果服务器磁盘未挂载，最好先挂载后再进行软件安装  基本配置 关闭防火墙 决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组 Centos 7使用firewalld代替了原来的iptables 查看状态：systemctl status firewalld 开放端口：firewall-cmd --zone=public --a">
@@ -438,8 +438,8 @@
 </ul>
 <h2 id="常用软件安装"><a href="#常用软件安装" class="headerlink" title="常用软件安装"></a>常用软件安装</h2><h3 id="安装技巧"><a href="#安装技巧" class="headerlink" title="安装技巧"></a>安装技巧</h3><ul>
 <li><code>yum</code>安装：<code>yum install xxx</code>(基于包管理工具安装，可以更好的解决包依赖关系)<ul>
-<li><code>yum install nginx -y</code> 安装时回答全部问题为是</li>
-<li><code>yum remove nginx</code> 卸载</li>
+<li><code>yum -y install nginx</code> 安装时回答全部问题为是</li>
+<li><code>yum remove nginx</code> <strong>卸载</strong></li>
 <li><code>yum search vsftpd</code> 查找软件vsftpd源</li>
 <li><code>cd /etc/yum.repos.d</code> 查看yum的配置文件，其中<code>CentOS-Base.repo</code>为镜像列表配置。可更换镜像列表 <a href="[更换yum镜像](http://blog.csdn.net/inslow/article/details/54177191)">^3</a></li>
 </ul>
@@ -501,7 +501,7 @@
 <li><code>vi /etc/profile</code> 使用vi打开profile文件</li>
 <li>在末尾输入并保存（注意JAVA_HOME需要按照实际路径）</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">export</span> JAVA_HOME=/root/jdk1.7.0_79</div><div class="line"><span class="built_in">export</span> CLASSPATH=.:<span class="variable">$JAVA_HOME</span>/lib:<span class="variable">$JAVA_HOME</span>/jre/lib</div><div class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/jre/bin</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">export</span> JAVA_HOME=/root/jdk1.7.0_79</div><div class="line"><span class="built_in">export</span> CLASSPATH=.:<span class="variable">$JAVA_HOME</span>/lib:<span class="variable">$JAVA_HOME</span>/jre/lib</div><div class="line"><span class="built_in">export</span> PATH=<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/jre/bin:<span class="variable">$PATH</span></div></pre></td></tr></table></figure>
 <ul>
 <li>运行命令 <code>. /etc/profile</code> 使profile立即生效(注意 . 和 / 之间有空格)</li>
 <li><code>java -version</code> 打印版本号</li>
@@ -570,7 +570,6 @@
 </ol>
 <hr>
 <p>参考文章</p>
-<p>[^2]: <a href="http://www.cnblogs.com/GaZeon/p/5393853.html" target="_blank" rel="external">ftp 530 Permission denied</a></p>
 
       
     </div>
@@ -615,8 +614,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/12/29/arch/maven/" rel="next" title="maven">
-                <i class="fa fa-chevron-left"></i> maven
+              <a href="/2017/01/10/linux/shell/" rel="next" title="Shell编程">
+                <i class="fa fa-chevron-left"></i> Shell编程
               </a>
             
           </div>
@@ -625,8 +624,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/01/10/lang/shell/" rel="prev" title="Shell编程">
-                Shell编程 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/01/16/arch/nginx/" rel="prev" title="nginx">
+                nginx <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -699,7 +698,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -721,7 +720,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

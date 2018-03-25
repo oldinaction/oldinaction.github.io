@@ -105,7 +105,7 @@
 <meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-cpu.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-jstack.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-src.png">
-<meta property="og:updated_time" content="2018-03-14T03:44:31.371Z">
+<meta property="og:updated_time" content="2018-03-14T04:42:52.552Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java项目CPU及内存异常分析">
 <meta name="twitter:description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
@@ -454,7 +454,7 @@
 <p>可以看到其中PID=2273的进程CPU占用到达710%(服务器为8核)，内存占用22%(服务器为16G*0.22=3.52G，jvm参数设置的内存大小为3G)，其中线程运行时间达到5h29m。以上数据说明程序运行存在问题</p>
 <p><img src="/data/images/java/ofbiz-cpu.png" alt="htop"></p>
 <ul>
-<li><code>ps -mp 2273 -o THREAD,tid,time,rss,size,%mem</code> 查看此进程下线程运行情况：实际中发现有7个进场运行时间达到几十分钟，且CPU和内存占用均非常高。(其中2个是ofbiz拉取历史任务进行清理的进程，5个为GC进行垃圾回收的进程)</li>
+<li><code>ps -mp 2273 -o THREAD,tid,time,rss,size,%mem</code> 查看此进程下线程运行情况：实际中发现有7个进程占用CPU均达到几十分钟，且CPU和内存占用均非常高。(其中2个是ofbiz拉取历史任务进行清理的进程，5个为GC进行垃圾回收的进程)</li>
 <li><code>jstack 2273 | grep</code>printf “%x\n” 2413<code>-A 40</code> 查看2273进程下2413线程的堆栈信息如下(或者输出到文件进行查看)</li>
 </ul>
 <p>可以看到线程有以下调用信息<code>org.ofbiz.service.job.PurgeJob.exec(PurgeJob.java:55)</code>，如是可以去查看PurgeJob的源码。(当然应该多次查看此线程的堆栈，查看一次可能存在偶发性)</p>
@@ -533,8 +533,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/03/13/bigdata/lucene/" rel="prev" title="Lucene">
-                Lucene <i class="fa fa-chevron-right"></i>
+              <a href="/2018/03/13/bigdata/solr/" rel="prev" title="Solr">
+                Solr <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -607,7 +607,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -629,7 +629,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

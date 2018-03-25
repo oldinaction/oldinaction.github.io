@@ -103,7 +103,7 @@
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="简介 Lucene是一个基于java开发的全文搜索框架。本文基于lucene-4.9.1(文档/API在解压文件的/lucene-4.9.1/docs目录) 倒排索引：根据属性的值来查找记录。这种索引表中的每一项都包括一个属性值和具有该属性值的各记录的地址。由于不是由记录来确定属性值，而是由属性值来确定记录的位置，因而称为倒排索引(invertedindex) lucene提供的服务实际包含两部分">
 <meta property="og:image" content="http://blog.aezo.cn/data/bigdata/solr-arch.png">
-<meta property="og:updated_time" content="2018-03-14T03:02:03.070Z">
+<meta property="og:updated_time" content="2018-03-17T07:10:38.522Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Lucene">
 <meta name="twitter:description" content="简介 Lucene是一个基于java开发的全文搜索框架。本文基于lucene-4.9.1(文档/API在解压文件的/lucene-4.9.1/docs目录) 倒排索引：根据属性的值来查找记录。这种索引表中的每一项都包括一个属性值和具有该属性值的各记录的地址。由于不是由记录来确定属性值，而是由属性值来确定记录的位置，因而称为倒排索引(invertedindex) lucene提供的服务实际包含两部分">
@@ -423,8 +423,23 @@
 </li>
 </ul>
 <p><img src="/data/bigdata/solr-arch.png" alt="企业海量数据搜索服务器架构"></p>
-<h2 id="本地文件内容搜索实践"><a href="#本地文件内容搜索实践" class="headerlink" title="本地文件内容搜索实践"></a>本地文件内容搜索实践</h2><hr>
-<p>linliangyi2007.javaeye.com</p>
+<h2 id="本地文件内容搜索实践"><a href="#本地文件内容搜索实践" class="headerlink" title="本地文件内容搜索实践"></a>本地文件内容搜索实践</h2><blockquote>
+<p>具体参考 <code>smjava/lucene</code></p>
+</blockquote>
+<ul>
+<li>相关jar包</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">lucene-core-4.9.1.jar <span class="comment"># 核心包</span></div><div class="line">lucene-queries-4.9.1.jar <span class="comment"># 检索</span></div><div class="line">lucene-queryparser-4.9.1.jar </div><div class="line">lucene-analyzers-common-4.9.1.jar <span class="comment"># 分词器</span></div><div class="line">lucene-highlighter-4.9.1.jar <span class="comment"># 高亮</span></div></pre></td></tr></table></figure>
+<ul>
+<li>写索引</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/** 会生成下列索引文件</span></div><div class="line">_0.cfe</div><div class="line">_0.cfs</div><div class="line">_0.si</div><div class="line">segments.gen</div><div class="line">segments_1</div><div class="line">write.lock</div><div class="line">*/</div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String indexDir = System.getProperty(<span class="string">"user.dir"</span>) + <span class="string">"/demo_index"</span>; <span class="comment">// 存放索引的文件夹</span></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String dataDir = System.getProperty(<span class="string">"user.dir"</span>) + <span class="string">"/qq"</span>; <span class="comment">// 数据文件夹</span></div><div class="line"></div><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">writerIndex</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// 将索引保存到硬盘中</span></div><div class="line">        Directory dir = FSDirectory.open(<span class="keyword">new</span> File(indexDir));</div><div class="line">        <span class="comment">// Directory directory = new RAMDirectory(); // 将索引保存到内存中</span></div><div class="line"></div><div class="line">        <span class="comment">// 默认分词器(只支持英文，中文需要中文分词器，如：IKAnalyzer2012_FF.jar)</span></div><div class="line">        Analyzer analyzer = <span class="keyword">new</span> StandardAnalyzer(Version.LUCENE_4_9);</div><div class="line">        IndexWriterConfig config = <span class="keyword">new</span> IndexWriterConfig(Version.LUCENE_4_9, analyzer);</div><div class="line">        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND); <span class="comment">// 增量添加索引(之前的索引数据不会覆盖)</span></div><div class="line"></div><div class="line">        <span class="comment">// 索引生成器</span></div><div class="line">        IndexWriter writer = <span class="keyword">new</span> IndexWriter(dir, config);</div><div class="line"></div><div class="line">        File fileData = <span class="keyword">new</span> File(dataDir);</div><div class="line">        <span class="comment">// 列出目录下所有文件</span></div><div class="line">        Collection&lt;File&gt; files = FileUtils.listFiles(fileData, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);</div><div class="line">        <span class="keyword">for</span>(File  f : files) &#123;</div><div class="line">            <span class="comment">// 文档</span></div><div class="line">            Document doc = <span class="keyword">new</span> Document();</div><div class="line">            <span class="comment">// 字段</span></div><div class="line">            doc.add(<span class="keyword">new</span> StringField(<span class="string">"fileName"</span>, f.getAbsolutePath(), Field.Store.YES)); <span class="comment">// 文件名</span></div><div class="line">            doc.add(<span class="keyword">new</span> TextField(<span class="string">"content"</span>, FileUtils.readFileToString(f), Field.Store.YES)); <span class="comment">// 文件内容</span></div><div class="line">            doc.add(<span class="keyword">new</span> LongField(<span class="string">"lastModify"</span>, f.lastModified(), Field.Store.YES)); <span class="comment">// 上次修改时间</span></div><div class="line"></div><div class="line">            writer.addDocument(doc);</div><div class="line">        &#125;</div><div class="line">        writer.close();</div><div class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">        e.printStackTrace();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>检索</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Test</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">search</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        Directory dir = FSDirectory.open(<span class="keyword">new</span> File(WriterIndex.indexDir));</div><div class="line">        IndexReader reader = DirectoryReader.open(dir);</div><div class="line">        IndexSearcher searcher = <span class="keyword">new</span> IndexSearcher(reader);</div><div class="line"></div><div class="line">        StandardAnalyzer standardAnalyzer = <span class="keyword">new</span> StandardAnalyzer(Version.LUCENE_4_9);</div><div class="line">        QueryParser qp = <span class="keyword">new</span> QueryParser(Version.LUCENE_4_9, <span class="string">"content"</span>, standardAnalyzer);</div><div class="line">        Query query = qp.parse(<span class="string">"sitemap"</span>);</div><div class="line">        TopDocs search = searcher.search(query, <span class="number">10</span>); <span class="comment">// 获取前10个文档</span></div><div class="line"></div><div class="line">        ScoreDoc[] scoreDocs = search.scoreDocs;</div><div class="line">        <span class="keyword">for</span>(ScoreDoc sc : scoreDocs) &#123;</div><div class="line">            <span class="keyword">int</span> docId = sc.doc;</div><div class="line">            Document document = reader.document(docId);</div><div class="line">            System.out.println(document.get(<span class="string">"fileName"</span>));</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">        e.printStackTrace();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="solr企业级搜索服务器"><a href="#solr企业级搜索服务器" class="headerlink" title="solr企业级搜索服务器"></a>solr企业级搜索服务器</h2><p>详细参考《solr》</p>
+<hr>
 
       
     </div>
@@ -469,8 +484,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/03/13/java/Java项目CPU及内存异常分析/" rel="next" title="Java项目CPU及内存异常分析">
-                <i class="fa fa-chevron-left"></i> Java项目CPU及内存异常分析
+              <a href="/2018/03/13/bigdata/solr/" rel="next" title="Solr">
+                <i class="fa fa-chevron-left"></i> Solr
               </a>
             
           </div>
@@ -549,7 +564,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -571,7 +586,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -613,7 +628,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#本地文件内容搜索实践"><span class="nav-number">2.</span> <span class="nav-text">本地文件内容搜索实践</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#本地文件内容搜索实践"><span class="nav-number">2.</span> <span class="nav-text">本地文件内容搜索实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#solr企业级搜索服务器"><span class="nav-number">3.</span> <span class="nav-text">solr企业级搜索服务器</span></a></li></ol></div>
             
 
           </div>

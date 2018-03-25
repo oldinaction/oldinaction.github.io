@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2016/11/20/linux/ubuntu-install/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="Ubuntu介绍 Ubuntu（乌班图）是一个以桌面应用为主的Linux操作系统，是比较流行的一款linux桌面系统，还有如：Ubuntu是属于Debian系列、CentOS则是属于Redhat系列 Ubuntu下载地址：http://releases.ubuntu.com/ 本文以Ubuntu 16.04.1 LTS为例记录U盘、硬盘安装方法(windows安装类似)  Bios、分区、MBR">
-<meta property="og:updated_time" content="2018-01-28T08:57:12.887Z">
+<meta property="og:updated_time" content="2018-03-17T06:27:14.269Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Ubuntu安装">
 <meta name="twitter:description" content="Ubuntu介绍 Ubuntu（乌班图）是一个以桌面应用为主的Linux操作系统，是比较流行的一款linux桌面系统，还有如：Ubuntu是属于Debian系列、CentOS则是属于Redhat系列 Ubuntu下载地址：http://releases.ubuntu.com/ 本文以Ubuntu 16.04.1 LTS为例记录U盘、硬盘安装方法(windows安装类似)  Bios、分区、MBR">
@@ -454,12 +454,15 @@
 <li>物理安装：LiveCD、U盘、硬盘(包括移动硬盘)</li>
 <li>虚拟安装：WUBI、虚拟机。缺点：需要依赖于主系统，如windows</li>
 </ul>
-<h3 id="U盘安装-3"><a href="#U盘安装-3" class="headerlink" title="U盘安装 ^3"></a>U盘安装 <a href="[http://www.linuxidc.com/Linux/2014-10/108402.htm](http://www.linuxidc.com/Linux/2014-10/108402.htm)">^3</a></h3><ol>
+<h3 id="U盘安装-3"><a href="#U盘安装-3" class="headerlink" title="U盘安装 ^3"></a>U盘安装 <a href="[http://www.linuxidc.com/Linux/2014-10/108402.htm](http://www.linuxidc.com/Linux/2014-10/108402.htm)">^3</a></h3><blockquote>
+<p>windows系统可以使用<a href="http://www.udaxia.com/" target="_blank" rel="external">U大侠</a>等工具快速制作U盘启动盘，之后只需要将系统iso镜像拷贝到U盘GHO文件夹，在新机器上U盘启动安装即可。如果之前装过Linux，则需要重新将硬盘分区，然后重启。（如果不成功可尝试重新制造U盘启动盘）</p>
+</blockquote>
+<ol>
 <li>首先下载好ubuntu64位镜像文件<code>ubuntu-16.04.1-desktop-amd64.iso</code>（进入<a href="http://releases.ubuntu.com/16.04/" target="_blank" rel="external">http://releases.ubuntu.com/16.04/</a>，找到<code>64-bit PC (AMD64) desktop image</code>）</li>
 <li>MD5校验：防止下载文件损坏（找到上述网址中的<code>MD5SUMS</code>文件，即可看到<code>17643c29e3c4609818f26becf76d29a3 *ubuntu-16.04.1-desktop-amd64.iso</code>）</li>
 <li>下载安装<code>UltraISO</code>，无需注册可以一直试用</li>
-<li>打开<code>UltraISO</code> -&gt; 文件 -&gt; 打开 -&gt; 选择ubuntu的iso镜像文件 -&gt; 启动 -&gt; 写入硬盘映像(硬盘驱动器选择U盘，写入方式USB-HDD+) -&gt; 写入(2分钟左右)。此时U盘已经刻录好系统</li>
-<li>将硬盘腾出一个未使用的空间，大小自己定义</li>
+<li><strong>打开<code>UltraISO</code> -&gt; 文件 -&gt; 打开 -&gt; 选择ubuntu的iso镜像文件 =&gt; 启动 -&gt; 写入硬盘映像(硬盘驱动器选择U盘，写入方式USB-HDD+) -&gt; 写入(几分钟)。</strong>此时U盘已经刻录好系统</li>
+<li>将硬盘(需要安装Ubuntu的机器)腾出一个未使用的空间，大小自己定义</li>
 <li>Bios启动 -&gt; 进入到刻录的U盘系统 -&gt; <code>Install Ubuntu</code>（或者选择使用而不安装，进入之后还是可以安装） -&gt; 点击桌面的<code>安装Ubuntu 16.04.1 LTS</code>进行安装 -&gt; 前面一直下一步，到安装类型选择“其他选项”（可以自己创建调整分区）</li>
 <li>选择“空闲”的磁盘，双击进行分区，主要分3个区<code>/</code>、<code>swap</code>、<code>/home</code>（还有其他分区方案）<ul>
 <li><code>/</code>：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点<code>/</code></li>
@@ -660,7 +663,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -682,7 +685,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="简介安装编译启动编译 设置hot-deploy下组件(component)编译顺序  hot-deploy/build.xml   12345678910111213141516171819202122232425262728293031&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;&amp;lt;project name=&quot;OFBiz hot-deploy Bu">
-<meta property="og:updated_time" content="2017-12-13T02:30:30.562Z">
+<meta property="og:updated_time" content="2018-03-22T09:17:05.763Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ofbiz">
 <meta name="twitter:description" content="简介安装编译启动编译 设置hot-deploy下组件(component)编译顺序  hot-deploy/build.xml   12345678910111213141516171819202122232425262728293031&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;&amp;lt;project name=&quot;OFBiz hot-deploy Bu">
@@ -418,7 +418,18 @@
 </ul>
 </li>
 <li><p>设置hot-deloy下组件单独clean：在项目根目录下的<code>build.xml</code>中加入</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">  <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"_clean-hot-deploy"</span> <span class="attr">description</span>=<span class="string">"clean hot-deploy jar"</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">hotdeployant</span> <span class="attr">target</span>=<span class="string">"clean"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div></pre></td></tr></table></figure></li>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">  <span class="tag">&lt;<span class="name">target</span> <span class="attr">name</span>=<span class="string">"_clean-hot-deploy"</span> <span class="attr">description</span>=<span class="string">"clean hot-deploy jar"</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">hotdeployant</span> <span class="attr">target</span>=<span class="string">"clean"</span>/&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">target</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h3><ul>
+<li>默认日志生成策略<ul>
+<li>访问日志每天生成一个文件，堆场项目每天会生成一个大小为300M的文件</li>
+<li>普通日志每天最多生成10个文件，每个文件大小为1M（超过文件数量会覆盖当天较早的日志）</li>
+<li>错误日志每天最多生成3个文件，每个文件大小为1M</li>
+</ul>
+</li>
+<li>日志生成策略配置：<code>framework/base/config/log4j2.xml</code></li>
+<li>日志生成级别配置：<code>framework/base/config/debug.properties</code></li>
 </ul>
 
       
@@ -546,7 +557,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -568,7 +579,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -610,7 +621,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装编译启动"><span class="nav-number">2.</span> <span class="nav-text">安装编译启动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编译"><span class="nav-number">2.1.</span> <span class="nav-text">编译</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装编译启动"><span class="nav-number">2.</span> <span class="nav-text">安装编译启动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编译"><span class="nav-number">2.1.</span> <span class="nav-text">编译</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他"><span class="nav-number">3.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#日志"><span class="nav-number">3.1.</span> <span class="nav-text">日志</span></a></li></ol></li></ol></div>
             
 
           </div>

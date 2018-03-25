@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="git," />
+  <meta name="keywords" content="git,gitflow," />
 
 
 
@@ -95,18 +95,19 @@
 
 
 
-<meta name="description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Ubuntu：sudo apt-get install git    git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决">
-<meta name="keywords" content="git">
+<meta name="description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Centos: yum -y install git Ubuntu：sudo apt-get install git    git入门 ^1git全局配置 git config --global user.name smalle 设置用户名 git config --global user.ema">
+<meta name="keywords" content="git,gitflow">
 <meta property="og:type" content="article">
 <meta property="og:title" content="git">
 <meta property="og:url" content="http://blog.aezo.cn/2016/04/16/arch/git/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Ubuntu：sudo apt-get install git    git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决">
+<meta property="og:description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Centos: yum -y install git Ubuntu：sudo apt-get install git    git入门 ^1git全局配置 git config --global user.name smalle 设置用户名 git config --global user.ema">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/04/git流程图.png">
-<meta property="og:updated_time" content="2018-01-24T08:05:41.769Z">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/arch/git-workflow.png">
+<meta property="og:updated_time" content="2018-03-22T06:21:15.100Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="git">
-<meta name="twitter:description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Ubuntu：sudo apt-get install git    git入门 ^1 临时记录  git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决">
+<meta name="twitter:description" content="git简介 官网：https://git-scm.com/ 安装 windows：官网下载对应安装包 Centos: yum -y install git Ubuntu：sudo apt-get install git    git入门 ^1git全局配置 git config --global user.name smalle 设置用户名 git config --global user.ema">
 <meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/04/git流程图.png">
 
 
@@ -383,17 +384,6 @@
 
                 
                 
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/arch/tools/" itemprop="url" rel="index">
-                    <span itemprop="name">tools</span>
-                  </a>
-                </span>
-
-                
-                
               
             </span>
           
@@ -425,28 +415,12 @@
 <li>官网：<a href="https://git-scm.com/" target="_blank" rel="external">https://git-scm.com/</a></li>
 <li>安装<ul>
 <li>windows：官网下载对应安装包</li>
+<li>Centos: <code>yum -y install git</code></li>
 <li>Ubuntu：<code>sudo apt-get install git</code></li>
 </ul>
 </li>
 </ul>
-<h2 id="git入门-1"><a href="#git入门-1" class="headerlink" title="git入门 ^1"></a>git入门 <a href="[Git入门视频](http://edu.51cto.com/course/course_id-1838.html)">^1</a></h2><blockquote>
-<p>临时记录</p>
-<ul>
-<li><code>git add/rm</code> 、 <code>git cimmit</code> 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（<code>rm -f ./.git/index.lock</code>）。</li>
-<li>运行命令<code>git commit --amend</code>、<code>git diff</code>后、打开vi编辑器出错，退出快捷键<code>Ctrl+Z</code></li>
-<li><code>ls</code>或者<code>dir</code>都可以查看当前目录结构</li>
-<li>删除文件git rm、git add、git commit、git push</li>
-<li>网址<ul>
-<li><a href="http://www.jianshu.com/p/e2a15d01284c" target="_blank" rel="external">http://www.jianshu.com/p/e2a15d01284c</a></li>
-<li><a href="http://www.ruanyifeng.com/blog/2014/06/git_remote.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2014/06/git_remote.html</a></li>
-<li><a href="http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html" target="_blank" rel="external">http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html</a></li>
-<li><a href="http://blog.csdn.net/oldinaction/article/details/49704969" target="_blank" rel="external">http://blog.csdn.net/oldinaction/article/details/49704969</a></li>
-</ul>
-</li>
-</ul>
-<p>第二集有几个命令</p>
-</blockquote>
-<h3 id="git全局配置"><a href="#git全局配置" class="headerlink" title="git全局配置"></a>git全局配置</h3><ul>
+<h2 id="git入门-1"><a href="#git入门-1" class="headerlink" title="git入门 ^1"></a>git入门 <a href="[Git入门视频](http://edu.51cto.com/course/course_id-1838.html)">^1</a></h2><h3 id="git全局配置"><a href="#git全局配置" class="headerlink" title="git全局配置"></a>git全局配置</h3><ul>
 <li><code>git config --global user.name smalle</code> 设置用户名</li>
 <li><code>git config --global user.email oldinaction@qq.com</code> 设置邮箱</li>
 <li><code>git config --global color.ui true</code> 设置在命令行打印的代码带颜色</li>
@@ -529,7 +503,11 @@
 <li><code>git merge 子分支名</code> 将子分支名合并到主分支，合并前必须切换到主分支。（子分支的文件会替换掉主分支的文件）</li>
 </ul>
 </li>
-<li>跟踪分支 <code>git branch --set-upstream-to=&lt;remotesBranchName&gt; &lt;localBranchName&gt;</code> 之后可以使用<code>git push/pull</code>直接对相应分支进行操作</li>
+<li>跟踪/关联分支 <code>git branch --set-upstream-to=&lt;remotesBranchName&gt; &lt;localBranchName&gt;</code> <ul>
+<li>必须先要有此本地分支。之后可以使用<code>git push/pull</code>直接对相应分支进行操作</li>
+<li><code>git branch -vv</code> 查看分支的关联关系</li>
+</ul>
+</li>
 <li>删除分支<ul>
 <li><code>git branch -d 分支名</code> 删除此分支（只能删除除当前分支以外的分支；如果当前分支有一次提交，则需要将此分支合并到主分支之后再进行删除）</li>
 <li>删除远程分支：<code>git branch -r -d origin/branch-name</code>或者<code>git push origin :branch-name</code></li>
@@ -670,6 +648,7 @@
 <h4 id="commit对象"><a href="#commit对象" class="headerlink" title="commit对象"></a>commit对象</h4><p>commit 对象中 parent 属性指向前一个 commit，tree 属性指向一个 tree 对象（此 tree 对象可以指向文件或者文件夹）</p>
 <p>HEAD 指向 master（只有一个分支的情况下），master 指向最新的 commit；HEAD~（或master~）表示前一个 commit；HEAD~2（或master~2）表示上上一个 commit，以此类推；HEAD~2^ 表示 HEAD~2 的父提交（此时和HEAD~3是同一个对象）</p>
 <p>HEAD 的哈希码存放在 <code>.git/refs/heads/xxx</code> 文件中(当前处于xxx分支)</p>
+<h2 id="gitflow工作流-5"><a href="#gitflow工作流-5" class="headerlink" title="gitflow工作流 ^5"></a>gitflow工作流 <a href="[git-workflow-tutorial](https://github.com/xirong/my-git/blob/master/git-workflow-tutorial.md)">^5</a></h2><p><img src="/data/images/arch/git-workflow.png" alt="git-workflow"></p>
 <hr>
 <p>参考文章</p>
 
@@ -702,6 +681,8 @@
         <div class="post-tags">
           
             <a href="/tags/git/" rel="tag"># git</a>
+          
+            <a href="/tags/gitflow/" rel="tag"># gitflow</a>
           
         </div>
       
@@ -798,7 +779,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -820,7 +801,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -862,7 +843,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#git简介"><span class="nav-number">1.</span> <span class="nav-text">git简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git入门-1"><span class="nav-number">2.</span> <span class="nav-text">git入门 ^1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#git全局配置"><span class="nav-number">2.1.</span> <span class="nav-text">git全局配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#repository"><span class="nav-number">2.2.</span> <span class="nav-text">repository</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分支"><span class="nav-number">2.3.</span> <span class="nav-text">分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加、提交文件"><span class="nav-number">2.4.</span> <span class="nav-text">添加、提交文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#撤销"><span class="nav-number">2.5.</span> <span class="nav-text">撤销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除文件"><span class="nav-number">2.6.</span> <span class="nav-text">删除文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#与远程仓库同步"><span class="nav-number">2.7.</span> <span class="nav-text">与远程仓库同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看git状态和文件差别"><span class="nav-number">2.8.</span> <span class="nav-text">查看git状态和文件差别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移除文件"><span class="nav-number">2.9.</span> <span class="nav-text">移除文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#撤销操作"><span class="nav-number">2.10.</span> <span class="nav-text">撤销操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">2.11.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看日志和帮助"><span class="nav-number">2.11.1.</span> <span class="nav-text">查看日志和帮助</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#忽略控制文件"><span class="nav-number">2.11.2.</span> <span class="nav-text">忽略控制文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重命名文件"><span class="nav-number">2.11.3.</span> <span class="nav-text">重命名文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#暂存工作区"><span class="nav-number">2.11.4.</span> <span class="nav-text">暂存工作区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#commit对象"><span class="nav-number">2.11.5.</span> <span class="nav-text">commit对象</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#git简介"><span class="nav-number">1.</span> <span class="nav-text">git简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git入门-1"><span class="nav-number">2.</span> <span class="nav-text">git入门 ^1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#git全局配置"><span class="nav-number">2.1.</span> <span class="nav-text">git全局配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#repository"><span class="nav-number">2.2.</span> <span class="nav-text">repository</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分支"><span class="nav-number">2.3.</span> <span class="nav-text">分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加、提交文件"><span class="nav-number">2.4.</span> <span class="nav-text">添加、提交文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#撤销"><span class="nav-number">2.5.</span> <span class="nav-text">撤销</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除文件"><span class="nav-number">2.6.</span> <span class="nav-text">删除文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#与远程仓库同步"><span class="nav-number">2.7.</span> <span class="nav-text">与远程仓库同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看git状态和文件差别"><span class="nav-number">2.8.</span> <span class="nav-text">查看git状态和文件差别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移除文件"><span class="nav-number">2.9.</span> <span class="nav-text">移除文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#撤销操作"><span class="nav-number">2.10.</span> <span class="nav-text">撤销操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">2.11.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看日志和帮助"><span class="nav-number">2.11.1.</span> <span class="nav-text">查看日志和帮助</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#忽略控制文件"><span class="nav-number">2.11.2.</span> <span class="nav-text">忽略控制文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重命名文件"><span class="nav-number">2.11.3.</span> <span class="nav-text">重命名文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#暂存工作区"><span class="nav-number">2.11.4.</span> <span class="nav-text">暂存工作区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#commit对象"><span class="nav-number">2.11.5.</span> <span class="nav-text">commit对象</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gitflow工作流-5"><span class="nav-number">3.</span> <span class="nav-text">gitflow工作流 ^5</span></a></li></ol></div>
             
 
           </div>

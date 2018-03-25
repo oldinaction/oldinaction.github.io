@@ -104,7 +104,7 @@
 <meta property="og:description" content="基础知识系统信息查询 查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/类型与权限.gif">
-<meta property="og:updated_time" content="2018-03-12T14:33:04.642Z">
+<meta property="og:updated_time" content="2018-03-24T08:20:57.105Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux系统命令">
 <meta name="twitter:description" content="基础知识系统信息查询 查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:">
@@ -450,7 +450,10 @@
 </li>
 <li><code>ping 192.168.1.1</code>(或者<code>ping www.baidu.com</code>) 检查网络连接</li>
 <li><code>telnet 192.168.1.1 8080</code> 检查端口</li>
-<li><code>curl http://www.baidu.com</code>或<code>wget http://www.baidu.com</code> 检查是否可以上网，成功会显示或下载一个对应的网页</li>
+<li><code>curl http://www.baidu.com</code>或<code>wget http://www.baidu.com</code> 检查是否可以上网，成功会显示或下载一个对应的网页<ul>
+<li>wget爬去网站：<code>wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com</code></li>
+</ul>
+</li>
 <li><code>netstat -lnp</code> 查看端口占用情况(端口、PID)<ul>
 <li><code>ss -ant</code> CentOS 7 查看所有监听端口</li>
 <li>root运行：<code>sudo netstat -lnp</code> 可查看使用root权限运行的进程PID(否则PID隐藏)</li>
@@ -624,9 +627,9 @@
 <li>下载文件到本地(windows): <code>sz 文件名</code> （需要安装<code>yum install lrzsz</code>）</li>
 <li><code>ls</code> 列举文件 <a href="[Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)">^3</a><ul>
 <li><code>ll</code> 列举文件详细<ul>
-<li><code>ls *.txt</code>、<code>ll test*</code> 模糊查询</li>
-<li><code>ll -rt *.txt</code> 按时间排序 (<code>-r</code>表示逆序、<code>-t</code>按时间排序)</li>
-<li><code>ll -Sh</code> 按文件大小排序 (<code>-S</code>按文件大小排序、<code>-h</code>将文件大小按1024进行转换显示)</li>
+<li><strong><code>ll test*</code></strong>/<code>ls *.txt</code> 模糊查询</li>
+<li><strong><code>ll -rt *.txt</code></strong> 按时间排序 (<code>-r</code>表示逆序、<code>-t</code>按时间排序)</li>
+<li><strong><code>ll -Sh</code></strong> 按文件大小排序 (<code>-S</code>按文件大小排序、<code>-h</code>将文件大小按1024进行转换显示)</li>
 </ul>
 </li>
 <li><code>ls -al</code> 列举所有文件详细(<code>-a</code>全部、<code>-l</code>纵向显示. linux中<code>.</code>开头的文件默认为隐藏文件)<blockquote>
@@ -797,14 +800,9 @@
 </ul>
 </li>
 <li>行内跳转<ul>
-<li><code>0</code> 绝对行首</li>
-<li><code>^</code> 行首的第一个非空白字符</li>
-<li><code>$</code> 绝对行尾</li>
-</ul>
-</li>
-<li>行间跳转<ul>
-<li><code>#G</code> 跳转至第#行</li>
-<li><code>G</code> 最后一行</li>
+<li><code>:0</code> 绝对行首(<code>:10</code> 跳转至第10行)</li>
+<li><code>:$</code> 绝对行尾</li>
+<li><code>shift+g</code> 最后一行</li>
 </ul>
 </li>
 <li>翻屏<ul>
@@ -860,7 +858,14 @@
 <li>批量删除注释：<code>ctrl+v</code>进入列编辑模式，横向选中列的个数(如”//“注释符号需要选中两列)，然后按<code>d</code>就会删除注释符号</li>
 <li>根shell交互：<code>:! COMMAND</code> 在命令模式下执行外部命令，如mkdir</li>
 </ul>
-<h2 id="linux三剑客grep、sed、awk语法"><a href="#linux三剑客grep、sed、awk语法" class="headerlink" title="linux三剑客grep、sed、awk语法"></a>linux三剑客grep、sed、awk语法</h2><h3 id="sed行编辑器"><a href="#sed行编辑器" class="headerlink" title="sed行编辑器"></a>sed行编辑器</h3><ul>
+<h2 id="linux三剑客grep、sed、awk语法"><a href="#linux三剑客grep、sed、awk语法" class="headerlink" title="linux三剑客grep、sed、awk语法"></a>linux三剑客grep、sed、awk语法</h2><h3 id="grep过滤器"><a href="#grep过滤器" class="headerlink" title="grep过滤器"></a>grep过滤器</h3><ul>
+<li>在多个文件中查找数据<ul>
+<li>grep “search content” filename1 filename2…. filenamen</li>
+<li>grep “search content” *.sql</li>
+</ul>
+</li>
+</ul>
+<h3 id="sed行编辑器"><a href="#sed行编辑器" class="headerlink" title="sed行编辑器"></a>sed行编辑器</h3><ul>
 <li>文本处理，默认不编辑原文件，仅对模式空间中的数据做处理；而后处理结束后将模式空间打印至屏幕</li>
 <li>语法 <code>sed [options] &#39;内部命令表达式&#39; file ...</code></li>
 <li><p>参数</p>
@@ -968,7 +973,7 @@
 <li><code>groupdel aezocn</code> 删除组</li>
 </ul>
 <h3 id="文件-1"><a href="#文件-1" class="headerlink" title="文件"></a>文件</h3><ul>
-<li>文件属性<code>chgrp</code>、<code>chown</code>、<code>chmod</code>、<code>umask</code> <a href="[Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)">^3</a><ul>
+<li>文件属性<code>chgrp</code>、<code>chown</code>、<code>chmod</code>、<code>umask</code> <a href="[Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)">^3</a></li>
 <li><code>chgrp</code> 改变文件所属群组。<code>chgrp [-R] 组名 文件或目录</code><ul>
 <li><code>-R</code> 递归设置子目录下所有文件和目录</li>
 </ul>
@@ -999,8 +1004,6 @@
 <li>常用命令<ul>
 <li><code>find . -type d -exec chmod 755 {} \;</code> 修改当前目录的所有目录为775</li>
 <li><code>find . -type f -exec chmod 644 {} \;</code> 修改当前目录的所有文件为644</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -1292,7 +1295,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1314,7 +1317,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -1356,7 +1359,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基础知识"><span class="nav-number">1.</span> <span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#系统信息查询"><span class="nav-number">1.1.</span> <span class="nav-text">系统信息查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看网络信息"><span class="nav-number">1.2.</span> <span class="nav-text">查看网络信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看进程信息"><span class="nav-number">2.</span> <span class="nav-text">查看进程信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基础操作"><span class="nav-number">2.1.</span> <span class="nav-text">基础操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务相关命令"><span class="nav-number">2.2.</span> <span class="nav-text">服务相关命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用语法参考《shell-md》"><span class="nav-number">2.3.</span> <span class="nav-text">常用语法参考《shell.md》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用命令"><span class="nav-number">2.4.</span> <span class="nav-text">常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文本处理"><span class="nav-number">2.5.</span> <span class="nav-text">文本处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统"><span class="nav-number">3.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘"><span class="nav-number">3.1.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件"><span class="nav-number">3.2.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件夹-目录"><span class="nav-number">3.3.</span> <span class="nav-text">文件夹/目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩包-推荐tar-1"><span class="nav-number">3.4.</span> <span class="nav-text">压缩包(推荐tar) ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vi-vim编辑器"><span class="nav-number">4.</span> <span class="nav-text">vi/vim编辑器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#vi命令"><span class="nav-number">4.1.</span> <span class="nav-text">vi命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linux三剑客grep、sed、awk语法"><span class="nav-number">5.</span> <span class="nav-text">linux三剑客grep、sed、awk语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sed行编辑器"><span class="nav-number">5.1.</span> <span class="nav-text">sed行编辑器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#awk文本分析工具"><span class="nav-number">5.2.</span> <span class="nav-text">awk文本分析工具</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限系统"><span class="nav-number">6.</span> <span class="nav-text">权限系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户-6"><span class="nav-number">6.1.</span> <span class="nav-text">用户 ^6</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件-1"><span class="nav-number">6.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-2"><span class="nav-number">7.</span> <span class="nav-text">ssh ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh介绍"><span class="nav-number">7.1.</span> <span class="nav-text">ssh介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看SSH服务"><span class="nav-number">7.2.</span> <span class="nav-text">查看SSH服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（口令认证）"><span class="nav-number">7.3.</span> <span class="nav-text">SSH客户端连接服务器（口令认证）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（秘钥认证）"><span class="nav-number">7.4.</span> <span class="nav-text">SSH客户端连接服务器（秘钥认证）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务-4"><span class="nav-number">8.</span> <span class="nav-text">定时任务 ^4</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linux概念"><span class="nav-number">9.</span> <span class="nav-text">linux概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本"><span class="nav-number">9.1.</span> <span class="nav-text">基本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘-1"><span class="nav-number">9.2.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统启动顺序boot-sequence"><span class="nav-number">9.3.</span> <span class="nav-text">系统启动顺序boot sequence</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基础知识"><span class="nav-number">1.</span> <span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#系统信息查询"><span class="nav-number">1.1.</span> <span class="nav-text">系统信息查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看网络信息"><span class="nav-number">1.2.</span> <span class="nav-text">查看网络信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看进程信息"><span class="nav-number">2.</span> <span class="nav-text">查看进程信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基础操作"><span class="nav-number">2.1.</span> <span class="nav-text">基础操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务相关命令"><span class="nav-number">2.2.</span> <span class="nav-text">服务相关命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用语法参考《shell-md》"><span class="nav-number">2.3.</span> <span class="nav-text">常用语法参考《shell.md》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用命令"><span class="nav-number">2.4.</span> <span class="nav-text">常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文本处理"><span class="nav-number">2.5.</span> <span class="nav-text">文本处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件系统"><span class="nav-number">3.</span> <span class="nav-text">文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘"><span class="nav-number">3.1.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件"><span class="nav-number">3.2.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件夹-目录"><span class="nav-number">3.3.</span> <span class="nav-text">文件夹/目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#压缩包-推荐tar-1"><span class="nav-number">3.4.</span> <span class="nav-text">压缩包(推荐tar) ^1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vi-vim编辑器"><span class="nav-number">4.</span> <span class="nav-text">vi/vim编辑器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#vi命令"><span class="nav-number">4.1.</span> <span class="nav-text">vi命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linux三剑客grep、sed、awk语法"><span class="nav-number">5.</span> <span class="nav-text">linux三剑客grep、sed、awk语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#grep过滤器"><span class="nav-number">5.1.</span> <span class="nav-text">grep过滤器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sed行编辑器"><span class="nav-number">5.2.</span> <span class="nav-text">sed行编辑器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#awk文本分析工具"><span class="nav-number">5.3.</span> <span class="nav-text">awk文本分析工具</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限系统"><span class="nav-number">6.</span> <span class="nav-text">权限系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用户-6"><span class="nav-number">6.1.</span> <span class="nav-text">用户 ^6</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件-1"><span class="nav-number">6.2.</span> <span class="nav-text">文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-2"><span class="nav-number">7.</span> <span class="nav-text">ssh ^2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh介绍"><span class="nav-number">7.1.</span> <span class="nav-text">ssh介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看SSH服务"><span class="nav-number">7.2.</span> <span class="nav-text">查看SSH服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（口令认证）"><span class="nav-number">7.3.</span> <span class="nav-text">SSH客户端连接服务器（口令认证）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH客户端连接服务器（秘钥认证）"><span class="nav-number">7.4.</span> <span class="nav-text">SSH客户端连接服务器（秘钥认证）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务-4"><span class="nav-number">8.</span> <span class="nav-text">定时任务 ^4</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linux概念"><span class="nav-number">9.</span> <span class="nav-text">linux概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本"><span class="nav-number">9.1.</span> <span class="nav-text">基本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘-1"><span class="nav-number">9.2.</span> <span class="nav-text">磁盘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统启动顺序boot-sequence"><span class="nav-number">9.3.</span> <span class="nav-text">系统启动顺序boot sequence</span></a></li></ol></li></ol></div>
             
 
           </div>

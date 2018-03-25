@@ -95,20 +95,20 @@
 
 
 
-<meta name="description" content="IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的classes目录">
+<meta name="description" content="IntelliJ IDEA简介常用设置 新建包文件夹，一定要一层一层的建，或者创建cn/aezo的文件夹，不能创建一个cn.aezo(不会自动生成两个文件夹)  java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位">
 <meta name="keywords" content="IDE">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IntelliJ IDEA">
 <meta property="og:url" content="http://blog.aezo.cn/2016/09/17/extend/intellij-idea/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的classes目录">
+<meta property="og:description" content="IntelliJ IDEA简介常用设置 新建包文件夹，一定要一层一层的建，或者创建cn/aezo的文件夹，不能创建一个cn.aezo(不会自动生成两个文件夹)  java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/idea-keys.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug2.png">
-<meta property="og:updated_time" content="2017-12-12T13:08:54.888Z">
+<meta property="og:updated_time" content="2018-03-17T04:28:53.128Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="IntelliJ IDEA">
-<meta name="twitter:description" content="IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的classes目录">
+<meta name="twitter:description" content="IntelliJ IDEA简介常用设置 新建包文件夹，一定要一层一层的建，或者创建cn/aezo的文件夹，不能创建一个cn.aezo(不会自动生成两个文件夹)  java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位">
 <meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/09/idea-keys.png">
 
 
@@ -385,17 +385,6 @@
 
                 
                 
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
-                    <span itemprop="name">tools</span>
-                  </a>
-                </span>
-
-                
-                
               
             </span>
           
@@ -423,30 +412,36 @@
       
 
       
-        <h2 id="IntelliJ-IDEA简介"><a href="#IntelliJ-IDEA简介" class="headerlink" title="IntelliJ IDEA简介"></a>IntelliJ IDEA简介</h2><h2 id="常用设置"><a href="#常用设置" class="headerlink" title="常用设置"></a>常用设置</h2><h3 id="java-web项目配置-1"><a href="#java-web项目配置-1" class="headerlink" title="java web项目配置 [^1]"></a>java web项目配置 [^1]</h3><ol>
+        <h2 id="IntelliJ-IDEA简介"><a href="#IntelliJ-IDEA简介" class="headerlink" title="IntelliJ IDEA简介"></a>IntelliJ IDEA简介</h2><h2 id="常用设置"><a href="#常用设置" class="headerlink" title="常用设置"></a>常用设置</h2><ul>
+<li>新建包文件夹，一定要一层一层的建，或者创建<code>cn/aezo</code>的文件夹，不能创建一个<code>cn.aezo</code>(不会自动生成两个文件夹)</li>
+</ul>
+<h3 id="java-web项目配置-1"><a href="#java-web项目配置-1" class="headerlink" title="java web项目配置 [^1]"></a>java web项目配置 [^1]</h3><ol>
 <li>进入到Project Structure：<code>File - Project Structure</code></li>
 <li>配置步骤<ul>
 <li><code>Project</code> 项目级别<ul>
-<li>主要是project compiler output的位置(src的编译位置)：如<code>\myproject\WebRoot\WEB-INF\classes</code>，为对应WEB-INF下的classes目录</li>
+<li>主要是project compiler output的位置(src的编译位置)：如<code>/myproject/WebRoot/WEB-INF/classes</code>，为对应WEB-INF下的classes目录</li>
 </ul>
 </li>
 <li><code>Modules</code> 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块<ul>
-<li><code>Sources</code> 将src目录标记成Sources目录</li>
-<li><code>Paths</code> 使用modules compiler output path，设置路径为<code>\myproject\WebRoot\WEB-INF\classes</code></li>
-<li><code>Dependencies</code> 加入jdk、tomcat、其他依赖jar(如<code>\WEB-INF\lib</code>中的jar)</li>
+<li><code>Sources</code> 将src目录标记成Sources目录<strong>（如果是maven项目则标记java、test目录，即包名的上级目录）</strong></li>
+<li><code>Paths</code> 使用modules compiler output path，设置路径为<code>/myproject/WebRoot/WEB-INF/classes</code></li>
+<li><code>Dependencies</code> 加入jdk、tomcat、其他依赖jar(如<code>\WEB-INF/lib</code>中的jar)</li>
 </ul>
 </li>
-<li><code>Libraries</code> 如将<code>\WEB-INF\lib</code>中的所有jar定义一个目录，直接加入到<code>Dependencies</code>中</li>
+<li><code>Libraries</code> 如将<code>/WEB-INF/lib</code>中的所有jar定义一个目录，直接加入到<code>Dependencies</code>中</li>
 <li><code>Facets</code><ul>
 <li>点击<code>+</code> - <code>web</code></li>
-<li><code>Web Module Deployment Descriptor</code>为<code>\myproject\WebRoot\WEB-INF\web.xml</code></li>
-<li><code>Web Resource</code>为<code>\myproject\WebRoot</code></li>
+<li><code>Web Module Deployment Descriptor</code>为<code>/myproject/WebRoot/WEB-INF/web.xml</code></li>
+<li><code>Web Resource</code>为<code>/myproject/WebRoot</code></li>
 <li>勾选<code>Source Roots</code></li>
 </ul>
 </li>
 <li><code>Artifacts</code> 根据上面的配置，最终打包成一个war包部署到tomcat中<ul>
 <li>点击<code>+</code> - <code>Web Application: Exploded</code> - <code>From Modules</code></li>
-<li><code>Output directory</code>为<code>\testStruts2\WebRoot</code></li>
+<li><code>Output directory</code>为<code>/testStruts2/WebRoot</code><ul>
+<li>WEB-INFO/lib下的jar都要显示在此目录</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -647,7 +642,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">68</span>
+                <span class="site-state-item-count">71</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -669,7 +664,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">107</span>
+                <span class="site-state-item-count">108</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
