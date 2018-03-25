@@ -20,16 +20,99 @@ tags: [lucene, solr]
 
 ## 本地文件内容搜索实践
 
+> 具体参考 `smjava/lucene`
 
+- 相关jar包
 
+```bash
+lucene-core-4.9.1.jar # 核心包
+lucene-queries-4.9.1.jar # 检索
+lucene-queryparser-4.9.1.jar 
+lucene-analyzers-common-4.9.1.jar # 分词器
+lucene-highlighter-4.9.1.jar # 高亮
+```
 
+- 写索引
 
+```java
+/** 会生成下列索引文件
+_0.cfe
+_0.cfs
+_0.si
+segments.gen
+segments_1
+write.lock
+*/
+public static final String indexDir = System.getProperty("user.dir") + "/demo_index"; // 存放索引的文件夹
+public static final String dataDir = System.getProperty("user.dir") + "/qq"; // 数据文件夹
 
+@Test
+public void writerIndex() {
+    try {
+        // 将索引保存到硬盘中
+        Directory dir = FSDirectory.open(new File(indexDir));
+        // Directory directory = new RAMDirectory(); // 将索引保存到内存中
 
+        // 默认分词器(只支持英文，中文需要中文分词器，如：IKAnalyzer2012_FF.jar)
+        Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_4_9);
+        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_4_9, analyzer);
+        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND); // 增量添加索引(之前的索引数据不会覆盖)
+
+        // 索引生成器
+        IndexWriter writer = new IndexWriter(dir, config);
+
+        File fileData = new File(dataDir);
+        // 列出目录下所有文件
+        Collection<File> files = FileUtils.listFiles(fileData, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+        for(File  f : files) {
+            // 文档
+            Document doc = new Document();
+            // 字段
+            doc.add(new StringField("fileName", f.getAbsolutePath(), Field.Store.YES)); // 文件名
+            doc.add(new TextField("content", FileUtils.readFileToString(f), Field.Store.YES)); // 文件内容
+            doc.add(new LongField("lastModify", f.lastModified(), Field.Store.YES)); // 上次修改时间
+
+            writer.addDocument(doc);
+        }
+        writer.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+- 检索
+
+```java
+@Test
+public void search() {
+    try {
+        Directory dir = FSDirectory.open(new File(WriterIndex.indexDir));
+        IndexReader reader = DirectoryReader.open(dir);
+        IndexSearcher searcher = new IndexSearcher(reader);
+
+        StandardAnalyzer standardAnalyzer = new StandardAnalyzer(Version.LUCENE_4_9);
+        QueryParser qp = new QueryParser(Version.LUCENE_4_9, "content", standardAnalyzer);
+        Query query = qp.parse("sitemap");
+        TopDocs search = searcher.search(query, 10); // 获取前10个文档
+
+        ScoreDoc[] scoreDocs = search.scoreDocs;
+        for(ScoreDoc sc : scoreDocs) {
+            int docId = sc.doc;
+            Document document = reader.document(docId);
+            System.out.println(document.get("fileName"));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+## solr企业级搜索服务器
+
+详细参考《solr》
 
 
 
 
 ---
-
-linliangyi2007.javaeye.com

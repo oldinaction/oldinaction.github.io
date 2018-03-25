@@ -2,7 +2,7 @@
 layout: "post"
 title: "IntelliJ IDEA"
 date: "2016-09-17 15:37"
-categories: [extend, tools]
+categories: extend
 tags: [IDE]
 ---
 
@@ -10,25 +10,28 @@ tags: [IDE]
 
 ## 常用设置
 
+- 新建包文件夹，一定要一层一层的建，或者创建`cn/aezo`的文件夹，不能创建一个`cn.aezo`(不会自动生成两个文件夹)
+
 ### java web项目配置 [^1]
 
 1. 进入到Project Structure：`File - Project Structure`
 2. 配置步骤
     - `Project` 项目级别
-        - 主要是project compiler output的位置(src的编译位置)：如`\myproject\WebRoot\WEB-INF\classes`，为对应WEB-INF下的classes目录
+        - 主要是project compiler output的位置(src的编译位置)：如`/myproject/WebRoot/WEB-INF/classes`，为对应WEB-INF下的classes目录
     - `Modules` 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
-        - `Sources` 将src目录标记成Sources目录
-        - `Paths` 使用modules compiler output path，设置路径为`\myproject\WebRoot\WEB-INF\classes`
-        - `Dependencies` 加入jdk、tomcat、其他依赖jar(如`\WEB-INF\lib`中的jar)
-    - `Libraries` 如将`\WEB-INF\lib`中的所有jar定义一个目录，直接加入到`Dependencies`中
+        - `Sources` 将src目录标记成Sources目录**（如果是maven项目则标记java、test目录，即包名的上级目录）**
+        - `Paths` 使用modules compiler output path，设置路径为`/myproject/WebRoot/WEB-INF/classes`
+        - `Dependencies` 加入jdk、tomcat、其他依赖jar(如`\WEB-INF/lib`中的jar)
+    - `Libraries` 如将`/WEB-INF/lib`中的所有jar定义一个目录，直接加入到`Dependencies`中
     - `Facets`
         - 点击`+` - `web`
-        - `Web Module Deployment Descriptor`为`\myproject\WebRoot\WEB-INF\web.xml`
-        - `Web Resource`为`\myproject\WebRoot`
+        - `Web Module Deployment Descriptor`为`/myproject/WebRoot/WEB-INF/web.xml`
+        - `Web Resource`为`/myproject/WebRoot`
         - 勾选`Source Roots`
     - `Artifacts` 根据上面的配置，最终打包成一个war包部署到tomcat中
         - 点击`+` - `Web Application: Exploded` - `From Modules`
-        - `Output directory`为`\testStruts2\WebRoot`
+        - `Output directory`为`/testStruts2/WebRoot`
+            - WEB-INFO/lib下的jar都要显示在此目录
 3. `Run configuration`配置tomcat
     - `JRE`填写jdk路径
     - `Deployment`中将刚刚的war配置进入

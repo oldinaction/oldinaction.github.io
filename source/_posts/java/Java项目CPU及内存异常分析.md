@@ -72,7 +72,7 @@ jmap -dump:live,format=b,file=/home/dump.hprof <pid>
 
 ![htop](/data/images/java/ofbiz-cpu.png)
 
-- `ps -mp 2273 -o THREAD,tid,time,rss,size,%mem` 查看此进程下线程运行情况：实际中发现有7个进场运行时间达到几十分钟，且CPU和内存占用均非常高。(其中2个是ofbiz拉取历史任务进行清理的进程，5个为GC进行垃圾回收的进程)
+- `ps -mp 2273 -o THREAD,tid,time,rss,size,%mem` 查看此进程下线程运行情况：实际中发现有7个进程占用CPU均达到几十分钟，且CPU和内存占用均非常高。(其中2个是ofbiz拉取历史任务进行清理的进程，5个为GC进行垃圾回收的进程)
 - `jstack 2273 | grep `printf "%x\n" 2413` -A 40` 查看2273进程下2413线程的堆栈信息如下(或者输出到文件进行查看)
 
 可以看到线程有以下调用信息`org.ofbiz.service.job.PurgeJob.exec(PurgeJob.java:55)`，如是可以去查看PurgeJob的源码。(当然应该多次查看此线程的堆栈，查看一次可能存在偶发性)
@@ -103,4 +103,5 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 
 [^1]: [线上应用故障排查系列](http://www.blogjava.net/hankchen/archive/2012/05/09/377738.html)
 [^2]: [线上应用故障排查之二：高内存占用](http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html)
+[^3]: [记一次线上Java程序导致服务器CPU占用率过高的问题排除过程](https://www.jianshu.com/p/3667157d63bb)
 

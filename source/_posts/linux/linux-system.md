@@ -37,6 +37,7 @@ tags: [linux, shell]
 - `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
 - `telnet 192.168.1.1 8080` 检查端口
 - `curl http://www.baidu.com`或`wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
+    - wget爬去网站：`wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com`
 - `netstat -lnp` 查看端口占用情况(端口、PID)
     - `ss -ant` CentOS 7 查看所有监听端口
     - root运行：`sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
@@ -173,9 +174,9 @@ tags: [linux, shell]
 - 下载文件到本地(windows): `sz 文件名` （需要安装`yum install lrzsz`）
 - `ls` 列举文件 [^3]
     - `ll` 列举文件详细
-        - `ls *.txt`、`ll test*` 模糊查询
-        - `ll -rt *.txt` 按时间排序 (`-r`表示逆序、`-t`按时间排序)
-        - `ll -Sh` 按文件大小排序 (`-S`按文件大小排序、`-h`将文件大小按1024进行转换显示)
+        - **`ll test*`**/`ls *.txt` 模糊查询
+        - **`ll -rt *.txt`** 按时间排序 (`-r`表示逆序、`-t`按时间排序)
+        - **`ll -Sh`** 按文件大小排序 (`-S`按文件大小排序、`-h`将文件大小按1024进行转换显示)
     - `ls -al` 列举所有文件详细(`-a`全部、`-l`纵向显示. linux中`.`开头的文件默认为隐藏文件)
     > 文件详细如下图
     >
@@ -315,12 +316,9 @@ tags: [linux, shell]
     - `l` 右
     - `w` 移至下一个单词的词
 - 行内跳转
-    - `0` 绝对行首
-    - `^` 行首的第一个非空白字符
-    - `$` 绝对行尾
-- 行间跳转
-    - `#G` 跳转至第#行
-    - `G` 最后一行
+    - `:0` 绝对行首(`:10` 跳转至第10行)
+    - `:$` 绝对行尾
+    - `shift+g` 最后一行
 - 翻屏
     - `Ctrl+f` 向下翻一屏
     - `Ctrl+b` 向上翻一屏
@@ -360,7 +358,13 @@ tags: [linux, shell]
 
 ## linux三剑客grep、sed、awk语法
 
-### sed行编辑器 
+### grep过滤器
+
+- 在多个文件中查找数据
+    - grep "search content" filename1 filename2.... filenamen
+    - grep "search content" *.sql
+
+### sed行编辑器
 
 - 文本处理，默认不编辑原文件，仅对模式空间中的数据做处理；而后处理结束后将模式空间打印至屏幕
 - 语法 `sed [options] '内部命令表达式' file ...`
@@ -448,25 +452,24 @@ tags: [linux, shell]
 ### 文件
 
 - 文件属性`chgrp`、`chown`、`chmod`、`umask` [^3]
-    - `chgrp` 改变文件所属群组。`chgrp [-R] 组名 文件或目录`
-        - `-R` 递归设置子目录下所有文件和目录
-    - `chown` 改变文件/目录拥有者。如：`chown [-R] aezo /home/aezo`
-    - `chmod` 改变文件的权限(文件权限说明参考上述`ls -al`)
-        - 数字类型改变文件权限 **`chmod [-R] xyzw 文件或目录`** 如：`chmod -R 755 /home/ftproot`
-            - `x`：可有可无，代表的是特殊权限,即 SUID/SGID/SBIT。`yzw`：就是刚刚提到的数字类型的权限属性，为 rwx 属性数值的相加
-            - 各权限的分数对照表为：`r:4、w:2、x:1、SUID:4、SGID:2、SBIT:1`。如rwx = 4+2+1 = 7，r-s = 4+1 = 5
-        - 符号类型改变文件权限 `chmod 对象 操作符 文件/目录`
-            - 对象取值为`ugoa`：u=user, g=group, o=others, a=all
-            - 操作符取值为：`+-=`：+ 为增加，- 为除去，= 为设定
-            - 如：`chmod u=rwx,go=rx test`、`chmod g+s,o+t test`
-    - `umask` 创建文件时的默认权限
-        - `umask` 查看umask分数值。如0022(一般umask分数值指后面三个数字)
-            - `umask -S` 查看umask。如u=rwx,g=rx,o=rx
-        - 系统默认新建文件的权限为666(3个rw)，文件夹为777(3个rwx)。最终新建文件的默认权限为系统默认权限减去umask分数值。如umask为002，新建的文件为-rw-r--r--，文件夹为drw-r-xr-x
-    - 常用命令
-        - `find . -type d -exec chmod 755 {} \;` 修改当前目录的所有目录为775
-        - `find . -type f -exec chmod 644 {} \;` 修改当前目录的所有文件为644
-
+- `chgrp` 改变文件所属群组。`chgrp [-R] 组名 文件或目录`
+    - `-R` 递归设置子目录下所有文件和目录
+- `chown` 改变文件/目录拥有者。如：`chown [-R] aezo /home/aezo`
+- `chmod` 改变文件的权限(文件权限说明参考上述`ls -al`)
+    - 数字类型改变文件权限 **`chmod [-R] xyzw 文件或目录`** 如：`chmod -R 755 /home/ftproot`
+        - `x`：可有可无，代表的是特殊权限,即 SUID/SGID/SBIT。`yzw`：就是刚刚提到的数字类型的权限属性，为 rwx 属性数值的相加
+        - 各权限的分数对照表为：`r:4、w:2、x:1、SUID:4、SGID:2、SBIT:1`。如rwx = 4+2+1 = 7，r-s = 4+1 = 5
+    - 符号类型改变文件权限 `chmod 对象 操作符 文件/目录`
+        - 对象取值为`ugoa`：u=user, g=group, o=others, a=all
+        - 操作符取值为：`+-=`：+ 为增加，- 为除去，= 为设定
+        - 如：`chmod u=rwx,go=rx test`、`chmod g+s,o+t test`
+- `umask` 创建文件时的默认权限
+    - `umask` 查看umask分数值。如0022(一般umask分数值指后面三个数字)
+        - `umask -S` 查看umask。如u=rwx,g=rx,o=rx
+    - 系统默认新建文件的权限为666(3个rw)，文件夹为777(3个rwx)。最终新建文件的默认权限为系统默认权限减去umask分数值。如umask为002，新建的文件为-rw-r--r--，文件夹为drw-r-xr-x
+- 常用命令
+    - `find . -type d -exec chmod 755 {} \;` 修改当前目录的所有目录为775
+    - `find . -type f -exec chmod 644 {} \;` 修改当前目录的所有文件为644
 
 ## ssh [^2]
 

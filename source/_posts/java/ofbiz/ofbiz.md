@@ -56,3 +56,15 @@ tags: [ofbiz]
 		<hotdeployant target="clean"/>
     </target>
     ```
+
+
+## 其他
+
+### 日志
+
+- 默认日志生成策略
+    - 访问日志每天生成一个文件，堆场项目每天会生成一个大小为300M的文件
+    - 普通日志每天最多生成10个文件，每个文件大小为1M（超过文件数量会覆盖当天较早的日志）
+    - 错误日志每天最多生成3个文件，每个文件大小为1M
+- 日志生成策略配置：`framework/base/config/log4j2.xml`
+- 日志生成级别配置：`framework/base/config/debug.properties`

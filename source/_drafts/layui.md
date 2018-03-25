@@ -2,7 +2,7 @@
 layout: "post"
 title: "Layui"
 date: "2017-11-30 20:19"
-categories: [web]
+categories: web
 tags: [UI, jquery]
 ---
 
@@ -11,7 +11,18 @@ tags: [UI, jquery]
 - 基于jquery的前端 UI 框架
 - 官网：[http://www.layui.com/](http://www.layui.com/)
 
-## 表单
+## 全局
+
+- 引入核心css和js
+
+```html
+<link rel="stylesheet" href="layui.css" media="all" />
+<script type="text/javascript" src="layui.js"></script>
+```
+
+## 表单元素
+
+- `layui-form`类下的select等才会被渲染成layui下拉样式
 
 ```html
 <!-- `layui-form`类下的select等才会被渲染成layui样式 -->

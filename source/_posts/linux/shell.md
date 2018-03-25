@@ -2,7 +2,7 @@
 layout: "post"
 title: "Shell编程"
 date: "2017-01-10 13:19"
-categories: lang
+categories: linux
 tags: [shell, linux]
 ---
 

@@ -121,7 +121,7 @@ tags: [mybatis, springboot]
 		public PageInfo showAllUser(
 				@RequestParam(defaultValue = "1") Integer pageNum,
 				@RequestParam(defaultValue = "5") Integer pageSize) {
-			PageHelper.startPage(pageNum, pageSize); // 默认查询第一页，显示5条数据
+			PageHelper.startPage(pageNum, pageSize); // 默认查询第一页，显示5条数据（必须在实例化PageInfo之前）
 			List<UserInfo> users = userMapper.findAll(); // 第一条执行的SQL语句会被分页，实际上输出users是page对象
 			PageInfo<UserInfo> pageUser = new PageInfo<UserInfo>(users); // 将users对象绑定到pageInfo
 
@@ -201,14 +201,25 @@ tags: [mybatis, springboot]
             " where 1=1 ",
 			" <when test='plans != null and plans.size() > 0'>", // 其中大于号也可以使用`&gt;`来表示
             "   and g.plan_id in ",
+			// in 的使用
             "   <foreach item='plan' index='index' collection='plans' open='(' separator=',' close=')'>",
             "       #{plan.planId}",
             "   </foreach>",
             " </when>",
-            " <when test='help.title != null'> AND h.title like concat('%', #{help.title}, '%')</when>", // 此处必须使用concat进行字符串连接
+			// like 的使用。此处必须使用concat进行字符串连接
+            " <when test='help.title != null'> AND h.title like concat('%', #{help.title}, '%')</when>",
             " <when test='event.name != null'> AND e.name = #{event.name}", "</when>",
+			// or 的使用
+			" <when test='help.title != null and help.desc != null or help.start != null and help.end != null'> and (",
+			"  <when test='help.title != null and help.desc != null>",
+			"    help.title = #{help.title}",
+			"  </when>",
+			"  <when test='help.start != null and help.end != null>",
+			"    or help.start = #{help.start} and help.end = #{help.end}",
+			"  </when>",
+			" ) </when>",
             "</script>" })
-        List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans); // 普通变量可以省略@Param, 多个对象则可使用@Param指明其引用名称方可使用（如：help.title），否则只能写成title（多个对象可能存在相同字段，建议指明）
+        List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans);
         
         // 配合分页插件使用
         public Object findHelps(Help help, Event event,
@@ -224,7 +235,7 @@ tags: [mybatis, springboot]
 
 		- `<when>` 可进行嵌套使用
 		- 双引号转义：`<when test='help.title != null and type = \"MY_TYPE\"'>`
-		- 大于小于好需要转义（>：`&gt;`, <：`&lt;`）
+		- **大于小于号需要转义**（>：`&gt;`, <：`&lt;`）
 		- mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
 		- 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
 

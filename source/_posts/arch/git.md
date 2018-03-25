@@ -2,32 +2,19 @@
 layout: "post"
 title: "git"
 date: "2016-04-16 12:40"
-categories: [arch, tools]
-tag: [git]
+categories: arch
+tag: [git, gitflow]
 ---
 
 ## git简介
 
-- 官网：https://git-scm.com/
+- 官网：[https://git-scm.com/](https://git-scm.com/)
 - 安装
 	- windows：官网下载对应安装包
+	- Centos: `yum -y install git`
 	- Ubuntu：`sudo apt-get install git`
 
 ## git入门 [^1]
-
-> 临时记录
->
-> - `git add/rm` 、 `git cimmit` 时报错【fatal: Unable to create 'D:/git/demo/.git/index.lock': File exists.】，解决办法为删除本地仓库中的此文件（`rm -f ./.git/index.lock`）。
-> - 运行命令`git commit --amend`、`git diff`后、打开vi编辑器出错，退出快捷键`Ctrl+Z`
-> - `ls`或者`dir`都可以查看当前目录结构
-> - 删除文件git rm、git add、git commit、git push
-> - 网址
->	- <http://www.jianshu.com/p/e2a15d01284c>
->	- <http://www.ruanyifeng.com/blog/2014/06/git_remote.html>
->	- <http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html>
->	- <http://blog.csdn.net/oldinaction/article/details/49704969>
->
-> 第二集有几个命令
 
 ### git全局配置
 
@@ -90,7 +77,9 @@ tag: [git]
 	- `git checkout 分支名` 切换到此分支（*Switched to branch '分支名'*），此时 HEAD 指向此分支；并且本地磁盘（working 区）的内容会显示此分支的文件
 4. 合并分支
 	- `git merge 子分支名` 将子分支名合并到主分支，合并前必须切换到主分支。（子分支的文件会替换掉主分支的文件）
-5. 跟踪分支 `git branch --set-upstream-to=<remotesBranchName> <localBranchName>` 之后可以使用`git push/pull`直接对相应分支进行操作
+5. 跟踪/关联分支 `git branch --set-upstream-to=<remotesBranchName> <localBranchName>` 
+	- 必须先要有此本地分支。之后可以使用`git push/pull`直接对相应分支进行操作
+	- `git branch -vv` 查看分支的关联关系
 6. 删除分支
 	- `git branch -d 分支名` 删除此分支（只能删除除当前分支以外的分支；如果当前分支有一次提交，则需要将此分支合并到主分支之后再进行删除）
 	- 删除远程分支：`git branch -r -d origin/branch-name`或者`git push origin :branch-name`
@@ -234,9 +223,17 @@ HEAD 指向 master（只有一个分支的情况下），master 指向最新的 
 
 HEAD 的哈希码存放在 `.git/refs/heads/xxx` 文件中(当前处于xxx分支)
 
+## gitflow工作流 [^5]
+
+![git-workflow](/data/images/arch/git-workflow.png)
+
 
 ---
 
 参考文章
 
 [^1]: [Git入门视频](http://edu.51cto.com/course/course_id-1838.html)
+[^2]: [Git远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)
+[^3]: [常用Git命令清单](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)
+[^4]: [Git入门及上传项目到github中](http://blog.csdn.net/oldinaction/article/details/49704969)
+[^5]: [git-workflow-tutorial](https://github.com/xirong/my-git/blob/master/git-workflow-tutorial.md)

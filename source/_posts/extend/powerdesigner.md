@@ -2,7 +2,7 @@
 layout: "post"
 title: "powerdesigner"
 date: "2017-12-05 19:41"
-categories: [design]
+categories: extend
 tags: [model, mysql, oracle]
 ---
 
@@ -61,19 +61,10 @@ tags: [model, mysql, oracle]
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ---
+
+参考文章
+
 [^1]: [数据字典生成](http://blog.csdn.net/nw_ningwang/article/details/77586602)
 [^2]: [配置mysql数据源](http://blog.csdn.net/winy_lm/article/details/70598378)
 [^3]: [PowerDesigner的使用安装和数据库创建](http://www.cnblogs.com/huangcong/archive/2010/06/14/1757957.html)

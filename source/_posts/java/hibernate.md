@@ -50,6 +50,227 @@ tags: [ssh, orm]
     ```
     - `slf4j-api`是一个日志接口，其实现可以为`log4j`(需要对应的适配器进行接口转换，如`slf4j-log4j12-1.5.8.jar`)、`slf nodep`、`jdk logging api`、`apache commons-logging`
 
+## Springboot对hibernate的默认支持(JPA) 2017-07-23
+
+> [Spring Data JPA博文](http://www.cnblogs.com/rulian/tag/jpa/)
+> - 继承接口查询(JpaRepository/JpaSpecificationExecutor等)：[http://www.cnblogs.com/rulian/p/6557471.html](http://www.cnblogs.com/rulian/p/6557471.html)
+> - 方法定义规则查询：[http://www.cnblogs.com/rulian/p/6434631.html](http://www.cnblogs.com/rulian/p/6434631.html)
+> - Example实例查询：[http://www.cnblogs.com/rulian/p/6533109.html](http://www.cnblogs.com/rulian/p/6533109.html)
+
+- 引入数据库和jpa
+
+	```xml
+	<!--jpa是ORM框架的API(基于hibernate完成), jdbc是java操作数据库的API(执行sql语句)-->
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-data-jpa</artifactId>
+	</dependency>
+	```
+- 数据库添加配置
+
+	```bash
+	## spring.jpa.database=MYSQL
+	# 自动执行ddl语句(create/create-drop/update).
+	spring.jpa.hibernate.ddl-auto=update
+	# 打印sql执行语句, 查询和建表
+	spring.jpa.show-sql=true
+	# 格式化打印语句
+	spring.jpa.properties.hibernate.format_sql=true
+	# 懒加载配置
+	spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+	```
+- `User.java`实体
+
+	```java
+	@Entity
+	public class User {
+		@Id
+		@GeneratedValue
+		private Long userId;
+
+		@Column(nullable=false) // 不能为空
+		private Long username;
+
+		private String password;
+
+		private Long groupId;
+
+		@Generated(GenerationTime.INSERT)
+		@Column(columnDefinition=" BIT default 1 ") // 默认插入1(就算new User的时候设置成0最终保存的仍然是1)
+		private Boolean yesValid;
+
+		@Generated(GenerationTime.INSERT)
+		@Column(insertable = false, updatable = false, columnDefinition="timestamp default current_timestamp comment '加入时间'")
+		private Timestamp createTime;
+
+		// getter/setter...
+	}
+	```
+- `UserDao.java`示例
+
+	```java
+	// 继承了JpaRepository(JpaRepository又继承了CrudRepository已经定义好了基本增删查改相关方法)
+	public interface UserClassDao extends JpaRepository<UserClass, Long> {
+		// spring data 根据属性名和查询关键字自动生成查询方法(spring data会自动实现)
+		UserClass findByClassName(String className);
+
+        List<UserClass> findByClassNameIn(List<String> classNames);
+	}
+	```
+- `UserController.java`示例
+
+	```java
+	@Autowired
+    UserDao userDao;
+
+	@RequestMapping(value = "/users")
+    public List<User> findUsers(User user) {
+        // 前台传一个类似的user对象，会把此对象做作为条件进行查询
+        Example<User> example = Example.of(user);
+
+		// 进行模糊匹配
+		// ExampleMatcher matcher = ExampleMatcher.matching().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+		// Example<User> example = Example.of(user, matcher);
+
+        return userDao.findAll(example);
+    }
+	```
+- `@Query`查询示例
+
+    ```java
+    // UserDao定义的查询语句. org.springframework.data.jpa.repository.Query
+    @Query("select u.classId, u.sex, count(u.classId) as count from User u " +
+            "   where u.password = :password " +
+            "   group by u.classId, u.sex")
+    List<Object[]> countUser(@Param("password") String password);
+
+    // 原生sql
+    @Query(value = "select u.* from user u, user_class uc where uc.class_id = u.class_id and uc.class_name = 'one'", nativeQuery = true)
+    List<Object[]> findUsers();
+
+
+    // @Query自定义sql语句. http://127.0.0.1:9526/api/user-query
+    @RequestMapping(value = "/user-query")
+    public Map<String, Object> query() {
+        Map<String, Object> result = new HashMap<>();
+
+        result.put("count", userDao.countUser("123456"));
+        result.put("users", userDao.findUsers());
+
+        return result;
+    }
+    ```
+
+    - 执行结果
+
+        ```javascript
+        {
+            count: [
+                [
+                    1,
+                    1,
+                    2
+                ]
+            ],
+            users: [
+                [
+                    1,
+                    1,
+                    "smalle",
+                    "123456",
+                    1
+                ],
+                [
+                    2,
+                    1,
+                    "aezo",
+                    "123456",
+                    1
+                ]
+            ]
+        }
+        ```
+- `Pageable`分页查询：Pageable里面常用参数`page`(页码, 0代表第一页)、`size`(页长)、`order`(排序规则) [^1]
+
+	```java
+	// 查询UserClass信息, 并获取子表User的前5条数据. http://127.0.0.1:9526/api/classes?className=one
+    @RequestMapping(value = "/classes")
+    public Map<String, Object> findClasses(UserClass userClass) {
+        Map<String, Object> result = new HashMap<>();
+
+        // 前台传一个类似的UserClass对象，会把此对象做作为条件进行查询
+        Example<UserClass> example = Example.of(userClass);
+        result.put("userClass", userClassDao.findAll(example));
+
+        // 分页获取User数据：如果使用classes.getUsers()获取则需要写实体对应关系(@OneToMany), 且会产生外键. 此时单表查询不需关联关系
+        Pageable pageable = new PageRequest(0, 5, new Sort(Sort.Direction.DESC, "id")); // 获取第1页, 每页显示5条, 按照id排序
+        result.put("users", userDao.findAll(pageable));
+
+        return result;
+    }
+
+	// 分页(page为页码, 0代表第1页; size代表页长). http://127.0.0.1:9526/api/users-page?page=0
+	// 排序：`?sort=firstname&sort=lastname,desc` 表示在按firstname正序排列基础上按lastname倒序排列
+    // org.springframework.data.domain.Pageable、org.springframework.data.domain.Example
+    @RequestMapping(value = "/users-page")
+    public Page<User> findUsersPage(
+            @RequestParam(value = "username", defaultValue = "smalle") String username,
+            Pageable pageable) {
+        // 前台传一个类似的user对象，会把此对象做作为条件进行查询
+        Example<User> example = Example.of(new User(username));
+
+        return userDao.findAll(example, pageable);
+    }
+	```
+
+	- 查询UserClass信息返回数据如下(已经美化去除引号)：
+
+		```javascript
+		{
+			userClass: [
+				{
+					classId: 1,
+					className: "one"
+				}
+			],
+			users: {
+				content: [
+					{
+						id: 2,
+						classId: 1,
+						username: "aezo",
+						password: "123456",
+						sex: 1
+					},
+					{
+						id: 1,
+						classId: 1,
+						username: "smalle",
+						password: "123456",
+						sex: 1
+					}
+				],
+				totalElements: 2,
+				totalPages: 1,
+				last: true,
+				number: 0,
+				size: 5,
+				first: true,
+				numberOfElements: 2,
+				sort: [
+					{
+						direction: "DESC",
+						property: "id",
+						ignoreCase: false,
+						nullHandling: "NATIVE",
+						ascending: false,
+						descending: true
+					}
+				]
+			}
+		}
+		```
+
 ## Hello World
 
 ### xml配置
@@ -677,3 +898,9 @@ tags: [ssh, orm]
                 - 法二：使用另一种load方法：`load(xxx.class, i, LockMode.Upgrade)` i=1/2/4/8
             - Hibernate(JPA)乐观锁定(ReadCommitted)
                 - 实体类中增加version属性(数据库也会对应生成该字段,初始值为0)，并在其get方法前加`@Version`注解，则在操作过程中没更新一次该行数据则version值加1，即可在事务提交前判断该数据是否被其他事务修改过
+
+---
+
+参考文章
+
+[^1]: [hibernate查询分页](http://www.cnblogs.com/softidea/p/6287788.html)

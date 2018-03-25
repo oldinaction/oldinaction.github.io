@@ -57,7 +57,7 @@ create table t_test as
 
 #### 书写顺序
 
-- **书写顺序和执行顺序都是按照`select-where-group by-having-order by`进行的**
+- **书写顺序和执行顺序都是按照`select-from-where-group by-having-order by-limit`进行的**
 
 ```sql
 mysql>select count(num) 	/*注释：组函数*/

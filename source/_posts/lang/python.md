@@ -15,26 +15,88 @@ tags: [python]
 
 ### 基本语法
 
-- 变量
-    - 命名同java(区分大小写) 
-    - 变量无需声明类型：如`name='smalle'，name=123`
-    - 变量销毁：`del name`
-    - `id(a), id(b), id(c)` 查看a、b、c三个变量的内存地址(0-255的数字python会做优化：`a=1、b=a、c=1`此时内存地址一致)
+#### 变量
+    
+- 命名同java(区分大小写) 
+- 变量无需声明类型：如`name='smalle'，name=123`
+- `print(name)` 打印变量(python2语法为`print name`)
+- `del name` 变量销毁
+- `id(a), id(b), id(c)` 查看a、b、c三个变量的内存地址(0-255的数字python会做优化：`a=1、b=a、c=1`此时内存地址一致)
+
+#### 数据类型
+
 - 数据类型
     - 数字类型：整型(布尔bool、长整型L、标准整型int)、浮点型(floot)、序列(字符串str、元组tuple、列表list)、映像类型(字典dict)、集合(可变set、不可变集合frozenset)
     - `a = True`(注意`True/False`首字母大写)
     - `type(a)` 查看a的数据类型
     - `a = '10'; int(a);` 强转成整形(floot、bool、str同理)
-- 运算
-    - `2**32` 幂：为2的32次方
-    - `10 % 3` 取余
-    - `10 / 3 = 3; 10 // 3 = 3` ???
-- 编程风格
-    - 使用缩进进行语句层级控制，不像java等语言的`{}`
-    - 每一行代表一个语句，语句结尾以分号`;`结束，也可省略此分号
-    - 单引号/双引号效果一样，都可表示字符串；三个单引号/双引号可表示多行
-        - `name = 'smalle'; age = 18; print 'name: %s, age: %s' % (name, age);` 引号中的变量替换(如果只有一个变量可以省略括号，如果是数值也可以换成`%d`，`%.2f`表示浮点型保存两位小数)
-    - `,`或`+`为字符串连接符
+- 列表
+
+```python
+list = ["smalle", "aezocn", 18, "smalle", "hello"] # 定义数组
+print(list) # 打印["smalle", "aezocn", 18, "smalle", "hello"]
+print len(list) # 返回list的大小
+
+list[0] # ['smalle']
+list[0:3] # ['smalle', 'aezocn', 18]（索引左闭右开）。同 print(list[:3])，省略则为0
+list[1:-2] # ['aezocn', 18]，-1为hello，-2为smalle，不包含-2
+list[-3:-1] # [18, 'smalle']
+
+# 操作列表的方法
+list.remove('smalle') # 移除'smalle'，一次只能删除一个元素，且从左往右开始删除
+list.append('world') # 往最后添加一个元素
+list.insert(2, 'index2') # 在索引为2处添加元素
+list.pop() # 删除list最后一个元素
+list.pop(1) # 删除索引为1的元素
+
+list.count('smalle') # 获取集合中smalle的个数
+list.index('smalle') # 获取'smalle'第一次出现的下标 
+
+list.sort() # 从小到大排序
+list.reverse() # 将此列表反转（不会进行排序）
+```
+
+- 字典
+
+```python
+map = {'name': 'smalle', "age": 18} # 定义
+print(map) # {'name': 'smalle', "age": 18}
+map['name'] # smalle
+
+# 循环
+for key in map:
+    print(key, map[key])
+
+for key, value in map.items():
+    print(key, value)
+```
+
+- 元组：和列表很类似(元组定义了之后值不能改变)
+
+```python
+my_tuple = ('1', 2, 'smalle') # ('1',)
+print type(my_tuple) # <type 'tuple'>
+print my_tuple.index('smalle') # 2。获取smalle的索引
+
+# 如果元组里面只有一个元素，数据类型为此元素的数据类型
+my_tuple = ('1') # '1'
+print type(my_tuple) # <type 'str'>
+```
+
+#### 运算
+
+- `2**32` 幂：为2的32次方
+- `10 % 3` 取余
+- `10 / 3 = 3; 10 // 3 = 3` ???
+
+#### 编程风格
+
+- 使用缩进进行语句层级控制，不像java等语言的`{}`
+- 每一行代表一个语句，语句结尾以分号`;`结束，也可省略此分号
+- 单引号/双引号效果一样，都可表示字符串；三个单引号/双引号可表示多行
+    - `name = 'smalle'; age = 18; print 'name: %s, age: %s' % (name, age);` 引号中的变量替换(如果只有一个变量可以省略括号，如果是数值也可以换成`%d`，`%.2f`表示浮点型保存两位小数)
+- `#` 注释
+- `,`或`+`为字符串连接符
 
 ### 流程控制
 

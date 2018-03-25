@@ -33,8 +33,8 @@ tags: [CentOS, linux]
 ### 安装技巧
 
 - `yum`安装：`yum install xxx`(基于包管理工具安装，可以更好的解决包依赖关系)
-    - `yum install nginx -y` 安装时回答全部问题为是
-    - `yum remove nginx` 卸载
+    - `yum -y install nginx` 安装时回答全部问题为是
+    - `yum remove nginx` **卸载**
     - `yum search vsftpd` 查找软件vsftpd源
     - `cd /etc/yum.repos.d` 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。可更换镜像列表 [^3]
 - `tar.gz`等绿色安装包：解压**`tar -xvf xxx_0.0.1_linux_amd64.tar.gz`**, 会在当前目录生成一个`xxx_0.0.1_linux_amd64`的文件夹
@@ -91,7 +91,7 @@ tags: [CentOS, linux]
 ```bash
 export JAVA_HOME=/root/jdk1.7.0_79
 export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
-export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ```
 - 运行命令 `. /etc/profile` 使profile立即生效(注意 . 和 / 之间有空格)
 - `java -version` 打印版本号
@@ -195,5 +195,5 @@ export PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
 参考文章
 
 [^1]: [vsftpd](http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html)
-[^2]: [ftp 530 Permission denied](http://www.cnblogs.com/GaZeon/p/5393853.html)
+[^2]: [ftp-530-Permission-denied](http://www.cnblogs.com/GaZeon/p/5393853.html)
 [^3]: [更换yum镜像](http://blog.csdn.net/inslow/article/details/54177191)
