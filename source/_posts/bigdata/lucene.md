@@ -16,7 +16,7 @@ tags: [lucene, solr]
 
 - 企业海量数据搜索服务器架构
 
-![企业海量数据搜索服务器架构](/data/bigdata/solr-arch.png)
+![企业海量数据搜索服务器架构](/data/images/bigdata/solr-arch.png)
 
 ## 本地文件内容搜索实践
 

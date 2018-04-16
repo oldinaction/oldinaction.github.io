@@ -15,20 +15,22 @@ tags: [CentOS, linux]
 
 - 关闭防火墙
     - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
-    - Centos 7使用firewalld代替了原来的iptables
+    - Centos 7使用`firewalld`代替了原来的`iptables`
         - 查看状态：`systemctl status firewalld`
         - 开放端口：`firewall-cmd --zone=public --add-port=80/tcp --permanent`（--permanent永久生效，没有此参数重启后失效）
         - 重新载入：`firewall-cmd --reload`
         - 查看端口：`firewall-cmd --zone= public --query-port=80/tcp`
         - 删除端口：`firewall-cmd --zone= public --remove-port=80/tcp --permanent`
     - 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
-- 永久关闭SELinux
+- 永久关闭`SELinux`
     - `vi /etc/selinux/config` 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
 - centos7无法使用`ifconfig`命令解决方案
     - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
     - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
 
 ## 常用软件安装
+
+- **自定义服务参考`《nginx.md》(基于编译安装tengine)`**
 
 ### 安装技巧
 
@@ -75,12 +77,10 @@ tags: [CentOS, linux]
 
 - 通过ftp上传jdk对应tar压缩包到对应目录并进行解压
 - 下载tar格式（推荐）
-  - 下载tar文件 `wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz`**（或者先下载到本地后上传到服务器）**
-  - 解压tar `tar -zxvf jdk-7u79-linux-x64.tar.gz`
-  > 网上有很多深坑，如果报 gzip: stdin: not in gzip format 错请查看：http://www.cnblogs.com/gmq-sh/p/5380078.html
+  - 下载tar文件并上传到服务器
+  - 解压tar `tar -zxvf jdk-7u79-linux-x64.tar.gz -C /opt/soft`
 - 下载rpm格式
   - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 7 -> Java SE Development Kit 7u80 -> Accept License Agreement -> jdk-7u80-linux-x64.rpm
-  - 下载jdk，运行命令：`wget http://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-linux-x64.rpm`(这个链接会下载成html格式，**不行**)
   - `rmp -ivh jdk-7u80-linux-x64.rpm` 安装rpm文件
 
 #### 配置环境变量

@@ -40,6 +40,14 @@ tags: [plugins, debug]
     - 查看VM函数
         - `debugger` 相应代码。如某些函数通过eval定义，在调用此函数的地方debugger，运行到该行后，点击此行数就会出VM文件
 
+## 生成桌面系统
+
+- `更多工具 - 添加到桌面 - 在窗口中打开`
+
+## chrome命令
+
+> 参考：[chrome命令](https://peter.sh/experiments/chromium-command-line-switches/)
+
 ## chrome插件开发
 
 - 中文文档：[http://open.chrome.360.cn/extension_dev/overview.html](http://open.chrome.360.cn/extension_dev/overview.html)

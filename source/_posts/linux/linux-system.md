@@ -94,7 +94,7 @@ tags: [linux, shell]
     
 ### 服务相关命令
 
-- 自定义服务参考`《nginx.md》(基于编译安装tengine)`
+- **自定义服务参考`《nginx.md》(基于编译安装tengine)`**
 - systemctl：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为**`/usr/lib/systemd/system`**或**/etc/systemd/system**)
     - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务(.service可省略，active (running)标识正在运行)
     - `systemctl list-units --type=service` 查看所有服务
@@ -174,7 +174,7 @@ tags: [linux, shell]
 - 下载文件到本地(windows): `sz 文件名` （需要安装`yum install lrzsz`）
 - `ls` 列举文件 [^3]
     - `ll` 列举文件详细
-        - **`ll test*`**/`ls *.txt` 模糊查询
+        - **`ll test*`**/`ls *.txt` 模糊查询文件
         - **`ll -rt *.txt`** 按时间排序 (`-r`表示逆序、`-t`按时间排序)
         - **`ll -Sh`** 按文件大小排序 (`-S`按文件大小排序、`-h`将文件大小按1024进行转换显示)
     - `ls -al` 列举所有文件详细(`-a`全部、`-l`纵向显示. linux中`.`开头的文件默认为隐藏文件)
@@ -329,10 +329,11 @@ tags: [linux, shell]
     - `.,.+2d` 删除从之前关标所在行到关标所在行的下两行(`.` 表示当前行；`$` 最后一行；`+#` 向下的#行；`-#` 向上的#行)
     - `x` 删除光标所在处的单个字符
     - `#x` 删除光标所在处及向后的共#个字符
-- 复制命令 `y`(用法同`d`命令)
-- 粘贴命令 `p`
-    - 如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面；
-    - 如果删除或复制为整行内容，则粘贴至光标所在行的上方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的前面；
+- 新加一行 `o`
+- 复制命令 `y`(用法同`d`命令，和粘贴命令`p`组合使用)
+- 粘贴命令 `p`/`P`
+    - `p`：粘贴到下、后。如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面；
+    - `P`：粘贴到上、前。
 - 查找
     - `/<pattern>` 查找pattern匹配表达式
     - `n` 基于以上表达式向下查询
@@ -360,9 +361,9 @@ tags: [linux, shell]
 
 ### grep过滤器
 
-- 在多个文件中查找数据
-    - grep "search content" filename1 filename2.... filenamen
-    - grep "search content" *.sql
+- 在多个文件中查找数据(查询文件内容)
+    - `grep "search content" filename1 filename2.... filenamen`
+    - `grep "search content" *.sql`
 
 ### sed行编辑器
 
@@ -580,6 +581,7 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
     - `/dev` 设备文件存储目录，如声卡(eth0)、磁盘、光驱(cdrom)
     - **`/etc`** 系统配置文件所在地，一些服务器的配置文件也在此处
         - `/init.d` 服务启动文件目录(脚本文件书写参考此目录下network文件)。是`/etc/rc.d/init.d`的symbolic link
+        - `hosts`
     - `/home` 用户家目录
     - `/lib` 库文件存放目录
     - `/lost+found` 在ext2或ext3文件系统中，当系统意外崩溃或意外关机，而产生的一些文件碎片存放在此处。当再次启动时会进行检查修复。

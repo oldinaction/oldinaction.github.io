@@ -99,7 +99,7 @@ server {
 - 配置详细说明
 
 ```bash
-#定义Nginx运行的用户和用户组
+#定义Nginx运行的用户和用户组。如果出现403 forbidden (13: Permission denied)错误可将此处设置成启动用户，如root
 #user nginx nginx;
 
 #Nginx进程数，建议设置为等于CPU总核心数。
@@ -591,7 +591,7 @@ fi
 ## 基于编译安装tengine
 
 - 好处：更方便的插拔模块(yum安装只能使用源默认的模块，nginx同理安装)
-- 安装依赖 `yum install gcc openssl-devel pcre-devel zlib-devel`(否则configure时报错)
+- 安装依赖 **`yum install gcc openssl-devel pcre-devel zlib-devel`**(否则configure时报错)
 - 创建用户和用户组，为了方便nginx运行而不影响linux安全(也可省略)
     - `groupadd -r nginx` 创建组
     - `useradd -r -g nginx -M nginx` 创建用户(`-M`表示不创建用户的家目录)
@@ -624,7 +624,8 @@ fi
         --http-proxy-temp-path=/var/tmp/nginx/proxy/ \
         --http-fastcgi-temp-path=/var/tmp/nginx/fcgi/ \
         --http-uwsgi-temp-path=/var/tmp/nginx/uwsgi \
-        --http-scgi-temp-path=/var/tmp/nginx/scgi --add-module=./ngx_cache_purge-2.3 ## --add-module=./ngx_cache_purge-2.3 # 添加清楚缓存模块
+        --http-scgi-temp-path=/var/tmp/nginx/scgi \
+        --add-module=./ngx_cache_purge-2.3 ## --add-module=./ngx_cache_purge-2.3 # 添加清楚缓存模块
         ```
     - `make && make install`
 

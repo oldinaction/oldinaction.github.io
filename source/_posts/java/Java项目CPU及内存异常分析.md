@@ -79,7 +79,7 @@ jmap -dump:live,format=b,file=/home/dump.hprof <pid>
 
 ![jstack](/data/images/java/ofbiz-purgejob-jstack.png)
 
-- ofbiz的PurgeJob相关源码。详细可参考《ofbiz任务机制》
+- ofbiz的PurgeJob相关源码。详细可参考《OFBiz服务和任务机制》
 
 ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行的任务时，则进行历史任务数据(JobSandbox等表数据)清理工作，即获取当前时间4天(默认的purge-job-days)前完成或者取消的任务数据进行删除。
 

@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "ofbiz单元测试"
+title: "OFBiz单元测试"
 date: "2016-08-31 19:07"
 categories: java
 tags: [ofbiz, test]

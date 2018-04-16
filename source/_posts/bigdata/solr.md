@@ -16,7 +16,7 @@ tags: [lucene, solr]
 - Solr内嵌Jetty和ZooKeeper。`SolrCloud` 模式是基于ZooKeeper的，会自动启动ZooKeeper服务。
 - [官网：https://lucene.apache.org/solr/](https://lucene.apache.org/solr/)
 - [官方教程](https://lucene.apache.org/solr/guide/7_2/solr-tutorial.html)、[solr-7.2-pdf](http://mirror.bit.edu.cn/apache/lucene/solr/ref-guide/apache-solr-ref-guide-7.2.pdf)
-- [各版本下载地址](http://archive.apache.org/dist/lucene/solr/) (本文基于`solr-7.2.0`进行说明(需要jdk1.8及以上))
+- [各版本下载地址](http://archive.apache.org/dist/lucene/solr/)**(本文基于`solr-7.2.0`进行说明，需要jdk1.8及以上)**
 
 ### 相关概念
 

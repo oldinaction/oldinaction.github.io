@@ -55,7 +55,7 @@ vrrp_sync_group string {
 # vrrp服务检测脚本：keepalived默认是通过检测keepalived进程是否存在判断服务器是否宕机。此时根据脚本判断是否杀死此服务器keepalived进程。参考《nginx》中【结合keepalived实现高可用】
 vrrp_script check_nginx.sh {
     #检测nginx的脚本
-    script "/etc/keepalived/check_nginx.sh.sh"
+    script "/etc/keepalived/check_nginx.sh"
     #每2秒检测一次
     interval 2
     #如果某一个nginx宕机 则权重减20                              

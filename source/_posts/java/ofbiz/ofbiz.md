@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "ofbiz"
+title: "OFBiz"
 date: "2017-12-09 10:17"
 categories: java
 tags: [ofbiz]

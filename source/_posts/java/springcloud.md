@@ -9,9 +9,9 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 ## 介绍
 
 - 架构演进
-    1. 单体架构：复杂度逐渐变高、部署速度慢、阻碍技术创新、无法按需伸缩
-    2. SOA [^1]
-    3. 微服务
+    - 单体架构：复杂度逐渐变高、部署速度慢、阻碍技术创新、无法按需伸缩
+    - SOA [^1]
+    - 微服务
 - 微服务特点
     - 微服务可独立运行在自己的进程里
     - 一系列独立运行的微服务构成整个系统
@@ -23,7 +23,7 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 - 微服务开发框架：`Spring Cloud`、`Dubbo`、`Dropwizard`、`Consul`等
 - Spring Cloud是基于Spring Boot的用于快速构建分布式系统工具集
 - Spring Cloud特点：约定优于配置、开箱即用，快速启动、轻量级组件、组件丰富、选型中立
-- 本文相关软件：JDK: 1.8，SpringCloud: Dalston.SR1
+- 本文相关软件：JDK: 1.8，SpringCloud: `Dalston.SR1`
 
 ## 微服务构建
 
@@ -248,7 +248,7 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
           routes:
             # 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录
             # 此处路径在配置文件中越靠前的约优先（系统将所有路径放到LinkedHashMap中，当匹配到一个后就终止匹配）
-            # 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1 和 http://localhost:5555/api-movie/movie/1
+            # 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1?accessToken=smalle 和 http://localhost:5555/api-movie/movie/1?accessToken=smalle （有熔断保护，可能会超时，多刷新几遍）
             # api-movie为规则名, 可通过spring cloud config进行动态加载(覆盖)
             api-movie:
               path: /api-movie/**
@@ -910,9 +910,9 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
     			<artifactId>spring-cloud-starter-zipkin</artifactId>
     		</dependency>
             ```
-        - 如果zipkin没有使用eureka， 则需要在application.yml中添加`spring.zipkin.base-url: http://localhost:9411/`(zipkin server地址)
-    - 进入到zipkin server后台界面查看跟踪信息：http://localhost:9411/(跟踪信息可能会有延迟)
-- ELK日志分析系统(Logstash)
+        - 如果zipkin没有使用eureka， 则需要在application.yml中添加`spring.zipkin.base-url: http://localhost:9411/` (zipkin server地址)
+    - 进入到zipkin server后台界面查看跟踪信息：http://localhost:9411/ (跟踪信息可能会有延迟)
+- 整合ELK日志分析系统(Logstash)
     - ELK平台包含：ElasticSerch(分布式搜索引擎)、Logstash(日志收集-过滤-存储)、Kibana(界面展现)三个开源工具。(与Zipkin类似，二者不建议同时使用)
     - 引入依赖
 
@@ -931,6 +931,9 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 
 
 ---
+
+参考文章
+
 [^1]: [SOA和微服务架构的区别](https://www.zhihu.com/question/37808426)
 [^2]: [服务发现的可行方案以及实践案例](http://blog.daocloud.io/microservices-4/)
-[^3]: [Spring Cloud Bus原理](http://blog.csdn.net/sosfnima/article/details/53178326)
+[^3]: [Spring-Cloud-Bus原理](http://blog.csdn.net/sosfnima/article/details/53178326)

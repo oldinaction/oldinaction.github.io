@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "ofbiz模型图(UML)分析"
+title: "OFBiz模型图(UML)分析"
 date: "2017-12-09 10:17"
 categories: java
 tags: [ofbiz, uml, 源码]
@@ -16,4 +16,8 @@ tags: [ofbiz, uml, 源码]
 - view渲染
 - screen渲染
 
-<embed width="1000" height="800" src="/data/images/2017/09/OFBiz-UML.pdf" internalinstanceid="7">
+<embed width="1000" height="800" src="/data/pdf/OFBiz-UML.pdf" internalinstanceid="7">
+
+## 服务、任务机制模型图
+
+<embed width="1000" height="800" src="/data/pdf/OFBiz-Service-Job.pdf" internalinstanceid="7">
