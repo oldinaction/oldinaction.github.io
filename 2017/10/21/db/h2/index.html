@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/10/21/db/h2/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="简介 h2简介 ^1：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库 官网：http://h2database.com/html/main.html\  springboot整合 添加依赖(jpa等省略)   1">
-<meta property="og:updated_time" content="2017-10-22T03:11:42.016Z">
+<meta property="og:updated_time" content="2018-04-11T10:28:30.389Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="h2数据库">
 <meta name="twitter:description" content="简介 h2简介 ^1：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库 官网：http://h2database.com/html/main.html\  springboot整合 添加依赖(jpa等省略)   1">
@@ -417,7 +417,7 @@
   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.h2database&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;h2&lt;/artifactId&gt;</div><div class="line">    &lt;scope&gt;runtime&lt;/scope&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
 </li>
 <li><p>连接配置</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">spring:</div><div class="line">    datasource:</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)</div><div class="line">    url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).</div><div class="line">    # 如果已经生成了数据库文件(同时也生成了密码), 那么再修改此处用户名密码将无法连接数据库</div><div class="line">    username: sa</div><div class="line">    password: sa</div><div class="line">    driver-class-name: org.h2.Driver</div><div class="line"># h2 web console</div><div class="line"># 登录配置Generic H2 (Server)  jdbc:h2:~/.h2/minions;AUTO_SERVER=true;  sa/sa</div><div class="line"># 推荐使用IDEA的数据库工具</div><div class="line">#  h2:</div><div class="line">#    console:</div><div class="line">#      # 程序开启时就会启动h2 web consloe</div><div class="line">#      enabled: true</div><div class="line">#      # 访问路径: http://localhost:$&#123;server.port&#125;/h2-console</div><div class="line">#      path: /h2-console</div><div class="line">#      settings:</div><div class="line">#        # 运行远程访问h2 web consloe</div><div class="line">#        web-allow-others: true</div></pre></td></tr></table></figure>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">spring:</div><div class="line">  datasource:</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)。url不写默认使用内存型数据库，数据库名为testdb</div><div class="line">    url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).</div><div class="line">    # 如果已经生成了数据库文件(同时也生成了密码), 那么再修改此处用户名密码将无法连接数据库</div><div class="line">    username: sa</div><div class="line">    password: sa</div><div class="line">    driver-class-name: org.h2.Driver</div><div class="line"># h2 web console</div><div class="line"># 登录配置Generic H2 (Server)  jdbc:h2:~/.h2/minions;AUTO_SERVER=true;  sa/sa</div><div class="line"># 推荐使用IDEA的数据库工具</div><div class="line">#  h2:</div><div class="line">#    console:</div><div class="line">#      # 程序开启时就会启动h2 web consloe</div><div class="line">#      enabled: true</div><div class="line">#      # 访问路径: http://localhost:$&#123;server.port&#125;/h2-console</div><div class="line">#      path: /h2-console</div><div class="line">#      settings:</div><div class="line">#        # 运行远程访问h2 web consloe</div><div class="line">#        web-allow-others: true</div></pre></td></tr></table></figure>
 </li>
 <li><p>配置说明</p>
 <ul>
@@ -562,7 +562,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">71</span>
+                <span class="site-state-item-count">73</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -584,7 +584,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">108</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

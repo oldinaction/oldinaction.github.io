@@ -322,6 +322,302 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/12/web/jquery/jquery-plugin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/07/12/web/jquery/jquery-plugin/" itemprop="url">jquery插件开发</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-12T09:47:00+08:00">
+                2016-07-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          纯js插件优点是依赖性小，不依赖于jQuery等函数库；缺点是比较繁琐；一般不涉及到Dom树的可使用纯js写插件（如：日期库插件moment.js）
+基于jquery编写插件jQuery插件开发方式主要有三种：
+
+通过$.extend()来扩展jQuery
+通过$.fn 向jQuery添加新的方法
+通过$.widget()应用jQuery UI的部件工厂方式创建
+
+第一种方式太简单，仅仅是在jQuery命名空间或者理解成jQuery身上添加了一个静态方法而以，通常我们使用第二种方法来进行简单插件开发，说简单是相对于第三种方式。第三种方式是用来开发更高级jQuery部件的，这里不细说。
+$.extend()用法
+给extend方法传递单个对象的情况下，这个对象会合并到jQuery身上，所以我们就可以在jQuery身上调用新合并对象里包含的方法了$.extend(Object)
+  12345678$.extend(&#123;  log: function(str) &#123;      console.log(str ? str : 'Good!');  &#125;&#125;)//调用$.log(); // Good!$.log('Hello!'); // Hello!
+
+当给extend方法传递一个以上的参数时，它会将所有参数对象合并到第一个里。同时，如果对象中有同名属性时
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/07/12/web/jquery/jquery-plugin/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/11/arch/rocketmq/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/07/11/arch/rocketmq/" itemprop="url">RocketMQ</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-11T09:26:00+08:00">
+                2016-07-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/arch/" itemprop="url" rel="index">
+                    <span itemprop="name">arch</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          RocketMQ简介
+RocketMQ是阿里巴巴开源的分布式、队列模型的消息中间件。
+【GitHub源码】 【下载地址(v3.2.6)】
+文档：RocketMQ Developer Guide.pdf
+
+启动RocketMQ服务
+启动mqnamesrv.exe（在bin目录下，也有对应Linux的启动程序）
+启动mqbroker.exe
+最好不要直接双击，而是应该在CMD中输入mqbroker.exe -n localhost:9876
+mqbroker.exe -h查看相关命令帮助
+
+
+
+
+关于命令行
+
+可启动mqadmin.exe查看相关命令（不能直接双击，要在cmd命令行中启动）
+启动mqadmin.exe后可运行一些命令，如mqadmin topicList -n 192.168.0.1:9876查看该NameServer所有的topic
+可运行mqadmin help 命令或者某个命令的更多帮助
+mqadmin.exe启动后可以新增/更新Topic（因为Broker默认关闭了自动创建Topic功能，可能会导致Producer向Broker发送消息，服务器校验不通过，详细issure）
+
+
+
+
+Producer生产者Producer启动
+一个应用创建一个Producer，由应用来维护此对象，可以设置为全局对象或者单例。
+ProducerGroupName需要由应用来保证唯一
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/07/11/arch/rocketmq/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/07/others/projectrule/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1140,167 +1436,6 @@ Cont
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/web/html/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/04/16/web/html/" itemprop="url">html</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T15:37:00+08:00">
-                2016-04-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web/" itemprop="url" rel="index">
-                    <span itemprop="name">web</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          HTML日积月累
-缩略语&lt;abbr title=&quot;attribute&quot;&gt;attr&lt;/abbr&gt; …
-
-缩进 &amp;emsp;全角缩进；&amp;ensp;半角缩进
-
-引用标记 &lt;blockquote&gt;&lt;/blockquote&gt;
-  这是引用标记的示例 
-
-带描述的无序列表
-
-
-12345678&lt;dl&gt;  &lt;dt&gt;ABC&lt;/dt&gt;  &lt;dd&gt;123&lt;/dd&gt;  &lt;dd&gt;456&lt;/dd&gt;  &lt;dt&gt;DEF&lt;/dt&gt;  &lt;dd&gt;789&lt;/dd&gt;&lt;/dl&gt;
-    ABC    123    456    DEF    789
-
-
-键盘输入效果&lt;kbd&gt;&lt;kbd&gt;ctrl&lt;/kbd&gt; + &lt;kbd&gt;,&lt;/kbd&gt;&lt;/kbd&gt;ctrl + S
-
-&lt;code&gt;&lt;/code&gt;和&lt;pre&gt;&lt;/pre&gt;的区别
- &lt;code&gt;
- &lt;pre&gt;
-
-
-          
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/web/html/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/open-shift/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1419,6 +1554,167 @@ Saved Session 随便取名，再点击 Save
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2016/04/16/extend/open-shift/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/web/html/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/04/16/web/html/" itemprop="url">html</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T15:37:00+08:00">
+                2016-04-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web/" itemprop="url" rel="index">
+                    <span itemprop="name">web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          HTML日积月累
+缩略语&lt;abbr title=&quot;attribute&quot;&gt;attr&lt;/abbr&gt; …
+
+缩进 &amp;emsp;全角缩进；&amp;ensp;半角缩进
+
+引用标记 &lt;blockquote&gt;&lt;/blockquote&gt;
+  这是引用标记的示例 
+
+带描述的无序列表
+
+
+12345678&lt;dl&gt;  &lt;dt&gt;ABC&lt;/dt&gt;  &lt;dd&gt;123&lt;/dd&gt;  &lt;dd&gt;456&lt;/dd&gt;  &lt;dt&gt;DEF&lt;/dt&gt;  &lt;dd&gt;789&lt;/dd&gt;&lt;/dl&gt;
+    ABC    123    456    DEF    789
+
+
+键盘输入效果&lt;kbd&gt;&lt;kbd&gt;ctrl&lt;/kbd&gt; + &lt;kbd&gt;,&lt;/kbd&gt;&lt;/kbd&gt;ctrl + S
+
+&lt;code&gt;&lt;/code&gt;和&lt;pre&gt;&lt;/pre&gt;的区别
+ &lt;code&gt;
+ &lt;pre&gt;
+
+
+          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/04/16/web/html/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1613,323 +1909,6 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/arch/git/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/04/16/arch/git/" itemprop="url">git</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T12:40:00+08:00">
-                2016-04-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/arch/" itemprop="url" rel="index">
-                    <span itemprop="name">arch</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          git简介
-官网：https://git-scm.com/
-安装
-windows：官网下载对应安装包
-Centos: yum -y install git
-Ubuntu：sudo apt-get install git
-
-
-
-git入门 ^1git全局配置
-git config --global user.name smalle 设置用户名
-git config --global user.email oldinaction@qq.com 设置邮箱
-git config --global color.ui true 设置在命令行打印的代码带颜色
-git config --list  列出所有配置
-
-以上操作其实是对git的根目录下.gitconfig（~/.gitconfig，~代表根目录，cat  ~/.gitconfig查看此文件）进行的操作，也可直接对这个文件进行修改
-
-cat 文件路径名查看某个文件，如：cat ~/.gitconfig（~代表根目录）vi 文件名打开某个文件进行编辑
-
-点击键盘insert，进入vi编辑模式，开始编辑；
-点击esc退出编辑模式，进入到vi命令行模式；
-输入:x/ZZ将刚刚修改的文件进行保存，退出编辑页面，回到初始命令行ls查看当前目录结构，ls -A可以显示隐藏的目录
-
-
-repository
-创建repository(并关联远程仓库)
-
-
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/arch/git/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/10/web/jquery/jquery-validation/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/04/10/web/jquery/jquery-validation/" itemprop="url">jQuery Validation - Form表单验证插件</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-10T18:01:54+08:00">
-                2016-04-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web/" itemprop="url" rel="index">
-                    <span itemprop="name">web</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          jQuery Validation Plugin介绍
-
-jQuery Validate 插件为表单提供了强大的验证功能，让客户端表单验证变得更简单，同时提供了大量的定制选项，满足应用程序各种需求。该插件捆绑了一套有用的验证方法，包括 URL 和电子邮件验证，同时提供了一个用来编写用户自定义方法的 API。所有的捆绑方法默认使用英语作为错误信息，且已翻译成其他 37 种语言。
- jQuery Validate 官网
-GitHub 源码
-本教程源码下载 ( Demo1-Demo5 )
-
-
-使用方法
-引入JS文件
-1234&lt;script type="text/javascript" src="lib/jquery-1.11.1.js"&gt;&lt;/script&gt;&lt;!-- jquery库文件 --&gt;&lt;script type="text/javascript" src="dist/jquery.validate-1.15.0.js"&gt;&lt;/script&gt;&lt;!-- jquery validate核心库文件 --&gt;&lt;script type="text/javascript" src="dist/additional-methods.js"&gt;&lt;/script&gt;&lt;!-- jquery validate扩展验证
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/04/10/web/jquery/jquery-validation/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1979,7 +1958,7 @@ GitHub 源码
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">71</span>
+                <span class="site-state-item-count">73</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -2001,7 +1980,7 @@ GitHub 源码
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">108</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

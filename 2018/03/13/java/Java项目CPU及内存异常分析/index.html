@@ -105,7 +105,7 @@
 <meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-cpu.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-jstack.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-src.png">
-<meta property="og:updated_time" content="2018-03-14T04:42:52.552Z">
+<meta property="og:updated_time" content="2018-04-16T02:18:59.063Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Java项目CPU及内存异常分析">
 <meta name="twitter:description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
@@ -460,7 +460,7 @@
 <p>可以看到线程有以下调用信息<code>org.ofbiz.service.job.PurgeJob.exec(PurgeJob.java:55)</code>，如是可以去查看PurgeJob的源码。(当然应该多次查看此线程的堆栈，查看一次可能存在偶发性)</p>
 <p><img src="/data/images/java/ofbiz-purgejob-jstack.png" alt="jstack"></p>
 <ul>
-<li>ofbiz的PurgeJob相关源码。详细可参考《ofbiz任务机制》</li>
+<li>ofbiz的PurgeJob相关源码。详细可参考《OFBiz服务和任务机制》</li>
 </ul>
 <p>ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行的任务时，则进行历史任务数据(JobSandbox等表数据)清理工作，即获取当前时间4天(默认的purge-job-days)前完成或者取消的任务数据进行删除。</p>
 <p>而此处是根据ofbiz实体引擎查询的历史数据放到一个EntityListIterator中进行遍历(查看源码可知本质并没有分页获取数据，而是将所有查询的数据放到ResultSet进行遍历)</p>
@@ -607,7 +607,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">71</span>
+                <span class="site-state-item-count">73</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -629,7 +629,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">108</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

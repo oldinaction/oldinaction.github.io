@@ -322,6 +322,158 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/04/04/extend/vpn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/04/extend/vpn/" itemprop="url">VPN搭建</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-04T10:34:00+08:00">
+                2018-04-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          centos7安装vpn
+modprobe ppp-compress-18 &amp;&amp; echo MPPE is ok 验证内核是否加载了MPPE模块
+sudo yum -y install ppp pptpd iptables 安装ppp、pptpd、iptables(安装前确保添加了epel源)
+vi /etc/ppp/options.pptpd 配置PPP和PPTP的配置文件。查找ms-dns，添加两行
+  123456# Google DNSms-dns 8.8.8.8ms-dns 8.8.4.4# 或者使用 Aliyun DNS# ms-dns 223.5.5.5# ms-dns 223.6.6.6
+
+vi /etc/ppp/chap-secrets 配置登录用户/协议/密码/ip地址段
+  12username1    pptpd    passwd1    *username2    pptpd    passwd2    *
+
+vi /etc/pptpd.conf 配置pptpd。localip是服务端的虚拟地址, remoteip是客户端的虚拟地址。只要不和本机IP不冲突即可
+  12localip 192.168.0.2-20remoteip 192.168.0.200-250
+
+vi /etc/sysctl.conf 改为net.ipv4.ip_fo
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/04/04/extend/vpn/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/03/13/bigdata/lucene/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -481,6 +633,221 @@ lucene提供的服务实际包含两部分：一入一出。所谓入是写入�
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/03/13/bigdata/hadoop/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/03/13/bigdata/hadoop/" itemprop="url">Hadoop</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-13T20:31:00+08:00">
+                2018-03-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/bigdata/" itemprop="url" rel="index">
+                    <span itemprop="name">bigdata</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介
+Hadoop作者Doug cutting，名字来源于Doug Cutting儿子的玩具大象
+特点
+分布式存储系统HDFS(Hadoop Distributed File System)
+分布式计算框架MapReduce
+
+
+网址
+官网
+r1.0.4中文文档
+r2.5.2文档
+
+
+本文基于hadoop-2.5.1(需要jdk1.7)
+
+安装Hadoop 2.x HA 安装
+HA模式安装：http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html
+
+
+服务器配置
+
+
+
+
+服务器名
+ip
+NameNode
+DataNode
+Zookeeper
+ZKFC
+JN
+
+
+
+
+server1
+192.168.6.131
+Y
+
+Y
+Y
+
+
+server2
+192.168.6.132
+Y
+Y
+Y
+Y
+Y
+
+
+server3
+192.168.6.133
+
+Y
+Y
+
+Y
+
+
+server4
+192.168.6.134
+
+Y
+
+
+Y
+
+
+
+
+安装并启动Zookeeper，参考《Zookeeper》
+date 检查4台机器的时间是否相差不大(30秒内)，并查看是否关闭防火墙
+4台主机的/etc/hosts文件都需要包含一下内容
+  1234192.168.6.1
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/03/13/bigdata/hadoop/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/03/13/bigdata/solr/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -582,7 +949,7 @@ Solr与Lucene 并不是竞争对立关系，恰恰相反Solr 依存于Lucene，�
 Solr内嵌Jetty和ZooKeeper。SolrCloud 模式是基于ZooKeeper的，会自动启动ZooKeeper服务。
 官网：https://lucene.apache.org/solr/
 官方教程、solr-7.2-pdf
-各版本下载地址 (本文基于solr-7.2.0进行说明(需要jdk1.8及以上))
+各版本下载地址(本文基于solr-7.2.0进行说明，需要jdk1.8及以上)
 
 相关概念
 collection/core 均指以不同的数据结构来对数据进行索引(索引库、集合)
@@ -590,7 +957,7 @@ schema为一个xml配置文件，主要用于配置字段和字段类型，动�
 
 安装及使用 ^1下载解压说明
 下载tar包解压 tar -zxvf solr-7.2.1.tgz -C /opt/soft，目录说明
-example 几
+example 几个s
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1275,7 +1642,7 @@ systemctl start memcached 启动(默认端口11211)
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/02/24/java/ofbiz/ofbiz任务机制/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/02/24/java/ofbiz/OFBiz服务和任务机制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1294,7 +1661,7 @@ systemctl start memcached 启动(默认端口11211)
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/02/24/java/ofbiz/ofbiz任务机制/" itemprop="url">ofbiz任务机制</a></h1>
+                <a class="post-title-link" href="/2018/02/24/java/ofbiz/OFBiz服务和任务机制/" itemprop="url">OFBiz服务和任务机制</a></h1>
         
 
         <div class="post-meta">
@@ -1366,15 +1733,13 @@ systemctl start memcached 启动(默认端口11211)
         
           
           源码分析
-org.ofbiz.service.job.JobPoller 加载时会启动一个自动执行任务的线程
+org.ofbiz.service.job.JobPoller 加载时会启动一个自动拉取任务的线程(从数据拉取任务放到执行器池中)
 
-1234567891011121314151617private static final JobPoller instance = new JobPoller();// ...// 自动执行任务线程private final Thread jobManagerPollerThread;private JobPoller() &#123;    if (pollEnabled()) &#123;        jobManagerPollerThread = new Thread(new JobManagerPoller(), "OFBiz-JobPoller");        jobManagerPollerThread.setDaemon(false);        jobManagerPollerThread.start();    &#125; else &#123;        jobManagerPollerThread = null;    &#125;    ServiceConfigUtil.registerServiceConfigListener(this);&#125;
-
-
-          
+123456789101112131415161718192021222324252627282930313233343536373839404142// 线程池执行器(调度线程执行，BlockingQueue中必须存放线程对象)private static final ThreadPoolExecutor executor = createThreadPoolExecutor();private static final JobPoller instance = new JobPoller();// ...// 初始化线程池执行器private static ThreadPoolExecutor createThreadPoolExecutor() &#123;    try &#123;        ThreadPool threadPool = ServiceConfigUtil.getServiceEngine(ServiceConfigUtil.engine).getThreadPool();        return new ThreadPoolExecutor(            threadPool.getMinTh
+          ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/02/24/java/ofbiz/ofbiz任务机制/#more" rel="contents">
+            <a class="btn" href="/2018/02/24/java/ofbiz/OFBiz服务和任务机制/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1567,297 +1932,6 @@ AJAX请求受到同源政策限制的解决办法
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/12/java/java-base/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/12/java/java-base/" itemprop="url">java基础</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-12T10:07:00+08:00">
-                2017-12-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          集合易错点- 
-
-          
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/12/java/java-base/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/11/linux/ubuntu/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/11/linux/ubuntu/" itemprop="url">Ubuntu相关命令</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-11T22:00:00+08:00">
-                2017-12-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index">
-                    <span itemprop="name">linux</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          安装程序
-安装deb格式文件
-dpkg -i file.deb deb是debian linus的安装格式，跟red hat的rpm非常相似 ^1
-
-
-
-文件
-显示/隐藏隐藏文件和文件夹：Ctrl + H
-
-
-
-          
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/11/linux/ubuntu/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1907,7 +1981,7 @@ dpkg -i file.deb deb是debian linus的安装格式，跟red hat的rpm非常相�
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">71</span>
+                <span class="site-state-item-count">73</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1929,7 +2003,7 @@ dpkg -i file.deb deb是debian linus的安装格式，跟red hat的rpm非常相�
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">108</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

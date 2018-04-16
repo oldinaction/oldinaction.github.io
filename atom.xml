@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.aezo.cn/"/>
-  <updated>2018-03-17T07:10:38.522Z</updated>
+  <updated>2018-04-14T09:37:42.183Z</updated>
   <id>http://blog.aezo.cn/</id>
   
   <author>
@@ -16,11 +16,80 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>VPN搭建</title>
+    <link href="http://blog.aezo.cn/2018/04/04/extend/vpn/"/>
+    <id>http://blog.aezo.cn/2018/04/04/extend/vpn/</id>
+    <published>2018-04-04T02:34:00.000Z</published>
+    <updated>2018-04-14T09:37:42.183Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="centos7安装vpn"><a href="#centos7安装vpn" class="headerlink" title="centos7安装vpn"></a>centos7安装vpn</h2><ul>
+<li><code>modprobe ppp-compress-18 &amp;&amp; echo MPPE is ok</code> 验证内核是否加载了MPPE模块</li>
+<li><code>sudo yum -y install ppp pptpd iptables</code> 安装ppp、pptpd、iptables(安装前确保添加了epel源)</li>
+<li><p><code>vi /etc/ppp/options.pptpd</code> 配置PPP和PPTP的配置文件。查找<code>ms-dns</code>，添加两行</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Google DNS</span></div><div class="line">ms-dns 8.8.8.8</div><div class="line">ms-dns 8.8.4.4</div><div class="line"><span class="comment"># 或者使用 Aliyun DNS</span></div><div class="line"><span class="comment"># ms-dns 223.5.5.5</span></div><div class="line"><span class="comment"># ms-dns 223.6.6.6</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi /etc/ppp/chap-secrets</code> 配置登录用户/协议/密码/ip地址段</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">username1    pptpd    passwd1    *</div><div class="line">username2    pptpd    passwd2    *</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi /etc/pptpd.conf</code> 配置pptpd。localip是服务端的虚拟地址, remoteip是客户端的虚拟地址。只要不和本机IP不冲突即可</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">localip 192.168.0.2-20</div><div class="line">remoteip 192.168.0.200-250</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi /etc/sysctl.conf</code> 改为<code>net.ipv4.ip_forward = 1</code></p>
+</li>
+<li><code>sysctl -p</code> 使sysctl配置生效</li>
+<li><code>systemctl start pptpd</code> 启动pptpd服务</li>
+<li><p>配置iptables防火墙放行和转发规则</p>
+<ul>
+<li><code>sudo iptables -L -n</code> 查看 iptables 过滤规则</li>
+<li><p>清空防火墙配置</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">sudo iptables -P INPUT ACCEPT     <span class="comment"># 改成 ACCEPT 标示接收一切请求</span></div><div class="line">sudo iptables -F                     <span class="comment"># 清空默认所有规则</span></div><div class="line">sudo iptables -X                     <span class="comment"># 清空自定义所有规则</span></div><div class="line">sudo iptables -Z                     <span class="comment"># 计数器置0</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>配置规则</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">sudo iptables -A INPUT -p gre -j ACCEPT</div><div class="line"><span class="comment"># 放行 PPTP 服务的1723 端口 (服务器后台安全组策略需要开发1723的入站规则)</span></div><div class="line">sudo iptables -A INPUT -p tcp -m tcp --dport 1723 -j ACCEPT</div><div class="line">sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT</div><div class="line"><span class="comment"># 阿里云是双网卡，内网eth0 + 外网eth1，所以此出为eth1</span></div><div class="line">sudo iptables -A FORWARD -s 192.168.0.0/24 -o eth1 -j ACCEPT</div><div class="line">sudo iptables -A FORWARD -d 192.168.0.0/24 -i eth1 -j ACCEPT</div><div class="line">sudo iptables -I FORWARD -p tcp --syn -i ppp+ -j TCPMSS --<span class="built_in">set</span>-mss 1356</div><div class="line">sudo iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -o eth0 -j MASQUERADE</div><div class="line"><span class="comment"># 开启几个常用端口，其他端口同理</span></div><div class="line">sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT</div><div class="line">sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT</div></pre></td></tr></table></figure>
+</li>
+<li><p>启动iptables</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">sudo service iptables save</div><div class="line">sudo systemctl start iptables</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>设置随系统启动(<code>chkconfig --level 3 pptpd on</code>)</p>
+<ul>
+<li><code>sudo systemctl enable pptpd</code></li>
+<li><code>sudo systemctl enable iptables</code></li>
+</ul>
+</li>
+<li>windows连接VPN<ul>
+<li>VPN类型 <code>PPTP</code></li>
+<li>勾选允许使用 <code>Microsoft CHAP 版本 2 （MS-CHAP v2）（M）</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>参考文章</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;centos7安装vpn&quot;&gt;&lt;a href=&quot;#centos7安装vpn&quot; class=&quot;headerlink&quot; title=&quot;centos7安装vpn&quot;&gt;&lt;/a&gt;centos7安装vpn&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;modprobe ppp-compr
+    
+    </summary>
+    
+      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
+    
+    
+      <category term="linux" scheme="http://blog.aezo.cn/tags/linux/"/>
+    
+      <category term="vpn" scheme="http://blog.aezo.cn/tags/vpn/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Lucene</title>
     <link href="http://blog.aezo.cn/2018/03/13/bigdata/lucene/"/>
     <id>http://blog.aezo.cn/2018/03/13/bigdata/lucene/</id>
     <published>2018-03-13T12:31:00.000Z</published>
-    <updated>2018-03-17T07:10:38.522Z</updated>
+    <updated>2018-03-25T11:01:21.552Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li><code>Lucene</code>是一个基于java开发的全文搜索框架。本文基于<code>lucene-4.9.1</code>(文档/API在解压文件的/lucene-4.9.1/docs目录)</li>
@@ -34,7 +103,7 @@
 <li><p>企业海量数据搜索服务器架构</p>
 </li>
 </ul>
-<p><img src="/data/bigdata/solr-arch.png" alt="企业海量数据搜索服务器架构"></p>
+<p><img src="/data/images/bigdata/solr-arch.png" alt="企业海量数据搜索服务器架构"></p>
 <h2 id="本地文件内容搜索实践"><a href="#本地文件内容搜索实践" class="headerlink" title="本地文件内容搜索实践"></a>本地文件内容搜索实践</h2><blockquote>
 <p>具体参考 <code>smjava/lucene</code></p>
 </blockquote>
@@ -71,11 +140,340 @@
   </entry>
   
   <entry>
+    <title>Hadoop</title>
+    <link href="http://blog.aezo.cn/2018/03/13/bigdata/hadoop/"/>
+    <id>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</id>
+    <published>2018-03-13T12:31:00.000Z</published>
+    <updated>2018-04-06T03:35:55.498Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li><code>Hadoop</code>作者<code>Doug cutting</code>，名字来源于Doug Cutting儿子的玩具大象</li>
+<li>特点<ul>
+<li>分布式存储系统<code>HDFS</code>(Hadoop Distributed File System)</li>
+<li>分布式计算框架<code>MapReduce</code></li>
+</ul>
+</li>
+<li>网址<ul>
+<li><a href="http://hadoop.apache.org/" target="_blank" rel="external">官网</a></li>
+<li><a href="http://hadoop.apache.org/docs/r1.0.4/cn/index.html" target="_blank" rel="external">r1.0.4中文文档</a></li>
+<li><a href="http://hadoop.apache.org/docs/r2.5.2/" target="_blank" rel="external">r2.5.2文档</a></li>
+</ul>
+</li>
+<li>本文基于<code>hadoop-2.5.1</code><strong>(需要<code>jdk1.7</code>)</strong></li>
+</ul>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="Hadoop-2-x-HA-安装"><a href="#Hadoop-2-x-HA-安装" class="headerlink" title="Hadoop 2.x HA 安装"></a>Hadoop 2.x HA 安装</h3><blockquote>
+<p>HA模式安装：<a href="http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html" target="_blank" rel="external">http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html</a></p>
+</blockquote>
+<ul>
+<li>服务器配置</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>服务器名</th>
+<th>ip</th>
+<th>NameNode</th>
+<th>DataNode</th>
+<th>Zookeeper</th>
+<th>ZKFC</th>
+<th>JN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>server1</td>
+<td>192.168.6.131</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>server2</td>
+<td>192.168.6.132</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>server3</td>
+<td>192.168.6.133</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+</tr>
+<tr>
+<td>server4</td>
+<td>192.168.6.134</td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td>Y</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>安装并启动Zookeeper，参考《Zookeeper》</li>
+<li><code>date</code> 检查4台机器的时间是否相差不大(30秒内)，并查看是否关闭防火墙</li>
+<li><p>4台主机的<code>/etc/hosts</code>文件都需要包含一下内容</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">192.168.6.131	server1</div><div class="line">192.168.6.132	server2</div><div class="line">192.168.6.133	server3</div><div class="line">192.168.6.134	server4</div></pre></td></tr></table></figure>
+</li>
+<li><p>免密码登录：使server1可以免密码登录到其他3台服务器。启动hdfs的时候通过server1启动其他3台机器</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 未4台机器都生成ssh密钥和公钥文件(可通过xshell的快速命令发送到全部会话)</span></div><div class="line">ssh-keygen -t dsa -P <span class="string">''</span> -f ~/.ssh/id_dsa</div><div class="line"><span class="comment">## 将本机器公钥文件内容追加到认证文件中。此时可以通过命令如`ssh server1`无需密码即可登录本地机器，记得要`exit`退出会话</span></div><div class="line">cat ~/.ssh/id_dsa.pub &gt;&gt; ~/.ssh/authorized_keys</div><div class="line"><span class="comment">## 将server1和server2(NameNode)的公钥文件内容追加到其他3台机器的的认证文件中</span></div><div class="line"><span class="comment"># 在server1下执行复制server1的公钥到其他机器的/root目录</span></div><div class="line">scp ~/.ssh/id_dsa.pub root@server2:/root/</div><div class="line">scp ~/.ssh/id_dsa.pub root@server3:/root/</div><div class="line">scp ~/.ssh/id_dsa.pub root@server4:/root/</div><div class="line"><span class="comment"># 分别在其他3台服务器下运行公钥追加到认证文件命令(&gt;&gt;表示追加)</span></div><div class="line">cat ~/id_dsa.pub &gt;&gt; ~/.ssh/authorized_keys</div><div class="line"><span class="comment"># 测试登录</span></div><div class="line">ssh server3</div><div class="line"><span class="comment"># server2公钥复制同理</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>在server1上进行安装hadoop</p>
+<ul>
+<li><code>tar -zxvf hadoop-2.5.1_x64.tar.gz -C /opt/soft</code><ul>
+<li>解压<code>hadoop-2.5.1_x64.tar.gz</code>(官方提供的是32位；32位的包可以运行在64位机器上，只是有警告；反之不行)</li>
+</ul>
+</li>
+<li><code>cd /opt/soft/hadoop-2.5.1</code></li>
+<li><code>vi etc/hadoop/hadoop-env.sh</code>修改<code>export JAVA_HOME=${JAVA_HOME}</code>的JAVA_HOME，如<code>export JAVA_HOME=/opt/soft/jdk1.7.0_80</code></li>
+<li><p><code>vi etc/hadoop/core-site.xml</code> 进行如下配置。<a href="http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/core-default.xml" target="_blank" rel="external">配置项参考</a></p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!--配置NameNode的dfs.nameservices--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://aezocn<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- Zookeeper集群 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>ha.zookeeper.quorum<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:2181,server2:2181,server3:2181<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- fsimage文件会存放在此目录，默认是/tmp/hadoop-$&#123;user.name&#125;，而此目录重启会清空，容易造成fsimage丢失。会自动创建 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/opt/data/hadoop<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi etc/hadoop/hdfs-site.xml</code> 进行如下配置。<a href="http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml" target="_blank" rel="external">配置项参考文档</a></p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 一个hdfs实例的唯一标识 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.nameservices<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>aezocn<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- NameNode标识(dfs.ha.namenodes.[dfs.nameservices])，多个用逗号分割 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.ha.namenodes.aezocn<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>nn1,nn2<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- rpc协议用于hdfs文件上传和读取 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.rpc-address.aezocn.nn1<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:8020<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.rpc-address.aezocn.nn2<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>server2:8020<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- http协议用于后台监控 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.http-address.aezocn.nn1<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:50070<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.http-address.aezocn.nn2<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>server2:50070<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 指定3台JournalNode服务地址，jndir目录会自动新建，用于存放edits数据 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.shared.edits.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>qjournal://server2:8485;server3:8485;server4:8485/jndir<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 为JournalNode存放edits数据文件的根目录(会在此目录创建jndir)，会自动创建 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.journalnode.edits.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/opt/data/hadoop/journalnode<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 启用Zookeeper Failover Controller自动切换 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.ha.automatic-failover.enabled<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 帮助客户端查询一个活动的NameNode(Active)，固定为下面的类名 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.client.failover.proxy.provider.aezocn<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!-- 对NameNode进行远程切换时，需要运行远程命令。下面为ssh相关配置 --&gt;</span>    </div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.ha.fencing.methods<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>sshfence<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.ha.fencing.ssh.private-key-files<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/root/.ssh/id_dsa<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi etc/hadoop/slaves</code> 配置<code>DataNode</code>主机名</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">server2</div><div class="line">server3</div><div class="line">server4</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>拷贝项目目录到其他3台机器，如：<code>scp -r /opt/soft/hadoop-2.5.1/ root@server2:/opt/soft/</code></p>
+</li>
+<li><p>配置环境变量</p>
+<ul>
+<li><p>配置4台机器的hadoop环境变量，<code>vi ~/.bash_profile</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/soft/hadoop-2.5.1</div><div class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$HADOOP_HOME</span>/bin:<span class="variable">$HADOOP_HOME</span>/sbin</div></pre></td></tr></table></figure>
+</li>
+<li><p>如果几台机器的配置一致，可通过<code>scp ~/.bash_profile root@server2:/root/</code>进行server1拷贝到server2</p>
+</li>
+<li><code>source ~/.bash_profile</code> 使<code>.bash_profile</code>生效</li>
+</ul>
+</li>
+<li><code>hadoop-daemon.sh start journalnode</code> 分别启动三台<code>JournalNode</code>(server2、server3、server4)。并查看日志是否有错<code>tail -200 /opt/soft/hadoop-2.5.1/logs/hadoop-root-journalnode-server2.log</code></li>
+<li>初始化元数据<ul>
+<li>格式化<code>server1(NameNode)</code>的hdfs：<code>hdfs namenode -format</code> 第一次运行格式化hdfx获得元数据(不报错则成功)。会创建上述<code>/opt/data/hadoop</code>文件夹，并在里面创建<code>fsimage</code></li>
+<li>拷贝上述fsimage到另外一台<code>NameNode(server2)</code>：<code>scp -r /opt/data/hadoop root@server2:/opt/data/</code></li>
+</ul>
+</li>
+<li>在某一台NameNode上初始化Zookeeper：<code>hdfs zkfc -formatZK</code></li>
+<li>启动与停止<ul>
+<li><strong><code>start-dfs.sh</code></strong> 在某一台NameNode上启动。<ul>
+<li>此时server1会通过免密码登录启动其他机器上的hadoop服务(NN、DN、JN、ZKFC)</li>
+<li>journalnode在上述启动过，此处不会重新启动</li>
+<li>单独启动一个NameNode <code>hadoop-daemon.sh start namenode</code></li>
+<li>单独启动一个DataNode <strong><code>hadoop-daemon.sh start datanode</code></strong></li>
+</ul>
+</li>
+<li><strong><code>stop-dfs.sh</code></strong> 停止所有hadoop服务</li>
+<li>所有的启动日志均在<code>logs</code>目录</li>
+</ul>
+</li>
+<li>访问<code>http://192.168.6.131:50070</code>和<code>http://192.168.6.132:50070</code> 查看NameNode监控。会发现一个为active，一个为standby<ul>
+<li>关闭active对应的NameNode服务，可发现standby对应的服务变为active，实现了NameNode接管。如server2无法切换为active，可查看对应ZKFC的日志 <code>tail -200 /opt/soft/hadoop-2.5.1/logs/hadoop-root-zkfc-server2.log</code>。常见无法切换错误<ul>
+<li>提示<code>Unable to fence NameNode</code>，可检查是否可进行免密码登录</li>
+<li>提示<code>ssh: bash: fuser: 未找到命令</code>，可在NameNode上安装 <code>yum -y install psmisc</code></li>
+</ul>
+</li>
+<li>手动切换nn2为active：<code>hdfs haadmin -transitionToActive nn2</code>(在未开启自动切换模式下才可使用)</li>
+</ul>
+</li>
+</ul>
+<h3 id="单节点安装-不常用"><a href="#单节点安装-不常用" class="headerlink" title="单节点安装(不常用)"></a>单节点安装(不常用)</h3><blockquote>
+<p>单节点：<a href="http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/SingleCluster.html" target="_blank" rel="external">http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/SingleCluster.html</a></p>
+</blockquote>
+<ul>
+<li>服务器配置</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>服务器名</th>
+<th>ip</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>server1</td>
+<td>192.168.6.131</td>
+<td>NameNode</td>
+</tr>
+<tr>
+<td>server2</td>
+<td>192.168.6.132</td>
+<td>SecondaryNameNode、DataNode</td>
+</tr>
+<tr>
+<td>server3</td>
+<td>192.168.6.133</td>
+<td>DataNode</td>
+</tr>
+<tr>
+<td>server4</td>
+<td>192.168.6.134</td>
+<td>DataNode</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>检查date、修改hosts、免密码登录(参考上述HA安装)</li>
+<li><p>在server1上进行安装hadoop(参考上述HA安装)</p>
+<ul>
+<li><p><code>vi etc/hadoop/core-site.xml</code> 进行如下配置</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!--配置NameNode的主机名和数据传输端口(文件上传下载)--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://server1:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>/opt/data/hadoop<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi etc/hadoop/hdfs-site.xml</code> 进行如下配置</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!-- 配置SecondaryNameNode的Http相关端口 --&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.secondary.http-address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>server2:50090<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.secondary.https-address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>server2:50091<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi etc/hadoop/slaves</code> 配置<code>DataNode</code>主机名</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">server2</div><div class="line">server3</div><div class="line">server4</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>vi etc/hadoop/masters</code> 配置<code>SecondaryNameNode</code>主机名(默认无此文件。HA模式下无SecondaryNameNode，因此无效此步骤)</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">server2</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>拷贝项目目录到其他3台机器并配置hadoop环境变量(参考上述HA安装)</p>
+</li>
+<li>在<code>server1(NameNode)</code>上运行<ul>
+<li><code>hdfs namenode -format</code> 在<code>server1(NameNode)</code>上运行</li>
+<li><code>start-dfs.sh</code> 在<code>server1(NameNode)</code>上执行</li>
+<li><code>stop-dfs.sh</code> 停止所有hadoop服务</li>
+</ul>
+</li>
+<li>访问<code>http://192.168.6.131:50070</code> 查看NameNode监控、<code>http://192.168.6.132:50090</code> 查看SecondaryNameNode监控</li>
+</ul>
+<h2 id="HDFS概念"><a href="#HDFS概念" class="headerlink" title="HDFS概念"></a>HDFS概念</h2><ul>
+<li>HDFS优缺点<ul>
+<li>优点：高容错性(自动保存副本，自动恢复)、适合批处理、适合大数据(TB/PB)处理、可构建在廉价机器上</li>
+<li>缺点：占用内存大、修改文件成本过高</li>
+</ul>
+</li>
+<li>数据块/数据存储单元(Block)<ul>
+<li>文件被切分成固定大小的数据块,数据块默认大小为128MB(Hadoop 1.x默认为64M)。若文件大小不到128MB，则单独存成一个Block</li>
+<li>一个文件存储方式：按大小被切分成若干个Block，存储到不同节点上。默认情况下每个Block都有三个副本</li>
+<li>Block大小和副本数通过Client端上传文件时设置，文件上传成功后副本数可以变更，Block Size不可变更</li>
+</ul>
+</li>
+<li><code>NameNode</code>(NN)<ul>
+<li>NameNode主要功能<ul>
+<li>接受客户端的读写服务</li>
+<li>保存<code>metadate</code>(元数据)信息<ul>
+<li>元数据信息包括<strong><code>fsimage</code>和<code>edits</code></strong></li>
+<li>以上两个文件主要记录了文件包含哪些Block，Block保存在哪个DataNode(由DataNode启动时上报)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>NameNode的metadate信息说明<ul>
+<li>NameNode的metadate信息在启动后会加载到内存</li>
+<li>metadata存储到磁盘文件名为<code>fsimage</code>(format格式化的时候产生)</li>
+<li>Block的位置信息不会保存到fsimage(NN将block位置存放到内存中)</li>
+<li><code>edits</code>记录对metadata的操作日志(客户端读写日志)，会自动合并到fsimage中</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>SecondaryNameNode</code>(SNN)<ul>
+<li>它不是NN的备份，也不是HA，它的主要工作是帮助NN合并edits日志，减少NN启动时间。</li>
+<li>SNN执行合并时机：根据配置文件设置的时间间隔<code>fs.checkpoint.period</code>默认3600秒；根据配置文件设置edits日志大小 <code>fs.checkpoint.size</code>规定edits文件的最大值默认是64MB</li>
+</ul>
+</li>
+<li><code>DataNode</code>(DN)<ul>
+<li>存储数据(Block)</li>
+<li>启动DN线程的时候会向NN汇报block信息(NN将block位置存放到内存中)</li>
+<li>通过向NN发送心跳保持与其联系（3秒一次），如果NN 10分钟没有收到DN的心跳，则认为其已经lost，并copy其上的block到其它DN</li>
+</ul>
+</li>
+</ul>
+<h2 id="Hadoop-2-x-概念及架构"><a href="#Hadoop-2-x-概念及架构" class="headerlink" title="Hadoop 2.x 概念及架构"></a>Hadoop 2.x 概念及架构</h2><ul>
+<li>Hadoop 2.x由HDFS、MapReduce和YARN三个分支构成<ul>
+<li>HDFS：NN Federation、 HA</li>
+<li>MapReduce：运行在YARN上的MR</li>
+<li>YARN：资源管理系统</li>
+</ul>
+</li>
+<li>解决HDFS 1.0中单点故障和内存受限问题<ul>
+<li>解决单点故障<ul>
+<li>HDFS HA：通过多个主备NameNode解决</li>
+<li>如果主NameNode发生故障，则切换到备NameNode上(备NameNode会同步主NameNode元数据)</li>
+<li>所有DataNode同时向两个NameNode汇报数据块信息</li>
+</ul>
+</li>
+<li>解决内存受限问题<ul>
+<li>HDFS Federation(联邦)</li>
+<li>水平扩展，支持多个NameNode</li>
+<li>每个NameNode分管一部分目录</li>
+<li>所有NameNode共享所有DataNode存储资</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>基于Zookeeper自动切换方案(也可手动切换)<ul>
+<li><code>Zookeeper Failover Controller</code>(ZKFC) 监控NameNode健康状态，并向Zookeeper注册NameNode。NameNode挂掉后，ZKFC为NameNode竞争锁，获得ZKFC锁的NameNode变为active</li>
+</ul>
+</li>
+<li><p>HA架构图</p>
+<p>  <img src="/data/images/bigdata/hadoop-ha.png" alt="HA架构图"></p>
+<ul>
+<li><code>NameNode</code>分为<code>Active</code>(主)和<code>Standby</code>(备)。主备切换的条件是两天NN的元数据一致</li>
+<li><code>NameNode(Active)</code>会将<code>edits</code>文件保存到<code>JournalNode</code>中(服务数&gt;=2)。<code>NameNode(Standby)</code>会同步<code>JournalNode</code>中的<code>edits</code>数据。初始化时，将其中一台进行<code>fsimage</code>格式化，然后将此<code>fsimage</code>复制到其他机器。确保元数据(fsimage + edits)一致</li>
+<li>所有DataNode启动时同时向两个NameNode汇报数据块信息</li>
+<li><code>Zookeeper Failover Controller</code>和<code>NameNode</code>是一一对应。作用：通过远程命令控制<code>NameNode</code>切换；对<code>NameNode</code>做健康检查，并汇报给<code>Zookeeper</code></li>
+</ul>
+</li>
+<li><p>Federation架构图</p>
+<p>  <img src="/data/images/bigdata/hadoop-federation.gif" alt="Federation架构图"></p>
+<ul>
+<li>通过多个namenode/namespace把元数据的存储和管理分散到多个节点中，使到namenode/namespace可以通过增加机器来进行水平扩展。多个namenode相会独立</li>
+<li>能把单个namenode的负载分散到多个节点中，在HDFS数据规模较大的时候不会也降低HDFS的性能。可以通过多个namespace来隔离不同类型的应用，把不同类型应用的HDFS元数据的存储和管理分派到不同的namenode中</li>
+</ul>
+</li>
+</ul>
+<h2 id="MapReduce"><a href="#MapReduce" class="headerlink" title="MapReduce"></a>MapReduce</h2><ul>
+<li>Map-reduce的思想就是”分而治之”</li>
+<li>主要分为<code>Map</code>和<code>Reduce</code>两个阶段，也可细分为<code>Split</code>、<code>Map</code>、<code>Shuffler(sort、copy、merge)</code>、<code>Reduce</code>几个阶段</li>
+<li>split大小：<code>max(min.split,min(max.split, block))</code> 其中默认min.split=10M，max.split=100M，block=128M</li>
+<li><p>MapReduce架构图</p>
+<p>  <img src="/data/images/bigdata/hadoop-mp.png" alt="MapReduce架构图"></p>
+</li>
+</ul>
+<hr>
+<p>参考文章</p>
+<ul>
+<li><a href="http://www.cnblogs.com/tgzhu/category/868038.html" target="_blank" rel="external">hdfs-HA原理及安装</a></li>
+<li><a href="http://ambari.apache.org/" target="_blank" rel="external">Hadoop集群Web管理工具ambari</a></li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Hadoop&lt;/code&gt;作者&lt;code&gt;Doug cutting&lt;/code&gt;，名字来源于Doug Cutting
+    
+    </summary>
+    
+      <category term="bigdata" scheme="http://blog.aezo.cn/categories/bigdata/"/>
+    
+    
+      <category term="hadoop" scheme="http://blog.aezo.cn/tags/hadoop/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Solr</title>
     <link href="http://blog.aezo.cn/2018/03/13/bigdata/solr/"/>
     <id>http://blog.aezo.cn/2018/03/13/bigdata/solr/</id>
     <published>2018-03-13T12:31:00.000Z</published>
-    <updated>2018-03-25T10:51:43.810Z</updated>
+    <updated>2018-03-28T12:32:28.070Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li><code>Solr</code>它是一种开放源码的、基于 Lucene Java 的搜索服务器，易于加入到 Web 应用程序中。<ul>
@@ -88,7 +486,7 @@
 <li>Solr内嵌Jetty和ZooKeeper。<code>SolrCloud</code> 模式是基于ZooKeeper的，会自动启动ZooKeeper服务。</li>
 <li><a href="https://lucene.apache.org/solr/" target="_blank" rel="external">官网：https://lucene.apache.org/solr/</a></li>
 <li><a href="https://lucene.apache.org/solr/guide/7_2/solr-tutorial.html" target="_blank" rel="external">官方教程</a>、<a href="http://mirror.bit.edu.cn/apache/lucene/solr/ref-guide/apache-solr-ref-guide-7.2.pdf" target="_blank" rel="external">solr-7.2-pdf</a></li>
-<li><a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="external">各版本下载地址</a> (本文基于<code>solr-7.2.0</code>进行说明(需要jdk1.8及以上))</li>
+<li><a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="external">各版本下载地址</a><strong>(本文基于<code>solr-7.2.0</code>进行说明，需要jdk1.8及以上)</strong></li>
 </ul>
 <h3 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h3><ul>
 <li><code>collection</code>/<code>core</code> 均指以不同的数据结构来对数据进行索引(索引库、集合)</li>
@@ -216,7 +614,7 @@
     <link href="http://blog.aezo.cn/2018/03/13/java/Java%E9%A1%B9%E7%9B%AECPU%E5%8F%8A%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/"/>
     <id>http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/</id>
     <published>2018-03-13T05:35:00.000Z</published>
-    <updated>2018-03-14T04:42:52.552Z</updated>
+    <updated>2018-04-16T02:18:59.063Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li>java应用常见故障：<strong>高CPU占用</strong>、<strong>高内存占用</strong>、<strong>高I/O占用</strong>(包括磁盘I/O、网络I/O、数据库I/O等)</li>
@@ -266,7 +664,7 @@
 <p>可以看到线程有以下调用信息<code>org.ofbiz.service.job.PurgeJob.exec(PurgeJob.java:55)</code>，如是可以去查看PurgeJob的源码。(当然应该多次查看此线程的堆栈，查看一次可能存在偶发性)</p>
 <p><img src="/data/images/java/ofbiz-purgejob-jstack.png" alt="jstack"></p>
 <ul>
-<li>ofbiz的PurgeJob相关源码。详细可参考《ofbiz任务机制》</li>
+<li>ofbiz的PurgeJob相关源码。详细可参考《OFBiz服务和任务机制》</li>
 </ul>
 <p>ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行的任务时，则进行历史任务数据(JobSandbox等表数据)清理工作，即获取当前时间4天(默认的purge-job-days)前完成或者取消的任务数据进行删除。</p>
 <p>而此处是根据ofbiz实体引擎查询的历史数据放到一个EntityListIterator中进行遍历(查看源码可知本质并没有分页获取数据，而是将所有查询的数据放到ResultSet进行遍历)</p>
@@ -450,7 +848,7 @@
     <link href="http://blog.aezo.cn/2018/03/03/arch/keepalived/"/>
     <id>http://blog.aezo.cn/2018/03/03/arch/keepalived/</id>
     <published>2018-03-03T09:24:00.000Z</published>
-    <updated>2018-03-04T08:28:58.268Z</updated>
+    <updated>2018-03-31T11:23:35.588Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li><a href="http://www.keepalived.org/" target="_blank" rel="external">Keepalived</a>是一个免费开源的，用C编写的类似于layer3, 4 &amp; 7交换机制软件，具备我们平时说的第3层、第4层和第7层交换机的功能。主要提供loadbalancing（负载均衡）和 high-availability（高可用）功能，负载均衡实现需要依赖Linux的虚拟服务内核模块（ipvs），而高可用是通过<code>VRRP</code>协议实现多台机器之间的故障转移服务</li>
@@ -468,7 +866,7 @@
 <li>keepalived配置文件主要包含三块：全局定义块、VRRP实例定义块、虚拟服务器定义块（如果keepalived只用来做ha，虚拟服务器是可选的）</li>
 <li>配置说明 <a href="[Keepalived安装与配置](http://blog.csdn.net/xyang81/article/details/52554398)">^1</a></li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div></pre></td><td class="code"><pre><div class="line"><span class="comment">### 全局定义块</span></div><div class="line">global_defs &#123;</div><div class="line">    <span class="comment">## 邮件通知配置：用于服务有故障时发送邮件报警，可选项，不建议用。需要系统开启sendmail服务，建议用第三独立监控服务，如用nagios全面监控代替</span></div><div class="line">    notification_email &#123;</div><div class="line">        <span class="comment"># 一行一个收件人</span></div><div class="line">        email1@aezo.cn</div><div class="line">        email2@aezo.cn</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 发件人</span></div><div class="line">    notification_email_from admin@aezo.cn</div><div class="line">    smtp_server XXX.smtp.com</div><div class="line">    <span class="comment"># 指定smtp连接超时时间</span></div><div class="line">    smtp_connect_timeout 30</div><div class="line"></div><div class="line">    <span class="comment"># lvs负载均衡器标识，在一个网络内，它的值应该是唯一的</span></div><div class="line">    lvs_id string</div><div class="line">    <span class="comment"># 用户标识本节点的名称，通常为hostname</span></div><div class="line">    router_id server1.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">### VRRP实例定义块：同步vrrp级，用于确定失败切换（FailOver）包含的路由实例个数。即在有2个负载均衡器的场景，一旦某个负载均衡器失效，需要自动切换到另外一个负载均衡器的实例是哪</span></div><div class="line">vrrp_sync_group string &#123;</div><div class="line">    <span class="comment"># 至少要包含一个vrrp实例，vrrp实例名称必须和vrrp_instance定义的一致</span></div><div class="line">    group &#123;</div><div class="line">        VI_1</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment"># vrrp服务检测脚本：keepalived默认是通过检测keepalived进程是否存在判断服务器是否宕机。此时根据脚本判断是否杀死此服务器keepalived进程。参考《nginx》中【结合keepalived实现高可用】</span></div><div class="line">vrrp_script check_nginx.sh &#123;</div><div class="line">    <span class="comment">#检测nginx的脚本</span></div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh.sh"</span></div><div class="line">    <span class="comment">#每2秒检测一次</span></div><div class="line">    interval 2</div><div class="line">    <span class="comment">#如果某一个nginx宕机 则权重减20                              </span></div><div class="line">    weight -20</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment"># vrrp实例名(VI_1)</span></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    <span class="comment"># 实例状态，只有MASTER（主）和BACKUP（备）两种状态，并且需要全部大写</span></div><div class="line">    <span class="comment"># 抢占模式下，其中MASTER为工作状态，BACKUP为备用状态。当MASTER所在的服务器失效时，BACKUP所在的服务会自动把它的状态由BACKUP切换到MASTER状态。当失效的MASTER所在的服务恢复时，BACKUP从MASTER恢复到BACKUP状态</span></div><div class="line">    state MASTER</div><div class="line">    <span class="comment"># 对外提供服务的网卡接口，即VIP绑定的网卡接口，如：eth0，eth1</span></div><div class="line">    interface eth0</div><div class="line">    <span class="comment"># 本机IP地址</span></div><div class="line">    mcast_src_ip 192.168.1.1</div><div class="line">    <span class="comment"># 虚拟路由的ID号，每个节点设置必须一样，可选择IP最后一段使用，相同的 VRID 为一个组，他将决定多播的 MAC 地址。同一实例下virtual_router_id必须相同（主从要一致）</span></div><div class="line">    virtual_router_id 51</div><div class="line">    <span class="comment"># 节点优先级，取值范围0～254，MASTER要比BACKUP高</span></div><div class="line">    priority 100</div><div class="line">    <span class="comment"># MASTER与BACKUP节点间同步检查的时间间隔，单位为秒</span></div><div class="line">    advert_int 1</div><div class="line">    <span class="comment"># 验证类型和验证密码</span></div><div class="line">    authentication &#123;</div><div class="line">        <span class="comment"># 类型主要有 PASS、AH 两种，通常使用PASS类型</span></div><div class="line">        auth_type PASS</div><div class="line">        <span class="comment"># 验证密码为明文，同一 vrrp 实例 MASTER 与 BACKUP 使用相同的密码才能正常通信</span></div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 虚拟IP地址池，可以有多个IP，每个IP占一行，不需要指定子网掩码。注意：这个IP必须与我们的设定的vip保持一致</span></div><div class="line">    <span class="comment"># 启动后自动给MASTER绑定虚拟ip(MASTER宕机后，则虚拟ip会绑定到BACKUP上)</span></div><div class="line">    virtual_ipaddress &#123;  <span class="comment"># Block limited to 20 IP addresses @IP</span></div><div class="line">        <span class="comment"># 此虚拟ip为web服务对外提供访问的ip</span></div><div class="line">        192.168.200.1</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment"># 负载均衡器之间的监控接口,类似于 HA HeartBeat 的心跳线。但它的机制优于 Heartbeat，因为它没有"裂脑"这个问题，它是以优先级这个机制来规避这个麻烦的。在 DR 模式中，lvs_sync_daemon_inteface与服务接口interface使用同一个网络接口</span></div><div class="line">    lvs_sync_daemon_interface string </div><div class="line">    <span class="comment"># 配置后，有故障时激活邮件通知</span></div><div class="line">    smtp_alert</div><div class="line">    <span class="comment"># 禁止抢占服务。默认情况，当MASTER服务挂掉之后，BACKUP自动升级为MASTER并接替它的任务，当MASTER服务恢复后，升级为MASTER的BACKUP服务又自动降为BACKUP，把工作权交给原MASTER。当配置了nopreempt，MASTER从挂掉到恢复，不再将服务抢来</span></div><div class="line">    nopreempt</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">### 虚拟服务器定义块：定义一个虚拟服务器，这个ip是virtual_ipaddress中定义的其中一个</span></div><div class="line">virtual_server 192.168.200.1 8110 &#123;</div><div class="line">    <span class="comment">#　健康检查时间间隔，单位：秒</span></div><div class="line">    delay_loop 6</div><div class="line">    <span class="comment"># 负载均衡调度算法，互联网应用常用方式为wlc或rr。取值rr|wrr|lc|wlc|sh|dh|lblc </span></div><div class="line">    lb_algo rr</div><div class="line">    <span class="comment"># 负载均衡转发规则。包括DR、NAT、TUN，一般使用路由（DR）转发规则。</span></div><div class="line">    lb_kind DR</div><div class="line">    <span class="comment"># http服务会话保持时间，单位：秒</span></div><div class="line">    persistence_timeout 50</div><div class="line">    <span class="comment"># 转发协议，分为TCP和UDP两种</span></div><div class="line">    protocol TCP</div><div class="line">    <span class="comment"># 真实服务器IP和端口，可以定义多个</span></div><div class="line">    real_server 192.168.200.3 1358 &#123;</div><div class="line">        <span class="comment"># 负载权重，值越大，转发的优先级越高</span></div><div class="line">        weight 1</div><div class="line">        <span class="comment"># 服务停止后执行的脚本</span></div><div class="line">        notify_down /path/script.sh</div><div class="line">        <span class="comment"># 服务有效性检测：HTTP_GET|SSL_CHECK</span></div><div class="line">        HTTP_GET &#123;</div><div class="line">            url &#123;</div><div class="line">                path /testurl1/test.jsp</div><div class="line">                digest 640205b7b0fc66c1ea91c463fac6334d</div><div class="line">            &#125;</div><div class="line">            <span class="comment"># 服务连接端口</span></div><div class="line">            connect_port 80</div><div class="line">            <span class="comment"># 服务连接超时时长，单位：秒</span></div><div class="line">            connect_timeout 3</div><div class="line">            <span class="comment"># 服务连接失败重试次数</span></div><div class="line">            nb_get_retry 3</div><div class="line">            <span class="comment"># 重试连接间隔，单位：秒</span></div><div class="line">            delay_before_retry 3</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div></pre></td><td class="code"><pre><div class="line"><span class="comment">### 全局定义块</span></div><div class="line">global_defs &#123;</div><div class="line">    <span class="comment">## 邮件通知配置：用于服务有故障时发送邮件报警，可选项，不建议用。需要系统开启sendmail服务，建议用第三独立监控服务，如用nagios全面监控代替</span></div><div class="line">    notification_email &#123;</div><div class="line">        <span class="comment"># 一行一个收件人</span></div><div class="line">        email1@aezo.cn</div><div class="line">        email2@aezo.cn</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 发件人</span></div><div class="line">    notification_email_from admin@aezo.cn</div><div class="line">    smtp_server XXX.smtp.com</div><div class="line">    <span class="comment"># 指定smtp连接超时时间</span></div><div class="line">    smtp_connect_timeout 30</div><div class="line"></div><div class="line">    <span class="comment"># lvs负载均衡器标识，在一个网络内，它的值应该是唯一的</span></div><div class="line">    lvs_id string</div><div class="line">    <span class="comment"># 用户标识本节点的名称，通常为hostname</span></div><div class="line">    router_id server1.aezocn</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">### VRRP实例定义块：同步vrrp级，用于确定失败切换（FailOver）包含的路由实例个数。即在有2个负载均衡器的场景，一旦某个负载均衡器失效，需要自动切换到另外一个负载均衡器的实例是哪</span></div><div class="line">vrrp_sync_group string &#123;</div><div class="line">    <span class="comment"># 至少要包含一个vrrp实例，vrrp实例名称必须和vrrp_instance定义的一致</span></div><div class="line">    group &#123;</div><div class="line">        VI_1</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment"># vrrp服务检测脚本：keepalived默认是通过检测keepalived进程是否存在判断服务器是否宕机。此时根据脚本判断是否杀死此服务器keepalived进程。参考《nginx》中【结合keepalived实现高可用】</span></div><div class="line">vrrp_script check_nginx.sh &#123;</div><div class="line">    <span class="comment">#检测nginx的脚本</span></div><div class="line">    script <span class="string">"/etc/keepalived/check_nginx.sh"</span></div><div class="line">    <span class="comment">#每2秒检测一次</span></div><div class="line">    interval 2</div><div class="line">    <span class="comment">#如果某一个nginx宕机 则权重减20                              </span></div><div class="line">    weight -20</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment"># vrrp实例名(VI_1)</span></div><div class="line">vrrp_instance VI_1 &#123;</div><div class="line">    <span class="comment"># 实例状态，只有MASTER（主）和BACKUP（备）两种状态，并且需要全部大写</span></div><div class="line">    <span class="comment"># 抢占模式下，其中MASTER为工作状态，BACKUP为备用状态。当MASTER所在的服务器失效时，BACKUP所在的服务会自动把它的状态由BACKUP切换到MASTER状态。当失效的MASTER所在的服务恢复时，BACKUP从MASTER恢复到BACKUP状态</span></div><div class="line">    state MASTER</div><div class="line">    <span class="comment"># 对外提供服务的网卡接口，即VIP绑定的网卡接口，如：eth0，eth1</span></div><div class="line">    interface eth0</div><div class="line">    <span class="comment"># 本机IP地址</span></div><div class="line">    mcast_src_ip 192.168.1.1</div><div class="line">    <span class="comment"># 虚拟路由的ID号，每个节点设置必须一样，可选择IP最后一段使用，相同的 VRID 为一个组，他将决定多播的 MAC 地址。同一实例下virtual_router_id必须相同（主从要一致）</span></div><div class="line">    virtual_router_id 51</div><div class="line">    <span class="comment"># 节点优先级，取值范围0～254，MASTER要比BACKUP高</span></div><div class="line">    priority 100</div><div class="line">    <span class="comment"># MASTER与BACKUP节点间同步检查的时间间隔，单位为秒</span></div><div class="line">    advert_int 1</div><div class="line">    <span class="comment"># 验证类型和验证密码</span></div><div class="line">    authentication &#123;</div><div class="line">        <span class="comment"># 类型主要有 PASS、AH 两种，通常使用PASS类型</span></div><div class="line">        auth_type PASS</div><div class="line">        <span class="comment"># 验证密码为明文，同一 vrrp 实例 MASTER 与 BACKUP 使用相同的密码才能正常通信</span></div><div class="line">        auth_pass 1111</div><div class="line">    &#125;</div><div class="line">    <span class="comment"># 虚拟IP地址池，可以有多个IP，每个IP占一行，不需要指定子网掩码。注意：这个IP必须与我们的设定的vip保持一致</span></div><div class="line">    <span class="comment"># 启动后自动给MASTER绑定虚拟ip(MASTER宕机后，则虚拟ip会绑定到BACKUP上)</span></div><div class="line">    virtual_ipaddress &#123;  <span class="comment"># Block limited to 20 IP addresses @IP</span></div><div class="line">        <span class="comment"># 此虚拟ip为web服务对外提供访问的ip</span></div><div class="line">        192.168.200.1</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment"># 负载均衡器之间的监控接口,类似于 HA HeartBeat 的心跳线。但它的机制优于 Heartbeat，因为它没有"裂脑"这个问题，它是以优先级这个机制来规避这个麻烦的。在 DR 模式中，lvs_sync_daemon_inteface与服务接口interface使用同一个网络接口</span></div><div class="line">    lvs_sync_daemon_interface string </div><div class="line">    <span class="comment"># 配置后，有故障时激活邮件通知</span></div><div class="line">    smtp_alert</div><div class="line">    <span class="comment"># 禁止抢占服务。默认情况，当MASTER服务挂掉之后，BACKUP自动升级为MASTER并接替它的任务，当MASTER服务恢复后，升级为MASTER的BACKUP服务又自动降为BACKUP，把工作权交给原MASTER。当配置了nopreempt，MASTER从挂掉到恢复，不再将服务抢来</span></div><div class="line">    nopreempt</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">### 虚拟服务器定义块：定义一个虚拟服务器，这个ip是virtual_ipaddress中定义的其中一个</span></div><div class="line">virtual_server 192.168.200.1 8110 &#123;</div><div class="line">    <span class="comment">#　健康检查时间间隔，单位：秒</span></div><div class="line">    delay_loop 6</div><div class="line">    <span class="comment"># 负载均衡调度算法，互联网应用常用方式为wlc或rr。取值rr|wrr|lc|wlc|sh|dh|lblc </span></div><div class="line">    lb_algo rr</div><div class="line">    <span class="comment"># 负载均衡转发规则。包括DR、NAT、TUN，一般使用路由（DR）转发规则。</span></div><div class="line">    lb_kind DR</div><div class="line">    <span class="comment"># http服务会话保持时间，单位：秒</span></div><div class="line">    persistence_timeout 50</div><div class="line">    <span class="comment"># 转发协议，分为TCP和UDP两种</span></div><div class="line">    protocol TCP</div><div class="line">    <span class="comment"># 真实服务器IP和端口，可以定义多个</span></div><div class="line">    real_server 192.168.200.3 1358 &#123;</div><div class="line">        <span class="comment"># 负载权重，值越大，转发的优先级越高</span></div><div class="line">        weight 1</div><div class="line">        <span class="comment"># 服务停止后执行的脚本</span></div><div class="line">        notify_down /path/script.sh</div><div class="line">        <span class="comment"># 服务有效性检测：HTTP_GET|SSL_CHECK</span></div><div class="line">        HTTP_GET &#123;</div><div class="line">            url &#123;</div><div class="line">                path /testurl1/test.jsp</div><div class="line">                digest 640205b7b0fc66c1ea91c463fac6334d</div><div class="line">            &#125;</div><div class="line">            <span class="comment"># 服务连接端口</span></div><div class="line">            connect_port 80</div><div class="line">            <span class="comment"># 服务连接超时时长，单位：秒</span></div><div class="line">            connect_timeout 3</div><div class="line">            <span class="comment"># 服务连接失败重试次数</span></div><div class="line">            nb_get_retry 3</div><div class="line">            <span class="comment"># 重试连接间隔，单位：秒</span></div><div class="line">            delay_before_retry 3</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h2 id="相关应用"><a href="#相关应用" class="headerlink" title="相关应用"></a>相关应用</h2><h3 id="nginx-keepalived实现高可用"><a href="#nginx-keepalived实现高可用" class="headerlink" title="nginx + keepalived实现高可用"></a>nginx + keepalived实现高可用</h3><p>参考<code>《nginx》</code>的<code>【结合keepalived实现高可用】</code>章节</p>
 <h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ul>
 <li>mysql + keepalived</li>
@@ -527,23 +925,86 @@
   </entry>
   
   <entry>
-    <title>ofbiz任务机制</title>
-    <link href="http://blog.aezo.cn/2018/02/24/java/ofbiz/ofbiz%E4%BB%BB%E5%8A%A1%E6%9C%BA%E5%88%B6/"/>
-    <id>http://blog.aezo.cn/2018/02/24/java/ofbiz/ofbiz任务机制/</id>
+    <title>OFBiz服务和任务机制</title>
+    <link href="http://blog.aezo.cn/2018/02/24/java/ofbiz/OFBiz%E6%9C%8D%E5%8A%A1%E5%92%8C%E4%BB%BB%E5%8A%A1%E6%9C%BA%E5%88%B6/"/>
+    <id>http://blog.aezo.cn/2018/02/24/java/ofbiz/OFBiz服务和任务机制/</id>
     <published>2018-02-24T08:27:00.000Z</published>
-    <updated>2018-03-14T03:01:42.451Z</updated>
+    <updated>2018-04-16T10:44:03.363Z</updated>
     
     <content type="html"><![CDATA[<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><ul>
-<li><code>org.ofbiz.service.job.JobPoller</code> 加载时会启动一个自动执行任务的线程</li>
+<li><code>org.ofbiz.service.job.JobPoller</code> 加载时会启动一个自动拉取任务的线程(从数据拉取任务放到执行器池中)</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> JobPoller instance = <span class="keyword">new</span> JobPoller();</div><div class="line"></div><div class="line"><span class="comment">// ...</span></div><div class="line"></div><div class="line"><span class="comment">// 自动执行任务线程</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Thread jobManagerPollerThread;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="title">JobPoller</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (pollEnabled()) &#123;</div><div class="line">        jobManagerPollerThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> JobManagerPoller(), <span class="string">"OFBiz-JobPoller"</span>);</div><div class="line">        jobManagerPollerThread.setDaemon(<span class="keyword">false</span>);</div><div class="line">        jobManagerPollerThread.start();</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        jobManagerPollerThread = <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    ServiceConfigUtil.registerServiceConfigListener(<span class="keyword">this</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 线程池执行器(调度线程执行，BlockingQueue中必须存放线程对象)</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadPoolExecutor executor = createThreadPoolExecutor();</div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> JobPoller instance = <span class="keyword">new</span> JobPoller();</div><div class="line"></div><div class="line"><span class="comment">// ...</span></div><div class="line"></div><div class="line"><span class="comment">// 初始化线程池执行器</span></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> ThreadPoolExecutor <span class="title">createThreadPoolExecutor</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        ThreadPool threadPool = ServiceConfigUtil.getServiceEngine(ServiceConfigUtil.engine).getThreadPool();</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(</div><div class="line">            threadPool.getMinThreads(), threadPool.getMaxThreads(), threadPool.getTtl(), TimeUnit.MILLISECONDS,</div><div class="line">            <span class="comment">// 将所有的Job(继承了Runnable)放到LinkedBlockingQueue中</span></div><div class="line">            <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;(threadPool.getJobs()), </div><div class="line">            <span class="comment">// 线程实例化工厂</span></div><div class="line">            <span class="keyword">new</span> JobInvokerThreadFactory(), </div><div class="line">            <span class="keyword">new</span> ThreadPoolExecutor.AbortPolicy());</div><div class="line">    &#125; <span class="keyword">catch</span> (GenericConfigException e) &#123;</div><div class="line">       <span class="comment">// ...</span></div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">JobInvokerThreadFactory</span> <span class="keyword">implements</span> <span class="title">ThreadFactory</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> Thread <span class="title">newThread</span><span class="params">(Runnable runnable)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Thread(runnable, <span class="string">"OFBiz-JobQueue-"</span> + created.getAndIncrement());</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 自动执行任务的线程</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> Thread jobManagerPollerThread;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">private</span> <span class="title">JobPoller</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (pollEnabled()) &#123;</div><div class="line">        jobManagerPollerThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> JobManagerPoller(), <span class="string">"OFBiz-JobPoller"</span>);</div><div class="line">        jobManagerPollerThread.setDaemon(<span class="keyword">false</span>);</div><div class="line">        jobManagerPollerThread.start();</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        jobManagerPollerThread = <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">    ServiceConfigUtil.registerServiceConfigListener(<span class="keyword">this</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><code>org.ofbiz.service.job.GenericServiceJob</code> 任务执行(线程调度器会进行调度)</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">exec</span><span class="params">()</span> <span class="keyword">throws</span> InvalidJobException </span>&#123;</div><div class="line">    <span class="keyword">if</span> (currentState != State.QUEUED) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InvalidJobException(<span class="string">"Illegal state change"</span>);</div><div class="line">    &#125;</div><div class="line">    currentState = State.RUNNING;</div><div class="line">    <span class="comment">// 持久化的任务(JobSandbox)通过此方法初始化(修改任务状态)</span></div><div class="line">    init();</div><div class="line">    Throwable thrown = <span class="keyword">null</span>;</div><div class="line">    Map&lt;String, Object&gt; result = <span class="keyword">null</span>;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        LocalDispatcher dispatcher = dctx.getDispatcher();</div><div class="line">        <span class="comment">// 执行任务</span></div><div class="line">        result = dispatcher.runSync(getServiceName(), getContext());</div><div class="line">        </div><div class="line">        <span class="comment">// ...</span></div><div class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</div><div class="line">        <span class="comment">// ...</span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (thrown == <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="comment">// 任务执行成功</span></div><div class="line">        finish(result);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// 任务执行失败</span></div><div class="line">        failed(thrown);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="UML分析"><a href="#UML分析" class="headerlink" title="UML分析"></a>UML分析</h2><embed width="1000" height="800" src="/data/pdf/OFBiz-Service-Job.pdf" internalinstanceid="7">
+
+<h2 id="实战经验"><a href="#实战经验" class="headerlink" title="实战经验"></a>实战经验</h2><h3 id="服务并发"><a href="#服务并发" class="headerlink" title="服务并发"></a>服务并发</h3><ul>
+<li>主要参数<ul>
+<li><code>semaphore</code>: <code>none</code>(默认，并发调用服务)、<code>wait</code>(阻塞)、<code>fail</code>(报错)</li>
+<li><code>semaphore-sleep</code> 服务阻塞时间(默认500毫秒, semaphore=”wait”时才有)</li>
+<li><code>semaphore-wait-seconds</code> 服务等待时间(默认300秒, semaphore=”wait”时才有)</li>
+</ul>
+</li>
+<li><code>semaphore=&quot;wait&quot;</code> 阻塞模式，实现方式<ul>
+<li>每次运行此类型服务时需要先获取<strong>此服务</strong>的锁</li>
+<li>获取锁的标志是可以往表<code>ServiceSemaphore</code>添加一条数据，源代码如下<ul>
+<li><code>semaphore = delegator.makeValue(&quot;ServiceSemaphore&quot;, &quot;serviceName&quot;, model.name, &quot;lockedByInstanceId&quot;, JobManager.instanceId, &quot;lockThread&quot;, threadName, &quot;lockTime&quot;, lockTime);</code> (<code>org.ofbiz.service.semaphore.ServiceSemaphore</code>)</li>
+</ul>
+</li>
+<li>每次获取锁前需要先判断<code>ServiceSemaphore</code>中是否已经有锁，如果有则阻塞</li>
+<li>阻塞时进行线程sleep，然后循环判断获取锁</li>
+<li>每次项目重启会清除<code>ServiceSemaphore</code>中<strong>此实例</strong>的锁，源代码如下<ul>
+<li><code>delegator.removeByAnd(&quot;ServiceSemaphore&quot;, &quot;lockedByInstanceId&quot;, JobManager.instanceId);</code> (<code>org.ofbiz.service.ServiceDispatcher</code>)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>详细流程参考UML图解</li>
+</ul>
+<h4 id="线上故障分析"><a href="#线上故障分析" class="headerlink" title="线上故障分析"></a>线上故障分析</h4><ul>
+<li>故障情景<ul>
+<li>线上开启了两个实例<code>yard</code>和<code>yardcrossing</code>，它们处于同一个服务池pool</li>
+<li>服务池pool中需要定时运行服务<code>messageTimer</code>(此服务semaphore=”wait”)</li>
+<li>某天下午(大概17:30左右)因某些原因重启数据库，此时重启了<code>yard</code>，但是未重启<code>yardcrossing</code></li>
+<li>此后上述服务一直运行失败，报错<code>Service [messageTimer] with wait semaphore exceeded wait timeout</code></li>
+</ul>
+</li>
+<li><p>故障排查</p>
+<ul>
+<li>查看此段时间<code>messageTimer</code>运行的<code>JobSandbox</code>记录和log日志</li>
+<li><p>日志数据如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># log日志</span></div><div class="line">2018-04-12 17:33:51,038 |OFBiz-JobQueue-0     |ServiceDispatcher             |W| Exception thrown <span class="keyword">while</span> unlocking semaphore: </div><div class="line"></div><div class="line"><span class="comment"># 通过下列sql查询JobSandbox记录如下图(其中SERVICE_CRASHED可不用考虑，此状态在服务重启时才被置为损坏)</span></div><div class="line">select t.job_id, t.service_name, t.status_id, t.run_by_instance_id, t.start_date_time, t.finish_date_time, t.job_result</div><div class="line">from job_sandbox t </div><div class="line"><span class="built_in">where</span> t.service_name = <span class="string">'messageTimer'</span></div><div class="line">and t.start_date_time between <span class="string">'2018-04-12 17:20:00'</span> and <span class="string">'2018-04-13 12:00:00'</span></div><div class="line">order by t.start_date_time</div></pre></td></tr></table></figure>
+<p><img src="/data/images/java/ofbiz-180416.png" alt="ofbiz-180416"></p>
+</li>
+<li><p>时间节点分析</p>
+<ul>
+<li><code>xx:xx:xx</code> jobId=2793652的服务开始加锁</li>
+<li><code>17:33:41</code> (ofbiz1-yardcrossing:SERVICE_FINISHED start_date_time) jobId=2793652的服务开始运行</li>
+<li><code>17:33:47</code> (ofbiz1-yardcrossing:SERVICE_FINISHED finish_date_time) jobId=2793652的服务运行成功，状态修改完成</li>
+<li><code>17:33:51</code> (unlocking error) 解锁失败</li>
+<li><code>17:48:56</code> (ofbiz1:SERVICE_FAILED) 运行失败，报错<code>Service [messageTimer] with wait semaphore exceeded wait timeout</code></li>
+<li><code>17:48:59</code> (ofbiz1-yardcrossing:SERVICE_FAILED) 运行失败，报错<code>Service [messageTimer] with wait semaphore exceeded wait timeout</code></li>
+<li>… 一直报上述错误</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>故障分析：运行<code>jobId=2793652</code>时服务获取锁，并运行成功，服务状态修改成功，但是在解锁时敲好数据库重启导致解锁失败。而数据库中保存的正好是<code>ofbiz1-yardcrossing</code>实例的锁，且重启服务器后并没有重启<code>ofbiz1-yardcrossing</code>实例(重启了<code>yard</code>实例，因此只清除了<code>yard</code>相关的锁)。当实例重新获取数据库连接时，数据库中一直有一个<code>messageTimer</code>服务的锁，因此两个实例永远获取不到锁，最终超时运行失败。(获取锁时仅根据服务判断数据库中是否有此服务的锁，具体参考UML流程图)</li>
+<li>经验教训：重启数据库后，虽然实例会自动重新获取数据库连接，但是此时就会出现问题，因此重启数据库后应该重启所有的实例</li>
+</ul>
+<h3 id="服务历史数据清理"><a href="#服务历史数据清理" class="headerlink" title="服务历史数据清理"></a>服务历史数据清理</h3><ul>
+<li>Job积累太多，导致清理服务历史数据时，占用内存过大，最后GC太频繁，CPU飙升，服务器宕机。具体参考《Java项目CPU及内存异常分析》</li>
+</ul>
 <hr>
 ]]></content>
     
     <summary type="html">
     
       &lt;h2 id=&quot;源码分析&quot;&gt;&lt;a href=&quot;#源码分析&quot; class=&quot;headerlink&quot; title=&quot;源码分析&quot;&gt;&lt;/a&gt;源码分析&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;org.ofbiz.service.job.JobPoller&lt;/code&gt; 加载时会启动一个自动执
+&lt;li&gt;&lt;code&gt;org.ofbiz.service.job.JobPoller&lt;/code&gt; 加载时会启动一个自动拉
     
     </summary>
     
@@ -552,7 +1013,7 @@
     
       <category term="ofbiz" scheme="http://blog.aezo.cn/tags/ofbiz/"/>
     
-      <category term="async" scheme="http://blog.aezo.cn/tags/async/"/>
+      <category term="job" scheme="http://blog.aezo.cn/tags/job/"/>
     
   </entry>
   
@@ -689,11 +1150,11 @@
   </entry>
   
   <entry>
-    <title>ofbiz</title>
+    <title>OFBiz</title>
     <link href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/"/>
     <id>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/</id>
     <published>2017-12-09T02:17:00.000Z</published>
-    <updated>2018-03-22T09:17:05.763Z</updated>
+    <updated>2018-04-16T09:55:33.114Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><h2 id="安装编译启动"><a href="#安装编译启动" class="headerlink" title="安装编译启动"></a>安装编译启动</h2><h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><ul>
 <li><p>设置hot-deploy下组件(component)编译顺序</p>
@@ -734,11 +1195,11 @@
   </entry>
   
   <entry>
-    <title>ofbiz模型图(UML)分析</title>
+    <title>OFBiz模型图(UML)分析</title>
     <link href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz-uml/"/>
     <id>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz-uml/</id>
     <published>2017-12-09T02:17:00.000Z</published>
-    <updated>2017-12-09T02:50:59.484Z</updated>
+    <updated>2018-04-16T10:43:35.302Z</updated>
     
     <content type="html"><![CDATA[<h2 id="模型列表"><a href="#模型列表" class="headerlink" title="模型列表"></a>模型列表</h2><ul>
 <li>webapp中类图</li>
@@ -749,7 +1210,9 @@
 <li>view渲染</li>
 <li>screen渲染</li>
 </ul>
-<embed width="1000" height="800" src="/data/images/2017/09/OFBiz-UML.pdf" internalinstanceid="7">]]></content>
+<embed width="1000" height="800" src="/data/pdf/OFBiz-UML.pdf" internalinstanceid="7">
+
+<h2 id="服务、任务机制模型图"><a href="#服务、任务机制模型图" class="headerlink" title="服务、任务机制模型图"></a>服务、任务机制模型图</h2><embed width="1000" height="800" src="/data/pdf/OFBiz-Service-Job.pdf" internalinstanceid="7">]]></content>
     
     <summary type="html">
     
@@ -1108,7 +1571,7 @@
     <link href="http://blog.aezo.cn/2017/10/21/db/h2/"/>
     <id>http://blog.aezo.cn/2017/10/21/db/h2/</id>
     <published>2017-10-21T02:42:00.000Z</published>
-    <updated>2017-10-22T03:11:42.016Z</updated>
+    <updated>2018-04-11T10:28:30.389Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li>h2简介 <a href="[h2介绍](http://412887952-qq-com.iteye.com/blog/2322756)">^1</a>：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库</li>
@@ -1119,7 +1582,7 @@
   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.h2database&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;h2&lt;/artifactId&gt;</div><div class="line">    &lt;scope&gt;runtime&lt;/scope&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
 </li>
 <li><p>连接配置</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">spring:</div><div class="line">    datasource:</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)</div><div class="line">    url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).</div><div class="line">    # 如果已经生成了数据库文件(同时也生成了密码), 那么再修改此处用户名密码将无法连接数据库</div><div class="line">    username: sa</div><div class="line">    password: sa</div><div class="line">    driver-class-name: org.h2.Driver</div><div class="line"># h2 web console</div><div class="line"># 登录配置Generic H2 (Server)  jdbc:h2:~/.h2/minions;AUTO_SERVER=true;  sa/sa</div><div class="line"># 推荐使用IDEA的数据库工具</div><div class="line">#  h2:</div><div class="line">#    console:</div><div class="line">#      # 程序开启时就会启动h2 web consloe</div><div class="line">#      enabled: true</div><div class="line">#      # 访问路径: http://localhost:$&#123;server.port&#125;/h2-console</div><div class="line">#      path: /h2-console</div><div class="line">#      settings:</div><div class="line">#        # 运行远程访问h2 web consloe</div><div class="line">#        web-allow-others: true</div></pre></td></tr></table></figure>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">spring:</div><div class="line">  datasource:</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)。url不写默认使用内存型数据库，数据库名为testdb</div><div class="line">    url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).</div><div class="line">    # 如果已经生成了数据库文件(同时也生成了密码), 那么再修改此处用户名密码将无法连接数据库</div><div class="line">    username: sa</div><div class="line">    password: sa</div><div class="line">    driver-class-name: org.h2.Driver</div><div class="line"># h2 web console</div><div class="line"># 登录配置Generic H2 (Server)  jdbc:h2:~/.h2/minions;AUTO_SERVER=true;  sa/sa</div><div class="line"># 推荐使用IDEA的数据库工具</div><div class="line">#  h2:</div><div class="line">#    console:</div><div class="line">#      # 程序开启时就会启动h2 web consloe</div><div class="line">#      enabled: true</div><div class="line">#      # 访问路径: http://localhost:$&#123;server.port&#125;/h2-console</div><div class="line">#      path: /h2-console</div><div class="line">#      settings:</div><div class="line">#        # 运行远程访问h2 web consloe</div><div class="line">#        web-allow-others: true</div></pre></td></tr></table></figure>
 </li>
 <li><p>配置说明</p>
 <ul>
@@ -1159,10 +1622,12 @@
     <link href="http://blog.aezo.cn/2017/10/12/others/business-conception/"/>
     <id>http://blog.aezo.cn/2017/10/12/others/business-conception/</id>
     <published>2017-10-12T03:22:00.000Z</published>
-    <updated>2017-10-12T03:22:17.875Z</updated>
+    <updated>2018-03-30T02:08:25.637Z</updated>
     
     <content type="html"><![CDATA[<h2 id="通用"><a href="#通用" class="headerlink" title="通用"></a>通用</h2><ul>
 <li><code>ERP</code> 企业资源计划(Enterprise Resource Planning)</li>
+<li><code>CRM</code> 客户关系管理(Customer Relationship Management)</li>
+<li><code>BU</code> 业务单元(Business Units，公司的一个部门)，<code>Strategical Business Unit</code> 战略业务单元</li>
 </ul>
 <h2 id="物流"><a href="#物流" class="headerlink" title="物流"></a>物流</h2><ul>
 <li><code>WMS</code> 仓库管理系统(Warehouse Management System)</li>
@@ -1170,6 +1635,13 @@
 <li>功能：库房管理、生产调度、制造过程管理、质量管理、设备工装管理、文档管理、物料批次跟踪</li>
 </ul>
 </li>
+<li><code>FOB</code>、<code>CFR</code>、<code>CIF</code><ul>
+<li>FOB(free on board)，船上交货</li>
+<li>CFR(cost and freight)成本加运费，船上交货</li>
+<li>CIF(cost, insurance and freight)成本加保险费加运费，船上交货</li>
+</ul>
+</li>
+<li><code>FBA</code> 亚马逊代发货服务(Fulfillment by Amazon)</li>
 </ul>
 <h2 id="营销-运营"><a href="#营销-运营" class="headerlink" title="营销/运营"></a>营销/运营</h2><ul>
 <li><code>MVP</code> 最小价值产品或最小可视化产品(Minimal Viable Product) <a href="[MVP是什么](https://www.zhihu.com/question/47489768?from=profile_question_card)">^2</a></li>
@@ -1181,7 +1653,7 @@
     
       &lt;h2 id=&quot;通用&quot;&gt;&lt;a href=&quot;#通用&quot; class=&quot;headerlink&quot; title=&quot;通用&quot;&gt;&lt;/a&gt;通用&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;&lt;code&gt;ERP&lt;/code&gt; 企业资源计划(Enterprise Resource Planning)&lt;/li&gt;
-&lt;/ul&gt;
+&lt;li&gt;&lt;
     
     </summary>
     
@@ -1191,209 +1663,6 @@
       <category term="business" scheme="http://blog.aezo.cn/tags/business/"/>
     
       <category term="conception" scheme="http://blog.aezo.cn/tags/conception/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>内网穿透</title>
-    <link href="http://blog.aezo.cn/2017/10/09/extend/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/"/>
-    <id>http://blog.aezo.cn/2017/10/09/extend/内网穿透/</id>
-    <published>2017-10-09T12:18:00.000Z</published>
-    <updated>2017-11-22T11:21:13.711Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
-<li>内网穿透，即NAT穿透，让外网用户可通过公网ip访问到内网服务。有时想要让其他人通过域名访问或者测试我们在本地搭建的 web 服务，但是由于本地机器没有公网 IP，无法将域名解析到本地的机器，通过内网穿透就可以实现这一功能</li>
-<li>常见的内网穿透工具如ngrok(二级域名每次启动会变化)、花生壳(需要支付8元)、NATAPP(和ngrok类似，2-3天会更新二级域名)。当然本文不不会介绍这些xx.</li>
-<li>本文介绍的内网穿透工具：frp。(内网穿透仍然需要一台公网IP的服务器，如阿里云服务器)</li>
-</ul>
-<h2 id="frp实现内网穿透"><a href="#frp实现内网穿透" class="headerlink" title="frp实现内网穿透"></a>frp实现内网穿透</h2><h3 id="frp介绍"><a href="#frp介绍" class="headerlink" title="frp介绍"></a>frp介绍</h3><ul>
-<li>开源项目，支持<code>TCP</code>、<code>UDP</code>、<code>HTTP</code>、<code>HTTPS</code>，支持自定义域名绑定</li>
-<li><a href="https://github.com/fatedier/frp" target="_blank" rel="external">github链接</a>、<a href="https://github.com/fatedier/frp/blob/master/README_zh.md" target="_blank" rel="external">中文文档</a></li>
-</ul>
-<h3 id="frp使用"><a href="#frp使用" class="headerlink" title="frp使用"></a>frp使用</h3><blockquote>
-<ul>
-<li>本文配合nginx使用(本文公网服务器不是主要用于内网穿透，且解析了多个域名，所以有些端口，如80被占用)</li>
-<li>本文以微信公众号H5开发为例(微信H5开发需要绑定回调地址，此回调地址必须是备案的域名，因此本地开发比较麻烦故使用内网穿透解决)</li>
-</ul>
-</blockquote>
-<ul>
-<li>下载最新frp版本，本文使用<code>v0.13.0</code><ul>
-<li>需要下载公网IP服务器(以下简称”服务器”)适用版(如<code>frp_0.13.0_linux_amd64.tar.gz</code>)和本地适用版(如<code>frp_0.13.0_windows_amd64.zip</code>)</li>
-</ul>
-</li>
-<li><p>服务端</p>
-<ul>
-<li>解压后含有<code>frps.ini</code>(配置文件)、<code>frps</code>(可执行文件)</li>
-<li><p>对<code>frps.ini</code>进行配置</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">[common]</div><div class="line">bind_port = 7000</div><div class="line"># 使用泛域名*.frp.aezo.cn(需要将*.frp解析到此服务器)(不使用泛域名可忽略)</div><div class="line">subdomain_host = frp.aezo.cn</div><div class="line"># 访问本地服务需要映射公网ip的端口(所有的都走此端口)</div><div class="line">vhost_http_port = 7070</div><div class="line"></div><div class="line"># dashboard(后台可视化管理)访问地址和用户名密码</div><div class="line">dashboard_port = 7500</div><div class="line">dashboard_user = smalle</div><div class="line">dashboard_pwd = smalle</div></pre></td></tr></table></figure>
-</li>
-<li><p>后台运行frp服务端：<code>nohup sudo -b ./frps &gt; my.log 2&gt;&amp;1 &amp;</code></p>
-</li>
-<li>服务器将开放相应端口：<strong>7000、7070、7050(入)；7000(出)</strong></li>
-<li><p>服务器nginx配置如下</p>
-  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">server &#123;</div><div class="line">    listen  <span class="number">80</span>;</div><div class="line">	server_name test.aezo.cn;</div><div class="line"></div><div class="line">	location / &#123;</div><div class="line">    		proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;</div><div class="line">    		proxy_set_header Host $http_host;</div><div class="line">    		proxy_redirect off;</div><div class="line">    		<span class="keyword">if</span> (!-f $request_filename) &#123;</div><div class="line">    			proxy_pass http:<span class="comment">//test.aezo.cn:7070;</span></div><div class="line">    			<span class="keyword">break</span>;</div><div class="line">    		&#125;</div><div class="line">    	&#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>需要将域名<code>test.aezo.cn</code>解析到此服务器(101.1.1.1)</p>
-</li>
-</ul>
-</li>
-<li><p>客户端</p>
-<ul>
-<li>解压后含有<code>frpc.ini</code>(配置文件)、<code>frpc</code>(可执行文件)</li>
-<li><p>对<code>frpc.ini</code>进行配置</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">[common]</div><div class="line"># 服务器公网ip</div><div class="line">server_addr = 101.1.1.1</div><div class="line">server_port = 7000</div><div class="line"></div><div class="line">[web]</div><div class="line">type = http</div><div class="line"># 访问本地服务的端口</div><div class="line">local_port = 80</div><div class="line">custom_domains = test.aezo.cn</div><div class="line"></div><div class="line"># 不使用泛域名可忽略</div><div class="line">[web01]</div><div class="line">type = http</div><div class="line">local_port = 80</div><div class="line"># 使用泛域名进行解析(映射到http://test.frp.aezo.cn)</div><div class="line">subdomain = test</div></pre></td></tr></table></figure>
-</li>
-<li><p>cmd运行<code>frpc -c ./frpc.ini</code>(可写成start.bat文件方便快速运行)</p>
-</li>
-<li>客户端也可配合使用nginx</li>
-</ul>
-</li>
-<li>请求流程<ul>
-<li>访问：<a href="http://test.aezo.cn，被nginx监听" target="_blank" rel="external">http://test.aezo.cn，被nginx监听</a></li>
-<li>服务端nginx转向：<a href="http://test.aezo.cn:7070，被frp监听" target="_blank" rel="external">http://test.aezo.cn:7070，被frp监听</a></li>
-<li>frp通过7000端口和frp客户端进行通信：<a href="http://127.0.0.1:80" target="_blank" rel="external">http://127.0.0.1:80</a></li>
-</ul>
-</li>
-<li>微信h5开发：将<code>test.aezo.cn</code>绑定到对应的回调地址上即可</li>
-</ul>
-<hr>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;内网穿透，即NAT穿透，让外网用户可通过公网ip访问到内网服务。有时想要让其他人通过域名访问或者测试我们在本地搭建的 web 服
-    
-    </summary>
-    
-      <category term="extend" scheme="http://blog.aezo.cn/categories/extend/"/>
-    
-    
-      <category term="frp" scheme="http://blog.aezo.cn/tags/frp/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>sql进阶</title>
-    <link href="http://blog.aezo.cn/2017/09/30/db/sql-ext/"/>
-    <id>http://blog.aezo.cn/2017/09/30/db/sql-ext/</id>
-    <published>2017-09-30T04:51:00.000Z</published>
-    <updated>2018-03-23T05:19:57.447Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="基本原则"><a href="#基本原则" class="headerlink" title="基本原则"></a>基本原则</h2><ul>
-<li>mysql书写顺序和执行顺序都是按照<code>select-from-where-group by-having-order by-limit</code>进行的</li>
-<li><p>MySQL中子结果集必须使用别名，而Oracle中不需要特意加别名</p>
-</li>
-<li><p>grouping、rollup：<a href="http://blog.csdn.net/damenggege123/article/details/38794351" target="_blank" rel="external">http://blog.csdn.net/damenggege123/article/details/38794351</a></p>
-</li>
-</ul>
-<h2 id="常用函数"><a href="#常用函数" class="headerlink" title="常用函数"></a>常用函数</h2><ul>
-<li><code>decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)</code> 只能判断=，不能判断like<ul>
-<li><code>select decode(length(ys.ycross_x), 1, &#39;0&#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys</code> 如果ys.ycross_x的长度为1那就在前面加0，否则取本身</li>
-<li><code>select sum(decode(shipcomp.company_num, &#39;CMA&#39;, 1, 0)) cma, sum(decode(shipcomp.company_num, &#39;MSK&#39;, 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联)</code> 统计进出场记录中cma和msk的数量</li>
-</ul>
-</li>
-<li><code>case when else end</code> 比decode强大<ul>
-<li><code>case when t.name = &#39;admin&#39; then &#39;admin&#39; when t.name like &#39;admin%&#39; then &#39;admin_user&#39; else decode(t.role, &#39;admin&#39;, &#39;admin&#39;, &#39;admin_user&#39;) end</code></li>
-<li><code>sum(case when yior.plan_classification_code = &#39;Empty_Temporary_Fall_Into_Play&#39; and yardparty.company_num = &#39;DW1&#39; then 1 end) as count_dw1</code> sum写在case里面则需要对相关字段group by. <strong>主要用于分组之后根据条件分列显示</strong></li>
-</ul>
-</li>
-</ul>
-<h2 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h2><ul>
-<li><code>count(*)</code>、<code>count(1)</code>、<code>count(id)</code>、<code>count(name)</code> <strong>统计行数，不能统计值的个数</strong>。如果有3行，但是只有name的值只有2个结果仍然为3</li>
-<li><code>wm_concat</code> <strong>行转列，会把多行转成1行</strong> (默认用”,”分割，select的其他字段需要是group by字段)<ul>
-<li><code>select replace(wm_concat(name), &#39;,&#39;, &#39;|&#39;) from test;</code>替换分割符</li>
-</ul>
-</li>
-</ul>
-<h2 id="分析函数"><a href="#分析函数" class="headerlink" title="分析函数"></a>分析函数</h2><ul>
-<li>分析函数和聚合函数的不同之处是什么：普通的聚合函数用group by分组，每个分组返回一个统计值，而分析函数采用partition by分组，并且每组每行都可以返回一个统计值 <a href="[分析函数1](http://www.cnblogs.com/linjiqin/archive/2012/04/04/2431975.html)">^1</a></li>
-<li>开窗函数<code>over()</code>，跟在分析函数之后，包含三个分析子句。形式如：<code>over(partition by xxx order by yyy rows between aaa and bbb)</code> <a href="[分析函数2](http://www.cnblogs.com/linjiqin/archive/2012/04/05/2433633.html)">^2</a> <ul>
-<li>子句类型<ul>
-<li>分组(partition by)</li>
-<li>排序(order by)</li>
-<li>窗口(rows)：窗口子句包含rows、range和滑动窗口<ul>
-<li>窗口子句不能单独出现，必须有<code>order by</code>子句时才能出现</li>
-<li>取值说明<ul>
-<li><code>unbounded preceding</code> 第一行</li>
-<li><code>current row</code> 当前行</li>
-<li><code>unbounded following</code> 最后一行</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>省略窗口字句：<ul>
-<li>出现<code>order by</code>子句的时候，不一定要有窗口子句</li>
-<li>此时窗口默认是当前组的第一行到当前行(unbounded preceding and current row)</li>
-</ul>
-</li>
-<li>省略分组字句：则把全部记录当成一个组<ul>
-<li>如果存在<code>order by</code>则窗口默认同上，即当前组的第一行到当前行</li>
-<li>如果这时省略<code>order by</code>则窗口默认为整个组(unbounded preceding and unbounded following)</li>
-</ul>
-</li>
-<li>两个<code>order by</code>的执行时机<ul>
-<li>两者一致：如果sql语句中的order by满足分析函数分析时要求的排序，那么sql语句中的排序将先执行，分析函数在分析时就不必再排序</li>
-<li>两者不一致：如果sql语句中的order by不满足分析函数分析时要求的排序，那么sql语句中的排序将最后在分析函数分析结束后执行排序</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>常见分析函数 <a href="[分析函数3](http://www.cnblogs.com/linjiqin/archive/2012/04/06/2434806.html)">^3</a><ul>
-<li><code>max()</code>、<code>min()</code>、<code>sum()</code>、<code>avg()</code></li>
-<li><code>first_value(字段名)</code>、<code>last_value(字段名)</code></li>
-<li><code>rank()</code>、<code>dense_rank()</code>、<code>row_number()</code>：为每条记录产生一个从1开始至n的自然数，n的值可能小于等于记录的总数。这3个函数的唯一区别在于当碰到相同数据时的排名策略。<ul>
-<li><code>row_number</code> 当碰到相同数据时，排名按照记录集中记录的顺序依次递增 </li>
-<li><code>dense_rank</code> 当碰到相同数据时，此时所有相同数据的排名都是一样的</li>
-<li><code>rank</code> 当碰到相同的数据时，此时所有相同数据的排名是一样的，同时会在最后一条相同记录和下一条不同记录的排名之间空出排名</li>
-</ul>
-</li>
-<li><code>lag()</code>、<code>lead()</code> 求之前或之后的第N行。lag和lead函数可以在一次查询中取出同一字段的前n行的数据和后n行的值。（这种操作可以使用对相同表的表连接来实现，不过使用lag和lead有更高的效率）<ul>
-<li>lag(列名, 偏移的offset, 超出记录窗口时的默认值)</li>
-</ul>
-</li>
-<li><code>rollup()</code>、<code>cube()</code> 排列组合分组<ul>
-<li><code>group by rollup(a, b, c)</code>：首先会对(a、b、c)进行group by，然后再对(a、b)进行group by，其后再对(a)进行group by，最后对全表进行汇总操作</li>
-<li><code>group by cube(a, b, c)</code>：  首先会对(a、b、c)进行group by，然后依次是(a、b)，(a、c)，(a)，(b、c)，(b)，(c)，最后对全表进行汇总操作</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 查询场存，并获取每个场存需要移动的次数和最早一次移动计划的id</span></div><div class="line"><span class="keyword">select</span> *</div><div class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> ys.id</div><div class="line">               ,<span class="keyword">count</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> ys.id) <span class="keyword">as</span> total</div><div class="line">               ,<span class="keyword">first_value</span>(yvmp.venue_move_plan_id) <span class="keyword">over</span>(<span class="keyword">partition</span> <span class="keyword">by</span> yvmp.storage_id <span class="keyword">order</span> <span class="keyword">by</span> yvmp.input_tm <span class="keyword">ASC</span> <span class="keyword">rows</span> <span class="keyword">between</span> <span class="keyword">unbounded</span> <span class="keyword">preceding</span> <span class="keyword">and</span> <span class="keyword">unbounded</span> <span class="keyword">following</span>) <span class="keyword">as</span> first_id</div><div class="line">          <span class="keyword">from</span> ycross_storage ys</div><div class="line">          <span class="keyword">left</span> <span class="keyword">join</span> yyard_venue_move_plan yvmp</div><div class="line">            <span class="keyword">on</span> yvmp.storage_id = ys.id</div><div class="line">           <span class="keyword">and</span> yvmp.yes_status = <span class="number">0</span>) t</div><div class="line"> <span class="keyword">group</span> <span class="keyword">by</span> t.id, t.total, t.first_id</div></pre></td></tr></table></figure>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h2 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h2><h3 id="字符串分割函数"><a href="#字符串分割函数" class="headerlink" title="字符串分割函数"></a>字符串分割函数</h3><ul>
-<li>创建字符串数组类型：<code>create or replace type sm_type_arr_str is table of varchar2 (60);</code> (一个数组，每个元素是varchar2 (60))</li>
-<li><p>创建自定义函数<code>sm_split</code></p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">create or replace function sm_split(p_str       in varchar2,</div><div class="line">                                p_delimiter in varchar2)</div><div class="line">  return sm_type_arr_str</div><div class="line">  pipelined is</div><div class="line">  j    int := 0;</div><div class="line">  i    int := 1;</div><div class="line">  len  int := 0;</div><div class="line">  len1 int := 0;</div><div class="line">  str  varchar2(4000);</div><div class="line">begin</div><div class="line">  len  := length(p_str);</div><div class="line">  len1 := length(p_delimiter);</div><div class="line"></div><div class="line">  while j &lt; len loop</div><div class="line">    j := instr(p_str, p_delimiter, i);</div><div class="line"></div><div class="line">    if j = 0 then</div><div class="line">      j   := len;</div><div class="line">      str := substr(p_str, i);</div><div class="line">      pipe row(str);</div><div class="line">      if i &gt;= len then</div><div class="line">        exit;</div><div class="line">      end if;</div><div class="line">    else</div><div class="line">      str := substr(p_str, i, j - i);</div><div class="line">      i   := j + len1;</div><div class="line">      pipe row(str);</div><div class="line">    end if;</div><div class="line">  end loop;</div><div class="line"></div><div class="line">  return;</div><div class="line">end sm_split;</div></pre></td></tr></table></figure>
-</li>
-<li><p>查询示例：<code>select * from table (cast (sm_split (&#39;aa,,bb,cc,,&#39;, &#39;,&#39;) as sm_type_arr_str));</code> 结果如下：</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">  COLUMN_VALUE</div><div class="line">1	aa</div><div class="line">2</div><div class="line">3	bb</div><div class="line">4	cc</div><div class="line">5</div></pre></td></tr></table></figure>
-</li>
-<li><p>示例二</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> t.*</div><div class="line">  <span class="keyword">from</span> test_table t</div><div class="line">  <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> <span class="number">1</span></div><div class="line">          <span class="keyword">from</span> <span class="keyword">table</span>(<span class="keyword">cast</span>(sm_split(t.name, <span class="string">','</span>) <span class="keyword">as</span> sm_type_arr_str)) arr</div><div class="line">          <span class="keyword">where</span> <span class="keyword">trim</span>(arr.column_value) = <span class="string">'aa'</span>)</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<hr>
-<p>参考文章</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;基本原则&quot;&gt;&lt;a href=&quot;#基本原则&quot; class=&quot;headerlink&quot; title=&quot;基本原则&quot;&gt;&lt;/a&gt;基本原则&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;mysql书写顺序和执行顺序都是按照&lt;code&gt;select-from-where-group by-havin
-    
-    </summary>
-    
-      <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
-    
-    
-      <category term="oracle" scheme="http://blog.aezo.cn/tags/oracle/"/>
-    
-      <category term="mysql" scheme="http://blog.aezo.cn/tags/mysql/"/>
-    
-      <category term="sql" scheme="http://blog.aezo.cn/tags/sql/"/>
     
   </entry>
   

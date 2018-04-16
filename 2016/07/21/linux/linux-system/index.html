@@ -104,7 +104,7 @@
 <meta property="og:description" content="基础知识系统信息查询 查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/文件详细.gif">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/02/类型与权限.gif">
-<meta property="og:updated_time" content="2018-03-24T08:20:57.105Z">
+<meta property="og:updated_time" content="2018-04-14T09:34:36.573Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux系统命令">
 <meta name="twitter:description" content="基础知识系统信息查询 查看操作系统版本 cat /proc/version  如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:">
@@ -531,7 +531,7 @@
 </li>
 </ul>
 <h3 id="服务相关命令"><a href="#服务相关命令" class="headerlink" title="服务相关命令"></a>服务相关命令</h3><ul>
-<li>自定义服务参考<code>《nginx.md》(基于编译安装tengine)</code></li>
+<li><strong>自定义服务参考<code>《nginx.md》(基于编译安装tengine)</code></strong></li>
 <li>systemctl：主要负责控制systemd系统和服务管理器，是<code>chkconfig</code>和<code>service</code>的合并(systemctl管理的脚本文件目录为<strong><code>/usr/lib/systemd/system</code></strong>或<strong>/etc/systemd/system</strong>)<ul>
 <li><code>systemctl start|status|restart|stop nginx.service</code> 启动|状态|重启|停止服务(.service可省略，active (running)标识正在运行)</li>
 <li><code>systemctl list-units --type=service</code> 查看所有服务<ul>
@@ -627,7 +627,7 @@
 <li>下载文件到本地(windows): <code>sz 文件名</code> （需要安装<code>yum install lrzsz</code>）</li>
 <li><code>ls</code> 列举文件 <a href="[Linux文件属性](http://www.cnblogs.com/kzloser/articles/2673790.html)">^3</a><ul>
 <li><code>ll</code> 列举文件详细<ul>
-<li><strong><code>ll test*</code></strong>/<code>ls *.txt</code> 模糊查询</li>
+<li><strong><code>ll test*</code></strong>/<code>ls *.txt</code> 模糊查询文件</li>
 <li><strong><code>ll -rt *.txt</code></strong> 按时间排序 (<code>-r</code>表示逆序、<code>-t</code>按时间排序)</li>
 <li><strong><code>ll -Sh</code></strong> 按文件大小排序 (<code>-S</code>按文件大小排序、<code>-h</code>将文件大小按1024进行转换显示)</li>
 </ul>
@@ -819,10 +819,11 @@
 <li><code>#x</code> 删除光标所在处及向后的共#个字符</li>
 </ul>
 </li>
-<li>复制命令 <code>y</code>(用法同<code>d</code>命令)</li>
-<li>粘贴命令 <code>p</code><ul>
-<li>如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面；</li>
-<li>如果删除或复制为整行内容，则粘贴至光标所在行的上方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的前面；</li>
+<li>新加一行 <code>o</code></li>
+<li>复制命令 <code>y</code>(用法同<code>d</code>命令，和粘贴命令<code>p</code>组合使用)</li>
+<li>粘贴命令 <code>p</code>/<code>P</code><ul>
+<li><code>p</code>：粘贴到下、后。如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面；</li>
+<li><code>P</code>：粘贴到上、前。</li>
 </ul>
 </li>
 <li>查找<ul>
@@ -859,9 +860,9 @@
 <li>根shell交互：<code>:! COMMAND</code> 在命令模式下执行外部命令，如mkdir</li>
 </ul>
 <h2 id="linux三剑客grep、sed、awk语法"><a href="#linux三剑客grep、sed、awk语法" class="headerlink" title="linux三剑客grep、sed、awk语法"></a>linux三剑客grep、sed、awk语法</h2><h3 id="grep过滤器"><a href="#grep过滤器" class="headerlink" title="grep过滤器"></a>grep过滤器</h3><ul>
-<li>在多个文件中查找数据<ul>
-<li>grep “search content” filename1 filename2…. filenamen</li>
-<li>grep “search content” *.sql</li>
+<li>在多个文件中查找数据(查询文件内容)<ul>
+<li><code>grep &quot;search content&quot; filename1 filename2.... filenamen</code></li>
+<li><code>grep &quot;search content&quot; *.sql</code></li>
 </ul>
 </li>
 </ul>
@@ -1126,6 +1127,7 @@
 <li><code>/dev</code> 设备文件存储目录，如声卡(eth0)、磁盘、光驱(cdrom)</li>
 <li><strong><code>/etc</code></strong> 系统配置文件所在地，一些服务器的配置文件也在此处<ul>
 <li><code>/init.d</code> 服务启动文件目录(脚本文件书写参考此目录下network文件)。是<code>/etc/rc.d/init.d</code>的symbolic link</li>
+<li><code>hosts</code></li>
 </ul>
 </li>
 <li><code>/home</code> 用户家目录</li>
@@ -1295,7 +1297,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">71</span>
+                <span class="site-state-item-count">73</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1317,7 +1319,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">108</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

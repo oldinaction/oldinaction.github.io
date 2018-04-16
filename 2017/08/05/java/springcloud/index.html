@@ -106,7 +106,7 @@
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/07/eureka.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/07/eureka-ribbon.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2017/07/spring-cloud-bus.png">
-<meta property="og:updated_time" content="2017-08-05T11:36:36.689Z">
+<meta property="og:updated_time" content="2018-04-11T10:57:07.768Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SpringCloud">
 <meta name="twitter:description" content="介绍 架构演进 单体架构：复杂度逐渐变高、部署速度慢、阻碍技术创新、无法按需伸缩 SOA ^1 微服务   微服务特点 微服务可独立运行在自己的进程里 一系列独立运行的微服务构成整个系统 每个服务独立开发维护 微服务之间通过REST API或RPC等方式通信 优点：易于开发和维护，启动快，技术栈不受限制，按需伸缩，DevOps 挑战：运维要求较高，分布式的复杂性，接口调整成本高   微服务设计原则">
@@ -414,11 +414,11 @@
 
       
         <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
-<li>架构演进<ol>
+<li>架构演进<ul>
 <li>单体架构：复杂度逐渐变高、部署速度慢、阻碍技术创新、无法按需伸缩</li>
 <li>SOA <a href="[SOA和微服务架构的区别](https://www.zhihu.com/question/37808426)">^1</a></li>
 <li>微服务</li>
-</ol>
+</ul>
 </li>
 <li>微服务特点<ul>
 <li>微服务可独立运行在自己的进程里</li>
@@ -433,7 +433,7 @@
 <li>微服务开发框架：<code>Spring Cloud</code>、<code>Dubbo</code>、<code>Dropwizard</code>、<code>Consul</code>等</li>
 <li>Spring Cloud是基于Spring Boot的用于快速构建分布式系统工具集</li>
 <li>Spring Cloud特点：约定优于配置、开箱即用，快速启动、轻量级组件、组件丰富、选型中立</li>
-<li>本文相关软件：JDK: 1.8，SpringCloud: Dalston.SR1</li>
+<li>本文相关软件：JDK: 1.8，SpringCloud: <code>Dalston.SR1</code></li>
 </ul>
 <h2 id="微服务构建"><a href="#微服务构建" class="headerlink" title="微服务构建"></a>微服务构建</h2><ul>
 <li>服务提供者、服务消费者</li>
@@ -574,7 +574,7 @@
 <li><p>启动类声明<code>@EnableZuulProxy</code></p>
 </li>
 <li><p>基础配置application.yml</p>
-  <figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="attr">zuul:</span></div><div class="line">  <span class="comment"># 忽略表达式。当遇到路径中有admin的不进行路由</span></div><div class="line">  <span class="comment"># ignored-patterns: /**/admin/**</span></div><div class="line">  <span class="comment"># 路由前缀</span></div><div class="line">  <span class="comment"># prefix: /api</span></div><div class="line">  <span class="comment"># zuul默认会过滤路由前缀(strip-prefix=true)，此处是关闭此过滤</span></div><div class="line">  <span class="comment"># strip-prefix: false</span></div><div class="line"><span class="attr">  routes:</span></div><div class="line">    <span class="comment"># 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录</span></div><div class="line">    <span class="comment"># 此处路径在配置文件中越靠前的约优先（系统将所有路径放到LinkedHashMap中，当匹配到一个后就终止匹配）</span></div><div class="line">    <span class="comment"># 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1 和 http://localhost:5555/api-movie/movie/1</span></div><div class="line">    <span class="comment"># api-movie为规则名, 可通过spring cloud config进行动态加载(覆盖)</span></div><div class="line"><span class="attr">    api-movie:</span></div><div class="line"><span class="attr">      path:</span> <span class="string">/api-movie/**</span></div><div class="line">      <span class="comment"># 从eureka中获取此服务(spring.application.name)的地址(面向服务的路由)</span></div><div class="line"><span class="attr">      serviceId:</span> <span class="string">consumer-movie-ribbon</span></div><div class="line"><span class="attr">    api-user:</span></div><div class="line"><span class="attr">      path:</span> <span class="string">/api-user/**</span></div><div class="line"><span class="attr">      serviceId:</span> <span class="string">provider-user</span></div><div class="line">    <span class="comment"># 本地跳转(当访问/api-local/**的时候，则会转到当前应用的/local/**的地址)</span></div><div class="line">    <span class="comment"># api-local:</span></div><div class="line">    <span class="comment">#   path: /api-local/**</span></div><div class="line">    <span class="comment">#   url: forward:/local</span></div><div class="line">    <span class="comment"># 禁用过滤器：zuul.&lt;FilterClassName&gt;.&lt;filterType&gt;.disable=true</span></div><div class="line">    <span class="comment"># AccessFilter:</span></div><div class="line">    <span class="comment">#   pre:</span></div><div class="line">    <span class="comment">#     disable: true</span></div></pre></td></tr></table></figure>
+  <figure class="highlight yml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="attr">zuul:</span></div><div class="line">  <span class="comment"># 忽略表达式。当遇到路径中有admin的不进行路由</span></div><div class="line">  <span class="comment"># ignored-patterns: /**/admin/**</span></div><div class="line">  <span class="comment"># 路由前缀</span></div><div class="line">  <span class="comment"># prefix: /api</span></div><div class="line">  <span class="comment"># zuul默认会过滤路由前缀(strip-prefix=true)，此处是关闭此过滤</span></div><div class="line">  <span class="comment"># strip-prefix: false</span></div><div class="line"><span class="attr">  routes:</span></div><div class="line">    <span class="comment"># 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录</span></div><div class="line">    <span class="comment"># 此处路径在配置文件中越靠前的约优先（系统将所有路径放到LinkedHashMap中，当匹配到一个后就终止匹配）</span></div><div class="line">    <span class="comment"># 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1?accessToken=smalle 和 http://localhost:5555/api-movie/movie/1?accessToken=smalle （有熔断保护，可能会超时，多刷新几遍）</span></div><div class="line">    <span class="comment"># api-movie为规则名, 可通过spring cloud config进行动态加载(覆盖)</span></div><div class="line"><span class="attr">    api-movie:</span></div><div class="line"><span class="attr">      path:</span> <span class="string">/api-movie/**</span></div><div class="line">      <span class="comment"># 从eureka中获取此服务(spring.application.name)的地址(面向服务的路由)</span></div><div class="line"><span class="attr">      serviceId:</span> <span class="string">consumer-movie-ribbon</span></div><div class="line"><span class="attr">    api-user:</span></div><div class="line"><span class="attr">      path:</span> <span class="string">/api-user/**</span></div><div class="line"><span class="attr">      serviceId:</span> <span class="string">provider-user</span></div><div class="line">    <span class="comment"># 本地跳转(当访问/api-local/**的时候，则会转到当前应用的/local/**的地址)</span></div><div class="line">    <span class="comment"># api-local:</span></div><div class="line">    <span class="comment">#   path: /api-local/**</span></div><div class="line">    <span class="comment">#   url: forward:/local</span></div><div class="line">    <span class="comment"># 禁用过滤器：zuul.&lt;FilterClassName&gt;.&lt;filterType&gt;.disable=true</span></div><div class="line">    <span class="comment"># AccessFilter:</span></div><div class="line">    <span class="comment">#   pre:</span></div><div class="line">    <span class="comment">#     disable: true</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
 </li>
@@ -688,7 +688,7 @@
 <li>刷新消息总线上的任何一个服务都可以到达此效果(消息总线上的其他服务会收到触发刷新服务的消息，进行同步刷新)</li>
 </ul>
 </li>
-<li><p>原理如下 [^3]</p>
+<li><p>原理如下 <a href="[Spring-Cloud-Bus原理](http://blog.csdn.net/sosfnima/article/details/53178326)">^3</a></p>
 <p>  <img src="/data/images/2017/07/spring-cloud-bus.png" alt="spring-cloud-bus"></p>
 </li>
 </ul>
@@ -812,14 +812,14 @@
 <li><p>引入依赖</p>
   <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">      <span class="comment">&lt;!--服务跟踪与Zipkin整合(可选)--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-zipkin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
-<li><p>如果zipkin没有使用eureka， 则需要在application.yml中添加<code>spring.zipkin.base-url: http://localhost:9411/</code>(zipkin server地址)</p>
+<li><p>如果zipkin没有使用eureka， 则需要在application.yml中添加<code>spring.zipkin.base-url: http://localhost:9411/</code> (zipkin server地址)</p>
 </li>
 </ul>
 </li>
-<li>进入到zipkin server后台界面查看跟踪信息：<a href="http://localhost:9411/(跟踪信息可能会有延迟" target="_blank" rel="external">http://localhost:9411/(跟踪信息可能会有延迟</a>)</li>
+<li>进入到zipkin server后台界面查看跟踪信息：<a href="http://localhost:9411/" target="_blank" rel="external">http://localhost:9411/</a> (跟踪信息可能会有延迟)</li>
 </ul>
 </li>
-<li><p>ELK日志分析系统(Logstash)</p>
+<li><p>整合ELK日志分析系统(Logstash)</p>
 <ul>
 <li>ELK平台包含：ElasticSerch(分布式搜索引擎)、Logstash(日志收集-过滤-存储)、Kibana(界面展现)三个开源工具。(与Zipkin类似，二者不建议同时使用)</li>
 <li><p>引入依赖</p>
@@ -832,7 +832,7 @@
 </li>
 </ul>
 <hr>
-<p>[^3]: <a href="http://blog.csdn.net/sosfnima/article/details/53178326" target="_blank" rel="external">Spring Cloud Bus原理</a></p>
+<p>参考文章</p>
 
       
     </div>
@@ -975,7 +975,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">71</span>
+                <span class="site-state-item-count">73</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -997,7 +997,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">108</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

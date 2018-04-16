@@ -322,7 +322,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/10/linux/CentOS服务器使用说明/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/20/java/jvm/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -341,7 +341,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/01/10/linux/CentOS服务器使用说明/" itemprop="url">CentOS服务器使用说明</a></h1>
+                <a class="post-title-link" href="/2017/01/20/java/jvm/" itemprop="url">jvm</a></h1>
         
 
         <div class="post-meta">
@@ -353,8 +353,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-10T13:19:00+08:00">
-                2017-01-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-20T13:07:00+08:00">
+                2017-01-20
               </time>
             
 
@@ -376,8 +376,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index">
-                    <span itemprop="name">linux</span>
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
                   </a>
                 </span>
 
@@ -412,33 +412,185 @@
       
         
           
-          介绍
-基于centos7介绍
-如果服务器磁盘未挂载，最好先挂载后再进行软件安装
-
-基本配置
-关闭防火墙
-决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组
-Centos 7使用firewalld代替了原来的iptables
-查看状态：systemctl status firewalld
-开放端口：firewall-cmd --zone=public --add-port=80/tcp --permanent（–permanent永久生效，没有此参数重启后失效）
-重新载入：firewall-cmd --reload
-查看端口：firewall-cmd --zone= public --query-port=80/tcp
-删除端口：firewall-cmd --zone= public --remove-port=80/tcp --permanent
+          jvm常用配置
+oracle推荐jvm配置
+配置参数|    功能———|———--Xms|    初始堆大小。如：-Xms256m-Xmx|    最大堆大小。如：-Xmx512m-Xmn|    新生代大小。通常为 Xmx 的 1/3 或 1/4。新生代 = Eden + 2 个 Survivor 空间。实际可用空间为 = Eden + 1 个 Survivor，即 90%-Xss|    JDK1.5+ 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的。-XX:NewRatio|    新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3-XX:SurvivorRatio|    新生代中 Eden 与 Survivor 的比值。默认值为 8。即 Eden 占新生代空间的 8/10，另外两个 Survivor 各占 1/10-XX:PermSize|    永久代(方法区)的初始大小-XX:MaxPermSize|    永久代(方法区)的最大值-XX:+PrintGCDetails|    打印 GC 信息-XX:+HeapDumpOnOutOfMemoryError|    让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用
 
 
-云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
+
+          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/20/java/jvm/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
 
 
-永久关闭SELinux
-vi /etc/selinux/config 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/16/arch/nginx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/01/16/arch/nginx/" itemprop="url">nginx</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-16T16:54:00+08:00">
+                2017-01-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/arch/" itemprop="url" rel="index">
+                    <span itemprop="name">arch</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          nginx介绍
+nginx(“engine x”) 是一个高性能的 HTTP 和 反向代理 服务器，也是一个 IMAP/POP3/SMTP 代理服务器
+轻量级，同样起web服务，比apache占用更少的内存及资源，抗并发，nginx 处理请求是异步非阻塞的，而apache则是阻塞型的。最核心的区别在于apache是同步多进程模型，一个连接对应一个进程；nginx是异步的，多个连接（万级别）可以对应一个进程(nginx是多进程的)
+作用：作为前端服务器拥有响应静态页面功能；作为集群构建者拥有反向代理功能
+单个tomcat支持最高并发，测试结果：150人响应时间1s、250人响应1.8s(理想情况下最大并发数)、280人出现连接丢失、600人系统异常
+Tengine是nginx的加强版，封装版，淘宝开源。
+官网
+中文文档
+Nginx开发从入门到精通
 
 
-cento
+nginx在整体架构中的作用
+  
+
+
+nginx使用
+安装(详细参考下文基于编译安装tengine)
+yum install nginx 基于源安装(傻瓜式安装)
+默认可执行文件路径/usr/sbin/nginx(已加入到系统服务); 配置文件路径/etc/nginx/nginx.conf
+
+
+程序包解压安装
+
+
+启动
+systemctl start nginx 启动
+进入到nginx执行文件目录，运行sudo ./nginx
+
+
+停
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/01/10/linux/CentOS服务器使用说明/#more" rel="contents">
+            <a class="btn" href="/2017/01/16/arch/nginx/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -608,6 +760,168 @@ ls　&gt; ls.txt 将ls的输出保存到ls.txt中
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2017/01/10/linux/shell/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/01/10/linux/CentOS服务器使用说明/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/01/10/linux/CentOS服务器使用说明/" itemprop="url">CentOS服务器使用说明</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-10T13:19:00+08:00">
+                2017-01-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/linux/" itemprop="url" rel="index">
+                    <span itemprop="name">linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          介绍
+基于centos7介绍
+如果服务器磁盘未挂载，最好先挂载后再进行软件安装
+
+基本配置
+关闭防火墙
+决定能否访问到服务器，或服务器能否访问其他服务，取决于服务器防火墙和云服务器后台管理的安全组
+Centos 7使用firewalld代替了原来的iptables
+查看状态：systemctl status firewalld
+开放端口：firewall-cmd --zone=public --add-port=80/tcp --permanent（–permanent永久生效，没有此参数重启后失效）
+重新载入：firewall-cmd --reload
+查看端口：firewall-cmd --zone= public --query-port=80/tcp
+删除端口：firewall-cmd --zone= public --remove-port=80/tcp --permanent
+
+
+云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
+
+
+永久关闭SELinux
+vi /etc/selinux/config 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
+
+
+cento
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/10/linux/CentOS服务器使用说明/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1507,153 +1821,6 @@ Disque 使用教
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/10/12/db/oracle-dba/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/10/12/db/oracle-dba/" itemprop="url">Oracle DBA</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-12T21:06:00+08:00">
-                2016-10-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/db/" itemprop="url" rel="index">
-                    <span itemprop="name">db</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          简介
-注：本文中 aezo/aezo 一般指用户名/密码，local_orcl指配置的本地数据库服务名，remote_orcl指配置的远程数据库服务名。以11g为例
-
-oracle相关名词和原理
-数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) ^1
-DB_NAME: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
-INSTANCE_NAME: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
-ORACLE_SID: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/10/12/db/oracle-dba/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/10/12/db/mysql-dba/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1799,165 +1966,6 @@ Oracle进入系统(scott/tigger)
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/09/17/extend/intellij-idea/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/09/17/extend/intellij-idea/" itemprop="url">IntelliJ IDEA</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-17T15:37:00+08:00">
-                2016-09-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          IntelliJ IDEA简介常用设置
-新建包文件夹，一定要一层一层的建，或者创建cn/aezo的文件夹，不能创建一个cn.aezo(不会自动生成两个文件夹)
-
-java web项目配置 [^1]
-进入到Project Structure：File - Project Structure
-配置步骤
-Project 项目级别
-主要是project compiler output的位置(src的编译位置)：如/myproject/WebRoot/WEB-INF/classes，为对应WEB-INF下的classes目录
-
-
-Modules 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
-Sources 将src目录标记成Sources目录（如果是maven项目则标记java、test目录，即包名的上级目录）
-Paths 使用modules compiler output path，设置路径为/myproject/WebRoot/WEB-INF/classes
-Dependencies 加入jdk、tomcat、其他依赖jar(如\WEB-INF/lib中的jar)
-
-
-Libraries 如将/WEB-INF/lib中的所有jar定义一个目录，直接加入到Dependencies中
-Facets
-点击+ - web
-Web Module De
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/09/17/extend/intellij-idea/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2007,7 +2015,7 @@ Web Module De
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">71</span>
+                <span class="site-state-item-count">73</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -2029,7 +2037,7 @@ Web Module De
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">108</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
