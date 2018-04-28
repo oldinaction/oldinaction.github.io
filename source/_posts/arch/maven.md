@@ -87,7 +87,7 @@ tags: [maven]
 
 ### maven项目依赖本地jar包
 
-- 安装jar包到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
+- 安装jar包(test-1.0.0.jar)到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
 	- 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
 - 再按照常规的方式应用
 	
@@ -150,7 +150,7 @@ tags: [maven]
 
 - github新建项目maven-repo，并下载到本地目录，如`D:/GitRepositories/maven-repo`
 - 进入到项目pom.xml所在目录，运行命令：
-	- `mvn deploy -DaltDeploymentRepository=oldinaction-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`
+	- `mvn deploy -DaltDeploymentRepository=oldinaction-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
 	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`oldinaction-maven-repo`，`-DskipTests`跳过测试进行部署
 - 提交到github(**注意jar包不要习惯性的ignore**)
 - 配置maven远程仓库

@@ -209,7 +209,7 @@ tags: [mybatis, springboot]
 			// like 的使用。此处必须使用concat进行字符串连接
             " <when test='help.title != null'> AND h.title like concat('%', #{help.title}, '%')</when>",
             " <when test='event.name != null'> AND e.name = #{event.name}", "</when>",
-			// or 的使用
+			// or 的使用(1 != 1 or .. or ..)
 			" <when test='help.title != null and help.desc != null or help.start != null and help.end != null'> and (",
 			"  <when test='help.title != null and help.desc != null>",
 			"    help.title = #{help.title}",
@@ -320,7 +320,10 @@ tags: [mybatis, springboot]
 				where id = #{id}
 			</select>
 
-			<!-- keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)：userMapper.insert(userInfo); userInfo.getUserId(); -->
+			<!-- 获取自增主键：mysql为例 -->
+			<!-- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句) -->
+			<!-- 方式二：<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey> -->
+			<!-- 获取方式：userMapper.insert(userInfo); userInfo.getUserId(); -->
 			<insert id="insert" keyProperty="userId" useGeneratedKeys="true" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
 				insert into
 				user_info
@@ -399,7 +402,32 @@ tags: [mybatis, springboot]
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
 	- 使用`<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
 
-### MyBatis Generator
+### 控制主键自增和获取自增主键值
+
+- 获取自增主键(mysql为例，需要数据库设置主键自增) [^3]
+	- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)
+	- 方式二：`<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>`
+	- 获取方式：`userMapper.insert(userInfo); userInfo.getUserId();`
+
+### MyBatis、Java、Oracle、MySql数据类型对应关系
+
+- Mybatis的数据类型用JDBC的数据类型
+- JDBC数据类型转换
+
+
+JDBC | Java | Mysql | Oracle
+---------|----------|---------|---------
+Integer | Integer | Int | 
+Bigint  | Long | Bigint | Number
+Numeric  | Long |  | Number
+Timestamp| Date | Datetime | Date
+Date | Date | Date | Date
+Decimal | BigDecimal | Decimal | Number(20, 6) 
+Char |  | Char | Char
+ Blob |  | Blob | Blob
+ Clob |  | Text | Clob
+
+## MyBatis Generator
 
 - 使用`MyBatis Generator`自动生成model/dao/mapper
 - 官方文档：[http://www.mybatis.org/generator/index.html](http://www.mybatis.org/generator/index.html)
@@ -439,6 +467,7 @@ tags: [mybatis, springboot]
 			<classPathEntry location="C:\Users\smalle\.m2\repository\mysql\mysql-connector-java\5.1.43\mysql-connector-java-5.1.43.jar" />
 			<context id="MySQLTables" targetRuntime="MyBatis3" defaultModelType="flat">
 				
+				<!-- 为了防止生成的代码中有很多注释，比较难看 -->
 				<commentGenerator>
 					<property name="suppressDate" value="true" />
 					<property name="suppressAllComments" value="true" />
@@ -461,6 +490,7 @@ tags: [mybatis, springboot]
 						targetPackage="cn.aezo.springboot.mybatis.generator.model"
 						targetProject="src/main/java">
 					<property name="enableSubPackages" value="true" />
+					<!-- 是否对类CHAR类型的列的数据进行trim操作 -->  
 					<property name="trimStrings" value="true" />
 				</javaModelGenerator>
 
@@ -479,19 +509,29 @@ tags: [mybatis, springboot]
 					<property name="enableSubPackages" value="true" />
 				</javaClientGenerator>
 
+				<!-- 读取所有的table标签，有几个table标签就解析几个 -->
 				<!-- %标识根据表名生成，tableName="t_%"表示只生成t_开头的表名 -->
 				<table tableName="%">
 					<!-- 
-						1、生成selectKey语句，为mybatis生成自增主键(无需数据库字段设置成自增)
+						1、生成selectKey语句，为mybatis生成获取自增主键值语句(必须数据库字段设置成自增)
 						2、column表的字段名(不支持通配符，因此为了方便可将所有表的主键名设置为id)
 						3、sqlStatement="MySql/DB2/SqlServer等"
-						4、identity：true表示column代表的是主键，会在插入记录之后获取自增值替换对应model的id值(自增需要由数据库提供)，false表示非主键，会在插入记录获取自增值并替换model的id(如从序列中获取)
+						4、identity：true表示column代表的是主键，会在插入记录之后获取自增值替换对应model的id值(自增需要由数据库提供)，实际的insert语句将不含有主键字段; false表示非主键，会在插入记录获取自增值并替换model的id(如从序列中获取), 此时insert语句含有主键字段
 						5、最终生成的语句如
 						<selectKey keyProperty="userId" order="AFTER" resultType="java.lang.Long">
 						SELECT LAST_INSERT_ID()
 						</selectKey>
 					-->
 					<generatedKey column="id" sqlStatement="MySql" identity="true" />
+				</table>
+
+				<!-- 去掉表前缀：生成之后的文件名字User.java等。enableCountByExample标识是否使用Example -->
+				<table tableName="t_user" domainObjectName="User"
+					enableCountByExample="false" enableDeleteByExample="false"
+					enableSelectByExample="false" enableUpdateByExample="false">
+					<!-- 去掉字段前缀 `t_` -->
+					<property name="useActualColumnNames" value="false"/>
+					<columnRenamingRule searchString="^t_" replaceString=""/>
 				</table>
 			</context>
 		</generatorConfiguration>
@@ -531,8 +571,18 @@ tags: [mybatis, springboot]
             e.printStackTrace();
         }
 		```
+- 生成oracle项目：先将oracle表转成mysql数据表，参考《mysql-db.md》，再生成项目
+	- 配置文件设置成`<generatedKey column="id" sqlStatement="MySql" identity="false" />`中identity="false"为了生成id的insert语句（oracle需要通过序列来完成）
+	- 修改生成的`<selectKey>`语句为根据序列获取主键
 
 ---
 
+参考文章
+
 [^1]: [整合mybatis](http://blog.csdn.net/gebitan505/article/details/54929287)
 [^2]: [@Select注解中当参数为空则不添加该参数的判断](https://segmentfault.com/q/1010000006875476)
+[^3]: [Mybatis操作数据库的主键自增长](https://www.cnblogs.com/panie2015/p/5807683.html)
+
+TODO
+
+- Mybatis Generator添加注释：https://www.cnblogs.com/NieXiaoHui/p/6094144.html

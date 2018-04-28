@@ -62,12 +62,13 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 	- 配置文件：`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
 - 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
 
-
 ## 常用配置
 
-- 随应用启动而运行(实现`CommandLineRunner`接口)
+### 随应用启动而运行(实现`CommandLineRunner`接口)
 
-	```
+- 读取resources目录下配置文件
+
+	```java
 	@Component
 	@Order(value = 1) // @Order值越小越优先
 	public class HelpStartupRunner implements CommandLineRunner {
@@ -76,6 +77,13 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 
 		@Override
 		public void run(String... args) throws Exception {
+			// 读取失败
+			// this.getClass().getResource("/service.json").getPath()
+			// Resources[] resources = applicationContext.getResources("classpath*:**/test/*.json");
+			// Resource resources = applicationContext.getResource("classpath:service.json");
+			// 读取resources目录下配置文件
+			InputStream in = this.getClass().getResourceAsStream("/service.json");
+
 			initImageUploadRoot();
 		}
 
@@ -90,191 +98,329 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 	}
 	```
 
-- 拦截器
-	- 定义拦截器
+### 拦截器
 
-		```java
-		@Component
-		public class MyInterceptor implements HandlerInterceptor {
-
-			@Override
-			public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-					throws Exception {
-				System.out.println(">>>>>>>>>>在请求处理之前进行调用（Controller方法调用之前）");
-				return true; // 只有返回true才会继续向下执行，返回false取消当前请求
-			}
-
-			/**
-			* 这个方法只会在当前这个Interceptor的preHandle方法返回值为true的时候才会执行。
-			* postHandle是进行处理器拦截用的，它的执行时间是在处理器进行处理之后，也就是在Controller的方法调用之后执行，但是它会在DispatcherServlet进行视图的渲染之前执行，也就是说在这个方法中你可以对ModelAndView进行操作。
-			* 这个方法的链式结构跟正常访问的方向是相反的，也就是说先声明的Interceptor拦截器，该方法反而会后调用
-			*/
-			@Override
-			public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-								ModelAndView modelAndView) throws Exception {
-				System.out.println(">>>>>>>>>>请求处理之后进行调用（Controller方法调用之后），但是在视图被渲染之前");
-
-				if(response.getStatus() == 500) {
-					modelAndView.setViewName("/error/500");
-				} else if(response.getStatus() == 404) {
-					modelAndView.setViewName("/error/404");
-				} else if(response.getStatus() == 403) {
-					modelAndView.setViewName("/error/403");
-				}
-			}
-
-			/**
-			* 该方法也是需要当前对应的Interceptor的preHandle方法的返回值为true时才会执行。
-			* 该方法将在整个请求完成之后，也就是DispatcherServlet渲染了视图执行
-			* 这个方法的主要作用是用于清理资源的，当然这个方法也只能在当前这个Interceptor的preHandle方法的返回值为true时才会执行。
-			*/
-			@Override
-			public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-					throws Exception {
-				System.out.println(">>>>>>>>>>在整个请求结束之后被调用，也就是在DispatcherServlet 渲染了对应的视图之后执行（主要是用于进行资源清理工作）");
-			}
-		}
-		```
-	- 注册拦截器
-
-		```java
-		@Configuration
-		public class InterceptorConfig extends WebMvcConfigurerAdapter {
-			@Override
-			public void addInterceptors(InterceptorRegistry registry) {
-				// 多个拦截器组成一个拦截器链
-				// addPathPatterns 用于添加拦截规则
-				// excludePathPatterns 用于排除拦截
-				registry.addInterceptor(new MyInterceptor()).addPathPatterns("/**");
-
-				super.addInterceptors(registry);
-			}
-		}
-		```
-- 获取Bean：此处选择实现`ApplicationContextAware`接口 [^7]
+- 定义拦截器
 
 	```java
-	@Component("springContextU")
-	public class SpringContextU implements ApplicationContextAware {
-
-		private static ApplicationContext applicationContext;
+	@Component
+	public class MyInterceptor implements HandlerInterceptor {
 
 		@Override
-		public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-			if(SpringContextU.applicationContext == null) {
-				SpringContextU.applicationContext = applicationContext;
+		public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+				throws Exception {
+			System.out.println(">>>>>>>>>>在请求处理之前进行调用（Controller方法调用之前）");
+			return true; // 只有返回true才会继续向下执行，返回false取消当前请求
+		}
+
+		/**
+		* 这个方法只会在当前这个Interceptor的preHandle方法返回值为true的时候才会执行。
+		* postHandle是进行处理器拦截用的，它的执行时间是在处理器进行处理之后，也就是在Controller的方法调用之后执行，但是它会在DispatcherServlet进行视图的渲染之前执行，也就是说在这个方法中你可以对ModelAndView进行操作。
+		* 这个方法的链式结构跟正常访问的方向是相反的，也就是说先声明的Interceptor拦截器，该方法反而会后调用
+		*/
+		@Override
+		public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+							ModelAndView modelAndView) throws Exception {
+			System.out.println(">>>>>>>>>>请求处理之后进行调用（Controller方法调用之后），但是在视图被渲染之前");
+
+			if(response.getStatus() == 500) {
+				modelAndView.setViewName("/error/500");
+			} else if(response.getStatus() == 404) {
+				modelAndView.setViewName("/error/404");
+			} else if(response.getStatus() == 403) {
+				modelAndView.setViewName("/error/403");
 			}
 		}
 
 		/**
-		* 获取applicationContext
-		* @return
+		* 该方法也是需要当前对应的Interceptor的preHandle方法的返回值为true时才会执行。
+		* 该方法将在整个请求完成之后，也就是DispatcherServlet渲染了视图执行
+		* 这个方法的主要作用是用于清理资源的，当然这个方法也只能在当前这个Interceptor的preHandle方法的返回值为true时才会执行。
 		*/
-		public static ApplicationContext getApplicationContext() {
-			return applicationContext;
+		@Override
+		public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+				throws Exception {
+			System.out.println(">>>>>>>>>>在整个请求结束之后被调用，也就是在DispatcherServlet 渲染了对应的视图之后执行（主要是用于进行资源清理工作）");
 		}
+	}
+	```
+- 注册拦截器
 
-		/**
-		* 通过name获取 Bean.
-		* @param name
-		* @return
-		*/
-		public static Object getBean(String name){
-			return getApplicationContext().getBean(name);
+	```java
+	@Configuration
+	public class InterceptorConfig extends WebMvcConfigurerAdapter {
+		@Override
+		public void addInterceptors(InterceptorRegistry registry) {
+			// 多个拦截器组成一个拦截器链
+			// addPathPatterns 用于添加拦截规则
+			// excludePathPatterns 用于排除拦截
+			registry.addInterceptor(new MyInterceptor()).addPathPatterns("/**");
+
+			super.addInterceptors(registry);
 		}
-
-		/**
-		* 通过class获取Bean.
-		* @param clazz
-		* @param <T>
-		* @return
-		*/
-		public static <T> T getBean(Class<T> clazz){
-			return getApplicationContext().getBean(clazz);
-		}
-
-		/**
-		* 通过name以及Clazz返回指定的Bean
-		* @param name
-		* @param clazz
-		* @param <T>
-		* @return
-		*/
-		public static <T> T getBean(String name,Class<T> clazz){
-			return getApplicationContext().getBean(name, clazz);
-		}
-
 	}
 	```
 
-- 异步执行服务 [^8]
-	- 启动类加注解`@EnableAsync`
-	- 服务类方法加注解`@Async`
+### 获取Bean：此处选择实现`ApplicationContextAware`接口 [^7]
 
-- `@Value`给静态成员设值
+```java
+@Component("springContextU")
+public class SpringContextU implements ApplicationContextAware {
 
-	```java
-	// 定义
-	@ConfigurationProperties(prefix = "myValue")
-	public class MyValue {
-		// ...Model：字段、get、set方法
+	private static ApplicationContext applicationContext;
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		if(SpringContextU.applicationContext == null) {
+			SpringContextU.applicationContext = applicationContext;
+		}
 	}
 
-	// 设值：在application.properties中设置`myValue.val`的值
+	// 获取applicationContext
+	public static ApplicationContext getApplicationContext() {
+		return applicationContext;
+	}
 
-	// 取值
-	@Value("${myValue.val}")
-	private String val;
+	// 通过name获取 Bean
+	public static Object getBean(String name){
+		return getApplicationContext().getBean(name);
+	}
 
-	private static String hello;
+	// 通过class获取Bean
+	public static <T> T getBean(Class<T> clazz){
+		return getApplicationContext().getBean(clazz);
+	}
 
-	@Value("${myValue.hello}")
-	public setHello(String hello) {
-		this.hello = hello;
+	// 通过name以及Clazz返回指定的Bean
+	public static <T> T getBean(String name,Class<T> clazz){
+		return getApplicationContext().getBean(name, clazz);
+	}
+}
+```
+
+### 异步执行服务 [^8]
+
+- 启动类加注解`@EnableAsync`
+- 服务类方法加注解`@Async`
+
+### `@Value`给静态成员设值
+
+```java
+// 定义
+@ConfigurationProperties(prefix = "myValue")
+public class MyValue {
+	// ...Model：字段、get、set方法
+}
+
+// 设值：在application.properties中设置`myValue.val`的值
+
+// 取值
+@Value("${myValue.val}")
+private String val;
+
+private static String hello;
+
+@Value("${myValue.hello}")
+public setHello(String hello) {
+	this.hello = hello;
+}
+```
+
+### `@Autowired`注入给静态属性
+
+```java
+@Component
+public class BaseController {
+	private static Logger logger = LoggerFactory.getLogger(BaseController.class);
+
+	private static CustomObjectMapper customObjectMapper;
+
+	public BaseController() {}
+
+	@Autowired // 类加载时调用此构造方法并赋值给静态属性
+	public BaseController(CustomObjectMapper customObjectMapper) {
+		BaseController.customObjectMapper = customObjectMapper;
+	}
+}
+```
+
+### 跨域资源共享（CORS）[^9]
+
+```java
+@Bean
+public WebMvcConfigurer corsConfigurer() {
+		return new WebMvcConfigurerAdapter() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				registry.addMapping("/**")
+						.allowedHeaders("*")
+						.allowedMethods("*")
+						.allowedOrigins("*")
+						.allowCredentials(true);
+			}
+		};
+}
+```
+- 使用spring security的CORS配置可参考相应文章
+
+### 国际化
+
+- 在resources目录增加两个properties文件：`messages.properties`(默认)、`messages_zh_CN.properties`(中文)
+- 配置文件中添加`spring.messages.basename=i18n/messages`
+	- 可通过`spring.messages.basename=i18n/messages`定义配置文件路径，此时应该将`messages.*`放在`resources/i18n`目录
+- 在其中加入类似配置`error.unknown_exception=未知错误`
+- 调用
+
+	```java
+	@Autowired
+	private MessageSource messageSource;
+
+	private String getLocalMessage(String code) {
+		String localMessage = null;
+		Locale locale = null;
+		try {
+			locale = LocaleContextHolder.getLocale();
+			localMessage = messageSource.getMessage(code, null, locale);
+		} catch (NoSuchMessageException e1) {
+			logger.warn("invalid i18n! code: " + code + ", local: " + locale);
+		}
+
+		return localMessage;
 	}
 	```
-- 跨域资源共享（CORS）[^9]
 
-	```java
-	@Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurerAdapter() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedHeaders("*")
-                        .allowedMethods("*")
-                        .allowedOrigins("*")
-                        .allowCredentials(true);
-            }
-        };
+### 全局错误处理
+
+```java
+@RestController // 包含@ResponseBody
+@ControllerAdvice // 和@ExceptionHandler联用进行control层错误处理
+// 继承BasicErrorControllers是处理进入control层之前发生的异常，需要重写error、errorHtml两个方法
+public class GlobalExceptionHandlerController extends BasicErrorController {
+    private Logger logger = LoggerFactory.getLogger(GlobalExceptionHandlerController.class);
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private Environment env;
+
+	// 自定义的com.fasterxml.jackson.databind.ObjectMapper用于返回数据格式化
+    @Autowired
+    private CustomObjectMapper customObjectMapper;
+
+    public GlobalExceptionHandlerController() {
+        super(new DefaultErrorAttributes(), new ErrorProperties());
     }
-	```
-	- 使用spring security的CORS配置可参考相应文章
 
-- 国际化
-	- 在resources目录增加两个properties文件：`messages.properties`(默认)、`messages_zh_CN.properties`(中文)
-		- 可通过`spring.messages.basename=i18n/messages`定义配置文件路径，此时应该将`messages.*`放在`resources/i18n`目录
-	- 在其中加入类似配置`error.unknowexception=未知错误`
-	- 调用
+    // 错误映射为json，Accept-Type为application/json的
+    @RequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
+        Map<String, Object> body = MiscU.Instance.toMap();
+        HttpStatus status = getStatus(request);
 
-		```java
-		@Autowired
-    	private MessageSource messageSource;
+        try {
+            ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
+            Throwable throwable = getError(requestAttributes);
+            if(throwable == null) {
+                throwable = new ExceptionU.UnknownException("Throwable Capture Failed");
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+            }
 
-		private String getLocalMessage(String code) {
-			String localMessage = null;
-			Locale locale = null;
-			try {
-				locale = LocaleContextHolder.getLocale();
-				localMessage = messageSource.getMessage(code, null, locale);
-			} catch (NoSuchMessageException e1) {
-				logger.warn("invalid i18n! code: " + code + ", local: " + locale);
-			}
+            Result result = this.unknownException(throwable);
+            String str = customObjectMapper.writeValueAsString(result);
+            body = JsonU.json2map(str);
+        } catch (Exception e) {
+            logger.error("Failed to return error message", e);
+        }
 
-			return localMessage;
-		}
-		```
+        return new ResponseEntity<>(body, status);
+    }
+
+    // 错误映射到Html，Accept-Type为text/html的
+    @RequestMapping(produces = {"text/html"})
+    public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
+        return super.errorHtml(request, response);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    public Result exception(Throwable e) {
+        return getExceptionResponse(ErrorType.EXCEPTION_ERROR, e);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(ExceptionU.UnknownException.class) // 捕获ExceptionU.UnknownException异常
+    public Result unknownException(Throwable e) {
+        return getExceptionResponse(ErrorType.UNKNOWN_EXCEPTION_ERROR, e);
+    }
+
+    private Result getExceptionResponse(ErrorType errorType, Throwable e) {
+        ExceptionInfo exceptionInfo = new ExceptionInfo();
+
+		// 获取i18n错误信息
+        String localMessage = getLocalMessage(errorType);
+        String exceptionMessage = e.getMessage();
+        StackTraceElement[] stackTrace = e.getStackTrace();
+		
+		// 正式环境则不显示错误堆栈信息
+        String[] actives = env.getActiveProfiles();
+        if (actives == null || actives.length <= 0 || !"prod".equals(actives[0])) {
+            if (StringUtils.isNotEmpty(localMessage)) {
+                exceptionInfo.setLocalMessage(localMessage);
+            }
+            if (StringUtils.isNotEmpty(exceptionMessage)) {
+                exceptionInfo.setExceptionMessage(exceptionMessage);
+            }
+            if (stackTrace != null) {
+                exceptionInfo.setStackTrace(stackTrace);
+            }
+        } else if (e instanceof ExceptionU) {
+            if (StringUtils.isNotEmpty(exceptionMessage)) {
+                exceptionInfo.setExceptionMessage(exceptionMessage);
+            }
+        }
+
+        logger.error(StringU.buffer(", ", errorType.getErrorCode(), errorType.getMessage(), localMessage), e);
+
+		// Result是定义的一个通用错误信息bean
+        return new Result().failure(errorType.getMessage(), exceptionInfo);
+    }
+
+	// 获取i18n错误信息
+    private String getLocalMessage(ErrorType errorType) {
+        String localMessage = null;
+        Locale locale = null;
+        try {
+            locale = LocaleContextHolder.getLocale();
+            localMessage = messageSource.getMessage(errorType.getErrorCode(), null, locale);
+        } catch (NoSuchMessageException e1) {
+            logger.warn("invalid i18n! errorCode: " + errorType.getErrorCode() + ", local: " + locale);
+        }
+
+        return localMessage;
+    }
+
+	// 获取错误对象
+    public Throwable getError(RequestAttributes requestAttributes) {
+        Throwable exception = (Throwable) requestAttributes.getAttribute(DefaultErrorAttributes.class.getName() + ".ERROR", 0);
+        if(exception == null) {
+            exception = (Throwable) requestAttributes.getAttribute("javax.servlet.error.exception", 0);
+        }
+
+        return exception;
+    }
+
+    public class ExceptionInfo {
+        private String localMessage;
+
+        private String exceptionMessage;
+
+        private StackTraceElement[] stackTrace;
+
+		// getter/setter ...
+    }
+}
+```
 
 ## 请求及响应
 
@@ -294,7 +440,7 @@ post |application/json   |row-json   |(@RequestBody User user)   |如果后台�
 post |multipart/form-data  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
 
 
-1. `'content-type': 'multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
+- `'content-type': 'multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
 	- `javascript XHR`需要使用`new FormData()`进行数据传输(可查看postman代码)
 	- 还可使用`MultipartFile`来接受单个文件, 使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件 [^3]
 
@@ -329,7 +475,6 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		return result;
 	}
 	```
-
 
 ## 数据访问
 

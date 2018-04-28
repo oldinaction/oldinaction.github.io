@@ -109,7 +109,8 @@ tags: [spring, springsecurity, springboot]
     ```java
     @EnableGlobalMethodSecurity(prePostEnabled=true) // 开启方法级别权限控制
     public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
-    
+        public static final String Login_Uri = "/manage/login";
+
         @Autowired
         private CustomAuthenticationProvider authProvider; // 提供认证算法(判断是否登录成功)(1)
 
@@ -126,6 +127,9 @@ tags: [spring, springsecurity, springboot]
         private AccessDeniedHandler accessDeniedHandler; // 用于处理无权访问 (3)
 
         @Autowired
+        private JwtAuthenticationFilter jwtAuthenticationFilter; // 用于基于token的验证，如果基于session的则可去掉 (4)
+
+        @Autowired
         public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
             auth.authenticationProvider(authProvider);
         }
@@ -133,6 +137,9 @@ tags: [spring, springsecurity, springboot]
         // 定义权限规则
         @Override
         protected void configure(HttpSecurity http) throws Exception {
+            // 用于基于token的验证，如果基于session的则可去掉 (4)
+            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
             http.headers().frameOptions().disable(); // 解决spring boot项目中出现不能加载iframe
             http.csrf().disable() // 关闭打开的csrf(跨站请求伪造)保护
                 .authorizeRequests()
@@ -143,18 +150,18 @@ tags: [spring, springsecurity, springboot]
                     .anyRequest().authenticated() // (除上述忽略请求)所有的请求都需要权限认证
                     .and()
                 .formLogin()
-                    .loginPage("/manage/login").permitAll() // 登录界面(Get)
-                    .loginProcessingUrl("/manage/login") // 或者通配符/**/login拦截对"/manage/login"和"/login"等的POST请求(登录请求。具体逻辑不需要写，并且会自动生成此端点的control，否则和loginPage一致)
+                    .loginPage(Login_Uri).permitAll() // 登录界面(Get)
+                    // .loginProcessingUrl(Login_Uri) // 或者通配符/**/login拦截对"/manage/login"和"/login"等的POST请求(登录请求。具体逻辑不需要写，并且会自动生成此端点的control。不写则和loginPage端点一致)
                     .successHandler(authenticationSuccessHandler) // 此处定义登录成功处理方法
                     .failureHandler(authenticationFailureHandler)
                     .authenticationDetailsSource(authenticationDetailsSource)
                     .and()
-                .logout().logoutUrl("/manage/logout").logoutSuccessUrl("/manage/login").permitAll() // 访问"/manage/logout"登出，登出成功后跳转到"/manage/login"
+                .logout().logoutUrl("/manage/logout").logoutSuccessUrl(Login_Uri).permitAll() // 访问"/manage/logout"登出，登出成功后跳转到"/manage/login"
                     .and()
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
         }
 
-        // 密码加密器 (4)
+        // 密码加密器 (5)
         @Bean
         public PasswordEncoder passwordEncoder() {
             return new BCryptPasswordEncoder();
@@ -268,7 +275,8 @@ tags: [spring, springsecurity, springboot]
 
             @Override
             public Collection<? extends GrantedAuthority> getAuthorities() {
-                return AuthorityUtils.createAuthorityList("ROLE_" + this.getRoleCode()); // 组成如：ROLE_ADMIN/ROLE_USER，在资源权限定义时写法如：hasRole('ADMIN')。createAuthorityList接受一个数组，说明支持一个用户拥有多个角色
+                // 组成如：ROLE_ADMIN/ROLE_USER，在资源权限定义时写法如：hasRole('ADMIN')。createAuthorityList接受一个数组，说明支持一个用户拥有多个角色
+                return AuthorityUtils.createAuthorityList("ROLE_" + this.getRoleCode());
             }
 
             @Override
@@ -360,7 +368,7 @@ tags: [spring, springsecurity, springboot]
             - `LockedException` 账户锁定
             - `DisabledException` 账户不可用
             - `CredentialsExpiredException` 证书过期
-- (2)登录校验完成拦截：登录成功/失败处理
+- (2) 登录校验完成拦截：登录成功/失败处理
 
     ```java
     @Component
@@ -391,14 +399,68 @@ tags: [spring, springsecurity, springboot]
         }
     }
     ```
-- (3)AccessDeniedHandler访问受限拦截同上例
-- (4)密码保存
+- (3) AccessDeniedHandler访问受限拦截同上例
+- (4) token验证(基于session的验证可以不加此拦截器，基于无状态的Restful则需要拦截token并解析获得用户名和相关权限。配置文件加`security.sessions=stateless`时spring security才不会使用session)
+
+    ```java
+    @Component
+    public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+        private String token_header = "X-Token";
+
+        @Resource
+        private SecurityJwtTokenUtils securityJwtTokenUtils; // 基于JWT的工具类：用于生成和解析JWT机制的token
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+            // TODO
+            if(!SpringSecurityConfig.Login_Uri.equals(request.getRequestURI())) {
+                String authToken = request.getHeader(this.token_header);
+                if(StringUtils.isEmpty(authToken)) {
+                    throw new ExceptionU.AuthTokenInvalidException();
+                }
+
+                try {
+                    String username = securityJwtTokenUtils.getUsernameFromToken(authToken);
+                    if(username == null)
+                        throw new ExceptionU.AuthTokenInvalidException();
+                    logger.info(String.format("Checking authentication for user %s.", username));
+
+                    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                        // It is not compelling necessary to load the use details from the database. You could also store the information
+                        // in the token and read it from it. It's up to you ;)
+                        // UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+                        UserDetails userDetails = securityJwtTokenUtils.getUserFromToken(authToken);
+
+                        // For simple validation it is completely sufficient to just check the token integrity. You don't have to call
+                        // the database compellingly. Again it's up to you ;)
+                        if (securityJwtTokenUtils.validateToken(authToken, userDetails)) {
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            logger.info(String.format("Authenticated user %s, setting security context", username));
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        }
+                    }
+                } catch (SignatureException e) {
+                    throw new ExceptionU.AuthTokenInvalidException();
+                }
+            }
+
+            chain.doFilter(request, response);
+        }
+    }
+    ```
+- (5) 密码保存
     
     ```java
-    // BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(16);
-    // 保存密码：$2a$16$YcrLwsfqGoKzkmAB9WwORulggKVCrpR7ZPfDCF4CsEoG0o75Nb3Xm
-    String password = passwordEncoder.encode("123456");
-    assertTrue(encoder.matches("123456", password));
+    // PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(16);
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    // 保存密码(smalle)：$2a$10$j5daLww7/c4Qdj1U30Djt.Mzh0pDdYtOrlJ3zQ91u4IC/no2bcViG
+    String password = passwordEncoder.encode("smalle");
+    System.out.println("password = " + password);
+
+    Assert.assertTrue(passwordEncoder.matches("smalle", password));
     ```
 
 ### 在方法(资源)上加权限控制
@@ -461,4 +523,4 @@ tags: [spring, springsecurity, springboot]
 
 ---
 
-[^1]: [spring security的原理及教程](http://www.importnew.com/20612.html)
+[^1]: [spring-security的原理及教程](http://www.importnew.com/20612.html)

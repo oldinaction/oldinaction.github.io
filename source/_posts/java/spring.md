@@ -102,6 +102,7 @@ tags: [spring, spring-mvc]
     - `request` Web项目中，每一个Http Request新建一个实例
     - `session`
     - `globalSession` 用于portal应用
+- SpringBoot的作用域如：`@RequestScope`、`@SessionScope`、`@ApplicationScope`(`@Component`等默认是`singleton`)
 
 ### EL(Spring-EL)
 

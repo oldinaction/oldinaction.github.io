@@ -49,3 +49,17 @@ tags: [mysql, dba]
 	- Mysql通过上下左右按键修改语句
 	- 或者新建一个文本文件h:/demo/test.sql，将sql语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号
 	- Oracle输入ed则打开记事本可进行修改修改DOS中的数据
+
+## Oracle表结构与Mysql表结构转换
+
+- 使用navicat转换
+	- 点击`工具 -> 数据转换`。左边选择oracle数据库和对应的用户，右边转成sql文件(直接转换会出现Date转换精度错误)
+	- 将sql文件中的数据进行转换
+		- `datetime(7)` -> `datetime(6)`
+		- `decimal(20,0)` -> `bigint(20)`(原本在oracle中是Number(20))
+		- `decimal(1,0)` -> `int(1)`
+		- `decimal(10,0)` -> `int(10)` 以此类推
+		- 默认值丢失
+	- 导入sql文件到mysql数据库中
+
+

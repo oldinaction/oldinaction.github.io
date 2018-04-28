@@ -113,6 +113,10 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 - 方法：`Tools - Export Tables/Import Tablse - 选择表导出`
 - 其中Executable路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
 
+### Oracle表结构与Mysql表结构转换
+
+参考《mysql-dba.md》【Oracle表结构与Mysql表结构转换】
+
 ## 常用操作
 
 ### 系统相关
@@ -248,6 +252,7 @@ alter index SERVER_HIT_TXSTMP rebuild online;
     - 在日志文件目录列举文件：`ll -rt *.trc`
         - `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.（**主要看*.trc文件**）
         - 如：`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
+- 数据库服务器CPU飙高，参考《Java应用服务器及数据库服务器的CPU和内存异常分析》【数据库服务器故障】
 - 表空间数据文件丢失，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
     - oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉
     - `sqlplus / as sysdba`

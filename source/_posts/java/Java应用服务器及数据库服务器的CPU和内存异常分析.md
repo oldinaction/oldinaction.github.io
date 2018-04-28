@@ -1,9 +1,9 @@
 ---
 layout: "post"
-title: "Java项目CPU及内存异常分析"
+title: "Java应用服务器及数据库服务器的CPU和内存异常分析"
 date: "2018-03-13 13:35"
 categories: java
-tags: [CPU, 内存, 运维, ofbiz]
+tags: [CPU, 内存, 运维, oracle, ofbiz]
 ---
 
 ## 简介
@@ -22,7 +22,9 @@ tags: [CPU, 内存, 运维, ofbiz]
         - 老生代Old：存放从新生代New中迁移过来的生命周期较久的对象。新生代New和老生代Old共同组成了堆内存
         - 永久代Perm：是非堆内存的组成部分。主要存放加载的Class类级对象如class本身，method，field等等
 
-## 相关命令介绍
+## 应用服务器故障
+
+### 相关命令介绍
 
 ```bash
 ## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%
@@ -55,14 +57,14 @@ jmap -dump:live,format=b,file=/home/dump.hprof <pid>
 -XX:HeapDumpPath=/home/jvmlogs/ # 生成堆文件地址
 ```
 
-## MAT工具使用
+### MAT工具使用
 
 - MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，[下载](http://www.eclipse.org/mat/downloads.php)
 
 - https://www.cnblogs.com/moonandstar08/p/5625164.html
 - http://blog.csdn.net/aaa2832/article/details/19419679
 
-## OFBiz项目案例分析
+### OFBiz项目案例分析
 
 > 案例介绍：此问题主要是ofbiz在清理历史任务时，任务数据过大导致内存溢出，从而CPU飙升，最终服务器时常宕机。
 
@@ -95,6 +97,70 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 
 由于个人觉得ofbiz任务机制不太好用，决定不去清理历史数据，而是手动定时清理(或绕过ofbiz定时去清理)。因此可以修改`/framework/service/config/serviceengine.xml`中`purge-job-days`的值。重新启动服务器(之前占用的内存无法及时清除，必须重启服务器)和项目一切正常
 
+## 数据库服务器故障
+
+- CPU故障展现 [^4]
+    - 数据库服务器CPU飙高
+    - oracle相关进程CPU占用高
+    - 应用服务器响应很慢
+- 查看数据库sql运行占用时间较长的会话信息，并kill此会话
+
+    ```sql
+    select sid, serial#, sql_text, sql_fulltext, executions
+    from v$sql
+    join v$session on v$sql.sql_id = v$session.sql_id
+    where cpu_time > 20000;
+
+    -- kill相应会话
+    alter system kill session 'sid, serial#';
+    ```
+- 查看数据库sql运行占用时间较长的sql语句
+
+    ```sql
+    select *
+    from (select sql_text, sql_fulltext, sql_id, cpu_time from v$sql order by cpu_time desc)
+    where rownum <= 10
+    order by rownum asc;
+    ```
+- 查看服务器CPU占用高较高的进程运行的sql语句(v$sqltext中的sql语句是被分割存储)，运行下列sql后输入进程pid
+
+    ```sql
+    -- 其中&pid是使用top查看系统中进程占用CPU极高的PID
+    select sql_text
+    from v$sqltext a
+    where (a.hash_value, a.address) in
+        (select decode(sql_hash_value, 0, prev_hash_value, sql_hash_value),
+                decode(sql_hash_value, 0, prev_sql_addr, sql_address)
+            from v$session b
+            where b.paddr =
+                (select addr from v$process c where c.spid = '&pid'))
+    order by piece asc
+    ```
+- 常用查询
+
+    ```sql
+    -- 列出使用频率最高的5个sql
+    select sql_text, sql_fulltext, executions
+    from (select sql_text, sql_fulltext, executions,
+                rank() over(order by executions desc) exec_rank
+            from v$sql)
+    where exec_rank <= 5;
+
+    -- 列出消耗磁盘读取最多的5个sql
+    select disk_reads, sql_text, sql_fulltext
+    from (select sql_text, sql_fulltext, disk_reads,
+                dense_rank() over(order by disk_reads desc) disk_reads_rank
+            from v$sql)
+    where disk_reads_rank <= 5;
+
+    -- 列出需要大量缓冲读取（逻辑读）操作的5个sql
+    select buffer_gets, sql_text, sql_fulltext
+    from (select sql_text, sql_fulltext, buffer_gets,
+                dense_rank() over(order by buffer_gets desc) buffer_gets_rank
+            from v$sql)
+    where buffer_gets_rank <= 5;
+    ```
+
 
 
 ---
@@ -104,4 +170,5 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 [^1]: [线上应用故障排查系列](http://www.blogjava.net/hankchen/archive/2012/05/09/377738.html)
 [^2]: [线上应用故障排查之二：高内存占用](http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html)
 [^3]: [记一次线上Java程序导致服务器CPU占用率过高的问题排除过程](https://www.jianshu.com/p/3667157d63bb)
+[^4]: [oracle数据库CPU特别高的解决方法](https://blog.csdn.net/xuexiaodong009/article/details/74451412)
 

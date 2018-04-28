@@ -50,8 +50,20 @@ tags: [ide, web]
 ## 用户配置
 
 ```json
+// 文件自动保存
+"files.autoSave": "afterDelay",
+	
 // tab占的空格数
 "editor.tabSize": 2,
+// markdown文件格式
+"[markdown]": {
+	"editor.tabSize": 4
+},
+
+// 关闭vue文件eslint校验
+"vetur.validation.template": false,
+// 格式化vue文件(不能安装一些不兼容的格式化插件)
+"vetur.format.defaultFormatter.html": "js-beautify-html",
 
 // 开启emmet对vue的支持，如输入div>ul>li按下Tab可快速构建一个dom树，更多语法参考emmet
 "emmet.triggerExpansionOnTab": true,

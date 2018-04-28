@@ -86,17 +86,32 @@ tags: [springboot, vue]
     ```
     - `CSRF` 跨站请求伪造(Cross-Site Request Forgery). [csrf](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html)
 
+## Http请求及响应
+
 - spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
-- `axios`实现`x-www-form-urlencoded`请求：参数应该写到`param`中。如果写在`data`中则不行，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行
+- `axios`使用post方式传递参数后端接受不到 [^4]
+    - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
+    
+        ```js
+        axios({
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            url: 'http://localhost:8080/api/login',
+            params: {
+                username:'smalle',
+                password:'smalle'
+            }
+        }).then((res)=>{
 
+        })
+        ```
 
-
-
-
-
-
-
-
+        - axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行)
+        - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
+        - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
+    - 使用`qs`插件，未测试，具体参考：https://segmentfault.com/a/1190000012635783
 
 
 
@@ -112,6 +127,10 @@ tags: [springboot, vue]
 
 
 ---
-[^1]: [跨域资源共享 CORS 详解](http://www.ruanyifeng.com/blog/2016/04/cors.html)
+
+参考文章
+
+[^1]: [跨域资源共享CORS详解](http://www.ruanyifeng.com/blog/2016/04/cors.html)
 [^2]: [浏览器同源政策及其规避方法](http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html)
-[^3]: [spring security cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
+[^3]: [spring-security-cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
+[^4]: [axios使用post方式传递参数后端接受不到](https://segmentfault.com/a/1190000012635783)

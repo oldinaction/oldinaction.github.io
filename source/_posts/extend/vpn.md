@@ -24,7 +24,7 @@ tags: [vpn, linux]
 
     ```bash
     username1    pptpd    passwd1    *
-    username2    pptpd    passwd2    *
+    test    pptpd    ok123456    *
     ```
 - `vi /etc/pptpd.conf` 配置pptpd。localip是服务端的虚拟地址, remoteip是客户端的虚拟地址。只要不和本机IP不冲突即可
 
