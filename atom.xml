@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.aezo.cn/"/>
-  <updated>2018-04-14T09:37:42.183Z</updated>
+  <updated>2018-04-28T02:33:12.725Z</updated>
   <id>http://blog.aezo.cn/</id>
   
   <author>
@@ -16,11 +16,56 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title></title>
+    <link href="http://blog.aezo.cn/2018/04/26/todo/"/>
+    <id>http://blog.aezo.cn/2018/04/26/todo/</id>
+    <published>2018-04-26T07:40:35.776Z</published>
+    <updated>2018-04-28T02:33:12.725Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="开发"><a href="#开发" class="headerlink" title="开发"></a>开发</h2><h3 id="smtools"><a href="#smtools" class="headerlink" title="smtools"></a>smtools</h3><ul>
+<li>ExceptionU接受Throwable对象实例化，在minions全局异常中抛出</li>
+<li>ExceptionU添加无权访问异常</li>
+</ul>
+<h3 id="minions"><a href="#minions" class="headerlink" title="minions"></a>minions</h3><ul>
+<li>去除session.setAttribute(BaseKeys.SessionUserInfo, userDetails);</li>
+<li>services目录名改为service</li>
+</ul>
+<h3 id="blog"><a href="#blog" class="headerlink" title="blog"></a>blog</h3><h2 id="课外"><a href="#课外" class="headerlink" title="课外"></a>课外</h2>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;开发&quot;&gt;&lt;a href=&quot;#开发&quot; class=&quot;headerlink&quot; title=&quot;开发&quot;&gt;&lt;/a&gt;开发&lt;/h2&gt;&lt;h3 id=&quot;smtools&quot;&gt;&lt;a href=&quot;#smtools&quot; class=&quot;headerlink&quot; title=&quot;smtools&quot;&gt;&lt;/
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title></title>
+    <link href="http://blog.aezo.cn/2018/04/19/others/%E8%B4%A2%E5%8A%A1%E7%BB%93%E7%AE%97/"/>
+    <id>http://blog.aezo.cn/2018/04/19/others/财务结算/</id>
+    <published>2018-04-19T07:29:59.157Z</published>
+    <updated>2018-04-19T07:54:05.231Z</updated>
+    
+    <content type="html"><![CDATA[<p>1.凭证的应收、应付、实收、实付按照凭证字来区分(如：记、现收、现付、银收、银付，”记”一般是应收)<br>2.可将多个发票开到一张凭证中，一张发票科目可提供一借一贷、一借两贷、一贷两借。<br>多个发票的应收凭证一般科目相同，多个发票的应付凭证有可能每个发票的科目不同(针对不同的公司结账，为了方便捏到一起)。<br>一般应收一个科目对应一个核算维度，一个核算维度只有一个值(可基于发票号为维度显示)；<br>应付一个科目可能有多个核算维度(部门/客户/供应商/费目等)，每个核算维度可能有多个值(凭证生成界面<br>需要以费目/部门为维度进行分开显示，其实就是费目明细中必须包含核算维度的所有信息，<br>且可基于费用明细填写不同的科目，发票好冗余显示，金蝶凭证中也如此)；</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;1.凭证的应收、应付、实收、实付按照凭证字来区分(如：记、现收、现付、银收、银付，”记”一般是应收)&lt;br&gt;2.可将多个发票开到一张凭证中，一张发票科目可提供一借一贷、一借两贷、一贷两借。&lt;br&gt;多个发票的应收凭证一般科目相同，多个发票的应付凭证有可能每个发票的科目不同(针
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
     <title>VPN搭建</title>
     <link href="http://blog.aezo.cn/2018/04/04/extend/vpn/"/>
     <id>http://blog.aezo.cn/2018/04/04/extend/vpn/</id>
     <published>2018-04-04T02:34:00.000Z</published>
-    <updated>2018-04-14T09:37:42.183Z</updated>
+    <updated>2018-04-27T09:28:07.311Z</updated>
     
     <content type="html"><![CDATA[<h2 id="centos7安装vpn"><a href="#centos7安装vpn" class="headerlink" title="centos7安装vpn"></a>centos7安装vpn</h2><ul>
 <li><code>modprobe ppp-compress-18 &amp;&amp; echo MPPE is ok</code> 验证内核是否加载了MPPE模块</li>
@@ -29,7 +74,7 @@
   <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Google DNS</span></div><div class="line">ms-dns 8.8.8.8</div><div class="line">ms-dns 8.8.4.4</div><div class="line"><span class="comment"># 或者使用 Aliyun DNS</span></div><div class="line"><span class="comment"># ms-dns 223.5.5.5</span></div><div class="line"><span class="comment"># ms-dns 223.6.6.6</span></div></pre></td></tr></table></figure>
 </li>
 <li><p><code>vi /etc/ppp/chap-secrets</code> 配置登录用户/协议/密码/ip地址段</p>
-  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">username1    pptpd    passwd1    *</div><div class="line">username2    pptpd    passwd2    *</div></pre></td></tr></table></figure>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">username1    pptpd    passwd1    *</div><div class="line"><span class="built_in">test</span>    pptpd    ok123456    *</div></pre></td></tr></table></figure>
 </li>
 <li><p><code>vi /etc/pptpd.conf</code> 配置pptpd。localip是服务端的虚拟地址, remoteip是客户端的虚拟地址。只要不和本机IP不冲突即可</p>
   <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">localip 192.168.0.2-20</div><div class="line">remoteip 192.168.0.200-250</div></pre></td></tr></table></figure>
@@ -81,6 +126,147 @@
       <category term="linux" scheme="http://blog.aezo.cn/tags/linux/"/>
     
       <category term="vpn" scheme="http://blog.aezo.cn/tags/vpn/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Solr</title>
+    <link href="http://blog.aezo.cn/2018/03/13/bigdata/solr/"/>
+    <id>http://blog.aezo.cn/2018/03/13/bigdata/solr/</id>
+    <published>2018-03-13T12:31:00.000Z</published>
+    <updated>2018-03-28T12:32:28.070Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li><code>Solr</code>它是一种开放源码的、基于 Lucene Java 的搜索服务器，易于加入到 Web 应用程序中。<ul>
+<li>基于开放接口（XML和HTTP）的标准进行索引创建和查询<strong>(基于Lucene通过HTTP请求进行数据索引管理)</strong></li>
+<li>可伸缩性－能够有效地复制到另外一个Solr搜索服务器</li>
+<li>附带了一个基于HTTP管理界面</li>
+</ul>
+</li>
+<li>Solr与Lucene 并不是竞争对立关系，恰恰相反Solr 依存于Lucene，因为Solr底层的核心技术是使用Lucene 来实现的。Lucene专注于搜索底层的建设，而Solr专注于企业应用</li>
+<li>Solr内嵌Jetty和ZooKeeper。<code>SolrCloud</code> 模式是基于ZooKeeper的，会自动启动ZooKeeper服务。</li>
+<li><a href="https://lucene.apache.org/solr/" target="_blank" rel="external">官网：https://lucene.apache.org/solr/</a></li>
+<li><a href="https://lucene.apache.org/solr/guide/7_2/solr-tutorial.html" target="_blank" rel="external">官方教程</a>、<a href="http://mirror.bit.edu.cn/apache/lucene/solr/ref-guide/apache-solr-ref-guide-7.2.pdf" target="_blank" rel="external">solr-7.2-pdf</a></li>
+<li><a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="external">各版本下载地址</a><strong>(本文基于<code>solr-7.2.0</code>进行说明，需要jdk1.8及以上)</strong></li>
+</ul>
+<h3 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h3><ul>
+<li><code>collection</code>/<code>core</code> 均指以不同的数据结构来对数据进行索引(索引库、集合)</li>
+<li><code>schema</code>为一个xml配置文件，主要用于配置字段和字段类型，动态字段等。（如某个字段可忽略大小写也可在其中配置）</li>
+</ul>
+<h2 id="安装及使用-1"><a href="#安装及使用-1" class="headerlink" title="安装及使用 ^1"></a>安装及使用 <a href="[solr-tutorial](https://lucene.apache.org/solr/guide/7_2/solr-tutorial.html)">^1</a></h2><h3 id="下载解压说明"><a href="#下载解压说明" class="headerlink" title="下载解压说明"></a>下载解压说明</h3><ul>
+<li>下载tar包解压 <code>tar -zxvf solr-7.2.1.tgz -C /opt/soft</code>，目录说明</li>
+<li><code>example</code> 几个solr的实例</li>
+<li><code>server</code> solr的核心应用程序<ul>
+<li><code>solr-webapp</code>为solr提供的控制面板</li>
+<li><code>resources</code> 日志配置</li>
+<li><code>solr/configsets</code> 全局配置文件(有<code>_default</code>和<code>sample_techproducts_configs</code>两种)。<code>SolrCloud</code>模式启动后选择此其中一种模式（应该在启动前对此目录下文件进行配置），普通模式启动需要复制其中的配置文件到相应实例目录<ul>
+<li><code>sample_techproducts_configs/conf/managed-schema</code> 配置(添加)字段、字段类型、动态字段等信息</li>
+<li><code>sample_techproducts_configs/conf/solrconfig.xml</code> 配置sorl相关服务，如classpath配置、增加导入db数据访问端点等</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="启动停止服务"><a href="#启动停止服务" class="headerlink" title="启动停止服务"></a>启动停止服务</h3><ul>
+<li>配置IK中文分析器/DB数据导入需要在启动前配置好</li>
+<li>初始化solr集合<ul>
+<li>以<code>SolrCloud</code>模式启动<strong><code>./bin/solr start -e cloud</code></strong>(因权限可强制启动<strong><code>./bin/solr start -e cloud -force</code></strong>)<ul>
+<li>启动时会询问相关配置，<code>[]</code>中即为默认配置(默认启动2个solr节点，分别为8983、7574)。其他使用默认；<strong>solr配置项使用<code>sample_techproducts_configs</code></strong>，集合名称也可再此时配置</li>
+<li>SolrCloud模式创建的集合instanceDir在<code>/example/cloud/node1/solr/aezocn_shard1_replica_n1</code>等目录下创建</li>
+</ul>
+</li>
+<li>普通默认启动 <code>./bin/solr start</code><ul>
+<li>此时需要添加Core。需要先在<code>/server/solr</code>创建对应的instanDir，并将<code>/server/solr/configsets/_default/conf</code>目录下所有文件拷贝到instanDir目录下</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>访问<code>http://localhost:8983/solr</code>即可看到solr的管理面板</li>
+<li>停止服务<ul>
+<li><strong><code>./bin/solr stop -all</code></strong> 停止全部solr</li>
+<li><code>./bin/solr stop -p 8983</code> 停止8983端口的solr</li>
+</ul>
+</li>
+<li><strong>重启服务</strong><br>  <code>./bin/solr start -c -p 8983 -s example/cloud/node1/solr -force</code> 启动node1，其中<code>-s</code>后面接<code>solr.home</code>(此时会启动一个内嵌的ZooKeeper服务)<br>  <code>./bin/solr start -c -p 7574 -s example/cloud/node2/solr -z localhost:9983 -force</code> 启动node2，其中<code>-z localhost:9983</code>为连接ZooKeeper的配置</li>
+</ul>
+<h3 id="配置IK中文分析器"><a href="#配置IK中文分析器" class="headerlink" title="配置IK中文分析器"></a>配置IK中文分析器</h3><ul>
+<li><strong>需要在启动前配置好，<code>SolrCloud</code>模式启动为例</strong></li>
+<li><a href="https://download.csdn.net/download/oldinaction/10306498" target="_blank" rel="external">资源下载</a></li>
+<li><code>ik-analyzer-solr5-5.x.jar</code>和<code>solr-analyzer-ik-5.1.0.jar</code>复制到<code>/server/solr-webapp/webapp/WEB-INF/lib</code>目录下</li>
+<li>在<code>/server/solr-webapp/webapp/WEB-INF</code>下创建<code>classes</code>目录</li>
+<li><p>将<code>IKAnalyzer.cfg.xml</code>(如下)、<code>stopword.dic</code>(分割词，如”的”等。每行一个)、<code>ext.dic</code>(每行一个，可为空文件)复制到<code>classes</code>目录下</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd"&gt;</span>  </div><div class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">comment</span>&gt;</span>IK Analyzer 扩展配置<span class="tag">&lt;/<span class="name">comment</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!--用户可以在这里配置自己的扩展字典 --&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">entry</span> <span class="attr">key</span>=<span class="string">"ext_dict"</span>&gt;</span>ext.dic;<span class="tag">&lt;/<span class="name">entry</span>&gt;</span> </div><div class="line">    </div><div class="line">    <span class="comment">&lt;!--用户可以在这里配置自己的扩展停止词字典--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">entry</span> <span class="attr">key</span>=<span class="string">"ext_stopwords"</span>&gt;</span>stopword.dic;<span class="tag">&lt;/<span class="name">entry</span>&gt;</span> </div><div class="line">    </div><div class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>编辑<code>server/solr/configsets/sample_techproducts_configs/conf/managed-schema</code>在<code>&lt;/schema&gt;</code>前加如下代码</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">fieldType</span> <span class="attr">name</span>=<span class="string">"text_ik"</span> <span class="attr">class</span>=<span class="string">"solr.TextField"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">analyzer</span> <span class="attr">class</span>=<span class="string">"org.wltea.analyzer.lucene.IKAnalyzer"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">fieldType</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!-- 示例（此时非必须）。添加一个字段desc，类型为text_ik。只有创建类似这种字段才能进行中文分词 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"desc"</span> <span class="attr">type</span>=<span class="string">"text_ik"</span> <span class="attr">indexed</span>=<span class="string">"true"</span> <span class="attr">stored</span>=<span class="string">"true"</span> <span class="attr">multiValued</span>=<span class="string">"false"</span> /&gt;</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="同步db数据-3"><a href="#同步db数据-3" class="headerlink" title="同步db数据 ^3"></a>同步db数据 <a href="[Data-Import-Handler](https://lucene.apache.org/solr/guide/7_2/uploading-structured-data-store-data-with-the-data-import-handler.html)">^3</a></h3><ul>
+<li>将以下jar包复制到<code>/server/solr-webapp/webapp/WEB-INF/lib</code>目录下<ul>
+<li>solr-dataimporthandler-7.2.1.jar(在dist目录中)</li>
+<li>solr-dataimporthandler-extras-7.2.1.jar</li>
+<li>mysql-connector-java-5.1.43.jar</li>
+</ul>
+</li>
+<li><p>在配置文件<code>server/solr/configsets/sample_techproducts_configs/conf/solrconfig.xml</code>末尾加入如下代码(基于<code>SolrCloud</code>模式的<code>sample_techproducts_configs</code>配置)</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">requestHandler</span> <span class="attr">name</span>=<span class="string">"/dataimport"</span> <span class="attr">class</span>=<span class="string">"org.apache.solr.handler.dataimport.DataImportHandler"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">lst</span> <span class="attr">name</span>=<span class="string">"defaults"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">str</span> <span class="attr">name</span>=<span class="string">"config"</span>&gt;</span>data-config.xml<span class="tag">&lt;/<span class="name">str</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">lst</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">requestHandler</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>新增配置文件<code>server/solr/configsets/sample_techproducts_configs/conf/data-config.xml</code></p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dataConfig</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">dataSource</span> <span class="attr">type</span>=<span class="string">"JdbcDataSource"</span></span></div><div class="line">            <span class="attr">driver</span>=<span class="string">"com.mysql.jdbc.Driver"</span></div><div class="line">            <span class="attr">url</span>=<span class="string">"jdbc:mysql://192.168.6.1:3306/test"</span></div><div class="line">            <span class="attr">user</span>=<span class="string">"root"</span></div><div class="line">            <span class="attr">password</span>=<span class="string">"root"</span> /&gt;</div><div class="line">    <span class="tag">&lt;<span class="name">document</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 此处可以有多个entity，entity也可以嵌套。dataimporter.request.id为控制面板中Dataimport-Custom Parameters的传入参数 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- deltaQuery/deltaImportQuery为增量更新的sql --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">entity</span> <span class="attr">name</span>=<span class="string">"test_solr"</span> </span></div><div class="line">            <span class="attr">pk</span>=<span class="string">"id"</span></div><div class="line">            <span class="attr">transformer</span>=<span class="string">"DateFormatTransformer"</span></div><div class="line">            <span class="attr">query</span>=<span class="string">"SELECT id, `name`, `desc`, update_time FROM test_solr WHERE id &gt;= $&#123;dataimporter.request.id&#125;"</span></div><div class="line">            <span class="attr">deltaQuery</span>=<span class="string">"select id from test_solr where update_time &gt; '$&#123;dih.last_index_time&#125;'"</span></div><div class="line">            <span class="attr">deltaImportQuery</span>=<span class="string">"SELECT id, `name`, `desc`, update_time FROM test_solr where id='$&#123;dih.delta.id&#125;'"</span>&gt;</div><div class="line">            <span class="comment">&lt;!-- column为数据库字段，name为managed_schema里配置的字段 --&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">field</span> <span class="attr">column</span>=<span class="string">'update_time'</span> <span class="attr">name</span>=<span class="string">"last_modified"</span> <span class="attr">dateTimeFormat</span>=<span class="string">'yyyy-MM-dd HH:mm:ss'</span> /&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">entity</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">document</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dataConfig</span>&gt;</span></div></pre></td></tr></table></figure>
+<ul>
+<li>可能会连接数据库失败，可在控制面板的<code>Logging</code>中查看日志。常见如：<code>&quot;Host &#39;192.168.6.131&#39; is not allowed to connect to this MySQL server&quot;</code></li>
+</ul>
+</li>
+<li>编辑<code>server/solr/configsets/sample_techproducts_configs/conf/managed-schema</code>在<code>&lt;/schema&gt;</code>中加入<code>&lt;field name=&quot;desc&quot; type=&quot;text_ik&quot; indexed=&quot;true&quot; stored=&quot;true&quot; multiValued=&quot;false&quot; /&gt;</code>来进行中文存储（在可在控制面板中进行添加）</li>
+<li>加载配置文件，参考下文【solr相关命令】</li>
+<li>控制面板中进行数据导入，参考下文【控制面板-collection】<ul>
+<li><code>Command=full-import</code>；<code>Entity=test_solr</code>；<code>Dataimport-Custom Parameters</code>传入<code>id=1</code>表示导入所有id&gt;1的数据</li>
+<li>增量更新主要看<code>update_time</code>字段值是否比<code>dataimport.properties</code>中<code>last_index_time</code>的值大。此时最好去掉<code>clean</code>的勾选，否则全导入后<code>update_time</code>未变更的记录将被删除</li>
+<li>或者访问<code>http://192.168.6.131:8983/solr/aezocn/dataimport?command=delta-import</code>进行数据导入</li>
+</ul>
+</li>
+<li>查询数据 <code>http://192.168.6.131:8983/solr/aezocn/select?q={!term f=desc}中国人</code></li>
+</ul>
+<h2 id="控制面板"><a href="#控制面板" class="headerlink" title="控制面板"></a>控制面板</h2><ul>
+<li>访问<code>http://localhost:8983/solr/aezocn/browse</code>为查询前端界面(类似百度搜索)</li>
+<li>点击cloud查看集合分片节点信息：collection(aezocn)分成两片(shard1、shard2)，且每片都对应两个节点(192.168.6.131:8983、192.168.6.131:7574)</li>
+<li><code>Logging</code> 日志。如数据导入出错会在此处打印日志</li>
+</ul>
+<h3 id="collection-aezocn"><a href="#collection-aezocn" class="headerlink" title="collection(aezocn)"></a>collection(aezocn)</h3><ul>
+<li><code>Dataimport</code> db数据同步<ul>
+<li><code>Command</code>分为<code>full-import</code>(全导入)和<code>delta-import</code>(增量导入)</li>
+</ul>
+</li>
+<li><code>Documents</code> post文档数据</li>
+<li><code>Query</code> 检索<ul>
+<li><code>common</code>-<code>q</code>输入检索词汇，支持<code>&quot;&quot;</code>、<code>+</code>、<code>-</code>等符号</li>
+</ul>
+</li>
+<li><code>Schema</code> 字段配置，添加字段等</li>
+</ul>
+<h2 id="solr相关命令"><a href="#solr相关命令" class="headerlink" title="solr相关命令"></a>solr相关命令</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## **`SolrCloud`配置文件加载**</span></div><div class="line"><span class="comment"># `SolrCloud`模式下配置文件是基于`server/solr/configsets`中配置文件加载的。可以在`configsets`新建配置文件模版文件夹</span></div><div class="line"><span class="comment"># 如果在控制面板`Cloud`-`Tree`-`configs`中无名为aezocn的Configset则会自动新建一个。如果存在则会进行更新</span></div><div class="line">bin/solr zk upconfig -z localhost:9983 -n aezocn -d /opt/soft/solr-7.2.1/server/solr/configsets/sample_techproducts_configs</div><div class="line"><span class="comment"># 配置文件加载后需要刷新集合aezocn</span></div><div class="line">http://192.168.6.131:8983/solr/admin/collections?action=RELOAD&amp;name=aezocn</div><div class="line"></div><div class="line"><span class="comment">## 创建新集合</span></div><div class="line"><span class="comment"># 创建新集合名为movie，2个shades(`-s`)和2个replicas(`-rf`), 默认使用`_default`作为配置模板</span></div><div class="line">./bin/solr create -c movie -s 2 -rf 2</div><div class="line"></div><div class="line"><span class="comment">## 删除集合</span></div><div class="line">./bin/solr delete -c aezocn</div><div class="line"></div><div class="line"><span class="comment">## **清空数据**</span></div><div class="line"><span class="comment"># 删除`example/cloud`文件夹即可删除`SolrCloud`模式启动的集合</span></div><div class="line">rm -Rf example/cloud/</div><div class="line"></div><div class="line"><span class="comment">## 给集合添加字段</span></div><div class="line"><span class="comment"># 往movie集合中添加一个字段名为username、文本型、不可存放多个值、可检索查询 </span></div><div class="line">curl -X POST -H <span class="string">'Content-type:application/json'</span> --data-binary <span class="string">'&#123;"add-field": &#123;"name":"username", "type":"text_general", "multiValued":false, "stored":true&#125;&#125;'</span> http://localhost:8983/solr/movie/schema</div><div class="line"></div><div class="line"><span class="comment">## 添加文档数据，以自带exampledocs为例导入测试数据。往集合aezocn中post数据(也可在控制面板中post文档数据)</span></div><div class="line">./bin/post -c aezocn example/exampledocs/*</div></pre></td></tr></table></figure>
+<h2 id="Client-APIs"><a href="#Client-APIs" class="headerlink" title="Client APIs"></a>Client APIs</h2><ul>
+<li>基于<code>solrj</code>进行数据提交和查询 <a href="[Using-SolrJ](https://lucene.apache.org/solr/guide/7_2/using-solrj.html#using-solrj)">^2</a></li>
+<li><a href="https://lucene.apache.org/solr/7_2_0//solr-solrj/" target="_blank" rel="external">Solrj API</a></li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.solr<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>solr-solrj<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>7.2.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+<hr>
+<p>参考文章</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Solr&lt;/code&gt;它是一种开放源码的、基于 Lucene Java 的搜索服务器，易于加入到 Web 应用程序中
+    
+    </summary>
+    
+      <category term="bigdata" scheme="http://blog.aezo.cn/categories/bigdata/"/>
+    
+    
+      <category term="lucene" scheme="http://blog.aezo.cn/tags/lucene/"/>
+    
+      <category term="solr" scheme="http://blog.aezo.cn/tags/solr/"/>
     
   </entry>
   
@@ -469,152 +655,11 @@
   </entry>
   
   <entry>
-    <title>Solr</title>
-    <link href="http://blog.aezo.cn/2018/03/13/bigdata/solr/"/>
-    <id>http://blog.aezo.cn/2018/03/13/bigdata/solr/</id>
-    <published>2018-03-13T12:31:00.000Z</published>
-    <updated>2018-03-28T12:32:28.070Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
-<li><code>Solr</code>它是一种开放源码的、基于 Lucene Java 的搜索服务器，易于加入到 Web 应用程序中。<ul>
-<li>基于开放接口（XML和HTTP）的标准进行索引创建和查询<strong>(基于Lucene通过HTTP请求进行数据索引管理)</strong></li>
-<li>可伸缩性－能够有效地复制到另外一个Solr搜索服务器</li>
-<li>附带了一个基于HTTP管理界面</li>
-</ul>
-</li>
-<li>Solr与Lucene 并不是竞争对立关系，恰恰相反Solr 依存于Lucene，因为Solr底层的核心技术是使用Lucene 来实现的。Lucene专注于搜索底层的建设，而Solr专注于企业应用</li>
-<li>Solr内嵌Jetty和ZooKeeper。<code>SolrCloud</code> 模式是基于ZooKeeper的，会自动启动ZooKeeper服务。</li>
-<li><a href="https://lucene.apache.org/solr/" target="_blank" rel="external">官网：https://lucene.apache.org/solr/</a></li>
-<li><a href="https://lucene.apache.org/solr/guide/7_2/solr-tutorial.html" target="_blank" rel="external">官方教程</a>、<a href="http://mirror.bit.edu.cn/apache/lucene/solr/ref-guide/apache-solr-ref-guide-7.2.pdf" target="_blank" rel="external">solr-7.2-pdf</a></li>
-<li><a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="external">各版本下载地址</a><strong>(本文基于<code>solr-7.2.0</code>进行说明，需要jdk1.8及以上)</strong></li>
-</ul>
-<h3 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h3><ul>
-<li><code>collection</code>/<code>core</code> 均指以不同的数据结构来对数据进行索引(索引库、集合)</li>
-<li><code>schema</code>为一个xml配置文件，主要用于配置字段和字段类型，动态字段等。（如某个字段可忽略大小写也可在其中配置）</li>
-</ul>
-<h2 id="安装及使用-1"><a href="#安装及使用-1" class="headerlink" title="安装及使用 ^1"></a>安装及使用 <a href="[solr-tutorial](https://lucene.apache.org/solr/guide/7_2/solr-tutorial.html)">^1</a></h2><h3 id="下载解压说明"><a href="#下载解压说明" class="headerlink" title="下载解压说明"></a>下载解压说明</h3><ul>
-<li>下载tar包解压 <code>tar -zxvf solr-7.2.1.tgz -C /opt/soft</code>，目录说明</li>
-<li><code>example</code> 几个solr的实例</li>
-<li><code>server</code> solr的核心应用程序<ul>
-<li><code>solr-webapp</code>为solr提供的控制面板</li>
-<li><code>resources</code> 日志配置</li>
-<li><code>solr/configsets</code> 全局配置文件(有<code>_default</code>和<code>sample_techproducts_configs</code>两种)。<code>SolrCloud</code>模式启动后选择此其中一种模式（应该在启动前对此目录下文件进行配置），普通模式启动需要复制其中的配置文件到相应实例目录<ul>
-<li><code>sample_techproducts_configs/conf/managed-schema</code> 配置(添加)字段、字段类型、动态字段等信息</li>
-<li><code>sample_techproducts_configs/conf/solrconfig.xml</code> 配置sorl相关服务，如classpath配置、增加导入db数据访问端点等</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="启动停止服务"><a href="#启动停止服务" class="headerlink" title="启动停止服务"></a>启动停止服务</h3><ul>
-<li>配置IK中文分析器/DB数据导入需要在启动前配置好</li>
-<li>初始化solr集合<ul>
-<li>以<code>SolrCloud</code>模式启动<strong><code>./bin/solr start -e cloud</code></strong>(因权限可强制启动<strong><code>./bin/solr start -e cloud -force</code></strong>)<ul>
-<li>启动时会询问相关配置，<code>[]</code>中即为默认配置(默认启动2个solr节点，分别为8983、7574)。其他使用默认；<strong>solr配置项使用<code>sample_techproducts_configs</code></strong>，集合名称也可再此时配置</li>
-<li>SolrCloud模式创建的集合instanceDir在<code>/example/cloud/node1/solr/aezocn_shard1_replica_n1</code>等目录下创建</li>
-</ul>
-</li>
-<li>普通默认启动 <code>./bin/solr start</code><ul>
-<li>此时需要添加Core。需要先在<code>/server/solr</code>创建对应的instanDir，并将<code>/server/solr/configsets/_default/conf</code>目录下所有文件拷贝到instanDir目录下</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>访问<code>http://localhost:8983/solr</code>即可看到solr的管理面板</li>
-<li>停止服务<ul>
-<li><strong><code>./bin/solr stop -all</code></strong> 停止全部solr</li>
-<li><code>./bin/solr stop -p 8983</code> 停止8983端口的solr</li>
-</ul>
-</li>
-<li><strong>重启服务</strong><br>  <code>./bin/solr start -c -p 8983 -s example/cloud/node1/solr -force</code> 启动node1，其中<code>-s</code>后面接<code>solr.home</code>(此时会启动一个内嵌的ZooKeeper服务)<br>  <code>./bin/solr start -c -p 7574 -s example/cloud/node2/solr -z localhost:9983 -force</code> 启动node2，其中<code>-z localhost:9983</code>为连接ZooKeeper的配置</li>
-</ul>
-<h3 id="配置IK中文分析器"><a href="#配置IK中文分析器" class="headerlink" title="配置IK中文分析器"></a>配置IK中文分析器</h3><ul>
-<li><strong>需要在启动前配置好，<code>SolrCloud</code>模式启动为例</strong></li>
-<li><a href="https://download.csdn.net/download/oldinaction/10306498" target="_blank" rel="external">资源下载</a></li>
-<li><code>ik-analyzer-solr5-5.x.jar</code>和<code>solr-analyzer-ik-5.1.0.jar</code>复制到<code>/server/solr-webapp/webapp/WEB-INF/lib</code>目录下</li>
-<li>在<code>/server/solr-webapp/webapp/WEB-INF</code>下创建<code>classes</code>目录</li>
-<li><p>将<code>IKAnalyzer.cfg.xml</code>(如下)、<code>stopword.dic</code>(分割词，如”的”等。每行一个)、<code>ext.dic</code>(每行一个，可为空文件)复制到<code>classes</code>目录下</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd"&gt;</span>  </div><div class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span>  </div><div class="line">    <span class="tag">&lt;<span class="name">comment</span>&gt;</span>IK Analyzer 扩展配置<span class="tag">&lt;/<span class="name">comment</span>&gt;</span></div><div class="line">    <span class="comment">&lt;!--用户可以在这里配置自己的扩展字典 --&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">entry</span> <span class="attr">key</span>=<span class="string">"ext_dict"</span>&gt;</span>ext.dic;<span class="tag">&lt;/<span class="name">entry</span>&gt;</span> </div><div class="line">    </div><div class="line">    <span class="comment">&lt;!--用户可以在这里配置自己的扩展停止词字典--&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">entry</span> <span class="attr">key</span>=<span class="string">"ext_stopwords"</span>&gt;</span>stopword.dic;<span class="tag">&lt;/<span class="name">entry</span>&gt;</span> </div><div class="line">    </div><div class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></div></pre></td></tr></table></figure>
-</li>
-<li><p>编辑<code>server/solr/configsets/sample_techproducts_configs/conf/managed-schema</code>在<code>&lt;/schema&gt;</code>前加如下代码</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">fieldType</span> <span class="attr">name</span>=<span class="string">"text_ik"</span> <span class="attr">class</span>=<span class="string">"solr.TextField"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">analyzer</span> <span class="attr">class</span>=<span class="string">"org.wltea.analyzer.lucene.IKAnalyzer"</span>/&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">fieldType</span>&gt;</span></div><div class="line"></div><div class="line"><span class="comment">&lt;!-- 示例（此时非必须）。添加一个字段desc，类型为text_ik。只有创建类似这种字段才能进行中文分词 --&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"desc"</span> <span class="attr">type</span>=<span class="string">"text_ik"</span> <span class="attr">indexed</span>=<span class="string">"true"</span> <span class="attr">stored</span>=<span class="string">"true"</span> <span class="attr">multiValued</span>=<span class="string">"false"</span> /&gt;</span></div></pre></td></tr></table></figure>
-</li>
-</ul>
-<h3 id="同步db数据-3"><a href="#同步db数据-3" class="headerlink" title="同步db数据 ^3"></a>同步db数据 <a href="[Data-Import-Handler](https://lucene.apache.org/solr/guide/7_2/uploading-structured-data-store-data-with-the-data-import-handler.html)">^3</a></h3><ul>
-<li>将以下jar包复制到<code>/server/solr-webapp/webapp/WEB-INF/lib</code>目录下<ul>
-<li>solr-dataimporthandler-7.2.1.jar(在dist目录中)</li>
-<li>solr-dataimporthandler-extras-7.2.1.jar</li>
-<li>mysql-connector-java-5.1.43.jar</li>
-</ul>
-</li>
-<li><p>在配置文件<code>server/solr/configsets/sample_techproducts_configs/conf/solrconfig.xml</code>末尾加入如下代码(基于<code>SolrCloud</code>模式的<code>sample_techproducts_configs</code>配置)</p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">requestHandler</span> <span class="attr">name</span>=<span class="string">"/dataimport"</span> <span class="attr">class</span>=<span class="string">"org.apache.solr.handler.dataimport.DataImportHandler"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">lst</span> <span class="attr">name</span>=<span class="string">"defaults"</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">str</span> <span class="attr">name</span>=<span class="string">"config"</span>&gt;</span>data-config.xml<span class="tag">&lt;/<span class="name">str</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">lst</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">requestHandler</span>&gt;</span></div></pre></td></tr></table></figure>
-</li>
-<li><p>新增配置文件<code>server/solr/configsets/sample_techproducts_configs/conf/data-config.xml</code></p>
-  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dataConfig</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">dataSource</span> <span class="attr">type</span>=<span class="string">"JdbcDataSource"</span></span></div><div class="line">            <span class="attr">driver</span>=<span class="string">"com.mysql.jdbc.Driver"</span></div><div class="line">            <span class="attr">url</span>=<span class="string">"jdbc:mysql://192.168.6.1:3306/test"</span></div><div class="line">            <span class="attr">user</span>=<span class="string">"root"</span></div><div class="line">            <span class="attr">password</span>=<span class="string">"root"</span> /&gt;</div><div class="line">    <span class="tag">&lt;<span class="name">document</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 此处可以有多个entity，entity也可以嵌套。dataimporter.request.id为控制面板中Dataimport-Custom Parameters的传入参数 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- deltaQuery/deltaImportQuery为增量更新的sql --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">entity</span> <span class="attr">name</span>=<span class="string">"test_solr"</span> </span></div><div class="line">            <span class="attr">pk</span>=<span class="string">"id"</span></div><div class="line">            <span class="attr">transformer</span>=<span class="string">"DateFormatTransformer"</span></div><div class="line">            <span class="attr">query</span>=<span class="string">"SELECT id, `name`, `desc`, update_time FROM test_solr WHERE id &gt;= $&#123;dataimporter.request.id&#125;"</span></div><div class="line">            <span class="attr">deltaQuery</span>=<span class="string">"select id from test_solr where update_time &gt; '$&#123;dih.last_index_time&#125;'"</span></div><div class="line">            <span class="attr">deltaImportQuery</span>=<span class="string">"SELECT id, `name`, `desc`, update_time FROM test_solr where id='$&#123;dih.delta.id&#125;'"</span>&gt;</div><div class="line">            <span class="comment">&lt;!-- column为数据库字段，name为managed_schema里配置的字段 --&gt;</span></div><div class="line">            <span class="tag">&lt;<span class="name">field</span> <span class="attr">column</span>=<span class="string">'update_time'</span> <span class="attr">name</span>=<span class="string">"last_modified"</span> <span class="attr">dateTimeFormat</span>=<span class="string">'yyyy-MM-dd HH:mm:ss'</span> /&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">entity</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">document</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dataConfig</span>&gt;</span></div></pre></td></tr></table></figure>
-<ul>
-<li>可能会连接数据库失败，可在控制面板的<code>Logging</code>中查看日志。常见如：<code>&quot;Host &#39;192.168.6.131&#39; is not allowed to connect to this MySQL server&quot;</code></li>
-</ul>
-</li>
-<li>编辑<code>server/solr/configsets/sample_techproducts_configs/conf/managed-schema</code>在<code>&lt;/schema&gt;</code>中加入<code>&lt;field name=&quot;desc&quot; type=&quot;text_ik&quot; indexed=&quot;true&quot; stored=&quot;true&quot; multiValued=&quot;false&quot; /&gt;</code>来进行中文存储（在可在控制面板中进行添加）</li>
-<li>加载配置文件，参考下文【solr相关命令】</li>
-<li>控制面板中进行数据导入，参考下文【控制面板-collection】<ul>
-<li><code>Command=full-import</code>；<code>Entity=test_solr</code>；<code>Dataimport-Custom Parameters</code>传入<code>id=1</code>表示导入所有id&gt;1的数据</li>
-<li>增量更新主要看<code>update_time</code>字段值是否比<code>dataimport.properties</code>中<code>last_index_time</code>的值大。此时最好去掉<code>clean</code>的勾选，否则全导入后<code>update_time</code>未变更的记录将被删除</li>
-<li>或者访问<code>http://192.168.6.131:8983/solr/aezocn/dataimport?command=delta-import</code>进行数据导入</li>
-</ul>
-</li>
-<li>查询数据 <code>http://192.168.6.131:8983/solr/aezocn/select?q={!term f=desc}中国人</code></li>
-</ul>
-<h2 id="控制面板"><a href="#控制面板" class="headerlink" title="控制面板"></a>控制面板</h2><ul>
-<li>访问<code>http://localhost:8983/solr/aezocn/browse</code>为查询前端界面(类似百度搜索)</li>
-<li>点击cloud查看集合分片节点信息：collection(aezocn)分成两片(shard1、shard2)，且每片都对应两个节点(192.168.6.131:8983、192.168.6.131:7574)</li>
-<li><code>Logging</code> 日志。如数据导入出错会在此处打印日志</li>
-</ul>
-<h3 id="collection-aezocn"><a href="#collection-aezocn" class="headerlink" title="collection(aezocn)"></a>collection(aezocn)</h3><ul>
-<li><code>Dataimport</code> db数据同步<ul>
-<li><code>Command</code>分为<code>full-import</code>(全导入)和<code>delta-import</code>(增量导入)</li>
-</ul>
-</li>
-<li><code>Documents</code> post文档数据</li>
-<li><code>Query</code> 检索<ul>
-<li><code>common</code>-<code>q</code>输入检索词汇，支持<code>&quot;&quot;</code>、<code>+</code>、<code>-</code>等符号</li>
-</ul>
-</li>
-<li><code>Schema</code> 字段配置，添加字段等</li>
-</ul>
-<h2 id="solr相关命令"><a href="#solr相关命令" class="headerlink" title="solr相关命令"></a>solr相关命令</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## **`SolrCloud`配置文件加载**</span></div><div class="line"><span class="comment"># `SolrCloud`模式下配置文件是基于`server/solr/configsets`中配置文件加载的。可以在`configsets`新建配置文件模版文件夹</span></div><div class="line"><span class="comment"># 如果在控制面板`Cloud`-`Tree`-`configs`中无名为aezocn的Configset则会自动新建一个。如果存在则会进行更新</span></div><div class="line">bin/solr zk upconfig -z localhost:9983 -n aezocn -d /opt/soft/solr-7.2.1/server/solr/configsets/sample_techproducts_configs</div><div class="line"><span class="comment"># 配置文件加载后需要刷新集合aezocn</span></div><div class="line">http://192.168.6.131:8983/solr/admin/collections?action=RELOAD&amp;name=aezocn</div><div class="line"></div><div class="line"><span class="comment">## 创建新集合</span></div><div class="line"><span class="comment"># 创建新集合名为movie，2个shades(`-s`)和2个replicas(`-rf`), 默认使用`_default`作为配置模板</span></div><div class="line">./bin/solr create -c movie -s 2 -rf 2</div><div class="line"></div><div class="line"><span class="comment">## 删除集合</span></div><div class="line">./bin/solr delete -c aezocn</div><div class="line"></div><div class="line"><span class="comment">## **清空数据**</span></div><div class="line"><span class="comment"># 删除`example/cloud`文件夹即可删除`SolrCloud`模式启动的集合</span></div><div class="line">rm -Rf example/cloud/</div><div class="line"></div><div class="line"><span class="comment">## 给集合添加字段</span></div><div class="line"><span class="comment"># 往movie集合中添加一个字段名为username、文本型、不可存放多个值、可检索查询 </span></div><div class="line">curl -X POST -H <span class="string">'Content-type:application/json'</span> --data-binary <span class="string">'&#123;"add-field": &#123;"name":"username", "type":"text_general", "multiValued":false, "stored":true&#125;&#125;'</span> http://localhost:8983/solr/movie/schema</div><div class="line"></div><div class="line"><span class="comment">## 添加文档数据，以自带exampledocs为例导入测试数据。往集合aezocn中post数据(也可在控制面板中post文档数据)</span></div><div class="line">./bin/post -c aezocn example/exampledocs/*</div></pre></td></tr></table></figure>
-<h2 id="Client-APIs"><a href="#Client-APIs" class="headerlink" title="Client APIs"></a>Client APIs</h2><ul>
-<li>基于<code>solrj</code>进行数据提交和查询 <a href="[Using-SolrJ](https://lucene.apache.org/solr/guide/7_2/using-solrj.html#using-solrj)">^2</a></li>
-<li><a href="https://lucene.apache.org/solr/7_2_0//solr-solrj/" target="_blank" rel="external">Solrj API</a></li>
-</ul>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.solr<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>solr-solrj<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>7.2.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
-<hr>
-<p>参考文章</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;Solr&lt;/code&gt;它是一种开放源码的、基于 Lucene Java 的搜索服务器，易于加入到 Web 应用程序中
-    
-    </summary>
-    
-      <category term="bigdata" scheme="http://blog.aezo.cn/categories/bigdata/"/>
-    
-    
-      <category term="lucene" scheme="http://blog.aezo.cn/tags/lucene/"/>
-    
-      <category term="solr" scheme="http://blog.aezo.cn/tags/solr/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Java项目CPU及内存异常分析</title>
-    <link href="http://blog.aezo.cn/2018/03/13/java/Java%E9%A1%B9%E7%9B%AECPU%E5%8F%8A%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/"/>
-    <id>http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/</id>
+    <title>Java应用服务器及数据库服务器的CPU和内存异常分析</title>
+    <link href="http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%8F%8A%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/"/>
+    <id>http://blog.aezo.cn/2018/03/13/java/Java应用服务器及数据库服务器的CPU和内存异常分析/</id>
     <published>2018-03-13T05:35:00.000Z</published>
-    <updated>2018-04-16T02:18:59.063Z</updated>
+    <updated>2018-04-23T01:31:35.866Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li>java应用常见故障：<strong>高CPU占用</strong>、<strong>高内存占用</strong>、<strong>高I/O占用</strong>(包括磁盘I/O、网络I/O、数据库I/O等)</li>
@@ -641,15 +686,15 @@
 </ul>
 </li>
 </ul>
-<h2 id="相关命令介绍"><a href="#相关命令介绍" class="headerlink" title="相关命令介绍"></a>相关命令介绍</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%</span></div><div class="line"><span class="comment"># Windows可以使用ProcessExplorer.exe查看进程和线程信息</span></div><div class="line">top</div><div class="line"></div><div class="line"><span class="comment">## 2.显示某进程的线程列表。pid：进程id;</span></div><div class="line"><span class="comment"># 结果说明：（1）第一行为统计（2）%CPU为此线程CPU占用率（3）TIME为线程运行时间（4）%MEM为内存占用率</span></div><div class="line">ps -mp &lt;pid&gt; -o THREAD,tid,time,rss,size,%mem</div><div class="line"></div><div class="line"><span class="comment">## 3.Java的jstack命令：打印线程的堆栈信息</span></div><div class="line"><span class="comment"># pid：进程id; tid线程id; -A 30表示显示30行; `printf "%x\n" &lt;tid&gt;`获取线程ID的16进制格式</span></div><div class="line"><span class="comment"># 如"OFBiz-JobQueue-0"为线程名，prio=10为优先级，tid为线程id，RUNNABLE为运行中</span></div><div class="line"><span class="comment"># "OFBiz-JobQueue-0" prio=10 tid=0x00007f2c60007800 nid=0x96d runnable [0x00007f2cfe187000]</span></div><div class="line"><span class="comment">#    java.lang.Thread.State: RUNNABLE</span></div><div class="line"><span class="comment">#       at java.net.SocketInputStream.socketRead0(Native Method)</span></div><div class="line"><span class="comment">#       ......</span></div><div class="line">jstack &lt;pid&gt; | grep `<span class="built_in">printf</span> <span class="string">"%x\n"</span> &lt;tid&gt;` -A 30</div><div class="line"><span class="comment"># 获取thread dump到文件</span></div><div class="line">jstack &lt;pid&gt; &gt; jstack.out</div><div class="line"></div><div class="line"><span class="comment">## 4.Java的jmap命令：显示一个进程下具体线程的内存占用情况</span></div><div class="line"><span class="comment"># 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live &lt;pid&gt; &gt; /home/jmap.out）</span></div><div class="line">jmap -histo:live &lt;pid&gt; | head -n 100</div><div class="line"><span class="comment"># 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析</span></div><div class="line"><span class="comment"># （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟）</span></div><div class="line">jmap -dump:live,format=b,file=/home/dump.hprof &lt;pid&gt;</div><div class="line"><span class="comment"># （2）项目启动添加参数获取(不能实时获取)</span></div><div class="line">-XX:+HeapDumpOnOutOfMemoryError <span class="comment"># 出现 OOME 时生成堆 dump:</span></div><div class="line">-XX:HeapDumpPath=/home/jvmlogs/ <span class="comment"># 生成堆文件地址</span></div></pre></td></tr></table></figure>
-<h2 id="MAT工具使用"><a href="#MAT工具使用" class="headerlink" title="MAT工具使用"></a>MAT工具使用</h2><ul>
+<h2 id="应用服务器故障"><a href="#应用服务器故障" class="headerlink" title="应用服务器故障"></a>应用服务器故障</h2><h3 id="相关命令介绍"><a href="#相关命令介绍" class="headerlink" title="相关命令介绍"></a>相关命令介绍</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%</span></div><div class="line"><span class="comment"># Windows可以使用ProcessExplorer.exe查看进程和线程信息</span></div><div class="line">top</div><div class="line"></div><div class="line"><span class="comment">## 2.显示某进程的线程列表。pid：进程id;</span></div><div class="line"><span class="comment"># 结果说明：（1）第一行为统计（2）%CPU为此线程CPU占用率（3）TIME为线程运行时间（4）%MEM为内存占用率</span></div><div class="line">ps -mp &lt;pid&gt; -o THREAD,tid,time,rss,size,%mem</div><div class="line"></div><div class="line"><span class="comment">## 3.Java的jstack命令：打印线程的堆栈信息</span></div><div class="line"><span class="comment"># pid：进程id; tid线程id; -A 30表示显示30行; `printf "%x\n" &lt;tid&gt;`获取线程ID的16进制格式</span></div><div class="line"><span class="comment"># 如"OFBiz-JobQueue-0"为线程名，prio=10为优先级，tid为线程id，RUNNABLE为运行中</span></div><div class="line"><span class="comment"># "OFBiz-JobQueue-0" prio=10 tid=0x00007f2c60007800 nid=0x96d runnable [0x00007f2cfe187000]</span></div><div class="line"><span class="comment">#    java.lang.Thread.State: RUNNABLE</span></div><div class="line"><span class="comment">#       at java.net.SocketInputStream.socketRead0(Native Method)</span></div><div class="line"><span class="comment">#       ......</span></div><div class="line">jstack &lt;pid&gt; | grep `<span class="built_in">printf</span> <span class="string">"%x\n"</span> &lt;tid&gt;` -A 30</div><div class="line"><span class="comment"># 获取thread dump到文件</span></div><div class="line">jstack &lt;pid&gt; &gt; jstack.out</div><div class="line"></div><div class="line"><span class="comment">## 4.Java的jmap命令：显示一个进程下具体线程的内存占用情况</span></div><div class="line"><span class="comment"># 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live &lt;pid&gt; &gt; /home/jmap.out）</span></div><div class="line">jmap -histo:live &lt;pid&gt; | head -n 100</div><div class="line"><span class="comment"># 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析</span></div><div class="line"><span class="comment"># （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟）</span></div><div class="line">jmap -dump:live,format=b,file=/home/dump.hprof &lt;pid&gt;</div><div class="line"><span class="comment"># （2）项目启动添加参数获取(不能实时获取)</span></div><div class="line">-XX:+HeapDumpOnOutOfMemoryError <span class="comment"># 出现 OOME 时生成堆 dump:</span></div><div class="line">-XX:HeapDumpPath=/home/jvmlogs/ <span class="comment"># 生成堆文件地址</span></div></pre></td></tr></table></figure>
+<h3 id="MAT工具使用"><a href="#MAT工具使用" class="headerlink" title="MAT工具使用"></a>MAT工具使用</h3><ul>
 <li><p>MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，<a href="http://www.eclipse.org/mat/downloads.php" target="_blank" rel="external">下载</a></p>
 </li>
 <li><p><a href="https://www.cnblogs.com/moonandstar08/p/5625164.html" target="_blank" rel="external">https://www.cnblogs.com/moonandstar08/p/5625164.html</a></p>
 </li>
 <li><a href="http://blog.csdn.net/aaa2832/article/details/19419679" target="_blank" rel="external">http://blog.csdn.net/aaa2832/article/details/19419679</a></li>
 </ul>
-<h2 id="OFBiz项目案例分析"><a href="#OFBiz项目案例分析" class="headerlink" title="OFBiz项目案例分析"></a>OFBiz项目案例分析</h2><blockquote>
+<h3 id="OFBiz项目案例分析"><a href="#OFBiz项目案例分析" class="headerlink" title="OFBiz项目案例分析"></a>OFBiz项目案例分析</h3><blockquote>
 <p>案例介绍：此问题主要是ofbiz在清理历史任务时，任务数据过大导致内存溢出，从而CPU飙升，最终服务器时常宕机。</p>
 </blockquote>
 <ul>
@@ -677,6 +722,26 @@
 </li>
 </ul>
 <p>由于个人觉得ofbiz任务机制不太好用，决定不去清理历史数据，而是手动定时清理(或绕过ofbiz定时去清理)。因此可以修改<code>/framework/service/config/serviceengine.xml</code>中<code>purge-job-days</code>的值。重新启动服务器(之前占用的内存无法及时清除，必须重启服务器)和项目一切正常</p>
+<h2 id="数据库服务器故障"><a href="#数据库服务器故障" class="headerlink" title="数据库服务器故障"></a>数据库服务器故障</h2><ul>
+<li>CPU故障展现 <a href="[oracle数据库CPU特别高的解决方法](https://blog.csdn.net/xuexiaodong009/article/details/74451412)">^4</a><ul>
+<li>数据库服务器CPU飙高</li>
+<li>oracle相关进程CPU占用高</li>
+<li>应用服务器响应很慢</li>
+</ul>
+</li>
+<li><p>查看数据库sql运行占用时间较长的会话信息，并kill此会话</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">sid</span>, <span class="built_in">serial</span>#, sql_text, sql_fulltext, executions</div><div class="line"><span class="keyword">from</span> v$<span class="keyword">sql</span></div><div class="line"><span class="keyword">join</span> v$<span class="keyword">session</span> <span class="keyword">on</span> v$sql.sql_id = v$session.sql_id</div><div class="line"><span class="keyword">where</span> cpu_time &gt; <span class="number">20000</span>;</div><div class="line"></div><div class="line"><span class="comment">-- kill相应会话</span></div><div class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">kill</span> <span class="keyword">session</span> <span class="string">'sid, serial#'</span>;</div></pre></td></tr></table></figure>
+</li>
+<li><p>查看数据库sql运行占用时间较长的sql语句</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> *</div><div class="line"><span class="keyword">from</span> (<span class="keyword">select</span> sql_text, sql_fulltext, sql_id, cpu_time <span class="keyword">from</span> v$<span class="keyword">sql</span> <span class="keyword">order</span> <span class="keyword">by</span> cpu_time <span class="keyword">desc</span>)</div><div class="line"><span class="keyword">where</span> <span class="keyword">rownum</span> &lt;= <span class="number">10</span></div><div class="line"><span class="keyword">order</span> <span class="keyword">by</span> <span class="keyword">rownum</span> <span class="keyword">asc</span>;</div></pre></td></tr></table></figure>
+</li>
+<li><p>查看服务器CPU占用高较高的进程运行的sql语句(v$sqltext中的sql语句是被分割存储)，运行下列sql后输入进程pid</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 其中&amp;pid是使用top查看系统中进程占用CPU极高的PID</span></div><div class="line"><span class="keyword">select</span> sql_text</div><div class="line"><span class="keyword">from</span> v$sqltext a</div><div class="line"><span class="keyword">where</span> (a.hash_value, a.address) <span class="keyword">in</span></div><div class="line">    (<span class="keyword">select</span> <span class="keyword">decode</span>(sql_hash_value, <span class="number">0</span>, prev_hash_value, sql_hash_value),</div><div class="line">            <span class="keyword">decode</span>(sql_hash_value, <span class="number">0</span>, prev_sql_addr, sql_address)</div><div class="line">        <span class="keyword">from</span> v$<span class="keyword">session</span> b</div><div class="line">        <span class="keyword">where</span> b.paddr =</div><div class="line">            (<span class="keyword">select</span> addr <span class="keyword">from</span> v$process c <span class="keyword">where</span> c.spid = <span class="string">'&amp;pid'</span>))</div><div class="line"><span class="keyword">order</span> <span class="keyword">by</span> piece <span class="keyword">asc</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>常用查询</p>
+  <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- 列出使用频率最高的5个sql</span></div><div class="line"><span class="keyword">select</span> sql_text, sql_fulltext, executions</div><div class="line"><span class="keyword">from</span> (<span class="keyword">select</span> sql_text, sql_fulltext, executions,</div><div class="line">            <span class="keyword">rank</span>() <span class="keyword">over</span>(<span class="keyword">order</span> <span class="keyword">by</span> executions <span class="keyword">desc</span>) exec_rank</div><div class="line">        <span class="keyword">from</span> v$<span class="keyword">sql</span>)</div><div class="line"><span class="keyword">where</span> exec_rank &lt;= <span class="number">5</span>;</div><div class="line"></div><div class="line"><span class="comment">-- 列出消耗磁盘读取最多的5个sql</span></div><div class="line"><span class="keyword">select</span> disk_reads, sql_text, sql_fulltext</div><div class="line"><span class="keyword">from</span> (<span class="keyword">select</span> sql_text, sql_fulltext, disk_reads,</div><div class="line">            <span class="keyword">dense_rank</span>() <span class="keyword">over</span>(<span class="keyword">order</span> <span class="keyword">by</span> disk_reads <span class="keyword">desc</span>) disk_reads_rank</div><div class="line">        <span class="keyword">from</span> v$<span class="keyword">sql</span>)</div><div class="line"><span class="keyword">where</span> disk_reads_rank &lt;= <span class="number">5</span>;</div><div class="line"></div><div class="line"><span class="comment">-- 列出需要大量缓冲读取（逻辑读）操作的5个sql</span></div><div class="line"><span class="keyword">select</span> buffer_gets, sql_text, sql_fulltext</div><div class="line"><span class="keyword">from</span> (<span class="keyword">select</span> sql_text, sql_fulltext, buffer_gets,</div><div class="line">            <span class="keyword">dense_rank</span>() <span class="keyword">over</span>(<span class="keyword">order</span> <span class="keyword">by</span> buffer_gets <span class="keyword">desc</span>) buffer_gets_rank</div><div class="line">        <span class="keyword">from</span> v$<span class="keyword">sql</span>)</div><div class="line"><span class="keyword">where</span> buffer_gets_rank &lt;= <span class="number">5</span>;</div></pre></td></tr></table></figure>
+</li>
+</ul>
 <hr>
 <p>参考文章</p>
 ]]></content>
@@ -690,6 +755,8 @@
     
       <category term="java" scheme="http://blog.aezo.cn/categories/java/"/>
     
+    
+      <category term="oracle" scheme="http://blog.aezo.cn/tags/oracle/"/>
     
       <category term="ofbiz" scheme="http://blog.aezo.cn/tags/ofbiz/"/>
     
@@ -1022,7 +1089,7 @@
     <link href="http://blog.aezo.cn/2017/12/25/arch/springboot-vue/"/>
     <id>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</id>
     <published>2017-12-25T13:16:00.000Z</published>
-    <updated>2017-12-27T14:15:57.270Z</updated>
+    <updated>2018-04-23T09:41:47.456Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><h2 id="跨域和session-token"><a href="#跨域和session-token" class="headerlink" title="跨域和session/token"></a>跨域和session/token</h2><h3 id="同源政策"><a href="#同源政策" class="headerlink" title="同源政策"></a>同源政策</h3><ul>
 <li>网络协议、ip、端口三者都相同就是同一个域(同源)<ul>
@@ -1051,7 +1118,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="跨域资源共享-CORS-Cross-origin-resource-sharing-1"><a href="#跨域资源共享-CORS-Cross-origin-resource-sharing-1" class="headerlink" title="跨域资源共享(CORS, Cross-origin resource sharing) [^1]"></a>跨域资源共享(CORS, Cross-origin resource sharing) [^1]</h3><ul>
+<h3 id="跨域资源共享-CORS-Cross-origin-resource-sharing-1"><a href="#跨域资源共享-CORS-Cross-origin-resource-sharing-1" class="headerlink" title="跨域资源共享(CORS, Cross-origin resource sharing) ^1"></a>跨域资源共享(CORS, Cross-origin resource sharing) <a href="[跨域资源共享CORS详解](http://www.ruanyifeng.com/blog/2016/04/cors.html)">^1</a></h3><ul>
 <li><strong><code>CORS</code>需要浏览器和服务器同时支持。</strong>目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。<strong>浏览器会自动完成CORS通信过程，开发只需配置服务器同源限制</strong></li>
 <li>如果CORS通信过程中，响应的头信息没有包含<code>Access-Control-Allow-Origin</code>字段，浏览器则认为无法请求，便会抛出异常被XHR的onerror捕获</li>
 <li><code>Spring</code>对CORS的支持<a href="https://spring.io/blog/2015/06/08/cors-support-in-spring-framework" target="_blank" rel="external">https://spring.io/blog/2015/06/08/cors-support-in-spring-framework</a><ul>
@@ -1061,20 +1128,32 @@
 </ul>
 </li>
 </ul>
-<h4 id="spring-security的cors配置-3"><a href="#spring-security的cors配置-3" class="headerlink" title="spring security的cors配置 [^3]"></a>spring security的cors配置 [^3]</h4><ul>
+<h4 id="spring-security的cors配置-3"><a href="#spring-security的cors配置-3" class="headerlink" title="spring security的cors配置 ^3"></a>spring security的cors配置 <a href="[spring-security-cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)">^3</a></h4><ul>
 <li><p>开启cosr</p>
   <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">    http.csrf().disable(); <span class="comment">// 开启cors需要关闭csrf</span></div><div class="line">    http.cors();</div><div class="line">    <span class="comment">// ...</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 配置cors</span></div><div class="line"><span class="meta">@Bean</span></div><div class="line"><span class="function">CorsConfigurationSource <span class="title">corsConfigurationSource</span><span class="params">()</span> </span>&#123;</div><div class="line">    CorsConfiguration configuration = <span class="keyword">new</span> CorsConfiguration();</div><div class="line">    configuration.setAllowedOrigins(Arrays.asList(<span class="string">"*"</span>));</div><div class="line">    configuration.setAllowedMethods(Arrays.asList(<span class="string">"*"</span>));</div><div class="line">    configuration.setAllowedHeaders(Arrays.asList(<span class="string">"*"</span>));</div><div class="line">    configuration.setAllowCredentials(<span class="keyword">true</span>);</div><div class="line"></div><div class="line">    UrlBasedCorsConfigurationSource source = <span class="keyword">new</span> UrlBasedCorsConfigurationSource();</div><div class="line">    source.registerCorsConfiguration(<span class="string">"/**"</span>, configuration);</div><div class="line">    <span class="keyword">return</span> source;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <ul>
 <li><code>CSRF</code> 跨站请求伪造(Cross-Site Request Forgery). <a href="https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html" target="_blank" rel="external">csrf</a></li>
 </ul>
 </li>
-<li><p>spring-security登录只能接受<code>x-www-form-urlencoded</code>(简单键值对)类型的数据，<code>form-data</code>(表单类型，可以含有文件)类型的请求获取不到参数值</p>
+</ul>
+<h2 id="Http请求及响应"><a href="#Http请求及响应" class="headerlink" title="Http请求及响应"></a>Http请求及响应</h2><ul>
+<li>spring-security登录只能接受<code>x-www-form-urlencoded</code>(简单键值对)类型的数据，<code>form-data</code>(表单类型，可以含有文件)类型的请求获取不到参数值</li>
+<li><p><code>axios</code>使用post方式传递参数后端接受不到 <a href="[axios使用post方式传递参数后端接受不到](https://segmentfault.com/a/1190000012635783)">^4</a></p>
+<ul>
+<li><p><code>axios</code>使用<code>x-www-form-urlencoded</code>请求，参数应该写到<code>param</code>中</p>
+  <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">axios(&#123;</div><div class="line">    <span class="attr">method</span>: <span class="string">'post'</span>,</div><div class="line">    <span class="attr">headers</span>: &#123;</div><div class="line">        <span class="string">'Content-Type'</span>: <span class="string">'application/x-www-form-urlencoded'</span></div><div class="line">    &#125;,</div><div class="line">    <span class="attr">url</span>: <span class="string">'http://localhost:8080/api/login'</span>,</div><div class="line">    <span class="attr">params</span>: &#123;</div><div class="line">        <span class="attr">username</span>:<span class="string">'smalle'</span>,</div><div class="line">        <span class="attr">password</span>:<span class="string">'smalle'</span></div><div class="line">    &#125;</div><div class="line">&#125;).then(<span class="function">(<span class="params">res</span>)=&gt;</span>&#123;</div><div class="line"></div><div class="line">&#125;)</div></pre></td></tr></table></figure>
+<ul>
+<li>axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在<code>data</code>中，加<code>headers: {&#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;}</code>也不行)</li>
+<li>jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析</li>
+<li>使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据</li>
+</ul>
 </li>
-<li><code>axios</code>实现<code>x-www-form-urlencoded</code>请求：参数应该写到<code>param</code>中。如果写在<code>data</code>中则不行，加<code>headers: {&#39;Content-Type&#39;: &#39;application/x-www-form-urlencoded&#39;}</code>也不行</li>
+<li>使用<code>qs</code>插件，未测试，具体参考：<a href="https://segmentfault.com/a/1190000012635783" target="_blank" rel="external">https://segmentfault.com/a/1190000012635783</a></li>
+</ul>
+</li>
 </ul>
 <hr>
-<p>[^1]: <a href="http://www.ruanyifeng.com/blog/2016/04/cors.html" target="_blank" rel="external">跨域资源共享 CORS 详解</a></p>
-<p>[^3]: <a href="https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html" target="_blank" rel="external">spring security cors</a></p>
+<p>参考文章</p>
 ]]></content>
     
     <summary type="html">
@@ -1150,6 +1229,47 @@
   </entry>
   
   <entry>
+    <title>OFBiz模型图(UML)分析</title>
+    <link href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz-uml/"/>
+    <id>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz-uml/</id>
+    <published>2017-12-09T02:17:00.000Z</published>
+    <updated>2018-04-16T10:43:35.302Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="模型列表"><a href="#模型列表" class="headerlink" title="模型列表"></a>模型列表</h2><ul>
+<li>webapp中类图</li>
+<li>Event调用过程</li>
+<li>Contorl处理过程</li>
+<li>登录</li>
+<li>校验登录 extensionCheckLogin</li>
+<li>view渲染</li>
+<li>screen渲染</li>
+</ul>
+<embed width="1000" height="800" src="/data/pdf/OFBiz-UML.pdf" internalinstanceid="7">
+
+<h2 id="服务、任务机制模型图"><a href="#服务、任务机制模型图" class="headerlink" title="服务、任务机制模型图"></a>服务、任务机制模型图</h2><embed width="1000" height="800" src="/data/pdf/OFBiz-Service-Job.pdf" internalinstanceid="7">]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;模型列表&quot;&gt;&lt;a href=&quot;#模型列表&quot; class=&quot;headerlink&quot; title=&quot;模型列表&quot;&gt;&lt;/a&gt;模型列表&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;webapp中类图&lt;/li&gt;
+&lt;li&gt;Event调用过程&lt;/li&gt;
+&lt;li&gt;Contorl处理过程&lt;/li&gt;
+&lt;
+    
+    </summary>
+    
+      <category term="java" scheme="http://blog.aezo.cn/categories/java/"/>
+    
+    
+      <category term="ofbiz" scheme="http://blog.aezo.cn/tags/ofbiz/"/>
+    
+      <category term="uml" scheme="http://blog.aezo.cn/tags/uml/"/>
+    
+      <category term="源码" scheme="http://blog.aezo.cn/tags/%E6%BA%90%E7%A0%81/"/>
+    
+  </entry>
+  
+  <entry>
     <title>OFBiz</title>
     <link href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/"/>
     <id>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/</id>
@@ -1195,54 +1315,16 @@
   </entry>
   
   <entry>
-    <title>OFBiz模型图(UML)分析</title>
-    <link href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz-uml/"/>
-    <id>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz-uml/</id>
-    <published>2017-12-09T02:17:00.000Z</published>
-    <updated>2018-04-16T10:43:35.302Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="模型列表"><a href="#模型列表" class="headerlink" title="模型列表"></a>模型列表</h2><ul>
-<li>webapp中类图</li>
-<li>Event调用过程</li>
-<li>Contorl处理过程</li>
-<li>登录</li>
-<li>校验登录 extensionCheckLogin</li>
-<li>view渲染</li>
-<li>screen渲染</li>
-</ul>
-<embed width="1000" height="800" src="/data/pdf/OFBiz-UML.pdf" internalinstanceid="7">
-
-<h2 id="服务、任务机制模型图"><a href="#服务、任务机制模型图" class="headerlink" title="服务、任务机制模型图"></a>服务、任务机制模型图</h2><embed width="1000" height="800" src="/data/pdf/OFBiz-Service-Job.pdf" internalinstanceid="7">]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;模型列表&quot;&gt;&lt;a href=&quot;#模型列表&quot; class=&quot;headerlink&quot; title=&quot;模型列表&quot;&gt;&lt;/a&gt;模型列表&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;webapp中类图&lt;/li&gt;
-&lt;li&gt;Event调用过程&lt;/li&gt;
-&lt;li&gt;Contorl处理过程&lt;/li&gt;
-&lt;
-    
-    </summary>
-    
-      <category term="java" scheme="http://blog.aezo.cn/categories/java/"/>
-    
-    
-      <category term="ofbiz" scheme="http://blog.aezo.cn/tags/ofbiz/"/>
-    
-      <category term="uml" scheme="http://blog.aezo.cn/tags/uml/"/>
-    
-      <category term="源码" scheme="http://blog.aezo.cn/tags/%E6%BA%90%E7%A0%81/"/>
-    
-  </entry>
-  
-  <entry>
     <title>powerdesigner</title>
     <link href="http://blog.aezo.cn/2017/12/05/extend/powerdesigner/"/>
     <id>http://blog.aezo.cn/2017/12/05/extend/powerdesigner/</id>
     <published>2017-12-05T11:41:00.000Z</published>
-    <updated>2018-03-25T10:54:10.791Z</updated>
+    <updated>2018-04-26T06:15:11.315Z</updated>
     
-    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><h2 id="使用-3"><a href="#使用-3" class="headerlink" title="使用 ^3"></a>使用 <a href="[PowerDesigner的使用安装和数据库创建](http://www.cnblogs.com/huangcong/archive/2010/06/14/1757957.html)">^3</a></h2><h3 id="工具箱介绍-Toolbox"><a href="#工具箱介绍-Toolbox" class="headerlink" title="工具箱介绍(Toolbox)"></a>工具箱介绍(Toolbox)</h3><ul>
+    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
+<li>Powerdesigner v16.5</li>
+</ul>
+<h2 id="使用-3"><a href="#使用-3" class="headerlink" title="使用 ^3"></a>使用 <a href="[PowerDesigner的使用安装和数据库创建](http://www.cnblogs.com/huangcong/archive/2010/06/14/1757957.html)">^3</a></h2><h3 id="工具箱介绍-Toolbox"><a href="#工具箱介绍-Toolbox" class="headerlink" title="工具箱介绍(Toolbox)"></a>工具箱介绍(Toolbox)</h3><ul>
 <li>Standard<ul>
 <li><code>Link/Traceablility Link</code> 可追溯的连接(可用来建立虚拟关联关系)，不会产生外键，显示为虚线箭头(箭头指向为父表)</li>
 <li><code>Note</code> 备注</li>
@@ -1268,25 +1350,45 @@
 </ul>
 </li>
 <li>字段编辑时显示<code>Comment</code>字段<ul>
-<li>表编辑视图 - Columns - Customize Columns and Filter - 勾选Comment的<code>D</code>栏</li>
+<li>表编辑视图 - Columns -&gt; Customize Columns and Filter -&gt; 勾选Comment的<code>D</code>栏</li>
 </ul>
 </li>
 <li>显示自增列(mysql, 其他版本参考 <a href="[PowerDesigner中如何生成主键和自增列](https://www.cnblogs.com/ShaYeBlog/p/4067884.html)">^4</a>) <ul>
-<li>表编辑视图 - Columns - Customize Columns and Filter - 勾选Identity的<code>D</code>栏</li>
+<li>表编辑视图 -&gt; Columns -&gt; Customize Columns and Filter -&gt; 勾选Identity的<code>D</code>栏</li>
 </ul>
 </li>
 </ul>
 <h3 id="显示设置"><a href="#显示设置" class="headerlink" title="显示设置"></a>显示设置</h3><ul>
-<li>设置入口：右键 - Display Preference</li>
-<li>设置表显示字体：Table - Format - Modify - Font - Symbol全选 - 调整字体</li>
-<li>不显示<code>&lt;pk&gt;</code>标识：Table - Columns - 去掉Key indicator勾选</li>
+<li>设置入口：右键 -&gt; Display Preference</li>
+<li>设置表显示字体：Table -&gt; Format -&gt; Modify -&gt; Font -&gt; Symbol全选 -&gt; 调整字体</li>
+<li>不显示<code>&lt;pk&gt;</code>标识：Table -&gt; Columns -&gt; 去掉Key indicator勾选</li>
+<li>显示code栏：Table -&gt; Contents -&gt; Advanced -&gt; Columns -&gt; List Columns -&gt; Select图标 -&gt; 勾选code的D栏</li>
 </ul>
 <h3 id="根据模型生成表结构"><a href="#根据模型生成表结构" class="headerlink" title="根据模型生成表结构"></a>根据模型生成表结构</h3><ul>
 <li>配置数据源<ul>
-<li>mysql数据源 <a href="[配置mysql数据源](http://blog.csdn.net/winy_lm/article/details/70598378)">^2</a>：下载32位mysql odbc安装 - （选择控制面板 - 所有控制面板项 - 管理工具 - 数据源ODBC - 添加mysql） - powerdisigner中的database - connet</li>
+<li>mysql数据源 <a href="[配置mysql数据源](http://blog.csdn.net/winy_lm/article/details/70598378)">^2</a>：下载32位mysql odbc安装 -&gt; （选择控制面板 -&gt; 所有控制面板项 -&gt; 管理工具 -&gt; 数据源ODBC -&gt; 添加mysql） -&gt; powerdisigner中的database -&gt; connet</li>
 </ul>
 </li>
-<li>生成sql语句：database - Generate Database</li>
+<li><strong>生成sql语句</strong>：database -&gt; Generate Database</li>
+<li>mysql相关设置<ul>
+<li>生成sql语句带有comment字段 <a href="[PowerDesigner生成mysql字段comment注释](https://blog.csdn.net/yh88356656/article/details/49148061)">^5</a><ul>
+<li>database -&gt; edit current dbms -&gt; Script -&gt; Objects -&gt; Column -&gt; Add -&gt; 设置value为<code>%20:COLUMN% [%National%?national ]%DATATYPE%[%Unsigned%? unsigned][%ZeroFill%? zerofill][ [.O:[character set][charset]] %CharSet%][.Z:[ %NOTNULL%][%IDENTITY%? auto_increment:[ default %DEFAULT%]][ comment %.q:COMMENT%]]</code></li>
+<li>database -&gt; Generate Database -&gt; Options -&gt; 勾选Column下的Comment</li>
+<li>database -&gt; Generate Database -&gt; Format -&gt; 勾选Generate name in empty comment(将注释为空的字段用name代替注释)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>oracle相关设置<ul>
+<li>生成sql语句字段大写 <a href="[为什么在powerdesigner成功将表生成到oracle，用sql操作提示表或视图不存在](https://www.cnblogs.com/liuhaixu/p/3659126.html)">^6</a><ul>
+<li>Database -&gt; edit current dbms -&gt; Script -&gt; Sql -&gt; Format -&gt; UpperCaseOnly设为Yes</li>
+<li>Database -&gt; edit current dbms -&gt; Script -&gt; Sql -&gt; Format -&gt; CaseSensitivityUsingQuote设为No</li>
+</ul>
+</li>
+<li>database -&gt; Generate Database -&gt; Objects -&gt; Table/Sequence -&gt; Drop的value设为<code>-- drop table [%QUALIFIER%]%TABLE% [cascade constraints]</code>(oracle drop时，如果表不存在会报错)</li>
+<li>sql语句的生成还和Table Properties -&gt; More -&gt; Pyhsical Options -&gt; 右边窗口中的物理结果配置相关</li>
+</ul>
+</li>
 </ul>
 <h3 id="数据字典-1"><a href="#数据字典-1" class="headerlink" title="数据字典 ^1"></a>数据字典 <a href="[数据字典生成](http://blog.csdn.net/nw_ningwang/article/details/77586602)">^1</a></h3><p>根据模型生成文档：html、word等</p>
 <ul>
@@ -1300,13 +1402,38 @@
 </ul>
 </li>
 </ul>
+<h2 id="建表说明"><a href="#建表说明" class="headerlink" title="建表说明"></a>建表说明</h2><ul>
+<li>需要定义完整的Code/Data Type/Length/Default Value等字段</li>
+<li>表名小写下划线命名，以<code>t_</code>等开头，可通过<code>MyBatis Generator</code>生成实体时去掉前缀</li>
+<li>Mysql字段名主键最好使用<code>id</code>，在通过<code>MyBatis Generator</code>生成Mapper时可统一生成主键自增语句(且最好将数据库中此字段设为自增)</li>
+<li>Oracle为每张表创建序列完成主键自增。在<code>Model-Sequence</code>中，第一次保存后再在视图中打开可设置起始值1，递增值1，缓存100个，最大9999999999999999999999999999等参数。再配合触发器或mybatis的获取序列值语句进行id赋值</li>
+<li><p>Mysql</p>
+<ul>
+<li><p>常用字段类型</p>
+<p>字段名 | 类型 | Java类型 | 说明<br>———|———-|———-|———<br>id | bigint(20) | Long | <strong>主键统一设成id, 方便<code>MyBatis Generator</code>生成自增语句</strong><br>name| varchar(60) | String |<br>notes | varchar(255) | String | 描述(description是oracle的保留字)<br>valid_status | int(1) | Integer | 默认值1<br>create_time | datetime | Date | 默认值CURRENT_TIMESTAMP<br>money | decimal(20, 6) | BigDecimal | </p>
+</li>
+</ul>
+</li>
+<li><p>Oracle</p>
+<ul>
+<li><p>常用字段类型</p>
+<p>字段名 | 类型 | Java类型 | 说明<br>———|———-|———-|———<br>id | number(20) | Long |<br>name| varchar(60) | String |<br>notes | varchar(255) | String | 描述(<strong>description是oracle的保留字</strong>)<br>valid_status | int(1) | Integer | 默认值1<br>create_time | Date | Date | 默认值SYSDATE<br>money | Number(20, 6) | BigDecimal | </p>
+</li>
+<li><p>表名不要命名为<code>USER</code>等，<code>USER</code>为关键字导入到数据库后，plsql无法drop此表(可以通过navicat删除)</p>
+</li>
+</ul>
+</li>
+</ul>
 <hr>
 <p>参考文章</p>
 ]]></content>
     
     <summary type="html">
     
-      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;h2 id=&quot;使用-3&quot;&gt;&lt;a href=&quot;#使用-3&quot; class=&quot;headerlink&quot; title=&quot;使用 ^3&quot;&gt;&lt;/a&gt;使用 &lt;a 
+      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Powerdesigner v16.5&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;使用-3&quot;&gt;&lt;a href=&quot;#使用-3&quot; cla
     
     </summary>
     
@@ -1455,14 +1582,14 @@
     <link href="http://blog.aezo.cn/2017/10/22/java/spring-security/"/>
     <id>http://blog.aezo.cn/2017/10/22/java/spring-security/</id>
     <published>2017-10-22T03:15:00.000Z</published>
-    <updated>2017-12-27T12:59:31.979Z</updated>
+    <updated>2018-04-24T02:23:51.361Z</updated>
     
     <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
 <li>官网：<a href="http://projects.spring.io/spring-security/" target="_blank" rel="external">http://projects.spring.io/spring-security/</a></li>
 <li>文档：<a href="https://docs.spring.io/spring-security/site/docs/4.2.3.RELEASE/reference/htmlsingle/" target="_blank" rel="external">V4.2.3</a></li>
 <li>引入spring security后便有了session机制</li>
 </ul>
-<h3 id="spring-security实现方法-1"><a href="#spring-security实现方法-1" class="headerlink" title="spring security实现方法 [^1]"></a>spring security实现方法 [^1]</h3><ul>
+<h3 id="spring-security实现方法-1"><a href="#spring-security实现方法-1" class="headerlink" title="spring security实现方法 ^1"></a>spring security实现方法 <a href="[spring-security的原理及教程](http://www.importnew.com/20612.html)">^1</a></h3><ul>
 <li>总共有四种用法，从简到深为<ul>
 <li>不用数据库，全部数据写在配置文件，这个也是官方文档里面的demo</li>
 <li>使用数据库，根据spring security默认实现代码设计数据库，也就是说数据库已经固定了，这种方法不灵活，而且那个数据库设计得很简陋，实用性差</li>
@@ -1491,7 +1618,7 @@
 <h3 id="示例扩展"><a href="#示例扩展" class="headerlink" title="示例扩展"></a>示例扩展</h3><ul>
 <li>此示例使用数据库用户名/密码(或扩展验证)进行用户登录验证，并且对登录成功做处理，资源权限控制</li>
 <li><p>SpringSecurityConfig 访问权限规则设置</p>
-  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@EnableGlobalMethodSecurity</span>(prePostEnabled=<span class="keyword">true</span>) <span class="comment">// 开启方法级别权限控制</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringSecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> CustomAuthenticationProvider authProvider; <span class="comment">// 提供认证算法(判断是否登录成功)(1)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AuthenticationDetailsSource&lt;HttpServletRequest, WebAuthenticationDetails&gt; authenticationDetailsSource; <span class="comment">// 认证信息</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AuthenticationSuccessHandler authenticationSuccessHandler; <span class="comment">// 用于处理登录成功(2)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AuthenticationFailureHandler authenticationFailureHandler; <span class="comment">// 用于处理登录失败(2)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AccessDeniedHandler accessDeniedHandler; <span class="comment">// 用于处理无权访问 (3)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureGlobal</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        auth.authenticationProvider(authProvider);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 定义权限规则</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        http.headers().frameOptions().disable(); <span class="comment">// 解决spring boot项目中出现不能加载iframe</span></div><div class="line">        http.csrf().disable() <span class="comment">// 关闭打开的csrf(跨站请求伪造)保护</span></div><div class="line">            .authorizeRequests()</div><div class="line">                .antMatchers(<span class="string">"/manage/"</span>, <span class="string">"/manage/home"</span>, <span class="string">"/manage/about"</span>, <span class="string">"/manage/404"</span>, <span class="string">"/manage/403"</span>, <span class="string">"/thymeleaf/**"</span>).permitAll() <span class="comment">// 这些端点不进行权限验证</span></div><div class="line">                .antMatchers(<span class="string">"/resources/**"</span>).permitAll() <span class="comment">// idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/resources/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）</span></div><div class="line">                .antMatchers(<span class="string">"/manage/**"</span>).hasAnyRole(<span class="string">"ADMIN"</span>) <span class="comment">// 需要有ADMIN角色才可访问/admin（有先后顺序，前面先定义的优先级高，因此比antMatchers("/**").hasAnyRole("USER", "ADMIN")优先级高）</span></div><div class="line">                .antMatchers(<span class="string">"/**"</span>).hasAnyRole(<span class="string">"USER"</span>, <span class="string">"ADMIN"</span>) <span class="comment">// 有USER/ADMIN角色均可</span></div><div class="line">                .anyRequest().authenticated() <span class="comment">// (除上述忽略请求)所有的请求都需要权限认证</span></div><div class="line">                .and()</div><div class="line">            .formLogin()</div><div class="line">                .loginPage(<span class="string">"/manage/login"</span>).permitAll() <span class="comment">// 登录界面(Get)</span></div><div class="line">                .loginProcessingUrl(<span class="string">"/manage/login"</span>) <span class="comment">// 或者通配符/**/login拦截对"/manage/login"和"/login"等的POST请求(登录请求。具体逻辑不需要写，并且会自动生成此端点的control，否则和loginPage一致)</span></div><div class="line">                .successHandler(authenticationSuccessHandler) <span class="comment">// 此处定义登录成功处理方法</span></div><div class="line">                .failureHandler(authenticationFailureHandler)</div><div class="line">                .authenticationDetailsSource(authenticationDetailsSource)</div><div class="line">                .and()</div><div class="line">            .logout().logoutUrl(<span class="string">"/manage/logout"</span>).logoutSuccessUrl(<span class="string">"/manage/login"</span>).permitAll() <span class="comment">// 访问"/manage/logout"登出，登出成功后跳转到"/manage/login"</span></div><div class="line">                .and()</div><div class="line">            .exceptionHandling().accessDeniedHandler(accessDeniedHandler);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 密码加密器 (4)</span></div><div class="line">    <span class="meta">@Bean</span></div><div class="line">    <span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">passwordEncoder</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> BCryptPasswordEncoder();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 加密混淆器</span></div><div class="line">    <span class="meta">@Bean</span></div><div class="line">    <span class="function"><span class="keyword">public</span> SaltSource <span class="title">saltSource</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomSaltSource();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 混淆器实现</span></div><div class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomSaltSource</span> <span class="keyword">implements</span> <span class="title">SaltSource</span> </span>&#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> Object <span class="title">getSalt</span><span class="params">(UserDetails userDetails)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"aezocn"</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@EnableGlobalMethodSecurity</span>(prePostEnabled=<span class="keyword">true</span>) <span class="comment">// 开启方法级别权限控制</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringSecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String Login_Uri = <span class="string">"/manage/login"</span>;</div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> CustomAuthenticationProvider authProvider; <span class="comment">// 提供认证算法(判断是否登录成功)(1)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AuthenticationDetailsSource&lt;HttpServletRequest, WebAuthenticationDetails&gt; authenticationDetailsSource; <span class="comment">// 认证信息</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AuthenticationSuccessHandler authenticationSuccessHandler; <span class="comment">// 用于处理登录成功(2)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AuthenticationFailureHandler authenticationFailureHandler; <span class="comment">// 用于处理登录失败(2)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> AccessDeniedHandler accessDeniedHandler; <span class="comment">// 用于处理无权访问 (3)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> JwtAuthenticationFilter jwtAuthenticationFilter; <span class="comment">// 用于基于token的验证，如果基于session的则可去掉 (4)</span></div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureGlobal</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        auth.authenticationProvider(authProvider);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 定义权限规则</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</div><div class="line">        <span class="comment">// 用于基于token的验证，如果基于session的则可去掉 (4)</span></div><div class="line">        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);</div><div class="line"></div><div class="line">        http.headers().frameOptions().disable(); <span class="comment">// 解决spring boot项目中出现不能加载iframe</span></div><div class="line">        http.csrf().disable() <span class="comment">// 关闭打开的csrf(跨站请求伪造)保护</span></div><div class="line">            .authorizeRequests()</div><div class="line">                .antMatchers(<span class="string">"/manage/"</span>, <span class="string">"/manage/home"</span>, <span class="string">"/manage/about"</span>, <span class="string">"/manage/404"</span>, <span class="string">"/manage/403"</span>, <span class="string">"/thymeleaf/**"</span>).permitAll() <span class="comment">// 这些端点不进行权限验证</span></div><div class="line">                .antMatchers(<span class="string">"/resources/**"</span>).permitAll() <span class="comment">// idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/resources/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）</span></div><div class="line">                .antMatchers(<span class="string">"/manage/**"</span>).hasAnyRole(<span class="string">"ADMIN"</span>) <span class="comment">// 需要有ADMIN角色才可访问/admin（有先后顺序，前面先定义的优先级高，因此比antMatchers("/**").hasAnyRole("USER", "ADMIN")优先级高）</span></div><div class="line">                .antMatchers(<span class="string">"/**"</span>).hasAnyRole(<span class="string">"USER"</span>, <span class="string">"ADMIN"</span>) <span class="comment">// 有USER/ADMIN角色均可</span></div><div class="line">                .anyRequest().authenticated() <span class="comment">// (除上述忽略请求)所有的请求都需要权限认证</span></div><div class="line">                .and()</div><div class="line">            .formLogin()</div><div class="line">                .loginPage(Login_Uri).permitAll() <span class="comment">// 登录界面(Get)</span></div><div class="line">                <span class="comment">// .loginProcessingUrl(Login_Uri) // 或者通配符/**/login拦截对"/manage/login"和"/login"等的POST请求(登录请求。具体逻辑不需要写，并且会自动生成此端点的control。不写则和loginPage端点一致)</span></div><div class="line">                .successHandler(authenticationSuccessHandler) <span class="comment">// 此处定义登录成功处理方法</span></div><div class="line">                .failureHandler(authenticationFailureHandler)</div><div class="line">                .authenticationDetailsSource(authenticationDetailsSource)</div><div class="line">                .and()</div><div class="line">            .logout().logoutUrl(<span class="string">"/manage/logout"</span>).logoutSuccessUrl(Login_Uri).permitAll() <span class="comment">// 访问"/manage/logout"登出，登出成功后跳转到"/manage/login"</span></div><div class="line">                .and()</div><div class="line">            .exceptionHandling().accessDeniedHandler(accessDeniedHandler);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 密码加密器 (5)</span></div><div class="line">    <span class="meta">@Bean</span></div><div class="line">    <span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">passwordEncoder</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> BCryptPasswordEncoder();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 加密混淆器</span></div><div class="line">    <span class="meta">@Bean</span></div><div class="line">    <span class="function"><span class="keyword">public</span> SaltSource <span class="title">saltSource</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomSaltSource();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 混淆器实现</span></div><div class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomSaltSource</span> <span class="keyword">implements</span> <span class="title">SaltSource</span> </span>&#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> Object <span class="title">getSalt</span><span class="params">(UserDetails userDetails)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"aezocn"</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 <li><p>自定义登录认证字段(spring security默认基于username/password完成)</p>
   <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomWebAuthenticationDetails</span> <span class="keyword">extends</span> <span class="title">WebAuthenticationDetails</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String wxCode; <span class="comment">// 此处为微信公众号使用微信code进行认证，也可扩展邮箱/手机号等</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CustomWebAuthenticationDetails</span><span class="params">(HttpServletRequest request)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>(request);</div><div class="line">        wxCode = request.getParameter(<span class="string">"wxCode"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getWxCode</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> wxCode;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</div><div class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</div><div class="line">        sb.append(<span class="keyword">super</span>.toString()).append(<span class="string">"; wxCode: "</span>).append(<span class="keyword">this</span>.getWxCode());</div><div class="line">        <span class="keyword">return</span> sb.toString();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -1500,7 +1627,7 @@
   <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomAuthenticationDetailsSource</span> <span class="keyword">implements</span> <span class="title">AuthenticationDetailsSource</span>&lt;<span class="title">HttpServletRequest</span>, <span class="title">WebAuthenticationDetails</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> WebAuthenticationDetails <span class="title">buildDetails</span><span class="params">(HttpServletRequest context)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomWebAuthenticationDetails(context);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 <li><p>根据用户唯一字段(如username、wxCode)获取用户信息</p>
-  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomUserDetailsService</span> <span class="keyword">implements</span> <span class="title">UserDetailsService</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UserDao userDao;</div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CustomUserDetailsService</span><span class="params">(UserDao userDao)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.userDao = userDao;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 根据自定义登录认证字段获取用户信息。此处简化微信公众号认证(原本需要先拿到openid)</span></div><div class="line">    <span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByWxCode</span><span class="params">(String wxCode)</span></span></div><div class="line">            <span class="keyword">throws</span> UsernameNotFoundException &#123;</div><div class="line">        <span class="keyword">if</span>(wxCode == <span class="keyword">null</span> || <span class="string">""</span>.equals(wxCode)) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"invalid wxCode "</span> + wxCode);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        User user = userDao.findByWxCode(wxCode);</div><div class="line">        <span class="keyword">if</span>(user == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"Could not find user, user wxCode "</span> + wxCode);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomUserDetails(user);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 默认根据username(唯一)获取用户信息</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByUsername</span><span class="params">(String username)</span></span></div><div class="line">            <span class="keyword">throws</span> UsernameNotFoundException &#123;</div><div class="line">        <span class="keyword">if</span>(username == <span class="keyword">null</span> || <span class="string">""</span>.equals(username)) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"invalid username "</span> + username);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        User user = userDao.findByUsername(username);</div><div class="line">        <span class="keyword">if</span>(user == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"Could not find user "</span> + username);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomUserDetails(user);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">    * 自定义用户认证Model</div><div class="line">    */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomUserDetails</span> <span class="keyword">extends</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">UserDetails</span> </span>&#123;</div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="title">CustomUserDetails</span><span class="params">(User user)</span> </span>&#123;</div><div class="line">            <span class="comment">// 初始化父类，需要父类有User(User user)&#123;...&#125;的构造方法</span></div><div class="line">            <span class="keyword">super</span>(user);</div><div class="line"></div><div class="line">            <span class="comment">// 或者在此处初始化</span></div><div class="line">            <span class="comment">// this.setUsername(user.getUsername());</span></div><div class="line">            <span class="comment">// this.setPassword(user.getPassword());</span></div><div class="line">            <span class="comment">// ...</span></div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="keyword">public</span> Collection&lt;? extends GrantedAuthority&gt; getAuthorities() &#123;</div><div class="line">            <span class="keyword">return</span> AuthorityUtils.createAuthorityList(<span class="string">"ROLE_"</span> + <span class="keyword">this</span>.getRoleCode()); <span class="comment">// 组成如：ROLE_ADMIN/ROLE_USER，在资源权限定义时写法如：hasRole('ADMIN')。createAuthorityList接受一个数组，说明支持一个用户拥有多个角色</span></div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonExpired</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonLocked</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isCredentialsNonExpired</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEnabled</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">5639683223516504866L</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomUserDetailsService</span> <span class="keyword">implements</span> <span class="title">UserDetailsService</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UserDao userDao;</div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CustomUserDetailsService</span><span class="params">(UserDao userDao)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.userDao = userDao;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 根据自定义登录认证字段获取用户信息。此处简化微信公众号认证(原本需要先拿到openid)</span></div><div class="line">    <span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByWxCode</span><span class="params">(String wxCode)</span></span></div><div class="line">            <span class="keyword">throws</span> UsernameNotFoundException &#123;</div><div class="line">        <span class="keyword">if</span>(wxCode == <span class="keyword">null</span> || <span class="string">""</span>.equals(wxCode)) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"invalid wxCode "</span> + wxCode);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        User user = userDao.findByWxCode(wxCode);</div><div class="line">        <span class="keyword">if</span>(user == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"Could not find user, user wxCode "</span> + wxCode);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomUserDetails(user);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 默认根据username(唯一)获取用户信息</span></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByUsername</span><span class="params">(String username)</span></span></div><div class="line">            <span class="keyword">throws</span> UsernameNotFoundException &#123;</div><div class="line">        <span class="keyword">if</span>(username == <span class="keyword">null</span> || <span class="string">""</span>.equals(username)) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"invalid username "</span> + username);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        User user = userDao.findByUsername(username);</div><div class="line">        <span class="keyword">if</span>(user == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"Could not find user "</span> + username);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomUserDetails(user);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line">    * 自定义用户认证Model</div><div class="line">    */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomUserDetails</span> <span class="keyword">extends</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">UserDetails</span> </span>&#123;</div><div class="line">        <span class="function"><span class="keyword">private</span> <span class="title">CustomUserDetails</span><span class="params">(User user)</span> </span>&#123;</div><div class="line">            <span class="comment">// 初始化父类，需要父类有User(User user)&#123;...&#125;的构造方法</span></div><div class="line">            <span class="keyword">super</span>(user);</div><div class="line"></div><div class="line">            <span class="comment">// 或者在此处初始化</span></div><div class="line">            <span class="comment">// this.setUsername(user.getUsername());</span></div><div class="line">            <span class="comment">// this.setPassword(user.getPassword());</span></div><div class="line">            <span class="comment">// ...</span></div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="keyword">public</span> Collection&lt;? extends GrantedAuthority&gt; getAuthorities() &#123;</div><div class="line">            <span class="comment">// 组成如：ROLE_ADMIN/ROLE_USER，在资源权限定义时写法如：hasRole('ADMIN')。createAuthorityList接受一个数组，说明支持一个用户拥有多个角色</span></div><div class="line">            <span class="keyword">return</span> AuthorityUtils.createAuthorityList(<span class="string">"ROLE_"</span> + <span class="keyword">this</span>.getRoleCode());</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonExpired</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonLocked</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isCredentialsNonExpired</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEnabled</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">5639683223516504866L</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 <li><p>(1) 基于自定义登录认证字段，提供登录算法(返回认证对象Authentication)</p>
   <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomAuthenticationProvider</span> <span class="keyword">implements</span> <span class="title">AuthenticationProvider</span> </span>&#123;</div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> CustomUserDetailsService customUserDetailsService;</div><div class="line"></div><div class="line">    <span class="meta">@Autowired</span></div><div class="line">    <span class="keyword">private</span> PasswordEncoder passwordEncoder;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CustomAuthenticationProvider</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> Authentication <span class="title">authenticate</span><span class="params">(<span class="keyword">final</span> Authentication authentication)</span> <span class="keyword">throws</span> AuthenticationException </span>&#123;</div><div class="line">        CustomWebAuthenticationDetails details = (CustomWebAuthenticationDetails) authentication.getDetails();</div><div class="line"></div><div class="line">        <span class="keyword">final</span> String wxCode = details.getWxCode();</div><div class="line"></div><div class="line">        <span class="keyword">final</span> String username = authentication.getName();</div><div class="line">        <span class="keyword">final</span> String password = authentication.getCredentials().toString();</div><div class="line"></div><div class="line">        UserDetails userDetails = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">if</span>(!StringUtils.isEmpty(username) &amp;&amp; !StringUtils.isEmpty(password)) &#123;</div><div class="line">            userDetails = customUserDetailsService.loadUserByUsername(username);</div><div class="line">                </div><div class="line">            <span class="comment">// 验证密码</span></div><div class="line">            <span class="keyword">if</span>(userDetails == <span class="keyword">null</span> || userDetails.getPassword() == <span class="keyword">null</span>) &#123;</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> BadCredentialsException(<span class="string">"invalid password"</span>);</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">if</span>(!passwordEncoder.matches(password, userDetails.getPassword())) &#123;</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> BadCredentialsException(<span class="string">"wrong password"</span>);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(!StringUtils.isEmpty(wxCode)) &#123;</div><div class="line">            userDetails = customUserDetailsService.loadUserByWxCode(wxCode);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BadCredentialsException(<span class="string">"invalid params: username,password and wxCode are invalid"</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span>(userDetails != <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="comment">// 授权</span></div><div class="line">            <span class="keyword">final</span> List&lt;GrantedAuthority&gt; grantedAuths = (List&lt;GrantedAuthority&gt;) userDetails.getAuthorities();</div><div class="line">            <span class="keyword">final</span> Authentication auth = <span class="keyword">new</span> UsernamePasswordAuthenticationToken(userDetails, password, grantedAuths);</div><div class="line">            <span class="keyword">return</span> auth;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">supports</span><span class="params">(<span class="keyword">final</span> Class&lt;?&gt; authentication)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> authentication.equals(UsernamePasswordAuthenticationToken.class);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -1519,13 +1646,16 @@
 </li>
 </ul>
 </li>
-<li><p>(2)登录校验完成拦截：登录成功/失败处理</p>
+<li><p>(2) 登录校验完成拦截：登录成功/失败处理</p>
   <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoginFinishHandler</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> Logger logger = LoggerFactory.getLogger(LoginFinishHandler.class);</div><div class="line"></div><div class="line">    <span class="meta">@Component</span></div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAuthenticationSuccessHandler</span> <span class="keyword">implements</span> <span class="title">AuthenticationSuccessHandler</span> </span>&#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onAuthenticationSuccess</span><span class="params">(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</div><div class="line">            CustomWebAuthenticationDetails details = (CustomWebAuthenticationDetails) authentication.getDetails();</div><div class="line">            String wxCode = details.getWxCode();</div><div class="line"></div><div class="line">            HttpSession session = httpServletRequest.getSession();</div><div class="line">            User user = (User) authentication.getPrincipal();</div><div class="line">            session.setAttribute(<span class="string">"SESSION_USER_INFO"</span>, user);</div><div class="line"></div><div class="line">            logger.info(<span class="string">"&#123;&#125; 登录成功"</span>, user.getUsername());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Component</span></div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAuthenticationFailureHandler</span> <span class="keyword">extends</span> <span class="title">SimpleUrlAuthenticationFailureHandler</span> </span>&#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onAuthenticationFailure</span><span class="params">(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</div><div class="line">            logger.info(<span class="string">"登录失败："</span> + e.getMessage());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
-<li><p>(3)AccessDeniedHandler访问受限拦截同上例</p>
+<li><p>(3) AccessDeniedHandler访问受限拦截同上例</p>
 </li>
-<li><p>(4)密码保存</p>
-  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(16);</span></div><div class="line"><span class="comment">// 保存密码：$2a$16$YcrLwsfqGoKzkmAB9WwORulggKVCrpR7ZPfDCF4CsEoG0o75Nb3Xm</span></div><div class="line">String password = passwordEncoder.encode(<span class="string">"123456"</span>);</div><div class="line">assertTrue(encoder.matches(<span class="string">"123456"</span>, password));</div></pre></td></tr></table></figure>
+<li><p>(4) token验证(基于session的验证可以不加此拦截器，基于无状态的Restful则需要拦截token并解析获得用户名和相关权限。配置文件加<code>security.sessions=stateless</code>时spring security才不会使用session)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Component</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JwtAuthenticationFilter</span> <span class="keyword">extends</span> <span class="title">OncePerRequestFilter</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> String token_header = <span class="string">"X-Token"</span>;</div><div class="line"></div><div class="line">    <span class="meta">@Resource</span></div><div class="line">    <span class="keyword">private</span> SecurityJwtTokenUtils securityJwtTokenUtils; <span class="comment">// 基于JWT的工具类：用于生成和解析JWT机制的token</span></div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doFilterInternal</span><span class="params">(HttpServletRequest request, HttpServletResponse response, FilterChain chain)</span> <span class="keyword">throws</span> ServletException, IOException </span>&#123;</div><div class="line">        <span class="comment">// TODO</span></div><div class="line">        <span class="keyword">if</span>(!SpringSecurityConfig.Login_Uri.equals(request.getRequestURI())) &#123;</div><div class="line">            String authToken = request.getHeader(<span class="keyword">this</span>.token_header);</div><div class="line">            <span class="keyword">if</span>(StringUtils.isEmpty(authToken)) &#123;</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> ExceptionU.AuthTokenInvalidException();</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                String username = securityJwtTokenUtils.getUsernameFromToken(authToken);</div><div class="line">                <span class="keyword">if</span>(username == <span class="keyword">null</span>)</div><div class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> ExceptionU.AuthTokenInvalidException();</div><div class="line">                logger.info(String.format(<span class="string">"Checking authentication for user %s."</span>, username));</div><div class="line"></div><div class="line">                <span class="keyword">if</span> (SecurityContextHolder.getContext().getAuthentication() == <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="comment">// It is not compelling necessary to load the use details from the database. You could also store the information</span></div><div class="line">                    <span class="comment">// in the token and read it from it. It's up to you ;)</span></div><div class="line">                    <span class="comment">// UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);</span></div><div class="line">                    UserDetails userDetails = securityJwtTokenUtils.getUserFromToken(authToken);</div><div class="line"></div><div class="line">                    <span class="comment">// For simple validation it is completely sufficient to just check the token integrity. You don't have to call</span></div><div class="line">                    <span class="comment">// the database compellingly. Again it's up to you ;)</span></div><div class="line">                    <span class="keyword">if</span> (securityJwtTokenUtils.validateToken(authToken, userDetails)) &#123;</div><div class="line">                        UsernamePasswordAuthenticationToken authentication = <span class="keyword">new</span> UsernamePasswordAuthenticationToken(userDetails, <span class="keyword">null</span>, userDetails.getAuthorities());</div><div class="line">                        authentication.setDetails(<span class="keyword">new</span> WebAuthenticationDetailsSource().buildDetails(request));</div><div class="line">                        logger.info(String.format(<span class="string">"Authenticated user %s, setting security context"</span>, username));</div><div class="line">                        SecurityContextHolder.getContext().setAuthentication(authentication);</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125; <span class="keyword">catch</span> (SignatureException e) &#123;</div><div class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> ExceptionU.AuthTokenInvalidException();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        chain.doFilter(request, response);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>(5) 密码保存</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(16);</span></div><div class="line">PasswordEncoder passwordEncoder = <span class="keyword">new</span> BCryptPasswordEncoder();</div><div class="line"></div><div class="line"><span class="comment">// 保存密码(smalle)：$2a$10$j5daLww7/c4Qdj1U30Djt.Mzh0pDdYtOrlJ3zQ91u4IC/no2bcViG</span></div><div class="line">String password = passwordEncoder.encode(<span class="string">"smalle"</span>);</div><div class="line">System.out.println(<span class="string">"password = "</span> + password);</div><div class="line"></div><div class="line">Assert.assertTrue(passwordEncoder.matches(<span class="string">"smalle"</span>, password));</div></pre></td></tr></table></figure>
 </li>
 </ul>
 <h3 id="在方法-资源-上加权限控制"><a href="#在方法-资源-上加权限控制" class="headerlink" title="在方法(资源)上加权限控制"></a>在方法(资源)上加权限控制</h3><ul>
@@ -1545,7 +1675,6 @@
 </li>
 </ul>
 <hr>
-<p>[^1]: <a href="http://www.importnew.com/20612.html" target="_blank" rel="external">spring security的原理及教程</a></p>
 ]]></content>
     
     <summary type="html">
@@ -1563,106 +1692,6 @@
       <category term="spring" scheme="http://blog.aezo.cn/tags/spring/"/>
     
       <category term="springsecurity" scheme="http://blog.aezo.cn/tags/springsecurity/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>h2数据库</title>
-    <link href="http://blog.aezo.cn/2017/10/21/db/h2/"/>
-    <id>http://blog.aezo.cn/2017/10/21/db/h2/</id>
-    <published>2017-10-21T02:42:00.000Z</published>
-    <updated>2018-04-11T10:28:30.389Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
-<li>h2简介 <a href="[h2介绍](http://412887952-qq-com.iteye.com/blog/2322756)">^1</a>：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库</li>
-<li><a href="http://h2database.com/html/main.html" target="_blank" rel="external">官网：http://h2database.com/html/main.html</a>\</li>
-</ul>
-<h2 id="springboot整合"><a href="#springboot整合" class="headerlink" title="springboot整合"></a>springboot整合</h2><ul>
-<li><p>添加依赖(jpa等省略)</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;com.h2database&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;h2&lt;/artifactId&gt;</div><div class="line">    &lt;scope&gt;runtime&lt;/scope&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-</li>
-<li><p>连接配置</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">spring:</div><div class="line">  datasource:</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)。url不写默认使用内存型数据库，数据库名为testdb</div><div class="line">    url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;</div><div class="line">    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).</div><div class="line">    # 如果已经生成了数据库文件(同时也生成了密码), 那么再修改此处用户名密码将无法连接数据库</div><div class="line">    username: sa</div><div class="line">    password: sa</div><div class="line">    driver-class-name: org.h2.Driver</div><div class="line"># h2 web console</div><div class="line"># 登录配置Generic H2 (Server)  jdbc:h2:~/.h2/minions;AUTO_SERVER=true;  sa/sa</div><div class="line"># 推荐使用IDEA的数据库工具</div><div class="line">#  h2:</div><div class="line">#    console:</div><div class="line">#      # 程序开启时就会启动h2 web consloe</div><div class="line">#      enabled: true</div><div class="line">#      # 访问路径: http://localhost:$&#123;server.port&#125;/h2-console</div><div class="line">#      path: /h2-console</div><div class="line">#      settings:</div><div class="line">#        # 运行远程访问h2 web consloe</div><div class="line">#        web-allow-others: true</div></pre></td></tr></table></figure>
-</li>
-<li><p>配置说明</p>
-<ul>
-<li><code>jdbc:h2:file:~/.h2/minions;</code>文件型存储(默认可省略file:). <code>jdbc:h2:minions;</code>则代表在当前目录(运行h2 jar的位置)生成数据库文件</li>
-<li><code>jdbc:h2:mem:my_db_name;</code>内存型存储(在连接的瞬间即可创建数据库)，程序关掉则内存数据丢失</li>
-<li><code>~</code> 这个符号代表的就是当前登录到操作系统的用户对应的用户目录. <code>minions</code>代表数据库名(会在~/.h2目录生成minions.mv.db文件)</li>
-<li><code>AUTO_SERVER=true;</code>表示以TCP服务形式启动数据库. 否则项目启动(数据库启动)后, idea无法连接数据库(<code>AUTO_SERVER_PORT=9092;</code>可指明端口, 不指明会的话自动识别)</li>
-</ul>
-</li>
-<li>IDEA数据库工具使用 <a href="[idea连接h2](https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache)">^2</a><ul>
-<li>Url: <code>jdbc:h2:~/.h2/minions;AUTO_SERVER=true;</code></li>
-<li>Url类型：<code>Remote</code></li>
-<li>用户名/密码：<code>sa/sa</code></li>
-<li>其他都不需要填写(url处可能报红可忽略)</li>
-</ul>
-</li>
-</ul>
-<hr>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;h2简介 &lt;a href=&quot;[h2介绍](http://412887952-qq-com.iteye.com/blog/2322
-    
-    </summary>
-    
-      <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
-    
-    
-      <category term="db" scheme="http://blog.aezo.cn/tags/db/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>行业概念</title>
-    <link href="http://blog.aezo.cn/2017/10/12/others/business-conception/"/>
-    <id>http://blog.aezo.cn/2017/10/12/others/business-conception/</id>
-    <published>2017-10-12T03:22:00.000Z</published>
-    <updated>2018-03-30T02:08:25.637Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="通用"><a href="#通用" class="headerlink" title="通用"></a>通用</h2><ul>
-<li><code>ERP</code> 企业资源计划(Enterprise Resource Planning)</li>
-<li><code>CRM</code> 客户关系管理(Customer Relationship Management)</li>
-<li><code>BU</code> 业务单元(Business Units，公司的一个部门)，<code>Strategical Business Unit</code> 战略业务单元</li>
-</ul>
-<h2 id="物流"><a href="#物流" class="headerlink" title="物流"></a>物流</h2><ul>
-<li><code>WMS</code> 仓库管理系统(Warehouse Management System)</li>
-<li><code>MES</code> 制造执行系统(Manufacturing Execution System) <a href="[MES七大功能-MES解决方案](https://wenku.baidu.com/view/1627cd0a844769eae009edfe.html)">^1</a><ul>
-<li>功能：库房管理、生产调度、制造过程管理、质量管理、设备工装管理、文档管理、物料批次跟踪</li>
-</ul>
-</li>
-<li><code>FOB</code>、<code>CFR</code>、<code>CIF</code><ul>
-<li>FOB(free on board)，船上交货</li>
-<li>CFR(cost and freight)成本加运费，船上交货</li>
-<li>CIF(cost, insurance and freight)成本加保险费加运费，船上交货</li>
-</ul>
-</li>
-<li><code>FBA</code> 亚马逊代发货服务(Fulfillment by Amazon)</li>
-</ul>
-<h2 id="营销-运营"><a href="#营销-运营" class="headerlink" title="营销/运营"></a>营销/运营</h2><ul>
-<li><code>MVP</code> 最小价值产品或最小可视化产品(Minimal Viable Product) <a href="[MVP是什么](https://www.zhihu.com/question/47489768?from=profile_question_card)">^2</a></li>
-</ul>
-<hr>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;通用&quot;&gt;&lt;a href=&quot;#通用&quot; class=&quot;headerlink&quot; title=&quot;通用&quot;&gt;&lt;/a&gt;通用&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;ERP&lt;/code&gt; 企业资源计划(Enterprise Resource Planning)&lt;/li&gt;
-&lt;li&gt;&lt;
-    
-    </summary>
-    
-      <category term="others" scheme="http://blog.aezo.cn/categories/others/"/>
-    
-    
-      <category term="business" scheme="http://blog.aezo.cn/tags/business/"/>
-    
-      <category term="conception" scheme="http://blog.aezo.cn/tags/conception/"/>
     
   </entry>
   

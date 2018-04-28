@@ -322,6 +322,305 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/02/24/java/ofbiz/OFBiz服务和任务机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/02/24/java/ofbiz/OFBiz服务和任务机制/" itemprop="url">OFBiz服务和任务机制</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-02-24T16:27:00+08:00">
+                2018-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          源码分析
+org.ofbiz.service.job.JobPoller 加载时会启动一个自动拉取任务的线程(从数据拉取任务放到执行器池中)
+
+123456789101112131415161718192021222324252627282930313233343536373839404142// 线程池执行器(调度线程执行，BlockingQueue中必须存放线程对象)private static final ThreadPoolExecutor executor = createThreadPoolExecutor();private static final JobPoller instance = new JobPoller();// ...// 初始化线程池执行器private static ThreadPoolExecutor createThreadPoolExecutor() &#123;    try &#123;        ThreadPool threadPool = ServiceConfigUtil.getServiceEngine(ServiceConfigUtil.engine).getThreadPool();        return new ThreadPoolExecutor(            threadPool.getMinTh
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/02/24/java/ofbiz/OFBiz服务和任务机制/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/25/arch/springboot-vue/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/12/25/arch/springboot-vue/" itemprop="url">基于springboot和vue前后分离</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-25T21:16:00+08:00">
+                2017-12-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/arch/" itemprop="url" rel="index">
+                    <span itemprop="name">arch</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介跨域和session/token同源政策
+网络协议、ip、端口三者都相同就是同一个域(同源)
+如http://localhsot和http://localhsot:8080之间进行数据交互就存在跨域问题
+
+
+浏览器”同源政策”限制(针对不同源情况) ^2
+Cookie、LocalStorage 和 IndexDB 无法读取
+DOM 无法获得
+AJAX 请求不能发送
+
+
+AJAX请求受到同源政策限制的解决办法
+
+架设服务器代理（浏览器请求同源服务器，再由后者请求外部服务）
+
+基于nginx做中转
+123456789101112131415161718192021server &#123;    listen   80;                   server_name localhost;    # 后端服务根端点    location /api/ &#123;        proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;        proxy_set_header Host $http_host;        proxy_redirect off;        if (!-f $request_filename) &#123;            proxy_pass http://12
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/12/25/arch/springboot-vue/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/12/java/java-base/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -613,150 +912,6 @@ dpkg -i file.deb deb是debian linus的安装格式，跟red hat的rpm非常相�
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/12/09/java/ofbiz/ofbiz/" itemprop="url">OFBiz</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-09T10:17:00+08:00">
-                2017-12-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          简介安装编译启动编译
-设置hot-deploy下组件(component)编译顺序
-
-hot-deploy/build.xml
-  12345678910111213141516171819202122232425262728293031&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;project name="OFBiz hot-deploy Build" default="build" basedir="."&gt;    &lt;filelist id="hot-deploy-builds" dir="."        files="ubase/build.xml,        aplcodecenter/build.xml"/&gt;    &lt;!--运行build命令时--&gt;    &lt;target name="build"&gt;        &lt;iterate target="jar" filelist="hot-deploy-builds"/&gt;        &lt;!--除去不需编译的组件--&gt;        &lt;!--        &lt;externalsubant target="jar"&gt;            &lt;filelist refid="hot-d
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/12/09/java/ofbiz/ofbiz/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz-uml/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -908,6 +1063,150 @@ screen渲染
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/12/09/java/ofbiz/ofbiz/" itemprop="url">OFBiz</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-09T10:17:00+08:00">
+                2017-12-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介安装编译启动编译
+设置hot-deploy下组件(component)编译顺序
+
+hot-deploy/build.xml
+  12345678910111213141516171819202122232425262728293031&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;project name="OFBiz hot-deploy Build" default="build" basedir="."&gt;    &lt;filelist id="hot-deploy-builds" dir="."        files="ubase/build.xml,        aplcodecenter/build.xml"/&gt;    &lt;!--运行build命令时--&gt;    &lt;target name="build"&gt;        &lt;iterate target="jar" filelist="hot-deploy-builds"/&gt;        &lt;!--除去不需编译的组件--&gt;        &lt;!--        &lt;externalsubant target="jar"&gt;            &lt;filelist refid="hot-d
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/12/09/java/ofbiz/ofbiz/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/12/05/extend/powerdesigner/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -998,7 +1297,10 @@ screen渲染
       
         
           
-          简介使用 ^3工具箱介绍(Toolbox)
+          简介
+Powerdesigner v16.5
+
+使用 ^3工具箱介绍(Toolbox)
 Standard
 Link/Traceablility Link 可追溯的连接(可用来建立虚拟关联关系)，不会产生外键，显示为虚线箭头(箭头指向为父表)
 Note 备注
@@ -1024,17 +1326,17 @@ M：Mandatory 强制要求（不能为空）
 
 
 字段编辑时显示Comment字段
-表编辑视图 - Columns - Customize Columns and Filter - 勾选Comment的D栏
+表编辑视图 - Columns -&gt; Customize Columns and Filter -&gt; 勾选Comment的D栏
 
 
 显示自增列(mysql, 其他版本参考 ^4) 
-表编辑视图 - Columns - Customize Columns and Filter - 勾选Identity的D栏
+表编辑视图 -&gt; Columns -&gt; Customize Columns and Filter -&gt; 勾选Identity的D栏
 
 
 
 显示设置
-设置入口：右键 - Display Preference
-设置表显示字体：Table - Format - Modify - Font - Symbol全选 - 
+设置入口：右键 -&gt; Display Preference
+设置表显示字
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1476,7 +1778,7 @@ mui(&qu
 文档：V4.2.3
 引入spring security后便有了session机制
 
-spring security实现方法 [^1]
+spring security实现方法 ^1
 总共有四种用法，从简到深为
 不用数据库，全部数据写在配置文件，这个也是官方文档里面的demo
 使用数据库，根据spring security默认实现代码设计数据库，也就是说数据库已经固定了，这种方法不灵活，而且那个数据库设计得很简陋，实用性差
@@ -1487,323 +1789,11 @@ spring security和Acegi不同，它不能修改默认filter了，但支持插入
 
 注意
 spring-security登录只能接受x-www-form-urlencoded(简单键值对)类型的数据，form-data(表单类型，可以含有文件)类型的请求获取不到参数值
-axios实现x-www-form-urlencoded请求：参数应该写到param中。如果写在data中则不行，加headers: {&#39;Content-Type&
+axios实现x-www-form-urlencoded请求：参数应该写到param中。如果写在data中则不行，加headers: {&#39;Content-Type&#3
           ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2017/10/22/java/spring-security/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/10/21/db/h2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/21/db/h2/" itemprop="url">h2数据库</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-21T10:42:00+08:00">
-                2017-10-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/db/" itemprop="url" rel="index">
-                    <span itemprop="name">db</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          简介
-h2简介 ^1：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库
-官网：http://h2database.com/html/main.html\
-
-springboot整合
-添加依赖(jpa等省略)
-  12345&lt;dependency&gt;    &lt;groupId&gt;com.h2database&lt;/groupId&gt;    &lt;artifactId&gt;h2&lt;/artifactId&gt;    &lt;scope&gt;runtime&lt;/scope&gt;&lt;/dependency&gt;
-
-连接配置
-  123456789101112131415161718192021spring:  datasource:    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)。url不写默认使用内存型数据库，数据库名为testdb    url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).    # 如果已经生成了数
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/10/21/db/h2/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/10/12/others/business-conception/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/12/others/business-conception/" itemprop="url">行业概念</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-12T11:22:00+08:00">
-                2017-10-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/others/" itemprop="url" rel="index">
-                    <span itemprop="name">others</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          通用
-ERP 企业资源计划(Enterprise Resource Planning)
-CRM 客户关系管理(Customer Relationship Management)
-BU 业务单元(Business Units，公司的一个部门)，Strategical Business Unit 战略业务单元
-
-物流
-WMS 仓库管理系统(Warehouse Management System)
-MES 制造执行系统(Manufacturing Execution System) ^1
-功能：库房管理、生产调度、制造过程管理、质量管理、设备工装管理、文档管理、物料批次跟踪
-
-
-FOB、CFR、CIF
-FOB(free on board)，船上交货
-CFR(cost and freight)成本加运费，船上交货
-CIF(cost, insurance and freight)成本加保险费加运费，船上交货
-
-
-FBA 亚马逊代发货服务(Fulfillment by Amazon)
-
-营销/运营
-MVP 最小价值产品或最小可视化产品(Minimal Viable Product) ^2
-
-
-
-          
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/10/12/others/business-conception/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1889,7 +1879,7 @@ MVP 最小价值产品或最小可视化产品(Minimal Viable Product) ^2
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">73</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2016/12/29/arch/maven/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签(windows/linux均可)      123456&amp;lt;mirror&amp;gt; 	&amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;  	&amp;lt;name&amp;gt;">
-<meta property="og:updated_time" content="2018-02-26T13:26:31.624Z">
+<meta property="og:updated_time" content="2018-04-22T03:17:07.623Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="maven">
 <meta name="twitter:description" content="maven简介maven实战maven镜像修改- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到&amp;lt;mirrors&amp;gt;标签，添加如下子标签(windows/linux均可)      123456&amp;lt;mirror&amp;gt; 	&amp;lt;id&amp;gt;alimaven&amp;lt;/id&amp;gt;  	&amp;lt;name&amp;gt;">
@@ -432,7 +432,7 @@
 
 - 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
 </code></pre><h3 id="maven项目依赖本地jar包"><a href="#maven项目依赖本地jar包" class="headerlink" title="maven项目依赖本地jar包"></a>maven项目依赖本地jar包</h3><ul>
-<li>安装jar包到本地：<code>mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar</code><ul>
+<li>安装jar包(test-1.0.0.jar)到本地：<code>mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar</code><ul>
 <li>如果jar包包含pom信息则可直接安装<code>mvn install:install-file -Dfile=D:/test-1.0.0.jar</code></li>
 </ul>
 </li>
@@ -454,7 +454,7 @@
 <h3 id="利用github创建仓库-1"><a href="#利用github创建仓库-1" class="headerlink" title="利用github创建仓库 ^1"></a>利用github创建仓库 <a href="[利用github搭建个人maven仓库](http://blog.csdn.net/hengyunabc/article/details/47308913)">^1</a></h3><ul>
 <li>github新建项目maven-repo，并下载到本地目录，如<code>D:/GitRepositories/maven-repo</code></li>
 <li>进入到项目pom.xml所在目录，运行命令：<ul>
-<li><code>mvn deploy -DaltDeploymentRepository=oldinaction-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests</code></li>
+<li><code>mvn deploy -DaltDeploymentRepository=oldinaction-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests</code>(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)</li>
 <li>将项目部署到<code>D:/GitRepositories/maven-repo</code>目录，项目id为<code>oldinaction-maven-repo</code>，<code>-DskipTests</code>跳过测试进行部署</li>
 </ul>
 </li>
@@ -646,7 +646,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">73</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

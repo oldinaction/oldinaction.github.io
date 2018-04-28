@@ -77,7 +77,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="ofbiz,CPU,内存,运维," />
+  <meta name="keywords" content="smalle blog" />
 
 
 
@@ -95,21 +95,15 @@
 
 
 
-<meta name="description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
-<meta name="keywords" content="ofbiz,CPU,内存,运维">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Java项目CPU及内存异常分析">
-<meta property="og:url" content="http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/index.html">
+<meta name="description" content="代码，让生活更美好">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SmalleBlog | AEZOCN">
+<meta property="og:url" content="http://blog.aezo.cn/archives/2018/page/2/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
-<meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-cpu.png">
-<meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-jstack.png">
-<meta property="og:image" content="http://blog.aezo.cn/data/images/java/ofbiz-purgejob-src.png">
-<meta property="og:updated_time" content="2018-04-16T02:18:59.063Z">
+<meta property="og:description" content="代码，让生活更美好">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Java项目CPU及内存异常分析">
-<meta name="twitter:description" content="简介 java应用常见故障：高CPU占用、高内存占用、高I/O占用(包括磁盘I/O、网络I/O、数据库I/O等) 高CPU常见场景：死循环(如while导致的较多)、高内存导致 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU   高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) ^2 java.lang.OutOf">
-<meta name="twitter:image" content="http://blog.aezo.cn/data/images/java/ofbiz-cpu.png">
+<meta name="twitter:title" content="SmalleBlog | AEZOCN">
+<meta name="twitter:description" content="代码，让生活更美好">
 
 
 
@@ -137,13 +131,13 @@
 
 
 
-  <link rel="canonical" href="http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/"/>
+  <link rel="canonical" href="http://blog.aezo.cn/archives/2018/page/2/"/>
 
 
 
 
 
-  <title>Java项目CPU及内存异常分析 | SmalleBlog | AEZOCN</title>
+  <title>归档 | SmalleBlog | AEZOCN</title>
   
 
 
@@ -168,7 +162,7 @@
     
   
 
-  <div class="container sidebar-position-right page-post-detail ">
+  <div class="container sidebar-position-right  page-archive  ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -316,242 +310,69 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-expand">
-    
+  <section id="posts" class="posts-collapse">
+    <span class="archive-move-on"></span>
 
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/03/13/java/Java项目CPU及内存异常分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    <span class="archive-page-counter">
+      
+      
+       
+        
+      好! 目前共计 75 篇日志。 继续努力。
     </span>
 
     
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">Java项目CPU及内存异常分析</h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-13T13:35:00+08:00">
-                2018-03-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
 
       
       
-
       
-        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul>
-<li>java应用常见故障：<strong>高CPU占用</strong>、<strong>高内存占用</strong>、<strong>高I/O占用</strong>(包括磁盘I/O、网络I/O、数据库I/O等)</li>
-<li>高CPU常见场景：死循环(如while导致的较多)、高内存导致<ul>
-<li>高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU</li>
-</ul>
-</li>
-<li>高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) <a href="[线上应用故障排查之二：高内存占用](http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html)">^2</a><ul>
-<li><code>java.lang.OutOfMemoryError: PermGen space</code>，原因可能为<ul>
-<li>程序启动需要加载大量的第三方jar包。例如：在一个Tomcat下部署了太多的应用</li>
-</ul>
-</li>
-<li><code>java.lang.OutOfMemoryError: Java heap space</code>，原因可能为<ul>
-<li>Java虚拟机的堆内存设置不够，可以通过参数-Xms、-Xmx来调整。</li>
-<li>代码中创建了大量大对象，并且长时间不能被垃圾收集器收集（存在被引用）</li>
-</ul>
-</li>
-<li>在Java虚拟机中，内存分为三个代<ul>
-<li>新生代New：新建的对象都存放这里</li>
-<li>老生代Old：存放从新生代New中迁移过来的生命周期较久的对象。新生代New和老生代Old共同组成了堆内存</li>
-<li>永久代Perm：是非堆内存的组成部分。主要存放加载的Class类级对象如class本身，method，field等等</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="相关命令介绍"><a href="#相关命令介绍" class="headerlink" title="相关命令介绍"></a>相关命令介绍</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%</span></div><div class="line"><span class="comment"># Windows可以使用ProcessExplorer.exe查看进程和线程信息</span></div><div class="line">top</div><div class="line"></div><div class="line"><span class="comment">## 2.显示某进程的线程列表。pid：进程id;</span></div><div class="line"><span class="comment"># 结果说明：（1）第一行为统计（2）%CPU为此线程CPU占用率（3）TIME为线程运行时间（4）%MEM为内存占用率</span></div><div class="line">ps -mp &lt;pid&gt; -o THREAD,tid,time,rss,size,%mem</div><div class="line"></div><div class="line"><span class="comment">## 3.Java的jstack命令：打印线程的堆栈信息</span></div><div class="line"><span class="comment"># pid：进程id; tid线程id; -A 30表示显示30行; `printf "%x\n" &lt;tid&gt;`获取线程ID的16进制格式</span></div><div class="line"><span class="comment"># 如"OFBiz-JobQueue-0"为线程名，prio=10为优先级，tid为线程id，RUNNABLE为运行中</span></div><div class="line"><span class="comment"># "OFBiz-JobQueue-0" prio=10 tid=0x00007f2c60007800 nid=0x96d runnable [0x00007f2cfe187000]</span></div><div class="line"><span class="comment">#    java.lang.Thread.State: RUNNABLE</span></div><div class="line"><span class="comment">#       at java.net.SocketInputStream.socketRead0(Native Method)</span></div><div class="line"><span class="comment">#       ......</span></div><div class="line">jstack &lt;pid&gt; | grep `<span class="built_in">printf</span> <span class="string">"%x\n"</span> &lt;tid&gt;` -A 30</div><div class="line"><span class="comment"># 获取thread dump到文件</span></div><div class="line">jstack &lt;pid&gt; &gt; jstack.out</div><div class="line"></div><div class="line"><span class="comment">## 4.Java的jmap命令：显示一个进程下具体线程的内存占用情况</span></div><div class="line"><span class="comment"># 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live &lt;pid&gt; &gt; /home/jmap.out）</span></div><div class="line">jmap -histo:live &lt;pid&gt; | head -n 100</div><div class="line"><span class="comment"># 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析</span></div><div class="line"><span class="comment"># （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟）</span></div><div class="line">jmap -dump:live,format=b,file=/home/dump.hprof &lt;pid&gt;</div><div class="line"><span class="comment"># （2）项目启动添加参数获取(不能实时获取)</span></div><div class="line">-XX:+HeapDumpOnOutOfMemoryError <span class="comment"># 出现 OOME 时生成堆 dump:</span></div><div class="line">-XX:HeapDumpPath=/home/jvmlogs/ <span class="comment"># 生成堆文件地址</span></div></pre></td></tr></table></figure>
-<h2 id="MAT工具使用"><a href="#MAT工具使用" class="headerlink" title="MAT工具使用"></a>MAT工具使用</h2><ul>
-<li><p>MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，<a href="http://www.eclipse.org/mat/downloads.php" target="_blank" rel="external">下载</a></p>
-</li>
-<li><p><a href="https://www.cnblogs.com/moonandstar08/p/5625164.html" target="_blank" rel="external">https://www.cnblogs.com/moonandstar08/p/5625164.html</a></p>
-</li>
-<li><a href="http://blog.csdn.net/aaa2832/article/details/19419679" target="_blank" rel="external">http://blog.csdn.net/aaa2832/article/details/19419679</a></li>
-</ul>
-<h2 id="OFBiz项目案例分析"><a href="#OFBiz项目案例分析" class="headerlink" title="OFBiz项目案例分析"></a>OFBiz项目案例分析</h2><blockquote>
-<p>案例介绍：此问题主要是ofbiz在清理历史任务时，任务数据过大导致内存溢出，从而CPU飙升，最终服务器时常宕机。</p>
-</blockquote>
-<ul>
-<li><code>htop</code>查看情况如下</li>
-</ul>
-<p>可以看到其中PID=2273的进程CPU占用到达710%(服务器为8核)，内存占用22%(服务器为16G*0.22=3.52G，jvm参数设置的内存大小为3G)，其中线程运行时间达到5h29m。以上数据说明程序运行存在问题</p>
-<p><img src="/data/images/java/ofbiz-cpu.png" alt="htop"></p>
-<ul>
-<li><code>ps -mp 2273 -o THREAD,tid,time,rss,size,%mem</code> 查看此进程下线程运行情况：实际中发现有7个进程占用CPU均达到几十分钟，且CPU和内存占用均非常高。(其中2个是ofbiz拉取历史任务进行清理的进程，5个为GC进行垃圾回收的进程)</li>
-<li><code>jstack 2273 | grep</code>printf “%x\n” 2413<code>-A 40</code> 查看2273进程下2413线程的堆栈信息如下(或者输出到文件进行查看)</li>
-</ul>
-<p>可以看到线程有以下调用信息<code>org.ofbiz.service.job.PurgeJob.exec(PurgeJob.java:55)</code>，如是可以去查看PurgeJob的源码。(当然应该多次查看此线程的堆栈，查看一次可能存在偶发性)</p>
-<p><img src="/data/images/java/ofbiz-purgejob-jstack.png" alt="jstack"></p>
-<ul>
-<li>ofbiz的PurgeJob相关源码。详细可参考《OFBiz服务和任务机制》</li>
-</ul>
-<p>ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行的任务时，则进行历史任务数据(JobSandbox等表数据)清理工作，即获取当前时间4天(默认的purge-job-days)前完成或者取消的任务数据进行删除。</p>
-<p>而此处是根据ofbiz实体引擎查询的历史数据放到一个EntityListIterator中进行遍历(查看源码可知本质并没有分页获取数据，而是将所有查询的数据放到ResultSet进行遍历)</p>
-<p>由于本项目前期并没有太多的关注任务调用周期，从而导致大量任务堆积，并且不能及时清理。一定数量后，再次触发任务数据清理时就会从数据库获取大量数据到内存，从而内存移除，GC频繁清理，CPU飙升，服务器宕机。</p>
-<p><img src="/data/images/java/ofbiz-purgejob-src.png" alt="ofbiz-purgejob-src"></p>
-<ul>
-<li><p>MAT分析：从服务器下载dump文件使用MAT进行分析，发现也可发现上述情况</p>
-</li>
-<li><p>解决方案</p>
-</li>
-</ul>
-<p>由于个人觉得ofbiz任务机制不太好用，决定不去清理历史数据，而是手动定时清理(或绕过ofbiz定时去清理)。因此可以修改<code>/framework/service/config/serviceengine.xml</code>中<code>purge-job-days</code>的值。重新启动服务器(之前占用的内存无法及时清除，必须重启服务器)和项目一切正常</p>
-<hr>
-<p>参考文章</p>
 
-      
-    </div>
-
-    <div>
       
         
-
-      
-    </div>
-
-    <div>
-      
-        
-
-      
-    </div>
-
-    <div>
-      
-        
-
-      
-    </div>
-
-    <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/ofbiz/" rel="tag"># ofbiz</a>
-          
-            <a href="/tags/CPU/" rel="tag"># CPU</a>
-          
-            <a href="/tags/内存/" rel="tag"># 内存</a>
-          
-            <a href="/tags/运维/" rel="tag"># 运维</a>
-          
+        <div class="collection-title">
+          <h2 class="archive-year motion-element" id="archive-year-2018">2018</h2>
         </div>
       
-
-      
-      
       
 
       
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-              <a href="/2018/03/04/arch/lvs/" rel="next" title="lvs">
-                <i class="fa fa-chevron-left"></i> lvs
-              </a>
-            
-          </div>
 
-          <span class="post-nav-divider"></span>
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
 
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/03/13/bigdata/solr/" rel="prev" title="Solr">
-                Solr <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
+      <h2 class="post-title">
+        
+            <a class="post-title-link" href="/2018/02/24/java/ofbiz/OFBiz服务和任务机制/" itemprop="url">
+              
+                <span itemprop="name">OFBiz服务和任务机制</span>
+              
+            </a>
+        
+      </h2>
 
-      
-      
-    </footer>
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated"
+              datetime="2018-02-24T16:27:00+08:00"
+              content="2018-02-24" >
+          02-24
+        </time>
+      </div>
+
+    </header>
   </article>
 
 
 
-    <div class="post-spread">
-      
-    </div>
-  </div>
+    
+
+  </section>
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/archives/2018/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/archives/2018/">1</a><span class="page-number current">2</span>
+  </nav>
+
+
 
 
           </div>
@@ -559,10 +380,6 @@
 
 
           
-  <div class="comments" id="comments">
-    
-  </div>
-
 
         </div>
         
@@ -582,17 +399,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview">
-            站点概览
-          </li>
-        </ul>
-      
 
-      <section class="site-overview sidebar-panel">
+      <section class="site-overview sidebar-panel sidebar-panel-active">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"
@@ -607,7 +415,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">73</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -661,22 +469,6 @@
 
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关命令介绍"><span class="nav-number">2.</span> <span class="nav-text">相关命令介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MAT工具使用"><span class="nav-number">3.</span> <span class="nav-text">MAT工具使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OFBiz项目案例分析"><span class="nav-number">4.</span> <span class="nav-text">OFBiz项目案例分析</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
@@ -790,9 +582,11 @@
   
 
   
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
-
+  
+    <script type="text/javascript" id="motion.page.archive">
+      $('.archive-year').velocity('transition.slideLeftIn');
+    </script>
+  
 
 
   
