@@ -95,17 +95,17 @@
 
 
 
-<meta name="description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块  pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将htt">
+<meta name="description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)基本语法变量 命名同java(区分大小写)  变量无需声明类型：如name=&amp;#39;smalle&amp;#39;，name=123 print(name) 打印变量(python2语法为print name)">
 <meta name="keywords" content="python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="python">
 <meta property="og:url" content="http://blog.aezo.cn/2017/04/28/lang/python/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块  pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将htt">
-<meta property="og:updated_time" content="2017-08-18T10:44:17.488Z">
+<meta property="og:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)基本语法变量 命名同java(区分大小写)  变量无需声明类型：如name=&amp;#39;smalle&amp;#39;，name=123 print(name) 打印变量(python2语法为print name)">
+<meta property="og:updated_time" content="2018-03-19T11:37:02.698Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="python">
-<meta name="twitter:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)模块 模块安装 可在/Scripts和/Lib/site-packages中查看可执行文件和模块源码   常用模块  pip 可用于安装管理python其他模块 安装（windows默认已经安装） 将htt">
+<meta name="twitter:description" content="python简介 python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护 Linux下默认有python环境  python基础(易混淆/常用)基本语法变量 命名同java(区分大小写)  变量无需声明类型：如name=&amp;#39;smalle&amp;#39;，name=123 print(name) 打印变量(python2语法为print name)">
 
 
 
@@ -261,9 +261,43 @@
       
 
       
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -340,8 +374,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
+                  <a href="/categories/lang/" itemprop="url" rel="index">
+                    <span itemprop="name">lang</span>
                   </a>
                 </span>
 
@@ -378,7 +412,50 @@
 <li>python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护</li>
 <li>Linux下默认有python环境</li>
 </ul>
-<h2 id="python基础-易混淆-常用"><a href="#python基础-易混淆-常用" class="headerlink" title="python基础(易混淆/常用)"></a>python基础(易混淆/常用)</h2><h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><ol>
+<h2 id="python基础-易混淆-常用"><a href="#python基础-易混淆-常用" class="headerlink" title="python基础(易混淆/常用)"></a>python基础(易混淆/常用)</h2><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><h4 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h4><ul>
+<li>命名同java(区分大小写) </li>
+<li>变量无需声明类型：如<code>name=&#39;smalle&#39;，name=123</code></li>
+<li><code>print(name)</code> 打印变量(python2语法为<code>print name</code>)</li>
+<li><code>del name</code> 变量销毁</li>
+<li><code>id(a), id(b), id(c)</code> 查看a、b、c三个变量的内存地址(0-255的数字python会做优化：<code>a=1、b=a、c=1</code>此时内存地址一致)</li>
+</ul>
+<h4 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h4><ul>
+<li>数据类型<ul>
+<li>数字类型：整型(布尔bool、长整型L、标准整型int)、浮点型(floot)、序列(字符串str、元组tuple、列表list)、映像类型(字典dict)、集合(可变set、不可变集合frozenset)</li>
+<li><code>a = True</code>(注意<code>True/False</code>首字母大写)</li>
+<li><code>type(a)</code> 查看a的数据类型</li>
+<li><code>a = &#39;10&#39;; int(a);</code> 强转成整形(floot、bool、str同理)</li>
+</ul>
+</li>
+<li>列表</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">list = [<span class="string">"smalle"</span>, <span class="string">"aezocn"</span>, <span class="number">18</span>, <span class="string">"smalle"</span>, <span class="string">"hello"</span>] <span class="comment"># 定义数组</span></div><div class="line">print(list) <span class="comment"># 打印["smalle", "aezocn", 18, "smalle", "hello"]</span></div><div class="line"><span class="keyword">print</span> len(list) <span class="comment"># 返回list的大小</span></div><div class="line"></div><div class="line">list[<span class="number">0</span>] <span class="comment"># ['smalle']</span></div><div class="line">list[<span class="number">0</span>:<span class="number">3</span>] <span class="comment"># ['smalle', 'aezocn', 18]（索引左闭右开）。同 print(list[:3])，省略则为0</span></div><div class="line">list[<span class="number">1</span>:<span class="number">-2</span>] <span class="comment"># ['aezocn', 18]，-1为hello，-2为smalle，不包含-2</span></div><div class="line">list[<span class="number">-3</span>:<span class="number">-1</span>] <span class="comment"># [18, 'smalle']</span></div><div class="line"></div><div class="line"><span class="comment"># 操作列表的方法</span></div><div class="line">list.remove(<span class="string">'smalle'</span>) <span class="comment"># 移除'smalle'，一次只能删除一个元素，且从左往右开始删除</span></div><div class="line">list.append(<span class="string">'world'</span>) <span class="comment"># 往最后添加一个元素</span></div><div class="line">list.insert(<span class="number">2</span>, <span class="string">'index2'</span>) <span class="comment"># 在索引为2处添加元素</span></div><div class="line">list.pop() <span class="comment"># 删除list最后一个元素</span></div><div class="line">list.pop(<span class="number">1</span>) <span class="comment"># 删除索引为1的元素</span></div><div class="line"></div><div class="line">list.count(<span class="string">'smalle'</span>) <span class="comment"># 获取集合中smalle的个数</span></div><div class="line">list.index(<span class="string">'smalle'</span>) <span class="comment"># 获取'smalle'第一次出现的下标 </span></div><div class="line"></div><div class="line">list.sort() <span class="comment"># 从小到大排序</span></div><div class="line">list.reverse() <span class="comment"># 将此列表反转（不会进行排序）</span></div></pre></td></tr></table></figure>
+<ul>
+<li>字典</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">map = &#123;<span class="string">'name'</span>: <span class="string">'smalle'</span>, <span class="string">"age"</span>: <span class="number">18</span>&#125; <span class="comment"># 定义</span></div><div class="line">print(map) <span class="comment"># &#123;'name': 'smalle', "age": 18&#125;</span></div><div class="line">map[<span class="string">'name'</span>] <span class="comment"># smalle</span></div><div class="line"></div><div class="line"><span class="comment"># 循环</span></div><div class="line"><span class="keyword">for</span> key <span class="keyword">in</span> map:</div><div class="line">    print(key, map[key])</div><div class="line"></div><div class="line"><span class="keyword">for</span> key, value <span class="keyword">in</span> map.items():</div><div class="line">    print(key, value)</div></pre></td></tr></table></figure>
+<ul>
+<li>元组：和列表很类似(元组定义了之后值不能改变)</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">my_tuple = (<span class="string">'1'</span>, <span class="number">2</span>, <span class="string">'smalle'</span>) <span class="comment"># ('1',)</span></div><div class="line"><span class="keyword">print</span> type(my_tuple) <span class="comment"># &lt;type 'tuple'&gt;</span></div><div class="line"><span class="keyword">print</span> my_tuple.index(<span class="string">'smalle'</span>) <span class="comment"># 2。获取smalle的索引</span></div><div class="line"></div><div class="line"><span class="comment"># 如果元组里面只有一个元素，数据类型为此元素的数据类型</span></div><div class="line">my_tuple = (<span class="string">'1'</span>) <span class="comment"># '1'</span></div><div class="line"><span class="keyword">print</span> type(my_tuple) <span class="comment"># &lt;type 'str'&gt;</span></div></pre></td></tr></table></figure>
+<h4 id="运算"><a href="#运算" class="headerlink" title="运算"></a>运算</h4><ul>
+<li><code>2**32</code> 幂：为2的32次方</li>
+<li><code>10 % 3</code> 取余</li>
+<li><code>10 / 3 = 3; 10 // 3 = 3</code> ???</li>
+</ul>
+<h4 id="编程风格"><a href="#编程风格" class="headerlink" title="编程风格"></a>编程风格</h4><ul>
+<li>使用缩进进行语句层级控制，不像java等语言的<code>{}</code></li>
+<li>每一行代表一个语句，语句结尾以分号<code>;</code>结束，也可省略此分号</li>
+<li>单引号/双引号效果一样，都可表示字符串；三个单引号/双引号可表示多行<ul>
+<li><code>name = &#39;smalle&#39;; age = 18; print &#39;name: %s, age: %s&#39; % (name, age);</code> 引号中的变量替换(如果只有一个变量可以省略括号，如果是数值也可以换成<code>%d</code>，<code>%.2f</code>表示浮点型保存两位小数)</li>
+</ul>
+</li>
+<li><code>#</code> 注释</li>
+<li><code>,</code>或<code>+</code>为字符串连接符</li>
+</ul>
+<h3 id="流程控制"><a href="#流程控制" class="headerlink" title="流程控制"></a>流程控制</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># if语句</span></div><div class="line"><span class="keyword">if</span> name == <span class="string">'smalle'</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"hi"</span></div><div class="line"><span class="keyword">elif</span> age &gt; <span class="number">18</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"old"</span></div><div class="line"><span class="keyword">else</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"error"</span></div><div class="line"></div><div class="line"><span class="comment"># while循环</span></div><div class="line"><span class="keyword">while</span> count &gt; <span class="number">3</span>:</div><div class="line">    <span class="comment"># ...</span></div><div class="line">    <span class="keyword">break</span></div><div class="line"><span class="keyword">else</span>:</div><div class="line">    <span class="keyword">print</span> <span class="string">"此else语句可选"</span></div><div class="line"></div><div class="line"><span class="comment"># for循环</span></div><div class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">10</span>): <span class="comment"># range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)返回0-10(不包含是10)，且步长为2的数据：[0, 2, 4, 6, 8]</span></div><div class="line">    <span class="keyword">print</span> i</div></pre></td></tr></table></figure>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 1</span></div><div class="line"><span class="keyword">print</span> id(a) <span class="comment"># 返回变量a的地址</span></div><div class="line"><span class="keyword">print</span> type(a) <span class="comment"># 返回变量a的类型</span></div><div class="line"><span class="keyword">print</span> len(a) <span class="comment"># 获取变量a的长度</span></div><div class="line"><span class="keyword">print</span> <span class="string">"smalle "</span>.strip() <span class="comment"># 去除空格</span></div><div class="line"><span class="keyword">print</span> <span class="string">"10"</span>.isdigit() == <span class="keyword">True</span> <span class="comment"># 判断是为整数</span></div><div class="line"><span class="keyword">print</span> ord(<span class="string">'1'</span>) <span class="comment"># 返回ascii码，此时为49</span></div><div class="line"></div><div class="line"><span class="comment"># 2</span></div><div class="line">name = raw_input(<span class="string">"please input name:"</span>) <span class="comment"># 获取输入源（获取数据默认都是字符串）</span></div><div class="line"><span class="keyword">print</span> <span class="string">'name:'</span>, name <span class="comment"># 打印 "name: smalle"</span></div><div class="line"></div><div class="line"><span class="comment"># 3</span></div><div class="line"><span class="keyword">import</span> random <span class="comment"># 导入random模块</span></div><div class="line">num = random.randrange(<span class="number">10</span>) <span class="comment"># 获取0-9的随机整数(不包含10)</span></div></pre></td></tr></table></figure>
+<h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><ol>
 <li>模块安装<ul>
 <li>可在<code>/Scripts</code>和<code>/Lib/site-packages</code>中查看可执行文件和模块源码</li>
 </ul>
@@ -413,6 +490,10 @@
 </li>
 <li><p>工具类：<a href="http://www.cnblogs.com/snifferhu/p/4369184.html" target="_blank" rel="external">http://www.cnblogs.com/snifferhu/p/4369184.html</a></p>
 </li>
+</ul>
+</li>
+<li><code>pymongo</code> MongoDB操作库 <a href="[Python连接MongoDB操作](http://www.yiibai.com/mongodb/mongodb_python.html)">^2</a><ul>
+<li><code>pip install pymongo</code></li>
 </ul>
 </li>
 <li><code>fabric</code> 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)<ul>
@@ -491,8 +572,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/05/06/java/struts2/" rel="prev" title="struts2">
-                struts2 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/04/28/lang/freemarker/" rel="prev" title="freemarker">
+                freemarker <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -565,7 +646,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -576,7 +657,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -587,7 +668,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -629,7 +710,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#python简介"><span class="nav-number">1.</span> <span class="nav-text">python简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python基础-易混淆-常用"><span class="nav-number">2.</span> <span class="nav-text">python基础(易混淆/常用)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模块"><span class="nav-number">3.</span> <span class="nav-text">模块</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#python简介"><span class="nav-number">1.</span> <span class="nav-text">python简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python基础-易混淆-常用"><span class="nav-number">2.</span> <span class="nav-text">python基础(易混淆/常用)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本语法"><span class="nav-number">2.1.</span> <span class="nav-text">基本语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#变量"><span class="nav-number">2.1.1.</span> <span class="nav-text">变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据类型"><span class="nav-number">2.1.2.</span> <span class="nav-text">数据类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#运算"><span class="nav-number">2.1.3.</span> <span class="nav-text">运算</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编程风格"><span class="nav-number">2.1.4.</span> <span class="nav-text">编程风格</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流程控制"><span class="nav-number">2.2.</span> <span class="nav-text">流程控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">2.3.</span> <span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模块"><span class="nav-number">3.</span> <span class="nav-text">模块</span></a></li></ol></div>
             
 
           </div>
@@ -652,7 +733,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -794,6 +875,323 @@
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 

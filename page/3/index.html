@@ -261,9 +261,43 @@
       
 
       
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -288,7 +322,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/09/17/extend/intellij-idea/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/10/21/db/h2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -307,7 +341,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/09/17/extend/intellij-idea/" itemprop="url">IntelliJ IDEA</a></h1>
+                <a class="post-title-link" href="/2017/10/21/db/h2/" itemprop="url">h2数据库</a></h1>
         
 
         <div class="post-meta">
@@ -319,8 +353,320 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-17T15:37:00+08:00">
-                2016-09-17
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-21T10:42:00+08:00">
+                2017-10-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/db/" itemprop="url" rel="index">
+                    <span itemprop="name">db</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介
+h2简介 ^1：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库
+官网：http://h2database.com/html/main.html\
+
+springboot整合
+添加依赖(jpa等省略)
+  12345&lt;dependency&gt;    &lt;groupId&gt;com.h2database&lt;/groupId&gt;    &lt;artifactId&gt;h2&lt;/artifactId&gt;    &lt;scope&gt;runtime&lt;/scope&gt;&lt;/dependency&gt;
+
+连接配置
+  123456789101112131415161718192021spring:  datasource:    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空)。url不写默认使用内存型数据库，数据库名为testdb    url: jdbc:h2:~/.h2/minions;AUTO_SERVER=true;    # 用户名密码会根据填写的生成(默认生成的用户名为sa, 密码为空).    # 如果已经生成了数
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/10/21/db/h2/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/10/12/others/business-conception/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/12/others/business-conception/" itemprop="url">行业概念</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-12T11:22:00+08:00">
+                2017-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/others/" itemprop="url" rel="index">
+                    <span itemprop="name">others</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          通用
+ERP 企业资源计划(Enterprise Resource Planning)
+CRM 客户关系管理(Customer Relationship Management)
+BU 业务单元(Business Units，公司的一个部门)，Strategical Business Unit 战略业务单元
+
+物流
+WMS 仓库管理系统(Warehouse Management System)
+MES 制造执行系统(Manufacturing Execution System) ^1
+功能：库房管理、生产调度、制造过程管理、质量管理、设备工装管理、文档管理、物料批次跟踪
+
+
+FOB、CFR、CIF
+FOB(free on board)，船上交货
+CFR(cost and freight)成本加运费，船上交货
+CIF(cost, insurance and freight)成本加保险费加运费，船上交货
+
+
+FBA 亚马逊代发货服务(Fulfillment by Amazon)
+
+营销/运营
+MVP 最小价值产品或最小可视化产品(Minimal Viable Product) ^2
+
+
+
+          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/10/12/others/business-conception/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/10/09/extend/内网穿透/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/10/09/extend/内网穿透/" itemprop="url">内网穿透</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-09T20:18:00+08:00">
+                2017-10-09
               </time>
             
 
@@ -349,17 +695,6 @@
 
                 
                 
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
-                    <span itemprop="name">tools</span>
-                  </a>
-                </span>
-
-                
-                
               
             </span>
           
@@ -389,31 +724,34 @@
       
         
           
-          
-目录{:toc}
+          简介
+内网穿透，即NAT穿透，让外网用户可通过公网ip访问到内网服务。有时想要让其他人通过域名访问或者测试我们在本地搭建的 web 服务，但是由于本地机器没有公网 IP，无法将域名解析到本地的机器，通过内网穿透就可以实现这一功能
+常见的内网穿透工具如ngrok(二级域名每次启动会变化)、花生壳(需要支付8元)、NATAPP(和ngrok类似，2-3天会更新二级域名)。当然本文不不会介绍这些xx.
+本文介绍的内网穿透工具：frp。(内网穿透仍然需要一台公网IP的服务器，如阿里云服务器)
 
-IntelliJ IDEA简介常用设置java web项目配置 [^1]
-进入到Project Structure：File - Project Structure
-配置步骤
-Project 项目级别
-主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的classes目录
+frp实现内网穿透frp介绍
+开源项目，支持TCP、UDP、HTTP、HTTPS，支持自定义域名绑定
+github链接、中文文档
+
+frp使用
+
+本文配合nginx使用(本文公网服务器不是主要用于内网穿透，且解析了多个域名，所以有些端口，如80被占用)
+本文以微信公众号H5开发为例(微信H5开发需要绑定回调地址，此回调地址必须是备案的域名，因此本地开发比较麻烦故使用内网穿透解决)
 
 
-Modules 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
-Sources 将src目录标记成Sources目录
-Paths 使用modules compiler output path，设置路径为\myproject\WebRoot\WEB-INF\classes
-Dependencies 加入jdk、tomcat、其他依赖jar(如\WEB-INF\lib中的jar)
+
+下载最新frp版本，本文使用v0.13.0
+需要下载公网IP服务器(以下简称”服务器”)适用版(如frp_0.13.0_linux_amd64.tar.gz)和本地适用版(如frp_0.13.0_windows_amd64.zip)
 
 
-Libraries 如将\WEB-INF\lib中的所有jar定义一个目录，直接加入到Dependencies中
-Facets
-点击+ - web
-Web Module Deployment Descriptor为\myproject\WebRoot\WEB-INF\web.xml
-Web Resource为\myproject\WebRoot
+服务端
+
+解压后含有frps.ini(配置文件)、frps(可执行文件)
+对fr
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/09/17/extend/intellij-idea/#more" rel="contents">
+            <a class="btn" href="/2017/10/09/extend/内网穿透/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -459,7 +797,7 @@ Web Resource为\myproject\WebRoot
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/09/01/java/others/javaconception/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/09/30/db/sql-base/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -478,7 +816,7 @@ Web Resource为\myproject\WebRoot
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/09/01/java/others/javaconception/" itemprop="url">java web相关概念(名词)汇总</a></h1>
+                <a class="post-title-link" href="/2017/09/30/db/sql-base/" itemprop="url">sql基础</a></h1>
         
 
         <div class="post-meta">
@@ -490,8 +828,787 @@ Web Resource为\myproject\WebRoot
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-01T09:19:00+08:00">
-                2016-09-01
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-30T12:51:00+08:00">
+                2017-09-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/db/" itemprop="url" rel="index">
+                    <span itemprop="name">db</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          
+未做特殊说明的语句都是基于Mysql的语法
+
+数据库操作语言DML(Data Manipulation Language，即CRUD)
+数据参考下文【数据库表信息】先登录并选择数据库mysql -uroot -proot sqltest先复制表emp、dept、salgrade，如：create table dept2 as select * from dept;
+
+插入记录
+按字段顺序一一插入值 insert into dept2 values(50, &#39;game&#39;, &#39;bj&#39;);
+指定部分字段的值 insert into dept2(deptno, dname) values(60, &#39;game2&#39;); 未指定的字段取默认值
+根据从子查询的值插入 insert into dept2 select * from dept; 子查询拿出来的数据和表结构要一样
+产生100w条数据
+
+12345678910-- 1	2018-02-27 10:45:16	64	7SNNAA85AH375N09Y5II	1create table t_test as    select         rownum as id,        to_char(sysdate + rownum / 24 / 3600, 'yyyy-mm-dd hh24:m
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/30/db/sql-base/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/09/30/db/sql-ext/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/09/30/db/sql-ext/" itemprop="url">sql进阶</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-30T12:51:00+08:00">
+                2017-09-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/db/" itemprop="url" rel="index">
+                    <span itemprop="name">db</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          基本原则
+mysql书写顺序和执行顺序都是按照select-from-where-group by-having-order by-limit进行的
+MySQL中子结果集必须使用别名，而Oracle中不需要特意加别名
+
+grouping、rollup：http://blog.csdn.net/damenggege123/article/details/38794351
+
+
+常用函数
+decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值) 只能判断=，不能判断like
+select decode(length(ys.ycross_x), 1, &#39;0&#39; || ys.ycross_x, ys.ycross_x) from ycross_storage ys 如果ys.ycross_x的长度为1那就在前面加0，否则取本身
+select sum(decode(shipcomp.company_num, &#39;CMA&#39;, 1, 0)) cma, sum(decode(shipcomp.company_num, &#39;MSK&#39;, 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联) 统计进出场记录中cma和msk的数量
+order by d
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/30/db/sql-ext/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/09/13/extend/chrome/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/09/13/extend/chrome/" itemprop="url">chrome</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-13T12:56:00+08:00">
+                2017-09-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          chrome插件收集
+Postman Http请求客户端
+JSONView 将Http请求获取的json字符串格式化(可收缩)
+Secure Shell ssh客户端
+Axure RP Extension for Chrome Axure设计
+Set Character Encoding 解决chrome查看源码乱码问题
+Vue.js devtools Vue.js调试工具
+AdBlock 广告拦截
+有道词典Chrome划词插件
+印象笔记·剪藏
+Infinity新标签页 标签管理
+
+Octo Mate github单文件下载(也可右键github按钮raw另存为)
+
+
+调试技巧
+ctrl + shift + i/F12 打开开发者工具
+主面板介绍
+Elements html文件显示，Css样式调试
+Console js代码打印面板
+Sources 静态文件(html、css、js、images等)
+{}/Pretty Print可对压缩文件进行格式化
+
+
+NetWork 网络显示面板：记录所有请求加载(XHR/JS/CSS/Img等)
+Initiator 可查看此执行此请求的运行栈(如：某按钮被点击 - 发起XHR请求)
+点击某个请求可查看请求头(Headers)、响应结果等
+
+
+Application 查看网址的Cookies、Storage等
+更多按钮
+Search all f
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/09/13/extend/chrome/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/08/24/db/db-procedure/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/24/db/db-procedure/" itemprop="url">db-procedure</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-24T20:33:00+08:00">
+                2017-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/db/" itemprop="url" rel="index">
+                    <span itemprop="name">db</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介
+Mysql存储过程调试工具：dbForge Studio for MySQL
+
+Mysql存储过程示例12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808182838485868788899091929394CREATE DEFINER = 'root'@'localhost'PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)BEGIN  DECLARE v_sql varchar(1000);  DECLARE c_cityid integer;  DECLARE c_cityname varchar(20);  DECLARE c_countyname varchar(20);  DECLARE c_cityid_tmp integer;  # 是否未找到数据标记(要在游标之前定义)  DECLARE done INT DEFAULT FALSE;  -- 定义第一个游标  DECLARE cur1 CURSOR FOR  SELECT    t.N_CI
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/24/db/db-procedure/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/08/20/lang/excel-vba/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/20/lang/excel-vba/" itemprop="url">Excel VBA</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T20:03:00+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/lang/" itemprop="url" rel="index">
+                    <span itemprop="name">lang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介
+VBA：Visual Basic for Applications是Visual Basic的一种宏语言
+官方VBA文档、官方Excel帮助、官方VB文档
+基础语法、51自学视频(后面几章收费)
+
+语法
+不会写法的可以使用录制宏，然后进行代码查看
+
+FormulaR1C1是公式输入方法
+
+有中括号是相对于选定单元格的相对偏移量，”-“为向左或向上偏移，正数为右或下偏移。 无中括号为相对于选定单元格的绝对偏移量，没有负数。”R”和”C”对应行和列”
+如：C1单元格为”=A1+B1”。Range(“C1”).FormulaR1C1 = “=RC[-2]+RC[-1]”
+如：C1单元格为”=A2+E3” Range(“C1”).FormulaR1C1 = “=R[1]C[-2]+R[2]C[2]”
+
+
+Selection.AutoFill Destination:=fillRange, Type:=xlFillDefault 自动填充
+此处Selection选中的Range即sourceRange(源)，根据sourceRange进行fillRange的填充。此时fillRange必须包含sourceRange。sourceRange中可以有公式等
+
+
+ActiveWindow.SmallScroll Down:=6等是对窗口进行移动，不影响计算
+
+宏界面配置
+设置字体：工具-选项
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/08/20/lang/excel-vba/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/08/05/java/springcloud/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/05/java/springcloud/" itemprop="url">SpringCloud</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-05T19:36:00+08:00">
+                2017-08-05
               </time>
             
 
@@ -549,18 +1666,45 @@ Web Resource为\myproject\WebRoot
       
         
           
-          未分类
-EJB(Enterprise JavaBean)是sun的JavaEE服务器端组件模型。
-设计目标与核心应用是部署分布式应用程序。简单来说就是把已经编写好的程序（即：类）打包放在服务器上执行。 在J2EE里，EJB 称为Java 企业Bean，是Java的核心代码，分别是会话Bean（Session Bean），实体Bean（Entity Bean）和消息驱动Bean（MessageDriven Bean）
+          介绍
+架构演进
+单体架构：复杂度逐渐变高、部署速度慢、阻碍技术创新、无法按需伸缩
+SOA ^1
+微服务
 
-SessionBean用于实现业务逻辑，它可以是有状态的，也可以是无状态的。每当客户端请求时，容器就会选择一个SessionBean来为客户端服务。Session Bean可以直接访问数据库，但更多时候，它会通过Entity Bean实现数据访问
-Entity Bean是域模型对象，用于实现O/R映射，负责将数据库中的表记录映射为内存中的Entity对象，事实上，创建一个Entity Bean对象相当于新建一条记录。
-MessageDriven Bean是EJB2.0中引入的新的企业Bean，它基于JMS消息，只能接收客户端发送的JMS消息然后处理。MDB实际上是一个异步的无状态SessionBean，客户端调用MDB后无需等待，立刻返回，MDB将异步处理客户请求。这适合于需要异步处理请求的场合，比如订单处理，这样就能避免客户端长时间的等待一个方法调用直到返回结果。
 
+微服务特点
+微服务可独立运行在自己的进程里
+一系列独立运行的微服务构成整个系统
+每个服务独立开发维护
+微服务之间通过REST API或RPC等方式通信
+优点：易于开发和维护，启动快，技术栈不受限制，按需伸缩，DevOps
+挑战：运维要求较高，分布式的复杂性，接口调整成本高
+
+
+微服务设计原则：单一职责原则、服务自治原则、轻量级通信原则、接口明确原则
+微服务开发框架：Spring Cloud、Dubbo、Dropwizard、Consul等
+Spring Cloud是基于Spring Boot的用于快速构建分布式系统工具集
+Spring Cloud特点：约定优于配置、开箱即用，快速启动、轻量级组件、组件丰富、选型中立
+本文相关软件：JDK: 1.8，SpringCloud: Dalston.SR1
+
+微服务构建
+服务提供者、服务消费者
+服务消费者中通过restTemp调用服务提供者提供的服务
+如：User user = this.restTemplate.getForObject(&quot;http://localhost:7900/simple/&quot; + id, User.class);
+
+
+
+Eureka服务发现
+服务注册与发现
+  
+
+服务发现方式 ^2
+客户端
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/09/01/java/others/javaconception/#more" rel="contents">
+            <a class="btn" href="/2017/08/05/java/springcloud/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -606,7 +1750,7 @@ MessageDriven Bean是EJB2.0中引入的新的企业Bean，它基于JMS消息，�
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/08/31/db/shading-jdbc-源码解读/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/07/23/java/springboot/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -625,7 +1769,7 @@ MessageDriven Bean是EJB2.0中引入的新的企业Bean，它基于JMS消息，�
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/08/31/db/shading-jdbc-源码解读/" itemprop="url">sharding-jdbc 源码学习</a></h1>
+                <a class="post-title-link" href="/2017/07/23/java/springboot/" itemprop="url">springboot</a></h1>
         
 
         <div class="post-meta">
@@ -637,380 +1781,8 @@ MessageDriven Bean是EJB2.0中引入的新的企业Bean，它基于JMS消息，�
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-31T20:13:00+08:00">
-                2016-08-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/db/" itemprop="url" rel="index">
-                    <span itemprop="name">db</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          
-文档来源：胡翔宇。此处仅作存档学习！
-
-
-ShardingDataSource 类图  类解析（由父类向下）
-WrapperAdapter：Wrapper适配类主要作用是额外记录jdbc方法调用以及回放。
-    /**
-     * 记录方法调用.
-     *
-     * @param targetClass 目标类
-        * @param methodName 方法名称
-     * @param argumentTypes 参数类型
-     * @param arguments 参数
-     */
-    protected final void recordMethodInvocation(final Class&lt;?&gt; targetClass, final String methodName, final Class&lt;?&gt;[] argumentTypes, final Object[] arguments) {
-        try {
-            jdbcMethodInvocations.add(new JdbcMethodInvocation(targetClass.getMethod(methodName, argumentTypes), arguments));
-        } catch (final
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/08/31/db/shading-jdbc-源码解读/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/08/31/db/shading-jdbc/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/08/31/db/shading-jdbc/" itemprop="url">shading-jdbc</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-31T19:13:00+08:00">
-                2016-08-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/db/" itemprop="url" rel="index">
-                    <span itemprop="name">db</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          Shading介绍
-
-
-功能
-Cobar
-Mycat
-Heisenberg
-TDDL
-Sharding-JDBC
-
-
-
-
-是否开源
-开源
-开源
-开源
-部分开源
-开源
-
-
-架构模型
-Proxy架构
-Proxy架构
-Proxy架构
-应用集成架构
-应用集成架构
-
-
-数据库支持
-MySQL
-任意
-任意
-任意
-MySQL(计划Oracle)
-
-
-外围依赖
-无
-无
-无
-Diamond
-无
-
-
-使用复杂度
-一般
-一般
-一般
-复杂
-一般
-
-
-技术文档支持
-较少
-付费
-较少
-无
-一般
-
-
-开源组织
-阿里
-社区(Cobar衍生)
-社区(Cobar衍生)
-阿里
-当当
-
-
-
-
-其中TDDL是文档较少，github上代码还是4年前更新。现在TDDL已经在阿里云上架，名为DRDS(Distribute Relational Database Service 分布式关系型数据库服务)
-基于Proxy的架构的缺点：网络消耗会产生性能问题，并且多一个外围系统依赖就意味着需要多增加和承担一份风险
-
-Shading-JDBC简介
-Sharding-JDBC是当当开源的数据库分库分表中间件。Sharding-JDBC直接封装JDBC协议，可以理解为增强版的JDBC驱动，旧代码迁移成本几乎为零。Sharding-JDBC定位为轻量级java框架，使用客户端直连数据库，以jar包形式提供服务，无proxy代理层，无需额外部署
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/08/31/db/shading-jdbc/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/08/31/java/ofbiz/ofbiz-test/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/08/31/java/ofbiz/ofbiz-test/" itemprop="url">ofbiz单元测试</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-31T19:07:00+08:00">
-                2016-08-31
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-23T15:05:00+08:00">
+                2017-07-23
               </time>
             
 
@@ -1068,791 +1840,23 @@ Sharding-JDBC是当当开源的数据库分库分表中间件。Sharding-JDBC直
       
         
           
-          测试方法书写
-在ofbiz-component.xml中加入运行测试方法的入口文件
-在入口文件AezoTests.xml中加入一个测试案例smPerson-tests
-12345678910&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;test-suite suite-name="Aezotests"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/test-suite.xsd"&gt;  &lt;!-- 测试用例1：测试方法使用minilang实现 --&gt;  &lt;test-case case-name="smPerson-tests"&gt;      &lt;simple-method-test name="smPersonTests" location="component://aezo/script/cn/aezo/test/AezoTestMethod.xml"/&gt;  &lt;/test-case&gt;&lt;/test-suite&gt;
+          目录
+helloworld(1.5.6)
+数据访问
+hibernate(1.5.6, mysql)
+mybatis(1.5.6)
 
-smPersonTests测试方法的内容
-12345678910111213141
+
+thymeleaf-spring-security(1.5.6)
+rabbitmq(1.5.6)
+
+hello world
+引入依赖
+  1234567891011121314&lt;parent&gt;	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;	&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;	&lt;version&gt;1.4.3.RELEASE&lt;/version&gt;	&lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;&lt;/parent&gt;&lt;dependencies&gt;	&lt;!--包含spring-boot-starter、hibernate-validator、jackson-databind、spring-web、spring-webmvc--&gt;	&lt;dependency&gt;		&lt;groupId&gt;org.springframework.boot&lt;/gr
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/08/31/java/ofbiz/ofbiz-test/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/08/14/db/mongodb/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/08/14/db/mongodb/" itemprop="url">mongodb</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-14T18:08:00+08:00">
-                2016-08-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/db/" itemprop="url" rel="index">
-                    <span itemprop="name">db</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          mongodb简介
-MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。
-官网：https://www.mongodb.com
-
-mongodb安装
-下载地址
-运行.msi文件，选择custom模式后可以选择安装位置(如：D:/software/mongodb)
-进入到安装目录D:/software/mongodb
-新建 log 和 db 两个文件夹
-
-运行mongodb
-法一：命令行运行
-cmd进入到安装目录的bin目录下
-运行 mongod.exe --dbpath D:\software\mongodb\db --auth
-其中参数--auth表示开启安全验证。如若不开启，则admin无密码登录可以查看admin下其他用户的数据
-
-
-
-
-法二：将MongoDB服务器作为Windows服务运行
-(以管理员运行)cmd进入到安装目录的D:\software\mongodb\bin目录下
-运行(注意参数说明) mongod.exe --logpath &quot;D:\software\mongodb\log\mongodb.log&quot; --logappend --dbpath &quot;
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/08/14/db/mongodb/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/08/14/arch/rabbitmq/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/08/14/arch/rabbitmq/" itemprop="url">RabbitMQ</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-14T16:49:00+08:00">
-                2016-08-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/arch/" itemprop="url" rel="index">
-                    <span itemprop="name">arch</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          RabbitMQ简介
-rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。
-RabbitMQ的官方站：http://www.rabbitmq.com/
-
-RabbitMQ安装Rabbit MQ 是建立在强大的Erlang OTP平台上，因此安装Rabbit MQ的前提是安装Erlang。通过下面两个连接下载安装3.2.3 版本：
-
-安装 Eralng OTP For Windows (vR16B03)
-安装 RabbitMQ Server (3.6.5)
-默认监听5672端口(客户端连接使用此端口)，后台使用端口15672
-
-RabbitMQ启动
-激活Rabbit MQ’s Management Plugin(可激活管理插件)
-CMD进入RabbitMQ安装目录，进入到rabbitmq_server-3.6.5/sbin目录
-运行 rabbitmq-plugins.bat enable rabbitmq_management
-
-
-运行 rabbitmq-service.bat start 启动RabbitMQ服务
-运行 rabbitmq-service.bat stop 停止服务
-查看用户
-运行 rabbitmqctl.b
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/08/14/arch/rabbitmq/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/21/linux/linu-system/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/07/21/linux/linu-system/" itemprop="url">linux系统命令</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-21T19:19:00+08:00">
-                2016-07-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/linux/" itemprop="url" rel="index">
-                    <span itemprop="name">linux</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          系统命令
-查看系统信息
-
-查看操作系统版本 cat /proc/version
-
-如腾讯云服务器 Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016 中的 3.10.0 表示内核版本 x86_64 表示是64位系统
-
-
-查看CentOS版本 cat /etc/redhat-release 如：CentOS Linux release 7.2.1511 (Core)
-
-查看内存 grep MemTotal /proc/meminfo
-
-
-查看启动的服务(不包括系统的)：chkconfig --list
-
-shutdown -r now root登录可立刻重启
-df -hl 查看磁盘使用情况
-netstat -lnp 查看所有进场信息(端口、PID)
-ss -ant CentOS 7 查看所有监听端口
-netstat -tnl 查看开放的端口
-netstat -lnp | grep tomcat 查看含有tomcat相关的进程
-
-
-安装程序包 rpm -ivh 安装包名
-查看安装程序(支持模糊查询) rpm -q
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/07/21/linux/linu-system/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/17/design/uml/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/07/17/design/uml/" itemprop="url">UML</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-17T11:01:00+08:00">
-                2016-07-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/design/" itemprop="url" rel="index">
-                    <span itemprop="name">design</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          UML介绍
-UML(Unified Modeling Language): 统一建模语言，是一种图形化的语言，它可以帮助我们在OOAD过程中标识元素、构建模块、分析过程并可通过文档说明系统中的重要细节。
-
-
-OO(Object Oriented)：面向对象
-OOAD(OOA&amp;D)：面向对象的分析与设计
-OOP(Object Oriented Programming)：面向对象编程
-OOP的主要特征：抽象(abstract)、封装(encapsulation)、继承(inheritance)、多态(polymorphism)、关联(association)、聚合(aggregation)、组合(composition)、内聚与耦合(cohesion &amp; coupling)
-RUP(Rational Unified Process)：统一过程，是一个采用面向对象思想，使用UML作为软件分析设计语言，并结合了项目管理、质量管理等软件工程知识综合而成的软件方法。RUP分为四个阶段：初始，精化，构建（编码），交付（使用部署图）。RUP拥抱了需求的变化，好于瀑布式开发（照搬建筑模型，需求变化后修改很麻烦）
-
-
-
-UML包括：事物、关系、图、扩展机制
-事物包括：
-结构：类、接口、构件、节点等
-行为：交互（消息）、状态等
-分组：包、子系统等
-注释：注释
-
-
-关系 包括：依赖、关联、
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/07/17/design/uml/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/12/web/jquery/jquery-plugin/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/07/12/web/jquery/jquery-plugin/" itemprop="url">jquery插件开发</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-12T09:47:00+08:00">
-                2016-07-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          纯js插件优点是依赖性小，不依赖于jQuery等函数库；缺点是比较繁琐；一般不涉及到Dom树的可使用纯js写插件（如：日期库插件moment.js）
-基于jquery编写插件jQuery插件开发方式主要有三种：
-
-通过$.extend()来扩展jQuery
-通过$.fn 向jQuery添加新的方法
-通过$.widget()应用jQuery UI的部件工厂方式创建
-
-第一种方式太简单，仅仅是在jQuery命名空间或者理解成jQuery身上添加了一个静态方法而以，通常我们使用第二种方法来进行简单插件开发，说简单是相对于第三种方式。第三种方式是用来开发更高级jQuery部件的，这里不细说。
-$.extend()用法
-给extend方法传递单个对象的情况下，这个对象会合并到jQuery身上，所以我们就可以在jQuery身上调用新合并对象里包含的方法了$.extend(Object)
-  12345678$.extend(&#123;  log: function(str) &#123;      console.log(str ? str : 'Good!');  &#125;&#125;)//调用$.log(); // Good!$.log('Hello!'); // Hello!
-
-当给extend方法传递一个以上的参数时，它会将所有参数对象合并到第一个里。同时，如果对象中有同名属性时
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/07/12/web/jquery/jquery-plugin/#more" rel="contents">
+            <a class="btn" href="/2017/07/23/java/springboot/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1893,7 +1897,7 @@ $.extend()用法
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1938,7 +1942,7 @@ $.extend()用法
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1949,7 +1953,7 @@ $.extend()用法
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -1960,7 +1964,7 @@ $.extend()用法
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -2009,7 +2013,7 @@ $.extend()用法
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -2151,6 +2155,323 @@ $.extend()用法
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 

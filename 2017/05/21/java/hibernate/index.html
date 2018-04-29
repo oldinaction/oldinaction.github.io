@@ -102,7 +102,7 @@
 <meta property="og:url" content="http://blog.aezo.cn/2017/05/21/java/hibernate/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
 <meta property="og:description" content="介绍 ORM框架(对象关系映射) JDBC操作数据库很繁琐 Sql语句编写并不是面向对象的 可以在对象和关系表之间建立关联来简化编程 0/R Mapping 简化编程 0/R Mapping跨越数据库平台   ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现) O/RMapping编程模型（映射接">
-<meta property="og:updated_time" content="2017-09-11T12:42:50.314Z">
+<meta property="og:updated_time" content="2018-03-24T02:56:35.827Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hibernate">
 <meta name="twitter:description" content="介绍 ORM框架(对象关系映射) JDBC操作数据库很繁琐 Sql语句编写并不是面向对象的 可以在对象和关系表之间建立关联来简化编程 0/R Mapping 简化编程 0/R Mapping跨越数据库平台   ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现) O/RMapping编程模型（映射接">
@@ -261,9 +261,43 @@
       
 
       
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -414,6 +448,47 @@
 </ul>
 </li>
 </ul>
+<h2 id="Springboot对hibernate的默认支持-JPA-2017-07-23"><a href="#Springboot对hibernate的默认支持-JPA-2017-07-23" class="headerlink" title="Springboot对hibernate的默认支持(JPA) 2017-07-23"></a>Springboot对hibernate的默认支持(JPA) 2017-07-23</h2><blockquote>
+<p><a href="http://www.cnblogs.com/rulian/tag/jpa/" target="_blank" rel="external">Spring Data JPA博文</a></p>
+<ul>
+<li>继承接口查询(JpaRepository/JpaSpecificationExecutor等)：<a href="http://www.cnblogs.com/rulian/p/6557471.html" target="_blank" rel="external">http://www.cnblogs.com/rulian/p/6557471.html</a></li>
+<li>方法定义规则查询：<a href="http://www.cnblogs.com/rulian/p/6434631.html" target="_blank" rel="external">http://www.cnblogs.com/rulian/p/6434631.html</a></li>
+<li>Example实例查询：<a href="http://www.cnblogs.com/rulian/p/6533109.html" target="_blank" rel="external">http://www.cnblogs.com/rulian/p/6533109.html</a></li>
+</ul>
+</blockquote>
+<ul>
+<li><p>引入数据库和jpa</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">&lt;!--jpa是ORM框架的API(基于hibernate完成), jdbc是java操作数据库的API(执行sql语句)--&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-jpa<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>数据库添加配置</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## spring.jpa.database=MYSQL</span></div><div class="line"><span class="comment"># 自动执行ddl语句(create/create-drop/update).</span></div><div class="line">spring.jpa.hibernate.ddl-auto=update</div><div class="line"><span class="comment"># 打印sql执行语句, 查询和建表</span></div><div class="line">spring.jpa.show-sql=<span class="literal">true</span></div><div class="line"><span class="comment"># 格式化打印语句</span></div><div class="line">spring.jpa.properties.hibernate.format_sql=<span class="literal">true</span></div><div class="line"><span class="comment"># 懒加载配置</span></div><div class="line">spring.jpa.properties.hibernate.enable_lazy_load_no_trans=<span class="literal">true</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><code>User.java</code>实体</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Entity</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</div><div class="line">	<span class="meta">@Id</span></div><div class="line">	<span class="meta">@GeneratedValue</span></div><div class="line">	<span class="keyword">private</span> Long userId;</div><div class="line"></div><div class="line">	<span class="meta">@Column</span>(nullable=<span class="keyword">false</span>) <span class="comment">// 不能为空</span></div><div class="line">	<span class="keyword">private</span> Long username;</div><div class="line"></div><div class="line">	<span class="keyword">private</span> String password;</div><div class="line"></div><div class="line">	<span class="keyword">private</span> Long groupId;</div><div class="line"></div><div class="line">	<span class="meta">@Generated</span>(GenerationTime.INSERT)</div><div class="line">	<span class="meta">@Column</span>(columnDefinition=<span class="string">" BIT default 1 "</span>) <span class="comment">// 默认插入1(就算new User的时候设置成0最终保存的仍然是1)</span></div><div class="line">	<span class="keyword">private</span> Boolean yesValid;</div><div class="line"></div><div class="line">	<span class="meta">@Generated</span>(GenerationTime.INSERT)</div><div class="line">	<span class="meta">@Column</span>(insertable = <span class="keyword">false</span>, updatable = <span class="keyword">false</span>, columnDefinition=<span class="string">"timestamp default current_timestamp comment '加入时间'"</span>)</div><div class="line">	<span class="keyword">private</span> Timestamp createTime;</div><div class="line"></div><div class="line">	<span class="comment">// getter/setter...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>UserDao.java</code>示例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 继承了JpaRepository(JpaRepository又继承了CrudRepository已经定义好了基本增删查改相关方法)</span></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserClassDao</span> <span class="keyword">extends</span> <span class="title">JpaRepository</span>&lt;<span class="title">UserClass</span>, <span class="title">Long</span>&gt; </span>&#123;</div><div class="line">	<span class="comment">// spring data 根据属性名和查询关键字自动生成查询方法(spring data会自动实现)</span></div><div class="line">	<span class="function">UserClass <span class="title">findByClassName</span><span class="params">(String className)</span></span>;</div><div class="line"></div><div class="line">       <span class="function">List&lt;UserClass&gt; <span class="title">findByClassNameIn</span><span class="params">(List&lt;String&gt; classNames)</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>UserController.java</code>示例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Autowired</span></div><div class="line">   UserDao userDao;</div><div class="line"></div><div class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"/users"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> List&lt;User&gt; <span class="title">findUsers</span><span class="params">(User user)</span> </span>&#123;</div><div class="line">       <span class="comment">// 前台传一个类似的user对象，会把此对象做作为条件进行查询</span></div><div class="line">       Example&lt;User&gt; example = Example.of(user);</div><div class="line"></div><div class="line">	<span class="comment">// 进行模糊匹配</span></div><div class="line">	<span class="comment">// ExampleMatcher matcher = ExampleMatcher.matching().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);</span></div><div class="line">	<span class="comment">// Example&lt;User&gt; example = Example.of(user, matcher);</span></div><div class="line"></div><div class="line">       <span class="keyword">return</span> userDao.findAll(example);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>@Query</code>查询示例</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// UserDao定义的查询语句. org.springframework.data.jpa.repository.Query</span></div><div class="line"><span class="meta">@Query</span>(<span class="string">"select u.classId, u.sex, count(u.classId) as count from User u "</span> +</div><div class="line">        <span class="string">"   where u.password = :password "</span> +</div><div class="line">        <span class="string">"   group by u.classId, u.sex"</span>)</div><div class="line">List&lt;Object[]&gt; countUser(<span class="meta">@Param</span>(<span class="string">"password"</span>) String password);</div><div class="line"></div><div class="line"><span class="comment">// 原生sql</span></div><div class="line"><span class="meta">@Query</span>(value = <span class="string">"select u.* from user u, user_class uc where uc.class_id = u.class_id and uc.class_name = 'one'"</span>, nativeQuery = <span class="keyword">true</span>)</div><div class="line">List&lt;Object[]&gt; findUsers();</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">// @Query自定义sql语句. http://127.0.0.1:9526/api/user-query</span></div><div class="line"><span class="meta">@RequestMapping</span>(value = <span class="string">"/user-query"</span>)</div><div class="line"><span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">query</span><span class="params">()</span> </span>&#123;</div><div class="line">    Map&lt;String, Object&gt; result = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">    result.put(<span class="string">"count"</span>, userDao.countUser(<span class="string">"123456"</span>));</div><div class="line">    result.put(<span class="string">"users"</span>, userDao.findUsers());</div><div class="line"></div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>执行结果</p>
+  <figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="attr">count</span>: [</div><div class="line">        [</div><div class="line">            <span class="number">1</span>,</div><div class="line">            <span class="number">1</span>,</div><div class="line">            <span class="number">2</span></div><div class="line">        ]</div><div class="line">    ],</div><div class="line">    <span class="attr">users</span>: [</div><div class="line">        [</div><div class="line">            <span class="number">1</span>,</div><div class="line">            <span class="number">1</span>,</div><div class="line">            <span class="string">"smalle"</span>,</div><div class="line">            <span class="string">"123456"</span>,</div><div class="line">            <span class="number">1</span></div><div class="line">        ],</div><div class="line">        [</div><div class="line">            <span class="number">2</span>,</div><div class="line">            <span class="number">1</span>,</div><div class="line">            <span class="string">"aezo"</span>,</div><div class="line">            <span class="string">"123456"</span>,</div><div class="line">            <span class="number">1</span></div><div class="line">        ]</div><div class="line">    ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><code>Pageable</code>分页查询：Pageable里面常用参数<code>page</code>(页码, 0代表第一页)、<code>size</code>(页长)、<code>order</code>(排序规则) <a href="[hibernate查询分页](http://www.cnblogs.com/softidea/p/6287788.html)">^1</a></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 查询UserClass信息, 并获取子表User的前5条数据. http://127.0.0.1:9526/api/classes?className=one</span></div><div class="line">   <span class="meta">@RequestMapping</span>(value = <span class="string">"/classes"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">findClasses</span><span class="params">(UserClass userClass)</span> </span>&#123;</div><div class="line">       Map&lt;String, Object&gt; result = <span class="keyword">new</span> HashMap&lt;&gt;();</div><div class="line"></div><div class="line">       <span class="comment">// 前台传一个类似的UserClass对象，会把此对象做作为条件进行查询</span></div><div class="line">       Example&lt;UserClass&gt; example = Example.of(userClass);</div><div class="line">       result.put(<span class="string">"userClass"</span>, userClassDao.findAll(example));</div><div class="line"></div><div class="line">       <span class="comment">// 分页获取User数据：如果使用classes.getUsers()获取则需要写实体对应关系(@OneToMany), 且会产生外键. 此时单表查询不需关联关系</span></div><div class="line">       Pageable pageable = <span class="keyword">new</span> PageRequest(<span class="number">0</span>, <span class="number">5</span>, <span class="keyword">new</span> Sort(Sort.Direction.DESC, <span class="string">"id"</span>)); <span class="comment">// 获取第1页, 每页显示5条, 按照id排序</span></div><div class="line">       result.put(<span class="string">"users"</span>, userDao.findAll(pageable));</div><div class="line"></div><div class="line">       <span class="keyword">return</span> result;</div><div class="line">   &#125;</div><div class="line"></div><div class="line"><span class="comment">// 分页(page为页码, 0代表第1页; size代表页长). http://127.0.0.1:9526/api/users-page?page=0</span></div><div class="line"><span class="comment">// 排序：`?sort=firstname&amp;sort=lastname,desc` 表示在按firstname正序排列基础上按lastname倒序排列</span></div><div class="line">   <span class="comment">// org.springframework.data.domain.Pageable、org.springframework.data.domain.Example</span></div><div class="line">   <span class="meta">@RequestMapping</span>(value = <span class="string">"/users-page"</span>)</div><div class="line">   <span class="function"><span class="keyword">public</span> Page&lt;User&gt; <span class="title">findUsersPage</span><span class="params">(</span></span></div><div class="line">           @RequestParam(value = <span class="string">"username"</span>, defaultValue = <span class="string">"smalle"</span>) String username,</div><div class="line">           Pageable pageable) &#123;</div><div class="line">       <span class="comment">// 前台传一个类似的user对象，会把此对象做作为条件进行查询</span></div><div class="line">       Example&lt;User&gt; example = Example.of(<span class="keyword">new</span> User(username));</div><div class="line"></div><div class="line">       <span class="keyword">return</span> userDao.findAll(example, pageable);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<ul>
+<li><p>查询UserClass信息返回数据如下(已经美化去除引号)：</p>
+  <figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">	<span class="attr">userClass</span>: [</div><div class="line">		&#123;</div><div class="line">			<span class="attr">classId</span>: <span class="number">1</span>,</div><div class="line">			<span class="attr">className</span>: <span class="string">"one"</span></div><div class="line">		&#125;</div><div class="line">	],</div><div class="line">	<span class="attr">users</span>: &#123;</div><div class="line">		<span class="attr">content</span>: [</div><div class="line">			&#123;</div><div class="line">				<span class="attr">id</span>: <span class="number">2</span>,</div><div class="line">				<span class="attr">classId</span>: <span class="number">1</span>,</div><div class="line">				<span class="attr">username</span>: <span class="string">"aezo"</span>,</div><div class="line">				<span class="attr">password</span>: <span class="string">"123456"</span>,</div><div class="line">				<span class="attr">sex</span>: <span class="number">1</span></div><div class="line">			&#125;,</div><div class="line">			&#123;</div><div class="line">				<span class="attr">id</span>: <span class="number">1</span>,</div><div class="line">				<span class="attr">classId</span>: <span class="number">1</span>,</div><div class="line">				<span class="attr">username</span>: <span class="string">"smalle"</span>,</div><div class="line">				<span class="attr">password</span>: <span class="string">"123456"</span>,</div><div class="line">				<span class="attr">sex</span>: <span class="number">1</span></div><div class="line">			&#125;</div><div class="line">		],</div><div class="line">		<span class="attr">totalElements</span>: <span class="number">2</span>,</div><div class="line">		<span class="attr">totalPages</span>: <span class="number">1</span>,</div><div class="line">		<span class="attr">last</span>: <span class="literal">true</span>,</div><div class="line">		<span class="attr">number</span>: <span class="number">0</span>,</div><div class="line">		<span class="attr">size</span>: <span class="number">5</span>,</div><div class="line">		<span class="attr">first</span>: <span class="literal">true</span>,</div><div class="line">		<span class="attr">numberOfElements</span>: <span class="number">2</span>,</div><div class="line">		<span class="attr">sort</span>: [</div><div class="line">			&#123;</div><div class="line">				<span class="attr">direction</span>: <span class="string">"DESC"</span>,</div><div class="line">				<span class="attr">property</span>: <span class="string">"id"</span>,</div><div class="line">				<span class="attr">ignoreCase</span>: <span class="literal">false</span>,</div><div class="line">				<span class="attr">nullHandling</span>: <span class="string">"NATIVE"</span>,</div><div class="line">				<span class="attr">ascending</span>: <span class="literal">false</span>,</div><div class="line">				<span class="attr">descending</span>: <span class="literal">true</span></div><div class="line">			&#125;</div><div class="line">		]</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
 <h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><h3 id="xml配置"><a href="#xml配置" class="headerlink" title="xml配置"></a>xml配置</h3><blockquote>
 <p><code>test/cn.aezo.hibernate.hello.StudentTest</code></p>
 </blockquote>
@@ -438,7 +513,8 @@
   <figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version='1.0' encoding='utf-8'?&gt;</div><div class="line"><span class="meta">&lt;!DOCTYPE hibernate-configuration PUBLIC</span></div><div class="line">        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"</div><div class="line">        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd"&gt;</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">hibernate-configuration</span>&gt;</span></div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 配置链接数据信息，配置后不需要自己写连接代码Database connection settings --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.driver_class"</span>&gt;</span>com.mysql.jdbc.Driver<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.url"</span>&gt;</span>jdbc:mysql://localhost:3306/hiber<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.username"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"connection.password"</span>&gt;</span>root<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- JDBC connection pool (use the built-in) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- &lt;property name="connection.pool_size"&gt;1&lt;/property&gt; --&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 方言,告诉hibernate使用的sql语言是mysql规定的 SQL dialect--&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dialect"</span>&gt;</span>org.hibernate.dialect.MySQLDialect<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 通过getCurrentSession()获取此上下文的session，没有则自动创建。thread表示线程级别,jta用于分布式事物管理(不同的数据库服务器),使用时需要中间件 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"current_session_context_class"</span>&gt;</span>thread<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- Disable the second-level cache  --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cache.provider_class"</span>&gt;</span>org.hibernate.cache.NoCacheProvider<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"show_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line">        <span class="comment">&lt;!-- 展示sql语句是格式化一下，更加美观 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"format_sql"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">        <span class="comment">&lt;!-- 自动生成建表语句：hibernate建表后的字段顺序并不是和model字段顺序一致(内部使用TreeMap保存) --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create：每次加载hibernate时都会删除上一次的生成的表，然后根据你的model类再重新来生成新表，哪怕两次没有任何改变也要这样执行，这就是导致数据库表数据丢失的一个重要原因。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- create-drop ：每次加载hibernate时根据model类生成表，但是sessionFactory一关闭,表就自动删除。 --&gt;</span></div><div class="line">        <span class="comment">&lt;!-- update：最常用的属性，第一次加载hibernate时根据model类会自动建立起表的结构（前提是先建立好数据库），以后加载hibernate时根据 model类自动更新表结构，即使表结构改变了但表中的行仍然存在不会删除以前的行 --&gt;</span></div><div class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"hbm2ddl.auto"</span>&gt;</span>update<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"></div><div class="line">		<span class="comment">&lt;!-- 测试那个就映射那个，将其他映射先去掉防止干扰 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">resource</span>=<span class="string">"cn/aezo/hibernate/hello/Student.hbm.xml"</span>/&gt;</span><span class="comment">&lt;!-- 使用xml方式需要的映射格式 --&gt;</span></div><div class="line">		<span class="tag">&lt;<span class="name">mapping</span> <span class="attr">class</span>=<span class="string">"cn.aezo.hibernate.hello.Teacher"</span>/&gt;</span><span class="comment">&lt;!-- 使用annotation方式需要的映射格式 --&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">session-factory</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;/<span class="name">hibernate-configuration</span>&gt;</span></div></pre></td></tr></table></figure>
 </li>
 </ul>
-<h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><ul>
+<h2 id="相关注解类"><a href="#相关注解类" class="headerlink" title="相关注解类"></a>相关注解类</h2><p><strong>注解要么写在字段上，要么写在get方法上，千万不能混合使用，否则会报：</strong> <code>Could not determine type for: java.util.List, at table</code></p>
+<ul>
 <li>注解应该导入jpa的注解，如<strong><code>javax.persistence.*</code></strong></li>
 <li><p>类级别</p>
 <ul>
@@ -465,7 +541,16 @@
 <ul>
 <li><strong><code>@Id</code></strong> 主键; <code>@Basic</code> 其他属性,可省略</li>
 <li><strong><code>@GeneratedValue</code></strong> 批注后主键会自动生成值，默认使用id生成策略是AUTO。@GeneratedValue(strategy=GenerationType.AUTO)，其中(strategy=GenerationType.AUTO)可以省略，会自动根据mysql/oracle转换，相当于xml方式中的native</li>
-<li><strong><code>@Column(name=&quot;_title&quot;)</code></strong> 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致</li>
+<li><strong><code>@Column(name=&quot;_title&quot;)</code></strong> 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致<ul>
+<li><code>@Column(columnDefinition=&quot; BIT default 1 &quot;)</code> 设置默认值(BIT对应Boolean，其中的空格不能少)</li>
+<li><code>@Column(columnDefinition=&quot;TEXT&quot;)</code> 设置字段类型(java中的String对应db中的TEXT). 存储长文本<ul>
+<li>存储长文本建议使用TEXT：<code>TINYTEXT</code> 256bytes、<code>TEXT</code> 64kb、<code>MEDIUMTEXT</code> 16Mb、<code>LONGTEXT</code> 4GB (mysql)</li>
+<li><code>CLOB</code>/<code>BLOB</code>以二进制存储，前台参数无法直接映射成类</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>@JoinColumn</code>、<code>@OneToMany</code>等见下文关系映射</li>
 <li><code>@OrderBy(&quot;name ASC&quot;)</code> 排序</li>
 <li><code>@Transient</code> 透明的.表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可</li>
 <li><code>@Temporal(value=TemporalType.DATE)</code> 表示相应日期类型只记录日期,最终表的字段类型是DATE。不写的话默认是记录日期和时间,字段类型是TIMESTAMP。此处可以省略”value=”。不常用</li>
@@ -542,7 +627,7 @@
 </ul>
 </li>
 </ol>
-<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0neTo0ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code></p>
+<h2 id="关系映射-视频35-52"><a href="#关系映射-视频35-52" class="headerlink" title="关系映射 (视频35-52)"></a>关系映射 (视频35-52)</h2><p>一对一：<code>@0neTo0ne</code>、<code>@JoinColumn</code>；一对多/多对一：<code>@OneToMany</code>、<code>@ManyToOne</code>、<code>@JoinColumn</code>；多对多：<code>@ManyToMany</code>、<code>@JoinTable</code>（<strong>字段定义和set方法省略</strong>）</p>
 <ol>
 <li><p>一对一</p>
 <ul>
@@ -776,6 +861,8 @@
 </ul>
 </li>
 </ol>
+<hr>
+<p>参考文章</p>
 
       
     </div>
@@ -830,8 +917,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/07/01/java/spring/" rel="prev" title="spring">
-                spring <i class="fa fa-chevron-right"></i>
+              <a href="/2017/05/22/java/mybatis/" rel="prev" title="mybatis">
+                mybatis <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -904,7 +991,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -915,7 +1002,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -926,7 +1013,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -968,7 +1055,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World"><span class="nav-number">2.</span> <span class="nav-text">Hello World</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#xml配置"><span class="nav-number">2.1.</span> <span class="nav-text">xml配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Annotation注解-常用"><span class="nav-number">2.2.</span> <span class="nav-text">Annotation注解 (常用)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hibernate-cfg-xml配置"><span class="nav-number">3.</span> <span class="nav-text">hibernate.cfg.xml配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关注解类"><span class="nav-number">4.</span> <span class="nav-text">相关注解类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心开发接口"><span class="nav-number">5.</span> <span class="nav-text">核心开发接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关系映射-视频35-52"><span class="nav-number">6.</span> <span class="nav-text">关系映射 (视频35-52)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HQL-test-cn-aezo-hibernate-hql1-2"><span class="nav-number">7.</span> <span class="nav-text">HQL (test/cn.aezo.hibernate.hql1/2)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能问题"><span class="nav-number">8.</span> <span class="nav-text">性能问题</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Springboot对hibernate的默认支持-JPA-2017-07-23"><span class="nav-number">2.</span> <span class="nav-text">Springboot对hibernate的默认支持(JPA) 2017-07-23</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World"><span class="nav-number">3.</span> <span class="nav-text">Hello World</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#xml配置"><span class="nav-number">3.1.</span> <span class="nav-text">xml配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Annotation注解-常用"><span class="nav-number">3.2.</span> <span class="nav-text">Annotation注解 (常用)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hibernate-cfg-xml配置"><span class="nav-number">4.</span> <span class="nav-text">hibernate.cfg.xml配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关注解类"><span class="nav-number">5.</span> <span class="nav-text">相关注解类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心开发接口"><span class="nav-number">6.</span> <span class="nav-text">核心开发接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关系映射-视频35-52"><span class="nav-number">7.</span> <span class="nav-text">关系映射 (视频35-52)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HQL-test-cn-aezo-hibernate-hql1-2"><span class="nav-number">8.</span> <span class="nav-text">HQL (test/cn.aezo.hibernate.hql1/2)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能问题"><span class="nav-number">9.</span> <span class="nav-text">性能问题</span></a></li></ol></div>
             
 
           </div>
@@ -991,7 +1078,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -1133,6 +1220,323 @@
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 

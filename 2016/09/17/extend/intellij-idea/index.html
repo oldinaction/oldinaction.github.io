@@ -95,20 +95,21 @@
 
 
 
-<meta name="description" content="目录{:toc}  IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的">
+<meta name="description" content="IntelliJ IDEA简介常用设置 新建包文件夹，一定要一层一层的建，或者创建cn/aezo的文件夹，不能创建一个cn.aezo(不会自动生成两个文件夹)  java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位">
 <meta name="keywords" content="IDE">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IntelliJ IDEA">
 <meta property="og:url" content="http://blog.aezo.cn/2016/09/17/extend/intellij-idea/index.html">
 <meta property="og:site_name" content="SmalleBlog | AEZOCN">
-<meta property="og:description" content="目录{:toc}  IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的">
+<meta property="og:description" content="IntelliJ IDEA简介常用设置 新建包文件夹，一定要一层一层的建，或者创建cn/aezo的文件夹，不能创建一个cn.aezo(不会自动生成两个文件夹)  java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位">
+<meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/idea-keys.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug.png">
 <meta property="og:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug2.png">
-<meta property="og:updated_time" content="2017-09-10T10:21:48.424Z">
+<meta property="og:updated_time" content="2018-03-17T04:28:53.128Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="IntelliJ IDEA">
-<meta name="twitter:description" content="目录{:toc}  IntelliJ IDEA简介常用设置java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位置)：如\myproject\WebRoot\WEB-INF\classes，为对应WEB-INF下的">
-<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/09/php-xdebug.png">
+<meta name="twitter:description" content="IntelliJ IDEA简介常用设置 新建包文件夹，一定要一层一层的建，或者创建cn/aezo的文件夹，不能创建一个cn.aezo(不会自动生成两个文件夹)  java web项目配置 [^1] 进入到Project Structure：File - Project Structure 配置步骤 Project 项目级别 主要是project compiler output的位置(src的编译位">
+<meta name="twitter:image" content="http://blog.aezo.cn/data/images/2016/09/idea-keys.png">
 
 
 
@@ -264,9 +265,43 @@
       
 
       
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -350,17 +385,6 @@
 
                 
                 
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
-                    <span itemprop="name">tools</span>
-                  </a>
-                </span>
-
-                
-                
               
             </span>
           
@@ -388,33 +412,36 @@
       
 
       
-        <ul>
-<li>目录<br>{:toc}</li>
+        <h2 id="IntelliJ-IDEA简介"><a href="#IntelliJ-IDEA简介" class="headerlink" title="IntelliJ IDEA简介"></a>IntelliJ IDEA简介</h2><h2 id="常用设置"><a href="#常用设置" class="headerlink" title="常用设置"></a>常用设置</h2><ul>
+<li>新建包文件夹，一定要一层一层的建，或者创建<code>cn/aezo</code>的文件夹，不能创建一个<code>cn.aezo</code>(不会自动生成两个文件夹)</li>
 </ul>
-<h2 id="IntelliJ-IDEA简介"><a href="#IntelliJ-IDEA简介" class="headerlink" title="IntelliJ IDEA简介"></a>IntelliJ IDEA简介</h2><h2 id="常用设置"><a href="#常用设置" class="headerlink" title="常用设置"></a>常用设置</h2><h3 id="java-web项目配置-1"><a href="#java-web项目配置-1" class="headerlink" title="java web项目配置 [^1]"></a>java web项目配置 [^1]</h3><ol>
+<h3 id="java-web项目配置-1"><a href="#java-web项目配置-1" class="headerlink" title="java web项目配置 [^1]"></a>java web项目配置 [^1]</h3><ol>
 <li>进入到Project Structure：<code>File - Project Structure</code></li>
 <li>配置步骤<ul>
 <li><code>Project</code> 项目级别<ul>
-<li>主要是project compiler output的位置(src的编译位置)：如<code>\myproject\WebRoot\WEB-INF\classes</code>，为对应WEB-INF下的classes目录</li>
+<li>主要是project compiler output的位置(src的编译位置)：如<code>/myproject/WebRoot/WEB-INF/classes</code>，为对应WEB-INF下的classes目录</li>
 </ul>
 </li>
 <li><code>Modules</code> 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块<ul>
-<li><code>Sources</code> 将src目录标记成Sources目录</li>
-<li><code>Paths</code> 使用modules compiler output path，设置路径为<code>\myproject\WebRoot\WEB-INF\classes</code></li>
-<li><code>Dependencies</code> 加入jdk、tomcat、其他依赖jar(如<code>\WEB-INF\lib</code>中的jar)</li>
+<li><code>Sources</code> 将src目录标记成Sources目录<strong>（如果是maven项目则标记java、test目录，即包名的上级目录）</strong></li>
+<li><code>Paths</code> 使用modules compiler output path，设置路径为<code>/myproject/WebRoot/WEB-INF/classes</code></li>
+<li><code>Dependencies</code> 加入jdk、tomcat、其他依赖jar(如<code>\WEB-INF/lib</code>中的jar)</li>
 </ul>
 </li>
-<li><code>Libraries</code> 如将<code>\WEB-INF\lib</code>中的所有jar定义一个目录，直接加入到<code>Dependencies</code>中</li>
+<li><code>Libraries</code> 如将<code>/WEB-INF/lib</code>中的所有jar定义一个目录，直接加入到<code>Dependencies</code>中</li>
 <li><code>Facets</code><ul>
 <li>点击<code>+</code> - <code>web</code></li>
-<li><code>Web Module Deployment Descriptor</code>为<code>\myproject\WebRoot\WEB-INF\web.xml</code></li>
-<li><code>Web Resource</code>为<code>\myproject\WebRoot</code></li>
+<li><code>Web Module Deployment Descriptor</code>为<code>/myproject/WebRoot/WEB-INF/web.xml</code></li>
+<li><code>Web Resource</code>为<code>/myproject/WebRoot</code></li>
 <li>勾选<code>Source Roots</code></li>
 </ul>
 </li>
 <li><code>Artifacts</code> 根据上面的配置，最终打包成一个war包部署到tomcat中<ul>
 <li>点击<code>+</code> - <code>Web Application: Exploded</code> - <code>From Modules</code></li>
-<li><code>Output directory</code>为<code>\testStruts2\WebRoot</code></li>
+<li><code>Output directory</code>为<code>/testStruts2/WebRoot</code><ul>
+<li>WEB-INFO/lib下的jar都要显示在此目录</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -426,15 +453,46 @@
 </ul>
 </li>
 </ol>
+<h3 id="maven"><a href="#maven" class="headerlink" title="maven"></a>maven</h3><ul>
+<li>idea自带maven插件</li>
+<li><code>pom.xml</code>检测通过，但是<code>Maven Projects</code>中部分依赖显示红色波浪线<ul>
+<li>法一：先将<code>pom.xml</code>中此种依赖删除，然后<code>reimport</code>刷新一下依赖，再将刚刚的依赖粘贴上去，重新<code>reimport</code>刷新一下</li>
+<li>法二：删除<code>.m2</code>中此依赖的相关文件夹，重新下载</li>
+</ul>
+</li>
+</ul>
 <h2 id="插件使用"><a href="#插件使用" class="headerlink" title="插件使用"></a>插件使用</h2><ul>
-<li><code>jerber</code> java热部署</li>
+<li><code>jrebel</code> java热部署. <strong>修改代码后使用<code>Ctrl+Shif+F9</code>进行热部署</strong><ul>
+<li>jrebel破解可使用<code>myJRebel</code></li>
+</ul>
+</li>
 <li><code>Lombox</code> 简化代码工具 <a href="https://projectlombok.org/" target="_blank" rel="external">https://projectlombok.org/</a></li>
 </ul>
-<h3 id="IDEA开发PHP程序"><a href="#IDEA开发PHP程序" class="headerlink" title="IDEA开发PHP程序"></a>IDEA开发PHP程序</h3><h4 id="安装php插件-2"><a href="#安装php插件-2" class="headerlink" title="安装php插件 [^2]"></a>安装php插件 [^2]</h4><ol>
+<h2 id="快捷键"><a href="#快捷键" class="headerlink" title="快捷键"></a>快捷键</h2><ul>
+<li><p>常用快捷键</p>
+<ul>
+<li><code>Ctrl + Shif + F9</code> 热部署</li>
+<li><code>Ctrl + Shifg + Space</code> 智能补全</li>
+<li><code>Ctrl + P</code> 查看方法参数</li>
+<li><code>Ctrl + E</code> 最近访问文件</li>
+<li><code>Ctrl + W</code> 语句感知</li>
+<li><code>Ctrl + B</code> 跳转到声明</li>
+<li><code>Ctrl + N</code> 跳转到类</li>
+<li><code>Ctrl + Shift + Entry</code> 完成整句</li>
+<li><code>Ctrl + Alt + &lt;-或-&gt;</code> 回退(退到上次浏览位置)/前进</li>
+<li><code>Alt + Insert</code> 自动生成(Getter/Setter等)</li>
+<li><code>Ctrl + Shift + F7</code> 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处</li>
+</ul>
+</li>
+<li><p>快捷键图片</p>
+</li>
+</ul>
+<p><img src="/data/images/2016/09/idea-keys.png" alt="php-xdebug"></p>
+<h2 id="IDEA开发PHP程序"><a href="#IDEA开发PHP程序" class="headerlink" title="IDEA开发PHP程序"></a>IDEA开发PHP程序</h2><h3 id="安装php插件-2"><a href="#安装php插件-2" class="headerlink" title="安装php插件 [^2]"></a>安装php插件 [^2]</h3><ol>
 <li>setting -&gt; plugins -&gt; browse repositories -&gt; 输入php</li>
 <li>没看到的话，往下翻几页看看，找到PHP(LANGUAGES)，安装次数较多的那个</li>
 </ol>
-<h4 id="xdebug使用"><a href="#xdebug使用" class="headerlink" title="xdebug使用"></a>xdebug使用</h4><ol>
+<h3 id="xdebug使用"><a href="#xdebug使用" class="headerlink" title="xdebug使用"></a>xdebug使用</h3><ol>
 <li>找到php.ini，搜索xdebug</li>
 <li>下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能</li>
 <li><p>替换下面代码</p>
@@ -500,7 +558,7 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/09/01/java/others/javaconception/" rel="next" title="java web相关概念(名词)汇总">
+              <a href="/2016/09/01/others/javaconception/" rel="next" title="java web相关概念(名词)汇总">
                 <i class="fa fa-chevron-left"></i> java web相关概念(名词)汇总
               </a>
             
@@ -510,8 +568,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/10/12/db/oracle-dba/" rel="prev" title="oracleDBA">
-                oracleDBA <i class="fa fa-chevron-right"></i>
+              <a href="/2016/10/12/db/oracle-dba/" rel="prev" title="Oracle DBA">
+                Oracle DBA <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -584,7 +642,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -595,7 +653,7 @@
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -606,7 +664,7 @@
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -648,7 +706,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#IntelliJ-IDEA简介"><span class="nav-number">1.</span> <span class="nav-text">IntelliJ IDEA简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用设置"><span class="nav-number">2.</span> <span class="nav-text">常用设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#java-web项目配置-1"><span class="nav-number">2.1.</span> <span class="nav-text">java web项目配置 [^1]</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件使用"><span class="nav-number">3.</span> <span class="nav-text">插件使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#IDEA开发PHP程序"><span class="nav-number">3.1.</span> <span class="nav-text">IDEA开发PHP程序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安装php插件-2"><span class="nav-number">3.1.1.</span> <span class="nav-text">安装php插件 [^2]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#xdebug使用"><span class="nav-number">3.1.2.</span> <span class="nav-text">xdebug使用</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#IntelliJ-IDEA简介"><span class="nav-number">1.</span> <span class="nav-text">IntelliJ IDEA简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用设置"><span class="nav-number">2.</span> <span class="nav-text">常用设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#java-web项目配置-1"><span class="nav-number">2.1.</span> <span class="nav-text">java web项目配置 [^1]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maven"><span class="nav-number">2.2.</span> <span class="nav-text">maven</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插件使用"><span class="nav-number">3.</span> <span class="nav-text">插件使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快捷键"><span class="nav-number">4.</span> <span class="nav-text">快捷键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IDEA开发PHP程序"><span class="nav-number">5.</span> <span class="nav-text">IDEA开发PHP程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装php插件-2"><span class="nav-number">5.1.</span> <span class="nav-text">安装php插件 [^2]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xdebug使用"><span class="nav-number">5.2.</span> <span class="nav-text">xdebug使用</span></a></li></ol></li></ol></div>
             
 
           </div>
@@ -671,7 +729,7 @@
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -813,6 +871,323 @@
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 

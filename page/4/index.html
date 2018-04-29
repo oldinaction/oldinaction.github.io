@@ -261,9 +261,43 @@
       
 
       
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -288,7 +322,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/11/arch/rocketmq/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/07/01/java/spring/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -307,7 +341,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/07/11/arch/rocketmq/" itemprop="url">RocketMQ</a></h1>
+                <a class="post-title-link" href="/2017/07/01/java/spring/" itemprop="url">spring</a></h1>
         
 
         <div class="post-meta">
@@ -319,325 +353,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-11T09:26:00+08:00">
-                2016-07-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/arch/" itemprop="url" rel="index">
-                    <span itemprop="name">arch</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          RocketMQ简介
-RocketMQ是阿里巴巴开源的分布式、队列模型的消息中间件。
-【GitHub源码】 【下载地址(v3.2.6)】
-文档：RocketMQ Developer Guide.pdf
-
-启动RocketMQ服务
-启动mqnamesrv.exe（在bin目录下，也有对应Linux的启动程序）
-启动mqbroker.exe
-最好不要直接双击，而是应该在CMD中输入mqbroker.exe -n localhost:9876
-mqbroker.exe -h查看相关命令帮助
-
-
-
-
-关于命令行
-
-可启动mqadmin.exe查看相关命令（不能直接双击，要在cmd命令行中启动）
-启动mqadmin.exe后可运行一些命令，如mqadmin topicList -n 192.168.0.1:9876查看该NameServer所有的topic
-可运行mqadmin help 命令或者某个命令的更多帮助
-mqadmin.exe启动后可以新增/更新Topic（因为Broker默认关闭了自动创建Topic功能，可能会导致Producer向Broker发送消息，服务器校验不通过，详细issure）
-
-
-
-
-Producer生产者Producer启动
-一个应用创建一个Producer，由应用来维护此对象，可以设置为全局对象或者单例。
-ProducerGroupName需要由应用来保证唯一
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/07/11/arch/rocketmq/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/07/others/projectrule/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/07/07/others/projectrule/" itemprop="url">项目开发规范</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-07T09:38:00+08:00">
-                2016-07-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          前台文件命名针对一个功能的前台页面(ftl/jsp)应该以名词开头，如果功能名称为”设置用户信息”，可起名为”userInfoSet”而不用”setUserInfo”(这一般像是方法名)
-查询选项
-input输入，主键外键的字段查询条件为等于，其他字段无特殊要求为左右模糊；下拉框为等于
-
-查询结果后台方法
-参数验证
-方法内部需要对必须的参数进行验证，如方法有个形参username，内部拿到username的值去操作数据时，当username为空时报错，则此时在方法开始代码块中需对username进行非空判断
-验证一般包括：非空验证、类型验证(项目实践中一般会遇到Long和String的验证)等
-
-
-
-
-          
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2016/07/07/others/projectrule/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/06/java/others/javacodestyle/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Smalle">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="SmalleBlog | AEZOCN">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/07/06/java/others/javacodestyle/" itemprop="url">javacodestyle - Java开发规范</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-06T08:39:00+08:00">
-                2016-07-06
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-01T18:47:00+08:00">
+                2017-07-01
               </time>
             
 
@@ -695,55 +412,22 @@ input输入，主键外键的字段查询条件为等于，其他字段无特殊
       
         
           
-          源文件基础
-文件名：源文件以其最顶层的类名来命名，大小写敏感，文件扩展名为 .java
-文件编码：UTF-8
-特殊字符：注释明确
-
-源文件结构
-一个源文件包含(按顺序地，以下每个部分之间用一个空行隔开)：
-
-许可证或版权信息(如有需要)
-package语句：package语句不换行
-import语句
-一个顶级类(只有一个)
+          介绍
+spring项目官网：https://spring.io/projects ，其中的spring-framework即是spring框架内容
+历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) spring 3.x，java配置
+spring模块(每个模块有个jar包)：
+核心容器：spring-core, spring-beans, spring-context(运行时spring容器), spring-context-support(spring对第三方包的集成支持), spring-expression(使用表达式语言在运行时查询和操作对象)
+AOP：spring-aop, spring-aspects
+消息：spring-messaging
+数据访问：spring-jdbc, spring-tx(提供编程式和声明明式事物支持), spring-orm, spring-oxm(提供对对象/xml映射技术支持), spring-jms(提供jms支持)
+Web： spring-web(在web项目中提供spring容器), spring-webmvc(基于Servlet的SpringMVC), spring-websocket, spring-webmvc-portlet
 
 
-import语句
-
-import不要使用通配符，即，不要出现类似这样的import语句：import java.util.*;
-每个import语句独立成行
-文件中不能含有无用的import语句
-
-
-类声明
-
-只有一个顶级类声明：每个顶级类都在一个与它同名的源文件中
-类成员顺序
-成员属性
-构造方法
-普通方法（按照某中逻辑顺序而非时间顺序）
-
-
-重载永不分离：当一个类有多个构造函数，或是多个同名方法，这些函数/方法应该按顺序出现在一起，中间不要放进其它函数/方法。
-
-
-
-格式
-大括号
-使用大括号(即使是可选的)：大括号与if, else, for, do, while语句一起使用，即使只有一条语句(或是空)，也应该把大括号写上。
-非空块：遵循Kernighan和Ritchie风格
-左大括号前不换行
-左大括号后换行
-右大括号前换行
-如果右大括号是一个语句、函数体或类的终止，则右大括号后换行; 否则不换行。例如，如果右大括号后面是else或逗号，则不换行。
-
-
-空
+spring生态：Spring Boot(使用默
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/07/06/java/others/javacodestyle/#more" rel="contents">
+            <a class="btn" href="/2017/07/01/java/spring/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -789,7 +473,7 @@ import不要使用通配符，即，不要出现类似这样的import语句：im
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/07/02/db/redis/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/06/24/extend/vmware/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -808,7 +492,7 @@ import不要使用通配符，即，不要出现类似这样的import语句：im
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/07/02/db/redis/" itemprop="url">redis</a></h1>
+                <a class="post-title-link" href="/2017/06/24/extend/vmware/" itemprop="url">vmware</a></h1>
         
 
         <div class="post-meta">
@@ -820,8 +504,8 @@ import不要使用通配符，即，不要出现类似这样的import语句：im
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-02T12:11:00+08:00">
-                2016-07-02
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-24T11:19:00+08:00">
+                2017-06-24
               </time>
             
 
@@ -843,8 +527,8 @@ import不要使用通配符，即，不要出现类似这样的import语句：im
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/db/" itemprop="url" rel="index">
-                    <span itemprop="name">db</span>
+                  <a href="/categories/linux/" itemprop="url" rel="index">
+                    <span itemprop="name">linux</span>
                   </a>
                 </span>
 
@@ -879,31 +563,28 @@ import不要使用通配符，即，不要出现类似这样的import语句：im
       
         
           
-          redis简介Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 string，hash，list，set，sorted set，bitmap 和 hyperloglog，所以常常被称为数据结构服务器。
-
-官网：http://redis.io/
-redis源码：redis Github
-redis windows客户端(64x，官网不提供window安装包)：https://github.com/MSOpenTech/redis
-java操作redis(jar)：jedis Github
-
-安装Redis服务
-Windows
-下载redis windows客户端（3.2.100）
-直接启动解压目录下的：redis-server.exe服务程序；redis-cli.exe客户端程序，即可在客户端使用命令行进行新增和查看数据（默认没有设置密码）
-设置密码
-修改redis.windows.conf，将# requirepass foobared 改成 requirepass yourpassword(行前不能有空格)
-cmd进入到redis解压目录，运行redis-server redis.windows.conf，之后登录则需要密码
+          虚拟机安装
+下载安装VMware
+下载centos7镜像文件 https://www.centos.org/download/. DVD ISO安装包含有桌面系统，Minimal ISO是最小安装包，不含桌面系统
+虚拟机的安装位置选择在较空闲的磁盘，也可使用移动硬盘
+除了安装位置，其他使用默认配置，点击安装（下面以Minimal ISO为例）
+进入到Centos7安装界面，点击Install Linux Centos7。进入到安装图形化界面，选择中文
+设置安装位置(之前推荐设置的20G磁盘)。设置网络和主机名，点击开启以太网，可酌情修改主机名
+连接后显示ens33已连接，安装成功后使用ip addr查看ip地址也是看ens33那一栏
+使用DVD ISO可不关注
 
 
-
-
-
-java中操作Redis
-引入ja
+开始安装，安装期间设置Root密码(root)，创建用户(smalle/smalle)并设置为管理员
+开启windows下和VMware相关的两块虚拟网卡
+快照：可对保留虚拟主机当前的配置状态
+克隆虚拟主机：基于某个虚拟主机进行克隆出一台主机。克隆后需要进行以下修改
+hostnamectl set-hostname aezocn 修改主机名
+vi /etc/sysconfig/network-scripts/ifcfg-ens33，修改IPADDR的值从而修改机器ip
+vmware克隆时会自动改变mac地址，如果没有改变
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/07/02/db/redis/#more" rel="contents">
+            <a class="btn" href="/2017/06/24/extend/vmware/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -949,7 +630,7 @@ java中操作Redis
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/05/22/extend/load-runner/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/05/22/java/mybatis/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -968,7 +649,7 @@ java中操作Redis
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/05/22/extend/load-runner/" itemprop="url">LoadRunner自动化测试工具</a></h1>
+                <a class="post-title-link" href="/2017/05/22/java/mybatis/" itemprop="url">mybatis</a></h1>
         
 
         <div class="post-meta">
@@ -980,8 +661,8 @@ java中操作Redis
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-05-22T15:37:00+08:00">
-                2016-05-22
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-22T15:05:00+08:00">
+                2017-05-22
               </time>
             
 
@@ -1003,19 +684,8 @@ java中操作Redis
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
-                  </a>
-                </span>
-
-                
-                
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
-                    <span itemprop="name">tools</span>
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
                   </a>
                 </span>
 
@@ -1050,40 +720,17 @@ java中操作Redis
       
         
           
-          LoadRunner简介
-LoadRunner，是一种预测系统行为和性能的负载测试工具。通过以模拟上千万用户实施并发负载及实时性能监测的方式来确认和查找问题，LoadRunner能够对整个企业架构进行测试。
-Web性能测试常用指标
-响应时间：2-5-8原则（2-5秒用户可以接受，5-8秒用户会感觉很慢）
-吞吐量：指单位时间内客户端和服务器成功传送数据的数量
-资源使用率：常见的资源有CPU占用率、内存使用率、磁盘I/O、网络I/O
-每秒点击数：指客户端每秒钟向服务器端提交的请求数量
-并发用户数：指在客户端的一批用户同时执行一个操作的数量。（两种错误的理解：使用系统的全部用户数、全部在线用户数）
+          简介
+MyBatis3中文文档
+MyBatis Generator：mybatis代码生成(model/dao/mapper)，文档
 
-
-
-Virtual User Generator录制 - 验证 - 增强 - 设置负载
-测试脚本中的Actions
-init：录制的一般是业务流程开始之前的初始化工作（如服务器初始化、登录）
-action：录制的一般是业务流程操作的事件
-end：录制的一般是退出的时候执行的操作（用户退出、注销）
-
-
-init 和 end 不能迭代多次，只能运行一次；action可以迭代多次运行
-
-测试需求测试需求：登录WebTours订票网站，预定一张机票后退出脚本录制步骤：
-
-启动Web服务器
-打开Virtual User Generator界面
-选择脚本协议
-进行页面操作
-回放验证
-增强脚本
-
-Cont
+SpringBoot整合mybatis ^1基本配置
+引入依赖(mybatis-spring-boot-starter为mybatis提供的自动配置插件)
+  12345678910111213&lt;!-- 自动配置 https://github.com/mybatis/spring-boot-starter --&gt;&lt;dependency&gt;	&lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;	&lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;	&lt;version&gt;1.3.1&lt;/version&gt;&lt;/dependency&gt;&lt;!--mybatis分页插件: https://github.com/pagehelper/Mybatis-PageHelper--&gt;&lt;dependency&gt;	&lt;groupId&gt;com.github.pagehelper&lt;/groupId&gt;	&lt;artifactId&gt;pagehelper&
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/05/22/extend/load-runner/#more" rel="contents">
+            <a class="btn" href="/2017/05/22/java/mybatis/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1129,7 +776,7 @@ Cont
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/open-shift/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/05/21/java/hibernate/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1148,7 +795,7 @@ Cont
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/16/extend/open-shift/" itemprop="url">OpenShift空间</a></h1>
+                <a class="post-title-link" href="/2017/05/21/java/hibernate/" itemprop="url">hibernate</a></h1>
         
 
         <div class="post-meta">
@@ -1160,8 +807,8 @@ Cont
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T15:37:00+08:00">
-                2016-04-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-21T15:39:00+08:00">
+                2017-05-21
               </time>
             
 
@@ -1183,8 +830,8 @@ Cont
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
                   </a>
                 </span>
 
@@ -1219,34 +866,41 @@ Cont
       
         
           
-          OpenShift空间介绍
-OpenShift空间是红帽RedHat旗下的，支持多种语言环境(如java、php、nodejs等)，每个注册用户可以免费创建3个应用，进入官网
-
-关于远程登录安装 PuTTY 和 WinSCP安装包下载见上面链接
-设置密钥
-打开 PuTTY 点击 Generate 按钮生成一个密钥
-点击下面的 save public key 和 save private key 保存公钥和私钥到本地文件
-登录 OpenShift 后台进入到 setting，在 public keys 处添加一个公钥。名字随便取，公钥内容为 Putty 最顶部生成的一大段代码
-
-远程SSH登录(两种都可尝试一下)
-在PuTTY上登录
-
-打开PuTTY，点击Session
-Host Name填写OpenShift提供的ssh登录网址，如：8888f31389f5cf0b1d0000ff@app-oldinaction.rhcloud.com
-Saved Session 随便取名，再点击 Save
-点击 Connection - SSH - Auth，再点击Browse，选择刚刚保存的私钥文件
-点击Open进行登录
-输入私钥文件密码即可登录，但是界面是命令行的
+          介绍
+ORM框架(对象关系映射)
+JDBC操作数据库很繁琐
+Sql语句编写并不是面向对象的
+可以在对象和关系表之间建立关联来简化编程
+0/R Mapping 简化编程
+0/R Mapping跨越数据库平台
 
 
-在WinSCP上登录
+ssh流程/hibernate流程(视频01、02)、hibernate原理(视频06(反射)、hiberbate内部大多直接以生成二进制码的形式实现)
+O/RMapping编程模型（映射接口使用jpa的，编程接口使用hibernate的）
+映射模型
+jpa annotation(java提供的annotation配置–常用)
+hibernate annotation extension(Hibernate扩展的annotation配置–较少用)
+hibernate xml(Hibernate的xml配置方式–常用)
+jpa xml(java提供的xml配置–较少用)
 
-打开WinSCP新建会话
-协议：SFTP，主机名：如app-oldinaction.rhcloud.
+
+编程接口（做CRUD）
+Jpa(不常用)
+hibernate(现在用)
+
+
+数据査询语言
+HQL(常用)
+EJBQL(JPQL)：是HQL的一个子集. EJB必须用在容器(application server)中，而hibernate可以在j2se中使用
+
+
+
+
+JPA：Java Persistence API. JPA是接口/规范，hibernate是其实现. JPA是hibernate的作者基于hibe
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/extend/open-shift/#more" rel="contents">
+            <a class="btn" href="/2017/05/21/java/hibernate/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1292,7 +946,7 @@ Saved Session 随便取名，再点击 Save
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/jekyll/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/05/10/extend/windows/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1311,7 +965,7 @@ Saved Session 随便取名，再点击 Save
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/16/extend/jekyll/" itemprop="url">jekyll</a></h1>
+                <a class="post-title-link" href="/2017/05/10/extend/windows/" itemprop="url">windows</a></h1>
         
 
         <div class="post-meta">
@@ -1323,8 +977,8 @@ Saved Session 随便取名，再点击 Save
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T13:45:00+08:00">
-                2016-04-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-10T15:26:00+08:00">
+                2017-05-10
               </time>
             
 
@@ -1382,29 +1036,39 @@ Saved Session 随便取名，再点击 Save
       
         
           
-          
-目录{:toc}
+          常用命令
+ipconfig 查看ip地址
+arp -a 查看局域网下所有机器mac地址
+ping 192.168.1.1
+telnet 192.168.1.1 8080
 
-jekyll 介绍 ^1Jekyll（发音/‘dʒiːk əl/，”杰克尔”）是一个静态站点生成器，它会根据网页源码生成静态文件。它提供了模板、变量、插件等功能，所以实际上可以用来编写整个网站。
-
-Github Pages
-
-github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因此利用 jekyll 搭建网站的话，我们只需要编写好网页文件(或者md文件)上传到 Github 即可（上传的文件会经过 jekyll 程序处理，最终得到我们可以浏览的网页）本教程源码下载
-
-
-利用 jekyll 搭建博客初步 ^2新建GitHub项目
-在搭建之前，你必须已经安装了 git，并且有 github 账户。
+常用技巧
+开机启动java等程序
+新建bat启动脚本
+运行栏输入taskschd.msc打开计划任务工具，这里可以创建基本任务，有开机启动执行程序等选项可以设置
+创建服务也可实现
 
 
-假如 github 主页是 https://github.com/oldinaction, 那么新建一个仓库 (repository), 仓库起名为 oldinaction.github.io(一定要为用户名.github.io)
-克隆到本地仓库：git clone https://github.com/oldinaction/oldinaction.github.io.git
 
-在本地仓库创建相关文件
-创建配置文件：在项目根目录下，建立一个名为 _config.yml 的文本文件。它是jekyll的设置文件，我们暂时不需要加任何内容，有关
+bat脚本语法
+注释：::、rem等 ^1
+title: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)
+
+常用脚本
+运行java
+  123456789title=cmd窗口的标题echo offrem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录%~d0set MY_PROJECT_HOME=%~p0cd %MY_PROJECT_HOME%echo on"%JAVA_HOME%\bin\java" -jar my.jarecho off
+
+此时配置文件应和jar包位于同一目录
+如果set MY_PROJECT_HOME=%~p0..\则表示设置bat文件所在目录的的上级目录为项目根目录
+如果不是系统默认jdk，可将%JAVA_HOME%换成对应的路径
+
+
+后台运行bat文件
+  123456@echo offif "%1" == "h" goto beginmshta vbscr
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/extend/jekyll/#more" rel="contents">
+            <a class="btn" href="/2017/05/10/extend/windows/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1450,7 +1114,7 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/16/extend/git/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/05/06/java/struts2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1469,7 +1133,7 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/16/extend/git/" itemprop="url">git</a></h1>
+                <a class="post-title-link" href="/2017/05/06/java/struts2/" itemprop="url">struts2</a></h1>
         
 
         <div class="post-meta">
@@ -1481,8 +1145,8 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-16T12:40:00+08:00">
-                2016-04-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-06T18:06:00+08:00">
+                2017-05-06
               </time>
             
 
@@ -1504,19 +1168,8 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/" itemprop="url" rel="index">
-                    <span itemprop="name">extend</span>
-                  </a>
-                </span>
-
-                
-                
-                  ， 
-                
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/extend/tools/" itemprop="url" rel="index">
-                    <span itemprop="name">tools</span>
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
                   </a>
                 </span>
 
@@ -1551,30 +1204,45 @@ github Pages 是 GitHub 提供给用户展示项目主页的静态网页。因�
       
         
           
-          git入门 ^1
-临时记录
+          介绍
+struts2是 struts1和WebWork的结合
+struts2的本质就是将请求与视图分开 (struts2原理：视频09)
+官网：http://struts.apache.org/, 下文基于版本2.3.24(当前更新到2.5.10)
+所需jar包：struts2/lib下的jar包
+ 12345678commons-fileupload-1.3.1.jarcommons-io-2.2.jarcommons-lang3-3.2.jarfreemarker-2.3.22.jarjavassist-3.11.0.GA.jarognl-3.0.6.jarstruts2-core-2.3.24.1.jarxwork-core-2.3.24.1.jar
 
-git add/rm 、 git cimmit 时报错【fatal: Unable to create ‘D:/git/demo/.git/index.lock’: File exists.】，解决办法为删除本地仓库中的此文件（rm -f ./.git/index.lock）。
-运行命令git commit --amend、git diff后、打开vi编辑器出错，退出快捷键Ctrl+Z
-ls或者dir都可以查看当前目录结构
-删除文件git rm、git add、git commit、git push
-网址
-http://www.jianshu.com/p/e2a15d01284c
-http://www.ruanyifeng.com/blog/2014/06/git_remote.html
-http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html
-http://blog.csdn.net/oldinaction/article/details/49704969
+struts知识点
+
+Action
+a)namespace（掌握）
+b)path（掌握）
+c)DMI（掌握）
+d)wildcard（掌握）
+e)接收参数（掌握前两种）
+f)访问request等（掌握Map IOC方式）
+g)简单数据验证（掌握addFieldError和&lt;s:fieldError&gt;）
 
 
+Result
+a)结果类型（掌握四种，重点两种）
+b)全局结果（掌握）
+c)动态结果（了解）
 
-第二集有几个命令
 
-git全局配置
-git config --global user.name smalle 设置用户名
-git config --global user.email oldinaction@qq.com 设置邮箱
+OGNL表达式（精通）
+a)# % $
+
+
+Struts标签
+a)掌握常用的
+
+
+声明式异常处理（了解）
+I18N（
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/16/extend/git/#more" rel="contents">
+            <a class="btn" href="/2017/05/06/java/struts2/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1620,7 +1288,7 @@ git config --global user.email oldinaction@qq.com 设置邮箱
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/10/web/jquery/jquery-validation/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/04/28/lang/freemarker/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1639,7 +1307,7 @@ git config --global user.email oldinaction@qq.com 设置邮箱
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/10/web/jquery/jquery-validation/" itemprop="url">jQuery Validation - Form表单验证插件</a></h1>
+                <a class="post-title-link" href="/2017/04/28/lang/freemarker/" itemprop="url">freemarker</a></h1>
         
 
         <div class="post-meta">
@@ -1651,8 +1319,8 @@ git config --global user.email oldinaction@qq.com 设置邮箱
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-10T18:01:54+08:00">
-                2016-04-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-28T11:39:00+08:00">
+                2017-04-28
               </time>
             
 
@@ -1674,8 +1342,8 @@ git config --global user.email oldinaction@qq.com 设置邮箱
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web/" itemprop="url" rel="index">
-                    <span itemprop="name">web</span>
+                  <a href="/categories/lang/" itemprop="url" rel="index">
+                    <span itemprop="name">lang</span>
                   </a>
                 </span>
 
@@ -1710,21 +1378,14 @@ git config --global user.email oldinaction@qq.com 设置邮箱
       
         
           
-          jQuery Validation Plugin介绍
+          简介
+官网：http://freemarker.org/、文档：http://freemarker.org/docs/index.html
 
-jQuery Validate 插件为表单提供了强大的验证功能，让客户端表单验证变得更简单，同时提供了大量的定制选项，满足应用程序各种需求。该插件捆绑了一套有用的验证方法，包括 URL 和电子邮件验证，同时提供了一个用来编写用户自定义方法的 API。所有的捆绑方法默认使用英语作为错误信息，且已翻译成其他 37 种语言。
- jQuery Validate 官网
-GitHub 源码
-本教程源码下载 ( Demo1-Demo5 )
-
-
-使用方法
-引入JS文件
-1234&lt;script type="text/javascript" src="lib/jquery-1.11.1.js"&gt;&lt;/script&gt;&lt;!-- jquery库文件 --&gt;&lt;script type="text/javascript" src="dist/jquery.validate-1.15.0.js"&gt;&lt;/script&gt;&lt;!-- jquery validate核心库文件 --&gt;&lt;script type="text/javascript" src="dist/additional-methods.js"&gt;&lt;/script&gt;&lt;!-- jquery validate扩展验证
+解析模板字符串12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576public class FtlU &#123;    /**     * 根据模板文件输出内容到指定的输出流中(文件中)     * @param name 模板文件的名称     * @param path 模板文件的目录: 如ftl与此java文件同目录, 则此处为 ""     * @param rootMap 模板的数据模型     * @param outputStream 输出流     */    public static void rendToStream(String name, String path, Map&lt;String, Object&gt; rootMap, OutputStream outputStream) throws TemplateException, IOException &#123;      
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/10/web/jquery/jquery-validation/#more" rel="contents">
+            <a class="btn" href="/2017/04/28/lang/freemarker/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1770,7 +1431,7 @@ GitHub 源码
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/04/10/others/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/04/28/lang/python/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Smalle">
@@ -1789,7 +1450,7 @@ GitHub 源码
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/04/10/others/hello-world/" itemprop="url">你好，世界</a></h1>
+                <a class="post-title-link" href="/2017/04/28/lang/python/" itemprop="url">python</a></h1>
         
 
         <div class="post-meta">
@@ -1801,8 +1462,8 @@ GitHub 源码
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-10T09:38:00+08:00">
-                2016-04-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-28T11:39:00+08:00">
+                2017-04-28
               </time>
             
 
@@ -1824,8 +1485,8 @@ GitHub 源码
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/others/" itemprop="url" rel="index">
-                    <span itemprop="name">others</span>
+                  <a href="/categories/lang/" itemprop="url" rel="index">
+                    <span itemprop="name">lang</span>
                   </a>
                 </span>
 
@@ -1860,51 +1521,360 @@ GitHub 源码
       
         
           
-          我的第一篇文章
+          python简介
+python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
+Linux下默认有python环境
 
-github-jeykll-markdown个人书写习惯
-2017-07-01 之后使用hexo书写博客, 格式依然可用
+python基础(易混淆/常用)基本语法变量
+命名同java(区分大小写) 
+变量无需声明类型：如name=&#39;smalle&#39;，name=123
+print(name) 打印变量(python2语法为print name)
+del name 变量销毁
+id(a), id(b), id(c) 查看a、b、c三个变量的内存地址(0-255的数字python会做优化：a=1、b=a、c=1此时内存地址一致)
 
-元信息categories和tage都可以有多个
-12categories: [cat1, cat2]tags: [tag1, tag2, tag3]
-md语法
-md文件中可以使用html标签
----代表分割线
+数据类型
+数据类型
+数字类型：整型(布尔bool、长整型L、标准整型int)、浮点型(floot)、序列(字符串str、元组tuple、列表list)、映像类型(字典dict)、集合(可变set、不可变集合frozenset)
+a = True(注意True/False首字母大写)
+type(a) 查看a的数据类型
+a = &#39;10&#39;; int(a); 强转成整形(floot、bool、str同理)
 
-排版正文的第一级标题用h2(##)，标题和字段间要有换行
+
 列表
-列表（有序/无序）下面显示 代码、引用、图片 时：相对列表的该子项代码需要多缩进一个Tab（4个空格），且中间要空行，如：
 
-- 标题
-
-  1...
-
-
-引用需要上下都空一行，列表只需要在上面空一行
-
-子列表基于父列表要有一个Tab缩进（4个空格），中间无需空行
-
-
-脚注脚注支持链接跳转，注意脚注与被批注文本之间有一个空格
-
-标题或者文字 [^1]
-
----
-
-参考文章
-
-[^1]: [http://blog.aezo.cn](http://blog.aezo.cn)
-
-
-
-github-hexo-markdown个人书写习惯博客源码管理和博客更新
-本地处于master分支，远程有master(为博客渲染后的代码)和source(博客源码, 可设为远程默认分支)两个分支
-修改文章后保存源码
-  123$ git add .$ git commit -am "updat
+123456789101112131415161718192021list = ["smalle", "aezocn", 18, "smalle", "hello"] # 定义数组pri
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2016/04/10/others/hello-world/#more" rel="contents">
+            <a class="btn" href="/2017/04/28/lang/python/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/04/02/web/npm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/04/02/web/npm/" itemprop="url">npm</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-02T11:13:00+08:00">
+                2017-04-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/extend/" itemprop="url" rel="index">
+                    <span itemprop="name">extend</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          npm介绍安装
+安装node的时候会默认包含npm
+更新：npm install npm@latest -g
+
+
+安装cnpm镜像(淘宝镜像下载较快)：npm install -g cnpm --registry=https://registry.npm.taobao.org
+安装模块则是cnpm install &lt;module-name&gt;
+
+
+
+常用命令
+npm install &lt;module-name&gt; 安装xxx(在当前项目安装)，更新模块也是此命令
+npm i &lt;module-name&gt; 简写方式
+-g 全局安装
+如果以Windows管理员运行的命令行，则会安装在nodejs安装目录的node_modules目录下。如果以普通用户运行的命令行，则会安装在用户的AppData/Roaming/npm/node_modules的目录下。建议以管理员运行
+
+
+--save(简写-S) 自动将依赖更新到package.json文件的dependencies(依赖)中
+--save-dev(简写-D) 自动将依赖更新到package.json文件的devDependencies(运行时依赖)中
+
+
+npm init 初始化项目，生成package.json
+
+
+          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/04/02/web/npm/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2017/03/19/service/firebase/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Smalle">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="SmalleBlog | AEZOCN">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/03/19/service/firebase/" itemprop="url">firebase</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-19T21:21:00+08:00">
+                2017-03-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/service/" itemprop="url" rel="index">
+                    <span itemprop="name">service</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          简介
+Firebase是google提供的快速构件应用的云服务。简单的可以说通过引入Firebase，你可以通过api去构建实时性的应用。
+官网
+
+Hello WorldFirebase帐号注册
+可通过google账户登录，选择免费版，新建一个项目。
+点击Authentication - 登录方法 - 启用Google登录
+点击overview - 将 Firebase 添加到您的网页应用 - 复制代码供下面使用
+
+下载web版示例
+quickstart-js
+该文件中包含了auth验证、database数据库、storage存储、messaging消息等示例
+找到database/index.html，将上文复制的代码放到head中
+
+为开发运行本地 Web 服务器
+安装firebase命令行工具：npm install -g firebase-tools(重新运行安装命令，可更新此工具)
+cmd进入到下文的database文件夹
+启动服务器 firebase serve
+访问：http://localhost:5000
+点击登录，就会自动调用google登录验证api
+该示例登录进入可书写博文，数据可在控制面板的Database中查看
+
+部署应用最终可在控制面板的Hosting中查看
+
+启动一个新的命令行，cmd进入到下文的database文件夹
+登录Google并授权 fir
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/03/19/service/firebase/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1945,7 +1915,7 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1990,7 +1960,7 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-count">75</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -2001,7 +1971,7 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
             
             <div class="site-state-item site-state-categories">
               
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">分类</span>
               
             </div>
@@ -2012,7 +1982,7 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">70</span>
+                <span class="site-state-item-count">114</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>
@@ -2061,7 +2031,7 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
         <div class="copyright" >
   
   &copy;  2016 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -2203,6 +2173,323 @@ github-hexo-markdown个人书写习惯博客源码管理和博客更新
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 
