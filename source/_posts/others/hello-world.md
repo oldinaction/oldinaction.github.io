@@ -69,7 +69,7 @@ categories和tage都可以有多个
   ```shell
   $ git add .
   $ git commit -am "update blog"
-  $ git push origin master:source
+  $ git push origin master:source # 如果本地处于source分支，则为git push
   $ hexo d -g
   ```
 
