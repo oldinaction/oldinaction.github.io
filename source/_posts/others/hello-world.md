@@ -69,13 +69,13 @@ categories和tage都可以有多个
   ```shell
   $ git add .
   $ git commit -am "update blog"
-  $ git push # 如果本地分支名不为source，则推送命令如：git push origin master:source
+  $ git push origin master:source
   $ hexo d -g
   ```
 
 ### 博客源码管理和博客更新
 
-- 本地处于source分支，远程有master(为博客渲染后的代码)和source(博客源码, 可设为远程默认分支)两个分支
+- 本地处于master分支，远程有master(为博客渲染后的代码)和source(博客源码, 可设为远程默认分支)两个分支
 - 更新博客 `hexo d -g`
     - `_config.yml`文件中需要指向master分支
 
@@ -105,9 +105,17 @@ categories和tage都可以有多个
   - 还可手动写本地搜索功能 [^1]
 - 基于Swiftype的搜索
 
+### clone
 
+- clone远程source分支到本地master分支
+- `npm install -g hexo-cli` 全局安装hexo
+- `npm install` 初始化
+- 按照上述【修改文章后保存源码并更新博客】进行部署
 
 
 
 ---
+
+参考文章
+
 [^1]: [jQuery-based Local Search Engine for Hexo](http://www.hahack.com/codes/local-search-engine-for-hexo/)
