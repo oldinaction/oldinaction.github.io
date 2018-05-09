@@ -8,6 +8,10 @@ tags: [springboot, vue]
 
 ## 简介
 
+## 默认配置
+
+- 后端返回数据字段驼峰(可通过ObjectMapper转成下划线，前台做好下划线命名的字段映射后传回给后台，此时后台pojo都是驼峰，导致无法转换)
+- 前后台url都以`/`开头方便全局搜索
 
 ## 跨域和session/token
 
@@ -90,6 +94,21 @@ tags: [springboot, vue]
 
 - spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
 - `axios`使用post方式传递参数后端接受不到 [^4]
+    - 使用`qs`插件(推荐)
+        
+        ```js
+        // 安装：npm install qs -S -D
+
+        import qs from 'qs'
+        
+        Vue.prototype.$qs = qs;
+
+        this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
+            name: 'smalle'
+        })).then(response => {
+            
+        });
+        ```
     - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
     
         ```js
@@ -111,8 +130,6 @@ tags: [springboot, vue]
         - axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行)
         - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
         - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
-    - 使用`qs`插件，未测试，具体参考：https://segmentfault.com/a/1190000012635783
-
 
 
 
@@ -133,4 +150,4 @@ tags: [springboot, vue]
 [^1]: [跨域资源共享CORS详解](http://www.ruanyifeng.com/blog/2016/04/cors.html)
 [^2]: [浏览器同源政策及其规避方法](http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html)
 [^3]: [spring-security-cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
-[^4]: [axios使用post方式传递参数后端接受不到](https://segmentfault.com/a/1190000012635783)
+[^4]: [springBoot与axios表单提交](https://segmentfault.com/a/1190000013312233)

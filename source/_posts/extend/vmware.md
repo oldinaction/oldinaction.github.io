@@ -15,6 +15,7 @@ tags: [vmware, linux, centos]
 - 进入到Centos7安装界面，点击`Install Linux Centos7`。进入到安装图形化界面，选择中文
 - 设置安装位置(之前推荐设置的20G磁盘)。**设置网络和主机名，点击开启以太网**，可酌情修改主机名
     - 连接后显示`ens33已连接`，安装成功后使用`ip addr`查看ip地址也是看`ens33`那一栏
+    - `ip addr`不显示ip：查看NAT是否连接，宿主机VMware相关的网络适配器是否启用，`/etc/sysconfig/network-scripts/ifcfg-ens33`中`ONBOOT=yes`(修改后，`systemctl restart network`重启)
     - 使用`DVD ISO`可不关注
 - 开始安装，安装期间设置Root密码(root)，创建用户(smalle/smalle)并设置为管理员
 - **开启windows下和VMware相关的两块虚拟网卡**

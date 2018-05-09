@@ -103,6 +103,7 @@ tags: [model, mysql, oracle]
     money | Number(20, 6) | BigDecimal | 
     
     - 表名不要命名为`USER`等，`USER`为关键字导入到数据库后，plsql无法drop此表(可以通过navicat删除)
+    - oracle表名命名为`T_USER`，在`mybatis generator`生成的时候就算model转换成`User`，也会生成出错
     
 
 ---

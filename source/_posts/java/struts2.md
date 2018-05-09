@@ -159,7 +159,8 @@ Struts2中的MVC概念：M是各种类似User的类，V是各种jsp页面，C是
 - （3）`<s:debug></s:debug>`<!-- 使用debug模式可查看很多可以获取的值 -->
 - （4）`<s:property value="..."/>`<!-- 获取debug模式中的Value Stack(直接在value填写Property Name)和Stack Context(又称ActionContext，在value中填写"#key")中的值 -->
 
-### action中访问web元素(request、session、application)**
+### action中访问web元素(request、session、application)
+
 - （1）context就是上下文，也可以认为是运行环境，如servletContext就只servlet运行的环境
 - （2）使用DI/IoC解决，即实现接口`RequestAware`、`SessionAware`、`ApplicationAware`（**视频21-22**）
     - `DI`: dependency injection依赖注入

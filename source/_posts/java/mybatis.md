@@ -541,7 +541,9 @@ Char |  | Char | Char
 
 		```java
 		UserExample userExample = new UserExample();
-        userExample.createCriteria().andUsernameEqualTo("smalle");
+        userExample.createCriteria().andUsernameEqualTo("smalle")
+					.andSexEqualTo(1);
+		userExample.setOrderByClause("username asc");
 
         List<User> users =  userMapper.selectByExample(userExample);
 		```

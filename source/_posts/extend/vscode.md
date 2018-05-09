@@ -15,7 +15,7 @@ tags: [ide, web]
 
 > 可参考：[https://github.com/varHarrie/YmxvZw/issues/10](https://github.com/varHarrie/YmxvZw/issues/10)
 
-- `Atom One Dark Theme` 类似Atom的黑色主题
+- `Atom One Dark Theme` 类似Atom的黑色主题. 安装后重启：`文件-首选项-颜色主题`
 - `Vetur` Vue工具包(高亮等)
 
     ```json
@@ -46,10 +46,26 @@ tags: [ide, web]
         }
         ```
     - vue项目的`build/webpack.base.config.js`中加入eslint的loader(ci + eslint)。项目编译的时候会进行格式校验
+- `IntelliJ IDEA Keybindings` idea快捷键配置
+- `Beautify` 文件格式化，加下列配置格式化vue文件
+
+	```json
+	"beautify.language": {
+        "html": [
+          "htm",
+          "html",
+          "vue"
+        ]
+    },
+	```
+- `Markdown All in One` 可现实md文件菜单
 
 ## 用户配置
 
 ```json
+// 关闭预览模式。预览模式：单击文件会在一个预览窗口中覆盖显示(文件名显示为斜体)，双击文件则是真正打开文件
+// "workbench.editor.enablePreview": false,
+
 // 文件自动保存
 "files.autoSave": "afterDelay",
 	
@@ -58,6 +74,14 @@ tags: [ide, web]
 // markdown文件格式
 "[markdown]": {
 	"editor.tabSize": 4
+},
+
+"beautify.language": {
+	"html": [
+		"htm",
+		"html",
+		"vue"
+	]
 },
 
 // 关闭vue文件eslint校验
@@ -71,7 +95,6 @@ tags: [ide, web]
     "vue-html": "html",
     "vue": "html"
 }
-
 ```
 
 ## 用户代码片段

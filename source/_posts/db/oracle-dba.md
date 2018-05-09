@@ -154,7 +154,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 #### 锁表
 
 ```sql
--- 查询被锁表的信息
+-- 查询被锁表的信息（多刷新几次，应用可能会临时锁表）
 select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s 
     where l.object_id　= o.object_id and l.session_id = s.sid; 
 -- 关闭锁表的连接

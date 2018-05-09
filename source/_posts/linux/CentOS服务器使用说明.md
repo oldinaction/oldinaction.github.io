@@ -39,6 +39,9 @@ tags: [CentOS, linux]
     - `yum remove nginx` **卸载**
     - `yum search vsftpd` 查找软件vsftpd源
     - `cd /etc/yum.repos.d` 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。可更换镜像列表 [^3]
+        - `mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup` 备份(需要先确保已经安装`wget`)
+        - `wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo` 下载
+        - `yum makecache` 生成缓存
 - `tar.gz`等绿色安装包：解压**`tar -xvf xxx_0.0.1_linux_amd64.tar.gz`**, 会在当前目录生成一个`xxx_0.0.1_linux_amd64`的文件夹
     - 部分直接是绿色文件，解压后可运行
     - 部分需要在运行一些安装程序，进入文件加运行相应的二进制文件即可

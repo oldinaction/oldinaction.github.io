@@ -49,7 +49,7 @@ tag: [git, gitflow]
 	- `git push origin master` 按照前一条命令中origin给定的git远程地址推送到远程仓库的master分支（容易和远程产生冲突）
 2. 克隆repository
 	- `git clone https://github.com/UserName/ProjectName`，这是利用https方式克隆，还有其他如git、ssh等方式（克隆后git会在当前目录新建一个文件夹为 "ProjectName" 的项目）
-	- `git clone -b <remote branch> <remote address>` 克隆远程仓库的某个分支（如：`git clone -b master http://192.168.1.1/test.git`）
+	- `git clone -b <remote branch> <remote address>` 克隆远程仓库的某个分支（如：`git clone -b develop http://192.168.1.1/test.git`，此时本地分支名默认也为develop）
 3. 克隆远程仓库的某个文件夹
 	- 建立本地仓库
 		- `mkdir project_folder`

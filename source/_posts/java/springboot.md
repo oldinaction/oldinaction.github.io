@@ -221,7 +221,7 @@ private String val;
 private static String hello;
 
 @Value("${myValue.hello}")
-public setHello(String hello) {
+public void setHello(String hello) {
 	this.hello = hello;
 }
 ```

@@ -11,6 +11,7 @@ tags: [IDE]
 ## 常用设置
 
 - 新建包文件夹，一定要一层一层的建，或者创建`cn/aezo`的文件夹，不能创建一个`cn.aezo`(不会自动生成两个文件夹)
+- for快捷键使用：`list.for`、`arr.for`. **可以在`File`-`Setting`-`Editor`-`General`-`Postfix Completion`中查看**
 
 ### java web项目配置 [^1]
 

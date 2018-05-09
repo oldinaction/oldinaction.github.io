@@ -11,6 +11,27 @@ tags: [python]
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
 - Linux下默认有python环境
 
+## python2和python3的语法区别
+
+```python
+## print打印
+print name # 2
+print(name) # 3
+
+## 捕获异常
+# 2
+try
+    # ...
+except Exception, e:
+    # ...
+# 3
+try
+    # ...
+except Exception as e:
+    # ...
+
+```
+
 ## python基础(易混淆/常用)
 
 ### 基本语法
@@ -62,6 +83,7 @@ list.reverse() # 将此列表反转（不会进行排序）
 map = {'name': 'smalle', "age": 18} # 定义
 print(map) # {'name': 'smalle', "age": 18}
 map['name'] # smalle
+map['sex'] = 1 # 新增key
 
 # 循环
 for key in map:
@@ -69,6 +91,12 @@ for key in map:
 
 for key, value in map.items():
     print(key, value)
+
+## 防止取值报错的两种方式
+if a.get('age'):
+    print a['age']
+if 'age' in a.keys(): # a.has_key('age')
+    print a['age']
 ```
 
 - 元组：和列表很类似(元组定义了之后值不能改变)
@@ -145,9 +173,11 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ## 模块
 
-1. 模块安装
+- 模块安装
+    - `pip install xxx` [pip](https://pypi.org/)
+    - `pip install xxx.whl` [whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
     - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
-2. 常用模块
+- 常用模块
     - `pip` 可用于安装管理python其他模块
         - 安装（windows默认已经安装）
             - 将`https://bootstrap.pypa.io/get-pip.py`中的内容保存到本地`get-pip.py`文件中
@@ -159,11 +189,12 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
     - `ConfigParser` 配置文件读取(该模块ConfigParser在Python3中，已更名为configparser)
         - `pip install ConfigParser`
         - 介绍：http://www.cnblogs.com/snifferhu/p/4368904.html
-    - `MySQLdb` mysql操作库
-        - `pip install MySQL-python`
-            > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装[MySQL-python-1.2.5.win32-py2.7.exe](https://pypi.python.org/pypi/MySQL-python/1.2.5)（就相当于pip安装）
-            
-        - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
+    - mysql操作库
+        - `pip install MySQL-python`(MySQLdb只支持2.7)
+            > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装 [MySQL_python‑1.2.5‑cp27‑none‑win_amd64.whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python) 或 `MySQL-python-1.2.5.win32-py2.7.exe`（就相当于pip安装）
+            - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
+        - `pip install pymysql`(3.6)
+            - 工具类：https://www.cnblogs.com/bincoding/p/6789456.html
     - `pymongo` MongoDB操作库 [^2]
         - `pip install pymongo`
     - `fabric` 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
