@@ -106,7 +106,16 @@ tags: [springboot, vue]
         this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
             name: 'smalle'
         })).then(response => {
-            
+
+        });
+
+        // qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
+        // 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        this.$qs.stringify(this.formModel, {
+            serializeDate: function(d) {
+                return d.getTime();
+            }
         });
         ```
     - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中

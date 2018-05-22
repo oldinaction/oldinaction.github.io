@@ -109,6 +109,19 @@ mysql>select count(num) 	/*注释：组函数*/
             - order by colum desc 时，null默认被放在最前
             - nulls first 时，强制null放在最前，不为null的按声明顺序[asc|desc]进行排序
             - nulls last 时，强制null放在最后，不为null的按声明顺序[asc|desc]进行排序 
+            - 对中文排序 [1]
+
+                ```sql
+                -- 按中文拼音进行排序: schinese_pinyin_m
+                -- 按中文部首进行排序: schinese_radical_m
+                -- 按中文笔画进行排序: schinese_stroke_m
+                select * from team order by nlssort(排序字段名, 'nls_sort = schinese_pinyin_m');
+                -- 也可以设置session的或配置的排序策略
+                -- 更改配置文件: 
+                alter system set nls_sort='schinese_pinyin_m' scope=spfile;
+                -- 更改session: 
+                alter session set nls_sort = schinese_pinyin_m;
+                ``` 
         - MySql 结论
             - order by colum asc 时，null默认被放在最前
             - order by colum desc 时，null默认被放在最后
@@ -525,7 +538,7 @@ mysql>select count(num) 	/*注释：组函数*/
 
 ### 设计表
 
-- 设计树状结构的存
+- 设计树状结构的存储
 
 ```sql
 /*创建表*/
@@ -741,17 +754,8 @@ insert into article values(10,'护士是蚂蚁', 9, 1, 3);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ---
+
+参考文章
+
+[^1]: [Oracle中针对中文进行排序](https://www.cnblogs.com/discuss/articles/1866953.html)

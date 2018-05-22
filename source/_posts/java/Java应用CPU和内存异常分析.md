@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "Java应用服务器及数据库服务器的CPU和内存异常分析"
+title: "Java应用CPU和内存异常分析"
 date: "2018-03-13 13:35"
 categories: java
 tags: [CPU, 内存, 运维, oracle, ofbiz]
@@ -50,19 +50,46 @@ jstack <pid> > jstack.out
 # 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live <pid> > /home/jmap.out）
 jmap -histo:live <pid> | head -n 100
 # 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析
-# （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟）
-jmap -dump:live,format=b,file=/home/dump.hprof <pid>
-# （2）项目启动添加参数获取(不能实时获取)
--XX:+HeapDumpOnOutOfMemoryError # 出现 OOME 时生成堆 dump:
--XX:HeapDumpPath=/home/jvmlogs/ # 生成堆文件地址
+# （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟，实际测试系统还是可以正常访问）
+jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
+
+## 5.项目启动添加jvm参数获取(不能实时获取)
+-XX:+HeapDumpOnOutOfMemoryError # 出现 OOME 时生成堆 dump
+-XX:HeapDumpPath=/home/jvmlogs # 生成堆文件的文件夹（需要先手动创建此文件夹）
 ```
 
-### MAT工具使用
+### MAT工具使用/实例分析
 
 - MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，[下载](http://www.eclipse.org/mat/downloads.php)
+- 运行jar包时加参数如：`java -jar test.jar -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs`，/home/jvmlogs为程序出现内存溢出时保存堆栈信息的文件（需要提前建好）
+- MAT打开类似于`java_pid11457.hprof`的堆栈文件（File - Open Heap Dump），需要设置MAT运行的最大内存足够大(设置`MemoryAnalyzer.ini`)，打开效果如下
 
-- https://www.cnblogs.com/moonandstar08/p/5625164.html
-- http://blog.csdn.net/aaa2832/article/details/19419679
+    ![默认报告](/data/images/java/mat-leak-suspects.png)
+
+    - 从上图的报告中可以看到`bio-0.0.0.0-6080-exec-16`有大量的`java.util.LinkedList`对象(此图片是和下面截图的hprof文件不是同一个)
+
+#### 具体分析
+
+- MAT预览界面
+
+    ![mat-overview](/data/images/java/mat-overview.png)
+
+    - `Histogram` 列举每个class对应实例的数量
+    - `Dominator Tree` 列举较大的对象
+    - 点击扇形中较大区域，`Java Basics` - `Thread Details`查看堆栈信息
+- `Dominator Tree`点击如下
+
+    ![mat-dominator-tree](/data/images/java/mat-dominator-tree.png)
+
+    ![mat-dominator-tree2](/data/images/java/mat-dominator-tree2.png)
+
+    - 从图`mat-dominator-tree`中可以发现是存在大量的`LinkedList`；继续查看此List，结果如`mat-dominator-tree2`；从中可以发现是查询表`YyardVenueMovePlan`导致
+- 查看堆栈信息(上图中`http-bio-0.0.0.0-6080-exec-76`和`http-bio-0.0.0.0-6080-exec-79`)，结果如下图。说明是调用了`MovePlan.java`中的`deleteMovePlan`导致出现大量的`LinkedList`
+
+    ![mat-thread-details](/data/images/java/mat-thread-details.png)
+- 查看对应代码，如下图。由于`YyardVenueMovePlan`数据非常大，如果`shortBoardId`为空（只有短驳计划才会有此字段，因此相当于查询所有非短驳计划），则出现内存溢出。返回去查看`LinkedList`中的对象，发现`shortBoardId`字段都为空，验证了上述假设
+
+    ![oom_ofbiz_code](/data/images/java/oom_ofbiz_code.jpg)
 
 ### OFBiz项目案例分析
 
@@ -106,7 +133,7 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 - 查看数据库sql运行占用时间较长的会话信息，并kill此会话
 
     ```sql
-    select sid, serial#, sql_text, sql_fulltext, executions
+    select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000, 2) peer_secondes, sql_text, sql_fulltext
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
     where cpu_time > 20000;
@@ -125,7 +152,7 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 - 查看服务器CPU占用高较高的进程运行的sql语句(v$sqltext中的sql语句是被分割存储)，运行下列sql后输入进程pid
 
     ```sql
-    -- 其中&pid是使用top查看系统中进程占用CPU极高的PID
+    -- 其中&pid是使用top查看系统中进程占用CPU极高的PID (pl/sql中执行运行，会弹框输入pid)
     select sql_text
     from v$sqltext a
     where (a.hash_value, a.address) in
@@ -139,19 +166,27 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 - 常用查询
 
     ```sql
+    -- 列出数据库里每张表的记录条数
+    select t.table_name,t.num_rows from user_tables t ORDER BY NUM_ROWS DESC;
+
+    -- 列出消耗磁盘读取最多的5个sql
+    select b.username username,
+        a.disk_reads reads,
+        a.executions exec,
+        a.disk_reads / decode(a.executions, 0, 1, a.executions) peer_exec_reads,
+        a.sql_text,
+        a.sql_fulltext
+    from v$sqlarea a, dba_users b
+    where a.parsing_user_id = b.user_id
+    and a.disk_reads > 100000
+    order by a.disk_reads / decode(a.executions, 0, 1, a.executions) desc;
+
     -- 列出使用频率最高的5个sql
     select sql_text, sql_fulltext, executions
     from (select sql_text, sql_fulltext, executions,
                 rank() over(order by executions desc) exec_rank
             from v$sql)
     where exec_rank <= 5;
-
-    -- 列出消耗磁盘读取最多的5个sql
-    select disk_reads, sql_text, sql_fulltext
-    from (select sql_text, sql_fulltext, disk_reads,
-                dense_rank() over(order by disk_reads desc) disk_reads_rank
-            from v$sql)
-    where disk_reads_rank <= 5;
 
     -- 列出需要大量缓冲读取（逻辑读）操作的5个sql
     select buffer_gets, sql_text, sql_fulltext
@@ -163,12 +198,12 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 
 
 
+
 ---
 
 参考文章
 
 [^1]: [线上应用故障排查系列](http://www.blogjava.net/hankchen/archive/2012/05/09/377738.html)
 [^2]: [线上应用故障排查之二：高内存占用](http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html)
-[^3]: [记一次线上Java程序导致服务器CPU占用率过高的问题排除过程](https://www.jianshu.com/p/3667157d63bb)
+[^3]: [记一次线上Java程序导致服务器CPU占用率过高的问题排除过程](https://www.jianshu.com/p/3667157d63bb)\
 [^4]: [oracle数据库CPU特别高的解决方法](https://blog.csdn.net/xuexiaodong009/article/details/74451412)
-

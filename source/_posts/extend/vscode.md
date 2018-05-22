@@ -6,10 +6,14 @@ categories: [extend]
 tags: [ide, web]
 ---
 
-## 快捷键
+## 快捷键(基于`IntelliJ IDEA Keybindings`插件模式)
 
 - `Ctrl+K Ctrl+S` `文件-首选项-键盘快捷方式` 可查看快捷键
 - `Alt+Shift+A` 注释/取消注释
+- `Ctrl+Shift+L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标，可同时进行修改（如全部转大小写）
+- 自定义
+	- `Ctrl+Shift+U` 转大写
+	- `Ctrl+Shift+Y` 转小写
 
 ## 插件推荐
 
@@ -63,7 +67,7 @@ tags: [ide, web]
 ## 用户配置
 
 ```json
-// 关闭预览模式。预览模式：单击文件会在一个预览窗口中覆盖显示(文件名显示为斜体)，双击文件则是真正打开文件
+// 关闭预览模式。预览模式：单击文件会在一个预览窗口中覆盖显示(文件名显示为斜体)，双击文件/双击Tab标题则是真正打开文件
 // "workbench.editor.enablePreview": false,
 
 // 文件自动保存
@@ -99,6 +103,32 @@ tags: [ide, web]
 
 ## 用户代码片段
 
+- `javascript.json` 
+
+```json
+{
+	// Place your snippets for javascript here. Each snippet is defined under a snippet name and has a prefix, body and 
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
+	// same ids are connected.
+	// Example:
+	"Print to console": {						// 描述
+		"prefix": "log",						// 需要键入的代码
+		"body": [								// 补全的内容
+			"console.log($1)"
+		],
+		"description": "Log output to console"	// 显示的描述信息
+	},
+	"Debugger": {
+		"prefix": "deb",
+		"body": [
+			"debugger"
+		],
+		"description": "Debugger"
+	}
+}
+```
+
 - `vue.json` 在编辑器中打`vue`就会有此代码片段提示
 
 ```json
@@ -107,16 +137,8 @@ tags: [ide, web]
 	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
 	// $1, $2 for tab stops, ${id} and ${id:label} and ${1:label} for variables. Variables with the same id are connected.
 	// Example:
-	"Print to console": {
-		"prefix": "log",
-		"body": [
-			"console.log('$1');",
-			"$2"
-		],
-		"description": "Log output to console"
-	},
 	"Create vue template": {
-		"prefix": "vuec",
+		"prefix": "vue",
 		"body": [
 			"<template>",
 			"",

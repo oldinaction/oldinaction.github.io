@@ -115,7 +115,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 
 ### Oracle表结构与Mysql表结构转换
 
-参考《mysql-dba.md》【Oracle表结构与Mysql表结构转换】
+参考 [mysql-dba.md#Oracle表结构与Mysql表结构转换](/_posts/db/mysql-dba.md#Oracle表结构与Mysql表结构转换)
 
 ## 常用操作
 

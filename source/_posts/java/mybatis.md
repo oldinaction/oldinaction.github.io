@@ -35,7 +35,7 @@ tags: [mybatis, springboot]
 - 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml"})` // 声明需要扫描mapper接口的路径
 - 配置
 
-	```text
+	```bash
 	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml, classpath:mapper2/*.xml"
 	mybatis.mapper-locations=classpath:mapper/*.xml
 	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置
@@ -57,7 +57,8 @@ tags: [mybatis, springboot]
 			<!--字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)-->
 			<setting name="mapUnderscoreToCamelCase" value="true"/>
 
-			<!--打印mybatis运行的sql语句-->
+			<!--打印mybatis运行的sql语句到控制台。STDOUT表示调用System.out。-->
+			<!-- 打印到日志，则需要在如logback.xml中加 <logger name="cn.aezo.video.dao" level="debug"/> 定义打印级别 -->
 			<setting name="logImpl" value="STDOUT_LOGGING" />
 		</settings>
 
@@ -201,13 +202,13 @@ tags: [mybatis, springboot]
             " where 1=1 ",
 			" <when test='plans != null and plans.size() > 0'>", // 其中大于号也可以使用`&gt;`来表示
             "   and g.plan_id in ",
-			// in 的使用
+			// in 的使用。item为当前元素，index为下标变量
             "   <foreach item='plan' index='index' collection='plans' open='(' separator=',' close=')'>",
             "       #{plan.planId}",
             "   </foreach>",
             " </when>",
-			// like 的使用。此处必须使用concat进行字符串连接
-            " <when test='help.title != null'> AND h.title like concat('%', #{help.title}, '%')</when>",
+			// like 的使用。此处必须使用concat进行字符串连接. oracle则需要使用 concat(concat('%',#{roleName}),'%')
+            " <when test='help.title != null and help.title != '''> AND h.title like concat('%', #{help.title}, '%')</when>",
             " <when test='event.name != null'> AND e.name = #{event.name}", "</when>",
 			// or 的使用(1 != 1 or .. or ..)
 			" <when test='help.title != null and help.desc != null or help.start != null and help.end != null'> and (",
@@ -238,6 +239,14 @@ tags: [mybatis, springboot]
 		- **大于小于号需要转义**（>：`&gt;`, <：`&lt;`）
 		- mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
 		- 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
+		- mybatis会对Integer转换成字符串时，如果Integer类型值为0，则转换为空字符串。
+			
+			```xml
+			<!-- 此时Integer status = 0;时，下列语句返回false. 所有Integer类型的不要加status != '' -->
+			<if test="status != null and status != ''">
+			    and status = #{status}   
+			</if>  
+			```
 
     - 用Provider去实现SQL拼接(适用于复杂sql)
 

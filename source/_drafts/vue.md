@@ -70,7 +70,7 @@ tags: vue
                 console.info(e)
             },
             triggerMyEvent() {
-                this.$emit("my-event", this.data); // 事件名称、负载
+                this.$emit("my-event", this.data); // 事件名称(不要使用驼峰命名)、负载
             }
         }
     }

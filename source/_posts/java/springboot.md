@@ -64,6 +64,11 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 
 ## 常用配置
 
+### 日志策略
+
+- `application.properties`配置`logging.file=./logs/info.log`（所以配置可在application配置文件中完成，且此方法会在运行目录生成一个`LOG_PATH_IS_UNDEFINED`的文件，并存同时储日志文件，不推荐）
+- `application.properties`配置`logging.config=classpath:logback.xml`，然后再`resource`目录加文件`（此时日志策略按照此配置文件）。参考配置文件[/data/src/java/logback.xml](/data/src/java/logback.xml)和表结构文件[/data/src/java/logback.xml](/data/src/java/logback.sql)
+
 ### 随应用启动而运行(实现`CommandLineRunner`接口)
 
 - 读取resources目录下配置文件
@@ -491,7 +496,8 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 - 配置
 
 	```bash
-		## spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+		# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
+		spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 		spring.datasource.url=jdbc:mysql://localhost/springboot?useUnicode=true&characterEncoding=utf-8
 		spring.datasource.username=root
 		spring.datasource.password=root
