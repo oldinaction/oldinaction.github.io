@@ -96,11 +96,11 @@ tags: [springboot, vue]
 - `axios`使用post方式传递参数后端接受不到 [^4]
     - 使用`qs`插件(推荐)
         
-        ```js
+        ```javascript
         // 安装：npm install qs -S -D
 
         import qs from 'qs'
-        
+
         Vue.prototype.$qs = qs;
 
         this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
@@ -109,6 +109,7 @@ tags: [springboot, vue]
 
         });
 
+        // (1) qs格式化日期
         // qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
         // 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
 
@@ -117,6 +118,19 @@ tags: [springboot, vue]
                 return d.getTime();
             }
         });
+
+        // (2) qs序列化对象属性
+        // 下列对象userInfo默认渲染成 `name=smalle&bobby[0][name]=game&hobby[0][level]=1`(未进行url转码)，此时springboot写好对应的POJO是无法进行转换的，报错`is neither an array nor a List nor a Map`
+        // 可以使用`allowDots`解决，最终返回 `name=smalle&bobby[0].name=game&hobby[0].level=1`
+
+        var userInfo = {
+            name: 'smalle',
+            hobby: [{
+                name: 'game',
+                level: 1
+            }]
+        };
+        console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
         ```
     - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
     
@@ -128,8 +142,8 @@ tags: [springboot, vue]
             },
             url: 'http://localhost:8080/api/login',
             params: {
-                username:'smalle',
-                password:'smalle'
+                username: 'smalle',
+                password: 'smalle'
             }
         }).then((res)=>{
 

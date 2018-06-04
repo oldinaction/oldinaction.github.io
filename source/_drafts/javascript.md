@@ -57,6 +57,7 @@ javaScript 特点：
   - **`-` 号的隐式转换**：任意数据类型做减法则先转成数值再运算，如果不能自动转成数字，则返回NaN，如果字符串为空则转成0。
   - **强制转换** ：X.`toString()`、Number(X)、`parseInt(X)`、`parseFloat(X)`、Boolean(X)
   - 凡是从页面获取的数据都是字符串，必须先转换再计算
+  - **js变量为数值类型且值为0时，转成字符串就会变成`''`**。因此`var i = 0; console.log(i == '');`打印结果为`true`
 7. 运算符
   - 算术运算符：+ - * / % ++ --
   - 关系运算符：> < == >= <= != ===
@@ -134,7 +135,19 @@ javaScript 特点：
     >   - var arr1 = new Array(3); // 创建一个数组，其中含有3个元素，其值为undefined，打印时是一个空字符
     >   - var arr2 = new Array(1, 'a', true); // 创建3个元素
 
+### 其他关键字
 
+#### import/export [^1]
+
+```js
+// 命名导出
+export { myFunction }; 
+export const foo = Math.sqrt(2);
+// 默认导出（函数）
+export default function() {}
+// 默认导出（类）
+export default class {}
+```
 
 
 
@@ -152,3 +165,10 @@ javaScript 特点：
 
 
 sssss
+
+
+---
+
+参考文章
+
+[^1]: [export](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/export)

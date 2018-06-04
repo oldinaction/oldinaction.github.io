@@ -65,7 +65,7 @@ server {
     }
 
     # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin
-    # location后的地址可正则
+    # location后的地址可正则，如 `location ^~ /api/ {...}` 表示访问 http://www.aezo.cn/api/xxx 会转到 http://127.0.0.1:8080/api/xxx 上
     location / {
         proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $http_host;
@@ -128,6 +128,20 @@ events {
 #    load ngx_http_fastcgi_module.so; 
 #    load ngx_http_rewrite_module.so; # 加载重写模块
 #}
+
+# 直接根据流转换（可进行oracle数据映射）。不能使用http协议转换，否则连接时报错ORA-12569包解析出错
+stream {
+    upstream oracledb {
+       hash $remote_addr consistent;
+       # oracle数据内网ip（此处还可以通过VPN拨号到此nginx服务器，然后此处填写VPN拨号后的内网ip也可以进行访问）
+       server 192.168.0.201:1521;
+    }
+    server {
+        #公网机器监听端口，连接oracle的tns中填公网ip和端口即可
+        listen 1521;
+        proxy_pass oracledb;
+    }
+}
 
 # 设定http服务(也支持smtp邮件服务)
 http {

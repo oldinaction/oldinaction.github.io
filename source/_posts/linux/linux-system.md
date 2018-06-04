@@ -50,7 +50,7 @@ tags: [linux, shell]
 - **`ps -ef | grep java`**(其中java可换成run.py等)
     - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
 - `ls -al /proc/进程id` 查看此进程信息
-    - `cwd`符号链接的是进程运行目录
+    - `cwd`符号链接的是进程运行目录 **`ls -al /proc/8888 | grep cwd`**
     - `exe`符号连接就是执行程序的绝对路径
     - `cmdline`就是程序运行时输入的命令行命令
     - `environ`记录了进程运行时的环境变量
@@ -74,8 +74,8 @@ tags: [linux, shell]
         - `rpm -e rpm包名` 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
 - 程序运行
     - 运行sh文件：进入到该文件目录，运行`./xxx.sh`
-    - 脱机后台运行sh文件：`nohup bash startofbiz.sh > my.log 2>&1 &`
-        - 不打印日志后台运行`nohup java -jar /xxx/xxx.jar > /dev/null 2>&1 &`
+    - 脱机后台运行sh文件：**`nohup bash startofbiz.sh > /dev/null 2>&1 &`**
+        - 打印日志后台运行`nohup java -jar /xxx/xxx.jar > my.log 2>&1 &`
         - 运行二进制文件：`nohup ./mybash > my.log 2>&1 &` 其中mybash为可执行的二进制文件
         - sudo形式运行：`nohup sudo -b ./mybash > my.log 2>&1 &`
         - 可解决利用客户端连接服务器，执行的程序当客户端退出后，服务器的程序也停止了
@@ -176,7 +176,7 @@ tags: [linux, shell]
     - `ll` 列举文件详细
         - **`ll test*`**/`ls *.txt` 模糊查询文件
         - **`ll -rt *.txt`** 按时间排序 (`-r`表示逆序、`-t`按时间排序)
-        - **`ll -Sh`** 按文件大小排序 (`-S`按文件大小排序、`-h`将文件大小按1024进行转换显示)
+        - **`ll -Sh`** 按文件大小排序 (`-S`按文件大小排序、`-h`将文件大小按1024进行转换显示M/G等)
     - `ls -al` 列举所有文件详细(`-a`全部、`-l`纵向显示. linux中`.`开头的文件默认为隐藏文件)
     > 文件详细如下图
     >
@@ -498,9 +498,15 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
 
 ### SSH客户端连接服务器（秘钥认证）
 
+**客户端(可能也是一台服务器)需要连接服务器，则需要将某个公钥`id_rsa.pub`写入到服务器的`~/.ssh/authorized_keys`文件中**
+    - 此公钥可以是客户端、服务器端或其他地方生成的公钥数据
+    - 如果命令行连接服务器，则需要此公钥无需再客户端保存
+    - 客户端登录成功后会将服务器ip及登录的公钥加入到`known_hosts`文件中(没有此文件时会自动新建)
+
 1. 命令行生成
     - 生成公钥(.pub)和私钥(.ppk)
-        - `ssh-keygen` 运行命令后再按三次回车会看到`RSA`（生成的秘钥默认路径为`/root/.ssh/`，会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts` 3 个文件）
+        - **`ssh-keygen`** 运行命令后再按三次回车会看到`RSA`（生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`，会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts` 3 个文件）
+            - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa`
     - 把生成的公钥发送到对方的主机上去（在本地为服务器生成公钥）
         - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` （自动保存在对方主机的`/root/.ssh/authorized_keys`文件中去）
         - 输入该服务器密码实现发送
@@ -513,7 +519,7 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
         - Puttygen使用：`类型选择RSA，大小2048` - `点击生成` - `鼠标在空白处滑动` - `保存公钥和密钥`
         - Putty使用：`Session的Host Name输入username@ip，端口22` - `Connection-SSH-Auth选择密钥文件` - `回到Session，在save session输入一个会话名称` - `点击保存会话` - `点击open登录服务器` - `下次可直接点击会话名称登录`
     - xshell/xftp是一个连接ssh的客户端
-        - 登录方法：连接 - 用户身份验证 - 方法选择"public key" 公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录`mv /home/aezo/id_rsa.pub /home/aezo/.ssh/authorized_keys`)。必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录。
+        - 登录方法：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录`cat /home/aezo/.ssh/id_rsa.pub >> /home/aezo/.ssh/authorized_keys`)。必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录。
 	- `cat /var/log/secure`查看登录日志
 3. ssh配置 [^7]
     - `cat /etc/ssh/sshd_config` 查看配置
@@ -523,12 +529,23 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
 
 ## 定时任务 [^4]
 
-1. 配置式
+### corn表达式
+
+- 常用符号
+    - `*` 表示所有值 
+    - `?` 表示未说明的值，即不关心它为何值
+    - `-` 表示一个指定的范围
+    - `,` 表示附加一个可能值
+    - `/` 符号前表示开始时间，符号后表示每次递增的值
+
+### 配置说明
+
+- 配置式
     - 添加定时配置：`sudo vim /etc/crontab`，配置说明如下，如：`30 2 1 * * root /sbin/reboot`表示每月第一天的第2个小时的第30分钟，使用root执行命令/sbin/reboot(重启)
 
         ```shell
         # Example of job definition:
-        # .---------------- minute (0 - 59)
+        # .---------------- minute (0 - 59)，如 10 表示没第10分钟运行
         # |  .------------- hour (0 - 23)
         # |  |  .---------- day of month (1 - 31)
         # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
@@ -543,7 +560,8 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
         ```
     - `systemctl reload crond` 重新加载配置
     - `systemctl restart crond` 重启crond
-
+- 命令式
+    - `sudo crontab -e` 编辑当前用户的定时任务，默认在`/var/spool/`目录
 
 ## linux概念
 

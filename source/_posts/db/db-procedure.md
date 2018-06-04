@@ -13,115 +13,120 @@ tags: [oracle, mysql, procedure]
 ## Mysql存储过程示例
 
 ```sql
-CREATE DEFINER = 'root'@'localhost'
-PROCEDURE test.county(IN `in_provid` int, IN `in_urlid` int)
-BEGIN
-  DECLARE v_sql varchar(1000);
-  DECLARE c_cityid integer;
-  DECLARE c_cityname varchar(20);
-  DECLARE c_countyname varchar(20);
-  DECLARE c_cityid_tmp integer;
+create definer = 'root'@'localhost'
+procedure test.county(in `in_provid` int, in `in_urlid` int)
+begin
+  declare v_sql varchar(1000);
+  declare c_cityid integer;
+  declare c_cityname varchar(20);
+  declare c_countyname varchar(20);
+  declare c_cityid_tmp integer;
 
   # 是否未找到数据标记(要在游标之前定义)
-  DECLARE done INT DEFAULT FALSE;
+  declare done int default false;
 
   -- 定义第一个游标
-  DECLARE cur1 CURSOR FOR
-  SELECT
-    t.N_CITYID,
-    t.S_CITYNAME
-  FROM dict_city t
-  WHERE t.N_PROVID = in_provid;
+  declare cur1 cursor for
+  select
+    t.n_cityid,
+    t.s_cityname
+  from dict_city t
+  where t.n_provid = in_provid;
 
   # 临时表游标
-  DECLARE cur2 CURSOR FOR
-  SELECT
-    S_COUNTYNAME,
-    N_CITYID AS cityid
-  FROM tmp_table;
+  declare cur2 cursor for
+  select
+    s_countyname,
+    n_cityid as cityid
+  from tmp_table;
 
-  # 循环终止的标志，游标中如果没有数据就设置done为TRUE(停止遍历)
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+  # 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)
+  declare continue handler for not found set done = true;
 
   # 创建临时表
-  DROP TABLE IF EXISTS tmp_table;
-  CREATE TEMPORARY TABLE IF NOT EXISTS tmp_table (
-    ID int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    S_COUNTYNAME varchar(20),
-    N_CITYID int(10)
+  drop table if exists tmp_table;
+  create temporary table if not exists tmp_table (
+    id int(11) not null auto_increment primary key,
+    s_countyname varchar(20),
+    n_cityid int(10)
   );
 
   # mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量
-  OPEN cur1;
-  flag_loop: LOOP
+  open cur1;
+  flag_loop: loop
     # 取出每条记录并赋值给相关变量，注意顺序
     # 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！
-    FETCH cur1 INTO c_cityid, c_cityname;
+    fetch cur1 into c_cityid, c_cityname;
 
-    # FETCH之后, 如果没有数据则会运行SET done = TRUE
-    IF done THEN
+    # fetch之后, 如果没有数据则会运行set done = true
+    if done then
       # 跳出循环
-      LEAVE flag_loop;
-    END IF;
+      leave flag_loop;
+    end if;
 
     # 字符串截取，从第一位开始，截取2位
-    SET c_cityname = SUBSTRING(c_cityname, 1, 2);
+    set c_cityname = substring(c_cityname, 1, 2);
 
-    # 动态sql执行后的结果记录集在MySQL中无法获取，因此需要转变思路将其放置到一个临时表中
-    # 动态sql需要使用CONCAT(a, b, c, ....)拼接
-    SET v_sql = CONCAT("insert into tmp_table(S_COUNTYNAME, N_CITYID) select t.`name`, ", c_cityid, " from sm_renthouse_url t where
+    # 动态sql执行后的结果记录集在mysql中无法获取，因此需要转变思路将其放置到一个临时表中
+    # 动态sql需要使用concat(a, b, c, ....)拼接
+    set v_sql = concat("insert into tmp_table(s_countyname, n_cityid) select t.`name`, ", c_cityid, " from sm_renthouse_url t where
     t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");
 
     # 如果以@开头的变量可以不用通过declare语句事先声明
-    SET @v_sql = v_sql;
-    # 预处理需要执行的动态SQL，其中stmt是一个变量
-    PREPARE stmt FROM @v_sql;
-    # 执行SQL语句
-    EXECUTE stmt;
+    set @v_sql = v_sql;
+    # 预处理需要执行的动态sql，其中stmt是一个变量
+    prepare stmt from @v_sql;
+    # 执行sql语句
+    execute stmt;
     # 释放掉预处理段
-    DEALLOCATE PREPARE stmt;
-  END LOOP;
-  CLOSE cur1;
+    deallocate prepare stmt;
+  end loop;
+  close cur1;
 
-  # 调试输出, 打印使用SELECT
-  SELECT
+  # 调试输出, 打印使用select
+  select
     *
-  FROM tmp_table;
+  from tmp_table;
 
   # 还原终止的标志, 用于第二个游标
-  SET done = FALSE;
+  set done = false;
 
-  OPEN cur2;
-  flag_loop: LOOP
-    FETCH cur2 INTO c_countyname, c_cityid_tmp;
-    IF done THEN
-      LEAVE flag_loop;
-    END IF;
+  open cur2;
+  flag_loop: loop
+    fetch cur2 into c_countyname, c_cityid_tmp;
+    if done then
+      leave flag_loop;
+    end if;
 
-    INSERT INTO dict_county (S_COUNTYNAME, N_CITYID, S_STATE)
-      VALUES (c_countyname, c_cityid_tmp, '1');
+    insert into dict_county (s_countyname, n_cityid, s_state)
+      values (c_countyname, c_cityid_tmp, '1');
 
-  END LOOP;
-  CLOSE cur2;
+  end loop;
+  close cur2;
 
   # 删除临时表
-  DROP TEMPORARY TABLE tmp_table;
-END
+  drop temporary table tmp_table;
+end
 ```
 
-## Oracle存储过程示例
+## Oracle
+
+### Oracle存储过程示例
 
 ```sql
   -- 定义
   create or replace procedure p_up_user_role is
     cursor c is 
-      select t.* from User_Login t; -- 游标
+      select t.* from user_login t; -- 游标
+    china_id number;
   begin
-    delete from User_Login_Security_Group t where t.group_id = 'DW_DEPT_ADMIN';
+    select t.id into china_id from t_structure t where t.structure_type_status = 1 and t.node_level = 6 and t.node_name = '中国'; --可能出现运行时异常：ORA-01403 no data found
+
+    delete from user_login_security_group t where t.group_id = 'dw_dept_admin';
     --for循环不需要声明变量，会自动将user_item声明为record变量
     for user_item in c loop
-        insert into User_Login_Security_Group(User_Login_Id, Group_Id, From_Date) 
-              values(user_item.user_login_id, 'DW_DEPT_ADMIN', '2017-11-01 00:00:00.000000');
+        insert into user_login_security_group(user_login_id, group_id, from_date) 
+              values(user_item.user_login_id, 'dw_dept_admin', '2017-11-01 00:00:00.000000');
     end loop;
     commit;
   end;
@@ -148,7 +153,7 @@ END
 
   -- 创建存储过程
   create or replace procedure p_up_storage is
-    TYPE ref_cursor_type IS REF CURSOR; --定义一个游标类型
+    TYPE ref_cursor_type IS REF CURSOR; --定义一个游标类型(动态游标使用)
 
     cursor c is
       select yls.*
@@ -177,11 +182,9 @@ END
               loc.location_id;
       --打开游标
       open v_cur_storage for v_sql;
-    
       loop
         fetch v_cur_storage into v_storage;
-        exit when v_cur_storage%notfound;
-      
+        exit when v_cur_storage%notfound; -- 跳出循环
         update ycross_storage t
           set t.ycross_x = v_x, t.ycross_y = v_y
         where t.id = v_storage.id;
@@ -193,16 +196,13 @@ END
             v_x := v_x + 1;
             v_y := 1;
           else
-            RAISE_APPLICATION_ERROR(-20001, v_errmsg || '位置超出堆位结构'); -- 抛出异常
+            raise_application_error(-20001, v_errmsg || '位置超出堆位结构'); -- 抛出异常
           end if;
         end if;
-      
       end loop;
-    
       close v_cur_storage;
     
     end loop;
-
     commit;
   exception
     -- 捕获异常
@@ -218,21 +218,32 @@ END
   end;
   ```
 
-## 异常
+### 异常
 
-- `RAISE_APPLICATION_ERROR` 抛出异常函数，该函数是将应用程序专有的错误从服务器端转达到客户端应用程序(其他机器上的SQLPLUS或者前台开发语言)
-- `PROCEDURE RAISE_APPLICATION_ERROR( error_number_in IN NUMBER, error_msg_in IN VARCHAR2);`
-    - `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 ORACLE 的任何错误代码发生冲突。
-    - `error_msg_in`: 长度不能超过 2k，否则截取 2k
+- 抛出异常 `raise_application_error` 该函数是将应用程序专有的错误从服务器端转达到客户端应用程序(其他机器上的sqlplus或者前台开发语言)
+  - `procedure raise_application_error(error_number_in in number, error_msg_in in varchar2);`
+  - `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。
+  - `error_msg_in`: 长度不能超过 2k，否则截取 2k
+- 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来
 
-## oracle函数
+  ```sql
+  loop
+    begin
+    -- ...
+    exception
+      when others then dbms_output.put_line('出错'); -- 捕获异常后继续下一次循环
+      -- when others then  null; -- 捕获异常后继续下一次循环
+  end;
+  ```
+
+### oracle函数
 
 ```sql
   declare 
     i integer;
   begin
     dbms_output.put_line('hello world');
-    p_up_user_role();
+    p_up_user_role(); -- 调用上述存储过程
   end;
 ```
 
@@ -240,3 +251,5 @@ END
 
 
 ---
+
+参考文章

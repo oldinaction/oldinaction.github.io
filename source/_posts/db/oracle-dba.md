@@ -110,8 +110,11 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 ### pl/sql
 
 - pl/sql提供dmp、sql(不支持CLOB类型字段)、pde(pl/sql提供)格式的数据导入导出
-- 方法：`Tools - Export Tables/Import Tablse - 选择表导出`
+- 方法
+    - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
+    - `Tools - Export Tables/Import Tablse - 选择表导出` 导出数据
 - 其中Executable路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
+- plsql执行sql文件：**`@D:/sql/my.sql`**（部分语句需要执行`commit`提交）
 
 ### Oracle表结构与Mysql表结构转换
 
@@ -187,6 +190,62 @@ alter index SERVER_HIT_TXSTMP rebuild online;
     - `grant create session to aezo;` 授予aezo用户创建session的权限，即登陆权限
     - `grant unlimited tablespace to aezo;` 授予aezo用户使用表空间的权限
     - `grant dba to aezo;` 授予管理权限(有dba角色就有建表等权限)
+    - `grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to dewell;` 赋予dewell查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限
+    - `grant create synonym to smalle;` 赋予创建别名权限
+        - `create or replace SYNONYM smalle.ZIP_SALES_TAX_LOOKUP FOR OFBIZ.ZIP_SALES_TAX_LOOKUP;` 添加别名，否则smalle查询ofbiz的表必须加`ofbiz.`，添加别名后省略`ofbiz.`
+
+#### 创建dba账户
+
+```sql
+create user aezo identified by aezo default tablespace aezocn;
+grant create session to aezo; -- 授予aezo用户创建session的权限，即登陆权限
+grant unlimited tablespace to aezo; -- 授予aezo用户使用表空间的权限
+grant dba to aezo; -- 授予管理权限(有dba角色就有建表等权限)
+```
+
+#### 新建用户并赋予表查询权限
+
+```sql
+create user smalle identified by smalle1234 default tablespace ofbiz; -- 创建用户
+grant create session to smalle; -- 赋予登录权限
+grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限
+grant create synonym to smalle; -- 赋予创建别名权限
+
+-- 批量赋值表查询权限
+-- （1） 使用游标将OFBIZ用户所有的表的查询权限赋给smalle用户
+declare
+  table_owenr_user    VARCHAR2(200) := 'OFBIZ';
+  table_grant_user    VARCHAR2(200) := 'smalle';
+  CURSOR c_tabname is select table_name from dba_tables where owner = table_owenr_user;
+  v_tabname dba_tables.table_name%TYPE;
+  sqlstr    VARCHAR2(200); 
+begin
+  open c_tabname;
+  loop
+    begin -- loop...end loop;语句捕获异常需要begin...end包裹
+    fetch c_tabname into v_tabname;
+    exit when c_tabname%NOTFOUND;
+    sqlstr := 'grant select on ' || table_owenr_user || '.' || v_tabname || ' to ' || table_grant_user;
+    execute immediate sqlstr;
+    exception
+      when others then dbms_output.put_line(sqlstr); -- 捕获异常继续下一次循环
+    end;
+  end loop;
+  close c_tabname;
+end;
+create or replace SYNONYM dewell.yothers_advice_collection FOR OFBIZ.yothers_advice_collection;
+-- （2） 通过查询获取赋值语句，然后运行每一行赋值语句
+select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
+  from dba_objects
+ where owner in ('OFBIZ')
+   and object_type = 'TABLE';
+-- 获取添加表别名语句
+select 'create or replace synonym smalle.' || object_name || ' for ' ||
+        owner || '.' || object_name || ';'
+   from dba_objects
+  where owner in ('OFBIZ')
+    and object_type = 'table';
+```
 
 ### 查询相关
 
@@ -195,6 +254,7 @@ alter index SERVER_HIT_TXSTMP rebuild online;
         - 远程查看(cmd运行)：`tnsping 192.168.1.1:1521/orcl`、或者`tnsping remote_orcl`(其中remote_orcl已经在本地建立好了监听映射，如配置在tnsnames.ora)
         - 如果能够ping通，则说明客户端能解析listener的机器名，而且lister也已经启动，但是并不能说明数据库已经打开，而且tsnping的过程与真正客户端连接的过程也不一致。但是如果不能用tnsping通，则肯定连接不到数据库
     - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
+    - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
 - 用户相关查询
     - 查看当前用户默认表空间：`select username, default_tablespace from user_users;`(以dba登录则结果为SYS和SYSTEM)
     - 查看当前用户角色：`select * from user_role_privs;`

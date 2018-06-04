@@ -46,8 +46,8 @@ server4 | 192.168.6.134 |   | Y |   |   | Y
 - 免密码登录：使server1可以免密码登录到其他3台服务器。启动hdfs的时候通过server1启动其他3台机器
    
     ```bash
-    ## 未4台机器都生成ssh密钥和公钥文件(可通过xshell的快速命令发送到全部会话)
-    ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
+    ## 为4台机器都生成ssh密钥和公钥文件(可通过xshell的快速命令发送到全部会话)
+    ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa # 或者直接 ssh-keygen
     ## 将本机器公钥文件内容追加到认证文件中。此时可以通过命令如`ssh server1`无需密码即可登录本地机器，记得要`exit`退出会话
     cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
     ## 将server1和server2(NameNode)的公钥文件内容追加到其他3台机器的的认证文件中

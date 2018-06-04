@@ -30,3 +30,28 @@ tags: [vmware, linux, centos]
 - `ip addr`查看虚拟机地址(`ens33`/`eth0`)，`ipconfig`查看windows主机地址，并看能否双向`ping`通
 - `systemctl status sshd` 查看ssh服务是否启动(如果未安装，可手动安装sshd)
 - 使用`xshell`/`xftp`以ssh/sftp的方式连接，端口`22`，用户名要使用`smalle/smalle`（root连接失败）
+
+## mac os安装
+
+- VMware 12.5.6
+- VMware默认无法安装mac类型的系统，需要下载`VMware unlocker208`补丁
+    - 将此补丁文件放在vmware安装目录(其他目录也行)
+    - 管理员命令运行`win-install.cmd`
+- 文件 - 新建虚拟主机 - 典型 - 稍后安装操作系统 - 版本MAC OS 10.12 - 创建一个虚拟机(名称为macos)根目录(如：C:\soft\vmware_server\macos)
+- 修改新建虚拟机根目录中的`macos.vmx`文件：在`smc.present = "TRUE"`后添加`smc.version= 0`
+- 根据虚拟机设置：添加硬盘 - SATA - 使用现有虚拟硬盘 - 选中`Mac.vmdk`(下载的mac系统硬盘文件，[谷歌硬盘下载地址](https://drive.google.com/drive/folders/1YneaDNMhveiByjo5iE3jNKLPHNYG6s0a)) - 并移除之前的硬盘
+- 此硬盘文件`Mac.vmdk`安装过一次后，下次则无需安装，会保存之前使用的数据
+- 可优化虚拟机设置为8G内存，2个处理器且每个4核
+
+### 常见问题
+
+- 调整屏幕分辨率为全屏
+    - 启动虚拟机
+    - 虚拟机 - 安装VMware Tools - 此时mac系统会提示安装，安装完成后重启即可
+
+
+---
+
+参考文章
+
+[^1]: [VMware12.5虚拟机安装MacOS10](https://jingyan.baidu.com/article/a24b33cd12daf919ff002b58.html)

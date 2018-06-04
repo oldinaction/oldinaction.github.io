@@ -134,5 +134,5 @@ tags: [IDE]
 
 参考文章
 
-[^1]: [java web项目配置](https://github.com/judasn/IntelliJ-IDEA-Tutorial/blob/newMaster/eclipse-java-web-project-introduce.md)
-[^2]: [intellij idea12 搭建php开发环境](http://blog.csdn.net/ysjjovo/article/details/13292787)
+[^1]: [java-web项目配置](https://github.com/judasn/IntelliJ-IDEA-Tutorial/blob/newMaster/eclipse-java-web-project-introduce.md)
+[^2]: [intellij-idea12-搭建php开发环境](http://blog.csdn.net/ysjjovo/article/details/13292787)

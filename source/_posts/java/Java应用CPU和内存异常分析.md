@@ -50,7 +50,7 @@ jstack <pid> > jstack.out
 # 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live <pid> > /home/jmap.out）
 jmap -histo:live <pid> | head -n 100
 # 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析
-# （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟，实际测试系统还是可以正常访问）
+# （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟，实际测试系统可能会暂停无法访问）
 jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 
 ## 5.项目启动添加jvm参数获取(不能实时获取)
@@ -91,6 +91,11 @@ jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 
     ![oom_ofbiz_code](/data/images/java/oom_ofbiz_code.jpg)
 
+#### 内存飙高，但是下载的dump文件却很小
+
+- 内存占用达到3G，下载的dump文件确只有400M左右(生成dump文件耗时1分钟，生成dump文件时应用无法访问)，并未发现内存溢出现象
+
+
 ### OFBiz项目案例分析
 
 > 案例介绍：此问题主要是ofbiz在清理历史任务时，任务数据过大导致内存溢出，从而CPU飙升，最终服务器时常宕机。
@@ -130,26 +135,21 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
     - 数据库服务器CPU飙高
     - oracle相关进程CPU占用高
     - 应用服务器响应很慢
-- 查看数据库sql运行占用时间较长的会话信息，并kill此会话
+- 查看数据库sql运行占用CPU时间较长的会话信息，并kill此会话
 
     ```sql
     select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000, 2) peer_secondes, sql_text, sql_fulltext
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
-    where cpu_time > 20000;
+    where cpu_time > 20000
+    order by round(cpu_time/executions/1000, 2) desc;
 
-    -- kill相应会话
+    -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
+    -- 从根源上解决问题需要对对应的sql_fulltext进行sql优化
     alter system kill session 'sid, serial#';
     ```
-- 查看数据库sql运行占用时间较长的sql语句
-
-    ```sql
-    select *
-    from (select sql_text, sql_fulltext, sql_id, cpu_time from v$sql order by cpu_time desc)
-    where rownum <= 10
-    order by rownum asc;
-    ```
 - 查看服务器CPU占用高较高的进程运行的sql语句(v$sqltext中的sql语句是被分割存储)，运行下列sql后输入进程pid
+    - `top`查看占用CPU较高的进程，Commad中可以看到连接数据的命令信息，如`oracleorcl (LOCAL=NO)`为OFBiz的连接信息
 
     ```sql
     -- 其中&pid是使用top查看系统中进程占用CPU极高的PID (pl/sql中执行运行，会弹框输入pid)
@@ -162,6 +162,14 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
             where b.paddr =
                 (select addr from v$process c where c.spid = '&pid'))
     order by piece asc
+    ```
+- 查看数据库sql运行占用时间较长的sql语句
+
+    ```sql
+    select *
+    from (select sql_text, sql_fulltext, sql_id, cpu_time from v$sql order by cpu_time desc)
+    where rownum <= 10
+    order by rownum asc;
     ```
 - 常用查询
 

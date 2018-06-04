@@ -88,11 +88,11 @@ tags: [CentOS, linux]
 
 #### 配置环境变量
 
-- `vi /etc/profile` 使用vi打开profile文件
+- `vi /etc/profile` 使用vi打开profile文件(加入通过root用户安装，其他用户要使用则需要在对应的`.bash_profile`中也加入下面语句)
 - 在末尾输入并保存（注意JAVA_HOME需要按照实际路径）
 
 ```bash
-export JAVA_HOME=/root/jdk1.7.0_79
+export JAVA_HOME=/home/smalle/soft/jdk1.8.0_161
 export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ```

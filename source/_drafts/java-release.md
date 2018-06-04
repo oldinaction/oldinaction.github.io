@@ -8,8 +8,19 @@ tags: [jdk, jdk8]
 
 ## java8新特性 [^1]
 
+- Lambda表达式
 
+```java
+// (1) 无法使用continue/break语句，只能使用return语句
+list.forEach(item -> {
+    if(item.equals("hello")) {
+        return; // 相当于continue（无法终止循环）
+    }
+    System.out.println("item = " + item);
+});
 
+// (2) Lambda表达式中的异常无法通过外层方法抛出
+```
 
 
 ---

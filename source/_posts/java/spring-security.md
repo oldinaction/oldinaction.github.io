@@ -138,7 +138,7 @@ tags: [spring, springsecurity, springboot]
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // 用于基于token的验证，如果基于session的则可去掉 (4)
-            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 所有的请求都会先走此拦截器
 
             http.headers().frameOptions().disable(); // 解决spring boot项目中出现不能加载iframe
             http.csrf().disable() // 关闭打开的csrf(跨站请求伪造)保护
@@ -276,6 +276,7 @@ tags: [spring, springsecurity, springboot]
             @Override
             public Collection<? extends GrantedAuthority> getAuthorities() {
                 // 组成如：ROLE_ADMIN/ROLE_USER，在资源权限定义时写法如：hasRole('ADMIN')。createAuthorityList接受一个数组，说明支持一个用户拥有多个角色
+                // 此处使用直接在User表中加了一个字段roleCode，实际项目中可以新建一个 user_role 和 role_permission 表，此处去权限的code即可（用户和角色多对多，角色和权限多对多）
                 return AuthorityUtils.createAuthorityList("ROLE_" + this.getRoleCode());
             }
 

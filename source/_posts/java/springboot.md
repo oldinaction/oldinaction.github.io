@@ -68,6 +68,7 @@ tags: [springboot, hibernate, mybatis, rabbitmq]
 
 - `application.properties`配置`logging.file=./logs/info.log`（所以配置可在application配置文件中完成，且此方法会在运行目录生成一个`LOG_PATH_IS_UNDEFINED`的文件，并存同时储日志文件，不推荐）
 - `application.properties`配置`logging.config=classpath:logback.xml`，然后再`resource`目录加文件`（此时日志策略按照此配置文件）。参考配置文件[/data/src/java/logback.xml](/data/src/java/logback.xml)和表结构文件[/data/src/java/logback.xml](/data/src/java/logback.sql)
+- logback默认会创建一个`/tmp/spring.log`的文件，而且只有使用root用户运行项目才可以创建此目录
 
 ### 随应用启动而运行(实现`CommandLineRunner`接口)
 
@@ -444,7 +445,6 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 post |application/json   |row-json   |(@RequestBody User user)   |如果后台使用了@RequestBody，此时row-text等都无法请求到
 post |multipart/form-data  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
 
-
 - `'content-type': 'multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
 	- `javascript XHR`需要使用`new FormData()`进行数据传输(可查看postman代码)
 	- 还可使用`MultipartFile`来接受单个文件, 使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件 [^3]
@@ -480,6 +480,30 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		return result;
 	}
 	```
+
+### restTemplate
+
+```java
+@Autowired
+RestTemplate restTemplate; // 无需手动引入
+
+// （1） getForEntity
+ResponseEntity<Map> responseEntity = restTemplate.getForEntity("http://localhost/list", Map.class);
+HttpHeaders headers = responseEntity.getHeaders();
+HttpStatus statusCode = responseEntity.getStatusCode();
+int code = statusCode.value();
+Map map = responseEntity.getBody();
+
+// （2） getForObject
+Video video = restTemplate.getForObject("http://localhost/video", Video.class);
+
+// （3） postForEntity
+Video video = new Video();
+ResponseEntity<Video> responseEntity = restTemplate.postForEntity("http://localhost/video", video, Video.class);
+video = responseEntity.getBody();
+
+```
+
 
 ## 数据访问
 

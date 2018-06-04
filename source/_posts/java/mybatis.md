@@ -221,6 +221,9 @@ tags: [mybatis, springboot]
 			" ) </when>",
             "</script>" })
         List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans);
+
+		// 此方法也可以再xml中实现（即部分可以通过 @Select 声明，部分可以在xml中实现）
+		List<HelpPojo> findHelps(@Param("help") HelpPojo help);
         
         // 配合分页插件使用
         public Object findHelps(Help help, Event event,
@@ -239,7 +242,7 @@ tags: [mybatis, springboot]
 		- **大于小于号需要转义**（>：`&gt;`, <：`&lt;`）
 		- mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
 		- 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
-		- mybatis会对Integer转换成字符串时，如果Integer类型值为0，则转换为空字符串。
+		- mybatis会对Integer转换成字符串时，如果Integer类型值为0，则转换为空字符串。(js也是这样转换的)
 			
 			```xml
 			<!-- 此时Integer status = 0;时，下列语句返回false. 所有Integer类型的不要加status != '' -->
@@ -554,7 +557,7 @@ Char |  | Char | Char
 					.andSexEqualTo(1);
 		userExample.setOrderByClause("username asc");
 
-        List<User> users =  userMapper.selectByExample(userExample);
+        List<User> users =  userMapper.selectByExample(userExample); // 未查询到数据时返回一个大小为0的数组
 		```
 - 通过java代码调用mybatis-generator生成
 	- 引入依赖

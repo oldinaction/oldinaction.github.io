@@ -12,8 +12,51 @@ tags: [git]
 
 ### 常用命令
 
-- 重新启动：`sudo gitlab-ctl restart`
-- 重新配置：`sudo gitlab-ctl reconfigure`（运行中的项目，重新配置后，数据也不会丢失）
+- `sudo gitlab-ctl restart` 重新启动
+- `sudo gitlab-ctl reconfigure` 重新配置（运行中的项目，重新配置后，数据也不会丢失）
+
+## 备份与恢复 [^1]
+
+### 备份
+
+- 新建备份目录
+
+```bash
+mkdir -p /data/backup/gitlab
+chown -R root /data/backup/gitlab
+chmod -R 777 /data/backup/gitlab
+```
+- 备份配置 `sudo vim /etc/gitlab/gitlab.rb`
+
+```bash
+gitlab_rails['manage_backup_path'] = true
+gitlab_rails['backup_path'] = "/data/backup/gitlab"     # gitlab备份目录
+gitlab_rails['backup_archive_permissions'] = 0644       # 生成的备份文件权限
+gitlab_rails['backup_keep_time'] = 7776000              # 备份保留7天，即604800秒
+```
+- 重载配置 `sudo gitlab-ctl reconfigure`
+- 手动备份 `sudo gitlab-rake gitlab:backup:create --trace`
+- 自动备份
+    - `sudo vim /etc/crontab` 打开定时配置文件
+    - `0 2 * * * /opt/gitlab/bin/gitlab-rake gitlab:backup:create`(每天凌晨2点进行备份)，添加到定时配置文件中
+    - `systemctl reload crond` 重新加载配置
+
+### 恢复
+
+```bash
+# 停止相关数据连接服务
+gitlab-ctl stop unicorn
+gitlab-ctl stop sidekiq
+
+# 从相应编号备份中恢复 1510472027_2017_11_12_9.4.5_gitlab_backup.tar
+gitlab-rake gitlab:backup:restore BACKUP=1510472027_2017_11_12_9.4.5
+
+# 启动Gitlab
+sudo gitlab-ctl start
+
+# 可检查恢复情况
+gitlab-rake gitlab:check SANITIZE=true
+```
 
 ## 问题集锦
 
@@ -22,4 +65,8 @@ tags: [git]
 
 
 
------------------------
+---
+
+参考文章
+
+[^1]: [Gitlab备份和恢复操作记录](https://www.cnblogs.com/kevingrace/p/7821529.html)
