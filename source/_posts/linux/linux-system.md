@@ -65,6 +65,8 @@ tags: [linux, shell]
     - 关闭某个PID进程 `kill PID`
         - `netstat -lnp` 查看所有进场信息(端口、PID)
         - 强制杀进程 `kill -s 9 PID`
+        - `yum install psmisc` centos7精简版无`killall`命令，需要安装此包
+            - `killall -s 9 java` 杀死所有java进程
     - `systemctl stop firewalld` 关闭防火墙
 - 程序安装
     - `yum`安装(还有其他类型的安装参考`《centos-server-guide》`)
@@ -611,6 +613,8 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
     - `/root` 超级权限用户root的家目录
     - `/sbin` 大多设计系统管理的命令存放，是超级权限用户root的可执行命令存放地，普通用户无法执行。和`/usr/sbin`、`/usr/local/sbin`目录类似
     - `/tmp` 临时文件目录。和`/var/tmp`目录类似
+    - `/usr` 用户目录
+        - `/local` 一般为安装软件目录，源码编译安装一般在`/usr/local/lib`目录下
 
 ### 系统启动顺序boot sequence
 

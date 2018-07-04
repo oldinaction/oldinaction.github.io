@@ -82,9 +82,11 @@ render: (h, params) => {
 				}
 				return color == '' ? {} : props
 			}()
-		}, function() {
+		}, function(vm) {
+			console.log(vm)
+			// 此时this为函数作用域类，拿不到vue对象
 			return params.row.CorporateName + '...'
-		}()),
+		}(this)),
 		h('div', {
 			slot: 'content'
 		}, [
@@ -102,6 +104,9 @@ render: (h, params) => {
 				},
 				style: {
 					marginRight: "8px"
+				},
+				attrs: {
+					// button 标签的其他属性
 				},
 				on: {
 					click: ok => {

@@ -207,8 +207,8 @@ tags: [mybatis, springboot]
             "       #{plan.planId}",
             "   </foreach>",
             " </when>",
-			// like 的使用。此处必须使用concat进行字符串连接. oracle则需要使用 concat(concat('%',#{roleName}),'%')
-            " <when test='help.title != null and help.title != '''> AND h.title like concat('%', #{help.title}, '%')</when>",
+			// like 的使用。此处必须使用concat进行字符串连接. oracle则需要使用 h.title like concat(concat('%',#{roleName}),'%')
+            " <when test='help.title != null and help.title != \"\"'> AND h.title like concat('%', #{help.title}, '%')</when>",
             " <when test='event.name != null'> AND e.name = #{event.name}", "</when>",
 			// or 的使用(1 != 1 or .. or ..)
 			" <when test='help.title != null and help.desc != null or help.start != null and help.end != null'> and (",
@@ -223,7 +223,7 @@ tags: [mybatis, springboot]
         List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans);
 
 		// 此方法也可以再xml中实现（即部分可以通过 @Select 声明，部分可以在xml中实现）
-		List<HelpPojo> findHelps(@Param("help") HelpPojo help);
+		List<HelpPojo> findHelps(@Param("help") HelpPojo helpPojo); // 此时xml中必须通过help对象获取属性.如果不写@Param("help")则可直接获取属性值
         
         // 配合分页插件使用
         public Object findHelps(Help help, Event event,
@@ -249,6 +249,17 @@ tags: [mybatis, springboot]
 			<if test="status != null and status != ''">
 			    and status = #{status}   
 			</if>  
+			```
+		-  dao中可以使用submitTm[0]获取值; xml中不行，其处理数组(如时间段)的方式如下
+
+			```xml
+			<!-- <if test='dataSourceList != null and dataSourceList.size() > 0 and dataSourceList.get(0).dataSource != null'> -->
+			<if test='submitTm != null and submitTm.length >= 1 and submitTm[0] != null'>
+			<foreach collection="submitTm" index="i" item="item">
+				<if test='i == 0 and item != null'>and v.submit_tm &gt;= #{item}</if>
+				<if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>
+			</foreach>
+			</if>
 			```
 
     - 用Provider去实现SQL拼接(适用于复杂sql)

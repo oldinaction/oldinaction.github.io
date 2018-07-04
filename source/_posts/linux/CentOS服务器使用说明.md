@@ -56,18 +56,19 @@ tags: [CentOS, linux]
     - **`rpm -qc nginx`** 查询指定包安装的配置文件
     - `rpm -qi jdk` 查看jdk安装信息
     - `rpm -e rpm包名` 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
-- `源码安装`：`make`编译、`make install`
+- `源码安装
     - 前提：准备开发环境(编译环境)，安装"Development Tools"和"Development Libraries" 
         - `yum groupinstall Development Tools Development Libraries`
-    - `make test` 测试编译
+    - 源码安装完成后可删除源码文件夹
     - 示例如
 
         ```shell
         # 解压源码包
         tar -zxvf tengine-1.4.2.tar.gz
         cd tegnine-1.4.2
-        # configure配置
+        # configure配置，`--prefix`为安装位置
         ./configure --prefix=/usr/local/tengine --conf-path=/etc/tengine/tengine.conf
+        # make test 测试编译
         # 编译安装
         make && make install
         ```
@@ -162,6 +163,23 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 4. 启动服务`systemctl start vsftpd`
 5. 命令行ftp可以登录，但是xftp可以登录确无法获取目录列表，IE浏览器访问`ftp://192.168.1.1`失败。谷歌浏览器正常访问并使用，或者ftp客户端登录
 
+### mysql安装
+
+- 安装
+    - `wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm` 下载mysql源安装包
+    - `yum localinstall mysql57-community-release-el7-8.noarch.rpm` 安装mysql源
+    - `yum repolist enabled | grep "mysql.*-community.*"` 检查mysql源是否安装成功
+    - `yum install mysql-community-server` 安装mysql
+    - `systemctl start mysqld` 启动
+    - `grep 'temporary password' /var/log/mysqld.log` 查看临时密
+    - `mysql -uroot -p`登录
+    - `alter user 'root'@'localhost' identified by 'mynewpass4!';` 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)
+    - `grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;` 添加smalle用户，并赋权，且允许远程登录
+    - `systemctl enable mysqld` 设置开机启动
+- 其他
+    - 配置文件默认路径：`/etc/my.cnf`
+    - `yum remove mysql` 卸载
+
 ### tomcat安装
 
 - `tar -zxvf apache-tomcat-7.0.61.tar.gz` 解压
@@ -170,7 +188,49 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 
 ### nginx安装
 
-参考`《nginx.md》(基于编译安装tengine)`(nginx同理)
+参考[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md) (nginx同理)
+
+### python3安装
+
+> linux一般都是python2，如果要使用python3最好不要动之前python2的环境
+
+- 安装步骤
+    - 下载`Python-3.6.5.tar.xz`
+    - `tar xvf  Python-3.6.5.tar.xz -C /opt`
+    - `su root` 切换root用户
+    - `./configure`
+    - `make && make install` 第一次需要大概15分钟。不使用root运行，使用sudo运行也会报错`cannot create regular file ‘/usr/local/bin/python3.6m’: Permission denied`
+    - `python3` 查看是否安装成功
+    - `pip3` 为对应的pip命令
+- `No module named '_sqlite3'` 无法使用sqlite3模块问题
+    - `yum -y install sqlite-devel`
+    - `./configure --enable-loadable-sqlite-extensions`
+    - `make && make install` 重新编译，如果之前编译成功，这次编译会很快
+    - `python3` - `import sqlite3` 不报错则表示成功
+
+### php安装
+
+- `yum install -y php`
+
+#### php-fpm
+
+nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，如果是php请求，则发给php解释器处理，并把结果返回给客户端。nginx一般是把请求发fastcgi管理进程处理，fascgi管理进程选择cgi子进程处理结果并返回被nginx。而使用php-fpm则可以使nginx支持PHP
+
+- `yum install -y php-fpm`
+- `systemctl start php-fpm` 默认监听`9000`端口
+    - 编辑`/etc/php-fpm.d/www.conf`中的`listen = 127.0.0.1:9000`可修改监听端口
+- nginx配置
+
+    ```bash
+    location ~ \.php$ {
+        try_files $uri = 404; # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
+        root           html;
+        fastcgi_pass   127.0.0.1:9000;
+        fastcgi_index  index.php;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name; # 此处要使用`$document_root`否则报错File not found.`
+        include        fastcgi_params;
+    }
+    ```
 
 ## yum安装
 
@@ -181,10 +241,10 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 
 ### htop安装
 
-1. htop是比top功能更多的进程管理工具
-2. `yum install htop` 安装
-3. `htop`查看进程信息(命令行上显示的界面可直接鼠标点击操作)
-4. 小技巧
+- htop是比top功能更多的进程管理工具
+- `yum install htop` 安装
+- `htop`查看进程信息(命令行上显示的界面可直接鼠标点击操作)
+- 小技巧
     - 点击Tree/Sorted可切换视图
     - 选中一行，按下键可查看更多进程
     - Nice：指的是nice值，这样就可以提高/降低对应进程的优先级

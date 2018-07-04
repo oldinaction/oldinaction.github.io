@@ -527,55 +527,6 @@ mysql>select count(num) 	/*注释：组函数*/
     - `select constraint_name, table_name from user_constraints;` 显示当前用户下有哪些约束
     - `select index_name from user_indexes;` 显示当前用户下有哪些索引
 
-### 三范式
-
-- 三范式
-    - 第一范式：要有主键，列不可分。(如：如果要分别获取姓、名，则应该设计两个字段，而不应该设置为姓名一个字段当查询出来后再进行分割)
-    - 第二范式：不能存在部分依赖。即当一张表中有多个字段作为主键时，非主键的字段不能依赖于部分主键
-    - 第三范式：不能存在传递依赖。如：雇员表中描述雇员需要描述他所在部门，因此只需记录其部门编号即可，如果把部门相关的信息(部门名称、部门位置)加入到雇员表则存在传递依赖
-- 三范式强调的是表不存在冗余数据(同样的数据不存第二遍)
-- 符合了三范式后会增加查询难度，要做表连接
-
-### 设计表
-
-- 设计树状结构的存储
-
-```sql
-/*创建表*/
-create table article
-(
-id int primary key,
-cont text,
-pid int,/*注释：表示父id*/
-isleaf int(1),/*注释：0代表非叶子节点，1代表叶子节点*/
-alevel int(2)/*注释：表示层级*/
-);
-
-/*插入数据*/
-insert into article values(1,'蚂蚁大战大象', 0, 0, 0);
-insert into article values(2,'大象被打趴下了', 1, 0, 0);
-insert into article values(3,'蚂蚁也不好过', 2, 1, 2);
-insert into article values(4,'瞎说', 2, 0, 2);
-insert into article values(5,'没有瞎说', 4, 1, 3);
-insert into article values(6,'怎么可能', 1, 0, 1);
-insert into article values(7,'怎么没有可能', 6, 1, 2);
-insert into article values(8,'可能性是很大的', 6, 1, 2);
-insert into article values(9,'大象进医院了', 2, 0, 2);
-insert into article values(10,'护士是蚂蚁', 9, 1, 3);
-
-/*显示*/
-蚂蚁大战大象
-  大象被打趴下了
-    蚂蚁也不好过
-    瞎说
-      没有瞎说
-    大象进医院了
-      护士是蚂蚁
-  怎么可能
-    怎么没有可能
-    可能性是很大的
-```
-
 ## 数据库表信息
 
 - `show databases;` 显示所有数据库
@@ -752,10 +703,90 @@ insert into article values(10,'护士是蚂蚁', 9, 1, 3);
     }
     ```
 
+## 设计表
 
+### 三范式
+
+- 三范式
+    - 第一范式：要有主键，列不可分。(如：如果要分别获取姓、名，则应该设计两个字段，而不应该设置为姓名一个字段当查询出来后再进行分割)
+    - 第二范式：不能存在部分依赖。即当一张表中有多个字段作为主键时，非主键的字段不能依赖于部分主键
+    - 第三范式：不能存在传递依赖。如：雇员表中描述雇员需要描述他所在部门，因此只需记录其部门编号即可，如果把部门相关的信息(部门名称、部门位置)加入到雇员表则存在传递依赖
+- 三范式强调的是表不存在冗余数据(同样的数据不存第二遍)
+- 符合了三范式后会增加查询难度，要做表连接
+
+
+### 常用建表模型
+
+- 字典表(t_type_code)：id、type、code、name、value、notes、rank、valid_status、input_user_id、input_time、update_user_id、update_time
+- 树型表(t_structure)：id、structure_type_code(树类型)、parent_id、node_level、node_code、node_name、node_notes、node_rank(节点排序)
+- 属性表(t_attr)：id、attr_type_code、parent_id、code、value（属性表可和树型表连用）
+- 权限相关表
+    - 权限组(t_security_group)：id、security_group、notes
+    - 权限(t_promission)：id、promission、notes
+    - 权限组-权限关系表(t_security_group_promission、多对多)：id、security_group、promission
+    - 用户权限组关系表(t_user_security_group、多对多)：id、user_id、security_group
+- 角色相关表
+    - 角色类型树：如总经理、销售经理、市场经理、员工
+    - 部门表
+
+- 设计树状结构的存储
+
+```sql
+/*创建表*/
+create table article
+(
+id int primary key,
+cont text,
+pid int,/*注释：表示父id*/
+isleaf int(1),/*注释：0代表非叶子节点，1代表叶子节点*/
+alevel int(2)/*注释：表示层级*/
+);
+
+/*插入数据*/
+insert into article values(1,'蚂蚁大战大象', 0, 0, 0);
+insert into article values(2,'大象被打趴下了', 1, 0, 0);
+insert into article values(3,'蚂蚁也不好过', 2, 1, 2);
+insert into article values(4,'瞎说', 2, 0, 2);
+insert into article values(5,'没有瞎说', 4, 1, 3);
+insert into article values(6,'怎么可能', 1, 0, 1);
+insert into article values(7,'怎么没有可能', 6, 1, 2);
+insert into article values(8,'可能性是很大的', 6, 1, 2);
+insert into article values(9,'大象进医院了', 2, 0, 2);
+insert into article values(10,'护士是蚂蚁', 9, 1, 3);
+
+/*显示*/
+蚂蚁大战大象
+  大象被打趴下了
+    蚂蚁也不好过
+    瞎说
+      没有瞎说
+    大象进医院了
+      护士是蚂蚁
+  怎么可能
+    怎么没有可能
+    可能性是很大的
+
+-- 使用递归打印树状结构
+create or replace procedual p(v_pid acticle.pid%type, v_level binary_integer) is
+  cursor c is select * from article where pid = v_pid;
+  v_preStr varchar2(1024) = '';
+begin
+  for i in 1..v_level loop
+    v_preStr := v_preStr || '****';
+  end loop;
+  for v_article in c loop
+    dbms_output.put_line(v_preStr || v_article.cont);
+    if(v_article.isleaf = 0) then
+      p(v_article.id, v_preStr + 1);
+    end if;  
+  end loop;
+end;
+/
+exec p(0, 0);
+```
 
 ---
 
 参考文章
 
-[^1]: [Oracle中针对中文进行排序](https://www.cnblogs.com/discuss/articles/1866953.html)
+[^1]: https://www.cnblogs.com/discuss/articles/1866953.html (Oracle中针对中文进行排序)

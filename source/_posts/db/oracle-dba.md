@@ -85,7 +85,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 
 1. 导出
     - **用户模式**：`exp system/manager file=d:/exp.dmp owner=scott` 导出scott用户的所有对象，前提是system有相关权限
-        - **远程导出**：此时system/manager默认连接的是本地数据库。如果使用`exp system/manager@remote_orcl file=d:/exp.dmp owner=scott`(remote_orcl为在本地建立的远程数据库网络服务名)则可导出远程数据库的相关数据，下同。
+        - **远程导出**：此时system/manager默认连接的是本地数据库。如果使用`exp system/manager@remote_orcl file=d:/exp.dmp owner=scott`(remote_orcl为在本地建立的远程数据库网络服务名. 即tnsnames.ora里面的配置项名称)则可导出远程数据库的相关数据，下同。
         - 加上 `compress=y` 表示压缩数据
         - 加上 `rows=n` 表示不导出数据行，只导出结构
     - 表模式：`exp scott/tiger file=d:/exp.dmp tables=emp` 导出scott的emp表
@@ -114,7 +114,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
     - `Tools - Export Tables/Import Tablse - 选择表导出` 导出数据
 - 其中Executable路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
-- plsql执行sql文件：**`@D:/sql/my.sql`**（部分语句需要执行`commit`提交）
+- plsql执行sql文件：`@D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交）
 
 ### Oracle表结构与Mysql表结构转换
 
@@ -141,6 +141,11 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - `sqlplus /nolog`
     - `connect aezo/aezo@192.168.1.1:1521/orcl;`，或者使用配置好的服务名连接`conn aezo/aezo@remote_orcl`
 - pl/slq管理员登录：用户名密码留空，Connect as 选择 SYSDBA 则默认以sys登录。登录远程只需要在tnsnames.ora进行网络配置即可
+
+#### 执行脚本
+
+- plsql执行sql文件：`@ D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交，建议start）
+- bat脚本(data.bat)：`sqlplus user/password@serverip/database @"%cd%\data.sql"` (data.sql和data.bat同级，此处只能用@)
 
 ### 数据库相关
 
@@ -179,7 +184,7 @@ alter index SERVER_HIT_TXSTMP rebuild online;
 
 ### 用户相关
 
-- 创建用户：`create user aezo identified by aezo;`
+- 创建用户：`create user aezo identified by aezo;` 用户名不区分大小写，密码区分
     - 默认使用的表空间是`USERS`，使用`create user aezo identified by aezo default tablespace aezocn;`可设定默认表空间
     - 删除用户：`drop user aezo cascade;`
 - 修改用户密码：`alter user scott identified by tiger;`
@@ -208,14 +213,15 @@ grant dba to aezo; -- 授予管理权限(有dba角色就有建表等权限)
 ```sql
 create user smalle identified by smalle1234 default tablespace ofbiz; -- 创建用户
 grant create session to smalle; -- 赋予登录权限
-grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限
+grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限（可使用下列批量赋权语句）
 grant create synonym to smalle; -- 赋予创建别名权限
+create or replace SYNONYM smalle.yothers_advice_collection FOR OFBIZ.yothers_advice_collection; -- 创建表别名,之后smalle查询OFBIZ的这张表可直接使用表名（可使用下列语句进行批量设置）
 
 -- 批量赋值表查询权限
--- （1） 使用游标将OFBIZ用户所有的表的查询权限赋给smalle用户
+-- （1） 使用游标将OFBIZ用户所有的表的查询权限赋给smalle用户（推荐）
 declare
-  table_owenr_user    VARCHAR2(200) := 'OFBIZ';
-  table_grant_user    VARCHAR2(200) := 'smalle';
+  table_owenr_user    VARCHAR2(200) := 'OFBIZ'; -- TODO 修改表所属用户名(注意要大写)
+  table_grant_user    VARCHAR2(200) := 'smalle'; -- TODO 修改表授权用户名(此处大小写无所谓)
   CURSOR c_tabname is select table_name from dba_tables where owner = table_owenr_user;
   v_tabname dba_tables.table_name%TYPE;
   sqlstr    VARCHAR2(200); 
@@ -226,6 +232,7 @@ begin
     fetch c_tabname into v_tabname;
     exit when c_tabname%NOTFOUND;
     sqlstr := 'grant select on ' || table_owenr_user || '.' || v_tabname || ' to ' || table_grant_user;
+    -- sqlstr := 'create or replace SYNONYM ' || table_grant_user || '.' || v_tabname || ' for ' || table_owenr_user || '.' || v_tabname; -- 设置表别名
     execute immediate sqlstr;
     exception
       when others then dbms_output.put_line(sqlstr); -- 捕获异常继续下一次循环
@@ -233,13 +240,15 @@ begin
   end loop;
   close c_tabname;
 end;
-create or replace SYNONYM dewell.yothers_advice_collection FOR OFBIZ.yothers_advice_collection;
 -- （2） 通过查询获取赋值语句，然后运行每一行赋值语句
 select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
   from dba_objects
  where owner in ('OFBIZ')
    and object_type = 'TABLE';
--- 获取添加表别名语句
+
+-- 批量设置表别名
+-- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || table_grant_user || '.' || v_tabname || ' for ' || table_owenr_user || '.' || v_tabname;）
+-- （2）获取添加表别名语句
 select 'create or replace synonym smalle.' || object_name || ' for ' ||
         owner || '.' || object_name || ';'
    from dba_objects
@@ -325,8 +334,8 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
 - 表空间不足
     - 报错`ORA-01653: unable to extend table` [^7]
         - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
-        - 开启表空间自动扩展，每次递增50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50M;`
-        - 为此表空间新增数据文件 `ALTER TABLESPACE USERS ADD DATAFILE '/home/oracle/data/users02.dbf' SIZE 1024M;`
+        - 开启表空间自动扩展，每次递增50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
+        - 为USERS表空间新增数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`
         - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
 
             ```sql
@@ -350,7 +359,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
         - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经32G(表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
             - 解决方案：通过上述方法增加数据文件解决
         - 情况二表空间未满：查询的表空间剩余400M，且该索引的next_extent=700MB，即给该索引分配空间时不足
-            - 解决方案：重建该索引`alter index index_name rebuild tablespace indexes storage(initial 256K next 256K pctincrease 0)`(还为测试)
+            - 解决方案：重建该索引`alter index index_name rebuild tablespace indexes storage(initial 256K next 256K pctincrease 0)`(还未测试)
 
 ## 安装
 

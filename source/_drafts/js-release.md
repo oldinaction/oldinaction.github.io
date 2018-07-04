@@ -100,7 +100,7 @@ let emptyObject = { ...null, ...undefined }; // 不报错
 // (2) 等同于 Object.assign
 // 等同于
 let aClone = { ...a };
-let aClone = Object.assign({}, a);  
+let aClone = Object.assign({x: 1}, a); // ****** a中的值会覆盖第一个对象的属性值 *****
 
 // 等同于
 let ab = { ...a, ...b };

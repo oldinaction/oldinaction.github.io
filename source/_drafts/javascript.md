@@ -1,3 +1,11 @@
+---
+layout: "post"
+title: "Javascript"
+date: "2016-06-11 16:51"
+categories: [web]
+tags: [js]
+---
+
 ## javaScript 介绍
 
 > - 前端三大语言：HTML、CSS、JS
@@ -149,7 +157,14 @@ export default function() {}
 export default class {}
 ```
 
+## js对象
 
+### Object
+
+- `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象
+  - 将b合并到a但是不能影响到a：`Object.assign({}, a, b)`
+  - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
+  - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1));`
 
 
 

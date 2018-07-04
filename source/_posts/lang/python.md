@@ -175,6 +175,7 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 - 模块安装
     - `pip install xxx` [pip](https://pypi.org/)
+        - `pip install Django==2.0.6` 安装指定版本
     - `pip install xxx.whl` [whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
     - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
 - 常用模块

@@ -43,7 +43,7 @@ tags: vue
 
 ### 父子组件加载
 
-- 加载顺序
+- 加载顺序：先创建父组件，先挂载子组件
     - 创建父组件 `beforeCreate` - `created`
     - 挂载父组件之前 `beforeMount`
     - 创建子组件 `beforeCreate` - `created`
@@ -52,33 +52,108 @@ tags: vue
     - 挂载父组件 `mounted`
 - 父子组件分别请求各自的数据，且子组件请求中的某些参数需要等父组件获取后台数据后才可初始化，此时最好`watch`对应的参数
 
-    ```js
-    watch: {
-        id(value) {
+```js
+watch: {
+    id(value) {
+        this.init()
+    },
+    $route(to, from) {
+        if (to.name == "XXX") {
+            // 监控路由变化，进行数据重新获取
             this.init()
         }
-    },
-    method: {
-        init() {
-            // ...调用后台
+    }
+},
+method: {
+    init() {
+        // ...调用后台
+    }
+},
+created(): {
+    // this.init() // 此处调用则有可能id为空导致只能获取一次数据，且无法获取有有效数据
+}
+```
 
+### list元素改变数据不刷新
+
+```html
+<!-- 产品可以选择多个，选择产品后，产品单位需要联动变化 -->
+<div v-for="(item, index) in customer.customerProducts">
+    产品：
+    <Select v-model="customer.customerProducts[index].id" @on-change="productChange(index)">
+        <Option v-for="(optItem, optIndex) in products" :value="optItem.id" :key="optIndex">{{ optItem.productName }}</Option>
+    </Select>
+    产品单位：{{ customer.customerProducts[index].productUnit }}
+</div>
+    
+<script>
+export default {
+    data() {
+        return {
+            customer: {
+                customerProducts: [{ // 客户所有的产品
+                    id: null,
+                    productUnit: '',
+                }]
+            },
+            products: [] // 所有的产品
         }
     },
-    created(): {
-        // this.init() // 此处调用则有可能id为空导致只能获取一次数据，且无法获取有有效数据
+    methods: {
+        productChange(index) {
+            let vm = this
+            let product = {}
+            this.products.some(function(item) {
+                // 函数内部不能使用this拿到vue实例。 item => {} 中可以通过this拿到
+                if(item.id == vm.customer.customerProducts[index].id) {
+                    product = Object.assign({}, item) // 此处一定要重新赋值成一个新对象。product = item 会导致产品单位永远是第一次选中的值
+                    return true;
+                }
+            })
 
+            this.$set(this.customer.customerProducts, index, product); // 从新设值强行刷新此属性
+        },
     }
-    ```
+}
+</script>
+```
 
-### 路由变化数据无法更新
+## 组件
 
-http://www.cnblogs.com/first-time/p/7067674.html
+### 自定义组件中使用 v-model
 
-## 父子组件通信
+[官方说明](https://cn.vuejs.org/v2/guide/components-custom-events.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E7%9A%84-v-model)
+
+```html
+<script>
+// 本质是表单元素原生事件，并将值放入其中。$emit('change', 'smalle')"
+Vue.component('base-checkbox', {
+  model: {
+    prop: 'checked',
+    event: 'change'
+  },
+  props: {
+    checked: Boolean
+  },
+  template: `
+    <input
+      type="checkbox"
+      v-bind:checked="checked"
+      v-on:change="$emit('change', $event.target.checked)"
+    >
+  `
+})
+</script>
+
+<!-- 调用组件 -->
+<base-checkbox v-model="lovingVue"></base-checkbox>
+```
+
+### 父子组件通信
 
 > [Prop](https://cn.vuejs.org/v2/guide/components.html#Prop)、[自定义事件]()https://cn.vuejs.org/v2/guide/components.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E4%BA%8B%E4%BB%B6
 
-### 通信方式
+#### 通信方式
 
 - 通过`props`从父向子组件传递数据，父组件对应属性改变，子组件也会改变
     - 如果在子组件中修改定义的`props`参数，则会报错：`vue.esm.js:591 [Vue warn]: Avoid mutating a prop directly since the value will be overwritten whenever the parent component re-renders. Instead, use a data or computed property based on the prop's value. Prop being mutated: "customerId"`
@@ -88,7 +163,7 @@ http://www.cnblogs.com/first-time/p/7067674.html
     - `ref`可以用于标记一个节点或组件
 - 在父组件中使用`sync`修饰符修饰props属性，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景
 
-### 知识点
+#### 知识点
 
 - `props`定义说明
 
@@ -106,7 +181,7 @@ http://www.cnblogs.com/first-time/p/7067674.html
     }
     ```
 
-### 示例
+#### 示例
 
 ```html
 <!-- parent.vue -->
@@ -175,7 +250,7 @@ http://www.cnblogs.com/first-time/p/7067674.html
 </script>
 ```
 
-### 子组件和子组件通信
+#### 子组件和子组件通信
 
 ```js
 // 在初始化web app的时候，main.js给data添加一个 名字为eventHub的空vue对象。就可以使用 this.$root.eventHub 获取对象
@@ -196,3 +271,20 @@ this.$root.eventHub.$on('eventName', (data)=>{
     // 处理数据
 })
 ```
+
+## 路由
+
+- query和params的区别：query参数会拼接到url上面，param不会。因此路由跳转后再次刷新页面会导致参数丢失
+
+```js
+this.$router.push({
+    name: "VisitInfo",
+    query: Object.assign({}, contact, {
+        visitId: this.visitId
+    })
+});
+```
+
+### 路由变化数据无法更新
+
+- 参考上文【父子组件加载】中的示例，监控`$route`变化

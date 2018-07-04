@@ -27,6 +27,13 @@ tags: [java, conception]
     - `OGNL`(Object-Graph Navigation Language)，主要有#%$三种符号，常与Struts2结合使用
     - `JSTL`：JSP 标准标签库。如：`<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>`，`<c:if>`
 
+## 产品/框架
+
+- 服务器：`tomcat`、`jboss`、`weblogic`
+- Web Service框架：`CXF`、`Axis2`、`Axis`
+    - CXF对Spring的友好支持，对于那些使用了Spring的既有项目来说，CXF应该是首选，因为CXF是基于注解的
+    - Axis2的优势是支持C平台和比较全的WS-*协议族
+
 ## 架构
 
 - `PO` `BO` `VO` `DTO` `POJO`。具体参考https://www.zhihu.com/question/39651928
@@ -35,11 +42,6 @@ tags: [java, conception]
     - `BO` 业务对象，封装对象、复杂对象 ，里面可能包含多个类
     - `DTO` 传输对象，前端调用时传输
     - `VO` 表现对象，前端界面展示
-
-作者：Knight王
-链接：https://www.zhihu.com/question/39651928/answer/87536000
-来源：知乎
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 
 ## 网络编程
 

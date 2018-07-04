@@ -18,7 +18,7 @@ tags: [springboot, vue]
 ### 同源政策
 
 - 网络协议、ip、端口三者都相同就是同一个域(同源)
-    - 如`http://localhsot`和`http://localhsot:8080`之间进行数据交互就存在跨域问题
+    - 如`http://localhsot`和`http://localhsot:8080`之间进行数据交互就存在跨域问题（localhost 和 127.0.0.1 不一样）
 - 浏览器"同源政策"限制(针对不同源情况) [^2]
     - `Cookie、LocalStorage 和 IndexDB 无法读取`
     - `DOM 无法获得`

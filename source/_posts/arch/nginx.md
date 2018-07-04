@@ -76,6 +76,21 @@ server {
             break;
         }
     }
+
+    # php文件转给fastcgi处理，但是需要安装如`php-fpm`来解析
+    # 如果访问 http://127.0.0.1:8080/myphp/index.php 此时会到 /project/phphome/myphp 目录寻找/访问 index.php 文件
+    location ~ \.php$ {
+        try_files $uri = 404; # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
+        root           /project/phphome/myphp;
+        fastcgi_pass   127.0.0.1:9000;
+        fastcgi_index  index.php;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name; # 此处要使用`$document_root`否则报错File not found.`
+        include        fastcgi_params;
+    }
+    # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
+    location ~ /myphp/ {
+        root /project/phphome/myphp;
+    }
 }
 
 # 开启第二个站点监听

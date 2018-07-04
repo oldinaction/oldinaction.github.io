@@ -2,13 +2,13 @@
 layout: "post"
 title: "powerdesigner"
 date: "2017-12-05 19:41"
-categories: extend
+categories: design
 tags: [model, mysql, oracle]
 ---
 
 ## 简介
 
-- Powerdesigner v16.5
+- Powerdesigner v16.6 x64(连接oracle最好使用64位)
 
 ## 使用 [^3]
 
@@ -44,6 +44,68 @@ tags: [model, mysql, oracle]
 - 设置表显示字体：Table -> Format -> Modify -> Font -> Symbol全选 -> 调整字体
 - 不显示`<pk>`标识：Table -> Columns -> 去掉Key indicator勾选
 - 显示code栏：Table -> Contents -> Advanced -> Columns -> List Columns -> Select图标 -> 勾选code的D栏
+- 表显示表名和表备注：General - Display - Code显示表名；Table - Content - Comments显示表备注
+- 显示commets：执行脚本把name的替换成commet的值(comment为空则取code，否则截取`。：（(`前的字符串)，脚本如下(Tools>Execute Commands>Edit/Run Script运行)
+
+    ```vb
+    Option   Explicit   
+    ValidationMode   =   True   
+    InteractiveMode   =   im_Batch
+    Dim blankStr
+    blankStr   =   Space(1)
+    Dim   mdl   '   the   current   model  
+    '   get   the   current   active   model   
+    Set   mdl   =   ActiveModel   
+    If   (mdl   Is   Nothing)   Then   
+          MsgBox   "There   is   no   current   Model "   
+    ElseIf   Not   mdl.IsKindOf(PdPDM.cls_Model)   Then   
+          MsgBox   "The   current   model   is   not   an   Physical   Data   model. "   
+    Else   
+          ProcessFolder   mdl   
+    End   If  
+      
+    Private   sub   ProcessFolder(folder)   
+    On Error Resume Next  
+          Dim   Tab   'running     table   
+          for   each   Tab   in   folder.tables   
+                if   not   tab.isShortcut   then   
+                      tab.name   =   tab.comment  
+                      Dim   col   '   running   column   
+                      for   each   col   in   tab.columns   
+                      'comment为空则取code。否则截取。：（(前的字符串
+                      if col.comment = "" or replace(col.comment," ", "") = "" Then
+                            col.name = col.code
+                      ElseIf InStr(1, col.comment, "。") >= 1 Then
+                        col.name = Left(col.comment, InStr(1, col.comment, "。")-1)
+                      ElseIf InStr(1, col.comment, "：") >= 1 Then
+                        col.name = Left(col.comment, InStr(1, col.comment, "：")-1)
+                      ElseIf InStr(1, col.comment, "（") >= 1 Then
+                        col.name = Left(col.comment, InStr(1, col.comment, "（")-1)
+                      ElseIf InStr(1, col.comment, "(") >= 1 Then
+                        col.name = Left(col.comment, InStr(1, col.comment, "(")-1)
+                      else  
+                            col.name = col.comment
+                      end if
+                      next  
+                end   if   
+          next  
+      
+          Dim   view   'running   view   
+          for   each   view   in   folder.Views   
+                if   not   view.isShortcut   then   
+                      view.name   =   view.comment   
+                end   if   
+          next  
+      
+          '   go   into   the   sub-packages   
+          Dim   f   '   running   folder   
+          For   Each   f   In   folder.Packages   
+                if   not   f.IsShortcut   then   
+                      ProcessFolder   f   
+                end   if   
+          Next   
+    end   sub
+    ```
 
 ### 根据模型生成表结构
 
@@ -52,16 +114,21 @@ tags: [model, mysql, oracle]
 - **生成sql语句**：database -> Generate Database
 - mysql相关设置
     - 生成sql语句带有comment字段 [^5]
-        - database -> edit current dbms -> Script -> Objects -> Column -> Add -> 设置value为`%20:COLUMN% [%National%?national ]%DATATYPE%[%Unsigned%? unsigned][%ZeroFill%? zerofill][ [.O:[character set][charset]] %CharSet%][.Z:[ %NOTNULL%][%IDENTITY%? auto_increment:[ default %DEFAULT%]][ comment %.q:COMMENT%]]`
+        - database -> edit current dbms -> Script -> Objects -> Column -> Add -> 设置value为`%20:COLUMN% [%National%?national ]%DATATYPE%[%Unsigned%? unsigned][%ZeroFill%? zerofill][ [.O:[character set][charset]] %CharSet%][.Z:[ %NOTNULL%][%IDENTITY%? auto_increment:[ default %DEFAULT%]][ comment %.q:COMMENT%]]`(修改后报错)
         - database -> Generate Database -> Options -> 勾选Column下的Comment
         - database -> Generate Database -> Format -> 勾选Generate name in empty comment(将注释为空的字段用name代替注释)
 - oracle相关设置
     - 生成sql语句字段大写 [^6]
         - Database -> edit current dbms -> Script -> Sql -> Format -> UpperCaseOnly设为Yes
         - Database -> edit current dbms -> Script -> Sql -> Format -> CaseSensitivityUsingQuote设为No
-    - database -> Generate Database -> Objects -> Table/Sequence -> Drop的value设为`-- drop table [%QUALIFIER%]%TABLE% [cascade constraints]`(oracle drop时，如果表不存在会报错)
+    - Database -> edit current dbms -> Script -> Objects -> Table/Sequence -> Drop的value设为`-- drop table [%QUALIFIER%]%TABLE% [cascade constraints]`(oracle drop时，如果表不存在会报错)
     - sql语句的生成还和Table Properties -> More -> Pyhsical Options -> 右边窗口中的物理结果配置相关
-    
+
+ ### 反向生成/更新模型
+
+ - 创建一个空的PDM模型
+ - 选择Database - Update Model from Database(更新模型也可以，不会打乱现有排版)
+
 ### 数据字典 [^1]
 
 根据模型生成文档：html、word等
@@ -95,10 +162,10 @@ tags: [model, mysql, oracle]
 
     字段名 | 类型 | Java类型 | 说明
     ---------|----------|----------|---------
-    id | number(20) | Long | 
+    id | number(18) | Long | 
     name| varchar(60) | String | 
     notes | varchar(255) | String | 描述(**description是oracle的保留字**)
-    valid_status | int(1) | Integer | 默认值1
+    valid_status | number(5) | Integer | 默认值1
     create_time | Date | Date | 默认值SYSDATE
     money | Number(20, 6) | BigDecimal | 
     
@@ -108,11 +175,9 @@ tags: [model, mysql, oracle]
 
 ---
 
-参考文章
-
-[^1]: [数据字典生成](http://blog.csdn.net/nw_ningwang/article/details/77586602)
-[^2]: [配置mysql数据源](http://blog.csdn.net/winy_lm/article/details/70598378)
-[^3]: [PowerDesigner的使用安装和数据库创建](http://www.cnblogs.com/huangcong/archive/2010/06/14/1757957.html)
-[^4]: [PowerDesigner中如何生成主键和自增列](https://www.cnblogs.com/ShaYeBlog/p/4067884.html)
-[^5]: [PowerDesigner生成mysql字段comment注释](https://blog.csdn.net/yh88356656/article/details/49148061)
-[^6]: [为什么在powerdesigner成功将表生成到oracle，用sql操作提示表或视图不存在](https://www.cnblogs.com/liuhaixu/p/3659126.html)
+[^1]: http://blog.csdn.net/nw_ningwang/article/details/77586602 (数据字典生成)
+[^2]: http://blog.csdn.net/winy_lm/article/details/70598378 (配置mysql数据源)
+[^3]: http://www.cnblogs.com/huangcong/archive/2010/06/14/1757957.html (PowerDesigner的使用安装和数据库创建)
+[^4]: https://www.cnblogs.com/ShaYeBlog/p/4067884.html (PowerDesigner中如何生成主键和自增列)
+[^5]: https://blog.csdn.net/yh88356656/article/details/49148061 (PowerDesigner生成mysql字段comment注释)
+[^6]: https://www.cnblogs.com/liuhaixu/p/3659126.html (为什么在powerdesigner成功将表生成到oracle，用sql操作提示表或视图不存在)

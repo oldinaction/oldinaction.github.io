@@ -1,19 +1,147 @@
 ---
 layout: "post"
-title: "windows"
+title: "bat脚本"
 date: "2017-05-10 15:26"
-categories: [extend]
-tags: [bat]
+categories: [lang]
+tags: [windows]
 ---
 
-## bat脚本
+## 语法
 
-### 语法
+### 关键字
 
-- 注释：`::`、`rem`等 [^1]
-- `title`: 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)
+- `::`、`rem`等为注释 [^1]
+- `title=我的标题` 设置cmd窗口标题(乱码时，需要将文件记事本打开另保存为ANSI)
+- `echo [message]` 表示显示此命令后的字符
+- `echo on/off` 表示在此语句后所有运行的命令都是否显示命令行本身(`@echo off`关闭命令显示)
+- `pause` 运行此句会暂停批处理的执行并在屏幕上显示Press any key to continue...的提示，等待用户按任意键后继续
+- `call [drive:][path]filename [batch-parameters]` 调用另一个批处理文件（如果不用call而直接调用别的批处理文件，那么执行完那个批处理文件后将无法返回当前文件并执行当前文件的后续命令）
+- `%[1-9]` 表示参数，`%0`表示批处理命令本身
+- `exit` 关闭窗口
+- 符号
+    - `+` COPY命令文件连接符 
+    - `* ?` 文件通配符 
+    - `""` 字符串界定符 
+    - `|` 命令管道符 
+    - `< > >>` 文件重定向符 
+    - `@` 命令行回显屏蔽符 
+    - `/` 参数开关引导符 
+    - `:` 批处理标签引导符 
+    - `%` 批处理变量引导符 
+- `setlocal enabledelayedexpansion` 启用变量延迟模式，变量通过`!myVar!`获取 (bat是一行一行读取命令的，if的括号算做一行，所有容易出现变量赋值获取不到的情况) [^3]
 
-### 常用脚本
+### 变量 [^2]
+
+设置变量：`set 变量名=变量值`
+取消变量：`set 变量名=`
+展示变量：`set 变量名`
+列出所有可用的变量：`set`
+计算器：`set /a 表达式`，如`set /a 1+2*3`输出7
+
+### 控制语句
+
+- if语句
+    - `if [not] string1 == string2` 
+    - `if [not] %errorlevel% == 0` 如果最后运行的程序返回一个等于或大于指定数字的退出编码则返回true
+        - `%errorlevel%` 这是个系统变量，返回上条命令的执行结果代码。`0`表示成功，`1-255`表示失败
+    - `if [not] exist filename` 如果指定的文件名存在
+    - `if [/i] string1 compare-op string2`
+        - 参数`/i`表示不区分大小写
+        - compare-op
+            - `equ` 等于
+            - `neq` 不等于
+            - `lss` 小于
+            - `leq` 小于或等于
+            - `gtr` 大于
+            - `geq` 大于或等于
+    - `if defined variable` 判断变量是否存在
+
+```bat
+rem 示例1
+
+@echo off
+if 1==1 goto myEnd
+
+:myEnd
+echo AAA
+pause
+
+set /p var1="请输入一个字符串："
+set /p var2="请输入一个字符串："
+if "%var1%" == "Y" (echo yes) else (echo please input Y) ::此处%var1%需要用引号包裹
+if %var1% == %var2% (echo var1 eque var2) else (echo var1 not eque var2)
+if NOT %var1% == %var2% (echo var1 not eque var2) else (echo var1 eque var2)
+
+set a=10
+if DEFINED a (echo l hava define) else (echo l don't define)
+:: 注销变量a(变量值为空，则为未定义；变量值不为空，则为已定义)
+set a=
+if DEFINED a (echo l hava define) else (echo l don't define)
+
+set /p var=请输入一个数字:
+if %var% LEQ  4 (echo 我小于等于4) ELSE echo 我不小于等于4
+pause
+
+
+rem 示例2
+
+@echo off
+copy C:\abc.bat E:\
+if %ERRORLEVEl% == 0 (
+    echo operation succ %ERRORLEVEl%
+) else (
+    echo operation fail %ERRORLEVEl%
+)
+pause
+@echo off
+set /p var=随便输入一个命令
+%var%
+echo errorlevel is %ERRORLEVEL%
+if NOT %ERRORLEVEL% == 0 (
+　　echo !var!执行失败
+) else (
+　　echo !var!执行成功
+)
+pause
+
+rem 示例3
+
+@echo off
+set file="C:\abc.bat"
+if exist %file% (　　　　　　　　
+　　echo file is exists
+) else if exist b.txt (
+    echo b.txt is exists
+) else ( 　　　　　　　　　　	　　 
+　　echo file is not exists
+)
+pause
+```
+
+### 函数 
+
+- 定义：函数以`:函数名`开头，以`goto:eof`结尾
+- 调用：`call:函数名 [参数1,参数2,…]`
+
+```bat
+:myFuncName
+echo ...
+
+SETLOCAL  
+set a="这是局部变量作用域(SETLOCAL-ENDLOCAL)"
+ENDLOCAL
+goto:eof
+
+call:myFuncName
+```
+
+### 文件和文件夹操作
+
+- `echo 123456>0.txt` 输出123456至0.txt并覆盖原先文字
+- `echo 123456>>0.txt` 输出123456至0.txt追加至末尾
+- `del 0.txt` 删除文件
+
+## 常用脚本
 
 - 运行java
 
@@ -37,12 +165,31 @@ tags: [bat]
 
     ```bat
     @echo off
-    if "%1" == "h" goto begin
+    if "%1" == "back" goto begin
     mshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&&exit
     :begin
     :: 这是注释，后面运行脚本，如：
     java -jar my.jar
     ```
+- 获取脚本参数。`test.bat`内容如下。运行`test a.txt b.txt`则%1表示a.txt，%2表示b.txt 
+
+    ```bat
+    @echo off
+    type %1
+    type %2
+    ```
+- 获取键盘输入
+
+    ```bat
+    @echo off
+    :: 后面的语句也可不加双引号
+    set /p QQ="Input you QQ number ......"
+    echo Your QQ number is %QQ%.
+    :: 取消变量QQ的定义
+    set QQ=
+    pause
+    ````
+
 - 脚本示例
     - 进入到当前目录、设置环境变量
         - `%~dp0` %0代表批处理本身； ~dp是变量扩充， d扩充到分区，p扩充到路径
@@ -84,145 +231,7 @@ Tab(09) ; = 不常用的参数界定符
 第二, 与rem 不同的是, ::后的字符行在执行时不会回显, 无论是否用echo on打开命令行回显状态, 因为命令解释器不认为他是一个有效的命令行, 就此点来看, rem 在某些场合下将比 :: 更为适用; 另外, rem 可以用于 config.sys 文件中. 
 ===================== 
 
-echo 表示显示此命令后的字符 
-echo off 表示在此语句后所有运行的命令都不显示命令行本身 
-@与echo off相象，但它是加在每个命令行的最前面，表示运行时不显示这一行的命令行（只能影响当前行）。 
-call 调用另一个批处理文件（如果不用call而直接调用别的批处理文件，那么执行完那个批处理文件后将无法返回当前文件并执行当前文件的后续命令）。 
-pause 运行此句会暂停批处理的执行并在屏幕上显示Press any key to continue...的提示，等待用户按任意键后继续 
-rem 表示此命令后的字符为解释行（注释），不执行，只是给自己今后参考用的（相当于程序中的注释）。 
-==== 注 ===== 
-此处的描述较为混乱, 不如直接引用个命令的命令行帮助更为条理 
 
-------------------------- 
-ECHO 
-
-当程序运行时，显示或隐藏批处理程序中的正文。也可用于允许或禁止命令的回显。 
-
-在运行批处理程序时，MS-DOS一般在屏幕上显示（回显）批处理程序中的命令。 
-使用ECHO命令可关闭此功能。 
-
-语法 
-
-ECHO [ON|OFF] 
-
-若要用echo命令显示一条命令，可用下述语法： 
-
-echo [message] 
-
-参数 
-
-ON|OFF 
-指定是否允许命令的回显。若要显示当前的ECHO的设置，可使用不带参数的ECHO 
-命令。 
-
-message 
-指定让MS-DOS在屏幕上显示的正文。 
-
-------------------- 
-
-CALL 
-
-从一个批处理程序中调用另一个批处理程序，而不会引起第一个批处理的中止。 
-
-语法 
-
-CALL [drive:][path]filename [batch-parameters] 
-
-参数 
-
-[drive:][path]filename 
-指定要调用的批处理程序的名字及其存放处。文件名必须用.BAT作扩展名。 
-
-
-batch-parameters 
-指定批处理程序所需的命令行信息。 
-
-------------------------------- 
-
-PAUSE 
-
-暂停批处理程序的执行并显示一条消息，提示用户按任意键继续执行。只能在批处 
-理程序中使用该命令。 
-
-语法 
-
-PAUSE 
-
-
-REM 
-
-在批处理文件或CONFIG.SYS中加入注解。也可用REM命令来屏蔽命令（在CONFIG.SYS 
-中也可以用分号 ; 代替REM命令，但在批处理文件中则不能替代）。 
-
-语法 
-
-REM [string] 
-
-参数 
-
-string 
-指定要屏蔽的命令或要包含的注解。 
-======================= 
-
-例1：用edit编辑a.bat文件，输入下列内容后存盘为c:\a.bat，执行该批处理文件后可实现：将根目录中所有文件写入 a.txt中，启动UCDOS，进入WPS等功能。 
-
-　　批处理文件的内容为: 　　　　　　　 命令注释： 
-
-　　　　@echo off　　　　　　　　　　　不显示后续命令行及当前命令行 
-　　　　dir c:\*.* >a.txt　　　　　　　将c盘文件列表写入a.txt 
-　　　　call c:\ucdos\ucdos.bat　　　　调用ucdos 
-　　　　echo 你好 　　　　　　　　　　 显示"你好" 
-　　　　pause 　　　　　　　　　　　　 暂停,等待按键继续 
-　　　　rem 准备运行wps 　　　　　　　 注释：准备运行wps 
-　　　　cd ucdos　　　　　　　　　　　 进入ucdos目录 
-　　　　wps 　　　　　　　　　　　　　 运行wps　　 
-
-批处理文件的参数 
-
-批处理文件还可以像C语言的函数一样使用参数（相当于DOS命令的命令行参数），这需要用到一个参数表示符"%"。 
-
-%[1-9]表示参数，参数是指在运行批处理文件时在文件名后加的以空格（或者Tab）分隔的字符串。变量可以从%0到%9，%0表示批处理命令本身，其它参数字符串用%1到%9顺序表示。 
-
-例2：C:根目录下有一批处理文件名为f.bat，内容为： 
-@echo off 
-format %1 
-
-如果执行C:\>f a: 
-那么在执行f.bat时，%1就表示a:，这样format %1就相当于format a:，于是上面的命令运行时实际执行的是format a: 
-
-例3：C:根目录下一批处理文件名为t.bat，内容为: 
-@echo off 
-type %1 
-type %2 
-
-那么运行C:\>t a.txt b.txt 
-%1 : 表示a.txt 
-%2 : 表示b.txt 
-于是上面的命令将顺序地显示a.txt和b.txt文件的内容。 
-
-==== 注 =============== 
-参数在批处理中也作为变量处理, 所以同样使用百分号作为引导符, 其后跟0-9中的一个数字构成参数引用符. 引用符和参数之间 (例如上文中的 %1 与 a: ) 的关系类似于变量指针与变量值的关系. 当我们要引用第十一个或更多个参数时, 就必须移动DOS 的参数起始指针. shift 命令正充当了这个移动指针的角色, 它将参数的起始指针移动到下一个参数, 类似C 语言中的指针操作. 图示如下: 
-
-初始状态, cmd 为命令名, 可以用 %0 引用 
-cmd arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg10 
-^ ^ ^ ^ ^ ^ ^ ^ ^ ^ 
-| | | | | | | | | | 
-%0 %1 %2 %3 %4 %5 %6 %7 %8 %9 
-
-经过1次shift后, cmd 将无法被引用 
-cmd arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg10 
-^ ^ ^ ^ ^ ^ ^ ^ ^ ^ 
-| | | | | | | | | | 
-%0 %1 %2 %3 %4 %5 %6 %7 %8 %9 
-
-经过2次shift后, arg1也被废弃, %9指向为空, 没有引用意义 
-cmd arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg10 
-^ ^ ^ ^ ^ ^ ^ ^ ^ 
-| | | | | | | | | 
-%0 %1 %2 %3 %4 %5 %6 %7 %8 
-
-遗憾的是, win9x 和DOS下均不支持 shift 的逆操作. 只有在 nt 内核命令行环境下, shift 才支持 /n 参数, 可以以第一参数为基准返复移动起始指针. 
-================= 
 
 特殊命令 
 
@@ -704,5 +713,6 @@ C:\>TEST7
 
 参考文章
 
-[^1]: [注释](http://blog.csdn.net/wh_19910525/article/details/8125762)
-
+[^1]: http://blog.csdn.net/wh_19910525/article/details/8125762 (注释)
+[^2]: https://blog.csdn.net/fw0124/article/details/39996265 (变量)
+[^3]: http://www.360doc.com/content/15/0123/16/44521_443121050.shtml (变量延迟)

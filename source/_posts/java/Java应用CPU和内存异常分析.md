@@ -129,6 +129,36 @@ ofbiz任务机制有如下逻辑：当拉取任务线程为获取到需要执行
 
 由于个人觉得ofbiz任务机制不太好用，决定不去清理历史数据，而是手动定时清理(或绕过ofbiz定时去清理)。因此可以修改`/framework/service/config/serviceengine.xml`中`purge-job-days`的值。重新启动服务器(之前占用的内存无法及时清除，必须重启服务器)和项目一切正常
 
+
+### 内存溢出
+
+#### java.lang.OutOfMemoryError: PermGen space
+
+https://wenku.baidu.com/view/0ae2586b7e21af45b307a8ac.html
+关于cglib缓存问题 http://touchmm.iteye.com/blog/1155694 、 https://blog.csdn.net/englishma/article/details/42610545
+https://blog.csdn.net/Aviciie/article/details/79281080
+
+### 相关监测工具
+
+> MAT上文已介绍、Jprofile 需要注册
+
+#### JDK自带
+
+- jvisualvm.exe、jconsole.exe类似，下面以jvisualvm.exe为例
+- 本地连接：直接运行即可选择本地java项目进行监测
+- 远程连接(最好关闭防火墙和安全组设置1-65535的入栈。除了JMX server指定的监听端口号外，JMXserver还会监听一到两个随机端口号，这些端口都必须允许连接)
+    - 运行jstatd(可省略)
+        - 在JAVA_HOME/bin目录下创建jstatd.all.policy文件，内容如下
+
+            ```bash
+            grant codebase "file:${java.home}/../lib/tools.jar" {
+                permission java.security.AllPermission;
+            };
+            ```
+        - `$JAVA_HOME/bin/jstatd -J-Djava.security.policy=jstatd.all.policy` 运行jstatd
+    - 运行项目时添加JMX参数，如：`java -Djava.rmi.server.hostname=101.1.1.1 -Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=8091 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -jar video-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod`
+    - 添加JMX连接 - 输入`101.1.1.1:8091`即可
+
 ## 数据库服务器故障
 
 - CPU故障展现 [^4]
