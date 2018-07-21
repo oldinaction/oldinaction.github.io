@@ -12,11 +12,12 @@ tags: [oracle, dba]
 
 ### oracle相关名词和原理
 
-1. 数据库名(DB_NAME)、实例名(INSTANCE_NAME)、以及操作系统环境变量(ORACLE_SID) [^1]
-    - `DB_NAME`: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
-    - `INSTANCE_NAME`: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
-    - `ORACLE_SID`: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE_SID。此参数与ORACLE_BASE、`ORACLE_HOME`等用法相同。在数据库安装之后，ORACLE_SID被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。
-2. `SERVICE_NAME`：是网络服务名(如：local_orcl)，可以随意设置。相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称（如：`local_orcl=(...)`），也是登录pl/sql是填写的Database。
+1. 数据库名(db_name)、实例名(instance_name)、以及操作系统环境变量(oracle_sid) [^1]
+    - `db_name`: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
+    - `instance_name`: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
+    - `oracle_sid`: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE_SID。此参数与ORACLE_BASE、`ORACLE_HOME`等用法相同。在数据库安装之后，ORACLE_SID被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。
+2. `service_name`：是网络服务名(如：local_orcl)，可以随意设置。相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称（如：`local_orcl=(...)`），也是登录pl/sql是填写的Database。
+3. `schema` schema为数据库对象的集合，为了区分各个集合，需要给这个集合起个名字，这些名字就是我们看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个schema。schema里面包含了各种对象如tables, views, sequences, stored procedures, synonyms, indexes, clusters, and database links。一个用户一般对应一个schema，该用户的schema名等于用户名，并作为该用户缺省schema
 
 ## oracle及pl/sql安装和使用
 
@@ -72,7 +73,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 4. 授权
     - `grant create session to aezo;`
     - `grant unlimited tablespace to aezo;`
-    - `grant dba to aezo;`
+    - `grant dba to aezo;` 导入导出时，只有dba权限的账户才能导入由dba账户导出的数据，因此不建议直接设置用户为dba
 
 ## 导入导出
 
@@ -85,7 +86,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 
 1. 导出
     - **用户模式**：`exp system/manager file=d:/exp.dmp owner=scott` 导出scott用户的所有对象，前提是system有相关权限
-        - **远程导出**：此时system/manager默认连接的是本地数据库。如果使用`exp system/manager@remote_orcl file=d:/exp.dmp owner=scott`(remote_orcl为在本地建立的远程数据库网络服务名. 即tnsnames.ora里面的配置项名称)则可导出远程数据库的相关数据，下同。
+        - **远程导出**：此时system/manager默认连接的是本地数据库。如果使用`exp system/manager@remote_orcl file=d:/exp.dmp owner=scott`(remote_orcl为在本地建立的远程数据库网络服务名. 即tnsnames.ora里面的配置项名称)则可导出远程数据库的相关数据，下同。或者system/manager@192.168.1.1:1521/orcl
         - 加上 `compress=y` 表示压缩数据
         - 加上 `rows=n` 表示不导出数据行，只导出结构
     - 表模式：`exp scott/tiger file=d:/exp.dmp tables=emp` 导出scott的emp表
@@ -121,6 +122,8 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 参考 [mysql-dba.md#Oracle表结构与Mysql表结构转换](/_posts/db/mysql-dba.md#Oracle表结构与Mysql表结构转换)
 
 ## 常用操作
+
+- sql命令行中执行bash命令加`!`，如`!ls`查看目录
 
 ### 系统相关
 

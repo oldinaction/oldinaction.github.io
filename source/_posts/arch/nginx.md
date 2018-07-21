@@ -25,6 +25,10 @@ tags: LB, HA
 - 安装**(详细参考下文`基于编译安装tengine`)**
     - `yum install nginx` 基于源安装(傻瓜式安装)
         - 默认可执行文件路径`/usr/sbin/nginx`(已加入到系统服务); 配置文件路径`/etc/nginx/nginx.conf`
+        - 安装时提示"No package nginx available."。问题原因：nginx位于第三方的yum源里面，而不在centos官方yum源里面，解决办法为安装epel(Extra Packages for Enterprise Linux)
+            - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
+            - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
+            - 再下载 `yum install nginx`
     - 程序包解压安装
 - 启动
     - `systemctl start nginx` 启动
@@ -36,8 +40,8 @@ tags: LB, HA
 - 相关命令
     - `ps -ef | grep nginx` 查看nginx安装位置(nginx的配置文件.conf在此目录下)
     - `sudo find / -name nginx.conf` 查看配置文件位置
-    - **校验配置**：`/usr/sbin/nginx -t` 检查配置文件的配置是否合法(也会返回配置文件位置)
-    - **重载配置文件**： `/usr/sbin/nginx -s reload`
+    - **校验配置**：`/usr/sbin/nginx -t` 检查配置文件的配置是否合法(也会返回配置文件位置)，适用windows
+    - **重载配置文件**： `/usr/sbin/nginx -s reload`，适用windows
     - 重启：`/usr/sbin/nginx -s restart` 有的配置文件改了必须重启
 
 ## nginx配置(nginx.conf)
@@ -75,6 +79,11 @@ server {
             proxy_pass http://127.0.0.1:8080;
             break;
         }
+    }
+
+    # nginx 配置，让index.html不缓存
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store";
     }
 
     # php文件转给fastcgi处理，但是需要安装如`php-fpm`来解析
@@ -129,6 +138,9 @@ pid /run/nginx.pid;
 # 一个nginx进程打开的最多文件描述符数目，理论值应该是最多打开文件数（系统的值ulimit -n）与nginx进程数相除，但是nginx分配请求并不均匀，所以建议与ulimit -n的值保持一致。
 #worker_rlimit_nofile 65535;
 
+# 导入其他配置文件
+# include /usr/share/nginx/modules/*.conf;
+
 #工作模式与连接数上限
 events {
     # 参考事件模型，use [ kqueue | rtsig | epoll | /dev/poll | select | poll ]; epoll模型是Linux 2.6以上版本内核中的高性能网络I/O模型，如果跑在FreeBSD上面，就用kqueue模型。
@@ -144,7 +156,7 @@ events {
 #    load ngx_http_rewrite_module.so; # 加载重写模块
 #}
 
-# 直接根据流转换（可进行oracle数据映射）。不能使用http协议转换，否则连接时报错ORA-12569包解析出错
+# 直接根据流转换（可进行oracle数据映射）。不能使用http模块转换，否则连接时报错ORA-12569包解析出错
 stream {
     upstream oracledb {
        hash $remote_addr consistent;
@@ -223,6 +235,8 @@ http {
         #                  '"$http_user_agent" $http_x_forwarded_for';
         #定义本虚拟主机的访问日志
         #access_log /var/log/nginx/aezo.cn.access.log main;
+
+        # include /etc/nginx/default.d/*.conf;
 
         #对 "/" 启用反向代理
         location / {
@@ -662,7 +676,7 @@ fi
 
 - 方法一 [^3]
     - nginx安装一般会自动注册到服务中取，有些手动安装可能需要自己注册，以nginx手动注册成服务为例
-    - 方法：在**`/usr/lib/systemd/system`**路径下创建`755`的文件nginx.service：`vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
+    - 方法：在**`/usr/lib/systemd/system`**路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
 
         ```bash
         # 服务的说明

@@ -8,9 +8,12 @@ tags: [vpn, linux]
 
 ## centos7安装vpn
 
-- `modprobe ppp-compress-18 && echo MPPE is ok` 验证内核是否加载了MPPE模块
-- `sudo yum -y install ppp pptpd iptables` 安装ppp、pptpd、iptables(安装前确保添加了epel源)
-- `vi /etc/ppp/options.pptpd` 配置PPP和PPTP的配置文件。查找`ms-dns`，添加两行
+### pptp
+
+- `sudo modprobe ppp-compress-18 && echo MPPE is ok` 验证内核是否加载了MPPE模块
+- `sudo yum -y install ppp pptpd iptables-services` 安装ppp、pptpd、iptables(安装前确保添加了epel源)
+    - `iptables`主要用来NAT规则
+- `sudo vi /etc/ppp/options.pptpd` 配置PPP和PPTP的配置文件。查找`ms-dns`，添加两行
 
     ```bash
     # Google DNS
@@ -20,32 +23,33 @@ tags: [vpn, linux]
     # ms-dns 223.5.5.5
     # ms-dns 223.6.6.6
     ```
-- `vi /etc/ppp/chap-secrets` 配置登录用户/协议/密码/ip地址段
+- `sudo vi /etc/ppp/chap-secrets` 配置登录用户/协议/密码/ip地址段
 
     ```bash
     username1    pptpd    passwd1    *
     test    pptpd    ok123456    *
     ```
-- `vi /etc/pptpd.conf` 配置pptpd。localip是服务端的虚拟地址, remoteip是客户端的虚拟地址。只要不和本机IP不冲突即可
+- `sudo vi /etc/pptpd.conf` 配置pptpd。localip是服务端的虚拟地址, remoteip是客户端的虚拟地址。只要不和本机IP不冲突即可(在末尾添加)
 
     ```bash
     localip 192.168.0.2-20
     remoteip 192.168.0.200-250
     ```
-- `vi /etc/sysctl.conf` 改为`net.ipv4.ip_forward = 1`
-- `sysctl -p` 使sysctl配置生效
-- `systemctl start pptpd` 启动pptpd服务
+- `sudo vi /etc/sysctl.conf` 改为`net.ipv4.ip_forward = 1`
+- `sudo sysctl -p` 使sysctl配置生效
+- `sudo systemctl start pptpd` 启动pptpd服务
 - 配置iptables防火墙放行和转发规则
     - `sudo iptables -L -n` 查看 iptables 过滤规则
     - 清空防火墙配置
         
         ```bash
-        sudo iptables -P INPUT ACCEPT     # 改成 ACCEPT 标示接收一切请求
+        sudo iptables -P INPUT ACCEPT        # 改成 ACCEPT 标示接收一切请求
         sudo iptables -F                     # 清空默认所有规则
         sudo iptables -X                     # 清空自定义所有规则
         sudo iptables -Z                     # 计数器置0
         ```
     - 配置规则
+        - 可以不用开启防火墙的端口拦截，及主要用iptables来进行nat配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.1` (eth0为内网端口)
 
         ```bash
         sudo iptables -A INPUT -p gre -j ACCEPT
@@ -56,6 +60,7 @@ tags: [vpn, linux]
         sudo iptables -A FORWARD -s 192.168.0.0/24 -o eth1 -j ACCEPT
         sudo iptables -A FORWARD -d 192.168.0.0/24 -i eth1 -j ACCEPT
         sudo iptables -I FORWARD -p tcp --syn -i ppp+ -j TCPMSS --set-mss 1356
+        # nat规则，如果没有外网网卡，可设置外网IP。如：iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.1
         sudo iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -o eth0 -j MASQUERADE
         # 开启几个常用端口，其他端口同理
         sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
@@ -73,7 +78,12 @@ tags: [vpn, linux]
 - windows连接VPN
     - VPN类型 `PPTP`
     - 勾选允许使用 `Microsoft CHAP 版本 2 （MS-CHAP v2）（M）`
-    
+
+### IPSec/L2TP
+
+- https://teddysun.com/448.html
+- https://github.com/kitten/setup-strong-strongswan   
+
 ---
 
 参考文章

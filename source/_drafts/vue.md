@@ -10,6 +10,8 @@ tags: vue
 
 - 习惯
     - 项目url固定链接不以`/`结尾，使用地方手动加`/`方便全局搜索
+- 注意
+    - vue单文件组件，每个文件里面只能还有一个script标签；如果含有多个，默认只解析最后一个
 
 - 文件引入
     
@@ -272,6 +274,56 @@ this.$root.eventHub.$on('eventName', (data)=>{
 })
 ```
 
+### 动态组件 [^1]
+
+- `v-bind:is="组件名"`：就是几个组件放在一个挂载点下，然后根据父组件的某个变量来决定显示哪个，或者都不显示
+- `keep-alive`：默认被切换掉（非当前显示）的组件，是直接被移除了。假如需要子组件在切换后，依然需要他保留在内存中，避免下次出现的时候重新渲染，那么就应该在component标签中添加`keep-alive`属性
+- `activate`：钩子，延迟加载
+- `transition-mode`过渡模式
+
+```js
+<div id="app">  
+    <button @click="toshow">点击让子组件显示</button>
+    <component v-bind:is="which_to_show" keep-alive></component>  
+</div>
+
+<script>  
+    var vm = new Vue({  
+        el: '#app',  
+        data: {  
+            which_to_show: "first"  
+        },  
+        methods: {  
+            toshow: function () {   //切换组件显示  
+                var arr = ["first", "second", "third", ""];  
+                var index = arr.indexOf(this.which_to_show);  
+                if (index < 3) {  
+                    this.which_to_show = arr[index + 1];  
+                } else {  
+                    this.which_to_show = arr[0];  
+                }  
+            }  
+        },  
+        components: {  
+            first: { //第一个子组件  
+                template: "<div>这里是子组件1</div>"  
+            },  
+            second: { //第二个子组件  
+                template: "<div>这里是子组件2</div>"  
+            },  
+            third: { //第三个子组件  
+                template: "<div>这里是子组件3</div>"  
+            },  
+        }  
+    });  
+</script>
+
+```
+
+### Vue.use
+
+- https://segmentfault.com/q/1010000013184129?sort=created
+
 ## 路由
 
 - query和params的区别：query参数会拼接到url上面，param不会。因此路由跳转后再次刷新页面会导致参数丢失
@@ -288,3 +340,10 @@ this.$router.push({
 ### 路由变化数据无法更新
 
 - 参考上文【父子组件加载】中的示例，监控`$route`变化
+
+
+---
+
+参考文章
+
+[^1]: https://www.cnblogs.com/-ding/p/6339740.html (动态组件)

@@ -10,6 +10,7 @@ tags: [CentOS, linux]
 
 - 基于centos7介绍
 - **如果服务器磁盘未挂载，最好先挂载后再进行软件安装**
+- 软件安装和项目代码最好不要放到home的用户目录，项目迁移时可能出现目录不一致问题
 
 ### 基本配置
 
@@ -23,7 +24,7 @@ tags: [CentOS, linux]
         - 删除端口：`firewall-cmd --zone= public --remove-port=80/tcp --permanent`
     - 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
 - 永久关闭`SELinux`
-    - `vi /etc/selinux/config` 将SELINUX=enforcing改为SELINUX=disabled后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
+    - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
 - centos7无法使用`ifconfig`命令解决方案
     - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
     - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
@@ -32,46 +33,64 @@ tags: [CentOS, linux]
 
 - **自定义服务参考`《nginx.md》(基于编译安装tengine)`**
 
-### 安装技巧
+### 安装方式说明
+
+#### yum安装
 
 - `yum`安装：`yum install xxx`(基于包管理工具安装，可以更好的解决包依赖关系)
+- yum常用命令
     - `yum -y install nginx` 安装时回答全部问题为是
     - `yum remove nginx` **卸载**
     - `yum search vsftpd` 查找软件vsftpd源
-    - `cd /etc/yum.repos.d` 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。可更换镜像列表 [^3]
-        - `mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup` 备份(需要先确保已经安装`wget`)
-        - `wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo` 下载
-        - `yum makecache` 生成缓存
-- `tar.gz`等绿色安装包：解压**`tar -xvf xxx_0.0.1_linux_amd64.tar.gz`**, 会在当前目录生成一个`xxx_0.0.1_linux_amd64`的文件夹
-    - 部分直接是绿色文件，解压后可运行
-    - 部分需要在运行一些安装程序，进入文件加运行相应的二进制文件即可
-- `.bin`等可执行文件安装：`./xxx.bin`(可能需要设置权限成可执行，本质是rpm安装)
-- `rpm`格式文件安装(redhat package manage)
-    - **`rpm -ivh jdk-7u80-linux-x64.rpm`** 安装程序包(jdk)
-        - `--force` 强行安装，可以实现重装或降级
-        - `rpm -Uvh nginx` 如果装有老版本则升级，否则安装
-        - `rpm -Fvh nginx` 如果装有老版本则升级，否则退出
-    - `rpm -qa` 查看安装的程序包(`rpm -qa | grep nginx` 查看是否安装nginx)
-    - `rpm -ql jdk | more` 查询指定包安装后生成的文件列表
-    - **`rpm -qc nginx`** 查询指定包安装的配置文件
-    - `rpm -qi jdk` 查看jdk安装信息
-    - `rpm -e rpm包名` 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
-- `源码安装
-    - 前提：准备开发环境(编译环境)，安装"Development Tools"和"Development Libraries" 
-        - `yum groupinstall Development Tools Development Libraries`
-    - 源码安装完成后可删除源码文件夹
-    - 示例如
+- 更换镜像
+    - `cd /etc/yum.repos.d` 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。**可更换镜像列表** [^3]
+    - `mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup` 备份(需要先确保已经安装`wget`)
+    - `wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo` 下载阿里云镜像
+    - `yum makecache` 生成缓存
+- 安装epel(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
+    - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
+    - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
 
-        ```shell
-        # 解压源码包
-        tar -zxvf tengine-1.4.2.tar.gz
-        cd tegnine-1.4.2
-        # configure配置，`--prefix`为安装位置
-        ./configure --prefix=/usr/local/tengine --conf-path=/etc/tengine/tengine.conf
-        # make test 测试编译
-        # 编译安装
-        make && make install
-        ```
+#### tar.gz安装包安装
+
+- `tar.gz`等绿色安装包：解压**`tar -xvf xxx_0.0.1_linux_amd64.tar.gz`**, 会在当前目录生成一个`xxx_0.0.1_linux_amd64`的文件夹
+- 部分直接是绿色文件，解压后可运行
+- 部分需要在运行一些安装程序，进入文件加运行相应的二进制文件即可
+
+### .bin安装
+
+- `.bin`等可执行文件安装：`./xxx.bin`(可能需要设置权限成可执行，本质是rpm安装)
+
+#### rpm安装
+
+- `rpm`格式文件安装(redhat package manage。有依赖关系，安装和卸载也有先后顺序)
+- **`rpm -ivh jdk-7u80-linux-x64.rpm`** 安装程序包(jdk)
+    - `--force` 强行安装，可以实现重装或降级
+    - `rpm -Uvh nginx` 如果装有老版本则升级，否则安装
+    - `rpm -Fvh nginx` 如果装有老版本则升级，否则退出
+- `rpm -qa` 查看安装的程序包(`rpm -qa | grep nginx` 查看是否安装nginx)
+- `rpm -ql jdk | more` 查询指定包安装后生成的文件列表
+- **`rpm -qc nginx`** 查询指定包安装的配置文件
+- `rpm -qi jdk` 查看jdk安装信息
+- **`rpm -e rpm包名`** 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
+
+#### 源码安装
+
+- 前提：准备开发环境(编译环境)，安装"Development Tools"和"Development Libraries" 
+    - `yum groupinstall Development Tools Development Libraries`
+- 源码安装完成后可删除源码文件夹
+- 示例如
+
+    ```shell
+    # 解压源码包
+    tar -zxvf tengine-1.4.2.tar.gz
+    cd tegnine-1.4.2
+    # configure配置，`--prefix`为安装位置
+    ./configure --prefix=/usr/local/tengine --conf-path=/etc/tengine/tengine.conf
+    # make test 测试编译
+    # 编译安装
+    make && make install
+    ```
 
 ### 安装jdk
 
@@ -82,7 +101,7 @@ tags: [CentOS, linux]
 - 通过ftp上传jdk对应tar压缩包到对应目录并进行解压
 - 下载tar格式（推荐）
   - 下载tar文件并上传到服务器
-  - 解压tar `tar -zxvf jdk-7u79-linux-x64.tar.gz -C /opt/soft`
+  - 解压tar **`tar -zxvf jdk-7u79-linux-x64.tar.gz -C /opt/soft`**
 - 下载rpm格式
   - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 7 -> Java SE Development Kit 7u80 -> Accept License Agreement -> jdk-7u80-linux-x64.rpm
   - `rmp -ivh jdk-7u80-linux-x64.rpm` 安装rpm文件
@@ -180,6 +199,25 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     - 配置文件默认路径：`/etc/my.cnf`
     - `yum remove mysql` 卸载
 
+### 安装oracle客户端 [^4]
+
+- 下载`rpm`(地址：http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html，此地址为64位包下载)
+- 如安装`oracle11.2.0.4客户端`，下载`oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm`和`oracle-instantclient11.2-sqlplus-11.2.0.4.0-1.x86_64.rpm`，并上传到服务器
+- 安装运行 `rpm -ivh oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm`、`rpm -ivh oracle-instantclient11.2-sqlplus-11.2.0.4.0-1.x86_64.rpm`
+- 环境变量配置`vi ~/.bash_profile`
+
+    ```bash
+    export ORACLE_BASE=/usr/lib/oracle/11.2    #尤其注意这里要正确
+    export ORACLE_HOME=$ORACLE_BASE/client64     #尤其注意这里要正确
+    export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
+    export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+    ```
+    - `source ~/.bash_profile` 使配置生效
+- sqlplus连接：`sqlplus smalle/smalle@192.168.1.1:1521/orcl`
+    - 配置了环境变量仍然不生效，报错`bash: sqlplus: command not found`。解决办法创建符号链接：`ln -s $ORACLE_HOME/bin/sqlplus /usr/bin`
+- 配置TNS，在`/usr/lib/oracle/11.2/client64/network/admin/tnsnames.ora`中加入TNS配置(可能需要自行创建`network/admin/tnsnames.ora`的目录和文件)
+    - `sqlplus smalle/smalle@my_dbtest`
+
 ### tomcat安装
 
 - `tar -zxvf apache-tomcat-7.0.61.tar.gz` 解压
@@ -257,6 +295,7 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
 
 参考文章
 
-[^1]: [vsftpd](http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html)
-[^2]: [ftp-530-Permission-denied](http://www.cnblogs.com/GaZeon/p/5393853.html)
-[^3]: [更换yum镜像](http://blog.csdn.net/inslow/article/details/54177191)
+[^1]: http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html (vsftpd)
+[^2]: http://www.cnblogs.com/GaZeon/p/5393853.html (ftp-530-Permission-denied)
+[^3]: http://blog.csdn.net/inslow/article/details/54177191 (更换yum镜像)
+[^4]: https://www.cnblogs.com/taosim/articles/2649098.html (安装oracle客户端)

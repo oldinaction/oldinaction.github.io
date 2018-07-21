@@ -40,7 +40,7 @@ tags: [windows]
 
 ### 控制语句
 
-- if语句
+#### if语句
     - `if [not] string1 == string2` 
     - `if [not] %errorlevel% == 0` 如果最后运行的程序返回一个等于或大于指定数字的退出编码则返回true
         - `%errorlevel%` 这是个系统变量，返回上条命令的执行结果代码。`0`表示成功，`1-255`表示失败
@@ -117,6 +117,10 @@ if exist %file% (　　　　　　　　
 )
 pause
 ```
+
+#### for语句
+
+- `for /l %%a in (1,1,5) do md %%a` 循环创建1-5的文件夹
 
 ### 函数 
 

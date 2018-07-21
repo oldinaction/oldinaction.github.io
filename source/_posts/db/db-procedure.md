@@ -35,21 +35,28 @@ tags: [oracle, mysql, procedure]
 		- `show error` 显示详细错误信息。当PL/SQL存在语法错误时，程序只提示有编译错误，如果想了解哪一行出错，需使用语句show error
 - 示例
 
+- 1.输出Hello World!
+
 ```sql
--- 1.输出Hello World!
 begin 
 	dbms_output.put_line('Hello World!');/*输出*/
 end;/*在程序末尾回车敲正斜线运行程序*/
+```
 
--- 2.变量声明、赋值、输出
+- 2.变量声明、赋值、输出
+
+```sql
 declare
 	v_name varchar2(20);/*声明变量*/
 begin
 	v_name := 'myname';/*变量赋值，使用符号 := */ 
 	dbms_output.put_line(v_name);/*输出变量*/
 end;
+```
 
--- 3.使用%type动态声明变量的类型
+- 3.使用%type动态声明变量的类型
+
+```sql
 declare
 	v_empno number(4);/*声明变量*/
 	v_empno2 emp.empno%type;/*此时使用%type后v_empno2的类型会根据emp.empno的类型变化而变化*/
@@ -57,18 +64,45 @@ declare
 begin
 	dbms_output.put_line('Hello');
 end;
+```
 
--- 4.Table变量类型(复合数据类型，相当于java中的数组)
+- **4.Table变量类型(复合数据类型，相当于java中的数组/Map)**
+	- 更多参考：https://docs.oracle.com/cd/B28359_01/appdev.111/b28370/collections.htm#CHDEIDIC 、 https://stackoverflow.com/questions/20329078/oracle-insert-into-a-table-type
+
+```sql
 declare
 	type type_table_emp_empno is table of emp.empno%type index by binary_integer;/*声明一个数组类型type_table_emp_empno，里面装的是emp.empno的类型*/
-		v_empnos type_table_emp_empno;/*声明变量v_empnos的数据类型为type_table_emp_empno*/
+	v_empnos type_table_emp_empno;/*声明变量v_empnos的数据类型为type_table_emp_empno*/
 begin
+	-- select distinct t.username bulk collect into v_empnos from t_user t; -- 默认从1开始填充
+
 	v_empnos(0) := 7369;
-	v_empnos(2) := 7839;
+	v_empnos(1) := 7839; 
 	v_empnos(-1) := 9999;
 	dbms_output.put_line(v_empnos(-1));
 end;
+-- (2)
+declare
+	type my_type is table of varchar2(64) index by varchar2(64);
+	v_table  my_type;
+	i varchar2(64);
+begin
+	-- 添加值
+	v_table('hello') := 'world';
+	v_table('name') := 'smalle';
+	v_table('age') := '18';
+	-- 改变值
+	v_table('name') := 'aezocn';
+	-- 打印
+	i := v_table.first;
+	while i is not null loop
+		dbms_output.put_line('v_table of ' || i || ' is ' || v_table(i));
+		i := v_table.next(i);
+	end loop;
+end;
+```
 
+```sql
 -- 5.Record变量类型(复合数据类型，相当于java中的类)
 declare
 	type type_record_dept is record
@@ -94,6 +128,7 @@ begin
 	v_temp.loc := 'bj';
 	dbms_output.put_line(v_temp.deptno || ' ' || v_temp.dname);/*输出变量*/
 	update my_table set row = v_temp where id = 10000;
+	-- 这样插入，不会自动填充字段默认值，普通insert语句是可以填充默认值的
 	insert into my_table values v_temp;
 end;
 
@@ -654,6 +689,7 @@ if ... elsif ... end if; -- 注意是 elsif
 		exception
 			when others then dbms_output.put_line('出错'); -- 捕获异常后继续下一次循环
 			-- when others then null; -- 捕获异常后继续下一次循环
+			continue; -- 继续下一个循环
 	end;
 	```
 

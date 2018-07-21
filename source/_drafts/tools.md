@@ -16,7 +16,10 @@ tags: tools
     - 把Cmder.exe存放的目录添加到系统环境变量
     - cmd管理员模式运行命令`Cmder.exe /REGISTER ALL`
 
-### abc
+### MobaXterm
+
+- 代替xssh、xftp、web服务器
+- 保持ssh连接：settings - ssh - 勾选ssh keepalive
 
 
 

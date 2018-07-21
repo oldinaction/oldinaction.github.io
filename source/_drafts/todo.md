@@ -9,6 +9,9 @@
 
 - 去除session.setAttribute(BaseKeys.SessionUserInfo, userDetails);
 - services目录名改为service
+- pom中加入resource目录的资源,maven打包问题
+- Result对象data参数中考虑多态保存map和object 
+- CustomAuthenticationProvider.authenticate 去除对usernamenotfound的捕获
 
 
 ### blog

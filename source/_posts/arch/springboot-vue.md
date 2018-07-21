@@ -154,9 +154,19 @@ tags: [springboot, vue]
         - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
         - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
 
+## 用户浏览器缓存问题 [^5]
 
+- 使用vue框架开发，版本更新，用户浏览器会存在缓存问题
+- vue-cli里的默认配置，css和js的名字都加了哈希值，所以新版本css、js和就旧版本的名字是不同的，不会有缓存问题。
+- 不过值得注意的是，把打包好的index.html放到服务器里去的时候，index.html在服务器端可能是有缓存的，这需要在服务器配置不让缓存index.html
+- nginx 配置，让index.html不缓存
 
-
+```bash
+# nginx 配置，让index.html不缓存
+location = /index.html {
+    add_header Cache-Control "no-cache, no-store";
+}
+```
 
 
 
@@ -170,7 +180,8 @@ tags: [springboot, vue]
 
 参考文章
 
-[^1]: [跨域资源共享CORS详解](http://www.ruanyifeng.com/blog/2016/04/cors.html)
-[^2]: [浏览器同源政策及其规避方法](http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html)
-[^3]: [spring-security-cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
-[^4]: [springBoot与axios表单提交](https://segmentfault.com/a/1190000013312233)
+[^1]: http://www.ruanyifeng.com/blog/2016/04/cors.html (跨域资源共享CORS详解)
+[^2]: http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html (浏览器同源政策及其规避方法)
+[^3]: https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html (spring-security-cors)
+[^4]: https://segmentfault.com/a/1190000013312233 (springBoot与axios表单提交)
+[^5]: https://blog.csdn.net/qq_32340877/article/details/80338271 (使用vue框架开发，版本更新，解决用户浏览器缓存问题)

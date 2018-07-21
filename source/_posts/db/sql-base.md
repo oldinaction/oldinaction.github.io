@@ -727,7 +727,7 @@ mysql>select count(num) 	/*注释：组函数*/
     - 用户权限组关系表(t_user_security_group、多对多)：id、user_id、security_group
 - 角色相关表
     - 角色类型树：如总经理、销售经理、市场经理、员工
-    - 部门表
+    - 部门树
 
 - 设计树状结构的存储
 

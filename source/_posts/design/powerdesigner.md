@@ -29,7 +29,7 @@ tags: [model, mysql, oracle]
     - `Name` 显示的中文名(最终为该字段的说明)
     - `Code` 字段名
     - `Comment` 字段备注(不会生成到数据库中)
-    - `I`：自增序列
+    - `I`：自增序列(mysql可以勾选)
     - `P`：PirmaryKey 主键
     - `F`：ForeignKey 外键
     - `M`：Mandatory 强制要求（不能为空）
@@ -174,6 +174,8 @@ tags: [model, mysql, oracle]
     
 
 ---
+
+参考文章
 
 [^1]: http://blog.csdn.net/nw_ningwang/article/details/77586602 (数据字典生成)
 [^2]: http://blog.csdn.net/winy_lm/article/details/70598378 (配置mysql数据源)

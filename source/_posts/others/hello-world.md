@@ -96,6 +96,7 @@ categories和tage都可以有多个
 ### 说明
 
 - 图片格式如：`![hello](/data/images/2017/07/hello.png)`
+- 内部链接格式如：`[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md#基于编译安装tengine)`，其中`#`后面为完整子标题
 
 ### 搜索
 

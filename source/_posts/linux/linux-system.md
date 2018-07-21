@@ -8,12 +8,18 @@ tags: [linux, shell]
 
 ## 基础知识
 
+### 发行版
+
+- Linux的发行版本可以大体分为两类，一类是商业公司维护的发行版本，一类是社区组织维护的发行版本，前者以著名的Redhat（RHEL）为代表，后者以Debian为代表
+- `Redhat系列`：包括`RHEL`(Redhat Enterprise Linux)、`Fedora Core`(由原来的Redhat桌面版本发展而来，免费版本)、`CentOS`(RHEL的社区克隆版本，免费)
+- `Debian系列`：包括`Debian`和`Ubuntu`等
+- Debian最具特色的是`apt-get / dpkg`包管理方式; Redhat是`yum`包管理方式
+
 ### 系统信息查询
 
 - 查看操作系统版本 `cat /proc/version`
-> 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
-
-- 查看CentOS版本 `cat /etc/redhat-release` 如：CentOS Linux release 7.2.1511 (Core)
+    - 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
+- 查看CentOS版本 `cat /etc/redhat-release`/`cat /etc/system-release` 如：CentOS Linux release 7.2.1511 (Core)
 - `hostname` 查看hostname
     - `hostnamectl set-hostname aezocn` 修改主机名并重启
 - `grep MemTotal /proc/meminfo` 查看内存
@@ -37,7 +43,7 @@ tags: [linux, shell]
 - `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
 - `telnet 192.168.1.1 8080` 检查端口
 - `curl http://www.baidu.com`或`wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
-    - wget爬去网站：`wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com`
+    - wget爬取网站：`wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com`
 - `netstat -lnp` 查看端口占用情况(端口、PID)
     - `ss -ant` CentOS 7 查看所有监听端口
     - root运行：`sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
@@ -79,7 +85,7 @@ tags: [linux, shell]
     - 脱机后台运行sh文件：**`nohup bash startofbiz.sh > /dev/null 2>&1 &`**
         - 打印日志后台运行`nohup java -jar /xxx/xxx.jar > my.log 2>&1 &`
         - 运行二进制文件：`nohup ./mybash > my.log 2>&1 &` 其中mybash为可执行的二进制文件
-        - sudo形式运行：`nohup sudo -b ./mybash > my.log 2>&1 &`
+        - **sudo形式运行**：`nohup sudo -b ./mybash > my.log 2>&1 &`（`nohup sudo ./mongod > /dev/null 2>&1 &`）
         - 可解决利用客户端连接服务器，执行的程序当客户端退出后，服务器的程序也停止了
         - `nohup`这个表示脱机执行，默认在当前目录生成一个`nohup.out`的日志文件
         - `&` 最后面的&表示放在后台执行
@@ -96,7 +102,7 @@ tags: [linux, shell]
     
 ### 服务相关命令
 
-- **自定义服务参考`《nginx.md》(基于编译安装tengine)`**
+- **自定义服务参考[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md#基于编译安装tengine)**
 - systemctl：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为**`/usr/lib/systemd/system`**或**/etc/systemd/system**)
     - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务(.service可省略，active (running)标识正在运行)
     - `systemctl list-units --type=service` 查看所有服务
@@ -145,7 +151,9 @@ tags: [linux, shell]
 
 ### 磁盘
 
-- 查看磁盘使用情况 `df -hl`
+- `df -h` 查看磁盘使用情况、分区、挂载点
+    - `df -h /home/smalle` 查询目录使用情况、分区、挂载点
+    - `df -Th` 查询文件系统格式
 - 查看数据盘 `fdisk -l`(如：Disk：/dev/vda ... Disk：/dev/vdb表示有两块磁盘)
 - 格式化磁盘 `mkfs.ext4 /dev/vdb` (一般云服务器买的磁盘未进行格式化文件系统和挂载)
 - 挂载磁盘 `mount /dev/vdb /home/` 挂载磁盘到`/home`目录
@@ -220,47 +228,38 @@ tags: [linux, shell]
     - `cd ..` 返回上一级目录
     - `cd /usr/local/xxx` 返回某一级目录
     - `cd ~`或`cd回车` 返回家目录
-- `du /home/smalle` 查看目录下文件大小
-    - `-a` 查看全部
-    - `du -a /home/smalle | sort -nr` 查看目录下文件大小，并降序排列
+- `du -sh /home/smalle | sort -n` 查看目录下文件大小，并按大小排列
 
 ### 压缩包(推荐tar) [^1]
 
-1. 解压
-    - `tar -zxvf archive.tar` 解压tar包(tar不存在乱码问题)
-        - 参数说明
-            - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
-                - `-c`: 建立压缩档案
-                - `-x`：解压
-                - `-t`：查看 tarfile 里面的文件
-                - `-r`：向压缩归档文件末尾追加文件
-                - `-u`：更新原压缩包中的文件
-            - 必须
-                - `-f`：使用档案名字，切记，这个参数是最后一个参数，后面只能接档案名
-            - 可选
-                - `-z`：有gzip属性的
-                - `-j`：有bz2属性的
-                - `-Z`：有compress属性的
-                - `-v`：显示所有过程
-                - `-O`：将文件解开到标准输出    
-                - `-p` 使用原文件的原来属性（属性不会依据使用者而变）
-                - `-P` 可以使用绝对路径来压缩
-        - 常用命令
-            - **`tar -xvf archive.tar -C /tmp`** 将压缩包释放到 /tmp目录下
-            - `tar -zxvf archive.tar.gz` 解压tar.gz
-            - `tar -xjvf archive.tar.bz2` 解压tar.bz2
-            - `tar -xZvf archive.tar.Z` 解压tar.Z
-    - `unzip file.zip` 解压zip
-    - `unrar e archive.rar` 解压rar
-2. 压缩
-    - **`tar -czf aezocn.tar.gz *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10)
-    - `tar -cvf aezocn.tar file1 file2 dir1` 同时压缩 file1, file2 以及目录 dir1。windows可使用7-zip
-    - `tar -cvf aezocn.tar *.jpg` 将目录里所有jpg文件打包成aezocn.jpg
-    - `tar -cjf aezocn.tar.bz2 *.jpg` 将目录里所有jpg文件打包成aezocn.tar后，并且将其用bzip2压缩，生成一个bzip2压缩过的包，命名为jpg.tar.bz2
-    - `tar -cZf aezocn.tar.Z *.jpg` 将目录里所有jpg文件打包成aezocn.tar后，并且将其用compress压缩，生成一个umcompress压缩过的包，命名为jpg.tar.Z
-    - `rar a aezocn.rar *.jpg` rar格式的压缩，需要先下载rar for linux
-    - `zip aezocn.zip *.jpg` zip格式的压缩，需要先下载zip for linux
-3. unzip乱码
+#### rar
+
+- 解压：**`tar -xzvf archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到 /tmp目录下(tar不存在乱码问题)
+- 压缩：**`tar -czvf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
+- 参数说明
+    - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
+        - **`-c`**: 建立压缩档案
+        - **`-x`**：解压
+        - `-t`：查看 tarfile 里面的文件
+        - `-r`：向压缩归档文件末尾追加文件
+        - `-u`：更新原压缩包中的文件
+    - 必须
+        - **`-f`**：使用档案名字，**切记这个参数是最后一个参数，后面只能接档案名**
+    - 解/压缩类型(可选)
+        - `-z`：有gzip属性的(archive.tar.gz)
+        - `-j`：有bz2属性的(archive.tar.bz2)
+        - `-Z`：有compress属性的(archive.tar.Z)
+    - 其他可选
+        - **`-v`**：显示所有过程
+        - `-O`：将文件解开到标准输出    
+        - `-p` 使用原文件的原来属性（属性不会依据使用者而变）
+        - `-P` 可以使用绝对路径来压缩
+
+#### unzip
+
+- `unzip file.zip` 解压zip
+- `zip aezocn.zip *.jpg` zip格式的压缩，需要先下载`zip for linux`
+- unzip乱码
     - 使用python解决(只能解决部分问题)
         - `vi pyzip` 新建文件pyzip
         - 加入代码
@@ -294,7 +293,14 @@ tags: [linux, shell]
         - `chmod +x pyzip` 将pyzip设置成可执行文件
         - `./uzip /home/xxxx.zip`
 
-4. rar安装问题，unzip乱码问题
+#### rar
+
+- `unrar e archive.rar` 解压rar
+- `rar a aezocn.rar *.jpg` rar格式的压缩，需要先下载rar for linux
+
+### 文件误删恢复
+
+- `debugfs` https://www.cnblogs.com/lidm/p/5833273.html (不支持xfs文件格式的恢复)
 
 ## vi/vim编辑器
 
@@ -607,14 +613,18 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
     - `/lost+found` 在ext2或ext3文件系统中，当系统意外崩溃或意外关机，而产生的一些文件碎片存放在此处。当再次启动时会进行检查修复。
     - `/media` 即插即用型存储设备挂载点自动在这个目录下创建，如USB盘系统
     - `/mnt` 用于存放挂载存储设备的挂载目录
-    - `/opt` 标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包
     - **`/proc`** 操作系统运行时，进场信息及内核信息(cpu，内存)存放在这里
         - proc目录为内核映射文件，修改此目录的文件就会修改内存数据
     - `/root` 超级权限用户root的家目录
     - `/sbin` 大多设计系统管理的命令存放，是超级权限用户root的可执行命令存放地，普通用户无法执行。和`/usr/sbin`、`/usr/local/sbin`目录类似
     - `/tmp` 临时文件目录。和`/var/tmp`目录类似
-    - `/usr` 用户目录
-        - `/local` 一般为安装软件目录，源码编译安装一般在`/usr/local/lib`目录下
+    - `/var`
+        - **`cat /var/log/messages`** 服务运行的日志文件
+    - `/usr` 用户目录。系统级的目录，可以理解为C:/Windows/，/usr/lib理解为C:/Windows/System32
+        - `/local` 一般为安装软件目录，源码编译安装一般在`/usr/local/lib`目录下。用户级的程序目录，可以理解为C:/Progrem Files/，用户自己编译的软件默认会安装到这个目录下
+        - `src` 系统级的源码目录
+        - `/local/src`：用户级的源码目录
+    - `/opt` 标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包。用户级的程序目录，可以理解为D:/Software，opt有可选的意思，这里可以用于放置第三方大型软件（或游戏），当不需要时，直接rm -rf掉即可。在硬盘容量不够时，也可将/opt单独挂载到其他磁盘上使用
 
 ### 系统启动顺序boot sequence
 

@@ -542,6 +542,26 @@ video = responseEntity.getBody();
 
 参考AEZO：《mybatis》：[http://blog.aezo.cn#java@mybatis](http://blog.aezo.cn/2017/05/22/java/mybatis/)
 
+### 事物支持 [^10]
+
+- `@Transactional` 注解对应的public类型函数. 一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)
+- 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
+- 隔离级别`@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读
+	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是：READ_COMMITTED。
+	- `READ_UNCOMMITTED`：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读和不可重复读，因此很少使用该隔离级别。
+	- `READ_COMMITTED`：该隔离级别表示一个事务只能读取另一个事务已经提交的数据。该级别可以防止脏读，这也是大多数情况下的推荐值。
+	- `REPEATABLE_READ`：该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略。该级别可以防止脏读和不可重复读。
+	- `SERIALIZABLE`：所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。
+- 传播行为`@Transactional(propagation = Propagation.REQUIRED)
+`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
+	- `REQUIRED`：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。
+	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
+	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常。
+	- `REQUIRES_NEW`：创建一个新的事务，如果当前存在事务，则把当前事务挂起。
+	- `NOT_SUPPORTED`：以非事务方式运行，如果当前存在事务，则把当前事务挂起。
+	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常。
+	- `NESTED`：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED。
+
 ### JdbcTemplate访问数据
 
 - 示例
@@ -822,6 +842,11 @@ video = responseEntity.getBody();
         }
     }
     ```
+
+### 多数据源
+
+http://blog.didispace.com/springbootmultidatasource/
+
 ### session共享
 
 - 基于redis实现session共享. 多个项目需要都引入此依赖，并连接相同的redis
@@ -849,27 +874,32 @@ video = responseEntity.getBody();
 - 在`resources`添加`banner.txt`文件. 内容自定义(文字转字符：http://patorjk.com/software/taag/)，如：
 
 	```html
-
-
 	 .oooo.    .ooooo.    oooooooo  .ooooo.   .ooooo.  ooo. .oo.   
 	`P  )88b  d88' `88b  d'""7d8P  d88' `88b d88' `"Y8 `888P"Y88b  
 	 .oP"888  888ooo888    .d8P'   888   888 888        888   888  
 	d8(  888  888    .o  .d8P'  .P 888   888 888   .o8  888   888  
 	`Y888""8o `Y8bod8P' d8888888P  `Y8bod8P' `Y8bod8P' o888o o888o
-
-
-
 	```
+
+## 常见错误
+
+- `nested exception is java.lang.IllegalArgumentException: Could not resolve placeholder 'crm.tempFolder' in value "${crm.tempFolder}"`
+	- 原因分析：一般由于存在多个`application`配置文件，然后并没有指定。则使用默认配置，运行时出现`No active profile set, falling back to default profiles: default`，从而缺少部分配置。实践时发现application.properties中已经配置了`spring.profiles.active=dev`，再idea中通过main方法启动时不报错，但是通过maven打包是测试不通过
+	- 解决办法参考：[《maven.md#结合springboot》](/_posts/arch/maven.md#结合springboot)。实际中主要是没有将`src/main/resources`目录添加到maven的resource中
 
 
 
 
 
 ---
-[^1]: [h2介绍](http://412887952-qq-com.iteye.com/blog/2322756)
-[^2]: [idea连接h2](https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache)
-[^3]: [spring-boot文件上传](http://blog.csdn.net/coding13/article/details/54577076)
-[^6]: [Springboot中mongodb的使用](http://www.cnblogs.com/ityouknow/p/6828919.html)
-[^7]: [Spring在代码中获取bean的几种方式](http://www.cnblogs.com/yjbjingcha/p/6752265.html)
-[^8]: [异步调用Async](http://blog.csdn.net/v2sking/article/details/72795742)
-[^9]: [Spring对CORS的支持](https://spring.io/blog/2015/06/08/cors-support-in-spring-framework)
+
+参考文章
+
+[^1]: http://412887952-qq-com.iteye.com/blog/2322756 (h2介绍)
+[^2]: https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache (idea连接h2)
+[^3]: http://blog.csdn.net/coding13/article/details/54577076 (spring-boot文件上传)
+[^6]: http://www.cnblogs.com/ityouknow/p/6828919.html (Springboot中mongodb的使用)
+[^7]: http://www.cnblogs.com/yjbjingcha/p/6752265.html (Spring在代码中获取bean的几种方式)
+[^8]: http://blog.csdn.net/v2sking/article/details/72795742 (异步调用Async)
+[^9]: https://spring.io/blog/2015/06/08/cors-support-in-spring-framework (Spring对CORS的支持)
+[^10]: http://blog.didispace.com/springboottransactional/ (@Transactional)

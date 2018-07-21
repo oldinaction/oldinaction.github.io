@@ -17,19 +17,24 @@ tags: [docker, centos]
 
 - Windows
     - 通过安装`DockerToolbox`，[安装文档和下载地址](https://docs.docker.com/toolbox/toolbox_install_windows/)
-    - 安装完成后运行桌面快捷方式`Docker Quickstart Terminal`，提示找不到`bash.exe`，可以浏览选择git中包含的bash。第一次启动较慢，启动成功会显示docker的图标
-        - 安装完成后，桌面图片`Oracle VM VirtualBox`其实是一个虚拟机，docker就运行在此虚拟机上（下载的docker镜像在虚拟硬盘上）；`Kitematic (Alpha)`为docker界面版管理工具
+        - 安装完成后桌面快捷方式：`Docker Quickstart Terminal`、`kitematic`、`Oracle VM VirtualBox`
+        - 运行`Docker Quickstart Terminal`，提示找不到`bash.exe`，可以浏览选择git中包含的bash(或者右键修改此快捷方式启动参数。目标：`"D:\software\Git\bin\bash.exe" --login -i "D:\software\Docker Toolbox\start.sh"`)。第一次启动较慢，启动成功会显示docker的图标
+        - `kitematic`是docker推出的GUI工具(启动后，会后台运行docker)
+        - `Oracle VM VirtualBox`其实是一个虚拟机，docker就运行在此虚拟机上（下载的docker镜像在虚拟硬盘上）；`Kitematic (Alpha)`为docker界面版管理工具
         - 如果DockerToolbox运行出错`Looks like something went wrong in step ´Checking status on default..`，可以单独更新安装`VirtualBox`
     - 或者安装[Boot2Docker](https://github.com/boot2docker/windows-installer)
+- linux
+    - `yum install docker` 安装
 
 ## 镜像
 
 - `docker pull NAME[:TAG]` 拉取镜像。如：`docker pull ubuntu:latest`，省略TAG则默认为`latest`
     - `docker pull www.aezo.cn/smtools:latest` 从私有镜像站下载镜像
-- `docker run -t -i ubuntu /bin/bash` 运行镜像
+- `docker run -t -i nginx /bin/bash` 运行nginx镜像
 - `docker images` 列出所有本地镜像
     - `docker inspect c28687f7c6c8` 获取某个image ID的详细信息
 - `docker search mysql` 搜索远程仓库镜像
+    - 查看某个Name的所有TAG：如centos访问`https://hub.docker.com/r/library/centos/tags/`查看
 
 ## 常用docker镜像
 

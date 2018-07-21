@@ -11,79 +11,80 @@ tags: [maven]
 ## maven实战
 
 ### maven镜像修改
-    - 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签(windows/linux均可)
 
-		```xml
-			<mirror> 
-				<id>alimaven</id>  
-				<name>aliyun maven</name>  
-				<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-				<mirrorOf>central</mirrorOf>          
-			</mirror>  
-		```
+- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签(windows/linux均可)
+
+	```xml
+		<mirror> 
+			<id>alimaven</id>  
+			<name>aliyun maven</name>  
+			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+			<mirrorOf>central</mirrorOf>          
+		</mirror>  
+	```
 
 ### maven父子项目
 
-	- parents主要配置如下：`pom.xml`
+- parents主要配置如下：`pom.xml`
 
-		```xml
+	```xml
+	<groupId>cn.aezo</groupId>
+	<artifactId>smtools</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<!-- 打包类型必须为pom -->
+	<packaging>pom</packaging>
+
+	<name>smtools</name>
+	<description>smtools</description>
+
+	<modules>
+		<module>utils</module>
+		<module>demo</module>
+	</modules>
+
+	<properties></properties>
+	<!--依赖形式一：父项目的依赖会被子项目自动继承-->
+	<dependencies></dependencies>
+
+	<!--依赖形式二：该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用-->
+	<!--好处是子项目可以不用写版本号 -->
+	<dependencyManagement>
+		<dependencies></dependencies>
+	<dependencyManagement>
+	```
+
+- child
+
+	```xml
+	<groupId>cn.aezo</groupId>
+	<artifactId>demo</artifactId>
+	<packaging>jar</packaging>
+
+	<!--声明父项目坐标-->
+	<parent>
 		<groupId>cn.aezo</groupId>
 		<artifactId>smtools</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<!-- 打包类型必须为pom -->
-		<packaging>pom</packaging>
+		<!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。 -->
+		<!-- <relativePath/>的默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom -->
+		<!-- 建议写上，否则仅打包子项目的时候会出错 -->
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 
-		<name>smtools</name>
-		<description>smtools</description>
-
-		<modules>
-			<module>utils</module>
-			<module>demo</module>
-		</modules>
-
-		<properties></properties>
-		<!--依赖形式一：父项目的依赖会被子项目自动继承-->
-		<dependencies></dependencies>
-
-		<!--依赖形式二：该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用-->
-		<!--好处是子项目可以不用写版本号 -->
-		<dependencyManagement>
-			<dependencies></dependencies>
-		<dependencyManagement>
-		```
-
-	- child
-
-		```xml
-		<groupId>cn.aezo</groupId>
-		<artifactId>demo</artifactId>
-		<packaging>jar</packaging>
-
-		<!--声明父项目坐标-->
-		<parent>
+	<properties></properties>
+	<!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号-->
+	<dependencies>
+		<!--依赖于此项目的其他模块:此时idea的Dependencies可看到相应的依赖关系-->
+		<dependency>
 			<groupId>cn.aezo</groupId>
-			<artifactId>smtools</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。 -->
-			<!-- <relativePath/>的默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom -->
-			<!-- 建议写上，否则仅打包子项目的时候会出错 -->
-			<relativePath>../pom.xml</relativePath>
-		</parent>
+			<artifactId>utils</artifactId>
+			<!--project.version表示当前项目(此pom文件所在的模块/项目)的版本-->
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+	```
 
-		<properties></properties>
-		<!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号-->
-		<dependencies>
-			<!--依赖于此项目的其他模块:此时idea的Dependencies可看到相应的依赖关系-->
-			<dependency>
-				<groupId>cn.aezo</groupId>
-				<artifactId>utils</artifactId>
-				<!--project.version表示当前项目(此pom文件所在的模块/项目)的版本-->
-				<version>${project.version}</version>
-			</dependency>
-		</dependencies>
-		```
-
-	- 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
+- 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
 
 ### maven项目依赖本地jar包
 
@@ -188,7 +189,7 @@ tags: [maven]
 		- 执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)
 		- 如果有pom.xml建议安装到本地再进行引用，(下面两种方式)否则编译的时候不会报错，但是运行时这些本地jar依赖就找不到(如：`nested exception is java.lang.NoClassDefFoundError`)
 		- 有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(`mvn install -DskipTests`)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此
-- 打包命令：`mvn package`
+- 打包命令：`mvn package` (`mvn clean package` 清理并打包)
 - 跳过测试进行打包：`mvn install -DskipTests` / `mvn package -DskipTests`.
     - 方式二:
 
@@ -212,51 +213,52 @@ tags: [maven]
 ## maven语法
 
 ### maven项目基本结构
-	- pom.xml
 
-		```xml
-		<?xml version="1.0" encoding="UTF-8"?>
-		<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-			<modelVersion>4.0.0</modelVersion>
+- pom.xml
 
-			<groupId>cn.aezo</groupId>
-			<artifactId>minions</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<!-- 打包类型可以是jar、war、pom等 -->
-			<packaging>jar</packaging>
+	```xml
+	<?xml version="1.0" encoding="UTF-8"?>
+	<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		<modelVersion>4.0.0</modelVersion>
 
-			<name>minions</name>
-			<description>Delegated the code to all minions</description>
+		<groupId>cn.aezo</groupId>
+		<artifactId>minions</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<!-- 打包类型可以是jar、war、pom等 -->
+		<packaging>jar</packaging>
 
-			<properties>
-				<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-				<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-				<java.version>1.8</java.version>
-			</properties>
+		<name>minions</name>
+		<description>Delegated the code to all minions</description>
 
-			<dependencies>
-				<dependency>
-					<groupId>junit</groupId>
-					<artifactId>junit</artifactId>
-					<version>4.12</version>
-				</dependency>
-			</dependencies>
-		</project>
-		```
+		<properties>
+			<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+			<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+			<java.version>1.8</java.version>
+		</properties>
 
-	- maven文件结构
+		<dependencies>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.12</version>
+			</dependency>
+		</dependencies>
+	</project>
+	```
 
-		```xml
-		- src
-			- main
-				- java
-					- xxx
-				- resources
-				- WEB-INFO
-					- web.xml
-			- test
-		```
+- maven文件结构
+
+	```xml
+	- src
+		- main
+			- java
+				- xxx
+			- resources
+			- WEB-INFO
+				- web.xml
+		- test
+	```
 
 ### 标签介绍
 
@@ -275,6 +277,7 @@ tags: [maven]
 	```xml
 	<build>
 		<resources>
+			<!--java目录下除了.java文件，其他格式的文件全部打包到jar中-->
 			<resource>
 				<directory>src/main/java</directory>
 				<includes>
@@ -284,10 +287,75 @@ tags: [maven]
 					<exclude>**/*.java</exclude>
 				</excludes>
 			</resource>
+			
+			<!--使用profiles时，过滤resources目录中的占位符号，maven默认占位符是${...}, springboot也是此占位符，因此使用<resource.delimiter>@</resource.delimiter>重写成了@...@。即读取profiles中的properties参数进行填充-->
+			<!--springboot一定要加，否则maven打包会漏配置文件，打包运行测试时无法读取配置文件-->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
 		</resources>
 	</build>
 	```
 
+## 结合springboot
+
+### 多环境编译 [^2]
+
+- 添加多环境配置
+
+```xml
+</project>
+	<profiles>
+        <profile>
+            <id>prod</id>
+            <properties>
+				<!--传递的参数-->
+                <profiles.active>prod</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+			<!--默认dev-->
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <profiles.active>test</profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+</project>
+```
+- 添加resource文件过滤
+
+```xml
+<build>
+	<resources>
+		<!--使用profiles时，过滤resources目录中的占位符号，maven默认占位符是${...}, springboot也是此占位符，因此使用<resource.delimiter>@</resource.delimiter>重写成了@...@。即读取profiles中的properties参数进行填充-->
+		<resource>
+			<directory>src/main/resources</directory>
+			<filtering>true</filtering>
+		</resource>
+	</resources>
+</build>
+```
+- springboot配置文件`application.properties`添加`spring.profiles.active=@profiles.active@`(参数名profiles.active为上述profiles中定义)
+- maven打包：`mvn clean package -Pdev` 其中`-P`后面即为参数值，后面可有空格。`@profiles.active@`定义之后则只能通过maven打包，不能再idea中直接main方法运行
+
+
 ---
 
-[^1]: [利用github搭建个人maven仓库](http://blog.csdn.net/hengyunabc/article/details/47308913)
+参考文章
+
+[^1]: http://blog.csdn.net/hengyunabc/article/details/47308913 (利用github搭建个人maven仓库)
+[^2]: https://yulaiz.com/spring-boot-maven-profiles/ (Spring-Boot application.yml 文件拆分，实现 maven 多环境动态启用 Profiles)
+
+
+

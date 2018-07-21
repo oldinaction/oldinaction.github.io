@@ -8,7 +8,7 @@ tags: [plugins, debug]
 
 ## 浏览器版本介绍
 
-- 访问`http://www.w3school.com.cn/tiy/t.asp?f=jseg_browserdetails`可查看浏览器版本信息(js获取示例)
+- 浏览器控制台执行`navigator`，或者访问`http://www.w3school.com.cn/tiy/t.asp?f=jseg_browserdetails`可查看浏览器版本信息(js获取示例)
 - `Windows NT 10.0; WOW64` win10 64位系统； `Windows NT 6.3` 为win8； `Windows NT 5.1` 为win xp
 - `Chrome/67.0.3396.10`为谷歌浏览器版本；`Firefox/60.0` 为火狐版本；`rv:11.0`为IE更新版本
 - 常见浏览器版本举例
