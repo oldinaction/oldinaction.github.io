@@ -4,7 +4,7 @@
 
 # Site
 title: SmalleBlog | AEZOCN
-subtitle: Better Code,Better Life
+subtitle: Better Code, Better Life
 description: 代码，让生活更美好
 author: Smalle
 language: zh-Hans
@@ -70,5 +70,8 @@ theme: next
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repository: https://github.com/aezocn/aezocn.github.io.git
+  # repository: https://github.com/aezocn/aezocn.github.io.git
+  repo:
+    # github: https://github.com/aezocn/aezocn.github.io.git
+    coding: git@git.coding.net:smalle/blog.git
   branch: master
