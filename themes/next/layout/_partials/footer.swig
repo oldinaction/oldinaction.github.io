@@ -18,5 +18,10 @@
   <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
     NexT.{{ theme.scheme }}
   </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;|
+</div>
+
+<div class="theme-info" style="margin-left:8px;">
+  {{ __('<p>Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a></p>') }}
 </div>
 {% endif %}
