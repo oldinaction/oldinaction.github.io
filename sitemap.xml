@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/07/21/others/speech/</loc>
+    
+    <lastmod>2018-07-21T05:06:24.796Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/04/02/web/npm/</loc>
     
     <lastmod>2018-07-21T03:54:26.275Z</lastmod>
@@ -128,14 +135,14 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
+    <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
     
     <lastmod>2018-07-21T03:54:26.247Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
+    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
     
     <lastmod>2018-07-21T03:54:26.247Z</lastmod>
     
@@ -467,13 +474,6 @@
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2018-07-21T03:54:26.128Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/07/21/arch/speech/</loc>
-    
-    <lastmod>2018-07-21T03:54:26.127Z</lastmod>
     
   </url>
   
