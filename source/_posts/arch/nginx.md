@@ -75,10 +75,29 @@ server {
         proxy_set_header Host $http_host;
         proxy_redirect off;
         if (!-f $request_filename) {
-            # 不能包含/等uri地址, 如果匹配到上面的uri则转向http://127.0.0.1:8080/xxxUri
             proxy_pass http://127.0.0.1:8080;
             break;
         }
+    }
+
+    # proxy_pass详解，访问 http://192.168.1.1/proxy/test.html 不同的配置代理结果不一致. 
+    ## 如果访问 http://192.168.1.1/proxy 则无法进入到下面代理，必须访问http://192.168.1.1/proxy/
+    ## location /proxy/ 不能写成 location /proxy(则 http://192.168.1.1/proxy/xxx 无法代理)
+    ## 第一种代理到URL：http://127.0.0.1/test.html
+    location /proxy/ {
+        proxy_pass http://127.0.0.1/;
+    }
+    ## 第二种代理到URL：http://127.0.0.1/proxy/test.html
+    location /proxy/ {
+        proxy_pass http://127.0.0.1;
+    }
+    ## 第三种代理到URL：http://127.0.0.1/pre/test.html
+    location /proxy/ {
+        proxy_pass http://127.0.0.1/pre/;
+    }
+    ## 第四种代理到URL：http://127.0.0.1/pretest.html
+    location /proxy/ {
+        proxy_pass http://127.0.0.1/pre;
     }
 
     # nginx 配置，让index.html不缓存

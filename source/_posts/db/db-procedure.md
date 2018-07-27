@@ -10,8 +10,347 @@ tags: [oracle, mysql, procedure]
 
 - Mysql存储过程调试工具：`dbForge Studio for MySQL`
 
+## Oracle
 
-## Oracle的PL/SQL语言
+- PL/SQL 语句结束一定要加分号`;`，如果没加运行会提示下一行出错
+- oracle转义字符为 `'` ，如 `''` 转义后就是 `'`
+- sqlplus查看存储过程 `select text from all_source where name = 'my_procedure';`
+
+### 控制语句
+
+```sql
+if ... end if;
+if ... else ... end if;
+if ... elsif ... end if; -- 注意是 elsif
+
+```
+
+### Oracle存储过程示例
+
+- `call p_up_user_role();` 调用存储过程
+
+```sql
+	-- 定义
+	create or replace procedure p_up_user_role is
+		cursor c is 
+			select t.* from user_login t; -- 游标
+		china_id number;
+	begin
+		select t.id into china_id from t_structure t where t.structure_type_status = 1 and t.node_level = 6 and t.node_name = '中国'; --可能出现运行时异常：ORA-01403 no data found
+
+		delete from user_login_security_group t where t.group_id = 'dw_dept_admin';
+		--for循环不需要声明变量，会自动将user_item声明为record变量
+		for user_item in c loop
+				insert into user_login_security_group(user_login_id, group_id, from_date) 
+							values(user_item.user_login_id, 'dw_dept_admin', '2017-11-01 00:00:00.000000');
+		end loop;
+		commit;
+	end;
+
+	-- 运行
+	call p_up_user_role();
+
+	-- 删除
+	drop procedure p_up_user_role;
+```
+
+- 示例二（动态游标、异常处理）
+
+	```sql
+	-- 创建错误日志表
+	create table logs_proc
+	(
+		id number primary key,
+		proc varchar2(255),
+		pidtype varchar2(255),
+		pid varchar2(20),
+		code number,
+		msg varchar2(1024),
+		uptime date
+	);
+	create sequence seq_logs_proc start with 1 increment by 1;
+
+	-- 创建存储过程
+	create or replace procedure p_up_storage is
+		type ref_cursor_type is ref cursor; --定义一个游标类型(动态游标使用)
+
+		cursor c is
+			select yls.*
+				from yyard_location_set yls, ybase_party_company ypc
+			where ypc.party_id = yls.yard_party_id
+				and ypc.company_num = 'DW1' 
+				and yls.region_num in ('Y0');
+
+		v_cur_storage ref_cursor_type; -- 动态游标
+		v_storage     ycross_storage%ROWTYPE;
+		v_sql         varchar2(1000);
+		v_x           number := 1;
+		v_y           number := 1;
+
+		v_errcode number;
+		v_errmsg  varchar2(1024);
+	begin
+		for loc in c loop
+			v_errmsg := '[code]p_up_storage==>' || loc.YARD_PARTY_ID || '-' || loc.REGION_NUM || loc.SET_NUM;
+			-- 更新此堆位下场存
+			v_x := 1;
+			v_y := 1;
+		
+			--使用连接符拼接成一条完整SQL. oracle转义字符为 ' ，如 '' 转义后就是 '
+			v_sql := 'select * from ycross_storage t where t.yes_storage = 1 and t.location_id = ' ||
+							loc.location_id;
+			-- 字符串分割案例。v_sql := 'select * from table (cast (sm_split (''' || myStr || ''', ''/'') as sm_type_arr_str))';
+
+			--打开游标
+			open v_cur_storage for v_sql;
+			loop -- 此处不能使用 for ... in ... loop的语句
+				fetch v_cur_storage into v_storage;
+				exit when v_cur_storage%notfound; -- 跳出循环
+
+				update ycross_storage t
+					set t.ycross_x = v_x, t.ycross_y = v_y
+				where t.id = v_storage.id;
+
+				if v_y < 7 then -- 也可以使用 like 等关键字
+					v_y := v_y + 1;
+				else
+					if v_x < 30 then
+						v_x := v_x + 1;
+						v_y := 1;
+					else
+						raise_application_error(-20001, v_errmsg || '位置超出堆位结构'); -- 抛出异常
+					end if;
+				end if;
+
+					-- 基于v_storage实现新增和修改
+					insert into ycross_storage values v_storage;
+					update ycross_storage set row = v_storage where id = 10000;
+			end loop;
+			close v_cur_storage;
+		
+		end loop;
+		commit;
+
+		return; -- 提前返回
+		dbms_output.put_line('不会打印');
+	exception
+		-- 捕获异常
+		when others then
+			--WHEN excption_name THEN ...WHEN OTHERS THEN ...
+			rollback;
+			v_errcode := SQLCODE; --出错代码
+			v_errmsg  := v_errmsg || ', [msg]' || SQLERRM; --出错信息（直接使用SQLERRM报错，需先用变量接收）
+			v_errmsg := v_errmsg || '; ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE; -- 报错行号
+			insert into logs_proc(id, code, mesg, uptime)
+			values
+				(seq_logs_proc.nextval, v_errcode, v_errmsg, sysdate);
+			commit;
+	end;
+	```
+
+### 异常
+
+- 异常属性
+	- `SQLCODE` 出错代码. 如：`-1722`
+	- `SQLERRM` 出错信息. 如：`ORA-01722: invalid number`
+	- `DBMS_UTILITY.FORMAT_ERROR_BACKTRACE` 报错行号等信息. 如：`ORA-06512: at "CRMADM.P_UP_CUSTOMER_LOCK", line 39`
+- 抛出异常 `raise_application_error` 该函数是将应用程序专有的错误从服务器端转达到客户端应用程序(其他机器上的sqlplus或者前台开发语言)
+	- `procedure raise_application_error(error_number_in in number, error_msg_in in varchar2);`
+	- `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。
+	- `error_msg_in`: 长度不能超过 2k，否则截取 2k
+- 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来
+
+	```sql
+	loop
+		begin
+		-- ...
+		exception
+			when others then dbms_output.put_line('出错'); -- 捕获异常后继续下一次循环
+			-- when others then null; -- 捕获异常后继续下一次循环
+			continue; -- 继续下一个循环
+	end;
+	```
+
+### oracle函数
+
+```sql
+	declare 
+		i integer;
+	begin
+		dbms_output.put_line('hello world');
+		p_up_user_role(); -- 调用上述存储过程
+	end;
+```
+
+## Mysql存储过程示例
+
+- 示例1
+
+```sql
+/*delimiter指分割符，Mysql默认的分割符是分号';'，如果没有声明分割符，那么编译器会把存储过程当成SQL语句来处理，容易报错，声明之后则把';'当成过程中的代码*/
+drop procedure if exists p;/*如果存储过程p存在就将它删除*/
+delimiter //
+create procedure p
+	(in v_a int, v_b int, out v_ret int, inout v_temp int)/*注意参数类型(in、out、inout)在参数名称之前*/
+begin/*存储过程的过程体以begin开头，end结果*/
+	if(v_a > v_b) then
+		set v_ret = v_a;/*使用 "set" 和 "=" 进行变量赋值*/
+	else
+		set v_ret = v_b;
+	end if;
+	set v_temp = v_temp + 1;
+end //
+delimiter ;/*还原Mysql默认的分割符*/
+
+/*调用存储过程*/
+set @v_a = 3;/*给参数赋值，用户变量一般以@开头*/
+set @v_b = 4;
+set @v_c = 0;/*out输出参数，最终会被改变*/
+set @v_temp = 5;
+call p(@v_a, @v_b, @v_c, @v_temp);/*运行存储过程p*/
+/*展示结果*/
+select @v_c, @v_temp;
+
++------+---------+
+| @v_c | @v_temp |
++------+---------+
+|    4 |       6 |
++------+---------+
+```
+
+- 示例2
+
+```sql
+create definer = 'root'@'localhost'
+procedure test.county(in `in_provid` int, in `in_urlid` int)
+begin
+	declare v_sql varchar(1000);
+	declare c_cityid integer;
+	declare c_cityname varchar(20);
+	declare c_countyname varchar(20);
+	declare c_cityid_tmp integer;
+
+	# 是否未找到数据标记(要在游标之前定义)
+	declare done int default false;
+
+	-- 定义第一个游标
+	declare cur1 cursor for
+	select
+		t.n_cityid,
+		t.s_cityname
+	from dict_city t
+	where t.n_provid = in_provid;
+
+	# 临时表游标
+	declare cur2 cursor for
+	select
+		s_countyname,
+		n_cityid as cityid
+	from tmp_table;
+
+	# 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)
+	declare continue handler for not found set done = true;
+
+	# 创建临时表
+	drop table if exists tmp_table;
+	create temporary table if not exists tmp_table (
+		id int(11) not null auto_increment primary key,
+		s_countyname varchar(20),
+		n_cityid int(10)
+	);
+
+	# mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量
+	open cur1;
+	flag_loop: loop
+		# 取出每条记录并赋值给相关变量，注意顺序
+		# 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！
+		fetch cur1 into c_cityid, c_cityname;
+
+		# fetch之后, 如果没有数据则会运行set done = true
+		if done then
+			# 跳出循环
+			leave flag_loop;
+		end if;
+
+		# 字符串截取，从第一位开始，截取2位
+		set c_cityname = substring(c_cityname, 1, 2);
+
+		# 动态sql执行后的结果记录集在mysql中无法获取，因此需要转变思路将其放置到一个临时表中
+		# 动态sql需要使用concat(a, b, c, ....)拼接
+		set v_sql = concat("insert into tmp_table(s_countyname, n_cityid) select t.`name`, ", c_cityid, " from sm_renthouse_url t where
+		t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");
+
+		# 如果以@开头的变量可以不用通过declare语句事先声明
+		set @v_sql = v_sql;
+		# 预处理需要执行的动态sql，其中stmt是一个变量
+		prepare stmt from @v_sql;
+		# 执行sql语句
+		execute stmt;
+		# 释放掉预处理段
+		deallocate prepare stmt;
+	end loop;
+	close cur1;
+
+	# 调试输出, 打印使用select
+	select
+		*
+	from tmp_table;
+
+	# 还原终止的标志, 用于第二个游标
+	set done = false;
+
+	open cur2;
+	flag_loop: loop
+		fetch cur2 into c_countyname, c_cityid_tmp;
+		if done then
+			leave flag_loop;
+		end if;
+
+		insert into dict_county (s_countyname, n_cityid, s_state)
+			values (c_countyname, c_cityid_tmp, '1');
+
+	end loop;
+	close cur2;
+
+	# 删除临时表
+	drop temporary table tmp_table;
+end
+```
+
+## SQLServer
+
+```sql
+ --分页查询
+ALTER proc [dbo].[SP_Test]
+		@Table nvarchar(50),--表.视图
+		@PageSize int,--每页显示数量
+		@PageIndex int,--当前显示页码
+		@Conditions nvarchar(300),--筛选条件
+		@Pages int output--返回总共有多少页
+as
+		declare @start int ,--当前页开始显示的No
+		@end int,--当前页结束显示的No
+		@Context nvarchar(1024), --动态sql语句
+		@pkey nvarchar(10)--主键或索引
+		set @start=(@PageIndex-1)*@PageSize+1
+		set @end=@start+@PageSize-1
+		set @pkey=index_col(@Table,1,1)--获取主键，或索引
+		--通过条件将符合要求的数据汇聚到临时表#temp上
+		set @Context='select row_number() over(order by '+@pkey+') as [No],* into #temp  from '+@Table
+		--判断是否有筛选条件传入
+		if(@Conditions is not null)
+
+			 set @Context=@Context+' where '+@Conditions
+		--通过查询#temp 表实现分页.
+		set @Context=@Context+'  select * from #temp where No between '+cast(@start as nvarchar(4))+' and '+cast(@end as nvarchar(4))
+		--返回出总共可以分成多少页
+		set @Context=@Context+'  declare @count int  select @count=count(*) from #temp  set @Pages= @count/'+cast(@PageSize as nvarchar(4))+'  if(@count%'+cast(@PageSize as nvarchar(4))+'<>0) set @Pages=@Pages+1 '
+
+		exec sp_executesql @Context,N'@Pages int output', @Pages output
+		-- sp_executesql @动态sql语句，@动态sql语句中需要的参数，@传入动态sql语句参数的值（个人理解）
+```
+
+## Oracle的PL/SQL语言(笔记)
 
 - PL/SQL和C、C++、Java一样是第三代语言，是一种注重过程的语言，可以解决复杂的事物关系。PL/SQL能处理的Java一般也能处理
 - 函数和存储过程的区别：函数只能返回一个变量的限制。而存储过程可以返回多个。而函数是可以嵌入在sql中使用的,可以在select中调用，而存储过程不行。执行的本质都一样。 
@@ -400,341 +739,6 @@ update dept set deptno = 99 where deptno = 10;
 
 -- 25.删除一个触发器
 drop trigger trig;/*删除触发器p*/
-```
-
-## Mysql存储过程示例
-
-- 示例1
-
-```sql
-/*delimiter指分割符，Mysql默认的分割符是分号';'，如果没有声明分割符，那么编译器会把存储过程当成SQL语句来处理，容易报错，声明之后则把';'当成过程中的代码*/
-drop procedure if exists p;/*如果存储过程p存在就将它删除*/
-delimiter //
-create procedure p
-	(in v_a int, v_b int, out v_ret int, inout v_temp int)/*注意参数类型(in、out、inout)在参数名称之前*/
-begin/*存储过程的过程体以begin开头，end结果*/
-	if(v_a > v_b) then
-		set v_ret = v_a;/*使用 "set" 和 "=" 进行变量赋值*/
-	else
-		set v_ret = v_b;
-	end if;
-	set v_temp = v_temp + 1;
-end //
-delimiter ;/*还原Mysql默认的分割符*/
-
-/*调用存储过程*/
-set @v_a = 3;/*给参数赋值，用户变量一般以@开头*/
-set @v_b = 4;
-set @v_c = 0;/*out输出参数，最终会被改变*/
-set @v_temp = 5;
-call p(@v_a, @v_b, @v_c, @v_temp);/*运行存储过程p*/
-/*展示结果*/
-select @v_c, @v_temp;
-
-+------+---------+
-| @v_c | @v_temp |
-+------+---------+
-|    4 |       6 |
-+------+---------+
-```
-
-- 示例2
-
-```sql
-create definer = 'root'@'localhost'
-procedure test.county(in `in_provid` int, in `in_urlid` int)
-begin
-	declare v_sql varchar(1000);
-	declare c_cityid integer;
-	declare c_cityname varchar(20);
-	declare c_countyname varchar(20);
-	declare c_cityid_tmp integer;
-
-	# 是否未找到数据标记(要在游标之前定义)
-	declare done int default false;
-
-	-- 定义第一个游标
-	declare cur1 cursor for
-	select
-		t.n_cityid,
-		t.s_cityname
-	from dict_city t
-	where t.n_provid = in_provid;
-
-	# 临时表游标
-	declare cur2 cursor for
-	select
-		s_countyname,
-		n_cityid as cityid
-	from tmp_table;
-
-	# 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)
-	declare continue handler for not found set done = true;
-
-	# 创建临时表
-	drop table if exists tmp_table;
-	create temporary table if not exists tmp_table (
-		id int(11) not null auto_increment primary key,
-		s_countyname varchar(20),
-		n_cityid int(10)
-	);
-
-	# mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量
-	open cur1;
-	flag_loop: loop
-		# 取出每条记录并赋值给相关变量，注意顺序
-		# 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！
-		fetch cur1 into c_cityid, c_cityname;
-
-		# fetch之后, 如果没有数据则会运行set done = true
-		if done then
-			# 跳出循环
-			leave flag_loop;
-		end if;
-
-		# 字符串截取，从第一位开始，截取2位
-		set c_cityname = substring(c_cityname, 1, 2);
-
-		# 动态sql执行后的结果记录集在mysql中无法获取，因此需要转变思路将其放置到一个临时表中
-		# 动态sql需要使用concat(a, b, c, ....)拼接
-		set v_sql = concat("insert into tmp_table(s_countyname, n_cityid) select t.`name`, ", c_cityid, " from sm_renthouse_url t where
-		t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");
-
-		# 如果以@开头的变量可以不用通过declare语句事先声明
-		set @v_sql = v_sql;
-		# 预处理需要执行的动态sql，其中stmt是一个变量
-		prepare stmt from @v_sql;
-		# 执行sql语句
-		execute stmt;
-		# 释放掉预处理段
-		deallocate prepare stmt;
-	end loop;
-	close cur1;
-
-	# 调试输出, 打印使用select
-	select
-		*
-	from tmp_table;
-
-	# 还原终止的标志, 用于第二个游标
-	set done = false;
-
-	open cur2;
-	flag_loop: loop
-		fetch cur2 into c_countyname, c_cityid_tmp;
-		if done then
-			leave flag_loop;
-		end if;
-
-		insert into dict_county (s_countyname, n_cityid, s_state)
-			values (c_countyname, c_cityid_tmp, '1');
-
-	end loop;
-	close cur2;
-
-	# 删除临时表
-	drop temporary table tmp_table;
-end
-```
-
-## Oracle
-
-- PL/SQL 语句结束一定要加分号`;`，如果没加运行会提示下一行出错
-- oracle转义字符为 `'` ，如 `''` 转义后就是 `'`
-
-### 控制语句
-
-```sql
-if ... end if;
-if ... else ... end if;
-if ... elsif ... end if; -- 注意是 elsif
-
-
-```
-
-### Oracle存储过程示例
-
-- `call p_up_user_role();` 调用存储过程
-
-```sql
-	-- 定义
-	create or replace procedure p_up_user_role is
-		cursor c is 
-			select t.* from user_login t; -- 游标
-		china_id number;
-	begin
-		select t.id into china_id from t_structure t where t.structure_type_status = 1 and t.node_level = 6 and t.node_name = '中国'; --可能出现运行时异常：ORA-01403 no data found
-
-		delete from user_login_security_group t where t.group_id = 'dw_dept_admin';
-		--for循环不需要声明变量，会自动将user_item声明为record变量
-		for user_item in c loop
-				insert into user_login_security_group(user_login_id, group_id, from_date) 
-							values(user_item.user_login_id, 'dw_dept_admin', '2017-11-01 00:00:00.000000');
-		end loop;
-		commit;
-	end;
-
-	-- 运行
-	call p_up_user_role();
-
-	-- 删除
-	drop procedure p_up_user_role;
-```
-
-- 示例二（动态游标、异常处理）
-
-	```sql
-	-- 创建错误日志表
-	create table logs_proc
-	(
-		id number primary key,
-		proc varchar2(255),
-		pidtype varchar2(255),
-		pid varchar2(20),
-		code number,
-		msg varchar2(1024),
-		uptime date
-	);
-	create sequence seq_logs_proc start with 1 increment by 1;
-
-	-- 创建存储过程
-	create or replace procedure p_up_storage is
-		type ref_cursor_type is ref cursor; --定义一个游标类型(动态游标使用)
-
-		cursor c is
-			select yls.*
-				from yyard_location_set yls, ybase_party_company ypc
-			where ypc.party_id = yls.yard_party_id
-				and ypc.company_num = 'DW1' 
-				and yls.region_num in ('Y0');
-
-		v_cur_storage ref_cursor_type; -- 动态游标
-		v_storage     ycross_storage%ROWTYPE;
-		v_sql         varchar2(1000);
-		v_x           number := 1;
-		v_y           number := 1;
-
-		v_errcode number;
-		v_errmsg  varchar2(1024);
-	begin
-		for loc in c loop
-			v_errmsg := '[code]p_up_storage==>' || loc.YARD_PARTY_ID || '-' || loc.REGION_NUM || loc.SET_NUM;
-			-- 更新此堆位下场存
-			v_x := 1;
-			v_y := 1;
-		
-			--使用连接符拼接成一条完整SQL. oracle转义字符为 ' ，如 '' 转义后就是 '
-			v_sql := 'select * from ycross_storage t where t.yes_storage = 1 and t.location_id = ' ||
-							loc.location_id;
-			-- 字符串分割案例。v_sql := 'select * from table (cast (sm_split (''' || myStr || ''', ''/'') as sm_type_arr_str))';
-
-			--打开游标
-			open v_cur_storage for v_sql;
-			loop -- 此处不能使用 for ... in ... loop的语句
-				fetch v_cur_storage into v_storage;
-				exit when v_cur_storage%notfound; -- 跳出循环
-
-				update ycross_storage t
-					set t.ycross_x = v_x, t.ycross_y = v_y
-				where t.id = v_storage.id;
-
-				if v_y < 7 then -- 也可以使用 like 等关键字
-					v_y := v_y + 1;
-				else
-					if v_x < 30 then
-						v_x := v_x + 1;
-						v_y := 1;
-					else
-						raise_application_error(-20001, v_errmsg || '位置超出堆位结构'); -- 抛出异常
-					end if;
-				end if;
-
-					-- 基于v_storage实现新增和修改
-					insert into ycross_storage values v_storage;
-					update ycross_storage set row = v_storage where id = 10000;
-			end loop;
-			close v_cur_storage;
-		
-		end loop;
-		commit;
-
-		return; -- 提前返回
-		dbms_output.put_line('不会打印');
-	exception
-		-- 捕获异常
-		when others then
-			--WHEN excption_name THEN ...WHEN OTHERS THEN ...
-			rollback;
-			v_errcode := SQLCODE; --出错代码
-			v_errmsg  := v_errmsg || ', [msg]' || SQLERRM; --出错信息（直接使用SQLERRM报错，需先用变量接收）
-			insert into logs_proc(id, code, mesg, uptime)
-			values
-				(seq_logs_proc.nextval, v_errcode, v_errmsg, sysdate);
-			commit;
-	end;
-	```
-
-### 异常
-
-- 抛出异常 `raise_application_error` 该函数是将应用程序专有的错误从服务器端转达到客户端应用程序(其他机器上的sqlplus或者前台开发语言)
-	- `procedure raise_application_error(error_number_in in number, error_msg_in in varchar2);`
-	- `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。
-	- `error_msg_in`: 长度不能超过 2k，否则截取 2k
-- 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来
-
-	```sql
-	loop
-		begin
-		-- ...
-		exception
-			when others then dbms_output.put_line('出错'); -- 捕获异常后继续下一次循环
-			-- when others then null; -- 捕获异常后继续下一次循环
-			continue; -- 继续下一个循环
-	end;
-	```
-
-### oracle函数
-
-```sql
-	declare 
-		i integer;
-	begin
-		dbms_output.put_line('hello world');
-		p_up_user_role(); -- 调用上述存储过程
-	end;
-```
-
-## SQLServer
-
-```sql
- --分页查询
-ALTER proc [dbo].[SP_Test]
-		@Table nvarchar(50),--表.视图
-		@PageSize int,--每页显示数量
-		@PageIndex int,--当前显示页码
-		@Conditions nvarchar(300),--筛选条件
-		@Pages int output--返回总共有多少页
-as
-		declare @start int ,--当前页开始显示的No
-		@end int,--当前页结束显示的No
-		@Context nvarchar(1024), --动态sql语句
-		@pkey nvarchar(10)--主键或索引
-		set @start=(@PageIndex-1)*@PageSize+1
-		set @end=@start+@PageSize-1
-		set @pkey=index_col(@Table,1,1)--获取主键，或索引
-		--通过条件将符合要求的数据汇聚到临时表#temp上
-		set @Context='select row_number() over(order by '+@pkey+') as [No],* into #temp  from '+@Table
-		--判断是否有筛选条件传入
-		if(@Conditions is not null)
-
-			 set @Context=@Context+' where '+@Conditions
-		--通过查询#temp 表实现分页.
-		set @Context=@Context+'  select * from #temp where No between '+cast(@start as nvarchar(4))+' and '+cast(@end as nvarchar(4))
-		--返回出总共可以分成多少页
-		set @Context=@Context+'  declare @count int  select @count=count(*) from #temp  set @Pages= @count/'+cast(@PageSize as nvarchar(4))+'  if(@count%'+cast(@PageSize as nvarchar(4))+'<>0) set @Pages=@Pages+1 '
-
-		exec sp_executesql @Context,N'@Pages int output', @Pages output
-		-- sp_executesql @动态sql语句，@动态sql语句中需要的参数，@传入动态sql语句参数的值（个人理解）
 ```
 
 

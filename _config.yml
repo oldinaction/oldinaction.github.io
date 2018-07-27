@@ -75,3 +75,9 @@ deploy:
     # github: https://github.com/aezocn/aezocn.github.io.git
     coding: git@git.coding.net:smalle/blog.git
   branch: master
+
+# 自动生成sitemap
+sitemap:
+  path: sitemap.xml
+baidusitemap:
+  path: baidusitemap.xml

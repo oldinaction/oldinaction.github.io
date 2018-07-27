@@ -6,7 +6,41 @@ categories: [web]
 tags: [js]
 ---
 
-## javaScript 介绍
+## 注意点
+
+### 事件
+
+#### onblur与onclick事件冲突(弹框穿透) 
+
+- 场景：百度的搜索框 输入检索字后下拉会有对应的列表出来，要求点击搜索框外的区域下拉列表消失，点击下拉列表的某个记录后跳转。实现方式为 input 的onchange+onblur 与列表的onclik 。这样就会存在一个问题，当点击列表时 input 的onblur就先发挥作用，导致列表的onclik无效（js的单线程限制了只允许一个事件触发，onblur的优先性高于onclick）
+- 解决办法：用`onmousedown`代替`onclick`(onmousedown需要根据event区分鼠标左右键点击)
+
+### 关键字
+
+#### import/export [^1]
+
+```js
+// 命名导出
+export { myFunction }; 
+export const foo = Math.sqrt(2);
+// 默认导出（函数）
+export default function() {}
+// 默认导出（类）
+export default class {}
+```
+
+### js对象
+
+#### Object
+
+- `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象
+  - 将b合并到a但是不能影响到a：`Object.assign({}, a, b)`
+  - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
+  - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1));`
+
+## 笔记
+
+### javaScript 介绍
 
 > - 前端三大语言：HTML、CSS、JS
 > - 专门设计网页交互的语言
@@ -28,9 +62,9 @@ javaScript 特点：
 - 弱类型
 - 基于对象
 
-## javascript 知识点
+### javascript 知识点
 
-### 基本知识
+#### 基本知识
 
 - 区分大小写
 - 字符串必须用单双引号包裹，语句有无分号效果一样
@@ -47,7 +81,7 @@ javaScript 特点：
 > - 网页的显示最好在7秒内，`<script>`一般放在body最后，为了使DOM先加载完
 > `var input = prompt("请输入数据");` // 用于收集用户输入数据的对话框
 
-### 变量、数据类型、运算符
+#### 变量、数据类型、运算符
 
 **base.html**
 
@@ -90,7 +124,7 @@ javaScript 特点：
 >
 > Unicode每个字符占两字节；UTF-8字母数字占1字节，汉字占3字节。
 
-### 函数
+#### 函数
 
 **function.html**
 
@@ -125,7 +159,7 @@ javaScript 特点：
       }
     ```
 
-### 数组
+#### 数组
 
 **array.html**
 
@@ -142,29 +176,6 @@ javaScript 特点：
     > - 数组的其他创建方式（一般不用，不能创建只含有一个数值的数组；而 var arr = [3]; 则表示创建的数组中只含有一个元素，值为 3 ）
     >   - var arr1 = new Array(3); // 创建一个数组，其中含有3个元素，其值为undefined，打印时是一个空字符
     >   - var arr2 = new Array(1, 'a', true); // 创建3个元素
-
-### 其他关键字
-
-#### import/export [^1]
-
-```js
-// 命名导出
-export { myFunction }; 
-export const foo = Math.sqrt(2);
-// 默认导出（函数）
-export default function() {}
-// 默认导出（类）
-export default class {}
-```
-
-## js对象
-
-### Object
-
-- `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象
-  - 将b合并到a但是不能影响到a：`Object.assign({}, a, b)`
-  - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
-  - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1));`
 
 
 
@@ -186,4 +197,5 @@ sssss
 
 参考文章
 
-[^1]: [export](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/export)
+[^1]: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/export (export)
+[^2]: https://blog.csdn.net/yelangshisan/article/details/78936220 (JS Onblur 与Onclick事件冲突的解决办法)

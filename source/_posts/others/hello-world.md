@@ -70,7 +70,7 @@ categories和tage都可以有多个
   $ git add .
   $ git commit -am "update blog"
   $ git push origin master:source
-  $ hexo d -g
+  $  hexo g && gulp && hexo d
   ```
 
 ### 博客源码管理和博客更新

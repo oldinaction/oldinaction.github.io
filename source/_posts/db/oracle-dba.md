@@ -134,7 +134,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 - `sqlplus /nolog`、`sqlplus / as sysdba` 以nolog、sysdba身份登录，进入sql命令行
 - **`shutdown immediate`** 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)
     - `shutdown;` 有用户连接就不关闭，直到所有用户断开连接
-- **`startup;`** 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) 
+- **`startup`** 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) 
 - `exit;` 退出sqlplus
 
 #### 管理员登录
@@ -149,14 +149,29 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 
 - plsql执行sql文件：`@ D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交，建议start）
 - bat脚本(data.bat)：`sqlplus user/password@serverip/database @"%cd%\data.sql"` (data.sql和data.bat同级，此处只能用@)
+- 后台运行脚本 `nohup bash run.sh > run.log 2>&1 &`
+
+```bash
+# 下面的文件都不要加空行
+# run.sh
+sqlplus smalle/123456@ASF_PROD <<EOF
+@ ./run.sql
+EOF
+
+# run.sql
+call p_customer_exists_sync();
+```
 
 ### 数据库相关
 
-#### 连接数
+#### 连接
 
-- 查询数据库最大连接数：`select value from v$parameter where name = 'processes'`、`show parameter processes`
-- 查询数据库当前连接数：`select count(*) from v$session;`
-- 修改数据库最大连接数：`alter system set processes = 500 scope = spfile;` 需要重启数据库
+- 查询数据库当前连接数 `select count(*) from v$session;`
+    - 查询当前数据库不同用户的连接数：`select username,count(username) from v$session where username is not null group by username;`
+- 查询数据库最大连接数 `select value from v$parameter where name = 'processes'`、`show parameter processes`
+    - 修改数据库最大连接数：`alter system set processes = 500 scope = spfile;` 需要重启数据库
+- 查询连接信息 `select * from v$session a,v$process b where a.PADDR=b.ADDR`
+    - sid为session, spid为此会话对应的系统进程id
 
 #### 表空间
 
@@ -258,6 +273,14 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
   where owner in ('OFBIZ')
     and object_type = 'table';
 ```
+
+### oracle配置设置
+
+#### sqlplus使用
+
+- `set line 1000;` 可适当调整没行显示的宽度
+    - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
+- 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`
 
 ### 查询相关
 

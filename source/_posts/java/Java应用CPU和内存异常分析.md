@@ -241,7 +241,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 
 参考文章
 
-[^1]: [线上应用故障排查系列](http://www.blogjava.net/hankchen/archive/2012/05/09/377738.html)
-[^2]: [线上应用故障排查之二：高内存占用](http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html)
-[^3]: [记一次线上Java程序导致服务器CPU占用率过高的问题排除过程](https://www.jianshu.com/p/3667157d63bb)\
-[^4]: [oracle数据库CPU特别高的解决方法](https://blog.csdn.net/xuexiaodong009/article/details/74451412)
+[^1]: http://www.blogjava.net/hankchen/archive/2012/05/09/377738.html (线上应用故障排查系列)
+[^2]: http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html (线上应用故障排查之二：高内存占用)
+[^3]: https://www.jianshu.com/p/3667157d63bb (记一次线上Java程序导致服务器CPU占用率过高的问题排除过程)
+[^4]: https://blog.csdn.net/xuexiaodong009/article/details/74451412 (oracle数据库CPU特别高的解决方法)

@@ -154,6 +154,7 @@ tags: [linux, shell]
 - `df -h` 查看磁盘使用情况、分区、挂载点
     - `df -h /home/smalle` 查询目录使用情况、分区、挂载点
     - `df -Th` 查询文件系统格式
+- `du -sh /home/smalle | sort -n` 查看目录下文件大小，并按大小排列
 - 查看数据盘 `fdisk -l`(如：Disk：/dev/vda ... Disk：/dev/vdb表示有两块磁盘)
 - 格式化磁盘 `mkfs.ext4 /dev/vdb` (一般云服务器买的磁盘未进行格式化文件系统和挂载)
 - 挂载磁盘 `mount /dev/vdb /home/` 挂载磁盘到`/home`目录
@@ -228,7 +229,6 @@ tags: [linux, shell]
     - `cd ..` 返回上一级目录
     - `cd /usr/local/xxx` 返回某一级目录
     - `cd ~`或`cd回车` 返回家目录
-- `du -sh /home/smalle | sort -n` 查看目录下文件大小，并按大小排列
 
 ### 压缩包(推荐tar) [^1]
 

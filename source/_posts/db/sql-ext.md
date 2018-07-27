@@ -33,7 +33,7 @@ tags: [sql, oracle, mysql]
 
 ### 分析函数
 
-- 分析函数和聚合函数的不同之处是什么：普通的聚合函数用group by分组，每个分组返回一个统计值，而分析函数采用partition by分组，并且每组每行都可以返回一个统计值 [^1]
+- 分析函数和聚合函数的不同之处是什么：普通的聚合函数用group by分组，每个分组返回一个统计值，而分析函数采用partition by分组，并且**每组每行都可以返回一个统计值**(一般用于取子表字段) [^1]
 - 开窗函数`over()`，跟在分析函数之后，包含三个分析子句。形式如：`over(partition by xxx order by yyy rows between aaa and bbb)` [^2] 
     - 子句类型
         - 分组(partition by)
@@ -44,7 +44,7 @@ tags: [sql, oracle, mysql]
                 - `unbounded preceding` 第一行
                 - `current row` 当前行
                 - `unbounded following` 最后一行
-    - 省略窗口字句：
+    - 省略窗口字句
         - 出现`order by`子句的时候，不一定要有窗口子句
         - 此时窗口默认是当前组的第一行到当前行(unbounded preceding and current row)
     - 省略分组字句：则把全部记录当成一个组
@@ -111,41 +111,74 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
 
 - 查找中文：`select * from t_customer t where asciistr(t.customer_name) like '%\%' and instr(t.customer_name, '\') <= 0;`
 
-## SQL优化
+## 数据库数据更新
 
-- 两张大表写join查询比写exists快
+#### 更新表
 
-```sql
--- 案例：获取没有任何联系人信息的客户数量。
--- `t_customer` 客户表，主表(一对多)。`t_customer_contact` 客户联系人表，子表
+- **`update set from where`** 将一张表的数据同步到另外一张表
+    
+    ```sql
+    -- Oracle
+    update a set (a1, a2, a3) = (select b1, b2, b3 from b where a.id = b.id) where exists (select 1  from b where a.id = b.id)
+    -- Mysql
+    update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id
+    ```
 
--- 优化前：使用 exists。18万条数据基本3分钟还没查询出来（单表查询更新几万条数据速度还行）
-select count(1)
-  from t_customer t
- where exists
- (select 1
-          from t_customer_contact cc
-         where cc.customer_id = t.id
-           and (cc.tel_no is not null or cc.cellphone is not null))
+    - 实例
 
--- 优化后：使用表关联。0.22秒
-select count(1)
-  from (select t.customer_name_cn,
-               count(cc.id) as counts -- 此处必须统计子表字段。如果是 count(1) 则是基于主表统计
-          from t_customer t
-          left join t_customer_contact cc
-            on cc.customer_id = t.id
-           and (cc.tel_no is not null or cc.cellphone is not null)
-         group by t.customer_name_cn
-        having count(cc.id) = 0) -- 此处还无法使用上面定义的 counts
-```
+    ```sql
+    -- (1)
+    update ycross_storage ys
+    set (ys.location_id, ys.ycross_x, ys.ycross_y, ys.box_type_id) =
+        (select yls.location_id,
+                sc.ycrossx,
+                sc.ycrossy,
+                (select ybts.id from yyard_box_type_set ybts where ybts.box_type = sc.relclcd) boxtypeid --也可以不取别名
+            from yyard_location_set yls, sql_ctninfo sc -- sql_ctninfo为临时表
+            where 1 = 1
+            and yls.region_num = sc.regionnum
+            and yls.set_num = sc.setnum
+            and (select ypc.company_num
+                    from ybase_party_company ypc
+                    where ypc.party_id = yls.yard_party_id) = ('dw' || trim(sc.yardin))
+            and yls.yes_status = 1
+            and sc.isinvalid = 1
+            and ys.box_number = sc.ctnno
+            and ys.yes_storage = 1) -- 可以拿到update的表ycross_storage(再套一层子查询则无法拿到)，且不能关联进去，否则容易出现一对多错误
+    where -- where只能拿到update的表(不能拿到form的)
+    -- 除了set(里面)限制了需要更新的范围，where(外面)也需要限制
+    exists (select 1 from sql_ctninfo sc where ys.box_number = sc.ctnno);
 
-### 批量更新
-
-- `update`语句比较耗资源，测试一条update语句修改2万条数据(总共18万条数据的表，查询出这2万条很快)，运行时间太长，基本不可行。
-  - 使用pl/sql里面的Test Window(可进行调试)写循环更新，2万条更新耗时0.7s。如果数据量再大一些可以分批commit
+    -- (2)将重庆的数据重新设置其绑定IS为最新的一条拜访的IS
+    update t_customer t
+      set t.update_user_id = 3,
+          t.update_tm = sysdate,
+          t.lock_status = 1,
+          (t.bind_is_user_id) =
+          -- 通过子查询获取时 (select a.visit_user_id from (select v.visit_user_id from t_visit v where t.id = v.customer_id and v.valid_status = 1 order by v.visit_tm) a where rownum = 1) 拿不到t_customer的字段
+          (select a.first_id
+              from (select c.id,
+                          first_value(v.visit_user_id) over(partition by v.customer_id order by v.visit_tm desc rows between unbounded preceding and unbounded following) as first_id
+                      from t_customer c
+                      left join t_visit v
+                        on c.id = v.customer_id
+                      and v.valid_status = 1) a
+            where a.id = t.id
+              and rownum = 1)
+    where t.customer_region = '500000'
+      and t.valid_status = 1
+      and t.info_sure_status = 1
+      -- 此处加exists ?
+      and exists (select 1
+              from t_visit v
+            where v.customer_id = t.id
+              and v.valid_status = 1)
+    ```
 
 ## 自定义函数
+
+- 解析json： https://blog.csdn.net/cyzshenzhen/article/details/17074543
+  - select pkg_common.FUNC_PARSEJSON_BYKEY('{"name": "smalle", "age": "18"}', 'name') from dual; 取不到age?
 
 ### 字符串分割函数
 
