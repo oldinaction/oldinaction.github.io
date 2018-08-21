@@ -155,7 +155,7 @@ if ... elsif ... end if; -- 注意是 elsif
 	- `SQLERRM` 出错信息. 如：`ORA-01722: invalid number`
 	- `DBMS_UTILITY.FORMAT_ERROR_BACKTRACE` 报错行号等信息. 如：`ORA-06512: at "CRMADM.P_UP_CUSTOMER_LOCK", line 39`
 - 抛出异常 `raise_application_error` 该函数是将应用程序专有的错误从服务器端转达到客户端应用程序(其他机器上的sqlplus或者前台开发语言)
-	- `procedure raise_application_error(error_number_in in number, error_msg_in in varchar2);`
+	- `raise_application_error(error_number_in in number, error_msg_in in varchar2);` 如 **raise_application_error(-20500, '执行出错');**
 	- `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。
 	- `error_msg_in`: 长度不能超过 2k，否则截取 2k
 - 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来

@@ -93,66 +93,84 @@ tags: [springboot, vue]
 ## Http请求及响应
 
 - spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
-- `axios`使用post方式传递参数后端接受不到 [^4]
-    - 使用`qs`插件(推荐)
-        
-        ```javascript
-        // 安装：npm install qs -S -D
 
-        import qs from 'qs'
+### axios实现ajax
 
-        Vue.prototype.$qs = qs;
+- axios基本使用
 
-        this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
-            name: 'smalle'
-        })).then(response => {
+```js
+axios.get("/hello?id=1").then(response => {
+    console.log(response.data)
+});
 
-        });
-
-        // (1) qs格式化日期
-        // qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
-        // 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        this.$qs.stringify(this.formModel, {
-            serializeDate: function(d) {
-                return d.getTime();
-            }
-        });
-
-        // (2) qs序列化对象属性
-        // 下列对象userInfo默认渲染成 `name=smalle&bobby[0][name]=game&hobby[0][level]=1`(未进行url转码)，此时springboot写好对应的POJO是无法进行转换的，报错`is neither an array nor a List nor a Map`
-        // 可以使用`allowDots`解决，最终返回 `name=smalle&bobby[0].name=game&hobby[0].level=1`
-
-        var userInfo = {
-            name: 'smalle',
-            hobby: [{
-                name: 'game',
-                level: 1
-            }]
-        };
-        console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
-        ```
-    - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
+axios.get("/hello", {
+    params: {
+        userId: 1,
+    }
+}).then(response => {
+    console.log(response.data)
+});
+```
+### `axios`使用post方式传递参数后端接受不到 [^4]
     
-        ```js
-        axios({
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            url: 'http://localhost:8080/api/login',
-            params: {
-                username: 'smalle',
-                password: 'smalle'
-            }
-        }).then((res)=>{
+- 使用`qs`插件(推荐)
+    
+    ```js
+    // 安装：npm install qs -S -D
 
-        })
-        ```
+    import qs from 'qs'
+    Vue.prototype.$qs = qs;
 
-        - axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行)
-        - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
-        - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
+    this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
+        name: 'smalle'
+    })).then(response => {
+
+    });
+
+    // (1) qs格式化日期
+    // qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
+    // 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    this.$qs.stringify(this.formModel, {
+        serializeDate: function(d) {
+            return d.getTime(); // 转换成时间戳
+        }
+    });
+
+    // (2) qs序列化对象属性
+    // 下列对象userInfo默认渲染成 `name=smalle&bobby[0][name]=game&hobby[0][level]=1`(未进行url转码)，此时springboot写好对应的POJO是无法进行转换的，报错`is neither an array nor a List nor a Map`
+    // 可以使用`allowDots`解决，最终返回 `name=smalle&bobby[0].name=game&hobby[0].level=1`
+
+    var userInfo = {
+        name: 'smalle',
+        hobby: [{
+            name: 'game',
+            level: 1
+        }]
+    };
+    console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
+    ```
+- `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
+
+    ```js
+    axios({
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        url: 'http://localhost:8080/api/login',
+        params: {
+            username: 'smalle',
+            password: 'smalle'
+        }
+    }).then((res)=>{
+
+    })
+    ```
+
+    - axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行)
+    - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
+    - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
 
 ## 用户浏览器缓存问题 [^5]
 
@@ -168,7 +186,12 @@ location = /index.html {
 }
 ```
 
+## 常用插件
 
+### Clipboard 复制内容到剪贴板
+
+- 必须要绑定Dom
+- 必须要触发点击事件（触发其他Dom的点击事件，然后js触发目的dom的点击事件也可）
 
 
 

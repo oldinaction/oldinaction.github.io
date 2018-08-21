@@ -47,9 +47,12 @@ select count(1)
 - `update`语句比较耗资源，测试一条update语句修改2万条数据(总共18万条数据的表，查询出这2万条很快)，运行时间太长，基本不可行。
   - 使用pl/sql里面的Test Window(可进行调试)写循环更新，2万条更新耗时0.7s。如果数据量再大一些可以分批commit
 
-## Oracle执行计划(Explain Plan)
+## Oracle执行计划(Explain Plan) [^1]
 
-- http://www.cnblogs.com/xqzt/p/4467867.html
+- 在PL/SQL的`Explain plan window`中执行并查看
+- sqlplus下执行
+  - `explain plan for select * from emp;` 创建执行计划
+  - `select * from table(dbms_xplan.display);` 查看执行计划
 
 ### 案例一: 添加索引
 
@@ -198,3 +201,10 @@ select distinct ypyn.plan_yard_num_id, ypyn.plan_id, ypyn.bcc_cont_id, ypyn.cont
 
     ![oracle-explain-yard7](/data/images/db/oracle-explain-yard7.png)
 
+
+
+---
+
+参考文章
+
+[^1]: http://www.cnblogs.com/xqzt/p/4467867.html (Oracle 执行计划)

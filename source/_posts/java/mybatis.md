@@ -132,7 +132,7 @@ tags: [mybatis, springboot]
 
 		- 分页查询结果
 
-		```javascript
+		```js
 		{
 			pageNum: 1,
 			pageSize: 5,
@@ -186,7 +186,7 @@ tags: [mybatis, springboot]
 		}
 		```
 
-- 基于注解的sql示例(**推荐**) [^2]
+- 基于注解的sql示例(用于简单的查询) [^2]
 
     - 用script标签包围，然后像xml语法一样书写
         
@@ -200,25 +200,26 @@ tags: [mybatis, springboot]
             "   left join th_event e on e.event_id = h.event_id",
 			"   left join th_group g on g.group_id = h.group_id ",
             " where 1=1 ",
-			" <when test='plans != null and plans.size() > 0'>", // 其中大于号也可以使用`&gt;`来表示
+			// 此时可以使用<if>或<when>
+			" <if test='plans != null and plans.size() > 0'>", // 其中大于号也可以使用`&gt;`来表示
             "   and g.plan_id in ",
 			// in 的使用。item为当前元素，index为下标变量
             "   <foreach item='plan' index='index' collection='plans' open='(' separator=',' close=')'>",
             "       #{plan.planId}",
             "   </foreach>",
-            " </when>",
+            " </if>",
 			// like 的使用。此处必须使用concat进行字符串连接. oracle则需要使用 h.title like concat(concat('%',#{roleName}),'%')
-            " <when test='help.title != null and help.title != \"\"'> AND h.title like concat('%', #{help.title}, '%')</when>",
-            " <when test='event.name != null'> AND e.name = #{event.name}", "</when>",
+            " <if test='help.title != null and help.title != \"\"'> AND h.title like concat('%', #{help.title}, '%')</if>",
+            " <if test='event.name != null'> AND e.name = #{event.name}", "</if>",
 			// or 的使用(1 != 1 or .. or ..)
-			" <when test='help.title != null and help.desc != null or help.start != null and help.end != null'> and (",
-			"  <when test='help.title != null and help.desc != null>",
+			" <if test='help.title != null and help.desc != null or help.start != null and help.end != null'> and (",
+			"  <if test='help.title != null and help.desc != null>",
 			"    help.title = #{help.title}",
-			"  </when>",
-			"  <when test='help.start != null and help.end != null>",
+			"  </if>",
+			"  <if test='help.start != null and help.end != null>",
 			"    or help.start = #{help.start} and help.end = #{help.end}",
-			"  </when>",
-			" ) </when>",
+			"  </if>",
+			" ) </if>",
             "</script>" })
         List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans);
 
@@ -230,38 +231,13 @@ tags: [mybatis, springboot]
                 @RequestParam(defaultValue = "1") Integer pageNum,
                 @RequestParam(defaultValue = "10") Integer pageSize) {
             PageHelper.startPage(pageNum, pageSize);
+			// PageHelper要在目标查询的最近开启. 如果此处在查询一下其他数据则容易出现分页无效的情形
             List users = helpMapper.findHelps(help, event);
             PageInfo pageUser = new PageInfo(users);
 
             return pageUser;
         }
 	    ```
-
-		- `<when>` 可进行嵌套使用
-		- 双引号转义：`<when test='help.title != null and type = \"MY_TYPE\"'>`
-		- **大于小于号需要转义**（>：`&gt;`, <：`&lt;`）
-		- mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
-		- 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
-		- mybatis会对Integer转换成字符串时，如果Integer类型值为0，则转换为空字符串。(js也是这样转换的)
-			
-			```xml
-			<!-- 此时Integer status = 0;时，下列语句返回false. 所有Integer类型的不要加status != '' -->
-			<if test="status != null and status != ''">
-			    and status = #{status}   
-			</if>  
-			```
-		-  dao中可以使用submitTm[0]获取值; xml中不行，其处理数组(如时间段)的方式如下
-
-			```xml
-			<!-- <if test='dataSourceList != null and dataSourceList.size() > 0 and dataSourceList.get(0).dataSource != null'> -->
-			<if test='submitTm != null and submitTm.length >= 1 and submitTm[0] != null'>
-			<foreach collection="submitTm" index="i" item="item">
-				<if test='i == 0 and item != null'>and v.submit_tm &gt;= #{item}</if>
-				<if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>
-			</foreach>
-			</if>
-			```
-
     - 用Provider去实现SQL拼接(适用于复杂sql)
 
         ```java
@@ -312,9 +288,12 @@ tags: [mybatis, springboot]
 		<?xml version="1.0" encoding="UTF-8" ?>
 		<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 		<!--http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#-->
-		<!--sql映射文件: namespace必须为实现接口名；每个sql是一个statement-->
+		<!--sql映射文件: 
+			namespace必须为实现接口名；每个sql是一个statement 
+			使用include关键字调用其他xml文件的sql时，则需要在refid前加上该文件的命名空间
+		-->
 		<mapper namespace="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml">
-			<!--resultMap结果集映射定义(用来描述如何从数据库结果集中来加载对象). resultType 与 resultMap 不能并用-->
+			<!-- resultMap结果集映射定义(用来描述如何从数据库结果集中来加载对象). resultType 与 resultMap 不能并用. type也可以为java.util.HashMap,则返回结果中放的是Map-->
 			<resultMap id="UserInfoResultMap" type="cn.aezo.springboot.mybatis.model.UserInfo">
 				<!--设置mybatis.configuration.map-underscore-to-camel-case=true则会自动对格式进行转换, 无效下面转换-->
 				<!--<result column="group_id" property="groupId" jdbcType="BIGINT"/>-->
@@ -323,19 +302,40 @@ tags: [mybatis, springboot]
 
 			<!--sql:可被其他语句引用的可重用语句块. id:唯一的标识符，可被其它语句引用-->
 			<sql id="UserInfoColumns"> id, group_id, nick_name, hobby </sql>
+			<sql id="userColumns"> ${alias}.id, ${alias}.username, ${alias}.password </sql>
 
-			<!--id对应接口的方法名; resultType(类全称或别名) 与 resultMap(自定义数据库字段与实体字段转换关系map) 不能并用; -->
+			<!--id对应接口的方法名; resultType(类全称或别名, 如内置别名map) 与 resultMap(自定义数据库字段与实体字段转换关系map) 不能并用; -->
 			<!-- statementType: STATEMENT(statement)、PREPARED(preparedstatement, 默认)、CALLABLE(callablestatement)-->
 			<!-- resultSetType: FORWARD_ONLY(游标向前滑动)，SCROLL_SENSITIVE(滚动敏感)，SCROLL_INSENSITIVE(不区分大小写的滚动)-->
 			<select id="findAll" resultMap="UserInfoResultMap">
 				select
-				<include refid="UserInfoColumns"/>
+				<!-- 如果引用在同一命名空间则可省略命名空间。但是 findAll 如果被其他命名空间引用则容易找到不 UserInfoColumns。因此建议一直加上命名空间 -->
+				<include refid="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml.UserInfoColumns"/>,
+				<include refid="userColumns"><property name="alias" value="t1"/></include>
 				from user_info
 			</select>
 
-			<!--parameterType传入参数类型. 使用typeAliases进行类型别名映射后可写成resultType="userInfo"(自动扫描包mybatis.type-aliases-package, 默认该包下的类名首字母小写为别名) -->
-			<!--如果返回结果使用resultType="cn.aezo.springboot.mybatis.model.UserInfo", 则nickName，groupId则为null(数据库中下划线对应实体驼峰转换失败，解决办法：设置mybatis.configuration.map-underscore-to-camel-case=true). 此处使用resultMap指明字段对应关系-->
-			<!-- #{}是实现的是PrepareStatement，${}实现的是普通Statement -->
+			<!-- property参数使用. 此时#{username}可以拿到selectMain的上下文 -->
+			<sql id="sometable">
+				${prefix}Table where 1=1
+				<if test="username != null and username != ''">username=#{username}</if>
+			</sql>
+			<sql id="someinclude">from <include refid="${include_target}"/></sql>
+			<select id="selectMain" resultType="map">
+				select *
+				<include refid="someinclude">
+					<property name="prefix" value="Some"/>
+					<property name="include_target" value="sometable"/>
+				</include>
+			</select>
+
+			<!--
+				1.parameterType传入参数类型(可选，不填则可以通过 TypeHandler 推导出类型). 
+					1.1 使用typeAliases进行类型别名映射后可写成resultType="userInfo"(自动扫描包mybatis.type-aliases-package, 默认该包下的类名首字母小写为别名).
+					1.2 传入parameterType="java.util.HashMap"(可省略)，也可使用 #{myKey} 获取传入参数map中的值
+				2.如果返回结果使用resultType="cn.aezo.springboot.mybatis.model.UserInfo", 则nickName，groupId则为null(数据库中下划线对应实体驼峰转换失败，解决办法：设置mybatis.configuration.map-underscore-to-camel-case=true). 此处使用resultMap指明字段对应关系
+				3. #{}是实现的是PrepareStatement，${}实现的是普通Statement 
+			-->
 			<select id="getOne" parameterType="java.lang.Long" resultType="userInfo">
 				select
 				<include refid="UserInfoColumns"/>
@@ -348,29 +348,24 @@ tags: [mybatis, springboot]
 			<!-- 方式二：<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey> -->
 			<!-- 获取方式：userMapper.insert(userInfo); userInfo.getUserId(); -->
 			<insert id="insert" keyProperty="userId" useGeneratedKeys="true" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
-				insert into
-				user_info
-				(nick_name, group_id, hobby)
-				values
-				(#{nickName}, #{groupId}, #{hobby})
+				insert into user_info (nick_name, group_id, hobby) values (#{nickName}, #{groupId}, #{hobby})
 			</insert>
 
 			<update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
-				update
-				user_info
-				set
+				update user_info set
 				<!--动态sql, 标签：if、choose (when, otherwise)、trim (where, set)、foreach-->
 				<if test="nickName != null">nick_name = #{nickName},</if>
 				hobby = #{hobby}
-				where
-				id = #{id}
+				where id = #{id}
 			</update>
 
 			<delete id="delete" parameterType="java.lang.Long">
-				delete from
-				user_info
-				where
-				id = #{id}
+				delete from user_info where id = #{id}
+			</delete>
+
+			<!-- 此时也可执行成功，但是如果传入参数为空，容易报错（java.sql.SQLException: 无效的列类型: 1111） -->
+			<delete id="delete2">
+				delete from user_info where id = #{id}
 			</delete>
 		</mapper>
 		```
@@ -382,7 +377,7 @@ tags: [mybatis, springboot]
         select * from class c, teacher t,student s where c.teacher_id = t.t_id and c.C_id = s.class_id and  c.c_id = #{id}
     </select>
 
-	<!--此处Classes类中仍然需要保存一个Teacher的引用和一个List<Student>的引用-->
+	<!--此处Classes类中仍然需要保存一个Teacher teacher的引用和一个List<Student> students的引用-->
     <resultMap type="cn.aezo.demo.Classes" id="ClassResultMap">
 		<!--一个 ID 结果;标记结果作为 ID 可以帮助提高整体效能-->
         <id property="id" column="c_id"/>
@@ -393,11 +388,22 @@ tags: [mybatis, springboot]
             <id property="id" column="t_id"/>
             <result property="name" column="t_name"/>
         </association>
-        <!-- ofType指定students集合中的对象类型 -->
+        <!-- ofType指定students集合中的对象类型。这样查询出来的集合条数和数据出来的一致(子表导致主表查询的条数增多) -->
         <collection property="students" ofType="cn.aezo.demo.Student">
             <id property="id" column="s_id"/>
             <result property="name" column="s_name"/>
         </collection>
+
+		<!-- 此时返回的集合是主表的条数，然后基于每一条再重新查询数据获取子表数据并放入到Classes对象的students中。
+			select指查询Student的接口. 如果为当前mapper文件则可省略命名空间(namespace)直接写成 getStudent
+			column是传入到getStudent查询中的参数，id是传入参数名称，s_id获取获取字段值的字段名(就是先从主表查询的结果中获取s_id字段的值，传入到id中，发起getStudent查询)
+		-->
+		<collection 
+			property="students" 
+			ofType="cn.aezo.demo.Student" 
+			column="{id = s_id, name = s_name}" 
+			select="cn.aezo.demo.Student.getStudent">
+		</collection>
     </resultMap>
 	```
 
@@ -420,10 +426,45 @@ tags: [mybatis, springboot]
 	```
 	- `insuranceCompany`会对应ThMyInsuranceListView中的字段
 
-- xml文件修改无需重新部署，立即生效
-- 关于`<`、`>`转义字符
+#### mybatis常见问题
+
+
+- **关于`<`、`>`转义字符**(在xml的sql语句中则不需要专业)
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
-	- 使用`<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
+	- 使用**CDATA** `<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
+- 双引号转义：`<if test='help.title != null and type = \"MY_TYPE\"'>`
+- mybatis类型转换问题
+	- mybatis会对Integer转换成字符串时，如果Integer类型值为0，则转换为空字符串。(js也是这样转换的)
+
+		```xml
+		<!-- 此时Integer status = 0;时，下列语句返回false. 所有Integer类型的不要加status != '' -->
+		<if test="status != null and status != ''">and status = #{status}</if>  
+		```
+	- 多个字符则认为是字符串，单个字符则认为是Character字符.(如mybatis认为：test="validStatus == 'Y'"中的Y是字符，test="validStatus == 'YY'"中的YY则是字符串)
+
+		```xml
+		<!-- 传入参数validStatus="Y", 此时会报错NumberFormatException；mybatis认为传入参数是字符串对象Y，比较值是字符'Y'，经过几个判断都不相等，再转成数值时则报错了 -->
+		<if test="validStatus == 'Y'">and validStatus = 1</if>
+		<!-- 正确写法 -->
+		<if test='validStatus == "Y"'>and validStatus = 1</if>
+		<if test="validStatus=='Y'.toString()">and validStatus = 1</if>
+		```
+
+-  dao中可以使用submitTm[0]获取值; xml中不行，其处理数组(如时间段)的方式如下
+
+	```xml
+	<!-- <if test='dataSourceList != null and dataSourceList.size() > 0 and dataSourceList.get(0).dataSource != null'> -->
+	<if test='submitTm != null and submitTm.length >= 1 and submitTm[0] != null'>
+	<foreach collection="submitTm" index="i" item="item">
+		<if test='i == 0 and item != null'>and v.submit_tm &gt;= #{item}</if>
+		<if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>
+	</foreach>
+	</if>
+	```
+- mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
+- 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
+- `<when>`/`<if>` 可进行嵌套使用，其子属性test可以使用双引号或单引号
+- xml文件修改无需重新部署，立即生效
 
 ### 控制主键自增和获取自增主键值
 
@@ -512,16 +553,17 @@ Char |  | Char | Char
 				<javaModelGenerator
 						targetPackage="cn.aezo.springboot.mybatis.generator.model"
 						targetProject="src/main/java">
-					<property name="enableSubPackages" value="true" />
 					<!-- 是否对类CHAR类型的列的数据进行trim操作 -->  
 					<property name="trimStrings" value="true" />
+					<!-- 开启enableSubPackages后，会基于targetPackage目录添加数据库表的Catalog和Schema配置(table标签属性) -->
+					<!-- <property name="enableSubPackages" value="true" /> -->
 				</javaModelGenerator>
 
 				<!--生成映射文件存放位置，会存放在src/main/resources/mapper目录下(自动创建mapper目录) -->
 				<sqlMapGenerator
 						targetPackage="mapper"
 						targetProject="src/main/resources">
-					<property name="enableSubPackages" value="true" />
+					<!-- <property name="enableSubPackages" value="true" /> -->
 				</sqlMapGenerator>
 
 				<!--生成Dao类存放位置 -->
@@ -529,7 +571,7 @@ Char |  | Char | Char
 						type="XMLMAPPER"
 						targetPackage="cn.aezo.springboot.mybatis.generator.dao"
 						targetProject="src/main/java">
-					<property name="enableSubPackages" value="true" />
+					<!-- <property name="enableSubPackages" value="true" /> -->
 				</javaClientGenerator>
 
 				<!-- 读取所有的table标签，有几个table标签就解析几个 -->
@@ -549,9 +591,8 @@ Char |  | Char | Char
 				</table>
 
 				<!-- 去掉表前缀：生成之后的文件名字User.java等。enableCountByExample标识是否使用Example -->
-				<table tableName="t_user" domainObjectName="User"
-					enableCountByExample="false" enableDeleteByExample="false"
-					enableSelectByExample="false" enableUpdateByExample="false">
+				<!-- 如oracle此时的schema相当于用户名，如果不定义则会获取到多个t_user表，但是只会基于其中某个一个生成代码 -->
+				<table schema="smalle" tableName="t_user" domainObjectName="User">
 					<!-- 去掉字段前缀 `t_` -->
 					<property name="useActualColumnNames" value="false"/>
 					<columnRenamingRule searchString="^t_" replaceString=""/>
@@ -569,6 +610,10 @@ Char |  | Char | Char
 		userExample.setOrderByClause("username asc");
 
         List<User> users =  userMapper.selectByExample(userExample); // 未查询到数据时返回一个大小为0的数组
+
+		// generator生成的mapper
+		userMapper.insert(user); // 完全基于user创建(新增记录时不考虑数据库的默认值)
+		userMapper.insertSelective(user); // 不为 null 才会拼接此字段(新增记录时考虑数据库的默认值)
 		```
 - 通过java代码调用mybatis-generator生成
 	- 引入依赖

@@ -92,7 +92,8 @@ mysql>select count(num) 	/*注释：组函数*/
 - `select distinct deptno, job from emp;` `distinct`去掉重复的条目(此时是去掉两个字段重复的组合)
 - `select * from emp where job = 'clerk' and sal between 1100 and 1500;` where过滤
     - 可以使用`=、>、<、<>`等判断大小，其中<>表示不等于，字符串是比较每个字母的ASCII码
-    - 使用`between and`相当于 `>= and <=`
+    - **使用`between and`相当于 `>= and <=`**
+        - `between to_date('2000-01-01', 'yyyy/mm/dd') and to_date('2000-01-31', 'yyyy/mm/dd')` 查询的是`2000-01-01 00:00:00`到`2000-01-31 00:00:00`的数据
 - `select ename, sal, comm from emp where comm is not null;` 使用`is null`或者`is not null`找出有关空值的条目
     - `=、!=`默认是查询不为空的数据
 - `select ename, sal from emp where ename in('king', 'allen', 'abc');` 使用`in()`或者`not in()`表示相应字段的值是否在这些值里面的条目(本质是循环查询)
@@ -432,11 +433,11 @@ mysql>select count(num) 	/*注释：组函数*/
 
 #### 复制表
 
-- 复制表结构及数据到新表 `CREATE TABLE 新表 AS SELECT * FROM 旧表`
-- 只复制表结构到新表 `CREATE TABLE 新表 AS SELECT * FROM 旧表 WHERE 1=2`
+- 复制表结构及数据到新表 `create table 新表 as select * from 旧表`
+- 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`·
 - 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
-- 复制旧表的数据到新表(假设两个表结构一样) `INSERT INTO 新表 SELECT * FROM 旧表`
-- 复制旧表的数据到新表(假设两个表结构不一样) `INSERT INTO 新表(字段1,字段2,.......) SELECT 字段1,字段2,...... FROM 旧表`
+- 复制旧表的数据到新表(假设两个表结构一样) `insert into 新表 select * from 旧表`
+- 复制旧表的数据到新表(假设两个表结构不一样) `insert into 新表(字段1,字段2,.......) select 字段1,字段2,...... from 旧表`
 - 创建临时表并复制数据 `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
 
 ### 修改表结构

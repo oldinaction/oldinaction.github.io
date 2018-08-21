@@ -76,16 +76,29 @@ created(): {
 }
 ```
 
-### list元素改变数据不刷新
+### list元素改变/子对象属性改变数据不刷新问题
 
 ```html
-<!-- 产品可以选择多个，选择产品后，产品单位需要联动变化 -->
+<!-- 示例使用iveiw库 -->
+<!-- (1) 产品可以选择多个，选择产品后，产品单位需要联动变化 -->
+<div>
+<!--  -->
 <div v-for="(item, index) in customer.customerProducts">
     产品：
     <Select v-model="customer.customerProducts[index].id" @on-change="productChange(index)">
         <Option v-for="(optItem, optIndex) in products" :value="optItem.id" :key="optIndex">{{ optItem.productName }}</Option>
     </Select>
     产品单位：{{ customer.customerProducts[index].productUnit }}
+</div>
+
+<!-- (2) 省市级联 -->
+<!-- @on-change="provinceChange" 使用change时，改变customer.province的值（this.$set也不行）无法触发change事件 -->
+<Select v-model="customer.province" placeholder="请选择省份" clearable>
+    <Option v-for="item in provinceList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+</Select>
+<Select v-model="customer.city" clearable>
+    <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+</Select>
 </div>
     
 <script>
@@ -96,10 +109,32 @@ export default {
                 customerProducts: [{ // 客户所有的产品
                     id: null,
                     productUnit: '',
-                }]
+                }],
+                province: null,
+                city: null,
             },
-            products: [] // 所有的产品
+            products: [], // 所有的产品
+            provinceList: [],
+            cityList: []
         }
+    },
+    computed: {
+        province() {
+    　　　　return this.customer.province
+    　　}
+    },
+    watch: {
+        // 利用computed观测子对象具体属性的变化
+        province(newValue, oldValue) {
+    　　　　this.provinceChange()
+    　　},
+        // 扩展：观测整个子对象的变化
+        customer: {
+    　　　　handler(newValue, oldValue) {
+    　　　　　　console.log(newValue)
+    　　　　},
+    　　　　deep: true
+    　　}
     },
     methods: {
         productChange(index) {
@@ -113,8 +148,15 @@ export default {
                 }
             })
 
-            this.$set(this.customer.customerProducts, index, product); // 从新设值强行刷新此属性
+            this.$set(this.customer.customerProducts, index, product); // 从新设值强行刷新此属性. this.$set(Object/Array, string/number, any)
         },
+        provinceChange() {
+            // 
+            // ... 请求后台获取省份下的城市
+        }
+    },
+    mounted() {
+        this.customer.province = 1000; // 手动改省份
     }
 }
 </script>
@@ -124,14 +166,16 @@ export default {
 
 ### 自定义组件中使用 v-model
 
-[官方说明](https://cn.vuejs.org/v2/guide/components-custom-events.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E7%9A%84-v-model)
+- [官方说明](https://cn.vuejs.org/v2/guide/components-custom-events.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E7%9A%84-v-model)
+- 双向数据绑定主要需要解决表单元素值改变后对应的变量值同时变化(变量值变化表单元素的值变化是肯定的)
+- 在原生表单元素中 `<input v-model="inputValue">` 相当于 `<input v-bind:value="inputValue" v-on:input="inputValue = $event.target.value">`
 
 ```html
 <script>
 // 本质是表单元素原生事件，并将值放入其中。$emit('change', 'smalle')"
 Vue.component('base-checkbox', {
   model: {
-    prop: 'checked',
+    prop: 'checked', // value
     event: 'change'
   },
   props: {
@@ -252,7 +296,7 @@ Vue.component('base-checkbox', {
 </script>
 ```
 
-#### 子组件和子组件通信
+#### 子组件和子组件通信(Bus)
 
 ```js
 // 在初始化web app的时候，main.js给data添加一个 名字为eventHub的空vue对象。就可以使用 this.$root.eventHub 获取对象
@@ -269,7 +313,7 @@ new Vue({
 this.$root.eventHub.$emit('eventName', data)
 
 // 在另一个组件调用事件接受，移除事件监听器使用$off方法。
-this.$root.eventHub.$on('eventName', (data)=>{
+this.$root.eventHub.$on('eventName', (data) => {
     // 处理数据
 })
 ```

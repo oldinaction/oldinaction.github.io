@@ -290,6 +290,9 @@ begin
     );
     commit;
 
+    -- 带参数执行job(每日凌晨零点执行)
+    dbms_job.submit(job_id, 'declare username varchar2(200); age number; begin my_proc_name(username, age); end;', sysdate, 'trunc(sysdate)+1'); 
+
     -- （2）比如某个job返回的id为888
     dbms_job.run(888); -- 立即运行一次888这个job
     dbms_job.remove(888); -- 移除888这个job

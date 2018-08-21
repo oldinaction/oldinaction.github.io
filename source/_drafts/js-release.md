@@ -21,8 +21,7 @@ new Promise(function (resolve, reject) {
         if (timeOut < 1) {
             log('call resolve()...');
             resolve('200 OK');
-        }
-        else {
+        } else {
             log('call reject()...');
             reject('timeout in ' + timeOut + ' seconds.');
         }
@@ -39,7 +38,7 @@ new Promise(function (resolve, reject) {
 ```js
 function res() {
     // 返回Promise
-    return this.$ajax.post("http://localhost/test", {})
+    return this.axios.post("http://localhost/test", {})
             .then(response => {
                 const res = response.data
                 const status = res.status
@@ -150,5 +149,5 @@ let runtimeError = {
 
 参考文章
 
-[^1]: [javascript对象的扩展运算符](https://blog.csdn.net/qq_30100043/article/details/53424750)
+[^1]: https://blog.csdn.net/qq_30100043/article/details/53424750 (javascript对象的扩展运算符)
 

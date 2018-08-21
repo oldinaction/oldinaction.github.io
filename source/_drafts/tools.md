@@ -8,6 +8,23 @@ tags: tools
 
 ## windows
 
+### QuickLook 预览工具
+
+按下空格即可快速预览文件，微软商店内的免费应用
+
+### Wox 快速启动 [^2]
+
+- https://github.com/Wox-launcher/Wox
+- 下载`Wox-1.3.524.exe`和`Everything-1.3.4.686.x64-Setup.exe`(Wox和Everything配合使用可快速检索文件)
+- `Alt+Space`启动
+- `Win+R`代替windows
+
+### 任务栏分屏
+
+每个屏幕显示各自的任务栏
+
+- win10：任务栏设置 - 多显示器设置 - 将任务栏按钮显示在: 打开了窗口的任务栏
+
 ### cmder
 
 - 代替系统的cmd，支持多tab
@@ -32,5 +49,11 @@ tags: tools
 
 
 
+---
+
+参考文章
+
+[^1]: https://www.liutf.com/posts/3720794851.html
+[^2]: https://www.cnblogs.com/zhaoqingqing/p/6902113.html
 
 

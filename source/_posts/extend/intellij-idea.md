@@ -56,13 +56,16 @@ tags: [IDE]
 - 常用快捷键
     - `Ctrl + Shif + F9` 热部署
     - `Ctrl + Shifg + Space` 智能补全
+    - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
+    - `Alt + Shift + 上下` 上下移动当前行
+    - `Ctrl + Shift + Backspace` 回到上次编辑位置
     - `Ctrl + P` 查看方法参数
+    - `Ctrl + Q` 查看方法说明
     - `Ctrl + E` 最近访问文件
     - `Ctrl + W` 语句感知
     - `Ctrl + B` 跳转到声明
     - `Ctrl + N` 跳转到类
     - `Ctrl + Shift + Entry` 完成整句
-    - `Ctrl + Alt + <-或->` 回退(退到上次浏览位置)/前进
     - `Alt + Insert` 自动生成(Getter/Setter等)
     - `Ctrl + Shift + F7` 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处
 

@@ -39,7 +39,7 @@ tags: [vpn, linux]
 - `sudo sysctl -p` 使sysctl配置生效
 - `sudo systemctl start pptpd` 启动pptpd服务
 - 配置iptables防火墙放行和转发规则
-    - `sudo iptables -L -n` 查看 iptables 过滤规则
+    - **`sudo iptables -L -n -t nat`** 查看 iptables 配置规则
     - 清空防火墙配置
         
         ```bash
@@ -48,8 +48,8 @@ tags: [vpn, linux]
         sudo iptables -X                     # 清空自定义所有规则
         sudo iptables -Z                     # 计数器置0
         ```
-    - 配置规则
-        - 可以不用开启防火墙的端口拦截，及主要用iptables来进行nat配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.1` (eth0为内网端口)
+    - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.1` (eth0为网卡。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.1)
+    - 配置规则(可省略)
 
         ```bash
         sudo iptables -A INPUT -p gre -j ACCEPT
@@ -88,8 +88,8 @@ tags: [vpn, linux]
 
 参考文章
 
-[^1]: [CentOS-VPS建立PPTP-VPN服务](https://blog.itnmg.net/2013/05/19/vps-pptp-vpn/)
-[^2]: [阿里云CentOS7搭建VPN](https://blog.csdn.net/ithomer/article/details/52138961)
-[^3]: [ECS-Windows服务器VPN连接报错:错误628解决方法](https://help.aliyun.com/knowledge_detail/40697.html)
-[^4]: [CentOS7配置IPSec-IKEv2-VPN](https://blog.itnmg.net/2015/04/03/centos7-ipsec-vpn/)
+[^1]: https://blog.itnmg.net/2013/05/19/vps-pptp-vpn/ (CentOS-VPS建立PPTP-VPN服务)
+[^2]: https://blog.csdn.net/ithomer/article/details/52138961 (阿里云CentOS7搭建VPN)
+[^3]: https://help.aliyun.com/knowledge_detail/40697.html (ECS-Windows服务器VPN连接报错:错误628解决方法)
+[^4]: https://blog.itnmg.net/2015/04/03/centos7-ipsec-vpn/ (CentOS7配置IPSec-IKEv2-VPN)
 

@@ -73,7 +73,6 @@ tags: [linux, shell]
         - 强制杀进程 `kill -s 9 PID`
         - `yum install psmisc` centos7精简版无`killall`命令，需要安装此包
             - `killall -s 9 java` 杀死所有java进程
-    - `systemctl stop firewalld` 关闭防火墙
 - 程序安装
     - `yum`安装(还有其他类型的安装参考`《centos-server-guide》`)
     - `rpm`格式文件安装(rpm: redhat package manage)

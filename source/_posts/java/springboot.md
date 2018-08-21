@@ -440,7 +440,7 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 	```
 - 请求协议
 
-|request-method |content-type   |postman   |springboot   |说明
+request-method |content-type   |postman   |springboot   |说明
 --|---|---|---|---
 post |application/json   |row-json   |(@RequestBody User user)   |如果后台使用了@RequestBody，此时row-text等都无法请求到
 post |multipart/form-data  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
@@ -480,6 +480,47 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		return result;
 	}
 	```
+
+### 请求参数
+
+```java
+// 如果所在类加注解@RequestMapping("/user")，则请求url全部要拼上`/user`，如`/user/getUser`
+
+@RequestMapping(value = "/hello")
+public String hello() {
+	return "hello world";
+}
+
+// 前台请求 Body 中含参数 userId和username
+@RequestMapping(value="/getUserByUserIdOrUsername")
+public Result getUserByUserIdOrUsername(Long userId, String username) {
+	// ...
+	return new Result().success(); // 自己封装的Result对象
+}
+// 前台请求 Body 中含参数 username
+@RequestMapping(value="/getUserByName")
+public Result getUserByName(@RequestParam("username") String name) {
+	// ...
+	return new Result().success();
+}
+@RequestMapping(value = "/getUser")
+public Result getUser(User user) {
+	// ...
+	return new Result().success(); // 自己封装的Result对象
+}
+
+// @PathVariable 获取 url 中的参数
+@RequestMapping(value="/hello/{id}")
+public String user(@PathVariable("id") Integer id){
+	return "id:" + id;
+}
+
+@RequestMapping(value = "/addUser", method = RequestMethod.POST)
+public Result hello(User user) {
+	// ...
+	return new Result().success();
+}
+```
 
 ### restTemplate
 
@@ -868,6 +909,59 @@ http://blog.didispace.com/springbootmultidatasource/
 - 可将一个项目启动两个端口进行测试
 
 ## 其他
+
+### 测试
+
+- 多线程测试(基于Junit+[GroboUtils](http://groboutils.sourceforge.net/))
+	- 安装依赖
+
+		```xml
+		<!-- 第三方库 -->
+		<repositories>
+			<repository>
+				<id>opensymphony-releases</id>
+				<name>Repository Opensymphony Releases</name>
+				<url>https://oss.sonatype.org/content/repositories/opensymphony-releases</url>
+			</repository> 
+		</repositories>
+		
+		<dependency> 
+			<groupId>net.sourceforge.groboutils</groupId> 
+			<artifactId>groboutils-core</artifactId> 
+			<version>5</version> 
+		</dependency>
+		```
+	- 使用
+
+		```java
+		@Test 
+		public void multiRequestsTest() { 
+			// 构造一个Runner 
+			TestRunnable runner = new TestRunnable() { 
+				@Override 
+				public void runTest() throws Throwable { 
+					// TODO 测试内容
+				} 
+			};
+
+			int runnerCount = 100; 
+			// Runner数组，想当于并发多少个。 
+			TestRunnable[] arrTestRunner = new TestRunnable[runnerCount]; 
+			for (int i = 0; i < runnerCount; i++) { 
+				arrTestRunner[i] = runner; 
+			} 
+
+			// 用于执行多线程测试用例的Runner，将前面定义的单个Runner组成的数组传入 
+			MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(arrTestRunner); 
+			try { 
+				// 开发并发执行数组里定义的内容 
+				mttr.runTestRunnables(); 
+			} catch (Throwable e) { 
+				e.printStackTrace(); 
+			} 
+		}
+		```
+
 
 ### 替换项目运行时springboot的logo
 

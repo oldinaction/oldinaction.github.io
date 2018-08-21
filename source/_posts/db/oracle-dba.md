@@ -84,7 +84,9 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 > - 输入 `imp/exp 用户名/密码` 可根据提示导入导出。**直接cmd运行**。
 > - 成功提示 `Export terminated successfully [with/without warnings]`；失败提示 `Export terminated unsuccessfully [with/without warnings]`
 
-1. 导出
+#### dmp格式导出导入(cmd)
+
+- 导出
     - **用户模式**：`exp system/manager file=d:/exp.dmp owner=scott` 导出scott用户的所有对象，前提是system有相关权限
         - **远程导出**：此时system/manager默认连接的是本地数据库。如果使用`exp system/manager@remote_orcl file=d:/exp.dmp owner=scott`(remote_orcl为在本地建立的远程数据库网络服务名. 即tnsnames.ora里面的配置项名称)则可导出远程数据库的相关数据，下同。或者system/manager@192.168.1.1:1521/orcl
         - 加上 `compress=y` 表示压缩数据
@@ -96,8 +98,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - 导出全部：`exp system/manager file=d:/exp.dmp full=y`
         - 用户 system/manager 必须具有相关权限
         - 导出的是整个数据库，包括所有的表空间
-
-2. 导入
+- 导入
     - **用户模式**：`imp system/manager file=d:/exp.dmp fromuser=scott touser=aezo ignore=y`
         - `ignore=y`忽略创建错误
         - 不少情况下要先将表彻底删除，然后导入
@@ -107,6 +108,20 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
     - 导入全部：`imp system/manager file=d:/exp.dmp full=y ignore=y`
         - 用户 system/manager 必须具有相关权限
         - 导入的是整个数据库，包括所有的表空间
+
+#### sql导出导入(sqlplus)
+
+- 导出
+    
+    ```sql
+    set echo off;
+    set heading off;
+    set feedback off;
+    spool /home/myout.sql
+    select text from user_source; -- 查询所有的存储过程
+    spool off;
+    ```
+- 导入：`@/home/my.sql`，或者命令行运行`sqlplus root/root@127.0.0.1:1521/orcl @my.sql`
 
 ### pl/sql
 

@@ -9,7 +9,7 @@ tags: [python]
 ## python简介
 
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
-- Linux下默认有python环境
+- Linux下默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](_post/linux/CentOS服务器使用说明.md)
 
 ## python2和python3的语法区别
 
@@ -150,7 +150,6 @@ for i in range(10): # range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)�
 
 ```
 
-
 ### 其他
 
 ```python
@@ -173,11 +172,29 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ## 模块
 
+- 更换pip镜像
+
+    ```bash
+    # 镜像地址
+    # 豆瓣 http://pypi.douban.com/simple/
+    # 清华 https://pypi.tuna.tsinghua.edu.cn/simple 
+
+    # Linux下，修改 ~/.pip/pip.conf (没有就创建一个)， 修改 index-url至tuna，内容如下：
+    [global]
+    index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+    
+    # windows下，直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下:
+    [global]
+    index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+    ```
 - 模块安装
     - `pip install xxx` [pip](https://pypi.org/)
+        - python3也可以使用`pip3 install xxx`
         - `pip install Django==2.0.6` 安装指定版本
     - `pip install xxx.whl` [whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
-    - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
+    - `pip list` 列举安装的模块
+        - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
+    - `pip uninstall xxx` 卸载
 - 常用模块
     - `pip` 可用于安装管理python其他模块
         - 安装（windows默认已经安装）
@@ -199,7 +216,7 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
     - `pymongo` MongoDB操作库 [^2]
         - `pip install pymongo`
     - `fabric` 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
-        - `pip install fabric` 安装
+        - `pip install fabric` 或 `pip install fabric3` 安装
         - 常见问题
             - 报错`fatal error: Python.h: No such file or directory`
                 - 安装`yum install python-devel` 安装python-devel(或者`yum install python-devel3`)
