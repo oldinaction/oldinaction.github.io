@@ -44,12 +44,26 @@ tags: [sql, oracle, mysql]
                 - `unbounded preceding` 第一行
                 - `current row` 当前行
                 - `unbounded following` 最后一行
-    - 省略窗口字句
-        - 出现`order by`子句的时候，不一定要有窗口子句
-        - 此时窗口默认是当前组的第一行到当前行(unbounded preceding and current row)
     - 省略分组字句：则把全部记录当成一个组
-        - 如果存在`order by`则窗口默认同上，即当前组的第一行到当前行
-        - 如果这时省略`order by`则窗口默认为整个组(unbounded preceding and unbounded following)
+        - 如果此时存在`order by`，则窗口默认(省略窗口时)为当前组的第一行到当前行(unbounded preceding and current row)
+        - 如果此时不存在`order by`，则窗口默认为整个组(unbounded preceding and unbounded following)
+    - 省略窗口字句
+        - 出现`order by`子句的时候，不一定要有窗口子句(窗口子句不能单独出现，必须有`order by`子句时才能出现)
+        - 如果此时存在`order by`，则窗口默认是当前组的第一行到当前行
+        - 如果此时不存在`order by`，则窗口默认是整个组
+        - 示例（示例和图片来源：http://www.cnblogs.com/linjiqin/archive/2012/04/05/2433633.html）
+            
+            ```sql
+            -- 见图一：窗口默认为整个组
+            select deptno, empno, ename, sal, last_value(sal) over(partition by deptno) from emp;
+            -- 见图二：窗口默认为第一行到当前行
+            select deptno, empno, ename, sal, last_value(sal) over(partition by deptno order by sal desc) from emp;
+            ```
+
+            ![图一](/data/images/db/oracle-over-1.png)
+            
+            ![图二](/data/images/db/oracle-over-2.png)
+
     - 两个`order by`的执行时机
         - 两者一致：如果sql语句中的order by满足分析函数分析时要求的排序，那么sql语句中的排序将先执行，分析函数在分析时就不必再排序
         - 两者不一致：如果sql语句中的order by不满足分析函数分析时要求的排序，那么sql语句中的排序将最后在分析函数分析结束后执行排序
@@ -72,8 +86,8 @@ select *
   from (select ys.id
                ,count(yvmp.venue_move_plan_id) over(partition by ys.id) as total
                ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm ASC rows between unbounded preceding and unbounded following) as first_id
-          from ycross_storage ys
-          left join yyard_venue_move_plan yvmp
+          from ycross_storage ys -- 场存表
+          left join yyard_venue_move_plan yvmp -- 移动表
             on yvmp.storage_id = ys.id
            and yvmp.yes_status = 0) t
  group by t.id, t.total, t.first_id
@@ -182,14 +196,17 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
 
 ### 字符串分割函数
 
-- **使用正则**
+#### 使用正则
 ```sql
 -- 基于,分割，返回3行数据
 select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
   connect by level <= length('17,20,23') - length(regexp_replace('17,20,23', ',', '')) + 1;
 ```
-- 创建字符串数组类型：`create or replace type sm_type_arr_str is table of varchar2 (60);` (一个数组，每个元素是varchar2 (60))
-- 创建自定义函数`sm_split`
+
+#### 使用自定义函数
+
+- 1.创建字符串数组类型：`create or replace type sm_type_arr_str is table of varchar2 (60);` (一个数组，每个元素是varchar2 (60))
+- 2.创建自定义函数`sm_split`
 
   ```sql
   create or replace function sm_split(p_str       in varchar2,
@@ -285,13 +302,13 @@ begin
     sys.dbms_job.submit(
         job => :job_id, -- OUT，返回job_id（不能省略）
         what => 'my_proc_name;', -- 执行的存储过程名称，后面要带分号
-        next_date => to_date('2018-06-15 10:00:00', 'yyyy-mm-dd hh24:mi:ss'), -- job的开始时间
+        next_date => to_date('2018-06-15 10:00:00', 'yyyy-mm-dd hh24:mi:ss'), -- job的开始时间. 如果写成sysdate则提交后便会执行一次
         interval => 'sysdate+1/86400' -- job的运行频率。每天86400秒钟，即一秒钟运行my_proc_name过程一次
     );
     commit;
 
     -- 带参数执行job(每日凌晨零点执行)
-    dbms_job.submit(job_id, 'declare username varchar2(200); age number; begin my_proc_name(username, age); end;', sysdate, 'trunc(sysdate)+1'); 
+    dbms_job.submit(job_id, 'declare username varchar2(200); begin my_proc_name(username, ''''); end;', sysdate, 'trunc(sysdate)+1'); 
 
     -- （2）比如某个job返回的id为888
     dbms_job.run(888); -- 立即运行一次888这个job
@@ -301,20 +318,20 @@ end;
 ```
 
 - 执行频率举例
-    - 每天午夜12点 `Interval => TRUNC(SYSDATE + 1)`
-    - 每天早上8点30分 `Interval => TRUNC(SYSDATE + 1) + （8*60+30）/(24*60)`
-    - 每星期二中午12点 `Interval => NEXT_DAY(TRUNC(SYSDATE ), ''TUESDAY'' ) + 12/24`
-    - 每个月第一天的午夜12点 `Interval => TRUNC(LAST_DAY(SYSDATE ) + 1)`
-    - 每个季度最后一天的晚上11点 `Interval => TRUNC(ADD_MONTHS(SYSDATE + 2/24, 3 ), 'Q' ) -1/24`
-    - 每星期六和日早上6点10分 `Interval => TRUNC(LEAST(NEXT_DAY(SYSDATE, ''SATURDAY"), NEXT_DAY(SYSDATE, "SUNDAY"))) + (6×60+10)/(24×60)`
-    - 每30秒执行次 `Interval => sysdate + 30/(24 * 60 * 60)`
-    - 每10分钟执行 `Interval => TRUNC(sysdate,'mi') + 10/ (24*60)`
-    - 每天的凌晨1点执行 `Interval => TRUNC(sysdate) + 1 +1/ (24)`
-    - 每周一凌晨1点执行 `Interval => TRUNC(next_day(sysdate,'星期一'))+1/24`
-    - 每月1日凌晨1点执行 `Interval =>TRUNC(LAST_DAY(SYSDATE))+1+1/24`
-    - 每季度的第一天凌晨1点执行 `Interval => TRUNC(ADD_MONTHS(SYSDATE,3),'Q') + 1/24`
-    - 每半年定时执行(7.1和1.1) `Interval => ADD_MONTHS(trunc(sysdate,'yyyy'),6)+1/24`
-    - 每年定时执行 `Interval =>ADD_MONTHS(trunc(sysdate,'yyyy'),12)+1/24`
+    - 每天午夜12点 `interval => trunc(sysdate + 1)`
+    - 每天早上8点30分 `interval => trunc(sysdate + 1) + (8*60+30)/(24*60)`
+    - 每星期二中午12点 `interval => next_day(trunc(sysdate), 'tuesday') + 12/24`
+    - 每个月第一天的午夜12点 `interval => trunc(last_day(sysdate) + 1)`
+    - 每个季度最后一天的晚上11点 `interval => trunc(add_months(sysdate + 2/24, 3), 'q') -1/24`
+    - 每星期六和日早上6点10分 `interval => trunc(least(next_day(sysdate, 'saturday'), next_day(sysdate, 'sunday'))) + (6×60+10)/(24×60)`
+    - 每30秒执行次 `interval => sysdate + 30/(24 * 60 * 60)`
+    - 每10分钟执行 `interval => trunc(sysdate, 'mi') + 10/(24*60)`
+    - 每天的凌晨1点执行 `interval => trunc(sysdate) + 1 + 1/(24)`
+    - 每周一凌晨1点执行 `interval => trunc(next_day(sysdate, '星期一'))+1/24`
+    - 每月1日凌晨1点执行 `interval => trunc(last_day(sysdate))+1+1/24`
+    - 每季度的第一天凌晨1点执行 `interval => trunc(add_months(sysdate, 3), 'q') + 1/24`
+    - 每半年定时执行(7.1和1.1) `interval => add_months(trunc(sysdate, 'yyyy'),6)+1/24`
+    - 每年定时执行 `interval => add_months(trunc(sysdate, 'yyyy'), 12)+1/24`
 
 
 

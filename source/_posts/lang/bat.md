@@ -28,6 +28,7 @@ tags: [windows]
     - `/` 参数开关引导符 
     - `:` 批处理标签引导符 
     - `%` 批处理变量引导符 
+    - `^` 转义字符 eg: `if 1=1 (echo hello^(你好^)) else (echo bye)`
 - `setlocal enabledelayedexpansion` 启用变量延迟模式，变量通过`!myVar!`获取 (bat是一行一行读取命令的，if的括号算做一行，所有容易出现变量赋值获取不到的情况) [^3]
 
 ### 变量 [^2]
@@ -79,7 +80,7 @@ set a=
 if DEFINED a (echo l hava define) else (echo l don't define)
 
 set /p var=请输入一个数字:
-if %var% LEQ  4 (echo 我小于等于4) ELSE echo 我不小于等于4
+if %var% LEQ  4 (echo 我小于等于4) else echo 我不小于等于4
 pause
 
 

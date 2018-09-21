@@ -190,7 +190,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     - `yum repolist enabled | grep "mysql.*-community.*"` 检查mysql源是否安装成功
     - `yum install mysql-community-server` 安装mysql
     - `systemctl start mysqld` 启动
-    - `grep 'temporary password' /var/log/mysqld.log` 查看临时密
+    - `grep 'temporary password' /var/log/mysqld.log` 查看临时密码
     - `mysql -uroot -p`登录
     - `alter user 'root'@'localhost' identified by 'mynewpass4!';` 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)
     - `grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;` 添加smalle用户，并赋权，且允许远程登录

@@ -123,6 +123,7 @@ tags: [mybatis, springboot]
 				@RequestParam(defaultValue = "1") Integer pageNum,
 				@RequestParam(defaultValue = "5") Integer pageSize) {
 			PageHelper.startPage(pageNum, pageSize); // 默认查询第一页，显示5条数据（必须在实例化PageInfo之前）
+			// ... // 此处如果发起了其他sql则此处的sql会被分页，而下面的sql则不会被分页
 			List<UserInfo> users = userMapper.findAll(); // 第一条执行的SQL语句会被分页，实际上输出users是page对象
 			PageInfo<UserInfo> pageUser = new PageInfo<UserInfo>(users); // 将users对象绑定到pageInfo
 
@@ -222,6 +223,8 @@ tags: [mybatis, springboot]
 			" ) </if>",
             "</script>" })
         List<Map<String, Object>> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans);
+		// 还是使用上面script，如果提供对应的HelpPojo对象，mybatis会自动将字段的下划线转成驼峰，并去寻找HelpPojo相应的属性
+		// List<HelpPojo> findHelps(@Param("help") Help help, @Param("event") Event event, @Param("plans") List<Plan> plans);
 
 		// 此方法也可以再xml中实现（即部分可以通过 @Select 声明，部分可以在xml中实现）
 		List<HelpPojo> findHelps(@Param("help") HelpPojo helpPojo); // 此时xml中必须通过help对象获取属性.如果不写@Param("help")则可直接获取属性值
@@ -293,9 +296,14 @@ tags: [mybatis, springboot]
 			使用include关键字调用其他xml文件的sql时，则需要在refid前加上该文件的命名空间
 		-->
 		<mapper namespace="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml">
-			<!-- resultMap结果集映射定义(用来描述如何从数据库结果集中来加载对象). resultType 与 resultMap 不能并用. type也可以为java.util.HashMap,则返回结果中放的是Map-->
+			<!-- 
+				1.resultMap结果集映射定义(用来描述如何从数据库结果集中来加载对象). 
+				2.resultType 与 resultMap 不能并用. 
+				3.type也可以为java.util.HashMap,则返回结果中放的是Map
+				4.子标签有先后顺序。(constructor?,id*,result*,association*,collection*, discriminator?)
+			-->
 			<resultMap id="UserInfoResultMap" type="cn.aezo.springboot.mybatis.model.UserInfo">
-				<!--设置mybatis.configuration.map-underscore-to-camel-case=true则会自动对格式进行转换, 无效下面转换-->
+				<!--设置mybatis.configuration.map-underscore-to-camel-case=true则会自动对格式进行转换, 无需下面转换-->
 				<!--<result column="group_id" property="groupId" jdbcType="BIGINT"/>-->
 				<!--<result column="nick_name" property="nickName" jdbcType="VARCHAR"/>-->
 			</resultMap>
@@ -313,6 +321,13 @@ tags: [mybatis, springboot]
 				<include refid="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml.UserInfoColumns"/>,
 				<include refid="userColumns"><property name="alias" value="t1"/></include>
 				from user_info
+				where 1=1
+				<if test='name != null and name != ""'>
+					<!-- bind 元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文-->
+					<!-- _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name') -->
+					<bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
+					and upper(name) like #{nameUpper}
+				</if>
 			</select>
 
 			<!-- property参数使用. 此时#{username}可以拿到selectMain的上下文 -->
@@ -374,29 +389,44 @@ tags: [mybatis, springboot]
 
 	```xml
     <select id="getClass" parameterType="int" resultMap="ClassResultMap">
-        select * from class c, teacher t,student s where c.teacher_id = t.t_id and c.C_id = s.class_id and  c.c_id = #{id}
+        select * from class c, teacher t, student s 
+		where c.teacher_id = t.t_id and c.c_id = s.class_id 
+			and c.c_id = #{id} and s.name = #{name}
     </select>
 
 	<!--此处Classes类中仍然需要保存一个Teacher teacher的引用和一个List<Student> students的引用-->
     <resultMap type="cn.aezo.demo.Classes" id="ClassResultMap">
-		<!--一个 ID 结果;标记结果作为 ID 可以帮助提高整体效能-->
+		<!--一个 ID 结果;标记结果作为 ID 可以帮助提高整体效能。association、collection中都最好加上 -->
         <id property="id" column="c_id"/>
 		<!--注入到字段或 JavaBean 属性的普通结果-->
         <result property="name" column="c_name"/>
-		<!-- association字面意思关联，这里只专门做一对一关联； property表示是cn.aezo.demo.Classes中的属性名称； javaType表示该属性是什么类型对象 -->
-        <association property="teacher" column="teacher_id" javaType="cn.aezo.demo.Teacher">
+		<!-- 
+		association字面意思关联，这里只专门做一对一关联； 
+			1.property表示是cn.aezo.demo.Classes中的属性(setter)名称； 
+			2.javaType表示该属性是什么类型对象 
+			3.columnPrefix="out_/in_" 字段前缀。如查询主表(Ycross_Storage)中关联某一张表(如Ycross_In_Out_Regist)关联了两次，但是表Ycross_In_Out_Regist的映射只有一个(property和column的对应关系只有一套)。可以再取出Ycross_In_Out_Regist中的字段的时候通过`as out_xxx`对某字段进行别名处理。此时映射的时候会将字段的名称去掉columnPrefix前缀去找对应的property
+		-->
+        <association 
+			property="teacher" 
+			javaType="cn.aezo.demo.Teacher">
             <id property="id" column="t_id"/>
             <result property="name" column="t_name"/>
         </association>
-        <!-- ofType指定students集合中的对象类型。这样查询出来的集合条数和数据出来的一致(子表导致主表查询的条数增多) -->
+        <!-- 
+			1.ofType指定students集合中的对象类型。这样查询出来的集合条数和数据出来的一致(子表导致主表查询的条数增多) 
+			2.javaType="ArrayList"可以省略
+		-->
         <collection property="students" ofType="cn.aezo.demo.Student">
             <id property="id" column="s_id"/>
             <result property="name" column="s_name"/>
         </collection>
 
-		<!-- 此时返回的集合是主表的条数，然后基于每一条再重新查询数据获取子表数据并放入到Classes对象的students中。
-			select指查询Student的接口. 如果为当前mapper文件则可省略命名空间(namespace)直接写成 getStudent
-			column是传入到getStudent查询中的参数，id是传入参数名称，s_id获取获取字段值的字段名(就是先从主表查询的结果中获取s_id字段的值，传入到id中，发起getStudent查询)
+		<!-- 
+		此时返回的集合是主表的条数，然后基于每一条再重新查询数据获取子表数据并放入到Classes对象的students中。
+			1.select指查询Student的接口. 如果为当前mapper文件则可省略命名空间(namespace)直接写成 getStudent。(select和column只有在嵌套查询的时候才用得到)
+			2.column是传入到getStudent查询中的参数，id是传入参数名称，s_id获取获取字段值的字段名(就是先从主表查询的结果中获取s_id字段的值，传入到id中，发起getStudent子查询)。如果一个参数也可以直接写成column="s_id" (getStudent的接口中也声明接受一个此类型的参数即可)
+			3.columnPrefix="xx_"同上
+			4.会产生1+N问题。主表有多少此就会发起多少次查询，无法根据条件判断是否需要发起子查询。导出报表最好不要使用
 		-->
 		<collection 
 			property="students" 
@@ -407,27 +437,32 @@ tags: [mybatis, springboot]
     </resultMap>
 	```
 
-- 查询sql举例
+### 控制主键自增和获取自增主键值
 
-	```xml
-	<select id="selectInsuranceListByCreator" resultType="cn.aezo.demo.ThMyInsuranceListView" parameterType="java.lang.Long" >
-		SELECT
-			t2.insurance_compay insuranceCompany,
-			t2.insurance_name insurancePlan,
-			t1.is_valid insuranceStatus,
-			t1.order_id orderId
-		FROM
-			th_insurance_order t1,
-			th_insurance t2
-		WHERE
-			t1.creator = #{creator, jdbcType=BIGINT}
-		AND t1.insurance_id = t2.insurance_id
-	</select>
-	```
-	- `insuranceCompany`会对应ThMyInsuranceListView中的字段
+- 获取自增主键(mysql为例，需要数据库设置主键自增) [^3]
+	- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)
+	- 方式二：`<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>`
+	- 获取方式：`userMapper.insert(userInfo); userInfo.getUserId();`
 
-#### mybatis常见问题
+### MyBatis、Java、Oracle、MySql数据类型对应关系
 
+- Mybatis的数据类型用JDBC的数据类型
+- JDBC数据类型转换
+
+
+JDBC | Java | Mysql | Oracle
+---------|----------|---------|---------
+Integer | Integer | Int | 
+Bigint  | Long | Bigint | Number
+Numeric  | Long |  | Number
+Timestamp| Date | Datetime | Date
+Date | Date | Date | Date
+Decimal | BigDecimal | Decimal | Number(20, 6) 
+Char |  | Char | Char
+ Blob |  | Blob | Blob
+ Clob |  | Text | Clob
+
+## mybatis常见问题
 
 - **关于`<`、`>`转义字符**(在xml的sql语句中则不需要专业)
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
@@ -465,31 +500,7 @@ tags: [mybatis, springboot]
 - 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
 - `<when>`/`<if>` 可进行嵌套使用，其子属性test可以使用双引号或单引号
 - xml文件修改无需重新部署，立即生效
-
-### 控制主键自增和获取自增主键值
-
-- 获取自增主键(mysql为例，需要数据库设置主键自增) [^3]
-	- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)
-	- 方式二：`<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>`
-	- 获取方式：`userMapper.insert(userInfo); userInfo.getUserId();`
-
-### MyBatis、Java、Oracle、MySql数据类型对应关系
-
-- Mybatis的数据类型用JDBC的数据类型
-- JDBC数据类型转换
-
-
-JDBC | Java | Mysql | Oracle
----------|----------|---------|---------
-Integer | Integer | Int | 
-Bigint  | Long | Bigint | Number
-Numeric  | Long |  | Number
-Timestamp| Date | Datetime | Date
-Date | Date | Date | Date
-Decimal | BigDecimal | Decimal | Number(20, 6) 
-Char |  | Char | Char
- Blob |  | Blob | Blob
- Clob |  | Text | Clob
+- `Cause: java.sql.SQLException: 无法转换为内部表示` 可能是由于类型转换导致，如强制将数据库中字符串类型字段映射某个对象的Long类型属性上
 
 ## MyBatis Generator
 
@@ -641,18 +652,20 @@ Char |  | Char | Char
             e.printStackTrace();
         }
 		```
-- 生成oracle项目：先将oracle表转成mysql数据表，参考《mysql-db.md》，再生成项目
+- 生成oracle项目：先将oracle表转成mysql数据表，参考[《mysql-dba.md》](/_posts/db/mysql-dba.md#Oracle表结构与Mysql表结构转换)，再生成项目
 	- 配置文件设置成`<generatedKey column="id" sqlStatement="MySql" identity="false" />`中identity="false"为了生成id的insert语句（oracle需要通过序列来完成）
 	- 修改生成的`<selectKey>`语句为根据序列获取主键
+
+
+
+## TODO
+
+- Mybatis Generator添加注释：https://www.cnblogs.com/NieXiaoHui/p/6094144.html
 
 ---
 
 参考文章
 
-[^1]: [整合mybatis](http://blog.csdn.net/gebitan505/article/details/54929287)
-[^2]: [@Select注解中当参数为空则不添加该参数的判断](https://segmentfault.com/q/1010000006875476)
-[^3]: [Mybatis操作数据库的主键自增长](https://www.cnblogs.com/panie2015/p/5807683.html)
-
-TODO
-
-- Mybatis Generator添加注释：https://www.cnblogs.com/NieXiaoHui/p/6094144.html
+[^1]: http://blog.csdn.net/gebitan505/article/details/54929287 (整合mybatis)
+[^2]: https://segmentfault.com/q/1010000006875476 (@Select注解中当参数为空则不添加该参数的判断)
+[^3]: https://www.cnblogs.com/panie2015/p/5807683.html (Mybatis操作数据库的主键自增长)

@@ -213,6 +213,7 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
             - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
         - `pip install pymysql`(3.6)
             - 工具类：https://www.cnblogs.com/bincoding/p/6789456.html
+        - mysqlclient `pip install mysqlclient-1.3.13-cp36-cp36m-win_amd64.whl`
     - `pymongo` MongoDB操作库 [^2]
         - `pip install pymongo`
     - `fabric` 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)

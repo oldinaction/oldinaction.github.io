@@ -127,7 +127,7 @@ tags: [model, mysql, oracle]
  ### 反向生成/更新模型
 
  - 创建一个空的PDM模型
- - 选择Database - Update Model from Database(更新模型也可以，不会打乱现有排版)
+ - 选择 **Database - Update Model from Database** (更新模型也可以，不会打乱现有排版)
 
 ### 数据字典 [^1]
 

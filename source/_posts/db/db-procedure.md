@@ -30,123 +30,126 @@ if ... elsif ... end if; -- 注意是 elsif
 - `call p_up_user_role();` 调用存储过程
 
 ```sql
-	-- 定义
-	create or replace procedure p_up_user_role is
-		cursor c is 
-			select t.* from user_login t; -- 游标
-		china_id number;
+-- 定义
+create or replace procedure p_up_user_role is
+	cursor c is 
+		select t.* from user_login t; -- 游标
+	china_id number;
+begin
 	begin
 		select t.id into china_id from t_structure t where t.structure_type_status = 1 and t.node_level = 6 and t.node_name = '中国'; --可能出现运行时异常：ORA-01403 no data found
-
-		delete from user_login_security_group t where t.group_id = 'dw_dept_admin';
-		--for循环不需要声明变量，会自动将user_item声明为record变量
-		for user_item in c loop
-				insert into user_login_security_group(user_login_id, group_id, from_date) 
-							values(user_item.user_login_id, 'dw_dept_admin', '2017-11-01 00:00:00.000000');
-		end loop;
-		commit;
+	exception
+		when no_data_found then china_id := -1;
 	end;
 
-	-- 运行
-	call p_up_user_role();
+	delete from user_login_security_group t where t.group_id = 'dw_dept_admin';
+	--for循环不需要声明变量，会自动将user_item声明为record变量
+	for user_item in c loop
+		insert into user_login_security_group(user_login_id, group_id, from_date) 
+			values(user_item.user_login_id, 'dw_dept_admin', '2017-11-01 00:00:00.000000');
+	end loop;
+	commit;
+end;
 
-	-- 删除
-	drop procedure p_up_user_role;
+-- 运行
+call p_up_user_role();
+
+-- 删除
+drop procedure p_up_user_role;
 ```
 
 - 示例二（动态游标、异常处理）
 
-	```sql
-	-- 创建错误日志表
-	create table logs_proc
-	(
-		id number primary key,
-		proc varchar2(255),
-		pidtype varchar2(255),
-		pid varchar2(20),
-		code number,
-		msg varchar2(1024),
-		uptime date
-	);
-	create sequence seq_logs_proc start with 1 increment by 1;
+```sql
+-- 创建错误日志表
+create table logs_proc
+(
+	id number primary key,
+	proc varchar2(255),
+	pidtype varchar2(255),
+	pid varchar2(20),
+	code number,
+	msg varchar2(1024),
+	uptime date
+);
+create sequence seq_logs_proc start with 1 increment by 1;
 
-	-- 创建存储过程
-	create or replace procedure p_up_storage is
-		type ref_cursor_type is ref cursor; --定义一个游标类型(动态游标使用)
+-- ============ 创建存储过程  ============
+create or replace procedure p_up_storage is
+	type ref_cursor_type is ref cursor; --定义一个游标类型(动态游标使用)
 
-		cursor c is
-			select yls.*
-				from yyard_location_set yls, ybase_party_company ypc
-			where ypc.party_id = yls.yard_party_id
-				and ypc.company_num = 'DW1' 
-				and yls.region_num in ('Y0');
+	cursor c is
+		select yls.* from yyard_location_set yls, ybase_party_company ypc
+		where ypc.party_id = yls.yard_party_id
+			and ypc.company_num = 'DW1' 
+			and yls.region_num in ('Y0');
 
-		v_cur_storage ref_cursor_type; -- 动态游标
-		v_storage     ycross_storage%ROWTYPE;
-		v_sql         varchar2(1000);
-		v_x           number := 1;
-		v_y           number := 1;
+	v_cur_storage ref_cursor_type; -- 动态游标
+	v_storage     ycross_storage%ROWTYPE;
+	v_sql         varchar2(1000);
+	v_x           number := 1;
+	v_y           number := 1;
 
-		v_errcode number;
-		v_errmsg  varchar2(1024);
-	begin
-		for loc in c loop
-			v_errmsg := '[code]p_up_storage==>' || loc.YARD_PARTY_ID || '-' || loc.REGION_NUM || loc.SET_NUM;
-			-- 更新此堆位下场存
-			v_x := 1;
-			v_y := 1;
-		
-			--使用连接符拼接成一条完整SQL. oracle转义字符为 ' ，如 '' 转义后就是 '
-			v_sql := 'select * from ycross_storage t where t.yes_storage = 1 and t.location_id = ' ||
-							loc.location_id;
-			-- 字符串分割案例。v_sql := 'select * from table (cast (sm_split (''' || myStr || ''', ''/'') as sm_type_arr_str))';
+	v_errcode number;
+	v_errmsg  varchar2(1024);
+begin
+	for loc in c loop
+		v_errmsg := '[code]p_up_storage==>' || loc.YARD_PARTY_ID || '-' || loc.REGION_NUM || loc.SET_NUM;
+		-- 更新此堆位下场存
+		v_x := 1;
+		v_y := 1;
+	
+		--使用连接符拼接成一条完整SQL. oracle转义字符为 ' ，如 '' 转义后就是 '
+		v_sql := 'select * from ycross_storage t where t.yes_storage = 1 and t.location_id = ' ||
+						loc.location_id;
+		-- 字符串分割案例。v_sql := 'select * from table (cast (sm_split (''' || myStr || ''', ''/'') as sm_type_arr_str))';
 
-			--打开游标
-			open v_cur_storage for v_sql;
-			loop -- 此处不能使用 for ... in ... loop的语句
-				fetch v_cur_storage into v_storage;
-				exit when v_cur_storage%notfound; -- 跳出循环
+		--打开游标
+		open v_cur_storage for v_sql; -- open v_cur_storage for 'select 1 from dual';
+		loop -- 此处不能使用 for ... in ... loop的语句
+			fetch v_cur_storage into v_storage;
+			exit when v_cur_storage%notfound; -- 跳出循环
 
-				update ycross_storage t
-					set t.ycross_x = v_x, t.ycross_y = v_y
-				where t.id = v_storage.id;
+			update ycross_storage t
+				set t.ycross_x = v_x, t.ycross_y = v_y
+			where t.id = v_storage.id;
 
-				if v_y < 7 then -- 也可以使用 like 等关键字
-					v_y := v_y + 1;
+			if v_y < 7 then -- 也可以使用 like 等关键字
+				v_y := v_y + 1;
+			else
+				if v_x < 30 then
+					v_x := v_x + 1;
+					v_y := 1;
 				else
-					if v_x < 30 then
-						v_x := v_x + 1;
-						v_y := 1;
-					else
-						raise_application_error(-20001, v_errmsg || '位置超出堆位结构'); -- 抛出异常
-					end if;
+					raise_application_error(-20001, v_errmsg || '位置超出堆位结构'); -- 抛出异常
 				end if;
+			end if;
 
-					-- 基于v_storage实现新增和修改
-					insert into ycross_storage values v_storage;
-					update ycross_storage set row = v_storage where id = 10000;
-			end loop;
-			close v_cur_storage;
-		
+				-- 基于v_storage实现新增和修改
+				insert into ycross_storage values v_storage;
+				update ycross_storage set row = v_storage where id = 10000;
 		end loop;
-		commit;
+		close v_cur_storage;
+	
+	end loop;
+	commit;
 
-		return; -- 提前返回
-		dbms_output.put_line('不会打印');
-	exception
-		-- 捕获异常
-		when others then
-			--WHEN excption_name THEN ...WHEN OTHERS THEN ...
-			rollback;
-			v_errcode := SQLCODE; --出错代码
-			v_errmsg  := v_errmsg || ', [msg]' || SQLERRM; --出错信息（直接使用SQLERRM报错，需先用变量接收）
-			v_errmsg := v_errmsg || '; ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE; -- 报错行号
-			insert into logs_proc(id, code, mesg, uptime)
-			values
-				(seq_logs_proc.nextval, v_errcode, v_errmsg, sysdate);
-			commit;
-	end;
-	```
+	return; -- 提前返回
+	dbms_output.put_line('不会打印');
+exception
+	-- 捕获异常
+	when others then
+		--WHEN excption_name THEN ...WHEN OTHERS THEN ...
+		rollback;
+		v_errcode := SQLCODE; --出错代码
+		v_errmsg  := v_errmsg || ', [msg]' || SQLERRM; --出错信息（直接使用SQLERRM报错，需先用变量接收）
+		v_errmsg := v_errmsg || '; ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE; -- 报错行号
+		insert into logs_proc(id, code, mesg, uptime)
+		values
+			(seq_logs_proc.nextval, v_errcode, v_errmsg, sysdate);
+		commit;
+end;
+```
 
 ### 异常
 
@@ -158,7 +161,11 @@ if ... elsif ... end if; -- 注意是 elsif
 	- `raise_application_error(error_number_in in number, error_msg_in in varchar2);` 如 **raise_application_error(-20500, '执行出错');**
 	- `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。
 	- `error_msg_in`: 长度不能超过 2k，否则截取 2k
-- 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来
+- 捕获异常类型参考官方文档：https://docs.oracle.com/cd/B19306_01/appdev.102/b14261/errors.htm
+	- `no_data_found` 无数据(select...into...语句需要捕获)
+	- `value_error` 值异常(转换异常、字段大小异常)
+	- `others` 普通异常
+- 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来。捕获子异常也需要`begin...end`包起来
 
 	```sql
 	loop
@@ -168,19 +175,27 @@ if ... elsif ... end if; -- 注意是 elsif
 			when others then dbms_output.put_line('出错'); -- 捕获异常后继续下一次循环
 			-- when others then null; -- 捕获异常后继续下一次循环
 			continue; -- 继续下一个循环
-	end;
+		end;
+	end loop;
 	```
 
-### oracle函数
+### Oracle过程语句
 
 ```sql
-	declare 
-		i integer;
-	begin
-		dbms_output.put_line('hello world');
-		p_up_user_role(); -- 调用上述存储过程
-	end;
+set serverout on; --sqlplus执行时可开启服务器输出(通过@my.sql执行文件亦可). PL/SQL则不需要 
+declare 
+	i integer;
+begin
+	dbms_output.put_line('hello world');
+	p_up_user_role(); -- 调用上述存储过程
+end;
+-- 运行过程语句
+/
 ```
+
+### forall与bulk collect语句提高效率
+
+参考：[SQL优化#批量更新优化](/_posts/db/sql-optimize.md#批量更新优化)
 
 ## Mysql存储过程示例
 
@@ -374,28 +389,21 @@ as
 		- `show error` 显示详细错误信息。当PL/SQL存在语法错误时，程序只提示有编译错误，如果想了解哪一行出错，需使用语句show error
 - 示例
 
-- 1.输出Hello World!
-
 ```sql
+-- 1.输出Hello World!
 begin 
 	dbms_output.put_line('Hello World!');/*输出*/
 end;/*在程序末尾回车敲正斜线运行程序*/
-```
 
-- 2.变量声明、赋值、输出
-
-```sql
+-- 2.变量声明、赋值、输出
 declare
 	v_name varchar2(20);/*声明变量*/
 begin
 	v_name := 'myname';/*变量赋值，使用符号 := */ 
 	dbms_output.put_line(v_name);/*输出变量*/
 end;
-```
 
-- 3.使用%type动态声明变量的类型
-
-```sql
+-- 3.使用%type动态声明变量的类型
 declare
 	v_empno number(4);/*声明变量*/
 	v_empno2 emp.empno%type;/*此时使用%type后v_empno2的类型会根据emp.empno的类型变化而变化*/
@@ -403,12 +411,9 @@ declare
 begin
 	dbms_output.put_line('Hello');
 end;
-```
 
-- **4.Table变量类型(复合数据类型，相当于java中的数组/Map)**
-	- 更多参考：https://docs.oracle.com/cd/B28359_01/appdev.111/b28370/collections.htm#CHDEIDIC 、 https://stackoverflow.com/questions/20329078/oracle-insert-into-a-table-type
-
-```sql
+-- 4.Table变量类型(复合数据类型，相当于java中的数组.) 属于本地集合，无法和表进行关联，无法放在sql的in字句中
+-- 更多参考：https://docs.oracle.com/cd/B28359_01/appdev.111/b28370/collections.htm#CHDEIDIC 、 https://stackoverflow.com/questions/20329078/oracle-insert-into-a-table-type
 declare
 	type type_table_emp_empno is table of emp.empno%type index by binary_integer;/*声明一个数组类型type_table_emp_empno，里面装的是emp.empno的类型*/
 	v_empnos type_table_emp_empno;/*声明变量v_empnos的数据类型为type_table_emp_empno*/
@@ -439,9 +444,7 @@ begin
 		i := v_table.next(i);
 	end loop;
 end;
-```
 
-```sql
 -- 5.Record变量类型(复合数据类型，相当于java中的类)
 declare
 	type type_record_dept is record
@@ -604,8 +607,7 @@ end;
 
 -- 17.带参数的游标
 declare
-	cursor c(v_deptno emp.deptno%type, v_job emp.job%type)
-	is
+	cursor c(v_deptno emp.deptno%type, v_job emp.job%type) is
 		select ename, sal from emp where deptno = v_deptno and job = v_job;
 	--v_temp c%rowtype;这是注释；此时不需要声明v_temp
 begin

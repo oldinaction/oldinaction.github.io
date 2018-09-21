@@ -21,6 +21,8 @@ tags: [vmware, linux, centos]
 
 ## vmware使用
 
+- `VMware Tools` 可以实现虚拟机和本机直接文本复制和文件传输
+    - 打开虚拟机，点击虚拟机-安装VMware Tools
 - **快照**：可对保留虚拟主机当前的配置状态
 - **克隆虚拟主机**：基于某个虚拟主机进行克隆出一台主机。克隆后需要进行以下修改
     - `hostnamectl set-hostname aezocn` 修改主机名
@@ -36,22 +38,33 @@ tags: [vmware, linux, centos]
 ## 常见问题
 
 - `ip addr`不显示ip：查看NAT是否连接，宿主机VMware相关的网络适配器是否启用，`/etc/sysconfig/network-scripts/ifcfg-ens33`中`ONBOOT=yes`(修改后，`systemctl restart network`重启)
-- ping不通baidu
-    
-    ```bash
-    # resolv.conf中加入
-    $ vi /etc/resolv.conf
-    nameserver 8.8.8.8 
-    nameserver 8.8.4.4
-    # nameserver 114.114.114.114
+- ping的同宿主机，ping不通百度
+    - 查询以太网属性是否共享，共享选择`VMware Network Adapter VMnet8`
+    - 启动服务`VMware NAT service`和`VMware DHCP service`
+    - 配置
 
-    # /etc/sysconfig/network-scripts/ifcfg-ens33
-    ONBOOT=yes
-    BOOTPROTO=static  #启用静态IP地址
-    IPADDR=192.168.6.10
-    NETMASK=255.255.255.0
-    GATEWAY=192.168.6.1
-    ```
+        ```bash
+        # resolv.conf中加入
+        $ vi /etc/resolv.conf
+        nameserver 8.8.8.8 
+        nameserver 8.8.4.4
+        # nameserver 114.114.114.114
+
+        # /etc/sysconfig/network-scripts/ifcfg-ens33 并重启network
+        ONBOOT=yes
+        BOOTPROTO=static  #启用静态IP地址
+        IPADDR=192.168.6.10
+        NETMASK=255.255.255.0
+        GATEWAY=192.168.6.1
+        ```
+
+## windows安装
+
+- 下载iso镜像
+- 新建虚拟机 - 典型 - 安装程序光盘映像文件(iso) - Microsoft Windows - ...
+- 点击开启此与虚拟下拉箭头 - 打开电源是进入固件(Bois) - 设置CD-ROM Driver为首先启动
+- 重启此虚拟进入系统安装界面
+- 再次进入Bois将虚拟机启动盘改为`Hard driver`
 
 ## mac os安装
 
@@ -64,12 +77,14 @@ tags: [vmware, linux, centos]
 - 根据虚拟机设置：添加硬盘 - SATA - 使用现有虚拟硬盘 - 选中`Mac.vmdk`(下载的mac系统硬盘文件，[谷歌硬盘下载地址](https://drive.google.com/drive/folders/1YneaDNMhveiByjo5iE3jNKLPHNYG6s0a)) - 并移除之前的硬盘
 - 此硬盘文件`Mac.vmdk`安装过一次后，下次则无需安装，会保存之前使用的数据
 - 可优化虚拟机设置为8G内存，2个处理器且每个4核
+- 调整屏幕分辨率为全屏：虚拟机 - 安装VMware Tools - 此时mac系统会提示安装，安装完成后重启即可
 
-### 常见问题
+### mac使用
 
-- 调整屏幕分辨率为全屏
-    - 启动虚拟机
-    - 虚拟机 - 安装VMware Tools - 此时mac系统会提示安装，安装完成后重启即可
+- `command`按键即`win`按键
+- 安装`Homebrew`包管理器
+    - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` 安装
+    - `brew install git` 使用brew安装git
 
 
 ---

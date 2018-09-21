@@ -3,7 +3,7 @@ layout: "post"
 title: "kafka"
 date: "2017-07-23 16:11"
 categories: arch
-tags: [java, 并发, log]
+tags: [mq]
 ---
 
 ## 简介

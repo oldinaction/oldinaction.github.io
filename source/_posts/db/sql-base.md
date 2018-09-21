@@ -60,12 +60,12 @@ create table t_test as
 - **书写顺序和执行顺序都是按照`select-from-where-group by-having-order by-limit`进行的**
 
 ```sql
-mysql>select count(num) 	/*注释：组函数*/
+mysql>select count(num) 	/*注释：组函数(group by时，select中的字段都需要时聚合后的)*/
     ->from emp			/*注释：此语句是不能执行的*/
-    ->where sal > 1000		/*注释：对数据进行过滤*/
+    ->where sal > 1000		/*注释：对数据进行过滤(group by时，where中的字段无需聚合)*/
     ->group by deptno		/*注释：对过滤后的数据进行分组*/
-    ->having avg(sal) > 2000	/*注释：对分组后的数据进行限制*/
-    ->order by ename desc	/*注释：对结果进行排序*/
+    ->having avg(sal) > 2000	/*注释：对分组后的数据进行限制(group by时，需要聚合)*/
+    ->order by deptno desc	/*注释：对结果进行排序(group by时，需要聚合)*/
     ->limit 2,3			/*注释：从第3条数据开始，取3条数据*/
     ->;
 ```
@@ -75,7 +75,7 @@ mysql>select count(num) 	/*注释：组函数*/
 ##### 基础查询
 
 - `select ename, sal*12 from emp;` 算年薪
-- `select curdate() 'current date', 2*3 count;` 显示系统时间和数学计算
+- `select now(), curdate() 'current date', 2*3;` 显示系统时间和数学计算
 
     ```html
     +---------------------+---------------+-----+
@@ -100,7 +100,7 @@ mysql>select count(num) 	/*注释：组函数*/
 - `select ename from emp where ename like '_a%';` like模糊查询
     - `_`代表任意一个字符，`%`代表任意个字符
     - '%xxx'左like、'xxx%'右like、'%xxx%'两边like
-    - 如果字段中含有特殊字符，需要用反斜线转义，如：`like 'a\_%'` 表示以`a_`开头的字符串
+    - 如果字段中含有特殊字符，需要用反斜线转义，如：`like 'a\_%'` 表示以`a_`开头的字符串(Oracle 需为`like 'a\_%' escape '\'`)
     - 也可以修改转义字符，如：`select ename from emp where ename like '_*_a%' escape '*';` 将转义字符设为`*`
 - `select ename, sal, deptno from emp order by deptno asc, ename desc;` order by排序(显示按照deptno升序排序，如果deptno相同，再按照ename降序排序)
     - 默认是asc升序；desc代表降序
@@ -225,10 +225,11 @@ mysql>select count(num) 	/*注释：组函数*/
 - 左、右、全外连接，left join、right join、full join。
     - left join和left outer join都表示左外连接，如果两个表进行连接，且连接后左边一个表中的数据不能显示出来，此时可以使用左连接(此时的king)。如：`select e1.ename, e2.ename from emp e1 left join emp e2 on (e1.mgr = e2.empno);`
 - `left join`(以左边表为主)、`right join`(以右边表为主)、`inner join`(只显示on条件成立的)、`full join`(显示所有数据)、`join`(默认是inner join)
+- Oracle `select 1 as a, t.b, t.c from dual left join (select 2 as b, 3 as c from dual) t on 1=1` 可返回a,b,c三个字段的值
 
 ##### 子查询
 
-- 可以把子查询当成查询到的一张表
+- 可以把子查询当成查询到的一张表（**子查询连接到主查询上时，子查询内部无法拿到主查询数据**）
 - 求出所有雇员中工资最高的那个人
     - 正确写法=>`select ename, sal from emp where sal = (select max(sal) from emp);` 利用的子查询
     - 错误写法=>`select ename, max(sal) from emp;`因为max(sal)只有一行输出，但是可能有很多人的工资都是一样的最高，所以不匹配。此时Oracle会报错，但是Mysql可以显示，但是结果是错误的
@@ -238,6 +239,7 @@ mysql>select count(num) 	/*注释：组函数*/
 
 ##### 子查询和表连接举例
 
+- **子查询连接到主查询上时，子查询内部无法拿到主查询数据**
 - 按照部门分组之后每个部门工资最高的那个人
 
     ```sql
@@ -331,6 +333,10 @@ mysql>select count(num) 	/*注释：组函数*/
     ```
 - 将薪水大于1200的雇员按照部门进行分组，分组后的平均薪水必须大于1500，查询分组之内的平均工资并按照平均工资的倒序进行排列
 `select deptno, avg(sal) from emp where sal > 1200 group by deptno having avg(sal) > 1500 order by avg(sal) desc limit 1,2;`
+
+#### union合并
+
+- Oracle `select 1 as a from dual union select 2 as b from dual`
 
 ## 数据库模式定义语言DDL(Data Definition Language)
 
@@ -433,10 +439,10 @@ mysql>select count(num) 	/*注释：组函数*/
 
 #### 复制表
 
-- 复制表结构及数据到新表 `create table 新表 as select * from 旧表`
+- **复制表结构及数据到新表** `create table 新表 as select * from 旧表` (**不会复制到表结果的备注和默认值等，根据备份表还原数据的时候需要delete掉原表的数据，不能drop**)
 - 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`·
 - 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
-- 复制旧表的数据到新表(假设两个表结构一样) `insert into 新表 select * from 旧表`
+- **复制旧表的数据到新表(假设两个表结构一样)** `insert into 新表 select * from 旧表`
 - 复制旧表的数据到新表(假设两个表结构不一样) `insert into 新表(字段1,字段2,.......) select 字段1,字段2,...... from 旧表`
 - 创建临时表并复制数据 `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
 
@@ -680,32 +686,41 @@ mysql>select count(num) 	/*注释：组函数*/
 - 三范式强调的是表不存在冗余数据(同样的数据不存第二遍)
 - 符合了三范式后会增加查询难度，要做表连接
 
-
 ### 常用建表模型
 
-- 字典表(t_type_code)：id、type、code、name、value、notes、rank、valid_status、input_user_id、input_time、update_user_id、update_time
-- 树型表(t_structure)：id、structure_type_code(树类型)、parent_id、node_level、node_code、node_name、node_notes、node_rank(节点排序)
-- 属性表(t_attr)：id、attr_type_code、parent_id、code、value（属性表可和树型表连用）
+- 字典表(t_type_code)：id、type、code、name、value、note、rank(排序)、permission_code(权限落在行级)、valid_status、input_user_id、input_time、update_user_id、update_time
+- 树型表(t_structure)：id、structure_type_code(树类型)、parent_id、node_level、node_code、node_name、node_note、node_rank(节点排序)
+- 属性表(t_attr)：id、attr_type、parent_id、code、value、note、permission_code(属性表可和树型表连用)
 - 权限相关表
-    - 权限组(t_security_group)：id、security_group、notes
-    - 权限(t_promission)：id、promission、notes
+    - 权限组(t_security_group)：id、security_group、note
+    - 权限(t_promission)：id、promission、note
     - 权限组-权限关系表(t_security_group_promission、多对多)：id、security_group、promission
     - 用户权限组关系表(t_user_security_group、多对多)：id、user_id、security_group
 - 角色相关表
     - 角色类型树：如总经理、销售经理、市场经理、员工
     - 部门树
 
-- 设计树状结构的存储
+### 案例
+
+- 根据不同的拜访目的显示不同拜访结果和子结果，根据拜访结果归纳出错误客户信息(某几个拜访结果:信息错误-电话错误; 信息错误-三次无人接听)的拜访
+    - 原始情况：拜访结果和子结果以树型存储，根据不同的拜访目的存储不同"XXX拜访目的-拜访结果"树(拜访结果大致相同)，且保存树节点ID为了提高查询效率；拜访表添加一个结果状态字段用来在保存的时候根据不同的结果归纳出最终的状态(已提交/信息错误/其他)
+    - 导致困境
+        - 拜访结果确实可根据数据库定义的"XXX拜访目的-拜访结果"树自动联动。但是查询拜访时想获取同一类型，则搜索选项的下拉都很难显示(要基于所有的结果根据结果代码group by, 而且有可能结果的名称不同)，获取到代码后再根据代码查询到相应的节点ID，通过IN(结果ID)的进行sql查询
+        - 基于不同结果提取出一个最终的状态，导致每次修改数据都要更新此状态
+    - 建议方案
+        - 数据库中只保存一份拜访结果和子结果(将代码和名称归纳到一起)，展示的时候写属性代码矫正联动显示；保存拜访的时候保存结果代码。(最好是拜访结果/拜访目的单独维护表)
+        - 去掉归纳字段，所有的查询直接根据结果代码来(可利用索引优化查询)
+
+### 设计树状结构的存储
 
 ```sql
 /*创建表*/
-create table article
-(
-id int primary key,
-cont text,
-pid int,/*注释：表示父id*/
-isleaf int(1),/*注释：0代表非叶子节点，1代表叶子节点*/
-alevel int(2)/*注释：表示层级*/
+create table article(
+    id int primary key,
+    cont text,
+    pid int,/*注释：表示父id*/
+    isleaf int(1),/*注释：0代表非叶子节点，1代表叶子节点*/
+    alevel int(2)/*注释：表示层级(可通过层级0表示非叶子节点)*/
 );
 
 /*插入数据*/

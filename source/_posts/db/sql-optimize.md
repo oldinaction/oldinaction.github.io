@@ -8,10 +8,28 @@ tags: [oracle, dba, sql]
 
 > 如无特殊说明，此文测试环境均为 Oracle 11.2g
 
-## 索引
+## 索引 [^4]
 
-- https://www.cnblogs.com/wishyouhappy/p/3681771.html
 - 索引在逻辑上和物理上都与相关的表和数据无关，当创建或者删除一个索引时，不会影响基本的表。Oracle在创建时会做相应操作，因此创建后就会看到效果
+- 索引是全局唯一的
+- 创建索引语法
+  
+  ```sql
+  CREATE [UNIQUE] | [BITMAP] INDEX index_name  --unique表示唯一索引（index_name全局唯一）
+  ON table_name([column1 [ASC|DESC],column2    --bitmap，创建位图索引
+  [ASC|DESC],…] | [express])
+  [TABLESPACE tablespace_name]
+  [PCTFREE n1]                                 --指定索引在数据块中空闲空间
+  [STORAGE (INITIAL n2)]
+  [NOLOGGING]                                  --表示创建和重建索引时允许对表做DML操作，默认情况下不应该使用
+  [NOLINE]
+  [NOSORT];                                    --表示创建索引时不进行排序，默认不适用，如果数据已经是按照该索引顺序排列的可以使用
+  ```
+  - 创建索引 `create index index_in_out_regist_id on ycross_storage(in_out_regist_id);`
+  - 重命名索引 `alter index index_in_out_regist_id rename to in_out_regist_id_index;`
+  - 重建索引 `alter index index_in_out_regist_id rebuild;`
+  - 删除索引 `drop index index_in_out_regist_id;`
+  - 查看索引 `select * from all_indexes where table_name='ycross_storage';`
 
 ## SQL优化
 
@@ -35,24 +53,68 @@ select count(1)
   from (select t.customer_name_cn,
                count(cc.id) as counts -- 此处必须统计子表字段。如果是 count(1) 则是基于主表统计
           from t_customer t
-          left join t_customer_contact cc
+          left join t_customer_contact cc -- 关联子表容易导致主表记录多条(及时不select子表中的字段)
             on cc.customer_id = t.id
-           and (cc.tel_no is not null or cc.cellphone is not null)
+           and (cc.tel_no is not null or cc.cellphone is not null) -- 也可将on and中的条件写到where中进行过滤。特定情况可考虑根据子表id是否有值来过滤
          group by t.customer_name_cn
         having count(cc.id) = 0) -- 此处还无法使用上面定义的 counts
 ```
 
 ## 批量更新优化
 
-- `update`语句比较耗资源，测试一条update语句修改2万条数据(总共18万条数据的表，查询出这2万条很快)，运行时间太长，基本不可行。
-  - 使用pl/sql里面的Test Window(可进行调试)写循环更新，2万条更新耗时0.7s。如果数据量再大一些可以分批commit
+- 批量更新基于PL/SQL更新
+    - `update`语句比较耗资源，测试一条update语句修改2万条数据(总共18万条数据的表，查询出这2万条很快)，运行时间太长，基本不可行。
+    - 使用PL/SQL Developer里面的Test Window(可进行调试)写循环更新，2万条更新耗时0.7s。如果数据量再大一些可以分批commit
+- `forall`与`bulk collect`语句提高效率 [^2] [^3]
+
+```sql
+declare
+  -- 作废大连分办关联的客户 (5000条)
+  cursor c is select * from t_structure_customer sc where sc.valid_status = 1 and sc.structure_id = (select s.id from t_structure s where s.node_code = 'DLC' and s.node_level = 10);
+  type tb_structure is table of t_structure_customer%rowtype;
+  rd_structure tb_structure;
+
+  n_visit number := 0;
+  n_office number := 0;
+
+  n_commit_count number := 0;
+begin
+  open c;
+  loop
+    fetch c bulk collect into rd_structure limit 500; -- PL/SQL引擎会向SQL引擎发送 10 次请求. 最终跑完耗时3分钟左右(下面的select可以再优化成只查询一次？？？)
+    for i in 1..rd_structure.count loop
+      -- 是否有拜访记录. 拜访记录有 200w 条数据, 如果不使用bulk collect的情况下，基本无法运行(卡死，在loop的第一行都无法输出任何数据)。如果此处select小表还可以执行完此程序
+      select count(1) into n_visit from t_visit v where v.valid_status = 1 and v.customer_id = rd_structure(i).customer_id;
+      if n_visit > 0 then
+        continue;
+      end if;
+
+      -- 是否有其他分办绑定
+      select count(1) into n_office from t_structure_customer sc where sc.valid_status = 1 and sc.customer_id = rd_structure(i).customer_id;
+      if n_visit > 1 then
+        continue;
+      end if;
+
+      update t_customer c set c.valid_status = 0, c.update_tm = sysdate where c.valid_status = 1 and c.id = rd_structure(i).customer_id;
+      update t_structure_customer sc set sc.valid_status = 0 where sc.valid_status = 1 and sc.customer_id = rd_structure(i).customer_id;
+    end loop;
+
+    commit;
+    n_commit_count := n_commit_count + 1;
+    dbms_output.put_line(n_commit_count);
+
+    exit when c%notfound;
+  end loop;
+  close c;
+end;
+```
 
 ## Oracle执行计划(Explain Plan) [^1]
 
 - 在PL/SQL的`Explain plan window`中执行并查看
 - sqlplus下执行
-  - `explain plan for select * from emp;` 创建执行计划
-  - `select * from table(dbms_xplan.display);` 查看执行计划
+    - `explain plan for select * from emp;` 创建执行计划
+    - `select * from table(dbms_xplan.display);` 查看执行计划
 
 ### 案例一: 添加索引
 
@@ -208,3 +270,6 @@ select distinct ypyn.plan_yard_num_id, ypyn.plan_id, ypyn.bcc_cont_id, ypyn.cont
 参考文章
 
 [^1]: http://www.cnblogs.com/xqzt/p/4467867.html (Oracle 执行计划)
+[^2]: https://www.cnblogs.com/zgz21/p/5864298.html (oracle for loop循环以及游标循环)
+[^3]: https://www.cnblogs.com/hellokitty1/p/4584333.html (Oracle数据库之FORALL与BULK COLLECT语句)
+[^4]: https://www.cnblogs.com/wishyouhappy/p/3681771.html (oracle索引)

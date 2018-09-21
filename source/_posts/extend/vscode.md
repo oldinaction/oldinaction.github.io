@@ -63,6 +63,9 @@ tags: [ide, web]
     },
 	```
 - `Markdown All in One` 可现实md文件菜单
+- `VSCode Browser Sync` 可开启一个静态服务器，并实时渲染。启动方式
+	- `Ctrl+Shift+P` 打开命令数据框
+	- 输入 `Server mode in browser`(再本地浏览器中打开)、`Server mode in side panel`(再vscode右边打开窗口)
 
 ## 用户配置
 

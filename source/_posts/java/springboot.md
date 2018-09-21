@@ -486,32 +486,32 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 ```java
 // 如果所在类加注解@RequestMapping("/user")，则请求url全部要拼上`/user`，如`/user/getUser`
 
-@RequestMapping(value = "/hello")
+@RequestMapping(value = "/hello") // 前台post请求也可以请求的到
 public String hello() {
 	return "hello world";
 }
 
-// 前台请求 Body 中含参数 userId和username
+// 前台请求 Body/Url 中含参数 userId和username（Spring可以自动注入java基础数据类型和对应的数组，集合无法注入）
 @RequestMapping(value="/getUserByUserIdOrUsername")
 public Result getUserByUserIdOrUsername(Long userId, String username) {
 	// ...
 	return new Result().success(); // 自己封装的Result对象
 }
-// 前台请求 Body 中含参数 username
+// 前台请求 Body/Url 中含参数 username
 @RequestMapping(value="/getUserByName")
 public Result getUserByName(@RequestParam("username") String name) {
 	// ...
 	return new Result().success();
 }
 @RequestMapping(value = "/getUser")
-public Result getUser(User user) {
+public Result getUser(User user) {// 此时User对象必须声明getter/setter方法
 	// ...
 	return new Result().success(); // 自己封装的Result对象
 }
 
 // @PathVariable 获取 url 中的参数
 @RequestMapping(value="/hello/{id}")
-public String user(@PathVariable("id") Integer id){
+public String user(@PathVariable("id") Integer id) {
 	return "id:" + id;
 }
 
@@ -521,6 +521,41 @@ public Result hello(User user) {
 	return new Result().success();
 }
 ```
+
+### 前端数组/对象处理
+
+- json字符串传输：前端通过`JSON.stringify`转成json字符串，然后后台JSONObject等转成Bean/Map等
+- Spring的Bean自动注入
+	- 请求类型 `POST`、`Content-Type: application/x-www-form-urlencoded`
+	- chrome开发模式看到的`FormData`(格式化后的。实际请求是将每一项通过`URL encoded`进行转义之后再已`&`连接组装成url参数，此时POST参数是没有长度限制的)如：
+		
+		```js
+		id: 766706
+		customerNameCn: 客户名称
+		updateTm: 2018/08/17 13:02:36
+		customerLines[0]: AustraliaLine
+		customerLines[1]: MediterraneanLine
+		customerLines[2]: SoutheastAsianLine
+		customerRisk.id: 9906
+		customerRisk.customerId: 766706
+		customerRisk.note: 客户风险备注
+		customerContacts[0].id: 767001
+		customerContacts[0].customerId: 766706
+		customerContacts[0].lastName: 客户联系人1
+		customerContacts[0].customerId: 766706
+		customerContacts[0].lastName: 客户联系人2
+		```
+	- 后端写好对应的Bean(CustomerInfo)
+		- CustomerInfo中的属性customerLines可以是List<String>或者String[]
+		- CustomerInfo中的updateTm属性可以是Date(会自动转换)
+		- CustomerInfo中包含CustomerRisk和List<CustomerContacts>
+
+### 响应
+
+- `@ResponseBody`
+	- 表示以json返回数据
+	- 定义在类名上，表示所有的方法都是`@ResponseBody`的，也可单独定义在方法上
+- `@RestController`中包含`@ResponseBody`
 
 ### restTemplate
 
@@ -542,9 +577,7 @@ Video video = restTemplate.getForObject("http://localhost/video", Video.class);
 Video video = new Video();
 ResponseEntity<Video> responseEntity = restTemplate.postForEntity("http://localhost/video", video, Video.class);
 video = responseEntity.getBody();
-
 ```
-
 
 ## 数据访问
 
@@ -566,6 +599,10 @@ video = responseEntity.getBody();
 		spring.datasource.url=jdbc:mysql://localhost/springboot?useUnicode=true&characterEncoding=utf-8
 		spring.datasource.username=root
 		spring.datasource.password=root
+		# springboot连接池默认使用的是tomcat-jdbc-pool，在处理utf8mb4类型数据(Emoji表情、生僻汉字。uft8默认只能存储1-3个字节的汉字，上述是4个字节)的时候，需要大致两步
+			# 1.设置数据库、表、字段的编码类型为utf8mb4
+			# 2.在创建数据库连接之后，要执行一条sql语句 "SET NAMES utf8mb4 COLLATE utf8mb4_general_ci"，这样的数据库连接才可以操作utf8mb4类型的数据的存取
+		spring.datasource.tomcat.initSQL=SET NAMES utf8mb4 COLLATE utf8mb4_general_ci
 
 		# 每次启动都会执行, 且在hibernate建表语句之前执行
 		# 若无此定义, springboot也会默认执行resources下的schema.sql(先)和data.sql(后)文件(如果存在)

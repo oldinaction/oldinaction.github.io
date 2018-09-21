@@ -3,7 +3,7 @@ layout: "post"
 title: "iview"
 date: "2017-07-23 16:11"
 categories: web
-tags: [web, vue, UI]
+tags: [vue, UI]
 ---
 
 ## 简介

@@ -62,21 +62,36 @@ jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 
 - MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，[下载](http://www.eclipse.org/mat/downloads.php)
 - 运行jar包时加参数如：`java -jar test.jar -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs`，/home/jvmlogs为程序出现内存溢出时保存堆栈信息的文件（需要提前建好）
-- MAT打开类似于`java_pid11457.hprof`的堆栈文件（File - Open Heap Dump），需要设置MAT运行的最大内存足够大(设置`MemoryAnalyzer.ini`)，打开效果如下
+- MAT打开类似于`java_pid11457.hprof`的堆栈文件（File - Open Heap Dump），需要设置MAT运行的最大内存足够大(设置`MemoryAnalyzer.ini`)，打开效果如下(`Leak Suspects Report`泄漏疑点报告)
 
     ![默认报告](/data/images/java/mat-leak-suspects.png)
 
     - 从上图的报告中可以看到`bio-0.0.0.0-6080-exec-16`有大量的`java.util.LinkedList`对象(此图片是和下面截图的hprof文件不是同一个)
+
+#### 界面说明
+
+- `Overview` 此dump文件分析的控制面板
+    - Details：统计dump大小、类个数(ofbiz-yard正常12k左右)、对象个数、Class Loader个数(ofbiz-yard正常400个左右)
+- `Biggest Objects by Retained Size` 大对象所占空间分析(饼图)
+    - 白色为未使用
+    - 其他颜色鼠标悬浮可查看相应的线程主要信息
+    - `左键某扇形` - `Java Basics` - `Thread Details` 查看此大对象所在线程信息
+- `Actions` 常用功能菜单
+    - `Histogram` 列举每个class对应实例的数量
+    - `Dominator Tree` 列举大对象组成树
+    - `Top Consumers` 按照包和类列举大对象
+    - `Duplicate Classes` 列举重复的class(多个类加载器加载的同一类文件导致类重复)
+- `Reports` 报告类型
+    - `Leak Suspects Report` 泄漏疑点报告(常用)
+    - `Top Components` 列出大于总堆1%的组件的报告
+- `Step By Step`
+    - `Component Report` 分析属于一个公共根包或类加载器的对象
 
 #### 具体分析
 
 - MAT预览界面
 
     ![mat-overview](/data/images/java/mat-overview.png)
-
-    - `Histogram` 列举每个class对应实例的数量
-    - `Dominator Tree` 列举较大的对象
-    - 点击扇形中较大区域，`Java Basics` - `Thread Details`查看堆栈信息
 - `Dominator Tree`点击如下
 
     ![mat-dominator-tree](/data/images/java/mat-dominator-tree.png)
@@ -94,7 +109,6 @@ jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 #### 内存飙高，但是下载的dump文件却很小
 
 - 内存占用达到3G，下载的dump文件确只有400M左右(生成dump文件耗时1分钟，生成dump文件时应用无法访问)，并未发现内存溢出现象
-
 
 ### OFBiz项目案例分析
 

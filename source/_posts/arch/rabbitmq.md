@@ -15,8 +15,8 @@ tags: [mq, rabbitMQ]
 
 Rabbit MQ 是建立在强大的Erlang OTP平台上，因此安装Rabbit MQ的前提是安装Erlang。通过下面两个连接下载安装3.2.3 版本：
 
-- 安装 [Eralng OTP For Windows (vR16B03)](http://www.erlang.org/download/otp_win32_R16B03.exe)
-- 安装 [RabbitMQ Server (3.6.5)](https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.5/rabbitmq-server-3.6.5.exe)
+- 安装 [Eralng OTP For Windows (opt21)](http://erlang.org/download/otp_win64_21.0.exe)
+- 安装 [RabbitMQ Server (3.7.7)](https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.7.7/rabbitmq-server-3.7.7.exe)
 - 默认监听`5672`端口(客户端连接使用此端口)，后台使用端口`15672`
 
 ## RabbitMQ启动
@@ -29,7 +29,7 @@ Rabbit MQ 是建立在强大的Erlang OTP平台上，因此安装Rabbit MQ的前
 - 查看用户
   - 运行 `rabbitmqctl.bat list_users` 查看用户(有一个guest默认用户)
 - 登录管理后台
-  - `http://localhost:15672` 使用guest/guest登录
+  - `http://localhost:15672` 使用guest/guest登录(需要激活rabbitmq_management)
 
 
 

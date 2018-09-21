@@ -23,7 +23,8 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 - 微服务开发框架：`Spring Cloud`、`Dubbo`、`Dropwizard`、`Consul`等
 - Spring Cloud是基于Spring Boot的用于快速构建分布式系统工具集
 - Spring Cloud特点：约定优于配置、开箱即用，快速启动、轻量级组件、组件丰富、选型中立
-- 本文相关软件：JDK: 1.8，SpringCloud: `Dalston.SR1`
+- 本文相关软件：JDK: 1.8，SpringCloud: `Dalston.SR1`(如无特殊说明)
+- [本文相关源码](https://github.com/oldinaction/springcloud)
 
 ## 微服务构建
 
@@ -50,77 +51,81 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
     - AWS概念：us-east-1c、us-east-1d等是zone，它们都属于us-east-1这个region
     - 在应用启动后，将会向Eureka Server发送心跳（默认周期为30秒）。如果Eureka Server在多个心跳周期内没有接收到某个节点的心跳，Eureka Server将会从服务注册表中把这个服务节点移除（默认90秒）
     - Eureka还提供了客户端缓存的机制，即使所有的Eureka Server都挂掉，客户端依然可以利用缓存中的信息消费其他服务的API
-- eureka server
-    - 引入依赖
 
-        ```xml
-        <dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-eureka-server</artifactId>
-		</dependency>
+### eureka server
 
-        <!-- 用于注册中心访问账号认证，非必须 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-        ```
-    - 在Application.java中加注解`@EnableEurekaServer`
-    - application.yml配置
+- 引入依赖
 
-        ```yml
-        server:
-          port: 8761
+    ```xml
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-eureka-server</artifactId>
+    </dependency>
 
-        # 引入了spring-boot-starter-security则会默认开启认证
-        security:
-          basic:
-            enabled: true #开启eureka后台登录认证
-          # 不配置user，则默认的用户名为user，密码为自动生成(在控制台可查看)
-          user:
-            name: smalle
-            password: smalle
+    <!-- 用于注册中心访问账号认证，非必须 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    ```
+- 在Application.java中加注解`@EnableEurekaServer`
+- application.yml配置
 
-        eureka:
-          instance:
-            hostname: localhost
-          client:
-            # eureka server默认也是一个eureka client.以下两行仅将此App当成eureka server，不当成eureka client(由于是单点测试)
-            register-with-eureka: false
-            fetch-registry: false
-            # 将eureka注册到哪个url
-            serviceUrl:
-              defaultZone: http://user:password@${eureka.instance.hostname}:${server.port}/eureka/
-        ```
-    - 后台地址：`http://localhost:8761`
-- eureka client
-    - 引入依赖
+    ```yml
+    server:
+        port: 8761
 
-        ```xml
-        <dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-eureka</artifactId>
-		</dependency>
-        ```
-    - 在Application.java中加注解`@EnableEurekaClient`
-    - application.yml配置
+    # 引入了spring-boot-starter-security则会默认开启认证
+    security:
+        basic:
+        enabled: true #开启eureka后台登录认证
+        # 不配置user，则默认的用户名为user，密码为自动生成(在控制台可查看)
+        user:
+        name: smalle
+        password: smalle
 
-        ```yml
-        # eureka客户端配置
-        eureka:
-          client:
-            serviceUrl:
-              defaultZone: http://smalle:smalle@localhost:8761/eureka/
-          instance:
-            # 启用ip访问eureka server(默认是使用主机名进行访问)
-            prefer-ip-address: true
-            # 实例id
-            instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
-        ```
-    - 示例请看源码
-        - 示例中使用H2数据库，IDEA连接方式：path:`mem:testdb`, user:`sa`, password:空, url:`jdbc:h2:mem:testdb`, 使用`Embedded`或`In-memory`方式连接
+    eureka:
+        instance:
+        hostname: localhost
+        client:
+        # eureka server默认也是一个eureka client.以下两行仅将此App当成eureka server，不当成eureka client(由于是单点测试)
+        register-with-eureka: false
+        fetch-registry: false
+        # 将eureka注册到哪个url
+        serviceUrl:
+            defaultZone: http://user:password@${eureka.instance.hostname}:${server.port}/eureka/
+    ```
+- 后台地址：`http://localhost:8761`
 
-## Ribbon负载均衡
+### eureka client
+
+- 引入依赖
+
+    ```xml
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-eureka</artifactId>
+    </dependency>
+    ```
+- 在Application.java中加注解`@EnableEurekaClient`
+- application.yml配置
+
+    ```yml
+    # eureka客户端配置
+    eureka:
+        client:
+        serviceUrl:
+            defaultZone: http://smalle:smalle@localhost:8761/eureka/
+        instance:
+        # 启用ip访问eureka server(默认是使用主机名进行访问)
+        prefer-ip-address: true
+        # 实例id
+        instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    ```
+- [示例请看源码](https://github.com/oldinaction/springcloud/tree/master/demo2-microservice-eureka)
+    - 示例中使用H2数据库，IDEA连接方式：path:`mem:testdb`, user:`sa`, password:空, url:`jdbc:h2:mem:testdb`, 使用`Embedded`或`In-memory`方式连接
+
+## Ribbon客户端负载均衡
 
 - 简介
     - Ribbon是Netflix发布的云中间层服务开源项目，其主要功能是提供客户端侧负载均衡算法。Ribbon客户端组件提供一系列完善的配置项如连接超时，重试等。简单的说，Ribbon是一个客户端负载均衡器，我们可以在配置文件中列出Load Balancer后面所有的机器，Ribbon会自动基于某种规则（如简单轮询，随机连接等）去连接这些机器，我们也很容易使用Ribbon实现自定义的负载均衡算法。
@@ -357,168 +362,171 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 
 ## Config 分布式配置中心(Spring Cloud Config)
 
-- 配置中心(Config服务器端)
-    - 引入依赖
+### 配置中心(Config服务器端)
 
-        ```xml
-        <!-- 配置中心 -->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-config-server</artifactId>
-		</dependency>
+- 引入依赖
 
-        <!-- 用于配置中心访问账号认证 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
+    ```xml
+    <!-- 配置中心 -->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-config-server</artifactId>
+    </dependency>
 
-        <!--向eureka注册，服务化配置中心-->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-eureka</artifactId>
-		</dependency>
-        ```
-    - 启动类添加`@EnableConfigServer`，开启服务发现则还要加`@EnableDiscoveryClient`
-    - 配置文件
+    <!-- 用于配置中心访问账号认证 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
 
-        ```yml
-        spring:
-          cloud:
-            config:
-              server:
-                git:
-                  # 可以使用占位符{application}、{profile}、{label}
-                  uri: https://git.oschina.net/smalle/spring-cloud-config-test.git
-                  # 搜索此git仓库的配置文件目录
-                  search-paths: config-repo
-                  username: smalle
-                  password: aezocn
+    <!--向eureka注册，服务化配置中心-->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-eureka</artifactId>
+    </dependency>
+    ```
+- 启动类添加`@EnableConfigServer`，开启服务发现则还要加`@EnableDiscoveryClient`
+- 配置文件
 
-          server:
-            port: 7000
+    ```yml
+    spring:
+        cloud:
+        config:
+            server:
+            git:
+                # 可以使用占位符{application}、{profile}、{label}
+                uri: https://git.oschina.net/smalle/spring-cloud-config-test.git
+                # 搜索此git仓库的配置文件目录
+                search-paths: config-repo
+                username: smalle
+                password: aezocn
 
-          security:
-            basic:
-              enabled: true # 开启权限验证(默认是false)
-            user:
-              name: smalle
-              password: smalle
+        server:
+        port: 7000
 
-          # eureka客户端配置
-          eureka:
-            client:
-              serviceUrl:
-                defaultZone: http://smalle:smalle@localhost:8761/eureka/
-            instance:
-              # 启用ip访问
-              prefer-ip-address: true
-              instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
-        ```
-    - 在git仓库的config-repo目录下添加配置文件: `consumer-movie-ribbon.yml`(写如配置如：from: git-default-1.0. 下同)、`consumer-movie-ribbon-dev.yml`、`consumer-movie-ribbon-test.yml`、`consumer-movie-ribbon-prod.yml`，并写入参数
-    - 访问：`http://localhost:7000/consumer-movie-ribbon/prod/master`即可获取应用为`consumer-movie-ribbon`，profile为`prod`，git分支为`master`的配置数据(`/{application}/{profile}/{label}`)
-        - 某application对应的配置命名必须为`{application}-{profile}.yml`，其中`{profile}`和`{label}`可在对应的application的`bootstrap.yml`中指定
-        - 访问配置路径后，程序默认会将配置数据下载到本地，当git仓库不可用时则获取本地的缓存数据
-        - 支持git/svn/本地文件等
-- 客户端配置映射
-    - 引入依赖
+        security:
+        basic:
+            enabled: true # 开启权限验证(默认是false)
+        user:
+            name: smalle
+            password: smalle
 
-        ```xml
-        <!-- 配置中心客户端 -->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-config</artifactId>
-		</dependency>
-        ```
-    - 添加`bootstrap.yml`配置文件(不能放在application.yml中)
-
-        ```yml
-        # bootstrap.yml其优先级高于application.yml
-        spring:
-          # application:
-          #  name: consumer-movie-ribbon
-          cloud:
-            config:
-              # (1) config server地址
-              # uri: http://localhost:7000/
-              # (2) 配置中心实行服务化(向eureka注册了自己)，此处要开启服务发现，并指明配置中心服务id
-              discovery:
-                enabled: true
-                service-id: config-server
-              profile: prod
-              label: master
-              # 如果配置中心开启了权限验证，此处填写相应的用户名和密码
-              username: smalle
-              password: smalle
-
-        # eureka客户端配置(使用了spring cloud config, 则eureka的配置必须写在bootstrap.yml中，否则报找不到config server )
+        # eureka客户端配置
         eureka:
-          client:
+        client:
             serviceUrl:
-              defaultZone: http://smalle:smalle@localhost:8761/eureka/
-          instance:
+            defaultZone: http://smalle:smalle@localhost:8761/eureka/
+        instance:
             # 启用ip访问
             prefer-ip-address: true
             instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
-        ```
-    - 测试程序
+    ```
+- 在git仓库的config-repo目录下添加配置文件: `consumer-movie-ribbon.yml`(写如配置如：from: git-default-1.0. 下同)、`consumer-movie-ribbon-dev.yml`、`consumer-movie-ribbon-test.yml`、`consumer-movie-ribbon-prod.yml`，并写入参数
+- 访问：`http://localhost:7000/consumer-movie-ribbon/prod/master`即可获取应用为`consumer-movie-ribbon`，profile为`prod`，git分支为`master`的配置数据(`/{application}/{profile}/{label}`)
+    - 某application对应的配置命名必须为`{application}-{profile}.yml`，其中`{profile}`和`{label}`可在对应的application的`bootstrap.yml`中指定
+    - 访问配置路径后，程序默认会将配置数据下载到本地，当git仓库不可用时则获取本地的缓存数据
+    - 支持git/svn/本地文件等
 
-        ```java
-        // @RefreshScope // 之后刷新config后可重新注入值
-        @RestController
-        public class ConfigController {
-            @Value("${from:none}")
-            private String from;
+### 客户端配置映射
 
-            // 测试从配置中心获取配置数据，访问http://localhost:9000/from
-            @RequestMapping("/from")
-            public String from() {
-                return this.from; // 会从git仓库中读取配置数据
-            }
-        }
-        ```
-- 动态刷新配置(可获取最新配置信息的git提交)
-    - config客户端重启会刷新配置(重新注入配置信息)
-    - 动态刷新
-        - 在需要动态加载配置的Bean上加注解`@RefreshScope`
-        - 给 **config client** 加入权限验证依赖(`org.springframework.boot/spring-boot-starter-security`)，并在对应的application.yml中开启验证
-            - 否则访问`/refresh`端点会失败，报错：`Consider adding Spring Security or set 'management.security.enabled' to false.`(需要加入Spring Security或者关闭端点验证)
-        - 对应的需要注入配置的类加`@RefreshScope`
-        - `POST`请求`http://localhost:9000/refresh`(将Postman的Authorization选择Basic Auth和输入用户名/密码)
-        - 再次访问config client的 http://localhost:9000/from 即可获取最新git提交的数据(由于开启了验证，所有端点都需要输入用户名密码)
-            - 得到如`["from"]`的结果(from配置文件中改变的key)
-- 动态加载网关配置
-    - 在`api-gateway-zuul`服务中同上述一样加`bootstrap.yml`，并对eureka和config server进行配置
-    - 在`application.yml`对
+- 引入依赖
 
-        ```yml
-        zuul:
-          routes:
-            api-movie:
-              path: /api-movie/**
-              serviceId: consumer-movie-ribbon
-              # 如果consumer-movie-ribbon服务开启了权限验证，则需要防止zuul将头信息(Cookie/Set-Cookie/Authorization)过滤掉了.(多用于API网关下的权限验证等服务)
-              # 此方法是对指定规则开启自定义敏感头. 还有一中解决方法是设置路由敏感头为空(则不会过滤任何头信息)：zuul.routes.<route>.sensitiveHeaders=
-              customSensitiveHeaders: true
+    ```xml
+    <!-- 配置中心客户端 -->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-config</artifactId>
+    </dependency>
+    ```
+- 添加`bootstrap.yml`配置文件(不能放在application.yml中)
 
-        # 为了动态刷新配置(spring cloud config)，执行/refresh端点(此端点需要加入Spring Security或者关闭端点验证)
-        security:
-          basic:
+    ```yml
+    # bootstrap.yml其优先级高于application.yml
+    spring:
+        # application:
+        #  name: consumer-movie-ribbon
+        cloud:
+        config:
+            # (1) config server地址
+            # uri: http://localhost:7000/
+            # (2) 配置中心实行服务化(向eureka注册了自己)，此处要开启服务发现，并指明配置中心服务id
+            discovery:
             enabled: true
-          user:
-            name: smalle
+            service-id: config-server
+            profile: prod
+            label: master
+            # 如果配置中心开启了权限验证，此处填写相应的用户名和密码
+            username: smalle
             password: smalle
-        ```
-    - 在git仓库中加入`api-gateway-zuul-prod.yml`等配置文件，并加入配置
 
-        ```yml
-        zuul:
-          routes:
-            api-movie:
-              path: /api-movie-config/**
-              serviceId: consumer-movie-ribbon
-        ```
-    - `POST`请求`http://localhost:5555/refresh`即可刷新`api-gateway-zuul`的配置，因此动态加载了路由规则zuul.routes.api-movie
+    # eureka客户端配置(使用了spring cloud config, 则eureka的配置必须写在bootstrap.yml中，否则报找不到config server )
+    eureka:
+        client:
+        serviceUrl:
+            defaultZone: http://smalle:smalle@localhost:8761/eureka/
+        instance:
+        # 启用ip访问
+        prefer-ip-address: true
+        instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    ```
+- 测试程序
+
+    ```java
+    // @RefreshScope // 之后刷新config后可重新注入值
+    @RestController
+    public class ConfigController {
+        @Value("${from:none}")
+        private String from;
+
+        // 测试从配置中心获取配置数据，访问http://localhost:9000/from
+        @RequestMapping("/from")
+        public String from() {
+            return this.from; // 会从git仓库中读取配置数据
+        }
+    }
+    ```
+- 动态刷新配置(可获取最新配置信息的git提交)
+- config客户端重启会刷新配置(重新注入配置信息)
+- 动态刷新
+    - 在需要动态加载配置的Bean上加注解`@RefreshScope`
+    - 给 **config client** 加入权限验证依赖(`org.springframework.boot/spring-boot-starter-security`)，并在对应的application.yml中开启验证
+        - 否则访问`/refresh`端点会失败，报错：`Consider adding Spring Security or set 'management.security.enabled' to false.`(需要加入Spring Security或者关闭端点验证)
+    - 对应的需要注入配置的类加`@RefreshScope`
+    - `POST`请求`http://localhost:9000/refresh`(将Postman的Authorization选择Basic Auth和输入用户名/密码)
+    - 再次访问config client的 http://localhost:9000/from 即可获取最新git提交的数据(由于开启了验证，所有端点都需要输入用户名密码)
+        - 得到如`["from"]`的结果(from配置文件中改变的key)
+- 动态加载网关配置
+- 在`api-gateway-zuul`服务中同上述一样加`bootstrap.yml`，并对eureka和config server进行配置
+- 在`application.yml`对
+
+    ```yml
+    zuul:
+        routes:
+        api-movie:
+            path: /api-movie/**
+            serviceId: consumer-movie-ribbon
+            # 如果consumer-movie-ribbon服务开启了权限验证，则需要防止zuul将头信息(Cookie/Set-Cookie/Authorization)过滤掉了.(多用于API网关下的权限验证等服务)
+            # 此方法是对指定规则开启自定义敏感头. 还有一中解决方法是设置路由敏感头为空(则不会过滤任何头信息)：zuul.routes.<route>.sensitiveHeaders=
+            customSensitiveHeaders: true
+
+    # 为了动态刷新配置(spring cloud config)，执行/refresh端点(此端点需要加入Spring Security或者关闭端点验证)
+    security:
+        basic:
+        enabled: true
+        user:
+        name: smalle
+        password: smalle
+    ```
+- 在git仓库中加入`api-gateway-zuul-prod.yml`等配置文件，并加入配置
+
+    ```yml
+    zuul:
+        routes:
+        api-movie:
+            path: /api-movie-config/**
+            serviceId: consumer-movie-ribbon
+    ```
+- `POST`请求`http://localhost:5555/refresh`即可刷新`api-gateway-zuul`的配置，因此动态加载了路由规则zuul.routes.api-movie
 
 ## Bus 消息总线(Spring Cloud Bus)
 

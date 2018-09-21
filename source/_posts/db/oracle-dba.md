@@ -27,10 +27,16 @@ tags: [oracle, dba]
 ### pl/sql安装
 
 Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call Interface)来连接，安装包可以去oracle官网下载Instant Client。
-- 将`instantclient_10_2`(oracle的客户端)，复制到oracle安装目录
 - 安装`pl/sql developer`
+- 将`instantclient_10_2`(oracle的客户端)，复制到oracle安装目录(D:\java\oracle\product，其他目录也可以)
 - 配置`pl/sql developer`首选项中连接项。设置oracle_home为instantclient_10_2的路径，oci为instantclient_10_2下的oci.dll
-- 环境变量中设置`TNS_ADMIN=D:\java\oracle\product\instantclient_10_2`，并在path末尾加入`%TNS_ADMIN%;`(否则容易报`TNS-12541`)
+- 环境变量配置(必须)
+    - ORACLE_HOME
+        - 安装oracle则需要配置oracle目录(`ORACLE_HOME=D:\java\oracle\product\11.2.0\dbhome_1`)
+        - 不安装oracle也可使用pl/sql. 需要配置环境变量指向客户端目录(`ORACLE_HOME=D:\java\oracle\product\instantclient_10_2`)
+    - `TNS_ADMIN=D:\java\oracle\product\instantclient_10_2`(`tnsnames.ora`的上级目录)，并在path末尾加入`%TNS_ADMIN%;`(否则容易报`TNS-12541`)   
+- 其他配置(可忽略)
+    - 环境变量设置`NLS_LANG=AMERICAN_AMERICA.AL32UTF8`、`nls_timestamp_format=yyyy/mm/dd hh24:mi:ssxff`(PLSQL查询中可直接使用时间字符串，代码中最好通过to_date转换)
 
 #### 相关错误
 
@@ -111,14 +117,14 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 
 #### sql导出导入(sqlplus)
 
-- 导出
+- 导出查询结果 []
     
     ```sql
     set echo off;
     set heading off;
     set feedback off;
     spool /home/myout.sql
-    select text from user_source; -- 查询所有的存储过程
+    select text from user_source;-- 查询所有的存储过程(运行时去掉此备注) 
     spool off;
     ```
 - 导入：`@/home/my.sql`，或者命令行运行`sqlplus root/root@127.0.0.1:1521/orcl @my.sql`
@@ -255,7 +261,7 @@ create or replace SYNONYM smalle.yothers_advice_collection FOR OFBIZ.yothers_adv
 declare
   table_owenr_user    VARCHAR2(200) := 'OFBIZ'; -- TODO 修改表所属用户名(注意要大写)
   table_grant_user    VARCHAR2(200) := 'smalle'; -- TODO 修改表授权用户名(此处大小写无所谓)
-  CURSOR c_tabname is select table_name from dba_tables where owner = table_owenr_user;
+  cursor c_tabname is select table_name from dba_tables where owner = table_owenr_user;
   v_tabname dba_tables.table_name%TYPE;
   sqlstr    VARCHAR2(200); 
 begin
@@ -293,8 +299,11 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
 
 #### sqlplus使用
 
+- sqlplus执行PL/SQL语句，再输入完语句后回车一行输入`/`
 - `set line 1000;` 可适当调整没行显示的宽度
     - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
+- `set serverout on;` 开启输出
+    - 否则执行`begin dbms_output.put_line('hello world!'); end;` 无法输出
 - 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`
 
 ### 查询相关
@@ -425,6 +434,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
 [^3]: http://www.cnblogs.com/yzy-lengzhu/archive/2013/03/11/2953500.html
 [^4]: http://blog.csdn.net/studyvcmfc/article/details/5679235
 [^5]: http://blog.csdn.net/yitian20000/article/details/6256716
-[^6]: [强制删除表空间](http://blog.chinaunix.net/uid-11570547-id-59108.html)
-[^7]: [表空间不足解决办法](http://blog.sina.com.cn/s/blog_9d4799c701017pw1.html)
-[^8]: [ORA-01654索引无法通过表空间扩展](https://www.cnblogs.com/langtianya/p/6567881.html)
+[^6]: http://blog.chinaunix.net/uid-11570547-id-59108.html (强制删除表空间)
+[^7]: http://blog.sina.com.cn/s/blog_9d4799c701017pw1.html (表空间不足解决办法)
+[^8]: https://www.cnblogs.com/langtianya/p/6567881.html (ORA-01654索引无法通过表空间扩展)
+[^9]: http://www.zhengdazhi.com/archives/1344 (sqlplus导出oracle查询结果)

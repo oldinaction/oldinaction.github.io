@@ -13,7 +13,7 @@ tags: [IDE]
 - 新建包文件夹，一定要一层一层的建，或者创建`cn/aezo`的文件夹，不能创建一个`cn.aezo`(不会自动生成两个文件夹)
 - for快捷键使用：`list.for`、`arr.for`. **可以在`File`-`Setting`-`Editor`-`General`-`Postfix Completion`中查看**
 
-### java web项目配置 [^1]
+### java web项目配置(springmvc) [^1]
 
 1. 进入到Project Structure：`File - Project Structure`
 2. 配置步骤
@@ -31,12 +31,15 @@ tags: [IDE]
         - 勾选`Source Roots`
     - `Artifacts` 根据上面的配置，最终打包成一个war包部署到tomcat中
         - 点击`+` - `Web Application: Exploded` - `From Modules`
-        - `Output directory`为`/testStruts2/WebRoot`
-            - WEB-INFO/lib下的jar都要显示在此目录
+            - `Output directory`为`/testStruts2/WebRoot`
+                - WEB-INFO/lib下的jar都要显示在此目录
+        - 点击`+` - `Web Application: Archive` - `For "XXX: Exploded"` (主要用于打包)
+            - `Output directory`为`D:/myproject/war`
 3. `Run configuration`配置tomcat
     - `JRE`填写jdk路径
     - `Deployment`中将刚刚的war配置进入
     - 在`Before launch`中加入Build这个war包
+4. 打包：Build - Build Artifacts - xxx:war - build (在上述Output directory中可看到war包)
 
 ### maven
 
@@ -50,6 +53,7 @@ tags: [IDE]
 - `jrebel` java热部署. **修改代码后使用`Ctrl+Shif+F9`进行热部署**
     - jrebel破解可使用`myJRebel`
 - `Lombox` 简化代码工具 [https://projectlombok.org/](https://projectlombok.org/)
+- `MybatisX` 可自动识别mybatis的mapper(实现)，Ctrl+Alt可实现相应跳转
 
 ## 快捷键
 

@@ -78,7 +78,8 @@ tags: [springboot, vue]
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        // configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList("http://192.168.1.1:8088", "http://www.aezo.cn:80", "https://www.aezo.cn:80"));
         configuration.setAllowedMethods(Arrays.asList("*"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
@@ -103,6 +104,7 @@ axios.get("/hello?id=1").then(response => {
     console.log(response.data)
 });
 
+// 如果将params换成this.$qs.stringify，后台也无法获取到数据
 axios.get("/hello", {
     params: {
         userId: 1,
@@ -111,66 +113,85 @@ axios.get("/hello", {
     console.log(response.data)
 });
 ```
-### `axios`使用post方式传递参数后端接受不到 [^4]
-    
-- 使用`qs`插件(推荐)
-    
-    ```js
-    // 安装：npm install qs -S -D
 
-    import qs from 'qs'
-    Vue.prototype.$qs = qs;
+### qs插件使用
 
-    this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
-        name: 'smalle'
-    })).then(response => {
+```js
+// 安装：npm install qs -S -D
+import qs from 'qs'
+Vue.prototype.$qs = qs;
 
-    });
+this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
+    name: 'smalle'
+})).then(response => {
 
-    // (1) qs格式化日期
-    // qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
-    // 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
+});
 
-    this.$qs.stringify(this.formModel, {
-        serializeDate: function(d) {
-            return d.getTime(); // 转换成时间戳
-        }
-    });
+// (1) qs格式化日期
+// qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
+// 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
+this.$qs.stringify(this.formModel, {
+    serializeDate: function(d) {
+        // 转换成时间戳
+        return d.getTime();
+    }
+});
 
-    // (2) qs序列化对象属性
-    // 下列对象userInfo默认渲染成 `name=smalle&bobby[0][name]=game&hobby[0][level]=1`(未进行url转码)，此时springboot写好对应的POJO是无法进行转换的，报错`is neither an array nor a List nor a Map`
-    // 可以使用`allowDots`解决，最终返回 `name=smalle&bobby[0].name=game&hobby[0].level=1`
+// (2) qs序列化对象属性
+// 下列对象userInfo默认渲染成 `name=smalle&bobby[0][name]=game&hobby[0][level]=1`(未进行url转码)，此时springboot写好对应的POJO是无法进行转换的，报错`is neither an array nor a List nor a Map`
+// 可以使用`allowDots`解决，最终返回 `name=smalle&bobby[0].name=game&hobby[0].level=1`
+var userInfo = {
+    name: 'smalle',
+    hobby: [{
+        name: 'game',
+        level: 1
+    }]
+};
+console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
+```
 
-    var userInfo = {
-        name: 'smalle',
-        hobby: [{
-            name: 'game',
-            level: 1
-        }]
-    };
-    console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
-    ```
-- `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
+### axios参数后端接受不到 [^4]
 
-    ```js
-    axios({
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        url: 'http://localhost:8080/api/login',
-        params: {
-            username: 'smalle',
-            password: 'smalle'
-        }
-    }).then((res)=>{
+- get请求传递数组
 
-    })
-    ```
 
-    - axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行)
-    - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
-    - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
+```js
+let vm = this
+this.$axios.get("/hello", {
+    params: {
+        typeCodes: ["CustomerSource", "VisitLevelCode"]
+    },
+    paramsSerializer: function(params) {
+        return vm.$qs.stringify(params, {arrayFormat: 'repeat'}) // 此时this并不是vue对象
+    }
+}).then(response => {
+    console.log(response.data)
+});
+```
+
+- post请求无法接收
+    - 使用`qs`插件(推荐)
+    - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
+
+        ```js
+        axios({
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            url: 'http://localhost:8080/api/login',
+            params: {
+                username: 'smalle',
+                password: 'smalle'
+            }
+        }).then((res)=>{
+
+        })
+        ```
+
+        - axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行)
+        - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
+        - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
 
 ## 用户浏览器缓存问题 [^5]
 
@@ -183,6 +204,18 @@ axios.get("/hello", {
 # nginx 配置，让index.html不缓存
 location = /index.html {
     add_header Cache-Control "no-cache, no-store";
+    # ...
+}
+```
+
+## 其他
+
+- 使用nginx导致部分地址直接浏览器访问报404(如基于`quasar`的项目)。可修改nginx配置如下
+
+```bash
+# 本地查找，如果没有就跳转到index.html(实际访问的还是源地址)
+location / {
+	try_files $uri $uri/ /index.html;
 }
 ```
 
