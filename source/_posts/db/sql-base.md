@@ -225,7 +225,10 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
 - 左、右、全外连接，left join、right join、full join。
     - left join和left outer join都表示左外连接，如果两个表进行连接，且连接后左边一个表中的数据不能显示出来，此时可以使用左连接(此时的king)。如：`select e1.ename, e2.ename from emp e1 left join emp e2 on (e1.mgr = e2.empno);`
 - `left join`(以左边表为主)、`right join`(以右边表为主)、`inner join`(只显示on条件成立的)、`full join`(显示所有数据)、`join`(默认是inner join)
-- Oracle `select 1 as a, t.b, t.c from dual left join (select 2 as b, 3 as c from dual) t on 1=1` 可返回a,b,c三个字段的值
+- **关联表时，and的位置**
+    - `left join/right join` 当`and`再`on`的后面只是对关联表的过滤(最终可能导致select关联表的字段为空，不会影响主表记录的条数)，当`and`在`where`后面则是对关联之后的视图进行过滤(会影响主表记录的条数)
+    - `join` 不管`and`在什么位置都会影响主表记录的条数
+- Oracle `select 1 as a, t.b, t.c from dual left join (select 2 as b, 3 as c from dual) t on 1=1` 可返回a,b,c三个字段的值。(join必须要有一个on)
 
 ##### 子查询
 
@@ -333,6 +336,22 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
     ```
 - 将薪水大于1200的雇员按照部门进行分组，分组后的平均薪水必须大于1500，查询分组之内的平均工资并按照平均工资的倒序进行排列
 `select deptno, avg(sal) from emp where sal > 1200 group by deptno having avg(sal) > 1500 order by avg(sal) desc limit 1,2;`
+
+##### oracle分页
+
+```sql
+-- 无分页
+select * from t_customer_line;
+
+-- 分页并返回总条数
+select *
+    from (select rownum as rn, paging_t1.*
+            from (select t.*, count(*) over() paging_total
+                    from t_customer_line t
+                    order by t.id) paging_t1
+            where rownum < 20) paging_t2
+    where paging_t2.rn >= 10;
+```
 
 #### union合并
 

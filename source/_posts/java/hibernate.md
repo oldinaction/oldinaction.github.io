@@ -3,7 +3,7 @@ layout: "post"
 title: "hibernate"
 date: "2017-05-21 15:39"
 categories: [java]
-tags: [ssh, orm]
+tags: [ssh, orm, springboot]
 ---
 
 ## 介绍
@@ -110,6 +110,7 @@ tags: [ssh, orm]
 
 	```java
 	// 继承了JpaRepository(JpaRepository又继承了CrudRepository已经定义好了基本增删查改相关方法)
+    // getOne是"Returns a reference" findOne比getOne更通用。推荐使用findOne（CrudRepository中定义的通用方法）
 	public interface UserClassDao extends JpaRepository<UserClass, Long> {
 		// spring data 根据属性名和查询关键字自动生成查询方法(spring data会自动实现)
 		UserClass findByClassName(String className);

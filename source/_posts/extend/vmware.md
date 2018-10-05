@@ -28,12 +28,16 @@ tags: [vmware, linux, centos]
     - `hostnamectl set-hostname aezocn` 修改主机名
     - `vi /etc/sysconfig/network-scripts/ifcfg-ens33`，修改`IPADDR`的值从而修改机器ip
     - vmware克隆时会自动改变mac地址，如果没有改变可在vmware控制台中重新生成一个mac地址：设置-网络适配器-高级-生成
+- 移动虚拟机文件：可将xxx.vmx文件所在目录(如Virtual Machines)移动到其他磁盘，然后通过vmware打开虚拟机，选择xxx.vmx后，再选择已复制此虚拟即可
 
 ### 远程连接虚拟机
 
 - `ip addr`查看虚拟机地址(`ens33`/`eth0`)，`ipconfig`查看windows主机地址，并看能否双向`ping`通
 - `systemctl status sshd` 查看ssh服务是否启动(如果未安装，可手动安装sshd)
 - 使用`xshell`/`xftp`以ssh/sftp的方式连接，端口`22`，用户名要使用`smalle/smalle`（root连接失败）
+- **局域网访问**：`A`、`B`机器在同一局域网，再A机器上安装虚拟机`C`，则`A-C`访问如下
+    - `C`可直接访问`A`(可通过两个网段访问)、`B`
+    - `B`访问`C`可在`A`上运行`nginx`进行路由(参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx))
 
 ## 常见问题
 
@@ -46,7 +50,7 @@ tags: [vmware, linux, centos]
         ```bash
         # resolv.conf中加入
         $ vi /etc/resolv.conf
-        nameserver 8.8.8.8 
+        nameserver 8.8.8.8
         nameserver 8.8.4.4
         # nameserver 114.114.114.114
 
@@ -55,10 +59,13 @@ tags: [vmware, linux, centos]
         BOOTPROTO=static  #启用静态IP地址
         IPADDR=192.168.6.10
         NETMASK=255.255.255.0
+        # VMware Virtual Ethernet Adapter for VMnet8的地址
         GATEWAY=192.168.6.1
         ```
 
 ## windows安装
+
+> 基于U盘安装windows可使用U大侠
 
 - 下载iso镜像
 - 新建虚拟机 - 典型 - 安装程序光盘映像文件(iso) - Microsoft Windows - ...
@@ -86,6 +93,9 @@ tags: [vmware, linux, centos]
     - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` 安装
     - `brew install git` 使用brew安装git
 
+### Ubuntu安装
+
+参考《Ubuntu安装》[http://blog.aezo.cn/2016/11/20/linux/ubuntu-install/](/_posts/linux/ubuntu-install.md)
 
 ---
 

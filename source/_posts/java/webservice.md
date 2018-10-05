@@ -3,7 +3,7 @@ layout: "post"
 title: "webservice"
 date: "2018-08-15 20:34"
 categories: java
-tags: webservice, cxf
+tags: [ws, cxf, springboot]
 ---
 
 ## springboot使用webservice

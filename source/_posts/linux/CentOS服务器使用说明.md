@@ -28,6 +28,9 @@ tags: [CentOS, linux]
 - centos7无法使用`ifconfig`命令解决方案
     - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
     - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
+- xshell卡在`To escape to local shell, press 'Ctrl+Alt+]'.`
+    - 关闭防火墙
+    - `vi /etc/ssh/sshd_config`修改`# UseDNS yes`为`UseDNS no`
 
 ## 常用软件安装
 

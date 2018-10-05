@@ -188,18 +188,52 @@ tag: [git, gitflow]
 1. `.gitignore` 文件创建和设置
 	- git根目录运行命令：`touch .gitignore`
 	- 使用 vi 编辑器进行文件配置
-2. 配置语法
-	- 以斜杠`/`开头表示目录
-	- 以星号`*`通配多个字符
-	- 以问号`?`通配单个字符
-	- 以方括号`[]`包含单个字符的匹配列表
-	- 以叹号`!`表示不忽略(跟踪)匹配到的文件或目录
+2. 配置语法 [^6]
+	
+	```bash
+	#               表示此为注释,将被Git忽略
+	*.a             #表示忽略所有 .a 结尾的文件
+	!lib.a          #表示但lib.a除外
+	/TODO           #表示仅仅忽略项目根目录下的 TODO 文件，不包括 subdir/TODO
+	build/          #表示忽略 build/目录下的所有文件，过滤整个build文件夹；
+	doc/*.txt       #表示会忽略doc/notes.txt但不包括 doc/server/arch.txt
+	
+	bin/:           #表示忽略当前路径下的bin文件夹，该文件夹下的所有内容都会被忽略，不忽略 bin 文件
+	/bin:           #表示忽略根目录下的bin文件
+	/*.c:           #表示忽略cat.c，不忽略 build/cat.c
+	debug/*.obj:    #表示忽略debug/io.obj，不忽略 debug/common/io.obj和tools/debug/io.obj
+	**/foo:         #表示忽略/foo,a/foo,a/b/foo等
+	a/**/b:         #表示忽略a/b, a/x/b,a/x/y/b等
+	!/bin/run.sh    #表示不忽略bin目录下的run.sh文件
+	*.log:          #表示忽略所有 .log 文件
+	config.php:     #表示忽略当前路径的 config.php 文件
+	
+	/mtk/           #表示过滤整个文件夹
+	*.zip           #表示过滤所有.zip文件
+	/mtk/do.c       #表示过滤某个具体文件
+
+	# 	----------------------------------------------------------------------------------
+	#想象一个场景：假如我们只需要管理/mtk/目录中的one.txt文件，这个目录中的其他文件都不需要管理，那么.gitignore规则应写为：
+	#注意/mtk/*不能写为/mtk/，否则父目录被前面的规则排除掉了，one.txt文件虽然加了!过滤规则，也不会生效！
+	/mtk/*
+	!/mtk/one.txt
+
+	#说明：忽略目录 fd1 下的全部内容；注意，不管是根目录下的 /fd1/ 目录，还是某个子目录 /child/fd1/ 目录，都会被忽略；
+	fd1/*
+	
+	#说明：忽略根目录下的 /fd1/ 目录的全部内容；
+	/fd1/*
+	
+	#说明：忽略全部内容，但是不忽略 .gitignore 文件、根目录下的 /fw/bin/ 和 /fw/sf/ 目录；注意要先对bin/的父目录使用!规则，使其不被排除。
+	/*
+	!.gitignore
+	!/fw/ 
+	/fw/*
+	!/fw/bin/
+	!/fw/sf/
+	```
 3. `echo '*~' > .gitignore`将文本`*~`保存到文件 .gitignore 中，再将此文件 add 并 commit 到 git 中即可，表示进行 git 相关操作时忽略以`~`结尾的文件
-4. 已经提交的文件(git已经管理了此文件，仓库已经存在此文件)无法忽略解决办法：
-	- 将此文件加到.gitignore中
-	- `git rm -r --cached my.txt` 将此文件的缓存在A分支删除并提交，如果my.txt有被修改则A分支还会保存此文件否则本地也会删除，远程将无此文件
-	- 法一：切换到B分支，将my.txt备份，将A分支提交拉取到B分支，此时B分支也会没有此文件，再将my.txt加入进来
-	- 法二：切换到B分支，修改my.txt，执行`git rm -r --cached my.txt`即可(拉取B进来也不会冲突)
+4. 已经提交的文件(git已经管理了此文件，仓库已经存在此文件)无法忽略解决办法：先删除对应文件，提交版本，再将此文件加到.gitignore中，再次提交则不会出现
 
 #### 重命名文件
 
@@ -232,8 +266,9 @@ HEAD 的哈希码存放在 `.git/refs/heads/xxx` 文件中(当前处于xxx分支
 
 参考文章
 
-[^1]: [Git入门视频](http://edu.51cto.com/course/course_id-1838.html)
-[^2]: [Git远程操作详解](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)
-[^3]: [常用Git命令清单](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)
-[^4]: [Git入门及上传项目到github中](http://blog.csdn.net/oldinaction/article/details/49704969)
-[^5]: [git-workflow-tutorial](https://github.com/xirong/my-git/blob/master/git-workflow-tutorial.md)
+[^1]: http://edu.51cto.com/course/course_id-1838.html (Git入门视频)
+[^2]: http://www.ruanyifeng.com/blog/2014/06/git_remote.html (Git远程操作详解)
+[^3]: http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html (常用Git命令清单)
+[^4]: http://blog.csdn.net/oldinaction/article/details/49704969 (Git入门及上传项目到github中)
+[^5]: https://github.com/xirong/my-git/blob/master/git-workflow-tutorial.md (git-workflow-tutorial)
+[^6]: https://www.cnblogs.com/kevingrace/p/5690241.html (Git忽略提交规则)

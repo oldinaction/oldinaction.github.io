@@ -175,8 +175,8 @@ events {
 #    load ngx_http_rewrite_module.so; # 加载重写模块
 #}
 
-# 直接根据流转换（可进行oracle数据映射）。不能使用http模块转换，否则连接时报错ORA-12569包解析出错
 stream {
+    # 直接根据流转换（可进行oracle数据映射）。不能使用http模块转换，否则连接时报错ORA-12569包解析出错
     upstream oracledb {
        hash $remote_addr consistent;
        # oracle数据内网ip（此处还可以通过VPN拨号到此nginx服务器，然后此处填写VPN拨号后的内网ip也可以进行访问）
@@ -186,6 +186,15 @@ stream {
         #公网机器监听端口，连接oracle的tns中填公网ip和端口即可
         listen 1521;
         proxy_pass oracledb;
+    }
+
+    # 进行sshd转换(局域网某台机器的虚拟上安装了Linux，暴露这些虚拟机给局域网)，每暴露一台需要监听一个端口
+    upstream sshd128 {
+	    server 192.168.112.128:22;
+    }
+    server {
+        listen 22128;
+        proxy_pass sshd128;
     }
 }
 

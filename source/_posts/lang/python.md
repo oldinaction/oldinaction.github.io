@@ -103,12 +103,12 @@ if 'age' in a.keys(): # a.has_key('age')
 
 ```python
 my_tuple = ('1', 2, 'smalle') # ('1',)
-print type(my_tuple) # <type 'tuple'>
-print my_tuple.index('smalle') # 2。获取smalle的索引
+print(type(my_tuple)) # <type 'tuple'>
+print(my_tuple.index('smalle')) # 2。获取smalle的索引
 
 # 如果元组里面只有一个元素，数据类型为此元素的数据类型
 my_tuple = ('1') # '1'
-print type(my_tuple) # <type 'str'>
+print(type(my_tuple)) # <type 'str'>
 ```
 
 #### 运算
@@ -149,6 +149,24 @@ for i in range(10): # range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)�
     print i
 
 ```
+
+### 函数
+
+- 函数传递参数的方式有两种：位置参数（positional argument，包含默认参数）、关键词参数（keyword argument）
+- `*args` 和 `**kwargs`：主要将不定数量的参数传递给一个函数。两者都是python中的可变参数
+    - `*args`表示任何多个无名参数，它本质是一个tuple
+    - `**kwargs`表示关键字参数，它本质上是一个dict
+    - 如果同时使用`*args`和*`*kwargs`时，必须`*args`参数列要在`**kwargs`前
+    - 其实并不是必须写成`*args`和`**kwargs`，`*`才是必须的。你也可以写成`*ar`和`**k`。而写成`*args`和`**kwargs`只是一个通俗的命名约定
+
+### 面向对象
+
+- 经典类、新式类
+    - Python 2.x中默认都是经典类，只有显式继承了object才是新式类
+    - Python 3.x中默认都是新式类，不必显式的继承object
+- python支持多继承
+    - 经典类采用深度优先搜索属性/方法
+    - 新式类采用广度优先搜索属性/方法
 
 ### 其他
 
@@ -228,6 +246,39 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
         - 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
 
 
+## 项目创建和发布
+
+### 项目创建
+
+- PyCharm创建django项目(自动创建venv虚拟环境)：File - New Project - Django - D:\gitwork\smpython\A02_DjangoTest(项目名需为字母数字下划线) - More Setting - Application Name - smtest(不要取test，会和Django自带名称冲突)
+- 创建后默认包含`venv`虚拟环境(与系统环境隔离，但是默认会使用系统的Python官方库)。再PyCharm中创建一个Terminal创建创建也会有`venv`标识(默认打开的Terminal窗口没有)
+- 在有`venv`的Terminal创建安装类库则不会对系统产生干扰
+
+### 发布
+
+- 客户端：`pip freeze > requirements.txt` venv环境运行后会生成一个此项目依赖的类库列表文件(安装上述方法创建项目默认不包含Python官方库)
+- 服务器
+
+```shell
+# python3 的 pip3
+pip3 install virtualenv
+# 创建环境ENV
+virtualenv ENV
+# 进入虚拟环境目录
+cd ENV
+# 启用此环境，后续命令行前面出现（ENV）代表此时环境已切换
+source ./bin/activate
+# 之后执行pip python3 等指令，相当于是在此环境中执行
+pip3 install -r /opt/myproject/requirements.txt
+# 此时看到依赖已安装
+pip3 list
+# 运行
+python3 /opt/myproject/main.py
+```
+
 ---
-[^1]: [MySQLdb安装报错](http://blog.csdn.net/bijiaoshenqi/article/details/44758055)
-[^2]: [Python连接MongoDB操作](http://www.yiibai.com/mongodb/mongodb_python.html)
+
+参考文章
+
+[^1]: http://blog.csdn.net/bijiaoshenqi/article/details/44758055 (MySQLdb安装报错)
+[^2]: http://www.yiibai.com/mongodb/mongodb_python.html (Python连接MongoDB操作)

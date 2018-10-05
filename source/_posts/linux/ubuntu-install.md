@@ -3,7 +3,7 @@ layout: "post"
 title: "Ubuntu安装"
 date: "2016-11-20 13:16"
 categories: [linux]
-tags: [system, install, disk, bois]
+tags: [system, bois]
 ---
 
 ## Ubuntu介绍

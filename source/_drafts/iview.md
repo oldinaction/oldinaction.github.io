@@ -43,7 +43,8 @@ tags: [vue, UI]
 
 ```js
 // 语法
-render: (h, params) => {
+render: (h, {params | param}) => {
+	// 此时params中包含row、column和index; param就是row
 	return h("定义元素标签/Vue对象标签", { 元素性质 }, "元素内容"/[元素内容])
 
 	// 2个参数的情况

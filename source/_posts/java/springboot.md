@@ -2,18 +2,15 @@
 layout: "post"
 title: "springboot"
 date: "2017-07-23 15:05"
-categories: [java]
-tags: [springboot, hibernate, mybatis, rabbitmq]
+categories: java
+tags: springboot
 ---
 
-## 目录
+## TODO
 
-- `helloworld`(1.5.6)
-- 数据访问
-	- `hibernate`(1.5.6, mysql)
-	- `mybatis`(1.5.6)
-- `thymeleaf-spring-security`(1.5.6)
-- `rabbitmq`(1.5.6)
+[+] Lombok使用 https://www.cnblogs.com/qnight/p/8997493.html
+[+] 分布式限流 http://blog.battcn.com/2018/08/08/springboot/v2-cache-redislimter/
+[+] Quartz实现动态配置定时任务 https://yq.aliyun.com/articles/626199
 
 ## hello world
 
@@ -614,24 +611,31 @@ video = responseEntity.getBody();
 
 ### 对hibernate的默认支持(JPA)
 
-参考AEZO：《hibernate》：[http://blog.aezo.cn#java@hibernate](http://blog.aezo.cn/2017/05/21/java/hibernate/)
+参考：[http://blog.aezo.cn/2017/05/21/java/hibernate/](/_posts/java/hibernate)
 
 ### 整合mybatis
 
-参考AEZO：《mybatis》：[http://blog.aezo.cn#java@mybatis](http://blog.aezo.cn/2017/05/22/java/mybatis/)
+参考：[http://blog.aezo.cn/2017/05/22/java/mybatis/](/_posts/java/mybatis)
 
 ### 事物支持 [^10]
 
 - `@Transactional` 注解对应的public类型函数. 一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)
 - 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
+- 由于Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的。`@Transactional`注解只被应用到 public 可见度的方法上
+- 默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚 
+	- `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到异常Exception时回滚
+	- `@Transactional(noRollbackFor = RuntimeException.class)` 指定不回滚
+	- 基于服务的统一结果返回，无法回滚事物(类似ofbiz的服务引擎返回)：服务内部捕获了异常(Exception)，返回的是统一的对象(如自定义`Result`)
+		- `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚。或者基于自定义注解统一回滚。或者手动抛出RuntimeException
+- Spring的@Transactional自我调用问题：同一个类中的方法相互调用，被调用的方法`@Transactional`无效 [^12]
+	- 通过BeanPostProcessor 在目标对象中注入代理对象
 - 隔离级别`@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读
 	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是：READ_COMMITTED。
 	- `READ_UNCOMMITTED`：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读和不可重复读，因此很少使用该隔离级别。
 	- `READ_COMMITTED`：该隔离级别表示一个事务只能读取另一个事务已经提交的数据。该级别可以防止脏读，这也是大多数情况下的推荐值。
 	- `REPEATABLE_READ`：该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略。该级别可以防止脏读和不可重复读。
 	- `SERIALIZABLE`：所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。
-- 传播行为`@Transactional(propagation = Propagation.REQUIRED)
-`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
+- 传播行为`@Transactional(propagation = Propagation.REQUIRED)`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
 	- `REQUIRED`：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。
 	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
 	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常。
@@ -728,6 +732,192 @@ video = responseEntity.getBody();
 - h2简介：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库
 - [官网：http://h2database.com/html/main.html](http://h2database.com/html/main.html)
 - springboot整合：[文章：《h2》](../db/h2.md)
+
+### Spring Data Rest
+
+> - 参考文档：https://springcloud.cc/spring-data-rest-zhcn.html 、 https://docs.spring.io/spring-data/rest/docs/3.1.0.RELEASE/reference/html/
+
+> - 如何在返回数据的根节点插入一个属性(如code)？？？
+> - 如何和swagger整合(整合2.9.2不显示方法)？？？
+
+- Spring Data JPA是基于Spring Data的repository之上，可以将repository自动输出为REST资源。目前支持将Spring Data JPA、Spring Data MongoDB、Spring Data Neo4j等自动转换成REST服务
+- 引入依赖(基于Spring JPA项目测试)
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-data-rest</artifactId>
+</dependency>
+<!-- 可选(不太好用)。HAL Browser：可直接测试API接口。访问 http://localhost:8080/api/ 即可看到 UI 界面(此时配置了rest根节点为 /api)。可使用POSTMAN代替 -->
+<dependency>
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-rest-hal-browser</artifactId>
+</dependency>
+```
+- Repository `public interface PersonRepository extends JpaRepository<Person, Long> {}`
+- 引入依赖后访问 `http://localhost:8080/persons` 即可看到返回(启动项目时也可以看到相应端点)
+
+```js
+// HAL（Hypertxt Application Language）风格REST。Spring Hateoas
+// http://localhost:8080/persons
+{
+	_embedded: {
+		persons: [{
+				name: "smalle",
+				age: 18,
+				address: "上海",
+				_links: {
+					self: {
+						href: "http://localhost:8080/persons/1"
+					},
+					person: {
+						href: "http://localhost:8080/persons/1"
+					}
+				}
+			},
+			{
+				name: "aezo",
+				age: 20,
+				address: "北京",
+				_links: {
+					self: {
+						href: "http://localhost:8080/persons/2"
+					},
+					person: {
+						href: "http://localhost:8080/persons/2"
+					}
+				}
+			}
+		]
+	},
+	_links: {
+		self: {
+			href: "http://localhost:8080/persons{?page,size,sort}",
+			templated: true
+		},
+		profile: {
+			href: "http://localhost:8080/profile/persons"
+		}
+	},
+	page: {
+		size: 20,
+		totalElements: 2,
+		totalPages: 1,
+		number: 0
+	}
+}
+
+// http://localhost:8080/persons/1
+{
+	name: "smalle",
+	age: 18,
+	address: "上海",
+	_links: {
+		self: {
+			href: "http://localhost:8080/api/people/1"
+		},
+		person: {
+			href: "http://localhost:8080/api/people/1"
+		}
+	}
+}
+```
+- 扩展配置
+
+```yml
+spring:
+  data:
+	rest:
+	  # 自定义根路径. 此时访问 http://localhost:8080/api/xxx
+      base-path: /api
+```
+
+```java
+@RepositoryRestResource(path = "people") // 修改默认的节点路径(实体名加s)。此时访问 http://localhost:8080/api/people
+public interface PersonRepository extends JpaRepository<Person, Long> {
+	@RestResource(path = "nameStartsWith") // 自定义服务暴露为REST资源，访问 http://localhost:8080/api/people/search/nameStartsWith?name=sma
+	Person findByNameStartsWith(@Param("name") String name);
+}
+```
+- 访问
+	- 获取列表(GET) `http://localhost:8080/api/people`
+	- 获取某个资源(GET) `http://localhost:8080/api/people/1`
+	- 查询(GET) `http://localhost:8080/api/people/search/nameStartsWith?name=sma`
+	- 分页排序(GET) `http://localhost:8080/api/people?page=1&size=2&sort=age,desc`
+	- 保存(POST) `http://localhost:8080/api/people`
+	- 更新(PUT) `http://localhost:8080/api/people/1`
+	- 删除(DELETE) `http://localhost:8080/api/people/1`
+- 在model的字段上加`@JsonIgnore`注解，Spring Data Rest会忽略此字段(结果中无此字段)
+- 在model的字段上加`@JsonProperty("newName")`注解，可修改字段输出的名称
+- `Projection`使用
+```java
+// (1) @Projection使用
+// @Projection必须在domain(model)包或者自包才会被扫描到
+@Projection(name="list", types=Person.class) // 基于Person实现一个投射(可以定义多个)，http://localhost:8080/api/people?projection=list
+public interface ListPeople {
+    // 此时只会返回id、name属性
+    Long getId();
+
+    String getName();
+
+	// 自定义一个字段
+    @Value("#{target.name}---#{target.age}") // 这里把Person中的name和age合并成一列，这里需要注意String getFullInfo();方法名前面一定要加get，不然无法序列化为JSON数据
+    String getFullInfo();
+}
+
+// (2) @Projection定义的数据格式还可以直接配置到Repository之上，配置之后返回的JSON数据会按照 ListPeople 定义的数据格式进行输出
+@RepositoryRestResource(path="people", excerptProjection=ListPeople.class)
+public interface UserRepository extends JpaRepository<User, Long>{}
+
+// (3) 获取关联实体信息
+// # 1
+@Entity
+public class Card {
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String cardNo;
+
+    private Date expirationDate;
+
+    @OneToOne // 必须有关联关系才可以获取到关联对象
+    private Person person;
+
+	// ... 省略get/set
+}
+// # 2
+@Projection(name="list", types=Card.class)
+public interface ListCard {
+    String getCardNo();
+    Person getPerson();
+}
+// # 3
+@RepositoryRestResource(excerptProjection = ListCard.class) // http://localhost:8080/api/cards 此时可以获取到Person信息，无此注解默认无法获取
+public interface CardRepository extends JpaRepository<Card, Long>  {}
+```
+- Spring Data Rest Events 提供了AOP方式的开发，定义了10种不同事件
+	- 资源保存前 @HandleBeforeCreate
+	- 资源保存后 @HandleAfterCreate
+	- 资源更新前 @HandleBeforeSave
+	- 资源更新后 @HandleAfterSave
+	- 资源删除前 @HandleBeforeDelete
+	- 资源删除后 @HandleAfterDelete
+	- 关系创建前 @HandleBeforeLinkSave
+	- 关系创建后 @HandleAfterLinkSave
+	- 关系删除前 @HandleBeforeLinkDelete
+	- 关系删除后 @HandleAfterLinkDelete
+- 结合Spring Security
+
+```java
+@PreAuthorize("hasRole('ROLE_USER')") 
+public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID> {
+
+	@PreAuthorize("hasRole('ROLE_ADMIN')") 
+	@Override
+	void deleteById(UUID aLong);
+}
+```
 
 ## thymeleaf模板引擎
 
@@ -839,6 +1029,10 @@ video = responseEntity.getBody();
 
 ### Nosql
 
+#### 整合redis
+
+参考《redis》[http://blog.aezo.cn/2016/07/02/db/redis/](/_posts/db/redis)
+
 #### 整合Mongodb
 
 - 引入依赖
@@ -921,6 +1115,143 @@ video = responseEntity.getBody();
     }
     ```
 
+### WebSocket [^11]
+
+- 引入依赖
+
+    ```xml
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
+    ```
+- 后端代码
+
+```java
+// 1.WebSocketConfig.java 配置文件
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic", "/user"); // 表示客户端订阅地址的前缀信息，也就是客户端接收服务端消息的地址的前缀信息
+        config.setApplicationDestinationPrefixes("/app"); // 定义websocket前缀，指服务端接收地址的前缀，意思就是说客户端给服务端发消息的地址的前缀
+        config.setUserDestinationPrefix("/user"); // 定义一对一(点对点)推送前缀，默认是`/user`，可省略此配置
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws/aezo") // 定义stomp端点，供客户端使用
+                .setAllowedOrigins("*")
+                .withSockJS(); // 开启SockJS支持
+    }
+}
+
+// 2.@Controller
+@Autowired
+private SimpMessagingTemplate simpMessagingTemplate; // Spring-WebSocket内置的一个消息发送工具，可以将消息发送到指定的客户端或所有客户端
+
+@GetMapping("/")
+public String index() {
+    return "index";
+}
+
+// 功能类似@RequestMapping，定义消息的基本请求(客户端发送消息)。拼上定义的客户端请求的前缀/app，最终客户端请求为/app/send
+@MessageMapping("/send")
+// @SendTo发送消息给所有人，@SendToUser只能推送给请求消息的那个人
+@SendTo("/topic/send")
+public Message send(Message message) throws Exception { // Message为一个VO(不写getter/setter也行)
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    message.date = df.format(new Date());
+    if(message.toUser != null && !"".equals(message.toUser)) {
+        // 给某个人发送消息，此时@SendTo被忽略
+        // convertAndSend(destination, payload); //将消息广播到特定订阅路径中，类似@SendTo
+        // convertAndSendToUser(user, destination, payload); //将消息推送到固定的用户订阅路径中，类似@SendToUser
+        simpMessagingTemplate.convertAndSendToUser(message.toUser, "/private", message); // 发送到/user/${message.toUser}/private通道
+        return null;
+    } else {
+        return message;
+    }
+}
+
+// 定时1秒执行执行一次，向/topic/callback通道发送信息
+@Scheduled(fixedRate = 1000) // 加@EnableScheduling开启定时
+@SendTo("/topic/callback")
+public Object callback() throws Exception {
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    simpMessagingTemplate.convertAndSend("/topic/callback", df.format(new Date()));
+    return "callback"; // 此处返回什么不重要
+}
+```
+- 前端代码(基于angular.js)
+
+```html
+<!-- 基于angular.js -->
+<script src="//cdn.bootcss.com/angular.js/1.5.6/angular.min.js"></script>
+
+<!-- websocket所需js库 -->
+<script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
+<script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+<script type="text/javascript">
+var stompClient = null;
+var app = angular.module('app', []);
+app.controller('MainController', function($rootScope, $scope, $http) {
+	$scope.data = {
+		username: '', // 用户名
+		toUser: '',
+		connected : false, //连接状态
+		message : '', //消息
+		rows : [] // 消息历史
+	};
+
+	//连接
+	$scope.connect = function() {
+		var socket = new SockJS('/ws/aezo'); // websocket后台定义的stomp端点
+		stompClient = Stomp.over(socket);
+		stompClient.connect({}, function(frame) {
+			// 注册发送消息
+			stompClient.subscribe('/topic/send', function(msg) {
+				$scope.data.rows.push(JSON.parse(msg.body));
+				$scope.data.connected = true;
+				$scope.$apply();
+			});
+			// 注册推送时间回调
+			stompClient.subscribe('/topic/callback', function(r) {
+				$scope.data.time = '当前服务器时间：' + r.body;
+				$scope.data.connected = true;
+				$scope.$apply();
+			});
+			// 注册接受私信
+			stompClient.subscribe('/user/'+ $scope.data.username +'/private', function(msg) {
+				$scope.data.rows.push(JSON.parse(msg.body));
+				$scope.data.connected = true;
+				$scope.$apply();
+			});
+
+			$scope.data.connected = true;
+			$scope.$apply();
+		});
+	};
+
+	// 断开连接
+	$scope.disconnect = function() {
+		if (stompClient != null) {
+			stompClient.disconnect();
+		}
+		$scope.data.connected = false;
+	}
+
+	// 发送消息
+	$scope.send = function() {
+		stompClient.send("/app/send", {}, JSON.stringify({
+			'toUser': $scope.data.toUser,
+			'message': $scope.data.message
+		}));
+	}
+});
+</script>
+```
+
 ### 多数据源
 
 http://blog.didispace.com/springbootmultidatasource/
@@ -944,6 +1275,10 @@ http://blog.didispace.com/springbootmultidatasource/
 	```
 - 启动类加`@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 7200)` (maxInactiveIntervalInSeconds即session检测的最大时间间隔)
 - 可将一个项目启动两个端口进行测试
+
+### 整合swagger
+
+参考[/_posts/arch/swagger.md#springboot中使用](/_posts/arch/swagger.md#springboot中使用)
 
 ## 其他
 
@@ -1034,3 +1369,5 @@ http://blog.didispace.com/springbootmultidatasource/
 [^8]: http://blog.csdn.net/v2sking/article/details/72795742 (异步调用Async)
 [^9]: https://spring.io/blog/2015/06/08/cors-support-in-spring-framework (Spring对CORS的支持)
 [^10]: http://blog.didispace.com/springboottransactional/ (@Transactional)
+[^11]: http://www.cnblogs.com/GoodHelper/p/7078381.html (WebSocket)
+[^12]: http://tech.lede.com/2017/02/06/rd/server/SpringTransactional/ (Spring @Transactional原理及使用)
