@@ -250,9 +250,12 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ### 项目创建
 
+#### PyCharm创建django项目
+
 - PyCharm创建django项目(自动创建venv虚拟环境)：File - New Project - Django - D:\gitwork\smpython\A02_DjangoTest(项目名需为字母数字下划线) - More Setting - Application Name - smtest(不要取test，会和Django自带名称冲突)
 - 创建后默认包含`venv`虚拟环境(与系统环境隔离，但是默认会使用系统的Python官方库)。再PyCharm中创建一个Terminal创建创建也会有`venv`标识(默认打开的Terminal窗口没有)
 - 在有`venv`的Terminal创建安装类库则不会对系统产生干扰
+- 启动django项目添加参数：如执行 `python manage.py runserver --insecure` 中的 `--insecure` 可在 `Configuration` - `Additional options`中配置
 
 ### 发布
 

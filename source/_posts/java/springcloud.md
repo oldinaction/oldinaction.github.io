@@ -74,26 +74,26 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
     ```yml
     server:
         port: 8761
-
+    
     # 引入了spring-boot-starter-security则会默认开启认证
     security:
         basic:
-        enabled: true #开启eureka后台登录认证
+            enabled: true #开启eureka后台登录认证
         # 不配置user，则默认的用户名为user，密码为自动生成(在控制台可查看)
         user:
-        name: smalle
-        password: smalle
+            name: smalle
+            password: smalle
 
     eureka:
         instance:
-        hostname: localhost
+            hostname: localhost
         client:
-        # eureka server默认也是一个eureka client.以下两行仅将此App当成eureka server，不当成eureka client(由于是单点测试)
-        register-with-eureka: false
-        fetch-registry: false
-        # 将eureka注册到哪个url
-        serviceUrl:
-            defaultZone: http://user:password@${eureka.instance.hostname}:${server.port}/eureka/
+            # eureka server默认也是一个eureka client.以下两行仅将此App当成eureka server，不当成eureka client(由于是单点测试)
+            register-with-eureka: false
+            fetch-registry: false
+            # 将eureka注册到哪个url
+            serviceUrl:
+                defaultZone: http://user:password@${eureka.instance.hostname}:${server.port}/eureka/
     ```
 - 后台地址：`http://localhost:8761`
 
@@ -114,13 +114,13 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
     # eureka客户端配置
     eureka:
         client:
-        serviceUrl:
-            defaultZone: http://smalle:smalle@localhost:8761/eureka/
+            serviceUrl:
+                defaultZone: http://smalle:smalle@localhost:8761/eureka/
         instance:
-        # 启用ip访问eureka server(默认是使用主机名进行访问)
-        prefer-ip-address: true
-        # 实例id
-        instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+            # 启用ip访问eureka server(默认是使用主机名进行访问)
+            prefer-ip-address: true
+            # 实例id
+            instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     ```
 - [示例请看源码](https://github.com/oldinaction/springcloud/tree/master/demo2-microservice-eureka)
     - 示例中使用H2数据库，IDEA连接方式：path:`mem:testdb`, user:`sa`, password:空, url:`jdbc:h2:mem:testdb`, 使用`Embedded`或`In-memory`方式连接
@@ -154,9 +154,9 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
     ```yml
     # robbin负载均衡策略优先级：配置文件策略 > 代码级别策略 > ribbon默认策略(com.netflix.loadbalancer.ZoneAvoidanceRule)
     provider-user:
-      ribbon:
-          # 当访问服务provider-user时采用随机策略RandomRule，此时访问其他服务时仍然为默认策略ZoneAvoidanceRule；WeightedResponseTimeRule响应时间加权策略
-          NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+        ribbon:
+            # 当访问服务provider-user时采用随机策略RandomRule，此时访问其他服务时仍然为默认策略ZoneAvoidanceRule；WeightedResponseTimeRule响应时间加权策略
+            NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
     ```
 - 脱离Eureka的配置，此时仍然可以运行Eureka，但是不从eureka中获取服务地址，而是从配置文件中读取
 
@@ -325,7 +325,7 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
                 Object accessToken = request.getParameter("accessToken");
                 if(accessToken == null) {
                     logger.warn("access token is empty, add parameter like: accessToken=smalle");
-                    ctx.setSendZuulResponse(false); // 令zuul过滤此请求，不进行路由
+                    ctx.setSendZuulResponse(false); // 令zuul过滤此请求，不进行路由(zuul本地方法无法过滤)
                     ctx.setResponseStatusCode(401);
                     ctx.setResponseBody("zuul filter");
                     return null;
@@ -402,24 +402,24 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
                 password: aezocn
 
         server:
-        port: 7000
+            port: 7000
 
         security:
-        basic:
-            enabled: true # 开启权限验证(默认是false)
-        user:
-            name: smalle
-            password: smalle
+            basic:
+                enabled: true # 开启权限验证(默认是false)
+            user:
+                name: smalle
+                password: smalle
 
         # eureka客户端配置
         eureka:
-        client:
-            serviceUrl:
-            defaultZone: http://smalle:smalle@localhost:8761/eureka/
-        instance:
-            # 启用ip访问
-            prefer-ip-address: true
-            instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+            client:
+                serviceUrl:
+                defaultZone: http://smalle:smalle@localhost:8761/eureka/
+            instance:
+                # 启用ip访问
+                prefer-ip-address: true
+                instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     ```
 - 在git仓库的config-repo目录下添加配置文件: `consumer-movie-ribbon.yml`(写如配置如：from: git-default-1.0. 下同)、`consumer-movie-ribbon-dev.yml`、`consumer-movie-ribbon-test.yml`、`consumer-movie-ribbon-prod.yml`，并写入参数
 - 访问：`http://localhost:7000/consumer-movie-ribbon/prod/master`即可获取应用为`consumer-movie-ribbon`，profile为`prod`，git分支为`master`的配置数据(`/{application}/{profile}/{label}`)
@@ -446,28 +446,28 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
         # application:
         #  name: consumer-movie-ribbon
         cloud:
-        config:
-            # (1) config server地址
-            # uri: http://localhost:7000/
-            # (2) 配置中心实行服务化(向eureka注册了自己)，此处要开启服务发现，并指明配置中心服务id
-            discovery:
-            enabled: true
-            service-id: config-server
-            profile: prod
-            label: master
-            # 如果配置中心开启了权限验证，此处填写相应的用户名和密码
-            username: smalle
-            password: smalle
+            config:
+                # (1) config server地址
+                # uri: http://localhost:7000/
+                # (2) 配置中心实行服务化(向eureka注册了自己)，此处要开启服务发现，并指明配置中心服务id
+                discovery:
+                    enabled: true
+                    service-id: config-server
+                profile: prod
+                label: master
+                # 如果配置中心开启了权限验证，此处填写相应的用户名和密码
+                username: smalle
+                password: smalle
 
     # eureka客户端配置(使用了spring cloud config, 则eureka的配置必须写在bootstrap.yml中，否则报找不到config server )
     eureka:
         client:
-        serviceUrl:
-            defaultZone: http://smalle:smalle@localhost:8761/eureka/
+            serviceUrl:
+                defaultZone: http://smalle:smalle@localhost:8761/eureka/
         instance:
-        # 启用ip访问
-        prefer-ip-address: true
-        instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+            # 启用ip访问
+            prefer-ip-address: true
+            instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     ```
 - 测试程序
 
@@ -512,19 +512,19 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
     # 为了动态刷新配置(spring cloud config)，执行/refresh端点(此端点需要加入Spring Security或者关闭端点验证)
     security:
         basic:
-        enabled: true
+            enabled: true
         user:
-        name: smalle
-        password: smalle
+            name: smalle
+            password: smalle
     ```
 - 在git仓库中加入`api-gateway-zuul-prod.yml`等配置文件，并加入配置
 
     ```yml
     zuul:
         routes:
-        api-movie:
-            path: /api-movie-config/**
-            serviceId: consumer-movie-ribbon
+            api-movie:
+                path: /api-movie-config/**
+                serviceId: consumer-movie-ribbon
     ```
 - `POST`请求`http://localhost:5555/refresh`即可刷新`api-gateway-zuul`的配置，因此动态加载了路由规则zuul.routes.api-movie
 
@@ -935,7 +935,199 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
     - 将spring.application.name配置到bootstrap.yml中
     - 在resources目录加logback-spring.xml文件(请看源码)
 
+## 版本 Finchley.SR1
 
+- 版本要求：`jdk 1.8`、`springboot 2.0.1.RELEASE`
+- 组件依赖
+
+```xml
+<!-- Eureka Server -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+</dependency>
+
+<!-- Eureka Client -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+
+<!-- Zuul -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+</dependency>
+
+<!-- Hystrix -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+
+<!-- Feign(OpenFeign) -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+### Eureka
+
+- 依赖变化参考上述组件依赖`Eureka Server`、`Eureka Client`
+- application.yml中spring security配置
+
+```yml
+spring:
+  security:
+    user:
+      name: smalle
+      password: smalle
+```
+- 启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaServer // 开启Eureka Server
+public class EurekaServerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EurekaServerApplication.class, args);
+	}
+
+    // 加此csrf配置，否则客户端连接时报错：com.netflix.discovery.shared.transport.TransportException: Cannot execute request on any known server
+	@EnableWebSecurity
+	static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+		@Override
+		protected void configure(HttpSecurity http) throws Exception {
+			http.csrf().ignoringAntMatchers("/eureka/**");
+			super.configure(http);
+		}
+	}
+}
+```
+
+### Zuul
+
+- 自定义异常信息
+
+```java
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes; // springboot 2.0 发生改变
+import org.springframework.web.context.request.WebRequest;
+
+// org.springframework.boot.autoconfigure.web.BasicErrorController 默认错误处理
+// 最好使用postman等工具测试
+// 需要使用@Bean等方法实例化
+public class CustomErrorAttributes extends DefaultErrorAttributes {
+    public Map<String, Object> getErrorAttributes(WebRequest requestAttributes, boolean includeStackTrace) {
+        Map<String, Object> map = super.getErrorAttributes(requestAttributes, includeStackTrace);
+        map.remove("exception"); // 移除exception信息，客户端将看不到此信息
+        map.put("myAttr", "hello");
+        return map;
+    }
+}
+```
+
+- Ribbon/Hystrix异常捕获
+
+```java
+@Component
+public class MyFallbackProvider implements FallbackProvider {
+
+    @Override
+    public String getRoute() {
+        // return "consumer-movie-ribbon"; // 只对此服务名(spring.application.name)有效
+        return "*"; // 或者`return null;`均为默认错误处理器，处理所有服务错误
+    }
+
+    // 只能捕获Ribbon调用时，产生的Hystrix异常。当服务consumer-movie-ribbon内部报错(如Long.valueOf("abc"))时，无法捕获
+    @Override
+    public ClientHttpResponse fallbackResponse(String route, final Throwable cause) {
+        // class com.netflix.client.ClientException
+        System.out.println("cause.getClass() = " + cause.getClass());
+
+        if (cause instanceof HystrixTimeoutException) {
+            return response(HttpStatus.GATEWAY_TIMEOUT);
+        } else {
+            return response(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private ClientHttpResponse response(final HttpStatus status) {
+        return new ClientHttpResponse() {
+            @Override
+            public HttpStatus getStatusCode() throws IOException {
+                return status;
+            }
+
+            @Override
+            public int getRawStatusCode() throws IOException {
+                return status.value();
+            }
+
+            @Override
+            public String getStatusText() throws IOException {
+                return status.getReasonPhrase();
+            }
+
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public InputStream getBody() throws IOException {
+                // 捕获错误后，返回给客户端的信息
+                Map<String, Object> ret = new HashMap<>();
+                ret.put("code", status + "");
+                ret.put("msg", "zuul fallback...");
+                ObjectMapper objectMapper = new ObjectMapper();
+                return new ByteArrayInputStream(objectMapper.writeValueAsBytes(ret));
+            }
+
+            @Override
+            public HttpHeaders getHeaders() {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                return headers;
+            }
+        };
+    }
+}
+```
+
+- SendErrorFilter执行时机
+
+```java
+// 测试异常过滤器（org.springframework.cloud.netflix.zuul.filters.post.SendErrorFilter）
+// 此处抛异常被BasicErrorController处理(MyFallbackProvider 无法捕获)
+try {
+    doSomteing(); // 具体参考上文Dalston.SR1中Zuul此处相关代码
+} catch (Exception e) {
+    // 抛出ZuulRuntimeException后会被SendErrorFilter(error类型的拦截器)拦截，否则不会被SendErrorFilter拦截
+    throw new ZuulRuntimeException(e);
+}
+```
+
+
+
+### springboot 2.0.1
+
+参考[http://blog.aezo.cn/2017/07/23/java/springboot/](/_posts/java/springboot)中【springboot 2.0.1 改动】
+
+### 其他错误
+
+- 引入了jpa的模块启动报错`The dependencies of some of the beans in the application context form a cycle`
+
+    ```yml
+    # 解决办法
+    spring:
+    cloud:
+        refresh:
+        # Dalston.SR1 -> Finchley.SR1. 报错：The dependencies of some of the beans in the application context form a cycle:(dataSource和DataSourceInitializerInvoker相互依赖)
+        # 解决办法：https://github.com/spring-cloud/spring-cloud-commons/issues/355
+        refreshable: none
+    ```
 
 
 ---

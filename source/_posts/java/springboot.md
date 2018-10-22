@@ -1025,6 +1025,22 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 		- 需要使用maven启动
 - thymeleaf语法：[文章：《thymeleaf》](../lang/thymeleaf.md)
 
+### 文件上传下载
+
+- 上传文件临时目录
+	- 项目启动默认会产生一个tomcat上传文件临时目录，如：`/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT`
+	- 而linux会定期清除tmp目录下文件，尽管项目仍然处于启动状态。从而会导致错误`Caused by: java.io.IOException: The temporary upload location [/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT] is not valid`
+
+```java
+// 自定义上传文件临时目录
+@Bean 
+public MultipartConfigElement multipartConfigElement() {
+	MultipartConfigFactory factory = new MultipartConfigFactory();  
+	factory.setLocation("/app/tmp");
+	return factory.createMultipartConfig();
+}
+```
+
 ## 企业级开发
 
 ### Nosql
@@ -1353,7 +1369,17 @@ http://blog.didispace.com/springbootmultidatasource/
 	- 原因分析：一般由于存在多个`application`配置文件，然后并没有指定。则使用默认配置，运行时出现`No active profile set, falling back to default profiles: default`，从而缺少部分配置。实践时发现application.properties中已经配置了`spring.profiles.active=dev`，再idea中通过main方法启动时不报错，但是通过maven打包是测试不通过
 	- 解决办法参考：[《maven.md#结合springboot》](/_posts/arch/maven.md#结合springboot)。实际中主要是没有将`src/main/resources`目录添加到maven的resource中
 
+## springboot 2.0.1 改动
 
+- jpa
+
+```java
+// 获取单条记录
+// spring boot 1.4.3
+// User user = this.userRepositroy.findOne(id);
+// spring boot 2.0.1
+User user = this.userRepositroy.findById(id).get();
+```
 
 
 

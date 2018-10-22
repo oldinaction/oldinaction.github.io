@@ -63,7 +63,7 @@ server {
     }
 
     # 用于暴露静态文件，访问http://www.aezo.cn/static/logo.png，且无法访问到http://www.aezo.cn/static
-    # 文件实际路径为/home/aezocn/www/static/logo.png
+    # 文件实际路径为/home/aezocn/www/static/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
     location ^~ /static/ {
         root /home/aezocn/www;
     }
@@ -104,39 +104,6 @@ server {
     location = /index.html {
         add_header Cache-Control "no-cache, no-store";
     }
-
-    # php文件转给fastcgi处理，但是需要安装如`php-fpm`来解析
-    # 如果访问 http://127.0.0.1:8080/myphp/index.php 此时会到 /project/phphome/myphp 目录寻找/访问 index.php 文件
-    location ~ \.php$ {
-        try_files $uri = 404; # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
-        root           /project/phphome/myphp;
-        fastcgi_pass   127.0.0.1:9000;
-        fastcgi_index  index.php;
-        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name; # 此处要使用`$document_root`否则报错File not found.`
-        include        fastcgi_params;
-    }
-    # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
-    location ~ /myphp/ {
-        root /project/phphome/myphp;
-    }
-}
-
-# 开启第二个站点监听
-server {
-    listen 80;
-    server_name hello.aezo.cn;
-
-    location = / {
-        #判断是否为手机移动端
-        if ($http_user_agent ~* '(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)') {
-            rewrite . http://$server_name/wap break;
-        }
-        rewrite . http://$server_name/pc break;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8090;
-    }
 }
 ```
 - 配置详细说明
@@ -175,8 +142,9 @@ events {
 #    load ngx_http_rewrite_module.so; # 加载重写模块
 #}
 
+# 直接根据流转换. 如：oracle数据库映射外网、sshd转换、ws转换
 stream {
-    # 直接根据流转换（可进行oracle数据映射）。不能使用http模块转换，否则连接时报错ORA-12569包解析出错
+    # 进行oracle数据映射。不能使用http模块转换，否则连接时报错ORA-12569包解析出错
     upstream oracledb {
        hash $remote_addr consistent;
        # oracle数据内网ip（此处还可以通过VPN拨号到此nginx服务器，然后此处填写VPN拨号后的内网ip也可以进行访问）
@@ -198,7 +166,7 @@ stream {
     }
 }
 
-# 设定http服务(也支持smtp邮件服务)
+# 设定http服务(也支持smtp邮件服务)。全局只能有一个http节点
 http {
     include mime.types; #文件扩展名与文件类型映射表(对应当前目录下文件mime.types)
     default_type application/octet-stream; #默认文件类型
@@ -274,14 +242,13 @@ http {
             #后端的Web服务器可以通过X-Real-IP获取用户真实IP
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-            ##以下是一些反向代理的配置，可选
+            # 后端服务器超时时间(默认60s)
+            proxy_connect_timeout 180; #nginx跟后端服务器连接超时时间(代理连接超时)
+            proxy_send_timeout 180; #后端服务器数据回传时间(代理发送超时)
+            proxy_read_timeout 180; #连接成功后，后端服务器响应时间(代理接收超时)
+            ## 其他配置
             #client_max_body_size 10m; #允许客户端请求的最大单文件字节数
             #client_body_buffer_size 128k; #缓冲区代理缓冲用户端请求的最大字节数
-            # 也可设置到http范围
-            #proxy_connect_timeout 90; #nginx跟后端服务器连接超时时间(代理连接超时)
-            #proxy_send_timeout 90; #后端服务器数据回传时间(代理发送超时)
-            #proxy_read_timeout 90; #连接成功后，后端服务器响应时间(代理接收超时)
             #proxy_buffer_size 4k; #设置代理服务器（nginx）保存用户头信息的缓冲区大小
             #proxy_buffers 4 32k; #proxy_buffers缓冲区，网页平均在32k以下的设置
             #proxy_busy_buffers_size 64k; #高负荷下缓冲大小（proxy_buffers*2）
@@ -337,6 +304,39 @@ http {
                 rewrite ^/ http://$host/logo.png;
             }
         }
+
+        # php文件转给fastcgi处理，但是需要安装如`php-fpm`来解析
+        # 如果访问 http://127.0.0.1:8080/myphp/index.php 此时会到 /project/phphome/myphp 目录寻找/访问 index.php 文件
+        location ~ \.php$ {
+            try_files $uri = 404; # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
+            root           /project/phphome/myphp;
+            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name; # 此处要使用`$document_root`否则报错File not found.`
+            include        fastcgi_params;
+        }
+        # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
+        location ~ /myphp/ {
+            root /project/phphome/myphp;
+        }
+    }
+
+    # 开启第二个站点监听
+    server {
+        listen 80;
+        server_name hello.aezo.cn;
+
+        location = / {
+            #判断是否为手机移动端
+            if ($http_user_agent ~* '(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)') {
+                rewrite . http://$server_name/wap break;
+            }
+            rewrite . http://$server_name/pc break;
+        }
+
+        location / {
+            proxy_pass http://127.0.0.1:8090;
+        }
     }
 }
 ```
@@ -359,10 +359,10 @@ http {
     - `=` 开头表示精确匹配
     - `^~` 开头表示uri以某个常规字符串开头，理解为匹配url路径即可（如果路径匹配那么不测试正则表达式）。nginx不对url做编码，因此请求为`/static/20%/aa`，可以被规则`^~ /static/ /aa`匹配到（注意是空格）
     - 正则匹配
-        - `~` 开头表示区分大小写的正则匹配
-        - `~*` 开头表示不区分大小写的正则匹配
-        - `!~` 开头为区分大小写不匹配的正则
-        - `!~*` 开头为不区分大小写不匹配的正则
+        - `~` 区分大小写的正则匹配
+        - `~*` 不区分大小写的正则匹配
+        - `!~` 区分大小写不匹配的正则
+        - `!~*` 不区分大小写不匹配的正则
     - `/` 通用匹配，任何请求都会匹配到
 - 多个location配置的情况下匹配顺序为:首先匹配`=`，其次匹配`^~`, 其次是按文件中location的顺序进行正则匹配，最后是交给 / 通用匹配。当有匹配成功时候，停止匹配，按当前匹配规则处理请求。
 

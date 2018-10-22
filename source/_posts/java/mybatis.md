@@ -539,16 +539,20 @@ Char |  | Char | Char
 				"http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
 		<generatorConfiguration>
 			<!--数据库驱动 -->
+			<!-- <classPathEntry location="C:\soft\oracle\product\11.2.0\dbhome_1\jdbc\lib\ojdbc6.jar"/> -->
 			<classPathEntry location="C:\Users\smalle\.m2\repository\mysql\mysql-connector-java\5.1.43\mysql-connector-java-5.1.43.jar" />
 			<context id="MySQLTables" targetRuntime="MyBatis3" defaultModelType="flat">
-				
+				<plugin type="cn.aezo.mybatis.generator.plugins.MyPluginTableRename"/> <!--自定义插件，可继承 PluginAdapter-->
+
 				<!-- 为了防止生成的代码中有很多注释，比较难看 -->
+				<!-- 可自定义方法/字段注释，通过实现 CommentGenerator。参考 https://www.cnblogs.com/NieXiaoHui/p/6094144.html -->
 				<commentGenerator>
 					<property name="suppressDate" value="true" />
 					<property name="suppressAllComments" value="true" />
 				</commentGenerator>
 
 				<!--数据库链接地址账号密码 -->
+				<!-- driverClass="oracle.jdbc.driver.OracleDriver" connectionURL="jdbc:oracle:thin:@//localhost:1521/orcl" -->
 				<jdbcConnection
 						driverClass="com.mysql.jdbc.Driver"
 						connectionURL="jdbc:mysql://localhost:3306/springboot"
@@ -602,7 +606,7 @@ Char |  | Char | Char
 				</table>
 
 				<!-- 去掉表前缀：生成之后的文件名字User.java等。enableCountByExample标识是否使用Example -->
-				<!-- 如oracle此时的schema相当于用户名，如果不定义则会获取到多个t_user表，但是只会基于其中某个一个生成代码 -->
+				<!-- 如oracle此时的schema相当于用户名，如果不定义则会获取到多个t_user表，但是只会基于其中某个一个生成代码. 但是此时生成的mapper中表名带有前缀`smalle.` -->
 				<table schema="smalle" tableName="t_user" domainObjectName="User">
 					<!-- 去掉字段前缀 `t_` -->
 					<property name="useActualColumnNames" value="false"/>
@@ -610,6 +614,33 @@ Char |  | Char | Char
 				</table>
 			</context>
 		</generatorConfiguration>
+		```
+	- MyPluginTableRename 自定义插件。配置文件的table节点在自定义了schema后，生成的mapper表名会包含schema信息，此插件主要是为了去除此schema信息
+		
+		```java
+		import org.mybatis.generator.api.PluginAdapter;
+		// ...
+
+		// 插件的生命周期：http://www.mybatis.org/generator/reference/pluggingIn.html
+		// 官方内置的插件：http://www.mybatis.org/generator/reference/plugins.html
+		public class MyPluginTableRename extends PluginAdapter {
+			// 验证此插件是否可以开启
+			@Override
+			public boolean validate(List<String> warnings) {
+				return true;
+			}
+
+			// 循环每个table时，执行对应初始化
+			@Override
+			public void initialized(IntrospectedTable introspectedTable) {
+				String schema = introspectedTable.getTableConfiguration().getSchema();
+				if(schema != null && !"".equals(schema)) {
+					String tableName = introspectedTable.getTableConfiguration().getTableName();
+					introspectedTable.setSqlMapFullyQualifiedRuntimeTableName(tableName);
+					introspectedTable.setSqlMapAliasedFullyQualifiedRuntimeTableName(tableName);
+				}
+			}
+		}
 		```
 	- 进入到pom.xml目录，cmd执行命令生成文件：`mvn mybatis-generator:generate`
 	- 生成Mapper中Example的使用：http://www.mybatis.org/generator/generatedobjects/exampleClassUsage.html
@@ -652,15 +683,42 @@ Char |  | Char | Char
             e.printStackTrace();
         }
 		```
-- 生成oracle项目：先将oracle表转成mysql数据表，参考[《mysql-dba.md》](/_posts/db/mysql-dba.md#Oracle表结构与Mysql表结构转换)，再生成项目
+- 生成oracle项目
 	- 配置文件设置成`<generatedKey column="id" sqlStatement="MySql" identity="false" />`中identity="false"为了生成id的insert语句（oracle需要通过序列来完成）
 	- 修改生成的`<selectKey>`语句为根据序列获取主键
+	- 将oracle表转成mysql数据表，可参考[《mysql-dba.md》](/_posts/db/mysql-dba.md#Oracle表结构与Mysql表结构转换)
+- plugin插件使用
+	- 内部通过PluginAggregator来保证plugin的生命周期
+	- 使用参考上述示例 `MyPluginTableRename`
+
+### 源码解析
+
+```mermaid
+sequenceDiagram
+    Main->>MyBatisGenerator: generate
+	MyBatisGenerator->>Context: 1.introspectTables[获取Tables]
+	Context->>DatabaseIntrospector: introspectTables
+	%% 基于 java.sql.DatabaseMetaData 接口获取表描述信息(oracle获取所有schame下此表名)
+	DatabaseIntrospector->>DatabaseMetaData: getColumns
+	MyBatisGenerator->>Context: 2.generateFiles[生成文件, 调用pluginAggregator]
+	loop pluginConfigurations
+		%% 加载插件
+        Context->>Context: pluginAggregator.addPlugin(plugin)
+    end
+	loop introspectedTables
+		%% 生成xml文档
+        Context->>IntrospectedTableMyBatis3Impl: introspectedTable.getGeneratedXmlFiles()
+		%% 生成xml文档document对象
+		IntrospectedTableMyBatis3Impl->>AbstractXmlGenerator: xmlMapperGenerator.getDocument()
+		%% 调用插件的 sqlMapGenerated 方法
+		IntrospectedTableMyBatis3Impl->>Plugin: context.getPlugins().sqlMapGenerated()
+    end
+	MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
+```
 
 
 
-## TODO
 
-- Mybatis Generator添加注释：https://www.cnblogs.com/NieXiaoHui/p/6094144.html
 
 ---
 

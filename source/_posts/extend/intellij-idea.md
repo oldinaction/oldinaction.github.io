@@ -60,6 +60,8 @@ tags: [IDE]
 - 常用快捷键
     - `Ctrl + Shif + F9` 热部署
     - `Ctrl + Shifg + Space` 智能补全
+    - `Ctrl + Shif + F/R` 全局查找/替换
+    - `Ctrl + Shif + N` 搜索文件(可选中文件路径后再按键)
     - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
     - `Alt + Shift + 上下` 上下移动当前行
     - `Ctrl + Shift + Backspace` 回到上次编辑位置
@@ -75,7 +77,7 @@ tags: [IDE]
 
 - 快捷键图片
 
-![php-xdebug](/data/images/2016/09/idea-keys.png)
+![idea-keys](/data/images/2016/09/idea-keys.png)
 
 ## IDEA开发PHP程序
 

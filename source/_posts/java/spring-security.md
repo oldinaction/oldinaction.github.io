@@ -525,6 +525,8 @@ tags: [spring, springsecurity, springboot, oauth2]
 
 ### 客户端模式和密码模式
 
+> 源码参考 spring-security-oauth2 -> oauth2-client-password
+
 - 依赖
 
 ```xml
@@ -644,6 +646,8 @@ public class OAuth2ServerConfig {
 
 #### 授权服务器
 
+> 源码参考 spring-security-oauth2 -> oauth2-authorization-code -> oauth2-authorization-code-qq
+
 - 依赖
 
 ```xml
@@ -687,6 +691,8 @@ public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 
 #### 客户端
 
+> 源码参考 spring-security-oauth2 -> oauth2-authorization-code -> oauth2-authorization-code-aiqiyi
+
 - 获取token
 
 ```java
@@ -721,6 +727,11 @@ public String getToken(@RequestParam String code){
 - 获取token成功：{"access_token":"3b017a2d-3e3d-4536-b978-d3d8e05f4b05","token_type":"bearer","refresh_token":"4593b664-9107-404f-8e77-2073515b42c9","expires_in":43199,"scope":"get_user_info get_fanslist"}
 - 浏览器地址变为：`http://localhost:9090/aiqiyi/qq/redirect?code=TLFxg1`
 - 携带 access_token 访问资源服务器：`http://localhost:8080/qq/info/123456?access_token=3b017a2d-3e3d-4536-b978-d3d8e05f4b05`
+
+#### 第三方登录自动配置
+
+> 源码参考 spring-security-oauth2 -> oauth2-authorization-code -> oauth2-authorization-code-qq oauth2-authorization-code-aiqiyi客户端)
+
 
 ---
 

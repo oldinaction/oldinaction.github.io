@@ -132,12 +132,14 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 
 #### 安装步骤
 
-1. 安装`yum install vsftpd`
-    - ftp协议登录`ftp localhost`；ftp命令行退出`bye`(需要安装ftp)
-2. 修改默认配置文件`vim /etc/vsftpd/vsftpd.conf`
-
-```bash
-    #不允许匿名登录(NO)
+- 安装`yum install vsftpd`
+    - ftp协议登录`ftp localhost`；ftp命令行退出`bye`(需要安装ftp：`yum install ftp`)
+- 修改默认配置文件
+    - `cp /etc/vsftpd/vsftpd.conf /etc/vsftpd/vsftpd.conf.back`
+    - `vim /etc/vsftpd/vsftpd.conf`
+    
+    ```bash
+    #不允许匿名登录(NO, YES允许)
     anonymous_enable=NO
     #禁止匿名用户上传
     anon_upload_enable=NO
@@ -166,24 +168,37 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     userlist_file=/etc/vsftpd/user_list
     #表示默认所有用户都不能登录，只有列表中用户才可以；如果userlist_deny=YES，则user_list中的用户就不允许登录ftp服务器
     userlist_deny=NO
-```
-
-3. 设置用户
-    - 法一(应用程序内部使用推荐)：设置vsftpd服务的宿主用户 `useradd ftpadmin -d /home/ftproot -s /sbin/nologin`
+    ```
+- 设置用户
+    - 法一：设置vsftpd服务的宿主用户(应用程序内部使用推荐)
+        - `useradd ftpadmin -d /home/ftproot -s /sbin/nologin`
+            - 默认的vsftpd的服务宿主用户是root，但是这不符合安全性的需要。这里建立名字为ftpadmin的用户，用他来作为支持vsftpd的服务宿主用户。由于该用户仅用来支持vsftpd服务用，因此没有许可他登陆系统的必要，并设定他为不能登陆系统的用户（-s /sbin/nologin）。并设置ftpadmin的家目录为/home/ftproot(做为ftp服务器的根目录)
         - `passwd ftpadmin` 给ftpadmin设置密码
-        - 默认的vsftpd的服务宿主用户是root，但是这不符合安全性的需要。这里建立名字为ftpadmin的用户，用他来作为支持vsftpd的服务宿主用户。由于该用户仅用来支持vsftpd服务用，因此没有许可他登陆系统的必要，并设定他为不能登陆系统的用户（-s /sbin/nologin）。并设置ftpadmin的家目录为/home/ftproot(做为ftp服务器的根目录)
-        - 将ftpadmin加到/etc/vsftpd/user_list中
-        - 将ftpadmin加到/etc/vsftpd/chroot_list中
+        - 将ftpadmin加到`/etc/vsftpd/user_list`中
+        - 将ftpadmin加到`/etc/vsftpd/chroot_list`中
         - 文件/home/ftproot的所有者是ftpadmin，设置权限为755，包含子目录
-            - `chown -R ftpadmin /home/ftproot`
-            - `chmod -R 755 /home/ftproot`
-    - 法二：设置vsftpd虚拟宿主用户 `useradd aezo -s /sbin/nologin`
-        - `-d /home/nowhere` 使用-d参数指定用户的主目录，用户主目录并不是必须存在的。如果不设置会在`home`目录下建一个aezo的文件夹
+            - `chmod -R 755 /home/ftproot` (755当前用户有读写权限，当前组和其他组只有读权限；555当前用户有读权限。不能设置成444，必须要读权限和执行权限)
+            - `# chown -R ftpadmin /home/ftproot` (默认用户家目录就属于此用户)
+    - 法二：设置vsftpd虚拟宿主用户
+        - `useradd aezo -s /sbin/nologin`
         - `guest_username=aezo` 指定虚拟用户的宿主用户
         - `virtual_use_local_privs=YES` 设定虚拟用户的权限符合他们的宿主用户
         - `user_config_dir=/etc/vsftpd/vconf` 设定虚拟用户个人vsftp的配置文件存放路径
-4. 启动服务`systemctl start vsftpd`
-5. 命令行ftp可以登录，但是xftp可以登录确无法获取目录列表，IE浏览器访问`ftp://192.168.1.1`失败。谷歌浏览器正常访问并使用，或者ftp客户端登录
+- 启动服务`systemctl start vsftpd`
+- 命令行ftp可以登录`ftp 192.168.1.1`，IE浏览器访问`ftp://192.168.1.1`失败。谷歌浏览器正常访问并使用，或者ftp客户端登录
+- 单用户多目录配置
+    - vsftpd不支持软连接，硬链接又不允许将硬链接指向目录。可以通过`mount –bind`解决(默认存于内存，需要写到`/etc/rc.local`，否则开启需要重新执行命令)
+    - `vim /etc/rc.local`
+
+        ```bash
+        #可读写挂载（需要先创建好目录 /data/www/virtual/test1/）
+        mount --bind /home/test1/ /data/www/virtual/test1/
+
+        #只读挂载
+        mount --bind /home/test2/ /data/www/virtual/test2/
+        mount -o remount,ro /data/www/virtual/test2/
+        ```
+    - `source /etc/rc.local` 使生效(可能会报`mount: / is busy`，但是应该挂载上了)
 
 ### mysql安装
 

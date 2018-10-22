@@ -11,6 +11,8 @@ tags: [python, django, restful]
 - django-rest-framework，是一套基于Django 的 REST 框架，是一个强大灵活的构建 Web API 的工具包
 - [官网](https://www.django-rest-framework.org/)
 - `pip3 install djangorestframework` 安装
+- 10大特性：权限、认证、节流、版本控制、解析器、序列化、分页、视图、路由、渲染器
+- `rest framework` **主要基于CBV模式，且大部分特性是基于必须是继承了APIView；FBV模式时上述特性无法体现。** FBV/CBV参考：[http://blog.aezo.cn/2018/09/24/lang/django/](/_posts/lang/django)
 
 ## 认证
 
@@ -19,6 +21,7 @@ tags: [python, django, restful]
 - 自定义认证类
 
 ```py
+from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 
 class MyAuthentication(BaseAuthentication):
@@ -125,6 +128,80 @@ class MyAuthentication(BaseAuthentication):
         if not user_token:
             raise exceptions.AuthenticationFailed('无效的token')
         return (user_token.user, user_token)
+```
+
+### 使用rest framework认证模块
+
+- setting.py配置
+
+```py
+INSTALLED_APPS = [
+    # ...
+    'rest_framework',
+    # 会生成表 authtoken_token
+    'rest_framework.authtoken',
+]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 优先基于session认证，然后基于Token认证。session登录成功则不会产生token
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 根据token认证 -> 获取用户信息 (header中加：-H 'authorization: Token eb1957411275098fffdea0570fcce8817dbbb556')
+        # 如果header中无token相关信息则返回None ->> django.contrib.auth.models.AnonymousUser
+        'rest_framework.authentication.TokenAuthentication',
+        # 解决 rest_framework.authentication.TokenAuthentication 中无token也可访问问题
+        'myproject.utils.auths.MyTokenAuthentication',
+    ]
+}
+```
+- MyTokenAuthentication
+
+```py
+# myproject/utils/auths.py
+from rest_framework import authentication
+from rest_framework import exceptions
+
+class MyTokenAuthentication(authentication.TokenAuthentication):
+    keyword = 'access_token'
+
+    def authenticate(self, request):
+        auth = authentication.get_authorization_header(request).split()
+        if not auth or auth[0].lower() != self.keyword.lower().encode():
+            # 也可在对应请求类型中加参数，如GET：?access_token=a9074b1fd0ef2c0f2a6f96dab7963de17d4efa91
+            data = getattr(request, request._request.method)
+            token = data.get(self.keyword)
+            if token:
+                return self.authenticate_credentials(token)
+            if not token:
+                msg = "请在header中添加access_token信息。如：-H 'Authorization: Token a9074b1fd0ef2c0f2a6f96dab7963de17d4efa91'"
+                raise exceptions.AuthenticationFailed(msg)
+
+# 基于用户名密码获取时不校验token
+from rest_framework.authtoken.views import ObtainAuthToken
+
+class BizTokenBackend(ObtainAuthToken):
+    """基于用户名/密码获取Token"""
+    # 登录不进行验证(ObtainAuthToken会走所有的authentication_classes)
+    authentication_classes = ()
+```
+
+- urls.py
+
+```py
+from myproject.utils.auths import BizTokenBackend
+
+urlpatterns = [
+    # 基于session认证的登录界面和登录/登出处理
+    # 引入rest_framework的登录界面(此视图是基于django的backends进行验证, 会在api主页添加Login/Logout超链接)
+    # rest_framework的登录界面中提交认证form表单的action为 api-auth/login。登录/登出处理不走APIView的dispatch
+    # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    
+    # 根据用户名/密码获取Token
+    # curl获取token: curl -X POST http://127.0.0.1:8000/api-auth-token/ -F username=admin -F password=admin
+    # 返回 {"token": "a9074b1fd0ef2c0f2a6f96dab7963de17d4efa91"} # token保存在表 authtoken_token
+    url(r'^api-auth-token/', BizTokenBackend.as_view()),
+    # ...
+]
 ```
 
 ## 权限
@@ -367,7 +444,9 @@ class ParserTest(APIView):
 
 > 原理参考下文。源码参考[A03_DjangoRestFrameworkTest2]
 
-- 定义序列化操作器(继承`Serializer`或`ModelSerializer`)
+### 定义序列化操作器
+
+-继承`Serializer`或`ModelSerializer`
 
 ```py
 from rest_framework import serializers
@@ -550,7 +629,8 @@ class SerializerGroup(APIView):
         ret = json.dumps(ser.data, ensure_ascii=False)
         return HttpResponse(ret)
 ```
-- 提交数据验证
+
+### 提交数据验证
 
 ```py
 class StartsWithValidator:
@@ -692,9 +772,9 @@ class SerializerGroup(APIView):
         return Response(ser.data)
 ```
 
-- 访问 `http://127.0.0.1:8000/api/v1/group_serializer/1` 在浏览器和postman中可自动识别
+- 访问 `http://127.0.0.1:8000/api/v1/group_serializer/1` **在浏览器(api页面)和postman(json数据)中可自动识别**
     - `http://127.0.0.1:8000/api/v1/group_serializer/1?format=api` 返回api页面
-    - `http://127.0.0.1:8000/api/v1/group_serializer/1?format=json` 只返回json数据
+    - `http://127.0.0.1:8000/api/v1/group_serializer/1?format=json` **只返回json数据**
 - 修改api模板可参看下文渲染器源码解析
 
 ## 视图
@@ -750,6 +830,15 @@ classDiagram
 ## 路由
 
 ```py
+## urls.py
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    url(r'^hello/', views.hello), # FBV
+    url(r'^test/', views.TestView.as_view()), # CBV
+    url(r'^api/', include('smtest2.urls')),
+]
+
+## smtest2/urls.py
 from django.conf.urls import url, include
 from rest_framework import routers
 from . import views
@@ -758,6 +847,7 @@ router = routers.DefaultRouter()
 router.register(r'url_test', views.ViewTest)
 
 urlpatterns = [
+    # 其中 (?P<version>[v1|v2]+) 参考上文版本控制
     # url(r'^(?P<version>[v1|v2]+)/test_version/$', views.VersionTest.as_view(), name='t_version'),
     # url(r'^(?P<version>[v1|v2]+)/test_parser/$', views.ParserTest.as_view()),
     # url(r'^(?P<version>[v1|v2]+)/user_role_serializer/$', views.SerializerUserRole.as_view()),
@@ -775,6 +865,77 @@ urlpatterns = [
 
     # 自动生成ViewTest视图的url，其中包含了format。简单的增删查改可直接自动生成
     url(r'^(?P<version>[v1|v2]+)/', include(router.urls)),
+]
+```
+
+## 其他
+
+### 跨域
+
+- 使用`corsheaders`，参考：https://github.com/ottoyiu/django-cors-headers/
+- `pip install django-cors-headers` 安装
+- setting.py配置
+
+```py
+INSTALLED_APPS = (
+    ...
+    'corsheaders',
+    ...
+)
+
+MIDDLEWARE = [  # Or MIDDLEWARE_CLASSES on Django < 1.10
+    ...
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    ...
+]
+
+# 开启所有
+CORS_ORIGIN_ALLOW_ALL = True
+# 允许部分
+# CORS_ORIGIN_WHITELIST = (
+#     'localhost:8080',
+#     '127.0.0.1:8080'
+# )
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)
+```
+
+### 异常处理
+
+```py
+## settings.py
+REST_FRAMEWORK = {
+    # ...
+    'EXCEPTION_HANDLER': 'myproject.utils.exceptions.custom_exception_handler',
+}
+
+## myproject/utils/exceptions.py
+from rest_framework.views import exception_handler, Response
+
+def custom_exception_handler(exc, context):
+    response = exception_handler(exc, context)
+    if response is not None:
+        response.data['status_code'] = response.status_code
+        return response
+    else:
+        return Response({'status_code': 500})
+```
+
+### 禁用crsf
+
+```py
+MIDDLEWARE = [
+    # ...
+    # 注释crsf中间件
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    # ...
 ]
 ```
 
