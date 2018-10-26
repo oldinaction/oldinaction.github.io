@@ -3,7 +3,7 @@ layout: "post"
 title: "UML"
 date: "2016-07-17 11:01"
 categories: design
-tags: [UML]
+tags: [UML, StarUML, PlantUML]
 ---
 
 ## UML介绍
@@ -169,6 +169,35 @@ UML中的关系包括：依赖、关联、泛化(extend)、实现
 - 导出PDF：`File`-`Print to PDF`-`All Diagrams; Landscape; 去掉Show Diagrame Name; A4` (可以导出字体颜色)
 - 对象名称中不能包含`<>`、`-`等特殊字符，可以包含`_`、`()`
 
+## PlantUML
+
+- 官网: [http://www.plantuml.com](http://www.plantuml.com)
+- 可以通过文字(代码)描述来生成UML，可谓UML中的MarkDown，支持时序图、用例图、类图、活动图、组件图、状态图、对象图、部署图等UML以及非UML图(产品交互图等)
+- 基于java实现，下列插件生成的图片是基于`plantuml`的官方服务器生成的，也可自行搭建渲染服务器
+
+### 插件支持
+
+- IDEA支持：安装插件`PlantUML integration`。idea中不支持markdown，只能解析特定的文件后缀
+- vscode支持：安装插件`PlantUML`，支持markdown语法如下
+
+<pre>
+&#x60;&#x60;&#x60;plantuml
+@startuml
+Bob->Alice : hello
+@enduml
+&#x60;&#x60;&#x60;
+</pre>
+
+- hexo支持：安装插件`npm install --save hexo-filter-plantuml`，使用同vscode中写markdown
+
+## mermaid
+
+- 类似`PlantUML`通过文字生成UML。基于js实现
+- [github](https://github.com/knsv/mermaid)
+
+
 ---
 
-[^1]: [StarUML工具介绍.ppt](https://wenku.baidu.com/view/bfc2d0d610a6f524ccbf85f2.html)
+参考文章
+
+[^1]: https://wenku.baidu.com/view/bfc2d0d610a6f524ccbf85f2.html (StarUML工具介绍.ppt)

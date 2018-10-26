@@ -486,8 +486,11 @@ class UserInfoSerializer(serializers.Serializer):
 
 class UserInfoSerializer2(serializers.ModelSerializer):
     """继承ModelSerializer"""
-    level_name = serializers.CharField(source='get_level_display')
+    # required=False 表示在保存对象时，不会校验此字段必输(此字段为翻译字段，保存时传递code即可)
+    level_name = serializers.CharField(source='get_level_display', required=False)
     group = serializers.CharField(source='group.title')
+    # required=True 表示在保存对象时，此字段为必输项。则rest framework会进行此字段校验。将前台传递的 group_id 保存到表的 group_id 字段中。（model中为group的对象属性名，此时不定义则group_id不会进入到serializers.validated_data中，从而无法保存进数据库）
+    group_id = serializers.CharField(required=True)
     roles = serializers.SerializerMethodField()
 
     class Meta:
@@ -557,7 +560,7 @@ class SerializerUserRole(APIView):
         ret3 = json.dumps(ser.data, ensure_ascii=False)
 
         role = models.UserRole.objects.all().first()
-        # 此时只有一条数据，many必须为False
+        # 此时只有一条数据(first返回的是一个对象，many必须为False。如果执行filter(返回的是一个集合)返回一条数据此处也必须是many=True
         ser2 = UserRoleSerializer(instance=role, many=False)
         # {"id": 1, "title": "老师"}
         ret4 = json.dumps(ser2.data, ensure_ascii=False)
@@ -631,6 +634,8 @@ class SerializerGroup(APIView):
 ```
 
 ### 提交数据验证
+
+- 前台提交的数据会保存在 `serializer.initial_data`，然后根据校验规则进行校验，通过的字段保存到 `serializer.validated_data`。最后根据 `serializer.validated_data` 进行数据保存
 
 ```py
 class StartsWithValidator:
@@ -784,27 +789,28 @@ class SerializerGroup(APIView):
 - 继承关系
     - `django`应该可以继承`View`，`rest framework`应用可以使用下面所有视图类。常用：`ModelViewSet`、`GenericViewSet`、`APIView`
 
-```mermaid
-classDiagram
-    View <|-- APIView
-    APIView <|-- GenericAPIView
+```plantuml
+@startuml
+View <|-- APIView
+APIView <|-- GenericAPIView
 
-    ViewSetMixin <|-- GenericViewSet
-    GenericAPIView <|-- GenericViewSet
+ViewSetMixin <|-- GenericViewSet
+GenericAPIView <|-- GenericViewSet
 
-    CreateModelMixin <|-- ModelViewSet
-    RetrieveModelMixin <|-- ModelViewSet
-    UpdateModelMixin <|-- ModelViewSet
-    DestroyModelMixin <|-- ModelViewSet
-    ListModelMixin <|-- ModelViewSet
-    GenericViewSet <|-- ModelViewSet
+CreateModelMixin <|-- ModelViewSet
+RetrieveModelMixin <|-- ModelViewSet
+UpdateModelMixin <|-- ModelViewSet
+DestroyModelMixin <|-- ModelViewSet
+ListModelMixin <|-- ModelViewSet
+GenericViewSet <|-- ModelViewSet
+@enduml
 ```
 
 - `ModelViewSet`使用
     - 路由配置
 
         ```py
-        url(r'^(?P<version>[v1|v2]+)/view_test/$', views.ViewTest.as_view({'get': 'list', 'post': 'create'})),
+        url(r'^(?P<version>[v1|v2]+)/view_test/$', views.GenericViewTest.as_view({'get': 'list', 'post': 'create'})),
         # 如果是get类型的请求，则执行retrieve方法(RetrieveModelMixin)；如果是put类型请求则全部更新，执行update方法；如果是patch类型请求则局部更新，执行partial_update(UpdateModelMixin)
         url(r'^(?P<version>[v1|v2]+)/view_test/(?P<pk>\d+)/$', views.ViewTest.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
         ```
@@ -819,12 +825,28 @@ classDiagram
                 model = models.UserRole
                 fields = '__all__'
 
+        class GenericViewTest(GenericViewSet):
+            queryset = models.UserRole.objects.all()
+            # 序列化必须是ModelSerializer的，否则新增报错
+            serializer_class = UserRoleSerializer2
+
+            def list(self, request):
+                ser = self.get_serializer(queryset)
+                return Response(ser.data)
+
         class ViewTest(ModelViewSet):
             queryset = models.UserRole.objects.all()
             # 序列化必须是ModelSerializer的，否则新增报错
             serializer_class = UserRoleSerializer2
             # pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
             pagination_class = MyPageNumberPagination
+
+            def perform_create(self, serializer):
+                '''重写最终保存方法'''
+                user = serializer.context['request'].user
+                # 往 validated_data 加入当前登录人ID，最终保存到创建人中
+                serializer.validated_data['create_user_id'] = user.id
+                super().perform_create(serializer)
         ```
 
 ## 路由
@@ -1093,7 +1115,7 @@ class BaseSerializer(Field):
         return list_serializer_class(*args, **list_kwargs)
 
 # 2.从ser.data(ser = UserRoleSerializer(instance=roles, many=True))开始解读源码。此时只考虑解析单个对象，List同理
-# ser.data ->> self.to_representation ->> field.to_representation
+# ser.data ->> self.to_representation ->> self._readable_fields ->> self.get_fields  ->> field.to_representation
 ## rest_framework/serializers.py
 class Serializer(BaseSerializer):
     @property
@@ -1117,14 +1139,29 @@ class BaseSerializer(Field):
         return self._data
 
 class ModelSerializer(Serializer):
+    def get_fields(self):
+        '''获取需要序列化的字段信息'''
+        #...
+        model = getattr(self.Meta, 'model')
+        depth = getattr(self.Meta, 'depth', 0)
+        #...
+        field_names = self.get_field_names(declared_fields, info)
+        extra_kwargs = self.get_extra_kwargs() # Meta中可以定义，如 extra_kwargs = {'start_time': {'format': '%Y-%m'}} 描述字段扩展信息。参数提供：format/required/default/validators等
+        #...
+        fields = OrderedDict()
+        for field_name in field_names:
+            #...
+        return fields
+
     def to_representation(self, instance):
         ret = OrderedDict()
+        # 获取需要序列化的字段信息 ->> self.get_fields
         fields = self._readable_fields
 
         # fields为序列化中定义的字段 [id = serializers.IntegerField(), username = serializers.CharField(), ...]
         for field in fields:
             try:
-                # CharField().get_attribute(user对象), 对象.username
+                # CharField().get_attribute(user对象), user对象.username
                 attribute = field.get_attribute(instance)
             except SkipField:
                 continue
@@ -1134,8 +1171,8 @@ class ModelSerializer(Serializer):
                 ret[field.field_name] = None
             else:
                 # 执行每个字段类型的to_representation获取数据的展现值
-                # CharField().to_representation()
-                # HyperlinkedIdentityField().to_representation() # 包含了反向生成url
+                # CharField().to_representation()、HyperlinkedIdentityField().to_representation() # 包含了反向生成url
+                # 如果 depth > 0, 此时 field 为 NestedSerializer(ModelSerializer)
                 ret[field.field_name] = field.to_representation(attribute)
 
         return ret

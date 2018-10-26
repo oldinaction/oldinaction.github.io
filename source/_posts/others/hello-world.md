@@ -37,9 +37,9 @@ categories和tage都可以有多个
   <pre>
   - 标题
 
-    ```html
+    &#x60;&#x60;&#x60;html
       ...
-    ```
+    &#x60;&#x60;&#x60;
   </pre>
 - 引用需要上下都空一行，列表只需要在上面空一行
 
@@ -89,22 +89,9 @@ categories和tage都可以有多个
 ### 相关命令
 
 - `hexo clean` 清除缓存(如果未修改配置文件可不运行)
-- `hexo g`/`hexo generate` 静态文件生成
+- `hexo g`/`hexo generate` 静态文件生成(修改主题文件可不用重新启动服务)
 - `hexo s -p 5000`/`hexo server` 启动本地服务器(本地测试)
 - `hexo d`/`hexo deploy` 部署到github
-
-### 说明
-
-- 图片格式如：`![hello](/data/images/2017/07/hello.png)`
-- 内部链接格式如：`[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md#基于编译安装tengine)`，其中`#`后面为完整子标题
-
-### 搜索
-
-- NexT主题本地搜索
-  - 安装：`npm install --save hexo-generator-search`
-  - 开启local_search
-  - 还可手动写本地搜索功能 [^1]
-- 基于Swiftype的搜索
 
 ### clone
 
@@ -113,10 +100,43 @@ categories和tage都可以有多个
 - `npm install` 初始化
 - 按照上述【修改文章后保存源码并更新博客】进行部署
 
+### 格式
+
+- 图片格式如：`![hello](/data/images/2017/07/hello.png)`
+- 内部链接格式如：`[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)`，其中`#`后面为完整子标题
+
+### 功能
+
+#### 搜索
+
+- NexT主题本地搜索
+  - 安装：`npm install --save hexo-generator-search`
+  - 开启local_search
+  - 还可手动写本地搜索功能 [^1]
+- 基于Swiftype的搜索
+
+#### PlantUML
+
+- `npm install --save hexo-filter-plantuml` 安装插件(vscode可以再配合插件`PlantUML`使用)
+- markdown语法如下
+
+<pre>
+&#x60;&#x60;&#x60;plantuml
+@startuml
+Bob->Alice : hello
+@enduml
+&#x60;&#x60;&#x60;
+</pre>
+
+### 主题
+
+#### next
+
+- footer代码修改 `/themes/next/layout/_partials/footer.swig`
 
 
 ---
 
 参考文章
 
-[^1]: [jQuery-based Local Search Engine for Hexo](http://www.hahack.com/codes/local-search-engine-for-hexo/)
+[^1]: http://www.hahack.com/codes/local-search-engine-for-hexo/ (jQuery-based Local Search Engine for Hexo)

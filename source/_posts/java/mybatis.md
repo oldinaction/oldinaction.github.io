@@ -683,7 +683,7 @@ Char |  | Char | Char
             e.printStackTrace();
         }
 		```
-- 生成oracle项目
+- 使用oracle数据库
 	- 配置文件设置成`<generatedKey column="id" sqlStatement="MySql" identity="false" />`中identity="false"为了生成id的insert语句（oracle需要通过序列来完成）
 	- 修改生成的`<selectKey>`语句为根据序列获取主键
 	- 将oracle表转成mysql数据表，可参考[《mysql-dba.md》](/_posts/db/mysql-dba.md#Oracle表结构与Mysql表结构转换)
@@ -693,31 +693,56 @@ Char |  | Char | Char
 
 ### 源码解析
 
-```mermaid
-sequenceDiagram
-    Main->>MyBatisGenerator: generate
+```plantuml
+@startuml
+/' 样式开始 '/
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+skinparam sequence {
+	ArrowColor DeepSkyBlue
+	ActorBorderColor DeepSkyBlue
+	LifeLineBorderColor blue
+	LifeLineBackgroundColor #A9DCDF
+	
+	ParticipantBorderColor DeepSkyBlue
+	ParticipantBackgroundColor DodgerBlue
+	ParticipantFontName Impact
+	ParticipantFontSize 17
+	ParticipantFontColor #A9DCDF
+	
+	ActorBackgroundColor aqua
+	ActorFontColor DeepSkyBlue
+	ActorFontSize 17
+	ActorFontName Aapex
+}
+/' 样式结束 '/
+
+title
+	MyBatis Generator 源码分析 <img:/watermark.png>
+end title
+
+actor User
+User->>MyBatisGenerator: generate
 	MyBatisGenerator->>Context: 1.introspectTables[获取Tables]
 	Context->>DatabaseIntrospector: introspectTables
-	%% 基于 java.sql.DatabaseMetaData 接口获取表描述信息(oracle获取所有schame下此表名)
+	/' 基于 java.sql.DatabaseMetaData 接口获取表描述信息(oracle获取所有schame下此表名) '/
 	DatabaseIntrospector->>DatabaseMetaData: getColumns
 	MyBatisGenerator->>Context: 2.generateFiles[生成文件, 调用pluginAggregator]
 	loop pluginConfigurations
-		%% 加载插件
+		/' 加载插件 '/
         Context->>Context: pluginAggregator.addPlugin(plugin)
     end
 	loop introspectedTables
-		%% 生成xml文档
+		/' 生成xml文档 '/
         Context->>IntrospectedTableMyBatis3Impl: introspectedTable.getGeneratedXmlFiles()
-		%% 生成xml文档document对象
+		/' 生成xml文档document对象 '/
 		IntrospectedTableMyBatis3Impl->>AbstractXmlGenerator: xmlMapperGenerator.getDocument()
-		%% 调用插件的 sqlMapGenerated 方法
+		/' 调用插件的 sqlMapGenerated 方法 '/
 		IntrospectedTableMyBatis3Impl->>Plugin: context.getPlugins().sqlMapGenerated()
     end
 	MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
+@enduml
 ```
-
-
-
 
 
 ---

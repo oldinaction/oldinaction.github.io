@@ -85,7 +85,7 @@ create or replace procedure p_up_storage is
 			and yls.region_num in ('Y0');
 
 	v_cur_storage ref_cursor_type; -- 动态游标
-	v_storage     ycross_storage%ROWTYPE;
+	r_storage     ycross_storage%ROWTYPE;
 	v_sql         varchar2(1000);
 	v_x           number := 1;
 	v_y           number := 1;
@@ -107,12 +107,12 @@ begin
 		--打开游标
 		open v_cur_storage for v_sql; -- open v_cur_storage for 'select 1 from dual';
 		loop -- 此处不能使用 for ... in ... loop的语句
-			fetch v_cur_storage into v_storage;
+			fetch v_cur_storage into r_storage;
 			exit when v_cur_storage%notfound; -- 跳出循环
 
 			update ycross_storage t
 				set t.ycross_x = v_x, t.ycross_y = v_y
-			where t.id = v_storage.id;
+			where t.id = r_storage.id;
 
 			if v_y < 7 then -- 也可以使用 like 等关键字
 				v_y := v_y + 1;
@@ -125,9 +125,9 @@ begin
 				end if;
 			end if;
 
-				-- 基于v_storage实现新增和修改
-				insert into ycross_storage values v_storage;
-				update ycross_storage set row = v_storage where id = 10000;
+			-- 基于r_storage实现新增和修改
+			insert into ycross_storage values r_storage;
+			update ycross_storage set row = r_storage where id = 10000;
 		end loop;
 		close v_cur_storage;
 	
@@ -162,9 +162,10 @@ end;
 	- `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。
 	- `error_msg_in`: 长度不能超过 2k，否则截取 2k
 - 捕获异常类型参考官方文档：https://docs.oracle.com/cd/B19306_01/appdev.102/b14261/errors.htm
-	- `no_data_found` 无数据(select...into...语句需要捕获)
+	- `no_data_found` 无数据(select...into...语句需要捕获。`select count(1) into v_count from ...`无需捕获，无数据则为0)
+	- `too_many_rows` 数据返回行数太多(select...into...语句可以捕获)
 	- `value_error` 值异常(转换异常、字段大小异常)
-	- `others` 普通异常
+	- `others` 所有未捕获的异常(也可捕获自定义异常)
 - 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来。捕获子异常也需要`begin...end`包起来
 
 	```sql
@@ -195,7 +196,7 @@ end;
 
 ### forall与bulk collect语句提高效率
 
-参考：[SQL优化#批量更新优化](/_posts/db/sql-optimize.md#批量更新优化)
+参考：[http://blog.aezo.cn/2018/07/27/db/sql-optimize/](/_posts/db/sql-optimize.md#批量更新优化)
 
 ## Mysql存储过程示例
 

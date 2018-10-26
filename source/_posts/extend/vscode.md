@@ -20,6 +20,13 @@ tags: [ide, web]
 > 可参考：[https://github.com/varHarrie/YmxvZw/issues/10](https://github.com/varHarrie/YmxvZw/issues/10)
 
 - `Atom One Dark Theme` 类似Atom的黑色主题. 安装后重启：`文件-首选项-颜色主题`
+- `IntelliJ IDEA Keybindings` IDEA快捷键配置
+- `VSCode Browser Sync` 可开启一个静态服务器，并实时渲染。启动方式
+	- `Ctrl+Shift+P` 打开命令数据框
+	- 输入 `Server mode in browser`(再本地浏览器中打开)、`Server mode in side panel`(再vscode右边打开窗口)
+- `Live Server` 启动静态服务器，并可实时刷新
+- `PlantUML` PlantUML语法支持。支持markdown文件编写文本生成uml(可预览)，也可以支持单独 `*.wsd`/`*.plantuml` 文件编写代码生成uml
+	- `Mermaid Preview` 基于Mermaid语法编写代码生成UML(可预览)
 - `Vetur` Vue工具包(高亮等)
 
     ```json
@@ -50,7 +57,6 @@ tags: [ide, web]
         }
         ```
     - vue项目的`build/webpack.base.config.js`中加入eslint的loader(ci + eslint)。项目编译的时候会进行格式校验
-- `IntelliJ IDEA Keybindings` idea快捷键配置
 - `Beautify` 文件格式化，加下列配置格式化vue文件
 
 	```json
@@ -62,10 +68,8 @@ tags: [ide, web]
         ]
     },
 	```
-- `Markdown All in One` 可现实md文件菜单
-- `VSCode Browser Sync` 可开启一个静态服务器，并实时渲染。启动方式
-	- `Ctrl+Shift+P` 打开命令数据框
-	- 输入 `Server mode in browser`(再本地浏览器中打开)、`Server mode in side panel`(再vscode右边打开窗口)
+
+
 
 ## 用户配置
 

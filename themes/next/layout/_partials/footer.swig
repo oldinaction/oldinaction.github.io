@@ -24,4 +24,12 @@
 <div class="theme-info" style="margin-left:8px;">
   {{ __('<p>Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a></p>') }}
 </div>
+
+<div class="theme-info online-waust" style="margin-left:8px;">
+<style>
+	.online-waust div{margin-bottom: -3px !important;}
+</style>
+|&nbsp;&nbsp;&nbsp;&nbsp;<script id="_wau3i1">var _wau = _wau || []; _wau.push(["small", "2py5aq1g1u", "3i1"]);</script><script async src="//waust.at/s.js"></script>
+</div>
+
 {% endif %}

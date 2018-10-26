@@ -6,9 +6,6 @@ categories: extend
 tag: [jekyll]
 ---
 
-* 目录
-{:toc}
-
 ## jekyll 介绍 [^1]
 
 [Jekyll](http://jekyllrb.com/)（发音/'dʒiːk əl/，"杰克尔"）是一个静态站点生成器，它会根据网页源码生成静态文件。它提供了模板、变量、插件等功能，所以实际上可以用来编写整个网站。

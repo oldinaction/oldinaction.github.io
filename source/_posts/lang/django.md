@@ -10,6 +10,14 @@ tags: [python, django]
 
 - [官网](https://www.djangoproject.com/)
 
+## 命令
+
+- `python manage.py startapp myapp` 创建App
+- `python manage.py makemigrations` 生成迁移
+- `python manage.py migrate` 执行迁移
+- `python manage.py runserver` 启动项目
+    - `python manage.py runserver 0.0.0.0:8000` 启动项目(开启局域网访问)
+
 ## Model
 
 > http://www.cnblogs.com/wupeiqi/articles/5246483.html
