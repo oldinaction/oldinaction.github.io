@@ -718,7 +718,7 @@ skinparam sequence {
 /' 样式结束 '/
 
 title
-	MyBatis Generator 源码分析 <img:/watermark.png>
+	MyBatis Generator 源码分析 <img:http://blog.aezo.cn/aezo.cn.png>
 end title
 
 actor User

@@ -123,6 +123,9 @@ categories和tage都可以有多个
 <pre>
 &#x60;&#x60;&#x60;plantuml
 @startuml
+title
+	标题和水印 <img:http://blog.aezo.cn/aezo.cn.png>
+end title
 Bob->Alice : hello
 @enduml
 &#x60;&#x60;&#x60;
