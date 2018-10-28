@@ -791,6 +791,11 @@ class SerializerGroup(APIView):
 
 ```plantuml
 @startuml
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+title
+    django rest framework 视图继承关系 <img:http://blog.aezo.cn/aezocn.png>
+end title
 View <|-- APIView
 APIView <|-- GenericAPIView
 

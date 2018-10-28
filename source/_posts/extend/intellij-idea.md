@@ -54,6 +54,7 @@ tags: [IDE]
     - jrebel破解可使用`myJRebel`
 - `Lombox` 简化代码工具 [https://projectlombok.org/](https://projectlombok.org/)
 - `MybatisX` 可自动识别mybatis的mapper(实现)，Ctrl+Alt可实现相应跳转
+- `PlantUML integration` 基于PlantUML语法画UML图
 
 ## 快捷键
 

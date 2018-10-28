@@ -91,15 +91,17 @@ tags: [mybatis, springboot]
 		```java
 		// @Mapper // 在启动类中定义需要扫码mapper的包：@MapperScan("cn.aezo.springboot.mybatis.mapper"), 则此处无需声明@Mapper
 		public interface UserMapper {
-			// 此处注入变量可以使用#或者$, 区别：# 创建的是一个prepared statement语句, $ 符创建的是一个inlined statement语句
+			// 1. 此处注入变量可以使用#或者$, 区别：# 创建的是一个prepared statement语句, $ 符创建的是一个inlined statement语句
+			// 2. 一个参数可以省略@Param，多个需要进行指定(反射机制)
+			// 3. 当未获取到数据时，返回 null
+			// 4. (使用配置<setting name="mapUnderscoreToCamelCase" value="true"/>因此无需转换) 数据库字段名和model字段名或javaType不一致的均需要@Result转换
+				// @Results({
+				//         @Result(property = "hobby",  column = "hobby", javaType = HobbyEnum.class),
+				//         @Result(property = "nickName", column = "nick_name"),
+				//         @Result(property = "groupId", column = "group_Id")
+				// })
 			@Select("select * from user_info where nick_name = #{nickName}")
-			// (使用配置<setting name="mapUnderscoreToCamelCase" value="true"/>因此无需转换) 数据库字段名和model字段名或javaType不一致的均需要@Result转换
-			// @Results({
-			//         @Result(property = "hobby",  column = "hobby", javaType = HobbyEnum.class),
-			//         @Result(property = "nickName", column = "nick_name"),
-			//         @Result(property = "groupId", column = "group_Id")
-			// })
-			UserInfo findByNickName(String nickName); // 一个参数可以省略@Param，多个需要进行指定(反射机制)
+			UserInfo findByNickName(@Param("nickName") String nickName);
 
 			@Select("select * from user_info")
 			List<UserInfo> findAll();
@@ -695,52 +697,32 @@ Char |  | Char | Char
 
 ```plantuml
 @startuml
-/' 样式开始 '/
 skinparam backgroundColor #EEEBDC
 skinparam handwritten true
-skinparam sequence {
-	ArrowColor DeepSkyBlue
-	ActorBorderColor DeepSkyBlue
-	LifeLineBorderColor blue
-	LifeLineBackgroundColor #A9DCDF
-	
-	ParticipantBorderColor DeepSkyBlue
-	ParticipantBackgroundColor DodgerBlue
-	ParticipantFontName Impact
-	ParticipantFontSize 17
-	ParticipantFontColor #A9DCDF
-	
-	ActorBackgroundColor aqua
-	ActorFontColor DeepSkyBlue
-	ActorFontSize 17
-	ActorFontName Aapex
-}
-/' 样式结束 '/
-
 title
-	MyBatis Generator 源码分析 <img:http://blog.aezo.cn/aezo.cn.png>
+	MyBatis Generator 源码分析 <img:http://blog.aezo.cn/aezocn.png>
 end title
 
 actor User
 User->>MyBatisGenerator: generate
-	MyBatisGenerator->>Context: 1.introspectTables[获取Tables]
-	Context->>DatabaseIntrospector: introspectTables
-	/' 基于 java.sql.DatabaseMetaData 接口获取表描述信息(oracle获取所有schame下此表名) '/
-	DatabaseIntrospector->>DatabaseMetaData: getColumns
-	MyBatisGenerator->>Context: 2.generateFiles[生成文件, 调用pluginAggregator]
-	loop pluginConfigurations
-		/' 加载插件 '/
-        Context->>Context: pluginAggregator.addPlugin(plugin)
-    end
-	loop introspectedTables
-		/' 生成xml文档 '/
-        Context->>IntrospectedTableMyBatis3Impl: introspectedTable.getGeneratedXmlFiles()
-		/' 生成xml文档document对象 '/
-		IntrospectedTableMyBatis3Impl->>AbstractXmlGenerator: xmlMapperGenerator.getDocument()
-		/' 调用插件的 sqlMapGenerated 方法 '/
-		IntrospectedTableMyBatis3Impl->>Plugin: context.getPlugins().sqlMapGenerated()
-    end
-	MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
+MyBatisGenerator->>Context: 1.introspectTables[获取Tables]
+Context->>DatabaseIntrospector: introspectTables
+/' 基于 java.sql.DatabaseMetaData 接口获取表描述信息(oracle获取所有schame下此表名) '/
+DatabaseIntrospector->>DatabaseMetaData: getColumns
+MyBatisGenerator->>Context: 2.generateFiles[生成文件, 调用pluginAggregator]
+loop pluginConfigurations
+	/' 加载插件 '/
+	Context->>Context: pluginAggregator.addPlugin(plugin)
+end
+loop introspectedTables
+	/' 生成xml文档 '/
+	Context->>IntrospectedTableMyBatis3Impl: introspectedTable.getGeneratedXmlFiles()
+	/' 生成xml文档document对象 '/
+	IntrospectedTableMyBatis3Impl->>AbstractXmlGenerator: xmlMapperGenerator.getDocument()
+	/' 调用插件的 sqlMapGenerated 方法 '/
+	IntrospectedTableMyBatis3Impl->>Plugin: context.getPlugins().sqlMapGenerated()
+end
+MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 @enduml
 ```
 

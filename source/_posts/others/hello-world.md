@@ -123,9 +123,13 @@ categories和tage都可以有多个
 <pre>
 &#x60;&#x60;&#x60;plantuml
 @startuml
+/' 样式(背景和波浪线条)和标题。这是代码注释，不会渲染 '/
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
 title
-	标题和水印 <img:http://blog.aezo.cn/aezo.cn.png>
+  标题和水印 &lt;img:http://blog.aezo.cn/aezocn.png&gt;
 end title
+
 Bob->Alice : hello
 @enduml
 &#x60;&#x60;&#x60;
