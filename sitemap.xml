@@ -2,16 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
-    <lastmod>2018-10-26T04:25:30.657Z</lastmod>
+    <lastmod>2018-10-28T08:13:04.442Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
     
-    <lastmod>2018-10-26T04:23:57.254Z</lastmod>
+    <lastmod>2018-10-26T05:11:41.380Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/17/extend/intellij-idea/</loc>
+    
+    <lastmod>2018-10-26T05:06:44.409Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/09/24/lang/django-rest-framework/</loc>
+    
+    <lastmod>2018-10-26T04:56:45.499Z</lastmod>
     
   </url>
   
@@ -26,13 +40,6 @@
     <loc>http://blog.aezo.cn/2016/04/16/extend/jekyll/</loc>
     
     <lastmod>2018-10-26T01:12:09.288Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/09/24/lang/django-rest-framework/</loc>
-    
-    <lastmod>2018-10-25T13:02:56.613Z</lastmod>
     
   </url>
   
@@ -82,13 +89,6 @@
     <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
     <lastmod>2018-10-15T05:55:07.511Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/17/extend/intellij-idea/</loc>
-    
-    <lastmod>2018-10-15T01:31:08.893Z</lastmod>
     
   </url>
   
