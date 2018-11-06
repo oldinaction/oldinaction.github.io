@@ -2,7 +2,7 @@
 layout: "post"
 title: "LoadRunner自动化测试工具"
 date: "2016-05-22 15:37"
-categories: [extend, tools]
+categories: [extend]
 tags: [test]
 ---
 

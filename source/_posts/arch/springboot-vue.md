@@ -6,12 +6,30 @@ categories: [arch]
 tags: [springboot, vue]
 ---
 
-## 简介
+## TODO
+
+- ASF
+    - IS/BS的拜访基于同一张表保存是否需要分开
+    - IS/BS拜访的父子关系(祖宗关系)导致逻辑复杂
 
 ## 默认配置
 
-- 后端返回数据字段驼峰(可通过ObjectMapper转成下划线，前台做好下划线命名的字段映射后传回给后台，此时后台pojo都是驼峰，导致无法转换)
+- 后端返回数据字段驼峰(如果通过ObjectMapper字段名转成下划线，前台做好下划线命名的字段映射后传回给后台，此时后台pojo都是驼峰，导致无法转换)
 - 前后台url都以`/`开头方便全局搜索
+
+## Spring
+
+- 表单操作的dto应该基于业务模式进行解耦，不要耦合到一个dto中
+    - 出错场景：使用dto(数据传输对象)接受前端数据后，并`BeanUtils.copyProperties`将dto复制到po(持久化对象)中，且前端有清除数据库部分字段的需求(此时dto中该字段传入的值为null，并使用mybatis生成的`updateByPrimaryKey`进行更新)。但是内部字段(一般不会让用户直接修改的)初始化后不应该置空。后来在修改某些需求时(如基于客户直接创建拜访)，不小心简单将内部字段(创建拜访时会从客户中查询到CRM_ID并创建拜访记录)加入到dto中加入了部分其他字段导致，此时普通修改时前端并没有传入CRM_ID，导致将内部字段置空
+
+## Mybatis
+
+- `Mybatis Generator`生成通用代码
+    - 可通过自定义Mapper继承生成的Mapper。(如UserMapperExt extend UserMapper, 可防止因修改生成代码导致无法再次生成)
+    - 生成接口中`selective`含义：表示根据字段值判断，如果为空则不插入或更新
+        - `insert`(不会考虑数据库默认值)、`insertSelective`(考虑数据库默认值)
+        - `updateByPrimaryKey`(根据对象查询出来后全部按照传入对象更新，如果传入对象的值为空则会将数据库该字段置空)、`updateByPrimaryKeySelective`(如果出入对象值为空则不修改数据库该字段值)
+- 接口中使用`@Select`定义实现中，使用`<if>`代替`<when>`
 
 ## 跨域和session/token
 
@@ -23,7 +41,11 @@ tags: [springboot, vue]
     - `Cookie、LocalStorage 和 IndexDB 无法读取`
     - `DOM 无法获得`
     - `AJAX 请求不能发送`
-- AJAX请求受到同源政策限制的解决办法
+- 解决方案
+    - `JSONP`(只能发送GET请求)
+    - `CORS`
+    - `WebSocket`
+    - `postMessage`
     - 架设服务器代理（浏览器请求同源服务器，再由后者请求外部服务）
         - 基于`nginx`做中转
 
@@ -45,14 +67,11 @@ tags: [springboot, vue]
 
             # 前端
             location / {
-                root   D:\demo\vue\dist;
+                root   D:/demo/vue/dist;
                 index  index.html index.htm;
             }
         }
         ```
-    - `JSONP`(只能发送GET请求)
-    - `WebSocket`
-    - `CORS`
 
 ### 跨域资源共享(CORS, Cross-origin resource sharing) [^1]
 

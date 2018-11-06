@@ -2,7 +2,7 @@
 layout: "post"
 title: "wiki"
 date: "2016-10-27 21:36"
-categories: [extend, tools]
+categories: [extend]
 tags: [wiki, book]
 ---
 

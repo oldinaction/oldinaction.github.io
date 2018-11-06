@@ -231,7 +231,7 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
             - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
         - `pip install pymysql`(3.6)
             - 工具类：https://www.cnblogs.com/bincoding/p/6789456.html
-        - mysqlclient `pip install mysqlclient-1.3.13-cp36-cp36m-win_amd64.whl`
+        - `pip install mysqlclient-1.3.13-cp36-cp36m-win_amd64.whl` **推荐**
     - `pymongo` MongoDB操作库 [^2]
         - `pip install pymongo`
     - `fabric` 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
@@ -252,8 +252,11 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 #### PyCharm创建django项目
 
-- PyCharm创建django项目(自动创建venv虚拟环境)：File - New Project - Django - D:\gitwork\smpython\A02_DjangoTest(项目名需为字母数字下划线) - More Setting - Application Name - smtest(不要取test，会和Django自带名称冲突)
-- 创建后默认包含`venv`虚拟环境(与系统环境隔离，但是默认会使用系统的Python官方库)。再PyCharm中创建一个Terminal创建创建也会有`venv`标识(默认打开的Terminal窗口没有)
+- PyCharm创建django项目
+    - File - New Project - Django - D:\gitwork\smpython\A02_DjangoTest(项目名需为字母数字下划线) 
+    - Project Interpreter - New environment - Location可以选择(如django项目共用一个虚拟环境) - Inherit global不勾选(表示不包含全局包，否则`pip freeze`会多出很多全局包)
+    - More Setting - Application Name - smtest(不要取test，会和Django自带名称冲突)
+- 创建后默认包含`(虚拟环境名，如venv)`虚拟环境(与系统环境隔离，但是默认会使用系统的Python官方库)。再PyCharm中创建一个Terminal创建创建也会有`venv`标识(默认打开的Terminal窗口没有)
 - 在有`venv`的Terminal创建安装类库则不会对系统产生干扰
 - 启动django项目添加参数：如执行 `python manage.py runserver --insecure` 中的 `--insecure` 可在 `Configuration` - `Additional options`中配置
 
@@ -265,12 +268,12 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 ```shell
 # python3 的 pip3
 pip3 install virtualenv
-# 创建环境ENV
+# 在当前目录创建虚拟环境目录ENV(可自定义名称)
 virtualenv ENV
 # 进入虚拟环境目录
-cd ENV
+cd ENV/Scripts
 # 启用此环境，后续命令行前面出现（ENV）代表此时环境已切换
-source ./bin/activate
+source ./activate
 # 之后执行pip python3 等指令，相当于是在此环境中执行
 pip3 install -r /opt/myproject/requirements.txt
 # 此时看到依赖已安装

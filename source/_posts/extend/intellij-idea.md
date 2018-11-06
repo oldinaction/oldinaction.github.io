@@ -29,12 +29,14 @@ tags: [IDE]
         - `Web Module Deployment Descriptor`为`/myproject/WebRoot/WEB-INF/web.xml`
         - `Web Resource`为`/myproject/WebRoot`
         - 勾选`Source Roots`
-    - `Artifacts` 根据上面的配置，最终打包成一个war包部署到tomcat中
+    - `Artifacts` 根据上面的配置，最终打包成一个war包部署到tomcat中。(Artifacts是maven中的一个概念，表示项目modules如何打包，比如jar,war,war exploded,ear等打包形式，一个项目或者说module有了artifacts就可以部署到web应用服务器上了，注意artifact的前提是已经配置好module)
         - 点击`+` - `Web Application: Exploded` - `From Modules`
             - `Output directory`为`/testStruts2/WebRoot`
                 - WEB-INFO/lib下的jar都要显示在此目录
         - 点击`+` - `Web Application: Archive` - `For "XXX: Exploded"` (主要用于打包)
             - `Output directory`为`D:/myproject/war`
+        - `web application exploded` 是以文件夹形式（War Exploded）发布项目，选择这个，发布项目时就会自动生成文件夹在指定的output directory
+        - `web application archive` 是war包形式，每次都会重新打包全部的,将项目打成一个war包在指定位置
 3. `Run configuration`配置tomcat
     - `JRE`填写jdk路径
     - `Deployment`中将刚刚的war配置进入

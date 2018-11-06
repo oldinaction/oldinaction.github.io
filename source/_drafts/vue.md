@@ -51,6 +51,7 @@ tags: vue
     - 指令的周期： 5个 (bind、inserted、update、componentUpdated、unbind)
     - beforeRouteEnter的next所对应的周期
     - nextTick所对应的周期
+    - `<keep-alive>` 组件 `activated` 和 `deactivated`
 - 钩子执行顺序
     - 路由勾子 (beforeEach、beforeRouteEnter、afterEach)
     - 根组件 (beforeCreate、created、beforeMount)
