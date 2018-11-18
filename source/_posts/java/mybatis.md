@@ -487,7 +487,7 @@ Char |  | Char | Char
 		<if test="validStatus=='Y'.toString()">and validStatus = 1</if>
 		```
 
--  dao中可以使用submitTm[0]获取值; xml中不行，其处理数组(如时间段)的方式如下
+-  dao中可以使用`submitTm[0]`获取值; xml中不行，其处理数组(如时间段)的方式如下
 
 	```xml
 	<!-- <if test='dataSourceList != null and dataSourceList.size() > 0 and dataSourceList.get(0).dataSource != null'> -->
@@ -501,6 +501,7 @@ Char |  | Char | Char
 - mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
 - 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
 - `<when>`/`<if>` 可进行嵌套使用，其子属性test可以使用双引号或单引号
+- 支持`choose (when, otherwise)`语句
 - xml文件修改无需重新部署，立即生效
 - `Cause: java.sql.SQLException: 无法转换为内部表示` 可能是由于类型转换导致，如强制将数据库中字符串类型字段映射某个对象的Long类型属性上
 

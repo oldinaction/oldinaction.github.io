@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "Excel VBA"
+title: "VBA"
 date: "2017-08-20 20:03"
 categories: [lang]
 tags: [excel, vb]
@@ -23,15 +23,36 @@ tags: [excel, vb]
 - `Selection.AutoFill Destination:=fillRange, Type:=xlFillDefault` 自动填充
     - 此处`Selection`选中的Range即sourceRange(源)，根据sourceRange进行fillRange的填充。此时fillRange必须包含sourceRange。sourceRange中可以有公式等
 - `ActiveWindow.SmallScroll Down:=6`等是对窗口进行移动，不影响计算
+- **代码必须运行在过程中**，如定义一个过程main，此时执行运行-运行子过程
 
-## 宏界面配置
+    ```vb
+    Public Sub main()
+        With CreateObject("Internetexplorer.application")
+            .Visible = True
+            .Navigate "https://www.baidu.com/s?wd=扯乎"
+            '关闭网页
+            .Quit
+        End With
+    End Sub
+    ```
 
-- 设置字体：工具-选项-编辑器格式-标准字体-Consolas (西方)
-- 设置语法检测：工具-选项-编辑器-自动语法检测去勾选。防止编辑时弹框提示语法错误，运行时语法错误会提示
+## VBA配置
+
+- Excel 2016
+    - 开启VBA菜单：文件-选项-自定义功能区-勾选右边开发工具
+    - 显示工程管理器：视图-工程资源管理器
+    - 创建代码窗口：视图-代码窗口
+- Access 2016
+    - 显示工程管理器：视图-工程资源管理器
+        - 创建模块：右键工程目录 - 插入 - 模块
+        - 代码必须运行在过程中，过程必须写在模块中
+- VBA配置
+    - 设置字体：工具-选项-编辑器格式-标准字体-Consolas (西方)
+    - 设置语法检测：工具-选项-编辑器-自动语法检测去勾选。防止编辑时弹框提示语法错误，运行时语法错误会提示
 
 ## 示例
 
-### Delat Ct法计算候选基因稳定性
+### Delat Ct法计算候选基因稳定性(Excel操作)
 
 > 此算法是临时帮朋友写的，可能与实际算法不符，仅供参考
 
@@ -197,7 +218,18 @@ tags: [excel, vb]
     End Function
     ```
 
+## Http发送数据
 
+```vb
+Public Sub Main()
+    Set myMSXML = CreateObject("Microsoft.XmlHttp")
+    myMSXML.Open "POST", "http://192.168.17.229:8000/api/v1/biz/login_token", False
+    myMSXML.setRequestHeader "Content-Type", "application/json"
+    myMSXML.setRequestHeader "User-Agent", "Firefox 3.6.4"
+    myMSXML.send "{""username"":""admin"",""password"":""admin""}"
+    MsgBox myMSXML.responseText
+End Sub
+```
 
 
 ---

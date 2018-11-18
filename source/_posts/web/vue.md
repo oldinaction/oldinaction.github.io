@@ -97,7 +97,27 @@ created(): {
 }
 ```
 
-### list元素改变/子对象属性改变数据不刷新问题
+### 数组/对象改变数据不刷新问题
+
+- 官方说明
+    - https://cn.vuejs.org/v2/guide/list.html#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
+    - https://cn.vuejs.org/v2/guide/reactivity.html#%E6%A3%80%E6%B5%8B%E5%8F%98%E5%8C%96%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
+    - 由于 JavaScript 的限制，Vue 不能检测以下变动的数组：
+        - 当你利用索引直接设置一个项时，例如：`vm.items[indexOfItem] = newValue`
+        - 当你修改数组的长度时，例如：`vm.items.length = newLength`
+    - 还是由于 JavaScript 的限制，Vue 不能检测对象属性的添加或删除
+
+        ```js
+        var vm = new Vue({
+            data:{
+                a:1
+            }
+        })
+        // `vm.a` 是响应的
+        vm.b = 2
+        // `vm.b` 是非响应的
+        ```
+- 扩展说明
 
 ```html
 <!-- 示例使用iveiw库 -->

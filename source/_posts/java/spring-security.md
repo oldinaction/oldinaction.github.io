@@ -387,6 +387,16 @@ tags: [spring, springsecurity, springboot, oauth2]
                 session.setAttribute("SESSION_USER_INFO", user);
 
                 logger.info("{} 登录成功", user.getUsername());
+
+                httpServletResponse.sendRedirect("/manage/403");
+
+                //BaseController.writeSuccess(httpServletResponse, "登录成功", MiscU.Instance.toMap(
+                //    BaseKeys.AccessToken, accessToken,
+                //    BaseKeys.RefreshToken, refreshToken,
+                //    "user_id", userDetails.getUserId(),
+                //    "username", userDetails.getUsername(),
+                //    "role_codes", userDetails.getRoleCodes(),
+                //));
             }
         }
 
@@ -395,6 +405,9 @@ tags: [spring, springsecurity, springboot, oauth2]
             @Override
             public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
                 logger.info("登录失败：" + e.getMessage());
+
+                httpServletResponse.sendRedirect("/manage/login");
+                // BaseController.writeError(httpServletResponse, e.getMessage());
             }
         }
     }

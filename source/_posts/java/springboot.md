@@ -31,6 +31,16 @@ tags: springboot
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- springboot打成jar包可直接运行。会在MANIFEST.MF文件中添加Main-Class信息，否则报错：没有主清单属性 -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 	```
 - 启动类 `SpringbootApplication.java`
 
@@ -941,7 +951,7 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 	```yml
 	#spring:
 	#  thymeleaf:
-	#	# 将thymeleaf文件放在resources/templates/目录
+	#	# 将thymeleaf的html格式文件放在resources/templates/目录，则不需要配置下列两行
     #	prefix: classpath:/templates/
     #	suffix: .html
 	```
@@ -958,7 +968,8 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 				// 无需注入参数值时，则方法可不接收model参数
 				model.put("hello", "UserController.thymeleaf");
 
-				return "/hello";
+				// return "/hello"; // 加上/后，打成jar包路径找不到。可以去掉/或者使用return new ModelAndView("hello");
+				return "hello";
 			}
 		}
 		```
@@ -1023,7 +1034,7 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 		- idea需要Ctrl+Shift+F9刷新，相当于重启项目，较普通项目重启快
 	- 配置中加`spring.thymeleaf.cache=false`
 		- 需要使用maven启动
-- thymeleaf语法：[文章：《thymeleaf》](../lang/thymeleaf.md)
+- thymeleaf语法：[http://blog.aezo.cn/2017/10/22/lang/thymeleaf/](/_posts/lang/thymeleaf.md)
 
 ### 文件上传下载
 
@@ -1363,6 +1374,21 @@ http://blog.didispace.com/springbootmultidatasource/
 	`Y888""8o `Y8bod8P' d8888888P  `Y8bod8P' `Y8bod8P' o888o o888o
 	```
 
+### 打包成exe
+
+- 使用`exe4j`打包成exe，常用配置选择 [^13]
+	- `2.Project Type`：jar in exe mode
+	- `4.Executable info - 32-bit or 64-bit`：生成exe的版本
+	- `5.Java invocation`：class path中添加springboot生成的jar(可通过java -jar正常运行)的相对路径(基于.exe4j配置文件; exe4j v6.0此处无法选择，只能手输)；main class from填写`org.springframework.boot.loader.JarLauncher`
+	- `6.JRE`：添加Directory目录为jre的路径，最好为相对路径，如`./jre`，此步骤并不会吧jre打包到exe中，只会设置exe寻找jre的路径。之后需要将jre和exe文件放在一起打包给用户
+	- 给用户提供配置文件，如可执行文件为`myexe.exe`，则在此可执行文件目录创建`myexe.exe.vmoptions`文件，里面加入JVM参数(如：`-Xms256m`)或自定义参数(如：`-DmyValue.val=123456`，其中`myValue.val`是通过`@ConfigurationProperties`定义的参数)，一行一个参数，参数值如果为路径也支持`\`
+- 使用[InnoSetup](http://www.jrsoftware.org/isdl.php)打成可安装程序(打包后大概80M)
+	- File - New - 跟随提示进行配置。
+		- Application Files配置：Application main executable file选择exe4j生成的exe文件；
+		- other application files(添加其他依赖文件)
+			- add folder：选择jre目录(如果上面exe4j第6步填写的是`./jre`，则此处还需要给jre外面包裹一层文件夹如jre-home，然后此处选择jre-home路径即可。最终会jre目录和exe4j生成的exe文件仍然处于同级目录。因此可以将exe4j第6步设置成`.`，则最终可以去掉`jre`这层目录)
+			- add files：选择上述`*.vmoptions`
+
 ## 常见错误
 
 - `nested exception is java.lang.IllegalArgumentException: Could not resolve placeholder 'crm.tempFolder' in value "${crm.tempFolder}"`
@@ -1397,3 +1423,4 @@ User user = this.userRepositroy.findById(id).get();
 [^10]: http://blog.didispace.com/springboottransactional/ (@Transactional)
 [^11]: http://www.cnblogs.com/GoodHelper/p/7078381.html (WebSocket)
 [^12]: http://tech.lede.com/2017/02/06/rd/server/SpringTransactional/ (Spring @Transactional原理及使用)
+[^13]: https://blog.csdn.net/qq_35542689/article/details/81205472 (springboot在Windows(无jre)下打包并运行exe)
