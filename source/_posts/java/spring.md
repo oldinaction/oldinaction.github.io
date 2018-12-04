@@ -123,7 +123,7 @@ tags: [spring, spring-mvc]
         @Value("#{T(java.lang.Math).random() * 100.0}")
         private String randomNumber;
 
-        @Value("${site.url:www.aezo.cn}") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值
+        @Value("${site.url:www.aezo.cn}") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止为定义此参数值(特别是通过命令行传入的参数)
         private Resource siteUrl;
 
         @Value("#{demoService.another}") // 读取其他类属性的@Value注解值
@@ -343,6 +343,7 @@ tags: [spring, spring-mvc]
     - 常用定时配置
 
         ```bash
+        "0/10 * * * * ?" 每10秒触发 
         "0 0 12 * * ?" 每天中午12点触发 
         "0 15 10 ? * *" 每天上午10:15触发 
         "0 15 10 * * ?" 每天上午10:15触发 

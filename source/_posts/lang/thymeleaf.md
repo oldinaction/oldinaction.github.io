@@ -13,6 +13,9 @@ tags: [thymeleaf, java, springboot, template]
 - 常用上下文获取
 
 ```html
+<!-- html页面取值 -->
+[[${myVar}]]
+
 <!-- 获取url参数 -->
 <span th:text="${#httpServletRequest.getParameter('roleCode')}">这里的文字会被替换</span>
 
@@ -107,6 +110,20 @@ tags: [thymeleaf, java, springboot, template]
         <span th:text="${item}"></span>
     </th:block>
 </th:block>
+
+<!-- 循环，自定义变量，三元运算符，字符串可直接==比较 -->
+<div class="layui-row">
+    <!-- 数组为空也不报错 -->
+    <div th:each="item:${accessDbInfos}"
+            th:with="runStatusClass=${item.getRunStatus() == '1' ? 'layui-green' : (item.getRunStatus() == '2' ? 'layui-orange' : 'layui-red')}"
+            class="layui-col-md2 computer">
+        <i th:classappend="${runStatusClass}" class="layui-icon layui-icon-chart-screen"></i>
+        <div>
+            <i th:classappend="${runStatusClass}" class="layui-icon layui-icon-circle-dot"></i>
+            <span>IPxxx: <span th:text="${item.getIp()}"></span></span>
+        </div>
+    </div>
+</div>
 ```
 
 ## 页面布局
@@ -135,7 +152,7 @@ tags: [thymeleaf, java, springboot, template]
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
     xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
-    layout:decorator="includes/layout">
+    layout:decorate="includes/layout">
 
 <div layout:fragment="content">
     hello

@@ -8,9 +8,9 @@ tags: [node, web, desktop]
 
 ## 介绍
 
-- [官网](https://nwjs.io/)。其他教程：https://nwjs.org.cn/、https://wizardforcel.gitbooks.io/nwjs-doc/content/wiki/index.html
-- `NW.js`，之前为`node-webkit`，是一个结合了 Chromium 和 node.js 的应用运行时，通过它可以用 HTML 和 JavaScript 编写原生应用程序。。可基于html、css、js写桌面系统。打包后可运行的环境包括32位和64位的Window(windows xp及以上)、Linux和Mac OS
-- 建议下载SDK，开发时才可进行debug，[nwjs-sdk-v0.34.4-win-x64.zip下载](https://dl.nwjs.io/v0.34.4/nwjs-sdk-v0.34.4-win-x64.zip)。[支持windows xp最终版本v0.14.7](https://dl.nwjs.io/v0.14.7)。下载完成后解压SDK，可将SDK目录加入到path环境变量中，从此可直接执行`nw`
+- [官网](https://nwjs.io/)。其他教程：https://nwjs.org.cn/ 、 https://wizardforcel.gitbooks.io/nwjs-doc/content/wiki/index.html
+- `NW.js`，之前为`node-webkit`，是一个结合了 Chromium 和 node.js 的应用运行时，通过它可以用 HTML 和 JavaScript 编写原生应用程序。可基于html、css、js写桌面系统。打包后可运行的环境包括32位和64位的Window(windows xp及以上)、Linux和Mac OS
+- 建议下载SDK，开发时才可进行debug，[nwjs-sdk-v0.34.4-win-x64.zip下载](https://dl.nwjs.io/v0.34.4/nwjs-sdk-v0.34.4-win-x64.zip)。[支持windows xp最终版本为v0.14.7](https://dl.nwjs.io/v0.14.7)。下载完成后解压SDK，可将SDK目录加入到path环境变量中，从此可直接执行`nw`
 - 可使用`nw-builder`进行打包。打包后大概200M，再压成安装包大概80M
 
 ## 案例
@@ -210,19 +210,7 @@ nw.build().then(function () {
 - `nw-builder` 打包
     - 管理员Cmd执行`npm run build`(node运行此项目build.js)
     - Enigma Virtual Box 再次打包
-- `node-adodb`连接`access`数据库
-    - https://github.com/nuintun/node-adodb
-    - `npm install node-adodb` 即可使用，无需通过nw-gpy重新构建
-    - 常见错误
-        - 未找到提供程序。该程序可能未正确安装
-            - 需要按照access版本安装驱动。本案例基于win64操作系统，Access2016 32位，因此此时需要下载Access2016 32位驱动(https://www.microsoft.com/en-us/download/details.aspx?id=54920)。打包nw.js后，客户端也需要安装对于驱动
-            - Access 2000-2003 (*.mdb) Microsoft.Jet.OLEDB.4.0 (对于 Windows XP SP2 以上系统默认支持 Microsoft.Jet.OLEDB.4.0)
-            - Access > 2007 (*.accdb) 如Access2016对应配置为：Microsoft.ACE.OLEDB.16.0
-        - 文件名无效(-2147467259, Not a valid file name)
-            - `Data Source`中文件支持绝对路径、相对路径、局域网路径(不支持FTP/HTTP)，主要字符串编码和路径分隔符
-        - 不可识别的数据库格式(-2147467259)
-            - 使用`Microsoft.Jet.OLEDB.4.0`连接字符串，去连接Access2016的文件(.accdb)则报此错误，此时需要Access2016驱动
-            - 使用`Microsoft.ACE.OLEDB.16.0`可以同时解析`.accdb`和`.mdb`(对于 Windows XP SP2 以上系统默认支持 Microsoft.Jet.OLEDB.4.0，其它需要自己安装支持)
+- `node-adodb`连接`access`数据库。参考[http://blog.aezo.cn/2018/11/20/db/access/](/_posts/db/access.md). 无需通过nw-gpy重新构建
 
 
 

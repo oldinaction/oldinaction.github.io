@@ -57,6 +57,12 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
     - `/home`：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点`/home`
 6. 安装启动引导的设备：选择`/`分区，如果有`/boot`分区则选择`/boot`分区
 7. 一路下一步即可安装完成，重新启动即可。
+8.ubuntu-18.04.1-desktop-amd64.ios安装报错`无法将grub-efi-amd64-signed 安装到`，解决方案(分区调整)
+    - `/boot`：根据磁盘大小，我500G的磁盘 / 设置成500G。主分区，文件类型为EXT4，挂载点`/boot`
+    - `efi`：500G。主分区，文件类型为EFI，挂载点无
+    - `swap`：大小<2G。主分区，文件类型为交换空间，挂载点无
+    - `/`：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点`/`
+    - `/home`：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点`/home`
 
 ### 硬盘安装 [^4] [^5]
 
@@ -101,10 +107,10 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 
 ### 常见问题
 
-1. 2017-02-16解决ThinkPad E425在安装Ubuntu卡在安装界面的问题 [^9]
+- 2017-02-16解决ThinkPad E425在安装Ubuntu卡在安装界面的问题 [^9]
     - 原因：主板BIOS设置中设置为双显卡切换的模式的时候，会出现这个问题
     - 解决方案：开机长按F1，进入BIOS设置。在config->Display->Graphics Device 设置显卡的模式为集成显卡 Integrated Graphics
-2. 2017-04-24解决ubuntu启动长时间黑屏问题
+- 2017-04-24解决ubuntu启动长时间黑屏问题
     - 自己的笔记本是thinkpad e425，双显卡，装ubuntu一直卡在启动页面上，后来在bios中关闭了独显，所以成功将ubuntu装上
 之后，开机时候直至显示用户登陆的页面时，屏幕都是黑屏
     - 安装 v86d 和 hwinfo，然后查看显卡支持的分辨率
@@ -117,6 +123,50 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - `sudo update-grub2`
         - `sudo update-initramfs -u`
     - 重启
+
+#### 其他问题
+
+- ubuntu-18.04.1基于pycharm创建python项目报错`No module named 'distutils.core'`. 解决办法`sudo apt-get install python3-distutils`
+
+### 使用
+
+#### 常用设置
+
+- 用户目录文件名显示英文
+
+    ```bash
+    export LANG=en_US
+    # 同意
+    xdg-user-dirs-gtk-update
+    export LANG=zh_CN
+    # 重启后系统会提示是否把转化好的目录改回中文。选择不再提示，并取消修改
+    ```
+- 将sh文件发送到桌面快捷方式
+    - 在桌面创建`文件名.desktop`文件，内容如为 
+
+        ```bash
+        [Desktop Entry]
+        Encoding=UTF-8
+        Name=pycharm
+        Exec=sh /home/smalle/soft/pycharm-2018.3/bin/pycharm.sh
+        Icon=/home/smalle/soft/pycharm-2018.3/bin/pycharm.png
+        Terminal=false
+        Type=Application
+        ```
+    - 右键查看文件属性–权限–勾选可执行，执行
+
+#### 安装程序
+
+- 安装deb格式文件
+    - `dpkg -i file.deb` deb是debian linus的安装格式，跟red hat的rpm非常相似
+- 安装[wine](https://wiki.winehq.org/Ubuntu_zhcn)即可在ubuntu上运行exe程序.
+    - `sudo apt-get install winetricks` 
+    - 执行`winetricks`即可管理wine环境进行扩展管理
+
+#### 文件
+
+- 显示/隐藏隐藏文件和文件夹：`Ctrl + H`
+
 
 ---
 

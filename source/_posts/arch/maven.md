@@ -269,10 +269,9 @@ tags: [maven]
     - `provided`：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。(如smtools工具类中引入某jjwt的jar包并设置provided，且只有JwtU.java中使用了此jar。当其他项目使用此smtools，如果开发过程中并未使用JwtU，即类加载器没有加载JwtU则此项目pom中不需要引入jjwt的jar；否则需要引入)
     - `system`：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。
 
-
 ### build节点
 
-- 解决编译的资源文件，idea默认只编译resource下的xml等文件
+- 解决打包编译时，默认只编译resource下的xml等资源文件
 
 	```xml
 	<build>
@@ -288,12 +287,34 @@ tags: [maven]
 				</excludes>
 			</resource>
 			
-			<!--使用profiles时，过滤resources目录中的占位符号，maven默认占位符是${...}, springboot也是此占位符，因此使用<resource.delimiter>@</resource.delimiter>重写成了@...@。即读取profiles中的properties参数进行填充-->
-			<!--springboot一定要加，否则maven打包会漏配置文件，打包运行测试时无法读取配置文件-->
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
+			<!--
+				1.filtering表示是否进行属性替换(默认替换占位符为${myVar.name}的变量)，可通过`mvn clean compile -DmyVar.name=smalle`或properties中加`<myVar.name>`标签进行定义属性值
+				2.使用profiles时，过滤resources目录中的占位符号，maven默认占位符是${...}, springboot也是此占位符，因此可再properties标签中加<resource.delimiter>@</resource.delimiter>重写成了@...@。即读取profiles中的properties参数进行填充
+			-->
+			<!--
+				1.springboot一定要加，否则maven打包会漏配置文件，打包运行测试时无法读取配置文件
+				<resource>
+					<directory>src/main/resources</directory>
+					<filtering>true</filtering>
+				</resource>
+				2.防止resources中的字体文件打包出错导致图标不显示，需要使用下列配置(出去woff、ttf其他都filtering替换)
+			-->
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<filtering>true</filtering>
+				<excludes>
+					<exclude>**/*.woff</exclude>
+					<exclude>**/*.ttf</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>**/*.woff</include>
+					<include>**/*.ttf</include>
+				</includes>
+			</resource>
 		</resources>
 	</build>
 	```

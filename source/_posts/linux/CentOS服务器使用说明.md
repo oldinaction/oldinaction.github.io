@@ -253,9 +253,10 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 - 安装步骤
     - 下载`Python-3.6.5.tar.xz`
     - `tar xvf  Python-3.6.5.tar.xz -C /opt`
+    - `cd Python-3.6.5`
     - `su root` 切换root用户
     - `./configure`
-    - `make && make install` 第一次需要大概15分钟。不使用root运行，使用sudo运行也会报错`cannot create regular file ‘/usr/local/bin/python3.6m’: Permission denied`
+    - `make && make install` 第一次需要大概15分钟。需要使用root运行。使用sudo运行也会报错`cannot create regular file ‘/usr/local/bin/python3.6m’: Permission denied`
     - `python3` 查看是否安装成功
     - `pip3` 为对应的pip命令
 - `No module named '_sqlite3'` 无法使用sqlite3模块问题

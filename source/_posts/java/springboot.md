@@ -84,7 +84,7 @@ tags: springboot
 	```java
 	@Component
 	@Order(value = 1) // @Order值越小越优先
-	public class HelpStartupRunner implements CommandLineRunner {
+	public class StartupRunner implements CommandLineRunner {
 		@Value("${help.imageUploadRoot}")
 		String imageUploadRoot;
 
@@ -174,7 +174,9 @@ tags: springboot
 	}
 	```
 
-### 获取Bean：此处选择实现`ApplicationContextAware`接口 [^7]
+### 获取Bean [^7]
+
+- 此处选择实现`ApplicationContextAware`接口
 
 ```java
 @Component("springContextU")
@@ -217,6 +219,17 @@ public class SpringContextU implements ApplicationContextAware {
 - 服务类方法加注解`@Async`
 
 ### `@Value`给静态成员设值
+
+- springboot v2.0.1之后，定义自定义参数(MyValue.java)要么写到Application.java同目录，要么加下列依赖
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-configuration-processor</artifactId>
+	<optional>true</optional>
+</dependency>
+```
+- 定义/调用
 
 ```java
 // 定义
@@ -435,6 +448,18 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 }
 ```
 
+### AOP
+
+- 添加依赖
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-aop</artifactId>
+</dependency>
+```
+- 示例参考【多数据源/动态数据源/运行时增加数据源】章节中的【动态数据源】
+
 ## 请求及响应
 
 - 相关配置
@@ -500,33 +525,31 @@ public String hello() {
 
 // 前台请求 Body/Url 中含参数 userId和username（Spring可以自动注入java基础数据类型和对应的数组，集合无法注入）
 @RequestMapping(value="/getUserByUserIdOrUsername")
-public Result getUserByUserIdOrUsername(Long userId, String username) {
+public Result getUserByUserIdOrUsername(Long userId, String username, HttpServletRequest request) {
 	// ...
 	return new Result().success(); // 自己封装的Result对象
 }
 // 前台请求 Body/Url 中含参数 username
 @RequestMapping(value="/getUserByName")
-public Result getUserByName(@RequestParam("username") String name) {
-	// ...
-	return new Result().success();
-}
+public String getUserByName(@RequestParam("username") String name) {}
+
 @RequestMapping(value = "/getUser")
-public Result getUser(User user) {// 此时User对象必须声明getter/setter方法
-	// ...
-	return new Result().success(); // 自己封装的Result对象
-}
+public String getUser(User user) {} // 此时User对象必须声明getter/setter方法
 
 // @PathVariable 获取 url 中的参数
 @RequestMapping(value="/hello/{id}")
-public String user(@PathVariable("id") Integer id) {
-	return "id:" + id;
-}
+public String user(@PathVariable("id") Integer id) {}
 
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public Result hello(User user) {
-	// ...
-	return new Result().success();
-}
+public String hello(User user) {}
+
+// 多文件上传时Layui会重复请求此接口多次
+@RequestMapping(value = "/upload", method = RequestMethod.POST)
+public String uploading(@RequestParam("file") MultipartFile file) {}
+
+// 如请求头为`application/json`，此body中一个json对象(无需加 data={} 等key，直接为 {} 对象)。
+@RequestMapping(value = "/addUser", method = RequestMethod.POST)
+public String addUser(@RequestBody List<User> user) {} // 获取body中的参数，或者`@RequestBody String userStr`接收了之后再转回，但是不能同时使用两个
 ```
 
 ### 前端数组/对象处理
@@ -567,6 +590,11 @@ public Result hello(User user) {
 ### restTemplate
 
 ```java
+@Bean
+public RestTemplate restTemplate() {
+	return new RestTemplate();
+}
+
 @Autowired
 RestTemplate restTemplate; // 无需手动引入
 
@@ -591,7 +619,7 @@ video = responseEntity.getBody();
 - 数据库驱动
 
 	```xml
-	<!--数据库驱动-->
+	<!--mysql数据库驱动-->
 	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
@@ -603,7 +631,8 @@ video = responseEntity.getBody();
 	```bash
 		# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
 		spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-		spring.datasource.url=jdbc:mysql://localhost/springboot?useUnicode=true&characterEncoding=utf-8
+		# 端口默认3306可以省略
+		spring.datasource.url=jdbc:mysql://localhost:3306/springboot?useUnicode=true&characterEncoding=utf-8
 		spring.datasource.username=root
 		spring.datasource.password=root
 		# springboot连接池默认使用的是tomcat-jdbc-pool，在处理utf8mb4类型数据(Emoji表情、生僻汉字。uft8默认只能存储1-3个字节的汉字，上述是4个字节)的时候，需要大致两步
@@ -662,8 +691,22 @@ video = responseEntity.getBody();
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
+	// 查询1
 	String sql = "SELECT h.*, e.name as event_name from th_help h, th_event e where h.event_id = e.event_id";
 	List<Map<String, Object>> object = jdbcTemplate.queryForList(sql);
+
+	// 查询2
+	String sql = "select id, name, age from student";
+	List<Student> students = (List<Student>) jdbcTemplate.query(sql, new RowMapper<Student>() {
+		@Override
+		public Student mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Student stu = new Student();
+			stu.setId(rs.getInt("ID"));
+			stu.setAge(rs.getInt("AGE"));
+			stu.setName(rs.getString("NAME"));
+			return stu;
+		}
+	});
 	```
 
 - jdbc批量执行sql语句
@@ -938,6 +981,11 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 	<dependency>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-thymeleaf</artifactId>
+	</dependency>
+	<!--可选：使用layout布局时需要用到-->
+	<dependency>
+		<groupId>nz.net.ultraq.thymeleaf</groupId>
+		<artifactId>thymeleaf-layout-dialect</artifactId>
 	</dependency>
 
 	<!-- 可选：thymeleaf和springsecurity结合在页面级别进行权限控制 -->
@@ -1279,9 +1327,382 @@ app.controller('MainController', function($rootScope, $scope, $http) {
 </script>
 ```
 
-### 多数据源
+### 多数据源/动态数据源/运行时增加数据源
 
-http://blog.didispace.com/springbootmultidatasource/
+> springboot/dynamic-datasource
+
+- 尚未找到启动程序后再初始化数据源简单解决方案。目前可以使用运行时增加数据源的方法，但是必须启动项目的时候设置一个默认的数据源(可以不使用，但是需要能初始化，比如一个H2数据源)，然后启动后动态修改此默认数据源
+
+#### 多数据源 [^14]
+
+- springboot v2.0.1配置文件中需要为`spring.datasource.xxx.jdbc-url`(之前为`spring.datasource.xxx.url`)
+- 配置
+
+```yml
+spring:
+  datasource:
+    access-one:
+      driver-class-name: net.ucanaccess.jdbc.UcanaccessDriver
+      jdbc-url: jdbc:ucanaccess://D:/gitwork/springboot/dynamic-datasource/src/main/resources/test.accdb;memory=true
+    mysql-one:
+      driver-class-name: com.mysql.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8
+      username: root
+      password: root
+    sqlserver-one:
+      driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      jdbc-url: jdbc:sqlserver://192.168.17.237:1433;DatabaseName=fedex
+      username: sa
+      password: root
+```
+- JavaBean配置
+
+```java
+// 多数据源配置
+@Configuration
+public class MultiDataSourceConfig {
+    // access数据源
+    @Bean(name = "accessDataSource")
+    @Qualifier("accessDataSource")
+    @ConfigurationProperties(prefix="spring.datasource.access-one")
+    public DataSource accessDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "accessJdbcTemplate")
+    public JdbcTemplate accessJdbcTemplate(
+            @Qualifier("accessDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+    // mysql数据源
+    @Bean(name = "mysqlDataSource")
+    @Qualifier("mysqlDataSource")
+    @ConfigurationProperties(prefix="spring.datasource.mysql-one")
+	@Primary // 默认数据源，全局只能有一个
+    public DataSource mysqlDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "mysqlJdbcTemplate")
+    public JdbcTemplate mysqlJdbcTemplate(
+            @Qualifier("mysqlDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+    // sqlserver数据源
+    @Bean(name = "sqlserverDataSource")
+    @Qualifier("sqlserverDataSource")
+    @ConfigurationProperties(prefix="spring.datasource.sqlserver-one")
+    public DataSource sqlserverDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "sqlserverJdbcTemplate")
+    public JdbcTemplate sqlserverJdbcTemplate(
+            @Qualifier("sqlserverDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+}
+```
+- JdbcTemplate使用
+
+```java
+@Autowired
+@Qualifier("accessJdbcTemplate")
+JdbcTemplate accessJdbcTemplate;
+
+@Autowired
+@Qualifier("mysqlJdbcTemplate")
+JdbcTemplate mysqlJdbcTemplate;
+
+@Autowired
+@Qualifier("sqlserverJdbcTemplate")
+JdbcTemplate sqlserverTemplate;
+
+@Test
+public void test() {
+	List<Map<String, Object>> accessData = accessJdbcTemplate.queryForList("select * from Users");
+	System.out.println("accessData = " + accessData); // accessData = [{UserId=1, UserName=test07, UserSex=1, UserBirthday=2018-11-15 00:00:00.0, UserMarried=true}, {UserId=2, UserName=access2007, UserSex=1, UserBirthday=2018-11-14 00:00:00.0, UserMarried=true}, {UserId=3, UserName=123, UserSex=1, UserBirthday=2018-11-16 00:00:00.0, UserMarried=false}]
+
+	List<Map<String, Object>> mysqlData = mysqlJdbcTemplate.queryForList("select * from test");
+	System.out.println("mysqlData = " + mysqlData); // mysqlData = [{id=1, username=smalle, password=123456}]
+
+	List<Map<String, Object>> sqlserverData = sqlserverTemplate.queryForList("select * from t_test"); // sqlserverData = [{id=1001, name=阿婆, gender=女, age=125, note=null}, {id=1002, name=阿公, gender=男, age=130, note=null}, {id=1003, name=大爷, gender=男, age=90, note=null}, {id=1004, name=大妈, gender=女, age=88, note=null}, {id=1005, name=你, gender=嘿嘿, age=3, note=null}]
+	System.out.println("sqlserverData = " + sqlserverData);
+}
+```
+- mybatis使用 [^15]
+
+```java
+// ### 1.Mysql数据源配置如下，Sqlserver配置同理(或者其他Mysql数据源)创建一个对应的配置类
+@Configuration
+// cn.aezo.springboot.datasource.mapper.mysql下的Mapper接口，都会使用mysql-one数据源
+@MapperScan(basePackages = {"cn.aezo.springboot.datasource.mapper.mysql"}, sqlSessionFactoryRef = "sqlSessionFactoryMysql")
+public class MysqlMybatisConfig {
+    @Autowired
+    @Qualifier("mysqlDataSource")
+    private DataSource ds1;
+
+    // 此处生成的Bean的名字(sqlSessionFactoryMysql)必须和sqlSessionFactoryRef中指定的一致
+    @Bean
+    public SqlSessionFactory sqlSessionFactoryMysql() throws Exception {
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(ds1);
+        return factoryBean.getObject();
+    }
+
+    @Bean
+    public SqlSessionTemplate sqlSessionTemplate1() throws Exception {
+        SqlSessionTemplate template = new SqlSessionTemplate(sqlSessionFactoryMysql()); // 使用上面配置的Factory
+        return template;
+    }
+}
+
+// ### 2.测试mybatis使用不同数据源
+@Autowired
+MysqlTestDao mysqlTestDao;
+
+@Autowired
+SqlserverTestDao sqlserverTestDao;
+
+@Test
+public void testMybatis() {
+	List<Map<String, Object>> mysqlData = mysqlTestDao.findTest();
+	System.out.println("mysqlData = " + mysqlData); // mysqlData = [{id=1, username=smalle, password=123456}]
+
+	List<Map<String, Object>> sqlserverData = sqlserverTestDao.findTest();
+	System.out.println("sqlserverData = " + sqlserverData); // sqlserverData = [{id=1001, name=阿婆, gender=女, age=125, note=null}, {id=1002, name=阿公, gender=男, age=130, note=null}, {id=1003, name=大爷, gender=男, age=90, note=null}, {id=1004, name=大妈, gender=女, age=88, note=null}, {id=1005, name=你, gender=嘿嘿, age=3, note=null}]
+}
+```
+
+#### 动态数据源
+
+- 使用动态数据源的初衷，是能在应用层做到读写分离，即在程序代码中控制不同的查询方法去连接不同的库。除了这种方法以外，数据库中间件也是个不错的选择，它的优点是数据库集群对应用来说只暴露为单库，不需要切换数据源的代码逻辑。
+- 继承`AbstractRoutingDataSource`；通过`setDefaultTargetDataSource`和`setTargetDataSources`设置默认和可切换的数据源；基于自定义注解设置每个方法需要使用的数据源
+- 主要代码
+
+```java
+// ### 1
+// AbstractRoutingDataSource 只支持单库事务，也就是说切换数据源要在开启事务之前执行
+public class DynamicDataSource extends AbstractRoutingDataSource {
+    // 预备一份用于存储targetDataSource，否则之前的设置的数据源会丢失。(此处无法获取AbstractRoutingDataSource的targetDataSources值)
+    private ConcurrentHashMap<String, DataSource> backupTargetDataSources = new ConcurrentHashMap<>();
+    public Map<String, DataSource> getBackupTargetDataSources() {
+        return backupTargetDataSources;
+    }
+    // 添加数据源配置关系
+    public void addDataSourceToTargetDataSource(String dsKey, DataSource ds){
+        this.backupTargetDataSources.put(dsKey, ds);
+    }
+    // 重设多数据源配置
+    public void reSetTargetDataSource() {
+        Map targetDataSources = this.backupTargetDataSources;
+        super.setTargetDataSources(targetDataSources);
+        this.afterPropertiesSet();
+    }
+    // 决定了当前操作选择哪个数据源. 第一次使用才会初始化，之后切换数据源则不需重复初始化
+    @Override
+    protected Object determineCurrentLookupKey() {
+        return ThreadLocalDSKey.getDS();
+    }
+}
+
+// ### 2
+@Configuration
+public class DynamicDataSourceConfig {
+    // mysql-one数据源
+    @Bean(name = "mysqlDataSourceDynamic")
+    @Qualifier("mysqlDataSourceDynamic")
+    @ConfigurationProperties(prefix="spring.datasource.mysql-one")
+    public DataSource mysqlDataSourceDynamic() {
+        return DataSourceBuilder.create().build();
+    }
+
+    // mysql-two数据源
+    @Bean(name = "mysqlTwoDataSourceDynamic")
+    @Qualifier("mysqlTwoDataSourceDynamic")
+    @ConfigurationProperties(prefix="spring.datasource.mysql-two")
+    public DataSource mysqlTwoDataSourceDynamic() {
+        return DataSourceBuilder.create().build();
+    }
+
+    /**
+     * 动态数据源(池)：将所有数据加入到动态数据源管理中
+     */
+    @Bean(name = "dynamicDataSource")
+    public DataSource dataSource() {
+        DynamicDataSource dynamicDataSource = new DynamicDataSource();
+
+        // 默认数据源
+        dynamicDataSource.setDefaultTargetDataSource(mysqlDataSourceDynamic());
+
+        // 配置多数据源
+        dynamicDataSource.addDataSourceToTargetDataSource("mysql-one-dynamic", mysqlDataSourceDynamic());
+        dynamicDataSource.addDataSourceToTargetDataSource("mysql-two-dynamic", mysqlTwoDataSourceDynamic());
+        Map targetDataSources = dynamicDataSource.getBackupTargetDataSources();
+        dynamicDataSource.setTargetDataSources(targetDataSources);
+
+        return dynamicDataSource;
+    }
+}
+
+// ### 3 cn.aezo.springboot.datasource.mapper.dynamic包下的接口Mybatis会使用sqlSessionFactoryMysqlDynamic的数据源工厂
+@Configuration
+@MapperScan(basePackages = {"cn.aezo.springboot.datasource.mapper.dynamic"}, sqlSessionFactoryRef = "sqlSessionFactoryMysqlDynamic")
+public class DynamicMybatisConfig {
+    @Autowired
+    @Qualifier("dynamicDataSource") // 此处注入动态数据源
+    private DataSource dataSource;
+
+    // 此处生成的Bean的名字, 必须和sqlSessionFactoryRef中指定的一致
+    @Bean
+    public SqlSessionFactory sqlSessionFactoryMysqlDynamic() throws Exception {
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(dataSource);
+        return factoryBean.getObject();
+    }
+
+    @Bean
+    public SqlSessionTemplate sqlSessionTemplateMysqlDynamic() throws Exception {
+        SqlSessionTemplate template = new SqlSessionTemplate(sqlSessionFactoryMysqlDynamic()); // 使用上面配置的Factory
+        return template;
+    }
+}
+
+// ### 4
+// ThreadLocal存储数据，解决线程安全问题
+public class ThreadLocalDSKey {
+    // 默认数据源标识
+    public static final String DEFAULT_DS_KEY = "mysql-one-dynamic";
+    private static final ThreadLocal<String> dsKeyHolder = new ThreadLocal<>();
+    // 设置数据源名
+    public static void setDS(String dbKey) {
+        dsKeyHolder.set(dbKey);
+    }
+    // 获取数据源名
+    public static String getDS() {
+        return (dsKeyHolder.get());
+    }
+    // 清除数据源名
+    public static void clearDS() {
+        dsKeyHolder.remove();
+    }
+}
+
+// ### 5
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+public @interface DS {
+    String value() default "mysql-one-dynamic";
+}
+
+// ### 6 需要添加AOP相关依赖
+@Aspect
+@Component
+public class DynamicDataSourceAspect {
+
+    // AbstractRoutingDataSource 只支持单库事务，也就是说切换数据源要在开启事务之前执行
+    @Before("@annotation(DS)")
+    public void beforeSwitchDS(JoinPoint point){
+        //获得当前访问的class
+        Class<?> className = point.getTarget().getClass();
+
+        //获得访问的方法名
+        String methodName = point.getSignature().getName();
+        //得到方法的参数的类型
+        Class[] argClass = ((MethodSignature)point.getSignature()).getParameterTypes();
+        String dsKey = ThreadLocalDSKey.DEFAULT_DS_KEY;
+        try {
+            // 得到访问的方法对象
+            Method method = className.getMethod(methodName, argClass);
+
+            // 判断是否存在@DS注解
+            if (method.isAnnotationPresent(DS.class)) {
+                DS annotation = method.getAnnotation(DS.class);
+                // 取出注解中的数据源名
+                dsKey = annotation.value();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 切换数据源
+        ThreadLocalDSKey.setDS(dsKey);
+    }
+
+    @After("@annotation(DS)")
+    public void afterSwitchDS(JoinPoint point) {
+        // ThreadLocalDSKey.clearDS();
+    }
+}
+
+// ### 7
+@Service
+public class TestService {
+    @Autowired
+    TestDao testDao;
+
+    @DS("mysql-one-dynamic")
+    public void testMysqlOne() {
+        List<Map<String, Object>> data = testDao.findTest();
+        System.out.println("data = " + data); // data = [{password=123456, id=1, username=smalle}]
+    }
+
+    @DS("mysql-two-dynamic")
+    public void testMysqlTwo() {
+        List<Map<String, Object>> data = testDao.findTest();
+        System.out.println("data = " + data); // data = [{password=ABC123, id=1, username=test_two}]
+    }
+
+	// ###### 运行时增加数据源相关代码
+    // 此数据源默认没有，需要手动添加后，才可使用。否则使用的默认数据源
+    @DS("mysql-three-dynamic")
+    public void testMysqlThree() {
+        List<Map<String, Object>> data = testDao.findTest();
+        System.out.println("data = " + data); // data = [{password=EFG456, id=1, username=test_three}]
+    }
+	
+	// 在controller中通过传入参数进行数据源切换
+    public List<Map<String, Object>> testMysql() {
+        return testDao.findTest();
+    }
+	// ###### 运行时增加数据源相关代码
+}
+```
+
+#### 运行时增加数据源 [^16]
+
+```java
+// ### 1 添加数据源
+@RequestMapping("/add-dynamic")
+public String AddDynamic(String dsKey, String dbName) {
+	if(null == dsKey && dbName == null) return "dsKey,dbName不能为空";
+
+	// 获取 DynamicDataSource。之前注册给spring 容器，这里可以通过ctx直接拿.
+	ApplicationContext ctx = springContextU.getApplicationContext(); // springContextU参考【常用配置-获取Bean】
+	DynamicDataSource dynamicDataSource = ctx.getBean(DynamicDataSource.class);
+
+	// 构建新数据源. 第一次使用才会初始化，之后切换数据源则不需重复初始化
+	DataSource ds = DataSourceBuilder.create()
+			.driverClassName("com.mysql.jdbc.Driver")
+			.url("jdbc:mysql://localhost:3306/"+ dbName +"?useUnicode=true&characterEncoding=utf-8")
+			.username("root")
+			.password("root")
+			.type(com.zaxxer.hikari.HikariDataSource.class)
+			.build();
+
+	// 增加并重设TargetDataSource
+	dynamicDataSource.addDataSourceToTargetDataSource(dsKey, ds);
+	dynamicDataSource.reSetTargetDataSource();
+
+	return "success";
+}
+
+// ### 2 服务参考上文`TestService`相关代码
+```
+
+
 
 ### session共享
 
@@ -1310,6 +1731,46 @@ http://blog.didispace.com/springbootmultidatasource/
 ## 其他
 
 ### 测试
+
+- 普通测试
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@WebAppConfiguration // 开启web上下文测试(只测试service/dao则不需要)
+public class DynamicAddTests {
+    // 注入webApplicationContext
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    private MockMvc mockMvc;
+
+    // 设置mockMvc
+    @Before
+    public void setMockMvc() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    }
+
+    @Test
+    public void login(){
+        try {
+			MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/test3?dsKey=mysql-two-dynamic"))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andReturn();
+            String content = mvcResult.getResponse().getContentAsString();
+            Assert.assertEquals("success", "hello world!", content);
+
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/login/auth")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"name\": \"smalle\"}")
+            ).andExpect(MockMvcResultMatchers.status().isOk())
+                    .andDo(MockMvcResultHandlers.print()); // 打印请求过程
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 - 多线程测试(基于Junit+[GroboUtils](http://groboutils.sourceforge.net/))
 	- 安装依赖
@@ -1340,6 +1801,7 @@ http://blog.didispace.com/springbootmultidatasource/
 				@Override 
 				public void runTest() throws Throwable { 
 					// TODO 测试内容
+					System.out.println("===>" + Thread.currentThread().getId());
 				} 
 			};
 
@@ -1353,7 +1815,7 @@ http://blog.didispace.com/springbootmultidatasource/
 			// 用于执行多线程测试用例的Runner，将前面定义的单个Runner组成的数组传入 
 			MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(arrTestRunner); 
 			try { 
-				// 开发并发执行数组里定义的内容 
+				// 并发执行数组里定义的内容 
 				mttr.runTestRunnables(); 
 			} catch (Throwable e) { 
 				e.printStackTrace(); 
@@ -1424,3 +1886,6 @@ User user = this.userRepositroy.findById(id).get();
 [^11]: http://www.cnblogs.com/GoodHelper/p/7078381.html (WebSocket)
 [^12]: http://tech.lede.com/2017/02/06/rd/server/SpringTransactional/ (Spring @Transactional原理及使用)
 [^13]: https://blog.csdn.net/qq_35542689/article/details/81205472 (springboot在Windows(无jre)下打包并运行exe)
+[^14]: http://blog.didispace.com/springbootmultidatasource/
+[^15]: https://blog.csdn.net/neosmith/article/details/61202084
+[^16]: https://ifengkou.github.io/spring_boot%E5%8A%A8%E6%80%81%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE&%E8%BF%90%E8%A1%8C%E6%97%B6%E6%96%B0%E5%A2%9E%E6%95%B0%E6%8D%AE%E6%BA%90.html

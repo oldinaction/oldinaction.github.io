@@ -194,8 +194,10 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
     ```bash
     # 镜像地址
+    # 清华 https://pypi.tuna.tsinghua.edu.cn/simple
+    # 官方 https://pypi.python.org/simple
+    # 阿里云 https://mirrors.aliyun.com/pypi/simple
     # 豆瓣 http://pypi.douban.com/simple/
-    # 清华 https://pypi.tuna.tsinghua.edu.cn/simple 
 
     # Linux下，修改 ~/.pip/pip.conf (没有就创建一个)， 修改 index-url至tuna，内容如下：
     [global]
@@ -209,6 +211,7 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
     - `pip install xxx` [pip](https://pypi.org/)
         - python3也可以使用`pip3 install xxx`
         - `pip install Django==2.0.6` 安装指定版本
+        - `pip install xxx -i http://pypi.douban.com/simple/` 指定数据源
     - `pip install xxx.whl` [whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
     - `pip list` 列举安装的模块
         - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码

@@ -98,6 +98,7 @@ public void exec() throws InvalidJobException {
     - `semaphore`: `none`(默认，并发调用服务)、`wait`(阻塞)、`fail`(报错)
     - `semaphore-sleep` 服务阻塞时间(默认500毫秒, semaphore="wait"时才有)
     - `semaphore-wait-seconds` 服务等待时间(默认300秒, semaphore="wait"时才有)
+    - `wait`模式必须获取锁，该线程才可以运行此服务。有这么一种情况在进行600次(300s/500ms=600)获取锁的尝试中，正好都有锁；而在每次500ms睡眠中恰好被其他线程获得了该服务的锁，再次检查锁的时候，该服务可能正在运行。(这是一种极端情况)
 - `semaphore="wait"` 阻塞模式，实现方式
     - 每次运行此类型服务时需要先获取**此服务**的锁
     - 获取锁的标志是可以往表`ServiceSemaphore`添加一条数据，源代码如下

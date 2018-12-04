@@ -29,8 +29,9 @@ tags: [sql, oracle, mysql]
 
 - `min`、 `max`、`sum`、`avg`、`count`、`variance`、`stddev` 
 - `count(*)`、`count(1)`、`count(id)`、`count(name)` **统计行数，不能统计值的个数**。如果有3行，但是只有name的值只有2个结果仍然为3
-- `wm_concat` **行转列，会把多行转成1行** (默认用","分割，select的其他字段需要是group by字段)
-    - `select replace(wm_concat(name), ',', '|') from test;`替换分割符
+- `wm_concat` **行转列，会把多行转成1行** (默认用`,`分割，select的其他字段需要是group by字段)
+    - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
+    - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符
 
 ### 分析函数
 
@@ -497,3 +498,4 @@ end;
 [^5]: https://docs.oracle.com/cd/E11882_01/server.112/e41084/functions065.htm#SQLRF00641 (oracle doc: keep)
 [^6]: https://lanjingling.github.io/2015/10/09/oracle-fenxihanshu-3/
 [^7]: https://www.cnblogs.com/seven7seven/p/3662451.html
+[^8]: https://www.smwenku.com/a/5b8dd9d82b71771883410ce1/ 

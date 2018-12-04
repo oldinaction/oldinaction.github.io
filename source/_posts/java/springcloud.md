@@ -148,7 +148,7 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
         ```
     - 备注：此时需要启动多个服务提供者进行测试，IDEA中：
         - 可以先启动一个后再将端口改掉再启动另外一个
-        - (推荐) `Eidt Configurations`再配置一个Spring boot的启动项，配置时将`Spring Boot Settings` - `Override parameters`添加一个参数`server.port=8080`
+        - (推荐) `Eidt Configurations`再配置一个Spring boot的启动项，配置时将`Spring Boot Settings` - `Override parameters`添加一个参数`server.port=8080`(IDEA2018.1: 参数建议不要使用中划线，而是使用驼峰标识)
 - 自定义负载均衡策略
 
     ```yml

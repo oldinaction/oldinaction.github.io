@@ -360,11 +360,17 @@ tags: [mybatis, springboot]
 				where id = #{id}
 			</select>
 
-			<!-- 获取自增主键：mysql为例 -->
-			<!-- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句) -->
-			<!-- 方式二：<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey> -->
-			<!-- 获取方式：userMapper.insert(userInfo); userInfo.getUserId(); -->
-			<insert id="insert" keyProperty="userId" useGeneratedKeys="true" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
+			<!-- 获取自增主键
+			1.定义方式
+				方式一：基于JDBC(Mysql/SqlServer都适用，Oracle不适用)
+					keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)。
+				方式二：基于方言，每个数据库提供的内部函数
+					1.Mysql: <selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>
+					2.SqlServer: <selectKey resultType="java.lang.Long" order="AFTER" keyProperty="id">SELECT IDENT_CURRENT('my_table')</selectKey>
+					3.Oracle: <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval from dual</selectKey> 需要先创建好序列SEQ_MY_TABLE
+			2.获取方式：userMapper.insert(userInfo); userInfo.getUserId();
+			 -->
+			<insert id="insert" parameterType="cn.aezo.springboot.mybatis.model.UserInfo" keyProperty="userId" useGeneratedKeys="true">
 				insert into user_info (nick_name, group_id, hobby) values (#{nickName}, #{groupId}, #{hobby})
 			</insert>
 
@@ -599,18 +605,27 @@ Char |  | Char | Char
 						1、生成selectKey语句，为mybatis生成获取自增主键值语句(必须数据库字段设置成自增)
 						2、column表的字段名(不支持通配符，因此为了方便可将所有表的主键名设置为id)
 						3、sqlStatement="MySql/DB2/SqlServer等"
+							3-1、SqlServer会生成`SELECT SCOPE_IDENTITY()`，测试无法返回主键，可使用JDBC解决
 						4、identity：true表示column代表的是主键，会在插入记录之后获取自增值替换对应model的id值(自增需要由数据库提供)，实际的insert语句将不含有主键字段; false表示非主键，会在插入记录获取自增值并替换model的id(如从序列中获取), 此时insert语句含有主键字段
 						5、最终生成的语句如
 						<selectKey keyProperty="userId" order="AFTER" resultType="java.lang.Long">
-						SELECT LAST_INSERT_ID()
+							SELECT LAST_INSERT_ID()
 						</selectKey>
 					-->
 					<generatedKey column="id" sqlStatement="MySql" identity="true" />
+
+					<!-- 
+						sqlStatement="JDBC"会生成如下代码来获取主键，适用于MySql/SqlServer
+						<insert id="insert" parameterType="cn.aezo.demo.MyTable" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+					 -->
+					<!-- <generatedKey column="id" sqlStatement="JDBC" identity="true" /> -->
 				</table>
 
 				<!-- 去掉表前缀：生成之后的文件名字User.java等。enableCountByExample标识是否使用Example -->
 				<!-- 如oracle此时的schema相当于用户名，如果不定义则会获取到多个t_user表，但是只会基于其中某个一个生成代码. 但是此时生成的mapper中表名带有前缀`smalle.` -->
-				<table schema="smalle" tableName="t_user" domainObjectName="User">
+				<table schema="smalle" tableName="t_user" domainObjectName="User"
+					enableCountByExample="false" enableUpdateByExample="false"
+					enableDeleteByExample="false" enableSelectByExample="false">
 					<!-- 去掉字段前缀 `t_` -->
 					<property name="useActualColumnNames" value="false"/>
 					<columnRenamingRule searchString="^t_" replaceString=""/>
@@ -716,12 +731,26 @@ loop pluginConfigurations
 	Context->>Context: pluginAggregator.addPlugin(plugin)
 end
 loop introspectedTables
-	/' 生成xml文档 '/
-	Context->>IntrospectedTableMyBatis3Impl: introspectedTable.getGeneratedXmlFiles()
-	/' 生成xml文档document对象 '/
-	IntrospectedTableMyBatis3Impl->>AbstractXmlGenerator: xmlMapperGenerator.getDocument()
-	/' 调用插件的 sqlMapGenerated 方法 '/
-	IntrospectedTableMyBatis3Impl->>Plugin: context.getPlugins().sqlMapGenerated()
+	/' 生成java文件 '/
+	Context->>IntrospectedTableMyBatis3Impl: introspectedTable.getGeneratedJavaFiles()
+	group 生成xml文件
+		/' 生成xml文档 '/
+		Context->>IntrospectedTableMyBatis3Impl: introspectedTable.getGeneratedXmlFiles()
+		/' 生成xml文档document对象 '/
+		IntrospectedTableMyBatis3Impl->>AbstractXmlGenerator: xmlMapperGenerator.getDocument()
+		AbstractXmlGenerator->>SimpleXMLMapperGenerator: getSqlMapElement()
+		SimpleXMLMapperGenerator->>SimpleXMLMapperGenerator: addInsertElement(answer)
+		SimpleXMLMapperGenerator->>SimpleXMLMapperGenerator: initializeAndExecuteGenerator(...)
+		SimpleXMLMapperGenerator->>AbstractXmlElementGenerator: elementGenerator.addElements(parentElement)
+		alt InsertSelectiveElementGenerator(多态)
+			/'主键处理'/
+			InsertSelectiveElementGenerator-->IntrospectedTable: introspectedTable.getGeneratedKey()
+			/'其他元素处理'/
+		else 其他类型
+		end
+		/' 调用插件的 sqlMapGenerated 方法 '/
+		IntrospectedTableMyBatis3Impl->>Plugin: context.getPlugins().sqlMapGenerated()
+	end
 end
 MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 @enduml

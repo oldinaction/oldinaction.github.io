@@ -532,9 +532,19 @@ tags: [spring, springsecurity, springboot, oauth2]
 - [理解Oauth 2.0-阮一峰](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
 - oauth2根据使用场景不同，分成了4种模式
     - 授权码模式（authorization code）：授权码模式使用到了回调地址，是最为复杂的方式，通常网站中经常出现的微博，qq第三方登录，都会采用这个形式
+        - 用户访问客户端，后者将前者导向认证服务器
+        - 用户选择是否给予客户端授权
+        - 假设用户给予授权，认证服务器将用户导向客户端事先指定的"重定向URI"（redirection URI），同时附上一个授权码
+        - 客户端收到授权码，附上早先的"重定向URI"，向认证服务器申请令牌。这一步是在客户端的后台的服务器上完成的，对用户不可见
+        - 认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access token）和更新令牌（refresh token）
     - 简化模式（implicit）：不常用
-    - 密码模式（resource owner password credentials）：password模式，自己本身有一套用户体系，在认证时需要带上自己的用户名和密码，以及客户端的client_id,client_secret。此时，access_token所包含的权限是用户本身的权限，而不是客户端的权限。
-    - 客户端模式（client credentials）：client模式，没有用户的概念，直接与认证服务器交互，用配置中的客户端信息去申请access_token，客户端有自己的client_id,client_secret对应于用户的username,password，而客户端也拥有自己的authorities，当采取client模式认证时，对应的权限也就是客户端自己的authorities。
+    - 密码模式（resource owner password credentials）：password模式，自己本身有一套用户体系，在认证时需要带上自己的用户名和密码，以及客户端的client_id,client_secret。此时，access_token所包含的权限是用户本身的权限，而不是客户端的权限
+        - 用户向客户端提供用户名和密码
+        - 客户端将用户名和密码发给认证服务器，向后者请求令牌
+        - 认证服务器确认无误后，向客户端提供访问令牌
+    - 客户端模式（client credentials）：client模式，没有用户的概念，直接与认证服务器交互，用配置中的客户端信息去申请access_token，客户端有自己的client_id,client_secret对应于用户的username,password，而客户端也拥有自己的authorities，当采取client模式认证时，对应的权限也就是客户端自己的authorities
+        - 客户端向认证服务器进行身份认证，并要求一个访问令牌
+        - 认证服务器确认无误后，向客户端提供访问令牌
 
 ### 客户端模式和密码模式
 
@@ -555,6 +565,15 @@ tags: [spring, springsecurity, springboot, oauth2]
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-data-redis</artifactId>
 </dependency>
+```
+- token存储在redis中时增加配置
+
+```yml
+# token保存在redis中需要开启
+spring:
+  redis:
+    host: 127.0.0.1
+    database: 0
 ```
 
 - 认证服务器和资源服务器配置（认证服务器基于Spring Security验证用户名/密码的配置省略）
@@ -582,7 +601,7 @@ public class OAuth2ServerConfig {
         }
     }
 
-    // 认证服务器配置(一般和资源服务器配置处于不同的项目)
+    // 认证服务器配置(一般和资源服务器配置处于不同的项目，如 spring-security-oauth2 -> consumer-movie-ribbon)
     @Configuration
     @EnableAuthorizationServer
     protected static class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
@@ -599,7 +618,7 @@ public class OAuth2ServerConfig {
             clients.inMemory()
                     // 基于client认证
                     .withClient("client_1")
-                    .resourceIds(DEMO_RESOURCE_ID)
+                    .resourceIds(DEMO_RESOURCE_ID) // 不定义资源服务器路径(@EnableResourceServer)，则对应则默认为resourceId的值`/[resourceId]/**`
                     .authorizedGrantTypes("client_credentials", "refresh_token")
                     .scopes("select")
                     .authorities("oauth2")
@@ -607,7 +626,7 @@ public class OAuth2ServerConfig {
                     .and()
                     // 基于password认证
                     .withClient("client_2")
-                    .resourceIds(DEMO_RESOURCE_ID)
+                    .resourceIds(DEMO_RESOURCE_ID) // .resourceIds(DEMO_RESOURCE_ID, DEMO_RESOURCE_ID2)
                     .authorizedGrantTypes("password", "refresh_token")
                     .scopes("select")
                     .authorities("oauth2")
@@ -640,7 +659,7 @@ public class OAuth2ServerConfig {
     }
 }
 ```
-- 资源`@GetMapping("/product/{id}")`和`@GetMapping("/order/{id}")`的定义省略
+- 资源`@GetMapping("/product/{id}")`和`@GetMapping("/order/{id}")`的定义省略 
 - 访问
 
 ```java
@@ -688,7 +707,7 @@ public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             .authorities("ROLE_CLIENT")
             .scopes("get_user_info", "get_fanslist") // 授权范围
             .secret("my-secret-888888") // app_secret
-            .redirectUris("http://localhost:9090/aiqiyi/qq/redirect") // 重定向地址
+            .redirectUris("http://localhost:9090/jump") // 重定向地址
             .autoApprove(true)
             .autoApprove("get_user_info")
             .and()
@@ -698,7 +717,42 @@ public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             .authorities("ROLE_CLIENT")
             .scopes("get_user_info", "get_fanslist")
             .secret("secret")
-            .redirectUris("http://localhost:9090/youku/qq/redirect");
+            .redirectUris("http://localhost:9090/youku/jump");
+}
+```
+- 获取资源数据
+
+```java
+// ### 1
+@Autowired
+Oauth2Utils oauth2Utils;
+
+@RequestMapping("/info")
+public QQAccount info(@RequestParam("access_token") String accessToken){
+    OAuth2Authentication oAuth2Authentication = oauth2Utils.getAuthenticationInOauth2Server(accessToken);
+    User user = ((User) oAuth2Authentication.getUserAuthentication().getPrincipal());
+    return InMemoryQQDatabase.database.get(user.getUsername());
+}
+
+// ### 2
+@Component
+public class Oauth2Utils {
+    @Autowired
+    SpringContextU springContextU; // 参考《springboot》【通用配置-获取Bean】
+
+    // oauth2 认证服务器直接处理校验请求的逻辑
+    public OAuth2AccessToken checkTokenInOauth2Server(String accessToken){
+        TokenStore tokenStore = (TokenStore) springContextU.getBean("tokenStore");
+        OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(accessToken);
+        return oAuth2AccessToken;
+    }
+
+    // oauth2 认证服务器直接处理校验请求的逻辑
+    public OAuth2Authentication getAuthenticationInOauth2Server(String accessToken){
+        TokenStore tokenStore = (TokenStore) springContextU.getBean("tokenStore");
+        OAuth2Authentication oAuth2Authentication = tokenStore.readAuthentication(accessToken);
+        return oAuth2Authentication;
+    }
 }
 ```
 
@@ -712,8 +766,11 @@ public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 @Autowired
 RestTemplate restTemplate;
 
-@RequestMapping("/aiqiyi/qq/redirect")
+@RequestMapping("/get_info")
 public String getToken(@RequestParam String code){
+    // 1.获取token
+    log.info("receive code => {}", code);
+
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     MultiValueMap<String, String> params= new LinkedMultiValueMap<>();
@@ -721,25 +778,42 @@ public String getToken(@RequestParam String code){
     params.add("code",code);
     params.add("client_id","aiqiyi");
     params.add("client_secret","my-secret-888888");
-    params.add("redirect_uri","http://localhost:9090/aiqiyi/qq/redirect"); // 此时地址必须和请求认证的回调地址一模一样
+    params.add("redirect_uri","http://localhost:9090/jump"); // 此时地址必须和请求认证的回调地址一模一样
     HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
-    
     ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8080/oauth/token", requestEntity, String.class);
     String token = response.getBody();
 
-    return token;
+    log.info("token => {}", token);
+
+    // 2.获取用户信息
+    ObjectMapper objectMapper = new ObjectMapper();
+    Map tokenMap = new HashMap<>();
+    try {
+        tokenMap = objectMapper.readValue(token, Map.class);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+    String url = "http://localhost:8080/qq/info?access_token=" + tokenMap.get("access_token");
+    ResponseEntity<Map> userEntity = restTemplate.getForEntity(url, Map.class);
+    Map userMap = userEntity.getBody();
+    log.info("userMap => {}", userMap);
+
+    return token + "<=========>" + userMap;
 }
 ```
 
 #### 访问资源
 
-- 访问授权服务器：`http://localhost:8080/oauth/authorize?client_id=aiqiyi&response_type=code&redirect_uri=http://localhost:9090/aiqiyi/qq/redirect`
+- 访问授权服务器：`http://localhost:8080/oauth/authorize?client_id=aiqiyi&response_type=code&redirect_uri=http://localhost:9090/jump`
 - 浏览器跳转到授权服务器登录页面：`http://localhost:8080/login`
-- 认证通过，获取到授权码，认证服务器重定向到：`http://localhost:9090/aiqiyi/qq/redirect?code=TLFxg1` (进入客户端后台服务)
-- 客户端服务请求认证服务器获取token：`http://localhost:8080/oauth/token`
-- 获取token成功：{"access_token":"3b017a2d-3e3d-4536-b978-d3d8e05f4b05","token_type":"bearer","refresh_token":"4593b664-9107-404f-8e77-2073515b42c9","expires_in":43199,"scope":"get_user_info get_fanslist"}
-- 浏览器地址变为：`http://localhost:9090/aiqiyi/qq/redirect?code=TLFxg1`
-- 携带 access_token 访问资源服务器：`http://localhost:8080/qq/info/123456?access_token=3b017a2d-3e3d-4536-b978-d3d8e05f4b05`
+- 认证通过，获取到授权码，认证服务器重定向到：`http://localhost:9090/jump?code=TLFxg1` (进入客户端后台服务)
+- ajax访问客户端服务：`http://localhost:9090/get_info?code=TLFxg1`
+    - 客户端服务请求认证服务器获取token：`http://localhost:8080/oauth/token`
+    - 获取token成功：{"access_token":"3b017a2d-3e3d-4536-b978-d3d8e05f4b05","token_type":"bearer","refresh_token":"4593b664-9107-404f-8e77-2073515b42c9","expires_in":43199,"scope":"get_user_info get_fanslist"}
+    - 获取用户信息(资源数据)
+- 浏览器地址变为：`http://localhost:9090/jump?code=TLFxg1`
+- 携带 access_token 访问资源服务器：`http://localhost:8080/qq/info?access_token=3b017a2d-3e3d-4536-b978-d3d8e05f4b05` (根据token可获取到用户信息)
 
 #### 第三方登录自动配置
 
