@@ -123,7 +123,7 @@ tags: [spring, spring-mvc]
         @Value("#{T(java.lang.Math).random() * 100.0}")
         private String randomNumber;
 
-        @Value("${site.url:www.aezo.cn}") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止为定义此参数值(特别是通过命令行传入的参数)
+        @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止为定义此参数值(特别是通过命令行传入的参数)
         private Resource siteUrl;
 
         @Value("#{demoService.another}") // 读取其他类属性的@Value注解值
@@ -310,9 +310,15 @@ tags: [spring, spring-mvc]
 
     ```java
     @Configuration
-    @ComponentScan("cn.aezo.spring.base.annotation.scheduled")
+    @ComponentScan("cn.aezo.spring.base.annotation.scheduled") // springboot无需
     @EnableScheduling
     public class TaskScheduledConfig {
+        // 默认同一时刻只会运行一个@Scheduled修饰的方法，时间太长会阻塞其他定时
+        // 此时定义成5个线程并发(被@Scheduled修饰的不同方法可以并发执行，同一个方法不会产生并发)
+        @Bean
+        public Executor taskScheduler() {
+            return Executors.newScheduledThreadPool(5);
+        }
     }
 
     @Service
@@ -325,7 +331,8 @@ tags: [spring, spring-mvc]
             System.out.println("每隔5秒执行一次：" + dateFormat.format(new Date()));
         }
 
-        @Scheduled(cron = "0 50 14 ? * *") // 每天14.50执行
+        @Scheduled(cron = "0 50 14 ? * *") // 每天14.50执行。程序启动并不会立即运行，比如 14:45 启动，只有等到 14:50 才会第一次运行
+        // @Scheduled(cron = "${myVal.cron}") // springboot只需再yml里面定义配置即可，无需创建JavaBean配置
         public void fixTimeException() {
             System.out.println("在指定时间执行：" + dateFormat.format(new Date()));
         }
@@ -343,8 +350,8 @@ tags: [spring, spring-mvc]
     - 常用定时配置
 
         ```bash
-        "0/10 * * * * ?" 每10秒触发 
-        "0 0 12 * * ?" 每天中午12点触发 
+        "0/10 * * * * ?" 每10秒触发(程序启动后/任务添加后，第一次触发为0/10/20/30/40/50秒中离当前时间最近的时刻。下同) 
+        "0 0 12 * * ?" 每天中午12点触发("0 0/5 * * * ?" 每5分钟执行一次 "* 0/5 * * * ?" 每5分钟连续执行60秒，期间每秒执行一次)
         "0 15 10 ? * *" 每天上午10:15触发 
         "0 15 10 * * ?" 每天上午10:15触发 
         "0 15 10 * * ? *" 每天上午10:15触发 
@@ -358,12 +365,63 @@ tags: [spring, spring-mvc]
         "0 0-5 14 * * ?" 在每天下午2点到下午2:05期间的每1分钟触发 
         "0 10,44 14 ? 3 WED" 每年三月的星期三的下午2:10和2:44触发 
         "0 15 10 ? * MON-FRI" 周一至周五的上午10:15触发 
-        "0 15 10 15 * ?" 每月15日上午10:15触发 
+        "0 15 10 15 * ?" 每月15日上午10:15触发
         "0 15 10 L * ?" 每月最后一日的上午10:15触发 
-        "0 15 10 ? * 6L" 每月的最后一个星期五上午10:15触发 
+        "0 15 10 ? * 6L" 每月的最后一个星期五上午10:15触发(6代表一周中的第6天，即周五)
         "0 15 10 ? * 6L 2002-2005" 2002年至2005年的每月的最后一个星期五上午10:15触发 
         "0 15 10 ? * 6#3" 每月的第三个星期五上午10:15触发
         ```
+- 手动启动任务和停止任务(基于springboot v2.0.1测试)
+
+```java
+// ### Job接口
+public interface Job extends Runnable {
+    String getName();
+
+    String getCron();
+
+    String setCron();
+}
+
+// ### Job管理器
+@Component
+public class JobManager {
+    @Autowired
+    private ThreadPoolTaskScheduler threadPoolTaskScheduler;
+
+    @Bean
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(20);
+        return scheduler;
+    }
+
+    private Map<String, ScheduledFuture<?>> jobMap = new ConcurrentHashMap<>();
+
+    /**
+     * 初始化定时任务
+     * @param job
+     * @param runImmediately 是否立即运行任务
+     */
+    public void startJob(Job job, boolean runImmediately) {
+        if(runImmediately) job.run();
+        ScheduledFuture<?> future = threadPoolTaskScheduler.schedule(job, new CronTrigger(job.getCron()));
+        jobMap.put(job.getName(), future);
+    }
+
+    /**
+     * 停止定时任务
+     */
+    public void stopJob(String jobName) {
+        Assert.notNull(jobName, "Job名称不能为空");
+
+        ScheduledFuture<?> future = jobMap.get(jobName);
+        if(future != null) {
+            future.cancel(true);
+        }
+    }
+}
+```
 
 ### 条件注解(Condition)
 

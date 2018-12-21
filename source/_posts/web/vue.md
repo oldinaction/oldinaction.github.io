@@ -110,13 +110,21 @@ created(): {
         ```js
         var vm = new Vue({
             data:{
-                a:1
+                a: 1,
+                user: {
+                    name: null
+                }
             }
         })
         // `vm.a` 是响应的
         vm.b = 2
         // `vm.b` 是非响应的
+        vm.user.name = 'smalle' // 是响应的
+        vm.user.password = '123456' // 是非响应的
         ```
+- **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
+    - 解决上述数组和未定义属性不响应的方法：`this.user = Object.assign({}, this.user);` 或 `this.user = JSON.parse(JSON.stringify(this.user));`
+    - 对于select，必须定义key值(只需要当前select的key值唯一，无需整个页面的key值唯一)保证唯一性。否则容易出现无法选择/无法修改该select的值，导致数据响应不触发
 - 扩展说明
 
 ```html

@@ -360,14 +360,14 @@ tags: [mybatis, springboot]
 				where id = #{id}
 			</select>
 
-			<!-- 获取自增主键
+			<!-- insert/update返回主键(默认返回修改的数据执行状态/影响行数)
 			1.定义方式
 				方式一：基于JDBC(Mysql/SqlServer都适用，Oracle不适用)
 					keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)。
 				方式二：基于方言，每个数据库提供的内部函数
 					1.Mysql: <selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>
 					2.SqlServer: <selectKey resultType="java.lang.Long" order="AFTER" keyProperty="id">SELECT IDENT_CURRENT('my_table')</selectKey>
-					3.Oracle: <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval from dual</selectKey> 需要先创建好序列SEQ_MY_TABLE
+					3.Oracle: <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval as id from dual</selectKey> 需要先创建好序列SEQ_MY_TABLE
 			2.获取方式：userMapper.insert(userInfo); userInfo.getUserId();
 			 -->
 			<insert id="insert" parameterType="cn.aezo.springboot.mybatis.model.UserInfo" keyProperty="userId" useGeneratedKeys="true">

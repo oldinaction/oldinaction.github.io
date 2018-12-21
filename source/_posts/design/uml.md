@@ -151,7 +151,7 @@ UML中的关系包括：依赖、关联、泛化(extend)、实现
         - 选中这个线，在右下角有个设置属性区域，把ActionKind的值由CALL改为RETURN
     - `Combined Fragment` 交互片段
         - `alt` 选择性片段，多条件分支；用虚线分割(`Interaction Operand`)，每个区域代表一个分支
-        - `opt` 满足条件则执行分支
+        - `opt` 满足条件则执行分支(添加片段：双击图标实例 - Add Operand)
         - `loop` 循环
         - `par` 并行执行
         - `region` 只能执行一个线程的临界片段

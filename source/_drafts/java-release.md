@@ -71,8 +71,22 @@ stream = list.stream();
 // stream() 获取myGoods的 source，filter 和 mapToInt 为 intermediate 操作，进行数据筛选和转换，最后一个 sum() 为 terminal 操作，对符合条件的数据作重量求和
 int sum = myGoods.stream()
                 .filter(g -> g.getColor() == "RED")
-                .mapToInt(g -> g.getWeight())
+                .mapToInt(g -> g.getNum()) // g.getNum()必须返回int类型
                 .sum();
+
+List<String> list = myGoods.stream()
+                            .map(item -> item.getColor()) // 等同于 `.map(Good::getColor)`
+                            // .sorted((a, b) -> {return a.compareTo(b);}) // 升序排列
+                            .sorted(String::compareTo)  // 升序排列
+                            // .sorted(Comparator.reverseOrder()) // 降序排列
+                            .collect(Collectors.toList());
+
+myGoods.stream()
+        .map(item -> item.getColor())
+        .sorted(String::compareTo)
+        .forEach(dbNo -> {
+            System.out.println("dbNo = " + dbNo);
+        });
 ```
 
 

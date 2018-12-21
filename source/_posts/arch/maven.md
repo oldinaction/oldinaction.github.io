@@ -242,6 +242,8 @@ tags: [maven]
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<version>4.12</version>
+				<!--父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入-->
+				<optional>true</optional>
 			</dependency>
 		</dependencies>
 	</project>
@@ -262,12 +264,13 @@ tags: [maven]
 
 ### 标签介绍
 
-- `scope`：取值有compile、runtime、test、provided、system和import。
+- `dependency#scope`：取值有compile、runtime、test、provided、system和import。
     - `compile`：这是依赖项的默认作用范围，即当没有指定依赖项的scope时默认使用compile。compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时。
     - `runtime`：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。
     - `test`：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。
     - `provided`：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。(如smtools工具类中引入某jjwt的jar包并设置provided，且只有JwtU.java中使用了此jar。当其他项目使用此smtools，如果开发过程中并未使用JwtU，即类加载器没有加载JwtU则此项目pom中不需要引入jjwt的jar；否则需要引入)
     - `system`：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。
+- `dependency#<optional>true</optional>` 父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入
 
 ### build节点
 
@@ -275,6 +278,19 @@ tags: [maven]
 
 	```xml
 	<build>
+        <plugins>
+			<!-- 控制代码编译成字节码的java语言版本，对应idea里面的language level -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+
 		<resources>
 			<!--java目录下除了.java文件，其他格式的文件全部打包到jar中-->
 			<resource>
@@ -323,7 +339,7 @@ tags: [maven]
 
 ### 多环境编译 [^2]
 
-- 添加多环境配置
+- 添加多环境配置(会在idea的maven project菜单中显示)
 
 ```xml
 </project>
@@ -344,6 +360,13 @@ tags: [maven]
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+			<build>
+				<plugins>...</plugins>
+			</build>
+			<!-- 需要引入的子模块 -->
+			<modules>
+				<module>xxx</module>
+			</modules>
         </profile>
         <profile>
             <id>test</id>

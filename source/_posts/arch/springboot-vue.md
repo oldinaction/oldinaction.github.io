@@ -173,21 +173,19 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 - get请求传递数组
 
-
-```js
-let vm = this
-this.$axios.get("/hello", {
-    params: {
-        typeCodes: ["CustomerSource", "VisitLevelCode"]
-    },
-    paramsSerializer: function(params) {
-        return vm.$qs.stringify(params, {arrayFormat: 'repeat'}) // 此时this并不是vue对象
-    }
-}).then(response => {
-    console.log(response.data)
-});
-```
-
+    ```js
+    let vm = this
+    this.$axios.get("/hello", {
+        params: {
+            typeCodes: ["CustomerSource", "VisitLevelCode"]
+        },
+        paramsSerializer: function(params) {
+            return vm.$qs.stringify(params, {arrayFormat: 'repeat'}) // 此时this并不是vue对象
+        }
+    }).then(response => {
+        console.log(response.data)
+    });
+    ```
 - post请求无法接收
     - 使用`qs`插件(推荐)
     - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
@@ -204,12 +202,15 @@ this.$axios.get("/hello", {
                 password: 'smalle'
             }
         }).then((res)=>{
-
+            
         })
         ```
 
-        - axios的params和data两者关系：params是添加到url的请求字符串中的，用于get请求；而data是添加到请求体body中的， 用于post请求(如果写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行)
-        - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据添加到url中，所以服务器能够正确解析
+        - axios的params和data两者关系
+            - params是添加到url的请求字符串中的，一般用于GET请求
+            - data是添加到请求体body中的， 用于POST请求。Spring中可在通过`getUser(@RequestBody User user)`获取body中的数据，从request对象中只能以流的形式获取
+            - 如果POST请求参数写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也无法直接获取，必须通过@RequestBody)
+        - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据以url序列化的方式进行传递，所以服务器能够正确解析
         - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
 
 ## 用户浏览器缓存问题 [^5]

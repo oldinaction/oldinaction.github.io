@@ -13,7 +13,7 @@ tags: [thymeleaf, java, springboot, template]
 - 常用上下文获取
 
 ```html
-<!-- html页面取值 -->
+<!-- html页面取值. [[1, 2, 3]]再js中容易导致渲染出错，可在中间加空格，如 [ [1, 2, 3] ] -->
 [[${myVar}]]
 
 <!-- 获取url参数 -->
@@ -26,6 +26,23 @@ tags: [thymeleaf, java, springboot, template]
 
 <!-- 被|包裹的变量会转换后和字符串进行拼接。@{...}为链接表达式 -->
 <a href="" th:href="@{|/user/${user.id}|}">链接地址</a> 
+
+<!-- map取值 -->
+<span th:text="${myMap['key']}"></span>
+```
+- 自定义全局静态对象
+
+```java
+@Resource(name="thymeleafViewResolver")
+ThymeleafViewResolver thymeleafViewResolver;
+
+// 注入数据
+Map<String, Object> context = new HashMap();
+context.put("username", "smalle");
+thymeleafViewResolver.setStaticVariables(context);
+
+// 取值
+[[${username}]]
 ```
 
 - 内置对象
@@ -69,7 +86,7 @@ tags: [thymeleaf, java, springboot, template]
             }
         }
         ```
-- js/css取值
+- html/js/css取值
 
 ```html
 <script th:inline="javascript">

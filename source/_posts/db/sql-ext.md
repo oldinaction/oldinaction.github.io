@@ -13,8 +13,6 @@ tags: [sql, oracle, mysql]
 - mysql书写顺序和执行顺序都是按照`select-from-where-group by-having-order by-limit`进行的
 - MySQL中子结果集必须使用别名，而Oracle中不需要特意加别名
 
-- grouping、rollup：http://blog.csdn.net/damenggege123/article/details/38794351
-
 ### 常用函数
 
 - `decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)` 只能判断=，不能判断like(like可考虑case when)
@@ -32,6 +30,23 @@ tags: [sql, oracle, mysql]
 - `wm_concat` **行转列，会把多行转成1行** (默认用`,`分割，select的其他字段需要是group by字段)
     - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
     - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符
+
+### 其他函数
+
+- grouping、rollup：http://blog.csdn.net/damenggege123/article/details/38794351
+- `trunc` oracle时间处理
+    
+    ```sql
+    select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天和今天（2018-01-01, 2018-01-02）
+    ```
+- oracle递归查询(树形结构)
+
+    ```sql
+    select * from my_table t 
+    start with t.pid = 1 -- 基于此条件进行向下查询(省略则表示基于全表为根节点向下查询，可能会有重复数据)
+    connect by nocycle prior t.id = t.pid -- 递归条件(递归查询不支持环形。此处nocycle表示忽略环，如果确认结构中无环形则可省略。有环形则必须加，否则报错)
+    where t.valid_status = 1; -- 将递归获取到的数据再次过滤
+    ```
 
 ### 分析函数
 

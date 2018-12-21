@@ -18,11 +18,11 @@ tags: [IDE]
 1. 进入到Project Structure：`File - Project Structure`
 2. 配置步骤
     - `Project` 项目级别
-        - 主要是project compiler output的位置(src的编译位置)：如`/myproject/WebRoot/WEB-INF/classes`，为对应WEB-INF下的classes目录
+        - 主要是project compiler output的位置(src的编译位置)：如`D:/myproject/classes`(使用默认即可)，为对应WEB-INF下的classes目录
     - `Modules` 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
         - `Sources` 将src目录标记成Sources目录**（如果是maven项目则标记java、test目录，即包名的上级目录）**
-        - `Paths` 使用modules compiler output path，设置路径为`/myproject/WebRoot/WEB-INF/classes`
-        - `Dependencies` 加入jdk、tomcat、其他依赖jar(如`\WEB-INF/lib`中的jar)
+        - `Paths` 使用modules compiler output path，设置路径为`D:/myproject/mymodule/target/classes`。主要解决idea自身编译(使用默认的即可)
+        - `Dependencies` 加入jdk、tomcat、其他依赖jar(如`/WEB-INF/lib`中的jar，如果是maven依赖则不需要加入)。主要解决idea自身编译(语法检查)
     - `Libraries` 如将`/WEB-INF/lib`中的所有jar定义一个目录，直接加入到`Dependencies`中
     - `Facets`
         - 点击`+` - `web`
@@ -37,6 +37,7 @@ tags: [IDE]
             - `Output directory`为`D:/myproject/war`
         - `web application exploded` 是以文件夹形式（War Exploded）发布项目，选择这个，发布项目时就会自动生成文件夹在指定的output directory
         - `web application archive` 是war包形式，每次都会重新打包全部的,将项目打成一个war包在指定位置
+        - 如果是maven项目：选中Available Elements中的依赖，将需要的依赖加入到WEB-INF/lib中(右键，put into WEB-INF/lib. tomcat相关依赖无需加入，因为最终Artifacts会部署到tomcat容器)。否则像struts2会报错`java.lang.ClassNotFoundException: org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter`
 3. `Run configuration`配置tomcat
     - `JRE`填写jdk路径
     - `Deployment`中将刚刚的war配置进入
@@ -63,7 +64,7 @@ tags: [IDE]
 - 常用快捷键
     - `Ctrl + Shif + F9` 热部署
     - `Ctrl + Shifg + Space` 智能补全
-    - `Ctrl + Shif + F/R` 全局查找/替换
+    - `Ctrl + Shif + F/R` 全局查找/替换(jar包只有下载了源码才可检索)
     - `Ctrl + Shif + N` 搜索文件(可选中文件路径后再按键)
     - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
     - `Alt + Shift + 上下` 上下移动当前行

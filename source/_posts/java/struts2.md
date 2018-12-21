@@ -13,7 +13,7 @@ tags: [ssh, mvc]
 3. 官网：[http://struts.apache.org/](http://struts.apache.org/), 下文基于版本2.3.24(当前更新到2.5.10)
 4. 所需jar包：struts2/lib下的jar包
 
-    ```html
+    ```bash
     commons-fileupload-1.3.1.jar
     commons-io-2.2.jar
     commons-lang3-3.2.jar
@@ -23,6 +23,24 @@ tags: [ssh, mvc]
     struts2-core-2.3.24.1.jar
     xwork-core-2.3.24.1.jar
     ```
+    - maven对应依赖
+
+        ```xml
+        <!-- https://mvnrepository.com/artifact/org.apache.struts/struts2-core -->
+        <dependency>
+            <groupId>org.apache.struts</groupId>
+            <artifactId>struts2-core</artifactId>
+            <version>2.3.24</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.2</version>
+        </dependency>
+        ```
+
 5. struts知识点
     - Action
     	- a)namespace（掌握）

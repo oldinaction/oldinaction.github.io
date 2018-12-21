@@ -19,6 +19,7 @@ tags: [mysql, oracle, sql]
 - 按字段顺序一一插入值 `insert into dept2 values(50, 'game', 'bj');`
 - 指定部分字段的值 `insert into dept2(deptno, dname) values(60, 'game2');` 未指定的字段取默认值
 - 根据从子查询的值插入 `insert into dept2 select * from dept;` 子查询拿出来的数据和表结构要一样
+    - `insert into tab1(id, name, status) select t.user_id, t.username, '1' from tab2 t where t.sex = 1`
 - 产生100w条数据
 
 ```sql
@@ -661,10 +662,21 @@ select *
                 // 4. 执行 SQL 
                 rs = stmt.executeQuery("select * from user where id =1");
                 // 5. 显示结果集里面的数据  
-                while(rs.next()) {  
+                while(rs.next()) {
                     System.out.println(rs.getInt("id"));  
                     System.out.println(rs.getString("username"));  
                     System.out.println(rs.getString("password"));  
+                }
+
+                // 返回插入后生成的主键
+                String sql = "INSERT INTO user(name) VALUES (?)";
+                // PreparedStatement preparedStatement = conn.prepareStatement(sql, {"id"}); // oracle(也使用于mysql)
+                PreparedStatement preparedStatement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS); // 常用，如mysql
+                preparedStatement.setString(1, "smalle");
+                preparedStatement.executeUpdate();
+                ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+                while (generatedKeys.next()) {
+                    long generateKey = generatedKeys.getLong(1); // 返回的主键
                 }
             } catch (ClassNotFoundException e) {
                 System.out.println("驱动类没有找到！");

@@ -176,7 +176,17 @@ tags: springboot
 
 ### 获取Bean [^7]
 
-- 此处选择实现`ApplicationContextAware`接口
+- 自动注入
+
+```java
+@Autowired
+private ApplicationContext applicationContext;
+
+public void test() {
+	Mytest mytest = applicationContext.getBean(Mytest.class);
+}
+```
+- 实现`ApplicationContextAware`接口
 
 ```java
 @Component("springContextU")
@@ -230,19 +240,16 @@ public class SpringContextU implements ApplicationContextAware {
 </dependency>
 ```
 - 定义/调用
+	- 命令行参数 > application.properties > JavaBean
+	- 命令行参数设置了此属性配置，但属性的值为空。此时可以覆盖`application.properties`的初始值，但是不会覆盖JavaBean的初始值
 
 ```java
-// 定义
-@ConfigurationProperties(prefix = "myValue")
-public class MyValue {
-	// ...Model：字段、get、set方法
-}
-
+// ### 方法一
 // 设值：在application.properties中设置`myValue.val`的值
 
 // 取值
 @Value("${myValue.val}")
-private String val;
+private String val = "smalle"; // 默认值。命令行参数此属性传入空时，此初始值不会被覆盖
 
 private static String hello;
 
@@ -250,6 +257,17 @@ private static String hello;
 public void setHello(String hello) {
 	this.hello = hello;
 }
+
+// 方法二：定义JavaBean
+@Configuration
+@ConfigurationProperties(prefix = "myValue")
+public class MyValue {
+	// ...Model：所有的属性、get、set方法
+}
+
+// 取值
+@Autowired
+private MyValue myValue;
 ```
 
 ### `@Autowired`注入给静态属性
@@ -460,6 +478,23 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 ```
 - 示例参考【多数据源/动态数据源/运行时增加数据源】章节中的【动态数据源】
 
+### 其他
+
+- 获取资源文件
+
+```java
+// 获取编译后classes目录下的`images/tray-running.png`文件，resources目录下的文件默认会放在classes根目录(上层无resources这层目录)
+MyTest.class.getClassLoader().getResource("images/tray-running.png")
+```
+- yml配置
+
+```yml
+myConfig:
+  # classpath为编译后classes目录的路径
+  path: classpath:../db/default.accdb
+```
+
+
 ## 请求及响应
 
 - 相关配置
@@ -599,7 +634,8 @@ public RestTemplate restTemplate() {
 RestTemplate restTemplate; // 无需手动引入
 
 // （1） getForEntity
-ResponseEntity<Map> responseEntity = restTemplate.getForEntity("http://localhost/list", Map.class);
+ResponseEntity<Map> responseEntity = restTemplate.getForEntity("http://localhost/list?username={name}", Map.class, 
+	new HashMap<String, Object>() {{put("name", "smalle");}});
 HttpHeaders headers = responseEntity.getHeaders();
 HttpStatus statusCode = responseEntity.getStatusCode();
 int code = statusCode.value();
@@ -612,6 +648,35 @@ Video video = restTemplate.getForObject("http://localhost/video", Video.class);
 Video video = new Video();
 ResponseEntity<Video> responseEntity = restTemplate.postForEntity("http://localhost/video", video, Video.class);
 video = responseEntity.getBody();
+```
+
+- 设置超时时间
+
+```java
+@Bean // spirngboot > 1.4 无需其他依赖
+public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
+	// 服务器内存溢出，还未宕机时，是可以访问，但是一直获取不到返回。需要超时机制
+	return restTemplateBuilder
+			.setConnectTimeout(3000)
+			.setReadTimeout(3000)
+			.build();
+}
+
+// @Bean // springboot < 1.3 需要httpclient依赖
+// public RestTemplate customRestTemplate(){
+//     HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+//     httpRequestFactory.setConnectionRequestTimeout(3000);
+//     httpRequestFactory.setConnectTimeout(3000);
+//     httpRequestFactory.setReadTimeout(3000);
+//
+//     return new RestTemplate(httpRequestFactory);
+// }
+
+@Primary // 默认的Bean
+@Bean
+public RestTemplate RestTemplate() {
+	return new RestTemplate();
+}
 ```
 
 ## 数据访问
@@ -1841,9 +1906,12 @@ public class DynamicAddTests {
 - 使用`exe4j`打包成exe，常用配置选择 [^13]
 	- `2.Project Type`：jar in exe mode
 	- `4.Executable info - 32-bit or 64-bit`：生成exe的版本
+		- Redirection: 勾选Redirect stderr、Redirect stdout可生成日志信息(如果安装在C盘受保护目录则需要以管理员运行程序才会生成日志，如果安装在D盘则不需要管理员启动。日志生成在可执行文件的相对目录)
+		- Manifast options: `As invoker`以普通程序执行，`Require administrator`需要管理员权限执行
 	- `5.Java invocation`：class path中添加springboot生成的jar(可通过java -jar正常运行)的相对路径(基于.exe4j配置文件; exe4j v6.0此处无法选择，只能手输)；main class from填写`org.springframework.boot.loader.JarLauncher`
 	- `6.JRE`：添加Directory目录为jre的路径，最好为相对路径，如`./jre`，此步骤并不会吧jre打包到exe中，只会设置exe寻找jre的路径。之后需要将jre和exe文件放在一起打包给用户
 	- 给用户提供配置文件，如可执行文件为`myexe.exe`，则在此可执行文件目录创建`myexe.exe.vmoptions`文件，里面加入JVM参数(如：`-Xms256m`)或自定义参数(如：`-DmyValue.val=123456`，其中`myValue.val`是通过`@ConfigurationProperties`定义的参数)，一行一个参数，参数值如果为路径也支持`\`
+	- 程序的classpath为exe可执行文件所在目录，如果需要创建文件，则需要可创建文件的权限(如以管理员启动)。程序生成的文件，在卸卸载的时候不会删除(卸载只会删除初始安装的所有文件和文件夹)
 - 使用[InnoSetup](http://www.jrsoftware.org/isdl.php)打成可安装程序(打包后大概80M)
 	- File - New - 跟随提示进行配置。
 		- Application Files配置：Application main executable file选择exe4j生成的exe文件；

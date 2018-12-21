@@ -125,6 +125,44 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 - [示例请看源码](https://github.com/oldinaction/springcloud/tree/master/demo2-microservice-eureka)
     - 示例中使用H2数据库，IDEA连接方式：path:`mem:testdb`, user:`sa`, password:空, url:`jdbc:h2:mem:testdb`, 使用`Embedded`或`In-memory`方式连接
 
+### eureka server HA
+
+```yml
+security:
+  basic:
+    enabled: true #开启eureka后台登录认证
+  user:
+    name: smalle
+    password: smalle
+
+# 相当于文件application-peer1.yml，启动加active profile为peer1
+---
+server:
+  port: 8761
+spring:
+  profiles: peer1
+eureka:
+  instance:
+    # 需要在/etc/hosts中加127.0.0.1的映射
+    hostname: peer1
+  client:
+    serviceUrl:
+      # 向另外一个服务器注册自己
+      defaultZone: http://smalle:smalle@peer2:8762/eureka/
+
+---
+server:
+  port: 8762
+spring:
+  profiles: peer2
+eureka:
+  instance:
+    hostname: peer2
+  client:
+    serviceUrl:
+      defaultZone: http://smalle:smalle@peer1:8761/eureka/
+```
+
 ## Ribbon客户端负载均衡
 
 - 简介
@@ -1122,11 +1160,11 @@ try {
     ```yml
     # 解决办法
     spring:
-    cloud:
-        refresh:
-        # Dalston.SR1 -> Finchley.SR1. 报错：The dependencies of some of the beans in the application context form a cycle:(dataSource和DataSourceInitializerInvoker相互依赖)
-        # 解决办法：https://github.com/spring-cloud/spring-cloud-commons/issues/355
-        refreshable: none
+        cloud:
+            refresh:
+            # Dalston.SR1 -> Finchley.SR1. 报错：The dependencies of some of the beans in the application context form a cycle:(dataSource和DataSourceInitializerInvoker相互依赖)
+            # 解决办法：https://github.com/spring-cloud/spring-cloud-commons/issues/355
+            refreshable: none
     ```
 
 
