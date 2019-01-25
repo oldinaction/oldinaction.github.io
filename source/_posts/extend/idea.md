@@ -12,6 +12,9 @@ tags: [IDE]
 
 - 新建包文件夹，一定要一层一层的建，或者创建`cn/aezo`的文件夹，不能创建一个`cn.aezo`(不会自动生成两个文件夹)
 - for快捷键使用：`list.for`、`arr.for`. **可以在`File`-`Setting`-`Editor`-`General`-`Postfix Completion`中查看**
+- 代码注释设置 https://blog.csdn.net/weixin_39591795/article/details/78844428
+    - 类注释: Editor - File and Code Templates
+    - 方法注释：Editor - Live Templates
 
 ### java web项目配置(springmvc) [^1]
 
@@ -38,7 +41,10 @@ tags: [IDE]
         - `web application exploded` 是以文件夹形式（War Exploded）发布项目，选择这个，发布项目时就会自动生成文件夹在指定的output directory
         - `web application archive` 是war包形式，每次都会重新打包全部的,将项目打成一个war包在指定位置
         - 如果是maven项目：选中Available Elements中的依赖，将需要的依赖加入到WEB-INF/lib中(右键，put into WEB-INF/lib. tomcat相关依赖无需加入，因为最终Artifacts会部署到tomcat容器)。否则像struts2会报错`java.lang.ClassNotFoundException: org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter`
-3. `Run configuration`配置tomcat
+3. `Run configuration`启动配置。如使用tomcat启动
+    - `+` - `tomcat server` - `local`
+    - `Application Server`: 本地tomcat路径
+    - `VM`：添加`-Dfile.encoding=UTF-8`防止出现乱码
     - `JRE`填写jdk路径
     - `Deployment`中将刚刚的war配置进入
     - 在`Before launch`中加入Build这个war包
@@ -65,7 +71,6 @@ tags: [IDE]
     - `Ctrl + Shif + F9` 热部署
     - `Ctrl + Shifg + Space` 智能补全
     - `Ctrl + Shif + F/R` 全局查找/替换(jar包只有下载了源码才可检索)
-    - `Ctrl + Shif + N` 搜索文件(可选中文件路径后再按键)
     - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
     - `Alt + Shift + 上下` 上下移动当前行
     - `Ctrl + Shift + Backspace` 回到上次编辑位置
@@ -75,6 +80,7 @@ tags: [IDE]
     - `Ctrl + W` 语句感知
     - `Ctrl + B` 跳转到声明
     - `Ctrl + N` 跳转到类
+    - `Ctrl + Shif + N` 搜索文件(可选中文件路径后再按键)
     - `Ctrl + Shift + Entry` 完成整句
     - `Alt + Insert` 自动生成(Getter/Setter等)
     - `Ctrl + Shift + F7` 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处

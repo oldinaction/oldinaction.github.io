@@ -63,7 +63,11 @@ gitlab-rake gitlab:check SANITIZE=true
 - 访问项目首页(如：http://114.55.888.888/)，结果页面不显示，地址栏的地址变成 http://gitlab/users/sign_in
     - 尝试方法：首先确保`/etc/gitlab/gitlab.rb`中的设置了`external_url`（如：`external_url "http://www.example.com"`），如果设置了，运行命令重新配置（`sudo gitlab-ctl reconfigure`，无需重启）。
 
+## 管理员
 
+- 管理员登录可在界面上对gitlab进行基本配置
+- 找回管理员密码：https://www.jianshu.com/p/25afcfd02019
+- 设置项目上限：管理员登录访问：/admin/users/ 编辑用户设置项目上限
 
 ---
 

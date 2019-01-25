@@ -31,6 +31,28 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 - 服务提供者、服务消费者
 - 服务消费者中通过restTemp调用服务提供者提供的服务
     - 如：`User user = this.restTemplate.getForObject("http://localhost:7900/simple/" + id, User.class);`
+- maven依赖
+
+```xml
+<!-- maven的parent是单继承，如果需要依赖多个父项目可以在dependencyManagement中添加依赖的scope为import -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.0.1.RELEASE</version>
+</parent>
+
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>Finchley.SR2</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
 
 ## Eureka服务发现
 
@@ -94,6 +116,10 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
             # 将eureka注册到哪个url
             serviceUrl:
                 defaultZone: http://user:password@${eureka.instance.hostname}:${server.port}/eureka/
+        server:
+            # 清理间隔（单位毫秒，默认是60*1000），开发环境设置如下可快速移除不可用的服务
+            eviction-interval-timer-in-ms: 5000
+            enable-self-preservation: false
     ```
 - 后台地址：`http://localhost:8761`
 
@@ -286,7 +312,7 @@ eureka:
           # ignored-patterns: /**/admin/**
           # 路由前缀
           # prefix: /api
-          # zuul默认会过滤路由前缀(strip-prefix=true)，此处是关闭此过滤
+          # zuul默认会过滤路由前缀(strip-prefix=true)，此处是关闭此过滤(路由前缀将无效)
           # strip-prefix: false
           routes:
             # 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录
@@ -397,6 +423,7 @@ eureka:
     }
     ```
 - 动态路由：请见分布式配置中心(Config)部分
+- 基于spring security oauth2进行认证，参考[http://blog.aezo.cn/2017/10/22/java/springsecurity/](/_posts/java/springsecurity.md)。源码参考[https://github.com/oldinaction/springcloud/tree/master/demo11-microservice-oauth2]
 
 ## Config 分布式配置中心(Spring Cloud Config)
 
@@ -429,41 +456,79 @@ eureka:
     ```yml
     spring:
         cloud:
-        config:
-            server:
-            git:
-                # 可以使用占位符{application}、{profile}、{label}
-                uri: https://git.oschina.net/smalle/spring-cloud-config-test.git
-                # 搜索此git仓库的配置文件目录
-                search-paths: config-repo
-                username: smalle
-                password: aezocn
+            config:
+                server:
+                    git:
+                        # 可以使用占位符{application}、{profile}、{label}
+                        uri: https://git.oschina.net/smalle/spring-cloud-config-test.git
+                        # 搜索此git仓库的配置文件目录
+                        search-paths: config-repo
+                        username: smalle
+                        password: aezocn
 
-        server:
-            port: 7000
+    server:
+        port: 7000
 
-        security:
-            basic:
-                enabled: true # 开启权限验证(默认是false)
-            user:
-                name: smalle
-                password: smalle
+    security:
+        basic:
+            enabled: true # 开启权限验证(默认是false)
+        user:
+            name: smalle
+            password: smalle
 
-        # eureka客户端配置
-        eureka:
-            client:
-                serviceUrl:
-                defaultZone: http://smalle:smalle@localhost:8761/eureka/
-            instance:
-                # 启用ip访问
-                prefer-ip-address: true
-                instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    # eureka客户端配置
+    eureka:
+        client:
+            serviceUrl:
+            defaultZone: http://smalle:smalle@localhost:8761/eureka/
+        instance:
+            # 启用ip访问
+            prefer-ip-address: true
+            instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     ```
 - 在git仓库的config-repo目录下添加配置文件: `consumer-movie-ribbon.yml`(写如配置如：from: git-default-1.0. 下同)、`consumer-movie-ribbon-dev.yml`、`consumer-movie-ribbon-test.yml`、`consumer-movie-ribbon-prod.yml`，并写入参数
 - 访问：`http://localhost:7000/consumer-movie-ribbon/prod/master`即可获取应用为`consumer-movie-ribbon`，profile为`prod`，git分支为`master`的配置数据(`/{application}/{profile}/{label}`)
-    - 某application对应的配置命名必须为`{application}-{profile}.yml`，其中`{profile}`和`{label}`可在对应的application的`bootstrap.yml`中指定
+    - 某application对应的配置命名必须为 **`{application}-{profile}.yml`**，其中`{profile}`和`{label}`可在对应的application的`bootstrap.yml`中指定
     - 访问配置路径后，程序默认会将配置数据下载到本地，当git仓库不可用时则获取本地的缓存数据
     - 支持git/svn/本地文件等
+    - 本地生成的仓库临时目录如`C:\Users\smalle\AppData\Local\Temp\config-repo-1469628134290927989`。可删除这些文件夹，重启项目进行测试
+
+#### git仓库密码加密 [^5]
+
+- [下载jce扩展jar包](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)：将`local_policy.jar`、`US_export_policy.jar`放入`$JAVA_HOME/jre/lib/security`(覆盖之前文件)
+- 生成秘钥对
+    - 命令行运行`keytool -genkeypair -alias config-server -keyalg RSA -keypass aezocn -keystore config-server.jks -storepass aezocn`(一路回车，最好一个输入Y)，会在命令的当前目录生成一个`config-server.jks`的文件
+    - 将`config-server.jks`文件放在项目`resources`目录
+- `bootstrap.yml`中配置
+
+    ```yml
+    encrypt:
+        key-store:
+            # file:${user.home}/config-server.jks
+            location: config-server.jks
+            alias: config-server
+            password: aezocn
+            secret: aezocn
+    ```
+- 启动config服务后获取加密文本
+    - `curl localhost:7000/encrypt -d smalle_mypassword` 获取加密文本如`AQCY22PkcuNZCfPS98zTv2TQD4Cgce4IzuDx7HmoxvVwqXl9IZAO/NbNAiqbtldZgf5TXpmscMueVkVdL1AcuIGzaiKSxhZwtgObnDuSijT8LWIjKPzN7cCUv8vh9i82CpOcYD80nXHKAWeqs/4PhGdRzaHujfceT0YHE4yk2bZsPWhNbFu+KBMsjsecnkwOHkamfz2Xeq9kqjoGFPMImtaCIhw7eX9wS81Mzn7YeG04iugz4Mh70h/5e7Ls9Q9OEz5zXfDYjpBbsXQRp+3JXBbIDyseQZHWh72ziKkGqPGvl9XSllpY/F2v5qKKHB/X2tmgMW81kwrm8hwjlqYfwEMw/H18LfrnYgBnZpHpKqMHtgJ22G993Zwkfqo3ULaveJ4=`
+    - `curl localhost:7000/decrypt -d AQCY22PkcuNZCfPS98zTv2TQD...` **解密得到`smalle_mypassword`**(可进行反向解密)
+    - config服务暴露的加密解密端点
+        - `/encrypt`: 对POST请求的body内容进行加密的端点
+        - `/decrypt`：对POST请求body内容进行解密的端点
+- `application.yml`中配置
+
+    ```yml
+    # spring.datasource.username={cipher}AQCY22PkcuNZCfPS98zTv2TQD...
+    spring:
+        datasource:
+            # 如果{cipher}类型密码错误可能会导致项目无法启动
+            username: '{cipher}AQCY22PkcuNZCfPS98zTv2TQD...'
+            password: '{cipher}...'
+    ```
+- 去掉`bootstrap.yml`中配置`encrypt.key-store`。通过环境变量(或者location改成类似`file:${user.home}/config-server.jks`)定义`encrypt.key-store`参数值。**由于可通过/decrypt进行反向解密，此方式并不能完全隐藏密码。此安全策略主要用于开发组设置不同环境dev/prod的配置进行开发，最终交由运维组进行部署，prod中的加密密码可有运维提前给到开发组(config-server.jks秘钥文件由运维保管)，部署时指定秘钥文件即可。**
+- `encrypt.key-store`对应的环境变量为：`ENCRYPT_KEY_STORE_LOCATION` `ENCRYPT_KEY_STORE_ALIAS` `ENCRYPT_KEY_STORE_PASSWORD` `ENCRYPT_KEY_STORE_SECRET`
+    - 测试环境变量没有生效，**可以使用`encrypt.key-store.location=file:${user.home}/config-server.jks`** ${user.home}只机器当前登录用户目录
 
 ### 客户端配置映射
 
@@ -526,10 +591,9 @@ eureka:
 - 动态刷新配置(可获取最新配置信息的git提交)
 - config客户端重启会刷新配置(重新注入配置信息)
 - 动态刷新
-    - 在需要动态加载配置的Bean上加注解`@RefreshScope`
+    - 在需要动态加载配置的Bean上加注解`@RefreshScope`(如ConfigController中加入了此注解，则只有此类的配置可刷新，其他类的配置不会获取最新值)
     - 给 **config client** 加入权限验证依赖(`org.springframework.boot/spring-boot-starter-security`)，并在对应的application.yml中开启验证
         - 否则访问`/refresh`端点会失败，报错：`Consider adding Spring Security or set 'management.security.enabled' to false.`(需要加入Spring Security或者关闭端点验证)
-    - 对应的需要注入配置的类加`@RefreshScope`
     - `POST`请求`http://localhost:9000/refresh`(将Postman的Authorization选择Basic Auth和输入用户名/密码)
     - 再次访问config client的 http://localhost:9000/from 即可获取最新git提交的数据(由于开启了验证，所有端点都需要输入用户名密码)
         - 得到如`["from"]`的结果(from配置文件中改变的key)
@@ -795,7 +859,7 @@ eureka:
         ```
 - 消息分区(未测试)
 
-    ```java
+    ```bash
     # 消费者配置
     # 当前消费者的总实例数量(消息分区需要设置)
     spring.cloud.stream.instanceCount=2
@@ -819,13 +883,13 @@ eureka:
         - 一个Spring配置加载类，用来连接中间件
         - 一个或多个能够在classpath下找到META-INF/spring.binders定义绑定器定的文件。如：
 
-            ```java
+            ```bash
             rabbit:\
             org.springframework.cloud.stream.binder.rabbit.config.RabbitServiceAutoConfiguration
             ```
     - 绑定器配置
 
-        ```java
+        ```bash
         # 默认的绑定器为rabbit(名字是META-INF/spring.binders中定义的)
         spring.cloud.stream.defaultBinder=rabbit
         # 定义某个通道(input)的绑定器
@@ -973,6 +1037,10 @@ eureka:
     - 将spring.application.name配置到bootstrap.yml中
     - 在resources目录加logback-spring.xml文件(请看源码)
 
+## 基于docker运行
+
+参考：[http://blog.aezo.cn/2017-06-25/arch/docker/](/_posts/arch/docker.md#启动SpringCloud应用)
+
 ## 版本 Finchley.SR1
 
 - 版本要求：`jdk 1.8`、`springboot 2.0.1.RELEASE`
@@ -1007,6 +1075,12 @@ eureka:
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+
+<!-- sleuth-zipkin -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-zipkin</artifactId>
 </dependency>
 ```
 
@@ -1045,6 +1119,20 @@ public class EurekaServerApplication {
 	}
 }
 ```
+
+### Config
+
+- 客户端配置刷新
+    - 加端点依赖
+
+        ```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        ```
+    - application.yml `management.endpoints.web.exposure.include: refresh`
+    - 访问：http://localhost:9000/actuator/refresh
 
 ### Zuul
 
@@ -1147,7 +1235,40 @@ try {
 }
 ```
 
+- 通过spring cloud config动态加载路由配置
 
+```java
+@Bean
+@Primary // 需要添加此注解
+@RefreshScope // 只作用于ZuulProperties(对应是`zuul.*`的配置项)这个Bean的配置刷新
+@ConfigurationProperties("zuul")
+public ZuulProperties zuulProperties() {
+    return new ZuulProperties();
+}
+```
+
+### Sleuth [^4]
+
+- 关于 Zipkin 的服务端，在使用 Spring Boot 2.x 版本后，官方就不推荐自行定制编译了，反而是直接提供了编译好的 jar 包。官方提供了一键脚本
+
+```bash
+# jar提供的详细配置：https://github.com/openzipkin/zipkin/blob/master/zipkin-server/src/main/resources/zipkin-server-shared.yml
+curl -sSL https://zipkin.io/quickstart.sh | bash -s
+java -jar zipkin.jar
+
+# 如果用 Docker 的话，直接
+docker run -d -p 9411:9411 openzipkin/zipkin
+```
+-  Zipkin 的 Client 端，也就是微服务应用，加入依赖`spring-cloud-starter-zipkin`，配置如下
+
+```yml
+spring:
+  sleuth:
+    sampler:
+      probability: 1.0 # 将采样比例设置为 1.0，也就是全部都需要。默认是 0.1
+  zipkin:
+    base-url: http://localhost:9411 # 指定了 Zipkin 服务器的地址
+```
 
 ### springboot 2.0.1
 
@@ -1172,6 +1293,8 @@ try {
 
 参考文章
 
-[^1]: [SOA和微服务架构的区别](https://www.zhihu.com/question/37808426)
-[^2]: [服务发现的可行方案以及实践案例](http://blog.daocloud.io/microservices-4/)
-[^3]: [Spring-Cloud-Bus原理](http://blog.csdn.net/sosfnima/article/details/53178326)
+[^1]: https://www.zhihu.com/question/37808426 (SOA和微服务架构的区别)
+[^2]: http://blog.daocloud.io/microservices-4/ (服务发现的可行方案以及实践案例)
+[^3]: http://blog.csdn.net/sosfnima/article/details/53178326 (Spring-Cloud-Bus原理)
+[^4]: https://www.cnblogs.com/cralor/p/9246582.html
+[^5]: https://www.jianshu.com/p/1dbd9a83880f

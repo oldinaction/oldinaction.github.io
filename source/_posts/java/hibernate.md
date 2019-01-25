@@ -70,7 +70,7 @@ tags: [ssh, orm, springboot]
 
 	```bash
 	## spring.jpa.database=MYSQL
-	# 自动执行ddl语句(create/create-drop/update).
+	# 自动执行ddl语句(create/create-drop/update，基于Model注解执行表结构创建)
 	spring.jpa.hibernate.ddl-auto=update
 	# 打印sql执行语句, 查询和建表
 	spring.jpa.show-sql=true

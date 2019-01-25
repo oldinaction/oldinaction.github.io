@@ -94,4 +94,6 @@ public class FtlU {
 
 ## 知识点
 
-- 转义字符`${r"..."}`: 如：${r"${foo}"}、${r"C:\foo\bar"}
+- 转义字符`${r"..."}`: 如：`${r"${foo}"}`、`${r"C:\foo\bar"}`
+- `js_string` 用于JavaScript转义，转换`'`、`"`、换行等特殊字符。如：`alert("${errorMessage?js_string}");`
+

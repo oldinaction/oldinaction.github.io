@@ -230,11 +230,6 @@ esac
 ```shell
 #!/bin/sh
 #
-#该脚本为Linux下启动java程序的通用脚本。即可以作为开机自启动service脚本被调用，
-#也可以作为启动java程序的独立脚本来使用。
-#
-#Author: tudaxia.com, Date: 2011/6/7
-#
 #警告!!!：该脚本stop部分使用系统kill命令来强制终止指定的java程序进程。
 #在杀死进程前，未作任何条件检查。在某些情况下，如程序正在进行文件或数据库写操作，
 #可能会造成数据丢失或数据不完整。如果必须要考虑到这类情况，则需要改写此脚本，
@@ -248,12 +243,9 @@ esac
 # config: 如果需要的话，可以配置
 ###################################
 #
-###################################
-#环境变量及程序执行参数
-#需要根据实际环境以及Java程序名称来修改这些参数
-###################################
 #JDK所在路径(需要配置好$JAVA_HOME环境变量)
 # $JAVA_HOME=也可不使用系统jdk
+# JAVA_HOME=
 if [ -f "$JAVA_HOME/bin/java" ]; then
   JAVA="$JAVA_HOME/bin/java"
 else
@@ -274,120 +266,87 @@ PROFILES="--spring.profiles.active=prod"
 JAR_ARGS="$PROFILES"
 
 #java虚拟机启动参数
+#MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
+#OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/"
+#IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'` # automatic IP address for linux（内网地址）
+#RMIIF="-Djava.rmi.server.hostname=$IPADDR"
+#JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 #DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
-#MEMIF="-Xms128M -Xmx512M -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
-VM_ARGS="$MEMIF $DEBUG"
+VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
 
-###################################
-#(函数)判断程序是否已启动
-#
-#说明：
-#使用JDK自带的JPS命令及grep命令组合，准确查找pid
-#jps 加 l 参数，表示显示java的完整包路径
-#使用awk，分割出pid ($1部分)，及Java程序名称($2部分)
-###################################
 #初始化psid变量（全局）
 psid=0
 
+#(函数)判断程序是否已启动
 checkpid() {
-    javaps=`$JAVA_HOME/bin/jps -l | grep $APP_JAR`
+    ps_pid=`ps -ef | grep $APP_JAR | grep -v grep`
 
-    if [ -n "$javaps" ]; then
-      psid=`echo $javaps | awk '{print $1}'`
+    if [ -n "$ps_pid" ]; then
+      psid=`echo $ps_pid | awk '{print $2}'`
     else
       psid=0
     fi
 }
 
-###################################
 #(函数)启动程序
-#
-#说明：
-#1. 首先调用checkpid函数，刷新$psid全局变量
-#2. 如果程序已经启动（$psid不等于0），则提示程序已启动
-#3. 如果程序没有被启动，则执行启动命令行
-#4. 启动命令执行后，再次调用checkpid函数
-#5. 如果步骤4的结果能够确认程序的pid,则打印[OK]，否则打印[Failed]
-#注意：echo -n 表示打印字符后，不换行
-#注意: "nohup 某命令 >/dev/null 2>&1 &" 的用法
-###################################
 start() {
     checkpid
 
     if [ $psid -ne 0 ]; then
-      echo "================================"
-      echo "warn: $APP_JAR already started! (pid=$psid)"
-      echo "================================"
+      echo "[warn] $APP_JAR already started! (pid=$psid)"
     else
-      echo -n "Starting $APP_JAR ..."
-      JAVA_CMD="nohup $JAVA_HOME/bin/java -jar $APP_HOME/$APP_JAR $JAR_ARGS > console.log 2>&1 &"
+      echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
+      JAVA_CMD="nohup $JAVA -jar $APP_HOME/$APP_JAR $JAR_ARGS > /dev/null 2>&1 &"
       su - $RUNNING_USER -c "$JAVA_CMD"
       checkpid
       if [ $psid -ne 0 ]; then
-          echo "(pid=$psid) [OK]"
+          echo "[info] OK (pid=$psid)"
       else
-          echo "[Failed]"
+          echo "[warn] Failed"
       fi
     fi
 }
 
-###################################
 #(函数)停止程序
-#
-#说明：
-#1. 首先调用checkpid函数，刷新$psid全局变量
-#2. 如果程序已经启动（$psid不等于0），则开始执行停止，否则，提示程序未运行
-#3. 使用kill -9 pid命令进行强制杀死进程
-#4. 执行kill命令行紧接其后，马上查看上一句命令的返回值: $?
-#5. 如果步骤4的结果$?等于0,则打印[OK]，否则打印[Failed]
-#6. 为了防止java程序被启动多次，这里增加反复检查进程，反复杀死的处理（递归调用stop）。
-#注意：echo -n 表示打印字符后，不换行
-#注意: 在shell编程中，"$?" 表示上一句命令或者一个函数的返回值
-###################################
 stop() {
+    # 首先调用checkpid函数，刷新$psid全局变量
     checkpid
 
+    # 如果程序已经启动（$psid不等于0），则开始执行停止，否则，提示程序未运行
     if [ $psid -ne 0 ]; then
-      echo -n "Stopping $APP_JAR ...(pid=$psid) "
+      # echo -n 表示打印字符后，不换行
+      echo -n "[info] Stopping $APP_HOME/$APP_JAR ...(pid=$psid) "
+      # 使用kill -9 pid命令进行强制杀死进程
       su - $RUNNING_USER -c "kill -9 $psid"
+      # 执行kill命令行紧接其后，马上查看上一句命令的返回值: $? 。在shell编程中，"$?" 表示上一句命令或者一个函数的返回值
       if [ $? -eq 0 ]; then
-          echo "[OK]"
+          echo "[info] OK"
       else
-          echo "[Failed]"
+          echo "[warn] Failed"
       fi
 
+      # 为了防止java程序被启动多次，这里增加反复检查进程，反复杀死的处理（递归调用stop）
       checkpid
       if [ $psid -ne 0 ]; then
           stop
       fi
     else
-      echo "================================"
-      echo "warn: $APP_JAR is not running"
-      echo "================================"
+      echo "[warn] $APP_HOME/$APP_JAR is not running"
     fi
 }
 
-###################################
 #(函数)检查程序运行状态
-#
-#说明：
-#1. 首先调用checkpid函数，刷新$psid全局变量
-#2. 如果程序已经启动（$psid不等于0），则提示正在运行并表示出pid
-#3. 否则，提示程序未运行
-###################################
 status() {
     checkpid
 
     if [ $psid -ne 0 ];  then
-      echo "$APP_JAR is running! (pid=$psid)"
+      echo "[info] $APP_HOME/$APP_JAR is running! (pid=$psid)"
     else
-      echo "$APP_JAR is not running"
+      echo "[warn] $APP_HOME/$APP_JAR is not running"
     fi
 }
 
-###################################
 #(函数)打印系统环境参数
-###################################
 info() {
     echo "System Information:"
     echo "****************************"
@@ -395,18 +354,14 @@ info() {
     echo `uname -a`
     echo
     echo "JAVA_HOME=$JAVA_HOME"
-    echo `$JAVA_HOME/bin/java -version`
+    echo `$JAVA -version`
     echo
     echo "APP_HOME=$APP_HOME"
     echo "APP_JAR=$APP_JAR"
     echo "****************************"
 }
 
-###################################
-#读取脚本的第一个参数($1)，进行判断
-#参数取值范围：{start|stop|restart|status|info}
-#如参数不在指定范围之内，则打印帮助信息
-###################################
+#读取脚本的第一个参数($1)，进行判断. 参数取值范围：{start|stop|restart|status|info}. 如参数不在指定范围之内，则打印帮助信息
 case "$1" in
     'start')
       start
@@ -425,7 +380,7 @@ case "$1" in
       info
       ;;
   *)
-      echo "Usage: $0 {start|stop|restart|status|info}"
+      echo "[info] Usage: $0 {start|stop|restart|status|info}"
       exit 1
 esac
 exit $?

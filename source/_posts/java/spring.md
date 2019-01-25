@@ -19,7 +19,7 @@ tags: [spring, spring-mvc]
 4. spring生态：`Spring Boot`(使用默认开发配置来快速开发)、`Spring Cloud`(为分布式系统开发提供工具集)等
 5. 本文档基于spring4.3.8
 
-## Hello World
+## HelloWorld
 
 - maven依赖
 
@@ -31,21 +31,6 @@ tags: [spring, spring-mvc]
             <version>4.3.8.RELEASE</version>
         </dependency>
     ```
-- 依赖注入
-    - 声明Bean的注解(下面几个注解效果一样)：
-        - `@Component` 没有明确的角色
-        - `@Service` 在业务逻辑层(cn.aezo.spring.aop_spel.service)使用
-        - `@Repository` 在数据访问层(cn.aezo.spring.aop_spel.dao)使用
-        - `@Controller` 在展现层使用
-    - 注入Bean的注解(效果一样)
-        - `@Autowired` Spring提供(默认按类型by type(根据类); 如果想用by name，则使用`@Qualifier("my-bean-name")`)
-        - `@Resource` JSR-250提供(常用)
-        - `@Inject` JSR-330提供
-- java配置
-    - `@Configuration` 注解类表示此类是一个配置类，里面有0个或者多个`@Bean`
-        - `@ComponetScan("cn.aezo")` 定义需要扫描的包名，并将里面的`@Component`、`@Service`、`@Repository`、`@Controller`注解的类注册为Bean
-    - `@Bean` 注解方法，表示当前方法的返回值是一个Bean，Bean的名称是方法名
-    - 一般公共类使用java配置进行Bean声明，业务相关类使用注解进行Bean声明
 - 调用
 
     ```java
@@ -56,9 +41,351 @@ tags: [spring, spring-mvc]
        hello.hello();
     ```
 
-## 知识点
+## 常见注解
 
-### AOP
+### 往容器中注册Bean(组件)
+
+#### 包扫描+组件注解
+
+##### @ComponetScan("cn.aezo")
+
+- 定义需要扫描的包名，并将里面的`@Component`、`@Service`、`@Repository`、`@Controller`注解的类注册为Bean
+
+```java
+// java8 @Repeatable表示可重复注解 excludeFilters不扫描过滤，includeFilters扫描过滤(需设置useDefaultFilters=false)
+@ComponentScan(value = "cn.aezo.demo", excludeFilters = {
+            @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {Controller.class}) // 基于注解
+            @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {cn.aezo.demo.MyTest}) // 基于类全名
+            @ComponentScan.Filter(type = FilterType.CUSTOM, classes = {MyFilterType.class})}) // 基于自定义规则(实现FilterType接口)
+@ComponentScan(value = "cn.aezo.demo", includeFilters = {
+            @ComponentScan.Filter(type = FilterType.REGEX, pattern = "cn\\.aezo\\.test.*")}, useDefaultFilters = false)
+
+// java8之前可使用@ComponentScans
+@ComponentScans({@ComponentScan()})
+```
+
+- 注解类表示此类是一个配置类，里面有0个或者多个`@Bean`
+
+##### 组件注解
+
+- `@Component` 没有明确的角色
+- `@Service` 在业务逻辑层(cn.aezo.spring.aop_spel.service)使用
+- `@Repository` 在数据访问层(cn.aezo.spring.aop_spel.dao)使用
+- `@Controller` 在展现层使用
+- 上面几个注解效果一样
+
+#### @Bean导入第三方包里面的组件
+
+- `@Bean`
+    - 注解配置类中的方法，表示当前方法的返回值是一个Bean，Bean的名称(id)默认是方法名
+    - `@Bean("newBeanName")` 自定义Bean名称
+
+#### @Import给容器导入一个组件
+
+- `@Import("cn.aezo.test.MyBean")`
+    - 注解在配置类上，Bean的名称为类全名
+- @Import结合实现`ImportSelector`
+
+```java
+// ### 基于导入选择器
+public class MyImportSelector implements ImportSelector {
+    // AnnotationMetadata可获取当前注解@Import类的所有注解信息
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        // 返回需要的导入的Bean类全名
+        return new String[] {"cn.aezo.smjava.javaee.spring5.bean.demo2.MyBean", MyImportSelectorBean.class.getName()};
+    }
+}
+
+// ### 使用
+@Import({MyImportSelector.class})
+public class AppImport {
+    public static void main( String[] args ) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(AppImport.class);
+
+        System.out.println(ctx.getBean(MyImportSelectorBean.class));
+
+        String[] names = ctx.getBeanDefinitionNames();
+        for (String name : names) {
+            System.out.println(name);
+        }
+    }
+}
+```
+- @Import结合实现`ImportBeanDefinitionRegistrar`
+
+```java
+// ### 基于ImportBeanDefinitionRegistrar
+public class SmImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+    /**
+     * @param annotationMetadata 当前类的注解信息
+     * @param beanDefinitionRegistry BeanDefinition注册类
+     */
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(MyBean.class);
+        beanDefinitionBuilder.addPropertyValue("name", "ImportBeanDefinitionRegistrar#registerBeanDefinitions");
+
+        GenericBeanDefinition genericBeanDefinition = (GenericBeanDefinition) beanDefinitionBuilder.getBeanDefinition();
+
+        beanDefinitionRegistry.registerBeanDefinition("myBean", genericBeanDefinition);
+    }
+}
+
+// ### 使用
+@Import(SmImportBeanDefinitionRegistrar.class)
+public class AppConfig {}
+```
+
+#### 使用Spring提供的FactoryBean(工厂Bean)
+
+- 通过`id(name)`获取的是FactoryBean的getObject返回的对象。使用`&name`可获取FactoryBean本身
+- `BeanFactory`和`FactoryBean`区别 https://www.cnblogs.com/aspirant/p/9082858.html
+- 模拟mybatis参考源码`smjava -> javaee -> springArch -> spring5 -> demo3`
+
+```java
+// ### 实现FactoryBean
+public class MyFactoryBean implements FactoryBean {
+    @Override
+    public MyBean getObject() throws Exception {
+        return new MyBean();
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return MyBean.class;
+    }
+
+    // JDK8可提供isSingleton默认实现
+}
+
+// ### 使用
+public class App {
+    public static void main( String[] args ) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(App.class);
+
+        // 获取的是FactoryBean中getObject返回的对象
+        MyBean myBean = (MyBean) ctx.getBean("myFactoryBean");
+        System.out.println(myBean);
+
+        // 获取的是FactoryBean本身
+        MyFactoryBean myFactoryBean = (MyFactoryBean) ctx.getBean("&myFactoryBean");
+    }
+
+    @Bean
+    public MyFactoryBean myFactoryBean() {
+        return new MyFactoryBean();
+    }
+}
+```
+
+### 自动装配(取出Bean赋值给当前类属性)
+
+- `@Autowired` Spring提供(默认按类型by type(根据类); 如果想用by name，则使用`@Qualifier("my-bean-name")`)
+- `@Resource` JSR-250提供(常用)
+- `@Inject` JSR-330提供
+
+### @Scope
+
+- `@Scope("prototype")` 注解类(配置Bean的作用域，可和`@Bean`联合使用)
+    - `singleton` 整个容器共享一个实例(默认配置). IOC容器启动(`new AnnotationConfigApplicationContext()`)，就会创建所有的Bean(`@Lazy`懒加载，仅用于单例模式，只有在第一次获取Bean时才创建此Bean)
+    - `prototype` 每次调用新建一个实例. IOC容器启动，不会创建Bean，只有在获取的时候创建Bean
+    - `request` Web项目中，每一个HttpRequest新建一个实例
+    - `session` Web项目中，同一个session创建一个实例
+    - `globalSession` 用于portal应用
+- SpringBoot的作用域如：`@RequestScope`、`@SessionScope`、`@ApplicationScope`(`@Component`等默认是`singleton`)
+
+### 条件注解@Conditional
+
+- 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
+
+```java
+// ## 条件判断
+@Conditional({MyWindowsCondition.class}) // 必须符合所有的条件才会注入此Bean(可以注解在类或方法上)
+@Bean("myBean3")
+public MyBean myBean3() {
+    return new MyBean();
+}
+
+// ## 条件
+public class MyWindowsCondition implements Condition {
+    /**
+     * 判断是否符合条件
+     * @param context 判断条件能使用的上下文
+     * @param metadata 注解信息
+     * @return
+     */
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        // 1.可以获取到IOC使用的BeanFactory
+        ConfigurableListableBeanFactory ctx = context.getBeanFactory();
+        // 2.可以获取类加载器
+        ClassLoader classLoader = context.getClassLoader();
+        // 3.可以获取当前环境信息
+        Environment environment = context.getEnvironment();
+        // 4.可以获取Bean定义注册类
+        BeanDefinitionRegistry registry = context.getRegistry();
+        ResourceLoader resourceLoader = context.getResourceLoader();
+
+        if(environment.getProperty("os.name").contains("Windows")) {
+            return true;
+        }
+
+        return false;
+    }
+}
+```
+
+### Bean生命周期
+
+- 初始化和销毁方法实现方式
+    - 指定初始化和销毁方法：`initMethod`, `destroyMethod`
+    - 实现`InitializingBean`, `DisposableBean`(org.springframework.beans.factory.DisposableBean) 
+    - 使用JSR250：`@PostConstruct` Bean创建完成并完成属性赋值后调用, `@PreDestroy`(javax.annotation.PreDestroy) 销毁Bean前调用
+- **后置处理器`BeanPostProcessor`** (org.springframework.beans.factory.config.BeanPostProcessor)
+    - postProcessBeforeInitialization 在Bean创建完成并完成属性赋值后，且在初始化方法调用之前调用
+    - postProcessAfterInitialization 在初始化之后调用
+    - `@Autowired`是基于BeanPostProcessor实现的
+
+```java
+public class App {
+    public static void main( String[] args ) {
+        /*
+        constructor MyBean2...
+        postProcessBeforeInitialization...
+        init MyBean2...
+        postProcessAfterInitialization...
+        创建IOC完成...
+        destroy MyBean2...
+        */
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(App.class);
+        System.out.println("创建IOC完成...");
+
+        ctx.close(); // 容器关闭调用destroyMethod
+    }
+
+    @Bean(initMethod = "init", destroyMethod = "destroy")
+    public MyBean2 myBean2() {
+        return new MyBean2();
+    }
+
+    @Bean
+    public MyBean3 myBean3() {
+        return new MyBean3();
+    }
+
+    // MyBeanPostProcessor需要实现BeanPostProcessor后置处理器
+    @Bean
+    public MyBeanPostProcessor myBeanPostProcessor() {
+        return new MyBeanPostProcessor();
+    }
+}
+
+// ###
+public class MyBean2 {
+    public MyBean2() {
+        System.out.println("constructor MyBean2...");
+    }
+
+    // @PostConstruct // Bean创建完成并完成属性赋值后调用（使用JSR250方式需要的代码）
+    public void init() {
+        System.out.println("init MyBean2...");
+    }
+
+    // @PreDestroy
+    public void destroy() {
+        System.out.println("destroy MyBean2...");
+    }
+}
+
+// ### 基于接口实现
+public class MyBean3 implements InitializingBean, DisposableBean {
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("destroy MyBean3...");
+    }
+
+    // Bean创建完成，且属性赋值完成后调用
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("afterPropertiesSet MyBean3...");
+    }
+}
+```
+
+### 属性赋值
+
+- `@Value` 在其中输入EL表达式(Spring-EL)。可对资源进行注入
+- `@PropertySource` 注入外部配置文件值
+
+```java
+@Configuration
+@ComponentScan("cn.aezo.spring.base.annotation.el")
+@PropertySource("classpath:cn/aezo/spring/base/annotation/el/el.properties") // 注入配置文件
+public class ELConfig {
+    @Value("I Love You") // 基本数值赋值
+    private String normal;
+
+    @Value("#{systemProperties['os.name']}") // 获取系统名称. SpEL: @Value("#{20-2}") => 18
+    private String osName;
+
+    @Value("#{T(java.lang.Math).random() * 100.0}")
+    private String randomNumber;
+
+    @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止为定义此参数值(特别是通过命令行传入的参数)
+    private Resource siteUrl;
+
+    @Value("#{demoService.another}") // 读取其他类属性的@Value注解值
+    private String fromAnother;
+
+    @Value("classpath:cn/aezo/spring/base/annotation/el/test.txt")
+    private Resource testFile;
+
+    @Value("http://www.baidu.com")
+    private Resource testUrl;
+
+    @Autowired
+    private Environment environment;
+
+    public void outputResource() {
+        System.out.println("normal = " + normal);
+        System.out.println("osName = " + osName);
+        System.out.println("randomNumber = " + randomNumber);
+        System.out.println("normal = " + siteUrl);
+        System.out.println("fromAnother = " + fromAnother);
+        System.out.println("environment = " + environment.getProperty("site.url")); // 配置文件中的值默认全部赋值到了环境变量中了
+
+        try {
+            System.out.println("testFile = " + IOUtils.toString(testFile.getInputStream(), "UTF-8"));
+            System.out.println("testUrl = " + IOUtils.toString(testUrl.getInputStream(), "UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// el.properties
+site.url=www.aezo.cn
+```
+
+### 组合注解、元注解
+
+- 元注解是指可以注解到其他注解上的注解，被元注解注解之后的注解称之为组合注解
+- 如`@Configuration`是包含`@Component`的组合注解，`@Component`为元注解
+- 示例，将`@Configuration`和`@ComponentScan`组合成一个注解
+
+    ```java
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    @Configuration
+    @ComponentScan
+    public @interface WiselyConfiguration {
+        String[] value() default {};
+    }
+    ```
+
+## AOP
 
 - 相关注解
     - `@Aspect` 声明一个切面
@@ -94,79 +421,11 @@ tags: [spring, spring-mvc]
     ```
 - 调用service
 
-### Scope
-
-- `@Scope("prototype")` 注解类(配置Bean的作用域)
-    - `singleton` 整个容器共享一个实例（默认配置）
-    - `prototype` 每次调用新建一个实例
-    - `request` Web项目中，每一个Http Request新建一个实例
-    - `session`
-    - `globalSession` 用于portal应用
-- SpringBoot的作用域如：`@RequestScope`、`@SessionScope`、`@ApplicationScope`(`@Component`等默认是`singleton`)
-
-### EL(Spring-EL)
-
-- `@Value` 在其中输入EL表达式。可对资源进行注入
-- 实例
-
-    ```java
-    @Configuration
-    @ComponentScan("cn.aezo.spring.base.annotation.el")
-    @PropertySource("classpath:cn/aezo/spring/base/annotation/el/el.properties") // 注入配置文件
-    public class ELConfig {
-        @Value("I Love You")
-        private String normal;
-
-        @Value("#{systemProperties['os.name']}")
-        private String osName;
-
-        @Value("#{T(java.lang.Math).random() * 100.0}")
-        private String randomNumber;
-
-        @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止为定义此参数值(特别是通过命令行传入的参数)
-        private Resource siteUrl;
-
-        @Value("#{demoService.another}") // 读取其他类属性的@Value注解值
-        private String fromAnother;
-
-        @Value("classpath:cn/aezo/spring/base/annotation/el/test.txt")
-        private Resource testFile;
-
-        @Value("http://www.baidu.com")
-        private Resource testUrl;
-
-        @Autowired
-        private Environment environment;
-
-        // @Bean
-        // public static PropertySourcesPlaceholderConfigurer propertyConfigurer() {
-        //     return new PropertySourcesPlaceholderConfigurer();
-        // }
-
-        public void outputResource() {
-            System.out.println("normal = " + normal);
-            System.out.println("osName = " + osName);
-            System.out.println("randomNumber = " + randomNumber);
-            System.out.println("normal = " + siteUrl);
-            System.out.println("fromAnother = " + fromAnother);
-            System.out.println("environment = " + environment.getProperty("site.url"));
-
-            try {
-                System.out.println("testFile = " + IOUtils.toString(testFile.getInputStream(), "UTF-8"));
-                System.out.println("testUrl = " + IOUtils.toString(testUrl.getInputStream(), "UTF-8"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-    ```
-
-### Profile
+## Profile
 
 - 不同的环境读取不同的配置文件：`dev`/`prod`
 
-### Application Event
+## Application Event
 
 - 事件：一个Bean(A)完成某个任务后，可以给另外一个Bean(B)发送事件，前提是B对A进行了监听
 - 方法：
@@ -216,15 +475,15 @@ tags: [spring, spring-mvc]
         }
         ```
 
-### Spring Aware
+## Spring Aware
 
 - Spring依赖注入最大的亮点就是你所有的Bean对Spring容器的存在是无意识的。即你可以将容器换成其他容器，如Google Guice，这是Bean之间的耦合度很低。
 - Spring Aware可以让你的Bean调用Spring提供的资源，缺点是Bean会和Spring框架耦合。
 - 相关接口
     - `BeanNameAware` 获得容器中Bean的名称
-    - `BeanFactoryAware` 获得当前Bean Factory，这样就有可以调用容器服务
-    - `ApplicationContextAware` 获得当前Application Context，这样就有可以调用容器服务
-    - `MessageSourceAware` 获得当前Message Source，可以获得文本信息
+    - `BeanFactoryAware` 获得当前BeanFactory，这样就有可以调用容器服务
+    - `ApplicationContextAware` 获得当前ApplicationContext，这样就有可以调用容器服务
+    - `MessageSourceAware` 获得当前MessageSource，可以获得文本信息
     - `ApplicationEventPublisherAware` 应用事件发布器，可以发布事件
     - `ResourceLoaderAware` 获得资源加载器，可以获取外部资源
 - 实例
@@ -258,8 +517,7 @@ tags: [spring, spring-mvc]
     }
     ```
 
-
-### 多线程
+## 多线程 @EnableAsync
 
 - Spring通过任务执行器(TaskExecutor)来实现多线程和并发编程。使用`ThreadPoolTaskExecutor`可实现一个基于线程池的TaskExecutor。
 - `@EnableAsync` 可开启对异步任务的支持。需要对应的配置类实现
@@ -303,7 +561,7 @@ tags: [spring, spring-mvc]
     }
     ```
 
-### 计划任务
+## 计划任务 @Scheduled
 
 - `@EnableScheduling` 开启定时任务
 - `@Scheduled` 执行任务的方法
@@ -316,7 +574,7 @@ tags: [spring, spring-mvc]
         // 默认同一时刻只会运行一个@Scheduled修饰的方法，时间太长会阻塞其他定时
         // 此时定义成5个线程并发(被@Scheduled修饰的不同方法可以并发执行，同一个方法不会产生并发)
         @Bean
-        public Executor taskScheduler() {
+        public Executor taskScheduler() { // java.util.concurrent.Executor
             return Executors.newScheduledThreadPool(5);
         }
     }
@@ -351,7 +609,8 @@ tags: [spring, spring-mvc]
 
         ```bash
         "0/10 * * * * ?" 每10秒触发(程序启动后/任务添加后，第一次触发为0/10/20/30/40/50秒中离当前时间最近的时刻。下同) 
-        "0 0 12 * * ?" 每天中午12点触发("0 0/5 * * * ?" 每5分钟执行一次 "* 0/5 * * * ?" 每5分钟连续执行60秒，期间每秒执行一次)
+        "0 0/5 * * * ?" 每5分钟执行一次("* 0/5 * * * ?" 每5分钟连续执行60秒，这60秒期间每秒执行一次)
+        "0 0 12 * * ?" 每天中午12点触发
         "0 15 10 ? * *" 每天上午10:15触发 
         "0 15 10 * * ?" 每天上午10:15触发 
         "0 15 10 * * ? *" 每天上午10:15触发 
@@ -374,7 +633,7 @@ tags: [spring, spring-mvc]
 - 手动启动任务和停止任务(基于springboot v2.0.1测试)
 
 ```java
-// ### Job接口
+// ## Job接口
 public interface Job extends Runnable {
     String getName();
 
@@ -383,7 +642,7 @@ public interface Job extends Runnable {
     String setCron();
 }
 
-// ### Job管理器
+// ## Job管理器
 @Component
 public class JobManager {
     @Autowired
@@ -423,30 +682,82 @@ public class JobManager {
 }
 ```
 
-### 条件注解(Condition)
+## SpringMVC
 
-- `@Condition` 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
-- 方法
-    - 条件类实现`Condition`接口
-    - 自定义服务接口，并有多种实现
-    - 在`@Configuration`中`@Bean`的方法上注解`@Conditional(条件类.class)`表示符合此条件才会创建对应的Bean
+### 拦截器
 
-### 组合注解、元注解
-
-- 元注解是指可以注解到其他注解上的注解，被元注解注解之后的注解称之为组合注解
-- 如`@Configuration`是包含`@Component`的组合注解，`@Component`为元注解
-- 示例，将`@Configuration`和`@ComponentScan`组合成一个注解
-
-    ```java
-    @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.RUNTIME)
-    @Documented
-    @Configuration
-    @ComponentScan
-    public @interface WiselyConfiguration {
-        String[] value() default {};
+```java
+@Configuration
+public class CustomerWebMvcConfig implements WebMvcConfigurer {
+    /**
+     * 往InterceptorRegistry中注册。需要实现 WebMvcConfigurer 接口
+     * @return
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 可添加多个
+        registry.addInterceptor(new CustomerHandlerInterceptor()).addPathPatterns("/**");
     }
-    ```
+
+    /**
+     * 直接返回Filter. 解决同源策略问题（Access-Control-Allow-Origin跨域）
+     * @return
+     */
+    @Bean
+    public Filter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("OPTIONS");
+        config.addAllowedMethod("HEAD");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("DELETE");
+        config.addAllowedMethod("PATCH");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+
+    /**
+     * 往FilterRegistrationBean中注册. Token验证拦截
+     * @return
+     */
+    @Bean
+    public FilterRegistrationBean indexFilterRegistration() {
+        FilterRegistrationBean<> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new AuthFilter());
+        registrationBean.setUrlPatterns(MiscU.Instance.toList("/*"));
+        registrationBean.setOrder(1);
+        return registrationBean;
+    }
+}
+
+@Configuration
+public class CustomerHandlerInterceptor implements HandlerInterceptor {
+    // 是否进行拦截，返回True表示拦截
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+        return true;
+    }
+
+    // 处理拦截
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+                           ModelAndView modelAndView) throws Exception {
+    }
+
+    // 拦截后处理
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+            throws Exception {
+    }
+}
+```
+
+
 
 ---
 

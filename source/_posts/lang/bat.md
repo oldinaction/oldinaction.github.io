@@ -31,7 +31,7 @@ tags: [windows]
     - `:` 批处理标签引导符 
     - `%` 批处理变量引导符 
     - `^` 转义字符 eg: `if 1=1 (echo hello^(你好^)) else (echo bye)`
-- `setlocal enabledelayedexpansion` 启用变量延迟模式，变量通过`!myVar!`获取 (bat是一行一行读取命令的，if的括号算做一行，所有容易出现变量赋值获取不到的情况) [^3]
+- `setlocal enabledelayedexpansion` 启用变量延迟模式，变量通过`!myVar!`获取 (bat是一行一行读取命令的，if的括号算做一行，所有容易出现变量赋值获取不到的情况) 。使用`!xx!`必须开启变量延迟。[^3]
 
 ### 变量 [^2]
 
@@ -137,8 +137,8 @@ if "%var%" == "before" (
 )
 
 :: 给用户输入设置默认值
-set /p str="请输入盘符:"
-if !str!@ == @ (set str=d) else (set str=!str!)
+set /p str="请输入数值:"
+if !str!@ == @ (set str=我是默认值) else (set str=!str!)
 echo !str!
 ```
 
@@ -207,55 +207,224 @@ call:myFuncName
 
 - 后台运行bat文件
 
-```bat
-@echo off
-if "%1" == "back" goto begin
-mshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&&exit
-:begin
-:: 这是注释，后面运行脚本，如：
-java -jar my.jar
-```
+    ```bat
+    @echo off
+    if "%1" == "back" goto begin
+    mshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&&exit
+    :begin
+    :: 这是注释，后面运行脚本，如：
+    java -jar my.jar
+    ```
 - 获取脚本参数。`test.bat`内容如下。运行`test a.txt b.txt`则%1表示a.txt，%2表示b.txt 
 
-```bat
-@echo off
-type %1
-type %2
-```
+    ```bat
+    @echo off
+    type %1
+    type %2
+    ```
 - 获取键盘输入
 
-```bat
-@echo off
-:: 后面的语句也可不加双引号
-set /p QQ="Input you QQ number ......"
-echo Your QQ number is %QQ%.
-:: 取消变量QQ的定义
-set QQ=
-pause
-````
+    ```bat
+    @echo off
+    :: 后面的语句也可不加双引号
+    set /p QQ="Input you QQ number ......"
+    echo Your QQ number is %QQ%.
+    :: 取消变量QQ的定义
+    set QQ=
+    pause
+    ````
 - 获取当前时间
 
-```bat
-set YYYYmmdd=%date:~0,4%%date:~5,2%%date:~8,2%
-set hhmiss=%time:~0,2%%time:~3,2%%time:~6,2%
-set "filename=bak_%YYYYmmdd%_%hhmiss%.zip"
-:: bak_20181016_170530.zip
-echo %filename%
-```
+    ```bat
+    set YYYYmmdd=%date:~0,4%%date:~5,2%%date:~8,2%
+    set hhmiss=%time:~0,2%%time:~3,2%%time:~6,2%
+    set "filename=bak_%YYYYmmdd%_%hhmiss%.zip"
+    :: bak_20181016_170530.zip
+    echo %filename%
+    ```
 - 脚本示例
     - 进入到当前目录、设置环境变量
         - `%~dp0` %0代表批处理本身； ~dp是变量扩充， d扩充到分区，p扩充到路径
         
-    ```bat
-    rem 设置临时环境变量oracle_home为当前bat文件所在目录(%~dp0)下的Oracle64目录
-    set oracle_home=%~dp0\Oracle64
-    rem 进入到当前目录
-    %~d0
-    cd %~dp0
-    rem 运行exe文件
-    start plsqlDev.exe
-    ```
+        ```bat
+        rem 设置临时环境变量oracle_home为当前bat文件所在目录(%~dp0)下的Oracle64目录
+        set oracle_home=%~dp0\Oracle64
+        rem 进入到当前目录
+        %~d0
+        cd %~dp0
+        rem 运行exe文件
+        start plsqlDev.exe
+        ```
 
+### oracle工具箱脚本
+
+```bat
+:: ========================================
+:: 创建表空间、创建用户、导入导出dmp数据
+:: author: smalle
+:: time: 2018-6-29
+:: ========================================
+:: 关闭命令显示,否则所有命令都会显示执行结果
+@echo off
+title=Oracle工具箱
+
+:: 测试代码START(最终需要注释掉)
+:test
+set serverip=192.168.17.50
+set database=orcl
+set user=CRMADM rem 管理员用户
+set password=CRMADM
+:: 测试代码END
+
+
+:: main方法
+:main
+set tmpFile=__oracle_data_imp__.sql
+
+:: 开启变量延迟模式(变量通过`!myVar!`获取. bat是一行一行读取命令的，if的括号算做一行，所有容易出现变量赋值获取不到的情况)
+setlocal enabledelayedexpansion
+:: %tmpFile%是普通获取变量值的方式
+if exist %tmpFile% echo Error: 已存在文件%tmpFile% & goto end
+
+:: 死循环，等待用户输入功能菜单，执行相应方法
+for /l %%a in () do call:menu
+
+:: 跳转到exit标签(退出程序前处理)
+goto exit
+
+::=====================方法=====================
+:: 函数以`:函数名`开头，以`goto:eof`结尾
+:: 功能菜单
+:menu
+set menuCode=
+echo ### 请选择需执行的命令：
+echo 	1.创建表空间和新用户
+echo 	2.数据导出(exp)
+echo 	3.数据导入(imp)
+echo 	4.重设oracle连接(conninfo)
+echo 	5.连接oracle(connection)
+echo 	6.打印oracle连接信息(info)
+echo 	0.退出(exit)
+:: 获取用户输入并设值给变量
+set /p menuCode=请输入上述功能序号(eg: 6):
+:: 给用户输入设置默认值
+if !menuCode!@ == @ (
+	echo 请选择执行命令...
+	:: 提前返回
+	goto:eof
+	:: 设置默认值
+	::set menuCode=6
+) else (set menuCode=!menuCode!)
+
+:: 根据输入的编号，调用menuCode_*方法
+call:menuCode_!menuCode!
+:: 防止方法穿透(防止继续执行下面的代码)
+goto:eof
+
+:: 定义获取连接数据信息函数connectInfo
+:connectInfo
+:: 判断是否存在此变量
+if DEFINED serverip (
+	echo ---------当前数据库连接信息: serverip=%serverip% database=!database! user=%user% password=%password%
+) else (
+	set /p serverip="请输入oracle服务器IP(eg: 192.168.17.50):"
+	set /p database="请输入实例名(eg: orcl):"
+	set /p user="请输入用户名(eg: SCOTT):"
+	set /p password="请输入密码(eg: tiger):"
+	
+	:: 变量延迟获取变量!serverip!, else()算作一行进行命令读取的
+	echo ---------当前数据库连接信息: serverip=!serverip! database=!database! user=!user! password=!password!
+)
+goto:eof
+
+:: 创建表空间和用户(保存sql命令到临时文件, 然后命令行执行sql文件)
+:menuCode_1
+call:connectInfo
+
+set /p datafile="表空间数据完整存储路径(数据库服务器路径. eg: d:/tablespace/aezocn):"
+rem if exist %datafile% echo Error: 不存在文件%datafile% & goto createTablespace
+set /p tablespaceName="表空间名称(eg: aezocn):"
+echo create tablespace %tablespaceName% datafile '%datafile%' size 200m extent management local segment space management auto; > %tmpFile%
+
+set /p newUser="新用户用户名(大写. eg: SMALLE):"
+set /p newPass="新用户密码(区分大小写. eg: smalle):"
+echo create user %newUser% identified by %newPass% default tablespace %tablespaceName%; >> %tmpFile%
+echo grant create session to %newUser%; >> %tmpFile%
+echo grant unlimited tablespace to %newUser%; >> %tmpFile%
+echo grant dba to %newUser%; >> %tmpFile%
+
+sqlplus !user!/!password!@!serverip!/!database! @ %tmpFile%
+goto:eof
+
+:: 导出数据
+:menuCode_2
+call:connectInfo
+
+set YYYYmmdd=%date:~0,4%%date:~5,2%%date:~8,2%
+set /p expDataFile="导出数据文件保存完整路径(本地路径. eg: d:/exp.dmp):"
+if !expDataFile!@ == @ (
+	set expDataFile=d:/%YYYYmmdd%.dmp
+) else (set expDataFile=!expDataFile!)
+
+set /p owner="导出哪个用户的数据？(大写. eg: SCOTT):"
+
+exp !user!/!password!@!serverip!/!database! file=!expDataFile! owner=!owner!
+goto:eof
+
+:: 导入数据
+:menuCode_3
+set serverip=
+call:connectInfo
+
+set /p impDataFile="导入数据文件完整路径(运行此脚本文件机器路径. eg: d:/exp.dmp):"
+if !impDataFile!@ == @ (
+	set impDataFile=!expDataFile!
+) else (set impDataFile=!impDataFile!)
+
+set /p fromuser="从哪个用户导出数据(一般为上述dmp数据中所属用户)？(大写. eg: SCOTT):"
+if !fromuser!@ == @ (
+	set fromuser=!owner!
+) else (set fromuser=!fromuser!)
+
+set /p touser="数据导入给哪用户(如新表空间用户)？(大写. eg: SMALLE):"
+if !touser!@ == @ (
+	set touser=!touser!
+) else (set touser=!newUser!)
+
+if !serverip!@ == @ (
+	imp !newUser!/!newPass! file=!impDataFile! fromuser=!fromuser! touser=!touser! ignore=y
+) else (
+	imp !newUser!/!newPass!@!serverip!/!database! file=!impDataFile! fromuser=!fromuser! touser=!touser! ignore=y
+)
+goto:eof
+
+:: 重设oracle连接信息
+:menuCode_4
+set serverip=
+call:connectInfo
+goto:eof
+
+:: 连接oracle
+:menuCode_5
+call:connectInfo
+sqlplus !user!/!password!@!serverip!/!database!
+goto:eof
+
+:: 打印oracle连接信息
+:menuCode_6
+call:connectInfo
+goto:eof
+
+
+:: 退出
+:menuCode_0
+if exist %tmpFile% (del %tmpFile%)
+@echo on
+
+::退出程序
+@cmd /k
+::pause
+```
 
 ---
 

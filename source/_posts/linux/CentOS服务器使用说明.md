@@ -251,9 +251,9 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 > linux一般都是python2，如果要使用python3最好不要动之前python2的环境
 
 - 安装步骤
-    - 下载`Python-3.6.5.tar.xz`
-    - `tar xvf  Python-3.6.5.tar.xz -C /opt`
-    - `cd Python-3.6.5`
+    - 下载`Python-3.6.4.tar.xz`(`curl -O https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz`)
+    - `tar xvf  Python-3.6.4.tar.xz -C /opt`
+    - `cd Python-3.6.4`
     - `su root` 切换root用户
     - `./configure`
     - `make && make install` 第一次需要大概15分钟。需要使用root运行。使用sudo运行也会报错`cannot create regular file ‘/usr/local/bin/python3.6m’: Permission denied`
@@ -261,8 +261,8 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     - `pip3` 为对应的pip命令
 - `No module named '_sqlite3'` 无法使用sqlite3模块问题
     - `yum -y install sqlite-devel`
-    - `./configure --enable-loadable-sqlite-extensions`
-    - `make && make install` 重新编译，如果之前编译成功，这次编译会很快
+    - `./configure --enable-loadable-sqlite-extensions` 进入python3安装目录
+    - `make && make install` 重新编译python，如果之前编译成功，这次编译会很快
     - `python3` - `import sqlite3` 不报错则表示成功
 
 ### php安装

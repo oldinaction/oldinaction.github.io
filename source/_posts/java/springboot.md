@@ -68,14 +68,42 @@ tags: springboot
 	- 外部配置：`java -jar aezocn.jar --spring.profiles.active=prod`
 	- 配置文件：`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
 - 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
+- 配置示例
+
+	```yml
+	server:
+		port: 9000
+	spring:
+		# 存放授权客户端信息
+		datasource:
+			# MYSQL_HOST为环境变量，如果无则取默认值localhost
+			url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_TCP_PORT:3306}/${MYSQL_DATABASE:test}?useUnicode=true&characterEncoding=utf-8
+	logging:
+		level: # 设置日志级别
+			- org.springframework.security: DEBUG
+	```
 
 ## 常用配置
 
 ### 日志策略
 
-- `application.properties`配置`logging.file=./logs/info.log`（所以配置可在application配置文件中完成，且此方法会在运行目录生成一个`LOG_PATH_IS_UNDEFINED`的文件，并存同时储日志文件，不推荐）
-- `application.properties`配置`logging.config=classpath:logback.xml`，然后再`resource`目录加文件`（此时日志策略按照此配置文件）。参考配置文件[/data/src/java/logback.xml](/data/src/java/logback.xml)和表结构文件[/data/src/java/logback.xml](/data/src/java/logback.sql)
-- logback默认会创建一个`/tmp/spring.log`的文件，而且只有使用root用户运行项目才可以创建此目录
+- application.yml配置
+
+```yml
+logging:
+	# 日志文件保存位置(会自动创建目录)
+	path: ${LOG_PATH:D:/temp/logs/test/module}
+	config: classpath:logback.xml # 默认值（resource目录）。如果是此目录则可以去掉此项配置
+# 打印mybatis的sql语句。也可以按照yml正常的风格写，会覆盖logback.xml中的配置
+logging.level.cn.aezo.test.mapper: DEBUG
+
+# 打印mybatis的sql语句时需要，或者加在mybatis-config.xml中
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+```
+- 参考配置文件[/data/src/java/logback.xml](/data/src/java/logback.xml)和表结构(如果保存在数据库中时)文件[/data/src/java/logback.xml](/data/src/java/logback.sql)
+- springboot的日志配置文件`<include resource="org/springframework/boot/logging/logback/base.xml"/>`。里面包含参数`<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>`, 表示为配置LOG_PATH等环境变量时，在linux环境下会自动创建`/tmp/spring.log`文件作为日志输出文件，而/tmp目录一般只有使用root用户运行项目才可以创建此文件
 
 ### 随应用启动而运行(实现`CommandLineRunner`接口)
 
@@ -512,12 +540,16 @@ request-method |content-type   |postman   |springboot   |说明
 post |application/json   |row-json   |(@RequestBody User user)   |如果后台使用了@RequestBody，此时row-text等都无法请求到
 post |multipart/form-data  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
 
-- `'content-type': 'multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
+- content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
+	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放再body中，且数据格式为json
+	- 服务器response设置content-type标明返回的数据类型。接口开发时，设置请求参数是无法改变服务器数据返回类型的。部分工具提供专门的设置，通过工具内部转换的方式实现设定返回数据类型
+- `content-type: multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
 	- `javascript XHR`需要使用`new FormData()`进行数据传输(可查看postman代码)
 	- 还可使用`MultipartFile`来接受单个文件, 使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件 [^3]
 
 	```java
 	// 此时User会根据前台参数和User类的set方法自动填充(调用的是User类的set方法)
+	// 前端可以使用js对象FormData进行文件和普通参数的传输
 	@RequestMapping(path = "/edit-user", method = RequestMethod.POST)
 	public Map<String, Object> editEvent(HttpServletRequest request, User user, @RequestParam("hello") String hello) {
 		Map<String, Object> result = new HashMap<>();
@@ -526,7 +558,7 @@ post |multipart/form-data  |form-data   |(HttpServletRequest request, User user,
 		System.out.println("user.getName() = " + user.getName()); // smalle
 
 		try {
-			// 为了获取文件项
+			// 为了获取文件项。或者使用Spring提供的MultipartFile进行文件接收
 			Collection<Part> parts = request.getParts();
 
 			// part中包含了所有数据(参数和文件)
@@ -582,9 +614,34 @@ public String hello(User user) {}
 @RequestMapping(value = "/upload", method = RequestMethod.POST)
 public String uploading(@RequestParam("file") MultipartFile file) {}
 
-// 如请求头为`application/json`，此body中一个json对象(无需加 data={} 等key，直接为 {} 对象)。
+// 如请求头为`application/json`，此body中为一个json对象(请求时无需加 data={} 等key，直接为 {} 对象)。
+// 获取body中的参数，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以转成成功Map，此处也可以用Map<String, Object>接受
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public String addUser(@RequestBody List<User> user) {} // 获取body中的参数，或者`@RequestBody String userStr`接收了之后再转回，但是不能同时使用两个
+public String addUser(@RequestBody List<User> user) {}
+
+// 自定义方法：通过request获取body数据（参考getBodyStringFromReq）。request.getParameter无法获取body
+// InputStream对象只能获取一次
+	// 1.request.setAttribute("body", body);
+	// 2.如果需要多次获取可以使用HttpServletRequestWrapper进行缓存(https://www.jianshu.com/p/85feeb30c1ed)。如果Filter的验证中使用了，则Controller中无法再使用@RequestBody获取数据
+public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper {
+    private final String body;
+    public CustomerHttpServletRequestWrapper(HttpServletRequest request) throws IOException {
+        super(request);
+        body = StreamUtils.copyToString(request.getInputStream(), Charset.forName("UTF-8")); // org.springframework.util.StreamUtils
+    }
+    
+    public Map getBodyMap() {
+        try {
+            return new ObjectMapper().readValue(body, Map.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new HashMap();
+    }
+}
+
+// 通过filter进行下发
+filterChain.doFilter(customerHttpServletRequestWrapper, servletResponse);
 ```
 
 ### 前端数组/对象处理
@@ -633,21 +690,32 @@ public RestTemplate restTemplate() {
 @Autowired
 RestTemplate restTemplate; // 无需手动引入
 
-// （1） getForEntity
-ResponseEntity<Map> responseEntity = restTemplate.getForEntity("http://localhost/list?username={name}", Map.class, 
+// 1.getForEntity
+ResponseEntity<Map> responseEntity = restTemplate.getForEntity(
+	"http://localhost/list?username={name}", // ***此处一定需要占位符{name}***
+	Map.class, // 返回的数据转换的类型(需确保可以转换成此类型)
 	new HashMap<String, Object>() {{put("name", "smalle");}});
 HttpHeaders headers = responseEntity.getHeaders();
 HttpStatus statusCode = responseEntity.getStatusCode();
 int code = statusCode.value();
 Map map = responseEntity.getBody();
 
-// （2） getForObject
+// 2.getForObject
 Video video = restTemplate.getForObject("http://localhost/video", Video.class);
 
-// （3） postForEntity
+// 3.postForEntity
 Video video = new Video();
 ResponseEntity<Video> responseEntity = restTemplate.postForEntity("http://localhost/video", video, Video.class);
 video = responseEntity.getBody();
+
+// 4.postForObject
+HttpHeaders headers = new HttpHeaders(); // org.springframework.http.HttpHeaders impl MultiValueMap
+headers.add("X-Auth-Token", "123456789");
+Map<String, Object> postParameters = new HashMap<>();
+postParameters.add("username", "smalle");
+postParameters.add("age", "18");
+HttpEntity<Map<String, Object>> requestEntity  = new HttpEntity<>(postParameters, headers);
+Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity, Map.class);
 ```
 
 - 设置超时时间
@@ -655,7 +723,7 @@ video = responseEntity.getBody();
 ```java
 @Bean // spirngboot > 1.4 无需其他依赖
 public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
-	// 服务器内存溢出，还未宕机时，是可以访问，但是一直获取不到返回。需要超时机制
+	// 服务器内存溢出，还未宕机时，是可以请求服务，但是一直获取不到返回。需要超时机制
 	return restTemplateBuilder
 			.setConnectTimeout(3000)
 			.setReadTimeout(3000)
@@ -705,7 +773,9 @@ public RestTemplate RestTemplate() {
 			# 2.在创建数据库连接之后，要执行一条sql语句 "SET NAMES utf8mb4 COLLATE utf8mb4_general_ci"，这样的数据库连接才可以操作utf8mb4类型的数据的存取
 		spring.datasource.tomcat.initSQL=SET NAMES utf8mb4 COLLATE utf8mb4_general_ci
 
-		# 每次启动都会执行, 且在hibernate建表语句之前执行
+		# 执行初始化库语句
+		initialization-mode: always # springboot 2.0需要开启初始化模式。embedded(默认值, 当使用内嵌数据库时可使用, 如 h2), always使用外部数据库时需要开启
+		# 每次启动都会执行, 且在hibernate建表语句之前执行（如果要执行需要sql脚本先关闭hibernate建表 spring.jpa.hibernate.ddl-auto=none）
 		# 若无此定义, springboot也会默认执行resources下的schema.sql(先)和data.sql(后)文件(如果存在)
 		# 执行建表语句(也会执行插入等语句)
 		spring.datasource.schema=classpath:schema.sql
@@ -756,9 +826,18 @@ public RestTemplate RestTemplate() {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	// 查询1
-	String sql = "SELECT h.*, e.name as event_name from th_help h, th_event e where h.event_id = e.event_id";
-	List<Map<String, Object>> object = jdbcTemplate.queryForList(sql);
+	// 查询一行数据并返回int型结果
+	jdbcTemplate.queryForInt("select count(*) from test");  
+	// 查询一行数据并将该行数据转换为Map返回
+	jdbcTemplate.queryForMap("select * from test where id=1");  
+	// 查询一行任何类型的数据，最后一个参数指定返回结果类型
+	jdbcTemplate.queryForObject("select count(*) from test", Integer.class);  
+	// 查询一批数据，默认将每行数据转换为Map
+	List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from test");  
+	// 只查询一列数据列表，列类型是String类型，列名字是name
+	jdbcTemplate.queryForList("select name from test where name=?", new Object[]{"smalle"}, String.class);  
+	// 查询一批数据，返回为SqlRowSet，类似于ResultSet，但不再绑定到连接上
+	SqlRowSet rs = jdbcTemplate.queryForRowSet("select * from test");  
 
 	// 查询2
 	String sql = "select id, name, age from student";
@@ -1239,7 +1318,7 @@ public MultipartConfigElement multipartConfigElement() {
         public void send() {
             String context = "hello " + new Date();
             System.out.println("Provider: " + context);
-            this.rabbitTemplate.convertAndSend("hello", context);
+            rabbitTemplate.convertAndSend("hello", context);
         }
     }
 
@@ -1665,6 +1744,7 @@ public @interface DS {
 // ### 6 需要添加AOP相关依赖
 @Aspect
 @Component
+// @Order(-1) // 保证该AOP在@Transactional之前执行
 public class DynamicDataSourceAspect {
 
     // AbstractRoutingDataSource 只支持单库事务，也就是说切换数据源要在开启事务之前执行
@@ -1767,8 +1847,6 @@ public String AddDynamic(String dsKey, String dbName) {
 // ### 2 服务参考上文`TestService`相关代码
 ```
 
-
-
 ### session共享
 
 - 基于redis实现session共享. 多个项目需要都引入此依赖，并连接相同的redis
@@ -1788,6 +1866,36 @@ public String AddDynamic(String dsKey, String dbName) {
 	```
 - 启动类加`@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 7200)` (maxInactiveIntervalInSeconds即session检测的最大时间间隔)
 - 可将一个项目启动两个端口进行测试
+
+### 使用lombok工具
+
+- idea可安装lombok插件
+- 依赖
+
+```xml
+<dependency>
+	<groupId>org.projectlombok</groupId>
+	<artifactId>lombok</artifactId>
+	<optional>true</optional>
+</dependency>
+```
+
+- 使用
+```java
+// 枚举使用 @Getter @Setter
+public interface ISubscribeService extends IService<Subscribe> {
+    enum FlowStatus {
+        SUBSCRIBE("已订阅", 1), SEARCHING("查询中", 2), SEARCH_SUCCESS("已返回", 3), SEARCH_FAILED("返回失败", 4);
+        private @Getter @Setter String name;
+        private @Getter @Setter int status;
+
+        FlowStatus(String name, int status) {
+            this.name = name;
+            this.status = status;
+        }
+    }
+}
+```
 
 ### 整合swagger
 

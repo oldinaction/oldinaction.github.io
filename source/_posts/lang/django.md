@@ -18,6 +18,47 @@ tags: [python, django]
 - `python manage.py runserver` **启动项目**
     - `python manage.py runserver 0.0.0.0:8000` 启动项目(开启局域网访问)
 
+## hello world
+
+```py
+### urls.py
+from django.contrib import admin
+from django.urls import path, include
+from monitor import urls as monitor_urls
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('monitor/', include(monitor_urls)),
+]
+
+### app/urls.py
+from django.conf.urls import url
+from monitor import views
+
+urlpatterns = [
+    url(r'^hello$', views.HelloView.as_view()),
+]
+
+### app/views.py
+from django.views import View
+from django.http import HttpResponse
+
+
+class HelloView(View):
+    def get(self, request, *args, **kwargs):
+        # 使用模板：相对于templates目录的路径，且必须在`INSTALLED_APPS`中加入本app(如：'monitor.apps.MonitorConfig')
+        return render(request, 'monitor/index.html', {
+            'my_msg': "welcome",
+        })
+
+    def post(self, request, *args, **kwargs):
+        # self.dispatch()
+        if request.user.username == 'admin':  # 通过/admin登录后，默认会保存user到session中
+            return HttpResponse('hello world...')
+        else:
+            return HttpResponse('please login...')
+```
+
 ## Model
 
 > http://www.cnblogs.com/wupeiqi/articles/5246483.html
@@ -383,6 +424,7 @@ def test_contenttypes_list(request):
     - 在csrf存在时，且未CBV模式下，去掉某个url的csrf功能，有两种方式
         - View子类上加`@method_decorator(csrf_exempt, name='dispatch')`
         - View子类重写dispatch方法，并在dispatch方法上加`@method_decorator(csrf_exempt)`(加在其他方法上无效)
+    - 使用时在html的表单中加入`{%csrf_token%}`
 
 ## 异常处理
 
@@ -411,6 +453,15 @@ def bad_request(request):
     return render_to_response('400.html')
 ```
 
+## 配置
+
+```py
+### setting.py
+
+# 时区
+TIME_ZONE = 'Asia/Shanghai'
+```
+
 ## 杂项
 
 ### 静态资源
@@ -421,9 +472,22 @@ def bad_request(request):
         - 配置文件中加 `STATIC_ROOT = os.path.join(BASE_DIR, 'static')`
         - 执行`python manage.py collectstatic`会自动生成静态资源文件到上述目录。正式环境中可配置STATIC_ROOT为nginx的静态资源目录
 
+### 请求对象
+
+- `request.POST['username']` 获取普通input的值
+- `request.POST.getlist('hobby')` 获取checkbox的值
+
 ### 请求生命周期
 
 ![django-request](/data/images/lang/django-request.png)
+
+### 模块打包
+
+- `pip install setuptools` 安装打包工具
+- `python setup.py sdist` 执行打包
+- `pip install --user django-polls/dist/django-polls-0.1.tar.gz` 基于用户安装 `django-polls`, 如果基于`virtualenv`安装允许同时运行多个相互独立的Python环境，每个环境都有各自库和应用包命名空间的拷贝
+- `pip list` 查看包列表
+- `pip uninstall django-polls` 卸载包
 
 ### FBV/CBV模式：函数作为视图或类作为视图
 

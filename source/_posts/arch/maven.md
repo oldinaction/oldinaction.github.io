@@ -60,7 +60,7 @@ tags: [maven]
 	<artifactId>demo</artifactId>
 	<packaging>jar</packaging>
 
-	<!--声明父项目坐标-->
+	<!--声明父项目坐标。maven的parent是单继承，如果需要依赖多个父项目可以在dependencyManagement中添加依赖的scope为import。eg:springcloud应用 -->
 	<parent>
 		<groupId>cn.aezo</groupId>
 		<artifactId>smtools</artifactId>
@@ -93,6 +93,7 @@ tags: [maven]
 - 再按照常规的方式应用
 	
 	```xml
+	<!-- 依赖本项目其他模块时，需要先install被依赖的模块，才能打包此模块 -->
 	<dependency>
     	<groupId>cn.aezo</groupId>
     	<artifactId>test</artifactId>
@@ -117,6 +118,7 @@ tags: [maven]
 	<!-- springboot专用 -->
 	<build>
 		<plugins>
+			<!-- spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -269,7 +271,8 @@ tags: [maven]
     - `runtime`：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。
     - `test`：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。
     - `provided`：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。(如smtools工具类中引入某jjwt的jar包并设置provided，且只有JwtU.java中使用了此jar。当其他项目使用此smtools，如果开发过程中并未使用JwtU，即类加载器没有加载JwtU则此项目pom中不需要引入jjwt的jar；否则需要引入)
-    - `system`：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径。
+    - `system`：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径
+	- `import`：只有在dependencyManagement中，且dependency的type=pom时使用。maven的`<parent>`只支持单继承，如果还需要继承其他模块的配置，可以如此使用(eg: springcloud应用)
 - `dependency#<optional>true</optional>` 父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入
 
 ### build节点
@@ -285,8 +288,9 @@ tags: [maven]
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
+					<encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
         </plugins>
@@ -393,6 +397,36 @@ tags: [maven]
 - springboot配置文件`application.properties`添加`spring.profiles.active=@profiles.active@`(参数名profiles.active为上述profiles中定义)
 - maven打包：`mvn clean package -Pdev` 其中`-P`后面即为参数值，后面可有空格。`@profiles.active@`定义之后则只能通过maven打包，不能再idea中直接main方法运行
 
+### 多模块打包
+
+- spring-boot工程打包编译时，可生成两种jar包，一种是普通的jar，另一种是可执行jar。默认情况下，这两种jar的名称相同，在不做配置的情况下，普通的jar先生成，可执行jar后生成。
+- **多模块打包时容易出现"找不到符号"、"程序包不存在"，需要注意可执行的模块不能依赖另外一个可执行的模块**
+- 无法单独打包其中的某个子模块。可以将顶级父模块打包后(会自动打包每个子模块)，找到某个子模块生成的jar可单独运行
+
+```xml
+<!-- 顶级父模块中定义 -->
+<build>
+	<pluginManagement>
+		<plugins>
+			<!-- spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</pluginManagement>
+</build>
+
+<!-- 需要打包成可执行的jar时加入依赖，无需打包成可执行jar的pom中(common模块)不加入此依赖 -->
+<build>
+	<plugins>
+		<plugin>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+		</plugin>
+	</plugins>
+</build>
+```
 
 ---
 

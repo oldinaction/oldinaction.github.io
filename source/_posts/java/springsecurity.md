@@ -585,6 +585,9 @@ tags: [spring, springsecurity, springboot, oauth2]
         - Token 令牌默认是有签名的，并且资源服务器中需要验证这个签名，因此需要一个对称的 Key 值，用来参与签名计算。这个 Key  值存在于授权服务和资源服务之中，或者使用非对称加密算法加密 Token 进行签名，Public Key 公布在 /oauth/token_key 这个 URL 中
         - 默认 /oauth/token_key 的访问安全规则是 "denyAll()" 即关闭的，可以注入一个标准的 SpingEL 表达式到 AuthorizationServerSecurityConfigurer 配置类中将它开启，例如 permitAll()
         - 需要引入 spring-security-jwt 库
+- access_token获取(BearerTokenExtractor#extractToken)
+    - 默认从header中获取，传入方式如：`Authorization: Bearer my_access_token_888`(POST时使用)
+    - header中获取不到则通过`request.getParameter("access_token")`获取
 
 ### 客户端模式和密码模式
 
@@ -1027,7 +1030,7 @@ OAuth2RestTemplate oAuth2RestTemplate(OAuth2ClientContext oAuth2ClientContext){
 
 @RequestMapping("/res/read")
 public String read(Authentication authentication) {
-    String toke = ((OAuth2AuthenticationDetails) authentication.getDetails()).getTokenValue();
+    String toke = ((OAuth2AuthenticationDetails) authentication.getDetails()).getTokenValue(); // 获取的是客户端token
     String result = oAuth2RestTemplate.getForObject("http://localhost:8083/api/read?id=1&access_token=" + toke, String.class);
     return result;
 }
@@ -1278,6 +1281,7 @@ public String getOrder(@PathVariable String id, String access_token, Authenticat
     - 2.set the server.session.cookie.name for one App to something different, e.g., APPSESSIONID(两个应用使用不同的SESSIONID名称)
 - `.antMatchers("/api/write/**").access("hasRole('ROLE_USER') and #oauth2.hasScope('write')")`配置无效
     - HttpSecurity配置时路径顺序很重要，具体参考【授权码模式-sso单点登陆-资源服务器注释】
+    - 验证客户端时, scope会生效。password模式验证用户token时scope测试未生效
 - password模式获取token，报错`TokenEndpoint  : Handling error: NestedServletException, Handler dispatch failed; nested exception is java.lang.StackOverflowError`
     - 解决方法`AuthenticationManager authenticationManagerBean()`：https://github.com/spring-projects/spring-boot/issues/12395
 - 利用refresh_token无法刷新token

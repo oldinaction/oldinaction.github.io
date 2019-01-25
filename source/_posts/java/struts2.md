@@ -184,6 +184,27 @@ Struts2中的MVC概念：M是各种类似User的类，V是各种jsp页面，C是
     - `DI`: dependency injection依赖注入
     - `IoC`: inverse of control控制反转
 
+```java
+// 方法一
+ActionContext ctx = ActionContext.getContext();
+HttpServletRequest request = (HttpServletRequest) ctx.get(ServletActionContext.HTTP_REQUEST);
+HttpServletResponse response = (HttpServletResponse) ctx.get(ServletActionContext.HTTP_RESPONSE);
+
+// 方法二
+public abstract class BaseAction extends ActionSupport implements ServletRequestAware, ServletResponseAware {
+    protected HttpServletRequest request;
+    protected HttpServletResponse response;
+
+    public void setServletRequest(HttpServletRequest request) {
+        this.request = request;
+    }
+
+    public void setServletResponse(HttpServletResponse response) {
+        this.response = response;
+    }
+}
+```
+
 ### 包含模块配置文件
 
 - `<include file="/cn/aezo/others/xxx.xml" />` xxx.xml相当于一个普通的struts.xml文件

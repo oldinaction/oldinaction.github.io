@@ -74,15 +74,19 @@ server {
         proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $http_host;
         proxy_redirect off;
-        if (!-f $request_filename) {
+        if (!-f $request_filename) { # proxy_pass http://127.0.0.1:8080/xxx; 会报错。proxy_pass在以下情况下，指令中不能有URI：正则表达式location、if块、命名的地点
             proxy_pass http://127.0.0.1:8080;
+            break;
+        }
+        # if中不能使用URI，但是使用变量$request_uri(其值是以/开头)则可以
+        if ($request_uri ~ "^/\w+\.xml$") {
+            proxy_pass http://127.0.0.1:8080/xxx$request_uri;
             break;
         }
     }
 
-    # proxy_pass详解，访问 http://192.168.1.1/proxy/test.html 不同的配置代理结果不一致. 
-    ## 如果访问 http://192.168.1.1/proxy 则无法进入到下面代理，必须访问http://192.168.1.1/proxy/
-    ## location /proxy/ 不能写成 location /proxy(则 http://192.168.1.1/proxy/xxx 无法代理)
+    # proxy_pass详解，访问 http://192.168.1.1/proxy/test.html 不同的配置代理结果不一致. （多站点配置参考下文）
+    ## 如果访问 http://192.168.1.1/proxy 则无法进入到下面代理，必须访问http://192.168.1.1/proxy/。 location /proxy/ 不能写成 location /proxy(则 http://192.168.1.1/proxy/xxx 无法代理)
     ## 第一种代理到URL：http://127.0.0.1/test.html
     location /proxy/ {
         proxy_pass http://127.0.0.1/;
@@ -215,6 +219,30 @@ http {
         server 192.168.80.123:80 weight=3;
     }
 
+    # 开启多个站点监听(花生壳指向 127.0.0.1:80 根据域名转发)
+    server {
+        listen 80;
+        server_name hello.aezo.cn;
+
+        # location = / {...} 和 location / {...} 联合使用，可以达到访问 hello.aezo.cn/xxx/ 转到 /pc/xxx/。而访问 test.aezo.cn/xxx/ 可同理转到如 /test/xxx/
+        location = / {
+            #判断是否为手机移动端
+            if ($http_user_agent ~* '(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)') {
+                rewrite . http://$server_name/wap/ break;
+            }
+            # proxy_pass http://127.0.0.1:8090/pc/;
+            rewrite . http://$server_name/pc/ break;
+        }
+        location / {
+            # 如果无此if则出现如下问题：访问 hello.aezo.cn/index.php 则无法转发到 127.0.0.1:8090/pc/index.php（实际是转到 127.0.0.1:8090/index.php）
+            if ($request_uri !~ "^/pc/") { # 不是以pc开头的转发到 /pc/，其他(已pc开头)的通过下面转发到本身的路径(/pc/xxx)
+				proxy_pass http://127.0.0.1:8090/pc$request_uri;
+				break;
+			}
+            proxy_pass http://127.0.0.1:8090;
+        }
+    }
+
     #虚拟主机的配置（可配置多个server，每个server为一个虚拟主机）
     server {
         #监听端口
@@ -318,24 +346,6 @@ http {
         # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
         location ~ /myphp/ {
             root /project/phphome/myphp;
-        }
-    }
-
-    # 开启第二个站点监听
-    server {
-        listen 80;
-        server_name hello.aezo.cn;
-
-        location = / {
-            #判断是否为手机移动端
-            if ($http_user_agent ~* '(iPhone|ipod|iPad|Android|Windows Phone|Mobile|Nokia)') {
-                rewrite . http://$server_name/wap break;
-            }
-            rewrite . http://$server_name/pc break;
-        }
-
-        location / {
-            proxy_pass http://127.0.0.1:8090;
         }
     }
 }

@@ -9,7 +9,7 @@ tags: [python]
 ## python简介
 
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
-- Linux下默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](_post/linux/CentOS服务器使用说明.md)
+- Linux下默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](/_posts/linux/CentOS服务器使用说明.md)
 
 ## python2和python3的语法区别
 
@@ -190,23 +190,38 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ## 模块
 
-- 更换pip镜像
+### 内置模块
 
-    ```bash
-    # 镜像地址
-    # 清华 https://pypi.tuna.tsinghua.edu.cn/simple
-    # 官方 https://pypi.python.org/simple
-    # 阿里云 https://mirrors.aliyun.com/pypi/simple
-    # 豆瓣 http://pypi.douban.com/simple/
+#### time
 
-    # Linux下，修改 ~/.pip/pip.conf (没有就创建一个)， 修改 index-url至tuna，内容如下：
-    [global]
-    index-url = https://pypi.tuna.tsinghua.edu.cn/simple
-    
-    # windows下，直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下:
-    [global]
-    index-url = https://pypi.tuna.tsinghua.edu.cn/simple
-    ```
+```py
+import time
+
+# 格式化成2016-03-20 11:45:39形式
+print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
+```
+
+### 模块扩展
+
+#### pip镜像及模块安装
+
+- pip镜像
+
+```bash
+# 镜像地址
+# 清华 https://pypi.tuna.tsinghua.edu.cn/simple
+# 官方 https://pypi.python.org/simple
+# 阿里云 https://mirrors.aliyun.com/pypi/simple
+# 豆瓣 http://pypi.douban.com/simple/
+
+# Linux下，修改 ~/.pip/pip.conf (没有就创建一个)， 修改 index-url至tuna，内容如下：
+[global]
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+
+# windows下，直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下:
+[global]
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+```
 - 模块安装
     - `pip install xxx` [pip](https://pypi.org/)
         - python3也可以使用`pip3 install xxx`
@@ -216,38 +231,80 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
     - `pip list` 列举安装的模块
         - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
     - `pip uninstall xxx` 卸载
-- 常用模块
-    - `pip` 可用于安装管理python其他模块
-        - 安装（windows默认已经安装）
-            - 将`https://bootstrap.pypa.io/get-pip.py`中的内容保存到本地`get-pip.py`文件中
-            - 上传`get-pip.py`至服务器，并设置为可执行
-            - `python get-pip.py` 安装
-            - 检查是否安装成功：`pip list` 可查看已经被管理的模块
-        - 常见问题
-            - 安装成功后，使用`pip list`仍然报错。windows执行`where pip`查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
-    - `ConfigParser` 配置文件读取(该模块ConfigParser在Python3中，已更名为configparser)
-        - `pip install ConfigParser`
-        - 介绍：http://www.cnblogs.com/snifferhu/p/4368904.html
-    - mysql操作库
-        - `pip install MySQL-python`(MySQLdb只支持2.7)
-            > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装 [MySQL_python‑1.2.5‑cp27‑none‑win_amd64.whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python) 或 `MySQL-python-1.2.5.win32-py2.7.exe`（就相当于pip安装）
-            - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
-        - `pip install pymysql`(3.6)
-            - 工具类：https://www.cnblogs.com/bincoding/p/6789456.html
-        - `pip install mysqlclient-1.3.13-cp36-cp36m-win_amd64.whl` **推荐**
-    - `pymongo` MongoDB操作库 [^2]
-        - `pip install pymongo`
-    - `fabric` 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
-        - `pip install fabric` 或 `pip install fabric3` 安装
-        - 常见问题
-            - 报错`fatal error: Python.h: No such file or directory`
-                - 安装`yum install python-devel` 安装python-devel(或者`yum install python-devel3`)
-            - 报错` fatal error: ffi.h: No such file or directory`
-                - `yum install libffi libffi-devel` 安装libffi libffi-devel
-    - `scrapy` 主要用在python爬虫。可以css的形式方便的获取html的节点数据
-        - `pip install scrapy` 安装
-        - 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
+- `pip` 可用于安装管理python其他模块
+    - 安装（windows默认已经安装）
+        - 将`https://bootstrap.pypa.io/get-pip.py`中的内容保存到本地`get-pip.py`文件中
+        - 上传`get-pip.py`至服务器，并设置为可执行
+        - `python get-pip.py` 安装
+        - 检查是否安装成功：`pip list` 可查看已经被管理的模块
+    - 常见问题
+        - 安装成功后，使用`pip list`仍然报错。windows执行`where pip`查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
 
+#### ConfigParser 配置文件读取
+
+- 该模块ConfigParser在Python3中，已更名为configparser
+- `pip install ConfigParser`
+- 介绍：http://www.cnblogs.com/snifferhu/p/4368904.html
+
+#### mysql操作库
+
+- `pip install MySQL-python`(MySQLdb只支持2.7)
+    > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装 [MySQL_python‑1.2.5‑cp27‑none‑win_amd64.whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python) 或 `MySQL-python-1.2.5.win32-py2.7.exe`（就相当于pip安装）
+    - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
+- `pip install pymysql`(3.6)
+    - 工具类：https://www.cnblogs.com/bincoding/p/6789456.html
+- `pip install mysqlclient-1.3.13-cp36-cp36m-win_amd64.whl` **推荐**
+
+#### pymongo MongoDB操作库 [^2]
+
+- `pip install pymongo`
+
+#### fabric 自动化运维
+
+- 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
+- `pip install fabric` 或 `pip install fabric3` 安装
+- 常见问题
+    - 报错`fatal error: Python.h: No such file or directory`
+        - 安装`yum install python-devel` 安装python-devel(或者`yum install python-devel3`)
+    - 报错` fatal error: ffi.h: No such file or directory`
+        - `yum install libffi libffi-devel` 安装libffi libffi-devel
+
+#### scrapy 爬虫框架
+
+- 主要用在python爬虫。可以css的形式方便的获取html的节点数据
+- `pip install scrapy` 安装
+- 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
+
+#### pexpect 远程命令控制
+
+- pexpect 是 Python 语言的类 Expect 实现。程序主要用于"人机对话"的模拟，如账号登录输入用户名和密码等情况
+- `pip install pexpect` 安装
+- 参考：https://www.jianshu.com/p/cfd163200d12
+
+```py
+# pexpect==4.6.0
+import pexpect
+
+# 登录，并指定目标机器编码
+process = pexpect.spawn('ssh root@123.206.101.205', encoding='utf-8')
+process.expect(['password:', 'continue connecting (yes/no)?'])
+process.sendline('she&2018xia185hao')
+
+# 发送命令
+process.buffer = str('') # 清空缓冲区
+process.sendline("ps aux | awk '{print $2}' | grep 16983 --color=none") # 发送命令
+process.expect(['\[[^@\[]*@[^ ]* [^\]]*\]# ', '\[[^@\[]*@[^ ]* [^\]]*\]\$ ']) # 匹配字符 [root@VM_2_2_centos ~]# [root@VM_2_2_centos ~]$ 
+print(process.before) # 缓冲区开始到匹配字符之前的所有数据(不包含匹配字符)
+print(process.before.split('\r\n'))
+print(process.after) # 匹配字符数据
+
+# 人机交互
+process.interact() # 将控制权交给用户(python命令行变成bash命令行)
+exit # 退出交互界面
+
+# 退出pexpect登录
+process.close(force=True)
+```
 
 ## 项目创建和发布
 
@@ -265,25 +322,34 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ### 发布
 
-- 客户端：`pip freeze > requirements.txt` venv环境运行后会生成一个此项目依赖的类库列表文件(安装上述方法创建项目默认不包含Python官方库)
+- 记录客户端依赖：`pip freeze > requirements.txt` venv环境运行后会生成一个此项目依赖的类库列表文件(安装上述方法创建项目默认不包含Python官方库)
 - 服务器
 
-```shell
+```bash
 # python3 的 pip3
 pip3 install virtualenv
 # 在当前目录创建虚拟环境目录ENV(可自定义名称)
 virtualenv ENV
-# 进入虚拟环境目录
-cd ENV/Scripts
-# 启用此环境，后续命令行前面出现（ENV）代表此时环境已切换
-source ./activate
+# 启用此环境，后续命令行前面出现（ENV）代表此时环境已切换。之后执行命令全部属于此环境
+# 退出虚拟环境命令 `deactivate`(无需加ENV/bin/)
+source ENV/bin/activate
+# 复制项目代码到项目目录(不用包含原来的虚拟环境目录)
 # 之后执行pip python3 等指令，相当于是在此环境中执行
+# 或者直接通过`/ENV/bin/python3`执行程序
 pip3 install -r /opt/myproject/requirements.txt
 # 此时看到依赖已安装
 pip3 list
 # 运行
 python3 /opt/myproject/main.py
 ```
+- 运行程序脚本如
+
+```bash
+# 或者 nohup /home/smalle/ENV/bin/python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:10000 > console.log 2>&1 &
+source /home/smalle/ENV/bin/activate
+nohup python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:10000 > console.log 2>&1 &
+```
+
 
 ---
 

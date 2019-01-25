@@ -26,6 +26,6 @@ Spring的两种代理方式：JDK动态代理和CGLIB动态代理
 2、cglib动态代理中生成的字节码更加复杂，生成的代理类是委托类的子类，且不能处理被final关键字修饰的方法；
 3、jdk采用反射机制调用委托类的方法，cglib采用类似索引的方式直接调用委托类方法；
 
-
+- Spring的`BeanFactory`和`FactoryBean`区别 https://www.cnblogs.com/aspirant/p/9082858.html
 
 

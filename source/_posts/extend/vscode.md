@@ -69,7 +69,13 @@ tags: [ide, web]
     },
 	```
 
+### php debug
 
+- php安装扩展xdebug
+- vscode安装扩展php-debug(xdebug的adapter)
+
+https://www.cnblogs.com/studyskill/p/6873588.html
+https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-php-5-x-7-x/
 
 ## 用户配置
 

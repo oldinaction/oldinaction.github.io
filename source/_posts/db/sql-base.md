@@ -45,6 +45,7 @@ create table t_test as
 - `delete from emp2;` 清空表emp2
 - `delete from dept2 where deptno < 25;` 删除deptno < 25的条目
 - `delete from emp2 where deptno in (select deptno from dept2 where deptno < 25)` 子查询不能有别名(oracle)
+- `truncate table emp2;` oracle清空表数据，适用于表中含有大量数据
 
 ### 事物
 
@@ -455,7 +456,7 @@ select *
 
 #### 删除表
 
-- 删除表 `drop table table_name;` 如果存在外键约束，应该先删除含有外键约束的那个表，再删除被参考的那个表
+- 删除表 `drop table table_name;` 如果存在外键约束，应该先删除含有外键约束的那个表，再删除被参考的那个表(也会删除表结构)
 
 #### 复制表
 
@@ -720,6 +721,7 @@ select *
 ### 常用建表模型
 
 - 字典表(t_type_code)：id、type、code、name、value、note、rank(排序)、permission_code(权限落在行级)、valid_status、input_user_id、input_time、update_user_id、update_time
+- 大字段表
 - 树型表(t_structure)：id、structure_type_code(树类型)、parent_id、node_level、node_code、node_name、node_note、node_rank(节点排序)
 - 属性表(t_attr)：id、attr_type、parent_id、code、value、note、permission_code(属性表可和树型表连用)
 - 权限相关表
@@ -727,9 +729,10 @@ select *
     - 权限(t_promission)：id、promission、note
     - 权限组-权限关系表(t_security_group_promission、多对多)：id、security_group、promission
     - 用户权限组关系表(t_user_security_group、多对多)：id、user_id、security_group
-- 角色相关表
+- 角色相关表 `RBAC`
     - 角色类型树：如总经理、销售经理、市场经理、员工
     - 部门树
+- 主要实体暂存功能
 
 ### 案例
 

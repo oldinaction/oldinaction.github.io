@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "Ubuntu安装"
+title: "Ubuntu"
 date: "2016-11-20 13:16"
 categories: [linux]
 tags: [system, bois]
@@ -12,7 +12,96 @@ tags: [system, bois]
 2. Ubuntu下载地址：[http://releases.ubuntu.com/](http://releases.ubuntu.com/)
 3. 本文以`Ubuntu 16.04.1 LTS`为例记录U盘、硬盘安装方法(windows安装类似)
 
-## Bios、分区、MBR
+## 使用
+
+### windows远程桌面连接Ubuntu [^10]
+
+- 配置
+
+```bash
+# 安装xrdp
+sudo apt-get install xrdp
+# 安装vnc4server
+sudo apt-get install vnc4server
+# 安装xubuntu-desktop
+sudo apt-get install xubuntu-desktop
+# 向xsession中写入xfce4-session(每个用户自己运行此行)
+echo "xfce4-session" > ~/.xsession
+# 查看xrdp服务状态(默认安装就已经开启了)
+systemctl status xrdp
+# 查看ip
+ipconfig
+```
+- windows远程桌面连接登录
+    - ip输入`192.168.17.196:3389`点击连接
+    - 在跳出的登录界面中选择`session: Xorg; username/password: root/root`
+
+### 常用设置
+
+- 用户目录文件名显示英文
+
+    ```bash
+    export LANG=en_US
+    # 同意
+    xdg-user-dirs-gtk-update
+    export LANG=zh_CN
+    # 重启后系统会提示是否把转化好的目录改回中文。选择不再提示，并取消修改
+    ```
+- 设置locale为英文(修改系统语言为英文)
+    - 法一：`export LC_ALL="en_US.UTF-8"` 重启
+    - 法二
+        - `sudo locale-gen en_US en_US.UTF-8`
+        - `sudo dpkg-reconfigure locales `
+- 将sh文件发送到桌面快捷方式
+    - 在桌面创建`文件名.desktop`文件，内容如为 
+
+        ```bash
+        [Desktop Entry]
+        Encoding=UTF-8
+        Name=pycharm
+        Exec=sh /home/smalle/soft/pycharm-2018.3/bin/pycharm.sh
+        Icon=/home/smalle/soft/pycharm-2018.3/bin/pycharm.png
+        Terminal=false
+        Type=Application
+        ```
+    - 右键查看文件属性–权限–勾选可执行，执行
+
+### 安装程序
+
+- 安装命令 `apt-get install xxx`
+- 卸载命令 `apt-get remove xx` (会保留配置文件)
+    - 完全卸载 `apt-get --purge xx`
+- 查看包列表 `dpkg --list`
+- 更新源 `apt-get update`
+- 安装deb格式文件
+    - `dpkg -i file.deb` deb是debian linus的安装格式，跟red hat的rpm非常相似
+
+#### 常用软件
+
+- 安装[wine](https://wiki.winehq.org/Ubuntu_zhcn)，即可在ubuntu上运行exe程序
+    - `sudo apt-get install winetricks` 
+    - 执行`winetricks`即可管理wine环境进行扩展管理
+- 安装docker
+
+    ```bash
+    sudo apt-get install docker.io
+    sudo gpasswd -a ${USER} docker # 把当前用户加入到docker组
+    cat /etc/group | grep ^docker # 查看是否添加成功
+    systemctl restart docker # 重启。如果仍然无法执行docker命令，可以退出当前用户再登录尝试
+    ```
+
+
+### 文件
+
+- 显示/隐藏隐藏文件和文件夹：`Ctrl + H`
+
+### 其他问题
+
+- ubuntu-18.04.1基于pycharm创建python项目报错`No module named 'distutils.core'`. 解决办法`sudo apt-get install python3-distutils`
+
+## Ubuntu安装
+
+### Bios、分区、MBR
 
 1. 设置电脑U盘启动
     - 我在电脑启动时按F12即可进入Bios界面（进入Bios的快捷键一般为ESC/F1/F11/F12等，可以网上查询电脑型号对应的启动Bios快捷键）
@@ -35,13 +124,13 @@ tags: [system, bois]
     - `NTFS` 为windows专用文件，具有良好的加密性，由于`FAT`、`FAT32`(linux可以失败)
     - `EXT4` 为Linux系统下的日志文件系统，是ext2、ext3的后续版本
 
-## Ubuntu安装
+### 安装
 
 Ubuntu安装方式分为两种：物理安装和虚拟安装。
 - 物理安装：LiveCD、U盘、硬盘(包括移动硬盘)
 - 虚拟安装：WUBI、虚拟机。缺点：需要依赖于主系统，如windows
 
-### U盘安装 [^3]
+#### U盘安装 [^3]
 
 > windows系统可以使用[U大侠](http://www.udaxia.com/)等工具快速制作U盘启动盘，之后只需要将系统iso镜像拷贝到U盘GHO文件夹，在新机器上U盘启动安装即可。如果之前装过Linux，则需要重新将硬盘分区，然后重启。（如果不成功可尝试重新制造U盘启动盘）
 
@@ -50,8 +139,8 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 2. 下载安装`UltraISO`，无需注册可以一直试用
 3. **打开`UltraISO` -> 文件 -> 打开 -> 选择ubuntu的iso镜像文件 => 启动 -> 写入硬盘映像(硬盘驱动器选择U盘，写入方式USB-HDD+) -> 写入(几分钟)。**此时U盘已经刻录好系统
 4. 将硬盘(需要安装Ubuntu的机器)腾出一个未使用的空间，大小自己定义
-4. Bios启动 -> 进入到刻录的U盘系统 -> `Install Ubuntu`（或者选择使用而不安装，进入之后还是可以安装） -> 点击桌面的`安装Ubuntu 16.04.1 LTS`进行安装 -> 前面一直下一步，到安装类型选择“其他选项”（可以自己创建调整分区）
-5. 选择“空闲”的磁盘，双击进行分区，主要分3个区`/`、`swap`、`/home`（还有其他分区方案）
+4. Bios启动 -> 进入到刻录的U盘系统 -> `Install Ubuntu`（或者选择使用而不安装，进入之后还是可以安装） -> 点击桌面的`安装Ubuntu 16.04.1 LTS`进行安装 -> 前面一直下一步，到安装类型选择"其他选项"（可以自己创建调整分区）
+5. 选择"空闲"的磁盘，双击进行分区，主要分3个区`/`、`swap`、`/home`（还有其他分区方案）
     - `/`：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点`/`
     - `swap`：大小<2G。逻辑分区，文件类型为交换空间，挂载点无
     - `/home`：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点`/home`
@@ -64,7 +153,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
     - `/`：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点`/`
     - `/home`：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点`/home`
 
-### 硬盘安装 [^4] [^5]
+#### 硬盘安装 [^4] [^5]
 
 1. 下载`EasyBCD` -> 安装后打开 -> 添加新条目 -> NeoGrub -> 安装 -> 配置 -> 在打开的配置文件（C:/NST/menu.lst）中写入如下代码。其中ro只读，splash显示启动画面；reboot重启；halt关机；[^6] (hd0,0) 一般会是表示C盘，实际按照上述知识自行配置
 
@@ -83,7 +172,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 4. 如果成功则会进入到buntu的桌面，首先`Ctrl+Alt+T`打开终端打开终端，运行`sudo umount -l /isodevice`去掉挂载的镜像文件
 5. 类似U盘安装进行后续操作
 
-### 移动硬盘安装 [^7]
+#### 移动硬盘安装 [^7]
 
 实况记录
 1. 可用U盘中刻录的系统进行移动硬盘安装
@@ -105,7 +194,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
     boot
     ```
 
-### 常见问题
+#### 常见问题
 
 - 2017-02-16解决ThinkPad E425在安装Ubuntu卡在安装界面的问题 [^9]
     - 原因：主板BIOS设置中设置为双显卡切换的模式的时候，会出现这个问题
@@ -124,60 +213,17 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - `sudo update-initramfs -u`
     - 重启
 
-#### 其他问题
-
-- ubuntu-18.04.1基于pycharm创建python项目报错`No module named 'distutils.core'`. 解决办法`sudo apt-get install python3-distutils`
-
-### 使用
-
-#### 常用设置
-
-- 用户目录文件名显示英文
-
-    ```bash
-    export LANG=en_US
-    # 同意
-    xdg-user-dirs-gtk-update
-    export LANG=zh_CN
-    # 重启后系统会提示是否把转化好的目录改回中文。选择不再提示，并取消修改
-    ```
-- 将sh文件发送到桌面快捷方式
-    - 在桌面创建`文件名.desktop`文件，内容如为 
-
-        ```bash
-        [Desktop Entry]
-        Encoding=UTF-8
-        Name=pycharm
-        Exec=sh /home/smalle/soft/pycharm-2018.3/bin/pycharm.sh
-        Icon=/home/smalle/soft/pycharm-2018.3/bin/pycharm.png
-        Terminal=false
-        Type=Application
-        ```
-    - 右键查看文件属性–权限–勾选可执行，执行
-
-#### 安装程序
-
-- 安装deb格式文件
-    - `dpkg -i file.deb` deb是debian linus的安装格式，跟red hat的rpm非常相似
-- 安装[wine](https://wiki.winehq.org/Ubuntu_zhcn)即可在ubuntu上运行exe程序.
-    - `sudo apt-get install winetricks` 
-    - 执行`winetricks`即可管理wine环境进行扩展管理
-
-#### 文件
-
-- 显示/隐藏隐藏文件和文件夹：`Ctrl + H`
-
-
 ---
 
 参考文章
 
-[^1]: [https://zhidao.baidu.com/question/512380327.html](https://zhidao.baidu.com/question/512380327.html)
-[^2]: [http://www.2cto.com/os/201202/120564.html](http://www.2cto.com/os/201202/120564.html)
-[^3]: [http://www.linuxidc.com/Linux/2014-10/108402.htm](http://www.linuxidc.com/Linux/2014-10/108402.htm)
-[^4]: [http://jingyan.baidu.com/article/e4d08ffdace06e0fd2f60d39.html](http://jingyan.baidu.com/article/e4d08ffdace06e0fd2f60d39.html)
-[^5]: [http://v.youku.com/v_show/id_XMzEwODg2Njk2.html?f=16157628&from=y1.2-3.2](http://v.youku.com/v_show/id_XMzEwODg2Njk2.html?f=16157628&from=y1.2-3.2)
-[^6]: [http://www.njliaohua.com/lhd_01ng13y9qv7k6x46aj4e_11.html](http://www.njliaohua.com/lhd_01ng13y9qv7k6x46aj4e_11.html)
-[^7]: [http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124](http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124)
-[^8]: [http://www.educity.cn/linux.1589874.html](http://www.educity.cn/linux.1589874.html)
-[^9]: [ThinkPad E425在安装Ubuntu卡在安装界面](http://blog.csdn.net/u014466412/article/details/53666122)
+[^1]: https://zhidao.baidu.com/question/512380327.html
+[^2]: http://www.2cto.com/os/201202/120564.html
+[^3]: http://www.linuxidc.com/Linux/2014-10/108402.htm
+[^4]: http://jingyan.baidu.com/article/e4d08ffdace06e0fd2f60d39.html
+[^5]: http://v.youku.com/v_show/id_XMzEwODg2Njk2.html?f=16157628&from=y1.2-3.2
+[^6]: http://www.njliaohua.com/lhd_01ng13y9qv7k6x46aj4e_11.html
+[^7]: http://forum.ubuntu.org.cn/viewtopic.php?p=149124#149124
+[^8]: http://www.educity.cn/linux.1589874.html
+[^9]: http://blog.csdn.net/u014466412/article/details/53666122 (ThinkPad-E425在安装Ubuntu卡在安装界面)
+[^10]: https://blog.csdn.net/woodcorpse/article/details/80503232

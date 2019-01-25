@@ -29,7 +29,7 @@ Rabbit MQ 是建立在强大的Erlang OTP平台上，因此安装Rabbit MQ的前
 - 查看用户
   - 运行 `rabbitmqctl.bat list_users` 查看用户(有一个guest默认用户)
 - 登录管理后台
-  - `http://localhost:15672` 使用guest/guest登录(需要激活rabbitmq_management)
+  - `http://localhost:15672` 使用`guest/guest`登录(需要激活rabbitmq_management)
 
 
 

@@ -39,7 +39,7 @@ tags: [sql, oracle, mysql]
     ```sql
     select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天和今天（2018-01-01, 2018-01-02）
     ```
-- oracle递归查询(树形结构)
+- `start with connect by prior` oracle递归查询(树形结构)
 
     ```sql
     select * from my_table t 
@@ -258,6 +258,11 @@ select *
     - 相关子查询：子查询不能提前运行以得到明确结果。一般常见于select字句、where字句(子查询中使用了主查询字段，如常用的exists)
     - 此案例写法1使用子查询，不管子查询写在何处都需要子查询先返回一个视图，再供主查询调用。从而在获取子查询时必须全表扫描并排序
   - **keep和over联用，即可以查询子表最值，关联子表导致数据重复仍需group by去重**
+
+#### rollup、cube、grouping 小计、合计
+
+- 结合group by获取小计、合计值
+https://www.cnblogs.com/mumulin99/p/9837522.html
 
 ### 正则表达式
 

@@ -311,8 +311,8 @@ tags: [mybatis, springboot]
 			</resultMap>
 
 			<!--sql:可被其他语句引用的可重用语句块. id:唯一的标识符，可被其它语句引用-->
-			<sql id="UserInfoColumns"> id, group_id, nick_name, hobby </sql>
-			<sql id="userColumns"> ${alias}.id, ${alias}.username, ${alias}.password </sql>
+			<sql id="UserInfoColumns">id, group_id, nick_name, hobby</sql>
+			<sql id="userColumns">${alias}.id, ${alias}.username, ${alias}.password</sql><!-- alias不能通过bind在此sql内部设值 -->
 
 			<!--id对应接口的方法名; resultType(类全称或别名, 如内置别名map) 与 resultMap(自定义数据库字段与实体字段转换关系map) 不能并用; -->
 			<!-- statementType: STATEMENT(statement)、PREPARED(preparedstatement, 默认)、CALLABLE(callablestatement)-->
@@ -755,6 +755,28 @@ end
 MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 @enduml
 ```
+
+## mybatis-plus
+
+- [mybatis-plus](https://mp.baomidou.com/)、[github](https://github.com/baomidou/mybatis-plus)
+- springboot依赖
+
+```xml
+<dependency>
+	<groupId>com.baomidou</groupId>
+	<artifactId>mybatis-plus-boot-starter</artifactId>
+    <version>3.0.6</version>
+</dependency>
+```
+- 使用
+
+```java
+List<Subscribe> subscribes = subscribeService.list(new LambdaQueryWrapper<Subscribe>()
+                .eq(Subscribe::getFlowStatus, 1));
+
+```
+
+
 
 
 ---

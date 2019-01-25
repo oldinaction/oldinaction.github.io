@@ -241,7 +241,7 @@ tags: [linux, shell]
 
 #### rar
 
-- 解压：**`tar -xzvf archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到 /tmp目录下(tar不存在乱码问题)
+- 解压：**`tar -xzvf archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
 - 压缩：**`tar -czvf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
 - 参数说明
     - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
@@ -253,7 +253,7 @@ tags: [linux, shell]
     - 必须
         - **`-f`**：使用档案名字，**切记这个参数是最后一个参数，后面只能接档案名**
     - 解/压缩类型(可选)
-        - `-z`：有gzip属性的(archive.tar.gz)
+        - `-z`：有gzip属性的(archive.tar.gz)，**文件必须是以.gz/.gzip结尾**
         - `-j`：有bz2属性的(archive.tar.bz2)
         - `-Z`：有compress属性的(archive.tar.Z)
     - 其他可选
@@ -378,7 +378,7 @@ tags: [linux, shell]
 
 - 在多个文件中查找数据(查询文件内容)
     - `grep "search content" filename1 filename2.... filenamen`
-    - `grep "search content" *.sql`
+    - `grep 'search content' *.sql`
 
 ### sed行编辑器
 
@@ -455,13 +455,13 @@ tags: [linux, shell]
 
         ```bash
         ls -l | awk '
-        BEGIN {size=0;print "[start]size is ", size}
+        BEGIN {size=0;print "[start]size is", size}
         {if($5!=4096){size=size+$5;}} 
-        END {print "[end]size is ", size/1024/1024, "M"}
+        END {print "[end]size is", size/1024/1024, "M"}
         '
         # 打印
-        # [start]size is  0
-        # [end]size is  30038.8 M
+        # [start]size is 0
+        # [end]size is 30038.8 M
         ```
 - 支持if判断、循环等语句
 
@@ -497,6 +497,7 @@ tags: [linux, shell]
         - 操作符取值为：`+-=`：+ 为增加，- 为除去，= 为设定
         - 如：`chmod u=rwx,go=rx test`、`chmod g+s,o+t test`
 - `umask` 创建文件时的默认权限
+    - `umask 022` **设置umask值**
     - `umask` 查看umask分数值。如0022(一般umask分数值指后面三个数字)
         - `umask -S` 查看umask。如u=rwx,g=rx,o=rx
     - 系统默认新建文件的权限为666(3个rw)，文件夹为777(3个rwx)。最终新建文件的默认权限为系统默认权限减去umask分数值。如umask为002，新建的文件为-rw-r--r--，文件夹为drw-r-xr-x
@@ -558,7 +559,6 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
         - `PermitRootLogin no` 是否允许root用户登陆(no不允许)
         - `PasswordAuthentication no` 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录)
 
-
 ## 定时任务 [^4]
 
 ### corn表达式
@@ -595,6 +595,19 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
 - 命令式
     - `sudo crontab -e` 编辑当前用户的定时任务，默认在`/var/spool/`目录
 
+## curl/wget
+
+### curl
+
+```bash
+# GET请求
+curl localhost:8080
+# POST请求，-v显示日志信息，-d传递普通参数
+curl -X POST -v -d "username=smalle&password=aezocn" localhost:8080/login
+# POST请求，-H指定header，此时指定Content-Type:application/json，-d中的数据会放到body中
+curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{"orderId": "1"}' http://localhost:8000/order/
+```
+
 ## linux概念
 
 ### 基本
@@ -630,7 +643,7 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
     - `/bin` 基础系统所需命令位于此目录，如`ls`、`mkdir`，普通用户都可以使用的命令。和`/usr/bin`类似
     - `/dev` 设备文件存储目录，如声卡(eth0)、磁盘、光驱(cdrom)
     - **`/etc`** 系统配置文件所在地，一些服务器的配置文件也在此处
-        - `/init.d` 服务启动文件目录(脚本文件书写参考此目录下network文件)。是`/etc/rc.d/init.d`的symbolic link
+        - `/init.d` 服务启动文件目录(脚本文件书写参考此目录下network文件)。是`/etc/rc.d/init.d`的symbolic link。(ubuntu启动目录是/etc/init.d)
         - `hosts`
     - `/home` 用户家目录
     - `/lib` 库文件存放目录
@@ -645,10 +658,10 @@ CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下�
     - `/var`
         - **`cat /var/log/messages`** 服务运行的日志文件
     - `/usr` 用户目录。系统级的目录，可以理解为C:/Windows/，/usr/lib理解为C:/Windows/System32
-        - `/local` 一般为安装软件目录，源码编译安装一般在`/usr/local/lib`目录下。用户级的程序目录，可以理解为C:/Progrem Files/，用户自己编译的软件默认会安装到这个目录下
+        - `/local` **一般为安装软件目录**，源码编译安装一般在`/usr/local/lib`目录下。用户级的程序目录，可以理解为C:/Progrem Files/，用户自己编译的软件默认会安装到这个目录下
         - `src` 系统级的源码目录
         - `/local/src`：用户级的源码目录
-    - `/opt` 标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包。用户级的程序目录，可以理解为D:/Software，opt有可选的意思，这里可以用于放置第三方大型软件（或游戏），当不需要时，直接rm -rf掉即可。在硬盘容量不够时，也可将/opt单独挂载到其他磁盘上使用
+    - `/opt` **标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包**。用户级的程序目录，可以理解为D:/Software，opt有可选的意思，这里可以用于放置第三方大型软件（或游戏），当不需要时，直接rm -rf掉即可。在硬盘容量不够时，也可将/opt单独挂载到其他磁盘上使用
 
 ### 系统启动顺序boot sequence
 

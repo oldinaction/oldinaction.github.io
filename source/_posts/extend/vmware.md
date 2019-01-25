@@ -97,8 +97,16 @@ tags: [vmware, linux, centos]
 
 参考《Ubuntu安装》[http://blog.aezo.cn/2016/11/20/linux/ubuntu-install/](/_posts/linux/ubuntu-install.md)
 
+## Oracle VM VirtualBox
+
+- 类似VMware的虚拟机。windows使用docker时，进行DockerToolbox安装则会安装此虚拟机
+- 使用xshell连接：虚拟机设置 - 网络 - 网卡1 - 高级 - 端口转发 - 主机ip为本机ip地址(或127.0.0.1)，主机端口为虚拟机映射出来的端口(对应虚拟机的22端口) [^2]
+- `右边Ctrl`可以切换虚拟机命令行鼠标状态
+- 安装DockerToolbox运行的虚拟机默认用户为`docker/tcuser`
+
 ---
 
 参考文章
 
 [^1]: https://jingyan.baidu.com/article/a24b33cd12daf919ff002b58.html (VMware12.5虚拟机安装MacOS10)
+[^2]: https://blog.csdn.net/ltyzsd/article/details/79041616 (Xshell连接docker)
