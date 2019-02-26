@@ -91,9 +91,10 @@ tags: springboot
 
 ```yml
 logging:
-	# 日志文件保存位置(会自动创建目录)
+	# 日志文件保存位置(会自动创建目录). 如果未找到path则不生成日志文件(linux默认是/tem/spring.log)，path有值时后自动在目录生成spring.log的文件(日志级别全部在一起)
 	path: ${LOG_PATH:D:/temp/logs/test/module}
-	config: classpath:logback.xml # 默认值（resource目录）。如果是此目录则可以去掉此项配置
+	# 默认值（resource目录）。如果是此文件则可以去掉此项配置。基于xml文件可以将日志级别不同的生成到不同的文件中
+	config: classpath:logback.xml
 # 打印mybatis的sql语句。也可以按照yml正常的风格写，会覆盖logback.xml中的配置
 logging.level.cn.aezo.test.mapper: DEBUG
 
@@ -1296,7 +1297,9 @@ public MultipartConfigElement multipartConfigElement() {
         host: localhost
         port: 5672
         username: guest
-        password: guest
+		password: guest
+		# 可以基于多环境配置rabbitmq虚拟服务器(队列是隔离的)
+		virtualHost: /vhost_aezocn_dev
     ```
 - 配置队列、生产者、消费者
 
@@ -2014,7 +2017,7 @@ public class DynamicAddTests {
 - 使用`exe4j`打包成exe，常用配置选择 [^13]
 	- `2.Project Type`：jar in exe mode
 	- `4.Executable info - 32-bit or 64-bit`：生成exe的版本
-		- Redirection: 勾选Redirect stderr、Redirect stdout可生成日志信息(如果安装在C盘受保护目录则需要以管理员运行程序才会生成日志，如果安装在D盘则不需要管理员启动。日志生成在可执行文件的相对目录)
+		- Redirection: 勾选Redirect stderr、Redirect stdout可生成日志信息(如果安装在C盘受保护目录则需要以管理员运行程序才会生成日志，如果安装在D盘则不需要管理员启动。日志生成在可执行文件的相对目录)。如果springboot本身配置了日志策略，则也会生成日志
 		- Manifast options: `As invoker`以普通程序执行，`Require administrator`需要管理员权限执行
 	- `5.Java invocation`：class path中添加springboot生成的jar(可通过java -jar正常运行)的相对路径(基于.exe4j配置文件; exe4j v6.0此处无法选择，只能手输)；main class from填写`org.springframework.boot.loader.JarLauncher`
 	- `6.JRE`：添加Directory目录为jre的路径，最好为相对路径，如`./jre`，此步骤并不会吧jre打包到exe中，只会设置exe寻找jre的路径。之后需要将jre和exe文件放在一起打包给用户

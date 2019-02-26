@@ -6,9 +6,18 @@ categories: web
 tags: [css]
 ---
 
+## 知识点
+
+### flex布局
+
+https://www.cnblogs.com/qingchunshiguang/p/8011103.html
+
 ## 常用css
 
-- 虚线
+- 响应式布局，head中加`<meta name="viewport" content="width=device-width,initialscale=1.0,maximum-scale=1.0,user-scalable=0">`
+- 解决iPhone中overflow:scroll;滑动速度慢或者卡的问题：`-webkit-overflow-scrolling : touch;`
+
+### 虚线
 
 ```css
 /* 水平虚线 */

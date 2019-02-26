@@ -8,6 +8,12 @@ tags: [mysql, dba]
 
 ## 基本
 
+- mysql在windows系统下安装好后，默认是对表名大小写不敏感的。但是在linux下，一些系统需要手动设置：打开并修改`/etc/my.cnf`在`[mysqld]`节点下，加入一行： `lower_case_table_names=1`(0是大小写敏感，1是大小写不敏感)。重启mysql服务`systemctl restart mysqld`
+- mysql服务器编码问题
+	- 保存到数据库编码错误：1.编辑器编码(复制的代码要注意原始代码格式) 2.数据库/表/字段编码 3.服务器编码
+	- 查看服务器编码`show VARIABLES like '%char%';`，如果`character_set_server=latin1`就说明有问题(曾经因为这个问题遇到这么个场景：此数据库下大部分表可以正常插入中文，但是有一张表的一个字段死活插入乱码，当尝试修改java代码中此sql语句的另外几个传入参数并连续插入两次可以正常插入，不产生乱码。此情景简直可以怀疑人生，最终修改character_set_server后一切正常)
+	- 修改character_set_server编码：linux修改`/etc/my.cnf`，在`[mysqld]`节点下加入一行`character-set-server=utf8`，重启mysqld服务
+
 ### 登录
 
 - Mysql进入系统
@@ -27,32 +33,47 @@ tags: [mysql, dba]
 
 ### 创建删除用户
 
-- 创建用户并设置权限 `grant all privileges on *.* to 'admin'@'localhost' identified by 'pass' with grant option;`(创建了一个admin/pass只能本地连接的超级用户)
-- 删除用户：`delete from user where user = '用户名';`(删除系统mysql表中的记录)
-- 修改用户名和密码
-	- `update user set user='smalle' where user='root';`
-	- `SET PASSWORD FOR 'root'@'localhost' = PASSWORD('root');`
-- 创建数据库：`create database 库名;`
+```sql
+-- 创建用户基本操作
+grant all privileges on *.* to 'admin'@'localhost' identified by 'pass' with grant option; -- 创建了一个admin/pass只能本地连接的超级用户
+
+use mysql
+update user set user='smalle' where user='root';
+set password for 'root'@'localhost' = password('root'); -- 5.6版本更新用户
+update user set authentication_string = password("root") where user='root'; -- 5.7版本更新用户
+update user set host='%' where user='root';
+delete from user where user = '用户名'; -- 删除用户。删除系统mysql表中的记录
+-- 修改完成后需要重启数据库
+
+create database my_test; -- 创建数据库
+```
 
 ## 权限
 
-- `grant select,insert,update,delete on mydb.* to my_admin@localhost identified by "aezocn"` 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限(如果有此用户？如果密码不对？)
-- `grant all on *.* to my_admin@"%" identified by "aezocn"` 创建一个用户my_admin/aezocn，让他可以在任何主机上登录，并对所有数据库有所有权限
+```sql
+-- 创建用户并授权
+create user username identified by 'password'; -- 默认创建一个'username'@'%'的用户
+grant all privileges on *.* to 'username'@'%'; -- 给此'username'@'%'用户授权
+grant all privileges on *.* to 'username'@'localhost' identified by 'password'; -- 对'username'@'localhost'操作(无此用户则创建，有则修改密码)，并授本地登录时所有权限（localhost/127.0.0.1则只能本地登录；'username'@'192.168.1.1'表示只能这个ip访问；%则可以再任何机器上登录）
+grant all privileges on wordpress.* to 'username'@'localhost' identified by 'password'; -- 授予wordpress数据库下所有权限（相当于Navicat上面管理用户：服务器权限Tab不勾选；权限Tab中数据填wordpress，权限类型都勾选）
+grant select,insert,update,delete on mydb.* to my_admin@localhost identified by "aezocn" -- 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限
+flush privileges; -- 刷新权限(grant之后必须执行)
+
+evoke all privileges on *.* from 'username'@'localhost'; -- 撤销用户授权
+select user, host from user; -- 查询用户可登录host
+```
 
 ## 数据备份/导入
 
-- 导入数据：`登陆用户->选择数据库->source h:/demo/sqltest.sql`
+- 导入数据：`命令行登陆用户 -> 选择数据库 -> source h:/demo/sqltest.sql`
 
-### 其他
+## 其他
 
 - 命令行执行sql
 	- Mysql通过上下左右按键修改语句
 	- 或者新建一个文本文件h:/demo/test.sql，将sql语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号
 	- Oracle输入ed则打开记事本可进行修改修改DOS中的数据
-
-## Oracle表结构与Mysql表结构转换
-
-- 使用navicat转换
+- Oracle表结构与Mysql表结构转换：使用navicat转换
 	- 点击`工具 -> 数据转换`。左边选择oracle数据库和对应的用户，右边转成sql文件(直接转换会出现Date转换精度错误)
 	- 将sql文件中的数据进行转换
 		- `datetime(7)` -> `datetime(6)`

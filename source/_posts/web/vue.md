@@ -531,7 +531,7 @@ export default {
 > 嵌套路由（https://router.vuejs.org/zh/guide/essentials/nested-routes.html）
 
 ```js
-// 此处的router-view是用于渲染顶级组件，及此时的Mobile组件
+// 此处的router-view是用于渲染顶级组件，即此时的Mobile组件
 <div id="app">
   <router-view></router-view>
 </div>

@@ -22,8 +22,8 @@ tags: [ofbiz]
 
 - 命令行启动
     - 先cmd进入到命令行模式下，cd到你当前的OFBiz的工作环境(D:\java\apache-ofbiz-13.07.02)，也就是你的解压环境。
-    - 然后运行 ant load-demo。第一次编译大概需要10分钟。提示” BUILD SUCCESSFUL”即表示部署成功
-    - 再运行ant start 。出现类似 ” finished in [1328] milliseconds”就表示启动服务器成功
+    - 然后运行 ant load-demo。第一次编译大概需要10分钟。提示“BUILD SUCCESSFUL”即表示部署成功
+    - 再运行ant start 。出现类似“finished in [1328] milliseconds”就表示启动服务器成功
     - 访问前台http://localhost:8080/ecommerce 可设置语言为中文，现点击几个链接体验一下。
     - 访问后台https://localhost:8443/ordermgr
         - 提示：此网站的安全证书存在问题。点击“继续浏览此网站(不推荐)。”

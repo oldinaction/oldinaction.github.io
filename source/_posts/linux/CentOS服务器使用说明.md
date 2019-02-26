@@ -104,7 +104,7 @@ tags: [CentOS, linux]
 - 通过ftp上传jdk对应tar压缩包到对应目录并进行解压
 - 下载tar格式（推荐）
   - 下载tar文件并上传到服务器
-  - 解压tar **`tar -zxvf jdk-7u79-linux-x64.tar.gz -C /opt/soft`**
+  - 解压tar **`tar -zxvf jdk-7u79-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
 - 下载rpm格式
   - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 7 -> Java SE Development Kit 7u80 -> Accept License Agreement -> jdk-7u80-linux-x64.rpm
   - `rmp -ivh jdk-7u80-linux-x64.rpm` 安装rpm文件

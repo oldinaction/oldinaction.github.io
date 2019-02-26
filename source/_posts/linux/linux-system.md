@@ -19,11 +19,13 @@ tags: [linux, shell]
 
 - 查看操作系统版本 `cat /proc/version`
     - 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
-- 查看CentOS版本 `cat /etc/redhat-release`/`cat /etc/system-release` 如：CentOS Linux release 7.2.1511 (Core)
+- 查看CentOS版本 **`cat /etc/redhat-release`/`cat /etc/system-release`** 如：CentOS Linux release 7.2.1511 (Core)
 - `hostname` 查看hostname
     - `hostnamectl set-hostname aezocn` 修改主机名并重启
 - `grep MemTotal /proc/meminfo` 查看内存
-- `df -hl` 查看磁盘使用情况
+- `df -h` 查看磁盘使用情况和挂载点信息
+    - `df /root` 查看/root目录所在挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
+- `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2
 
 ### 查看网络信息
 
@@ -118,6 +120,13 @@ tags: [linux, shell]
     - `chkconfig --add nginx` 将nginx加入到服务列表(需要**`/etc/rc.d/init.d`**下有相关文件nginx.service)
     - `chkconfig --del nginx` 关闭指定的服务程序
     - `chkconfig nginx on` 设置nginx服务开机自启动
+    - 自启动脚本的注释中必须有以下两行注释(chkconfig会查看所有注释行)
+        - chkconfig参数1表示在运行级别2345时默认代开，使用`-`表示默认关闭；参数2表示启动顺序(越小越优先)；参数3表示停止顺序
+        
+        ```bash
+        # chkconfig: 2345 10 90
+        # description: 描述
+        ```
 - service：`service nginx start|stop|reload` 服务启动等命令
 
 ### 常用语法参考《shell.md》
@@ -154,9 +163,10 @@ tags: [linux, shell]
 ### 磁盘
 
 - `df -h` 查看磁盘使用情况、分区、挂载点
-    - `df -h /home/smalle` 查询目录使用情况、分区、挂载点
+    - `df -h /home/smalle` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `df -Th` 查询文件系统格式
-- `du -sh /home/smalle | sort -n` 查看目录下文件大小，并按大小排列
+- `du -h --max-depth=1 | sort -h` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**
+    - `du -sh /home/smalle | sort -h` 查看某个目录
 - 查看数据盘 `fdisk -l`(如：Disk：/dev/vda ... Disk：/dev/vdb表示有两块磁盘)
 - 格式化磁盘 `mkfs.ext4 /dev/vdb` (一般云服务器买的磁盘未进行格式化文件系统和挂载)
 - 挂载磁盘 `mount /dev/vdb /home/` 挂载磁盘到`/home`目录
@@ -324,6 +334,7 @@ tags: [linux, shell]
     - `:wq`/`:x` 保存并退出
     - `:q!` 不保存退出
     - 编辑模式下输入大写`ZZ`保存退出
+    - `:w !sudo tee %` 对一个没有权限的文件强制修改保存的命令
 - 关标移动
     - `h` 左
     - `j` 下
@@ -478,7 +489,8 @@ tags: [linux, shell]
 - `cat /etc/passwd` 查看用户
     - 如`smalle:x:1000:1000:aezocn:/home/smalle:/bin/bash`
 - `who` 显示当前登录用户
-- `su test` 切换到test用户
+- `su test` 切换到test用户，但是当前目录和shell环境不会改变
+    - `su - test` 变更帐号为test，并改变工作目录至test的家目录，且shell环境也变成test用户的
 - `groupadd aezocn` 新建组
 - `groupdel aezocn` 删除组
 
@@ -643,6 +655,7 @@ curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{
     - `/bin` 基础系统所需命令位于此目录，如`ls`、`mkdir`，普通用户都可以使用的命令。和`/usr/bin`类似
     - `/dev` 设备文件存储目录，如声卡(eth0)、磁盘、光驱(cdrom)
     - **`/etc`** 系统配置文件所在地，一些服务器的配置文件也在此处
+        - `rc.local` 文件，是`/etc/rc.d/rc.local`的symbolic link（系统启动会执行此文件）
         - `/init.d` 服务启动文件目录(脚本文件书写参考此目录下network文件)。是`/etc/rc.d/init.d`的symbolic link。(ubuntu启动目录是/etc/init.d)
         - `hosts`
     - `/home` 用户家目录

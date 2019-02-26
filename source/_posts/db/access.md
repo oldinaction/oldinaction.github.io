@@ -17,11 +17,17 @@ tags: [microsoft, db]
 
 ## java连接(基于springboot)
 
-> 参考项目：https://github.com/oldinaction/springboot/tree/master/z-exe4j-accessdb
+### 基于`UcanAccess`驱动连接
 
-- 基于`UcanAccess`驱动连接
-    - [官网](http://ucanaccess.sourceforge.net/site.html)
-    - 内部基于`HSQLDB`实现。无需ODBC支持
+> 参考项目：https://github.com/oldinaction/springboot/tree/master/z-exe4j-accessdb
+   
+- [官网](http://ucanaccess.sourceforge.net/site.html)
+- 内部基于`HSQLDB`实现。无需ODBC支持
+- 缺点
+    - UcanAccess默认是(memory=true)，将先access数据加载到内存，以`HSQLDB`形式保存在内存。当数据文件较大时，需要设置JVM参数调整堆内存(350M的access测试时需要1G堆内存)。
+    - 可以通过设置memory=false，并设置keepmirror，即将access数据以`HSQLDB`形式保存到硬盘，这种情况下次连接可以继续使用。但是第一次解析非常慢(5-10分钟)，而且解析时也需要耗费一定的内存(400M堆内存左右)，并且不支持有密码的access数据文件
+    - `mirrorFolder`：当memory=falses时，生成的数据文件保存路径，会在此路径生成一个类似`Ucanaccess_net.ucanaccess.jdbc.DBReference@328d761b`的文件夹，并每次启动会重新生成，而且启动时解析很慢
+    - 总之：UcanAccess只适合连接小量数据且有密码的access数据库，或大量数据的无密码的access数据库
 - 数据源路径支持绝对路径、相对路径、局域网路径(不支持FTP/HTTP)。**其中使用局域网路径时，第一次访问保存目标数据所在主机的登录凭证即可，下次(运行程序过程中)无需登录。**
 - pom.xml
 
@@ -70,6 +76,38 @@ public class CryptCodecOpener implements JackcessOpenerInterface {
         dbd.setReadOnly(false);
         return dbd.open();
     }
+}
+```
+
+### 基于ODBC连接
+
+- odbc为微软听过的数据库连接工具，jdbc为java标准的数据连接工具，jdbc-odbc是java针对odbc提供的桥接工具。jdbc-odbc工具自jdk1.8已经移除。
+- 使用jdk1.8通过odbc的方式连接access库，会提示找不到类`sun.jdbc.odbc.JdbcOdbcDriver`。解决办法参考：https://www.youtube.com/watch?v=Um273dtsUt8
+    - 将jdk1.7(包含jdbc-odbc)的rt.jar复制出来，通过压缩工具进行解压。解压后将`sun.jdbc`和`sun.security.action`目录复制出来(根目录为sun)
+    - `jar -cvf jdbc-odbc64.jar sun`对上述class文件夹进行重新生成jar(项目中使用此jar)
+    - 复制`JRE7/bin/jdbcodbc.dll`到`JRE8/bin`目录
+- 需要在windows上面安装access驱动(含密码的access，可以再高级配置选项中输入密码，用户名可不同填写)。参考：https://1017401036.iteye.com/blog/2260786
+- 连接代码
+
+```java
+Connection connect = null;
+PreparedStatement stmt = null;
+ResultSet rs = null;
+try{
+    Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+    Properties p = new Properties();
+    p.put("charSet", "GBK"); // Access中的数据库默认编码为GBK，本地项目为UTF-8，若不转码会出现乱码
+    connect = DriverManager.getConnection("jdbc:odbc:" + db, p);
+    rs = stmt.executeQuery(); // 执行SQL
+    if(rs != null) {
+        while(rs.next()) {
+            System.out.println(rs.getString(1));
+        }
+    }
+} catch(Exception e) {
+    e.printStackTrace();
+} finally {
+    // ... close
 }
 ```
 

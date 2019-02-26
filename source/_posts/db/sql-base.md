@@ -460,7 +460,7 @@ select *
 
 #### 复制表
 
-- **复制表结构及数据到新表** `create table 新表 as select * from 旧表` (**不会复制到表结果的备注和默认值等，根据备份表还原数据的时候需要delete掉原表的数据，不能drop**)
+- **复制表结构及数据到新表** `create table 新表 as select * from 旧表` (**不会复制到表结构的备注和默认值，根据备份表还原数据的时候需要delete掉原表的数据，不能drop**)
 - 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`·
 - 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
 - **复制旧表的数据到新表(假设两个表结构一样)** `insert into 新表 select * from 旧表`

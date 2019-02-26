@@ -6,14 +6,25 @@ categories: db
 tags: [sql, oracle, mysql]
 ---
 
-## 常用函数
-
-### 基本原则
+## 基本原则
 
 - mysql书写顺序和执行顺序都是按照`select-from-where-group by-having-order by-limit`进行的
 - MySQL中子结果集必须使用别名，而Oracle中不需要特意加别名
 
+## Mysql
+
+### 常见问题
+
+- 查询空格问题。`select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`可以查询到数据库中`ABC  `的，`ABC  `也可以查询到数据库中`ABC`的数据
+  - 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
+  - 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
+  - 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
+
+## Oracle
+
 ### 常用函数
+
+#### 常用函数
 
 - `decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)` 只能判断=，不能判断like(like可考虑case when)
   - `select decode(length(ys.ycross_x), 1, '0' || ys.ycross_x, ys.ycross_x) from ycross_storage ys` 如果ys.ycross_x的长度为1那就在前面加0，否则取本身
@@ -23,7 +34,7 @@ tags: [sql, oracle, mysql]
   - `case when t.name = 'admin' then 'admin' when t.name like 'admin%' then 'admin_user' else decode(t.role, 'admin', 'admin', 'admin_user') end`
   - `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1` sum写在case里面则需要对相关字段group by. **主要用于分组之后根据条件分列显示**
 
-### 聚合函数(aggregate_function)
+#### 聚合函数(aggregate_function)
 
 - `min`、 `max`、`sum`、`avg`、`count`、`variance`、`stddev` 
 - `count(*)`、`count(1)`、`count(id)`、`count(name)` **统计行数，不能统计值的个数**。如果有3行，但是只有name的值只有2个结果仍然为3
@@ -31,7 +42,7 @@ tags: [sql, oracle, mysql]
     - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
     - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符
 
-### 其他函数
+#### 其他函数
 
 - grouping、rollup：http://blog.csdn.net/damenggege123/article/details/38794351
 - `trunc` oracle时间处理
@@ -48,9 +59,9 @@ tags: [sql, oracle, mysql]
     where t.valid_status = 1; -- 将递归获取到的数据再次过滤
     ```
 
-### 分析函数
+#### 分析函数
 
-#### 常见分析函数 [^3]
+##### 常见分析函数 [^3]
 
 - `min`、 `max`、`sum`、`avg` **一般和over/keep函数联合使用**
 - `first_value(字段名)`、`last_value(字段名)` **和over函数联合使用**
@@ -64,7 +75,7 @@ tags: [sql, oracle, mysql]
     - `group by rollup(a, b, c)`：首先会对(a、b、c)进行group by，然后再对(a、b)进行group by，其后再对(a)进行group by，最后对全表进行汇总操作
     - `group by cube(a, b, c)`：  首先会对(a、b、c)进行group by，然后依次是(a、b)，(a、c)，(a)，(b、c)，(b)，(c)，最后对全表进行汇总操作
 
-#### over
+##### over
 
 - 分析函数和聚合函数的不同之处是什么：普通的聚合函数用group by分组，**每个分组返回一个统计值**，而分析函数采用partition by分组，并且 **每组每行都可以返回一个统计值** [^1]
 - 开窗函数`over()`，跟在分析函数之后，包含三个分析子句。形式如：`over(partition by xxx order by yyy rows between aaa and bbb)` [^2] 
@@ -119,7 +130,7 @@ select *
  group by t.id, t.total, t.first_id
 ```
 
-##### over使用误区
+###### over使用误区
 
 - 主表行数并不会减少(普通的聚合函数用group by分组，**每个分组返回一个统计值**，而分析函数采用partition by分组，并且**每组每行都可以返回一个统计值**
     - 查询每个客户每种拜访类型最近的一次拜访
@@ -189,7 +200,7 @@ select *
 
         -- Keep测试二(基于over的partition by)。参考下文【Keep】
         ```
-#### keep [^6]
+##### keep [^6]
 
 - keep的用法不同于通过over关键字指定的分析函数，可以用于这样一种场合下：取同一个分组下以某个字段排序后，对指定字段取最小或最大的那个值。从这个前提出发，我们可以看到其实这个目标通过一般的row_number分析函数也可以实现，即指定rn=1。但是，该函数无法实现同时获取最大和最小值。或者说用first_value和last_value，结合row_number实现，但是该种方式需要多次使用分析函数，而且还需要套一层SQL。于是出现了keep
 - 语法 [^5]
@@ -259,12 +270,12 @@ select *
     - 此案例写法1使用子查询，不管子查询写在何处都需要子查询先返回一个视图，再供主查询调用。从而在获取子查询时必须全表扫描并排序
   - **keep和over联用，即可以查询子表最值，关联子表导致数据重复仍需group by去重**
 
-#### rollup、cube、grouping 小计、合计
+##### rollup、cube、grouping 小计、合计
 
 - 结合group by获取小计、合计值
 https://www.cnblogs.com/mumulin99/p/9837522.html
 
-### 正则表达式
+#### 正则表达式
 
 - 正则函数
   - `regexp_like()` 返回满足条件的字段
@@ -292,13 +303,13 @@ select substr('17,20,23', regexp_instr('17,20,23', ',') + 1, regexp_instr('17,20
 select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20,23') - regexp_instr('17,20,23', ',')) from dual;
 ```
 
-### 其他
+#### 其他
 
 - 查找中文：`select * from t_customer t where asciistr(t.customer_name) like '%\%' and instr(t.customer_name, '\') <= 0;`
 
-## 数据库数据更新
+### 数据库数据更新
 
-#### 更新表
+##### 更新表
 
 - **`update set from where`** 将一张表的数据同步到另外一张表
     
@@ -360,14 +371,14 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
               and v.valid_status = 1)
     ```
 
-## 自定义函数
+### 自定义函数
 
 - 解析json： https://blog.csdn.net/cyzshenzhen/article/details/17074543
   - select pkg_common.FUNC_PARSEJSON_BYKEY('{"name": "smalle", "age": "18"}', 'name') from dual; 取不到age?
 
-### 字符串分割函数
+#### 字符串分割函数
 
-#### 使用正则
+##### 使用正则
 
 ```sql
 -- 基于,分割，返回3行数据
@@ -375,7 +386,7 @@ select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
   connect by level <= length('17,20,23') - length(regexp_replace('17,20,23', ',', '')) + 1;
 ```
 
-#### 使用自定义函数
+##### 使用自定义函数
 
 - 1.创建字符串数组类型：`create or replace type sm_type_arr_str is table of varchar2 (60);` (一个数组，每个元素是varchar2 (60))
 - 2.创建自定义函数`sm_split`
@@ -434,7 +445,7 @@ select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
             where trim(arr.column_value) = 'aa')
   ```
 
-## Oracle中DBlink实现跨实例查询
+### Oracle中DBlink实现跨实例查询
 
 ```sql
 -- 创建DBLINK
@@ -456,7 +467,7 @@ dblink drop public database link my_dblink;
 select * from tbl_ost_notebook@my_dblink;
 ```
 
-## Oracle定时任务Job
+### Oracle定时任务Job
 
 ```sql
 -- 查询

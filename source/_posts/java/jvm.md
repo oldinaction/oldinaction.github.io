@@ -7,8 +7,6 @@ tags: [jvm]
 ---
 
 
-
-
 - http://www.cnblogs.com/duanxz/p/3613947.html
 - JDK1.6常量池放在方法区(也即是Perm空间), JDK 1.7 和 1.8 将字符串常量由永久代转移到堆中，并且JDK 1.8中已经不存在永久代的结论
 - 元空间的本质和永久代类似，都是对JVM规范中方法区的实现。不过元空间与永久代之间最大的区别在于：元空间并不在虚拟机中，而是使用本地内存。因此，默认情况下，元空间的大小仅受本地内存限制，但可以通过参数来指定元空间的大小
@@ -41,10 +39,25 @@ tags: [jvm]
 
 ## 常用配置推荐
 
-```bash
-java -Xmx512M -jar xxx.jar --spring.profiles.active=prod
+- 启动脚本
 
-# 1G内存机器推荐配置
+```bash
+## 1.简单配置
+APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
+( cd "$APP_HOME" && java -Xmx512M -jar xxx.jar --spring.profiles.active=prod )
+
+## 2.基于bash的VM参数
+APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
+#MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
+OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/"
+#IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'` #automatic IP address for linux（内网地址）
+#RMIIF="-Djava.rmi.server.hostname=$IPADDR"
+#JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
+#DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
+VMARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
+( cd "$APP_HOME" && java $VMARGS -jar xxx.jar --spring.profiles.active=prod )
+
+## 3.1G内存机器推荐配置
 -Xms128M
 -Xmx512M
 -XX:PermSize=256M
@@ -59,21 +72,13 @@ java -Xmx512M -jar xxx.jar --spring.profiles.active=prod
 -Dcom.sun.management.jmxremote.ssl=false 
 -Dcom.sun.management.jmxremote.authenticate=false
 # 如果authenticate为true时需要下面的两个配置。在JAVA_HOME/jre/lib/management下有模板。文件权限 chmod 600 jmxremote.password
--Dcom.sun.management.jmxremote.password.file=/usr/java/default/jre/lib/management/jmxremote.password
--Dcom.sun.management.jmxremote.access.file=/usr/java/default/jre/lib/management/jmxremote.access
-
-# 基于bash的VM参数
-MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
-OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/"
-IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'` #automatic IP address for linux（内网地址）
-RMIIF="-Djava.rmi.server.hostname=$IPADDR"
-JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
-DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
-VMARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
-java $VMARGS -jar xxx.jar --spring.profiles.active=prod
+#-Dcom.sun.management.jmxremote.password.file=/usr/java/default/jre/lib/management/jmxremote.password
+#-Dcom.sun.management.jmxremote.access.file=/usr/java/default/jre/lib/management/jmxremote.access
 ```
 
+- 自定义服务
 
+```bash
 [Unit]
 Description=ASF
 After=network.target remote-fs.target nss-lookup.target
@@ -85,7 +90,7 @@ ExecReload=/home/amass/project/java/asf/asf.sh -s reload
 ExecStop=/home/amass/project/java/asf/asf.sh -s stop
 [Install]
 WantedBy=multi-user.target
-
+```
 
 
 

@@ -424,7 +424,7 @@ def test_contenttypes_list(request):
     - 在csrf存在时，且未CBV模式下，去掉某个url的csrf功能，有两种方式
         - View子类上加`@method_decorator(csrf_exempt, name='dispatch')`
         - View子类重写dispatch方法，并在dispatch方法上加`@method_decorator(csrf_exempt)`(加在其他方法上无效)
-    - 使用时在html的表单中加入`{%csrf_token%}`
+    - 使用时在html的表单中加入 &#123;%csrf_token%&#125;
 
 ## 异常处理
 

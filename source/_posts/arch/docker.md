@@ -3,7 +3,7 @@ layout: "post"
 title: "docker"
 date: "2017-06-25 14:03"
 categories: arch
-tags: [docker, centos]
+tags: [docker]
 ---
 
 ## Docker介绍
@@ -18,6 +18,7 @@ tags: [docker, centos]
 ## 安装
 
 - Windows
+    - Windows 10直接使用windows安装包 https://hub.docker.com/editions/community/docker-ce-desktop-windows
     - 通过安装`DockerToolbox`，[安装文档和下载地址](https://docs.docker.com/toolbox/toolbox_install_windows/)
         - 安装完成后桌面快捷方式：`Docker Quickstart Terminal`、`kitematic`、`Oracle VM VirtualBox`
             - `kitematic`是docker推出的GUI界面工具(启动后，会后台运行docker，即自动运行docker虚拟机)
@@ -80,6 +81,9 @@ Commands:
         -p  # 绑定本地端口到容器端口，可使用多个 -p 绑定多组端口. eg: -p 8080:80 (本地8080:容器80)
         -v  # 挂在本地目录或文件到容器中去做数据卷，可以使用多个 -v. eg: -v /home/smalle/logs:/temp/app
         -e  # 设置环境变量，eg: -e MYSQL_HOST=localhost -e MYSQL_DATABASE=aezocn
+        --name      # 指定启动容器名称
+        --network   # 指定使用的网络
+        --restart   # 重启模式：always失败永远重启(包括宿主主机开机后自启动)
     save      Save an image to a tar archive                # 保存一个镜像为一个 tar 包[对应 load]
     search    Search for an image on the Docker Hub         # 在 docker hub 中搜索镜像
     start     Start a stopped containers                    # 启动容器
@@ -115,25 +119,43 @@ Run 'docker COMMAND --help' for more information on a command.
 
 ### 容器
 
+- `docker run -it image_id_c28687f7c6c8 /bin/echo 'hello world'` 创建并启动容器(如果没有则会从远程仓库下载)
 - `docker create -it c28687f7c6c8` 基于镜像创建容器，但不启动
 - `docker start a8f590736b62` 启动容器
 - `docker stop a8f590736b62` 停止容器
-- `docker run -it image_id_c28687f7c6c8 /bin/echo 'hello world'` 创建并启动容器
+- `docker update --restart=always a8f590736b62` 更新运行中的容器配置(包括还可以更新CPU/MEM分配等)
 - `docker ps` 列出运行的容器
     - `docker ps -a` 列举所有容器
 - `docker exec -it (CONTAINER_ID | CONTAINER_NAME) bash` 进入容器(exec是在运行的容器上运行一条命令)
 - `docker attach (CONTAINER_ID | CONTAINER_NAME)` 进入某运行的容器 **(组合建ctrl+p、ctrl+q退出)**
+- `docker inspect a8f590736b62` 查看容器详细
 - `docker rm a8f590736b62` 删除容器ID为a8f590736b62的容器
 - `docker rename 原容器名 新容器名` 重命名容器名(运行也可重命名)
 
 ## docker网络
 
+- 网络类型：host、bridge、none、container. 使用如：`docker run --network=host busybox`
+    - `host` 和宿主主机使用相同的网络(包括端口，此时无需-p指定端口映射)
+    - `bridge` 桥接模式. 中间通过`docker0`虚拟网卡(docker默认网卡)进行网络传输。此时与外网连通，需要开启ip转发
+        - 开启IP转发，此时宿主主机相当于一个NAT，容器的`eth0`通过docker规定的网络接口与`docker0`连接，`docker0`又处于宿主主机。当容器向公网发起请求时 -> 容器的`eth0` -> `docker0` -> (由于开启ip转发)宿主主机`eth0` -> 此时原地址会改成宿主主机向公网发送IP包
+
+        ```bash
+        ## 临时开启转发(1是允许转发，0不允许转发)
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        ## 永久修改
+        # 设置 net.ipv4.ip_forward = 1
+        sudo vi /etc/sysctl.conf
+        # 是文件生效
+        sudo sysctl -p /etc/sysctl.conf
+        ```
 - docker部署在本地虚拟机上
     - 此时docker的宿主主机为虚拟机，虚拟机和本地机器属于同一网络。然后在docker中启动一个容器，docker会自动在宿主主机上创建一个虚拟网络，用于桥接宿主主机和容器内部网络
     - **容器会继承docker宿主主机的网络**，在容器内部是可以向外访问到宿主主机所在网络，如可以访问到本地机器。
     - 在宿主主机上默认无法访问容器网络(端口)，可以通过给此容器开启port(如：8080:80)端口映射达到宿主主机访问
     - 在本地机器中默认也是无法访问容器内网络，当开启端口映射时，可通过访问宿主主机的映射端口(8080)达到访问容器的内部端口(80)
 - docker部署在内网的其他机器上，同上理。需要注意容器内部访问宿主主机内网其他机器时，需要该机器没有开启VPN，虚拟网卡(会产生多个ip)等
+
+### docker与外网连通
 
 ## Dockerfile [^4]
 
@@ -208,6 +230,7 @@ Run 'docker COMMAND --help' for more information on a command.
                 - 1443:443
             volumes: # 数据卷映射(本地路径:容器路径。windows的本地路径为运行docker的虚拟机路径。不要把 docker 当做数据容器来使用，数据一定要用 volumes 放在容器外面。如日志文件需要进行映射)
                 - /home/smalle/data/nginx/:/bitnami/nginx/
+            restart: always # 启动模式，always表示失败永远重启（包括宿主主机开机后自启动）
         sq-mysql:
             container_name: sq-mysql
             image: mysql/mysql-server:5.7 # 如果本地没有此镜像，会默认从中央仓库拉取镜像
@@ -544,32 +567,7 @@ docker push 192.168.17.196:10010/library/nginx:sm_1
 - 启动：在`docker-compose.yml`目录下执行`docker-compose up -d`
 - 访问：http://docker-host:9800
 
-## 其他
 
-### 开机启动docker项目
-
-```bash
-# 设置docker开机启动
-systemctl enable docker
-
-# 方法一
-sudo vi /etc/rc.d/rc.local # 加入下列代码
-/usr/bin/docker-compose -f /home/data/project/aezocn/docker-compose.yml up -d
-
-# 方法二（ubuntu启动目录是/etc/init.d）
-vi /etc/rc.d/init.d/start-docker-compose-aezocn.sh # 内容如下
-###############开始
-#!/bin/bash
-# chkconfig: 2345 85 15
-# description: docker-compose
-
-# 使`.env`环境变量生效（启动不成功）
-cd /home/data/project/aezocn
-/usr/bin/docker-compose -f docker-compose.yml up -d
-###############结束
-# 
-sudo chmod +x /etc/rc.d/init.d/start-docker-compose-aezocn.sh
-```
 
 
 ---

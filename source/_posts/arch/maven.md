@@ -108,6 +108,7 @@ tags: [maven]
     ```xml
     <!--groupId等是从jar包的META-INF中获得; 其中scope必须加; ${basedir}为maven内置参数，标识项目根目录-->
     <dependency>
+		<!-- 外部jar包，此处groupId、artifactId、version可随便填写 -->
     	<groupId>cn.aezo</groupId>
     	<artifactId>utils</artifactId>
     	<version>0.0.1-SNAPSHOT</version>
@@ -115,19 +116,33 @@ tags: [maven]
     	<systemPath>${basedir}/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar</systemPath>
     </dependency>
 
-	<!-- springboot专用 -->
 	<build>
 		<plugins>
-			<!-- spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
+			<!-- springboot专用. spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<!--把项目打成jar，同时把本地jar包也引入进去：直接给springboot的打包插件引入此行-->
+					<!--(直接给springboot的打包插件引入此行-)同时把本地jar包也引入进去(生成到 BOOT-INF/lib/ 目录), 生成的jar包名称为依赖中定义的`artifactId-version`-->
 					<includeSystemScope>true</includeSystemScope>
 				</configuration>
 			</plugin>
 		</plugins>
+
+		<!-- 使用includeSystemScope失败时可以使用resource的形式(会直接把jar包复制到 BOOT-INF/lib/ 目录) -->
+		<resources>
+			<resource>
+				<directory>src/main/resources/lib</directory>
+				<targetPath>BOOT-INF/lib/</targetPath>
+				<includes>
+					<include>**/*.jar</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>BOOT-INF/classes/</targetPath>
+			</resource>
+		</resources>
 	</build>
     ```
 
@@ -137,11 +152,9 @@ tags: [maven]
     <plugin>
     	<artifactId>maven-compiler-plugin</artifactId>
     	<configuration>
-            <!--
             <source>1.8</source>
             <target>1.8</target>
             <encoding>UTF-8</encoding>
-            -->
     		<compilerArguments>
     			<extdirs>src/main/resources/lib</extdirs>
     		</compilerArguments>

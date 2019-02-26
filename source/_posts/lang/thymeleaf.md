@@ -110,6 +110,9 @@ thymeleafViewResolver.setStaticVariables(context);
 
 <!-- 逻辑控制 -->
 <td th:if="${user.name} == 'smalle' and ${user.age} == 18">hello</td>
+<tr th:class="${row.even} ? 'even' : 'odd'">...</tr>
+<tr th:class="${row.even} ? 'alt'">...</tr>
+<span th:text="(${item.getName()} == null or ${item.getName()} == '') ? ${item.getIp()} : ${item.getName()}"></span>
 
 <!-- 循环 -->
 <tr th:each="user:${users}">

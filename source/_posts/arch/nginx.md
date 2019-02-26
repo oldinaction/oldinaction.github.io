@@ -23,7 +23,7 @@ tags: LB, HA
 ## nginx使用
 
 - 安装**(详细参考下文`基于编译安装tengine`)**
-    - `yum install nginx` 基于源安装(傻瓜式安装)
+    - `yum install nginx` 基于源安装(傻瓜式安装). 有的服务器可能需要先安装`yum install epel-release`
         - 默认可执行文件路径`/usr/sbin/nginx`(已加入到系统服务); 配置文件路径`/etc/nginx/nginx.conf`
         - 安装时提示"No package nginx available."。问题原因：nginx位于第三方的yum源里面，而不在centos官方yum源里面，解决办法为安装epel(Extra Packages for Enterprise Linux)
             - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
@@ -54,18 +54,30 @@ tags: LB, HA
 server {
     # 监听的端口，注意要在服务器后台开启80端口外网访问权限
     listen   80;
-    # 服务器的地址              
+    # 服务器的地址
     server_name www.aezo.cn;
 
-    # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)
+    # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)。内部重定向使用proxy_pass
     location = / {
         rewrite / http://$server_name/hello break;
     }
 
-    # 用于暴露静态文件，访问http://www.aezo.cn/static/logo.png，且无法访问到http://www.aezo.cn/static
-    # 文件实际路径为/home/aezocn/www/static/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
-    location ^~ /static/ {
+    # 用于暴露静态文件，访问http://www.aezo.cn/static/img/logo.png，且无法访问http://www.aezo.cn/static/img
+    # 文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
+    location ^~ /static/img/ {
+        # root是基于此目录(加不加/都一样) + location路径
         root /home/aezocn/www;
+        access_log off; # 关闭访问日志
+    }
+    # 文件实际路径为/home/aezocn/www/logo.png
+    location ^~ /static/img2/ {
+        # alias会把location后面配置的路径丢弃掉，把当前匹配到的目录指向到指定的目录。alias只能位于location块中，而root的权限不限于location
+        # 由于是location是 ^~，所以下面无法使用正则。加www后面加/是表示目录，否则指文件
+        alias /home/aezocn/www/;
+    }
+    location ~ ^/static/(.+?)_upload/(.+\..*)$ {
+        # 由于是location是 ~，因此可以使用正则。且location和alias路径必须从头到尾都包含，此时$2指正则中的第二个括号，及文件名
+        alias /home/aezocn/www/static/$1_upload/$2;
     }
 
     # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin
@@ -120,7 +132,7 @@ server {
 worker_processes 8; #（*）
 
 # 全局错误日志定义类型，[ debug | info | notice | warn | error | crit ]。默认日志路径为/var/log/nginx
-#error_log /var/log/nginx/error.log info;
+#error_log /var/log/nginx/error.log info; # 默认值。`error_log off;` 表示关闭error日志
 
 #进程文件
 pid /run/nginx.pid;
@@ -175,10 +187,18 @@ http {
     include mime.types; #文件扩展名与文件类型映射表(对应当前目录下文件mime.types)
     default_type application/octet-stream; #默认文件类型
     
-    # 日志格式。main为日志格式名称，$remote_addr等都是nginx内置变量
-    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-    #                  '$status $body_bytes_sent "$http_referer" '
-    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+    # 定义日志格式，log_forma上下文只能为http。main为默认日志格式名称(可定义多个)。$remote_addr等都是nginx内置变量，值为空时默认用`-`代替
+    # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                   '$status $body_bytes_sent "$http_referer" '
+    #                   '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #log_format aezocn '$remote_addr $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent '
+    #                  '$upstream_addr $request_time $upstream_response_time '
+    #                  '"$http_referer" "$http_user_agent"';
+
+    # 默认配置。使用main格式进行输出访问日志
+    # access_log  /var/log/nginx/access.log  main;
     
     #charset utf-8; #默认编码
     #server_names_hash_bucket_size 128; #服务器名字的hash表大小
@@ -253,12 +273,8 @@ http {
         #index index.html index.htm index.php;
         #root /data/www/aezo;
 
-        #日志格式设定
-        #log_format access '$remote_addr – $remote_user [$time_local] "d$request" '
-        #                  '$status $body_bytes_sent "$http_referer" '
-        #                  '"$http_user_agent" $http_x_forwarded_for';
-        #定义本虚拟主机的访问日志
-        #access_log /var/log/nginx/aezo.cn.access.log main;
+        #定义本虚拟主机的访问日志，是main格式进行记录
+        #access_log /var/log/nginx/aezo.cn.access.log main; # `access_log off;` 表示关闭http访问日志
 
         # include /etc/nginx/default.d/*.conf;
 
@@ -374,7 +390,74 @@ http {
         - `!~` 区分大小写不匹配的正则
         - `!~*` 不区分大小写不匹配的正则
     - `/` 通用匹配，任何请求都会匹配到
-- 多个location配置的情况下匹配顺序为:首先匹配`=`，其次匹配`^~`, 其次是按文件中location的顺序进行正则匹配，最后是交给 / 通用匹配。当有匹配成功时候，停止匹配，按当前匹配规则处理请求。
+- **多个location配置的情况下匹配顺序如下**，当有匹配成功时候，停止匹配，按当前匹配规则处理请求
+    - 首先匹配路径相等 `=`
+    - 其次匹配路径开头 `^~`
+        - `location /test/`等同于`location ^~ /test/`
+        - `location ^~ /test/`和`location ~ ^/test/`为不同优先级的location
+    - 再是按文件中location的顺序进行正则匹配
+    - 最后是交给 / 通用匹配
+- 正则表达式
+
+```bash
+* #重复前面的字符0次或者多次
+? #重复前面的字符0次或者1次
+*? #重复前面的字符0次或者多次，但尽可能少重复
++? #重复前面的字符1次或者多次，但尽可能少重复
+?? #重复前面的字符0次或1次，但尽可能少重复
+{n,m}? #重复前面的字符n次到m次，但尽可能少重复
+{n,}? #重复前面的字符n次以上，但尽可能少重复
+[^a] #匹配除了a以外的任意字符
+[^abc] #匹配除了abc这几个字母以外的任意字符
+```
+
+### 全局变量
+
+- 可以用作if判断的全局变量
+
+```bash
+$args #这个变量等于请求行中的参数，同$query_string
+$content_length #请求头中的Content-length字段
+$content_type #请求头中的Content-Type字段
+$document_root #当前请求在root指令中指定的值
+$host #请求主机头字段，否则为服务器名称
+$http_user_agent #客户端agent信息
+$http_cookie #客户端cookie信息
+$limit_rate #这个变量可以限制连接速率
+$request_method #客户端请求的动作，通常为GET或POST
+$remote_addr #客户端的IP地址
+$remote_port #客户端的端口
+$remote_user #已经经过Auth Basic Module验证的用户名
+$request_filename #当前请求的文件路径，由root或alias指令与URI请求生成
+$scheme #HTTP方法（如http，https）
+$server_protocol #请求使用的协议，通常是HTTP/1.0或HTTP/1.1
+$server_addr #服务器地址，在完成一次系统调用后可以确定这个值
+$server_name #服务器名称
+$server_port #请求到达服务器的端口号
+$request_uri #包含请求参数的原始URI，不包含主机名，如："/foo/bar.php?arg=baz"
+$uri #不带请求参数的当前URI，$uri不包含主机名，如"/foo/bar.html"
+$document_uri #与$uri相同
+```
+
+- 可用在log_format的全局变量
+
+```bash
+$remote_addr #客户端地址。211.28.65.253
+$remote_user #客户端用户名称
+$time_local #访问时间和时区。18/Jul/2012:17:00:01 +0800
+$request #请求的URI和HTTP协议。"GET /article-10000.html HTTP/1.1"
+$status #HTTP请求状态。200
+$http_host #请求地址，即浏览器中输入的地址（IP或域名）。www.aezo.cn、192.168.1.1
+$body_bytes_sent #发送给客户端文件内容大小。1547
+$upstream_status #upstream状态。200
+$upstream_addr #后台upstream的地址，即真正提供服务的主机地址；当ngnix做负载均衡时，可以查看后台提供真实服务的设备。10.10.10.100:80
+$request_time #整个请求的总时间。0.205
+$upstream_response_time #请求过程中，upstream响应时间。0.002
+$http_referer #url跳转来源。https://www.baidu.com/
+$http_user_agent #用户终端浏览器等信息。Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; SV1; GTB7.0; .NET4.0C;
+$ssl_protocol #SSL协议版本。TLSv1
+$ssl_cipher #交换数据中的算法。RC4-SHA
+```
 
 ## 模块说明
 

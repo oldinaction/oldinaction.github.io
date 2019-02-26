@@ -15,10 +15,10 @@ tags: [shell, linux]
 ### 基本概念
 
 -  linux 引号
-  - 反引号：**``** 命令替换
+  - 反引号：**\`cmd\`** 命令替换，类似`$(cmd)`
   - 单引号：**''** 字符串
   - 双引号: **""** 变量替换
-- 命令替换：使用 **\`\`**(反引号)包裹或**`$(cmd)`**
+- 命令替换：使用 **\`cmd\`**(反引号)包裹或 **`$(cmd)`**
   - `wall `date`` 所有人都收到当前时间
   - `wall date` 所有人都收到date这个字符串
 - 管道：将一个命令的输出传送给另外一个命令，作为另外一个命令的输入。如：`命令1|命令2|...|命令n`
@@ -37,7 +37,7 @@ tags: [shell, linux]
   - 标准输出(stdout)代码为 1 ， 实际映射关系：/dev/stdout -> /proc/self/fd/1
     - `echo` 将输出放到标准输出中
   - 标准错误输出(stderr)代码为 2 ，实际映射关系： /dev/stderr ->/pro/self/fd/2
-- 程序有两类返回值：执行结果、执行状态(即`$?`的值，`0` 表示正确，`1-255` 错误)
+- 程序有两类返回值：执行结果、执行状态(即 **`$?`** 的值，`0` 表示正确，`1-255` 错误)
 
 #### 变量
 
@@ -51,9 +51,20 @@ tags: [shell, linux]
     - `$#` 传递到脚本的参数个数
     - `$*` 传递到脚本的参数，与位置变量不同，此选项参数可超过9个
     - `$$` 脚本运行时当前进程的ID号，常用作临时变量的后缀，如 haison.$$
-    - `$!` 后台运行的（&）最后一个进程的ID号
+    - `$!` 后台运行的(&)最后一个进程的ID号
     - `$@` 与$#相同，使用时加引号，并在引号中返回参数个数
     - `$-` 上一个命令的最后一个参数
+    - `$0` 当前Shell程序的文件名(只在脚本文件里才有作用)
+      
+      ```bash
+      # 返回这个脚本文件放置的目录，这个命令写在脚本文件里才有作用。如`dirname /usr/local/bin` 结果为`/usr/local`
+      dirname $0
+      # 进入当前Shell程序的目录
+      cd `dirname $0`
+      # 定义当前脚本目录，并执行jar。cd -P表示基于物理路径
+      APP_HOME="$(cd -P "$(dirname "$0")" && pwd)"/..
+      (cd "$APP_HOME" && java -jar app.jar)
+      ```
 - `set` 查看shell中变量
 - `printenv`/`env` 查看shell中环境变量
 - `unset <var_name>` 撤销变量
@@ -225,7 +236,7 @@ esac
 
 ## jar包运行/停止示例 [^1]
 
-- 参考`/etc/init.d`目录下的文件，如`network`
+- 自启动脚本可参考`/etc/init.d`目录下的文件，如`network`
 
 ```shell
 #!/bin/sh
@@ -242,10 +253,16 @@ esac
 # processname: test
 # config: 如果需要的话，可以配置
 ###################################
-#
-#JDK所在路径(需要配置好$JAVA_HOME环境变量)
-# $JAVA_HOME=也可不使用系统jdk
-# JAVA_HOME=
+### 一般需要修改的配置
+#需要启动的Java主程序（main方法类）
+APP_JAR="app-0.0.1-SNAPSHOT.jar"
+# springboot参数
+SPRING_PROFILES="--spring.profiles.active=test"
+# 内存溢出后dump文件存放位置，需要先创建此文件夹
+JVM_LOG_PATH="/home/"
+
+#JDK所在路径(需要配置好$JAVA_HOME环境变量)，$JAVA_HOME=也可不使用系统jdk
+#JAVA_HOME=
 if [ -f "$JAVA_HOME/bin/java" ]; then
   JAVA="$JAVA_HOME/bin/java"
 else
@@ -258,21 +275,16 @@ RUNNING_USER=root
 #Java程序所在的目录（将此文件和jar放在统一目录）
 APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"
 
-#需要启动的Java主程序（main方法类）
-APP_JAR="grouphelp-0.0.1-SNAPSHOT.jar"
-
-# springboot参数
-PROFILES="--spring.profiles.active=prod"
-JAR_ARGS="$PROFILES"
-
 #java虚拟机启动参数
 #MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
-#OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/"
+OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$JVM_LOG_PATH"
 #IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'` # automatic IP address for linux（内网地址）
 #RMIIF="-Djava.rmi.server.hostname=$IPADDR"
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 #DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
 VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
+
+JAR_ARGS="$SPRING_PROFILES"
 
 #初始化psid变量（全局）
 psid=0
@@ -296,7 +308,7 @@ start() {
       echo "[warn] $APP_JAR already started! (pid=$psid)"
     else
       echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
-      JAVA_CMD="nohup $JAVA -jar $APP_HOME/$APP_JAR $JAR_ARGS > /dev/null 2>&1 &"
+      JAVA_CMD="( cd $APP_HOME && nohup $JAVA -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
       su - $RUNNING_USER -c "$JAVA_CMD"
       checkpid
       if [ $psid -ne 0 ]; then
@@ -316,8 +328,8 @@ stop() {
     if [ $psid -ne 0 ]; then
       # echo -n 表示打印字符后，不换行
       echo -n "[info] Stopping $APP_HOME/$APP_JAR ...(pid=$psid) "
-      # 使用kill -9 pid命令进行强制杀死进程
-      su - $RUNNING_USER -c "kill -9 $psid"
+      # 使用kill -s 9 pid命令进行强制杀死进程
+      su - $RUNNING_USER -c "kill -s 9 $psid"
       # 执行kill命令行紧接其后，马上查看上一句命令的返回值: $? 。在shell编程中，"$?" 表示上一句命令或者一个函数的返回值
       if [ $? -eq 0 ]; then
           echo "[info] OK"

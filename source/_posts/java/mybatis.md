@@ -771,9 +771,18 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 - 使用
 
 ```java
-List<Subscribe> subscribes = subscribeService.list(new LambdaQueryWrapper<Subscribe>()
-                .eq(Subscribe::getFlowStatus, 1));
+List<Subscribe> subscribes = subscribeService.list(
+	new LambdaQueryWrapper<Subscribe>()
+		.eq(Subscribe::getFlowStatus, 1));
 
+// 分页
+Page<Subscribe> subscribePage = new Page<>(0, 100);
+LambdaQueryWrapper lambdaQueryWrapper = new LambdaQueryWrapper<Subscribe>()
+		.eq(Subscribe::getFlowStatus, flowStatus)
+		.eq(Subscribe::getValidStatus, 1)
+		.and(date != null, obj -> obj.gt(Subscribe::getUpdateTm, date)); // 基于某个条件判断是否添加查询此查询条件
+subscribePage = (Page<Subscribe>) subscribeService.page(subscribePage, lambdaQueryWrapper);
+List<Subscribe> subscribes =  subscribePage.getRecords();
 ```
 
 

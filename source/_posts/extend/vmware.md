@@ -62,6 +62,7 @@ tags: [vmware, linux, centos]
         # VMware Virtual Ethernet Adapter for VMnet8的地址
         GATEWAY=192.168.6.1
         ```
+- 固定网卡DNS，在`/etc/sysconfig/network-scripts/ifcfg-ens33`中加入`DNS1=114.114.114.114`，此时每次重启network都会讲此DNS自动写到`/etc/resolv.conf`
 
 ## windows安装
 
@@ -69,9 +70,10 @@ tags: [vmware, linux, centos]
 
 - 下载iso镜像
 - 新建虚拟机 - 典型 - 安装程序光盘映像文件(iso) - Microsoft Windows - ...
-- 点击开启此与虚拟下拉箭头 - 打开电源是进入固件(Bois) - 设置CD-ROM Driver为首先启动
-- 重启此虚拟进入系统安装界面
+- 点击开启此与虚拟下拉箭头 - 打开电源是进入固件(Bois) - 设置CD-ROM Driver为首先启动 - 保存设置后进入安装系统
+- 进入winPE系统，找到手动启动Ghost(备份程序，将备份镜像系统从CD盘复制到本地磁盘，之后运行此镜像。有的iso系统，Ghost程序在桌面的快捷方式是D盘，而iso挂载到CD上去一般默认是C盘，因此需要修改此快捷方式为对应iso所有在盘符) - 运行成功后找到Local-Disk-From Image-然后选择顶层的`*.gho`(文件大小最大的那个) - 然后进行镜像复制
 - 再次进入Bois将虚拟机启动盘改为`Hard driver`
+- 重启此虚拟进入系统安装界面
 
 ## mac os安装
 
