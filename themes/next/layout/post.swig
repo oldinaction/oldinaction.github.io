@@ -11,9 +11,13 @@
 {% block content %}
 
   <div id="posts" class="posts-expand">
+    {% include '_custom/post_header.swig' %}
+
     {{ post_template.render(page) }}
 
     <div class="post-spread">
+      {% include '_custom/post_footer.swig' %}
+
       {% if theme.jiathis %}
         {% include '_partials/share/jiathis.swig' %}
       {% elseif theme.baidushare %}

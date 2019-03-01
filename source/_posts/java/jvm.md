@@ -29,6 +29,18 @@ tags: [jvm]
 -XX:+HeapDumpOnOutOfMemoryError|    **让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用**
 -XX:HeapDumpPath=/home/jvmlogs|     **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
 
+- 自定义jvm参数
+
+```java
+// 格式
+// -D<name>=<value>
+// System.getProperty(<name>)
+
+// 示例
+java -Dtest.name=aezocn -jar app.jar // 启动添加参数
+System.getProperty("test.name") // 程序中取值，无此参数则为null
+```
+
 ## jvm配置位置
 
 - `tomcat`：修改`%TOMCAT_HOME%/bin/catalina.bat`或`%TOMCAT_HOME%/bin/catalina.sh`中的`JAVA_OPTS`，在`echo "Using CATALINA_BASE:   $CATALINA_BASE"`上面加入以下行：`JAVA_OPTS="-server -Xms256m -Xmx512m`(启动时运行的startup.bat/startup.sh，其内部调用catalina.bat)

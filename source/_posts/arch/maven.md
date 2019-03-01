@@ -43,11 +43,17 @@ tags: [maven]
 	</modules>
 
 	<properties></properties>
-	<!--依赖形式一：父项目的依赖会被子项目自动继承-->
+	<!-- 
+		1.父项目的依赖会被子项目自动继承
+		2.maven父子项目，在被依赖的时候需要使用子项目的groupId、artifactId、version，不能通过引入父项目而引入所有的子项目
+	-->
 	<dependencies></dependencies>
 
-	<!--依赖形式二：该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用-->
-	<!--好处是子项目可以不用写版本号 -->
+	<!--
+		依赖管理：
+		1.该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用
+		2.好处是子项目可以不用写版本号
+	-->
 	<dependencyManagement>
 		<dependencies></dependencies>
 	<dependencyManagement>

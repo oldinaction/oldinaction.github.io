@@ -37,6 +37,13 @@ tags: LB, HA
     - `systemctl stop nginx`
         - 有时候启动失败可能是端口占用，`listen`对应的端口必须是空闲状态
     - `sudo ./nginx -s stop`
+    - windows停止脚本
+
+        ```bat
+        @echo off
+        echo Stopping nginx...
+        taskkill /F /IM nginx.exe > nul
+        ```
 - 相关命令
     - `ps -ef | grep nginx` 查看nginx安装位置(nginx的配置文件.conf在此目录下)
     - `sudo find / -name nginx.conf` 查看配置文件位置
@@ -299,12 +306,6 @@ http {
             #proxy_temp_file_write_size 64k; #设定缓存文件夹大小，大于这个值，将从upstream服务器传
         }
 
-        location ~ .*.(php|php5)?$ {
-            fastcgi_pass 127.0.0.1:9000;
-            fastcgi_index index.php;
-            include fastcgi.conf;
-        }
-
         #本地动静分离反向代理配置
         #所有jsp的页面均交由tomcat处理
         location ~ .(jsp|jspx|do)?$ {
@@ -349,14 +350,16 @@ http {
             }
         }
 
-        # php文件转给fastcgi处理，但是需要安装如`php-fpm`来解析
+        # php文件转给fastcgi处理。linux安装了php后需要额外安装如`php-fpm`来解析(windows安装了php，里面自带php-cgi.exe)
         # 如果访问 http://127.0.0.1:8080/myphp/index.php 此时会到 /project/phphome/myphp 目录寻找/访问 index.php 文件
         location ~ \.php$ {
-            try_files $uri = 404; # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
+            # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
+            try_files      $uri = 404;
             root           /project/phphome/myphp;
             fastcgi_pass   127.0.0.1:9000;
             fastcgi_index  index.php;
-            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name; # 此处要使用`$document_root`否则报错File not found.`
+            # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
             include        fastcgi_params;
         }
         # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析

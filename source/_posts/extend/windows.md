@@ -6,11 +6,6 @@ categories: [extend]
 tags: [bat]
 ---
 
-## ssh客户端(不好用)
-
-- 下载openssh: [https://github.com/PowerShell/Win32-OpenSSH](https://github.com/PowerShell/Win32-OpenSSH)
-- 解压后将其根目录设置到Path中即可在cmd命令中使用ssh命令连接linux服务器
-
 ## 常用命令
 
 - `ipconfig` 查看ip地址
@@ -31,3 +26,12 @@ tags: [bat]
 ## bat脚本
 
 参考《bat》
+
+## 其他
+
+### ssh客户端(不好用)
+
+> **使用cmder即可**
+
+- 下载openssh: [https://github.com/PowerShell/Win32-OpenSSH](https://github.com/PowerShell/Win32-OpenSSH)
+- 解压后将其根目录设置到Path中即可在cmd命令中使用ssh命令连接linux服务器

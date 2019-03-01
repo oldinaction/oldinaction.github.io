@@ -250,6 +250,10 @@
     {% endif %}
 
     <div class="post-body{% if theme.han %} han-init-context{% endif %}" itemprop="articleBody">
+      {# 只有在文章详情也显示此扩展(文章标题之下，正文之上) #}
+      {% if not is_index %}
+        {% include '../_custom/post_body_head.swig' %}
+      {% endif %}
 
       {# Gallery support #}
       {% if post.photos and post.photos.length %}

@@ -204,17 +204,24 @@ call:myFuncName
     - 此时配置文件应和jar包位于同一目录
     - 如果`set MY_PROJECT_HOME=%~p0..\`则表示设置bat文件所在目录的的上级目录为项目根目录
     - 如果不是系统默认jdk，可将`%JAVA_HOME%`换成对应的路径
-
 - 后台运行bat文件
-
-    ```bat
-    @echo off
-    if "%1" == "back" goto begin
-    mshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&&exit
-    :begin
-    :: 这是注释，后面运行脚本，如：
-    java -jar my.jar
-    ```
+    - bat语法运行。缺点：执行`start xxx.exe`后，bat脚本窗口关闭了，但是exe执行程序弹框无法关闭（可使用RunHiddenConsole.exe）
+        
+        ```bat
+        @echo off
+        if "%1" == "h" goto begin
+        mshta vbscript:createobject("wscript.shell").run("%~nx0 h",0)(window.close)&&exit 
+        :begin
+        :: 这是注释，后面运行脚本，如：
+        java -jar my.jar
+        ```
+    - 使用`RunHiddenConsole.exe`。需要将其加入到PATH或放在bat的同级目录，如下示例。[RunHiddenConsole下载地址](http://redmine.lighttpd.net/attachments/download/660/RunHiddenConsole.zip)
+        ```bat
+        :: 启动脚本 start_php_cgi.bat(直接执行php-cgi.exe默认监听端口是9000)
+        @echo off
+        echo Starting PHP FastCGI...
+        RunHiddenConsole.exe d:\software\xampp\php\php-cgi.exe -b 127.0.0.1:19000 -c d:\software\xampp\php\php.ini
+        ```
 - 获取脚本参数。`test.bat`内容如下。运行`test a.txt b.txt`则%1表示a.txt，%2表示b.txt 
 
     ```bat

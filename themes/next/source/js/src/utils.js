@@ -10,6 +10,7 @@ NexT.utils = NexT.$u = {
       .not('.group-picture img, .post-gallery img')
       .each(function () {
         var $image = $(this);
+        if ($(this).hasClass('nofancybox')) return; // img加class="nofancybox"则不使用fancybox插件进行装饰
         var imageTitle = $image.attr('title');
         var $imageWrapLink = $image.parent('a');
 

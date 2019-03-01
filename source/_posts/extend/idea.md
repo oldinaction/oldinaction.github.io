@@ -8,6 +8,38 @@ tags: [IDE]
 
 ## IntelliJ IDEA简介
 
+- jetbrains相关编辑器破解，基于破解补丁进行破解
+    - 下载破解补丁：http://idea.lanyus.com/jar/JetbrainsIdesCrack-4.2-release-sha1-3323d5d0b82e716609808090d3dc7cb3198b8c4b.jar
+    - 在`bin/idea64.exe.vmoptions`和`bin/idea64.exe.vmoptions`文件中加入`-javaagent:D:\software\JetbrainsIdesCrack-4.2-release-sha1-3323d5d0b82e716609808090d3dc7cb3198b8c4b.jar`，两个都需要加入
+    - 启动idea输入以下注册码
+
+        ```js
+        ThisCrackLicenseId-{
+        "licenseId":"ThisCrackLicenseId",
+        "licenseeName":"Rover12421",
+        "assigneeName":"",
+        "assigneeEmail":"rover12421@163.com",
+        "licenseRestriction":"For Rover12421 Crack, Only Test! Please support genuine!!!",
+        "checkConcurrentUse":false,
+        "products":[
+        {"code":"II","paidUpTo":"2099-12-31"},
+        {"code":"DM","paidUpTo":"2099-12-31"},
+        {"code":"AC","paidUpTo":"2099-12-31"},
+        {"code":"RS0","paidUpTo":"2099-12-31"},
+        {"code":"WS","paidUpTo":"2099-12-31"},
+        {"code":"DPN","paidUpTo":"2099-12-31"},
+        {"code":"RC","paidUpTo":"2099-12-31"},
+        {"code":"PS","paidUpTo":"2099-12-31"},
+        {"code":"DC","paidUpTo":"2099-12-31"},
+        {"code":"RM","paidUpTo":"2099-12-31"},
+        {"code":"CL","paidUpTo":"2099-12-31"},
+        {"code":"PC","paidUpTo":"2099-12-31"}
+        ],
+        "hash":"2911276/0",
+        "gracePeriodDays":7,
+        "autoProlongated":false}
+        ```
+
 ## 常用设置
 
 - 新建包文件夹，一定要一层一层的建，或者创建`cn/aezo`的文件夹，不能创建一个`cn.aezo`(不会自动生成两个文件夹)
@@ -102,7 +134,7 @@ tags: [IDE]
 2. 下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能
 3. 替换下面代码
 
-    ```html
+    ```conf
     [xdebug]  
     xdebug.remote_enable=on  
     xdebug.remote_host=localhost  
@@ -140,11 +172,13 @@ tags: [IDE]
 
 6. 打断点，运行程序即可进行调试
 
+## jetbrains相关IDE
 
+### PhpStorm
 
-
-
-
+- 使用前需配置php可执行程序路径(Languages - PHP). 如果使用xampp，则可使用xampp中配置的xdebug
+- 进行debug时，创建一个`PHP Web Page`启动配置，此时host和port需要填Apache服务器的host和port（PhpStorm中的启动配置并不会启动服务器，因此需要另外启动Apache等服务器）
+- PHPStorm使用Xdebug进行调试时，没打断点也一直进入到代码第一行：去掉勾选Run - Break at first line in PHP Scripts
 
 
 

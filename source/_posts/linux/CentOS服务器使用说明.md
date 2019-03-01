@@ -280,11 +280,13 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
 
     ```bash
     location ~ \.php$ {
-        try_files $uri = 404; # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
+        # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
+        try_files      $uri = 404;
         root           html;
         fastcgi_pass   127.0.0.1:9000;
         fastcgi_index  index.php;
-        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name; # 此处要使用`$document_root`否则报错File not found.`
+        # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
         include        fastcgi_params;
     }
     ```

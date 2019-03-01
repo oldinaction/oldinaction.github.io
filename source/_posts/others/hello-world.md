@@ -90,7 +90,7 @@ categories和tage都可以有多个
 
 - `hexo clean` 清除缓存(如果未修改配置文件可不运行)
 - `hexo g`/`hexo generate` 静态文件生成(修改主题文件可不用重新启动服务)
-- `hexo s -p 5000`/`hexo server` 启动本地服务器(本地测试)
+- `hexo s -p 5000`(`hexo server`) **启动本地服务器(本地测试)**
 - `hexo d`/`hexo deploy` 部署到github
 
 ### clone
@@ -140,7 +140,9 @@ Bob->Alice : hello
 
 #### next
 
+- 自定义代码在`/themes/next/layout/_custom/`目录下
 - footer代码修改 `/themes/next/layout/_partials/footer.swig`
+- 部分图片禁用fancybox，可在img上加`class="nofancybox"`。需要修改主题中的js文件，详细修改方法参考https://blog.csdn.net/cddchina/article/details/79764432
 
 
 ---
