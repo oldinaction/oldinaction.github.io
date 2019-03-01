@@ -5,7 +5,7 @@
     
   <url>
     <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
-    <lastmod>2019-03-01T05:38:46.852Z</lastmod>
+    <lastmod>2019-03-01T05:40:16.532Z</lastmod>
     <data>
         <display>
         <title>你好，世界</title>
@@ -421,9 +421,9 @@
          
         <tag>springboot</tag>
          
-        <tag>thymeleaf</tag>
-         
         <tag>template</tag>
+         
+        <tag>thymeleaf</tag>
          
          
            
@@ -739,9 +739,9 @@
         
         <tag>java</tag>
          
-        <tag>template</tag>
-         
         <tag>freemarker</tag>
+         
+        <tag>template</tag>
          
          
            
