@@ -1970,32 +1970,29 @@ public class DynamicAddTests {
 	- 使用
 
 		```java
-		@Test 
-		public void multiRequestsTest() { 
-			// 构造一个Runner 
-			TestRunnable runner = new TestRunnable() { 
-				@Override 
-				public void runTest() throws Throwable { 
+		@Test
+		public void multiRequestsTest() {
+			int runnerCount = 100; // 并发数
+			// 构造一个Runner
+			TestRunnable runner = new TestRunnable() {
+				@Override
+				public void runTest() throws Throwable {
 					// TODO 测试内容
+					// Thread.sleep(1000); // 结合sleep表示业务处理过程，测试效果更加明显
 					System.out.println("===>" + Thread.currentThread().getId());
-				} 
+				}
 			};
 
-			int runnerCount = 100; 
-			// Runner数组，想当于并发多少个。 
-			TestRunnable[] arrTestRunner = new TestRunnable[runnerCount]; 
-			for (int i = 0; i < runnerCount; i++) { 
+			TestRunnable[] arrTestRunner = new TestRunnable[runnerCount];
+			for (int i = 0; i < runnerCount; i++) {
 				arrTestRunner[i] = runner; 
-			} 
-
-			// 用于执行多线程测试用例的Runner，将前面定义的单个Runner组成的数组传入 
-			MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(arrTestRunner); 
-			try { 
-				// 并发执行数组里定义的内容 
-				mttr.runTestRunnables(); 
-			} catch (Throwable e) { 
-				e.printStackTrace(); 
-			} 
+			}
+			MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(arrTestRunner);
+			try {
+				mttr.runTestRunnables();
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
 		}
 		```
 

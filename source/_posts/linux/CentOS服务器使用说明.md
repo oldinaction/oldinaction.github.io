@@ -12,7 +12,7 @@ tags: [CentOS, linux]
 - **如果服务器磁盘未挂载，最好先挂载后再进行软件安装**
 - 软件安装和项目代码最好不要放到home的用户目录，项目迁移时可能出现目录不一致问题
 
-### 基本配置
+### 新服务器初始化
 
 - 关闭防火墙
     - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
@@ -25,12 +25,23 @@ tags: [CentOS, linux]
     - 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
 - 永久关闭`SELinux`
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
+- 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
+- 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
+- 设置用户umask值(包括root用户)
+    - 永久修改umask值需修改`sudo vi /etc/profile`/`sudo vi ~/.bashrc`文件，加入一行`umask 022`(002对应创建的文件权限是755)
+    - 命令行运行`umask 022`只能临时改变
+    - `umask` 查看
+- 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
+- 校验系统时间
+
+### 新服务器常见问题
+
 - centos7无法使用`ifconfig`命令解决方案
     - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
     - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
 - xshell卡在`To escape to local shell, press 'Ctrl+Alt+]'.`
     - 关闭防火墙
-    - `vi /etc/ssh/sshd_config`修改`# UseDNS yes`为`UseDNS no`
+    - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
 
 ## 常用软件安装
 
@@ -104,118 +115,147 @@ tags: [CentOS, linux]
 - 通过ftp上传jdk对应tar压缩包到对应目录并进行解压
 - 下载tar格式（推荐）
   - 下载tar文件并上传到服务器
-  - 解压tar **`tar -zxvf jdk-7u79-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
+  - 解压tar **`tar -zxvf jdk-7u80-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
 - 下载rpm格式
   - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 7 -> Java SE Development Kit 7u80 -> Accept License Agreement -> jdk-7u80-linux-x64.rpm
   - `rmp -ivh jdk-7u80-linux-x64.rpm` 安装rpm文件
 
 #### 配置环境变量
 
-- `vi /etc/profile` 使用vi打开profile文件(加入通过root用户安装，其他用户要使用则需要在对应的`.bash_profile`中也加入下面语句)
+- `vi /etc/profile` 使用vi打开profile文件(也可在`.bash_profile`中设置单个用户的环境变量)
 - 在末尾输入并保存（注意JAVA_HOME需要按照实际路径）
 
 ```bash
-export JAVA_HOME=/home/smalle/soft/jdk1.8.0_161
+export JAVA_HOME=/opt/soft/jdk1.7.0_80
 export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ```
 - 运行命令 `. /etc/profile` 使profile立即生效(注意 . 和 / 之间有空格)
 - `java -version` 打印版本号
 
-### 安装vsftpd [^1]
+### ftp服务器安装
 
-- 安装vsftp服务器后方便上传软件安装包
-- ftp/sftp是协议，vsftpd是ftp服务器(只支持ftp协议)
-- `yum install ftp`安装后可执行ftp命令，此时ftp相当于一个客户端，和window下的xftp类似（ftp登录`ftp localhost`；ftp命令行退出`bye`）
-- `sftp localhost` 输入密码后登录ftp；exit退出(无需安装vsftp，一般服务器都默认支持，相当于windows用xftp以sftp形式登录ftp服务器)
-- **vsftp需要关闭防火墙才可访问**
-
-#### 安装步骤
-
-- 安装`yum install vsftpd`
-    - ftp协议登录`ftp localhost`；ftp命令行退出`bye`(需要安装ftp：`yum install ftp`)
-- 修改默认配置文件
-    - `cp /etc/vsftpd/vsftpd.conf /etc/vsftpd/vsftpd.conf.back`
-    - `vim /etc/vsftpd/vsftpd.conf`
-    
-    ```bash
-    #不允许匿名登录(NO, YES允许)
-    anonymous_enable=NO
-    #禁止匿名用户上传
-    anon_upload_enable=NO
-
-    #禁止用户登出自己的FTP主目录(YES表示禁止登出主目录，NO表示不做限制)
-    chroot_list_enable=YES
-    #如果chroot_list_enable=YES，那么凡是加在文件chroot_list中的用户都是受限止的用户，即不可浏览其主目录的上级目录
-    chroot_list_file=/etc/vsftpd/chroot_list
-
-    #设定20端口进行通信，对外默认是21端口。防火墙要开放20、21端口
-    #connect_from_port_20=YES
-    #监听端口
-    #listen_port=2121
-
-    ##加在最后
-    #开启pam模式，/etc/vsftpd/ftpusers中为禁止登录的用户 [^2]
-    pam_service_name=vsftpd
-    #对vsftpd有用，否则因home目录权限为root权限而无法登录
-    allow_writeable_chroot=YES
-    #开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口
-    #pasv_enable=YES
-    pasv_min_port=30000
-    pasv_max_port=30999
-    #限定可登录用户列表
-    userlist_enable=YES
-    userlist_file=/etc/vsftpd/user_list
-    #表示默认所有用户都不能登录，只有列表中用户才可以；如果userlist_deny=YES，则user_list中的用户就不允许登录ftp服务器
-    userlist_deny=NO
-    ```
-- 设置用户
-    - 法一：设置vsftpd服务的宿主用户(应用程序内部使用推荐)
-        - `useradd ftpadmin -d /home/ftproot -s /sbin/nologin`
-            - 默认的vsftpd的服务宿主用户是root，但是这不符合安全性的需要。这里建立名字为ftpadmin的用户，用他来作为支持vsftpd的服务宿主用户。由于该用户仅用来支持vsftpd服务用，因此没有许可他登陆系统的必要，并设定他为不能登陆系统的用户（-s /sbin/nologin）。并设置ftpadmin的家目录为/home/ftproot(做为ftp服务器的根目录)
-        - `passwd ftpadmin` 给ftpadmin设置密码
-        - 将ftpadmin加到`/etc/vsftpd/user_list`中
-        - 将ftpadmin加到`/etc/vsftpd/chroot_list`中
-        - 文件/home/ftproot的所有者是ftpadmin，设置权限为755，包含子目录
-            - `chmod -R 755 /home/ftproot` (755当前用户有读写权限，当前组和其他组只有读权限；555当前用户有读权限。不能设置成444，必须要读权限和执行权限)
-            - `# chown -R ftpadmin /home/ftproot` (默认用户家目录就属于此用户)
-    - 法二：设置vsftpd虚拟宿主用户
-        - `useradd aezo -s /sbin/nologin`
-        - `guest_username=aezo` 指定虚拟用户的宿主用户
-        - `virtual_use_local_privs=YES` 设定虚拟用户的权限符合他们的宿主用户
-        - `user_config_dir=/etc/vsftpd/vconf` 设定虚拟用户个人vsftp的配置文件存放路径
-- 启动服务`systemctl start vsftpd`
-- 命令行ftp可以登录`ftp 192.168.1.1`，IE浏览器访问`ftp://192.168.1.1`失败。谷歌浏览器正常访问并使用，或者ftp客户端登录
-- 单用户多目录配置
-    - vsftpd不支持软连接，硬链接又不允许将硬链接指向目录。可以通过`mount –bind`解决(默认存于内存，需要写到`/etc/rc.local`，否则开启需要重新执行命令)
-    - `vim /etc/rc.local`
-
-        ```bash
-        #可读写挂载（需要先创建好目录 /data/www/virtual/test1/）
-        mount --bind /home/test1/ /data/www/virtual/test1/
-
-        #只读挂载
-        mount --bind /home/test2/ /data/www/virtual/test2/
-        mount -o remount,ro /data/www/virtual/test2/
-        ```
-    - `source /etc/rc.local` 使生效(可能会报`mount: / is busy`，但是应该挂载上了)
+参考：[http://blog.aezo.cn/2019/03/19/arch/ftp/](/_posts/arch/ftp.md#FTP服务器)
 
 ### mysql安装
 
-- 安装
-    - `wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm` 下载mysql源安装包
-    - `yum localinstall mysql57-community-release-el7-8.noarch.rpm` 安装mysql源
-    - `yum repolist enabled | grep "mysql.*-community.*"` 检查mysql源是否安装成功
-    - `yum install mysql-community-server` 安装mysql
-    - `systemctl start mysqld` 启动
-    - `grep 'temporary password' /var/log/mysqld.log` 查看临时密码
-    - `mysql -uroot -p`登录
-    - `alter user 'root'@'localhost' identified by 'mynewpass4!';` 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)
-    - `grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;` 添加smalle用户，并赋权，且允许远程登录
-    - `systemctl enable mysqld` 设置开机启动
+- tar安装(推荐) [^5]
+
+    ```bash
+    ## 使用root用户安装
+    # 安装mysql之前需要确保系统中有libaio依赖
+    yum search libaio
+    # yum install libaio
+
+    # 下载tar并上传到服务器：http://ftp.ntu.edu.tw/MySQL/Downloads/MySQL-5.7/mysql-5.7.25-el7-x86_64.tar.gz
+    tar -zxvf mysql-5.7.25-el7-x86_64.tar.gz -C /opt/soft
+    mv mysql-5.7.25-el7-x86_64 mysql57
+    
+    # 添加用户组
+    groupadd mysql
+    # 添加用户mysql，并加入到mysql用户组(使用-r参数表示mysql用户是一个系统用户，不能登录)
+    useradd -r -g mysql mysql
+    id mysql # 查看mysql用户信息
+
+    # 创建数据文件存储目录(一般放在数据盘，此时为root用户创建)
+    mkdir -p /home/data/mysql
+    # 修改mysql安装根目录权限
+    chown -R mysql:mysql /opt/soft/mysql57
+
+    # 修改配置文件。可安装下文修改(设置basedir和datadir等)
+    vi /etc/my.cnf
+
+    # 初始化mysql. mysqld --initialize-insecure初始化后的mysql是没有密码的
+    /opt/soft/mysql57/bin/mysqld --initialize-insecure --user=mysql --basedir=/opt/soft/mysql57 --datadir=/home/data/mysql
+
+    # 重新修改下各个目录的权限
+    chown -R root:root /opt/soft/mysql57 # 把安装目录的目录的权限所有者改为root
+    chown -R mysql:mysql /home/data/mysql # 把data目录的权限所有者改为mysql(/home/data权限可以不是mysql)
+    
+    # 启动mysql(此时可能会卡在启动命令行。可以再起一个命令行进行密码修改)
+    /opt/soft/mysql57/bin/mysqld_safe --user=mysql &
+
+    ## 修改root密码
+    ./opt/soft/mysql57/bin/mysql -u root -p
+    # mysql命令
+    use mysql;
+    update user set authentication_string=password('Hello1234!') where user='root'; # mysql5.7及以后密码必须包含字母、数字、特殊字符
+    flush privileges;
+    exit;
+    # 测试登录略
+
+    ## copy启动脚本并将其添加到服务且设置为开机启动
+    cp /opt/soft/mysql57/support-files/mysql.server /etc/init.d/mysqld
+    chkconfig --add mysqld # 加入服务
+    chkconfig --level 345 mysqld on # 设置开机启动
+    systemctl status mysqld # 查看状态
+
+    # 创建mysql软链接到bin目录
+    ln -s /opt/soft/mysql57/bin/mysql /usr/bin
+    ```
+- yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录)
+
+    ```bash
+    # 下载mysql源安装包
+    wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
+    # 安装mysql源
+    yum localinstall mysql57-community-release-el7-8.noarch.rpm
+    # 检查mysql源是否安装成功
+    yum repolist enabled | grep "mysql.*-community.*"
+    # 安装mysql
+    yum install mysql-community-server
+    # 启动
+    systemctl start mysqld
+    # 查看临时密码
+    grep 'temporary password' /var/log/mysqld.log
+    # 登录
+    mysql -uroot -p
+    # 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)
+    alter user 'root'@'localhost' identified by 'mynewpass4!';
+    # 添加smalle用户，并赋权，且允许远程登录
+    grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;
+    flush privileges;
+    # 设置开机启动
+    systemctl enable mysqld
+    ```
+- 配置文件默认路径：`/etc/my.cnf`(修改配置后需要重启服务)
+
+    ```ini
+    [client] # 客户端连接时的默认配置(可省略)
+    port=13306
+    socket=/tmp/mysql.sock
+    default-character-set=utf8
+
+    [mysqld] # 服务端配置
+    port=13306
+    lower_case_table_names=1
+    character-set-server=utf8
+    init-connect='SET NAMES utf8'
+
+    ## 手动安装时设置
+    # 手动安装时填写mysql根目录
+    basedir=/opt/soft/mysql57
+    # 手动安装时填写mysql数据目录
+    datadir=/home/data/mysql
+    log_error=/var/log/mysqld_error.log
+    socket=/tmp/mysql.sock
+    pid-file = /tmp/mysql.pid
+
+    # Disabling symbolic-links is recommended to prevent assorted security risks
+    symbolic-links=0
+    # 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)
+    lower_case_table_names=1
+    ```
 - 其他
-    - 配置文件默认路径：`/etc/my.cnf`
-    - `yum remove mysql` 卸载
+    - 卸载yum方式安装
+        - `yum remove mysql` 卸载
+        - `find / -name mysql` 查看和mysql相关文件/文件夹
+            - `rm -rf xxx` 删除
+        - `rpm -qa | grep -i mysql` 查看mysql的依赖
+            - `yum remove mysql-xxx` 依次卸载
+        - 删除mysql相关用户和组
+    - `show variables like '%dir%';` 查看mysql相关文件(数据/日志)存放位置
+        - 数据文件默认位置：`/var/lib/mysql`
 
 ### 安装oracle客户端 [^4]
 
@@ -316,7 +356,6 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
 
 参考文章
 
-[^1]: http://www.cnblogs.com/hhuai/archive/2011/02/12/1952647.html (vsftpd)
-[^2]: http://www.cnblogs.com/GaZeon/p/5393853.html (ftp-530-Permission-denied)
 [^3]: http://blog.csdn.net/inslow/article/details/54177191 (更换yum镜像)
 [^4]: https://www.cnblogs.com/taosim/articles/2649098.html (安装oracle客户端)
+[^5]: https://www.cnblogs.com/zeng1994/p/f883e0a2832808455039ff83735d6579.html (Linux下安装解压版（tar.gz）MySQL5.7)

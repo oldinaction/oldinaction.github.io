@@ -16,7 +16,7 @@ tags: [php]
 - php安装
     - windows：http://php.net/downloads.php
     - linux：`yum install -y php`
-- windows + nginx + fastcgi运行php程序(php5.3版本之后已经有了`php-cgi.exe`的可执行程序，xampp中也包含)
+- windows + nginx + fastcgi运行php程序(php5.3版本之后已经有了`php-cgi.exe`的可执行程序，经测试本地开发就很容易挂)
     - nginx配置
 
         ```bash
@@ -56,7 +56,35 @@ tags: [php]
 
 ## php基本语法
 
-## php扩展
+> 未特殊说明，都是基于 php7
+
+### 数据类型
+
+```php
+// ### map
+// compact 创建一个包含变量与其值的数组
+$meta_status = 'error';
+$meta_message = '执行失败';
+compact('meta_status', 'meta_message');
+
+// ### json
+$json = json_decode($json_str); // 格式化json字符串为对象。返回的是stdClass
+if(isset($json -> username)) {
+    // 判断 $json 对象中是否有username属性. ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
+}
+```
+
+## thinkphp
+
+> 未特殊说明，都是基于 ThinkPHP v5.0.24 进行记录
+
+### 入门常见问题
+
+- 入口文件默认是 `/public/index.php`，如果修改该成 `index.php` 可参考：https://www.kancloud.cn/manual/thinkphp5/125729
+- 控制器及子目录访问
+    - 访问`http://localhost/myproject/index.php`，由于thinkphp设置了默认模块/控制器/方法，因此等同于访问 `http://localhost/myproject/index.php/index/index/index.html`。访问的是`application/index/controller/Index.php`文件的`index`方法。原则`index.php/模块名/控制器/方法名`(默认不区分大小写)
+    - 访问`http://localhost/myproject/index.php/wap/login.index/test.html`实际是访问的`application/wap/controller/login/Index.php`文件的`index`方法。此时`wap`为模块名，在`wap/controller`有文件`login/Index.php`为控制器(路径为login.index，注意Index.php中的命名空间`namespace app\wap\controller\login;`)，访问的此文件中的test方法
+- 控制器的方法中，`return`只能返回字符串，如果需要返回对象或数组需要使用`return json($obj)`
 
 ## 易错点
 
@@ -65,7 +93,13 @@ tags: [php]
     - Coentent-Type为`application/json`时，可以使用`$input = file_get_contents('php://input')`接受数据，再通过`json_decode($input, TRUE)`转换成json对象
     - 微信小程序wx.request的header设置成`application/x-www-data-urlencoded`时`$_POST`也接受失败(基础库版本1.5.0，仅供个人参考)，使用file_get_contents('php://input')可以获取成功
 
+## 其他
 
+### php测试
+
+- 使用`apache`自带的`bin/ab.exe`工具
+    - `ab.exe-n 10000 -c 100 http://localhost/index.php` 表示100个人访问该地址10000次
+        - 如果并发调到500，则会提示`apr_socket_connect()` 原因是因为apache在windows下默认的最大并发访问量为150。我们可以设置conf\extra下的httpd-mpm.conf文件来修改它的最大并发数
 
 
 

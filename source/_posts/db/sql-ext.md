@@ -15,7 +15,7 @@ tags: [sql, oracle, mysql]
 
 ### 常见问题
 
-- 查询空格问题。`select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`可以查询到数据库中`ABC  `的，`ABC  `也可以查询到数据库中`ABC`的数据
+- **查询空格问题。** `select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`可以查询到数据库中`ABC  `的，`ABC  `也可以查询到数据库中`ABC`的数据
   - 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
   - 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
   - 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
@@ -32,12 +32,12 @@ tags: [sql, oracle, mysql]
   - `order by decode(col, 'b', 1, 'c', 2, 'a', 3, col)` 按值排序
 - `case when then [when then ...] else end` 比decode强大
   - `case when t.name = 'admin' then 'admin' when t.name like 'admin%' then 'admin_user' else decode(t.role, 'admin', 'admin', 'admin_user') end`
-  - `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1` sum写在case里面则需要对相关字段group by. **主要用于分组之后根据条件分列显示**
+  - `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1` sum写在case里面则需要对相关字段(plan_classification_code)进行group by，而sum写外面则不需要对此字段group by. **主要用于分组之后根据条件分列显示**
 
 #### 聚合函数(aggregate_function)
 
 - `min`、 `max`、`sum`、`avg`、`count`、`variance`、`stddev` 
-- `count(*)`、`count(1)`、`count(id)`、`count(name)` **统计行数，不能统计值的个数**。如果有3行，但是只有name的值只有2个结果仍然为3
+- `count(*)`、`count(1)`、`count(id)`、`count(name)` **统计行数，不能统计值的个数**。count(name)，如果有3行，但是name有值的只有2行时结果仍然为3
 - `wm_concat` **行转列，会把多行转成1行** (默认用`,`分割，select的其他字段需要是group by字段)
     - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
     - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符

@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "linux系统命令"
+title: "linux系统"
 date: "2016-07-21 19:19"
 categories: linux
 tags: [linux, shell]
@@ -23,9 +23,10 @@ tags: [linux, shell]
 - `hostname` 查看hostname
     - `hostnamectl set-hostname aezocn` 修改主机名并重启
 - `grep MemTotal /proc/meminfo` 查看内存
-- `df -h` 查看磁盘使用情况和挂载点信息
-    - `df /root` 查看/root目录所在挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
-- `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2
+- 磁盘使用查看
+    - `df -h` 查看磁盘使用情况和挂载点信息
+        - `df /root` **查看/root目录所在挂载点**（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
+    - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2
 
 ### 查看网络信息
 
@@ -57,13 +58,14 @@ tags: [linux, shell]
 
 - **`ps -ef | grep java`**(其中java可换成run.py等)
     - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
+- `pwdx <pid>` 查看进程执行目录(同`ls -al /proc/8888 | grep cwd`)
 - `ls -al /proc/进程id` 查看此进程信息
     - `cwd`符号链接的是进程运行目录 **`ls -al /proc/8888 | grep cwd`**
     - `exe`符号连接就是执行程序的绝对路径
     - `cmdline`就是程序运行时输入的命令行命令
     - `environ`记录了进程运行时的环境变量
     - `fd`目录下是进程打开或使用的文件的符号连接
-- 自带程序`top`查看, 推荐安装功能更强大的`htop`
+- 自带程序`top`查看，推荐安装功能更强大的`htop`
   
 ### 基础操作
 
@@ -96,6 +98,8 @@ tags: [linux, shell]
         - `startofbiz.sh > my.log` 表示startofbiz.sh的输出重定向到my.log
         - `2>&1` 表示将错误输出重定向到标准输出
             - `0`：标准输入；`1`：标准输出；`2`：错误输出
+    - `Ctrl+c` 关闭程序，回到终端
+    - `Ctrl+z` 后台运行程序，回到终端
 - 设置环境变量
     - `/etc/profile` 记录系统环境变量，在此文件末尾加入`export JAVA_HOME=/usr/java/jdk1.8` 将`JAVA_HOME`设置成所有用户可访问
     - `/home/smalle/.bash_profile` 每个用户登录的环境变量(/home/smalle为用户家目录)
@@ -167,10 +171,45 @@ tags: [linux, shell]
     - `df -Th` 查询文件系统格式
 - `du -h --max-depth=1 | sort -h` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**
     - `du -sh /home/smalle | sort -h` 查看某个目录
-- 查看数据盘 `fdisk -l`(如：Disk：/dev/vda ... Disk：/dev/vdb表示有两块磁盘)
-- 格式化磁盘 `mkfs.ext4 /dev/vdb` (一般云服务器买的磁盘未进行格式化文件系统和挂载)
-- 挂载磁盘 `mount /dev/vdb /home/` 挂载磁盘到`/home`目录
-- 修改fstab以便系统启动时自动挂载磁盘 `echo '/dev/vdb  /home ext4    defaults    0  0' >> /etc/fstab` 重新挂载了磁盘需要重启(`reboot`)
+    - `du`它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
+    - `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
+- 磁盘分区和挂载
+    - 参考《阿里云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘》 [^10]
+    - 一般阿里云服务器买的磁盘未进行格式化文件系统和挂载，`df -h`无法查询到磁盘设备，只能通过`fdisk -l`查看磁盘设备
+    - 阿里云`/dev/vda`表示系统盘，`/dev/vdb-z`表示数据盘，`dev/xvd?`表示非I/O优化实例。`/dev/vda1`/`/dev/vdb1`表示对应磁盘上的分区
+
+    ```bash
+    # **最好使用root用户进行操作，`fdisk -l`一般用户查询不到**
+    # 查看磁盘设备。包括系统盘和数据盘，如：Disk：/dev/vda ... Disk：/dev/vdb表示有两块磁盘
+    fdisk -l
+
+    # 查看/dev/vdb磁盘设备的分区情况(/dev/vdb1表示此磁盘的第一个分区)
+    fdisk -lu /dev/vdb
+
+    # 进行磁盘分区
+    fdisk -u /dev/vdb
+    # 再次输入`p`：查看数据盘的分区情况
+    # 再次输入`n`：创建一个新分区
+    # 选择好分区设置后输入`w`：开始分区，并在分区后退出
+
+    # 为此分区创建一个ext4文件系统，此时会格式化磁盘. 如果需要在 Linux、Windows 和 Mac 系统之间共享文件，可以使用 mkfs.vfat 创建 VFAT 文件系统
+    mkfs.ext4 /dev/vdb1
+
+    # 挂载分区到/home目录，**如果/home目录之前有数据会被清除，建议先备份**
+    mount /dev/vdb1 /home
+
+    #（建议）备份 etc/fstab
+    cp /etc/fstab /etc/fstab.bak
+
+    # 向 /etc/fstab 写入新分区信息(注意目录和上面对应)
+    echo /dev/vdb1 /home ext4 defaults 0 0 >> /etc/fstab
+
+    # 查看目前磁盘空间和使用情
+    df -h
+
+    # 重新挂载了磁盘需要重启
+    # reboot
+    ```
 
 ### 文件
 
@@ -189,7 +228,7 @@ tags: [linux, shell]
 - `whereis <binName>` 查询可执行文件位置
     - `which <exeName>` 查询可执行文件位置 (在PATH路径中寻找)
     - `echo $PATH` 打印环境变量
-- `stat <file>` 查看文件的详细信息
+- `stat <file>` **查看文件的详细信息**
 - `file <fileName>` 查看文件属性
 - `wc <file>` 统计指定文本文件的行数、字数、字节数 
     - `wc -l <file>` 查看行数
@@ -199,7 +238,9 @@ tags: [linux, shell]
         - `rm -f /home/my_link_soft/` **删除软链接下的文件**(源目录的文件全部被删除；软链接仍然存在)
     - 修改原文件，硬链接对应的文件也会改变；删除原文件，硬链接对应的文件不会删除，软连接对应的文件会被删除
     - 目录无法创建硬链接，可以创建软链接
-- 下载文件到本地(windows): `sz 文件名` （需要安装`yum install lrzsz`）
+- lrzsz上传下载文件，小型文件可通过此工具完成。需要安装`yum install lrzsz`
+    - `rz` 跳出窗口进行上传
+    - `sz 文件名` 下载文件
 - `ls` 列举文件 [^3]
     - `ll` 列举文件详细
         - **`ll test*`**/`ls *.txt` 模糊查询文件
@@ -251,8 +292,8 @@ tags: [linux, shell]
 
 #### rar
 
-- 解压：**`tar -xzvf archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
-- 压缩：**`tar -czvf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
+- 解压：**`tar -xvfz archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
+- 压缩：**`tar -cvfz aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
 - 参数说明
     - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
         - **`-c`**: 建立压缩档案
@@ -321,8 +362,18 @@ tags: [linux, shell]
 
 ## vi/vim编辑器
 
+- 设置：vi/vim对应启动脚本`vi ~/.vimrc`或`vi ~/.exrc`(`sudo vi xxx`，需要设置root家目录的此配置文件)
+
+    ```bash
+    set tabstop=4 # 设置tab键为4个空格
+    set nu # 显示行号(复制时容易复制到行号)
+    set nonu # 不显示行号
+    ```
+    - vim粘贴带注释的数据格式混乱，使用vi无此问题
 - `vi/vim my.txt` 打开编辑界面(总共两种模式，默认是命令模式；无此文件最终保存后会自动新建此文件)
-    - `insert` 进入编辑模式；`esc`退出编辑模式(进入命令模式)
+    - `insert` 进入编辑模式
+    - `esc` 退出编辑模式(进入命令模式)
+    - `shift+:` 命令模式下开启命令输入
 - 打开文件
     - `vi +5 <file>` 打开文件，并定位于第5行 
     - `vi + <file>` 打开文件，定位至最后一行
@@ -332,13 +383,14 @@ tags: [linux, shell]
     
 - 关闭文件
     - `:wq`/`:x` 保存并退出
-    - `:q!` 不保存退出
+    - `:q!` **不保存退出（可用于readonly文件的关闭）**，`:q` 普通退出
+    - `:x!` 强制保存退出
+    - `:w !sudo tee %` **对一个没有权限的文件强制修改保存的命令**
     - 编辑模式下输入大写`ZZ`保存退出
-    - `:w !sudo tee %` 对一个没有权限的文件强制修改保存的命令
-- 关标移动
-    - `h` 左
+- 光标移动
     - `j` 下
     - `k` 上
+    - `h` 左
     - `l` 右
     - `w` 移至下一个单词的词
 - 行内跳转
@@ -349,14 +401,14 @@ tags: [linux, shell]
     - `Ctrl+f` 向下翻一屏
     - `Ctrl+b` 向上翻一屏
 - 删除命令 `d`
-    - `dd` 删除光标所在行
+    - `dd` **删除光标所在行**
     - `#dd` 删除光标以下#行
     - `dw` 删除一个单词
     - `.,.+2d` 删除从之前关标所在行到关标所在行的下两行(`.` 表示当前行；`$` 最后一行；`+#` 向下的#行；`-#` 向上的#行)
     - `x` 删除光标所在处的单个字符
     - `#x` 删除光标所在处及向后的共#个字符
 - 新加一行 `o`
-- 复制命令 `y`(用法同`d`命令，和粘贴命令`p`组合使用)
+- 复制命令 `y`命令，用法同`d`命令。**和粘贴命令`p`组合使用**
 - 粘贴命令 `p`/`P`
     - `p`：粘贴到下、后。如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面；
     - `P`：粘贴到上、前。
@@ -368,8 +420,8 @@ tags: [linux, shell]
     - `<row1>,<row2>s@<pattern>@<string>@gi` 从第row1行到第row2行根据pattern匹配到后全局(g)忽略大小写(i)并替换成string
     - `$`标识末行，`%`全文(`<row1>,<row2>`用`%`代替)
 - 撤销
-    - `u` 撤销上一步操作
-    - `Ctrl+r` 恢复上一步被撤销的操作
+    - `u` **撤销上一步操作**
+    - `Ctrl+r` **恢复上一步被撤销的操作**
     - `Ctrl+v` 进入列编辑模式
 - 行号
     - `set number`/`set nu` 显示行号
@@ -378,10 +430,10 @@ tags: [linux, shell]
 - 批量注释
     - `Ctrl+v` 进入列编辑模式，在需要注释处移动光标选中需要注释的行
     - `Shift+i`
-    - 再插入注释符，比如按`//`或者`#`
+    - 再插入注释符，比如按`#`或者`//`
     - 按`Esc`即可全部注释
 - 批量删除注释：`ctrl+v`进入列编辑模式，横向选中列的个数(如"//"注释符号需要选中两列)，然后按`d`就会删除注释符号
-- 根shell交互：`:! COMMAND` 在命令模式下执行外部命令，如mkdir
+- **跟shell交互**：`:! COMMAND` 在命令模式下执行外部命令，如mkdir
 
 ## linux三剑客grep、sed、awk语法
 
@@ -478,28 +530,77 @@ tags: [linux, shell]
 
 ## 权限系统
 
-### 用户 [^6]
+### 用户管理 [^6]
 
 - `useradd test` 新建test用户(默认在/home目录新建test对应的家目录test)
     - `useradd -d /home/aezo -m aezo` 添加用户(和设置宿主目录)
     - `usermod -d /home/home_dir -U aezo` 修改用户宿主目录
-- `userdel -rf aezo` 删除用户(不会删除对应的家目录)
+    - `useradd -r -g mysql mysql` 添加用户mysql，并加入到mysql用户组
+        - `-r` 表示mysql用户是一个系统用户，不能登录
 - `passwd aezo` 设置密码
-- `id smalle` 查看smalle用户信息
-- `cat /etc/passwd` 查看用户
-    - 如`smalle:x:1000:1000:aezocn:/home/smalle:/bin/bash`
-- `who` 显示当前登录用户
-- `su test` 切换到test用户，但是当前目录和shell环境不会改变
-    - `su - test` 变更帐号为test，并改变工作目录至test的家目录，且shell环境也变成test用户的
-- `groupadd aezocn` 新建组
-- `groupdel aezocn` 删除组
+- 添加用户sudo权限
 
-### 文件
+    ```bash
+    # 添加写权限
+    chmod u+w /etc/sudoers
+    vi /etc/sudoers
+
+    # 文件内容修改
+    root	ALL=(ALL) 	ALL
+    # 新加的sudo用户
+    # smalle  ALL=(ALL)   ALL
+    # 设置执行sudo不需要输入密码(否则sudo输入密码，有效期只有5分钟)。
+    smalle  ALL=(ALL)   NOPASSWD: ALL
+    # 只要是wheel组不需要密码. 有可能把smalle加入到了wheel组开启su权限时，导致wheel组的权限会覆盖上面用户权限(注释wheel组需要密码的配置)
+    %wheel  ALL=(ALL)       NOPASSWD: ALL
+
+    # 恢复文件只读
+    chmod u-w /etc/sudoers
+    ```
+- `su test` 切换到test用户，但是当前目录和shell环境不会改变
+    - **`su - test`** 变更帐号为test，并改变工作目录至test的家目录，且shell环境也变成test用户的
+    - `su - smalle -c 'ls'` 切换到smalle用户环境，且执行ls命令(就算当前登录的是smalle，此时也需要输入密码)
+    - 设置su命令不需要密码
+
+        ```bash
+        # 将smalle加入到组wheel(一个用户可以属于多个组)
+        usermod -G wheel smalle
+
+        # 修改配置
+        vi /etc/pam.d/su
+        # 取消下面两行的注释
+        auth       required   pam_wheel.so group=wheel 
+        auth       sufficient pam_wheel.so trust use_uid
+
+        # 测试
+        su - smalle -c 'ls'
+        ```
+- `userdel -rf aezo` 删除用户(会删除对应的家目录)
+- 用户组
+    - `cat /etc/group` 查看组
+    - `groupadd aezocn` 新建组
+    - `groupdel aezocn` 删除组
+    - `groups` 查看当前登录用户所属组
+        - `groups test` 查看test用户所属组
+    - `usermod -g test smalle` 修改用户smalle的默认组为test
+    - `usermod -G wheel smalle` 将smalle加入到组wheel(一个用户可以属于多个组)
+- 查看用户
+    - `cat /etc/passwd` 查看用户
+        - 如`smalle(账号名称):x(密码):1000(账号UID):1000(账号GID):aezocn(用户说明):/home/smalle(家目录):/bin/bash(shell环境)`
+    - `id smalle` 查看smalle用户信息。
+        - 如`uid=1000(smalle) gid=1000(smalle) groups=1000(smalle),10(wheel)` gid表示用户默认组，groups表示用户属于smalle、wheel两个组
+    - `who` 显示当前登录用户
+    - `whoami` 查看当前登录用户名
+
+### 文件权限
 
 - 文件属性`chgrp`、`chown`、`chmod`、`umask` [^3]
 - `chgrp` 改变文件所属群组。`chgrp [-R] 组名 文件或目录`
     - `-R` 递归设置子目录下所有文件和目录
-- `chown` 改变文件/目录拥有者。如：`chown [-R] aezo /home/aezo`
+- `chown` 改变文件/目录拥有者
+    - `chown [-R] aezo /home/aezo`
+    - `chown -R mysql:mysql /home/data/mysql` 改变此目录及其子目录的所属组为mysql和所属用户为mysql
+    - 用户可以操作(查看/修改)自己的文件/文件夹，无需上层目录有权限。如`/home/data/mysql`目录属于mysql，但是`/home/data`是属于root用户，此时mysql用户也可以操作`/home/data/mysql`目录
 - `chmod` 改变文件的权限(文件权限说明参考上述`ls -al`)
     - 数字类型改变文件权限 **`chmod [-R] xyzw 文件或目录`** 如：`chmod -R 755 /home/ftproot`
         - `x`：可有可无，代表的是特殊权限,即 SUID/SGID/SBIT。`yzw`：就是刚刚提到的数字类型的权限属性，为 rwx 属性数值的相加
@@ -509,67 +610,84 @@ tags: [linux, shell]
         - 操作符取值为：`+-=`：+ 为增加，- 为除去，= 为设定
         - 如：`chmod u=rwx,go=rx test`、`chmod g+s,o+t test`
 - `umask` 创建文件时的默认权限
-    - `umask 022` **设置umask值**
-    - `umask` 查看umask分数值。如0022(一般umask分数值指后面三个数字)
+    - 永久修改umask值：修改`sudo vi /etc/profile`/`sudo vi ~/.bashrc`文件，加入一行`umask 022`。命令行运行`umask 022`只能临时改变
+    - `umask` 查看umask分数值。如0022(一般umask分数值指后面三个数字，相当于基于777做减法)
         - `umask -S` 查看umask。如u=rwx,g=rx,o=rx
     - 系统默认新建文件的权限为666(3个rw)，文件夹为777(3个rwx)。最终新建文件的默认权限为系统默认权限减去umask分数值。如umask为002，新建的文件为-rw-r--r--，文件夹为drw-r-xr-x
 - 常用命令
     - `find . -type d -exec chmod 755 {} \;` 修改当前目录的所有目录为775
     - `find . -type f -exec chmod 644 {} \;` 修改当前目录的所有文件为644
 
-## ssh [^2]
+## ssh
 
-### ssh介绍
+### ssh介绍 [^2]
 
-1. SSH是建立在传输层和应用层上面的一种安全的传输协议。SSH目前较为可靠，专为远程登录和其他网络提供的安全协议。在主机远程登录的过程中有两种认证方式：
+- SSH是建立在传输层和应用层上面的一种安全的传输协议。SSH目前较为可靠，专为远程登录和其他网络提供的安全协议。在主机远程登录的过程中有两种认证方式：
     - `基于口令认证`：只要你知道自己帐号和口令，就可以登录到远程主机。所有传输的数据都会被加密，但是不能保证你正在连接的服务器就是你想连接的服务器。可能会有别的服务器在冒充真正的服务器，也就是受到“中间人”这种方式的攻击。
     - `基于秘钥认证`：需要依靠秘钥，也就是你必须为自己创建一对秘钥，并把公用的秘钥放到你要访问的服务器上，客户端软件就会向服务器发出请求，请求用你的秘钥进行安全验证。服务器收到请求之后，现在该服务器你的主目录下寻找你的公用秘钥，然后吧它和你发送过来的公用秘钥进行比较。弱两个秘钥一致服务器就用公用秘钥加密“质询”并把它发送给客户端软件，客户端软件收到质询之后，就可以用你的私人秘钥进行解密再把它发送给服务器。
-2. 用基于秘钥认证，你必须要知道自己的秘钥口令。但是与第一种级别相比，这种不需要再网络上传输口令。第二种级别不仅加密所有传送的数据，而且“中间人”这种攻击方式也是不可能的（因为他没有你的私人密匙）。但是整个登录的过程可能需要10秒。
+- 用基于秘钥认证，你必须要知道自己的秘钥口令。但是与第一种级别相比，这种不需要再网络上传输口令。第二种级别不仅加密所有传送的数据，而且“中间人”这种攻击方式也是不可能的（因为他没有你的私人密匙）。但是整个登录的过程可能需要10秒。
 
 ### 查看SSH服务
 
-CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下命令来查看ssh服务是否启动
-
-1. 查看开放的端口 `netstat -tnl` ssh默认端口为22
-2. 查看服务是否启动 `systemctl status sshd.service` 查看ssh服务是否启动
+- CentOS 7.1安装完之后默认已经启动了ssh服务我们可以通过以下命令来查看ssh服务是否启动
+- 查看开放的端口 `netstat -lnt` ssh默认端口为22
+- 查看服务是否启动 `systemctl status sshd.service` 查看ssh服务是否启动
 
 ### SSH客户端连接服务器（口令认证）
 
-1. 直接连接到对方的主机，这样登录服务器的默认用户
+- 直接连接到对方的主机，这样登录服务器的默认用户
     - `ssh 192.168.1.1` 回车输入密码即可
     - `exit` 退出登录
-2. 使用账号登录对方主机aezocn用户
+- 使用账号登录对方主机aezocn用户
     - `ssh aezocn@192.168.1.1`
 
 ### SSH客户端连接服务器（秘钥认证）
 
-**客户端(可能也是一台服务器)需要连接服务器，则需要将某个公钥`id_rsa.pub`写入到服务器的`~/.ssh/authorized_keys`文件中**
-    - 此公钥可以是客户端、服务器端或其他地方生成的公钥数据
-    - 如果命令行连接服务器，则需要此公钥无需再客户端保存
+- **客户端(可能也是一台服务器)需要连接服务器，则需要将客户端上的公钥`id_rsa.pub`写入到服务器的`~/.ssh/authorized_keys`文件中**
+    - 公钥需要写入到服务端的`authorized_keys`文件(文件名有s)，客户端`known_hosts`会保存已认证的服务端信息。(生成的公钥/私钥无需保存在服务端，自行备份即可)
+    - "公钥/私钥对"可以是客户端、服务器端或其他地方生成的公钥数据
     - 客户端登录成功后会将服务器ip及登录的公钥加入到`known_hosts`文件中(没有此文件时会自动新建)
-
-1. 命令行生成
+- 秘钥对生成和使用
     - 生成公钥(.pub)和私钥(.ppk)
-        - **`ssh-keygen`** 运行命令后再按三次回车会看到`RSA`（生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`，会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts` 3 个文件）
-            - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa`
-    - 把生成的公钥发送到对方的主机上去（在本地为服务器生成公钥）
-        - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` （自动保存在对方主机的`/root/.ssh/authorized_keys`文件中去）
-        - 输入该服务器密码实现发送
-    - 登录该服务器：`ssh 192.168.1.1` 此时不需要输入密码（默认生成密钥的服务器已经有了私钥）
-    - **注：** 如果是为了让root用户登录则将公钥放入到/root/.ssh目录；如果密钥提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下。`.ssh`目录默认已经存在（可通过`ll -al`查看）
-	- 阿里云服务器root用户的authorized_keys和普通用户的不能一致 [^5]
-2. Putty/WinSCP 和 xshell/xftp
+        - 运行 **`ssh-keygen`** 命令后再按三次回车会看到`RSA`。生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`，会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts`(此机器作为客户端进行ssh连接时，认证过的服务器信息) 3 个文件。如：此服务器ip为`192.168.1.1`
+            - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
+    - 把生成的公钥发送到客户端
+        - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.2` 输入192.168.1.2密码实现发送，自动保存在客户端的`/root/.ssh/authorized_keys`文件中去
+    - 在`192.168.1.2`客户端上登录上述服务器
+        - `ssh 192.168.1.1` 此时不需要输入密码
+        - 如果需要在`192.168.1.1`(客户机)上通过ssh登录`192.168.1.1`(服务器)，需要按照上述命令把公钥保存到服务器的`authorized_keys`
+    - 其他说明
+        - 如果是为了让root用户登录则将公钥放入到/root/.ssh目录；如果密钥提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下。`.ssh`目录不存在可手动新建（可通过`ll -al`查看） [^5]
+        - **阿里云服务器使用**
+            - 阿里云服务器需要将密钥对保存到阿里云管理后台，并关联到对应的服务器上
+            - 关联阿里云服务器秘钥后，需要到阿里云管理后进行服务器重启(不能再终端重启)。重启后会自动禁用密码登录
+            - 可以使用阿里云进行秘钥生成(只能下载到秘钥，公钥可通过xshell连接后进行查看或连接后到服务器的authorized_keys文件中查看)，也可自行导入公钥
+- ssh配置 [^7]
+
+    ```bash
+    vi /etc/ssh/sshd_config
+
+    ## 修改文件内容
+    # 是否允许root用户登陆(no不允许)
+    PermitRootLogin no
+    # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录)
+    PasswordAuthentication no
+
+    # 使配置生效
+    systemctl restart sshd
+    ```
+- Putty/WinSCP 和 xshell/xftp
     - Putty是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。它包含Puttygen等工具，Puttygen可用于生成公钥和密钥（还可以将如AWS亚马逊云的密钥文件.pem转换为.ppk的通用密钥文件）
         - 在知道密钥文件时，可以通过Putty连接到服务器(命令行)，通过WinSCP连接到服务器的文件系统(FTP形式显示)
         - Puttygen使用：`类型选择RSA，大小2048` - `点击生成` - `鼠标在空白处滑动` - `保存公钥和密钥`
         - Putty使用：`Session的Host Name输入username@ip，端口22` - `Connection-SSH-Auth选择密钥文件` - `回到Session，在save session输入一个会话名称` - `点击保存会话` - `点击open登录服务器` - `下次可直接点击会话名称登录`
     - xshell/xftp是一个连接ssh的客户端
-        - 登录方法：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录`cat /home/aezo/.ssh/id_rsa.pub >> /home/aezo/.ssh/authorized_keys`)。必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录。
+        - 使用xshell生成的秘钥进行连接：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录`cat /home/aezo/.ssh/id_rsa.pub >> /home/aezo/.ssh/authorized_keys`)。(必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录)
+        - 使用服务器生成的秘钥文件连接：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览导入(**导入服务器生成的秘钥文件id_rsa，不是公钥文件**)
+        - xshell提示"用户秘钥导入失败"：centos上生成的秘钥类型在xshell中不支持，**可以使用xshell进行秘钥生成** [^9]
+            - 工具 - 用户秘钥管理 - 生成 - 保存公钥 - 选择生成的秘钥 - 导出秘钥
+            - 将公钥追加到到服务器的`authorized_keys`文件：`cat my_key.pub >> authorized_keys`
 	- `cat /var/log/secure`查看登录日志
-3. ssh配置 [^7]
-    - `cat /etc/ssh/sshd_config` 查看配置
-        - `PermitRootLogin no` 是否允许root用户登陆(no不允许)
-        - `PasswordAuthentication no` 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录)
 
 ## 定时任务 [^4]
 
@@ -696,6 +814,12 @@ curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{
 9. execute /bin/login
 10. shell started...
 
+## xshell使用
+
+- 工具->选项->键盘和鼠标-将选定的文本自动复制到剪贴板
+- 数字小键盘输入，如果不设置的话，会显示乱码：连接配置 - 终端 - VT模式 - 设置为普通
+- 复制屏幕内容到记事本：鼠标右键 - 选择"To Notepad"(记事本)
+- 快速切换打开的Tab：快捷键：Alt+1~9 或者Shift+Tab
 
 
 ---
@@ -710,3 +834,5 @@ curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{
 [^6]: http://www.cnblogs.com/zutbaz/p/4248845.html (用户配置)
 [^7]: https://www.xiaohui.com/dev/server/linux-centos-ssh-security.htm (服务器安全ssh配置)
 [^8]: https://my.oschina.net/sallency/blog/827737 (nohup 命令实现守护进程)
+[^9]: https://www.cnblogs.com/tintin1926/archive/2012/07/23/2605039.html (秘钥类型)
+[^10]: https://help.aliyun.com/document_detail/108501.html (云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘)

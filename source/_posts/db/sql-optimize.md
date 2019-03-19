@@ -6,9 +6,16 @@ categories: [db]
 tags: [oracle, dba, sql]
 ---
 
+
+## 总结
+
+- 比如统计用户的点击情况，根据用户年龄分两种情况，年龄小于10岁或大于50岁的一次点击算作2，其他年龄段的一次点击算作1(实际情况可能更复杂)。如果在where条件中使用or可能会导致查询很慢，此时可以考虑查询出所有用户、年龄类别、点击次数，再在外层套一层查询通过case when进行合计
+
+## Oracle
+
 > 如无特殊说明，此文测试环境均为 Oracle 11.2g
 
-## 索引 [^4]
+### 索引 [^4]
 
 - 索引在逻辑上和物理上都与相关的表和数据无关，当创建或者删除一个索引时，不会影响基本的表。Oracle在创建时会做相应操作，因此创建后就会看到效果
 - 索引是全局唯一的
@@ -31,7 +38,7 @@ tags: [oracle, dba, sql]
   - 删除索引 `drop index index_in_out_regist_id;`
   - 查看索引 `select * from all_indexes where table_name='ycross_storage';`
 
-## SQL优化
+### SQL优化
 
 - 两张大表写join查询比写exists快
 
@@ -60,11 +67,13 @@ select count(1)
         having count(cc.id) = 0) -- 此处还无法使用上面定义的 counts
 ```
 
-## 批量更新优化
+### 批量更新优化
 
 - 批量更新基于PL/SQL更新
-    - `update`语句比较耗资源，测试一条update语句修改2万条数据(总共18万条数据的表，查询出这2万条很快)，运行时间太长，基本不可行。
-    - 使用PL/SQL Developer里面的Test Window(可进行调试)写循环更新，2万条更新耗时0.7s。如果数据量再大一些可以分批commit
+    - `update`语句比较耗资源
+      - 测试一条update语句修改`2w`条数据(总共`18w`条数据的表，查询出这2w条很快)，运行时间太长，基本不可行
+      - 在`200w`的数据中修改`300`条数据，set基于临时表，where中基于临时表嵌套其他表和结合exists进行数据过滤，耗时`3s`
+    - 使用PL/SQL Developer里面的Test Window(可进行调试)写循环更新，`2w`条更新耗时`0.7s`。如果数据量再大一些可以分批commit
 - `forall`与`bulk collect`语句提高效率 [^2] [^3]
 
 ```sql
@@ -109,14 +118,14 @@ begin
 end;
 ```
 
-## Oracle执行计划(Explain Plan) [^1]
+### Oracle执行计划(Explain Plan) [^1]
 
 - 在PL/SQL的`Explain plan window`中执行并查看
 - sqlplus下执行
     - `explain plan for select * from emp;` 创建执行计划
     - `select * from table(dbms_xplan.display);` 查看执行计划
 
-### 案例一: 添加索引
+#### 案例一: 添加索引
 
 - 功能点：使用条件查询, 查询场存
 - 优化前基本查询不出来, 且经常导致数据库服务器CPU飙高。优化后查询时间1秒不到。优化方式：添加索引
@@ -159,7 +168,7 @@ select *
 
 - 分析：表`YCROSS_IN_OUT_REGIST`(进出场记录)和`YCROSS_STORAGE`(场存)是进行内联循环(`NESTED LOOPS`)连接的，而在查询`YCROSS_STORAGE`的时候消耗资源值(`Cost`)为 2758(查询堆位等基础表消耗资源基本可忽略)。而场存和进出场记录进行关联是通过`in_out_regist_id`字段关联。尝试给`YCROSS_STORAGE`表添加外键`create index index_in_out_regist_id on ycross_storage(in_out_regist_id);`后，查询效率得到明显改善
 
-### 案例二: 改写sql
+#### 案例二: 改写sql
 
 - 功能点: 道口获取有效的计划
 - sql语句

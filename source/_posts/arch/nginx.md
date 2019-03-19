@@ -70,18 +70,19 @@ server {
     }
 
     # 用于暴露静态文件，访问http://www.aezo.cn/static/img/logo.png，且无法访问http://www.aezo.cn/static/img
-    # 文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
+    # - 文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
     location ^~ /static/img/ {
         # root是基于此目录(加不加/都一样) + location路径
         root /home/aezocn/www;
         access_log off; # 关闭访问日志
     }
-    # 文件实际路径为/home/aezocn/www/logo.png
+    # - 文件实际路径为/home/aezocn/www/logo.png
     location ^~ /static/img2/ {
         # alias会把location后面配置的路径丢弃掉，把当前匹配到的目录指向到指定的目录。alias只能位于location块中，而root的权限不限于location
         # 由于是location是 ^~，所以下面无法使用正则。加www后面加/是表示目录，否则指文件
         alias /home/aezocn/www/;
     }
+    # - 基于正则
     location ~ ^/static/(.+?)_upload/(.+\..*)$ {
         # 由于是location是 ~，因此可以使用正则。且location和alias路径必须从头到尾都包含，此时$2指正则中的第二个括号，及文件名
         alias /home/aezocn/www/static/$1_upload/$2;
@@ -132,8 +133,8 @@ server {
 - 配置详细说明
 
 ```bash
-#定义Nginx运行的用户和用户组。如果出现403 forbidden (13: Permission denied)错误可将此处设置成启动用户，如root
-#user nginx nginx;
+# ***.定义Nginx运行的用户和用户组。如果出现403 forbidden (13: Permission denied)错误可将此处设置成启动用户，如root
+user root; # 默认是user nginx;
 
 #Nginx进程数，建议设置为等于CPU总核心数。
 worker_processes 8; #（*）
@@ -240,7 +241,7 @@ http {
     #limit_zone crawler $binary_remote_addr 10m; #开启限制IP连接数的时候需要使用
 
     upstream backend {
-        #upstream的负载均衡，weight是权重，可以根据机器配置定义权重。weigth参数表示权值，权值越高被分配到的几率越大。
+        #upstream的负载均衡，weight是权重，可以根据机器配置定义权重。weigth参数表示权值，权值越高被分配到的几率越大，可以省略。
         server 192.168.80.121:80 weight=3;
         server 192.168.80.122:80 weight=2;
         server 192.168.80.123:80 weight=3;
@@ -349,13 +350,16 @@ http {
                 rewrite ^/ http://$host/logo.png;
             }
         }
-
+        
+        ## php配置
         # php文件转给fastcgi处理。linux安装了php后需要额外安装如`php-fpm`来解析(windows安装了php，里面自带php-cgi.exe)
-        # 如果访问 http://127.0.0.1:8080/myphp/index.php 此时会到 /project/phphome/myphp 目录寻找/访问 index.php 文件
+        # 如果访问 http://127.0.0.1:8080/myphp/test/index.php?name=abc 此时会到 /project/phphome/myphp 目录寻找 test/index.php 文件（location的正则仅匹配路径，不考虑url中的参数）
+        set $project_root "/project/phphome/myphp"; # 自定义变量
         location ~ \.php$ {
+            # include        fastcgi.conf;
             # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
-            try_files      $uri = 404;
-            root           /project/phphome/myphp;
+            # try_files      $uri = /404.html;
+            root           $project_root;
             fastcgi_pass   127.0.0.1:9000;
             fastcgi_index  index.php;
             # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
@@ -363,9 +367,35 @@ http {
             include        fastcgi_params;
         }
         # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
-        location ~ /myphp/ {
-            root /project/phphome/myphp;
+        location ~ ^/php_public/ {
+            root $project_root;
         }
+
+        # lnmp thinkphp nginx不支持pathinfo解决方法
+        # http://127.0.0.1:8080/myphp1/index.php、http://127.0.0.1:8080/myphp2/index.php 都可进入相应目录
+        location ~ \.php($|/) {
+			# 配置PHP支持PATH_INFO进行URL重写
+			set $script $uri;
+			set $path_info "";
+			if ($uri ~ "^(.+?\.php)(/.+)$") {
+				set $script $1;
+				set $path_info $2;
+			}
+			try_files $uri =404;
+			root           /project/phphome;
+			fastcgi_pass 127.0.0.1:9000;
+			fastcgi_index index.php;
+			include fastcgi.conf;
+			fastcgi_param script_FILENAME $document_root$script;
+			fastcgi_param script_NAME $script;
+			fastcgi_param PATH_INFO $path_info;
+		}
+		location / {
+			# ThinkPHP Rewrite
+			if (!-e $request_filename){
+				rewrite ^/(.*)$ /index.php/$1 last;
+			}
+		}
     }
 }
 ```
@@ -392,6 +422,7 @@ http {
         - `~*` 不区分大小写的正则匹配
         - `!~` 区分大小写不匹配的正则
         - `!~*` 不区分大小写不匹配的正则
+        - location的正则仅匹配路径，不考虑url中的参数(相当于把?后的参数去掉后进行匹配)
     - `/` 通用匹配，任何请求都会匹配到
 - **多个location配置的情况下匹配顺序如下**，当有匹配成功时候，停止匹配，按当前匹配规则处理请求
     - 首先匹配路径相等 `=`

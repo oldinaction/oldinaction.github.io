@@ -260,6 +260,8 @@ APP_JAR="app-0.0.1-SNAPSHOT.jar"
 SPRING_PROFILES="--spring.profiles.active=test"
 # 内存溢出后dump文件存放位置，需要先创建此文件夹
 JVM_LOG_PATH="/home/"
+#执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号
+RUNNING_USER=root
 
 #JDK所在路径(需要配置好$JAVA_HOME环境变量)，$JAVA_HOME=也可不使用系统jdk
 #JAVA_HOME=
@@ -269,20 +271,17 @@ else
   JAVA=java
 fi
 
-#执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号
-RUNNING_USER=root
-
 #Java程序所在的目录（将此文件和jar放在统一目录）
 APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"
 
 #java虚拟机启动参数
-#MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
+#MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m"
 OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$JVM_LOG_PATH"
 #IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'` # automatic IP address for linux（内网地址）
 #RMIIF="-Djava.rmi.server.hostname=$IPADDR"
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 #DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
-VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
+VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG -Dfile.encoding=UTF-8"
 
 JAR_ARGS="$SPRING_PROFILES"
 

@@ -43,7 +43,7 @@ tags: [springboot, vue]
     - `AJAX 请求不能发送`
 - 解决方案
     - `JSONP`(只能发送GET请求)
-    - `CORS`
+    - `CORS`(服务器端进行设置即可)
     - `WebSocket`
     - `postMessage`
     - 架设服务器代理（浏览器请求同源服务器，再由后者请求外部服务）
@@ -187,7 +187,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     });
     ```
 - post请求无法接收
-    - 使用`qs`插件(推荐)
+    - 使用`qs`插件(推荐，会自动设置请求头为`application/x-www-form-urlencoded`)
     - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
 
         ```js

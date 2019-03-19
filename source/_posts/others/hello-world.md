@@ -67,6 +67,7 @@ categories和tage都可以有多个
 - **更新步骤如下** (或者直接执行项目目录下的`blog-deploy.sh`文件)
 
   ```shell
+  $ hexo clean # 有时候修改了静态文件需要先clean一下
   $ git add .
   $ git commit -am "update blog"
   $ git push origin master:source

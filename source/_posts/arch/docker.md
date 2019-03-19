@@ -76,8 +76,8 @@ Commands:
     rmi       Remove one or more images                     # 移除一个或多个镜像[无容器使用该镜像才可删除，否则需删除相关容器才可继续或 -f 强制删除]
     run       Run a command in a new container              # 创建一个新的容器(并启动)并运行一个命令
         -i  # 开启标准输出
-        -t  # 开启一个伪终端(进入容器命令行，组合建ctrl+p、ctrl+q退出)
         -d  # 运行容器并启动守护进程
+        -t  # 开启一个伪终端(进入容器命令行，组合建ctrl+p、ctrl+q退出)
         -p  # 绑定本地端口到容器端口，可使用多个 -p 绑定多组端口. eg: -p 8080:80 (本地8080:容器80)
         -v  # 挂在本地目录或文件到容器中去做数据卷，可以使用多个 -v. eg: -v /home/smalle/logs:/temp/app
         -e  # 设置环境变量，eg: -e MYSQL_HOST=localhost -e MYSQL_DATABASE=aezocn
@@ -106,8 +106,8 @@ Run 'docker COMMAND --help' for more information on a command.
     - `docker search mysql` 搜索远程仓库镜像
         - 查看某个Name的所有TAG：如centos访问`https://hub.docker.com/r/library/centos/tags/`查看
 - 运行镜像
-    - **`docker run -it busybox`** 运行busybox镜像(本地无此镜像时，会自动pull)。**BusyBox 是一个集成了三百多个最常用Linux命令和工具的软件**
-    - `docker run -dt -p 8080:80 nginx` 后台运行nginx镜像(包含创建一个容器)
+    - **`docker run -it busybox`** 运行busybox镜像，并进入容器(本地无此镜像时，会自动pull)。**BusyBox 是一个集成了三百多个最常用Linux命令和工具的软件**
+    - `docker run -dt -p 8080:80 nginx` **后台运行nginx镜像**(包含创建一个容器)
 - 提交镜像
     - `docker commit -m 'commit message' -a 'author info' c28687f7c6c8 my_repositor_name` 基于某容器ID创建镜像(对该容器进行了改动后的提交)
     - `docker tag 7042885a156a 192.168.17.196:5000/nginx` 给某镜像打一个标签，此时不会生成一个新镜像(镜像ID还是原来的). **192.168.17.196:5000/nginx 很重要，之后可以推送到私有仓库192.168.17.196:5000(ip地址一定要一样)，推送上去的镜像为nginx:latest**
@@ -121,12 +121,14 @@ Run 'docker COMMAND --help' for more information on a command.
 
 - `docker run -it image_id_c28687f7c6c8 /bin/echo 'hello world'` 创建并启动容器(如果没有则会从远程仓库下载)
 - `docker create -it c28687f7c6c8` 基于镜像创建容器，但不启动
-- `docker start a8f590736b62` 启动容器
+- `docker start a8f590736b62` **启动容器** (不会进入容器，启动后回到shell)
 - `docker stop a8f590736b62` 停止容器
-- `docker update --restart=always a8f590736b62` 更新运行中的容器配置(包括还可以更新CPU/MEM分配等)
+- `docker update --restart=always a8f590736b62` 更新运行中的容器配置(包括还可以更新CPU/MEM分配等，此处更新其重启类型restart为always)
 - `docker ps` 列出运行的容器
     - `docker ps -a` 列举所有容器
-- `docker exec -it (CONTAINER_ID | CONTAINER_NAME) bash` 进入容器(exec是在运行的容器上运行一条命令)
+- `docker exec -it (CONTAINER_ID | CONTAINER_NAME) /bin/bash` 运行容器中的命令，此时会进入容器shell
+    - `docker exec -dt (CONTAINER_ID | CONTAINER_NAME) ls` **运行容器中的命令，但是不会进入容器**
+    - `docker exec -it (CONTAINER_ID | CONTAINER_NAME) /bin/bash -c 'ls'` 也不会进入容器
 - `docker attach (CONTAINER_ID | CONTAINER_NAME)` 进入某运行的容器 **(组合建ctrl+p、ctrl+q退出)**
 - `docker inspect a8f590736b62` 查看容器详细
 - `docker rm a8f590736b62` 删除容器ID为a8f590736b62的容器
@@ -307,7 +309,12 @@ Run 'docker COMMAND --help' for more information on a command.
     ## 安装启动
     # 创建容器。默认数据端口30000-30009，只能满足5个用户同时FTP登陆。计算方式为"(最大端口号-最小端口号) / 2"。里修改为可以满足100个用户同时连接登陆
     # /home/ftpusers为默认的用户数据目录；/etc/pure-ftpd为配置数据，包括用户登录信息(/etc/pure-ftpd/pureftpd.passwd)；增加环境变量`-e "ADDED_FLAGS ..."`表示生成日志(未测试成功)
-    docker run -dt --name ftpd_server -p 21:21 -p 30000-30209:30000-30209 -v /home/data/docker/pure-ftpd/ftpusers:/home/ftpusers -v /home/data/docker/pure-ftpd/etc:/etc/pure-ftpd -e "ADDED_FLAGS=-d -d" stilliard/pure-ftpd:hardened bash
+    docker run -dt --name ftpd_server \
+        -p 21:21 -p 30000-30209:30000-30209 \
+        -v /home/data/docker/pure-ftpd/ftpusers:/home/ftpusers \
+        -v /home/data/docker/pure-ftpd/etc:/etc/pure-ftpd \
+        -e "ADDED_FLAGS=-d -d" \
+        stilliard/pure-ftpd:hardened bash
     # 进入容器(exec在运行的容器中执行一条命令)
     docker exec -it ftpd_server bash
     # 创建用户输入密码并保存（会自动创建用户目录test，用户默认可在此目录增删改文件或文件夹）。ftpd运行时，可以进入容器添加用户，无需再重新启动
@@ -319,16 +326,18 @@ Run 'docker COMMAND --help' for more information on a command.
     ## 管理相关
     # 查看用户
     cat /etc/pure-ftpd/pureftpd.passwd
-    # 更改test户名密码
+    # 更改test户名密码(pure-pw需要在容器中运行)
     pure-pw passwd test
-    pure-pw mkdb
+    pure-pw mkdb # 保存
     # 删除用户
     pure-pw userdel test -f /etc/pure-ftpd/pureftpd.passwd
     pure-pw mkdb
-    # 添加用户sh脚本
+
+    ## 添加用户sh脚本
+    #!/bin/bash
     USER=$1
-    docker exec -it ftpd_server pure-pw useradd $USER -u ftpuser -d /home/ftpusers/$USER
-    docker exec -it ftpd_server pure-pw mkdb
+    docker exec -dt ftpd_server pure-pw useradd $USER -u ftpuser -d /home/ftpusers/$USER
+    docker exec -dt ftpd_server pure-pw mkdb
     ```
     - 需要使用主动模式连接
     - 常见问题
