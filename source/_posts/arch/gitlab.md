@@ -62,6 +62,20 @@ gitlab-rake gitlab:check SANITIZE=true
 
 - 访问项目首页(如：http://114.55.888.888/)，结果页面不显示，地址栏的地址变成 http://gitlab/users/sign_in
     - 尝试方法：首先确保`/etc/gitlab/gitlab.rb`中的设置了`external_url`（如：`external_url "http://www.example.com"`），如果设置了，运行命令重新配置（`sudo gitlab-ctl reconfigure`，无需重启）。
+- 页面显示`Forbidden`问题 [^2]
+    - 主要是gitlab做了rack_attack防止攻击，针对某个IP并发过大，就会限制那个IP的访问，解决办法就是把宿主机IP加入到白名单当中。
+    - 去掉配置注释 `vi /etc/gitlab/gitlab.rb`
+
+        ```
+        gitlab_rails['rack_attack_git_basic_auth'] = {
+            'enabled' => true,
+            'ip_whitelist' => ["127.0.0.1","10.10.10.10"],
+            'maxretry' => 300,
+            'findtime' => 5,
+            'bantime' => 60
+        }
+        ```
+    - 重新加载配置并重启服务 `gitlab-ctl reconfigure`
 
 ## 管理员
 
@@ -73,4 +87,6 @@ gitlab-rake gitlab:check SANITIZE=true
 
 参考文章
 
-[^1]: [Gitlab备份和恢复操作记录](https://www.cnblogs.com/kevingrace/p/7821529.html)
+[^1]: https://www.cnblogs.com/kevingrace/p/7821529.html (Gitlab备份和恢复操作记录)
+[^2]: https://blog.csdn.net/jzd1997/article/details/80253905
+

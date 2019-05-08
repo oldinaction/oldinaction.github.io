@@ -200,19 +200,16 @@ tags: [maven]
 	</dependency>
 	```
 
-## 安装和打包
+## 打包和安装
 
-- 安装：
-	- 基于源码安装：`mvn install` (需要进入到源码的pom.xml目录)
-	- 基于jar包安装：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
-		- 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
-    - 说明
-		- 执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)
-		- 如果有pom.xml建议安装到本地再进行引用，(下面两种方式)否则编译的时候不会报错，但是运行时这些本地jar依赖就找不到(如：`nested exception is java.lang.NoClassDefFoundError`)
-		- 有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(`mvn install -DskipTests`)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此
-- 打包命令：`mvn package` (`mvn clean package` 清理并打包)
-- 跳过测试进行打包：`mvn install -DskipTests` / `mvn package -DskipTests`.
-    - 方式二:
+- 生命周期：clean、resources、compile、testResources、testCompile、test、jar、install、deploy
+	- package 命令完成了项目编译、单元测试、打包功能(执行命令 `mvn package`)
+	- install 命令完成了package的功能，同时把打好的可执行jar包（war包或其它形式的包）布署到本地maven仓库
+	- deploy 完成了install的功能，同时部署到远程maven私服仓库
+	- 常用：`mvn clean package` 清理并打包
+- 跳过测试进行编译
+	- 方式一 `mvn package -DskipTests`
+    - 方式二
 
 		```xml
 		<build>
@@ -228,6 +225,14 @@ tags: [maven]
 			</plugins>
 		</build>
 		```
+- 安装
+	- 基于源码安装：`mvn install` (需要进入到源码的pom.xml目录)
+	- 基于jar包安装：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
+		- 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
+    - 说明
+		- 执行安装命令后，会自动将项目打包后放到maven本地的home目录(.m2)。之后其他项目可进行引用(按照常规方式引用)
+		- 如果有pom.xml建议安装到本地再进行引用，(下面两种方式)否则编译的时候不会报错，但是运行时这些本地jar依赖就找不到(如：`nested exception is java.lang.NoClassDefFoundError`)
+		- 有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(`mvn install -DskipTests`)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此
 - 在idea中使用`Terminal`进行项目打包(`mvn package`)需要注意环境变量的java版本. 版本过低容易报错如：`maven Unsupported major.minor version 52.0`. 修改版本后可进行重启idea. (修改idea配置中的maven编译版本不能影响命令行)
 - mvn编译是根据pom.xml配置来的. 而idea的编译/语法校验等, 是根据Libraries中的jar包来的. **idea默认会根据pom.xml中的依赖找到对应的jar(.m2路径下)并应用到Libraries中(只会加本地maven库中的).** 如果手动加入了一些jar包, 有可能出现本地可正常编译, maven却编译打包失败, 具体参考上述"maven项目依赖本地jar包".
 
@@ -285,14 +290,38 @@ tags: [maven]
 
 ### 标签介绍
 
-- `dependency#scope`：取值有compile、runtime、test、provided、system和import。
-    - `compile`：这是依赖项的默认作用范围，即当没有指定依赖项的scope时默认使用compile。compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时。
-    - `runtime`：表示该依赖项只有在运行时才是需要的，在编译的时候不需要。这种类型的依赖项将在运行和test的类路径下可以访问。
-    - `test`：表示该依赖项只对测试时有用，包括测试代码的编译和运行，对于正常的项目运行是没有影响的。
-    - `provided`：表示该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供。(如smtools工具类中引入某jjwt的jar包并设置provided，且只有JwtU.java中使用了此jar。当其他项目使用此smtools，如果开发过程中并未使用JwtU，即类加载器没有加载JwtU则此项目pom中不需要引入jjwt的jar；否则需要引入)
-    - `system`：当scope为system时，表示该依赖项是我们自己提供的，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径
-	- `import`：只有在dependencyManagement中，且dependency的type=pom时使用。maven的`<parent>`只支持单继承，如果还需要继承其他模块的配置，可以如此使用(eg: springcloud应用)
-- `dependency#<optional>true</optional>` 父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入
+- `dependency#scope` 决定依赖的包是否加入本工程的classpath下
+
+	依赖范围(Scope)|	编译classpath|	测试classpath|	运行时classpath|	传递性|	说明
+	--|---|---|---|---|---
+	compile	|	Y|	Y|	Y|	Y|	默认，compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时|
+	runtime	|	-|	Y|	Y|	Y|	运行和test的类路径下可以访问|
+	test	|	-|	Y|	-|	-|	只对测试时有用，包括测试代码的编译和运行|
+	provided|	Y|	Y|	-|	-|	该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供|
+	system	|	Y|	Y|	-|	Y|	该依赖项由本地文件系统提供，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径|
+	import	|	|	|	|	|	maven的`<parent>`只支持单继承，如果还需要继承其他模块的配置，可以如此使用(eg: springboot项目引入springcloud)|
+
+	- import举例
+
+		```xml
+		<!-- 只有在dependencyManagement中，且dependency的type=pom时使用import -->
+		<dependencyManagement>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.cloud</groupId>
+					<artifactId>spring-cloud-dependencies</artifactId>
+					<version>Finchley.SR2</version>
+					<type>pom</type>
+					<scope>import</scope>
+				</dependency>
+			</dependencies>
+		</dependencyManagement>
+		```
+- `dependency#optional` 仅限制依赖包的传递性，不影响依赖包的classpath
+	- 如`<optional>true</optional>`表示父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入。如smtools中引入了一些jar进行扩展，可正常编译，其他项目使用此jar则需要自行引入
+- optional与scope区别在于：仅限制依赖包的传递性，不影响依赖包的classpath [^3]
+	- `A->B, B->C(scope:compile, optional:true)`，B的编译/运行/测试classpath都有C，A中的编译/运行/测试classpath都不存在C(尽管C的scope声明为compile)，A调用B的那些依赖C的方法就会出错。此时只能手动加入C的依赖
+	- `A->B, B->C(scope:provided)`，B的编译/测试classpath有C，A中的编译/运行/测试classpath都不存在C，但是A使用B(需要依赖C)的接口时就会出现找不到C的错误。此时要么是手动加入C的依赖，即A->C；否则需要容器提供C的依赖包到运行时classpath
 
 ### build节点
 
@@ -447,12 +476,23 @@ tags: [maven]
 </build>
 ```
 
+## maven插件
+
+### Maven Enforcer Plugin
+
+- `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
+- [内置规则(亦可基于接口自定义)](http://maven.apache.org/enforcer/enforcer-rules/)
+	- `requireMavenVersion` 校验maven版本
+	- `requireJavaVersion` 校验java版本
+	- `bannedDependencies` 校验依赖关系，检查是否存在或不存在某依赖
+
 ---
 
 参考文章
 
 [^1]: http://blog.csdn.net/hengyunabc/article/details/47308913 (利用github搭建个人maven仓库)
 [^2]: https://yulaiz.com/spring-boot-maven-profiles/ (Spring-Boot application.yml 文件拆分，实现 maven 多环境动态启用 Profiles)
+[^3]: https://blog.csdn.net/xhyzjiji/article/details/72731276
 
 
 

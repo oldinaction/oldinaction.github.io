@@ -167,6 +167,20 @@ tag: [git, gitflow]
 
 ### 其他
 
+#### git凭证存储
+
+- [官网凭证存储说明](https://git-scm.com/book/zh/v2/ch00/r_credential_caching)
+- `git config --list`中`credential.helper`即为凭证存储模式
+- `git  config --global credential.helper store` 设置凭证存储为store模式
+- 凭证存储模式
+	- manage 使用windows凭证管理(控制面板 - 用户管理 - 凭证管理，Git-2.15.1.2-64-bit默认)
+	- cache 凭证保存在内存中，默认15分钟有效，过期运行git命令则需要重新登录
+	- store 以明文形式保存在home目录磁盘。/home/xxx/.gitconfig(清除或修改)
+	- osxkeychain mac系统专属，加密后存放在磁盘
+- 常见问题`remote: Repository not found`，重新安装`credential-manager`
+	- `git credential-manager uninstall`
+	- `git credential-manager install`
+
 #### 查看日志和帮助
 
 - `git help` 查看帮助。`[]`为可选，`<>`为必输
@@ -187,10 +201,10 @@ tag: [git, gitflow]
 
 #### 忽略控制文件
 
-1. `.gitignore` 文件创建和设置
+- `.gitignore` 文件创建和设置
 	- git根目录运行命令：`touch .gitignore`
 	- 使用 vi 编辑器进行文件配置
-2. 配置语法 [^6]
+- 配置语法 [^6]
 	
 	```bash
 	#               表示此为注释,将被Git忽略
@@ -220,8 +234,9 @@ tag: [git, gitflow]
 	/mtk/*
 	!/mtk/one.txt
 
-	#说明：忽略目录 fd1 下的全部内容；注意，不管是根目录下的 /fd1/ 目录，还是某个子目录 /child/fd1/ 目录，都会被忽略；
-	fd1/*
+	#说明：忽略目录 fd1 下的全部内容，但不包含one.txt；注意，不管是根目录下的 /fd1/ 目录，还是某个子目录 /child/fd1/ 目录，都会被忽略；
+	*/fd1/*
+	!*/fd1/one.txt
 	
 	#说明：忽略根目录下的 /fd1/ 目录的全部内容；
 	/fd1/*
@@ -234,8 +249,9 @@ tag: [git, gitflow]
 	!/fw/bin/
 	!/fw/sf/
 	```
-3. `echo '*~' > .gitignore`将文本`*~`保存到文件 .gitignore 中，再将此文件 add 并 commit 到 git 中即可，表示进行 git 相关操作时忽略以`~`结尾的文件
-4. 已经提交的文件(git已经管理了此文件，仓库已经存在此文件)无法忽略解决办法：先删除对应文件，提交版本，再将此文件加到.gitignore中，再次提交则不会出现
+- 已经提交的文件(git已经管理了此文件，仓库已经存在此文件)无法忽略解决办法
+	- 先删除对应文件，提交版本，再将此文件加到.gitignore中，再次提交则不会出现
+	- 如果是未提交的文件，此时不管.gitignore文件是否提交，.gitignore文件都是生效的
 
 #### 重命名文件
 

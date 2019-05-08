@@ -22,8 +22,12 @@ tags: LB, HA
 
 ## nginx使用
 
+- 查看nginx版本
+    - `nginx -v` 简单查看
+    - `nginx -V` 查看安装时的配置信息
+    - `2>&1 nginx -V | tr ' '  '\n'` 查看安装时的配置信息并美化
 - 安装**(详细参考下文`基于编译安装tengine`)**
-    - `yum install nginx` 基于源安装(傻瓜式安装). 有的服务器可能需要先安装`yum install epel-release`
+    - `yum install -y nginx` 基于源安装(傻瓜式安装). **有的服务器可能需要先安装`yum install -y epel-release`**
         - 默认可执行文件路径`/usr/sbin/nginx`(已加入到系统服务); 配置文件路径`/etc/nginx/nginx.conf`
         - 安装时提示"No package nginx available."。问题原因：nginx位于第三方的yum源里面，而不在centos官方yum源里面，解决办法为安装epel(Extra Packages for Enterprise Linux)
             - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
@@ -229,16 +233,18 @@ http {
     #fastcgi_busy_buffers_size 128k;
     #fastcgi_temp_file_write_size 128k;
 
-    #gzip模块设置
+    ##gzip模块设置(http://nginx.org/en/docs/http/ngx_http_gzip_module.html)。启用后响应头中会包含`Content-Encoding: gzip`
     #gzip on; #开启gzip压缩输出
     #gzip_min_length 1k; #最小压缩文件大小
     #gzip_buffers 4 16k; #压缩缓冲区
-    #gzip_http_version 1.0; #压缩版本（默认1.1，前端如果是squid2.5请使用1.0）
-    #gzip_comp_level 2; #压缩等级
-    # 压缩类型，默认就已经包含text/html，所以下面就不用再写了，写上去也不会有问题，但是会有一个warn。
-    #gzip_types text/plain application/x-javascript text/css application/xml;
+    ##gzip_http_version 1.0; #压缩版本（默认1.1，前端如果是squid2.5请使用1.0）
+    #gzip_comp_level 4; #压缩等级[1-9] 越高CPU占用越大
+    #gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml; # 压缩类型，默认就已经包含text/html
     #gzip_vary on;
-    #limit_zone crawler $binary_remote_addr 10m; #开启限制IP连接数的时候需要使用
+    #gzip_disable "MSIE [1-6]\."; # IE6以下不启用
+
+    #开启限制IP连接数的时候需要使用
+    #limit_zone crawler $binary_remote_addr 10m;
 
     upstream backend {
         #upstream的负载均衡，weight是权重，可以根据机器配置定义权重。weigth参数表示权值，权值越高被分配到的几率越大，可以省略。

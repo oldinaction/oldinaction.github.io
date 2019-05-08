@@ -20,13 +20,19 @@ tags: [linux, shell]
 - 查看操作系统版本 `cat /proc/version`
     - 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
 - 查看CentOS版本 **`cat /etc/redhat-release`/`cat /etc/system-release`** 如：CentOS Linux release 7.2.1511 (Core)
-- `hostname` 查看hostname
-    - `hostnamectl set-hostname aezocn` 修改主机名并重启
-- `grep MemTotal /proc/meminfo` 查看内存
+- `cat /proc/meminfo && free` 查看内存使用情况
+    - `/proc/meminfo`为内存详细信息
+        - `MemTotal` 内存总数
+        - `MemFree` 系统尚未使用的内存
+        - `MemAvailable` 应用程序可用内存数。系统中有些内存虽然已被使用但是可以回收的，比如cache/buffer、slab都有一部分可以回收，所以MemFree不能代表全部可用的内存，这部分可回收的内存加上MemFree才是系统可用的内存，即：**MemAvailable ≈ MemFree + Buffers + Cached**。MemFree是说的系统层面，MemAvailable是说的应用程序层面
+    - `free` 为内存概要信息
+- `cat /proc/cpuinfo` 查看CPU使用情况
 - 磁盘使用查看
     - `df -h` 查看磁盘使用情况和挂载点信息
         - `df /root` **查看/root目录所在挂载点**（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2
+- `hostname` 查看hostname
+    - `hostnamectl set-hostname aezocn` 修改主机名并重启
 
 ### 查看网络信息
 
@@ -54,7 +60,7 @@ tags: [linux, shell]
     - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
     - **`yum install net-tools`** 安装net-tools即可使用netstat、ifconfig等命令
 
-## 查看进程信息
+### 查看进程信息
 
 - **`ps -ef | grep java`**(其中java可换成run.py等)
     - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
@@ -213,7 +219,7 @@ tags: [linux, shell]
 
 ### 文件
 
-- `cat <fileName>` 查看文件
+- `cat <fileName>` 输出文件内容
     - `more` 分页显示文件内容(按空格分页)
         - 向后翻一屏：`SPACE`；向前翻一屏：`b`；向后翻一行：`ENTER`；向前翻一行：`k`
     - `less` 查看文件前几行(一行行的显示)
@@ -221,6 +227,8 @@ tags: [linux, shell]
     - `head -3` 显示文件头部的3行
     - `tail -3` 显示文件末尾的3行
         - `tail -f /var/log/messages` -f 表示它将会以一定的时间实时追踪该档的所有更新（查看服务启动日志）
+    - `cat -n <fileName>` **输出文件内容，并显示行号**
+    - `cat > fileName` 创建文件并书写内容，此时会进入书写模式，Ctrl+C保存书写内容
 - `pwd` 查看当前目录完整路径
 - `sudo find / -name nginx.conf` 查询文件位置(查看`nginx.conf`文件所在位置)
     - `find ./ -mtime +30 -name "*.gz" | xargs ls -lh` 查询30天之前的gz压缩包文件
@@ -305,6 +313,7 @@ tags: [linux, shell]
         - **`-f`**：使用档案名字，**切记这个参数是最后一个参数，后面只能接档案名**
     - 解/压缩类型(可选)
         - `-z`：有gzip属性的(archive.tar.gz)，**文件必须是以.gz/.gzip结尾**
+        - `-J`：有xz属性的(archive.tar.xz)
         - `-j`：有bz2属性的(archive.tar.bz2)
         - `-Z`：有compress属性的(archive.tar.Z)
     - 其他可选
@@ -312,6 +321,10 @@ tags: [linux, shell]
         - `-O`：将文件解开到标准输出    
         - `-p` 使用原文件的原来属性（属性不会依据使用者而变）
         - `-P` 可以使用绝对路径来压缩
+
+#### gz
+
+- 解压：`zcat test.sql.gz > test.sql`
 
 #### unzip
 
@@ -384,7 +397,7 @@ tags: [linux, shell]
 - 关闭文件
     - `:wq`/`:x` 保存并退出
     - `:q!` **不保存退出（可用于readonly文件的关闭）**，`:q` 普通退出
-    - `:x!` 强制保存退出
+    - `:x!` **强制保存退出**
     - `:w !sudo tee %` **对一个没有权限的文件强制修改保存的命令**
     - 编辑模式下输入大写`ZZ`保存退出
 - 光标移动
@@ -439,9 +452,34 @@ tags: [linux, shell]
 
 ### grep过滤器
 
-- 在多个文件中查找数据(查询文件内容)
-    - `grep "search content" filename1 filename2.... filenamen`
-    - `grep 'search content' *.sql`
+- 语法
+
+    ```bash
+    # grep [-acinv] [--color=auto] '搜寻字符串' filename
+    # 选项与参数：
+    # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
+    # -i 忽略大小写的不同，所以大小写视为相同
+    # -E 以egrep模式匹配
+    # -n 顺便输出行号
+    # -c 计算找到 '搜寻字符串' 的次数
+    # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
+    # -a 将 binary 文件以 text 文件的方式搜寻数据
+    ```
+- [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
+- 常见用法
+
+    ```bash
+    grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
+    grep 'search content' *.sql # 查找已`.sql`结尾的文件
+
+    grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
+    grep -A 5 'parttern' filename # 打印匹配行的后5行
+    grep -B 5 'parttern' filename # 打印匹配行的前5行
+
+    grep -E 'A|B' filename # 打印匹配 A 或 B 的数据
+    grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
+    grep -v 'A' filename # 打印不包含 A 的数据
+    ```
 
 ### sed行编辑器
 
@@ -449,13 +487,13 @@ tags: [linux, shell]
 - 语法 `sed [options] '内部命令表达式' file ...`
 - 参数
     - `-n` 静默模式，不再默认显示模式空间中的内容
-	- `-i` 直接修改原文件
+	- `-i` **直接修改原文件**(默认只输出结果)
 	- `-e SCRIPT -e SCRIPT` 可以同时执行多个脚本
 	- `-f` /PATH/TO/SED_SCRIPT
 	    - sed -f /path/to/scripts  file
 	- `-r` 表示使用扩展正则表达式
-	
 - 内部命令
+    - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
 	- `d` 删除符合条件的行
 	- `p` 显示符合条件的行
 	- `a \string`: 在指定的行后面追加新行，内容为string
@@ -468,7 +506,9 @@ tags: [linux, shell]
 - 示例
     - 删除/etc/grub.conf文件中行首的空白符：`sed -r 's@^[[:space:]]+@@g' /etc/grub.conf`
     - 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5：`sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab`
-    - 删除/etc/inittab文件中的空白行：`sed '/^$/d' /etc/inittab`
+    - 删除/etc/inittab文件中的空白行：`sed '/^$/d' /etc/inittab` (此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
+        - `sed -i -e '/^$/d' /home/smalle/test.txt` 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
+    - [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
 
 ### awk文本分析工具
 
@@ -693,12 +733,9 @@ tags: [linux, shell]
 
 ### corn表达式
 
-- 常用符号
-    - `*` 表示所有值 
-    - `?` 表示未说明的值，即不关心它为何值
-    - `-` 表示一个指定的范围
-    - `,` 表示附加一个可能值
-    - `/` 符号前表示开始时间，符号后表示每次递增的值
+- `systemctl reload crond` 重新加载配置
+- `systemctl restart crond` 重启crond
+- 如执行"删除30天之前的mysql备份"脚本`find /home/smalle/backup -name test"*.sql.gz" -type f -mtime +30 -exec rm -rf {} \; > /dev/null 2>&1`
 
 ### 配置说明
 
@@ -707,7 +744,7 @@ tags: [linux, shell]
 
         ```shell
         # Example of job definition:
-        # .---------------- minute (0 - 59)，如 10 表示没第10分钟运行
+        # .---------------- minute (0 - 59)，如 10 表示没第10分钟运行。每分钟用 * 或者*/1表示，整点分钟数为00或0
         # |  .------------- hour (0 - 23)
         # |  |  .---------- day of month (1 - 31)
         # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
@@ -720,10 +757,15 @@ tags: [linux, shell]
         # * * * * * sleep 20; user-name my-command
         # * * * * * sleep 40; user-name my-command
         ```
-    - `systemctl reload crond` 重新加载配置
-    - `systemctl restart crond` 重启crond
 - 命令式
-    - `sudo crontab -e` 编辑当前用户的定时任务，默认在`/var/spool/`目录
+    - `crontab -e` 编辑当前用户的定时任务，默认在`/var/spool/`目录
+    - `crontab –l` 列举当前用户的定时任务
+- 常用符号
+    - `*` 表示所有值 
+    - `?` 表示未说明的值，即不关心它为何值
+    - `-` 表示一个指定的范围
+    - `,` 表示附加一个可能值
+    - `/` 符号前表示开始时间，符号后表示每次递增的值
 
 ## curl/wget
 

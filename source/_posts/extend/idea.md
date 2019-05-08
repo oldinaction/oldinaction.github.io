@@ -6,39 +6,41 @@ categories: extend
 tags: [IDE]
 ---
 
-## IntelliJ IDEA简介
+## jetbrains相关编辑器破解
 
-- jetbrains相关编辑器破解，基于破解补丁进行破解
+- 在 hosts 文件里面添加如下配置`0.0.0.0 account.jetbrains.com`、`0.0.0.0 www.jetbrains.com``
+- 基于激活码破解：http://idea.lanyus.com/getkey
+- 基于破解补丁进行破解
     - 下载破解补丁：http://idea.lanyus.com/jar/JetbrainsIdesCrack-4.2-release-sha1-3323d5d0b82e716609808090d3dc7cb3198b8c4b.jar
     - 在`bin/idea64.exe.vmoptions`和`bin/idea64.exe.vmoptions`文件中加入`-javaagent:D:\software\JetbrainsIdesCrack-4.2-release-sha1-3323d5d0b82e716609808090d3dc7cb3198b8c4b.jar`，两个都需要加入
     - 启动idea输入以下注册码
 
-        ```js
-        ThisCrackLicenseId-{
-        "licenseId":"ThisCrackLicenseId",
-        "licenseeName":"Rover12421",
-        "assigneeName":"",
-        "assigneeEmail":"rover12421@163.com",
-        "licenseRestriction":"For Rover12421 Crack, Only Test! Please support genuine!!!",
-        "checkConcurrentUse":false,
-        "products":[
-        {"code":"II","paidUpTo":"2099-12-31"},
-        {"code":"DM","paidUpTo":"2099-12-31"},
-        {"code":"AC","paidUpTo":"2099-12-31"},
-        {"code":"RS0","paidUpTo":"2099-12-31"},
-        {"code":"WS","paidUpTo":"2099-12-31"},
-        {"code":"DPN","paidUpTo":"2099-12-31"},
-        {"code":"RC","paidUpTo":"2099-12-31"},
-        {"code":"PS","paidUpTo":"2099-12-31"},
-        {"code":"DC","paidUpTo":"2099-12-31"},
-        {"code":"RM","paidUpTo":"2099-12-31"},
-        {"code":"CL","paidUpTo":"2099-12-31"},
-        {"code":"PC","paidUpTo":"2099-12-31"}
-        ],
-        "hash":"2911276/0",
-        "gracePeriodDays":7,
-        "autoProlongated":false}
-        ```
+```js
+ThisCrackLicenseId-{
+"licenseId":"ThisCrackLicenseId",
+"licenseeName":"Rover12421",
+"assigneeName":"",
+"assigneeEmail":"rover12421@163.com",
+"licenseRestriction":"For Rover12421 Crack, Only Test! Please support genuine!!!",
+"checkConcurrentUse":false,
+"products":[
+{"code":"II","paidUpTo":"2099-12-31"},
+{"code":"DM","paidUpTo":"2099-12-31"},
+{"code":"AC","paidUpTo":"2099-12-31"},
+{"code":"RS0","paidUpTo":"2099-12-31"},
+{"code":"WS","paidUpTo":"2099-12-31"},
+{"code":"DPN","paidUpTo":"2099-12-31"},
+{"code":"RC","paidUpTo":"2099-12-31"},
+{"code":"PS","paidUpTo":"2099-12-31"},
+{"code":"DC","paidUpTo":"2099-12-31"},
+{"code":"RM","paidUpTo":"2099-12-31"},
+{"code":"CL","paidUpTo":"2099-12-31"},
+{"code":"PC","paidUpTo":"2099-12-31"}
+],
+"hash":"2911276/0",
+"gracePeriodDays":7,
+"autoProlongated":false}
+```
 
 ## 常用设置
 
@@ -102,7 +104,7 @@ tags: [IDE]
 - 常用快捷键
     - `Ctrl + Shif + F9` 热部署
     - `Ctrl + Shifg + Space` 智能补全
-    - `Ctrl + Shif + F/R` 全局查找/替换(jar包只有下载了源码才可检索)
+    - `Ctrl + Shif + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
     - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
     - `Alt + Shift + 上下` 上下移动当前行
     - `Ctrl + Shift + Backspace` 回到上次编辑位置

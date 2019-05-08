@@ -58,20 +58,143 @@ tags: [php]
 
 > 未特殊说明，都是基于 php7
 
-### 数据类型
+### interface/abstract/trait
+
+- trait [^2]
+    - use关键字在一个类中引入Trait类后，相当于require或include了一段代码进来，不同之处在于use的Trait类与当前类是可以看做同一个类的，**即当前类可以用$this关键字调用Trait类的方法**。(此处的"当前类"指引入trait类的类)
+    - 当前类可以`use`多个trait类，trait类允许有实现代码，但是本身不能实例化
+    - 同名方法调用优先级：**当前使用类 > Trait类 > 继承的基类**
+    - trait类定义一个属性后，当前类就不能定义同样名称的属性，否则会产生 fatal error。**可通过在trait类中定义属性和属性的get方法，并在当前类中进行覆盖**
+    - 继承的方式，如果基类是private修饰控制的，则子类是无法调用的。但是Trait不一样，因为它类似于Require到当前类中了，所以不管是public、protected或private都是可以直接使用的
+    - 多个Trait类的冲突控制
+
+        ```php
+        // 法一：insteadof关键字
+        use A, B {
+            B::a insteadof A; // a方法冲突时使用B类的a方法而不使用A类的a方法
+            A::b insteadof B; // b方法冲突时使用A类的b方法而不使用B类的b方法
+        }
+
+        // 法二：as关键字
+        use A, B {
+            B::a as c; // 声明B类的a方法为c，作用于该类
+            A::b as d; // 声明A类的b方法为d，作用于该类
+        }
+        ```
+- 示例
 
 ```php
-// ### map
-// compact 创建一个包含变量与其值的数组
+// 抽象类（需要`extends`）
+abstract class MyAbstractClass
+{
+    // 抽象方法，子类必须定义这些方法
+    abstract protected function getValue1();
+    abstract public function getValue2($param1);
+
+    // 普通方法（非抽象方法）
+    public function getValue0()
+    {
+        return "aezocn";
+    }
+}
+
+// 接口（需要`implements`）
+interface MyInterface
+{
+    // 接口常量，不能被覆盖
+    const MyConstant = 'constant value';
+    function getValue3(); // 默认是public的
+}
+
+// trait（可以 `use` 多个，允许有实现代码，但是本身不能实例化）
+trait MyTrait
+{
+    // 抽象方法（use 这个 trait 的类必须要定义这个方法）
+    abstract function getValue4();
+
+    // 可以具有方法，静态方法，属性等
+    function getValue5()
+    {
+        return "aezocn";
+    }
+}
+```
+
+- 反射相关
+
+```php
+$ref = new \ReflectionClass($classname);
+// 获取类基本信息
+echo $ref->getName();
+echo $ref->getFileName();
+// 获取类属性信息
+$properties = $ref->getProperties();
+// 获取方法信息
+$methods = $ref->getMethods();
+// 获取接口信息
+$interfaces = $ref->getInterfaces();
+foreach($interfaces as $interface){
+    echo $interface->getName();
+}
+// 获取此对象的某个Trait
+$ref->getTraits()['sq\controller\CurdControllerTrait']; // 返回ReflectionClass对象
+```
+
+### 数据类型
+
+- array/map. 在php中map类型可以认为是array类型互通
+
+```php
+## 创建array/map
+// 1.compact 创建一个包含变量与其值的数组
 $meta_status = 'error';
 $meta_message = '执行失败';
 compact('meta_status', 'meta_message');
+// 2.基于数组索引创建
+$arr = ['hello', 'world'];
+$arr[0]; // hello
+$arr = ['first' => 'hello', 'second' => 'world'];
+$arr['first']; // hello
+// 3.删除元素
+unset($arr['first']);
 
-// ### json
+## 循环
+$num = count($arr);
+for($i = 0; $i < count($arr); $i++) {
+    echo $arr[$i]."<br />";
+}
+foreach ($array as $value) {
+  // code to be executed;
+}
+
+## 获取array的keys
+// 语法：array_keys($array, $value，$strict); $value为获取指定值的索引；$strict在获取$value时是否使用严格模式(类型和数值都需要相等)，默认是false不使用
+$a = array("a"=>"Horse","b"=>"Cat","c"=>"Dog");
+print_r(array_keys($a)); // Array ( [0] => a [1] => b [2] => c ) 
+$a = array(10,20,30,"10"); 
+print_r(array_keys($a, 10)); //  Array ( [0] => 0 [1] => 3 ) 
+print_r(array_keys($a, 10, true)); // Array ( [0] => 3)
+
+## 判断
+in_array("hello", $a); // false. 判断包含
+is_array($a); // true. 判断变量是否是数组
+```
+
+- json
+
+```php
 $json = json_decode($json_str); // 格式化json字符串为对象。返回的是stdClass
 if(isset($json -> username)) {
     // 判断 $json 对象中是否有username属性. ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
 }
+```
+
+### 文件
+
+```php
+// 移动文件
+$res = is_dir(dirname($dst)) || mkdir(dirname($dst), 0644, true); // 先用mkdir()函数确保 $dst 文件相关的目录存在
+return $res && rename($src, $dst); // 然后移动
 ```
 
 ## thinkphp
@@ -85,6 +208,43 @@ if(isset($json -> username)) {
     - 访问`http://localhost/myproject/index.php`，由于thinkphp设置了默认模块/控制器/方法，因此等同于访问 `http://localhost/myproject/index.php/index/index/index.html`。访问的是`application/index/controller/Index.php`文件的`index`方法。原则`index.php/模块名/控制器/方法名`(默认不区分大小写)
     - 访问`http://localhost/myproject/index.php/wap/login.index/test.html`实际是访问的`application/wap/controller/login/Index.php`文件的`index`方法。此时`wap`为模块名，在`wap/controller`有文件`login/Index.php`为控制器(路径为login.index，注意Index.php中的命名空间`namespace app\wap\controller\login;`)，访问的此文件中的test方法
 - 控制器的方法中，`return`只能返回字符串，如果需要返回对象或数组需要使用`return json($obj)`
+- 获取参数
+
+    ```php
+    $request = Request::instance();
+    $method = $request->method(); // 获取上传方式
+    $request->param(); // 获取所有参数，最全
+    $get = $request->get(); // 获取get上传的内容
+    $post = $request->post(); // 获取post上传的内容
+    $request->file('file'); // 获取文件
+    ```
+
+### Model
+
+```php
+$pk = $model->getPk(); // 获取pk字段名
+$fileds = $model->getQuery()->getTableInfo('', 'fields'); // 获取所有字段
+
+// 判断是否更新成功(当未获取到数据会返回false)。如果使用`$model->update($data, ['id'=>1]);`未获取到数据也返回成功
+$result = User::get('id=1')->save($data);
+echo $result !== false ? 'success' : 'false';
+```
+
+- 事物: 事物操作相关代码在`use think\db\Connection;`中
+
+```php
+// 启动事务
+Db::startTrans();
+try{
+    Db::table('think_user')->find(1);
+    Db::table('think_user')->delete(1);
+    // 提交事务
+    Db::commit();    
+} catch (\Exception $e) {
+    // 回滚事务
+    Db::rollback();
+}
+```
 
 ## 易错点
 
@@ -92,6 +252,19 @@ if(isset($json -> username)) {
     - Coentent-Type仅在取值为`application/x-www-data-urlencoded`和`multipart/form-data`两种情况下，PHP才会将http请求数据包中相应的数据填入全局变量`$_POST`。（jquery会默认转换请求头）
     - Coentent-Type为`application/json`时，可以使用`$input = file_get_contents('php://input')`接受数据，再通过`json_decode($input, TRUE)`转换成json对象
     - 微信小程序wx.request的header设置成`application/x-www-data-urlencoded`时`$_POST`也接受失败(基础库版本1.5.0，仅供个人参考)，使用file_get_contents('php://input')可以获取成功
+- 空值判断
+    
+    ```php
+    // 判断stdClass是否有某个属性
+    $json = json_decode($json_str); // 格式化json字符串为对象。返回的是stdClass
+    if(isset($json -> username)) {
+        // 判断 $json 对象中是否有username属性.
+        // ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
+    }
+
+    // 判断数组是否有某个索引
+    if(isset($_POST['id'])) {}
+    ```
 
 ## 其他
 
@@ -109,4 +282,5 @@ if(isset($json -> username)) {
 
 参考文章
 
-[^1]: [微信小程序$_POST无法接受参数](http://blog.csdn.net/qw_xingzhe/article/details/59693782)
+[^1]: http://blog.csdn.net/qw_xingzhe/article/details/59693782 (微信小程序$_POST无法接受参数)
+[^2]: https://blog.csdn.net/dream_successor/article/details/78481265

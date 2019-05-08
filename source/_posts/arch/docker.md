@@ -35,8 +35,8 @@ tags: [docker]
         sudo apt-get install docker.io
         sudo gpasswd -a ${USER} docker # 把当前用户加入到docker组
         cat /etc/group | grep ^docker # 查看是否添加成功
-        systemctl restart docker # 重启。如果仍然无法执行docker命令，可以退出当前用户再登录尝试
         ```
+    - 启动 `systemctl start docker`
 
 ## 命令
 

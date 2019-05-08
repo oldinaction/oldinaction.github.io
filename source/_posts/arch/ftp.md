@@ -166,11 +166,10 @@ tags: [ftp,server]
     chown -R vsftp.vsftp /home/vsftp/v_test
     chmod 700 /home/vsftp/v_test
     ```
-    - 添加新用户
+    - 添加新用户。添加用户脚本参考 [http://blog.aezo.cn/2017/01/10/linux/shell/](/_posts/linux/shell.md#创建vsftpd虚拟账号)
 
         ```bash
-        vi /etc/vsftpd/vuser # 奇行为用户名，偶行为密码。如虚拟用户名为`v_test`
-        db_load -T -t hash -f /etc/vsftpd/vuser /etc/vsftpd/vuser.db
+        vi /etc/vsftpd/vuser # 奇行为用户名，偶行为密码。如虚拟用户名为`v_test`。注意：经过测试，此用户文本中可能任意两行都可以当成用户名，且直接可以查看vsftp根目录文件，尚未找到具体原因
         
         # ***.设置虚拟用户配置(不设置即为宿主用户配置，上述配置宿主用户时无法登录的)
         # 如果需要基于虚拟用户创建一个管理用户。可创建此虚拟用户配置文件夹，但是不配置其local_root，则此用户的根目录即为宿主用户目录
@@ -180,6 +179,8 @@ tags: [ftp,server]
         mkdir -p /home/vsftp/v_test
         chown -R vsftp.vsftp /home/vsftp/v_test
         # chmod 755 /home/vsftp/v_test
+
+        sudo db_load -T -t hash -f /etc/vsftpd/vuser /etc/vsftpd/vuser.db
         ```
     - 虚拟用户详细配置说明（vsftpd主配置文件中已规定虚拟用户权限与匿名用户一致virtual_use_local_privs=NO，且全局配置已定义匿名用户无法登录和上次，因此以下针对匿名用户的权限配置即为此虚拟用户的权限）。部分配置修改后需要重启服务
 

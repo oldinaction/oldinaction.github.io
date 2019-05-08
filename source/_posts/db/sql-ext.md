@@ -15,10 +15,33 @@ tags: [sql, oracle, mysql]
 
 ### 常见问题
 
-- **查询空格问题。** `select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`可以查询到数据库中`ABC  `的，`ABC  `也可以查询到数据库中`ABC`的数据
-  - 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
-  - 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
-  - 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
+- 查询空格问题 
+	- 如：`select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`可以查询到数据库中`ABC  `的，`ABC  `也可以查询到数据库中`ABC`的数据
+	- 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
+	- 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
+	- 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
+- 字段值不区分大小写问题(**oracle默认区分大小写**)
+	- 如果字段为`utf8_general_ci`存储时，可以在字段前加`binary`强行要求此字段进行二进制查询，即区分大小写。如`select * from `t_test` where binary username = 'aezocn'`
+	- 设置字段排序规则为`utf8_bin`(`utf8_general_ci`中`ci`表示case insensitive，即不区分大小写)。设置成`utf8_bin`只是说字段值中每一个字符用二进制数据存储，区分大小写，显示和查询并不是二进制
+- `null`判断问题
+	- 判空需要使用`is null`或者`is not null`
+	- `select * from t_test where username = 'smalle' and create_tm > '2000-01-01'` 直接使用 =、> 等字符比较，包含了此字段不为空的含义 
+	- `select * from t_test where (username is not null or username != '')` 这样判断才能确保username不为空白字符串(**oracle的`''`和`null`相同，判断is not null即可**)
+- `null`排序问题
+	- 字段排序时，null默认最小
+	- `select * from t_test order by username is null, username asc;` 此时先按照是否为null进行排序，是空的排在下面(返回1)
+- 字段类型和大小
+	- varchar(10)表示可以存储10个字符，字符集utf8时一个中文为一个字符
+
+### 常用函数
+
+- 时间函数
+	- `update t_test t set t.update_tm = sysdate() where id = 1` 其中`sysdate()`可获取当前时间
+	- ``
+- `select * from t_test where instr(username, char(13)) > 0 or instr(username, char(10)) > 0` 查找表中某字段含有`\r\n`的数据
+	- linux/unix下的行结尾符号是`\n`，windows中的行结尾符号是`\r\n`，Mac系统下的行结尾符号是`\r`
+	- 回车符：\r=0x0d (13) (carriage return)
+	- 换行符：\n=0x0a (10) (newline)
 
 ## Oracle
 
@@ -27,12 +50,12 @@ tags: [sql, oracle, mysql]
 #### 常用函数
 
 - `decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)` 只能判断=，不能判断like(like可考虑case when)
-  - `select decode(length(ys.ycross_x), 1, '0' || ys.ycross_x, ys.ycross_x) from ycross_storage ys` 如果ys.ycross_x的长度为1那就在前面加0，否则取本身
-  - `select sum(decode(shipcomp.company_num, 'CMA', 1, 0)) cma, sum(decode(shipcomp.company_num, 'MSK', 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联)` 统计进出场记录中cma和msk的数量
-  - `order by decode(col, 'b', 1, 'c', 2, 'a', 3, col)` 按值排序
+	- `select decode(length(ys.ycross_x), 1, '0' || ys.ycross_x, ys.ycross_x) from ycross_storage ys` 如果ys.ycross_x的长度为1那就在前面加0，否则取本身
+	- `select sum(decode(shipcomp.company_num, 'CMA', 1, 0)) cma, sum(decode(shipcomp.company_num, 'MSK', 1, 0)) msk from ycross_in_out_regist yior ...(省略和shipcomp的关联)` 统计进出场记录中cma和msk的数量
+	- `order by decode(col, 'b', 1, 'c', 2, 'a', 3, col)` 按值排序
 - `case when then [when then ...] else end` 比decode强大
-  - `case when t.name = 'admin' then 'admin' when t.name like 'admin%' then 'admin_user' else decode(t.role, 'admin', 'admin', 'admin_user') end`
-  - `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1` sum写在case里面则需要对相关字段(plan_classification_code)进行group by，而sum写外面则不需要对此字段group by. **主要用于分组之后根据条件分列显示**
+	- `case when t.name = 'admin' then 'admin' when t.name like 'admin%' then 'admin_user' else decode(t.role, 'admin', 'admin', 'admin_user') end`
+	- `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1` sum写在case里面则需要对相关字段(plan_classification_code)进行group by，而sum写外面则不需要对此字段group by. **主要用于分组之后根据条件分列显示**
 
 #### 聚合函数(aggregate_function)
 
@@ -278,16 +301,16 @@ https://www.cnblogs.com/mumulin99/p/9837522.html
 #### 正则表达式
 
 - 正则函数
-  - `regexp_like()` 返回满足条件的字段
-  - `regexp_instr()` 返回满足条件的字符或字符串的位置
-  - `regexp_replace()` 返回替换后的字符串
-  - `regexp_substr()` 返回满足条件的字符或字符串
+	- `regexp_like()` 返回满足条件的字段
+	- `regexp_instr()` 返回满足条件的字符或字符串的位置
+	- `regexp_replace()` 返回替换后的字符串
+	- `regexp_substr()` 返回满足条件的字符或字符串
 - `regexp_substr(str, pattern[,start[,occurrence[match_option]]])` 参数说明
-  - str 待匹配的字符串
-  - pattern 正则表达式元字符构成的匹配模式
-  - start 开始匹配位置，如果不指定默认为1(第一个字符串)
-  - occurrence 匹配的次数，如果不指定，默认为1
-  - match_option 意义同regexp_like的一样
+	- str 待匹配的字符串
+	- pattern 正则表达式元字符构成的匹配模式
+	- start 开始匹配位置，如果不指定默认为1(第一个字符串)
+	- occurrence 匹配的次数，如果不指定，默认为1
+	- match_option 意义同regexp_like的一样
 
 ```sql
 -- 分割函数：基于,分割，返回3行数据
@@ -374,7 +397,7 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
 ### 自定义函数
 
 - 解析json： https://blog.csdn.net/cyzshenzhen/article/details/17074543
-  - select pkg_common.FUNC_PARSEJSON_BYKEY('{"name": "smalle", "age": "18"}', 'name') from dual; 取不到age?
+	- select pkg_common.FUNC_PARSEJSON_BYKEY('{"name": "smalle", "age": "18"}', 'name') from dual; 取不到age?
 
 #### 字符串分割函数
 
@@ -427,14 +450,14 @@ select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
   ```
 - 查询示例：`select * from table (cast (sm_split ('aa,,bb,cc,,', ',') as sm_type_arr_str));` (一定要加`as sm_type_arr_str`) 结果如下：
 
-  ```html
-    COLUMN_VALUE
-  1	aa
-  2
-  3	bb
-  4	cc
-  5
-  ```
+	```html
+		COLUMN_VALUE
+	1	aa
+	2
+	3	bb
+	4	cc
+	5
+	```
 - 示例二
 
   ```sql
@@ -475,7 +498,7 @@ select * from dba_jobs; -- 还有all_jobs/user_jobs
 -- 真正运行的job
 select * from dba_jobs_running;
 
--- 操作job
+-- 操作job(创建、手动执行、删除)
 declare
     job_id number;
 begin
@@ -494,9 +517,14 @@ begin
     dbms_job.submit(job_id, 'declare username varchar2(200); begin my_proc_name(username, ''''); end;', sysdate, 'trunc(sysdate)+1'); 
 
     -- （2）比如某个job返回的id为888
-    dbms_job.run(888); -- 立即运行一次888这个job
+    dbms_job.run(888); -- 立即运行一次888这个job（如果job中next_date=4000-1-1，可能由于存储过程执行出错，修正后重新运行一次即可）
     dbms_job.remove(888); -- 移除888这个job
     commit;
+
+	-- （3）修改
+	dbms_job.what('my_proc_name;'); -- 修改要执行的存储过程名
+	dbms_job.next_date(888, to_date('2018-06-15 10:00:00', 'yyyy-mm-dd hh24:mi:ss')); -- 修改 job 的间隔时间
+	dbms_job.interval(888, 'trunc(sysdate)+1'); -- 修改 job 的间隔时间
 end;
 ```
 

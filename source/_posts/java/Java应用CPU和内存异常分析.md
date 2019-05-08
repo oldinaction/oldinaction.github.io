@@ -8,6 +8,8 @@ tags: [CPU, 内存, 运维, oracle, ofbiz]
 
 ## 简介
 
+- TODO
+    - https://my.oschina.net/xionghui/blog/498785
 - java应用常见故障：**高CPU占用**、**高内存占用**、**高I/O占用**(包括磁盘I/O、网络I/O、数据库I/O等)
 - 高CPU常见场景：死循环(如while导致的较多)、高内存导致
     - 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU

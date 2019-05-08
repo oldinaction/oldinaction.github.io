@@ -6,6 +6,14 @@ categories: extends
 tags: tools
 ---
 
+## 通用
+
+### VNC(RealVNC)
+
+官网免费版支持5台电脑3个用户7*24小时连接
+破解版下载：http://www.xdowns.com/soft/1/118/2017/Soft_224671.html
+https://blog.csdn.net/runningtortoises/article/details/51425299
+
 ## windows
 
 ### QuickLook 预览工具
@@ -35,7 +43,7 @@ tags: tools
 
 ### MobaXterm
 
-- 代替xssh、xftp、web服务器
+- 代替xshell、xftp客户端，用作web服务器、ssh服务器
 - 保持ssh连接：settings - ssh - 勾选ssh keepalive
 
 

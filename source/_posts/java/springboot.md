@@ -105,6 +105,7 @@ mybatis:
 ```
 - 参考配置文件[/data/src/java/logback.xml](/data/src/java/logback.xml)和表结构(如果保存在数据库中时)文件[/data/src/java/logback.xml](/data/src/java/logback.sql)
 - springboot的日志配置文件`<include resource="org/springframework/boot/logging/logback/base.xml"/>`。里面包含参数`<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>`, 表示为配置LOG_PATH等环境变量时，在linux环境下会自动创建`/tmp/spring.log`文件作为日志输出文件，而/tmp目录一般只有使用root用户运行项目才可以创建此文件
+- `System.getproperty("java.io.tmpdir")`可获取操作系统缓存的临时目录。不同操作系统的缓存临时目录不一样，Linux：`/tmp`，Windows如：`C:\Users\smalle\AppData\Local\Temp\`
 
 ### 随应用启动而运行(实现`CommandLineRunner`接口)
 
@@ -259,7 +260,7 @@ public class SpringContextU implements ApplicationContextAware {
 
 ### `@Value`给静态成员设值
 
-- springboot v2.0.1之后，定义自定义参数(MyValue.java)要么写到Application.java同目录，要么加下列依赖
+- springboot v2.0.1之后，定义自定义参数(MyValue.java)要么写到Application.java同目录，要么加下列依赖。这个依赖会把配置文件的值注入到@Value里面，也可以通过@PropertySource("classpath:application.yml")注入
 
 ```xml
 <dependency>
@@ -277,7 +278,7 @@ public class SpringContextU implements ApplicationContextAware {
 // 设值：在application.properties中设置`myValue.val`的值
 
 // 取值
-@Value("${myValue.val}")
+@Value("${myValue.val")
 private String val = "smalle"; // 默认值。命令行参数此属性传入空时，此初始值不会被覆盖
 
 private static String hello;
@@ -322,16 +323,16 @@ public class BaseController {
 ```java
 @Bean
 public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurerAdapter() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**")
-						.allowedHeaders("*")
-						.allowedMethods("*")
-						.allowedOrigins("*")
-						.allowCredentials(true);
-			}
-		};
+	return new WebMvcConfigurerAdapter() {
+		@Override
+		public void addCorsMappings(CorsRegistry registry) {
+			registry.addMapping("/**")
+					.allowedHeaders("*")
+					.allowedMethods("*")
+					.allowedOrigins("*")
+					.allowCredentials(true);
+		}
+	};
 }
 ```
 - 使用spring security的CORS配置可参考相应文章
@@ -418,7 +419,7 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public Result exception(Throwable e) {
-        return getExceptionResponse(ErrorType.EXCEPTION_ERROR, e);
+        return getExceptionResponse(ErrorType.EXCEPTION_ERROR, e); // 自定义异常类 ErrorType
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -536,10 +537,11 @@ myConfig:
 	```
 - 请求协议
 
-request-method |content-type   |postman   |springboot   |说明
+request-method |Content-Type   |postman   |springboot   |说明
 --|---|---|---|---
-post |application/json   |row-json   |(@RequestBody User user)   |如果后台使用了@RequestBody，此时row-text等都无法请求到
-post |multipart/form-data  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
+post |`application/json`   |row-json   |(String param, @RequestBody User user)   |`String param`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List等对象)。而idea的http文件中url参数拼在地址上无法获取(请求机制不同)
+post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`
+post |`multipart/form-data`  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放再body中，且数据格式为json
@@ -595,21 +597,19 @@ public String hello() {
 @RequestMapping(value="/getUserByUserIdOrUsername")
 public Result getUserByUserIdOrUsername(Long userId, String username, HttpServletRequest request) {
 	// ...
-	return new Result().success(); // 自己封装的Result对象
+	return Result.success(); // 自己封装的Result对象(前台可接受到此object对象)
 }
 // 前台请求 Body/Url 中含参数 username
 @RequestMapping(value="/getUserByName")
 public String getUserByName(@RequestParam("username") String name) {}
-
 @RequestMapping(value = "/getUser")
 public String getUser(User user) {} // 此时User对象必须声明getter/setter方法
+@RequestMapping(value = "/addUser", method = RequestMethod.POST)
+public String hello(User user) {}
 
 // @PathVariable 获取 url 中的参数
 @RequestMapping(value="/hello/{id}")
 public String user(@PathVariable("id") Integer id) {}
-
-@RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public String hello(User user) {}
 
 // 多文件上传时Layui会重复请求此接口多次
 @RequestMapping(value = "/upload", method = RequestMethod.POST)
@@ -619,6 +619,9 @@ public String uploading(@RequestParam("file") MultipartFile file) {}
 // 获取body中的参数，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以转成成功Map，此处也可以用Map<String, Object>接受
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
 public String addUser(@RequestBody List<User> user) {}
+// 请求数据http://localhost/?name=smalle&pass=123
+@RequestMapping(value = "/addUser", method = RequestMethod.POST)
+public String addUser(@RequestBody String param) {} // 此时param拿到的值为 name=smalle&pass=123
 
 // 自定义方法：通过request获取body数据（参考getBodyStringFromReq）。request.getParameter无法获取body
 // InputStream对象只能获取一次
@@ -748,6 +751,22 @@ public RestTemplate RestTemplate() {
 }
 ```
 
+### 文件上传下载
+
+- 上传文件临时目录
+	- 项目启动默认会产生一个tomcat上传文件临时目录，如：`/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT`
+	- 而linux会定期清除tmp目录下文件，尽管项目仍然处于启动状态。从而会导致错误`Caused by: java.io.IOException: The temporary upload location [/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT] is not valid`
+
+```java
+// 自定义上传文件临时目录
+@Bean 
+public MultipartConfigElement multipartConfigElement() {
+	MultipartConfigFactory factory = new MultipartConfigFactory();  
+	factory.setLocation("/app/tmp");
+	return factory.createMultipartConfig();
+}
+```
+
 ## 数据访问
 
 - 数据库驱动
@@ -795,8 +814,8 @@ public RestTemplate RestTemplate() {
 ### 事物支持 [^10]
 
 - `@Transactional` 注解对应的public类型函数. 一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)
-- 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
 - 由于Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的。`@Transactional`注解只被应用到 public 可见度的方法上
+	- 自调用导致@Transactional失效。spring里事务是用注解配置的，当一个方法没有接口，单单只是一个方法不是服务时，事务的注解是不起作用的，需要回滚时就会报错`org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope`。出现这个问题的根本原因在于AOP的实现原理，由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，自调用时不存在代理对象的调用，这时不会产生我们注解@Transactional配置的参数，自然无效了
 - 默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚 
 	- `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到异常Exception时回滚
 	- `@Transactional(noRollbackFor = RuntimeException.class)` 指定不回滚
@@ -804,6 +823,8 @@ public RestTemplate RestTemplate() {
 		- `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚。或者基于自定义注解统一回滚。或者手动抛出RuntimeException
 - Spring的@Transactional自我调用问题：同一个类中的方法相互调用，被调用的方法`@Transactional`无效 [^12]
 	- 通过BeanPostProcessor 在目标对象中注入代理对象
+- `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 手动回滚事物
+- 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
 - 隔离级别`@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读
 	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是：READ_COMMITTED。
 	- `READ_UNCOMMITTED`：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读和不可重复读，因此很少使用该隔离级别。
@@ -825,15 +846,19 @@ public RestTemplate RestTemplate() {
 
 	```java
 	@Autowired
-	private JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate; // 单数据源时，springboot默认会注入JdbcTemplate的Bean
 
 	// 查询一行数据并返回int型结果
 	jdbcTemplate.queryForInt("select count(*) from test");  
-	// 查询一行数据并将该行数据转换为Map返回
+	// 查询一行数据并将该行数据转换为Map返回。**如果不存在会返回null**
 	jdbcTemplate.queryForMap("select * from test where id=1");  
 	// 查询一行任何类型的数据，最后一个参数指定返回结果类型
-	jdbcTemplate.queryForObject("select count(*) from test", Integer.class);  
-	// 查询一批数据，默认将每行数据转换为Map
+	jdbcTemplate.queryForObject("select count(*) from test", Integer.class); 
+	try {
+		String username = jdbcTemplate.queryForObject("select t.username from t_test t where t.id=?", String.class, 10000L);
+	} catch (DataAccessException e) {
+	}
+	// 查询一批数据，默认将每行数据转换为Map。**如果不存在会返回无任何元素的集合**
 	List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from test");  
 	// 只查询一列数据列表，列类型是String类型，列名字是name
 	jdbcTemplate.queryForList("select name from test where name=?", new Object[]{"smalle"}, String.class);  
@@ -1117,7 +1142,9 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 }
 ```
 
-## thymeleaf模板引擎
+## 视图展示
+
+### thymeleaf模板引擎
 
 - 引入依赖
 
@@ -1162,7 +1189,7 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 				model.put("hello", "UserController.thymeleaf");
 
 				// return "/hello"; // 加上/后，打成jar包路径找不到。可以去掉/或者使用return new ModelAndView("hello");
-				return "hello";
+				return "hello"; // 不能加后缀名
 			}
 		}
 		```
@@ -1229,20 +1256,15 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 		- 需要使用maven启动
 - thymeleaf语法：[http://blog.aezo.cn/2017/10/22/lang/thymeleaf/](/_posts/lang/thymeleaf.md)
 
-### 文件上传下载
+### ftl模板
 
-- 上传文件临时目录
-	- 项目启动默认会产生一个tomcat上传文件临时目录，如：`/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT`
-	- 而linux会定期清除tmp目录下文件，尽管项目仍然处于启动状态。从而会导致错误`Caused by: java.io.IOException: The temporary upload location [/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT] is not valid`
+- 引入依赖，其他同thymeleaf
 
-```java
-// 自定义上传文件临时目录
-@Bean 
-public MultipartConfigElement multipartConfigElement() {
-	MultipartConfigFactory factory = new MultipartConfigFactory();  
-	factory.setLocation("/app/tmp");
-	return factory.createMultipartConfig();
-}
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-freemarker</artifactId>
+</dependency>
 ```
 
 ## 企业级开发

@@ -259,6 +259,12 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 
 - `pip install pymongo`
 
+#### scrapy 爬虫框架
+
+- 主要用在python爬虫。可以css的形式方便的获取html的节点数据
+- `pip install scrapy` 安装
+- 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
+
 #### fabric 自动化运维
 
 - 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
@@ -268,12 +274,6 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
         - 安装`yum install python-devel` 安装python-devel(或者`yum install python-devel3`)
     - 报错` fatal error: ffi.h: No such file or directory`
         - `yum install libffi libffi-devel` 安装libffi libffi-devel
-
-#### scrapy 爬虫框架
-
-- 主要用在python爬虫。可以css的形式方便的获取html的节点数据
-- `pip install scrapy` 安装
-- 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
 
 #### pexpect 远程命令控制
 
@@ -292,7 +292,7 @@ process.sendline('she&2018xia185hao')
 
 # 发送命令
 process.buffer = str('') # 清空缓冲区
-process.sendline("ps aux | awk '{print $2}' | grep 16983 --color=none") # 发送命令
+process.sendline("ps aux | awk '{print $2}' | grep 16983 --color=none") # 发送命令(--color=none表示不返回颜色字符)
 process.expect(['\[[^@\[]*@[^ ]* [^\]]*\]# ', '\[[^@\[]*@[^ ]* [^\]]*\]\$ ']) # 匹配字符 [root@VM_2_2_centos ~]# [root@VM_2_2_centos ~]$ 
 print(process.before) # 缓冲区开始到匹配字符之前的所有数据(不包含匹配字符)
 print(process.before.split('\r\n'))

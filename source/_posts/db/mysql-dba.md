@@ -70,11 +70,47 @@ select user, host from user; -- 查询用户可登录host
 		- 选择数据库 `use my_db_name`
 		- 执行导入 `source d:/exp.sql`
 
+#### 导出表结构
+
+- MySQL-Front：可导出html格式(样式和字段比较人性化)，直接复制到word中
+- SQLyong(数据库-在创建数据库架构HTML)：可导出很完整的字段结构(太过完整，无法自定义)
+- DBExportDoc V1.0 For MySQL：基于提供的word模板(包含宏命令)和ODBC导出结构到模板word中(表格无线框)
+
+### linux脚本备份
+
+- 备份mysql和删除备份文件脚本`backup_mysql.sh`(加可执行权限先进行测试)
+
+	```bash
+	db_user="root"
+	db_passwd="root"
+	db_name="db_test"
+	db_host="127.0.0.1"
+	db_port="3306"
+	# the directory for story your backup file.you shall change this dir
+	backup_dir="/home/data/backup/mysqlbackup"
+	# date format for backup file (eg: 20190407214357)
+	time="$(date +"%Y%m%d%H%M%S")"
+	# 需要确保当前linux用户有执行mysqldump权限
+	mysqldump -h $db_host -P $db_port -u$db_user -p$db_passwd $db_name | gzip > "$backup_dir/$db_name"_"$time.sql.gz"
+
+	# 删除30天之前的备份
+	find $backup_dir -name $db_name"*.sql.gz" -type f -mtime +30 -exec rm -rf {} \; > /dev/null 2>&1
+	```
+	- 说明
+		- 删除一分钟之前的备份 `find $backup_dir -name $db_name"*.sql.gz" -type f -mmin +1 -exec rm -rf {} \; > /dev/null 2>&1`
+		- `-type f` 表示查找普通类型的文件，f 表示普通文件，可不写
+		- `-mtime +7` 按照文件的更改时间来查找文件，+7表示文件更改时间距现在7天以前;如果是-mmin +7表示文件更改时间距现在7分钟以前
+		- `-exec rm {} ;` 表示执行一段shell命令，exec选项后面跟随着所要执行的命令或脚本，然后是一对{ }，一个空格和一个\，最后是一个分号;
+- 将上述脚本加入到`crond`定时任务中
+	- `crontab -e` 编辑定时任务，加入`00 02 * * * /home/smalle/script/backup_mysql.sh`
+	- `systemctl restart crond` 重启crond服务
+
 ### 主从同步
 
 change master to master_host='127.0.0.1', master_port=3306, master_user='rep', master_password='Hello1234!', master_log_file='shipbill-log-bin.000001', master_log_pos=154;
-
-
+show slave status \G;
+stop slave;
+start slave;
 
 ## 管理员
 
@@ -148,6 +184,116 @@ change master to master_host='127.0.0.1', master_port=3306, master_user='rep', m
 	order by data_length desc, index_length desc;
 	```
 
+### 数据库CPU飙高问题
+
+- `show full processlist;` 查看进程(**Time的单位是秒**)
+	- `show processlist;` 查看进程快照
+	- 查看进程详细
+
+		```sql
+		-- Command: 显示当前连接的执行的命令，一般就是休眠或空闲（sleep），查询（query），连接（connect）
+		-- Time：线程处在当前状态的时间，单位是秒
+		-- State：显示使用当前连接的sql语句的状态，很重要的列。state只是语句执行中的某一个状态，一个 sql语句，以查询为例，可能需要经过copying to tmp table，Sorting result，Sending data等状态才可以完成
+		-- 查询正在执行，且基于耗时时间降序
+		select id, user, host, db, command, time, state, info
+		from information_schema.processlist
+		where command != 'Sleep'
+		order by time desc;
+		```
+	- 查询执行时间超过2分钟的线程，然后拼接成 kill 语句。复制出来手动运行
+
+		```sql
+		select concat('kill ', id, ';')
+		from information_schema.processlist
+		where command != 'Sleep'
+		and time > 2*60
+		order by time desc;
+		```
+- MySQL出现`Waiting for table metadata lock`的原因以及解决方法。**常出现在执行alter table的语句，如修改表结构的过程中(线上风险较高)** [^1]
+	- `show processlist;` 长事物运行，阻塞DDL，继而阻塞所有同表的后续操作。(`kill #id`)
+	- `select * from information_schema.innodb_trx;` 未提交事物，阻塞DDL (`kill #trx_mysql_thread_id`)
+	- 查询到上述情况线程ID进行查杀
+- `show open tables where in_use > 0;` 查看正在使用的表(锁表)
+
+## 测试
+
+### 快速创建数据
+
+```sql
+-- 1.创建一个临时内存表
+DROP TABLE IF EXISTS `t_test_vote_memory`;
+CREATE TABLE `t_test_vote_memory` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` varchar(20) NOT NULL DEFAULT '',
+    `vote_num` int(10) unsigned NOT NULL DEFAULT '0',
+    `group_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `status` tinyint(2) unsigned NOT NULL DEFAULT '1',
+    `create_time` datetime,
+    PRIMARY KEY (`id`),
+    KEY `index_user_id` (`user_id`) USING HASH
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+-- 2.创建一个测试表
+DROP TABLE IF EXISTS `t_test_vote`;
+CREATE TABLE `t_test_vote` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` varchar(20) NOT NULL DEFAULT '' COMMENT '用户Id',
+    `vote_num` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '投票数',
+    `group_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '用户组id 0-未激活用户 1-普通用户 2-vip用户 3-管理员用户',
+    `status` tinyint(2) unsigned NOT NULL DEFAULT '1' COMMENT '状态 1-正常 2-已删除',
+    `create_time` datetime COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `index_user_id` (`user_id`) USING HASH COMMENT '用户ID哈希索引'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投票记录表';
+
+-- 3.创建生成长度为n的随机字符串的函数
+DELIMITER // -- 修改MySQL delimiter：'//'
+DROP FUNCTION IF EXISTS `rand_string` //
+SET NAMES utf8 //
+CREATE FUNCTION `rand_string` (n INT) RETURNS VARCHAR(255) CHARSET 'utf8'
+BEGIN 
+    DECLARE char_str varchar(100) DEFAULT 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    DECLARE return_str varchar(255) DEFAULT '';
+    DECLARE i INT DEFAULT 0;
+    WHILE i < n DO
+        SET return_str = concat(return_str, substring(char_str, FLOOR(1 + RAND()*62), 1));
+        SET i = i+1;
+    END WHILE;
+    RETURN return_str;
+END //
+
+-- 4.创建插入数据的存储过程
+DELIMITER //
+DROP PROCEDURE IF EXISTS `add_t_test_vote_memory` //
+CREATE PROCEDURE `add_t_test_vote_memory`(IN n INT)
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    DECLARE vote_num INT DEFAULT 0;
+    DECLARE group_id INT DEFAULT 0;
+    DECLARE status TINYINT DEFAULT 1;
+    WHILE i < n DO
+        SET vote_num = FLOOR(1 + RAND() * 10000);
+        SET group_id = FLOOR(0 + RAND()*3);
+        SET status = FLOOR(1 + RAND()*2);
+        INSERT INTO `t_test_vote_memory` VALUES (NULL, rand_string(20), vote_num, group_id, status, NOW());
+        SET i = i + 1;
+    END WHILE;
+END //
+DELIMITER ;  -- 改回默认的 MySQL delimiter：';'
+
+-- 5.调用存储过程 生成100W条数据
+CALL add_t_test_vote_memory(1000000);
+
+-- 6.查看临时表数据
+SELECT count(*) FROM `t_test_vote_memory`;
+
+-- 7.复制数据
+INSERT INTO t_test_vote SELECT * FROM `t_test_vote_memory`;
+
+-- 8.查看数据
+SELECT count(*) FROM `t_test_vote`;
+```
+
 ## 其他
 
 - 命令行执行sql
@@ -163,5 +309,14 @@ change master to master_host='127.0.0.1', master_port=3306, master_user='rep', m
 		- `decimal(10,0)` -> `int(10)` 以此类推
 		- 默认值丢失
 	- 导入sql文件到mysql数据库中
+
+
+---
+
+参考文章
+
+[^1]: https://www.cnblogs.com/digdeep/p/4892953.html
+
+
 
 

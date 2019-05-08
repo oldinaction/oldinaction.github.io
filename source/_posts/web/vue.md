@@ -118,13 +118,15 @@ created(): {
         })
         // `vm.a` 是响应的
         vm.b = 2
-        // `vm.b` 是非响应的
+        // `vm.b` 是非响应的(添加新属性)
         vm.user.name = 'smalle' // 是响应的
-        vm.user.password = '123456' // 是非响应的
+        vm.user.password = '123456' // 是非响应的(添加新属性)
         ```
 - **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
-    - 解决上述数组和未定义属性不响应的方法：`this.user = Object.assign({}, this.user);` 或 `this.user = JSON.parse(JSON.stringify(this.user));`
+    - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)
     - 对于select，必须定义key值(只需要当前select的key值唯一，无需整个页面的key值唯一)保证唯一性。否则容易出现无法选择/无法修改该select的值，导致数据响应不触发
+    - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
+        - `key="{{Date.now() + Math.random()}}"`
 - 扩展说明
 
 ```html
@@ -135,13 +137,13 @@ created(): {
 <div v-for="(item, index) in customer.customerProducts">
     产品：<!-- 此处要通过v-model="customer.customerProducts[index].id"进行绑定，不要使用 item.id -->
     <Select v-model="customer.customerProducts[index].id" @on-change="productChange(index)">
-        <Option v-for="(item, index) in products" :value="item.id" :key="index">{{ item.productName }}</Option>
+        <Option v-for="(item, index) in products" :value="item.id" :key="item.id">{{ item.productName }}</Option>
     </Select>
     产品单位：{{ customer.customerProducts[index].productUnit }}
 </div>
 
 <!-- (2) 省市级联 -->
-<!-- @on-change="provinceChange" 使用change时，改变customer.province的值（this.$set也不行）无法触发change事件 -->
+<!-- @on-change="provinceChange" 使用change时，改变customer.province的值无法触发change事件（this.$set也不行） -->
 <Select v-model="customer.province" placeholder="请选择省份" clearable>
     <Option v-for="item in provinceList" :value="item.value" :key="item.value">{{ item.label }}</Option>
 </Select>
@@ -183,7 +185,14 @@ export default {
     　　　　　　console.log(newValue)
     　　　　},
     　　　　deep: true
-    　　}
+    　　},
+        products: {
+            immediate: true, // 代表如果在 wacth 里声明了之后，就会立即先去执行里面的handler方法。(可解决 list 变更后无法watch到变化的问题)
+            handler(n, o) {
+    　　　　　　console.log(n)
+    　　　　},
+    　　　　// deep: true
+        }
     },
     methods: {
         productChange(index) {
@@ -251,7 +260,7 @@ Vue.component('base-checkbox', {
 <template>
     <!-- 此处不能直接使用v-model="value"，因为当element的el-select发生改变时则会修改v-model="value"中value的属性，违背了子组件不建议修改porps参数的值(v-model的$emit修改除外) -->
     <el-select v-model="model" multiple :remote-method="findList" @change="change">
-        <el-option v-for="(item, index) in list" :key="index" :label="name" :value="code"></el-option>
+        <el-option v-for="(item, index) in list" :key="index" :label="name" :value="item"></el-option>
     </el-select>
 </template>
 
@@ -292,7 +301,8 @@ Vue.component('base-checkbox', {
                 // 此处保证了子组件发送的数据会被父组件的v-model="myValue"接受，再被value="myValue"传回。
                 // 如果上面没有定义model.event="change"，则此处的时间必须是'input'
                 // el-select中也有change事件，但是该事件传回的值只能到此组件的v-model中，无法再往外面传输，因此此处必须触发新的事件(本组件中定义的事件)
-                this.$emit('change', this.model) 
+                // ***.自定义组件中也可以不用有类似的input表单元素，自定义一个model字段名，并指定其model.event，并在此处emit即可修改model
+                this.$emit('change', this.model) // 不能直接修改this.value的值，需要通过修改此处的model属性然后传递到外部组件
             }
         },
     };
@@ -343,6 +353,7 @@ props: {
     myFunc: {
         type: Function,
         /*如果是Object/Function/Array，default需要通过函数表示*/
+        // default() {} // 亦可
         default: (item) => {
             return true;
         }
@@ -416,6 +427,7 @@ props: {
             triggerMyEvent(name) {
                 this.$emit("my-event", this.data); // 参数一为事件名称(不要使用驼峰命名)、参数二负载
                 this.$emit(`update:${name}`, this.data) // 事件名称包含变量
+                this.$emit('input', {}, {}) // 此处可以传递多个参数，并可用多参方法捕获
             }
         }
     }
@@ -600,4 +612,5 @@ const User = {
 
 [^1]: https://www.cnblogs.com/-ding/p/6339740.html (动态组件)
 [^2]: https://segmentfault.com/a/1190000008879966#articleHeader14 (vue生命周期)
+[^3]: https://asyncoder.com/2018/07/20/%E8%AE%B0%E4%B8%80%E6%AC%A1Vue%E4%B8%AD%E7%9A%84v-for%E8%B8%A9%E5%9D%91%E4%B9%8B%E6%97%85/
 

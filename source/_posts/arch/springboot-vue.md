@@ -82,6 +82,22 @@ tags: [springboot, vue]
     - 全局CORS配置，声明一个`WebMvcConfigurer`的bean
     - 基于`Filter`，声明一个`CorsFilter`的bean
 
+#### springboot可基于Filter实现
+
+```java
+// 如果加了此配置仍然提示跨域，可检查是否有其他Filter已经返回了此请求
+@Bean
+public Filter corsFilter() {
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    CorsConfiguration config = new CorsConfiguration();
+    config.addAllowedOrigin("*");
+    config.addAllowedMethod("*");
+    config.addAllowedHeader("*");
+    source.registerCorsConfiguration("/**", config);
+    return new CorsFilter(source);
+}
+```
+
 #### spring security的cors配置 [^3]
 
 - 开启cosr
@@ -95,7 +111,7 @@ tags: [springboot, vue]
 
     // 配置cors
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedOrigins(Arrays.asList("http://192.168.1.1:8088", "http://www.aezo.cn:80", "https://www.aezo.cn:80"));
@@ -192,7 +208,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
         ```js
         axios({
-            method: 'post',
+            method: 'post', // 同jquery中的type
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },

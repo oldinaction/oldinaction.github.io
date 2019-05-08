@@ -140,7 +140,7 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 
 ### Oracle表结构与Mysql表结构转换
 
-参考 [mysql-dba.md#Oracle表结构与Mysql表结构转换](/_posts/db/mysql-dba.md#Oracle表结构与Mysql表结构转换)
+参考 [mysql-dba.md#Oracle表结构与Mysql表结构转换](/_posts/db/mysql-dba.md#其他)
 
 ## 常用操作
 
@@ -208,17 +208,44 @@ select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, g
 alter system kill session '某个sid, 某个serial#';
 ```
 
-#### 索引
+#### 索引 [^4]
 
-- 分析并重建索引
+- 索引在逻辑上和物理上都与相关的表和数据无关，当创建或者删除一个索引时，不会影响基本的表
+- 进行索引操作建议在无其他链接的情况下，或无响应写操作的情况下，数据量越大创建索引越耗时
+- Oracle在创建时会做相应操作，因此创建后就会看到效果，无需重启服务
+- 索引是全局唯一的
+- 创建索引语法
+  
+  ```sql
+  CREATE [UNIQUE] | [BITMAP] INDEX index_name  --unique表示唯一索引（index_name全局唯一）
+  ON table_name([column1 [ASC|DESC],column2    --bitmap，创建位图索引
+  [ASC|DESC],…] | [express])
+  [TABLESPACE tablespace_name]
+  [PCTFREE n1]                                 --指定索引在数据块中空闲空间
+  [STORAGE (INITIAL n2)]
+  [NOLOGGING]                                  --表示创建和重建索引时允许对表做DML操作，默认情况下不应该使用
+  [NOLINE]
+  [NOSORT];                                    --表示创建索引时不进行排序，默认不适用，如果数据已经是按照该索引顺序排列的可以使用
+  ```
 
 ```sql
+-- 创建索引
+create index index_in_out_regist_id on ycross_storage(in_out_regist_id);
+-- 重命名索引
+alter index index_in_out_regist_id rename to in_out_regist_id_index;
+-- 重建索引
+alter index index_in_out_regist_id rebuild;
+-- 删除索引
+drop index index_in_out_regist_id;
+-- 查看索引
+select * from all_indexes where table_name='ycross_storage';
+
 -- 1.分析索引
-analyze index SERVER_HIT_TXSTMP validate structure;
+analyze index index_in_out_regist_id validate structure;
 -- 2.查看索引分析结果
 select height,DEL_LF_ROWS/LF_ROWS from index_stats;
 -- 3.查询出来的 height>=4 或者 DEL_LF_ROWS/LF_ROWS>0.2 的场合, 该索引考虑重建
-alter index SERVER_HIT_TXSTMP rebuild online;
+alter index index_in_out_regist_id rebuild online;
 ```
 
 ### 用户相关
@@ -312,6 +339,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
     - 查看服务是否启动：`tnsping local_orcl` cmd直接运行
         - 远程查看(cmd运行)：`tnsping 192.168.1.1:1521/orcl`、或者`tnsping remote_orcl`(其中remote_orcl已经在本地建立好了监听映射，如配置在tnsnames.ora)
         - 如果能够ping通，则说明客户端能解析listener的机器名，而且lister也已经启动，但是并不能说明数据库已经打开，而且tsnping的过程与真正客户端连接的过程也不一致。但是如果不能用tnsping通，则肯定连接不到数据库
+        - 实例tnsping突然高达1w多毫秒，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
     - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
     - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
 - 用户相关查询
@@ -438,3 +466,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
 [^7]: http://blog.sina.com.cn/s/blog_9d4799c701017pw1.html (表空间不足解决办法)
 [^8]: https://www.cnblogs.com/langtianya/p/6567881.html (ORA-01654索引无法通过表空间扩展)
 [^9]: http://www.zhengdazhi.com/archives/1344 (sqlplus导出oracle查询结果)
+[^10]: https://blog.csdn.net/huoyin/article/details/40679877 (tnsping延时过高解决办法)
+
+
+

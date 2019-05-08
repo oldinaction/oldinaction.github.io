@@ -79,10 +79,10 @@ tags: [vpn, linux]
     - VPN类型 `PPTP`
     - 勾选允许使用 `Microsoft CHAP 版本 2 （MS-CHAP v2）（M）`
 
-### IPSec/L2TP
+### IPSec/L2TP [^4]
 
 - https://teddysun.com/448.html
-- https://github.com/kitten/setup-strong-strongswan   
+- https://github.com/kitten/setup-strong-strongswan
 
 ---
 

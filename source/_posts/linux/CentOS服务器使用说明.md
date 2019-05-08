@@ -26,13 +26,16 @@ tags: [CentOS, linux]
 - 永久关闭`SELinux`
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
+- 校验系统时间(多个服务器时间同步可以通过xshell发送到所有会话)
+    - `date` 查看时间
+    - `date -s "2019-04-07 10:00:00"` 设置时间
+    - `hwclock -w` 将时间写入bios避免重启失效
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
 - 设置用户umask值(包括root用户)
     - 永久修改umask值需修改`sudo vi /etc/profile`/`sudo vi ~/.bashrc`文件，加入一行`umask 022`(002对应创建的文件权限是755)
     - 命令行运行`umask 022`只能临时改变
     - `umask` 查看
 - 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
-- 校验系统时间
 
 ### 新服务器常见问题
 
@@ -142,7 +145,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 - tar安装(推荐) [^5]
 
     ```bash
-    ## 使用root用户安装
+    ## **使用root用户安装即可**
     # 安装mysql之前需要确保系统中有libaio依赖
     yum search libaio
     # yum install libaio
@@ -172,28 +175,62 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     chown -R root:root /opt/soft/mysql57 # 把安装目录的目录的权限所有者改为root
     chown -R mysql:mysql /home/data/mysql # 把data目录的权限所有者改为mysql(/home/data权限可以不是mysql)
     
-    # 启动mysql(此时可能会卡在启动命令行。可以再起一个命令行进行密码修改)
+    # 启动mysql(此时可能会卡在启动命令行。可以再起一个命令行进行密码修改，注册成服务后可以关闭)
     /opt/soft/mysql57/bin/mysqld_safe --user=mysql &
 
-    ## 修改root密码
-    ./opt/soft/mysql57/bin/mysql -u root -p
+    ## 修改root密码（第一次无需输入密码，直接回车即可进入进行root密码修改）
+    /opt/soft/mysql57/bin/mysql -u root -p
     # mysql命令
     use mysql;
     update user set authentication_string=password('Hello1234!') where user='root'; # mysql5.7及以后密码必须包含字母、数字、特殊字符
+    grant all privileges on *.* to 'smalle'@'localhost' identified by 'Hello1234!' with grant option; # 创建用户
     flush privileges;
     exit;
     # 测试登录略
 
     ## copy启动脚本并将其添加到服务且设置为开机启动
-    cp /opt/soft/mysql57/support-files/mysql.server /etc/init.d/mysqld
-    chkconfig --add mysqld # 加入服务
+    cp /opt/soft/mysql57/support-files/mysql.server /etc/init.d/mysqld # **此脚本中定义的是基于mysql用户启动，且会通过mysqld_safe启动mysqld**
+    vi /etc/init.d/mysqld # 修改其中的`/usr/local/mysql`和`/usr/local/mysql/data`为对应的basedir和datadir。具体如下文
+    chkconfig --add mysqld # 加入服务(之后systemctl可操作的服务名)
     chkconfig --level 345 mysqld on # 设置开机启动
-    systemctl status mysqld # 查看状态
+    systemctl status mysqld # 查看状态(root用户只需服务启动，最终还是通过mysql用户启动的)。`active (running)`表示启动正常。也可查看`ps -ef | grep mysqld`，会出现`mysqld_safe`(守护进程)和`mysqld`(服务进程)两个进程
+    # 此时如果需要重新启动需要Ctrl+c关掉上面开启的mysqld_safe程序
 
     # 创建mysql软链接到bin目录
     ln -s /opt/soft/mysql57/bin/mysql /usr/bin
+    ln -s /opt/soft/mysql57/bin/mysqldump /usr/bin
     ```
-- yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录)
+    - **修改`/etc/init.d/mysqld`文件**
+    
+    ```bash
+    # 修改
+    if test -z "$basedir"
+    then
+    basedir=/opt/soft/mysql57
+    bindir=/opt/soft/mysql57/bin
+    if test -z "$datadir"
+    then
+        datadir=/home/data/mysql
+    fi
+    sbindir=/opt/soft/mysql57/bin
+    libexecdir=/opt/soft/mysql57/bin
+    else
+
+    # 为
+    if test -z "$basedir"
+    then
+    basedir=/opt/soft/mysql57
+    bindir=/opt/soft/mysql57/bin
+    if test -z "$datadir"
+    then
+        datadir=/home/data/mysql
+    fi
+    sbindir=/opt/soft/mysql57/bin
+    libexecdir=/opt/soft/mysql57/bin
+    else
+    ```
+
+- yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录。`yum install mysql`无法选定版本)
 
     ```bash
     # 下载mysql源安装包
@@ -223,28 +260,30 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     ```ini
     [client] # 客户端连接时的默认配置(可省略)
     port=13306
-    socket=/tmp/mysql.sock
+    socket=/home/data/mysql/mysql.sock
     default-character-set=utf8
 
     [mysqld] # 服务端配置
     port=13306
+    # 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)
     lower_case_table_names=1
     character-set-server=utf8
     init-connect='SET NAMES utf8'
+    # 防止导入数据时数据太大报错
+    max_allowed_packet=512M
 
     ## 手动安装时设置
     # 手动安装时填写mysql根目录
     basedir=/opt/soft/mysql57
-    # 手动安装时填写mysql数据目录
+    # 手动安装时填写mysql数据目录。默认目录为/var/lib/mysql
     datadir=/home/data/mysql
-    log_error=/var/log/mysqld_error.log
-    socket=/tmp/mysql.sock
-    pid-file = /tmp/mysql.pid
+    socket=/home/data/mysql/mysql.sock
+    #pid-file = /home/data/mysql/mysql.pid # pid文件，默认为 %datadir%/aezocn-1.pid
+    #log_error=/home/data/mysql/mysqld_error.log # 服务错误日志文件，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
+    slow_query_log_file=/home/data/mysql/slow.log
 
     # Disabling symbolic-links is recommended to prevent assorted security risks
     symbolic-links=0
-    # 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)
-    lower_case_table_names=1
     ```
 - 其他
     - 卸载yum方式安装
@@ -253,9 +292,12 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
             - `rm -rf xxx` 删除
         - `rpm -qa | grep -i mysql` 查看mysql的依赖
             - `yum remove mysql-xxx` 依次卸载
-        - 删除mysql相关用户和组
-    - `show variables like '%dir%';` 查看mysql相关文件(数据/日志)存放位置
+        - 删除mysql相关用户和组。`userdel -rf mysql`(包括删除家目录)，`groupdel mysql`
+    - `show variables like '%dir%';` sql命令查看mysql相关文件(数据/日志)存放位置
         - 数据文件默认位置：`/var/lib/mysql`
+- 常见问题
+    - 报错`cd: /usr/local/mysql: No such file or directory`。建议检查是否修改了`/etc/init.d/mysqld`文件中的basedir和datadir。[^6]
+    - 重新启动服务会报错`ERROR! The server quit without updating PID file .`。同上
 
 ### 安装oracle客户端 [^4]
 
@@ -359,3 +401,4 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
 [^3]: http://blog.csdn.net/inslow/article/details/54177191 (更换yum镜像)
 [^4]: https://www.cnblogs.com/taosim/articles/2649098.html (安装oracle客户端)
 [^5]: https://www.cnblogs.com/zeng1994/p/f883e0a2832808455039ff83735d6579.html (Linux下安装解压版（tar.gz）MySQL5.7)
+[^6]: https://www.cnblogs.com/shizhongyang/p/8464876.html (cd: /usr/local/mysql: No such file or directory)

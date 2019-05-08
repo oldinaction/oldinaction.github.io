@@ -222,6 +222,27 @@ call:myFuncName
         echo Starting PHP FastCGI...
         RunHiddenConsole.exe d:\software\xampp\php\php-cgi.exe -b 127.0.0.1:19000 -c d:\software\xampp\php\php.ini
         ```
+    - 启动示例
+
+        ```bat
+        @echo off
+
+        setlocal
+
+        if exist start.bat goto ok
+        echo start.bat must be run from its folder
+        goto end
+
+        :ok
+
+        :: start /b 启动应用程序时不必打开新的“命令提示符”窗口。除非应用程序启用 CTRL+C，否则将忽略 CTRL+C 操作。使用 CTRL+BREAK 中断应用程序
+        :: CTRL+BREAK按键. 键位标识PB：Pause Break，SL：Scroll Lock，PS：PrtSc SysRq
+        start /b bin\test.exe >> log\console.log 2>&1 &
+
+        echo start successfully
+
+        :end
+        ```
 - 获取脚本参数。`test.bat`内容如下。运行`test a.txt b.txt`则%1表示a.txt，%2表示b.txt 
 
     ```bat
@@ -251,7 +272,7 @@ call:myFuncName
     ```
 - 脚本示例
     - 进入到当前目录、设置环境变量
-        - `%~dp0` %0代表批处理本身； ~dp是变量扩充， d扩充到分区，p扩充到路径
+        - `%~dp0` %0代表批处理本身；~dp是变量扩充，d扩充到分区，p扩充到路径
         
         ```bat
         rem 设置临时环境变量oracle_home为当前bat文件所在目录(%~dp0)下的Oracle64目录

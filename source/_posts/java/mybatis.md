@@ -780,12 +780,30 @@ Page<Subscribe> subscribePage = new Page<>(0, 100);
 LambdaQueryWrapper lambdaQueryWrapper = new LambdaQueryWrapper<Subscribe>()
 		.eq(Subscribe::getFlowStatus, flowStatus)
 		.eq(Subscribe::getValidStatus, 1)
-		.and(date != null, obj -> obj.gt(Subscribe::getUpdateTm, date)); // 基于某个条件判断是否添加查询此查询条件
+		.and(date != null, obj -> obj.gt(Subscribe::getUpdateTm, date)) // 基于某个条件判断是否添加查询此查询条件
+		.orderByAsc(date != null, Subscribe::getClawCount); // 基于某个条件添加排序
 subscribePage = (Page<Subscribe>) subscribeService.page(subscribePage, lambdaQueryWrapper);
 List<Subscribe> subscribes =  subscribePage.getRecords();
 ```
+- 乐观锁插件：https://mybatis.plus/guide/optimistic-locker-plugin.html
 
+```java
+// 1.启用插件
+@Bean
+public OptimisticLockerInterceptor optimisticLockerInterceptor() {
+	// com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor
+    return new OptimisticLockerInterceptor();
+}
 
+// 2.注解实体
+@Version
+private Integer version;
+
+// 3.修改。仅支持 updateById(id) 与 update(entity, wrapper) 方法；在 update(entity, wrapper) 方法下, wrapper 不能复用
+User user = userMapper.selectById(1);
+user.setAge(18);
+int res = userMapper.updateById(user); // 1成功。生成的sql类似: update t_user set age = 18,version = 2 where id = 1 and version = 1
+```
 
 
 ---

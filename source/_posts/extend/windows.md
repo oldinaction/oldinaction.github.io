@@ -6,12 +6,39 @@ categories: [extend]
 tags: [bat]
 ---
 
+## TODO
+
+Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不影响)：https://blog.csdn.net/chan_1030261721/article/details/80852121
+通过代理使用远程桌面(Mstcs)：https://blog.csdn.net/stephenxu111/article/details/5685982
+
+
+## 介绍
+
+- windows版本号：https://docs.microsoft.com/zh-cn/windows/desktop/SysInfo/operating-system-version
+
+    ```txt
+    Windows 2000                5.0
+    Windows XP	            5.1
+    Windows Server 2003         5.2
+    Windows Vista	            6.0
+    Windows Server 2008	    6.0
+    Windows 7	            6.1
+    Windows Server 2012	    6.2
+    Windows 8	            6.2
+    ```
+
 ## 常用命令
 
 - `ipconfig` 查看ip地址
-- `arp -a` 查看局域网下所有机器mac地址
 - `ping 192.168.1.1`
 - `telnet 192.168.1.1 8080`
+- `netstat -ano | findstr 8080` 查看某个端口信息
+- `tasklist | findstr "10000"` 查看进程ID信息
+- `taskkill /F /pid "10000"` 结束此进程ID
+- `sc delete 服务名` 卸载某服务
+- `arp -a` 查看局域网下所有机器mac地址
+- `mkdir .ssh` 创建.开头文件夹
+- `echo hi > .npmignore` 创建.开头文件
 
 ## 常用技巧
 
@@ -22,14 +49,14 @@ tags: [bat]
 
             ```xml
             <service>
-            <id>nginx</id>
-            <name>nginx service</name>
-            <description>nginx service made by WinSW.NET4</description>
-            <logpath>D:/software/nginx-1.14.0/</logpath>
-            <logmode>roll</logmode>
-            <depend></depend>
-            <executable>D:/software/nginx-1.14.0/nginx.exe</executable>
-            <stopexecutable>D:/software/nginx-1.14.0/nginx.exe -s stop</stopexecutable>
+                <id>nginx</id>
+                <name>nginx service</name>
+                <description>nginx service made by WinSW.NET4</description>
+                <logpath>D:/software/nginx-1.14.0/</logpath>
+                <logmode>roll</logmode>
+                <depend></depend>
+                <executable>D:/software/nginx-1.14.0/nginx.exe</executable>
+                <stopexecutable>D:/software/nginx-1.14.0/nginx.exe -s stop</stopexecutable>
             </service>
             ```
         - 管理员模式执行 `nginx-service.exe install` 进行nginx服务注册
@@ -68,3 +95,60 @@ tags: [bat]
 
 - 下载openssh: [https://github.com/PowerShell/Win32-OpenSSH](https://github.com/PowerShell/Win32-OpenSSH)
 - 解压后将其根目录设置到Path中即可在cmd命令中使用ssh命令连接linux服务器
+
+### ssh服务器
+
+- MobaXterm包含ssh服务器
+
+### Cygwin
+
+- 简介：Cygwin是一个在windows平台上运行的类UNIX模拟环境。即包含bash命令行，且可安装openssh(提供sshd服务)等包提供相应服务
+
+#### 安装
+
+- [安装包setup-x86_64.exe](http://www.cygwin.com/setup-x86_64.exe)
+- 安装 [^1]
+    - 安装目录如`D:/software/cygwin`(unix可访问的根目录，此目录下的home子目录为用户目录)，Local package目录如`D:/software/cygwin/repo`
+    - 设置包下载镜像地址`http://mirrors.aliyun.com/cygwin/`(点击Add添加)
+    - 包安装自定义界面
+        - View：Category基于目录展示包、Picked自定安装的包、UpToDate可更新的包；Search可查询包；Best默认的包版本
+        - 列表展示：Package包名、Current当前安装的版本(未安装为空)、New中Skip表示跳过安装(如需要可下拉选择一个最稳当的版本进行安装)、Bin下载可执行文件、Src下载源码
+        - 一般基于Category查看包，无特殊要求可直接下一步
+            - 默认情况下gcc并不会被安装，为了使我们安装的Cygwin能够编译程序，我们需要安装gcc编译器，一般在Devel分目录下。选择安装`binutils`、`gcc-core`(编译C)、`gcc-g++`(编译c++)、`gdb`(GNU Debugger，可选择和gcc-core同一个大版本)、`mingw64-x86_64-gcc-core`(可选择和gcc-core同一个大版本)、`mingw64-x86_64-gcc-g++`
+            - Web子目录中勾选`wget`(当使用apt-cgy时需使用)
+- 更新包/新增包
+    - 重新执行安装包`setup-x86_64.exe`，下一步到选择新包，执行安装。不会丢失之前的数据
+- 卸载
+    - 重新执行安装包`setup-x86_64.exe`，选择Category展示，在All目录上选择Uninstall
+    - 删除注册表`HKEY_CURRENT_USER/Software/Cygwin`和`HKEY_LOCAL_MACHINE/SOFTWARE/Cygwin`
+    - 删除目录        
+
+#### apt-cgy
+
+- apt-cyg是Cygwin环境下的软件安装工具，相当于Ubuntu下的apt-get命令 [^2]
+- [github主页](https://github.com/transcode-open/apt-cyg)
+- 安装：从github上下载`apt-cyg`脚本文件，并将其放到`%CYGWIN_HOME%/bin`目录下
+- 启动Cygwin，运行`apt-cyg`检查是否安装成功
+- `apt-cyg install openssh` 安装sshd服务
+
+#### 常用包安装
+
+> 可通过重新执行安装包`setup-x86_64.exe`，或执行`apt-cyg install openssh`进行安装(openssh为再界面上看到的包名)。查看包名：http://mirrors.aliyun.com/cygwin/x86_64/release/
+
+- openssh(sshd服务器) [^3]
+    - `apt-cyg install openssh` 安装
+    - `ssh-host-config` 配置(会在windows上安装sshd服务；需要创建一个windows用户，根据提示创建后如：`User 'cyg_server' has been created with password 'root'.`)
+    - `cygrunsrv -S sshd` 启动sshd服务(使用`cyg_server`用户运行的此服务)，启动的为`%CYGWIN_HOME%/usr/sbin/sshd.exe`
+    - 连接服务器`ssh 192.168.1.1`，有可能需要在客户端先执行一次`ssh-keygen -f "/home/smalle/.ssh/known_hosts" -R "192.168.1.1"`
+    - 常见问题
+        - 执行`ping`等命令返回乱码：如果是Cgywin客户端，则设置文本-编码为zh_CN/GBK；如果是xshell连接的，则设置xshell的编码为GBK
+        - ls显示颜色：在`~/.bashrc`文件中加入`alias ls='ls --color --show-control-chars'`
+
+
+---
+
+参考文章
+
+[^1]: https://www.cnblogs.com/skyofbitbit/p/3706057.html
+[^2]: https://blog.csdn.net/callinglove/article/details/39855305
+[^3]: http://zsaber.com/blog/p/126

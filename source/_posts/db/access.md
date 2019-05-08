@@ -81,12 +81,15 @@ public class CryptCodecOpener implements JackcessOpenerInterface {
 
 ### 基于ODBC连接
 
-- odbc为微软听过的数据库连接工具，jdbc为java标准的数据连接工具，jdbc-odbc是java针对odbc提供的桥接工具。jdbc-odbc工具自jdk1.8已经移除。
+- odbc为微软的数据库连接工具，jdbc为java标准的数据连接工具，jdbc-odbc是java针对odbc提供的桥接工具。**jdbc-odbc工具自jdk1.8已经移除，一定要使用只能自行编译。**
 - 使用jdk1.8通过odbc的方式连接access库，会提示找不到类`sun.jdbc.odbc.JdbcOdbcDriver`。解决办法参考：https://www.youtube.com/watch?v=Um273dtsUt8
     - 将jdk1.7(包含jdbc-odbc)的rt.jar复制出来，通过压缩工具进行解压。解压后将`sun.jdbc`和`sun.security.action`目录复制出来(根目录为sun)
     - `jar -cvf jdbc-odbc64.jar sun`对上述class文件夹进行重新生成jar(项目中使用此jar)
-    - 复制`JRE7/bin/jdbcodbc.dll`到`JRE8/bin`目录
-- 需要在windows上面安装access驱动(含密码的access，可以再高级配置选项中输入密码，用户名可不同填写)。参考：https://1017401036.iteye.com/blog/2260786
+    - 且需要复制`JRE7/bin/JdbcOdbc.dll`到`JDK/bin`/`JRE8/bin`目录
+- 需要在windows上面安装access驱动，并配置驱动。参考：https://1017401036.iteye.com/blog/2260786
+    - windows搜索odbc - 设置ODBC数据源(64位) - 系统DNS - 添加 - 选择accdb的驱动 - 完成
+    - 数据源名如为`test`(代码中连接的名) – 选择数据库 – 选择access文件 – 确定
+    - 含密码的access，可以再高级配置选项中输入密码，用户名可不同填写
 - 连接代码
 
 ```java
@@ -94,6 +97,7 @@ Connection connect = null;
 PreparedStatement stmt = null;
 ResultSet rs = null;
 try{
+    String db = "test"; // 上述数据源名
     Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
     Properties p = new Properties();
     p.put("charSet", "GBK"); // Access中的数据库默认编码为GBK，本地项目为UTF-8，若不转码会出现乱码

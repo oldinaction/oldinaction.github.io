@@ -64,3 +64,33 @@ tags: [regex, javascript, java]
 // 匹配id
 '<div id="container" class="main"></div>'.match(/id="([^"]*)"/); // ['id="container"', 'container']
 ```
+
+## java
+
+```java
+// (.*?) 惰性匹配
+Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v1/auth/login"); // true
+Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/auth/login"); // true
+Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/xxx/login"); // false
+```
+
+- String的matches
+
+```java
+"hi, hello world".matches("(.*)hello(.*)")); // true
+"hi, hello world".matches("hello")); // false, ***特别注意此时无法匹配***
+"hi, hello world".matches("(hi(.*)")); // true
+```
+
+- 忽略大小写
+
+```java
+// 第一种：直接用正则。(?i)表示整体忽略大小写，如果单个，则可以写成"^d(?i)oc"表示oc忽略大小写，"^d((?i)o)c"表示只有o忽略大小写
+"DoC".matches("^(?i)doc$"); // true
+
+// 第二种，采用Patter编译忽略大小写
+Pattern p = Pattern.compile("^doc$", Pattern.CASE_INSENSITIVE);
+p.matcher(s).matches(); // true
+```
+
+

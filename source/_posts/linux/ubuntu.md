@@ -33,8 +33,8 @@ systemctl status xrdp
 ipconfig
 ```
 - windows远程桌面连接登录
-    - ip输入`192.168.17.196:3389`点击连接
-    - 在跳出的登录界面中选择`session: Xorg; username/password: root/root`
+    - ip输入`192.168.17.196:3389`点击连接，3389为默认端口，外网也只需开通TCP的此端口映射
+    - 在跳出的登录界面中选择`session: Xorg; username/password: root/root(ubuntu用户即可)`
 
 ### 常用设置
 

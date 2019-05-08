@@ -9,6 +9,7 @@ tags: [shell, linux]
 ## 简介
 
 - shell是解释性语言，解释器为`bash`
+- [Shell教程](http://c.biancheng.net/cpp/shell/)
 
 ## 基本语法
 
@@ -27,10 +28,10 @@ tags: [shell, linux]
   - `ls -l * | grep "^_" | wc -l` 统计当前目录有多少个文件
 - 重定向：将命令的结果重定向到某个地方
   - `>`、`>>`　输出重定向(`>`覆盖，`>>`追加)
-    - `ls　> ls.txt` 将ls的输出保存到ls.txt中
+    - `ls > ls.txt` 将ls的输出保存到ls.txt中
     - `>` 如果文件不存在，就创建文件；如果文件存在，就将其清空。`>>` 如果文件不存在，就创建文件；如果文件存在，则将新的内容追加到那个文件的末尾
-  - `2>` 错误重定向，如：`lsss　2> ls.txt`
-  - `&>` 全部重定向：`ls &> /dev/null` 将结果全部传给数据黑洞
+    - `2>` 错误重定向，如：`lsss　2> ls.txt`
+    - `&>` 全部重定向：`ls &> /dev/null` 将结果全部传给数据黑洞
   - `<`、`<<` 输入重定向
     - `wall < notice.txt` 将notice.txt中的数据发送给所有登录人
   - 标准输入(stdin) 代码为 0 ，实际映射关系：/dev/stdin -> /proc/self/fd/0 
@@ -75,8 +76,9 @@ tags: [shell, linux]
 - 注意文件格式必须是Unix格式(否则执行报错：`: No such file or directory`)
   - 解决办法：`vim my.sh` - `:set ff=unix` - `:x`
 - 执行`./my.sh`或`sh my.sh`或`bash my.sh`(有时需要添加可执行权限：`chmod +x my.sh`)
-  - `bash -n shell文件` 检查文件是否有语法错误
-  - `bash -x shell 文件` debug 执行文件
+  - `bash -n shell文件` 检查文件是否有语法错误(`sh -n`亦可)
+  - `bash -x shell 文件` **debug 执行文件**
+  - `.`、`exec`、`eval`命令执行脚本都不会产生子进程
 - `#!/bin/bash` 脚本第一行必须以此开头
 - `#` 表示注释
 - `exit` 退出脚本
@@ -131,9 +133,238 @@ if [ -d $1 ];then
 fi
 ```
 
+#### 接受参数
+
+- 顺序参数，如`./test.sh 1 2` 执行下面脚本
+
+	```bash
+	#!/bin/bash
+
+	# test.sh
+	echo "脚本$0" # test.sh
+	echo "第一个参数$1" # 1
+	echo "第二个参数$2" # 2
+	# 超过10个的参数需要使用${10}, ${11}来接收
+	```
+	- 示例
+	
+		```bash
+		start() {
+			echo 'start...'
+		}
+
+		stop() {
+			echo 'stop...'
+		}
+
+		case "$1" in
+			'start')
+			  	start
+				;;
+			'stop')
+			  	stop
+				;;
+			*)
+        echo "[info] Usage: $0 {start|stop}"
+        exit 1
+		esac
+		exit $?
+		```
+
+- getopt 与 getopts 
+  - getopts 接收命令行选项和参数。语法：`getopts OptionString Name [ Argument ...]`
+    - OptionString 选项名称，Name选项值变量
+    - 一个字符是一个选项，如个某字符`:`表示选项后面有传值。当getopts命令发现冒号后，会从命令行该选项后读取该值。如该值存在，将保存在特殊的变量OPTARG中
+    - 每次调用 getopts 命令时，它将下一个选项的值放置在 Name 内，并将下一个要处理的参数的索引置于 shell 变量 OPTIND 中。每当调用 shell 时，都会将 OPTIND 初始化为 1
+    - 当OptionString用`:`开头，getopts会区分invalid option错误(Name值会被设成`?`)和miss option argument错误(Name会被设成`:`)；否则出现错误，Name都会被设成`?`
+  - getopts示例(b.sh) [^3]
+
+    ```bash
+    #!/bin/bash
+    echo 初始 OPTIND: $OPTIND
+      
+    while getopts "a:b:c" arg #选项后面的冒号表示该选项需要参数
+    do
+        case $arg in
+            a)
+                echo "a's arg:$OPTARG" #参数存在$OPTARG中
+                ;;
+            b)
+                echo "b's arg:$OPTARG"
+                ;;
+            c)
+                echo "c's arg:$OPTARG"
+                ;;
+            ?)  #当有不认识的选项的时候arg为?
+                echo "unkonw argument"
+                exit 1
+            ;;
+        esac
+    done
+      
+    echo 处理完参数后的 OPTIND：$OPTIND
+    echo 移除已处理参数个数：$((OPTIND-1))
+    shift $((OPTIND-1)) # 上一条命令 $((OPTIND-1)) 对参数位置进行了修改，此时shift可以回置参数位置
+    echo 参数索引位置：$OPTIND
+    echo 准备处理余下的参数：
+    echo "Other Params: $@"
+    ```
+  - getopts示例结果
+  
+    ```html
+    # bash b.sh -a 1 -b 2 -c 3 test -oo xx -test
+    初始 OPTIND: 1
+    a's arg:1
+    b's arg:2
+    c's arg:
+    # 处理`-a 1 -b 2 -c 3 test -oo xx -test`，可以解析到`-c`，相当于移动5次，此时OPTIND=5+1
+    处理完参数后的 OPTIND：6
+    移除已处理参数个数：5
+    参数索引位置：6
+    准备处理余下的参数：
+    Other Params: 3 test -oo xx -test
+    
+    # bash b.sh -a 1 -c 3 -b 2 test -oo xx -test # 非参数选项注意顺序与值，不要多传
+    初始 OPTIND: 1
+    a's arg:1
+    c's arg:
+    # 处理`-a 1 -c 3 -b 2 test -oo xx -test`，可以解析到`-c`，相当于移动3次，此时OPTIND=3+1. 当解析到3的时候发现无法解析，则不再往后解析，全部归到其他参数
+    处理完参数后的 OPTIND：4
+    移除已处理参数个数：3
+    参数索引位置：4
+    准备处理余下的参数：
+    Other Params: 3 -b 2 test -oo xx -test
+
+    # bash b.sh -a 1 -c -b 2 test -oo xx -test
+    初始 OPTIND: 1
+    a's arg:1
+    c's arg:
+    b's arg:2
+    处理完参数后的 OPTIND：6
+    移除已处理参数个数：5
+    参数索引位置：6
+    准备处理余下的参数：
+    Other Params: test -oo xx -test
+    ```
+  - getopt示例
+
+    ```bash
+    #!/bin/bash
+
+    # -o: 表示短选项，一个冒号表示该选项有一个参数；两个冒号表示该选项有一个可选参数，可选参数必须紧贴选项，如-carg 而不能是-c arg
+    # --long: 表示长选项
+    # -n: 出错时的信息
+    # --: 用途举例，创建一个名字为 "-f"的目录，当`mkdir -f`时不成功，因为-f会被mkdir当作选项来解析; 这时就可以使用 `mkdir -- -f` 这样-f就不会被作为选项。
+	# $@: 从命令行取出参数列表(不能用用 $* 代替，因为 $* 将所有的参数解释成一个字符串，而 $@ 是一个参数数组)
+    TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
+        -n "$0" -- "$@"`
+    
+	# 上面一条命令执行出错则退出程序
+    if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
+    
+    # Note the quotes around `$TEMP': they are essential!
+    #set 会重新排列参数的顺序，也就是改变$1,$2...$n的值，这些值在getopt中重新排列过了。所有不包含选项的命令行参数都排到最后
+    eval set -- "$TEMP"
+    
+	function usage() {
+		echo "Usage: $0 {-a|--a-long} {-b|--b-long} {-c|--c-long}" ; 
+		exit 1 ;
+	}
+
+	# 如果一个参数都没有则则执行
+	if [ -z $2 ] ; then echo "None-argument..." ; usage ; exit 1 ; fi
+
+    #经过getopt的处理，下面处理具体选项。
+    while true ; do
+		case "$1" in
+			# `shift ;` 相当于 `shift 1 ;`，即将OPTIND回置1位
+			# 如 `run.sh -a -b 2`
+			# 第一次循环：$1=-a $2=-b $3=2, 匹配到`-a`，此时`shift ;`回置1位
+			# 第二次循环：$1=-b $2=2，匹配到`-b`
+			-a|--a-long) echo "Option a" ; shift ;;
+			# 将OPTIND回置2位，因为b参数名和b的参数值占命令行2位。-b为必填项，如果不填写则执行getopt命令时会报错
+			-b|--b-long) echo "Option b, argument \`$2\`" ; shift 2 ;;
+			-c|--c-long)
+				# c has an optional argument. As we are in quoted mode,
+				# an empty parameter will be generated if its optional
+				# argument is not found.
+				case "$2" in
+					"") echo "Option c, no argument"; shift 2 ;;
+					*)  echo "Option c, argument \`$2\`" ; shift 2 ;;
+				esac ;;
+			# break 停止循环
+			--) shift ; break ;;
+			*) echo "Internal error!" ; exit 1 ;;
+		esac
+    done
+	
+    # $@为getopt表达式解析提取后剩余的其他参数数组
+    echo "Remaining arguments:"
+    for arg in $@ 
+    do
+    	echo '--> '"\`$arg\`" ;
+    done
+
+	exit $?
+    ```
+  - getopt示例结果
+
+    ```html
+    # ./run.sh
+	None-argument...
+	Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
+
+	# ./run.sh 123
+	Remaining arguments:
+	--> `123`
+
+	# ./run.sh --
+	None-argument...
+	Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
+
+	# ./run.sh -- 123 456
+	Remaining arguments:
+	--> `123`
+	--> `456`
+	
+	# ./run.sh -a --b-long 2
+	Option a
+	Option b, argument `2`
+	Remaining arguments:
+
+	# ./run.sh -a -b 2 -c3 # 可选参数必须紧跟选项
+	Option a
+	Option b, argument `2`
+	Option c, argument `3`
+	Remaining arguments:
+
+	# ./run.sh -a -b 2 -c 3
+	Option a
+	Option b, argument `2`
+	Option c, no argument
+	Remaining arguments:
+	--> `3`
+
+	# ./run.sh -a 1 --b-long 2
+	Option a
+	Option b, argument `2`
+	Remaining arguments:
+	--> `1`
+
+	# ./run.sh -a -b 2 -c3 -- 4 5
+	Option a
+	Option b, argument `2`
+	Option c, argument `3`
+	Remaining arguments:
+	--> `4`
+	--> `5`
+    ```
+
 #### 条件判断
 
 - 条件表达式 `[ expression ]` **注意其中的空格**
+  - `[ -z "$pid" ]` 单对中括号变量必须要加双引号，`[[ -z $pid ]]` 双对括号，变量不用加双引号
+  - `[[ ]]`内是不能使用 -a 或者 -o 进行比较，`[ ]`内可以
 - 整数比较
   - `-eq` 相等，比如：[ $A –eq  $B ]
   - `-ne` 不等
@@ -150,12 +381,17 @@ fi
   - `-x`
 - 字符串测试
   - `==` 或 `=` **等号两端需要空格**
+  - `=~` 正则比较
   - `!=`
-  - `-n <string>` 判断字符串是否为空
+  - `-z` 判断变量的值是否为空(为空，返回0，为true)
+  - `-n` 判断变量的值是否不为空(非空，返回0，为true)
   - `-s <string>` 判非空
+  - `[[ $str != h* ]]` 判断字符串是否不是以h开头
+  - `[[ "$str" =~ ^he.* ]]` 判断字符串是否以he开头
 - 条件表达式的逻辑关系
   - **在linux中命令执行状态：0 为真，其他为假**
   - `&&`(第一个表达式为true才会运行第二个)、`||`、`!`
+  - `-a` 并且、`-o` 或
 - 控制结构
 
   ```shell
@@ -209,21 +445,21 @@ fi
 
 ```shell
 case 变量 in
-  value1)
-    语句
-    ;;
-  value2)
-    语句
-    ;;
-  *)
-    语句
-    ;;
+	value1)
+		语句
+		;;
+	value2)
+		语句
+		;;
+	*)
+		语句
+		;;
 esac
 ```
 
 ### linux命令
 
-- `basename <file>` 返回一个字符串参数的基本文件名称。如：basename /home/smalle/test.txt返回test.txt
+- `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
 
 ## functions模块
 
@@ -234,7 +470,9 @@ esac
 
 - `killproc` 杀死进程
 
-## jar包运行/停止示例 [^1]
+## 示例
+
+### jar包运行/停止示例 [^1]
 
 - 自启动脚本可参考`/etc/init.d`目录下的文件，如`network`
 
@@ -258,6 +496,8 @@ esac
 APP_JAR="app-0.0.1-SNAPSHOT.jar"
 # springboot参数
 SPRING_PROFILES="--spring.profiles.active=test"
+# 查找到此APP的grep字符串(基于APP_JAR的基础上继续查找，可用于多实例启动)
+APP_GREP_STR=$APP_JAR
 # 内存溢出后dump文件存放位置，需要先创建此文件夹
 JVM_LOG_PATH="/home/"
 #执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号
@@ -290,7 +530,7 @@ psid=0
 
 #(函数)判断程序是否已启动
 checkpid() {
-    ps_pid=`ps -ef | grep $APP_JAR | grep -v grep`
+    ps_pid=`ps -ef | grep $APP_JAR | grep $APP_GREP_STR | grep -v grep`
 
     if [ -n "$ps_pid" ]; then
       psid=`echo $ps_pid | awk '{print $2}'`
@@ -375,27 +615,153 @@ info() {
 #读取脚本的第一个参数($1)，进行判断. 参数取值范围：{start|stop|restart|status|info}. 如参数不在指定范围之内，则打印帮助信息
 case "$1" in
     'start')
-      start
-      ;;
+		start
+		;;
     'stop')
-      stop
-      ;;
+		stop
+		;;
     'restart')
-      stop
-      start
-      ;;
+		stop
+		start
+		;;
     'status')
-      status
-      ;;
+		status
+		;;
     'info')
-      info
-      ;;
-  *)
-      echo "[info] Usage: $0 {start|stop|restart|status|info}"
-      exit 1
+		info
+		;;
+  	*)
+		echo "[info] Usage: $0 {start|stop|restart|status|info}"
+		exit 1
 esac
 exit $?
 ```
+
+### 生成随机数和字符串
+
+```bash
+## $RANDOM 的范围是 [0, 32767]
+echo $RANDOM
+## 获取uuid: 3ebbdb15-7ee6-4e30-97ac-643d41bbf9d6
+cat /proc/sys/kernel/random/uuid
+date +%s%N
+
+## 生成随机字符串，`head -c 10`表示取前10位
+cat /dev/urandom | head -n 10 | md5sum | head -c 10
+date +%s%N | md5sum | head -c 10
+```
+- 或者创建shell文件
+
+```bash
+#!/bin/bash
+
+function rand(){
+    min=$1
+    max=$(($2-$min+1))
+    # num=$(($RANDOM+1000000000)) #增加一个10位的数再求余
+    # num=$(date +%s%N)
+    # num=$(cat /proc/sys/kernel/random/uuid | cksum | awk -F ' ' '{print $1}')
+    num=$(cat /dev/urandom | head -n 10 | cksum | awk -F ' ' '{print $1}')
+    echo $(($num%$max+$min))
+}
+# 生成1~50的随机数
+rnd=$(rand 1 50)
+echo $rnd
+
+exit 0
+```
+
+### 创建vsftpd虚拟账号
+
+- vsftpd虚拟账号设置见 [http://blog.aezo.cn/2019/03/19/arch/ftp/](/_posts/arch/ftp.md#vsftpd)
+- 脚本使用如：`sudo ./vsftp_user.sh -u s_test1,s_test2`，以sudo执行脚本，则脚本中的命令都为sudo权限执行
+
+```bash
+#!/bin/bash
+
+# getopt表达式
+TEMP=`getopt -o u: -n "$0" -- "$@"`
+if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
+eval set -- "$TEMP"
+
+function usage() {
+	echo "usage: $0 -u <ftp_user_name>" ;
+	echo "eg: $0 -u s_test1,s_test2" ;
+	exit 1 ;
+}
+
+# 判断脚本是否未传任何参数
+if [ -z "$2" ] ; then echo "(error) None-argument..." ; usage ; exit 1 ; fi
+
+function create_user() {
+	u=$1
+  # 判断字符串不以xxx开头; 双引号中的变量可以识别，单引号中的变量无法识别; `return 1` 为函数返回值
+	if [[ $u != s_* ]] ; then echo "(warn) 用户名 $user 不以 s_ 开头, 不进行操作." ; return 1; fi
+	
+	pass=$(sed -n "/$u/{n;p;}" $vuser_file)
+  # -n 判断文本是否不为空; [ ] 中的变量必须加双引号，[[ ]] 中的变量可以不使用双引号
+	if [ -n "$pass" ] ; then
+		echo "(warn) 存在登录名: $u, 密码: $pass" ;
+	else
+		# 去掉文末空行
+		sed -i -e '/^$/d' $vuser_file ;
+		
+		echo $u >> $vuser_file ;
+		pass=$(cat /dev/urandom | head -n 8 | md5sum | head -c 8)
+		echo $pass >> $vuser_file ;
+	fi
+	
+	touch $etc_dir/$u ;
+  # 添加多行文本到文件 `<< EOF`表示遇到 `EOF` 则停止. 此时可以识别变量 $u
+	cat > $etc_dir/$u << EOF
+local_root=/home/vsftp/$u
+anon_umask=022
+anon_world_readable_only=NO
+anon_upload_enable=YES
+anon_mkdir_write_enable=NO
+anon_other_write_enable=YES
+EOF
+	
+	mkdir -p $vuser_dir/$u ;
+	chown -R vsftp.vsftp $vuser_dir/$u ;
+	
+  # 打印的字符串不加单双引号亦可，且字符串连接无需任何符号
+	echo "(info)" 登录名: $u, 密码: $pass ;
+}
+
+user_array=
+vuser_dir=/home/vsftp
+etc_dir=/etc/vsftpd/vuser_conf.d
+vuser_file=/etc/vsftpd/vuser
+while true ; do
+	case "$1" in
+		-u) 
+			user_str=$2
+      # 以 , 进行分割字符串为数组
+			user_array=(${user_str//,/ })
+			shift 2 ;;
+		--) shift ; break ;;
+		*) echo "(error) Internal error!" ; exit 1 ;;
+	esac
+done
+
+cp $vuser_file $vuser_file'_bak_'$(cat /dev/urandom | head -n 8 | md5sum | head -c 8) ; # 备份文件
+
+for user in ${user_array[@]}
+do
+  # 调用函数并传参数
+	create_user $user ;
+	echo ---------------------------------- ;
+done 
+
+db_load -T -t hash -f $vuser_file $vuser_file'.db' ; # 重新生成vsftpd虚拟用户数据库
+
+exit $?
+```
+
+
+
+
 
 
 ---
@@ -403,3 +769,6 @@ exit $?
 参考文章
 
 [^1]: http://blog.csdn.net/clerk0324/article/details/50593882
+[^2]: https://blog.csdn.net/fdipzone/article/details/24329523
+[^3]: https://www.cnblogs.com/yxzfscg/p/5338775.html
+

@@ -97,3 +97,19 @@ public class FtlU {
 - 转义字符`${r"..."}`: 如：`${r"${foo}"}`、`${r"C:\foo\bar"}`
 - `js_string` 用于JavaScript转义，转换`'`、`"`、换行等特殊字符。如：`alert("${errorMessage?js_string}");`
 
+```html
+<#list myList?if_exists as item>
+    <option value="${item.id}"<#if "${item.code}" == "True">selected="selected"</#if>>${(item.name)!}</option>
+</#list>
+<#list 0..2 as index>
+    <#if "${(snapListReverse[index]['total'])!}" != "">
+    <tr>
+        <td>${(snapListReverse[index]['time'])!}</td>
+        <#-- ftl注释：取默认值 -->
+        <td>${(snapListReverse[index]['total'])!'0'}</td>
+    </tr>
+    </#if>
+</#list>
+
+${(item.inputTm?string("yyyy-MM-dd HH:mm"))!}
+```

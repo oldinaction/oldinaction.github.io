@@ -79,6 +79,7 @@ tags: [spring, spring-mvc]
 - `@Bean`
     - 注解配置类中的方法，表示当前方法的返回值是一个Bean，Bean的名称(id)默认是方法名
     - `@Bean("newBeanName")` 自定义Bean名称
+    - Springboot项目，将`@Bean`加入在test的代码中时无法注入
 
 #### @Import给容器导入一个组件
 
@@ -181,7 +182,10 @@ public class App {
 
 ### 自动装配(取出Bean赋值给当前类属性)
 
-- `@Autowired` Spring提供(默认按类型by type(根据类); 如果想用by name，则使用`@Qualifier("my-bean-name")`)
+- `@Autowired` Spring提供
+    - 默认按类型by type(根据类)
+    - 如果想用by name，则联合使用`@Qualifier("my-bean-name")`
+    - `@Autowired List<Monitor> monitors;` 也可以注入集合
 - `@Resource` JSR-250提供(常用)
 - `@Inject` JSR-330提供
 
@@ -190,6 +194,8 @@ public class App {
 - `@Scope("prototype")` 注解类(配置Bean的作用域，可和`@Bean`联合使用)
     - `singleton` 整个容器共享一个实例(默认配置). IOC容器启动(`new AnnotationConfigApplicationContext()`)，就会创建所有的Bean(`@Lazy`懒加载，仅用于单例模式，只有在第一次获取Bean时才创建此Bean)
     - `prototype` 每次调用新建一个实例. IOC容器启动，不会创建Bean，只有在获取的时候创建Bean
+        - **此对象`@Autowired`注入几次就会产生几个对象，和调用此对象方法无关**
+        - 如果此类型Bean含有有状态字段，则也容易产生并发问题，prototype并不能解决
     - `request` Web项目中，每一个HttpRequest新建一个实例
     - `session` Web项目中，同一个session创建一个实例
     - `globalSession` 用于portal应用
@@ -239,7 +245,7 @@ public class MyWindowsCondition implements Condition {
 ### Bean生命周期
 
 - 初始化和销毁方法实现方式
-    - 指定初始化和销毁方法：`initMethod`, `destroyMethod`
+    - 指定@Bean初始化和销毁方法属性：`initMethod`, `destroyMethod`
     - 实现`InitializingBean`, `DisposableBean`(org.springframework.beans.factory.DisposableBean) 
     - 使用JSR250：`@PostConstruct` Bean创建完成并完成属性赋值后调用, `@PreDestroy`(javax.annotation.PreDestroy) 销毁Bean前调用
 - **后置处理器`BeanPostProcessor`** (org.springframework.beans.factory.config.BeanPostProcessor)
@@ -253,7 +259,7 @@ public class App {
         /*
         constructor MyBean2...
         postProcessBeforeInitialization...
-        init MyBean2...
+        init MyBean2...(afterPropertiesSet...)
         postProcessAfterInitialization...
         创建IOC完成...
         destroy MyBean2...
@@ -300,15 +306,15 @@ public class MyBean2 {
 
 // ### 基于接口实现
 public class MyBean3 implements InitializingBean, DisposableBean {
-    @Override
-    public void destroy() throws Exception {
-        System.out.println("destroy MyBean3...");
-    }
-
     // Bean创建完成，且属性赋值完成后调用
     @Override
     public void afterPropertiesSet() throws Exception {
         System.out.println("afterPropertiesSet MyBean3...");
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("destroy MyBean3...");
     }
 }
 ```
@@ -316,7 +322,7 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 ### 属性赋值
 
 - `@Value` 在其中输入EL表达式(Spring-EL)。可对资源进行注入
-- `@PropertySource` 注入外部配置文件值
+- `@PropertySource` 注入外部配置文件值。springboot通过spring-boot-configuration-processor这个依赖会把配置文件的值注入到@Value里面
 
 ```java
 @Configuration
@@ -334,6 +340,9 @@ public class ELConfig {
 
     @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止为定义此参数值(特别是通过命令行传入的参数)
     private Resource siteUrl;
+
+    @Value("${site.tags}")
+    private String[] tags; // 获取数组，yml中可定义site.tags=a,b,c # 默认会基于`,`分割。(yml中使用`-`则需要定义配置类实体)
 
     @Value("#{demoService.another}") // 读取其他类属性的@Value注解值
     private String fromAnother;
@@ -403,19 +412,82 @@ site.url=www.aezo.cn
         <artifactId>aspectjweaver</artifactId>
         <version>1.8.10</version>
     </dependency>
+
+    <!-- springboot项目依赖 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
     ```
 - 编写切面
 
     ```java
+    // 示例一
     @Aspect // 声明一个切面
     @Component
     public class LogAspect {
-        // 法一：简单
-        @Before("execution(* cn.aezo.spring.base.annotation.aop.DemoMethodService.*(..))")
+        @Before("execution(* cn.aezo.spring.base.annotation.aop.DemoMethodService.*(..)) || execution(* cn.aezo.spring.base.annotation.aop.DemoMethodService2.*(..))")
         public void before(JoinPoint joinPoint) {
             MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
             Method method = methodSignature.getMethod();
             System.out.println("方法规则式拦截[@Before-execution]：" + method.getName());
+        }
+    }
+
+    // 示例二
+    @Aspect
+    @Component
+    public class LogIntercept {
+        @Pointcut("execution(public * cn.aezo.spring.base.annotation.aop..*.*(..))")
+        public void recordLog(){}
+
+        @Before("recordLog()")
+        public void before() {
+            this.printLog("execution方法执行前");
+        }
+
+        @Around("recordLog()")
+        public void around(ProceedingJoinPoint pjp) throws Throwable{
+            this.printLog("execution方法执行前");
+            pjp.proceed();
+            this.printLog("execution方法执行后");
+        }
+
+        @After("recordLog()")
+        public void after() {
+            this.printLog("execution方法执行后");
+        }
+    }
+
+    // 示例三
+    @Aspect
+    @Component
+    public class OptimisticCheckAspect {
+        @Value("sq.tableName:ds_test")
+        private String tableName;
+
+        private List<String> tableList;
+
+        public JdbcTemplateAspect() {
+            tableList = new ArrayList<>();
+            if(tableName != null) {
+                tableList.addAll(Arrays.asList(tableName.split(",")));
+            }
+        }
+
+        // 检查通过 JdbcTemplate 执行的sql语句是否携带session字段
+        @Before("execution(* org.springframework.jdbc.core.JdbcTemplate.update(..)) " +
+                " || execution(* org.springframework.jdbc.core.JdbcTemplate.batchUpdate(..))")
+        public void before(JoinPoint joinPoint) {
+            Object[] args = joinPoint.getArgs();
+            if(args != null && args.length > 0 && args[0] instanceof String) {
+                String sql = ((String) args[0]).trim();
+                if(sql.toLowerCase().startsWith("insert") || sql.toLowerCase().startsWith("update")) {
+                    if(!sql.matches("(.*)\\s+((?i)version)\\s*=(.*)")) {
+                        throw new RuntimeException("修改此实体需要基于乐观锁实现");
+                    }
+                }
+            }
         }
     }
     ```
@@ -601,10 +673,10 @@ site.url=www.aezo.cn
         - Seconds可出现`, -  *  /`四个字符，有效范围为0-59的整数    
         - Minutes可出现`, -  *  /`四个字符，有效范围为0-59的整数    
         - Hours可出现`, -  *  /`四个字符，有效范围为0-23的整数
-            - `*` 代表每隔1分/秒/时触发；
-            - `,` 代表在指定的分/秒/时触发，比如"10,20,40"代表10分/秒/时、20分/秒/时和40分/秒/时时触发任务 
-            - `-` 代表在指定的范围内触发，比如"5-30"代表从5分/秒/时开始触发到30分/秒/时结束触 发，每隔1分/秒/时触发
-            - `/` 代表触发步进(step)，"/"前面的值代表初始值("*"等同"0")，后面的值代表偏移量。比如"0/25"或者"*/25"代表从0分/秒/时开始，每隔25分/秒/时触发1次
+            - `*` 代表每隔1秒/分/时触发；
+            - `,` 代表在指定的秒/分/时触发，比如"10,20,40"代表10秒/分/时、20秒/分/时和40秒/分/时时触发任务 
+            - `-` 代表在指定的范围内触发，比如"5-30"代表从5秒/分/时开始触发到30秒/分/时结束触 发，每隔1秒/分/时触发
+            - `/` 代表触发步进(step)，"/"前面的值代表初始值("\*"等同"0")，后面的值代表偏移量。比如"0/25"或者"\*/25"代表从0秒/分/时开始，每隔25秒/分/时触发1次
     - 常用定时配置
 
         ```bash
@@ -672,7 +744,7 @@ public class JobManager {
      * 停止定时任务
      */
     public void stopJob(String jobName) {
-        Assert.notNull(jobName, "Job名称不能为空");
+        Assert.notNull(jobName, "JobName can not be null");
 
         ScheduledFuture<?> future = jobMap.get(jobName);
         if(future != null) {
