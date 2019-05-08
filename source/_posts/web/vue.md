@@ -126,7 +126,7 @@ created(): {
     - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)
     - 对于select，必须定义key值(只需要当前select的key值唯一，无需整个页面的key值唯一)保证唯一性。否则容易出现无法选择/无法修改该select的值，导致数据响应不触发
     - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
-        - `key="{{Date.now() + Math.random()}}"`
+        - `key="&#123;{Date.now() + Math.random()}&#123;"` (此处双括号使用了转义符)
 - 扩展说明
 
 ```html
