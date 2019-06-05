@@ -2,9 +2,163 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/05/30/linux/virtual-server-cloud/</loc>
+    
+    <lastmod>2019-06-05T07:25:34.487Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
+    
+    <lastmod>2019-06-05T04:48:41.035Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</loc>
+    
+    <lastmod>2019-06-04T01:44:57.986Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
+    
+    <lastmod>2019-06-03T09:24:38.070Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
+    
+    <lastmod>2019-06-03T09:01:12.447Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/10/22/java/springsecurity/</loc>
+    
+    <lastmod>2019-05-31T05:45:30.660Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
+    
+    <lastmod>2019-05-31T04:04:27.740Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
+    
+    <lastmod>2019-05-31T02:06:01.007Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/04/16/service/open-shift/</loc>
+    
+    <lastmod>2019-05-30T06:38:44.068Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/04/02/web/npm/</loc>
+    
+    <lastmod>2019-05-29T09:52:49.468Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
+    
+    <lastmod>2019-05-28T09:47:20.089Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2019-05-28T07:19:01.601Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
+    
+    <lastmod>2019-05-28T06:12:19.265Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
+    
+    <lastmod>2019-05-28T05:28:25.852Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2019-05-28T05:09:13.397Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimize/</loc>
+    
+    <lastmod>2019-05-27T06:18:33.646Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
+    
+    <lastmod>2019-05-21T10:12:46.556Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/arch/docker/</loc>
+    
+    <lastmod>2019-05-21T09:03:25.902Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    
+    <lastmod>2019-05-21T01:49:56.659Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/01/others/javaconception/</loc>
+    
+    <lastmod>2019-05-16T02:37:12.368Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
+    
+    <lastmod>2019-05-15T10:25:06.881Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/08/24/db/db-procedure/</loc>
+    
+    <lastmod>2019-05-15T10:22:52.567Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
     
-    <lastmod>2019-05-08T13:44:17.947Z</lastmod>
+    <lastmod>2019-05-12T06:39:44.414Z</lastmod>
     
   </url>
   
@@ -16,37 +170,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
-    
-    <lastmod>2019-05-08T08:42:16.791Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2019-05-07T10:50:06.033Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimize/</loc>
-    
-    <lastmod>2019-05-07T06:01:43.410Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2019-05-07T04:53:29.086Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
-    
-    <lastmod>2019-05-05T09:15:08.876Z</lastmod>
     
   </url>
   
@@ -65,20 +191,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
-    
-    <lastmod>2019-04-30T01:27:03.121Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
-    
-    <lastmod>2019-04-29T04:34:02.403Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
     
     <lastmod>2019-04-28T07:57:24.522Z</lastmod>
@@ -89,20 +201,6 @@
     <loc>http://blog.aezo.cn/2016/12/29/arch/maven/</loc>
     
     <lastmod>2019-04-26T10:16:25.694Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    
-    <lastmod>2019-04-26T06:18:53.639Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
-    
-    <lastmod>2019-04-26T05:11:13.039Z</lastmod>
     
   </url>
   
@@ -128,13 +226,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</loc>
-    
-    <lastmod>2019-04-17T04:54:48.171Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
     
     <lastmod>2019-04-16T07:04:13.377Z</lastmod>
@@ -156,13 +247,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
-    
-    <lastmod>2019-04-07T14:36:27.583Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/11/20/db/access/</loc>
     
     <lastmod>2019-04-03T09:25:55.248Z</lastmod>
@@ -177,44 +261,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2019-04-02T02:14:46.926Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/25/arch/docker/</loc>
-    
-    <lastmod>2019-03-29T02:19:38.433Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</loc>
     
     <lastmod>2019-03-22T02:15:47.770Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
-    
-    <lastmod>2019-03-14T02:50:58.857Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
-    
-    <lastmod>2019-03-01T03:56:28.288Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/24/extend/vmware/</loc>
-    
-    <lastmod>2019-02-22T03:15:37.198Z</lastmod>
     
   </url>
   
@@ -247,30 +296,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
-    
-    <lastmod>2019-01-24T04:42:45.548Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/01/others/javaconception/</loc>
-    
-    <lastmod>2019-01-15T10:23:31.198Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/11/28/extend/vscode/</loc>
     
     <lastmod>2019-01-11T05:02:42.586Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/22/java/springsecurity/</loc>
-    
-    <lastmod>2019-01-09T04:50:08.982Z</lastmod>
     
   </url>
   
@@ -387,13 +415,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/08/24/db/db-procedure/</loc>
-    
-    <lastmod>2018-10-25T04:33:11.167Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/06/01/web/yarn/</loc>
     
     <lastmod>2018-09-27T09:08:57.496Z</lastmod>
@@ -446,13 +467,6 @@
     <loc>http://blog.aezo.cn/2018/07/21/others/speech/</loc>
     
     <lastmod>2018-07-21T05:06:24.796Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/04/02/web/npm/</loc>
-    
-    <lastmod>2018-07-21T03:54:26.275Z</lastmod>
     
   </url>
   
@@ -544,13 +558,6 @@
     <loc>http://blog.aezo.cn/2017/10/09/extend/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/</loc>
     
     <lastmod>2018-07-21T03:54:26.212Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/04/16/extend/open-shift/</loc>
-    
-    <lastmod>2018-07-21T03:54:26.204Z</lastmod>
     
   </url>
   
