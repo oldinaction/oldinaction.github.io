@@ -26,6 +26,7 @@ tags: [CentOS, linux]
     - 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
 - 永久关闭`SELinux`
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
+    - 快速修改命令 `sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`，并重启
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
 - 校验系统时间(多个服务器时间同步可以通过xshell发送到所有会话)
     - `date` 查看时间
