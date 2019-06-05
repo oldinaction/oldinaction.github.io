@@ -20,6 +20,7 @@ tag: [git, gitflow]
 
 - `git config --global user.name smalle` 设置用户名
 - `git config --global user.email oldinaction@qq.com` 设置邮箱
+	- `git config user.name "username"`、`git config user.email "email"` 为单一仓库设置
 - `git config --global color.ui true` 设置在命令行打印的代码带颜色
 - `git config --list`  列出所有配置
 
@@ -180,6 +181,47 @@ tag: [git, gitflow]
 - 常见问题`remote: Repository not found`，重新安装`credential-manager`
 	- `git credential-manager uninstall`
 	- `git credential-manager install`
+
+#### git免密码登录
+
+- 法一：使用manage保存凭证(不适合同一台机器上使用多个git账号，就windows而言，这个凭据放在windows的凭据管理器中)
+	- `git config credential.helper manager`
+- 法二：使用SSH方式
+	- `ssh-keygen -C 'smalle-pc'` git客户端执行生成秘钥，会在用户家目录下的.ssh文件夹中生成2个名为id_rsa和id_rsa.pub的文件
+	- 以github为例：Github - Setting - SSH and GPG keys - New SSH key - Name可随便标识，把id_rsa.pub公钥文件内容保存在Key中 **(客户端一定要将私钥文件id_rsa保存到.ssh目录，普通的ssh登录客户端貌似无需私钥文件？)**
+	- `git config --global  user.name "git服务器用户名"`
+	- `git config --global user.email "邮箱"`
+	- `git remote set-url origin git@github.com:USERNAME/REPOSITORY.git`
+	- `ssh -T git@github.com` 测试是否可以正常登录，`ssh -vT git@github.com` 显示登录信息
+		- 常见问题：`Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password)`，参考文章：https://blog.51cto.com/11975865/2308044，https://www.cnblogs.com/sloong/p/6132892.html。实际操作gitlab遇到的是另外一个问题，具体如下
+		
+		```bash
+		# 1.一直提示以下内容
+		debug1: Next authentication method: gssapi-with-mic # 表示使用gssapi-with-mic进行验证
+		debug1: Unspecified GSS failure.  Minor code may provide more information
+		No Kerberos credentials available (default cache: KEYRING:persistent:0)
+
+		debug1: Unspecified GSS failure.  Minor code may provide more information
+		No Kerberos credentials available (default cache: KEYRING:persistent:0)
+
+		debug1: Next authentication method: publickey # 使用publickey进行验证
+		debug1: Offering RSA public key: /root/.ssh/id_rsa
+		debug1: Server accepts key: pkalg ssh-rsa blen 279
+		debug1: Trying private key: /root/.ssh/id_dsa
+		debug1: Trying private key: /root/.ssh/id_ecdsa
+		debug1: Trying private key: /root/.ssh/id_ed25519
+		debug1: No more authentication methods to try.
+		Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+
+		# 2.git客户端登录的是root用户，原本只存在文件/root/.ssh/id_rsa.pub，发现上面使用的是id_rsa，则仅仅将id_rsa.pub改成id_rsa文件(仍然是公钥文件)
+		Enter passphrase for key # 要求输入密码，但是生成秘钥对的时候并没有密码
+
+		# 3.直接使用原始生成的id_rsa秘钥文件，则将之前生成的秘钥文件也加入到此目录
+		Permissions 0644 for '/root/.ssh/id_rsa' are too open.
+		It is required that your private key files are NOT accessible by others.
+
+		# 4.提示上面文件开放权限太大，在git客户端设置`chmod 600 /root/.ssh/id_rsa`，可正常使用
+		```
 
 #### 查看日志和帮助
 

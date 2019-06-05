@@ -237,100 +237,112 @@ select @v_c, @v_temp;
 - 示例2
 
 ```sql
+-- 从用户表中提取某省份的区县字典表（已存在省份城市表）
 create definer = 'root'@'localhost'
-procedure test.county(in `in_provid` int, in `in_urlid` int)
+procedure test_county(in `in_provid_id` int, in `in_inputer` varchar(100))
 begin
 	declare v_sql varchar(1000);
-	declare c_cityid integer;
-	declare c_cityname varchar(20);
-	declare c_countyname varchar(20);
-	declare c_cityid_tmp integer;
+	declare v_city_id integer;
+	declare v_city_name varchar(20);
+	declare v_county_name varchar(20);
+	declare v_city_id2 integer;
+	declare v_star_provid integer;
 
-	# 是否未找到数据标记(要在游标之前定义)
+	-- 是否未找到数据标记(要在游标之前定义)
 	declare done int default false;
 
-	-- 定义第一个游标
+	-- 定义第一个游标（根据省份查询所有城市）
 	declare cur1 cursor for
-	select
-		t.n_cityid,
-		t.s_cityname
-	from dict_city t
-	where t.n_provid = in_provid;
+		select t.city_id, t.city_name from dict_city t where t.provid_id = in_provid_id;
 
-	# 临时表游标
+	-- 临时表游标
 	declare cur2 cursor for
-	select
-		s_countyname,
-		n_cityid as cityid
-	from tmp_table;
+		select city_id, city_name from temp_county;
 
-	# 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)
+	-- 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)
 	declare continue handler for not found set done = true;
+	-- 错误处理：发生对应错误时返回select结果。参考：https://segmentfault.com/a/1190000006834132
+	declare exit handler for 1062 select 'duplicate keys error encountered';
+    declare exit handler for sqlexception select 'sqlexception encountered';
+    declare exit handler for sqlstate '23000' select 'sqlstate 23000';
 
-	# 创建临时表
-	drop table if exists tmp_table;
-	create temporary table if not exists tmp_table (
+	-- 创建临时表
+	drop table if exists temp_county;
+	create temporary table if not exists temp_county (
 		id int(11) not null auto_increment primary key,
-		s_countyname varchar(20),
-		n_cityid int(10)
+		city_id int(10),
+		county_name varchar(20)
 	);
 
-	# mysql不能直接变量结果集, 此出场将结果集放到临时表中, 用于后面变量
+	-- mysql不能直接定义变量结果集, 此处将结果集放到临时表中, 用于后面变量
 	open cur1;
 	flag_loop: loop
-		# 取出每条记录并赋值给相关变量，注意顺序
-		# 变量的定义不要和你的select的列的键同名, 否则fetch into 会失败！
-		fetch cur1 into c_cityid, c_cityname;
+		-- 取出每条记录并赋值给相关变量，注意顺序
+		-- 用游标select的字段数需要与fetch into的变量数一致，**且变量的定义不要和select的列的键同名**, 否则fetch into 会失败！
+		fetch cur1 into v_city_id, v_city_name;
 
-		# fetch之后, 如果没有数据则会运行set done = true
+		-- 调试输出. 运行时会打印在控制台
+		select v_city_id, v_city_name;
+
+		-- fetch之后, 如果没有数据则会运行set done = true
 		if done then
-			# 跳出循环
+			-- 跳出循环，类似于break
 			leave flag_loop;
 		end if;
 
-		# 字符串截取，从第一位开始，截取2位
-		set c_cityname = substring(c_cityname, 1, 2);
+		-- 测试handler(实际操作上可以在循环开始之前判断)
+		begin
+			-- **此处必须重新定义handler**，防止此处未获取到数据(not found)触发上面定义的handler，直接导致循环退出
+			declare continue handler for not found set done = false;
+			select t.star_provid into v_star_provid from dict_country t where t.provid_id = in_provid_id; -- star_provid是否为星标城市
+			if v_star_provid is null then
+				-- 类似于continue
+				iterate flag_loop;
+			end;
+		end;
 
-		# 动态sql执行后的结果记录集在mysql中无法获取，因此需要转变思路将其放置到一个临时表中
-		# 动态sql需要使用concat(a, b, c, ....)拼接
-		set v_sql = concat("insert into tmp_table(s_countyname, n_cityid) select t.`name`, ", c_cityid, " from sm_renthouse_url t where
-		t.pid in (select p.id from sm_renthouse_url p where p.pid = ", in_urlid, " and p.`name` like '%", c_cityname, "%')");
+		-- 字符串截取，从第一位开始，截取2位
+		set v_city_name = substring(v_city_name, 1, 2);
 
-		# 如果以@开头的变量可以不用通过declare语句事先声明
+		-- 动态sql执行后的结果记录集在mysql中无法获取，因此需要转变思路将其放置到一个临时表中（基于城市名成模糊查询房源信息表中的所有区县）
+		-- 动态sql需要使用concat(a, b, c, ....)拼接
+		set v_sql = concat("insert into temp_county(city_id, county_name) select ", v_city_id,
+			", t.county_name from t_house_addr t where t.city_name like '%", v_city_name, "%'");
+
+		-- 如果以@开头的变量可以不用通过declare语句事先声明
 		set @v_sql = v_sql;
-		# 预处理需要执行的动态sql，其中stmt是一个变量
+		-- 预处理需要执行的动态sql，其中stmt是一个变量
 		prepare stmt from @v_sql;
-		# 执行sql语句
+		-- 执行sql语句
 		execute stmt;
-		# 释放掉预处理段
+		-- 释放掉预处理段
 		deallocate prepare stmt;
 	end loop;
 	close cur1;
 
-	# 调试输出, 打印使用select
-	select
-		*
-	from tmp_table;
+	-- 调试输出, 打印使用select
+	select * from temp_county;
 
-	# 还原终止的标志, 用于第二个游标
+	-- 还原终止的标志, 用于第二个游标
 	set done = false;
 
 	open cur2;
 	flag_loop: loop
-		fetch cur2 into c_countyname, c_cityid_tmp;
+		fetch cur2 into v_city_id2, v_county_name;
 		if done then
 			leave flag_loop;
 		end if;
 
-		insert into dict_county (s_countyname, n_cityid, s_state)
-			values (c_countyname, c_cityid_tmp, '1');
-
+		insert into dict_county(city_id, county_name, s_state, inputer) values(v_city_id2, v_county_name, '1', in_inputer); -- county_id会自增
 	end loop;
 	close cur2;
 
-	# 删除临时表
-	drop temporary table tmp_table;
-end
+	-- 删除临时表
+	drop temporary table temp_county;
+end;
+
+--调用存储过程
+call test_county(1, 1);
 ```
 
 ## SQLServer
@@ -338,32 +350,32 @@ end
 ```sql
  --分页查询
 ALTER proc [dbo].[SP_Test]
-		@Table nvarchar(50),--表.视图
-		@PageSize int,--每页显示数量
-		@PageIndex int,--当前显示页码
-		@Conditions nvarchar(300),--筛选条件
-		@Pages int output--返回总共有多少页
+	@Table nvarchar(50),--表.视图
+	@PageSize int,--每页显示数量
+	@PageIndex int,--当前显示页码
+	@Conditions nvarchar(300),--筛选条件
+	@Pages int output--返回总共有多少页
 as
-		declare @start int ,--当前页开始显示的No
-		@end int,--当前页结束显示的No
-		@Context nvarchar(1024), --动态sql语句
-		@pkey nvarchar(10)--主键或索引
-		set @start=(@PageIndex-1)*@PageSize+1
-		set @end=@start+@PageSize-1
-		set @pkey=index_col(@Table,1,1)--获取主键，或索引
-		--通过条件将符合要求的数据汇聚到临时表#temp上
-		set @Context='select row_number() over(order by '+@pkey+') as [No],* into #temp  from '+@Table
-		--判断是否有筛选条件传入
-		if(@Conditions is not null)
+	declare @start int ,--当前页开始显示的No
+	@end int,--当前页结束显示的No
+	@Context nvarchar(1024), --动态sql语句
+	@pkey nvarchar(10)--主键或索引
+	set @start=(@PageIndex-1)*@PageSize+1
+	set @end=@start+@PageSize-1
+	set @pkey=index_col(@Table,1,1)--获取主键，或索引
+	--通过条件将符合要求的数据汇聚到临时表#temp上
+	set @Context='select row_number() over(order by '+@pkey+') as [No],* into #temp  from '+@Table
+	--判断是否有筛选条件传入
+	if(@Conditions is not null)
 
-			 set @Context=@Context+' where '+@Conditions
-		--通过查询#temp 表实现分页.
-		set @Context=@Context+'  select * from #temp where No between '+cast(@start as nvarchar(4))+' and '+cast(@end as nvarchar(4))
-		--返回出总共可以分成多少页
-		set @Context=@Context+'  declare @count int  select @count=count(*) from #temp  set @Pages= @count/'+cast(@PageSize as nvarchar(4))+'  if(@count%'+cast(@PageSize as nvarchar(4))+'<>0) set @Pages=@Pages+1 '
+			set @Context=@Context+' where '+@Conditions
+	--通过查询#temp 表实现分页.
+	set @Context=@Context+'  select * from #temp where No between '+cast(@start as nvarchar(4))+' and '+cast(@end as nvarchar(4))
+	--返回出总共可以分成多少页
+	set @Context=@Context+'  declare @count int  select @count=count(*) from #temp  set @Pages= @count/'+cast(@PageSize as nvarchar(4))+'  if(@count%'+cast(@PageSize as nvarchar(4))+'<>0) set @Pages=@Pages+1 '
 
-		exec sp_executesql @Context,N'@Pages int output', @Pages output
-		-- sp_executesql @动态sql语句，@动态sql语句中需要的参数，@传入动态sql语句参数的值（个人理解）
+	exec sp_executesql @Context,N'@Pages int output', @Pages output
+	-- sp_executesql @动态sql语句，@动态sql语句中需要的参数，@传入动态sql语句参数的值（个人理解）
 ```
 
 ## Oracle的PL/SQL语言(笔记)

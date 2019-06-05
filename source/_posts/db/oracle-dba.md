@@ -227,16 +227,17 @@ alter system kill session '某个sid, 某个serial#';
   [NOLINE]
   [NOSORT];                                    --表示创建索引时不进行排序，默认不适用，如果数据已经是按照该索引顺序排列的可以使用
   ```
+- create、rebuild对大表进行索引操作时切记加上`online`参数，此时DDL与DML语句可以并行运行，防止阻塞. [^11]
 
 ```sql
 -- 创建索引
-create index index_in_out_regist_id on ycross_storage(in_out_regist_id);
+create index index_in_out_regist_id on ycross_storage(in_out_regist_id) online;
 -- 重命名索引
-alter index index_in_out_regist_id rename to in_out_regist_id_index;
+alter index index_in_out_regist_id rename to in_out_regist_id_index online;
 -- 重建索引
-alter index index_in_out_regist_id rebuild;
+alter index index_in_out_regist_id rebuild online;
 -- 删除索引
-drop index index_in_out_regist_id;
+drop index index_in_out_regist_id online;
 -- 查看索引
 select * from all_indexes where table_name='ycross_storage';
 
@@ -467,6 +468,6 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
 [^8]: https://www.cnblogs.com/langtianya/p/6567881.html (ORA-01654索引无法通过表空间扩展)
 [^9]: http://www.zhengdazhi.com/archives/1344 (sqlplus导出oracle查询结果)
 [^10]: https://blog.csdn.net/huoyin/article/details/40679877 (tnsping延时过高解决办法)
-
+[^11]: https://blog.csdn.net/robinjwong/article/details/42104831
 
 

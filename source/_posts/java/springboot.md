@@ -82,6 +82,26 @@ tags: springboot
 		level: # 设置日志级别
 			- org.springframework.security: DEBUG
 	```
+- `application.yml`单文件中配置多环境
+
+	```yml
+	# 默认
+	server:
+		port: 9000
+	
+	---
+	spring:
+		# 设置启动参数spring.profiles.active=dev即可覆盖上面默认配置
+		profiles: dev
+	server:
+		port: 9001
+	
+	---
+	spring:
+		profiles: prod
+	server:
+		port: 9002
+	```
 
 ## 常用配置
 
@@ -365,9 +385,20 @@ public WebMvcConfigurer corsConfigurer() {
 
 ### 全局错误处理
 
+- @ControllerAdvice和@ExceptionHandler联用进行control层错误处理
+- Interceptor层异常
+	- 方法@ExceptionHandler会处理所有Controller层抛出的Exception及其子类的异常，Controller层就不需要单独处理异常了。但如上代码只能处理 Controller 层的异常，对于未进入Controller的异常，如Interceptor（拦截器）层的异常，Spring 框架层的异常无效，还是会将错误直接返回给用户
+	- SpringMVC是可以通过增加/error的handler来处理异常的，而REST却不行。因为在Spring REST中，当用户访问了一个不存在的链接时，Spring 默认会将页面重定向到`/error` 上，而不会抛出异常(error对应的视图就是常见的Whitelabel Error Page)
+	- 处理方法是，在application.properties文件中，增加下面两项设置
+
+		```yml
+		spring.mvc.throw-exception-if-no-handler-found=true
+		spring.resources.add-mappings=false
+		```
+- 继承BasicErrorControllers是处理进入control层之前发生的异常，需要重写error、errorHtml两个方法
+
 ```java
-@RestController // 包含@ResponseBody
-@ControllerAdvice // 和@ExceptionHandler联用进行control层错误处理
+@RestControllerAdvice // 包含@RestController(包含@ResponseBody)和@ControllerAdvice
 // 继承BasicErrorControllers是处理进入control层之前发生的异常，需要重写error、errorHtml两个方法
 public class GlobalExceptionHandlerController extends BasicErrorController {
     private Logger logger = LoggerFactory.getLogger(GlobalExceptionHandlerController.class);
@@ -782,25 +813,25 @@ public MultipartConfigElement multipartConfigElement() {
 - 配置
 
 	```bash
-		# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
-		spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-		# 端口默认3306可以省略
-		spring.datasource.url=jdbc:mysql://localhost:3306/springboot?useUnicode=true&characterEncoding=utf-8
-		spring.datasource.username=root
-		spring.datasource.password=root
-		# springboot连接池默认使用的是tomcat-jdbc-pool，在处理utf8mb4类型数据(Emoji表情、生僻汉字。uft8默认只能存储1-3个字节的汉字，上述是4个字节)的时候，需要大致两步
-			# 1.设置数据库、表、字段的编码类型为utf8mb4
-			# 2.在创建数据库连接之后，要执行一条sql语句 "SET NAMES utf8mb4 COLLATE utf8mb4_general_ci"，这样的数据库连接才可以操作utf8mb4类型的数据的存取
-		spring.datasource.tomcat.initSQL=SET NAMES utf8mb4 COLLATE utf8mb4_general_ci
+	# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
+	spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+	# 端口默认3306可以省略
+	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?useUnicode=true&characterEncoding=utf-8
+	spring.datasource.username=root
+	spring.datasource.password=root
+	# springboot连接池默认使用的是tomcat-jdbc-pool，在处理utf8mb4类型数据(Emoji表情、生僻汉字。uft8默认只能存储1-3个字节的汉字，上述是4个字节)的时候，需要大致两步
+		# 1.设置数据库、表、字段的编码类型为utf8mb4
+		# 2.在创建数据库连接之后，要执行一条sql语句 "SET NAMES utf8mb4 COLLATE utf8mb4_general_ci"，这样的数据库连接才可以操作utf8mb4类型的数据的存取
+	spring.datasource.tomcat.initSQL=SET NAMES utf8mb4 COLLATE utf8mb4_general_ci
 
-		# 执行初始化库语句
-		initialization-mode: always # springboot 2.0需要开启初始化模式。embedded(默认值, 当使用内嵌数据库时可使用, 如 h2), always使用外部数据库时需要开启
-		# 每次启动都会执行, 且在hibernate建表语句之前执行（如果要执行需要sql脚本先关闭hibernate建表 spring.jpa.hibernate.ddl-auto=none）
-		# 若无此定义, springboot也会默认执行resources下的schema.sql(先)和data.sql(后)文件(如果存在)
-		# 执行建表语句(也会执行插入等语句)
-		spring.datasource.schema=classpath:schema.sql
-		# 执行数据添加语句
-		spring.datasource.data=classpath:data.sql
+	# 执行初始化库语句
+	initialization-mode: always # springboot 2.0需要开启初始化模式。embedded(默认值, 当使用内嵌数据库时可使用, 如 h2), always使用外部数据库时需要开启
+	# 每次启动都会执行, 且在hibernate建表语句之前执行（如果要执行需要sql脚本先关闭hibernate建表 spring.jpa.hibernate.ddl-auto=none）
+	# 若无此定义, springboot也会默认执行resources下的schema.sql(先)和data.sql(后)文件(如果存在)
+	# 执行建表语句(也会执行插入等语句)
+	spring.datasource.schema=classpath:schema.sql
+	# 执行数据添加语句
+	spring.datasource.data=classpath:data.sql
 	```
 
 ### 对hibernate的默认支持(JPA)
@@ -816,14 +847,13 @@ public MultipartConfigElement multipartConfigElement() {
 - `@Transactional` 注解对应的public类型函数. 一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)
 - 由于Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的。`@Transactional`注解只被应用到 public 可见度的方法上
 	- 自调用导致@Transactional失效。spring里事务是用注解配置的，当一个方法没有接口，单单只是一个方法不是服务时，事务的注解是不起作用的，需要回滚时就会报错`org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope`。出现这个问题的根本原因在于AOP的实现原理，由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，自调用时不存在代理对象的调用，这时不会产生我们注解@Transactional配置的参数，自然无效了
-- 默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚 
+- **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
 	- `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到异常Exception时回滚
 	- `@Transactional(noRollbackFor = RuntimeException.class)` 指定不回滚
 	- 基于服务的统一结果返回，无法回滚事物(类似ofbiz的服务引擎返回)：服务内部捕获了异常(Exception)，返回的是统一的对象(如自定义`Result`)
 		- `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚。或者基于自定义注解统一回滚。或者手动抛出RuntimeException
 - Spring的@Transactional自我调用问题：同一个类中的方法相互调用，被调用的方法`@Transactional`无效 [^12]
 	- 通过BeanPostProcessor 在目标对象中注入代理对象
-- `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 手动回滚事物
 - 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
 - 隔离级别`@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读
 	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是：READ_COMMITTED。
@@ -848,24 +878,33 @@ public MultipartConfigElement multipartConfigElement() {
 	@Autowired
 	private JdbcTemplate jdbcTemplate; // 单数据源时，springboot默认会注入JdbcTemplate的Bean
 
-	// 查询一行数据并返回int型结果
+	// 1.查询一行数据并返回int型结果
 	jdbcTemplate.queryForInt("select count(*) from test");  
-	// 查询一行数据并将该行数据转换为Map返回。**如果不存在会返回null**
-	jdbcTemplate.queryForMap("select * from test where id=1");  
-	// 查询一行任何类型的数据，最后一个参数指定返回结果类型
+	// 2.查询一行数据并将该行数据转换为Map返回。**如果不存在会返回null**
+	jdbcTemplate.queryForMap("select * from test where id=1");
+	// 3.查询一行任何类型的数据，最后一个参数指定返回结果类型
 	jdbcTemplate.queryForObject("select count(*) from test", Integer.class); 
 	try {
 		String username = jdbcTemplate.queryForObject("select t.username from t_test t where t.id=?", String.class, 10000L);
 	} catch (DataAccessException e) {
 	}
-	// 查询一批数据，默认将每行数据转换为Map。**如果不存在会返回无任何元素的集合**
+	// 4.**基于实体查询**，也可查询集合(同查询8)
+	// 注意：如果直接安装下面注释的写法会查询失败，仅有警告信息(IncorrectResultSetColumnCountException: Incorrect column count: expected 1, actual 10)，不会报错
+	// UserVo userVo = uscUmcJdbcTemplate.queryForObject(
+	//         "select * from u_user_login ul where ul.username = ? and ul.valid_status = 1 limit 1", UserVo.class, username);
+	UserVo userVo = uscUmcJdbcTemplate.queryForObject(
+			"select * from u_user_login ul where ul.username = ? and ul.valid_status = 1 limit 1",
+			new Object[]{username},
+			new BeanPropertyRowMapper<>(UserVo.class));
+
+	// 5.查询一批数据，默认将每行数据转换为Map。**如果不存在会返回无任何元素的集合**
 	List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from test");  
-	// 只查询一列数据列表，列类型是String类型，列名字是name
-	jdbcTemplate.queryForList("select name from test where name=?", new Object[]{"smalle"}, String.class);  
-	// 查询一批数据，返回为SqlRowSet，类似于ResultSet，但不再绑定到连接上
+	// 6.只查询一列数据列表，列类型是String类型，列名字是name
+	List<String> names = jdbcTemplate.queryForList("select name from test where name=?", new Object[]{"smalle"}, String.class);  
+	// 7.查询一批数据，返回为SqlRowSet，类似于ResultSet，但不再绑定到连接上
 	SqlRowSet rs = jdbcTemplate.queryForRowSet("select * from test");  
 
-	// 查询2
+	// 8.基于实体查询
 	String sql = "select id, name, age from student";
 	List<Student> students = (List<Student>) jdbcTemplate.query(sql, new RowMapper<Student>() {
 		@Override
@@ -1510,7 +1549,8 @@ app.controller('MainController', function($rootScope, $scope, $http) {
 ```yml
 spring:
   datasource:
-    access-one:
+	# 直接写在datasource下的jdbc-url数据源无法充当默认数据源，默认数据源需要通过`@Primary`定义
+    access-one: # 不能使用下划线
       driver-class-name: net.ucanaccess.jdbc.UcanaccessDriver
       jdbc-url: jdbc:ucanaccess://D:/gitwork/springboot/dynamic-datasource/src/main/resources/test.accdb;memory=true
     mysql-one:
@@ -2053,7 +2093,9 @@ public class DynamicAddTests {
 
 - `nested exception is java.lang.IllegalArgumentException: Could not resolve placeholder 'crm.tempFolder' in value "${crm.tempFolder}"`
 	- 原因分析：一般由于存在多个`application`配置文件，然后并没有指定。则使用默认配置，运行时出现`No active profile set, falling back to default profiles: default`，从而缺少部分配置。实践时发现application.properties中已经配置了`spring.profiles.active=dev`，再idea中通过main方法启动时不报错，但是通过maven打包是测试不通过
-	- 解决办法参考：[《maven.md#结合springboot》](/_posts/arch/maven.md#结合springboot)。实际中主要是没有将`src/main/resources`目录添加到maven的resource中
+	- 解决办法参考
+		- [《maven.md#结合springboot》](/_posts/arch/maven.md#结合springboot)。实际中主要是没有将`src/main/resources`目录添加到maven的resource中
+		- 或者在每中环境配置文件中都定义`crm.tempFolder`参数值
 
 ## springboot 2.0.1 改动
 
@@ -2063,6 +2105,7 @@ public class DynamicAddTests {
 // 获取单条记录
 // spring boot 1.4.3
 // User user = this.userRepositroy.findOne(id);
+// User user = this.userRepositroy.getOne(id); // getOne获取的是代理对象；jpa1时，和findOne类似；jpa2时，getOne在jackjson转换时会报错，推荐使用findById
 // spring boot 2.0.1
 User user = this.userRepositroy.findById(id).get();
 ```

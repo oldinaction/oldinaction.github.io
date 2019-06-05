@@ -95,9 +95,15 @@ ThisCrackLicenseId-{
 
 - `jrebel` java热部署. **修改代码后使用`Ctrl+Shif+F9`进行热部署**
     - jrebel破解可使用`myJRebel`
-- `Lombox` 简化代码工具 [https://projectlombok.org/](https://projectlombok.org/)
+- `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
 - `MybatisX` 可自动识别mybatis的mapper(实现)，Ctrl+Alt可实现相应跳转
 - `PlantUML integration` 基于PlantUML语法画UML图
+- `Maven Helper` 可显示冲突的maven依赖
+    - 此插件依赖`Maven Intergration`，在安装后也要启用
+    - 点击pom.xml文件，右下角会出现`Dependency Analyzer`
+    - `Dependency Analyzer` - `Conflicts`中显示的即为冲突的依赖
+        - 点击其中任何一个依赖，会在右侧显示重复引用的来源(基于版本降序) 
+        - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
 
 ## 快捷键
 
@@ -122,6 +128,20 @@ ThisCrackLicenseId-{
 - 快捷键图片
 
 ![idea-keys](/data/images/2016/09/idea-keys.png)
+
+## 常用技巧
+
+### 开启Run DashBoard配置
+
+- 当项目存在多个可执行模块时，Run DashBoard配置会自动跳出，如果不跳出可以手动配置，在项目的`.idea/workspace.xml`中找到`<component name="RunDashboard">`节点，在此节点中加入下列配置
+
+```xml
+<option name="configurationTypes">
+    <set>
+        <option value="SpringBootApplicationConfigurationType" />
+    </set>
+</option>
+```
 
 ## IDEA开发PHP程序
 

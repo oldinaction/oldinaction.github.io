@@ -12,29 +12,31 @@ tags: [system, bois]
 2. Ubuntu下载地址：[http://releases.ubuntu.com/](http://releases.ubuntu.com/)
 3. 本文以`Ubuntu 16.04.1 LTS`为例记录U盘、硬盘安装方法(windows安装类似)
 
-## 使用
+## Ubuntu使用
 
 ### windows远程桌面连接Ubuntu [^10]
 
-- 配置
+- Xmanager、VNC登录远程桌面
+    - https://www.tightvnc.com/
+- 基于xrdp配置远程桌面
 
-```bash
-# 安装xrdp
-sudo apt-get install xrdp
-# 安装vnc4server
-sudo apt-get install vnc4server
-# 安装xubuntu-desktop
-sudo apt-get install xubuntu-desktop
-# 向xsession中写入xfce4-session(每个用户自己运行此行)
-echo "xfce4-session" > ~/.xsession
-# 查看xrdp服务状态(默认安装就已经开启了)
-systemctl status xrdp
-# 查看ip
-ipconfig
-```
-- windows远程桌面连接登录
-    - ip输入`192.168.17.196:3389`点击连接，3389为默认端口，外网也只需开通TCP的此端口映射
-    - 在跳出的登录界面中选择`session: Xorg; username/password: root/root(ubuntu用户即可)`
+    ```bash
+    # 安装xrdp
+    sudo apt-get install xrdp
+    # 安装vnc4server
+    sudo apt-get install vnc4server
+    # 安装xubuntu-desktop
+    sudo apt-get install xubuntu-desktop
+    # 向xsession中写入xfce4-session(每个用户自己运行此行)
+    echo "xfce4-session" > ~/.xsession
+    # 查看xrdp服务状态(默认安装就已经开启了)
+    systemctl status xrdp
+    # 查看ip
+    ipconfig
+    ```
+    - windows远程桌面连接登录
+        - ip输入`192.168.17.196:3389`点击连接，3389为默认端口，外网也只需开通TCP的此端口映射
+        - 在跳出的登录界面中选择`session: Xorg; username/password: root/root(ubuntu用户即可)`
 
 ### 常用设置
 
@@ -101,7 +103,6 @@ ipconfig
     systemctl restart docker # 重启。如果仍然无法执行docker命令，可以退出当前用户再登录尝试
     ```
 
-
 ### 文件
 
 - 显示/隐藏隐藏文件和文件夹：`Ctrl + H`
@@ -153,14 +154,14 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 4. Bios启动 -> 进入到刻录的U盘系统 -> `Install Ubuntu`（或者选择使用而不安装，进入之后还是可以安装） -> 点击桌面的`安装Ubuntu 16.04.1 LTS`进行安装 -> 前面一直下一步，到安装类型选择"其他选项"（可以自己创建调整分区）
 5. 选择"空闲"的磁盘，双击进行分区，主要分3个区`/`、`swap`、`/home`（还有其他分区方案）
     - `/`：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点`/`
-    - `swap`：大小<2G。逻辑分区，文件类型为交换空间，挂载点无
+    - `swap`：大小2G/4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。逻辑分区，文件类型为交换空间，挂载点无。最终显示如`tmpfs`
     - `/home`：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点`/home`
 6. 安装启动引导的设备：选择`/`分区，如果有`/boot`分区则选择`/boot`分区
 7. 一路下一步即可安装完成，重新启动即可。
 8.ubuntu-18.04.1-desktop-amd64.ios安装报错`无法将grub-efi-amd64-signed 安装到`，解决方案(分区调整)
     - `/boot`：根据磁盘大小，我500G的磁盘 / 设置成500G。主分区，文件类型为EXT4，挂载点`/boot`
-    - `efi`：500G。主分区，文件类型为EFI，挂载点无
-    - `swap`：大小<2G。主分区，文件类型为交换空间，挂载点无
+    - `efi`：500M。主分区，文件类型为EFI，挂载点无
+    - `swap`：大小4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。主分区，文件类型为交换空间，挂载点无。最终显示如`tmpfs`
     - `/`：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点`/`
     - `/home`：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点`/home`
 
@@ -168,7 +169,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 
 1. 下载`EasyBCD` -> 安装后打开 -> 添加新条目 -> NeoGrub -> 安装 -> 配置 -> 在打开的配置文件（C:/NST/menu.lst）中写入如下代码。其中ro只读，splash显示启动画面；reboot重启；halt关机；[^6] (hd0,0) 一般会是表示C盘，实际按照上述知识自行配置
 
-    ```
+    ```bash
     title Install Ubuntu
     root (hd0,0)
     kernel (hd0,0)/vmlinuz.efi boot=casper iso-scan/filename=/ubuntu-16.04.1-desktop-amd64.iso ro splash  locale=zh_CN.UTF-8
@@ -198,7 +199,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
     - 按照文章 [^7] `三、为移动使用做准备` 操作失败，且附加中的`grldr`文件不适用，可下载此文件 [http://download.csdn.net/detail/hcx25909/5464025](http://download.csdn.net/detail/hcx25909/5464025)
 4. (2017-02-16已解决，见下文) 使用电脑`Tinkpad E425`都未安装成功，U盘安装卡在logo页面；硬盘安装则报错`Error 13 invalid or unsupported executable format`；对于已经安装好的移动硬盘也是无法启动，于是利用U盘镜像进入到`Grub`命令行(也连接了移动硬盘)，运行一下命令仍然卡在命令行启动的最后一步。其中进入命令行后可输入`root (hd`，按`Tab`键进行提示磁盘
 
-    ```
+    ```bash
     root (hd1,1)
     kernel (hd1,1)/vmlinuz root=/dev/sdb2 ro splash
     initrd (hd1,1)/initrd.img
@@ -224,7 +225,37 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - `sudo update-initramfs -u`
     - 重启
 
+## CentOS7安装
+
+- centos7镜像下载地址：https://mirrors.aliyun.com/centos/7/isos/x86_64/
+    - CentOS-7-x86_64-DVD-1810.iso    标准安装版，一般下载这个就可以了(桌面推荐)
+    - CentOS-7-x86_64-Minimal-1810.iso    精简版(服务器推荐)
+    - CentOS-7-x86_64-NetInstall-1810.iso 网络安装镜像（从网络安装或者救援系统）
+    - CentOS-7-x86_64-Everything-1810.iso 对完整版安装盘的软件进行补充，集成所有软件
+    - CentOS-7-x86_64-LiveGNOME-1810.iso  GNOME桌面版
+    - CentOS-7-x86_64-LiveKDE-1810.iso    KDE桌面版
+- 使用`UltraISO`刻录到光盘
+- BIOS启动进入安装命令行进行安装，一般选择第一个命令进行安装
+    - 正常会很快一路显示`[OK]`，如果突然卡死后提示`dracut-initqueue : Warning: dracut-initqueue timeout - starting timeout scripts`解决办法 [^11]
+        - 等待执行完进入`dracut`命令行，`ls /dev | grep sd` 查看U盘对应的盘符，如测试时机器本身包含centos系统且含有两块硬盘，根据U盘大小大致可以猜测为`sdcx`的盘符名(如：`sdc4`，如果是CD/DVD安装则可能是`/dev/cdrom`)
+        - reboot重新启动，并重新安装，此时修改执行的安装命令
+        - 在安装命令行主界面，按`e`/`Tab`进入到命令修改状态
+        - 修改`vmlinuz initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64.check quiet` 为 `vmlinuz initrd=initrd.img inst.stage2=hd:/dev/sdc4 quiet` (/dev/sdc4为U盘所在未知)
+        - 然后`Ctrl+x`执行安装
+        - 方式二：修改`U盘/isolinux/isolinux.cfg`里`hd:LABEL=U盘名称`
+- 进入到CentOS图形化安装界面
+    - 修改时区`Date & Time`
+    - `INSTALLATION DESTINATION`进行磁盘分区 - `i will configure partitioning`手动进行分区 - 选择`LVM`(会产生/dev/mapper/centos-root的镜像文件)标准分区 - 可通过`+-`添加新分区或删除历史分区(老系统分区) - 点击+新增分区，其他使用默认值(默认文件系统xfs，也可改成ext4)，分区推荐
+        - `/boot/efi` 500M
+        - `/boot` 1G
+        - `/swap` 4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。最终显示如`tmpfs`
+        - `/` 50G
+        - `/home` 剩余
+
+
+
 ---
+
 
 参考文章
 
@@ -238,3 +269,6 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 [^8]: http://www.educity.cn/linux.1589874.html
 [^9]: http://blog.csdn.net/u014466412/article/details/53666122 (ThinkPad-E425在安装Ubuntu卡在安装界面)
 [^10]: https://blog.csdn.net/woodcorpse/article/details/80503232
+[^11]: https://www.jianshu.com/p/e5db74f04859
+
+

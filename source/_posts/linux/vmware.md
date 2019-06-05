@@ -30,21 +30,36 @@ tags: [vmware, linux, centos]
     - vmware克隆时会自动改变mac地址，如果没有改变可在vmware控制台中重新生成一个mac地址：设置-网络适配器-高级-生成
 - 移动虚拟机文件：可将xxx.vmx文件所在目录(如Virtual Machines)移动到其他磁盘，然后通过vmware打开虚拟机，选择xxx.vmx后，再选择已复制此虚拟即可
 
+### VMware虚拟机的网络模式
+
+- 桥接模式 [^3]
+    - 默认使用VMnet0，不提供DHCP服务（DHCP是指由服务器控制一段IP地址范围，客户机登录服务器时就可以自动获得服务器分配的IP地址和子网掩码）。虚拟机和物理主机处于同等地位，像对待真实计算机一样手动配置IP、网关、子网掩码等
+    - 主机和虚拟机需要在同一个网段上，类似存在于局域网。例如：主机IP为192.168.3.12，则虚拟机IP为192.168.3.10，网络中其他机器可以访问虚拟机，虚拟机也可以访问网络内其他机器
+    - 主机需要有网络或接入到路由器，才能与虚拟机通信，虚拟机才可访问外网
+- 仅主机模式
+    - 默认使用VMnet1，提供DHCP服务
+    - 虚拟机可以和物理主机互相访问，但虚拟机无法访问外部网络，若需要虚拟机上网，则需要主机联网并且共享其网
+- NAT模式
+    - 默认使用VMnet8，提供DHCP服务，可自动分配IP地址，也可手动设置IP
+    - 虚拟机可以和物理主机互相访问，可以访问物理主机所在局域网，但是 局域网不能访问虚拟机。如：`A`、`B`机器在同一局域网，再A机器上安装虚拟机`C`，则`A-C`访问如下
+        - `C`可直接访问`A`(可通过两个网段访问)、`B`
+        - `B`访问`C`可以做路由分发。或在`A`上运行`nginx`进行路由(参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx))
+
 ### 远程连接虚拟机
 
 - `ip addr`查看虚拟机地址(`ens33`/`eth0`)，`ipconfig`查看windows主机地址，并看能否双向`ping`通
 - `systemctl status sshd` 查看ssh服务是否启动(如果未安装，可手动安装sshd)
 - 使用`xshell`/`xftp`以ssh/sftp的方式连接，端口`22`，用户名要使用`smalle/smalle`（root连接失败）
-- **局域网访问**：`A`、`B`机器在同一局域网，再A机器上安装虚拟机`C`，则`A-C`访问如下
-    - `C`可直接访问`A`(可通过两个网段访问)、`B`
-    - `B`访问`C`可在`A`上运行`nginx`进行路由(参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx))
 
 ## 常见问题
 
 - `ip addr`不显示ip：查看NAT是否连接，宿主机VMware相关的网络适配器是否启用，`/etc/sysconfig/network-scripts/ifcfg-ens33`中`ONBOOT=yes`(修改后，`systemctl restart network`重启)
-- ping的同宿主机，ping不通百度
-    - 查询以太网属性是否共享，共享选择`VMware Network Adapter VMnet8`
-    - 启动服务`VMware NAT service`和`VMware DHCP service`
+- ping的通宿主机，ping不通百度
+    - 启用`VMware Network Adapter VMnet8`网卡，并在VMware中查看网段(编辑 - 虚拟网络编辑)
+        - 网段：192.168.6.0
+        - 网卡IP：192.168.6.1
+        - 网关IP：192.168.6.2 (在VMware中设置 - NAT模式 - 网关IP，不能设置成网卡的IP)
+    - 启动服务`VMware NAT service`、`VMware DHCP service`、`VMware Authorization Service`
     - 配置
 
         ```bash
@@ -53,16 +68,22 @@ tags: [vmware, linux, centos]
         nameserver 8.8.8.8
         nameserver 8.8.4.4
         # nameserver 114.114.114.114
+        # nameserver 192.168.6.2 # 或者配置虚拟网关地址
 
-        # /etc/sysconfig/network-scripts/ifcfg-ens33 并重启network
+        # vi /etc/sysconfig/network-scripts/ifcfg-ens33 并重启network。配置参数说明参考：https://blog.51cto.com/xtbao/1671739
         ONBOOT=yes
         BOOTPROTO=static  #启用静态IP地址
         IPADDR=192.168.6.10
         NETMASK=255.255.255.0
-        # VMware Virtual Ethernet Adapter for VMnet8的地址
-        GATEWAY=192.168.6.1
+        # 网关IP的地址，不可写成网卡IP
+        GATEWAY=192.168.6.2
+        # 固定网卡DNS，此时每次重启network都会讲此DNS自动写到`/etc/resolv.conf`
+        # DNS1=114.114.114.114
+        # DNS2=114.114.115.115
         ```
-- 固定网卡DNS，在`/etc/sysconfig/network-scripts/ifcfg-ens33`中加入`DNS1=114.114.114.114`，此时每次重启network都会讲此DNS自动写到`/etc/resolv.conf`
+- xshell卡在`To escape to local shell, press 'Ctrl+Alt+]'.`
+    - 关闭防火墙
+    - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
 
 ## windows安装
 
@@ -112,3 +133,4 @@ tags: [vmware, linux, centos]
 
 [^1]: https://jingyan.baidu.com/article/a24b33cd12daf919ff002b58.html (VMware12.5虚拟机安装MacOS10)
 [^2]: https://blog.csdn.net/ltyzsd/article/details/79041616 (Xshell连接docker)
+[^3]: https://www.jianshu.com/p/85d41c49fdcd (VMware虚拟机的网络模式 — 桥接模式、仅主机模式、NAT模式的特点和配置)

@@ -52,19 +52,80 @@ tags: hook
 - Run/Debug中添加tomcat配置，Deployment选择jenkins-war:war
 - debug启动tomcat。也可在远程启动debug监听 `mvnDebug jenkins-dev:run` 默认监听端口8000，可通过remote debug进行远程调试
 
-## 插件
+## 常用构建说明
 
-### Publish over SSH
+### 源码管理(Git)
+
+> 此处的源码管理指在jenkins宿主机上管理任务相应源码，比如打包等操作。如ofbiz项目直接在服务器上拉取最新代码时可以不用源码管理，直接在构建中发起远程命令即可
+
+- Repositories：git仓库配置
+- Branches to build：需要构建的分支，如`origin/test`
+
+### 构建触发器
+
+- `Build when a change is pushed to GitLab. GitLab webhook URL: http://10.10.10.10/project/test` 代码推送等变更时构建，常用(GitLab插件)
+    - Enabled GitLab triggers
+        - `Push Events` 直接推送到此分支时构建(勾选)
+        - `Opened Merge Request Events` 去勾选
+        - `Accepted Merge Request Events` 接受合并请求时构建(勾选)
+        - `Closed Merge Request Events` 去勾选
+        - `Approved Merge Requests (EE-only)`(勾选)
+        - `Comments`(勾选)
+        - `Comment (regex) for triggering a build` 提交备注正则构建(如：`[jenkins build]`)
+    - Allowed branches 允许触发的分支
+        - Filter branches by name - Include 基于名称进行触发，如：`origin/test`
+        - Secret token - Generate 生成token用于git webhook触发
+    - Gitlab设置Webhooks(可设置多个)：URL和Secret Token填上文；Trigger勾选`Push events`、`Comments`、`Merge Request events`(gitlab提供对配置的url进行访问可达测试)。触发流程如下：
+        - 当开发通过git提交代码或进行其他操作触发了gitlab此时定义的Trigger
+        - 然后gitlab会对配置的URL进行post
+        - 通过post的地址会进入到jenkins定义的构建任务中
+        - jenkins对触发进行过滤，判断是否需要进行构建
+- `Gitlab Merge Requests Builder` 定时自动生成构建任务(GitLab插件)
+
+### 构建
+
+- `Send files or execute commands over SSH` 执行ssh服务器命令进行构建
+    - `Exec command` 执行远程命令(不会记录在linux的history中)，如
+
+        ```bash
+        echo "start build ofbiz..."
+        # echo $PATH # 此时打印出的是jenkins本地环境的PATH，而不是远程服务器的
+        # export PATH=/opt/soft/jdk1.7.0_80/bin:/opt/soft/jdk1.7.0_80/jre/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin # 临时设置PATH为远程服务器PATH，解决java: command not found
+        source /etc/profile
+        cd /home/ofbiz/tools
+        ./stopofbiz.sh
+        cd ..
+        git pull
+        ./ant
+        nohup bash /home/ofbiz/tools/startofbiz.sh > /dev/null 2>&1 &
+        echo "end build ofbiz..."
+        ```
+        - 其中`source /etc/profile`为了防止报错`java: command not found`(jenkins不会自动加载环境变量)
+
+### 构建后操作
+
+- `E-mail Notification` 邮件通知
+
+## 系统管理
+
+### 系统设置
+
+- 邮件通知：配置smtp服务器
+- Publish over SSH
+    - SSH Servers：配置目标服务器，高级功能中可使用Http、Socket代理
+
+### 插件管理
+
+#### Publish over SSH
 
 - [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
 - 利用此插件可以连接远程Linux服务器，进行文件的上传或是命令的提交，也可以连接提供SSH服务的windows服务器
 - BapSshHostConfiguration#createClient 进行服务器连接
 - 此插件1.20.1界面`Test Configuration`测试代理连接存在bug，实际是支持代理连接的
 
-### GitLab
+#### GitLab
 
 - [wiki](https://github.com/jenkinsci/gitlab-plugin)
-- 构建触发器 - Build when a change is pushed to GitLab.
 
 ## jenkins源码解析
 

@@ -36,19 +36,18 @@ tags: [linux, shell]
 
 ### 查看网络信息
 
-- `ip addr`或`ifconfig` 查看内网ip
-    - 显示说明
-        - `lo`为内部网卡接口，不对外进行广播。`eth0`/`ens33`网卡接口会对外广播
-        - `link/ether 00:0c:29:bb:ea:e2`中link/ether后为`mac`地址
-        - `inet 192.168.6.130/24 brd 192.168.6.255 scope global ens33`中192.168.6.130/24为内网ip和子网掩码(24代表32位中有24个1其他都是0，即255.255.255.0) `brd`(broadcast)后为广播地址
-    - `ifconfig`命令(centos7无法使用解决方案参考《CentOS服务器使用指导》)
-        - `ifconfig ens33:1 192.168.6.10` 给网络接口ens33绑定一个虚拟ip
-        - `ifconfig ens33:1 down` 删除此虚拟ip
-        - 添加虚拟ip方式二
-            - 编辑类似文件`vi /etc/sysconfig/network-scripts/ifcfg-ens33`
-            - 加入代码`IPADDR=192.168.6.130`(本机ip)和`IPADDR1=192.168.6.135`(添加的虚拟ip，可添加多个。删除虚拟ip则去掉IPADDR1)，可永久生效
-            - 重启网卡`systemctl restart network`
-            - 修改ip即修改上述`IPADDR`
+- `ip addr` 查看机器ip，显示说明
+    - `lo`为内部网卡接口，不对外进行广播；`eth0`/`ens33`网卡接口会对外广播
+    - `link/ether 00:0c:29:bb:ea:e2`中link/ether后为`mac`地址
+    - `inet 192.168.6.130/24 brd 192.168.6.255 scope global ens33`中192.168.6.130/24为内网ip和子网掩码(24代表32位中有24个1其他都是0，即255.255.255.0) `brd`(broadcast)后为广播地址
+- `ifconfig`命令(centos7无法使用可安装工具`yum install net-tools`)
+    - `ifconfig ens33:1 192.168.6.10` 给网络接口ens33绑定一个虚拟ip
+    - `ifconfig ens33:1 down` 删除此虚拟ip
+    - 添加虚拟ip方式二
+        - 编辑类似文件`vi /etc/sysconfig/network-scripts/ifcfg-ens33`
+        - 加入代码`IPADDR=192.168.6.130`(本机ip)和`IPADDR1=192.168.6.135`(添加的虚拟ip，可添加多个。删除虚拟ip则去掉IPADDR1)，可永久生效
+        - 重启网卡`systemctl restart network`
+        - 修改ip即修改上述`IPADDR`
 - `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
 - `telnet 192.168.1.1 8080` 检查端口
 - `curl http://www.baidu.com`或`wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
@@ -72,6 +71,7 @@ tags: [linux, shell]
     - `environ`记录了进程运行时的环境变量
     - `fd`目录下是进程打开或使用的文件的符号连接
 - 自带程序`top`查看，推荐安装功能更强大的`htop`
+    - `Load Average`: 负载均值。对应的三个数分别代表不同时间段的系统平均负载（一分钟、五 分钟、以及十五分钟），它们的数字当然是越小越好；数字越高说明服务器的负载越大。如果是单核，load=1表示CPU所有的资源都在处理请求，一般维持0.7以下，如果长期在1左右建议进行监测，维持在2左右则说明负载很高。多核情况，即负载最好要小于`CPU个数 * 核数 * 0.7`
   
 ### 基础操作
 
@@ -149,6 +149,9 @@ tags: [linux, shell]
 - `\` 回车后可将命令分多行运行
 - `date` 显示当前时间; `cal` 显示日历
 - `last` 查看最近登录用户
+- `history` 查看历史执行命令
+    - 默认记录1000条命令，编号越大表示越近执行。用户所键入的命令都会记录在用户家目录下的`.bash_history`文件中
+    - 如果在服务器中干了不好的事情，可以通过`history -c`命令进行清除，那么其他人登录终端时就无法查看历史操作命令了。但此命令并不会清除保存在文件中的记录，因此需要手动删除.bash_profile文件中的记录
 - `wall <msg>` 通知所有人登录人一些信息
 
 ### 文本处理
@@ -172,7 +175,7 @@ tags: [linux, shell]
 
 ### 磁盘
 
-- `df -h` 查看磁盘使用情况、分区、挂载点
+- `df -h` 查看磁盘使用情况、分区、挂载点(**只会显示成功挂载的分区，新磁盘需要进行分区和挂载**)
     - `df -h /home/smalle` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `df -Th` 查询文件系统格式
 - `du -h --max-depth=1 | sort -h` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**
@@ -190,32 +193,82 @@ tags: [linux, shell]
     fdisk -l
 
     # 查看/dev/vdb磁盘设备的分区情况(/dev/vdb1表示此磁盘的第一个分区)
-    fdisk -lu /dev/vdb
+    fdisk -l /dev/vdb
 
-    # 进行磁盘分区
-    fdisk -u /dev/vdb
-    # 再次输入`p`：查看数据盘的分区情况
+    # 1.进行磁盘分区
+    fdisk /dev/vdb
+    # 输入`p`：查看数据盘的分区情况(输入m获取帮助)
     # 再次输入`n`：创建一个新分区
-    # 选择好分区设置后输入`w`：开始分区，并在分区后退出
+    # 分区类型选择（p主分区, e扩展分区），新磁盘第一次分区可选择主分区，输入p; 分区号码从1-4，可以输入最小可用分区号
+    # 第一个扇区一般都使用默认的，直接回车即可；最后一个扇区大小根据你自己需要指定，但是一定要在给定范围内，这里是2048-20971519(10G的磁盘)，如果整个磁盘就分一个分区则继续回车(默认即为最大)，如根需要此分区设置大小为200M，则输入`+200M`（单位可为K/M/G/T/P）
+    # 再次输入`p`查看将要到达的分区情况
+    # 确认后输入`w`写入分区表，并在写入后退出；输入`q`放弃分区并退出
+    # 到这里分区就完成了，但是新的分区还是不能使用的，要对新分区进行格式化，然后将它挂载到某个可访问目录下才能进行操作
 
-    # 为此分区创建一个ext4文件系统，此时会格式化磁盘. 如果需要在 Linux、Windows 和 Mac 系统之间共享文件，可以使用 mkfs.vfat 创建 VFAT 文件系统
-    mkfs.ext4 /dev/vdb1
+    # 查看分区(未挂载的分区也会显示)
+    cat /proc/partitions
 
-    # 挂载分区到/home目录，**如果/home目录之前有数据会被清除，建议先备份**
+    # 2.为此分区创建一个ext4文件系统，此时会格式化磁盘. 如果需要在 Linux、Windows 和 Mac 系统之间共享文件，可以使用 mkfs.vfat 创建 VFAT 文件系统
+    mkfs.ext4 /dev/vdb1 # centos7默认xfs文件格式，此时可使用 mkfs.xfs /dev/vdb1
+
+    # 3.挂载分区到/home目录(需要确保此目录存在，并不会影响父目录的挂载。如此时只会改变 /home，不会影响 /)，**如果/home目录之前有数据会被清除，建议先备份**
     mount /dev/vdb1 /home
 
-    #（建议）备份 etc/fstab
+    # 4.备份 etc/fstab（建议）
     cp /etc/fstab /etc/fstab.bak
-
-    # 向 /etc/fstab 写入新分区信息(注意目录和上面对应)
+    # 向 /etc/fstab 写入新分区信息(注意目录和上面对应)，防止下次开机挂载丢失（不执行此步骤只是临时挂载到相应目录，下次开机则会丢失挂载）
     echo /dev/vdb1 /home ext4 defaults 0 0 >> /etc/fstab
 
-    # 查看目前磁盘空间和使用情
+    # 查看目前磁盘空间和使用情(只会显示成功挂载的分区)
     df -h
 
     # 重新挂载了磁盘需要重启
     # reboot
     ```
+- LVM使用(centos安装时如果使用分区类型为LVM则会出现时/dev/mapper/centos-root等)
+    - LVM使用参考 https://blog.51cto.com/13438667/2084924
+
+        ![lvm](/data/images/lang/lvm.png)
+        
+        ```bash
+        # 先fdisk创建分区
+        # pvcreate命令在新建的分区上创建PV
+        pvcreate /dev/vdb1 /dev/vdb2
+        # 查看pv详细信息
+        pvs/pvdisplay
+        # vgcreate命令创建一个VG组，并将创建的两个PV加入VG组
+        vgcreate vg1 /dev/vdb1 /dev/vdb2 # 组名vg1
+        # 查看卷组信息
+        vgs/vgdisplay
+        # 在vg1卷组下创建一个逻辑卷lv1，对应路径为/dev/vg1/lv1
+        # 此时lv1可能会同时使用/dev/vdb1 /dev/vdb2这两个PV，这也是LVM一个PV损毁会导致整个卷组数据损毁
+        lvcreate -L 200G -n lv1 vg1
+        # 查看逻辑卷详细
+        lvs/lvsdisplay
+        # 格式化卷组
+        mkfs.xfs /dev/vg1/lv1
+        # 挂载
+        mount /dev/vg1/lv1 /home/data
+        # 写入fstab
+        ```
+    - 调整home和root容量大小如下
+
+        ```bash
+        cp -r /home/ homebak/ # 备份/home
+        umount /home # 卸载​ /home
+
+        # 删除某LVM分区(需要先备份数据，并取消挂载)
+        lvremove /dev/mapper/centos-home
+
+        lvextend -L +20G /dev/mapper/centos-root # 扩展/root所在的lv
+        xfs_growfs /dev/mapper/centos-root # 扩展/root文件系统
+
+        vgdisplay # 其中的Free PE表示LVM分区剩余的可用磁盘
+        lvcreate -L 100G -n home centos # 重新创建home lv 分区的大小
+        mkfs.xfs /dev/centos/home # 创建文件系统
+        mount /dev/centos/home /home # 挂载 home
+        # 使永久有效，写入 etc/fstab 见上文
+        ```
 
 ### 文件
 
@@ -257,11 +310,11 @@ tags: [linux, shell]
     - `ls -al` 列举所有文件详细(`-a`全部、`-l`纵向显示. linux中`.`开头的文件默认为隐藏文件)
     > 文件详细如下图
     >
-    > ![文件详细](/data/images/2017/02/文件详细.gif)
+    > ![文件详细](/data/images/2017/02/文件详细.jpg)
     >
     > 类型与权限如下图
     >
-    > ![类型与权限](/data/images/2017/02/类型与权限.gif)
+    > ![类型与权限](/data/images/2017/02/类型与权限.png)
     > - 第一个字符代表这个文件的类型(如目录、文件或链接文件等等)：
     >   - [ d ]则是目录、[ - ]则是文件、[ l ]则表示为链接档(link file)、[ b ]则表示为装置文件里面的可供储存的接口设备(可随机存取装置)、[ c ]则表示为装置文件里面的串行端口设备,例如键盘、鼠标(一次性读取装置)
     > - 接下来的字符中,以三个为一组,且均为『rwx』 的三个参数的组合< [ r ]代表可读(read)、[ w ]代表可写(write)、[ x ]代表可执行(execute) 要注意的是,这三个权限的位置不会改变,如果没有权限,就会出现减号[ - ]而已>
@@ -578,6 +631,7 @@ tags: [linux, shell]
     - `useradd -r -g mysql mysql` 添加用户mysql，并加入到mysql用户组
         - `-r` 表示mysql用户是一个系统用户，不能登录
 - `passwd aezo` 设置密码
+    - centos7忘记root用户密码找回可在启动时设置进入`sysroot/bin/sh`进行修改，参考：https://blog.51cto.com/scorpions/2059912
 - 添加用户sudo权限
 
     ```bash
@@ -683,17 +737,18 @@ tags: [linux, shell]
 
 ### SSH客户端连接服务器（秘钥认证）
 
-- **客户端(可能也是一台服务器)需要连接服务器，则需要将客户端上的公钥`id_rsa.pub`写入到服务器的`~/.ssh/authorized_keys`文件中**
+- **客户端(可能也是一台服务器)需要连接服务器，则需要将客户端上的公钥`id_rsa.pub`内容追加到服务器的`~/.ssh/authorized_keys`文件中**
     - 公钥需要写入到服务端的`authorized_keys`文件(文件名有s)，客户端`known_hosts`会保存已认证的服务端信息。(生成的公钥/私钥无需保存在服务端，自行备份即可)
     - "公钥/私钥对"可以是客户端、服务器端或其他地方生成的公钥数据
     - 客户端登录成功后会将服务器ip及登录的公钥加入到`known_hosts`文件中(没有此文件时会自动新建)
 - 秘钥对生成和使用
-    - 生成公钥(.pub)和私钥(.ppk)
-        - 运行 **`ssh-keygen`** 命令后再按三次回车会看到`RSA`。生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`，会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts`(此机器作为客户端进行ssh连接时，认证过的服务器信息) 3 个文件。如：此服务器ip为`192.168.1.1`
-            - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
-    - 把生成的公钥发送到客户端
-        - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.2` 输入192.168.1.2密码实现发送，自动保存在客户端的`/root/.ssh/authorized_keys`文件中去
-    - 在`192.168.1.2`客户端上登录上述服务器
+    - 生成公钥(.pub)和私钥(.ppk)。运行 **`ssh-keygen`** 命令后再按三次回车会看到`RSA`。生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`
+        - 会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts`(此机器作为客户端进行ssh连接时，认证过的服务器信息) 3 个文件。如：此客户端ip为`192.168.1.2`
+        - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
+        - `ssh-keygen -t rsa -C "xxx@qq.com"` -C起到一个密码备注的作用，可以为任何内容
+    - 把生成的公钥发送到服务器
+        - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去
+    - 在`192.168.1.2`客户端上登录上述服务器(或者手动追加到authorized_keys文件中)
         - `ssh 192.168.1.1` 此时不需要输入密码
         - 如果需要在`192.168.1.1`(客户机)上通过ssh登录`192.168.1.1`(服务器)，需要按照上述命令把公钥保存到服务器的`authorized_keys`
     - 其他说明
@@ -702,6 +757,7 @@ tags: [linux, shell]
             - 阿里云服务器需要将密钥对保存到阿里云管理后台，并关联到对应的服务器上
             - 关联阿里云服务器秘钥后，需要到阿里云管理后进行服务器重启(不能再终端重启)。重启后会自动禁用密码登录
             - 可以使用阿里云进行秘钥生成(只能下载到秘钥，公钥可通过xshell连接后进行查看或连接后到服务器的authorized_keys文件中查看)，也可自行导入公钥
+        - 如何客户端登录失败，可在服务器查看访问日志`cat /var/log/secure`
 - ssh配置 [^7]
 
     ```bash
@@ -710,7 +766,7 @@ tags: [linux, shell]
     ## 修改文件内容
     # 是否允许root用户登陆(no不允许)
     PermitRootLogin no
-    # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录)
+    # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录。在没有生成好Key，并且成功使用之前，不要设置为no)
     PasswordAuthentication no
 
     # 使配置生效

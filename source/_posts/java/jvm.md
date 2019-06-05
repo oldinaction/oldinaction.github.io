@@ -15,19 +15,22 @@ tags: [jvm]
 
 - [oracle推荐jvm配置](http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html)
 
- 配置参数|	功能
- ---------|----------
--Xms|	**初始堆大小**。如：-Xms256m
--Xmx|	**最大堆大小**。如：-Xmx512m
--Xmn|	新生代大小。通常为 Xmx 的 1/3 或 1/4。新生代 = Eden + 2 个 Survivor 空间。实际可用空间为 = Eden + 1 个 Survivor，即 90%
--Xss|	JDK1.5+ 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的。
--XX:NewRatio|	新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
--XX:SurvivorRatio|	新生代中 Eden 与 Survivor 的比值。默认值为 8。即 Eden 占新生代空间的 8/10，另外两个 Survivor 各占 1/10
--XX:PermSize|	永久代/方法区/非堆区的初始大小(默认64M)。如：-XX:PermSize=256m。**JDK8移除了此参数**
--XX:MaxPermSize|	永久代/方法区/非堆区的最大值。如：-XX:MaxPermSize=512m。JDK8移除了此参数
--XX:+PrintGCDetails|	打印 GC 信息
--XX:+HeapDumpOnOutOfMemoryError|    **让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用**
--XX:HeapDumpPath=/home/jvmlogs|     **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
+ 配置参数|	版本|功能
+ ---------| ---------|----------
+-Xms||	**初始堆大小**。如：-Xms256m
+-Xmx||	**最大堆大小**。如：-Xmx512m
+-XX:+PrintGCDetails||	打印 GC 信息
+-XX:+HeapDumpOnOutOfMemoryError||    **让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用**
+-XX:HeapDumpPath=/home/jvmlogs| |    **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
+-Xmn||	新生代大小。通常为 Xmx 的 1/3 或 1/4。新生代 = Eden + 2 个 Survivor 空间。实际可用空间为 = Eden + 1 个 Survivor，即 90%
+-Xss|	JDK1.5+ | 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的
+-XX:NewRatio||	新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
+-XX:SurvivorRatio||	新生代中 Eden 与 Survivor 的比值。默认值为 8。即 Eden 占新生代空间的 8/10，另外两个 Survivor 各占 1/10
+-XX:MetaspaceSize=128m| JDK8+| 元空间默认大小(类似-XX:PermSize)
+-XX:MaxMetaspaceSize=128m|  JDK8+| 元空间最大大小
+-XX:PermSize|   JDK8-|	永久代/方法区/非堆区的初始大小(默认64M)。如：-XX:PermSize=256m
+-XX:MaxPermSize|    JDK8-|	永久代/方法区/非堆区的最大值。如：-XX:MaxPermSize=512m
+-XX:+UseConcMarkSweepGC||    指定使用的垃圾收集器，这里使用CMS收集器 
 
 - 自定义jvm参数
 
@@ -45,7 +48,7 @@ System.getProperty("test.name") // 程序中取值，无此参数则为null
 
 - `tomcat`：修改`%TOMCAT_HOME%/bin/catalina.bat`或`%TOMCAT_HOME%/bin/catalina.sh`中的`JAVA_OPTS`，在`echo "Using CATALINA_BASE:   $CATALINA_BASE"`上面加入以下行：`JAVA_OPTS="-server -Xms256m -Xmx512m`(启动时运行的startup.bat/startup.sh，其内部调用catalina.bat)
 - `weblogic`：修改`bea/weblogic/common中CommEnv`中参数
-- `springboot`：可直接加在java命令后面，如`java -jar xxx.jar -Xms256`
+- `springboot`：可直接加在java命令后面，如`java -Xms256 -jar xxx.jar`
 - `idea`：Run/Debug Configruations中修改VM Options(单独运行tomcat或者springboot项目都如此)
 - `eclipse`：修改eclipse中tomcat的配置
 

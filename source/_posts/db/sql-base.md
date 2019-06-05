@@ -345,14 +345,26 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
 -- 无分页
 select * from t_customer_line;
 
+-- 无order by分页
+select * from 
+    (select rownum as rowno, t.* from emp t where rownum <= 10) a 
+where a.rowno > 0;
+
+-- 有order by分页
+select * from 
+    (select tt.*, rownum as rowno from 
+        (select t.* from emp t order by create_time desc) tt 
+    where rownum <= 20) a 
+where a.rowno > 10;
+
 -- 分页并返回总条数
 select *
     from (select rownum as rn, paging_t1.*
             from (select t.*, count(*) over() paging_total
-                    from t_customer_line t
+                    from emp t
                     order by t.id) paging_t1
-            where rownum < 20) paging_t2
-    where paging_t2.rn >= 10;
+            where rownum <= 20) paging_t2
+    where paging_t2.rn > 10;
 ```
 
 #### union合并
@@ -461,7 +473,8 @@ select *
 #### 复制表
 
 - **复制表结构及数据到新表** `create table 新表 as select * from 旧表` (**不会复制到表结构的备注和默认值，根据备份表还原数据的时候需要delete掉原表的数据，不能drop**，`200w`的数据`3s`复制完成)
-- 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`·
+- 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`
+    - `create table t2 like t1` like创建出来的新表包含源表的完整表结构和索引信息(mysql适用)。oracle支持as，也是只有表结构没有索引；oracle不支持like
 - 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
 - **复制旧表的数据到新表(假设两个表结构一样)** `insert into 新表 select * from 旧表`
 - 复制旧表的数据到新表(假设两个表结构不一样) `insert into 新表(字段1,字段2,.......) select 字段1,字段2,...... from 旧表`
@@ -799,6 +812,12 @@ end;
 /
 exec p(0, 0);
 ```
+
+## SQLServer
+
+- 命令行导入sql文件
+    - `sqlcmd -S localhost -U sa -P root -d fedex -i C:\Users\smalle\Desktop\update20190528.sql`(windows上文件路径必须用右斜杠)
+
 
 ---
 

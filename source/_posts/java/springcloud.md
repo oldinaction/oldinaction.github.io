@@ -8,19 +8,6 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 
 ## 介绍
 
-- 架构演进
-    - 单体架构：复杂度逐渐变高、部署速度慢、阻碍技术创新、无法按需伸缩
-    - SOA [^1]
-    - 微服务
-- 微服务特点
-    - 微服务可独立运行在自己的进程里
-    - 一系列独立运行的微服务构成整个系统
-    - 每个服务独立开发维护
-    - 微服务之间通过REST API或RPC等方式通信
-    - 优点：易于开发和维护，启动快，技术栈不受限制，按需伸缩，DevOps
-    - 挑战：运维要求较高，分布式的复杂性，接口调整成本高
-- 微服务设计原则：单一职责原则、服务自治原则、轻量级通信原则、接口明确原则
-- 微服务开发框架：`Spring Cloud`、`Dubbo`、`Dropwizard`、`Consul`等
 - Spring Cloud是基于Spring Boot的用于快速构建分布式系统工具集
 - Spring Cloud特点：约定优于配置、开箱即用，快速启动、轻量级组件、组件丰富、选型中立
 - 本文相关软件：JDK: 1.8，SpringCloud: `Dalston.SR1`(如无特殊说明)
@@ -107,21 +94,32 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
             password: smalle
 
     eureka:
+        # 会显示在System Status
+        environment: dev
+        # 会显示在System Status
+        datacenter: cloud
         instance:
             hostname: localhost
+            # instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
         client:
             # eureka server默认也是一个eureka client.以下两行仅将此App当成eureka server，不当成eureka client(由于是单点测试)
             register-with-eureka: false
+            # 是否检索其他服务注册中心, 默认为true。如果这是一个单点的 Eureka Server，则不需要同步其他节点的数据
             fetch-registry: false
             # 将eureka注册到哪个url
             serviceUrl:
                 defaultZone: http://user:password@${eureka.instance.hostname}:${server.port}/eureka/
         server:
+            # 是否开启自我保护机制(Eureka 会统计15分钟之内心跳失败的比例低于85%将会触发保护机制，不剔除服务提供者). 在开发阶段，需要频繁重启，关闭自我保护可以立即剔除不可用节点。生成环境建议开启
+            enable-self-preservation: false
             # 清理间隔（单位毫秒，默认是60*1000），开发环境设置如下可快速移除不可用的服务
             eviction-interval-timer-in-ms: 5000
-            enable-self-preservation: false
+        # 控制台路径 
+        dashboard:
+            path: /dashboard
+            enabled: true
     ```
-- 后台地址：`http://localhost:8761`
+- 后台地址：`http://localhost:8761/dashboard`
 
 ### eureka client
 
@@ -147,6 +145,10 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
             prefer-ip-address: true
             # 实例id
             instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+            # 续约请求间隔（默认30秒），定期会向注册中心发送请求，证明此节点运行正常
+            lease-renewal-interval-in-seconds: 30
+            # 续约移除时间（默认90秒），如果90秒内没有响应，注册中心就会移除此节点
+            lease-expiration-duration-in-seconds: 90
     ```
 - [示例请看源码](https://github.com/oldinaction/springcloud/tree/master/demo2-microservice-eureka)
     - 示例中使用H2数据库，IDEA连接方式：path:`mem:testdb`, user:`sa`, password:空, url:`jdbc:h2:mem:testdb`, 使用`Embedded`或`In-memory`方式连接
@@ -172,6 +174,8 @@ eureka:
     # 需要在/etc/hosts中加127.0.0.1的映射
     hostname: peer1
   client:
+    register-with-eureka: true
+    fetch-registry: true
     serviceUrl:
       # 向另外一个服务器注册自己
       defaultZone: http://smalle:smalle@peer2:8762/eureka/
@@ -185,6 +189,8 @@ eureka:
   instance:
     hostname: peer2
   client:
+    register-with-eureka: true
+    fetch-registry: true
     serviceUrl:
       defaultZone: http://smalle:smalle@peer1:8761/eureka/
 ```
@@ -197,10 +203,10 @@ eureka:
 
         ![eureka-ribbon](/data/images/2017/07/eureka-ribbon.png)
 
-        - Ribbon工作时分为两步：第一步先选择 Eureka Server, 它优先选择在同一个Zone且负载较少的Server；第二步再根据用户指定的策略，在从Server取到的服务注册列表中选择一个地址。其中Ribbon提供了多种策略，例如轮询round robin、随机Random、根据响应时间加权等
+        - Ribbon工作时分为两步：第一步先选择 Eureka Server, 它优先选择在同一个Zone且负载较少的Server；第二步再根据用户指定的策略，在从Server取到的服务注册列表中选择一个地址。其中Ribbon提供了多种策略，例如轮询round robin、随机Random、**根据响应时间加权**等
 - 基本使用
     - 引入依赖：group：`org.springframework.cloud`，artifact id：`spring-cloud-starter-ribbon`
-        - 如果引入了`spring-cloud-starter-eureka`中默认引入了，此时可无需再引入
+        - **如果引入了`spring-cloud-starter-eureka`中默认引入了，此时可无需再引入**
     - 在restTemplate对应的Bean上注解`@LoadBalanced`
 
         ```java
@@ -222,12 +228,12 @@ eureka:
             # 当访问服务provider-user时采用随机策略RandomRule，此时访问其他服务时仍然为默认策略ZoneAvoidanceRule；WeightedResponseTimeRule响应时间加权策略
             NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
     ```
-- 脱离Eureka的配置，此时仍然可以运行Eureka，但是不从eureka中获取服务地址，而是从配置文件中读取
+- 脱离Eureka的配置，此时仍然可以运行Ribbon，但是不从eureka中获取服务地址，而是从配置文件中读取
 
     ```yml
     stores:
       ribbon:
-        listOfServers: example.com,aezo.cn
+        listOfServers: http://example.com,http://aezo.cn
     ```
 
 ## Feign声明式服务调用
@@ -252,43 +258,185 @@ eureka:
         public interface UserFeignClient {
             // Feign不支持@GetMapping, @PathVariable必须指明参数值
             @RequestMapping(method = RequestMethod.GET, value = "/simple/{id}")
-            User findById(@PathVariable("id") Long id);
+            User findById(@PathVariable("id") Long id, @RequestParam("q") String queryStr);
 
             @RequestMapping(method = RequestMethod.POST, value = "/feign-post")
             User postFeignUser(@RequestBody User user);
         }
         ```
     - 在controller中直接调用接口中方法(此时不直接调用restTemplate)
+- 基于feign的hystrix熔断
+    - 配置
+    
+    ```yml
+    # 开启feign的hystrix
+    feign:
+      hystrix:
+        enabled: true
+    ```
+    - 使用
+
+    ```java
+    // 1.熔断声明
+    @FeignClient(value = "sq-auth", fallbackFactory = SqAuthFeignFallback.class)
+    public interface SqAuthFeign {
+
+        @RequestMapping(method = RequestMethod.POST, value = "/oauth/token")
+        Map<String, Object> oauthToken(@RequestParam("username") String username, @RequestParam("password") String password,
+                                    @RequestParam("grant_type") String grantType, @RequestParam("client_id") String clientId,
+                                    @RequestParam("client_secret") String clientSecret);
+
+        @RequestMapping(method = RequestMethod.GET, value = "/user/info/base")
+        Map<String, Object> userInfoBase(@RequestHeader("Authorization") String accessToken);
+    }
+
+    // 2.熔断后进行处理
+    @Component
+    public class SqAuthFeignFallback implements FallbackFactory<SqAuthFeign> {
+        private Logger logger = LoggerFactory.getLogger(SqAuthFeignFallback.class.getName());
+
+        @Override
+        public SqAuthFeign create(Throwable cause) {
+            logger.error("调用认证出错...", cause);
+
+            return new SqAuthFeign() {
+                @Override
+                public Map<String, Object> oauthToken(String username, String password, String grantType, String clientId, String clientSecret) {
+                    logger.warn("获取token失败...");
+                    return null;
+                }
+
+                @Override
+                public Map<String, Object> userInfoBase(String accessToken) {
+                    logger.warn("获取用户信息失败...");
+                    return null;
+                }
+            };
+        }
+    }
+    ```
 
 ## Hystrix服务容错保护(断路器)
 
+> Finchley.SR1
+
+### Hystrix使用
+
 - 简介
-- 基本使用(服务消费者)
-    - 引入依赖
+- 基本使用(服务消费者)。引入依赖
 
-        ```xml
-        <!--服务容错保护(断路器) Hystrix-->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-hystrix</artifactId>
-		</dependency>
-        ```
-    - 启动类加注解`@EnableCircuitBreaker`
-    - 声明断路后回调函数
+    ```xml
+    <!--服务容错保护(断路器) Hystrix-->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+    </dependency>
+    ```
+- 启动类加注解`@EnableCircuitBreaker`(spring cloud注解)或者`@EnableHystrix`
+- 声明断路后回调函数
 
-        ```java
-        @HystrixCommand(fallbackMethod = "findByIdFallBack")
-        public User findById(Long id) {
-            // virtual ip: 服务的spring.application.name
-            return this.restTemplate.getForObject("http://provider-user/simple/" + id, User.class);
-        }
+    ```java
+    @HystrixCommand(fallbackMethod = "findByIdFallBack")
+    public User findById(Long id) {
+        // virtual ip: 服务的spring.application.name
+        return this.restTemplate.getForObject("http://provider-user/simple/" + id, User.class);
+    }
 
-        // 当服务调用失败或者超时则回调此函数. 此函数参数和返回值必须和调用函数一致
-        public User findByIdFallBack(Long id) {
-            System.out.println(id + ", error[hystrix]");
-            return null;
-        }
-        ```
+    // 当服务调用失败或者超时则回调此函数. 此函数参数和返回值必须和调用函数一致
+    public User findByIdFallBack(Long id) {
+        System.out.println(id + ", error[hystrix]");
+        return null;
+    }
+    ```
+- 常用配置 [Wiki](https://github.com/Netflix/Hystrix/wiki/Configuration) [^8]
+
+```yml
+# 调用方配置，设置hystrix全局超时时间，默认是1秒。
+hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 2000
+# 在调用方配置，被该调用方的指定方法（HystrixCommandKey方法名？？？）的超时时间是该值。优先级高于全局超时配置
+hystrix.command.HystrixCommandKey.execution.isolation.thread.timeoutInMilliseconds: 60000
+```
+
+### Hystrix Dashboard
+
+- 是作为断路器状态的一个组件，提供了数据监控和友好的图形化界面(只能监控单个节点)
+- 服务消费者引入
+
+```xml
+<!-- 还需引入spring-boot-starter-actuator -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+</dependency>
+```
+- 配置文件中加
+
+```bash
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ["hystrix.stream"]
+
+# 也可通过java代码暴露端口
+# @Bean
+# public ServletRegistrationBean getServlet(){
+#     HystrixMetricsStreamServlet streamServlet = new HystrixMetricsStreamServlet();
+#     ServletRegistrationBean registrationBean = new ServletRegistrationBean(streamServlet, "/actuator/hystrix.stream");
+#     registrationBean.setLoadOnStartup(1);
+#     registrationBean.setName("HystrixMetricsStreamServlet");
+#     return registrationBean;
+# }
+```
+- 启动类加注解`@EnableHystrixDashboard`
+- JSON格式查看。访问消费者URL`http://localhost:5555/actuator/hystrix.stream`可看到一直显示`ping: `(Response, Content-Type: text/event-stream;charset=UTF-8)，当访问服务提供者时，就会增加显示`data: `数据
+- 界面查看。访问消费者URL`http://localhost:5555/hystrix`出现界面，输入监控数据来源`http://localhost:5555/actuator/hystrix.stream`，点击`Monitor Stream`，再次访问服务提供者，状态图则会变化
+- 界面参数说明
+
+    ![Hystrix-Dashboard](/data/images/java/Hystrix-Dashboard.png)
+
+    - 服务提供者出错或者超时都会体现在`Timed-out Request Count`黄色数值中
+
+### Turbine
+
+- 基于Hystrix Dashboard之上，可以监控多个节点的数据(推荐)
+- 需要添加依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-turbine</artifactId>
+</dependency>
+<!-- dashboard会产生一个/hystrix的端点，在显示界面中可以输入对应的turbine.stream地址 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+</dependency>
+```
+- 启动类加注解`@EnableHystrixDashboard`、`@EnableTurbine`
+- 配置文件配置
+
+```yml
+turbine:
+  # 配置Eureka中的serviceId列表，表明监控哪些服务(必须)
+  appConfig: consumer-movie-ribbon,consumer-movie-ribbon2
+  # 参数指定了集群名称为 default，当我们服务数量非常多的时候，可以启动多个 Turbine 服务来构建不同的聚合集群，而该参数可以用来区分这些不同的聚合集群，同时该参数值可以在 Hystrix 仪表盘中用来定位不同的聚合集群
+#  clusterNameExpression: new String("default") # 或者 "'default'"
+  # 匹配被监控节点eureka.instance.metadata-map.cluster的值中包含turbine.aggregator.clusterConfig的参数值
+  clusterNameExpression: metadata['cluster']
+  aggregator:
+    # 指定聚合哪些集群，多个使用","分割，默认为default。可使用http://.../turbine.stream?cluster=<clusterConfig之一>访问
+    # 当clusterNameExpression: default时，turbine.aggregator.clusterConfig可以不写，因为默认就是default(多个使用逗号分隔)
+#    clusterConfig: default
+    clusterConfig: CUSTOMER1,CUSTOMER2
+```
+- 访问Turbine程序对应Hystrix Dashboard URL`http://localhost:7010/hystrix`出现界面，输入监控数据来源`http://localhost:7010/turbine.stream`，点击`Monitor Stream`，再次访问服务提供者。(查看所有监控集群 http://localhost:7010/clusters)
+
+### Turbine Stream
 
 ## Zuul (API GateWay：网关)
 
@@ -314,16 +462,22 @@ eureka:
           # prefix: /api
           # zuul默认会过滤路由前缀(strip-prefix=true)，此处是关闭此过滤(路由前缀将无效)
           # strip-prefix: false
+          # zuul默认对转发的request，会把header清空，注意此处值为空，也可以单独基于路由配置。如spring security oauth2认证清空了Authorization会导致认证失败
+          sensitive-headers:
           routes:
             # 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录
             # 此处路径在配置文件中越靠前的约优先（系统将所有路径放到LinkedHashMap中，当匹配到一个后就终止匹配）
             # 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1?accessToken=smalle 和 http://localhost:5555/api-movie/movie/1?accessToken=smalle （有熔断保护，可能会超时，多刷新几遍）
             # api-movie为规则名, 可通过spring cloud config进行动态加载(覆盖)
             api-movie:
+              # sensitive-headers: # 单独配置敏感headers
               path: /api-movie/**
               # 从eureka中获取此服务(spring.application.name)的地址(面向服务的路由)
               serviceId: consumer-movie-ribbon
             api-user:
+              # 个性化定义敏感headers
+              custom-sensitive-headers: true
+              sensitive-headers: Cookie,Set-Cookie,Authorization
               path: /api-user/**
               serviceId: provider-user
             # 本地跳转(当访问/api-local/**的时候，则会转到当前应用的/local/**的地址)
@@ -335,6 +489,7 @@ eureka:
             #   pre:
             #     disable: true
         ```
+
 - 自定义路由规则
 
     ```java
@@ -423,7 +578,7 @@ eureka:
     }
     ```
 - 动态路由：请见分布式配置中心(Config)部分
-- 基于spring security oauth2进行认证，参考[http://blog.aezo.cn/2017/10/22/java/springsecurity/](/_posts/java/springsecurity.md)。源码参考[https://github.com/oldinaction/springcloud/tree/master/demo11-microservice-oauth2]
+- 基于spring security oauth2进行认证，参考[http://blog.aezo.cn/2017/10/22/java/springsecurity/](/_posts/java/springsecurity.md)。源码参考[https://github.com/oldinaction/springcloud/tree/master/demo11-oauth2]
 
 ## Config 分布式配置中心(Spring Cloud Config)
 
@@ -1281,12 +1436,14 @@ spring:
     ```yml
     # 解决办法
     spring:
-        cloud:
-            refresh:
-            # Dalston.SR1 -> Finchley.SR1. 报错：The dependencies of some of the beans in the application context form a cycle:(dataSource和DataSourceInitializerInvoker相互依赖)
-            # 解决办法：https://github.com/spring-cloud/spring-cloud-commons/issues/355
-            refreshable: none
+      cloud:
+        refresh:
+        # Dalston.SR1 -> Finchley.SR1. 报错：The dependencies of some of the beans in the application context form a cycle:(dataSource和DataSourceInitializerInvoker相互依赖)
+        # 解决办法：https://github.com/spring-cloud/spring-cloud-commons/issues/355
+        refreshable: none
     ```
+
+
 
 
 ---
@@ -1298,3 +1455,6 @@ spring:
 [^3]: http://blog.csdn.net/sosfnima/article/details/53178326 (Spring-Cloud-Bus原理)
 [^4]: https://www.cnblogs.com/cralor/p/9246582.html
 [^5]: https://www.jianshu.com/p/1dbd9a83880f
+[^8]: https://blog.csdn.net/tongtong_use/article/details/78611225
+
+

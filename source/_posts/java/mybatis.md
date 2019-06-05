@@ -31,6 +31,13 @@ tags: [mybatis, springboot]
 		<artifactId>pagehelper</artifactId>
 		<version>5.0.4</version>
 	</dependency>
+
+	<!-- 方式二：会包含mybatis依赖，并且无需再mybatis配置文件中配置此插件 -->
+	<dependency>
+		<groupId>com.github.pagehelper</groupId>
+		<artifactId>pagehelper-spring-boot-starter</artifactId>
+		<version>1.0.0</version>
+	</dependency>
 	```
 - 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml"})` // 声明需要扫描mapper接口的路径
 - 配置
@@ -81,7 +88,7 @@ tags: [mybatis, springboot]
 		</plugins>
 	</configuration>
 	```
-- Model：UserInfo/ClassInfo等无需任何注解.(其中HobbyEnum是一个枚举类)
+- Model：**UserInfo/ClassInfo等无需任何注解.**(其中HobbyEnum是一个枚举类)
 
 ### annotation版本(适合简单业务)
 

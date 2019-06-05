@@ -17,6 +17,10 @@ tags: [oracle, dba, sql]
 
 ### SQL优化
 
+- exists和in的查询效率。如：select * from A where id in(select id from B)
+	- in()适合B表比A表数据小的情况
+	- exists()适合B表比A表数据大的情况
+	- 当A表数据与B表数据一样大时，in与exists效率差不多，但是使用in时索引不会生效
 - 两张大表写join查询比写exists快
 
 ```sql
@@ -254,43 +258,43 @@ select distinct ypyn.plan_yard_num_id, ypyn.plan_id, ypyn.bcc_cont_id, ypyn.cont
 ### explain说明 [^5]
 
 - explain查看执行计划。如`explain select * from t_test;`，返回字段如：id、select_type、table、type、possible_keys、key、key_len、ref、rows、Extra
-	- id：id越大的语句越先执行
-	- select_type有下列常见几种
-		- SIMPLE：最简单的SELECT查询，没有使用UNION或子查询
-		- PRIMARY：在嵌套的查询中是最外层的SELECT语句，在UNION查询中是最前面的SELECT语句
-		- UNION：UNION中第二个以及后面的SELECT语句
-		- DERIVED：派生表SELECT语句中FROM子句中的SELECT语句
-		- UNION RESULT：一个UNION查询的结果
-		- DEPENDENT UNION：首先需要满足UNION的条件，及UNION中第二个以及后面的SELECT语句，同时该语句依赖外部的查询
-		- SUBQUERY：子查询中第一个SELECT语句
-		- DEPENDENT SUBQUERY：和DEPENDENT UNION相对UNION一样
-	- table：显示的这一行信息是关于哪一张表的。有时候并不是真正的表名。如`<derivedN>`N就是id值、`<unionM,N>`这种类型，出现在UNION语句中
-	- **type**：type列很重要，是用来说明表与表之间是如何进行关联操作的，有没有使用索引。主要有下面几种类别(查询速度依次递减)
-		- const：当确定最多只会有一行匹配的时候，MySQL优化器会在查询前读取它而且只读取一次，因此非常快。const只会用在将常量和主键或唯一索引进行比较时，而且是比较所有的索引字段
-		- system：这是const连接类型的一种特例，表仅有一行满足条件
-		- eq_ref：eq_ref类型是除了const外最好的连接类型，它用在一个索引的所有部分被联接使用并且索引是UNIQUE或PRIMARY KEY。需要注意InnoDB和MyISAM引擎在这一点上有点差别。InnoDB当数据量比较小的情况type会是All
-		- ref：这个类型跟eq_ref不同的是，它用在关联操作只使用了索引的最左前缀，或者索引不是UNIQUE和PRIMARY KEY。ref可以用于使用=或<=>操作符的带索引的列
-		- fulltext：联接是使用全文索引进行的，一般我们用到的索引都是B树
-		- ref_or_null：该类型和ref类似。但是MySQL会做一个额外的搜索包含NULL列的操作。在解决子查询中经常使用该联接类型的优化
-		- index_merger：该联接类型表示使用了索引合并优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
-		- unique_subquery：该类型替换了下面形式的IN子查询的ref，是一个索引查找函数，可以完全替换子查询，效率更高
-		- index_subquery：该联接类型类似于unique_subquery
-		- range：只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引。key_len包含所使用索引的最长关键元素。在该类型中ref列为NULL。当使用=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN或者IN操作符，用常量比较关键字列时，可以使用range
-		- index：该联接类型与ALL相同，除了只有索引树被扫描。这通常比ALL快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
-		- ALL：最慢的一种方式，即全表扫描
-	- possible_keys：指出MySQL能使用哪个索引在该表中找到行
-	- key：显示MySQL实际决定使用的键（索引）。如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX
-	- key_len：显示MySQL决定使用的键长度。如果键是NULL，则长度为NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
-	- ref：显示使用哪个列或常数与key一起从表中选择行
-	- rows：显示MySQL认为它执行查询时必须检查的行数。注意这是一个预估值
-	- filtered：表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数
-	- **Extra**：显示MySQL在查询过程中的一些详细信息
-		- Using filesort：MySQL有两种方式可以生成有序的结果，通过排序操作或者使用索引，当Extra中出现了Using filesort 说明MySQL使用了后者，但注意虽然叫filesort但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，所以一般这时也要考虑优化查询了
-		- Using temporary：说明使用了临时表，一般看到它说明查询需要优化了，就算避免不了临时表的使用也要尽量避免硬盘临时表的使用。
-		- Not exists：MYSQL优化了LEFT JOIN，一旦它找到了匹配LEFT JOIN标准的行， 就不再搜索了。
-		- Using index：说明查询是覆盖了索引的，这是好事情。MySQL直接从索引中过滤不需要的记录并返回命中的结果。这是MySQL服务层完成的，但无需再回表查询记录。
-		- Using index condition：这是MySQL 5.6出来的新特性，叫做"索引条件推送"。简单说一点就是MySQL原来在索引上是不能执行如like这样的操作的，但是现在可以了，这样减少了不必要的IO操作，但是只能用在二级索引上，详情点这里。
-		- Using where：使用了WHERE从句来限制哪些行将与下一张表匹配或者是返回给用户
+  - id：id越大的语句越先执行
+  - select_type有下列常见几种
+    - SIMPLE：最简单的SELECT查询，没有使用UNION或子查询
+    - PRIMARY：在嵌套的查询中是最外层的SELECT语句，在UNION查询中是最前面的SELECT语句
+    - UNION：UNION中第二个以及后面的SELECT语句
+    - DERIVED：派生表SELECT语句中FROM子句中的SELECT语句
+    - UNION RESULT：一个UNION查询的结果
+    - DEPENDENT UNION：首先需要满足UNION的条件，及UNION中第二个以及后面的SELECT语句，同时该语句依赖外部的查询
+    - SUBQUERY：子查询中第一个SELECT语句
+    - DEPENDENT SUBQUERY：和DEPENDENT UNION相对UNION一样
+  - table：显示的这一行信息是关于哪一张表的。有时候并不是真正的表名。如`<derivedN>`N就是id值、`<unionM,N>`这种类型，出现在UNION语句中
+  - **type**：type列很重要，是用来说明表与表之间是如何进行关联操作的，有没有使用索引。主要有下面几种类别(查询速度依次递减)
+    - const：当确定最多只会有一行匹配的时候，MySQL优化器会在查询前读取它而且只读取一次，因此非常快。const只会用在将常量和主键或唯一索引进行比较时，而且是比较所有的索引字段
+    - system：这是const连接类型的一种特例，表仅有一行满足条件
+    - eq_ref：eq_ref类型是除了const外最好的连接类型，它用在一个索引的所有部分被联接使用并且索引是UNIQUE或PRIMARY KEY。需要注意InnoDB和MyISAM引擎在这一点上有点差别。InnoDB当数据量比较小的情况type会是All
+    - ref：这个类型跟eq_ref不同的是，它用在关联操作只使用了索引的最左前缀，或者索引不是UNIQUE和PRIMARY KEY。ref可以用于使用=或<=>操作符的带索引的列
+    - fulltext：联接是使用全文索引进行的，一般我们用到的索引都是B树
+    - ref_or_null：该类型和ref类似。但是MySQL会做一个额外的搜索包含NULL列的操作。在解决子查询中经常使用该联接类型的优化
+    - index_merger：该联接类型表示使用了索引合并优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
+    - unique_subquery：该类型替换了下面形式的IN子查询的ref，是一个索引查找函数，可以完全替换子查询，效率更高
+    - index_subquery：该联接类型类似于unique_subquery
+    - range：只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引。key_len包含所使用索引的最长关键元素。在该类型中ref列为NULL。当使用=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN或者IN操作符，用常量比较关键字列时，可以使用range
+    - index：该联接类型与ALL相同，除了只有索引树被扫描。这通常比ALL快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
+    - ALL：最慢的一种方式，即全表扫描
+  - possible_keys：指出MySQL能使用哪个索引在该表中找到行
+  - key：显示MySQL实际决定使用的键（索引）。如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX
+  - key_len：显示MySQL决定使用的键长度。如果键是NULL，则长度为NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
+  - ref：显示使用哪个列或常数与key一起从表中选择行
+  - rows：显示MySQL认为它执行查询时必须检查的行数。注意这是一个预估值
+  - filtered：表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数
+  - **Extra**：显示MySQL在查询过程中的一些详细信息
+    - Using filesort：MySQL有两种方式可以生成有序的结果，通过排序操作或者使用索引，当Extra中出现了Using filesort 说明MySQL使用了后者，但注意虽然叫filesort但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，所以一般这时也要考虑优化查询了
+    - Using temporary：说明使用了临时表，一般看到它说明查询需要优化了，就算避免不了临时表的使用也要尽量避免硬盘临时表的使用。
+    - Not exists：MYSQL优化了LEFT JOIN，一旦它找到了匹配LEFT JOIN标准的行， 就不再搜索了。
+    - Using index：说明查询是覆盖了索引的，这是好事情。MySQL直接从索引中过滤不需要的记录并返回命中的结果。这是MySQL服务层完成的，但无需再回表查询记录。
+    - Using index condition：这是MySQL 5.6出来的新特性，叫做"索引条件推送"。简单说一点就是MySQL原来在索引上是不能执行如like这样的操作的，但是现在可以了，这样减少了不必要的IO操作，但是只能用在二级索引上，详情点这里。
+    - Using where：使用了WHERE从句来限制哪些行将与下一张表匹配或者是返回给用户
 
 
 

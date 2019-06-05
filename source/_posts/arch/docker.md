@@ -124,6 +124,7 @@ Run 'docker COMMAND --help' for more information on a command.
 - `docker start a8f590736b62` **启动容器** (不会进入容器，启动后回到shell)
 - `docker stop a8f590736b62` 停止容器
 - `docker update --restart=always a8f590736b62` 更新运行中的容器配置(包括还可以更新CPU/MEM分配等，此处更新其重启类型restart为always)
+    - 启动后的容器需要添加新端口可以走端口映射，或者先提交成镜像然后再运行一个容器
 - `docker ps` 列出运行的容器
     - `docker ps -a` 列举所有容器
 - `docker exec -it (CONTAINER_ID | CONTAINER_NAME) /bin/bash` 运行容器中的命令，此时会进入容器shell

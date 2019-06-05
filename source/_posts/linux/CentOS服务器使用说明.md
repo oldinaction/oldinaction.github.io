@@ -11,6 +11,7 @@ tags: [CentOS, linux]
 - 基于centos7介绍
 - **如果服务器磁盘未挂载，最好先挂载后再进行软件安装**
 - 软件安装和项目代码最好不要放到home的用户目录，项目迁移时可能出现目录不一致问题
+- [CentOS7安装：http://blog.aezo.cn/2016/11/20/linux/ubuntu/](/_posts/linux/ubuntu.md#CentOS7安装)
 
 ### 新服务器初始化
 
@@ -42,7 +43,7 @@ tags: [CentOS, linux]
 - centos7无法使用`ifconfig`命令解决方案
     - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
     - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
-- xshell卡在`To escape to local shell, press 'Ctrl+Alt+]'.`
+- xshell卡死在`To escape to local shell, press 'Ctrl+Alt+]'.`
     - 关闭防火墙
     - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
 
@@ -61,11 +62,13 @@ tags: [CentOS, linux]
     - `yum search vsftpd` 查找软件vsftpd源
 - 更换镜像
     - `cd /etc/yum.repos.d` 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。**可更换镜像列表** [^3]
-    - `mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup` 备份(需要先确保已经安装`wget`)
-    - `wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo` 下载阿里云镜像
+    - 需要确保已经安装`wget`(也可使用curl下载)
+    - `mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup` 备份
+    - `curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo`(基础源)，下载阿里云镜像
+    - `wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo`(EPEL源)
     - `yum makecache` 生成缓存
 - 安装epel(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
-    - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
+    - 下载epel源(可使用上述阿里云镜像) `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
     - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
 
 #### tar.gz安装包安装
@@ -263,7 +266,8 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     socket=/home/data/mysql/mysql.sock
     default-character-set=utf8
 
-    [mysqld] # 服务端配置
+    [mysqld] # 服务端配置\
+    # skip-grant-tables # skip-grant-tables作为启动参数的作用，MYSQL服务器不加载权限判断，任何用户都能访问数据库，忘记密码时可使用
     port=13306
     # 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)
     lower_case_table_names=1
@@ -389,8 +393,6 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
     - 点击Tree/Sorted可切换视图
     - 选中一行，按下键可查看更多进程
     - Nice：指的是nice值，这样就可以提高/降低对应进程的优先级
-
-
 
 
 

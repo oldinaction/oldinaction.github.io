@@ -24,3 +24,4 @@ tags: [node]
     - `--save`(简写`-S`) 自动将依赖更新到package.json文件的dependencies(依赖)中
     - `--save-dev`(简写`-D`) 自动将依赖更新到package.json文件的devDependencies(运行时依赖)中
 - `npm init` 初始化项目，生成`package.json`
+- `npm uninstall -g cross-env` 移除全局依赖

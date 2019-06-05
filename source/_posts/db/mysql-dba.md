@@ -17,6 +17,10 @@ tags: [mysql, dba]
 	- `mysql -uroot -p` 用户名登陆，输入回车后再输入root密码即可登陆（在cmd中定位到mysql.exe所在目录）
 	- `mysql -h 192.168.1.1 -P 3307 -uroot -p my_db_name` 登录并选择数据库
 	- `exit`、`quit` 退出
+- 忘记root密码
+	- `my.ini`配置文件的`[mysqld]`下增加`skip-grant-tables`参数，重启数据库
+	- 修改`mysql.user`中该用户的密码
+	- 去掉启动参数重新启动
 
 ### 创建删除用户
 
@@ -30,7 +34,8 @@ set password for 'root'@'localhost' = password('root'); -- 5.6版本更新用户
 update user set authentication_string = password("root") where user='root'; -- 5.7版本更新用户
 update user set host='%' where user='root';
 delete from user where user = '用户名'; -- 删除用户。删除系统mysql表中的记录
--- 修改完成后需要重启数据库
+-- 刷新数据
+flush privileges;
 
 create database my_test; -- 创建数据库
 ```
@@ -107,6 +112,8 @@ select user, host from user; -- 查询用户可登录host
 
 ### 主从同步
 
+- 从库
+
 change master to master_host='127.0.0.1', master_port=3306, master_user='rep', master_password='Hello1234!', master_log_file='shipbill-log-bin.000001', master_log_pos=154;
 show slave status \G;
 stop slave;
@@ -162,7 +169,6 @@ start slave;
 	where table_schema='mysql'
 	order by data_length desc, index_length desc;
 
-
 	-- 查看所有数据库数据大小(比较耗时)
 	select 
 	table_schema as '数据库',
@@ -205,7 +211,7 @@ start slave;
 		```sql
 		select concat('kill ', id, ';')
 		from information_schema.processlist
-		where command != 'Sleep'
+		where command != 'Sleep' and info like 'SELECT%'
 		and time > 2*60
 		order by time desc;
 		```
@@ -221,77 +227,77 @@ start slave;
 
 ```sql
 -- 1.创建一个临时内存表
-DROP TABLE IF EXISTS `t_test_vote_memory`;
-CREATE TABLE `t_test_vote_memory` (
-    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `user_id` varchar(20) NOT NULL DEFAULT '',
-    `vote_num` int(10) unsigned NOT NULL DEFAULT '0',
-    `group_id` int(10) unsigned NOT NULL DEFAULT '0',
-    `status` tinyint(2) unsigned NOT NULL DEFAULT '1',
+drop table if exists `t_test_vote_memory`;
+create table `t_test_vote_memory` (
+    `id` int(10) unsigned not null auto_increment,
+    `user_id` varchar(20) not null default '',
+    `vote_num` int(10) unsigned not null default '0',
+    `group_id` int(10) unsigned not null default '0',
+    `status` tinyint(2) unsigned not null default '1',
     `create_time` datetime,
-    PRIMARY KEY (`id`),
-    KEY `index_user_id` (`user_id`) USING HASH
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+    primary key (`id`),
+    key `index_user_id` (`user_id`) using hash
+) engine=innodb auto_increment=1 default charset=utf8;
 
 -- 2.创建一个测试表
-DROP TABLE IF EXISTS `t_test_vote`;
-CREATE TABLE `t_test_vote` (
-    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `user_id` varchar(20) NOT NULL DEFAULT '' COMMENT '用户Id',
-    `vote_num` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '投票数',
-    `group_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '用户组id 0-未激活用户 1-普通用户 2-vip用户 3-管理员用户',
-    `status` tinyint(2) unsigned NOT NULL DEFAULT '1' COMMENT '状态 1-正常 2-已删除',
-    `create_time` datetime COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    KEY `index_user_id` (`user_id`) USING HASH COMMENT '用户ID哈希索引'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投票记录表';
+drop table if exists `t_test_vote`;
+create table `t_test_vote` (
+    `id` int(10) unsigned not null auto_increment,
+    `user_id` varchar(20) not null default '' comment '用户id',
+    `vote_num` int(10) unsigned not null default '0' comment '投票数',
+    `group_id` int(10) unsigned not null default '0' comment '用户组id 0-未激活用户 1-普通用户 2-vip用户 3-管理员用户',
+    `status` tinyint(2) unsigned not null default '1' comment '状态 1-正常 2-已删除',
+    `create_time` datetime comment '创建时间',
+    primary key (`id`),
+    key `index_user_id` (`user_id`) using hash comment '用户id哈希索引'
+) engine=innodb default charset=utf8 comment='投票记录表';
 
 -- 3.创建生成长度为n的随机字符串的函数
-DELIMITER // -- 修改MySQL delimiter：'//'
-DROP FUNCTION IF EXISTS `rand_string` //
-SET NAMES utf8 //
-CREATE FUNCTION `rand_string` (n INT) RETURNS VARCHAR(255) CHARSET 'utf8'
-BEGIN 
-    DECLARE char_str varchar(100) DEFAULT 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    DECLARE return_str varchar(255) DEFAULT '';
-    DECLARE i INT DEFAULT 0;
-    WHILE i < n DO
-        SET return_str = concat(return_str, substring(char_str, FLOOR(1 + RAND()*62), 1));
-        SET i = i+1;
-    END WHILE;
-    RETURN return_str;
-END //
+delimiter // -- 修改mysql delimiter：'//'
+drop function if exists `rand_string` //
+set names utf8 //
+create function `rand_string` (n int) returns varchar(255) charset 'utf8'
+begin 
+    declare char_str varchar(100) default 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz0123456789';
+    declare return_str varchar(255) default '';
+    declare i int default 0;
+    while i < n do
+        set return_str = concat(return_str, substring(char_str, floor(1 + rand()*62), 1));
+        set i = i+1;
+    end while;
+    return return_str;
+end //
 
 -- 4.创建插入数据的存储过程
-DELIMITER //
-DROP PROCEDURE IF EXISTS `add_t_test_vote_memory` //
-CREATE PROCEDURE `add_t_test_vote_memory`(IN n INT)
-BEGIN
-    DECLARE i INT DEFAULT 1;
-    DECLARE vote_num INT DEFAULT 0;
-    DECLARE group_id INT DEFAULT 0;
-    DECLARE status TINYINT DEFAULT 1;
-    WHILE i < n DO
-        SET vote_num = FLOOR(1 + RAND() * 10000);
-        SET group_id = FLOOR(0 + RAND()*3);
-        SET status = FLOOR(1 + RAND()*2);
-        INSERT INTO `t_test_vote_memory` VALUES (NULL, rand_string(20), vote_num, group_id, status, NOW());
-        SET i = i + 1;
-    END WHILE;
-END //
-DELIMITER ;  -- 改回默认的 MySQL delimiter：';'
+delimiter //
+drop procedure if exists `add_t_test_vote_memory` //
+create procedure `add_t_test_vote_memory`(in n int)
+begin
+    declare i int default 1;
+    declare vote_num int default 0;
+    declare group_id int default 0;
+    declare status tinyint default 1;
+    while i < n do
+        set vote_num = floor(1 + rand() * 10000);
+        set group_id = floor(0 + rand()*3);
+        set status = floor(1 + rand()*2);
+        insert into `t_test_vote_memory` values (null, rand_string(20), vote_num, group_id, status, now());
+        set i = i + 1;
+    end while;
+end //
+delimiter ;  -- 改回默认的 mysql delimiter：';'
 
--- 5.调用存储过程 生成100W条数据
-CALL add_t_test_vote_memory(1000000);
+-- 5.调用存储过程 生成100w条数据
+call add_t_test_vote_memory(1000000);
 
 -- 6.查看临时表数据
-SELECT count(*) FROM `t_test_vote_memory`;
+select count(*) from `t_test_vote_memory`;
 
 -- 7.复制数据
-INSERT INTO t_test_vote SELECT * FROM `t_test_vote_memory`;
+insert into t_test_vote select * from `t_test_vote_memory`;
 
 -- 8.查看数据
-SELECT count(*) FROM `t_test_vote`;
+select count(*) from `t_test_vote`;
 ```
 
 ## 其他

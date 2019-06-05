@@ -564,7 +564,7 @@ tags: [spring, springsecurity, springboot, oauth2]
         - 可自行编写登录逻辑(获取令牌->获取用户信息)
         - 也可使用 OAuth2 提供的 `@EnableOAuth2Sso` 注解实现单点登录，该注解会添加身份验证过滤器替我们完成所有操作，只需在配置文件里添加授权服务器和资源服务器的配置即可
     - spring cloud结合oauth2网关角色 [^4]
-        - `@EnableResourceServer` 网关充当资源服务器拦截请求，下游服务无需开启oauth验证(网关不对认证服务器相关端点验证)
+        - `@EnableResourceServer` 网关充当资源服务器拦截请求，下游服务无需开启oauth验证(网关不对认证服务器相关端点验证)。弊端：资源服务器某些端点无需认证则需要统一在网关处配置
         - `@EnableOAuth2Sso` 网关充当客户端，下游服务也以客户端或资源服务器进行认证。(单点登录必须保证客户端和授权服务器的hostname不同或者SESSIONID名称不同)
 - 授权服务器
     - 一些默认的端点URL(TokenEndpoint、AuthorizationEndpoint)
@@ -816,18 +816,18 @@ public QQAccount info(@RequestParam("access_token") String accessToken){
 @Component
 public class Oauth2Utils {
     @Autowired
-    SpringContextU springContextU; // 参考《springboot》【通用配置-获取Bean】
+    ApplicationContext applicationContext;
 
     // oauth2 认证服务器直接处理校验请求的逻辑
     public OAuth2AccessToken checkTokenInOauth2Server(String accessToken){
-        TokenStore tokenStore = (TokenStore) springContextU.getBean("tokenStore");
+        TokenStore tokenStore = (TokenStore) applicationContext.getBean("tokenStore");
         OAuth2AccessToken oAuth2AccessToken = tokenStore.readAccessToken(accessToken);
         return oAuth2AccessToken;
     }
 
     // oauth2 认证服务器直接处理校验请求的逻辑
     public OAuth2Authentication getAuthenticationInOauth2Server(String accessToken){
-        TokenStore tokenStore = (TokenStore) springContextU.getBean("tokenStore");
+        TokenStore tokenStore = (TokenStore) applicationContext.getBean("tokenStore");
         OAuth2Authentication oAuth2Authentication = tokenStore.readAuthentication(accessToken);
         return oAuth2Authentication;
     }
@@ -1183,6 +1183,7 @@ protected static class AuthorizationServerConfiguration extends AuthorizationSer
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
+        // 如果客户端认证基于数据存储，token有效期可在数据库表中配置
         return defaultTokenServices;
     }
     // ===============资源服务器和授权服务器要一致 end
@@ -1259,12 +1260,12 @@ public String getOrder(@PathVariable String id, String access_token, Authenticat
 /*
  1.访问：http://localhost:8084/oauth/token?grant_type=password&username=user_1&password=123456&client_id=client_1&client_secret=my_secret
     (client_credentials模式无refresh_token返回 http://localhost:8084/oauth/token?grant_type=client_credentials&scope=select&client_id=client_1&client_secret=my_secret)
- 2.返回
+ 2.返回（上述是基于client_1进行的认证，得到的token也可以访问client_2）
 {
     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoiYWV6b2NuIiwidXNlcl9uYW1lIjoidXNlcl8xIiwic2NvcGUiOlsic2VsZWN0Il0sImV4cCI6MTU0NTQxNTcwOCwiYXV0aG9yaXRpZXMiOlsiVVNFUiJdLCJqdGkiOiI4OTM0MGY0ZC1mMWE4LTQ1ZTMtOTE3Ni1kMzY0ZWE3MmY5ODYiLCJjbGllbnRfaWQiOiJjbGllbnRfMSJ9.A_do_6S1A7FKUWzdE1p7x6pBvPFNNOFL5JuDwUvfJOY",
     "token_type": "bearer",
     "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoiYWV6b2NuIiwidXNlcl9uYW1lIjoidXNlcl8xIiwic2NvcGUiOlsic2VsZWN0Il0sImF0aSI6Ijg5MzQwZjRkLWYxYTgtNDVlMy05MTc2LWQzNjRlYTcyZjk4NiIsImV4cCI6MTU0Nzk2NDUwOCwiYXV0aG9yaXRpZXMiOlsiVVNFUiJdLCJqdGkiOiJhNmM5NTQ4NS0yNTUzLTRlZjMtYWUwMi0wY2JjZjg2ZmQ1N2EiLCJjbGllbnRfaWQiOiJjbGllbnRfMSJ9.OoNAbGd62PxKPzzH03ASDUus-aYcWT5ktqaHMkezha0",
-    "expires_in": 43200,
+    "expires_in": 43200, // 有效秒数
     "scope": "select",
     "license": "aezocn",
     "jti": "89340f4d-f1a8-45e3-9176-d364ea72f986"
@@ -1286,6 +1287,164 @@ public String getOrder(@PathVariable String id, String access_token, Authenticat
     - 解决方法`AuthenticationManager authenticationManagerBean()`：https://github.com/spring-projects/spring-boot/issues/12395
 - 利用refresh_token无法刷新token
     - 需要设置userDetailsService
+
+#### debug日志
+
+基于OAuth2，客户端携Token获取用户信息为例
+
+```java
+// ######### 1.正确访问日志(需开启debug日志配置. logging.level.org.springframework.security: DEBUG)
+// ... 省略了一些/logout登出等前置拦截器日志
+2019-05-24 10:30:07.444 DEBUG 9400 --- [nio-8095-exec-9] o.s.security.web.FilterChainProxy        : /crm/base/get_result at position 11 of 11 in additional filter chain; firing Filter: 'FilterSecurityInterceptor'
+// A./test/main为`public void configure(HttpSecurity http)`中配置的端点，公开访问
+2019-05-24 10:30:07.444 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/crm/base/get_result'; against '/test/main'
+// B.访问路径，需要校验的权限
+2019-05-24 10:30:07.444 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.w.a.i.FilterSecurityInterceptor    : Secure object: FilterInvocation: URL: /crm/base/get_result; Attributes: [#oauth2.throwOnError(authenticated)]
+// C.当前获取到的认证对象(用户信息)
+2019-05-24 10:30:07.444 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.w.a.i.FilterSecurityInterceptor    : Previously Authenticated: org.springframework.security.oauth2.provider.OAuth2Authentication@d2206165: Principal: smalle; Credentials: [PROTECTED]; Authenticated: true; Details: remoteAddress=192.168.17.237, tokenType=BearertokenValue=<TOKEN>; Granted Authorities: ROLE_USER
+// D.认证投票，返回1，此投票员通过
+2019-05-24 10:30:07.444 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.access.vote.AffirmativeBased       : Voter: org.springframework.security.web.access.expression.WebExpressionVoter@71bae26, returned: 1
+// E.认证成功
+2019-05-24 10:30:07.445 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.w.a.i.FilterSecurityInterceptor    : Authorization successful
+2019-05-24 10:30:07.445 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.w.a.i.FilterSecurityInterceptor    : RunAsManager did not change Authentication object
+// F.处理原始请求，即进入/crm/base/get_result的业务逻辑
+2019-05-24 10:30:07.445 DEBUG 9400 --- [nio-8095-exec-9] o.s.security.web.FilterChainProxy        : /crm/base/get_result reached end of additional filter chain; proceeding with original chain
+2019-05-24 10:30:07.446 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.w.header.writers.HstsHeaderWriter  : Not injecting HSTS header since it did not match the requestMatcher org.springframework.security.web.header.writers.HstsHeaderWriter$SecureRequestMatcher@70a89018
+2019-05-24 10:30:07.447 DEBUG 9400 --- [nio-8095-exec-9] o.s.s.w.a.ExceptionTranslationFilter     : Chain processed normally
+2019-05-24 10:30:07.448 DEBUG 9400 --- [nio-8095-exec-9] s.s.w.c.SecurityContextPersistenceFilter : SecurityContextHolder now cleared, as request processing completed
+
+// ######### 2.错误日志示例(springcloud服务消费者，以请求头无Authorization信息为例. 防止文章显示异常，将日志中*/*被改成了*/ *)
+// A.访问/user/info/base，进行 `public void configure(HttpSecurity http)` 方法中的Ant路径匹配
+2019-05-31 12:43:30.983 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/oauth/token']
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/user/info/base'; against '/oauth/token'
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/oauth/token_key']
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/user/info/base'; against '/oauth/token_key'
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/oauth/check_token']
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/user/info/base'; against '/oauth/check_token'
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : No matches found
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/user/**']
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/user/info/base'; against '/user/**'
+2019-05-31 12:43:30.984 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : matched
+// B.匹配到路径后，依次执行拦截器流程，包括/logout等路径拦截
+2019-05-31 12:43:30.985 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 1 of 12 in additional filter chain; firing Filter: 'WebAsyncManagerIntegrationFilter'
+2019-05-31 12:43:30.986 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 2 of 12 in additional filter chain; firing Filter: 'SecurityContextPersistenceFilter'
+2019-05-31 12:43:30.987 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 3 of 12 in additional filter chain; firing Filter: 'HeaderWriterFilter'
+2019-05-31 12:43:30.988 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 4 of 12 in additional filter chain; firing Filter: 'LogoutFilter'
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', GET]
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/user/info/base'; against '/logout'
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', POST]
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Request 'GET /user/info/base' doesn't match 'POST /logout
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', PUT]
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Request 'GET /user/info/base' doesn't match 'PUT /logout
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', DELETE]
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Request 'GET /user/info/base' doesn't match 'DELETE /logout
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : No matches found
+// B1.执行OAuth2AuthenticationProcessingFilter拦截器，基于token获取用户信息
+2019-05-31 12:43:30.989 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 5 of 12 in additional filter chain; firing Filter: 'OAuth2AuthenticationProcessingFilter'
+// B2.******从Header(Authorization: Bearer xxx)中尚未获取到token，尝试从请求参数中获取
+2019-05-31 12:43:35.223 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.o.p.a.BearerTokenExtractor         : Token not found in headers. Trying request parameters.
+// B3.从请求参数中也为获取到tonen，得出结论，此请求不是一个有效的OAuth2请求
+2019-05-31 12:43:35.223 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.o.p.a.BearerTokenExtractor         : Token not found in request parameters.  Not an OAuth2 request.
+// B4.request中无token继续执行拦截器链
+2019-05-31 12:43:35.223 DEBUG 27096 --- [nio-8200-exec-3] p.a.OAuth2AuthenticationProcessingFilter : No token in request, will continue chain.
+2019-05-31 12:43:35.223 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 6 of 12 in additional filter chain; firing Filter: 'BasicAuthenticationFilter'
+2019-05-31 12:43:35.223 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 7 of 12 in additional filter chain; firing Filter: 'RequestCacheAwareFilter'
+2019-05-31 12:43:35.223 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 8 of 12 in additional filter chain; firing Filter: 'SecurityContextHolderAwareRequestFilter'
+// B5.既然没有获取到认证信息，此时初始化一个认证对象(为游客身份)
+2019-05-31 12:43:35.225 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 9 of 12 in additional filter chain; firing Filter: 'AnonymousAuthenticationFilter'
+2019-05-31 12:43:35.226 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Populated SecurityContextHolder with anonymous token: 'org.springframework.security.authentication.AnonymousAuthenticationToken@e6c8d1cb: Principal: anonymousUser; Credentials: [PROTECTED]; Authenticated: true; Details: org.springframework.security.web.authentication.WebAuthenticationDetails@59b2: RemoteIpAddress: 192.168.6.1; SessionId: null; Granted Authorities: ROLE_ANONYMOUS'
+2019-05-31 12:43:35.226 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 10 of 12 in additional filter chain; firing Filter: 'SessionManagementFilter'
+2019-05-31 12:43:35.226 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 11 of 12 in additional filter chain; firing Filter: 'ExceptionTranslationFilter'
+2019-05-31 12:43:35.226 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /user/info/base at position 12 of 12 in additional filter chain; firing Filter: 'FilterSecurityInterceptor'
+// C.拦截器执行完成，此时已经获取到了认证对象(用户信息)。需要访问的路径为 /user/info/base，需要判断的权限为 [#oauth2.throwOnError(authenticated)] (需要已登录权限)
+2019-05-31 12:43:35.227 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.a.i.FilterSecurityInterceptor    : Secure object: FilterInvocation: URL: /user/info/base; Attributes: [#oauth2.throwOnError(authenticated)]
+// D.进行权限认证前，此时获取到的认证对象(基于用户名/session/token获取到的用户信息)为 anonymousUser(用户认证信息ROLE_ANONYMOUS说明用户为游客)
+2019-05-31 12:43:35.227 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.a.i.FilterSecurityInterceptor    : Previously Authenticated: org.springframework.security.authentication.AnonymousAuthenticationToken@e6c8d1cb: Principal: anonymousUser; Credentials: [PROTECTED]; Authenticated: true; Details: org.springframework.security.web.authentication.WebAuthenticationDetails@59b2: RemoteIpAddress: 192.168.6.1; SessionId: null; Granted Authorities: ROLE_ANONYMOUS
+// E.执行认证投票，-1表示投票不通过，认证失败
+2019-05-31 12:43:35.236 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.access.vote.AffirmativeBased       : Voter: org.springframework.security.web.access.expression.WebExpressionVoter@6c422090, returned: -1
+// F.认证失败，无权访问资源
+2019-05-31 12:43:35.245 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.a.ExceptionTranslationFilter     : Access is denied (user is anonymous); redirecting to authentication entry point
+
+org.springframework.security.access.AccessDeniedException: Access is denied
+    at org.springframework.security.access.vote.AffirmativeBased.decide(AffirmativeBased.java:84) ~[spring-security-core-5.0.4.RELEASE.jar:5.0.4.RELEASE]
+    at org.springframework.security.access.intercept.AbstractSecurityInterceptor.beforeInvocation(AbstractSecurityInterceptor.java:233) ~[spring-security-core-5.0.4.RELEASE.jar:5.0.4.RELEASE]
+    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke(FilterSecurityInterceptor.java:124) ~[spring-security-web-5.0.4.RELEASE.jar:5.0.4.RELEASE]
+    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.doFilter(FilterSecurityInterceptor.java:91) ~[spring-security-web-5.0.4.RELEASE.jar:5.0.4.RELEASE]
+    // ...
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) [na:1.8.0_111]
+    at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) [tomcat-embed-core-8.5.29.jar:8.5.29]
+    at java.lang.Thread.run(Thread.java:745) [na:1.8.0_111]
+
+2019-05-31 12:43:35.256 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.a.ExceptionTranslationFilter     : Calling Authentication entry point.
+2019-05-31 12:43:35.257 DEBUG 27096 --- [nio-8200-exec-3] s.w.a.DelegatingAuthenticationEntryPoint : Trying to match using MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[application/atom+xml, application/x-www-form-urlencoded, application/json, application/octet-stream, application/xml, multipart/form-data, text/xml], useEquals=false, ignoredMediaTypes=[*/ *]]
+2019-05-31 12:43:35.258 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : httpRequestMediaTypes=[*/ *]
+2019-05-31 12:43:35.258 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : Processing */ *
+2019-05-31 12:43:35.258 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : Ignoring
+2019-05-31 12:43:35.258 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : Did not match any media types
+2019-05-31 12:43:35.258 DEBUG 27096 --- [nio-8200-exec-3] s.w.a.DelegatingAuthenticationEntryPoint : Trying to match using OrRequestMatcher [requestMatchers=[RequestHeaderRequestMatcher [expectedHeaderName=X-Requested-With, expectedHeaderValue=XMLHttpRequest], AndRequestMatcher [requestMatchers=[NegatedRequestMatcher [requestMatcher=MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[text/html], useEquals=false, ignoredMediaTypes=[]]], MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[application/atom+xml, application/x-www-form-urlencoded, application/json, application/octet-stream, application/xml, multipart/form-data, text/xml], useEquals=false, ignoredMediaTypes=[*/ *]]]], MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[*/ *], useEquals=true, ignoredMediaTypes=[]]]]
+2019-05-31 12:43:35.258 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using RequestHeaderRequestMatcher [expectedHeaderName=X-Requested-With, expectedHeaderValue=XMLHttpRequest]
+2019-05-31 12:43:35.258 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using AndRequestMatcher [requestMatchers=[NegatedRequestMatcher [requestMatcher=MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[text/html], useEquals=false, ignoredMediaTypes=[]]], MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[application/atom+xml, application/x-www-form-urlencoded, application/json, application/octet-stream, application/xml, multipart/form-data, text/xml], useEquals=false, ignoredMediaTypes=[*/ *]]]]
+2019-05-31 12:43:35.259 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.util.matcher.AndRequestMatcher   : Trying to match using NegatedRequestMatcher [requestMatcher=MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[text/html], useEquals=false, ignoredMediaTypes=[]]]
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : httpRequestMediaTypes=[*/ *]
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : Processing */ *
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : text/html .isCompatibleWith */ * = true
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.NegatedRequestMatcher  : matches = false
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.util.matcher.AndRequestMatcher   : Did not match
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using MediaTypeRequestMatcher [contentNegotiationStrategy=org.springframework.web.accept.ContentNegotiationManager@5037f327, matchingMediaTypes=[*/ *], useEquals=true, ignoredMediaTypes=[]]
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : httpRequestMediaTypes=[*/ *]
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : Processing */ *
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.m.MediaTypeRequestMatcher      : isEqualTo true
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : matched
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] s.w.a.DelegatingAuthenticationEntryPoint : Match found! Executing org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint@41582899
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] s.w.a.DelegatingAuthenticationEntryPoint : Trying to match using RequestHeaderRequestMatcher [expectedHeaderName=X-Requested-With, expectedHeaderValue=XMLHttpRequest]
+2019-05-31 12:43:35.262 DEBUG 27096 --- [nio-8200-exec-3] s.w.a.DelegatingAuthenticationEntryPoint : No match found. Using default entry point org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint@3e138bb4
+2019-05-31 12:43:35.263 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.header.writers.HstsHeaderWriter  : Not injecting HSTS header since it did not match the requestMatcher org.springframework.security.web.header.writers.HstsHeaderWriter$SecureRequestMatcher@34581d9e
+// G.Security执行完成，释放SecurityContextHolder
+2019-05-31 12:43:35.263 DEBUG 27096 --- [nio-8200-exec-3] s.s.w.c.SecurityContextPersistenceFilter : SecurityContextHolder now cleared, as request processing completed
+// A.权限认证失败，此时跳转到 MVC 的 /error 端点（当成一个新请求，继续执行上述 Security）
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/oauth/token']
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/error'; against '/oauth/token'
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/oauth/token_key']
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/error'; against '/oauth/token_key'
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/oauth/check_token']
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/error'; against '/oauth/check_token'
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : No matches found
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/user/**']
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/error'; against '/user/**'
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : No matches found
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 1 of 11 in additional filter chain; firing Filter: 'WebAsyncManagerIntegrationFilter'
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 2 of 11 in additional filter chain; firing Filter: 'SecurityContextPersistenceFilter'
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] w.c.HttpSessionSecurityContextRepository : No HttpSession currently exists
+2019-05-31 12:43:35.268 DEBUG 27096 --- [nio-8200-exec-3] w.c.HttpSessionSecurityContextRepository : No SecurityContext was available from the HttpSession: null. A new one will be created.
+2019-05-31 12:43:35.270 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 3 of 11 in additional filter chain; firing Filter: 'HeaderWriterFilter'
+2019-05-31 12:43:35.270 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 4 of 11 in additional filter chain; firing Filter: 'LogoutFilter'
+2019-05-31 12:43:35.270 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', GET]
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/error'; against '/logout'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', POST]
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Request 'GET /error' doesn't match 'POST /logout
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', PUT]
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Request 'GET /error' doesn't match 'PUT /logout
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/logout', DELETE]
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Request 'GET /error' doesn't match 'DELETE /logout
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.web.util.matcher.OrRequestMatcher  : No matches found
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 5 of 11 in additional filter chain; firing Filter: 'UsernamePasswordAuthenticationFilter'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.u.matcher.AntPathRequestMatcher  : Request 'GET /error' doesn't match 'POST /login
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 6 of 11 in additional filter chain; firing Filter: 'RequestCacheAwareFilter'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 7 of 11 in additional filter chain; firing Filter: 'SecurityContextHolderAwareRequestFilter'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 8 of 11 in additional filter chain; firing Filter: 'AnonymousAuthenticationFilter'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Populated SecurityContextHolder with anonymous token: 'org.springframework.security.authentication.AnonymousAuthenticationToken@28256a19: Principal: anonymousUser; Credentials: [PROTECTED]; Authenticated: true; Details: org.springframework.security.web.authentication.WebAuthenticationDetails@59b2: RemoteIpAddress: 192.168.6.1; SessionId: null; Granted Authorities: ROLE_ANONYMOUS'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 9 of 11 in additional filter chain; firing Filter: 'SessionManagementFilter'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 10 of 11 in additional filter chain; firing Filter: 'ExceptionTranslationFilter'
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error at position 11 of 11 in additional filter chain; firing Filter: 'FilterSecurityInterceptor'
+// B./error的Security拦截器执行完成
+2019-05-31 12:43:35.271 DEBUG 27096 --- [nio-8200-exec-3] o.s.security.web.FilterChainProxy        : /error reached end of additional filter chain; proceeding with original chain
+// C.SecurityContext信息未空，不保存session
+2019-05-31 12:43:35.314 DEBUG 27096 --- [nio-8200-exec-3] w.c.HttpSessionSecurityContextRepository : SecurityContext is empty or contents are anonymous - context will not be stored in HttpSession.
+2019-05-31 12:43:35.319 DEBUG 27096 --- [nio-8200-exec-3] o.s.s.w.a.ExceptionTranslationFilter     : Chain processed normally
+// D./error请求完成
+2019-05-31 12:43:35.319 DEBUG 27096 --- [nio-8200-exec-3] s.s.w.c.SecurityContextPersistenceFilter : SecurityContextHolder now cleared, as request processing completed
+2019-05-31 12:44:27.288  INFO 27096 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+````
 
 ## 源码解析
 
