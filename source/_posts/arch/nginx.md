@@ -26,7 +26,7 @@ tags: LB, HA
     - `nginx -v` 简单查看
     - `nginx -V` 查看安装时的配置信息
     - `2>&1 nginx -V | tr ' '  '\n'` 查看安装时的配置信息并美化
-- 安装**(详细参考下文`基于编译安装tengine`)**
+- 安装 **(详细参考下文`基于编译安装tengine`)**
     - `yum install -y nginx` 基于源安装(傻瓜式安装). **有的服务器可能需要先安装`yum install -y epel-release`**
         - 默认可执行文件路径`/usr/sbin/nginx`(已加入到系统服务); 配置文件路径`/etc/nginx/nginx.conf`
         - 安装时提示"No package nginx available."。问题原因：nginx位于第三方的yum源里面，而不在centos官方yum源里面，解决办法为安装epel(Extra Packages for Enterprise Linux)
@@ -54,11 +54,13 @@ tags: LB, HA
     - **校验配置**：`/usr/sbin/nginx -t` 检查配置文件的配置是否合法(也会返回配置文件位置)，适用windows
     - **重载配置文件**： `/usr/sbin/nginx -s reload`，适用windows
     - 重启：`/usr/sbin/nginx -s restart` 有的配置文件改了必须重启
+- nginx两种进程
+    - master进程，root用户打开，接收信号，管理worker进程
+    - worker进程，nginx用户打开，工作进程，负责处理http请求
 
 ## nginx配置(nginx.conf)
 
 - 查找配置文件 `sudo find / -name nginx.conf`
-
 - 配置示例
 
 ```bash
@@ -68,6 +70,10 @@ server {
     # 服务器的地址
     server_name www.aezo.cn;
 
+    # VUE类型应用，防止缓存index.html
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store";
+    }
     # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)。内部重定向使用proxy_pass
     location = / {
         rewrite / http://$server_name/hello break;
@@ -790,7 +796,6 @@ fi
             }
         }
         ```
-
 
 ## 基于编译安装tengine
 

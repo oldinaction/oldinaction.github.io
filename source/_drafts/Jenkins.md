@@ -30,10 +30,33 @@ tags: hook
     - maven build
 - 构建版本记录，类似git日志、
 
+## 简介
+
+- [jenkins](https://jenkins.io/zh/)
 
 ## 安装编译及运行
 
 ### 直接安装运行
+
+#### 基于Docker安装
+
+```bash
+# 创建jenkins-data容器卷，专门存放jenkins数据
+docker volume create jenkins-data
+
+# 创建镜像并运行(\后不能有空格)
+docker run \
+  -u root \
+  -d \
+  -p 2081:8080 \
+  -p 50080:50000 \
+  -v jenkins-data:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  --name jenkins \
+  --restart=always \
+  jenkinsci/blueocean
+```
+- 激活：秘钥位置为/var/jenkins_home/secrets/initialAdminPassword，实际存储位置为/data/docker/volumes/jenkins-data/_data/secrets/initialAdminPassword(其中/data/docker为docker默认存储路径，jenkins-data为容器卷名)
 
 ### 手动编译运行
 
@@ -60,6 +83,8 @@ tags: hook
 
 - Repositories：git仓库配置
 - Branches to build：需要构建的分支，如`origin/test`
+- Additional Behaviours：扩展配置
+    - Advanced clone behaviours：配置git clone，对于较多代码拉取可将其中Timeout设置成`30`分钟
 
 ### 构建触发器
 
@@ -106,6 +131,10 @@ tags: hook
 
 - `E-mail Notification` 邮件通知
 
+## Jenkins+Docker+SpringBoot
+
+
+
 ## 系统管理
 
 ### 系统设置
@@ -115,6 +144,10 @@ tags: hook
     - SSH Servers：配置目标服务器，高级功能中可使用Http、Socket代理
 
 ### 插件管理
+
+#### 默认安装插件
+
+- Git(内置git客户端)
 
 #### Publish over SSH
 

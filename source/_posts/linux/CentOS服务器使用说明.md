@@ -16,6 +16,7 @@ tags: [CentOS, linux]
 ### 新服务器初始化
 
 - 关闭防火墙
+    - systemctl stop firewalld、systemctl disable firewalld
     - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
     - Centos 7使用`firewalld`代替了原来的`iptables`
         - 查看状态：`systemctl status firewalld`
@@ -33,10 +34,7 @@ tags: [CentOS, linux]
     - `date -s "2019-04-07 10:00:00"` 设置时间
     - `hwclock -w` 将时间写入bios避免重启失效
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
-- 设置用户umask值(包括root用户)
-    - 永久修改umask值需修改`sudo vi /etc/profile`/`sudo vi ~/.bashrc`文件，加入一行`umask 022`(002对应创建的文件权限是755)
-    - 命令行运行`umask 022`只能临时改变
-    - `umask` 查看
+- 设置用户umask值(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#文件权限)
 - 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
 
 ### 新服务器常见问题
@@ -210,14 +208,14 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     # 修改
     if test -z "$basedir"
     then
-    basedir=/opt/soft/mysql57
-    bindir=/opt/soft/mysql57/bin
+    basedir=/usr/local/mysql
+    bindir=/usr/local/mysql/bin
     if test -z "$datadir"
     then
-        datadir=/home/data/mysql
+        datadir=/usr/local/mysql/data
     fi
-    sbindir=/opt/soft/mysql57/bin
-    libexecdir=/opt/soft/mysql57/bin
+    sbindir=/usr/local/mysql/bin
+    libexecdir=/usr/local/mysql/bin
     else
 
     # 为
@@ -259,21 +257,22 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     # 设置开机启动
     systemctl enable mysqld
     ```
-- 配置文件默认路径：`/etc/my.cnf`(修改配置后需要重启服务)
+- 配置文件默认路径 `/etc/my.cnf`(修改配置后需要重启服务)
 
     ```ini
     [client] # 客户端连接时的默认配置(可省略)
     port=13306
     socket=/home/data/mysql/mysql.sock
-    default-character-set=utf8
+    default-character-set=utf8mb4
 
     [mysqld] # 服务端配置\
     # skip-grant-tables # skip-grant-tables作为启动参数的作用，MYSQL服务器不加载权限判断，任何用户都能访问数据库，忘记密码时可使用
     port=13306
     # 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)
     lower_case_table_names=1
-    character-set-server=utf8
-    init-connect='SET NAMES utf8'
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_bin
+    init-connect='SET NAMES utf8mb4'
     # 防止导入数据时数据太大报错
     max_allowed_packet=512M
 

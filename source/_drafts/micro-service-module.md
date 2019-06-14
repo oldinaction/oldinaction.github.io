@@ -64,6 +64,7 @@ tags: [微服务, SpringCloud]
 
 ### 服务配置中心
 
+- https://www.itcodemonkey.com/article/13646.html、http://www.itmuch.com/spring-cloud-sum/spring-cloud-config-serer-compare/
 - [Apollo](https://github.com/ctripcorp/apollo)
     - 携程开源。Apollo 支持完善的管理界面，支持多环境，配置变更实时生效，权限和配置审计等多种生产级功能。Apollo 既可以用于连接字符串等常规配置场景，也可用于发布开关（Feature Flag）和业务配置等高级场景
 - Spring Cloud Config

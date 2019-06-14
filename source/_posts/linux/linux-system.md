@@ -204,6 +204,9 @@ tags: [linux, shell]
     # 再次输入`p`查看将要到达的分区情况
     # 确认后输入`w`写入分区表，并在写入后退出；输入`q`放弃分区并退出
     # 到这里分区就完成了，但是新的分区还是不能使用的，要对新分区进行格式化，然后将它挂载到某个可访问目录下才能进行操作
+        # 如果w后提示 WARNING: Re-reading the partition table failed with error 16: Device or resource busy. The kernel still uses the old table. The new table will be used at the next reboot or after you run partprobe(8) or kpartx(8)
+        # 为了不reboot就能生效，强制内核重新读取分区表，执行命令`partprobe`后继续后续命令
+        # partprobe
 
     # 查看分区(未挂载的分区也会显示)
     cat /proc/partitions
@@ -540,21 +543,22 @@ tags: [linux, shell]
 - 语法 `sed [options] '内部命令表达式' file ...`
 - 参数
     - `-n` 静默模式，不再默认显示模式空间中的内容
-	- `-i` **直接修改原文件**(默认只输出结果)
-	- `-e SCRIPT -e SCRIPT` 可以同时执行多个脚本
-	- `-f` /PATH/TO/SED_SCRIPT
-	    - sed -f /path/to/scripts  file
+	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
+	- `-e script -e script` 可以同时执行多个脚本
+	- `-f`：如`sed -f /path/to/scripts file`
 	- `-r` 表示使用扩展正则表达式
 - 内部命令
     - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
+	- `s/pattern/string/修饰符` 查找并替换，默认只替换每行中第一次被模式匹配到的字符串。修饰符`g` 全局替换；`i` 忽略字符大小写
+        - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"
+        - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor" 
 	- `d` 删除符合条件的行
 	- `p` 显示符合条件的行
 	- `a \string`: 在指定的行后面追加新行，内容为string
 		- `\n` 可以用于换行
 	- `i \string`: 在指定的行前面添加新行，内容为string
-	- `r FILE` 将指定的文件的内容添加至符合条件的行处
-	- `w FILE` 将地址指定的范围内的行另存至指定的文件中
-	- `s/pattern/string/修饰符`  查找并替换，默认只替换每行中第一次被模式匹配到的字符串。修饰符`g` 全局替换；`i` 忽略字符大小写	
+	- `r <file>` 将指定的文件的内容添加至符合条件的行处
+	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
 	- `&` 引用模式匹配整个串
 - 示例
     - 删除/etc/grub.conf文件中行首的空白符：`sed -r 's@^[[:space:]]+@@g' /etc/grub.conf`
@@ -633,6 +637,7 @@ tags: [linux, shell]
 - `passwd aezo` 设置密码
     - centos7忘记root用户密码找回可在启动时设置进入`sysroot/bin/sh`进行修改，参考：https://blog.51cto.com/scorpions/2059912
 - 添加用户sudo权限
+    - 使用sudo执行的命令都是基于root启动，创建的文件也是所属root
 
     ```bash
     # 添加写权限
@@ -704,10 +709,14 @@ tags: [linux, shell]
         - 操作符取值为：`+-=`：+ 为增加，- 为除去，= 为设定
         - 如：`chmod u=rwx,go=rx test`、`chmod g+s,o+t test`
 - `umask` 创建文件时的默认权限
-    - 永久修改umask值：修改`sudo vi /etc/profile`/`sudo vi ~/.bashrc`文件，加入一行`umask 022`。命令行运行`umask 022`只能临时改变
-    - `umask` 查看umask分数值。如0022(一般umask分数值指后面三个数字，相当于基于777做减法)
+    - `umask` 查看umask分数值。如0022(一般umask分数值指后面三个数字022; umask值相当于基于666做减法，022=>644，002=>664)
         - `umask -S` 查看umask。如u=rwx,g=rx,o=rx
-    - 系统默认新建文件的权限为666(3个rw)，文件夹为777(3个rwx)。最终新建文件的默认权限为系统默认权限减去umask分数值。如umask为002，新建的文件为-rw-r--r--，文件夹为drw-r-xr-x
+        - 系统默认新建文件的权限为666(3个rw)，文件夹为777(3个rwx)。最终新建文件的默认权限为系统默认权限减去umask分数值。如umask为002，新建的文件为-rw-r--r--，文件夹为drw-r-xr-x
+        - centos7中root用户默认为022，其他新创建的用户默认为002
+    - 命令行运行`umask 022`只能临时改变
+    - 永久修改umask值
+        - 方式一：修改`sudo vi /etc/profile`，加入一行`umask 022`
+        - 方式二：修改每个用户`sudo vi ~/.bashrc`文件，加入一行`umask 022`
 - 常用命令
     - `find . -type d -exec chmod 755 {} \;` 修改当前目录的所有目录为775
     - `find . -type f -exec chmod 644 {} \;` 修改当前目录的所有文件为644
@@ -823,9 +832,9 @@ tags: [linux, shell]
     - `,` 表示附加一个可能值
     - `/` 符号前表示开始时间，符号后表示每次递增的值
 
-## curl/wget
+## 网络
 
-### curl
+### curl/wget测试
 
 ```bash
 # GET请求
@@ -835,6 +844,130 @@ curl -X POST -v -d "username=smalle&password=aezocn" localhost:8080/login
 # POST请求，-H指定header，此时指定Content-Type:application/json，-d中的数据会放到body中
 curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{"orderId": "1"}' http://localhost:8000/order/
 ```
+
+### ping
+
+```bash
+# 只向192.168.1.1发送3个包
+ping -c 3 192.168.1.1
+```
+
+### tcpdump
+
+```bash
+# 观察流经 docker0 网卡的 icmp 类型(ping)流量
+tcpdump -i docker0 -n icmp
+```
+
+### route路由信息
+
+- 查看路由信息 `ip r`
+
+```bash
+ip r # 或 ip route，显示如下
+
+# 表示去任何地方，都发送给网卡eth0，并经过网关192.168.17.103发出；metric 100表示路由距离，到达指定网络所需的中转数
+default via 192.168.17.103 dev eth0 proto static metric 100
+# 表示发往 172.16.0.0/16 这个网段的包，都由网卡docker0发出，src 172.17.0.1为网卡docker0的ip
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 
+172.18.0.0/16 dev br-190a4d9330bd proto kernel scope link src 172.18.0.1 
+192.168.17.0/24 dev eth0 proto kernel scope link src 192.168.17.73 metric 100
+```
+
+### iptables
+
+> 参考：http://www.zsythink.net/archives/1199/ 、 http://cn.linux.vbird.org/linux_server/0250simple_firewall.php#netfilter 、 https://blog.51cto.com/yijiu/1356254
+
+- iptables的规则存储在内核空间的信息包过滤表中，这些规则分别指定了源地址、目的地址、传输协议（如TCP、UDP、ICMP）和服务类型（如HTTP、FTP和SMTP）等。当数据包与规则匹配时，iptables就根据规则所定义的方法来处理这些数据包，如放行（accept）、拒绝（reject）和丢弃（drop）等。配置防火墙的主要工作就是添加、修改和删除这些规则
+- 链(规则)类型：`prerouting`、`input`、`forward`、`output`、`postrouting`。每种链类型上可能会有多个规则
+    
+    ![报文流向](/data/images/linux/报文流向.png)
+
+    - 到本机某进程的报文：PREROUTING --> INPUT
+    - 由本机转发的报文：PREROUTING --> FORWARD --> POSTROUTING
+    - 由本机的某进程发出报文（通常为响应报文）：OUTPUT --> POSTROUTING
+- 表：把具有相同功能的规则的集合叫做"表"，不同功能的规则可以放置在不同的表中进行管理。当他们处于同一条"链"时，执行的优先级为：**raw > mangle > nat > filter**
+    - `raw`表：关闭nat表上启用的连接追踪机制；iptable_raw。可能被PREROUTING，OUTPUT使用
+    - `mangle`表：拆解报文，做出修改，并重新封装的功能；iptable_mangle。可能被PREROUTING，INPUT，FORWARD，OUTPUT，POSTROUTING使用
+    - `nat`表：network address translation，网络地址转换功能；内核模块：iptable_nat。可能被PREROUTING，INPUT，OUTPUT，POSTROUTING（centos6中无INPUT）使用
+    - `filter`表：负责过滤功能，防火墙；内核模块：iptables_filter。可能被INPUT，FORWARD，OUTPUT使用
+- 规则由匹配条件和处理动作组成
+    - 匹配条件：源地址Source IP，目标地址 Destination IP，和一些扩展匹配条件
+    - 处理动作(target)
+        - `ACCEPT`：允许数据包通过（后续规则继续执行。此时会继续校验此链上的其他规则和剩余其他链规则）
+        - `DROP`：直接丢弃数据包，不给任何回应信息，过了超时时间才会有反应。或者出现ping永远无返回信息即卡死（后续不执行）
+        - `REJECT`：拒绝数据包通过，必要时会给数据发送端一个响应的信息，客户端刚请求就会收到拒绝的信息（后续不执行）
+        - `SNAT`：源地址转换，解决内网用户用同一个公网地址上网的问题（后续规则继续执行）
+        - `MASQUERADE`：是SNAT的一种特殊形式，适用于动态的、临时会变的ip上
+        - `DNAT`：目标地址转换
+        - `REDIRECT`：在本机做端口映射
+        - `LOG`：在/var/log/messages文件中记录日志信息，然后将数据包传递给下一条规则，也就是说除了记录以外不对数据包做任何其他操作，仍然让下一条规则去匹配
+        - `RETURN`：结束在目前规则链中的过滤程序，返回主规则链继续过滤。如果把自定义链看成是一个子程序，那么这个动作就相当于提早结束子程序并返回到主程序中（此自定义链后续规则不执行，主链继续执行）
+        - `QUEUE`：防火墙将数据包移交到用户空间
+- 列出iptables表规则
+
+```bash
+## 列出iptables表规则
+iptables [-t tables] [-L] [-nv]
+    # 选项与参数：
+    # -t ：后面接 table ，例如 nat 或 filter ，若省略此项目，则使用默认的 filter
+    # -n ：仅显示IP，不进行 IP 与 HOSTNAME 的反查。(否则显示HOSTNAME)
+    # -v ：列出更多的信息，包括通过该规则的封包总位数、相关的网络接口等
+    # -x ：显示详细数据，不进行单位换算
+    # -L ：列出目前的 table 的规则
+
+# 列出 filter table 相关链的规则
+iptables -L -n
+# 列出 filter table 相关链的规则明细，包含数据包大小等
+iptables -nvL
+    # pkts        对应规则匹配到的报文的个数
+    # bytes       对应匹配到的报文包的大小总和
+    # target      规则对应的traget，表示对应的动作，即规则匹配成功后需要采取的措施
+    # prot        表示规则对应的协议，是否只针对某些协议应用此规则
+    # opt         表示规则对应的选项
+    # in          表示数据包由哪个接口流入，可以设置哪块网卡流入的报文需要匹配当前规则
+    # out         表示数据包由哪个接口流出，可以设置哪块网卡流出的报文需要匹配当前规则
+    # source      表示规则对应的源头地址，可以是一个ip，也可以是一个网段
+    # destination 表示规则对应的目标地址，可以是一个ip，也可以是一个网段
+# 查看filter表的FORWARD链规则
+iptables -nvL FORWARD
+# 列出 nat table 相关链的规则
+iptables -t nat -L -n
+
+# 示例：iptables -nvxL 部分显示如下
+Chain INPUT (policy ACCEPT 937 packets, 77099 bytes) # INPUT链中无任何规则；policy ACCEPT为默认处理动作
+ pkts bytes target     prot opt in     out     source               destination      
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes) # FORWARD链中引入了自定义链DOCKER-ISOLATION-STAGE-1和DOCKER内容，当符合后面的规则就执行自定义链，相当于执行子函数；prot代表使用的封包协议（tcp, udp 及 icmp）；opt额外的选项说明；source/destination为源/目标地址
+ pkts bytes target     prot opt in     out     source               destination         
+   30 10743 DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+   30 10743 DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+   15  9681 ACCEPT     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+    0     0 DOCKER     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0           # 此时虽然符合执行DOCKER子链，但是DOCKER子链中并无规则，所以此规则记录的pkts和bytes为0
+   15  1062 ACCEPT     all  --  docker0 !docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     all  --  docker0 docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     all  --  *      br-92de1a13d5ca  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+   ...
+
+Chain OUTPUT (policy ACCEPT 723 packets, 123K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain DOCKER (3 references)
+ pkts bytes target     prot opt in     out     source               destination
+
+...
+
+Chain DOCKER-USER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+   30 10743 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0     
+```
+
+## 工具
+
+- https://linuxtools-rst.readthedocs.io/zh_CN/latest/tool/index.html
+- pstack 跟踪进程栈
+- strace 跟踪进程中的系统调用
+- top linux下的任务管理器
 
 ## linux概念
 

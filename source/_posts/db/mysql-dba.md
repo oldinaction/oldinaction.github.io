@@ -25,13 +25,14 @@ tags: [mysql, dba]
 ### 创建删除用户
 
 ```sql
--- 创建用户基本操作
+-- 创建用户基本操作（对于项目级别用户可对每个数据库进行控制，并去掉Grant权限，即去掉查看当前数据库用户列表权限）
 grant all privileges on *.* to 'admin'@'localhost' identified by 'pass' with grant option; -- 创建了一个admin/pass只能本地连接的超级用户
 
 use mysql
 update user set user='smalle' where user='root';
 set password for 'root'@'localhost' = password('root'); -- 5.6版本更新用户
 update user set authentication_string = password("root") where user='root'; -- 5.7版本更新用户
+-- 或者 alter user user() identified by "123456";
 update user set host='%' where user='root';
 delete from user where user = '用户名'; -- 删除用户。删除系统mysql表中的记录
 -- 刷新数据

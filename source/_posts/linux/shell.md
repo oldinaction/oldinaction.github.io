@@ -76,13 +76,29 @@ tags: [shell, linux]
 - 注意文件格式必须是Unix格式(否则执行报错：`: No such file or directory`)
   - 解决办法：`vim my.sh` - `:set ff=unix` - `:x`
 - 执行`./my.sh`或`sh my.sh`或`bash my.sh`(有时需要添加可执行权限：`chmod +x my.sh`)
-  - `bash -n shell文件` 检查文件是否有语法错误(`sh -n`亦可)
-  - `bash -x shell 文件` **debug 执行文件**
-  - `.`、`exec`、`eval`命令执行脚本都不会产生子进程
+	- `bash -n shell文件` 检查文件是否有语法错误(`sh -n`亦可)
+	- `bash -x shell 文件` **debug 执行文件**
+	- `.`、`exec`、`eval`命令执行脚本都不会产生子进程
 - `#!/bin/bash` 脚本第一行必须以此开头
 - `#` 表示注释
 - `exit` 退出脚本
-  - 退出脚本可以指定脚本执行的状态：`exit 0` 成功退出，`exit 1`/`exit 2`/... 失败退出
+	- 退出脚本可以指定脚本执行的状态：`exit 0` 成功退出，`exit 1`/`exit 2`/... 失败退出
+- 远程执行脚本 [^4]
+	- 简单执行远程命令：`ssh user@remoteNode "cd /home ; ls"` 双引号必须有，两个命令直接用分号分割
+	- 远程脚本
+
+```bash
+#!/bin/bash
+# `> /dev/null 2>&1` 表示远程命令不在本地显示，如果需要显示可以省略
+# `<< eeooff`和最后的`eeooff`需要对应，可以换成其他任何标识符，如`<< remotessh`
+# 在远程命令的脚本最后需要exit退出远程服务器
+ssh user@remoteNode > /dev/null 2>&1 << eeooff
+cd /home
+touch abcdefg.txt
+exit
+eeooff
+echo done!
+```
 
 #### 简单示例
 
@@ -134,6 +150,26 @@ fi
 ```
 
 #### 接受参数
+
+- 常见参数如
+
+```bash
+# [-?hvVtTq] 表示接受 -? -h -v等参数
+# -s signal表示 -s 后面需要再接一个参数
+Usage: nginx [-?hvVtTq] [-s signal] [-c filename] [-p prefix] [-g directives]
+
+Options:
+  -?,-h         : this help
+  -v            : show version and exit
+  -V            : show version and configure options then exit
+  -t            : test configuration and exit
+  -T            : test configuration, dump it and exit
+  -q            : suppress non-error messages during configuration testing
+  -s signal     : send signal to a master process: stop, quit, reopen, reload
+  -p prefix     : set prefix path (default: /etc/nginx/)
+  -c filename   : set configuration file (default: /etc/nginx/nginx.conf)
+  -g directives : set global directives out of configuration file
+```
 
 - 顺序参数，如`./test.sh 1 2` 执行下面脚本
 
@@ -255,109 +291,109 @@ fi
     # --long: 表示长选项
     # -n: 出错时的信息
     # --: 用途举例，创建一个名字为 "-f"的目录，当`mkdir -f`时不成功，因为-f会被mkdir当作选项来解析; 这时就可以使用 `mkdir -- -f` 这样-f就不会被作为选项。
-	# $@: 从命令行取出参数列表(不能用用 $* 代替，因为 $* 将所有的参数解释成一个字符串，而 $@ 是一个参数数组)
-    TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
-        -n "$0" -- "$@"`
-    
-	# 上面一条命令执行出错则退出程序
-    if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
-    
-    # Note the quotes around `$TEMP': they are essential!
-    #set 会重新排列参数的顺序，也就是改变$1,$2...$n的值，这些值在getopt中重新排列过了。所有不包含选项的命令行参数都排到最后
-    eval set -- "$TEMP"
-    
-	function usage() {
-		echo "Usage: $0 {-a|--a-long} {-b|--b-long} {-c|--c-long}" ; 
-		exit 1 ;
-	}
+    # $@: 从命令行取出参数列表(不能用用 $* 代替，因为 $* 将所有的参数解释成一个字符串，而 $@ 是一个参数数组)
+      TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
+          -n "$0" -- "$@"`
+      
+    # 上面一条命令执行出错则退出程序
+      if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
+      
+      # Note the quotes around `$TEMP': they are essential!
+      #set 会重新排列参数的顺序，也就是改变$1,$2...$n的值，这些值在getopt中重新排列过了。所有不包含选项的命令行参数都排到最后
+      eval set -- "$TEMP"
+      
+    function usage() {
+      echo "Usage: $0 {-a|--a-long} {-b|--b-long} {-c|--c-long}" ; 
+      exit 1 ;
+    }
 
-	# 如果一个参数都没有则则执行
-	if [ -z $2 ] ; then echo "None-argument..." ; usage ; exit 1 ; fi
+    # 如果一个参数都没有则则执行
+    if [ -z $2 ] ; then echo "None-argument..." ; usage ; exit 1 ; fi
 
-    #经过getopt的处理，下面处理具体选项。
-    while true ; do
-		case "$1" in
-			# `shift ;` 相当于 `shift 1 ;`，即将OPTIND回置1位
-			# 如 `run.sh -a -b 2`
-			# 第一次循环：$1=-a $2=-b $3=2, 匹配到`-a`，此时`shift ;`回置1位
-			# 第二次循环：$1=-b $2=2，匹配到`-b`
-			-a|--a-long) echo "Option a" ; shift ;;
-			# 将OPTIND回置2位，因为b参数名和b的参数值占命令行2位。-b为必填项，如果不填写则执行getopt命令时会报错
-			-b|--b-long) echo "Option b, argument \`$2\`" ; shift 2 ;;
-			-c|--c-long)
-				# c has an optional argument. As we are in quoted mode,
-				# an empty parameter will be generated if its optional
-				# argument is not found.
-				case "$2" in
-					"") echo "Option c, no argument"; shift 2 ;;
-					*)  echo "Option c, argument \`$2\`" ; shift 2 ;;
-				esac ;;
-			# break 停止循环
-			--) shift ; break ;;
-			*) echo "Internal error!" ; exit 1 ;;
-		esac
-    done
-	
-    # $@为getopt表达式解析提取后剩余的其他参数数组
-    echo "Remaining arguments:"
-    for arg in $@ 
-    do
-    	echo '--> '"\`$arg\`" ;
-    done
+      #经过getopt的处理，下面处理具体选项。
+      while true ; do
+      case "$1" in
+        # `shift ;` 相当于 `shift 1 ;`，即将OPTIND回置1位
+        # 如 `run.sh -a -b 2`
+        # 第一次循环：$1=-a $2=-b $3=2, 匹配到`-a`，此时`shift ;`回置1位
+        # 第二次循环：$1=-b $2=2，匹配到`-b`
+        -a|--a-long) echo "Option a" ; shift ;;
+        # 将OPTIND回置2位，因为b参数名和b的参数值占命令行2位。-b为必填项，如果不填写则执行getopt命令时会报错
+        -b|--b-long) echo "Option b, argument \`$2\`" ; shift 2 ;;
+        -c|--c-long)
+          # c has an optional argument. As we are in quoted mode,
+          # an empty parameter will be generated if its optional
+          # argument is not found.
+          case "$2" in
+            "") echo "Option c, no argument"; shift 2 ;;
+            *)  echo "Option c, argument \`$2\`" ; shift 2 ;;
+          esac ;;
+        # break 停止循环
+        --) shift ; break ;;
+        *) echo "Internal error!" ; exit 1 ;;
+      esac
+      done
+    
+      # $@为getopt表达式解析提取后剩余的其他参数数组
+      echo "Remaining arguments:"
+      for arg in $@ 
+      do
+        echo '--> '"\`$arg\`" ;
+      done
 
-	exit $?
+    exit $?
     ```
   - getopt示例结果
 
     ```html
     # ./run.sh
-	None-argument...
-	Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
+    None-argument...
+    Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
 
-	# ./run.sh 123
-	Remaining arguments:
-	--> `123`
+    # ./run.sh 123
+    Remaining arguments:
+    --> `123`
 
-	# ./run.sh --
-	None-argument...
-	Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
+    # ./run.sh --
+    None-argument...
+    Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
 
-	# ./run.sh -- 123 456
-	Remaining arguments:
-	--> `123`
-	--> `456`
-	
-	# ./run.sh -a --b-long 2
-	Option a
-	Option b, argument `2`
-	Remaining arguments:
+    # ./run.sh -- 123 456
+    Remaining arguments:
+    --> `123`
+    --> `456`
+    
+    # ./run.sh -a --b-long 2
+    Option a
+    Option b, argument `2`
+    Remaining arguments:
 
-	# ./run.sh -a -b 2 -c3 # 可选参数必须紧跟选项
-	Option a
-	Option b, argument `2`
-	Option c, argument `3`
-	Remaining arguments:
+    # ./run.sh -a -b 2 -c3 # 可选参数必须紧跟选项
+    Option a
+    Option b, argument `2`
+    Option c, argument `3`
+    Remaining arguments:
 
-	# ./run.sh -a -b 2 -c 3
-	Option a
-	Option b, argument `2`
-	Option c, no argument
-	Remaining arguments:
-	--> `3`
+    # ./run.sh -a -b 2 -c 3
+    Option a
+    Option b, argument `2`
+    Option c, no argument
+    Remaining arguments:
+    --> `3`
 
-	# ./run.sh -a 1 --b-long 2
-	Option a
-	Option b, argument `2`
-	Remaining arguments:
-	--> `1`
+    # ./run.sh -a 1 --b-long 2
+    Option a
+    Option b, argument `2`
+    Remaining arguments:
+    --> `1`
 
-	# ./run.sh -a -b 2 -c3 -- 4 5
-	Option a
-	Option b, argument `2`
-	Option c, argument `3`
-	Remaining arguments:
-	--> `4`
-	--> `5`
+    # ./run.sh -a -b 2 -c3 -- 4 5
+    Option a
+    Option b, argument `2`
+    Option c, argument `3`
+    Remaining arguments:
+    --> `4`
+    --> `5`
     ```
 
 #### 条件判断
@@ -771,4 +807,4 @@ exit $?
 [^1]: http://blog.csdn.net/clerk0324/article/details/50593882
 [^2]: https://blog.csdn.net/fdipzone/article/details/24329523
 [^3]: https://www.cnblogs.com/yxzfscg/p/5338775.html
-
+[^4]: https://www.cnblogs.com/softidea/p/6855045.html
