@@ -17,8 +17,8 @@ tags: [others]
 categories和tage都可以有多个
 
 ```html
-    categories: [cat1, cat2]
-    tags: [tag1, tag2, tag3]
+categories: [cat1, cat2]
+tags: [tag1, tag2, tag3]
 ```
 
 ### md语法
@@ -29,6 +29,17 @@ categories和tage都可以有多个
 ### 排版
 
 正文的第一级标题用h2(`##`)，标题和字段间要有换行
+
+### 详细隐藏/展示
+
+```html
+<details>
+<summary>详细隐藏/展示的标题</summary>
+
+<p>详细内容......</p>
+
+</details>
+```
 
 ### 列表
 
@@ -58,7 +69,6 @@ categories和tage都可以有多个
 
 [^1]: [http://blog.aezo.cn](http://blog.aezo.cn)
 </pre>
-
 
 ## github-hexo-markdown个人书写习惯
 

@@ -79,18 +79,25 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 
 ## 用户配置
 
+- 打开文件空格个数发生变化异常：去勾选User Settings -> Text Editor -> Detect Indentation
+- json文件配置(早起版本支持)
 ```json
 // 关闭预览模式。预览模式：单击文件会在一个预览窗口中覆盖显示(文件名显示为斜体)，双击文件/双击Tab标题则是真正打开文件
 // "workbench.editor.enablePreview": false,
 
 // 文件自动保存
 "files.autoSave": "afterDelay",
-	
+
+// 关闭自动检测文件Tab大小
+"editor.detectIndentation": false	
 // tab占的空格数
-"editor.tabSize": 2,
-// markdown文件格式
-"[markdown]": {
-	"editor.tabSize": 4
+"editor.tabSize": 4,
+"[html]": {
+    "editor.tabSize": 2,
+},
+"[vue]": {
+    "editor.defaultFormatter": "octref.vetur", // 不支持选定代码进行格式化
+    "editor.tabSize": 2
 },
 
 "beautify.language": {

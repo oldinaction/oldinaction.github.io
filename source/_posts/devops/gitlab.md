@@ -2,7 +2,7 @@
 layout: "post"
 title: "gitlab"
 date: "2016-11-20 10:39"
-categories: [arch]
+categories: [devops]
 tags: [git]
 ---
 

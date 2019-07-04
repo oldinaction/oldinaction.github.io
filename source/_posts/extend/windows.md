@@ -17,10 +17,10 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 - windows版本号：https://docs.microsoft.com/zh-cn/windows/desktop/SysInfo/operating-system-version
 
     ```txt
-    Windows 2000                5.0
+    Windows 2000            5.0
     Windows XP	            5.1
-    Windows Server 2003         5.2
-    Windows Vista	            6.0
+    Windows Server 2003     5.2
+    Windows Vista	        6.0
     Windows Server 2008	    6.0
     Windows 7	            6.1
     Windows Server 2012	    6.2
@@ -143,7 +143,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
     - 常见问题
         - 执行`ping`等命令返回乱码：如果是Cgywin客户端，则设置文本-编码为zh_CN/GBK；如果是xshell连接的，则设置xshell的编码为GBK
         - ls显示颜色：在`~/.bashrc`文件中加入`alias ls='ls --color --show-control-chars'`
-
+        - 建立SSH隧道时，运行一段时间会出现客户端进行的连接会一直增多，且通过`netstat -ano | findstr "10010"` 查询打此通道上的PID，但是在任务管理器和tasklist都无法查询到此进程ID，如果需要重启服务职能将sshd/ssh相关的进程全部关闭，再重启sshd服务
 
 ---
 

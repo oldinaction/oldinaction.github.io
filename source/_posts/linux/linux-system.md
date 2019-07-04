@@ -49,29 +49,74 @@ tags: [linux, shell]
         - 重启网卡`systemctl restart network`
         - 修改ip即修改上述`IPADDR`
 - `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
-- `telnet 192.168.1.1 8080` 检查端口
-- `curl http://www.baidu.com`或`wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
-    - wget爬取网站：`wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com`
+- `telnet 192.168.1.1 8080` 检查端口(`yum -y install telnet`)
+- `curl http://www.baidu.com` 获取网页内容
+    - `curl --socks5 127.0.0.1:1080 http://www.qq.com` 使用socks5协议
+- `wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
+    - `wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com` wget爬取网站
 - `netstat -lnp` 查看端口占用情况(端口、PID)
     - `ss -ant` CentOS 7 查看所有监听端口
     - root运行：`sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
     - `netstat -tnl` 查看开放的端口
     - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
     - **`yum install net-tools`** 安装net-tools即可使用netstat、ifconfig等命令
+- `ss -lnt` 查看端口
 
 ### 查看进程信息
 
 - **`ps -ef | grep java`**(其中java可换成run.py等)
     - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
-- `pwdx <pid>` 查看进程执行目录(同`ls -al /proc/8888 | grep cwd`)
+- `pwdx <pid>` **查看进程执行目录**(同`ls -al /proc/8888 | grep cwd`)
 - `ls -al /proc/进程id` 查看此进程信息
     - `cwd`符号链接的是进程运行目录 **`ls -al /proc/8888 | grep cwd`**
     - `exe`符号连接就是执行程序的绝对路径
     - `cmdline`就是程序运行时输入的命令行命令
     - `environ`记录了进程运行时的环境变量
     - `fd`目录下是进程打开或使用的文件的符号连接
+
+#### top命令
+
 - 自带程序`top`查看，推荐安装功能更强大的`htop`
-    - `Load Average`: 负载均值。对应的三个数分别代表不同时间段的系统平均负载（一分钟、五 分钟、以及十五分钟），它们的数字当然是越小越好；数字越高说明服务器的负载越大。如果是单核，load=1表示CPU所有的资源都在处理请求，一般维持0.7以下，如果长期在1左右建议进行监测，维持在2左右则说明负载很高。多核情况，即负载最好要小于`CPU个数 * 核数 * 0.7`
+- 面板介绍 [^11]
+    - `Load Average`: 负载均值。对应的三个数分别代表不同时间段的系统平均负载（一分钟、五 分钟、以及十五分钟），它们的数字当然是越小越好；数字越高说明服务器的负载越大。如果是单核，load=1表示CPU所有的资源都在处理请求，一般维持0.7以下，如果长期在1左右建议进行监测，维持在2左右则说明负载很高。多核情况，**即负载最好要小于`CPU个数 * 核数 * 0.7`**
+
+    ![top面板介绍](/data/images/linux/top-view.jpg)
+
+    - VIRT 值最高的进程就是内存使用最多的进程
+    - S列进程状态：一般 I 代表空闲，R 代表运行，S 代表休眠，D 代表不可中断的睡眠状态，Z 代表(zombie)僵尸进程，T 或 t 代表停止
+- 快捷键
+
+    ```bash
+    # h 进入帮助；Exc/q 退出帮助
+    Help for Interactive Commands - procps-ng version 3.3.10
+    Window 3:Mem: Cumulative mode On.  System: Delay 3.0 secs; Secure mode Off.
+
+        Z,B,E,e   Global: 'Z' colors; 'B' bold; 'E'/'e' summary/task memory scale
+        # l 显示负载(默认显示)；t 显示CPU使用图示；m 显示内存使用图示
+        l,t,m     Toggle Summary: 'l' load avg; 't' task/cpu stats; 'm' memory info
+        0,1,2,3,I Toggle: '0' zeros; '1/2/3' cpus or numa node views; 'I' Irix mode
+        f,F,X     Fields: 'f'/'F' add/remove/order/sort; 'X' increase fixed-width
+
+        # <,> 切换排序列
+        L,&,<,> . Locate: 'L'/'&' find/again; Move sort column: '<'/'>' left/right
+        R,H,V,J . Toggle: 'R' Sort; 'H' Threads; 'V' Forest view; 'J' Num justify
+        # c 显示Command详细命令
+        c,i,S,j . Toggle: 'c' Cmd name/line; 'i' Idle; 'S' Time; 'j' Str justify
+        # x,y 高亮显示排序列和运行行
+        x,y     . Toggle highlights: 'x' sort field; 'y' running tasks
+        z,b     . Toggle: 'z' color/mono; 'b' bold/reverse (only if 'x' or 'y')
+        u,U,o,O . Filter by: 'u'/'U' effective/any user; 'o'/'O' other criteria
+        n,\#,^O  . Set: 'n'/'#' max tasks displayed; Show: Ctrl+'O' other filter(s)
+        C,...   . Toggle scroll coordinates msg for: up,down,left,right,home,end
+
+        k,r       Manipulate tasks: 'k' kill; 'r' renice
+        d or s    Set update interval
+        W,Y       Write configuration file 'W'; Inspect other output 'Y'
+        q         Quit
+                ( commands shown with '.' require a visible task display window ) 
+    Press 'h' or '?' for help with Windows,
+    Type 'q' or <Esc> to continue 
+    ```
   
 ### 基础操作
 
@@ -117,7 +162,7 @@ tags: [linux, shell]
 ### 服务相关命令
 
 - **自定义服务参考[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md#基于编译安装tengine)**
-- systemctl：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为**`/usr/lib/systemd/system`**或**/etc/systemd/system**)
+- systemctl：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为`/usr/lib/systemd/system` 或 `/etc/systemd/system`)
     - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务(.service可省略，active (running)标识正在运行)
     - `systemctl list-units --type=service` 查看所有服务
         - `systemctl list-unit-files` 查看所有可用单元
@@ -127,16 +172,28 @@ tags: [linux, shell]
     - **`tail -f /var/log/messages`** 查看服务启动日志
 - chkconfig：提供了一个维护`/etc/rc[0~6]d/init.d`文件夹的命令行工具
     - `chkconfig --list <nginx>` 查看(nginx)服务列表
-    - `chkconfig --add nginx` 将nginx加入到服务列表(需要**`/etc/rc.d/init.d`**下有相关文件nginx.service)
+    - `chkconfig --add nginx` 将nginx加入到服务列表(需要 **`/etc/rc.d/init.d`**/软路径`/etc/init.d` 下有相关文件`nginx.service`或`nginx`脚本)
     - `chkconfig --del nginx` 关闭指定的服务程序
-    - `chkconfig nginx on` 设置nginx服务开机自启动
-    - 自启动脚本的注释中必须有以下两行注释(chkconfig会查看所有注释行)
-        - chkconfig参数1表示在运行级别2345时默认代开，使用`-`表示默认关闭；参数2表示启动顺序(越小越优先)；参数3表示停止顺序
-        
-        ```bash
-        # chkconfig: 2345 10 90
-        # description: 描述
-        ```
+    - `chkconfig nginx on` 设置nginx服务开机自启动（对于 on 和 off 开关，系统默认只对运行级345有效，但是 reset 可以对所有运行级有效）
+    - 设置开机自启动
+        - 在`/etc/init.d`目录创建脚本文件
+            ```bash
+            # 自启动脚本的注释中必须有chkconfig、description两行注释(chkconfig会查看所有注释行)
+            # chkconfig参数一表示在运行级别2345时默认代开(一般服务器的启动级别为3多用户启动)，使用`-`表示默认关闭(不自动启动)；参数2表示启动顺序(越小越优先)；参数3表示停止顺序(停止并不会重新执行脚本，而是停止此进程)
+            
+            #!/bin/sh
+            # chkconfig: 2345 50 50
+            # description: my_script描述
+            # processname: iptables-init
+            # config: 如果需要的话，可以配置
+
+            # echo日志会记录到 /var/log/messages 中(系统本身会记录此服务的启动开始和结束状态)
+            echo iptables-init start...
+            iptables-restore < /etc/sysconfig/iptables
+            echo iptables-init end...
+            ```
+        - 将启动脚本添加到chkconfig列表：`chkconfig --add my_script`
+        - 之后可在`/var/log/messages`中查看启动日志信息；也可通过`systemctl status my_script`查看服务状态，如`active (exited)`表示服务有效中，但是程序已执行完成
 - service：`service nginx start|stop|reload` 服务启动等命令
 
 ### 常用语法参考《shell.md》
@@ -146,7 +203,7 @@ tags: [linux, shell]
 - `ls --help` 查看ls的命令说明(或`help ls`)
 - `man ls` 查看ls的详细命令说明
 - `clear` 清屏
-- `\` 回车后可将命令分多行运行
+- `\` 回车后可将命令分多行运行(后面不能带空格)
 - `date` 显示当前时间; `cal` 显示日历
 - `last` 查看最近登录用户
 - `history` 查看历史执行命令
@@ -182,6 +239,8 @@ tags: [linux, shell]
     - `du -sh /home/smalle | sort -h` 查看某个目录
     - `du`它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
     - `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
+- `lsblk` 树形显示
+- `dmesg | grep CD` 显示光盘信息。启动dmesg为显示硬件信息，可用于硬件故障诊断
 - 磁盘分区和挂载
     - 参考《阿里云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘》 [^10]
     - 一般阿里云服务器买的磁盘未进行格式化文件系统和挂载，`df -h`无法查询到磁盘设备，只能通过`fdisk -l`查看磁盘设备
@@ -214,10 +273,11 @@ tags: [linux, shell]
     # 2.为此分区创建一个ext4文件系统，此时会格式化磁盘. 如果需要在 Linux、Windows 和 Mac 系统之间共享文件，可以使用 mkfs.vfat 创建 VFAT 文件系统
     mkfs.ext4 /dev/vdb1 # centos7默认xfs文件格式，此时可使用 mkfs.xfs /dev/vdb1
 
+    # 如果使用LVM功能，则需先执行LVM相关命令创建LV分区后再挂载
     # 3.挂载分区到/home目录(需要确保此目录存在，并不会影响父目录的挂载。如此时只会改变 /home，不会影响 /)，**如果/home目录之前有数据会被清除，建议先备份**
     mount /dev/vdb1 /home
 
-    # 4.备份 etc/fstab（建议）
+    # 4.备份 /etc/fstab（建议）
     cp /etc/fstab /etc/fstab.bak
     # 向 /etc/fstab 写入新分区信息(注意目录和上面对应)，防止下次开机挂载丢失（不执行此步骤只是临时挂载到相应目录，下次开机则会丢失挂载）
     echo /dev/vdb1 /home ext4 defaults 0 0 >> /etc/fstab
@@ -234,7 +294,7 @@ tags: [linux, shell]
         ![lvm](/data/images/lang/lvm.png)
         
         ```bash
-        # 先fdisk创建分区
+        # **先fdisk创建分区/dev/vdb1和/dev/vdb2，无需格式化(略)**
         # pvcreate命令在新建的分区上创建PV
         pvcreate /dev/vdb1 /dev/vdb2
         # 查看pv详细信息
@@ -245,32 +305,48 @@ tags: [linux, shell]
         vgs/vgdisplay
         # 在vg1卷组下创建一个逻辑卷lv1，对应路径为/dev/vg1/lv1
         # 此时lv1可能会同时使用/dev/vdb1 /dev/vdb2这两个PV，这也是LVM一个PV损毁会导致整个卷组数据损毁
-        lvcreate -L 200G -n lv1 vg1
+        # **可通过VG来分区(如取home、data两个卷组分别挂载到/home、/data；初始化时可初始化名为/dev/home/main的LV)，之后对该分区扩容只需往相应VG中加PV即可**
+        lvcreate -L 199G -n lv1 vg1 # 如果200G的卷组，此时无法正好创建出一个200G的LV，需稍微少一点
         # 查看逻辑卷详细
         lvs/lvsdisplay
         # 格式化卷组
         mkfs.xfs /dev/vg1/lv1
         # 挂载
-        mount /dev/vg1/lv1 /home/data
+        mount /dev/vg1/lv1 /home/data # df -h显示/dev/mapper/vg1-lv1
         # 写入fstab
+        echo /dev/vg1/lv1 /home/data xfs defaults 0 0 >> /etc/fstab
         ```
     - 调整home和root容量大小如下
 
         ```bash
-        cp -r /home/ homebak/ # 备份/home
+        # 如果centos卷组有额外的空间，如加入了物理卷，则无需减少home分区容量
+        cp -r /home/ homebak/ # 备份/home(建议打成tar)
         umount /home # 卸载​ /home
-
         # 删除某LVM分区(需要先备份数据，并取消挂载)
         lvremove /dev/mapper/centos-home
 
+        ### =========扩展分区
+        # 只要/dev/mapper/centos-root(LV)对应的卷组(VG)有额外的空间即可扩展
         lvextend -L +20G /dev/mapper/centos-root # 扩展/root所在的lv
-        xfs_growfs /dev/mapper/centos-root # 扩展/root文件系统
+        # resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
+        xfs_growfs /dev/mapper/centos-root # 激活修改的配置
+        ### =========扩展分区
 
+        # 恢复原来的home分区
         vgdisplay # 其中的Free PE表示LVM分区剩余的可用磁盘
         lvcreate -L 100G -n home centos # 重新创建home lv 分区的大小
         mkfs.xfs /dev/centos/home # 创建文件系统
         mount /dev/centos/home /home # 挂载 home
         # 使永久有效，写入 etc/fstab 见上文
+        ```
+    - 重命名vg、lv(无需umount和备份，数据也不会丢失)
+        
+        ```bash
+        # 查看并记录基本信息。需要将/dev/hdd/hdd1改成/dev/vdisk/main
+        vgs/lvs
+        vgrename hdd vdisk
+        lvrename /dev/vdisk/hdd1 main # 修改lv，注意此时vg为新的
+        vi /etc/fstab # 修改之前的挂载信息
         ```
 
 ### 文件
@@ -354,19 +430,19 @@ tags: [linux, shell]
 
 ### 压缩包(推荐tar) [^1]
 
-#### rar
+#### tar
 
-- 解压：**`tar -xvfz archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
-- 压缩：**`tar -cvfz aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
+- 解压：**`tar -xvzf archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
+- 压缩：**`tar -cvzf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
 - 参数说明
     - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
-        - **`-c`**: 建立压缩档案
         - **`-x`**：解压
+        - **`-c`**: 建立压缩档案
         - `-t`：查看 tarfile 里面的文件
         - `-r`：向压缩归档文件末尾追加文件
         - `-u`：更新原压缩包中的文件
     - 必须
-        - **`-f`**：使用档案名字，**切记这个参数是最后一个参数，后面只能接档案名**
+        - **`-f`**：使用档案名字，**切记这个参数一般放在后面，后面只能接档案名**
     - 解/压缩类型(可选)
         - `-z`：有gzip属性的(archive.tar.gz)，**文件必须是以.gz/.gzip结尾**
         - `-J`：有xz属性的(archive.tar.xz)
@@ -377,6 +453,7 @@ tags: [linux, shell]
         - `-O`：将文件解开到标准输出    
         - `-p` 使用原文件的原来属性（属性不会依据使用者而变）
         - `-P` 可以使用绝对路径来压缩
+        - `-C` 解压到指定目录
 
 #### gz
 
@@ -549,7 +626,8 @@ tags: [linux, shell]
 	- `-r` 表示使用扩展正则表达式
 - 内部命令
     - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
-	- `s/pattern/string/修饰符` 查找并替换，默认只替换每行中第一次被模式匹配到的字符串。修饰符`g` 全局替换；`i` 忽略字符大小写
+	- **`s/pattern/string/修饰符`** 查找并替换
+        - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符如`#`、`@`等**
         - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"
         - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor" 
 	- `d` 删除符合条件的行
@@ -746,18 +824,18 @@ tags: [linux, shell]
 
 ### SSH客户端连接服务器（秘钥认证）
 
-- **客户端(可能也是一台服务器)需要连接服务器，则需要将客户端上的公钥`id_rsa.pub`内容追加到服务器的`~/.ssh/authorized_keys`文件中**
-    - 公钥需要写入到服务端的`authorized_keys`文件(文件名有s)，客户端`known_hosts`会保存已认证的服务端信息。(生成的公钥/私钥无需保存在服务端，自行备份即可)
-    - "公钥/私钥对"可以是客户端、服务器端或其他地方生成的公钥数据
-    - 客户端登录成功后会将服务器ip及登录的公钥加入到`known_hosts`文件中(没有此文件时会自动新建)
+- **客户端(可能也是一台服务器)需要连接服务器，则需要将客户端上的公钥如`id_rsa.pub`内容追加到服务器的`~/.ssh/authorized_keys`文件中，且客户端需要在.ssh文件夹保留上述公钥对应的秘钥如`~/.ssh/id_rsa`**
+    - 公钥需要写入到服务端的`authorized_keys`文件(文件名有s)，客户端/服务端`known_hosts`会保存已认证的客户端信息。(生成的公钥/私钥无需保存在服务端，自行备份即可)
+    - "公钥/私钥对"可以是客户端、服务器端或其他地方生成的秘钥对数据
+    - 客户端登录成功后会将服务器ip等信息加入到客户端/服务端`known_hosts`文件中(没有此文件时会自动新建)
 - 秘钥对生成和使用
     - 生成公钥(.pub)和私钥(.ppk)。运行 **`ssh-keygen`** 命令后再按三次回车会看到`RSA`。生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`
         - 会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts`(此机器作为客户端进行ssh连接时，认证过的服务器信息) 3 个文件。如：此客户端ip为`192.168.1.2`
         - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
         - `ssh-keygen -t rsa -C "xxx@qq.com"` -C起到一个密码备注的作用，可以为任何内容
-    - 把生成的公钥发送到服务器
-        - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去
-    - 在`192.168.1.2`客户端上登录上述服务器(或者手动追加到authorized_keys文件中)
+    - 把生成的公钥保存到服务器`authorized_keys`文件中
+        - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去(或者手动追加到authorized_keys文件中)
+    - 在`192.168.1.2`客户端上登录上述服务器
         - `ssh 192.168.1.1` 此时不需要输入密码
         - 如果需要在`192.168.1.1`(客户机)上通过ssh登录`192.168.1.1`(服务器)，需要按照上述命令把公钥保存到服务器的`authorized_keys`
     - 其他说明
@@ -766,6 +844,8 @@ tags: [linux, shell]
             - 阿里云服务器需要将密钥对保存到阿里云管理后台，并关联到对应的服务器上
             - 关联阿里云服务器秘钥后，需要到阿里云管理后进行服务器重启(不能再终端重启)。重启后会自动禁用密码登录
             - 可以使用阿里云进行秘钥生成(只能下载到秘钥，公钥可通过xshell连接后进行查看或连接后到服务器的authorized_keys文件中查看)，也可自行导入公钥
+        - **AWS服务器(EC2)使用**
+            - 使用PuTTY连接时：PuTTY 本身不支持 Amazon EC2 生成的私有密钥格式 (.pem)，PuTTY 有一个名为 PuTTYgen 的工具，可将密钥转换成所需的 PuTTY 格式 (.ppk)
         - 如何客户端登录失败，可在服务器查看访问日志`cat /var/log/secure`
 - ssh配置 [^7]
 
@@ -792,7 +872,9 @@ tags: [linux, shell]
         - xshell提示"用户秘钥导入失败"：centos上生成的秘钥类型在xshell中不支持，**可以使用xshell进行秘钥生成** [^9]
             - 工具 - 用户秘钥管理 - 生成 - 保存公钥 - 选择生成的秘钥 - 导出秘钥
             - 将公钥追加到到服务器的`authorized_keys`文件：`cat my_key.pub >> authorized_keys`
-	- `cat /var/log/secure`查看登录日志
+	- Unix终端：`ssh -i my_private_file root@10.10.10.10`
+        - `-i` 登录时指定私钥文件。ssh登录服务器默认使用的私有文件为`~/.ssh/id_dsa`、`~/.ssh/id_ecdsa`、`~/.ssh/id_ed25519`、`~/.ssh/id_rsa`，其他则需要使用`-i`指定
+    - `cat /var/log/secure`查看登录日志
 
 ## 定时任务 [^4]
 
@@ -834,133 +916,7 @@ tags: [linux, shell]
 
 ## 网络
 
-### curl/wget测试
 
-```bash
-# GET请求
-curl localhost:8080
-# POST请求，-v显示日志信息，-d传递普通参数
-curl -X POST -v -d "username=smalle&password=aezocn" localhost:8080/login
-# POST请求，-H指定header，此时指定Content-Type:application/json，-d中的数据会放到body中
-curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{"orderId": "1"}' http://localhost:8000/order/
-```
-
-### ping
-
-```bash
-# 只向192.168.1.1发送3个包
-ping -c 3 192.168.1.1
-```
-
-### tcpdump
-
-```bash
-# 观察流经 docker0 网卡的 icmp 类型(ping)流量
-tcpdump -i docker0 -n icmp
-```
-
-### route路由信息
-
-- 查看路由信息 `ip r`
-
-```bash
-ip r # 或 ip route，显示如下
-
-# 表示去任何地方，都发送给网卡eth0，并经过网关192.168.17.103发出；metric 100表示路由距离，到达指定网络所需的中转数
-default via 192.168.17.103 dev eth0 proto static metric 100
-# 表示发往 172.16.0.0/16 这个网段的包，都由网卡docker0发出，src 172.17.0.1为网卡docker0的ip
-172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 
-172.18.0.0/16 dev br-190a4d9330bd proto kernel scope link src 172.18.0.1 
-192.168.17.0/24 dev eth0 proto kernel scope link src 192.168.17.73 metric 100
-```
-
-### iptables
-
-> 参考：http://www.zsythink.net/archives/1199/ 、 http://cn.linux.vbird.org/linux_server/0250simple_firewall.php#netfilter 、 https://blog.51cto.com/yijiu/1356254
-
-- iptables的规则存储在内核空间的信息包过滤表中，这些规则分别指定了源地址、目的地址、传输协议（如TCP、UDP、ICMP）和服务类型（如HTTP、FTP和SMTP）等。当数据包与规则匹配时，iptables就根据规则所定义的方法来处理这些数据包，如放行（accept）、拒绝（reject）和丢弃（drop）等。配置防火墙的主要工作就是添加、修改和删除这些规则
-- 链(规则)类型：`prerouting`、`input`、`forward`、`output`、`postrouting`。每种链类型上可能会有多个规则
-    
-    ![报文流向](/data/images/linux/报文流向.png)
-
-    - 到本机某进程的报文：PREROUTING --> INPUT
-    - 由本机转发的报文：PREROUTING --> FORWARD --> POSTROUTING
-    - 由本机的某进程发出报文（通常为响应报文）：OUTPUT --> POSTROUTING
-- 表：把具有相同功能的规则的集合叫做"表"，不同功能的规则可以放置在不同的表中进行管理。当他们处于同一条"链"时，执行的优先级为：**raw > mangle > nat > filter**
-    - `raw`表：关闭nat表上启用的连接追踪机制；iptable_raw。可能被PREROUTING，OUTPUT使用
-    - `mangle`表：拆解报文，做出修改，并重新封装的功能；iptable_mangle。可能被PREROUTING，INPUT，FORWARD，OUTPUT，POSTROUTING使用
-    - `nat`表：network address translation，网络地址转换功能；内核模块：iptable_nat。可能被PREROUTING，INPUT，OUTPUT，POSTROUTING（centos6中无INPUT）使用
-    - `filter`表：负责过滤功能，防火墙；内核模块：iptables_filter。可能被INPUT，FORWARD，OUTPUT使用
-- 规则由匹配条件和处理动作组成
-    - 匹配条件：源地址Source IP，目标地址 Destination IP，和一些扩展匹配条件
-    - 处理动作(target)
-        - `ACCEPT`：允许数据包通过（后续规则继续执行。此时会继续校验此链上的其他规则和剩余其他链规则）
-        - `DROP`：直接丢弃数据包，不给任何回应信息，过了超时时间才会有反应。或者出现ping永远无返回信息即卡死（后续不执行）
-        - `REJECT`：拒绝数据包通过，必要时会给数据发送端一个响应的信息，客户端刚请求就会收到拒绝的信息（后续不执行）
-        - `SNAT`：源地址转换，解决内网用户用同一个公网地址上网的问题（后续规则继续执行）
-        - `MASQUERADE`：是SNAT的一种特殊形式，适用于动态的、临时会变的ip上
-        - `DNAT`：目标地址转换
-        - `REDIRECT`：在本机做端口映射
-        - `LOG`：在/var/log/messages文件中记录日志信息，然后将数据包传递给下一条规则，也就是说除了记录以外不对数据包做任何其他操作，仍然让下一条规则去匹配
-        - `RETURN`：结束在目前规则链中的过滤程序，返回主规则链继续过滤。如果把自定义链看成是一个子程序，那么这个动作就相当于提早结束子程序并返回到主程序中（此自定义链后续规则不执行，主链继续执行）
-        - `QUEUE`：防火墙将数据包移交到用户空间
-- 列出iptables表规则
-
-```bash
-## 列出iptables表规则
-iptables [-t tables] [-L] [-nv]
-    # 选项与参数：
-    # -t ：后面接 table ，例如 nat 或 filter ，若省略此项目，则使用默认的 filter
-    # -n ：仅显示IP，不进行 IP 与 HOSTNAME 的反查。(否则显示HOSTNAME)
-    # -v ：列出更多的信息，包括通过该规则的封包总位数、相关的网络接口等
-    # -x ：显示详细数据，不进行单位换算
-    # -L ：列出目前的 table 的规则
-
-# 列出 filter table 相关链的规则
-iptables -L -n
-# 列出 filter table 相关链的规则明细，包含数据包大小等
-iptables -nvL
-    # pkts        对应规则匹配到的报文的个数
-    # bytes       对应匹配到的报文包的大小总和
-    # target      规则对应的traget，表示对应的动作，即规则匹配成功后需要采取的措施
-    # prot        表示规则对应的协议，是否只针对某些协议应用此规则
-    # opt         表示规则对应的选项
-    # in          表示数据包由哪个接口流入，可以设置哪块网卡流入的报文需要匹配当前规则
-    # out         表示数据包由哪个接口流出，可以设置哪块网卡流出的报文需要匹配当前规则
-    # source      表示规则对应的源头地址，可以是一个ip，也可以是一个网段
-    # destination 表示规则对应的目标地址，可以是一个ip，也可以是一个网段
-# 查看filter表的FORWARD链规则
-iptables -nvL FORWARD
-# 列出 nat table 相关链的规则
-iptables -t nat -L -n
-
-# 示例：iptables -nvxL 部分显示如下
-Chain INPUT (policy ACCEPT 937 packets, 77099 bytes) # INPUT链中无任何规则；policy ACCEPT为默认处理动作
- pkts bytes target     prot opt in     out     source               destination      
-
-Chain FORWARD (policy ACCEPT 0 packets, 0 bytes) # FORWARD链中引入了自定义链DOCKER-ISOLATION-STAGE-1和DOCKER内容，当符合后面的规则就执行自定义链，相当于执行子函数；prot代表使用的封包协议（tcp, udp 及 icmp）；opt额外的选项说明；source/destination为源/目标地址
- pkts bytes target     prot opt in     out     source               destination         
-   30 10743 DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
-   30 10743 DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
-   15  9681 ACCEPT     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
-    0     0 DOCKER     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0           # 此时虽然符合执行DOCKER子链，但是DOCKER子链中并无规则，所以此规则记录的pkts和bytes为0
-   15  1062 ACCEPT     all  --  docker0 !docker0  0.0.0.0/0            0.0.0.0/0           
-    0     0 ACCEPT     all  --  docker0 docker0  0.0.0.0/0            0.0.0.0/0           
-    0     0 ACCEPT     all  --  *      br-92de1a13d5ca  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
-   ...
-
-Chain OUTPUT (policy ACCEPT 723 packets, 123K bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain DOCKER (3 references)
- pkts bytes target     prot opt in     out     source               destination
-
-...
-
-Chain DOCKER-USER (1 references)
- pkts bytes target     prot opt in     out     source               destination         
-   30 10743 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0     
-```
 
 ## 工具
 
@@ -1033,11 +989,11 @@ Chain DOCKER-USER (1 references)
 4. init process starts...
 5. execute /etc/rc.d/sysinit (rc.d为runlevel control directory)
 6. start other modulers(etc/modules.conf) (启动内核外挂模块)
-7. execute the run level scripts(如rc0.d、rc1.d等。启动只能配置成某一个级别)
+7. execute the run level scripts(如rc0.d、rc1.d等。启动只能配置成某一个级别，查看`systemctl get-default`，配置目录`cat /etc/inittab`)
     - 0 停机（千万不要把initdefault 设置为0）
     - 1 单用户模式
     - 2 多用户，但是没有 NFS
-    - **3** 完全多用户模式(服务器常用)
+    - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)
     - 4 系统保留的
     - **5** X11(x window 桌面版)
     - 6 重新启动（千万不要把initdefault 设置为6）
@@ -1067,3 +1023,5 @@ Chain DOCKER-USER (1 references)
 [^8]: https://my.oschina.net/sallency/blog/827737 (nohup 命令实现守护进程)
 [^9]: https://www.cnblogs.com/tintin1926/archive/2012/07/23/2605039.html (秘钥类型)
 [^10]: https://help.aliyun.com/document_detail/108501.html (云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘)
+[^11]: https://zhuanlan.zhihu.com/p/24464526
+

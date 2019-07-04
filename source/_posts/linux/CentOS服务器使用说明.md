@@ -30,12 +30,18 @@ tags: [CentOS, linux]
     - 快速修改命令 `sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`，并重启
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
 - 校验系统时间(多个服务器时间同步可以通过xshell发送到所有会话)
-    - `date` 查看时间
-    - `date -s "2019-04-07 10:00:00"` 设置时间
-    - `hwclock -w` 将时间写入bios避免重启失效
+    - 校验时区：`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，北京时间的时区为`CST`
+        - `mv /etc/localtime /etc/localtime.bak`
+        - `ln -s /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime`
+        - `date`
+    - 校验时间
+        - `date` 查看时间
+        - `date -s "2019-04-07 10:00:00"` 设置时间
+        - `hwclock -w` 将时间写入bios避免重启失效
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
 - 设置用户umask值(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#文件权限)
 - 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
+- 更换镜像，见下文
 
 ### 新服务器常见问题
 
@@ -311,8 +317,8 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 - 环境变量配置`vi ~/.bash_profile`
 
     ```bash
-    export ORACLE_BASE=/usr/lib/oracle/11.2    #尤其注意这里要正确
-    export ORACLE_HOME=$ORACLE_BASE/client64     #尤其注意这里要正确
+    export ORACLE_BASE=/usr/lib/oracle/11.2
+    export ORACLE_HOME=$ORACLE_BASE/client64 #尤其注意这里要正确
     export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
     export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
     ```

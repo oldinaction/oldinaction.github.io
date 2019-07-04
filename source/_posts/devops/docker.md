@@ -2,8 +2,8 @@
 layout: "post"
 title: "docker"
 date: "2017-06-25 14:03"
-categories: arch
-tags: [docker]
+categories: devops
+tags: [docker, arch]
 ---
 
 ## Docker介绍
@@ -19,6 +19,8 @@ tags: [docker]
 
 - Windows
     - Windows 10直接使用windows安装包 https://hub.docker.com/editions/community/docker-ce-desktop-windows
+        - 执行docker命令时提示`docker for windows could not read CA certificate`，解决https://blog.csdn.net/qq_35852248/article/details/80925154
+        - 使用的网卡为`Hyper-V`，会导致VMware和DockerToolbox无法运行。可在控制面板 - 程序和功能 - 关闭windows的Hyper-V功能
     - 通过安装`DockerToolbox`，[安装文档和下载地址](https://docs.docker.com/toolbox/toolbox_install_windows/)
         - 安装完成后桌面快捷方式：`Docker Quickstart Terminal`、`kitematic`、`Oracle VM VirtualBox`
             - `Docker Quickstart Terminal` 可快速启动docker虚拟机，并进入到bash命令行
@@ -32,6 +34,7 @@ tags: [docker]
     - 或者安装[Boot2Docker](https://github.com/boot2docker/windows-installer)
 - linux
     - `yum install docker` 安装
+        - 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存
     - ubuntu安装
         
         ```bash
@@ -53,7 +56,7 @@ Management Commands:
   image       Manage images
   network     Manage networks
     ls			# docker network ls # 列举网络(使用docker-compose启动，容器默认会加入到一个xxx_default的网络中)
-	rm			# sudo docker network rm my_net1 my_net2 # 移除网络
+	  rm			# sudo docker network rm my_net1 my_net2 # 移除网络
     connect		# docker network connect my_net my_new_app # 可将启动后的容器my_new_app手动加入到已存在的网络my_net中
   node        Manage Swarm nodes
   plugin      Manage plugins
@@ -76,6 +79,7 @@ Commands:
     build     Build an image from a Dockerfile              # 通过 Dockerfile 定制镜像
     commit    Create a new image from a container’s changes # 提交当前容器为新的镜像
     cp        Copy files/folders from the containers filesystem to the host path # 从容器中拷贝指定文件或者目录到宿主机中
+        # docker cp demo.war sq-tomcat:/usr/local/tomcat/webapps # 向sq-tomcat容器中部署war包
     create    Create a new container                        # 创建一个新的容器，同 run，但不启动容器
     diff      Inspect changes on a container’s filesystem   # 查看 docker 容器变化
     events    Get real time events from the server          # 从 docker 服务获取容器实时事件
@@ -110,6 +114,7 @@ Commands:
         -t  # 开启一个伪终端(进入容器命令行，组合建ctrl+p、ctrl+q退出)
         -p  # 绑定本地端口到容器端口，可使用多个 -p 绑定多组端口. eg: -p 8080:80 (本地8080:容器80)
         -v  # 挂在本地目录或文件到容器中去做数据卷，可以使用多个 -v. eg: -v /home/smalle/logs:/temp/app，也可以使用volume数据卷
+            # 目录或者文件映射，需要先在宿主机创建此文件或目录。如果要映射出来的目录中存在文件，则需要新创建对应的文件，docker不会进行初始化这些文件
         -e  # 设置环境变量，eg: -e MYSQL_HOST=localhost -e MYSQL_DATABASE=aezocn
         --name      # 指定启动容器名称
         --network   # 指定使用的网络
@@ -195,12 +200,14 @@ Run 'docker COMMAND --help' for more information on a command.
         ```bash
         ## 临时开启转发(1是允许转发，0不允许转发)
         echo 1 > /proc/sys/net/ipv4/ip_forward
-        ## 永久修改
-        # 设置 net.ipv4.ip_forward = 1
+        ## 永久修改，加入配置
+        # net.ipv4.ip_forward=1
+        # net.ipv6.conf.all.forwarding=1
         sudo vi /etc/sysctl.conf
         # 使文件生效
         sudo sysctl -p /etc/sysctl.conf
         ```
+        - 无法连接外网分析：[http://blog.aezo.cn/2019/06/20/linux/network/](/_posts/linux/network.md#TTL=1导致虚拟机/docker无法访问外网)
 - docker部署在本地虚拟机上
     - 此时docker的宿主主机为虚拟机，虚拟机和本地机器属于同一网络。然后在docker中启动一个容器，docker会自动在宿主主机上创建一个虚拟网络，用于桥接宿主主机和容器内部网络
     - **容器会继承docker宿主主机的网络**，在容器内部是可以向外访问到宿主主机所在网络，如可以访问到本地机器。
@@ -208,15 +215,11 @@ Run 'docker COMMAND --help' for more information on a command.
     - 在本地机器中默认也是无法访问容器内网络，当开启端口映射时，可通过访问宿主主机的映射端口(8080)达到访问容器的内部端口(80)
 - docker部署在内网的其他机器上，同上理。需要注意容器内部访问宿主主机内网其他机器时，需要该机器没有开启VPN，虚拟网卡(会产生多个ip)等
 
-- https://www.cnblogs.com/lkun/p/7747459.html
-
-
-
 ### docker与外网连通
 
-## Dockerfile [^4]
+## Dockerfile
 
-- `docker build -f /home/smalle/Dockerfile` 从Dockerfile构建镜像
+- `docker build -f /home/smalle/Dockerfile` 从Dockerfile构建镜像 [^4] [^10]
 
     ```bash
     # This my first nginx Dockerfile
@@ -250,6 +253,15 @@ Run 'docker COMMAND --help' for more information on a command.
 
     # EXPOSE 映射端口
     EXPOSE 80
+    
+    ## ENTRYPOINT和CMD
+        # 共同点：都可以指定shell或exec函数调用的方式执行命令；当存在多个时，都是只有最后一个生效
+        # 不同点：CMD指令指定的容器启动时命令可以被docker run指定的命令覆盖，而ENTRYPOINT指令指定的命令不能被覆盖，而是将docker run指定的参数当做ENTRYPOINT指定命令的参数；CMD指令可以为ENTRYPOINT指令设置默认参数，而且可以被docker run指定的参数覆盖
+    # ENTRYPOINT ["executable", "param1", "param2"] # 如果需要执行shell命令，可为：ENTRYPOINT ["sh", "-c", "echo $PATH"]
+    # ENTRYPOINT command param1 param2 # 执行shell命令
+    # CMD ["executable","param1","param2"] # 使用 exec 执行，推荐方式
+    # CMD command param1 param2 # 在 /bin/sh 中执行，提供给需要交互的应用
+    # CMD ["param1","param2"] # 提供给 ENTRYPOINT 的默认参数
 
     # CMD 构建容器后调用，也就是在容器启动时才进行调用
     CMD ["nginx"]
@@ -326,7 +338,7 @@ Run 'docker COMMAND --help' for more information on a command.
 version: '3' # 表示使用第3代语法来构建
 services:
   my_nginx: # 服务名（可当成hostname进行网络访问）
-    container_name: sq-nginx # 创建的容器名(默认是是`服务名_1`)
+    container_name: sq-nginx # 创建的容器名(默认是是`服务名_1`)。**可在其他compose文件中直接当hostname使用(并且对应的端口需要为容器中的端口)**
     image: bitnami/nginx:latest # 镜像名(如果本地没有此镜像，会默认从中央仓库拉取镜像)
     # 网络类型使用host模式(即使用宿主主机的网络，此时不能配置ports信息，端口也全部使用的是主机的端口)
     # network_mode: host
@@ -334,7 +346,7 @@ services:
       - 80:80
       - 1443:443
     volumes: # 数据卷映射(本地路径:容器路径。windows的本地路径为运行docker的虚拟机路径。不要把 docker 当做数据容器来使用，数据一定要用 volumes 放在容器外面。如日志文件需要进行映射)
-	  - /home/smalle/data/nginx/:/bitnami/nginx/
+      - /home/smalle/data/nginx/:/bitnami/nginx/
 	environment:
 	  TZ: Asia/Shanghai # 设置容器时区
     restart: always # 启动模式，always表示失败永远重启（包括宿主主机开机后自启动）
@@ -345,15 +357,17 @@ services:
       - 13307:3306
     volumes:
       # 用于保存数据文件。虚拟机中无此/home/smalle/data/test目录时，会自动创建
-	  - /home/smalle/data/test:/var/lib/mysql
-	# 使用 command 可以覆盖容器启动后默认执行的命令
+	    - /home/smalle/data/test:/var/lib/mysql
+    # entrypoint会覆盖Dockerfile中的ENTRYPOINT，command会覆盖CMD。参考Dockerfile中的ENTRYPOINT和CMD比较。docker-compose restart也会执行此命令
+    # entrypoint:
 	command: 
 	  --character-set-server=utf8mb4            # 设置数据库表的数据集
 	  --collation-server=utf8mb4_unicode_ci     # 设置数据库表的数据集
 	  --lower_case_table_names=1				# 表名不区分大小写
-      --max_allowed_packet=512M
+      --max_allowed_packet=1000M
 	  --default-time-zone=+8:00                 # 设置mysql数据库的时区，而不是设置容器的时区
     environment:
+      TZ: Asia/Shanghai
       # MYSQL_ROOT_HOST: '%'
       # MYSQL_ROOT_PASSWORD: root
       MYSQL_HOST: localhost
@@ -369,6 +383,7 @@ services:
       - my_nginx
     # links: # 依赖的镜像
     environment: # 当做环境变量传入容器
+      TZ: Asia/Shanghai
       WORDPRESS_USERNAME: smalle # 自定义属性
       WORDPRESS_PASSWORD: aezocn
       # 或者使用列表
@@ -383,21 +398,30 @@ services:
 	  - /home/smalle/data/php:/bitnami/php
   my_app:
     # 基于Dockerfile文件构建镜像时使用的属性
-	build:
-	  # Dockerfile文件目录，此时为当前目录，也可以指定绝对路径[/path/test/Dockerfile]或相对路径[../test/Dockerfile]
-	  context: .
-	  # 指定Dockerfile文件名，如果context指定了文件名，这里就不用本属性了。默认是`Dockerfile`
-    dockerfile: Dockerfile-swapping
-    # environment:
-    #   MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
-    # secrets: # secrets 存储敏感数据，例如 mysql 服务密码
-    #   - db_root_password
-    #   - my_other_secret
-	# 控制容器连接
-	links:
-	  # 值可以是 `- 服务名`，也可以是`- "服务名：别名"`
-    - "mysql:mysql"
+    build:
+      # Dockerfile文件目录，此时为当前目录，也可以指定绝对路径[/path/test/Dockerfile]或相对路径[../test/Dockerfile]
+      context: .
+      # 指定Dockerfile文件名，如果context指定了文件名，这里就不用本属性了。默认是`Dockerfile`
+      dockerfile: Dockerfile-swapping
+      #env_file:
+      #  - ./env # 如果是当前目录存在.env文件则默认可省略
+      # environment:
+      #   MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      # secrets: # secrets 存储敏感数据，例如 mysql 服务密码
+      #   - db_root_password
+      #   - my_other_secret
+      # 控制容器连接
+      environment:
+        TZ: Asia/Shanghai
+        MYSQL_HOST: my_mysql #使用links进来的别名，或者可直接使用容器名(使用容器名时，该容器可以在另外一个compose文件中)
+        # MYSQL_PORT: 3306 # 如果MYSQL_HOST使用了容器名/别名，则此处需要使用对应容器中的端口，而不是映射到宿主机的端口
+      links:
+        # 值可以是 `- 服务名`，也可以是`- "服务名:别名"`
+        - sq-mysql:my_mysql
 ```
+- `$VARIABLE`和`${VARIABLE}`两种写法都支持，可以使用双美元符号(`$$`)来转义美元符号。如果使用的是2.1文件格式，还可以在一行中设置默认的值：
+    - `${VARIABLE:-default}` 当VARIABLE没有设置或为空值时使用default值
+    - `${VARIABLE-default}` 仅当VARIABLE没有设置时使用default值
 - 容器启动先后顺序问题 [^7]
     - `depends_on`表示再启动容器时会先启动依赖的服务，但并不能控制等依赖启动完成才启动此服务
     - 基于`wait-for-it.sh`解决先后启动。[脚本代码](https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh)
@@ -413,9 +437,9 @@ services:
 version: '3'
 services:
   test1:
-	  container_name: sq_test1
-	  networks:
-	    - sq-net
+    container_name: sq_test1
+    networks:
+      - sq-net
 networks:
   sq-net:
     # 使用已存在的网络sq-net。系统不会自动创建网络，需要先手动创建网络：`docker network create sq-net`。这样多个 docker-compose 配置文件可以共用一个网络
@@ -435,6 +459,24 @@ networks:
 	  # 如果加入了sq-net，则可以ping同sq-net所有的服务和容器名。如ping test1、ping sq_test1都是可以访问到的
     external:
       name: sq-net
+```
+- volumes使用同networks
+
+```yml
+version: '3'
+services:
+  test1:
+    volumes:
+      # 基于容器卷映射
+      - jenkins-data:/var/jenkins_home
+      # 基于普通目录映射
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: root # 定义启动用户
+    # ...
+volumes:
+  jenkins-data:
+    # 需提前创建此容器卷，如果无external: true则会自动创建容器卷
+    external: true
 ```
 
 ## 常用docker镜像
@@ -483,6 +525,11 @@ server {
   listen  80; # 此处必须是容器中的端口
   # server_name  localhost;
 
+  # **启用后响应头中会包含`Content-Encoding: gzip`**
+  gzip on; #开启gzip压缩输出
+  # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
+  gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+  
   access_log /var/log/nginx/test.access.log main;
 
   location = /index.html {
@@ -505,11 +552,11 @@ server {
 
 ### mysql/mysql-server:5.7
 
-- 默认数据文件路径：`/var/lib/mysql`(下面配置已进行修改)
+- 容器中默认数据文件路径：`/var/lib/mysql`(下面配置已进行修改)
 - 下列配置产生的root用户为root@localhost，修改MYSQL_HOST/MYSQL_ROOT_HOST也无效。可进入容器后执行`mysql -hlocalhost -uroot -p`再进行修改
 - 下列配置 [^9]
-	- 需要先创建好配置文件`/home/data/etc/mysql/my.cnf`
-	- 如需执行初始化sql语句需先创建好`/home/data/etc/mysql/init/init.sql`
+	- 需要先在docker-compose.yml所在目录创建好配置文件`my.cnf`
+	- 如需执行初始化sql语句需先在docker-compose.yml所在目录创建好`init/init.sql`
 	- 第一次初始化容器，会先启动mysql进行初始化，然后重新启动mysql。稍等片刻可通过`sudo docker logs sq-mysql`查看日志
 	- 第一次初始化容器完成后，可删掉容器重新初始化一次(无需清除mysql数据卷)，防止MYSQL_ROOT_PASSWORD等敏感信息显示在容器信息中
 
@@ -521,15 +568,15 @@ services:
     container_name: sq-mysql
     image: mysql/mysql-server:5.7 # 如果本地没有此镜像，会默认从中央仓库拉取镜像
 	ports:
-	  # 映射宿主机端口13307，但是和mysql处于相同网络中的容器配置的数据库端口仍然需要是3306
+	  # 映射宿主机端口13307，**但是和mysql处于相同网络中的容器配置的数据库端口仍然需要是3306**
       - 13307:3306
     volumes:
       # 外部数据卷。docker宿主机中无此/home/data/mysql目录时，会自动创建
-	  - /home/data/mysql:/var/lib/mysql
-	  # 外部配置文件
-	  - /home/data/etc/mysql/my.cnf:/etc/my.cnf
-	  # 外部初始化文件（文件名必须以.sh或者.sql结尾）
-      - /home/data/etc/mysql/init:/docker-entrypoint-initdb.d/
+      - /home/data/mysql:/var/lib/mysql
+      # 外部配置文件
+      - ./my.cnf:/etc/my.cnf
+      # 外部初始化文件（文件名必须以.sh或者.sql结尾）
+      - ./init:/docker-entrypoint-initdb.d/
 	environment:
 	  TZ: Asia/Shanghai
       # MYSQL_ROOT_PASSWORD: root # 不定义root密码则会自动生成密码，稍等片刻可查看生成密码：sudo docker logs sq-mysql
@@ -573,7 +620,7 @@ character-set-server=utf8mb4
 collation-server=utf8mb4_bin
 init-connect='SET NAMES utf8mb4'
 # 防止导入数据时数据太大报错
-max_allowed_packet=512M
+max_allowed_packet=1000M
 ```
 
 ```sql
@@ -582,6 +629,25 @@ use mysql;
 grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;
 flush privileges;
 ```
+
+### tomcat
+
+```yml
+# docker-compose.yml
+version: '3'
+services:
+  sq-tomcat:
+    container_name: sq-tomcat
+    image: tomcat:jdk8
+    ports:
+      - 8888:8080
+    environment:
+      TZ: Asia/Shanghai
+    # command: /bin/sh -c "sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $$CATALINA_HOME/conf/server.xml && catalina.sh run"
+```
+
+- 部署war `docker cp demo.war sq-tomcat:/usr/local/tomcat/webapps`
+- 重启容器 `docker restart sq-tomcat`
 
 ### ftp服务器
 
@@ -629,8 +695,8 @@ flush privileges;
 
 ## 安装私有仓库服务器 [^2]
 
-- Registry：docker仓库注册服务器，用于管理镜像仓库，起到的是服务器的作用。
-- Repository：docker镜像仓库，用于存储具体的docker镜像，起到的是仓库存储作用。
+- Registry：docker仓库注册服务器，用于管理镜像仓库，起到的是服务器的作用
+- Repository：docker镜像仓库，用于存储具体的docker镜像，起到的是仓库存储作用
 
 ### 命令安装方式
 
@@ -704,7 +770,7 @@ http://192.168.17.196:10010/harbor/sign-in
 
 ## 推送数据到私有仓库（默认含有一个library公共项目，也可自行创建其他项目）
 docker tag 7042885a156a 192.168.17.196:10010/library/nginx:sm_1
-# 登录(admin/Harbor12345)
+# 登录(admin/Harbor12345)。登录成功后会保存秘钥到`~/.docker/config.json`，下次则无需登录
 # 此处端口应该为10010。harbor内部默认也启动了一个registry，端口为5000，并通过nginx做了转发，因此对外端口只有10010
 # 可参看上文修改/etc/docker/daemon.json的配置为：{"insecure-registries": ["192.168.17.196:10010"]}
 docker login 192.168.17.196:10010
@@ -798,7 +864,7 @@ docker pull 192.168.17.196:10010/sq-eureka/sq-eureka:0.0.1-SNAPSHOT
         java -Xmx512m -jar /app/app.jar
         ```
         - 必须在src/main目录，如果在项目源码目录之外则基于Dockerfile的ADD等命令会出错(Dockerfile中ADD命令写相对路径，会出现找不到文件)
-        - **sh等文件需要是linux格式，否则容易报错：`: No such file or directory: bash`**
+        - **sh等文件需要是linux格式，否则容易报类似错误：`: No such file or directory: bash`**
     - src/main/docker/Dockerfile
 
         ```bash
@@ -831,7 +897,12 @@ services:
     ports:
       - 9800:9800
     volumes:
-      - /home/data/project/shengqi/logs:/home/data/project/shengqi/logs
+      # 测试发现如果数据保存在容器的/tmp/app/logs目录则日志映射失败
+      - ./logs/sq-eureka:/app/logs
+    environment:
+      TZ: Asia/Shanghai # 设置时区
+      SPRING_PROFILES_ACTIVE: test # 内置环境变量
+      LOG_PATH: /app/logs # logback.xml中定义的环境变量LOG_PATH
 
   sq-config:
     container_name: sq-config
@@ -839,15 +910,16 @@ services:
     ports:
       - 9810:9810
     volumes:
-      - /home/data/project/shengqi/logs:/home/data/project/shengqi/logs
+      - ./logs/sq-config:/app/logs
     depends_on:
       - sq-eureka
     # command会覆盖Dockerfile文件中的默认启动命令(CMD)
     # command: ["/app/wait-for-it.sh", "sq-eureka:9810", "--", "/app/runboot.sh"]
-	environment:
-	  SPRING_PROFILES_ACTIVE: test # 内置环境变量
+    environment:
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: test
       EUREKA_HOST: sq-eureka
-      EUREKA_PORT: 9800
+      LOG_PATH: /app/logs
 
   sq-gateway:
     container_name: sq-gateway
@@ -855,33 +927,33 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - /home/data/project/shengqi/logs:/home/data/project/shengqi/logs
+      - ./logs/sq-gateway:/app/logs
     depends_on:
       - sq-config
     # command: ["/app/wait-for-it.sh", "sq-config:9810", "--", "/app/runboot.sh"]
     environment:
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: test
       EUREKA_HOST: sq-eureka
-      EUREKA_PORT: 9800
+      LOG_PATH: /app/logs
 
   sq-auth:
     container_name: sq-auth
     image: ${COMPOSE_PROJECT_NAME:-local/shengqi/}sq-auth:0.0.1-SNAPSHOT
     volumes:
-      - /home/data/project/shengqi/logs:/home/data/project/shengqi/logs
+      - ./logs/sq-auth:/app/logs
     depends_on:
       - sq-config
     # command: ["/app/wait-for-it.sh", "sq-config:9810", "--", "/app/runboot.sh"]
     environment:
+      TZ: Asia/Shanghai
+      SPRING_PROFILES_ACTIVE: test
       EUREKA_HOST: sq-eureka
-      EUREKA_PORT: 9800
       MYSQL_HOST: sq-mysql
       MYSQL_DATABASE: shengqi
       MYSQL_USER: shengqi
       MYSQL_PASSWORD: shengqi
-      # REDIS_HOST=redis
-      # REDIS_PORT=6379
-      # RABBIT_MQ_HOST=rabbitmq
-      # RABBIT_MQ_PORT=5672
+      LOG_PATH: /app/logs
 ```
 - 启动：在`docker-compose.yml`目录下执行`docker-compose up -d`
 - 访问：http://docker-host:9800
@@ -902,5 +974,6 @@ services:
 [^7]: https://blog.csdn.net/wuzhong8809/article/details/82500722
 [^8]: https://yq.aliyun.com/articles/230067 (Docker --format 格式化输出概要操作说明)
 [^9]: https://blog.csdn.net/hjxzb/article/details/84927567
+[^10]: https://www.cnblogs.com/lienhua34/p/5170335.html
 
 

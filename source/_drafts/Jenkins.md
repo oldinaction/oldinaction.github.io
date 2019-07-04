@@ -3,38 +3,16 @@ layout: "post"
 title: "Jenkins"
 date: "2018-10-09 16:35"
 categories: devops
-tags: hook
+tags: [Jenkins, CI, CD]
 ---
-
-## TODO
-
-- 添加应用服务器
-    - linux：密码/秘钥连接
-    - windows：安装ssh server连接
-- git服务器交互
-    - 连接git服务器：密码/秘钥
-    - 拉取项目到Jenkins工作目录
-    - git提交后，通过git hook调用Jenkins服务
-        - 根据某特定分支进行构建 **TODO**
-        - 可检查git commit中的内容来判断是否需要构建发布 **TODO**
-- 与应用服务器交互
-    - 执行不同服务器命令：bat、sh
-        - 执行成功发送邮件 **TODO**
-        - 执行失败停止构建并发送邮件 **TODO**
-- 工作流
-    - 基于Jenkins项目运行工作流
-    - 构建时按照一定顺序执行脚本
-        - 依次调用不同服务器脚本
-- 代码检查
-    - 代码重复率等检查(sonal)
-    - maven build
-- 构建版本记录，类似git日志、
 
 ## 简介
 
 - [jenkins](https://jenkins.io/zh/)
 
 ## 安装编译及运行
+
+- 本文基于`Jenkins ver. 2.181`
 
 ### 直接安装运行
 
@@ -51,10 +29,36 @@ docker run \
   -p 2081:8080 \
   -p 50080:50000 \
   -v jenkins-data:/var/jenkins_home \
+  # 映射主机的docker到容器里面，这样在容器里面就可以使用主机安装的 docker了(可以在Jenkins容器里操作宿主机的其他容器)
   -v /var/run/docker.sock:/var/run/docker.sock \
+  # 映射本地maven仓库(通过jenkins安装maven会使用到)
+  -v /root/.m2:/root/.m2 \
   --name jenkins \
   --restart=always \
-  jenkinsci/blueocean
+  jenkins/jenkins:2.181
+  #jenkinsci/blueocean
+
+# 使用docker-compose
+version: '3'
+services:
+  jenkins:
+    container_name: jenkins
+    image: jenkins/jenkins:2.181
+    ports:
+      - 2081:8080
+      - 50080:50000
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.m2:/root/.m2
+    restart: always
+    # 必须使用root用户启动
+    user: root
+    environment:
+	  TZ: Asia/Shanghai
+volumes:
+  jenkins-data:
+    external: true
 ```
 - 激活：秘钥位置为/var/jenkins_home/secrets/initialAdminPassword，实际存储位置为/data/docker/volumes/jenkins-data/_data/secrets/initialAdminPassword(其中/data/docker为docker默认存储路径，jenkins-data为容器卷名)
 
@@ -75,9 +79,11 @@ docker run \
 - Run/Debug中添加tomcat配置，Deployment选择jenkins-war:war
 - debug启动tomcat。也可在远程启动debug监听 `mvnDebug jenkins-dev:run` 默认监听端口8000，可通过remote debug进行远程调试
 
-## 常用构建说明
+## 构建
 
-### 源码管理(Git)
+### 自由风格构建说明
+
+#### 源码管理(Git)
 
 > 此处的源码管理指在jenkins宿主机上管理任务相应源码，比如打包等操作。如ofbiz项目直接在服务器上拉取最新代码时可以不用源码管理，直接在构建中发起远程命令即可
 
@@ -86,36 +92,40 @@ docker run \
 - Additional Behaviours：扩展配置
     - Advanced clone behaviours：配置git clone，对于较多代码拉取可将其中Timeout设置成`30`分钟
 
-### 构建触发器
+#### 构建触发器
 
-- `Build when a change is pushed to GitLab. GitLab webhook URL: http://10.10.10.10/project/test` 代码推送等变更时构建，常用(GitLab插件)
+- `Build when a change is pushed to GitLab. GitLab webhook URL: http://10.10.10.10/project/test` 代码推送等变更时构建，常用(需安装`GitLab`插件)
     - Enabled GitLab triggers
-        - `Push Events` 直接推送到此分支时构建(勾选)
+        - `Push Events` 直接推送到此分支时构建(**去勾选**，如直接在git客户端将develop推送到test则无法触发。勾选会产生问题：当在gitlab接受develop到test的请求会产生2次构建)
         - `Opened Merge Request Events` 去勾选
-        - `Accepted Merge Request Events` 接受合并请求时构建(勾选)
+        - `Accepted Merge Request Events` 接受合并请求时构建(**勾选**)
         - `Closed Merge Request Events` 去勾选
-        - `Approved Merge Requests (EE-only)`(勾选)
+        - `Approved Merge Requests (EE-only)`(勾选，EE-only表示只有gitlab企业版才支持)
         - `Comments`(勾选)
-        - `Comment (regex) for triggering a build` 提交备注正则构建(如：`[jenkins build]`)
+        - `Comment (regex) for triggering a build` 提交备注正则构建(如：`[Jenkins Build]`)
     - Allowed branches 允许触发的分支
-        - Filter branches by name - Include 基于名称进行触发，如：`origin/test`
+        - Filter branches by name - Include 基于名称进行触发，如：`test`(此时不能写成`origin/test`)
         - Secret token - Generate 生成token用于git webhook触发
-    - Gitlab设置Webhooks(可设置多个)：URL和Secret Token填上文；Trigger勾选`Push events`、`Comments`、`Merge Request events`(gitlab提供对配置的url进行访问可达测试)。触发流程如下：
+    - Gitlab设置Webhooks(可设置多个)：URL和Secret Token填上文；Trigger勾选`Push events`、`Tag push events`、`Merge Request events`(gitlab提供对配置的url进行访问可达测试)。触发流程如下：
         - 当开发通过git提交代码或进行其他操作触发了gitlab此时定义的Trigger
         - 然后gitlab会对配置的URL进行post
         - 通过post的地址会进入到jenkins定义的构建任务中
         - jenkins对触发进行过滤，判断是否需要进行构建
-- `Gitlab Merge Requests Builder` 定时自动生成构建任务(GitLab插件)
+    - 触发相对比较及时，gitlab产生后会迅速触发到jenkins(不用刷新项目页面也自动显示新的构建)。jenkins产生的构建会备注如
+        - `Triggered ​by ​GitLab ​Merge ​Request ​#16: ​my-group-name/develop ​=> test` 此时是接受了develop到test的请求
+        - `Started ​by ​GitLab ​push ​by smalle` 此时是直接在git客户端将develop推送到test
+- `Gitlab Merge Requests Builder` 定时自动生成构建任务(需安装`GitLab`插件)
 
-### 构建
+#### 构建(Build)
 
-- `Send files or execute commands over SSH` 执行ssh服务器命令进行构建
+- `Send files or execute commands over SSH` 执行ssh服务器命令进行构建(需安装插件`Publish over SSH`)
     - `Exec command` 执行远程命令(不会记录在linux的history中)，如
 
         ```bash
-        echo "start build ofbiz..."
+        echo "build ofbiz start..."
         # echo $PATH # 此时打印出的是jenkins本地环境的PATH，而不是远程服务器的
         # export PATH=/opt/soft/jdk1.7.0_80/bin:/opt/soft/jdk1.7.0_80/jre/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin # 临时设置PATH为远程服务器PATH，解决java: command not found
+        # 加载全局配置文件，解决java: command not found
         source /etc/profile
         cd /home/ofbiz/tools
         ./stopofbiz.sh
@@ -123,25 +133,111 @@ docker run \
         git pull
         ./ant
         nohup bash /home/ofbiz/tools/startofbiz.sh > /dev/null 2>&1 &
-        echo "end build ofbiz..."
+        echo "build ofbiz end..."
         ```
         - 其中`source /etc/profile`为了防止报错`java: command not found`(jenkins不会自动加载环境变量)
+- 调用顶层Maven目标
+    - Maven Version：可选择全局工具配置中配置的maven，若无此选项可参考下文全局工具配置
+    - Goals：如`clean package -Dmaven.test.skip=true`
+    - 高级 - POM：可自定义pom文件位置，如`my-module-one/pom.xml`
 
-### 构建后操作
+#### 构建后操作
 
-- `E-mail Notification` 邮件通知
+- `E-mail Notification` 邮件通知，其中SMTP发件地址需要和系统管理员邮件地址一致
 
-## Jenkins+Docker+SpringBoot
+### Pipline和Jenkinsfile构建
 
+> 本示例Jenkins基于docker进行安装。参考：https://jenkins.io/zh/doc/tutorials/build-a-java-app-with-maven/#run-jenkins-in-docker
 
+- 创建Pipline：新建Item - 流水线(Pipline)
+- General、构建触发器、高级项目选项此示例可不用填写(实际可按需填写)
+- 流水线
+    - 定义：`Pipeline script`(在Jenkins配置中定义Pipeline脚本)、`Pipeline script from SCM`(从软件配置管理系统，如Git仓库获取脚本；可配置脚本所在Git仓库的文件路径)
 
-## 系统管理
+#### Jenkinsfile
 
-### 系统设置
+```bash
+## Jenkinsfile(保存在Git仓库的jenkins目录)
+# 此时是基于Git仓库进行Jenkins配置的：jenkins会先将源码获取到workspace目录，然后基于当前项目目录执行Jenkinsfile中的指令
+pipeline {
+    agent {
+        docker {
+            # 基于maven容器进行构建
+            # 此示例Jenkins基于docker进行安装，由于绑定了/var/run/docker.sock，所有在Jenkins容器中可以(在宿主机上)创建启动容器
+            # 构建时会在宿主机创建maven的容器(数据保存在宿主机的/root/.m2目录下)
+            image 'maven:3-alpine'
+            args '-v /root/.m2:/root/.m2'
+        }
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn -B -DskipTests clean package'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        # 执行交付/发布步骤
+        stage('Deliver') {
+            steps {
+                # 此时当前目录为Git仓库根目录。此处为执行sh命令，如果命令较为复杂一般是保存在sh脚本中
+                sh './jenkins/scripts/deliver.sh'
+            }
+        }
+    }
+}
 
+## scripts/deliver.sh
+mvn jar:jar install:install help:evaluate -Dexpression=project.name
+VERSION=`mvn help:evaluate -Dexpression=project.version | grep "^[^\[]"`
+NAME=`mvn help:evaluate -Dexpression=project.name | grep "^[^\[]"`
+java -jar target/${NAME}-${VERSION}.jar
+```
+
+## 构建示例
+
+### Jenkins+Docker+Gitlab
+
+- 流程图如下 [^2]
+
+![jenkins-docker-gitlab](/data/images/devops/jenkins-docker-gitlab.png)
+
+- Springboot项目的pom.xml加入打包docker并推送的镜像仓库(如Harbor)的插件
+- jenkins源码从gitlab拉取，并设置Gitlab Webhooks
+- jenkins构建时分别执行maven打包、给服务器发送启动docker命令
+
+## 系统管理(Manage Jenkins)
+
+### 系统设置(Configure System)
+
+- Jenkins Location
+    - Jenkins URL：jenkins的路径，如：`http://192.168.1.100:8080/`。如果此处配置成外网，当通过内网访问时会提示`反向代理设置有误`，但是不影响使用
+    - 系统管理员邮件地址：此地址需要和SMTP发件地址一致
 - 邮件通知：配置smtp服务器
 - Publish over SSH
-    - SSH Servers：配置目标服务器，高级功能中可使用Http、Socket代理
+    - SSH Servers：配置目标服务器，高级功能中可使用HTTP/SOCKS5代理(可能存在测试代理连接失败BUG，但是可以正常使用)
+
+### 全局工具配置(Global Tool Configuration)
+
+- Maven [^1]
+    - 安装Jenkins默认不含maven，可通过下列方法解决
+        - docker安装Jenkins时，pipeline风格可在`agant`中运行maven镜像
+        - 自由风格可使用宿主机maven或通过jenkins自动安装
+    - 使用宿主机maven配置：Name`maven3.6`；去勾选自动安装；MAVEN_HOME填写宿主机目录(如果是docker安装的jenkins可将本地maven安装目录挂载到容器目录如/var/maven_home，然后此处使用/var/maven_home)
+    - 通过jenkins自动安装
+        - 配置：Name`maven3.6`；勾选自动安装；Version`3.6.1`(之后重新进入此配置页面，可能默认不会显示之前的配置)
+        - 需要安装`Maven Integration`插件
+        - 进行了上述配置和插件安装默认还是不会自动安装maven，需要`构建一个maven项目`，然后构建此项目才会自动安装(安装成功后，在资源风格项目中也可以使用)
+    - 自动安装的maven插件位置：`/data/docker/volumes/jenkins-data/_data/tools/hudson.tasks.Maven_MavenInstallation/maven3.6` (基于docker安装jenkins)
+        - 可修改`conf/settings.xml`相关配置，如配置阿里云镜像地址
 
 ### 插件管理
 
@@ -149,16 +245,27 @@ docker run \
 
 - Git(内置git客户端)
 
-#### Publish over SSH
+#### 其他插件推荐
 
-- [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
-- 利用此插件可以连接远程Linux服务器，进行文件的上传或是命令的提交，也可以连接提供SSH服务的windows服务器
-- BapSshHostConfiguration#createClient 进行服务器连接
-- 此插件1.20.1界面`Test Configuration`测试代理连接存在bug，实际是支持代理连接的
+- Publish over SSH
+    - [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
+    - 利用此插件可以连接远程Linux服务器，进行文件的上传或是命令的提交，也可以连接提供SSH服务的windows服务器
+    - BapSshHostConfiguration#createClient 进行服务器连接
+    - 此插件1.20.1界面`Test Configuration`测试代理连接存在bug，实际是支持代理连接的
+- GitLab
+    - [wiki](https://github.com/jenkinsci/gitlab-plugin)
+    - 允许GitLab触发Jenkins构建并在GitLab UI中显示结果
+- Maven Integration
+    - 使用：新建Item - 构建一个maven项目
+    - 项目配置：Goals and options `clean install -Dmaven.test.skip=true`
+- Localization: Chinese (Simplified)：界面汉化(汉化部分，Local插件也只能汉化部分)
+- Docker plugin
+    - 提供使用jenkins进行镜像编译、推送到Harbor等镜像仓库(也可通过maven插件配置docker镜像编译和推送)
 
-#### GitLab
+### 其他配置
 
-- [wiki](https://github.com/jenkinsci/gitlab-plugin)
+- Manage Nodes节点管理
+    - jenkins支持分布式部署，此处可设置每个节点的构建队列个数
 
 ## jenkins源码解析
 
@@ -279,6 +386,11 @@ public final boolean dispatch(RequestImpl req, ResponseImpl rsp, Object node) th
 ```
 
 
+---
 
+参考文章
+
+[^1]: https://www.jianshu.com/p/7883c251eb09
+[^2]: https://www.jianshu.com/p/358bfb64e3a6
 
 

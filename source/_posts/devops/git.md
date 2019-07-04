@@ -2,8 +2,8 @@
 layout: "post"
 title: "git"
 date: "2016-04-16 12:40"
-categories: arch
-tag: [git, gitflow]
+categories: devops
+tag: [git, arch]
 ---
 
 ## git简介

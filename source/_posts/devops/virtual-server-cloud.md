@@ -11,10 +11,14 @@ tags: [linux, cloud]
 ### Hypervisor、KVM
 
 - `Hypervisor` 是一种将操作系统与硬件抽象分离的一种技术实现方法，一种运行在物理服务器和操作系统之间的中间软件层（可以是软件程序，也可以是固件程序）。Hypervisor是所有虚拟化技术的核心，也叫虚拟机监视器VMM（Virtual Machine Monitor）[^1]
-- `KVM`（Kernel -base-virtual machine）实际上是类Linux发行版内核中提供的虚拟化技术（内核级虚拟化），可将内核直接充当Hypervisor来使用，在内核中独立存在可动态加载。注意其处理器（CPU）自身必须支持虚拟化扩展
+- `KVM`（Kernel-base-virtual machine）实际上是类Linux发行版内核中提供的虚拟化技术（内核级虚拟化），可将内核直接充当Hypervisor来使用，在内核中独立存在可动态加载。注意其处理器（CPU）自身必须支持虚拟化扩展
     - QEMU 是一个主机上的VMM（virtual machine monitor），通过动态二进制转换来模拟CPU，并提供一系列的硬件模型，使guest os认为自己和硬件直接打交道，其实是同QEMU模拟出来的硬件打交道，QEMU再将这些指令翻译给真正硬件进行操作。通过这种模式，guest os可以和主机上的硬盘，网卡，CPU，CD-ROM，音频设备和USB设备进行交互。但由于所有指令都需要经过QEMU来翻译，因而性能会比较差
     - QEMU-KVM：KVM负责cpu虚拟化+内存虚拟化，实现了cpu和内存的虚拟化，但kvm并不能模拟其他设备，还必须有个运行在用户空间的工具才行。KVM的开发者选择了比较成熟的开源虚拟化软件QEMU来作为这个工具，QEMU模拟IO设备（网卡，磁盘等），组成了QEMU-KVM [^5]
+    - Qemu和KVM的最大区别就是：KVM模式如果一台物理机内存直接4G，创建一个vm虚拟机分配内存分4G，在创建一个还可以分4G，支持超配，但是qemu不支持
 - `Libvirt` 是RedHat开始支持KVM后搞的一个用户空间虚拟机管理工具，其包括：KVM/QEMU，Xen，LXC，OpenVZ 或 VirtualBox hypervisors等
+- 虚拟化类型
+    - 全虚拟化：代表有`KVM`
+    - 半虚拟化：代表有`Hypervisor`
 
 ### OpenStack和Kubernetes
 
@@ -88,18 +92,54 @@ ssh-keygen
 ssh-copy-id -i .ssh/id_rsa.pub root@centos
 ssh-copy-id -i .ssh/id_rsa.pub root@node1
 ```
-- 安装KVM及相关工具
+- 安装KVM相关管理工具
 
 ```bash
-# 其中qemu-kvm是使I/O设备支持虚拟化；libvirt是管理kvm虚拟机的工具；virt-manager为桌面可视化管理虚拟机(需要主机必须安装图形库)；virt-install是一种命令行安装kvm虚拟机的方式
-yum install -y qemu-kvm libvirt libvirt-python libguestfs-tools virt-install virt-manager python-virtinst libvirt-client virt-viewer qemu-kvm-tool
+# 其中qemu-kvm是使I/O设备支持虚拟化；libvirt是管理kvm虚拟机的工具；virt-manager为桌面可视化管理虚拟机(需要主机必须安装图形库)；
+# qemu-kvm          #KVM在用户运行的程序(使I/O设备支持虚拟化)
+# libvirt           #用于管理虚拟机，它提供了一套虚拟机操作API，可以管理KVM、VMware等，像openstack就是通过libvirt API来管理虚拟机。像virt-install等命令底层都是通过libvirt来完成的
+# virt-install      #是一种命令行安装kvm虚拟机的方式(基于libvirt完成)
+# libvirt-client    #Libvirt的客户端，最重要的功能之一就是在宿主机关机时可以通过虚拟机也关机，使虚拟机系统正常关机，而不是被强制关机，造成数据丢失
+# qemu-kvm-tool     #包含了如`qemu-img`包，可管理磁盘和光盘
+# python-virtinst   #一套Python的虚拟机安装工具
+
+# libvirt-python    #libvirt的图形化虚拟机管理软件，需要图形界面操作系统
+# virt-manager      #基于Libvirt的图像化虚拟机管理软件，需要图形界面操作系统
+yum install -y qemu-kvm libvirt virt-install libvirt-client qemu-kvm-tool python-virtinst libvirt-python virt-manager libguestfs-tools virt-viewer
 
 # 启动librirt
 systemctl start libvirtd
 systemctl enable libvirtd
 ```
 
-### WebVirtMgr安装
+### 基于命令行管理KVM虚拟机
+
+- 关于libvirt
+    - libvirt用于管理虚拟机，会其一个libvirtd的进程，它提供了一套虚拟机操作API。可以管理KVM、VMware等，像openstack就是通过libvirt API来管理虚拟机，像virt-install等命令底层都是通过libvirt来完成的
+    - 启动后libvirtd会默认安装了一个桥接网卡(`virbr0`)，还会启动了一个dnsmasqp进程，这个主要是dhcp给的虚拟机分配IP地址(`ps -ef|grep dns`)
+    - kvm虚拟机都是靠libvirt xml来定义的，我们是无法对他进行修改的，可以使用`virsh edit xxx`进行编辑
+    - https://i4t.com/1627.html
+- 相关命令
+
+```bash
+## 创建磁盘(镜像)
+# -f 制定虚拟机格式，raw是裸磁盘
+# /data/centos-test.raw 存放路径，10G为镜像大小
+qemu-img create -f raw /data/centos-test.raw 10GFormatting '/data/centos-test.raw', fmt=raw size=10737418240 
+
+## 创建虚拟机(不含安装虚拟机操作系统)
+# --name = 给虚拟机起个名字
+# --ram = 内存大小
+# --cdrom = 镜像位置，就是上传iso镜像的位置，我放在/tmp下了
+# --disk path = 指定磁盘
+# --network network = 网络配置 default 就会用我们刚刚ifconfig里面桥接的网卡
+# --noautoconsosle 虚拟机创建完毕后不会自动切换tty
+# --vnc 监听vnc
+virt-install --name centos-test --virt-type kvm --ram 1024 --cdrom=/opt/CentOS-7-x86_64-Minimal-1810.iso --disk path=/data/centos-test.raw --network network=default --noautoconsole --vnc --vncport=5910 --vnclisten=0.0.0.0
+```
+- 使用VNC客户端连接虚拟机安装系统(VNC默认监听5900，使用`宿主IP:5900`连接)
+
+### WebVirtMgr安装(基于WEB界面管理KVM虚拟机)
 
 - [WebVirtMgr](https://github.com/retspen/webvirtmgr)基于Django开发，只需在管理端安装(192.168.6.10)
 - 安装WebVirtMgr
@@ -192,6 +232,7 @@ supervisorctl status
 
         ```bash
         # vi ifcfg-ens33。修改`ifcfg-ens33`为基于网桥连接
+        DEVICE=ens33
         ONBOOT=yes
         BOOTPROTO=none
         BRIDGE=br0
@@ -203,6 +244,7 @@ supervisorctl status
         TYPE=Bridge
         IPADDR=192.168.6.10
         NETMASK=255.255.255.0
+        # 此为宿主机网关。如果手动设置虚拟机网络，则虚拟机网段需要和宿主机网段一直，且网关需要和宿主机一致；如果虚拟机基于DHCP获取亦可
         GATEWAY=192.168.6.2
         # DNS1=114.114.114.114
         # DNS2=114.114.115.115
@@ -211,11 +253,12 @@ supervisorctl status
 - 网络池。虚拟机可使用的网络环境，默认是名称default的NAT类型网络接口，此时采用桥接网卡(上述Interfaces中已显示宿主机桥接网卡)
     - New Network - 网络类型BRIDGE - 名称如：br0 - 桥接名称br0(宿主机的桥接网卡) - 去掉Open vSwitch勾选(vSwitch即Virtual Switch，指虚拟交换机或虚拟网络交换机，工作在二层数据网络，通过软件方式实现物理交换机的二层和部分三层网络功能)
     - 配置完成后需要在网络池里面禁用default网络接口
-- 虚机实例。
+    - **如果重启了宿主机网络，会导致虚拟机网络失效(进出都失效)，必须从WebVirtMgr管理界面重启虚拟机(reboot重启无效)**
+- 虚机实例
     - 创建虚拟机 - New Instance - Custome Instance - 磁盘镜像选择vmdisk.img，网络池选择br0(此时创建的虚拟机则和宿主机处在同一个网段)，其他按需配置
     - 进入创建的虚拟机详细配置界面 - 设置 - Media - 连接CDROM1的iso镜像(安装系统时会基于此镜像安装到vmdisk.img镜像中，安装完成后则无需连接此iso镜像)
     - Power启动虚拟机
-    - Access控制台可进入虚拟机命令行，进行系统安装
+    - Access控制台可进入虚拟机命令行，进行系统安装。界面的Send Key中Ctrl+Ale+Del为重启虚拟机
 
 #### 虚拟机其他设置
 
@@ -235,6 +278,32 @@ supervisorctl status
         </disk>
         ```
         - 进入到虚拟机进行磁盘分区和挂载(`fdisk -l`查看磁盘)，参考[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
+    - 网络接口配置
+
+        ```xml
+        <!-- 使用NAT网络：宿主机需要开启 net.ipv4.ip_forward 时，虚机才可上网 -->
+        <interface type='network'>
+            <mac address='52:54:00:bf:18:9b'/>
+            <source network='default'/>
+            <model type='virtio'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+        </interface>
+
+        <!-- 使用宿主机br0网桥 -->
+        <interface type='bridge'>
+            <mac address='52:54:00:bf:18:9b'/>
+            <source bridge='br0'/>
+            <model type='virtio'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+        </interface>
+        ```
+    - 修VNC相关配置
+
+        ```xml
+        <graphics type='vnc' port='5900' autoport='yes' listen='0.0.0.0' passwd='smalle'>
+            <listen type='address' address='0.0.0.0'/>
+        </graphics>
+        ```
 - 设置-克隆可迅速克隆出一台虚拟机，无需重新安装系统
     - 被克隆机需要停止运行
     - 重新生成一个mac地址
@@ -255,13 +324,7 @@ supervisorctl status
         ```
     - 待解决迁移的新虚拟机仍然需要重新安装系统问题？？？
 - Destroy删除只会删除虚拟机配置，默认并不会删除对应的磁盘，也可勾选删除对应磁盘数据
-- 也可通过VNC桌面客户端进行连接，如使用`VNC View`，地址输入`192.168.6.10:5900`，此时ip为宿主机地址，端口可在虚拟机设置XML中查看，如XML中无VNC相关配置也可添加进去，如
-
-    ```xml
-    <graphics type='vnc' port='5900' autoport='yes' listen='0.0.0.0' passwd='smalle'>
-        <listen type='address' address='0.0.0.0'/>
-    </graphics>
-    ```
+- 也可通过VNC桌面客户端进行连接，如使用`VNC View`，地址输入`192.168.6.10:5900`，此时ip为宿主机地址，端口可在虚拟机设置XML中查看
 
 
 

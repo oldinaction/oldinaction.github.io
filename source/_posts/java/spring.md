@@ -85,7 +85,7 @@ tags: [spring, spring-mvc]
 
 - `@Import("cn.aezo.test.MyBean")`
     - 注解在配置类上，Bean的名称为类全名
-- @Import结合实现`ImportSelector`
+- `@Import`结合实现`ImportSelector`
 
 ```java
 // ### 基于导入选择器
@@ -113,7 +113,7 @@ public class AppImport {
     }
 }
 ```
-- @Import结合实现`ImportBeanDefinitionRegistrar`
+- `@Import`结合实现`ImportBeanDefinitionRegistrar`
 
 ```java
 // ### 基于ImportBeanDefinitionRegistrar
@@ -204,6 +204,25 @@ public class App {
 ### 条件注解@Conditional
 
 - 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
+- 内置条件
+    - `@ConditionalOnProperty` 要求配置属性匹配条件
+        - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false)
+    - `@ConditionalOnMissingBean` 当给定的类型、类名、注解、昵称在beanFactory中不存在时返回true，各类型间是or的关系
+        - eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
+    - `@ConditionalOnBean` 与上相反，在存在某个bean的时候
+        - eg：@ConditionalOnBean({Client.class})
+    - `@ConditionalOnMissingClass` 当前classpath不可以找到某个类型的类时，各类型间是and的关系
+    - `@ConditionalOnClass` 与上相反，当前classpath可以找到某个类型的类时
+        - eg：@ConditionalOnClass({Feign.class})、@ConditionalOnClass(name = {"feign.hystrix.HystrixFeign"})
+    - `@ConditionalOnResource` 当前classpath是否存在某个资源文件
+    - `@ConditionalOnWebApplication` 当前spring context是否是web应用程序
+    - `@ConditionalOnNotWebApplication`	web环境不存在时
+    - `@ConditionalOnExpression` spel表达式执行为true
+    - `@ConditionalOnSingleCandidate` 当给定类型的bean存在并且指定为Primary的给定类型存在时返回true
+    - `@ConditionalOnCloudPlatform` 当所配置的CloudPlatform为激活时返回true
+    - `@ConditionalOnJava` 运行时的java版本号是否包含给定的版本号，如果包含返回匹配，否则返回不匹配
+    - `@ConditionalOnJndi` 给定的jndi的Location 必须存在一个，否则返回不匹配
+- 自定义条件
 
 ```java
 // ## 条件判断
@@ -396,6 +415,10 @@ site.url=www.aezo.cn
 
 ## AOP
 
+- 说明
+    - Spring AOP的底层原理就是动态代理，因此局限于方法拦截
+    - Spring AOP默认是使用JDK动态代理，如果代理的类没有接口则会使用CGLib代理
+    - JDK动态代理是需要实现某个接口了，而我们类未必全部会有接口，于是CGLib代理就有了，CGLib代理其生成的动态代理对象是目标类的子类。如果是单例的我们最好使用CGLib代理，如果是多例的我们最好使用JDK代理(JDK在创建代理对象时的性能要高于CGLib代理，而生成代理对象的运行性能却比CGLib的低)
 - 相关注解
     - `@Aspect` 声明一个切面
     - `@Before`、`@After`、`@Around` 定义建言(advice)
@@ -426,7 +449,24 @@ site.url=www.aezo.cn
     @Aspect // 声明一个切面
     @Component
     public class LogAspect {
+        // 此接口/类中方法
         @Before("execution(* cn.aezo.spring.base.annotation.aop.DemoMethodService.*(..)) || execution(* cn.aezo.spring.base.annotation.aop.DemoMethodService2.*(..))")
+        // execution(* cn.aezo.spring.base.annotation.aop.*.*(..)) // 此包中方法(第一个*代替了public void；此表达式也会拦截含throws的方法)
+        // execution(public * cn.aezo.spring.base.annotation.aop..*.*(..)) // 此包或者子包中public类型的方法
+
+        // within(cn.aezo.spring.base.*) // 任何此包中的方法
+        // within(cn.aezo.spring.base..*) // 任何此包或其子包中的方法
+        // this(cn.aezo.spring.base.annotation.aop.DemoMethodService) // 实现了此接口中的方法
+        // target(org.springframework.web.client.RestTemplate) // 任何目标对象实现了此接口的方法(一般情况下代理类(Proxy)和目标类(Target)都实现了相同的接口，同this)。**如果使用 execution(* org.springframework.web.client.RestTemplate.execute(..))是无法拦截到的，RestTemplate本事是由代理执行的**
+        // args(java.io.Serializable) // 有且只有一个Serializable参数
+        
+        // @target(org.springframework.transaction.annotation.Transactional) // 目标(target)使用了@Transactional注解的方法
+        // @within(org.springframework.transaction.annotation.Transactional) // 目标类(target)如果有@Transactional注解中的所有方法
+        // @annotation(org.springframework.transaction.annotation.Transactional) // 任何方法有@Transactional注解的方法
+        // @args(org.springframework.transaction.annotation.Transactional) // 有且仅有一个参数并且参数上类型上有@Transactional注解(注意是参数类型上有@Transactional注解，而不是方法的参数上有注解)
+        
+        // bean(simpleSay) // bean名字为simpleSay中的所有方法
+        // bean(*Impl) // bean名字匹配*Impl的bean中的所有方法
         public void before(JoinPoint joinPoint) {
             MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
             Method method = methodSignature.getMethod();
@@ -439,23 +479,40 @@ site.url=www.aezo.cn
     @Component
     public class LogIntercept {
         @Pointcut("execution(public * cn.aezo.spring.base.annotation.aop..*.*(..))")
-        public void recordLog(){}
+        public void pointcut(){}
 
-        @Before("recordLog()")
-        public void before() {
+        @Before("pointcut()")
+        public void before(JoinPoint joinPoint) {
             this.printLog("execution方法执行前");
         }
 
-        @Around("recordLog()")
-        public void around(ProceedingJoinPoint pjp) throws Throwable{
+        @Around("pointcut()")
+        public Object around(ProceedingJoinPoint pjp) throws Throwable {
+            Object[] args = pjp.getArgs(); // 获取被切入方法参数值
+
             this.printLog("execution方法执行前");
-            pjp.proceed();
+            Object retObj = pjp.proceed();
             this.printLog("execution方法执行后");
+
+            return retObj;
         }
 
         @After("recordLog()")
         public void after() {
             this.printLog("execution方法执行后");
+        }
+
+        // returning属性指定一个形参名，用于表示Advice方法中可定义与此同名的形参，该形参可用于访问目标方法的返回值
+        @AfterReturning(value = "pointcut()", returning = "result")
+        public void afterReturning(JoinPoint joinPoint, Object result) {
+            Object[] args = joinPoint.getArgs(); // 获取被切入方法参数值
+            System.out.println("afterReturning...");
+        }
+
+        @AfterThrowing(value = "pointcut() && @annotation(myExecption)", throwing = "ex")
+        public void afterThrowing(JoinPoint joinPoint, MyException myExecption, Exception ex){
+            String methodName = joinPoint.getSignature().getName();
+            System.out.println("afterThrowing...");
         }
     }
 
@@ -828,6 +885,18 @@ public class CustomerHandlerInterceptor implements HandlerInterceptor {
     }
 }
 ```
+
+## Spring相关类/接口说明
+
+### org.springframework.boot
+
+- context.properties
+    - `@ConfigurationProperties` 将properties配置文件中的属性对应到类上，需要和@EnableConfigurationProperties或@Component等结合使用
+    - `@EnableConfigurationProperties` 使使用@ConfigurationProperties注解的类生效，可在任何配置类上定义
+        - 如果一个配置类只配置@ConfigurationProperties注解，而没有使用@Component，那么在IOC容器中是获取不到properties配置文件转化的bean(但是可以通过@Value直接获取properties的值)。说白了@EnableConfigurationProperties相当于把使用@ConfigurationProperties的类进行了一次注入。如：@EnableConfigurationProperties({FeignClientEncodingProperties.class})
+- autoconfigure
+    - `@AutoConfigureBefore`
+    - `@AutoConfigureAfter` 在加载某配置的类之后再加载当前类。如：@AutoConfigureAfter({FeignAutoConfiguration.class})
 
 
 

@@ -26,7 +26,7 @@ tags: [CPU, 内存, 运维, oracle, ofbiz]
 
 ## 应用服务器故障
 
-### 相关命令介绍
+### 常用命令介绍
 
 ```bash
 ## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%
@@ -58,6 +58,15 @@ jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 ## 5.项目启动添加jvm参数获取(不能实时获取)
 -XX:+HeapDumpOnOutOfMemoryError # 出现 OOME 时生成堆 dump
 -XX:HeapDumpPath=/home/jvmlogs # 生成堆文件的文件夹（需要先手动创建此文件夹）
+```
+
+#### java检测相关命令工具
+
+> https://zheng12tian.iteye.com/blog/1420508
+
+```bash
+# 显示java进程，-l显示完整包名，-m显示传递给main方法的参数，-v显示传递给JVM的参数，
+jps -lmv
 ```
 
 ### MAT工具使用/实例分析

@@ -3,7 +3,7 @@ layout: "post"
 title: "SpringCloud"
 date: "2017-08-05 19:36"
 categories: [java]
-tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus]
+tags: [SpringCloud, 微服务]
 ---
 
 ## 介绍
@@ -135,6 +135,11 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
 - application.yml配置
 
     ```yml
+    spring:
+        cloud:
+            inetutils:
+                # 忽略虚拟网卡，防止开发环境客户端注册到服务器的地址为本地虚拟网卡地址
+                ignored-interfaces: VMware.*,VirtualBox.*,Hyper-V.*
     # eureka客户端配置
     eureka:
         client:
@@ -143,6 +148,7 @@ tags: [SpringCloud, 微服务, Eureka, Ribbon, Feign, Hystrix, Zuul, Config, Bus
         instance:
             # 启用ip访问eureka server(默认是使用主机名进行访问)
             prefer-ip-address: true
+            # ip-address: 192.168.1.100 # 如果本地安装了虚拟网卡，也可以使用此配置强行指定注册到服务器的IP地址
             # 实例id
             instanceId: ${spring.application.name}:${spring.application.instance_id:${server.port}}
             # 续约请求间隔（默认30秒），定期会向注册中心发送请求，证明此节点运行正常
@@ -239,6 +245,7 @@ eureka:
 ## Feign声明式服务调用
 
 - 简介
+    - Spring Cloud默认已为Feign整合了Hystrix，只要Hystrix在项目的classpath中，Feign默认就会用断路器包裹所有方法
 - 基本使用(服务消费者)
     - 引入依赖
 
@@ -269,10 +276,8 @@ eureka:
     - 配置
     
     ```yml
-    # 开启feign的hystrix
-    feign:
-      hystrix:
-        enabled: true
+    # 默认为开启状态，此配置关闭feign的hystrix(使用hystrix会产生hystrix-ServiceName-N的子进程，从而导致类似CAT监控无法传递ThreadLocal上下文。建议开启hystrix)
+    # feign.hystrix.enabled: false
     ```
     - 使用
 
@@ -351,7 +356,8 @@ eureka:
 - 常用配置 [Wiki](https://github.com/Netflix/Hystrix/wiki/Configuration) [^8]
 
 ```yml
-# 调用方配置，设置hystrix全局超时时间，默认是1秒。
+# 调用方配置，设置hystrix全局超时时间，默认是1秒
+# hystrix的超时时间需要考虑ribbon的超时时间，hystrix的超时时间要比ribbon的大。如果ribbon设置了重试， hystrix > (ribbon * 重试次数)
 hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 2000
 # 在调用方配置，被该调用方的指定方法（HystrixCommandKey方法名？？？）的超时时间是该值。优先级高于全局超时配置
 hystrix.command.HystrixCommandKey.execution.isolation.thread.timeoutInMilliseconds: 60000
@@ -1194,7 +1200,7 @@ turbine:
 
 ## 基于docker运行
 
-参考：[http://blog.aezo.cn/2017-06-25/arch/docker/](/_posts/arch/docker.md#启动SpringCloud应用)
+参考：[http://blog.aezo.cn/2017-06-25/arch/docker/](/_posts/devops/docker.md#启动SpringCloud应用)
 
 ## 版本 Finchley.SR1
 

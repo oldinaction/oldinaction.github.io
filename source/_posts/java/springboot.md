@@ -110,11 +110,14 @@ tags: springboot
 - application.yml配置
 
 ```yml
+# 最简单的日志打印只需再resource目录加入logback.xml/logback-spring.xml即可，无需下列logging节点配置。其他说明：
+# 1. 文件的命名和加载顺序有关：logback.xml早于application.yml加载，logback-spring.xml晚于application.yml加载；如果logback配置需要使用application.yml中的属性，需要命名为logback-spring.xml
+# 2. logback使用application.yml中的属性：必须通过springProperty才可引入application.yml中的值，可以设置默认值
 logging:
-	# 日志文件保存位置(会自动创建目录). 如果未找到path则不生成日志文件(linux默认是/tem/spring.log)，path有值时后自动在目录生成spring.log的文件(日志级别全部在一起)
+	# 日志文件保存位置(会自动创建目录). 如果未找到path则不生成日志文件(linux默认是/tem/spring.log)，path有值时后自动在目录生成spring.log的文件(日志级别全部在一起)。如果使用默认路径则无需此配置
 	path: ${LOG_PATH:D:/temp/logs/test/module}
-	# 默认值（resource目录）。如果是此文件则可以去掉此项配置。基于xml文件可以将日志级别不同的生成到不同的文件中
-	config: classpath:logback.xml
+	# 基于xml文件可以将日志级别不同的生成到不同的文件中。如果日志配置文件为：resource/logback.xml、resource/logback-spring.xml则无需此配置
+	config: classpath:logback-test.xml
 # 打印mybatis的sql语句。也可以按照yml正常的风格写，会覆盖logback.xml中的配置
 logging.level.cn.aezo.test.mapper: DEBUG
 
@@ -555,7 +558,6 @@ myConfig:
   path: classpath:../db/default.accdb
 ```
 
-
 ## 请求及响应
 
 - 相关配置
@@ -717,19 +719,15 @@ filterChain.doFilter(customerHttpServletRequestWrapper, servletResponse);
 ### restTemplate
 
 ```java
-@Bean
-public RestTemplate restTemplate() {
-	return new RestTemplate();
-}
-
 @Autowired
-RestTemplate restTemplate; // 无需手动引入
+RestTemplate restTemplate;
 
 // 1.getForEntity
 ResponseEntity<Map> responseEntity = restTemplate.getForEntity(
 	"http://localhost/list?username={name}", // ***此处一定需要占位符{name}***
 	Map.class, // 返回的数据转换的类型(需确保可以转换成此类型)
 	new HashMap<String, Object>() {{put("name", "smalle");}});
+// 获取返回信息
 HttpHeaders headers = responseEntity.getHeaders();
 HttpStatus statusCode = responseEntity.getStatusCode();
 int code = statusCode.value();
@@ -749,20 +747,24 @@ headers.add("X-Auth-Token", "123456789");
 Map<String, Object> postParameters = new HashMap<>();
 postParameters.add("username", "smalle");
 postParameters.add("age", "18");
-HttpEntity<Map<String, Object>> requestEntity  = new HttpEntity<>(postParameters, headers);
+HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(postParameters, headers);
 Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity, Map.class);
 ```
 
 - 设置超时时间
 
 ```java
+// 如果不设置 RestTemplate 相关属性，则无需手动引入
 @Bean // spirngboot > 1.4 无需其他依赖
 public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
 	// 服务器内存溢出，还未宕机时，是可以请求服务，但是一直获取不到返回。需要超时机制
-	return restTemplateBuilder
+    RestTemplate restTemplate = restTemplateBuilder
 			.setConnectTimeout(3000)
 			.setReadTimeout(3000)
 			.build();
+    // 自定义拦截器restTrackInterceptor(implements ClientHttpRequestInterceptor)。必须通过此拦截器才可以修改如Header中的值，AOP无法修改
+    restTemplate.setInterceptors(Collections.singletonList(restTrackInterceptor));
+	return restTemplate;
 }
 
 // @Bean // springboot < 1.3 需要httpclient依赖

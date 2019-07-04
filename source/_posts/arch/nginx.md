@@ -70,6 +70,13 @@ server {
     # 服务器的地址
     server_name www.aezo.cn;
 
+    # **启用后响应头中会包含`Content-Encoding: gzip`**
+    gzip on; #开启gzip压缩输出
+    # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
+    gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+
+    access_log /var/log/nginx/test.access.log main;
+
     # VUE类型应用，防止缓存index.html
     location = /index.html {
         add_header Cache-Control "no-cache, no-store";
@@ -101,8 +108,9 @@ server {
     # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin
     # location后的地址可正则，如 `location ^~ /api/ {...}` 表示访问 http://www.aezo.cn/api/xxx 会转到 http://127.0.0.1:8080/api/xxx 上
     location / {
-        proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_redirect off;
         if (!-f $request_filename) { # proxy_pass http://127.0.0.1:8080/xxx; 会报错。proxy_pass在以下情况下，指令中不能有URI：正则表达式location、if块、命名的地点
             proxy_pass http://127.0.0.1:8080;
@@ -239,13 +247,15 @@ http {
     #fastcgi_busy_buffers_size 128k;
     #fastcgi_temp_file_write_size 128k;
 
-    ##gzip模块设置(http://nginx.org/en/docs/http/ngx_http_gzip_module.html)。启用后响应头中会包含`Content-Encoding: gzip`
-    #gzip on; #开启gzip压缩输出
+    ##gzip模块设置(http://nginx.org/en/docs/http/ngx_http_gzip_module.html)
+    # **启用后响应头中会包含`Content-Encoding: gzip`**
+    gzip on; #开启gzip压缩输出
+    # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
+    gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
     #gzip_min_length 1k; #最小压缩文件大小
     #gzip_buffers 4 16k; #压缩缓冲区
     ##gzip_http_version 1.0; #压缩版本（默认1.1，前端如果是squid2.5请使用1.0）
     #gzip_comp_level 4; #压缩等级[1-9] 越高CPU占用越大
-    #gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml; # 压缩类型，默认就已经包含text/html
     #gzip_vary on;
     #gzip_disable "MSIE [1-6]\."; # IE6以下不启用
 
@@ -555,7 +565,8 @@ server {
     # 配置缓存内容和缓存的条件（请求static时先从nginx缓存中寻找资源，如果缓存中没有则向tomcat请求）
     location ~ /static(/.*) {
         proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         # 代理访问后端tomcat(此处如果类似 http://backend$1 则缓存失败)
         proxy_pass http://backend; # backend为upstream服务器集群名
 

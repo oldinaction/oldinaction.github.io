@@ -180,7 +180,7 @@ start slave;
 	group by table_schema
 	order by sum(data_length) desc, sum(index_length) desc;
 
-	-- 查看所有数据库各表数据大小
+	-- 查看所有数据库各表数据大小(比较耗时)
 	select 
 	table_schema as '数据库',
 	table_name as '表名',

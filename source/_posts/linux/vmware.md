@@ -32,18 +32,41 @@ tags: [vmware, linux, centos]
 
 ### VMware虚拟机的网络模式
 
-- 桥接模式 [^3]
+- 桥接模式(服务器网络) [^3]
     - 默认使用VMnet0，不提供DHCP服务（DHCP是指由服务器控制一段IP地址范围，客户机登录服务器时就可以自动获得服务器分配的IP地址和子网掩码）。虚拟机和物理主机处于同等地位，像对待真实计算机一样手动配置IP、网关、子网掩码等
-    - 主机和虚拟机需要在同一个网段上，类似存在于局域网。例如：主机IP为192.168.3.12，则虚拟机IP为192.168.3.10，网络中其他机器可以访问虚拟机，虚拟机也可以访问网络内其他机器
+    - 主机和虚拟机需要在同一个网段上，类似存在于局域网。例如：主机IP为192.168.3.12，则虚拟机IP可为192.168.3.10，网络中其他机器可以访问虚拟机，虚拟机也可以访问网络内其他机器
     - 主机需要有网络或接入到路由器，才能与虚拟机通信，虚拟机才可访问外网
 - 仅主机模式
     - 默认使用VMnet1，提供DHCP服务
     - 虚拟机可以和物理主机互相访问，但虚拟机无法访问外部网络，若需要虚拟机上网，则需要主机联网并且共享其网
-- NAT模式
+- NAT模式(工作子网)
     - 默认使用VMnet8，提供DHCP服务，可自动分配IP地址，也可手动设置IP
     - 虚拟机可以和物理主机互相访问，可以访问物理主机所在局域网，但是 局域网不能访问虚拟机。如：`A`、`B`机器在同一局域网，再A机器上安装虚拟机`C`，则`A-C`访问如下
         - `C`可直接访问`A`(可通过两个网段访问)、`B`
         - `B`访问`C`可以做路由分发。或在`A`上运行`nginx`进行路由(参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx))
+
+### 添加硬盘/光盘
+
+- 添加光盘
+    - 虚拟机设置 - 添加硬件 - CD/DVD驱动器 - 使用ISO镜像(也可直接使用宿主机的光盘驱动) - 选择ISO镜像
+
+    ```bash
+    # 1.进入虚拟机，查看光盘信息。dmesg | grep CD
+    [    1.951184] scsi 0:0:1:0: CD-ROM            VMware,  Virtual CD-ROM   1.0  PQ: 0 ANSI: 2
+    [    1.982679] scsi 0:0:2:0: CD-ROM            VMware,  Virtual CD-ROM   1.0  PQ: 0 ANSI: 2
+    [    2.099188] ata2.00: ATAPI: VMware Virtual IDE CDROM Drive, 00000001, max UDMA/33
+    [    2.106449] scsi 2:0:0:0: CD-ROM            NECVMWar VMware IDE CDR10 1.00 PQ: 0 ANSI: 5
+    [    2.644222] cdrom: Uniform CD-ROM driver Revision: 3.20
+    [    2.644423] sr 0:0:1:0: Attached scsi CD-ROM sr0
+    [    2.645350] sr 0:0:2:0: Attached scsi CD-ROM sr1
+    [    2.665732] sr 2:0:0:0: Attached scsi CD-ROM sr2
+    # 2.可知总共连接了3个驱动：sr0(SCSI)、sr1(SCSI)、sr2(IDE)
+    # 3.挂载光盘到相应目录，如临时使用目录/mnt/cdrom
+    mount /dev/sr1 /mnt/cdrom/
+    # mount -r -t iso9660 /dev/sr1 /mnt/cdrom/ # 如果光盘为只读则可使用 -r 参数，-t 定义光盘文件系统类型(iso9660为CD-ROM光盘标准文件系统)
+    cd /mnt/cdrom/ # 查看光盘文件
+    ```
+    - 如系统/程序光盘，先挂载完成系统/程序安装后，可去掉光盘连接亦可运行
 
 ### 远程连接虚拟机
 
@@ -71,8 +94,11 @@ tags: [vmware, linux, centos]
         # nameserver 192.168.6.2 # 或者配置虚拟网关地址
 
         # vi /etc/sysconfig/network-scripts/ifcfg-ens33 并重启network。配置参数说明参考：https://blog.51cto.com/xtbao/1671739
+        # 网卡名称，一般配对ifcfg-xxx
+        DEVICE=ens33
         ONBOOT=yes
-        BOOTPROTO=static  #启用静态IP地址
+        # static启用静态IP地址，dhcp自动获取IP，none不操作
+        BOOTPROTO=static
         IPADDR=192.168.6.10
         NETMASK=255.255.255.0
         # 网关IP的地址，不可写成网卡IP

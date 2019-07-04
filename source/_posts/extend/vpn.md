@@ -3,7 +3,7 @@ layout: "post"
 title: "VPN搭建"
 date: "2018-04-04 10:34"
 categories: extend
-tags: [vpn, linux]
+tags: [vpn, linux, network]
 ---
 
 ## centos7安装vpn
@@ -48,7 +48,7 @@ tags: [vpn, linux]
         sudo iptables -X                     # 清空自定义所有规则
         sudo iptables -Z                     # 计数器置0
         ```
-    - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.1` (eth0为网卡。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.1)
+    - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100` (eth0为网卡。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.100)
     - 配置规则(可省略)
 
         ```bash
@@ -60,7 +60,7 @@ tags: [vpn, linux]
         sudo iptables -A FORWARD -s 192.168.0.0/24 -o eth1 -j ACCEPT
         sudo iptables -A FORWARD -d 192.168.0.0/24 -i eth1 -j ACCEPT
         sudo iptables -I FORWARD -p tcp --syn -i ppp+ -j TCPMSS --set-mss 1356
-        # nat规则，如果没有外网网卡，可设置外网IP。如：iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.1
+        # nat规则，如果没有外网网卡，可设置外网IP。如：iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100
         sudo iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -o eth0 -j MASQUERADE
         # 开启几个常用端口，其他端口同理
         sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT

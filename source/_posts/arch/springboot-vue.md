@@ -229,7 +229,9 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
         - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据以url序列化的方式进行传递，所以服务器能够正确解析
         - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
 
-## 用户浏览器缓存问题 [^5]
+## 性能优化
+
+### 用户浏览器缓存问题 [^5]
 
 - 使用vue框架开发，版本更新，用户浏览器会存在缓存问题
 - vue-cli里的默认配置，css和js的名字都加了哈希值，所以新版本css、js和就旧版本的名字是不同的，不会有缓存问题。
@@ -243,6 +245,24 @@ location = /index.html {
     # ...
 }
 ```
+
+### 压缩
+
+- 如果前端放在nginx上则需要开启nginx的压缩；如果中间通过了多个nginx，必需开启离用户最近(对外服务器)的服务器的压缩(后面的nginx无所谓)；前后不分离时一般可通过tomcat进行页面压缩
+
+```bash
+server {
+    ...
+
+    # **启用后响应头中会包含`Content-Encoding: gzip`**
+    gzip on; #开启gzip压缩输出
+    # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
+    gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+
+    ...
+}
+```
+- Vue首页加载慢问题，一般为`main.js`打包出来的体积太大，可以考虑减少main.js中的import包
 
 ## 其他
 

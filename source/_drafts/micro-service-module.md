@@ -45,12 +45,12 @@ tags: [微服务, SpringCloud]
 
 ### 服务网关
 
-> https://segmentfault.com/a/1190000012848405、https://zhuanlan.zhihu.com/p/43348509
-
+- [微服务网关方案调研](https://segmentfault.com/a/1190000012848405)、[微服务网关哪家强？](https://zhuanlan.zhihu.com/p/43348509)
 - Zuul
     - Zuul 网关在 Netflix 经过生产级验证，在纳入 Spring Cloud 体系之后，在社区中也有众多成功的应用。Zuul 网关在携程（日流量超 50 亿）、拍拍贷等公司也有成功的落地实践
     - Zuul 网关虽然不完全支持异步，但是同步模型反而使它简单轻量，易于编程和扩展，当然同步模型需要做好限流熔断（和限流熔断组件 Hystrix 配合），否则可能造成资源耗尽甚至雪崩效应（cascading failure）
 - 其它开源产品像 Kong 或者 Nginx 等也可以改造支持网关功能，但是较复杂门槛高一点
+    - Kong支持较多插件，如Dashboard插件以及监控插件
 
 ### 认证授权中心
 
@@ -64,7 +64,7 @@ tags: [微服务, SpringCloud]
 
 ### 服务配置中心
 
-- https://www.itcodemonkey.com/article/13646.html、http://www.itmuch.com/spring-cloud-sum/spring-cloud-config-serer-compare/
+- [主流微服务配置中心对比](https://www.itcodemonkey.com/article/13646.html)、[Spring Cloud生态的配置服务器最全对比贴](http://www.itmuch.com/spring-cloud-sum/spring-cloud-config-serer-compare/)
 - [Apollo](https://github.com/ctripcorp/apollo)
     - 携程开源。Apollo 支持完善的管理界面，支持多环境，配置变更实时生效，权限和配置审计等多种生产级功能。Apollo 既可以用于连接字符串等常规配置场景，也可用于发布开关（Feature Flag）和业务配置等高级场景
 - Spring Cloud Config
@@ -82,8 +82,8 @@ tags: [微服务, SpringCloud]
 ### 限流熔断和流聚合
 
 - Hystrix(结合Turbine)
-    - Netflix开源的Hystrix 已被纳入 Spring Cloud 体系，它是 Java 社区中限流熔断组件的首选
-    - Turbine 是和 Hystrix 配套的一个流聚合服务，能够对 Hystrix 监控数据流进行聚合，聚合以后可以在 Hystrix Dashboard 上看到集群的流量和性能情况
+    - Netflix开源的Hystrix已被纳入 Spring Cloud 体系，它是 Java 社区中限流熔断组件的首选
+    - Turbine是和Hystrix配套的一个流聚合服务，能够对 Hystrix 监控数据流进行聚合，聚合以后可以在 Hystrix Dashboard 上看到集群的流量和性能情况
 
 ## 监控组件
 
@@ -97,12 +97,22 @@ tags: [微服务, SpringCloud]
 
 > - 一个业务功能可能需要多个服务协作才能实现，一个请求到达服务A，服务A需要依赖服务B，服务B又依赖服务C，甚至C仍需依赖其他服务，形成一个调用链条，即调用链。调用链监控可以更好的追踪问题、根据实际运行情况优化性能或调整系统资源
 
-- [调用链选型之Zipkin，Pinpoint，SkyWalking，CAT](https://www.jianshu.com/p/0fbbf99a236e)
+- [调用链选型之Zipkin，Pinpoint，SkyWalking，CAT对比](https://www.jianshu.com/p/0fbbf99a236e)、[各大厂分布式链路跟踪系统架构对比](https://www.cnblogs.com/zhangs1986/p/8879744.html)
 - [CAT](https://github.com/dianping/cat)
     - CAT为大众点评开源。在点评，携程，陆金所，拍拍贷等公司有成功落地案例，因为是国产调用链监控产品，界面展示和功能等更契合国内文化，更易于在国内公司落地
-- Zipkin
+    - 优点：报表丰富、社区活跃
+    - 缺点
+        - 代码侵入，需要开发进行埋点（可通过拦截器快速监控暴露的URL端点）
+        - cat系统的定位：logview是cat原始的log采集方式，cat的logview使用的技术是threadlocal，将一个thread里面的打点聚合上报，有一点弱化版本的链路功能，但是cat并不是一个标准的全链路系统，全链路系统参考dapper的论文，业内比较知名的鹰眼，zipkin等，其实经常拿cat和这类系统进行比较其实是不合适的。cat的logview在异步线程等等一些场景下，其实不合适，cat本身模型并不适合这个。在美团点评内部，有mtrace专门做全链路分析
+    - 使用：[深入详解美团点评CAT跨语言服务监控](https://blog.csdn.net/caohao0591/article/details/80693289)
+- Google Dapper、阿里-鹰眼均未开源
+- [Zipkin](https://github.com/openzipkin/zipkin)
     - Spring Cloud 支持基于 Zipkin 的调用链监控，Zipkin 最早是由 Twitter 在消化 Google Dapper 论文的基础上研发，在 Twitter 内部有较成功应用，但是在开源出来的时候把不少重要的统计报表功能给阉割了（因为依赖于一些比较重的大数据分析平台），只是开源了一个半成品，能简单查询和呈现可视化调用链，但是细粒度的调用性能数据报表没有开源
     - Zipkin UI非常简洁，可以通过如时间、服务名以及端点名称这类查询条件过滤请求
+    - 优点：代码侵入较少、社区活跃(但中文文档较少)
+    - 缺点：报表单一
+- OpenTracing 基于Google Dapper研发
+- Skywalking 国产，处于Apache孵化
 - Spring Cloud Sleuth 是针对每个请求的计时统计。可与Zipkin结合使用，即发送追踪统计到Zipkin
 
 ### Metrics监控
@@ -137,11 +147,15 @@ tags: [微服务, SpringCloud]
     - 是一个针对spring-boot的actuator接口进行UI美化封装的监控工具；包含的Spring Boot Admin UI部分使用AngularJs将数据展示在前端
     - 在列表中浏览所有被监控spring-boot项目的基本信息，详细的Health信息、内存信息、JVM信息、垃圾回收信息、各种配置信息（比如数据源、缓存列表和命中率）等，还可以直接修改logger的level
 
-### 健康检查和告警
+### 告警系统和健康检查
 
 - [ZMon](https://github.com/zalando/zmon)
     - ZMon 是德国电商公司 Zalando 开源的一款健康检查和告警平台，具备强大灵活的监控告警能力
     - ZMon 本质上可以认为是一套分布式监控任务调度平台，它提供众多的 Check 脚本（也可以自己再定制扩展），能够对各种硬件资源或者目标服务（例如 HTTP 端口，Spring 的 Actuator 端点，KariosDB 中的 Metrics，ELK 中的错误日志等等）进行定期的健康检查和告警，它的告警逻辑和策略采用 Python 脚本实现，开发人员可以实现自助式告警。ZMon 同时适用于系统，应用，业务，甚至端用户体验层的监控和告警
+
+### 其他
+
+- Zabbix([模板大全](https://monitoringartist.github.io/zabbix-searcher/))、Nagios监控
 
 ## 其他组件
 
@@ -157,5 +171,5 @@ tags: [微服务, SpringCloud]
 参考文章
 
 [^1]: https://www.infoq.cn/article/china-microservice-technique (一个可供中小团队参考的微服务架构技术栈)
-[^2]: http://youzhixueyuan.com/micro-service-technology-architecture.html
+[^2]: http://youzhixueyuan.com/micro-service-technology-architecture.html (阿里P8架构师谈：微服务技术架构、监控、Docker、服务治理等体系)
 

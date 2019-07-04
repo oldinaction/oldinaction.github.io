@@ -74,7 +74,7 @@ tags: [shell, linux]
 ### 脚本
 
 - 注意文件格式必须是Unix格式(否则执行报错：`: No such file or directory`)
-  - 解决办法：`vim my.sh` - `:set ff=unix` - `:x`
+    - 解决办法：`vim my.sh` - `:set ff=unix` - `:x`
 - 执行`./my.sh`或`sh my.sh`或`bash my.sh`(有时需要添加可执行权限：`chmod +x my.sh`)
 	- `bash -n shell文件` 检查文件是否有语法错误(`sh -n`亦可)
 	- `bash -x shell 文件` **debug 执行文件**
@@ -83,6 +83,7 @@ tags: [shell, linux]
 - `#` 表示注释
 - `exit` 退出脚本
 	- 退出脚本可以指定脚本执行的状态：`exit 0` 成功退出，`exit 1`/`exit 2`/... 失败退出
+- 脚本中使用`set -x` 是开启代码执行显示，`set +x`是关闭，`set -o`是查看(xtrace)。执行`set -x`后，对整个脚本有效
 - 远程执行脚本 [^4]
 	- 简单执行远程命令：`ssh user@remoteNode "cd /home ; ls"` 双引号必须有，两个命令直接用分号分割
 	- 远程脚本
@@ -92,11 +93,15 @@ tags: [shell, linux]
 # `> /dev/null 2>&1` 表示远程命令不在本地显示，如果需要显示可以省略
 # `<< eeooff`和最后的`eeooff`需要对应，可以换成其他任何标识符，如`<< remotessh`
 # 在远程命令的脚本最后需要exit退出远程服务器
+
+set -x
 ssh user@remoteNode > /dev/null 2>&1 << eeooff
 cd /home
 touch abcdefg.txt
 exit
 eeooff
+set +x
+
 echo done!
 ```
 
@@ -248,30 +253,30 @@ Options:
   - getopts示例结果
   
     ```html
-    # bash b.sh -a 1 -b 2 -c 3 test -oo xx -test
+    <!-- bash b.sh -a 1 -b 2 -c 3 test -oo xx -test -->
     初始 OPTIND: 1
     a's arg:1
     b's arg:2
     c's arg:
-    # 处理`-a 1 -b 2 -c 3 test -oo xx -test`，可以解析到`-c`，相当于移动5次，此时OPTIND=5+1
+    <!-- 处理`-a 1 -b 2 -c 3 test -oo xx -test`，可以解析到`-c`，相当于移动5次，此时OPTIND=5+1 -->
     处理完参数后的 OPTIND：6
     移除已处理参数个数：5
     参数索引位置：6
     准备处理余下的参数：
     Other Params: 3 test -oo xx -test
     
-    # bash b.sh -a 1 -c 3 -b 2 test -oo xx -test # 非参数选项注意顺序与值，不要多传
+    <!-- bash b.sh -a 1 -c 3 -b 2 test -oo xx -test # 非参数选项注意顺序与值，不要多传 -->
     初始 OPTIND: 1
     a's arg:1
     c's arg:
-    # 处理`-a 1 -c 3 -b 2 test -oo xx -test`，可以解析到`-c`，相当于移动3次，此时OPTIND=3+1. 当解析到3的时候发现无法解析，则不再往后解析，全部归到其他参数
+    <!-- 处理`-a 1 -c 3 -b 2 test -oo xx -test`，可以解析到`-c`，相当于移动3次，此时OPTIND=3+1. 当解析到3的时候发现无法解析，则不再往后解析，全部归到其他参数 -->
     处理完参数后的 OPTIND：4
     移除已处理参数个数：3
     参数索引位置：4
     准备处理余下的参数：
     Other Params: 3 -b 2 test -oo xx -test
 
-    # bash b.sh -a 1 -c -b 2 test -oo xx -test
+    <!-- bash b.sh -a 1 -c -b 2 test -oo xx -test -->
     初始 OPTIND: 1
     a's arg:1
     c's arg:
@@ -461,7 +466,7 @@ Options:
   # while
   while 条件 ; do
     语句
-    [break]
+    [break|continue]
   done
 
   # while死循环(true可以替换为[ 0 ]或[ 1 ])
@@ -510,7 +515,8 @@ esac
 
 ### jar包运行/停止示例 [^1]
 
-- 自启动脚本可参考`/etc/init.d`目录下的文件，如`network`
+- 自启动脚本可参考`/etc/init.d`目录下的文件如`network`，加下下列脚本文件名为`my_script`
+- 将脚本加入到开机启动`chkconfig --add my_script`
 
 ```shell
 #!/bin/sh
@@ -522,9 +528,9 @@ esac
 #
 ###################################
 # 以下这些注释设置可以被chkconfig命令读取
-# chkconfig: - 99 50
+# chkconfig: 2345 50 50
 # description: Java程序启动脚本
-# processname: test
+# processname: my_script_name
 # config: 如果需要的话，可以配置
 ###################################
 ### 一般需要修改的配置
@@ -705,6 +711,30 @@ rnd=$(rand 1 50)
 echo $rnd
 
 exit 0
+```
+
+### 使用表格显示结果
+
+```bash
+local line="+-------------------------------------------+\n"
+local string=%20s
+printf "${line}|${string} |${string} |\n${line}" Username Password
+grep -v "^#" /etc/ppp/chap-secrets | awk '{printf "|'${string}' |'${string}' |\n", $1,$3}'
+printf ${line}
+
+## /etc/ppp/chap-secrets文件数据如下
+# Secrets for authentication using CHAP
+# client    server    secret    IP addresses
+test    l2tpd    ok123456       *
+test2    pptpd    ok123456    *
+
+## 上述脚本打印结果如下
++-------------------------------------------+
+|            Username |            Password |
++-------------------------------------------+
+|                test |            ok123456 |
+|               test2 |            ok123456 |
++-------------------------------------------+
 ```
 
 ### 创建vsftpd虚拟账号

@@ -14,6 +14,11 @@ tags: [system, bois]
 
 ## Ubuntu使用
 
+### 使用ssh连接
+
+- 默认没有安装sshd服务：`udo apt-get install openssh-server`，可通过`systemctl status sshd`查看状态
+- 此时安装的openssh默认没有开启root用户登录权限，可修改sshd配置文件
+
 ### windows远程桌面连接Ubuntu [^10]
 
 - Xmanager、VNC登录远程桌面
@@ -251,6 +256,20 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - `/swap` 4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。最终显示如`tmpfs`
         - `/` 50G
         - `/home` 剩余
+
+### centos7系统启动失败排查
+
+- `sysroot`单用户模式：进入BIOS，把启动命令中的ro改成 "rw init=/sysroot/bin/sh"，完成之后按Ctrl+x继续启动
+    - centos7忘记root用户密码找回可在启动时设置进入`sysroot/bin/sh`进行修改，参考：https://blog.51cto.com/scorpions/2059912
+- `/etc/fstab`磁盘挂载配置出错，重启后启动失败
+    
+    ```bash
+    # 历史挂载配置，其中/dev/vdb1后来被创建成了/dev/home/main的LVM卷（解决办法：进入安全模式修改此文件，删除历史配置即可）
+    /dev/vdb1 /home xfs defaults 0 0
+    # 新挂载配置
+    /dev/home/main /home xfs defaults 0 0    
+    ```
+- `A start job is running for dev-home-main.device` 表示磁盘dev-home-main.device挂载失败，检查`/etc/fstab`是否书写正确
 
 
 
