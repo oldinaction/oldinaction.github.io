@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- logback整合日志-->
+<!--
+说明：
+    1. 文件的命名和加载顺序有关：logback.xml早于application.yml加载，logback-spring.xml晚于application.yml加载；如果logback配置需要使用application.yml中的属性，需要命名为logback-spring.xml
+    2. logback使用application.yml中的属性：必须通过springProperty才可引入application.yml中的值，可以设置默认值
+-->
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
     <!--引入外部配置-->
     <!--<include resource="org/springframework/boot/logging/logback/base.xml"/>-->
@@ -8,9 +13,10 @@
     <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径。yml中配置的logging.path > LOG_PATH环境变量 > 此处默认值(必须要有-)-->
+    <springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
     <property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/logs}}}" />
     <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
-    <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-3}"/>
+    <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-7}"/>
     <property name="LOG_FILE_MAX_SIZE" value="${LOG_FILE_MAX_SIZE:-10MB}"/>
 
     <!-- 控制台输出日志 -->
@@ -91,7 +97,7 @@
         </encoder>
     </appender>
 
-    <!-- DEBUG级别日志 appender -->
+    <!-- DEBUG级别日志 appender。如果root中不使用此appender则可将其注释掉 -->
     <appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>DEBUG</level>
@@ -127,7 +133,7 @@
 
     <!--输出到mysql数据库的appender配置. 需要pom中引入mysql的jar包，并创建数据库logback_crm，并需要先创建数据库表-->
     <!--
-    <appender name="db" class="ch.qos.logback.classic.db.DBAppender">
+    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
         <connectionSource
                 class="ch.qos.logback.core.db.DriverManagerConnectionSource">
             <driverClass>com.mysql.jdbc.Driver</driverClass>
@@ -146,10 +152,10 @@
     <logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="ERROR"/>
     <logger name="org.hibernate.validator.internal.util.Version" level="WARN"/>
 
-    <!--<logger name="org.hibernate" level="error"/>-->
-    <!--<logger name="org.springframework" level="error"/>-->
-    <!--<logger name="org.apache.zookeeper" level="error"/>-->
-    <!--<logger name="com.netflix" level="error"/>-->
+    <!--<logger name="org.hibernate" level="ERROR"/>-->
+    <!--<logger name="org.springframework" level="ERROR"/>-->
+    <!--<logger name="org.apache.zookeeper" level="ERROR"/>-->
+    <!--<logger name="com.netflix" level="ERROR"/>-->
 
 	<!-- hibernate日志输入 -->
 	<!-- <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
@@ -158,13 +164,17 @@
 	<logger name="org.hibernate.engine.QueryParameters" level="INFO" />
 	<logger name="org.hibernate.engine.query.HQLQueryPlan" level="INFO" /> -->
 
-    <!--mybatis打印日志，此时是debug级别，则会生成到debug.log的文件中-->
-    <!-- <logger name="cn.aezo.video.dao" level="debug"/> -->
+    <!--mybatis打印日志，此时是debug级别，则会生成到debug-%i.log的文件中-->
+    <!-- <logger name="cn.aezo.video.dao" level="DEBUG"/> -->
 
-    <!--默认日志级别，可以单独在上面设置每个包的日志级别-->
-    <root level="INFO">
+    <!--
+        1.默认日志级别，可以单独在上面设置每个包的日志级别
+        2.root将级别为INFO及大于INFO的日志信息交给已经配置好的名为STDOUT、ERROR的appender处理，STDOUT的appender将信息打印到控制台，ERROR的则打印到error-%i.log文件中
+        3.level用来设置打印级别，大小写无关。TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，还有一个特殊值INHERITED或者同义词NULL，代表强制执行上级的级别。如果未设置此属性，那么当前loger将会继承上级的级别
+    -->
+    <root level="WARN">
 		<!--输出到数据库-->
-        <!--<appender-ref ref="db"/>-->
+        <!--<appender-ref ref="DB"/>-->
 
         <!-- 控制台输出 -->
         <appender-ref ref="STDOUT" />
@@ -173,7 +183,7 @@
         <appender-ref ref="ERROR" />
         <appender-ref ref="INFO" />
         <appender-ref ref="WARN" />
-        <appender-ref ref="DEBUG" />
+        <!-- <appender-ref ref="DEBUG" /> -->
         <!--<appender-ref ref="TRACE" />-->
     </root>
 </configuration>
