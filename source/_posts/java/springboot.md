@@ -619,7 +619,7 @@ post |`multipart/form-data`  |form-data   |(HttpServletRequest request, User use
 ### 请求参数
 
 ```java
-// 如果所在类加注解@RequestMapping("/user")，则请求url全部要拼上`/user`，如`/user/getUser`
+// 如果所在类加注解@RequestMapping("/user")，则请求url全部要拼上`/user`，如`/user/hello`
 
 @RequestMapping(value = "/hello") // 前台post请求也可以请求的到
 public String hello() {
@@ -762,7 +762,7 @@ public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
 			.setConnectTimeout(3000)
 			.setReadTimeout(3000)
 			.build();
-    // 自定义拦截器restTrackInterceptor(implements ClientHttpRequestInterceptor)。必须通过此拦截器才可以修改如Header中的值，AOP无法修改
+    // 自定义拦截器restTrackInterceptor(implements org.springframework.http.client.ClientHttpRequestInterceptor)。必须通过此拦截器才可以修改如Header中的值，AOP无法修改
     restTemplate.setInterceptors(Collections.singletonList(restTrackInterceptor));
 	return restTemplate;
 }
@@ -818,7 +818,7 @@ public MultipartConfigElement multipartConfigElement() {
 	# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
 	spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 	# 端口默认3306可以省略
-	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?useUnicode=true&characterEncoding=utf-8
+	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?useUnicode=true&useSSL=false&characterEncoding=utf-8
 	spring.datasource.username=root
 	spring.datasource.password=root
 	# springboot连接池默认使用的是tomcat-jdbc-pool，在处理utf8mb4类型数据(Emoji表情、生僻汉字。uft8默认只能存储1-3个字节的汉字，上述是4个字节)的时候，需要大致两步

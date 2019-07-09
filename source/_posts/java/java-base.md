@@ -26,6 +26,67 @@ class Outer{
 }
 ```
 
+### 枚举
+
+```java
+// ## 简单使用：Color.BLUE当成常量，亦可以在switch case中使用
+public enum Color {
+    // 当定义一个枚举类型(Color)时，每一个枚举类型成员(BLUE)都可以看作是 Enum 类的实例，这些枚举成员默认都被 public static final 修饰
+    RED, BLUE, GREEN, BLACK;
+}
+
+// ## 枚举类型自定义属性
+enum FlowStatus {
+    // 实例化 SUBSCRIBE 等枚举成员
+    SUBSCRIBE("已订阅", 1), SEARCHING("查询中", 2), SEARCH_SUCCESS("已返回", 3), SEARCH_FAILED("返回失败", 4);
+
+    // 必须要定义枚举类型的属性和构造方法，实例化时会调用
+    private @Getter @Setter String name; // @Getter为Lombok插件
+    private @Getter @Setter int status;
+    FlowStatus(String name, int status) {
+        this.name = name;
+        this.status = status;
+    }
+    // 覆盖toString方法，可省略
+    @Override
+    public String toString() {
+        return this.name + "-" + this.status; // System.out.println(FlowStatus.SUBSCRIBE.toString()); // 输出：已订阅-1
+    }
+}
+
+// ## EnumMap 与 EnumSet。使用EnumMap保存枚举类型成员比HashMap高效
+public enum DataBaseType {
+    MYSQL, ORACLE, DB2, SQLSERVER
+}
+
+private EnumMap<DataBaseType, String> urls = new EnumMap<DataBaseType, String>(DataBaseType.class);
+urls.put(DataBaseType.MYSQL, "jdbc:mysql://localhost:3306/test");
+urls.put(DataBaseType.ORACLE, "jdbc:oracle:thin:@localhost:1521:test");
+urls.put(DataBaseType.DB2, "jdbc:db2://localhost:5000/test");
+urls.put(DataBaseType.SQLSERVER, "jdbc:microsoft:sqlserver://sql:1433;Database=test");
+
+for(Operation op : EnumSet.range(DataBaseType.MYSQL, DataBaseType.MYSQL)) {
+    doSomeThing(op);
+}
+
+// ## 枚举类型继承某接口
+private static enum YellEnum implements Yell {
+    DOG {
+        @Override
+        public void yell() {
+            System.out.println("哇哇~");
+        }
+    },
+    CAT {
+        @Override
+        public void yell() {
+            System.out.println("喵喵~");
+        }
+    };
+}
+```
+
+
 ## 集合
 
 ### 易错点

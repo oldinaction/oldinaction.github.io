@@ -26,7 +26,7 @@ tags: [arch, monitor]
 
     - 在实际开发和部署中，cat-consumer和cat-home是部署在一个jvm内部
 
-## 安装
+## 安装及使用
 
 ### 基于docker安装服务端
 
@@ -42,6 +42,7 @@ services:
     ports:
       - 8888:8080
       - 2280:2280
+      #- 8091:8091
     volumes:
       - /home/data/cat/appdatas:/data/appdatas
       - /home/data/cat/applogs:/data/applogs
@@ -50,7 +51,7 @@ services:
       # CAT服务器本身包含一个名为cat的客户端
       CAT_HOME: /data/appdatas/cat
       # 注意 -Dhost.ip 视情况填写
-      CATALINA_OPTS: -server -DCAT_HOME=$$CAT_HOME -Djava.awt.headless=true -Xms512M -Xmx1G -XX:PermSize=256m -XX:MaxPermSize=256m -XX:NewSize=512m -XX:MaxNewSize=512m -XX:SurvivorRatio=10 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -XX:MaxTenuringThreshold=13 -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCMSInitiatingOccupancyOnly -XX:+ScavengeBeforeFullGC -XX:+UseCMSCompactAtFullCollection -XX:+CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=9 -XX:CMSInitiatingOccupancyFraction=60 -XX:+CMSClassUnloadingEnabled -XX:SoftRefLRUPolicyMSPerMB=0 -XX:-ReduceInitialCardMarks -XX:+CMSPermGenSweepingEnabled -XX:CMSInitiatingPermOccupancyFraction=70 -XX:+ExplicitGCInvokesConcurrent -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.EPollSelectorProvider -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.util.logging.config.file="$$CATALINA_HOME\conf\logging.properties" -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationConcurrentTime -XX:+PrintHeapAtGC -Xloggc:/data/applogs/heap_trace.txt -XX:-HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/applogs/HeapDumpOnOutOfMemoryError -Djava.util.Arrays.useLegacyMergeSort=true -Dhost.ip=192.168.6.10
+      CATALINA_OPTS: -server -DCAT_HOME=$$CAT_HOME -Djava.awt.headless=true -Xms512M -Xmx1G -XX:PermSize=256m -XX:MaxPermSize=256m -XX:NewSize=512m -XX:MaxNewSize=512m -XX:SurvivorRatio=10 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -XX:MaxTenuringThreshold=13 -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCMSInitiatingOccupancyOnly -XX:+ScavengeBeforeFullGC -XX:+UseCMSCompactAtFullCollection -XX:+CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=9 -XX:CMSInitiatingOccupancyFraction=60 -XX:+CMSClassUnloadingEnabled -XX:SoftRefLRUPolicyMSPerMB=0 -XX:-ReduceInitialCardMarks -XX:+CMSPermGenSweepingEnabled -XX:CMSInitiatingPermOccupancyFraction=70 -XX:+ExplicitGCInvokesConcurrent -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.EPollSelectorProvider -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.util.logging.config.file="$$CATALINA_HOME\conf\logging.properties" -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationConcurrentTime -XX:+PrintHeapAtGC -Xloggc:/data/applogs/heap_trace.txt -XX:-HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/applogs/HeapDumpOnOutOfMemoryError -Djava.util.Arrays.useLegacyMergeSort=true -Dhost.ip=192.168.6.10 # -Xdebug -Xrunjdwp:transport=dt_socket,address=8091,server=y,suspend=n # 开启远程调试
     # docker-compose restart也会运行此命令，从而导致失败
     #command: /bin/sh -c "sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $$CATALINA_HOME/conf/server.xml && catalina.sh run"
 networks:
@@ -80,18 +81,22 @@ networks:
 </data-sources>
 ```
 - 将cat源码的`script/CatApplication.sql`文件导入到mysql的cat数据库中
-- 下载[cat-home.war](http://unidal.org/nexus/service/local/repositories/releases/content/com/dianping/cat/cat-home/3.0.0/cat-home-3.0.0.war)，重命名为`cat.war`
+- 下载[cat-home.war](http://unidal.org/nexus/service/local/repositories/releases/content/com/dianping/cat/cat-home/3.0.0/cat-home-3.0.0.war)到docker-compose.yml所在目录，重命名为`cat.war`(mv cat-home-3.0.0.war cat.war)
 - 部署war包`docker cp cat.war sq-tomcat:/usr/local/tomcat/webapps` (每次重新创建了tomcat容器都必须重新部署)
 - 访问`http://192.168.6.10:8888/cat`
-- 配置
+- 配置(未配置访问Transaction菜单等会报错)
     - 访问`http://192.168.6.10:8888/cat/s/config?op=serverConfigUpdate`进行服务端配置：修改ip为192.168.6.10(视情况修改)，启动hdfs的ip可以不用考虑(默认关闭hdfs)
     - 访问`http://192.168.6.10:8888/cat/s/config?op=routerConfigUpdate`进行客户端路由配置：修改ip为192.168.6.10
+    - 重启tomcat
 
 ### 客户端(Windows下IDEA启动)
 
 - 参考：https://github.com/dianping/cat/blob/master/lib/java/README.zh-CN.md
-- 创建文件`D:\data\appdatas\cat\client.xml`(windows环境时，此处D盘和tomcat运行盘符一致，或者设置CAT_HOME；linux系统则为/目录；生成的运行日志文件位于`D:\data\applogs\cat`)
-    
+- 创建文件`D:\data\appdatas\cat\client.xml`
+    - windows环境时，此处D盘和tomcat运行盘符一致；linux系统则为/data/appdatas/cat目录；或者设置CAT_HOME环境变量
+    - 生成的运行日志文件位于`D:\data\applogs\cat`
+    - 部署了多个客户端时，此配置文件和日志文件可以共用
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <config mode="client" xmlns:xsi="http://www.w3.org/2001/XMLSchema" xsi:noNamespaceSchemaLocation="config.xsd">
@@ -162,7 +167,7 @@ public void test() {
 @Bean
 public FilterRegistrationBean catFilter() {
     FilterRegistrationBean registration = new FilterRegistrationBean();
-    CatFilter filter = new CatFilter();
+    CatFilter filter = new CatFilter(); // 会打印所有URL上的参数，如登录密码等敏感参数则需要重新定义此CatFilter
     registration.setFilter(filter);
     registration.addUrlPatterns("/*");
     registration.setName("cat-filter");
@@ -183,23 +188,426 @@ public FilterRegistrationBean catFilter() {
 
 ### 分布式调用链监控
 
-https://www.cnblogs.com/xing901022/p/6237874.html
-基于header传递
+- 实现Cat.Context接口用来存储RootId(用于标识唯一的一个调用链)、ParentId(谁在调用我)、ChildId(我在调用谁) [^1]
+- 客户端和服务端基于Header传递上述ID
+- 在Cat中内置了两个方法`Cat.logRemoteCallClient()`以及`Cat.logRemoteCallServer()`，可以简化处理逻辑
+
+    ```java
+    // 客户端需要创建一个Context，然后初始化三个ID放入到此Context中
+    public static void logRemoteCallClient(Context ctx, String domain) {
+		try {
+			MessageTree tree = Cat.getManager().getThreadLocalMessageTree();
+			String messageId = tree.getMessageId();
+
+			if (messageId == null) {
+				messageId = Cat.createMessageId();
+				tree.setMessageId(messageId);
+			}
+
+            // 生成一个 childId，需要将其放置在如Header中传递到服务端，服务端接受后将此ID设置成自己的MessageId
+			String childId = Cat.getProducer().createRpcServerId(domain);
+            // 如果 Event.type 为 CatConstants.TYPE_REMOTE_CALL="RemoteCall" 时，CAT图表中才会显示 "[:: show ::]"
+			Cat.logEvent(CatConstants.TYPE_REMOTE_CALL, "", Event.SUCCESS, childId);
+
+			String root = tree.getRootMessageId();
+
+			if (root == null) {
+				root = messageId;
+			}
+
+			ctx.addProperty(Context.ROOT, root);
+			ctx.addProperty(Context.PARENT, messageId);
+			ctx.addProperty(Context.CHILD, childId);
+		} catch (Exception e) {
+			errorHandler(e);
+		}
+	}
+
+    // 服务端需要接受这个context，然后设置到自己的Transaction中
+    public static void logRemoteCallServer(Context ctx) {
+		try {
+			MessageTree tree = Cat.getManager().getThreadLocalMessageTree();
+			String childId = ctx.getProperty(Context.CHILD);
+			String rootId = ctx.getProperty(Context.ROOT);
+			String parentId = ctx.getProperty(Context.PARENT);
+
+			if (parentId != null) {
+				tree.setParentMessageId(parentId);
+			}
+			if (rootId != null) {
+				tree.setRootMessageId(rootId);
+			}
+			if (childId != null) {
+				tree.setMessageId(childId);
+			}
+		} catch (Exception e) {
+			errorHandler(e);
+		}
+	}
+    ```
+- RestTemplate调用服务使用示例
+
+```java
+// ## 客户端：每次发送请求之前将上述3个ID放入到 Header 中
+// 自定义 RestTemplate 拦截器
+@Component
+public class CatClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
+    private Logger logger = LoggerFactory.getLogger(CatClientHttpRequestInterceptor.class);
+
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+            throws IOException {
+        HttpHeaders headers = request.getHeaders();
+
+        Transaction t = null;
+        ClientHttpResponse retObj = null;
+        try {
+            t = Cat.newTransaction("ClientHttpRequest", request.getURI().toString());
+
+            CatContext catContext = new CatContext();
+            Cat.logRemoteCallClient(catContext);
+
+            headers.add(Cat.Context.ROOT, catContext.getProperty(Cat.Context.ROOT));
+            headers.add(Cat.Context.PARENT, catContext.getProperty(Cat.Context.PARENT));
+            headers.add(Cat.Context.CHILD, catContext.getProperty(Cat.Context.CHILD));
+
+            retObj = execution.execute(request, body);
+
+            t.setStatus(Transaction.SUCCESS);
+        } catch (Throwable e) {
+            logger.error("发送HTTP请求出错", e);
+            if(t != null) {
+                t.setStatus(e);
+            }
+        } finally {
+            if(t != null) {
+                t.complete();
+            }
+        }
+
+        return retObj;
+    }
+
+    public static class CatContext implements Cat.Context{
+        private Map<String,String> properties = new HashMap<String, String>();
+
+        @Override
+        public void addProperty(String key, String value) {
+            properties.put(key,value);
+        }
+
+        @Override
+        public String getProperty(String key) {
+            return properties.get(key);
+        }
+    }
+}
+
+// 注入拦截器到 RestTemplate
+@Bean
+public RestTemplate restTemplate(CatClientHttpRequestInterceptor catClientHttpRequestInterceptor) {
+    RestTemplate restTemplate = new RestTemplate();
+    restTemplate.setInterceptors(Collections.singletonList(catClientHttpRequestInterceptor));
+    return restTemplate;
+}
+
+// ## 服务端：从客户端请求的 Header 中获取上述3个ID
+@Component
+@Order(0)
+public class CatRemoteCallServletFilter implements Filter {
+    private Logger logger = LoggerFactory.getLogger(CatRemoteCallServletFilter.class.getName());
+
+    public static final String CROSS_SERVER = "PigeonService";
+
+    @Value("${spring.application.name}")
+    private String applicationName;
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {}
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+        Transaction t = null;
+        try {
+            if(StringUtils.isNotBlank(req.getHeader(Cat.Context.PARENT))) {
+                // 服务提供者
+                t = Cat.newTransaction(CROSS_SERVER, req.getRequestURI());
+                Cat.logEvent(CROSS_SERVER + ".applicationName", applicationName);
+
+                CatContext catContext = new CatContext();
+                catContext.addProperty(Cat.Context.ROOT, req.getHeader(Cat.Context.ROOT));
+                catContext.addProperty(Cat.Context.PARENT, req.getHeader(Cat.Context.PARENT));
+                catContext.addProperty(Cat.Context.CHILD, req.getHeader(Cat.Context.CHILD));
+                Cat.logRemoteCallServer(catContext);
+            }
+        } catch (Throwable e) {
+            logger.error("start cat transaction error", e);
+            if(t != null) {
+                t.complete();
+            }
+        }
+
+        if(t != null) {
+            try {
+                chain.doFilter(request, response);
+                t.setStatus(Transaction.SUCCESS);
+            } catch (Throwable e) {
+                t.setStatus(e);
+                throw e;
+            } finally {
+                t.complete();
+            }
+        } else {
+            chain.doFilter(request, response);
+        }
+    }
+
+    @Override
+    public void destroy() {}
+
+    private static class CatContext implements Cat.Context {
+        private Map<String,String> properties = new HashMap<String, String>();
+
+        @Override
+        public void addProperty(String key, String value) {
+            properties.put(key,value);
+        }
+
+        @Override
+        public String getProperty(String key) {
+            return properties.get(key);
+        }
+    }
+}
+```
 
 ### 异步/主子线程监控问题
 
-feign+hystrix，在FeignRequestInterceptor中时，已经是在子线程中了，和主线程已经不是同一个messageTree
-- `feign.hystrix.enabled: false` 关闭hystrix
+- Hystrix处理时会产生子线程，而主子线程中的MessageTree是不同的。主要是Cat将MessageTree存储在ThreadLocal中
+- Feign + Hystrix组合使用时，Hystrix调用服务时是在子线程中完成的，单独使用Feign不会产生子线程。`feign.hystrix.enabled: false`关闭feign对hystrix支持
+- `Hystrix`主子线程传值解决方案 [^2]
+
+```java
+@Configuration
+public class CatHystrixFeignAspect {
+    private Logger logger = LoggerFactory.getLogger(CatHystrixFeignAspect.class);
+
+    static final HystrixRequestVariableDefault<CatContext> hystrixCatContext = new HystrixRequestVariableDefault<>();
+
+    @Value("${spring.application.name}")
+    private String applicationName;
+
+    @Aspect
+    @Component
+    public class HystrixAspect {
+        // 定义Feign接口(@FeignClient)对应方法的切面
+        @Pointcut(value = "@within(org.springframework.cloud.openfeign.FeignClient)")
+        public void point() {
+        }
+
+        // 从Tomcat主线程获取MessageTree数据，并设置到Hystrix子线程中
+        @Around("point()")
+        public Object around(ProceedingJoinPoint pjp) {
+            Object retObj = null;
+            Transaction t = null;
+            try {
+                if (!HystrixRequestContext.isCurrentThreadInitialized()) {
+                    HystrixRequestContext.initializeContext();
+                }
+                t = Cat.newTransaction("FeignAspect", pjp.getSignature().toString());
+
+                CatContext catContext = new CatContext();
+                Cat.logRemoteCallClient(catContext, applicationName);
+                hystrixCatContext.set(catContext);
+
+                retObj = pjp.proceed();
+
+                t.setStatus(Transaction.SUCCESS);
+            } catch (Throwable e) {
+                logger.error("主子线程传递 CatContext 出错", e);
+                if(t != null) {
+                    t.setStatus(e);
+                }
+            } finally {
+                // 销毁当前线程HystrixRequestContext，同时也会销毁HystrixRequestVariableDefault中的数据
+                if (HystrixRequestContext.isCurrentThreadInitialized()) {
+                    HystrixRequestContext.getContextForCurrentThread().shutdown();
+                }
+                if(t != null) {
+                    t.complete();
+                }
+            }
+
+            return retObj;
+        }
+    }
+
+    @Component
+    public class FeignInterceptor implements RequestInterceptor {
+        // Hystrix子线程，通过messageTreeLocal可获取主线程数据，但是直接Cat.logEvent是打印到当前子线程的MessageTree中
+        @Override
+        public void apply(RequestTemplate requestTemplate) {
+            CatContext catContext = hystrixCatContext.get();
+
+            requestTemplate.header(Cat.Context.ROOT, catContext.getProperty(Cat.Context.ROOT));
+            requestTemplate.header(Cat.Context.PARENT, catContext.getProperty(Cat.Context.PARENT));
+            requestTemplate.header(Cat.Context.CHILD, catContext.getProperty(Cat.Context.CHILD));
+        }
+    }
+
+    private static class CatContext implements Cat.Context{
+        private Map<String,String> properties = new HashMap<String, String>();
+
+        @Override
+        public void addProperty(String key, String value) {
+            properties.put(key,value);
+        }
+
+        @Override
+        public String getProperty(String key) {
+            return properties.get(key);
+        }
+    }
+}
+```
 
 ### 常见问题
 
 - 基于docker安装，界面显示`出问题CAT的服务端:[192.168.6.10]`，这个显示不影响数据上报和监控，仅仅是IP配置不规范。主要是CAT默认使用获取的内网IP，则此时为docker容器IP，此时可设置`host.ip`
     - 解决办法：在启动参数中加`-Dhost.ip=192.168.6.10`
 
-## 使用
+## 管理界面使用
 
 - 项目配置信息
     - 新增：CAT上项目名称-事业部-产品线，如果客户端只是在`app.properties`中配置`app.name`则会归并到`Default-Default`的事业部和产品线
 
+## 源码分析
 
+```java
+// ## cat-home
+// 内置servlet拦截器，自动完成跟踪。其中会依次执行ENVIRONMENT、ID_SETUP、LOG_SPAN、LOG_CLIENT_PAYLOAD的handle处理方法
+public class CatFilter implements Filter {} // com.dianping.cat.servlet.CatFilter
+
+// 处理 /cat/r/m 请求
+public class Handler implements PageHandler<Context> { // com.dianping.cat.report.page.logview.Handler
+    @Override
+	@PayloadMeta(Payload.class)
+	@InboundActionMeta(name = "m") // 接受/cat/r/m请求
+	public void handleInbound(Context ctx) throws ServletException, IOException {
+		// display only, no action here
+	}
+
+	@Override
+	@OutboundActionMeta(name = "m") // 返回/cat/r/m响应，如http://192.168.6.10:8888/cat/r/m/sq-gateway-c0a83801-434041-15?domain=sq-gateway
+	public void handleOutbound(Context ctx) throws ServletException, IOException {
+        // ...
+
+        // 获取页面展示数据。内部调用BaseCompositeModelService
+        // BaseCompositeModelService会重新发起 /cat/r/model 请求，如直接访问 http://192.168.6.10:8888/cat/r/model/logview/sq-gateway/HISTORICAL?op=xml&messageId=sq-gateway-c0a83801-434041-15&waterfall=false&timestamp=1562547600000 返回的是一个xml字符串
+        // 请求 /cat/r/model 对应的处理逻辑位于注解 @OutboundActionMeta(name = "model")
+        logView = getLogView(messageId, payload.isWaterfall());
+
+        m_jspViewer.view(ctx, model); // 渲染jsp页面
+    }
+}
+
+// 处理 /cat/r/model 请求
+public class Handler extends ContainerHolder implements Initializable, PageHandler<Context> { // com.dianping.cat.report.page.model.Handler
+    // ...
+
+    @Override
+	@OutboundActionMeta(name = "model")
+	public void handleOutbound(Context ctx) throws ServletException, IOException {
+
+        // 实际调用 LocalMessageService#buildReport -> LocalMessageService#buildNewReport(从 Bucket 中获取数据，如 Bucket 位置文件：LocalBucket[/data/appdatas/cat/bucket/dump/20190708/09/sq-gateway-192.168.6.10.dat])
+        xml = service.getReport(request, period, domain, payload);
+
+    }
+}
+
+public class LocalMessageService extends LocalModelService<String> implements ModelService<String> { // com.dianping.cat.report.page.logview.service.LocalMessageService
+    private String buildNewReport(ModelRequest request, ModelPeriod period, String domain, ApiPayload payload)
+							throws Exception {
+        // 从 Bucket 中获取数据，如 Bucket 位置文件：LocalBucket[/data/appdatas/cat/bucket/dump/20190708/09/sq-gateway-192.168.6.10.dat]
+        Bucket bucket = m_bucketManager.getBucket(id.getDomain(),	NetworkInterfaceManager.INSTANCE.getLocalHostAddress(), id.getHour(), false);
+
+        // 显示成普通 html 或者是瀑布图
+        if (tree.getMessage() instanceof Transaction && waterfall) {
+            m_waterfall.encode(tree, content);
+        } else {
+            // HtmlMessageCodec#encode -> HtmlMessageCodec#encodeMessage (包含了对Event的解析显示，如 Event.type 为 CatConstants.TYPE_REMOTE_CALL="RemoteCall" 时，CAT图表中才会显示 "[:: show ::]"，同理还有 RemoteLink)
+            m_html.encode(tree, content);
+        }
+    }
+}
+
+// ## cat-client
+// 产生 Event、Transaction等日志
+public class DefaultMessageProducer implements MessageProducer {
+    // 产生Event日志
+    @Override
+    public void logEvent(String type, String name) {}
+
+    // 产生Transaction日志
+    @Override
+	public Transaction newTransaction(String type, String name) {}
+
+    // 产生其他日志
+}
+
+// 日志管理。将 Cat.LogEvent 等产生的日志放入到消息上下文中(MessageTree消息树中)
+public class DefaultMessageManager extends ContainerHolder implements MessageManager, Initializable, LogEnabled { // com.dianping.cat.message.internal.DefaultMessageManager
+
+    // 没一个线程有各自的日志上下文(保存有MessageTree消息树)
+    private ThreadLocal<Context> m_context = new ThreadLocal<Context>();
+    private Map<String, TaggedTransaction> m_taggedTransactions;
+
+    // 往 Context 中添加一条CAT日志
+    @Override
+	public void add(Message message) {
+		Context ctx = getContext();
+
+		if (ctx != null) {
+			ctx.add(message);
+		}
+	}
+
+    @Override
+	public void start(Transaction transaction, boolean forked) {
+		Context ctx = getContext();
+
+		if (ctx != null) {
+			ctx.start(transaction, forked);
+
+			if (transaction instanceof TaggedTransaction) {
+				TaggedTransaction tt = (TaggedTransaction) transaction;
+
+				m_taggedTransactions.put(tt.getTag(), tt);
+			}
+		} else if (m_firstMessage) {
+			m_firstMessage = false;
+			m_logger.warn("CAT client is not enabled because it's not initialized yet");
+		}
+	}
+
+    // CAT日志上下文
+    class Context {
+        // 当前线程的日志树
+        private MessageTree m_tree;
+
+    }
+}
+
+```
+
+
+
+
+---
+
+参考文章
+
+[^1]: https://www.cnblogs.com/xing901022/p/6237874.html
+[^2]: https://chenyongjun.vip/articles/83
 

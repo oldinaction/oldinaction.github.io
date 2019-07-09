@@ -84,8 +84,12 @@ tags: [spring, spring-mvc]
 #### @Import给容器导入一个组件
 
 - `@Import("cn.aezo.test.MyBean")`
-    - 注解在配置类上，Bean的名称为类全名
-- `@Import`结合实现`ImportSelector`
+    - Spring Boot中大量的EnableXXX都使用了@Import注解
+    - 可以导入导入普通的POJO类或带有`@Configuration`注解的配置类，或导入实现了`ImportSelector`/`ImportBeanDefinitionRegistrar`/`DeferredImportSelector`接口的返回的类。功能类似XML配置用来导入配置类
+        - DeferredImportSelector 为 ImportSelector 的子接口。区别是他会在所有的@Configuration类加载完成之后再加载返回的配置类，而ImportSelector会在当前Configuration类加载之前去加载返回的配置类
+        - 可以使用@Order注解或者Ordered接口来指定DeferredImportSelector的加载顺序
+    - `@ImportResource` 和@Import类似，区别就是@ImportResource导入的是配置文件。其属性default和locations作用相同，都是用来指定配置文件的位置；reader属性则用来指定配置文件解析器，内置XmlBeanDefinitionReader和GroovyBeanDefinitionReader，也可自定义。Spring还是推荐使用@Import而不是@ImportResource
+- `@Import`结合`ImportSelector`
 
 ```java
 // ### 基于导入选择器
@@ -93,8 +97,8 @@ public class MyImportSelector implements ImportSelector {
     // AnnotationMetadata可获取当前注解@Import类的所有注解信息
     @Override
     public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        // 返回需要的导入的Bean类全名
-        return new String[] {"cn.aezo.smjava.javaee.spring5.bean.demo2.MyBean", MyImportSelectorBean.class.getName()};
+        // 返回需要的导入的Bean类全名（可以不用是真实类名）
+        return new String[] {"cn.aezo.smjava.javaee.spring5.bean.demo2.MyImportSelectorBean", MyImportSelectorBean.class.getName()};
     }
 }
 
@@ -113,7 +117,7 @@ public class AppImport {
     }
 }
 ```
-- `@Import`结合实现`ImportBeanDefinitionRegistrar`
+- `@Import`结合`ImportBeanDefinitionRegistrar`
 
 ```java
 // ### 基于ImportBeanDefinitionRegistrar
@@ -206,7 +210,7 @@ public class App {
 - 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
 - 内置条件
     - `@ConditionalOnProperty` 要求配置属性匹配条件
-        - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false)
+        - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false) matchIfMissing=false表示无此参数则不符合条件
     - `@ConditionalOnMissingBean` 当给定的类型、类名、注解、昵称在beanFactory中不存在时返回true，各类型间是or的关系
         - eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
     - `@ConditionalOnBean` 与上相反，在存在某个bean的时候
@@ -454,15 +458,16 @@ site.url=www.aezo.cn
         // execution(* cn.aezo.spring.base.annotation.aop.*.*(..)) // 此包中方法(第一个*代替了public void；此表达式也会拦截含throws的方法)
         // execution(public * cn.aezo.spring.base.annotation.aop..*.*(..)) // 此包或者子包中public类型的方法
 
+        // this：方法是在那个类中被调用的；target：目标对象是否是某种类型；within：当前执行代码是否属于某个类(静态植入)
         // within(cn.aezo.spring.base.*) // 任何此包中的方法
         // within(cn.aezo.spring.base..*) // 任何此包或其子包中的方法
+        // target(org.springframework.web.client.RestTemplate) // 任何目标对象实现了此接口的方法。**如果使用 execution(* org.springframework.web.client.RestTemplate.execute(..))是无法拦截到的，RestTemplate本身是由代理执行的**
         // this(cn.aezo.spring.base.annotation.aop.DemoMethodService) // 实现了此接口中的方法
-        // target(org.springframework.web.client.RestTemplate) // 任何目标对象实现了此接口的方法(一般情况下代理类(Proxy)和目标类(Target)都实现了相同的接口，同this)。**如果使用 execution(* org.springframework.web.client.RestTemplate.execute(..))是无法拦截到的，RestTemplate本事是由代理执行的**
         // args(java.io.Serializable) // 有且只有一个Serializable参数
         
-        // @target(org.springframework.transaction.annotation.Transactional) // 目标(target)使用了@Transactional注解的方法
-        // @within(org.springframework.transaction.annotation.Transactional) // 目标类(target)如果有@Transactional注解中的所有方法
-        // @annotation(org.springframework.transaction.annotation.Transactional) // 任何方法有@Transactional注解的方法
+        // @within(org.springframework.transaction.annotation.Transactional) // 任何一个目标对象声明的类型有一个 @Transactional 注解的连接点
+        // @target(org.springframework.transaction.annotation.Transactional) // 目标对象中有一个 @Transactional 注解的任意连接点
+        // @annotation(org.springframework.transaction.annotation.Transactional) // 任何一个执行的方法有一个 @Transactional 注解的连接点
         // @args(org.springframework.transaction.annotation.Transactional) // 有且仅有一个参数并且参数上类型上有@Transactional注解(注意是参数类型上有@Transactional注解，而不是方法的参数上有注解)
         
         // bean(simpleSay) // bean名字为simpleSay中的所有方法
@@ -815,12 +820,15 @@ public class JobManager {
 
 ### 拦截器
 
+- 在Filter上注解@Component
+- 往FilterRegistrationBean中注册并暴露Bean，可指定拦截某路径
+- 实现WebMvcConfigurer并暴露Bean，可指定拦截某路径和设定Order顺序
+
 ```java
 @Configuration
 public class CustomerWebMvcConfig implements WebMvcConfigurer {
     /**
      * 往InterceptorRegistry中注册。需要实现 WebMvcConfigurer 接口
-     * @return
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -829,8 +837,7 @@ public class CustomerWebMvcConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 直接返回Filter. 解决同源策略问题（Access-Control-Allow-Origin跨域）
-     * @return
+     * 直接返回Filter. 解决同源策略问题（Access-Control-Allow-Origin跨域）。或者在Filter上注解@Component
      */
     @Bean
     public Filter corsFilter() {
@@ -838,26 +845,21 @@ public class CustomerWebMvcConfig implements WebMvcConfigurer {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("*");
         config.addAllowedHeader("*");
-        config.addAllowedMethod("OPTIONS");
-        config.addAllowedMethod("HEAD");
-        config.addAllowedMethod("GET");
-        config.addAllowedMethod("PUT");
-        config.addAllowedMethod("POST");
-        config.addAllowedMethod("DELETE");
-        config.addAllowedMethod("PATCH");
+        config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
+        return new CorsFilter(source); // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
     }
 
     /**
      * 往FilterRegistrationBean中注册. Token验证拦截
-     * @return
      */
     @Bean
     public FilterRegistrationBean indexFilterRegistration() {
         FilterRegistrationBean<> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new AuthFilter());
-        registrationBean.setUrlPatterns(MiscU.Instance.toList("/*"));
+        registrationBean.setUrlPatterns("/*");
+        // Filter的init方法中可获取到此参数值：exclusions = filterConfig.getInitParameter("exclusions");
+        registrationBean.addInitParameter("exclusions", "*.js,*.gif,*.jpg,*.png,*.css,*.ico");
         registrationBean.setOrder(1);
         return registrationBean;
     }
@@ -887,6 +889,15 @@ public class CustomerHandlerInterceptor implements HandlerInterceptor {
 ```
 
 ## Spring相关类/接口说明
+
+### org.springframework.context
+
+- annotation
+    - `@Import` 导入Bean，具体见上文
+    - `@ImportResource`
+    - `ImportSelector`
+    - `DeferredImportSelector`
+    - `ImportBeanDefinitionRegistrar`
 
 ### org.springframework.boot
 

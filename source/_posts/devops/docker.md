@@ -311,7 +311,7 @@ Run 'docker COMMAND --help' for more information on a command.
       images             List images # 查看使用的镜像信息
       kill               Kill containers
       logs               View output from containers
-        # 获取日志（docker-compose logs [my_service_name]）. **比docker logs的日志多一些，包含compose解析相关日志**
+        # 获取日志（docker-compose logs [my_service_name]）. **比docker logs的日志多一些，包含compose解析相关日志。只有容器重新创建日志才会清除**
       pause              Pause services
       port               Print the public port for a port binding
       ps                 List containers  # 查看运行的容器
@@ -585,10 +585,10 @@ services:
       MYSQL_DATABASE: shengqi
       MYSQL_USER: shengqi
 	  MYSQL_PASSWORD: shengqi
-
+    restart: always
 networks:
   default:
-	# 默认使用已存在的网网络，需要先创建此网络`docker network create sq-net`
+    # 默认使用已存在的网网络，需要先创建此网络`docker network create sq-net`
     external:
       name: sq-net
 ```
@@ -626,7 +626,7 @@ max_allowed_packet=1000M
 ```sql
 -- /home/data/etc/mysql/init/init.sql
 use mysql;
-grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;
+grant all privileges on *.* to 'root'@'%' identified by 'Hello1234!' with grant option;
 flush privileges;
 ```
 
@@ -644,6 +644,7 @@ services:
     environment:
       TZ: Asia/Shanghai
     # command: /bin/sh -c "sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $$CATALINA_HOME/conf/server.xml && catalina.sh run"
+    restart: always
 ```
 
 - 部署war `docker cp demo.war sq-tomcat:/usr/local/tomcat/webapps`

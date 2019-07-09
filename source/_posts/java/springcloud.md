@@ -289,7 +289,7 @@ eureka:
         @RequestMapping(method = RequestMethod.POST, value = "/oauth/token")
         Map<String, Object> oauthToken(@RequestParam("username") String username, @RequestParam("password") String password,
                                     @RequestParam("grant_type") String grantType, @RequestParam("client_id") String clientId,
-                                    @RequestParam("client_secret") String clientSecret);
+                                    @RequestParam("client_secret") String clientSecret) throws Throwable;
 
         @RequestMapping(method = RequestMethod.GET, value = "/user/info/base")
         Map<String, Object> userInfoBase(@RequestHeader("Authorization") String accessToken);
@@ -308,7 +308,7 @@ eureka:
                 @Override
                 public Map<String, Object> oauthToken(String username, String password, String grantType, String clientId, String clientSecret) {
                     logger.warn("获取token失败...");
-                    return null;
+                    throw cause;
                 }
 
                 @Override
@@ -494,6 +494,17 @@ turbine:
             # AccessFilter:
             #   pre:
             #     disable: true
+          #host:
+            # 连接超时时间
+            #connect-timeout-millis: 2000
+            # 处理超时时间，The socket timeout in millis. Defaults to 10000
+            #socket-timeout-millis: 10000
+            # 每个路由的最大连接
+            #max-per-route-connections: 20
+            # 每个服务的http客户端连接池最大连接
+            #max-total-connections: 200
+            # 禁止通过服务列表使用服务名称直接访问
+            #ignored-services: "*"
         ```
 
 - 自定义路由规则
@@ -519,7 +530,7 @@ turbine:
 
             // 过滤器类型，决定过滤器在请求的哪个生命周期中执行
             // pre：表示请求在路由之前执行
-            // routing：在路由请求时被执行(调用真实服务应用时)
+            // route：在路由请求时被执行(调用真实服务应用时)
             // post：路由完成(服务调用完成)被执行
             // error：出错时执行
             @Override
@@ -554,6 +565,8 @@ turbine:
                     ctx.setResponseStatusCode(401);
                     ctx.setResponseBody("zuul filter");
                     return null;
+                } else {
+                    ctx.addZuulRequestHeader("X-Token-Zuul", accessToken); // 往Header中加入数据
                 }
 
                 logger.info("access token ok");
@@ -561,7 +574,7 @@ turbine:
                 // 测试异常过滤器（org.springframework.cloud.netflix.zuul.filters.post.SendErrorFilter）
                 // doSomteing();
 
-                return null;
+                return null; // Zuul目前对返回值不做处理
             }
 
             private void doSomteing() {
@@ -764,30 +777,30 @@ turbine:
 
     ```yml
     zuul:
-        routes:
+      routes:
         api-movie:
-            path: /api-movie/**
-            serviceId: consumer-movie-ribbon
-            # 如果consumer-movie-ribbon服务开启了权限验证，则需要防止zuul将头信息(Cookie/Set-Cookie/Authorization)过滤掉了.(多用于API网关下的权限验证等服务)
-            # 此方法是对指定规则开启自定义敏感头. 还有一中解决方法是设置路由敏感头为空(则不会过滤任何头信息)：zuul.routes.<route>.sensitiveHeaders=
-            customSensitiveHeaders: true
+          path: /api-movie/**
+          serviceId: consumer-movie-ribbon
+          # 如果consumer-movie-ribbon服务开启了权限验证，则需要防止zuul将头信息(Cookie/Set-Cookie/Authorization)过滤掉了.(多用于API网关下的权限验证等服务)
+          # 此方法是对指定规则开启自定义敏感头. 还有一中解决方法是设置路由敏感头为空(则不会过滤任何头信息)：zuul.routes.<route>.sensitiveHeaders=
+          customSensitiveHeaders: true
 
     # 为了动态刷新配置(spring cloud config)，执行/refresh端点(此端点需要加入Spring Security或者关闭端点验证)
     security:
-        basic:
-            enabled: true
-        user:
-            name: smalle
-            password: smalle
+      basic:
+        enabled: true
+      user:
+        name: smalle
+        password: smalle
     ```
 - 在git仓库中加入`api-gateway-zuul-prod.yml`等配置文件，并加入配置
 
     ```yml
     zuul:
-        routes:
-            api-movie:
-                path: /api-movie-config/**
-                serviceId: consumer-movie-ribbon
+      routes:
+        api-movie:
+          path: /api-movie-config/**
+          serviceId: consumer-movie-ribbon
     ```
 - `POST`请求`http://localhost:5555/refresh`即可刷新`api-gateway-zuul`的配置，因此动态加载了路由规则zuul.routes.api-movie
 
