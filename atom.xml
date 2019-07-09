@@ -123,9 +123,9 @@
       <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
     
     
-      <category term="db" scheme="http://blog.aezo.cn/tags/db/"/>
-    
       <category term="microsoft" scheme="http://blog.aezo.cn/tags/microsoft/"/>
+    
+      <category term="db" scheme="http://blog.aezo.cn/tags/db/"/>
     
   </entry>
   
@@ -266,11 +266,11 @@
       <category term="arch" scheme="http://blog.aezo.cn/categories/arch/"/>
     
     
-      <category term="springboot" scheme="http://blog.aezo.cn/tags/springboot/"/>
-    
       <category term="doc" scheme="http://blog.aezo.cn/tags/doc/"/>
     
       <category term="api" scheme="http://blog.aezo.cn/tags/api/"/>
+    
+      <category term="springboot" scheme="http://blog.aezo.cn/tags/springboot/"/>
     
   </entry>
   

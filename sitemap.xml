@@ -2,30 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
+    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     
-    <lastmod>2019-07-03T09:46:13.387Z</lastmod>
+    <lastmod>2019-07-08T10:35:43.482Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
     
-    <lastmod>2019-07-03T09:02:36.975Z</lastmod>
+    <lastmod>2019-07-08T09:10:08.934Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
     
-    <lastmod>2019-07-03T08:03:47.999Z</lastmod>
+    <lastmod>2019-07-05T06:35:30.750Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
-    <lastmod>2019-07-03T07:48:00.601Z</lastmod>
+    <lastmod>2019-07-04T11:37:45.577Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
+    
+    <lastmod>2019-07-04T07:18:34.015Z</lastmod>
     
   </url>
   
@@ -47,13 +54,6 @@
     <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
     <lastmod>2019-07-02T01:28:57.638Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    
-    <lastmod>2019-07-01T09:17:52.493Z</lastmod>
     
   </url>
   
