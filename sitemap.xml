@@ -2,9 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/12/29/arch/maven/</loc>
+    
+    <lastmod>2019-07-10T12:21:41.474Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2019/06/28/devops/cat/</loc>
     
-    <lastmod>2019-07-09T01:26:30.502Z</lastmod>
+    <lastmod>2019-07-10T09:53:03.895Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
+    
+    <lastmod>2019-07-10T07:29:18.572Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
+    
+    <lastmod>2019-07-10T06:18:11.366Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
+    
+    <lastmod>2019-07-09T05:05:08.851Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
+    
+    <lastmod>2019-07-09T02:42:05.214Z</lastmod>
     
   </url>
   
@@ -19,13 +54,6 @@
     <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
     
     <lastmod>2019-07-08T09:10:08.934Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    
-    <lastmod>2019-07-05T06:35:30.750Z</lastmod>
     
   </url>
   
@@ -47,13 +75,6 @@
     <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
     
     <lastmod>2019-07-03T07:05:41.162Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
-    
-    <lastmod>2019-07-02T01:43:48.663Z</lastmod>
     
   </url>
   
@@ -103,13 +124,6 @@
     <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
     
     <lastmod>2019-06-25T14:59:15.153Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
-    
-    <lastmod>2019-06-25T07:13:05.532Z</lastmod>
     
   </url>
   
@@ -285,20 +299,6 @@
     <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
     
     <lastmod>2019-04-30T02:43:34.317Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/12/29/arch/maven/</loc>
-    
-    <lastmod>2019-04-26T10:16:25.694Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
-    
-    <lastmod>2019-04-16T07:04:13.377Z</lastmod>
     
   </url>
   
