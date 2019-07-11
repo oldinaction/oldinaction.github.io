@@ -34,7 +34,7 @@ tags: [docker, arch]
     - 或者安装[Boot2Docker](https://github.com/boot2docker/windows-installer)
 - linux
     - `yum install docker` 安装
-        - 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存
+        - 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存。参考下文volume命令相关内容
     - ubuntu安装
         
         ```bash
@@ -68,7 +68,7 @@ Management Commands:
   volume      Manage volumes # 管理容器卷(可理解成就是一个目录)。https://docs.docker.com/storage/volumes/
     # volume绕过container的文件系统，直接将数据写到host机器上(默认存放路径 /var/lib/docker/volumes)
     # 修改默认存储位置，参考：https://blog.51cto.com/nanfeibobo/2091960
-        # docker是1.12或以上的版本，可修改`vi /etc/docker/daemon.json`文件（如：`{"graph": "/data/docker"}`），修改后会立即生效，不需重启docker服务。
+        # docker是1.12或以上的版本，可修改`vi /etc/docker/daemon.json`文件（如：`{"graph": "/data/docker"}`），会自动创建此目录，修改后会立即生效，不需重启docker服务。
     # 映射了容器卷之后，实际数据存放再docker默认存储位置下对应的容器卷名下，如：/data/docker/volumes/jenkins-data/_data (/data/docker为docker默认存储路径，jenkins-data为某一个容器卷名)
     create  # docker volume create my-vol # 创建数据卷
     ls      # docker volume ls # 列举数据卷
@@ -79,7 +79,8 @@ Commands:
     build     Build an image from a Dockerfile              # 通过 Dockerfile 定制镜像
     commit    Create a new image from a container’s changes # 提交当前容器为新的镜像
     cp        Copy files/folders from the containers filesystem to the host path # 从容器中拷贝指定文件或者目录到宿主机中
-        # docker cp demo.war sq-tomcat:/usr/local/tomcat/webapps # 向sq-tomcat容器中部署war包
+        # docker cp demo.war sq-tomcat:/usr/local/tomcat/webapps    # 向sq-tomcat容器中部署war包
+        # docker cp sq-tomcat:/usr/local/tomcat/webapps/demo.war .  # 从sq-tomcat容器中复制文件到宿主机
     create    Create a new container                        # 创建一个新的容器，同 run，但不启动容器
     diff      Inspect changes on a container’s filesystem   # 查看 docker 容器变化
     events    Get real time events from the server          # 从 docker 服务获取容器实时事件
@@ -270,7 +271,7 @@ Run 'docker COMMAND --help' for more information on a command.
 ## docker-compose 多容器控制 [^1]
 
 - [docker-compose](https://docs.docker.com/compose/compose-file/) 是用来做docker的多容器控制，默认基于`docker-compose.yml`来进行配置
-- `pip install docker-compose` 安装(为python实现)
+- `pip install docker-compose` 安装(为python实现)，可能需要提前安装pip：`yum install python-pip`
 - 命令
 
     ```bash
@@ -739,7 +740,7 @@ docker run -itd -p 8080:80 192.168.17.196:5000/nginx:sm_1
 ```bash
 ## 安装docker-compose
 yum install python-pip
-pip install  docker-compose
+pip install docker-compose
 docker-compose --version
 
 ## 在线安装Harbor
@@ -916,6 +917,7 @@ services:
       - sq-eureka
     # command会覆盖Dockerfile文件中的默认启动命令(CMD)
     # command: ["/app/wait-for-it.sh", "sq-eureka:9810", "--", "/app/runboot.sh"]
+    # command: ["sleep", "1h"] # 调试容器启动
     environment:
       TZ: Asia/Shanghai
       SPRING_PROFILES_ACTIVE: test

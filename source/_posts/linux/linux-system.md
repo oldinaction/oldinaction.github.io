@@ -176,15 +176,15 @@ tags: [linux, shell]
     - `chkconfig --del nginx` 关闭指定的服务程序
     - `chkconfig nginx on` 设置nginx服务开机自启动（对于 on 和 off 开关，系统默认只对运行级345有效，但是 reset 可以对所有运行级有效）
     - 设置开机自启动
-        - 在`/etc/init.d`目录创建脚本文件
+        - 在`/etc/init.d`目录创建脚本文件，并设置成可执行`chmod +x my_script`
             ```bash
             # 自启动脚本的注释中必须有chkconfig、description两行注释(chkconfig会查看所有注释行)
             # chkconfig参数一表示在运行级别2345时默认代开(一般服务器的启动级别为3多用户启动)，使用`-`表示默认关闭(不自动启动)；参数2表示启动顺序(越小越优先)；参数3表示停止顺序(停止并不会重新执行脚本，而是停止此进程)
             
             #!/bin/sh
             # chkconfig: 2345 50 50
-            # description: my_script描述
-            # processname: iptables-init
+            # description: 通用自动启动脚本
+            # processname: common-init
             # config: 如果需要的话，可以配置
 
             # echo日志会记录到 /var/log/messages 中(系统本身会记录此服务的启动开始和结束状态)
@@ -306,7 +306,7 @@ tags: [linux, shell]
         # 在vg1卷组下创建一个逻辑卷lv1，对应路径为/dev/vg1/lv1
         # 此时lv1可能会同时使用/dev/vdb1 /dev/vdb2这两个PV，这也是LVM一个PV损毁会导致整个卷组数据损毁
         # **可通过VG来分区(如取home、data两个卷组分别挂载到/home、/data；初始化时可初始化名为/dev/home/main的LV)，之后对该分区扩容只需往相应VG中加PV即可**
-        lvcreate -L 199G -n lv1 vg1 # 如果200G的卷组，此时无法正好创建出一个200G的LV，需稍微少一点
+        lvcreate -L 199G -n lv1 vg1 # 如果200G的卷组，此时无法正好创建出一个200G的LV，需稍微少一点。最终显示成 /dev/vg1/lv1
         # 查看逻辑卷详细
         lvs/lvsdisplay
         # 格式化卷组
@@ -410,7 +410,8 @@ tags: [linux, shell]
     - f：force强制
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
     - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
-    - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件或者文件夹复制到远程的home目录下
+    - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下
+        - `scp -r /home/smalle/dir root@192.168.1.1:/home` 复制文件夹到远程机器
 - `mv a.txt /home` 移动a.txt到/home目录
     - `mv a.txt b.txt` 将a.txt重命名为b.txt
     - `mv a.txt /home/b.txt` 移动并重名名
@@ -834,7 +835,7 @@ tags: [linux, shell]
         - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
         - `ssh-keygen -t rsa -C "xxx@qq.com"` -C起到一个密码备注的作用，可以为任何内容
     - 把生成的公钥保存到服务器`authorized_keys`文件中
-        - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去(或者手动追加到authorized_keys文件中)
+        - **`ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1`** 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去(或者手动追加到authorized_keys文件中)。此时需要保证192.168.1.1服务器的root用户没有被禁用
     - 在`192.168.1.2`客户端上登录上述服务器
         - `ssh 192.168.1.1` 此时不需要输入密码
         - 如果需要在`192.168.1.1`(客户机)上通过ssh登录`192.168.1.1`(服务器)，需要按照上述命令把公钥保存到服务器的`authorized_keys`

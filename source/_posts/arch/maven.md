@@ -486,6 +486,77 @@ tags: [maven]
 	- `requireJavaVersion` 校验java版本
 	- `bannedDependencies` 校验依赖关系，检查是否存在或不存在某依赖
 
+## maven私服搭建(nexus)
+
+- nexus可对maven、docker等私服进行管理
+- 基于docker安装nexus：`docker-compose.yml`
+
+```yml
+version: '3'
+services:
+  nexus:
+    container_name: nexus
+    # 使用版本2的较多
+    image: sonatype/nexus:2.14.13-01
+    ports:
+      - 2082:8081
+    volumes:
+      - /data/nexus:/sonatype-work
+    environment:
+      TZ: Asia/Shanghai
+    restart: always
+    user: root
+```
+- 访问`http://192.168.1.100:2082/nexus/`可进入nexus页面，默认账号为`admin/admin123`
+- 上传的jar保存在`/sonatype-work/storage/releases`目录(类似`.m2`目录)
+
+### nexus界面管理
+
+- 默认情况下，nexus是提供了四个仓储(如果内部代码可单独创建内部仓库存放)
+    - Central 代理中央仓库，从公网下载jar
+    - Releases 发布版本内容（即自己公司发行的jar的正式版本）
+    - Snapshots 发布版本内容（即自己公司发行的jar的快照版本）
+    - Public 以上三个仓库的小组
+- 设置maven-central代理位置(默认为maven官网仓库)：Repositories - Central - Configuration - Remote Storage Location填写阿里云镜像 http://maven.aliyun.com/nexus/content/groups/public/
+- 允许Releases仓库重复提交：Repositories - Releases - Configuration - Deployment Policy 选择 Allow Redeploy (理论上每次发布都会修改版本，因此应该设置禁止重复推送)
+
+### 上传jar包到nexus
+
+- 在`~/.m2/settings.xml`中设置maven私服(nexus)用户名和密码
+
+```xml
+<server>
+    <id>mvn-releases</id>
+    <username>admin</username>
+    <password>admin123</password>
+</server>
+```
+- 在项目的pom.xml中加入
+
+```xml
+<distributionManagement>
+    <repository>
+        <id>mvn-releases</id><!-- 上述server id -->
+        <url>http://192.168.1.10:8081/nexus/content/repositories/releases</url><!-- nexus仓库地址 -->
+    </repository>
+</distributionManagement>
+```
+- 打包发布 `mvn deploy -DskipTests`(跳过测试)
+- 常见错误
+    - 400：如Releases仓库默认禁止重复推送，如果重复推送则会报400，可将Releases仓库设置成 Allow Redeploy
+    - 401：认证出错
+    - 403：无权推送
+
+### 从nexus下载jar
+
+```xml
+<repository>
+    <id>releases</id><!-- nexus中的repository ID -->
+    <url>http://192.168.1.10:8081/nexus/content/repositories/releases</url>
+</repository>
+```
+
+
 ---
 
 参考文章

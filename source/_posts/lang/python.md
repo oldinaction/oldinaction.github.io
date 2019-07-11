@@ -10,6 +10,12 @@ tags: [python]
 
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
 - Linux下默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](/_posts/linux/CentOS服务器使用说明.md)
+- 一般服务会自带pip，没有可进行安装
+
+    ```bash
+    sudo yum -y install epel-release
+    sudo yum -y install python-pip
+    ```
 
 ## python2和python3的语法区别
 

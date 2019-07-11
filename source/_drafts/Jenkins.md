@@ -214,6 +214,14 @@ java -jar target/${NAME}-${VERSION}.jar
 - jenkins源码从gitlab拉取，并设置Gitlab Webhooks
 - jenkins构建时分别执行maven打包、给服务器发送启动docker命令
 
+    ```bash
+    echo "exec command start..."
+    source /etc/profile
+    cd /home/smalle/compose/nginx
+    sudo docker-compose up -d
+    echo "exec command end..."
+    ```
+
 ## 系统管理(Manage Jenkins)
 
 ### 系统设置(Configure System)
@@ -238,6 +246,7 @@ java -jar target/${NAME}-${VERSION}.jar
         - 进行了上述配置和插件安装默认还是不会自动安装maven，需要`构建一个maven项目`，然后构建此项目才会自动安装(安装成功后，在资源风格项目中也可以使用)
     - 自动安装的maven插件位置：`/data/docker/volumes/jenkins-data/_data/tools/hudson.tasks.Maven_MavenInstallation/maven3.6` (基于docker安装jenkins)
         - 可修改`conf/settings.xml`相关配置，如配置阿里云镜像地址
+    - maven仓库默认保存在宿主机的`/root/.m2`目录
 
 ### 插件管理
 

@@ -259,7 +259,6 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
     - 可解决问题：想在家里访问公司的机器(写程序，查数据，下电影)；公司为了防止逛淘宝，封锁了它的端口或者服务器地址(同理如ZF封锁了外网导致无法上油管等)
     - 解决上述问题条件：有一台机器可以访问公司的机器(如处于公司的笔记本)、可以访问淘宝的服务器、可以访问外网的香港主机等；且此服务器有一个公网(IP)端口
     - 机器说明：A为本机、B(234.234.234.234)为目标机(国外服务器或公司内网机器)、C(123.123.123.123)为中间机器(香港服务器或另外一台公司服务器)
-    - SSH隧道技术缺点：只能代理TCP数据，不能代理UDP数据
 - 建立本地SSH隧道：可从内部绕过防火访问外部资源(翻墙)
 
     ```bash
@@ -308,6 +307,28 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
     - 跨网络连接远程，可使用蒲公英VPN
     - 图形界面登录可使用RealVNC，各大操作系统都支持，使用 VNC 协议，并且对键盘处理很好用，还可以传文件和共享剪贴板。其他如Teamview、Anydesk等
     - 远程SSH登录：Linux一般自带SSH server，window可使用cygwin(可配合apt-cyg使用)
+
+### SOCKS5安全问题(Shadowsocks使用) [^17]
+
+- SOCKS5只是对数据做中转传输，无法起到加密的作用，不太安全
+- 安全的 socks 代理不应向防火墙公开以下信息：任何表明它被用作代理的特征、任何真实传输的数据
+- 在HTTP/HTTPS的世界里，TCP/IP数据包的源和目标是公开的，解决恶意攻击可以利用强加密算法的 SOCKS5 协议
+- 可以把SOCKS5拆分成两部分，socks5-local和socks5-remote：客户端通过SOCKS5协议向本地代理发送请求，本地代理通过HTTP协议发送加密后的请求数据，因为 HTTP 协议没有明显的特征，并且远程代理服务器尚未被识别为代理，因此请求可以穿透防火墙
+- [Shadowsocks](https://github.com/shadowsocks/shadowsocks) 是一款出色的安全 socks5 代理解决方案。github上代码库已被屏蔽，wiki可以使用，代码可查看其他用户fork仓库
+
+```bash
+# https://github.com/shadowsocks/shadowsocks/wiki/Ports-and-Clients
+## 服务端(支持linux、windows等多平台)
+pip install shadowsocks # 会安装 ssserver 服务端和 sslocal 客户端
+# 后台启动服务端，服务端端口为 10010(需要开放此端口)
+sudo ssserver -p 10010 -k Hello1234! -d start
+
+## 客户端(支持windows、Android、iOS)
+# windows下载 https://github.com/shadowsocks/shadowsocks-windows/releases
+pip install shadowsocks # 会安装 ssserver 服务端和 sslocal 客户端
+# 后台启动客户端
+sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
+```
 
 ## 网络异常排查案例
 
@@ -444,5 +465,5 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
 [^14]: https://blog.csdn.net/tycoon1988/article/details/40826235
 [^15]: https://www.cnblogs.com/fbwfbi/p/3702896.html (SSH隧道技术----端口转发，socket代理)
 [^16]: http://zsaber.com/blog/p/126 (远程登录那些事儿)
-
+[^17]: http://blog.zxh.site/2018/07/08/%E5%AE%89%E5%85%A8%E7%9A%84socks5%E5%8D%8F%E8%AE%AE/
 
