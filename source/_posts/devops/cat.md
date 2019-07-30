@@ -30,7 +30,7 @@ tags: [arch, monitor]
 
 ### 基于docker安装服务端
 
-- 参考：https://github.com/dianping/cat/wiki/readme_server
+- 基于`cat v3.0.0`进行测试，参考：https://github.com/dianping/cat/wiki/readme_server
 - docker-compose.yml，并启动(docker所在宿主机内网ip为192.168.6.10；数据库sq-mysql和自定义网络sq-net创建此处省略)
 
 ```yml
@@ -91,6 +91,13 @@ networks:
     - 访问`http://192.168.6.10:8888/cat/s/config?op=routerConfigUpdate`进行客户端路由配置：修改ip为192.168.6.10
     - 重启tomcat
 
+### 常见问题
+
+- 基于docker安装，服务端界面显示`出问题CAT的服务端:[192.168.6.10]`，这个显示不影响数据上报和监控，仅仅是IP配置不规范。主要是CAT默认使用获取的内网IP，则此时为docker容器IP，此时可设置`host.ip`
+    - 解决办法：在启动参数中加`-Dhost.ip=192.168.6.10`
+- 加入Cat依赖，客户端启动报错`java.lang.NoClassDefFoundError: org/aspectj/util/PartialOrder$PartialComparable`，表示缺少`aspectjweaver`相关jar包
+    - 解决办法：如springboot引入`org.springframework.boot#spring-boot-starter-aop`依赖
+
 ### 客户端(Windows下IDEA启动)
 
 - 参考：https://github.com/dianping/cat/blob/master/lib/java/README.zh-CN.md
@@ -137,7 +144,7 @@ public void test() {
 
     try {
         // 记录一个事件。如果只是统计Event报表，可以不用开启Transaction
-        Cat.logEvent("URL.Server", "serverIp", Event.SUCCESS, "ip=${serverIp}");
+        Cat.logEvent("URL.Server", "serverIp", Event.SUCCESS, "ip=127.0.0.1");
         // 记录一个业务指标，主要衡量单位时间内的次数总和。用于Business报表(可不用开启Transaction)
         Cat.logMetricForCount("OrderCount");
         // 记录一个time类的业务指标，主要衡量单数时间内的平均值。用于Business报表
@@ -505,11 +512,6 @@ public class CatHystrixFeignAspect {
 }
 ```
 </details>
-
-### 常见问题
-
-- 基于docker安装，界面显示`出问题CAT的服务端:[192.168.6.10]`，这个显示不影响数据上报和监控，仅仅是IP配置不规范。主要是CAT默认使用获取的内网IP，则此时为docker容器IP，此时可设置`host.ip`
-    - 解决办法：在启动参数中加`-Dhost.ip=192.168.6.10`
 
 ## 管理界面使用
 

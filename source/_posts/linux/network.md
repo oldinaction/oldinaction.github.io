@@ -13,16 +13,22 @@ tags: [network, linux, docker]
 - 集线器、网桥、交换机、路由器、网关等术语参考 [^12]
 - `brctl` 网桥操作
     
-    ```bash
-    # 显示所有网桥
-    brctl show
-    ```
+```bash
+yum install -y bridge-utils
+# 显示所有网桥
+brctl show
+```
 
 ### ip信息
 
-- ip信息
-    - `ip a` 查看ip、mac地址、网卡等信息。ipconfig也可查看
-- route路由信息
+- `ip a` ip信息
+    - `ip a`/`ip addr` 可以查看网卡的ip、mac等，即使网卡处于down状态，也能显示出网卡状态，但是`ifconfig`查看就看不到
+    - `ip addr show eth0` 查看指定网卡eth0的信息
+    - 显示结果中作用域说明：`scope {global|link|host}]`
+        - global: 全局可用，即两个接口进来的数据都可以响应，是默认状态
+        - link: 仅链接可用，进来的数据只有直接相连的那个接口能够响应
+        - host: 本机可用，即只能自己访问
+- `ip r` 路由信息
     - 查看路由信息 `ip r`/`ip route`；
     - `route`也可显示路由信息
 
@@ -36,8 +42,9 @@ tags: [network, linux, docker]
     172.18.0.0/16 dev br-190a4d9330bd proto kernel scope link src 172.18.0.1 
     192.168.17.0/24 dev eth0 proto kernel scope link src 192.168.17.73 metric 100
     ```
-- 路由策略信息 [^5]
-    - `ip rule`
+- `ip rule` 路由策略信息 [^5]
+- `ip link` 链路层信息(看不到ip地址)
+
 
 ### curl/wget测试
 
@@ -57,14 +64,76 @@ curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{
 ping -c 1 192.168.1.1
 ```
 
+### arp
+
+- ARP：地址解析协议(Address Resolution Protocol)，其基本功能为透过目标设备的IP地址，查询目标设备的MAC地址，以保证通信的顺利进行。它是IPv4中网络层必不可少的协议，不过在IPv6中已不再适用，并被邻居发现协议(NDP)所替代
+- ARP表：设备通过ARP解析到目的MAC地址后，将会在自己的ARP表中增加IP地址到MAC地址的映射表项，以用于后续到同一目的地报文的转发
+- `arp -a` 查看地址表
+
+### DNS查询(dig)
+
+```bash
+yum install bind-utils # 安装dig工具
+
+# 使用
+dig baidu.com
+# 向10.96.0.10的DNS服务器查询hostname=nginx.default.svc.cluster.local的A记录(IP信息)
+dig -t A nginx.default.svc.cluster.local @10.96.0.10
+```
+
+
 ### tcpdump
+
+- 命令参数
 
 ```bash
 # yum -y install tcpdump
 # 观察流经 docker0 网卡的 icmp 类型(ping/telnet)流量
 tcpdump -i docker0 -n icmp
 # -e可显示ttl信息
-tcpdump -i docker0 -n icmp -vv -e
+tcpdump -i docker0 -n -vv -e icmp
+# 监控 icmp or arp or udp。协议如：arp、ip、tcp、udp、icmp
+tcpdump -n -s 0 -e -i ens33 -v "icmp or arp or udp"
+# 过滤来源/目的端口
+tcpdump -i eth1 port 21 # tcpdump -i eth1 src/dst port 21 # 精确指定来源/目的端口
+# 抓取所有经过eth1，目的地址是192.168.1.254或192.168.1.200端口是80的TCP数据
+tcpdump -i eth1 '((tcp) and (port 80) and ((dst host 192.168.1.254) or (dst host 192.168.1.200)))'
+# 抓取所有经过eth1，目标MAC地址是00:01:02:03:04:05的ICMP数据
+tcpdump -i eth1 '((icmp) and ((ether dst host 00:01:02:03:04:05)))'
+# 抓取所有经过eth1，目的网络是192.168，但目的主机不是192.168.1.200的TCP数据
+tcpdump -i eth1 '((tcp) and ((dst net 192.168) and (not dst host 192.168.1.200)))'
+# 只抓SYN包，第十四字节是二进制的00000010，也就是十进制的2
+tcpdump -i eth1 'tcp[13] = 2'
+
+
+## 参数：
+# -i <网络接口>：使用指定的网络接口经过的数据包
+# -n ：不把主机的网络地址转换成名字
+# -e ：在每列倾倒资料上显示连接层级的文件头(可显示ttl信息)
+# -s <数据包大小>：设置每个数据包的大小
+
+## 常用表达式
+# 非：! 或 not；且：&& 或 and；或：|| 或 or
+
+## 高级包头过滤(操作符：>、<、>=、<=、=、!=)
+# proto[x]            ：如：tcp[13] = 2，过滤tcp包中第14个字节为2(对应二进制为00000010)的(即SYN包)
+# proto[x:y]          ：过滤从x字节开始的y字节数。比如ip[2:2]过滤出3、4字节（第一字节从0开始排）
+# proto[x:y] & z = 0  ：proto[x:y]和z的与操作为0
+# proto[x:y] & z !=0  ：proto[x:y]和z的与操作不为0
+# proto[x:y] & z = z  ：proto[x:y]和z的与操作为z
+# proto[x:y] = z      ：proto[x:y]等于z
+```
+- 示例说明
+
+```bash
+## 监控arp(每ping 一次会产生一个arp寻址报文，尽管网桥等设备已经保存了mac地址，也存在此报文)
+# tcpdump -i docker0 -n -e arp
+# 请求报文、响应报文1(当第一次arp时，由于不知道目标机器mac地址，是发送多播Broadcast报文)
+16:51:59.919605 00:0c:29:c2:53:b5 > Broadcast, ethertype ARP (0x0806), length 42: Request who-has 192.168.6.132 tell 192.168.6.131, length 28
+16:51:59.919657 00:0c:29:21:bb:99 > 00:0c:29:c2:53:b5, ethertype ARP (0x0806), length 42: Reply 192.168.6.132 is-at 00:0c:29:21:bb:99, length 28
+# 请求报文、响应报文2(第二次arp时，arp表中存在相应mac地址，则发送单播报文)
+16:52:24.039775 00:0c:29:c2:53:b5 > 00:0c:29:21:bb:99, ethertype ARP (0x0806), length 60: Request who-has 192.168.6.132 tell 192.168.6.131, length 46
+16:52:24.039798 00:0c:29:21:bb:99 > 00:0c:29:c2:53:b5, ethertype ARP (0x0806), length 42: Reply 192.168.6.132 is-at 00:0c:29:21:bb:99, length 28
 ```
 
 ### traceroute
@@ -384,7 +453,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         ```
     - docker容器内无法上网原因同上，相关分析如下
         
-        ``html
+        ```html
         <!-- eth0`为容器网卡，docker0和eth0为宿主机网卡；eth0`和docker0中间基于veth pair进行交互此处省略 -->
         1.eth0` -> docker0 触发PREROUTING
         2.docker0路由判断：to 114 => docker0 -> !docker0(out) 触发FORWARD

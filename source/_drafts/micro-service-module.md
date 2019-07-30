@@ -150,12 +150,13 @@ tags: [微服务, SpringCloud]
 ### 告警系统和健康检查
 
 - [ZMon](https://github.com/zalando/zmon)
-    - ZMon 是德国电商公司 Zalando 开源的一款健康检查和告警平台，具备强大灵活的监控告警能力
-    - ZMon 本质上可以认为是一套分布式监控任务调度平台，它提供众多的 Check 脚本（也可以自己再定制扩展），能够对各种硬件资源或者目标服务（例如 HTTP 端口，Spring 的 Actuator 端点，KariosDB 中的 Metrics，ELK 中的错误日志等等）进行定期的健康检查和告警，它的告警逻辑和策略采用 Python 脚本实现，开发人员可以实现自助式告警。ZMon 同时适用于系统，应用，业务，甚至端用户体验层的监控和告警
+    - [ZMon](https://opensource.zalando.com/zmon/) 是德国电商公司 Zalando 开源的一款健康检查和告警平台，具备强大灵活的监控告警能力
+    - ZMon 本质上可以认为是一套分布式监控任务调度平台，它提供众多的 Check 脚本（也可以自己再定制扩展），**能够对各种硬件资源或者目标服务（例如 HTTP 端口，Spring 的 Actuator 端点，KariosDB 中的 Metrics，ELK 中的错误日志等等）进行定期的健康检查和告警**，它的告警逻辑和策略采用 Python 脚本实现，开发人员可以实现自助式告警。ZMon 同时适用于系统，应用，业务，甚至端用户体验层的监控和告警
+    - ZMon分布式监控告警系统架构，底层基于KairosDB时间序列数据库
 
 ### 其他
 
-- Zabbix([模板大全](https://monitoringartist.github.io/zabbix-searcher/))、Nagios监控
+- Zabbix([模板大全](https://monitoringartist.github.io/zabbix-searcher/))监控、Nagios监控
 
 ## 其他组件
 

@@ -17,6 +17,7 @@ tags: [linux, shell]
 
 ### 系统信息查询
 
+- 查看内核版本 `uname -r`
 - 查看操作系统版本 `cat /proc/version`
     - 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
 - 查看CentOS版本 **`cat /etc/redhat-release`/`cat /etc/system-release`** 如：CentOS Linux release 7.2.1511 (Core)
@@ -29,10 +30,10 @@ tags: [linux, shell]
 - `cat /proc/cpuinfo` 查看CPU使用情况
 - 磁盘使用查看
     - `df -h` 查看磁盘使用情况和挂载点信息
-        - `df /root` **查看/root目录所在挂载点**（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
-    - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2
+        - `df /root` **查看/root目录所在挂载点**(一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据)
+    - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况；二级子目录可改成2；`du -h` 查看当前目录及其子目录大小
 - `hostname` 查看hostname
-    - `hostnamectl set-hostname aezocn` 修改主机名并重启
+    - `hostnamectl --static set-hostname aezocn` 修改主机名并重启
 
 ### 查看网络信息
 
@@ -117,7 +118,38 @@ tags: [linux, shell]
     Press 'h' or '?' for help with Windows,
     Type 'q' or <Esc> to continue 
     ```
-  
+
+### 查看IO信息
+
+- 参考：https://www.cnblogs.com/quixotic/p/3258730.html [^12]
+
+#### 系统级IO监控
+
+- 安装iostat `yum install sysstat`(iostat属于sysstat软件包)
+- `iostat -xdm 1` 
+    - -x输出扩展信息；-d仅显示磁盘统计信息(与-c仅显示CPU信息互斥)；-m显示磁盘读写速度单位为MB(默认为KB，影响rMB/s、wMB/s选项)
+    - 显示结果含义如下
+        - `rMB/s`、`wMB/s` 磁盘读写速度
+        - `avgrq-sz` 提交给驱动层的IO请求大小，一般不小于4K，不大于max(readahead_kb, max_sectors_kb)。可用于判断尤其是磁盘繁忙时，越大代表顺序读，越小代表随机读
+        - `%util` 代表磁盘繁忙程度。100% 表示磁盘繁忙，0%表示磁盘空闲。但是磁盘繁忙不代表磁盘利用率高(重要指标)
+        - `svctm` 一次IO请求的服务时间，对于单块盘，完全随机读时基本在7ms左右，既寻道+旋转延迟时间(重要指标)
+
+#### 进程级IO监控
+
+- 安装iotop `yum install iotop`(io版的top)
+- `iotop` 命令可直接运行，界面操作快捷键如下
+    - 左右箭头：改变排序方式，默认是按IO排序
+    - r：改变排序顺序
+    - o：只显示有IO输出的进程
+    - p：进程/线程的显示方式的切换
+    - a：显示累积使用量
+    - q：退出
+- `iotop -p <pid>` 单独监控此进程
+
+#### 业务级IO监控
+
+- `pt-ioprofile` **不建议在生产环境使用**
+
 ### 基础操作
 
 - 强制关闭重启
@@ -128,12 +160,7 @@ tags: [linux, shell]
         - 强制杀进程 `kill -s 9 PID`
         - `yum install psmisc` centos7精简版无`killall`命令，需要安装此包
             - `killall -s 9 java` 杀死所有java进程
-- 程序安装
-    - `yum`安装(还有其他类型的安装参考`《centos-server-guide》`)
-    - `rpm`格式文件安装(rpm: redhat package manage)
-        - `rpm -ivh 安装包名` 安装程序包
-        - `rpm -qa` 查看安装的程序包(`rpm -qa | grep vsftpd` 查看是否安装vsftpd)
-        - `rpm -e rpm包名` 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
+- 程序安装：参考[《http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/》](/_posts/linux/CentOS服务器使用说明.md#常用软件安装)
 - 程序运行
     - 运行sh文件：进入到该文件目录，运行`./xxx.sh`
     - 脱机后台运行sh文件：**`nohup bash startofbiz.sh > /dev/null 2>&1 &`**
@@ -161,9 +188,11 @@ tags: [linux, shell]
     
 ### 服务相关命令
 
-- **自定义服务参考[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md#基于编译安装tengine)**
+- **自定义服务参考[《nginx》http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)**
 - systemctl：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为`/usr/lib/systemd/system` 或 `/etc/systemd/system`)
-    - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务(.service可省略，active (running)标识正在运行)
+    - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务，此处`.service`可省略，status状态说明
+        - `Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)`中`docker.service`为daemon配置文件，第一个`disabled` 表示服务不是开机启动
+        - `Active: active (running)` 表示正在运行；`Active: inactive (dead)` 表示尚未运行；`Active: active (exited)` 表示服务有效中，但是程序已执行完成(NFS服务正常情况下就是此状态)
     - `systemctl list-units --type=service` 查看所有服务
         - `systemctl list-unit-files` 查看所有可用单元
     - `systemctl enable nginx` 设置开机启动
@@ -196,20 +225,37 @@ tags: [linux, shell]
         - 之后可在`/var/log/messages`中查看启动日志信息；也可通过`systemctl status my_script`查看服务状态，如`active (exited)`表示服务有效中，但是程序已执行完成
 - service：`service nginx start|stop|reload` 服务启动等命令
 
-### 常用语法参考《shell.md》
+### bash使用
 
-### 常用命令
+- `Tab` 自动补全
+- `ctrl-r` 搜索命令行历史记录(重复按下 ctrl-r 会向后查找匹配项)
+- `ctrl-w` 删除键入的最后一个单词
+- `ctrl-u`/`ctrl-k` 删除行内光标所在位置之前/之后的所有内容
+- `ctrl-l` 可以清屏
+- `ctrl-a`/`ctrl-e` 可以将光标移至行首/行尾
+- `alt-b`/`alt-f` 以单词为单位移动光标
+
+### 其他命令
 
 - `ls --help` 查看ls的命令说明(或`help ls`)
 - `man ls` 查看ls的详细命令说明
-- `clear` 清屏
 - `\` 回车后可将命令分多行运行(后面不能带空格)
+- `clear` 清屏
 - `date` 显示当前时间; `cal` 显示日历
-- `last` 查看最近登录用户
 - `history` 查看历史执行命令
     - 默认记录1000条命令，编号越大表示越近执行。用户所键入的命令都会记录在用户家目录下的`.bash_history`文件中
-    - 如果在服务器中干了不好的事情，可以通过`history -c`命令进行清除，那么其他人登录终端时就无法查看历史操作命令了。但此命令并不会清除保存在文件中的记录，因此需要手动删除.bash_profile文件中的记录
+        - `!n` 再次执行此命令(n 是命令编号)
+        - `!$` 它用于指代上次键入的参数
+        - `!!` 可以指代上次键入的命令
+    - `history -c` 清除历史。其他人登录也将看不到，历史中不会显示清除的命令
+- `alias ll='ls -latr'` 定义一个命令别名(仅当前会话生效)，也可将别名保存在`~/.bashrc`(所有会话)
+- `last` 查看最近登录用户
+- `w` 查看计算机运行时间
 - `wall <msg>` 通知所有人登录人一些信息
+
+### shell脚本
+
+参考 [《Shell编程》http://blog.aezo.cn/2017/01/10/linux/shell/](/_posts/linux/shell.md)
 
 ### 文本处理
 
@@ -225,8 +271,9 @@ tags: [linux, shell]
     - `-u` 排序后相同的行只显示一次
     - `-f` 排序时忽略字符大小写	
 - `wc` 文本统计
-    - 统计指定文本文件的行数(`-l`)、字数、字节数 
+    - 统计指定文本文件的行数(`-l`)、字数(-w)、字节数
     - 参数-l、-w、-c、-L
+    - `sudo docker ps | wc -l`
 
 ## 文件系统
 
@@ -245,6 +292,7 @@ tags: [linux, shell]
     - 参考《阿里云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘》 [^10]
     - 一般阿里云服务器买的磁盘未进行格式化文件系统和挂载，`df -h`无法查询到磁盘设备，只能通过`fdisk -l`查看磁盘设备
     - 阿里云`/dev/vda`表示系统盘，`/dev/vdb-z`表示数据盘，`dev/xvd?`表示非I/O优化实例。`/dev/vda1`/`/dev/vdb1`表示对应磁盘上的分区
+    - 无法卸载，提示`umount.nfs: /data: device is busy`时，可使用`fuser`(`yum install -y psmisc`安装)查看占用资源用户和进程信息(`fuser -m -v /data/`)
 
     ```bash
     # **最好使用root用户进行操作，`fdisk -l`一般用户查询不到**
@@ -404,10 +452,9 @@ tags: [linux, shell]
     - `vim <fileName>` 编辑文件，有的可能默认没有安装vim
 - `> <file>` 清空文件内容
 - `rm <file>` 删除文件
+    - `rm -rf` 强制删除某个文件或文件夹(recursion递归、force强制)
     - 提示 `rm: remove regular file 'test'?` 时，在后面输入 `yes或y` 回车
-- `rm -rf` 强制删除某个文件或文件夹
-    - r：recursion递归
-    - f：force强制
+    - `rm -f *2019-04*` 正则删除，可删除如access-2019-04-01.log、error-2019-04-02.log
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
     - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
     - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下
@@ -415,6 +462,7 @@ tags: [linux, shell]
 - `mv a.txt /home` 移动a.txt到/home目录
     - `mv a.txt b.txt` 将a.txt重命名为b.txt
     - `mv a.txt /home/b.txt` 移动并重名名
+- `tree mydir` 树形展示目录
 
 ### 文件夹/目录
 
@@ -628,7 +676,7 @@ tags: [linux, shell]
 - 内部命令
     - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
 	- **`s/pattern/string/修饰符`** 查找并替换
-        - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符如`#`、`@`等**
+        - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
         - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"
         - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor" 
 	- `d` 删除符合条件的行
@@ -917,7 +965,7 @@ tags: [linux, shell]
 
 ## 网络
 
-
+参考 [《网络》http://blog.aezo.cn/2019/06/20/linux/network/](/_posts/linux/network.md#Linux网络)
 
 ## 工具
 
@@ -1025,4 +1073,6 @@ tags: [linux, shell]
 [^9]: https://www.cnblogs.com/tintin1926/archive/2012/07/23/2605039.html (秘钥类型)
 [^10]: https://help.aliyun.com/document_detail/108501.html (云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘)
 [^11]: https://zhuanlan.zhihu.com/p/24464526
+[^12]: https://www.cnblogs.com/quixotic/p/3258730.html (Linux下的IO监控与分析)
+
 

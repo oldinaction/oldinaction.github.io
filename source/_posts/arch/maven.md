@@ -307,6 +307,22 @@ tags: [maven]
 		<!-- 只有在dependencyManagement中，且dependency的type=pom时使用import -->
 		<dependencyManagement>
 			<dependencies>
+                <dependency>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-framework-bom</artifactId>
+                    <version>4.3.13.RELEASE</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+                
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-dependencies</artifactId>
+                    <version>2.0.1.RELEASE</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+
 				<dependency>
 					<groupId>org.springframework.cloud</groupId>
 					<artifactId>spring-cloud-dependencies</artifactId>

@@ -16,7 +16,7 @@ tags: [CentOS, linux]
 ### 新服务器初始化
 
 - 关闭防火墙
-    - systemctl stop firewalld、systemctl disable firewalld
+    - `systemctl stop firewalld && systemctl disable firewalld`
     - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
     - Centos 7使用`firewalld`代替了原来的`iptables`
         - 查看状态：`systemctl status firewalld`
@@ -27,12 +27,12 @@ tags: [CentOS, linux]
     - 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
 - 永久关闭`SELinux`
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
-    - 快速修改命令 `sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`，并重启
+    - 快速修改命令 **`sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`**，并重启
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
 - 校验系统时间(多个服务器时间同步可以通过xshell发送到所有会话)
-    - 校验时区：`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，北京时间的时区为`CST`
+    - 校验时区：如`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，其中北京时间的时区为`CST`
         - `mv /etc/localtime /etc/localtime.bak`
-        - `ln -s /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime`
+        - `ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime` 修改成功后之前的日志是无法同步修改的
         - `date`
     - 校验时间
         - `date` 查看时间
@@ -41,7 +41,10 @@ tags: [CentOS, linux]
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
 - 设置用户umask值(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#文件权限)
 - 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
+- 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
 - 更换镜像，见下文
+- `yum update` 更新软件版本和内核次版本。初始化机器可执行，生成环境不建议重复更新内核版本
+    - `yum upgrade` 只更新软件版本，不更新内核版本
 
 ### 新服务器常见问题
 
@@ -52,29 +55,135 @@ tags: [CentOS, linux]
     - 关闭防火墙
     - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
 
+## 内核升级 [^7]
+
+- **Centos7 默认使用内核版本为`3.10`**，目前内核长期支持版为`4.4`，主线稳定版为`5.2`
+- 内核版本的定义
+    - 版本性质：主分支ml(mainline)，稳定版(stable)，长期维护版lt(longterm)
+    - 版本命名格式为 "A.B.C"
+        - A 是内核版本号：第一次是1994年的 1.0 版，第二次是1996年的 2.0 版，第三次是2011年的 3.0 版发布
+        - B 是内核主版本号：奇数为开发版，偶数为稳定版
+        - C 是内核次版本号
+- Centos7升级内核步骤
+
+```bash
+## 查看版本
+# uname -r
+3.10.0-514.el7.x86_64
+# cat /etc/redhat-release 
+CentOS Linux release 7.3.1611 (Core)
+
+## 需要先导入elrepo的key，然后安装elrepo的yum源
+rpm -import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+
+## 安装(也可以把kernel image的rpm包下载下来手动安装)
+# 查看可用稳定版本
+yum --disablerepo="*" --enablerepo="elrepo-kernel" list available
+# 安装长期支持版
+yum -y --enablerepo=elrepo-kernel install kernel-lt.x86_64 kernel-lt-devel.x86_64
+
+## 修改grub中默认的内核版本
+# 查看所有内核版本，第一行则内核索引为0，以此类推
+awk -F\' '$1=="menuentry " {print $2}' /etc/grub2.cfg
+# 修改默认启动内核版本。将 `GRUB_DEFAULT=saved` 改成 `GRUB_DEFAULT=0`(此处0表示新安装的内核索引)
+vi /etc/default/grub
+# 重新创建内核配置
+grub2-mkconfig -o /boot/grub2/grub.cfg
+# 重启
+reboot
+```
+
 ## 常用软件安装
 
-- **自定义服务参考`《nginx.md》(基于编译安装tengine)`**
+- 自定义服务参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)
 
-### 安装方式说明
+### 安装方式说明 [^2]
 
-#### yum安装
+#### 镜像管理
+
+- 更换镜像源
+
+    ```bash
+    # 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。**可更换镜像列表** [^3]
+    cd /etc/yum.repos.d
+    # 需要确保已经安装`wget`(也可使用curl下载)
+    yum -y install wget
+    # 备份
+    mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+    # 基础源，下载阿里云镜像
+    curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    # 安装EPEL源(新增镜像源)
+    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    # 生成缓存
+    yum makecache
+    ```
+- 新增镜像源
+
+```bash
+## 直接下载镜像源文件新增
+# wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+# yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+## 自行创建镜像源文件，如创建kubernetes镜像
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
+        http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+# 列举镜像
+yum repolist
+```
+- 安装`EPEL`(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
+    - 下载epel源(可使用上述阿里云镜像) `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
+    - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
+
+#### rpm安装(软件包管理器)
+
+- `rpm`格式文件安装(redhat package manage。有依赖关系，安装和卸载也有先后顺序)
+    - RPM包的命名规范：`name-version-release.os.arch.rpm`
+        - os：即说明RPM包支持的操作系统版本。如el6(即rhel6)、centos6、el5、suse11
+        - arch：主机平台。如i686、x86_64、amd64、ppc(power-pc)、noarch(即不依赖平台)
+- 命令
+
+    ```bash
+    rpm <option> xxx
+    # -i：表示安装
+    # -v, -vv, -vvv：表示详细信息
+    # -h：以"#"号显示安装进度
+    # -q：查询某一个RPM包是否已安装
+        # -qi：查询某一个RPM包的详细信息
+        # -ql：列出某RPM包中所包含的文件
+        # -qf：查询某文件是哪个RPM包生成的
+        # -qa：列出当前系统所有已安装的包
+    # -e：卸载指定包名
+    # -U：升级软件，若未软件尚未安装，则安装软件
+    # -F：升级软件
+    # -V：对RPM包进行验证
+    # --force：强行安装，可以实现重装或降级
+
+    ## 举例
+    rpm -ivh jdk-7u80-linux-x64.rpm # 安装程序包(jdk)
+    rpm -e nginx # 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
+    rpm -qc nginx # 查询指定包安装的配置文件
+    rpm -qa # 查看安装的程序包(`rpm -qa | grep nginx` 查看是否安装nginx)
+    rpm -ql jdk | more # 查询指定包安装后生成的文件列表
+    rpm -Uvh nginx # 如果装有老版本则升级，否则安装
+    rpm -Fvh nginx # 如果装有老版本则升级，否则退出
+    ```
+
+#### yum安装(软件包管理器的前端工具)
 
 - `yum`安装：`yum install xxx`(基于包管理工具安装，可以更好的解决包依赖关系)
 - yum常用命令
     - `yum -y install nginx` 安装时回答全部问题为是
     - `yum remove nginx` **卸载**
     - `yum search vsftpd` 查找软件vsftpd源
-- 更换镜像
-    - `cd /etc/yum.repos.d` 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。**可更换镜像列表** [^3]
-    - 需要确保已经安装`wget`(也可使用curl下载)
-    - `mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup` 备份
-    - `curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo`(基础源)，下载阿里云镜像
-    - `wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo`(EPEL源)
-    - `yum makecache` 生成缓存
-- 安装epel(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
-    - 下载epel源(可使用上述阿里云镜像) `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
-    - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
 
 #### tar.gz安装包安装
 
@@ -82,22 +191,9 @@ tags: [CentOS, linux]
 - 部分直接是绿色文件，解压后可运行
 - 部分需要在运行一些安装程序，进入文件加运行相应的二进制文件即可
 
-### .bin安装
+#### .bin安装
 
 - `.bin`等可执行文件安装：`./xxx.bin`(可能需要设置权限成可执行，本质是rpm安装)
-
-#### rpm安装
-
-- `rpm`格式文件安装(redhat package manage。有依赖关系，安装和卸载也有先后顺序)
-- **`rpm -ivh jdk-7u80-linux-x64.rpm`** 安装程序包(jdk)
-    - `--force` 强行安装，可以实现重装或降级
-    - `rpm -Uvh nginx` 如果装有老版本则升级，否则安装
-    - `rpm -Fvh nginx` 如果装有老版本则升级，否则退出
-- `rpm -qa` 查看安装的程序包(`rpm -qa | grep nginx` 查看是否安装nginx)
-- `rpm -ql jdk | more` 查询指定包安装后生成的文件列表
-- **`rpm -qc nginx`** 查询指定包安装的配置文件
-- `rpm -qi jdk` 查看jdk安装信息
-- **`rpm -e rpm包名`** 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
 
 #### 源码安装
 
@@ -146,7 +242,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 
 ### ftp服务器安装
 
-参考：[http://blog.aezo.cn/2019/03/19/arch/ftp/](/_posts/arch/ftp.md#FTP服务器)
+参考：[http://blog.aezo.cn/2019/03/19/arch/ftp/](/_posts/devops/ftp.md#FTP服务器)
 
 ### mysql安装
 
@@ -406,7 +502,10 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
 
 参考文章
 
+[^2]: https://www.cnblogs.com/LiuChunfu/p/8052890.html
 [^3]: http://blog.csdn.net/inslow/article/details/54177191 (更换yum镜像)
 [^4]: https://www.cnblogs.com/taosim/articles/2649098.html (安装oracle客户端)
 [^5]: https://www.cnblogs.com/zeng1994/p/f883e0a2832808455039ff83735d6579.html (Linux下安装解压版（tar.gz）MySQL5.7)
 [^6]: https://www.cnblogs.com/shizhongyang/p/8464876.html (cd: /usr/local/mysql: No such file or directory)
+[^7]: https://www.cnblogs.com/sexiaoshuai/p/8399599.html
+

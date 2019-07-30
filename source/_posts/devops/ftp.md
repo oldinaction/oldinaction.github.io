@@ -2,7 +2,7 @@
 layout: "post"
 title: "ftp"
 date: "2019-03-19 10:40"
-categories: arch
+categories: devops
 tags: [ftp, server]
 ---
 
@@ -17,7 +17,7 @@ tags: [ftp, server]
 ## FTP服务器
 
 - 主动模式（`PORT`）和被动模式（`PASV`）
-    - 主动模式（服务器只需要开发21、20端口，需要客户端允许>1024的端口被访问。服务器管理方便，对客户端不友好，客户端必须放开相应防火墙）
+    - 主动模式（**服务器只需要开发21、20端口，需要客户端允许>1024的端口被访问。**服务器管理方便，对客户端不友好，客户端必须放开相应防火墙）
         - 命令连接：客户端 >1024 端口 → 服务器 21 端口
         - 数据连接：客户端 >1024 端口 ← 服务器 20 端口（服务器通过20端口向客户端发起连接）
     - 被动模式（**服务器需要开放21、大于1024的一批端口**，客户端无需开放端口。对客户端友好）
@@ -216,10 +216,10 @@ tags: [ftp, server]
 - `vim /etc/rc.local`
 
     ```bash
-    #可读写挂载（需要先创建好目录 /data/www/virtual/test1/）
+    # 可读写挂载：将/home/test1/(真实目录)的目录映射到/data/www/virtual/test1/(映射目录)。需要先创建好目录 /data/www/virtual/test1/
     mount --bind /home/test1/ /data/www/virtual/test1/
 
-    #只读挂载
+    # 只读挂载
     mount --bind /home/test2/ /data/www/virtual/test2/
     mount -o remount,ro /data/www/virtual/test2/
     ```

@@ -34,11 +34,11 @@ tags: [spring, spring-mvc]
 - 调用
 
     ```java
-       // ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
-       ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class); // AppConfig为定义的java配置类
+    // ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class); // AppConfig为定义的java配置类
 
-       Hello hello = context.getBean("hello", Hello.class);
-       hello.hello();
+    Hello hello = context.getBean("hello", Hello.class);
+    hello.hello();
     ```
 
 ## 常见注解
@@ -702,11 +702,11 @@ site.url=www.aezo.cn
 
     ```java
     @Configuration
-    @ComponentScan("cn.aezo.spring.base.annotation.scheduled") // springboot无需
+    @ComponentScan("cn.aezo.spring.base.annotation.scheduled") // springboot无需扫描@Scheduled所在包
     @EnableScheduling
     public class TaskScheduledConfig {
         // 默认同一时刻只会运行一个@Scheduled修饰的方法，时间太长会阻塞其他定时
-        // 此时定义成5个线程并发(被@Scheduled修饰的不同方法可以并发执行，同一个方法不会产生并发)
+        // 此时定义成5个线程并发(**被@Scheduled修饰的不同方法可以并发执行，同一个方法不会产生并发**)
         @Bean
         public Executor taskScheduler() { // java.util.concurrent.Executor
             return Executors.newScheduledThreadPool(5);

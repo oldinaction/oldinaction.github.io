@@ -104,10 +104,10 @@ tag: [git, arch]
 ### 撤销
 
 - `git checkout .` #本地所有修改的。没有的提交的，都返回到原来的状态（删除不了请参考下方的`git clean`用法）
-    - `git checkout test.txt` 丢弃修改
+    - `git checkout test.txt` **丢弃修改**
 - `git stash` #把所有没有提交的修改暂存到stash里面。可用git stash pop恢复。
-- `git reset --hard HASH` #返回到某个节点，不保留修改。如：`git reset --hard HEAD`，`git reset --hard 8a222ba`
-- `git reset --soft HASH` #返回到某个节点。保留修改
+- `git reset --hard HASH` 返回到某个节点，不保留修改。如：`git reset --hard HEAD`，`git reset --hard 8a222ba`
+- `git reset --soft HASH` 返回到某个节点，保留修改
 
 ### 删除文件
 

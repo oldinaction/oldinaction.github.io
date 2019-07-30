@@ -110,6 +110,7 @@ tags: [vmware, linux, centos]
 - xshell卡在`To escape to local shell, press 'Ctrl+Alt+]'.`
     - 关闭防火墙
     - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
+- 虚拟机提示`请按“获取所有权(T)”`：找到虚拟机所在目录，将`.lck`文件删除和备份成`.lck.bak`，然后重新获取所有权即可
 
 ## windows安装
 

@@ -56,6 +56,12 @@ tags: [tag1, tag2, tag3]
 
 - 子列表基于父列表要有一个Tab缩进（4个空格），中间无需空行
 
+### 链接
+
+- 图片格式如：`![hello](/data/images/2017/07/hello.png)`
+- 内部链接格式如：`[《nginx》http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)`，其中`#`后面为完整子标题
+- hexo转义字符：`{: &#123;`、`}: &#125;` (如写vue代码的时会出现双括号导致hexo编译失败)
+
 ### 脚注
 
 脚注支持链接跳转，注意脚注与被批注文本之间有一个空格
@@ -110,12 +116,6 @@ tags: [tag1, tag2, tag3]
 - `npm install -g hexo-cli` 全局安装hexo
 - `npm install` 初始化
 - 按照上述【修改文章后保存源码并更新博客】进行部署
-
-### 格式
-
-- 图片格式如：`![hello](/data/images/2017/07/hello.png)`
-- 内部链接格式如：`[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)`，其中`#`后面为完整子标题
-- hexo转义字符：`{: &#123;`、`}: &#125;` (如写vue代码的时会出现双括号导致hexo编译失败)
 
 ### 功能
 

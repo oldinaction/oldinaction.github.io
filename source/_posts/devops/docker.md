@@ -117,10 +117,11 @@ Commands:
         -v  # 挂在本地目录或文件到容器中去做数据卷，可以使用多个 -v. eg: -v /home/smalle/logs:/temp/app，也可以使用volume数据卷
             # 目录或者文件映射，需要先在宿主机创建此文件或目录。如果要映射出来的目录中存在文件，则需要新创建对应的文件，docker不会进行初始化这些文件
         -e  # 设置环境变量，eg: -e MYSQL_HOST=localhost -e MYSQL_DATABASE=aezocn
-        --name      # 指定启动容器名称
+        --name      # 指定启动容器名称(从Docker 1.10 版本开始，docker daemon 实现了一个内嵌的DNS server，使容器可以直接通过"容器名"通信)
         --network   # 指定使用的网络
         --restart   # 重启模式：--restart=always失败永远重启(包括宿主主机开机后自启动)
         --link      # 链接其他容器。eg：docker run --link my_nginx my_db -d wordpress # 表示在wordpress中可以放访问被链接容器
+        -h  # 指定容器的hostname。eg：-h aezocn
     save      Save an image to a tar archive                # 保存一个镜像为一个 tar 包[对应 load]
     search    Search for an image on the Docker Hub         # 在 docker hub 中搜索镜像
     start     Start a stopped containers                    # 启动容器
@@ -211,12 +212,120 @@ Run 'docker COMMAND --help' for more information on a command.
         - 无法连接外网分析：[http://blog.aezo.cn/2019/06/20/linux/network/](/_posts/linux/network.md#TTL=1导致虚拟机/docker无法访问外网)
 - docker部署在本地虚拟机上
     - 此时docker的宿主主机为虚拟机，虚拟机和本地机器属于同一网络。然后在docker中启动一个容器，docker会自动在宿主主机上创建一个虚拟网络，用于桥接宿主主机和容器内部网络
-    - **容器会继承docker宿主主机的网络**，在容器内部是可以向外访问到宿主主机所在网络，如可以访问到本地机器。
-    - 在宿主主机上默认无法访问容器网络(端口)，可以通过给此容器开启port(如：8080:80)端口映射达到宿主主机访问
-    - 在本地机器中默认也是无法访问容器内网络，当开启端口映射时，可通过访问宿主主机的映射端口(8080)达到访问容器的内部端口(80)
+    - **容器会继承docker宿主主机的网络**，在容器内部是可以向外访问到宿主主机所在网络，如本地物理机
+    - 在本地物理机中默认是无法访问容器内网络，当开启端口映射8080:80时，可通过访问宿主主机的映射端口(8080)达到访问容器的内部端口(80)
 - docker部署在内网的其他机器上，同上理。需要注意容器内部访问宿主主机内网其他机器时，需要该机器没有开启VPN，虚拟网卡(会产生多个ip)等
 
-### docker与外网连通
+### docker跨容器通信
+
+- none、host、bridge、joined解决了单个 Docker Host 内容器通信的问题
+- 跨容器通信解决方案
+    - 可通过直接路由方式(NAT)
+    - 桥接方式(如pipework)完成跨容器通信(二层VLAN网络，大二层方式，只适合小于4096节点集群，且存在广播风暴问题)
+    - docker 内置的 Overlay和 macvlan 则解决了跨容器通信，第三方方案常用的包括 flannel、weave 、calico
+- Overlay网络
+    - Overlay网络是指在不改变现有网络基础设施的前提下，通过某种约定通信协议，把二层报文封装在IP报文之上的新的数据格式。这样不但能够充分利用成熟的IP路由协议进程数据分发，而且能够突破VLAN的4096数量限制，支持高达16M的用户，并在必要时可将广播流量转化为组播流量，避免广播数据泛滥
+    - 三种Overlay的实现标准，分别是：虚拟可扩展LAN(VxLAN)、采用通用路由封装的网络虚拟化(NVGRE)和无状态传输协议(SST)，其中以VxLAN的支持厂商最为雄厚，VxLan数据包格式
+
+        ![network-vxlan](/data/images/linux/network-vxlan.png)
+- 为支持容器跨主机通信，Docker 提供了 overlay driver。Docerk overlay 网络需要一个 key-value 数据库用于保存网络状态信息，包括 Network、Endpoint、IP 等。Consul、Etcd 和 ZooKeeper 都是 Docker 支持的 key-vlaue 软件
+- Overlay方案实践(Host0: 192.168.6.10, Host1: 192.168.6.131, Host2: 192.168.6.132) [^11] [^12]
+
+```bash
+## 准备 overlay 环境(Linux 3.10.0-957.el7.x86_64 可成功部署)
+# Host0 部署 Consul 数据库容器(也可下载tar安装包进行安装，见下文；也可创建集群)。容器启动后，可以通过 http://192.168.6.10:8500 访问 Consul
+docker run -d -p 8500:8500 -h consul --name consul --restart=always progrium/consul -server -bootstrap
+# 修改各个节点(Host1、Host2) docker daemon 的配置文件 /usr/lib/systemd/system/docker.service，在 ExecStart 最后添加下列配置
+# -H 开启本地和远程监听；--cluster-store 指定 consul 的地址；--cluster-advertise 告知 consul 自己的连接地址，ens33为当前节点的ip地址对应的网卡，也可以直接填写ip地址
+-H unix:///var/run/docker.sock -H 0.0.0.0:6376 --cluster-store=consul://192.168.6.10:8500 --cluster-advertise=ens33:6376
+# 重启docker(必须保证consul是正常运行的，因此Host0通过容器启动consul后则无法加入到跨主机通信中)。host1 和 host2 将自动注册到 Consul 数据库中(Key/Values - docker - nodes)
+systemctl daemon-reload
+systemctl restart docker
+
+## 创建 overlay 网络
+# 在 Host1创建网络overlay网络。-d 网络驱动driver使用overlay
+docker network create -d overlay ov_net1 # docker network create -d overlay --subnet 10.10.0.0/24 ov_net1 # 指定子网范围(默认为10.0.0.0/24)
+# 查看 Host1 和 Host2 网络：此时发现两个节点都有网络 ov_net1，且其 SCOPE 为 global
+# 因为创建 ov_net1 时 host1 将 overlay 网络信息存入了 consul，host2 从 consul 读取到了新网络的数据。之后 ov_net 的任何变化都会同步到 host1 和 host2
+docker network ls
+# 查看详细信息：IPAM 是指 IP Address Management，docker 自动为 ov_net1 分配的 IP 空间为 10.0.0.0/24
+docker network inspect ov_net1
+
+## 在 overlay 中运行容器
+# 在 Host1 创建一个 busybox1
+# **--name为hostname，此时使用overlay，相当于容器在一个局域网中，应该尽量保证hostname不重复**
+docker run -itd --name busybox1 --network ov_net1 busybox
+# 查看busybox的网络配置：busybox1 有两个网络接口 eth0 和 eth1
+# eth0 IP 为 10.0.0.2，连接的是 overlay 网络 ov_net1
+# eth1 IP 为 172.18.0.2，容器的默认路由是走 eth1。其实，docker 会在宿主机上创建一个 bridge 网络"docker_gwbridge"，为所有连接到 overlay 网络的容器提供访问外网的能力
+docker exec busybox1 ip a
+# Host1 上查看网桥网络信息：docker_gwbridge 的 IP 地址范围是 172.18.0.0/16，当前连接的容器就是 busybox1（172.18.0.2）
+docker network inspect docker_gwbridge
+# Host1 宿主机上查看：而且此网络的网关就是网桥 docker_gwbridge 的 IP 172.18.0.1；这样容器 busybox1 就可以通过 docker_gwbridge 访问外网
+ifconfig docker_gwbridge
+
+## overlay 网络连通性
+# Host2 中运行 busybox
+docker run -itd --name busybox2 --network ov_net1 busybox
+# 互通测试：Host2上容器 ping Host1上容器
+docker exec busybox2 ping -c 2 busybox1
+
+## Overlay 网络默认隔离
+# 不同overlay网络进行访问。此时busybox3位于Host1的ov_net2网络上
+docker network connect ov_net1 busybox3
+```
+
+- 原理说明
+
+    ![docker-overlay-1](/data/images/devops/docker-overlay-1.png)
+
+    - network namespace
+        - docker 会为每个 overlay 网络创建一个独立的 network namespace，其中会有一个 linux bridge br0， veth pair 一端连接到容器中（即 eth0），另一端连接到 namespace 的 br0 上
+        - br0 除了连接所有的 veth pair，还会连接一个 vxlan 设备，用于与其他 host 建立 vxlan tunnel。容器之间的数据就是通过这个 tunnel 通信的
+        - 查看 overlay 网络的 namespace
+             
+            ````bash
+            # 查看 overlay 网络的 namespace
+            ln -s /var/run/docker/netns /var/run/netns
+            # 如显示的`1-e5c4953846`标识会在 `docker network ls` 找到类似的NETWORK ID(开头一直，可能最后几个字母没有显示)
+            ip netns
+            # 查看此命名空间网络接口，包含有：lo、br0、vxlan1、veth2@if455(veth2)
+                # vxlan1 为 overlay network的一个 VTEP，即VXLAN Tunnel End Point – VXLAN隧道端点。VXLAN的相关处理都在VTEP上进行，例如识别以太网数据帧所属的VXLAN、基于 VXLAN对数据帧进行二层转发、封装/解封装报文等
+                # 同一个overlay网络中，每个docker对应一个vethx(`docker exec -it centos1 ethtool -S eth0` 显示的网卡序号和此时查询到的vethx的序号会相互对应)
+            # ip netns exec 1-e5c4953846 xxx 相当于基于此 network namespace 运行相关网络命令。也可进行抓包：ip netns exec 1-e5c4953846 tcpdump -i veth2 -n icmp
+            ip netns exec 1-e5c4953846 ip a
+            # 查看此命名空间网桥接口
+            ip netns exec 1-e5c4953846 brctl show
+            ```
+    - 数据流向
+        - 同一个Overlay网络不同宿主机
+            - 数据包从容器eth0发出
+            - 经过vxlan1时进行VxLAN封包处理(这期间会查询consul中存储的overlay信息)，将ICMP包(ping)整体作为UDP包的payload封装起来，并将UDP包通过宿主机的eth0发送出去
+            - 宿主机收到UDP包后，发现是VXLAN包，根据VXLAN包中的相关信息(比如Vxlan Network Identifier，VNI=256)找到vxlan设备，并转给该vxlan设备处理
+            - vxlan设备的处理程序进行解包，并将UDP中的payload取出，整体通过br0转给vethx接口
+        - 不同Overlay网络相同宿主机：数据包从容器eth1发出，经过docker_gwbrige进行传输。普通网络是桥接在docker0网卡上，而所有Overlay网络则桥接在docker_gwbrige网卡上进行通讯
+
+- 手动安装[Consul](https://www.consul.io/)
+    - Consul是一个分布式高可用的系统，可用于服务发现、Key/Value存储等
+
+```bash
+wget https://releases.hashicorp.com/consul/1.5.2/consul_1.5.2_linux_amd64.zip
+# 只有一个consul二进制文件
+unzip consul_1.5.2_linux_amd64.zip
+sudo mv consul /bin
+# 启动server(无ui界面，需要单独下载consul_ui文件，然后使用参数指定界面路径)
+nohup sudo consul agent -server -bootstrap -data-dir /home/data/consul -bind=192.168.6.10 -client 0.0.0.0 > ./nohup.out 2>&1 &
+
+## HA(可以启动一个server和多个agent，然后让agent节点join到consul集群中)
+# 在另一台机器上启动agent进行HA部署
+nohup sudo consul agent -data-dir /home/data/consul -bind=192.168.6.11 > ./nohup.out 2>&1 &
+# 如果脚本运行，则需要先启动客户端后暂停几秒再执行join命令
+consul join 192.168.6.10
+
+## 其他命令
+# 查看个节点状态
+consul members
+```
 
 ## Dockerfile
 
@@ -484,11 +593,13 @@ volumes:
 
 > https://hub.docker.com
 
-- 官方提供的centos镜像，无netstat、sshd等服务，测试可进行安装
+- `centos` 官方提供的centos镜像，无netstat、sshd等服务，测试可进行安装
+    - `docker run -itd --name centos centos`
     - 安装netstat：`yum install net-tools`
     - 安装sshd：`yum install openssh-server`，启动如下：
         - `mkdir -p /var/run/sshd`
         - `/usr/sbin/sshd -D &`
+- `docker run -itd --name ubuntu ubuntu:14.04`
 - `java:8-jre` 一般是docker-compose中引入
 
 ### nginx
@@ -787,6 +898,23 @@ docker pull 192.168.17.196:10010/sq-eureka/sq-eureka:0.0.1-SNAPSHOT
 - 常见问题
     - registry服务一直处于`restarting`，且日志/var/log/harbor/xxx/registry.log报错`open /etc/registry/root.crt: no such file or directory`。主要是prepare源码有问题导致时没有生成文件/etc/registry/root.crt，具体参考https://www.cnblogs.com/breezey/p/9111894.html
 
+## Docker集群管理
+
+- 轻量级的开源 docker 管理工具有 `portainer`，重量级的有 `rancher`。如果服务不多，集群节点不多的话一般 portainer 足以胜任；如果是大型集群的话可以考虑 rancher
+
+### Docker远程TLS管理
+
+- docker进程
+    - docker 容器进程：就是运行在 docker 容器中的应用进程，比如你用 docker 启动的 web 应用，数据库等
+    - docker 守护进程：docker 的设计是 C/S 模式，docker 守护进程运行在宿主机上，它默认监听`/var/run.docker.sock`(unix 域套接字)文件，本机的 docker 客户端是默认通过 /var/run.docker.sock 来与 docker 守护进程进行通信的
+- 直接开启远程访问，无安全措施
+    - `dockerd -H 0.0.0.0` 监听所有tcp连接，默认端口是6375。在systemd下，则需要修改docker.service的ExecStart
+    - 在当前容器上可以执行另一容器的命令 `docker -H tcp://192.168.6.131:6375 ps`
+- 安全的Docker访问(TLS)
+
+
+
+
 ## 启动SpringCloud应用
 
 - 配置如下，需要启动的所有maven子项目都需要加下列配置 [^5]
@@ -978,5 +1106,6 @@ services:
 [^8]: https://yq.aliyun.com/articles/230067 (Docker --format 格式化输出概要操作说明)
 [^9]: https://blog.csdn.net/hjxzb/article/details/84927567
 [^10]: https://www.cnblogs.com/lienhua34/p/5170335.html
-
+[^11]: https://blog.51cto.com/wzlinux/2112061
+[^12]: https://tonybai.com/2016/02/15/understanding-docker-multi-host-networking/
 

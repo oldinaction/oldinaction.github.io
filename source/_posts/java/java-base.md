@@ -89,18 +89,34 @@ private static enum YellEnum implements Yell {
 
 ## 集合
 
-### 易错点
+## 易错点
 
 - 时间转换
 
-https://bbs.csdn.net/topics/390666151
-https://docs.oracle.com/javase/9/docs/api/java/text/SimpleDateFormat.html
-2013-11-17T11:59:22+08:00 UTC(世界协调时间格式)
+```java
+// https://bbs.csdn.net/topics/390666151
+// https://docs.oracle.com/javase/9/docs/api/java/text/SimpleDateFormat.html
+// 2013-11-17T11:59:22+08:00 UTC(世界协调时间格式)
 formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"); // 2013-11-17 11:59:22
-2013-11-17T11:59:22+0800
+// 2013-11-17T11:59:22+0800
 formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX"); // 2013-11-17 11:59:22
 
-1970-01-01T00:00:00.007Z
+// 1970-01-01T00:00:00.007Z
 formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+```
 
+- final
+
+```java
+// final Integer i = 1;
+// i = 2;// 语法错误
+
+// final Map map = new HashMap();
+// map.put("a", 1); // 运行正常
+// map = new HashMap(); // 语法错误
+
+for (int i = 0; i < list.size(); i++) {
+    final Map map = list.get(i); // 赋值正常，后面同样不能变更map引用
+}
+```
 

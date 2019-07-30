@@ -16,7 +16,7 @@ tags: [oracle, dba]
     - `db_name`: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
     - `instance_name`: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
     - `oracle_sid`: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE_SID。此参数与ORACLE_BASE、`ORACLE_HOME`等用法相同。在数据库安装之后，ORACLE_SID被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。
-2. `service_name`：是网络服务名(如：local_orcl)，可以随意设置。相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称（如：`local_orcl=(...)`），也是登录pl/sql是填写的Database。
+2. `service_name`：是网络服务名(如：local_orcl)，可以随意设置，相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称(如：`local_orcl=(...)`)，也是登录pl/sql是填写的Database
 3. `schema` schema为数据库对象的集合，为了区分各个集合，需要给这个集合起个名字，这些名字就是我们看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个schema。schema里面包含了各种对象如tables, views, sequences, stored procedures, synonyms, indexes, clusters, and database links。一个用户一般对应一个schema，该用户的schema名等于用户名，并作为该用户缺省schema
 
 ## oracle及pl/sql安装和使用
@@ -45,11 +45,11 @@ Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call In
 
 ### 网络配置
 
-1. Net Manager的使用
-    - `本地-监听程序-LISTENER`中的主机要为计算机全名(如：ST-008)，对应文件`listener.ora`
-        - 使用pl/sql也需要配置，且第一个地址需要类似配置为`TCP/IP，ST-008，1521`
-    - `本地-服务命名`下的都为`网络服务名`。对应文件`tnsnames.ora`
-3. 文本操作
+- Net Manager的使用(`$ORACLE_HOME/BIN/launch.exe`)
+    - `本地-监听程序-LISTENER`中的主机要为计算机全名(如：ST-008)，对应文件`$ORACLE_HOME/NETWORK/ADMIN/listener.ora`
+        - 使用pl/sql也需要配置，且第一个ADDRESS需要类似配置为`TCP/IP，ST-008，1521`
+    - `本地-服务命名`下的都为`网络服务名`，对应文件`tnsnames.ora`
+- 文本操作
     - 使用sqlplus登录时，可直接修改`$ORACLE_HOME/NETWORK/ADMIN/tnsnames.ora`
     - 安装了pl/sql，可能需要修改tnsnames.ora的文件路径类似与`D:\java\oracle\product\instantclient_10_2\tnsnames.ora`。此时oracle自带的tnsnames.ora将会失效
     - 配置实例：HOST/PORT分别为远程ip地址和端口，SERVICE_NAME为远程服务名，aezocn为远程服务名别名(本地服务名)
@@ -66,17 +66,17 @@ Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call In
             )
           )
         ```
-3. 如果oracle服务在远程机器上，本地通过plsql连接，则不需要在本地启动任何和oracle相关的服务。如果本地机器作为oracle服务器，则需要启动OracleServiceORCL，此时只能在命令行连接数据库，如果需要通过plsql连接则需要启动类似"OracleOraDb11g_home1TNSListener"的TNS远程监听服务。
+- 如果oracle服务在远程机器上，本地通过plsql连接，则不需要在本地启动任何和oracle相关的服务。如果本地机器作为oracle服务器，则需要启动OracleServiceORCL，此时只能在命令行连接数据库，如果需要通过plsql连接则需要启动类似"OracleOraDb11g_home1TNSListener"的TNS远程监听服务
 
 ## 创建表空间 [^2]
 
 oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库。创建了表空间并没有创建数据库实例
 
-1. 登录：`sqlplus / as sysdba`
-2. 创建表空间：`create tablespace aezocn datafile 'd:/tablespace/aezo' size 800m extent management local segment space management auto;` ，要先建好路径 d:/tablespace ，最终会在该目录下建一个 AEZO 的文件(表空间之后可以修改)
+- 登录：`sqlplus / as sysdba`
+- 创建表空间：`create tablespace aezocn datafile 'd:/tablespace/aezo' size 800m extent management local segment space management auto;` ，要先建好路径 d:/tablespace ，最终会在该目录下建一个 AEZO 的文件(表空间之后可以修改)
     - 删除表空间：`drop tablespace aezocn including contents and datafiles;`
-3. 创建用户：`create user aezo identified by aezo default tablespace aezocn;`
-4. 授权
+- 创建用户：`create user aezo identified by aezo default tablespace aezocn;`
+- 授权
     - `grant create session to aezo;`
     - `grant unlimited tablespace to aezo;`
     - `grant dba to aezo;` 导入导出时，只有dba权限的账户才能导入由dba账户导出的数据，因此不建议直接设置用户为dba
@@ -344,7 +344,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
     - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
     - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
 - 用户相关查询
-    - 查看当前用户默认表空间：`select username, default_tablespace from user_users;`(以dba登录则结果为SYS和SYSTEM)
+    - **查看当前用户默认表空间**：`select username, default_tablespace from user_users;`(以dba登录则结果为SYS和SYSTEM)
     - 查看当前用户角色：`select * from user_role_privs;`
     - 查看当前用户系统权限：`select * from user_sys_privs;`
     - 查看当前用户表级权限：`select * from user_tab_privs;`
@@ -383,6 +383,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
 - 数据库组件相关的数据字典(`v$`代表视图)
     - 数据库：
         - `v$database` 同义词v_$database，记录系统的运行情况
+        - `v$instance` 实例
     - 控制文件：
         - `v$controlfile` 记录系统控制文件的路径信息
         - `v$parameter` 记录系统各参数的基本信息
@@ -391,15 +392,21 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
         - `v$datafile` 记录来自控制文件的数据文件信息
         - `v$filestat` 记录数据文件读写的基本信息
 
+### 日志文件
+
+- oracle的日志文件有几种：警告日志，trace日志，audit日志，redo日志，归档日志
+    - alert警告日志：在10g版本系统初始化参数文件设置的`show parameter background_dump_dest`对应的就是它的位置
+        - 在ORACLE 11g以及ORACLE 12c中告警日志文件目录 `select * from v$diag_info;` (11g以上主要是因为引入了ADR：Automatic Diagnostic Repository一个存放数据库alert日志、trace日志目录)
+    - trace日志：一般放seesion追踪的信息，10g对应系统初始化参数文件参数`show parameter user_dump_dest`
+    - audit日志：审计的信息，10g对应系统初始化参数文件参数`audit_file_dest`
+    - redo日志：存放数据库的更改信息，`select member from v$logfile;` member就代表它的位置
+    - 归档日志：redo日志的历史备份，`select * from v$parameter where name like 'log_archive_dest%';`
+- 在日志文件目录列举文件：`ll -rt *.trc`
+    - `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.（**主要看*.trc文件**）
+    - 如：`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
+
 ### 常见错误
 
-- 常用技巧
-    - 常看日志文件目录 `show parameter background_dump_dest`
-    - 在ORACLE 11g 以及ORACLE 12c中，告警日志文件的位置有了变化。主要是因为引入了ADR(Automatic Diagnostic Repository:一个存放数据库诊断日志、跟踪文件的目录)，关于ADR对应的目录位置可以通过查看v$diag_info系统视图。`select * from v$diag_info;`
-    - `alert_orcl.log` 该目录下的日志文件
-    - 在日志文件目录列举文件：`ll -rt *.trc`
-        - `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.（**主要看*.trc文件**）
-        - 如：`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
 - 数据库服务器CPU飙高，参考《Java应用服务器及数据库服务器的CPU和内存异常分析》【数据库服务器故障】
 - 表空间数据文件丢失，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
     - oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉
@@ -418,6 +425,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
         - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
 
             ```sql
+            -- 查看表空间
             select a.tablespace_name "表空间名",
                 a.bytes / 1024 / 1024 "表空间大小(m)",
                 (a.bytes - b.bytes) / 1024 / 1024 "已使用空间(m)",
@@ -433,6 +441,11 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
                     from dba_free_space
                 group by tablespace_name) b
             where a.tablespace_name = b.tablespace_name
+
+            -- 查看oracle临时表空间
+            select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
+            from dba_temp_files
+            group by tablespace_name, file_name, autoextensible, increment_by
             ```
     - `ORA-01654:unable to extend index`，解决步骤 [^8]
         - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经32G(表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)

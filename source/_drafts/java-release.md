@@ -44,16 +44,21 @@ accessDbInfos.forEach(item -> {
 
 ### Streams
 
-- Java 8 中的 Stream 是对集合（Collection）对象功能的增强。`java.util.stream`
-- Intermediate
-    - 一个流可以后面跟随零个或多个 intermediate 操作 
-    - map (mapToInt, flatMap 等)、 filter、 distinct、 sorted、 peek、 limit、 skip、 parallel、 sequential、 unordered
-- Terminal
-    - 一个流只能有一个 terminal 操作，当这个操作执行后，流就被使用"光"了，无法再被操作。(此时进行遍历)
-    - forEach、 forEachOrdered、 toArray、 reduce、 collect、 min、 max、 count、 anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 iterator
-- Short-circuiting
-    - 对于一个无限大的Stream时，需要获取返回一个有限的新Stream或快速计算出值时需要进行过滤
-    - anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 limit
+- Java 8 中的 `Stream` 是对集合(Collection)对象功能的增强。`java.util.stream`
+    - Stream 不是集合元素，它不是数据结构并不保存数据，它是有关算法和计算的，它更像一个高级版本的 Iterator。原始版本的 Iterator，用户只能显式地一个一个遍历元素并对其执行某些操作；高级版本的 Stream，用户只要给出需要对其包含的元素执行什么操作，比如"过滤掉长度大于 10 的字符串"、"获取每个字符串的首字母"等，Stream 会隐式地在内部进行遍历，做出相应的数据转换
+    - Stream 就如同一个迭代器(Iterator)，单向，不可往复，数据只能遍历一次，遍历过一次后即用尽了，就好比流水从面前流过，一去不复返
+    - 而和迭代器又不同的是，Stream 可以并行化操作(依赖于 Java7 中引入的 Fork/Join 框架)，迭代器只能命令式地、串行化操作
+- 常用API
+    - `Intermediate`(中间操作)
+        - 一个流可以后面跟随零个或多个 intermediate 操作 
+        - map (mapToInt, flatMap 等)、 filter、 distinct、 sorted、 peek、 limit、 skip、 parallel、 sequential、 unordered
+    - `Terminal`(最终遍历)
+        - 一个流只能有一个 terminal 操作，当这个操作执行后，流就被使用"光"了，无法再被操作(**此时进行遍历**)
+        - forEach、 forEachOrdered、 toArray、 reduce、 collect、 min、 max、 count、 anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 iterator
+    - `Short-circuiting`(分流/过滤)
+        - 对于一个无限大的Stream时，需要获取返回一个有限的新Stream或快速计算出值时需要进行过滤
+        - anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 limit
+- 简单示例
 
 ```java
 // ## 构造流
@@ -94,6 +99,11 @@ List<Integer> nos = students
                     .sorted()
                     .collect(Collectors.toList());
 ```
+
+- parallelStream
+    - https://blog.csdn.net/u011001723/article/details/52794455
+
+
 
 
 ---
