@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "Kubernetes"
+title: "Helm (K8s包管理器)"
 date: "2019-06-22 12:38"
 categories: devops
 tags: [k8s]
