@@ -130,6 +130,10 @@ thymeleafViewResolver.setStaticVariables(context);
         <span th:text="${item}"></span>
     </th:block>
 </th:block>
+<!-- th:each使用再option上，而不是在select上，防止select不渲染 -->
+<select>
+    <option th:each="item:${list}" th:value="${item.id}" th:text="${item.name}"></option>
+</select>
 
 <!-- 循环，自定义变量，三元运算符，字符串可直接==比较 -->
 <div class="layui-row">

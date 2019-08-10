@@ -126,7 +126,7 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 ```
-- 参考配置文件[/data/src/java/logback.xml](/data/src/java/logback.xml)和表结构(如果保存在数据库中时)文件[/data/src/java/logback.xml](/data/src/java/logback.sql)
+- 参考配置文件[/data/src/java/logback-spring.xml](/data/src/java/logback-spring.xml)和表结构(如果保存在数据库中时)文件[/data/src/java/logback.sql](/data/src/java/logback.sql)
 - springboot的日志配置文件`<include resource="org/springframework/boot/logging/logback/base.xml"/>`。里面包含参数`<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>`, 表示为配置LOG_PATH等环境变量时，在linux环境下会自动创建`/tmp/spring.log`文件作为日志输出文件，而/tmp目录一般只有使用root用户运行项目才可以创建此文件
 - `System.getproperty("java.io.tmpdir")`可获取操作系统缓存的临时目录。不同操作系统的缓存临时目录不一样，Linux：`/tmp`，Windows如：`C:\Users\smalle\AppData\Local\Temp\`
 
@@ -240,6 +240,8 @@ public void test() {
 }
 ```
 - 实现`ApplicationContextAware`接口
+    - 下列工具相当于把`ApplicationContext`存储在属性中，其他类对象可通过此对象属性获取ApplicationContext
+    - 上述其他类对象，如自行new的对象中需要注入其他Bean，此时当前类没有被Spring托管，则可通过SpringContextU中间缓存获取
 
 ```java
 @Component("springContextU")
@@ -644,9 +646,9 @@ public String hello(User user) {}
 @RequestMapping(value="/hello/{id}")
 public String user(@PathVariable("id") Integer id) {}
 
-// 多文件上传时Layui会重复请求此接口多次
+// 多文件上传时Layui会重复请求此接口多次. MultipartFile 并非 File对象，可通过 InputStream/OutputStream 将 MultipartFile 转换成 File
 @RequestMapping(value = "/upload", method = RequestMethod.POST)
-public String uploading(@RequestParam("file") MultipartFile file) {}
+public String uploading(@RequestParam("file") MultipartFile file, String otherFiled) {}
 
 // 如请求头为`application/json`，此body中为一个json对象(请求时无需加 data={} 等key，直接为 {} 对象)。
 // 获取body中的参数，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以转成成功Map，此处也可以用Map<String, Object>接受
@@ -842,7 +844,7 @@ public MultipartConfigElement multipartConfigElement() {
 
 ### 整合mybatis
 
-参考：[http://blog.aezo.cn/2017/05/22/java/mybatis/](/_posts/java/mybatis)
+参考：[http://blog.aezo.cn/2017/05/22/java/mybatis/](/_posts/java/mybatis#mybatis-plus)
 
 ### 事物支持 [^10]
 
@@ -1195,12 +1197,18 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-thymeleaf</artifactId>
 	</dependency>
-	<!--可选：使用layout布局时需要用到-->
+	<!--可选：使用layout布局时需要用到（Springboot2.0.1必须，Springboot1.5.6无需）-->
 	<dependency>
 		<groupId>nz.net.ultraq.thymeleaf</groupId>
 		<artifactId>thymeleaf-layout-dialect</artifactId>
 	</dependency>
 
+    <!-- 可选：启用thymeleaf的html非严格模式 -->
+    <dependency>
+        <groupId>net.sourceforge.nekohtml</groupId>
+        <artifactId>nekohtml</artifactId>
+        <version>1.9.22</version>
+    </dependency>
 	<!-- 可选：thymeleaf和springsecurity结合在页面级别进行权限控制 -->
 	<!--<dependency>
 		<groupId>org.thymeleaf.extras</groupId>

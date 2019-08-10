@@ -1,7 +1,7 @@
 ---
 layout: "post"
 title: "Kubernetes"
-date: "2019-06-01 12:38"
+date: "2019-06-22 12:38"
 categories: devops
 tags: [k8s]
 ---

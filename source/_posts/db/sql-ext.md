@@ -11,6 +11,19 @@ tags: [sql, oracle, mysql]
 - mysql书写顺序和执行顺序都是按照`select-from-where-group by-having-order by-limit`进行的
 - MySQL中子结果集必须使用别名，而Oracle中不需要特意加别名
 
+## 不同数据库差异
+
+### 数据类型转换
+
+- `CAST()`和 `CONVERT()` 可将一个类型转成另外一个类型
+    - 语法：CAST(expr AS type)、CONVERT(expr, type)、CONVERT(expr USING transcoding_name)   
+    
+```sql
+-- mysql、h2。可用类型：二进制 BINARY、字符型，可带参数 CHAR()、日期 DATE、TIME、DATETIME、浮点数 DECIMAL、整数 SIGNED、无符号整数 UNSIGNED
+-- 可将LONG/CLOB等转成字符串
+select cast(ID as char) from user limit 1;
+```
+
 ## Mysql
 
 ### 常见问题
@@ -37,7 +50,6 @@ tags: [sql, oracle, mysql]
 
 - 时间函数
 	- `update t_test t set t.update_tm = sysdate() where id = 1` 其中`sysdate()`可获取当前时间
-	- ``
 - `select * from t_test where instr(username, char(13)) > 0 or instr(username, char(10)) > 0` 查找表中某字段含有`\r\n`的数据
 	- linux/unix下的行结尾符号是`\n`，windows中的行结尾符号是`\r\n`，Mac系统下的行结尾符号是`\r`
 	- 回车符：\r=0x0d (13) (carriage return)

@@ -203,8 +203,9 @@ tags: [mybatis, springboot]
         ```java
         // Dao层，mybatis会基于此注解完成对应的实现
         // 可以理解为查询sql语句返回的是一个List<Map<String, Object>>(List里面必须为Map或其子类)。如果用Map<String, Object>接受返回值则默认取第一条数据
+        // 使用双引号重命名字段解决返回数据字段全变大写
         @Select({ "<script>",
-            "select h.help_id, h.apply_money, h.create_time, h.creator, h.description, h.is_comfort, h.is_valid, h.title, h.update_time, h.updater ",
+            "select h.help_id as \"help_id\", h.apply_money, h.create_time, h.creator, h.description, h.is_comfort, h.is_valid, h.title, h.update_time, h.updater ",
             "   , e.name",
             " from th_help as h ",
             "   left join th_event e on e.event_id = h.event_id",
@@ -315,6 +316,7 @@ tags: [mybatis, springboot]
 				<!--设置mybatis.configuration.map-underscore-to-camel-case=true则会自动对格式进行转换, 无需下面转换-->
 				<!--<result column="group_id" property="groupId" jdbcType="BIGINT"/>-->
 				<!--<result column="nick_name" property="nickName" jdbcType="VARCHAR"/>-->
+                <result column="desc" property="desc" jdbcType="BLOB"/><!-- BLOB/CLOB 类型必须转换 -->
 			</resultMap>
 
 			<!--sql:可被其他语句引用的可重用语句块. id:唯一的标识符，可被其它语句引用-->
@@ -464,7 +466,6 @@ tags: [mybatis, springboot]
 - Mybatis的数据类型用JDBC的数据类型
 - JDBC数据类型转换
 
-
 JDBC | Java | Mysql | Oracle
 ---------|----------|---------|---------
 Integer | Integer | Int | 
@@ -476,6 +477,8 @@ Decimal | BigDecimal | Decimal | Number(20, 6)
 Char |  | Char | Char
  Blob |  | Blob | Blob
  Clob |  | Text | Clob
+
+- **BLOB为二进制大对象**，可存储图片(转成二进制，实际用的很少)；**CLOB文本大对象**，可用来存储博客文章等；Mybatis对CLOB可直接解析成字符串，而BLOB则需要些对应关系
 
 ## mybatis常见问题
 
@@ -769,6 +772,7 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 - springboot依赖
 
 ```xml
+<!-- 包含 mybatis、mybatis-plus、generator -->
 <dependency>
 	<groupId>com.baomidou</groupId>
 	<artifactId>mybatis-plus-boot-starter</artifactId>
@@ -776,11 +780,19 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 </dependency>
 ```
 - 使用
+    - 此处的`SubscribeService`继承了`ServiceImpl`，对应接口继承了`IService`
+    - 使用mapper，如`SubscribeMapper`则会继承`BaseMapper`
 
 ```java
 List<Subscribe> subscribes = subscribeService.list(
 	new LambdaQueryWrapper<Subscribe>()
 		.eq(Subscribe::getFlowStatus, 1));
+
+// 返回 List<Map<String, Object>>，此时LambdaQueryWrapper基于TemplateItem实体生成sql语句(sql语句驼峰会转成下划线，返回的Map中的key全为大写下划线)
+List<Map<String, Object>> list = templateItemDao.selectMaps(
+                new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
+                    .eq(TemplateItem::getTemplateId, 1)
+                    .eq(TemplateItem::getTemplateId, templateId));
 
 // 分页
 Page<Subscribe> subscribePage = new Page<>(0, 100);
@@ -792,6 +804,10 @@ LambdaQueryWrapper lambdaQueryWrapper = new LambdaQueryWrapper<Subscribe>()
 subscribePage = (Page<Subscribe>) subscribeService.page(subscribePage, lambdaQueryWrapper);
 List<Subscribe> subscribes =  subscribePage.getRecords();
 ```
+- 注解说明
+    - 如果Model主键名称不为`id`，则需要在对应主键字段上注解`@TableId`
+    - 如果Model名称不为表名，则可通过`@TableName`进行注解真实名称
+    - 如果Model的字段不为表字段，可通过`@TableField(exist = false)`注解
 - 乐观锁插件：https://mybatis.plus/guide/optimistic-locker-plugin.html
 
 ```java
@@ -811,6 +827,7 @@ User user = userMapper.selectById(1);
 user.setAge(18);
 int res = userMapper.updateById(user); // 1成功。生成的sql类似: update t_user set age = 18,version = 2 where id = 1 and version = 1
 ```
+- 使用
 
 
 ---

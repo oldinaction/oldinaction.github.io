@@ -9,8 +9,7 @@ tags: [k8s, docker]
 ## 简介
 
 - [官网](https://kubernetes.io/zh)、[github](https://github.com/kubernetes/kubernetes)、[Doc](https://kubernetes.io/zh/docs/)
-- Kubernetes中文指南/云原生应用架构实践手册：https://github.com/rootsongjc/kubernetes-handbook/
-- 视频相关文章：https://www.cnblogs.com/linuxk/category/1248289.html
+- 相关文章：https://github.com/rootsongjc/kubernetes-handbook/ 、 https://www.cnblogs.com/linuxk/category/1248289.html (视频相关) 、 https://feisky.gitbooks.io/kubernetes/content/
 
 ### 背景
 
@@ -30,6 +29,7 @@ tags: [k8s, docker]
     - `CD` 持续交付，Delivery
     - `CD` 持续部署，Deployment
     - `Service Mesh`
+- `kubefed``(Kubernetes Federation V2`) K8s 的设计定位是单一集群在同一个地域内，因为同一个地区的网络性能才能满足 K8s 的调度和计算存储连接要求。而集群联邦(Federation)就是为提供跨 Region 跨服务商 K8s 集群服务而设计的
 
 ### 概念
 

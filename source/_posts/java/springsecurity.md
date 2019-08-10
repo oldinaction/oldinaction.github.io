@@ -63,7 +63,7 @@ tags: [spring, springsecurity, springboot, oauth2]
             http.csrf().disable() // 关闭打开的csrf(跨站请求伪造)保护
                 .authorizeRequests()
                     .antMatchers("/manage/", "/manage/home", "/manage/about", "/manage/404", "/manage/403", "/thymeleaf/**").permitAll() // 这些端点不进行权限验证
-                    .antMatchers("/resources/**").permitAll() // idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/resources/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）
+                    .antMatchers("/res/**").permitAll() // idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/res/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）
                     .antMatchers("/manage/**").hasAnyRole("ADMIN") // 需要有ADMIN角色才可访问/admin
                     .antMatchers("/user/**").hasAnyRole("USER", "ADMIN") // 有USER/ADMIN角色均可
                     .anyRequest().authenticated() // (除上述忽略请求)所有的请求都需要权限认证
@@ -145,7 +145,7 @@ tags: [spring, springsecurity, springboot, oauth2]
             http.csrf().disable() // 关闭打开的csrf(跨站请求伪造)保护
                 .authorizeRequests()
                     .antMatchers("/favicon.ico", "/manage/", "/manage/index", "/manage/404", "/manage/403", "/thymeleaf/**").permitAll() // 这些端点不进行权限验证
-                    .antMatchers("/resources/**").permitAll() // idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/resources/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）
+                    .antMatchers("/res/**").permitAll() // idea的resources/static目录下的文件夹对应一个端点，相当于可以访问resources/static/res/下所有文件（还有一些默认的端点：/css/**、/js/**、/images/**、/webjars/**、/**/favicon.ico）
                     .antMatchers("/manage/**").hasAnyRole("ADMIN") // 需要有ADMIN角色才可访问/admin（有先后顺序，前面先定义的优先级高，因此比antMatchers("/**").hasAnyRole("USER", "ADMIN")优先级高）
                     .antMatchers("/**").hasAnyRole("USER", "ADMIN") // 有USER/ADMIN角色均可
                     .anyRequest().authenticated() // (除上述忽略请求)所有的请求都需要权限认证
@@ -161,7 +161,12 @@ tags: [spring, springsecurity, springboot, oauth2]
                     .and()
                 .logout().logoutUrl("/manage/logout").logoutSuccessUrl(Login_Uri).permitAll() // 访问"/manage/logout"登出，登出成功后跳转到"/manage/login"
                     .and()
-                .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+                .exceptionHandling()
+                    .accessDeniedHandler(accessDeniedHandler)
+                    // 默认未登录的请求会重定向到登录页面。如果项目仅提供API时，需直接返回错误数据
+                    .authenticationEntryPoint((request, response, e) -> {
+                        BaseController.writeError(response, "尚未认证");
+                    });
         }
 
         // 密码加密器 (5)
@@ -435,7 +440,9 @@ tags: [spring, springsecurity, springboot, oauth2]
             if(!SpringSecurityConfig.Login_Uri.equals(request.getRequestURI())) {
                 String authToken = request.getHeader(this.token_header);
                 if(StringUtils.isEmpty(authToken)) {
-                    throw new ExceptionU.AuthTokenInvalidException();
+                    // throw new ExceptionU.AuthTokenInvalidException(); // 这样会导致SpringSecurity公开路径无法访问。此时不进行获取认证对象，由后面拦截访问私有路径的
+                    chain.doFilter(request, response);
+                    return;
                 }
 
                 try {

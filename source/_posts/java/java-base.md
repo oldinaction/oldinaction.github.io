@@ -119,4 +119,11 @@ for (int i = 0; i < list.size(); i++) {
     final Map map = list.get(i); // 赋值正常，后面同样不能变更map引用
 }
 ```
+- mkdir和mkdirs
 
+```java
+// 创建此抽象路径名指定的目录。如果父目录不存在不会自动创建，也不会报错，返回false
+boolean mkdir()
+// 创建此抽象路径名指定的目录，包括创建必需但不存在的父目录 
+boolean mkdirs()
+```

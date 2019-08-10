@@ -62,17 +62,129 @@ tags: [plugins, debug]
 ## chrome插件开发
 
 - 中文文档：[http://open.chrome.360.cn/extension_dev/overview.html](http://open.chrome.360.cn/extension_dev/overview.html)
+- 参考文章：https://github.com/sxei/chrome-plugin-demo
 
-### helloword：改变网页背景颜色
+### 说明
+
+- manifest.json文件介绍
+
+```json
+// http://open.chrome.360.cn/extension_dev/manifest.html
+{
+	// 清单文件的版本，这个必须写，而且必须是2
+	"manifest_version": 2,
+	"name": "demo",
+	"version": "1.0.0",
+	"description": "简单的Chrome扩展demo",
+	// 插件图标
+	"icons":
+	{
+		"16": "img/icon.png",
+		"48": "img/icon.png",
+		"128": "img/icon.png"
+	},
+	// 是一个常驻的页面，它的生命周期是插件中所有类型页面中最长的，它随着浏览器的打开而打开，随着浏览器的关闭而关闭，所以通常把需要一直运行的、启动就运行的、全局的代码放在background里面。background的权限非常高，几乎可以调用所有的Chrome扩展API（除了devtools），而且它可以无限制跨域，也就是可以跨域访问任何网站而无需要求对方设置CORS
+	"background":
+	{
+		// 2种指定方式，如果指定JS，那么会自动生成一个背景页
+		"page": "background.html"
+		//"scripts": ["js/background.js"]
+	},
+    // 浏览器右上角图标设置，browser_action、page_action、app必须三选一。一个browser_action可以拥有一个图标，一个tooltip，一个badge和一个popup
+    // 点击`browser_action`或者`page_action`图标时，可打开的一个小窗口网页(popup)
+	"browser_action": 
+	{
+		"default_icon": "img/icon.png",
+		// 图标悬停时的标题，可选
+		"default_title": "这是一个示例Chrome插件",
+		"default_popup": "popup.html"
+	},
+	// 当某些特定页面打开才显示的图标
+	/*"page_action":
+	{
+		"default_icon": "img/icon.png",
+		"default_title": "我是pageAction",
+		"default_popup": "popup.html"
+	},*/
+	// 需要直接注入页面的JS。所谓content-scripts，其实就是Chrome插件中向页面注入脚本的一种形式（虽然名为script，其实还可以包括css的），借助content-scripts我们可以实现通过配置的方式轻松向指定页面注入JS和CSS（也可动态注入）
+	"content_scripts": 
+	[
+		{
+			//"matches": ["http://*/*", "https://*/*"],
+			// "<all_urls>" 表示匹配所有地址
+			"matches": ["<all_urls>"],
+			// 多个JS按顺序注入
+			"js": ["js/jquery-1.8.3.js", "js/content-script.js"],
+			// JS的注入可以随便一点，但是CSS的注意就要千万小心了，因为一不小心就可能影响全局样式
+			"css": ["css/custom.css"],
+			// 代码注入的时间，可选值： "document_start", "document_end", or "document_idle"，最后一个表示页面空闲时，默认document_idle
+			"run_at": "document_start"
+		},
+		// 这里仅仅是为了演示content-script可以配置多个规则
+		{
+			"matches": ["*://*/*.png", "*://*/*.jpg", "*://*/*.gif", "*://*/*.bmp"],
+			"js": ["js/show-image-content-size.js"]
+		}
+	],
+	// 权限申请
+	"permissions":
+	[
+		"contextMenus", // 右键菜单
+		"tabs", // 标签
+		"notifications", // 通知
+		"webRequest", // web请求
+		"webRequestBlocking",
+		"storage", // 插件本地存储
+		"http://*/*", // 可以通过executeScript或者insertCSS访问的网站
+		"https://*/*" // 可以通过executeScript或者insertCSS访问的网站
+	],
+	// 普通页面能够直接访问的插件资源列表，如果不设置是无法直接访问的
+	"web_accessible_resources": ["js/inject.js"],
+	// 插件主页，这个很重要，不要浪费了这个免费广告位
+	"homepage_url": "https://www.baidu.com",
+	// 覆盖浏览器默认页面
+	"chrome_url_overrides":
+	{
+		// 覆盖浏览器默认的新标签页
+		"newtab": "newtab.html"
+	},
+	// Chrome40以前的插件配置页写法
+	"options_page": "options.html",
+	// Chrome40以后的插件配置页写法，如果2个都写，新版Chrome只认后面这一个
+	"options_ui":
+	{
+		"page": "options.html",
+		// 添加一些默认的样式，推荐使用
+		"chrome_style": true
+	},
+	// 向地址栏注册一个关键字以提供搜索建议，只能设置一个关键字
+	"omnibox": { "keyword" : "go" },
+	// 默认语言
+	"default_locale": "zh_CN",
+	// devtools页面入口，注意只能指向一个HTML文件，不能是JS文件
+	"devtools_page": "devtools.html"
+}
+```
+
+### 案例: 改变网页背景颜色
 
 - chrome官网例子getstarted，下载地址`https://developer.chrome.com/extensions/examples/tutorials/getstarted.zip`
 - 效果展示
 
-    ![chrome-plugin-helloword](/data/images/2016/09/chrome-plugin-helloword.png)
+    ![chrome-plugin-getstarted2](/data/images/2016/09/chrome-plugin-getstarted2.png)
 
-- `icon.png` 显示
-- `manifest.json`
-    ```js
+    ![chrome-plugin-getstarted1](/data/images/2016/09/chrome-plugin-getstarted1.png)
+- 插件文件结构
+
+    ```bash
+    ├─manifest.json     # 必须。主配置文件，必须放在根目录
+    ├─icon.png          # 插件在浏览器工具栏中显示的图标
+    ├─popup.html        # 点击插件图标显示插件的弹框功能界面，可命名为其他
+    ├─popup.js          # 弹框功能界面所需js
+    ```
+- manifest.json
+
+    ```json
     {
         "manifest_version": 2,
 
@@ -90,7 +202,7 @@ tags: [plugins, debug]
         ]
     }
     ```
-- `popup.html`
+- popup.html
 
     ```html
     <!doctype html>
@@ -131,15 +243,9 @@ tags: [plugins, debug]
     </body>
     </html>
     ```
-- `popup.js`
+- popup.js
 
     ```js
-    /**
-    * Get the current URL.
-    *
-    * @param {function(string)} callback called when the URL of the current tab
-    *   is found.
-    */
     function getCurrentTabUrl(callback) {
         // Query filter to be passed to chrome.tabs.query - see
         // https://developer.chrome.com/extensions/tabs#method-query
@@ -177,14 +283,9 @@ tags: [plugins, debug]
         //   url = tabs[0].url;
         // });
         // alert(url); // Shows "undefined", because chrome.tabs.query is async.
-        }
+    }
 
-        /**
-        * Change the background color of the current page.
-        *
-        * @param {string} color The new background color.
-        */
-        function changeBackgroundColor(color) {
+    function changeBackgroundColor(color) {
         var script = 'document.body.style.backgroundColor="' + color + '";';
         // See https://developer.chrome.com/extensions/tabs#method-executeScript.
         // chrome.tabs.executeScript allows us to programmatically inject JavaScript
@@ -194,74 +295,66 @@ tags: [plugins, debug]
         chrome.tabs.executeScript({
             code: script
         });
-        }
+    }
 
-        /**
-        * Gets the saved background color for url.
-        *
-        * @param {string} url URL whose background color is to be retrieved.
-        * @param {function(string)} callback called with the saved background color for
-        *     the given url on success, or a falsy value if no color is retrieved.
-        */
-        function getSavedBackgroundColor(url, callback) {
+    function getSavedBackgroundColor(url, callback) {
         // See https://developer.chrome.com/apps/storage#type-StorageArea. We check
         // for chrome.runtime.lastError to ensure correctness even when the API call
         // fails.
         chrome.storage.sync.get(url, (items) => {
             callback(chrome.runtime.lastError ? null : items[url]);
         });
-        }
+    }
 
-        /**
-        * Sets the given background color for url.
-        *
-        * @param {string} url URL for which background color is to be saved.
-        * @param {string} color The background color to be saved.
-        */
-        function saveBackgroundColor(url, color) {
+    function saveBackgroundColor(url, color) {
         var items = {};
         items[url] = color;
         // See https://developer.chrome.com/apps/storage#type-StorageArea. We omit the
         // optional callback since we don't need to perform any action once the
         // background color is saved.
         chrome.storage.sync.set(items);
-        }
+    }
 
-        // This extension loads the saved background color for the current tab if one
-        // exists. The user can select a new background color from the dropdown for the
-        // current page, and it will be saved as part of the extension's isolated
-        // storage. The chrome.storage API is used for this purpose. This is different
-        // from the window.localStorage API, which is synchronous and stores data bound
-        // to a document's origin. Also, using chrome.storage.sync instead of
-        // chrome.storage.local allows the extension data to be synced across multiple
-        // user devices.
-        document.addEventListener('DOMContentLoaded', () => {
+    // This extension loads the saved background color for the current tab if one
+    // exists. The user can select a new background color from the dropdown for the
+    // current page, and it will be saved as part of the extension's isolated
+    // storage. The chrome.storage API is used for this purpose. This is different
+    // from the window.localStorage API, which is synchronous and stores data bound
+    // to a document's origin. Also, using chrome.storage.sync instead of
+    // chrome.storage.local allows the extension data to be synced across multiple
+    // user devices.
+    document.addEventListener('DOMContentLoaded', () => {
         getCurrentTabUrl((url) => {
             var dropdown = document.getElementById('dropdown');
 
             // Load the saved background color for this page and modify the dropdown
             // value, if needed.
             getSavedBackgroundColor(url, (savedColor) => {
-            if (savedColor) {
-                changeBackgroundColor(savedColor);
-                dropdown.value = savedColor;
-            }
+                if (savedColor) {
+                    changeBackgroundColor(savedColor);
+                    dropdown.value = savedColor;
+                }
             });
 
             // Ensure the background color is changed and saved when the dropdown
             // selection changes.
             dropdown.addEventListener('change', () => {
-            changeBackgroundColor(dropdown.value);
-            saveBackgroundColor(url, dropdown.value);
+                changeBackgroundColor(dropdown.value);
+                saveBackgroundColor(url, dropdown.value);
             });
         });
     });
     ```
 
-### 打包发布
+### 安装/打包/发布
 
-1. 打包为crx文件发布
+- 开启Chrome开发者模式
+- 本地测试安装：插件管理页 - 加载已解压的的扩展程序
+    - 如果修改了代码需要点击插件刷新按钮，或重新加载
+    - popup部分调试：需要右键插件图标 - 审查弹出内容
+- 打包为crx文件发布
     - 在chrome安装目录运行 `chrome.exe --pack-extension="D:\chromeplugins\helloword"`
         - `helloword`为插件源码根目录
         - 会生成`helloword.crx`(扩展文件)和`helloword.pem`(密钥)
-2. 上传zip到chrome：https://chrome.google.com/webstore/developer/dashboard
+- 上传zip到chrome发布：https://chrome.google.com/webstore/developer/dashboard
+- 本地插件源码查看：`C:/Users/smalle/AppData/Local/Google/Chrome/User Data/Default/Extensions/hjljaklopfcidbbglpbehlgmelokabcp`

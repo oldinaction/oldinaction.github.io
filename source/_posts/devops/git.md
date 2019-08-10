@@ -35,7 +35,7 @@ tag: [git, arch]
 
 ### repository
 
-1. 创建repository(并关联远程仓库)
+- 创建repository(并关联远程仓库)
 	- `cd d:/git/demo/`进入到项目文件夹（可使用`mkdir 文件夹名`在当前目录创建文件夹或者手动创建）
 
 		> - 此时git bash上显示`smalle@ST-008 MINGW64 /d/git/demo`（直接在demo目录`右键-Git Bash Here`也是这个显示）
@@ -48,12 +48,12 @@ tag: [git, arch]
 	- `git commit -am '初始化提交'` 提交修改到本地仓库
 	- `git remote add origin https://github.com/oldinaction/jekyll_demo.git` 添加远程仓库地址，保存在origin变量中
 	- `git push origin master` 按照前一条命令中origin给定的git远程地址推送到远程仓库的master分支（容易和远程产生冲突）
-2. 克隆repository
+- 克隆repository
 	- `git clone https://github.com/UserName/ProjectName`，这是利用https方式克隆，还有其他如git、ssh等方式（克隆后git会在当前目录新建一个文件夹为 "ProjectName" 的项目）
 	- **`git clone -b <remote branch> <remote address>`** 克隆远程仓库的某个分支/标签（如：`git clone -b develop http://192.168.1.1/test.git`，此时本地分支名默认也为develop）
 	- `git clone username@aezo.cn/xxx.git` 指定用户名，用户名如果包含`@`等特殊字符需要转转义，如`@`对应`%40`(私有仓库如果未指定用户名时：全局有指定用户名则使用全局，如果全局无则弹框输入)
 	- `git clone username:password@aezo.cn/xxx.git`
-3. 克隆远程仓库的某个文件夹
+- 克隆远程仓库的某个文件夹
 	- 建立本地仓库
 		- `mkdir project_folder`
 		- `cd project_folder`
@@ -65,10 +65,10 @@ tag: [git, arch]
 
 ### 分支
 
-1. 查看分支
+- 查看分支
 	- `git branch` 查看本地分支（`*`代表当前所处的分支）
 	- `git branch -a` 查看本地和运程所有分支
-2. 创建分支
+- 创建分支
 	- `git branch 分支名` 创建一个新的分支。如果此分支和 master 是同一级分支（及在处于 master 时创建的分支），那么他们指向同一个 commit 对象
 	- `git checkout -b <localBranchName>` 创建一个本地分支并且换到此分支（是`git branch 分支名` 和 `git checkout 分支名`的合并命令）
 	- `git checkout -b <localBranchName> <remotesBranchName>` 相当于检出远程的某个分支到本地，远程分支名如origin/b1(使用 `git branch -a` 查看时显示为remotes/origin/b1)
@@ -76,38 +76,37 @@ tag: [git, arch]
 		- 勿使用 `git checkout 远程分支名` 命令会是当前HEAD变为一个游离的HEAD（即现在HEAD指向的是一个没有分支名字的修订版本，游离于已知的所有分支之外，如`HEAD detached at origin/b1`）
 		- `git checkout -b test1 origin/develop` 拉取远程develop分支
 	- `git push origin <branch>` 创建远程分支
-3. 切换分支
+- 切换分支
 	- `git checkout 分支名` 切换到此分支（*Switched to branch '分支名'*），此时 HEAD 指向此分支；并且本地磁盘（working 区）的内容会显示此分支的文件
-4. 合并分支
-	- `git merge 子分支名` 将子分支名合并到主分支，合并前必须切换到主分支。（子分支的文件会替换掉主分支的文件）
-5. 跟踪/关联分支 `git branch --set-upstream-to=<remotesBranchName> <localBranchName>` 
+- 合并分支
+	- `git merge 子分支名` 将子分支名合并到当前分支(合并可能产生冲突，产生冲突后需要人为解决)
+- 跟踪/关联分支 `git branch --set-upstream-to=<remotesBranchName> <localBranchName>` 
 	- 必须先要有此本地分支。之后可以使用`git push/pull`直接对相应分支进行操作
 	- `git branch -vv` 查看分支的关联关系
-6. 删除分支
+- 删除分支
 	- `git branch -d 分支名` 删除此分支（只能删除除当前分支以外的分支；如果当前分支有一次提交，则需要将此分支合并到主分支之后再进行删除）
 	- 删除远程分支：`git branch -r -d origin/branch-name`或者`git push origin :branch-name`
-7. 重命名分支：`git branch -m old-branch-name new-branch-name`
+- 重命名分支：`git branch -m old-branch-name new-branch-name`
 	- 在git中重命名远程分支，其实就是先删除远程分支，然后重命名本地分支，再重新提交一个远程分支
 
 ### 添加、提交文件
 
-利用`git add <file>` / `git add .`将 working 中此文件或者所有文件添加到 staging 区（**&lt;file&gt;** 为必输的文件名）
+- 利用`git add <file>` / `git add .`将 working 中此文件或者所有文件添加到 staging 区（**&lt;file&gt;** 为必输的文件名）
+- 利用`git commit -m '提交时的备注'` 将 staging 区中的此文件提交到 history 区（如果不加`-m`则命令行会打开一个vi编辑器供用户填写提交时的备注）
+- 利用`git commit -a` 将 working 中此文件直接提交到文件到history 区（此时一般加上参数`-m`，即`git commit -am '提交时的备注'`）
 
-利用`git commit -m '提交时的备注'` 将 staging 区中的此文件提交到 history 区（如果不加`-m`则命令行会打开一个vi编辑器供用户填写提交时的备注）
-
-利用`git commit -a` 将 working 中此文件直接提交到文件到history 区（此时一般加上参数`-m`，即`git commit -am '提交时的备注'`）
-
-> git运行流程图
->
-> ![git运行流程图](/data/images/2016/04/git流程图.png)
+![git运行流程图](/data/images/2016/04/git流程图.png)
 
 ### 撤销
 
-- `git checkout .` #本地所有修改的。没有的提交的，都返回到原来的状态（删除不了请参考下方的`git clean`用法）
+- `git checkout -- <file>` 撤销对文件的 add 操作，他会从 staging 区中将此文件取出并还原到 working 区
     - `git checkout test.txt` **丢弃修改**
-- `git stash` #把所有没有提交的修改暂存到stash里面。可用git stash pop恢复。
-- `git reset --hard HASH` 返回到某个节点，不保留修改。如：`git reset --hard HEAD`，`git reset --hard 8a222ba`
-- `git reset --soft HASH` 返回到某个节点，保留修改
+    - `git checkout .` 本地所有修改的。没有的提交的，都返回到原来的状态（删除不了请参考下方的`git clean`用法）
+    - `git checkout HEAD <file>` 撤销对文件的 add 操作，他会从 history 区中将此文件取出并还原到 working 区（其中文件名为相对.git文件夹的路径名）
+- `git reset <file>` 撤销对此文件的 commit 操作，他会从 history 区中将此文件取出并还原到 staging 区
+    - `git reset --hard HASH` 返回到某个节点，不保留修改。如：`git reset --hard HEAD`，`git reset --hard 8a222ba`
+    - `git reset --soft HASH` 返回到某个节点，保留修改
+- `git stash` 把所有没有提交的修改暂存到stash里面。可用git stash pop恢复
 
 ### 删除文件
 
@@ -119,6 +118,9 @@ tag: [git, arch]
 	- `git clean -fd` 连 untracked 的目录也一起删掉
 - `git clean -nxfd`
 	- `git clean -xfd` 连 gitignore 的untrack 文件/目录也一起删掉 （慎用，一般这个是用来删掉编译出来的文件用的）
+- `git rm <file>` 将此文件从 repository 中删除
+- `git rm --cached <file>` 将此文件从 staging 区中删除，此时 working 区中还有
+- `git mv README.txt README.md` 将 README.txt 文件重命名为 README.md（markdown格式）
 
 ### 与远程仓库同步
 
@@ -152,21 +154,70 @@ tag: [git, arch]
 - 注意事项
 	- git不监控文件权限属性变化
 
-### 移除文件
-
-`git rm <file>` 将此文件从 repository 中删除
-
-`git rm --cached <file>` 将此文件从 staging 区中删除，此时 working 区中还有
-
-### 撤销操作
-
-`git reset <file>` 撤销对此文件的 commit 操作，他会从 history 区中将此文件取出并还原到 staging 区
-
-`git checkout -- <file>` 撤销对文件的 add 操作，他会从 staging 区中将此文件取出并还原到 working 区
-
-`git checkout HEAD <file>` 撤销对文件的 add 操作，他会从 history 区中将此文件取出并还原到 working 区（其中文件名为相对.git文件夹的路径名）
-
 ### 其他
+
+#### 查看日志和帮助
+
+- `git help` 查看帮助。`[]`为可选，`<>`为必输
+
+- `git log`查看提交日志，`Ctrl+Z` 退出查看
+	- `git log --oneline` 可以显示更加短小的提交ID
+	- `git log --graph` 显示何时出现了分支和合并等信息
+	- `git log --pretty=raw` 显示所有提交对象的parent属性
+	- `git reflog` 查看每个提交版本信息(排在上面的为最新版本)
+
+- `git cat-file -p 哈希码(或简写)或者对象名` 展示此对象的详细信息
+- `git cat-file -t 哈希码(或简写)` 查看Git对象的类型，主要的git对象包括tree，commit，parent，和blob等
+	- 如：`git cat-file -t HEAD`的结果是commit表示此HEAD指向一个commit 对象
+
+- `cat .git/HEAD` 查看HEAD指向(当前分支)。如打印 `.git/refs/heads/master`
+- `cat .git/refs/heads/master` 查看HEAD的哈希码(简写取前7位)
+- `git rev-parse HEAD` 获取 HEAD 对象的哈希码
+
+#### 暂存工作区
+
+- `git stash` 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）
+- `git stash pop` 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容。由于可能存在多个Stash的内容，所以用栈来管理，pop会从最近的一个stash中读取内容并恢复
+- `git stash list` 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
+- `git stash clear` 清空Git栈
+
+#### commit对象
+
+- commit 对象中 parent 属性指向前一个 commit，tree 属性指向一个 tree 对象（此 tree 对象可以指向文件或者文件夹）
+- HEAD 指向 master（只有一个分支的情况下），master 指向最新的 commit；HEAD~（或master~）表示前一个 commit；HEAD~2（或master~2）表示上上一个 commit，以此类推；- HEAD~2^ 表示 HEAD~2 的父提交（此时和HEAD~3是同一个对象）
+- HEAD 的哈希码存放在 `.git/refs/heads/xxx` 文件中(当前处于xxx分支)
+
+#### 解决冲突
+
+- 如下，`<<<<<<< HEAD` 和 `=======` 中间的是自己的代码，`=======` 和 `>>>>>>>` 中间的是其他人修改的代码
+
+```bash
+$ cat .eslintignore
+build/*.js
+<<<<<<< HEAD
+config/*.js
+src
+=======
+src/assets
+public
+dist
+>>>>>>> develop/test
+```
+- 查看
+
+```bash
+# 查看操作状态
+git status
+# 解决某文件的冲突：修改文件
+vi .eslintignore
+# 暂存并提交
+git add .eslintignore
+git commit -m "conflict fixed"
+# 查看合并后分支情况
+git log --graph --pretty=oneline --abbrev-commit
+# 删除已合并分支
+git branch -d develop/test
+```
 
 #### git凭证存储
 
@@ -223,24 +274,6 @@ tag: [git, arch]
 		# 4.提示上面文件开放权限太大，在git客户端设置`chmod 600 /root/.ssh/id_rsa`，可正常使用
 		```
 
-#### 查看日志和帮助
-
-- `git help` 查看帮助。`[]`为可选，`<>`为必输
-
-- `git log`查看提交日志，`Ctrl+Z` 退出查看
-	- `git log --oneline` 可以显示更加短小的提交ID
-	- `git log --graph` 显示何时出现了分支和合并等信息
-	- `git log --pretty=raw` 显示所有提交对象的parent属性
-	- `git reflog` 查看每个提交版本信息(排在上面的为最新版本)
-
-- `git cat-file -p 哈希码(或简写)或者对象名` 展示此对象的详细信息
-- `git cat-file -t 哈希码(或简写)` 查看Git对象的类型，主要的git对象包括tree，commit，parent，和blob等
-	- 如：`git cat-file -t HEAD`的结果是commit表示此HEAD指向一个commit 对象
-
-- `cat .git/HEAD` 查看HEAD指向(当前分支)。如打印 `.git/refs/heads/master`
-- `cat .git/refs/heads/master` 查看HEAD的哈希码(简写取前7位)
-- `git rev-parse HEAD` 获取 HEAD 对象的哈希码
-
 #### 忽略控制文件
 
 - `.gitignore` 文件创建和设置
@@ -295,32 +328,29 @@ tag: [git, arch]
 	- 先删除对应文件，提交版本，再将此文件加到.gitignore中，再次提交则不会出现
 	- 如果是未提交的文件，此时不管.gitignore文件是否提交，.gitignore文件都是生效的
 
-#### 重命名文件
-
-`git mv README.txt README.md` 将 README.txt 文件重命名为 README.md（markdown格式）
-
-#### 暂存工作区
-
-`git stash` 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）
-
-`git stash pop` 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容。由于可能存在多个Stash的内容，所以用栈来管理，pop会从最近的一个stash中读取内容并恢复
-
-`git stash list` 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
-
-`git stash clear` 清空Git栈
-
-#### commit对象
-
-commit 对象中 parent 属性指向前一个 commit，tree 属性指向一个 tree 对象（此 tree 对象可以指向文件或者文件夹）
-
-HEAD 指向 master（只有一个分支的情况下），master 指向最新的 commit；HEAD~（或master~）表示前一个 commit；HEAD~2（或master~2）表示上上一个 commit，以此类推；HEAD~2^ 表示 HEAD~2 的父提交（此时和HEAD~3是同一个对象）
-
-HEAD 的哈希码存放在 `.git/refs/heads/xxx` 文件中(当前处于xxx分支)
-
 ## gitflow工作流 [^5]
 
 ![git-workflow](/data/images/arch/git-workflow.png)
 
+## Github使用
+
+- 更新fork项目/提交请求(`pull request`，简称 `PR`)
+    - Github线上提交 `New pull request` - 选择`base repository` - 选择`head repository` - 如果看不到仓库名可点击`compare across forks` - 点击`Create pull request`填写提交说明并确认
+        - 表示将head提交到base。如果为更新fork项目，则base选择自己fork的仓库，head选择源仓库(此时可能需要点击`compare across forks`才能看到仓库名)；如果是提交代码到源仓库，则base选择源仓库
+    - 命令行提交(以更新fork项目为例)
+
+        ```bash
+        # 查看远程仓库信息
+        git remote -v
+        # 添加源仓库信息
+        git remote add upstream git@github.com:xxx/xxx.git
+        # 下载远程代码
+        git fetch upstream
+        # 将源仓库的upstream/master分支合并到当前分支
+        git merge upstream/master
+        # 推送到远程(fork的项目远程)
+        git push
+        ```
 
 ## svn扩展
 

@@ -3,7 +3,7 @@ layout: "post"
 title: "Jenkins"
 date: "2018-10-09 16:35"
 categories: devops
-tags: [Jenkins, CI, CD]
+tags: [jenkins]
 ---
 
 ## 简介
@@ -18,10 +18,10 @@ tags: [Jenkins, CI, CD]
 
 #### 基于Docker安装
 
-```bash
-# 创建jenkins-data容器卷，专门存放jenkins数据
-docker volume create jenkins-data
+- `docker volume create jenkins-data` 创建jenkins-data容器卷，专门存放jenkins数据
+- 直接docker命令启动
 
+```bash
 # 创建镜像并运行(\后不能有空格)
 docker run \
   -u root \
@@ -37,7 +37,10 @@ docker run \
   --restart=always \
   jenkins/jenkins:2.181
   #jenkinsci/blueocean
+```
+- 或使用docker-compose
 
+```yml
 # 使用docker-compose
 version: '3'
 services:
@@ -73,7 +76,6 @@ volumes:
     - 通过命令行编译 **`mvn -Plight-test package -DskipTests`**
     - 或者在IDEA上操作：勾选Maven Projects - Profiles - light-test，执行Jenkins main module - Lifecyle - package
     - 编译时会生成`cli/target/generated-sources/Messages.java`
-    
         > If your IDE complains that 'Messages' class is not found, they are missing because they are supposed to be generated. Run a Maven build once and you should see them all. If that doesn't fix the problem, make sure your IDE added target/generated-sources to the compile source roots.
     - 打包时会生成war/node(war/node/yarn)、war/node_modules，并打包静态资源文件
 - Run/Debug中添加tomcat配置，Deployment选择jenkins-war:war
@@ -136,6 +138,7 @@ volumes:
         echo "build ofbiz end..."
         ```
         - 其中`source /etc/profile`为了防止报错`java: command not found`(jenkins不会自动加载环境变量)
+        - 当windows启动项目bat脚本时，一直有输出的话，Dos窗口会一直处于等待状态，而jenkins的构建时会输出windows的脚本运行信息，所有Jenkins也会一直处于构建状态。此时可考虑bat脚本后台运行，如使用`.vbe`脚本对bat文件进行包装
 - 调用顶层Maven目标
     - Maven Version：可选择全局工具配置中配置的maven，若无此选项可参考下文全局工具配置
     - Goals：如`clean package -Dmaven.test.skip=true`

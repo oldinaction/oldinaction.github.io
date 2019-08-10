@@ -186,48 +186,48 @@ jQuery Validation插件级别函数包括 `validate()` 、 `valid()` 、 `rules(
 
 - submitHandler: 获取提交句柄
 
-  ```javascript
-  submitHandler:function(form){
-      alert("提交句柄: 此处可在验证完成后提交表单前进行相关操作!");   
-      form.submit();
-      // $(form).ajaxSubmit(); // 使用ajax进行提交
-  }    
-  ```
+    ```javascript
+    submitHandler:function(form){
+        alert("提交句柄: 此处可在验证完成后提交表单前进行相关操作!");   
+        form.submit();
+        // $(form).ajaxSubmit(); // 使用ajax进行提交
+    }    
+    ```
 
 - invalidHandler: 验证出错时表单控制句柄
 
-  ```javascript
-  invalidHandler: function() {
-      $( "#info" ).text( validator.numberOfInvalids() + "个字段验证出错" );
-  }
-  ```
+    ```javascript
+    invalidHandler: function() {
+        $( "#info" ).text( validator.numberOfInvalids() + "个字段验证出错" );
+    }
+    ```
 
 - errorPlacement: 更改错误信息显示的位置
 
-  ```javascript
-  errorPlacement: function(error, element) {  
-      error.appendTo(element.parent()); // 把错误信息放在验证的元素后面
-  }
-  ```
+    ```javascript
+    errorPlacement: function(error, element) {  
+        error.appendTo(element.parent()); // 把错误信息放在验证的元素后面
+    }
+    ```
 
 - success: 每个字段验证通过后处理
 
-  ```javascript
-  // 用法一: 加class
-  success: "valid", // 通过验证后给该字段加class属性值valid
-  // 用法二: 执行回调函数
-  success: function(errorElement) {
-      errorElement.addClass("valid").text("Ok!");// 通过验证后在该字段的错误提示信息元素上加valid类并设置text值
-  }
-  ```
+    ```javascript
+    // 用法一: 加class
+    success: "valid", // 通过验证后给该字段加class属性值valid
+    // 用法二: 执行回调函数
+    success: function(errorElement) {
+        errorElement.addClass("valid").text("Ok!");// 通过验证后在该字段的错误提示信息元素上加valid类并设置text值
+    }
+    ```
 
 - groups: 对一组元素的验证，用一个错误提示
 
-  ```javascript
-  groups:{
-  		username:"fname lname"// 还可用 errorPlacement 控制把出错信息放在哪里
-  	},
-  ```
+    ```javascript
+    groups:{
+        username:"fname lname"// 还可用 errorPlacement 控制把出错信息放在哪里
+    },
+    ```
 
 关于更多参数介绍请前往[官方参数介绍](http://jqueryvalidation.org/validate)
 

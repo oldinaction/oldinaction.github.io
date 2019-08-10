@@ -6,12 +6,6 @@ categories: [arch]
 tags: [springboot, vue]
 ---
 
-## TODO
-
-- ASF
-    - IS/BS的拜访基于同一张表保存是否需要分开
-    - IS/BS拜访的父子关系(祖宗关系)导致逻辑复杂
-
 ## 默认配置
 
 - 后端返回数据字段驼峰(如果通过ObjectMapper字段名转成下划线，前台做好下划线命名的字段映射后传回给后台，此时后台pojo都是驼峰，导致无法转换)
@@ -282,8 +276,12 @@ location / {
 - 必须要绑定Dom
 - 必须要触发点击事件（触发其他Dom的点击事件，然后js触发目的dom的点击事件也可）
 
+## 浏览器
 
+### 常见兼容性问题
 
+- Chrome和Firefox的preview和response显示数据不一致问题 [^6]
+    - 原因可能是因为数据为Long型，返回给浏览器以后，浏览器转换数据格式的时候出现问题。解决方案：在返回数据之前就将数据转换为字符串
 
 
 
@@ -297,3 +295,7 @@ location / {
 [^3]: https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html (spring-security-cors)
 [^4]: https://segmentfault.com/a/1190000013312233 (springBoot与axios表单提交)
 [^5]: https://blog.csdn.net/qq_32340877/article/details/80338271 (使用vue框架开发，版本更新，解决用户浏览器缓存问题)
+[^6]: https://www.oschina.net/question/2405524_2154029?sort=time
+
+
+
