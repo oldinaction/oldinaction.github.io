@@ -127,7 +127,11 @@ mybatis:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 ```
 - 参考配置文件[/data/src/java/logback-spring.xml](/data/src/java/logback-spring.xml)和表结构(如果保存在数据库中时)文件[/data/src/java/logback.sql](/data/src/java/logback.sql)
-- springboot的日志配置文件`<include resource="org/springframework/boot/logging/logback/base.xml"/>`。里面包含参数`<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>`, 表示为配置LOG_PATH等环境变量时，在linux环境下会自动创建`/tmp/spring.log`文件作为日志输出文件，而/tmp目录一般只有使用root用户运行项目才可以创建此文件
+- springboot的日志配置文件`<include resource="org/springframework/boot/logging/logback/base.xml"/>`。里面包含一下参数，表示为配置LOG_PATH等环境变量时，在linux环境下会自动创建`/tmp/spring.log`文件作为日志输出文件，而/tmp目录一般只有使用root用户运行项目才可以创建此文件
+    
+    ```xml
+    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
+    ```
 - `System.getproperty("java.io.tmpdir")`可获取操作系统缓存的临时目录。不同操作系统的缓存临时目录不一样，Linux：`/tmp`，Windows如：`C:\Users\smalle\AppData\Local\Temp\`
 
 ### 随应用启动而运行(实现`CommandLineRunner`接口)

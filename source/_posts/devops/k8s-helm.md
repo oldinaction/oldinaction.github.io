@@ -203,7 +203,12 @@ spec:
     │       └── test-connection.yaml
     └── values.yaml                     # kubernetes object configuration
     ```
-    - 比如在`deployment.yaml`中定义的容器镜像`image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"`，其中`.Values`代表后面属性获取`values.yaml`文件中的数据，如`.Values.image.repository`就是`nginx`，`.Values.image.tag`就是`stable`
+    - 比如在`deployment.yaml`中定义的容器镜像
+        
+        ```bash
+        # 其中`.Values`代表后面属性获取`values.yaml`文件中的数据，如`.Values.image.repository`就是`nginx`，`.Values.image.tag`就是`stable`
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ```
 - 打包分享
     - chart 通过测试后可以将其添加到仓库，团队其他成员就能够使用。任何 HTTP Server 都可以用作 chart 仓库
 
