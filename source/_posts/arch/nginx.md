@@ -105,6 +105,12 @@ server {
         alias /home/aezocn/www/static/$1_upload/$2;
     }
 
+    # 测试地址
+    location /ping {
+        add_header Content-Type text/plain;
+        return 200 "Hello world!";
+    }
+
     # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin
     # location后的地址可正则，如 `location ^~ /api/ {...}` 表示访问 http://www.aezo.cn/api/xxx 会转到 http://127.0.0.1:8080/api/xxx 上
     location / {

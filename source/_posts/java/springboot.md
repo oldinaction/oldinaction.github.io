@@ -284,8 +284,8 @@ public class SpringContextU implements ApplicationContextAware {
 
 ### 异步执行服务 [^8]
 
-- 启动类加注解`@EnableAsync`
-- 服务类方法加注解`@Async`
+- 启动类加注解`@EnableAsync`，服务类方法加注解`@Async`即可
+- 可额外通过实现`AsyncConfigurer`配置`Executor`，参考[http://blog.aezo.cn/2017/07/01/java/spring/](/_posts/java/spring.md)
 
 ### `@Value`给静态成员设值
 
@@ -347,9 +347,10 @@ public class BaseController {
 }
 ```
 
-### 跨域资源共享（CORS）[^9]
+### 跨域资源共享(CORS) [^9]
 
 ```java
+// 法一
 @Bean
 public WebMvcConfigurer corsConfigurer() {
 	return new WebMvcConfigurerAdapter() {
@@ -362,6 +363,20 @@ public WebMvcConfigurer corsConfigurer() {
 					.allowCredentials(true);
 		}
 	};
+}
+
+// 法二
+@Bean
+CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(Arrays.asList("*"));
+    configuration.setAllowedMethods(Arrays.asList("*"));
+    configuration.setAllowedHeaders(Arrays.asList("*"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
 }
 ```
 - 使用spring security的CORS配置可参考相应文章
@@ -850,33 +865,9 @@ public MultipartConfigElement multipartConfigElement() {
 
 参考：[http://blog.aezo.cn/2017/05/22/java/mybatis/](/_posts/java/mybatis#mybatis-plus)
 
-### 事物支持 [^10]
+### 事物支持
 
-- `@Transactional` 注解对应的public类型函数. 一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)
-- 由于Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的。`@Transactional`注解只被应用到 public 可见度的方法上
-	- 自调用导致@Transactional失效。spring里事务是用注解配置的，当一个方法没有接口，单单只是一个方法不是服务时，事务的注解是不起作用的，需要回滚时就会报错`org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope`。出现这个问题的根本原因在于AOP的实现原理，由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，自调用时不存在代理对象的调用，这时不会产生我们注解@Transactional配置的参数，自然无效了
-- **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
-	- `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到异常Exception时回滚
-	- `@Transactional(noRollbackFor = RuntimeException.class)` 指定不回滚
-	- 基于服务的统一结果返回，无法回滚事物(类似ofbiz的服务引擎返回)：服务内部捕获了异常(Exception)，返回的是统一的对象(如自定义`Result`)
-		- `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚。或者基于自定义注解统一回滚。或者手动抛出RuntimeException
-- Spring的@Transactional自我调用问题：同一个类中的方法相互调用，被调用的方法`@Transactional`无效 [^12]
-	- 通过BeanPostProcessor 在目标对象中注入代理对象
-- 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
-- 隔离级别`@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读
-	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是：READ_COMMITTED。
-	- `READ_UNCOMMITTED`：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读和不可重复读，因此很少使用该隔离级别。
-	- `READ_COMMITTED`：该隔离级别表示一个事务只能读取另一个事务已经提交的数据。该级别可以防止脏读，这也是大多数情况下的推荐值。
-	- `REPEATABLE_READ`：该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略。该级别可以防止脏读和不可重复读。
-	- `SERIALIZABLE`：所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。
-- 传播行为`@Transactional(propagation = Propagation.REQUIRED)`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
-	- `REQUIRED`：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。
-	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
-	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常。
-	- `REQUIRES_NEW`：创建一个新的事务，如果当前存在事务，则把当前事务挂起。
-	- `NOT_SUPPORTED`：以非事务方式运行，如果当前存在事务，则把当前事务挂起。
-	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常。
-	- `NESTED`：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED。
+参考：[http://blog.aezo.cn/2017/07/01/java/spring/](/_posts/java/spring.md#事物支持)
 
 ### JdbcTemplate访问数据
 
@@ -2137,9 +2128,7 @@ User user = this.userRepositroy.findById(id).get();
 [^7]: http://www.cnblogs.com/yjbjingcha/p/6752265.html (Spring在代码中获取bean的几种方式)
 [^8]: http://blog.csdn.net/v2sking/article/details/72795742 (异步调用Async)
 [^9]: https://spring.io/blog/2015/06/08/cors-support-in-spring-framework (Spring对CORS的支持)
-[^10]: http://blog.didispace.com/springboottransactional/ (@Transactional)
 [^11]: http://www.cnblogs.com/GoodHelper/p/7078381.html (WebSocket)
-[^12]: http://tech.lede.com/2017/02/06/rd/server/SpringTransactional/ (Spring @Transactional原理及使用)
 [^13]: https://blog.csdn.net/qq_35542689/article/details/81205472 (springboot在Windows(无jre)下打包并运行exe)
 [^14]: http://blog.didispace.com/springbootmultidatasource/
 [^15]: https://blog.csdn.net/neosmith/article/details/61202084

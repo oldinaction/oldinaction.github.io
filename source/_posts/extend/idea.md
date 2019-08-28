@@ -52,8 +52,8 @@ ThisCrackLicenseId-{
 
 ### java web项目配置(springmvc) [^1]
 
-1. 进入到Project Structure：`File - Project Structure`
-2. 配置步骤
+- 进入到Project Structure：`File - Project Structure`
+- 配置步骤
     - `Project` 项目级别
         - 主要是project compiler output的位置(src的编译位置)：如`D:/myproject/classes`(使用默认即可)，为对应WEB-INF下的classes目录
     - `Modules` 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
@@ -75,14 +75,14 @@ ThisCrackLicenseId-{
         - `web application exploded` 是以文件夹形式（War Exploded）发布项目，选择这个，发布项目时就会自动生成文件夹在指定的output directory
         - `web application archive` 是war包形式，每次都会重新打包全部的,将项目打成一个war包在指定位置
         - 如果是maven项目：选中Available Elements中的依赖，将需要的依赖加入到WEB-INF/lib中(右键，put into WEB-INF/lib. tomcat相关依赖无需加入，因为最终Artifacts会部署到tomcat容器)。否则像struts2会报错`java.lang.ClassNotFoundException: org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter`
-3. `Run configuration`启动配置。如使用tomcat启动
+- `Run configuration`启动配置。如使用tomcat启动
     - `+` - `tomcat server` - `local`
     - `Application Server`: 本地tomcat路径
     - `VM`：添加`-Dfile.encoding=UTF-8`防止出现乱码
     - `JRE`填写jdk路径
     - `Deployment`中将刚刚的war配置进入
     - 在`Before launch`中加入Build这个war包
-4. 打包：Build - Build Artifacts - xxx:war - build (在上述Output directory中可看到war包)
+- 打包：Build - Build Artifacts - xxx:war - build (在上述Output directory中可看到war包)
 
 ### maven
 
@@ -108,21 +108,22 @@ ThisCrackLicenseId-{
 ## 快捷键
 
 - 常用快捷键
-    - `Ctrl + Shif + F9` 热部署
-    - `Ctrl + Shifg + Space` 智能补全
-    - `Ctrl + Shif + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
+    - `Ctrl + Shift + F9` 热部署
+    - `Ctrl + Shift + Space` 智能补全(可多次按键扩大搜索范围)
+    - `Ctrl + Shift + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
     - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
     - `Alt + Shift + 上下` 上下移动当前行
     - `Ctrl + Shift + Backspace` 回到上次编辑位置
     - `Ctrl + P` 查看方法参数
     - `Ctrl + Q` 查看方法说明
+    - `Ctrl + N` 跳转到类
+    - `Ctrl + Shift + N` 搜索文件(可选中文件路径后再按键)
+    - `Alt + Insert` 自动生成(Getter/Setter等)
+    - `Ctrl + Alt + T` 对选中代码生成try...catch/if等包裹语句
+    - `Ctrl + B` 跳转到声明
     - `Ctrl + E` 最近访问文件
     - `Ctrl + W` 语句感知
-    - `Ctrl + B` 跳转到声明
-    - `Ctrl + N` 跳转到类
-    - `Ctrl + Shif + N` 搜索文件(可选中文件路径后再按键)
     - `Ctrl + Shift + Entry` 完成整句
-    - `Alt + Insert` 自动生成(Getter/Setter等)
     - `Ctrl + Shift + F7` 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处
 
 - 快捷键图片
@@ -147,14 +148,14 @@ ThisCrackLicenseId-{
 
 ### 安装php插件 [^2]
 
-1. setting -> plugins -> browse repositories -> 输入php
-2. 没看到的话，往下翻几页看看，找到PHP(LANGUAGES)，安装次数较多的那个
+- setting -> plugins -> browse repositories -> 输入php
+- 没看到的话，往下翻几页看看，找到PHP(LANGUAGES)，安装次数较多的那个
 
 ### xdebug使用
 
-1. 找到php.ini，搜索xdebug
-2. 下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能
-3. 替换下面代码
+- 找到php.ini，搜索xdebug
+- 下载xdebug的dll文件，并在php.ini中设置。wamp已经含有这个功能
+- 替换下面代码
 
     ```conf
     [xdebug]  
@@ -180,19 +181,19 @@ ThisCrackLicenseId-{
     xdebug.cli_color=on
     ```
 
-4. 在idea中设置php的安装路径
+- 在idea中设置php的安装路径
 
     添加php interpreters指向php的主目录，点击这边的show info按钮，在Loaded extensions里应该可以看到xDebug
 
     ![php-xdebug](/data/images/2016/09/php-xdebug.png)
 
-5. 启动xdebug调试
+- 启动xdebug调试
     - 点击intellij idea工具栏里的 start listen php debug connections.开启调试模式。
     - 点击工具栏里向下的小三角->edit configuration->add new configuartion->php web Application Server里选aezo.cn
 
     ![php-xdebug](/data/images/2016/09/php-xdebug2.png)
 
-6. 打断点，运行程序即可进行调试
+- 打断点，运行程序即可进行调试
 
 ## jetbrains相关IDE
 

@@ -16,8 +16,10 @@
     <springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
     <property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/logs}}}" />
     <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
-    <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-7}"/>
+    <!-- 如果日志统一收集，可以适当减少此处日志保留天数 -->
+    <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-30}"/>
     <property name="LOG_FILE_MAX_SIZE" value="${LOG_FILE_MAX_SIZE:-10MB}"/>
+    <property name="LOG_TOTAL_SIZE_CAP" value="${LOG_TOTAL_SIZE_CAP:-10G}"/>
 
     <!-- 控制台输出日志 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -35,25 +37,31 @@
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-        <!-- 最常用的滚动策略，它根据时间来制定滚动策略.既负责滚动也负责出发滚动 -->
+        <!-- 最常用的滚动策略，它根据时间来制定滚动策略，同时也负责触发滚动 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!--日志输出位置, 可相对和绝对路径 -->
+            <!-- each file should be at most 10MB, keep 30 days worth of history, but at most 10GB -->
+            <!-- 滚动后的文件名，也包括了滚动时间的选择，可相对和绝对路径 -->
             <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/error-%i.log</fileNamePattern>
-            <!-- 可选节点，控制保留的归档文件的最大数量，超出数量就删除旧文件假设设置每个月滚动，且<maxHistory>是3，
-            则只保存最近3个月的文件，删除之前的旧文件。注意，删除旧文件是，那些为了归档而创建的目录也会被删除-->
+            <!-- 限定单个日志文件的大小 -->
             <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
+            <!-- 保留的存档文件的数量(默认无穷大)，与上一个fileNamePattern有关
+                假设定义为30，当fileNamePattern以天为单位时，即保存30天的日志；当以月为单位时，即保存30个月的日志
+                旧的日志以异步的方式删除。注意，删除旧文件时，那些为了归档而创建的目录也会被删除 -->
             <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <!-- 所有的归档日志的大小(默认无穷大)。当超过限制时，会删掉旧的归档日志 -->
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
         </rollingPolicy>
 
-        <!-- 按照固定窗口模式生成日志文件，当文件大于20MB时，生成新的日志文件。窗口大小是1到3，当保存了3个归档文件后，将覆盖最早的日志。
+        <!-- 
+        <!- 按照固定窗口模式生成日志文件 ->
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
             <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/.log.zip</fileNamePattern>
+            <!- 窗口大小是1到3，当保存了3个归档文件后，将覆盖最早的日志 ->
             <minIndex>1</minIndex>
             <maxIndex>3</maxIndex>
         </rollingPolicy>
-        -->
-        <!-- 查看当前活动文件的大小，如果超过指定大小会告知RollingFileAppender 触发当前活动文件滚动
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <!- 触发滚动的条件是单个文件达到5M ->
             <maxFileSize>5MB</maxFileSize>
         </triggeringPolicy>
         -->
@@ -74,6 +82,7 @@
             <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/warn-%i.log</fileNamePattern>
             <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
             <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
@@ -91,6 +100,7 @@
             <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/info-%i.log</fileNamePattern>
             <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
             <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
@@ -108,6 +118,7 @@
             <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/debug-%i.log</fileNamePattern>
             <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
             <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
@@ -125,6 +136,7 @@
             <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/trace-%i.log</fileNamePattern>
             <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
             <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
@@ -172,7 +184,7 @@
         2.root将级别为INFO及大于INFO的日志信息交给已经配置好的名为STDOUT、ERROR的appender处理，STDOUT的appender将信息打印到控制台，ERROR的则打印到error-%i.log文件中
         3.level用来设置打印级别，大小写无关。TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，还有一个特殊值INHERITED或者同义词NULL，代表强制执行上级的级别。如果未设置此属性，那么当前loger将会继承上级的级别
     -->
-    <root level="WARN">
+    <root level="INFO">
 		<!--输出到数据库-->
         <!--<appender-ref ref="DB"/>-->
 

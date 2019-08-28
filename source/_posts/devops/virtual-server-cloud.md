@@ -322,10 +322,16 @@ supervisorctl status
         # host_uuid = "00000000-0000-0000-0000-000000000000"
         systemctl restart libvirtd
         ```
-    - 待解决迁移的新虚拟机仍然需要重新安装系统问题？？？
+    - 待解决：迁移的新虚拟机仍然需要重新安装系统问题？？？
 - Destroy删除只会删除虚拟机配置，默认并不会删除对应的磁盘，也可勾选删除对应磁盘数据
 - 也可通过VNC桌面客户端进行连接，如使用`VNC View`，地址输入`192.168.6.10:5900`，此时ip为宿主机地址，端口可在虚拟机设置XML中查看
 
+### 常见问题
+
+- 克隆机器无法启动
+    - 进入网页控制台 - Send Keys - 点击(Ctrl + Alt + Del)重启
+    - 仍然无法启动则在重启时按`Esc`进入到启动实时日志界面
+    - 如提示`Timed out waiting for device dev-home-main.device` 表示磁盘dev-home-main.device挂载失败，检查`/etc/fstab`是否书写正确，参考[http://blog.aezo.cn/2016/11/20/linux/ubuntu/](/_posts/linux/ubuntu.md#Centos7系统启动失败排查)
 
 
 

@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "Helm (K8s包管理器)"
+title: "Helm | K8s包管理器"
 date: "2019-06-22 12:38"
 categories: devops
 tags: [k8s]
@@ -12,7 +12,7 @@ tags: [k8s]
     - 是 Kubernetes 上的包管理器
     - Helm组成：`Helm`客户端、`Tiller`服务器、`Charts`仓库
     - 原理：Helm客户端从远程Charts仓库(Repository)拉取Chart(应用程序配置模板)，并添加Chart安装运行时所需要的Config(配置信息)，然后将此Chart和Config提交到Tiller服务器，Tiller服务器则在k8s生成`Release`，并完成部署
-- [官方Charts仓库](https://hub.helm.sh/)
+- [官方Charts仓库](https://github.com/helm/charts)、[官方Charts仓库展示](https://hub.helm.sh/)、[Kubeapps Charts仓库(速度较快)](https://hub.kubeapps.com/charts)
 
 ## 安装Helm客户端及服务
 
@@ -22,10 +22,10 @@ tags: [k8s]
     # 下载helm命令行工具到master节点
     curl -O https://get.helm.sh/helm-v2.14.2-linux-amd64.tar.gz
     tar -zxvf helm-v2.14.2-linux-amd64.tar.gz
-    cd linux-amd64/
-    cp helm /usr/local/bin/
+    mv linux-amd64/helm /usr/local/bin/
     # 查看帮助
     helm
+    rm -rf linux-amd64 # 删除下载文件
     ```
 - 安装Tiller服务器(安装在k8s集群中) [^1]
 
@@ -40,11 +40,12 @@ tags: [k8s]
     kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
     # 检查是否安装成功
     kubectl -n kube-system get pods|grep tiller
-    helm version # 显示 Client 和 Server 均正常
-
-    # (可选)查看并修改远程仓库地址
-    helm repo list
+    # 显示版本即表示 Client 和 Server 均正常
+    helm version
+    # (可选)查看并修改远程仓库地址。上文默认使用了阿里的镜像
     helm repo add stable http://mirror.azure.cn/kubernetes/charts
+    helm repo update
+    helm repo list
 
     # 卸载tiller
     heml reset
@@ -57,27 +58,29 @@ tags: [k8s]
 completion  # 为指定的shell生成自动补全脚本（bash或zsh）
 create      # 创建一个新的charts
 delete      # 删除指定版本的release
-    # helm delete --purge my-dev # 删除 release，也会删除相应k8s资源
+    # helm delete --purge my-dev # **删除 release，也会删除相应k8s资源**
 dependency  # 管理charts的依赖
 fetch       # 下载charts并解压到本地目录
 get         # 下载一个release
 history     # release历史信息
 home        # 显示helm的家目录
 init        # 在客户端和服务端初始化helm
-inspect     # 查看charts的详细信息
-    # helm inspect values stable/mysql # 查看此chart说明信息
+inspect     # 查看charts的详细配置信息(values.yaml)
+    # helm inspect stable/nginx-ingress # 查看此chart说明信息
+    # helm inspect values stable/nginx-ingress # 查看此chart的values.yaml信息
 install     # 安装charts
     # helm install stable/nginx
     # helm install ./nginx-1.2.3.tgz
     # helm install ./nginx
     # helm install https://example.com/charts/nginx-1.2.3.tgz
 lint        # 检测包的存在问题
-list        # 列出release
+list        # 列出release(结果中CHART字段一般带了CHART的版本，APP VERSION则为相关镜像如nginx-ingress版本)
     # helm list --all
 package     # 将chart目录进行打包
 plugin      # add(增加), list（列出）, or remove（移除） Helm 插件
 repo        # add(增加), list（列出）, remove（移除）, update（更新）, and index（索引） chart仓库
-    # helm repo add stable http://mirror.azure.cn/kubernetes/charts # 替换原有 stable
+    # helm repo add stable http://mirror.azure.cn/kubernetes/charts # 替换原有 stable(使用微软镜像，阿里镜像有中断更新)
+    # helm repo add incubator http://mirror.azure.cn/kubernetes/charts-incubator/
     # helm repo add fabric8 https://fabric8.io/helm
 reset       # 卸载tiller
 rollback    # release版本回滚
@@ -100,12 +103,195 @@ version     # 打印客户端和服务端的版本信息
         helm inspect values stable/mysql > myvalues.yaml
         # 修改参数值
         vi myvalues.yaml
-        # 基于某个 values 文件进行安装
+        # 基于某个 values 文件进行安装，此文件和默认文件会进行值合并覆盖
         helm install stable/mysql -f myvalues.yaml
         helm install --values=myvalues.yaml stable/mysql
         ```
 
-### 使用案例(mysql安装)
+### 使用案例
+
+#### cert-manager安装
+
+```bash
+## 安装
+# 0.5.2安装成功后一直无法自动创建secret
+# 0.6.7需要提前创建自定义资源，且在创建ClusterIssuer时还会报错 `Error creating ClusterIssuer: the server is currently unable to handle the request`
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+# 创建自定义资源(issuer、clusterissuer、certificate等)
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/deploy/manifests/00-crds.yaml
+kubectl get crd # 查看Cert manager还提供的一些Kubernetes custom resources
+# 且配置一个缺省的cluster issuer，当部署Cert manager的时候，用于支持 `kubernetes.io/tls-acme: "true"` 的 annotation 来自动化 TLS
+helm install --name cert-manager --namespace kube-system --set ingressShim.defaultIssuerName=letsencrypt-staging --set ingressShim.defaultIssuerKind=ClusterIssuer jetstack/cert-manager --version v0.9.0
+# 标记cert-Manager命名空间以禁用资源验证
+kubectl label namespace kube-system certmanager.k8s.io/disable-validation=true
+# 查看
+kubectl get pod -n kube-system --selector=app=cert-manager
+
+## 创建证书签发机构。cert-manager 提供了 Issuer 和 ClusterIssuer 这两种用于创建签发机构的自定义资源对象，Issuer 只能用来签发自己所在 namespace 下的证书，ClusterIssuer 可以签发任意 namespace 下的证书
+# 创建 letsencrypt-staging(测试) 、letsencrypt-prod(正式，有频率限制，https://letsencrypt.org/docs/rate-limits/) 签发机构。必须修改里面的邮箱
+kubectl create --edit -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/docs/tutorials/acme/quick-start/example/staging-issuer.yaml
+# 自定义此 Issuer 对应的命名空间
+kubectl create --edit -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/docs/tutorials/acme/quick-start/example/production-issuer.yaml --namespace=aezocn-prod
+# 或者如下述文件进行创建
+#vi cluster-issuer.yaml
+#kubectl create -f cluster-issuer.yaml
+kubectl get <issuer | clusterissuer>
+
+## 测试
+# 在ingress配置的annotation上加 `kubernetes.io/tls-acme: "true"`，则会自动创建 ingress.tls.secretName 对应的证书，且将此证书生成到secret中
+kubectl get certificate -o wide -n kube-system #  Certificate 为cert-manager自定义资源对象
+kubectl get secret -n kube-system
+
+## 卸载
+helm del --purge cert-manager
+# 上述删除不会删除自定义资源，需手动删除。否则再次安装报错：Error: customresourcedefinitions.apiextensions.k8s.io "certificates.certmanager.k8s.io" already exists
+kubectl delete -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/deploy/manifests/00-crds.yaml
+# 删除对应的issuer，kubectl get <issuer | clusterissuer>
+
+## 常见问题
+# 查看cert-manager容器日志，提示`server misbehaving`，通过busybox测试pod发现容器无法访问外网
+# 提示`dial tcp: lookup dashboard.k8s.aezo on 10.96.0.10:53: no such host`，将自定义域名的解析加入到corndns对应的configmap
+```
+
+- cluster-issuer.yaml
+
+```yml
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  # 签发机构的名称，创建证书的时候会引用它
+  name: letsencrypt-staging
+  #namespace: default # 上面kind为Issuer时可定义
+spec:
+  # 使用acme协议。acme 协议的目的是证明这台机器和域名都是属于你的，然后才准许给你颁发证书
+  acme:
+    # acme 协议的服务端，这里用 Let’s Encrypt
+    server: https://acme-staging-v02.api.letsencrypt.org/directory # letsencrypt-prod 对应的服务地址为 https://acme-v02.api.letsencrypt.org/directory
+    # 证书快过期的时候会有邮件提醒。不过 cert-manager 会利用 acme 协议自动重新颁发证书来续期
+    email: admin@aezo.cn
+    privateKeySecretRef:
+      # 指示此签发机构的私钥将要存储到哪个 Secret 对象中
+      name: letsencrypt-staging
+    # 指示签发机构使用 HTTP-01 的方式进行 acme 协议(还可以用 DNS 方式)
+    http01: {}
+```
+- Certificate自定义资源对象参数说明
+```bash
+spec.secretName # 指示证书最终存到哪个 Secret 中
+spec.issuerRef.kind # 值为 ClusterIssuer 说明签发机构不在本 namespace 下，而是在全局
+spec.issuerRef.name # 我们创建的签发机构的名称 (ClusterIssuer.metadata.name)
+spec.dnsNames # 指示该证书的可以用于哪些域名
+spec.acme.config.http01.ingressClass # 使用 HTTP-01 方式校验该域名和机器时，cert-manager 会尝试创建Ingress 对象来实现该校验，如果指定该值，会给创建的 Ingress 加上 kubernetes.io/ingress.class 这个 annotation，如果我们的 Ingress Controller 是 Nginx Ingress Controller，指定这个字段可以让创建的 Ingress 被 Nginx Ingress Controller 处理。
+spec.acme.config.http01.domains # 指示该证书的可以用于哪些域名
+```
+
+#### ingress-nginx安装
+
+```bash
+# https://kubernetes.github.io/ingress-nginx
+helm inspect values stable/nginx-ingress
+# (可选，如有单独的机器作为边缘节点) 选择边缘节点，并打上自定义标签(node-role.kubernetes.io/edge='')
+kubectl label node node1 node-role.kubernetes.io/edge=
+# 修改参数启用RBAC. 否则报错：`User "system:serviceaccount:ingress-nginx:default" cannot get resource "services"`
+cat > ingress-nginx.yaml << EOF
+controller:
+  replicaCount: 1
+  # 使用VIP地址达到负载均衡的效果?
+  #service:
+  #  externalIPs:
+  #  - 192.168.6.129
+  # 临时可使用宿主机网络测试
+  hostNetwork: true
+  # 取消HSTS配置
+  config:
+    hsts: "false"
+  # 选择含边缘标签的节点
+  nodeSelector:
+    node-role.kubernetes.io/edge: ''
+defaultBackend:
+  nodeSelector:
+    node-role.kubernetes.io/edge: ''
+defaultBackend:
+  image:
+    repository: registry.aliyuncs.com/google_containers/defaultbackend
+    tag: 1.3
+## Enable RBAC
+rbac:
+  create: true
+EOF
+# 安装
+helm install stable/nginx-ingress --version 1.14.0 -n nginx-ingress --namespace ingress-nginx -f ingress-nginx.yaml
+kubectl get pod -n ingress-nginx -o wide
+# 访问 curl https://192.168.6.131/ ，显示 `default backend - 404`/`404 page not found` 则正常
+
+# 更新部署的release
+# 修改配置文件后执行
+helm upgrade nginx-ingress stable/nginx-ingress -f ingress-nginx.yaml
+```
+
+#### dashboard安装
+
+```bash
+## 提前创建tls类型的secret，名称为k8s-aezo-cn-tls。否则无法访问，会显示`default backend - 404`。下文 kubernetes-dashboard.yaml 配置中使用 certmanager 自动创建证书
+# 手动创建证书
+#openssl genrsa -out aezocn.key 2048
+#openssl req -new -x509 -key aezocn.key -out aezocn.crt -subj /C=CN/ST=Beijing/L=Beijing/O=DevOps/CN=k8s.aezo.cn # 此处CN=k8s.aezo.cn一定要对应
+#kubectl create secret tls k8s-aezo-cn-tls --cert=aezocn.crt --key=aezocn.key
+
+## 如下文创建配置文件
+vi kubernetes-dashboard.yaml
+## 安装
+helm install stable/kubernetes-dashboard --version 1.8.0 -n kubernetes-dashboard --namespace kube-system -f kubernetes-dashboard.yaml
+
+## 查看状态和登录token
+kubectl -n kube-system get pods
+kubectl get secret $(kubectl get secret -n kube-system|grep kubernetes-dashboard-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo
+
+## 更新删除
+helm upgrade kubernetes-dashboard stable/kubernetes-dashboard --version 1.8.0 -f kubernetes-dashboard.yaml
+helm del --purge kubernetes-dashboard
+```
+- kubernetes-dashboard.yaml
+
+```yml
+image:
+  repository: registry.aliyuncs.com/google_containers/kubernetes-dashboard-amd64 
+  tag: v1.10.1
+ingress:
+  enabled: true
+  annotations:
+    # 是否强制跳转https
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # 如kubernetes-dashboard需要实现tls访问，则需要加入此注解。否则提示"无法访问此网页"，且ingress-nginx容器日志报错"ingress dashboard upstream sent no valid HTTP/1.0 header while reading response header from upstream". 
+        # This annotation was deprecated in 0.18.0 and removed after the release of 0.20.0，之前为 `nginx.ingress.kubernetes.io/secure-backends: "true"`
+        # 参考：http://bbs.bugcode.cn/t/18544 、https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-protocol
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # certmanager 对应的 cluster-issuer
+    certmanager.k8s.io/cluster-issuer: letsencrypt-staging
+    # 加上此注解cert-manager会自动生成k8s-aezo-cn-tls对应的证书和secret。如果未安装cert-manager，则需要提前手动创建好证书和secret。如果无证书则使用默认证书
+    kubernetes.io/tls-acme: "true"
+  hosts: 
+  - k8s.aezo.cn
+  tls:
+  - hosts:
+    - k8s.aezo.cn
+    secretName: k8s-aezo-cn-tls
+# 选择运行在master节点上
+nodeSelector:
+  node-role.kubernetes.io/master: ''
+tolerations:
+- key: node-role.kubernetes.io/master
+  operator: Exists
+  effect: NoSchedule
+- key: node-role.kubernetes.io/master
+  operator: Exists
+  effect: PreferNoSchedule
+rbac:
+  clusterAdminRole: true
+```
+
+#### mysql安装
 
 ```bash
 ## 准备
@@ -166,7 +352,7 @@ spec:
 
 ## Chart说明 [^1]
 
-- 安装某个 Chart 后，可在 `~/.helm/cache/archive` 中找到 Chart 的 tar 包，可解压查看 Chart 文件信息
+- 安装某个 Chart 后，可在 `~/.helm/cache/archive` 中找到 Chart 的 tar 包，可解压查看 Chart 文件信息(`tar -zxvf nginx-ingress-0.9.5.tgz`)
 - 创建 Chart 案例
 
     ```bash

@@ -317,7 +317,9 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
 
 ### ebtables
 
-- ebtables和iptables都是linux系统下，netfilter的配置工具，可以在链路层和网络层的几个关键节点配置报文过滤和修改规则。ebtables更侧重vlan，mac和报文流量；iptables侧重ip层信息，4层的端口信息 [^13]
+- ebtables和iptables [^13]
+    - 都是linux系统下netfilter的配置工具，可以在链路层和网络层的几个关键节点配置报文过滤和修改规则
+    - ebtables更侧重vlan，mac和报文流量；iptables侧重ip层信息，4层的端口信息
 - Netfilter-Packet-Flow
 
 ![Netfilter-Packet-Flow](/data/images/linux/Netfilter-Packet-Flow.png)
@@ -404,7 +406,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
 ### TTL=1导致虚拟机/docker无法访问外网
 
 - 前言：公司选择了便宜的网络运营商，导致无论ping那个地址，总是返回TTL=1。直接在公司路由器上测试亦是如此，说明公司内部网络没有问题
-- 环境介绍：物理机A(192.168.1.72)安装Centos7系统；然后在物理机基于KVM虚拟化出一台虚拟机A1(192.168.122.86)，并且基于NAT的方式联网。之前在A上测试过使用桥接模式时，虚拟机A1是可以访问外网的，此测试在之前测试之上完成。因此物理机A上存在一个虚拟网桥br0，其网卡enp6s0是桥接与br0上的；而KVM使用NAT模式时会自动创建一个虚拟网桥virbr0和创建一个虚拟网卡vnet0
+- 环境介绍：物理机A(192.168.1.72)安装Centos7系统；然后在物理机基于KVM虚拟化出一台虚拟机A1(192.168.122.86)，并且基于NAT的方式联网。之前在A上测试过使用桥接模式时，虚拟机A1是可以访问外网的。此测试在之前测试之上完成，因此物理机A上存在一个虚拟网桥br0，其网卡enp6s0是桥接于br0上的；而KVM使用NAT模式时会自动创建一个虚拟网桥virbr0和创建一个虚拟网卡vnet0
 - 产生现象
     - Linux物理机可正常上网，ping百度返回TTL=1。基于NAT模式，KVM虚拟机无法上网；基于网桥模式创建的docker容器，在docker容器内无法上网。(docker的网桥模式本质是基于iptables进行的NAT转发)
     - windows物理机上使用VMware创建Centos7虚拟机B当做上述的宿主机，且在VMware中设置为NAT网络模式，在A中创建KVM虚拟机B1。此时B和B1均可以访问外网；且在B中ping百度返回TTL=128
@@ -416,12 +418,12 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         ## 数据包发送流向：eth0(A1) -> vnet0(A) -> virbr0 -> br0 -> enps60 -> Internet
         ## 数据包返回流向：eth0(A1) <-- vnet0(A) <-- virbr0 <- br0 <- enps60 <- Internet
         
-        # virbr0(tcpdump -i virbr0 -n icmp -vv -e)
+        ## virbr0(tcpdump -i virbr0 -n icmp -vv -e)
         # 数据包经过virbr0，之前没有进行过路由转发，因此virbr0受到的数据包TTL=64；此时发现需要转发到br0，因此virbr0会对TTL减1，然后发给br0，因此br0受到的TTL=63
         12:58:34.595496 52:54:00:38:ba:c7 > 52:54:00:7f:f7:c3, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 64, id 25917, offset 0, flags [DF], proto ICMP (1), length 84)
             192.168.122.86 > 114.114.114.114: ICMP echo request, id 14135, seq 1, length 64
         
-        # br0(tcpdump -i br0 -n icmp -vv -e)
+        ## br0(tcpdump -i br0 -n icmp -vv -e)
         12:58:34.595557 00:e0:8a:68:01:42 > 00:f1:f5:14:cf:ab, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 63, id 25917, offset 0, flags [DF], proto ICMP (1), length 84)
             192.168.1.72 > 114.114.114.114: ICMP echo request, id 14135, seq 1, length 64
         # 此时TTL=1表示：Internet数据包(返回数据包)到此网卡时，数据包中TTL=1；此时会先将TTL减1后发现TTL值为0，而自己并非该数据报的目的主机，就会向源主机发送一个 ICMP 超时报文
@@ -434,7 +436,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
             (tos 0x28, ttl 1, id 16493, offset 0, flags [none], proto ICMP (1), length 84)
             114.114.114.114 > 192.168.1.72: ICMP echo reply, id 14135, seq 1, length 64
         
-        # enp6s0(tcpdump -i enp6s0 -n icmp -vv -e)
+        ## enp6s0(tcpdump -i enp6s0 -n icmp -vv -e)
         12:58:34.595571 00:e0:8a:68:01:42 > 00:f1:f5:14:cf:ab, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 63, id 25917, offset 0, flags [DF], proto ICMP (1), length 84)
             192.168.1.72 > 114.114.114.114: ICMP echo request, id 14135, seq 1, length 64
         12:58:34.804159 00:f1:f5:14:cf:ab > 00:e0:8a:68:01:42, ethertype IPv4 (0x0800), length 98: (tos 0x28, ttl 1, id 16493, offset 0, flags [none], proto ICMP (1), length 84)
@@ -467,22 +469,23 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         - Docker网络参考 [^6] [^7] [^9]
             - Docker容器通过独立IP暴露给局域网的方法：基于路由完成(不常用) [^8]
         - 关于连接跟踪系统记录的源IP参考 [^10]
-- 解决方案：在宿主机A加添加iptables规则，对数据包的TTL进行操作 `iptables -t mangle -A PREROUTING -i br0 -j TTL --ttl-inc 10`表示数据包从eth0流入则对TTL加10
+- 解决方案：在宿主机A上添加iptables规则，对数据包的TTL进行操作 `iptables -t mangle -A PREROUTING -i br0 -j TTL --ttl-inc 10`表示数据包从eth0流入则对TTL加10
 - 扩展问题：在宿主机A上安装KVM虚拟机A1，使用桥接网络，然后在虚拟机A1上安装docker，此时A和A1均可访问外网且返回TTL=1，且在容器中无法访问外网
     - 按照上述操作当数据包经过A1的eth0网卡时操作TTL值是可以成功让容器上网；但是每当容器重启或者A1重启时，docker都会重写iptables规则，从而导致自定义规则被覆盖；因此想到一种解决方法是在宿主机A的网卡上操作TTL，但实际失败的
-    - 具体原因是默认iptables不对bridge的数据进行处理，即在网桥上进行转发的并不会触发TTL值的变化，具体参考上文`ebtables#Netfilter-Packet-Flow`
+    - 具体原因是默认iptables不对bridge的数据(A和A1基于网桥通信)进行处理，即在网桥上进行转发的并不会触发TTL值的变化，具体参考上文`ebtables#Netfilter-Packet-Flow`
     - 解决方案一(操作宿主机A) [^14]
 
         ```bash
         vi /etc/sysctl.conf
-        # 加入下列内容：开启iptables对bridge的数据，会出现数据包每经过一个网卡转发则会TTL减一
-        net.bridge.bridge-nf-call-iptables=0
-        #net.bridge.bridge-nf-call-ip6tables=0
-        #net.bridge.bridge-nf-call-arptables=0
+        # 加入下列内容：开启iptables对经过bridge数据的转发，数据每经过网桥设备转发TTL也会减一，此时也可操作TTL。如果net.bridge.bridge-nf-call-iptables=1，也就意味着二层的网桥在转发包时也会被iptables的FORWARD规则所过滤，这样就会出现L3层的iptables rules去过滤L2的帧的问题
+        net.bridge.bridge-nf-call-iptables=1
+        net.bridge.bridge-nf-call-ip6tables=1
+        net.bridge.bridge-nf-call-arptables=1
+        net.ipv4.ip_forward=1
         
+        # 载入指定模块(重启后失效。可设置开机启动，参考linux-system.md)。防止刷新可能报错：sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-iptables: No such file
+        modprobe br_netfilter
         # 刷新
-        # 载入指定模块。防止刷新可能报错：sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-iptables: No such file
-        # modprobe br_netfilter
         sysctl -p
 
         # 操作宿主机

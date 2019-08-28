@@ -8,16 +8,16 @@ tags: [spring, spring-mvc]
 
 ## 介绍
 
-1. spring项目官网：[https://spring.io/projects](https://spring.io/projects) ，其中的`spring-framework`即是spring框架内容
-2. 历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) **spring 3.x，java配置**
-3. spring模块(每个模块有个jar包)：
+- Spring项目官网：[https://spring.io/projects](https://spring.io/projects) ，其中的`spring-framework`即是spring框架内容
+- 历史：(1) spring 1.x，xml配置时代 (2) spring 2.x，注解时代 (3) **spring 3.x，java配置**
+- Spring模块(每个模块有个jar包)：
     - 核心容器：`spring-core`, `spring-beans`, `spring-context`(运行时spring容器), `spring-context-support`(spring对第三方包的集成支持), `spring-expression`(使用表达式语言在运行时查询和操作对象)
     - AOP：spring-aop, spring-aspects
     - 消息：spring-messaging
     - 数据访问：`spring-jdbc`, `spring-tx`(提供编程式和声明明式事物支持), `spring-orm`, `spring-oxm`(提供对对象/xml映射技术支持), `spring-jms`(提供jms支持)
     - Web： `spring-web`(在web项目中提供spring容器), `spring-webmvc`(基于Servlet的SpringMVC), `spring-websocket`, `spring-webmvc-portlet`
-4. spring生态：`Spring Boot`(使用默认开发配置来快速开发)、`Spring Cloud`(为分布式系统开发提供工具集)等
-5. 本文档基于spring4.3.8
+- Spring生态：`Spring Boot`(使用默认开发配置来快速开发)、`Spring Cloud`(为分布式系统开发提供工具集)等
+- 本文档基于Spring4.3.8
 
 ## HelloWorld
 
@@ -816,6 +816,149 @@ public class JobManager {
 }
 ```
 
+### 事物支持
+
+- Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的
+    - **`@Transactional`注解只能被应用到 public 可见度的方法上**
+    - **自调用导致`@Transactional`失效问题**：同一个类中的方法相互调用，发起方法无`@Transactional`，则被调用的方法`@Transactional`无效 [^3]
+        - 方案：通过BeanPostProcessor 在目标对象中注入代理对象
+        - 原因：由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，**自调用时不存在代理对象的调用，这时不会产生注解@Transactional配置的参数**，因此无效
+- **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
+	- `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(throw出来的)捕获异常Exception时也回滚
+	- `@Transactional(noRollbackFor=RuntimeException.class)` 指定不回滚
+- **服务内部捕获异常Exception/RuntimeException，统一返回错误结果对象，如自定义`Result`，此时无法回滚事物**，解决方案如下
+    - `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)
+    - 或者手动抛出RuntimeException
+    - 或者基于自定义注解统一回滚
+- **事物生命周期是从AOP调用的目标方法开始的，到该方法执行完成事物环境即消失**
+- 一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)，具体见下文事物传播行为
+- 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
+- 隔离级别`@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读 [^2]
+	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是`READ_COMMITTED`；然而mysql的默认值是`REPEATABLE_READ`
+	- `READ_UNCOMMITTED`：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读和不可重复读，因此很少使用该隔离级别
+	- `READ_COMMITTED`：该隔离级别表示一个事务只能读取另一个事务已经提交的数据。该级别可以防止脏读，这也是大多数情况下的推荐值
+	- `REPEATABLE_READ`：该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略。该级别可以防止脏读和不可重复读。
+	- `SERIALIZABLE`：所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
+- 传播行为`@Transactional(propagation = Propagation.REQUIRED)`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
+	- `REQUIRED`：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务
+	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行
+	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
+	- `REQUIRES_NEW`：创建一个新的事务，如果当前存在事务，则把当前事务挂起
+	- `NOT_SUPPORTED`：以非事务方式运行，如果当前存在事务，则把当前事务挂起
+	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常
+	- `NESTED`：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED
+- 示例
+
+```java
+// 1.## 在Test测试程序中，通过此Controller相关Bean调用该方法时，正常回滚
+// Controller1.java
+@Transactional
+@RequestMapping("/addTest")
+public Result addTest() {
+    User user1 = new User();
+    user1.setId("1");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+    // userService.save(user1); // 同样会回滚
+    System.out.println("user1.getId() = " + user1.getId());
+
+    // 此处报错，会出现回滚
+    Long.valueOf("abc");
+    return null;
+}
+// Test.java(下同)
+@Test
+public void contextLoads() {
+    controller1.addTest();
+}
+
+// 2.## 通过此Controller相关Bean调用该方法时，不会出现回滚(浏览器直接访问也不会回滚)
+// Controller1.java
+@Transactional
+// @Transactional(rollbackFor=Exception.class) // 加此注解可正常回滚(浏览器访问也会回滚)
+@RequestMapping("/addTest")
+public Result addTest() throws Exception {
+    User user1 = new User();
+    user1.setId("1");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+    System.out.println("user1.getId() = " + user1.getId());
+
+    // Long.valueOf("abc"); // 属于RuntimeException
+    if(1 == 1) {
+        // 此处报错，不会出现回滚
+        throw new Exception("..."); // 属于Exception
+    }
+
+    return null;
+}
+
+// 3.## 在Test测试程序中通过此Controller相关Bean调用该方法 和 浏览器直接访问，都无法正常回滚
+// Controller1.java
+@RequestMapping("/addTest")
+public Result addTest() {
+    // Spring的@Transactional自我调用问题：同一个类中的方法相互调用，发起方法无`@Transactional`，被调用的方法`@Transactional`无效
+    return addTestTransactional();
+}
+@Transactional
+public Result addTestTransactional() {
+    // 此时有事物环境(由于是直接调用)
+    User user1 = new User();
+    user1.setId("2");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+    System.out.println("user1.getId() = " + user1.getId());
+
+    try {
+        Long.valueOf("abc");
+    } catch (Exception e) {
+        e.printStackTrace();
+        // 此时手动回滚不会生效，并且会报：org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+    }
+
+    // 此处报错，也不会回滚
+    Long.valueOf("abc");
+
+    return null;
+}
+
+// 4.## 事物生命周期是从AOP调用开始的
+// Controller1.java
+@RequestMapping("/addTest")
+public Result addTest() {
+    User user1 = new User();
+    user1.setId("1");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+
+    try {
+        // 此处没有事物环境
+        controller2.addTestTransactional(); // 此时为AOP调用，在调用方法里面才存在事物环境
+        // 此处也没有事物环境
+    } catch (Exception e) {
+        e.printStackTrace();
+        // 由于此处没有事物环境，因此执行会报错。上面user1也不会正常回滚
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+    }
+    return null;
+}
+// Controller2.java
+@Transactional
+public Result addTestTransactional() {
+    // 此时有事物环境
+    User user2 = new User();
+    user2.setId("2");
+    user2.setUsername("user2");
+    userMapper.insert(user2);
+    System.out.println("user2.getId() = " + user2.getId());
+
+    // 此处报错，会回滚user2(user1不会回滚)
+    Long.valueOf("abc");
+    return null;
+}
+```
+
 ## SpringMVC
 
 ### 拦截器
@@ -916,3 +1059,6 @@ public class CustomerHandlerInterceptor implements HandlerInterceptor {
 参考文章
 
 [^1]: https://www.cnblogs.com/X-World/p/6113910.html (cron表达式)
+[^2]: http://blog.didispace.com/springboottransactional/ (@Transactional)
+[^3]: http://tech.lede.com/2017/02/06/rd/server/SpringTransactional/ (Spring @Transactional原理及使用)
+

@@ -188,6 +188,12 @@ tags: [linux, shell]
     
 ### 服务相关命令
 
+- `journalctl` 查看所有日志，默认显示本次启动的所有(服务)日志
+    - `-f` 持续监控日志输出
+    - `-u` 基于服务筛选(`journalctl -f -u kubelet` 持续监控kubelet日志)
+    - `-n` 显示最近n行日志
+    - `-k` 查看内容日志
+    - `--since`/`--until` 查询某段时间的日志
 - **自定义服务参考[《nginx》http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)**
 - systemctl：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为`/usr/lib/systemd/system` 或 `/etc/systemd/system`)
     - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务，此处`.service`可省略，status状态说明
@@ -200,7 +206,7 @@ tags: [linux, shell]
     - `systemctl cat sshd` 查看服务的配置文件
     - **`tail -f /var/log/messages`** 查看服务启动日志
 - chkconfig：提供了一个维护`/etc/rc[0~6]d/init.d`文件夹的命令行工具
-    - `chkconfig --list <nginx>` 查看(nginx)服务列表
+    - `chkconfig --list [nginx]` 查看(nginx)服务列表
     - `chkconfig --add nginx` 将nginx加入到服务列表(需要 **`/etc/rc.d/init.d`**/软路径`/etc/init.d` 下有相关文件`nginx.service`或`nginx`脚本)
     - `chkconfig --del nginx` 关闭指定的服务程序
     - `chkconfig nginx on` 设置nginx服务开机自启动（对于 on 和 off 开关，系统默认只对运行级345有效，但是 reset 可以对所有运行级有效）
@@ -221,19 +227,65 @@ tags: [linux, shell]
             iptables-restore < /etc/sysconfig/iptables
             echo iptables-init end...
             ```
-        - 将启动脚本添加到chkconfig列表：`chkconfig --add my_script`
+        - **将启动脚本添加到chkconfig列表**：`chkconfig --add my_script`
         - 之后可在`/var/log/messages`中查看启动日志信息；也可通过`systemctl status my_script`查看服务状态，如`active (exited)`表示服务有效中，但是程序已执行完成
 - service：`service nginx start|stop|reload` 服务启动等命令
+
+### 开机启动设置
+
+#### 系统启动顺序boot sequence
+
+- load bios(hardware information)：加电后检查，载入BIOS的硬件信息，并取得第一个开机装置的代号
+- read MBR's cofing to find out the OS 读取第一个开机装置的MBR的boot Loader (grub)的开机信息
+- load the kernel of the OS 载入OS Kernel信息，解压Kernel，尝试驱动硬件
+- init process starts... Kernel执行init程序并获得run-lebel信息(如3或5)
+- execute /etc/rc.d/sysinit (rc.d为runlevel control directory)
+- start other modulers(/etc/modules.conf) (启动内核外挂模块)
+- execute the run level scripts(如rc0.d、rc1.d等。启动只能配置成某一个级别，查看`systemctl get-default`，配置目录`cat /etc/inittab`)
+    - 0 停机（千万不要把initdefault 设置为0）
+    - 1 单用户模式
+    - 2 多用户，但是没有 NFS
+    - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)
+    - 4 系统保留的
+    - **5** X11(x window 桌面版)
+    - 6 重新启动（千万不要把initdefault 设置为6）
+- execute `/etc/rc.d/rc.local` 自动启动某些程序，可基于此文件配置(或者`/etc/rc.local`，直接在里面添加启动命令)
+- execute /bin/login
+- shell started...
+
+#### 启动设置
+
+- 设置服务自启动，如 `systemctl enable nginx` 或 `chkconfig nginx on`
+- 操作 `/etc/rc.d/sysinit` 或 `/etc/rc.d/rc.local` 或 `~/.bashrc`
+- 设置加载模块。如设置 `br_netfilter` 模块开机自启动
+
+```bash
+# 创建文件
+cat > /etc/rc.d/sysinit <<EOF 
+#!/bin/bash
+for file in /etc/sysconfig/modules/*.modules ; do
+[ -x $file ] && $file
+done
+EOF
+# 创建文件
+cat > /etc/sysconfig/modules/br_netfilter.modules <<EOF
+modprobe br_netfilter
+EOF
+# 增加权限
+chmod 755 /etc/sysconfig/modules/br_netfilter.modules
+# 重启后查看模块是否启动
+lsmod |grep br_netfilter
+```
 
 ### bash使用
 
 - `Tab` 自动补全
-- `ctrl-r` 搜索命令行历史记录(重复按下 ctrl-r 会向后查找匹配项)
 - `ctrl-w` 删除键入的最后一个单词
 - `ctrl-u`/`ctrl-k` 删除行内光标所在位置之前/之后的所有内容
-- `ctrl-l` 可以清屏
 - `ctrl-a`/`ctrl-e` 可以将光标移至行首/行尾
 - `alt-b`/`alt-f` 以单词为单位移动光标
+- `ctrl-r` 搜索命令行历史记录(重复按下 ctrl-r 会向后查找匹配项)
+- `ctrl-l` 可以清屏
 
 ### 其他命令
 
@@ -410,8 +462,8 @@ tags: [linux, shell]
     - `cat -n <fileName>` **输出文件内容，并显示行号**
     - `cat > fileName` 创建文件并书写内容，此时会进入书写模式，Ctrl+C保存书写内容
 - `pwd` 查看当前目录完整路径
-- `sudo find / -name nginx.conf` 查询文件位置(查看`nginx.conf`文件所在位置)
-    - `find ./ -mtime +30 -name "*.gz" | xargs ls -lh` 查询30天之前的gz压缩包文件
+- `sudo find / -name nginx.conf` 全局查询文件位置(查看`nginx.conf`文件所在位置)
+    - `find ./ -mtime +30 -name "*.gz" | xargs ls -lh` 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
     - `find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf` 删除30天之前的gz压缩文件
 - `whereis <binName>` 查询可执行文件位置
     - `which <exeName>` 查询可执行文件位置 (在PATH路径中寻找)
@@ -1029,26 +1081,6 @@ tags: [linux, shell]
         - `src` 系统级的源码目录
         - `/local/src`：用户级的源码目录
     - `/opt` **标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包**。用户级的程序目录，可以理解为D:/Software，opt有可选的意思，这里可以用于放置第三方大型软件（或游戏），当不需要时，直接rm -rf掉即可。在硬盘容量不够时，也可将/opt单独挂载到其他磁盘上使用
-
-### 系统启动顺序boot sequence
-
-1. load bios(hardware information) 加电后检查hardware information
-2. read MBR's cofing to find out the OS
-3. load the kernel of the OS
-4. init process starts...
-5. execute /etc/rc.d/sysinit (rc.d为runlevel control directory)
-6. start other modulers(etc/modules.conf) (启动内核外挂模块)
-7. execute the run level scripts(如rc0.d、rc1.d等。启动只能配置成某一个级别，查看`systemctl get-default`，配置目录`cat /etc/inittab`)
-    - 0 停机（千万不要把initdefault 设置为0）
-    - 1 单用户模式
-    - 2 多用户，但是没有 NFS
-    - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)
-    - 4 系统保留的
-    - **5** X11(x window 桌面版)
-    - 6 重新启动（千万不要把initdefault 设置为6）
-8. execute `/etc/rc.d/rc.local` 自动启动某些程序，可基于此文件配置(或者`/etc/rc.local`，直接在里面添加启动命令)
-9. execute /bin/login
-10. shell started...
 
 ## xshell使用
 

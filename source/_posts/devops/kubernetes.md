@@ -10,6 +10,7 @@ tags: [k8s, docker]
 
 - [官网](https://kubernetes.io/zh)、[github](https://github.com/kubernetes/kubernetes)、[Doc](https://kubernetes.io/zh/docs/)
 - 相关文章：https://github.com/rootsongjc/kubernetes-handbook/ 、 https://www.cnblogs.com/linuxk/category/1248289.html (视频相关) 、 https://feisky.gitbooks.io/kubernetes/content/
+- 镜像: `k8s.gcr.io`一般对应`registry.aliyuncs.com/google_containers`
 
 ### 背景
 
@@ -78,7 +79,7 @@ tags: [k8s, docker]
 - 安装步骤 [^1] [^2]
 
 ```bash
-### 环境配置(所有节点)
+### (所有节点)环境配置
 # 更新软件版本和内核次版本。初始化机器可执行，生成环境不建议重复更新内核版本
 yum update
 
@@ -143,7 +144,7 @@ iptables -nvL
 # docker info | grep Cgroup # 显示Cgroup Driver: systemd
 
 ### 使用kubeadm部署Kubernetes
-## E.添加kubernetes yum源（所有节点安装）
+## E.(所有节点安装)添加kubernetes yum源
 cat << EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -164,9 +165,9 @@ EOF
 # 注意：kubelet无需手动启动，在kubeadm init初始化时会自动启动
 systemctl daemon-reload && systemctl enable kubelet
 
-## F.启动(初始化)一个 Kubernetes主节点（**仅Master节点执行**，此处的node1机器需要执行）。如果不希望禁用swap，则需要加上`--ignore-preflight-errors=swap`；也可基于config.yml进行初始化，但是测试失败
+## F.(**仅Master节点执行**，此处的node1机器需要执行) 启动(初始化)一个 Kubernetes主节点。如果不希望禁用swap，则需要加上`--ignore-preflight-errors=swap`；也可基于config.yml进行初始化，但是测试失败
 # 安装成功显示`Your Kubernetes control-plane has initialized successfully!`，具体日志见下文`kubeadm init执行成功日志`；安装失败见常见错误处理。其中`10.244.0.0/16`为pod的网络，启动pod后会在Node上产生一个`cni0`的网桥
-kubeadm init --kubernetes-version=v1.15.0 --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=Swap --image-repository=registry.cn-hangzhou.aliyuncs.com/google_containers # registry.aliyuncs.com/google_containers
+kubeadm init --kubernetes-version=v1.15.0 --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=Swap --image-repository=registry.aliyuncs.com/google_containers
 # 配置常规用户如何使用kubectl访问集群(使用非root用户操作，root用户也可如此操作)，即需要使用kubectl命令的机器进行配置(一般在Master上操作)
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -175,18 +176,20 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 kubectl get cs
 kubectl get node # 此时只有一个主节点，状态为NotReady(由于还没有部署网络插件)
 
-## G.安装网络插件(Pod Network插件flannel)。**仅Master节点执行**，此处的node1机器需要执行
+## G.(仅Master节点执行)安装网络插件(Pod Network插件flannel/canal。此处使用canal，canal内部会安装flannel镜像)。
 mkdir -p ~/k8s/ && cd ~/k8s
-wget https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-kubectl apply -f kube-flannel.yml # 需要注意保证docker register私有仓库中已经有flannel镜像
+#wget https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#kubectl apply -f kube-flannel.yml # 需要注意保证docker register私有仓库中已经有flannel镜像
+wget https://docs.projectcalico.org/v3.8/manifests/canal.yaml
+kubectl apply -f canal.yaml
 # 查看集群状态(稍等一会全部进入Running状态)
-kubectl get pods -o wide --all-namespaces # 其中kube-flannel-xxx为Running状态
+kubectl get pods -o wide --all-namespaces # 其中kube-flannel-xxx/canal-xxx为Running状态
 kubectl get node # 此时节点状态为Ready
 
-## I.向Kubernetes集群中添加Node节点（仅所有Node节点执行）
+## I.（仅所有Node节点执行）向Kubernetes集群中添加Node节点
 # 在Master节点打印获取加入集群的命令
 kubeadm token create --print-join-command
-# Node节点运行加入集群命令。安装成功显示`This node has joined the cluster`
+# Node节点运行加入集群命令，注意后面新加了swap参数。安装成功显示`This node has joined the cluster`
 kubeadm join 192.168.6.131:6443 --token 3v4bja.hw4mwq5uknl3ruqn --discovery-token-ca-cert-hash sha256:3f315f28918e58cb5cdb1c4fbf47db8d1d3ab6169146079a7f8f60197ae17c12 --ignore-preflight-errors=Swap
 # (在Master节点)查看节点是否成功加入
 kubectl get node -o wide # ROLES显示`<none>`为正常，如果STATUS显示`NotReady`则表示节点还没有加入到集群
@@ -194,8 +197,8 @@ kubectl get node -o wide # ROLES显示`<none>`为正常，如果STATUS显示`Not
 # 至此，集群正常运行，安装完毕
 kubectl get pods -o wide --all-namespaces
 
-### Kube-proxy开启ipvs(可选配置)
-## J.Kube-proxy开启ipvs（**Master节点执行**）
+### (可选配置)Kube-proxy开启ipvs
+## J.(**Master节点执行**)Kube-proxy开启ipvs
 # 此命令即可打开配置文件，修改文件中config.conf的mode配置为 `mode: "ipvs"`
 kubectl edit cm kube-proxy -n kube-system # 或者修改`/etc/sysconfig/kubelet`加入`KUBE_PROXY_MODE=ipvs`
 # 打印 kube-proxy
@@ -278,6 +281,7 @@ Then you can join any number of worker nodes by running the following on each as
 kubeadm join 192.168.6.131:6443 --token rxqii4.ov3v99x5bk2qi4ia \
     --discovery-token-ca-cert-hash sha256:7a9a8a910ae2cad21a032afd289a00097ebfbc6d361fd9673644db0e264a4fd1
 ```
+- **常用扩展安装**：`Helm`、`Ingress Control`、`Dashboard`、`metrics-server` 可手动安装或通过Helm安装
 - 集群初始化(kubeadm init/kubeadm join)如果遇到问题，可以使用下面的命令进行清理
 
 ```bash
@@ -289,7 +293,7 @@ ip link delete cni0
 ifconfig flannel.1 down
 ip link delete flannel.1
 ```
-- 从集群中移除Node(以移除node3为例)
+- **从集群中移除Node**(以移除node3为例)
 
 ```bash
 # 1.在master节点上执行
@@ -362,7 +366,7 @@ Basic Commands (Beginner):
     -it             # 进入pod容器
     # kubectl run nginx --image=nginx # 启动单实例
     # kubectl run sq-nginx --image=nginx:1.14-alpine --replicas=3 # 启动3个实例
-    # kubectl run busybox1 -it --image=busybox --restart=Never # 启动busybox并进入容器
+    # kubectl run busybox1 -it --image=busybox --restart=Never --overrides='{ "apiVersion": "v1", "spec": { "nodeName": "node1" } }' # 启动busybox并进入容器，此时添加了额外参数 --overrides 来覆盖资源配置
   set            Set specific features on objects # 重设对象配置
     image       # 更新容器镜像
     # kubectl set image deployment sq-nginx sq-nginx=nginx:1.14-alpine # 更新sq-nginx部署资源中容器sq-nginx的镜像
@@ -431,6 +435,7 @@ Troubleshooting and Debugging Commands:
     --export    # 导出关键配置信息(去除了一些status信息)
     # kubectl describe node node1 # 描述节点node1的详细信息
   logs           Print the logs for a container in a pod # 打印pod中容器的日志
+    -f          # 实时打印日志
     # kubectl logs sq-pod sq-busybox # 打印 sq-pod 中 sq-busybox 容器的日志
   attach         Attach to a running container
   exec           Execute a command in a container # 在容器中执行命令
@@ -493,7 +498,7 @@ kubectl run --help
 # 启动nginx的Pod
 kubectl run nginx --image=nginx # 启动单实例
 kubectl run sq-nginx --image=nginx:1.14-alpine --replicas=3 # 启动3个实例
-kubectl run busybox1 -it --image=busybox --restart=Never # 启动busybox，并进入容器，--restart=Never表示不自动启动
+kubectl run busybox1 -it --image=busybox --restart=Never # 启动busybox，并进入容器，--restart=Never表示不自动启动。**测试常用**
 
 # 获取部署列表
 kubectl get deployment
@@ -548,7 +553,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
     - `namespace` 命名空间。基于文件apply时，会将资源创建到此处定义的命名空间中；如果不定义可以通过`--namespace=dev`传入，如果定义了--namespace参数无法对其进行覆盖
     - `labels` 标签(限制长度)
         - 常见的标签键名：app、tier(frontend/backend)、version、profile
-    - `annotations` 资源注解(不限长度)，与lables不同的是不能用于挑选资源对象
+    - `annotations` 资源注解(不限长度)，与lables不同的是不能用于挑选资源对象。一般是提供一些配置表示，如`nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"`
     - `selfLink` 每个资源引用PATH格式：`/apo/GROUP/VERSION/namespaces/NAMESPACE/TYPE/NAME`
 - `spec` 期望状态(disired state)
     - `containers` 描述容器
@@ -605,13 +610,15 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
     ---
     - `selector`
     - `type` Service类型：ClusterIP(默认，k8s集群内访问)、NodePort(k8s集群外可访问)、LoadBalancer、ExternalName(将k8s外部服务映射到集群)
-    - `clusterIP` Service服务集群IP，NodePort无需。eg：10.66.66.66、None(无头服务)
+    - `clusterIP` Service服务集群IP(ExternalName类型无需)。eg：10.66.66.66、None(无头服务)
     - `ports` 服务端口(暴露pod的服务端口)
         - `port` 暴露的服务端口
         - `targetPort` 被暴露的容器端口
         - `nodePort` 仅type=NodePort时，使用Node的端口映射服务端口(确保Node端口可用)，不指定则随机
-    - `sessionAffinity` session感知的：ClientIP(同一个客户永远访问的是同一个pod)、None
     - `externalName` 仅用于type=ExternalName，取值应该是一个外部域名，CNAME记录。CNAME -> FQDN
+    - `externalIPs` 可配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡，即用来定义VIP(直接填写一个和节点同一个段没使用过的IP即可，无需创建VIP)；可以和任一类型的Service一起使用
+    - `sessionAffinity` 是否session感知的：ClientIP(同一个客户永远访问的是同一个pod)、None(默认)
+    - `externalTrafficPolicy` 取值：Cluster(默认。隐藏源IP，可能会导致第二跳，负载较好)、Local(保留客户端源 IP 地址)。如果服务需要将外部流量路由到 本地节点或者集群级别的端点，即service type 为LoadBalancer或NodePort，那么需要指明该参数
 - `status` 当前状态(current state)。由K8s进行维护，用户无需修改
 
 #### 资源配置文件简单示例
@@ -693,11 +700,41 @@ kubectl delete -f sq-pod.yaml
         - 探针类型：exec、tcpSocket、httpGet
     
     ![k8s-pod-action](/data/images/devops/k8s-pod-action.png)
-- Pod状态
-    - Pending 准备中，可能为：正在处理、没有合适的运行节点
-    - Running 正常运行
-    - Terminating 中断中
-    - CrashLoopBackOff
+- Pod状态(STATUS)
+    - `Pending` 准备中，可能为：正在处理、没有合适的运行节点
+    - `Running` 正常运行
+    - `Terminating` 中断中
+    - `CrashLoopBackOff` 容器退出，kubelet正在将它重启
+    - `InvalidImageName` 无法解析镜像名称
+    - `ImageInspectError` 无法校验镜像
+    - `ErrImageNeverPull` 策略禁止拉取镜像
+    - `ImagePullBackOff` 正在重试拉取
+    - `RegistryUnavailable` 连接不到镜像中心
+    - `ErrImagePull` 通用的拉取镜像出错
+    - `CreateContainerConfigError` 不能创建kubelet使用的容器配置
+    - `CreateContainerError` 创建容器失败
+    - `ContainerCreating` 容器创建中
+    - `ContainersNotReady` 容器没有准备完毕
+    - `ContainersNotInitialized` 容器没有初始化完毕
+    - `RunContainerError` 启动容器失败
+    - `m.internalLifecycle.PreStartContainer` 执行hook报错
+    - `PostStartHookError` 执行hook报错
+    - `PodInitializing` pod初始化中
+    - `DockerDaemonNotReady` docker还没有完全启动
+    - `NetworkPluginNotReady` 网络插件还没有完全启动
+- Pod条件(Conditions)
+    - Pod有一个PodStatus，它有一个PodConditions 数组。PodCondition数组的每个元素都有六个可能的字段
+        - `type` 一个包含以下可能值的字符串
+            - `PodScheduled` Pod已被安排到一个节点
+            - `Read` Pod能够提供请求，应该添加到所有匹配服务的负载平衡池中
+            - `Initialized` 所有init容器都已成功启动
+            - `Unschedulable` 调度程序现在无法调度Pod，例如由于缺少资源或其他限制
+            - `ContainersReady` Pod中的所有容器都已准备就绪
+        - `status` 一个字符串，可能的值为True/False/Unknown
+        - `lastProbeTime` 提供上次探测Pod条件的时间戳
+        - `lastTransitionTime` 提供Pod最后从一个状态转换到另一个状态的时间戳
+        - `reason` 该条件最后一次转换的唯一，CamelCase原因
+        - `message` 指示有关转换的详细信息
 - Deployment是构建于RS之上的，可能出现一类Pod由不同的RS控制
 
 ### 控制器
@@ -709,21 +746,25 @@ kubectl delete -f sq-pod.yaml
 
 ### Service
 
-- 工作模式：userspace(1.1之前)、iptables(1.1默认)、ipvs(1.1之后)
+- Service网络工作模式：userspace(1.1之前)、iptables(1.1默认)、ipvs(1.1之后)
     - userspace：较慢，每次请求都需要kube-proxy转发
 
         ![k8s-userspace](/data/images/devops/k8s-userspace.png)
-
+        - apiserver提交修改(pod变更等) -> kube-proxy -> 修改iptables规则
+        - client-pod -> iptables -> kube-proxy -> server-pod
     - iptablse/ipvs
         - iptablse和ipvs工作流程一直，如下图。k8s配置成ipvs时，如果内核不支持，则会自动使用iptables
-        - API Server修改了配置，被kube-proxy监视(watch)到，然后转换成iptables/ipvs规则(有延迟)
+        - ipvs(IP Virtual Server)实现了传输层负载均衡，也就是常说的4层LAN交换，作为 Linux 内核的一部分。是运行在LVS(Linux Virtual Server)下的提供负载平衡功能的一种技术。[^6]
 
         ![k8s-ipvs](/data/images/devops/k8s-ipvs.png)
+        - apiserver提交修改(pod变更等) -> kube-proxy -> 修改ipvs规则
+            - API Server修改了配置，被kube-proxy监视(watch)到，然后转换成iptables/ipvs规则(有延迟)
+        - client-pod -> ipvs -> server-pod
 - 服务类型(type)
     - ClusterIP(默认，仅k8s集群内访问)
     - NodePort(k8s集群外可访问，k8s边界服务)
         - client -> NodeIP:NodePort -> ClusterIP:ServicePort -> PodIP:containerPort
-    - LoadBalancer
+    - LoadBalancer(负载均衡器，实现了流量经过前端负载均衡器分发到各个Node节点暴露出的端口，再通过ipvs/iptables进行一次负载均衡，最终分发到实际的Pod上这个过程。可通过`externalIPs`配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡)
     - ExternalName(将k8s外部服务映射到集群)
         - CNAME -> FQDN(将外部服务映射到内部，通过内部DNS服务进行访问)
     - 特殊服务：无头服务(headless services)
@@ -736,7 +777,8 @@ kubectl delete -f sq-pod.yaml
 ### Ingress & Ingress Control [^3]
 
 - Ingress Control背景
-    - 特殊的控制器，不同于普通Control Manager，**主要是提供集群访问入口，外部请求至Ingress Control，然后Ingress Control调用最终的Pod**
+    - 特殊的控制器，不同于普通Control Manager，**主要是提供集群访问入口(边界节点)，外部请求至Ingress Control(对应的NodePort/LoadBalancer类型的Service)，然后Ingress Control调用最终的Pod**
+        - 集群提供外网访问：Pod直接定义hostNetwork共享节点网络；定义NodePort/LoadBalancer类型的Service代理访问到相应Pod
     - 如果使用https访问，则只需要在Ingress Control进行配置证书(否则所有的Pod都需要配置证书)，k8s内部Pod无需处理，内部仍然使用http明文调用(此时相当于再进行一次反向代理)
         - 客户域名进行访问，此时是访问到NodePort Service，而Service调度到Pod是第四层转换，而Https是工作在第七层。要建立Https连接必须要和最终主机(Pod)完成，因此就需要所有Pod配置https证书(K8s最终选择Ingress解决Https问题)
 - `Ingress` 简单的理解就是你原来需要改 Nginx 配置，然后配置各种域名对应哪个 Service，现在把这个动作抽象出来，变成一个 Ingress 对象，可以用 yaml 创建，每次不要去改 Nginx 了，直接改 yaml 然后创建/更新就行了；那么问题来了："nginx 该怎么处理？"
@@ -744,7 +786,7 @@ kubectl delete -f sq-pod.yaml
 
     ![k8s-ingress](/data/images/devops/k8s-ingress.png)
 
-    - **Pod变化，会反映到对应的Service；Ingress通过管理这些Service和应用Host的关系，得知某个Host最终可以访问那些Pod，并将相关配置注入到Ingress Controller；Client客户端请求Host到达Ingress Controller后，边可直接代理到最终的Pod**
+    - **Pod变化，会反映到对应的Service；Ingress通过管理这些Service和应用Host的关系，得知某个Host最终可以访问那些Pod，并将相关配置注入到Ingress Controller；Client客户端请求Host到达Ingress Controller后，便可直接代理到最终的Pod**
     - 实际上Ingress也是Kubernetes API的标准资源类型之一，它其实就是一组基于DNS名称（host）或URL路径把请求转发到指定的Service资源的规则，用于将集群外部的请求流量转发到集群内部完成的服务发布。Ingress资源自身不能进行"流量穿透"，仅仅是一组规则的集合，这些集合规则还需要其他功能的辅助，比如监听某套接字，然后根据这些规则的匹配进行路由转发，这些能够为Ingress资源监听套接字并将流量转发的组件就是Ingress Controller
     - 此时使用NodePort暴露Ingress Controller；也可以(使Node)直接访问到Ingress Controller，不经过前面的Service(NodePort)。需要将Ingress Controller设置成DaemonSet，且共享Node的IP和端口
 - Ingress的资源类型：单Service资源型Ingress、基于URL路径进行流量转发、基于主机名称的虚拟主机、TLS类型的Ingress资源
@@ -757,25 +799,38 @@ kubectl delete -f sq-pod.yaml
     - Ingress Controller可基于Nginx、Traefik、Envoy等来进行部署，此处使用[ingress-nginx](https://github.com/kubernetes/ingress-nginx)
 
 ```bash
-# 1.部署Ingress Controller，此时是Ingress Controller部署为Deployment。如果只执行此部署，则只能在集群内部访问
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
+## 部署Ingress Controller，此时是Ingress Controller部署为Deployment。如果只执行此部署，则只能在集群内部访问
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.25.1/deploy/static/mandatory.yaml
+# 修改镜像地址(quay.io有时候会很慢)
+sed -i 's#quay.io/kubernetes-ingress-controller#registry.cn-hangzhou.aliyuncs.com/google_containers#g' mandatory.yaml
+kubectl apply -f mandatory.yaml
 kubectl get deployment -n ingress-nginx
-# 2.使用Nodeport暴露Ingress Controller。默认暴露80/443，如需修改端口，可手动下载配置文件后再手动安装
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/service-nodeport.yaml
+## (生产环境一般使用 LoadBalancer) 使用Nodeport暴露Ingress Controller，如需修改暴露的节点端口，可添加 nodePort: 30080 和 nodePort: 30443 来指定
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.25.1/deploy/static/provider/baremetal/service-nodeport.yaml
+kubectl apply -f service-nodeport.yaml
+# kubectl expose deployment nginx-ingress-controller --port 80 --external-ip 192.168.6.132 # 或者基于 LoadBalancer + externalIPs 来暴露服务
 kubectl get svc -n ingress-nginx
+## 取消HSTS配置：https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
+# 修改配置，伪代码：添加 `data.hsts="false"`。取消成功后查看nginx配置时则无`Strict-Transport-Security`相关配置
+kubectl edit configmap nginx-configuration -n ingress-nginx
+## 查看 ingress-controller 对应pod的nginx配置
+kubectl exec -it nginx-ingress-controller-74c6b9c45c-9qm54 -n ingress-nginx cat /etc/nginx/nginx.conf
+# 查看日志(cat /var/log/nginx/access.log 卡死)
+kubectl logs nginx-ingress-controller-74c6b9c45c-9qm54 -n ingress-nginx
 ```
 
 #### 创建Ingress示例
 
-- 查看定义`kubectl explain ingress`，此处以`ingress.aezocn.local`为例
+- 查看定义`kubectl explain ingress`，此处以`ingress.aezocn.local`(外部测试需要在hosts中加入对应节点IP)为例
 - 先创建一个测试服务
 
 ```yml
-# sq-ingress-test.yaml
-# 创建service为sq-ingress
+# sq-ingress.yaml
+# 创建测试service为sq-ingress
 apiVersion: v1
 kind: Service
 metadata:
+  # service名称
   name: sq-ingress
   namespace: default
 spec:
@@ -817,7 +872,7 @@ spec:
 - 编写ingress的配置清单。如果有多个应用，可以创建多个Ingress
 
 ```yml
-# sq-ingress.yaml
+# ingress-sq-ingress.yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -825,18 +880,22 @@ metadata:
   namespace: default
   annotations:
     kubernetes.io/ingress.class: "nginx"
+    # 如kubernetes-dashboard需要实现tls访问，则需要加入此注解。否则提示"无法访问此网页"，且ingress-nginx容器日志报错"ingress dashboard upstream sent no valid HTTP/1.0 header while reading response header from upstream"
+        # This annotation was deprecated in 0.18.0 and removed after the release of 0.20.0，之前为 `nginx.ingress.kubernetes.io/secure-backends: "true"`
+        # 参考：http://bbs.bugcode.cn/t/18544 、https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-protocol
+    #nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   # 定义后端转发的规则
   rules:
   - host: ingress.aezocn.local
     http:
       paths:
-      # 配置访问路径，如果通过url进行转发，需要修改；空默认为访问的路径为"/"
-      - path:
-        # 配置后端服务
-        backend:
+      # 配置后端服务
+      - backend:
           serviceName: sq-ingress
           servicePort: 8080
+        # 配置访问路径，如果通过url进行转发，需要修改；空默认为访问的路径为"/"
+        path: "/"
   # 配置TLS站点才需要(结合下文)
   tls:
   - hosts:
@@ -845,21 +904,30 @@ spec:
     secretName: sq-ingress-secret
 ```
 - `kubectl get ingress` 查看ingress配置
-- 可在集群外访问 `http://ingress.aezocn.local`会显示tomcat主页
+- 可在集群外访问 `http://ingress.aezocn.local` 会显示tomcat主页
     - 下文TSL站点则访问`https://ingress.aezocn.local`。如果配置了TSL，则访问http时，默认会跳转到https(443)
-    - 如果修改ingress-nginx的service-nodeport.yaml中端口，此处域名应该加上相应端口
+    - 如果修改ingress-nginx的service-nodeport.yaml中节点端口，此处测试访问的域名应该加上相应端口
+- 常见问题
+    - 访问https地址时，点击高级不显示`继续前往ingress.aezocn.local（不安全）`，而是显示`您目前无法访问 ingress.aezocn.local，因为此网站使用了 HSTS。网络错误和攻击通常是暂时的，因此，此网页稍后可能会恢复正常`
+        - 原因：ingress-nginx默认模式是以HSTS访问，如果证书有问题，可能直接导致浏览器无法忽略警告继续访问
+        - 可访问`chrome://net-internals/#hsts`进行清除当前域名的hsts设置(测试没有清除成功)
+        - 或者去掉HSTS后，重新更换域名
 
 #### 构建TLS站点示例
 
+- 手动创建证书
+
 ```bash
 ## 创建证书
-openssl genrsa -out aezocn.tls.key 2048
-# 注意签名中的域名
-openssl req -new -x509 -key aezocn.tls.key -out aezocn.crt -subj /C=CN/ST=Beijing/L=Beijing/O=DevOps/CN=ingress.aezocn.local
-
+cd ~/.certs/
+openssl genrsa -out aezocn.key 2048
+# 注意签名中的域名(表示只有此域名以https访问证书才有效)
+openssl req -new -x509 -key aezocn.key -out aezocn.crt -subj /C=CN/ST=Beijing/L=Beijing/O=DevOps/CN=ingress.aezocn.local
 ## 生成secret(类型为tls，名称为sq-ingress-secret)
-kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.tls.key
+kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
+## 启动ingress-nginx后，可通过容器日志看到证书加载日志 Adding Secret "default/sq-ingress-secret" to the local store；如果secret无效，则会使用系统默认证书Kubernetes Ingress Controller Fake Certificate
 ```
+- 安装Let's Encrypt免费SSL证书(Let's Encrypt提供90天的证书有效期，可安装自动续期服务)
 
 ### 存储卷
 
@@ -1041,13 +1109,24 @@ spec:
 - K8s网络类型：节点网络、Service网络(10.xx，生成虚拟的IP)、Pod网络(默认10.244.0.0/16)
     - 节点一：cni0(10.244.0.1/24)、flannel.1(10.244.0.1/32)
     - 其他节点：10.244.1.x, ... , 10.244.x.x
+    - `--pod-network-cidr=10.244.0.0/16` 初始master节点参数，则规定pod网络为此参数设定的。运行pod后会产生一个`cni0`的网桥，pod网络只能在K8s集群内部使用
+- 通信方式 [^7]
 
     ![k8s-network](/data/images/devops/k8s-network.png)
-- 通信方式
+
+    ![k8s-network2](/data/images/devops/k8s-network2.webp)
+
     - 同一个Pod内多个容器之间通信：Pod本地
+        - 一个Pod内多个容器共享同一个网络命名空间，每个Docker容器拥有与Pod相同的IP和port地址空间，可以通过localhost相互访问。本质是是使用Docker的`-net=container`网络模型
     - 各Pod之间通信：物理网桥、Overlay叠加网络
-        - `--pod-network-cidr=10.244.0.0/16` 初始master节点参数，则规定pod网络为此参数设定的。运行pod后会产生一个`cni0`的网桥，pod网络只能在K8s集群内部使用
-    - Pod与Service之间通信：Kube-proxy(运行在Node上的守护进程)
+        - 同一Node上的两个Pod通过veth对链接到root网络命名空间(宿主机)，并且通过网桥(宿主机的docker0)进行通信
+        - 不同Node上的Pod通信(如上图k8s-network2：Node-vm1上的Pod1与Node-vm2上Pod4之间进行交互)
+            - 首先pod1通过自己的以太网设备eth0把数据包发送到关联到root命名空间的veth0上，然后数据包被Node1上的网桥设备cbr0(docker0)接受到，网桥查找转发表发现找不到pod4的Mac地址，则会把包转发到默认路由(root命名空间的eth0设备)，然后数据包经过eth0就离开了Node1，被发送到网络
+            - 数据包到达Node2后，首先会被root命名空间的eth0设备，然后通过网桥cbr0把数据路由到虚拟设备veth1,最终数据表会被流转到与veth1配对的另外一端(pod4的eth0)
+        - Overlay网络(VxLan)参考：[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#docker网络)
+        - Flannel(见下文CNI插件)致力于给k8s集群中的nodes提供一个3层网络，他并不控制node中的容器是如何进行组网的，仅仅关心流量如何在node之间流转
+            - 上例中流量从Node1上的网桥设备cbr0到达宿主机eth0时，中间会经过flannel0，并有flanneld进程进行封包才到达eth0；相反从Node2的eth0到达网桥前也会经过flannel0由flanneld进程解包
+    - Pod与Service之间通信：Kube-proxy(运行在Node上的守护进程)，参考上文Service
 - 集群内部通信是点对点通信(Https通信)，需CA证书的S/C类型
     - `etcd - etcd`
     - `etcd - API Server`
@@ -1061,8 +1140,9 @@ spec:
         - 会运行在所有的`kubelet`上，每个节点会运行一个相应的pod(DaemonSet守护进程)
         - 对应ConfigMap参数(`kubectl get configmap kube-flannel-cfg -o yaml -n kube-system`)
             - `Network` flannel使用的CIDR格式的网络地址，用于为Pod配置网络功能
-                - `10.244.0.0/16`(可容纳256个节点，默认)：master(10.244.0.0/24)、node01(10.244.1.0/24)、...、node255(10.244.255.0/24)
-                - `10.0.0.0/8`(可容纳2^16=65536个节点)：10.0.0.0/24、...、10.255.255.0/24(默认第2-3段为子网，第4段为节点内部使用)
+                - 示例一：`10.244.0.0/16`(可容纳256个节点，默认)：master(此节点上的pod网络为10.244.0.0/24)、node01(10.244.1.0/24)、...、node255(10.244.255.0/24)
+                    - 此时可容纳256个节点，每个节点还可以部署256个容器。理论上一个节点不会部署太多容器，因此可适当调节子网掩码从而扩大节点个数
+                - 示例二：`10.0.0.0/8`(可容纳2^16=65536个节点)：10.0.0.0/24、...、10.255.255.0/24(默认第2-3段为子网，第4段为节点内部使用)
             - `SubnetLen` 把Network切分子网供各节点使用时，使用的掩码切分长度节点网络，默认24位(则剩余8位可为主机号，即一个节点上可运行的pod数量为256)掩码
             - `SubnetMin` 最小的子网地址。eg：10.244.0.0/24
             - `SubnetMax` eg：10.244.255.0/24
@@ -1075,12 +1155,13 @@ spec:
     - `calico` 支持网络配置、网络策略(功能强大，但较flannel复杂)
     - `canel` 上述二者合并
         - Calico可以独立地为Kubernetes提供网络解决方案和网络策略，也可以和flannel相结合，由flannel提供网络解决方案，Calico仅用于提供网络策略，此时将Calico称为Canal
-        - 安装
+        - 安装(安装canel则无需单独再安装flannel)
 
             ```bash
             # https://docs.projectcalico.org/v3.8/getting-started/kubernetes/installation/flannel
+            # canal内部会安装flannel镜像
             kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/canal.yaml
-            kubectl get pods -n kube-system -o wide |grep canal
+            kubectl get pods -n kube-system -o wide | grep canal
             ```
 - 网络策略(NetworkPolicy，netpol)资源配置
 
@@ -1124,6 +1205,38 @@ spec:
    #engress:
 ```
 
+#### DNS
+
+- ks8常见DNS插件：kube-dns 和 CoreDNS(k8s 1.11默认)
+- `kubectl edit configmap coredns -n kube-system` 编辑coredns对应的配置
+
+```bash
+.:53 {
+    errors
+    health
+    kubernetes cluster.local in-addr.arpa ip6.arpa {
+       pods insecure
+       upstream                             # upstream 用于解析指向外部主机的服务
+       # upstream 172.16.0.1
+       fallthrough in-addr.arpa ip6.arpa
+       ttl 30
+    }
+    # 自定义域名解析
+    # hosts {
+    #   192.168.6.131  k8s.aezocn.1.com
+    #   192.168.6.132  k8s.aezocn.1.com
+    #   fallthrough
+    # }
+    prometheus :9153            # CoreDNS的度量标准
+    forward . /etc/resolv.conf
+    # proxy . /etc/resolv.conf  # 任何不在Kubernetes集群域内的查询都将转发到预定义的解析器(/etc/resolv.conf)
+    # proxy . 172.16.0.1
+    cache 30                    # 这将启用前端缓存
+    loop                        # 检测简单的转发循环，如果找到循环则停止CoreDNS进程
+    reload                      # 允许自动重新加载已更改的Corefile。编辑ConfigMap配置后，请等待两分钟以使更改生效
+    loadbalance                 # 这是一个循环DNS负载均衡器，可以随机化A，AAAA和MX记录的顺序
+}
+```
 - 查看pod容器dns解析配置
 
 ```bash
@@ -1181,9 +1294,9 @@ kubectl config view --kubeconfig=/tmp/test.conf
 
 ```bash
 ## 创建角色
-# 干跑模式查看role的定义，不会产生实际操作。创建clusterrole同理
+# 干跑模式查看role的定义，不会产生实际操作，创建clusterrole同理。--verb操作权限定义，--resource资源定义
 kubectl create role my-pods-reader --verb=get,list,watch --resource=pods --dry-run -o yaml
-# 干跑模式生成创建role配置文件。--verb操作权限定义，--resource资源定义
+# 干跑模式生成创建role配置文件
 kubectl create role my-pods-reader --verb=get,list,watch --resource=pods --dry-run -o yaml > role-demo.yaml
 kubectl apply -f role-demo.yaml
 kubectl describe role my-pods-reader
@@ -1295,6 +1408,12 @@ spec:
         kubectl taint nodes node1 profile:NoSchedule- # 删除profile键名的NoSchedule类型污点
         kubectl taint nodes node1 profile- # 删除指定键名的所有污点
         ```
+    - 常见污点
+
+        ```bash
+        # 安装的master节点对应污点
+        node-role.kubernetes.io/master:NoSchedule
+        ```
 - pod的容忍度(查看`kubectl explain pods.spec.tolerations`)
     - `operator` 包含`Equal`和`Exists`两种类型。如果操作符为Exists，那么value属性可省略，如果不指定operator，则默认为Equal
     - `effect` 为上述污点类型
@@ -1307,7 +1426,8 @@ tolerations:
   operator: "Equal"
   value: "value1"
   effect: "NoExecute"
-# Exists，显示成 node.kubernetes.io/not-ready:NoExecute for 300s
+# Exists：表示此pod可以容忍存在NoExecute类型的node.kubernetes.io/not-ready污点
+# 显示成 Tolerations: node.kubernetes.io/not-ready:NoExecute for 300s
 - effect: NoExecute
   key: node.kubernetes.io/not-ready
   operator: Exists
@@ -1498,7 +1618,8 @@ spec:
     kubectl describe hpa sq-hpa
     kubectl get pods
     ```
-    - 出现问题 `subjectaccessreviews.authorization.k8s.io is forbidden: User \"system:serviceaccount:kube-system:metrics-server\" cannot create resource \"subjectaccessreviews\" in API group \"authorization.k8s.io\" at the cluster scope"`，解决方案：上文`metrics-server`安装时需要在`resource-reader.yaml`中加入`subjectaccessreviews`资源的操作
+    - 出现问题 `subjectaccessreviews.authorization.k8s.io is forbidden: User \"system:serviceaccount:kube-system:metrics-server\" cannot create resource \"subjectaccessreviews\" in API group \"authorization.k8s.io\" at the cluster scope"`
+        - 解决方案：上文`metrics-server`安装时需要在`resource-reader.yaml`中加入`subjectaccessreviews`资源的操作
 
 ## 辅助组件使用
 
@@ -1512,15 +1633,15 @@ spec:
 ```bash
 ## 安装
 wget https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
-# 修改Dashboard Service配置为NodePort，伪代码如：添加spec.ports[0].nodePort=30000，添加spec.type=NodePort
+# 修改Dashboard Service配置为NodePort，伪代码如：添加spec.ports[0].nodePort=30000，添加spec.type=NodePort。一般可通过Ingress暴露出来
 # 修改容器镜像 `k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1` 为 `registry.aliyuncs.com/google_containers/kubernetes-dashboard-amd64:v1.10.1`
+# 修改token过期时间，默认是15分钟(900秒)：在 `- --auto-generate-certificates` 下加一行参数 `- --token-ttl=31536000‬` (1年有效)
 vi kubernetes-dashboard.yaml
-# 修改token过期时间，默认是15分钟(900秒)：在 `- --auto-generate-certificates` 下加一行参数 `- --token-ttl=43200` (12小时有效)
 # 创建资源(pod运行在master节点上)
 kubectl apply -f kubernetes-dashboard.yaml
 # 查看
 kubectl get pods -n kube-system
-# 访问 https://192.168.6.131:30000/ 可显示登录页面(仅火狐浏览器支持，下文可解决)
+# 访问 https://192.168.6.131:30000/ 可显示登录页面(仅火狐浏览器支持，下文可解决)，登录秘钥获取见下文
 
 ## 配置https证书
 # 生成私钥和证书签名
@@ -1552,7 +1673,12 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 # 下载 ./cluster-sa-admin.conf 文件到宿主机，登录选择此文件即可
 ```
 
+## 常见问题
 
+- `kubectl get nodes` 显示Node状态为NotReady
+    - 查看对应节点的网络插件(Pod)是否正常启动
+    - 查看对应节点服务状态`systemctl status kubelet/docker`
+    - `journalctl -f -u kubelet` 查看对应节点kubelet启动日志
 
 
 ---
@@ -1564,7 +1690,8 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^3]: https://www.cnblogs.com/linuxk/p/9706720.html (Ingress和Ingress Controller)
 [^4]: https://jimmysong.io/kubernetes-handbook/practice/prometheus.html
 [^5]: https://www.servicemesher.com/blog/prometheus-operator-manual/
-
+[^6]: https://www.qikqiak.com/post/how-to-use-ipvs-in-kubernetes/
+[^7]: https://www.jianshu.com/p/3f2401d14c78 (K8s网络模型)
 
 
 

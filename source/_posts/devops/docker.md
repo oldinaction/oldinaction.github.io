@@ -193,7 +193,6 @@ Run 'docker COMMAND --help' for more information on a command.
 
 ## docker网络
 
-- https://www.cnblogs.com/gispathfinder/p/5871043.html
 - 网络类型：host、bridge(默认)、none、container. 使用如：`docker run --network=host busybox`
     - `host` 和宿主主机使用相同的网络(包括端口，此时无需-p指定端口映射)
     - `bridge` 桥接模式。中间通过`docker0`虚拟网卡(docker默认网卡)进行网络传输。此时与外网连通，需要开启ip转发
@@ -280,14 +279,14 @@ docker network connect ov_net1 busybox3
     ![docker-overlay-1](/data/images/devops/docker-overlay-1.png)
 
     - network namespace
-        - docker 会为每个 overlay 网络创建一个独立的 network namespace，其中会有一个 linux bridge br0， veth pair 一端连接到容器中（即 eth0），另一端连接到 namespace 的 br0 上
-        - br0 除了连接所有的 veth pair，还会连接一个 vxlan 设备，用于与其他 host 建立 vxlan tunnel。容器之间的数据就是通过这个 tunnel 通信的
-        - 查看 overlay 网络的 namespace
+        - docker 会为每个 overlay 网络创建一个独立的 network namespace(1-da3d1b5fcb)，其中包含一个 linux bridge br0设备。 veth pair 一端连接到容器中(即 容器eth0)，另一端连接到 namespace 的 br0 上(vethx)
+        - br0 除了连接所有的 veth pair，还会连接一个 vxlan 设备，用于与其他 host 建立 vxlan tunnel，容器之间的数据就是通过这个 tunnel 通信的。vxlan是个特殊设备，收到包后，由vxlan设备创建时注册的设备处理程序对包进行处理，即进行VXLAN封包(这期间会查询consul中存储的net1信息)，将ICMP包整体作为UDP包的payload封装起来，并将UDP包通过宿主机的eth0发送出去
+        - 查看 overlay 网络的 namespace(测试为1-e5c4953846)
              
             ````bash
             # 查看 overlay 网络的 namespace
             ln -s /var/run/docker/netns /var/run/netns
-            # 如显示的`1-e5c4953846`标识会在 `docker network ls` 找到类似的NETWORK ID(开头一直，可能最后几个字母没有显示)
+            # 如显示的`1-e5c4953846`标识会在 `docker network ls` 找到类似的NETWORK ID(开头一致，可能最后几个字母没有显示)
             ip netns
             # 查看此命名空间网络接口，包含有：lo、br0、vxlan1、veth2@if455(veth2)
                 # vxlan1 为 overlay network的一个 VTEP，即VXLAN Tunnel End Point – VXLAN隧道端点。VXLAN的相关处理都在VTEP上进行，例如识别以太网数据帧所属的VXLAN、基于 VXLAN对数据帧进行二层转发、封装/解封装报文等
@@ -298,12 +297,13 @@ docker network connect ov_net1 busybox3
             ip netns exec 1-e5c4953846 brctl show
             ```
     - 数据流向
-        - 同一个Overlay网络不同宿主机
+        - 同一个Overlay网络(net1)不同宿主机(蓝色为宿主机，白色虚框为容器)
             - 数据包从容器eth0发出
             - 经过vxlan1时进行VxLAN封包处理(这期间会查询consul中存储的overlay信息)，将ICMP包(ping)整体作为UDP包的payload封装起来，并将UDP包通过宿主机的eth0发送出去
             - 宿主机收到UDP包后，发现是VXLAN包，根据VXLAN包中的相关信息(比如Vxlan Network Identifier，VNI=256)找到vxlan设备，并转给该vxlan设备处理
             - vxlan设备的处理程序进行解包，并将UDP中的payload取出，整体通过br0转给vethx接口
-        - 不同Overlay网络相同宿主机：数据包从容器eth1发出，经过docker_gwbrige进行传输。普通网络是桥接在docker0网卡上，而所有Overlay网络则桥接在docker_gwbrige网卡上进行通讯
+        - 不同Overlay网络相同宿主机
+            - 数据包从容器eth1发出，经过docker_gwbrige进行传输。普通网络默认是桥接在docker0网卡上，而所有Overlay网络则桥接在docker_gwbrige网卡上进行通讯
 
 - 手动安装[Consul](https://www.consul.io/)
     - Consul是一个分布式高可用的系统，可用于服务发现、Key/Value存储等

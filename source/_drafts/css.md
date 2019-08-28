@@ -6,6 +6,10 @@ categories: web
 tags: [css]
 ---
 
+## 简介
+
+- 参考：[MDN CSS 参考](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference)
+
 ## 知识点
 
 ### flex布局
@@ -40,5 +44,23 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
     bottom: 80%; /* bottom: 0; */
     left: 50%;
     border: 1px dashed #eee;
+}
+```
+
+## 色彩
+
+- 渐变色
+
+```css
+div {
+    /* 渐变轴为45度，从蓝色渐变到红色 */
+    background: linear-gradient(45deg, blue, red);
+
+    /* 从右下到左上、从蓝色渐变到红色 */
+    background: linear-gradient(to left top, blue, red);
+
+    /* 从下到上，从蓝色开始渐变、到高度40%位置是绿色渐变开始、最后以红色结束 */
+    background: linear-gradient(0deg, blue, green 40%, red);
+    background: -webkit-linear-gradient(0deg, rgb(251, 176, 30), rgb(229, 2, 18), rgb(192, 6, 156));
 }
 ```

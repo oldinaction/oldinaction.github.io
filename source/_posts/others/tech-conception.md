@@ -39,6 +39,11 @@ tags: [java, conception]
     - NIO：面向缓冲、非阻塞IO、有选择器
 - `TLS` 传输层安全性协议(Transport Layer Security)，及其前身`SSL`是一种安全协议，目的是为互联网通信提供安全及数据完整性保障。网景公司(Netscape)在1994年推出首版网页浏览器，网景导航者时，推出HTTPS协议，以SSL进行加密，这是SSL的起源
 - `SSL` 安全套接层(Secure Sockets Layer)
+- `HSTS`(HTTP Strict Transport Security)
+    - 背景：由于用户习惯，通常准备访问某个网站时，在浏览器中只会输入一个域名，而不会在域名前面加上 http:// 或者 https://，而是由浏览器自动填充，当前所有浏览器默认填充的都是http://。一般情况网站管理员会采用了 301/302 跳转的方式由 HTTP 跳转到 HTTPS，但是这个过程总使用到 HTTP 因此容易发生劫持，受到第三方的攻击
+    - 网站采用 HSTS 后，用户访问时无需手动在地址栏中输入 HTTPS，浏览器会自动采用 HTTPS 访问网站地址。当用户下次使用 HTTP 访问，客户端就会进行内部跳转，并且能够看到 307 Redirect Internel 的响应码
+    - 使用HSTS：在HTTPS响应头添加`Strict-Transport-Security: max-age=expireTime [; includeSubDomains] [; preload]`
+        - 如max-age=31536000则表示：在一年中浏览器必须采用HTTPS来发起连接(浏览器应当自动将 http 转写成 https)，如果该服务器发送的TLS证书无效，用户不能忽略浏览器警告继续访问网站。此时只能续期证书或更换域名
 
 ## 数据库
 
@@ -59,7 +64,7 @@ tags: [java, conception]
         - Soft-state（ 软状态/柔性事务）
         - Eventual Consistency（最终一致性）
         - BASE模型是传统ACID模型的反面，不同与ACID，BASE强调牺牲高一致性，从而获得可用性，数据允许在一段时间内的不一致，只要保证最终一致就可以了。
-- `CLI` 命令行界面（command-line interface）
+- `DBCP` 数据库连接池(DataBase Connection Pool)
 
 ## 产品/框架
 
@@ -67,6 +72,9 @@ tags: [java, conception]
 - Web Service框架：`CXF`、`Axis2`、`Axis`
     - CXF对Spring的友好支持，对于那些使用了Spring的既有项目来说，CXF应该是首选，因为CXF是基于注解的
     - Axis2的优势是支持C平台和比较全的WS-*协议族
+- 云计算
+    - `GCP`(Google Cloud Platform)
+    - `GKE`(Google Kubernetes Engine)、`AKS`(Azure Kubernetes Service)、`Amazon EKS`(Amazon Elastic Container Service for Kubernetes)
 
 ## 开发
 
@@ -81,6 +89,7 @@ tags: [java, conception]
     - 一般小写字母为参数或命令，大写字母为动态变化的参数值
 - `API`(Application Programming Interface)应用程序编程接口。是一些预先定义的函数，目的是提供应用程序与开发人员基于某软件或硬件得以访问一组例程的能力，而又无需访问源码，或理解内部工作机制的细节
 - `PR`(Pull Request) 指GitHub中提交合并请求或同步原始仓库代码
+- `CLI` 命令行界面(command-line interface)
 
 ## Web
 

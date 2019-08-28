@@ -808,10 +808,20 @@ List<Subscribe> subscribes =  subscribePage.getRecords();
     - 如果Model主键名称不为`id`，则需要在对应主键字段上注解`@TableId`
     - 如果Model名称不为表名，则可通过`@TableName`进行注解真实名称
     - 如果Model的字段不为表字段，可通过`@TableField(exist = false)`注解
+- 启用分页插件
+
+```java
+@Bean
+public PaginationInterceptor paginationInterceptor() {
+    PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
+    // paginationInterceptor.setLimit(500); // 最大单页限制数量，默认 500 条，小于 0 如 -1 不受限制
+    return paginationInterceptor;
+}
+```
 - 乐观锁插件：https://mybatis.plus/guide/optimistic-locker-plugin.html
 
 ```java
-// 1.启用插件
+// 1.启用乐观锁插件
 @Bean
 public OptimisticLockerInterceptor optimisticLockerInterceptor() {
 	// com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor
@@ -827,7 +837,7 @@ User user = userMapper.selectById(1);
 user.setAge(18);
 int res = userMapper.updateById(user); // 1成功。生成的sql类似: update t_user set age = 18,version = 2 where id = 1 and version = 1
 ```
-- 使用
+
 
 
 ---

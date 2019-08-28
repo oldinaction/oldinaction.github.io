@@ -39,7 +39,7 @@ tags: [CentOS, linux]
         - `date -s "2019-04-07 10:00:00"` 设置时间
         - `hwclock -w` 将时间写入bios避免重启失效
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
-- 设置用户umask值(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#文件权限)
+- 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#文件权限)
 - 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
 - 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
 - 更换镜像，见下文
