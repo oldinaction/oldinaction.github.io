@@ -20,9 +20,9 @@ tags: [ant]
 - Ant内置属性
     - `ant.file` 该构建文件的完整地址
     - `ant.version` 安装的 Apache Ant 的版本
-    - `basedir` 构建文件的基目录的绝对路径，作为 **project** 元素的 **basedir** 属性
+    - `basedir` 构建文件的基目录的绝对路径，并不一定是整个项目的目录，而是看此命令所在构建文件中`project.basedir`的属性
     - `ant.java.version` Ant 使用的 JAVA 语言的软件开发工具包的版本
-    - `ant.project.name` 项目的名字，具体声明为 **project** 元素的 **name** 属性
+    - `ant.project.name` 项目的名字
     - `ant.project.default-target` 当前项目的默认目标
     - `ant.project.invoked-targets` 在当前项目中被调用的目标的逗号分隔列表
     - `ant.core.lib` Ant 的 jar 文件的完整的地址
@@ -54,16 +54,24 @@ tags: [ant]
 
 ```xml
 <?xml version="1.0"?>
+<!-- name表示项目的名称，default表示构建脚本默认运行的目标，即指定默认的 target。一个项目 (project) 可以包含多个目标 (target) -->
+<project name="Hello World Project" default="info" basedir=".">
     <!-- 导入一个配置文件 macros.xml -->
     <import file="macros.xml"/>
-
-    <!-- name表示项目的名称，default表示构建脚本默认运行的目标，即指定默认的 target。一个项目 (project) 可以包含多个目标 (target) -->
-    <project name="Hello World Project" default="info">
     
-    <!-- 自定义ant属性，Ant内置属性见下文 -->
+    <!-- 自定义ant属性，Ant内置属性见下文。可被命令行参数覆盖，如 `ant info -Dsitename="my sitename..."` -->
     <property name="sitename" value="www.aezo.cn"/>
     <!-- 自定义ant属性文件 -->
     <property file="build.properties"/>
+    <!-- 获取当前时间并存入到 nowTm 参数中。也可通过命令行参数-D进行覆盖 -->
+    <tstamp>
+        <format property="nowTm" pattern="yyyyMMddHHmmss"/>
+    </tstamp>
+    <!-- 指定环境变量参数为 env，如果存在env.WELCOME则放入到welcome参数中，否则welcome取默认值hell world ... -->
+    <property environment="env" />
+	<condition property="welcome" value="${env.WELCOME}" else="hell world ...">  
+        <isset property="env.WELCOME" />
+	</condition>
 
     <!-- 
         name: 表示目标的名称
@@ -72,7 +80,7 @@ tags: [ant]
         unless: 除非。该属性的功能与 if 属性的功能正好相反
      -->
     <target name="info">
-        <echo>Hello World - Welcome to Apache Ant ${ant.version} - You are at ${sitename} </echo>
+        <echo>Hello World - Welcome to Apache Ant ${ant.version} - You are at ${sitename}. ${nowTm} </echo>
     </target>
     <!-- 执行命令 `ant package` 后，会先调用info，然后执行package -->
     <target name="package" depends="info">
@@ -142,6 +150,19 @@ tags: [ant]
         <input addproperty="user.continueYN" message="Continue Y or N" validargs="N,n,Y,y"/>
     </target>
 
+    <!-- 执行shell命令 -->
+    <target name="exec-shell" description="exec shell">  
+        <exec executable="/bin/sh">  
+            <arg line="-c echo hello world"/>  
+        </exec>  
+    </target>
+    <!-- 执行windows命令 -->
+    <target name="exec-exe" description="Copy files from  project1 to project2">
+        <!-- cmd.exe /c " cd D:/demo/ && docker build -t test:v1 . " -->
+        <exec executable="cmd.exe">
+            <arg line="/c &quot; cd ${basedir}/ &amp;&amp; docker build -t test:v1 . &quot; "/>
+        </exec>
+    </target> 
 </project>
 ```
 - 被引入配置macros.xml

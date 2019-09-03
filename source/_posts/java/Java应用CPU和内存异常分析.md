@@ -17,12 +17,13 @@ tags: [CPU, 内存, 运维, oracle, ofbiz]
     - `java.lang.OutOfMemoryError: PermGen space`，原因可能为
         - 程序启动需要加载大量的第三方jar包。例如：在一个Tomcat下部署了太多的应用
     - `java.lang.OutOfMemoryError: Java heap space`，原因可能为
-        - Java虚拟机的堆内存设置不够，可以通过参数-Xms、-Xmx来调整。
+        - Java虚拟机的堆内存设置不够，可以通过参数-Xms、-Xmx来调整
         - 代码中创建了大量大对象，并且长时间不能被垃圾收集器收集（存在被引用）
     - 在Java虚拟机中，内存分为三个代
         - 新生代New：新建的对象都存放这里
         - 老生代Old：存放从新生代New中迁移过来的生命周期较久的对象。新生代New和老生代Old共同组成了堆内存
         - 永久代Perm：是非堆内存的组成部分。主要存放加载的Class类级对象如class本身，method，field等等
+- `grep 'OutOfM' * -5`
 
 ## 应用服务器故障
 
@@ -190,6 +191,9 @@ https://blog.csdn.net/Aviciie/article/details/79281080
     - 数据库服务器CPU飙高
     - oracle相关进程CPU占用高
     - 应用服务器响应很慢
+
+### Oracle
+
 - 查看数据库sql运行占用CPU时间较长的会话信息，并kill此会话
 
     ```sql
@@ -259,6 +263,23 @@ https://blog.csdn.net/Aviciie/article/details/79281080
     where buffer_gets_rank <= 5;
     ```
 
+### Mysql
+
+```sql
+-- 查看当前执行的sql，time的单位为秒
+select id, user, host, db, command, time, state, info
+from information_schema.processlist
+where command != 'Sleep'
+order by time desc;
+
+-- kill 15667;
+-- 生成查杀sql
+select concat('kill ', id, ';')
+from information_schema.processlist
+where command != 'Sleep' and info like 'SELECT%'
+and time > 2*60
+order by time desc;
+```
 
 
 

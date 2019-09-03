@@ -43,29 +43,29 @@ tags: [shell, linux, lang]
 #### 变量
 
 - 变量类型
-  - 环境变量(作用于可跨bash)：`export <var_name>=<var_value>`
-  - 本地变量(作用于当前bash)：`<var_name>=<var_value>`
-  - 局部变量(作用于当前代码段)：`local <var_name>=<var_value>`
-  - 位置变量(作用于脚本执行的参数)：`$1` 表示第一个参数，以次类推`$2`、`$3`
-  - 特殊变量
-    - **`$?`** 上一个命令的执行状态返回值(`0` 表示正确，其他为错误)
-    - `$#` 传递到脚本的参数个数
-    - `$*` 传递到脚本的参数，与位置变量不同，此选项参数可超过9个
-    - `$$` 脚本运行时当前进程的ID号，常用作临时变量的后缀，如 haison.$$
-    - `$!` 后台运行的(&)最后一个进程的ID号
-    - `$@` 与$#相同，使用时加引号，并在引号中返回参数个数
-    - `$-` 上一个命令的最后一个参数
-    - `$0` 当前Shell程序的文件名(只在脚本文件里才有作用)
-      
-      ```bash
-      # 返回这个脚本文件放置的目录，这个命令写在脚本文件里才有作用。如`dirname /usr/local/bin` 结果为`/usr/local`
-      dirname $0
-      # 进入当前Shell程序的目录
-      cd `dirname $0`
-      # 定义当前脚本目录，并执行jar。cd -P表示基于物理路径
-      APP_HOME="$(cd -P "$(dirname "$0")" && pwd)"/..
-      (cd "$APP_HOME" && java -jar app.jar)
-      ```
+    - 环境变量(作用于可跨bash)：`export <var_name>=<var_value>`
+    - 本地变量(作用于当前bash)：`<var_name>=<var_value>`
+    - 局部变量(作用于当前代码段)：`local <var_name>=<var_value>`
+    - 位置变量(作用于脚本执行的参数)：`$1` 表示第一个参数，以次类推`$2`、`$3`
+    - 特殊变量
+        - **`$?`** 上一个命令的执行状态返回值(`0` 表示正确，其他为错误)
+        - `$#` 传递到脚本的参数个数
+        - `$*` 传递到脚本的参数，与位置变量不同，此选项参数可超过9个
+        - `$$` 脚本运行时当前进程的ID号，常用作临时变量的后缀，如 haison.$$
+        - `$!` 后台运行的(&)最后一个进程的ID号
+        - `$@` 与`$#`相同，使用时加引号，并在引号中返回参数个数
+        - `$-` 上一个命令的最后一个参数
+        - `$0` 当前Shell程序的文件名(只在脚本文件里才有作用)
+            
+            ```bash
+            # 返回这个脚本文件放置的目录，这个命令写在脚本文件里才有作用。如`dirname /usr/local/bin` 结果为`/usr/local`
+            dirname $0
+            # 进入当前Shell程序的目录
+            cd `dirname $0`
+            # 定义当前脚本目录，并执行jar。cd -P表示基于物理路径
+            APP_HOME="$(cd -P "$(dirname "$0")" && pwd)"/..
+            (cd "$APP_HOME" && java -jar app.jar)
+            ```
 - `set` 查看shell中变量
 - `printenv`/`env` 查看shell中环境变量
 - `unset <var_name>` 撤销变量
@@ -297,15 +297,15 @@ Options:
     # -n: 出错时的信息
     # --: 用途举例，创建一个名字为 "-f"的目录，当`mkdir -f`时不成功，因为-f会被mkdir当作选项来解析; 这时就可以使用 `mkdir -- -f` 这样-f就不会被作为选项。
     # $@: 从命令行取出参数列表(不能用用 $* 代替，因为 $* 将所有的参数解释成一个字符串，而 $@ 是一个参数数组)
-      TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
-          -n "$0" -- "$@"`
+    TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
+        -n "$0" -- "$@"`
       
     # 上面一条命令执行出错则退出程序
-      if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
-      
-      # Note the quotes around `$TEMP': they are essential!
-      #set 会重新排列参数的顺序，也就是改变$1,$2...$n的值，这些值在getopt中重新排列过了。所有不包含选项的命令行参数都排到最后
-      eval set -- "$TEMP"
+    if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
+    
+    # Note the quotes around `$TEMP': they are essential!
+    #set 会重新排列参数的顺序，也就是改变$1,$2...$n的值，这些值在getopt中重新排列过了。所有不包含选项的命令行参数都排到最后
+    eval set -- "$TEMP"
       
     function usage() {
       echo "Usage: $0 {-a|--a-long} {-b|--b-long} {-c|--c-long}" ; 
@@ -315,42 +315,42 @@ Options:
     # 如果一个参数都没有则则执行
     if [ -z $2 ] ; then echo "None-argument..." ; usage ; exit 1 ; fi
 
-      #经过getopt的处理，下面处理具体选项。
-      while true ; do
-      case "$1" in
-        # `shift ;` 相当于 `shift 1 ;`，即将OPTIND回置1位
-        # 如 `run.sh -a -b 2`
-        # 第一次循环：$1=-a $2=-b $3=2, 匹配到`-a`，此时`shift ;`回置1位
-        # 第二次循环：$1=-b $2=2，匹配到`-b`
-        -a|--a-long) echo "Option a" ; shift ;;
-        # 将OPTIND回置2位，因为b参数名和b的参数值占命令行2位。-b为必填项，如果不填写则执行getopt命令时会报错
-        -b|--b-long) echo "Option b, argument \`$2\`" ; shift 2 ;;
-        -c|--c-long)
-          # c has an optional argument. As we are in quoted mode,
-          # an empty parameter will be generated if its optional
-          # argument is not found.
-          case "$2" in
-            "") echo "Option c, no argument"; shift 2 ;;
-            *)  echo "Option c, argument \`$2\`" ; shift 2 ;;
-          esac ;;
-        # break 停止循环
-        --) shift ; break ;;
-        *) echo "Internal error!" ; exit 1 ;;
-      esac
-      done
-    
-      # $@为getopt表达式解析提取后剩余的其他参数数组
-      echo "Remaining arguments:"
-      for arg in $@ 
-      do
-        echo '--> '"\`$arg\`" ;
-      done
+    #经过getopt的处理，下面处理具体选项。
+    while true ; do
+    case "$1" in
+    # `shift ;` 相当于 `shift 1 ;`，即将OPTIND回置1位
+    # 如 `run.sh -a -b 2`
+    # 第一次循环：$1=-a $2=-b $3=2, 匹配到`-a`，此时`shift ;`回置1位
+    # 第二次循环：$1=-b $2=2，匹配到`-b`
+    -a|--a-long) echo "Option a" ; shift ;;
+    # 将OPTIND回置2位，因为b参数名和b的参数值占命令行2位。-b为必填项，如果不填写则执行getopt命令时会报错
+    -b|--b-long) echo "Option b, argument \`$2\`" ; shift 2 ;;
+    -c|--c-long)
+        # c has an optional argument. As we are in quoted mode,
+        # an empty parameter will be generated if its optional
+        # argument is not found.
+        case "$2" in
+        "") echo "Option c, no argument"; shift 2 ;;
+        *)  echo "Option c, argument \`$2\`" ; shift 2 ;;
+        esac ;;
+    # break 停止循环
+    --) shift ; break ;;
+    *) echo "Internal error!" ; exit 1 ;;
+    esac
+    done
+
+    # $@为getopt表达式解析提取后剩余的其他参数数组
+    echo "Remaining arguments:"
+    for arg in $@ 
+    do
+    echo '--> '"\`$arg\`" ;
+    done
 
     exit $?
     ```
   - getopt示例结果
 
-    ```html
+    ```bash
     # ./run.sh
     None-argument...
     Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
@@ -404,54 +404,55 @@ Options:
 #### 条件判断
 
 - 条件表达式 `[ expression ]` **注意其中的空格**
-  - `[ -z "$pid" ]` 单对中括号变量必须要加双引号，`[[ -z $pid ]]` 双对括号，变量不用加双引号
-  - `[[ ]]`内是不能使用 -a 或者 -o 进行比较，`[ ]`内可以
-- 整数比较
-  - `-eq` 相等，比如：[ $A –eq  $B ]
-  - `-ne` 不等
-  - `-gt` 大于
-  - `-lt` 小于
-  - `-ge` 大于等于
-  - `-le` 小于等于
-- 文件测试(需要中括号)
-  - `-e <file>` 测试文件是否存在
-  - `-f <file>` 测试文件是否为普通文件
-  - `-d <file>` 测试文件(linux是基于文件进行编程的)是否为目录
-  - `-r` 权限判断
-  - `-w`   
-  - `-x`
-- 字符串测试
-  - `==` 或 `=` **等号两端需要空格**
-  - `=~` 正则比较
-  - `!=`
-  - `-z` 判断变量的值是否为空(为空，返回0，为true)
-  - `-n` 判断变量的值是否不为空(非空，返回0，为true)
-  - `-s <string>` 判非空
-  - `[[ $str != h* ]]` 判断字符串是否不是以h开头
-  - `[[ "$str" =~ ^he.* ]]` 判断字符串是否以he开头
+    - `[ -z "$pid" ]` 单对中括号变量必须要加双引号，`[[ -z $pid ]]` 双对括号，变量不用加双引号
+    - `[[ ]]`内是不能使用 -a 或者 -o 进行比较，`[ ]`内可以
 - 条件表达式的逻辑关系
-  - **在linux中命令执行状态：0 为真，其他为假**
-  - `&&`(第一个表达式为true才会运行第二个)、`||`、`!`
-  - `-a` 并且、`-o` 或
+    - **在linux中命令执行状态：0 为真，其他为假**
+    - `&&`(第一个表达式为true才会运行第二个)、`||`、`!`
+    - `-a` 逻辑与，如：`if  [ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ] ; then`
+    - `-o` 或
 - 控制结构
 
-  ```shell
-  if 条件表达式 ; then
-    语句
-  elif 条件表达式 ; then
-    语句
-  else
-    语句
-  fi
-  ```
-- 控制结构中的逻辑关系
-  - `-a` 逻辑与，如：`if  [ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ] ; then`
-  - `-o` 或
+    ```shell
+    if 条件表达式 ; then
+        语句
+    elif 条件表达式 ; then
+        语句
+    else
+        语句
+    fi
+    ```
+- 整数比较
+    - `-eq` 相等，比如：[ $A –eq  $B ]
+    - `-ne` 不等
+    - `-gt` 大于
+    - `-lt` 小于
+    - `-ge` 大于等于
+    - `-le` 小于等于
+- 文件测试(需要中括号)
+    - `-e <file>` 测试文件是否存在
+    - `-f <file>` 测试文件是否为普通文件
+    - `-d <file>` 测试文件(linux是基于文件进行编程的)是否为目录
+    - `-r` 权限判断
+    - `-w`   
+    - `-x`
+- 字符串测试
+    - `==` 或 `=` **等号两端需要空格**
+    - `=~` 正则比较
+    - `!=`
+    - `-z` 判断变量的值是否为空(为空，返回0，为true)
+    - `-n` 判断变量的值是否不为空(非空，返回0，为true)
+    - `-s <string>` 判非空
+    - `[[ $str != h* ]]` 判断字符串是否不是以h开头
+    - `[[ "$str" =~ ^he.* ]]` 判断字符串是否以he开头
+- 常用判断
+    - `[[ $JAVA_HOME ]]` 判断是否存在此变量/环境变量
+    - `[[ -z $JAVA_HOME ]]` 判断此变量是否为空
 - 算术运算(其中任意一种即可)
-  - `let C=$A+$B` **(=、+附近不能有空格，下同。此时C不能有$，使用变量的使用才需要加$)**
-  - `C=$[$A+$B]`
-  - `C=$(($A+$B))`
-  - C=\`expr $A + $B\` (表达式中各操作数及运算符之间要有空格，而且要使用命令引用)
+    - `let C=$A+$B` **(=、+附近不能有空格，下同。此时C不能有$，使用变量的使用才需要加$)**
+    - `C=$[$A+$B]`
+    - `C=$(($A+$B))`
+    - C=\`expr $A + $B\` (表达式中各操作数及运算符之间要有空格，而且要使用命令引用)
 
 #### 循环
 
@@ -589,7 +590,7 @@ start() {
       echo "[warn] $APP_JAR already started! (pid=$psid)"
     else
       echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
-      JAVA_CMD="( cd $APP_HOME && nohup $JAVA -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
+      JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
       su - $RUNNING_USER -c "$JAVA_CMD"
       checkpid
       if [ $psid -ne 0 ]; then

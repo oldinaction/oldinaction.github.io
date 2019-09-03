@@ -44,20 +44,21 @@ tags: [windows]
 ### 控制语句
 
 #### if语句
-    - `if [not] string1 == string2` 
-    - `if [not] %errorlevel% == 0` 如果最后运行的程序返回一个等于或大于指定数字的退出编码则返回true
-        - `%errorlevel%` 这是个系统变量，返回上条命令的执行结果代码。`0`表示成功，`1-255`表示失败
-    - `if [not] exist filename` 如果指定的文件名存在
-    - `if [/i] string1 compare-op string2`
-        - 参数`/i`表示不区分大小写
-        - compare-op
-            - `equ` 等于
-            - `neq` 不等于
-            - `lss` 小于
-            - `leq` 小于或等于
-            - `gtr` 大于
-            - `geq` 大于或等于
-    - `if defined variable` 判断变量是否存在
+
+- `if [not] string1 == string2` 
+- `if [not] %errorlevel% == 0` 如果最后运行的程序返回一个等于或大于指定数字的退出编码则返回true
+    - `%errorlevel%` 这是个系统变量，返回上条命令的执行结果代码。`0`表示成功，`1-255`表示失败
+- `if [not] exist filename` 如果指定的文件名存在
+- `if [/i] string1 compare-op string2`
+    - 参数`/i`表示不区分大小写
+    - compare-op
+        - `equ` 等于
+        - `neq` 不等于
+        - `lss` 小于
+        - `leq` 小于或等于
+        - `gtr` 大于
+        - `geq` 大于或等于
+- `if defined variable` 判断变量是否存在
 
 ```bat
 rem 示例1

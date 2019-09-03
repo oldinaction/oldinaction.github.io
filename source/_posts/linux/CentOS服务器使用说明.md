@@ -483,6 +483,9 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
 
 - `yum -y install memcached` 安装memcached(默认端口11211)
 - `yum -y install git` 安装git
+- `yum install jq` shell读取json数据
+    - `jq .subjects[0].casts[0] douban.json`
+    - `curl -s https://douban.uieee.com/v2/movie/top250?count=1 | jq .subjects[0].casts[0]`
 
 ## 管理软件安装
 

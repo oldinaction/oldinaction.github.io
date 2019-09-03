@@ -77,6 +77,10 @@ Management Commands:
 Commands:
     attach    Attach to a running container                 # 当前 shell 下 attach 连接指定运行镜像
     build     Build an image from a Dockerfile              # 通过 Dockerfile 定制镜像
+        -t      # 定义标签(name:tag)，eg: -t demo:v1、-t demo(此时tag为latest)
+        -f      # 指定 Dockerfile 文件路径。默认根目录下Dockerfile文件(此时可省略)
+        --rm    # 编译成功后移除中间临时镜像
+        # docker build --rm -t demo . # 根据当前目录(.)上下文环境编译
     commit    Create a new image from a container’s changes # 提交当前容器为新的镜像
     cp        Copy files/folders from the containers filesystem to the host path # 从容器中拷贝指定文件或者目录到宿主机中
         # docker cp demo.war sq-tomcat:/usr/local/tomcat/webapps    # 向sq-tomcat容器中部署war包
@@ -93,6 +97,7 @@ Commands:
         # "Server Version" 即为docker版本信息
     inspect   Return low-level information on a container   # 查看容器详细信息
 		# 下文查看 --format语法
+        # docker inspect test:v1 # 查看镜像信息
     kill      Kill a running container                      # kill 指定 docker 容器
     load      Load an image from a tar archive              # 从一个 tar 包中加载一个镜像[对应 save]
     login     Register or Login to the docker registry server    # 注册或者登陆一个 docker 源服务器
@@ -150,10 +155,11 @@ Run 'docker COMMAND --help' for more information on a command.
     - `docker commit -m 'commit message' -a 'author info' c28687f7c6c8 my_repositor_name` 基于某容器ID创建镜像(对该容器进行了改动后的提交)
     - `docker tag 7042885a156a 192.168.17.196:5000/nginx` 给某镜像打一个标签，此时不会生成一个新镜像(镜像ID还是原来的). **192.168.17.196:5000/nginx 很重要，之后可以推送到私有仓库192.168.17.196:5000(ip地址一定要一样)，推送上去的镜像为nginx:latest**
 - 构建镜像
-    - `docker build -f /path/to/a/Dockerfile` 从Dockerfile构建镜像
+    - `docker build --rm -f /path/to/a/Dockerfile .` 从Dockerfile构建镜像
 - 删除镜像
     - `docker image rm c28687f7c6c8` 删除镜像(-f 强制删除)
     - `docker rmi $(docker images -f "dangling=true" -q)` **清除坏的`<none>:<none>`镜像**
+        - `docker images -a|grep none|awk '{print $3 }'|xargs docker rmi`
 
 ### 容器
 
@@ -329,7 +335,8 @@ consul members
 
 ## Dockerfile
 
-- `docker build -f /home/smalle/Dockerfile` 从Dockerfile构建镜像 [^4] [^10]
+- 在大部分情况下，Dockerfile 会和构建所需的文件放在同一个目录中，为了提高构建的性能，应该使用 `.dockerignore` 来过滤掉不需要的文件和目录
+- `docker build --rm -t nginx:smalle -f /home/smalle/Dockerfile .` 从Dockerfile构建镜像 [^4] [^10]
 
     ```bash
     # This my first nginx Dockerfile
@@ -339,15 +346,16 @@ consul members
     FROM centos
 
     # MAINTAINER 维护者信息
-    MAINTAINER smalle 
+    MAINTAINER smalle
 
     # ENV 设置环境变量
     ENV PATH /usr/local/nginx/sbin:$PATH
 
     # ADD 从本地当前目录复制文件到容器. 文件放在当前目录下，拷过去会自动解压
+    # COPY 功能类似ADD，但是是不会自动解压文件，也不能访问网络资源
+    # 具体说明见下文
     ADD nginx-1.8.0.tar.gz /usr/local/
     ADD epel-release-latest-7.noarch.rpm /usr/local/
-    # COPY 功能类似ADD，但是是不会自动解压文件，也不能访问网络资源
 
     # RUN 构建镜像时执行的命令。每运行一条RUN，容器会添加一层，并提交
     RUN rpm -ivh /usr/local/epel-release-latest-7.noarch.rpm
@@ -374,8 +382,28 @@ consul members
     # CMD ["param1","param2"] # 提供给 ENTRYPOINT 的默认参数
 
     # CMD 构建容器后调用，也就是在容器启动时才进行调用
+    # CMD ["/bin/bash", "-c", "npm start && node ./server/server.js"]
     CMD ["nginx"]
     ```
+
+### ADD/COPY
+
+- 语法：`ADD <src>… <dest>` 或者 `ADD ["<src>",… "<dest>"]`
+- 每个`<src>`可以包含通配符并且使用Go的`filepath.Match`规则匹配
+    
+    ```bash
+    ADD hom* /mydir/        # adds all files starting with "hom"
+    ADD hom?.txt /mydir/    # ? is replaced with any single character, e.g., "home.txt"
+    ```
+- ADD遵守如下规则
+    - `<src>`路径必须在构建上下文内。不能`ADD ../something /something`，因为docker build的第一步已经把上下文目录和子目录发送到docker daemon了
+    - 如果`<src>`是一个目录，目录的所有内容都将复制，包括文件系统元数据，但是不包括目录本身
+    - `ADD http://example.com/foobar /test` 将创建文件 `/test/foobar`
+    - 如果`<src>`是一个本地的可识别的tar压缩文件(如gzip、bzip2或xz)，那么将在容器内解压为目录。远程URL的压缩文件将不会解压
+    - 如果`<src>`是多个资源，不管是直接指定或使用通配符，那么`<dest>`必须是一个目录，并且要以斜杠/结尾
+    - 如果`<dest>`不以斜杠/结尾，将视其为一个普通文件，`<src>`的内容将写到这个文件
+    - 如果`<dest>`不存在，则会与其路径中的所有缺少的目录一起创建
+- COPY 功能类似ADD，但是是不会自动解压文件，也不能访问网络资源
 
 ## docker-compose 多容器控制 [^1]
 
@@ -579,8 +607,9 @@ services:
     volumes:
       # 基于容器卷映射
       - jenkins-data:/var/jenkins_home
-      # 基于普通目录映射
+      # 基于普通目录映射。映射主机的docker到容器里面，这样在容器里面就可以使用主机安装的 docker了(如可以在Jenkins容器里操作宿主机的其他容器)
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
     user: root # 定义启动用户
     # ...
 volumes:
@@ -601,6 +630,20 @@ volumes:
         - `/usr/sbin/sshd -D &`
 - `docker run -itd --name ubuntu ubuntu:14.04`
 - `java:8-jre` 一般是docker-compose中引入
+- 自行编译jdk
+    - 在文件夹test下创建文件`Dockerfile`，并将`jdk-7u80-linux-x64.tar.gz`复制进去
+    - `docker build --rm -t jdk:1.7 .` 打包生成镜像(大概508M)
+    - `docker run -it ae4c031a5cb6 sh` 进入容器执行 `java -version`查看
+
+    ```bash
+    FROM centos:7
+    MAINTAINER smalle
+    ADD jdk-7u80-linux-x64.tar.gz /usr/local
+    ENV JAVA_HOME /usr/local/jdk1.7.0_80
+    ENV JRE_HOME /usr/local/jdk1.7.0_80/jre
+    ENV CLASSPATH .:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
+    ENV PATH $PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+    ```
 
 ### nginx
 
@@ -835,7 +878,8 @@ vi /etc/docker/daemon.json # 无则新增
 {"insecure-registries": ["192.168.17.196:5000"]} # insecure-registries可使用http访问
 # 重启docker-client
 ## 在docker-client保存镜像(基于镜像7042885a156a打tag)。如果是基于harbor则应该为harbor的主端口(站点访问端口)
-docker tag 7042885a156a 192.168.17.196:5000/nginx:sm_1 # 192.168.17.196:5000/nginx 很重要，之后可以推送到私有仓库192.168.17.196:5000(ip地址一定要一样)，推送上去的镜像为nginx:sm_1
+# 192.168.17.196:5000/nginx 很重要，之后可以推送到私有仓库192.168.17.196:5000(ip地址一定要一样)，推送上去的镜像为nginx:sm_1
+docker tag 7042885a156a 192.168.17.196:5000/nginx:sm_1 
 ## 在docker-client上推送镜像到docker-server(推送成功后，在docker-server上通过docker images也是无法看到镜像的)
 docker push 192.168.17.196:5000/nginx
 # 此时删除docker-client上关于nginx的镜像，再运行下列命令时，会检查本地没有则从私服上获取并运行
@@ -883,9 +927,9 @@ http://192.168.17.196:10010/harbor/sign-in
 
 ## 推送数据到私有仓库（默认含有一个library公共项目，也可自行创建其他项目）
 docker tag 7042885a156a 192.168.17.196:10010/library/nginx:sm_1
-# 登录(admin/Harbor12345)。登录成功后会保存秘钥到`~/.docker/config.json`，下次则无需登录
-# 此处端口应该为10010。harbor内部默认也启动了一个registry，端口为5000，并通过nginx做了转发，因此对外端口只有10010
-# 可参看上文修改/etc/docker/daemon.json的配置为：{"insecure-registries": ["192.168.17.196:10010"]}
+# 登录(admin/Harbor12345)。登录成功后会保存秘钥到`~/.docker/config.json`，**下次则无需登录**
+# 此处端口应该为10010。harbor内部默认也启动了一个registry，端口为5000，并通过nginx做了转发，因此对外端口只有10010。可参看上文修改/etc/docker/daemon.json的配置为：{"insecure-registries": ["192.168.17.196:10010"]}
+# docker login 192.168.17.196:10010 -u $HARBOR_U -p $HARBOR_P
 docker login 192.168.17.196:10010
 docker push 192.168.17.196:10010/library/nginx:sm_1
 # 如果是私有仓库pull也需要登录

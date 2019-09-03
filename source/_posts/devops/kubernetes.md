@@ -24,13 +24,13 @@ tags: [k8s, docker]
 - `Docker`与`K8s`(kubernetes)
     - Docker本质上是一种虚拟化技术，类似于KVM、XEN、VMWARE，但其更轻量化，且将Docker部署在Linux环境时，其依赖于Linux容器技术(LXC)。Docker较传统KVM等虚拟化技术的一个区别是无内核，即多个Docker虚拟机共享宿主机内核，简而言之，可把Docker看作是无内核的虚拟机，每Docker虚拟机有自己的软件环境，相互独立
     - K8s与Docker之间的关系，如同Openstack之于KVM、VSphere之于VMWARE。K8S是容器集群管理系统，底层容器虚拟化可使用Docker技术，应用人员无需与底层Docker节点直接打交道，通过K8s统筹管理即可
-- 相关概念    
+- 相关概念
     - `DevOps` 是开发与运维之间沟通的过程。透过自动化"软件交付"和"架构变更"的流程，来使得构建、测试、发布软件能够更加地快捷、频繁和可靠
     - `CI` 持续集成
     - `CD` 持续交付，Delivery
     - `CD` 持续部署，Deployment
     - `Service Mesh`
-- `kubefed``(Kubernetes Federation V2`) K8s 的设计定位是单一集群在同一个地域内，因为同一个地区的网络性能才能满足 K8s 的调度和计算存储连接要求。而集群联邦(Federation)就是为提供跨 Region 跨服务商 K8s 集群服务而设计的
+- `kubefed`(`Kubernetes Federation V2`) K8s 的设计定位是单一集群在同一个地域内，因为同一个地区的网络性能才能满足 K8s 的调度和计算存储连接要求。而集群联邦(Federation)就是为提供跨 Region 跨服务商 K8s 集群服务而设计的
 
 ### 概念
 
@@ -67,6 +67,10 @@ tags: [k8s, docker]
         - Service是手动创建的，可以创建成供K8s外部访问或只能内部访问的
 
         ![k8s-service](/data/images/devops/k8s-service.png)
+    - Cluster(集群) 和 Namespace(命名空间) 
+        - Cluster 是计算、存储和网络资源的集合，Kubernetes 利用这些资源运行各种基于容器的应用，最简单的 Cluster 可以只有一台主机(它既是 Mater 也是 Node)，安装的默认集群为`kubernetes`
+        - Namespace 可以将一个物理的 Cluster 逻辑上划分成多个虚拟 Cluster，每个 Cluster 就是一个 Namespace。不同 Namespace 里的资源是完全隔离的
+            - Kubernetes 默认创建了两个 Namespace：kube-system 和 default
 
 ## K8s集群安装
 
@@ -142,6 +146,7 @@ iptables -nvL
 # 3.重启docker，并确认cgroup driver生效
 # systemctl restart docker
 # docker info | grep Cgroup # 显示Cgroup Driver: systemd
+# 4.如果registry为http可修改`vi /etc/docker/daemon.json`，并且提前进行harbor认证
 
 ### 使用kubeadm部署Kubernetes
 ## E.(所有节点安装)添加kubernetes yum源
@@ -322,6 +327,8 @@ kubectl delete node node3
 
 ## 命令使用
 
+> https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.15/
+
 ### kubectl
 
 - 命令说明
@@ -346,6 +353,7 @@ Basic Commands (Beginner):
     role                # 角色(namespace)
     clusterrole         # 集群角色
     rolebinding         # 角色绑定
+    namespace           # 命名空间
     -f                  # 根据yaml文件创建资源
     --dry-run           # 仅仅运行测试，不进行实际操作。可通过此生成创建模板
     -o                  # 取值：yaml
@@ -550,13 +558,13 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
 - `kind` 资源类别：Pod、ReplicaSet、Deployment、DaemonSet等
 - `metadata` 元数据
     - `name` 同以类别下名称需要唯一
-    - `namespace` 命名空间。基于文件apply时，会将资源创建到此处定义的命名空间中；如果不定义可以通过`--namespace=dev`传入，如果定义了--namespace参数无法对其进行覆盖
+    - `namespace` 命名空间。基于文件apply时，会将资源创建到此处定义的命名空间中；如果不定义可以通过`--namespace=dev`传入；如果定义了，则--namespace参数无法对其进行覆盖
     - `labels` 标签(限制长度)
         - 常见的标签键名：app、tier(frontend/backend)、version、profile
     - `annotations` 资源注解(不限长度)，与lables不同的是不能用于挑选资源对象。一般是提供一些配置表示，如`nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"`
     - `selfLink` 每个资源引用PATH格式：`/apo/GROUP/VERSION/namespaces/NAMESPACE/TYPE/NAME`
 - `spec` 期望状态(disired state)
-    - `containers` 描述容器
+    - `containers` 描述容器(<[]Object>)
         - name、image
         - imagePullPolicy：Always(永远重新拉取镜像，镜像latest默认), Never, IfNotPresent(如果本地有则不拉取镜像，其他默认)。创建Pod后无法修改此字段
         - `ports`(<[]Object>)
@@ -564,7 +572,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
             - `name` 如：http/https
         - `command` 对应ENTRYPOINT，可类似docker-compose使用`[]`
             - command/args不能强依赖于`lifecycle.postStart`的执行结果。此处command是在lifecycle.postStart之前执行的
-        - `args` 对应CMD。[与command对应关系](https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell)
+        - `args` 对应CMD(`<[]Object>`)。[与command对应关系](https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell)
         - `env` 环境变量信息
             - `name` 变量名
             - `value` 变量值
@@ -574,19 +582,25 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
                     - `key` 变量名
                 - `secretKeyRef` 从SecretKey中获取(类似ConfigMap)
         - `serviceAccountName` pod内部访问其他资源的账号名称
+        - `livenessProbe` 存活性探测(如果多次存活探测失败，则会重启此pod)
+            - `exec` 基于执行命令探测
+                - `command` 执行的探测命令
+            - `tcpSocket` 基于tcpSocket探测
+            - `httpGet` 基于httpGet探测
+                - `scheme` 连接使用的 schema，默认HTTP
+                - `host` 连接的主机名，默认连接到 pod 的 IP
+                - `port`
+                - `path` eg: /index.html
+                - `httpHeaders` 自定义请求的 header
+            - `initialDelaySeconds` 初始化探测延时时间(修改Deployment有效，修改ReplicaSet无效)
+            - `periodSeconds` 探测周期(默认为10s)
+            - `timeoutSeconds` 探测超时时间。默认1秒，最小1秒
+            - `successThreshold` 探测失败后，最少连续探测成功多少次才被认定为成功。默认是 1，对于 liveness 必须是 1。最小值是 1。
+            - `failureThreshold` 探测成功后，最少连续探测失败多少次才被认定为失败。默认是 3。最小值是 1
+        - `readinessProbe` 就绪性探测(子标签类似livenessProbe)。在readiness探测失败之后，Pod和容器并不会被删除，而是会被标记成特殊状态，进入这个状态之后，如果这个POD是在某个serice的endpoint列表里面的话，则会被从这个列表里面清除，以保证外部请求不会被转发到这个POD上；等POD恢复成正常状态，则会被加回到endpoint的列表里面，继续对外服务
     - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上
     - `nodeName` 直接运行在此节点上
     - `restartPolicy` 重启策略：Always(默认)、OnFailure、Never
-    - `livenessProbe` 存活性探测
-        - `exec` 基于执行命令探测
-            - `command` 执行的探测命令
-        - `tcpSocket` 基于tcpSocket探测
-        - `httpGet` 基于httpGet探测
-            - `port`
-            - `path` eg: /index.html
-        - `initialDelaySeconds` 初始化探测延时时间
-        - `periodSeconds` 探测周期(默认为10)
-    - `readinessProbe` 就绪性探测(子标签类似livenessProbe)
     - `lifecycle` 生命周期
         - `postStart` 主pod容器被创建后调用(子标签类似livenessProbe)
         - `preStop` 主pod容器被退出前调用(子标签类似livenessProbe)
@@ -736,10 +750,30 @@ kubectl delete -f sq-pod.yaml
         - `reason` 该条件最后一次转换的唯一，CamelCase原因
         - `message` 指示有关转换的详细信息
 - Deployment是构建于RS之上的，可能出现一类Pod由不同的RS控制
+- 重启Pod：直接删掉该Pod，会自动重新创建一个新的Pod
+- 容器
+    - 拉取私有仓库镜像
+        
+        ```bash
+        # 配置所有节点，加入下列内容(docker客户端默认使用https访问仓库)
+        vi /etc/docker/daemon.json
+        {"insecure-registries": ["192.168.17.196:5000"]}
+        
+        # 创建docker-registry类型的secret(k8s必须创建secret才可拉取镜像，在节点机器上提前login也无法拉取)
+        kubectl create secret docker-registry harbor-secret --docker-server=192.168.17.196:5000 --docker-username=smalle --docker-password=Hello666
+        # 并给对应Pod配置以下伪代码：imagePullSecrets[0].name=harbor-secret
+        ```
 
 ### 控制器
 
-#### StatefulSet
+#### Deployment
+
+- Deployment 与 ReplicaSet
+    - Deployment是构建于RS之上的，可能出现一类Pod由不同的RS控制
+    - 当创建了 Deployment 之后，实际上也创建了 ReplicaSet，所以说 Deployment 管理着 ReplicaSet
+    - 如果直接伸缩 ReplicaSet，但 Deployment 不会相应发生伸缩。如果ReplicaSet全部删除了，Deployment会自动创建一个新的副本集
+
+#### StatefulSet(管理有状态副本集)
 
 - 三个组件：headless service、StatefulSet、volumeClaimTemplate
 - 会有序的创建pod，并逆序的移除pod
@@ -1255,20 +1289,31 @@ dig -t A sq-nginx-75875cf46f-829nm.sq-nginx.default.svc.cluster.local @10.96.0.1
 
 ### 访问API Server认证
 
-- 创建访问API Server账号和k8s集群
+- `RBAC` 基于角色的访问控制
+    - k8s基于RBAC进行权限控制
+    - `Role` 对象的作用范围是命名空间(namespace)内，`ClusterRole` 对象的作用范围是k8s集群范围
+        - `Role`(`kubectl explain Role`)
+            - `rules`
+                - `apiGroups` 限定的api列表，不限定则可以加一个`- ""`子元素
+                - `resources` 资源列表，如：`["nodes", "pods", "deployments", "namespaces"]`
+                - `verbs` 可执行动作列表，如：`["get", "list", "watch", "create", "update", "patch", "delete"]` 或者 `['*']`
+        - `ClusterRole` 集群角色(无namespace概念)
+    - `RoleBinding` 和 `ClusterRoleBinding` 则是(普通/集群)角色和用户的绑定关系
+- 创建访问API Server账号
+    - 如果是创建Dashboard访问账号，则是创建ServiceAccount，参考下文手动安装Dashboard
 
 ```bash
-## 创建访问API Server账号
-cd /etc/kubernetes/pki
 # 创建证书
+cd /root/.certs
 (umask 077; openssl genrsa -out aezo.key 2048) # 生成证书
 openssl req -new -key aezo.key -out aezo.csr -subj "/CN=aezo" # 证书签署请求
-openssl x509 -req -in aezo.csr -CA ./ca.crt -CAkey ./ca.key -CAcreateserial -out aezo.crt -days 365 # 添加到用户认证，有效期365天
+openssl x509 -req -in aezo.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out aezo.crt -days 365 # 添加到用户认证，有效期365天
 openssl x509 -in aezo.crt -text -noout # 查看
 
 # 添加用户到当前证书
-kubectl config set-credentials aezo --client-certificate=./aezo.crt --client-key=./aezo.key --embed-certs=true
-kubectl config set-context aezo@kubernetes --cluster=kubernetes --user=aezo
+kubectl config set-credentials aezo --client-certificate=./aezo.crt --client-key=./aezo.key --embed-certs=true # 创建用户（如何删除？？？）
+kubectl config set-context aezo@kubernetes --cluster=kubernetes --user=aezo # 创建上下文
+# kubectl config delete-context aezo@kubernetes
 
 # 查看用户配置：会多出一个context(定义用户可以访问的集群)和user
 kubectl config view
@@ -1276,20 +1321,9 @@ kubectl config view
 kubectl config use-context aezo@kubernetes
 # 提示：Error from server (Forbidden): pods is forbidden: User "aezo" cannot list resource "pods" in API group "" in the namespace "default"。由于aezo用户无管理集群的权限，所以在获取pods资源信息时，会提示Forrbidden
 # 对此用户赋予权限参考下文
+# kubectl get pods --context=aezo@kubernetes # 或者通过设定context查询
 kubectl get pods
-
-## 创建新集群
-# --kubeconfig 默认目录为 `${HOME}/.kube/config`
-kubectl config set-cluster my-cluster --kubeconfig=/tmp/test.conf --server="https://192.168.6.131:6443" --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
-# 查看集群
-kubectl config view --kubeconfig=/tmp/test.conf
 ```
-- `RBAC`相关：k8s基于RBAC进行权限控制。Role对象的作用范围是命名空间(namespace)内，ClusterRole对象的作用范围是k8s集群范围。RoleBinding和ClusterRoleBinding则是角色和用户的绑定关系
-    - `ClusterRole` 集群角色(`kubectl explain ClusterRole`)
-        - `rules`
-            - `apiGroups` 限定的api列表，不限定则可以加一个`- ""`子元素
-            - `resources` 资源列表，eg：pods/nodes/namespaces/deployments
-            - `verbs` 可执行动作列表，eg：get/list/create/update/watch
 - 创建角色和绑定关系示例
 
 ```bash
@@ -1309,6 +1343,24 @@ kubectl describe rolebinding aezo-read-pods
 ## 使用上述创建的aezo账号测试
 kubectl config use-context aezo@kubernetes
 kubectl get pods # 此时不会显示Forrbidden
+```
+- 创建新集群示例
+
+```bash
+# --kubeconfig 设置集群配置文件，默认文件为 `${HOME}/.kube/config`(默认集群文件)
+kubectl config set-cluster my-cluster --kubeconfig=/tmp/test.conf --server="https://192.168.6.131:6443" --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
+# 查看集群
+kubectl config view --kubeconfig=/tmp/test.conf
+```
+- 创建某命名空间的SA管理用户用于登录Dashboard
+
+```bash
+kubectl create namespace aezo-test
+kubectl create serviceaccount sa-aezo-admin -n aezo-test
+# --serviceaccount=SA命名空间:SA。此处-n aezo-test则代表rolebinding属于此命名空间，则相当于赋予此SA账户clusterrole=admin所拥有的aezo-test命名空间的部分权限
+kubectl create rolebinding test:sa-aezo-admin --clusterrole=admin --serviceaccount=aezo-test:sa-aezo-admin -n aezo-test
+kubectl get secret $(kubectl get secret -n aezo-test|grep sa-aezo-admin-token|awk '{print $1}') -n aezo-test -o jsonpath={.data.token}|base64 -d |xargs echo
+# 问题：登录后页面默认显示的是default命名空间，需要手动输入或者访问带上命名空间：https://192.168.6.131:30000/#!/overview?namespace=java-test
 ```
 
 ### 调度器
@@ -1623,7 +1675,7 @@ spec:
 
 ## 辅助组件使用
 
-- `Helm` 参考：[<helm>](/_posts/devops/helm.md)
+- `Helm` 参考：[《http://blog.aezo.cn/2019/06/22/devops/k8s-helm/》](/_posts/devops/helm.md)
 
 ### 手动安装Dashboard
 
@@ -1659,8 +1711,10 @@ kubectl get pod -n kube-system # 查看pod
 kubectl delete pod kubernetes-dashboard-5dc4c54b55-ft4xh -n kube-system # 按情况删除pod(会自动重新创建)
 
 ## 创建 ServiceAccount 和 ClusterRoleBinding
-kubectl create serviceaccount sa-admin -n kube-system # 创建serviceaccount
-kubectl create clusterrolebinding dev:cluster-sa-admin --clusterrole=cluster-admin --serviceaccount=kube-system:sa-admin # service account账户绑定到集群角色admin
+# 创建serviceaccount
+kubectl create serviceaccount sa-admin -n kube-system
+# service account账户绑定到集群角色admin
+kubectl create clusterrolebinding dev:cluster-sa-admin --clusterrole=cluster-admin --serviceaccount=kube-system:sa-admin
 
 ## 法一：基于token登录
 # 查看 ServiceAccount 对应的 Secret token。复制此token以令牌形式登录 https://192.168.6.131:30000/ 即可

@@ -325,74 +325,75 @@ mail.smtp.port=25 # 端口
 
 ### Tenant多租户(SaaS)
 
-#### 原理
+#### 基本说明
 
 - OFBiz提供Tenant多租户配置，开启后用户需要输入一个数据源(TenantId)，从而根据此TanantId从默认数据源获取Tenant、TenantDataSource数据库连接等信息，从而根据对应的数据库连接初始化一个Delegator("default#tanantId")，之后使用Delegator则是对相应数据源进行操作
-    - 默认数据源必须要，如用户登录是根据主数据源来的。还需提前创建好Tanant数据源
-    - Tanant数据源默认是在第一次查询时(`delegator = DelegatorFactory.getDelegator(delegatorName);`)进行初始化(会看到控制台检查Tanant数据源表结构日志)，此时需要较长时间
-        - 可考虑在项目重启时初始化所有的Tenant数据源
-    - 开启`TenantUserLogin`，可限制某个用户可使用的数据源
-    - 流程
+- 默认数据源必须要，如用户登录是根据主数据源来的。还需提前创建好Tanant数据源
+- Tanant数据源默认是在第一次查询时(`delegator = DelegatorFactory.getDelegator(delegatorName);`)进行初始化(会看到控制台检查Tanant数据源表结构日志)，此时需要较长时间
+    - 可考虑在项目重启时初始化所有的Tenant数据源
+- 开启`TenantUserLogin`，可限制某个用户可使用的数据源
+- 获取默认Delegator `Delegator baseDelegator = DelegatorFactory.getDelegator(delegator.getDelegatorBaseName());`
+- 流程
 
-        ```java
-        // 1.org/ofbiz/webapp/control/ContextFilter.java 基于域名(domainName)进行Tenant数据源分流(及不同的域名可配置不同的数据源)
-        public void init(FilterConfig config) throws ServletException {
-            // ...
-            // initialize the delegator
-            getDelegator(config.getServletContext());
-            // initialize security
-            getSecurity();
-            // initialize the services dispatcher
-            getDispatcher(config.getServletContext());
-            // ...
+    ```java
+    // 1.org/ofbiz/webapp/control/ContextFilter.java 基于域名(domainName)进行Tenant数据源分流(即不同的域名可配置不同的数据源)
+    public void init(FilterConfig config) throws ServletException {
+        // ...
+        // initialize the delegator
+        getDelegator(config.getServletContext());
+        // initialize security
+        getSecurity();
+        // initialize the services dispatcher
+        getDispatcher(config.getServletContext());
+        // ...
+    }
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        // ...
+        List<GenericValue> tenants = delegator.findList("Tenant", EntityCondition.makeCondition("domainName", serverName), null, UtilMisc.toList("-createdStamp"), null, false);
+        if (UtilValidate.isNotEmpty(tenants)) {
+            String tenantDelegatorName = delegator.getDelegatorBaseName() + "#" + tenantId;
+            httpRequest.getSession().setAttribute("delegatorName", tenantDelegatorName);
+            delegator = DelegatorFactory.getDelegator(tenantDelegatorName);
+            config.getServletContext().setAttribute("delegator", delegator);
         }
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            // ...
-            List<GenericValue> tenants = delegator.findList("Tenant", EntityCondition.makeCondition("domainName", serverName), null, UtilMisc.toList("-createdStamp"), null, false);
-            if (UtilValidate.isNotEmpty(tenants)) {
-                String tenantDelegatorName = delegator.getDelegatorBaseName() + "#" + tenantId;
-                httpRequest.getSession().setAttribute("delegatorName", tenantDelegatorName);
-                delegator = DelegatorFactory.getDelegator(tenantDelegatorName);
-                config.getServletContext().setAttribute("delegator", delegator);
-            }
-            // ...
+        // ...
+    }
+
+    // 2.XXXFilter.java 可拦截登录进行数据分流，并写入session
+
+    // 3.org/ofbiz/webapp/control/ControlServlet.java 基于用户session进行数据分流
+    String delegatorName = (String) session.getAttribute("delegatorName");
+    if (UtilValidate.isNotEmpty(delegatorName)) {
+        delegator = DelegatorFactory.getDelegator(delegatorName);
+    }
+    if (delegator == null) {
+        delegator = (Delegator) getServletContext().getAttribute("delegator");
+    }
+    request.setAttribute("delegator", delegator);
+    session.setAttribute("delegatorName", delegator.getDelegatorName());
+    
+    // 4.org/ofbiz/webapp/control/LoginWorker.java 登录成功，将数据分流信息存入session
+    public static String login(HttpServletRequest request, HttpServletResponse response) {
+        String tenantId = request.getParameter("tenantId");
+        if (UtilValidate.isNotEmpty(tenantId)) {
+            String delegatorName = delegator.getDelegatorBaseName() + "#" + tenantId;
+            delegator = DelegatorFactory.getDelegator(delegatorName); // default#T1
+            dispatcher = ContextFilter.makeWebappDispatcher(servletContext, delegator); // webtools#T1、test/T1
         }
 
-        // 2.XXXFilter.java 可拦截登录进行数据分流，并写入session
-
-        // 3.org/ofbiz/webapp/control/ControlServlet.java 基于用户session进行数据分流
-        String delegatorName = (String) session.getAttribute("delegatorName");
-        if (UtilValidate.isNotEmpty(delegatorName)) {
-            delegator = DelegatorFactory.getDelegator(delegatorName);
-        }
-        if (delegator == null) {
-            delegator = (Delegator) getServletContext().getAttribute("delegator");
-        }
+        setWebContextObjects(...);
+    }
+    private static void setWebContextObjects(HttpServletRequest request, HttpServletResponse response, Delegator delegator, LocalDispatcher dispatcher) {
+        // ...
         request.setAttribute("delegator", delegator);
+        request.setAttribute("dispatcher", dispatcher);
+        request.setAttribute("security", security);
+
         session.setAttribute("delegatorName", delegator.getDelegatorName());
-        
-        // 4.org/ofbiz/webapp/control/LoginWorker.java 登录成功，将数据分流信息存入session
-        public static String login(HttpServletRequest request, HttpServletResponse response) {
-            String tenantId = request.getParameter("tenantId");
-            if (UtilValidate.isNotEmpty(tenantId)) {
-                String delegatorName = delegator.getDelegatorBaseName() + "#" + tenantId;
-                delegator = DelegatorFactory.getDelegator(delegatorName); // default#T1
-                dispatcher = ContextFilter.makeWebappDispatcher(servletContext, delegator); // webtools#T1、test/T1
-            }
-
-            setWebContextObjects(...);
-        }
-        private static void setWebContextObjects(HttpServletRequest request, HttpServletResponse response, Delegator delegator, LocalDispatcher dispatcher) {
-            // ...
-            request.setAttribute("delegator", delegator);
-            request.setAttribute("dispatcher", dispatcher);
-            request.setAttribute("security", security);
-
-            session.setAttribute("delegatorName", delegator.getDelegatorName());
-            session.setAttribute("delegator", delegator);
-            session.setAttribute("dispatcher", dispatcher);
-        }
-        ```
+        session.setAttribute("delegator", delegator);
+        session.setAttribute("dispatcher", dispatcher);
+    }
+    ```
 
 #### 使用
 
@@ -509,12 +510,13 @@ mail.smtp.port=25 # 端口
                     session.setAttribute("delegator", delegator);
                     session.setAttribute("dispatcher", dispatcher);
                     session.setAttribute("security", security);
-			} catch (GenericEntityException | SecurityConfigurationException e) {
-				e.printStackTrace();
-				request.setAttribute("_ERROR_MESSAGE_", "获取用户数据源信息出错");
-				response.sendRedirect("main");
-				return;
-            }
+                } catch (GenericEntityException | SecurityConfigurationException e) {
+                    e.printStackTrace();
+                    request.setAttribute("_ERROR_MESSAGE_", "获取用户数据源信息出错");
+                    response.sendRedirect("main");
+                    return;
+                }
+            }    
         }
     }
     ```
@@ -528,7 +530,7 @@ mail.smtp.port=25 # 端口
         // 登录成功调用此方法
         String tenantId = delegator.getDelegatorTenantId();
         if(UtilValidate.isNotEmpty(tenantId)) {
-            // 获取原始
+            // 获取默认数据源
             Delegator baseDelegator = DelegatorFactory.getDelegator(delegator.getDelegatorBaseName());
             List<GenericValue> tenants = null;
             try {
@@ -942,8 +944,6 @@ Screens
 					......
 ```
 
-
-
 ## 其他
 
 ### 零散
@@ -1048,6 +1048,50 @@ Screens
 -->
 <jvmarg value="-javaagent:jvminspect.jar=outputfile=jvm.inspect.output,flushIntervalSecond=300"/>
 <!--<jvmarg value="-DHtmlFlusher.enableHyperlink=false"/>-->
+```
+
+### 打包docker镜像
+
+- Dockerfile
+
+```Dockerfile
+FROM 192.168.1.100:500/java-base/jdk:1.7
+ADD . /app
+# ant.sh等脚本文件需要换行符为LF(\n)
+RUN chmod +x /app/ant.sh
+RUN chmod +x /app/tools/startofbiz.sh
+RUN chmod +x /app/tools/stopofbiz.sh
+# RUN mkdir -p /app/hot-deploy/test/build/lib
+CMD ["/bin/bash", "-c", "cd /app && ./ant.sh && ./tools/startofbiz.sh"]
+# CMD ["/bin/bash", "-c", "sleep 1h"]
+```
+- `.dockerignore` 类似 `.gitignore` 进行配置
+- build.xml
+
+```xml
+<property name="projectDir" value="${basedir}/.." />
+<tstamp>
+    <format property="nowTm" pattern="yyMMddHHmmss"/>
+</tstamp>
+<property environment="env" />
+<condition property="appName" value="${env.APP_NAME}" else="demo-test">
+    <isset property="env.APP_NAME" />
+</condition>
+
+<target name="docker-deploy">
+    <exec executable="cmd.exe">
+        <arg line="/c &quot; docker login 192.168.1.100:500 -u ${env.MY_HARBOR_U} -p ${env.MY_HARBOR_P} &quot; "/>
+    </exec>
+    <exec executable="cmd.exe">
+        <arg line="/c &quot; cd ${projectDir}/ &amp;&amp; docker build --rm -t ${appName}:${nowTm} . &quot; "/>
+    </exec>
+    <exec executable="cmd.exe">
+        <arg line="/c &quot; docker tag ${appName}:${nowTm} 192.168.1.100:500/library/${appName}:${nowTm} &quot; "/>
+    </exec>
+    <exec executable="cmd.exe">
+        <arg line="/c &quot; docker push 192.168.1.100:500/library/${appName}:${nowTm} &quot; "/>
+    </exec>
+</target>
 ```
 
 

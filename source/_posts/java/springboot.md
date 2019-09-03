@@ -648,6 +648,7 @@ public String hello() {
 }
 
 // 前台请求 Body/Url 中含参数 userId和username（Spring可以自动注入java基础数据类型和对应的数组，集合无法注入）
+// 只能自动注入userId=1&username=smalle格式的数据，如果请求体中是json数据则无法解析(如果参数为json数据，一般可定义请求头为`'Content-Type': 'application/x-www-form-urlencoded'`，从而让ajax等插件自动转成url格式参数请求后台)
 @RequestMapping(value="/getUserByUserIdOrUsername")
 public Result getUserByUserIdOrUsername(Long userId, String username, HttpServletRequest request) {
 	// ...
@@ -756,6 +757,7 @@ Map map = responseEntity.getBody();
 
 // 2.getForObject
 Video video = restTemplate.getForObject("http://localhost/video", Video.class);
+Map retInfo = restTemplate.getForObject("http://localhost/test", Map.class); // 此时需要接口返回的数据类型为`application/json`，如果为`text/plain`则会报错(此时只能通过String.class来接收，然后转成json)
 
 // 3.postForEntity
 Video video = new Video();

@@ -12,7 +12,7 @@ tags: [jenkins]
 
 ## 安装编译及运行
 
-- 本文基于`Jenkins ver. 2.181`
+- 本文基于`Jenkins ver. 2.181`、Jenkins ver. 2.164.3
 
 ### 直接安装运行
 
@@ -35,8 +35,8 @@ docker run \
   -v /root/.m2:/root/.m2 \
   --name jenkins \
   --restart=always \
-  jenkins/jenkins:2.181
-  #jenkinsci/blueocean
+  #jenkins/jenkins:2.181 # 在容器中无法执行docker命令
+  jenkinsci/blueocean:1.18.1 # 对应jenkins版本 Jenkins ver. 2.164.3
 ```
 - 或使用docker-compose
 
@@ -46,7 +46,7 @@ version: '3'
 services:
   jenkins:
     container_name: jenkins
-    image: jenkins/jenkins:2.181
+    image: jenkinsci/blueocean:1.18.1
     ports:
       - 2081:8080
       - 50080:50000
@@ -213,17 +213,55 @@ java -jar target/${NAME}-${VERSION}.jar
 
 ![jenkins-docker-gitlab](/data/images/devops/jenkins-docker-gitlab.png)
 
-- Springboot项目的pom.xml加入打包docker并推送的镜像仓库(如Harbor)的插件
+- Springboot项目的pom.xml加入打包docker插件，并手动推送到镜像仓库(如Harbor)
 - jenkins源码从gitlab拉取，并设置Gitlab Webhooks
 - jenkins构建时分别执行maven打包、给服务器发送启动docker命令
+    - 如果是harbor构建的镜像，可在docker容器中先登录(第一次登录会把认证信息存储起来，下次执行命令无需登录)
 
     ```bash
     echo "exec command start..."
     source /etc/profile
     cd /home/smalle/compose/nginx
+
     sudo docker-compose up -d
     echo "exec command end..."
     ```
+- 上述流程需要开发先将镜像打包到镜像仓库，此处也可以通过在jenkins所在服务器打包(自动处理版本问题)
+    - 构建 - Execute Shell(打包镜像)
+        
+        ```bash
+        # Variables
+        JENKINS_PROJECT_HOME='/var/jenkins_home/workspace/demo'
+        HARBOR_IP='192.168.1.100:5000'
+        REPOSITORIES='test/demo'
+        HARBOR_USER='test'
+        HARBOR_USER_PASSWD='Hello666'
+        
+        # 删除本地镜像(镜像历史会保存在镜像仓库)
+        #docker login -u ${HARBOR_USER} -p ${HARBOR_USER_PASSWD} ${HARBOR_IP}
+        IMAGE_ID=`sudo docker images | grep ${REPOSITORIES} | awk '{print $3}'`
+        if [ -n "${IMAGE_ID}" ]; then
+            docker rmi ${IMAGE_ID}
+        fi
+
+        # Build image.
+        cd ${JENKINS_PROJECT_HOME}
+        TAG=`date +%Y%m%d-%H%M%S` # 20190902-165827
+        docker build --rm -t ${HARBOR_IP}/${REPOSITORIES}:${TAG} .
+
+        # Push to the harbor registry.
+        docker push ${HARBOR_IP}/${REPOSITORIES}:${TAG}
+        ```
+    - 构建 - over SSH
+
+        ```bash
+        HARBOR_IP='192.168.1.100:5000'
+        REPOSITORIES='test/demo'
+        HELM_NAME='demo'
+
+        TAG=`curl -s http://${HARBOR_IP}/api/repositories/${REPOSITORIES}/tags | jq '.[-1]' | sed 's/\"//g'`
+        sudo helm upgrade --set image.tag=${TAG} ${HELM_NAME} /root/helm-chart/test/${HELM_NAME}
+        ```
 
 ## 系统管理(Manage Jenkins)
 
@@ -273,6 +311,9 @@ java -jar target/${NAME}-${VERSION}.jar
 - Localization: Chinese (Simplified)：界面汉化(汉化部分，Local插件也只能汉化部分)
 - Docker plugin
     - 提供使用jenkins进行镜像编译、推送到Harbor等镜像仓库(也可通过maven插件配置docker镜像编译和推送)
+- Ant(安装的插件不能通过shell命令执行)
+    - 构建 - 增加构建步骤 - Invoke Ant
+- Environment Injector
 
 ### 其他配置
 

@@ -15,13 +15,23 @@ tags: [sql, oracle, mysql]
 
 ### 数据类型转换
 
-- `CAST()`和 `CONVERT()` 可将一个类型转成另外一个类型
+- mysql：`CAST()`和 `CONVERT()` 可将一个类型转成另外一个类型
     - 语法：CAST(expr AS type)、CONVERT(expr, type)、CONVERT(expr USING transcoding_name)   
-    
+
 ```sql
 -- mysql、h2。可用类型：二进制 BINARY、字符型，可带参数 CHAR()、日期 DATE、TIME、DATETIME、浮点数 DECIMAL、整数 SIGNED、无符号整数 UNSIGNED
 -- 可将LONG/CLOB等转成字符串
 select cast(ID as char) from user limit 1;
+
+-- 日期时间转换
+-- mysql
+select date_format(now(), '%Y-%m-%d %H:%i:%s');
+select str_to_date('2016-01-02 10:00:00.000','%Y-%m-%d %H:%i:%s.%f');
+select to_days(now()); -- 727666 从0年开始到当前的天数
+select to_days('2016-01-02');
+-- oracel
+select to_char(sysdate, 'yyyy-MM-dd HH24:mi:ss') from dual;
+select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
 ```
 
 ## Mysql

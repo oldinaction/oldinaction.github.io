@@ -73,6 +73,7 @@ install     # 安装charts
     # helm install ./nginx-1.2.3.tgz
     # helm install ./nginx
     # helm install https://example.com/charts/nginx-1.2.3.tgz
+    # helm install --dry-run --debug mychart # **模拟执行**
 lint        # 检测包的存在问题
 list        # 列出release(结果中CHART字段一般带了CHART的版本，APP VERSION则为相关镜像如nginx-ingress版本)
     # helm list --all
@@ -251,6 +252,11 @@ kubectl get secret $(kubectl get secret -n kube-system|grep kubernetes-dashboard
 ## 更新删除
 helm upgrade kubernetes-dashboard stable/kubernetes-dashboard --version 1.8.0 -f kubernetes-dashboard.yaml
 helm del --purge kubernetes-dashboard
+
+## 其他
+# 修改token过期时间(session过期时间)，默认是15分钟(900秒)：在 `- --auto-generate-certificates` 下加一行参数 `- --token-ttl=31536000‬` (1年有效)
+kubectl edit deployment kubernetes-dashboard -n kube-system
+# 创建只能访问某命名空间的sa账户参考[kubernetes](/_posts/devops/kubernetes.md)
 ```
 - kubernetes-dashboard.yaml
 
@@ -370,6 +376,10 @@ spec:
     export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=test-chart" -o jsonpath="{.items[0].metadata.name}")
     kubectl port-forward --address 0.0.0.0 $POD_NAME 8080:80
     # 在本地访问http://127.0.0.1:8080即可访问到nginx
+
+    # 修改配置文件(也可同时配合--set修改配置)后更新部署
+    helm upgrade --set image.tag=20190902 mychart ./mychart
+    helm history mychart # 查看更新历史
     ```
 - `tree mychart` 显示目录信息如下
 
@@ -382,7 +392,7 @@ spec:
     ├── templates                       # 配置模板目录，下是yaml文件的模板，遵循Go template语法
     │   ├── deployment.yaml             # kubernetes Deployment object
     │   ├── _helpers.tpl                # 用于修改kubernetes objcet配置的模板
-    │   ├── ingress.yaml                # kubernetes Ingress
+    │   ├── ingress.yaml                # kubernetes Ingress(默认未启用)
     │   ├── NOTES.txt
     │   ├── service.yaml                # kubernetes Serivce
     │   └── tests
@@ -419,6 +429,39 @@ spec:
     # 如果以后仓库添加了新的 chart，需要用 helm repo update 更新本地的 index
     helm repo update
     ```
+- chart语法：[Go template语法](https://golang.org/pkg/text/template/)
+    - 相关函数：https://blog.gmem.cc/gotpl
+    
+```go
+// ============基本
+{{/* comment */}}
+{{- xxxx -}} // 去除前后的空白(包括换行符、制表符、空格等)，可只去其中一个
+
+// ============变量
+{{- $how_long := (len "output")}} // 定义变量
+{{- println $how_long}} // 输出6
+{{- $name := default .Chart.Name .Values.nameOverride -}} // 复制多个值
+{{- if contains $name .Release.Name -}} ... {{- end -}} // $name为上文定义
+
+{{.}} // 表示当前对象，如user对象
+{{.Username}} // 表示对象的Username字段值
+
+// ============语句控制
+{{pipeline}}
+{{if pipeline}} T1 {{end}}
+{{if pipeline}} T1 {{else}} T0 {{end}}
+// 控制语句块在渲染后生成模板会多出空行，可使用{{- if ...}}的方式消除此空行
+{{- if and .Values.fooString (eq .Values.fooString "foo") }}
+    {{ ... }}
+{{- end }}
+// 对于第一种格式，当pipeline不为0值的时候，点"."设置为pipeline运算的值，否则跳过。对于第二种格式，当pipeline不为0值时，则"."设置为pipeline运算的值，并执行T1；否则执行else语句块
+{{with pipeline}} T1 {{end}} // {{with "xx"}}{{println .}}{{end}} // 打印"xx"(此时 . 设置成了 xx)
+{{with pipeline}} T1 {{else}} T0 {{end}}
+
+// ============模块嵌套
+{{define "module_name"}}content{{end}} //声明
+{{template "module_name"}} //调用
+```
 
 
 

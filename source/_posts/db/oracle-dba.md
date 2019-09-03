@@ -73,9 +73,12 @@ Oracle需要装client才能让第三方工具(如pl/sql)通过OCI(Oracle Call In
 oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库。创建了表空间并没有创建数据库实例
 
 - 登录：`sqlplus / as sysdba`
-- 创建表空间：`create tablespace aezocn datafile 'd:/tablespace/aezo' size 800m extent management local segment space management auto;` ，要先建好路径 d:/tablespace ，最终会在该目录下建一个 AEZO 的文件(表空间之后可以修改)
-    - 删除表空间：`drop tablespace aezocn including contents and datafiles;`
-- 创建用户：`create user aezo identified by aezo default tablespace aezocn;`
+- 创建表空间
+    - `create tablespace aezocn datafile 'd:/tablespace/aezo' size 500m autoextend on next 10m maxsize unlimited extent management local  autoallocate segment space management auto;`
+    - 要先建好路径 d:/tablespace ，最终会在该目录下建一个 AEZO 的文件(表空间之后可以修改)
+    - 此处是创建一个初始大小为500m的表空间，当空间不足时每次自动扩展10m，无限扩展(oracle有限制，最大扩展到32G，仍然不足则需要添加表空间数据文件)
+- 删除表空间 `drop tablespace aezocn including contents and datafiles;`
+- 创建用户 `create user aezo identified by aezo default tablespace aezocn;`
 - 授权
     - `grant create session to aezo;`
     - `grant unlimited tablespace to aezo;`
@@ -344,7 +347,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
     - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
     - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
 - 用户相关查询
-    - **查看当前用户默认表空间**：`select username, default_tablespace from user_users;`(以dba登录则结果为SYS和SYSTEM)
+    - **查看当前用户默认表空间**：`select username, default_tablespace from user_users;`(以dba登录则结果为SYS和SYSTEM)。**user_users换成dba_users则是查询所有用户默认表空间**
     - 查看当前用户角色：`select * from user_role_privs;`
     - 查看当前用户系统权限：`select * from user_sys_privs;`
     - 查看当前用户表级权限：`select * from user_tab_privs;`
@@ -421,31 +424,32 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
     - 报错`ORA-01653: unable to extend table` [^7]
         - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
         - 开启表空间自动扩展，每次递增50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
-        - 为USERS表空间新增数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`
+        - 为USERS表空间新增数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`(此时增加的数据文件不会自动扩展，需要再次运行上述自动扩展语句)
         - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
 
             ```sql
-            -- 查看表空间
+            -- 查看表空间(如果表空间不足，此sql语句可能无法显示出来改表空间，可单独查询其中的a表)
             select a.tablespace_name "表空间名",
                 a.bytes / 1024 / 1024 "表空间大小(m)",
-                (a.bytes - b.bytes) / 1024 / 1024 "已使用空间(m)",
-                b.bytes / 1024 / 1024 "空闲空间(m)",
-                round(((a.bytes - b.bytes) / a.bytes) * 100, 2) "使用比",
+                (a.bytes - nvl(b.bytes, 0)) / 1024 / 1024 "已使用空间(m)",
+                case when b.bytes is null then 0 else b.bytes / 1024 / 1024 end "空闲空间(m)",
+                case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
                 a.file_name "全路径的数据文件名称",
                 autoextensible "表空间自动扩展", 
                 increment_by "自增块(默认1blocks=8k)"
             from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes
                     from dba_data_files
-                group by tablespace_name, file_name, autoextensible, increment_by) a,
+                group by tablespace_name, file_name, autoextensible, increment_by) a
+            left join
                 (select tablespace_name, sum(bytes) bytes, max(bytes) largest
                     from dba_free_space
                 group by tablespace_name) b
-            where a.tablespace_name = b.tablespace_name
+            on a.tablespace_name = b.tablespace_name;
 
             -- 查看oracle临时表空间
             select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
             from dba_temp_files
-            group by tablespace_name, file_name, autoextensible, increment_by
+            group by tablespace_name, file_name, autoextensible, increment_by;
             ```
     - `ORA-01654:unable to extend index`，解决步骤 [^8]
         - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经32G(表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
