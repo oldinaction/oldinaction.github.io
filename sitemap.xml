@@ -2,6 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2019-09-03T08:24:32.538Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
+    
+    <lastmod>2019-09-03T08:12:57.119Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
+    
+    <lastmod>2019-09-03T07:45:21.735Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/k8s-helm/</loc>
+    
+    <lastmod>2019-09-03T07:24:11.250Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
+    
+    <lastmod>2019-09-03T07:11:15.781Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     
     <lastmod>2019-09-03T03:00:03.363Z</lastmod>
@@ -9,23 +44,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
-    
-    <lastmod>2019-09-03T02:08:19.299Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
     <lastmod>2019-09-02T10:21:58.046Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    
-    <lastmod>2019-09-02T09:17:34.849Z</lastmod>
     
   </url>
   
@@ -40,20 +61,6 @@
     <loc>http://blog.aezo.cn/2019/08/23/arch/ant/</loc>
     
     <lastmod>2019-09-02T06:54:34.297Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2019-09-02T05:45:44.502Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/k8s-helm/</loc>
-    
-    <lastmod>2019-09-02T05:16:16.174Z</lastmod>
     
   </url>
   
@@ -390,13 +397,6 @@
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2019-05-08T13:42:33.530Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
-    
-    <lastmod>2019-04-14T09:50:54.519Z</lastmod>
     
   </url>
   
