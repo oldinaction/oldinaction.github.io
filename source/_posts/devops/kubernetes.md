@@ -597,7 +597,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
             - `timeoutSeconds` 探测超时时间。默认1秒，最小1秒
             - `successThreshold` 探测失败后，最少连续探测成功多少次才被认定为成功。默认是 1，对于 liveness 必须是 1。最小值是 1。
             - `failureThreshold` 探测成功后，最少连续探测失败多少次才被认定为失败。默认是 3。最小值是 1
-        - `readinessProbe` 就绪性探测(子标签类似livenessProbe)。在readiness探测失败之后，Pod和容器并不会被删除，而是会被标记成特殊状态，进入这个状态之后，如果这个POD是在某个serice的endpoint列表里面的话，则会被从这个列表里面清除，以保证外部请求不会被转发到这个POD上；等POD恢复成正常状态，则会被加回到endpoint的列表里面，继续对外服务
+        - `readinessProbe` 就绪性探测(子标签类似livenessProbe)。在readiness探测失败之后，Pod和容器并不会被删除，而是会被标记成特殊状态，进入这个状态之后，如果这个Pod是在某个serice的endpoint列表里面的话，则会被从这个列表里面清除，以保证外部请求不会被转发到这个Pod上；等Pod恢复成正常状态，则会被加回到endpoint的列表里面，继续对外服务
     - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上
     - `nodeName` 直接运行在此节点上
     - `restartPolicy` 重启策略：Always(默认)、OnFailure、Never
@@ -616,7 +616,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
         - `metadata` 类似kind=Pod的
         - `spec` 类似kind=Pod的
     - `strategy` Deployment创建pod的策略(如更新pod配置时)
-        - `type` 取值：Recreate、RollingUpdate(默认)
+        - `type` 取值：Recreate、RollingUpdate(默认。滚动更新：在新Pod进入readiness就绪之前，仍然由旧Pod提供服务；当新Pod就绪后，则移除就Pod)
         - `rollingUpdate`
             - `maxSurge` 操作pod时，可控制的最大数量，如修改配置后可能创建新版本pod和依次删除历史pod同时进行。(DaemonSet无)
             - `maxUnavailable` 更新配置时，不可用的最大数量
@@ -1680,7 +1680,18 @@ spec:
 ### 手动安装Dashboard
 
 - [github](https://github.com/kubernetes/dashboard)
-- 安装
+
+#### Dashboard界面说明
+
+- 部署(Deployment)
+    - 伸缩：如果将伸缩值设置为0，则会移除所有Pod，此时不提供服务；当将伸缩设置为1，会自动重新创建Pod并对外提供服务
+- 容器组(Pod)
+    - 容器组命令行界面中可执行的命令比`kubectl exec`进入Pod可执行的命令要多，如`ll`一般Pod中都无此命令，但是Dashboard可执行
+- 副本集(ReplicaSet)
+- 服务(Service)
+- 配置与存储(Secret)
+
+#### 安装
 
 ```bash
 ## 安装

@@ -52,6 +52,7 @@ services:
       - 50080:50000
     volumes:
       - jenkins-data:/var/jenkins_home
+      # 必须是jenkinsci/blueocean才可在容器中执行docker命令，jenkins/jenkins镜像没有测试成功
       - /var/run/docker.sock:/var/run/docker.sock
       - /root/.m2:/root/.m2
     restart: always
@@ -83,6 +84,13 @@ volumes:
 
 ## 构建
 
+### 项目构建界面说明
+
+- `Workspace` 为构建任务源码目录(构建配置中的`.`即为此构建源码目录，如`/var/jenkins_home/workspace/xx`)
+- `Changes` 可记录Git源码提交记录
+- `立即构建` 可手动执行此构建任务(一般是通过Gitlab触发)
+- `Delete 工程`只能删除此构建任务，并不会删除workspace目录下的缓存项目源码。可进入容器手动删除`/var/jenkins_home/workspace/xx`
+
 ### 自由风格构建说明
 
 #### 源码管理(Git)
@@ -96,7 +104,7 @@ volumes:
 
 #### 构建触发器
 
-- `Build when a change is pushed to GitLab. GitLab webhook URL: http://10.10.10.10/project/test` 代码推送等变更时构建，常用(需安装`GitLab`插件)
+- `Build when a change is pushed to GitLab. GitLab webhook URL: http://192.168.1.100/project/test` 代码推送等变更时构建，常用(需安装`GitLab`插件)
     - Enabled GitLab triggers
         - `Push Events` 直接推送到此分支时构建(**去勾选**，如直接在git客户端将develop推送到test则无法触发。勾选会产生问题：当在gitlab接受develop到test的请求会产生2次构建)
         - `Opened Merge Request Events` 去勾选
@@ -227,40 +235,39 @@ java -jar target/${NAME}-${VERSION}.jar
     echo "exec command end..."
     ```
 - 上述流程需要开发先将镜像打包到镜像仓库，此处也可以通过在jenkins所在服务器打包(自动处理版本问题)
-    - 构建 - Execute Shell(打包镜像)
+    - 构建 - Execute Shell(打包镜像并上传到Harbor)
         
         ```bash
         # Variables
         JENKINS_PROJECT_HOME='/var/jenkins_home/workspace/demo'
         HARBOR_IP='192.168.1.100:5000'
         REPOSITORIES='test/demo'
-        HARBOR_USER='test'
-        HARBOR_USER_PASSWD='Hello666'
+        #HARBOR_USER='test'
+        #HARBOR_USER_PASSWD='Hello666'
         
         # 删除本地镜像(镜像历史会保存在镜像仓库)
         #docker login -u ${HARBOR_USER} -p ${HARBOR_USER_PASSWD} ${HARBOR_IP}
-        IMAGE_ID=`sudo docker images | grep ${REPOSITORIES} | awk '{print $3}'`
+        IMAGE_ID=`docker images | grep ${REPOSITORIES} | awk '{print $3}'`
         if [ -n "${IMAGE_ID}" ]; then
             docker rmi ${IMAGE_ID}
         fi
 
         # Build image.
         cd ${JENKINS_PROJECT_HOME}
-        TAG=`date +%Y%m%d-%H%M%S` # 20190902-165827
-        docker build --rm -t ${HARBOR_IP}/${REPOSITORIES}:${TAG} .
+        DOCKER_TAG=`date +%y%m%d-%H%M%S` # 190902-165827
+        docker build --rm -t ${HARBOR_IP}/${REPOSITORIES}:${DOCKER_TAG} --build-arg APP_VERSION=v${DOCKER_TAG} -f ./docker/Dockerfile .
 
         # Push to the harbor registry.
-        docker push ${HARBOR_IP}/${REPOSITORIES}:${TAG}
+        docker push ${HARBOR_IP}/${REPOSITORIES}:${DOCKER_TAG}
+
+        # 保存环境变量到工作目录文件中共其他shell使用(配合EnvInject Plugin)
+        echo "DOCKER_TAG=${DOCKER_TAG}" > ./env_jenkins.sh
         ```
-    - 构建 - over SSH
+    - 构建 - over SSH(执行helm部署Pod)
 
         ```bash
-        HARBOR_IP='192.168.1.100:5000'
-        REPOSITORIES='test/demo'
         HELM_NAME='demo'
-
-        TAG=`curl -s http://${HARBOR_IP}/api/repositories/${REPOSITORIES}/tags | jq '.[-1]' | sed 's/\"//g'`
-        sudo helm upgrade --set image.tag=${TAG} ${HELM_NAME} /root/helm-chart/test/${HELM_NAME}
+        sudo /usr/local/bin/helm upgrade --set image.tag=${DOCKER_TAG} ${HELM_NAME} /root/helm-chart/test/${HELM_NAME}
         ```
 
 ## 系统管理(Manage Jenkins)
@@ -297,23 +304,54 @@ java -jar target/${NAME}-${VERSION}.jar
 
 #### 其他插件推荐
 
-- Publish over SSH
-    - [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
-    - 利用此插件可以连接远程Linux服务器，进行文件的上传或是命令的提交，也可以连接提供SSH服务的windows服务器
-    - BapSshHostConfiguration#createClient 进行服务器连接
-    - 此插件1.20.1界面`Test Configuration`测试代理连接存在bug，实际是支持代理连接的
-- GitLab
-    - [wiki](https://github.com/jenkinsci/gitlab-plugin)
-    - 允许GitLab触发Jenkins构建并在GitLab UI中显示结果
-- Maven Integration
-    - 使用：新建Item - 构建一个maven项目
-    - 项目配置：Goals and options `clean install -Dmaven.test.skip=true`
-- Localization: Chinese (Simplified)：界面汉化(汉化部分，Local插件也只能汉化部分)
-- Docker plugin
-    - 提供使用jenkins进行镜像编译、推送到Harbor等镜像仓库(也可通过maven插件配置docker镜像编译和推送)
-- Ant(安装的插件不能通过shell命令执行)
-    - 构建 - 增加构建步骤 - Invoke Ant
-- Environment Injector
+##### Publish over SSH(执行远程命令)
+
+- [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
+- 利用此插件可以连接远程Linux服务器，进行文件的上传或是命令的提交，也可以连接提供SSH服务的windows服务器
+- BapSshHostConfiguration#createClient 进行服务器连接
+- 此插件1.20.1界面`Test Configuration`测试代理连接存在bug，实际是支持代理连接的
+
+##### GitLab
+
+- [wiki](https://github.com/jenkinsci/gitlab-plugin)
+- 允许GitLab触发Jenkins构建并在GitLab UI中显示结果
+
+##### Maven Integration
+
+- 使用：新建Item - 构建一个maven项目
+- 项目配置：Goals and options `clean install -Dmaven.test.skip=true`
+
+##### Localization: Chinese (Simplified)
+
+- 界面汉化(汉化部分，Local插件也只能汉化部分)
+
+##### Docker plugin
+
+- 提供使用jenkins进行镜像编译、推送到Harbor等镜像仓库(也可通过maven插件配置docker镜像编译和推送)
+
+##### Ant
+
+- 构建 - 增加构建步骤 - Invoke Ant
+- 安装的插件不能通过shell命令执行ant
+
+##### Environment Injector(注入环境变量)
+
+- [wiki](https://wiki.jenkins.io/display/JENKINS/EnvInject+Plugin)
+- 同一个Job不同shell参数传递
+    - 如果涉及到over SSH远程命令调用则必须使用文件进行参数传递
+    
+    ```bash
+    ## Build - 执行Shell(将环境变量保存到当前工作目录的文件中)
+    DOCKER_TAG=`date +%Y%m%d-%H%M%S`
+    echo "DOCKER_TAG=${DOCKER_TAG}" > ./env_jenkins.sh
+
+    ## Build - Inject environment variables(从文件中读取环境变量并注入到当前环境)
+    Properties File Path=./env_jenkins.sh
+    # Properties Content中也可以定义参数，但是通过本地shell修改后，在over SSH中不能生效(还是拿到原始Properties Content中定义的参数值)
+
+    ## Build - Send files or execute commands over SSH
+    echo ${DOCKER_TAG}
+    ```
 
 ### 其他配置
 

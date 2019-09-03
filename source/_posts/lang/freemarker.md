@@ -113,3 +113,12 @@ public class FtlU {
 
 ${(item.inputTm?string("yyyy-MM-dd HH:mm"))!}
 ```
+
+### 变量
+
+```html
+<!-- 定义变量、ftl提供调用类的静态方法 -->
+<#assign appVersion = Static["java.lang.System"].getProperty("app.version")/>
+<!-- 获取变量 -->
+${(appVersion)!}
+```

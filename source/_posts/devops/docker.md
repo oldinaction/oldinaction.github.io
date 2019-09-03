@@ -80,6 +80,7 @@ Commands:
         -t      # 定义标签(name:tag)，eg: -t demo:v1、-t demo(此时tag为latest)
         -f      # 指定 Dockerfile 文件路径。默认根目录下Dockerfile文件(此时可省略)
         --rm    # 编译成功后移除中间临时镜像
+        --build-arg # 传递外部参数到Dockerfile中(使用ARG接受)
         # docker build --rm -t demo . # 根据当前目录(.)上下文环境编译
     commit    Create a new image from a container’s changes # 提交当前容器为新的镜像
     cp        Copy files/folders from the containers filesystem to the host path # 从容器中拷贝指定文件或者目录到宿主机中
@@ -348,7 +349,11 @@ consul members
     # MAINTAINER 维护者信息
     MAINTAINER smalle
 
+    # docker build --build-arg APP_VERSION=v1.0.0 .
+    ARG APP_VERSION
+
     # ENV 设置环境变量
+    ENV APP_VERSION=${APP_VERSION}
     ENV PATH /usr/local/nginx/sbin:$PATH
 
     # ADD 从本地当前目录复制文件到容器. 文件放在当前目录下，拷过去会自动解压
@@ -609,7 +614,6 @@ services:
       - jenkins-data:/var/jenkins_home
       # 基于普通目录映射。映射主机的docker到容器里面，这样在容器里面就可以使用主机安装的 docker了(如可以在Jenkins容器里操作宿主机的其他容器)
       - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/bin/docker:/usr/bin/docker
     user: root # 定义启动用户
     # ...
 volumes:
