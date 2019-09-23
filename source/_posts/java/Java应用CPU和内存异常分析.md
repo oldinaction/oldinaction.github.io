@@ -120,7 +120,9 @@ jps -lmv
 
 #### 内存飙高，但是下载的dump文件却很小
 
-- 内存占用达到3G，下载的dump文件确只有400M左右(生成dump文件耗时1分钟，生成dump文件时应用无法访问)，并未发现内存溢出现象
+- 现象：内存占用达到3G，下载的dump文件确只有400M左右(生成dump文件耗时1分钟，生成dump文件时应用无法访问)，并未发现内存溢出现象
+- 可能原因
+    - `-Xmx` 设置太小
 
 ### OFBiz项目案例分析
 
@@ -170,7 +172,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 
 #### JDK自带
 
-- jvisualvm.exe、jconsole.exe类似，下面以jvisualvm.exe为例
+- `jvisualvm.exe`、`jconsole.exe`类似，下面以`jvisualvm.exe`为例
 - 本地连接：直接运行即可选择本地java项目进行监测
 - 远程连接(最好关闭防火墙和安全组设置1-65535的入栈。除了JMX server指定的监听端口号外，JMXserver还会监听一到两个随机端口号，这些端口都必须允许连接)
     - 运行jstatd(可省略)
@@ -265,20 +267,315 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 
 ### Mysql
 
-```sql
--- 查看当前执行的sql，time的单位为秒
-select id, user, host, db, command, time, state, info
-from information_schema.processlist
-where command != 'Sleep'
-order by time desc;
+- `show full processlist;` 查看进程(**Time的单位是秒**)
+	- `show processlist;` 查看进程快照
+	- 查看进程详细
 
--- kill 15667;
--- 生成查杀sql
-select concat('kill ', id, ';')
-from information_schema.processlist
-where command != 'Sleep' and info like 'SELECT%'
-and time > 2*60
-order by time desc;
+		```sql
+		-- command: 显示当前连接的执行的命令，一般就是休眠或空闲（sleep），查询（query），连接（connect）
+		-- time：线程处在当前状态的时间，单位是秒
+		-- state：显示使用当前连接的sql语句的状态，很重要的列。state只是语句执行中的某一个状态，一个 sql语句，以查询为例，可能需要经过copying to tmp table，Sorting result，Sending data等状态才可以完成
+		-- 查询正在执行，且基于耗时时间降序
+		select id, user, host, db, command, time, state, info
+		from information_schema.processlist
+		where command != 'Sleep'
+		order by time desc;
+		```
+	- 查询执行时间超过2分钟的线程，然后拼接成 kill 语句。复制出来手动运行
+
+		```sql
+        -- kill 15667;
+        -- 生成查杀sql
+		select concat('kill ', id, ';')
+		from information_schema.processlist
+		where command != 'Sleep' and info like 'SELECT%'
+		and time > 2*60
+		order by time desc;
+		```
+- MySQL出现`Waiting for table metadata lock`的原因以及解决方法。**常出现在执行alter table的语句，如修改表结构的过程中(线上风险较高)** [^1]
+	- `show processlist;` 长事物运行，阻塞DDL，继而阻塞所有同表的后续操作。(`kill #id`)
+	- `select * from information_schema.innodb_trx;` 未提交事物，阻塞DDL (`kill #trx_mysql_thread_id`)
+	- 查询到上述情况线程ID进行查杀
+- `show open tables where in_use > 0;` 查看正在使用的表(锁表)
+
+## JVM致命错误日志(hs_err_pid.log)
+
+- 当JVM发生致命错误导致崩溃时，会生成一个hs_err_pid_xxx.log这样的文件，该文件包含了导致 JVM crash 的重要信息。该文件默认生成在工作目录下的，可通过JVM参数指定
+`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
+- 日志分析 [^5]
+
+```bash
+# ##################### 日志头文件
+# ### 这段内容主要简述了导致 JVM Crash 的原因。常见的原因有 JVM 自身的 bug，应用程序错误，JVM 参数，服务器资源不足，JNI 调用错误等
+# A fatal error has been detected by the Java Runtime Environment:
+
+# ### SIGSEGV 信号量；0x7 信号码；pc=0x00007f83d7bd6982 程序计数器的值；pid=8946 进程号；tid=140203658778368 线程号
+# ### SIGBUS (0x7) 问题：https://confluence.atlassian.com/confkb/java-vm-dies-with-sigbus-0x7-when-temp-directory-is-full-on-linux-815584538.html
+#  SIGBUS (0x7) at pc=0x00007f83d7bd6982, pid=8946, tid=140203658778368
+
+# ### JRE 和 JVM 的版本信息
+# JRE version: Java(TM) SE Runtime Environment (7.0_79-b15) (build 1.7.0_79-b15)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (24.79-b02 mixed mode linux-amd64 compressed oops)
+
+# ### 问题帧信息
+    # C 表示帧类型为本地帧；j 解释的Java帧；V 虚拟机帧；v 虚拟机生成的存根栈帧；J 其他帧类型，包括编译后的Java帧
+    # [libzip.so+0x4982]  newEntry+0x62 和程序计数器(pc)表达的含义一样，但是用的是本地so库+偏移量的方式
+# Problematic frame:
+# C  [libzip.so+0x4982]  newEntry+0x62
+
+# ### 问题描述即建议
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+# ##################### 导致 crash 的线程信息
+---------------  T H R E A D  ---------------
+# ### 这部分内容包含出发 JVM 致命错误的线程详细信息和线程栈
+    # 0x00007f83d8245800：出错的线程指针
+    # JavaThread：线程类型，此时为Java线程，其他还有
+        # JavaThread：Java线程
+        # VMThread：JVM 的内部线程
+        # CompilerThread：用来调用JITing，实时编译装卸class。通常，jvm会启动多个线程来处理这部分工作，线程名称后面的数字也会累加，例如：CompilerThread1
+        # GCTaskThread：执行gc的线程
+        # WatcherThread：JVM 周期性任务调度的线程，是一个单例对象
+        # ConcurrentMarkSweepThread：jvm在进行CMS GC的时候，会创建一个该线程去进行GC，该线程被创建的同时会创建一个SurrogateLockerThread（简称SLT）线程并且启动它，SLT启动之后，处于等待阶段。CMST开始GC时，会发一个消息给SLT让它去获取Java层Reference对象的全局锁：Lock
+    # OFBiz-AdminPortThread：线程名称
+    # _thread_in_native：当前线程状态，此时为在运行native代码。该描述还包含有： 
+        # _thread_in_native：在运行native代码
+        # _thread_uninitialized：线程还没有创建，它只在内存原因崩溃的时候才出现
+        # _thread_new：线程已经被创建，但是还没有启动
+        # _thread_in_native：线程正在执行本地代码，一般这种情况很可能是本地代码有问题
+        # _thread_in_vm：线程正在执行虚拟机代码
+        # _thread_in_Java：线程正在执行解释或者编译后的Java代码
+        # _thread_blocked：线程处于阻塞状态
+        # …_trans：以_trans结尾，线程正处于要切换到其它状态的中间状态
+    # id=8964：线程ID
+    # stack(0x00007f83b5371000,0x00007f83b5472000)：栈区间
+Current thread (0x00007f83d8245800):  JavaThread "OFBiz-AdminPortThread" [_thread_in_native, id=8964, stack(0x00007f83b5371000,0x00007f83b5472000)]
+
+# ### 表示导致虚拟机终止的非预期的信号信息
+siginfo:si_signo=SIGBUS: si_errno=0, si_code=2 (BUS_ADRERR), si_addr=0x00007f83de55e6e7
+
+Registers:
+RAX=0x00007f8380000bb0, RBX=0x00007f83d81fd6f0, RCX=0x00007f8380000ba0, RDX=0x00007f8380000bb0
+RSP=0x00007f83b546e560, RBP=0x00007f83b546e5b0, RSI=0x00007f8380000038, RDI=0x0000000000000000
+R8 =0x0000000000000003, R9 =0x0000000000000048, R10=0x00007f83d4c463b8, R11=0x00007f83ddaca710
+R12=0x00007f83de55e6ca, R13=0x00007f8380000bb0, R14=0x00000000700eb698, R15=0x00007f83d81fd450
+RIP=0x00007f83d7bd6982, EFLAGS=0x0000000000010206, CSGSFS=0x0000000000000033, ERR=0x0000000000000004
+  TRAPNO=0x000000000000000e
+
+# ### 栈顶程序计数器旁的操作码，它们可以被反汇编成系统崩溃前执行的指令
+Top of Stack: (sp=0x00007f83b546e560)
+0x00007f83b546e560:   0000000720000c90 00007f8300000000
+0x00007f83b546e570:   00007f83b546e5f0 00007f83dd2b138c
+0x00007f83b546e580:   00007f8380000bb0 00007f83d81fd6f0
+0x00007f83b546e590:   00007f83d81fd450 00007f83d87502f0
+# ...
+
+Instructions: (pc=0x00007f83d7bd6982)
+0x00007f83d7bd6962:   00 48 c7 40 28 00 00 00 00 41 80 7f 30 00 0f 84
+0x00007f83d7bd6972:   8a 02 00 00 4c 8b 63 08 4d 2b 67 28 4d 03 67 18
+0x00007f83d7bd6982:   41 0f b6 5c 24 1d 41 0f b6 44 24 1c c1 e3 08 09
+0x00007f83d7bd6992:   c3 41 0f b6 44 24 1e 88 45 bd 41 0f b6 54 24 20 
+
+Register to memory mapping:
+
+RAX=0x00007f8380000bb0 is an unknown value
+RBX=0x00007f83d81fd6f0 is an unknown value
+RCX=0x00007f8380000ba0 is an unknown value
+RDX=0x00007f8380000bb0 is an unknown value
+RSP=0x00007f83b546e560 is pointing into the stack for thread: 0x00007f83d8245800
+# ...
+
+# ### 线程栈信息。包含了地址、栈顶、栈计数器和线程尚未使用的栈信息。到这里就基本上已经确定了问题所在原因了
+Stack: [0x00007f83b5371000,0x00007f83b5472000],  sp=0x00007f83b546e560,  free space=1013k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libzip.so+0x4982]  newEntry+0x62
+C  [libzip.so+0x50b0]  ZIP_GetEntry+0xd0
+C  [libzip.so+0x3eed]  Java_java_util_zip_ZipFile_getEntry+0xad
+J 44  java.util.zip.ZipFile.getEntry(J[BZ)J (0 bytes) @ 0x00007f83d4c4642e [0x00007f83d4c46360+0xce]
+
+Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
+J 44  java.util.zip.ZipFile.getEntry(J[BZ)J (0 bytes) @ 0x00007f83d4c463b8 [0x00007f83d4c46360+0x58]
+J 46 C2 java.util.jar.JarFile.getEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry; (22 bytes) @ 0x00007f83d4c55828 [0x00007f83d4c55760+0xc8]
+J 1029 C2 sun.misc.URLClassPath$JarLoader.getResource(Ljava/lang/String;Z)Lsun/misc/Resource; (91 bytes) @ 0x00007f83d4f2aaa8 [0x00007f83d4f2aa20+0x88]
+J 1343 C2 java.net.URLClassLoader$1.run()Ljava/lang/Object; (5 bytes) @ 0x00007f83d4d46490 [0x00007f83d4d46280+0x210]
+v  ~StubRoutines::call_stub
+J 1341  java.security.AccessController.doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object; (0 bytes) @ 0x00007f83d4f7a503 [0x00007f83d4f7a4a0+0x63]
+j  java.net.URLClassLoader.findClass(Ljava/lang/String;)Ljava/lang/Class;+13
+J 1508 C2 java.lang.ClassLoader.loadClass(Ljava/lang/String;Z)Ljava/lang/Class; (122 bytes) @ 0x00007f83d50cc038 [0x00007f83d50cbdc0+0x278]
+j  sun.misc.Launcher$AppClassLoader.loadClass(Ljava/lang/String;Z)Ljava/lang/Class;+36
+j  java.lang.ClassLoader.loadClass(Ljava/lang/String;)Ljava/lang/Class;+3
+v  ~StubRoutines::call_stub
+j  org.ofbiz.base.start.Start$AdminPortThread.processClientRequest(Ljava/net/Socket;)V+112
+j  org.ofbiz.base.start.Start$AdminPortThread.run()V+108
+v  ~StubRoutines::call_stub
+
+# ##################### 所有线程信息
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+# ...
+  0x00007f83d865c800 JavaThread "AsyncAppender-async" daemon [_thread_blocked, id=8968, stack(0x00007f83b4bd8000,0x00007f83b4cd9000)]
+=>0x00007f83d8245800 JavaThread "OFBiz-AdminPortThread" [_thread_in_native, id=8964, stack(0x00007f83b5371000,0x00007f83b5472000)]
+  0x00007f83d81ef000 JavaThread "Service Thread" daemon [_thread_blocked, id=8962, stack(0x00007f83b5c1e000,0x00007f83b5d1f000)]
+  0x00007f83d81ec800 JavaThread "C2 CompilerThread1" daemon [_thread_blocked, id=8961, stack(0x00007f83b5d1f000,0x00007f83b5e20000)]
+  0x00007f83d81e9800 JavaThread "C2 CompilerThread0" daemon [_thread_blocked, id=8960, stack(0x00007f83b5e20000,0x00007f83b5f21000)]
+  0x00007f83d81e7000 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=8959, stack(0x00007f83b5f21000,0x00007f83b6022000)]
+  0x00007f83d81bf000 JavaThread "Finalizer" daemon [_thread_blocked, id=8958, stack(0x00007f83b6022000,0x00007f83b6123000)]
+  0x00007f83d81bd000 JavaThread "Reference Handler" daemon [_thread_blocked, id=8957, stack(0x00007f83b6123000,0x00007f83b6224000)]
+
+Other Threads:
+  0x00007f83d81b8800 VMThread [stack: 0x00007f83b6224000,0x00007f83b6325000] [id=8956]
+  0x00007f83d81f9800 WatcherThread [stack: 0x00007f83b5b1d000,0x00007f83b5c1e000] [id=8963]
+
+# ##################### 安全点和锁信息
+# ### 虚拟机状态
+    # not at safepoint：表示正常运行 
+    # at safepoint：所有线程都因为虚拟机等待状态而阻塞，等待一个虚拟机操作完成； 
+    # synchronizing：一个特殊的虚拟机操作，要求虚拟机内的其它线程保持等待状态。
+VM state:not at safepoint (normal execution)
+
+# ### 虚拟机的 Mutex 和 Monitor目前没有被线程持有。Mutex 是虚拟机内部的锁，而 Monitor 则关联到了 Java 对象
+VM Mutex/Monitor currently owned by a thread: None
+
+# ##################### 堆信息
+# ### 新生代、老年代、元空间
+Heap
+ PSYoungGen      total 1037824K, used 49661K [0x00000007c0000000, 0x0000000800000000, 0x0000000800000000)
+  eden space 1026560K, 4% used [0x00000007c0000000,0x00000007c307f5d8,0x00000007fea80000)
+  from space 11264K, 0% used [0x00000007ff500000,0x00000007ff500000,0x0000000800000000)
+  to   space 10752K, 0% used [0x00000007fea80000,0x00000007fea80000,0x00000007ff500000)
+ ParOldGen       total 2097152K, used 85879K [0x0000000740000000, 0x00000007c0000000, 0x00000007c0000000)
+  object space 2097152K, 4% used [0x0000000740000000,0x00000007453dde60,0x00000007c0000000)
+ PSPermGen       total 57856K, used 57438K [0x0000000720000000, 0x0000000723880000, 0x0000000740000000)
+  object space 57856K, 99% used [0x0000000720000000,0x0000000723817828,0x0000000723880000)
+
+# ### Card table表示一种卡表，是 jvm 维护的一种数据结构，用于记录更改对象时的引用，以便 gc 时遍历更少的 table 和 root
+Card table byte_map: [0x00007f83d44d1000,0x00007f83d4bd2000] byte_map_base: 0x00007f83d0bd1000
+
+Polling page: 0x00007f83de560000
+
+# ##################### 本地代码缓存
+Code Cache  [0x00007f83d4bd2000, 0x00007f83d5b92000, 0x00007f83d7bd2000)
+ total_blobs=4442 nmethods=3636 adapters=757 free_code_cache=33218Kb largest_free_block=33837056
+
+# ##################### 编译事件(记录10次编译事件)
+Compilation events (10 events):
+Event: 524935.243 Thread 0x00007f83d81e9800 4136   !         unilog.yard.base.maintain.MaintainService::getPersonCardMap (141 bytes)
+Event: 524935.281 Thread 0x00007f83d81e9800 nmethod 4136 0x00007f83d5b5fe10 code [0x00007f83d5b60160, 0x00007f83d5b61aa0]
+Event: 524975.808 Thread 0x00007f83d81ec800 4137             com.sun.crypto.provider.CipherCore::doFinal (609 bytes)
+# ...
+
+# ##################### GC日志(记录10次)
+GC Heap History (10 events):
+Event: 586892.067 GC heap before
+{Heap before GC invocations=358 (full 164):
+ PSYoungGen      total 1037312K, used 6382K [0x00000007c0000000, 0x0000000800000000, 0x0000000800000000)
+  eden space 1025536K, 0% used [0x00000007c0000000,0x00000007c0000000,0x00000007fe980000)
+  from space 11776K, 54% used [0x00000007ff480000,0x00000007ffabbb10,0x0000000800000000)
+  to   space 11264K, 0% used [0x00000007fe980000,0x00000007fe980000,0x00000007ff480000)
+ ParOldGen       total 2097152K, used 85865K [0x0000000740000000, 0x00000007c0000000, 0x00000007c0000000)
+  object space 2097152K, 4% used [0x0000000740000000,0x00000007453da4c0,0x00000007c0000000)
+ PSPermGen       total 57856K, used 57462K [0x0000000720000000, 0x0000000723880000, 0x0000000740000000)
+  object space 57856K, 99% used [0x0000000720000000,0x000000072381dba8,0x0000000723880000)
+Event: 586892.180 GC heap after
+Heap after GC invocations=358 (full 164):
+ PSYoungGen      total 1037312K, used 0K [0x00000007c0000000, 0x0000000800000000, 0x0000000800000000)
+  eden space 1025536K, 0% used [0x00000007c0000000,0x00000007c0000000,0x00000007fe980000)
+  from space 11776K, 0% used [0x00000007ff480000,0x00000007ff480000,0x0000000800000000)
+  to   space 11264K, 0% used [0x00000007fe980000,0x00000007fe980000,0x00000007ff480000)
+ ParOldGen       total 2097152K, used 85875K [0x0000000740000000, 0x00000007c0000000, 0x00000007c0000000)
+  object space 2097152K, 4% used [0x0000000740000000,0x00000007453dcfe8,0x00000007c0000000)
+ PSPermGen       total 57856K, used 57398K [0x0000000720000000, 0x0000000723880000, 0x0000000740000000)
+  object space 57856K, 99% used [0x0000000720000000,0x000000072380da38,0x0000000723880000)
+}
+# ...
+
+Deoptimization events (10 events):
+Event: 362767.698 Thread 0x00007f82f8015000 Uncommon trap: reason=array_check action=maybe_recompile pc=0x00007f83d5a23df4 method=java.util.ComparableTimSort.mergeHi(IIII)V @ 91
+Event: 373412.087 Thread 0x00007f82f800b800 Uncommon trap: reason=class_check action=maybe_recompile pc=0x00007f83d564745c method=java.util.regex.Pattern$BnM.match(Ljava/util/regex/Matcher;ILjava/lang/CharSequence;)Z @ 111
+# ...
+
+Internal exceptions (10 events):
+Event: 589300.208 Thread 0x00007f832800b000 Threw 0x00000007ca5f9668 at /HUDSON/workspace/7u-2-build-linux-amd64/jdk7u79/2331/hotspot/src/share/vm/prims/jvm.cpp:1304
+Event: 590774.327 Thread 0x00007f830c009000 Threw 0x00000007c0646ca8 at /HUDSON/workspace/7u-2-build-linux-amd64/jdk7u79/2331/hotspot/src/share/vm/prims/jni.cpp:1632
+# ...
+
+Events (10 events):
+Event: 595874.342 Thread 0x00007f8320009800 Thread added: 0x00007f8320009800
+Event: 595874.342 Executing VM operation: RevokeBias
+# ...
+
+# ##################### jvm 内存映射
+# 这些信息是虚拟机崩溃时的虚拟内存列表区域。它可以告诉你崩溃原因时哪些类库正在被使用，位置在哪里，还有堆栈和守护页信息。
+    # 00400000-00401000：内存区域
+    # r-xp：权限，r/w/x/p/s分别表示读/写/执行/私有/共享
+    # 00000000：文件内的偏移量
+    # fd:01：文件位置的majorID和minorID
+    # 133127：索引节点号
+    # /root/jdk1.7.0_79/bin/java：文件位置
+Dynamic libraries:
+00400000-00401000 r-xp 00000000 fd:01 133127                             /root/jdk1.7.0_79/bin/java
+00600000-00601000 rw-p 00000000 fd:01 133127                             /root/jdk1.7.0_79/bin/java
+00efb000-00f81000 rw-p 00000000 00:00 0                                  [heap]
+720000000-723880000 rw-p 00000000 00:00 0 
+# ...
+7f83de55c000-7f83de55e000 r--s 00005000 fd:10 4984387                    /home/test/jvminspect.jar
+7f83de55e000-7f83de55f000 r--s 00015000 fd:10 4984388                    /home/test/ofbiz.jar
+# ...
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+
+# ##################### jvm 启动参数
+VM Arguments:
+jvm_args: -Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/ -Dyard.profiles=prod 
+java_command: ofbiz.jar
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+JAVA_HOME=/root/jdk1.7.0_79
+CLASSPATH=.:/root/jdk1.7.0_79/lib:/root/jdk1.7.0_79/jre/lib
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/jdk1.7.0_79/bin:/root/jdk1.7.0_79/jre/bin:/root/bin
+SHELL=/bin/bash
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0x9a3bf0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGBUS: [libjvm.so+0x9a3bf0], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+# ...
+
+# ##################### 系统信息
+---------------  S Y S T E M  ---------------
+
+OS:CentOS Linux release 7.2.1511 (Core) 
+
+uname:Linux 3.10.0-327.36.3.el7.x86_64 #1 SMP Mon Oct 24 16:09:20 UTC 2016 x86_64
+libc:glibc 2.17 NPTL 2.17 
+rlimit: STACK 8192k, CORE 0k, NPROC 63475, NOFILE 100002, AS infinity
+load average:0.16 0.09 0.08
+
+/proc/meminfo:
+MemTotal:       16267884 kB
+MemFree:          977764 kB
+# ...
+
+CPU:total 8 (6 cores per cpu, 1 threads per core) family 6 model 63 stepping 2, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, aes, tsc
+
+/proc/cpuinfo:
+processor	: 0
+vendor_id	: GenuineIntel
+# ...
+
+
+Memory: 4k page, physical 16267884k(977764k free), swap 0k(0k free)
+
+vm_info: Java HotSpot(TM) 64-Bit Server VM (24.79-b02) for linux-amd64 JRE (1.7.0_79-b15), built on Apr 10 2015 11:34:48 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)
+
+time: Thu Sep  5 12:53:10 2019
+elapsed time: 596066 seconds
 ```
 
 
@@ -291,3 +588,4 @@ order by time desc;
 [^2]: http://www.blogjava.net/hankchen/archive/2012/05/09/377736.html (线上应用故障排查之二：高内存占用)
 [^3]: https://www.jianshu.com/p/3667157d63bb (记一次线上Java程序导致服务器CPU占用率过高的问题排除过程)
 [^4]: https://blog.csdn.net/xuexiaodong009/article/details/74451412 (oracle数据库CPU特别高的解决方法)
+[^5]: https://blog.csdn.net/chenssy/article/details/78271744

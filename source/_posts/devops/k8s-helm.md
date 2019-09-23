@@ -60,7 +60,7 @@ create      # 创建一个新的charts
 delete      # 删除指定版本的release
     # helm delete --purge my-dev # **删除 release，也会删除相应k8s资源**
 dependency  # 管理charts的依赖
-fetch       # 下载charts并解压到本地目录
+fetch       # 下载charts并解压到当前目录
 get         # 下载一个release
 history     # release历史信息
 home        # 显示helm的家目录
@@ -115,7 +115,7 @@ version     # 打印客户端和服务端的版本信息
 
 ### 使用案例
 
-#### cert-manager安装
+#### cert-manager
 
 ```bash
 ## 安装
@@ -191,11 +191,12 @@ spec.acme.config.http01.ingressClass # 使用 HTTP-01 方式校验该域名和�
 spec.acme.config.http01.domains # 指示该证书的可以用于哪些域名
 ```
 
-#### ingress-nginx安装
+#### ingress-nginx
 
 ```bash
+helm repo update
 # https://kubernetes.github.io/ingress-nginx
-helm inspect values stable/nginx-ingress
+helm inspect values stable/nginx-ingress --version 1.15.1
 # (可选，如有单独的机器作为边缘节点) 选择边缘节点，并打上自定义标签(node-role.kubernetes.io/edge='')
 kubectl label node node1 node-role.kubernetes.io/edge=
 # 修改参数启用RBAC. 否则报错：`User "system:serviceaccount:ingress-nginx:default" cannot get resource "services"`
@@ -211,7 +212,7 @@ controller:
   # 取消HSTS配置
   config:
     hsts: "false"
-  # 选择含边缘标签的节点
+  # 选择含边缘标签的节点(上文有边缘节点才需要)
   nodeSelector:
     node-role.kubernetes.io/edge: ''
 defaultBackend:
@@ -226,16 +227,16 @@ rbac:
   create: true
 EOF
 # 安装
-helm install stable/nginx-ingress --version 1.14.0 -n nginx-ingress --namespace ingress-nginx -f ingress-nginx.yaml
+helm install stable/nginx-ingress --version 1.15.1 -n nginx-ingress --namespace ingress-nginx -f ingress-nginx.yaml
 kubectl get pod -n ingress-nginx -o wide
 # 访问 curl https://192.168.6.131/ ，显示 `default backend - 404`/`404 page not found` 则正常
 
 # 更新部署的release
 # 修改配置文件后执行
-helm upgrade nginx-ingress stable/nginx-ingress -f ingress-nginx.yaml
+helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-nginx.yaml
 ```
 
-#### dashboard安装
+#### dashboard
 
 ```bash
 ## 提前创建tls类型的secret，名称为k8s-aezo-cn-tls。否则无法访问，会显示`default backend - 404`。下文 kubernetes-dashboard.yaml 配置中使用 certmanager 自动创建证书
@@ -247,6 +248,7 @@ helm upgrade nginx-ingress stable/nginx-ingress -f ingress-nginx.yaml
 ## 如下文创建配置文件
 vi kubernetes-dashboard.yaml
 ## 安装
+helm repo update
 helm install stable/kubernetes-dashboard --version 1.8.0 -n kubernetes-dashboard --namespace kube-system -f kubernetes-dashboard.yaml
 
 ## 查看状态和登录token
@@ -301,10 +303,11 @@ rbac:
   clusterAdminRole: true
 ```
 
-#### mysql安装
+#### mysql
 
 ```bash
 ## 准备
+helm repo update
 # 查询 mysql 对应 Charts
 helm search mysql
 # 查看charts的详细信息
@@ -358,6 +361,16 @@ spec:
   capacity:
     storage: 8Gi
   persistentVolumeReclaimPolicy: Retain
+```
+
+#### Prometheus
+
+```bash
+helm repo update
+# helm inspect values stable/prometheus --version 9.0.0
+helm fetch stable/prometheus --version 9.0.0
+
+helm install --name prometheus --namespace monitoring stable/prometheus --version 9.0.0
 ```
 
 ## Chart说明 [^1]

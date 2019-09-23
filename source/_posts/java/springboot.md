@@ -709,27 +709,27 @@ filterChain.doFilter(customerHttpServletRequestWrapper, servletResponse);
 - Spring的Bean自动注入
 	- 请求类型 `POST`、`Content-Type: application/x-www-form-urlencoded`
 	- chrome开发模式看到的`FormData`(格式化后的。实际请求是将每一项通过`URL encoded`进行转义之后再已`&`连接组装成url参数，此时POST参数是没有长度限制的)如：
-		
+        - 后端写好对应的Bean，且后端方法如`public Result edit(CustomerInfo customerInfo)`
+            - 后端代码`public Result edit(Map<String, Object> params)`报错
+            - 后端代码`public Result edit(String customerNameCn, List customerLines)`报错
+
 		```js
 		id: 766706
-		customerNameCn: 客户名称
-		updateTm: 2018/08/17 13:02:36
+        customerNameCn: 客户名称
+        // CustomerInfo中的updateTm属性可以是Date(会自动转换)
+        updateTm: 2018/08/17 13:02:36
+        // CustomerInfo中的属性customerLines(属性名/setter方法必须和前端参数名保持一致)可以是List<String>或者String[]
 		customerLines[0]: AustraliaLine
 		customerLines[1]: MediterraneanLine
-		customerLines[2]: SoutheastAsianLine
+        customerLines[2]: SoutheastAsianLine
+        // CustomerInfo中包含CustomerRisk和List<CustomerContacts>
 		customerRisk.id: 9906
 		customerRisk.customerId: 766706
 		customerRisk.note: 客户风险备注
 		customerContacts[0].id: 767001
 		customerContacts[0].customerId: 766706
 		customerContacts[0].lastName: 客户联系人1
-		customerContacts[0].customerId: 766706
-		customerContacts[0].lastName: 客户联系人2
 		```
-	- 后端写好对应的Bean(CustomerInfo)
-		- CustomerInfo中的属性customerLines可以是List<String>或者String[]
-		- CustomerInfo中的updateTm属性可以是Date(会自动转换)
-		- CustomerInfo中包含CustomerRisk和List<CustomerContacts>
 
 ### 响应
 
@@ -880,11 +880,15 @@ public MultipartConfigElement multipartConfigElement() {
 	private JdbcTemplate jdbcTemplate; // 单数据源时，springboot默认会注入JdbcTemplate的Bean
 
 	// 1.查询一行数据并返回int型结果
-	jdbcTemplate.queryForInt("select count(*) from test");  
+	jdbcTemplate.queryForInt("select count(*) from test");
 	// 2.查询一行数据并将该行数据转换为Map返回。**如果不存在会返回null**
 	jdbcTemplate.queryForMap("select * from test where id=1");
 	// 3.查询一行任何类型的数据，最后一个参数指定返回结果类型
-	jdbcTemplate.queryForObject("select count(*) from test", Integer.class); 
+    try {
+	    jdbcTemplate.queryForObject("select valid_status from test where id = 1", Integer.class); 
+    } catch(EmptyResultDataAccessException e) {
+        // 为空会报错
+    }
 	try {
 		String username = jdbcTemplate.queryForObject("select t.username from t_test t where t.id=?", String.class, 10000L);
 	} catch (DataAccessException e) {
@@ -917,6 +921,10 @@ public MultipartConfigElement multipartConfigElement() {
 			return stu;
 		}
 	});
+
+    // 9.插入/更新
+    int count = jdbcTemplate.update("insert into t_user(username, password) values('smalle', '123456')");  
+    int count = jdbcTemplate.update("update t_user set username = 'smalle' where username = 'hello'");  
 	```
 
 - jdbc批量执行sql语句

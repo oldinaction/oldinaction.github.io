@@ -3,7 +3,7 @@ layout: "post"
 title: "ftp"
 date: "2019-03-19 10:40"
 categories: devops
-tags: [ftp, server]
+tags: [server]
 ---
 
 ## FTP简介

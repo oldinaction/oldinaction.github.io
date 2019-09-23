@@ -86,20 +86,21 @@ server {
         rewrite / http://$server_name/hello break;
     }
 
+    ## root 和 alias 区别
     # 用于暴露静态文件，访问http://www.aezo.cn/static/img/logo.png，且无法访问http://www.aezo.cn/static/img
-    # - 文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
+    # - 基于路径。文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
     location ^~ /static/img/ {
         # root是基于此目录(加不加/都一样) + location路径
         root /home/aezocn/www;
         access_log off; # 关闭访问日志
     }
-    # - 文件实际路径为/home/aezocn/www/logo.png
+    # - 基于路径。文件实际路径为/home/aezocn/www/logo.png
     location ^~ /static/img2/ {
         # alias会把location后面配置的路径丢弃掉，把当前匹配到的目录指向到指定的目录。alias只能位于location块中，而root的权限不限于location
         # 由于是location是 ^~，所以下面无法使用正则。加www后面加/是表示目录，否则指文件
-        alias /home/aezocn/www/;
+        alias /home/aezocn/www/; # 不能使用\(windows上root可以使用)
     }
-    # - 基于正则
+    # - 基于正则。如访问 http://www.aezo.cn/static/xxx_upload/xxx/xxx 可访问到 /home/aezocn/www/static/xxx_upload/xxx/xxx
     location ~ ^/static/(.+?)_upload/(.+\..*)$ {
         # 由于是location是 ~，因此可以使用正则。且location和alias路径必须从头到尾都包含，此时$2指正则中的第二个括号，及文件名
         alias /home/aezocn/www/static/$1_upload/$2;
@@ -129,28 +130,25 @@ server {
         }
     }
 
-    # proxy_pass详解，访问 http://192.168.1.1/proxy/test.html 不同的配置代理结果不一致. （多站点配置参考下文）
-    ## 如果访问 http://192.168.1.1/proxy 则无法进入到下面代理，必须访问http://192.168.1.1/proxy/。 location /proxy/ 不能写成 location /proxy(则 http://192.168.1.1/proxy/xxx 无法代理)
-    ## 第一种代理到URL：http://127.0.0.1/test.html
+    ## proxy_pass详解
+        # 访问 http://192.168.1.1/proxy/test.html 以下不同的配置代理结果不一致. （多站点配置参考下文）
+        # 如果访问 http://192.168.1.1/proxy 则无法进入到下面代理，必须访问 http://192.168.1.1/proxy/
+        # location /proxy/ 不能写成 location /proxy (此时 http://192.168.1.1/proxy/xxx 无法代理)
+    # 第一种代理到URL：http://127.0.0.1/test.html
     location /proxy/ {
         proxy_pass http://127.0.0.1/;
     }
-    ## 第二种代理到URL：http://127.0.0.1/proxy/test.html
+    # 第二种代理到URL：http://127.0.0.1/proxy/test.html
     location /proxy/ {
         proxy_pass http://127.0.0.1;
     }
-    ## 第三种代理到URL：http://127.0.0.1/pre/test.html
+    # 第三种代理到URL：http://127.0.0.1/pre/test.html
     location /proxy/ {
         proxy_pass http://127.0.0.1/pre/;
     }
-    ## 第四种代理到URL：http://127.0.0.1/pretest.html
+    # 第四种代理到URL：http://127.0.0.1/pretest.html
     location /proxy/ {
         proxy_pass http://127.0.0.1/pre;
-    }
-
-    # nginx 配置，让index.html不缓存
-    location = /index.html {
-        add_header Cache-Control "no-cache, no-store";
     }
 }
 ```
@@ -859,7 +857,7 @@ fi
 
 - 方法一 [^3]
     - nginx安装一般会自动注册到服务中取，有些手动安装可能需要自己注册，以nginx手动注册成服务为例
-    - 方法：在**`/usr/lib/systemd/system`**路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
+    - 方法：在 **`/usr/lib/systemd/system`** 路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
 
         ```bash
         # 服务的说明

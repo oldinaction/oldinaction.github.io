@@ -173,6 +173,38 @@ for i in range(10): # range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)�
 - python支持多继承
     - 经典类采用深度优先搜索属性/方法
     - 新式类采用广度优先搜索属性/方法
+- 类定义
+
+```py
+class Employee:
+    '所有员工的基类'
+    empCount = 0  # 是一个类变量，它的值将在这个类的所有实例之间共享。可以在内部类或外部类使用 Employee.empCount 访问
+
+    # __init__()方法是一种特殊的方法，为类的构造函数，当创建了这个类的实例时就会调用该方法
+    def __init__(self, name):
+        self.name = name
+        Employee.empCount += 1
+
+    # self 代表类的实例，self 在定义类的方法时是必须的(且是第一个参数)，调用时可不必传入此参数
+    def displayCount(self):
+        print "Total Employee %d" % Employee.empCount
+
+    def displayEmployee(self):
+        print "Name : ", self.name
+    
+    def prt(self):
+        print(self)
+        print(self.__class__)
+
+if __name__ == "__main__":
+    e = Employee("smalle")  # 实例化对象
+    '''打印结果
+    <__main__.Employee instance at 0x10d066878>
+    __main__.Employee
+    '''
+    t.prt()  # 调用对象方法
+```
+
 
 ### 其他
 
@@ -320,7 +352,7 @@ process.close(force=True)
 
 - PyCharm创建django项目
     - File - New Project - Django - D:\gitwork\smpython\A02_DjangoTest(项目名需为字母数字下划线) 
-    - Project Interpreter - New environment - Location可以选择(如django项目共用一个虚拟环境) - Inherit global不勾选(表示不包含全局包，否则`pip freeze`会多出很多全局包)
+    - Project Interpreter - **New environment** - Location可以选择(如django项目共用一个虚拟环境) - **Inherit global不勾选**(表示不包含全局包，否则`pip freeze`会多出很多全局包)
     - More Setting - Application Name - smtest(不要取test，会和Django自带名称冲突)
 - 创建后默认包含`(虚拟环境名，如venv)`虚拟环境(与系统环境隔离，但是默认会使用系统的Python官方库)。再PyCharm中创建一个Terminal创建创建也会有`venv`标识(默认打开的Terminal窗口没有)
 - 在有`venv`的Terminal创建安装类库则不会对系统产生干扰
@@ -328,7 +360,7 @@ process.close(force=True)
 
 ### 发布
 
-- 记录客户端依赖：`pip freeze > requirements.txt` venv环境运行后会生成一个此项目依赖的类库列表文件(安装上述方法创建项目默认不包含Python官方库)
+- **记录客户端依赖(基于venv环境)**：`pip freeze > requirements.txt` venv环境运行后会生成一个此项目依赖的类库列表文件(安装上述方法创建项目默认不包含Python官方库)
 - 服务器
 
 ```bash

@@ -13,6 +13,7 @@ tags: [docker, arch]
 - Docker镜像存在版本和仓库的概念，类似Git。docker官方仓库为[Docker Hub](https://hub.docker.com/)
 - [官方文档](https://docs.docker.com)
 - [在线docker测试地址](https://labs.play-with-docker.com/)
+- docker基础镜像包含alpine(apk)、centos(yum)、ubuntu(apt-get)三种
 - 本文基于docker版本`Server Version: 18.05.0-ce`
 
 ## 安装
@@ -92,6 +93,7 @@ Commands:
     exec      Run a command in an existing container        # 在已存在的容器上运行命令
     export    Stream the contents of a container as a tar archive    # 导出容器的内容流作为一个 tar 归档文件[对应 import ]
     history   Show the history of an image                  # 展示一个镜像形成历史
+        # docker history 5bb181d76b0d --no-trunc # 查看镜像构建历史，相当于Dockerfile步骤
     images    List images                                   # 列出系统当前镜像
     import    Create a new filesystem image from the contents of a tarball   # 从tar包中的内容创建一个新的文件系统映像[对应 export]
     info      Display system-wide information               # 显示系统相关信息
@@ -362,6 +364,11 @@ consul members
     ADD nginx-1.8.0.tar.gz /usr/local/
     ADD epel-release-latest-7.noarch.rpm /usr/local/
 
+    # 指定运行容器时的用户名或 UID，后续的 RUN 也会使用指定用户。可在不同位置进行切换
+    USER root
+    # USER user:group
+    # USER uid:gid
+
     # RUN 构建镜像时执行的命令。每运行一条RUN，容器会添加一层，并提交
     RUN rpm -ivh /usr/local/epel-release-latest-7.noarch.rpm
     RUN yum install -y wget lftp gcc gcc-c++ make openssl-devel pcre-devel pcre && yum clean all
@@ -371,7 +378,6 @@ consul members
     WORKDIR /usr/local/nginx-1.8.0 
 
     RUN ./configure --prefix=/usr/local/nginx --user=www --group=www --with-http_ssl_module --with-pcre && make && make install
-
     RUN echo "daemon off;" >> /etc/nginx.conf
 
     # EXPOSE 映射端口
@@ -490,8 +496,11 @@ services:
       - 1443:443
     volumes: # 数据卷映射(本地路径:容器路径。windows的本地路径为运行docker的虚拟机路径。不要把 docker 当做数据容器来使用，数据一定要用 volumes 放在容器外面。如日志文件需要进行映射)
       - /home/smalle/data/nginx/:/bitnami/nginx/
+      # 共享主机时区和时间
+      - /etc/timezone:/etc/timezone:ro # echo 'Asia/Shanghai' > /etc/timezone
+      - /etc/localtime:/etc/localtime:ro
 	environment:
-	  TZ: Asia/Shanghai # 设置容器时区
+	  TZ: Asia/Shanghai # 设置容器时区。参考：https://www.jianshu.com/p/004ddf941aac
     restart: always # 启动模式，always表示失败永远重启（包括宿主主机开机后自启动）
   sq-mysql:
     container_name: sq-mysql
@@ -501,8 +510,8 @@ services:
     volumes:
       # 用于保存数据文件。虚拟机中无此/home/smalle/data/test目录时，会自动创建
 	    - /home/smalle/data/test:/var/lib/mysql
-    # entrypoint会覆盖Dockerfile中的ENTRYPOINT，command会覆盖CMD。参考Dockerfile中的ENTRYPOINT和CMD比较。docker-compose restart也会执行此命令
-    # entrypoint:
+    # entrypoint会覆盖Dockerfile中的ENTRYPOINT(可为字符串或数组)，command会覆盖CMD(可为字符串或数组)。参考Dockerfile中的ENTRYPOINT和CMD比较。docker-compose restart也会执行此命令
+    # entrypoint: ["/my-script.sh","/entrypoint.sh"] # 如果想在容器启动前执行命令，可覆盖此参数
 	command: 
 	  --character-set-server=utf8mb4            # 设置数据库表的数据集
 	  --collation-server=utf8mb4_unicode_ci     # 设置数据库表的数据集
@@ -540,7 +549,7 @@ services:
       - /home/smalle/data/apache:/bitnami/apache
 	  - /home/smalle/data/php:/bitnami/php
   my_app:
-    # 基于Dockerfile文件构建镜像时使用的属性
+    # 基于Dockerfile文件构建镜像时使用的属性。可以基于某镜像进行扩展，如ENV,CMD,ENTRYPOINT都可以进行覆盖，不定义则使用FROM基础镜像
     build:
       # Dockerfile文件目录，此时为当前目录，也可以指定绝对路径[/path/test/Dockerfile]或相对路径[../test/Dockerfile]
       context: .
@@ -1136,6 +1145,7 @@ services:
 ```
 - 启动：在`docker-compose.yml`目录下执行`docker-compose up -d`
 - 访问：http://docker-host:9800
+
 
 
 

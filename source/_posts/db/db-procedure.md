@@ -200,7 +200,7 @@ end;
 
 ## Mysql存储过程示例
 
-- 示例1
+- 示例1(简单)
 
 ```sql
 /*delimiter指分割符，Mysql默认的分割符是分号';'，如果没有声明分割符，那么编译器会把存储过程当成SQL语句来处理，容易报错，声明之后则把';'当成过程中的代码*/
@@ -215,7 +215,7 @@ begin/*存储过程的过程体以begin开头，end结果*/
 		set v_ret = v_b;
 	end if;
 	set v_temp = v_temp + 1;
-end //
+end; //
 delimiter ;/*还原Mysql默认的分割符*/
 
 /*调用存储过程*/
@@ -234,11 +234,14 @@ select @v_c, @v_temp;
 +------+---------+
 ```
 
-- 示例2
+- 示例2(高级)
 
 ```sql
 -- 从用户表中提取某省份的区县字典表（已存在省份城市表）
-create definer = 'root'@'localhost'
+drop procedure if exists test_county;
+delimiter //
+create 
+definer = 'root'@'localhost' -- 省略此句则默认当前登录用户配置
 procedure test_county(in `in_provid_id` int, in `in_inputer` varchar(100))
 begin
 	declare v_sql varchar(1000);
@@ -247,6 +250,7 @@ begin
 	declare v_county_name varchar(20);
 	declare v_city_id2 integer;
 	declare v_star_provid integer;
+    declare v_err_msg varchar(255);
 
 	-- 是否未找到数据标记(要在游标之前定义)
 	declare done int default false;
@@ -259,12 +263,35 @@ begin
 	declare cur2 cursor for
 		select city_id, city_name from temp_county;
 
+    -- 错误处理。语法：DECLARE action {CONTINUE|EXIT} HANDLER FOR condition_value statement;
+        -- 如果一个错误条件的值符合 condition_value，MySQL 就会执行对应的 statement，并根据 action 指定关键字确定是 `继续` 还是 `退出` 当前的代码块（当前代码块就是包含此错误处理器的最近的那对 BEGIN 和 END围出来的代码段。当有多层begin end的时候，每层都应该有自己的异常处理）
+        -- action取值
+            -- CONTINUE: 当前代码段会从出错的地方继续执行
+            -- EXIT: 当前代码段从出错的地方终止执行
+        -- condition_value 指定了会激活错误处理器的一个特定的条件或者一类错误条件。可以是
+            -- 一个 MySQL 错误码
+            -- 一个标准的 SQLSTATE 值，或SQLWARNING、SQLEXCEPTION（为 SQLSTATE 中类型相近的值，一个 SQLSTATE 可以对应到多个 MySQL 错误码）
+            -- 一个与特定 MySQL 错误代码或者 SQLSTATE 值关联的命名错误条件
+        -- statement 则可以是个简单的语句或者被 BEGIN 和 END 围起来的多条语句
+        -- 错误处理优先级：Mysql错误码 > SQLSTATE 值
+        -- 使用命名错误条件，语法：DECLARE condition_name CONDITION FOR condition_value;
+            -- condition_value 可以是一个 MySQL 错误码，或者一个 SQLSTATE 值，然后 condition_name 就可以代表 condition_value 来使用了
+        -- 存储过程中的错误被错误处理器捕获了之后，如果还想用类似 mysql 命令行那样的格式返回对应的错误，可以声明一个辅助函数，具体见下文
+    
 	-- 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)
 	declare continue handler for not found set done = true;
 	-- 错误处理：发生对应错误时返回select结果。参考：https://segmentfault.com/a/1190000006834132
-	declare exit handler for 1062 select 'duplicate keys error encountered';
-    declare exit handler for sqlexception select 'sqlexception encountered';
+	declare exit handler for 1062 select 'duplicate keys error encountered'; -- 发生了主键重复的错误(MySQL的错误码为1062)
+    declare exit handler for sqlexception show errors; -- 或者 `show warnings` 显示错误信息(Level、Code、Message)
     declare exit handler for sqlstate '23000' select 'sqlstate 23000';
+    -- 自定义命名错误条件，出错后退出，并执行begin...end中语句
+    declare table_not_found condition for 1051;
+    declare exit handler for table_not_found begin
+        rollback;
+        -- 使用下文自定义辅助函数
+        set v_err_msg = fn_get_error();
+        select 'an error has occurred, operation rollbacked and the stored procedure was terminated';
+    end;
 
 	-- 创建临时表
 	drop table if exists temp_county;
@@ -298,7 +325,9 @@ begin
 			if v_star_provid is null then
 				-- 类似于continue
 				iterate flag_loop;
-			end;
+            else
+                -- ...
+			end if;
 		end;
 
 		-- 字符串截取，从第一位开始，截取2位
@@ -339,11 +368,41 @@ begin
 
 	-- 删除临时表
 	drop temporary table temp_county;
-end;
+end; //
+delimiter ;
 
 --调用存储过程
 call test_county(1, 1);
 ```
+
+### 自定义函数
+
+- handler错误处理时的辅助函数
+
+```sql
+-- 如果开启了bin-log，则需要设置 `set global log_bin_trust_function_creators=TRUE;`，或者my.cnf配置文件中添加 `log_bin_trust_function_creators=1`
+drop function if exists fn_get_error; -- 没有这一行，直接第一行为`delimiter $$`会报错
+delimiter $$
+create function fn_get_error()
+returns varchar(255)
+begin
+    declare code char(5) default '00000';
+    declare msg text;
+    declare errno int;
+    
+    -- `GET DIAGNOSTICS CONDITION 1` 是从mysql错误缓存区读取第一条错误信息
+    GET DIAGNOSTICS CONDITION 1
+        code = RETURNED_SQLSTATE, errno = MYSQL_ERRNO, msg = MESSAGE_TEXT;
+    
+    -- COALESCE(expression_1, expression_2, ...,expression_n)：将控制替换为其他值，依次参考各参数表达式，遇到非null值即停止并返回该值
+    return coalesce(concat("ERROR ", errno, " (", code, "): ", msg), '-NA-');
+end; $$
+delimiter ;
+```
+
+### 存储过程调试
+
+- Mysql存储过程调试工具：`dbForge Studio for MySQL`
 
 ## SQLServer
 
@@ -384,22 +443,22 @@ as
 - 函数和存储过程的区别：函数只能返回一个变量的限制。而存储过程可以返回多个。而函数是可以嵌入在sql中使用的,可以在select中调用，而存储过程不行。执行的本质都一样。 
 - 函数限制比较多，比如不能用临时表，只能用表变量．还有一些函数都不可用等等．而存储过程的限制相对就比较少
 - 变量声明的规则：
-		- 每一行只能声明一个变量
-		- 不要与数据库的表或者列同名
-		- 变量名不能使用保留关键字，如from、select等
-		- 第一个字符必须是字母
-		- 变量名最多包含30个字符
+    - 每一行只能声明一个变量
+    - 不要与数据库的表或者列同名
+    - 变量名不能使用保留关键字，如from、select等
+    - 第一个字符必须是字母
+    - 变量名最多包含30个字符
 - 数据类型
-		- `char`		定长字符串；存取时效率高，空间可能会浪费
-		- `varchar2`	变长字符串,大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
-		- `long`		变长字符串，大小可达到2G
-		- `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
-		- `date`		日期
-		- `binary_integer`	整数，主要用来计数而不是用来表示字段类型
-		- `boolean`		布尔类型，可以取值为true、false和null值。最好给出默认值
+    - `char`		定长字符串；存取时效率高，空间可能会浪费
+    - `varchar2`	变长字符串,大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
+    - `long`		变长字符串，大小可达到2G
+    - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
+    - `date`		日期
+    - `binary_integer`	整数，主要用来计数而不是用来表示字段类型
+    - `boolean`		布尔类型，可以取值为true、false和null值。最好给出默认值
 - 零散语句
-		- `set serveroutput on;` 此时设置了在服务器端输出数据，默认不在服务器端做输出
-		- `show error` 显示详细错误信息。当PL/SQL存在语法错误时，程序只提示有编译错误，如果想了解哪一行出错，需使用语句show error
+    - `set serveroutput on;` 此时设置了在服务器端输出数据，默认不在服务器端做输出
+    - `show error` 显示详细错误信息。当PL/SQL存在语法错误时，程序只提示有编译错误，如果想了解哪一行出错，需使用语句show error
 - 示例
 
 ```sql

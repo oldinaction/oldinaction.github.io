@@ -108,7 +108,7 @@ select user, host from user; -- 查询用户可登录host
 		- `-mtime +7` 按照文件的更改时间来查找文件，+7表示文件更改时间距现在7天以前;如果是-mmin +7表示文件更改时间距现在7分钟以前
 		- `-exec rm {} ;` 表示执行一段shell命令，exec选项后面跟随着所要执行的命令或脚本，然后是一对{ }，一个空格和一个\，最后是一个分号;
 - 将上述脚本加入到`crond`定时任务中
-	- `crontab -e` 编辑定时任务，加入`00 02 * * * /home/smalle/script/backup_mysql.sh`
+	- `sudo crontab -e` 编辑定时任务，加入`00 02 * * * /home/smalle/script/backup_mysql.sh`
 	- `systemctl restart crond` 重启crond服务
 
 ### 主从同步
@@ -116,6 +116,7 @@ select user, host from user; -- 查询用户可登录host
 - 从库
 
 change master to master_host='127.0.0.1', master_port=3306, master_user='rep', master_password='Hello1234!', master_log_file='shipbill-log-bin.000001', master_log_pos=154;
+
 show slave status \G;
 stop slave;
 start slave;
@@ -193,34 +194,7 @@ start slave;
 
 ### 数据库CPU飙高问题
 
-- `show full processlist;` 查看进程(**Time的单位是秒**)
-	- `show processlist;` 查看进程快照
-	- 查看进程详细
-
-		```sql
-		-- Command: 显示当前连接的执行的命令，一般就是休眠或空闲（sleep），查询（query），连接（connect）
-		-- Time：线程处在当前状态的时间，单位是秒
-		-- State：显示使用当前连接的sql语句的状态，很重要的列。state只是语句执行中的某一个状态，一个 sql语句，以查询为例，可能需要经过copying to tmp table，Sorting result，Sending data等状态才可以完成
-		-- 查询正在执行，且基于耗时时间降序
-		select id, user, host, db, command, time, state, info
-		from information_schema.processlist
-		where command != 'Sleep'
-		order by time desc;
-		```
-	- 查询执行时间超过2分钟的线程，然后拼接成 kill 语句。复制出来手动运行
-
-		```sql
-		select concat('kill ', id, ';')
-		from information_schema.processlist
-		where command != 'Sleep' and info like 'SELECT%'
-		and time > 2*60
-		order by time desc;
-		```
-- MySQL出现`Waiting for table metadata lock`的原因以及解决方法。**常出现在执行alter table的语句，如修改表结构的过程中(线上风险较高)** [^1]
-	- `show processlist;` 长事物运行，阻塞DDL，继而阻塞所有同表的后续操作。(`kill #id`)
-	- `select * from information_schema.innodb_trx;` 未提交事物，阻塞DDL (`kill #trx_mysql_thread_id`)
-	- 查询到上述情况线程ID进行查杀
-- `show open tables where in_use > 0;` 查看正在使用的表(锁表)
+参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/java/Java应用CPU和内存异常分析.md#Mysql)
 
 ## 测试
 

@@ -30,7 +30,7 @@ tags: [linux, shell]
 - `cat /proc/cpuinfo` 查看CPU使用情况
 - 磁盘使用查看
     - `df -h` 查看磁盘使用情况和挂载点信息
-        - `df /root` **查看/root目录所在挂载点**(一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据)
+        - `df /root -h` **查看/root目录所在挂载点**(一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据)
     - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况；二级子目录可改成2；`du -h` 查看当前目录及其子目录大小
 - `hostname` 查看hostname
     - `hostnamectl --static set-hostname aezocn` 修改主机名并重启
@@ -131,8 +131,8 @@ tags: [linux, shell]
     - 显示结果含义如下
         - `rMB/s`、`wMB/s` 磁盘读写速度
         - `avgrq-sz` 提交给驱动层的IO请求大小，一般不小于4K，不大于max(readahead_kb, max_sectors_kb)。可用于判断尤其是磁盘繁忙时，越大代表顺序读，越小代表随机读
-        - `%util` 代表磁盘繁忙程度。100% 表示磁盘繁忙，0%表示磁盘空闲。但是磁盘繁忙不代表磁盘利用率高(重要指标)
-        - `svctm` 一次IO请求的服务时间，对于单块盘，完全随机读时基本在7ms左右，既寻道+旋转延迟时间(重要指标)
+        - **`%util`** 代表磁盘繁忙程度。100% 表示磁盘繁忙，0%表示磁盘空闲。但是磁盘繁忙不代表磁盘利用率高(重要指标)
+        - **`svctm`** 一次IO请求的服务时间，对于单块盘，完全随机读时基本在7ms左右，既寻道+旋转延迟时间(重要指标)
 
 #### 进程级IO监控
 
@@ -291,6 +291,22 @@ lsmod |grep br_netfilter
 
 - `ls --help` 查看ls的命令说明(或`help ls`)
 - `man ls` 查看ls的详细命令说明
+    - 安装中文man手册
+        
+        ```bash
+        wget https://src.fedoraproject.org/repo/pkgs/man-pages-zh-CN/manpages-zh-1.5.2.tar.bz2/cab232c7bb49b214c2f7ee44f7f35900/manpages-zh-1.5.2.tar.bz2
+        
+        yum install bzip2
+        tar jxvf  manpages-zh-1.5.2.tar.bz2
+
+        cd manpages-zh-1.5.2
+        sudo ./configure --disable-zhtw #默认安装 
+        sudo make && sudo make install
+
+        vi ~/.bash_profile
+        alias cman='man -M /usr/local/share/man/zh_CN' # 为了不抵消man，创建cman命令
+        source ~/.bash_profile
+        ```
 - `\` 回车后可将命令分多行运行(后面不能带空格)
 - `clear` 清屏
 - `date` 显示当前时间; `cal` 显示日历
@@ -473,7 +489,7 @@ lsmod |grep br_netfilter
 - `wc <file>` 统计指定文本文件的行数、字数、字节数 
     - `wc -l <file>` 查看行数
 - `ln my.txt my_link` 创建硬链接(在当前目录为my.txt创建一个my_link的文件并将这两个文件关联起来)
-    - `ln -s /home/dir /home/my_link_soft` 对某一目录所有文件创建软链接(相当于快捷方式)，无需提前创建目录`/home/my_link_soft`
+    - `ln -s /home/dir /home/my_link_soft` 对某一目录所有文件创建软链接(相当于快捷方式)，无需提前创建目录`/home/my_link_soft`(如果/home/dir存则则软连接显示绿色，如果不存在，软连接显示红色)
         - `rm -f /home/my_link_soft` **删除软链接**(源目录的文件不会被删除)
         - `rm -f /home/my_link_soft/` **删除软链接下的文件**(源目录的文件全部被删除；软链接仍然存在)
     - 修改原文件，硬链接对应的文件也会改变；删除原文件，硬链接对应的文件不会删除，软连接对应的文件会被删除
@@ -682,7 +698,9 @@ lsmod |grep br_netfilter
 - 批量删除注释：`ctrl+v`进入列编辑模式，横向选中列的个数(如"//"注释符号需要选中两列)，然后按`d`就会删除注释符号
 - **跟shell交互**：`:! COMMAND` 在命令模式下执行外部命令，如mkdir
 
-## linux三剑客grep、sed、awk语法
+## 命令详解
+
+- linux三剑客grep、sed、awk语法
 
 ### grep过滤器
 
@@ -803,6 +821,41 @@ lsmod |grep br_netfilter
         # [end]size is 30038.8 M
         ```
 - 支持if判断、循环等语句
+
+### find
+
+```bash
+## 语法
+# default path is the current directory; default expression is -print
+# expression由options、tests、actions组成
+find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...] [expression]
+
+## expression#options
+-mindepth n # 目录进入最小深度
+    # eg: -mindepth 1 # 意味着处理所有的文件，除了命令行参数指定的目录中的文件
+-maxdepth n # 目录进入最大深度
+    # eg: -maxdepth 0 # 只处理当前目录的文件(.)
+
+## expression#tests
+-name patten # 基本的文件名与shell模式pattern相匹配
+    # eg: -name *.log # `.log`开头的文件
+-type c # 文件类型，c取值
+    f # 普通文件
+    d # 目录
+-mtime n # 对文件数据的最近一次修改是在 n*24 小时之前
+    # eg: -mtime +30 # 30天之前的文件
+
+## expression#actions
+-exec command # 执行命令
+    # 命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\` 来escape 或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
+    # eg: -exec cp {} {}.bak \; # 删除查询到的文件
+
+## 其他示例
+find -type f | xargs # xargs会在一行中打印出所有值
+for item in $(find -type f | xargs) ; do
+    file $item
+done
+```
 
 ## 权限系统
 
@@ -977,37 +1030,37 @@ lsmod |grep br_netfilter
         - `-i` 登录时指定私钥文件。ssh登录服务器默认使用的私有文件为`~/.ssh/id_dsa`、`~/.ssh/id_ecdsa`、`~/.ssh/id_ed25519`、`~/.ssh/id_rsa`，其他则需要使用`-i`指定
     - `cat /var/log/secure`查看登录日志
 
-## 定时任务 [^4]
-
-### corn表达式
+## corn定时任务 [^4]
 
 - `systemctl reload crond` 重新加载配置
-- `systemctl restart crond` 重启crond
-- 如执行"删除30天之前的mysql备份"脚本`find /home/smalle/backup -name test"*.sql.gz" -type f -mtime +30 -exec rm -rf {} \; > /dev/null 2>&1`
+- `systemctl restart crond` 重启crond(**添加配置后需要重启**)
+- 命令式：`crontab [ -u user ] { -e | -l | -r }`
+    - `-u` 指定某用户任务(**默认是当前用户**，最终目标命令会已此用户身份运行)
+        - `sudo crontab -e` 此时未指定`-u`，则相当于`-u root`
+    - `-e` 编辑当前用户的定时任务，默认在`/var/spool/`目录。或者 `sudo vi /etc/crontab`
+    - `–l` 列出目前的时程表
+    - `-r` 删除目前的时程表
+- 配置举例(需要将此配置加入到crontab)
+    - `30 2 1 * * /sbin/reboot` 表示每月第一天的第2个小时的第30分钟，执行命令/sbin/reboot(重启)
+    - `00 02 * * * /home/smalle/script/backup_mysql.sh` 每天执行mysql备份脚本。脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份)
 
-### 配置说明
+- 配置说明如下
 
-- 配置式
-    - 添加定时配置：`sudo vim /etc/crontab`，配置说明如下，如：`30 2 1 * * root /sbin/reboot`表示每月第一天的第2个小时的第30分钟，使用root执行命令/sbin/reboot(重启)
-
-        ```shell
-        # Example of job definition:
-        # .---------------- minute (0 - 59)，如 10 表示没第10分钟运行。每分钟用 * 或者*/1表示，整点分钟数为00或0
-        # |  .------------- hour (0 - 23)
-        # |  |  .---------- day of month (1 - 31)
-        # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
-        # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
-        # |  |  |  |  |
-        # *  *  *  *  * user-name  command to be executed
-        # (1) 其中用户名一般可以省略
-        # (2) 精确到秒解决方案, 以下3行表示每20秒执行一次
-        # * * * * * user-name my-command
-        # * * * * * sleep 20; user-name my-command
-        # * * * * * sleep 40; user-name my-command
-        ```
-- 命令式
-    - `crontab -e` 编辑当前用户的定时任务，默认在`/var/spool/`目录
-    - `crontab –l` 列举当前用户的定时任务
+    ```shell
+    # Example of job definition:
+    # .---------------- minute (0 - 59)，如 10 表示没第10分钟运行。每分钟用 * 或者*/1表示，整点分钟数为00或0
+    # |  .------------- hour (0 - 23)
+    # |  |  .---------- day of month (1 - 31)
+    # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+    # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+    # |  |  |  |  |
+    # *  *  *  *  * my-command
+    # (1) 其中用户名一般可以省略
+    # (2) 精确到秒解决方案, 以下3行表示每20秒执行一次
+    # * * * * * my-command
+    # * * * * * sleep 20; my-command
+    # * * * * * sleep 40; my-command
+    ```
 - 常用符号
     - `*` 表示所有值 
     - `?` 表示未说明的值，即不关心它为何值

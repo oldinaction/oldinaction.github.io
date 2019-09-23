@@ -565,8 +565,9 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
     - `selfLink` 每个资源引用PATH格式：`/apo/GROUP/VERSION/namespaces/NAMESPACE/TYPE/NAME`
 - `spec` 期望状态(disired state)
     - `containers` 描述容器(<[]Object>)
-        - name、image
-        - imagePullPolicy：Always(永远重新拉取镜像，镜像latest默认), Never, IfNotPresent(如果本地有则不拉取镜像，其他默认)。创建Pod后无法修改此字段
+        - `name` 容器名
+        - `image` 容器镜像地址。如：quay.io/coreos/kube-rbac-proxy:v0.4.1、prom/node-exporter(此时省略host，则docker默认host)
+        - `imagePullPolicy` Always(永远重新拉取镜像，镜像latest默认), Never, IfNotPresent(如果本地有则不拉取镜像，其他默认)。创建Pod后无法修改此字段
         - `ports`(<[]Object>)
             - `containerPort` 将此容器中的某个端口暴露到pod中
             - `name` 如：http/https
@@ -607,7 +608,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
     - `hostIPC` pod共享节点的ipc namespace
     - `hostNetwork` pod共享节点的network namespace(此时则无需暴露端口，一般用于DaemonSet中)
     - `hostPID` pod共享节点的pid namespace
-    - `volumes` 存储设置，见下文
+    - `volumes` 存储设置，[见下文](#存储卷)
     - `imagePullSecrets` 拉取镜像使用的Secret资源
     ---
     - `replicas` ReplicaSet 维持pod数量
@@ -632,10 +633,10 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
     - `externalName` 仅用于type=ExternalName，取值应该是一个外部域名，CNAME记录。CNAME -> FQDN
     - `externalIPs` 可配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡，即用来定义VIP(直接填写一个和节点同一个段没使用过的IP即可，无需创建VIP)；可以和任一类型的Service一起使用
     - `sessionAffinity` 是否session感知的：ClientIP(同一个客户永远访问的是同一个pod)、None(默认)
-    - `externalTrafficPolicy` 取值：Cluster(默认。隐藏源IP，可能会导致第二跳，负载较好)、Local(保留客户端源 IP 地址)。如果服务需要将外部流量路由到 本地节点或者集群级别的端点，即service type 为LoadBalancer或NodePort，那么需要指明该参数
+    - `externalTrafficPolicy` 取值：Cluster(默认。隐藏源IP，可能会导致第二跳，负载较好)、Local(保留客户端源 IP 地址)。如果服务需要将外部流量路由到本地节点或者集群级别的端点，即service type 为LoadBalancer或NodePort，那么需要指明该参数
 - `status` 当前状态(current state)。由K8s进行维护，用户无需修改
 
-#### 资源配置文件简单示例
+#### 简单示例
 
 ```yaml
 # sq-pod.yaml
@@ -872,7 +873,9 @@ spec:
     app: sq-ingress
   ports:
   - name: http
+    # 服务端口
     port: 8080
+    # 容器端口
     targetPort: 8080
   - name: ajp
     port: 8009
@@ -970,8 +973,9 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
     - `hostPath` 宿主机目录映射
     - PVC持久化存储
         - 本地存储 `SAN`(`iSCSI`、`FC`)、`NAS`(`nfs`、`cifs`、`http`)
-        - 分布式存储 `glusterfs`、`rbd`、`cephfs`
+        - 分布式存储 `glusterfs`、`rbd`、`ceph`/`rook`
         - 云存储 `EBS`、`Azure Disk`
+    - 存储选型：私有云可考虑使用`Rook`/`Ceph` [^8]
 - `kubectl explain pod.spec.volumes` 查看k8s支持的存储类型及配置
     - `emptyDir` 临时目录存储，Pod删除，数据也会丢失。取值`{}`时，则子字段为默认值
     - `hostPath` 宿主机目录存储，重新创建Pod后数据还在，但各节点目录不共享
@@ -1386,8 +1390,13 @@ kubectl get secret $(kubectl get secret -n aezo-test|grep sa-aezo-admin-token|aw
     - MatchInterPodAffinity：检查给定的节点能否可以满足Pod对象的亲和性和反亲和性条件，用来实现Pod亲和性调度或反亲和性调度
     - MaxEBSVolumeCount/MaxGCEPDVolumeCount/MaxAzureDiskVolumeCount：云计算存储卷检查
 - 优选算法(https://github.com/kubernetes/kubernetes/tree/master/pkg/scheduler/algorithm/priorities)
-- 亲和性(`kubectl explain pods.spec.affinity`)
-    - 在出于高效通信的需求，有时需要将一些Pod调度到相近甚至是同一区域位置(比如同一节点、机房、区域)等等，比如业务的前端Pod和后端Pod，此时这些Pod对象之间的关系可以叫做亲和性；同时出于安全性的考虑，也会把一些Pod之间进行隔离，此时这些Pod对象之间的关系叫做反亲和性(anti-affinity)
+
+#### 亲和性
+
+- 亲和性/反亲和性
+    - 在出于高效通信的需求，有时需要将一些Pod调度到相近甚至是同一区域位置(比如同一节点、机房、区域)等等，比如业务的前端Pod和后端Pod，此时这些Pod对象之间的关系可以叫做`亲和性`(`affinity`)
+    - 同时出于安全性的考虑，也会把一些Pod之间进行隔离，此时这些Pod对象之间的关系叫做`反亲和性`(`anti-affinity`)
+- `kubectl explain pods.spec.affinity`
 
 ```yml
 apiVersion: v1
@@ -1438,40 +1447,53 @@ spec:
   - name: sq-nginx
     image: nginx:1.14-alpine
 ```
-- 污点(作用于节点上)
-    - 污点类型
-        - NoSchedule：不能容忍此类污点的新Pod对象不能调度到该节点上。强制约束，节点历史存在的Pod对象不受影响
-        - PreferNoSchedule：即不能容忍此污点的Pod对象尽量不要调度到该节点，不过无其他节点可以调度时也可以允许接受调度。柔性约束，节点历史存在的Pod对象不受影响
-        - NoExecute：不能容忍此类污点的新Pod对象不能调度该节点上。强制约束，会影响历史存在的Pod
-    - 命令
 
-        ```bash
-        ## 查看示例
-        kubectl describe node node1 # 查看node1节点污点(Taints)
-        kubectl describe pods kubernetes-dashboard-5dc4c54b55-ft4xh -n kube-system # 查看pod容忍污点(Tolerations)
+#### 污点(作用于节点上)
 
-        ## 添加污点语法：kubectl taint nodes <nodename> <key>=<value>:<effect>
-        # 给node1添加污点
-        kubectl taint nodes node1 profile=prod:NoSchedule
-        # 查看污点
-        kubectl get nodes node1 -o go-template={{.spec.taints}}
+- 污点类型
+    - NoSchedule：不能容忍此类污点的新Pod对象不能调度到该节点上。**强制约束，节点历史存在的Pod对象不受影响**
+    - PreferNoSchedule：即不能容忍此污点的Pod对象尽量不要调度到该节点，不过无其他节点可以调度时也可以允许接受调度。柔性约束，节点历史存在的Pod对象不受影响
+    - NoExecute：不能容忍此类污点的新Pod对象不能调度该节点上。**强制约束，会影响历史存在的Pod**
+- 命令
 
-        ## 删除语法：kubectl taint nodes <node-name> <key>[: <effect>]-
-        kubectl taint nodes node1 profile:NoSchedule- # 删除profile键名的NoSchedule类型污点
-        kubectl taint nodes node1 profile- # 删除指定键名的所有污点
-        ```
-    - 常见污点
+    ```bash
+    ## 查看示例
+    kubectl describe node node1 # 查看node1节点污点(Taints)
+    kubectl describe pods kubernetes-dashboard-5dc4c54b55-ft4xh -n kube-system # 查看pod容忍污点(Tolerations)
 
-        ```bash
-        # 安装的master节点对应污点
-        node-role.kubernetes.io/master:NoSchedule
-        ```
-- pod的容忍度(查看`kubectl explain pods.spec.tolerations`)
+    ## 添加污点语法：kubectl taint nodes <nodename> <key>=<value>:<effect>
+    # 给node1添加污点
+    kubectl taint nodes node1 profile=prod:NoSchedule
+    # 查看污点
+    kubectl get nodes node1 -o go-template={{.spec.taints}}
+
+    ## 删除语法：kubectl taint nodes <node-name> <key>[: <effect>]-
+    kubectl taint nodes node1 profile:NoSchedule- # 删除profile键名的NoSchedule类型污点
+    kubectl taint nodes node1 profile- # 删除指定键名的所有污点
+    ```
+- 常见污点
+
+    ```bash
+    # 安装的master节点对应污点
+    node-role.kubernetes.io/master:NoSchedule
+
+    ## pod容忍的污点
+    # 污点意思：如果节点包含`node.kubernetes.io/not-ready`污点(节点未准备就绪)，则pod不能在此节点上运行
+    # 而此时pod容忍此污点，则相当于就算节点未准备就绪，pod也可以在此节点上运行(系统不会到其他节点重新创建pod)，且此忍耐时间为300s(即300s之后节点仍然未就绪，则此k8s会将此pod调度到其他节点)
+    node.kubernetes.io/not-ready:NoExecute for 300s
+    node.kubernetes.io/unreachable:NoExecute for 300s
+    ```
+
+#### pod的容忍度
+
+- 查看`kubectl explain pods.spec.tolerations`
     - `operator` 包含`Equal`和`Exists`两种类型。如果操作符为Exists，那么value属性可省略，如果不指定operator，则默认为Equal
     - `effect` 为上述污点类型
-    - 添加容忍度配置的pod表示此pod可以接受节点上的相应污点
+    - `tolerationSeconds` 容忍时间(默认是永久性容忍)
+- 添加容忍度配置的pod表示此pod可以接受节点上的相应污点
 
 ```yml
+# ...省略pods其他配置
 # Equal
 tolerations:
 - key: "key1"
@@ -1561,93 +1583,7 @@ spec:
 
 #### Prometheus
 
-- 基于[Prometheus](https://prometheus.io/)监控
-- Prometheus可基于如node_exporter进行监控，并提供PromQL查询语句来展示监控状态，但是PromQL不支持API server，因此中间可使用插件k8s-prometheus-adpater来执行API server的命令，并转成PromQL语句执行
-- 架构 [^4]
-
-    ![Prometheus](/data/images/devops/Prometheus.png)
-    - `Prometheus Server` 主要用于抓取数据和存储时序数据，另外还提供查询和 Alert Rule 配置管理
-    - `client libraries` 用于对接 Prometheus Server，可以查询和上报数据
-    - `push gateway` 用于批量，短期的监控数据的汇总节点，主要用于业务数据汇报等
-    - `exporters` 进行各种数据汇报，例如汇报机器数据的 node_exporter，汇报 MongoDB 信息的 MongoDB exporter 等等
-    - `alertmanager` 告警通知管理
-- Prometheus工作说明
-    - Prometheus需要的metrics要么程序定义输出(模块或者自定义开发)；要么用官方的各种exporter(node-exporter，mysqld-exporter，memcached_exporter…)采集要监控的信息，占用一个web端口然后输出成metrics格式的信息
-    - prometheus server去收集各个target的metrics存储起来(tsdb)
-    - 用户可以在prometheus的http页面上用promQL(prometheus的查询语言)或者(grafana数据来源就是用)api去查询一些信息，也可以利用pushgateway去统一采集，然后prometheus从pushgateway采集(所以pushgateway类似于zabbix的proxy)
-- [prometheus-operator](https://github.com/coreos/prometheus-operator) [^5]
-    - `Prometheus-operator`的本职就是一组用户自定义的CRD资源以及Controller的实现，Prometheus Operator这个controller有BRAC权限下去负责监听这些自定义资源的变化。相关CRD说明
-        - `Prometheus`：由 Operator 依据一个自定义资源kind: Prometheus类型中，所描述的内容而部署的 Prometheus Server 集群，可以将这个自定义资源看作是一种特别用来管理Prometheus Server的StatefulSets资源
-        - `ServiceMonitor`：一个Kubernetes自定义资源(和kind: Prometheus一样是CRD)，该资源描述了Prometheus Server的Target列表，Operator 会监听这个资源的变化来动态的更新Prometheus Server的Scrape targets并让prometheus server去reload配置(prometheus有对应reload的http接口/-/reload)。而该资源主要通过Selector来依据 Labels 选取对应的Service的endpoints，并让 Prometheus Server 通过 Service 进行拉取（拉）指标资料(也就是metrics信息)，metrics信息要在http的url输出符合metrics格式的信息，ServiceMonitor也可以定义目标的metrics的url
-        - `Alertmanager`：Prometheus Operator 不只是提供 Prometheus Server 管理与部署，也包含了 AlertManager，并且一样通过一个 kind: Alertmanager 自定义资源来描述信息，再由 Operator 依据描述内容部署 Alertmanager 集群
-        - `PrometheusRule`：对于Prometheus而言，在原生的管理方式上，我们需要手动创建Prometheus的告警文件，并且通过在Prometheus配置中声明式的加载。而在Prometheus Operator模式中，告警规则也编程一个通过Kubernetes API 声明式创建的一个资源.告警规则创建成功后，通过在Prometheus中使用想servicemonitor那样用ruleSelector通过label匹配选择需要关联的PrometheusRule即可
-        - 注：安装下文安装完成后可通过`kubectl get APIService | grep monitor`看到新增了`v1.monitoring.coreos.com`的APIService，通过`kubectl get crd`查看相应的CRD
-- 基于prometheus-operator安装Prometheus
-
-```bash
-# 下载 https://github.com/coreos/kube-prometheus/releases/tag/v0.1.0，将 manifests 目录下所有文件拷贝到 master 的 prometheus 目录
-cd ~/k8s/prometheus
-# 修改镜像
-grep 'image: k8s.gcr.io' *
-sed -i 's/image: k8s.gcr.io/image: registry.aliyuncs.com\/google_containers/g' *
-# 安装所有CRD
-kubectl create -f .
-
-# 检测是否创建
-until kubectl get customresourcedefinitions servicemonitors.monitoring.coreos.com ; do date; sleep 1; echo ""; done
-until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
-# 有时可能需要多执行几次
-kubectl apply -f . # This command sometimes may need to be done twice (to workaround a race condition).
-# 查看状态
-kubectl -n monitoring get all
-```
-- 基于下列Ingress配置暴露服务到Ingress Controller。访问`http://grafana.aezocn.local/`，默认用户密码`admin/admin`即可进入Grafana界面
-    - 可从[Grafana模板中心](https://grafana.com/grafana/dashboards)下载模板对应的json文件，并导入到Grafana的模板中
-
-```yml
-# prometheus-ingress.yaml
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: prometheus-ing
-  namespace: monitoring
-spec:
-  rules:
-  - host: prometheus.aezocn.local
-    http:
-      paths:
-      - backend:
-          serviceName: prometheus-k8s
-          servicePort: 9090
----
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: grafana-ing
-  namespace: monitoring
-spec:
-  rules:
-  - host: grafana.aezocn.local
-    http:
-      paths:
-      - backend:
-          serviceName: grafana
-          servicePort: 3000
----
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: alertmanager-ing
-  namespace: monitoring
-spec:
-  rules:
-  - host: alertmanager.aezocn.local
-    http:
-      paths:
-      - backend:
-          serviceName: alertmanager-main
-          servicePort: 9093
-```
+参考 [Prometheus](/_posts/devops/prometheus.md)
 
 ### HPA
 
@@ -1753,10 +1689,8 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^1]: https://www.kubernetes.org.cn/5551.html (使用kubeadm安装Kubernetes 1.15)
 [^2]: https://webcache.googleusercontent.com/search?q=cache:63AJZgZ4YK4J:https://ciweigg2.github.io/2019/06/01/kubernetes-1.15.0-ji-qun-an-zhuang-he-dashbaord-mian-ban/+&cd=10&hl=zh-CN&ct=clnk&gl=hk
 [^3]: https://www.cnblogs.com/linuxk/p/9706720.html (Ingress和Ingress Controller)
-[^4]: https://jimmysong.io/kubernetes-handbook/practice/prometheus.html
-[^5]: https://www.servicemesher.com/blog/prometheus-operator-manual/
 [^6]: https://www.qikqiak.com/post/how-to-use-ipvs-in-kubernetes/
 [^7]: https://www.jianshu.com/p/3f2401d14c78 (K8s网络模型)
-
+[^8]: https://blog.fleeto.us/post/kubernetes-storage-performance-comparison/ (Kubernetes 存储性能对比)
 
 

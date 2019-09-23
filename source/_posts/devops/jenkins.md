@@ -36,7 +36,7 @@ docker run \
   --name jenkins \
   --restart=always \
   #jenkins/jenkins:2.181 # 在容器中无法执行docker命令
-  jenkinsci/blueocean:1.18.1 # 对应jenkins版本 Jenkins ver. 2.164.3
+  jenkinsci/blueocean:1.18.1 # 对应jenkins版本 Jenkins ver. 2.164.3。默认包含(Blue Ocean)
 ```
 - 或使用docker-compose
 
@@ -47,6 +47,9 @@ services:
   jenkins:
     container_name: jenkins
     image: jenkinsci/blueocean:1.18.1
+    # 解决时区问题，重新构建镜像
+    #build:
+    #  context: .
     ports:
       - 2081:8080
       - 50080:50000
@@ -65,6 +68,16 @@ volumes:
     external: true
 ```
 - 激活：秘钥位置为/var/jenkins_home/secrets/initialAdminPassword，实际存储位置为/data/docker/volumes/jenkins-data/_data/secrets/initialAdminPassword(其中/data/docker为docker默认存储路径，jenkins-data为容器卷名)
+- jenkinsci/blueocean容器中时区为UTC无法修改问题(jenkins程序时区正常)，可在`docker-compose.yaml`所在目录创建`Dockerfile`文件用于重新构建镜像
+
+    ```bash
+    FROM jenkinsci/blueocean:1.18.1
+    USER root
+    # 安装tzdata
+    RUN /bin/sh -c apk --no-cache add tzdata
+    USER jenkins
+    ```
+    - `docker-compose up -d --build` 重新编译
 
 ### 手动编译运行
 
@@ -154,7 +167,10 @@ volumes:
 
 #### 构建后操作
 
-- `E-mail Notification` 邮件通知，其中SMTP发件地址需要和系统管理员邮件地址一致
+- `E-mail Notification` 邮件通知
+    - 勾选`Send e-mail for every unstable build`
+    - 多个邮箱使用空格分开，每次构建失败都会发送邮件，当从构建失败转为构建成功时也会发邮件，之后构建成功则不发送邮件提醒
+    - 需要先到系统管理中设置邮件发送服务器，其中SMTP发件地址需要和系统管理员邮件地址一致
 
 ### Pipline和Jenkinsfile构建
 
@@ -242,11 +258,12 @@ java -jar target/${NAME}-${VERSION}.jar
         JENKINS_PROJECT_HOME='/var/jenkins_home/workspace/demo'
         HARBOR_IP='192.168.1.100:5000'
         REPOSITORIES='test/demo'
-        #HARBOR_USER='test'
-        #HARBOR_USER_PASSWD='Hello666'
+        HARBOR_USER='test'
+        HARBOR_USER_PASSWD='Hello666'
         
         # 删除本地镜像(镜像历史会保存在镜像仓库)
-        #docker login -u ${HARBOR_USER} -p ${HARBOR_USER_PASSWD} ${HARBOR_IP}
+        # 尽管jenkins容器中执行的是宿主机docker命令，且宿主机已经认证过，但此处仍需认证。存在密码安全隐患
+        docker login -u ${HARBOR_USER} -p ${HARBOR_USER_PASSWD} ${HARBOR_IP}
         IMAGE_ID=`docker images | grep ${REPOSITORIES} | awk '{print $3}'`
         if [ -n "${IMAGE_ID}" ]; then
             docker rmi ${IMAGE_ID}
@@ -357,6 +374,10 @@ java -jar target/${NAME}-${VERSION}.jar
 
 - Manage Nodes节点管理
     - jenkins支持分布式部署，此处可设置每个节点的构建队列个数
+
+## 常见问题
+
+- 出现`Dependency errors`和`Downstream dependency errors`可根据提示升级对应插件，如果需要升级jenkins可以考虑忽略
 
 ## jenkins源码解析
 

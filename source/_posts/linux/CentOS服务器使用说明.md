@@ -299,6 +299,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     chkconfig --level 345 mysqld on # 设置开机启动
     systemctl status mysqld # 查看状态(root用户只需服务启动，最终还是通过mysql用户启动的)。`active (running)`表示启动正常。也可查看`ps -ef | grep mysqld`，会出现`mysqld_safe`(守护进程)和`mysqld`(服务进程)两个进程
     # 此时如果需要重新启动需要Ctrl+c关掉上面开启的mysqld_safe程序
+    systemctl restart mysqld # 安装成功检查重启程序是否正常（或者 /etc/init.d/mysqld restart）
 
     # 创建mysql软链接到bin目录
     ln -s /opt/soft/mysql57/bin/mysql /usr/bin
@@ -367,7 +368,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     socket=/home/data/mysql/mysql.sock
     default-character-set=utf8mb4
 
-    [mysqld] # 服务端配置\
+    [mysqld] # 服务端配置
     # skip-grant-tables # skip-grant-tables作为启动参数的作用，MYSQL服务器不加载权限判断，任何用户都能访问数据库，忘记密码时可使用
     port=13306
     # 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)

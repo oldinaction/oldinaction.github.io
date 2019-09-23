@@ -423,7 +423,7 @@ Options:
     fi
     ```
 - 整数比较
-    - `-eq` 相等，比如：[ $A –eq  $B ]
+    - `-eq` 相等，比如：`[ $A –eq  $B ]`
     - `-ne` 不等
     - `-gt` 大于
     - `-lt` 小于
@@ -434,7 +434,7 @@ Options:
     - `-f <file>` 测试文件是否为普通文件
     - `-d <file>` 测试文件(linux是基于文件进行编程的)是否为目录
     - `-r` 权限判断
-    - `-w`   
+    - `-w`
     - `-x`
 - 字符串测试
     - `==` 或 `=` **等号两端需要空格**
@@ -445,6 +445,7 @@ Options:
     - `-s <string>` 判非空
     - `[[ $str != h* ]]` 判断字符串是否不是以h开头
     - `[[ "$str" =~ ^he.* ]]` 判断字符串是否以he开头
+    - `[ "$item" \< /home/smalle/demo/$lastMon ]` 判断字符串小于(需要转义)
 - 常用判断
     - `[[ $JAVA_HOME ]]` 判断是否存在此变量/环境变量
     - `[[ -z $JAVA_HOME ]]` 判断此变量是否为空
@@ -463,6 +464,8 @@ Options:
   for 变量 in 列表 ; do
     语句
   done
+  # 多行时，do后面需要加分号
+  for file in a.yaml b.yaml c.yaml  ; do wget https://github.com/test/test/raw/test/$file; done
 
   # while
   while 条件 ; do
@@ -678,6 +681,42 @@ case "$1" in
 		exit 1
 esac
 exit $?
+```
+
+### 删除日志文件
+
+- 定时删除
+    - `crontab -e` 编辑定时任务配置
+    - `00 02 * * * root /home/smalle/clear-log.sh` 添加配置
+    - `systemctl restart crond` 重启定时任务
+- clear-log.sh
+
+```bash
+# clear-log.sh
+LOG_FILE=./clear-log.log
+LOG_SAVE_DAYS=30 # 日志保留天数
+NOW=$(date +'%y/%m/%d %H:%M:%S')
+echo "===============START $NOW==================" >> $LOG_FILE
+
+# 删除数据库日志(主备库会产生my_db_name-log-bin.0的日志)
+rm -rfv /home/data/mysql/my_db_name-log-bin.0* >> $LOG_FILE # 待考虑？
+
+# 删除日志文件
+find /home/smalle/demo/ -name *.log -type f -mtime +$LOG_SAVE_DAYS -exec rm -fv {} \; >> $LOG_FILE
+# 删除日志目录(日志文件基于日期分类)
+lastMon=$(date -d"-$LOG_SAVE_DAYS day" +'%Y%m%d') # 获取30天前的日期
+for dir in module1 module2 ; do 
+  for item in $(find /home/smalle/demo/$dir/ -mindepth 1 -type d | xargs) ; do # -mindepth 1 查询的最小深度为1(相当于去掉当前目录)
+    # 字符串比较，\< 进行转义
+    if [ "$item" \< /home/smalle/demo/$dir/$lastMon ]; then
+      rmdir -v $item >> $LOG_FILE
+    fi
+  done
+done
+
+# 删除jvm日志(保留近3天的)
+find /home/smalle/jvmlogs/ -type f -mtime +3 -exec rm -rfv {} \; >> $LOG_FILE
+echo "===============END $NOW==================" >> $LOG_FILE
 ```
 
 ### 生成随机数和字符串

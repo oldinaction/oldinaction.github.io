@@ -18,6 +18,7 @@ tags: [springboot, vue]
 
 ## Mybatis
 
+- 使用`mybatis plus`进行通用代码生成
 - `Mybatis Generator`生成通用代码
     - 可通过自定义Mapper继承生成的Mapper。(如UserMapperExt extend UserMapper, 可防止因修改生成代码导致无法再次生成)
     - 生成接口中`selective`含义：表示根据字段值判断，如果为空则不插入或更新
@@ -270,6 +271,74 @@ location / {
 }
 ```
 
+### 去掉#号
+
+- 路由使用history模式
+
+```js
+new Router({
+    mode: 'history', // require service support
+    routes: []
+})
+```
+- 可配合nginx(后端)，开发vue时的静态服务器默认支持去掉#号
+
+```bash
+location / {
+    try_files $uri $uri/ /index.html;
+}
+```
+
+### 多项目配置
+
+- vue.config.js [^7]
+
+```js
+module.exports = {
+    // 此处的两个dist需要和下文保持一致
+    publicPath: '/dist/',
+    outputDir: 'dist',
+    // ...
+}
+```
+- router/index.js
+
+```js
+new Router({
+    base: 'dist',
+    mode: 'history', // require service support
+    routes: []
+})
+```
+- nginx
+
+```bash
+root /html;
+# 此处的两个dist需要和上文保持一致
+location ^~ /dist/ {
+    try_files $uri $uri/ /dist/index.html;
+}
+```
+- 浏览器访问`http://localhost/dist/`
+
+### https
+
+- 静态资源使用`//`，它会判断当前的页面协议是http还是https来决定资源请求url的协议，可用于处理网站使用的协议和网页中请求的外网资源不一致的问题
+
+```html
+<script src="//aezo.cn/images/jquery/jquery-1.10.2.min.js" type="text/javascript"></script>
+<!-- <script src="/images/jquery/jquery-1.10.2.min.js" type="text/javascript"></script> -->
+<link rel="stylesheet" href="//aezo.cn/umetro/maincss.css" type="text/css"/>
+<!-- <link rel="stylesheet" href="/umetro/maincss.css" type="text/css"/> -->
+
+<style>
+.my-img { 
+    background: url(//aezo.cn/images/smalle.jpg);
+    /* background: url(/images/smalle.jpg); */
+}
+</style>
+```
+
 ## 常用插件
 
 ### Clipboard 复制内容到剪贴板
@@ -297,6 +366,7 @@ location / {
 [^4]: https://segmentfault.com/a/1190000013312233 (springBoot与axios表单提交)
 [^5]: https://blog.csdn.net/qq_32340877/article/details/80338271 (使用vue框架开发，版本更新，解决用户浏览器缓存问题)
 [^6]: https://www.oschina.net/question/2405524_2154029?sort=time
+[^7]: https://juejin.im/post/5cfe23b3e51d4556f76e8073
 
 
 

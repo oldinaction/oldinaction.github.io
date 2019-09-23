@@ -3,7 +3,7 @@ layout: "post"
 title: "cat"
 date: "2019-06-28 12:58"
 categories: devops
-tags: [arch, monitor]
+tags: [monitor]
 ---
 
 ## 简介

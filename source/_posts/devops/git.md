@@ -3,7 +3,7 @@ layout: "post"
 title: "git"
 date: "2016-04-16 12:40"
 categories: devops
-tag: [git, arch]
+tags: [git]
 ---
 
 ## git简介

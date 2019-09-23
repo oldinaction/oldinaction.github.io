@@ -30,7 +30,8 @@ tags: [jvm]
 -Xss|	JDK1.5+ | 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的
 -XX:NewRatio||	新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
 -XX:SurvivorRatio||	新生代中 Eden 与 Survivor 的比值。默认值为 8。即 Eden 占新生代空间的 8/10，另外两个 Survivor 各占 1/10
--XX:+UseConcMarkSweepGC||    指定使用的垃圾收集器，这里使用CMS收集器 
+-XX:+UseConcMarkSweepGC||    指定使用的垃圾收集器，这里使用CMS收集器
+-XX:ErrorFile||    设置jvm致命错误日志文件生成位置(默认生成在工作目录下)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
 
 - 自定义jvm参数
 

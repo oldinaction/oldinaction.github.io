@@ -1,0 +1,369 @@
+---
+layout: "post"
+title: "Prometheus"
+date: "2019-09-19 15:27"
+categories: devops
+tag: [monitor]
+---
+
+## 简介
+
+- [Prometheus](https://prometheus.io/)(普罗米修斯)，是一套开源的系统监控报警框架。现在已加入 Cloud Native Computing Foundation(CNCF)，成为受欢迎度仅次于 Kubernetes 的项目
+- Prometheus可基于如node_exporter进行监控，并提供PromQL查询语句来展示监控状态，但是PromQL不支持API server，因此中间可使用插件k8s-prometheus-adpater来执行API server的命令，并转成PromQL语句执行
+- 架构 [^1]
+
+    ![Prometheus](/data/images/devops/Prometheus.png)
+    - `Prometheus Server` 主要用于抓取数据和存储时序数据，另外还提供查询和 Alert Rule 配置管理
+    - `Client Libraries` 客户端库，为需要监控的服务生成相应的 metrics 并暴露给 Prometheus server。当 Prometheus server 来 pull 时，直接返回实时状态的 metrics
+    - `Push Gateway` 推送网关，短期的监控数据的汇总节点。主要用于业务数据汇报等，此类数据存在时间可能不够长，Prometheus采集数据是用的pull也就是拉模型(如5秒钟拉取一次数据)，导致此类数据无法抓取到，因此可以将他们推送到网关中，此时网关相当于一个缓存，之后仍然由Prometheus Server定期到Push Gateway上拉取数据
+    - `Exporters` 进行各种数据汇报，例如汇报机器数据的 `node exporter`，汇报 MongoDB 信息的 `MongoDB exporter` 等等
+    - `Alertmanager` 从 Prometheus server 端接收到 alerts 后，会进行去除重复数据，分组，并路由到对收的接受方式，发出报警。支持电子邮件、slack、pagerduty，hitchat，webhook、钉钉等
+- Prometheus工作说明
+    - Prometheus需要的metrics，要么程序定义输出(模块或者自定义开发)；要么用官方的各种exporter(node-exporter，mysqld-exporter，memcached_exporter…)采集要监控的信息，占用一个web端口然后输出成metrics格式的信息
+    - prometheus server去收集各个target的metrics存储起来(存储在TSDB时序数据库中)
+    - 用户可以在prometheus的http页面上用promQL(prometheus的查询语言)或者(grafana数据来源就是用)api去查询一些信息，也可以利用pushgateway去统一采集，然后prometheus从pushgateway采集(所以pushgateway类似于zabbix的proxy)
+- 相关概念
+    - Prometheus 中存储的数据为时间序列，是由 metric 的名字和一系列的标签（键值对）唯一标识的，不同的标签则代表不同的时间序列。metric 名字格式：`<metric name>{<label name>=<label value>, …}`，例如：`http_requests_total{method="POST",endpoint="/api/tracks"}`
+
+## 安装
+
+### 基于docker安装
+
+#### Prometheus Server 安装
+
+- 安装命令 [^3]
+
+```bash
+cd /home/smalle/prom/prometheus
+# 创建 prometheus.yml 配置文件，见下文。其中 rules.yml 规则配置，见下文alertmanager安装部分，未安装alertmanager不会影响Prometheus的启动
+## 启动容器
+# 启动时加上--web.enable-lifecycle启用远程热加载配置文件，调用指令是`curl -X POST http://192.168.6.131:9090/-/reload`
+docker run -d -p 9090:9090 \
+            -v $PWD/prometheus.yml:/etc/prometheus/prometheus.yml \
+            -v $PWD/rules.yml:/etc/prometheus/rules.yml \
+            --name prometheus \
+            prom/prometheus:v2.11.1 \
+            --config.file=/etc/prometheus/prometheus.yml \
+            --web.enable-lifecycle
+## 测试访问
+# 访问 http://192.168.6.131:9090 进入web界面
+# 访问 http://192.168.6.131:9090/metrics 查看Prometheus Server自身的metrics信息，默认prometheus会抓取自己的/metrics接口数据
+# 访问 http://192.168.6.131:9090/targets 显示所有被抓取metrics信息的目标
+# 选择metric名`up`，并点击`Execute`查看metric信息
+```
+- prometheus.yml(/home/smalle/prom/prometheus 目录)
+
+```yml
+# 全局设置，可以被覆盖
+global:
+  # 默认值为 15s，用于设置每次数据收集的间隔
+  scrape_interval: 15s
+  # 所有时间序列和警告与外部通信时用的外部标签
+  external_labels:
+    monitor: 'sq-monitor'
+# 这里表示抓取对象的配置
+scrape_configs: 
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  # 需要全局唯一，采集 Prometheus 自身的 metrics
+  - job_name: 'prometheus'
+    # 覆盖全局的 scrape_interval
+    scrape_interval: 5s
+    # 静态目标的配置
+    static_configs:
+      # 本机 Prometheus 的 endpoint
+      - targets: ['192.168.6.131:9090']
+      # pushgateway节点(可见下文安装pushgateway)
+      - targets: ['192.168.6.131:9091']
+        labels:
+          group: 'pushgateway'
+  # 需要全局唯一，采集本机的 metrics，需要在本机安装 node_exporter(用于上报服务器性能信息)，见下文（未安装也可正常启动server）
+  - job_name: 'node'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['192.168.6.131:9100']  # 客户端(此时为本机) node_exporter 的 endpoint
+# 警告规则设置文件，需要安装Alertmanager，见下文。如使用Grafana告警则不需要
+rule_files:
+  - '/etc/prometheus/rules.yml'
+  #- '/etc/prometheus/rules2.yml'
+# alertmanager配置，需要安装alertmanager，见下文。如使用Grafana告警则不需要
+alerting:
+  alertmanagers:
+    - static_configs:
+      # alertmanager服务监听地址
+      - targets: ['192.168.6.131:9093']
+```
+- rules.yml(/home/smalle/prom/prometheus 目录) 报警规则配置(需要配合Alertmanager使用，如使用Grafana告警则不需要)
+
+```yml
+groups:
+  - name: my-alert
+    rules:
+      # alert 名字
+      - alert: Instance Memory Abnormal Alert
+        # 判断条件
+        # expr: up == 0 # 服务器宕机
+        expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes )) / node_memory_MemTotal_bytes * 100 > 80 # 内存占用超过80
+        # 条件保持 1m 才会发出 alert
+        for: 1m
+        # 匹配 alert 的标签
+        labels:
+          severity: critical
+        annotations:
+          # $labels 可获取上文定义的一些labels和job/export加入的labels
+          summary: "{{$labels.instance}}: High Memory usage detected"
+          description: "详细异常. {{$labels.instance}}: Memory usage is above 80% (current value is:{{ $value }})"
+```
+
+#### Alertmanager 安装
+
+- 安装(**如使用Grafana告警则不需要安装，建议使用Grafana告警**)
+
+```bash
+cd /home/smalle/prom/alertmanager
+# 创建 alertmanager.yml 配置文件
+# 启动容器
+docker run -d -p 9093:9093 -v $PWD/alertmanager.yml:/etc/alertmanager/alertmanager.yml --name alertmanager prom/alertmanager
+# 访问 http://192.168.6.131:9093/#/status 可以查看配置和服务状态
+```
+- alertmanager.yml
+
+```yml
+global:
+  resolve_timeout: 5m
+  # 配置邮箱发送服务器(基于邮箱报警才需要)
+  smtp_smarthost: 'smtp.163.com:25'
+  smtp_from: 'aezocn@163.com'
+  smtp_auth_username: 'aezocn@163.com'
+  smtp_auth_password: 'XXX' # 需要填写邮箱的授权码，而不是邮箱密码
+route:
+  group_by: ['aezo']
+  receiver: 'email-receiver'
+  # 组报警等待时间
+  group_wait: 30s
+  # 组报警间隔时间
+  group_interval: 1m
+  # 组重复报警间隔时间
+  repeat_interval: 1m
+  routes:
+  # 匹配 alert 标签和接受者
+  - match:
+      severity: critical
+    receiver: email-receiver
+receivers:
+# 基于email进行报警
+- name: 'email-receiver'
+  email_configs:
+  - to: 'aezocn@163.com'
+# 基于 webhook 进行报警：出问题后自动访问下列地址
+- name: 'webhook-receiver'
+  webhook_configs:
+  - url: 'http://192.168.6.131:8080/restart'
+# 基于 slack(类似在线聊天室) 进行报警，具体参考：https://api.slack.com/incoming-webhooks
+- name: 'slack-receiver'
+  slack_configs:
+  - send_resolved: true
+    # 在 https://api.slack.com/apps/TN511J342/incoming-webhooks 中查看地址
+    api_url: https://hooks.slack.com/services/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
+    channel: 'monitor'
+    text: "{{ .CommonAnnotations.description }}"
+```
+
+#### Push Gateway 安装
+
+```bash
+## 安装
+mkdir -p /home/smalle/prom/pushgateway
+cd !$
+docker run -d -p 9091:9091 --name pushgateway prom/pushgateway
+# 访问 http://192.168.6.131:9091
+
+## 测试推送。prometheus提供了多种语言的sdk，最简单的方式就是通过shell
+# 推送一个指标.
+# pushgateway 中的数据我们通常按照 job 和 instance 分组分类。此时无需server中定义此job(指标)，会自动创建此aezo对应的job
+echo "aezo_metric 100" | curl --data-binary @- http://192.168.6.131:9091/metrics/job/aezo # aezo_metric{instance="",job="aezo"} 100
+# 推送多个指标. smalle_metric{instance="test",job="aezo",label="hello"} 120
+cat <<EOF | curl --data-binary @- http://192.168.6.131:9091/metrics/job/aezo/instance/test
+# 每次推送的key不能相同
+# TYPE smalle_metric counter
+smalle_metric{label="hello"} 120
+# TYPE aezo_test1 counter
+aezo_test1 100
+# TYPE aezo_test2 counter
+aezo_test2 110
+# TYPE aezo_test3 counter
+aezo_test3 120
+EOF
+# 删除某个组下的某实例的所有数据
+curl -X DELETE http://192.168.6.131:9091/metrics/job/aezo/instance/test
+```
+
+### 基于prometheus-operator安装prometheus(k8s环境)
+
+- [prometheus-operator](https://github.com/coreos/prometheus-operator) [^2]
+    - `Prometheus-operator`的本职就是一组用户自定义的CRD资源以及Controller的实现，Prometheus Operator这个controller有BRAC权限下去负责监听这些自定义资源的变化。相关CRD说明
+        - `Prometheus`：由 Operator 依据一个自定义资源kind: Prometheus类型中，所描述的内容而部署的 Prometheus Server 集群，可以将这个自定义资源看作是一种特别用来管理Prometheus Server的StatefulSets资源
+        - `ServiceMonitor`：一个Kubernetes自定义资源(和kind: Prometheus一样是CRD)，该资源描述了Prometheus Server的Target列表，Operator 会监听这个资源的变化来动态的更新Prometheus Server的Scrape targets并让prometheus server去reload配置(prometheus有对应reload的http接口/-/reload)。而该资源主要通过Selector来依据 Labels 选取对应的Service的endpoints，并让 Prometheus Server 通过 Service 进行拉取（拉）指标资料(也就是metrics信息)，metrics信息要在http的url输出符合metrics格式的信息，ServiceMonitor也可以定义目标的metrics的url
+        - `Alertmanager`：Prometheus Operator 不只是提供 Prometheus Server 管理与部署，也包含了 AlertManager，并且一样通过一个 kind: Alertmanager 自定义资源来描述信息，再由 Operator 依据描述内容部署 Alertmanager 集群
+        - `PrometheusRule`：对于Prometheus而言，在原生的管理方式上，我们需要手动创建Prometheus的告警文件，并且通过在Prometheus配置中声明式的加载。而在Prometheus Operator模式中，告警规则也编程一个通过Kubernetes API 声明式创建的一个资源.告警规则创建成功后，通过在Prometheus中使用想servicemonitor那样用ruleSelector通过label匹配选择需要关联的PrometheusRule即可
+        - 注：安装下文安装完成后可通过`kubectl get APIService | grep monitor`看到新增了`v1.monitoring.coreos.com`的APIService，通过`kubectl get crd`查看相应的CRD
+- 基于prometheus-operator安装Prometheus
+
+```bash
+# 下载 https://github.com/coreos/kube-prometheus/releases/tag/v0.1.0 中的 manifests 目录下所有文件
+wget https://github.com/coreos/kube-prometheus/archive/v0.1.0.tar.gz
+tar -zxvf v0.1.0.tar.gz
+cd kube-prometheus-0.1.0/prometheus/manifests
+# 修改镜像
+grep 'image: k8s.gcr.io' *
+sed -i 's/image: k8s.gcr.io/image: registry.aliyuncs.com\/google_containers/g' *
+# 安装所有CRD
+kubectl create -f .
+
+# 检测是否创建
+until kubectl get customresourcedefinitions servicemonitors.monitoring.coreos.com ; do date; sleep 1; echo ""; done
+until kubectl get servicemonitors --all-namespaces ; do date; sleep 1; echo ""; done
+# 有时可能需要多执行几次
+kubectl apply -f . # This command sometimes may need to be done twice (to workaround a race condition).
+# 查看状态
+kubectl -n monitoring get all
+```
+- 基于下列Ingress配置暴露服务到Ingress Controller。访问`http://grafana.aezocn.local/`，默认用户密码`admin/admin`即可进入Grafana界面
+    - 可从[Grafana模板中心](https://grafana.com/grafana/dashboards)下载模板对应的json文件，并导入到Grafana的模板中
+
+```yml
+# prometheus-ingress.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: prometheus-ing
+  namespace: monitoring
+spec:
+  rules:
+  - host: prometheus.aezocn.local
+    http:
+      paths:
+      - backend:
+          serviceName: prometheus-k8s
+          servicePort: 9090
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: grafana-ing
+  namespace: monitoring
+spec:
+  rules:
+  - host: grafana.aezocn.local
+    http:
+      paths:
+      - backend:
+          serviceName: grafana
+          servicePort: 3000
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: alertmanager-ing
+  namespace: monitoring
+spec:
+  rules:
+  - host: alertmanager.aezocn.local
+    http:
+      paths:
+      - backend:
+          serviceName: alertmanager-main
+          servicePort: 9093
+```
+
+## Grafana
+
+### Grafana安装
+
+```bash
+mkdir -p /home/smalle/prom/grafana
+cd !$
+docker run -d -p 3000:3000 --name grafana grafana/grafana
+
+# 访问 http://192.168.6.131:3000，登录 admin/admin
+```
+
+### 基本使用
+
+- 选择数据源：Configuration - Data Sources - Add data sources - Time series databases选择Prometheus
+- 配置数据源：Data Sources/Prometheus/Settings - HTTP输入 http://192.168.6.131:9090 (Prometheus Server地址) - Save & Test
+- 选择图表：Data Sources/Prometheus/Dashboards - Import一个图表(如Prometheus Stats) - 选择Prometheus Stats - 即可看到图表展示
+
+### 自定义图表
+
+- Create - Dashboard - New Panel(新建一个图表) - Add Query
+- Query查询配置：选择数据源Prometheus
+    - 选择Metrics指标(所有metrics根据命名的第一个_进行分类)
+    - Legend为指标说明(标题)
+    - 可Add Query继续增加指标
+- Visualization可视化配置
+- General基本配置
+    - Title设置图标标题
+- Alerting告警配置
+- 右上角保存Save Dashboard
+
+### 告警插件(可代替Alertmanager)
+
+- Alerting/Alert Rules 查看告警规则，新增需要在每个Panel的设置中进行
+- Notification channels 设置告警通过，可使用Email(可以定义多个邮件通道)、webhook、Slack、钉钉(DingDing)等
+    - 使用邮件通道时，需提前配置邮件发送服务器
+    - Slack配置(参考上文Alertmanager)
+        - Url填写slack应用对应地址
+        - Recipient为slack通道，如`#monitor`
+
+## Exporter
+
+- 与Prometheus服务安装无关，**一般由被监控的客户端安装**。仅为了演示exporter如何输出metrics格式的信息，并由Prometheus Server采集
+
+### Node Exporter 安装
+
+- Node Exporter 主要采集节点系统性能指标
+
+```bash
+cd /home/smalle/prom/exporters/
+wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+tar -xvzf node_exporter-0.18.1.linux-amd64.tar.gz
+cd node_exporter-0.18.1.linux-amd64
+# 启动服务，默认监听9100端口，正式环境可自定义成服务后台运行。`./node_exporter --help` 查看参数设置
+./node_exporter
+# 查看metrics信息
+curl http://localhost:9100/metrics
+```
+- docker安装
+
+```bash
+docker run -d --name=node-exporter -p 9100:9100 prom/node-exporter
+curl http://localhost:9100/metrics
+```
+
+### 采集文本说明
+
+- Exporter 收集的数据转化的文本内容以行 `\n` 为单位，空行将被忽略
+    - 如果以 `#` 开头通常表示注释，不以 `#` 开头，表示采样数据
+    - 以 `# HELP` 开头表示 metric 帮助说明
+    - 以 `# TYPE` 开头表示定义 metric 类型，包含 `counter`, `gauge`, `histogram`, `summary`, 和 `untyped`(默认) 类型
+    - 其他`#`开头认为是普通注释
+- 采样数据格式
+    - `metric_name [ {label_name1="label_value1",label_name2=label_value2} ] value [ timestamp ]`
+    - 其中metric_name和label_name必须遵循PromQL的格式规范要求。value是一个float格式的数据，timestamp的类型为int64（从1970-01-01 00:00:00以来的毫秒数），timestamp为可选默认为当前时间。具有相同metric_name的样本必须按照一个组的形式排列，并且每一行必须是唯一的指标名称和标签键值对组合
+- 假设采样数据 metric 叫做 `x`，且 `x` 是 histogram 或 summary 类型必需满足以下条件
+    - 采样数据的总和应表示为 `x_sum`；总量应表示为 `x_count`
+    - summary 类型的采样数据的 quantile 应表示为 `x{quantile="y"}`
+    - histogram 类型的采样分区统计数据将表示为 `x_bucket{le="y"}`；必须包含 `x_bucket{le="+Inf"}`， 它的值等于 `x_count` 的值
+    - summary 和 historam 中 quantile 和 le 必需按从小到大顺序排列
+
+
+
+
+---
+
+参考文章
+
+[^1]: https://jimmysong.io/kubernetes-handbook/practice/prometheus.html
+[^2]: https://www.servicemesher.com/blog/prometheus-operator-manual/
+[^3]: https://www.ibm.com/developerworks/cn/cloud/library/cl-lo-prometheus-getting-started-and-practice/index.html
+

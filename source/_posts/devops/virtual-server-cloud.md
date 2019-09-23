@@ -3,7 +3,7 @@ layout: "post"
 title: "虚拟化服务器搭建 | 私有云"
 date: "2019-05-30 16:11"
 categories: [linux]
-tags: [linux, cloud]
+tags: [linux, cloud, server]
 ---
 
 ## 简介

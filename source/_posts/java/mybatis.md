@@ -837,6 +837,19 @@ User user = userMapper.selectById(1);
 user.setAge(18);
 int res = userMapper.updateById(user); // 1成功。生成的sql类似: update t_user set age = 18,version = 2 where id = 1 and version = 1
 ```
+- 代码生成，参考：https://mp.baomidou.com/guide/generator.html，常用配置如下
+
+    ```java
+    GlobalConfig gc = new GlobalConfig();
+    gc.setIdType(IdType.ID_WORKER_STR); // ID使用字符串序列
+    gc.setDateType(DateType.SQL_PACK); // 时间使用数据库类型对应，否则生成 LocalDateTime 等
+
+    StrategyConfig strategy = new StrategyConfig();
+    strategy.setVersionFieldName("version"); // 设置乐观锁字段(表中无此字段则不会生成对应注解)
+    strategy.setLogicDeleteFieldName("valid_status"); // 生成逻辑删除(可配置成逻辑删除或逻辑有效)
+    ```
+
+
 
 
 
