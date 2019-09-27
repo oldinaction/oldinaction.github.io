@@ -1,7 +1,7 @@
 ---
 layout: "post"
 title: "Rook & Ceph"
-date: "2019-06-22 12:38"
+date: "2019-09-23 09:38"
 categories: devops
 tags: [k8s, storage]
 ---
@@ -19,7 +19,7 @@ tags: [k8s, storage]
 
 ### 安装 Rook-Ceph
 
-- 参考 https://rook.io/docs/rook/v1.1/ceph-quickstart.html。[^3] [^4]
+- 参考 https://rook.io/docs/rook/v1.1/ceph-quickstart.html [^3] [^4]
 
 ```bash
 ### 所有节点开启ip_forward，k8s的node节点一般都已经开启过
@@ -61,8 +61,8 @@ kubectl get pod -n rook-ceph
 kubectl apply -f dashboard-external-https.yaml
 # 查看dashboard监听的NodePort端口
 kubectl -n rook-ceph get service
-# 查看密码(x8sn2X4MPp)，用户名为 admin
-kubectl -n rook-ceph logs $(kubectl get pod -n rook-ceph | grep mgr | awk '{print $1}') | grep password # 如果无法获取密码，可将rook-ceph-mgr删除后重试
+# 查看密码(x8sn2X4MPp)，用户名为 admin。如果无法获取密码，可将rook-ceph-mgr删除后重试
+kubectl -n rook-ceph logs $(kubectl get pod -n rook-ceph | grep mgr | awk '{print $1}') | grep password
 # 访问 https://192.168.6.131:30811/
 ```
 
