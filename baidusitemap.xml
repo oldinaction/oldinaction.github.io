@@ -4,8 +4,138 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2019/09/26/extend/soft-test/</loc>
+    <lastmod>2019-09-27T10:29:53.204Z</lastmod>
+    <data>
+        <display>
+        <title>软件测试</title>
+        <pubTime>2019-09-26T14:04:00.000Z</pubTime>
+        
+        <tag>test</tag>
+         
+         
+           
+             
+              <breadCrumb title="extend" url="http://blog.aezo.cn/categories/extend/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
+    <lastmod>2019-09-27T09:49:44.448Z</lastmod>
+    <data>
+        <display>
+        <title>docker</title>
+        <pubTime>2017-06-25T06:03:00.000Z</pubTime>
+        
+        <tag>arch</tag>
+         
+        <tag>docker</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    <lastmod>2019-09-27T09:40:30.531Z</lastmod>
+    <data>
+        <display>
+        <title>nginx</title>
+        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
+        
+        <tag>LB, HA</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
+    <lastmod>2019-09-27T09:39:06.703Z</lastmod>
+    <data>
+        <display>
+        <title>基于springboot和vue前后分离</title>
+        <pubTime>2017-12-25T13:16:00.000Z</pubTime>
+        
+        <tag>vue</tag>
+         
+        <tag>springboot</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/rook-ceph/</loc>
+    <lastmod>2019-09-27T02:42:09.221Z</lastmod>
+    <data>
+        <display>
+        <title>Rook & Ceph</title>
+        <pubTime>2019-06-22T04:38:00.000Z</pubTime>
+        
+        <tag>k8s</tag>
+         
+        <tag>storage</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    <lastmod>2019-09-26T13:34:22.464Z</lastmod>
+    <data>
+        <display>
+        <title>Shell编程</title>
+        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>shell</tag>
+         
+        <tag>lang</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    <lastmod>2019-09-20T10:20:41.251Z</lastmod>
+    <lastmod>2019-09-26T08:56:15.924Z</lastmod>
     <data>
         <display>
         <title>Kubernetes</title>
@@ -19,6 +149,120 @@
            
              
               <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/03/19/devops/ftp/</loc>
+    <lastmod>2019-09-25T10:15:28.669Z</lastmod>
+    <data>
+        <display>
+        <title>ftp</title>
+        <pubTime>2019-03-19T02:40:00.000Z</pubTime>
+        
+        <tag>server</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
+    <lastmod>2019-09-25T07:28:27.154Z</lastmod>
+    <data>
+        <display>
+        <title>vmware</title>
+        <pubTime>2017-06-24T03:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>vmware</tag>
+         
+        <tag>centos</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
+    <lastmod>2019-09-25T04:58:36.960Z</lastmod>
+    <data>
+        <display>
+        <title>linux系统</title>
+        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>shell</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
+    <lastmod>2019-09-24T01:17:55.874Z</lastmod>
+    <data>
+        <display>
+        <title>虚拟化服务器搭建 | 私有云</title>
+        <pubTime>2019-05-30T08:11:00.000Z</pubTime>
+        
+        <tag>server</tag>
+         
+        <tag>linux</tag>
+         
+        <tag>cloud</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
+    <lastmod>2019-09-23T12:12:05.164Z</lastmod>
+    <data>
+        <display>
+        <title>sql进阶</title>
+        <pubTime>2017-09-30T04:51:00.000Z</pubTime>
+        
+        <tag>oracle</tag>
+         
+        <tag>mysql</tag>
+         
+        <tag>sql</tag>
+         
+         
+           
+             
+              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
           
         </display>
     </data>
@@ -46,26 +290,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    <lastmod>2019-09-19T08:25:43.395Z</lastmod>
-    <data>
-        <display>
-        <title>nginx</title>
-        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
-        
-        <tag>LB, HA</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
     <lastmod>2019-09-19T08:22:01.477Z</lastmod>
     <data>
@@ -81,50 +305,6 @@
            
              
               <breadCrumb title="others" url="http://blog.aezo.cn/categories/others/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
-    <lastmod>2019-09-19T07:29:57.587Z</lastmod>
-    <data>
-        <display>
-        <title>虚拟化服务器搭建 | 私有云</title>
-        <pubTime>2019-05-30T08:11:00.000Z</pubTime>
-        
-        <tag>server</tag>
-         
-        <tag>linux</tag>
-         
-        <tag>cloud</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2019/03/19/devops/ftp/</loc>
-    <lastmod>2019-09-19T07:29:44.219Z</lastmod>
-    <data>
-        <display>
-        <title>ftp</title>
-        <pubTime>2019-03-19T02:40:00.000Z</pubTime>
-        
-        <tag>server</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
           
         </display>
     </data>
@@ -213,52 +393,6 @@
            
              
               <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
-    <lastmod>2019-09-17T03:33:57.510Z</lastmod>
-    <data>
-        <display>
-        <title>基于springboot和vue前后分离</title>
-        <pubTime>2017-12-25T13:16:00.000Z</pubTime>
-        
-        <tag>vue</tag>
-         
-        <tag>springboot</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    <lastmod>2019-09-17T01:13:23.003Z</lastmod>
-    <data>
-        <display>
-        <title>Shell编程</title>
-        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>shell</tag>
-         
-        <tag>lang</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
           
         </display>
     </data>
@@ -374,28 +508,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
-    <lastmod>2019-09-11T02:26:43.917Z</lastmod>
-    <data>
-        <display>
-        <title>linux系统</title>
-        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>shell</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
     <lastmod>2019-09-09T02:46:57.857Z</lastmod>
     <data>
@@ -482,28 +594,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    <lastmod>2019-09-04T07:00:43.826Z</lastmod>
-    <data>
-        <display>
-        <title>docker</title>
-        <pubTime>2017-06-25T06:03:00.000Z</pubTime>
-        
-        <tag>arch</tag>
-         
-        <tag>docker</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     <lastmod>2019-09-03T03:00:03.363Z</lastmod>
     <data>
@@ -559,30 +649,6 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
-    <lastmod>2019-08-30T03:16:21.130Z</lastmod>
-    <data>
-        <display>
-        <title>sql进阶</title>
-        <pubTime>2017-09-30T04:51:00.000Z</pubTime>
-        
-        <tag>oracle</tag>
-         
-        <tag>mysql</tag>
-         
-        <tag>sql</tag>
-         
-         
-           
-             
-              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
           
         </display>
     </data>
@@ -968,30 +1034,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
-    <lastmod>2019-07-16T07:01:55.226Z</lastmod>
-    <data>
-        <display>
-        <title>vmware</title>
-        <pubTime>2017-06-24T03:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>vmware</tag>
-         
-        <tag>centos</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2016/12/29/arch/maven/</loc>
     <lastmod>2019-07-12T06:04:06.001Z</lastmod>
     <data>
@@ -1275,9 +1317,9 @@
         <title>access</title>
         <pubTime>2018-11-20T06:06:00.000Z</pubTime>
         
-        <tag>microsoft</tag>
-         
         <tag>db</tag>
+         
+        <tag>microsoft</tag>
          
          
            

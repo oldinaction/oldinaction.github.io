@@ -2,9 +2,86 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/09/26/extend/soft-test/</loc>
+    
+    <lastmod>2019-09-27T10:29:53.204Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
+    
+    <lastmod>2019-09-27T09:49:44.448Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2019-09-27T09:40:30.531Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
+    
+    <lastmod>2019-09-27T09:39:06.703Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/rook-ceph/</loc>
+    
+    <lastmod>2019-09-27T02:42:09.221Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    
+    <lastmod>2019-09-26T13:34:22.464Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
     
-    <lastmod>2019-09-20T10:20:41.251Z</lastmod>
+    <lastmod>2019-09-26T08:56:15.924Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/03/19/devops/ftp/</loc>
+    
+    <lastmod>2019-09-25T10:15:28.669Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
+    
+    <lastmod>2019-09-25T07:28:27.154Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
+    
+    <lastmod>2019-09-25T04:58:36.960Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
+    
+    <lastmod>2019-09-24T01:17:55.874Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
+    
+    <lastmod>2019-09-23T12:12:05.164Z</lastmod>
     
   </url>
   
@@ -16,30 +93,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2019-09-19T08:25:43.395Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
     
     <lastmod>2019-09-19T08:22:01.477Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
-    
-    <lastmod>2019-09-19T07:29:57.587Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/03/19/devops/ftp/</loc>
-    
-    <lastmod>2019-09-19T07:29:44.219Z</lastmod>
     
   </url>
   
@@ -68,20 +124,6 @@
     <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
     
     <lastmod>2019-09-18T01:50:38.821Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
-    
-    <lastmod>2019-09-17T03:33:57.510Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    
-    <lastmod>2019-09-17T01:13:23.003Z</lastmod>
     
   </url>
   
@@ -121,13 +163,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
-    
-    <lastmod>2019-09-11T02:26:43.917Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
     
     <lastmod>2019-09-09T02:46:57.857Z</lastmod>
@@ -156,13 +191,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    
-    <lastmod>2019-09-04T07:00:43.826Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     
     <lastmod>2019-09-03T03:00:03.363Z</lastmod>
@@ -180,13 +208,6 @@
     <loc>http://blog.aezo.cn/2019/08/23/arch/ant/</loc>
     
     <lastmod>2019-09-02T06:54:34.297Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
-    
-    <lastmod>2019-08-30T03:16:21.130Z</lastmod>
     
   </url>
   
@@ -306,13 +327,6 @@
     <loc>http://blog.aezo.cn/2017/10/22/java/springsecurity/</loc>
     
     <lastmod>2019-07-31T08:33:17.864Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
-    
-    <lastmod>2019-07-16T07:01:55.226Z</lastmod>
     
   </url>
   
