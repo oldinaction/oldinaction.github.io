@@ -4,6 +4,28 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2019/09/23/devops/rook-ceph/</loc>
+    <lastmod>2019-09-27T10:37:14.814Z</lastmod>
+    <data>
+        <display>
+        <title>Rook & Ceph</title>
+        <pubTime>2019-09-23T01:38:00.000Z</pubTime>
+        
+        <tag>k8s</tag>
+         
+        <tag>storage</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2019/09/26/extend/soft-test/</loc>
     <lastmod>2019-09-27T10:29:53.204Z</lastmod>
     <data>
@@ -81,28 +103,6 @@
            
              
               <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/rook-ceph/</loc>
-    <lastmod>2019-09-27T02:42:09.221Z</lastmod>
-    <data>
-        <display>
-        <title>Rook & Ceph</title>
-        <pubTime>2019-06-22T04:38:00.000Z</pubTime>
-        
-        <tag>k8s</tag>
-         
-        <tag>storage</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
           
         </display>
     </data>
@@ -229,11 +229,11 @@
         <title>虚拟化服务器搭建 | 私有云</title>
         <pubTime>2019-05-30T08:11:00.000Z</pubTime>
         
-        <tag>server</tag>
-         
         <tag>linux</tag>
          
         <tag>cloud</tag>
+         
+        <tag>server</tag>
          
          
            
@@ -1123,9 +1123,9 @@
         <title>内网穿透</title>
         <pubTime>2017-10-09T12:18:00.000Z</pubTime>
         
-        <tag>frp</tag>
-         
         <tag>network</tag>
+         
+        <tag>frp</tag>
          
          
            
@@ -1147,9 +1147,9 @@
         
         <tag>linux</tag>
          
-        <tag>network</tag>
-         
         <tag>vpn</tag>
+         
+        <tag>network</tag>
          
          
            
@@ -1317,9 +1317,9 @@
         <title>access</title>
         <pubTime>2018-11-20T06:06:00.000Z</pubTime>
         
-        <tag>db</tag>
-         
         <tag>microsoft</tag>
+         
+        <tag>db</tag>
          
          
            
@@ -1696,11 +1696,11 @@
         <title>swagger</title>
         <pubTime>2018-09-23T10:41:00.000Z</pubTime>
         
-        <tag>springboot</tag>
-         
         <tag>doc</tag>
          
         <tag>api</tag>
+         
+        <tag>springboot</tag>
          
          
            

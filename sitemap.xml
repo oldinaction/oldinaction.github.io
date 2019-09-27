@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/09/23/devops/rook-ceph/</loc>
+    
+    <lastmod>2019-09-27T10:37:14.814Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2019/09/26/extend/soft-test/</loc>
     
     <lastmod>2019-09-27T10:29:53.204Z</lastmod>
@@ -26,13 +33,6 @@
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2019-09-27T09:39:06.703Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/rook-ceph/</loc>
-    
-    <lastmod>2019-09-27T02:42:09.221Z</lastmod>
     
   </url>
   
