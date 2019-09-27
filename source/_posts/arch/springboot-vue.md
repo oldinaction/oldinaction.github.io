@@ -36,15 +36,45 @@ tags: [springboot, vue]
     - `Cookie、LocalStorage 和 IndexDB 无法读取`
     - `DOM 无法获得`
     - `AJAX 请求不能发送`
-- 解决方案
+- 解决方案 [^8]
     - `JSONP`(只能发送GET请求)
     - `CORS`(服务器端进行设置即可)
     - `WebSocket`
     - `postMessage`
+
+        ```html
+        <!-- ======a给b发送消息send-from-a，然后b给a回复消息send-from-b======= -->
+        <!-- a.html -->
+        <iframe src="http://localhost:4000/b.html" frameborder="0" id="frame" onload="load()"></iframe>
+        <script>
+            function load() {
+                let frame = document.getElementById('frame')
+                // someWindow.postMessage(message, targetOrigin, [transfer]);
+                    // message: 将要发送到其他 window 的数据
+                    // targetOrigin: 通过窗口的 origin 属性来指定哪些窗口能接收到消息事件，其值可以是字符串"*"(表示无限制)或者一个 URI。在发送消息的时候，如果目标窗口的协议、主机地址或端口这三者的任意一项不匹配 targetOrigin 提供的值，那么消息就不会被发送；只有三者完全匹配，消息才会被发送
+                    // transfer(可选): 是一串和 message 同时传递的 Transferable 对象. 这些对象的所有权将被转移给消息的接收方，而发送一方将不再保有所有权
+                frame.contentWindow.postMessage('send-from-a', 'http://localhost:4000') // 发送数据
+
+                // 接受数据
+                window.onmessage = function(e) {
+                    console.log(e.data) // send-from-b
+                }
+            }
+        </script>
+
+        <!-- b.html -->
+        <script>
+            window.onmessage = function(e) {
+                console.log(e.data) // send-from-a
+                e.source.postMessage('send-from-b', e.origin) // 使用e.origin表示回复源窗口消息
+            }
+        </script>
+        ```
+
     - 架设服务器代理（浏览器请求同源服务器，再由后者请求外部服务）
         - 基于`nginx`做中转
 
-        ```shell
+        ```bash
         server {
             listen   80;               
             server_name localhost;
@@ -120,6 +150,24 @@ public Filter corsFilter() {
     }
     ```
     - `CSRF` 跨站请求伪造(Cross-Site Request Forgery). [csrf](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html)
+
+### iframe页面获取父页面地址
+
+- 如果iframe与父页面遵循同源策略(属于同一个域名)，可通过`parent.location`或`top.location`获取父页面url；如果不遵循同源策略，则无法获取
+- 不同源可使用`document.referrer`获取
+
+```js
+function getParentUrl() {
+    var url = null; if (parent !== window) {
+        try {
+            url = parent.location.href;
+        } catch (e) {
+            url = document.referrer;
+        }
+    }
+    return url;
+}
+```
 
 ## Http请求及响应
 
@@ -229,18 +277,84 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 ### 用户浏览器缓存问题 [^5]
 
-- 使用vue框架开发，版本更新，用户浏览器会存在缓存问题
-- vue-cli里的默认配置，css和js的名字都加了哈希值，所以新版本css、js和就旧版本的名字是不同的，不会有缓存问题。
-- 不过值得注意的是，把打包好的index.html放到服务器里去的时候，index.html在服务器端可能是有缓存的，这需要在服务器配置不让缓存index.html
-- nginx 配置，让index.html不缓存
+- 浏览器缓存包括强制缓存、协商缓存
+- 浏览器在请求某一资源时，会先获取该资源缓存的header信息，判断是否命中强缓存(`Cache-control`和`expires`信息)
+    - 若命中直接从缓存中获取资源信息，包括缓存header信息。本次请求根本就不会与服务器进行通信(显示`200 OK (from disk/memory cache)`)
+    - 若没有命中强缓存
+        - 浏览器会发送请求到服务器，请求会携带第一次请求返回的有关缓存的header字段信息(`Last-Modified/If-Modified-Since`和`Etag/If-None-Match`)，由服务器根据请求中的相关header信息来比对结果是否协商缓存命中
+            - 若命中，则服务器返回新的响应header信息更新缓存中的对应header信息，但是并不返回资源内容，它会告知浏览器可以直接从缓存获取(状态码`304`)
+            - 否则返回最新的资源内容(状态码`200`)
+- 强制缓存由`Expires`和`Cache-Control`控制
+    - `Pragma和Expires`(HTTP 1.0) 控制缓存开关的字段有两个
+        - Pragma的值为no-cache时，表示禁用缓存
+        - Expires：response header里的过期时间，浏览器再次加载资源时，如果在这个过期时间内，则命中强缓存
+    - `Cache-Control`(HTTP 1.1)
+        - 当值设为max-age=300时，则代表在这个请求正确返回时间的5分钟内再次加载资源，就会命中强缓存
+        - Cache-control其他常用的设置值(haeder中可包含多个Cache-control)
+            - `-no-cache`：**不使用本地缓存，但是需要使用协商缓存**
+            - `-no-store`：直接禁止浏览器缓存数据，每次用户请求该资源，都会向服务器发送一个请求，每次都会下载完整的资源
+            - `-public`：可以被所有的用户缓存，包括终端用户和CDN等中间代理服务器
+            - `-private`：只能被终端用户的浏览器缓存，不允许CDN等中继缓存服务器对其缓存
+    - `Expires`和`max-age`
+        - `Expires = 时间`，HTTP 1.0 版本，缓存的载止时间，允许客户端在这个时间之前不去检查(发请求)
+        - `Cache-Control: max-age = 秒`，HTTP 1.1版本，资源在本地缓存多少秒，此时`Expires = max-age + "每次下载时的当前的request时间"`。主要解决Expires表示的是时间，但是服务器和客户端之前的时间可能相差很大
+        - 如果max-age和Expires同时存在，则Expires被Cache-Control的max-age覆盖
+- 协商缓存由`Etag/If-None-Match`、`Last-Modified/If-Modified-Since`控制，流程及相关字段说明如下 [^9]
 
-```bash
-# nginx 配置，让index.html不缓存
-location = /index.html {
-    add_header Cache-Control "no-cache, no-store";
-    # ...
-}
-```
+    ![web-cache](/data/images/arch/web-cache.png)
+    - `Last-Modified/If-Modified-Since`
+        - 当浏览器第一次请求一个url时，服务器端的返回状态码为200，同时HTTP响应头会有一个Last-Modified标记着文件在服务器端最后被修改的时间
+        - 浏览器第二次请求上次请求过的url时，浏览器会在HTTP请求头添加一个If-Modified-Since的标记，用来询问服务器该时间之后文件是否被修改过
+    - `Etag/If-None-Match`
+        - 当浏览器第一次请求一个url时，服务器端的返回状态码为200，同时HTTP响应头会有一个Etag，存放着服务器端生成的一个序列值
+        - 浏览器第二次请求上次请求过的url时，浏览器会在HTTP请求头添加一个If-None-Match的标记
+    - Etag 主要为了解决 Last-Modified 无法解决的一些问题
+        - Etag的值通常为文件内容的哈希值；而Last-Modified为最后修改的时间
+        - Last-Modified只能精确到秒，秒之内的内容更新Etag才能检测
+        - Etag每次服务端生成都需要进行读写操作，而Last-Modified只需要读取操作，Etag的消耗是更大的
+- 缓存特殊值说明
+    - `response no-cahce`并不是表示无缓存，而是指使用缓存一定要先经过验证
+    - `response header`的`no-cache`、`max-age=0`和`request header`的`max-age=0`的作用是一样的：都要求在使用缓存之前进行验证
+    - `request header`的`no-cache`，则表示要重新获取请求，其作用类似于`no-store`
+- 用户操作与缓存
+    - 地址栏回车、页面链接跳转、新窗口打开、前进后退：Expires/Cache-Control、Last-Modified/Etag均可正常缓存
+    - `F5`刷新：仅Expires/Cache-Control无法正常缓存
+    - `Ctrl+F5`强制刷新：Expires/Cache-Control、Last-Modified/Etag均无法正常缓存
+- nginx 配置，让vue项目的index.html不缓存
+    - vue-cli里的默认配置，css和js的名字都加了哈希值，所以新版本css、js和就旧版本的名字是不同的，只要index.html不被缓存，则css、js不会有缓存问题
+
+    ```bash
+    # nginx 配置，让index.html不缓存。此处的路径不一定要是index.html，只要某路径A返回的是index.html文件，则此处匹配A路径即可
+    location = /index.html {
+        #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
+        #   - time控制Cache-Control：负数表示no-cache，正数或零表示max-age=time
+        #   - epoch指定Expires的值为`1 January,1970,00:00:01 GMT`
+        expires -1s; # 对于不支持http1.1的浏览器，还是需要expires来控制
+        add_header Cache-Control "no-cache, no-store"; # 会加在 response headers
+        # ...
+    }
+    ```
+- 设置页面A不进行缓存，直接浏览器访问页面A不会缓存；但是把此页面A以iframe方式嵌入到其他页面B时，A会进行缓存，且Request Header提示`Provisional headers are shown`
+
+    ```html
+    <!-- 在A页面增加meta标签：可正常使用。但是如果之前无此标签，加上此标签后仍然无法让已经缓存的页面(无此meta标签)刷新。只会影响此html的缓存效果，不会影响页面js的 -->
+    <head>
+        <meta http-Equiv="Cache-Control" Content="no-cache" />
+        <meta http-Equiv="Pragma" Content="no-cache" />
+        <meta http-Equiv="Expires" Content="0" />
+    </head>
+
+    <!-- 解决方案：未测试成功 -->
+    <script type="text/javascript">
+        var _time = Math.floor(Math.random()*100000)
+        document.write('<iframe src="http://localhost:8080/test.php?_time='+ _time +'"><iframe>')
+    </script>
+    ```
+    - 出现`Provisional headers are shown`的常见情况
+        - 跨域，请求被浏览器拦截
+        - 请求被浏览器插件拦截
+        - 服务器出错或者超时，没有真正的返回
+        - 强缓存from disk cache或者from memory cache，此时也不会显示
 
 ### 压缩
 
@@ -367,6 +481,8 @@ location ^~ /dist/ {
 [^5]: https://blog.csdn.net/qq_32340877/article/details/80338271 (使用vue框架开发，版本更新，解决用户浏览器缓存问题)
 [^6]: https://www.oschina.net/question/2405524_2154029?sort=time
 [^7]: https://juejin.im/post/5cfe23b3e51d4556f76e8073
+[^8]: https://mp.weixin.qq.com/s/LV7qziMyrMt0_EJWo05qkA (九种跨域方式实现原理)
+[^9]: https://juejin.im/post/5c09cbb1f265da617006ee83
 
 
 

@@ -14,15 +14,41 @@ tags: [server]
 - `sftp localhost` 输入密码后登录ftp
     - exit退出(无需安装vsftp，一般服务器都默认支持，相当于windows用xftp以sftp形式登录ftp服务器)
 
+## FTP客户端
+
+- Centos下的ftp客户端(和window下的xftp类似)
+
+```bash
+## 安装ftp客户端
+yum install ftp
+ftp -h # 查看帮助 
+## 连接(默认是被动模式)
+ftp localhost
+ftp -A localhost 21 # 主动模式连接
+## 连接后相关命令
+# 显示帮助
+help
+# ftp命令行退出
+bye
+# 列举文件
+ls
+# 目录切换
+cd
+# 引入被动模式。可用于重启被动模式
+quote pasv
+# 开启/关闭被动模式，再次输入此命令可回到上一模式
+passive
+```
+
 ## FTP服务器
 
-- 主动模式（`PORT`）和被动模式（`PASV`）
-    - 主动模式（**服务器只需要开发21、20端口，需要客户端允许>1024的端口被访问。**服务器管理方便，对客户端不友好，客户端必须放开相应防火墙）
+- 主动模式(`PORT`)和被动模式(`PASV`)
+    - 主动模式(**服务器只需要开发21、20端口，需要客户端允许>1024的端口被访问。**服务器管理方便，对客户端不友好，客户端必须放开相应防火墙)
         - 命令连接：客户端 >1024 端口 → 服务器 21 端口
-        - 数据连接：客户端 >1024 端口 ← 服务器 20 端口（服务器通过20端口向客户端发起连接）
-    - 被动模式（**服务器需要开放21、大于1024的一批端口**，客户端无需开放端口。对客户端友好）
+        - 数据连接：客户端 >1024 端口 ← 服务器 20 端口(服务器通过20端口向客户端发起连接)
+    - 被动模式(**服务器需要开放21、大于1024的一批端口**，客户端无需开放端口。对客户端友好)
         - 命令连接：客户端 >1024 端口 → 服务器 21 端口
-        - 数据连接：客户端 >1024 端口 → 服务器 >1024 端口（服务器开发端口，告诉客户端主动来连接FTP服务器的某个端口，相对服务器是被动。此时每个连接服务器需要开放一个端口）
+        - 数据连接：客户端 >1024 端口 → 服务器 >1024 端口(服务器开发端口，告诉客户端主动来连接FTP服务器的某个端口，相对服务器是被动。此时每个连接服务器需要开放一个端口)
 - 客户端超时未发送命令，服务器会自动关闭连接
 
 ### vsftpd
@@ -33,11 +59,6 @@ tags: [server]
 
 - 安装`yum install vsftpd`
 - 启动服务`systemctl start vsftpd`(修改主配置需要重启服务)
-- ftp客户端(和window下的xftp类似。需要安装ftp：`yum install ftp`)
-    - ftp协议登录`ftp localhost`
-    - ftp命令行退出`bye`
-    - 列举文件`ls`
-    - 目录切换`cd`
 - IE浏览器访问`ftp://192.168.1.1`失败(部分浏览器只支持主动模式)。谷歌浏览器正常访问并使用，或者ftp客户端登录
 
 #### 配置
@@ -225,10 +246,74 @@ tags: [server]
     ```
 - `source /etc/rc.local` 使生效(可能会报`mount: / is busy`，但是应该挂载上了)
 
-## ftp客户端
+#### 基于docker安装
 
-- 客户端默认使用PASV方式，强制其用PORT方式访问服务器，可登录后输入`passive`命令切换模式(再次输入此命令又可回到上一模式)
+> https://github.com/fauria/docker-vsftpd
 
+```bash
+## 如果要设置配置文件目录较麻烦
+## 主动模式
+docker run -d -p 21:21 -v /my/data/directory:/home/vsftpd -e FTP_USER=test -e FTP_PASS=test --name vsftpd fauria/vsftpd
+## 被动模式
+# PASV_ADDRESS：默认Docker host IP / Hostname
+# PASV_MIN_PORT~PASV_MAX_PORT：给客服端提供下载服务随机端口号范围，默认 21100~21110，与前面的 docker 端口映射设置成一样
+docker run -d -v /my/data/directory:/home/vsftpd \
+-p 20:20 -p 21:21 -p 21100-21110:21100-21110 \
+-e FTP_USER=test -e FTP_PASS=test \
+--name vsftpd --restart=always fauria/vsftpd
+# 启动后访问：ftp://test:test@192.168.6.131:21
+```
+- 基于k8s
+    - 共享主机网络主被动模式都可正常使用，可临时测试。不使用共享主机网络主被动均未测试成功
+    - 测试步骤
+        - 配置文件如`sq-ftp.yaml`，使用了rook-ceph进行存储，具体参考[rook-ceph](/_posts/devops/rook-ceph.md简单使用)
+        - `kubectl get pods -o wide` 查看pod被调度到那个k8s-node节点(如：192.168.6.133)，然后使用`ftp 192.168.6.133`连接
+
+```yml
+# sq-ftp.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sq-rook-ceph-pvc
+  namespace: default
+spec:
+  storageClassName: rook-ceph-block-ftp
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sq-ftp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sq-ftp
+  template:
+    metadata:
+      labels:
+        app: sq-ftp
+    spec:
+      volumes:
+      - name: ftp-data
+        persistentVolumeClaim:
+          claimName: sq-rook-ceph-pvc
+      containers:
+      - name: sq-ftp
+        image: fauria/vsftpd
+        volumeMounts:
+        - mountPath: "/home/vsftpd"
+          name: ftp-data
+        env:
+        - name: FTP_USER
+          value: "test"
+        - name: FTP_PASS
+          value: "test"
+      hostNetwork: true
+```
 
 ---
 

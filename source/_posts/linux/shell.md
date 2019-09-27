@@ -865,7 +865,42 @@ db_load -T -t hash -f $vuser_file $vuser_file'.db' ; # 重新生成vsftpd虚拟�
 exit $?
 ```
 
+## C 源码脚本
 
+### 简单示例
+
+```bash
+# 编写源码
+vi test.c
+# 编译源码
+# yum -y install gcc # 安装编译器
+gcc test.c -o test -std=c99 # 源码中的for需要在C99 mode中才可使用，因此需要加`-std=c99`
+# 运行，结果为：连续输出10次hello world后，等待30s程序结束，回到命令行
+./test
+
+# 缓冲流测试
+./test > out # 启动
+tail -f out # 另起一个shell观察out文件数据变化：此时out文件刚开始无数据，30s后输出所有的hello world。如果希望启动后每打印一次则out文件中立刻出现则需要通过下列方式实现
+# 第一种方式：修改源码，使用setvbuf函数
+# 第二种方式：使用stdbuf函数运行。o表示输出流，L表示行缓冲。这样只要遇到换行符，就会将缓冲输出到指定对象
+stdbuf -oL ./test > out
+```
+
+- test.c (参考：Linux 输出流重定向缓冲设置 [^5])
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+int main()
+{
+    // setvbuf(stdout, NULL, _IOLBF, 0); // 设置stdout的缓冲类型为行缓冲
+    for(int i = 0; i < 10; i++)
+        printf("hello world\n");
+
+     sleep(30); // 睡眠30秒
+     return 0;
+}
+```
 
 
 
@@ -878,3 +913,4 @@ exit $?
 [^2]: https://blog.csdn.net/fdipzone/article/details/24329523
 [^3]: https://www.cnblogs.com/yxzfscg/p/5338775.html
 [^4]: https://www.cnblogs.com/softidea/p/6855045.html
+[^5]: https://blog.csdn.net/frank_liuxing/article/details/54017813

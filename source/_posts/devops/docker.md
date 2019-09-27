@@ -15,6 +15,32 @@ tags: [docker, arch]
 - [在线docker测试地址](https://labs.play-with-docker.com/)
 - docker基础镜像包含alpine(apk)、centos(yum)、ubuntu(apt-get)三种
 - 本文基于docker版本`Server Version: 18.05.0-ce`
+- 国内镜像
+
+    ```bash
+    ## docker.io镜像加速
+    # 中科大 `docker.mirrors.ustc.edu.cn`
+    docker pull xxx:yyy "可替换为" docker pull docker.mirrors.ustc.edu.cn/library/xxx:yyy
+    docker pull xxx/yyy:zz "可替换为" docker pull docker.mirrors.ustc.edu.cn/xxx/yyy:zz
+    # Azure中国镜像 `dockerhub.azk8s.cn`
+
+    ## gcr.io镜像加速
+    # 中科大 `gcr.mirrors.ustc.edu.cn`
+    docker pull gcr.io/xxx/yyy:zzz "可替换为" docker pull gcr.mirrors.ustc.edu.cn/xxx/yyy:zzz
+    # Azure中国镜像 `gcr.azk8s.cn`
+
+    ## k8s.gcr.io镜像加速。k8s.gcr.io等价于gcr.io/google-containers
+    # 中科大 `gcr.mirrors.ustc.edu.cn/google-containers`
+    docker pull k8s.gcr.io/xxx:yyy "可替换为" docker pull gcr.mirrors.ustc.edu.cn/google-containers/xxx:yyy
+    # Azure中国镜像 `gcr.azk8s.cn/google-containers`
+    # 阿里云 `registry.aliyuncs.com/google_containers`
+
+    ## quay.io镜像加速
+    # 中科大 `quay.mirrors.ustc.edu.cn`
+    # Azure中国镜像 `quay.azk8s.cn`
+    # 七牛镜像 `quay-mirror.qiniu.com`
+    docker pull quay.io/xxx/yyy:zzz "可替换为" docker pull quay.mirrors.ustc.edu.cn/xxx/yyy:zzz
+    ```
 
 ## 安装
 
@@ -445,8 +471,7 @@ consul members
       --skip-hostname-check       Don't check the daemon's hostname against the name specified
                                   in the client certificate (for example if your docker host
                                   is an IP address)
-      --project-directory PATH    Specify an alternate working directory
-                                  (default: the path of the Compose file)
+      --project-directory PATH    Specify an alternate working directory (default: the path of the Compose file)
 
     Commands:
       build              Build or rebuild services
@@ -899,7 +924,7 @@ docker push 192.168.17.196:5000/nginx
 docker run -itd -p 8080:80 192.168.17.196:5000/nginx:sm_1
 ```
 
-### 基于Harbor搭建私有仓库服务器方式 [^3]
+### Harbor [^3]
 
 - [Harbor](https://goharbor.io/)、[github](https://github.com/goharbor/harbor)
 - Harbor是基于GO开发的一个用于存储和分发Docker镜像的企业级Registry服务器(私有仓库)，提供web界面访问，角色控制。其提供镜像复制功能：镜像可以在多个Registry实例中复制（同步），尤其适合于负载均衡，高可用，混合云和多云的场景

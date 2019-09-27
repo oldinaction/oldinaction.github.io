@@ -77,9 +77,13 @@ server {
 
     access_log /var/log/nginx/test.access.log main;
 
-    # VUE类型应用，防止缓存index.html
+    # VUE类型应用，防止缓存index.html。此处的路径不一定要是index.html，只要某路径A返回的是index.html文件，则此处匹配A路径即可。且index.html中应用的js、css编译的文件名是hash过的，因此也不会缓存
     location = /index.html {
-        add_header Cache-Control "no-cache, no-store";
+        #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
+        #   - time控制Cache-Control：负数表示no-cache，正数或零表示max-age=time
+        #   - epoch指定Expires的值为`1 January,1970,00:00:01 GMT`
+        expires -1s; # 对于不支持http1.1的浏览器，还是需要expires来控制
+        add_header Cache-Control "no-cache, no-store"; # 会加在 response headers
     }
     # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)。内部重定向使用proxy_pass
     location = / {

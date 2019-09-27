@@ -359,9 +359,9 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
 - **`update set from where`** 将一张表的数据同步到另外一张表
     
     ```sql
-    -- Oracle
+    -- Oracle：如果a表和b表的字段相同，最好给两张表加别名
     update a set (a1, a2, a3) = (select b1, b2, b3 from b where a.id = b.id) where exists (select 1  from b where a.id = b.id);
-    -- Mysql
+    -- Mysql：update的表不能加别名，oracle可以加别名
     update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id;
     update a left join b on a0 = b0 set a1 = b1, a2 = b2, a3 = b3 where a.valid_status = 1;
     ```

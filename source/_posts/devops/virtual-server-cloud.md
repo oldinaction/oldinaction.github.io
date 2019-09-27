@@ -219,14 +219,18 @@ supervisorctl status
 - 存储池。创建存储KVM镜像目录，KVM中的虚拟机都是以镜像的方式进行存储
     - 宿主机创建KVM镜像目录`mkdir -pv /data/vmdisk`
     - 创建存储KVM镜像目录(虚拟硬盘)
-        - New Storage - 目录类型卷 - 名称为显示的名称(如：dev-storage) - 路径即存储KVM虚拟机路径(/data/vmdisk)
-        - 在dev-storage中添加镜像，即创建虚拟机的硬盘空间 - 名称如：vmdisk - 格式qcow2 - 去掉Metadata勾选(最终会在对应的宿主机上产生一个`/data/vmdisk/vmdisk.img`文件)
+        - New Storage - 目录类型卷 - 名称为显示的名称(如：dev-storage) - 路径为宿主机路径(如：/data/vmdisk，kvm虚拟硬盘会在此目录创建*.img的存储文件，此Storage的容量为宿主机该目录挂载分区的容量)
+        - 在dev-storage中添加镜像，即创建虚拟机的硬盘空间 - 名称如vmdisk - 格式qcow2 - **输入将被挂载的虚拟磁盘容量大小(最大999G，设置后无法修改)** - 去掉Metadata勾选 - 最终会在对应的宿主机上产生一个`/data/vmdisk/vmdisk.img`文件
     - 创建ISO镜像目录
         - New Storage - ISO镜像卷 - 路径如：/data/os(宿主机需要先创建此目录)
         - 上传ISO镜像
             - 直接页面上传，使用nginx的话需要修改client_max_body_size参数
             - 进入到宿主机下载阿里云镜像，`wget -P /data/os https://mirrors.aliyun.com/centos/7/isos/x86_64/CentOS-7-x86_64-DVD-1810.iso`
             - 或者xftp上传到宿主机/data/os目录
+    - 删除虚拟磁盘步骤
+        - 在虚拟机/etc/fstab中去掉对应磁盘的挂载
+        - 在存储池中删除对应磁盘镜像文件
+        - 在虚拟机设置XML中删除对应磁盘disk配置
 - Interfaces。显示此宿主机虚拟的网络接口，默认是ens33和lo。默认KVM虚拟机的网络为NAT，只可以宿主机访问，宿主机之外就无法访问，因此采用桥接网卡
     - 登录宿主机，查看是否有br0的桥接网卡，没有可以创建一个 `cp /etc/sysconfig/network-scripts/ifcfg-ens33 /etc/sysconfig/network-scripts/ifcfg-br0`
 

@@ -354,13 +354,15 @@ lsmod |grep br_netfilter
     - `du -sh /home/smalle | sort -h` 查看某个目录
     - `du`它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
     - `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
-- `lsblk` 树形显示
-- `dmesg | grep CD` 显示光盘信息。启动dmesg为显示硬件信息，可用于硬件故障诊断
+- `lsblk` **树形显示磁盘即分区**
+    - `fdisk -l` 查看磁盘设备
+    - `ll /dev | grep disk`查看磁盘设备
+- `dmesg | grep CD` 显示光盘信息。其中dmesg为显示硬件信息，可用于硬件故障诊断
 - 磁盘分区和挂载
     - 参考《阿里云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘》 [^10]
     - 一般阿里云服务器买的磁盘未进行格式化文件系统和挂载，`df -h`无法查询到磁盘设备，只能通过`fdisk -l`查看磁盘设备
     - 阿里云`/dev/vda`表示系统盘，`/dev/vdb-z`表示数据盘，`dev/xvd?`表示非I/O优化实例。`/dev/vda1`/`/dev/vdb1`表示对应磁盘上的分区
-    - 无法卸载，提示`umount.nfs: /data: device is busy`时，可使用`fuser`(`yum install -y psmisc`安装)查看占用资源用户和进程信息(`fuser -m -v /data/`)
+    - 无法卸载，提示`umount.nfs: /data: device is busy`时，可使用`fuser`(`yum install -y psmisc`安装)查看占用资源用户和进程信息(`fuser -m -v /data/`)，并退出相关进程
 
     ```bash
     # **最好使用root用户进行操作，`fdisk -l`一般用户查询不到**
@@ -375,7 +377,7 @@ lsmod |grep br_netfilter
     # 输入`p`：查看数据盘的分区情况(输入m获取帮助)
     # 再次输入`n`：创建一个新分区
     # 分区类型选择（p主分区, e扩展分区），新磁盘第一次分区可选择主分区，输入p; 分区号码从1-4，可以输入最小可用分区号
-    # 第一个扇区一般都使用默认的，直接回车即可；最后一个扇区大小根据你自己需要指定，但是一定要在给定范围内，这里是2048-20971519(10G的磁盘)，如果整个磁盘就分一个分区则继续回车(默认即为最大)，如根需要此分区设置大小为200M，则输入`+200M`（单位可为K/M/G/T/P）
+    # 第一个扇区一般都使用默认的，直接回车即可；最后一个扇区大小根据你自己需要指定，但是一定要在给定范围内，这里是2048-20971519(10G的磁盘，=1024*1024*2*10G，此处需要多乘以2)，如果整个磁盘就分一个分区则继续回车(默认即为最大)，如根需要此分区设置大小为200M，则输入`+200M`（单位可为K/M/G/T/P）
     # 再次输入`p`查看将要到达的分区情况
     # 确认后输入`w`写入分区表，并在写入后退出；输入`q`放弃分区并退出
     # 到这里分区就完成了，但是新的分区还是不能使用的，要对新分区进行格式化，然后将它挂载到某个可访问目录下才能进行操作
@@ -432,7 +434,7 @@ lsmod |grep br_netfilter
         # 写入fstab
         echo /dev/vg1/lv1 /home/data xfs defaults 0 0 >> /etc/fstab
         ```
-    - 调整home和root容量大小如下
+    - 调整同VG下不同LV的大小，如调整home和root容量大小如下
 
         ```bash
         # 如果centos卷组有额外的空间，如加入了物理卷，则无需减少home分区容量
@@ -455,7 +457,7 @@ lsmod |grep br_netfilter
         mount /dev/centos/home /home # 挂载 home
         # 使永久有效，写入 etc/fstab 见上文
         ```
-    - 重命名vg、lv(无需umount和备份，数据也不会丢失)
+    - 重命名VG、LV(无需umount和备份，数据也不会丢失)
         
         ```bash
         # 查看并记录基本信息。需要将/dev/hdd/hdd1改成/dev/vdisk/main
@@ -464,6 +466,13 @@ lsmod |grep br_netfilter
         lvrename /dev/vdisk/hdd1 main # 修改lv，注意此时vg为新的
         vi /etc/fstab # 修改之前的挂载信息
         ```
+    - 调整PV大小(进而缩小了VG的大小)
+
+        ```bash
+        # 重设物理分区
+        pvresize --setphysicalvolumesize 120g /dev/sdb1
+        ```
+    - 删除lvm磁盘挂载，直接删除/etc/fstab中对应条目，lvm相关配置会自动去掉
 
 ### 文件
 
@@ -687,7 +696,7 @@ lsmod |grep br_netfilter
     - `Ctrl+r` **恢复上一步被撤销的操作**
     - `Ctrl+v` 进入列编辑模式
 - 行号
-    - `set number`/`set nu` 显示行号
+    - `set number`/`set nu` 显示行号(命令模式执行该命令)
     - `set nonu` 不显示行号
     - 永久显示行号：在`/etc/virc`或`/etc/vimrc`中加入一行`set nu`
 - 批量注释
@@ -710,6 +719,7 @@ lsmod |grep br_netfilter
     # grep [-acinv] [--color=auto] '搜寻字符串' filename
     # 选项与参数：
     # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
+    # -R 递归查询子目录
     # -i 忽略大小写的不同，所以大小写视为相同
     # -E 以egrep模式匹配
     # -n 顺便输出行号
@@ -723,6 +733,7 @@ lsmod |grep br_netfilter
     ```bash
     grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
     grep 'search content' *.sql # 查找已`.sql`结尾的文件
+    grep -R 'test' /data/* # 在/data目录及其字母查询
 
     grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
     grep -A 5 'parttern' filename # 打印匹配行的后5行

@@ -10,7 +10,7 @@ tags: [k8s, docker]
 
 - [官网](https://kubernetes.io/zh)、[github](https://github.com/kubernetes/kubernetes)、[Doc](https://kubernetes.io/zh/docs/)
 - 相关文章：https://github.com/rootsongjc/kubernetes-handbook/ 、 https://www.cnblogs.com/linuxk/category/1248289.html (视频相关) 、 https://feisky.gitbooks.io/kubernetes/content/
-- 镜像: `k8s.gcr.io`一般对应`registry.aliyuncs.com/google_containers`
+- 国内镜像参考[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#Docker介绍)
 
 ### 背景
 
@@ -84,7 +84,7 @@ tags: [k8s, docker]
 
 ```bash
 ### (所有节点)环境配置
-# 更新软件版本和内核次版本。初始化机器可执行，生成环境不建议重复更新内核版本
+# 更新软件版本和内核次版本。初始化机器可执行，生产环境不建议重复更新内核版本，生产环境可使用 `yum upgrade`
 yum update
 
 ## A.关闭防火墙等
@@ -98,10 +98,10 @@ net.ipv4.ip_forward = 1
 # 关闭系统的Swap，如果不关闭，默认配置下kubelet将无法启动；亦可通过参数设置不关闭Swap。特别是已经运行了其他应用的服务器，可通过参数忽略Swap校验，此时则无需关闭
 # vm.swappiness=0
 EOF
-# 关闭交换分区。也可将/etc/fstab中swap的挂载注释掉
+# 关闭交换分区需要执行。也可将/etc/fstab中swap的挂载注释掉
 swapoff -a && sysctl -w vm.swappiness=0
 # 使生效
-modprobe br_netfilter # 加载内核br_netfilter模块
+modprobe br_netfilter # 加载内核br_netfilter模块。注意：建议设置开机自启动，参考[启动设置](/_posts/linux/linux-system.md#启动设置)
 sysctl -p /etc/sysctl.d/k8s.conf
 
 ## B.配置hostname(需要保证唯一)
@@ -310,7 +310,7 @@ kubectl delete node node3
 ### 常见问题
 
 - 镜像：k8s-rpm源和docker镜像的k8s仓库(image-repository)都需要使用国内镜像地址
-- kubelet启动报错，`journalctl -xe`查看日志如下
+- kubelet启动报错，`journalctl -xe`查看日志如下(`sudo journalctl -u kubelet -f -n 100`)
 
     ```bash
     Failed to create ["kubepods"] cgroup
@@ -384,7 +384,7 @@ Basic Commands (Intermediate):
     pods        # 显示描述pods资源的字段说明文档
     # kubectl explain pods.metadata # 显示pods资源的matedata字段说明(可一直通过.字符进行描述子字段)
   get            Display one or many resources # 展示资源列表
-    all             # 获取所有资源
+    all             # **获取所有资源**
     deployment      # 获取部署列表。READY：1/3表示期望部署3个副本，目前只有1副本就绪
         -w                  # 一致观测部署变化(pods等也可使用)
     pods/pod/po     # 获取pod列表。READY：1/3表示此Pod期望部署3个容器，目前只有1个容器就绪
@@ -404,8 +404,10 @@ Basic Commands (Intermediate):
   delete         Delete resources by filenames, stdin, resources and names, or by resources and label selector # 删除资源
     pods        # 删除pods。速度会较慢
     svc         # 删除服务
+    --force --grace-period=0 # 删除资源状态一直是Terminating，可加以上参数
     # kubectl delete pods sq-nginx-75875cf46f-829nm # 删除某个pod
-    # kubectl delete -f sq-pod.yaml # 基于配置文件删除资源(kind标识)
+    # kubectl delete -f sq-pod.yaml # 基于配置文件删除资源
+    # kubectl get pods -n rook-ceph | grep Terminating | awk '{print $1}' | xargs kubectl delete pods -n rook-ceph --force --grace-period=0 # 批量删除pods
 
 # 部署相关
 Deploy Commands:
@@ -442,19 +444,22 @@ Troubleshooting and Debugging Commands:
     svc         # 描述服务信息(默认描述全部服务，后面可接某个服务名)
     --export    # 导出关键配置信息(去除了一些status信息)
     # kubectl describe node node1 # 描述节点node1的详细信息
-  logs           Print the logs for a container in a pod # 打印pod中容器的日志
+  logs           Print the logs for a container in a pod # **打印pod中容器的日志**
     -f          # 实时打印日志
+    --all-containers # 查看pod下所有容器日志
+    -c          # 查看pod下某个容器日志
+    --previous  # 查看不在运行的pod日志
     # kubectl logs sq-pod sq-busybox # 打印 sq-pod 中 sq-busybox 容器的日志
   attach         Attach to a running container
   exec           Execute a command in a container # 在容器中执行命令
     # kubectl exec -it sq-pod -c sq-busybox -- sh # -it同docker表示进入容器
-  port-forward   Forward one or more local ports to a pod # 通过端口转发映射本地端口到指定的应用端口
-    # 一般是为了测试将集群中的某个服务的端口映射到节点的端口上，此时命令行一直处于监听状态
+  port-forward   Forward one or more local ports to a pod # 通过端口转发映射本地端口到指定的应用端口(proxy)
+    # 一般是为了测试将集群中的某个服务的端口映射到节点的端口上，此时命令行会使命令行一直处于监听状态
     # 语法：kubectl port-forward TYPE/NAME [options] [LOCAL_PORT:]REMOTE_PORT [...[LOCAL_PORT_N:]REMOTE_PORT_N]
     # eg:
-        # kubectl port-forward --address 0.0.0.0 sq-pod-8696c98b6f-j2stv 8080:80 # 此时访问 http://192.168.6.131:8080/ 即可
-        # export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=test-chart" -o jsonpath="{.items[0].metadata.name}")
-        # kubectl port-forward --address 0.0.0.0 $POD_NAME 8080:80
+        # kubectl port-forward --address 0.0.0.0 sq-pod-8696c98b6f-j2stv 8080:80 1443:443 # 此时访问 http://192.168.6.131:8080/ 即可
+        # kubectl port-forward --address 0.0.0.0 $(kubectl get pods --namespace default -l "app=wordpress,tier=mysql" -o jsonpath="{.items[0].metadata.name}") 13306:3306
+        # kubectl get pods -n rook-ceph | grep csi-cephfsplugin | awk '{print $1}' | xargs kubectl port-forward --address 0.0.0.0 13306:3306
   proxy          Run a proxy to the Kubernetes API server
     # kubectl proxy 8080 # 将 API server 暴露到一个8080端口上，则可查看api信息 `curl http://localhost:8080/`
   cp             Copy files and directories to and from containers.
@@ -476,6 +481,8 @@ Advanced Commands:
 Settings Commands:
   label          Update the labels on a resource # 给资源(Pod、Node等)添加一个Label标签
     # kubectl label pods sq-pod version=v1 [--overwrite] # 给pod添加标签，加`--overwrite`则表示修改标签
+    # kubectl label nodes {node1,node2,node3} storage-node=enabled # 给node添加标签
+    # kubectl label nodes node1 storage-node- # 删除标签
   annotate       Update the annotations on a resource # 给资源添加描述
   completion     Output shell completion code for the specified shell (bash or zsh)
 
@@ -528,11 +535,11 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
 ### 资源
 
 - 资源(对象)
-    - 工作负载(workload)：Pod、RelicaSet、Deployment、StatefulSet、DaemonSet、Job、Cronjob
-    - 服务发现及负载均衡：Service、Ingress
+    - 工作负载(workload)：Pod、RelicaSet(rs)、Deployment(deploy)、StatefulSet、DaemonSet、Job、Cronjob
+    - 服务发现及负载均衡：Service(svc)、Ingress(ing)
     - 配置与存储：Volume、CSI
-        - PersistentVolume、PersistentVolumeClaim、ConfigMap、Secret
-        - StorageClass
+        - PersistentVolume(pv)、PersistentVolumeClaim(pvc)、ConfigMap(cm)、Secret
+        - StorageClass(sc)
         - DownwardAPI
     - 集群级资源：Namespace、Node、Role、ClusterRole、RoleBinding、ClusterRoleBinding、ServiceAccount(sa)、NetworkPolicy(netpol)、APIService
     - 元数据型资源：HPA、PodTemplate、LimitRange
@@ -574,7 +581,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
         - `command` 对应ENTRYPOINT，可类似docker-compose使用`[]`
             - command/args不能强依赖于`lifecycle.postStart`的执行结果。此处command是在lifecycle.postStart之前执行的
         - `args` 对应CMD(`<[]Object>`)。[与command对应关系](https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell)
-        - `env` 环境变量信息
+        - `env` 环境变量信息(`<[]Object>`)
             - `name` 变量名
             - `value` 变量值
             - `valueFrom` 从其他地方获取环境变量。第一次创建然容器时读取了数据后就不会再同步新数据，如果需要同步；可以挂载ConfigMap/Secret存储卷到pod上
@@ -625,7 +632,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
     ---
     - `selector`
     - `type` Service类型：ClusterIP(默认，k8s集群内访问)、NodePort(k8s集群外可访问)、LoadBalancer、ExternalName(将k8s外部服务映射到集群)
-    - `clusterIP` Service服务集群IP(ExternalName类型无需)。eg：10.66.66.66、None(无头服务)
+    - `clusterIP` Service服务集群IP(ExternalName类型无需)。eg：不定义则自动生成类似10.66.66.66、None(无头服务)
     - `ports` 服务端口(暴露pod的服务端口)
         - `port` 暴露的服务端口
         - `targetPort` 被暴露的容器端口
@@ -993,7 +1000,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
 - `kubectl explain pv.spec` 查看PersistentVolume(pv)配置
     - `accessModes` 定义访问模型，可定义多个。取值：ReadWriteOnce(RWO，单节点读写)、ReadWriteMany(RWX，多节点读写)、ReadOnlyMany(ROX，多节点只读)
     - `capacity` 定义PV空间的大小
-        - `storage` eg：5G(1000换算)、5Gi(1024换算)、T/Ti等
+        - `storage` eg：5G(1000换算)、5Gi(1024换算)，Ki | Mi | Gi | Ti | Pi | Ei等
     - `nfs` 基于nfs配置pv。还可通过其他方式如分布式存储、云存在进行配置
     - `persistentVolumeReclaimPolicy` 回收pv策略。取值：Retain(保留，需手动删除，默认值)、Recycle(回收，只有 NFS 和 HostPath 支持)、Delete(关联的存储资产如EBS、Azure Disk等将被删除)
 - `kubectl explain pvc.spec` 查看PersistentVolumeClaim(pvc)配置
@@ -1001,14 +1008,18 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
     - `resources` 定义申请资源的大小
         - `requests`
             - `storage` 定义大小，eg：3Gi
-- PVC、PV、StorageClass
+- `kubectl explain sc` 查看StorageClass(sc)配置
+    - `provisioner` 存储提供者，如`rook-ceph.rbd.csi.ceph.com`(基于rook-ceph的存储方案)
+    - `parameters` 相关参数
+    - `reclaimPolicy` 类似pv的persistentVolumeReclaimPolicy参数取值：Retain、Recycle、Delete
+- PVC、PV、SC
     - 存储管理员提前创建不同存储服务(nfs、glusterfs等)，K8s集群管理根据不同的持久化卷类型配置存储卷映射(PV，集群公共资源)，用户基于存储卷创建定义PVC
     - `PV`状态：`Available`(可用) -> `Bound`(绑定) -> `Released`(释放) -> Failed(失败。该卷的自动回收失败)
-        - Released说明：声明被删除，但是资源还未被集群重新声明。当pv回收策略为Retain时，删除了此pv之前绑定的pvc后，此时pod中数据得到了保留，但其 PV 状态会一直处于 Released，不能被其他 PVC 申请。为了重新使用存储资源，可以删除PV并重新创建该PV(**删除 PV 操作只是删除了 PV 对象，存储空间中的数据并不会被删除**)
+        - Released说明：声明被删除，但是资源还未被集群重新声明。当pv回收策略为Retain时，删除了对应pvc后(此pv之前绑定的)，此时pod中数据得到了保留，但其 PV 状态会一直处于 Released，不能被其他 PVC 申请。为了重新使用存储资源，可以删除PV并重新创建该PV(**删除 PV 操作只是删除了 PV 对象，即k8s-pv与存储介质之间的对应关系，存储空间中的数据并不会被删除**)
     - `PVC`状态：`Pending`(准备中) -> `Bound`(绑定)
         - PVC一直处于Pending状态，而PV却处于Bound状态，可能情况：如使用的NFS服务器关闭了；定义的PV大小、读写类型不符合PVC的要求
         - PV一直处于Released状态：如果确认此PV不再使用(对应的数据文件目录)，可删除此PV重新创建PV
-    - `StorageClass`资源配置
+    - `SC`资源配置，参考：[http://blog.aezo.cn/2019/06/22/devops/rook-ceph/](/_posts/devops/rook-ceph.md#简单使用)
         - 在pvc申请存储空间时，未必就有现成的pv符合pvc申请的需求。当用户突然需要使用PVC时，可通过restful发送请求StorageClass，继而让存储空间创建相应的存储image，之后在集群中定义对应的PV供给当前的PVC作为挂载使用。因此存储系统必须支持restful接口，比如ceph分布式存储，而glusterfs则需要借助第三方接口完成这样的请求
     - PV和PVC创建无需先后顺序
 - `ConfigMap`和`Secret`为一种特殊的存储卷
@@ -1048,7 +1059,7 @@ spec:
     command: ['/bin/sh', '-c', 'while true; do echo $(date) >> /data/index.html; sleep 2; done']
   volumes:
   - name: html
-    # 使用默认配置
+    # {} 表示使用默认配置
     emptyDir: {}
 ```
 
@@ -1115,6 +1126,7 @@ metadata:
   name: sq-pvc
   namespace: default
 spec:
+  # storageClassName: rook-ceph-block # 使用 StorageClass 动态创建PV时需要
   accessModes: ["ReadWriteMany"]
   resources:
     requests:
@@ -1133,9 +1145,9 @@ spec:
     - name: html
       mountPath: /usr/share/nginx/html
   volumes:
-    - name: html
-      persistentVolumeClaim:
-        claimName: sq-pvc
+  - name: html
+    persistentVolumeClaim:
+      claimName: sq-pvc
 ```
 - 测试
     - 找到pod绑定的pv(`kubectl get pvc`)，从而得知pv对应的nfs目录
@@ -1407,8 +1419,8 @@ spec:
   affinity:
     # 节点亲和性
     nodeAffinity:
-      # 硬亲和性(必须满足)
-      requiredDuringSchedulingIngnoreDuringExecution:
+      # 硬亲和性：必须满足以下条件的k8s节点才能被调度
+      requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms: # 只需满足一个nodeSelectorTerms
         - matchExpressions: # 必须满足所有matchExpressions(此时匹配节点labels)
           - {key: zone, operator: In, values: ["sh"]}
@@ -1421,7 +1433,7 @@ spec:
     # Pod亲和性
     podAffinity:
       # 硬亲和性
-      requiredDuringSchedulingIngnoreDuringExecution:
+      requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:
           matchExpression:
           - {key: app, operator: In, values: ["tomcat"]}
@@ -1430,17 +1442,17 @@ spec:
       # 软亲和性
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 80
-      podAffinityTerm:
-        labelSelector:
-          matchExpressions:
-          - {key: app, operator: In, values: ["cache"]}
-        topologyKey: zone
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - {key: app, operator: In, values: ["cache"]}
+          topologyKey: zone
       - weight: 20
-      podAffinityTerm:
-        labelSelector:
-          matchExpressions:
-          - {key: app, operator: In, values: ["db"]}
-        topologyKey: zone
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - {key: app, operator: In, values: ["db"]}
+          topologyKey: zone
     # Pod反亲和性(同上)
     #podAntiAffinity:
   containers:
@@ -1459,13 +1471,12 @@ spec:
     ```bash
     ## 查看示例
     kubectl describe node node1 # 查看node1节点污点(Taints)
+    kubectl get nodes node1 -o go-template={{.spec.taints}} # 查看污点
     kubectl describe pods kubernetes-dashboard-5dc4c54b55-ft4xh -n kube-system # 查看pod容忍污点(Tolerations)
 
     ## 添加污点语法：kubectl taint nodes <nodename> <key>=<value>:<effect>
     # 给node1添加污点
     kubectl taint nodes node1 profile=prod:NoSchedule
-    # 查看污点
-    kubectl get nodes node1 -o go-template={{.spec.taints}}
 
     ## 删除语法：kubectl taint nodes <node-name> <key>[: <effect>]-
     kubectl taint nodes node1 profile:NoSchedule- # 删除profile键名的NoSchedule类型污点
@@ -1480,8 +1491,8 @@ spec:
     ## pod容忍的污点
     # 污点意思：如果节点包含`node.kubernetes.io/not-ready`污点(节点未准备就绪)，则pod不能在此节点上运行
     # 而此时pod容忍此污点，则相当于就算节点未准备就绪，pod也可以在此节点上运行(系统不会到其他节点重新创建pod)，且此忍耐时间为300s(即300s之后节点仍然未就绪，则此k8s会将此pod调度到其他节点)
-    node.kubernetes.io/not-ready:NoExecute for 300s
-    node.kubernetes.io/unreachable:NoExecute for 300s
+    node.kubernetes.io/not-ready:NoExecute for 300s # not-ready为node尚未准备就绪污点
+    node.kubernetes.io/unreachable:NoExecute for 300s # unreachable为node尚不可达污点(如节点kubelet程序挂掉，则会自动加上此污点)
     ```
 
 #### pod的容忍度
@@ -1676,10 +1687,23 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 
 ## 常见问题
 
+- 日志查看
+    - `sudo journalctl -u kubelet -f -n 100` **查看对应节点kubelet日志**
+    - `sudo journalctl -u docker -f -n 100` **查看对应节点kubeletdocker日志**
+- 相关目录
+    - `/var/lib/kubelet/pods/` 节点中pod存放位置，里面基于pod-id存放，此id有时会出现在journalctl日志中
+
+### nodes
+
 - `kubectl get nodes` 显示Node状态为NotReady
     - 查看对应节点的网络插件(Pod)是否正常启动
     - 查看对应节点服务状态`systemctl status kubelet/docker`
-    - `journalctl -f -u kubelet` 查看对应节点kubelet启动日志
+    - `sudo journalctl -u kubelet -f -n 100` 查看对应节点kubelet日志
+    
+### pod
+
+- 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container` 可查看对应pod的日志
+
 
 
 ---
