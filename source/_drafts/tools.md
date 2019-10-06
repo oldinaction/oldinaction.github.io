@@ -8,11 +8,27 @@ tags: tools
 
 ## 通用
 
-### VNC(RealVNC)
+### 开发
+
+#### VNC(RealVNC)
 
 官网免费版支持5台电脑3个用户7*24小时连接
 破解版下载：http://www.xdowns.com/soft/1/118/2017/Soft_224671.html
 https://blog.csdn.net/runningtortoises/article/details/51425299
+
+#### notepad++
+
+- 插件推荐
+    - `XML Tools` 格式化xml文件
+        - 格式化xml文件：点击plugin，选择ML Tools，点击`pretty print xml(only-with line breaks)`即可
+    - MarkdownViewer++
+    - JSON Viewer
+    - JSTool
+    - NppAStyle
+
+## 谷歌浏览器插件
+
+- 参考：[http://blog.aezo.cn/2017/09/13/extend/chrome/](/_posts/extend/chrome.md#chrome插件收集)
 
 ## windows
 

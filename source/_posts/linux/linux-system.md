@@ -8,12 +8,20 @@ tags: [linux, shell]
 
 ## 基础知识
 
-### 发行版
-
-- Linux的发行版本可以大体分为两类，一类是商业公司维护的发行版本，一类是社区组织维护的发行版本，前者以著名的Redhat（RHEL）为代表，后者以Debian为代表
-- `Redhat系列`：包括`RHEL`(Redhat Enterprise Linux)、`Fedora Core`(由原来的Redhat桌面版本发展而来，免费版本)、`CentOS`(RHEL的社区克隆版本，免费)
-- `Debian系列`：包括`Debian`和`Ubuntu`等
-- Debian最具特色的是`apt-get / dpkg`包管理方式; Redhat是`yum`包管理方式
+- `Linux` 和 `BSD` 都是类 `UNIX` 操作系统
+    - 二者均开源
+        - Linux 使用 GNU 通用公共许可证，即 GPL。修改Linux核心源码后必须开源
+        - BSD(Berkeley Software Distribution，伯克利软件套件) 使用 BSD 许可证。修改源码后不需开源
+    - BSD分支
+        - `FreeBSD`：是最受欢迎的 BSD。支持英特尔和 AMD 的32位和64位处理器
+        - `NetBSD`：被设计运行在几乎任何架构上，支持更多的体系结构
+        - `OpenBSD`：为最大化的安全性设计的
+        - `DragonFly BSD`：设计目标是提供一个运行在多线程环境中的操作系统。如计算机集群
+        - `Darwin / Mac OS X`：Mac OS X 实际上基于 Darwin 操作系统，而 Darwin 系统基于 BSD
+- Linux发行版：一类是商业公司维护的发行版本，另一类是社区组织维护的发行版本。前者以著名的Redhat(RHEL)为代表，后者以Debian为代表
+    - `Redhat系列`：包括`RHEL`(Redhat Enterprise Linux)、`Fedora Core`(由原来的Redhat桌面版本发展而来，免费版本)、`CentOS`(RHEL的社区克隆版本，免费)
+    - `Debian系列`：包括`Debian`和`Ubuntu`等
+    - Debian最具特色的是`apt-get / dpkg`包管理方式; Redhat是`yum`包管理方式
 
 ### 系统信息查询
 

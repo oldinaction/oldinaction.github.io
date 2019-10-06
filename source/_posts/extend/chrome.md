@@ -18,18 +18,23 @@ tags: [plugins, debug]
 
 ## chrome插件收集
 
+- `谷歌访问助手`
+- `AdBlock` 广告拦截
+- `Infinity新标签页` 标签管理
+- `有道词典Chrome划词插件`
+- `Evernote Web Clipper` 印象笔记·剪藏
+- `新浪微博图床`
+- `Octotree` github源码目录展现
+- `Tampermonkey` 油猴脚本
+- `IDM Integration Module` IDM下载
+- `Secure Shell` ssh客户端
 - `Postman` Http请求客户端
 - `JSONView` 将Http请求获取的json字符串格式化(可收缩)
-- `Secure Shell` ssh客户端
+- `Selenium IDE` 自动化测试录制
 - `Axure RP Extension for Chrome` Axure设计
-- `Set Character Encoding` 解决chrome查看源码乱码问题
 - `Vue.js devtools` Vue.js调试工具
-- `AdBlock` 广告拦截
-- `有道词典Chrome划词插件`
-- `印象笔记·剪藏`
-- `Infinity新标签页` 标签管理
+- `Set Character Encoding` 解决chrome查看源码乱码问题
 
-- `Octo Mate` github单文件下载(也可右键github按钮raw另存为)
 
 ## 调试技巧
 

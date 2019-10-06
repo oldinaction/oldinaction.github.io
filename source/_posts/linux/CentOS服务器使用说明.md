@@ -169,10 +169,10 @@ yum repolist
 
     ## 举例
     rpm -ivh jdk-7u80-linux-x64.rpm # 安装程序包(jdk)
-    rpm -e nginx # 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
-    rpm -qc nginx # 查询指定包安装的配置文件
     rpm -qa # 查看安装的程序包(`rpm -qa | grep nginx` 查看是否安装nginx)
+    rpm -qc nginx # 查询指定包安装的配置文件
     rpm -ql jdk | more # 查询指定包安装后生成的文件列表
+    rpm -e nginx # 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
     rpm -Uvh nginx # 如果装有老版本则升级，否则安装
     rpm -Fvh nginx # 如果装有老版本则升级，否则退出
     ```
@@ -480,16 +480,6 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
     }
     ```
 
-## yum安装
-
-- `yum -y install memcached` 安装memcached(默认端口11211)
-- `yum -y install git` 安装git
-- `yum install jq` shell读取json数据
-    - `jq .subjects[0].casts[0] douban.json`
-    - `curl -s https://douban.uieee.com/v2/movie/top250?count=1 | jq .subjects[0].casts[0]`
-
-## 管理软件安装
-
 ### htop安装
 
 - htop是比top功能更多的进程管理工具
@@ -500,6 +490,42 @@ nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，
     - 选中一行，按下键可查看更多进程
     - Nice：指的是nice值，这样就可以提高/降低对应进程的优先级
 
+### 邮件发送服务配置
+
+- 使用外部邮件发送服务
+
+```bash
+yum install -y mailx
+
+# 邮件发送服务配置
+cat >> /etc/mail.rc <<EOF
+set from=aezocn@163.com
+set smtp=smtp.163.com
+set smtp-auth-user=aezocn@163.com
+# 授权密码，不是登录密码
+set smtp-auth-password=xxx
+set smtp-auth=login
+EOF
+# 测试发送(163邮箱容易出现554检测到垃圾拒发问题，此处使用-c抄送给自己可解决)
+echo "test mail..." | mail -s "hello subject" -c aezocn@163.com oldinaction@163.com
+```
+- 安装postfix(centos7已内置安装)或者sendmail等邮件发送服务(此方法发送的邮件容易进入垃圾箱)
+
+```bash
+yum install -y postfix
+systemctl enable postfix && systemctl restart postfix && systemctl status postfix
+# 安装mailx。此时无需设置smtp等(如果mail.rc设置了smtp则优先使用配置的smtp)
+echo "zabbix test mail" | mail -s "zabbix" oldinaction@163.com
+# 可以看到手动一封来自 `root<root@node1.localdomain>`的邮件，其中node1为服务器名
+```
+
+### yum直接安装
+
+- `yum -y install memcached` 安装memcached(默认端口11211)
+- `yum -y install git` 安装git
+- `yum install jq` shell读取json数据
+    - `jq .subjects[0].casts[0] douban.json`
+    - `curl -s https://douban.uieee.com/v2/movie/top250?count=1 | jq .subjects[0].casts[0]`
 
 
 ---

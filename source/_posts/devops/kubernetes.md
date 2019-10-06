@@ -431,9 +431,11 @@ Cluster Management Commands:
   cluster-info   Display cluster info # 打印集群信息
   top            Display Resource (CPU/Memory/Storage) usage.
    # kubectl top pods/nodes # 查看监控指标信息，必须启动 metrics-server 才能正常获取
-  cordon         Mark node as unschedulable # 给节点加不可用标记
-  uncordon       Mark node as schedulable # 给节点加可用标记
-  drain          Drain node in preparation for maintenance
+  cordon         Mark node as unschedulable # 设置节点未不可调度
+    # kubectl cordon node2
+  uncordon       Mark node as schedulable # 设置节点未可调度
+    # kubectl uncordon node2
+  drain          Drain node in preparation for maintenance # 移除相应节点。此时k8s会将相应节点上的旧Pod删除，并在可调度节点上面起一个对应的Pod。当旧Pod没有被正常删除的情况下(如旧Pod一直处于Terminating状态)，新Pod不会起来
   taint          Update the taints on one or more nodes # 给节点增加污点。如Master默认就存在污点，其他Pod默认不能容忍此污点，因此普通Pod不会运行在Master节点上
 
 # Debug命令
@@ -975,6 +977,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
 
 ### 存储卷
 
+- csi(Container Storage Interface)[https://github.com/container-storage-interface/spec]
 - 常用分类
     - `emptyDir` 临时目录。pod删除，数据也会被清除，这种存储成为emptyDir，用于数据的临时存储
     - `hostPath` 宿主机目录映射
@@ -1716,5 +1719,4 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^6]: https://www.qikqiak.com/post/how-to-use-ipvs-in-kubernetes/
 [^7]: https://www.jianshu.com/p/3f2401d14c78 (K8s网络模型)
 [^8]: https://blog.fleeto.us/post/kubernetes-storage-performance-comparison/ (Kubernetes 存储性能对比)
-
 

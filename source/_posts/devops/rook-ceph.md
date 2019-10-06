@@ -42,7 +42,7 @@ kubectl apply -f common.yaml
 vi operator.yaml
 kubectl apply -f operator.yaml
 # 需要等几分钟，确保 rook-ceph-operator 处于 `Running` 状态，`rook-discover` 会在无污点(k8s-master有污点)的所有节点上运行。`rook-ceph-agent` 在Flex模式才会产生(默认是CSI模式)
-kubectl get pod -n rook-ceph
+kubectl -n rook-ceph get pod -o wide
 
 ### 设置节点标签。(测试环境 node1 为k8s-master节点，所有默认无法被调度)
 kubectl label nodes {node2,node3} storage-node=enable
@@ -53,8 +53,8 @@ vi cluster.yaml
 # 创建并查看ceph集群
 kubectl apply -f cluster.yaml
 # 此时会在无污点的k8s节点上运行csi-pod等pod
-# 然后在相应的rook节点运行rook-ceph-mgr(需要mon选举成功，mgr才会正常运行)、rook-ceph-mon、rook-ceph-osd-prepare(进行osd分区等)、rook-ceph-osd对应的pod。如：rook-ceph-osd-0-5c45f86b4f-nhwzt 则对应 osd0 所在pod(此pod所在节点即为osd0所在节点)
-kubectl get pod -n rook-ceph
+# 然后在相应的rook节点运行rook-ceph-mgr(需要mon选举成功，mgr才会正常运行)、rook-ceph-mon(生成的mon-pod会自动加上nodeSelector=当前运行节点)、rook-ceph-osd-prepare(进行osd分区等)、rook-ceph-osd对应的pod。如：rook-ceph-osd-0-5c45f86b4f-nhwzt 则对应 osd0 所在pod(此pod所在节点即为osd0所在节点)
+kubectl -n rook-ceph get pod -o wide
 
 ### 配置ceph dashboard
 # 创建NodePort服务
@@ -249,26 +249,29 @@ rm -rf /var/lib/rook
 ### 删除整个集群
 
 ```bash
+## 备份数据后再操作
 cd /home/smalle/k8s/rook-1.1.1/cluster/examples/kubernetes/ceph/
 ## 删除测试案例相关资源
-kubectl delete -f ../mysql.yaml
 kubectl delete -n rook-ceph cephblockpool replicapool-test
-kubectl delete storageclass rook-ceph-block
 ## 删除rook-ceph集群并检查
-kubectl -n rook-ceph delete cephcluster rook-ceph
+kubectl -n rook-ceph delete cephcluster rook-ceph # 如果删除是吧可以先执行下述命令
 kubectl -n rook-ceph get cephcluster
 ## 删除operator及相关资源
 kubectl delete -f operator.yaml
 kubectl delete -f common.yaml
 # 如果对于的namespace(rook-ceph)一直处于Terminating无法被删除可运行此命令。此命令运行会报错，稍等可在查看namespace是否被删除
 kubectl -n rook-ceph patch crd cephclusters.ceph.rook.io --type merge -p '{"metadata":{"finalizers": [null]}}'
-## 在rook集群使用到的k8s节点上，备份数据后删除
+# 所有节点运行，删除rook集群数据
+rm -rf /var/lib/rook
+## 在rook集群使用到的k8s节点上，**备份数据后删除**
 # 删除所有分区，需要对所有用到的磁盘进行操作。sgdisk是Linux下操作GPT分区的工具，就像fdisk是操作MBR分区的工具
 # yum install gdisk # 安装sgdisk工具
 sgdisk --zap-all /dev/sdb
 # 在每个节点上删除映射
 ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove %
 rm -rf /dev/ceph-*
+# 删除osd数据目录
+rm -rf /data/rook
 ```
 - sgdisk工具
 
@@ -319,7 +322,7 @@ kubectl get pod -n rook-ceph -o wide
 kubectl logs -n rook-ceph -l app=rook-ceph-operator # **查看operator日志**：operator会负责连接mon服务，只有mon选举成功，才会启动osd服务
 kubectl logs -n rook-ceph -l mon=a
 # 登录特定k8s节点以查找PVC挂载失败的原因
-journalctl -u kubelet # 查看kubelet日志
+journalctl -u kubelet -f -n 100 # 查看kubelet日志
 # 有多个容器的pods
 kubectl -n rook-ceph logs <pod-name> --all-containers # 对于所有容器
 kubectl -n rook-ceph logs <pod-name> -c <container-name> # 对于单个容器
@@ -383,7 +386,7 @@ wipefs -a /dev/sdb
         - `PG map`：包括当前PG版本、时间戳、最新的OSD Map的版本信息、空间使用比例，以及接近占满比例信息，同时包括每个PG ID、对象数目、状态、OSD 的状态以及深度清理的详细信息。通过命令 `ceph pg dump` 可以查看相关状态
         - `CRUSH map`： 包括集群存储设备信息，故障域层次结构和存储数据时定义失败域规则信息。通过 命令 `ceph osd crush map` 查看
         - `MDS map`：包括存储当前 MDS map 的版本信息、创建当前的Map的信息、修改时间、数据和元数据POOL ID、集群MDS数目和MDS状态，可通过 `ceph mds dump` 查看
-    - `OSD`(Object Storage Device)：是由物理磁盘驱动器、在其之上的 Linux 文件系统以及 Ceph OSD 服务组成。Ceph OSD 将数据以对象的形式存储到集群中的每个节点的物理磁盘上，完成存储数据的工作绝大多数是由 OSD daemon 进程实现。在构建 Ceph OSD的时候，建议采用SSD 磁盘以及xfs文件系统来格式化分区
+    - `OSD`(Object Storage Device/Daemon)：是由物理磁盘驱动器、在其之上的 Linux 文件系统以及 Ceph OSD 服务组成。Ceph OSD 将数据以对象的形式存储到集群中的每个节点的物理磁盘上，完成存储数据的工作绝大多数是由 OSD daemon 进程实现。在构建 Ceph OSD的时候，建议采用SSD 磁盘以及xfs文件系统来格式化分区
     - `MDS`(Ceph Metadata Server)：Ceph 元数据，ceph 块设备和RDB并不需要MDS，MDS只为 CephFS服务
     - `RADOS`(Reliable Autonomic Distributed Object Store)：RADOS是ceph存储集群的基础。在ceph中，所有数据都以对象的形式存储，并且无论什么数据类型，RADOS对象存储都将负责保存这些对象。RADOS层可以确保数据始终保持一致
     - `librados` 和 RADOS 交互的基本库，为应用程度提供访问接口。同时也为块存储、对象存储、文件系统提供原生的接口。Ceph 通过原生协议和 RADOS 交互，Ceph 把这种功能封装进了 librados 库，这样也能定制自己的客户端
@@ -410,7 +413,7 @@ rbd showmapped
 ceph -h
 ceph -v # ceph version 14.2.4 (75f4de193b3ea58512f204623e6c5a16e6c1e1ba) nautilus (stable)
 # 查看集群状态
-ceph status
+ceph -s
 ```
 
 #### rbd 块存储

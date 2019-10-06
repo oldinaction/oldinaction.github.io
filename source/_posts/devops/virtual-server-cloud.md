@@ -10,9 +10,9 @@ tags: [linux, cloud, server]
 
 ### Hypervisor、KVM
 
-- `Hypervisor` 是一种将操作系统与硬件抽象分离的一种技术实现方法，一种运行在物理服务器和操作系统之间的中间软件层（可以是软件程序，也可以是固件程序）。Hypervisor是所有虚拟化技术的核心，也叫虚拟机监视器VMM（Virtual Machine Monitor）[^1]
-- `KVM`（Kernel-base-virtual machine）实际上是类Linux发行版内核中提供的虚拟化技术（内核级虚拟化），可将内核直接充当Hypervisor来使用，在内核中独立存在可动态加载。注意其处理器（CPU）自身必须支持虚拟化扩展
-    - QEMU 是一个主机上的VMM（virtual machine monitor），通过动态二进制转换来模拟CPU，并提供一系列的硬件模型，使guest os认为自己和硬件直接打交道，其实是同QEMU模拟出来的硬件打交道，QEMU再将这些指令翻译给真正硬件进行操作。通过这种模式，guest os可以和主机上的硬盘，网卡，CPU，CD-ROM，音频设备和USB设备进行交互。但由于所有指令都需要经过QEMU来翻译，因而性能会比较差
+- `Hypervisor` 是一种将操作系统与硬件抽象分离的一种技术实现方法，一种运行在物理服务器和操作系统之间的中间软件层(可以是软件程序，也可以是固件程序)。Hypervisor是所有虚拟化技术的核心，也叫虚拟机监视器VMM(Virtual Machine Monitor)[^1]
+- `KVM`(Kernel-base-virtual machine)实际上是类Linux发行版内核中提供的虚拟化技术(内核级虚拟化)，可将内核直接充当Hypervisor来使用，在内核中独立存在可动态加载。注意其处理器(CPU)自身必须支持虚拟化扩展
+    - QEMU 是一个主机上的VMM，通过动态二进制转换来模拟CPU，并提供一系列的硬件模型，使guest os认为自己和硬件直接打交道，其实是同QEMU模拟出来的硬件打交道，QEMU再将这些指令翻译给真正硬件进行操作。通过这种模式，guest os可以和主机上的硬盘，网卡，CPU，CD-ROM，音频设备和USB设备进行交互。但由于所有指令都需要经过QEMU来翻译，因而性能会比较差
     - QEMU-KVM：KVM负责cpu虚拟化+内存虚拟化，实现了cpu和内存的虚拟化，但kvm并不能模拟其他设备，还必须有个运行在用户空间的工具才行。KVM的开发者选择了比较成熟的开源虚拟化软件QEMU来作为这个工具，QEMU模拟IO设备（网卡，磁盘等），组成了QEMU-KVM [^5]
     - Qemu和KVM的最大区别就是：KVM模式如果一台物理机内存直接4G，创建一个vm虚拟机分配内存分4G，在创建一个还可以分4G，支持超配，但是qemu不支持
 - `Libvirt` 是RedHat开始支持KVM后搞的一个用户空间虚拟机管理工具，其包括：KVM/QEMU，Xen，LXC，OpenVZ 或 VirtualBox hypervisors等

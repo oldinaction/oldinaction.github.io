@@ -14,6 +14,27 @@ tags: [test]
 
 ### 磁盘
 
+- 块存储和文件存储的测试重点也不一样
+    - 块存储测试：fio/iozone是两个典型的测试工具，重点测试IOPS，延迟和带宽
+
+        ```bash
+        # fio -filename=/dev/sdc -iodepth=${iodepth} -direct=1 -bs=${bs} -size=100% --rw=${iotype} -thread -time_based -runtime=600 -ioengine=${ioengine} -group_reporting -name=fioTest
+        # 测试IOPS：iodepth=32/64/128，bs=4k/8k，rw=randread/randwrite，ioengine=libaio
+        # 测试延迟：iodepth=1，bs=4k/8k，rw=randread/randwrite，ioengine=sync
+        # 测试带宽：iodepth=32/64/128，bs=512k/1m，rw=read/write，ioengine=libaio
+        ```
+    - fio/vdbench/mdtest是测试文件系统常用的工具。fio/vdbench用来评估IOPS，延迟和带宽；mdtest评估文件系统元数据性能，主要测试指标是creation和stat，需要采用mpirun并发测试
+
+        ```bash
+        # fio -filename=/mnt/yrfs/fio.test -iodepth=1 -direct=1 -bs=${bs} -size=500G --rw=${iotype} -numjobs=${numjobs} -time_based -runtime=600 -ioengine=sync -group_reporting -name=fioTest
+        # 与块存储的测试参数有一个很大区别，就是ioengine都是用的sync，用numjobs替换iodepth
+        # 测试IOPS：bs=4k/8k，rw=randread/randwrite，numjobs=32/64
+        # 测试延迟：bs=4k/8k，rw=randread/randwrite，numjobs=1
+        # 测试带宽：bs=512k/1m，rw=read/write，numjobs=32/64
+
+        # mpirun --allow-run-as-root -mca btl_openib_allow_ib 1 -host yanrong-node0:${slots},yanrong-node1:${slots},yanrong-node2:${slots} -np ${num_procs} mdtest -C -T -d /mnt/yrfs/mdtest -i 1 -I ${files_per_dir} -z 2 -b 8 -L -F -r -u
+        ```
+
 #### fio 工具
 
 - fio使用
@@ -60,7 +81,7 @@ io_queue        # 花费在队列上的总共时间
 util            # 磁盘利用率
 ```
 
-- 使用案例
+- 使用案例(基于阿里云80G SSD硬盘进行)
 
 ```bash
 touch ~/test
@@ -72,51 +93,52 @@ Rand_Write_Testing: (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4
 ...
 fio-3.7
 Starting 4 processes
-Jobs: 4 (f=4): [m(4)][100.0%][r=520KiB/s,w=528KiB/s][r=130,w=132 IOPS][eta 00m:00s]
-Rand_Write_Testing: (groupid=0, jobs=4): err= 0: pid=65409: Thu Sep 26 22:26:30 2019
+Rand_Write_Testing: Laying out IO file (1 file / 2048MiB)
+Jobs: 4 (f=4): [m(4)][7.0%][r=5024KiB/s,w=4816KiB/s][r=1256,w=1204 IOPS][eta 13m:27s] 
+Rand_Write_Testing: (groupid=0, jobs=4): err= 0: pid=2450: Fri Sep 27 18:30:30 2019
     # iops：磁盘的每秒读写次数，是随机读写的关键指标
     # bw：磁盘的吞吐量，是顺序读写的关键指标
-   read: IOPS=118, BW=476KiB/s (487kB/s)(27.9MiB/60153msec)
-    slat (usec): min=9, max=2860, avg=113.39, stdev=95.48
-    clat (usec): min=313, max=633045, avg=105460.90, stdev=79132.38
-     lat (usec): min=373, max=633117, avg=105575.35, stdev=79131.82
-    clat percentiles (msec):
-     |  1.00th=[    7],  5.00th=[   15], 10.00th=[   24], 20.00th=[   41],
-     | 30.00th=[   58], 40.00th=[   74], 50.00th=[   90], 60.00th=[  107],
-     | 70.00th=[  129], 80.00th=[  159], 90.00th=[  205], 95.00th=[  247],
-     | 99.00th=[  368], 99.50th=[  489], 99.90th=[  617], 99.95th=[  634],
-     | 99.99th=[  634]
-   bw (  KiB/s): min=    7, max=  208, per=25.01%, avg=118.80, stdev=32.14, samples=480
-   iops        : min=    1, max=   52, avg=29.57, stdev= 8.06, samples=480
-  write: IOPS=123, BW=496KiB/s (508kB/s)(29.1MiB/60153msec)
-    slat (usec): min=3, max=4135, avg=168.92, stdev=137.05
-    clat (usec): min=5, max=598543, avg=27452.72, stdev=44430.15
-     lat (usec): min=272, max=598684, avg=27622.73, stdev=44432.87
+   read: IOPS=1226, BW=4908KiB/s (5026kB/s)(288MiB/60032msec)
+    slat (usec): min=2, max=8631, avg=44.76, stdev=80.70
+    clat (usec): min=26, max=96665, avg=6108.77, stdev=18978.72
+     lat (usec): min=469, max=96678, avg=6154.07, stdev=18977.56
     clat percentiles (usec):
-     |  1.00th=[   253],  5.00th=[   371], 10.00th=[   660], 20.00th=[  1287],
-     | 30.00th=[  2212], 40.00th=[  3032], 50.00th=[  5538], 60.00th=[ 15795],
-     | 70.00th=[ 32375], 80.00th=[ 52691], 90.00th=[ 78119], 95.00th=[101188],
-     | 99.00th=[177210], 99.50th=[261096], 99.90th=[522191], 99.95th=[574620],
-     | 99.99th=[599786]
-   bw (  KiB/s): min=    8, max=  264, per=25.07%, avg=124.10, stdev=46.77, samples=480
-   iops        : min=    2, max=   66, avg=30.90, stdev=11.71, samples=480
-  lat (usec)   : 10=0.02%, 250=0.44%, 500=3.46%, 750=1.84%, 1000=2.14%
-  lat (msec)   : 2=6.14%, 4=9.95%, 10=4.78%, 20=7.10%, 50=16.85%
-  lat (msec)   : 100=23.26%, 250=21.41%, 500=2.31%, 750=0.28%
-  cpu          : usr=0.01%, sys=1.01%, ctx=14029, majf=0, minf=147
-  IO depths    : 1=0.1%, 2=0.1%, 4=99.9%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
+     |  1.00th=[  594],  5.00th=[  668], 10.00th=[  717], 20.00th=[  791],
+     | 30.00th=[  857], 40.00th=[  922], 50.00th=[ 1004], 60.00th=[ 1106],
+     | 70.00th=[ 1237], 80.00th=[ 1500], 90.00th=[ 2507], 95.00th=[77071],
+     | 99.00th=[82314], 99.50th=[83362], 99.90th=[84411], 99.95th=[84411],
+     | 99.99th=[91751]
+   bw (  KiB/s): min=  936, max= 1624, per=25.01%, avg=1227.33, stdev=85.25, samples=480
+   iops        : min=  234, max=  406, avg=306.82, stdev=21.31, samples=480
+  write: IOPS=1233, BW=4934KiB/s (5052kB/s)(289MiB/60032msec)
+    slat (usec): min=3, max=2539, avg=44.86, stdev=71.18
+    clat (usec): min=35, max=94244, avg=6796.74, stdev=19522.18
+     lat (usec): min=513, max=94265, avg=6842.16, stdev=19521.01
+    clat percentiles (usec):
+     |  1.00th=[  635],  5.00th=[  734], 10.00th=[  799], 20.00th=[  906],
+     | 30.00th=[ 1012], 40.00th=[ 1123], 50.00th=[ 1237], 60.00th=[ 1401],
+     | 70.00th=[ 1614], 80.00th=[ 2040], 90.00th=[ 4621], 95.00th=[78119],
+     | 99.00th=[82314], 99.50th=[83362], 99.90th=[85459], 99.95th=[86508],
+     | 99.99th=[92799]
+   bw (  KiB/s): min= 1008, max= 1600, per=25.01%, avg=1233.75, stdev=73.48, samples=480
+   iops        : min=  252, max=  400, avg=308.42, stdev=18.37, samples=480
+  lat (usec)   : 50=0.01%, 100=0.01%, 250=0.01%, 500=0.03%, 750=10.12%
+  lat (usec)   : 1000=29.20%
+  lat (msec)   : 2=43.84%, 4=7.64%, 10=2.17%, 20=0.42%, 50=0.07%
+  lat (msec)   : 100=6.50%
+  cpu          : usr=0.51%, sys=3.68%, ctx=114096, majf=0, minf=136
+  IO depths    : 1=0.1%, 2=0.1%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
      submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
      complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
-     issued rwts: total=7154,7456,0,0 short=0,0,0,0 dropped=0,0,0,0
+     issued rwts: total=73655,74048,0,0 short=0,0,0,0 dropped=0,0,0,0
      latency   : target=0, window=0, percentile=100.00%, depth=4
 
 Run status group 0 (all jobs):
-   READ: bw=476KiB/s (487kB/s), 476KiB/s-476KiB/s (487kB/s-487kB/s), io=27.9MiB (29.3MB), run=60153-60153msec
-  WRITE: bw=496KiB/s (508kB/s), 496KiB/s-496KiB/s (508kB/s-508kB/s), io=29.1MiB (30.5MB), run=60153-60153msec
+   READ: bw=4908KiB/s (5026kB/s), 4908KiB/s-4908KiB/s (5026kB/s-5026kB/s), io=288MiB (302MB), run=60032-60032msec
+  WRITE: bw=4934KiB/s (5052kB/s), 4934KiB/s-4934KiB/s (5052kB/s-5052kB/s), io=289MiB (303MB), run=60032-60032msec
 
 Disk stats (read/write):
-    dm-0: ios=7278/7740, merge=0/0, ticks=771957/230269, in_queue=1002796, util=100.00%, aggrios=7278/7717, aggrmerge=0/23, aggrticks=772177/225811, aggrin_queue=997990, aggrutil=100.00%
-  sda: ios=7278/7717, merge=0/23, ticks=772177/225811, in_queue=997990, util=100.00%
+  vda: ios=73487/73884, merge=0/114, ticks=449091/500446, in_queue=950677, util=100.00%
 ```
 - 基于配置文件测试
 

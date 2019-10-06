@@ -13,7 +13,7 @@ tags: [docker, arch]
 - Docker镜像存在版本和仓库的概念，类似Git。docker官方仓库为[Docker Hub](https://hub.docker.com/)
 - [官方文档](https://docs.docker.com)
 - [在线docker测试地址](https://labs.play-with-docker.com/)
-- docker基础镜像包含alpine(apk)、centos(yum)、ubuntu(apt-get)三种
+- docker基础镜像包含`alpine`(apk)、`centos`(yum)、`ubuntu`(apt-get)三种
 - 本文基于docker版本`Server Version: 18.05.0-ce`
 - 国内镜像
 

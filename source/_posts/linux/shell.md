@@ -502,6 +502,23 @@ case 变量 in
 esac
 ```
 
+#### 多行输入
+
+```bash
+# EOF之间的数据覆盖/home/smalle/test文件；如果需要追加则为 `cat >> /home/smalle/test << EOF...EOF`
+cat > /home/smalle/test << EOF
+# 注释
+sleep 1
+ehco hello...
+EOF
+
+# EOF中有特殊符号，使用 "EOF" 进行转义
+cat > /home/smalle/test << "EOF"
+echo $test
+# echo \$test # 此方法也可转义
+EOF
+```
+
 ### linux命令
 
 - `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
