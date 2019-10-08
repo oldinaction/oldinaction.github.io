@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "mybatis"
+title: "Mybatis"
 date: "2017-05-22 15:05"
 categories: [java]
 tags: [mybatis, springboot]

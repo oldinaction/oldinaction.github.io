@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "wiki"
+title: "Wiki"
 date: "2016-10-27 21:36"
 categories: [extend]
 tags: [wiki, book]

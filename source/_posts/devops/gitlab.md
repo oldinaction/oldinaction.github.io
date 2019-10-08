@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "gitlab"
+title: "Gitlab"
 date: "2016-11-20 10:39"
 categories: [devops]
 tags: [git]

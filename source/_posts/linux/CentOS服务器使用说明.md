@@ -509,12 +509,12 @@ EOF
 # 测试发送(163邮箱容易出现554检测到垃圾拒发问题，此处使用-c抄送给自己可解决)
 echo "test mail..." | mail -s "hello subject" -c aezocn@163.com oldinaction@163.com
 ```
-- 安装postfix(centos7已内置安装)或者sendmail等邮件发送服务(此方法发送的邮件容易进入垃圾箱)
+- 安装**postfix(centos7已内置安装并启动)**或者sendmail等邮件发送服务(此方法发送的邮件容易进入垃圾箱)
 
 ```bash
-yum install -y postfix
-systemctl enable postfix && systemctl restart postfix && systemctl status postfix
-# 安装mailx。此时无需设置smtp等(如果mail.rc设置了smtp则优先使用配置的smtp)
+# yum install -y postfix
+# systemctl enable postfix && systemctl restart postfix && systemctl status postfix
+# 安装mailx。此方式无需设置smtp等也可发送邮件(如果mail.rc设置了smtp则优先使用配置的smtp)
 echo "zabbix test mail" | mail -s "zabbix" oldinaction@163.com
 # 可以看到手动一封来自 `root<root@node1.localdomain>`的邮件，其中node1为服务器名
 ```

@@ -584,6 +584,83 @@ optional arguments:
   --log-path LOG_PATH   Change the log path (defaults to /var/log/ceph)
 ```
 
+### 手动安装
+
+> TODO
+
+- 安装Ceph
+
+```bash
+# node1(192.168.6.131)  mon osd deploy
+# node2(192.168.6.132)  mon osd
+# node3(192.168.6.133)  mon osd
+
+### 所有节点运行
+yum update
+mkdir /opt/ceph-cluster && cd /opt/ceph-cluster
+
+### deploy节点运行
+## 添加 Ceph 源并安装ceph-deploy
+sudo cat <<EOF > /etc/yum.repos.d/ceph.repo
+[Ceph]
+name=Ceph packages for x86_64
+baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/x86_64/
+enabled=1
+gpgcheck=1
+type=rpm-md
+gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
+ 
+[Ceph-noarch]
+name=Ceph noarch packages
+baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/noarch/
+enabled=1
+gpgcheck=1
+type=rpm-md
+gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
+ 
+[ceph-source]
+name=Ceph source packages
+baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/SRPMS/
+enabled=1
+gpgcheck=1
+type=rpm-md
+gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
+EOF
+yum makecache
+yum -y install ceph-deploy
+ceph-deploy --version # 1.5.39
+# 配置deploy节点免密钥登录其他节点
+
+## 初始化monitor
+ceph-deploy new node1 node2 node3
+# 安装ceph(会创建/var/lib/ceph/目录)
+ceph-deploy install node1 node2 node3
+# 开始部署monitor(会自动启动ceph-mon，监听在6789端口)
+ceph-deploy mon create-initial
+# 查看集群状态(ceph)
+ceph -s
+
+## 开始部署OSD
+# 列出节点所有磁盘信息
+ceph-deploy disk list node1 node2 node3
+# 清除磁盘分区和内容(sdb必须是空的磁盘后续才不会出错，注意数据备份)
+ceph-deploy disk zap node1:sdb node2:sdb node3:sdb
+# 分区格式化并激活
+ceph-deploy osd create node1:sdb node2:sdb node3:sdb
+ceph-deploy osd activate node1:sdb node2:sdb node3:sdb
+```
+- 安装失败可进行清理环境
+
+```bash
+sudo ps aux|grep ceph | grep -v "grep"| awk '{print $2}'|xargs kill -9
+sudo ps -ef|grep ceph
+
+sudo umount /var/lib/ceph/osd/*
+sudo rm -rf /var/lib/ceph/
+sudo rm -rf /etc/ceph/
+sudo rm -rf /var/run/ceph/
+```
+
 
 
 

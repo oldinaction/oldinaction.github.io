@@ -465,6 +465,34 @@ lsmod |grep br_netfilter
         mount /dev/centos/home /home # 挂载 home
         # 使永久有效，写入 etc/fstab 见上文
         ```
+    - 调整磁盘大小(慎用)
+
+        ```bash
+        ### vg
+        ## 扩展vg
+        pvcreate /dev/sdc1 # 将新的磁盘分区创建为pv
+        vgextend centos /dev/sdc1 # 将pv添加大vg组
+        ## 缩小vg
+        vgreduce centos /dev/sdc1 # 将一个PV从指定卷组中移除
+        pvremove /dev/sdc1 # 移除对应pv
+
+        ### pv
+        ## 重设物理分区为120g。调整PV大小(进而缩小了VG的大小)
+        pvresize --setphysicalvolumesize 120g /dev/sdb1
+
+        ### lv (xfs分区是不支持减小操作的)
+        ## 直接调整大小
+        lvresize -L 500M -r /dev/mapper/centos-home # -r 相当于 resize2fs
+        ## 缩小lv大小到10g
+        umount /dev/mapper/centos-home
+        # e2fsck -f /dev/mapper/centos-home
+        resize2fs /dev/mapper/centos-home 10G # 缩小文件系统
+        lvreduce -L -10G /dev/mapper/centos-home # 缩小lv
+        ## 扩展lv
+        lvextend -L +2G /dev/mapper/centos-home
+        # resize2fs /dev/mapper/centos-home # 更新文件系统。resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
+        xfs_growfs /dev/mapper/centos-home
+        ```
     - 重命名VG、LV(无需umount和备份，数据也不会丢失)
         
         ```bash
@@ -473,12 +501,6 @@ lsmod |grep br_netfilter
         vgrename hdd vdisk
         lvrename /dev/vdisk/hdd1 main # 修改lv，注意此时vg为新的
         vi /etc/fstab # 修改之前的挂载信息
-        ```
-    - 调整PV大小(进而缩小了VG的大小)
-
-        ```bash
-        # 重设物理分区
-        pvresize --setphysicalvolumesize 120g /dev/sdb1
         ```
     - 删除lvm磁盘挂载，直接删除/etc/fstab中对应条目，lvm相关配置会自动去掉
 

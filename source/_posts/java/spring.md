@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "spring"
+title: "Spring"
 date: "2017-07-01 18:47"
 categories: [java]
 tags: [spring, spring-mvc]

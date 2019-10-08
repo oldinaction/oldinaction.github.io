@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "nginx"
+title: "Nginx"
 date: "2017-01-16 16:54"
 categories: arch
 tags: LB, HA

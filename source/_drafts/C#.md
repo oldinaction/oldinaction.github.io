@@ -3,20 +3,109 @@ layout: "post"
 title: "C#"
 date: "2018-11-19 17:23"
 categories: lang
-tags: [C#]
+tags: [.NET, C#]
 ---
 
 ## 简介
 
-- 开发工具`Microsoft Visual Studio`
+- [.NET](https://dotnet.microsoft.com/)
+- [Microsoft Docs](https://docs.microsoft.com/zh-cn)、[.NET Docs](https://docs.microsoft.com/zh-cn/dotnet/)
+- [.NET Download](https://dotnet.microsoft.com/download)
+- .NET、C#、ASP.NET [^1]
+    - 微软在2002年推出了`Visual Studio .NET` 1.0版本的开发者平台。微软还在2002年宣布推出一个特性强大并且与.NET平台无缝集成的编程语言，即`C#` 1.0正式版
+        - `C#`(C sharp)就是为宣传`.NET`而创立的，它直接集成于`Visual Studio .NET`中，`VB`也在.NET 1.0发布后对其进行支持。只要是.NET支持的编程语言，开发者就可以通过.NET平台提供的工具服务和框架支持便捷的开发应用程序
+        - 跨语言：即只要是面向`.NET`平台的编程语言(C#、Visual Basic、C++/CLI、Eiffel、F#、IronPython、IronRuby、PowerBuilder、Visual COBOL 以及 Windows PowerShell)，用其中一种语言编写的类型可以无缝地用在另一种语言编写的应用程序中的互操作性
+    - `.NET` 实现包括 `.NET Framework`、`.NET Core` 和 `Mono`。 .NET 的所有实现都有一个名为 `.NET Standard` 的通用 API 规范。[版本对应](https://docs.microsoft.com/zh-cn/dotnet/standard/net-standard)
+        - **`.NET Core` 是 .NET 的跨平台实现**，可在 Windows、macOS 和 Linux 上运行。JAVA和.NET不同的一点是java是跨平台的，不跨语言的
+        - `.NET Framework` 是自 2002 年起就已存在的原始 .NET 实现，**因此经常将 `.NET Framework` 简称为 `.NET`**。当前 .NET 开发人员经常使用的 .NET Framework。**.NET Framework 4.5 版以及更高版本实现 .NET Standard**
+        - `Mono` 是主要在需要小型运行时使用的 .NET 实现。 它是在 Android、Mac、iOS、tvOS 和 watchOS 上驱动 Xamarin 应用程序的运行时，且主要针对小内存占用。 Mono 还支持使用 Unity 引擎生成的游戏
+        - `UWP` 是用于为物联网 (IoT) 生成新式触控 Windows 应用程序和软件的 .NET 实现
+    - .NET框架的组成分为两部分
+        - `CLR`(Common Language Runtime)：公共语言运行时，提供内在管理，代码安全性检测等功能。包含
+            - `CLS`：公共语言规范，获取各种语言转换成统一的语法规范
+            - `CTS`：通用类型系统，将各种语言中的数据类型转换成统一的类型
+            - `JIT`：实时编译器，用于将转换之后的语言编译为二进制语言，交给CPU执行
+        - `FLC`(.NET Framework Class Library)：.NET框架类库，提供大量应用类库
+    - 运行机制
+        - `.NET`：各种语言(c#、F#、j#等对应的源程序) —> 经过CLS、CTS第一次编译 —> 统一规范语言(中间语言)MSIL(.EXE,.DLL) —> JIT第二次编译 —> 二进制语言 —> 运行在CPU中
+        - `Java`：Java —> 编译 —> 字节码文件(.CLASS) —> jvm解释(jvm虚拟机) —> 二进制语言 —> 运行在CPU中
+    - `ASP.NET` 是一种用来快速创建动态Web网站的技术，是.NET框架中的一个应用模型，不是语言。可以用C#或VB.NET来开发，编译后形成CLR，通过服务器的IIS+.NET FrameWork再次编译来运行
+    - .NET 分成两个方面：`WinForm`和`WebForm`，ASP.NET就是属于WebForm，也就是平时说的B/S模式的开发；而WinForm就是属于C/S模式
+- 相关术语
+    - CLR：公共语言运行时
+    - 程序集(assembly)：.dll/.exe 文件，其中包含一组可由应用程序或其他程序集调用的 API。程序集可以包括接口、类、结构、枚举和委托等类型
+- 常用开发工具`Microsoft Visual Studio`
+
+### 概念说明
+
+- VS解决方案A文件夹：A下的*.sln => eclipse的.project；A下的packages类似jar包；A下的项目文件夹(如：A)
+- 添加引用 => 导入jar包；导入命名空间(using System) => 代码中的`import java.lang.System`
+
+## Web
+
+### VS创建Web应用程序(Hello World)
+
+#### .NET Framework
+
+- VS - 文件 - 新建 - 项目 - Visual C# - Web - ASP.NET Web应用程序(.NET Framework)。创建的项目目录说明
+    - App_Data 操作数据库文件夹(存放数据库连接.mdf文件)
+    - Controllers 控制类文件夹
+    - Models 实体类文件夹
+    - Views 前端页面文件夹
+    - Web.config 项目配置文件
+- 启动`IIS Express`，会自动打开浏览器，稍等片刻会自动打开浏览器，如下图
+
+    ![net-hello-world](/data/images/lang/net-hello-world.png)
+
+#### .NET Core
+
+- [文档](https://docs.microsoft.com/zh-cn/aspnet/)
+- 基于上文`.NET Framework`流程，亦可创建`ASP.NET Core Web应用程序`(ASP.NET Core 3.0)则可跨平台运行。可基于不同模板创建，如`Web应用程序(模型视图控制器，ASP.NET MVC)`或者`React.js`
+- 打包发布
+    - 生成 - 发布`WebApplication1` - 发布目标选择文件夹 - 创建文件夹 - 发布
+    - 可在`D:\mswork\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish`项目发布目录看到生成的文件，其中`WebApplication1.exe`双击默认会开启一个cmd窗口
+    - 然后可访问`http://localhost:5000`查看页面
+- 部署到IIS
+    - IIS默认不支持ASP.NET Core，需要安装`AspNetCoreModuleV2`模块，否则报500。在[官网下载中心](https://dotnet.microsoft.com/download/dotnet-core/3.0)进行[下载ASP.NET Core/.NET Core: Runtime & Hosting Bundle](https://download.visualstudio.microsoft.com/download/pr/bf608208-38aa-4a40-9b71-ae3b251e110a/bc1cecb14f75cc83dcd4bbc3309f7086/dotnet-hosting-3.0.0-win.exe)。此时下载的是
+    - 下载后直接安装，在IIS-模块中可看到
+    - IIS - 网站 - 添加网站。网站名称如`WebApplication1`，物理路径如`D:\mswork\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish`，输入端口9081
+    - 然后可访问`http://localhost:9081`查看页面
+
+##### 在Centos7上运行
+
+> 参考：https://dotnet.microsoft.com/learn/aspnet/hello-world-tutorial/intro
+
+```bash
+## 安装
+sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+sudo yum install -y dotnet-sdk-3.0 # 安装sdk(包含开发工具包)
+# sudo yum install -y aspnetcore-runtime-3.0 # 安装运行时环境，可用于正式环境安装
+dotnet --info
+
+## 创建项目并运行
+dotnet new webApp -o myWebApp --no-https
+cd myWebApp
+dotnet run # 在项目目录运行
+# dotnet bin/Debug/netcoreapp3.0/myWebApp.dll # 或者直接指定dll文件进行运行(正式环境可操作)
+# 默认监听在 http://localhost:5000
+```
+
+### IIS
+
+- 开启windows的IIS：控制面板 - 程序和功能 - 打开或关闭Windows功能 - Internet信息服务(Internet Information Services) - 此时在开始菜单中会出现`Internet Information Services (IIS)管理器`
+- 修改端口：网站 - 选择站点 - 绑定 - 修改端口
+
+## 窗体应用(Winform)
+
 - 开发窗体应用(`Winform`)：文件 - 新建 - windows 窗体应用
 
-## 窗体应用
-
--
 
 
 
 
 
+---
 
+参考文章
+
+[^1]: https://www.cnblogs.com/yy1234/p/9258805.html

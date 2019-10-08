@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "windows"
+title: "Windows"
 date: "2017-05-10 15:26"
 categories: [extend]
 tags: [bat]

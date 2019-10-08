@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "python"
+title: "Python"
 date: "2017-04-28 11:39"
 categories: [lang]
 tags: [python]

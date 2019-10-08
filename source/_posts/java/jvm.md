@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "jvm"
+title: "JVM"
 date: "2017-01-20 13:07"
 categories: [java]
 tags: [jvm]

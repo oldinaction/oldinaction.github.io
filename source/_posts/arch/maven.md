@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "maven"
+title: "Maven"
 date: "2016-12-29 10:18"
 categories: [arch]
 tags: [maven]

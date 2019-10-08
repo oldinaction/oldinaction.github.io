@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "hibernate"
+title: "Hibernate"
 date: "2017-05-21 15:39"
 categories: [java]
 tags: [ssh, orm, springboot]

@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "ftp"
+title: "FTP"
 date: "2019-03-19 10:40"
 categories: devops
 tags: [server]

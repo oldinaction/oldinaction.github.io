@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "django"
+title: "Django"
 date: "2018-09-24 21:29"
 categories: [lang]
 tags: [python, django]

@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "atom"
+title: "Atom编辑器"
 date: "2017-03-19 15:33"
 categories: [extend]
 tags: [ide]

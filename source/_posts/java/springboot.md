@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "springboot"
+title: "SpringBoot"
 date: "2017-07-23 15:05"
 categories: java
 tags: springboot

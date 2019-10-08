@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "vscode"
+title: "VSCode"
 date: "2017-11-28 21:24"
 categories: [extend]
 tags: [ide, web]

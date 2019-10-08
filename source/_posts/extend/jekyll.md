@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "jekyll"
+title: "Jekyll"
 date: "2016-04-16 13:45"
 categories: extend
 tag: [jekyll]

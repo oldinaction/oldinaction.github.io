@@ -24,7 +24,7 @@ ansible -h # 查看帮助
 ### 使用(利用ansible批量部署zabbix-agent)
 
 - `zabbix`就是目前比较好的一款开源监控软件 [^2]
-    - 此案例需要提前安装zabbix-server，参考[http://blog.aezo.cn/2019/09/03/linux/Zabbix/](/_posts/devops/zabbix.md) 
+    - 此案例需要提前安装zabbix-server，参考[http://blog.aezo.cn/2019/09/30/devops/zabbix/](/_posts/devops/zabbix.md) 
 
 ```bash
 ## 编辑ansible的hosts文件

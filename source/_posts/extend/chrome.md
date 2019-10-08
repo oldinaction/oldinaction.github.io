@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "chrome"
+title: "Chrome"
 date: "2017-09-13 12:56"
 categories: [extend]
 tags: [plugins, debug]

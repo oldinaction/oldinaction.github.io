@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "基于springboot和vue前后分离"
+title: "基于Springboot和Vue前后分离"
 date: "2017-12-25 21:16"
 categories: [arch]
 tags: [springboot, vue]

@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "git"
+title: "Git"
 date: "2016-04-16 12:40"
 categories: devops
 tags: [git]

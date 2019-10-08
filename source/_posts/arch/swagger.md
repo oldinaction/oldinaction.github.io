@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "swagger"
+title: "Swagger"
 date: "2018-09-23 18:41"
 categories: arch
 tags: [doc, api, springboot]
