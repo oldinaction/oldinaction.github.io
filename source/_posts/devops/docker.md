@@ -504,6 +504,7 @@ consul members
           # 多次执行up启动只会启动services中未运行的服务。如果修改了compose配置重新执行则会重新创建容器
           # 重新启动容器不会有产生多的镜像或容器
           -d
+          # docker-compose pull && docker-compose up -d # 强制更新镜像并重启
       version            Show the Docker-Compose version information
     ```
 - `docker-compose.yml`示例

@@ -91,7 +91,11 @@ tags: [vpn, linux, network]
     - 可解决问题：想在家里访问公司的机器(写程序，查数据，下电影)；公司为了防止逛淘宝，封锁了它的端口或者服务器地址(同理如ZF封锁了外网导致无法上油管等)
     - 解决上述问题条件：有一台机器可以访问公司的机器(如处于公司的笔记本)、可以访问淘宝的服务器、可以访问外网的香港主机等；且此服务器有一个公网(IP)端口
     - 机器说明：A为本机、B(234.234.234.234)为目标机(国外服务器或公司内网机器)、C(123.123.123.123)为中间机器(香港服务器或另外一台公司服务器)
-- 建立本地SSH隧道：可从内部绕过防火访问外部资源(翻墙)
+    - Http通用代理和SSH -D原理
+        
+        ![firewall-http-proxy](/data/images/extend/firewall-http-proxy.png)
+        ![firewall-ssh-d](/data/images/extend/firewall-ssh-d.png)
+- 建立本地SSH隧道：可从内部绕过防火访问外部资源(FanQiang)
 
     ```bash
     # 在C上运行ssh命令
@@ -149,7 +153,12 @@ tags: [vpn, linux, network]
 - 安全的 socks 代理不应向防火墙公开以下信息：任何表明它被用作代理的特征、任何真实传输的数据
 - 在HTTP/HTTPS的世界里，TCP/IP数据包的源和目标是公开的，解决恶意攻击可以利用强加密算法的 SOCKS5 协议
 - 可以把SOCKS5拆分成两部分，socks5-local和socks5-remote：客户端通过SOCKS5协议向本地代理发送请求，本地代理通过HTTP协议发送加密后的请求数据，因为 HTTP 协议没有明显的特征，并且远程代理服务器尚未被识别为代理，因此请求可以穿透防火墙
-- [Shadowsocks](https://github.com/shadowsocks/shadowsocks) 是一款出色的安全 socks5 代理解决方案。github上代码库已被屏蔽，wiki可以使用，代码可查看其他用户fork仓库
+- [Shadowsocks](https://github.com/shadowsocks/shadowsocks) 简称SS，是一款出色的安全 socks5 代理解决方案。github上代码库已被屏蔽，wiki可以使用，代码可查看其他用户fork仓库
+- Shadowsocks原理 [^8]
+
+    ![firewall-ss-flow](/data/images/extend/firewall-ss-flow.png)
+    - 为了解决上述加密需求，SS提供很多加密方式，较安全的如`chacha20-poly1305`等，但仍然有可能被破解的可能导致被Ban
+- 安装及使用
 
 ```bash
 # https://github.com/shadowsocks/shadowsocks/wiki/Ports-and-Clients
@@ -165,6 +174,103 @@ pip install shadowsocks # 会安装 ssserver 服务端和 sslocal 客户端
 sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
 ```
 
+## v2ray + CDN
+
+> 此方式必须条件：VPS + 顶级域名 + CDN
+
+- 背景
+    - 使用`HTTP 代理`、`SSH -D`、`SOCKS`、`SS(Shadowsocks)`均无法正常上网
+    - `PAC` 实现了自动代理，即只代理需要代理的，不代理不需要代理的，而且还可以提供多个代理服务器，在某个失效时自动切换至另一个。其核心是 PAC 脚本，它实质上是一个 JS 文件(也被称为 PAC 文件)
+    - [免费正常上网，没进行测试，稳定性待商榷](https://github.com/Alvin9999/new-pac/wiki)，有经济条件可按下文自行搭建
+- 原理 [^8] [^9]
+
+    ![firewall-v2ray-cdn-vps](/data/images/extend/firewall-v2ray-cdn-vps.png)
+    - 先请求境外CDN，再由境外CND负责请求，而境外CDN有许多正规网站使用不容易被Ban
+    - v2ray一款优秀的开源网络工具，目前仍处于活跃更新中，其在混淆上有着独到的建树，可以做到伪装成正常的HTTPS网站，避开第三方的干扰
+    - V2Ray和Shadowsocks代理，最终都要通过代理
+    - ws模式比tcp模式速度稍差一点，tls需要握手时间，cdn有绕路问题
+- vps选用
+    - [vultr官网地址](https://www.vultr.com/?ref=8284883)：费用差不多`$3.5/mon`(纽约)，实际按照小时计费，不使用不计费，可通过支付宝支付
+        - 通过 https://www.vultr.com/?ref=8284883 此连接注册且支付可赠送$50，直接注册无此(我就是直接注册，惨痛经历~~)
+        - 如`$3.5/mon`(vps在纽约)包含总带宽500G，用完为止，但是基本够用
+        - 不使用是指不创建vps，关机的vps也会计费
+        - 创建后可安装`Centos8`可直接通过ssh客户端连接
+        - 命令行`reboot`不会导致ip/密码等修改。删除vps重新创建不足1小时按1小时计费，重装系统正常计费(不同于删除vps)
+    - 搬瓦工
+- **v2ray单独使用**(可不使用CDN，比直接使用SS等安全。测试Youtube的Connection Speed=7000左右，看1080P妥妥的)
+    
+    ```bash
+    ## vps端
+    sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config
+    systemctl stop firewalld && systemctl disable firewalld
+
+    # 安装v2ray服务端(vps上安装)。安装成功会显示PORT(端口)和UUID(用户ID)，也可在`/etc/v2ray/config.json`中查看，v2ray客户端需求使用
+    # 也可使用[v2-ui](https://blog.sprov.xyz/2019/08/03/v2-ui/)，基于web管理v2ray服务(不可同时使用)
+    bash <(curl -L -s https://install.direct/go.sh)
+    systemctl enable v2ray && systemctl start v2ray && systemctl status v2ray
+
+    ## v2ray客户端下载，以windows为例，其他参考下文
+    # 如v2.41下载地址：https://github.com/2dust/v2rayN/releases/download/2.41/v2rayN-Core.zip
+    ```
+    - v2ray客户端直接使用tcp/ip配置v2ray(默认tcp，容易被Ban)
+        - 安装成功 - 管理员启动 - 服务器 - 添加VMess服务器(地址为VPS地址，端口和用户ID填v2ray服务器的，额外ID默认64，加密方式chacha20-poly1305，传输协议tcp)
+        - 开启代理 - v2ray状态栏的图标点右键 - 勾选启用http代理 - 在http代理模式中选择PAC模式
+        - 保存后会自动启动，控制台显示`started`。且在界面底部会显示`SOCKS5/HTTP/PAC`代理对应的地址，且会自动将PAC加入到windows的系统代理中(每次重启PAC地址会改变)。默认的代理ip为127.0.0.1只需本地使用，可在 **`参数设置-v2rayN设置-运行来自局域网的连接`**，重启后局域网都可以使用此代理正常上文
+        - **访问外网测试**。通过`IE`、`IE Edge`、`Opera`浏览器可直接访问(默认使用了系统代理)；`Google`需要关闭所有代理插件；`Firefox`需要使用上述代理地址进行配置
+    - 使用ws(websocket)模式
+
+        ```json
+        // 在 inbounds 里添加一个 inbound(默认包含一个tcp类型的inbound)，id 部分请使用 /usr/bin/v2ray/v2ctl uuid 命令随机生成一个，端口必须设置为 80
+        // vi /etc/v2ray/config.json
+        {
+            "settings": {
+                "clients": [{
+                    "id": "使用`/usr/bin/v2ray/v2ctl uuid`自行生成",
+                    "alterId":64
+                }]
+            },
+            "protocol": "vmess",
+            "port": 80,
+            "streamSettings": {
+                "wsSettings": {
+                    "path": "/",
+                    "headers": {}
+                },
+                "network": "ws"
+            }
+        }
+        ```
+        - 客户端配置修改：端口使用80(后面如果使用CDN则此处端口必须使用80，否则可以使用其他)，传输协议使用ws，路径使用/，其他同tcp模式配置
+- v2ray + CDN(相对直接使用v2ray安全，测试Youtube的Connection Speed=2000左右，延迟较高)
+    - [CloudFlare](https://www.cloudflare.com/zh-cn/)为一款国外CDN，可免费支持一个域名
+        - 添加域名 - 修改DNS - 解析子域名如`v2ray`到vps对应ip
+    - v2ray客户端配置：使用域名如`v2ray.aezo.cn`，其他同ws模式的配置。注意v2ray服务器一定要监听在80端口，或者通过访问`ws://v2ray.aezo.cn/`到的vps对应的ws服务
+- v2ray + CDN + TLS(相对更安全)
+    - 参考：https://blog.sprov.xyz/2019/04/27/v2ray-wstls-or-http2tls-tutorial/
+- 谷歌BBR(TCP加速，可选，测试效果不明显)
+    
+    ```bash
+    # 在vps中安装。相当于vps访问目标网站会快一些
+    wget --no-check-certificate https://github.com/sprov065/blog/raw/master/bbr.sh && bash bbr.sh
+    reboot
+    lsmod | grep bbr # 出现了tcp_bbr字样
+    ```
+- v2ray客户端(ios的app store境内都无法下载)
+    - [V2RayN (Windows)](https://github.com/2dust/v2rayN/releases)
+    - [v2rayW (Windows)](https://github.com/Cenmrev/V2RayW/releases)
+    - [v2rayX (macOS)](https://github.com/Cenmrev/V2RayX/releases)
+    - [V2RayU (macOS)](https://github.com/yanue/V2rayU/releases)
+    - Shadowrocket (iOS, $2.99)
+    - i2Ray (iOS, $3.99)
+    - Quantumult (iOS, $4.99)
+    - Kitsunebi (iOS, $4.99)
+    - BifrostV (Android)
+    - [V2RayNG (Android)](https://github.com/2dust/v2rayNG/releases)
+- ios的app store境内无法下载问题
+    - 解决：下载对应ipa文件，然后通过`爱思助手`通过电脑导入安装到手机，免费，相对安全。如：[Shadowrocket v2.1.12](https://files.flyzy2005.cn/%E5%AE%A2%E6%88%B7%E7%AB%AF/%E4%B8%8D%E5%8F%AF%E6%8F%8F%E8%BF%B0%E7%9A%84%E5%AE%A2%E6%88%B7%E7%AB%AF/IOS_Shadowrocket_2.1.12%28%E6%97%A0%E9%9C%80%E9%AA%8C%E8%AF%81appleId%29.ipa)
+    - [ios神秘商店，收取小额费用](https://aneeo.com/ios)
+
+
 
 ---
 
@@ -177,3 +283,6 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
 [^5]: https://www.cnblogs.com/fbwfbi/p/3702896.html (SSH隧道技术----端口转发，socket代理)
 [^6]: http://zsaber.com/blog/p/126 (远程登录那些事儿)
 [^7]: http://blog.zxh.site/2018/07/08/%E5%AE%89%E5%85%A8%E7%9A%84socks5%E5%8D%8F%E8%AE%AE/
+[^8]: https://wsxq2.55555.io/blog/2019/07/07/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/ (科学上网[AAA])
+[^9]: https://blog.sprov.xyz/2019/03/11/cdn-v2ray-safe-proxy/comment-page-7/
+[^10]: https://blog.sprov.xyz/2019/02/04/v2ray-simple-use/

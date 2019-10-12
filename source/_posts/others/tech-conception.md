@@ -145,7 +145,7 @@ tags: [java, conception]
 - CPU架构
     - `x86` 泛指一系列由英特尔公司开发的处理器的架构，最早为1978年面世的"Intel 8086"CPU
         - 基于`x86`的32位架构常被称为`i386`、`x86`，而基于`x86`的64位架构常称为`AMD64`或`Intel64`
-    - `ARM`（英文为Advanced RISC Machine，或Acorn RISC Machine）也是一个架构，非常适用于移动通信这种低成本，高性能，低耗电的领域
+    - `ARM`(英文为Advanced RISC Machine，或Acorn RISC Machine)也是一个架构，非常适用于移动通信这种低成本，高性能，低耗电的领域
 - `AMD` 中文名(超威)超微半导体，是除了`英特尔`以外最大的x86架构微处理供应商，也是除了`英伟达`以外仅有的独立图形处理供应商
 
 

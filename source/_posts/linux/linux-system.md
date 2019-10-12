@@ -19,9 +19,16 @@ tags: [linux, shell]
         - `DragonFly BSD`：设计目标是提供一个运行在多线程环境中的操作系统。如计算机集群
         - `Darwin / Mac OS X`：Mac OS X 实际上基于 Darwin 操作系统，而 Darwin 系统基于 BSD
 - Linux发行版：一类是商业公司维护的发行版本，另一类是社区组织维护的发行版本。前者以著名的Redhat(RHEL)为代表，后者以Debian为代表
-    - `Redhat系列`：包括`RHEL`(Redhat Enterprise Linux)、`Fedora Core`(由原来的Redhat桌面版本发展而来，免费版本)、`CentOS`(RHEL的社区克隆版本，免费)
-    - `Debian系列`：包括`Debian`和`Ubuntu`等
-    - Debian最具特色的是`apt-get / dpkg`包管理方式; Redhat是`yum`包管理方式
+    - `Redhat系列` Redhat是`yum`包管理方式
+        - `RHEL` (Redhat Enterprise Linux)
+        - `Fedora Core` (由原来的Redhat桌面版本发展而来，免费版本)
+        - [CentOS](https://www.centos.org/) (RHEL的社区克隆版本，免费)
+    - `Debian系列` 使用`apt-get / dpkg`包管理方式
+        - `Debian`
+        - [Ubuntu](https://cn.ubuntu.com/)
+    - `SUSE Linux`
+        - [openSUSE](https://www.opensuse.org/) 开源
+    - [Arch Linux](https://www.archlinux.org/) 开源
 
 ### 系统信息查询
 
@@ -199,7 +206,7 @@ tags: [linux, shell]
 - `journalctl` 查看所有日志，默认显示本次启动的所有(服务)日志
     - `-f` 持续监控日志输出
     - `-u` 基于服务筛选(`journalctl -f -u kubelet` 持续监控kubelet日志)
-    - `-n` 显示最近n行日志
+    - `-n` 显示最近n行日志 `journalctl -n20`
     - `-k` 查看内容日志
     - `--since`/`--until` 查询某段时间的日志
 - **自定义服务参考[《nginx》http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)**
@@ -564,7 +571,7 @@ lsmod |grep br_netfilter
     - `rm -f *2019-04*` 正则删除，可删除如access-2019-04-01.log、error-2019-04-02.log
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
     - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
-    - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下
+    - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下(此处/home不能写成/home/)
         - `scp -r /home/smalle/dir root@192.168.1.1:/home` 复制文件夹到远程机器
 - `mv a.txt /home` 移动a.txt到/home目录
     - `mv a.txt b.txt` 将a.txt重命名为b.txt

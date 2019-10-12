@@ -68,10 +68,12 @@ tags: [CentOS, linux]
 
 ```bash
 ## 查看版本
-# uname -r
-3.10.0-514.el7.x86_64
-# cat /etc/redhat-release 
-CentOS Linux release 7.3.1611 (Core)
+uname -r
+# 3.10.0-514.el7.x86_64
+cat /etc/redhat-release 
+# CentOS Linux release 7.3.1611 (Core)
+cat /proc/version
+# Linux version 3.10.0-1062.1.2.el7.x86_64 (mockbuild@kbuilder.bsys.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-39) (GCC) ) #1 SMP Mon Sep 30 14:19:46 UTC 2019
 
 ## 需要先导入elrepo的key，然后安装elrepo的yum源
 rpm -import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
@@ -83,7 +85,7 @@ yum --disablerepo="*" --enablerepo="elrepo-kernel" list available
 # 安装长期支持版
 yum -y --enablerepo=elrepo-kernel install kernel-lt.x86_64 kernel-lt-devel.x86_64
 
-## 修改grub中默认的内核版本
+## 修改grub中默认的内核版本(Linux Kernel)
 # 查看所有内核版本，第一行则内核索引为0，以此类推
 awk -F\' '$1=="menuentry " {print $2}' /etc/grub2.cfg
 # 修改默认启动内核版本。将 `GRUB_DEFAULT=saved` 改成 `GRUB_DEFAULT=0`(此处0表示新安装的内核索引)

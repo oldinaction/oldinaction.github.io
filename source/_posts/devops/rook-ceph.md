@@ -273,7 +273,7 @@ rm -rf /dev/ceph-*
 # 删除osd数据目录
 rm -rf /data/rook
 ```
-- sgdisk工具
+- sgdisk磁盘操作工具
 
 ```bash
 # 安装
@@ -346,19 +346,18 @@ kubectl -n rook-ceph logs `kubectl -n rook-ceph -l app=rook-ceph-operator get po
 
 ## 4.prepare-pod日志显示：ceph-volume lvm batch: error: GPT headers found。且osd-pod也不会创建，prepare-pod一直处于CrashLoopBackOff状态，之后被k8s清除，大概要等15min才会重新创建
 # 需要重新清空磁盘分区，参考上文"删除整个集群"
-sgdisk --zap-all /dev/sdb
-ceph-volume lvm zap --destroy /dev/sdb
-wipefs -a /dev/sdb
+sgdisk --zap-all /dev/sdb # 格式化
+wipefs -a /dev/sdb # 擦除磁盘
+# ceph-volume lvm zap --destroy /dev/sdb # ceph-volume格式化命令
 # 实际操作上述命令情况也无法成功，然后通过ceph-toolbox手动运行命令分区后，osd-pod成功创建。参考：https://forum.proxmox.com/threads/recommended-way-of-creating-multiple-osds-per-nvme-disk.52252/
 # ceph-volume lvm batch --osds-per-device 2 /dev/sdb # 参考下文ceph-volume部分，batch表示基于已有的OSDs进行修改
 ```
-
 
 ## Ceph
 
 ### 简介
 
-- [Ceph官网](https://ceph.com/)、[官方文档 v14.2.4 Nautilus](https://docs.ceph.com/docs/nautilus/start/intro/)
+- [Ceph官网](https://ceph.com/)、[官方文档 v14.2.4 Nautilus](https://docs.ceph.com/docs/nautilus/start/intro/)、[github源码](https://github.com/ceph/ceph)
 - Ceph 提供3种存储类型 [^1]
     - 块存储(`RBD`)
         - 典型设备： 磁盘阵列，硬盘。主要是将裸磁盘空间映射给主机使用的
@@ -401,7 +400,7 @@ wipefs -a /dev/sdb
 
 ```bash
 # 查看集群状态
-ceph status
+ceph -s
 
 # 列举已映射块设备(pool、image等信息)
 rbd showmapped
@@ -414,6 +413,8 @@ ceph -h
 ceph -v # ceph version 14.2.4 (75f4de193b3ea58512f204623e6c5a16e6c1e1ba) nautilus (stable)
 # 查看集群状态
 ceph -s
+# 获取法定节点信息
+ceph quorum_status --format json-pretty
 ```
 
 #### rbd 块存储
@@ -442,11 +443,14 @@ Positional arguments:
     config pool set                   Set a pool-level configuration override.
     copy (cp)                         Copy src image to dest.
     create                            Create an empty image.
+        # rbd create myrbd --size 4096 --image-feature layering -p mypool # 在mypool存储池中，创建块设备镜像myrbd，大小为4096M
     deep copy (deep cp)               Deep copy src image to dest.
     device list (showmapped)          List mapped rbd images.
         # rbd showmapped    # **列举已映射块设备(pool、image等信息)**
-    device map (map)                  Map an image to a block device.
-    device unmap (unmap)              Unmap a rbd device.
+    device map (map)                  Map an image to a block device. # 映射块设备
+        # sudo rbd map myrbd --name client.admin -p mypool # 执行成功打印`/dev/rbd0`
+    device unmap (unmap)              Unmap a rbd device. # 取消块设备映射
+        # sudo rbd unmap /dev/rbd0 # 取消块设备映射
     diff                              Print extents that differ since a previous snap, or image creation.
     disk-usage (du)                   Show disk usage stats for pool, image or snapshot.
         # rbd du pool-test/csi-image    # 显示 pool-test/csi-image 镜像使用情况
@@ -518,9 +522,12 @@ Positional arguments:
     perf image iotop                  Display a top-like IO monitor.
     pool init                         Initialize pool for use by RBD.
     pool stats                        Display pool statistics.
-    remove (rm)                       Delete an image.
+    remove (rm)                       Delete an image. # 删除块设备映像
+        # rbd rm {pool-name}/{image-name}
     rename (mv)                       Rename image within pool.
-    resize                            Resize (expand or shrink) image.
+    resize                            Resize (expand or shrink) image. # 调整块设备映像大小
+        # rbd resize --size 2048 myrbd # 增大myrbd存储块。最终大小为2048M，下同
+        # rbd resize --size 2048 myrbd --allow-shrink # 缩小myrbd存储块
     snap create (snap add)            Create a snapshot.
     snap limit clear                  Remove snapshot limit.
     snap limit set                    Limit the number of snapshots.
@@ -584,81 +591,234 @@ optional arguments:
   --log-path LOG_PATH   Change the log path (defaults to /var/log/ceph)
 ```
 
-### 手动安装
+### 手动安装(基于ceph-deploy安装)
 
 > TODO
 
-- 安装Ceph
+1. 准备工作(所有节点运行)
 
 ```bash
 # node1(192.168.6.131)  mon osd deploy
 # node2(192.168.6.132)  mon osd
 # node3(192.168.6.133)  mon osd
 
-### 所有节点运行
+## 所有节点运行
 yum update
-mkdir /opt/ceph-cluster && cd /opt/ceph-cluster
-
-### deploy节点运行
-## 添加 Ceph 源并安装ceph-deploy
-sudo cat <<EOF > /etc/yum.repos.d/ceph.repo
-[Ceph]
-name=Ceph packages for x86_64
-baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/x86_64/
-enabled=1
-gpgcheck=1
-type=rpm-md
-gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
- 
-[Ceph-noarch]
-name=Ceph noarch packages
-baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/noarch/
-enabled=1
-gpgcheck=1
-type=rpm-md
-gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
- 
-[ceph-source]
-name=Ceph source packages
-baseurl=https://mirrors.aliyun.com/ceph/rpm-jewel/el7/SRPMS/
-enabled=1
-gpgcheck=1
-type=rpm-md
-gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
-EOF
-yum makecache
-yum -y install ceph-deploy
-ceph-deploy --version # 1.5.39
-# 配置deploy节点免密钥登录其他节点
-
-## 初始化monitor
-ceph-deploy new node1 node2 node3
-# 安装ceph(会创建/var/lib/ceph/目录)
-ceph-deploy install node1 node2 node3
-# 开始部署monitor(会自动启动ceph-mon，监听在6789端口)
-ceph-deploy mon create-initial
-# 查看集群状态(ceph)
-ceph -s
-
-## 开始部署OSD
-# 列出节点所有磁盘信息
-ceph-deploy disk list node1 node2 node3
-# 清除磁盘分区和内容(sdb必须是空的磁盘后续才不会出错，注意数据备份)
-ceph-deploy disk zap node1:sdb node2:sdb node3:sdb
-# 分区格式化并激活
-ceph-deploy osd create node1:sdb node2:sdb node3:sdb
-ceph-deploy osd activate node1:sdb node2:sdb node3:sdb
+sudo yum install -y ntp ntpdate ntp-doc # 保证各节点时间基本一致
 ```
-- 安装失败可进行清理环境
+2. 安装ceph-deploy(deploy节点运行)
 
 ```bash
-sudo ps aux|grep ceph | grep -v "grep"| awk '{print $2}'|xargs kill -9
-sudo ps -ef|grep ceph
+# 添加 Ceph 源。baseurl中的`rpm-nautilus`可换成`rpm-其他ceph版本`
+cat > /etc/yum.repos.d/ceph.repo << EOM
+[Ceph]
+name=Ceph packages for x86_64
+baseurl=https://mirrors.aliyun.com/ceph/rpm-nautilus/el7/x86_64/
+enabled=1
+gpgcheck=1
+type=rpm-md
+gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
 
-sudo umount /var/lib/ceph/osd/*
-sudo rm -rf /var/lib/ceph/
-sudo rm -rf /etc/ceph/
-sudo rm -rf /var/run/ceph/
+[Ceph-noarch]
+name=Ceph noarch packages
+baseurl=https://mirrors.aliyun.com/ceph/rpm-nautilus/el7/noarch/
+enabled=1
+gpgcheck=1
+type=rpm-md
+gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
+
+[ceph-source]
+name=Ceph source packages
+baseurl=https://mirrors.aliyun.com/ceph/rpm-nautilus/el7/SRPMS/
+enabled=1
+gpgcheck=1
+type=rpm-md
+gpgkey=https://mirrors.aliyun.com/ceph/keys/release.asc
+EOM
+yum clean all && yum makecache
+# 安装ceph-deploy
+mkdir /opt/ceph-cluster && cd /opt/ceph-cluster
+yum -y install ceph-deploy
+ceph-deploy --version # 2.0.1
+# 配置deploy节点免密钥登录其他节点
+```
+3. 安装STORAGE CLUSTER(deploy节点运行)
+
+```bash
+# 参考：https://docs.ceph.com/docs/nautilus/start/quick-ceph-deploy/#create-a-cluster
+# 初始化monitor
+ceph-deploy new node1 node2 node3 # 在/opt/ceph-cluster目录创建配置文件
+# 安装ceph(会创建/var/lib/ceph/目录)。有可能其中某个节点因为下载rpm Timeout导致安装失败可重新install该节点，安装成功的可执行`ceph --version`查看版本()
+ceph-deploy install node1 node2 node3
+# ceph-deploy install --release luminous node1 # 安装指定版本
+
+# 开始部署monitor(会自动启动ceph-mon，监听在6789端口)
+ceph-deploy mon create-initial
+ceph -s # 查看集群状态(ceph)。mon: 3 daemons, quorum node1,node2,node3 (age 7m)
+# (可选)拷贝配置文件和admin的秘钥到其他节点，从而该节点可使用ceph CLI
+ceph-deploy admin node1 node3
+
+# 部署mgr
+ceph-deploy mgr create node1
+ceph -s # mgr: node1(active, since 47s)
+
+# (可选)部署mds。如果使用CephFS才需要
+ceph-deploy mds create node1 # {0=node1=up:creating}
+
+# (可选)部署rgw(Gateway)。如果使用对象存储才需要
+ceph-deploy install --rgw node1
+
+# (可选)扩展mon、mgr。测试可跳过
+ceph-deploy mon add node2
+ceph-deploy mgr create node3
+
+# 创建OSD。此处/dev/sdb为刚物理连接上去的空磁盘，ceph会自动进行分区
+ceph-deploy osd create --data /dev/sdb node1
+ceph-deploy osd create --data /dev/sdb node2
+ceph-deploy osd create --data /dev/sdb node3
+# 如果在LVM卷上创建OSD，那么--data的参数必须是volume_group/lv_name，而不是卷块设备的路径
+ceph -s # osd: 3 osds: 3 up (since 20s), 3 in (since 20s)
+lsblk # 在OSD节点上运行查看磁盘分区，会发现有一个`ceph--a3202c2d-xxx`的lvm分区
+```
+- 安装失败可进行清理环境后重新安装
+
+```bash
+ceph-deploy purge node1 node2 node3 # 如果执行purge，则需要重新安装ceph
+ceph-deploy purgedata node1 node2 node3 # 删除/var/lib/ceph、/etc/ceph目录
+ceph-deploy forgetkeys
+rm -f ceph.* # 移除/opt/ceph-cluster目录配置文件
+```
+
+### 简单使用
+
+#### 块设备使用(rbd)
+
+```bash
+# 块设备使用。参考：https://docs.ceph.com/docs/nautilus/start/quick-rbd/#create-a-block-device-pool
+## **(deploy节点运行)**创建并初始化pool
+# 创建pool。参考：https://docs.ceph.com/docs/nautilus/rados/operations/pools/#create-a-pool
+# PG数量的预估。集群中单个池的PG数计算公式如下：PG 总数 = (OSD 数 * 100) / 最大副本数 / 池数 (结果必须舍入到最接近2的N次幂的值)
+ceph osd pool create mypool 128 # pool 'mypool' created。创建名为mypool的存储池
+# 初始化pool
+rbd pool init mypool
+
+## **(在某个osd节点)**配置块设备
+# 在mypool存储池中，创建块设备镜像myrbd，大小为4096M
+rbd create myrbd --size 4096 --image-feature layering -p mypool
+# 映射块设备
+sudo rbd map myrbd --name client.admin -p mypool # /dev/rbd0
+# 给此块设备创建文件系统，期间需要回车几次
+sudo mkfs.ext4 -m0 /dev/rbd/mypool/myrbd # 或者 `sudo mkfs.xfs /dev/rbd0`
+# 挂载
+sudo mkdir /mnt/ceph-myrbd
+sudo mount /dev/rbd/mypool/myrbd /mnt/ceph-myrbd
+df -h /mnt/ceph-myrbd
+# 将数据写入块设备来进行检测
+sudo dd if=/dev/zero of=/mnt/ceph-myrbd/test count=100 bs=1M # 104857600 bytes (105 MB) copied, 11.3 s, 9.3 MB/s
+sudo ls -lh /mnt/ceph-myrbd
+```
+
+#### 文件存储使用(CephFS)
+
+- 文件存储使用的是OSD剩余空间，和rbd没有关系
+- 测试过程
+
+```bash
+# 文件存储使用(CephFS)。参考：https://docs.ceph.com/docs/nautilus/start/quick-cephfs/#create-a-filesystem
+# 必须已经部署mds服务
+# ceph-deploy mds create node1
+
+### deploy节点运行
+ceph osd pool create cephfs_data 128
+ceph osd pool create cephfs_metadata 32
+# 创建文件系统
+ceph fs new myfs cephfs_metadata cephfs_data
+ceph fs ls # name: myfs, metadata pool: cephfs_metadata, data pools: [cephfs_data ]
+
+### 客户端测试(测试IP为192.168.6.130。在需要使用文件存储的普通客户端机器上操作)
+mkdir /mnt/mycephfs
+
+## 法一：使用内核驱动进行挂载，但是对内核版本等有一定要求
+# 在 /opt/ceph-cluster/ceph.client.admin.keyring 中可查看secret秘钥(获通过`ceph auth get-key client.admin`命令读取)。更安全的方法是把密码保存在文件中，通过secretfile参数指定
+# dmesg | grep ceph # 出错可通过此命令查看mount错误。如报错：`libceph: mon0 192.168.6.131:6789 missing required protocol features`，最终选用ceph-fuse进行挂载
+# sudo mount -t ceph {ip-address-of-monitor1,ip-address-of-monitor2}:6789:/ /mnt/mycephfs -o name=admin,secret=xxx
+sudo mount -t ceph 192.168.6.131:6789:/ /mnt/mycephfs -o name=admin,secret=AQA9BZ9dMUA7BBAAYCTiaV1cTACP7GSLDxDmBg== # 提示`ceph-fuse[14371]: starting fuse`则正确
+df -h
+sudo dd if=/dev/zero of=/mnt/mycephfs/test count=1024 bs=1M # 测试。1073741824 bytes (1.1 GB) copied, 156.862 s, 6.8 MB/s
+# 设置开机启动。此处使用秘钥文件，则需要将`AQA9BZ9dMUA7BBAAYCTiaV1cTACP7GSLDxDmBg==`保存到/etc/ceph/cephfskey
+echo "192.168.6.131:6789:/ /mnt/mycephfs ceph name=admin,secretfile=/etc/ceph/cephfskey,_netdev,noatime 0 2" >> /etc/fstab
+
+## 法二：使用ceph-fuse进行挂载
+yum install ceph-fuse -y # 在客户端安装ceph-fuse程序。需要同上文一样配置Ceph源(/etc/yum.repos.d/ceph.repo)
+# 将某mgr节点的ceph配置和秘钥复制到客户端
+mkdir /etc/ceph
+scp root@192.168.6.131:/etc/ceph/ceph.conf /etc/ceph/ceph.conf
+scp root@192.168.6.131:/etc/ceph/ceph.client.admin.keyring /etc/ceph/ceph.client.admin.keyring # chmod 600
+# 在客户端运行ceph-fuse挂载
+ceph-fuse --keyring /etc/ceph/ceph.client.admin.keyring --name client.admin -m 192.168.6.131:6789 /mnt/mycephfs
+# 设置开机启动。需要设置ceph-fuse@/mnt/mycephfs服务自启动(设置时/mnt/mycephfs可能需要先卸载)
+echo "id=admin,conf=/etc/ceph/ceph.conf /mnt/mycephfs fuse.ceph defaults 0 0" >> /etc/fstab
+systemctl enable ceph-fuse.target # 必须(因为ceph-fuse服务的配置中[Install]要求ceph-fuse.target)
+# 使用`ceph-fuse@/mnt/mycephfs`会报错`Failed to execute operation: Invalid argument` [^5]。会在`/etc/systemd/system/ceph-fuse.target.wants`目录创建链接文件
+systemctl enable ceph-fuse@-mnt-mycephfs
+systemctl start ceph-fuse@/mnt/mycephfs # 可以使用-或者/
+```
+- 创建不同用户和子目录来使用CephFS(上文`192.168.6.131:6789:/`使用的是根目录) [^5]
+
+    ```bash
+    ## mgr节点运行
+    # 创建用户(客户端)
+    ceph auth add client.aezo mon 'allow r' mgr 'allow r' osd 'allow rw pool=cephfs_data' mds 'allow rw path=/aezo'
+    # 获取用户秘钥(保存在当前运行目录，如：~)
+    ceph auth get-or-create client.aezo -o ceph.client.aezo.keyring
+    cat ceph.client.aezo.keyring
+    ceph auth get client.aezo # 获取用户权限
+    # 更新用户权限
+    # ceph auth caps client.aezo mon 'allow r' mgr 'allow r' osd 'allow rw pool=cephfs_data' mds 'allow rw path=/test'
+    # 约束用户只能在 myfs 存储池(上文创建)的/aezo目录读写
+    ceph fs authorize myfs client.aezo /aezo rw
+
+    ## 客户端节点运行
+    scp root@192.168.6.131:~/ceph.client.aezo.keyring /etc/ceph/ceph.client.aezo.keyring
+    chmod 600 /etc/ceph/ceph.client.aezo.keyring
+    # 创建数据目录并挂载
+    mkdir /mnt/cephaezo
+    chmod 1777 /mnt/cephaezo
+    ceph-fuse -n client.aezo -m 192.168.6.131:6789 /mnt/cephaezo --keyring /etc/ceph/ceph.client.aezo.keyring -r /aezo # -r/--client_mountpoint指定子路径
+    # 设置开机启动。可和上文的/mnt/mycephfs同时成功挂载
+    echo "none /mnt/cephaezo fuse.ceph ceph.id=aezo,ceph.client_mountpoint=/aezo,defaults,_netdev 0 0" >> /etc/fstab # 上文是老板写法，这是新版本写法
+    vi /usr/lib/systemd/system/ceph-fuse@.service
+    systemctl enable ceph-fuse@\x2dn\x20client.aezo\x20\x2dr\x20-aezo\x20-mnt-cephaezo --now # --now立即启动。转义符(\x2d为-; \x20为空格; -为/)参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#自定义服务)
+    ```
+    - 常见错误
+        - 执行`ceph-fuse`时提示`failed to fetch mon config (--no-mon-config to skip)`
+            - 可能由于--keyring秘钥错误
+        - 执行`ceph-fuse`时提示`ceph-fuse[12595]: ceph mount failed with (2) No such file or directory`
+            - 本案例是因为`/aezo`目录没有创建。可在上文myfs绑定的客户端目录(/mnt/mycephfs)下创建aezo目录
+            - 貌似还可以使用`cephfs-shell`创建目录。关于cephfs-shell(目前处于alpha阶段)安装和使用可参考https://docs.ceph.com/docs/master/cephfs/cephfs-shell/。其中cephfs-shell源码位于`https://raw.githubusercontent.com/ceph/ceph/v14.2.4/src/tools/cephfs/cephfs-shell`
+- 也可将CephFS导出为NFS服务器、在Hadoop中使用
+
+#### 对象存储
+
+```bash
+# 对象存储使用。参考：https://docs.ceph.com/docs/nautilus/start/quick-rgw/
+# 必须已经部署Object Gateway服务
+# ceph-deploy install --rgw node1 node3
+
+## 创建网关实例
+# 创建一个网关实例。会在此节点启动一个 radosgw 服务，默认监听在7480端口
+ceph-deploy rgw create node1
+# 修改端口。在网关实例节点修改配置
+cat >> /etc/ceph/ceph.conf << EOM
+[client.rgw.node1]
+rgw_frontends = "civetweb port=80"
+EOM
+# 在网关实例节点启动
+systemctl restart ceph-radosgw@rgw.node1
+wget http://192.168.6.131:80 # 默认监听在7480端口。显示`<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">`
+
+## 使用
+# 可使用第三方软件访问，如亚马逊 s3 客户端
 ```
 
 
@@ -672,3 +832,6 @@ sudo rm -rf /var/run/ceph/
 [^2]: https://blog.fleeto.us/post/kubernetes-storage-performance-comparison/ (Kubernetes 存储性能对比)
 [^3]: https://blog.51cto.com/bigboss/2320016
 [^4]: https://sealyun.com/post/rook
+[^5]: http://manjusri.ucsc.edu/2017/09/25/ceph-fuse/
+
+

@@ -864,14 +864,14 @@ fi
     - 方法：在 **`/usr/lib/systemd/system`** 路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
 
         ```bash
-        # 服务的说明
+        ## 服务的说明
         [Unit]
         # 描述服务
         Description=nginx - high performance web server
         # 依赖，当依赖的服务启动之后再启动自定义的服务
         After=network.target remote-fs.target nss-lookup.target
 
-        # 服务运行参数的设置
+        ## 服务运行参数的设置
         [Service]
         # forking是后台运行的形式; oneshot适用于只执行一项任务，随后立即退出的服务
         Type=forking
@@ -888,13 +888,17 @@ fi
         # 表示给服务分配独立的临时空间
         # PrivateTmp=True
 
-        # 服务安装的相关设置
+        ## 服务安装的相关设置
         [Install]
         # 表示该服务所在的Target，此时为多用户模式下
         WantedBy=multi-user.target
         ```
         - `systemctl daemon-reload` 修改服务配置文件后重新加载
     - 设置开机启动：`systemctl enable nginx`
+    - 自定义服务文件模板(如`/usr/lib/systemd/system/test@.service`)
+        - 大多数情况下，包含 `@` 标记都意味着这个文件是模板。模板单元中的 `%i`(会转义，如空格转义成`\x20`)或`%I`(不会转义，但是传入`-`会替换成`/`) 会被@之后的字符串替换，如果一个模板单元没有实例化就调用，该调用会返回失败。调用如`systemctl start test@argument.service`
+        - 关于转义字符，如模板文件为`ExecStart=/bin/echo %i === %I`，当执行`systemctl start echo@'\x2da -a \x2db b'`，则打印`\x2da\x20-a\x20\x2db\x20b === -a /a -b b`。参考：https://www.freedesktop.org/software/systemd/man/systemd-escape.html
+        - 参考：https://www.freedesktop.org/software/systemd/man/systemd.unit.html、https://superuser.com/questions/393423/the-symbol-and-systemctl-and-vsftpd
 - 方法二
     - 新建755权限文件`/etc/rc.d/init.d/nginx`，文件内容参考[/data/images/arch/nginx](/data/images/arch/nginx)
         - 注意修改其中`nginx="/opt/soft/tengine-2.1.0/sbin/nginx"`和`NGINX_CONF_FILE="/opt/soft/tengine-2.1.0/conf/nginx.conf"`的配置

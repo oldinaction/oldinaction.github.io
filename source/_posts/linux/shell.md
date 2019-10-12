@@ -519,18 +519,29 @@ echo $test
 EOF
 ```
 
-### linux命令
-
-- `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
-
-## functions模块
+### functions模块
 
 - 位于`/etc/rc.d/init.d/functions`文件中
 - 在shell脚本中引用只需加入`. /etc/rc.d/init.d/functions`即可
 
-### 方法介绍
+#### 方法介绍
 
 - `killproc` 杀死进程
+
+## linux命令
+
+- `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
+- `dd` 用于复制文件并对原文件的内容进行转换和格式化处理
+    
+    ```bash
+    ## 参数说明
+    if # 代表输入文件。如果不指定if，默认就会从stdin中读取输入
+    of # 代表输出文件。如果不指定of，默认就会将stdout作为默认输出
+    bs # 代表字节为单位的块大小
+    count # 代表被复制的块数
+    /dev/zero # 是一个字符设备，会不断返回0值字节(\0)
+    ```
+    - `dd if=/dev/zero of=test.txt bs=1M count=3` 在当前目录创建了一个3M大小的文件test.txt。可测试内存操作速度
 
 ## 示例
 
