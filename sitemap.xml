@@ -2,6 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/09/23/devops/rook-ceph/</loc>
+    
+    <lastmod>2019-10-12T02:38:47.435Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2019-10-12T02:05:15.549Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
+    
+    <lastmod>2019-10-12T01:42:06.785Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
+    
+    <lastmod>2019-10-12T01:06:20.204Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
+    
+    <lastmod>2019-10-11T09:39:16.724Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    
+    <lastmod>2019-10-11T01:48:53.820Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
+    
+    <lastmod>2019-10-10T10:08:58.766Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/04/04/extend/vpn/</loc>
+    
+    <lastmod>2019-10-09T10:13:32.773Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
     
     <lastmod>2019-10-08T01:17:48.459Z</lastmod>
@@ -156,13 +212,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    
-    <lastmod>2019-10-08T01:14:58.933Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2019-10-08T01:14:51.842Z</lastmod>
@@ -173,13 +222,6 @@
     <loc>http://blog.aezo.cn/2018/09/23/arch/swagger/</loc>
     
     <lastmod>2019-10-08T01:14:44.374Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2019-10-08T01:14:19.923Z</lastmod>
     
   </url>
   
@@ -219,27 +261,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/09/23/devops/rook-ceph/</loc>
-    
-    <lastmod>2019-10-07T03:40:34.133Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux-system/</loc>
-    
-    <lastmod>2019-10-07T03:34:11.769Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
-    
-    <lastmod>2019-10-06T11:45:18.650Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2019/09/30/devops/ansible/</loc>
     
     <lastmod>2019-10-06T09:37:47.731Z</lastmod>
@@ -250,20 +271,6 @@
     <loc>http://blog.aezo.cn/2019/09/30/devops/zabbix/</loc>
     
     <lastmod>2019-10-06T08:46:20.499Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    
-    <lastmod>2019-10-06T06:14:31.684Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/04/04/extend/vpn/</loc>
-    
-    <lastmod>2019-10-04T08:43:59.976Z</lastmod>
     
   </url>
   
@@ -313,13 +320,6 @@
     <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
     
     <lastmod>2019-09-20T08:32:58.332Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
-    
-    <lastmod>2019-09-19T08:22:01.477Z</lastmod>
     
   </url>
   
