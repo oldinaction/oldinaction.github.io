@@ -29,21 +29,14 @@ tags: [CentOS, linux]
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
     - 快速修改命令 **`sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`**，并重启
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
-- 校验系统时间(多个服务器时间同步可以通过xshell发送到所有会话)
-    - 校验时区：如`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，其中北京时间的时区为`CST`
-        - `mv /etc/localtime /etc/localtime.bak`
-        - `ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime` 修改成功后之前的日志是无法同步修改的
-        - `date`
-    - 校验时间
-        - `date` 查看时间
-        - `date -s "2019-04-07 10:00:00"` 设置时间
-        - `hwclock -w` 将时间写入bios避免重启失效
+- 校验系统时间，参考[时间同步](#时间同步)
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
 - 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#文件权限)
 - 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
 - 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
 - 更换镜像，见下文
-- `yum update` 更新软件版本和内核次版本。初始化机器可执行，生成环境不建议重复更新内核版本
+- 内核升级(Centos7 默认使用内核版本为`3.10`，目前内核长期支持版为`4.4`)
+- `yum update -y` 更新软件版本和内核次版本。初始化机器可执行，生成环境不建议重复更新内核版本
     - `yum upgrade` 只更新软件版本，不更新内核版本
 
 ### 新服务器常见问题
@@ -64,37 +57,9 @@ tags: [CentOS, linux]
         - A 是内核版本号：第一次是1994年的 1.0 版，第二次是1996年的 2.0 版，第三次是2011年的 3.0 版发布
         - B 是内核主版本号：奇数为开发版，偶数为稳定版
         - C 是内核次版本号
-- Centos7升级内核步骤
-
-```bash
-## 查看版本
-uname -r
-# 3.10.0-514.el7.x86_64
-cat /etc/redhat-release 
-# CentOS Linux release 7.3.1611 (Core)
-cat /proc/version
-# Linux version 3.10.0-1062.1.2.el7.x86_64 (mockbuild@kbuilder.bsys.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-39) (GCC) ) #1 SMP Mon Sep 30 14:19:46 UTC 2019
-
-## 需要先导入elrepo的key，然后安装elrepo的yum源
-rpm -import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
-
-## 安装(也可以把kernel image的rpm包下载下来手动安装)
-# 查看可用稳定版本
-yum --disablerepo="*" --enablerepo="elrepo-kernel" list available
-# 安装长期支持版
-yum -y --enablerepo=elrepo-kernel install kernel-lt.x86_64 kernel-lt-devel.x86_64
-
-## 修改grub中默认的内核版本(Linux Kernel)
-# 查看所有内核版本，第一行则内核索引为0，以此类推
-awk -F\' '$1=="menuentry " {print $2}' /etc/grub2.cfg
-# 修改默认启动内核版本。将 `GRUB_DEFAULT=saved` 改成 `GRUB_DEFAULT=0`(此处0表示新安装的内核索引)
-vi /etc/default/grub
-# 重新创建内核配置
-grub2-mkconfig -o /boot/grub2/grub.cfg
-# 重启
-reboot
-```
+- Centos7升级内核 
+    - `bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/centos7-update-kernel.sh) 2>&1 | tee kernel.log`
+    - 需使用root用户执行，如果下载rpm失败，可尝试重新执行
 
 ## 常用软件安装
 
@@ -104,19 +69,17 @@ reboot
 
 #### 镜像管理
 
-- 更换镜像源
+- **更换镜像源**
 
     ```bash
     # 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。**可更换镜像列表** [^3]
     cd /etc/yum.repos.d
-    # 需要确保已经安装`wget`(也可使用curl下载)
-    yum -y install wget
     # 备份
     mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
     # 基础源，下载阿里云镜像
     curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
     # 安装EPEL源(新增镜像源)
-    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
     # 生成缓存
     yum makecache
     ```
@@ -521,13 +484,140 @@ echo "zabbix test mail" | mail -s "zabbix" oldinaction@163.com
 # 可以看到手动一封来自 `root<root@node1.localdomain>`的邮件，其中node1为服务器名
 ```
 
-### yum直接安装
+### 时间同步
+
+- 校验时区：如`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，其中北京时间的时区为`CST`
+    - `mv /etc/localtime /etc/localtime.bak`
+    - `ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime` 修改成功后之前的日志是无法同步修改的
+    - `date`
+- 校验时间
+    - `date` 查看时间
+    - `date -s "2019-04-07 10:00:00"` 设置时间
+    - `hwclock -w` 将时间写入bios固件避免重启失效
+- 设置系统时间自动同步 [^8]
+
+```bash
+# ntpd是步进式的逐渐调整时间(慢慢调整到正确时间)，而ntpdate是断点更新(直接重写时间为正确时间)
+sudo yum install -y ntp ntpdate ntp-doc
+# 立即与国家授时中心同步
+sudo ntpdate 0.cn.pool.ntp.org
+
+# 开启ntpd服务之后自动同步
+cat > /etc/ntp.conf << EOF
+restrict default kod nomodify notrap nopeer noquery
+# restrict -6 default kod nomodify notrap nopeer noquery  #针对ipv6设置
+
+# 允许本地所有操作
+restrict 127.0.0.1
+#restrict -6 ::1
+
+# 允许的局域网络段或单独ip
+#restrict 10.0.0.0 mask 255.0.0.0 nomodify motrap
+#restrict 192.168.0.0 mask 255.255.255.0 nomodify motrap
+#restrict 192.168.1.123 mask 255.255.255.255 nomodify motrap
+
+# 使用上层的internet ntp服务器
+server cn.pool.ntp.org prefer
+server 0.asia.pool.ntp.org
+server 3.asia.pool.ntp.org
+server 0.centos.pool.ntp.org iburst
+
+# 如果无法与上层ntp server通信以本地时间为标准时间
+server   127.127.1.0    # local clock
+fudge    127.127.1.0 stratum 10
+
+# 计算本ntp server 与上层ntpserver的频率误差
+driftfile /var/lib/ntp/drift
+
+# Key file containing the keys and key identifiers used when operating
+# with symmetric key cryptography.
+keys /etc/ntp/keys
+
+#日志文件
+logfile /var/log/ntp.log
+EOF
+
+cat > /etc/sysconfig/ntpd << EOF
+# Drop root to id 'ntp:ntp' by default.
+OPTIONS="-u ntp:ntp -p /var/run/ntpd.pid"
+# Set to 'yes' to sync hw clock after successful ntpdate
+SYNC_HWCLOCK=yes #make no into yes; BIOS的时间也会跟着修改
+# Additional options for ntpdate
+NTPDATE_OPTIONS=""
+EOF
+
+systemctl enable ntpd --now # 设置开机重启并此时立即启动
+```
+
+### Supervisor 进程管理
+
+- Supervisor 是用Python开发的一个client/server服务，是Linux/Unix系统下的一个进程管理工具。可以很方便的监听、启动、停止、重启一个或多个进程。用supervisor管理的进程，当一个进程意外被杀死，supervisor监听到进程死后，会自动将它重启，很方便的做到进程自动恢复的功能，不再需要自己写shell脚本来控制
+- 使用
+
+```bash
+## 安装
+yum install -y supervisor
+systemctl enable supervisord --now && systemctl status supervisord
+
+## 创建守护进程配置文件
+cat > /etc/supervisord.d/node_exporter.ini << EOF
+[program:node_exporter]
+# 执行(启动)命令
+command=/usr/sbin/node_exporter
+# 执行 command 之前，先切换到工作目录
+# directory=/opt/test
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/supervisor/node_exporter.log
+log_stderr=true
+user=root
+EOF
+supervisorctl update && supervisorctl status
+
+## 命令
+supervisorctl status        # 查看监控程序状态
+supervisorctl update        # 根据最新的配置文件，启动新配置或有改动的进程，配置没有改动的进程不会受影响而重启
+supervisorctl reload        # 载入最新的配置文件，停止原有进程并按新的配置启动、管理所有进程
+supervisorctl restart all   # 手动重启所有
+supervisorctl stop node_exporter # 停止进程node_exporter(尽管设置了supervisor自动重启，此时也不会重启；supervisor自动重启只针对意外退出)
+supervisorctl start node_exporter # 启动进程node_exporter
+```
+
+### NFS
+
+```bash
+## 服务端
+# 安装nfs
+yum install -y nfs-utils
+# 启动nfs服务。启动后NFS的服务状态为`Active: active (exited)`是正常的
+systemctl enable nfs --now && systemctl status nfs
+
+# 创建两个目录(v1,v2)并设置为任何人可读写
+mkdir /data/volumes/v{1,2} -pv && chmod 777 /data/volumes/v{1,2}
+# 编辑暴露配置
+cat > /etc/exports << EOF
+/data/volumes/v1 192.168.6.0/24(rw,all_squash)
+/data/volumes/v2 192.168.6.0/24(rw,all_squash)
+EOF
+# 执行暴露目录
+exportfs -arv
+# 查看配置
+showmount -e
+
+## 在其他机器测试挂载nfs存储卷
+# mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
+```
+
+## yum直接安装
 
 - `yum -y install memcached` 安装memcached(默认端口11211)
 - `yum -y install git` 安装git
 - `yum install jq` shell读取json数据
     - `jq .subjects[0].casts[0] douban.json`
     - `curl -s https://douban.uieee.com/v2/movie/top250?count=1 | jq .subjects[0].casts[0]`
+
+
+
 
 
 ---
@@ -540,4 +630,4 @@ echo "zabbix test mail" | mail -s "zabbix" oldinaction@163.com
 [^5]: https://www.cnblogs.com/zeng1994/p/f883e0a2832808455039ff83735d6579.html (Linux下安装解压版（tar.gz）MySQL5.7)
 [^6]: https://www.cnblogs.com/shizhongyang/p/8464876.html (cd: /usr/local/mysql: No such file or directory)
 [^7]: https://www.cnblogs.com/sexiaoshuai/p/8399599.html
-
+[^8]: http://xstarcd.github.io/wiki/sysadmin/ntpd.html

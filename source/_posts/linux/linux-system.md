@@ -43,6 +43,17 @@ tags: [linux, shell]
         - `MemAvailable` 应用程序可用内存数。系统中有些内存虽然已被使用但是可以回收的，比如cache/buffer、slab都有一部分可以回收，所以MemFree不能代表全部可用的内存，这部分可回收的内存加上MemFree才是系统可用的内存，即：**MemAvailable ≈ MemFree + Buffers + Cached**。MemFree是说的系统层面，MemAvailable是说的应用程序层面
     - `free` 为内存概要信息
 - `cat /proc/cpuinfo` 查看CPU使用情况
+
+    ```bash
+    # 查看CPU信息(型号): Intel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz
+    cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c
+    # 查看物理CPU个数
+    cat /proc/cpuinfo | grep "physical id"| sort| uniq| wc -l
+    # 查看每个物理CPU中core的个数(即核数)
+    cat /proc/cpuinfo | grep "cpu cores"| uniq
+    # 查看逻辑CPU的个数
+    cat /proc/cpuinfo | grep "processor"| wc -l
+    ```
 - 磁盘使用查看
     - `df -h` 查看磁盘使用情况和挂载点信息
         - `df /root -h` **查看/root目录所在挂载点**(一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据)
@@ -66,8 +77,20 @@ tags: [linux, shell]
         - 修改ip即修改上述`IPADDR`
 - `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
 - `telnet 192.168.1.1 8080` 检查端口(`yum -y install telnet`)
-- `curl http://www.baidu.com` 获取网页内容
-    - `curl --socks5 127.0.0.1:1080 http://www.qq.com` 使用socks5协议
+- `curl http://www.baidu.com` 获取网页内容。参考：http://www.ruanyifeng.com/blog/2019/09/curl-reference.html
+
+    ```bash
+    -d              # 发送 POST 请求的数据体    # curl -d'login=emma＆password=123'-X POST https://google.com/login
+    -H              # 添加 HTTP 请求的标头      # curl -H 'Accept-Language: en-US' https://google.com
+    -L              # 会让 HTTP 请求跟随服务器的重定向。curl 默认不跟随重定向
+    -O              # 将服务器回应保存成文件，并将 URL 的最后部分当作文件名。等同于wget # curl -O https://www.example.com/foo/bar.html (文件名bar.html)
+    -o              # 将服务器的回应保存成文件并重命名 # curl -o my.html https://www.example.com (文件名my.html)
+    -v              # 输出通信的整个过程，用于调试
+    -b              # 向服务器发送 Cookie       # curl -b 'foo1=bar' -b 'foo2=baz' https://google.com # -b也可接cookie文件
+    -c              # 将服务器设置的 Cookie 写入一个文件
+    --limit-rate    # 用来限制 HTTP 请求和回应的带宽，模拟慢网速的环境  # curl --limit-rate 200k https://google.com
+    --socks5        # 使用socks5协议            # curl --socks5 127.0.0.1:1080 http://www.qq.com
+    ```
 - `wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
     - `wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com` wget爬取网站
 - `netstat -lnp` 查看端口占用情况(端口、PID)
@@ -188,9 +211,10 @@ tags: [linux, shell]
             - `exit` 或 `logout` 正常登出并不会终止 & 的后台任务，此时的 SIGHUP 信号只会发给前台任务
             - 关闭窗口或断网，前后台任务都会收到 SIGHUP 信号，但如果我们试用了 nohup 则可以屏蔽此信号，让任务仍不被中断。(遇到一次使用nohup也无法解决关闭窗口程序停止，最终只能后台运行并通过exit退出)
             - 进程收到 SIGHUP 信号时默认的操作是退出执行。但我们可以在代码里使用信号捕捉的方法，捕捉或忽略 SIGHUP 信号的处理，这样进程就不会退出了
-        - `startofbiz.sh > my.log` 表示startofbiz.sh的输出重定向到my.log
+        - `startofbiz.sh > my.log` 表示startofbiz.sh的输出重定向到my.log(如果存在交互场景则会一致卡死，且无法交互，需使用tee)
         - `2>&1` 表示将错误输出重定向到标准输出
             - `0`：标准输入；`1`：标准输出；`2`：错误输出
+        - `./myscript.sh 2>&1 | tee mylog.log` **tee实时重定向日志(同时也会在控制打印，并且可进行交互)**
     - `Ctrl+c` 关闭程序，回到终端
     - `Ctrl+z` 后台运行程序，回到终端
 - 设置环境变量
@@ -210,7 +234,7 @@ tags: [linux, shell]
     - `-k` 查看内容日志
     - `--since`/`--until` 查询某段时间的日志
 - **自定义服务参考[《nginx》http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)**
-- systemctl：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为`/usr/lib/systemd/system` 或 `/etc/systemd/system`)
+- `systemctl`：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为`/usr/lib/systemd/system` 或 `/etc/systemd/system`)
     - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务，此处`.service`可省略，status状态说明
         - `Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)`中`docker.service`为daemon配置文件，第一个`disabled` 表示服务不是开机启动
         - `Active: active (running)` 表示正在运行；`Active: inactive (dead)` 表示尚未运行；`Active: active (exited)` 表示服务有效中，但是程序已执行完成(NFS服务正常情况下就是此状态)
@@ -220,16 +244,17 @@ tags: [linux, shell]
     - `systemctl disable nginx` 停止开机启动
     - `systemctl cat sshd` 查看服务的配置文件
     - **`tail -f /var/log/messages`** 查看服务启动日志
-- chkconfig：提供了一个维护`/etc/rc[0~6]d/init.d`文件夹的命令行工具
+- `chkconfig`：提供了一个维护`/etc/rc[0~6]d/init.d`文件夹的命令行工具
     - `chkconfig --list [nginx]` 查看(nginx)服务列表
-    - `chkconfig --add nginx` 将nginx加入到服务列表(需要 **`/etc/rc.d/init.d`**/软路径`/etc/init.d` 下有相关文件`nginx.service`或`nginx`脚本)
+    - `chkconfig --add nginx` 将nginx加入到服务列表(需要 **`/etc/rc.d/init.d/`** 软路径`/etc/init.d` 下有相关文件`nginx.service`或`nginx`脚本)
+        - 用户文件保存在`/etc/rc.d/init.d/`(用户工作空间)；当执行`--add`命令后，该目录下的相应脚本会按照运行级别复制到对应级别目录，如`/etc/rc.d/rc3.d`
     - `chkconfig --del nginx` 关闭指定的服务程序
     - `chkconfig nginx on` 设置nginx服务开机自启动（对于 on 和 off 开关，系统默认只对运行级345有效，但是 reset 可以对所有运行级有效）
     - 设置开机自启动
         - 在`/etc/init.d`目录创建脚本文件，并设置成可执行`chmod +x my_script`
             ```bash
             # 自启动脚本的注释中必须有chkconfig、description两行注释(chkconfig会查看所有注释行)
-            # chkconfig参数一表示在运行级别2345时默认代开(一般服务器的启动级别为3多用户启动)，使用`-`表示默认关闭(不自动启动)；参数2表示启动顺序(越小越优先)；参数3表示停止顺序(停止并不会重新执行脚本，而是停止此进程)
+            # chkconfig参数一表示在运行级别2345时默认代开(一般服务器的运行级别为3多用户启动)，使用`-`表示默认关闭(不自动启动)；参数2表示启动顺序(越小越优先)；参数3表示停止顺序(停止并不会重新执行脚本，而是停止此进程)
             
             #!/bin/sh
             # chkconfig: 2345 50 50
@@ -244,29 +269,31 @@ tags: [linux, shell]
             ```
         - **将启动脚本添加到chkconfig列表**：`chkconfig --add my_script`
         - 之后可在`/var/log/messages`中查看启动日志信息；也可通过`systemctl status my_script`查看服务状态，如`active (exited)`表示服务有效中，但是程序已执行完成
-- service：`service nginx start|stop|reload` 服务启动等命令
+- `service`：`service nginx start|stop|reload` 服务启动等命令
 
 ### 开机启动设置
 
 #### 系统启动顺序boot sequence
 
-- load bios(hardware information)：加电后检查，载入BIOS的硬件信息，并取得第一个开机装置的代号
-- read MBR's cofing to find out the OS 读取第一个开机装置的MBR的boot Loader (grub)的开机信息
-- load the kernel of the OS 载入OS Kernel信息，解压Kernel，尝试驱动硬件
-- init process starts... Kernel执行init程序并获得run-lebel信息(如3或5)
-- execute /etc/rc.d/sysinit (rc.d为runlevel control directory)
-- start other modulers(/etc/modules.conf) (启动内核外挂模块)
-- execute the run level scripts(如rc0.d、rc1.d等。启动只能配置成某一个级别，查看`systemctl get-default`，配置目录`cat /etc/inittab`)
-    - 0 停机（千万不要把initdefault 设置为0）
-    - 1 单用户模式
-    - 2 多用户，但是没有 NFS
-    - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)
-    - 4 系统保留的
-    - **5** X11(x window 桌面版)
-    - 6 重新启动（千万不要把initdefault 设置为6）
-- execute `/etc/rc.d/rc.local` 自动启动某些程序，可基于此文件配置(或者`/etc/rc.local`，直接在里面添加启动命令)
-- execute /bin/login
-- shell started...
+1. load bios(hardware information)：加电后检查，载入BIOS的硬件信息，并取得第一个开机装置的代号
+2. read MBR's cofing to find out the OS：读取第一个开机装置的MBR的boot Loader (grub)的开机信息
+3. load the kernel of the OS：载入OS Kernel信息，解压Kernel，尝试驱动硬件
+4. init process starts...：Kernel执行init程序并获得run-level信息(如3或5)
+5. execute /etc/rc.d/sysinit (rc.d 为 runlevel control directory)
+6. start other modulers(/etc/modules.conf) (启动内核外挂模块)
+7. execute the run level scripts
+    - 执行某级别下的脚本如 `/etc/rc0.d`=>`/etc/rc.d/rc0.d`、`/etc/rc1.d` (创建的chkconfig会生成文件到对应级别)
+    - 运行级别：启动只能配置成某一个级别，查看`systemctl get-default`，配置目录`cat /etc/inittab`
+        - 0 停机(千万不要把initdefault 设置为0)
+        - 1 单用户模式
+        - 2 多用户，但是没有 NFS
+        - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)
+        - 4 系统保留的
+        - **5** X11(x window 桌面版)
+        - 6 重新启动(千万不要把initdefault 设置为6)
+8. execute `/etc/rc.d/rc.local`：执行`rc.local`脚本。可基于此文件配置(或者`/etc/rc.local`)，直接在里面添加某些启动命令
+9. execute /bin/login
+10. shell started...
 
 #### 启动设置
 
@@ -758,7 +785,8 @@ lsmod |grep br_netfilter
     # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
     # -R 递归查询子目录
     # -i 忽略大小写的不同，所以大小写视为相同
-    # -E 以egrep模式匹配
+    # -E 以 egrep 模式匹配
+    # -P 应用正则表达式
     # -n 顺便输出行号
     # -c 计算找到 '搜寻字符串' 的次数
     # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
@@ -777,6 +805,7 @@ lsmod |grep br_netfilter
     grep -B 5 'parttern' filename # 打印匹配行的前5行
 
     grep -E 'A|B' filename # 打印匹配 A 或 B 的数据
+    echo office365 | grep -P '\d+' -o # 返回 365
     grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
     grep -v 'A' filename # 打印不包含 A 的数据
     ```
@@ -795,8 +824,8 @@ lsmod |grep br_netfilter
     - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
 	- **`s/pattern/string/修饰符`** 查找并替换
         - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
-        - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"
-        - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor" 
+        - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
+        - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
 	- `d` 删除符合条件的行
 	- `p` 显示符合条件的行
 	- `a \string`: 在指定的行后面追加新行，内容为string
@@ -806,10 +835,20 @@ lsmod |grep br_netfilter
 	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
 	- `&` 引用模式匹配整个串
 - 示例
-    - 删除/etc/grub.conf文件中行首的空白符：`sed -r 's@^[[:space:]]+@@g' /etc/grub.conf`
-    - 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5：`sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab`
-    - 删除/etc/inittab文件中的空白行：`sed '/^$/d' /etc/inittab` (此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
-        - `sed -i -e '/^$/d' /home/smalle/test.txt` 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
+
+    ```bash
+    # 删除/etc/grub.conf文件中行首的空白符
+    sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
+    # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
+    sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
+    # 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
+    sed '/^$/d' /etc/inittab
+    # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
+    sed -i -e '/^$/d' /home/smalle/test.txt
+
+    # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
+    echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
+    ```
     - [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
 
 ### awk文本分析工具
@@ -914,7 +953,17 @@ done
     - `usermod -d /home/home_dir -U aezo` 修改用户宿主目录
     - `useradd -r -g mysql mysql` 添加用户mysql，并加入到mysql用户组
         - `-r` 表示mysql用户是一个系统用户，不能登录
-- `passwd aezo` 设置密码
+    - 修改用户名
+
+        ```bash
+        # 将old修改为new
+        sudo pkill -9 -u old # 关闭旧用户session
+        sudo usermod -l new old
+        sudo usermod -d /home/new -m new # 修改用户目录(之前目录数据不会丢失)
+        sudo groupmod -n new old # 修改用户组
+        # 其他配置文件中保存的用户名和用户目录并不会被修改
+        ```
+- `passwd aezo` 修改密码
     - centos7忘记root用户密码找回可在启动时设置进入`sysroot/bin/sh`进行修改，参考：https://blog.51cto.com/scorpions/2059912
 - 添加用户sudo权限
     - 使用sudo执行的命令都是基于root启动，创建的文件也是所属root
@@ -924,13 +973,13 @@ done
     chmod u+w /etc/sudoers
     vi /etc/sudoers
 
-    # 文件内容修改
+    # (位置说明)文件内容修改
     root	ALL=(ALL) 	ALL
     # 新加的sudo用户
     # smalle  ALL=(ALL)   ALL
-    # 设置执行sudo不需要输入密码(否则sudo输入密码，有效期只有5分钟)。
+    # (加这一行)设置执行sudo不需要输入密码(否则sudo输入密码，有效期只有5分钟)。
     smalle  ALL=(ALL)   NOPASSWD: ALL
-    # 只要是wheel组不需要密码. 有可能把smalle加入到了wheel组开启su权限时，导致wheel组的权限会覆盖上面用户权限(注释wheel组需要密码的配置)
+    # (需要去掉此行的注释)只要是wheel组不需要密码
     %wheel  ALL=(ALL)       NOPASSWD: ALL
 
     # 恢复文件只读
@@ -995,7 +1044,7 @@ done
         - centos7中root用户默认为022，其他新创建的用户默认为002
     - 命令行运行`umask 022`只能临时改变
     - 永久修改umask值
-        - 方式一：修改`sudo vi /etc/profile`，加入一行`umask 022`
+        - **方式一**：修改`sudo vi /etc/profile`，加入一行`umask 022`
         - 方式二：修改每个用户`sudo vi ~/.bashrc`文件，加入一行`umask 022`
 - 常用命令
     - `find . -type d -exec chmod 755 {} \;` 修改当前目录的所有目录为775
@@ -1080,17 +1129,37 @@ done
 
 ## corn定时任务 [^4]
 
+- crontab命令语法：`crontab [ -u user ] { -e | -l | -r }`
+    - `-u` 指定某用户任务(**默认是当前用户**，最终目标命令会已此用户身份运行)
+        - `sudo crontab -e` 此时未指定`-u`，sudo则相当于`-u root`
+    - `-e` 编辑当前用户的定时任务，默认在`/var/spool/`目录。或者 `sudo vi /etc/crontab`
+    - `-l` 列出目前的时程表(`crontab -u root -l`)
+    - `-r` 删除目前的时程表
 - `systemctl reload crond` 重新加载配置
 - `systemctl restart crond` 重启crond(**添加配置后需要重启**)
-- 命令式：`crontab [ -u user ] { -e | -l | -r }`
-    - `-u` 指定某用户任务(**默认是当前用户**，最终目标命令会已此用户身份运行)
-        - `sudo crontab -e` 此时未指定`-u`，则相当于`-u root`
-    - `-e` 编辑当前用户的定时任务，默认在`/var/spool/`目录。或者 `sudo vi /etc/crontab`
-    - `–l` 列出目前的时程表
-    - `-r` 删除目前的时程表
+- 使用
+
+    ```bash
+    ## root用户定时执行脚本
+    # 1.编辑脚本
+    crontab -u root -e
+    # 2.加入配置(对应用户必须有执行此脚本权限)
+    # 01 * * * * /home/smalle/script/test.sh
+    # 3.重新加载
+    systemctl reload crond
+    # 4.查看日志
+    tail -f /var/log/cron
+
+    # 如果执行的任务脚本中有echo输出，则会给对应用户发系统邮件
+    cat /var/spool/mail/root
+    ```
+
+### corn配置
+
 - 配置举例(需要将此配置加入到crontab)
     - `30 2 1 * * /sbin/reboot` 表示每月第一天的第2个小时的第30分钟，执行命令/sbin/reboot(重启)
     - `00 02 * * * /home/smalle/script/backup_mysql.sh` 每天执行mysql备份脚本。脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份)
+    - `*/3 * * * * /home/smalle/script/test.sh` 每3分钟执行一次脚本
 
 - 配置说明如下
 

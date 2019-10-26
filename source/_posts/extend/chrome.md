@@ -54,6 +54,8 @@ tags: [plugins, debug]
     - VM文件是V8引擎计算出的临时代码，VM文件出现情况，如：（1）直接在console控制台运行js代码 （2）使用eval函数计算js代码(如果一些函数通过eval定义)（3）js添加的`<script>`标签产生的
     - 查看VM函数
         - `debugger` 相应代码。如某些函数通过eval定义，在调用此函数的地方debugger，运行到该行后，点击此行数就会出VM文件
+- 打开新标签自动debug
+    - Setting - DevTools - Auto-open DevTools for popups
 
 ## 生成桌面系统
 

@@ -423,7 +423,7 @@ Options:
     fi
     ```
 - 整数比较
-    - `-eq` 相等，比如：`[ $A –eq  $B ]`
+    - `-eq` 相等，比如：`[ $A -eq  $B ]`
     - `-ne` 不等
     - `-gt` 大于
     - `-lt` 小于
@@ -531,6 +531,8 @@ EOF
 ## linux命令
 
 - `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
+- `yes y` 一直输出字符串y
+    - `yes y | cp -i new old` `cp` 用文件覆盖就文件(`-i`存在old文件需进行提示，否则无需提示；`-f`始终不进行提示)，而此时前面会一致输出`y`，相当于自动输入了y进行确认cp操作
 - `dd` 用于复制文件并对原文件的内容进行转换和格式化处理
     
     ```bash
@@ -542,6 +544,40 @@ EOF
     /dev/zero # 是一个字符设备，会不断返回0值字节(\0)
     ```
     - `dd if=/dev/zero of=test.txt bs=1M count=3` 在当前目录创建了一个3M大小的文件test.txt。可测试内存操作速度
+- sgdisk磁盘操作工具
+
+    ```bash
+    # 安装
+    yum install -y gdisk
+
+    # 查看所有GPT分区
+    sgdisk -p /dev/sdb
+    # 查看第一个分区
+    sgdisk -i 1 /dev/sdb
+    # 创建了一个不指定大小、不指定分区号的分区
+    sgdisk -n 0:0:0 /dev/sdb # -n 分区号:起始地址:结束地址
+    # 创建分区1，从默认起始地址开始的10G的分区
+    sgdisk -n 1:0:+10G /dev/sdb
+    # 将分区方案写入文件进行备份
+    sgdisk --backup=/root/sdb.partitiontable /dev/sdb
+    # 删除第一分区
+    sgdisk -d 1 /dev/sdb
+    # 删除所有分区(提示：GPT data structures destroyed!)
+    sgdisk --zap-all --clear --mbrtogpt /dev/sdb
+    ```
+
+
+## Tips
+
+- 如果脚本中有`vi`等操作，当用户保存该文件后会继续执行脚本
+- 直接执行github等网站脚本
+
+    ```bash
+    # 法1(需要是raw类型的连接)
+    bash <(curl -L https://raw.githubusercontent.com/sprov065/v2-ui/master/install.sh) 2>&1 | tee mylog.log
+    # 法2(需要是raw类型的连接)
+    wget --no-check-certificate https://github.com/sprov065/blog/raw/master/bbr.sh && bash bbr.sh 2>&1 | tee mylog.log
+    ```
 
 ## 示例
 
@@ -709,6 +745,41 @@ case "$1" in
 		exit 1
 esac
 exit $?
+```
+
+### 实现交互
+
+```bash
+read -p "you are sure you wang to xxxxxx?[y/n]" input
+echo "you input [$input]"
+if [ $input = "y" ];then
+    echo "ok "
+fi
+```
+
+### 定时判断
+
+```bash
+# this is a function to find whether the docker is run.
+$proc_name='docker'
+has_started() {
+    ionum=`ps -ef | grep $proc_name | grep -v grep | wc -l`
+    return $ionum 
+}
+while true
+do
+    has_started
+    processnum=$?
+    if [ $processnum -eq 0 ]
+    then 
+        echo "$proc_name has not been started!"
+    else
+        echo "$proc_name has been started"
+        break 
+    fi
+    sleep 5
+done
+echo 'to do what...'
 ```
 
 ### 删除日志文件

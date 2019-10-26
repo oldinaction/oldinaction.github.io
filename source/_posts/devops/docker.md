@@ -249,6 +249,7 @@ Run 'docker COMMAND --help' for more information on a command.
     - **容器会继承docker宿主主机的网络**，在容器内部是可以向外访问到宿主主机所在网络，如本地物理机
     - 在本地物理机中默认是无法访问容器内网络，当开启端口映射8080:80时，可通过访问宿主主机的映射端口(8080)达到访问容器的内部端口(80)
 - docker部署在内网的其他机器上，同上理。需要注意容器内部访问宿主主机内网其他机器时，需要该机器没有开启VPN，虚拟网卡(会产生多个ip)等
+- Docker操纵`iptables`规则以提供网络隔离(会定时重置iptables规则)。如果需要添加在Docker规则之前加载的规则，需将添加到`DOCKER-USER`(filter表)链中。也可通过参数关闭docker对iptables的操作
 
 ### docker跨容器通信
 
@@ -256,7 +257,7 @@ Run 'docker COMMAND --help' for more information on a command.
 - 跨容器通信解决方案
     - 可通过直接路由方式(NAT)
     - 桥接方式(如pipework)完成跨容器通信(二层VLAN网络，大二层方式，只适合小于4096节点集群，且存在广播风暴问题)
-    - docker 内置的 Overlay和 macvlan 则解决了跨容器通信，第三方方案常用的包括 flannel、weave 、calico
+    - docker 内置的 Overlay 和 macvlan 则解决了跨容器通信，第三方方案常用的包括 flannel、weave 、calico
 - Overlay网络
     - Overlay网络是指在不改变现有网络基础设施的前提下，通过某种约定通信协议，把二层报文封装在IP报文之上的新的数据格式。这样不但能够充分利用成熟的IP路由协议进程数据分发，而且能够突破VLAN的4096数量限制，支持高达16M的用户，并在必要时可将广播流量转化为组播流量，避免广播数据泛滥
     - 三种Overlay的实现标准，分别是：虚拟可扩展LAN(VxLAN)、采用通用路由封装的网络虚拟化(NVGRE)和无状态传输协议(SST)，其中以VxLAN的支持厂商最为雄厚，VxLan数据包格式
@@ -659,6 +660,8 @@ volumes:
 
 ## 常用docker镜像
 
+### docker hub
+
 > https://hub.docker.com
 
 - `centos` 官方提供的centos镜像，无netstat、sshd等服务，测试可进行安装
@@ -669,20 +672,26 @@ volumes:
         - `/usr/sbin/sshd -D &`
 - `docker run -itd --name ubuntu ubuntu:14.04`
 - `java:8-jre` 一般是docker-compose中引入
-- 自行编译jdk
-    - 在文件夹test下创建文件`Dockerfile`，并将`jdk-7u80-linux-x64.tar.gz`复制进去
-    - `docker build --rm -t jdk:1.7 .` 打包生成镜像(大概508M)
-    - `docker run -it ae4c031a5cb6 sh` 进入容器执行 `java -version`查看
 
-    ```bash
-    FROM centos:7
-    MAINTAINER smalle
-    ADD jdk-7u80-linux-x64.tar.gz /usr/local
-    ENV JAVA_HOME /usr/local/jdk1.7.0_80
-    ENV JRE_HOME /usr/local/jdk1.7.0_80/jre
-    ENV CLASSPATH .:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
-    ENV PATH $PATH:$JAVA_HOME/bin:$JRE_HOME/bin
-    ```
+### 自行编译jdk
+
+- 在文件夹test下创建文件`Dockerfile`，并将`jdk-7u80-linux-x64.tar.gz`复制进去
+
+```Dockerfile
+FROM centos:7
+MAINTAINER smalle
+# ADD https://github.com/frekele/oracle-java/releases/download/7u80-b15/jdk-7u80-linux-x64.tar.gz /usr/local
+ADD jdk-7u80-linux-x64.tar.gz /usr/local
+ENV JAVA_HOME /usr/local/jdk1.7.0_80
+ENV JRE_HOME /usr/local/jdk1.7.0_80/jre
+ENV CLASSPATH .:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
+ENV PATH $PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+```
+- `docker build --rm -t jdk:1.7 .` 打包生成镜像(大概508M)
+- `docker run -it ae4c031a5cb6 sh` 进入容器执行 `java -version`查看
+- 推送
+    - `docker tag ae4c031a5cb6 192.168.17.196:10010/library/jdk:1.7`
+    - `docker push 192.168.17.196:10010/library/jdk:1.7`
 
 ### nginx
 
@@ -964,7 +973,7 @@ docker-compose stop # 停止Harbor
 # 此处修改了harbor.cfg中的hostname=192.168.17.196:10010
 http://192.168.17.196:10010/harbor/sign-in
 
-## 推送数据到私有仓库（默认含有一个library公共项目，也可自行创建其他项目）
+## 将镜像7042885a156a推送数据到私有仓库（默认含有一个library公共项目，也可自行创建其他项目）
 docker tag 7042885a156a 192.168.17.196:10010/library/nginx:sm_1
 # 登录(admin/Harbor12345)。登录成功后会保存秘钥到`~/.docker/config.json`，**下次则无需登录**
 # 此处端口应该为10010。harbor内部默认也启动了一个registry，端口为5000，并通过nginx做了转发，因此对外端口只有10010。可参看上文修改/etc/docker/daemon.json的配置为：{"insecure-registries": ["192.168.17.196:10010"]}

@@ -150,9 +150,9 @@ tcpdump -i eth1 'tcp[13] = 2'
 
 ### iptables
 
-- 相关文章：[洞悉linux下的Netfilter&iptables](http://blog.chinaunix.net/uid-23069658-id-3160506.html)
+- [man-docs](http://ipset.netfilter.org/iptables.man.html)、相关文章：[洞悉linux下的Netfilter&iptables](http://blog.chinaunix.net/uid-23069658-id-3160506.html)
 - iptables其实不是真正的防火墙，我们可以把它理解成一个客户端代理，用户通过iptables这个代理，将用户的安全设定执行到对应的安全框架(如：netfilter)中，这个安全框架才是直正的防火墙。netfilter位于内核空间，iptables位于用户空间
-- iptables的规则存储在内核空间的信息包过滤表中，这些规则分别指定了源地址、目的地址、传输协议（如TCP、UDP、ICMP）和服务类型（如HTTP、FTP和SMTP）等。当数据包与规则匹配时，iptables就根据规则所定义的方法来处理这些数据包，如放行（accept）、拒绝（reject）和丢弃（drop）等。配置防火墙的主要工作就是添加、修改和删除这些规则
+- iptables的规则存储在内核空间的信息包过滤表中，这些规则分别指定了源地址、目的地址、传输协议(如TCP、UDP、ICMP)和服务类型(如HTTP、FTP和SMTP)等。当数据包与规则匹配时，iptables就根据规则所定义的方法来处理这些数据包，如放行(accept)、拒绝(reject)和丢弃(drop)等。配置防火墙的主要工作就是添加、修改和删除这些规则
 - 链(规则)类型：`PREROUTING`、`INPUT`、`FORWARD`、`OUTPUT`、`POSTROUTING`。每种链类型上可能会有多个规则 [^1]
     
     ![报文流向](/data/images/linux/报文流向.png)
@@ -167,18 +167,20 @@ tcpdump -i eth1 'tcp[13] = 2'
     - `filter`表：负责过滤功能，防火墙；内核模块：iptables_filter。可能被INPUT，FORWARD，OUTPUT使用
 - 规则由匹配条件和处理动作组成
     - 匹配条件：源地址Source IP，目标地址 Destination IP，和一些扩展匹配条件
-    - 处理动作(target)
-        - `ACCEPT`：允许数据包通过（后续规则继续执行。此时会继续校验此链上的其他规则和剩余其他链规则）
-        - `DROP`：直接丢弃数据包，不给任何回应信息，过了超时时间才会有反应。或者出现ping永远无返回信息即卡死（后续不执行）
-        - `REJECT`：拒绝数据包通过，必要时会给数据发送端一个响应的信息，客户端刚请求就会收到拒绝的信息（后续不执行）
-        - `SNAT`：源地址转换，解决内网用户用同一个公网地址上网的问题（后续规则继续执行）
-        - `MASQUERADE`：是SNAT的一种特殊形式，适用于动态的、临时会变的ip上
+    - 处理动作[target](http://ipset.netfilter.org/iptables-extensions.man.html#lbCM)
+        - `ACCEPT`：允许数据包通过（**后续规则继续执行**。此时会继续校验此链上的其他规则和剩余其他链规则）
+        - `DROP`：直接丢弃数据包，不给任何回应信息，过了超时时间才会有反应。或者出现ping永远无返回信息即卡死（**后续不执行**）
+        - `REJECT`：拒绝数据包通过，必要时会给数据发送端一个响应的信息，客户端刚请求就会收到拒绝的信息（**后续不执行**）
+        - `SNAT`：源地址转换，解决内网用户用同一个公网地址上网的问题（**后续规则继续执行**；只能在nat中使用）
+        - `MASQUERADE`：是SNAT的一种特殊形式，适用于动态的、临时会变的ip上（只能在nat中使用）
         - `PNAT`：源端口转换
-        - `DNAT`：目标地址转换
-        - `REDIRECT`：在本机做端口映射
+        - `DNAT`：目标地址转换（只能在nat中使用）
+        - `REDIRECT`：在本机做端口映射（只能在nat中使用）
         - `LOG`：在/var/log/messages文件中记录日志信息，然后将数据包传递给下一条规则，也就是说除了记录以外不对数据包做任何其他操作，仍然让下一条规则去匹配
-        - `RETURN`：结束在目前规则链中的过滤程序，返回主规则链继续过滤。如果把自定义链看成是一个子程序，那么这个动作就相当于提早结束子程序并返回到主程序中（此自定义链后续规则不执行，主链继续执行）
+        - `RETURN`：结束在目前规则链中的过滤程序，返回主规则链继续过滤。如果把自定义链看成是一个子程序，那么这个动作就相当于提早结束子程序并返回到主程序中（**此自定义链后续规则不执行，主链继续执行**）
         - `QUEUE`：防火墙将数据包移交到用户空间
+        - `TTL`：操作TTL（只能在mangle中使用）
+        - `TRACE`：跟踪记录日志（只能在raw表中使用）
 - 列出iptables表规则 [^2]
 
 ```bash
@@ -262,11 +264,12 @@ iptables [-t table] COMMAND [chain] CRETIRIA -j ACTION
 -E  # 用来Rename chain主要是用来给用户自定义的链重命名
         # eg: iptables -E oldname newname
 -Z  # 清空链及链中默认规则的计数器的（有两个计数器：数据包个数、数据包字节大小）
+        # eg: iptables -Z -t mangle
 
 # 规则管理命令
 -A  # 追加，在当前链的最后新增一个规则
 -I  # 插入，把当前规则插入为第几条
-    # eg: iptables -I 3 ... # 插入为第3条
+    # eg: iptables -I PREROUTING 3 ... # 向PREROUTING链中的第3条插入规则
 -R  # 替换/修改第几条规则
     # eg: iptables -R 3 ... # 修改第3条规则
 -D  # 删除第几条规则
@@ -304,11 +307,16 @@ iptables [-t table] COMMAND [chain] CRETIRIA -j ACTION
         # eg: --icmp-type 8 # 匹配请求回显数据包。echo-request(请求回显)，一般用8来表示；echo-reply(响应数据包)一般用0来表示
 # 显式扩展（-m），扩展各种模块
 -m multiport    # 表示启用多端口扩展，之后就可以使用比如：--dports 21,23,80
+-m ttl          # 表示开启ttl扩展。如：iptables -A INPUT -m ttl --ttl-gt 50 -m length --length 722:65535 -j DROP
 
 
 ## 示例
 # 如果数据包经 eth0 网卡流入，则对其TTL值加3 (有效解决主网TTL被运营线篡改导致TTL异常，如TTL=1，此时无法做子网路由)
 iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
+
+# 跟踪记录日志，保存在 /var/log/syslog
+iptables -t raw -A OUTPUT -p icmp -j TRACE
+iptables -t raw -A PREROUTING -p icmp -j TRACE
 ```
 - 暂存和恢复iptables规则
     - `iptables-save > /etc/sysconfig/iptables` 暂存所有规则到文件中
@@ -316,12 +324,42 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
 
 ### ebtables
 
-- ebtables和iptables [^13]
+- [ebtables](https://ebtables.netfilter.org)、[man-docs](https://ebtables.netfilter.org/misc/ebtables-man.html)
+- `ebtables` 和 `iptables` [^13]
     - 都是linux系统下netfilter的配置工具，可以在链路层和网络层的几个关键节点配置报文过滤和修改规则
-    - ebtables更侧重vlan，mac和报文流量；iptables侧重ip层信息，4层的端口信息
+    - ebtables更侧重vlan，mac和报文流量(太网层面)；iptables侧重ip层信息，4层的端口信息
+    - ebtables 就像以太网桥的 iptables。iptables 不能过滤桥接流量，而 ebtables 可以；ebtables 不适合作为 Internet 防火墙
 - Netfilter-Packet-Flow
 
 ![Netfilter-Packet-Flow](/data/images/linux/Netfilter-Packet-Flow.png)
+- 使用示例
+
+> https://ebtables.netfilter.org/misc/ebtables-man.html
+
+```bash
+ebtables # 打印帮助
+-t      # 指定表。table包含：broute、nat、filter
+        # broute表：用于控制进来的数据包是需要进行bridge转发还是进行route转发，即2层转发和3层转发
+-L      # 查询表规则
+
+## 查询
+# 查询 filter 表规则
+ebtables -L
+# -t指定表为nat(参数必须在最前面)
+ebtables -t nat -L
+ebtables -t nat -Lx # x必须在-L后面
+
+## 记录日志(ebtables目前还不支持TRACE)，可在 /var/log/syslog 中查看
+# 这里 --ip-proto 1 表示仅 match icmp packet
+ebtables -t broute -A BROUTING -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:broute:BROUTING" -j ACCEPT
+ebtables -t nat -A OUTPUT -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:nat:OUTPUT"  -j ACCEPT
+ebtables -t nat -A PREROUTING -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:nat:PREROUTING" -j ACCEPT
+ebtables -t filter -A INPUT -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:filter:INPUT" -j ACCEPT
+ebtables -t filter -A FORWARD -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:filter:FORWARD" -j ACCEPT
+ebtables -t filter -A OUTPUT -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:filter:OUTPUT" -j ACCEPT
+ebtables -t nat -A POSTROUTING -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:nat:POSTROUTING" -j ACCEPT
+```
+
 
 ## 网络异常排查案例
 
@@ -393,8 +431,7 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
         - 关于连接跟踪系统记录的源IP参考 [^10]
 - 解决方案：在宿主机A上添加iptables规则，对数据包的TTL进行操作 `iptables -t mangle -A PREROUTING -i br0 -j TTL --ttl-inc 10`表示数据包从eth0流入则对TTL加10
 - 扩展问题：在宿主机A上安装KVM虚拟机A1，使用桥接网络，然后在虚拟机A1上安装docker，此时A和A1均可访问外网且返回TTL=1，且在容器中无法访问外网
-    - 按照上述操作当数据包经过A1的eth0网卡时操作TTL值是可以成功让容器上网；但是每当容器重启或者A1重启时，docker都会重写iptables规则，从而导致自定义规则被覆盖；因此想到一种解决方法是在宿主机A的网卡上操作TTL，但实际失败的
-    - 具体原因是默认iptables不对bridge的数据(A和A1基于网桥通信)进行处理，即在网桥上进行转发的并不会触发TTL值的变化，具体参考上文`ebtables#Netfilter-Packet-Flow`
+    - 按照上述操作当数据包经过A1的eth0网卡时操作TTL值是可以成功让容器上网；但是每当容器重启或者A1重启时，docker都会重写iptables规则(实际是docker会定时重写iptables规则)，从而导致自定义规则被覆盖；因此想到一种解决方法是在宿主机A的网卡上操作TTL，但实际失败的，具体原因是默认iptables不对bridge的数据(A和A1基于网桥通信)进行处理，即在网桥上进行转发的并不会触发TTL值的变化，具体参考上文 [ebtables#Netfilter-Packet-Flow](#ebtables)
     - 解决方案一(操作宿主机A) [^14]
 
         ```bash
@@ -413,7 +450,8 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
         # 操作宿主机
         iptables -t mangle -A PREROUTING -i br0 -j TTL --ttl-inc 10
         ```
-    - 解决方案二(操作虚拟机A1)
+    - 解决方案二(操作宿主机A)
+        - 此方法如果在虚拟机A1上使用，则docker会定时覆盖iptables规则导致失效。如果场景是直接在宿主机A上安装docker，同理也无法操作宿主机A，此时可以考虑修改上层路由的TTL，或者将宿主机A的docker设置成iptables=false(此时需要手动设置容器网络隔离和访问外网的规则)
         - 保存iptables规则 `iptables-save > /etc/sysconfig/iptables` (直接保存可能存在其他数据，此处可以手动保存到/etc/sysconfig/iptables)
         
             ```bash

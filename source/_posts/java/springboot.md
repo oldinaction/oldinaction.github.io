@@ -881,7 +881,7 @@ public MultipartConfigElement multipartConfigElement() {
 
 	// 1.查询一行数据并返回int型结果
 	jdbcTemplate.queryForInt("select count(*) from test");
-	// 2.查询一行数据并将该行数据转换为Map返回。**如果不存在会返回null**
+	// 2.查询一行数据并将该行数据转换为Map返回(key大小写按照select的字段名大小写)。**如果不存在会返回null**
 	jdbcTemplate.queryForMap("select * from test where id=1");
 	// 3.查询一行任何类型的数据，最后一个参数指定返回结果类型
     try {
@@ -902,12 +902,12 @@ public MultipartConfigElement multipartConfigElement() {
 			new Object[]{username},
 			new BeanPropertyRowMapper<>(UserVo.class));
 
-	// 5.查询一批数据，默认将每行数据转换为Map。**如果不存在会返回无任何元素的集合**
-	List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from test");  
-	// 6.只查询一列数据列表，列类型是String类型，列名字是name
-	List<String> names = jdbcTemplate.queryForList("select name from test where name=?", new Object[]{"smalle"}, String.class);  
+	// 5.查询一批数据，默认将每行数据转换为Map(key大小写按照select的字段名大小写)。**如果不存在会返回无任何元素的集合**
+	List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from test");
+	// 6.只查询一列数据列表，列类型是String类型
+	List<String> names = jdbcTemplate.queryForList("select name from test where name=?", new Object[]{"smalle"}, String.class);
 	// 7.查询一批数据，返回为SqlRowSet，类似于ResultSet，但不再绑定到连接上
-	SqlRowSet rs = jdbcTemplate.queryForRowSet("select * from test");  
+	SqlRowSet rs = jdbcTemplate.queryForRowSet("select * from test");
 
 	// 8.基于实体查询
 	String sql = "select id, name, age from student";

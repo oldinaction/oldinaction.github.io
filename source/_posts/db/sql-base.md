@@ -472,7 +472,10 @@ select *
 
 #### 复制表
 
-- **复制表结构及数据到新表** `create table 新表 as select * from 旧表` (**不会复制到表结构的备注和默认值，根据备份表还原数据的时候需要delete掉原表的数据，不能drop**，`200w`的数据`3s`复制完成)
+- **复制表结构及数据到新表** `create table 新表 as select * from 旧表`
+    - oracle不会复制到表结构的备注和默认值；mysql可以复制备注，但是主键会丢失
+    - 根据备份表还原数据的时候需要delete掉原表的数据，不能drop**
+    - `200w`的数据`3s`复制完成
 - 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`
     - `create table t2 like t1` like创建出来的新表包含源表的完整表结构和索引信息(mysql适用)。oracle支持as，也是只有表结构没有索引；oracle不支持like
 - 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`

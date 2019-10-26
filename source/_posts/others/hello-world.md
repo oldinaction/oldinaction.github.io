@@ -21,7 +21,7 @@ categories: [cat1, cat2]
 tags: [tag1, tag2, tag3]
 ```
 
-### md语法
+### MD 语法
 
 - md文件中可以使用html标签
 - `---`代表分割线
@@ -54,13 +54,14 @@ tags: [tag1, tag2, tag3]
   </pre>
 - 引用需要上下都空一行，列表只需要在上面空一行
 
-- 子列表基于父列表要有一个Tab缩进（4个空格），中间无需空行
+- 子列表基于父列表要有一个Tab缩进(4个空格)，中间无需空行
 
 ### 链接
 
 - 图片格式如：`![hello](/data/images/2017/07/hello.png)`
 - 内部链接格式如：`[《nginx》http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)`，其中`#`后面为完整子标题
 - hexo转义字符：`{`对应`&#123;`/`}`对应`&#125;` (如写vue代码的时会出现双大括号导致hexo编译失败，此时提示如`Template render error: (unknown path) [Line 31, Column 21]`)
+- 锚链接和连接带空格案例 `[MD 语法](#MD%20语法)` [MD 语法。连接中空格使用%20代替](#MD%20语法)
 
 ### 脚注
 

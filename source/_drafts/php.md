@@ -54,6 +54,11 @@ tags: [php]
     - nginx配置同上
     - 需要安装`php-fpm`来实现fastcgi
 
+### xampp + PhpStorm
+
+- 启动 xampp，如配置端口(Config - Services and Port Settings)为`8110`
+- PhpStorm 配置：Run Debug - PHP Web Page - 新建Server(localhost:8110, Xdebug) - Start Url(/test/index.php) - 启动Debug - 访问 http://localhost:8110/test/index.php
+
 ## php基本语法
 
 > 未特殊说明，都是基于 php7
@@ -142,7 +147,9 @@ $ref->getTraits()['sq\controller\CurdControllerTrait']; // 返回ReflectionClass
 
 ### 数据类型
 
-- array/map. 在php中map类型可以认为是array类型互通
+#### array/map
+
+- 在php中map类型可以认为是array类型互通
 
 ```php
 ## 创建array/map
@@ -180,9 +187,14 @@ in_array("hello", $a); // false. 判断包含
 is_array($a); // true. 判断变量是否是数组
 ```
 
-- json
+#### json
 
 ```php
+// http://www.ruanyifeng.com/blog/2011/01/json_in_php.html
+// 数组转json字符串
+$json_str = json_ecnode($arr, true);
+
+// json字符串转对象
 $json = json_decode($json_str); // 格式化json字符串为对象。返回的是stdClass
 if(isset($json -> username)) {
     // 判断 $json 对象中是否有username属性. ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
@@ -265,6 +277,62 @@ try{
     // 判断数组是否有某个索引
     if(isset($_POST['id'])) {}
     ```
+
+## 案例
+
+### POST接口
+
+> https://www.jb51.net/article/51974.htm
+
+```php
+function requestPost($url = '', $post_data = array()) {
+    if (empty($url) || empty($post_data)) {
+        return false;
+    }
+    
+    $postUrl = $url;
+    $curlPost = $post_data;
+    // $curlPost = 'id=35289';
+    // $curlPost = json_encode(array(
+    //     'id'=> '35289',
+    //     'username'=> 'smalle'
+    // ));
+
+    $ch = curl_init(); // 初始化curl
+    curl_setopt($ch, CURLOPT_URL, $postUrl);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    // curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type : application/json'));
+    // curl_setopt($ch, CURLOPT_HTTPHEADER, getAuthHeaders());
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // 执行结果是否被返回，1是返回，0是不返回
+    curl_setopt($ch, CURLOPT_POST, count($curlPost)); // 1: post提交方式
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $curlPost);
+    $data = curl_exec($ch); // 运行curl
+    curl_close($ch);
+    // print_r($data);
+    // $data = json_decode($data, true);
+
+    return $data;
+}
+
+//生成http头信息的方法
+function getAuthHeaders(){
+    //appid需要提前申请
+    $appid = '';
+    $time = time();
+    //appkey需要提前申请
+    $appkey = '';
+    //这里签名我们采用以下三者的md5
+    $sign = md5($appid . '&' . $appkey '&' . $time);
+    return array(
+        'Content-Type : application/json',
+        'charset : '.'utf-8',
+        // 我们同时把appid，TimeStamp，签名发送给服务端，请求其通过appid查询appkey鉴权md5签名的正确与否
+        'X-Auth-Appid : ' . $appid,
+        'X-Auth-TimeStamp : ' . $time,
+        'x-Auth-Sign : ' . $sign
+    );
+}
+```
 
 ## 其他
 

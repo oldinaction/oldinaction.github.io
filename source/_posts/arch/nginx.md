@@ -861,7 +861,7 @@ fi
 
 - 方法一 [^3]
     - nginx安装一般会自动注册到服务中取，有些手动安装可能需要自己注册，以nginx手动注册成服务为例
-    - 方法：在 **`/usr/lib/systemd/system`** 路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
+    - 方法：在 **`/usr/lib/systemd/system`**(或`/etc/systemd/system`) 路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
 
         ```bash
         ## 服务的说明
@@ -873,11 +873,11 @@ fi
 
         ## 服务运行参数的设置
         [Service]
-        # forking是后台运行的形式; oneshot适用于只执行一项任务，随后立即退出的服务
+        # forking是后台运行的形式; oneshot适用于只执行一项任务，随后立即退出的服务; simple
         Type=forking
         # pid存放文件
         # PIDFile=/var/run/nginx.pid
-        # 指定当前服务的环境参数文件。该文件内部的key=value键值对
+        # 指定当前服务的环境参数文件。该文件内部的 KEY=VALUE 键值对，指定的KEY可当前变量在此文件中使用$KEY
         # EnvironmentFile=-/etc/sysconfig/xxx
         # 为服务的具体运行命令(注意：启动、重启、停止命令全部要求使用绝对路径)
         ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf

@@ -3,12 +3,13 @@ layout: "post"
 title: "Prometheus"
 date: "2019-09-19 15:27"
 categories: devops
-tag: [monitor]
+tag: [monitor, cncf]
 ---
 
 ## 简介
 
-- [Prometheus](https://prometheus.io/)(普罗米修斯)，是一套开源的系统监控报警框架。现在已加入 Cloud Native Computing Foundation(CNCF)，成为受欢迎度仅次于 Kubernetes 的项目
+- [Prometheus](https://prometheus.io/)(普罗米修斯)、[Docs](https://prometheus.io/docs/introduction/overview/)
+    - 是一套开源的系统监控报警框架。现在已加入 Cloud Native Computing Foundation(CNCF)，成为受欢迎度仅次于 Kubernetes 的项目
 - Prometheus可基于如node_exporter进行监控，并提供PromQL查询语句来展示监控状态，但是PromQL不支持API server，因此中间可使用插件k8s-prometheus-adpater来执行API server的命令，并转成PromQL语句执行
 - 架构 [^1]
 
@@ -48,12 +49,13 @@ docker run -d -p 9090:9090 \
 ## 测试访问
 # 访问 http://192.168.6.131:9090 进入web界面
 # 访问 http://192.168.6.131:9090/metrics 查看Prometheus Server自身的metrics信息，默认prometheus会抓取自己的/metrics接口数据
-# 访问 http://192.168.6.131:9090/targets 显示所有被抓取metrics信息的目标
+# 访问 http://192.168.6.131:9090/targets 显示所有被抓取metrics信息的目标即其状态
 # 选择metric名`up`，并点击`Execute`查看metric信息
 ```
 - prometheus.yml(/home/smalle/prom/prometheus 目录)
 
 ```yml
+# 参考：https://prometheus.io/docs/prometheus/latest/configuration/configuration/
 # 全局设置，可以被覆盖
 global:
   # 默认值为 15s，用于设置每次数据收集的间隔
@@ -103,9 +105,9 @@ groups:
         # 判断条件
         # expr: up == 0 # 服务器宕机
         expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes )) / node_memory_MemTotal_bytes * 100 > 80 # 内存占用超过80
-        # 条件保持 1m 才会发出 alert
+        # 条件保持 1m 才会触发alert
         for: 1m
-        # 匹配 alert 的标签
+        # 指标匹配此标签才触发alert
         labels:
           severity: critical
         annotations:
@@ -178,7 +180,7 @@ docker run -d -p 9091:9091 --name pushgateway prom/pushgateway
 # 访问 http://192.168.6.131:9091
 
 ## 测试推送。prometheus提供了多种语言的sdk，最简单的方式就是通过shell
-# 推送一个指标.
+# 推送一个指标
 # pushgateway 中的数据我们通常按照 job 和 instance 分组分类。此时无需server中定义此job(指标)，会自动创建此aezo对应的job
 echo "aezo_metric 100" | curl --data-binary @- http://192.168.6.131:9091/metrics/job/aezo # aezo_metric{instance="",job="aezo"} 100
 # 推送多个指标. smalle_metric{instance="test",job="aezo",label="hello"} 120
@@ -199,6 +201,7 @@ curl -X DELETE http://192.168.6.131:9091/metrics/job/aezo/instance/test
 
 ### 基于prometheus-operator安装prometheus(k8s环境)
 
+- [基于Helm安装(推荐)](/_posts/devops/k8s-helm.md#Prometheus)
 - [prometheus-operator](https://github.com/coreos/prometheus-operator) [^2]
     - `Prometheus-operator`的本职就是一组用户自定义的CRD资源以及Controller的实现，Prometheus Operator这个controller有BRAC权限下去负责监听这些自定义资源的变化。相关CRD说明
         - `Prometheus`：由 Operator 依据一个自定义资源kind: Prometheus类型中，所描述的内容而部署的 Prometheus Server 集群，可以将这个自定义资源看作是一种特别用来管理Prometheus Server的StatefulSets资源
@@ -228,7 +231,7 @@ kubectl apply -f . # This command sometimes may need to be done twice (to workar
 kubectl -n monitoring get all
 ```
 - 基于下列Ingress配置暴露服务到Ingress Controller。访问`http://grafana.aezocn.local/`，默认用户密码`admin/admin`即可进入Grafana界面
-    - 可从[Grafana模板中心](https://grafana.com/grafana/dashboards)下载模板对应的json文件，并导入到Grafana的模板中
+- 可从[Grafana模板中心](https://grafana.com/grafana/dashboards)下载模板对应的json文件，并导入到Grafana的模板中
 
 ```yml
 # prometheus-ingress.yaml
@@ -277,6 +280,12 @@ spec:
 
 ## Grafana
 
+- Prometheus数据源说明：https://grafana.com/docs/features/datasources/prometheus/
+    - `label_values`、`` 等函数，可在`Variables > Edit -> Query Options -> Query`属于表达式，在`Preview of values`中会显示表达式结果
+- Dashboard
+    - 模板参考：https://grafana.com/docs/reference/templating/
+    - 配置Json Model参考：https://grafana.com/docs/reference/dashboard/
+
 ### Grafana安装
 
 ```bash
@@ -286,12 +295,17 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 
 # 访问 http://192.168.6.131:3000，登录 admin/admin
 ```
+- 配置参考：http://docs.grafana.org/installation/configuration/
 
 ### 基本使用
 
 - 选择数据源：Configuration - Data Sources - Add data sources - Time series databases选择Prometheus
-- 配置数据源：Data Sources/Prometheus/Settings - HTTP输入 http://192.168.6.131:9090 (Prometheus Server地址) - Save & Test
-- 选择图表：Data Sources/Prometheus/Dashboards - Import一个图表(如Prometheus Stats) - 选择Prometheus Stats - 即可看到图表展示
+- 配置数据源：Data Sources/Prometheus/Settings - HTTP输入 http://192.168.6.131:9090 (Prometheus Server地址，或者如http://prometheus-server.monitoring.svc.cluster.local) - Save & Test
+- 选择图表：Data Sources/Prometheus/Dashboards - Import一个图表(如Prometheus 2.0 Stats) - 选择Prometheus Stats - 即可看到图表展示
+- 可从[Grafana模板中心](https://grafana.com/grafana/dashboards)下载模板对应的json文件，并导入到Grafana的模板中
+    - Prometheus数据源推荐模板
+        - Kubernetes相关：`8588`(可选择deploy/node进行统计CPU和内存)、`7249`(汇总所有的节点统计CPU和内存)
+        - Node Exporter相关：`1860`(选择某一个节点，分类展示系统信息)
 
 ### 自定义图表
 
@@ -309,7 +323,7 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 ### 告警插件(可代替Alertmanager)
 
 - Alerting/Alert Rules 查看告警规则，新增需要在每个Panel的设置中进行
-- Notification channels 设置告警通过，可使用Email(可以定义多个邮件通道)、webhook、Slack、钉钉(DingDing)等
+- Notification channels 设置告警通道，可使用Email(可以定义多个邮件通道)、webhook、Slack、钉钉(DingDing)等
     - 使用邮件通道时，需提前配置邮件发送服务器
     - Slack配置(参考上文Alertmanager)
         - Url填写slack应用对应地址
@@ -318,21 +332,24 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 ## Exporter
 
 - 与Prometheus服务安装无关，**一般由被监控的客户端安装**。仅为了演示exporter如何输出metrics格式的信息，并由Prometheus Server采集
+- 采集参考[采集文本说明](#采集文本说明)，客户端(Exporter)需要按照一定的格式上报metric
 
 ### Node Exporter 安装
 
 - Node Exporter 主要采集节点系统性能指标
 
 ```bash
+## 安装
 cd /home/smalle/prom/exporters/
 wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
-tar -xvzf node_exporter-0.18.1.linux-amd64.tar.gz
-cd node_exporter-0.18.1.linux-amd64
-# 启动服务，默认监听9100端口，正式环境可自定义成服务后台运行。`./node_exporter --help` 查看参数设置
+tar -xvzf node_exporter-0.18.1.linux-amd64.tar.gz && cd node_exporter-0.18.1.linux-amd64 # 只有一个node_exporter的可执行程序
+# mv /home/smalle/prom/exporters/node_exporter /usr/sbin/node_exporter
+# 启动服务，默认监听9100端口，正式环境可自定义成服务后台运行。`./node_exporter -h` 查看参数设置
 ./node_exporter
 # 查看metrics信息
 curl http://localhost:9100/metrics
 ```
+- 自动重启，参考[Supervisor](/_posts/linux/CentOS服务器使用说明.md#Supervisor%20进程管理)
 - docker安装
 
 ```bash
@@ -340,8 +357,21 @@ docker run -d --name=node-exporter -p 9100:9100 prom/node-exporter
 curl http://localhost:9100/metrics
 ```
 
+## 采集和PromQL查询
+
+### 样本、指标 [^4]
+
+- Prometheus会将所有采集到的样本数据以时间序列(time-series)的方式保存在内存数据库中，并且定时保存到硬盘上。time-series是按照时间戳和值的序列顺序存放的，称之为向量(vector)。每条time-series通过指标名称(metrics name)和一组标签集(labelset)命名
+- 在time-series中的每一个点称为一个样本(sample)，样本由以下三部分组成
+    - 指标(metric)：metric name和描述当前样本特征的labelsets
+    - 时间戳(timestamp)：一个精确到毫秒的时间戳
+    - 样本值(value)： 一个float64的浮点型数据表示当前样本的值
+- 指标(Metric)格式如 `metric_name [ {label_name1="label_value1",label_name2=label_value2} ] value [ timestamp ]`
+    - `api_http_requests_total{method="POST", handler="/messages"}` 等同于 `{__name__="api_http_requests_total", method="POST", handler="/messages"}`
+
 ### 采集文本说明
 
+- 客户端(Exporter)需要按照一定的格式上报metric
 - Exporter 收集的数据转化的文本内容以行 `\n` 为单位，空行将被忽略
     - 如果以 `#` 开头通常表示注释，不以 `#` 开头，表示采样数据
     - 以 `# HELP` 开头表示 metric 帮助说明
@@ -356,6 +386,75 @@ curl http://localhost:9100/metrics
     - histogram 类型的采样分区统计数据将表示为 `x_bucket{le="y"}`；必须包含 `x_bucket{le="+Inf"}`， 它的值等于 `x_count` 的值
     - summary 和 historam 中 quantile 和 le 必需按从小到大顺序排列
 
+### PromQL查询
+
+- PromQL查询语法 https://prometheus.io/docs/prometheus/latest/querying/basics/
+- PromQL示例 [^4]
+
+```bash
+## 查询时间序列。瞬时向量表达式(查询的最新数据)
+# 查询所有http_requests_total(metric_name名称)时间序列中
+http_requests_total # 等价于 `http_requests_total{}`
+# 完全匹配模式。查询所有http_requests_total满足标签instance为localhost:9100的时间序列
+http_requests_total{instance="localhost:9100"}
+# 正则模式
+http_requests_total{environment=~"staging|testing|development",method!="GET"}
+
+## 范围查询。区间向量表达式
+# 选择最近5分钟内的所有样本数据。单位：s/m/h/d/w/y
+http_request_total{}[5m]
+
+## 时间位移操作 offset
+http_request_total{} # 瞬时向量表达式，选择当前最新的数据
+http_request_total{}[5m] # 区间向量表达式，选择以当前时间为基准，5分钟内的数据
+http_request_total{} offset 5m # 5分钟前的瞬时样本数据
+http_request_total{}[1d] offset 1d # 昨天一天的区间内的样本数据
+
+## 所有的PromQL表达式都必须至少包含一个指标名称(例如http_request_total)，或者一个不会匹配到空字符串的标签过滤器(例如{code="200"})
+http_request_total # 合法
+{method="get"} # 合法
+{job=~".*"} # 不合法
+
+## 内置标签。除使用`<metric_name>{label=value}`的形式以外，还可以使用内置的`__name__`标签来指定监控指标名称
+{__name__=~"http_request_total"} # 合法
+{__name__=~"node_disk_bytes_read|node_disk_bytes_written"} # 合法
+
+## PromQL操作符中优先级由高到低依次为
+^ # 幂运算
+*, /, %
++, -
+==, !=, <=, <, >=, >
+and, unless # unless 排除
+or
+
+## 聚合操作
+sum # 求和
+min # 最小值
+max # 最大值
+avg # 平均值
+stddev # 标准差
+stdvar # 标准差异
+count # 计数
+count_values # 对value进行计数
+topk # 前n条时序。topk和bottomk用于对样本值进行排序，返回当前样本值前n位，或者后n位的时间序列
+bottomk # 后n条时序
+quantile # 分布统计。用于计算当前样本数据值的分布情况quantile(φ, express)其中0 ≤ φ ≤ 1
+# 示例
+sum(http_request_total) # 查询系统所有http请求的总量
+sum(sum(irate(node_cpu{mode!='idle'}[5m])) / sum(irate(node_cpu[5m]))) by (instance) # 按照主机查询各个主机的CPU使用率
+topk(5, http_requests_total) # 获取HTTP请求数前5位的时序样本数据
+quantile(0.5, http_requests_total) # 当φ为0.5时，即表示找到当前样本数据中的中位数
+
+## without | by
+# <aggr-op>([parameter,] <vector expression>) [without|by (<label list>)]
+sum(http_requests_total) by (application, group) # 包含 application, group 标签的序列
+sum(http_requests_total) without (instance) # 不包含 instance 标签的序列
+
+## 内置函数
+https://prometheus.io/docs/prometheus/latest/querying/functions/
+```
+
+
 
 
 
@@ -366,4 +465,6 @@ curl http://localhost:9100/metrics
 [^1]: https://jimmysong.io/kubernetes-handbook/practice/prometheus.html
 [^2]: https://www.servicemesher.com/blog/prometheus-operator-manual/
 [^3]: https://www.ibm.com/developerworks/cn/cloud/library/cl-lo-prometheus-getting-started-and-practice/index.html
+[^4]: https://yunlzheng.gitbook.io/prometheus-book/parti-prometheus-ji-chu/promql
+
 

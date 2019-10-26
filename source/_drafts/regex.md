@@ -93,4 +93,15 @@ Pattern p = Pattern.compile("^doc$", Pattern.CASE_INSENSITIVE);
 p.matcher(s).matches(); // true
 ```
 
+## php
+
+```php
+// 获取url中某个参数值
+function getUrlParams($url, $arg_name) {
+    $regx = '/.*[&|\?]'. $arg_name .'=([^&]*)(.*)/';
+    preg_match($regx, $url, $match);
+    return $match[1];
+}
+```
+
 

@@ -328,6 +328,10 @@ git branch -d develop/test
 	- 先删除对应文件，提交版本，再将此文件加到.gitignore中，再次提交则不会出现
 	- 如果是未提交的文件，此时不管.gitignore文件是否提交，.gitignore文件都是生效的
 
+#### 处理Linux/Unix/MacOS文件格式的EOL
+
+https://help.github.com/en/articles/configuring-git-to-handle-line-endings
+
 ## gitflow工作流 [^5]
 
 ![git-workflow](/data/images/arch/git-workflow.png)

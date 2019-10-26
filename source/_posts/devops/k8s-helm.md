@@ -8,7 +8,7 @@ tags: [k8s]
 
 ## 简介
 
-- [Helm](https://github.com/helm/helm) 
+- [Helm](https://github.com/helm/helm) 、[Helm Docs](https://helm.sh/docs/)
     - 是 Kubernetes 上的包管理器
     - Helm组成：`Helm`客户端、`Tiller`服务器、`Charts`仓库
     - 原理：Helm客户端从远程Charts仓库(Repository)拉取Chart(应用程序配置模板)，并添加Chart安装运行时所需要的Config(配置信息)，然后将此Chart和Config提交到Tiller服务器，Tiller服务器则在k8s生成`Release`，并完成部署
@@ -60,7 +60,7 @@ create      # 创建一个新的charts
 delete      # 删除指定版本的release
     # helm delete --purge my-dev # **删除 release，也会删除相应k8s资源**
 dependency  # 管理charts的依赖
-fetch       # 下载charts并解压到当前目录
+fetch       # 下载charts到当前目录
 get         # 下载一个release
 history     # release历史信息
 home        # 显示helm的家目录
@@ -89,6 +89,7 @@ search      # 关键字搜索chart。eg: helm search mysql
 serve       # 启动一个本地的http server用于展示本地charts和提供下载
     # helm serve --address=192.168.6.131:8879
 status      # 查看release状态信息
+    # helm status grafana # 安装完chart也会自动执行一次
 template    # 本地模板
 test        # release测试
 upgrade     # 更新release
@@ -113,9 +114,9 @@ version     # 打印客户端和服务端的版本信息
         helm install --values=myvalues.yaml stable/mysql
         ```
 
-### 使用案例
+## 使用案例
 
-#### cert-manager
+### cert-manager
 
 ```bash
 ## 安装
@@ -191,7 +192,7 @@ spec.acme.config.http01.ingressClass # 使用 HTTP-01 方式校验该域名和�
 spec.acme.config.http01.domains # 指示该证书的可以用于哪些域名
 ```
 
-#### ingress-nginx
+### ingress-nginx
 
 ```bash
 helm repo update
@@ -236,7 +237,7 @@ kubectl get pod -n ingress-nginx -o wide
 helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-nginx.yaml
 ```
 
-#### dashboard
+### dashboard
 
 ```bash
 ## 提前创建tls类型的secret，名称为k8s-aezo-cn-tls。否则无法访问，会显示`default backend - 404`。下文 kubernetes-dashboard.yaml 配置中使用 certmanager 自动创建证书
@@ -303,7 +304,7 @@ rbac:
   clusterAdminRole: true
 ```
 
-#### mysql
+### mysql
 
 ```bash
 ## 准备
@@ -363,14 +364,184 @@ spec:
   persistentVolumeReclaimPolicy: Retain
 ```
 
-#### Prometheus
+### Prometheus
+
+> 参考：https://hub.helm.sh/charts/stable/prometheus
 
 ```bash
 helm repo update
 # helm inspect values stable/prometheus --version 9.0.0
-helm fetch stable/prometheus --version 9.0.0
+# helm fetch stable/prometheus --version 9.0.0 && tar -zxvf prometheus-9.0.0.tgz
 
-helm install --name prometheus --namespace monitoring stable/prometheus --version 9.0.0
+cat > prometheus-values.yaml << 'EOF'
+alertmanager:
+  # 使用grafana报警
+  enabled: false
+server:
+  persistentVolume:
+    # 如通过rook创建的sc，会自动创建pvc和pv
+    storageClass: "monitoring-sc-01"
+  ingress:
+    enabled: true
+    hosts:
+    - prometheus.k8s.aezo.cn
+pushgateway:
+  persistentVolume:
+    enabled: true
+    storageClass: "monitoring-sc-01"
+  # ingress: # 将pushgateway暴露出去
+# 扩展监控的node_export。如果使用 serverFiles.prometheus.yml.scrape_configs 参数则会覆盖value.yaml所有的scrape_configs
+# extraScrapeConfigs后面必须跟字符串，此处必须使用 | 进行转换；且此时job_name前必须保留2个空格
+extraScrapeConfigs: |
+  - job_name: 'node-test'
+    # metrics_path: /metrics
+    scrape_interval: 5s
+    static_configs:
+    - targets: ['192.168.6.130:9100']
+EOF
+helm install --name prometheus --namespace monitoring stable/prometheus --version 9.0.0 -f prometheus-values.yaml
+helm upgrade prometheus stable/prometheus --version 9.0.0 -f prometheus-values.yaml
+helm del --purge prometheus
+
+# k8s内部server地址(Grafana添加数据源需要)：prometheus-server.monitoring.svc.cluster.local
+# k8s内部重新创建 prometheus-server-pod 绑定的 PV 并不会丢失
+```
+
+### Grafana
+
+> 参考：https://hub.helm.sh/charts/stable/grafana
+
+- 安装
+
+```bash
+# kubectl create secret generic grafana-secret -n monitoring --from-literal=admin-user=admin --from-literal=admin-password=Hello1234
+
+cat > grafana-values.yaml << 'EOF'
+#admin:
+#  existingSecret: "" # 可自定义admin Secret(参考上文)。默认会自动生成名为grafana的Secret(包含admin账号和密码)
+#  userKey: 'admin-user' # 指定admin Secret(map)文件中获取admin账号对应的key，默认key为admin-user。passwordKey同理
+persistence:
+  enabled: true
+  type: 'pvc'
+  storageClassName: 'monitoring-sc-01'
+# tls类型连接测试未成功
+ingress:
+  enabled: true
+  hosts:
+  - grafana.k8s.aezo.cn
+# https://grafana.com/docs/installation/configuration/
+grafana.ini:
+  smtp:
+    enabled: true
+    host: "smtp.gmail.com:587"
+    user: "test@gmail.com"
+    password: "pass"
+# 使用NFS存储时，初始化容器chown运行出错，此处禁用初始化过程。另可参考：https://github.com/helm/charts/issues/1071
+initChownData:
+  enabled: false
+EOF
+helm install --name grafana --namespace monitoring stable/grafana --version 3.10.2 -f grafana-values.yaml
+helm upgrade grafana stable/grafana --version 3.10.2 -f grafana-values.yaml
+helm del --purge grafana
+```
+- 使用
+    - 增加数据源，数据源地址如`http://prometheus-server.monitoring.svc.cluster.local`
+    - 具体参考[Grafana](/_posts/devops/prometheus.md#Grafana)
+
+### nfs-client-provisioner
+
+> https://hub.helm.sh/charts/stable/nfs-client-provisioner
+
+- nfs默认无法自动申请PV；在对应命名空间安装nfs-client-provisioner，则会自动申请并创建PV
+
+```bash
+## 安装
+helm install --name nfs-client-provisioner --namespace test stable/nfs-client-provisioner --version=1.2.6 \
+--set image.repository=quay.mirrors.ustc.edu.cn/external_storage/nfs-client-provisioner \
+--set nfs.server=192.168.6.130 \
+--set nfs.path=/home/data/nfs 
+# --set storageClass.reclaimPolicy=Retain
+# 安装成功后，会创建StorageClass为nfs-client
+
+helm upgrade nfs-client-provisioner stable/nfs-client-provisioner --version=1.2.6
+helm del --purge nfs-client-provisioner
+
+## 使用
+# 在PVC中定义 storageClassName 为 nfs-client，则会自动申请并创建PV
+# 会在NFS服务器对应目录生成 `${namespace}-${pvcName}-${pvName}`的子目录；如果该PV解绑了，则改目录会重命名为 `archived-${namespace}-${pvcName}-${pvName}`
+```
+
+### harbor
+
+> https://hub.helm.sh/charts/harbor/harbor 、 https://www.qikqiak.com/post/harbor-quick-install/
+
+```bash
+## 安装
+helm repo add harbor https://helm.goharbor.io
+
+cat > harbor-values.yaml << 'EOF'
+expose:
+  type: ingress
+  tls:
+    enabled: true
+  ingress:
+    hosts:
+      core: registry.harbor.k8s.aezo.cn
+      notary: notary.harbor.k8s.aezo.cn
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      # certmanager自动证书
+      certmanager.k8s.io/cluster-issuer: letsencrypt-staging
+      kubernetes.io/tls-acme: "true"
+externalURL: https://registry.harbor.k8s.aezo.cn
+harborAdminPassword: Hello1234
+persistence:
+  enabled: true
+  resourcePolicy: "keep"
+  persistentVolumeClaim:
+    registry:
+      storageClass: "sc-01"
+    chartmuseum:
+      storageClass: "sc-01"
+    jobservice:
+      storageClass: "sc-01"
+    database:
+      storageClass: "sc-01"
+    redis:
+      storageClass: "sc-01"  
+EOF
+
+helm install --name harbor --namespace devops harbor/harbor --version=1.2.1 -f harbor-values.yaml
+
+helm upgrade harbor harbor/harbor --version=1.2.1
+helm del --purge harbor
+```
+
+### jenkins
+
+> https://hub.helm.sh/charts/stable/jenkins
+
+```bash
+## 安装
+cat > jenkins-values.yaml << 'EOF'
+master:
+  adminUser: admin
+  adminPassword: Hello1234
+  ingress:
+    enabled: true
+    hostName: jenkins.k8s.aezo.cn
+  # installPlugins: [] # 设置默认安装的插件，如果为[]则一个插件都不会安装
+persistence:
+  enabled: true
+  storageClass: 'sc-01'
+EOF
+helm install --name jenkins --namespace devops stable/jenkins --version=1.7.8 -f jenkins-values.yaml
+
+helm upgrade jenkins stable/jenkins --version=1.7.8
+helm del --purge jenkins
 ```
 
 ## Chart说明 [^1]
@@ -394,7 +565,8 @@ helm install --name prometheus --namespace monitoring stable/prometheus --versio
     kubectl port-forward --address 0.0.0.0 $POD_NAME 8080:80
     # 在本地访问http://127.0.0.1:8080即可访问到nginx
 
-    # 修改配置文件(也可同时配合--set修改配置)后更新部署
+    # 修改配置文件(也可同时配合--set修改配置)后更新部署。如果直接修改value.yaml里面的image.tag提交更新后k8s无反应
+    # 此处image.tag不能使用过长的数字(yyyyMMddHHmmss生成的数字)，过长传递到k8s则变成了科学计数导致出错
     helm upgrade --set image.tag=20190902 mychart ./mychart
     helm history mychart # 查看更新历史
     ```
@@ -446,39 +618,103 @@ helm install --name prometheus --namespace monitoring stable/prometheus --versio
     # 如果以后仓库添加了新的 chart，需要用 helm repo update 更新本地的 index
     helm repo update
     ```
-- chart语法：[Go template语法](https://golang.org/pkg/text/template/)
-    - 相关函数：https://blog.gmem.cc/gotpl
-    
-```go
-// ============基本
-{{/* comment */}}
-{{- xxxx -}} // 去除前后的空白(包括换行符、制表符、空格等)，可只去其中一个
+- chart语法参考[Go template语法](#Go%20template语法)
 
-// ============变量
-{{- $how_long := (len "output")}} // 定义变量
-{{- println $how_long}} // 输出6
-{{- $name := default .Chart.Name .Values.nameOverride -}} // 复制多个值
-{{- if contains $name .Release.Name -}} ... {{- end -}} // $name为上文定义
+## Go template语法
+
+### 简介
+
+- [Go template语法](https://golang.org/pkg/text/template/)
+- 相关函数：https://blog.gmem.cc/gotpl
+
+### 基本
+
+- 基本
+
+```go
+{{/* comment */}}
+{{- xxxx -}} // -去除前后的空白(包括换行符、制表符、空格等)，可只去其中一个
+```
+- 数据类型
+
+```go
+{{ $how_long := (len "output") }} // 定义变量
+{{ println $how_long }} // 输出6
+
+{{ $name := default .Chart.Name .Values.nameOverride }} // 赋值多个值，此时$name相当于一个数组
+{{ if contains $name .Release.Name }} ... {{ end }} // $name为上文定义，判断$name中是否包含.Release.Name的值
 
 {{.}} // 表示当前对象，如user对象
 {{.Username}} // 表示对象的Username字段值
+```
 
-// ============语句控制
-{{pipeline}}
-{{if pipeline}} T1 {{end}}
-{{if pipeline}} T1 {{else}} T0 {{end}}
-// 控制语句块在渲染后生成模板会多出空行，可使用{{- if ...}}的方式消除此空行
+### 控制语句
+
+- **if**
+
+```go
+{{if exp}} T1 {{end}}
+
+{{if exp}} T1 {{else}} T0 {{end}}
+
+// 控制语句块在渲染后生成模板会多出空行。可使用{{- if ...}}的方式消除此空行
 {{- if and .Values.fooString (eq .Values.fooString "foo") }}
     {{ ... }}
 {{- end }}
-// 对于第一种格式，当pipeline不为0值的时候，点"."设置为pipeline运算的值，否则跳过。对于第二种格式，当pipeline不为0值时，则"."设置为pipeline运算的值，并执行T1；否则执行else语句块
-{{with pipeline}} T1 {{end}} // {{with "xx"}}{{println .}}{{end}} // 打印"xx"(此时 . 设置成了 xx)
-{{with pipeline}} T1 {{else}} T0 {{end}}
+```
+- **with**
 
-// ============模块嵌套
+```go
+// 当exp不为0值时，点"."设置为exp运算的值，并执行T1；否则跳过
+{{with exp}} T1 {{end}}
+// {{with "xx"}}{{println .}}{{end}} // 打印"xx"(此时 . 设置成了 xx)
+
+// 当exp不为0值时，则"."设置为exp运算的值，并执行T1；否则执行else语句块
+{{with exp}} T1 {{else}} T0 {{end}}
+```
+- **range**
+
+```go
+// range循环来遍历map(将所有k-v依次展示)
+{{ range $k, $v := .Map }}
+    {{ $k }}:{{ $v }}
+{{end}}
+
+// grafana chart configmap.yaml示例
+data:
+    grafana.ini: |
+{{- range $key, $value := index .Values "grafana.ini" }}
+    [{{ $key }}]
+    {{- range $elem, $elemVal := $value }}
+    {{ $elem }} = {{ $elemVal }}
+    {{- end }}
+{{- end }}
+`
+# value.yaml中配置
+grafana.ini:
+  smtp:
+    enabled: true
+    host: "smtp.gmail.com:587"
+    user: "test@gmail.com"
+    password: "pass"
+`
+```
+- **管道符 `|`** (类似unix)
+```go
+{{ .Values | quote }} // 等价于 `quote .Values`
+{{ .Values | upper | quote }}
+```
+
+### 其他
+
+- 模板嵌套
+
+```go
 {{define "module_name"}}content{{end}} //声明
 {{template "module_name"}} //调用
 ```
+- 内置函数
+
 
 
 

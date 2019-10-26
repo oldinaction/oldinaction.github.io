@@ -165,7 +165,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 - 一路下一步即可安装完成，重新启动即可。
 - ubuntu-18.04.1-desktop-amd64.ios安装报错`无法将grub-efi-amd64-signed 安装到`，解决方案(分区调整)
     - `/boot`：根据磁盘大小，我500G的磁盘 / 设置成500G。主分区，文件类型为EXT4，挂载点`/boot`
-    - `efi`：500M。主分区，文件类型为EFI，挂载点无
+    - (省略)`efi`：500M。主分区，文件类型为EFI，挂载点无
     - `swap`：大小4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。主分区，文件类型为交换空间，挂载点无。最终显示如`tmpfs`
     - `/`：根据磁盘大小，我500G的磁盘 / 设置成200G。主分区，文件类型为EXT4，挂载点`/`
     - `/home`：大小为剩余磁盘。逻辑分区，文件类型为EXT4，挂载点`/home`
@@ -245,16 +245,16 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - 等待执行完进入`dracut`命令行，`ls /dev | grep sd` 查看U盘对应的盘符，如测试时机器本身包含centos系统且含有两块硬盘，根据U盘大小大致可以猜测为`sdcx`的盘符名(如：`sdc4`，如果是CD/DVD安装则可能是`/dev/cdrom`)
         - reboot重新启动，并重新安装，此时修改执行的安装命令
         - 在安装命令行主界面，按`e`/`Tab`进入到命令修改状态
-        - 修改`vmlinuz initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64.check quiet` 为 `vmlinuz initrd=initrd.img inst.stage2=hd:/dev/sdc4 quiet` (/dev/sdc4为U盘所在未知)
+        - 修改`vmlinuz initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64.check quiet` 为 `vmlinuz initrd=initrd.img inst.stage2=hd:/dev/sdc4 quiet` (/dev/sdc4为U盘所在位置)
         - 然后`Ctrl+x`执行安装
         - 方式二：修改`U盘/isolinux/isolinux.cfg`里`hd:LABEL=U盘名称`
 - 进入到CentOS图形化安装界面
     - 修改时区`Date & Time`
     - `INSTALLATION DESTINATION`进行磁盘分区 - `i will configure partitioning`手动进行分区 - 选择`LVM`(会产生/dev/mapper/centos-root的镜像文件)标准分区 - 可通过`+-`添加新分区或删除历史分区(老系统分区) - 点击+新增分区，其他使用默认值(默认文件系统xfs，也可改成ext4)，分区推荐
-        - `/boot/efi` 500M
+        - (省略)`/boot/efi` 500M
         - `/boot` 1G
         - `/swap` 4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。最终显示如`tmpfs`
-        - `/` 50G
+        - `/` 80G
         - `/home` 剩余
 
 ### Centos7系统启动失败排查

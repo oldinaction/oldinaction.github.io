@@ -3,13 +3,14 @@ layout: "post"
 title: "Kubernetes"
 date: "2019-06-01 12:38"
 categories: devops
-tags: [k8s, docker]
+tags: [k8s, docker, cncf]
 ---
 
 ## 简介
 
 - [官网](https://kubernetes.io/zh)、[github](https://github.com/kubernetes/kubernetes)、[Doc](https://kubernetes.io/zh/docs/)
 - 相关文章：https://github.com/rootsongjc/kubernetes-handbook/ 、 https://www.cnblogs.com/linuxk/category/1248289.html (视频相关) 、 https://feisky.gitbooks.io/kubernetes/content/
+- [知识图谱](https://github.com/yangchuansheng/k8s-knowledge)
 - 国内镜像参考[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#Docker介绍)
 
 ### 背景
@@ -67,7 +68,7 @@ tags: [k8s, docker]
         - Service是手动创建的，可以创建成供K8s外部访问或只能内部访问的
 
         ![k8s-service](/data/images/devops/k8s-service.png)
-    - Cluster(集群) 和 Namespace(命名空间) 
+    - Cluster(集群) 和 Namespace(命名空间)
         - Cluster 是计算、存储和网络资源的集合，Kubernetes 利用这些资源运行各种基于容器的应用，最简单的 Cluster 可以只有一台主机(它既是 Mater 也是 Node)，安装的默认集群为`kubernetes`
         - Namespace 可以将一个物理的 Cluster 逻辑上划分成多个虚拟 Cluster，每个 Cluster 就是一个 Namespace。不同 Namespace 里的资源是完全隔离的
             - Kubernetes 默认创建了两个 Namespace：kube-system 和 default
@@ -85,7 +86,7 @@ tags: [k8s, docker]
 ```bash
 ### (所有节点)环境配置
 # 更新软件版本和内核次版本。初始化机器可执行，生产环境不建议重复更新内核版本，生产环境可使用 `yum upgrade`
-yum update
+yum update -y
 
 ## A.关闭防火墙等
 systemctl stop firewalld && systemctl disable firewalld && setenforce 0
@@ -104,7 +105,7 @@ swapoff -a && sysctl -w vm.swappiness=0
 modprobe br_netfilter # 加载内核br_netfilter模块。注意：建议设置开机自启动，参考[启动设置](/_posts/linux/linux-system.md#启动设置)
 sysctl -p /etc/sysctl.d/k8s.conf
 
-## B.配置hostname(需要保证唯一)
+## B.配置hostname(需要保证唯一)。新加入的节点没有配置hostname也可运行
 hostnamectl --static set-hostname node1 # 可考虑取名成 k8s-main-master-1 等
 hostnamectl --static set-hotname node2
 hostnamectl --static set-hostname node3
@@ -125,7 +126,7 @@ modprobe -- ip_vs_sh
 modprobe -- nf_conntrack_ipv4
 EOF
 chmod 755 /etc/sysconfig/modules/ipvs.modules && bash /etc/sysconfig/modules/ipvs.modules && lsmod | grep -e ip_vs -e nf_conntrack_ipv4
-yum install ipset # 需要确保各个节点上已经安装了ipset软件
+yum install -y ipset # 需要确保各个节点上已经安装了ipset软件
 # yum install ipvsadm # 便于查看ipvs的代理规则
 
 ## D.安装Docker(下列1-3步骤网上部分案例未执行)
@@ -136,17 +137,11 @@ yum makecache fast # 更新缓存
 yum install -y --setopt=obsoletes=0 docker-ce-18.09.7-3.el7 # 安装docker
 systemctl start docker && systemctl enable docker
 # 1.确认一下iptables filter表中FOWARD链的默认策略(pllicy)为ACCEPT
-iptables -nvL
-# 2.修改docker cgroup driver为systemd
+iptables -nvL | grep 'Chain FORWARD'
+# 2.如果registry为http可修改`vi /etc/docker/daemon.json`，并且提前进行harbor认证
 # cat > /etc/docker/daemon.json <<EOF
-# {
-#   "exec-opts": ["native.cgroupdriver=systemd"]
-# }
+# {"insecure-registries": ["192.168.6.131:10000"]}
 # EOF
-# 3.重启docker，并确认cgroup driver生效
-# systemctl restart docker
-# docker info | grep Cgroup # 显示Cgroup Driver: systemd
-# 4.如果registry为http可修改`vi /etc/docker/daemon.json`，并且提前进行harbor认证
 
 ### 使用kubeadm部署Kubernetes
 ## E.(所有节点安装)添加kubernetes yum源
@@ -349,6 +344,7 @@ Basic Commands (Beginner):
       docker-registry       # 创建docker-registry类型Secret资源
       generic               # 普通Secret资源(加密方式为base64)。语法：kubectl create secret generic NAME [--type=string] [--from-file=[key=]source] [--from-literal=key1=value1] [--dry-run] [options]
       tsl                   # TSL秘钥、证书Secret资源
+      # kubectl create secret generic my-secret --from-literal=key1=my_val1 --from-literal=key2=my_val2
     serviceaccount      # 创建serviceaccount用户(用于pod访问API Server)
     role                # 角色(namespace)
     clusterrole         # 集群角色
@@ -388,7 +384,7 @@ Basic Commands (Intermediate):
     deployment      # 获取部署列表。READY：1/3表示期望部署3个副本，目前只有1副本就绪
         -w                  # 一致观测部署变化(pods等也可使用)
     pods/pod/po     # 获取pod列表。READY：1/3表示此Pod期望部署3个容器，目前只有1个容器就绪
-        -o                  # 取值：wide(显示详细信息)、yaml(显示yaml配置信息)、json、jsonpath(如 jsonpath={.data.token} 仅显示此字段数据)
+        -o                  # 取值：wide(显示详细信息)、yaml(显示yaml配置信息，可获取资源完整信息，如pod uid)、json、jsonpath(如 jsonpath={.data.token} 仅显示此字段数据)
         -l                  # 基于标签过滤，如：-l app,tier(获取同时有此标签key的pods)；-l run!=busybox1；
         -n                  # 指定命名空间namespace，默认为default，如 `-n kube-system`
         --show-labels       # 展示标签
@@ -531,8 +527,14 @@ kubectl expose deployment sq-nginx --name=nginx --port=80 --target-port=80 --pro
 kubectl logs sq-pod sq-busybox # 打印 sq-pod 中 sq-busybox 容器的日志
 kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it同docker表示进入容器
 ```
+- 常用命令
 
-## 进阶知识
+```bash
+# 获取某 pod 的 uid
+kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadata.uid}}{{"\n"}}'
+```
+
+## 基础知识
 
 ### 资源
 
@@ -550,7 +552,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
 - 创建资源的方法
     - apiserver仅接受json格式的资源定义
     - yaml格式提供的配置清单，apiserver可自动将其转为json格式，而后再提交
-        - k8s组件相关yaml配置文件位置`/etc/kubernetes/manifests`
+        - k8s组件相关yaml配置文件位置`/etc/kubernetes/manifests`。如需要修改kube-apiserver启动参数，可先修改此配置文件后重新创建kube-apiserver对应pod
 - 资源配置文件查看命令举例
     - `kubectl explain pods` 查看说明
     - `kubectl explain pods.metadata` 查看某个字段说明(可一直通过.字符进行描述)
@@ -608,7 +610,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
             - `successThreshold` 探测失败后，最少连续探测成功多少次才被认定为成功。默认是 1，对于 liveness 必须是 1。最小值是 1。
             - `failureThreshold` 探测成功后，最少连续探测失败多少次才被认定为失败。默认是 3。最小值是 1
         - `readinessProbe` 就绪性探测(子标签类似livenessProbe)。在readiness探测失败之后，Pod和容器并不会被删除，而是会被标记成特殊状态，进入这个状态之后，如果这个Pod是在某个serice的endpoint列表里面的话，则会被从这个列表里面清除，以保证外部请求不会被转发到这个Pod上；等Pod恢复成正常状态，则会被加回到endpoint的列表里面，继续对外服务
-    - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上
+    - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上。如：`kubernetes.io/hostname: node1`
     - `nodeName` 直接运行在此节点上
     - `restartPolicy` 重启策略：Always(默认)、OnFailure、Never
     - `lifecycle` 生命周期
@@ -776,12 +778,13 @@ kubectl delete -f sq-pod.yaml
 
 ### 控制器
 
-#### Deployment
+#### Deployment & ReplicaSet & ReplicationController
 
 - Deployment 与 ReplicaSet
     - Deployment是构建于RS之上的，可能出现一类Pod由不同的RS控制
     - 当创建了 Deployment 之后，实际上也创建了 ReplicaSet，所以说 Deployment 管理着 ReplicaSet
     - 如果直接伸缩 ReplicaSet，但 Deployment 不会相应发生伸缩。如果ReplicaSet全部删除了，Deployment会自动创建一个新的副本集
+- ReplicationController(RC) 每个Pod保存一个副本，早先K8s版本资源
 
 #### StatefulSet(管理有状态副本集)
 
@@ -1007,10 +1010,11 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
     - `nfs` 基于nfs配置pv。还可通过其他方式如分布式存储、云存在进行配置
     - `persistentVolumeReclaimPolicy` 回收pv策略。取值：Retain(保留，需手动删除，默认值)、Recycle(回收，只有 NFS 和 HostPath 支持)、Delete(关联的存储资产如EBS、Azure Disk等将被删除)
 - `kubectl explain pvc.spec` 查看PersistentVolumeClaim(pvc)配置
-    - `accessModes` 定义访问模式，必须是PV的访问模式的子集
+    - `accessModes` 定义访问模式，必须是PV的访问模式的子集。一般如`ReadWriteOnce`
     - `resources` 定义申请资源的大小
         - `requests`
             - `storage` 定义大小，eg：3Gi
+    - `storageClassName` 可自动根据PVC创建PV
 - `kubectl explain sc` 查看StorageClass(sc)配置
     - `provisioner` 存储提供者，如`rook-ceph.rbd.csi.ceph.com`(基于rook-ceph的存储方案)
     - `parameters` 相关参数
@@ -1018,12 +1022,12 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
 - PVC、PV、SC
     - 存储管理员提前创建不同存储服务(nfs、glusterfs等)，K8s集群管理根据不同的持久化卷类型配置存储卷映射(PV，集群公共资源)，用户基于存储卷创建定义PVC
     - `PV`状态：`Available`(可用) -> `Bound`(绑定) -> `Released`(释放) -> Failed(失败。该卷的自动回收失败)
-        - Released说明：声明被删除，但是资源还未被集群重新声明。当pv回收策略为Retain时，删除了对应pvc后(此pv之前绑定的)，此时pod中数据得到了保留，但其 PV 状态会一直处于 Released，不能被其他 PVC 申请。为了重新使用存储资源，可以删除PV并重新创建该PV(**删除 PV 操作只是删除了 PV 对象，即k8s-pv与存储介质之间的对应关系，存储空间中的数据并不会被删除**)
+        - Released说明：声明被删除，但是资源还未被集群重新声明。当pv回收策略为Retain时，删除了对应pvc(此pv之前绑定的)后，此时pod中数据得到了保留，但其 PV 状态会一直处于 Released，不能被其他 PVC 申请。为了重新使用存储资源，可以删除PV并重新创建该PV(**删除 PV 操作只是删除了 PV 对象，即k8s-pv与存储介质之间的对应关系，存储空间中的数据并不会被删除**)
     - `PVC`状态：`Pending`(准备中) -> `Bound`(绑定)
         - PVC一直处于Pending状态，而PV却处于Bound状态，可能情况：如使用的NFS服务器关闭了；定义的PV大小、读写类型不符合PVC的要求
         - PV一直处于Released状态：如果确认此PV不再使用(对应的数据文件目录)，可删除此PV重新创建PV
     - `SC`资源配置，参考：[http://blog.aezo.cn/2019/06/22/devops/rook-ceph/](/_posts/devops/rook-ceph.md#简单使用)
-        - 在pvc申请存储空间时，未必就有现成的pv符合pvc申请的需求。当用户突然需要使用PVC时，可通过restful发送请求StorageClass，继而让存储空间创建相应的存储image，之后在集群中定义对应的PV供给当前的PVC作为挂载使用。因此存储系统必须支持restful接口，比如ceph分布式存储，而glusterfs则需要借助第三方接口完成这样的请求
+        - 在pvc申请存储空间时，未必就有现成的pv符合pvc申请的需求。当用户突然需要使用PVC时，可通过restful发送请求StorageClass，继而SC让存储空间创建相应的存储image，之后在集群中定义对应的PV供给当前的PVC作为挂载使用。因此存储系统必须支持restful接口，比如ceph分布式存储，而glusterfs则需要借助第三方接口完成这样的请求
     - PV和PVC创建无需先后顺序
 - `ConfigMap`和`Secret`为一种特殊的存储卷
 
@@ -1068,28 +1072,8 @@ spec:
 
 #### PVC、PV、NFS配合使用案例
 
-- 配置NFS：此处使用192.168.6.10(store1)作为NFS存储服务器，此服务器和所有的Node节点必须安装NFS
-
-```bash
-## store1 进行如下配置
-# 安装nfs
-yum -y install nfs-utils
-# 启动nfs服务
-systemctl start nfs && systemctl enable nfs # 启动后NFS的服务状态为`Active: active (exited)`是正常的
-# 创建两个目录并设置为任何人可读写
-mkdir /data/volumes/v{1,2} -pv && chmod 777 /data/volumes/v{1,2}
-# 编辑暴露配置
-cat > /etc/exports << EOF
-/data/volumes/v1 192.168.6.0/24(rw,all_squash)
-/data/volumes/v2 192.168.6.0/24(rw,all_squash)
-EOF
-# 执行暴露目录
-exportfs -arv
-# 查看配置
-showmount -e
-# 在其他机器测试挂载nfs存储卷
-# mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
-```
+- 配置NFS：此处使用192.168.6.10(store1)作为NFS存储服务器，此服务器和所有的Node节点必须安装NFS(`yum install -y nfs-utils`)
+    - store1节点配置NFS，参考：[NFS](/_posts/linux/CentOS服务器使用说明.md#NFS)
 - 创建pv、pvc、pod
 
 ```yml
@@ -1623,12 +1607,110 @@ spec:
     - 出现问题 `subjectaccessreviews.authorization.k8s.io is forbidden: User \"system:serviceaccount:kube-system:metrics-server\" cannot create resource \"subjectaccessreviews\" in API group \"authorization.k8s.io\" at the cluster scope"`
         - 解决方案：上文`metrics-server`安装时需要在`resource-reader.yaml`中加入`subjectaccessreviews`资源的操作
 
+## 进阶知识
+
+### Pod Preset
+
+- 参考：https://k8smeetup.github.io/docs/tasks/inject-data-application/podpreset/
+- Pod Preset
+    - 是一种 API 资源，在 pod 创建时，用户可以用它将额外的运行时需求信息注入 pod
+    - 使用标签选择器(label selector)来指定 Pod Preset 所适用的 pod
+    - 如果Pod Preset注入出错，pod还是正常启动
+    - 中途创建一个Pod Preset，历史运行的pod不会产生变化；但是如果重新创建此pod，则会应用Pod Preset
+    - 删除 Pod Preset，历史注入Pod的配置不会变化；但是如果重新创建此pod，则之前Pod Preset中的配置会丢失?
+- 启用Pod Preset功能(Pod Preset功能处于Alpha阶段)
+
+```bash
+## 修改kube-apiserver启动参数配置，然后重新创建kube-apiserver对应pod
+vi /etc/kubernetes/manifests/kube-apiserver.yaml
+# 修改`- --enable-admission-plugins=NodeRestriction` 为 `- --enable-admission-plugins=NodeRestriction,PodPreset`
+# 添加`- --runtime-config=settings.k8s.io/v1alpha1=true`
+# 重新启动(会重启coredns。假设之前的为kube-apiserver-node1，则此pod会被修改，并且会新创建一个kube-apiserver，可直接删掉新创建的kube-apiserver)
+kubectl apply -f /etc/kubernetes/manifests/kube-apiserver.yaml
+# 如果应用失败，导致kubectl get pods等命令无法使用，可重新修改kube-apiserver.yaml并apply
+
+## 查看资源是否启用
+kubectl get podpreset # 提示No resources found.则为正常
+
+## 案例：配置设置时区的Pod Preset，配置文件参考下文
+vi preset-tz-env.yaml
+kubectl apply -f allow-tz-env.yaml
+# for name in $(kubectl get namespace | awk '{print $1}' | grep -v NAME); do kubectl apply -f allow-tz-env.yaml -n $name; done # 在所有命名空间创建
+kubectl get podpreset
+```
+- allow-tz-env.yaml
+
+```yaml
+apiVersion: settings.k8s.io/v1alpha1
+kind: PodPreset
+metadata:
+  # 被注入的pod会增加一个Annotation如：podpreset.admission.kubernetes.io/podpreset-allow-tz-env: 4735967
+  name: allow-tz-env
+spec:
+  selector:
+    # 空表示匹配改namespace下所有pod
+    matchLabels:
+  env:
+  - name: TZ
+    value: Asia/Shanghai
+```
+- 如果不希望 pod 被 Pod Preset 所改动，可以在 pod.spec 中添加形如 `podpreset.admission.kubernetes.io/exclude: "true"` 的注解
+
+### Admission Controller 准入控制
+
+- 使用`--enable-admission-plugins`启用`Admission Controller`(之前k8s版本使用`--admission-control`)，案例参考`Pod Preset`
+
+### Admission Webhook
+
+## 高级知识
+
+### API Server
+
+- 启动配置参数：https://kubernetes.io/zh/docs/reference/command-line-tools-reference/kube-apiserver/
+
+## 小知识点
+
+### k8s时区问题
+
+- 基于Docker方式(每个pod都需要设置) [^9]
+    - 设置容器的时区环境变量
+    - 挂载主机的时区文件到容器中
+- 通过K8s资源PodPreset进行预设置，参考[Pod Preset](#Pod%20Preset)
+
 ## 辅助组件使用
 
-- `Helm` 参考：[《http://blog.aezo.cn/2019/06/22/devops/k8s-helm/》](/_posts/devops/helm.md)
+### Tips
+
+- kubectl 命令自动补全
+
+    ````bash
+    yum install -y bash-completion
+    # locate bash_completion/usr/share/bash-completion/bash_completion
+    source /usr/share/bash-completion/bash_completion
+    source <(kubectl completion bash)
+    ```
+- [kube-prompt](https://github.com/c-bata/kube-prompt) 交互式 Kubernetes 客户端
+    - 不必键入kubectl来为每个命令添加前缀，并为每个命令提供自动完成功能以及上下文信息，且有自动提示小窗口。相同的工具如`kube-shell`(需要升级python)
+
+    ```bash
+    wget https://github.com/c-bata/kube-prompt/releases/download/v1.0.3/kube-prompt_v1.0.3_linux_amd64.zip
+    # yum -y install unzip
+    unzip kube-prompt_v1.0.3_linux_amd64.zip # 就一个可执行文件
+    # 给 kube-prompt 加上执行权限并移动常用的可搜索路径。
+    chmod +x kube-prompt
+    sudo mv ./kube-prompt /usr/local/bin/kube-prompt
+    # 进入kube-prompt命令行
+    kube-prompt
+    ```
+- `Kubectl Aliases` 是一个通过编程方式生成的 Kubectl 别名脚本
+
+### Helm 参考
+
+- [http://blog.aezo.cn/2019/06/22/devops/k8s-helm/](/_posts/devops/k8s-helm.md)
 
 ### 手动安装Dashboard
 
+- 推荐使用helm安装，具体参考[helm.md](/_posts/devops/k8s-helm.md#dashboard)
 - [github](https://github.com/kubernetes/dashboard)
 
 #### Dashboard界面说明
@@ -1706,7 +1788,7 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 ### pod
 
 - 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container` 可查看对应pod的日志
-
+- 报错`Back-off restarting failed container`，可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`从而先进入容器，然后手动启动，并查看日志
 
 
 ---
@@ -1719,4 +1801,6 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^6]: https://www.qikqiak.com/post/how-to-use-ipvs-in-kubernetes/
 [^7]: https://www.jianshu.com/p/3f2401d14c78 (K8s网络模型)
 [^8]: https://blog.fleeto.us/post/kubernetes-storage-performance-comparison/ (Kubernetes 存储性能对比)
+[^9]: https://zhuanlan.zhihu.com/p/44269163
+
 

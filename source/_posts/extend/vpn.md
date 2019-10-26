@@ -84,7 +84,6 @@ tags: [vpn, linux, network]
 - https://teddysun.com/448.html
 - https://github.com/kitten/setup-strong-strongswan
 
-
 ## SSH隧道(Tunnel)技术及SOCKET代理
 
 - 背景说明 [^5]
@@ -198,49 +197,58 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         - 命令行`reboot`不会导致ip/密码等修改。删除vps重新创建不足1小时按1小时计费，重装系统正常计费(不同于删除vps)
     - 搬瓦工
 - **v2ray单独使用**(可不使用CDN，比直接使用SS等安全。测试Youtube的Connection Speed=7000左右，看1080P妥妥的)
-    
-    ```bash
-    ## vps端
-    sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config
-    systemctl stop firewalld && systemctl disable firewalld
+    - v2ray服务端(vps端)
 
-    # 安装v2ray服务端(vps上安装)。安装成功会显示PORT(端口)和UUID(用户ID)，也可在`/etc/v2ray/config.json`中查看，v2ray客户端需求使用
-    # 也可使用[v2-ui](https://blog.sprov.xyz/2019/08/03/v2-ui/)，基于web管理v2ray服务(不可同时使用)
-    bash <(curl -L -s https://install.direct/go.sh)
-    systemctl enable v2ray && systemctl start v2ray && systemctl status v2ray
+        ```bash
+        ### 安装
+        sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config
+        systemctl stop firewalld && systemctl disable firewalld
 
-    ## v2ray客户端下载，以windows为例，其他参考下文
-    # 如v2.41下载地址：https://github.com/2dust/v2rayN/releases/download/2.41/v2rayN-Core.zip
-    ```
-    - v2ray客户端直接使用tcp/ip配置v2ray(默认tcp，容易被Ban)
-        - 安装成功 - 管理员启动 - 服务器 - 添加VMess服务器(地址为VPS地址，端口和用户ID填v2ray服务器的，额外ID默认64，加密方式chacha20-poly1305，传输协议tcp)
-        - 开启代理 - v2ray状态栏的图标点右键 - 勾选启用http代理 - 在http代理模式中选择PAC模式
-        - 保存后会自动启动，控制台显示`started`。且在界面底部会显示`SOCKS5/HTTP/PAC`代理对应的地址，且会自动将PAC加入到windows的系统代理中(每次重启PAC地址会改变)。默认的代理ip为127.0.0.1只需本地使用，可在 **`参数设置-v2rayN设置-运行来自局域网的连接`**，重启后局域网都可以使用此代理正常上文
-        - **访问外网测试**。通过`IE`、`IE Edge`、`Opera`浏览器可直接访问(默认使用了系统代理)；`Google`需要关闭所有代理插件；`Firefox`需要使用上述代理地址进行配置
-    - 使用ws(websocket)模式
+        ## 直接安装v2ray服务
+        # 安装v2ray服务端(vps上安装)。安装成功会显示PORT(端口)和UUID(用户ID)，也可在`/etc/v2ray/config.json`中查看，v2ray客户端需求使用
+        # 也可使用[v2-ui](https://blog.sprov.xyz/2019/08/03/v2-ui/)，基于web管理v2ray服务(不可同时使用)
+        bash <(curl -L -s https://install.direct/go.sh)
+        systemctl enable v2ray && systemctl start v2ray && systemctl status v2ray
 
-        ```json
-        // 在 inbounds 里添加一个 inbound(默认包含一个tcp类型的inbound)，id 部分请使用 /usr/bin/v2ray/v2ctl uuid 命令随机生成一个，端口必须设置为 80
-        // vi /etc/v2ray/config.json
-        {
-            "settings": {
-                "clients": [{
-                    "id": "使用`/usr/bin/v2ray/v2ctl uuid`自行生成",
-                    "alterId":64
-                }]
-            },
-            "protocol": "vmess",
-            "port": 80,
-            "streamSettings": {
-                "wsSettings": {
-                    "path": "/",
-                    "headers": {}
-                },
-                "network": "ws"
-            }
-        }
+        ## 基于v2-ui安装(web控制面板)。支持多用户多协议，支持账号流量统计。[github](https://github.com/sprov065/v2-ui)
+        # 更新安装都是此命令，升级不会造成数据丢失
+        bash <(curl -Ls https://blog.sprov.xyz/v2-ui.sh)
+        v2-ui # 查看命令
+        # http://<服务器IP>:65432 默认用户名密码 admin/admin
         ```
-        - 客户端配置修改：端口使用80(后面如果使用CDN则此处端口必须使用80，否则可以使用其他)，传输协议使用ws，路径使用/，其他同tcp模式配置
+    - v2ray客户端
+        - 以windows为例，[如v2.41下载地址](https://github.com/2dust/v2rayN/releases/download/2.41/v2rayN-Core.zip)。其他参考下文
+        - v2ray客户端直接使用tcp/ip配置v2ray(默认tcp，容易被Ban)
+            - 安装成功 - 管理员启动 - 服务器 - 添加VMess服务器(地址为VPS地址，端口和用户ID填v2ray服务器的，额外ID默认64，加密方式chacha20-poly1305，传输协议tcp)
+            - 开启代理 - v2ray状态栏的图标点右键 - 勾选启用http代理 - 在http代理模式中选择PAC模式
+            - 保存后会自动启动，控制台显示`started`。且在界面底部会显示`SOCKS5/HTTP/PAC`代理对应的地址，且会自动将PAC加入到windows的系统代理中(每次重启PAC地址会改变)。默认的代理ip为127.0.0.1只需本地使用，可在 **`参数设置-v2rayN设置-运行来自局域网的连接`**，重启后局域网都可以使用此代理正常上文
+            - **访问外网测试**。通过`IE`、`IE Edge`、`Opera`浏览器可直接访问(默认使用了系统代理)；`Google`需要关闭所有代理插件；`Firefox`需要使用上述代理地址进行配置
+        - 使用ws(websocket)模式
+
+            ```json
+            // 在 inbounds 里添加一个 inbound(默认包含一个tcp类型的inbound)，id 部分请使用 /usr/bin/v2ray/v2ctl uuid 命令随机生成一个，端口必须设置为 80
+            // vi /etc/v2ray/config.json
+            {
+                "settings": {
+                    "clients": [{
+                        "id": "使用`/usr/bin/v2ray/v2ctl uuid`自行生成",
+                        "alterId":64
+                    }]
+                },
+                "protocol": "vmess",
+                "port": 80,
+                "streamSettings": {
+                    "wsSettings": {
+                        "path": "/",
+                        "headers": {}
+                    },
+                    "network": "ws"
+                }
+            }
+
+            // 修改后重启v2ray服务：systemctl restart v2ray
+            ```
+            - 客户端配置修改：端口使用80(后面如果使用CDN则此处端口必须使用80，否则可以使用其他)，传输协议使用ws，路径使用/，其他同tcp模式配置
 - v2ray + CDN(相对直接使用v2ray安全，测试Youtube的Connection Speed=2000左右，延迟较高)
     - [CloudFlare](https://www.cloudflare.com/zh-cn/)为一款国外CDN，可免费支持一个域名
         - 添加域名 - 修改DNS - 解析子域名如`v2ray`到vps对应ip

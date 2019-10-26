@@ -11,7 +11,15 @@ tags: [mq, rabbitMQ]
 - rabbitMQ是一个在AMQP协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循Mozilla Public License开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。
 - RabbitMQ的官方站：http://www.rabbitmq.com/
 - 相关概念
-    - VirtualHost：在RabbitMQ中可以虚拟消息服务器VirtualHost，每个VirtualHost相当月一个相对独立的RabbitMQ服务器，每个VirtualHost之间是相互隔离的。exchange、queue、message不能互通。VirtualName一般以/开头
+    - `Broker` 消息队列服务器实体
+    - `Exchange` 消息交换机，它指定消息按什么规则，路由到哪个队列
+    - `Queue` 消息队列载体，每个消息都会被投入到一个或多个队列
+    - `Binding` 绑定，它的作用就是把exchange和queue按照路由规则绑定起来
+    - `RoutingKey` 路由关键字，exchange根据这个关键字进行消息投递
+    - `VirtualHost` 在RabbitMQ中可以虚拟消息服务器VirtualHost，每个VirtualHost相当月一个相对独立的RabbitMQ服务器，每个VirtualHost之间是相互隔离的，一个broker里可以开设多个vhost，用作不同用户的权限分离。exchange、queue、message不能互通。VirtualName一般以/开头
+    - `Producer` 消息生产者，就是投递消息的程序
+    - `Consumer` 消息消费者，就是接受消息的程序
+    - `Channel` 消息通道，在客户端的每个连接里，可建立多个channel，每个channel代表一个会话任务
 
 ## RabbitMQ安装
 
@@ -42,6 +50,11 @@ rabbitmqctl set_user_tags {用户名} {权限}
 # monitoring：监控者
 # administrator：超级管理员
 rabbitmqctl set_permissions -p / {用户名} '.*' '.*' '.*'
+
+# 列举所有队列
+rabbitmqctl list_queues
+# 清空某个队列里的数据
+rabbitmqctl purge_queue <queue_name>
 ```
 
 ## 后台管理

@@ -205,6 +205,56 @@ if __name__ == "__main__":
     t.prt()  # 调用对象方法
 ```
 
+### 字符串
+
+- 基本
+
+```py
+print('变量值为：{}'.format(my_var))
+
+# 字符串与变量连接
+search_url = f'https://www.baidu.com?wd={my_search_str}'
+search_url = 'https://www.baidu.com?wd=' + my_search_str
+```
+
+- 字符串和JSON转换
+
+```py
+import json
+
+# 字符串转为JSON
+str = '''
+[{"name":"Smalle"}]
+'''
+data = json.loads(str)
+print(data[0]['name']) # Smalle 无此字段时会报 KeyError 错误
+
+# JSON转字符串
+str = json.dumps(data)
+print(str) # [{"name": "Smalle"}]
+
+# 保存到json格式文件
+with open('data.json', 'w', encoding='utf-8') as file:
+    file.write(json.dumps(data, indent=2, ensure_ascii=False)) # indent=2按照缩进格式，ensure_ascii=False可以消除json包含中文的乱码问题
+```
+
+### 流
+
+```py
+## 获取控制台输入
+i = input('请确认是否继续操作？[y/n]:')
+    if (i != 'n'):
+        return
+
+## 读取文件
+# 一次读取
+with open('file.txt', 'r') as f:
+    print(f.read())
+# 逐行读取
+with open("file.txt") as lines:
+    for line in lines:
+        print(line)
+```
 
 ### 其他
 
@@ -235,8 +285,14 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 ```py
 import time
 
+time.localtime() # time.struct_time(tm_year=2019, tm_mon=10, tm_mday=25, tm_hour=16, tm_min=0, tm_sec=50, tm_wday=4, tm_yday=298, tm_isdst=0)
 # 格式化成2016-03-20 11:45:39形式
 print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
+
+print (time.time())                       #原始时间数据，1499825149.257892
+print (int(time.time()))                  #秒级时间戳，1499825149
+print (int(round(time.time() * 1000)))    #毫秒级时间戳，1499825149257
+print (int(round(time.time() * 1000000))) #微秒级时间戳，1499825149257892
 ```
 
 ### 模块扩展
