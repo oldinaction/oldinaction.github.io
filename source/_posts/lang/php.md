@@ -54,11 +54,6 @@ tags: [php]
     - nginx配置同上
     - 需要安装`php-fpm`来实现fastcgi
 
-### xampp + PhpStorm
-
-- 启动 xampp，如配置端口(Config - Services and Port Settings)为`8110`
-- PhpStorm 配置：Run Debug - PHP Web Page - 新建Server(localhost:8110, Xdebug) - Start Url(/test/index.php) - 启动Debug - 访问 http://localhost:8110/test/index.php
-
 ## php基本语法
 
 > 未特殊说明，都是基于 php7
@@ -333,6 +328,42 @@ function getAuthHeaders(){
     );
 }
 ```
+
+## xampp + PhpStorm
+
+- xampp是将php、perl、apache、mysql、tomcat、FileZila等软件打包打一起
+    - 安装[xampp](https://jaist.dl.sourceforge.net/project/xampp/XAMPP%20Windows/7.3.10/xampp-windows-x64-7.3.10-1-VC15-installer.exe)
+    - 修改 xampp Apache 端口(此时访问`http://localhost:8110/`访问的是目录`D:\software\xampp\htdocs`)
+        - 修改apache配置的`httpd.conf`文件中`80`端口为`8110`
+        - 修改apache配置的`httpd-ssl.conf`文件中`443`为`8443`
+        - 配置端口(Config - Services and Port Settings)为`8110`
+    - 设置xampp Apache虚拟机(此时访问`http://localhost:8111/`访问的是目录`D:\phpwork`，且同时可访问8110)
+        
+        ```bash
+        ## httpd.conf
+        Listen 8110
+        Listen 0.0.0.0:8111 # 增加虚拟机监听端口
+
+        <Directory />
+            #AllowOverride none
+            #Require all denied # 拒绝所有请求
+            AllowOverride all # 所有都重定向
+            Allow from all
+        </Directory>
+
+        ## extra/httpd-vhosts.conf 增加虚拟机
+        <VirtualHost *:8111>
+            ServerName localhost
+            DocumentRoot D:/phpwork
+        </VirtualHost>
+
+        ## 重启apache
+        ```
+- PhpStorm 配置。参考[http://blog.aezo.cn/2016/09/17/extend/idea/](/_posts/extend/idea.md#IDEA开发PHP程序)
+    - 使用前需配置php可执行程序路径(Languages - PHP). 如果使用xampp，则可使用xampp中配置的xdebug
+    - 进行debug时，创建一个`PHP Web Page`启动配置，此时host和port需要填Apache服务器的host和port（PhpStorm中的启动配置并不会启动服务器，因此需要另外启动Apache等服务器）
+        - Run Debug - PHP Web Page - 新建Server(localhost:8110, Xdebug) - Start Url(/test/index.php) - 启动Debug - 访问 http://localhost:8110/test/index.php
+    - PHPStorm使用Xdebug进行调试时，没打断点也一直进入到代码第一行：去掉勾选Run - Break at first line in PHP Scripts
 
 ## 其他
 

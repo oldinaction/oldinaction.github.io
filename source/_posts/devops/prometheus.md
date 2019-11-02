@@ -87,7 +87,7 @@ scrape_configs:
 rule_files:
   - '/etc/prometheus/rules.yml'
   #- '/etc/prometheus/rules2.yml'
-# alertmanager配置，需要安装alertmanager，见下文。如使用Grafana告警则不需要
+# alertmanager配置，需要安装alertmanager，见下文，可选
 alerting:
   alertmanagers:
     - static_configs:
@@ -118,7 +118,7 @@ groups:
 
 #### Alertmanager 安装
 
-- 安装(**如使用Grafana告警则不需要安装，建议使用Grafana告警**)
+- 安装(**如使用Grafana告警则不需要安装，但是Grafana告警比较有限**)
 
 ```bash
 cd /home/smalle/prom/alertmanager
@@ -138,36 +138,46 @@ global:
   smtp_auth_username: 'aezocn@163.com'
   smtp_auth_password: 'XXX' # 需要填写邮箱的授权码，而不是邮箱密码
 route:
-  group_by: ['aezo']
+  # 将多个标签的报警合并成一个(如一份邮件)
+  # group_by: [cluster, alertname]
+  # 默认接收者 default-receiver
   receiver: 'email-receiver'
   # 组报警等待时间
   group_wait: 30s
   # 组报警间隔时间
   group_interval: 1m
   # 组重复报警间隔时间
-  repeat_interval: 1m
+  repeat_interval: 15m
+  # 与以下子路线不匹配的所有警报将保留在根节点上，并分派给'default-receiver'。如果匹配到一个路由，则不再往下匹配
   routes:
   # 匹配 alert 标签和接受者
+  # - match_re: #基于正则匹配
   - match:
       severity: critical
-    receiver: email-receiver
+      team: frontend
+    receiver: frontend-receiver
+    # group_by: [product, environment] # 覆盖默认的集群分组为基于产品和环境分区
 receivers:
 # 基于email进行报警
 - name: 'email-receiver'
   email_configs:
   - to: 'aezocn@163.com'
+    # html: '{{ template "email.default.html" . }}' # 默认模板
 # 基于 webhook 进行报警：出问题后自动访问下列地址
-- name: 'webhook-receiver'
+- name: 'frontend-receiver'
   webhook_configs:
   - url: 'http://192.168.6.131:8080/restart'
-# 基于 slack(类似在线聊天室) 进行报警，具体参考：https://api.slack.com/incoming-webhooks
+# 基于 Slack (类似在线聊天室) 进行报警，具体参考：https://api.slack.com/incoming-webhooks (进入到 Your Apps > incoming-webhooks 中查看Webhook URL)
 - name: 'slack-receiver'
   slack_configs:
   - send_resolved: true
     # 在 https://api.slack.com/apps/TN511J342/incoming-webhooks 中查看地址
     api_url: https://hooks.slack.com/services/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
     channel: 'monitor'
+    # 参考 https://prometheus.io/docs/alerting/configuration/#webhook_config (注意首字母大写)
     text: "{{ .CommonAnnotations.description }}"
+    # 存在多个异常。`:small_orange_diamond:`为slack表情代码
+    #text: "{{ range .Alerts }}:small_orange_diamond:{{ .Annotations.summary }}。{{ .Annotations.description }}\n\n{{ end }}"
 ```
 
 #### Push Gateway 安装
@@ -305,7 +315,7 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 - 可从[Grafana模板中心](https://grafana.com/grafana/dashboards)下载模板对应的json文件，并导入到Grafana的模板中
     - Prometheus数据源推荐模板
         - Kubernetes相关：`8588`(可选择deploy/node进行统计CPU和内存)、`7249`(汇总所有的节点统计CPU和内存)
-        - Node Exporter相关：`1860`(选择某一个节点，分类展示系统信息)
+        - Node Exporter相关：`8919`、`1860`(选择某一个节点，分类展示系统信息)
 
 ### 自定义图表
 
@@ -318,10 +328,12 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 - General基本配置
     - Title设置图标标题
 - Alerting告警配置
+    - 如果某图表使用模板变量，则该图表不能配置告警(单独配置个告警的视图，用正则匹配出所有的主机或者每台主机单独一个查询语句)；告警只支持graph的图表
 - 右上角保存Save Dashboard
 
-### 告警插件(可代替Alertmanager)
+### 告警插件(默认安装)
 
+- Grafana是基于图标进行告警，Alertmanager则没有此限制，可同时使用
 - Alerting/Alert Rules 查看告警规则，新增需要在每个Panel的设置中进行
 - Notification channels 设置告警通道，可使用Email(可以定义多个邮件通道)、webhook、Slack、钉钉(DingDing)等
     - 使用邮件通道时，需提前配置邮件发送服务器
@@ -441,17 +453,34 @@ bottomk # 后n条时序
 quantile # 分布统计。用于计算当前样本数据值的分布情况quantile(φ, express)其中0 ≤ φ ≤ 1
 # 示例
 sum(http_request_total) # 查询系统所有http请求的总量
-sum(sum(irate(node_cpu{mode!='idle'}[5m])) / sum(irate(node_cpu[5m]))) by (instance) # 按照主机查询各个主机的CPU使用率
+100 - avg (irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100 # 按照主机计算5min为取样每秒的CPU瞬时利用率
 topk(5, http_requests_total) # 获取HTTP请求数前5位的时序样本数据
 quantile(0.5, http_requests_total) # 当φ为0.5时，即表示找到当前样本数据中的中位数
 
 ## without | by
 # <aggr-op>([parameter,] <vector expression>) [without|by (<label list>)]
-sum(http_requests_total) by (application, group) # 包含 application, group 标签的序列
+sum(http_requests_total) by (application, group) # 基于 application, group 标签对序列进行分组
 sum(http_requests_total) without (instance) # 不包含 instance 标签的序列
 
 ## 内置函数
 https://prometheus.io/docs/prometheus/latest/querying/functions/
+```
+- 常用查询
+
+````bash
+# exporter的可用性监控
+up{job="kubernetes-nodes"}
+# CPU利用率(按照主机)
+# 5m是range vector,表示使用记录的上一个5分钟的数据；irate是瞬时变化率,适合变化较频繁的metric；avg是因为有多个metrics(分别是每核的)
+100 - avg (irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100
+# CPU饱和度
+count by (instance)(node_cpu_seconds_total{mode="idle"})
+# 内存使用率
+(node_memory_MemTotal_bytes - (node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes)) / node_memory_MemTotal_bytes * 100
+# 内存饱和度
+1024 * sum by (instance) ((rate(node_vmstat_pgpgin[1m])+ rate(node_vmstat_pgpgout[1m])))
+# 磁盘使用率(一个节点多个磁盘则会出现多条记录)
+(node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100
 ```
 
 

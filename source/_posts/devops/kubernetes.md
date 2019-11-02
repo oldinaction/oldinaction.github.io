@@ -635,14 +635,14 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
     - `updateStrategy` DaemonSet更新pod策略(类似strategy)
     ---
     - `selector`
-    - `type` Service类型：ClusterIP(默认，k8s集群内访问)、NodePort(k8s集群外可访问)、LoadBalancer、ExternalName(将k8s外部服务映射到集群)
+    - `type` Service类型：ClusterIP(默认，k8s集群内访问)、NodePort(k8s集群外可访问)、LoadBalancer(在NodePort的基础上，基于负载均衡，将请求转发到NodeIP:NodePort)、ExternalName(将k8s外部服务映射到集群)
     - `clusterIP` Service服务集群IP(ExternalName类型无需)。eg：不定义则自动生成类似10.66.66.66、None(无头服务)
     - `ports` 服务端口(暴露pod的服务端口)
         - `port` 暴露的服务端口
         - `targetPort` 被暴露的容器端口
-        - `nodePort` 仅type=NodePort时，使用Node的端口映射服务端口(确保Node端口可用)，不指定则随机
+        - `nodePort` 仅type=NodePort/LoadBalancer时，使用Node的端口映射服务端口(确保Node端口可用)，不指定则随机。NodePort默认端口范围为30000~32768
     - `externalName` 仅用于type=ExternalName，取值应该是一个外部域名，CNAME记录。CNAME -> FQDN
-    - `externalIPs` 可配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡，即用来定义VIP(直接填写一个和节点同一个段没使用过的IP即可，无需创建VIP)；可以和任一类型的Service一起使用
+    - `externalIPs` 可配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡，即用来定义VIP(直接填写一个和节点同一个段没使用过的IP即可，无需创建VIP)；可以和任一类型的Service一起使用(LoadBalancer)
     - `sessionAffinity` 是否session感知的：ClientIP(同一个客户永远访问的是同一个pod)、None(默认)
     - `externalTrafficPolicy` 取值：Cluster(默认。隐藏源IP，可能会导致第二跳，负载较好)、Local(保留客户端源 IP 地址)。如果服务需要将外部流量路由到本地节点或者集群级别的端点，即service type 为LoadBalancer或NodePort，那么需要指明该参数
 - `status` 当前状态(current state)。由K8s进行维护，用户无需修改
@@ -812,6 +812,7 @@ kubectl delete -f sq-pod.yaml
     - NodePort(k8s集群外可访问，k8s边界服务)
         - client -> NodeIP:NodePort -> ClusterIP:ServicePort -> PodIP:containerPort
     - LoadBalancer(负载均衡器，实现了流量经过前端负载均衡器分发到各个Node节点暴露出的端口，再通过ipvs/iptables进行一次负载均衡，最终分发到实际的Pod上这个过程。可通过`externalIPs`配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡)
+        - LoadBalancer 是基于 NodePort 和云服务供应商提供的外部负载均衡器，通过这个外部负载均衡器将外部请求转发到各个 NodeIP:NodePort 以实现对外暴露服务
     - ExternalName(将k8s外部服务映射到集群)
         - CNAME -> FQDN(将外部服务映射到内部，通过内部DNS服务进行访问)
     - 特殊服务：无头服务(headless services)

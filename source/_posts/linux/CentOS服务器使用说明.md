@@ -585,6 +585,8 @@ supervisorctl start node_exporter # 启动进程node_exporter
 
 ### NFS
 
+> http://linux.vbird.org/linux_server/0330nfs.php
+
 ```bash
 ## 服务端
 # 安装nfs
@@ -596,10 +598,10 @@ systemctl enable nfs --now && systemctl status nfs
 mkdir /data/volumes/v{1,2} -pv && chmod 777 /data/volumes/v{1,2}
 # 编辑暴露配置
 cat > /etc/exports << EOF
-/data/volumes/v1 192.168.6.0/24(rw,all_squash)
+/data/volumes/v1 192.168.6.0/24(rw,sync,no_subtree_check,no_root_squash)
 /data/volumes/v2 192.168.6.0/24(rw,all_squash)
 EOF
-# 执行暴露目录
+# 执行暴露目录(修改配置后可重新执行)
 exportfs -arv
 # 查看配置
 showmount -e
@@ -607,6 +609,17 @@ showmount -e
 ## 在其他机器测试挂载nfs存储卷
 # mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
 ```
+- 配置说明
+    - `ro`：只读权限
+    - `rw`：读写权限
+    - `root_squash`(默认)：登入NFS主机，使用该共享目录时相当于该目录的拥有者。但是如果是以root身份使用这个共享目录的时候，那么这个使用者(root)的权限将被压缩成为匿名使用者，即通常他的UID与GID都会变成nobody那个身份
+    - `no_root_squash`：登入NFS主机，使用该共享目录时相当于该目录的拥有者。如果是root的话，那么对于这个共享的目录来说，他就具有root的权限。这个参数极不安全，**k8s集群使用建议设置此参数，否则如基于Chart安装mysql会失败(无法修改文件所属者)**
+    - `all_squash`：不论登入NFS的使用者身份为何，他的身份都会被压缩成为匿名使用者，通常也就是nobody
+    - `no_all_squash`(默认)：访问用户先与本机用户匹配，匹配失败后再映射为匿名用户或用户组
+    - `sync`(默认)：同步模式，内存中数据时时写入磁盘
+    - `async`：不同步模式
+    - `subtree_check`(默认)：若输出目录是一个子目录，则nfs服务器将检查其父目录的权限
+    - `no_subtree_check`：即使输出目录是一个子目录，nfs服务器也不检查其父目录的权限，这样可以提高效率
 
 ## yum直接安装
 

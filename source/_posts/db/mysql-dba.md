@@ -46,13 +46,23 @@ create database my_test; -- 创建数据库
 ```sql
 -- 创建用户并授权
 create user username identified by 'password'; -- 默认创建一个'username'@'%'的用户
-grant all privileges on *.* to 'username'@'%'; -- 给此'username'@'%'用户授权
+
+-- 给此'username'@'%'用户授所有数据库所有表权限。但是不包含grant权限
+grant all privileges on *.* to 'username'@'%';
 grant all privileges on *.* to 'username'@'localhost' identified by 'password'; -- 对'username'@'localhost'操作(无此用户则创建，有则修改密码)，并授本地登录时所有权限（localhost/127.0.0.1则只能本地登录；'username'@'192.168.1.%'表示只能这个网段的机器可以访问；'username'@'%'则可以在任何机器上登录）
 grant all privileges on wordpress.* to 'username'@'localhost' identified by 'password'; -- 授予wordpress数据库下所有权限（相当于Navicat上面管理用户：服务器权限Tab不勾选；权限Tab中数据填wordpress，权限类型都勾选）
-grant select,insert,update,delete on mydb.* to my_admin@localhost identified by "aezocn" -- 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限
+-- 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限
+grant select,insert,update,delete on mydb.* to my_admin@localhost identified by "aezocn";
+-- test可以查询 testdb 中的表
+grant select on testdb.* to test@localhost;
+-- 作用在单个数据表上
+grant select, insert, update, delete on testdb.orders to test@localhost;
+
+revoke all privileges on *.* from 'username'@'localhost'; -- 撤销用户授权
+revoke select on testdb.* from 'username'@'%';
+
 flush privileges; -- 刷新权限(grant之后必须执行)
 
-evoke all privileges on *.* from 'username'@'localhost'; -- 撤销用户授权
 select user, host from user; -- 查询用户可登录host
 ```
 

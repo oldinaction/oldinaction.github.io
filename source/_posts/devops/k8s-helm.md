@@ -116,6 +116,107 @@ version     # 打印客户端和服务端的版本信息
 
 ## 使用案例
 
+### MySQL
+
+> https://hub.kubeapps.com/charts/stable/mysql
+
+```bash
+cat > mysql-values.yaml << 'EOF'
+persistence:
+  storageClass: 'nfs-client'
+timezone: Asia/Shanghai
+# 需要登录到服务器手动给此用户设置权限
+mysqlUser: devops
+mysqlPassword: devops1234!
+# 此时k8s看到的是Init1234!的密码，但是实际是被下文init.sql中修改后的密码
+# mysqlRootPassword: Init1234!
+service:
+  type: NodePort
+  nodePort: 30000
+configurationFiles:
+  mysql_custom.cnf: |-
+    [mysqld]
+    skip-host-cache
+    skip-name-resolve
+    symbolic-links=0
+    lower_case_table_names=1
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_bin
+    init-connect='SET NAMES utf8mb4'
+    max_allowed_packet=1000M
+initializationFiles:
+  init.sql: |-
+    use mysql;
+    grant all privileges on *.* to 'root'@'%' identified by 'Hello1234!' with grant option;
+    flush privileges;
+EOF
+helm install --name mysql-devops --namespace devops stable/mysql --version 1.4.0 -f mysql-values.yaml
+
+# 更新报错？
+helm upgrade mysql-devops stable/mysql --version 1.4.0 -f mysql-values.yaml
+helm del --purge mysql-devops
+```
+
+#### 练手Helm
+
+```bash
+## 准备
+helm repo update
+# 查询 mysql 对应 Charts
+helm search mysql
+# 查看charts的详细信息
+helm inspect values stable/mysql
+# 创建PV. chart 定义了一个 PersistentVolumeClaim，申请 8G 的 PersistentVolume。如果不支持动态供给，可预先创建好相应的 PV。配置文件 mysql-pv.yaml 见下文
+kubectl create -f mysql-pv.yaml
+
+## 安装
+# 基于Charts安装k8s pods等。回显中说明如下
+    # NAME：release 的名字，此时为 -n 参数指定，否则 Helm 随机生成一个
+    # NAMESPACE：release 部署的 namespace(k8s的namespace)，**默认是 default，也可以通过 --namespace 指定**
+    # STATUS：为 DEPLOYED 时，表示已经将 chart 部署到集群
+    # RESOURCES：当前 release 包含的资源，命名的格式为 ReleasName-ChartName
+    # NOTES：部分显示的是 release 的使用方法
+helm install stable/mysql -n my-dev --version 1.3.0 --set mysqlRootPassword=Hello1234!
+# 查看mysql信息资源信息(ReleasName-ChartName)，如下(此时可能没有PV导致pod处于Pending状态)
+kubectl get service my-dev-mysql
+kubectl get deployment my-dev-mysql
+kubectl get pvc my-dev-mysql
+# 查看root密码
+kubectl get secret --namespace default my-dev-mysql -o jsonpath="{.data.mysql-root-password}" | base64 --decode; echo
+# 显示已经部署的 release
+helm list --all
+
+## 删除 release，也会删除相应k8s资源
+helm delete --purge my-dev
+
+## 升级和回滚release
+# 通过 --values 或 --set 应用新的配置
+helm upgrade --set imageTag=5.7.15 my-dev stable/mysql
+helm upgrade --set mysqlRootPassword=Hello1234! my-dev stable/mysql
+# 查看 release 所有的版本
+helm history my-dev
+# 回滚到任何版本
+helm rollback my-dev 1
+```
+- mysql-pv.yaml
+
+```yml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv1
+  labels:
+    name: mysql-pv1
+spec:
+  nfs:
+    server: 192.168.6.10
+    path: /data/volumes/v1
+  accessModes: ["ReadWriteOnce"]
+  capacity:
+    storage: 8Gi
+  persistentVolumeReclaimPolicy: Retain
+```
+
 ### cert-manager
 
 ```bash
@@ -237,7 +338,7 @@ kubectl get pod -n ingress-nginx -o wide
 helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-nginx.yaml
 ```
 
-### dashboard
+### Dashboard
 
 ```bash
 ## 提前创建tls类型的secret，名称为k8s-aezo-cn-tls。否则无法访问，会显示`default backend - 404`。下文 kubernetes-dashboard.yaml 配置中使用 certmanager 自动创建证书
@@ -304,69 +405,33 @@ rbac:
   clusterAdminRole: true
 ```
 
-### mysql
+### nfs-client-provisioner
+
+> https://hub.kubeapps.com/charts/stable/nfs-client-provisioner
+
+- nfs默认无法自动申请PV；在对应命名空间安装nfs-client-provisioner，则会自动申请并创建PV
+- nfs服务器设置如`rw,sync,no_subtree_check,no_root_squash`，如果不设置成no_root_squash会导致像基于Chart安装mysql会失败(无法修改文件所属者)
 
 ```bash
-## 准备
-helm repo update
-# 查询 mysql 对应 Charts
-helm search mysql
-# 查看charts的详细信息
-helm inspect values stable/mysql
-# 创建PV. chart 定义了一个 PersistentVolumeClaim，申请 8G 的 PersistentVolume。如果不支持动态供给，可预先创建好相应的 PV。配置文件 mysql-pv.yaml 见下文
-kubectl create -f mysql-pv.yaml
-
 ## 安装
-# 基于Charts安装k8s pods等。回显中说明如下
-    # NAME：release 的名字，此时为 -n 参数指定，否则 Helm 随机生成一个
-    # NAMESPACE：release 部署的 namespace(k8s的namespace)，**默认是 default，也可以通过 --namespace 指定**
-    # STATUS：为 DEPLOYED 时，表示已经将 chart 部署到集群
-    # RESOURCES：当前 release 包含的资源，命名的格式为 ReleasName-ChartName
-    # NOTES：部分显示的是 release 的使用方法
-helm install stable/mysql -n my-dev --version 1.3.0 --set mysqlRootPassword=Hello1234!
-# 查看mysql信息资源信息(ReleasName-ChartName)，如下(此时可能没有PV导致pod处于Pending状态)
-kubectl get service my-dev-mysql
-kubectl get deployment my-dev-mysql
-kubectl get pvc my-dev-mysql
-# 查看root密码
-kubectl get secret --namespace default my-dev-mysql -o jsonpath="{.data.mysql-root-password}" | base64 --decode; echo
-# 显示已经部署的 release
-helm list --all
+helm install --name nfs-client-provisioner --namespace test stable/nfs-client-provisioner --version=1.2.6 \
+--set image.repository=quay.mirrors.ustc.edu.cn/external_storage/nfs-client-provisioner \
+--set nfs.server=192.168.6.130 \
+--set nfs.path=/home/data/nfs 
+# --set storageClass.reclaimPolicy=Retain
+# 安装成功后，会创建StorageClass为nfs-client
 
-## 删除 release，也会删除相应k8s资源
-helm delete --purge my-dev
+# helm upgrade nfs-client-provisioner stable/nfs-client-provisioner --version=1.2.6
+helm del --purge nfs-client-provisioner
 
-## 升级和回滚release
-# 通过 --values 或 --set 应用新的配置
-helm upgrade --set imageTag=5.7.15 my-dev stable/mysql
-helm upgrade --set mysqlRootPassword=Hello1234! my-dev stable/mysql
-# 查看 release 所有的版本
-helm history my-dev
-# 回滚到任何版本
-helm rollback my-dev 1
-```
-- mysql-pv.yaml
-
-```yml
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-pv1
-  labels:
-    name: mysql-pv1
-spec:
-  nfs:
-    server: 192.168.6.10
-    path: /data/volumes/v1
-  accessModes: ["ReadWriteOnce"]
-  capacity:
-    storage: 8Gi
-  persistentVolumeReclaimPolicy: Retain
+## 使用
+# 在PVC中定义 storageClassName 为 nfs-client，则会自动申请并创建PV
+# 会在NFS服务器对应目录生成 `${namespace}-${pvcName}-${pvName}`的子目录；如果该PV解绑了，则改目录会重命名为 `archived-${namespace}-${pvcName}-${pvName}`
 ```
 
 ### Prometheus
 
-> 参考：https://hub.helm.sh/charts/stable/prometheus
+> 参考：https://hub.kubeapps.com/charts/stable/prometheus
 
 ```bash
 helm repo update
@@ -374,9 +439,6 @@ helm repo update
 # helm fetch stable/prometheus --version 9.0.0 && tar -zxvf prometheus-9.0.0.tgz
 
 cat > prometheus-values.yaml << 'EOF'
-alertmanager:
-  # 使用grafana报警
-  enabled: false
 server:
   persistentVolume:
     # 如通过rook创建的sc，会自动创建pvc和pv
@@ -391,15 +453,84 @@ pushgateway:
     storageClass: "monitoring-sc-01"
   # ingress: # 将pushgateway暴露出去
 # 扩展监控的node_export。如果使用 serverFiles.prometheus.yml.scrape_configs 参数则会覆盖value.yaml所有的scrape_configs
-# extraScrapeConfigs后面必须跟字符串，此处必须使用 | 进行转换；且此时job_name前必须保留2个空格
+# extraScrapeConfigs后面必须跟字符串，此处必须使用 | 进行转换；且此时`- job_name`前必须保留2个空格
 extraScrapeConfigs: |
   - job_name: 'node-test'
     # metrics_path: /metrics
     scrape_interval: 5s
     static_configs:
     - targets: ['192.168.6.130:9100']
+alertmanager:
+  persistentVolume:
+    storageClass: "monitoring-sc-01"
+alertmanagerFiles:
+  alertmanager.yml:
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: 'smtp.163.com:25'
+      smtp_from: 'aezocn@163.com'
+      smtp_auth_username: 'aezocn@163.com'
+      smtp_auth_password: 'XXX'
+    route:
+      receiver: 'email-receiver'
+      group_wait: 30s
+      group_interval: 1m
+      repeat_interval: 60m
+      routes:
+      - match:
+          severity: critical
+        receiver: email-receiver
+    receivers:
+    - name: 'email-receiver'
+      email_configs:
+      - to: 'aezocn@163.com'
+    - name: 'slack-receiver'
+      slack_configs:
+      - send_resolved: true
+        api_url: https://hooks.slack.com/services/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
+        channel: 'monitor'
+        text: "{{ .CommonAnnotations.description }}"
+serverFiles:
+  # 常用报警规则，可选
+  alerts:
+    groups:
+    - name: NodeAlerts
+      rules:
+      - alert: 节点CPU使用率告警
+        expr: (100 - avg (irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 85
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          description: '详细信息：{{$labels.instance}} 在 2 分钟内，CPU使用率一直超过 85% (当前值为: {{ $value }})'
+          summary: '{{$labels.instance}}: CPU使用过高'
+      - alert: 节点内存使用率告警
+        expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes )) / node_memory_MemTotal_bytes * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          description: '详细信息：{{$labels.instance}} 在 2 分钟内，内存使用率一直超过 90% (当前值为: {{ $value }})'
+          summary: '{{$labels.instance}}: 内存使用过高'
+      - alert: 节点磁盘空间告警
+        expr: ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100) > 85
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          description: '详细信息：{{$labels.instance}} 磁盘 {{ $labels.device }} 使用率超过 85% (当前值为: {{ $value }})'
+          summary: '{{$labels.instance}}: 磁盘空间不足'
+      - alert: NodeExport运行状态告警
+        expr: up{job="my-job"} != 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: '详细信息：{{$labels.instance}} 在 5 分钟内, NodeExport未正常运行'
+          summary: '{{$labels.instance}}: NodeExport运行异常'
 EOF
 helm install --name prometheus --namespace monitoring stable/prometheus --version 9.0.0 -f prometheus-values.yaml
+
 helm upgrade prometheus stable/prometheus --version 9.0.0 -f prometheus-values.yaml
 helm del --purge prometheus
 
@@ -409,13 +540,12 @@ helm del --purge prometheus
 
 ### Grafana
 
-> 参考：https://hub.helm.sh/charts/stable/grafana
+> 参考：https://hub.kubeapps.com/charts/stable/grafana
 
 - 安装
 
 ```bash
 # kubectl create secret generic grafana-secret -n monitoring --from-literal=admin-user=admin --from-literal=admin-password=Hello1234
-
 cat > grafana-values.yaml << 'EOF'
 #admin:
 #  existingSecret: "" # 可自定义admin Secret(参考上文)。默认会自动生成名为grafana的Secret(包含admin账号和密码)
@@ -423,7 +553,7 @@ cat > grafana-values.yaml << 'EOF'
 persistence:
   enabled: true
   type: 'pvc'
-  storageClassName: 'monitoring-sc-01'
+  storageClassName: 'nfs-client'
 # tls类型连接测试未成功
 ingress:
   enabled: true
@@ -448,32 +578,57 @@ helm del --purge grafana
     - 增加数据源，数据源地址如`http://prometheus-server.monitoring.svc.cluster.local`
     - 具体参考[Grafana](/_posts/devops/prometheus.md#Grafana)
 
-### nfs-client-provisioner
+### Postgresql
 
-> https://hub.helm.sh/charts/stable/nfs-client-provisioner
-
-- nfs默认无法自动申请PV；在对应命名空间安装nfs-client-provisioner，则会自动申请并创建PV
+> https://hub.kubeapps.com/charts/stable/postgresql
 
 ```bash
-## 安装
-helm install --name nfs-client-provisioner --namespace test stable/nfs-client-provisioner --version=1.2.6 \
---set image.repository=quay.mirrors.ustc.edu.cn/external_storage/nfs-client-provisioner \
---set nfs.server=192.168.6.130 \
---set nfs.path=/home/data/nfs 
-# --set storageClass.reclaimPolicy=Retain
-# 安装成功后，会创建StorageClass为nfs-client
+cat > postgresql-values.yaml << 'EOF'
+global:
+  postgresql:
+    # postgres 账户密码
+    postgresqlPassword: Hello1234!
+persistence:
+  storageClass: 'nfs-client'
+service:
+  type: NodePort
+  nodePort: 30004
+EOF
+helm install --name postgresql-devops --namespace devops stable/postgresql --version=6.5.3 -f postgresql-values.yaml
 
-helm upgrade nfs-client-provisioner stable/nfs-client-provisioner --version=1.2.6
-helm del --purge nfs-client-provisioner
-
-## 使用
-# 在PVC中定义 storageClassName 为 nfs-client，则会自动申请并创建PV
-# 会在NFS服务器对应目录生成 `${namespace}-${pvcName}-${pvName}`的子目录；如果该PV解绑了，则改目录会重命名为 `archived-${namespace}-${pvcName}-${pvName}`
+helm upgrade postgresql-devops stable/postgresql --version=6.5.3 -f postgresql-values.yaml
+helm del --purge postgresql-devops
 ```
 
-### harbor
+### Redis
 
-> https://hub.helm.sh/charts/harbor/harbor 、 https://www.qikqiak.com/post/harbor-quick-install/
+> https://hub.kubeapps.com/charts/stable/redis
+
+```bash
+cat > redis-values.yaml << 'EOF'
+password: Hello1234!
+master:
+  persistence:
+    storageClass: 'nfs-client'
+  service:
+    type: NodePort
+    nodePort: 30002
+slave:
+  persistence:
+    storageClass: 'nfs-client'
+  service:
+    type: NodePort
+    nodePort: 30003
+EOF
+helm install --name redis-devops --namespace devops stable/redis --version=9.5.0 -f redis-values.yaml
+
+helm upgrade redis-devops stable/redis --version=9.5.0 -f redis-values.yaml
+helm del --purge redis-devops
+```
+
+### Harbor
+
+> https://hub.kubeapps.com/charts/harbor/harbor 、 https://www.qikqiak.com/post/harbor-quick-install/
 
 ```bash
 ## 安装
@@ -497,32 +652,60 @@ expose:
       certmanager.k8s.io/cluster-issuer: letsencrypt-staging
       kubernetes.io/tls-acme: "true"
 externalURL: https://registry.harbor.k8s.aezo.cn
+# 用户名默认为 admin
 harborAdminPassword: Hello1234
+# 使用外部mysql数据库(需提前创建数据库，见下文sql语句)
+database:
+  type: external
+  external:
+    host: postgresql-devops
+    port: 5432
+    username: postgres
+    password: Hello1234!
+    coreDatabase: harbor_registry
+    clairDatabase: harbor_clair
+    notaryServerDatabase: harbor_notary_server
+    notarySignerDatabase: harbor_notary_signer
+# 使用外部redis数据库(默认使用0-3下标的数据库)
+redis:
+  type: external
+  external: 
+    host: redis-devops-master
+    port: 6379
+    password: Hello1234!
 persistence:
   enabled: true
   resourcePolicy: "keep"
   persistentVolumeClaim:
     registry:
-      storageClass: "sc-01"
+      storageClass: "nfs-client"
     chartmuseum:
-      storageClass: "sc-01"
+      storageClass: "nfs-client"
     jobservice:
-      storageClass: "sc-01"
+      storageClass: "nfs-client"
     database:
-      storageClass: "sc-01"
-    redis:
-      storageClass: "sc-01"  
+      storageClass: "nfs-client"
 EOF
-
+# 大概需要3分钟所有的Pod才会全部运行正常
 helm install --name harbor --namespace devops harbor/harbor --version=1.2.1 -f harbor-values.yaml
+# 访问 https://registry.harbor.k8s.aezo.cn
 
-helm upgrade harbor harbor/harbor --version=1.2.1
+helm upgrade harbor harbor/harbor --version=1.2.1 -f harbor-values.yaml
 helm del --purge harbor
+# 然后删除对应的PVC(会顺带自动删除PV，但是对于实际的存储文件需要到存储服务中删除)，否则下次安装会提示存储对应PVC
+```
+- 数据库初始化语句如
+
+```sql
+create database harbor_registry;
+create database harbor_clair;
+create database harbor_notary_server;
+create database harbor_notary_signer;
 ```
 
-### jenkins
+### Jenkins
 
-> https://hub.helm.sh/charts/stable/jenkins
+> https://hub.kubeapps.com/charts/stable/jenkins
 
 ```bash
 ## 安装
@@ -536,11 +719,11 @@ master:
   # installPlugins: [] # 设置默认安装的插件，如果为[]则一个插件都不会安装
 persistence:
   enabled: true
-  storageClass: 'sc-01'
+  storageClass: 'nfs-client'
 EOF
 helm install --name jenkins --namespace devops stable/jenkins --version=1.7.8 -f jenkins-values.yaml
 
-helm upgrade jenkins stable/jenkins --version=1.7.8
+helm upgrade jenkins stable/jenkins --version=1.7.8 -f jenkins-values.yaml
 helm del --purge jenkins
 ```
 
@@ -619,6 +802,7 @@ helm del --purge jenkins
     helm repo update
     ```
 - chart语法参考[Go template语法](#Go%20template语法)
+    - 参考文章[chart_template_guide](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/index-zh_cn.html)
 
 ## Go template语法
 

@@ -39,7 +39,7 @@ tags: [vue, UI]
 	</Select>
 	```
 
-### 通用方法
+### render函数
 
 - render
 
@@ -124,6 +124,50 @@ render: (h, params) => {
 }
 ```
 
+### Select远程搜索
+
+- Select标签，检索数据项的多个属性时远程搜索无效 [^1]
+
+```html
+<i-select v-model="user.id"
+    filterable
+    @on-query-change="queryChange"
+    @on-change="onChange">
+    <!-- i-option组件 :value 中数据必须包含输入的搜索内容，不然会被过滤掉 -->
+    <i-option v-for="(option, index) in options" :value="option.value + ',' + queryText" :key="option.value">{{ option.label }}</i-option>
+</i-select>
+
+<script>
+export default {
+    data() {
+        user: {},
+        options: [],
+        queryText: '',
+        userList: [] // 赋值省略
+    },
+    methods: {
+        queryChange(query) {
+            this.queryText = query;
+            if(query !== '') {
+                // 继续用户名和名称过滤
+                this.options = this.userList.filter(item => (item.name.indexOf(query) > -1 || item.username.indexOf(query) > -1))
+                this.options = this.options.map(item => {
+                    return {
+                        value: item.id,
+                        label: item.name
+                    };
+                });
+            } else {
+                this.options = [];
+            }
+        },
+        onChange(value) {
+
+        }
+    }
+</script>
+```
+
 ## 样式
 
 ### 通用标签属性
@@ -132,4 +176,12 @@ render: (h, params) => {
 - 使用空的`Col`完成排版`<Col span="2">&nbsp;</Col>`
 
 
+
+
+
+---
+
+参考文章
+
+[^1]: https://www.jianshu.com/p/f812d7698272
 

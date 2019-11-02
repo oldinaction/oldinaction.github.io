@@ -818,6 +818,7 @@ exec p(0, 0);
 
 ## SQLServer
 
+- 表名和字段名均不区分大小写
 - 命令行导入sql文件
     - `sqlcmd -S localhost -U sa -P root -d fedex -i C:\Users\smalle\Desktop\update20190528.sql`(windows上文件路径必须用右斜杠)
 

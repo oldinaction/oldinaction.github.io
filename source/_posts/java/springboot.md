@@ -12,6 +12,17 @@ tags: springboot
 [+] 分布式限流 http://blog.battcn.com/2018/08/08/springboot/v2-cache-redislimter/
 [+] Quartz实现动态配置定时任务 https://yq.aliyun.com/articles/626199
 
+## 简介
+
+- [Docs](https://docs.spring.io/spring-boot/docs/)
+
+## 版本说明
+
+- https://docs.spring.io/spring-boot/docs/{verion}/reference/htmlsingle/ 文档中 `System Requirements`描述了对环境的要求
+- `Spring Boot 1.2.1-`，使用`Spring Framework 4.1.3`，要求`Java 6` 和 `maven 3.2+`
+- `Spring Boot 1.5.x`，使用`Spring Framework 4.3.12.RELEASE`，要求 `Java 7` 和 `maven 3.2+`
+- `Spring Boot 2.0.x`，使用`Spring Framework 5.0.x.RELEASE`，要求 `Java 8 or 9` 和 `maven 3.2+`
+
 ## hello world
 
 - 引入依赖

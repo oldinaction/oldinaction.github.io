@@ -73,7 +73,7 @@ List<String> list = Arrays.asList(strArray);
 stream = list.stream();
 
 // ## 使用流
-// stream() 获取myGoods的 source；filter 和 mapToInt 为 intermediate 操作，进行数据筛选和转换；最后一个 sum() 为 terminal 操作，对符合条件的数据作重量求和
+// stream() 获取myGoods数组的 source；filter 和 mapToInt 为 intermediate 操作，进行数据筛选和转换；最后一个 sum() 为 terminal 操作，对符合条件的数据作重量求和
 int sum = myGoods.stream()
                 .filter(g -> g.getColor() == "RED")
                 .mapToInt(g -> g.getNum()) // g.getNum()必须返回int类型。此时流中只有num的值
@@ -85,6 +85,8 @@ List<String> list = myGoods.stream()
                             .sorted(String::compareTo)  // 升序排列(根据上面返回的值)
                             // .sorted(Comparator.reverseOrder()) // 降序排列
                             .collect(Collectors.toList());
+
+Goods goods = myGoods.stream().sorted(Comparator.comparing(Goods::getNo).reversed()).findFirst().orElse(null);
 
 myGoods.stream()
         .map(item -> item.getColor())
