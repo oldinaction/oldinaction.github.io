@@ -5,7 +5,7 @@
     
   <url>
     <loc>http://blog.aezo.cn/2019/06/22/devops/k8s-helm/</loc>
-    <lastmod>2019-10-25T12:08:57.600Z</lastmod>
+    <lastmod>2019-11-02T06:03:49.632Z</lastmod>
     <data>
         <display>
         <title>Helm | K8s包管理器</title>
@@ -17,6 +17,182 @@
            
              
               <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
+    <lastmod>2019-11-02T05:42:02.481Z</lastmod>
+    <data>
+        <display>
+        <title>Prometheus</title>
+        <pubTime>2019-09-19T07:27:00.000Z</pubTime>
+        
+        <tag>monitor</tag>
+         
+        <tag>cncf</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
+    <lastmod>2019-11-01T10:33:56.130Z</lastmod>
+    <data>
+        <display>
+        <title>Mysql DBA</title>
+        <pubTime>2016-10-12T13:06:00.000Z</pubTime>
+        
+        <tag>dba</tag>
+         
+        <tag>mysql</tag>
+         
+         
+           
+             
+              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    <lastmod>2019-11-01T08:50:28.425Z</lastmod>
+    <data>
+        <display>
+        <title>Kubernetes</title>
+        <pubTime>2019-06-01T04:38:00.000Z</pubTime>
+        
+        <tag>k8s</tag>
+         
+        <tag>cncf</tag>
+         
+        <tag>docker</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
+    <lastmod>2019-11-01T07:24:04.229Z</lastmod>
+    <data>
+        <display>
+        <title>CentOS服务器使用说明</title>
+        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>CentOS</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    <lastmod>2019-11-01T01:20:27.760Z</lastmod>
+    <data>
+        <display>
+        <title>iview</title>
+        <pubTime>2017-07-23T08:11:00.000Z</pubTime>
+        
+        <tag>vue</tag>
+         
+        <tag>UI</tag>
+         
+         
+           
+             
+              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
+    <lastmod>2019-10-30T01:26:01.585Z</lastmod>
+    <data>
+        <display>
+        <title>sql基础</title>
+        <pubTime>2017-09-30T04:51:00.000Z</pubTime>
+        
+        <tag>oracle</tag>
+         
+        <tag>mysql</tag>
+         
+        <tag>sql</tag>
+         
+         
+           
+             
+              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    <lastmod>2019-10-28T02:18:50.860Z</lastmod>
+    <data>
+        <display>
+        <title>SpringBoot</title>
+        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
+        
+        <tag>springboot</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/08/20/lang/php/</loc>
+    <lastmod>2019-10-27T13:08:33.321Z</lastmod>
+    <data>
+        <display>
+        <title>php</title>
+        <pubTime>2017-08-20T03:39:00.000Z</pubTime>
+        
+        <tag>php</tag>
+         
+         
+           
+             
+              <breadCrumb title="extend" url="http://blog.aezo.cn/categories/extend/"/>
           
         </display>
     </data>
@@ -158,50 +334,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
-    <lastmod>2019-10-23T09:51:43.195Z</lastmod>
-    <data>
-        <display>
-        <title>Prometheus</title>
-        <pubTime>2019-09-19T07:27:00.000Z</pubTime>
-        
-        <tag>monitor</tag>
-         
-        <tag>cncf</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
-    <lastmod>2019-10-23T09:41:11.188Z</lastmod>
-    <data>
-        <display>
-        <title>CentOS服务器使用说明</title>
-        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>CentOS</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2019/09/23/devops/rook-ceph/</loc>
     <lastmod>2019-10-22T09:49:56.116Z</lastmod>
     <data>
@@ -214,30 +346,6 @@
         <tag>cncf</tag>
          
         <tag>storage</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    <lastmod>2019-10-22T08:20:48.985Z</lastmod>
-    <data>
-        <display>
-        <title>Kubernetes</title>
-        <pubTime>2019-06-01T04:38:00.000Z</pubTime>
-        
-        <tag>k8s</tag>
-         
-        <tag>cncf</tag>
-         
-        <tag>docker</tag>
          
          
            
@@ -362,26 +470,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    <lastmod>2019-10-15T08:32:40.260Z</lastmod>
-    <data>
-        <display>
-        <title>SpringBoot</title>
-        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
-        
-        <tag>springboot</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
     <lastmod>2019-10-15T06:06:36.093Z</lastmod>
     <data>
@@ -435,30 +523,6 @@
            
              
               <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
-    <lastmod>2019-10-14T01:40:05.272Z</lastmod>
-    <data>
-        <display>
-        <title>sql基础</title>
-        <pubTime>2017-09-30T04:51:00.000Z</pubTime>
-        
-        <tag>mysql</tag>
-         
-        <tag>oracle</tag>
-         
-        <tag>sql</tag>
-         
-         
-           
-             
-              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
           
         </display>
     </data>
@@ -1121,9 +1185,9 @@
         <title>sql进阶</title>
         <pubTime>2017-09-30T04:51:00.000Z</pubTime>
         
-        <tag>mysql</tag>
-         
         <tag>oracle</tag>
+         
+        <tag>mysql</tag>
          
         <tag>sql</tag>
          
@@ -1173,33 +1237,11 @@
         <title>db-procedure</title>
         <pubTime>2017-08-24T12:33:00.000Z</pubTime>
         
-        <tag>mysql</tag>
-         
         <tag>oracle</tag>
          
-        <tag>procedure</tag>
-         
-         
-           
-             
-              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
-    <lastmod>2019-09-12T06:45:19.032Z</lastmod>
-    <data>
-        <display>
-        <title>Mysql DBA</title>
-        <pubTime>2016-10-12T13:06:00.000Z</pubTime>
-        
         <tag>mysql</tag>
          
-        <tag>dba</tag>
+        <tag>procedure</tag>
          
          
            
@@ -1239,9 +1281,9 @@
         <title>Oracle DBA</title>
         <pubTime>2016-10-12T13:06:00.000Z</pubTime>
         
-        <tag>dba</tag>
-         
         <tag>oracle</tag>
+         
+        <tag>dba</tag>
          
          
            
@@ -1605,9 +1647,9 @@
         <title>SQL优化</title>
         <pubTime>2018-07-27T06:58:00.000Z</pubTime>
         
-        <tag>dba</tag>
-         
         <tag>oracle</tag>
+         
+        <tag>dba</tag>
          
         <tag>sql</tag>
          
@@ -1649,9 +1691,9 @@
         <title>access</title>
         <pubTime>2018-11-20T06:06:00.000Z</pubTime>
         
-        <tag>db</tag>
-         
         <tag>microsoft</tag>
+         
+        <tag>db</tag>
          
          
            
@@ -1727,28 +1769,6 @@
            
              
               <breadCrumb title="extend" url="http://blog.aezo.cn/categories/extend/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    <lastmod>2018-11-16T02:13:59.866Z</lastmod>
-    <data>
-        <display>
-        <title>iview</title>
-        <pubTime>2017-07-23T08:11:00.000Z</pubTime>
-        
-        <tag>vue</tag>
-         
-        <tag>UI</tag>
-         
-         
-           
-             
-              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
           
         </display>
     </data>
@@ -1848,9 +1868,9 @@
         <title>powerdesigner</title>
         <pubTime>2017-12-05T11:41:00.000Z</pubTime>
         
-        <tag>mysql</tag>
-         
         <tag>oracle</tag>
+         
+        <tag>mysql</tag>
          
         <tag>model</tag>
          
@@ -1971,9 +1991,9 @@
         <title>行业概念</title>
         <pubTime>2017-10-12T03:22:00.000Z</pubTime>
         
-        <tag>conception</tag>
-         
         <tag>business</tag>
+         
+        <tag>conception</tag>
          
          
            
