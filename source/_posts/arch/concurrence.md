@@ -2,7 +2,7 @@
 layout: "post"
 title: "并发编程"
 date: "2018-12-05 14:28"
-categories: java
+categories: arch
 tags: [concurrence]
 ---
 
@@ -151,7 +151,7 @@ public ExecutorService myExecutorService() {
 ### Fork/Join
 
 - Fork/Join 框架是 Java7 提供了的一个用于并行执行任务的框架， 是一个把大任务分割成若干个小任务，最终汇总每个小任务结果后得到大任务结果的框架 [^3]
-- 工作窃取算法：工作窃取（work-stealing）算法是指某个线程从其他队列里窃取任务来执行
+- 工作窃取算法：工作窃取(work-stealing)算法是指某个线程从其他队列里窃取任务来执行
     - 假如我们需要做一个比较大的任务，我们可以把这个任务分割为若干互不依赖的子任务，为了减少线程间的竞争，于是把这些子任务分别放到不同的队列里，并为每个队列创建一个单独的线程来执行队列里的任务，线程和队列一一对应
     - 当某个一个队列执行完成后，空闲的线程回去执行其他为完成队列的任务。通常使用`双端队列`，正常线程从头部获取任务，窃取线程从尾部获取任务
 - Fork/Join 使用两个类来完成以上两件事情
@@ -240,9 +240,9 @@ public class Simple {
 ### 测试模板
 
 ```java
-public abstract class MultiThreadTestSimpleTemplate {
+public abstract class AbstractMultiThreadTestSimpleTemplate {
     // 测试案例=========================================================================================
-    static class DemoTest extends MultiThreadTestSimpleTemplate {
+    static class DemoTest extends AbstractMultiThreadTestSimpleTemplate {
         public static void main(String[] args) {
             // 总共测试执行10000遍，100个并发
             new DemoTest().run(10000, 100);
@@ -275,8 +275,8 @@ public abstract class MultiThreadTestSimpleTemplate {
     public abstract void afterExec();
 
     public void run(int totalNum, int threadNum) {
-        MultiThreadTestSimpleTemplate.totalNum = totalNum;
-        MultiThreadTestSimpleTemplate.threadNum = threadNum;
+        AbstractMultiThreadTestSimpleTemplate.totalNum = totalNum;
+        AbstractMultiThreadTestSimpleTemplate.threadNum = threadNum;
         this.run();
     }
 
@@ -287,29 +287,31 @@ public abstract class MultiThreadTestSimpleTemplate {
 
         // 建立ExecutorService线程池，threadNum个线程可以同时访问
         ExecutorService es = Executors.newFixedThreadPool(threadNum);
-        final CountDownLatch doneSignal = new CountDownLatch(totalNum);
+        final CountDownLatch doneSignal = new CountDownLatch(totalNum); // 此数值和循环的大小必须一致
 
         for (int i = 0; i < totalNum; i++) {
             Runnable run = new Runnable() {
                 public void run() {
-                    int index = ++count;
-                    long systemCurrentTimeMillis = System.currentTimeMillis();
                     try {
+                        int index = ++count;
+                        long systemCurrentTimeMillis = System.currentTimeMillis();
+
                         exec();
+
+                        records.put(index, new ThreadRecord(systemCurrentTimeMillis, System.currentTimeMillis()));
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }
-
-                    records.put(index, new ThreadRecord(systemCurrentTimeMillis, System.currentTimeMillis()));
-                    // 每调用一次countDown()方法，计数器减1
-                    doneSignal.countDown();
+                    } finally {
+                        // 每调用一次countDown()方法，计数器减1
+                        doneSignal.countDown();
+                    }  
                 }
             };
             es.execute(run);
         }
 
         try {
-            // 计数器大于0时，await()方法会阻塞程序继续执行
+            // 计数器大于0时，await()方法会阻塞程序继续执行。直到所有子线程完成(每完成一个子线程，计数器-1)
             doneSignal.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -333,7 +335,7 @@ public abstract class MultiThreadTestSimpleTemplate {
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMaximumFractionDigits(4);
 
-        // 需要关闭，否则JVM不会退出
+        // 需要关闭，否则JVM不会退出。(如在Springboot项目的Job中切勿关闭)
         es.shutdown();
 
         System.out.println("======================================================");

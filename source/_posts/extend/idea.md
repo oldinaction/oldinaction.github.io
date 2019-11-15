@@ -158,7 +158,8 @@ ThisCrackLicenseId-{
 - 替换下面代码
 
     ```conf
-    [xdebug]  
+    [xdebug]
+    zend_extension=D:\software\wamp\php\ext\php_xdebug.dll
     xdebug.remote_enable=on  
     xdebug.remote_host=localhost  
     xdebug.remote_port=9000  

@@ -43,7 +43,8 @@ tags: [mybatis, springboot]
 - 配置
 
 	```bash
-	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml, classpath:mapper2/*.xml"
+	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml(无法扫描其子目录), classpath:mapper2/*.xml"
+    # classpath只会扫描当前moduler的class, 而改为classpath*则会扫描所有jar
 	mybatis.mapper-locations=classpath:mapper/*.xml
 	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置
 	mybatis.config-location=classpath:mybatis-config.xml

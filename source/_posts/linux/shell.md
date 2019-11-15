@@ -543,7 +543,13 @@ EOF
     count # 代表被复制的块数
     /dev/zero # 是一个字符设备，会不断返回0值字节(\0)
     ```
-    - `dd if=/dev/zero of=test.txt bs=1M count=3` 在当前目录创建了一个3M大小的文件test.txt。可测试内存操作速度
+    - `dd if=/dev/zero of=test bs=1M count=1024` 在当前目录创建文件test，并每次以1M的大小往文件中读写数据，总共执行1024此，最终产生test文件大小为1024M。以此测试磁盘操作速度
+    
+    ```bash
+    # dd if=/dev/zero of=test count=1024 bs=1M # 测试结果如下
+    1073741824 bytes (1.1 GB) copied, 6.58099 s, 163 MB/s               # 阿里云SSD磁盘直接操作
+    1073741824 bytes (1.0GB) copied, 97.515271 seconds, 10.5MB/s        # 内网访问NFS(存储在SSD)
+    ```
 - sgdisk磁盘操作工具
 
     ```bash

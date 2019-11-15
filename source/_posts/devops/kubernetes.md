@@ -161,6 +161,7 @@ yum install -y kubeadm-1.15.0 kubelet-1.15.0 kubectl-1.15.0
 # (可选配置)如果不希望禁用swap
 cat > /etc/sysconfig/kubelet <<EOF
 KUBELET_EXTRA_ARGS=--fail-swap-on=false
+DAEMON_ARGS=--runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice
 EOF
 # 注意：kubelet无需手动启动，在kubeadm init初始化时会自动启动
 systemctl daemon-reload && systemctl enable kubelet
@@ -610,7 +611,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
             - `successThreshold` 探测失败后，最少连续探测成功多少次才被认定为成功。默认是 1，对于 liveness 必须是 1。最小值是 1。
             - `failureThreshold` 探测成功后，最少连续探测失败多少次才被认定为失败。默认是 3。最小值是 1
         - `readinessProbe` 就绪性探测(子标签类似livenessProbe)。在readiness探测失败之后，Pod和容器并不会被删除，而是会被标记成特殊状态，进入这个状态之后，如果这个Pod是在某个serice的endpoint列表里面的话，则会被从这个列表里面清除，以保证外部请求不会被转发到这个Pod上；等Pod恢复成正常状态，则会被加回到endpoint的列表里面，继续对外服务
-    - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上。如：`kubernetes.io/hostname: node1`
+    - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上。如：`nodeSelector.kubernetes.io/hostname: node1`
     - `nodeName` 直接运行在此节点上
     - `restartPolicy` 重启策略：Always(默认)、OnFailure、Never
     - `lifecycle` 生命周期
@@ -1005,7 +1006,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
     - `secret`
         - `secretName`
 - `kubectl explain pv.spec` 查看PersistentVolume(pv)配置
-    - `accessModes` 定义访问模型，可定义多个。取值：ReadWriteOnce(RWO，单节点读写)、ReadWriteMany(RWX，多节点读写)、ReadOnlyMany(ROX，多节点只读)
+    - `accessModes` 定义访问模型，可定义多个。取值：ReadWriteOnce(RWO，单节点读写)、ReadWriteMany(RWX，多节点读写)、ReadOnlyMany(ROX，多节点只读)。[支持的存储模型](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes)
     - `capacity` 定义PV空间的大小
         - `storage` eg：5G(1000换算)、5Gi(1024换算)，Ki | Mi | Gi | Ti | Pi | Ei等
     - `nfs` 基于nfs配置pv。还可通过其他方式如分布式存储、云存在进行配置
@@ -1707,11 +1708,11 @@ spec:
 
 ### Helm 参考
 
-- [http://blog.aezo.cn/2019/06/22/devops/k8s-helm/](/_posts/devops/k8s-helm.md)
+- [http://blog.aezo.cn/2019/06/22/devops/helm/](/_posts/devops/helm.md)
 
 ### 手动安装Dashboard
 
-- 推荐使用helm安装，具体参考[helm.md](/_posts/devops/k8s-helm.md#dashboard)
+- 推荐使用helm安装，具体参考[helm.md](/_posts/devops/helm.md#dashboard)
 - [github](https://github.com/kubernetes/dashboard)
 
 #### Dashboard界面说明
@@ -1775,7 +1776,7 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 
 - 日志查看
     - `sudo journalctl -u kubelet -f -n 100` **查看对应节点kubelet日志**
-    - `sudo journalctl -u docker -f -n 100` **查看对应节点kubeletdocker日志**
+    - `sudo journalctl -u docker -f -n 100` **查看对应节点docker日志**
 - 相关目录
     - `/var/lib/kubelet/pods/` 节点中pod存放位置，里面基于pod-id存放，此id有时会出现在journalctl日志中
 
@@ -1785,7 +1786,18 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
     - 查看对应节点的网络插件(Pod)是否正常启动
     - 查看对应节点服务状态`systemctl status kubelet/docker`
     - `sudo journalctl -u kubelet -f -n 100` 查看对应节点kubelet日志
+- Kubernetes报错`Failed to get system container stats for "/system.slice/kubelet.service"`。解决如下
     
+    ```bash
+    # 参考：https://stackoverflow.com/questions/46726216/kubelet-fails-to-get-cgroup-stats-for-docker-and-kubelet-services
+    vi /etc/sysconfig/kubelet
+    # 添加
+    DAEMON_ARGS=--runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice
+
+    # 重启
+    systemctl daemon-reload && systemctl restart kubelet
+    ```
+
 ### pod
 
 - 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container` 可查看对应pod的日志

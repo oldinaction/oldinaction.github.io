@@ -22,6 +22,18 @@ tags: [maven]
 			<mirrorOf>central</mirrorOf>          
 		</mirror>  
 	```
+- 证书问题导致，下载jar包时只返回一个更新文件，且里面报错`unable to find valid certification path to requested target`。需按照下列方式修改jdk证书 [^4]
+
+    ```bash
+    # 浏览器访问 https://maven.aliyun.com/nexus/content/groups/public/，查看证书 - 下载证书(复制到文件，Base64) - 如d:D://aliyun.cer
+    # 进入jdk目录 jdk1.8.0_111\jre\lib\security 执行命令
+    keytool -import -alias aliyun -keystore cacerts -file D://aliyun.cer
+    # 输入密码 changeit
+    # 输入信任证书 Y
+    # 导入成功后可查看证书，密码为 changeit
+    keytool -list -keystore cacerts -alias aliyun
+    # 稍后重新下载jar包
+    ```
 
 ### maven父子项目
 
@@ -580,6 +592,6 @@ services:
 [^1]: http://blog.csdn.net/hengyunabc/article/details/47308913 (利用github搭建个人maven仓库)
 [^2]: https://yulaiz.com/spring-boot-maven-profiles/ (Spring-Boot application.yml 文件拆分，实现 maven 多环境动态启用 Profiles)
 [^3]: https://blog.csdn.net/xhyzjiji/article/details/72731276
-
+[^4]: https://blog.csdn.net/frankcheng5143/article/details/52164939
 
 

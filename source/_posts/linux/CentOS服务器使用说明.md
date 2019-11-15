@@ -57,7 +57,7 @@ tags: [CentOS, linux]
         - A 是内核版本号：第一次是1994年的 1.0 版，第二次是1996年的 2.0 版，第三次是2011年的 3.0 版发布
         - B 是内核主版本号：奇数为开发版，偶数为稳定版
         - C 是内核次版本号
-- Centos7升级内核 
+- Centos7升级内核
     - `bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/centos7-update-kernel.sh) 2>&1 | tee kernel.log`
     - 需使用root用户执行，如果下载rpm失败，可尝试重新执行
 
@@ -144,11 +144,16 @@ yum repolist
 
 #### yum安装(软件包管理器的前端工具)
 
-- `yum`安装：`yum install xxx`(基于包管理工具安装，可以更好的解决包依赖关系)
-- yum常用命令
-    - `yum -y install nginx` 安装时回答全部问题为是
-    - `yum remove nginx` **卸载**
-    - `yum search vsftpd` 查找软件vsftpd源
+```bash
+# 基于包管理工具安装，可以更好的解决包依赖关系。-y 安装时回答全部问题为是
+yum install -y nginx
+# 卸载
+yum remove nginx
+# 查看版本。`yum install -y ceph-common-14.2.4-0.el7.x86_64` 安装指定版本
+yum list | grep ceph-common # ceph-common.x86_64                        2:14.2.4-0.el7                 @Ceph
+# 查找软件vsftpd源
+yum search vsftpd
+```
 
 #### tar.gz安装包安装
 
@@ -489,34 +494,43 @@ echo "zabbix test mail" | mail -s "zabbix" oldinaction@163.com
 - 校验时区：如`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，其中北京时间的时区为`CST`
     - `mv /etc/localtime /etc/localtime.bak`
     - `ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime` 修改成功后之前的日志是无法同步修改的
-    - `date`
+    - `date` 获取当前时间(精确到秒)
+
+        ```bash
+        # 获取毫秒
+        echo `expr \`date +%s%N\` / 1000000`
+        ```
 - 校验时间
     - `date` 查看时间
     - `date -s "2019-04-07 10:00:00"` 设置时间
     - `hwclock -w` 将时间写入bios固件避免重启失效
-- 设置系统时间自动同步 [^8]
+
+#### NTP(Network Time Protocol)
+
+- 使用 [^8]
 
 ```bash
 # ntpd是步进式的逐渐调整时间(慢慢调整到正确时间)，而ntpdate是断点更新(直接重写时间为正确时间)
 sudo yum install -y ntp ntpdate ntp-doc
 # 立即与国家授时中心同步
+# systemctl stop ntpd # 同步时需要关闭ntpd
 sudo ntpdate 0.cn.pool.ntp.org
 
 # 开启ntpd服务之后自动同步
-cat > /etc/ntp.conf << EOF
+cat > /etc/ntp.conf << 'EOF'
+# restrict default ignore # 设置默认策略为允许任何主机进行时间同步
 restrict default kod nomodify notrap nopeer noquery
-# restrict -6 default kod nomodify notrap nopeer noquery  #针对ipv6设置
+restrict -6 default kod nomodify notrap nopeer noquery  # `restrict -6` 表示针对ipv6设置
 
 # 允许本地所有操作
 restrict 127.0.0.1
-#restrict -6 ::1
+restrict -6 ::1
 
 # 允许的局域网络段或单独ip
-#restrict 10.0.0.0 mask 255.0.0.0 nomodify motrap
-#restrict 192.168.0.0 mask 255.255.255.0 nomodify motrap
-#restrict 192.168.1.123 mask 255.255.255.255 nomodify motrap
+# restrict 192.168.6.0 mask 255.255.255.0 nomodify motrap # 此时表示限制向从192.168.0.1-192.168.0.254这些IP段的服务器提供NTP服务
 
-# 使用上层的internet ntp服务器
+# 设定NTP主机来源(上层的internet ntp服务器). 其中prefer表示优先主机(如局域网NTP服务器)
+# server 192.168.6.131 prefer
 server cn.pool.ntp.org prefer
 server 0.asia.pool.ntp.org
 server 3.asia.pool.ntp.org
@@ -526,27 +540,54 @@ server 0.centos.pool.ntp.org iburst
 server   127.127.1.0    # local clock
 fudge    127.127.1.0 stratum 10
 
-# 计算本ntp server 与上层ntpserver的频率误差
+# 计算本ntp server与上层ntpserver的频率误差
 driftfile /var/lib/ntp/drift
 
-# Key file containing the keys and key identifiers used when operating
-# with symmetric key cryptography.
+# Key file containing the keys and key identifiers used when operating with symmetric key cryptography.
 keys /etc/ntp/keys
 
-#日志文件
+# 日志文件
 logfile /var/log/ntp.log
 EOF
 
+# ntp只能同步系统时间，此配置可将系统时间同步到硬件
 cat > /etc/sysconfig/ntpd << EOF
 # Drop root to id 'ntp:ntp' by default.
 OPTIONS="-u ntp:ntp -p /var/run/ntpd.pid"
 # Set to 'yes' to sync hw clock after successful ntpdate
-SYNC_HWCLOCK=yes #make no into yes; BIOS的时间也会跟着修改
+SYNC_HWCLOCK=yes # BIOS的时间也会跟着修改
 # Additional options for ntpdate
 NTPDATE_OPTIONS=""
 EOF
 
 systemctl enable ntpd --now # 设置开机重启并此时立即启动
+```
+- 配置文件说明
+    - restrict控制权限，参数如下
+        - ignore：关闭所有的 NTP 联机服务
+        - nomodify：客户端不能更改服务端的时间参数，但是客户端可以通过服务端进行网络校时
+        - notrust：客户端除非通过认证，否则该客户端来源将被视为不信任子网
+        - noquery：不提供客户端的时间查询。用户端不能使用ntpq，ntpc等命令来查询ntp服务器
+        - notrap：不提供trap远端登陆。拒绝为匹配的主机提供模式 6 控制消息陷阱服务。陷阱服务是 ntpdq 控制消息协议的子系统，用于远程事件日志记录程序
+        - nopeer：用于阻止主机尝试与服务器对等，并允许欺诈性服务器控制时钟
+        - kod：访问违规时发送 KoD 包
+- ntp服务默认使用`udp:123`进行传输
+- 相关命令
+
+```bash
+# 查看ntp服务器有无和上层ntp连通
+ntpstat
+# 查看ntp服务器与上层ntp的状态。显示结果参数说明
+    # remote   - 本机/上层ntp的ip或主机名，"+"表示优先，"*"表示次优先
+    # refid    - 参考上一层ntp主机地址
+    # st       - stratum阶层
+    # when     - 多少秒前曾经同步过时间
+    # poll     - 下次更新在多少秒后
+    # reach    - 已经向上层ntp服务器要求更新的次数
+    # delay    - 网络延迟
+    # offset   - 时间补偿
+    # jitter   - 系统时间与bios时间差
+ntpq -p
 ```
 
 ### Supervisor 进程管理

@@ -94,6 +94,7 @@ dotnet run # 在项目目录运行
 
 - 开启windows的IIS：控制面板 - 程序和功能 - 打开或关闭Windows功能 - Internet信息服务(Internet Information Services) - 此时在开始菜单中会出现`Internet Information Services (IIS)管理器`
 - 修改端口：网站 - 选择站点 - 绑定 - 修改端口
+    - IIS默认会占用80端口，如果需要让nginx使用80端口，需要将IIS的所有和80端口绑定都修改成其他端口
 
 ## 窗体应用(Winform)
 

@@ -16,7 +16,7 @@
 
 ### blog
 
-
+- `Galera`是一个MySQL(也支持MariaDB，Percona)的同步多主集群软件
 
 
 

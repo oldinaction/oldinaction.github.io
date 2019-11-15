@@ -32,71 +32,90 @@ tags: [springboot, vue]
 
 - 网络协议、ip、端口三者都相同就是同一个域(同源)
     - 如`http://localhsot`和`http://localhsot:8080`之间进行数据交互就存在跨域问题（localhost 和 127.0.0.1 不一样）
-- 浏览器"同源政策"限制(针对不同源情况) [^2]
+- 浏览器"同源政策"限制(针对不同源情况) [^2] [^8]
     - `Cookie、LocalStorage 和 IndexDB 无法读取`
     - `DOM 无法获得`
     - `AJAX 请求不能发送`
-- 解决方案 [^8]
-    - `JSONP`(只能发送GET请求)
-    - `CORS`(服务器端进行设置即可)
-    - `WebSocket`
-    - `postMessage`
 
-        ```html
-        <!-- ======a给b发送消息send-from-a，然后b给a回复消息send-from-b======= -->
-        <!-- a.html -->
-        <iframe src="http://localhost:4000/b.html" frameborder="0" id="frame" onload="load()"></iframe>
-        <script>
-            function load() {
-                let frame = document.getElementById('frame')
-                // someWindow.postMessage(message, targetOrigin, [transfer]);
-                    // message: 将要发送到其他 window 的数据
-                    // targetOrigin: 通过窗口的 origin 属性来指定哪些窗口能接收到消息事件，其值可以是字符串"*"(表示无限制)或者一个 URI。在发送消息的时候，如果目标窗口的协议、主机地址或端口这三者的任意一项不匹配 targetOrigin 提供的值，那么消息就不会被发送；只有三者完全匹配，消息才会被发送
-                    // transfer(可选): 是一串和 message 同时传递的 Transferable 对象. 这些对象的所有权将被转移给消息的接收方，而发送一方将不再保有所有权
-                frame.contentWindow.postMessage('send-from-a', 'http://localhost:4000') // 发送数据
+### 跨域通信 
 
-                // 接受数据
-                window.onmessage = function(e) {
-                    console.log(e.data) // send-from-b
-                }
-            }
-        </script>
+- `JSONP`(只能发送GET请求)
+- `CORS`(服务器端进行设置即可)
+- `WebSocket`
+- `postMessage`
+    - 可以实现页面和里面iframe页面之间的通讯
+    - 可以实现窗口和通过window.open的窗口间的通讯
+    - 可以实现窗口和通过a标签(`<a href="B页面" target="_blank">新打开B页面</a>`)新打开的窗口间的通讯
 
-        <!-- b.html -->
-        <script>
+    ```html
+    <!-- ======a给b发送消息send-from-a，然后b给a回复消息send-from-b======= -->
+    <!-- a.html 其中onload表示iframe加载(iframe项目代码已经加载到浏览器)后执行，如果将iframe隐藏也不会影响其加载 -->
+    <iframe src="http://localhost:4000/b.html" frameborder="0" id="frame" onload="load()"></iframe>
+    <script>
+        /*
+        someWindow.postMessage(message, targetOrigin, [transfer]);
+            message: 将要发送到其他 window 的数据
+            targetOrigin: 通过窗口的 origin 属性来指定哪些窗口能接收到消息事件，其值可以是字符串"*"(表示无限制)或者一个 URI。在发送消息的时候，如果目标窗口的协议、主机地址或端口这三者的任意一项不匹配 targetOrigin 提供的值，那么消息就不会被发送；只有三者完全匹配，消息才会被发送
+            transfer(可选): 是一串和 message 同时传递的 Transferable 对象. 这些对象的所有权将被转移给消息的接收方，而发送一方将不再保有所有权
+        */
+        function load() {
+            // 给子页面(嵌入的iframe)发送消息。此时targetOrigin为'http://localhost:4000'或者'*'均可
+            document.getElementById('frame').contentWindow.postMessage('send-from-a', 'http://localhost:4000')
+
+            // 接受数据
             window.onmessage = function(e) {
-                console.log(e.data) // send-from-a
-                e.source.postMessage('send-from-b', e.origin) // 使用e.origin表示回复源窗口消息
-            }
-        </script>
-        ```
-
-    - 架设服务器代理（浏览器请求同源服务器，再由后者请求外部服务）
-        - 基于`nginx`做中转
-
-        ```bash
-        server {
-            listen   80;               
-            server_name localhost;
-
-            # 后端服务根端点
-            location /api/ {
-                proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
-                proxy_set_header Host $http_host;
-                proxy_redirect off;
-                if (!-f $request_filename) {
-                    proxy_pass http://127.0.0.1:8080;
-                    break;
-                }
-            }
-
-            # 前端
-            location / {
-                root   D:/demo/vue/dist;
-                index  index.html index.htm;
+                console.log(e.data) // send-from-b
             }
         }
-        ```
+    </script>
+
+    <!-- b.html -->
+    <script>
+        window.onmessage = function(e) {
+            console.log(e.data) // send-from-a
+            e.source.postMessage('send-from-b', e.origin) // 使用e.origin表示回复源窗口消息
+        }
+        // 或者监听事件
+        /*
+        e.data: 指的是从其他窗口发送过来的消息对象
+        e.type: 指的是发送消息的类型
+        e.source: 指的是发送消息的窗口对象
+        e.origin 指的是发送消息的窗口的源
+        */
+        window.addEventListener("message",  function(e) {
+            console.log(e)
+        }, false)
+
+        // 主动给父页面发送消息
+        window.parent.postMessage({"name": "smalle"}, '*')
+    </script>
+    ```
+
+- 架设服务器代理(浏览器请求同源服务器，再由后者请求外部服务)。如基于`nginx`做中转
+
+```bash
+server {
+    listen   80;               
+    server_name localhost;
+
+    # 后端服务根端点
+    location /api/ {
+        proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        if (!-f $request_filename) {
+            proxy_pass http://127.0.0.1:8080;
+            break;
+        }
+    }
+
+    # 前端
+    location / {
+        root   D:/demo/vue/dist;
+        index  index.html index.htm;
+    }
+}
+```
 
 ### 跨域资源共享(CORS, Cross-origin resource sharing) [^1]
 

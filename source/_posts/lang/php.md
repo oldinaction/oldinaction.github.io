@@ -54,7 +54,7 @@ tags: [php]
     - nginx配置同上
     - 需要安装`php-fpm`来实现fastcgi
 
-## php基本语法
+## PHP基本语法
 
 > 未特殊说明，都是基于 php7
 
@@ -148,17 +148,20 @@ $ref->getTraits()['sq\controller\CurdControllerTrait']; // 返回ReflectionClass
 
 ```php
 ## 创建array/map
-// 1.compact 创建一个包含变量与其值的数组
-$meta_status = 'error';
-$meta_message = '执行失败';
-compact('meta_status', 'meta_message');
-// 2.基于数组索引创建
+$arr = array(); // 定义空数组
+// 基于数组索引创建
 $arr = ['hello', 'world'];
 $arr[0]; // hello
 $arr = ['first' => 'hello', 'second' => 'world'];
 $arr['first']; // hello
-// 3.删除元素
+// compact 创建一个包含变量与其值的数组
+$meta_status = 'error';
+$meta_message = '执行失败';
+compact('meta_status', 'meta_message');
+// 删除元素
 unset($arr['first']);
+// 长度获取
+count($arr)
 
 ## 循环
 $num = count($arr);
@@ -180,6 +183,10 @@ print_r(array_keys($a, 10, true)); // Array ( [0] => 3)
 ## 判断
 in_array("hello", $a); // false. 判断包含
 is_array($a); // true. 判断变量是否是数组
+
+## 相关函数
+array_push(array,value1,value2...); // 向数组的尾部添加元素
+array_filter($arr, function($v, $k) { return $k == 'b'; }); // 数组过滤
 ```
 
 #### json
@@ -196,6 +203,16 @@ if(isset($json -> username)) {
 }
 ```
 
+#### 全局变量
+
+- `$_GET` 包含GET参数，下同。如`$_GET['name']`获取name参数值
+- `$_POST` 包含POST参数
+- `$_REQUEST` 包含GET/POST参数，相对较慢
+- `$_SESSION`
+- `$_SERVER` 
+    - 包含Header参数。注意：header的key会自动转为大写，且key只能包含字母、数字、中划线(-)。且中划线(-)被自动转为下划线(_)。设置一个header的key为`user-name`，通过`$_SERVER['HTTP_USER_NAME']`来获取
+    - `$_SERVER['REQUEST_URI']` 获取请求路径
+
 ### 文件
 
 ```php
@@ -204,9 +221,11 @@ $res = is_dir(dirname($dst)) || mkdir(dirname($dst), 0644, true); // 先用mkdir
 return $res && rename($src, $dst); // 然后移动
 ```
 
-## thinkphp
+## ThinkPHP
 
 > 未特殊说明，都是基于 ThinkPHP v5.0.24 进行记录
+
+- [TP5 Doc](https://www.kancloud.cn/manual/thinkphp5/118003)、[TP3.2 Doc](https://www.kancloud.cn/manual/thinkphp/1773)
 
 ### 入门常见问题
 
@@ -235,6 +254,9 @@ $fileds = $model->getQuery()->getTableInfo('', 'fields'); // 获取所有字段
 // 判断是否更新成功(当未获取到数据会返回false)。如果使用`$model->update($data, ['id'=>1]);`未获取到数据也返回成功
 $result = User::get('id=1')->save($data);
 echo $result !== false ? 'success' : 'false';
+
+$Model = new \Think\Model() // 实例化一个model对象 没有对应任何数据表
+$result = $Model->query("select u.* from user u left join room r on u.room_id = r.id where r.id = 1");
 ```
 
 - 事物: 事物操作相关代码在`use think\db\Connection;`中
@@ -256,7 +278,7 @@ try{
 ## 易错点
 
 - `$_POST`接受数据 [^1]
-    - Coentent-Type仅在取值为`application/x-www-data-urlencoded`和`multipart/form-data`两种情况下，PHP才会将http请求数据包中相应的数据填入全局变量`$_POST`。（jquery会默认转换请求头）
+    - Coentent-Type仅在取值为`application/x-www-data-urlencoded`和`multipart/form-data`两种情况下，PHP才会将http请求数据包中相应的数据填入全局变量`$_POST`。(jquery会默认转换请求头)
     - Coentent-Type为`application/json`时，可以使用`$input = file_get_contents('php://input')`接受数据，再通过`json_decode($input, TRUE)`转换成json对象
     - 微信小程序wx.request的header设置成`application/x-www-data-urlencoded`时`$_POST`也接受失败(基础库版本1.5.0，仅供个人参考)，使用file_get_contents('php://input')可以获取成功
 - 空值判断
@@ -359,11 +381,24 @@ function getAuthHeaders(){
 
         ## 重启apache
         ```
+    - 设置Xdebug
+        - `php.exe -m` 查看是否安装Xdebug(`[Zend Modules]`中含有`Xdebug`)
+        - 修改`php.ini`，加入
+
+            ```ini
+            [xdebug]
+            zend_extension=D:\software\xampp\php\ext\php_xdebug.dll
+            xdebug.remote_enable=1
+            ```
+- Chrome插件`Xdebug Helper for Chrome`
+    - 激活Xdebug的调试器
+    - 安装好后点击插件中的Debug按钮启动
 - PhpStorm 配置。参考[http://blog.aezo.cn/2016/09/17/extend/idea/](/_posts/extend/idea.md#IDEA开发PHP程序)
     - 使用前需配置php可执行程序路径(Languages - PHP). 如果使用xampp，则可使用xampp中配置的xdebug
-    - 进行debug时，创建一个`PHP Web Page`启动配置，此时host和port需要填Apache服务器的host和port（PhpStorm中的启动配置并不会启动服务器，因此需要另外启动Apache等服务器）
+    - 进行debug时，创建一个`PHP Web Page`启动配置，此时host和port需要填Apache服务器的host和port(PhpStorm中的启动配置并不会启动服务器，因此需要另外启动Apache等服务器)
         - Run Debug - PHP Web Page - 新建Server(localhost:8110, Xdebug) - Start Url(/test/index.php) - 启动Debug - 访问 http://localhost:8110/test/index.php
     - PHPStorm使用Xdebug进行调试时，没打断点也一直进入到代码第一行：去掉勾选Run - Break at first line in PHP Scripts
+    - PHPStorm需要启动Debug监听：`Run - Start Listening for PHP Debug Connection`
 
 ## 其他
 

@@ -38,6 +38,35 @@ export default class {}
   - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
   - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1));`
 
+### 易错点
+
+```js
+[1].indexOf(1) // 0
+[1].indexOf("1") // -1
+```
+
+### 操作Dom
+
+- 动态创建iframe(异步加载，加快主站相应速度)
+
+```js
+function createIframe() {
+    var i = document.createElement("iframe");
+    i.id="iframe"
+    i.src = "http://localhost/test";
+    i.frameborder = "0";
+    i.width = "100%";
+    i.height = "100%";
+    i.onload=myOnloadFunc;
+    document.getElementById("iframeDiv").appendChild(i);
+};
+
+if (window.addEventListener) window.addEventListener("load", createIframe, false);
+else if (window.attachEvent) window.attachEvent("onload", createIframe);
+else window.onload = createIframe;
+```
+
+
 ## 笔记
 
 ### javaScript 介绍

@@ -152,7 +152,7 @@ initializationFiles:
 EOF
 helm install --name mysql-devops --namespace devops stable/mysql --version 1.4.0 -f mysql-values.yaml
 
-# 更新报错？
+# 更新报错
 helm upgrade mysql-devops stable/mysql --version 1.4.0 -f mysql-values.yaml
 helm del --purge mysql-devops
 ```

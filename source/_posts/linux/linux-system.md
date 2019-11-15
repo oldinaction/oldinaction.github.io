@@ -643,7 +643,7 @@ lsmod |grep br_netfilter
         - `-O`：将文件解开到标准输出    
         - `-p` 使用原文件的原来属性（属性不会依据使用者而变）
         - `-P` 可以使用绝对路径来压缩
-        - `-C` 解压到指定目录
+        - `-C` 解压到指定目录(默认是当前目录)
 
 #### gz
 
@@ -1085,7 +1085,7 @@ done
         - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
         - `ssh-keygen -t rsa -C "xxx@qq.com"` -C起到一个密码备注的作用，可以为任何内容
     - 把生成的公钥保存到服务器`authorized_keys`文件中
-        - **`ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1`** 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去(或者手动追加到authorized_keys文件中)。此时需要保证192.168.1.1服务器的root用户没有被禁用
+        - **`ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1`** 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去(或者手动追加到authorized_keys文件中)。**此时需要保证192.168.1.1服务器的root用户没有被禁用**
     - 在`192.168.1.2`客户端上登录上述服务器
         - `ssh 192.168.1.1` 此时不需要输入密码
         - 如果需要在`192.168.1.1`(客户机)上通过ssh登录`192.168.1.1`(服务器)，需要按照上述命令把公钥保存到服务器的`authorized_keys`

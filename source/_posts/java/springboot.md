@@ -650,16 +650,20 @@ post |`multipart/form-data`  |form-data   |(HttpServletRequest request, User use
 
 ### 请求参数
 
-```java
-// 如果所在类加注解@RequestMapping("/user")，则请求url全部要拼上`/user`，如`/user/hello`
+- 如果所在类加注解`@RequestMapping("/user")`，则请求url全部要拼上`/user`，如`/user/hello`
 
+```java
 @RequestMapping(value = "/hello") // 前台post请求也可以请求的到
 public String hello() {
 	return "hello world";
 }
+```
 
-// 前台请求 Body/Url 中含参数 userId和username（Spring可以自动注入java基础数据类型和对应的数组，集合无法注入）
-// 只能自动注入userId=1&username=smalle格式的数据，如果请求体中是json数据则无法解析(如果参数为json数据，一般可定义请求头为`'Content-Type': 'application/x-www-form-urlencoded'`，从而让ajax等插件自动转成url格式参数请求后台)
+- GET请求
+
+```java
+// 前台GET请求 Body/Url 中含参数 userId和username（Spring可以自动注入java基础数据类型和对应的数组，Map/List无法注入）
+// 只能自动注入userId=1&username=smalle格式的数据，如果请求体中是json数据则无法解析(如果参数为json数据，一般可定义请求头为`'Content-Type': 'application/x-www-form-urlencoded'`，从而让qs等插件自动转成url格式参数请求后台)
 @RequestMapping(value="/getUserByUserIdOrUsername")
 public Result getUserByUserIdOrUsername(Long userId, String username, HttpServletRequest request) {
 	// ...
@@ -670,26 +674,37 @@ public Result getUserByUserIdOrUsername(Long userId, String username, HttpServle
 public String getUserByName(@RequestParam("username") String name) {}
 @RequestMapping(value = "/getUser")
 public String getUser(User user) {} // 此时User对象必须声明getter/setter方法
-@RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public String hello(User user) {}
-
 // @PathVariable 获取 url 中的参数
 @RequestMapping(value="/hello/{id}")
 public String user(@PathVariable("id") Integer id) {}
+```
 
-// 多文件上传时Layui会重复请求此接口多次. MultipartFile 并非 File对象，可通过 InputStream/OutputStream 将 MultipartFile 转换成 File
-@RequestMapping(value = "/upload", method = RequestMethod.POST)
-public String uploading(@RequestParam("file") MultipartFile file, String otherFiled) {}
+- POST请求
 
+```java
+@RequestMapping(value = "/addUser", method = RequestMethod.POST)
+public String hello(User user) {}
 // 如请求头为`application/json`，此body中为一个json对象(请求时无需加 data={} 等key，直接为 {} 对象)。
-// 获取body中的参数，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以转成成功Map，此处也可以用Map<String, Object>接受
+// 获取body中的参数，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以成功转成Map，此处也可以用Map<String, Object>接受
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
 public String addUser(@RequestBody List<User> user) {}
+// public String addUser(Map<String, Object> user) {} // body数据可以成功转成Map时
 // 请求数据http://localhost/?name=smalle&pass=123
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
 public String addUser(@RequestBody String param) {} // 此时param拿到的值为 name=smalle&pass=123
+```
 
-// 自定义方法：通过request获取body数据（参考getBodyStringFromReq）。request.getParameter无法获取body
+- 文件上传
+
+```java
+// 多文件上传时Layui会重复请求此接口多次. MultipartFile 并非 File对象，可通过 InputStream/OutputStream 将 MultipartFile 转换成 File
+@RequestMapping(value = "/upload", method = RequestMethod.POST)
+public String uploading(@RequestParam("file") MultipartFile file, String otherFiled) {}
+```
+
+- 自定义方法：通过request获取body数据(参考getBodyStringFromReq)。request.getParameter无法获取body
+
+```java
 // InputStream对象只能获取一次
 	// 1.request.setAttribute("body", body);
 	// 2.如果需要多次获取可以使用HttpServletRequestWrapper进行缓存(https://www.jianshu.com/p/85feeb30c1ed)。如果Filter的验证中使用了，则Controller中无法再使用@RequestBody获取数据
@@ -905,7 +920,7 @@ public MultipartConfigElement multipartConfigElement() {
 	} catch (DataAccessException e) {
 	}
 	// 4.**基于实体查询**，也可查询集合(同查询8)
-	// 注意：如果直接安装下面注释的写法会查询失败，仅有警告信息(IncorrectResultSetColumnCountException: Incorrect column count: expected 1, actual 10)，不会报错
+	// 注意：如果直接按照下面注释的写法会查询失败，仅有警告信息(IncorrectResultSetColumnCountException: Incorrect column count: expected 1, actual 10)，不会报错
 	// UserVo userVo = uscUmcJdbcTemplate.queryForObject(
 	//         "select * from u_user_login ul where ul.username = ? and ul.valid_status = 1 limit 1", UserVo.class, username);
 	UserVo userVo = uscUmcJdbcTemplate.queryForObject(

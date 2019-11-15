@@ -34,6 +34,22 @@ select to_char(sysdate, 'yyyy-MM-dd HH24:mi:ss') from dual;
 select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
 ```
 
+### 日期
+
+```sql
+-- mysql
+date_sub(now(), interval 7 day) -- 当前时间-7天
+```
+
+### 查询
+
+- 关键字转义
+
+```sql
+select * from `user`; -- mysql
+select * from [Order]; -- sqlserver
+```
+
 ## Mysql
 
 ### 常见问题

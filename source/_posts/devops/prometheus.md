@@ -211,7 +211,7 @@ curl -X DELETE http://192.168.6.131:9091/metrics/job/aezo/instance/test
 
 ### 基于prometheus-operator安装prometheus(k8s环境)
 
-- [基于Helm安装(推荐)](/_posts/devops/k8s-helm.md#Prometheus)
+- [基于Helm安装(推荐)](/_posts/devops/helm.md#Prometheus)
 - [prometheus-operator](https://github.com/coreos/prometheus-operator) [^2]
     - `Prometheus-operator`的本职就是一组用户自定义的CRD资源以及Controller的实现，Prometheus Operator这个controller有BRAC权限下去负责监听这些自定义资源的变化。相关CRD说明
         - `Prometheus`：由 Operator 依据一个自定义资源kind: Prometheus类型中，所描述的内容而部署的 Prometheus Server 集群，可以将这个自定义资源看作是一种特别用来管理Prometheus Server的StatefulSets资源

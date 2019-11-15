@@ -3,7 +3,7 @@ layout: "post"
 title: "redis"
 date: "2016-07-02 12:11"
 categories: db
-tags: arch
+tags: redis
 ---
 
 ## redis简介
