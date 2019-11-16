@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
+    
+    <lastmod>2019-11-16T13:46:02.367Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2019/09/23/devops/rook/</loc>
     
-    <lastmod>2019-11-16T10:28:11.715Z</lastmod>
+    <lastmod>2019-11-16T13:44:05.125Z</lastmod>
     
   </url>
   
@@ -222,13 +229,6 @@
     <loc>http://blog.aezo.cn/2016/08/14/arch/rabbitmq/</loc>
     
     <lastmod>2019-10-17T08:11:01.172Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
-    
-    <lastmod>2019-10-15T06:06:36.093Z</lastmod>
     
   </url>
   
