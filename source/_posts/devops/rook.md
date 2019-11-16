@@ -387,7 +387,7 @@ ceph-volume lvm batch --osds-per-device 1 /dev/sdb # 参考下文ceph-volume部�
 
 
 
----
+-----
 
 参考文章
 
