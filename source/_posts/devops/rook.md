@@ -65,5 +65,22 @@ kubectl -n rook-ceph logs $(kubectl get pod -n rook-ceph | grep mgr | awk '{prin
 # 如访问 http://192.168.6.131:30811/
 ```
 
+- 上文配置文件修改说明
 
+```yml
+## cluster.yaml
+# ...
+spec:
+  # 存储rook节点配置信息、日志信息。dataDirHostPath数据存储在k8s节点(宿主机)目录，会自动在rook选择的k8s节点上创建此目录。如果osd目录(directories)没指定或不可用，则默认在此目录创建osd
+  # rook对应pod删除后此目录会保留，重新安装rook集群时，此目录必须无文件
+  dataDirHostPath: /var/lib/rook # 默认值即可
+  mon:
+    # 1-9中的奇数(需要选举)
+    count: 3
+    # 测试环境可设置成true(一个节点可运行多个mon实例)，否则rook-ceph-mgr、rook-ceph-mon、rook-ceph-osd可能无法创建成功(pod不进行调度也不显示错误信息)
+    allowMultiplePerNode: false
+  network:
+    # true表示共享宿主机网络，这样外面可直接连接ceph集群，默认false
+    hostNetwork: false
+```
 
