@@ -220,39 +220,3 @@ reclaimPolicy: Delete
 
 ### 使用扩展
 
-### 增加/减少OSD节点
-
-```bash
-### 增加节点。不会影响其他运行中的ceph节点
-# 增加节点亲和性相关的标签(需要先加标签后应用cluster配置)
-kubectl label nodes node4 storage-node=enable
-
-# 修改集群配置：设置 spec.storage.nodes
-# kubectl edit cephcluster rook-ceph -n rook-ceph # 或者直接修改资源
-cd /home/smalle/k8s/rook-1.1.2/cluster/examples/kubernetes/ceph/
-vi cluster.yaml
-kubectl apply -f cluster.yaml
-
-# 实时查看pod调度情况(需要等1分钟左右)，会多一个 rook-ceph-osd-prepare-node4、rook-ceph-osd(其中rook-ceph-osd运行正常后prepare-pod会自动进入完成状态)
-kubectl -n rook-ceph get pod -o wide -w
-# 如果osd-pod一直不产生，可删除对应节点的prepare-pod重新创建。如果prepare-pod一直处于CrashLoopBackOff之后会被k8s清除，大概要等15min才会重新创建
-# kubectl -n rook-ceph delete pods rook-ceph-detect-version-ps5g9
-
-### 删除节点
-# 去掉节点标签
-kubectl label nodes node4 storage-node-
-# 删除集群配置中的 spec.storage.nodes
-# 如果pod一直无法成功删除，可重启此节点机器，有时删除确实很慢(15min)。**如果只有一个osd节点或者集群空间不足，则该节点无法被自动删除**
-kubectl edit cephcluster rook-ceph -n rook-ceph
-kubectl -n rook-ceph get pod -o wide -w # 对应节点的osd-pod会被移除
-# 等pod移除成功后，再删除宿主机的/var/lib/rook/osd*文件夹(如果osd数据目录为其他自定义目录可相应删除)，方便下次将此节点再加入集群
-# 注意：/var/lib/rook目录还可能有mon等pod的配置，不能删除
-rm -rf /var/lib/rook/osd*
-# (可选)还原磁盘供下次安装osd使用
-# yum install -y gdisk
-sgdisk --zap-all --clear --mbrtogpt /dev/sdb
-/usr/sbin/wipefs --all /dev/sdb
-ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove %
-rm -rf /dev/mapper/ceph-*
-rm -rf /dev/ceph-*
-```
