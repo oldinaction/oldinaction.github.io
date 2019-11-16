@@ -9,7 +9,6 @@ tags: [k8s, storage, cncf]
 ## 简介
 
 - TODO rook v1.1.2 测试使用不是很流畅，会出现一些诡异的问题，待rook毕业
-- [Rook](https://rook.io) 是Kubernetes的开源云本地存储协调器，为各种存储解决方案提供平台，框架和支持，以便与云原生环境本地集成。是云原生计算基金会(CNCF)的孵化级项目。Rook 目前支持 `Ceph`、`NFS`、`Minio Object Store`、`Edegefs`、`Cassandra`、`CockroachDB` 存储的搭建，使用 Rook 可以轻松实现在 Kubernetes 上部署并运行 Ceph 存储系统
 
 ## Rook-Ceph
 
