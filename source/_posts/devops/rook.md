@@ -4,7 +4,7 @@ title: "Rook | K8s存储协调器"
 date: "2019-09-23 09:38"
 categories: devops
 tags: [k8s, storage, cncf]
---- 
+---
 
 ## 简介
 
@@ -387,7 +387,7 @@ ceph-volume lvm batch --osds-per-device 1 /dev/sdb # 参考下文ceph-volume部�
 
 
 
------
+---
 
 参考文章
 
