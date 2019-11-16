@@ -8,7 +8,7 @@ tags: [k8s, storage, cncf]
 
 ## 简介
 
-- TODO rook v1.1.2 测试使用不是很流畅，会出现一些诡异的问题，待rook毕业
+- rook v1.1.2 测试使用不是很流畅，会出现一些诡异的问题，待rook毕业
 
 ## Rook-Ceph
 
