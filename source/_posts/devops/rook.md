@@ -192,7 +192,7 @@ spec:
     size: 3 # 测试环境可设置成1
   # 擦除编码池设置(将数据分成数据块数和编码块，总存储一般高于原始数据的1.5倍左右。如果损失其中任意一块，仍然能够重建原始对象)。仅仅在Flex驱动中可用
   # erasureCoded:
-
+---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
