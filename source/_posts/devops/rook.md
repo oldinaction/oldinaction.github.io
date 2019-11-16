@@ -65,6 +65,197 @@ kubectl -n rook-ceph logs $(kubectl get pod -n rook-ceph | grep mgr | awk '{prin
 # 如访问 http://192.168.6.131:30811/
 ```
 
+- 上文配置文件修改说明
+
+```bash
+## operator.yaml
+# ...
+xxx: 
+- name: ROOK_CSI_CEPH_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/cephcsi/cephcsi:v1.2.1"
+- name: ROOK_CSI_REGISTRAR_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-node-driver-registrar:v1.1.0"
+- name: ROOK_CSI_PROVISIONER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-provisioner:v1.3.0"
+- name: ROOK_CSI_SNAPSHOTTER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-snapshotter:v1.2.0"
+- name: ROOK_CSI_ATTACHER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-attacher:v1.2.0"
+# ...
+
+## cluster.yaml
+# ...
+spec:
+  # 存储rook节点配置信息、日志信息。dataDirHostPath数据存储在k8s节点(宿主机)目录，会自动在rook选择的k8s节点上创建此目录。如果osd目录(directories)没指定或不可用，则默认在此目录创建osd
+  # rook对应pod删除后此目录会保留，重新安装rook集群时，此目录必须无文件
+  dataDirHostPath: /var/lib/rook # 默认值即可
+  mon:
+    # 1-9中的奇数(需要选举)
+    count: 3
+    # 测试环境可设置成true(一个节点可运行多个mon实例)，否则rook-ceph-mgr、rook-ceph-mon、rook-ceph-osd可能无法创建成功(pod不进行调度也不显示错误信息)
+    allowMultiplePerNode: false
+  network:
+    # true表示共享宿主机网络，这样外面可直接连接ceph集群，默认false
+    hostNetwork: false
+  # 设置节点亲和性：只能影响rook-ceph-mgr、rook-ceph-mon、rook-ceph-osd；csi相关插件(在operator.yaml中配置的)还是会在除k8s-master的其他各节点上运行
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: storage-node
+              operator: In
+              values:
+              - enable
+  storage:
+    # true表示所有k8s节点都可用来部署ceph
+    useAllNodes: false
+    # true会把宿主机所有可用的磁盘都用来存储
+    useAllDevices: false
+    deviceFilter: ^sd[b-z] # 选择k8s节点的sdb、sdc、sdd等开头的设备当做OSD节点。会自动覆盖 `useAllDevices: true`为false。且deviceFilter会被nodes[].devices.name覆盖
+    # rook(ceph)数据存放位置，如果无此目录会自动创建
+    directories:
+    - path: /data/rook
+    config:
+      # 设备默认是bluestore类型存储，目录默认是filestore存储 (The default and recommended storeType is dynamically set to bluestore for devices and filestore for directories)。如果是bluestore，虽然节点明确定义了devices，还是会在系统目录，如/dev/sda1(dm-0)中创建osd存储
+      # storeType: bluestore
+    # 选择k8s节点用来存储
+    nodes:
+    - name: "node2"
+      # 选择k8s节点磁盘设置为OSD节点
+      devices:
+      # 将/dev/sda2设置为osd。此时sda2进行过分区或挂载也可提供给ceph使用
+      # 指定磁盘必须有GPT header，不支持指定分区
+      - name: "sda2"
+      directories:
+      # rook(ceph)数据存放位置(根据节点自定义，覆盖默认位置)。会自动创建此目录，并创建osd0/osd1...子目录
+      - path: "/home/data"
+    # 未定义path则使用父属性定义的/data/rook
+    - name: "node3"
+      # deviceFilter: "^vd." # 选择所有以 vd 开头的设备
+      devices:
+      # 如果sdb没有进行过分区和挂载，只是物理连接的裸磁盘，rook也会自动进行分区(分区类型为lvm)
+      # 尽管定义了devices(和deviceFilter)，rook也会检测到sda的磁盘并创建/var/lib/rook/osd*文件夹，只是无法初始化(且此osd也会注册到ceph)
+      - name: "sdb"
+      # 较大存储空间的磁盘上可创建多个osd节点
+        #config:
+        #  osdsPerDevice: "3"
+# ...
+```
+
+### 简单使用
+
+- 块存储案例，参考：https://rook.io/docs/rook/v1.1/ceph-block.html
+- 实例
+
+```bash
+# 创建 CephBlockPool 和 StorageClass
+vi sq-rdb.yaml
+kubectl apply -f sq-rdb.yaml
+kubectl get sc
+
+# 使用
+cd /home/smalle/k8s/rook-1.1.2/cluster/examples/kubernetes # 上文rook源码所在目录
+kubectl apply -f mysql.yaml # PVC和Deploy配置参考：https://raw.githubusercontent.com/rook/rook/v1.1.2/cluster/examples/kubernetes/mysql.yaml
+kubectl get pvc
+# 稍等片刻，临时主机暴露端口。使用 192.168.6.131:13306 root/changeme 访问 mysql
+kubectl port-forward --address 0.0.0.0 $(kubectl get pods --namespace default -l "app=wordpress,tier=mysql" -o jsonpath="{.items[0].metadata.name}") 13306:3306
+
+## **解析RBD存储**：当PVC申请PV，PV挂载到POD上后，可在rook节点(OSD所在k8s节点)中看到rbd挂载信息
+# 在rook节点上运行，可以看到 rbd0(/dev/rbd0) 磁盘被挂载到了 /var/lib/kubelet/pods/bd1de507...目录上
+lsblk
+# 进入此目录，可以看到完整的文件信息。如mysql完整的数据文件
+cd /var/lib/kubelet/pods/bd1de507-39ac-47fa-b1e2-a19a1107ef01/volumes/kubernetes.io~csi/pvc-6f9dce55-3203-4a4d-8ea1-0d75e6563d77/mount
+# 也可在对应节点运行查看挂载 (**还可看到pvc对应磁盘使用情况**)
+df -h | grep csi/pvc
+```
+- sq-rdb.yaml
+
+```bash
+# CephBlockPool 设置参考 https://rook.io/docs/rook/v1.1/ceph-pool-crd.html
+# 存储集群运行中时，也可修改下列参数
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool-test
+  # CephBlockPool定义在rook-ceph命名空间接口；其他各个命名空间的StorageClass可通过parameters进行制定CephBlockPool所在的命名空间来进行连接
+  namespace: rook-ceph
+spec:
+  # 取值：host、osd
+  # host：所有块都将放置在唯一的主机上；osd：所有块都将放置在唯一的OSD上(一个主机可能存在多个osd)
+  failureDomain: host
+  # 复制池设置(简单的文件数据复制，和erasureCoded不能同时设置)
+  replicated:
+    # 要在复制池中制作数据的所需副本数(副本数为3时，如果其中2个几点宕机，还是可以正常提供服务)
+    # 如果池中没有足够的主机或OSD来放置唯一位置，也可以创建此k8s池(ceph集群中不会进行创建对应pool)，但是该池的PUT会挂起，PVC也一直处于Pending状态
+    size: 3 # 测试环境可设置成1
+  # 擦除编码池设置(将数据分成数据块数和编码块，总存储一般高于原始数据的1.5倍左右。如果损失其中任意一块，仍然能够重建原始对象)。仅仅在Flex驱动中可用
+  # erasureCoded:
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-block # 在PVC中会使用到
+# CSI驱动。如果rook-ceph集群所在k8s命名空间为`xxx`，则此处为`xxx.rbd.csi.ceph.com`
+provisioner: rook-ceph.rbd.csi.ceph.com
+# Flex驱动(parameters也要做相应修改，K8 1.13已经不推荐)
+# provisioner: ceph.rook.io/block
+parameters:
+  clusterID: rook-ceph
+  # 上文定义的pool名称
+  pool: replicapool-test
+  imageFormat: "2"
+  imageFeatures: layering
+  # 安装集群时，operator自动产生的相关秘钥，可在rook-ceph对应命名空间中查看
+  csi.storage.k8s.io/provisioner-secret-name: rook-ceph-csi
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-ceph-csi
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  # 指定申请的卷的文件系统类型，默认是`ext4`
+  csi.storage.k8s.io/fstype: xfs
+# 删除PVC时删除RBD卷。Delete(只会删除PV和PVC，不会删除rbd)、Retain(生成环境可使用)、Recycle
+reclaimPolicy: Delete
+```
+
+### 使用扩展
+
+### 增加/减少OSD节点
+
+```bash
+### 增加节点。不会影响其他运行中的ceph节点
+# 增加节点亲和性相关的标签(需要先加标签后应用cluster配置)
+kubectl label nodes node4 storage-node=enable
+
+# 修改集群配置：设置 spec.storage.nodes
+# kubectl edit cephcluster rook-ceph -n rook-ceph # 或者直接修改资源
+cd /home/smalle/k8s/rook-1.1.2/cluster/examples/kubernetes/ceph/
+vi cluster.yaml
+kubectl apply -f cluster.yaml
+
+# 实时查看pod调度情况(需要等1分钟左右)，会多一个 rook-ceph-osd-prepare-node4、rook-ceph-osd(其中rook-ceph-osd运行正常后prepare-pod会自动进入完成状态)
+kubectl -n rook-ceph get pod -o wide -w
+# 如果osd-pod一直不产生，可删除对应节点的prepare-pod重新创建。如果prepare-pod一直处于CrashLoopBackOff之后会被k8s清除，大概要等15min才会重新创建
+# kubectl -n rook-ceph delete pods rook-ceph-detect-version-ps5g9
+
+### 删除节点
+# 去掉节点标签
+kubectl label nodes node4 storage-node-
+# 删除集群配置中的 spec.storage.nodes
+# 如果pod一直无法成功删除，可重启此节点机器，有时删除确实很慢(15min)。**如果只有一个osd节点或者集群空间不足，则该节点无法被自动删除**
+kubectl edit cephcluster rook-ceph -n rook-ceph
+kubectl -n rook-ceph get pod -o wide -w # 对应节点的osd-pod会被移除
+# 等pod移除成功后，再删除宿主机的/var/lib/rook/osd*文件夹(如果osd数据目录为其他自定义目录可相应删除)，方便下次将此节点再加入集群
+# 注意：/var/lib/rook目录还可能有mon等pod的配置，不能删除
+rm -rf /var/lib/rook/osd*
+# (可选)还原磁盘供下次安装osd使用
+# yum install -y gdisk
+sgdisk --zap-all --clear --mbrtogpt /dev/sdb
+/usr/sbin/wipefs --all /dev/sdb
+ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove %
+rm -rf /dev/mapper/ceph-*
+rm -rf /dev/ceph-*
+```
 
 ### 删除整个集群
 
