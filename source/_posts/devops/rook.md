@@ -65,5 +65,84 @@ kubectl -n rook-ceph logs $(kubectl get pod -n rook-ceph | grep mgr | awk '{prin
 # 如访问 http://192.168.6.131:30811/
 ```
 
+- 上文配置文件修改说明
+
+```yml
+## operator.yaml
+# ...
+xxx: 
+- name: ROOK_CSI_CEPH_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/cephcsi/cephcsi:v1.2.1"
+- name: ROOK_CSI_REGISTRAR_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-node-driver-registrar:v1.1.0"
+- name: ROOK_CSI_PROVISIONER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-provisioner:v1.3.0"
+- name: ROOK_CSI_SNAPSHOTTER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-snapshotter:v1.2.0"
+- name: ROOK_CSI_ATTACHER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-attacher:v1.2.0"
+# ...
+
+## cluster.yaml
+# ...
+spec:
+  # 存储rook节点配置信息、日志信息。dataDirHostPath数据存储在k8s节点(宿主机)目录，会自动在rook选择的k8s节点上创建此目录。如果osd目录(directories)没指定或不可用，则默认在此目录创建osd
+  # rook对应pod删除后此目录会保留，重新安装rook集群时，此目录必须无文件
+  dataDirHostPath: /var/lib/rook # 默认值即可
+  mon:
+    # 1-9中的奇数(需要选举)
+    count: 3
+    # 测试环境可设置成true(一个节点可运行多个mon实例)，否则rook-ceph-mgr、rook-ceph-mon、rook-ceph-osd可能无法创建成功(pod不进行调度也不显示错误信息)
+    allowMultiplePerNode: false
+  network:
+    # true表示共享宿主机网络，这样外面可直接连接ceph集群，默认false
+    hostNetwork: false
+  # 设置节点亲和性：只能影响rook-ceph-mgr、rook-ceph-mon、rook-ceph-osd；csi相关插件(在operator.yaml中配置的)还是会在除k8s-master的其他各节点上运行
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: storage-node
+              operator: In
+              values:
+              - enable
+  storage:
+    # true表示所有k8s节点都可用来部署ceph
+    useAllNodes: false
+    # true会把宿主机所有可用的磁盘都用来存储
+    useAllDevices: false
+    deviceFilter: ^sd[b-z] # 选择k8s节点的sdb、sdc、sdd等开头的设备当做OSD节点。会自动覆盖 `useAllDevices: true`为false。且deviceFilter会被nodes[].devices.name覆盖
+    # rook(ceph)数据存放位置，如果无此目录会自动创建
+    directories:
+    - path: /data/rook
+    config:
+      # 设备默认是bluestore类型存储，目录默认是filestore存储 (The default and recommended storeType is dynamically set to bluestore for devices and filestore for directories)。如果是bluestore，虽然节点明确定义了devices，还是会在系统目录，如/dev/sda1(dm-0)中创建osd存储
+      # storeType: bluestore
+    # 选择k8s节点用来存储
+    nodes:
+    - name: "node2"
+      # 选择k8s节点磁盘设置为OSD节点
+      devices:
+      # 将/dev/sda2设置为osd。此时sda2进行过分区或挂载也可提供给ceph使用
+      # 指定磁盘必须有GPT header，不支持指定分区
+      - name: "sda2"
+      directories:
+      # rook(ceph)数据存放位置(根据节点自定义，覆盖默认位置)。会自动创建此目录，并创建osd0/osd1...子目录
+      - path: "/home/data"
+    # 未定义path则使用父属性定义的/data/rook
+    - name: "node3"
+      # deviceFilter: "^vd." # 选择所有以 vd 开头的设备
+      devices:
+      # 如果sdb没有进行过分区和挂载，只是物理连接的裸磁盘，rook也会自动进行分区(分区类型为lvm)
+      # 尽管定义了devices(和deviceFilter)，rook也会检测到sda的磁盘并创建/var/lib/rook/osd*文件夹，只是无法初始化(且此osd也会注册到ceph)
+      - name: "sdb"
+      # 较大存储空间的磁盘上可创建多个osd节点
+        #config:
+        #  osdsPerDevice: "3"
+# ...
+```
+
 
 
