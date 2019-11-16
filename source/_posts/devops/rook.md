@@ -329,3 +329,60 @@ kubectl -n rook-ceph delete deployment rook-ceph-tools
     - 如果发现则将参数传递给对应节点的osd创建器，如`rook-ceph-osd-prepare-node3-pod`。会接受到参数如 <i>rookcmd: flag values: --cluster-id=85e086d5-6017-4c52-85d7-e266a82ae382, --data-device-filter=, --data-devices=sdb:1:::, --data-directories=/data/rook, --encrypted-device=false, --force-format=false, --help=false, --location=, --log-flush-frequency=5s, --log-level=INFO, --metadata-device=, --node-name=node3, --operator-image=, --osd-database-size=0, --osd-journal-size=5120, --osd-store=, --osd-wal-size=576, --osds-per-device=1, --pvc-backed-osd=false, --service-account=, --topology-aware=false</i>
     - `rook-ceph-osd-prepare-node3-pod`主要负责创建osd，包括在/data/rook创建类似osd0的子目录。此pod由job控制器`rook-ceph-osd-prepare-node3`进行控制，可describe查看此job的任务描述
 
+### 常见问题
+
+- 排错技巧
+
+```bash
+# 查看Rook pod状态
+kubectl get pod -n rook-ceph -o wide
+# 查看Rook pods日志
+kubectl logs -n rook-ceph -l app=rook-ceph-operator # **查看operator日志**：operator会负责连接mon服务，只有mon选举成功，才会启动osd服务
+kubectl logs -n rook-ceph -l mon=a
+# 登录特定k8s节点以查找PVC挂载失败的原因
+journalctl -u kubelet -f -n 100 # 查看kubelet日志
+# 有多个容器的pods
+kubectl -n rook-ceph logs <pod-name> --all-containers # 对于所有容器
+kubectl -n rook-ceph logs <pod-name> -c <container-name> # 对于单个容器
+kubectl -n rook-ceph logs --previous <pod-name> # 不再运行的Pod的日志
+```
+- 常见问题
+
+```bash
+### 问题日志 
+## 1.存储消费者(Pod)报错："Unable to mount volumes for pod "sq-rook-ceph-ftp_default(829ca564-9f3b-4017-8eb2-feac02c0fbe1)": timeout expired waiting for volumes to attach or mount for pod "default"/"sq-rook-ceph-ftp". list of unmounted volumes=[ftp-data]. list of unattached volumes=[ftp-data default-token-bmlnx]"
+# 检查rook-ceph是否正常运行
+# `kubectl get pv`、`kubectl get pvc`确保都处于Bound状态，否则查看 rook-ceph-operator 日志
+kubectl -n rook-ceph logs `kubectl -n rook-ceph -l app=rook-ceph-operator get pods -o jsonpath='{.items[*].metadata.name}'`
+
+## 2.operator-pod报错："ceph mon_status exec: timed out"。且此时只有operator-pod运行，osd-pod未运行，且只有一个mon-a-pod处于运行状态，dashboard也无法访问
+# 参考 https://rook.io/docs/rook/v1.1/ceph-common-issues.html#Monitors are the only pods running
+# 可能原因：operator-pod与mon-pod网络不通；mon-pod无法启动；一个或多个mon-pod处于运行状态，但无法选举成功
+
+## 3.mon-abd-pod运行中，osd-prepare-pod-node3运行中，osd-pod一直未运行，dashboard可以访问。查看osd-prepare-pod日志显示cephosd: skipping device sda that is in use (not by rook). fs: , ownPartitions: false；cephosd: no more devices to configure。且此之前node3处于rook集群中，被rook进行了分区和挂载
+# cluster.yaml中的spec.storage.nodes使用无分区的裸磁盘
+
+## 4.prepare-pod日志显示："ceph-volume lvm batch: error: GPT headers found, they must be removed on: /dev/sdb"。且osd-pod也不会创建，prepare-pod一直处于CrashLoopBackOff状态，之后被k8s清除，大概要等15min才会重新创建
+# 需要重新清空磁盘分区，参考上文"删除整个集群"
+sgdisk --zap-all /dev/sdb # 格式化
+/usr/sbin/wipefs --all /dev/sdb # 擦除磁盘
+# (解决)测试时操作上述命令情况也无法成功，然后通过ceph-toolbox(需要运行在此问题节点上)手动运行命令分区后，osd-pod成功创建。参考：https://forum.proxmox.com/threads/recommended-way-of-creating-multiple-osds-per-nvme-disk.52252/
+# 上述错误实际是运行`stdbuf -oL ceph-volume lvm batch --prepare --bluestore --yes --osds-per-device 1 /dev/sdb --report`此命令导致的
+ceph-volume lvm zap --destroy /dev/sdb # ceph-volume格式化命令
+# 主要是通过ceph-volume执行zap，此命令也可交由prepare-pod自动完成
+ceph-volume lvm batch --osds-per-device 1 /dev/sdb # 参考下文ceph-volume部分，batch表示基于已有的OSDs进行修改
+
+## 5.集群在初始化后，operator会自动给mon-pod添加`Node-Selectors:  kubernetes.io/hostname=xxx`
+# mon-pod 是有状态服务，rook将其状态写入dataDirHostPath。自动加上Node-Selectors以备重新创建mon也在改机器上，从而可以获取之前mon的配置数据
+# 设计参考：https://github.com/rook/rook/blob/master/design/mon-health.md
+# osd-pod也是如此会自动添加Node-Selectors
+
+## 6.osd-pod提示"PostStartHookError: command 'chown --recursive ceph:ceph /var/log/ceph /home/data/osd1' exited with 126"
+# 测试是改osd1无法成功移除，可删除对应osd-deploy
+
+## 7.operator-pod一直提示"op-k8sutil: batch job rook-ceph-detect-version still exists"
+# 可强制删除rook-ceph-detect-version重新创建pod
+```
+
+
+
