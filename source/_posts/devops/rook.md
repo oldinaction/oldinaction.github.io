@@ -68,6 +68,21 @@ kubectl -n rook-ceph logs $(kubectl get pod -n rook-ceph | grep mgr | awk '{prin
 - 上文配置文件修改说明
 
 ```yml
+## operator.yaml
+# ...
+xxx: 
+- name: ROOK_CSI_CEPH_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/cephcsi/cephcsi:v1.2.1"
+- name: ROOK_CSI_REGISTRAR_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-node-driver-registrar:v1.1.0"
+- name: ROOK_CSI_PROVISIONER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-provisioner:v1.3.0"
+- name: ROOK_CSI_SNAPSHOTTER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-snapshotter:v1.2.0"
+- name: ROOK_CSI_ATTACHER_IMAGE
+  value: "quay.mirrors.ustc.edu.cn/k8scsi/csi-attacher:v1.2.0"
+# ...
+
 ## cluster.yaml
 # ...
 spec:
