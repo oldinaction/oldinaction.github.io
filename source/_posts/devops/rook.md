@@ -172,7 +172,7 @@ df -h | grep csi/pvc
 ```
 - sq-rdb.yaml
 
-```yml
+```yaml
 # CephBlockPool 设置参考 https://rook.io/docs/rook/v1.1/ceph-pool-crd.html
 # 存储集群运行中时，也可修改下列参数
 apiVersion: ceph.rook.io/v1
