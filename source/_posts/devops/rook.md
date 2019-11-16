@@ -113,7 +113,7 @@ spec:
     useAllNodes: false
     # true会把宿主机所有可用的磁盘都用来存储
     useAllDevices: false
-    deviceFilter: "^sd[b-z]" # 选择k8s节点的sdb、sdc、sdd等开头的设备当做OSD节点。会自动覆盖 `useAllDevices: true`为false。且deviceFilter会被nodes[].devices.name覆盖
+    deviceFilter: ^sd[b-z] # 选择k8s节点的sdb、sdc、sdd等开头的设备当做OSD节点。会自动覆盖 `useAllDevices: true`为false。且deviceFilter会被nodes[].devices.name覆盖
     # rook(ceph)数据存放位置，如果无此目录会自动创建
     directories:
     - path: /data/rook
