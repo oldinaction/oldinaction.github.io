@@ -308,3 +308,24 @@ ceph status
 kubectl -n rook-ceph delete deployment rook-ceph-tools
 ```
 
+### 说明
+
+#### 测试案例
+
+- Ceph OSD 存储空间不足，会导致Pod调度失败，一直处于Pending状态
+- PVC申请100M
+    - 上传一个大于100M的文件，在差不多100M处卡死，然后提示出错(文件没有上传上去)。重新上传一个小文件是可正常上传的
+    - 使用ceph工具 `rbd du replicapool-test/csi-vol-0f73ed14-df67-11e9-8202-1294917b9bfd` 显示的PROVISIONED和USED都是100M(实际只用了几M)
+- rdb数据位置和可用性
+    - `lsblk` 可查看pvc申请创建的rdb存储块，此处/dev/rbd0类似一个虚拟磁盘
+    - rdb存储块创建后，即使删除整个ceph集群，rdb数据也会保留；删除osd0等目录，rdb存储块上的数据也不会丢失
+    - `rook-ceph-osd-osd-0-xxx` 对应的所有pod停止运行也不会影响之前创建的rdb磁盘的使用；但是如果`rook-ceph-mon-pod`无法正常运行或选举则rdb磁盘无法读写
+
+#### 备注
+
+- 原理说明
+    - `rook-ceph-operator-pod` 是整个集群的管理者
+    - `rook-discover-pod`是运行在每个k8s节点上的守护进程，用来探测改节点是否有可用磁盘(如刚进行连接的空磁盘)
+    - 如果发现则将参数传递给对应节点的osd创建器，如`rook-ceph-osd-prepare-node3-pod`。会接受到参数如 <i>rookcmd: flag values: --cluster-id=85e086d5-6017-4c52-85d7-e266a82ae382, --data-device-filter=, --data-devices=sdb:1:::, --data-directories=/data/rook, --encrypted-device=false, --force-format=false, --help=false, --location=, --log-flush-frequency=5s, --log-level=INFO, --metadata-device=, --node-name=node3, --operator-image=, --osd-database-size=0, --osd-journal-size=5120, --osd-store=, --osd-wal-size=576, --osds-per-device=1, --pvc-backed-osd=false, --service-account=, --topology-aware=false</i>
+    - `rook-ceph-osd-prepare-node3-pod`主要负责创建osd，包括在/data/rook创建类似osd0的子目录。此pod由job控制器`rook-ceph-osd-prepare-node3`进行控制，可describe查看此job的任务描述
+
