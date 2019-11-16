@@ -5,14 +5,23 @@
     
   <url>
     <loc>http://blog.aezo.cn/2019/09/23/devops/rook/</loc>
-    <lastmod>2019-11-16T10:26:02.794Z</lastmod>
+    <lastmod>2019-11-16T10:28:11.715Z</lastmod>
     <data>
         <display>
-        <title></title>
-        <pubTime>2019-09-23T01:45:25.031Z</pubTime>
+        <title>Rook | K8s存储协调器</title>
+        <pubTime>2019-09-23T01:38:00.000Z</pubTime>
         
+        <tag>k8s</tag>
+         
+        <tag>storage</tag>
+         
+        <tag>cncf</tag>
+         
          
            
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
         </display>
     </data>
     </url>
@@ -136,9 +145,9 @@
         <title>VPN搭建</title>
         <pubTime>2018-04-04T02:34:00.000Z</pubTime>
         
-        <tag>linux</tag>
-         
         <tag>vpn</tag>
+         
+        <tag>linux</tag>
          
         <tag>network</tag>
          
@@ -612,9 +621,9 @@
         <title>虚拟化服务器搭建 | 私有云</title>
         <pubTime>2019-05-30T08:11:00.000Z</pubTime>
         
-        <tag>server</tag>
-         
         <tag>linux</tag>
+         
+        <tag>server</tag>
          
         <tag>cloud</tag>
          
