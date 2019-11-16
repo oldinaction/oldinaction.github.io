@@ -193,7 +193,9 @@ spec:
     size: 3 # 测试环境可设置成1
   # 擦除编码池设置(将数据分成数据块数和编码块，总存储一般高于原始数据的1.5倍左右。如果损失其中任意一块，仍然能够重建原始对象)。仅仅在Flex驱动中可用
   # erasureCoded:
+
 ## ---
+
 ## rook-ceph-block.yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -385,4 +387,14 @@ ceph-volume lvm batch --osds-per-device 1 /dev/sdb # 参考下文ceph-volume部�
 ```
 
 
+
+
+---
+
+参考文章
+
+[^1]: https://www.cnblogs.com/yangxiaoyi/p/7795274.html
+[^2]: https://blog.fleeto.us/post/kubernetes-storage-performance-comparison/ (Kubernetes 存储性能对比)
+[^3]: https://blog.51cto.com/bigboss/2320016
+[^4]: https://sealyun.com/post/rook
 
