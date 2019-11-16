@@ -65,11 +65,5 @@ kubectl -n rook-ceph logs $(kubectl get pod -n rook-ceph | grep mgr | awk '{prin
 # 如访问 http://192.168.6.131:30811/
 ```
 
-- 上文配置文件修改说明
 
-```yml
-## cluster.yaml
-# ...
-spec:
-```
 
