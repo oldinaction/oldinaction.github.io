@@ -54,7 +54,7 @@ tags: [docker, arch]
             - `kitematic`是docker推出的GUI界面工具(启动后，会后台运行docker，即自动运行docker虚拟机)
             - `Oracle VM VirtualBox`其实是一个虚拟机管理程序，**docker就运行在此default虚拟机上**
                 - 下载的docker镜像在虚拟硬盘上，**default虚拟机内存默认是1G**，很容易内存溢出导致容器无法运行，可以在VirtualBox中进行调整
-                - 虚拟机启动默认用户为`docker/tcuser`，可通过`ssh docker@192.168.99.100`进入此虚拟机
+                - 虚拟机启动默认用户为 **`docker/tcuser`**，可通过`ssh docker@192.168.99.100`进入此虚拟机
         - 运行`Docker Quickstart Terminal`，提示找不到`bash.exe`，可以浏览选择git中包含的bash(或者右键修改此快捷方式启动参数。目标：`"D:\software\Git\bin\bash.exe" --login -i "D:\software\Docker Toolbox\start.sh"`)。第一次启动较慢，启动成功会显示docker的图标
         - 如果DockerToolbox运行出错`Looks like something went wrong in step ´Checking status on default..`，可以单独更新安装`VirtualBox`
         - xshell连接docker虚拟机：[http://blog.aezo.cn/2017/06/24/extend/vmware/](/posts/extend/vmware.md#Oracle-VM-VirtualBox)
@@ -378,10 +378,11 @@ consul members
     # MAINTAINER 维护者信息
     MAINTAINER smalle
 
-    # docker build --build-arg APP_VERSION=v1.0.0 .
-    ARG APP_VERSION
+    # ARG获取外部环境变量，也可以定义默认值，ARG可以在Dockerfile文件第一行接受外部参数
+    # docker build --build-arg SQ_DOCKER_REGISTRY=192.168.6.131:5000 --build-arg APP_VERSION=v1.1.1 .
+    ARG APP_VERSION=v1.0.0
 
-    # ENV 设置环境变量
+    # ENV 设置环境变量。可读取ARG参数内容
     ENV APP_VERSION=${APP_VERSION}
     ENV PATH /usr/local/nginx/sbin:$PATH
 
@@ -675,6 +676,7 @@ volumes:
 
 ### 自行编译jdk
 
+- 如ofbiz等项目容器化，需要在容器中编译运行，自行编译jdk作为基础容器
 - 在文件夹test下创建文件`Dockerfile`，并将`jdk-7u80-linux-x64.tar.gz`复制进去
 
 ```Dockerfile
@@ -688,8 +690,9 @@ ENV CLASSPATH .:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
 ENV PATH $PATH:$JAVA_HOME/bin:$JRE_HOME/bin
 ```
 - `docker build --rm -t jdk:1.7 .` 打包生成镜像(大概508M)
-- `docker run -it ae4c031a5cb6 sh` 进入容器执行 `java -version`查看
+- `docker run ae4c031a5cb6 java -version` 查看java版本
 - 推送
+    - `docker login 192.168.17.196:10010` 输入registry(harbor)账号密码登录。[https证书配置参考上文Harbor](#Harbor)
     - `docker tag ae4c031a5cb6 192.168.17.196:10010/library/jdk:1.7`
     - `docker push 192.168.17.196:10010/library/jdk:1.7`
 
@@ -934,10 +937,10 @@ docker push 192.168.17.196:5000/nginx
 docker run -itd -p 8080:80 192.168.17.196:5000/nginx:sm_1
 ```
 
-### Harbor [^3]
+### Harbor
 
 - [Harbor](https://goharbor.io/)、[github](https://github.com/goharbor/harbor)
-- Harbor是基于GO开发的一个用于存储和分发Docker镜像的企业级Registry服务器(私有仓库)，提供web界面访问，角色控制。其提供镜像复制功能：镜像可以在多个Registry实例中复制（同步），尤其适合于负载均衡，高可用，混合云和多云的场景
+- Harbor是基于GO开发的一个用于存储和分发Docker镜像的企业级Registry服务器(私有仓库)，提供web界面访问，角色控制。其提供镜像复制功能：镜像可以在多个Registry实例中复制（同步），尤其适合于负载均衡，高可用，混合云和多云的场景 [^3]
 - 安装(内部包含一个registry服务器的安装)
 
 ```bash
@@ -983,7 +986,10 @@ docker push 192.168.17.196:10010/library/nginx:sm_1
 # 如果是私有仓库pull也需要登录
 docker pull 192.168.17.196:10010/sq-eureka/sq-eureka:0.0.1-SNAPSHOT
 
-# 也可配置TLS证书
+## harbor为https时，也可配置TLS证书进行登录(docker命令的--tls的参数是docker客户端和服务器通信的加密配置，此处无法使用)
+# 首先新建 `/etc/docker/certs.d/192.168.17.196:10010`目录
+# 然后将ca.crt拷贝到该目录(如基于k8s运行的harbor v1.9.1，其ca.cert可在配置管理-系统设置中下载)
+# 最后再docker login
 ```
 - harbor日志目录默认在`/var/log/harbor`，默认数据存储路径为`/data`
 - `harbor.cfg`修改后，需要执行`./prepare`(会在当前目录重新生成common文件夹。主要是配置信息，如nginx.conf，为docker-compose.yml中相关配置文件的映射)
@@ -1003,8 +1009,6 @@ docker pull 192.168.17.196:10010/sq-eureka/sq-eureka:0.0.1-SNAPSHOT
     - `dockerd -H 0.0.0.0` 监听所有tcp连接，默认端口是6375。在systemd下，则需要修改docker.service的ExecStart
     - 在当前容器上可以执行另一容器的命令 `docker -H tcp://192.168.6.131:6375 ps`
 - 安全的Docker访问(TLS)
-
-
 
 
 ## 启动SpringCloud应用
@@ -1083,7 +1087,7 @@ docker pull 192.168.17.196:10010/sq-eureka/sq-eureka:0.0.1-SNAPSHOT
 
         sleep 15 # 按照先后顺序进行适当睡眠
         # 此处不能通过 nohup 命令执行。nohup执行完成后会退出命令，此时容器会自动关闭掉
-        java -Xmx512m -jar /app/app.jar
+        java -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/jvmlogs/ -Xmx512m -jar /app/app.jar
         ```
         - 必须在src/main目录，如果在项目源码目录之外则基于Dockerfile的ADD等命令会出错(Dockerfile中ADD命令写相对路径，会出现找不到文件)
         - **sh等文件需要是linux格式，否则容易报类似错误：`: No such file or directory: bash`**

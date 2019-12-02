@@ -68,6 +68,8 @@ tags: [ide, web]
         ]
     },
 	```
+- `Bracket Pair Colorizer 2` 代码括号对应颜色标识
+- `Flutter` Flutter开发插件
 
 ### php debug
 

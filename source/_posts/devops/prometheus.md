@@ -64,7 +64,7 @@ global:
   external_labels:
     monitor: 'sq-monitor'
 # 这里表示抓取对象的配置
-scrape_configs: 
+scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   # 需要全局唯一，采集 Prometheus 自身的 metrics
   - job_name: 'prometheus'
@@ -83,6 +83,8 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets: ['192.168.6.131:9100']  # 客户端(此时为本机) node_exporter 的 endpoint
+    # 重命名标签。参考：https://www.li-rui.top/2019/04/16/monitor/Prometheus%E4%B8%ADrelabel_configs%E7%9A%84%E4%BD%BF%E7%94%A8/
+    # relabel_configs:
 # 警告规则设置文件，需要安装Alertmanager，见下文。如使用Grafana告警则不需要
 rule_files:
   - '/etc/prometheus/rules.yml'
@@ -182,6 +184,8 @@ receivers:
 
 #### Push Gateway 安装
 
+- 安装及使用
+
 ```bash
 ## 安装
 mkdir -p /home/smalle/prom/pushgateway
@@ -194,7 +198,7 @@ docker run -d -p 9091:9091 --name pushgateway prom/pushgateway
 # pushgateway 中的数据我们通常按照 job 和 instance 分组分类。此时无需server中定义此job(指标)，会自动创建此aezo对应的job
 echo "aezo_metric 100" | curl --data-binary @- http://192.168.6.131:9091/metrics/job/aezo # aezo_metric{instance="",job="aezo"} 100
 # 推送多个指标. smalle_metric{instance="test",job="aezo",label="hello"} 120
-cat <<EOF | curl --data-binary @- http://192.168.6.131:9091/metrics/job/aezo/instance/test
+cat <<EOF | curl --data-binary @- http://192.168.6.131:9091/metrics/job/aezo/instance/node1
 # 每次推送的key不能相同
 # TYPE smalle_metric counter
 smalle_metric{label="hello"} 120
@@ -206,8 +210,10 @@ aezo_test2 110
 aezo_test3 120
 EOF
 # 删除某个组下的某实例的所有数据
-curl -X DELETE http://192.168.6.131:9091/metrics/job/aezo/instance/test
+curl -X DELETE http://192.168.6.131:9091/metrics/job/aezo/instance/node1
 ```
+- server配置中需要添加pull拉取pushgateway节点任务
+- 存在认证问题。直接推送到pushgateway路径`http://192.168.6.131:9091/metrics/job/<my_job>/instance/<my_instance>`(my_instance如hostname或ip)，然后server根据my_job和my_instance进行记录，server无需其他额外配置
 
 ### 基于prometheus-operator安装prometheus(k8s环境)
 
@@ -291,7 +297,7 @@ spec:
 ## Grafana
 
 - Prometheus数据源说明：https://grafana.com/docs/features/datasources/prometheus/
-    - `label_values`、`` 等函数，可在`Variables > Edit -> Query Options -> Query`属于表达式，在`Preview of values`中会显示表达式结果
+    - `label_values` 等函数，可在`Variables > Edit -> Query Options -> Query`属于表达式，在`Preview of values`中会显示表达式结果
 - Dashboard
     - 模板参考：https://grafana.com/docs/reference/templating/
     - 配置Json Model参考：https://grafana.com/docs/reference/dashboard/
@@ -316,6 +322,10 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
     - Prometheus数据源推荐模板
         - Kubernetes相关：`8588`(可选择deploy/node进行统计CPU和内存)、`7249`(汇总所有的节点统计CPU和内存)
         - Node Exporter相关：`8919`、`1860`(选择某一个节点，分类展示系统信息)
+        - Blackbox Exporter：9965
+- 插件安装
+    - 安装后需要重启grafana服务，k8s-helm安装的pod重新创建后插件和Dashboard还在(已经持久化到磁盘)
+    - `grafana-cli plugins install grafana-piechart-panel` 安装`Pie Chart`插件
 
 ### 自定义图表
 
@@ -343,31 +353,96 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 
 ## Exporter
 
-- 与Prometheus服务安装无关，**一般由被监控的客户端安装**。仅为了演示exporter如何输出metrics格式的信息，并由Prometheus Server采集
+- [官方推荐的Exporter](https://prometheus.io/docs/instrumenting/exporters/)
+- 与Prometheus服务端安装无关，**一般由被监控的客户端安装**。此处仅为了演示exporter如何输出metrics格式的信息，并由Prometheus Server采集
+- 需要Server到Exporter节点Pull(因此Exporter节点对应端口需对外开放)
 - 采集参考[采集文本说明](#采集文本说明)，客户端(Exporter)需要按照一定的格式上报metric
 
-### Node Exporter 安装
+### node_exporter (官方)
 
-- Node Exporter 主要采集节点系统性能指标
+- [node_exporter](https://github.com/prometheus/node_exporter) 主要采集节点系统性能指标(cpu/mem/disk)并提供查询
+- 手动安装(配合自动重启)
+    - 快速安装 `bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/install-prometheus-node_export.sh) 2>&1 | tee my.log`
+    - 安装步骤
 
-```bash
-## 安装
-cd /home/smalle/prom/exporters/
-wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
-tar -xvzf node_exporter-0.18.1.linux-amd64.tar.gz && cd node_exporter-0.18.1.linux-amd64 # 只有一个node_exporter的可执行程序
-# mv /home/smalle/prom/exporters/node_exporter /usr/sbin/node_exporter
-# 启动服务，默认监听9100端口，正式环境可自定义成服务后台运行。`./node_exporter -h` 查看参数设置
-./node_exporter
-# 查看metrics信息
-curl http://localhost:9100/metrics
-```
-- 自动重启，参考[Supervisor](/_posts/linux/CentOS服务器使用说明.md#Supervisor%20进程管理)
-- docker安装
+        ```bash
+        wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+        tar -xvzf node_exporter-0.18.1.linux-amd64.tar.gz # 只有一个node_exporter的可执行程序
+        mv node_exporter-0.18.1.linux-amd64/node_exporter /usr/sbin/node_exporter # 可删除下载文件
+        # 启动服务，默认监听9100端口，正式环境可自定义成服务后台运行。`./node_exporter -h` 查看参数设置
+        /usr/sbin/node_exporter
+        # 查看metrics信息
+        curl http://localhost:9100/metrics
+        ```
+    - 自动重启，参考[Supervisor](/_posts/linux/CentOS服务器使用说明.md#Supervisor%20进程管理)
+    - 在prometheus中添加此Exporter的爬取配置
+- 如果Node Exporter处于防火墙中，则server无法爬取。此时只能push推送到PushGateway，临时解决方案如
+    - 通过 cronjob 每分钟(类似server拉取频率)执行脚本 `curl -s http://localhost:9100/metrics | curl --data-binary @- http://pushgateway.example.org/metrics/job/some_job/instance/some_instance` [^5]
+- 基于docker安装
 
 ```bash
 docker run -d --name=node-exporter -p 9100:9100 prom/node-exporter
 curl http://localhost:9100/metrics
 ```
+
+### blackbox_exporter (官方)
+
+- [blackbox_exporter](https://github.com/prometheus/blackbox_exporter) 可以提供 `http`、`tcp`、`icmp`、`dns` 的监控数据采集。应用场景
+    - HTTP 测试
+        - 定义 Request Header 信息
+        - 判断 Http status / Http Respones Header / Http Body 内容
+    - TCP 测试
+        - 业务组件端口状态监听
+        - 应用层协议定义与监听
+    - ICMP 测试
+        - 主机探活机制
+    - POST 测试
+        - 接口联通性
+    - SSL 证书过期时间
+- 安装
+
+```bash
+## 安装
+wget https://github.com/prometheus/blackbox_exporter/releases/download/v0.16.0/blackbox_exporter-0.16.0.linux-amd64.tar.gz
+tar -xvzf blackbox_exporter-0.16.0.linux-amd64.tar.gz
+
+mv blackbox_exporter-0.16.0.linux-amd64/blackbox_exporter /usr/sbin/blackbox_exporter
+# blackbox.yml源文件参考：https://github.com/prometheus/blackbox_exporter/blob/master/blackbox.yml
+# blackbox.yml配置参考：https://github.com/prometheus/blackbox_exporter/blob/master/CONFIGURATION.md
+mv blackbox_exporter-0.16.0.linux-amd64/blackbox.yml /etc/blackbox.yml
+# blackbox.yml中增属性 `modules.http_2xx.timeout: 10s` 默认5s
+# blackbox.yml中增属性 `modules.http_2xx.http.preferred_ip_protocol: "ip4"` 开启ipv4(默认是ip6)
+
+## 启动(参考上文Supervisor进程监控)
+cat > /etc/supervisord.d/blackbox_exporter.ini << EOF
+[program:blackbox_exporter]
+command=/usr/sbin/blackbox_exporter --config.file=/etc/blackbox.yml
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/supervisor/blackbox_exporter.log
+log_stderr=true
+user=root
+EOF
+supervisorctl update && supervisorctl status
+```
+- 在prometheus中添加此Exporter的爬取配置
+
+```yml
+## HTTP 监控
+scrape_configs:
+  - job_name: 'blackbox_http_2xx'
+    scrape_interval: 30s
+    # 将metrics_path由默认的/metrics改为/probe
+    metrics_path: /probe
+    params:
+      # 生成__param_module="http_2xx"的label
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://www.baidu.com/
+        - 172.0.0.1:9090
+```
+
 
 ## 采集和PromQL查询
 
@@ -467,7 +542,7 @@ https://prometheus.io/docs/prometheus/latest/querying/functions/
 ```
 - 常用查询
 
-````bash
+```bash
 # exporter的可用性监控
 up{job="kubernetes-nodes"}
 # CPU利用率(按照主机)
@@ -495,5 +570,5 @@ count by (instance)(node_cpu_seconds_total{mode="idle"})
 [^2]: https://www.servicemesher.com/blog/prometheus-operator-manual/
 [^3]: https://www.ibm.com/developerworks/cn/cloud/library/cl-lo-prometheus-getting-started-and-practice/index.html
 [^4]: https://yunlzheng.gitbook.io/prometheus-book/parti-prometheus-ji-chu/promql
-
+[^5]: https://github.com/prometheus/node_exporter/issues/279
 

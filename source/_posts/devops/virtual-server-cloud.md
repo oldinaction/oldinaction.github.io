@@ -279,7 +279,7 @@ supervisorctl status
             <!--<address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>-->
         </disk>
         ```
-        - 进入到虚拟机进行磁盘分区和挂载(`fdisk -l`查看磁盘)，参考[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
+        - 进入到虚拟机进行磁盘分区和挂载(`fdisk -l`查看磁盘)，参考[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#磁盘)
     - 网络接口配置
 
         ```xml

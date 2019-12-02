@@ -16,10 +16,10 @@ tags: [jenkins]
 
 ### 直接安装运行
 
-#### 基于Docker安装
+#### 直接docker命令启动
 
 - `docker volume create jenkins-data` 创建jenkins-data容器卷，专门存放jenkins数据
-- 直接docker命令启动
+- 启动
 
 ```bash
 # 创建镜像并运行(\后不能有空格)
@@ -31,14 +31,17 @@ docker run \
   -v jenkins-data:/var/jenkins_home \
   # 映射主机的docker到容器里面，这样在容器里面就可以使用主机安装的 docker了(可以在Jenkins容器里操作宿主机的其他容器)
   -v /var/run/docker.sock:/var/run/docker.sock \
+  # jenkins/jenkins:2.181则必须再挂载此命令；jenkinsci/blueocean无需
+  -v /usr/bin/docker:/usr/bin/docker:ro \
   # 映射本地maven仓库(通过jenkins安装maven会使用到)
   -v /root/.m2:/root/.m2 \
   --name jenkins \
   --restart=always \
-  #jenkins/jenkins:2.181 # 在容器中无法执行docker命令
+  #jenkins/jenkins:2.181
   jenkinsci/blueocean:1.18.1 # 对应jenkins版本 Jenkins ver. 2.164.3。默认包含(Blue Ocean)
 ```
-- 或使用docker-compose
+
+#### 基于docker-compose
 
 ```yml
 # 使用docker-compose
@@ -72,12 +75,17 @@ volumes:
 
     ```bash
     FROM jenkinsci/blueocean:1.18.1
+    # 使用root用户安装tzdata
     USER root
-    # 安装tzdata
     RUN /bin/sh -c apk --no-cache add tzdata
+    # 切回jenkins用户
     USER jenkins
     ```
     - `docker-compose up -d --build` 重新编译
+
+#### k8s-helm启动
+
+参考[http://blog.aezo.cn/2019/06/22/devops/helm/](/_posts/devops/helm.md#Jenkins)
 
 ### 手动编译运行
 
@@ -106,6 +114,11 @@ volumes:
 
 ### 自由风格构建说明
 
+#### General
+
+- 限制项目的运行节点
+    - 可基于节点标签(参考[节点管理](#节点管理))或名称进行选择，支持`&&`、`||`、`!`等运算符
+
 #### 源码管理(Git)
 
 > 此处的源码管理指在jenkins宿主机上管理任务相应源码，比如打包等操作。如ofbiz项目直接在服务器上拉取最新代码时可以不用源码管理，直接在构建中发起远程命令即可
@@ -120,7 +133,7 @@ volumes:
 - `Build when a change is pushed to GitLab. GitLab webhook URL: http://192.168.1.100/project/test` 代码推送等变更时构建，常用(需安装`GitLab`插件)
     - Enabled GitLab triggers
         - `Push Events` 直接推送到此分支时构建(**去勾选**，如直接在git客户端将develop推送到test则无法触发。勾选会产生问题：当在gitlab接受develop到test的请求会产生2次构建)
-        - `Opened Merge Request Events` 去勾选
+        - `Opened Merge Request Events` **去勾选**
         - `Accepted Merge Request Events` 接受合并请求时构建(**勾选**)
         - `Closed Merge Request Events` 去勾选
         - `Approved Merge Requests (EE-only)`(勾选，EE-only表示只有gitlab企业版才支持)
@@ -139,8 +152,16 @@ volumes:
         - `Started ​by ​GitLab ​push ​by smalle` 此时是直接在git客户端将develop推送到test
 - `Gitlab Merge Requests Builder` 定时自动生成构建任务(需安装`GitLab`插件)
 
+#### 构建环境
+
+- Inject passwords to the build as environment variables
+    - Global passwords：导入全局密码到环境变量
+    - Job passwords：定义当前任务需使用的密码
+    - 如`echo ${MY_PASS}`最终是以`***`进行打印
+
 #### 构建(Build)
 
+- `执行 shell` 在jenkins运行的机器上执行命令。构建日志中`+`表示用户定义的命令
 - `Send files or execute commands over SSH` 执行ssh服务器命令进行构建(需安装插件`Publish over SSH`)
     - `Exec command` 执行远程命令(不会记录在linux的history中)，如
 
@@ -168,8 +189,8 @@ volumes:
 #### 构建后操作
 
 - `E-mail Notification` 邮件通知
-    - 勾选`Send e-mail for every unstable build`
-    - 多个邮箱使用空格分开，每次构建失败都会发送邮件，当从构建失败转为构建成功时也会发邮件，之后构建成功则不发送邮件提醒
+    - 勾选`Send e-mail for every unstable build`(每次构建失败都会发送邮件，当从构建失败转为构建成功时也会发邮件，之后构建成功则不发送邮件提醒；测试勾选或不勾选都一样)
+    - 多个邮箱使用空格分开
     - 需要先到系统管理中设置邮件发送服务器，其中SMTP发件地址需要和系统管理员邮件地址一致
 
 ### Pipline和Jenkinsfile构建
@@ -231,14 +252,16 @@ java -jar target/${NAME}-${VERSION}.jar
 
 ## 构建示例
 
-### Jenkins+Docker+Gitlab
+### Jenkins+Docker+Harbor+Gitlab
 
 - 流程图如下 [^2]
 
 ![jenkins-docker-gitlab](/data/images/devops/jenkins-docker-gitlab.png)
 
+#### 模式一
+
 - Springboot项目的pom.xml加入打包docker插件，并手动推送到镜像仓库(如Harbor)
-- jenkins源码从gitlab拉取，并设置Gitlab Webhooks
+- jenkins任务源码从gitlab获取，即设置Gitlab Webhooks
 - jenkins构建时分别执行maven打包、给服务器发送启动docker命令
     - 如果是harbor构建的镜像，可在docker容器中先登录(第一次登录会把认证信息存储起来，下次执行命令无需登录)
 
@@ -250,51 +273,63 @@ java -jar target/${NAME}-${VERSION}.jar
     sudo docker-compose up -d
     echo "exec command end..."
     ```
-- 上述流程需要开发先将镜像打包到镜像仓库，此处也可以通过在jenkins所在服务器打包(自动处理版本问题)
-    - 构建 - Execute Shell(打包镜像并上传到Harbor)
-        
-        ```bash
-        # Variables
-        JENKINS_PROJECT_HOME='/var/jenkins_home/workspace/demo'
-        HARBOR_IP='192.168.1.100:5000'
-        REPOSITORIES='test/demo'
-        HARBOR_USER='test'
-        HARBOR_USER_PASSWD='Hello666'
-        
-        # 删除本地镜像(镜像历史会保存在镜像仓库)
-        # 尽管jenkins容器中执行的是宿主机docker命令，且宿主机已经认证过，但此处仍需认证。存在密码安全隐患
-        docker login -u ${HARBOR_USER} -p ${HARBOR_USER_PASSWD} ${HARBOR_IP}
-        IMAGE_ID=`docker images | grep ${REPOSITORIES} | awk '{print $3}'`
-        if [ -n "${IMAGE_ID}" ]; then
-            docker rmi ${IMAGE_ID}
-        fi
 
-        # Build image.
-        cd ${JENKINS_PROJECT_HOME}
-        DOCKER_TAG=`date +%y%m%d-%H%M%S` # 190902-165827
-        docker build --rm -t ${HARBOR_IP}/${REPOSITORIES}:${DOCKER_TAG} --build-arg APP_VERSION=v${DOCKER_TAG} -f ./docker/Dockerfile .
+#### 模式二(推荐)
 
-        # Push to the harbor registry.
-        docker push ${HARBOR_IP}/${REPOSITORIES}:${DOCKER_TAG}
+- 上述流程需要开发先将镜像打包到镜像仓库，此处也可以通过在jenkins所在服务器打包(自动处理版本问题)。如下
+- 构建环境 - Inject passwords to the build as environment variables - 勾选Global passwords(全局密码在系统设置中添加)
+- 构建 - Execute Shell(打包镜像并上传到Harbor)
+    
+    ```bash
+    # Variables
+    JENKINS_PROJECT_HOME='/var/jenkins_home/workspace/demo'
+    HARBOR_IP='192.168.1.100:5000' # 也可设置成全局变量
+    REPOSITORIES='test/demo'
+    HARBOR_USER='test'
+    
+    # 尽管jenkins容器中执行的是宿主机docker命令，且宿主机已经认证过，但此处仍需认证. G_PASS_HARBOR_USER为全局密码变量(Global Passwords)
+    echo ${G_PASS_HARBOR_USER} | docker login -u ${HARBOR_USER} --password-stdin ${HARBOR_IP}
 
-        # 保存环境变量到工作目录文件中共其他shell使用(配合EnvInject Plugin)
-        echo "DOCKER_TAG=${DOCKER_TAG}" > ./env_jenkins.sh
-        ```
-    - 构建 - over SSH(执行helm部署Pod)
+    # 删除本地历史构建的镜像(镜像历史会保存在镜像仓库不用担心丢失)
+    IMAGE_ID=`docker images | grep ${REPOSITORIES} | awk '{print $3}'`
+    if [ -n "${IMAGE_ID}" ]; then
+        docker rmi ${IMAGE_ID} || true # 执行失败继续执行后续命令。如k8s环境有可能编译节点和运行节点相同导致镜像占用无法删除(未使用的镜像仍然可以删除)
+    fi
 
-        ```bash
-        HELM_NAME='demo'
-        sudo /usr/local/bin/helm upgrade --set image.tag=${DOCKER_TAG} ${HELM_NAME} /root/helm-chart/test/${HELM_NAME}
-        ```
+    # Build image.
+    cd ${JENKINS_PROJECT_HOME}
+    DOCKER_TAG=`date +%y%m%d-%H%M%S` # 190902-165827
+    docker build --rm -t ${HARBOR_IP}/${REPOSITORIES}:${DOCKER_TAG} --build-arg APP_VERSION=v${DOCKER_TAG} -f ./docker/Dockerfile .
+
+    # Push to the harbor registry.
+    docker push ${HARBOR_IP}/${REPOSITORIES}:${DOCKER_TAG}
+
+    # 保存环境变量到工作目录文件中供其他shell使用(配合EnvInject Plugin)
+    echo "DOCKER_TAG=${DOCKER_TAG}" > ./env_jenkins.sh
+    ```
+- 构建 - Inject environment variables(注入上一个shell的环境变量文件)，参考[本文Environment Injector插件](#Environment%20Injector(注入环境变量))
+- 构建 - over SSH(执行helm部署Pod)
+
+    ```bash
+    HELM_NAME='demo'
+    sudo /usr/local/bin/helm upgrade --set image.tag=${DOCKER_TAG} ${HELM_NAME} /root/helm-chart/test/${HELM_NAME}
+    ```
 
 ## 系统管理(Manage Jenkins)
 
 ### 系统设置(Configure System)
 
+- 主目录：基于docker安装时一般为`/var/jenkins_home`
+- 全局属性
+    - 环境变量：自定义全局环境变量，在所有任务中均可使用
 - Jenkins Location
-    - Jenkins URL：jenkins的路径，如：`http://192.168.1.100:8080/`。如果此处配置成外网，当通过内网访问时会提示`反向代理设置有误`，但是不影响使用
-    - 系统管理员邮件地址：此地址需要和SMTP发件地址一致
+    - Jenkins URL：jenkins的路径，如：`http://192.168.1.100:8080/`。如果此处配置成外网，当通过内网访问时会提示`反向代理设置有误`，但是不影响使用。发送的邮件中一般会用到此地址
+    - 系统管理员邮件地址：此地址需要和SMTP发件地址一致，如：`aezo-jenkins<test@example.com>`(from地址可添加昵称：`昵称<from>`)
+- Global Passwords：全局密码
+    - 使用：通过【构建环境-Inject passwords to the build as environment variables】导入密码到环境变量
 - 邮件通知：配置smtp服务器
+    - SMTP server不能带端口
+    - 其中SMTP发件地址需要和系统管理员邮件地址一致
 - Publish over SSH
     - SSH Servers：配置目标服务器，高级功能中可使用HTTP/SOCKS5代理(可能存在测试代理连接失败BUG，但是可以正常使用)
 
@@ -362,7 +397,7 @@ java -jar target/${NAME}-${VERSION}.jar
     DOCKER_TAG=`date +%Y%m%d-%H%M%S`
     echo "DOCKER_TAG=${DOCKER_TAG}" > ./env_jenkins.sh
 
-    ## Build - Inject environment variables(从文件中读取环境变量并注入到当前环境)
+    ## Build - Inject environment variables(从当前工作目录载入文件读取其环境变量并注入到当前环境)
     Properties File Path=./env_jenkins.sh
     # Properties Content中也可以定义参数，但是通过本地shell修改后，在over SSH中不能生效(还是拿到原始Properties Content中定义的参数值)
 
@@ -370,10 +405,43 @@ java -jar target/${NAME}-${VERSION}.jar
     echo ${DOCKER_TAG}
     ```
 
-### 其他配置
+##### Email Extension
 
-- Manage Nodes节点管理
-    - jenkins支持分布式部署，此处可设置每个节点的构建队列个数
+> https://wiki.jenkins.io/display/JENKINS/Email-ext+plugin
+
+- 邮件发送扩展 [^3]
+    - 原本jenkins自带邮件发送功能，但是不够强大，参考[系统设置(Configure System)](#系统设置(Configure%20System))
+    - 此扩展可自定义何时(成功、失败等)出发邮件发送
+- 相应配置在【系统管理-系统配置-Extended E-mail Notification】中
+    - 配置smtp认证同jenkins自带邮件发送
+    - Default Content Type：HTML (text/html)
+    - Default Subject：【jenkins】$PROJECT_NAME: $BUILD_STATUS! (Build #$BUILD_NUMBER)
+    - Default Content：[Email-Extension-Default-Content](#Email-Extension-Default-Content)
+    - Default Pre-send Script：可不设置。该脚本将在发送电子邮件之前运行，以允许在发送之前修改电子邮件；也可以通过将布尔变量cancel设置为true来取消发送电子邮件；在任务设置中可编辑此项或使用${DEFAULT_PRESEND_SCRIPT}导入此系统配置
+- 任务设置：构建后操作-Editable Email Notification
+    - Advanced Settings...
+        - Triggers - Add Trigger - [Success(构建成功)/Failure - Any(所有失败)/Always(一直)]
+            - Send To：默认选中了`Developers`这个组。即给此次合并提交所涉及的开发发送邮件(从git信息中提取邮箱)
+            - 高级
+                - Recipient List：收件人(除了Send To中的收件人，此处可额外定义收件人)。如：`a@example.com,cc:b@example.com,bcc:c@example.com`(CC抄送，BCC密件抄送)
+                - Content Type：HTML (text/html)
+                - Attach Build Log：Attach Build Log
+
+
+### 节点管理(Manage Nodes)
+
+- jenkins支持分布式部署，此处可设置每个节点的构建队列个数
+- 基于k8s-helm运行jenkins可配置成自动根据任务量创建slave节点。参考[http://blog.aezo.cn/2019/06/22/devops/helm/](/_posts/devops/helm.md#Jenkins)
+- 新建节点(agent)
+    - 远程工作目录如 `/var/jenkins_home/jenkins-agent/agent-ofbiz`(最终保存于jenkins-master家目录；通过此节点构建的项目，其工作空间保存于此目录)
+    - 标签如 `agent-ofbiz`(配合[General](#General)中"限制项目的运行节点"配置使用)
+    - 启动方式Launch command如 `java -jar /var/jenkins_home/bin/agent.jar`
+        - 点击`Launch command`后面的帮助，可下载`agent.jar`
+        - 需将`agent.jar`复制到jenkins-master家目录的bin目录下
+    - 可用性，如选择"有需要的时候保持代理在线，当空闲时离线"。对应子配置`In demand delay=0; Idle delay=15`(任务构建延迟0分钟，节点如果空闲15分钟则停止)
+    - 基于k8s-helm运行jenkins存储问题：任务的工作目录保存在slave节点，每次执行完任务后，slave节点删除，工作空间丢失。此时可自定义一个agent，用于构建类似ofbiz等需要保存工作空间的项目
+
+### 其他配置
 
 ## 常见问题
 
@@ -497,6 +565,68 @@ public final boolean dispatch(RequestImpl req, ResponseImpl rsp, Object node) th
 }
 ```
 
+## 附件
+
+### Email-Extension-Default-Content
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${ENV, var="JOB_NAME"}-第${BUILD_NUMBER}次构建日志</title>
+    <style type="text/css">
+        body { font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, 'Courier New', sans-serif; font-size: 16px; line-height: 20px; }
+    </style>
+</head>
+<body leftmargin="8" marginwidth="0" topmargin="8" marginheight="4" offset="0">
+    (本邮件是程序自动下发，请勿回复！)<br/>
+    
+    <table width="95%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td><br />
+            <b><font color="#f4a34d">构建信息</font></b>
+            <hr size="2" width="100%" align="center" /></td>
+        </tr>
+        <tr>
+            <td>
+                <ul>
+                    <li>项目名称 ： ${PROJECT_NAME}</li>
+                    <li>构建编号 ： 第${BUILD_NUMBER}次构建</li>
+                    <li>构建状态 ： <b>${BUILD_STATUS}</b></li>
+                    <li>触发原因： ${CAUSE}</li>
+                    <li>构建日志： <a href="${BUILD_URL}console">${BUILD_URL}console</a></li>
+                    <li>构建  Url ： <a href="${BUILD_URL}">${BUILD_URL}</a></li>
+                    <li>工作目录 ： <a href="${PROJECT_URL}ws">${PROJECT_URL}ws</a></li>
+                    <li>项目  Url ： <a href="${PROJECT_URL}">${PROJECT_URL}</a></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><b><font color="#f4a34d">变更集</font></b>
+            <hr size="2" width="100%" align="center" /></td>
+        </tr>
+        <tr>
+            <!--包含构建日志-->
+            <td>${JELLY_SCRIPT,template="html"}<br/>
+            <hr size="2" width="100%" align="center" /></td>
+        </tr>
+        <!--
+        <tr>
+            <td><b><font color="#f4a34d">构建日志 (最后 100行)</font></b>
+            <hr size="2" width="100%" align="center" /></td>
+        </tr>
+        <tr>
+            <td>${BUILD_LOG, maxLines=100}<br/>
+            <hr size="2" width="100%" align="center" /></td>
+        </tr>
+        -->
+    </table>
+</body>
+</html>
+```
+
+
 
 ---
 
@@ -504,5 +634,5 @@ public final boolean dispatch(RequestImpl req, ResponseImpl rsp, Object node) th
 
 [^1]: https://www.jianshu.com/p/7883c251eb09
 [^2]: https://www.jianshu.com/p/358bfb64e3a6
-
+[^3]: https://www.jianshu.com/p/ba0b4faba00c
 

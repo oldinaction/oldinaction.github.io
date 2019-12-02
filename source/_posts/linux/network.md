@@ -442,7 +442,7 @@ ebtables -t nat -A POSTROUTING -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log
         net.bridge.bridge-nf-call-arptables=1
         net.ipv4.ip_forward=1
         
-        # 载入指定模块(重启后失效。可设置开机启动，参考linux-system.md)。防止刷新可能报错：sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-iptables: No such file
+        # 载入指定模块(重启后失效。可设置开机启动，参考linux.md)。防止刷新可能报错：sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-iptables: No such file
         modprobe br_netfilter
         # 刷新
         sysctl -p

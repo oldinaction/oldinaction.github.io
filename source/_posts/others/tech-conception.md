@@ -27,8 +27,8 @@ tags: [java, conception]
     - 异步(async)的概念和同步相对。当一个异步过程调用发出后，调用者不能立刻得到结果。
     - 阻塞调用是指调用结果返回之前，当前线程会被挂起，函数只有在得到结果之后才会返回。对于同步调用来说，很多时候当前线程还是激活的，只是从逻辑上当前函数没有返回而已。
     - 非阻塞和阻塞的概念相对应，指在不能立刻得到结果之前，该函数不会阻塞当前线程，而会立刻返回。简单的说：阻塞就是干不完不准回来，非阻塞就是你先干，我看看有其他事没有，完了告诉我一声
-- LDAP、JNDI
-    - `LDAP`(Light Directory Access Portocol)：它是基于X.500标准的轻量级目录访问协议。它成树状结构组织数据，类似文件目录一样。目录数据库和关系数据库不同，它有优异的读性能，但写性能差，并且没有事务处理、回滚等复杂功能。OpenLDAP为Opensource的开源项目，基于LDAP协议来存储数据（数据库）。
+- `LDAP`、`JNDI`
+    - `LDAP`(Light Directory Access Portocol)：它是基于X.500标准的轻量级目录访问协议。它成树状结构组织数据，类似文件目录一样。目录数据库和关系数据库不同，它有优异的读性能，但写性能差，并且没有事务处理、回滚等复杂功能。OpenLDAP为Opensource的开源项目，基于LDAP协议来存储数据（数据库）
     - `JNDI`(Java Naming and Directory Interface)：Java命名和目录接口。是为了Java程序访问命名服务和目录服务而提供的统一API。
         - 命名服务，说白了就是提供一个名称键值对的管理，即Key-Value对，Key代表一个资源的名称，Value代表资源的真实地址，命名服务允许大家通过唯一的名称找到对应的对象或资源。这样程序只需要知道某种资源的名称，就可以通过JNDI来访问到它，而不需要知道这个资源真实的物理地址。这有点类似于DNS服务，DNS服务将域名解析成IP地址，这样大家只需要在浏览器中输入网站的唯一名称（即域名）就可以访问到该网站，而不需要记住这个网站真实的IP地址。
     - JNDI则是Java中用于访问LDAP的API，开发人员使用JNDI完成与LDAP服务器之间的通信，即用JNDI来访问LDAP，而不需要和具体的目录服务产品特性打交道
@@ -139,6 +139,18 @@ tags: [java, conception]
 
     ![开源协议](/data/images/others/许可证.png)
 - `Git`提交说明规范参考：http://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html
+
+
+## 硬件
+
+- `MBR`和`GPT`(`GUID`) 磁盘分区
+    - `MBR`(Master Boot Record) 即硬盘主引导记录分区表，只支持容量在 2.1TB 以下的硬盘，超过2.1TB的硬盘只能管理2.1TB，最多只支持4个主分区或三个主分区和一个扩展分区，扩展分区下可以有多个逻辑分区。基于`Legacy`启动模式即可
+    - `GPT` 全局唯一标识分区表(GUID Partition Table)，与MBR最大4个分区表项的限制相比，GPT对分区数量没有限制，但Windows最大仅支持128个GPT分区，GPT可管理硬盘大小达到了18EB。只有基于`UEFI`平台的主板才支持GPT分区引导启动
+    - `sudo fdisk -l` linux 查看磁盘分区类型
+- `UEFI`和`Legacy` 引导方式
+    - UEFI是新式的BIOS，Legacy是传统BIOS。在UEFI模式下安装的系统，只能用UEFI模式引导；Legacy同理。
+    - UEFI只支持64为系统且磁盘分区必须为GPT模式。传统BIOS使用Intel 13中断读取磁盘，每次只能读64KB，非常低效；而UEFI每次可以读1MB，载入更快
+    - UEFI启动是一种新的主板引导项，它被看做是BIOS的继任者。UEFI最主要的特点是图形界面，更利于用户对象图形化的操作选择(BIOS是命令界面)
 
 ## 计算机界
 

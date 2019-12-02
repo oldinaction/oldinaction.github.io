@@ -214,7 +214,7 @@ tags: [linux, shell]
         - `startofbiz.sh > my.log` 表示startofbiz.sh的输出重定向到my.log(如果存在交互场景则会一致卡死，且无法交互，需使用tee)
         - `2>&1` 表示将错误输出重定向到标准输出
             - `0`：标准输入；`1`：标准输出；`2`：错误输出
-        - `./myscript.sh 2>&1 | tee mylog.log` **tee实时重定向日志(同时也会在控制打印，并且可进行交互)**
+        - `./myscript.sh 2>&1 | tee mylog.log` **tee实时重定向日志(同时也会在控制台打印，并且可进行交互)**
     - `Ctrl+c` 关闭程序，回到终端
     - `Ctrl+z` 后台运行程序，回到终端
 - 设置环境变量
@@ -622,7 +622,8 @@ lsmod |grep br_netfilter
 
 #### tar
 
-- 解压：**`tar -xvzf archive.tar -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
+- 解压：**`tar -xvzf archive.tar.gz -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
+    - `tar -xvf archive.tar` 表示解压到当前目录
 - 压缩：**`tar -cvzf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
 - 参数说明
     - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
@@ -745,6 +746,7 @@ lsmod |grep br_netfilter
     - `#x` 删除光标所在处及向后的共#个字符
 - 新加一行 `o`
 - 复制命令 `y`命令，用法同`d`命令。**和粘贴命令`p`组合使用**
+    - `yy` 复制一行。把光标移动到要复制的行上-yy-把光标移动到要复制的位置-p
 - 粘贴命令 `p`/`P`
     - `p`：粘贴到下、后。如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面；
     - `P`：粘贴到上、前。
@@ -853,57 +855,88 @@ lsmod |grep br_netfilter
 
 ### awk文本分析工具
 
-- 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
-- 语法 **`awk '[BEGIN {}] {pattern + action} [END {}]' {commands}`**
-	- 其中 pattern 表示 AWK 在数据中查找的内容，而 action 是在找到匹配内容时所执行的一系列命令(awk主命令)
-	- 花括号（{}）不需要在程序中始终出现，但它们用于根据特定的模式对一系列指令进行分组
-	- pattern就是要表示的正则表达式，用斜杠括起来
+- 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格/tab为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
+- 语法 
+
+    ```bash
+    awk '[BEGIN {}] {pattern + action} [END {}]' {filenames}
+    # pattern 表示AWK在文件中查找的内容。pattern就是要表示的正则表达式，用斜杠(`'/xxx/'`)括起来
+    # action 是在找到匹配内容时所执行的一系列命令(awk主命令)
+    # 花括号(`{}`)不需要在程序中始终出现，但它们用于根据特定的模式对一系列指令进行分组
+
+    ## awk --help
+    Usage: awk [POSIX or GNU style options] -f progfile [--] file ...
+    Usage: awk [POSIX or GNU style options] [--] 'program' file ...
+    POSIX options:		GNU long options: (standard)
+    -f progfile		--file=progfile         # 指定程序文件
+    -F fs			--field-separator=fs    # 指定域分割符(可使用正则，如 `-F '[\t \\\\]'`)
+    -v var=val		--assign=var=val
+    # ...
+    ```
 - 案例
-    - 显示最近登录的5个帐号：`last -n 5 | awk '{print $1}'`
-        - 读入有'\n'换行符分割的一条记, 然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**, $n表示第n个域。默认域分隔符是"空白键"或 "tab键", 所以$1表示登录用户, $3表示登录用户ip, 以此类推。
-    - 只是显示/etc/passwd中的账户：`cat /etc/passwd | awk -F ':' '{print $1}'`(-F指定域分隔符为':')
+    - 显示最近登录的5个帐号：**`last -n 5 | awk '{print $1}'`**
+        - 读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
+    - 只是显示/etc/passwd中的账户：`cat /etc/passwd | awk -F ':' '{print $1}'`(`-F`指定域分隔符为`:`，默认是空格/tab)
     - 查找root开头的用户记录: `awk -F : '/^root/' /etc/passwd`
-- `$0`变量是指整条记录，`$1`表示当前行的第一个域，`$2`表示当前行的第二个域，以此类推
-- awk中同时提供了print和printf两种打印输出的函数：
+- awk中同时提供了`print`和`printf`两种打印输出的函数
     - `print` 参数可以是变量、数值或者字符串。**字符串必须用双引号引用，参数用逗号分隔。**如果没有逗号，参数就串联在一起而无法区分。
-    - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时。
+    - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时
+
+#### 变量
+
+- `$0`变量是指整条记录，`$1`表示当前行的第一个域，`$2`表示当前行的第二个域，以此类推
 - awk内置变量：awk有许多内置变量用来设置环境信息，这些变量可以被改变，下面给出了最常用的一些变量
     - `ARGC` 命令行参数个数
     - `ARGV` 命令行参数排列
     - `ENVIRON` 支持队列中系统环境变量的使用
     - `FILENAME` awk浏览的文件名
     - `FNR` 浏览文件的记录数
-    - `FS` 设置输入域分隔符，等价于命令行 -F选项
+    - `FS` 设置输入域分隔符，等价于命令行-F选项
     - `NF` 浏览记录的域的个数
     - `NR` 已读的记录数
     - `OFS` 输出域分隔符
-    - `ORS` 输出记录分隔符
+    - `ORS` 输出记录分隔符(`\n`)
     - `RS` 控制记录分隔符
 - 自定义变量
     - 下面统计/etc/passwd的账户人数
 
         ```bash
-        awk '
-        {count++;print $0;} 
-        END {print "user count is ", count}
-        ' /etc/passwd
-        # 打印.
+        awk '{count++;print $0;} END {print "user count is ", count}' /etc/passwd
+        # 打印如下
         # root:x:0:0:root:/root:/bin/bash
         # ......
         # user count is 40
         ```
-        - count是自定义变量。之前的action{}里都是只有一个print，其实print只是一个语句，而action{}可以有多个语句，以;号隔开。这里没有初始化count，虽然默认是0，但是妥当的做法还是初始化为0。
+        - count是自定义变量。之前的action{}里都是只有一个print，其实print只是一个语句，而action{}可以有多个语句，以;号隔开。这里没有初始化count，虽然默认是0，但是妥当的做法还是初始化为0
+- awk与shell之间的变量传递方法
+    - awk中使用shell中的变量
+
+        ```bash
+        # 获取普通变量(第一个双引号为了转义单引号，第二个双引号为了转义变量中的空格)
+        var="hello world" && awk 'BEGIN{print "'"$var"'"}'
+        # 把系统变量var传递给了awk变量awk_var
+        var="hello world" && awk -v awk_var="$var" 'BEGIN {print awk_var}'
+
+        # 获取环境变量(ENVIRON)
+        var="hello world" && export var && awk 'BEGIN{print ENVIRON["var"]}'
+        ```
+    - awk向shell变量传递值
+
+        ```bash
+        eval $(awk 'BEGIN{print "var1='"'str 1'"';var2='"'str 2'"'"}') && echo "var1=$var1 ----- var2=$var2" # var1=str1 ----- var2=str2
+        # 读取temp_file中数据设置到变量中(temp_file中输入`hello world:test`，如果文件中有多行，则最后一行会覆盖原来的赋值)
+        eval $(awk '{printf("var3=%s; var4=%s;",$1,$2)}' temp_file) && echo "var3=$var3 ----- var4=$var4" # var3=hello ----- var4=world:test
+        ```
+
+#### BEGIN/END
+
 - 提供`BEGIN/END`语句(必须大写)
-    - BEGIN和END，这两者都可用于pattern中, 提供BEGIN和END的作用是给程序赋予初始状态和在程序结束之后执行一些扫尾的工作。任何在BEGIN之后列出的操作（紧接BEGIN后的{}内）将在awk开始扫描输入之前执行，而END之后列出的操作将在扫描完全部的输入之后执行。通常使用BEGIN来显示变量和预置（初始化）变量，使用END来输出最终结果。
+    - BEGIN和END，这两者都可用于pattern中，**提供BEGIN的作用是扫描输入之前赋予程序初始状态，END是扫描输入结束且在程序结束之后执行一些扫尾工作**。任何在BEGIN之后列出的操作(紧接BEGIN后的{}内)将在awk开始扫描输入之前执行，而END之后列出的操作将在扫描完全部的输入之后执行。通常使用BEGIN来显示变量和预置(初始化)变量，使用END来输出最终结果。
     - 统计某个文件夹下的文件占用的字节数，过滤4096大小的文件(一般都是文件夹):
 
         ```bash
-        ls -l | awk '
-        BEGIN {size=0;print "[start]size is", size}
-        {if($5!=4096){size=size+$5;}} 
-        END {print "[end]size is", size/1024/1024, "M"}
-        '
-        # 打印
+        ls -l | awk 'BEGIN {size=0;print "[start]size is", size} {if($5!=4096){size=size+$5;}} END {print "[end]size is", size/1024/1024, "M"}'
+        # 打印如下
         # [start]size is 0
         # [end]size is 30038.8 M
         ```
@@ -1143,10 +1176,13 @@ done
     ## root用户定时执行脚本
     # 1.编辑脚本
     crontab -u root -e
-    # 2.加入配置(对应用户必须有执行此脚本权限)
+
+    # 2.加入每分钟执行脚本配置(对应用户必须有执行此脚本权限，且此脚本文件有+x可执行属性)
     # 01 * * * * /home/smalle/script/test.sh
+
     # 3.重新加载
     systemctl reload crond
+    
     # 4.查看日志
     tail -f /var/log/cron
 
@@ -1195,6 +1231,48 @@ done
 - pstack 跟踪进程栈
 - strace 跟踪进程中的系统调用
 - top linux下的任务管理器
+
+## 内核
+
+### sysctl
+
+- `sysctl`命令被用于在内核运行时动态地修改内核的运行参数，可用的内核参数在目录`/proc/sys`中
+- 命令
+
+```bash
+sysctl [options] [variable[=value] ...]
+# sysctl变量的设置通常是字符串、数字或者布尔型(1/0)
+
+# 打印当前所有可用的内核参数变量和值
+sysctl -a
+
+# 修改参数值(临时修改)
+sysctl -w vm.dirty_background_ratio=5
+# 执行一次或多次`-w`后需要通过`-p`持久化(使生效)
+sysctl -p
+```
+- 配置sysctl(永久修改)
+
+```bash
+vi /etc/sysctl.conf
+# 使生效
+/sbin/sysctl -p
+```
+- 参数说明
+
+```bash
+## sysctl -a | grep dirty # 缓存相关
+# vm.dirty_background_ratio 是内存可以填充“脏数据”的百分比。这些“脏数据”在稍后是会写入磁盘的，pdflush/flush/kdmflush这些后台进程会稍后清理脏数据。举一个例子，我有32G内存，那么有3.2G的内存可以待着内存里，超过3.2G的话就会有后来进程来清理它
+vm.dirty_background_ratio = 10
+vm.dirty_background_bytes = 0
+# vm.dirty_ratio 是绝对的脏数据限制，内存里的脏数据百分比不能超过这个值。如果脏数据超过这个数量，新的IO请求将会被阻挡，直到脏数据被写进磁盘。这是造成IO卡顿的重要原因，但这也是保证内存中不会存在过量脏数据的保护机制。对于将这些数据刷新到磁盘，默认时间限制为120秒，如果超时可能会报错 `INFO: task xxx blocked for more than 120 seconds`，进而导致系统不可用(https://www.blackmoreops.com/2014/09/22/linux-kernel-panic-issue-fix-hung_task_timeout_secs-blocked-120-seconds-problem/)
+vm.dirty_ratio = 20
+vm.dirty_bytes = 0
+# vm.dirty_expire_centisecs 指定脏数据能存活的时间。在这里它的值是30秒。当 pdflush/flush/kdmflush 进行起来时，它会检查是否有数据超过这个时限，如果有则会把它异步地写到磁盘中。毕竟数据在内存里待太久也会有丢失风险
+vm.dirty_expire_centisecs = 3000
+# vm.dirty_writeback_centisecs 指定多长时间 pdflush/flush/kdmflush 这些进程会起来一次
+vm.dirty_writeback_centisecs = 500
+```
 
 ## linux概念
 

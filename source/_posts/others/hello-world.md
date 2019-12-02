@@ -8,27 +8,21 @@ tags: [others]
 
 <p>我的第一篇文章</p>
 
-## github-jeykll-markdown个人书写习惯
-
-> 2017-07-01 之后使用hexo书写博客, 格式依然可用
-
-### 元信息
-
-categories和tage都可以有多个
-
-```html
-categories: [cat1, cat2]
-tags: [tag1, tag2, tag3]
-```
-
-### MD 语法
+## MD 语法
 
 - md文件中可以使用html标签
 - `---`代表分割线
 
+### 代码块
+
+```diff
+- cluster.slaveCount: 2
++ cluster.slaveCount: 3
+```
+
 ### 排版
 
-正文的第一级标题用h2(`##`)，标题和字段间要有换行
+- 正文的第一级标题用h2(`##`)，标题和字段间要有换行
 
 ### 详细隐藏/展示
 
@@ -53,7 +47,6 @@ tags: [tag1, tag2, tag3]
     &#x60;&#x60;&#x60;
   </pre>
 - 引用需要上下都空一行，列表只需要在上面空一行
-
 - 子列表基于父列表要有一个Tab缩进(4个空格)，中间无需空行
 
 ### 链接
@@ -77,6 +70,21 @@ tags: [tag1, tag2, tag3]
 
 [^1]: [http://blog.aezo.cn](http://blog.aezo.cn)
 </pre>
+
+## github-jeykll-markdown个人书写习惯
+
+> 2017-07-01 之后使用hexo书写博客, 格式依然可用
+
+### 元信息
+
+- categories和tage都可以有多个。其中`---`后面不能有空格
+
+```html
+---
+categories: [cat1, cat2]
+tags: [tag1, tag2, tag3]
+---
+```
 
 ## github-hexo-markdown个人书写习惯
 

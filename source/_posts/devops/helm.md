@@ -8,7 +8,7 @@ tags: [k8s]
 
 ## 简介
 
-- [Helm](https://github.com/helm/helm) 、[Helm Docs](https://helm.sh/docs/)
+- [Helm](https://github.com/helm/helm) 、[Helm Docs](https://helm.sh/docs/)、[Helm 指南(中文)](https://whmzsu.github.io/helm-doc-zh-cn/)
     - 是 Kubernetes 上的包管理器
     - Helm组成：`Helm`客户端、`Tiller`服务器、`Charts`仓库
     - 原理：Helm客户端从远程Charts仓库(Repository)拉取Chart(应用程序配置模板)，并添加Chart安装运行时所需要的Config(配置信息)，然后将此Chart和Config提交到Tiller服务器，Tiller服务器则在k8s生成`Release`，并完成部署
@@ -96,7 +96,8 @@ upgrade     # 更新release
             # **如nginx示例**
                 # 初始化时会自动创建一个 Deployment、ReplicaSet、Pod、Service
                 # 每次更新仅会产生一个新的ReplicaSet，而后此ReplicaSet会创建一个新的Pod，如果使用RollingUpdate滚动更新模式，在新Pod进入到readiness就绪状态之前，仍然由旧Pod提供服务，当新Pod就绪后，则移除旧Pod
-                # 对于旧的ReplicaSet是不会删除的，当系统自动移除旧Pod后，哪些旧的ReplicaSet控制的容器组就为0/0，并且也不会还原旧的Pod
+                # 对于旧的ReplicaSet是不会删除的，当系统自动移除旧Pod后，那些旧的ReplicaSet控制的容器组就为0/0，并且也不会还原旧的Pod
+                # 更新或删除部署时，该部署使用的pv所在目录不能被占用(即不能处于相应pv所在目录)
 verify      # 验证chart的签名和有效期
 version     # 打印客户端和服务端的版本信息
 ```
@@ -295,6 +296,8 @@ spec.acme.config.http01.domains # 指示该证书的可以用于哪些域名
 
 ### ingress-nginx
 
+> https://hub.kubeapps.com/charts/stable/nginx-ingress
+
 ```bash
 helm repo update
 # https://kubernetes.github.io/ingress-nginx
@@ -320,7 +323,6 @@ controller:
 defaultBackend:
   nodeSelector:
     node-role.kubernetes.io/edge: ''
-defaultBackend:
   image:
     repository: registry.aliyuncs.com/google_containers/defaultbackend
     tag: 1.3
@@ -431,6 +433,8 @@ helm del --purge nfs-client-provisioner
 
 ### Prometheus
 
+- Prometheus相关参考[prometheus](/_posts/devops/prometheus.md)
+
 > 参考：https://hub.kubeapps.com/charts/stable/prometheus
 
 ```bash
@@ -439,6 +443,7 @@ helm repo update
 # helm fetch stable/prometheus --version 9.0.0 && tar -zxvf prometheus-9.0.0.tgz
 
 cat > prometheus-values.yaml << 'EOF'
+# server会自动拉取kubernetes-service-endpoints和pushgateway节点
 server:
   persistentVolume:
     # 如通过rook创建的sc，会自动创建pvc和pv
@@ -451,7 +456,10 @@ pushgateway:
   persistentVolume:
     enabled: true
     storageClass: "monitoring-sc-01"
-  # ingress: # 将pushgateway暴露出去
+  ingress:
+    enabled: true
+    hosts:
+    - pushgateway.prometheus.k8s.aezo.cn
 # 扩展监控的node_export。如果使用 serverFiles.prometheus.yml.scrape_configs 参数则会覆盖value.yaml所有的scrape_configs
 # extraScrapeConfigs后面必须跟字符串，此处必须使用 | 进行转换；且此时`- job_name`前必须保留2个空格
 extraScrapeConfigs: |
@@ -460,6 +468,23 @@ extraScrapeConfigs: |
     scrape_interval: 5s
     static_configs:
     - targets: ['192.168.6.130:9100']
+  # 需要安装Prometheus Blackbox Exporter，参考下午
+  - job_name: 'blackbox_http_2xx_prod'
+    scrape_interval: 30s
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+    - targets:
+      - https://www.baidu.com/
+      - 172.0.0.1:9090
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: prometheus-blackbox-exporter:9115
 alertmanager:
   persistentVolume:
     storageClass: "monitoring-sc-01"
@@ -468,7 +493,7 @@ alertmanagerFiles:
     global:
       resolve_timeout: 5m
       smtp_smarthost: 'smtp.163.com:25'
-      smtp_from: 'aezocn@163.com'
+      smtp_from: 'aezo-prometheus<aezocn@163.com>'
       smtp_auth_username: 'aezocn@163.com'
       smtp_auth_password: 'XXX'
     route:
@@ -578,6 +603,25 @@ helm del --purge grafana
     - 增加数据源，数据源地址如`http://prometheus-server.monitoring.svc.cluster.local`
     - 具体参考[Grafana](/_posts/devops/prometheus.md#Grafana)
 
+### Prometheus Blackbox Exporter
+
+> 参考：https://hub.kubeapps.com/charts/stable/prometheus-blackbox-exporter
+
+- 安装 [^3]
+
+```bash
+cat > prometheus-blackbox-exporter-values.yaml << 'EOF'
+config:
+  modules:
+    http_2xx:
+      timeout: 10s
+EOF
+helm install --name prometheus-blackbox-exporter --namespace monitoring stable/prometheus-blackbox-exporter --version 1.5.1 -f prometheus-blackbox-exporter-values.yaml
+
+helm upgrade prometheus-blackbox-exporter stable/prometheus-blackbox-exporter --version 1.5.1 -f prometheus-blackbox-exporter-values.yaml
+helm del --purge prometheus-blackbox-exporter
+```
+
 ### Postgresql
 
 > https://hub.kubeapps.com/charts/stable/postgresql
@@ -600,6 +644,28 @@ helm upgrade postgresql-devops stable/postgresql --version=6.5.3 -f postgresql-v
 helm del --purge postgresql-devops
 ```
 
+#### 数据迁移(成功)
+
+- ceph存储使用说明
+    - 基于helm部署，如果删除helm-release则会与原PV关联断开，即使重新部署也会产生新的PV
+    - 如果仅仅删除pod，则原PV是继续使用的(RS会重新创建)
+    - 
+- 数据迁移
+
+```bash
+## 备份数据到新pv(此处将文件整体备份，还可导出数据库配置进行备份)
+# 1.tar打包原数据，创建新pv省略
+# 2.(此处使用ceph存储)映射-创建文件系统-临时挂载
+rbd map --name client.admin kube/kubernetes-dynamic-pvc-4c04b64e-09c0-11ea-89b1-5aa8347da671 # 输出 `/dev/rbd2`
+mkfs.ext4 -m2 /dev/rbd/kube/kubernetes-dynamic-pvc-4c04b64e-09c0-11ea-89b1-5aa8347da671
+mount /dev/rbd2 /mnt
+# 3.复制tar包数据到临时挂载目录
+# 4.卸载原挂载目录(卸载目录时不能有用户处于/mnt目录)
+umount /dev/rbd2
+# 5.注释掉原 persistence.storageClass 配置，增加 persistence.existingClaim 配置为新的pvc
+# 6.重新创建chart
+```
+
 ### Redis
 
 > https://hub.kubeapps.com/charts/stable/redis
@@ -613,6 +679,8 @@ master:
   service:
     type: NodePort
     nodePort: 30002
+  configmap: |-
+    appendfsync everysec
 slave:
   persistence:
     storageClass: 'nfs-client'
@@ -625,15 +693,24 @@ helm install --name redis-devops --namespace devops stable/redis --version=9.5.0
 helm upgrade redis-devops stable/redis --version=9.5.0 -f redis-values.yaml
 helm del --purge redis-devops
 ```
+- 数据迁移(试用)
+    - 备份master数据到新pv(如果是ceph创建的pv可先进行映射、创建文件系统、临时挂载，然后复制原数据到新pv)
+    - 增加`persistence.existingClaim`参数指向新的创建好的pvc(master会使用此pvc)，因此master无需指定`master.persistence.storageClass`，但slave仍需指定`slave.persistence.storageClass`
+    - 重新创建chart，在创建master-pod时提示`Bad file format reading the append only file: make a backup of your AOF file, then use ./redis-check-aof --fix <filename>`
+        - 先将pod启动参数设置成`sleep 1h`进行调试
+        - 进入pod后，先执行`cp data/appendonly.aof data/appendonly.aof.bak`，然后执行`redis-check-aof --fix data/appendonly.aof`输入Y进行AOF文件修复(一般为redis突然掉电导致aof文件损坏，此前由于直接删除原pod导致)
+        - 还原pod原始启动参数并重新启动
+    - 测试时数据貌似有丢失?? 0.0
 
 ### Harbor
 
 > https://hub.kubeapps.com/charts/harbor/harbor 、 https://www.qikqiak.com/post/harbor-quick-install/
 
 ```bash
-## 安装
+## 安装(访问上述仓库需要梯子，可考虑下文源码安装)
 helm repo add harbor https://helm.goharbor.io
 
+# 自定义配置
 cat > harbor-values.yaml << 'EOF'
 expose:
   type: ingress
@@ -683,8 +760,9 @@ persistence:
       storageClass: "nfs-client"
     jobservice:
       storageClass: "nfs-client"
-    database:
-      storageClass: "nfs-client"
+    # 如果使用外部数据库则不需要
+    #database:
+    #  storageClass: "nfs-client"
 EOF
 # 大概需要3分钟所有的Pod才会全部运行正常
 helm install --name harbor --namespace devops harbor/harbor --version=1.2.1 -f harbor-values.yaml
@@ -693,6 +771,11 @@ helm install --name harbor --namespace devops harbor/harbor --version=1.2.1 -f h
 helm upgrade harbor harbor/harbor --version=1.2.1 -f harbor-values.yaml
 helm del --purge harbor
 # 然后删除对应的PVC(会顺带自动删除PV，但是对于实际的存储文件需要到存储服务中删除)，否则下次安装会提示存储对应PVC
+
+## 基于源码安装
+wget https://github.com/goharbor/harbor-helm/archive/v1.2.1.tar.gz
+tar -xvzf v1.2.1.tar.gz
+helm install --name harbor --namespace devops ./harbor-helm-1.2.1 -f harbor-values.yaml
 ```
 - 数据库初始化语句如
 
@@ -702,6 +785,7 @@ create database harbor_clair;
 create database harbor_notary_server;
 create database harbor_notary_signer;
 ```
+- 命令行镜像推送参考：[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#Harbor)
 
 ### Jenkins
 
@@ -711,21 +795,53 @@ create database harbor_notary_signer;
 ## 安装
 cat > jenkins-values.yaml << 'EOF'
 master:
+  tag: 2.190.2
   adminUser: admin
   adminPassword: Hello1234
   ingress:
     enabled: true
     hostName: jenkins.k8s.aezo.cn
+  # 如jenkins编译docker进行，如果对应harbor为https，则需要提前在宿主机添加证书。此时只允许master运行在相应节点上
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - {key: kubernetes.io/hostname, operator: In, values: ["node1", "node2"]}
   # installPlugins: [] # 设置默认安装的插件，如果为[]则一个插件都不会安装
 persistence:
   enabled: true
   storageClass: 'nfs-client'
+  # 挂载宿主机docker程序，供容器内使用
+  volumes:
+  - name: docker-sock
+    hostPath:
+      type: Socket
+      path: /var/run/docker.sock
+  - name: docker-bin
+    hostPath:
+      type: File
+      path: /usr/bin/docker
+  mounts:
+  - mountPath: /var/run/docker.sock
+    name: docker-sock
+  - mountPath: /usr/bin/docker:ro
+    name: docker-bin
+agent:
+  image: docker.mirrors.ustc.edu.cn/jenkins/jnlp-slave
 EOF
 helm install --name jenkins --namespace devops stable/jenkins --version=1.7.8 -f jenkins-values.yaml
 
 helm upgrade jenkins stable/jenkins --version=1.7.8 -f jenkins-values.yaml
 helm del --purge jenkins
 ```
+- 说明
+    - 构建时会自动创建子pod(slave节点，镜像jenkins/jnlp-slave)，workspace目录则保存在执行任务的slave节点上，当构建完成后会自动删除子pod(包括任务的工作空间)
+    - 多次部署更新jenkins，历史安装的插件不会丢失。如果删除部署后重新部署，会重新创建新PV
+
+### OpenLDAP
+
+- 使用参考[LDAP](/_posts/db/LDAP.md#基于k8s安装)
 
 ## Chart说明 [^1]
 
@@ -775,6 +891,7 @@ helm del --purge jenkins
         
         ```bash
         # 其中`.Values`代表后面属性获取`values.yaml`文件中的数据，如`.Values.image.repository`就是`nginx`，`.Values.image.tag`就是`stable`
+        # Values为内置对象。更多内置对象参考：https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/builtin_objects-zh_cn.html
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ```
 - 打包分享
@@ -819,7 +936,15 @@ helm del --purge jenkins
 {{/* comment */}}
 {{- xxxx -}} // -去除前后的空白(包括换行符、制表符、空格等)，可只去其中一个
 ```
-- 数据类型
+
+- **管道符 `|`** (类似unix)。helm-chart中常使用`|-`载入配置文件(`|-`后面按照原配置文件书写，不用考虑`yaml`格式)
+
+```go
+{{ .Values | quote }} // 等价于 `quote .Values`
+{{ .Values | upper | quote }}
+```
+
+### 数据类型
 
 ```go
 {{ $how_long := (len "output") }} // 定义变量
@@ -860,17 +985,17 @@ helm del --purge jenkins
 
 ```go
 // range循环来遍历map(将所有k-v依次展示)
-{{ range $k, $v := .Map }}
+{{ range $k, $v := .Map }} // 不加-时，每次循环会产生一个空行
     {{ $k }}:{{ $v }}
-{{end}}
+{{ end }} // 每次循环会产生一个空行
 
 // grafana chart configmap.yaml示例
 data:
-    grafana.ini: |
+  grafana.ini: |
 {{- range $key, $value := index .Values "grafana.ini" }}
-    [{{ $key }}]
+    [{{ $key }}] // 此处转换成 [smtp]，为实际grafana.ini的配置格式
     {{- range $elem, $elemVal := $value }}
-    {{ $elem }} = {{ $elemVal }}
+    {{ $elem }} = {{ $elemVal }} // 主要是将 : 转成 =
     {{- end }}
 {{- end }}
 `
@@ -883,11 +1008,6 @@ grafana.ini:
     password: "pass"
 `
 ```
-- **管道符 `|`** (类似unix)
-```go
-{{ .Values | quote }} // 等价于 `quote .Values`
-{{ .Values | upper | quote }}
-```
 
 ### 其他
 
@@ -899,6 +1019,15 @@ grafana.ini:
 ```
 - 内置函数
 
+### Charts
+
+- `toYaml`
+
+```yaml
+data:
+  blackbox.yaml: |
+{{ toYaml .Values.config | indent 4 }} # indent 4，所有都缩进4个空格
+```
 
 
 
@@ -908,4 +1037,6 @@ grafana.ini:
 
 [^1]: https://jimmysong.io/kubernetes-handbook/practice/helm.html
 [^2]: https://www.cnblogs.com/linuxk/p/10607805.html
+[^3]: https://www.cnblogs.com/aguncn/p/9933204.html
+
 

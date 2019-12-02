@@ -102,7 +102,7 @@ EOF
 # 关闭交换分区需要执行。也可将/etc/fstab中swap的挂载注释掉
 swapoff -a && sysctl -w vm.swappiness=0
 # 使生效
-modprobe br_netfilter # 加载内核br_netfilter模块。注意：建议设置开机自启动，参考[启动设置](/_posts/linux/linux-system.md#启动设置)
+modprobe br_netfilter # 加载内核br_netfilter模块。注意：建议设置开机自启动，参考[启动设置](/_posts/linux/linux.md#启动设置)
 sysctl -p /etc/sysctl.d/k8s.conf
 
 ## B.配置hostname(需要保证唯一)。新加入的节点没有配置hostname也可运行
@@ -303,6 +303,57 @@ kubectl delete node node3
 # 2.在node3上执行上述清理命令
 ```
 
+### kubelet 说明
+
+- `systemctl status kubelet` 查看服务状态。可看到kubelet启动命令参数配置文件位于`/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf`
+- `cat 10-kubeadm.conf`
+
+```bash
+
+[Service]
+Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
+Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
+# This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
+EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
+# This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
+# the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
+EnvironmentFile=-/etc/sysconfig/kubelet
+ExecStart=
+ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
+```
+- 参数说明(https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/)
+
+```bash
+--bootstrap-kubeconfig                  # 如果--kubeconfig未定义则以此参数为准
+--kubeconfig                            # 集群contexts和users配置(kind: Config)
+--config=/var/lib/kubelet/config.yaml   # kubelet配置(kind: KubeletConfiguration)。像 --eviction-hard 等参数也可在--config中指定
+--eviction-hard=imagefs.available<15%,memory.available<100Mi,nodefs.available<10%,nodefs.inodesFree<5% # Node资源小于对应阀值则驱逐pod。对应--config文件中evictionHard属性
+--system-reserved                       # Node需要保留的资源值(剩余的资源可交由kubelet调度)。当剩余资源不足时不会将pod调度到此节点，历史调度上去的pod不会因为配置修改而被驱逐(驱逐参考--eviction-hard)
+```
+- 修改配置文件
+
+```bash
+# 在此配置文件中添加 `KUBELET_EXTRA_ARGS` 变量即可。如 `KUBELET_EXTRA_ARGS=--fail-swap-on=false`
+vi /etc/sysconfig/kubelet
+# 或者修改 --config 中可配置的参数
+vi /var/lib/kubelet/config.yaml
+# 重新加载
+systemctl daemon-reload && systemctl restart kubelet
+```
+- 配置示例
+
+```bash
+# vi /var/lib/kubelet/config.yaml
+
+# ...
+# Node需要保留的资源值(剩余的资源可交由kubelet调度)。当剩余资源不足时不会将pod调度到此节点，历史调度上去的pod不会因为配置修改而被驱逐(驱逐参考--eviction-hard)。可在Dashboard-Node-限制值中显示
+systemReserved:
+  cpu: 1000m
+  memory: 1024Mi
+# ...
+```
+
+
 ### 常见问题
 
 - 镜像：k8s-rpm源和docker镜像的k8s仓库(image-repository)都需要使用国内镜像地址
@@ -346,6 +397,7 @@ Basic Commands (Beginner):
       generic               # 普通Secret资源(加密方式为base64)。语法：kubectl create secret generic NAME [--type=string] [--from-file=[key=]source] [--from-literal=key1=value1] [--dry-run] [options]
       tsl                   # TSL秘钥、证书Secret资源
       # kubectl create secret generic my-secret --from-literal=key1=my_val1 --from-literal=key2=my_val2
+      # kubectl create secret docker-registry harbor-secret --docker-server=192.168.17.196:5000 --docker-username=smalle --docker-password=Hello666
     serviceaccount      # 创建serviceaccount用户(用于pod访问API Server)
     role                # 角色(namespace)
     clusterrole         # 集群角色
@@ -392,6 +444,7 @@ Basic Commands (Intermediate):
         --all-namespaces    # 显示所有命名空间下的资源
     services/svc    # 获取服务列表。PORTS：80:30435/TCP 表示80为所有Pod网络端口，30435为Node网络端口(只有部署有此pod的所有Node都是这个端口)
     configmap/cm    # ConfigMap资源
+    event/ev        # 事件
     # kubectl get pods # 获取pods列表
     # kubectl get pods -o wide # 获取pods详细列表
     # kubectl get --raw /apis/apps/v1 # 获取 /apps/v1 可用资源类型
@@ -531,7 +584,7 @@ kubectl exec -it sq-pod -c sq-busybox -- /bin/sh # 执行容器中命令，-it�
 - 常用命令
 
 ```bash
-# 获取某 pod 的 uid
+# 获取某 pod 的 uid(ID,唯一标识,podId)
 kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadata.uid}}{{"\n"}}'
 ```
 
@@ -550,6 +603,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
     - 元数据型资源：HPA、PodTemplate、LimitRange
     - CustomResourceDefinition(crd)
         - 是 v1.7 + 新增的无需改变代码就可以扩展 Kubernetes API 的机制，用来管理自定义对象(新资源类型)。它实际上是 ThirdPartyResources(TPR) 的升级版本，而 TPR 已经在 v1.8 中删除
+    - Event(ev)
 - 创建资源的方法
     - apiserver仅接受json格式的资源定义
     - yaml格式提供的配置清单，apiserver可自动将其转为json格式，而后再提交
@@ -595,6 +649,9 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
                     - `key` 变量名
                 - `secretKeyRef` 从SecretKey中获取(类似ConfigMap)
         - `serviceAccountName` pod内部访问其他资源的账号名称
+        - `resources` 资源配置
+            - `requests` 资源请求
+            - `limits` 资源限制
         - `livenessProbe` 存活性探测(如果多次存活探测失败，则会重启此pod)
             - `exec` 基于执行命令探测
                 - `command` 执行的探测命令
@@ -611,7 +668,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
             - `successThreshold` 探测失败后，最少连续探测成功多少次才被认定为成功。默认是 1，对于 liveness 必须是 1。最小值是 1。
             - `failureThreshold` 探测成功后，最少连续探测失败多少次才被认定为失败。默认是 3。最小值是 1
         - `readinessProbe` 就绪性探测(子标签类似livenessProbe)。在readiness探测失败之后，Pod和容器并不会被删除，而是会被标记成特殊状态，进入这个状态之后，如果这个Pod是在某个serice的endpoint列表里面的话，则会被从这个列表里面清除，以保证外部请求不会被转发到这个Pod上；等Pod恢复成正常状态，则会被加回到endpoint的列表里面，继续对外服务
-    - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上。如：`nodeSelector.kubernetes.io/hostname: node1`
+    - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上。如：`nodeSelector: kubernetes.io/hostname: node1`
     - `nodeName` 直接运行在此节点上
     - `restartPolicy` 重启策略：Always(默认)、OnFailure、Never
     - `lifecycle` 生命周期
@@ -993,14 +1050,14 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
     - 存储选型：私有云可考虑使用`Rook`/`Ceph` [^8]
 - `kubectl explain pod.spec.volumes` 查看k8s支持的存储类型及配置
     - `emptyDir` 临时目录存储，Pod删除，数据也会丢失。取值`{}`时，则子字段为默认值
-    - `hostPath` 宿主机目录存储，重新创建Pod后数据还在，但各节点目录不共享
-        - `type` 存储类型。取值：`DirectoryOrCreate`(可自动创建存储目录)
+    - `hostPath` 宿主机目录存储，重新创建Pod后数据还在，但各节点目录不共享。[doc](https://kubernetes.io/docs/concepts/storage/volumes#hostpath)
+        - `type` 存储类型。默认""，取值：DirectoryOrCreate(可自动创建存储目录)/DirectoryFileOrCreate/File/Socket/CharDevice/BlockDevice
         - `path` 数据存储在Node节点上存储目录
     - `nfs` 基于nfs的网络存储，各节点可共享。注：此时各Node节点需要可驱动nfs，可在各节点安装`nfs-utils`
         - `server` nfs服务器地址，IP或者hostname
         - `path`
     - `persistentVolumeClaim` PVC(存储卷创建申请)
-        `claimName` 对应PVC资源名称
+        - `claimName` 对应PVC资源名称
     - `configMap`
         - `name` ConfigMap资源名
     - `secret`
@@ -1020,7 +1077,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
 - `kubectl explain sc` 查看StorageClass(sc)配置
     - `provisioner` 存储提供者，如`rook-ceph.rbd.csi.ceph.com`(基于rook-ceph的存储方案)
     - `parameters` 相关参数
-    - `reclaimPolicy` 类似pv的persistentVolumeReclaimPolicy参数取值：Retain、Recycle、Delete
+    - `reclaimPolicy` 类似pv的persistentVolumeReclaimPolicy参数取值：Retain、Recycle、Delete(默认)，创建后无法修改
 - PVC、PV、SC
     - 存储管理员提前创建不同存储服务(nfs、glusterfs等)，K8s集群管理根据不同的持久化卷类型配置存储卷映射(PV，集群公共资源)，用户基于存储卷创建定义PVC
     - `PV`状态：`Available`(可用) -> `Bound`(绑定) -> `Released`(释放) -> Failed(失败。该卷的自动回收失败)
@@ -1395,7 +1452,7 @@ kubectl get secret $(kubectl get secret -n aezo-test|grep sa-aezo-admin-token|aw
 #### 亲和性
 
 - 亲和性/反亲和性
-    - 在出于高效通信的需求，有时需要将一些Pod调度到相近甚至是同一区域位置(比如同一节点、机房、区域)等等，比如业务的前端Pod和后端Pod，此时这些Pod对象之间的关系可以叫做`亲和性`(`affinity`)
+    - 在出于高效通信的需求，有时需要将一些Pod调度到相近甚至是同一区域位置(比如同一节点、机房、区域)等等，比如业务的前端Pod和后端Pod，此时这些Pod对象之间的关系可以叫做`亲和性`(`affinity`)。最终会代替nodeSelector
     - 同时出于安全性的考虑，也会把一些Pod之间进行隔离，此时这些Pod对象之间的关系叫做`反亲和性`(`anti-affinity`)
 - `kubectl explain pods.spec.affinity`
 
@@ -1518,12 +1575,16 @@ Warning  FailedScheduling  4m (x145 over 174m)  default-scheduler  0/3 nodes are
 
 ### 资源限制及监控
 
+#### 资源限制
+
 - 资源需求及限制配置
 
 ```yml
 # 此时 Pod 的服务质量等级是 Burstable
 spec:
   containers:
+  - name: sq-pod
+    image: busybox
     resources:
       # 此容器的资源需求
       requests:
@@ -1801,7 +1862,8 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 ### pod
 
 - 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container` 可查看对应pod的日志
-- 报错`Back-off restarting failed container`，可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`从而先进入容器，然后手动启动，并查看日志
+- 报错`Back-off restarting failed container`，可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
+- 报错`Volume is already exclusively attached to one node and can't be attached to another` [^10] (未测试)
 
 
 ---
@@ -1815,5 +1877,6 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^7]: https://www.jianshu.com/p/3f2401d14c78 (K8s网络模型)
 [^8]: https://blog.fleeto.us/post/kubernetes-storage-performance-comparison/ (Kubernetes 存储性能对比)
 [^9]: https://zhuanlan.zhihu.com/p/44269163
+[^10]: https://fengxsong.github.io/2018/05/30/%E8%8A%82%E7%82%B9%E5%A5%94%E6%BA%83%E9%87%8D%E5%90%AF%E5%90%8E%E9%83%A8%E5%88%86pvc%E4%B8%8D%E8%83%BD%E6%AD%A3%E5%B8%B8%E6%8C%82%E8%BD%BD/
 
 

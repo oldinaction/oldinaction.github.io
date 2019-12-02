@@ -60,8 +60,8 @@ tags: [k8s, storage]
 ceph -s/-w          # 查看集群状态(-w实时状态查看)
 ceph osd tree       # 查看所有osd
 
-rbd showmapped      # 列举已映射块设备(pool、image等信息)
-rbd list            # rbd ls 列举所有存储块
+rbd ls kube         # 列举kube存储池所有存储块
+rbd showmapped      # 列举本机已映射的块设备(pool、image等信息)。存储块必须映射后才能挂载
 ```
 
 ### ceph
@@ -98,6 +98,11 @@ dump
 
 #### ceph osd
 
+```bash
+### ceph osd <xxx>。eg: `ceph osd df`
+df      # 查看集群中每个osd上的分布情况(空间大小、使用空间、存放的PG数、状态信息)
+```
+
 - ceph osd pool
 
 ```bash
@@ -107,7 +112,6 @@ get <poolname> <var> # 获取存储池参数
 rm      # 删除存储池
         # ceph osd pool rm rbd rbd --yes-i-really-really-mean-it # (警告)删除rbd存储池(会物理删除所有数据)，需重复输入存储池名称
             # 默认未开启mon删除存储池功能，如动态增加配置 `ceph tell mon.\* injectargs '--mon-allow-pool-delete=true'` 后再执行删除方可。具体参考：https://stackoverflow.com/questions/45012905/removing-pool-mon-allow-pool-delete-config-option-to-true-before-you-can-destro
-df      # 查看集群中每个osd上的分布情况(空间大小、使用空间、存放的PG数、状态信息)
 ```
 
 - ceph osd xxx
@@ -193,22 +197,23 @@ remove (rm) # 删除块设备映像
 resize      # 调整块设备映像大小 Resize (expand or shrink) image.
     # rbd resize --size 2048 myrbd # 增大myrbd存储块。最终大小为2048M，下同
     # rbd resize --size 2048 myrbd --allow-shrink # 缩小myrbd存储块
-copy (cp)                         Copy src image to dest.
-create                            Create an empty image.
+copy (cp)                         # Copy src image to dest.
+create                            # Create an empty image.
     # rbd create myrbd --size 10G --image-feature layering -p mypool # 在mypool存储池中，创建块设备镜像myrbd，大小为10G
-deep copy (deep cp)               Deep copy src image to dest.
-device list (showmapped)          List mapped rbd images.
-    # rbd showmapped    # **列举已映射块设备(pool、image等信息)**
-device map (map)                  Map an image to a block device. # 映射块设备
-    # sudo rbd map myrbd --name client.admin -p mypool # 执行成功打印`/dev/rbd0`
-device unmap (unmap)              Unmap a rbd device. # 取消块设备映射
-    # sudo rbd unmap /dev/rbd0 # 取消块设备映射
-diff                              Print extents that differ since a previous snap, or image creation.
-disk-usage (du)                   Show disk usage stats for pool, image or snapshot.
-    # rbd du pool-test/csi-image    # 显示 pool-test/csi-image 镜像使用情况
-lock list (lock ls)               Show locks held on an image.
+deep copy (deep cp)               # Deep copy src image to dest.
+device list (showmapped)          # List mapped rbd images.
+    # rbd showmapped    # 列举已映射块设备(pool、image等信息)，存储块必须映射后才能挂载
+device map (map)                  # 映射块设备
+    # rbd map --name client.admin mypool/myrbd # 执行成功打印如`/dev/rbd2`
+device unmap (unmap)              # 取消块设备映射
+    # rbd unmap /dev/rbd2 # 取消块设备映射
+disk-usage (du)                   # Show disk usage stats for pool, image or snapshot.
+    # rbd du pool-test/csi-image    # 显示 pool-test/csi-image 镜像已使用空间大小
+diff                              # Print extents that differ since a previous snap, or image creation.
+    # rbd diff kube/img | awk '{ SUM += $2 } END { print SUM/1024/1024 " MB" }' # 计算 kube/img 镜像已使用空间大小(可在对应客户端通过`df -h`查看)
+lock list (lock ls)               # Show locks held on an image.
     # rbd lock list pool-test/csi-image     # 显示 pool-test/csi-image 镜像被锁定列表
-lock remove (lock rm)             Release a lock on an image.
+lock remove (lock rm)             # Release a lock on an image.
     # rbd lock rm rbd/ceph-image "auto 18446462598732840961" client.4259 # 解除锁定(image id locker)
 ```
 
@@ -365,16 +370,15 @@ rbd pool init mypool
 # 在mypool存储池中，创建块设备镜像myrbd，大小为4096M
 rbd create myrbd --size 4096 --image-feature layering -p mypool
 # 映射块设备
-sudo rbd map myrbd --name client.admin -p mypool # /dev/rbd0
+sudo rbd map myrbd --name client.admin -p mypool # 打印如`/dev/rbd2`
 # 给此块设备创建文件系统，期间需要回车几次
-sudo mkfs.ext4 -m0 /dev/rbd/mypool/myrbd # 或者 `sudo mkfs.xfs /dev/rbd0`
+sudo mkfs.ext4 -m2 /dev/rbd/mypool/myrbd # 或者 `sudo mkfs.xfs /dev/rbd2
 # 挂载
-sudo mkdir /mnt/ceph-myrbd
-sudo mount /dev/rbd/mypool/myrbd /mnt/ceph-myrbd
-df -h /mnt/ceph-myrbd
+sudo mount /dev/rbd2 /mnt
+df -h /mnt
 # 将数据写入块设备来进行检测
-sudo dd if=/dev/zero of=/mnt/ceph-myrbd/test count=100 bs=1M # 104857600 bytes (105 MB) copied, 11.3 s, 9.3 MB/s
-sudo ls -lh /mnt/ceph-myrbd
+sudo dd if=/dev/zero of=/mnt/test count=100 bs=1M oflag=dsync # 104857600 bytes (105 MB) copied, 11.3 s, 9.3 MB/s
+sudo ls -lh /mnt
 ```
 
 ### 文件存储使用(CephFS)
@@ -403,7 +407,7 @@ mkdir /mnt/mycephfs
 # sudo mount -t ceph {ip-address-of-monitor1,ip-address-of-monitor2}:6789:/ /mnt/mycephfs -o name=admin,secret=xxx
 sudo mount -t ceph 192.168.6.131:6789:/ /mnt/mycephfs -o name=admin,secret=AQA9BZ9dMUA7BBAAYCTiaV1cTACP7GSLDxDmBg== # 提示`ceph-fuse[14371]: starting fuse`则正确
 df -h
-sudo dd if=/dev/zero of=/mnt/mycephfs/test count=1024 bs=1M # 测试。1073741824 bytes (1.1 GB) copied, 156.862 s, 6.8 MB/s
+sudo dd if=/dev/zero of=/mnt/mycephfs/test count=1024 bs=1M oflag=dsync # 测试。1073741824 bytes (1.1 GB) copied, 156.862 s, 6.8 MB/s
 # 设置开机启动。此处使用秘钥文件，则需要将`AQA9BZ9dMUA7BBAAYCTiaV1cTACP7GSLDxDmBg==`保存到/etc/ceph/cephfskey
 echo "192.168.6.131:6789:/ /mnt/mycephfs ceph name=admin,secretfile=/etc/ceph/cephfskey,_netdev,noatime 0 2" >> /etc/fstab
 
@@ -482,7 +486,7 @@ wget http://192.168.6.131:80 # 默认监听在7480端口。显示`<ListAllMyBuck
 
 ## k8s使用ceph存储
 
-### 使用
+### 直接使用
 
 ```bash
 ## 在Kubernetes(v1.15)集群的所有Node上安装Ceph-common包
@@ -602,7 +606,7 @@ parameters:
   userSecretName: ceph-secret
 ```
 
-### 使用rbd-provisioner提供rbd持久化存储
+### 使用rbd-provisioner(推荐)
 
 - `rbd-provisioner`为kubernetes 1.5+版本提供了类似于`kubernetes.io/rbd`的ceph rbd持久化存储动态配置实现 [^2]
 - 如果使用kubeadm来部署集群，或者将`kube-controller-manager`以容器的方式运行。这种方式下，kubernetes在创建使用ceph rbd pv/pvc时没任何问题，但使用dynamic provisioning自动管理存储生命周期时会报错，提示"rbd: create volume failed, err: failed to create rbd image: executable file not found in $PATH:"。问题来自gcr.io提供的kube-controller-manager容器镜像未打包`ceph-common`组件，缺少了rbd命令，因此无法通过rbd命令为pod创建rbd image
@@ -625,6 +629,10 @@ ceph auth get-or-create client.kube mon 'allow r' osd 'allow class-read object_p
 
 ## 创建。当PVC创建后StorageClass就会自动创建PV、rbd镜像(eg：`rbd ls -p kube` 显示 `kubernetes-dynamic-pvc-**`)
 kubectl create -f ceph-rbd-pool-default.yaml
+# 此方式创建的 PV 名称和ceph镜像名称并不对应，但是可在 PV 详情中查看对应的镜像名称
+# kubectl get pv pvc-41fea0ae-f8aa-422a-a5b3-84fab3a0a9e3 -o go-template='{{.spec.rbd.image}}' # 查看pv对应哪个rbd image
+
+# 基于helm部署，如果删除helm-release则会与原PV关联断开，即使重新部署也会产生新的PV；如果仅仅删除pod，则原PV是继续使用的(RS会重新创建)
 ```
 - ceph-rbd-pool-default.yaml
 
@@ -687,10 +695,13 @@ parameters:
   fsType: ext4
   imageFormat: "2"
   imageFeatures: "layering"
+reclaimPolicy: Retain
 ```
 
 ## 常见问题
 
+- 调试说明
+    - 日志目录`/var/log/ceph`
 - 安装deploy时，提示`No module named pkg_resources`
     - 解决：在deploy节点安装`wget https://bootstrap.pypa.io/ez_setup.py -O - | python`(osd等节点可视情况安装)
 - rbd map映射镜像时，提示`rbd: image ceph-image: image uses unsupported features: 0x38`

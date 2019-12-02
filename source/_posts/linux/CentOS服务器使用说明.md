@@ -28,11 +28,11 @@ tags: [CentOS, linux]
 - 永久关闭`SELinux`
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
     - 快速修改命令 **`sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`**，并重启
-- 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#磁盘)
+- 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#磁盘)
 - 校验系统时间，参考[时间同步](#时间同步)
-- 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#权限系统)
-- 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#文件权限)
-- 证书登录、禁用root及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux-system/](/_posts/linux/linux-system.md#ssh)
+- 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#权限系统)
+- 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#文件权限)
+- 证书登录、禁用root(内部集群一般不建议，因为经常需要ssh远程登录)及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#ssh)
 - 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
 - 更换镜像，见下文
 - 内核升级(Centos7 默认使用内核版本为`3.10`，目前内核长期支持版为`4.4`)
@@ -592,7 +592,7 @@ ntpq -p
 
 ### Supervisor 进程管理
 
-- Supervisor 是用Python开发的一个client/server服务，是Linux/Unix系统下的一个进程管理工具。可以很方便的监听、启动、停止、重启一个或多个进程。用supervisor管理的进程，当一个进程意外被杀死，supervisor监听到进程死后，会自动将它重启，很方便的做到进程自动恢复的功能，不再需要自己写shell脚本来控制
+- `Supervisor` 是用Python开发的一个client/server服务，是Linux/Unix系统下的一个进程管理工具。可以很方便的监听、启动、停止、重启一个或多个进程。用supervisor管理的进程，**当一个进程意外被杀死，supervisor监听到进程死后，会自动将它重启**，很方便的做到进程自动恢复的功能，不再需要自己写shell脚本来控制
 - 使用
 
 ```bash

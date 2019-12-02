@@ -1055,7 +1055,9 @@ Screens
 - Dockerfile
 
 ```Dockerfile
-FROM 192.168.1.100:500/java-base/jdk:1.7
+FROM 192.168.1.100:5000/java-base/jdk:1.7
+ARG APP_VERSION
+ENV APP_VERSION=${APP_VERSION}
 ADD . /app
 # ant.sh等脚本文件需要换行符为LF(\n)
 RUN chmod +x /app/ant.sh
@@ -1071,7 +1073,7 @@ CMD ["/bin/bash", "-c", "cd /app && ./ant.sh && ./tools/startofbiz.sh"]
 ```xml
 <property name="projectDir" value="${basedir}/.." />
 <tstamp>
-    <format property="nowTm" pattern="yyMMddHHmmss"/>
+    <format property="nowTm" pattern="yyMMdd-HHmmss"/>
 </tstamp>
 <property environment="env" />
 <condition property="appName" value="${env.APP_NAME}" else="demo-test">
@@ -1080,16 +1082,16 @@ CMD ["/bin/bash", "-c", "cd /app && ./ant.sh && ./tools/startofbiz.sh"]
 
 <target name="docker-deploy">
     <exec executable="cmd.exe">
-        <arg line="/c &quot; docker login 192.168.1.100:500 -u ${env.MY_HARBOR_U} -p ${env.MY_HARBOR_P} &quot; "/>
+        <arg line="/c &quot; docker login 192.168.1.100:5000 -u ${env.MY_HARBOR_U} -p ${env.MY_HARBOR_P} &quot; "/>
     </exec>
     <exec executable="cmd.exe">
-        <arg line="/c &quot; cd ${projectDir}/ &amp;&amp; docker build --rm -t ${appName}:${nowTm} . &quot; "/>
+        <arg line="/c &quot; cd ${projectDir}/ &amp;&amp; docker build --rm -t ${appName}:${nowTm} --build-arg APP_VERSION=${nowTm} -f ./docker/Dockerfile . &quot; "/>
     </exec>
     <exec executable="cmd.exe">
-        <arg line="/c &quot; docker tag ${appName}:${nowTm} 192.168.1.100:500/library/${appName}:${nowTm} &quot; "/>
+        <arg line="/c &quot; docker tag ${appName}:${nowTm} 192.168.1.100:5000/library/${appName}:${nowTm} &quot; "/>
     </exec>
     <exec executable="cmd.exe">
-        <arg line="/c &quot; docker push 192.168.1.100:500/library/${appName}:${nowTm} &quot; "/>
+        <arg line="/c &quot; docker push 192.168.1.100:5000/library/${appName}:${nowTm} &quot; "/>
     </exec>
 </target>
 ```

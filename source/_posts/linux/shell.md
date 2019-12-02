@@ -8,39 +8,45 @@ tags: [shell, linux, lang]
 
 ## 简介
 
-- shell是解释性语言，解释器为`bash`
+- shell是解释性语言，解释器如`bash`、`sh`
 - [Shell教程](http://c.biancheng.net/cpp/shell/)
 
 ## 基本语法
 
 ### 基本概念
 
--  linux 引号
-  - 反引号：**\`cmd\`** 命令替换，类似`$(cmd)`
-  - 单引号：**''** 字符串
-  - 双引号: **""** 变量替换
-- 命令替换：使用 **\`cmd\`**(反引号)包裹或 **`$(cmd)`**
-  - `wall `date`` 所有人都收到当前时间
-  - `wall date` 所有人都收到date这个字符串
-- 管道：将一个命令的输出传送给另外一个命令，作为另外一个命令的输入。如：`命令1|命令2|...|命令n`
-  - `ls -Rl /etc | more` 分页显示/etc目录
-  - `cat /etc/passwd | grep root` 查询root用户帐号信息
-  - `ls -l * | grep "^_" | wc -l` 统计当前目录有多少个文件
-- 重定向：将命令的结果重定向到某个地方
-  - `>`、`>>`　输出重定向(`>`覆盖，`>>`追加)
-    - `ls > ls.txt` 将ls的输出保存到ls.txt中
-    - `>` 如果文件不存在，就创建文件；如果文件存在，就将其清空。`>>` 如果文件不存在，就创建文件；如果文件存在，则将新的内容追加到那个文件的末尾
-    - `2>` 错误重定向，如：`lsss　2> ls.txt`
-    - `&>` 全部重定向：`ls &> /dev/null` 将结果全部传给数据黑洞
-  - `<`、`<<` 输入重定向
-    - `wall < notice.txt` 将notice.txt中的数据发送给所有登录人
-  - 标准输入(stdin) 代码为 0 ，实际映射关系：/dev/stdin -> /proc/self/fd/0 
-  - 标准输出(stdout)代码为 1 ， 实际映射关系：/dev/stdout -> /proc/self/fd/1
-    - `echo` 将输出放到标准输出中
-  - 标准错误输出(stderr)代码为 2 ，实际映射关系： /dev/stderr ->/pro/self/fd/2
 - 程序有两类返回值：执行结果、执行状态(即 **`$?`** 的值，`0` 表示正确，`1-255` 错误)
 
-#### 变量
+### 特殊符号
+
+-  linux 引号
+    - 反引号：**\`cmd\`** 命令替换，类似`$(cmd)`
+    - 双引号: **""** 变量替换
+    - 单引号：**''** 字符串
+- 命令替换：使用 **\`cmd\`**(反引号)包裹或 **$(cmd)**(美元括号)
+    - `wall `date`` 所有人都收到当前时间
+    - `wall date` 所有人都收到date这个字符串
+- 管道符`|`
+    - 将一个命令的输出传送给另外一个命令，作为另外一个命令的输入。如：`命令1|命令2|...|命令n`
+    - 使用管道符连接的左右两边的命令都是运行在子shell中，存在变量无法传递的问题
+    - 示例
+        - `ls -Rl /etc | more` 分页显示/etc目录
+        - `cat /etc/passwd | grep root` 查询root用户帐号信息
+        - `ls -l * | grep "^_" | wc -l` 统计当前目录有多少个文件
+- 重定向：将命令的结果重定向到某个地方
+    - `>`、`>>`　输出重定向(`>`覆盖，`>>`追加)
+        - `ls > ls.txt` 将ls的输出保存到ls.txt中
+        - `>` 如果文件不存在，就创建文件；如果文件存在，就将其清空。`>>` 如果文件不存在，就创建文件；如果文件存在，则将新的内容追加到那个文件的末尾
+        - `2>` 错误重定向，如：`lsss　2> ls.txt`
+        - `&>` 全部重定向：`ls &> /dev/null` 将结果全部传给数据黑洞
+    - `<`、`<<` 输入重定向
+        - `wall < notice.txt` 将notice.txt中的数据发送给所有登录人
+    - 标准输入(stdin)代码为 `0`，实际映射关系：/dev/stdin -> /proc/self/fd/0 
+    - 标准输出(stdout)代码为 `1`，实际映射关系：/dev/stdout -> /proc/self/fd/1
+        - `echo xxx` 将输出放到标准输出中
+    - 标准错误输出(stderr)代码为 2 ，实际映射关系： /dev/stderr ->/pro/self/fd/2
+
+### 变量
 
 - 变量类型
     - 环境变量(作用于可跨bash)：`export <var_name>=<var_value>`
@@ -70,6 +76,119 @@ tags: [shell, linux, lang]
 - `printenv`/`env` 查看shell中环境变量
 - `unset <var_name>` 撤销变量
 - 引用变量 `${var_name}`，一般可以省略{}
+
+### 控制语句
+
+- 控制语句也可在命令行中需要使用
+
+    ```bash
+    # if
+    if [ 1 = 2 ]; then echo true; else echo false; fi
+
+    # for
+    for file in a.yaml b.yaml ; do wget http://xxx/$file; done
+    ```
+
+#### 条件判断
+
+- 条件表达式 `[ expression ]` **注意其中的空格**
+    - `[ -z "$pid" ]` 单对中括号变量必须要加双引号，`[[ -z $pid ]]` 双对括号，变量不用加双引号
+    - `[[ ]]`内是不能使用 -a 或者 -o 进行比较，`[ ]`内可以
+- 条件表达式的逻辑关系
+    - **在linux中命令执行状态：0 为真，其他为假**
+    - `&&`(第一个表达式为true才会运行第二个)、`||`、`!`
+    - `-a` 逻辑与，如：`if  [ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ] ; then`
+    - `-o` 或
+- 控制结构
+
+    ```shell
+    if 条件表达式 ; then
+        语句
+    elif 条件表达式 ; then
+        语句
+    else
+        语句
+    fi
+    ```
+- 整数比较
+    - `-eq` 相等，比如：`[ $A -eq  $B ]`
+    - `-ne` 不等
+    - `-gt` 大于
+    - `-lt` 小于
+    - `-ge` 大于等于
+    - `-le` 小于等于
+- 文件测试(需要中括号)
+    - `-e <file>` 测试文件是否存在
+    - `-f <file>` 测试文件是否为普通文件
+    - `-d <file>` 测试文件(linux是基于文件进行编程的)是否为目录
+    - `-r` 权限判断
+    - `-w`
+    - `-x`
+- 字符串测试
+    - `==` 或 `=` **等号两端需要空格**
+    - `=~` 正则比较
+    - `!=`
+    - `-z` 判断变量的值是否为空。为空，返回0，即true
+    - `-n` 判断变量的值是否不为空。非空，返回0，即true
+    - `-s <string>` 判非空
+    - `[[ $str != h* ]]` 判断字符串是否不是以h开头
+    - `[[ "$str" =~ ^he.* ]]` 判断字符串是否以he开头
+    - `[ "$item" \< /home/smalle/demo/$lastMon ]` 判断字符串小于(需要转义)
+- 常用判断
+    - `[[ $JAVA_HOME ]]` 判断是否存在此变量/环境变量
+    - `[[ -z $JAVA_HOME ]]` 判断此变量是否为空
+- 算术运算(其中任意一种即可)
+    - `let C=$A+$B` **(=、+附近不能有空格，下同。此时C不能有$，使用变量的使用才需要加$)**
+    - `C=$[$A+$B]`
+    - `C=$(($A+$B))`
+    - C=\`expr $A + $B\` (表达式中各操作数及运算符之间要有空格，而且要使用命令引用)
+
+#### 循环
+
+- 控制结构
+
+  ```shell
+  # for
+  for 变量 in 列表 ; do
+    语句
+  done
+  # 多行时，do后面需要加分号
+  for file in a.yaml b.yaml c.yaml  ; do wget https://github.com/test/test/raw/test/$file; done
+
+  # while(注意此处和下列的 ; 对比)
+  while 条件 ; do
+    语句
+    [break|continue]
+  done
+
+  # while死循环(true可以替换为[ 0 ]或[ 1 ])
+  while true
+  do
+      语句
+  done
+  ```
+- 如何生成列表
+	- `{1..100}`
+	- `seq [起始数] [跨度数] 结束数` 如：`seq 10`、`seq 1 2 10`
+	- `ls /etc 文件列表`
+
+#### case语句
+
+- 控制结构
+
+```shell
+case 变量 in
+	value1)
+		语句
+		;;
+	value2)
+		语句
+		;;
+	*)
+		语句
+		;;
+esac
+```
 
 ### 脚本
 
@@ -156,7 +275,21 @@ fi
 
 #### 接受参数
 
-- 常见参数如
+##### POSIX 和 GUN 规范
+
+- POSIX(可移植操作系统接口)
+    - 以一个横杠开头的为选项，选项名是单字符的英文字母或者数字
+    - 如果不带参数的话，多个选项可以写在一个横杠后面，如 `-abc` 与 `-a -b -c` 的含义相同
+    - 如果带参数的话，选项和它的参数既可以分开写也可以在一起，grep选项中的 `-A 10` 与 `-A10` 都是合乎规范的
+        - 如果选项接受的参数有多个值，那么程序应该将参数作为一个字符串接收进来，字符串中的这些值用逗号或空白符分隔开
+    - 选项参数写在非选项参数之前
+    - 特殊参数 `--` 指明所有参数都结束了。命令行中后面的任何参数都被认为是操作数，即使它们以 `-` 开始
+    - 同一参数可以重复出现，一般程序应该这么却解析：当一个选项覆盖其他选项的设置时，那么最后一个选项起作用。如果带参数的选项出现重复，那么程序应该按顺序处理这些选项参数。例如 `myprog -u arnold -u jane` 和 `myprog -u "arnold,jane"` 应该被解释为相同
+- GNU(自由的操作系统)
+    - GNU鼓励使用`--help`、`--verbose`等形式的长选项。这些选项不仅不与POSIX约定冲突，而且容易记忆
+    - 选项参数与长选项之间或通过空白字符或通过一个`=`来分隔
+
+##### 常见参数如
 
 ```bash
 # [-?hvVtTq] 表示接受 -? -h -v等参数
@@ -176,7 +309,9 @@ Options:
   -g directives : set global directives out of configuration file
 ```
 
-- 顺序参数，如`./test.sh 1 2` 执行下面脚本
+##### 顺序参数
+
+- 如`./test.sh 1 2` 执行下面脚本
 
 	```bash
 	#!/bin/bash
@@ -212,294 +347,194 @@ Options:
 		exit $?
 		```
 
-- getopt 与 getopts 
-  - getopts 接收命令行选项和参数。语法：`getopts OptionString Name [ Argument ...]`
-    - OptionString 选项名称，Name选项值变量
-    - 一个字符是一个选项，如个某字符`:`表示选项后面有传值。当getopts命令发现冒号后，会从命令行该选项后读取该值。如该值存在，将保存在特殊的变量OPTARG中
-    - 每次调用 getopts 命令时，它将下一个选项的值放置在 Name 内，并将下一个要处理的参数的索引置于 shell 变量 OPTIND 中。每当调用 shell 时，都会将 OPTIND 初始化为 1
-    - 当OptionString用`:`开头，getopts会区分invalid option错误(Name值会被设成`?`)和miss option argument错误(Name会被设成`:`)；否则出现错误，Name都会被设成`?`
-  - getopts示例(b.sh) [^3]
+##### getopt 与 getopts 
 
-    ```bash
-    #!/bin/bash
-    echo 初始 OPTIND: $OPTIND
-      
-    while getopts "a:b:c" arg #选项后面的冒号表示该选项需要参数
-    do
-        case $arg in
-            a)
-                echo "a's arg:$OPTARG" #参数存在$OPTARG中
-                ;;
-            b)
-                echo "b's arg:$OPTARG"
-                ;;
-            c)
-                echo "c's arg:$OPTARG"
-                ;;
-            ?)  #当有不认识的选项的时候arg为?
-                echo "unkonw argument"
-                exit 1
+- getopts 接收命令行选项和参数。语法：`getopts OptionString Name [ Argument ...]`
+- OptionString 选项名称，Name选项值变量
+- 一个字符是一个选项，如个某字符`:`表示选项后面有传值。当getopts命令发现冒号后，会从命令行该选项后读取该值。如该值存在，将保存在特殊的变量OPTARG中
+- 每次调用 getopts 命令时，它将下一个选项的值放置在 Name 内，并将下一个要处理的参数的索引置于 shell 变量 OPTIND 中。每当调用 shell 时，都会将 OPTIND 初始化为 1
+- 当OptionString用`:`开头，getopts会区分invalid option错误(Name值会被设成`?`)和miss option argument错误(Name会被设成`:`)；否则出现错误，Name都会被设成`?`
+- getopts示例(b.sh) [^3]
+
+```bash
+#!/bin/bash
+echo 初始 OPTIND: $OPTIND
+    
+while getopts "a:b:c" arg #选项后面的冒号表示该选项需要参数
+do
+    case $arg in
+        a)
+            echo "a's arg:$OPTARG" #参数存在$OPTARG中
             ;;
-        esac
-    done
-      
-    echo 处理完参数后的 OPTIND：$OPTIND
-    echo 移除已处理参数个数：$((OPTIND-1))
-    shift $((OPTIND-1)) # 上一条命令 $((OPTIND-1)) 对参数位置进行了修改，此时shift可以回置参数位置
-    echo 参数索引位置：$OPTIND
-    echo 准备处理余下的参数：
-    echo "Other Params: $@"
-    ```
-  - getopts示例结果
-  
-    ```html
-    <!-- bash b.sh -a 1 -b 2 -c 3 test -oo xx -test -->
-    初始 OPTIND: 1
-    a's arg:1
-    b's arg:2
-    c's arg:
-    <!-- 处理`-a 1 -b 2 -c 3 test -oo xx -test`，可以解析到`-c`，相当于移动5次，此时OPTIND=5+1 -->
-    处理完参数后的 OPTIND：6
-    移除已处理参数个数：5
-    参数索引位置：6
-    准备处理余下的参数：
-    Other Params: 3 test -oo xx -test
-    
-    <!-- bash b.sh -a 1 -c 3 -b 2 test -oo xx -test # 非参数选项注意顺序与值，不要多传 -->
-    初始 OPTIND: 1
-    a's arg:1
-    c's arg:
-    <!-- 处理`-a 1 -c 3 -b 2 test -oo xx -test`，可以解析到`-c`，相当于移动3次，此时OPTIND=3+1. 当解析到3的时候发现无法解析，则不再往后解析，全部归到其他参数 -->
-    处理完参数后的 OPTIND：4
-    移除已处理参数个数：3
-    参数索引位置：4
-    准备处理余下的参数：
-    Other Params: 3 -b 2 test -oo xx -test
-
-    <!-- bash b.sh -a 1 -c -b 2 test -oo xx -test -->
-    初始 OPTIND: 1
-    a's arg:1
-    c's arg:
-    b's arg:2
-    处理完参数后的 OPTIND：6
-    移除已处理参数个数：5
-    参数索引位置：6
-    准备处理余下的参数：
-    Other Params: test -oo xx -test
-    ```
-  - getopt示例
-
-    ```bash
-    #!/bin/bash
-
-    # -o: 表示短选项，一个冒号表示该选项有一个参数；两个冒号表示该选项有一个可选参数，可选参数必须紧贴选项，如-carg 而不能是-c arg
-    # --long: 表示长选项
-    # -n: 出错时的信息
-    # --: 用途举例，创建一个名字为 "-f"的目录，当`mkdir -f`时不成功，因为-f会被mkdir当作选项来解析; 这时就可以使用 `mkdir -- -f` 这样-f就不会被作为选项。
-    # $@: 从命令行取出参数列表(不能用用 $* 代替，因为 $* 将所有的参数解释成一个字符串，而 $@ 是一个参数数组)
-    TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
-        -n "$0" -- "$@"`
-      
-    # 上面一条命令执行出错则退出程序
-    if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
-    
-    # Note the quotes around `$TEMP': they are essential!
-    #set 会重新排列参数的顺序，也就是改变$1,$2...$n的值，这些值在getopt中重新排列过了。所有不包含选项的命令行参数都排到最后
-    eval set -- "$TEMP"
-      
-    function usage() {
-      echo "Usage: $0 {-a|--a-long} {-b|--b-long} {-c|--c-long}" ; 
-      exit 1 ;
-    }
-
-    # 如果一个参数都没有则则执行
-    if [ -z $2 ] ; then echo "None-argument..." ; usage ; exit 1 ; fi
-
-    #经过getopt的处理，下面处理具体选项。
-    while true ; do
-    case "$1" in
-    # `shift ;` 相当于 `shift 1 ;`，即将OPTIND回置1位
-    # 如 `run.sh -a -b 2`
-    # 第一次循环：$1=-a $2=-b $3=2, 匹配到`-a`，此时`shift ;`回置1位
-    # 第二次循环：$1=-b $2=2，匹配到`-b`
-    -a|--a-long) echo "Option a" ; shift ;;
-    # 将OPTIND回置2位，因为b参数名和b的参数值占命令行2位。-b为必填项，如果不填写则执行getopt命令时会报错
-    -b|--b-long) echo "Option b, argument \`$2\`" ; shift 2 ;;
-    -c|--c-long)
-        # c has an optional argument. As we are in quoted mode,
-        # an empty parameter will be generated if its optional
-        # argument is not found.
-        case "$2" in
-        "") echo "Option c, no argument"; shift 2 ;;
-        *)  echo "Option c, argument \`$2\`" ; shift 2 ;;
-        esac ;;
-    # break 停止循环
-    --) shift ; break ;;
-    *) echo "Internal error!" ; exit 1 ;;
+        b)
+            echo "b's arg:$OPTARG"
+            ;;
+        c)
+            echo "c's arg:$OPTARG"
+            ;;
+        ?)  #当有不认识的选项的时候arg为?
+            echo "unkonw argument"
+            exit 1
+        ;;
     esac
-    done
-
-    # $@为getopt表达式解析提取后剩余的其他参数数组
-    echo "Remaining arguments:"
-    for arg in $@ 
-    do
-    echo '--> '"\`$arg\`" ;
-    done
-
-    exit $?
-    ```
-  - getopt示例结果
-
-    ```bash
-    # ./run.sh
-    None-argument...
-    Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
-
-    # ./run.sh 123
-    Remaining arguments:
-    --> `123`
-
-    # ./run.sh --
-    None-argument...
-    Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
-
-    # ./run.sh -- 123 456
-    Remaining arguments:
-    --> `123`
-    --> `456`
+done
     
-    # ./run.sh -a --b-long 2
-    Option a
-    Option b, argument `2`
-    Remaining arguments:
+echo 处理完参数后的 OPTIND：$OPTIND
+echo 移除已处理参数个数：$((OPTIND-1))
+shift $((OPTIND-1)) # 上一条命令 $((OPTIND-1)) 对参数位置进行了修改，此时shift可以回置参数位置
+echo 参数索引位置：$OPTIND
+echo 准备处理余下的参数：
+echo "Other Params: $@"
+```
+- getopts示例结果
 
-    # ./run.sh -a -b 2 -c3 # 可选参数必须紧跟选项
-    Option a
-    Option b, argument `2`
-    Option c, argument `3`
-    Remaining arguments:
+```html
+<!-- bash b.sh -a 1 -b 2 -c 3 test -oo xx -test -->
+初始 OPTIND: 1
+a's arg:1
+b's arg:2
+c's arg:
+<!-- 处理`-a 1 -b 2 -c 3 test -oo xx -test`，可以解析到`-c`，相当于移动5次，此时OPTIND=5+1 -->
+处理完参数后的 OPTIND：6
+移除已处理参数个数：5
+参数索引位置：6
+准备处理余下的参数：
+Other Params: 3 test -oo xx -test
 
-    # ./run.sh -a -b 2 -c 3
-    Option a
-    Option b, argument `2`
-    Option c, no argument
-    Remaining arguments:
-    --> `3`
+<!-- bash b.sh -a 1 -c 3 -b 2 test -oo xx -test # 非参数选项注意顺序与值，不要多传 -->
+初始 OPTIND: 1
+a's arg:1
+c's arg:
+<!-- 处理`-a 1 -c 3 -b 2 test -oo xx -test`，可以解析到`-c`，相当于移动3次，此时OPTIND=3+1. 当解析到3的时候发现无法解析，则不再往后解析，全部归到其他参数 -->
+处理完参数后的 OPTIND：4
+移除已处理参数个数：3
+参数索引位置：4
+准备处理余下的参数：
+Other Params: 3 -b 2 test -oo xx -test
 
-    # ./run.sh -a 1 --b-long 2
-    Option a
-    Option b, argument `2`
-    Remaining arguments:
-    --> `1`
+<!-- bash b.sh -a 1 -c -b 2 test -oo xx -test -->
+初始 OPTIND: 1
+a's arg:1
+c's arg:
+b's arg:2
+处理完参数后的 OPTIND：6
+移除已处理参数个数：5
+参数索引位置：6
+准备处理余下的参数：
+Other Params: test -oo xx -test
+```
+- getopt示例
 
-    # ./run.sh -a -b 2 -c3 -- 4 5
-    Option a
-    Option b, argument `2`
-    Option c, argument `3`
-    Remaining arguments:
-    --> `4`
-    --> `5`
-    ```
+```bash
+#!/bin/bash
 
-#### 条件判断
+# -o: 表示短选项，一个冒号表示该选项有一个参数；两个冒号表示该选项有一个可选参数，可选参数必须紧贴选项，如-carg 而不能是-c arg
+# --long: 表示长选项
+# -n: 出错时的信息
+# --: 用途举例，创建一个名字为 "-f"的目录，当`mkdir -f`时不成功，因为-f会被mkdir当作选项来解析; 这时就可以使用 `mkdir -- -f` 这样-f就不会被作为选项。
+# $@: 从命令行取出参数列表(不能用用 $* 代替，因为 $* 将所有的参数解释成一个字符串，而 $@ 是一个参数数组)
+TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
+    -n "$0" -- "$@"`
+    
+# 上面一条命令执行出错则退出程序
+if [ $? != 0 ] ; then echo "Error..." >&2 ; usage ; exit 1 ; fi
 
-- 条件表达式 `[ expression ]` **注意其中的空格**
-    - `[ -z "$pid" ]` 单对中括号变量必须要加双引号，`[[ -z $pid ]]` 双对括号，变量不用加双引号
-    - `[[ ]]`内是不能使用 -a 或者 -o 进行比较，`[ ]`内可以
-- 条件表达式的逻辑关系
-    - **在linux中命令执行状态：0 为真，其他为假**
-    - `&&`(第一个表达式为true才会运行第二个)、`||`、`!`
-    - `-a` 逻辑与，如：`if  [ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ] ; then`
-    - `-o` 或
-- 控制结构
+# Note the quotes around `$TEMP': they are essential!
+#set 会重新排列参数的顺序，也就是改变$1,$2...$n的值，这些值在getopt中重新排列过了。所有不包含选项的命令行参数都排到最后
+eval set -- "$TEMP"
+    
+function usage() {
+    echo "Usage: $0 {-a|--a-long} {-b|--b-long} {-c|--c-long}" ; 
+    exit 1 ;
+}
 
-    ```shell
-    if 条件表达式 ; then
-        语句
-    elif 条件表达式 ; then
-        语句
-    else
-        语句
-    fi
-    ```
-- 整数比较
-    - `-eq` 相等，比如：`[ $A -eq  $B ]`
-    - `-ne` 不等
-    - `-gt` 大于
-    - `-lt` 小于
-    - `-ge` 大于等于
-    - `-le` 小于等于
-- 文件测试(需要中括号)
-    - `-e <file>` 测试文件是否存在
-    - `-f <file>` 测试文件是否为普通文件
-    - `-d <file>` 测试文件(linux是基于文件进行编程的)是否为目录
-    - `-r` 权限判断
-    - `-w`
-    - `-x`
-- 字符串测试
-    - `==` 或 `=` **等号两端需要空格**
-    - `=~` 正则比较
-    - `!=`
-    - `-z` 判断变量的值是否为空(为空，返回0，为true)
-    - `-n` 判断变量的值是否不为空(非空，返回0，为true)
-    - `-s <string>` 判非空
-    - `[[ $str != h* ]]` 判断字符串是否不是以h开头
-    - `[[ "$str" =~ ^he.* ]]` 判断字符串是否以he开头
-    - `[ "$item" \< /home/smalle/demo/$lastMon ]` 判断字符串小于(需要转义)
-- 常用判断
-    - `[[ $JAVA_HOME ]]` 判断是否存在此变量/环境变量
-    - `[[ -z $JAVA_HOME ]]` 判断此变量是否为空
-- 算术运算(其中任意一种即可)
-    - `let C=$A+$B` **(=、+附近不能有空格，下同。此时C不能有$，使用变量的使用才需要加$)**
-    - `C=$[$A+$B]`
-    - `C=$(($A+$B))`
-    - C=\`expr $A + $B\` (表达式中各操作数及运算符之间要有空格，而且要使用命令引用)
+# 如果一个参数都没有则则执行
+if [ -z $2 ] ; then echo "None-argument..." ; usage ; exit 1 ; fi
 
-#### 循环
-
-- 控制结构
-
-  ```shell
-  # for
-  for 变量 in 列表 ; do
-    语句
-  done
-  # 多行时，do后面需要加分号
-  for file in a.yaml b.yaml c.yaml  ; do wget https://github.com/test/test/raw/test/$file; done
-
-  # while
-  while 条件 ; do
-    语句
-    [break|continue]
-  done
-
-  # while死循环(true可以替换为[ 0 ]或[ 1 ])
-  while true
-  do
-      语句
-  done
-  ```
-- 如何生成列表
-	- `{1..100}`
-	- `seq [起始数] [跨度数] 结束数` 如：`seq 10`、`seq 1 2 10`
-	- `ls /etc 文件列表`
-
-#### case语句
-
-- 控制结构
-
-```shell
-case 变量 in
-	value1)
-		语句
-		;;
-	value2)
-		语句
-		;;
-	*)
-		语句
-		;;
+#经过getopt的处理，下面处理具体选项。
+while true ; do
+case "$1" in
+# `shift ;` 相当于 `shift 1 ;`，即将OPTIND回置1位
+# 如 `run.sh -a -b 2`
+# 第一次循环：$1=-a $2=-b $3=2, 匹配到`-a`，此时`shift ;`回置1位
+# 第二次循环：$1=-b $2=2，匹配到`-b`
+-a|--a-long) echo "Option a" ; shift ;;
+# 将OPTIND回置2位，因为b参数名和b的参数值占命令行2位。-b为必填项，如果不填写则执行getopt命令时会报错
+-b|--b-long) echo "Option b, argument \`$2\`" ; shift 2 ;;
+-c|--c-long)
+    # c has an optional argument. As we are in quoted mode,
+    # an empty parameter will be generated if its optional
+    # argument is not found.
+    case "$2" in
+    "") echo "Option c, no argument"; shift 2 ;;
+    *)  echo "Option c, argument \`$2\`" ; shift 2 ;;
+    esac ;;
+# break 停止循环
+--) shift ; break ;;
+*) echo "Internal error!" ; exit 1 ;;
 esac
+done
+
+# $@为getopt表达式解析提取后剩余的其他参数数组
+echo "Remaining arguments:"
+for arg in $@ 
+do
+echo '--> '"\`$arg\`" ;
+done
+
+exit $?
+```
+- getopt示例结果
+
+```bash
+# ./run.sh
+None-argument...
+Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
+
+# ./run.sh 123
+Remaining arguments:
+--> `123`
+
+# ./run.sh --
+None-argument...
+Usage: ./run.sh {-a|--a-long} {-b|--b-long} {-c|--c-long}
+
+# ./run.sh -- 123 456
+Remaining arguments:
+--> `123`
+--> `456`
+
+# ./run.sh -a --b-long 2
+Option a
+Option b, argument `2`
+Remaining arguments:
+
+# ./run.sh -a -b 2 -c3 # 可选参数必须紧跟选项
+Option a
+Option b, argument `2`
+Option c, argument `3`
+Remaining arguments:
+
+# ./run.sh -a -b 2 -c 3
+Option a
+Option b, argument `2`
+Option c, no argument
+Remaining arguments:
+--> `3`
+
+# ./run.sh -a 1 --b-long 2
+Option a
+Option b, argument `2`
+Remaining arguments:
+--> `1`
+
+# ./run.sh -a -b 2 -c3 -- 4 5
+Option a
+Option b, argument `2`
+Option c, argument `3`
+Remaining arguments:
+--> `4`
+--> `5`
 ```
 
 #### 多行输入
@@ -530,48 +565,67 @@ EOF
 
 ## linux命令
 
+### dd
+
+- 磁盘性能
+    - 固态硬盘，在SATA 2.0接口上平均读取速度在`225MB/S`，平均写入速度在`71MB/S`。在SATA 3.0接口上，平均读取速度骤然提升至`311MB/S`
+
+- 用于复制文件并对原文件的内容进行转换和格式化处理
+    
+```bash
+## 参数说明
+if      # 代表输入文件。如果不指定if，默认就会从stdin中读取输入
+of      # 代表输出文件。如果不指定of，默认就会将stdout作为默认输出
+bs      # 代表字节为单位的块大小，如64k
+count   # 代表被复制的块数，如4k/4000
+# 大多数文件系统的默认I/O操作都是缓存I/O，数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。dd命令不指定oflag或conv参数时默认使用缓存I/O
+oflag=direct    # 指定采用直接I/O操作。直接I/O的优点是通过减少操作系统内核缓冲区和应用程序地址空间的数据拷贝次数，降低了对文件读取和写入时所带来的CPU的使用以及内存带宽的占用
+oflag=dsync     # dd在执行时每次都会进行同步写入操作，可能是最慢的一种方式了，因为基本上没有用到写缓存(write cache)。每次读取64k后就要先把这64k写入磁盘(每次都同步)，然后再读取下面这64k，一共重复4k次(4000)。可能听到磁盘啪啪的响，比较伤磁盘
+oflag=syns      # 与上者dsyns类似，但同时也对元数据（描述一个文件特征的系统数据，如访问权限、文件拥有者及文件数据块的分布信息等。）生效，dd在执行时每次都会进行数据和元数据的同步写入操作
+conv=fdatasync  # dd命令执行到最后会执行一次"同步(sync)"操作，这时候得到的速度是读取这286M数据到内存并写入到磁盘上所需的时间
+conv=fsync      # 与上者fdatasync类似，但同时元数据也一同写入
+
+/dev/null # 伪设备，回收站，写该文件不会产生IO
+/dev/zero # 伪设备，会产生空字符流，但不会产生IO
+```
+- `dd if=/dev/zero of=test bs=64k count=4k oflag=dsync` 在当前目录创建文件test，并每次以64k的大小往文件中读写数据，总共执行4000次，最终产生test文件大小为268M。以此测试磁盘操作速度
+- 测试案例
+
+```bash
+# dd if=/dev/zero of=test bs=64k count=4k oflag=dsync # 测试结果如下
+268435456 bytes (268 MB) copied, 26.3299 s, 10.2 MB/s               # 本地 SSD 磁盘直接操作
+268435456 bytes (268 MB) copied, 261.475 s, 1.0 MB/s                # 本地 HDD 磁盘直接操作
+268435456 bytes (268 MB) copied, 14.8903 s, 18.0 MB/s               # 阿里云 SSD 磁盘直接操作
+                                                                    # 内网访问NFS(存储在SSD)
+```
+
+### sgdisk 磁盘操作工具
+
+```bash
+# 安装
+yum install -y gdisk
+
+# 查看所有GPT分区
+sgdisk -p /dev/sdb
+# 查看第一个分区
+sgdisk -i 1 /dev/sdb
+# 创建了一个不指定大小、不指定分区号的分区
+sgdisk -n 0:0:0 /dev/sdb # -n 分区号:起始地址:结束地址
+# 创建分区1，从默认起始地址开始的10G的分区
+sgdisk -n 1:0:+10G /dev/sdb
+# 将分区方案写入文件进行备份
+sgdisk --backup=/root/sdb.partitiontable /dev/sdb
+# 删除第一分区
+sgdisk -d 1 /dev/sdb
+# 删除所有分区(提示：GPT data structures destroyed!)
+sgdisk --zap-all --clear --mbrtogpt /dev/sdb
+```
+
+### 其他
+
 - `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
 - `yes y` 一直输出字符串y
     - `yes y | cp -i new old` `cp` 用文件覆盖就文件(`-i`存在old文件需进行提示，否则无需提示；`-f`始终不进行提示)，而此时前面会一致输出`y`，相当于自动输入了y进行确认cp操作
-- `dd` 用于复制文件并对原文件的内容进行转换和格式化处理
-    
-    ```bash
-    ## 参数说明
-    if # 代表输入文件。如果不指定if，默认就会从stdin中读取输入
-    of # 代表输出文件。如果不指定of，默认就会将stdout作为默认输出
-    bs # 代表字节为单位的块大小
-    count # 代表被复制的块数
-    /dev/zero # 是一个字符设备，会不断返回0值字节(\0)
-    ```
-    - `dd if=/dev/zero of=test bs=1M count=1024` 在当前目录创建文件test，并每次以1M的大小往文件中读写数据，总共执行1024此，最终产生test文件大小为1024M。以此测试磁盘操作速度
-    
-    ```bash
-    # dd if=/dev/zero of=test count=1024 bs=1M # 测试结果如下
-    1073741824 bytes (1.1 GB) copied, 6.58099 s, 163 MB/s               # 阿里云SSD磁盘直接操作
-    1073741824 bytes (1.0GB) copied, 97.515271 seconds, 10.5MB/s        # 内网访问NFS(存储在SSD)
-    ```
-- sgdisk磁盘操作工具
-
-    ```bash
-    # 安装
-    yum install -y gdisk
-
-    # 查看所有GPT分区
-    sgdisk -p /dev/sdb
-    # 查看第一个分区
-    sgdisk -i 1 /dev/sdb
-    # 创建了一个不指定大小、不指定分区号的分区
-    sgdisk -n 0:0:0 /dev/sdb # -n 分区号:起始地址:结束地址
-    # 创建分区1，从默认起始地址开始的10G的分区
-    sgdisk -n 1:0:+10G /dev/sdb
-    # 将分区方案写入文件进行备份
-    sgdisk --backup=/root/sdb.partitiontable /dev/sdb
-    # 删除第一分区
-    sgdisk -d 1 /dev/sdb
-    # 删除所有分区(提示：GPT data structures destroyed!)
-    sgdisk --zap-all --clear --mbrtogpt /dev/sdb
-    ```
-
 
 ## Tips
 
@@ -579,10 +633,16 @@ EOF
 - 直接执行github等网站脚本
 
     ```bash
-    # 法1(需要是raw类型的连接)
-    bash <(curl -L https://raw.githubusercontent.com/sprov065/v2-ui/master/install.sh) 2>&1 | tee mylog.log
+    # 法1(需要是raw类型的连接)。tee 实时重定向日志(同时也会在控制台打印，并且可进行交互)
+    bash <(curl -L https://raw.githubusercontent.com/sprov065/v2-ui/master/install.sh) 2>&1 | tee my.log
     # 法2(需要是raw类型的连接)
-    wget --no-check-certificate https://github.com/sprov065/blog/raw/master/bbr.sh && bash bbr.sh 2>&1 | tee mylog.log
+    wget --no-check-certificate https://github.com/sprov065/blog/raw/master/bbr.sh && bash bbr.sh 2>&1 | tee my.log
+    ```
+- 命令执行失败后，是否执行后续命令
+
+    ```bash
+    command || true     # 此command执行失败后继续执行后续命令
+    command || exit 0   # 此command执行失败后不执行后续命令
     ```
 
 ## 示例
@@ -792,13 +852,13 @@ echo 'to do what...'
 
 - 定时删除
     - `crontab -e` 编辑定时任务配置
-    - `00 02 * * * root /home/smalle/clear-log.sh` 添加配置
+    - `00 02 * * * root /home/smalle/script/clear-log.sh` 添加配置
     - `systemctl restart crond` 重启定时任务
 - clear-log.sh
 
 ```bash
 # clear-log.sh
-LOG_FILE=./clear-log.log
+LOG_FILE=~/script/clear-log.log
 LOG_SAVE_DAYS=30 # 日志保留天数
 NOW=$(date +'%y/%m/%d %H:%M:%S')
 echo "===============START $NOW==================" >> $LOG_FILE

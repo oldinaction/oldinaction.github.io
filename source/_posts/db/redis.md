@@ -8,13 +8,12 @@ tags: redis
 
 ## redis简介
 
-Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 string，hash，list，set，sorted set，bitmap 和 hyperloglog，所以常常被称为数据结构服务器。
-
+- Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 `string`，`hash`，`list`，`set`，`sorted` `set`，`bitmap` 和 `hyperloglog`，所以常常被称为数据结构服务器
 - 官网：[http://redis.io/](http://redis.io/)
 - redis源码：[redis Github](https://github.com/antirez/redis)
 - redis windows客户端(64x，官网不提供window安装包)：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
 - redis客户端连接管理软件：`RedisDesktopManager`
-- java操作redis(jar)：[jedis Github](https://github.com/xetorthio/jedis)
+- `jedis`：java操作redis(jar)：[jedis Github](https://github.com/xetorthio/jedis)
 
 ## 安装Redis服务
 
@@ -48,11 +47,13 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
     127.0.0.1:6379> get foo
     ```
 
-## 解决session一致性(session共享)
+## 应用
+
+### 解决session一致性(session共享)
 
 参考《nginx》的【反向代理和负载均衡】部分
 
-## springboot使用redis
+### springboot使用redis
 
 - 引入依赖
 
@@ -77,7 +78,7 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
     redisTemplate.opsForHash().get("myRedisKey", "myMapKey");
     ```
 
-## java中操作Redis
+### java中操作Redis
 
 - 引入jar包
   - 使用Java操作Redis需要jedis-2.1.0.jar，下载地址：http://files.cnblogs.com/liuling/jedis-2.1.0.jar.zip
@@ -146,16 +147,23 @@ Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓�
     }
 ```
 
-## redis对模糊查询的缺陷及解决方案
+### redis对模糊查询的缺陷及解决方案
 
 > redis本身适合作为缓存工具，不建议使用模糊查询等操作
 
 使用[https://code.google.com/archive/p/redis-search4j/](redis-search4j) ，使用了分词，解决了中文的模糊查询。（效果不好，测试发现会在服务器中存储大量无用的key）
 
+## 进阶
+
+### AOF
+
+- Redis 持久化之 AOF：http://tech-happen.site/fd3e9e30.html
+
+
 ---
 
-参考文章：
+参考文章
 
-[^1] [http://www.runoob.com/redis/redis-tutorial.html](菜鸟教程)
-[^2] [http://wiki.jikexueyuan.com/project/redis-guide/](极客学院 Wiki)
-[^3] [http://www.cnblogs.com/edisonfeng/p/3571870.html](java对redis的基本操作)
+[^1]: http://www.runoob.com/redis/redis-tutorial.html (菜鸟教程)
+[^2]: http://wiki.jikexueyuan.com/project/redis-guide/ (极客学院 Wiki)
+[^3]: http://www.cnblogs.com/edisonfeng/p/3571870.html (java对redis的基本操作)
