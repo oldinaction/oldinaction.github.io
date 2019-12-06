@@ -603,10 +603,10 @@ systemctl enable supervisord --now && systemctl status supervisord
 ## 创建守护进程配置文件
 cat > /etc/supervisord.d/node_exporter.ini << EOF
 [program:node_exporter]
-# 执行(启动)命令
-command=/usr/sbin/node_exporter
 # 执行 command 之前，先切换到工作目录
 # directory=/opt/test
+# 执行(启动)命令
+command=/usr/sbin/node_exporter
 autostart=true
 autorestart=true
 stdout_logfile=/var/log/supervisor/node_exporter.log
@@ -638,7 +638,7 @@ systemctl enable nfs --now && systemctl status nfs
 # 创建两个目录(v1,v2)并设置为任何人可读写
 mkdir /data/volumes/v{1,2} -pv && chmod 777 /data/volumes/v{1,2}
 # 编辑暴露配置
-cat > /etc/exports << EOF
+cat >> /etc/exports << EOF
 /data/volumes/v1 192.168.6.0/24(rw,sync,no_subtree_check,no_root_squash)
 /data/volumes/v2 192.168.6.0/24(rw,all_squash)
 EOF

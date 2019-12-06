@@ -626,7 +626,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
     - `name` 同以类别下名称需要唯一
     - `namespace` 命名空间。基于文件apply时，会将资源创建到此处定义的命名空间中；如果不定义可以通过`--namespace=dev`传入；如果定义了，则--namespace参数无法对其进行覆盖
     - `labels` 标签(限制长度)
-        - 常见的标签键名：app、tier(frontend/backend)、version、profile
+        - 常见的标签键名：app、tier(frontend/backend)、version、profile、env
     - `annotations` 资源注解(不限长度)，与lables不同的是不能用于挑选资源对象。一般是提供一些配置表示，如`nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"`
     - `selfLink` 每个资源引用PATH格式：`/apo/GROUP/VERSION/namespaces/NAMESPACE/TYPE/NAME`
 - `spec` 期望状态(disired state)
@@ -1858,13 +1858,15 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
     # 重启
     systemctl daemon-reload && systemctl restart kubelet
     ```
+- kubelet报错`orphaned pod "501454ff-c11c-4fd0-8ca0-5c89263399de" found, but volume paths are still present on disk`(对整体使用影响不大) [^11]
+    - 解决：root执行 `bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/k8s/prod/kubelet-issues-solution.sh)`
+    - 查看所有问题podid `cat /var/log/messages|grep 'orphaned pod'|awk -F '"' '{print $2}'|uniq`
 
 ### pod
 
 - 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container` 可查看对应pod的日志
 - 报错`Back-off restarting failed container`，可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
-- 报错`Volume is already exclusively attached to one node and can't be attached to another` [^10] (未测试)
-
+- 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试)
 
 ---
 
@@ -1878,5 +1880,5 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^8]: https://blog.fleeto.us/post/kubernetes-storage-performance-comparison/ (Kubernetes 存储性能对比)
 [^9]: https://zhuanlan.zhihu.com/p/44269163
 [^10]: https://fengxsong.github.io/2018/05/30/%E8%8A%82%E7%82%B9%E5%A5%94%E6%BA%83%E9%87%8D%E5%90%AF%E5%90%8E%E9%83%A8%E5%88%86pvc%E4%B8%8D%E8%83%BD%E6%AD%A3%E5%B8%B8%E6%8C%82%E8%BD%BD/
-
+[^11]: https://www.jianshu.com/p/a67316ee0288
 

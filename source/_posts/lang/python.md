@@ -359,7 +359,13 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 - `pip install scrapy` 安装
 - 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
 
-#### fabric 自动化运维
+#### paramiko/fabric/pexpect 自动化运维
+
+- `paramiko` 模块是基于Python实现的SSH远程安全连接，用于SSH远程执行命令、文件传输等功能
+- `fabric` 模块是在`paramiko`基础上又做了一层封装，操作起来更方便。主要用于多台主机批量执行任务
+- `pexpect` 是一个用来启动子程序，并使用正则表达式对程序输出做出特定响应，以此实现与其自动交互的Python模块
+
+##### fabric
 
 - 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
 - `pip install fabric` 或 `pip install fabric3` 安装
@@ -369,7 +375,7 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
     - 报错` fatal error: ffi.h: No such file or directory`
         - `yum install libffi libffi-devel` 安装libffi libffi-devel
 
-#### pexpect 远程命令控制
+##### pexpect
 
 - pexpect 是 Python 语言的类 Expect 实现。程序主要用于"人机对话"的模拟，如账号登录输入用户名和密码等情况
 - `pip install pexpect` 安装
@@ -380,9 +386,9 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 import pexpect
 
 # 登录，并指定目标机器编码
-process = pexpect.spawn('ssh root@123.206.101.205', encoding='utf-8')
+process = pexpect.spawn('ssh root@192.168.1.131', encoding='utf-8')
 process.expect(['password:', 'continue connecting (yes/no)?'])
-process.sendline('she&2018xia185hao')
+process.sendline('xxx')
 
 # 发送命令
 process.buffer = str('') # 清空缓冲区

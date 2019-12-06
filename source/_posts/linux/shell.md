@@ -126,7 +126,9 @@ tags: [shell, linux, lang]
     - `-x`
 - 字符串测试
     - `==` 或 `=` **等号两端需要空格**
+        - 如：`[[ $res == *"yes"* ]]`(通配符判断是否包含)
     - `=~` 正则比较
+        - 如：`[[ /bin/bash =~ sh$ ]]`、`[[ "$var" =~ $reg ]]`(`reg='^hello'`其中$reg不能加双引号)
     - `!=`
     - `-z` 判断变量的值是否为空。为空，返回0，即true
     - `-n` 判断变量的值是否不为空。非空，返回0，即true
@@ -190,16 +192,11 @@ case 变量 in
 esac
 ```
 
-### 脚本
+### 脚本说明
 
 - 注意文件格式必须是Unix格式(否则执行报错：`: No such file or directory`)
     - 解决办法：`vim my.sh` - `:set ff=unix` - `:x`
-- 执行`./my.sh`或`sh my.sh`或`bash my.sh`(有时需要添加可执行权限：`chmod +x my.sh`)
-	- `bash -n shell文件` 检查文件是否有语法错误(`sh -n`亦可)
-	- `bash -x shell 文件` **debug 执行文件**
-	- `.`、`exec`、`eval`命令执行脚本都不会产生子进程
-- `#!/bin/bash` 脚本第一行必须以此开头
-- `#` 表示注释
+- `#!/bin/bash` 脚本第一行建议以此开头
 - `exit` 退出脚本
 	- 退出脚本可以指定脚本执行的状态：`exit 0` 成功退出，`exit 1`/`exit 2`/... 失败退出
 - 脚本中使用`set -x` 是开启代码执行显示，`set +x`是关闭，`set -o`是查看(xtrace)。执行`set -x`后，对整个脚本有效
@@ -222,6 +219,27 @@ eeooff
 set +x
 
 echo done!
+```
+- 执行脚本
+
+```bash
+## 执行命令
+# 在当前shell内去读取、执行a.sh，而a.sh不需要有"执行权限"。`source/./exec/eval`命令执行脚本都不会产生子进程
+source a.sh
+. a.sh # source命令可以简写为"."
+# (注意)如果脚本中有`source`命令，则需要使用 source/. 来执行脚本，否则脚本中source命令不会生效
+
+# 都是打开一个subshell去读取、执行a.sh，而a.sh不需要有"执行权限"。通常在subshell里运行的脚本里设置变量，不会影响到父shell的
+sh a.sh
+bash a.sh
+# 打开一个subshell去读取、执行a.sh，但a.sh需要有"执行权限"(chmod +x a.sh)
+./a.sh
+
+## 调试 
+# 检查文件是否有语法错误(`sh -n`亦可)
+bash -n a.sh
+# debug 执行文件
+bash -x a.sh
 ```
 
 #### 简单示例
@@ -565,7 +583,268 @@ EOF
 
 ## linux命令
 
-### dd
+- linux三剑客grep、sed、awk语法
+
+### grep过滤器
+
+- 语法
+
+    ```bash
+    # grep [-acinv] [--color=auto] '搜寻字符串' filename
+    # 选项与参数：
+    # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
+    # -R 递归查询子目录
+    # -i 忽略大小写的不同，所以大小写视为相同
+    # -E 以 egrep 模式匹配
+    # -P 应用正则表达式
+    # -n 顺便输出行号
+    # -c 计算找到 '搜寻字符串' 的次数
+    # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
+    # -a 将 binary 文件以 text 文件的方式搜寻数据
+    ```
+- [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
+- 常见用法
+
+    ```bash
+    grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
+    grep 'search content' *.sql # 查找已`.sql`结尾的文件
+    grep -R 'test' /data/* # 在/data目录及其字母查询
+
+    grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
+    grep -A 5 'parttern' filename # 打印匹配行的后5行
+    grep -B 5 'parttern' filename # 打印匹配行的前5行
+
+    grep -E 'A|B' filename # 打印匹配 A 或 B 的数据
+    echo office365 | grep -P '\d+' -o # 返回 365
+    grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
+    grep -v 'A' filename # 打印不包含 A 的数据
+    ```
+
+### sed行编辑器
+
+- 文本处理，默认不编辑原文件，仅对模式空间中的数据做处理；而后处理结束后将模式空间打印至屏幕
+- 语法 `sed [options] '内部命令表达式' file ...`
+- 参数
+    - `-n` 静默模式，不再默认显示模式空间中的内容
+	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
+	- `-e script -e script` 可以同时执行多个脚本
+	- `-f`：如`sed -f /path/to/scripts file`
+	- `-r` 表示使用扩展正则表达式
+- 内部命令
+    - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
+	- **`s/pattern/string/修饰符`** 查找并替换
+        - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
+        - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
+        - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
+	- `d` 删除符合条件的行
+	- `p` 显示符合条件的行
+	- `a \string`: 在指定的行后面追加新行，内容为string
+		- `\n` 可以用于换行
+	- `i \string`: 在指定的行前面添加新行，内容为string
+	- `r <file>` 将指定的文件的内容添加至符合条件的行处
+	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
+	- `&` 引用模式匹配整个串
+- 示例
+
+    ```bash
+    # 删除/etc/grub.conf文件中行首的空白符
+    sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
+    # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
+    sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
+    # 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
+    sed '/^$/d' /etc/inittab
+    # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
+    sed -i -e '/^$/d' /home/smalle/test.txt
+
+    # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
+    echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
+    ```
+    - [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
+
+### awk文本分析工具
+
+- 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格/tab为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
+- 语法 
+
+    ```bash
+    awk '[BEGIN {}] {pattern + action} [END {}]' {filenames}
+    # pattern 表示AWK在文件中查找的内容。pattern就是要表示的正则表达式，用斜杠(`'/xxx/'`)括起来
+    # action 是在找到匹配内容时所执行的一系列命令(awk主命令)
+    # 花括号(`{}`)不需要在程序中始终出现，但它们用于根据特定的模式对一系列指令进行分组
+
+    ## awk --help
+    Usage: awk [POSIX or GNU style options] -f progfile [--] file ...
+    Usage: awk [POSIX or GNU style options] [--] 'program' file ...
+    POSIX options:		GNU long options: (standard)
+    -f progfile		--file=progfile         # 指定程序文件
+    -F fs			--field-separator=fs    # 指定域分割符(可使用正则，如 `-F '[\t \\\\]'`)
+    -v var=val		--assign=var=val
+    # ...
+    ```
+- 案例
+    - 显示最近登录的5个帐号：**`last -n 5 | awk '{print $1}'`**
+        - 读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
+    - 只是显示/etc/passwd中的账户：`cat /etc/passwd | awk -F ':' '{print $1}'`(`-F`指定域分隔符为`:`，默认是空格/tab)
+    - 查找root开头的用户记录: `awk -F : '/^root/' /etc/passwd`
+- awk中同时提供了`print`和`printf`两种打印输出的函数
+    - `print` 参数可以是变量、数值或者字符串。**字符串必须用双引号引用，参数用逗号分隔。**如果没有逗号，参数就串联在一起而无法区分。
+    - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时
+
+#### 变量
+
+- `$0`变量是指整条记录，`$1`表示当前行的第一个域，`$2`表示当前行的第二个域，以此类推
+- awk内置变量：awk有许多内置变量用来设置环境信息，这些变量可以被改变，下面给出了最常用的一些变量
+    - `ARGC` 命令行参数个数
+    - `ARGV` 命令行参数排列
+    - `ENVIRON` 支持队列中系统环境变量的使用
+    - `FILENAME` awk浏览的文件名
+    - `FNR` 浏览文件的记录数
+    - `FS` 设置输入域分隔符，等价于命令行-F选项
+    - `NF` 浏览记录的域的个数
+    - `NR` 已读的记录数
+    - `OFS` 输出域分隔符
+    - `ORS` 输出记录分隔符(`\n`)
+    - `RS` 控制记录分隔符
+- 自定义变量
+    - 下面统计/etc/passwd的账户人数
+
+        ```bash
+        awk '{count++;print $0;} END {print "user count is ", count}' /etc/passwd
+        # 打印如下
+        # root:x:0:0:root:/root:/bin/bash
+        # ......
+        # user count is 40
+        ```
+        - count是自定义变量。之前的action{}里都是只有一个print，其实print只是一个语句，而action{}可以有多个语句，以;号隔开。这里没有初始化count，虽然默认是0，但是妥当的做法还是初始化为0
+- awk与shell之间的变量传递方法
+    - awk中使用shell中的变量
+
+        ```bash
+        # 获取普通变量(第一个双引号为了转义单引号，第二个双引号为了转义变量中的空格)
+        var="hello world" && awk 'BEGIN{print "'"$var"'"}'
+        # 把系统变量var传递给了awk变量awk_var
+        var="hello world" && awk -v awk_var="$var" 'BEGIN {print awk_var}'
+
+        # 获取环境变量(ENVIRON)
+        var="hello world" && export var && awk 'BEGIN{print ENVIRON["var"]}'
+        ```
+    - awk向shell变量传递值
+
+        ```bash
+        eval $(awk 'BEGIN{print "var1='"'str 1'"';var2='"'str 2'"'"}') && echo "var1=$var1 ----- var2=$var2" # var1=str1 ----- var2=str2
+        # 读取temp_file中数据设置到变量中(temp_file中输入`hello world:test`，如果文件中有多行，则最后一行会覆盖原来的赋值)
+        eval $(awk '{printf("var3=%s; var4=%s;",$1,$2)}' temp_file) && echo "var3=$var3 ----- var4=$var4" # var3=hello ----- var4=world:test
+        ```
+
+#### BEGIN/END
+
+- 提供`BEGIN/END`语句(必须大写)
+    - BEGIN和END，这两者都可用于pattern中，**提供BEGIN的作用是扫描输入之前赋予程序初始状态，END是扫描输入结束且在程序结束之后执行一些扫尾工作**。任何在BEGIN之后列出的操作(紧接BEGIN后的{}内)将在awk开始扫描输入之前执行，而END之后列出的操作将在扫描完全部的输入之后执行。通常使用BEGIN来显示变量和预置(初始化)变量，使用END来输出最终结果。
+    - 统计某个文件夹下的文件占用的字节数，过滤4096大小的文件(一般都是文件夹):
+
+        ```bash
+        ls -l | awk 'BEGIN {size=0;print "[start]size is", size} {if($5!=4096){size=size+$5;}} END {print "[end]size is", size/1024/1024, "M"}'
+        # 打印如下
+        # [start]size is 0
+        # [end]size is 30038.8 M
+        ```
+- 支持if判断、循环等语句
+
+### find
+
+```bash
+## 语法
+# default path is the current directory; default expression is -print
+# expression由options、tests、actions组成
+find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...] [expression]
+
+## expression#options
+-mindepth n # 目录进入最小深度
+    # eg: -mindepth 1 # 意味着处理所有的文件，除了命令行参数指定的目录中的文件
+-maxdepth n # 目录进入最大深度
+    # eg: -maxdepth 0 # 只处理当前目录的文件(.)
+
+## expression#tests
+-name patten # 基本的文件名与shell模式pattern相匹配
+    # eg: -name *.log # `.log`开头的文件
+-type c # 文件类型，c取值
+    f # 普通文件
+    d # 目录
+-mtime n # 对文件数据的最近一次修改是在 n*24 小时之前
+    # eg: -mtime +30 # 30天之前的文件
+
+## expression#actions
+-exec command # 执行命令
+    # 命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\` 来escape 或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
+    # eg: -exec cp {} {}.bak \; # 删除查询到的文件
+
+## 其他示例
+find -type f | xargs # xargs会在一行中打印出所有值
+for item in $(find -type f | xargs) ; do
+    file $item
+done
+```
+
+### logger
+
+- `rsyslog`是一个C/S架构的服务，可监听于某套接字，帮其它主机记录日志信息。rsyslog是CentOS 6以后的系统使用的日志系统，之前为syslog
+- `logger` 是用于往系统中写入日志，他提供一个shell命令接口到rsyslog系统模块。默认记录到系统日志文件`/var/log/messages`
+- Linux系统日志信息分为两个部分内核信息和设备信息。共用配置文件`/etc/rsyslog.conf`(CentOS 6之前为`/etc/syslog.conf`)
+    - 内核信息 -> klogd -> syslogd -> /var/log/messages等文件
+    - 设备信息 -> syslogd -> /var/log/dmesg、/var/log/messages等文件
+        - 设备可以使用自定义的设备local0-local7，使用自定义的设备照样可以将设备信息(日志)发送给rsyslog
+- 查看linux相关日志
+    - `/var/log/messages` 查看系统日志
+    - `dmesg` 查看设备日志，如引导时的日志
+    - `last` 查看登录成功记录
+    - `lastb -10` 查看最近10条登录失败记录
+    - `history` 执行命令历史
+- logger使用案例 [^6]
+
+```bash
+## 简单使用
+# 默认记录到系统日志文件 /var/log/messages
+logger hello world  # 记录如 `Dec  5 15:34:58 localhost root: hello world`
+# -i 记录进程id
+logger -i test1...  # `Dec  5 15:34:58 localhost root[23162]: test1`
+# -s 输出标准错误(命令行会显示此错误)，并且将信息打印到系统日志中
+logger -i -s test2  # `Dec  5 15:34:58 localhost root[23162]: test2`
+# -t 日志标记，默认是root
+logger -i -t test test3 # `Dec  5 15:34:58 localhost test[23162]: test2`
+# -p 指定输入消息日志级别，优先级可以是数字或者指定为 "facility(设施、信道).level(优先级)" 的格式(默认级别为 "user.notice")，日志会根据配置文件/etc/rsyslog.conf将日志输出到对应日志文件，默认为/var/log/messages
+# 固定的 facility 和 level 的类型参考：https://www.cnblogs.com/xingmuxin/p/8656498.html
+logger -it test -p syslog.info "test4..." # `Dec  5 15:34:58 localhost test[23162]: test4...`
+
+## 基于日志级别自定义日志输出文件
+# 修改日志配置文件。增加配置`local1.info /var/log/local1-info.log`
+vi /etc/rsyslog.conf
+systemctl restart rsyslog # 重启使配置文件生效
+logger -it test -p local1.info "test5..." # 此时在 /var/log/local1-info.log 中可看到 `Dec  5 15:34:58 localhost test[23162]: test5...`
+```
+- `/etc/rsyslog.conf` 配置说明
+    - 会自动根据日志文件大小切割日志，生成 xxx-YYYYMMDD 的日志历史
+    - 修改日志文件后需要重启服务 `systemctl restart rsyslog` (重启后新配置生效会有一点延迟)
+
+```bash
+#### RULES ####
+# 如果日志级别为 local1.info，则将日志输出到文件 /var/log/local1-info.log
+local1.info /var/log/local1-info.log
+
+# ### begin forwarding rule ###
+# 可配置同步日志到远程机器
+```
+
+#### 记录命令执行历史到日志文件
+
+```bash
+# root用户执行
+su - root
+source <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/conf-recode-cmd-history.sh)
+# 查看日志
+tail -f /var/log/local1-info.log
+```
+
+### dd 磁盘读写测试
 
 - 磁盘性能
     - 固态硬盘，在SATA 2.0接口上平均读取速度在`225MB/S`，平均写入速度在`71MB/S`。在SATA 3.0接口上，平均读取速度骤然提升至`311MB/S`
@@ -596,7 +875,8 @@ conv=fsync      # 与上者fdatasync类似，但同时元数据也一同写入
 268435456 bytes (268 MB) copied, 26.3299 s, 10.2 MB/s               # 本地 SSD 磁盘直接操作
 268435456 bytes (268 MB) copied, 261.475 s, 1.0 MB/s                # 本地 HDD 磁盘直接操作
 268435456 bytes (268 MB) copied, 14.8903 s, 18.0 MB/s               # 阿里云 SSD 磁盘直接操作
-                                                                    # 内网访问NFS(存储在SSD)
+268435456 bytes (268 MB, 256 MiB) copied, 1637.61 s, 164 kB/s       # 本地ceph集群(1 ssd + 2 hdd)
+268435456 bytes (268 MB, 256 MiB) copied, 90.0906 s, 3.0 MB/s       # 本地ceph集群(3 ssd)
 ```
 
 ### sgdisk 磁盘操作工具
@@ -634,7 +914,7 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
 
     ```bash
     # 法1(需要是raw类型的连接)。tee 实时重定向日志(同时也会在控制台打印，并且可进行交互)
-    bash <(curl -L https://raw.githubusercontent.com/sprov065/v2-ui/master/install.sh) 2>&1 | tee my.log
+    bash <(curl -L https://raw.githubusercontent.com/sprov065/v2-ui/master/install.sh) 2>&1 | tee my.log # 此处 bash 也可改成 source
     # 法2(需要是raw类型的连接)
     wget --no-check-certificate https://github.com/sprov065/blog/raw/master/bbr.sh && bash bbr.sh 2>&1 | tee my.log
     ```
@@ -644,6 +924,7 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     command || true     # 此command执行失败后继续执行后续命令
     command || exit 0   # 此command执行失败后不执行后续命令
     ```
+- `cp`命令强制覆盖不提示 `\cp test test.bak`
 
 ## 示例
 
@@ -653,7 +934,7 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
 - 将脚本加入到开机启动`chkconfig --add my_script`
 
 ```shell
-#!/bin/sh
+#!/bin/bash
 #
 #警告!!!：该脚本stop部分使用系统kill命令来强制终止指定的java程序进程。
 #在杀死进程前，未作任何条件检查。在某些情况下，如程序正在进行文件或数据库写操作，
@@ -902,7 +1183,7 @@ date +%s%N | md5sum | head -c 10
 ```bash
 #!/bin/bash
 
-function rand(){
+function rand() {
     min=$1
     max=$(($2-$min+1))
     # num=$(($RANDOM+1000000000)) #增加一个10位的数再求余
@@ -1030,6 +1311,15 @@ db_load -T -t hash -f $vuser_file $vuser_file'.db' ; # 重新生成vsftpd虚拟�
 exit $?
 ```
 
+### 日期
+
+```bash
+date_echo() {
+    echo `date "+%H:%M:%S-%Y-%m-%d"` $1
+}
+date_echo "Starting ..." # 输出：11:46:43-2019-12-05 Starting ...
+```
+
 ## C 源码脚本
 
 ### 简单示例
@@ -1079,3 +1369,6 @@ int main()
 [^3]: https://www.cnblogs.com/yxzfscg/p/5338775.html
 [^4]: https://www.cnblogs.com/softidea/p/6855045.html
 [^5]: https://blog.csdn.net/frank_liuxing/article/details/54017813
+[^6]: https://www.cnblogs.com/xingmuxin/p/8656498.html
+
+

@@ -340,30 +340,28 @@ kubectl get pod -n ingress-nginx -o wide
 helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-nginx.yaml
 ```
 
-### Dashboard
+### Kubernetes Dashboard
+
+> https://hub.kubeapps.com/charts/stable/kubernetes-dashboard
 
 ```bash
 ## 提前创建tls类型的secret，名称为k8s-aezo-cn-tls。否则无法访问，会显示`default backend - 404`。下文 kubernetes-dashboard.yaml 配置中使用 certmanager 自动创建证书
-# 手动创建证书
+# 手动创建证书(或者采用certmanager自动生成证书)
 #openssl genrsa -out aezocn.key 2048
 #openssl req -new -x509 -key aezocn.key -out aezocn.crt -subj /C=CN/ST=Beijing/L=Beijing/O=DevOps/CN=k8s.aezo.cn # 此处CN=k8s.aezo.cn一定要对应
 #kubectl create secret tls k8s-aezo-cn-tls --cert=aezocn.crt --key=aezocn.key
 
-## 如下文创建配置文件
-vi kubernetes-dashboard.yaml
 ## 安装
-helm repo update
+# 如下文创建配置文件
+vi kubernetes-dashboard.yaml
 helm install stable/kubernetes-dashboard --version 1.8.0 -n kubernetes-dashboard --namespace kube-system -f kubernetes-dashboard.yaml
-
-## 查看状态和登录token
-kubectl -n kube-system get pods
-kubectl get secret $(kubectl get secret -n kube-system|grep kubernetes-dashboard-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo
-
-## 更新删除
+## 更新/删除
 helm upgrade kubernetes-dashboard stable/kubernetes-dashboard --version 1.8.0 -f kubernetes-dashboard.yaml
 helm del --purge kubernetes-dashboard
 
-## 其他
+# 查看状态和登录token
+kubectl -n kube-system get pods
+kubectl get secret $(kubectl get secret -n kube-system|grep kubernetes-dashboard-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo
 # 修改token过期时间(session过期时间)，默认是15分钟(900秒)：在 `- --auto-generate-certificates` 下加一行参数 `- --token-ttl=31536000‬` (1年有效)
 kubectl edit deployment kubernetes-dashboard -n kube-system
 # 创建只能访问某命名空间的sa账户参考[kubernetes](/_posts/devops/kubernetes.md)
@@ -468,7 +466,7 @@ extraScrapeConfigs: |
     scrape_interval: 5s
     static_configs:
     - targets: ['192.168.6.130:9100']
-  # 需要安装Prometheus Blackbox Exporter，参考下午
+  # 需要安装Prometheus Blackbox Exporter，参考下文。详细配置参考 [http://blog.aezo.cn/2019/09/19/devops/prometheus/](/_posts/devops/prometheus.md#blackbox_exporter%20网络探测-黑盒监控(官方))
   - job_name: 'blackbox_http_2xx_prod'
     scrape_interval: 30s
     metrics_path: /probe
@@ -491,24 +489,21 @@ alertmanager:
 alertmanagerFiles:
   alertmanager.yml:
     global:
-      resolve_timeout: 5m
       smtp_smarthost: 'smtp.163.com:25'
       smtp_from: 'aezo-prometheus<aezocn@163.com>'
       smtp_auth_username: 'aezocn@163.com'
       smtp_auth_password: 'XXX'
     route:
-      receiver: 'email-receiver'
-      group_wait: 30s
-      group_interval: 1m
-      repeat_interval: 60m
+      receiver: 'default-receiver'
       routes:
       - match:
-          severity: critical
-        receiver: email-receiver
+          severity: warning
+        receiver: slack-receiver
     receivers:
-    - name: 'email-receiver'
+    - name: 'default-receiver'
       email_configs:
       - to: 'aezocn@163.com'
+        send_resolved: true
     - name: 'slack-receiver'
       slack_configs:
       - send_resolved: true
@@ -519,43 +514,52 @@ serverFiles:
   # 常用报警规则，可选
   alerts:
     groups:
-    - name: NodeAlerts
+    - name: node-resource
       rules:
-      - alert: 节点CPU使用率告警
-        expr: (100 - avg (irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 85
+      - alert: node-cpu-higher
+        expr: (100 - avg (irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 90
         for: 2m
         labels:
-          severity: critical
+          severity: warning
         annotations:
-          description: '详细信息：{{$labels.instance}} 在 2 分钟内，CPU使用率一直超过 85% (当前值为: {{ $value }})'
           summary: '{{$labels.instance}}: CPU使用过高'
-      - alert: 节点内存使用率告警
+          description: '详细信息：{{$labels.instance}} 在 2 分钟内，CPU使用率一直超过 90% (当前值为: {{ $value }})'
+      - alert: node-mem-higher
         expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes )) / node_memory_MemTotal_bytes * 100 > 90
         for: 2m
         labels:
-          severity: critical
+          severity: warning
         annotations:
-          description: '详细信息：{{$labels.instance}} 在 2 分钟内，内存使用率一直超过 90% (当前值为: {{ $value }})'
           summary: '{{$labels.instance}}: 内存使用过高'
-      - alert: 节点磁盘空间告警
+          description: '详细信息：{{$labels.instance}} 在 2 分钟内，内存使用率一直超过 90% (当前值为: {{ $value }})'
+      - alert: node-disk-higher
         expr: ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100) > 85
         for: 1m
         labels:
-          severity: critical
+          severity: warning
         annotations:
-          description: '详细信息：{{$labels.instance}} 磁盘 {{ $labels.device }} 使用率超过 85% (当前值为: {{ $value }})'
           summary: '{{$labels.instance}}: 磁盘空间不足'
-      - alert: NodeExport运行状态告警
-        expr: up{job="my-job"} != 1
-        for: 5m
+          description: '详细信息：{{$labels.instance}} 磁盘 {{ $labels.device }} 使用率超过 85% (当前值为: {{ $value }})'
+    - name: prometheus
+      rules:
+      - alert: prometheus-job-down
+        expr: up{job="node-test"} == 0 or up{job="blackbox_http_k8s"} == 0 or up{job="blackbox_http_external"} == 0
+        for: 10s
         labels:
-          severity: critical
+          severity: warning
         annotations:
-          description: '详细信息：{{$labels.instance}} 在 5 分钟内, NodeExport未正常运行'
-          summary: '{{$labels.instance}}: NodeExport运行异常'
+          summary: "Prometheus 任务 {{ $labels.job }} 执行异常"
+    - name: probe-http
+      rules:
+      - alert: probe-http-prod
+        expr: probe_success == 0
+        for: 20s
+        annotations:
+          summary: "网站 {{ $labels.instance }} 访问异常"
 EOF
 helm install --name prometheus --namespace monitoring stable/prometheus --version 9.0.0 -f prometheus-values.yaml
 
+# 更新后会自动重新加载prometheus配置文件。如果配置文件应用更新出错，不会有报错提示，看看prometheus-server的日志即可
 helm upgrade prometheus stable/prometheus --version 9.0.0 -f prometheus-values.yaml
 helm del --purge prometheus
 
@@ -592,6 +596,7 @@ grafana.ini:
     user: "test@gmail.com"
     password: "pass"
 # 使用NFS存储时，初始化容器chown运行出错，此处禁用初始化过程。另可参考：https://github.com/helm/charts/issues/1071
+# 可能由于NFS权限没有设置成no_root_squash
 initChownData:
   enabled: false
 EOF
@@ -971,7 +976,7 @@ helm del --purge jenkins
     {{ ... }}
 {{- end }}
 ```
-- **with**
+- **with** 按条件设置 . 值
 
 ```go
 // 当exp不为0值时，点"."设置为exp运算的值，并执行T1；否则跳过
@@ -1024,9 +1029,25 @@ grafana.ini:
 - `toYaml`
 
 ```yaml
+# 示例1
 data:
   blackbox.yaml: |
 {{ toYaml .Values.config | indent 4 }} # indent 4，所有都缩进4个空格
+# Values
+config: 
+  key: 'val'
+
+# 示例2
+metadata:
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+# Values
+ingress: 
+  annotations:
+    key1: 'val1'
+    key2: 'val2'
 ```
 
 

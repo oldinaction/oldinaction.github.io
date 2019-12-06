@@ -399,7 +399,8 @@ lsmod |grep br_netfilter
 - `lsblk` **树形显示磁盘即分区**
     - `fdisk -l` 查看磁盘设备
     - `ll /dev | grep disk`查看磁盘设备
-- `dmesg | grep CD` 显示光盘信息。其中dmesg为显示硬件信息，可用于硬件故障诊断
+- `findmnt` 查看所有挂载的目录
+- `dmesg -T | grep CD` 显示光盘信息，`-T`时间格式化。**其中dmesg为显示硬件信息，可用于硬件故障诊断**
 - 磁盘分区和挂载
     - 参考《阿里云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘》 [^10]
     - 一般阿里云服务器买的磁盘未进行格式化文件系统和挂载，`df -h`无法查询到磁盘设备，只能通过`fdisk -l`查看磁盘设备
@@ -648,7 +649,7 @@ lsmod |grep br_netfilter
 
 #### gz
 
-- 解压：`zcat test.sql.gz > test.sql`
+- `zcat test.sql.gz > test.sql` 解压
 
 #### unzip
 
@@ -772,210 +773,6 @@ lsmod |grep br_netfilter
     - 按`Esc`即可全部注释
 - 批量删除注释：`ctrl+v`进入列编辑模式，横向选中列的个数(如"//"注释符号需要选中两列)，然后按`d`就会删除注释符号
 - **跟shell交互**：`:! COMMAND` 在命令模式下执行外部命令，如mkdir
-
-## 命令详解
-
-- linux三剑客grep、sed、awk语法
-
-### grep过滤器
-
-- 语法
-
-    ```bash
-    # grep [-acinv] [--color=auto] '搜寻字符串' filename
-    # 选项与参数：
-    # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
-    # -R 递归查询子目录
-    # -i 忽略大小写的不同，所以大小写视为相同
-    # -E 以 egrep 模式匹配
-    # -P 应用正则表达式
-    # -n 顺便输出行号
-    # -c 计算找到 '搜寻字符串' 的次数
-    # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
-    # -a 将 binary 文件以 text 文件的方式搜寻数据
-    ```
-- [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
-- 常见用法
-
-    ```bash
-    grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
-    grep 'search content' *.sql # 查找已`.sql`结尾的文件
-    grep -R 'test' /data/* # 在/data目录及其字母查询
-
-    grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
-    grep -A 5 'parttern' filename # 打印匹配行的后5行
-    grep -B 5 'parttern' filename # 打印匹配行的前5行
-
-    grep -E 'A|B' filename # 打印匹配 A 或 B 的数据
-    echo office365 | grep -P '\d+' -o # 返回 365
-    grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
-    grep -v 'A' filename # 打印不包含 A 的数据
-    ```
-
-### sed行编辑器
-
-- 文本处理，默认不编辑原文件，仅对模式空间中的数据做处理；而后处理结束后将模式空间打印至屏幕
-- 语法 `sed [options] '内部命令表达式' file ...`
-- 参数
-    - `-n` 静默模式，不再默认显示模式空间中的内容
-	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
-	- `-e script -e script` 可以同时执行多个脚本
-	- `-f`：如`sed -f /path/to/scripts file`
-	- `-r` 表示使用扩展正则表达式
-- 内部命令
-    - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
-	- **`s/pattern/string/修饰符`** 查找并替换
-        - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
-        - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
-        - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
-	- `d` 删除符合条件的行
-	- `p` 显示符合条件的行
-	- `a \string`: 在指定的行后面追加新行，内容为string
-		- `\n` 可以用于换行
-	- `i \string`: 在指定的行前面添加新行，内容为string
-	- `r <file>` 将指定的文件的内容添加至符合条件的行处
-	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
-	- `&` 引用模式匹配整个串
-- 示例
-
-    ```bash
-    # 删除/etc/grub.conf文件中行首的空白符
-    sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
-    # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
-    sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
-    # 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
-    sed '/^$/d' /etc/inittab
-    # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
-    sed -i -e '/^$/d' /home/smalle/test.txt
-
-    # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
-    echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
-    ```
-    - [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
-
-### awk文本分析工具
-
-- 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格/tab为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
-- 语法 
-
-    ```bash
-    awk '[BEGIN {}] {pattern + action} [END {}]' {filenames}
-    # pattern 表示AWK在文件中查找的内容。pattern就是要表示的正则表达式，用斜杠(`'/xxx/'`)括起来
-    # action 是在找到匹配内容时所执行的一系列命令(awk主命令)
-    # 花括号(`{}`)不需要在程序中始终出现，但它们用于根据特定的模式对一系列指令进行分组
-
-    ## awk --help
-    Usage: awk [POSIX or GNU style options] -f progfile [--] file ...
-    Usage: awk [POSIX or GNU style options] [--] 'program' file ...
-    POSIX options:		GNU long options: (standard)
-    -f progfile		--file=progfile         # 指定程序文件
-    -F fs			--field-separator=fs    # 指定域分割符(可使用正则，如 `-F '[\t \\\\]'`)
-    -v var=val		--assign=var=val
-    # ...
-    ```
-- 案例
-    - 显示最近登录的5个帐号：**`last -n 5 | awk '{print $1}'`**
-        - 读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
-    - 只是显示/etc/passwd中的账户：`cat /etc/passwd | awk -F ':' '{print $1}'`(`-F`指定域分隔符为`:`，默认是空格/tab)
-    - 查找root开头的用户记录: `awk -F : '/^root/' /etc/passwd`
-- awk中同时提供了`print`和`printf`两种打印输出的函数
-    - `print` 参数可以是变量、数值或者字符串。**字符串必须用双引号引用，参数用逗号分隔。**如果没有逗号，参数就串联在一起而无法区分。
-    - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时
-
-#### 变量
-
-- `$0`变量是指整条记录，`$1`表示当前行的第一个域，`$2`表示当前行的第二个域，以此类推
-- awk内置变量：awk有许多内置变量用来设置环境信息，这些变量可以被改变，下面给出了最常用的一些变量
-    - `ARGC` 命令行参数个数
-    - `ARGV` 命令行参数排列
-    - `ENVIRON` 支持队列中系统环境变量的使用
-    - `FILENAME` awk浏览的文件名
-    - `FNR` 浏览文件的记录数
-    - `FS` 设置输入域分隔符，等价于命令行-F选项
-    - `NF` 浏览记录的域的个数
-    - `NR` 已读的记录数
-    - `OFS` 输出域分隔符
-    - `ORS` 输出记录分隔符(`\n`)
-    - `RS` 控制记录分隔符
-- 自定义变量
-    - 下面统计/etc/passwd的账户人数
-
-        ```bash
-        awk '{count++;print $0;} END {print "user count is ", count}' /etc/passwd
-        # 打印如下
-        # root:x:0:0:root:/root:/bin/bash
-        # ......
-        # user count is 40
-        ```
-        - count是自定义变量。之前的action{}里都是只有一个print，其实print只是一个语句，而action{}可以有多个语句，以;号隔开。这里没有初始化count，虽然默认是0，但是妥当的做法还是初始化为0
-- awk与shell之间的变量传递方法
-    - awk中使用shell中的变量
-
-        ```bash
-        # 获取普通变量(第一个双引号为了转义单引号，第二个双引号为了转义变量中的空格)
-        var="hello world" && awk 'BEGIN{print "'"$var"'"}'
-        # 把系统变量var传递给了awk变量awk_var
-        var="hello world" && awk -v awk_var="$var" 'BEGIN {print awk_var}'
-
-        # 获取环境变量(ENVIRON)
-        var="hello world" && export var && awk 'BEGIN{print ENVIRON["var"]}'
-        ```
-    - awk向shell变量传递值
-
-        ```bash
-        eval $(awk 'BEGIN{print "var1='"'str 1'"';var2='"'str 2'"'"}') && echo "var1=$var1 ----- var2=$var2" # var1=str1 ----- var2=str2
-        # 读取temp_file中数据设置到变量中(temp_file中输入`hello world:test`，如果文件中有多行，则最后一行会覆盖原来的赋值)
-        eval $(awk '{printf("var3=%s; var4=%s;",$1,$2)}' temp_file) && echo "var3=$var3 ----- var4=$var4" # var3=hello ----- var4=world:test
-        ```
-
-#### BEGIN/END
-
-- 提供`BEGIN/END`语句(必须大写)
-    - BEGIN和END，这两者都可用于pattern中，**提供BEGIN的作用是扫描输入之前赋予程序初始状态，END是扫描输入结束且在程序结束之后执行一些扫尾工作**。任何在BEGIN之后列出的操作(紧接BEGIN后的{}内)将在awk开始扫描输入之前执行，而END之后列出的操作将在扫描完全部的输入之后执行。通常使用BEGIN来显示变量和预置(初始化)变量，使用END来输出最终结果。
-    - 统计某个文件夹下的文件占用的字节数，过滤4096大小的文件(一般都是文件夹):
-
-        ```bash
-        ls -l | awk 'BEGIN {size=0;print "[start]size is", size} {if($5!=4096){size=size+$5;}} END {print "[end]size is", size/1024/1024, "M"}'
-        # 打印如下
-        # [start]size is 0
-        # [end]size is 30038.8 M
-        ```
-- 支持if判断、循环等语句
-
-### find
-
-```bash
-## 语法
-# default path is the current directory; default expression is -print
-# expression由options、tests、actions组成
-find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...] [expression]
-
-## expression#options
--mindepth n # 目录进入最小深度
-    # eg: -mindepth 1 # 意味着处理所有的文件，除了命令行参数指定的目录中的文件
--maxdepth n # 目录进入最大深度
-    # eg: -maxdepth 0 # 只处理当前目录的文件(.)
-
-## expression#tests
--name patten # 基本的文件名与shell模式pattern相匹配
-    # eg: -name *.log # `.log`开头的文件
--type c # 文件类型，c取值
-    f # 普通文件
-    d # 目录
--mtime n # 对文件数据的最近一次修改是在 n*24 小时之前
-    # eg: -mtime +30 # 30天之前的文件
-
-## expression#actions
--exec command # 执行命令
-    # 命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\` 来escape 或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
-    # eg: -exec cp {} {}.bak \; # 删除查询到的文件
-
-## 其他示例
-find -type f | xargs # xargs会在一行中打印出所有值
-for item in $(find -type f | xargs) ; do
-    file $item
-done
-```
 
 ## 权限系统
 
@@ -1221,16 +1018,12 @@ done
     - `,` 表示附加一个可能值
     - `/` 符号前表示开始时间，符号后表示每次递增的值
 
-## 网络
-
-参考 [《网络》http://blog.aezo.cn/2019/06/20/linux/network/](/_posts/linux/network.md#Linux网络)
-
 ## 工具
 
 - https://linuxtools-rst.readthedocs.io/zh_CN/latest/tool/index.html
-- pstack 跟踪进程栈
-- strace 跟踪进程中的系统调用
-- top linux下的任务管理器
+- `pstack` 跟踪进程栈
+- `strace` 跟踪进程中的系统调用
+- `top` linux下的任务管理器
 
 ## 内核
 
@@ -1329,6 +1122,10 @@ vm.dirty_writeback_centisecs = 500
         - `src` 系统级的源码目录
         - `/local/src`：用户级的源码目录
     - `/opt` **标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包**。用户级的程序目录，可以理解为D:/Software，opt有可选的意思，这里可以用于放置第三方大型软件（或游戏），当不需要时，直接rm -rf掉即可。在硬盘容量不够时，也可将/opt单独挂载到其他磁盘上使用
+
+### 网络
+
+参考 [《网络》http://blog.aezo.cn/2019/06/20/linux/network/](/_posts/linux/network.md#Linux网络)
 
 ## xshell使用
 

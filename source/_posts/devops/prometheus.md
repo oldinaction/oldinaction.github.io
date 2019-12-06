@@ -50,6 +50,8 @@ docker run -d -p 9090:9090 \
 # 访问 http://192.168.6.131:9090 进入web界面
 # 访问 http://192.168.6.131:9090/metrics 查看Prometheus Server自身的metrics信息，默认prometheus会抓取自己的/metrics接口数据
 # 访问 http://192.168.6.131:9090/targets 显示所有被抓取metrics信息的目标即其状态
+# 访问 http://192.168.6.131:9090/service-discovery 显示发现的服务及相应标签
+# POST http://192.168.6.131:9090/-/reload 可重新加载prometheus配置文件(需开启--web.enable-lifecycle)
 # 选择metric名`up`，并点击`Execute`查看metric信息
 ```
 - prometheus.yml(/home/smalle/prom/prometheus 目录)
@@ -109,7 +111,7 @@ groups:
         expr: (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes )) / node_memory_MemTotal_bytes * 100 > 80 # 内存占用超过80
         # 条件保持 1m 才会触发alert
         for: 1m
-        # 指标匹配此标签才触发alert
+        # 添加额外标签，供alter触发匹配
         labels:
           severity: critical
         annotations:
@@ -132,38 +134,48 @@ docker run -d -p 9093:9093 -v $PWD/alertmanager.yml:/etc/alertmanager/alertmanag
 - alertmanager.yml
 
 ```yml
+# 参考 https://prometheus.io/docs/alerting/configuration
 global:
-  resolve_timeout: 5m
+  # 当Alertmanager持续多长时间未接收到告警后标记告警状态为resolved(已解决)。比如prometheus-job是30s执行一次，如果一直异常的话，应该是Alertmanager每隔30s收到一次告警；如果超过5m未收到告警则可认为异常解决了
+  #resolve_timeout: 5m
   # 配置邮箱发送服务器(基于邮箱报警才需要)
   smtp_smarthost: 'smtp.163.com:25'
   smtp_from: 'aezocn@163.com'
   smtp_auth_username: 'aezocn@163.com'
   smtp_auth_password: 'XXX' # 需要填写邮箱的授权码，而不是邮箱密码
+  # inhibit_rules: # 抑制机制。如当出现过某类标签的报警后，另外一些特定标签的报警则不发出
+# 处理流程
+# 1.接收到Alert，根据labels判断属于哪些Route，可存在多个Route，一个Route有多个Group，一个Group有多个Alert
+# 2.再将Alert分配到Group中，没有则新建Group(根据group_by和match进行分组)
+# 3.新的Group等待group_wait指定的时间(等待时可能收到同一Group的Alert，如此则可合并发送)，然后发送通知
+# 4.已存在的报警组(状态还未标记为解决)，每隔group_interval指定的时间判断Alert是否解决。如果解决了则发送通知(实际还会根据send_resolved进行判断)；如果尚未解决，当此组距离上次发送通知超过了repeat_interval指定的时间则再次发送通知
 route:
   # 将多个标签的报警合并成一个(如一份邮件)
   # group_by: [cluster, alertname]
   # 默认接收者 default-receiver
-  receiver: 'email-receiver'
-  # 组报警等待时间
-  group_wait: 30s
-  # 组报警间隔时间
-  group_interval: 1m
-  # 组重复报警间隔时间
-  repeat_interval: 15m
+  receiver: 'default-receiver'
+  #group_wait: 30s
+  #group_interval: 5m
+  #repeat_interval: 4h
   # 与以下子路线不匹配的所有警报将保留在根节点上，并分派给'default-receiver'。如果匹配到一个路由，则不再往下匹配
   routes:
-  # 匹配 alert 标签和接受者
+  # 匹配 alert 标签(此处可以获取Prometheus的所有标签，还可以匹配rules中添加的额外标签)和接受者
   # - match_re: #基于正则匹配
   - match:
       severity: critical
       team: frontend
     receiver: frontend-receiver
-    # group_by: [product, environment] # 覆盖默认的集群分组为基于产品和环境分区
+    #group_by: [product, environment] # 覆盖默认的集群分组为基于产品和环境分区
+    #group_wait
+    #group_interval
+    #repeat_interval
 receivers:
 # 基于email进行报警
-- name: 'email-receiver'
+- name: 'default-receiver'
   email_configs:
   - to: 'aezocn@163.com'
+    # 对已解除的警报进行通知(默认false)
+    send_resolved: true
     # html: '{{ template "email.default.html" . }}' # 默认模板
 # 基于 webhook 进行报警：出问题后自动访问下列地址
 - name: 'frontend-receiver'
@@ -385,7 +397,7 @@ docker run -d --name=node-exporter -p 9100:9100 prom/node-exporter
 curl http://localhost:9100/metrics
 ```
 
-### blackbox_exporter (官方)
+### blackbox_exporter 网络探测-黑盒监控(官方)
 
 - [blackbox_exporter](https://github.com/prometheus/blackbox_exporter) 可以提供 `http`、`tcp`、`icmp`、`dns` 的监控数据采集。应用场景
     - HTTP 测试
@@ -399,7 +411,7 @@ curl http://localhost:9100/metrics
     - POST 测试
         - 接口联通性
     - SSL 证书过期时间
-- 安装
+- 安装(**只需服务端安装，客户端无需安装**)
 
 ```bash
 ## 安装
@@ -441,8 +453,91 @@ scrape_configs:
       - targets:
         - https://www.baidu.com/
         - 172.0.0.1:9090
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 192.168.1.131:9115  # The blackbox exporter's real hostname:port
 ```
+- 结合k8s时，prometheus配置示例(基于helm部署，参考[http://blog.aezo.cn/2019/09/19/devops/prometheus/](/_posts/devops/helm.md#Prometheus))
 
+```yaml
+extraScrapeConfigs: |
+  # k8s服务探测
+  - job_name: 'blackbox_http_k8s'
+    kubernetes_sd_configs:
+    - role: service
+    scrape_interval: 60s
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    # 重命名标签，多个标签依次执行
+    relabel_configs:
+    # 只保留以下label正则匹配到的值符合"true"的(多个label的值默认用;分割)。且应用侧的service需要添加annotation为 prometheus.io/http-probe: 'true'
+    - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_http_probe]
+      regex: true
+      action: keep
+    # __param_target 默认取 __address__ 的值。而 __address__ 默认如 sq-service.default.svc:80
+    - source_labels: [__address__]
+      target_label: __param_target
+    # (当自定义了探测路径时会匹配)重命名 _param_target=<__address__><my_path>，作为blackbox-exporter采集用
+    - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_http_probe_path]
+      action: replace
+      target_label: __param_target
+      regex: (.+);(.+)
+      replacement: $1$2
+    # (当自定义了探测端口和路径时会匹配)重命名 __param_target=<my_service_name>.<my_namespace>.svc:<my_port><my_path>。且应用侧的service需要添加类似annotation如 prometheus.io/http-probe-port: '8080' 和 prometheus.io/http-probe-path: '/healthz'
+    - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_namespace, __meta_kubernetes_service_annotation_prometheus_io_http_probe_port, __meta_kubernetes_service_annotation_prometheus_io_http_probe_path]
+      action: replace
+      target_label: __param_target
+      regex: (.+);(.+);(.+);(.+)
+      replacement: $1.$2.svc:$3$4
+    # 设置实际执行探测的 blackbox_exporter 服务地址(此处blackbox_exporter基于k8s部署)
+    - target_label: __address__
+      replacement: prometheus-blackbox-exporter:9115
+    # __param_target 最终会丢失，将其保存于instance标签中(下同)
+    - source_labels: [__param_target]
+      target_label: instance
+    - source_labels: [__param_module]
+      target_label: probe_module
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: kubernetes_namespace
+    - source_labels: [__meta_kubernetes_service_name]
+      target_label: kubernetes_service_name
+    # 原始k8s-service标签会自动携带`__meta_kubernetes_service_label_`前缀，此处去掉此前缀
+    - action: labelmap
+      regex: __meta_kubernetes_service_label_(.+)
+  # 外部服务探测
+  - job_name: 'blackbox_http_external'
+    scrape_interval: 30s
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+    # 项目一
+    - labels:
+        probe_module: 'http_2xx'
+        sq_department: 'sq-mall'
+        sq_project_group: 'taobao'
+      targets:
+      - http://taobao.com
+    # 项目二
+    - labels:
+        probe_module: 'http_2xx'
+        sq_department: 'sq-others'
+        sq_project_group: 'others'
+      targets:
+      - http://baidu.com
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: prometheus-blackbox-exporter:9115
+```
 
 ## 采集和PromQL查询
 
@@ -475,8 +570,9 @@ scrape_configs:
 
 ### PromQL查询
 
-- PromQL查询语法 https://prometheus.io/docs/prometheus/latest/querying/basics/
-- PromQL示例 [^4]
+- PromQL查询语法 https://prometheus.io/docs/prometheus/latest/querying/basics/ [^4]
+
+#### PromQL语法示例
 
 ```bash
 ## 查询时间序列。瞬时向量表达式(查询的最新数据)
@@ -531,6 +627,7 @@ sum(http_request_total) # 查询系统所有http请求的总量
 100 - avg (irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100 # 按照主机计算5min为取样每秒的CPU瞬时利用率
 topk(5, http_requests_total) # 获取HTTP请求数前5位的时序样本数据
 quantile(0.5, http_requests_total) # 当φ为0.5时，即表示找到当前样本数据中的中位数
+count_values('value', probe_http_status_code) # 对指标probe_http_status_code的值进行group by计数。返回含两列的List数据：第一列为分组值，通过"value"获取；第二列为此组出现的总数，通过"Value #A"获取
 
 ## without | by
 # <aggr-op>([parameter,] <vector expression>) [without|by (<label list>)]
@@ -540,7 +637,8 @@ sum(http_requests_total) without (instance) # 不包含 instance 标签的序列
 ## 内置函数
 https://prometheus.io/docs/prometheus/latest/querying/functions/
 ```
-- 常用查询
+
+#### 常用查询
 
 ```bash
 # exporter的可用性监控

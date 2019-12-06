@@ -12,7 +12,7 @@ tags: [CPU, 内存, 运维, oracle, ofbiz]
     - https://my.oschina.net/xionghui/blog/498785
 - java应用常见故障：**高CPU占用**、**高内存占用**、**高I/O占用**(包括磁盘I/O、网络I/O、数据库I/O等)
 - 高CPU常见场景：死循环(如while导致的较多)、高内存导致
-    - 高内存占用也会引起高CPU占用：内存溢出后，java的GC便会运行非常频繁，从而导致高CPU
+    - 高内存占用也会引起高CPU占用：**内存溢出后，java的GC便会运行非常频繁，从而导致高CPU(此时可能已经产生了dump文件，但是应用还能访问，只是速度较慢。临时可考虑先重启服务)**
 - 高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) [^2]
     - `java.lang.OutOfMemoryError: PermGen space`，原因可能为
         - 程序启动需要加载大量的第三方jar包。例如：在一个Tomcat下部署了太多的应用
@@ -49,11 +49,11 @@ jstack <pid> | grep `printf "%x\n" <tid>` -A 30
 # 获取thread dump到文件
 jstack <pid> > jstack.out
 
-## 4.Java的jmap命令：显示一个进程下具体线程的内存占用情况
-# 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前100个对象）；或者保存到文件（jmap -histo:live <pid> > /home/jmap.out）
-jmap -histo:live <pid> | head -n 100
+## 4.Java的jmap命令(生产环境会有一定影响)：显示一个进程下具体线程的内存占用情况
+# 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前10个对象）；或者保存到文件（jmap -histo:live <pid> > /home/jmap.out）
+jmap -histo:live <pid> | head -n 10
 # 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析
-# （1）jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟，实际测试系统可能会暂停无法访问）
+# jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟，实际测试系统可能会暂停无法访问）
 jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 
 ## 5.项目启动添加jvm参数获取(不能实时获取)
@@ -68,13 +68,17 @@ jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 ```bash
 # 显示java进程，-l显示完整包名，-m显示传递给main方法的参数，-v显示传递给JVM的参数，
 jps -lmv
+# 查看运行时进程参数与JVM参数
+jinfo -flags <PID>
+# 查看当前虚拟机默认JVM参数
+java -XX:+PrintFlagsFinal -version
 ```
 
 ### MAT工具使用/实例分析
 
 - MAT(Memory Analyzer Tool)：根据分析dump文件从而分析堆内存使用情况，[下载](http://www.eclipse.org/mat/downloads.php)
 - 运行jar包时加参数如：`java -jar test.jar -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs`，/home/jvmlogs为程序出现内存溢出时保存堆栈信息的文件（需要提前建好）
-- MAT打开类似于`java_pid11457.hprof`的堆栈文件（File - Open Heap Dump），需要设置MAT运行的最大内存足够大(设置`MemoryAnalyzer.ini`)，打开效果如下(`Leak Suspects Report`泄漏疑点报告)
+- MAT打开类似于`java_pid11457.hprof`的堆栈文件(File - Open Heap Dump。右键文件打开可能会失败)，需要设置MAT运行的最大内存足够大(设置`MemoryAnalyzer.ini`)，打开效果如下(`Leak Suspects Report`泄漏疑点报告)
 
     ![默认报告](/data/images/java/mat-leak-suspects.png)
 

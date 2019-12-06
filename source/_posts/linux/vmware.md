@@ -51,7 +51,7 @@ tags: [vmware, linux, centos]
     - 虚拟机设置 - 添加硬件 - CD/DVD驱动器 - 使用ISO镜像(也可直接使用宿主机的光盘驱动) - 选择ISO镜像
 
     ```bash
-    # 1.进入虚拟机，查看光盘信息。dmesg | grep CD
+    # 1.进入虚拟机，查看光盘信息 `dmesg | grep CD` (dmesg -T | grep CD)
     [    1.951184] scsi 0:0:1:0: CD-ROM            VMware,  Virtual CD-ROM   1.0  PQ: 0 ANSI: 2
     [    1.982679] scsi 0:0:2:0: CD-ROM            VMware,  Virtual CD-ROM   1.0  PQ: 0 ANSI: 2
     [    2.099188] ata2.00: ATAPI: VMware Virtual IDE CDROM Drive, 00000001, max UDMA/33

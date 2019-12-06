@@ -8,7 +8,7 @@ tags: [k8s, storage]
 
 ## 简介
 
-- [Ceph官网](https://ceph.com/)、[官方文档 v14.2.4 Nautilus](https://docs.ceph.com/docs/nautilus/start/intro/)、[github源码](https://github.com/ceph/ceph)
+- [Ceph官网](https://ceph.com/)、[官方文档 v14.2.4 Nautilus](https://docs.ceph.com/docs/nautilus/start/intro/)、[官方中文文档](http://docs.ceph.org.cn/)、[github源码](https://github.com/ceph/ceph)
 - Ceph 提供3种存储类型 [^1]
     - 块存储(`RBD`)
         - 典型设备： 磁盘阵列，硬盘。主要是将裸磁盘空间映射给主机使用的
@@ -37,7 +37,7 @@ tags: [k8s, storage]
             - `Monitor map`：包括有关monitor 节点端到端的信息，其中包括 Ceph 集群ID，监控主机名和IP以及端口。并且存储当前版本信息以及最新更改信息，通过 `ceph mon dump` 查看 monitor map
             - `OSD map`：包括一些常用的信息，如集群ID、创建OSD map的 版本信息和最后修改信息，以及pool相关信息，主要包括pool 名字、pool的ID、类型，副本数目以及PGP等，还包括数量、状态、权重、最新的清洁间隔和OSD主机信息。通过命令 `ceph osd dump` 查看
             - `PG map`：包括当前PG版本、时间戳、最新的OSD Map的版本信息、空间使用比例，以及接近占满比例信息，同时包括每个PG ID、对象数目、状态、OSD 的状态以及深度清理的详细信息。通过命令 `ceph pg dump` 可以查看相关状态
-            - `CRUSH map`： 包括集群存储设备信息，故障域层次结构和存储数据时定义失败域规则信息。通过 命令 `ceph osd crush map` 查看
+            - `CRUSH map`： 包括集群存储设备信息，故障域层次结构和存储数据时定义失败域规则信息。相关命令`ceph osd crush xxx`
             - `MDS map`：包括存储当前 MDS map 的版本信息、创建当前的Map的信息、修改时间、数据和元数据POOL ID、集群MDS数目和MDS状态，可通过 `ceph mds dump` 查看
     - **`OSDs`**(Object Storage Device/Daemon)
         - Ceph OSD 守护进程(ceph-osd)的功能是存储数据，处理数据的复制、恢复、回填、再均衡，并通过检查其他 OSD 守护进程的心跳来向 Ceph Monitors 提供一些监控信息。冗余和高可用性通常至少需要3个Ceph OSD。当 Ceph 存储集群设定为有2个副本时，至少需要2个 OSD 守护进程，集群才能达到 active+clean 状态(Ceph 默认有3个副本)
@@ -52,188 +52,9 @@ tags: [k8s, storage]
     - `Pool` 是存储空间的逻辑划分，一个集群可以分成多个Pool。Pool与数据安全策略相联系，定义池就要同时定义出Pool的pg数量和数据冗余策略(副本数和纠删码，以及使用的crush规则)
     - `PG`(Placement Grouops)：是ceph的逻辑存储单元
 
-## 相关命令
-
-### 常用
-
-```bash
-ceph -s/-w          # 查看集群状态(-w实时状态查看)
-ceph osd tree       # 查看所有osd
-
-rbd ls kube         # 列举kube存储池所有存储块
-rbd showmapped      # 列举本机已映射的块设备(pool、image等信息)。存储块必须映射后才能挂载
-```
-
-### ceph
-
-- 概要
-
-```bash
-ceph -h # 查看帮助(非常多命令)。查看某个命令帮助：`ceph -h osd pool`
-ceph -v # ceph version 14.2.4 (75f4de193b3ea58512f204623e6c5a16e6c1e1ba) nautilus (stable)
-ceph -s/-w # 查看集群状态(-w实时状态查看)
-ceph    # 进入ceph命令行(exit退出)
-
-# 获取法定节点信息
-ceph quorum_status --format json-pretty
-# 列举pool
-ceph osd pool ls
-```
-
-#### ceph config
-
-```bash
-### ceph config <xxx>. eg: `ceph config ls`
-ls      # 列举所有配置项名称
-help <key>  # 查看某个配置帮助。eg：`ceph config help mon_max_pg_per_osd -f json-pretty`(-f 以json格式输出)
-get <who> {<key>} # 获取某个角色(如：osd.0、osd.1等)的配置。eg：`ceph config get osd.0 mon_max_pg_per_osd` 获取osd.0的mon_max_pg_per_osd(默认250)
-set <who> <name> <value> {--force}
-rm <who> <name>
-show <who> {<key>}  # 类似get
-show-with-defaults <who>
-log {<int>}
-assimilate-conf
-dump
-```
-
-#### ceph osd
-
-```bash
-### ceph osd <xxx>。eg: `ceph osd df`
-df      # 查看集群中每个osd上的分布情况(空间大小、使用空间、存放的PG数、状态信息)
-```
-
-- ceph osd pool
-
-```bash
-### ceph osd pool <xxx>。eg: `ceph osd pool ls`
-ls      # 列举 pool
-get <poolname> <var> # 获取存储池参数
-rm      # 删除存储池
-        # ceph osd pool rm rbd rbd --yes-i-really-really-mean-it # (警告)删除rbd存储池(会物理删除所有数据)，需重复输入存储池名称
-            # 默认未开启mon删除存储池功能，如动态增加配置 `ceph tell mon.\* injectargs '--mon-allow-pool-delete=true'` 后再执行删除方可。具体参考：https://stackoverflow.com/questions/45012905/removing-pool-mon-allow-pool-delete-config-option-to-true-before-you-can-destro
-```
-
-- ceph osd xxx
-
-```bash
-### ceph osd blacklist <xxx>。黑名单
-ls
-add|rm <EntityAddr> {<float[0.0-]>}
-    # ceph osd blacklist add 192.168.6.131:0/1135656048 # 添加watcher到黑名单(`rbd status kube/img` 获取镜像的watcher)
-clear
-```
-
-#### ceph xxx
-
-```bash
-### ceph tell
-tell <name (type.id)> <args> [<args>...] # 发送一个命令到特定的守护进程
-    # ceph tell mon.* injectargs '--mon_osd_report_timeout 400' # 正在匹配所有mon守护进程，分别注入参数(动态修改配置)。对比`ceph daemon`
-
-### ceph health
-ceph health [detail]    # 查看集群健康状态
-```
-
-#### Local commands
-
-- Local commands表示只能在角色所在的主机上进行设置，其他一般为Monitor commands(在mon节点上设置即可)
-
-```bash
-ceph daemon {type.id|path} <cmd> # 基于某个角色的守护进程执行相关命令
-    # ceph daemon osd.0 config get mon_max_pg_per_osd # 获取osd.0的mon_max_pg_per_osd配置值(如果此时osd.1不在该主机上则获取不到)
-    # 注意使用daemon可以修改(set)临时修改配置，但是重启进程后配置会恢复到默认参数，在ceph.conf中修改可永久有效
-```
-
-### ceph-volume
-
-- 作用：使用物理磁盘或lvm创建Ceph OSDs
-- [Doc](https://docs.ceph.com/docs/nautilus/ceph-volume/)
-
-```bash
-ceph-volume -h
-
-Available subcommands:
-
-lvm                      Use LVM and LVM-based technologies like dmcache to deploy OSDs
-    activate                 Discover and mount the LVM device associated with an OSD ID and start the Ceph OSD
-    prepare                  Format an LVM device and associate it with an OSD
-    create                   Create a new OSD from an LVM device
-    list                     list logical volumes and devices associated with Ceph # 列举和ceph相关的逻辑卷和设备
-    batch                    Automatically size devices for multi-OSD provisioning with minimal interaction
-        --osds-per-device       # 此osd节点的每个设备可创建介个osd介质(分区，如osd0和osd1目录)，默认1
-        # ceph-volume lvm batch --osds-per-device 2 /dev/sdb # 将/dev/sdb分成2个分区，运行命令后会显示预览，输入yes后正式进行分区(实际是使用系统lvm进行分区)
-    trigger                  systemd helper to activate an OSD
-    zap                      Removes all data and filesystems from a logical volume or partition.
-simple                   Manage already deployed OSDs with ceph-volume
-inventory                Get this nodes available disk inventory # 查看节点的存储设备(如连接的物理磁盘)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --cluster CLUSTER     Cluster name (defaults to "ceph")
-  --log-level LOG_LEVEL
-                        Change the file log level (defaults to debug)
-  --log-path LOG_PATH   Change the log path (defaults to /var/log/ceph)
-```
-
-### rbd 块存储
-
-- `ceph-common`包中含有此命令
-
-```bash
-See 'rbd help <command>' for help on a specific command.
-
-### rbd <xxx> <pool-name>/<image-name>  # pool-name不填则为rbd
-info        # 查看镜像信息 Show information about image size, striping, etc.
-    # rbd info my-image         # 查看存储块信息
-        # 如：features: layering(支持分层), exclusive-lock(支持独占锁), object-map(支持对象映射，依赖 exclusive-lock), fast-diff(快速计算差异，依赖 object-map), deep-flatten(支持快照扁平化操作), striping(支持条带化 v2), journaling(支持记录 IO 操作，依赖exclusive-lock)
-    # rbd info replicapool-test/csi-vol-436aafe9-df4b-11e9-854c-1ae38aa085c6    # 查看某个存储块信息
-status      # 查看状态，如watcher
-list (ls)   # 列举所有存储块 List rbd images.
-    # rbd ls 列举所有存储块
-    # rbd ls [-p/--pool] replicapool-test   # 列举 replicapool-test 存储块池中的存储块
-remove (rm) # 删除块设备映像
-    # rbd rm {pool-name}/{image-name}
-resize      # 调整块设备映像大小 Resize (expand or shrink) image.
-    # rbd resize --size 2048 myrbd # 增大myrbd存储块。最终大小为2048M，下同
-    # rbd resize --size 2048 myrbd --allow-shrink # 缩小myrbd存储块
-copy (cp)                         # Copy src image to dest.
-create                            # Create an empty image.
-    # rbd create myrbd --size 10G --image-feature layering -p mypool # 在mypool存储池中，创建块设备镜像myrbd，大小为10G
-deep copy (deep cp)               # Deep copy src image to dest.
-device list (showmapped)          # List mapped rbd images.
-    # rbd showmapped    # 列举已映射块设备(pool、image等信息)，存储块必须映射后才能挂载
-device map (map)                  # 映射块设备
-    # rbd map --name client.admin mypool/myrbd # 执行成功打印如`/dev/rbd2`
-device unmap (unmap)              # 取消块设备映射
-    # rbd unmap /dev/rbd2 # 取消块设备映射
-disk-usage (du)                   # Show disk usage stats for pool, image or snapshot.
-    # rbd du pool-test/csi-image    # 显示 pool-test/csi-image 镜像已使用空间大小
-diff                              # Print extents that differ since a previous snap, or image creation.
-    # rbd diff kube/img | awk '{ SUM += $2 } END { print SUM/1024/1024 " MB" }' # 计算 kube/img 镜像已使用空间大小(可在对应客户端通过`df -h`查看)
-lock list (lock ls)               # Show locks held on an image.
-    # rbd lock list pool-test/csi-image     # 显示 pool-test/csi-image 镜像被锁定列表
-lock remove (lock rm)             # Release a lock on an image.
-    # rbd lock rm rbd/ceph-image "auto 18446462598732840961" client.4259 # 解除锁定(image id locker)
-```
-
-### rados
-
-- `ceph-common`包中含有此命令
-
-```bash
-rados -h
-rados -v # ceph version 14.2.4 (75f4de193b3ea58512f204623e6c5a16e6c1e1ba) nautilus (stable)
-
-### rados <xxx>
-## POOL COMMANDS
-lspools         # 列举存储池
-
-## OBJECT COMMANDS
-listwatchers <obj-name>   # 列举对象的watchers。eg: `rados -p kube listwatchers rbd_header.1041643c9869` (ID可在`rbd info kube/img`中查看此image的header对象block_name_prefix)
-```
-
 ## 手动安装(基于ceph-deploy安装)
+
+> https://github.com/ceph/ceph-deploy/tree/v2.0.1
 
 1. 准备工作(所有节点运行)
 
@@ -244,8 +65,9 @@ listwatchers <obj-name>   # 列举对象的watchers。eg: `rados -p kube listwat
 
 ## 所有节点运行
 yum update -y
-sudo yum install -y ntp ntpdate ntp-doc # 保证各节点时间基本一致
-sudo ntpdate 0.cn.pool.ntp.org # 与国家授时中心同步
+# 时间同步。建议参考 [NTP](/_posts/linux/CentOS服务器使用说明.md#NTP(Network%20Time%20Protocol))
+sudo yum install -y ntp ntpdate ntp-doc
+sudo ntpdate 0.cn.pool.ntp.org
 ```
 2. 安装ceph-deploy(deploy节点运行)
 
@@ -283,15 +105,16 @@ yum -y install ceph-deploy
 ceph-deploy --version # 2.0.1
 # 配置deploy节点免密钥登录其他节点
 ```
-3. 安装STORAGE CLUSTER(deploy节点运行)
+3. 安装Storage Cluster(deploy节点运行)
 
 ```bash
 # 参考：https://docs.ceph.com/docs/nautilus/start/quick-ceph-deploy/#create-a-cluster
-# 初始化monitor
-ceph-deploy new node1 node2 node3 # 在/opt/ceph-cluster目录创建配置文件
-# 安装ceph(会创建/var/lib/ceph/目录)。有可能其中某个节点因为下载rpm Timeout导致安装失败可重新install该节点，安装成功的可执行`ceph --version`查看版本()
-ceph-deploy install node1 node2 node3
-# ceph-deploy install --release nautilus node1 # 安装指定版本
+# 初始化一个集群(会在当前目录创建ceph.conf，即将以下节点做为mon节点；还会创建keyring文件)
+ceph-deploy new node1 node2 node3
+# 安装ceph(会创建/var/lib/ceph/目录)。有可能其中某个节点因为下载rpm Timeout导致安装失败可重新install该节点，安装成功的可执行`ceph --version`查看版本
+# 如果出现错误`No data was received after 300 seconds`，可检查yum源是否正确，如果确认为阿里云可重试几次
+ceph-deploy install --release nautilus node1 node2 node3
+# ceph-deploy install --release nautilus node4 # 新增Ceph Node直接执行此命令即可（无需new）
 
 # 开始部署monitor(会自动启动ceph-mon，监听在6789端口)
 ceph-deploy mon create-initial
@@ -313,14 +136,15 @@ ceph-deploy install --rgw node1
 ceph-deploy mon add node2
 ceph-deploy mgr create node3
 
-# 创建OSD。此处/dev/sdb为刚物理连接上去的空磁盘，ceph会自动进行分区
+# 创建OSD(本质是基于ceph-volume进行创建，也可到各个节点上直接运行ceph-volume相关命令)。此处/dev/sdb为物理连接上去的空磁盘，ceph会自动进行分区
 ceph-deploy osd create --data /dev/sdb node1
 ceph-deploy osd create --data /dev/sdb node2
 ceph-deploy osd create --data /dev/sdb node3
-# 如果在LVM卷上创建OSD，那么--data的参数必须是volume_group/lv_name，而不是卷块设备的路径
+# 如果在LVM卷上创建OSD，那么--data的参数必须是volume_group/lv_name，而不是块设备的路径
+
 ceph -s # osd: 3 osds: 3 up (since 20s), 3 in (since 20s)
 lsblk # 在OSD节点上运行查看磁盘分区，会发现有一个`ceph--a3202c2d-xxx`的lvm分区
-# 查看ceph相关服务状态
+# 在各节点执行可查看ceph相关服务状态
 systemctl status ceph*
 ```
 4. (可选)启用Dashboard(mgr节点运行)
@@ -341,8 +165,9 @@ ceph mgr services
 - 安装失败可进行清理环境后重新安装
 
 ```bash
-ceph-deploy purge node1 node2 node3 # 如果执行purge，则需要重新安装ceph
-ceph-deploy purgedata node1 node2 node3 # 删除/var/lib/ceph、/etc/ceph目录
+ceph-deploy purge node1 node2 node3 # 如果执行purge，则需要重新对该节点安装ceph
+ceph-deploy purgedata node1 node2 node3 # 删除各节点的/var/lib/ceph、/etc/ceph目录
+# 删除deploy节点集群数据
 ceph-deploy forgetkeys
 rm -f ceph.* # 移除/opt/ceph-cluster目录配置文件
 ```
@@ -403,7 +228,7 @@ mkdir /mnt/mycephfs
 
 ## 法一：使用内核驱动进行挂载，但是对内核版本等有一定要求
 # 在 /opt/ceph-cluster/ceph.client.admin.keyring 中可查看secret秘钥(获通过`ceph auth get-key client.admin`命令读取)。更安全的方法是把密码保存在文件中，通过secretfile参数指定
-# dmesg | grep ceph # 出错可通过此命令查看mount错误。如报错：`libceph: mon0 192.168.6.131:6789 missing required protocol features`，最终选用ceph-fuse进行挂载
+# dmesg -T | grep ceph # 出错可通过此命令查看mount错误。如报错：`libceph: mon0 192.168.6.131:6789 missing required protocol features`，最终选用ceph-fuse进行挂载
 # sudo mount -t ceph {ip-address-of-monitor1,ip-address-of-monitor2}:6789:/ /mnt/mycephfs -o name=admin,secret=xxx
 sudo mount -t ceph 192.168.6.131:6789:/ /mnt/mycephfs -o name=admin,secret=AQA9BZ9dMUA7BBAAYCTiaV1cTACP7GSLDxDmBg== # 提示`ceph-fuse[14371]: starting fuse`则正确
 df -h
@@ -698,6 +523,109 @@ parameters:
 reclaimPolicy: Retain
 ```
 
+## 运维案例
+
+### 增加Ceph Node/添加OSD
+
+```bash
+## 增加Ceph Node相关操作(略)：yum 源，免秘钥配置，ceph的版本，主机名，防火墙，selinux，ntp
+# deploy节点运行
+ceph-deploy install --release nautilus node4
+ceph -s # 此时集群无任何变化
+
+## 在node4上添加OSD(本质是先ceph-deploy config push推送ceph.conf配置到远程，再远程执行ceph-volume命令)
+ceph-deploy osd create --data /dev/sdb --zap-disk node4
+```
+
+### 更换Ceph Node(更换osd、更换mon)
+
+- 说明 [^3] [^4]
+    - 原先有3个ceph节点(1个ssd+2个hhd)，现需要将其中2个hhd节点(node2、node3)换成新的2个ssd节点(node4、node5)。且总共3个OSD，pool副本数设置为3
+    - 整个迁移过程将会消耗很长时间，此处由于涉及的osd较少，大概几个小时即可。如果数据较多，有可能迁移几天
+    - 实际测试过程中ceph状态为HEALTH_WARN(此时128个PG并非全部处于active状态)时，客户端无法使用存储；当ceph状态变为HEALTH_OK(128个PG都有active状态。如：1 active+recovering+remapped, 110 active+clean, 17 active+remapped+backfill_wait)时，客户端可正常使用
+- 更换osd
+
+```bash
+## 以node4为例，node5同理
+## 增加Ceph Node相关操作(略)：yum 源，免秘钥配置，ceph的版本，主机名，防火墙，selinux，ntp
+# deploy节点运行，在node4上安装ceph
+ceph-deploy install --release nautilus node4
+ceph -w # 此时集群无任何变化
+
+# (视情况执行)由于osd个数=副本数，当out出一个osd后，pool状态一直会停留在active+clean+remapped(因为此时剩余的osd不够创建副本数)。此处先将kube池的副本设置成2
+ceph osd pool set kube size 2
+
+## 销毁老的OSD
+# 将osd out。如：ceph osd out 2
+ceph osd out {osd-num}
+# 关闭原来node3上的osd进程
+ssh node3 && systemctl stop ceph-osd@{osd-num} && exit
+# 将osd标记为已销毁(此时tree中还存在此osd)。保持ID完整（允许重复使用此ID），但删除cephx密钥，使数据永久不可读
+ceph osd destroy {osd-num} --yes-i-really-mean-it
+
+## 复制ceph.conf集群配置文件和ceph.bootstrap-osd.keyring秘钥文件到新节点
+ceph-deploy config push node4
+scp ceph.bootstrap-osd.keyring root@node4:/var/lib/ceph/bootstrap-osd/ceph.keyring
+## (在新节点node4上执行)使用原来的osd编号(在新节点上)创建新的osd
+ssh node4
+ceph-volume lvm zap /dev/sdX # 此时{osd-num}状态仍然为node3 destroy
+# prepare + activate = create
+ceph-volume lvm prepare --osd-id {osd-num} --data /dev/sdX # 此时{osd-num}状态仍然为node3 down
+ceph-volume lvm activate {osd-num} # 此时{osd-num}状态仍然为node4 up。此时会产生PG迁移
+
+# (视情况执行)将kube池设置回3个副本
+ceph osd pool set kube size 3
+```
+- 更换mon等
+
+```bash
+## 更新所有ceph节点的ceph.conf配置文件
+# 编辑配置文件。对文件中的`mon_host`参数添加新的节点ip；增加参数`public_network=192.168.1.0/24`
+vi /opt/ceph-cluster/ceph.conf
+ceph-deploy --overwrite-conf config push node1 node2 node3 node4 node5 # 用上述ceph.conf文件覆盖所有ceph节点的ceph.conf配置文件
+
+## 待node4操作完后，node5同样操作
+# 添加一个mon节点
+ceph-deploy mon add node4 # 会启动该节点的system mon进程
+# 观察ceph状态，直到新mon节点重新进入，并且处于HEALTH_OK状态再继续后续操作
+ceph -w
+# 当集群状态处于HEALTH_OK状态后，再移除历史mon节点(建议等待1-3min再执行)
+ceph-deploy mon destroy node2 # 会停止该节点的system mon进程，并将备份原mon数据到/var/lib/ceph/mon-removed目录
+
+## 再操作node5
+
+## 再次更新所有ceph节点的ceph.conf配置文件
+# 编辑配置文件。对文件中的`mon_host`参数，去掉旧的节点ip；修改`mon_initial_members`参数，去掉历史旧的mon节点名称，增加新的mon节点名称
+vi /opt/ceph-cluster/ceph.conf
+ceph-deploy --overwrite-conf config push node1 node4 node5 # 用上述ceph.conf文件覆盖所有ceph节点的ceph.conf配置文件
+```
+
+### 删除OSD
+
+```bash
+## 将osd移出集群(此时osd状态由in up变为out up)
+# ceph osd crush reweight osd.{osd-num} 0 # 此命令类似out，都会导致该osd上的所有PG迁出
+ceph osd out {osd-num} 
+# 观察集群状态，等到重新变为active+clean再进行后续操作
+ceph -w
+
+## 停止osd进程(此时osd状态由out up变为out down)
+ssh {osd-host}
+sudo systemctl stop ceph-osd@{osd-num}
+# 退出osd-host，进入admin-node执行后续命令
+
+## 删除
+# 从CRUSH映射中删除OSD，并删除其身份验证密钥
+ceph osd purge {osd-num} --yes-i-really-mean-it # purge命令为Luminous版本增加，类似于以下3个命令
+# ceph osd crush remove osd.{osd-num} # 从CRUSH映射中删除OSD，使其不再接收数据
+# ceph auth del osd.{osd-num} # 删除OSD身份验证密钥
+# ceph osd rm {osd-num} # 卸下OSD
+
+## 清理磁盘
+/usr/sbin/wipefs --all /dev/sdX
+ls /dev/mapper/ceph--9f84f55e--6baa--4ac2--a721--4dfd97f9a8f1-osd--block--cf4926bd--96c4--4787--a1fc--af3078ba3d0c | xargs -I% -- dmsetup remove % # 此处可通过 `lsblk` 查看对应映射名称
+```
+
 ## 常见问题
 
 - 调试说明
@@ -723,14 +651,14 @@ reclaimPolicy: Retain
         # 解除锁定
         rbd lock rm rbd/ceph-image "auto 18446462598732840961" client.4259
         ```
-- k8s pod创建时提示`MountVolume.WaitForAttach failed for volume "ceph-pv" : rbd: map failed exit status 110...unable to find a keyring on /etc/ceph/ceph.client.admin.keyring...Connection timed out`，调度到对应的k8s节点上提示`missing required protocol features`(dmesg | grep ceph)
+- k8s pod创建时提示`MountVolume.WaitForAttach failed for volume "ceph-pv" : rbd: map failed exit status 110...unable to find a keyring on /etc/ceph/ceph.client.admin.keyring...Connection timed out`，调度到对应的k8s节点上提示`missing required protocol features`(dmesg -T | grep ceph)
     - 原因：由于内核版本不够高导致一些 Ceph 需要的特性没有得到支持(此问题出现的版本为`Centos7 Linux 4.4.196-1`) [^6]
     - 解决
 
         ```bash
         # mgr节点运行。修改 CRUSH MAP 的配置，将 chooseleaf_vary_r 与 chooseleaf_stable 设为 0
-        ceph osd getcrushmap -o crush
-        crushtool -i crush --set-chooseleaf_vary_r 0  --set-chooseleaf_stable 0 -o crush.new
+        ceph osd getcrushmap -o crush # 产生crush临时文件
+        crushtool -i crush --set-chooseleaf_vary_r 0  --set-chooseleaf_stable 0 -o crush.new # 产生crush.new临时文件
         ceph osd setcrushmap -i crush.new
         ```
 - ceph警告 `HEALTH_WARN application not enabled on 1 pool(s)`，且通过k8s storageClass创建的镜像无法查询到
@@ -748,6 +676,231 @@ reclaimPolicy: Retain
         ceph osd blacklist rm 192.168.6.131:0/1135656048 # 移除黑名单
         ceph osd blacklist ls
         ```
+- 更换mon时，执行`ceph-deploy mon add node4`报错`admin_socket: exception getting command descriptions: [Errno 2] No such file or directory`
+    - 解决：修改`ceph.conf`文件中的`mon_host`、`public_network`并推送到所有节点 [^7]
+
+## 相关命令
+
+### 常用
+
+```bash
+ceph -s/-w          # 查看集群状态(-w实时状态查看)
+ceph osd tree       # 查看所有osd
+
+rbd ls kube         # 列举kube存储池所有存储块
+rbd showmapped      # 列举本机已映射的块设备(pool、image等信息)。存储块必须映射后才能挂载
+```
+
+### ceph
+
+- 概要
+
+```bash
+ceph -h # 查看帮助(非常多命令)。查看某个命令帮助：`ceph -h osd pool`
+ceph -v # ceph version 14.2.4 (75f4de193b3ea58512f204623e6c5a16e6c1e1ba) nautilus (stable)
+ceph -s/-w # 查看集群状态(-w实时状态查看)
+ceph    # 进入ceph命令行(exit退出)
+
+# 获取法定节点信息
+ceph quorum_status --format json-pretty
+# 列举pool
+ceph osd pool ls
+```
+
+#### ceph config
+
+```bash
+### ceph config <xxx>. eg: `ceph config ls`
+ls      # 列举所有配置项名称
+help <key>  # 查看某个配置帮助。eg：`ceph config help mon_max_pg_per_osd -f json-pretty`(-f 以json格式输出)
+get <who> {<key>} # 获取某个角色(如：osd.0、osd.1等)的配置。eg：`ceph config get osd.0 mon_max_pg_per_osd` 获取osd.0的mon_max_pg_per_osd(默认250)
+set <who> <name> <value> {--force}
+rm <who> <name>
+show <who> {<key>}  # 类似get
+show-with-defaults <who>
+log {<int>}
+assimilate-conf
+dump
+```
+
+#### ceph osd
+
+##### ceph osd pool
+
+```bash
+### ceph osd pool <xxx>。eg: `ceph osd pool ls`
+ls      # 列举 pool
+get <poolname> <var> # 获取存储池参数
+destroy # 将osd标记为已销毁。保持ID完整（允许重复使用此ID），但删除cephx密钥，使数据永久不可读
+rm      # 删除存储池(会物理删除所有数据)
+        # ceph osd pool rm rbd rbd --yes-i-really-really-mean-it # (警告)删除"rbd"存储池(会物理删除所有数据)，需重复输入存储池名称
+            # 默认未开启mon删除存储池功能，如动态增加配置 `ceph tell mon.\* injectargs '--mon-allow-pool-delete=true'` 后再执行删除方可。具体参考：https://stackoverflow.com/questions/45012905/removing-pool-mon-allow-pool-delete-config-option-to-true-before-you-can-destro
+```
+
+##### ceph osd crush
+
+```bash
+## ceph osd crush -h
+ceph osd crush remove osd.2         # 从 crush 里面删除此OSD(会触发PG迁移)
+ceph osd crush reweight osd.2 0     # reweight取值[0,1]的浮点数据；reweight值越小，从此OSD迁出的数据越多。此时将此OSD的权重设置为0(会触发PG迁移，会全部移走)
+```
+
+##### ceph osd <xxx>
+
+```bash
+### ceph osd <xxx>
+df      # 查看集群中每个osd上的分布情况(空间大小、使用空间、存放的PG数、状态信息)
+out <ids> [<ids>...] # out某个编号的osd，或者使用 [any|all] 移除所有。此时会触发PG迁移，如果某个osd的进程停止并不会触发迁移(顶多主副PG角色变化)
+
+### ceph osd blacklist <xxx>。黑名单
+ls
+add|rm <EntityAddr> {<float[0.0-]>}
+    # ceph osd blacklist add 192.168.6.131:0/1135656048 # 添加watcher到黑名单(`rbd status kube/img` 获取镜像的watcher)
+clear
+```
+
+#### ceph xxx
+
+```bash
+### ceph tell
+tell <name (type.id)> <args> [<args>...] # 发送一个命令到特定的守护进程
+    # ceph tell mon.* injectargs '--mon_osd_report_timeout 400' # 正在匹配所有mon守护进程，分别注入参数(动态修改配置)。对比`ceph daemon`
+
+### ceph health
+ceph health [detail]    # 查看集群健康状态
+```
+
+#### Local commands
+
+- Local commands表示只能在角色所在的主机上进行设置，其他一般为Monitor commands(在mon节点上设置即可)
+
+```bash
+ceph daemon {type.id|path} <cmd> # 基于某个角色的守护进程执行相关命令
+    # ceph daemon osd.0 config get mon_max_pg_per_osd # 获取osd.0的mon_max_pg_per_osd配置值(如果此时osd.1不在该主机上则获取不到)
+    # 注意使用daemon可以修改(set)临时修改配置，但是重启进程后配置会恢复到默认参数，在ceph.conf中修改可永久有效
+```
+
+### ceph-volume
+
+- 作用：使用物理磁盘或lvm创建Ceph OSDs(各Storage Node均可运行)
+- [Doc](https://docs.ceph.com/docs/nautilus/ceph-volume/)
+- https://www.dovefi.com/post/ceph-volume%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90osd%E5%88%9B%E5%BB%BA%E5%92%8C%E5%BC%80%E6%9C%BA%E8%87%AA%E5%90%AF/
+
+```bash
+ceph-volume -h
+
+#Available subcommands:
+lvm                      #Use LVM and LVM-based technologies like dmcache to deploy OSDs
+    prepare                  # 准备OSD，一般和activate联合使用。Format an LVM device and associate it with an OSD
+    activate                 # 启动systemd中osd进程。Discover and mount the LVM device associated with an OSD ID and start the Ceph OSD
+    create                   # 创建OSD。效果同 prepare + activate(分别使这两个命令可以避免数据立即均衡)
+    list                     # 列举和ceph相关的逻辑卷和设备
+    batch                    # Automatically size devices for multi-OSD provisioning with minimal interaction
+        --osds-per-device       # 此osd节点的每个设备可创建介个osd介质(分区，如osd0和osd1目录)，默认1
+        # ceph-volume lvm batch --osds-per-device 2 /dev/sdb # 将/dev/sdb分成2个分区，运行命令后会显示预览，输入yes后正式进行分区(实际是使用系统lvm进行分区)
+    trigger                  # systemd helper to activate an OSD
+    zap                      # 格式化磁盘
+        # ceph-volume lvm zap /dev/sdb  # 格式化。如果遇到逻辑卷无法删除可执行 `dmsetup remove {lv-name}`
+        # ceph-volume lvm zap /dev/sdb --destroy
+simple                   # 用于接管用ceph-disk创建的osd(ceph-disk为基于块设备创建，ceph-volume为基于lvm创建)
+inventory                #Get this nodes available disk inventory # 查看节点的存储设备(如连接的物理磁盘)
+#optional arguments:
+  -h, --help            #show this help message and exit
+  --cluster CLUSTER     #Cluster name (defaults to "ceph")
+  --log-level LOG_LEVEL #Change the file log level (defaults to debug)
+  --log-path LOG_PATH   #Change the log path (defaults to /var/log/ceph)
+```
+
+### rbd 块存储
+
+- `ceph-common`包中含有此命令
+
+```bash
+See 'rbd help <command>' for help on a specific command.
+
+### rbd <xxx> <pool-name>/<image-name>  # pool-name不填则为rbd
+info        # 查看镜像信息 Show information about image size, striping, etc.
+    # rbd info my-image         # 查看存储块信息
+        # 如：features: layering(支持分层), exclusive-lock(支持独占锁), object-map(支持对象映射，依赖 exclusive-lock), fast-diff(快速计算差异，依赖 object-map), deep-flatten(支持快照扁平化操作), striping(支持条带化 v2), journaling(支持记录 IO 操作，依赖exclusive-lock)
+    # rbd info replicapool-test/csi-vol-436aafe9-df4b-11e9-854c-1ae38aa085c6    # 查看某个存储块信息
+status      # 查看状态，如watcher
+list (ls)   # 列举所有存储块 List rbd images.
+    # rbd ls 列举所有存储块
+    # rbd ls [-p/--pool] replicapool-test   # 列举 replicapool-test 存储块池中的存储块
+remove (rm) # 删除块设备映像
+    # rbd rm {pool-name}/{image-name}
+resize      # 调整块设备映像大小 Resize (expand or shrink) image.
+    # rbd resize --size 2048 myrbd # 增大myrbd存储块。最终大小为2048M，下同
+    # rbd resize --size 2048 myrbd --allow-shrink # 缩小myrbd存储块
+copy (cp)                         # Copy src image to dest.
+create                            # Create an empty image.
+    # rbd create myrbd --size 10G --image-feature layering -p mypool # 在mypool存储池中，创建块设备镜像myrbd，大小为10G
+deep copy (deep cp)               # Deep copy src image to dest.
+device list (showmapped)          # List mapped rbd images.
+    # rbd showmapped    # 列举已映射块设备(pool、image等信息)，存储块必须映射后才能挂载
+device map (map)                  # 映射块设备
+    # rbd map --name client.admin mypool/myrbd # 执行成功打印如`/dev/rbd2`
+device unmap (unmap)              # 取消块设备映射
+    # rbd unmap /dev/rbd2 # 取消块设备映射
+disk-usage (du)                   # Show disk usage stats for pool, image or snapshot.
+    # rbd du pool-test/csi-image    # 显示 pool-test/csi-image 镜像已使用空间大小
+diff                              # Print extents that differ since a previous snap, or image creation.
+    # rbd diff kube/img | awk '{ SUM += $2 } END { print SUM/1024/1024 " MB" }' # 计算 kube/img 镜像已使用空间大小(可在对应客户端通过`df -h`查看)
+lock list (lock ls)               # Show locks held on an image.
+    # rbd lock list pool-test/csi-image     # 显示 pool-test/csi-image 镜像被锁定列表
+lock remove (lock rm)             # Release a lock on an image.
+    # rbd lock rm rbd/ceph-image "auto 18446462598732840961" client.4259 # 解除锁定(image id locker)
+```
+
+### rados
+
+- `ceph-common`包中含有此命令
+
+```bash
+rados -h
+rados -v # ceph version 14.2.4 (75f4de193b3ea58512f204623e6c5a16e6c1e1ba) nautilus (stable)
+
+### rados <xxx>
+## POOL COMMANDS
+lspools         # 列举存储池
+
+## OBJECT COMMANDS
+listwatchers <obj-name>   # 列举对象的watchers。eg: `rados -p kube listwatchers rbd_header.1041643c9869` (ID可在`rbd info kube/img`中查看此image的header对象block_name_prefix)
+```
+
+## ceph.conf 配置文件
+
+- `ceph-deploy new`初始化出来的文件
+
+```ini
+[global]
+fsid = 29f2b08c-ba52-4ed8-be0e-b593739da912
+mon_initial_members = node1, node2, node3
+mon_host = 192.168.1.131,192.168.1.132,192.168.1.133
+auth_cluster_required = cephx
+auth_service_required = cephx
+auth_client_required = cephx
+```
+- 字段说明
+
+```ini
+## monitors：https://docs.ceph.com/docs/nautilus/rados/configuration/common/#monitors
+## 全局配置
+[global]
+# 集群 ID
+fsid = 29f2b08c-ba52-4ed8-be0e-b593739da912
+# 可以使用下划线或空格，如 `mon initial members = ...`
+# 集群启动期间，群集中初始监视器的ID。如果指定，则Ceph需要奇数个监视器来形成初始仲裁
+mon_initial_members = node1, node2, node3
+# 所有mon节点的ip列表
+mon_host = 192.168.1.131,192.168.1.132,192.168.1.133
+# 所有集群的前端公共网络
+public_network = 192.168.1.0/24
+# 各服务认证方式使用cephx
+auth_cluster_required = cephx
+auth_service_required = cephx
+auth_client_required = cephx
+```
 
 ## 进阶知识
 
@@ -789,6 +942,9 @@ reclaimPolicy: Retain
     ```bash
     ceph config get osd.0 mon_max_pg_per_osd # 获取osd.0的最大pg数
     ```
+- PG迁移
+    - 由于CRUSH算法的伪随机性，对于一个PG来说，如果 OSD tree 结构不变的话，它所分布在的 OSD 集合总是固定的(同一棵tree下的OSD结构不变/不增减)，即此PG不会进行迁移。反之 OSD tree 变化则会触发PG迁移
+
 
 
 ---
@@ -797,7 +953,9 @@ reclaimPolicy: Retain
 
 [^1]: https://www.cnblogs.com/yangxiaoyi/p/7795274.html
 [^2]: https://jimmysong.io/kubernetes-handbook/practice/rbd-provisioner.html
+[^3]: https://blog.csdn.net/Tencent_TEG/article/details/79767484
+[^4]: https://blog.csdn.net/xiongwenwu/article/details/53120415
 [^5]: http://manjusri.ucsc.edu/2017/09/25/ceph-fuse/
 [^6]: https://github.com/grzhan/keng/issues/2
-
+[^7]: https://www.zybuluo.com/dyj2017/note/920621
 

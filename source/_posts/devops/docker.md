@@ -1127,7 +1127,7 @@ services:
       - ./logs/sq-eureka:/app/logs
     environment:
       TZ: Asia/Shanghai # 设置时区
-      SPRING_PROFILES_ACTIVE: test # 内置环境变量
+      SPRING_PROFILES_ACTIVE: test # springboot内置环境变量
       LOG_PATH: /app/logs # logback.xml中定义的环境变量LOG_PATH
 
   sq-config:

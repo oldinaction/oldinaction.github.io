@@ -10,6 +10,7 @@ tags: [mysql, dba]
 
 - mysql安装：[http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/](/_posts/linux/CentOS服务器使用说明.md#mysql安装)
 - windows安装mysql，千万不要用通过记事本编辑`my.ini`，容易让文件变成BOM格式导致服务无法启动.
+- 查看系统版本：命令行登录后欢迎信息中有版本信息，或者登录仅命令行执行`status`查看
 
 ### 登录
 
@@ -68,6 +69,10 @@ select user, host from user; -- 查询用户可登录host
 
 ## 数据备份/恢复
 
+- `mysqldump` 是一款mysql逻辑备份的工具，它将数据库里面的对象(表)导出作为SQL脚本文件。对于导出几个G的数据库，还是不错的；一旦数据量达到几十上百G，无论是对原库的压力还是导出的性能都存在问题 [^2]
+- `Xtrabackup` 是由percona开源的免费数据库热备份软件，它能对InnoDB数据库和XtraDB存储引擎的数据库非阻塞地备份。对于较大数据的数据库可以选择`Percona-Xtrabackup`备份工具，可进行全量、增量、单表备份和还原
+- `mariadb10.3.x`及以上的版本用Percona XtraBackup工具会有问题，此时可以使用`mariabackup`，它是MariaDB提供的一个开源工具
+
 ### 导出导入
 
 - 使用`mysqldump/source`方法进行导出导入：15分钟导出1.6亿条记录，导出的文件中平均7070条记录拼成一个insert语句；通过source进行批量插入，导入1.6亿条数据耗时将近5小时，平均速度3200W条/h（网测）
@@ -92,7 +97,7 @@ select user, host from user; -- 查询用户可登录host
 - SQLyong(数据库-在创建数据库架构HTML)：可导出很完整的字段结构(太过完整，无法自定义)
 - DBExportDoc V1.0 For MySQL：基于提供的word模板(包含宏命令)和ODBC导出结构到模板word中(表格无线框)
 
-### linux脚本备份
+### linux脚本备份(mysqldump)
 
 - 备份mysql和删除备份文件脚本`backup_mysql.sh`(加可执行权限先进行测试)
 
@@ -307,7 +312,7 @@ select count(*) from `t_test_vote`;
 参考文章
 
 [^1]: https://www.cnblogs.com/digdeep/p/4892953.html
-
+[^2]: https://segmentfault.com/a/1190000019305858#item-2-5
 
 
 
