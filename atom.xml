@@ -200,9 +200,9 @@
     
       <category term="k8s" scheme="http://blog.aezo.cn/tags/k8s/"/>
     
-      <category term="storage" scheme="http://blog.aezo.cn/tags/storage/"/>
-    
       <category term="cncf" scheme="http://blog.aezo.cn/tags/cncf/"/>
+    
+      <category term="storage" scheme="http://blog.aezo.cn/tags/storage/"/>
     
   </entry>
   
@@ -360,9 +360,9 @@
       <category term="linux" scheme="http://blog.aezo.cn/categories/linux/"/>
     
     
-      <category term="linux" scheme="http://blog.aezo.cn/tags/linux/"/>
-    
       <category term="network" scheme="http://blog.aezo.cn/tags/network/"/>
+    
+      <category term="linux" scheme="http://blog.aezo.cn/tags/linux/"/>
     
       <category term="docker" scheme="http://blog.aezo.cn/tags/docker/"/>
     
@@ -419,9 +419,9 @@
       <category term="linux" scheme="http://blog.aezo.cn/categories/linux/"/>
     
     
-      <category term="server" scheme="http://blog.aezo.cn/tags/server/"/>
-    
       <category term="linux" scheme="http://blog.aezo.cn/tags/linux/"/>
+    
+      <category term="server" scheme="http://blog.aezo.cn/tags/server/"/>
     
       <category term="cloud" scheme="http://blog.aezo.cn/tags/cloud/"/>
     
