@@ -848,7 +848,9 @@ lsmod |grep br_netfilter
     - `id smalle` 查看smalle用户信息。
         - 如`uid=1000(smalle) gid=1000(smalle) groups=1000(smalle),10(wheel)` gid表示用户默认组，groups表示用户属于smalle、wheel两个组
     - `who` 显示当前登录用户
+    - `w` 查看当前登录用户操作信息
     - `whoami` 查看当前登录用户名
+    - `last`/`last smalle` 查看用户登录历史
 
 ### 文件权限
 

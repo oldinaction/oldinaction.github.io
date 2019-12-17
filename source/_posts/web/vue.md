@@ -521,7 +521,7 @@ this.$router.push({
 });
 ```
 
-- `$route`和`$router`区别：$route为当前路由。$router为路由管理器(全局的)
+- `$route`和`$router`区别：`$route`为当前路由，`$router`为路由管理器(全局的)
 
 ```js
 export default {
@@ -604,6 +604,113 @@ const User = {
     }
 }
 ```
+
+## 样式
+
+### lang 和 scoped
+
+```html
+<!-- lang：可选。默认是以css的方式解析样式；也可指定如 less/sass/stylus 等预处理器(需要提前安装对应依赖，如less需安装 `npm install -D less-loader less`) -->
+<!-- scoped：可选。不写scoped时，本身写在vue组件内的样式只会对当前组件和引入此文件的另一组件产生影响，不会影响全局样式；写scoped时，表示该样式只对此组件产生影响，最终会生成样式如 `.example[data-v-5558831a] {color: blue;}` -->
+<style scoped lang="less">
+@import './assets/globle-varables.less'; /* 引入外部文件。@default-color: red; */
+@default-color: blue; /* 覆盖外部文件变量或自定义变量 */
+
+.example {
+    color: @default-color; /* 使用变量 */
+}
+
+/* scoped穿透问题：需要在局部组件中修改第三方组件库(如 iview)的样式，而又不想去除scoped属性造成组件之间的样式覆盖，这时可以通过特殊的方式穿透scoped */
+/* less/sass格式如：`外层 /deep/ 第三方组件 {样式}`(外层也可省略)，stylus则是将 /deep/  换成 >>> */
+.wrapper /deep/ .ivu-table th {
+    background-color: #eef8ff;
+}
+</style>
+```
+
+### 全局样式/自动化导入
+
+> https://cli.vuejs.org/zh/guide/css.html#%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AF%BC%E5%85%A5
+
+- 以vue-cli为例
+
+```js
+// 需要提前安装依赖：npm i style-resources-loader -D
+
+// vue.config.js
+const path = require('path')
+
+module.exports = {
+  chainWebpack: config => {
+    // 设置缩写
+    config.resolve.alias
+      .set('@', resolve('src')) 
+      .set('_c', resolve('src/components'))
+    
+    // 设置全局样式自动导入
+    const types = ['vue-modules', 'vue', 'normal-modules', 'normal']
+    types.forEach(type => addStyleResource(config.module.rule('stylus').oneOf(type)))
+  },
+}
+
+function addStyleResource (rule) {
+  rule.use('style-resource')
+    .loader('style-resources-loader')
+    .options({
+      patterns: [
+        // index.less 文件中可以定义全局变量或者全局样式，或者导入其他样式文件
+        path.resolve(__dirname, './src/assets/theme/default/index.less'),
+      ],
+    })
+}
+```
+- main.js引入样式文件、全局样式自动化导入、vue文件中样式关系
+    - 优先级：vue文件样式 > 全局样式自动化导入 > main.js引入样式文件
+    - 全局样式自动化导入中使用`/deep/`有效；main.js引入样式文件中`/deep/`无效，直接写即可修改第三方组件样式
+    - main.js引入文件作用域
+        - 引入的 css 都是全局生效的
+        - 引入的 js 文件只在 main.js 中生效。是因为 main.js 在webpack中是一个模块，引入的 js 文件也是一个模块，在其他地方是访问不到的，这就是ES6的模块化。所以如果想 main.js 引入的 js 全局可用，就需要绑定到全局对象上，比如绑定 Vue 上
+
+### 样式使用举例
+
+```less
+// src/assets/theme/default/index.less
+@import "main.less";
+
+@default-color: #ff6633;
+@default-color__change: #ff8d66;
+
+// src/assets/theme/default/main.less
+.sq-color {
+    color: @default-color;
+    &:active,&.active,&:hover {
+        color: @default-color__change;
+    }
+}
+.ivu-btn.sq-btn__primary {
+    color: #fff;
+    background-color: @default-color;
+    border-color: @default-color;
+    &:active,&.active,&:hover {
+        color: #f2f2f2;
+        background-color: @default-color__change;
+        border-color: @default-color__change;
+    }
+    /*空心按钮*/
+    &.sq-btn__empty{
+        color: @default-color;
+        background-color: #fff;
+        border-color: @default-color;
+        &:active,&.active,&:hover {
+            color: @default-color__change;
+            background-color: #f2f2f2;
+            border-color: @default-color__change;
+        }
+    }
+}
+```
+
+
 
 
 ---

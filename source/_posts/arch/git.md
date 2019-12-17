@@ -2,7 +2,7 @@
 layout: "post"
 title: "Git"
 date: "2016-04-16 12:40"
-categories: devops
+categories: arch
 tags: [git]
 ---
 
@@ -62,6 +62,18 @@ tags: [git]
 	- `git config core.sparsecheckout true` 允许使用Sparse Checkout模式
 	- 保存需要下载的文件夹名到`.git/info/sparse-checkout`文件中。如`echo "src" >> .git/info/sparse-checkout`
 	- `git pull origin master` 拉取相应分支
+- 多个远程仓库(同一代码提交到oschina和github)
+
+    ```bash
+    git remote add origin git@github.com:test1/test1.git # 推送到github
+    git remote add osc git@git.oschina.net:test2/test2.git # 推送到oschina
+
+    git add .
+    git commit -m 'First commit'
+
+    git push origin master # 推送到github。默认远程，可简写为 git push
+    git push osc master # 推送到oschina
+    ```
 
 ### 分支
 

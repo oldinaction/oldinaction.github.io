@@ -10,12 +10,13 @@ tags: [python]
 
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
 - Linux下默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](/_posts/linux/CentOS服务器使用说明.md)
+- [python3-cookbook中文文档](https://python3-cookbook.readthedocs.io/zh_CN/latest/index.html)
 - 一般服务会自带pip，没有可进行安装
 
-    ```bash
-    sudo yum -y install epel-release
-    sudo yum -y install python-pip
-    ```
+```bash
+sudo yum -y install epel-release
+sudo yum -y install python-pip
+```
 
 ## python2和python3的语法区别
 
@@ -42,27 +43,72 @@ except Exception as e:
 
 ### 基本语法
 
+#### 符号/关键字
+
+- `# xxx`、`"""xxx"""`、`'''xxx'''` 均可进行注释
+- 使用缩进进行语句层级控制，不像java等语言的`{}`
+- 每一行代表一个语句，语句结尾以分号`;`结束，也可省略此分号
+- 单引号('')/双引号("")效果一样，都可表示字符串；三个单引号('''''')/双引号("""""")可表示多行
+    - `name = 'smalle'; age = 18; print 'name: %s, age: %s' % (name, age);` 引号中的变量替换(如果只有一个变量可以省略括号，如果是数值也可以换成`%d`，`%.2f`表示浮点型保存两位小数)
+- `,`或`+`为字符串连接符
+
+#### 编程风格
+
+- 在python中 `None`, `False`, `空字符串""`, `0`, `空列表[]`, `空字典{}`, `空元组()`都相当于`False`
+
 #### 变量
     
-- 命名同java(区分大小写) 
+- 命名同java(区分大小写)
 - 变量无需声明类型：如`name='smalle'，name=123`
 - `print(name)` 打印变量(python2语法为`print name`)
+    - `print(name, password)` 打印多个变量，中间默认用空格分割
 - `del name` 变量销毁
 - `id(a), id(b), id(c)` 查看a、b、c三个变量的内存地址(0-255的数字python会做优化：`a=1、b=a、c=1`此时内存地址一致)
 
-#### 数据类型
+#### 运算
+
+```py
+# 幂：为2的32次方
+2**32
+# 取余
+10 % 3  # 1
+# 除法
+10 / 3  # 3.3333333333333335
+10 // 3  # 3
+
+# 类似三元运算。如果a>b则t=a，否则t=b
+t = a if a>b else b
+```
+
+### 数据类型
 
 - 数据类型
     - 数字类型：整型(布尔bool、长整型L、标准整型int)、浮点型(floot)、序列(字符串str、元组tuple、列表list)、映像类型(字典dict)、集合(可变set、不可变集合frozenset)
     - `a = True`(注意`True/False`首字母大写)
     - `type(a)` 查看a的数据类型
     - `a = '10'; int(a);` 强转成整形(floot、bool、str同理)
-- 列表
+
+#### 字符串
+
+```py
+print('变量值为：{}'.format(my_var))
+
+# 字符串与变量连接
+search_url = f'https://www.baidu.com?wd={my_search_str}'
+search_url = 'https://www.baidu.com?wd=' + my_search_str
+
+# 字符不能直接和其他类型拼接
+step=1
+print("step="+str(step+1))  # 需要通过str进行转换才可拼接
+```
+
+#### 列表
 
 ```python
 list = ["smalle", "aezocn", 18, "smalle", "hello"] # 定义数组
+list2 = [user.username for user in users]  # 基于运算创建数据
 print(list) # 打印["smalle", "aezocn", 18, "smalle", "hello"]
-print len(list) # 返回list的大小
+print(len(list)) # 返回list的大小
 
 list[0] # ['smalle']
 list[0:3] # ['smalle', 'aezocn', 18]（索引左闭右开）。同 print(list[:3])，省略则为0
@@ -81,31 +127,15 @@ list.index('smalle') # 获取'smalle'第一次出现的下标
 
 list.sort() # 从小到大排序
 list.reverse() # 将此列表反转（不会进行排序）
+
+# 循环(元组同理)
+for item in list:
+    print(itme)
 ```
 
-- 字典
+#### 元组
 
-```python
-map = {'name': 'smalle', "age": 18} # 定义
-print(map) # {'name': 'smalle', "age": 18}
-map['name'] # smalle
-map['sex'] = 1 # 新增key
-
-# 循环
-for key in map:
-    print(key, map[key])
-
-for key, value in map.items():
-    print(key, value)
-
-## 防止取值报错的两种方式
-if a.get('age'):
-    print a['age']
-if 'age' in a.keys(): # a.has_key('age')
-    print a['age']
-```
-
-- 元组：和列表很类似(元组定义了之后值不能改变)
+- 和列表很类似(**区别在于元组定义了之后值不能改变**)
 
 ```python
 my_tuple = ('1', 2, 'smalle') # ('1',)
@@ -117,20 +147,56 @@ my_tuple = ('1') # '1'
 print(type(my_tuple)) # <type 'str'>
 ```
 
-#### 运算
+#### 字典
 
-- `2**32` 幂：为2的32次方
-- `10 % 3` 取余
-- `10 / 3 = 3; 10 // 3 = 3` ???
+```python
+map = {'name': 'smalle', "age": 18} # 定义
+print(map) # {'name': 'smalle', "age": 18}
+map['name'] # smalle。取值，字典取值不能通过.获取
+map['sex'] = 1 # 新增key
 
-#### 编程风格
+# 函数
+len(map)  # 计算元素个数
+map.get('name', b'') # 取值，map.get(key, default=None)。返回指定键的值，如果值不在字典中返回default值
+map.pop('name', '-NA-')  # 删除元素。删除字典给定键 key 所对应的值，返回值为被删除的值，如果给的键不存在，否则返回默认值-NA-(可选，否则不存在对应key则会报错)
+'name' in map # 判断key是否存在。返回 True/False
+dict1.update(dict2)  # 把字典dict2的键/值对更新(合并)到dict1里
 
-- 使用缩进进行语句层级控制，不像java等语言的`{}`
-- 每一行代表一个语句，语句结尾以分号`;`结束，也可省略此分号
-- 单引号/双引号效果一样，都可表示字符串；三个单引号/双引号可表示多行
-    - `name = 'smalle'; age = 18; print 'name: %s, age: %s' % (name, age);` 引号中的变量替换(如果只有一个变量可以省略括号，如果是数值也可以换成`%d`，`%.2f`表示浮点型保存两位小数)
-- `#` 注释
-- `,`或`+`为字符串连接符
+# 循环
+for key in map:
+    print(key, map[key])
+
+# 同理有 map.keys()、map.values()
+for key, value in map.items():
+    print(key, value)
+
+## 防止取值报错的两种方式
+if a.get('age'):
+    print a['age']
+if 'age' in a.keys(): # a.has_key('age')
+    print a['age']
+```
+
+#### JSON转换
+
+```py
+import json
+
+## 字符串转为JSON
+str = '''
+[{"name":"Smalle"}]
+'''
+data = json.loads(str)
+print(data[0]['name']) # Smalle 无此字段时会报 KeyError 错误
+
+## 对象转JSON字符串
+str = json.dumps(data)  # data为字典类型
+print(str) # [{"name": "Smalle"}]
+
+## 保存到json格式文件
+with open('data.json', 'w', encoding='utf-8') as file:
+    file.write(json.dumps(data, indent=2, ensure_ascii=False)) # indent=2按照缩进格式，ensure_ascii=False可以消除json包含中文的乱码问题
+```
 
 ### 流程控制
 
@@ -158,12 +224,17 @@ for i in range(10): # range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)�
 
 ### 函数
 
-- 函数传递参数的方式有两种：位置参数（positional argument，包含默认参数）、关键词参数（keyword argument）
+- 函数传递参数的方式有两种：位置参数(positional argument，包含默认参数)、关键词参数(keyword argument)
 - `*args` 和 `**kwargs`：主要将不定数量的参数传递给一个函数。两者都是python中的可变参数
     - `*args`表示任何多个无名参数，它本质是一个tuple
     - `**kwargs`表示关键字参数，它本质上是一个dict
-    - 如果同时使用`*args`和*`*kwargs`时，必须`*args`参数列要在`**kwargs`前
-    - 其实并不是必须写成`*args`和`**kwargs`，`*`才是必须的。你也可以写成`*ar`和`**k`。而写成`*args`和`**kwargs`只是一个通俗的命名约定
+    - 如果同时使用`*args`和*`*kwargs`时，必须`*args`参数列要在`**kwargs`前。调用如`MyObj(**{name: 'smalle'})`为kwargs的传入
+    - 其实并不是必须写成`*args`和`**kwargs`，**`*`和`**`才是必须的**。也可以写成`*ar`和`**k`。而写成`*args`和`**kwargs`只是一个通俗的命名约定
+- 访问级别(python中无public、protected、private等关键字)
+    - `public` 方法和属性命名不以下划线开头
+    - `protected` 方法和属性命名以下划线(`_`)开头
+    - `private` 方法和属性命名以双下划线(`__`)开头
+        - 访问私有方法或属性：`myobj._MyObj__func()`，如果使用`myobj.__func()`则不行
 
 ### 面向对象
 
@@ -205,47 +276,29 @@ if __name__ == "__main__":
     t.prt()  # 调用对象方法
 ```
 
-### 字符串
+### 流/文件 [^3]
 
-- 基本
-
-```py
-print('变量值为：{}'.format(my_var))
-
-# 字符串与变量连接
-search_url = f'https://www.baidu.com?wd={my_search_str}'
-search_url = 'https://www.baidu.com?wd=' + my_search_str
-```
-
-- 字符串和JSON转换
-
-```py
-import json
-
-# 字符串转为JSON
-str = '''
-[{"name":"Smalle"}]
-'''
-data = json.loads(str)
-print(data[0]['name']) # Smalle 无此字段时会报 KeyError 错误
-
-# JSON转字符串
-str = json.dumps(data)
-print(str) # [{"name": "Smalle"}]
-
-# 保存到json格式文件
-with open('data.json', 'w', encoding='utf-8') as file:
-    file.write(json.dumps(data, indent=2, ensure_ascii=False)) # indent=2按照缩进格式，ensure_ascii=False可以消除json包含中文的乱码问题
-```
-
-### 流
+- 创建临时文件和文件夹相关库[tempfile](#tempfile)
 
 ```py
 ## 获取控制台输入
 i = input('请确认是否继续操作？[y/n]:')
     if (i != 'n'):
         return
+```
 
+#### 文件
+
+- 文件描述符
+    - `r` 读取模式
+    - `w` 写入。如果文件存在则直接覆盖掉
+    - `a` 追加
+    - `t` 文本模式
+    - `b` 二进制模式
+    - `x` 模式在文件写入时，如果文件存在就报错。多个模式可使用如 `wb` 或 `w+b`
+- 读写文件
+
+```py
 ## 读取文件
 # 一次读取
 with open('file.txt', 'r') as f:
@@ -254,6 +307,66 @@ with open('file.txt', 'r') as f:
 with open("file.txt") as lines:
     for line in lines:
         print(line)
+
+## 写入文件
+# w方式写入时的'\n'会在被系统自动替换为'\r\n'，wb则不会(如果本身是'\r\n'则写入仍然是'\r\n')；r方式读时，文件中的'\r\n'会被系统替换为'\n'
+f = open('d:/test.sh', 'wb')
+f.write(str.encode("utf-8"))  # 防止中文乱码
+f.close()  # 此时文件才会真正被写入到磁盘
+
+# 推荐方式
+import os
+if not os.path.exists('somefile'):
+    with open('somefile', 'wt') as f:
+        f.write('Hello\n')
+    else:
+        print('File already exists!')
+```
+- 文件路径处理、文件是否存在判断(os.path)
+
+```py
+import os
+
+## 路径处理
+path = '/home/smalle/temp/dir/test.txt'
+os.path.basename(path)  # 'test.txt' 获取文件名
+os.path.dirname(path)  # '/home/smalle/temp/dir' 获取路径名
+os.path.join('tmp', 'data', os.path.basename(path))  # 'tmp/data/test.txt'
+
+path = '~/test/hello.txt'
+os.path.expanduser(path)  # '/home/smalle/test/hello.txt' 添加用户家目录
+os.path.splitext(path)  # ('~/test/hello', '.txt') 分割文件名和扩展
+
+## 路径信息获取
+os.path.exists('/etc/passwd')  # True
+os.path.exists('/tmp/hhhh')  # False
+os.path.isfile('/etc/passwd')  # True
+os.path.isdir('/etc/passwd')  # False
+os.path.islink('/usr/local/bin/python3')  # True 是否为快捷方式(链接)
+os.path.realpath('/usr/local/bin/python3')  # '/usr/local/bin/python3.3' 获取文件链接的目标路径
+os.path.getsize('/etc/passwd')  # 3812 获取文件大小
+os.path.getmtime('/etc/passwd')  # 1272478234.0 获取文件修改时间
+# import time
+# time.ctime(os.path.getmtime('/etc/passwd')) # 'Wed Apr 28 13:10:34 2010'
+
+## 获取目录下文件
+names = os.listdir('somedir')  # 返回目录中所有文件列表，包括所有文件，子目录，符号链接等等
+# Get all regular files
+names = [name for name in os.listdir('somedir')
+        if os.path.isfile(os.path.join('somedir', name))]
+# Get all dirs
+dirnames = [name for name in os.listdir('somedir')
+        if os.path.isdir(os.path.join('somedir', name))]
+# startswith() 和 endswith() 过滤
+pyfiles = [name for name in os.listdir('somedir')
+        if name.endswith('.py')]
+# 对于文件名的匹配，可使用 glob 或 fnmatch 模块
+import glob
+pyfiles = glob.glob('somedir/*.py')
+
+from fnmatch import fnmatch
+pyfiles = [name for name in os.listdir('somedir')
+        if fnmatch(name, '*.py')]
 ```
 
 ### 其他
@@ -293,6 +406,45 @@ print (time.time())                       #原始时间数据，1499825149.25789
 print (int(time.time()))                  #秒级时间戳，1499825149
 print (int(round(time.time() * 1000)))    #毫秒级时间戳，1499825149257
 print (int(round(time.time() * 1000000))) #微秒级时间戳，1499825149257892
+```
+
+#### tempfile
+
+- 通过 TemporaryFile, NamedTemporaryFile, TemporaryDirectory 创建文件或目录，使用完成后会自动清理
+- `gettempdir()` 获取临时文件目录
+
+```py
+from tempfile import TemporaryFile, NamedTemporaryFile, TemporaryDirectory, gettempdir
+
+## TemporaryFile
+# 方式一：使用with，当退出with则文件会自动销毁。通常文本模式使用 w+t ，二进制模式使用 w+b
+# with TemporaryFile('w+t', prefix='mytext', suffix='.txt', dir='/tmp', encoding='utf-8', errors='ignore') as f:  # /tmp/mytext5ff221.txt
+with TemporaryFile('w+t') as f:
+    f.write('Hello World\n')
+    f.write('你好\n')
+
+    # 将文件位置设置到起始位置进行读取文件
+    f.seek(0)
+    data = f.read()
+
+# 方法二：文件在close后会自动销毁
+f = TemporaryFile('w+t')
+f.write('Hello World\n')
+f.close()
+
+## NamedTemporaryFile
+# 在大多数Unix系统上，通过 TemporaryFile() 创建的文件都是匿名的，甚至连目录都没有。但是 NamedTemporaryFile() 却存在
+with NamedTemporaryFile('w+t') as f:
+# with NamedTemporaryFile('w+t', delete=False) as f: # 和 TemporaryFile() 一样，结果文件关闭时会被自动删除掉。此时设置 delete=False，则不会自动删除
+    print('filename is:', f.name)
+
+
+## TemporaryDirectory
+with TemporaryDirectory() as dirname:
+    print('dirname is:', dirname)
+
+## gettempdir()
+gettempdir()
 ```
 
 ### 模块扩展
@@ -351,7 +503,7 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 
 #### pymongo MongoDB操作库 [^2]
 
-- `pip install pymongo`
+- `pip install pymongo`             
 
 #### scrapy 爬虫框架
 
@@ -368,7 +520,8 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 ##### fabric
 
 - 主要在python自动化运维中使用(能自动登录其他服务器进行各种操作)
-- `pip install fabric` 或 `pip install fabric3` 安装
+- `pip install fabric` 支持python2
+- `pip install fabric3` 支持python3
 - 常见问题
     - 报错`fatal error: Python.h: No such file or directory`
         - 安装`yum install python-devel` 安装python-devel(或者`yum install python-devel3`)
@@ -429,12 +582,13 @@ process.close(force=True)
 # python3 的 pip3
 pip3 install virtualenv
 # 在当前目录创建虚拟环境目录ENV(可自定义名称)
+# 如果已经python2也安装了virtualenv，则需要指明python执行程序，如 `virtualenv -p python3 ENV`
 virtualenv ENV
 # 启用此环境，后续命令行前面出现（ENV）代表此时环境已切换。之后执行命令全部属于此环境
 # 退出虚拟环境命令 `deactivate`(无需加ENV/bin/)
 source ENV/bin/activate
 # 复制项目代码到项目目录(不用包含原来的虚拟环境目录)
-# 之后执行pip python3 等指令，相当于是在此环境中执行
+# 之后执行pip3/python3 等指令，相当于是在此环境中执行。如果当前环境是python3，则pip默认指向pip3
 # 或者直接通过`/ENV/bin/python3`执行程序
 pip3 install -r /opt/myproject/requirements.txt
 # 此时看到依赖已安装
@@ -457,3 +611,6 @@ nohup python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:100
 
 [^1]: http://blog.csdn.net/bijiaoshenqi/article/details/44758055 (MySQLdb安装报错)
 [^2]: http://www.yiibai.com/mongodb/mongodb_python.html (Python连接MongoDB操作)
+[^3]: https://python3-cookbook.readthedocs.io/zh_CN/latest/chapters/p05_files_and_io.html
+
+

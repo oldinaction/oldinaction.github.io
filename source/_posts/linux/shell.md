@@ -45,12 +45,32 @@ tags: [shell, linux, lang]
     - 标准输出(stdout)代码为 `1`，实际映射关系：/dev/stdout -> /proc/self/fd/1
         - `echo xxx` 将输出放到标准输出中
     - 标准错误输出(stderr)代码为 2 ，实际映射关系： /dev/stderr ->/pro/self/fd/2
+- 转义符`\`，或者使用引号
+
+```bash
+# 一般特殊符号要出现必须用转义字符：' " * ? \ ~ ` ! # $ & | { } ; < > ^
+## 对于特殊字符可使用转义符`\`，或者使用引号
+echo 9 * 9 = 81 # 报错
+echo 9 '*' 9 = 81 # 9 * 9 = 81
+echo '9 * 9 = 81' # 9 * 9 = 81
+echo "9 * 9 = 81" # 9 * 9 = 81
+echo 9 \* 9 = 81  # 9 * 9 = 81
+
+## 在一对引号中不允许出现单引号，转义字符也不行
+# 以下因为第一个引号和第二个引号自动配成一对，最后一个单引号在没得配的情况下，bash认为输入尚未完成，出现>等待命令继续输入
+echo 'it is wolf's book' # 进入待输入 > ^C '
+echo 'it is wolf\'s book' # 进入待输入 > ^C '
+# 解决如下
+echo "it is wolf's book"
+echo it is wolf\'s book
+echo 'it is wolf'\''s book'
+```
 
 ### 变量
 
 - 变量类型
     - 环境变量(作用于可跨bash)：`export <var_name>=<var_value>`
-    - 本地变量(作用于当前bash)：`<var_name>=<var_value>`
+    - 本地变量(作用于当前bash)：`<var_name>=<var_value>` (**注意：=前后不要有空格**)
     - 局部变量(作用于当前代码段)：`local <var_name>=<var_value>`
     - 位置变量(作用于脚本执行的参数)：`$1` 表示第一个参数，以次类推`$2`、`$3`
     - 特殊变量
@@ -83,6 +103,7 @@ tags: [shell, linux, lang]
 
     ```bash
     # if
+    [[ "2005 03.01" > "2004 05.23.00" ]] && echo gt || echo lt
     if [ 1 = 2 ]; then echo true; else echo false; fi
 
     # for
@@ -111,12 +132,12 @@ tags: [shell, linux, lang]
     fi
     ```
 - 整数比较
-    - `-eq` 相等，比如：`[ $A -eq  $B ]`
-    - `-ne` 不等
-    - `-gt` 大于
-    - `-lt` 小于
-    - `-ge` 大于等于
-    - `-le` 小于等于
+    - `-eq`、`==`   相等，比如：`[ $A -eq  $B ]`
+    - `-ne`、`!=`   不等
+    - `-gt`、`>`    大于
+    - `-lt`、`<`    小于
+    - `-ge`         大于等于
+    - `-le`         小于等于
 - 文件测试(需要中括号)
     - `-e <file>` 测试文件是否存在
     - `-f <file>` 测试文件是否为普通文件
@@ -130,6 +151,8 @@ tags: [shell, linux, lang]
     - `=~` 正则比较
         - 如：`[[ /bin/bash =~ sh$ ]]`、`[[ "$var" =~ $reg ]]`(`reg='^hello'`其中$reg不能加双引号)
     - `!=`
+    - `>`、`<` 字符串大小比较，字符串有空格则不能使用`-gt`
+        - 如：`[[ "2005 03.01" > "2004 05.23.00" ]] && echo gt || echo lt` 
     - `-z` 判断变量的值是否为空。为空，返回0，即true
     - `-n` 判断变量的值是否不为空。非空，返回0，即true
     - `-s <string>` 判非空
@@ -220,7 +243,7 @@ set +x
 
 echo done!
 ```
-- 执行脚本
+- 执行脚本方式
 
 ```bash
 ## 执行命令
@@ -681,14 +704,22 @@ EOF
     -v var=val		--assign=var=val
     # ...
     ```
-- 案例
-    - 显示最近登录的5个帐号：**`last -n 5 | awk '{print $1}'`**
-        - 读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
-    - 只是显示/etc/passwd中的账户：`cat /etc/passwd | awk -F ':' '{print $1}'`(`-F`指定域分隔符为`:`，默认是空格/tab)
-    - 查找root开头的用户记录: `awk -F : '/^root/' /etc/passwd`
 - awk中同时提供了`print`和`printf`两种打印输出的函数
     - `print` 参数可以是变量、数值或者字符串。**字符串必须用双引号引用，参数用逗号分隔。**如果没有逗号，参数就串联在一起而无法区分。
     - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时
+- 案例
+
+```bash
+# 显示最近登录的5个帐号。读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
+last -n 5 | awk '{print $1}'
+last -n 5 | awk '{print $1,$2}' # print多个变量用逗号分割，显示默认带有空格
+
+# 只是显示/etc/passwd中的账户。`-F`指定域分隔符为`:`，默认是空格/tab
+cat /etc/passwd | awk -F ':' '{print $1}'
+
+# 查找root开头的用户记录
+awk -F : '/^root/' /etc/passwd
+```
 
 #### 变量
 
@@ -749,6 +780,24 @@ EOF
         # [end]size is 30038.8 M
         ```
 - 支持if判断、循环等语句
+
+### date
+
+```bash
+date -d 'yesterday' # 获取昨天。或 date -d 'last day' 
+date -d 'tomorrow' # 获取明天。或 date -d 'next day' 
+date -d 'last month' # 获取上个月 
+date -d 'next month' # 获取下个月 
+date -d 'last year' # 获取上一年 
+date -d 'next year' # 获取下一年 
+date -d '1 minute ago' # 获取1分钟前
+date -d '3 year ago' # 三年前 
+date -d '-5 year ago' # 五年后 
+date -d '-2 day ago' # 两天后 
+date -d '1 month ago' # 一个月前 
+
+time=$(date "+%Y-%m-%d %H:%M:%S")
+```
 
 ### find
 
@@ -909,6 +958,8 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
 
 ## Tips
 
+### 零散
+
 - 如果脚本中有`vi`等操作，当用户保存该文件后会继续执行脚本
 - 直接执行github等网站脚本
 
@@ -925,6 +976,26 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     command || exit 0   # 此command执行失败后不执行后续命令
     ```
 - `cp`命令强制覆盖不提示 `\cp test test.bak`
+
+### json处理
+
+- 使用内置的 awk/sed 来获取指定的 JSON 键值，缺点需要根据实际情况写对于的正则表达式 [^7]
+- 使用`jq`软件获取
+    - `yum install jq` 安装jq
+    - `jq .subjects[0].genres[0] douban.json`
+    - `curl -s https://douban.uieee.com/v2/movie/top250?count=1 | jq .subjects[0].genres[0]`
+- 调用其他脚本解释器(python/php/js)，**推荐**
+    
+    ```py
+    ## python2(服务器一般会安装)
+    export PYTHONIOENCODING=utf8 && curl -s 'https://douban.uieee.com/v2/movie/top250?count=1' | python -c "import sys, json; print json.load(sys.stdin)['subjects'][0]['genres'][0]"
+    
+    echo '{"instance": "smalle'\''aezo"}' | python -c "import sys, json; print json.load(sys.stdin)['instance']"
+
+    ## python3
+    curl -s 'https://douban.uieee.com/v2/movie/top250?count=1' | \
+    python3 -c "import sys, json; print(json.load(sys.stdin)['subjects'][0]['genres'][0])"
+    ```
 
 ## 示例
 
@@ -990,9 +1061,9 @@ checkpid() {
     ps_pid=`ps -ef | grep $APP_JAR | grep $APP_GREP_STR | grep -v grep`
 
     if [ -n "$ps_pid" ]; then
-      psid=`echo $ps_pid | awk '{print $2}'`
+        psid=`echo $ps_pid | awk '{print $2}'`
     else
-      psid=0
+        psid=0
     fi
 }
 
@@ -1001,17 +1072,17 @@ start() {
     checkpid
 
     if [ $psid -ne 0 ]; then
-      echo "[warn] $APP_JAR already started! (pid=$psid)"
+        echo "[warn] $APP_JAR already started! (pid=$psid)"
     else
-      echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
-      JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
-      su - $RUNNING_USER -c "$JAVA_CMD"
-      checkpid
-      if [ $psid -ne 0 ]; then
-          echo "[info] OK (pid=$psid)"
-      else
-          echo "[warn] Failed"
-      fi
+        echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
+        JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
+        su - $RUNNING_USER -c "$JAVA_CMD"
+        checkpid
+        if [ $psid -ne 0 ]; then
+            echo "[info] OK (pid=$psid)"
+        else
+            echo "[warn] Failed"
+        fi
     fi
 }
 
@@ -1022,24 +1093,24 @@ stop() {
 
     # 如果程序已经启动（$psid不等于0），则开始执行停止，否则，提示程序未运行
     if [ $psid -ne 0 ]; then
-      # echo -n 表示打印字符后，不换行
-      echo -n "[info] Stopping $APP_HOME/$APP_JAR ...(pid=$psid) "
-      # 使用kill -s 9 pid命令进行强制杀死进程
-      su - $RUNNING_USER -c "kill -s 9 $psid"
-      # 执行kill命令行紧接其后，马上查看上一句命令的返回值: $? 。在shell编程中，"$?" 表示上一句命令或者一个函数的返回值
-      if [ $? -eq 0 ]; then
-          echo "[info] OK"
-      else
-          echo "[warn] Failed"
-      fi
+        # echo -n 表示打印字符后，不换行
+        echo -n "[info] Stopping $APP_HOME/$APP_JAR ...(pid=$psid) "
+        # 使用kill -s 9 pid命令进行强制杀死进程
+        su - $RUNNING_USER -c "kill -s 9 $psid"
+        # 执行kill命令行紧接其后，马上查看上一句命令的返回值: $? 。在shell编程中，"$?" 表示上一句命令或者一个函数的返回值
+        if [ $? -eq 0 ]; then
+            echo "[info] OK"
+        else
+            echo "[warn] Failed"
+        fi
 
-      # 为了防止java程序被启动多次，这里增加反复检查进程，反复杀死的处理（递归调用stop）
-      checkpid
-      if [ $psid -ne 0 ]; then
-          stop
-      fi
+        # 为了防止java程序被启动多次，这里增加反复检查进程，反复杀死的处理（递归调用stop）
+        checkpid
+        if [ $psid -ne 0 ]; then
+            stop
+        fi
     else
-      echo "[warn] $APP_HOME/$APP_JAR is not running"
+        echo "[warn] $APP_HOME/$APP_JAR is not running"
     fi
 }
 
@@ -1048,9 +1119,9 @@ status() {
     checkpid
 
     if [ $psid -ne 0 ];  then
-      echo "[info] $APP_HOME/$APP_JAR is running! (pid=$psid)"
+        echo "[info] $APP_HOME/$APP_JAR is running! (pid=$psid)"
     else
-      echo "[warn] $APP_HOME/$APP_JAR is not running"
+        echo "[warn] $APP_HOME/$APP_JAR is not running"
     fi
 }
 
@@ -1314,10 +1385,12 @@ exit $?
 ### 日期
 
 ```bash
+## 带日期的日志输出
 date_echo() {
-    echo `date "+%H:%M:%S-%Y-%m-%d"` $1
+    echo `date "+%Y-%m-%d %H:%M:%S"` $1
+    logger -it my_script -p local1.info $1
 }
-date_echo "Starting ..." # 输出：11:46:43-2019-12-05 Starting ...
+date_echo "Starting ..." # 输出：2019-12-05 11:46:43 Starting ...
 ```
 
 ## C 源码脚本
@@ -1370,5 +1443,5 @@ int main()
 [^4]: https://www.cnblogs.com/softidea/p/6855045.html
 [^5]: https://blog.csdn.net/frank_liuxing/article/details/54017813
 [^6]: https://www.cnblogs.com/xingmuxin/p/8656498.html
-
+[^7]: https://www.tomczhen.com/2017/10/15/parsing-json-with-shell-script/
 

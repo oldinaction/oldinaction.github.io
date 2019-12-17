@@ -163,11 +163,11 @@ UML中的关系包括：依赖、关联、泛化(extend)、实现
         - `sd` 框图定义
         - `ref` 框图引用
 - 导出PDF：`File`-`Print`-`Size(Tile:1-1)`
-
-### StarUML2使用
-
-- 导出PDF：`File`-`Print to PDF`-`All Diagrams; Landscape; 去掉Show Diagrame Name; A4` (可以导出字体颜色)
-- 对象名称中不能包含`<>`、`-`等特殊字符，可以包含`_`、`()`
+- StarUML2使用
+    - 导出PDF：`File`-`Print to PDF`-`All Diagrams; Landscape; 去掉Show Diagrame Name; A4` (可以导出字体颜色)
+    - 对象名称中不能包含`<>`、`-`等特殊字符，可以包含`_`、`()`
+- 破解
+    - StarUML3破解 https://www.jianshu.com/p/984b6c49ea26
 
 ## PlantUML
 

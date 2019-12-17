@@ -53,9 +53,13 @@ tags: [.NET, C#]
     - Models 实体类文件夹
     - Views 前端页面文件夹
     - Web.config 项目配置文件
-- 启动`IIS Express`，会自动打开浏览器，稍等片刻会自动打开浏览器，如下图
+- VS中启动`IIS Express`(会调用系统iis程序启动单独进程)，会自动打开浏览器，稍等片刻会自动打开浏览器，如下图
 
     ![net-hello-world](/data/images/lang/net-hello-world.png)
+- VS添加引用，类似添加jar包(需要停止项目)
+    - 下载`dll`引用文件，如存放在`D:/work/dll`
+    - VS - 解决方案管理器 - 当前项目 - 引用 - 右键添加引用 - 浏览 - 选择上述dll文件 - 确定 - 重新生成项目并启动
+    - 之后此dll文件不能删除，删除后就会丢失引用
 
 #### .NET Core
 
@@ -63,12 +67,12 @@ tags: [.NET, C#]
 - 基于上文`.NET Framework`流程，亦可创建`ASP.NET Core Web应用程序`(ASP.NET Core 3.0)则可跨平台运行。可基于不同模板创建，如`Web应用程序(模型视图控制器，ASP.NET MVC)`或者`React.js`
 - 打包发布
     - 生成 - 发布`WebApplication1` - 发布目标选择文件夹 - 创建文件夹 - 发布
-    - 可在`D:\mswork\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish`项目发布目录看到生成的文件，其中`WebApplication1.exe`双击默认会开启一个cmd窗口
+    - 可在`D:\work\net\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish`项目发布目录看到生成的文件，其中`WebApplication1.exe`双击默认会开启一个cmd窗口
     - 然后可访问`http://localhost:5000`查看页面
 - 部署到IIS
     - IIS默认不支持ASP.NET Core，需要安装`AspNetCoreModuleV2`模块，否则报500。在[官网下载中心](https://dotnet.microsoft.com/download/dotnet-core/3.0)进行[下载ASP.NET Core/.NET Core: Runtime & Hosting Bundle](https://download.visualstudio.microsoft.com/download/pr/bf608208-38aa-4a40-9b71-ae3b251e110a/bc1cecb14f75cc83dcd4bbc3309f7086/dotnet-hosting-3.0.0-win.exe)。此时下载的是
     - 下载后直接安装，在IIS-模块中可看到
-    - IIS - 网站 - 添加网站。网站名称如`WebApplication1`，物理路径如`D:\mswork\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish`，输入端口9081
+    - IIS - 网站 - 添加网站。网站名称如`WebApplication1`，物理路径如`D:\work\net\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish`，输入端口9081
     - 然后可访问`http://localhost:9081`查看页面
 
 ##### 在Centos7上运行
@@ -100,6 +104,62 @@ dotnet run # 在项目目录运行
 
 - 开发窗体应用(`Winform`)：文件 - 新建 - windows 窗体应用
 
+## 案例
+
+### Hello world
+
+```c#
+static void Main(string[] args)
+{
+
+    Console.WriteLine ("{0} command line arguments were specified", args.Length);
+    foreach (string arg in args)
+    {
+        Console.WriteLine(arg);
+    }
+
+    Console.ReadLine();
+}
+```
+
+### 使用oracle数据库
+
+```c#
+static void Main(string[] args)
+{
+    try
+    {
+        string connString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orcl)));Persist Security Info=True;User ID=root;Password=root;";
+        OracleConnection con = new OracleConnection(connString);
+        con.Open();
+
+        string cmdQuery = "select name, password from user where id = 1";
+
+        // Create the OracleCommand
+        OracleCommand cmd = new OracleCommand(cmdQuery);
+        cmd.Connection = con;
+        // cmd.CommandType = CommandType.Text;
+        // Execute command, create OracleDataReader object
+        OracleDataReader reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            Console.WriteLine("Name : " + reader.GetString(0));
+            Console.WriteLine("Password : " + reader.GetString(1));
+        }
+        Console.ReadKey();
+
+        // Clean up
+        reader.Dispose();
+        cmd.Dispose();
+        con.Dispose();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("出错!");
+    }
+}
+```
 
 
 

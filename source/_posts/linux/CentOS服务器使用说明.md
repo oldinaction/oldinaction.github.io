@@ -410,14 +410,23 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 > linux一般都是python2，如果要使用python3最好不要动之前python2的环境
 
 - 安装步骤
-    - 下载`Python-3.6.4.tar.xz`(`curl -O https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz`)
-    - `tar xvf  Python-3.6.4.tar.xz -C /opt`
-    - `cd Python-3.6.4`
-    - `su root` 切换root用户
-    - `./configure`
-    - `make && make install` 第一次需要大概15分钟。需要使用root运行。使用sudo运行也会报错`cannot create regular file ‘/usr/local/bin/python3.6m’: Permission denied`
-    - `python3` 查看是否安装成功
-    - `pip3` 为对应的pip命令
+    
+    ```bash
+    # 下载 Python-3.6.4.tar.xz
+    curl -O https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz
+    tar xvf Python-3.6.4.tar.xz -C /opt
+    cd Python-3.6.4
+    # 切换root用户
+    su - root
+    ## 编译和安装(可重复执行)
+    # --enable-optimizations性能优化；--with-ssl开启ssl模块，否则pip3某些包无法安装；--enable-loadable-sqlite-extensions表示开启sqlite3
+    ./configure --enable-optimizations  --with-ssl --enable-loadable-sqlite-extensions
+    # 第一次需要大概15分钟。需要使用root运行。使用sudo运行也会报错`cannot create regular file ‘/usr/local/bin/python3.6m’: Permission denied`
+    make && make install
+    ## 查看
+    python3
+    pip3
+    ```
 - `No module named '_sqlite3'` 无法使用sqlite3模块问题
     - `yum -y install sqlite-devel`
     - `./configure --enable-loadable-sqlite-extensions` 进入python3安装目录
@@ -469,15 +478,15 @@ yum install -y mailx
 
 # 邮件发送服务配置
 cat >> /etc/mail.rc <<EOF
-set from=aezocn@163.com
+set from=test@163.com
 set smtp=smtp.163.com
-set smtp-auth-user=aezocn@163.com
+set smtp-auth-user=test@163.com
 # 授权密码，不是登录密码
 set smtp-auth-password=xxx
 set smtp-auth=login
 EOF
 # 测试发送(163邮箱容易出现554检测到垃圾拒发问题，此处使用-c抄送给自己可解决)
-echo "test mail..." | mail -s "hello subject" -c aezocn@163.com oldinaction@163.com
+echo "test mail..." | mail -s "hello subject" -c test1@163.com test2@163.com
 ```
 - 安装**postfix(centos7已内置安装并启动)**或者sendmail等邮件发送服务(此方法发送的邮件容易进入垃圾箱)
 
@@ -485,7 +494,7 @@ echo "test mail..." | mail -s "hello subject" -c aezocn@163.com oldinaction@163.
 # yum install -y postfix
 # systemctl enable postfix && systemctl restart postfix && systemctl status postfix
 # 安装mailx。此方式无需设置smtp等也可发送邮件(如果mail.rc设置了smtp则优先使用配置的smtp)
-echo "zabbix test mail" | mail -s "zabbix" oldinaction@163.com
+echo "zabbix test mail" | mail -s "zabbix" test@163.com
 # 可以看到手动一封来自 `root<root@node1.localdomain>`的邮件，其中node1为服务器名
 ```
 
@@ -662,6 +671,26 @@ showmount -e
     - `subtree_check`(默认)：若输出目录是一个子目录，则nfs服务器将检查其父目录的权限
     - `no_subtree_check`：即使输出目录是一个子目录，nfs服务器也不检查其父目录的权限，这样可以提高效率
 
+### httpd-tools(ab)
+
+```bash
+## 安装
+yum install httpd-tools
+
+## 测试案例
+# -n：总请求次数
+# -c：并发次数（最小默认为1且不能大于总请求次数，如：10个请求，10个并发，实际就是1人请求1次）
+# -p：post参数文档路径（如下文中 d:/data.txt 中的数据如 `key1=value1&key2=value2`）
+# -T：header头内容类型
+ab -c 100 -n 50000 http://10.106.200.196/
+ab -n 10 -c 10 -p d:/data.txt -T application/x-www-form-urlencoded http://10.106.200.196/
+
+## 测试结果
+Requests per second # 吞吐率。服务器并发处理能力的量化描述，单位是reqs/s，指的是某个并发用户数下单位时间内处理的请求数。计算公式：总请求数 / 处理完成这些请求数所花费的时间
+Time per request(上) # 用户平均请求等待时间
+Time per request(下) # 服务器平均请求处理时间
+```
+
 ## yum直接安装
 
 - `yum -y install memcached` 安装memcached(默认端口11211)
@@ -669,7 +698,6 @@ showmount -e
 - `yum install jq` shell读取json数据
     - `jq .subjects[0].casts[0] douban.json`
     - `curl -s https://douban.uieee.com/v2/movie/top250?count=1 | jq .subjects[0].casts[0]`
-
 
 
 

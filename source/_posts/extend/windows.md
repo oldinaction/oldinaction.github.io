@@ -86,6 +86,9 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
     - [ffdec](https://www.free-decompiler.com/flash/download/)：开源的flash反编译工具。将swf反编译成fla格式的源码，再通过[AdobeFlashCS6绿色版](http://big.wy119.com/AdobeFlashCS6_gr.zip)修改后重新编译
     - 硕思闪客精灵(Sothink SWF Decompiler)：需要收费，免费试用部分功能30天。可将exe格式的flash文件转成swf格式
 
+## 软件下载推荐
+
+- `Visio` 流程图。[Microsoft visio pro 2019 32位/64位](https://www.jb51.net/softs/634165.html#downintro2)
 
 ## 其他
 

@@ -107,7 +107,7 @@ class AuthView(APIView):
             if not user:
                 ret['code'] = 1001
                 ret['msg'] = "用户名或密码错误"
-                return JsonResponse(ret)
+                return JsonResponse(ret)  # 通过 django.http.JsonResponse 返回
 
             # 生成token
             token = md5(username)
@@ -444,6 +444,10 @@ class ParserTest(APIView):
 
 > 原理参考下文。源码参考[A03_DjangoRestFrameworkTest2]
 
+- 实体不序列返回时容易出现类似`<Django object > is not JSON serializable`的错误。方法如下
+    - 对于字典类型 `return JsonResponse(data)`  通过 django.http.JsonResponse 返回
+    - 定义序列化类
+
 ### 定义序列化操作器
 
 -继承`Serializer`或`ModelSerializer`
@@ -778,7 +782,7 @@ class SerializerGroup(APIView):
 ```
 
 - 访问 `http://127.0.0.1:8000/api/v1/group_serializer/1` **在浏览器(api页面)和postman(json数据)中可自动识别**
-    - `http://127.0.0.1:8000/api/v1/group_serializer/1?format=api` 返回api页面
+    - `http://127.0.0.1:8000/api/v1/group_serializer/1?format=api` 返回api页面(包含结果数据)
     - `http://127.0.0.1:8000/api/v1/group_serializer/1?format=json` **只返回json数据**
 - 修改api模板可参看下文渲染器源码解析
 
@@ -786,73 +790,62 @@ class SerializerGroup(APIView):
 
 > 源码参考[A03_DjangoRestFrameworkTest2]
 
-- 继承关系
-    - `django`应该可以继承`View`，`rest framework`应用可以使用下面所有视图类。常用：`ModelViewSet`、`GenericViewSet`、`APIView`
+- `ModelViewSet`路由配置
 
-```plantuml
-@startuml
-skinparam backgroundColor #EEEBDC
-skinparam handwritten true
-title
-    django rest framework 视图继承关系 <img:http://blog.aezo.cn/aezocn.png>
-end title
-View <|-- APIView
-APIView <|-- GenericAPIView
+```py
+# url(r'^(?P<version>[v1|v2]+)/view_test/$', views.GenericViewTest.as_view({'get': 'list', 'post': 'create'})),
+# 如果是get类型的请求，则执行retrieve方法(RetrieveModelMixin)；如果是put类型请求则全部更新，执行update方法；如果是patch类型请求则局部更新，执行partial_update(UpdateModelMixin)
 
-ViewSetMixin <|-- GenericViewSet
-GenericAPIView <|-- GenericViewSet
+## 写法一(使用ViewSet.as_view则必须指明对应的actions方法)
+url(r'^(?P<version>[v1|v2]+)/view_test/(?P<pk>\d+)/$', views.ViewTest.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
 
-CreateModelMixin <|-- ModelViewSet
-RetrieveModelMixin <|-- ModelViewSet
-UpdateModelMixin <|-- ModelViewSet
-DestroyModelMixin <|-- ModelViewSet
-ListModelMixin <|-- ModelViewSet
-GenericViewSet <|-- ModelViewSet
-@enduml
+## 写法二(使用router会自动对应其actions方法)
+# GET /entity/          => list
+# GET /entity/{pk}/     => retrieve
+# POST /entity/         => create
+# PUT /entity/{pk}/     => update
+# DELETE /entity/{pk}/  => destroy
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'project', views.ProjectView)
+
+url('', include(router.urls)),
 ```
+- `ModelViewSet`视图子类
 
-- `ModelViewSet`使用
-    - 路由配置
+```py
+from rest_framework.generics import GenericAPIView
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-        ```py
-        url(r'^(?P<version>[v1|v2]+)/view_test/$', views.GenericViewTest.as_view({'get': 'list', 'post': 'create'})),
-        # 如果是get类型的请求，则执行retrieve方法(RetrieveModelMixin)；如果是put类型请求则全部更新，执行update方法；如果是patch类型请求则局部更新，执行partial_update(UpdateModelMixin)
-        url(r'^(?P<version>[v1|v2]+)/view_test/(?P<pk>\d+)/$', views.ViewTest.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
-        ```
-    - 视图
+class UserRoleSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserRole
+        fields = '__all__'
 
-        ```py
-        from rest_framework.generics import GenericAPIView
-        from rest_framework.viewsets import GenericViewSet, ModelViewSet
+class GenericViewTest(GenericViewSet):
+    queryset = models.UserRole.objects.all()
+    # 序列化必须是ModelSerializer的，否则新增报错
+    serializer_class = UserRoleSerializer2
 
-        class UserRoleSerializer2(serializers.ModelSerializer):
-            class Meta:
-                model = models.UserRole
-                fields = '__all__'
+    def list(self, request):
+        ser = self.get_serializer(queryset)
+        return Response(ser.data)
 
-        class GenericViewTest(GenericViewSet):
-            queryset = models.UserRole.objects.all()
-            # 序列化必须是ModelSerializer的，否则新增报错
-            serializer_class = UserRoleSerializer2
+class ViewTest(ModelViewSet):
+    queryset = models.UserRole.objects.all()
+    # 序列化必须是ModelSerializer的，否则新增报错
+    serializer_class = UserRoleSerializer2
+    # pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    pagination_class = MyPageNumberPagination
 
-            def list(self, request):
-                ser = self.get_serializer(queryset)
-                return Response(ser.data)
-
-        class ViewTest(ModelViewSet):
-            queryset = models.UserRole.objects.all()
-            # 序列化必须是ModelSerializer的，否则新增报错
-            serializer_class = UserRoleSerializer2
-            # pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
-            pagination_class = MyPageNumberPagination
-
-            def perform_create(self, serializer):
-                '''重写最终保存方法'''
-                user = serializer.context['request'].user
-                # 往 validated_data 加入当前登录人ID，最终保存到创建人中
-                serializer.validated_data['create_user_id'] = user.id
-                super().perform_create(serializer)
-        ```
+    def perform_create(self, serializer):
+        '''重写最终保存方法'''
+        user = serializer.context['request'].user
+        # 往 validated_data 加入当前登录人ID，最终保存到创建人中
+        serializer.validated_data['create_user_id'] = user.id
+        super().perform_create(serializer)
+```
 
 ## 路由
 
@@ -875,25 +868,161 @@ router.register(r'url_test', views.ViewTest)
 
 urlpatterns = [
     # 其中 (?P<version>[v1|v2]+) 参考上文版本控制
-    # url(r'^(?P<version>[v1|v2]+)/test_version/$', views.VersionTest.as_view(), name='t_version'),
-    # url(r'^(?P<version>[v1|v2]+)/test_parser/$', views.ParserTest.as_view()),
-    # url(r'^(?P<version>[v1|v2]+)/user_role_serializer/$', views.SerializerUserRole.as_view()),
-    # url(r'^(?P<version>[v1|v2]+)/user_info_serializer/$', views.SerializerUserInfo.as_view()),
-    # url(r'^(?P<version>[v1|v2]+)/group_serializer/(?P<my_pk>\d+)/$', views.SerializerGroup.as_view(), name='group_url'),
-    # url(r'^(?P<version>[v1|v2]+)/user_info_serializer_validate/$', views.SerializerUserInfoValidate.as_view()),
-    # url(r'^(?P<version>[v1|v2]+)/group_page/$', views.GroupPage.as_view()),
+    # VersionTest继承APIView时，get类型请求默认调用VersionTest的get方法。name='t_version' 表示路由的名字
+    url(r'^(?P<version>[v1|v2]+)/test_version/$', views.VersionTest.as_view(), name='t_version'),
+    url(r'^(?P<version>[v1|v2]+)/test_parser/$', views.ParserTest.as_view()),
+    url(r'^(?P<version>[v1|v2]+)/user_role_serializer/$', views.SerializerUserRole.as_view()),
+    url(r'^(?P<version>[v1|v2]+)/user_info_serializer/$', views.SerializerUserInfo.as_view()),
+    # 可通过 pk = kwargs.get('my_pk') 获取路径参数值
+    url(r'^(?P<version>[v1|v2]+)/group_serializer/(?P<my_pk>\d+)/$', views.SerializerGroup.as_view(), name='group_url'),
+    url(r'^(?P<version>[v1|v2]+)/user_info_serializer_validate/$', views.SerializerUserInfoValidate.as_view()),
+    url(r'^(?P<version>[v1|v2]+)/group_page/$', views.GroupPage.as_view()),
 
+    # ViewTest继承APIView，重写get类型的请求调用的方法，此时则是调用ViewTest类的list方法(默认是get方法)
     # url(r'^(?P<version>[v1|v2]+)/view_test/$', views.ViewTest.as_view({'get': 'list', 'post': 'create'})),
-    # 如果是get类型的请求，则执行retrieve方法(RetrieveModelMixin)；如果是put类型请求则全部更新，执行update方法；如果是patch类型请求则局部更新，执行partial_update(UpdateModelMixin)
-    # url(r'^(?P<version>[v1|v2]+)/view_test/(?P<pk>\d+)/$', views.ViewTest.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
+    # ViewTest继承ModelViewSet时。如果是get类型的请求，则执行retrieve方法(RetrieveModelMixin)；如果是put类型请求则全部更新，执行update方法；如果是patch类型请求则局部更新，执行partial_update(UpdateModelMixin)
+    url(r'^(?P<version>[v1|v2]+)/view_test/(?P<pk>\d+)/$', views.ViewTest.as_view({'get': 'retrieve', 'post': 'create', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})),
     
-    # 可访问 /group_page_format.json 和 /group_page_format.api 获取数据的不同展现形式
-    # url(r'^(?P<version>[v1|v2]+)/group_page_format\.(?P<format>\w+)$', views.GroupPage.as_view()),
+    # 可访问 /group_page_format.json(仅json结果) 和 /group_page_format.api(通过页面展示json结果) 获取数据的不同展现形式
+    url(r'^(?P<version>[v1|v2]+)/group_page_format\.(?P<format>\w+)$', views.GroupPage.as_view()),
 
-    # 自动生成ViewTest视图的url，其中包含了format。简单的增删查改可直接自动生成
+    # 自动生成ViewTest视图的url，其中包含了format(结果到的展现形式)。简单的增删查改可直接自动生成
     url(r'^(?P<version>[v1|v2]+)/', include(router.urls)),
 ]
 ```
+
+## 过滤器
+
+> https://www.django-rest-framework.org/api-guide/filtering/
+
+- settings.py
+
+```py
+INSTALLED_APPS = [
+    ...
+    'rest_framework',
+    # 'django_filters',  # 引入第三方插件，参考下文
+]
+​
+REST_FRAMEWORK = {
+    # 默认过滤器
+    'DEFAULT_FILTER_BACKENDS': (
+        'url_filter.integrations.drf.DjangoFilterBackend',  # 参考下文
+        # 'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+}
+```
+
+### django-url-filter 过滤插件(推荐)
+
+> https://github.com/miki725/django-url-filter
+
+- `pip install django-url-filter` 安装插件(可不用引入到INSTALLED_APPS)
+
+```py
+from url_filter.integrations.drf import DjangoFilterBackend
+
+class ProductViewSet(viewsets.ModelViewSet):
+    filter_backends = (DjangoFilterBackend, )
+    # 允许的过滤字段
+    filter_fields = ['username', 'email']
+    # filter_class # 基于filter_class进行过滤
+
+## url写法如下
+example.com/users/?id=5
+example.com/users/?id__in=5,10,15
+example.com/users/?id__range=5,10  # get user with id between 5 and 10
+example.com/users/?username=foo
+example.com/users/?username__icontains=foo  # 类似like。get user with username containing case insensitive "foo"(mysql根据实际字段名来)
+example.com/users/?username__icontains!=foo  # get user where username does NOT contain "foo"
+example.com/users/?profile__joined__year=2015  # get user who joined in 2015 as per user profile
+example.com/users/?profile__joined__range=2010-01-01,2015-12-31  # get user who joined in between 2010 and 2015 as per user profile
+example.com/users/?profile__joined__gt=2010-01-01  # get user who joined in after 2010 as per user profile
+```
+
+### django-filter 过滤插件
+
+> https://django-filter.readthedocs.io/en/latest/index.html
+
+- `pip install django-filter` 安装django-filter过滤器插件
+- views.py
+
+```py
+from django_filters.rest_framework import DjangoFilterBackend
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    # 自定义需要使用的过滤器，覆盖配置文件中的默认过滤器
+    filter_backends = (filters.DjangoFilterBackend,)
+    # 使用filterset_fields直接进行过滤，和filterset_class不能同时使用。可访问 http://example.com/api/products/4675/?name=apple&price=10 得到过滤后结果
+    filterset_fields = ("name", "price", )
+    # 使用filterset_class进行过滤
+    # filterset_class = ProductFilter
+```
+- 自定义过滤器
+    - 基于`django_filters`插件实现
+    - filters.py(配合filterset_class使用)
+
+```py
+from django_filters import rest_framework as filters # 注意导入路径，是从rest_framework中导入
+​
+
+class ProductFilter(filters.FilterSet):
+    min_price = filters.NumberFilter(field_name="price", lookup_expr='gte')  # >=
+    max_price = filters.NumberFilter(field_name="price", lookup_expr='lte')
+    
+    price__gt = django_filters.NumberFilter(field_name='price', lookup_expr='gt')
+    price__lt = django_filters.NumberFilter(field_name='price', lookup_expr='lt')
+​
+    release_year = django_filters.NumberFilter(field_name='release_date', lookup_expr='year')
+    release_year__gt = django_filters.NumberFilter(field_name='release_date', lookup_expr='year__gt')
+    release_year__lt = django_filters.NumberFilter(field_name='release_date', lookup_expr='year__lt')
+​
+    # lookup_expr 查询方式  ("gt" "lt"为查询参数)  
+    manufacturer__name = django_filters.CharFilter(lookup_expr='icontains')
+    
+    class Meta:
+        model = Product 
+        fields = ["manufacturer", "price", "min_price", "max_price"]
+```
+
+### SearchFilter 模糊匹配进行过滤
+
+- rest-framework内置。类似django admin的搜索，所有字段均使用一个`search`参数传入，此参数名可通过修改`api_settings.SEARCH_PARAM`进行覆盖
+
+```py
+from rest_framework import filters
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = [filters.SearchFilter]
+    # 默认 search_fields 是精确匹配。^ 匹配开头，= 精确匹配，@ 全文搜索(仅mysql支持)，$ 正则匹配(以什么结尾)。mysql根据数据库字段决定是否区分大小写
+    # 可访问 http://example.com/api/products/4675/?search=apple 相当于查询name=apple或者producer__name以apple开头的
+    # 或访问 http://example.com/api/products/4675/?search=apple,test 多个参数值可用空格或者逗号隔开，此时相当于查询 ((name=apple or producer__name=^apple) and (name=test or producer__name=^test))
+    search_fields = ['name', '^producer__name']
+```
+
+### OrderingFilter 排序过滤
+
+- rest-framework内置
+
+```py
+from rest_framework import filters
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = [filters.OrderingFilter]
+    # 支持的排序字段。可访问 http://example.com/api/users?ordering=-username 基于username降序排列
+    ordering_fields = ['username', 'email']
+    # ordering_fields = '__all__'  # 支持所有字段排序
+    # 默认的排序字段
+    ordering = ['username']
+```
+
+
 
 ## 其他
 
@@ -965,6 +1094,10 @@ MIDDLEWARE = [
     # ...
 ]
 ```
+
+### 统一结果返回
+
+- https://blog.csdn.net/a394268045/article/details/97165872
 
 ## rest framework 源码解析
 
@@ -1086,6 +1219,80 @@ class SimpleRateThrottle(BaseThrottle):
     # ...
 ```
 
+### 视图
+
+- 继承关系
+    - `django`应该可以继承`View`，`rest framework`应用可以使用下面所有视图类。常用：`ModelViewSet`、`GenericViewSet`、`APIView`
+    - 使用django View时，对应url方法默认是调用`View.as_view()`方法
+
+```plantuml
+@startuml
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+title
+    django rest framework 视图继承关系 <img:http://blog.aezo.cn/aezocn.png>
+end title
+View <|-- APIView
+APIView <|-- GenericAPIView
+
+ViewSetMixin <|-- GenericViewSet
+GenericAPIView <|-- GenericViewSet
+
+CreateModelMixin <|-- ModelViewSet
+RetrieveModelMixin <|-- ModelViewSet
+UpdateModelMixin <|-- ModelViewSet
+DestroyModelMixin <|-- ModelViewSet
+ListModelMixin <|-- ModelViewSet
+GenericViewSet <|-- ModelViewSet
+@enduml
+```
+
+- 源码说明 [^2]
+
+```py
+## rest_framework/viewsets.py
+# 常用的基于Model的ViewSet，混入了以下几个类，以CreateModelMixin为例
+class ModelViewSet(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    """
+    A viewset that provides default `create()`, `retrieve()`, `update()`,
+    `partial_update()`, `destroy()` and `list()` actions.
+    """
+    pass
+
+## rest_framework/mixins.py
+class CreateModelMixin(object):
+    """
+    Create a model instance.
+    """
+    # Model类型的视图路由，当post访问时，路由默认会访问到create方法('post': 'create')，即对数据进行保存
+    def create(self, request, *args, **kwargs):
+        # 传入前端传入的数据，进行反序列化
+        serializer = self.get_serializer(data=request.data)
+        # 判断是否全部都校验通过，通过了就执行后面语句；raise_exception=True不通过直接报错，下面也不会执行
+        serializer.is_valid(raise_exception=True)
+        # 执行 perform_create 实际就是 .save() 保存实体。可重写此方法，进行更多逻辑处理，类似一个保存钩子
+        self.perform_create(serializer)
+        # 组装头部信息
+        headers = self.get_success_headers(serializer.data)
+        # 遵循规范返回创建对象的数据。status 状态信息，对应的是一个个状态码
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    # create中会调用，实际就是.save() 保存实体
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def get_success_headers(self, data):
+        try:
+            return {'Location': str(data[api_settings.URL_FIELD_NAME])}
+        except (TypeError, KeyError):
+            return {}
+```
+
 ### 序列化
 
 ```py
@@ -1179,7 +1386,6 @@ class ModelSerializer(Serializer):
                 # CharField().to_representation()、HyperlinkedIdentityField().to_representation() # 包含了反向生成url
                 # 如果 depth > 0, 此时 field 为 NestedSerializer(ModelSerializer)
                 ret[field.field_name] = field.to_representation(attribute)
-
         return ret
 
 ## rest_framework/fields.py
@@ -1233,7 +1439,7 @@ class BaseSerializer(Field):
 
         if self._errors and raise_exception:
             raise ValidationError(self.errors)
-
+        
         return not bool(self._errors)
 
 @six.add_metaclass(SerializerMetaclass)
@@ -1283,7 +1489,7 @@ class Serializer(BaseSerializer):
 # rest_framework/renderers.py
 class BrowsableAPIRenderer(BaseRenderer):
     media_type = 'text/html'
-    format = 'api'
+    format = 'api'  # 返回的josn数据通过api页面进行展示
     
     # 继承此类，重新指定以下两个模板，即可修改api页面排版
     template = 'rest_framework/api.html'
@@ -1303,3 +1509,5 @@ class BrowsableAPIRenderer(BaseRenderer):
 参考文章
 
 [^1]: https://www.bilibili.com/video/av28871471/?p=11
+[^2]: https://www.lagou.com/lgeduarticle/37382.html
+

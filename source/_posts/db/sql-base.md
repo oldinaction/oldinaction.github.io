@@ -381,13 +381,18 @@ select *
 ### 数据库基本
 
 - Mysql数据类型
-    - `int`		    整型，最大11个字节，相当于Oracle里的的number(X)
-    - `double`		浮点型，相当于Oracle里的的number(X, Y)
+    - `tinyint`     短整型
+    - `int`		    整型(Integer)，最大11个字节，相当于Oracle里的的number(X)
+    - `bigint`      长正型(Long)
+    - `double`		浮点型，相当于Oracle里的的 number(X, Y)
+    - `decimal`     金额，相当于Oracle里的的 decimal(X, Y)
     - `char`		定长字符串，同Oracle的char
     - `varchar` 	变长字符串，最大255字节，相当于Oracle里的的varchar2
     - `datetime`	日期，相当于Oracle里的date
-    - `text`		文本型(存储可变长度的非Unicode数据，最大长度为2^31-1个字符，可存储textarea中的换行格式)
-    - `longtext`	长字符串类型，最大4G，相当于Oracle里的long
+    - `tinytext`    短文本型。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式
+    - `text`		文本型。最大长度为65535个字节(2^31-1)，其他同tinytext
+    - `longtext`	长文本型。最大4G，相当于Oracle里的long，其他同tinytext
+    - `tinyblob/blob/longblob` 
 - Oracle数据结构
     - `char`		定长字符串；存取时效率高，空间可能会浪费
     - `varchar2`	变长字符串,大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
