@@ -10,6 +10,7 @@ tags: [springboot, vue]
 
 - 后端返回数据字段驼峰(如果通过ObjectMapper字段名转成下划线，前台做好下划线命名的字段映射后传回给后台，此时后台pojo都是驼峰，导致无法转换)
 - 前后台url都以`/`开头方便全局搜索
+- url地址和linux文件路径`/`和`//`效果是一样的；windows路径则必须是`/`或者`\`
 
 ## Spring
 
@@ -406,15 +407,15 @@ location / {
 
 ### 去掉#号
 
-- 路由使用history模式
+- 路由使用history模式。参考[hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
 
 ```js
 new Router({
-    mode: 'history', // require service support
+    mode: 'history', // H5新特性，需要浏览器支持：https://developer.mozilla.org/zh-CN/docs/Web/API/History
     routes: []
 })
 ```
-- 可配合nginx(后端)，开发vue时的静态服务器默认支持去掉#号
+- 可配合nginx(后端)，开发vue时的静态服务器默认支持去掉`#`号
 
 ```bash
 location / {
@@ -424,6 +425,7 @@ location / {
 
 ### 多项目配置
 
+- 路由必须使用history模式(路由中`#`会去掉)。参考[hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
 - vue.config.js [^7]
 
 ```js
@@ -439,7 +441,7 @@ module.exports = {
 ```js
 new Router({
     base: 'dist',
-    mode: 'history', // require service support
+    mode: 'history', // H5新特性，需要浏览器支持
     routes: []
 })
 ```

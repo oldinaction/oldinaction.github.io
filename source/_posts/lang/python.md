@@ -24,6 +24,8 @@ sudo yum -y install python-pip
 ## print打印
 print name # 2
 print(name) # 3
+print("%s: %s " % x,y) # 2
+print("%s: %s " % (x,y)) # 3
 
 ## 捕获异常
 # 2
@@ -83,10 +85,25 @@ t = a if a>b else b
 ### 数据类型
 
 - 数据类型
-    - 数字类型：整型(布尔bool、长整型L、标准整型int)、浮点型(floot)、序列(字符串str、元组tuple、列表list)、映像类型(字典dict)、集合(可变set、不可变集合frozenset)
-    - `a = True`(注意`True/False`首字母大写)
-    - `type(a)` 查看a的数据类型
-    - `a = '10'; int(a);` 强转成整形(floot、bool、str同理)
+    - 整型(布尔bool、长整型L、标准整型int)
+    - 浮点型(floot)
+    - 序列(字符串str、元组tuple、列表list)
+    - 映像类型(字典dict)
+    - 集合(可变set、不可变集合frozenset)
+- 举例
+
+```py
+# 赋值
+a = True  # 注意`True/False`首字母大写
+
+# 查看数据类型
+print type(a) # 返回变量a的类型(type)。<class 'str'>、<class 'dict'>、<class 'list'>
+print type(a).__name__ == 'str' # 返回True/False
+
+# 数据类型转换
+a = '10'
+int(a)  # 强转成整形(floot、bool、str同理)
+```
 
 #### 字符串
 
@@ -100,6 +117,19 @@ search_url = 'https://www.baidu.com?wd=' + my_search_str
 # 字符不能直接和其他类型拼接
 step=1
 print("step="+str(step+1))  # 需要通过str进行转换才可拼接
+
+## 字符判断包含
+# 使用成员操作符
+sub in mystr
+# 使用字符串对象的find()/rfind()、index()/rindex()和count()方法
+mystr.find(sub) >= 0 # True/False
+# 使用string模块的find()/rfind()方法。import string
+string.find(mystr, sub) != -1
+
+## 字符串分割
+# 分割符：默认为所有的空字符，包括空格、换行(\n)、制表符(\t)等
+# 分割次数：默认为 -1, 即分隔所有
+str.split(str=" ", 1)  # 以空格为分隔符，分隔成两个
 ```
 
 #### 列表
@@ -308,9 +338,9 @@ with open("file.txt") as lines:
         print(line)
 
 ## 写入文件
-# w方式写入时的'\n'会在被系统自动替换为'\r\n'，wb则不会(如果本身是'\r\n'则写入仍然是'\r\n')；r方式读时，文件中的'\r\n'会被系统替换为'\n'
+# w方式写入时的'\n'会在被系统自动替换为'\r\n'，wb则不会(但是如果本身是'\r\n'则写入仍然是'\r\n')；r方式读时，文件中的'\r\n'会被系统替换为'\n'
 f = open('d:/test.sh', 'wb')
-f.write(str.encode("utf-8"))  # 防止中文乱码
+f.write(str.encode("utf-8").replace(b"\r\n", b"\n"))  # 防止中文乱码
 f.close()  # 此时文件才会真正被写入到磁盘
 
 # 推荐方式
@@ -373,7 +403,6 @@ pyfiles = [name for name in os.listdir('somedir')
 ```python
 # 1
 print id(a) # 返回变量a的地址
-print type(a) # 返回变量a的类型
 print len(a) # 获取变量a的长度
 print "smalle ".strip() # 去除空格
 print "10".isdigit() == True # 判断是为整数
@@ -433,9 +462,12 @@ f.close()
 
 ## NamedTemporaryFile
 # 在大多数Unix系统上，通过 TemporaryFile() 创建的文件都是匿名的，甚至连目录都没有。但是 NamedTemporaryFile() 却存在
-with NamedTemporaryFile('w+t') as f:
-# with NamedTemporaryFile('w+t', delete=False) as f: # 和 TemporaryFile() 一样，结果文件关闭时会被自动删除掉。此时设置 delete=False，则不会自动删除
-    print('filename is:', f.name)
+# 解决：创建临时文件在windows没有权限打开。
+f = NamedTemporaryFile('w+t', dir="/home/smalle/data/tmp/", suffix=".sh", delete=False)
+print('filename is:', f.name)
+f.close()
+open(file_name, 'r')  # 重新打开文件。当这个临时文件处于打开状态，在unix平台，该名字可以用于再次打开临时文件，但是在windows不能。所以，如果要在windows打开该临时文件，需要将文件关闭，然后再打开，操作完文件后，再调用os.remove删除临时文件
+os.remove(f.name)  # 手动删除文件
 
 
 ## TemporaryDirectory

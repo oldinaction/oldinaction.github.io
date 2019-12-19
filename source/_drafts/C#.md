@@ -98,7 +98,16 @@ dotnet run # 在项目目录运行
 
 - 开启windows的IIS：控制面板 - 程序和功能 - 打开或关闭Windows功能 - Internet信息服务(Internet Information Services) - 此时在开始菜单中会出现`Internet Information Services (IIS)管理器`
 - 修改端口：网站 - 选择站点 - 绑定 - 修改端口
-    - IIS默认会占用80端口，如果需要让nginx使用80端口，需要将IIS的所有和80端口绑定都修改成其他端口
+- IIS默认会占用80端口，如果nginx也需要使用80端口，则无法启动(如果nginx的server均没有80端口则可正常运行)
+    - `netstat -ano | find "80"` 查看占用80端口的进程。如果是普通进程可直接kill，如果是System进程(PID=4)，可参看下述流程
+    - 需要将IIS(程序中搜"Internet Information Services")的所有和80端口绑定的应用修改成其他端口
+    - 再检查是否安装Sqlserver，其Reporting Service也会占用80端口(参考：https://www.jianshu.com/p/4b07e23414c2)
+        - 可直接关闭服务 SQL Server Reporting Services (MSSQLSERVER)，并设置成手动启动
+        - 或者停止服务实例：程序中搜索"Reporting Services 配置管理器" - 连接(相应实例) - 停止
+        - 或者修改其绑定端口：连接进服务实例 - 报表管理器Url - 高级 - 编辑端口 - 确定后会自动重启报表Web服务
+    - 最后可考虑是否重启IIS
+        - 在管理员命令行运行`iisreset/stop`可停止IIS，开启使用`iisreset/start`
+        - 服务里重启`World Wide Web Publishing Service`
 
 ## 窗体应用(Winform)
 

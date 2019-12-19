@@ -78,6 +78,9 @@ server {
     access_log /var/log/nginx/test.access.log main;
 
     # VUE类型应用，防止缓存index.html。此处的路径不一定要是index.html，只要某路径A返回的是index.html文件，则此处匹配A路径即可。且index.html中应用的js、css编译的文件名是hash过的，因此也不会缓存
+        # index.html里面加meta标签是为了不缓存index.html里面的css/js；另外vue-cli等打包插件支持对css/js的名字加哈希值(如：main.0926594267d262000533.js)，因此不加meta标签页不会缓存
+        #<meta http-equiv="pragram" content="no-cache">
+        #<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     location = /index.html {
         #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
         #   - time控制Cache-Control：负数表示no-cache，正数或零表示max-age=time
@@ -92,22 +95,22 @@ server {
 
     ## root 和 alias 区别
     # 用于暴露静态文件，访问http://www.aezo.cn/static/img/logo.png，且无法访问http://www.aezo.cn/static/img
-    # - 基于路径。文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
-    location ^~ /static/img/ {
-        # root是基于此目录(加不加/都一样) + location路径
-        root /home/aezocn/www;
-        access_log off; # 关闭访问日志
-    }
-    # - 基于路径。文件实际路径为/home/aezocn/www/logo.png
+    # - 基于路径(**推荐：vue代码和静态资源单独部署时**)。文件实际路径为/home/aezocn/www/logo.png
     location ^~ /static/img2/ {
         # alias会把location后面配置的路径丢弃掉，把当前匹配到的目录指向到指定的目录。alias只能位于location块中，而root的权限不限于location
         # 由于是location是 ^~，所以下面无法使用正则。加www后面加/是表示目录，否则指文件
-        alias /home/aezocn/www/; # 不能使用\(windows上root可以使用)
+        alias /home/aezocn/www/; # 注意末尾的/不能掉，且linux不能使用\(windows上root可以使用)
     }
     # - 基于正则。如访问 http://www.aezo.cn/static/xxx_upload/xxx/xxx 可访问到 /home/aezocn/www/static/xxx_upload/xxx/xxx
     location ~ ^/static/(.+?)_upload/(.+\..*)$ {
         # 由于是location是 ~，因此可以使用正则。且location和alias路径必须从头到尾都包含，此时$2指正则中的第二个括号，及文件名
         alias /home/aezocn/www/static/$1_upload/$2;
+    }
+    # - 基于路径。文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
+    location ^~ /static/img/ {
+        # root是基于此目录(加不加/都一样) + location路径
+        root /home/aezocn/www;
+        access_log off; # 关闭访问日志
     }
 
     # 测试地址
@@ -140,6 +143,7 @@ server {
         # location /proxy/ 不能写成 location /proxy (此时 http://192.168.1.1/proxy/xxx 无法代理)
     # 第一种代理到URL：http://127.0.0.1/test.html
     location /proxy/ {
+        # 后台api暴露成80常用方式
         proxy_pass http://127.0.0.1/;
     }
     # 第二种代理到URL：http://127.0.0.1/proxy/test.html
@@ -245,6 +249,10 @@ http {
     #tcp_nopush on; #防止网络阻塞
     #tcp_nodelay on; #防止网络阻塞
     keepalive_timeout 65; #长连接超时时间，单位是秒
+
+    # 防止域名太长报错。nginx: [emerg] could not build server_names_hash, you should increase server_nam
+    server_names_hash_bucket_size 64; # 上升值
+    # server_names_hash_max_size # 域名长度总和
 
     #FastCGI相关参数是为了改善网站的性能：减少资源占用，提高访问速度。
     #fastcgi_connect_timeout 300;

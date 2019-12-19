@@ -605,6 +605,19 @@ const User = {
 }
 ```
 
+### hash和history路由模式
+
+- 为了构建 SPA(单页面应用)，需要引入前端路由系统，这也就是 Vue-Router 存在的意义。前端路由的核心，就在于改变视图的同时不会向后端发出请求。为了达到这种目的，浏览器当前提供了hash和history两种支持模式，Vue-Router是基于此两者特性完成 [^4]
+    - `hash`：即地址栏 URL 中的 `#` 符号(此 hash 不是密码学里的散列运算)。比如这个 URL：http://www.abc.com/#/hello，hash 的值为 #/hello。它的特点在于：hash 虽然出现在 URL 中，但不会被包括在 HTTP 请求中，对后端完全没有影响，因此改变 hash 不会重新加载页面
+    - `history`：利用了 HTML5 History Interface 中新增的 `pushState()` 和 `replaceState()` 方法。[支持的浏览器(IE=10)](https://developer.mozilla.org/zh-CN/docs/Web/API/History)。这两个方法应用于浏览器的历史记录栈，在当前已有的 back、forward、go 的基础之上，它们提供了对历史记录进行修改的功能。只是当它们执行修改时，虽然改变了当前的 URL，但浏览器不会立即向后端发送请求
+- Vue-Router使用对比
+    - hash模式
+        - 前进、后退、刷新均不会请求后端，仅刷新路由
+        - 缺点：Url中带有`#`号，nginx同域名多项目配置不支持
+    - history模式
+        - 前进、后退不会请求后端，**但是刷新、f5会请求后端**(nginx)，如果后端无浏览器地址栏中的路径则会404
+        - 缺点：需要浏览器支持(IE=10)，刷新可能会出404
+
 ## 样式
 
 ### lang 和 scoped
@@ -720,4 +733,6 @@ function addStyleResource (rule) {
 [^1]: https://www.cnblogs.com/-ding/p/6339740.html (动态组件)
 [^2]: https://segmentfault.com/a/1190000008879966#articleHeader14 (vue生命周期)
 [^3]: https://asyncoder.com/2018/07/20/%E8%AE%B0%E4%B8%80%E6%AC%A1Vue%E4%B8%AD%E7%9A%84v-for%E8%B8%A9%E5%9D%91%E4%B9%8B%E6%97%85/
+[^4]: https://juejin.im/post/5b4ca076f265da0f900e0a7d
+
 
