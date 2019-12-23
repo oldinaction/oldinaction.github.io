@@ -358,6 +358,7 @@ from api.test import models
 users = models.MyUser.objects.all()
 for u in users:
     print(u.name)
+if users.exists():  # 如果无数据返回的也是 QuerySet 对象，如果通过 `if users is not None:`永远返回True，因此需要使用exists判断
 
 ## QuerySet 查询结果排序
 models.MyUser.objects.all().order_by('-name') # 在 column name 前加一个负号，可以实现倒序
@@ -953,6 +954,130 @@ LOGGING = {
 ### 请求生命周期
 
 ![django-request](/data/images/lang/django-request.png)
+
+### 发送邮件
+
+```py
+## settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = False
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = 'aezocn@163.com'
+EMAIL_HOST_PASSWORD = 'XXX'  # 163的客户端授权码
+DEFAULT_FROM_EMAIL = 'aezo-django<aezocn@163.com>'
+
+## 发送
+from django.core.mail import send_mail, send_mass_mail
+
+# 发送一份邮件(此处为普通文本，可以使用\n，\t等，还可使用超文本)
+send_mail('Subject here', 'Here is the message.', 'from@example.com', ['to@example.com'], fail_silently=False)
+
+# 发送多份邮件
+message1 = ('Subject here', 'Here is the message', None, ['first@example.com', 'other@example.com'])  # 接收人为多个
+message2 = ('Another Subject', 'Here is another message', 'hello <from@example.com>', ['second@test.com'])
+send_mass_mail((message1, message2), fail_silently=False)
+```
+
+### 记录日志
+
+- 脚本中使用
+
+```py
+import logging  # python内置库
+
+logger = logging.getLogger('log')  # log为logger名称，在settings.py中配置了此名称log的处理方式
+
+logger.info('hello world...')
+logger.exception(e)
+```
+
+- settings.py
+
+```py
+import time
+
+cur_path = os.path.dirname(os.path.realpath(__file__))
+log_path = os.path.join(os.path.dirname(cur_path), 'logs')
+if not os.path.exists(log_path): os.mkdir(log_path)  # 如果不存在这个logs文件夹，就自动创建一个
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        # 日志格式
+        'standard': {
+            'format': '[%(asctime)s] [%(filename)s:%(lineno)d] [%(module)s:%(funcName)s] '
+                      '[%(levelname)s]- %(message)s'},
+        # 简单格式
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    # 过滤
+    'filters': {
+    },
+    # 定义具体处理日志的方式
+    'handlers': {
+        # 默认记录所有日志
+        'default': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(log_path, 'all-{}.log'.format(time.strftime('%Y-%m-%d'))),
+            'maxBytes': 1024 * 1024 * 5,  # 文件大小
+            'backupCount': 30,  # 备份数
+            'formatter': 'standard',  # 输出格式
+            'encoding': 'utf-8',  # 设置默认编码，否则打印出来汉字乱码
+        },
+        # 输出错误日志
+        'error': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(log_path, 'error-{}.log'.format(time.strftime('%Y-%m-%d'))),
+            'maxBytes': 1024 * 1024 * 5,  # 文件大小
+            'backupCount': 7,  # 备份数
+            'formatter': 'standard',  # 输出格式
+            'encoding': 'utf-8',  # 设置默认编码
+        },
+        # 控制台输出
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
+        # 输出info日志
+        'info': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(log_path, 'info-{}.log'.format(time.strftime('%Y-%m-%d'))),
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 15,
+            'formatter': 'standard',
+            'encoding': 'utf-8',  # 设置默认编码
+        },
+    },
+    # 配置用哪几种 handlers 来处理日志
+    'loggers': {
+        # 类型 为 django 处理所有类型的日志，默认调用
+        'django': {
+            'handlers': ['default', 'console'],
+            'level': 'INFO',
+            'propagate': False
+        },
+        # log 调用时需要当作参数传入
+        'log': {
+            'handlers': ['error', 'info', 'console', 'default'],
+            'level': 'INFO',
+            'propagate': True
+        },
+        # 打印数据库执行语句
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+    }
+}
+```
 
 ### 模块打包
 

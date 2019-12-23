@@ -18,6 +18,10 @@ tags: [docker, arch]
 - 国内镜像
 
     ```bash
+    ## 设置镜像(无需重启docker)
+    vi /etc/docker/daemon.json
+    {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}
+
     ## docker.io镜像加速
     # 中科大 `docker.mirrors.ustc.edu.cn`
     docker pull xxx:yyy "可替换为" docker pull docker.mirrors.ustc.edu.cn/library/xxx:yyy
@@ -366,7 +370,7 @@ consul members
 ## Dockerfile
 
 - 在大部分情况下，Dockerfile 会和构建所需的文件放在同一个目录中，为了提高构建的性能，应该使用 `.dockerignore` 来过滤掉不需要的文件和目录
-- `docker build --rm -t nginx:smalle -f /home/smalle/Dockerfile .` 从Dockerfile构建镜像 [^4] [^10]
+- `docker build --rm -t my-nginx:latest -f /home/smalle/Dockerfile .` 从Dockerfile构建镜像 [^4] [^10]
 
     ```bash
     # This my first nginx Dockerfile
@@ -562,7 +566,7 @@ services:
       - mariadb
       - my_nginx
     # links: # 依赖的镜像
-    environment: # 当做环境变量传入容器
+    environment: # 当做环境变量传入容器（Dockerfile中无需定义/接收此环境变量）
       TZ: Asia/Shanghai
       WORDPRESS_USERNAME: smalle # 自定义属性
       WORDPRESS_PASSWORD: aezocn

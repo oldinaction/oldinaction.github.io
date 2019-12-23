@@ -157,6 +157,7 @@ helm install --name mysql-devops --namespace devops stable/mysql --version 1.4.0
 helm upgrade mysql-devops stable/mysql --version 1.4.0 -f mysql-values.yaml
 helm del --purge mysql-devops
 ```
+- k8s集群内部连接的主机名为 `mysql-devops.devops.svc.cluster.local`
 
 #### 练手Helm
 
@@ -873,6 +874,9 @@ helm del --purge jenkins
     # 此处image.tag不能使用过长的数字(yyyyMMddHHmmss生成的数字)，过长传递到k8s则变成了科学计数导致出错
     helm upgrade --set image.tag=20190902 mychart ./mychart
     helm history mychart # 查看更新历史
+
+    ## 复制后修改项目名
+    sed -i 's/mychart/mychart2/g' `grep mychart -rl ./mychart`
     ```
 - `tree mychart` 显示目录信息如下
 

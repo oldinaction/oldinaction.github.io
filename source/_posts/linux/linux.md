@@ -105,6 +105,7 @@ tags: [linux, shell]
 
 - **`ps -ef | grep java`**(其中java可换成run.py等)
     - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
+    - `ps axo pid,ppid,comm,pmem,lstart,etime,cmd | grep java` lstart启动时间，etime运行时间
 - `pwdx <pid>` **查看进程执行目录**(同`ls -al /proc/8888 | grep cwd`)
 - `ls -al /proc/进程id` 查看此进程信息
     - `cwd`符号链接的是进程运行目录 **`ls -al /proc/8888 | grep cwd`**
@@ -381,8 +382,7 @@ lsmod |grep br_netfilter
     - `-u` 排序后相同的行只显示一次
     - `-f` 排序时忽略字符大小写	
 - `wc` 文本统计
-    - 统计指定文本文件的行数(`-l`)、字数(-w)、字节数
-    - 参数-l、-w、-c、-L
+    - 统计指定文本文件的行数(`-l`)、字数(-w)、字节数(-c)
     - `sudo docker ps | wc -l`
 
 ## 文件系统

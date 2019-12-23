@@ -54,10 +54,6 @@ except Exception as e:
     - `name = 'smalle'; age = 18; print 'name: %s, age: %s' % (name, age);` 引号中的变量替换(如果只有一个变量可以省略括号，如果是数值也可以换成`%d`，`%.2f`表示浮点型保存两位小数)
 - `,`或`+`为字符串连接符
 
-#### 编程风格
-
-- 在python中 `None`, `False`, `空字符串""`, `0`, `空列表[]`, `空字典{}`, `空元组()`都相当于`False`
-
 #### 变量
     
 - 命名同java(区分大小写)
@@ -97,13 +93,27 @@ t = a if a>b else b
 a = True  # 注意`True/False`首字母大写
 
 # 查看数据类型
-print type(a) # 返回变量a的类型(type)。<class 'str'>、<class 'dict'>、<class 'list'>
+print type(a) # 返回变量a的类型(type)。<class 'str'>、<class 'dict'>、<class 'list'>、<class 'tuple'>、<class 'NoneType'>
 print type(a).__name__ == 'str' # 返回True/False
 
 # 数据类型转换
 a = '10'
 int(a)  # 强转成整形(floot、bool、str同理)
 ```
+
+#### None/False
+
+- None 和 False [^4]
+    - `None`：是python中的一个特殊的常量，表示一个空的对象(NoneType)，空值是python中的一个特殊值。数据为空并不代表是空对象，例如`[]`、`''`等都不是None。None和任何对象比较返回值都是False，除了自己
+    - `False`：在python中 `None`, `False`, `空字符串""`, `0`, `空列表[]`, `空字典{}`, `空元组()`都相当于`False`，即`not None == not False == not '' == not 0 == not [] == not {} == not ()`
+    - 自定义类型还包含以下规则 [^5]
+        - 如果定义了`__nonzero__()`方法，会调用这个方法，并按照返回值判断这个对象等价于True还是False
+        - 如果没有定义__nonzero__方法但定义了`__len__`方法，会调用__len__方法，当返回0时为False，否则为True(这样就跟内置类型为空时对应False相同了)
+        - 如果都没有定义，所有的对象都是True，只有None对应False
+- is 和 ==
+    - `is`：表示的是对象标识符，用来检查对象的标识符是否一致，即两个对象在内存中的地址是否一致。在使用 `a is b` 的时候，相当于`id(a) == id(b)`
+    - `==`：表示两个对象是否相等，相当于调用`__eq__()`方法，即`'a==b' ==> a.__eq__(b)`
+- Python里和None比较时，使用 `is None` 而不是 `== None`：None在Python里是个单例对象，一个变量如果是None，它一定和None指向同一个内存地址；而`== None`时调用的`__eq__()`方法可能被重写
 
 #### 字符串
 
@@ -137,12 +147,16 @@ str.split(str=" ", 1)  # 以空格为分隔符，分隔成两个
 ```python
 list = ["smalle", "aezocn", 18, "smalle", "hello"] # 定义数组
 list2 = [user.username for user in users]  # 基于运算创建数据
+messages = [
+    EmailMessage(subject, message, sender, recipient, connection=connection)
+    for subject, message, sender, recipient in datatuple
+]
 print(list) # 打印["smalle", "aezocn", 18, "smalle", "hello"]
 print(len(list)) # 返回list的大小
 
 list[0] # ['smalle']
 list[0:3] # ['smalle', 'aezocn', 18]（索引左闭右开）。同 print(list[:3])，省略则为0
-list[1:-2] # ['aezocn', 18]，-1为hello，-2为smalle，不包含-2
+list[1:-1] # ['aezocn', 18, "smalle"]。-1为hello，不包含-1，相当于去掉头尾元素
 list[-3:-1] # [18, 'smalle']
 
 # 操作列表的方法
@@ -158,9 +172,25 @@ list.index('smalle') # 获取'smalle'第一次出现的下标
 list.sort() # 从小到大排序
 list.reverse() # 将此列表反转（不会进行排序）
 
+list + [1, 2]  # 扩展数组
+# 去重
+list2 = list(set(list1))  # 不能保证去重后的顺序
+list2.sort(key=list1.index)
+
+# 判断
+item in arr  # 判断是否存在某个元素
+item not in arr
+arr.count(item)
+arr.index(item)  # 返回元素在列表中第一次出现的位置
+
 # 循环(元组同理)
 for item in list:
     print(itme)
+
+# 判断最后一个元素
+for index, i in enumerate(range(10)):  # index从0开始
+    if index == len(range(10)) - 1:
+        print 'last item:', i
 ```
 
 #### 元组
@@ -226,9 +256,20 @@ print(str) # [{"name": "Smalle"}]
 ## 保存到json格式文件
 with open('data.json', 'w', encoding='utf-8') as file:
     file.write(json.dumps(data, indent=2, ensure_ascii=False)) # indent=2按照缩进格式，ensure_ascii=False可以消除json包含中文的乱码问题
+
+## 判断是否为json字符串
+import json
+def is_json(json_str):
+    try:
+        json_object = json.loads(json_str)
+    except ValueError, e:
+        return False
+    return True
 ```
 
 ### 流程控制
+
+#### if
 
 ```python
 # if语句
@@ -238,7 +279,11 @@ elif age > 18:
     print "old"
 else:
     print "error"
+```
 
+#### for
+
+```py
 # while循环
 while count > 3:
     # ...
@@ -249,7 +294,28 @@ else:
 # for循环
 for i in range(10): # range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)返回0-10(不包含是10)，且步长为2的数据：[0, 2, 4, 6, 8]
     print i
+```
 
+#### lambda
+
+- `lambda [arg1 [, agr2,.....argn]] : expression`
+- lambda与def的区别
+    - def创建的方法是有名称的，而lambda没有
+    - lambda会返回一个函数对象，但这个对象不会赋给一个标识符，而def则会把函数对象赋值给一个变量(函数名)
+    - lambda只是一个表达式，而def则是一个语句
+    - lambda表达式`:`后面，只能有一个表达式，def则可以有多个
+    - 像if或for或print等语句不能用于lambda中，def可以
+    - lambda函数不能共享给别的程序调用，def可以
+- 示例
+
+```py
+g = lambda x : x ** 2
+g = lambda x, y, z : (x + y) ** z
+
+# 由于lambda只是一个表达式，所以它可以直接作为list和dict的成员
+list = [lambda a: a**3, lambda b: b**3]
+g = list[0]
+g(2)  # 8
 ```
 
 ### 函数
@@ -421,6 +487,17 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ### 内置模块
 
+#### os
+
+```py
+import os
+
+# 获取环境变量的值(django应用设置环境变量后需要重启idea)
+os.getenv('ENV_PORT', 21)
+os.environ.get('ENV_PORT')
+os.environ['ENV_PORT']
+```
+
 #### time
 
 ```py
@@ -464,11 +541,13 @@ f.close()
 # 在大多数Unix系统上，通过 TemporaryFile() 创建的文件都是匿名的，甚至连目录都没有。但是 NamedTemporaryFile() 却存在
 # 解决：创建临时文件在windows没有权限打开。
 f = NamedTemporaryFile('w+t', dir="/home/smalle/data/tmp/", suffix=".sh", delete=False)
-print('filename is:', f.name)
-f.close()
-open(file_name, 'r')  # 重新打开文件。当这个临时文件处于打开状态，在unix平台，该名字可以用于再次打开临时文件，但是在windows不能。所以，如果要在windows打开该临时文件，需要将文件关闭，然后再打开，操作完文件后，再调用os.remove删除临时文件
-os.remove(f.name)  # 手动删除文件
-
+try:
+    print('filename is:', f.name)
+    f.close()
+    open(file_name, 'r')  # 重新打开文件。当这个临时文件处于打开状态，在unix平台，该名字可以用于再次打开临时文件，但是在windows不能。所以，如果要在windows打开该临时文件，需要将文件关闭，然后再打开，操作完文件后，再调用os.remove删除临时文件
+finally:
+    if f and f.name: 
+        os.remove(f.name) # 手动删除文件
 
 ## TemporaryDirectory
 with TemporaryDirectory() as dirname:
@@ -643,5 +722,6 @@ nohup python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:100
 [^1]: http://blog.csdn.net/bijiaoshenqi/article/details/44758055 (MySQLdb安装报错)
 [^2]: http://www.yiibai.com/mongodb/mongodb_python.html (Python连接MongoDB操作)
 [^3]: https://python3-cookbook.readthedocs.io/zh_CN/latest/chapters/p05_files_and_io.html
-
+[^4]: https://www.jianshu.com/p/627232777efd
+[^5]: https://www.zhihu.com/question/48707732
 

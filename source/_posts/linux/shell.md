@@ -97,6 +97,64 @@ echo 'it is wolf'\''s book'
 - `unset <var_name>` 撤销变量
 - 引用变量 `${var_name}`，一般可以省略{}
 
+### 字符串
+
+```bash
+## 字符串替换
+string=123.abc.234 # 必须基于变量进行替换
+echo ${string/12/ab} # 替换一次：ab3.abc.234
+echo ${string//23/bc} # 双斜杠替换所有匹配：1bc.abc.bc4
+echo ${string/#ab/} # 以什么开头来匹配：123.abc.234(匹配是吧)
+echo ${string/%34/df} # %以什么结尾来匹配：123.abc.2df
+
+## 统计单词个数
+s='one two three four five'
+echo $s | tr ' ' '\n' | wc -l
+```
+
+### 函数
+
+- 函数定义、调用、返回
+
+```bash
+## test.sh
+# 定义函数
+func() {
+    echo "start"
+    echo "hello$1" # $1 获取的是此函数的第一个参数，而不是脚本参数
+    return 0 # 函数中使用return返回时，返回值的数据类型必须是数字
+}
+
+func ", your name is $1" # 调用函数。$1 获取的是脚本的第一个参数
+if [ $? == 0 ] ; then
+    echo "func return=$?" # 函数中使用return返回函数值时，通过 echo $? 来捕获函数返回值
+    echo $(func $1) # 函数中使用echo返回函数值时，通过 $(func_name arg1 arg2 …) 来捕获函数返回值
+fi
+
+## 执行结果
+./test.sh smalle # 当传递参数也不会报错，脚本中通过$1获取到一个空字符串
+# 打印
+start
+hello, your name is smalle
+func return=0
+start hello smalle
+```
+- 函数结合`xargs`(参考下文)
+
+```bash
+## test.sh
+exec 2>&1 # 设置重定向
+function c() {
+    wc -c $1 # 统计文件字节数
+}
+export -f c
+ls | xargs -I{} bash -c 'c {}'
+echo ret_code is $?
+
+## 执行
+./test.sh
+```
+
 ### 控制语句
 
 - 控制语句也可在命令行中需要使用
@@ -118,19 +176,8 @@ echo 'it is wolf'\''s book'
 - 条件表达式的逻辑关系
     - **在linux中命令执行状态：0 为真，其他为假**
     - `&&`(第一个表达式为true才会运行第二个)、`||`、`!`
-    - `-a` 逻辑与，如：`if  [ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ] ; then`
+    - `-a` 逻辑与，如：`[ $# -gt 1 –a $# -lt 3 –o $# -eq 2 ]`
     - `-o` 或
-- 控制结构
-
-    ```shell
-    if 条件表达式 ; then
-        语句
-    elif 条件表达式 ; then
-        语句
-    else
-        语句
-    fi
-    ```
 - 整数比较
     - `-eq`、`==`   相等，比如：`[ $A -eq  $B ]`
     - `-ne`、`!=`   不等
@@ -167,31 +214,60 @@ echo 'it is wolf'\''s book'
     - `C=$[$A+$B]`
     - `C=$(($A+$B))`
     - C=\`expr $A + $B\` (表达式中各操作数及运算符之间要有空格，而且要使用命令引用)
+- 控制结构
+
+```shell
+## 控制结构
+if 条件表达式 ; then
+    语句
+elif 条件表达式 ; then
+    语句
+else
+    语句
+fi
+
+## 案例
+# 判断字符串是否为空
+STRING=
+if [ -z "$STRING" ]; then
+    echo "STRING is empty"
+fi
+if [ -n "$STRING" ]; then
+    echo "STRING is not empty"
+fi
+```
 
 #### 循环
 
 - 控制结构
 
-  ```shell
-  # for
-  for 变量 in 列表 ; do
-    语句
-  done
-  # 多行时，do后面需要加分号
-  for file in a.yaml b.yaml c.yaml  ; do wget https://github.com/test/test/raw/test/$file; done
+    ```shell
+    ## for
+    for 变量 in 列表 ; do
+        语句
+    done
+    ## 多行时，do后面需要加分号
+    for file in a.yaml b.yaml c.yaml  ; do wget https://github.com/test/test/raw/test/$file; done
 
-  # while(注意此处和下列的 ; 对比)
-  while 条件 ; do
-    语句
-    [break|continue]
-  done
+    ## 计次循环
+    for ((i=1; i<=100; i++))
+    # for i in {1..100}
+    do
+        echo $i
+    done
 
-  # while死循环(true可以替换为[ 0 ]或[ 1 ])
-  while true
-  do
-      语句
-  done
-  ```
+    ## while(注意此处和下列的 ; 对比)
+    while 条件 ; do
+        语句
+        [break|continue]
+    done
+
+    # while死循环(true可以替换为[ 0 ]或[ 1 ])
+    while true
+    do
+        语句
+    done
+    ```
 - 如何生成列表
 	- `{1..100}`
 	- `seq [起始数] [跨度数] 结束数` 如：`seq 10`、`seq 1 2 10`
@@ -613,11 +689,14 @@ EOF
 - 语法
 
     ```bash
-    # grep [-acinv] [--color=auto] '搜寻字符串' filename
+    grep [-acinv] [--color=auto] '搜寻字符串' filename
+    # filename不能缺失
+
     # 选项与参数：
     # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
-    # -R 递归查询子目录
+    # -R/-r 递归查询子目录
     # -i 忽略大小写的不同，所以大小写视为相同
+    # -l 显示文件名
     # -E 以 egrep 模式匹配
     # -P 应用正则表达式
     # -n 顺便输出行号
@@ -632,6 +711,7 @@ EOF
     grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
     grep 'search content' *.sql # 查找已`.sql`结尾的文件
     grep -R 'test' /data/* # 在/data目录及其字母查询
+    grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
 
     grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
     grep -A 5 'parttern' filename # 打印匹配行的后5行
@@ -641,6 +721,20 @@ EOF
     echo office365 | grep -P '\d+' -o # 返回 365
     grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
     grep -v 'A' filename # 打印不包含 A 的数据
+
+    # 根据日志查询最近执行命令时间(结合tail -1)
+    grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
+    ```
+- grep结果单独处理
+
+    ```bash
+    # 方式一
+    ps -ewo pid,etime,cmd | grep ofbiz.jar | grep -v grep | while read -r pid etime cmd ; do echo "===>$pid $cmd $etime"; done;
+
+    # 方式二
+    while read -r proc; do
+        echo '====>' $proc
+    done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
     ```
 
 ### sed行编辑器
@@ -678,6 +772,8 @@ EOF
     sed '/^$/d' /etc/inittab
     # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
     sed -i -e '/^$/d' /home/smalle/test.txt
+    # 修改当前目录极其子目录下所有文件
+    sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
 
     # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
     echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
@@ -834,6 +930,36 @@ for item in $(find -type f | xargs) ; do
 done
 ```
 
+### xrags
+
+- xargs 可以将管道或标准输入(stdin)数据转换成命令行参数，也能够从文件的输出中读取数据。它能够捕获一个命令的输出，然后传递给另外一个命令
+- xargs 默认的命令是 echo
+- xargs 也可以将单行或多行文本输入转换为其他格式，例如多行变单行，单行变多行
+- 示例
+
+```bash
+-n num # 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。eg：`cat test.txt | xargs` 多行转单行
+-i/-I # 这得看linux支持了，将xargs的每项名称，一般是一行一行赋值给 {}
+-d delim # 分隔符，默认的xargs分隔符是回车，argument的分隔符是空格，这里修改的是xargs的分隔符
+
+## 示例
+cat test.txt | xargs # 多行转单行
+cat test.txt | xargs -n3 # 多行输出，没此使用3个参数
+echo "nameXnameXnameXname" | xargs -dX # 定义分割符：name name name name
+ls *.jpg | xargs -n1 -I {} cp {} /data/images # 复制所有图片文件到 /data/images 目录下
+
+# 配合自定义函数使用
+echo 'echo $*' > my.sh
+cat > arg.txt << EOF
+aaa
+bbb
+EOF
+cat arg.txt | xargs -I {} ./my.sh {} ...
+# 打印
+aaa ...
+bbb ...
+```
+
 ### logger
 
 - `rsyslog`是一个C/S架构的服务，可监听于某套接字，帮其它主机记录日志信息。rsyslog是CentOS 6以后的系统使用的日志系统，之前为syslog
@@ -848,6 +974,21 @@ done
     - `last` 查看登录成功记录
     - `lastb -10` 查看最近10条登录失败记录
     - `history` 执行命令历史
+- CentOS 7 修改日志时间戳格式 [^8]
+
+```bash
+# Jul 14 13:30:01 localhost systemd: Starting Session 38 of user root.
+# 2018-07-14 13:32:57 desktop0 systemd: Starting System Logging Service...
+
+## 修改 /etc/rsyslog.conf 
+# Use default timestamp format
+#$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat # 这行是原来的将它注释，添加下面两行
+$template CustomFormat,"%$NOW% %TIMESTAMP:8:15% %HOSTNAME% %syslogtag% %msg%\n"
+$ActionFileDefaultTemplate CustomFormat
+
+## 重启
+systemctl restart rsyslog.service
+```
 - logger使用案例 [^6]
 
 ```bash
@@ -976,6 +1117,18 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     command || exit 0   # 此command执行失败后不执行后续命令
     ```
 - `cp`命令强制覆盖不提示 `\cp test test.bak`
+- 为shell命令设置超时时间
+
+    ```bash
+    timeout 10 ./test.sh # 设置执行脚本超时时间为10s
+    echo $? # 如果超时则返回 124
+    ```
+- 脚本中执行nohup命令不生效(主要是找不到环境变量)
+
+    ```bash
+    source /etc/profile
+    nohup echo "hello world"
+    ```
 
 ### json处理
 
@@ -1086,7 +1239,7 @@ start() {
     fi
 }
 
-#(函数)停止程序
+#(函数)停止程序。以下为强制kill，可配合timeout前软性停止服务
 stop() {
     # 首先调用checkpid函数，刷新$psid全局变量
     checkpid
@@ -1444,4 +1597,6 @@ int main()
 [^5]: https://blog.csdn.net/frank_liuxing/article/details/54017813
 [^6]: https://www.cnblogs.com/xingmuxin/p/8656498.html
 [^7]: https://www.tomczhen.com/2017/10/15/parsing-json-with-shell-script/
+[^8]: http://www.voidcn.com/article/p-okvvyica-bsd.html
+
 
