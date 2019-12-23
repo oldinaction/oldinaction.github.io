@@ -2,9 +2,51 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
+    
+    <lastmod>2019-12-23T10:09:17.363Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    
+    <lastmod>2019-12-23T08:45:19.386Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/10/23/extend/%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86/</loc>
+    
+    <lastmod>2019-12-23T06:26:31.433Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
+    
+    <lastmod>2019-12-23T05:40:43.891Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
     
-    <lastmod>2019-12-19T10:02:38.743Z</lastmod>
+    <lastmod>2019-12-23T04:40:00.726Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/09/24/lang/django/</loc>
+    
+    <lastmod>2019-12-23T03:38:50.461Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2019-12-20T13:09:31.729Z</lastmod>
     
   </url>
   
@@ -30,30 +72,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    
-    <lastmod>2019-12-17T02:47:03.176Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/09/24/lang/django/</loc>
-    
-    <lastmod>2019-12-16T09:47:40.482Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/09/24/lang/django-rest-framework/</loc>
     
     <lastmod>2019-12-16T07:26:12.528Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2019-12-14T15:13:38.148Z</lastmod>
     
   </url>
   
@@ -135,13 +156,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
-    
-    <lastmod>2019-12-06T03:02:04.897Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
     
     <lastmod>2019-12-05T05:41:54.985Z</lastmod>
@@ -159,13 +173,6 @@
     <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
     
     <lastmod>2019-12-05T02:28:39.041Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    
-    <lastmod>2019-12-02T10:07:38.627Z</lastmod>
     
   </url>
   
@@ -229,13 +236,6 @@
     <loc>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/</loc>
     
     <lastmod>2019-11-20T03:20:51.936Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/10/23/extend/%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86/</loc>
-    
-    <lastmod>2019-11-20T02:18:08.307Z</lastmod>
     
   </url>
   
