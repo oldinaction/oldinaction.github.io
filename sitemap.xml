@@ -2,9 +2,72 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/09/24/lang/django/</loc>
+    
+    <lastmod>2019-12-25T10:36:52.269Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
+    
+    <lastmod>2019-12-25T06:24:12.849Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    
+    <lastmod>2019-12-25T03:21:59.699Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</loc>
+    
+    <lastmod>2019-12-25T03:19:03.872Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
+    
+    <lastmod>2019-12-25T02:48:51.475Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    
+    <lastmod>2019-12-25T01:56:50.996Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
     
-    <lastmod>2019-12-23T10:09:17.363Z</lastmod>
+    <lastmod>2019-12-24T10:14:16.807Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2019-12-24T08:42:06.690Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2019-12-24T06:32:07.822Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
+    
+    <lastmod>2019-12-24T04:40:29.902Z</lastmod>
     
   </url>
   
@@ -30,37 +93,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
-    
-    <lastmod>2019-12-23T04:40:00.726Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/09/24/lang/django/</loc>
-    
-    <lastmod>2019-12-23T03:38:50.461Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2019-12-20T13:09:31.729Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2019-12-19T02:28:50.292Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
-    
-    <lastmod>2019-12-19T01:59:39.996Z</lastmod>
     
   </url>
   
@@ -82,13 +117,6 @@
     <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
     
     <lastmod>2019-12-13T06:04:57.279Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    
-    <lastmod>2019-12-13T04:07:27.734Z</lastmod>
     
   </url>
   
@@ -135,13 +163,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</loc>
-    
-    <lastmod>2019-12-06T05:47:42.759Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
     
     <lastmod>2019-12-06T05:21:53.596Z</lastmod>
@@ -152,13 +173,6 @@
     <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
     
     <lastmod>2019-12-06T03:45:02.599Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2019-12-05T05:41:54.985Z</lastmod>
     
   </url>
   
@@ -264,13 +278,6 @@
     <loc>http://blog.aezo.cn/2018/04/04/extend/vpn/</loc>
     
     <lastmod>2019-11-14T13:53:26.262Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
-    
-    <lastmod>2019-11-12T02:34:33.807Z</lastmod>
     
   </url>
   
@@ -495,13 +502,6 @@
     <loc>http://blog.aezo.cn/2017/08/24/db/db-procedure/</loc>
     
     <lastmod>2019-09-16T04:05:06.928Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    
-    <lastmod>2019-09-03T03:00:03.363Z</lastmod>
     
   </url>
   
