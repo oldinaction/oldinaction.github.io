@@ -60,6 +60,7 @@ tags: [linux, shell]
     - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况；二级子目录可改成2；`du -h` 查看当前目录及其子目录大小
 - `hostname` 查看hostname
     - `hostnamectl --static set-hostname aezocn` 修改主机名并重启
+- `env` 查看环境变量
 
 ### 查看网络信息
 
@@ -1069,11 +1070,11 @@ vm.dirty_expire_centisecs = 3000
 vm.dirty_writeback_centisecs = 500
 ```
 
-## linux概念
+## Linux基础
 
 ### 基本
 
-- Linux是基于Unix的，其内核是开源的。redhat、centos、ubuntu都是基于linux内核将一些小程序组装到一起的linux发行套件。
+- Linux是基于Unix的，其内核是开源的。redhat、centos、ubuntu都是基于linux内核将一些小程序组装到一起的linux发行套件
 - linux的库为`.so`共享对象，windows的库为`.dll`动态链接库
 - `#`为root命令提示符，`$`普通用户提示符
 - 命令格式：`命令 选项 参数`
@@ -1124,6 +1125,15 @@ vm.dirty_writeback_centisecs = 500
         - `src` 系统级的源码目录
         - `/local/src`：用户级的源码目录
     - `/opt` **标识可选择的意思，一些软件包也会安装在这里，也就是自定义软件包**。用户级的程序目录，可以理解为D:/Software，opt有可选的意思，这里可以用于放置第三方大型软件（或游戏），当不需要时，直接rm -rf掉即可。在硬盘容量不够时，也可将/opt单独挂载到其他磁盘上使用
+
+### 相关文件
+
+- `/etc/profile` 系统环境信息，如环境变量，对所有用户生效；当用户第一次登录时，该文件被执行。并从 `/etc/profile.d` 目录的配置文件中收集 shell 的设置。对 /etc/profile 有修改的话必须得 source 一下修改才会生效(如果第二次登录仍然不生效可考虑重启一下系统)
+- `/etc/bashrc` 当 bash shell 被打开时，该文件被读取执行，对所有用户生效。修改文件后，重新打开一个 bash 即可生效
+- `~/.bash_profile` 当用户登录时，文件仅仅执行一次，对当前用户生效。默认情况下，为了设置一些环境变量，和**执行用户的 `~/.bashrc` 文件**
+- `~/.bashrc` 对当前登录用户生效，每次打开 bash shell 时生效，**默认调用了`/etc/bashrc`**
+- `~/.bash_logout` 当每次退出系统(退出 bash shell)时，执行该文件
+- `/etc/environment` 设置环境变量。/etc/profile > /etc/environment > ~/.bash_profile
 
 ### 网络
 

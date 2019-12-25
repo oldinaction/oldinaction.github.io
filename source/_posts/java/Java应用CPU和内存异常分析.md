@@ -209,6 +209,13 @@ https://blog.csdn.net/Aviciie/article/details/79281080
     where cpu_time > 20000
     order by round(cpu_time/executions/1000, 2) desc;
 
+    -- cpu_time为微秒
+    select sid, serial#, sql_text, sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
+    from v$sql
+    join v$session on v$sql.sql_id = v$session.sql_id
+    where cpu_time/executions/1000000 > 3 --每次执行消耗cpu>3s的
+    order by peer_secondes_cpu_time desc;
+
     -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
     -- 从根源上解决问题需要对对应的sql_fulltext进行sql优化
     alter system kill session 'sid, serial#';
@@ -221,20 +228,34 @@ https://blog.csdn.net/Aviciie/article/details/79281080
     select sql_text
     from v$sqltext a
     where (a.hash_value, a.address) in
-        (select decode(sql_hash_value, 0, prev_hash_value, sql_hash_value),
+        (
+            select decode(sql_hash_value, 0, prev_hash_value, sql_hash_value),
                 decode(sql_hash_value, 0, prev_sql_addr, sql_address)
             from v$session b
-            where b.paddr =
-                (select addr from v$process c where c.spid = '&pid'))
+            where b.paddr = (select addr from v$process c where c.spid = '&pid')
+        )
     order by piece asc
     ```
-- 查看数据库sql运行占用时间较长的sql语句
+- 查看占用CPU时间较长、每次每秒耗时较长的10条sql语句
 
     ```sql
+    -- 查询耗时sql
     select *
-    from (select sql_text, sql_fulltext, sql_id, cpu_time from v$sql order by cpu_time desc)
+    from (
+        select sql_id, sql_text, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
+        from v$sql 
+        where executions > 0 and PARSING_SCHEMA_NAME='OFBIZ'
+        -- and last_load_time > to_char(sysdate-12/24, 'YYYY-MM-DD/HH24:MI:SS') -- 统计过去12小时到当前时间执行的sql性能情况
+        -- order by cpu_time desc -- 占用CPU时间较长
+        order by cpu_time/executions desc -- 每次每秒耗时较长
+    )
     where rownum <= 10
-    order by rownum asc;
+    order by rownum asc
+    
+    -- 根据sql_id查询详细的sql语句(sql_fulltext)
+    select sql_id, sql_text, sql_fulltext, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
+    from v$sql
+    where sql_id = '6dwr4tmjt1txc'
     ```
 - 常用查询
 

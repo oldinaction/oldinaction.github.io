@@ -12,14 +12,449 @@ tags: [oracle, dba]
 
 ### oracle相关名词和原理
 
-1. 数据库名(db_name)、实例名(instance_name)、以及操作系统环境变量(oracle_sid) [^1]
+- 数据库名(db_name)、实例名(instance_name)、以及操作系统环境变量(oracle_sid) [^1]
     - `db_name`: 在每一个运行的oracle数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
     - `instance_name`: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库server连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
     - `oracle_sid`: 有时候简称为SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用ORACLE_SID参数。这两个都是数据库实例名。instance_name参数是ORACLE数据库的参数，此参数可以在参数文件中查询到，而ORACLE_SID参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用ORACLE_SID。此参数与ORACLE_BASE、`ORACLE_HOME`等用法相同。在数据库安装之后，ORACLE_SID被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。
-2. `service_name`：是网络服务名(如：local_orcl)，可以随意设置，相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称(如：`local_orcl=(...)`)，也是登录pl/sql是填写的Database
-3. `schema` schema为数据库对象的集合，为了区分各个集合，需要给这个集合起个名字，这些名字就是我们看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个schema。schema里面包含了各种对象如tables, views, sequences, stored procedures, synonyms, indexes, clusters, and database links。一个用户一般对应一个schema，该用户的schema名等于用户名，并作为该用户缺省schema
+- `service_name`：是网络服务名(如：local_orcl)，可以随意设置，相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称(如：`local_orcl=(...)`)，也是登录pl/sql是填写的Database
+- `schema` schema为数据库对象的集合，为了区分各个集合，需要给这个集合起个名字，这些名字就是我们看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个schema。schema里面包含了各种对象如tables, views, sequences, stored procedures, synonyms, indexes, clusters, and database links。一个用户一般对应一个schema，该用户的schema名等于用户名，并作为该用户缺省schema
 
-## oracle及pl/sql安装和使用
+## 启动/停止
+
+- 重启
+
+```bash
+## 启动监听程序(shell命令行运行即可)
+lsnrctl start
+# 查看服务状态(见下图"lsnrctl-status显示图片")
+lsnrctl status
+
+## 重启服务
+# su - oracle && source ~/.bash_profile
+# 以nolog、sysdba身份登录，进入sql命令行
+sqlplus / as sysdba # sqlplus /nolog
+# 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，可无需分号)
+shutdown immediate; # `shutdown;` 则是有用户连接就不关闭，直到所有用户断开连接
+# 正常启动（sql下运行；1启动实例，2打开控制文件，3打开数据文件）
+startup
+# 退出sqlplus
+exit;
+```
+- startup说明
+
+```sql
+-- 非安装启动，这种方式启动下可执行：重建控制文件、重建数据库。读取init.ora文件，启动instance，即启动SGA和后台进程，这种启动只需要init.ora文件
+startup nomount
+-- 安装启动，这种方式启动下可执行：数据库日志归档、数据库介质恢复、使数据文件联机或脱机、重新定位数据文件、重做日志文件。执行"nomount"，然后打开控制文件，确认数据文件和联机日志文件的位置，但此时不对数据文件和日志文件进行校验检查
+startup mount dbname
+-- 先执行"nomount"，然后执行"mount"，再打开包括Redo log文件在内的所有数据库文件，这种方式下才可访问数据库中的数据
+startup open dbname
+-- 等于三个命令：startup nomount、alter database mount、alter database open
+startup
+```
+
+## 常用操作
+
+- sql命令行中执行bash命令加`!`，如`!ls`查看目录
+
+### 系统相关
+
+#### 管理员登录
+
+- sqlplus本地登录：`sqlplus / as sysdba`，以sys登录。sys为系统管理员，拥有最高权限；system为本地管理员，次高权限
+- sqlplus远程登录：`sqlplus aezo/aezo@192.168.1.1:1521/orcl` (orcl为远程服务名)，失败可尝试如下命令：
+    - `sqlplus /nolog`
+    - `connect aezo/aezo@192.168.1.1:1521/orcl;`，或者使用配置好的服务名连接`conn aezo/aezo@remote_orcl`
+- pl/slq管理员登录：用户名密码留空，Connect as 选择 SYSDBA 则默认以sys登录。登录远程只需要在tnsnames.ora进行网络配置即可
+
+#### 执行脚本
+
+- plsql执行sql文件：`@ D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交，建议start）
+- bat脚本(data.bat)：`sqlplus user/password@serverip/database @"%cd%\data.sql"` (data.sql和data.bat同级，此处只能用@)
+- 后台运行脚本 `nohup bash run.sh > run.log 2>&1 &`
+
+```bash
+# 下面的文件都不要加空行
+# run.sh
+sqlplus smalle/123456@ASF_PROD <<EOF
+@ ./run.sql
+EOF
+
+# run.sql
+call p_customer_exists_sync();
+```
+
+### 数据库相关
+
+#### 连接
+
+- 查询数据库当前连接数 `select count(*) from v$session;`
+    - 查询当前数据库不同用户的连接数：`select username,count(username) from v$session where username is not null group by username;`
+- 查询数据库最大连接数 `select value from v$parameter where name = 'processes'`、`show parameter processes`
+    - 修改数据库最大连接数：`alter system set processes = 500 scope = spfile;` 需要重启数据库
+- 查询连接信息 `select * from v$session a,v$process b where a.PADDR=b.ADDR`
+    - sid为session, spid为此会话对应的系统进程id
+
+#### 表空间
+
+- 表空间不足/扩容参考下文常见错误
+
+#### 锁表
+
+```sql
+-- 查询被锁表的信息（多刷新几次，应用可能会临时锁表）
+select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s 
+    where l.object_id　= o.object_id and l.session_id = s.sid; 
+-- 关闭锁表的连接
+alter system kill session '某个sid, 某个serial#';
+```
+
+#### 索引 [^4]
+
+- 索引在逻辑上和物理上都与相关的表和数据无关，当创建或者删除一个索引时，不会影响基本的表
+- 进行索引操作建议在无其他链接的情况下，或无响应写操作的情况下，数据量越大创建索引越耗时
+- Oracle在创建时会做相应操作，因此创建后就会看到效果，无需重启服务
+- 索引是全局唯一的
+- 创建索引语法
+  
+  ```sql
+  CREATE [UNIQUE] | [BITMAP] INDEX index_name  --unique表示唯一索引（index_name全局唯一）
+  ON table_name([column1 [ASC|DESC],column2    --bitmap，创建位图索引
+  [ASC|DESC],…] | [express])
+  [TABLESPACE tablespace_name]
+  [PCTFREE n1]                                 --指定索引在数据块中空闲空间
+  [STORAGE (INITIAL n2)]
+  [NOLOGGING]                                  --表示创建和重建索引时允许对表做DML操作，默认情况下不应该使用
+  [NOLINE]
+  [NOSORT];                                    --表示创建索引时不进行排序，默认不适用，如果数据已经是按照该索引顺序排列的可以使用
+  ```
+- create、rebuild对大表进行索引操作时切记加上`online`参数，此时DDL与DML语句可以并行运行，防止阻塞. [^11]
+
+```sql
+-- 创建索引
+create index index_in_out_regist_id on ycross_storage(in_out_regist_id) online;
+-- 重命名索引
+alter index index_in_out_regist_id rename to in_out_regist_id_index online;
+-- 重建索引
+alter index index_in_out_regist_id rebuild online;
+-- 删除索引
+drop index index_in_out_regist_id online;
+-- 查看索引
+select * from all_indexes where table_name='ycross_storage';
+
+-- 1.分析索引
+analyze index index_in_out_regist_id validate structure;
+-- 2.查看索引分析结果
+select height,DEL_LF_ROWS/LF_ROWS from index_stats;
+-- 3.查询出来的 height>=4 或者 DEL_LF_ROWS/LF_ROWS>0.2 的场合, 该索引考虑重建
+alter index index_in_out_regist_id rebuild online;
+```
+
+### 用户相关
+
+- 创建用户：`create user aezo identified by aezo;` 用户名不区分大小写，密码区分
+    - 默认使用的表空间是`USERS`，使用`create user aezo identified by aezo default tablespace aezocn;`可设定默认表空间
+    - 删除用户：`drop user aezo cascade;`
+- 修改用户密码：`alter user scott identified by tiger;`
+- 修改用户表空间：`alter user aezo default tablespace aezocn;`
+- 解锁用户(无需重启oracle服务)
+    
+    ```sql
+    alter user scott account unlock; -- 新建数据库scott默认未解锁
+    commit;
+    ```
+- 密码过期：(1) 重新设置密码即可`alter user aezo identified by aezo;` (2)设置永久不过期`alter profile default limit password_life_time unlimited;`
+- 授权
+    - `grant create session to aezo;` 授予aezo用户创建session的权限，即登陆权限
+    - `grant unlimited tablespace to aezo;` 授予aezo用户使用表空间的权限
+    - `grant dba to aezo;` 授予管理权限(有dba角色就有建表等权限)
+    - `grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to dewell;` 赋予dewell查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限
+    - `grant create synonym to smalle;` 赋予创建别名权限
+        - `create or replace SYNONYM smalle.ZIP_SALES_TAX_LOOKUP FOR OFBIZ.ZIP_SALES_TAX_LOOKUP;` 添加别名，否则smalle查询ofbiz的表必须加`ofbiz.`，添加别名后省略`ofbiz.`
+
+#### 创建dba账户
+
+```sql
+create user aezo identified by aezo default tablespace aezocn;
+grant create session to aezo; -- 授予aezo用户创建session的权限，即登陆权限
+grant unlimited tablespace to aezo; -- 授予aezo用户使用表空间的权限
+grant dba to aezo; -- 授予管理权限(有dba角色就有建表等权限)
+```
+
+#### 新建用户并赋予表查询权限
+
+```sql
+create user smalle identified by smalle1234 default tablespace ofbiz; -- 创建用户
+grant create session to smalle; -- 赋予登录权限
+grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限（可使用下列批量赋权语句）
+grant create synonym to smalle; -- 赋予创建别名权限
+create or replace SYNONYM smalle.yothers_advice_collection FOR OFBIZ.yothers_advice_collection; -- 创建表别名,之后smalle查询OFBIZ的这张表可直接使用表名（可使用下列语句进行批量设置）
+
+-- 批量赋值表查询权限
+-- （1） 使用游标将OFBIZ用户所有的表的查询权限赋给smalle用户（推荐）
+declare
+  table_owenr_user    VARCHAR2(200) := 'OFBIZ'; -- TODO 修改表所属用户名(注意要大写)
+  table_grant_user    VARCHAR2(200) := 'smalle'; -- TODO 修改表授权用户名(此处大小写无所谓)
+  cursor c_tabname is select table_name from dba_tables where owner = table_owenr_user;
+  v_tabname dba_tables.table_name%TYPE;
+  sqlstr    VARCHAR2(200); 
+begin
+  open c_tabname;
+  loop
+    begin -- loop...end loop;语句捕获异常需要begin...end包裹
+    fetch c_tabname into v_tabname;
+    exit when c_tabname%NOTFOUND;
+    sqlstr := 'grant select on ' || table_owenr_user || '.' || v_tabname || ' to ' || table_grant_user;
+    -- sqlstr := 'create or replace SYNONYM ' || table_grant_user || '.' || v_tabname || ' for ' || table_owenr_user || '.' || v_tabname; -- 设置表别名
+    execute immediate sqlstr;
+    exception
+      when others then dbms_output.put_line(sqlstr); -- 捕获异常继续下一次循环
+    end;
+  end loop;
+  close c_tabname;
+end;
+-- （2） 通过查询获取赋值语句，然后运行每一行赋值语句
+select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
+  from dba_objects
+ where owner in ('OFBIZ')
+   and object_type = 'TABLE';
+
+-- 批量设置表别名
+-- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || table_grant_user || '.' || v_tabname || ' for ' || table_owenr_user || '.' || v_tabname;）
+-- （2）获取添加表别名语句
+select 'create or replace synonym smalle.' || object_name || ' for ' ||
+        owner || '.' || object_name || ';'
+   from dba_objects
+  where owner in ('OFBIZ')
+    and object_type = 'table';
+```
+
+### sqlplus使用技巧
+
+- sqlplus执行PL/SQL语句，再输入完语句后回车一行输入`/`
+- `set line 1000;` 可适当调整没行显示的宽度
+    - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
+- `set serverout on;` 开启输出
+    - 否则执行`begin dbms_output.put_line('hello world!'); end;` 无法输出
+- `set autotrace on` 后面运行的sql会自动进跟踪统计
+- 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`
+
+### 查询相关
+
+- 系统
+    - 查看服务是否启动：`tnsping local_orcl` cmd直接运行
+        - 远程查看(cmd运行)：`tnsping 192.168.1.1:1521/orcl`、或者`tnsping remote_orcl`(其中remote_orcl已经在本地建立好了监听映射，如配置在tnsnames.ora)
+        - 如果能够ping通，则说明客户端能解析listener的机器名，而且lister也已经启动，但是并不能说明数据库已经打开，而且tsnping的过程与真正客户端连接的过程也不一致。但是如果不能用tnsping通，则肯定连接不到数据库
+        - 实例tnsping突然高达1w多毫秒，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
+    - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
+    - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
+- 用户相关查询
+    - **查看当前用户默认表空间**：`select username, default_tablespace from user_users;`(以dba登录则结果为SYS和SYSTEM)。**user_users换成dba_users则是查询所有用户默认表空间**
+    - 查看当前用户角色：`select * from user_role_privs;`
+    - 查看当前用户系统权限：`select * from user_sys_privs;`
+    - 查看当前用户表级权限：`select * from user_tab_privs;`
+    - 查看用户下所有表：`select * from user_tables;`
+    - DBA相关查询见数据库字典
+- 数据字典 [^5]
+    - `user_`：记录用户对象的信息，如user_tables包含用户创建的所有表，user_views，user_constraints等
+    - `all_`：记录用户对象的信息及被授权访问的对象信息
+    - `dba_`：记录数据库实例的所有对象的信息，如dba_users包含数据库实例中所有用户的信息。dba的信息包含user和all的信息。大部分是视图
+    - `v$`：当前实例的动态视图，包含系统管理和优化使用的视图。等价于`v_$`
+    - `gv_`：分布环境下所有实例的动态视图，包含系统管理和优化使用的视图，这里的gv表示global v$的意思
+- 基本数据字典
+    - 常用
+        - `dict` 构成数据字典的所有表的信息
+        - `dba_users` 所有的用户信息（oracle密码是加密的，忘记密码只能修改）
+        - `dba_tables` 所有用户的所有表的信息
+        - `dba_tablespaces` 记录系统表空间的基本信息；
+        - `dba_data_files` 记录系统数据文件及表空间的基本信息；
+        - `dba_free_space` 记录系统表空间的剩余空间的信息；
+    - 其他
+        - `cat` 当前用户可以访问的所有的基表
+        - `tab` 当前用户创建的所有基表，视图，同义词等
+        - `dba_views` 所有用户的所有视图信息
+        - `dba_constraints` 所有用户的表约束信息
+        - `dba_indexes` 所有用户索引的简要信息
+        - `dba_ind_columns` 所有用户索引的列信息
+        - `dba_triggers` 所有用户触发器信息
+        - `dba_source` 所有用户存储过程源代码信息
+        - `dba_procedus` 所有用户存储过程
+        - `dba_segments` 所有用户段（表，索引，cluster）使用空间信息
+        - `dba_tab_columns` 所有用户的表的列（字段）信息
+        - `dba_synonyms` 所有用户同义词信息
+        - `dba_sequences` 所有用户序列信息
+        - `dba_extents` 所有用户段的扩展段信息
+        - `dba_objects` 所有用户对象的基本信息（包括素引，表，视图，序列等）
+- 数据库组件相关的数据字典(`v$`代表视图，等价于`v_$`)
+    - 基本
+        - `v$database` 同义词v_$database，记录系统的运行情况
+        - `v$instance` 实例信息
+        - `v$parameter` **记录系统各参数的基本信息**
+        - `v$sql` 列举了共享SQL区(Shared SQL Area)中的SQL统计信息，这个视图中的信息未经分组，每个SQL指针都包含一条独立的记录
+        - `v$sqlarea` 列出了共享SQL区(Shared SQL Area)中的SQL统计信息，根据SQL_TEXT进行的一次汇总统计(对SQL_TEXT进行group by)
+        - `v$sqltext`
+    - 相关文件
+        - `v$controlfile` 控制文件信息
+        - `v$datafile` 数据文件信息
+        - `v$logfile` 日志文件(redo)
+        - `v$tempfile` 临时文件
+        - `v$diag_info` 日志目录(alert/trace)
+        - `v$controlfile_record_section` 记录系统控制运行的基本信息
+        - `v$filestat` 记录数据文件读写的基本信息
+    - 举例
+
+        ```sql
+        -- 以下4种文件默认都在安装目录的oradata下，如C:/soft/oracle/oradata/orcl
+        select name from v$datafile; -- 数据文件信息
+        select name from v$controlfile; -- 控制文件
+        select * from v$logfile; -- (redo)日志文件
+        select * from v$tempfile; -- 临时文件
+        -- (alert/trace) 日志目录
+        select * from v$diag_info;
+        
+        -- v$sql 和 v$sqlarea 的区别：https://blog.51cto.com/gldbhome/1166576。字段详细说明：http://blog.itpub.net/31397003/viewspace-2142838/
+        -- v$sql的hash_value：基于(sql)语句实际的物理对象来计算，如两个用户的同一表名，查询sql语句一样，物理对象却是两个，因此在v$sql中有两条记录，但是两个用户多次查询，只会在各自的记录上进行统计executions
+        -- v$sqlarea的hash_value：仅仅基于sql_text进行合并计算，上述情况将只有一条记录，两个用户多次查询只会在这条记录上进行累计
+        /*
+            sql_id          缓存在高速缓冲区（library cache）中的SQL父游标的唯一标识ID
+            sql_text        当前sql指针的前1000个字符
+            sql_fulltext    完整的sql(clob)
+            executions      执行次数
+            disk_reads      这个子指针disk read(物理读)的次数
+            buffer_gets     这个子指针的buffer gets(缓存读)数量
+            optimizer_mode  sql执行的优化器模式：ALL_ROWS、CHOOSE
+            optimizer_cost  sql执行成本
+            cpu_time        消耗CPU时间(us微秒=1/1000000s)
+            elapsed_time    公式：elapsed_time(响应时间) = cpu_time(服务计算时间)  + wait_time(等待时间)，如果是多线程，有可能 cpu_time > elapsed_time
+            last_load_time  最近执行时间点(24h制)
+            hash_value      在library cache中父指针的hash value值
+        */
+        select sql_text,executions,disk_reads,optimizer_mode,buffer_gets,hash_value from v$sql where sql_text='select count(*) from emp';
+        /*
+            sql_text        当前指针的前1000个字符
+            version_count   在cache中这个父指针下存在的子指针的数量
+            executions      总的执行次数，包含所有子指针执行次数的汇总
+            disk_reads      所有子指针的disk reads总和
+            buffer_gets     所有子指针的buffer gets总和
+            optimizer_mode  sql执行的优化器模
+            hash_value      父指针的hash value
+        */
+        select sql_text,executions,disk_reads,buffer_gets,hash_value,version_count from v$sqlarea where sql_text='select count(*) from emp';
+        ```
+
+### 日志文件
+
+- oracle的日志文件有几种
+    - `alert警告日志`
+        - 在10g版本系统初始化参数文件设置的`show parameter background_dump_dest`对应的就是它的位置
+        - 在11g以及ORACLE 12c中告警日志文件目录 **`select * from v$diag_info;`** (11g以上主要是因为引入了ADR：Automatic Diagnostic Repository一个存放数据库alert日志、trace日志目录)
+    - `trace日志`：**追踪文件**，记录各种sql操作及所消耗的时间等，根据trace文件就可以了解哪些sql导致了系统的性能瓶颈，进而采取恰当的方式调优
+        - 10g对应系统初始化参数文件参数`show parameter user_dump_dest`
+        - 11g同alert日志可通过`select * from v$diag_info;`查看日志文件位置(ADR Home)
+    - `audit日志`：审计的信息
+        - 10g对应系统初始化参数文件参数`audit_file_dest`
+    - `redo日志`：存放数据库的更改信息
+        - `select member from v$logfile;` member就代表它的位置
+    - `归档日志`：redo日志的历史备份
+        - `select * from v$parameter where name like 'log_archive_dest%';`
+- 日志分析
+
+    > `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.
+
+    ```bash
+    # alert_orcl.log为警告日志；*.trc为日志追踪文件；*.trm为追踪文件映射信息；cdmp_20191212101335为备份？
+    select * from v$diag_info; # 查看日志目录(ADR Home)
+    ll -rt *.trc | grep ' 23 ' # 列举23号的trc文件。如`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
+    # 使用oracle自带工具tkprof(/u01/app/oracle/product/11.2.0/bin)分析trc文件。参考：http://www.51testing.com/html/34/60434-225024.html
+    tkprof /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_dbrm_18576.trc orcl_dbrm_18576.txt sys=no sort=prsela,exeela,fchela
+    cat orcl_dbrm_18576.txt # 查看分析结果
+    ```
+
+## 业务场景
+
+### 表空间数据文件位置迁移
+
+- 可以移动任何表空间的数据文件，包括system表空间(windows oracle 11g测试通过)
+
+```sql
+sqlplus / as sysdba
+shutdown immediate;
+cp c:/oracle/oradata/orcl/test.dbf d:/oradata/orcl/test.dbf
+startup mount;
+alter database rename file 'c:/oracle/oradata/orcl/test.dbf' to 'd:/oradata/orcl/test.dbf';
+alter database open; -- 运行后即可正常访问数据库数据
+
+-- 重启验证
+shutdown immediate;
+startup
+rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
+```
+
+## 常见错误
+
+### 数据库服务器CPU飙高
+    
+- 参考[数据库服务器故障](/_posts/java/Java应用CPU和内存异常分析.md#数据库服务器故障)
+
+### 表空间不足
+
+- 报错`ORA-01653: unable to extend table` [^7]
+    - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
+    - 开启表空间自动扩展，每次递增50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
+    - 为USERS表空间新增1G的数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`
+        - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
+        - 此处定义的1G会立即占用物理磁盘的1G空间，当开启自动扩展后，最多可扩展到32G
+        - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致)
+    - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
+
+        ```sql
+        -- 查看表空间(如果表空间不足，此sql语句可能无法显示出来改表空间，可单独查询其中的a表)
+        select a.tablespace_name "表空间名",
+            a.bytes / 1024 / 1024 "表空间大小(m)",
+            (a.bytes - nvl(b.bytes, 0)) / 1024 / 1024 "已使用空间(m)",
+            case when b.bytes is null then 0 else b.bytes / 1024 / 1024 end "空闲空间(m)",
+            case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
+            a.file_name "全路径的数据文件名称",
+            autoextensible "表空间自动扩展", 
+            increment_by "自增块(默认1blocks=8k)"
+        from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes
+                from dba_data_files
+            group by tablespace_name, file_name, autoextensible, increment_by) a
+        left join
+            (select tablespace_name, sum(bytes) bytes, max(bytes) largest
+                from dba_free_space
+            group by tablespace_name) b
+        on a.tablespace_name = b.tablespace_name;
+
+        -- 查看oracle临时表空间
+        select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
+        from dba_temp_files
+        group by tablespace_name, file_name, autoextensible, increment_by;
+        ```
+- 报错`ORA-01654:unable to extend index`，解决步骤 [^8]
+    - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经32G(表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
+        - 解决方案：通过上述方法增加数据文件解决
+    - 情况二表空间未满：查询的表空间剩余400M，且该索引的next_extent=700MB，即给该索引分配空间时不足
+        - 解决方案：重建该索引`alter index index_name rebuild tablespace indexes storage(initial 256K next 256K pctincrease 0)`(还未测试)
+
+### 其他
+
+- 表空间数据文件丢失时，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
+    - oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉
+    - `sqlplus / as sysdba`
+    - `shutdown abort` 强制关闭oracle
+    - `startup mount` 启动挂载
+    - `alter database datafile '/home/oracle/xxx' offline drop;` 从数据库删除该表空间的数据文件
+        - `select file_name, tablespace_name from dba_data_files;` 查看表空间数据文件位置
+    - `alter database open;`
+    - `drop tablespace 表空间名`
+
+## oracle安装
+
+- 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
+- oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
+
+## pl/sql安装和使用
 
 - ORACLE_HOME为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入imp.exe、导出exp.exe）
 - 这个只是服务器端才会使用的到
@@ -144,323 +579,6 @@ oracle和mysql不同，此处的创建表空间相当于mysql的创建数据库�
 ### Oracle表结构与Mysql表结构转换
 
 参考 [mysql-dba.md#Oracle表结构与Mysql表结构转换](/_posts/db/mysql-dba.md#其他)
-
-## 常用操作
-
-- sql命令行中执行bash命令加`!`，如`!ls`查看目录
-
-### 系统相关
-
-#### 启动/停止
-
-- `lsnrctl start` 启动监听程序(shell命令行运行)。
-    - `lsnrctl status` 查看服务状态（见下图"lsnrctl-status显示图片"）
-- `sqlplus /nolog`、`sqlplus / as sysdba` 以nolog、sysdba身份登录，进入sql命令行
-- **`shutdown immediate`** 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，无需分号)
-    - `shutdown;` 有用户连接就不关闭，直到所有用户断开连接
-- **`startup`** 正常启动（1启动实例，2打开控制文件，3打开数据文件）(sql下运行) 
-- `exit;` 退出sqlplus
-
-#### 管理员登录
-
-- sqlplus本地登录：`sqlplus / as sysdba`，以sys登录。sys为系统管理员，拥有最高权限；system为本地管理员，次高权限
-- sqlplus远程登录：`sqlplus aezo/aezo@192.168.1.1:1521/orcl` (orcl为远程服务名)，失败可尝试如下命令：
-    - `sqlplus /nolog`
-    - `connect aezo/aezo@192.168.1.1:1521/orcl;`，或者使用配置好的服务名连接`conn aezo/aezo@remote_orcl`
-- pl/slq管理员登录：用户名密码留空，Connect as 选择 SYSDBA 则默认以sys登录。登录远程只需要在tnsnames.ora进行网络配置即可
-
-#### 执行脚本
-
-- plsql执行sql文件：`@ D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交，建议start）
-- bat脚本(data.bat)：`sqlplus user/password@serverip/database @"%cd%\data.sql"` (data.sql和data.bat同级，此处只能用@)
-- 后台运行脚本 `nohup bash run.sh > run.log 2>&1 &`
-
-```bash
-# 下面的文件都不要加空行
-# run.sh
-sqlplus smalle/123456@ASF_PROD <<EOF
-@ ./run.sql
-EOF
-
-# run.sql
-call p_customer_exists_sync();
-```
-
-### 数据库相关
-
-#### 连接
-
-- 查询数据库当前连接数 `select count(*) from v$session;`
-    - 查询当前数据库不同用户的连接数：`select username,count(username) from v$session where username is not null group by username;`
-- 查询数据库最大连接数 `select value from v$parameter where name = 'processes'`、`show parameter processes`
-    - 修改数据库最大连接数：`alter system set processes = 500 scope = spfile;` 需要重启数据库
-- 查询连接信息 `select * from v$session a,v$process b where a.PADDR=b.ADDR`
-    - sid为session, spid为此会话对应的系统进程id
-
-#### 表空间
-
-- 表空间不足/扩容参考下文常见错误
-
-#### 锁表
-
-```sql
--- 查询被锁表的信息（多刷新几次，应用可能会临时锁表）
-select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s 
-    where l.object_id　= o.object_id and l.session_id = s.sid; 
--- 关闭锁表的连接
-alter system kill session '某个sid, 某个serial#';
-```
-
-#### 索引 [^4]
-
-- 索引在逻辑上和物理上都与相关的表和数据无关，当创建或者删除一个索引时，不会影响基本的表
-- 进行索引操作建议在无其他链接的情况下，或无响应写操作的情况下，数据量越大创建索引越耗时
-- Oracle在创建时会做相应操作，因此创建后就会看到效果，无需重启服务
-- 索引是全局唯一的
-- 创建索引语法
-  
-  ```sql
-  CREATE [UNIQUE] | [BITMAP] INDEX index_name  --unique表示唯一索引（index_name全局唯一）
-  ON table_name([column1 [ASC|DESC],column2    --bitmap，创建位图索引
-  [ASC|DESC],…] | [express])
-  [TABLESPACE tablespace_name]
-  [PCTFREE n1]                                 --指定索引在数据块中空闲空间
-  [STORAGE (INITIAL n2)]
-  [NOLOGGING]                                  --表示创建和重建索引时允许对表做DML操作，默认情况下不应该使用
-  [NOLINE]
-  [NOSORT];                                    --表示创建索引时不进行排序，默认不适用，如果数据已经是按照该索引顺序排列的可以使用
-  ```
-- create、rebuild对大表进行索引操作时切记加上`online`参数，此时DDL与DML语句可以并行运行，防止阻塞. [^11]
-
-```sql
--- 创建索引
-create index index_in_out_regist_id on ycross_storage(in_out_regist_id) online;
--- 重命名索引
-alter index index_in_out_regist_id rename to in_out_regist_id_index online;
--- 重建索引
-alter index index_in_out_regist_id rebuild online;
--- 删除索引
-drop index index_in_out_regist_id online;
--- 查看索引
-select * from all_indexes where table_name='ycross_storage';
-
--- 1.分析索引
-analyze index index_in_out_regist_id validate structure;
--- 2.查看索引分析结果
-select height,DEL_LF_ROWS/LF_ROWS from index_stats;
--- 3.查询出来的 height>=4 或者 DEL_LF_ROWS/LF_ROWS>0.2 的场合, 该索引考虑重建
-alter index index_in_out_regist_id rebuild online;
-```
-
-### 用户相关
-
-- 创建用户：`create user aezo identified by aezo;` 用户名不区分大小写，密码区分
-    - 默认使用的表空间是`USERS`，使用`create user aezo identified by aezo default tablespace aezocn;`可设定默认表空间
-    - 删除用户：`drop user aezo cascade;`
-- 修改用户密码：`alter user scott identified by tiger;`
-- 修改用户表空间：`alter user aezo default tablespace aezocn;`
-- 解锁用户：`alter user scott account unlock;` (新建数据库scott默认未解锁)
-- 密码过期：(1) 重新设置密码即可`alter user aezo identified by aezo;` (2)设置永久不过期`alter profile default limit password_life_time unlimited;`
-- 授权
-    - `grant create session to aezo;` 授予aezo用户创建session的权限，即登陆权限
-    - `grant unlimited tablespace to aezo;` 授予aezo用户使用表空间的权限
-    - `grant dba to aezo;` 授予管理权限(有dba角色就有建表等权限)
-    - `grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to dewell;` 赋予dewell查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限
-    - `grant create synonym to smalle;` 赋予创建别名权限
-        - `create or replace SYNONYM smalle.ZIP_SALES_TAX_LOOKUP FOR OFBIZ.ZIP_SALES_TAX_LOOKUP;` 添加别名，否则smalle查询ofbiz的表必须加`ofbiz.`，添加别名后省略`ofbiz.`
-
-#### 创建dba账户
-
-```sql
-create user aezo identified by aezo default tablespace aezocn;
-grant create session to aezo; -- 授予aezo用户创建session的权限，即登陆权限
-grant unlimited tablespace to aezo; -- 授予aezo用户使用表空间的权限
-grant dba to aezo; -- 授予管理权限(有dba角色就有建表等权限)
-```
-
-#### 新建用户并赋予表查询权限
-
-```sql
-create user smalle identified by smalle1234 default tablespace ofbiz; -- 创建用户
-grant create session to smalle; -- 赋予登录权限
-grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限（可使用下列批量赋权语句）
-grant create synonym to smalle; -- 赋予创建别名权限
-create or replace SYNONYM smalle.yothers_advice_collection FOR OFBIZ.yothers_advice_collection; -- 创建表别名,之后smalle查询OFBIZ的这张表可直接使用表名（可使用下列语句进行批量设置）
-
--- 批量赋值表查询权限
--- （1） 使用游标将OFBIZ用户所有的表的查询权限赋给smalle用户（推荐）
-declare
-  table_owenr_user    VARCHAR2(200) := 'OFBIZ'; -- TODO 修改表所属用户名(注意要大写)
-  table_grant_user    VARCHAR2(200) := 'smalle'; -- TODO 修改表授权用户名(此处大小写无所谓)
-  cursor c_tabname is select table_name from dba_tables where owner = table_owenr_user;
-  v_tabname dba_tables.table_name%TYPE;
-  sqlstr    VARCHAR2(200); 
-begin
-  open c_tabname;
-  loop
-    begin -- loop...end loop;语句捕获异常需要begin...end包裹
-    fetch c_tabname into v_tabname;
-    exit when c_tabname%NOTFOUND;
-    sqlstr := 'grant select on ' || table_owenr_user || '.' || v_tabname || ' to ' || table_grant_user;
-    -- sqlstr := 'create or replace SYNONYM ' || table_grant_user || '.' || v_tabname || ' for ' || table_owenr_user || '.' || v_tabname; -- 设置表别名
-    execute immediate sqlstr;
-    exception
-      when others then dbms_output.put_line(sqlstr); -- 捕获异常继续下一次循环
-    end;
-  end loop;
-  close c_tabname;
-end;
--- （2） 通过查询获取赋值语句，然后运行每一行赋值语句
-select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
-  from dba_objects
- where owner in ('OFBIZ')
-   and object_type = 'TABLE';
-
--- 批量设置表别名
--- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || table_grant_user || '.' || v_tabname || ' for ' || table_owenr_user || '.' || v_tabname;）
--- （2）获取添加表别名语句
-select 'create or replace synonym smalle.' || object_name || ' for ' ||
-        owner || '.' || object_name || ';'
-   from dba_objects
-  where owner in ('OFBIZ')
-    and object_type = 'table';
-```
-
-### oracle配置设置
-
-#### sqlplus使用
-
-- sqlplus执行PL/SQL语句，再输入完语句后回车一行输入`/`
-- `set line 1000;` 可适当调整没行显示的宽度
-    - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
-- `set serverout on;` 开启输出
-    - 否则执行`begin dbms_output.put_line('hello world!'); end;` 无法输出
-- 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`
-
-### 查询相关
-
-- 系统
-    - 查看服务是否启动：`tnsping local_orcl` cmd直接运行
-        - 远程查看(cmd运行)：`tnsping 192.168.1.1:1521/orcl`、或者`tnsping remote_orcl`(其中remote_orcl已经在本地建立好了监听映射，如配置在tnsnames.ora)
-        - 如果能够ping通，则说明客户端能解析listener的机器名，而且lister也已经启动，但是并不能说明数据库已经打开，而且tsnping的过程与真正客户端连接的过程也不一致。但是如果不能用tnsping通，则肯定连接不到数据库
-        - 实例tnsping突然高达1w多毫秒，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
-    - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
-    - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
-- 用户相关查询
-    - **查看当前用户默认表空间**：`select username, default_tablespace from user_users;`(以dba登录则结果为SYS和SYSTEM)。**user_users换成dba_users则是查询所有用户默认表空间**
-    - 查看当前用户角色：`select * from user_role_privs;`
-    - 查看当前用户系统权限：`select * from user_sys_privs;`
-    - 查看当前用户表级权限：`select * from user_tab_privs;`
-    - 查看用户下所有表：`select * from user_tables;`
-    - DBA相关查询见数据库字典
-- 数据字典 [^5]
-    - `user_`：记录用户对象的信息，如user_tables包含用户创建的所有表，user_views，user_constraints等
-    - `all_`：记录用户对象的信息及被授权访问的对象信息
-    - `dba_`：记录数据库实例的所有对象的信息，如dba_users包含数据库实例中所有用户的信息。dba的信息包含user和all的信息。大部分是视图
-    - `v$`：当前实例的动态视图，包含系统管理和优化使用的视图
-    - `gv_`：分布环境下所有实例的动态视图，包含系统管理和优化使用的视图，这里的gv表示 global v$的意思
-- 基本数据字典
-    - 常用
-        - `dict` 构成数据字典的所有表的信息
-        - `dba_users` 所有的用户信息（oracle密码是加密的，忘记密码只能修改）
-        - `dba_tables` 所有用户的所有表的信息
-        - `dba_tablespaces` 记录系统表空间的基本信息；
-        - `dba_data_files` 记录系统数据文件及表空间的基本信息；
-        - `dba_free_space` 记录系统表空间的剩余空间的信息；
-    - 其他
-        - `cat` 当前用户可以访问的所有的基表
-        - `tab` 当前用户创建的所有基表，视图，同义词等
-        - `dba_views` 所有用户的所有视图信息
-        - `dba_constraints` 所有用户的表约束信息
-        - `dba_indexes` 所有用户索引的简要信息
-        - `dba_ind_columns` 所有用户索引的列信息
-        - `dba_triggers` 所有用户触发器信息
-        - `dba_source` 所有用户存储过程源代码信息
-        - `dba_procedus` 所有用户存储过程
-        - `dba_segments` 所有用户段（表，索引，cluster）使用空间信息
-        - `dba_tab_columns` 所有用户的表的列（字段）信息
-        - `dba_synonyms` 所有用户同义词信息
-        - `dba_sequences` 所有用户序列信息
-        - `dba_extents` 所有用户段的扩展段信息
-        - `dba_objects` 所有用户对象的基本信息（包括素引，表，视图，序列等）
-- 数据库组件相关的数据字典(`v$`代表视图)
-    - 数据库：
-        - `v$database` 同义词v_$database，记录系统的运行情况
-        - `v$instance` 实例
-    - 控制文件：
-        - `v$controlfile` 记录系统控制文件的路径信息
-        - `v$parameter` 记录系统各参数的基本信息
-        - `v$controlfile_record_section` 记录系统控制运行的基本信息
-    - 数据文件：
-        - `v$datafile` 记录来自控制文件的数据文件信息
-        - `v$filestat` 记录数据文件读写的基本信息
-
-### 日志文件
-
-- oracle的日志文件有几种：警告日志，trace日志，audit日志，redo日志，归档日志
-    - alert警告日志：在10g版本系统初始化参数文件设置的`show parameter background_dump_dest`对应的就是它的位置
-        - 在ORACLE 11g以及ORACLE 12c中告警日志文件目录 `select * from v$diag_info;` (11g以上主要是因为引入了ADR：Automatic Diagnostic Repository一个存放数据库alert日志、trace日志目录)
-    - trace日志：一般放seesion追踪的信息，10g对应系统初始化参数文件参数`show parameter user_dump_dest`
-    - audit日志：审计的信息，10g对应系统初始化参数文件参数`audit_file_dest`
-    - redo日志：存放数据库的更改信息，`select member from v$logfile;` member就代表它的位置
-    - 归档日志：redo日志的历史备份，`select * from v$parameter where name like 'log_archive_dest%';`
-- 在日志文件目录列举文件：`ll -rt *.trc`
-    - `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.（**主要看*.trc文件**）
-    - 如：`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
-
-### 常见错误
-
-- 数据库服务器CPU飙高，参考《Java应用服务器及数据库服务器的CPU和内存异常分析》【数据库服务器故障】
-- 表空间数据文件丢失，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
-    - oracle数据文件(datafile)被误删除后，只能把该数据文件offline后drop掉
-    - `sqlplus / as sysdba`
-    - `shutdown abort` 强制关闭oracle
-    - `startup mount` 启动挂载
-    - `alter database datafile '/home/oracle/xxx' offline drop;` 从数据库删除该表空间的数据文件
-        - `select file_name, tablespace_name from dba_data_files;` 查看表空间数据文件位置
-    - `alter database open;`
-    - `drop tablespace 表空间名`
-- 表空间不足
-    - 报错`ORA-01653: unable to extend table` [^7]
-        - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
-        - 开启表空间自动扩展，每次递增50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
-        - 为USERS表空间新增数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`(此时增加的数据文件不会自动扩展，需要再次运行上述自动扩展语句)
-        - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
-
-            ```sql
-            -- 查看表空间(如果表空间不足，此sql语句可能无法显示出来改表空间，可单独查询其中的a表)
-            select a.tablespace_name "表空间名",
-                a.bytes / 1024 / 1024 "表空间大小(m)",
-                (a.bytes - nvl(b.bytes, 0)) / 1024 / 1024 "已使用空间(m)",
-                case when b.bytes is null then 0 else b.bytes / 1024 / 1024 end "空闲空间(m)",
-                case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
-                a.file_name "全路径的数据文件名称",
-                autoextensible "表空间自动扩展", 
-                increment_by "自增块(默认1blocks=8k)"
-            from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes
-                    from dba_data_files
-                group by tablespace_name, file_name, autoextensible, increment_by) a
-            left join
-                (select tablespace_name, sum(bytes) bytes, max(bytes) largest
-                    from dba_free_space
-                group by tablespace_name) b
-            on a.tablespace_name = b.tablespace_name;
-
-            -- 查看oracle临时表空间
-            select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
-            from dba_temp_files
-            group by tablespace_name, file_name, autoextensible, increment_by;
-            ```
-    - `ORA-01654:unable to extend index`，解决步骤 [^8]
-        - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经32G(表空间单文件默认最大为32G=32768M，与db_blok_size大小有关，默认db_blok_size=8K，在初始化表空间后不能再次修改)
-            - 解决方案：通过上述方法增加数据文件解决
-        - 情况二表空间未满：查询的表空间剩余400M，且该索引的next_extent=700MB，即给该索引分配空间时不足
-            - 解决方案：重建该索引`alter index index_name rebuild tablespace indexes storage(initial 256K next 256K pctincrease 0)`(还未测试)
-
-## 安装
-
-- 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
-- oracle静默安装, 关闭客户端后再次以oracle用户登录无法运行sql命名, 需要执行`source ~/.bash_profile`
 
 
 ---

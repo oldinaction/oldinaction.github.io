@@ -642,7 +642,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
         - `args` 对应CMD(`<[]Object>`)。[与command对应关系](https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell)
         - `env` 环境变量信息(`<[]Object>`)
             - `name` 变量名
-            - `value` 变量值
+            - `value` 变量值(建议用双引号包裹)
             - `valueFrom` 从其他地方获取环境变量。第一次创建然容器时读取了数据后就不会再同步新数据，如果需要同步；可以挂载ConfigMap/Secret存储卷到pod上
                 - `configMapKeyRef` 从ConfigMap中获取环境变量
                     - `name` ConfigMap资源名称
@@ -830,8 +830,8 @@ kubectl delete -f sq-pod.yaml
         {"insecure-registries": ["192.168.17.196:5000"]}
         
         # 创建docker-registry类型的secret(k8s必须创建secret才可拉取镜像，在节点机器上提前login也无法拉取)
-        kubectl create secret docker-registry harbor-secret --docker-server=192.168.17.196:5000 --docker-username=smalle --docker-password=Hello666
-        # 并给对应Pod配置以下伪代码：imagePullSecrets[0].name=harbor-secret
+        kubectl create secret docker-registry harbor-secret-ops --docker-server=192.168.17.196:5000 --docker-username=smalle --docker-password=Hello666 -n test
+        # 并给对应Pod配置以下伪代码：imagePullSecrets[0].name=harbor-secret-ops
         ```
 
 ### 控制器

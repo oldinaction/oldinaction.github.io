@@ -30,7 +30,7 @@ select str_to_date('2016-01-02 10:00:00.000','%Y-%m-%d %H:%i:%s.%f');
 select to_days(now()); -- 727666 从0年开始到当前的天数
 select to_days('2016-01-02');
 -- oracel
-select to_char(sysdate, 'yyyy-MM-dd HH24:mi:ss') from dual;
+select to_char(sysdate, 'yyyy-mm-dd HH24:mi:ss') from dual;
 select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
 ```
 
@@ -39,6 +39,12 @@ select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
 ```sql
 -- mysql
 date_sub(now(), interval 7 day) -- 当前时间-7天
+-- oracle
+sysdate + interval '1' year -- 当前日期加1年，还可使用：month、day、hour、minute、second
+sysdate + interval '1 1:1' day to minute -- 当前日期 + 1日1时1分
+sysdate + 1 -- 加1天
+sysdate - 1/24/60/60 -- 减1秒
+select sysdate, add_months(sysdate, -12) from dual; -- 减1年
 ```
 
 ### 查询

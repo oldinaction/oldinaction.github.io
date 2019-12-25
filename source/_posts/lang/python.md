@@ -89,16 +89,20 @@ t = a if a>b else b
 - 举例
 
 ```py
-# 赋值
+## 赋值
 a = True  # 注意`True/False`首字母大写
 
-# 查看数据类型
+## 查看数据类型
 print type(a) # 返回变量a的类型(type)。<class 'str'>、<class 'dict'>、<class 'list'>、<class 'tuple'>、<class 'NoneType'>
 print type(a).__name__ == 'str' # 返回True/False
 
-# 数据类型转换
+## 数据类型转换
+# 强转成整形(floot、bool、str同理)
 a = '10'
-int(a)  # 强转成整形(floot、bool、str同理)
+int(a)
+# 强转为bool型
+bool('False') # True
+bool('') # False
 ```
 
 #### None/False
@@ -318,6 +322,57 @@ g = list[0]
 g(2)  # 8
 ```
 
+#### yield
+
+- 案例一
+
+```py
+## 定义
+def foo():
+    print("starting...")
+    while True:
+        res = yield 'hello...'
+        print("res:", res)
+
+
+g = foo() # 因为foo函数中有yield关键字，所以foo函数并不会真的执行，而是先得到一个生成器g(相当于一个对象)
+print("*" * 20)
+print(next(g)) # 直到调用next方法，foo函数正式开始执行；进入第一次循环，当程序遇到yield关键字(相当于return)，会返回'hello...'并停止运行，此时next(g)语句执行完
+print("*" * 20)
+print(next(g)) # 当再次调用next方法，程序会从上次停止的地方继续执行；由于此时第一个'hello...'已经被返回，因此res=None，第一个循环结束；进入第二个循环，再次遇到yield关键字，第二次返回'hello...'并停止运行
+print("*" * 20)
+print(g.send('world...')) # send函数相当于可以传递一个参数给被yield赋值的变量
+
+## 打印结果
+'''
+********************
+starting...
+hello...
+********************
+res: None
+hello...
+********************
+res: world...
+hello...
+'''
+```
+- 案例二
+
+```py
+def foo(num):
+    while num < 10:
+        yield num
+        num = num + 1
+
+
+# 以下两种方式效果一致，都是打印0-9；此处在 for 循环中会自动调用 next()
+for n in foo(0):
+    print(n)
+# 如果生成很大的数据，则range是把所有数据生成到内存，会很占内存，因此yield性能好一些
+for n in range(10):
+    print(n)
+```
+
 ### 函数
 
 - 函数传递参数的方式有两种：位置参数(positional argument，包含默认参数)、关键词参数(keyword argument)
@@ -427,6 +482,7 @@ path = '/home/smalle/temp/dir/test.txt'
 os.path.basename(path)  # 'test.txt' 获取文件名
 os.path.dirname(path)  # '/home/smalle/temp/dir' 获取路径名
 os.path.join('tmp', 'data', os.path.basename(path))  # 'tmp/data/test.txt'
+os.path.join('d:/a/b', '/c/') # d:/c/
 
 path = '~/test/hello.txt'
 os.path.expanduser(path)  # '/home/smalle/test/hello.txt' 添加用户家目录

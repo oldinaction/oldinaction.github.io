@@ -863,7 +863,7 @@ helm del --purge jenkins
     # 模拟安装 chart，并输出每个模板生成的 YAML 内容(--dry-run 实际没有部署到k8s)
     helm install --dry-run --debug mychart
     # 部署到k8s
-    helm install mychart -n test-chart
+    helm install ./mychart --name mychart --namespace test
     
     # 测试
     export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=test-chart" -o jsonpath="{.items[0].metadata.name}")
@@ -976,7 +976,7 @@ helm del --purge jenkins
 {{if exp}} T1 {{else}} T0 {{end}}
 
 // 控制语句块在渲染后生成模板会多出空行。可使用{{- if ...}}的方式消除此空行
-{{- if and .Values.fooString (eq .Values.fooString "foo") }}
+{{- if and .Values.fooString (eq .Values.fooString "foo") }} // eq ne(!) lt le(<=) gt ge
     {{ ... }}
 {{- end }}
 ```

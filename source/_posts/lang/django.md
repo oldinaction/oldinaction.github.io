@@ -10,12 +10,13 @@ tags: [python, django]
 
 - [官网](https://www.djangoproject.com/)
 
-## 命令
+## manage命令
 
 ```bash
 # python manage.py <xxx>
 python manage.py --help
 
+# 以下为内置命令，也可扩展命令
 [auth]
     changepassword
     createsuperuser     # python manage.py createsuperuser --email admin@aezo.cn --username admin # 输入密码admin888
@@ -34,8 +35,9 @@ python manage.py --help
     inspectdb           # 根据数据库表结构生成django模型
     loaddata
     makemessages
-    makemigrations      # 生成迁移文件
-    migrate             # 执行迁移文件(将所有app，包括内置app下的迁移全部依次执行)
+    makemigrations      # 根据models.py的定义生成表结构迁移文件，每执行一次就会在migrations文件夹内生成一个文件
+    migrate             # 执行迁移文件(将所有app，包括内置app下的迁移全部依次执行)到数据库。每次执行会先判断migrations文件夹下的文件在django_migrations表中是否存在，不存在则执行，并将执行记录保存在django_migrations表中
+        --fake APP_NAME zero # 仅将my_app中的迁移添加到django_migrations表(生成一条假记录)，不会真正执行SQL
     sendtestemail
     shell               # 进入django的shell环境
     showmigrations      # 查看迁移
@@ -90,7 +92,7 @@ from django.http import HttpResponse
 
 class HelloView(View):
     def get(self, request, *args, **kwargs):
-        # 使用模板：相对于templates目录的路径，且必须在`INSTALLED_APPS`中加入本app(如：'monitor.apps.MonitorConfig')
+        # 使用模板(templates/monitor/index.html)：相对于templates目录的路径，且必须在`INSTALLED_APPS`中加入本app(如：'apps.monitor')
         return render(request, 'monitor/index.html', {
             'my_msg': "welcome",
         })
@@ -179,13 +181,18 @@ DATABASES = {
 
     # 关于联合主键
     class PartyRole(models.Model):
-        party = models.ForeignKey('Party', on_delete=models.CASCADE)
+        party = models.ForeignKey('Party', on_delete=models.CASCADE)  # 此处同时使用了ForeignKey外键，见下文
         role_type = models.ForeignKey('RoleType', on_delete=models.CASCADE)
 
         class Meta:
             db_table = 'biz_party_role'  # 定义实际表名
-            verbose_name_plural = 'Party角色'  # admin模块界面显示的字段名，默认显示表名
+            verbose_name_plural = u'Party角色'  # admin模块界面显示的字段名，默认显示表名
             unique_together = ("party", "role_type")   # django未实现联合主键, 只能通过组合唯一建校验
+            # 自定义权限
+            permissions = (
+                ("publish_goods", "Can publish goods"),
+                ("comment_goods", "Can comment goods"),
+            )
     ```
 - 外键/关联(使用物理外键，配合admin模块可更快实现增删改查功能)
 
@@ -195,10 +202,11 @@ DATABASES = {
     class Author(models.Model):
         author = models.CharField(max_length=250) 
     class Books(models.Model):
-        # book = models.ForeignKey('Author', on_delete=models.CASCADE) # 此时Author可以定义在Books下面。并且Author可以通过配置文件导入
+        # book = models.ForeignKey('Author', on_delete=models.CASCADE) # 此时Author可以定义在Books下面。并且Author可以通过配置文件导入，否则需要在Books上面定义
 
         # 默认外键名为`属性名_id`
         book = models.ForeignKey(Author, on_delete=models.CASCADE)
+        # book = models.ForeignKey(Author, on_delete=models.SET_NULL, db_constraint=False, null=True, blank=True) # 定义逻辑外键/软外键
 
         # 自关联
         parent_book = models.ForeignKey(to='self', on_delete=models.CASCADE)
@@ -222,7 +230,7 @@ DATABASES = {
             db_table = 'biz_party_relationship'
             # django未实现联合主键, 只能通过组合唯一建校验
             unique_together = ("party_id_from", "party_id_to", "role_type_id_from", "role_type_id_to", "from_date")
-            verbose_name_plural = 'Party角色关系'
+            verbose_name_plural = u'Party角色关系'
     ```
     - `ForeignKey`、`ManyToManyField`、`OneToOneField`分别在Model中定义多对一(使用ForeignKey的表为子表)，多对多，一对一关系
     - 参数
@@ -231,14 +239,14 @@ DATABASES = {
             - father.child_related_name.all()。child_related_name为子表中定义的 related_name 名称
             - book = models.ForeignKey(Author, related_name='child_related_name', on_delete=models.CASCADE)
         - `db_column` 定义外键生成的字段名
-        - `on_delete` 删除主表时，对子表的行为
+        - `on_delete` 删除主表时，对子表的行为。ForeignKey必须
             - `CASCADE` 删除作者信息一并删除作者名下的所有书的信息
             - `PROTECT` 删除作者的信息时，采取保护机制，抛出错误：即不删除Books的内容
             - `SET_NULL` 只有当null=True才将关联的内容置空
             - `SET_DEFAULT` 设置为默认值
             - `SET()` 括号里可以是函数，设置为自己定义的东西
             - `DO_NOTHING` 字面的意思，啥也不干
-        - `db_constraint=False` 数据库中不创建外键。但是django仍然可以通过外键属性获取关联对象
+        - `db_constraint=False` **数据库中不创建外键**。但是django仍然可以通过外键属性获取关联对象
 
 ### CRUD
 
@@ -484,13 +492,13 @@ models.ErrorLogModel.objects.values('level', 'info').annotate(
 
 #### admin.py 快速生成管理界面
 
-- 应用注册：在`setting.py`的`INSTALLED_APPS`中加入此应用`api.monitor.apps.MonitorConfig`
+- 应用注册：在`setting.py`的`INSTALLED_APPS`中加入此应用`apps.monitor`
 - `admin.py`必须写在每个app对应根目录下 [^2]
 
 ```py
 ## party/models.py(模型)
 from django.db import models
-from smbiz.base.models import BaseModel
+from sqbiz.base.models import BaseModel
 from . import types
 
 class PartyType(BaseModel):
@@ -511,7 +519,7 @@ class PartyType(BaseModel):
 
 ## party/admin.py
 from django.contrib import admin
-from smbiz.party import models
+from sqbiz.party import models
 
 # 同 admin.site.register(models.PartyType, PartyTypeAdmin) # 注册此类
 @admin.register(models.PartyType)
@@ -646,7 +654,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 ```py
 from django.contrib import admin
-from smbiz.order import models
+from sqbiz.order import models
 
 # 必须定义在OrderAdmin上方
 class OrderDetailInline(admin.TabularInline):
@@ -715,7 +723,7 @@ from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.admin import UserAdmin
 from django.contrib import admin
-from smbiz.party import models
+from sqbiz.party import models
 
 class UserLoginChangeForm(forms.ModelForm):
     password = ReadOnlyPasswordHashField()
@@ -771,6 +779,20 @@ class UserLoginAdmin(UserAdmin):
     )
 ```
 
+#### 自定义Django后台名称
+
+- 修改默认的Django标题 [^5]
+
+```py
+# 在总入口urls.py中修改
+admin.site.site_header = '我在后台首页左上角'
+admin.site.site_title = '我在浏览器标签后面'
+admin.site.index_title = '我在浏览器标签前面'
+```
+
+#### 扩展主题
+
+- 使用主题插件如：[simpleui](https://github.com/newpanjing/simpleui)、[Grappelli](https://github.com/sehmaschine/django-grappelli)
 
 ### django.contrib.contenttypes
 
@@ -825,7 +847,7 @@ def test_contenttypes_list(request):
 
 ## django中间件(MIDDLEWARE)
 
-- 中间件类型：process_request、process_view、process_response、process_exception、process_render_template
+- 中间件类型：`process_request`、`process_view`、`process_response`、`process_exception`、`process_render_template`
 - 中间件执行顺序：用户请求 -> 经过所有process_request -> 视图函数 -> 经过所有process_view
 - CSRF(Cross-site request forgery)跨站请求伪造
     - 全站开启或关闭，看中间件配置中是否有：'django.middleware.csrf.CsrfViewMiddleware'
@@ -872,9 +894,12 @@ import os
 # 获取项目目录
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 开启调试模式，出错后业务会显示堆栈信息，生成环境需要关闭
-DEBUG = True
+DEBUG = bool(os.getenv('DJANGO_DEBUG', True))  # 环境变量设置DJANGO_DEBUG=''
 # 允许对外访问的主机地址
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+] + ['*'] if os.getenv('ALLOWED_HOSTS') is None else os.getenv('ALLOWED_HOSTS').split(",")
 # 安装的apps(如要显示某app的admin模块，则必须先注册该app)
 INSTALLED_APPS = []
 # 引入的中间件
@@ -887,11 +912,11 @@ DATABASES = {
     # },
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django_test',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'USER': 'root',
-        'PASSWORD': 'root',
+        'NAME': os.getenv('DATABASES_NAME', 'django_rest'),
+        'HOST': os.getenv('DATABASES_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASES_PORT', '3306'),
+        'USER': os.getenv('DATABASES_USER', 'root'),
+        'PASSWORD': os.getenv('DATABASES_PASSWORD', 'root'),
     },
 }
 # 语言
@@ -900,6 +925,7 @@ LANGUAGE_CODE = 'zh-Hans'
 TIME_ZONE = 'Asia/Shanghai'
 # 静态文件目录
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'  # 为项目目录下的static文件夹
 
 # 跨域配置
 CORS_ORIGIN_ALLOW_ALL = True
@@ -939,11 +965,36 @@ LOGGING = {
 
 ### 静态资源
 
-- django在配置文件中设置`DEBUG = False`后静态资源404问题 
-    - `python manage.py runserver --insecure` 启动加参数`--insecure`（正式环境中不建议）
-    - 通过nginx获取静态资源
-        - 配置文件中加 `STATIC_ROOT = os.path.join(BASE_DIR, 'static')`
-        - 执行`python manage.py collectstatic`会自动生成静态资源文件到上述目录。正式环境中可配置STATIC_ROOT为nginx的静态资源目录
+> django在配置文件中设置`DEBUG = False`后静态资源404问题。解决方式如以下几种：
+
+- `python manage.py runserver --insecure` 启动加参数`--insecure`(正式环境中不建议)
+- 解决方法
+
+```py
+## 在项目目录创建static文件
+## pybiz/settings.py 创建静态资源目录
+STATIC_URL = '/static/'
+# STATIC_ROOT = ("/home/data/static/")
+STATIC_ROOT = 'static'  # 默认基于BASE_DIR
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static/pub'),  # 不能包含STATIC_ROOT 
+# ]
+
+## 收集各模块的静态资源文件到上述目录
+python manage.py collectstatic
+
+## 暴露静态资源目录
+# 法一：通过django访问
+# pybiz/urls.py
+from django.views import static
+from pybiz import settings
+
+urlpatterns = [
+    url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}, name='static'),  # 和上文STATIC_URL对应 
+]
+
+# 法二：使用nginx暴露
+```
 
 ### 请求对象
 
@@ -998,8 +1049,8 @@ logger.exception(e)
 import time
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
-log_path = os.path.join(os.path.dirname(cur_path), 'logs')
-if not os.path.exists(log_path): os.mkdir(log_path)  # 如果不存在这个logs文件夹，就自动创建一个
+log_path = os.path.join(os.path.dirname(cur_path), 'runtime/logs')
+if not os.path.exists(log_path): os.makedirs(log_path)  # 如果不存在这个logs文件夹，就自动创建一个
 
 LOGGING = {
     'version': 1,
@@ -1058,7 +1109,7 @@ LOGGING = {
     },
     # 配置用哪几种 handlers 来处理日志
     'loggers': {
-        # 类型 为 django 处理所有类型的日志，默认调用
+        # 类型为 django 处理所有类型的日志，默认调用
         'django': {
             'handlers': ['default', 'console'],
             'level': 'INFO',
@@ -1087,9 +1138,9 @@ LOGGING = {
 - `pip list` 查看包列表
 - `pip uninstall django-polls` 卸载包
 
-### FBV/CBV模式：函数作为视图或类作为视图
+### FBV/CBV模式
 
-> 源码参考【A02_DjangoTest】
+- 函数作为视图或类作为视图，源码参考【A02_DjangoTest】
 
 ```py
 # FBV: function base view
@@ -1195,3 +1246,4 @@ class StudentsView(object):
 [^2]: https://www.cnblogs.com/huchong/p/7894660.html
 [^3]: https://code.ziqiangxuetang.com/django/django-queryset-api.html
 [^4]: https://code.ziqiangxuetang.com/django/django-queryset-advance.html
+[^5]: https://aber.sh/articles/Django-Admin-Name/

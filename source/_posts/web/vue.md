@@ -221,6 +221,129 @@ export default {
 </script>
 ```
 
+### render 函数(iview)
+
+- 语法
+
+```js
+// 语法
+render: (h, {params | param}) => {
+	// 此时params中包含row、column和index; param就是row
+	return h("定义元素标签/Vue对象标签", { 元素性质 }, "元素内容"/[元素内容])
+
+    // 2个参数的情况
+    return h("定义的元素", { 元素性质 })
+	return h("定义的元素", "元素的内容"/[元素的内容])
+}
+
+// 示例
+render: (h, params) => {
+	// 如果在表格的列中使用，此时params中包含row、column和index，分别指当前单元格数据，当前列数据，当前是第几行。
+	return h('div', {
+		style:{width:'100px', height:'100px', background:'#ccc'}
+	}, '用户名：smalle')
+}
+
+// 写法优化1
+{
+	title:'操作',
+	align: 'center',
+	render: (h, params) => {
+        let row = params.row
+        let that = this
+
+        let editButtonAttr = {
+            on: {
+                click: () => {
+                    that.edit(row)
+                }
+            }
+        }
+        let editButton = h('Button', editButtonAttr, '编辑')
+
+        return h('div', [editButton])
+    }
+}
+// 写法优化2
+{
+	title:'操作',
+	align: 'center',
+    render: (h, params) =>{
+        let that = this
+        return h('div', that.getEditButton(h, params.row)) // getEditButton定义省略
+    }
+}
+```
+
+- iview示例：此时Poptip和Tag都是Vue对象，因此要设置参数props
+
+```js
+// 调用组件并监听事件
+<MyComponent @my-event="myEvent"/>
+
+// 组件内部渲染
+render: (h, params) => {
+    // 也 render 一个自定义的组件
+	return h('Poptip', {
+		props: {
+			trigger: 'hover',
+			title: params.row.name + '的信息',
+			placement: 'bottom',
+			transfer: true
+		}
+	}, [
+		h('Tag', {
+			// 此处必须写在props里面，不能直接将组件属性放在元素性质里面
+			props: function() {
+				const color = params.index == 1 ? 'red' : params.index == 3 ? 'green' : '';
+				const props = {
+					type: "dot",
+					color: color
+				}
+				return color == '' ? {} : props
+			}()
+		}, function(vm) {
+			// 此时this为函数作用域类，拿不到vue对象，通过vm传递
+			console.log(vm)
+			return params.row.CorporateName + '...'
+		}(this)),
+		h('div', {
+			slot: 'content'
+		}, [
+			h('p', {
+				style: {
+					padding: '4px'
+				}
+			}, '用户名：' + params.row.name)
+		]),
+		return h("div", [
+			h("Button", {
+				props: {
+					type: "info",
+					size: "small"
+                },
+                class: 'class-name'
+				style: {
+                    marginRight: "8px",
+                    // 控制此按钮是否可见
+                    display: params.row.statsu == 'Y' ? 'inline-block' : 'none'
+				},
+				attrs: {
+					// button 标签的其他属性
+				},
+				on: {
+					click: ok => {
+						// 触发事件
+						this.$emit("my-event", params);
+					}
+				}
+			},
+			"重登")
+		])
+	])
+}
+```
+
 ## 组件
 
 ### 自定义组件中使用 v-model
