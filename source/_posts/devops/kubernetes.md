@@ -648,6 +648,11 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
                     - `name` ConfigMap资源名称
                     - `key` 变量名
                 - `secretKeyRef` 从SecretKey中获取(类似ConfigMap)
+                - `fieldRef` [从该pod的yaml信息中读取信息](https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/)
+                    - `fieldPath` 如：spec.nodeName、metadata.namespace、status.podIP
+                - `resourceFieldRef` 从资源占用中获取信息
+                    - `containerName`
+                    - `resource` 如：limits.cpu、requests.memory
         - `serviceAccountName` pod内部访问其他资源的账号名称
         - `resources` 资源配置
             - `requests` 资源请求
@@ -1006,10 +1011,10 @@ spec:
         path: "/"
   # 配置TLS站点才需要(结合下文)
   tls:
-  - hosts:
+  - secretName: sq-ingress-secret
+    hosts:
     - ingress.aezocn.local
     # 指定 secret 名称(可通过TLS证书创建，见下文)
-    secretName: sq-ingress-secret
 ```
 - `kubectl get ingress` 查看ingress配置
 - 可在集群外访问 `http://ingress.aezocn.local` 会显示tomcat主页

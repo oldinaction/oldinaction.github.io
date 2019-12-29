@@ -162,13 +162,18 @@ route:
   # 匹配 alert 标签(此处可以获取Prometheus的所有标签，还可以匹配rules中添加的额外标签)和接受者
   # - match_re: #基于正则匹配
   - match:
+      aezo_env: prod
+      probe_module: http_2xx
+    receiver: pybiz-webhook
+    #group_by: [product, environment] # 覆盖默认的集群分组为基于产品和环境分区
+    group_wait: 5s
+    group_interval: 3m
+    repeat_interval: 15m
+    continue: true # 默认告警匹配成功第一个 receivers 会退出匹配，开启 continue 参数后会继续匹配 receivers 列表，直到再无 receivers 时或者下一个 receivers 中 continue fasle 的时候才会退出 (continue default false)
+  - match:
       severity: critical
       team: frontend
-    receiver: frontend-receiver
-    #group_by: [product, environment] # 覆盖默认的集群分组为基于产品和环境分区
-    #group_wait
-    #group_interval
-    #repeat_interval
+    receiver: slack-receiver # 如果同一路由需要发送给多个人，可以将receiver的通道定义成多个
 receivers:
 # 基于email进行报警
 - name: 'default-receiver'
@@ -178,7 +183,7 @@ receivers:
     send_resolved: true
     # html: '{{ template "email.default.html" . }}' # 默认模板
 # 基于 webhook 进行报警：出问题后自动访问下列地址
-- name: 'frontend-receiver'
+- name: 'pybiz-webhook'
   webhook_configs:
   - url: 'http://192.168.6.131:8080/restart'
 # 基于 Slack (类似在线聊天室) 进行报警，具体参考：https://api.slack.com/incoming-webhooks (进入到 Your Apps > incoming-webhooks 中查看Webhook URL)

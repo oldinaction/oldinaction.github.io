@@ -380,11 +380,11 @@ class VersionTest(APIView):
         # 获取版本处理对象(rest_framework.versioning.URLPathVersioning)
         print(request.versioning_scheme)
 
-        # 基于rest_framework反向生成url. http://127.0.0.1:8000/api/v1/test_version/
+        # 基于rest_framework反向生成绝对路径url(传递request参数). http://127.0.0.1:8000/api/v1/test_version/
         u1 = request.versioning_scheme.reverse(viewname='t_version', request=request)
         print(u1)
 
-        # 基于django反向生成url. /api/v2/test_version/
+        # 基于django反向生成相对路径url(不传递request参数). /api/v2/test_version/
         u2 = reverse(viewname='t_version', kwargs={'version': 'v2'})
         print(u2)
 

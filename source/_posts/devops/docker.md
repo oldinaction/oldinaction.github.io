@@ -693,7 +693,7 @@ ENV JRE_HOME /usr/local/jdk1.7.0_80/jre
 ENV CLASSPATH .:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
 ENV PATH $PATH:$JAVA_HOME/bin:$JRE_HOME/bin
 ```
-- `docker build --rm -t jdk:1.7 .` 打包生成镜像(大概508M)
+- `docker build --rm -t jdk:1.7 -f ./Dockerfile .` 打包生成镜像(大概508M)
 - `docker run ae4c031a5cb6 java -version` 查看java版本
 - 推送
     - `docker login 192.168.17.196:10010` 输入registry(harbor)账号密码登录。[https证书配置参考上文Harbor](#Harbor)

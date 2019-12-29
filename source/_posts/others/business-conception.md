@@ -10,6 +10,10 @@ tags: [business, conception]
 
 - `ERP` 企业资源计划(Enterprise Resource Planning)
 - `CRM` 客户关系管理(Customer Relationship Management)
+- `OMS` 订单管理系统
+- `WMS` 仓库管理系统
+- `TMS` 运输管理系统
+- `OA` 办公自动化
 - `BU` 业务单元(Business Units，公司的一个部门)，`Strategical Business Unit` 战略业务单元
 
 ## 物流

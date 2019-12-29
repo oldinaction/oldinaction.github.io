@@ -14,7 +14,7 @@ tags: [python, django]
 
 ```bash
 # python manage.py <xxx>
-python manage.py --help
+python manage.py [xxx] --help
 
 # 以下为内置命令，也可扩展命令
 [auth]
@@ -52,7 +52,8 @@ python manage.py --help
 [sessions]
     clearsessions
 [staticfiles]
-    collectstatic
+    collectstatic       # 收集资源文件，参考下文[静态资源](#静态资源)
+        --noinput       # 如果静态资源目录有文件则需确认，加上此参数则跳过确认
     findstatic
     runserver           # 启动项目。eg：python manage.py runserver 0.0.0.0:8000 # 启动项目(开启局域网访问)
 
@@ -60,24 +61,28 @@ python manage.py --help
 python manage.py startapp myapp     # 创建App
 python manage.py makemigrations     # 生成迁移
 python manage.py migrate            # 执行迁移(将所有app，包括内置app下的迁移全部依次执行)
-python manage.py showmigrations     # 查看迁移
+python manage.py collectstatic      # 收集资源文件
 python manage.py runserver          # 启动项目
 ```
 
 ## hello world
 
 ```py
-### urls.py
+### urls.py 项目入口urls
 from django.contrib import admin
 from django.urls import path, include
 from monitor import urls as monitor_urls
 
 urlpatterns = [
+    url(r'^', admin.site.urls),  # 如果域名后面没有指定路径就匹配这一条规则
+    path('favicon.ico', RedirectView.as_view(url='static/theme/default/images/favicon.ico')),
+    url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}, name='static'),  # 静态资源地址
+
     path('admin/', admin.site.urls),
     path('monitor/', include(monitor_urls)),
 ]
 
-### app/urls.py
+### app/urls.py 子模块urls
 from django.conf.urls import url
 from monitor import views
 
@@ -178,6 +183,7 @@ DATABASES = {
         )
         '''
         party_source = models.CharField(verbose_name=u'Party来源', choices=types.party_source, max_length=60)
+        is_gov = models.BooleanField(verbose_name=u'是否为政府机构', default=True)
 
     # 关于联合主键
     class PartyRole(models.Model):
@@ -270,9 +276,11 @@ models.MyUser.objects.get_or_create(name="smalle", email="test@163.com")
 
 ## 查
 # 获取单条数据，不存在则报错（不建议），返回 MyUser.objects
-models.MyUser.objects.get(id=1)
+user = models.MyUser.objects.get(id=1)  # 如果不存在会报错 models.MyUser.DoesNotExist
+
 # 获取全部，返回queryset类型
-models.MyUser.objects.all()
+users = models.MyUser.objects.all()
+if users.exists(): pass
 # 获取全部数据的第1条数据
 models.MyUser.objects.all().first()
 # 获取指定条件的数据，返回queryset类型
@@ -283,9 +291,9 @@ models.MyUser.objects.filter(**dic)
 
 
 ## 改
-models.MyUser.objects.filter(name='smalle').update(password='123456')
 # 批量更新。适用于 .all()  .filter()  .exclude() 等后面 (危险操作，正式场合操作务必谨慎)
-models.MyUser.objects.filter(name__iexact="abc").update(name='xxx') # __iexact 过滤名称为 abc 但是不区分大小写，可以找到 ABC, Abc, aBC，这些都符合条件。将他们都改成 xxx
+models.MyUser.objects.filter(name='smalle').update(password='123456')
+models.MyUser.objects.filter(name__iexact="abc").update(name='xxx') # __iexact 后缀可过滤名称为 abc 但是不区分大小写，可以找到 ABC, Abc, aBC，这些都符合条件。将他们都改成 xxx
 models.MyUser.objects.all().delete() # 删除所有 Person 记录
 # 单个 object 更新。适合于 .get(), get_or_create(), update_or_create() 等得到的 obj
 obj = models.MyUser.objects.get(id=1)
@@ -779,11 +787,18 @@ class UserLoginAdmin(UserAdmin):
     )
 ```
 
-#### 自定义Django后台名称
+#### 自定义Django后台名称和favicon图标
 
 - 修改默认的Django标题 [^5]
 
 ```py
+from django.views.generic import RedirectView
+
+# 在配置完static路径的情况下使用
+urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(url='static/theme/default/images/favicon.ico')),
+]
+
 # 在总入口urls.py中修改
 admin.site.site_header = '我在后台首页左上角'
 admin.site.site_title = '我在浏览器标签后面'
@@ -895,7 +910,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 开启调试模式，出错后业务会显示堆栈信息，生成环境需要关闭
 DEBUG = bool(os.getenv('DJANGO_DEBUG', True))  # 环境变量设置DJANGO_DEBUG=''
-# 允许对外访问的主机地址
+# 允许对外访问的主机地址。如增加服务器的内网地址，则可以通过本服务器的内网地址进行访问
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
@@ -1130,7 +1145,7 @@ LOGGING = {
 }
 ```
 
-### 模块打包
+### 模块打包成python包
 
 - `pip install setuptools` 安装打包工具
 - `python setup.py sdist` 执行打包
@@ -1197,6 +1212,87 @@ class StudentsView(MyBaseView, View): # 多继承(优先级从左到右)，寻�
     def delete(self,request,*args,**kwargs):
         return HttpResponse('DELETE...')
 ```
+
+## docker发布
+
+- `project-root/Dockerfile`举例
+
+```Dockerfile
+FROM python:3.6
+MAINTAINER smalle
+
+ARG APP_VERSION="v1.0.0"
+ENV APP_VERSION=${APP_VERSION}
+ENV PYTHONUNBUFFERED 1
+# 是否开启Django DEBUG，更多配置如下
+ENV DJANGO_DEBUG ''
+
+RUN mkdir /webapps
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+libsqlite3-dev
+RUN pip install -U pip setuptools
+
+COPY requirements.txt /webapps/
+RUN pip install -r /webapps/requirements.txt
+ADD . /webapps/
+WORKDIR /webapps
+EXPOSE 80
+
+CMD ["/bin/bash", "-c", "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:80"]
+```
+- setting.py
+
+```py
+DEBUG = bool(os.getenv('DJANGO_DEBUG', True))
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '192.168.17.237'
+] + (['*'] if not os.getenv('ALLOWED_HOSTS') else os.getenv('ALLOWED_HOSTS').split(","))
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DATABASES_NAME', 'django_rest'),
+        'HOST': os.getenv('DATABASES_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASES_PORT', '3306'),
+        'USER': os.getenv('DATABASES_USER', 'root'),
+        'PASSWORD': os.getenv('DATABASES_PASSWORD', 'root'),
+    },
+}
+```
+- 编译`docker build --rm -t pybiz:1.0.0 -f ./Dockerfile .`
+- k8s-helm相关配置，其他参考[Chart说明](/_posts/devops/helm.md#Chart说明)
+
+```yml
+## values.yaml
+deployment:
+  env:
+    ALLOWED_HOSTS: 192.168.17.237
+    DATABASES_NAME: pybiz
+    DATABASES_HOST: mysql-devops.devops.svc.cluster.local
+    DATABASES_PORT: 3306
+    DATABASES_USER: devops
+    DATABASES_PASSWORD: devops
+
+## templates/deployment.yaml
+containers:
+  env:
+  - name: THIS_POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: ALLOWED_HOSTS
+    # THIS_POD_IP动态获取pod-ip
+    value: "$(THIS_POD_IP),{{- .Release.Name -}}.{{- .Release.Namespace -}}.svc,{{- range $k, $v := .Values.ingress.hosts -}}{{- $v.host -}}{{- end -}},{{ .Values.deployment.env.ALLOWED_HOSTS }}"
+  {{- range $key,$val := .Values.deployment.env }}
+  {{- if ne $key "ALLOWED_HOSTS" }}
+  - name: {{ $key }}
+    value: "{{ $val }}" # 一定要加双引号
+  {{- end}}
+  {{- end}}
+```                      
 
 ## python基础
 

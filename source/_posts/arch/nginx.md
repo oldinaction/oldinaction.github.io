@@ -82,6 +82,7 @@ server {
         #<meta http-equiv="pragram" content="no-cache">
         #<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     location = /index.html {
+        root   /home/aezocn/www;
         #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
         #   - time控制Cache-Control：负数表示no-cache，正数或零表示max-age=time
         #   - epoch指定Expires的值为`1 January,1970,00:00:01 GMT`
@@ -92,29 +93,33 @@ server {
     location = / {
         rewrite / http://$server_name/hello break;
     }
+    location / {
+        root   /home/aezocn/www;
+        index  index.html index.htm;
+    }
 
     ## root 和 alias 区别
-    # 用于暴露静态文件，访问http://www.aezo.cn/static/img/logo.png，且无法访问http://www.aezo.cn/static/img
+    # 用于暴露静态文件，访问http://www.aezo.cn/res/img/logo.png，且无法访问http://www.aezo.cn/res/img
     # - 基于路径(**推荐：vue代码和静态资源单独部署时**)。文件实际路径为/home/aezocn/www/logo.png
-    location ^~ /static/img2/ {
+    location ^~ /res/img2/ {
         # alias会把location后面配置的路径丢弃掉，把当前匹配到的目录指向到指定的目录。alias只能位于location块中，而root的权限不限于location
         # 由于是location是 ^~，所以下面无法使用正则。加www后面加/是表示目录，否则指文件
         alias /home/aezocn/www/; # 注意末尾的/不能掉，且linux不能使用\(windows上root可以使用)
     }
-    # - 基于正则。如访问 http://www.aezo.cn/static/xxx_upload/xxx/xxx 可访问到 /home/aezocn/www/static/xxx_upload/xxx/xxx
-    location ~ ^/static/(.+?)_upload/(.+\..*)$ {
+    # - 基于正则。如访问 http://www.aezo.cn/res/xxx_upload/xxx/xxx 可访问到 /home/aezocn/www/res/xxx_upload/xxx/xxx
+    location ~ ^/res/(.+?)_upload/(.+\..*)$ {
         # 由于是location是 ~，因此可以使用正则。且location和alias路径必须从头到尾都包含，此时$2指正则中的第二个括号，及文件名
-        alias /home/aezocn/www/static/$1_upload/$2;
+        alias /home/aezocn/www/res/$1_upload/$2;
     }
-    # - 基于路径。文件实际路径为/home/aezocn/www/static/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
-    location ^~ /static/img/ {
+    # - 基于路径。文件实际路径为/home/aezocn/www/res/img/logo.png （只能访问文件的完整路径，无法根据目录列举文件）
+    location ^~ /res/img/ {
         # root是基于此目录(加不加/都一样) + location路径
         root /home/aezocn/www;
         access_log off; # 关闭访问日志
     }
 
     # 测试地址
-    location /ping {
+    location = /ping {
         add_header Content-Type text/plain;
         return 200 "Hello world!";
     }
@@ -138,24 +143,24 @@ server {
     }
 
     ## proxy_pass详解
-        # 访问 http://192.168.1.1/proxy/test.html 以下不同的配置代理结果不一致. （多站点配置参考下文）
-        # 如果访问 http://192.168.1.1/proxy 则无法进入到下面代理，必须访问 http://192.168.1.1/proxy/
-        # location /proxy/ 不能写成 location /proxy (此时 http://192.168.1.1/proxy/xxx 无法代理)
+        # 访问 http://192.168.1.1/api/test.html 以下不同的配置代理结果不一致. （多站点配置参考下文）
+        # 如果访问 http://192.168.1.1/api 则无法进入到下面代理，必须访问 http://192.168.1.1/api/
+        # location /api/ 不能写成 location /api (此时 http://192.168.1.1/api/xxx 无法代理)
     # 第一种代理到URL：http://127.0.0.1/test.html
-    location /proxy/ {
-        # 后台api暴露成80常用方式
+    location /api/ {
         proxy_pass http://127.0.0.1/;
     }
-    # 第二种代理到URL：http://127.0.0.1/proxy/test.html
-    location /proxy/ {
+    # 第二种代理到URL：http://127.0.0.1/api/test.html
+    location /api/ {
+        # 后台api和前台暴露到同一域下常用方式
         proxy_pass http://127.0.0.1;
     }
     # 第三种代理到URL：http://127.0.0.1/pre/test.html
-    location /proxy/ {
+    location /api/ {
         proxy_pass http://127.0.0.1/pre/;
     }
     # 第四种代理到URL：http://127.0.0.1/pretest.html
-    location /proxy/ {
+    location /api/ {
         proxy_pass http://127.0.0.1/pre;
     }
 }
@@ -454,7 +459,7 @@ http {
 
 - 语法规则： `location [=|^~|~|~*|!~|!~*] /uri/ { … }` [^1] [^2]
     - `=` 开头表示精确匹配
-    - `^~` 开头表示uri以某个常规字符串开头，理解为匹配url路径即可（如果路径匹配那么不测试正则表达式）。nginx不对url做编码，因此请求为`/static/20%/aa`，可以被规则`^~ /static/ /aa`匹配到（注意是空格）
+    - `^~` 开头表示uri以某个常规字符串开头，理解为匹配url路径即可（如果路径匹配那么不测试正则表达式）。nginx不对url做编码，因此请求为`/res/20%/aa`，可以被规则`^~ /res/ /aa`匹配到（注意是空格）
     - 正则匹配
         - `~` 区分大小写的正则匹配
         - `~*` 不区分大小写的正则匹配
@@ -579,7 +584,7 @@ server {
     add_header Nginx-Cache "$upstream_cache_status from $server_addr";
 
     # 配置缓存内容和缓存的条件（请求static时先从nginx缓存中寻找资源，如果缓存中没有则向tomcat请求）
-    location ~ /static(/.*) {
+    location ~ /res(/.*) {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

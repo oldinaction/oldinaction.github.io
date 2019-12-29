@@ -150,11 +150,14 @@ str.split(str=" ", 1)  # 以空格为分隔符，分隔成两个
 
 ```python
 list = ["smalle", "aezocn", 18, "smalle", "hello"] # 定义数组
-list2 = [user.username for user in users]  # 基于运算创建数据
+# 列表生成式
+list1 = [x * x for x in range(1, 11) if x % 2 == 0] # [4, 16, 36, 64, 100]
+list2 = [user.username for user in users]
 messages = [
     EmailMessage(subject, message, sender, recipient, connection=connection)
     for subject, message, sender, recipient in datatuple
 ]
+
 print(list) # 打印["smalle", "aezocn", 18, "smalle", "hello"]
 print(len(list)) # 返回list的大小
 
@@ -266,7 +269,7 @@ import json
 def is_json(json_str):
     try:
         json_object = json.loads(json_str)
-    except ValueError, e:
+    except ValueError as e:
         return False
     return True
 ```
@@ -518,6 +521,24 @@ pyfiles = glob.glob('somedir/*.py')
 from fnmatch import fnmatch
 pyfiles = [name for name in os.listdir('somedir')
         if fnmatch(name, '*.py')]
+```
+
+### 反射
+
+```py
+# 案例1：取值
+class StudentsView(object):
+    def run_hello(self):
+        fun = getattr(self, "hello")  # 获取对象的属性或方法
+        fun('smale')  # hello...smalle
+        getattr(self, 'hello')('smalle2')  # hello...smalle2
+
+    def hello(self, name):
+        print('hello...' + name)
+
+# 案例2：设值 user_obj._user_perm_cache=(monitor.add_script, monitor.change_script)
+# perms为Django的QuerySet对象：<QuerySet [('monitor', 'add_script'), ('monitor', 'change_script')]>
+setattr(user_obj, '_user_perm_cache', {"%s.%s" % (ct, name) for ct, name in perms})
 ```
 
 ### 其他

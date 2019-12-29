@@ -221,6 +221,10 @@ spec:
 
 ### cert-manager
 
+> https://hub.kubeapps.com/charts/jetstack/cert-manager
+
+![cert-manager](/data/images/devops/cert-manager.png)
+
 ```bash
 ## 安装
 # 0.5.2安装成功后一直无法自动创建secret
@@ -228,50 +232,62 @@ spec:
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
 # 创建自定义资源(issuer、clusterissuer、certificate等)
-kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/deploy/manifests/00-crds.yaml
+kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.12/deploy/manifests/00-crds.yaml
 kubectl get crd # 查看Cert manager还提供的一些Kubernetes custom resources
-# 且配置一个缺省的cluster issuer，当部署Cert manager的时候，用于支持 `kubernetes.io/tls-acme: "true"` 的 annotation 来自动化 TLS
-helm install --name cert-manager --namespace kube-system --set ingressShim.defaultIssuerName=letsencrypt-staging --set ingressShim.defaultIssuerKind=ClusterIssuer jetstack/cert-manager --version v0.9.0
-# 标记cert-Manager命名空间以禁用资源验证
-kubectl label namespace kube-system certmanager.k8s.io/disable-validation=true
+# 安装，cert-manager-values.yaml参考下文
+helm install jetstack/cert-manager --version v0.12.0 --name cert-manager --namespace kube-system -f cert-manager-values.yaml
+# helm upgrade cert-manager jetstack/cert-manager --version=v0.12.0 -f cert-manager-values.yaml # 更新
 # 查看
 kubectl get pod -n kube-system --selector=app=cert-manager
 
-## 创建证书签发机构。cert-manager 提供了 Issuer 和 ClusterIssuer 这两种用于创建签发机构的自定义资源对象，Issuer 只能用来签发自己所在 namespace 下的证书，ClusterIssuer 可以签发任意 namespace 下的证书
+## 创建证书签发机构。cert-manager 提供了 Issuer 和 ClusterIssuer 这两种用于创建签发机构的自定义资源对象。Issuer 只能用来签发自己所在 namespace 下的证书，ClusterIssuer 可以签发任意 namespace 下的证书
+vi cluster-issuer.yaml
+kubectl apply -f cluster-issuer.yaml
+kubectl get clusterissuer
+# 或者如下述进行编辑后创建
 # 创建 letsencrypt-staging(测试) 、letsencrypt-prod(正式，有频率限制，https://letsencrypt.org/docs/rate-limits/) 签发机构。必须修改里面的邮箱
-kubectl create --edit -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/docs/tutorials/acme/quick-start/example/staging-issuer.yaml
+# kubectl create --edit -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.12/docs/tutorials/acme/quick-start/example/staging-issuer.yaml
 # 自定义此 Issuer 对应的命名空间
-kubectl create --edit -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/docs/tutorials/acme/quick-start/example/production-issuer.yaml --namespace=aezocn-prod
-# 或者如下述文件进行创建
-#vi cluster-issuer.yaml
-#kubectl create -f cluster-issuer.yaml
-kubectl get <issuer | clusterissuer>
+# kubectl create --edit -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.12/docs/tutorials/acme/quick-start/example/production-issuer.yaml --namespace=aezocn-prod
+# kubectl get issuer
 
-## 测试
-# 在ingress配置的annotation上加 `kubernetes.io/tls-acme: "true"`，则会自动创建 ingress.tls.secretName 对应的证书，且将此证书生成到secret中
+## 以k8s-dashboard测试
+# **在ingress配置的annotation上加 `kubernetes.io/tls-acme: "true"`，则会自动创建 ingress.tls.secretName 对应的证书(Certificate)，且将此证书保存到secret中供ingress使用**
 kubectl get certificate -o wide -n kube-system #  Certificate 为cert-manager自定义资源对象
-kubectl get secret -n kube-system
+kubectl get secret -n kube-system # 当删除对应的helm-release时，此秘钥不会被删除
 
 ## 卸载
 helm del --purge cert-manager
-# 上述删除不会删除自定义资源，需手动删除。否则再次安装报错：Error: customresourcedefinitions.apiextensions.k8s.io "certificates.certmanager.k8s.io" already exists
-kubectl delete -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.9/deploy/manifests/00-crds.yaml
+# 上述删除不会删除自定义资源，需手动删除。否则再次安装报错：Error: customresourcedefinitions.apiextensions.k8s.io "certificates.cert-manager.io" already exists
+kubectl delete -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.12/deploy/manifests/00-crds.yaml
 # 删除对应的issuer，kubectl get <issuer | clusterissuer>
-
-## 常见问题
-# 查看cert-manager容器日志，提示`server misbehaving`，通过busybox测试pod发现容器无法访问外网
-# 提示`dial tcp: lookup dashboard.k8s.aezo on 10.96.0.10:53: no such host`，将自定义域名的解析加入到corndns对应的configmap
 ```
+- cert-manager-values.yaml
 
+```yml
+image:
+  repository: quay.mirrors.ustc.edu.cn/jetstack/cert-manager-controller
+# webhook验证组件
+webhook:
+  image:
+    repository: quay.mirrors.ustc.edu.cn/jetstack/cert-manager-webhook
+cainjector:
+  image:
+    repository: quay.mirrors.ustc.edu.cn/jetstack/cert-manager-cainjector
+ingressShim:
+  # 配置一个缺省的cluster issuer，当部署Cert manager的时候，用于支持 `kubernetes.io/tls-acme: "true"` 的 annotation 来自动化 TLS
+  defaultIssuerName: letsencrypt-prod
+  defaultIssuerKind: ClusterIssuer
+```
 - cluster-issuer.yaml
 
 ```yml
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
   # 签发机构的名称，创建证书的时候会引用它
   name: letsencrypt-staging
-  #namespace: default # 上面kind为Issuer时可定义
+  #namespace: default # 上面kind为Issuer时可定义，ClusterIssuer表示整个集群通用
 spec:
   # 使用acme协议。acme 协议的目的是证明这台机器和域名都是属于你的，然后才准许给你颁发证书
   acme:
@@ -282,18 +298,48 @@ spec:
     privateKeySecretRef:
       # 指示此签发机构的私钥将要存储到哪个 Secret 对象中
       name: letsencrypt-staging
-    # 指示签发机构使用 HTTP-01 的方式进行 acme 协议(还可以用 DNS 方式)
-    http01: {}
+    # 这里指示签发机构使用 HTTP-01 的方式进行 acme 协议 (还可以用 DNS 方式，acme 协议的目的是证明这台机器和域名都是属于你的，然后才准许给你颁发证书)
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
 ```
-- Certificate自定义资源对象参数说明
-```bash
-spec.secretName # 指示证书最终存到哪个 Secret 中
-spec.issuerRef.kind # 值为 ClusterIssuer 说明签发机构不在本 namespace 下，而是在全局
-spec.issuerRef.name # 我们创建的签发机构的名称 (ClusterIssuer.metadata.name)
-spec.dnsNames # 指示该证书的可以用于哪些域名
-spec.acme.config.http01.ingressClass # 使用 HTTP-01 方式校验该域名和机器时，cert-manager 会尝试创建Ingress 对象来实现该校验，如果指定该值，会给创建的 Ingress 加上 kubernetes.io/ingress.class 这个 annotation，如果我们的 Ingress Controller 是 Nginx Ingress Controller，指定这个字段可以让创建的 Ingress 被 Nginx Ingress Controller 处理。
-spec.acme.config.http01.domains # 指示该证书的可以用于哪些域名
+- 或者手动创建Certificate资源
+
+```yml
+# cert.yaml
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: dashboard-cert
+  namespace: default
+spec:
+  # 指示证书最终存到哪个 Secret 中
+  secretName: dashboard-cert
+  issuerRef:
+    # 我们创建的签发机构的名称 (ClusterIssuer.metadata.name)
+    name: letsencrypt-staging
+    # 值为 ClusterIssuer 说明签发机构不在本 namespace 下，而是在全局
+    kind: ClusterIssuer
+  # 指示该证书的可以用于哪些域名
+  dnsNames:
+  - dashboard.k8s.aezo.cn
+  acme:
+    config:
+    - http01:
+        # 使用 HTTP-01 方式校验该域名和机器时，cert-manager 会尝试创建Ingress 对象来实现该校验，如果指定该值，会给创建的 Ingress 加上 kubernetes.io/ingress.class 这个 annotation，如果我们的 Ingress Controller 是 Nginx Ingress Controller，指定这个字段可以让创建的 Ingress 被 Nginx Ingress Controller 处理
+        ingressClass: nginx
+      # 指示该证书的可以用于哪些域名
+      domains:
+      - dashboard.k8s.aezo.cn
 ```
+- 使用参考[Kubernetes Dashboard](#Kubernetes%20Dashboard)
+- 常见问题
+    - https网站在浏览器上仍然提示不安全，查看证书路径为`Fake LE Root X1 -> Fake LE Intermediate X1 -> dashboard.k8s.aezo.cn`，说明letsencrypt的环境为测试环境，`Fake LE Intermediate X1`为测试环境CA，参考：https://letsencrypt.org/zh-cn/docs/staging-environment/
+    - 进入pod查看nginx-ingress-controller的nginx.conf配置发现ssl_certificate和ssl_certificate_key都为`/etc/ingress-controller/ssl/default-fake-certificate.pem;`，这个只是一个占位为了让nginx不产生警告，实际nginx-ingress-controller是使用的动态ssl，通过lua脚本实现(对应参数ssl_certificate_by_lua_block)
+    - 查看cert-manager容器日志，提示`server misbehaving`，通过busybox测试pod发现容器无法访问外网
+    - 提示`dial tcp: lookup dashboard.k8s.aezo on 10.96.0.10:53: no such host`，将自定义域名的解析加入到corndns对应的configmap
+    - 清除谷歌证书缓存：访问`chrome://net-internals/#hsts`，在`Delete domain security policies`中输入域名删除证书，然后重新打开浏览器
 
 ### ingress-nginx
 
@@ -346,11 +392,11 @@ helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-ngin
 > https://hub.kubeapps.com/charts/stable/kubernetes-dashboard
 
 ```bash
-## 提前创建tls类型的secret，名称为k8s-aezo-cn-tls。否则无法访问，会显示`default backend - 404`。下文 kubernetes-dashboard.yaml 配置中使用 certmanager 自动创建证书
+## 提前创建tls类型的secret，名称为k8s-dashboard-tls。否则无法访问，会显示`default backend - 404`。下文 kubernetes-dashboard.yaml 配置中使用 certmanager 自动创建证书
 # 手动创建证书(或者采用certmanager自动生成证书)
 #openssl genrsa -out aezocn.key 2048
 #openssl req -new -x509 -key aezocn.key -out aezocn.crt -subj /C=CN/ST=Beijing/L=Beijing/O=DevOps/CN=k8s.aezo.cn # 此处CN=k8s.aezo.cn一定要对应
-#kubectl create secret tls k8s-aezo-cn-tls --cert=aezocn.crt --key=aezocn.key
+#kubectl create secret tls k8s-dashboard-tls --cert=aezocn.crt --key=aezocn.key
 
 ## 安装
 # 如下文创建配置文件
@@ -375,23 +421,25 @@ image:
   tag: v1.10.1
 ingress:
   enabled: true
+  hosts:
+  - k8s.aezo.cn
   annotations:
+    ## https
     # 是否强制跳转https
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     # 如kubernetes-dashboard需要实现tls访问，则需要加入此注解。否则提示"无法访问此网页"，且ingress-nginx容器日志报错"ingress dashboard upstream sent no valid HTTP/1.0 header while reading response header from upstream". 
         # This annotation was deprecated in 0.18.0 and removed after the release of 0.20.0，之前为 `nginx.ingress.kubernetes.io/secure-backends: "true"`
         # 参考：http://bbs.bugcode.cn/t/18544 、https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-protocol
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-    # certmanager 对应的 cluster-issuer
-    certmanager.k8s.io/cluster-issuer: letsencrypt-staging
-    # 加上此注解cert-manager会自动生成k8s-aezo-cn-tls对应的证书和secret。如果未安装cert-manager，则需要提前手动创建好证书和secret。如果无证书则使用默认证书
+    ## certmanager
+    # 加上此注解cert-manager会自动生成k8s-dashboard-tls对应的证书和secret。如果未安装cert-manager，则需要提前手动创建好证书和secret。如果无证书则使用默认证书
     kubernetes.io/tls-acme: "true"
-  hosts: 
-  - k8s.aezo.cn
+    # 如果设置了默认的cluster-issuer，且kubernetes.io/tls-acme: "true"时，则此参数可省略。如默认设置为letsencrypt-prod，为了测试，可将手动指定为letsencrypt-staging
+    # cert-manager.io/cluster-issuer: letsencrypt-staging
   tls:
-  - hosts:
+  - secretName: k8s-dashboard-tls
+    hosts:
     - k8s.aezo.cn
-    secretName: k8s-aezo-cn-tls
 # 选择运行在master节点上
 nodeSelector:
   node-role.kubernetes.io/master: ''
@@ -448,7 +496,7 @@ server:
     # 如通过rook创建的sc，会自动创建pvc和pv
     storageClass: "monitoring-sc-01"
   ingress:
-    enabled: true
+    #enabled: true
     hosts:
     - prometheus.k8s.aezo.cn
 pushgateway:
@@ -459,6 +507,12 @@ pushgateway:
     enabled: true
     hosts:
     - pushgateway.prometheus.k8s.aezo.cn
+    annotations:
+      kubernetes.io/tls-acme: "true"
+    tls:
+    - secretName: prometheus-pushgateway-tls
+      hosts:
+      - pushgateway.prometheus.k8s.aezo.cn
 # 扩展监控的node_export。如果使用 serverFiles.prometheus.yml.scrape_configs 参数则会覆盖value.yaml所有的scrape_configs
 # extraScrapeConfigs后面必须跟字符串，此处必须使用 | 进行转换；且此时`- job_name`前必须保留2个空格
 extraScrapeConfigs: |
@@ -589,6 +643,12 @@ ingress:
   enabled: true
   hosts:
   - grafana.k8s.aezo.cn
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  tls:
+  - secretName: grafana-tls
+    hosts:
+    - grafana.k8s.aezo.cn
 # https://grafana.com/docs/installation/configuration/
 grafana.ini:
   smtp:
@@ -602,6 +662,7 @@ initChownData:
   enabled: false
 EOF
 helm install --name grafana --namespace monitoring stable/grafana --version 3.10.2 -f grafana-values.yaml
+
 helm upgrade grafana stable/grafana --version 3.10.2 -f grafana-values.yaml
 helm del --purge grafana
 ```
@@ -722,6 +783,8 @@ expose:
   type: ingress
   tls:
     enabled: true
+    secretName: registry-harbor-tls
+    notarySecretName: notary-harbor-tls
   ingress:
     hosts:
       core: registry.harbor.k8s.aezo.cn
@@ -732,7 +795,6 @@ expose:
       ingress.kubernetes.io/proxy-body-size: "0"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
       # certmanager自动证书
-      certmanager.k8s.io/cluster-issuer: letsencrypt-staging
       kubernetes.io/tls-acme: "true"
 externalURL: https://registry.harbor.k8s.aezo.cn
 # 用户名默认为 admin
@@ -807,6 +869,12 @@ master:
   ingress:
     enabled: true
     hostName: jenkins.k8s.aezo.cn
+    annotations:
+      kubernetes.io/tls-acme: "true"
+    tls:
+    - secretName: jenkins-master-tls
+      hosts:
+      - jenkins.k8s.aezo.cn
   # 如jenkins编译docker进行，如果对应harbor为https，则需要提前在宿主机添加证书。此时只允许master运行在相应节点上
   affinity:
     nodeAffinity:
@@ -849,10 +917,10 @@ helm del --purge jenkins
 
 - 使用参考[LDAP](/_posts/db/LDAP.md#基于k8s安装)
 
-## Chart说明 [^1]
+## Chart说明
 
 - 安装某个 Chart 后，可在 `~/.helm/cache/archive` 中找到 Chart 的 tar 包，可解压查看 Chart 文件信息(`tar -zxvf nginx-ingress-0.9.5.tgz`)
-- 创建 Chart 案例
+- 创建 Chart 案例 [^1]
 
     ```bash
     # 创建名为 mychart 的 Chart. 此时会创建一个包含nginx相关配置的的模板包
@@ -885,7 +953,7 @@ helm del --purge jenkins
     mychart
     ├── charts                          # 依赖的chart
     ├── requirements.yaml               # 该chart的依赖配置(create创建的无此文件)
-    ├── Chart.yaml                      # Chart本身的版本和配置信息
+    ├── Chart.yaml                      # Chart本身的版本和配置信息。其中的name是chart的名称，并不一定是release的名称
     ├── templates                       # 配置模板目录，下是yaml文件的模板，遵循Go template语法
     │   ├── deployment.yaml             # kubernetes Deployment object
     │   ├── _helpers.tpl                # 用于修改kubernetes objcet配置的模板
@@ -928,7 +996,10 @@ helm del --purge jenkins
     helm repo update
     ```
 - chart语法参考[Go template语法](#Go%20template语法)
-    - 参考文章[chart_template_guide](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/index-zh_cn.html)
+- chart参考文章[chart_template_guide](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/index-zh_cn.html)
+    - [chart内置对象](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/builtin_objects-zh_cn.html)
+        - `Release.Name`
+        - `Release.Namespace`
 
 ## Go template语法
 

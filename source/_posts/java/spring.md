@@ -361,8 +361,8 @@ public class ELConfig {
     @Value("#{T(java.lang.Math).random() * 100.0}")
     private String randomNumber;
 
-    @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止为定义此参数值(特别是通过命令行传入的参数)
-    private Resource siteUrl;
+    @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止未定义此参数值(特别是通过命令行传入的参数)
+    private String siteUrl;
 
     @Value("${site.tags}")
     private String[] tags; // 获取数组，yml中可定义site.tags=a,b,c # 默认会基于`,`分割。(yml中使用`-`则需要定义配置类实体)
@@ -383,7 +383,7 @@ public class ELConfig {
         System.out.println("normal = " + normal);
         System.out.println("osName = " + osName);
         System.out.println("randomNumber = " + randomNumber);
-        System.out.println("normal = " + siteUrl);
+        System.out.println("siteUrl = " + siteUrl);
         System.out.println("fromAnother = " + fromAnother);
         System.out.println("environment = " + environment.getProperty("site.url")); // 配置文件中的值默认全部赋值到了环境变量中了
 
