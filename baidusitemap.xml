@@ -121,9 +121,9 @@
         <title>Kubernetes</title>
         <pubTime>2019-06-01T04:38:00.000Z</pubTime>
         
-        <tag>cncf</tag>
-         
         <tag>k8s</tag>
+         
+        <tag>cncf</tag>
          
         <tag>docker</tag>
          
@@ -849,11 +849,11 @@
         <title>Rook | K8s存储协调器</title>
         <pubTime>2019-09-23T01:38:00.000Z</pubTime>
         
-        <tag>cncf</tag>
-         
         <tag>k8s</tag>
          
         <tag>storage</tag>
+         
+        <tag>cncf</tag>
          
          
            

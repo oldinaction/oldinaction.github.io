@@ -198,11 +198,11 @@
       <category term="devops" scheme="http://blog.aezo.cn/categories/devops/"/>
     
     
-      <category term="cncf" scheme="http://blog.aezo.cn/tags/cncf/"/>
-    
       <category term="k8s" scheme="http://blog.aezo.cn/tags/k8s/"/>
     
       <category term="storage" scheme="http://blog.aezo.cn/tags/storage/"/>
+    
+      <category term="cncf" scheme="http://blog.aezo.cn/tags/cncf/"/>
     
   </entry>
   
@@ -390,9 +390,9 @@
       <category term="devops" scheme="http://blog.aezo.cn/categories/devops/"/>
     
     
-      <category term="cncf" scheme="http://blog.aezo.cn/tags/cncf/"/>
-    
       <category term="k8s" scheme="http://blog.aezo.cn/tags/k8s/"/>
+    
+      <category term="cncf" scheme="http://blog.aezo.cn/tags/cncf/"/>
     
       <category term="docker" scheme="http://blog.aezo.cn/tags/docker/"/>
     
