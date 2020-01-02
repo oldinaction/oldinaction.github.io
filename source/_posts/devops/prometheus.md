@@ -185,7 +185,7 @@ receivers:
 # 基于 webhook 进行报警：出问题后自动访问下列地址
 - name: 'pybiz-webhook'
   webhook_configs:
-  - url: 'http://192.168.6.131:8080/restart'
+  - url: 'https://192.168.6.131:8080/restart?Token=123456'
 # 基于 Slack (类似在线聊天室) 进行报警，具体参考：https://api.slack.com/incoming-webhooks (进入到 Your Apps > incoming-webhooks 中查看Webhook URL)
 - name: 'slack-receiver'
   slack_configs:

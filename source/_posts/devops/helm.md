@@ -552,6 +552,14 @@ alertmanagerFiles:
       receiver: 'default-receiver'
       routes:
       - match:
+          aezo_env: prod
+          aezo_webhook: pybiz
+        receiver: pybiz-webhook
+        group_wait: 5s
+        group_interval: 3m
+        repeat_interval: 15m
+        continue: true
+      - match:
           severity: warning
         receiver: slack-receiver
     receivers:
@@ -565,6 +573,9 @@ alertmanagerFiles:
         api_url: https://hooks.slack.com/services/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
         channel: 'monitor'
         text: "{{ .CommonAnnotations.description }}"
+    - name: 'pybiz-webhook'
+      webhook_configs:
+      - url: 'https://192.168.1.100/api/v1/monitor/script/call_run/?Token=f80deca4095accae753f23913a65e7256a855345'
 serverFiles:
   # 常用报警规则，可选
   alerts:
