@@ -2,17 +2,17 @@
 layout: "post"
 title: "并发编程"
 date: "2018-12-05 14:28"
-categories: arch
+categories: java
 tags: [concurrence]
 ---
 
 ## 简介
 
 - Java 的并行 API 演变历程
-    - 1.0-1.4 中的 java.lang.Thread  
-    - 5.0 中的 java.util.concurrent  
-    - 6.0 中的 Phasers 等  
-    - 7.0 中的 Fork/Join 框架  
+    - 1.0-1.4 中的 java.lang.Thread 
+    - 5.0 中的 java.util.concurrent
+    - 6.0 中的 Phasers 等
+    - 7.0 中的 Fork/Join 框架
     - 8.0 中的 Lambda(如Stream)
 - https://www.cnblogs.com/dolphin0520/category/1426288.html
 

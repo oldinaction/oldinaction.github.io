@@ -178,10 +178,11 @@ receivers:
 # 基于email进行报警
 - name: 'default-receiver'
   email_configs:
-  - to: 'aezocn@163.com'
+  - to: 'test1@163.com,test2@163.com' # 以多个收件人的形式发送
     # 对已解除的警报进行通知(默认false)
     send_resolved: true
     # html: '{{ template "email.default.html" . }}' # 默认模板
+  - to: 'test3@163.com' # 以多封邮件的形式发送
 # 基于 webhook 进行报警：出问题后自动访问下列地址
 - name: 'pybiz-webhook'
   webhook_configs:

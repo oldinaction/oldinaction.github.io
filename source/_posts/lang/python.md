@@ -219,8 +219,16 @@ print(type(my_tuple)) # <type 'str'>
 ```python
 map = {'name': 'smalle', "age": 18} # 定义
 print(map) # {'name': 'smalle', "age": 18}
-map['name'] # smalle。取值，字典取值不能通过.获取
+
+# 取值(字典取值不能通过 . 获取)
+map['name'] # smalle
+map['pass'] # 返回一个Keyvalue 错误类型
+map.get('name')  # smalle
+map.get('pass') # 返回None
+map.get('pass', '123456') # 返回123456
+
 map['sex'] = 1 # 新增key
+map['name'] = 'aezo' # 修改
 
 # 函数
 len(map)  # 计算元素个数
@@ -632,6 +640,15 @@ with TemporaryDirectory() as dirname:
 
 ## gettempdir()
 gettempdir()
+```
+
+#### base64
+
+```py
+import base64
+
+b4 = str(base64.b64encode('hello world'.encode('utf-8')), 'utf-8'))
+str(base64.b64decode(b4), "utf-8")
 ```
 
 ### 模块扩展

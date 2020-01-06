@@ -157,11 +157,43 @@ DATABASES = {
     - `null=True` 可为空。字符串可以不初始化，但是在修改时不能为空字符串。如果需要为空字符串可加blank=True
     - `choices` 可选值元组
     - `default` 默认值
-- `DateField`、`DateTimeField` [^1]
-    - `auto_now=True` 这个参数的默认值为false，设置为true时，能够在保存该字段时，将其值设置为当前时间，并且每次修改model，都会自动更新。因此这个参数在需要存储**最后修改时间**的场景下，十分方便。需要注意的是，设置该参数为true时，并不简单地意味着字段的默认值为当前时间，而是指字段会被“强制”更新到当前时间，你无法程序中手动为字段赋值；如果使用django再带的admin管理器，那么该字段在admin中是只读的
+- `DateTimeField`、`DateField`、`TimeField` [^1]
+    - 上述类型，其值分别对应着Python里的datetime.datetime、datetime.date和datetime.time三个实例
+    - `auto_now=True` 这个参数的默认值为false，设置为true时，能够在保存该字段时，将其值设置为当前时间，并且每次修改model，都会自动更新。因此这个参数在需要存储**最后修改时间**的场景下，十分方便。需要注意的是，设置该参数为true时，并不简单地意味着字段的默认值为当前时间，而是指字段会被"强制"更新到当前时间(只有每次调用Model.save时才会自动更新，其他的如QuerySet.update是无法更新的)，你无法程序中手动为字段赋值；如果使用django再带的admin管理器，那么该字段在admin中是只读的
     - `auto_now_add` 设置为True时，会在model对象第一次被创建时，将字段的值设置为创建时的时间，以后修改对象时，字段的值不会再更新。该属性通常被用在存储**创建时间**的场景下。与auto_now类似，auto_now_add也具有强制性，一旦被设置为True，就无法在程序中手动为字段赋值，在admin中字段也会成为只读的
-    - `default=django.utils.timezone.now` 默认值为当前时间且再admin模块可修改
+    - `default=django.utils.timezone.now` **默认值为当前时间且再admin模块可修改**
     - 上述3个默认时间属性都不会再数据库级别创建默认值
+    - 程序中手动修改字段值`party.update_time = django.utils.timezone.now()`，此时保存实体后，存储的时间类型为UTC时间(在数据库中直接查看是会比Asia/Shanghai晚8个小时，但是setting.py中设置了时区为Asia/Shanghai，则admin页面显示是正常的Asia/Shanghai时间)
+    - 时间处理
+
+        ```py
+        from django.utils import timezone
+        import datetime
+
+        party.update_time # 2020-01-06 07:39:53.063158+00:00
+        party.update_time.now() # 2020-01-06 16:16:26.077810
+        party.update_time.now(timezone.get_current_timezone()) # 2020-01-06 16:16:26.077810+08:00
+        
+        datetime.datetime.now() # 2020-01-06 16:16:26.077810
+        datetime.datetime.now(timezone.utc) # 2020-01-06 08:16:26.077810+00:00
+
+        if party.update_time and (datetime.datetime.now(timezone.utc) - party.update_time).total_seconds() < 600:
+            print('party最近10分钟更新过')
+        ```
+- `ForeignKey`、`ManyToManyField`、`OneToOneField`分别在Model中定义多对一(使用ForeignKey的表为子表)，多对多，一对一关系。相关参数
+    - `related_name`
+        - father.child_set.all()。获取子表(子表Child中有一个外键，此时父表中默认会存储 `子表_set` 来获取子表；也可在子表中定义 related_name；如果子表中有某一个表的两个外键，则必须要定义related_name)
+        - father.child_related_name.all()。child_related_name为子表中定义的 related_name 名称
+        - book = models.ForeignKey(Author, related_name='child_related_name', on_delete=models.CASCADE)
+    - `db_column` 定义外键生成的字段名
+    - `on_delete` 删除主表时，对子表的行为。ForeignKey必须
+        - `CASCADE` 删除作者信息一并删除作者名下的所有书的信息
+        - `PROTECT` 删除作者的信息时，采取保护机制，抛出错误：即不删除Books的内容
+        - `SET_NULL` 只有当null=True才将关联的内容置空
+        - `SET_DEFAULT` 设置为默认值
+        - `SET()` 括号里可以是函数，设置为自己定义的东西
+        - `DO_NOTHING` 字面的意思，啥也不干
+    - `db_constraint=False` **数据库中不创建外键**。但是django仍然可以通过外键属性获取关联对象
 - `Meta`为每个mode的元数据定义类
     - `verbose_name_plural` 可在admin模块显示此字段定义表别名
 - 主键
@@ -183,7 +215,8 @@ DATABASES = {
         )
         '''
         party_source = models.CharField(verbose_name=u'Party来源', choices=types.party_source, max_length=60)
-        is_gov = models.BooleanField(verbose_name=u'是否为政府机构', default=True)
+        is_gov = models.BooleanField(verbose_name=u'是否为政府机构', default=True)  # mysql字段类型为tinyint
+        update_time = models.DateTimeField(verbose_name=u'最近更新时间', null=True, blank=True)
 
     # 关于联合主键
     class PartyRole(models.Model):
@@ -238,21 +271,6 @@ DATABASES = {
             unique_together = ("party_id_from", "party_id_to", "role_type_id_from", "role_type_id_to", "from_date")
             verbose_name_plural = u'Party角色关系'
     ```
-    - `ForeignKey`、`ManyToManyField`、`OneToOneField`分别在Model中定义多对一(使用ForeignKey的表为子表)，多对多，一对一关系
-    - 参数
-        - `related_name`
-            - father.child_set.all()。获取子表(子表Child中有一个外键，此时父表中默认会存储 `子表_set` 来获取子表；也可在子表中定义 related_name；如果子表中有某一个表的两个外键，则必须要定义related_name)
-            - father.child_related_name.all()。child_related_name为子表中定义的 related_name 名称
-            - book = models.ForeignKey(Author, related_name='child_related_name', on_delete=models.CASCADE)
-        - `db_column` 定义外键生成的字段名
-        - `on_delete` 删除主表时，对子表的行为。ForeignKey必须
-            - `CASCADE` 删除作者信息一并删除作者名下的所有书的信息
-            - `PROTECT` 删除作者的信息时，采取保护机制，抛出错误：即不删除Books的内容
-            - `SET_NULL` 只有当null=True才将关联的内容置空
-            - `SET_DEFAULT` 设置为默认值
-            - `SET()` 括号里可以是函数，设置为自己定义的东西
-            - `DO_NOTHING` 字面的意思，啥也不干
-        - `db_constraint=False` **数据库中不创建外键**。但是django仍然可以通过外键属性获取关联对象
 
 ### CRUD
 
@@ -938,6 +956,10 @@ DATABASES = {
 LANGUAGE_CODE = 'zh-Hans'
 # 时区
 TIME_ZONE = 'Asia/Shanghai'
+USE_I18N = True
+# 语言环境规定的日期时间格式具有更高的优先级，将忽略 `DATE_FORMAT = 'Y-m-d'` 和 `DATETIME_FORMAT = 'Y-m-d H:i:s'` 的配置
+USE_L10N = True
+
 # 静态文件目录
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static'  # 为项目目录下的static文件夹
@@ -1013,7 +1035,10 @@ urlpatterns = [
 
 ### 请求对象
 
-- `request.POST['username']` 获取普通input的值
+- `request.POST['username']` 或者 `request.POST.get('username')` 获取普通input的值。参考python字典取值
+    - 如果传递过来的数值不为空，那么这两种方法都没有错误，可以得到相同的结果。但是如果传递过来的数值为空，那么`request.POST['username']`则会提示Keyerror错误，而`request.POST.get('username')`则不会报错，而是返回一个None
+    - request.POST.get('username', 'default_value')
+    - `request.GET`同理
 - `request.POST.getlist('hobby')` 获取checkbox的值
 - `username = self.request.query_params.get('username', None)` 获取url参数
 

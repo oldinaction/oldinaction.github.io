@@ -63,6 +63,10 @@ tags: [docker, arch]
         - 如果DockerToolbox运行出错`Looks like something went wrong in step ´Checking status on default..`，可以单独更新安装`VirtualBox`
         - xshell连接docker虚拟机：[http://blog.aezo.cn/2017/06/24/extend/vmware/](/posts/extend/vmware.md#Oracle-VM-VirtualBox)
     - 或者安装[Boot2Docker](https://github.com/boot2docker/windows-installer)
+    - 如果设置了C盘搬家到D盘，容易出现磁盘占满问题。可将虚拟机的disk.vmdk直接移动到D盘，步骤如下
+        - 复制`C:\Users\smalle\.docker\machine\machines\default\disk.vmdk`到`D:/data/docker/disk.vmdk`
+        - 进入VirtualBox(4.0.4以上)安装目录，执行`VBoxManage internalcommands sethduuid D:/data/docker/disk.vmdk`重设磁盘UUID
+        - 打开VirtualBox，删除default原有的磁盘，然后添加新磁盘指向D:/data/docker/disk.vmdk
 - linux
     - `yum install docker` 安装
         - 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存。参考下文volume命令相关内容

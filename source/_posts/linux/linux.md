@@ -1128,7 +1128,7 @@ vm.dirty_writeback_centisecs = 500
 
 ### 相关文件
 
-- `/etc/profile` 系统环境信息，如环境变量，对所有用户生效；当用户第一次登录时，该文件被执行。并从 `/etc/profile.d` 目录的配置文件中收集 shell 的设置。对 /etc/profile 有修改的话必须得 source 一下修改才会生效(如果第二次登录仍然不生效可考虑重启一下系统)
+- `/etc/profile` 系统环境信息，如环境变量，对所有用户生效；当用户第一次登录时，该文件被执行。并从 `/etc/profile.d` 目录的配置文件中收集 shell 的设置。对 /etc/profile 有修改的话必须得 source 一下修改才会生效(如果第二次登录仍然不生效可考虑重启一下系统，当系统不能重启时，可考虑将设置添加到`/etc/bashrc`)
 - `/etc/bashrc` 当 bash shell 被打开时，该文件被读取执行，对所有用户生效。修改文件后，重新打开一个 bash 即可生效
 - `~/.bash_profile` 当用户登录时，文件仅仅执行一次，对当前用户生效。默认情况下，为了设置一些环境变量，和**执行用户的 `~/.bashrc` 文件**
 - `~/.bashrc` 对当前登录用户生效，每次打开 bash shell 时生效，**默认调用了`/etc/bashrc`**

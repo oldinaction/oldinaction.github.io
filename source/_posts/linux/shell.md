@@ -293,15 +293,58 @@ esac
 
 ### 脚本说明
 
+#### 脚本基本使用
+
 - 注意文件格式必须是Unix格式(否则执行报错：`: No such file or directory`)
     - 解决办法：`vim my.sh` - `:set ff=unix` - `:x`
 - `#!/bin/bash` 脚本第一行建议以此开头
 - `exit` 退出脚本
 	- 退出脚本可以指定脚本执行的状态：`exit 0` 成功退出，`exit 1`/`exit 2`/... 失败退出
+    - 退出码
+        - `0` 成功
+        - `2` shell内建命令使用错误
+        - `124` 执行命令超时，如`timeout 10 sleep 30`
+        - `126` 程序或命令的权限是不可执行的
+        - `127` 命令不存在command not found(估计是$PATH不对)
+        - `128` exit的参数错误(exit只能以整数作为参数，范围是0-255)
+        - `128+n` 信号n的致命错误(kill -9 $PPID，$? 返回137=128 + 9)
+        - `130` 用Control-C来结束脚本
+        - `255*` 超出范围的退出状态(exit -1)
 - 脚本中使用`set -x` 是开启代码执行显示，`set +x`是关闭，`set -o`是查看(xtrace)。执行`set -x`后，对整个脚本有效
+- 执行脚本方式
+
+```bash
+## 执行命令
+# 在当前shell内去读取、执行a.sh，而a.sh不需要有"执行权限"。`source/./exec/eval`命令执行脚本都不会产生子进程
+source a.sh
+. a.sh # source命令可以简写为"."
+# (注意)如果脚本中有`source`命令，则需要使用 source/. 来执行脚本，否则脚本中source命令不会生效
+
+# 都是打开一个subshell去读取、执行a.sh，而a.sh不需要有"执行权限"。通常在subshell里运行的脚本里设置变量，不会影响到父shell的
+source /etc/profile # 在一个脚本中使用sh、bash、nohup等运行其他命令或脚本，会开启子shell，因此需要加载一下环境变量，否则可能会出现127找不到命令的问题
+sh a.sh
+bash a.sh
+# 打开一个subshell去读取、执行a.sh，但a.sh需要有"执行权限"(chmod +x a.sh)
+./a.sh
+
+## 调试
+# 检查文件是否有语法错误(`sh -n`亦可)
+bash -n a.sh
+# debug 执行文件
+bash -x a.sh
+```
+- 脚本中使用nohup命令
+
+```bash
+!#/bin/bash
+nohup echo "hello world" # nohup执行命令不生效，原因是找不到环境变量，所以要先source一下
+
+source /etc/profile
+nohup echo "hello world"
+```
 - 远程执行脚本 [^4]
 	- 简单执行远程命令：`ssh user@remoteNode "cd /home ; ls"` 双引号必须有，两个命令直接用分号分割
-	- 远程脚本
+	- 脚本内执行远程命令
 
 ```bash
 #!/bin/bash
@@ -318,27 +361,6 @@ eeooff
 set +x
 
 echo done!
-```
-- 执行脚本方式
-
-```bash
-## 执行命令
-# 在当前shell内去读取、执行a.sh，而a.sh不需要有"执行权限"。`source/./exec/eval`命令执行脚本都不会产生子进程
-source a.sh
-. a.sh # source命令可以简写为"."
-# (注意)如果脚本中有`source`命令，则需要使用 source/. 来执行脚本，否则脚本中source命令不会生效
-
-# 都是打开一个subshell去读取、执行a.sh，而a.sh不需要有"执行权限"。通常在subshell里运行的脚本里设置变量，不会影响到父shell的
-sh a.sh
-bash a.sh
-# 打开一个subshell去读取、执行a.sh，但a.sh需要有"执行权限"(chmod +x a.sh)
-./a.sh
-
-## 调试 
-# 检查文件是否有语法错误(`sh -n`亦可)
-bash -n a.sh
-# debug 执行文件
-bash -x a.sh
 ```
 
 #### 简单示例
