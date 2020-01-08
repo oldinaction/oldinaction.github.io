@@ -60,6 +60,7 @@ services:
       - jenkins-data:/var/jenkins_home
       # 必须是jenkinsci/blueocean才可在容器中执行docker命令，jenkins/jenkins镜像没有测试成功
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker:ro
       - /root/.m2:/root/.m2
     restart: always
     # 必须使用root用户启动
@@ -142,7 +143,7 @@ volumes:
     - Allowed branches 允许触发的分支
         - Filter branches by name - Include 基于名称进行触发，如：`test`(此时不能写成`origin/test`)
         - Secret token - Generate 生成token用于git webhook触发
-    - Gitlab设置Webhooks(可设置多个)：URL和Secret Token填上文；Trigger勾选`Push events`、`Tag push events`、`Merge Request events`(gitlab提供对配置的url进行访问可达测试)。触发流程如下：
+    - Gitlab设置Webhooks(可设置多个)：URL和Secret Token填上文；Trigger勾选`Push events`、`Tag push events`、`Merge Request events`(gitlab提供对配置的url进行访问可达测试，需要jenkins先保存一遍上述生成的token)。触发流程如下：
         - 当开发通过git提交代码或进行其他操作触发了gitlab此时定义的Trigger
         - 然后gitlab会对配置的URL进行post
         - 通过post的地址会进入到jenkins定义的构建任务中
@@ -258,6 +259,8 @@ java -jar target/${NAME}-${VERSION}.jar
 
 ![jenkins-docker-gitlab](/data/images/devops/jenkins-docker-gitlab.png)
 
+- 基于k8s示例：http://www.mydlq.club/article/8/#wow10
+
 #### 模式一
 
 - Springboot项目的pom.xml加入打包docker插件，并手动推送到镜像仓库(如Harbor)
@@ -297,7 +300,7 @@ java -jar target/${NAME}-${VERSION}.jar
     fi
 
     # Build image.
-    cd ${JENKINS_PROJECT_HOME}
+    cd ${JENKINS_PROJECT_HOME} # 默认就是项目的工作空间(源码根目录)，此处cd可结合jenkins-agent使用。自定义工作目录可用于k8s-jenkins保存源码目录供下次编译使用，参考下文节点管理
     DOCKER_TAG=`date +%y%m%d-%H%M%S` # 190902-165827
     docker build --rm -t ${HARBOR_IP}/${REPOSITORIES}:${DOCKER_TAG} --build-arg APP_VERSION=v${DOCKER_TAG} -f ./docker/Dockerfile .
 
@@ -427,6 +430,47 @@ java -jar target/${NAME}-${VERSION}.jar
                 - Content Type：HTML (text/html)
                 - Attach Build Log：Attach Build Log
 
+##### Kubernetes插件
+
+- 在Kubernetes集群中运行动态代理节点(agent)的Jenkins插件，[参考](https://plugins.jenkins.io/kubernetes)
+- 安装此插件增加的扩展配置：系统管理 - 系统配置 - 云
+    - 名称：默认`kubernetes`
+    - Kubernetes 地址：`https://kubernetes.default.svc.cluster.local`，或者省略`svc.cluster.local`，即https://kubernetes.default
+    - Kubernetes 命名空间：留空或default
+    - 凭据：留空
+    - Jenkins 地址：`http://jenkins.devops:8080`，此处jenkins基于k8s部署，中间表示`服务名称.命名空间`
+    - Jenkins 通道：agent通过jnlp和jenkins通信通道，此处如`jenkins-agent.devops:50000`(jenkins-agent为k8s服务名，如果jenkins普通部署此处填jenkins的hostname即可)。此处的50000需要k8s暴露到服务层，对应jenkins-pod的端口也是50000(在系统配置-全局安全配置-代理-TCP port for inbound agents-指定端口50000)
+    - 镜像(Kubernetes Pod Template)
+        - 名称：jnlp-agent
+        - 命名空间：agent-pod运行的命名空间，留空则和jenkins-pod运行于同一空间
+        - 标签列表：jnlp-agent
+        - 容器列表(Container Template)
+            - 名称：jnlp
+            - Docker 镜像：jenkins/jnlp-slave:3.27-1
+            - 工作目录：/home/jenkins/agent
+            - 分配伪终端：留空
+        - 卷
+            - 增加Host Path Volume(为了让此agent可以调用宿主机的docker命令)
+                - 主机路径、挂载路径：/var/run/docker.sock
+                - 主机路径、挂载路径：/usr/bin/docker
+        - Pod 的原始 yaml(pod基础配置，策略为Override则表示，上述配置如果和原始yaml重复则按照上述配置来)
+
+            ```yaml
+            apiVersion: v1
+            kind: Pod
+            spec:
+              securityContext:
+                runAsUser: 0
+                privileged: true
+              affinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 80
+                  preference:
+                    matchExpressions:
+                    - {key: "aezo/jenkins-agent", operator: In, values: ["enabled"]}
+            ```
+        - Yaml merge strategy：Override
+        - Show raw yaml in console：勾选表示jenkins构建日志中会显示agent的pod-yaml配置，调试的时候可以勾选
 
 ### 节点管理(Manage Nodes)
 
@@ -439,7 +483,7 @@ java -jar target/${NAME}-${VERSION}.jar
         - 点击`Launch command`后面的帮助，可下载`agent.jar`
         - 需将`agent.jar`复制到jenkins-master家目录的bin目录下
     - 可用性，如选择"有需要的时候保持代理在线，当空闲时离线"。对应子配置`In demand delay=0; Idle delay=15`(任务构建延迟0分钟，节点如果空闲15分钟则停止)
-    - 基于k8s-helm运行jenkins存储问题：任务的工作目录保存在slave节点，每次执行完任务后，slave节点删除，工作空间丢失。此时可自定义一个agent，用于构建类似ofbiz等需要保存工作空间的项目
+    - **基于k8s-helm运行jenkins存储问题**：任务的工作目录保存在slave节点，每次执行完任务后，slave节点删除，工作空间丢失。此时可自定义一个agent，用于构建类似ofbiz等需要保存工作空间的项目
 
 ### 其他配置
 

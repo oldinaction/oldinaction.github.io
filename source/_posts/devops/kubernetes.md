@@ -533,7 +533,7 @@ Advanced Commands:
 Settings Commands:
   label          Update the labels on a resource # 给资源(Pod、Node等)添加一个Label标签
     # kubectl label pods sq-pod version=v1 [--overwrite] # 给pod添加标签，加`--overwrite`则表示修改标签
-    # kubectl label nodes {node1,node2,node3} storage-node=enabled # 给node添加标签
+    # kubectl label nodes {node1,node2,node3} aezo.cn/storage-node=enabled # 给node添加标签
     # kubectl label nodes node1 storage-node- # 删除标签
   annotate       Update the annotations on a resource # 给资源添加描述
   completion     Output shell completion code for the specified shell (bash or zsh)
@@ -653,6 +653,9 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
                 - `resourceFieldRef` 从资源占用中获取信息
                     - `containerName`
                     - `resource` 如：limits.cpu、requests.memory
+        - `securityContext` [参考](https://www.kubernetes.org.cn/security-context-psp)。此时仅影响容器级别(Container-level Security Context仅应用到指定的容器上，并且不会影响Volume)
+            - `privileged` true(设置容器运行在特权模式)
+            - `runAsUser` 启动容器用户。0代表root用户
         - `serviceAccountName` pod内部访问其他资源的账号名称
         - `resources` 资源配置
             - `requests` 资源请求
@@ -673,6 +676,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
             - `successThreshold` 探测失败后，最少连续探测成功多少次才被认定为成功。默认是 1，对于 liveness 必须是 1。最小值是 1。
             - `failureThreshold` 探测成功后，最少连续探测失败多少次才被认定为失败。默认是 3。最小值是 1
         - `readinessProbe` 就绪性探测(子标签类似livenessProbe)。在readiness探测失败之后，Pod和容器并不会被删除，而是会被标记成特殊状态，进入这个状态之后，如果这个Pod是在某个serice的endpoint列表里面的话，则会被从这个列表里面清除，以保证外部请求不会被转发到这个Pod上；等Pod恢复成正常状态，则会被加回到endpoint的列表里面，继续对外服务
+    - `securityContext` 影响整个pod级别。参考上文spec.containers.securityContext
     - `nodeSelector` 节点标签选择器，如果定义则pod只会运行在有此标签的节点上。如：`nodeSelector: kubernetes.io/hostname: node1`
     - `nodeName` 直接运行在此节点上
     - `restartPolicy` 重启策略：Always(默认)、OnFailure、Never
@@ -1474,13 +1478,13 @@ spec:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms: # 只需满足一个nodeSelectorTerms
         - matchExpressions: # 必须满足所有matchExpressions(此时匹配节点labels)
-          - {key: zone, operator: In, values: ["sh"]}
+          - {key: zone, operator: In, values: ["sh"]} # operator：In, NotIn, Exists, DoesNotExist, Gt, Lt
       # 节点软亲和性
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
+      - weight: 80
         preference:
           matchExpressions:
-          - {key: zone, operator: In, values: ["cn"]}
+          - {key: "zone", operator: In, values: ["cn"]}
     # Pod亲和性
     podAffinity:
       # 硬亲和性
@@ -1871,7 +1875,7 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 
 - 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container` 可查看对应pod的日志
 - 报错`Back-off restarting failed container`，可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
-- 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试)
+- 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试，实际是过几分钟便自动恢复了)
 
 ---
 

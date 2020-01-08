@@ -918,10 +918,10 @@ EOF
 helm install --name jenkins --namespace devops stable/jenkins --version=1.7.8 -f jenkins-values.yaml
 
 helm upgrade jenkins stable/jenkins --version=1.7.8 -f jenkins-values.yaml
-helm del --purge jenkins
+helm del --purge jenkins # 如果删除部署后重新部署，会重新创建新PV
 ```
 - 说明
-    - 构建时会自动创建子pod(slave节点，镜像jenkins/jnlp-slave)，workspace目录则保存在执行任务的slave节点上，当构建完成后会自动删除子pod(包括任务的工作空间)
+    - 构建时会自动创建子pod(slave节点，镜像jenkins/jnlp-slave)，workspace目录则保存在执行任务的slave节点上，当构建完成后会自动删除子pod(包括任务的工作空间)。更多参考[jenkins](/_posts/devops/jenkins.md#Kubernetes插件)
     - 多次部署更新jenkins，历史安装的插件不会丢失。如果删除部署后重新部署，会重新创建新PV
 
 ### OpenLDAP
