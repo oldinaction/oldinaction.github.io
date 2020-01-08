@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
+    
+    <lastmod>2020-01-08T10:59:59.321Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
+    
+    <lastmod>2020-01-08T10:59:48.139Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2020-01-08T10:58:30.118Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/09/24/lang/django/</loc>
     
     <lastmod>2020-01-06T10:33:16.290Z</lastmod>
@@ -54,20 +75,6 @@
     <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
     
     <lastmod>2020-01-03T01:48:00.524Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
-    
-    <lastmod>2020-01-02T12:06:08.987Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2019-12-27T08:35:46.120Z</lastmod>
     
   </url>
   
@@ -215,13 +222,6 @@
     <loc>http://blog.aezo.cn/2017/10/22/java/springsecurity/</loc>
     
     <lastmod>2019-11-29T10:11:14.183Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
-    
-    <lastmod>2019-11-28T06:37:12.568Z</lastmod>
     
   </url>
   
