@@ -2,16 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    
+    <lastmod>2020-01-11T13:39:59.028Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/01/11/java/outline/</loc>
+    
+    <lastmod>2020-01-11T13:39:52.393Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
     
-    <lastmod>2020-01-08T10:59:59.321Z</lastmod>
+    <lastmod>2020-01-09T08:53:08.361Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/</loc>
+    
+    <lastmod>2020-01-09T08:19:20.765Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
     
-    <lastmod>2020-01-08T10:59:48.139Z</lastmod>
+    <lastmod>2020-01-09T03:27:23.712Z</lastmod>
     
   </url>
   
@@ -40,13 +61,6 @@
     <loc>http://blog.aezo.cn/2018/09/24/lang/django-rest-framework/</loc>
     
     <lastmod>2020-01-06T10:25:49.827Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    
-    <lastmod>2020-01-06T03:12:35.734Z</lastmod>
     
   </url>
   
@@ -264,13 +278,6 @@
     <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
     
     <lastmod>2019-11-22T01:11:15.759Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/</loc>
-    
-    <lastmod>2019-11-20T03:20:51.936Z</lastmod>
     
   </url>
   
