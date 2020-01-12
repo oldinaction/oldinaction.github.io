@@ -1055,17 +1055,36 @@ Screens
 - Dockerfile
 
 ```Dockerfile
-FROM 192.168.1.100:5000/java-base/jdk:1.7
+ARG AEZO_DOCKER_REGISTRY=192.168.1.100:5000
+FROM ${AEZO_DOCKER_REGISTRY}/java-base/jdk:1.7
+
+MAINTAINER smalle
+
 ARG APP_VERSION
 ENV APP_VERSION=${APP_VERSION}
+ARG PROFILES_NAME
+ENV PROFILES_NAME=${PROFILES_NAME}
+
 ADD . /app
-# ant.sh等脚本文件需要换行符为LF(\n)
+
 RUN chmod +x /app/ant.sh
 RUN chmod +x /app/tools/startofbiz.sh
 RUN chmod +x /app/tools/stopofbiz.sh
-# RUN mkdir -p /app/hot-deploy/test/build/lib
+RUN chmod +x /app/docker/docker-build.sh
+RUN /app/docker/docker-build.sh
+
 CMD ["/bin/bash", "-c", "cd /app && ./ant.sh && ./tools/startofbiz.sh"]
 # CMD ["/bin/bash", "-c", "sleep 1h"]
+```
+- docker-build.sh
+
+```bash
+#!/bin/sh
+
+if [[ ! $PROFILES_NAME ]]; then
+    PROFILES_NAME='dev'
+fi
+mv /app/framework/entity/config/entityengine.${PROFILES_NAME}.xml /app/framework/entity/config/entityengine.xml
 ```
 - `.dockerignore` 类似 `.gitignore` 进行配置
 - build.xml

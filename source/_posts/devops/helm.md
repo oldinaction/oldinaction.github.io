@@ -865,6 +865,8 @@ create database harbor_notary_server;
 create database harbor_notary_signer;
 ```
 - 命令行镜像推送参考：[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#Harbor)
+- 说明
+    - 出现过一次异常：upgrade后，导致harbor-harbor-jobservice和harbor-harbor-chartmuseum的历史副本集无法自动删除，导致新的副本集提示启动失败(占用了pvc)，可手动删除历史副本集解决
 
 ### Jenkins
 
@@ -955,7 +957,7 @@ helm del --purge jenkins # 如果删除部署后重新部署，会重新创建�
     helm history mychart # 查看更新历史
 
     ## 复制后修改项目名
-    sed -i 's/mychart/mychart2/g' `grep mychart -rl ./mychart`
+    sed -i 's/mychart/mychart2/g' `grep mychart -rl ./mychart2`
     ```
 - `tree mychart` 显示目录信息如下
 

@@ -455,19 +455,20 @@ java -jar target/${NAME}-${VERSION}.jar
                 - 主机路径、挂载路径：/usr/bin/docker
         - Pod 的原始 yaml(pod基础配置，策略为Override则表示，上述配置如果和原始yaml重复则按照上述配置来)
 
-            ```yaml
+            ```yml
+            # 需要使用空格排版
             apiVersion: v1
             kind: Pod
             spec:
               securityContext:
                 runAsUser: 0
-                privileged: true
               affinity:
-                preferredDuringSchedulingIgnoredDuringExecution:
-                - weight: 80
-                  preference:
-                    matchExpressions:
-                    - {key: "aezo/jenkins-agent", operator: In, values: ["enabled"]}
+                nodeAffinity:
+                  preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 80
+                    preference:
+                      matchExpressions:
+                      - {key: "aezo/jenkins-agent", operator: In, values: ["enabled"]}
             ```
         - Yaml merge strategy：Override
         - Show raw yaml in console：勾选表示jenkins构建日志中会显示agent的pod-yaml配置，调试的时候可以勾选

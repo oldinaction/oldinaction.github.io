@@ -10,11 +10,29 @@ tags: [concurrence]
 
 - Java 的并行 API 演变历程
     - 1.0-1.4 中的 java.lang.Thread 
-    - 5.0 中的 java.util.concurrent
+    - 5.0 中的 java.util.concurrent(JUC)
     - 6.0 中的 Phasers 等
     - 7.0 中的 Fork/Join 框架
     - 8.0 中的 Lambda(如Stream)
 - https://www.cnblogs.com/dolphin0520/category/1426288.html
+
+## 线程基础
+
+- 线程的相关方法(sleep/yield/join)
+    - `Thread.sleep()`和`wait`的区别 [^4]
+        - sleep是Thread类的方法，wait是Object类中定义的方法
+        - sleep和wait都会暂停当前的线程，对于CPU资源来说，不管是哪种方式暂停的线程，都表示它暂时不再需要CPU的执行时间，OS会将执行时间分配给其它线程。区别是，调用wait后，需要别的线程执行notify/notifyAll才能够重新获得CPU执行时间；而sleep到达一定时间则会继续执行
+        - sleep不会导致锁行为的改变。所谓sleep是指让线程暂停被调度一段时间，或者挂起一段时间。整个sleep过程除了修改挂起状态之外，不会动任何其他的资源，这些资源包括任何持有的任何形式的锁。至于认为sleep消耗资源的情况如下：如果A线程抢到一把锁，然后sleep，B线程无论如何也无法获取该锁，从而B的执行被卡住，浪费了CPU
+    - `Thread.yield()`：当前线程让出CPU一小会调度其他线程，并进入等待队列等待CPU的下次调度，也可能存在让出CPU之后仍然调度的是此线程
+    - `join()`：CPU执行A线程一段时间，当在A线程的代码中遇到b.join()，此时CPU会到B线程中去执行，等B执行完后再回到A线程继续执行。感觉像把B线程加入到A线程
+- 线程的状态
+
+    ![thread-state](/data/images/java/thread-state.png)
+- synchronized关键字
+
+## JUC(java.util.concurrent)
+
+
 
 ## 常用类
 
@@ -372,3 +390,5 @@ public abstract class AbstractMultiThreadTestSimpleTemplate {
 [^1]: https://my.oschina.net/bairrfhoinn/blog/177639 (ExecutorService 的理解与使用)
 [^2]: https://blog.csdn.net/xiao__gui/article/details/51064317
 [^3]: https://www.infoq.cn/article/fork-join-introduction
+[^4]: https://www.zhihu.com/question/23328075
+
