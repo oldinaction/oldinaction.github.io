@@ -4,6 +4,50 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2019/11/22/db/LDAP/</loc>
+    <lastmod>2020-01-14T04:06:10.104Z</lastmod>
+    <data>
+        <display>
+        <title>LDAP</title>
+        <pubTime>2019-11-22T08:52:00.000Z</pubTime>
+        
+        <tag>auth</tag>
+         
+         
+           
+             
+              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    <lastmod>2020-01-13T10:19:08.668Z</lastmod>
+    <data>
+        <display>
+        <title>Kubernetes</title>
+        <pubTime>2019-06-01T04:38:00.000Z</pubTime>
+        
+        <tag>k8s</tag>
+         
+        <tag>cncf</tag>
+         
+        <tag>docker</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
     <lastmod>2020-01-11T13:39:59.028Z</lastmod>
     <data>
@@ -90,30 +134,6 @@
         <pubTime>2018-10-09T08:35:00.000Z</pubTime>
         
         <tag>jenkins</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    <lastmod>2020-01-08T10:58:30.118Z</lastmod>
-    <data>
-        <display>
-        <title>Kubernetes</title>
-        <pubTime>2019-06-01T04:38:00.000Z</pubTime>
-        
-        <tag>k8s</tag>
-         
-        <tag>cncf</tag>
-         
-        <tag>docker</tag>
          
          
            
@@ -757,9 +777,9 @@
         <title>虚拟化服务器搭建 | 私有云</title>
         <pubTime>2019-05-30T08:11:00.000Z</pubTime>
         
-        <tag>server</tag>
-         
         <tag>linux</tag>
+         
+        <tag>server</tag>
          
         <tag>cloud</tag>
          
@@ -813,26 +833,6 @@
            
              
               <breadCrumb title="extend" url="http://blog.aezo.cn/categories/extend/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2019/11/22/db/LDAP/</loc>
-    <lastmod>2019-11-22T10:16:13.847Z</lastmod>
-    <data>
-        <display>
-        <title>LDAP</title>
-        <pubTime>2019-11-22T08:52:00.000Z</pubTime>
-        
-        <tag>auth</tag>
-         
-         
-           
-             
-              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
           
         </display>
     </data>
@@ -933,9 +933,9 @@
         <title>VPN搭建</title>
         <pubTime>2018-04-04T02:34:00.000Z</pubTime>
         
-        <tag>linux</tag>
-         
         <tag>vpn</tag>
+         
+        <tag>linux</tag>
          
         <tag>network</tag>
          

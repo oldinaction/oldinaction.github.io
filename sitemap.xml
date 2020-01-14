@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/11/22/db/LDAP/</loc>
+    
+    <lastmod>2020-01-14T04:06:10.104Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2020-01-13T10:19:08.668Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
     
     <lastmod>2020-01-11T13:39:59.028Z</lastmod>
@@ -33,13 +47,6 @@
     <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
     
     <lastmod>2020-01-09T03:27:23.712Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2020-01-08T10:58:30.118Z</lastmod>
     
   </url>
   
@@ -257,13 +264,6 @@
     <loc>http://blog.aezo.cn/2017/11/28/extend/vscode/</loc>
     
     <lastmod>2019-11-23T14:00:07.911Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/11/22/db/LDAP/</loc>
-    
-    <lastmod>2019-11-22T10:16:13.847Z</lastmod>
     
   </url>
   
