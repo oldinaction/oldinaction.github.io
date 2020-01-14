@@ -1877,6 +1877,16 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 - 报错`Back-off restarting failed container`，可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
 - 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试，实际是过几分钟便自动恢复了)
 
+### pv/pvc
+
+- pv/pvc一直无法删除，force也无法删除。解决办法如下
+
+    ```bash
+    kubectl patch pv my-pv -p '{"metadata":{"finalizers":null}}'
+    kubectl patch pvc my-pvc -p '{"metadata":{"finalizers": []}}' --type=merge -n default
+    ```
+
+
 ---
 
 参考文章
