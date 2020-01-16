@@ -16,28 +16,28 @@ tags: [vue, UI]
 
 - `Tree`组件在动态网节点中加入数据后（往一个数组中插入元素），点击新节点时会报错。此时需要重新赋值此数组属性：`this.treeList = JSON.parse(JSON.stringify(this.treeList))` (可能是 treeList 里面的元素改变并不会触发 vue 的渲染)
 - 使用`:prop`传递数据格式为**数字、布尔值或函数**时，必须带`:`(兼容 String 除外，具体看组件文档) (1)
-- prop 参数如果直接初始化则之后不可修改，只有传入变量才开修改 (2)
+- prop 参数如果直接初始化则之后不可修改，只有传入变量才可修改 (2)
 
-      	```html
-      	<!-- (1) -->
-      	<Page :current="1" :total="100"></Page>
+    ```html
+    <!-- (1) -->
+    <Page :current="1" :total="100"></Page>
 
-      	<Select v-model="sex" placeholder="请选择">
-      		<Option :value="1">男</Option>
-      		<Option :value="2">女</Option>
-      	</Select>
+    <Select v-model="sex" placeholder="请选择">
+        <Option :value="1">男</Option>
+        <Option :value="2">女</Option>
+    </Select>
 
-      	<Radio-group v-model="status">
-      		<Radio :label="1">是</Radio>
-      		<Radio :label="0">否</Radio>
-      	</Radio-group>
+    <Radio-group v-model="status">
+        <Radio :label="1">是</Radio>
+        <Radio :label="0">否</Radio>
+    </Radio-group>
 
-      	<!-- (2) -->
-      	<!-- 此时disabled相当于disabled=true；那么无法再修改此下拉的禁用状态，通过refs去修改也会报错；只能绑定相应的属性，如：`:disabled="subResultDisabled"` -->
-      	<Select v-model="form.subResult" @on-change="subResultChange" disabled placeholder="请选择">
-      		<Option v-for="(item, index) in subResult" :value="item.id" :key="index">{{ item.nodeName }}</Option>
-      	</Select>
-      	```
+    <!-- (2) -->
+    <!-- 此时disabled相当于disabled=true；那么无法再修改此下拉的禁用状态，通过refs去修改也会报错；只能绑定相应的属性，如：`:disabled="subResultDisabled"` -->
+    <Select v-model="form.subResult" @on-change="subResultChange" disabled placeholder="请选择">
+        <Option v-for="(item, index) in subResult" :value="item.id" :key="index">{{ item.nodeName }}</Option>
+    </Select>
+    ```
 
 ### Select 远程搜索
 

@@ -65,8 +65,9 @@ tags: [docker, arch]
     - 或者安装[Boot2Docker](https://github.com/boot2docker/windows-installer)
     - 如果设置了C盘搬家到D盘，容易出现磁盘占满问题。可将虚拟机的disk.vmdk直接移动到D盘，步骤如下
         - 复制`C:\Users\smalle\.docker\machine\machines\default\disk.vmdk`到`D:/data/docker/disk.vmdk`
-        - 进入VirtualBox(4.0.4以上)安装目录，执行`VBoxManage internalcommands sethduuid D:/data/docker/disk.vmdk`重设磁盘UUID
+        - 进入VirtualBox(4.0.4以上)安装目录，执行`VBoxManage internalcommands sethduuid D:/data/docker/vdisk.vmdk`重设磁盘UUID
         - 打开VirtualBox，删除default原有的磁盘，然后添加新磁盘指向D:/data/docker/disk.vmdk
+    - windows命令行运行docker命令提示无此命令，可将`D:\software\Docker Toolbox`加入到Path中
 - linux
     - `yum install docker` 安装
         - 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存。参考下文volume命令相关内容
@@ -673,14 +674,17 @@ volumes:
 
 > https://hub.docker.com
 
-- `centos` 官方提供的centos镜像，无netstat、sshd等服务，测试可进行安装
-    - `docker run -itd --name centos centos`
+- `centos`
+    - `docker run -itd --name centos centos:7` 官方提供的centos镜像，无netstat、sshd等服务，测试可进行安装
     - 安装netstat：`yum install net-tools`
     - 安装sshd：`yum install openssh-server`，启动如下：
         - `mkdir -p /var/run/sshd`
         - `/usr/sbin/sshd -D &`
-- `docker run -itd --name ubuntu ubuntu:14.04`
+- `ubuntu`
+    - `docker run -itd --name ubuntu ubuntu:14.04`
 - `java:8-jre` 一般是docker-compose中引入
+- `python:3.6`
+- `busybox`
 
 ### 自行编译jdk
 
