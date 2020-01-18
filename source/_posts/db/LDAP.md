@@ -211,21 +211,21 @@ access to filter="(|(|(givenName=Matt)(givenName=Barbara))(sn=Kant))" by * none
 - 通过ldif文件修改。ldif文件只需将上文`access to`换成`{0}to`，{0}为规则序号
 
 ```bash
-cat > update_acl.ldif << 'EOF'
-dn: olcDatabase={2}hdb,cn=config
-changetype: modify
-
+ldapmodify -Q -Y EXTERNAL -H ldapi:/// << 'EOF'
+dn: olcDatabase={2}hdb,cn=config 
+replace: olcAccess
 # 只有自己可以修改密码，不允许匿名访问，允许g-admin组修改
-add: olcAccess
-olcAccess: {0}to attrs=userPassword by self write by anonymous auth by group.exact="cn=g-admin,ou=Group,dc=demo,dc=com" write by * none
-# 多个条目之间可以使用-或者空行进行分割，连在一起也可以
--
-# 自己可以修改自己的信息，g-admin可以修改任何信息
-add: olcAccess
-olcAccess: {1}to * by self write by group.exact="cn=g-admin,ou=Group,dc=demo,dc=com" write by * none
+olcAccess: to attrs=userPassword by self write by anonymous auth by group.exact="cn=g-admin,ou=Group,dc=demo,dc=com" write by * none
+# 自己可以修改自己的信息(无法通过LDAPAdmin查看到自己的信息并修改)，g-admin可以修改任何信息，g-read只能读取信息
+olcAccess: to *
+  by self write
+  by group.exact="cn=g-admin,ou=Group,dc=demo,dc=com" write
+  by group.exact="cn=g-read,ou=Group,dc=demo,dc=com" read
+  by * none
 EOF
 
-ldapmodify -H ldapi:// -Y EXTERNAL -f update_acl.ldif
+# 查看修改后结果
+ldapsearch  -Y EXTERNAL -H ldapi:/// -b cn=config "olcDatabase={2}hdb"
 ```
 
 ### 配置多DIN

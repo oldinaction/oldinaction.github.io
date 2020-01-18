@@ -112,6 +112,18 @@ s='one two three four five'
 echo $s | tr ' ' '\n' | wc -l
 ```
 
+### 运算
+
+```bash
+# 使用 $(( ))
+echo $(($(date +%Y)-1)) # 获取去年的年份
+# 使用expr
+expr 4 + 5 # +中间需要有空格
+expr 4 \* 5
+# 使用 $[]
+echo $[ 4 + 5 ]
+```
+
 ### 函数
 
 - 函数定义、调用、返回
@@ -919,8 +931,9 @@ time=$(date "+%Y-%m-%d %H:%M:%S")
 
 ### find
 
+- 语法
+
 ```bash
-## 语法
 # default path is the current directory; default expression is -print
 # expression由options、tests、actions组成
 find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...] [expression]
@@ -932,24 +945,45 @@ find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...
     # eg: -maxdepth 0 # 只处理当前目录的文件(.)
 
 ## expression#tests
--name patten # 基本的文件名与shell模式pattern相匹配
-    # eg: -name *.log # `.log`开头的文件
--type c # 文件类型，c取值
-    f # 普通文件
-    d # 目录
--mtime n # 对文件数据的最近一次修改是在 n*24 小时之前
-    # eg: -mtime +30 # 30天之前的文件
+-name <patten> # 基本的文件名与shell模式pattern相匹配。正则建议使用""包裹
+    # eg: -name "*.log" # `.log`开头的文件
+-type <c> # 文件类型，c取值
+    f # 普通文件(regular file)
+    d # 目录(directory)
+    s # socket
+
+-atime <n> # 针对文件的访问时间，判断 "其访问时间" < "当前时间-(n*24小时)" 是否为真。对应stat命令获取的 Access 时间，读取文件或者执行文件时更改的
+-mtime <n> # 针对文件的修改时间(天)。对应stat命令获取的 Modify 时间，是在写入文件时随文件内容的更改而更改的
+    # eg: -mtime +30 # 30天之前的修改过的文件
+    # eg：-mtime -30 # 过去30天之内修改过的文件
+-ctime <n> # 针对文件的改变时间(天)。对应stat命令获取的 Change 时间，是在写入文件，更改所有者，权限或链接设置是随inode(存放文件基本信息)内容的更改而更改的
+-amin <n> # 类似-atime，只不过此参数是基于分钟计算
+-mmin <n>
+-cmin <n>
+-newerXY <reference> # 比较文件的时间戳，其中XY的取值为：a(访问时间)、c、m、t(绝对时间)、B(文件引用的出现时间)
+    # find . -type f -newermt '2020-01-17 13:40' ! -newermt '2020-01-17 13:45' -exec cp {} ./bak \; # 将当前目录下2020-01-17 13:40到2020-01-17 13:45时间段内修改或生成的文件拷贝到bak目录下。同理：-newerat、-newerct
 
 ## expression#actions
--exec command # 执行命令
-    # 命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\` 来escape 或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
+-exec command # 执行命令。命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\`来escape，或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
     # eg: -exec cp {} {}.bak \; # 删除查询到的文件
+```
+- 示例
 
-## 其他示例
+```bash
+sudo find / -name nginx.conf # 全局查询文件位置(查看`nginx.conf`文件所在位置)
+find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数
+
+find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
+find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644
+
+find -name '*.TXT' -type f -mtime +15 -exec mv {} ./bak \; # 将15天前修改过的文件移动到备份目录
+find . -name '*.log' -newermt "$(($(date +%Y)-1))-01-01" ! -newermt "$(($(date +%Y)-1))-12-31" | xargs -i mv {} ./backup/backup_log_$(($(date +%Y)-1)) # 将当前目录下的去年修改过的文件移动到备份目录
+
 find -type f | xargs # xargs会在一行中打印出所有值
-for item in $(find -type f | xargs) ; do
+for item in $(find -type f | xargs) ; do # 循环打印每个文件
     file $item
 done
+
 ```
 
 ### xrags

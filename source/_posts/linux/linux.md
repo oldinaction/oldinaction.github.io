@@ -880,8 +880,8 @@ lsmod |grep br_netfilter
         - **方式一**：修改`sudo vi /etc/profile`，加入一行`umask 022`
         - 方式二：修改每个用户`sudo vi ~/.bashrc`文件，加入一行`umask 022`
 - 常用命令
-    - `find . -type d -exec chmod 755 {} \;` 修改当前目录的所有目录为775
-    - `find . -type f -exec chmod 644 {} \;` 修改当前目录的所有文件为644
+    - `find . -type d -exec chmod 755 {} \;` 修改当前目录及其子目录为775
+    - `find . -type f -exec chmod 644 {} \;` 修改当前目录及其子目录的所有文件为644
 
 ## ssh
 
