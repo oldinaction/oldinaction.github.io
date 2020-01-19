@@ -1216,6 +1216,100 @@ public interface PreAuthorizedOrderRepository extends CrudRepository<Order, UUID
 }
 ```
 
+### ldap操作
+
+- 引入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-ldap</artifactId>
+</dependency>
+```
+- 配置
+
+```yml
+spring.ldap.urls=ldap://192.168.1.100:1389
+spring.ldap.base=dc=demo,dc=com
+spring.ldap.username=cn=admin,dc=demo,dc=com # 或者ldap用户dn(此用户的权限决定springboot连接此服务后可进行的操作)
+spring.ldap.password=123456
+```
+- 使用
+
+```java
+// 实体类
+@Data
+@Entry(base = "ou=People,dc=demo,dc=com", objectClasses = "inetOrgPerson") // org.springframework.ldap.odm.annotations.Entry;
+public class Person {
+    @Id // org.springframework.ldap.odm.annotations.Id;
+    private Name id; // javax.naming.Name;
+    
+    @Attribute(name = "uid")
+    private String uid;
+    
+    @Attribute(name = "cn")
+    private String commonName;
+    
+    @Attribute(name = "sn")
+    private String suerName;
+
+    @Attribute(name = "userPassword", type = Attribute.Type.BINARY) // org.springframework.ldap.odm.annotations.Attribute;
+    private byte[] userPassword;
+
+    @Attribute(name = "displayName")
+    private String displayName;
+
+    public void setUserPassword(String userPassword) {
+        this.userPassword = userPassword.getBytes(Charset.forName("UTF-8"));
+    }
+}
+
+// dao
+public interface PersonRepository extends CrudRepository<Person, Name> {}
+
+// test
+@Test
+public void findAll() throws Exception {
+    // 查询
+    personRepository.findAll().forEach(p -> {
+        System.out.println("p = " + p);
+    });
+
+    // 编辑
+    LdapName ldapName = new LdapName("cn=tester,ou=测试组,ou=研发部门,ou=People");
+    Person p = personRepository.findById(ldapName).get();
+    p.setSuerName("tester123");
+    personRepository.save(p);
+
+    // LdapTemplate
+    List<Person> list = ldapTemplate.find(query().where("uid").is("10002"), Person.class);
+    System.out.println("list = " + list);
+
+    Person p2 = list.get(0);
+    p2.setDisplayName("displayName...");
+    p2.setUserPassword(sha1("123456"));
+    ldapTemplate.update(p2);
+
+    // 验证密码
+    boolean flag = ldapTemplate.authenticate("cn=someone,ou=后台组,ou=研发部门,ou=People", "(objectclass=Person)", "abc123");
+    System.out.println("flag = " + flag);
+
+    // 删除条目
+    ldapTemplate.unbind("uid=testhr,ou=HR,ou=People");
+}
+
+public static String sha1(String str) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    if (null == str || str.length() == 0) {
+        return null;
+    }
+    MessageDigest mdTemp = MessageDigest.getInstance("SHA1");
+    mdTemp.update(str.getBytes("UTF-8"));
+    byte[] md = mdTemp.digest();
+
+    return "{SHA}" + Utf8.decode(java.util.Base64.getEncoder().encode(md));
+}
+```
+
 ## 视图展示
 
 ### thymeleaf模板引擎
