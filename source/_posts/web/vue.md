@@ -445,7 +445,7 @@ Vue.component('base-checkbox', {
     - 在Vue2中组件的props的数据流动改为了只能单向流动，即只能由组件外（调用组件方）通过组件的DOM属性attribute传递props给组件内，组件内只能被动接收组件外传递过来的数据，并且在组件内，不能修改由外层传来的props数据
     - 如果在子组件中修改定义的`props`参数，则会报错：`vue.esm.js:591 [Vue warn]: Avoid mutating a prop directly since the value will be overwritten whenever the parent component re-renders. Instead, use a data or computed property based on the prop's value. Prop being mutated: "customerId"`
 - 自定义事件`$emit`，子组件可以向父组件传递数据(参考以下示例)
-- 通过`$refs`属性，父组件可直接取得子组件的数据
+- **通过`$refs`属性，父组件可直接取得、修改、调用子组件的数据**
     - 场景还原：父组件点击按钮，控制显示子组件的弹框(`iview`弹框)，此时当`iview`弹框关闭时会修改`v-model`的值，如果用`props`则违反了`props`单向数据流的原则
     - `ref`可以用于标记一个节点或组件
 - 在父组件中使用`sync`修饰符修饰props属性，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景
