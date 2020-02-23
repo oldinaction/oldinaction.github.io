@@ -446,9 +446,9 @@
       <category term="linux" scheme="http://blog.aezo.cn/categories/linux/"/>
     
     
-      <category term="server" scheme="http://blog.aezo.cn/tags/server/"/>
-    
       <category term="linux" scheme="http://blog.aezo.cn/tags/linux/"/>
+    
+      <category term="server" scheme="http://blog.aezo.cn/tags/server/"/>
     
       <category term="cloud" scheme="http://blog.aezo.cn/tags/cloud/"/>
     
@@ -560,9 +560,9 @@
       <category term="db" scheme="http://blog.aezo.cn/categories/db/"/>
     
     
-      <category term="microsoft" scheme="http://blog.aezo.cn/tags/microsoft/"/>
-    
       <category term="db" scheme="http://blog.aezo.cn/tags/db/"/>
+    
+      <category term="microsoft" scheme="http://blog.aezo.cn/tags/microsoft/"/>
     
   </entry>
   

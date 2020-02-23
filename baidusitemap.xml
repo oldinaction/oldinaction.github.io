@@ -505,9 +505,9 @@
         <title>sql进阶</title>
         <pubTime>2017-09-30T04:51:00.000Z</pubTime>
         
-        <tag>oracle</tag>
-         
         <tag>mysql</tag>
+         
+        <tag>oracle</tag>
          
         <tag>sql</tag>
          
@@ -551,9 +551,9 @@
         <title>sql基础</title>
         <pubTime>2017-09-30T04:51:00.000Z</pubTime>
         
-        <tag>oracle</tag>
-         
         <tag>mysql</tag>
+         
+        <tag>oracle</tag>
          
         <tag>sql</tag>
          
@@ -790,30 +790,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
-    <lastmod>2019-11-27T07:31:11.603Z</lastmod>
-    <data>
-        <display>
-        <title>虚拟化服务器搭建 | 私有云</title>
-        <pubTime>2019-05-30T08:11:00.000Z</pubTime>
-        
-        <tag>server</tag>
-         
-        <tag>linux</tag>
-         
-        <tag>cloud</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
     <lastmod>2019-11-27T07:31:11.603Z</lastmod>
     <data>
@@ -826,6 +802,30 @@
         <tag>network</tag>
          
         <tag>docker</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
+    <lastmod>2019-11-27T07:31:11.603Z</lastmod>
+    <data>
+        <display>
+        <title>虚拟化服务器搭建 | 私有云</title>
+        <pubTime>2019-05-30T08:11:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>server</tag>
+         
+        <tag>cloud</tag>
          
          
            
@@ -953,9 +953,9 @@
         <title>VPN搭建</title>
         <pubTime>2018-04-04T02:34:00.000Z</pubTime>
         
-        <tag>linux</tag>
-         
         <tag>vpn</tag>
+         
+        <tag>linux</tag>
          
         <tag>network</tag>
          
@@ -1593,9 +1593,9 @@
         <title>db-procedure</title>
         <pubTime>2017-08-24T12:33:00.000Z</pubTime>
         
-        <tag>oracle</tag>
-         
         <tag>mysql</tag>
+         
+        <tag>oracle</tag>
          
         <tag>procedure</tag>
          
@@ -1899,9 +1899,9 @@
         <title>access</title>
         <pubTime>2018-11-20T06:06:00.000Z</pubTime>
         
-        <tag>microsoft</tag>
-         
         <tag>db</tag>
+         
+        <tag>microsoft</tag>
          
          
            
@@ -2030,11 +2030,11 @@
         <title>powerdesigner</title>
         <pubTime>2017-12-05T11:41:00.000Z</pubTime>
         
-        <tag>oracle</tag>
+        <tag>model</tag>
          
         <tag>mysql</tag>
          
-        <tag>model</tag>
+        <tag>oracle</tag>
          
          
            
