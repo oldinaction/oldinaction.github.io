@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    
+    <lastmod>2020-03-03T06:45:10.461Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2020-01-19T03:50:10.953Z</lastmod>
@@ -19,13 +26,6 @@
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
     <lastmod>2020-01-19T02:16:17.916Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    
-    <lastmod>2020-01-17T08:02:05.335Z</lastmod>
     
   </url>
   
@@ -254,14 +254,14 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
+    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
     
     <lastmod>2019-11-27T07:31:11.603Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
+    <loc>http://blog.aezo.cn/2019/05/30/devops/virtual-server-cloud/</loc>
     
     <lastmod>2019-11-27T07:31:11.603Z</lastmod>
     
