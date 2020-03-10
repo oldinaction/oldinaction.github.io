@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2020-03-09T09:15:10.063Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
     
-    <lastmod>2020-03-03T06:45:10.461Z</lastmod>
+    <lastmod>2020-03-09T09:04:59.844Z</lastmod>
     
   </url>
   
@@ -26,13 +33,6 @@
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
     <lastmod>2020-01-19T02:16:17.916Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2020-01-17T05:37:46.484Z</lastmod>
     
   </url>
   

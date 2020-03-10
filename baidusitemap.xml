@@ -4,8 +4,30 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    <lastmod>2020-03-09T09:15:10.063Z</lastmod>
+    <data>
+        <display>
+        <title>linux系统</title>
+        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>shell</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    <lastmod>2020-03-03T06:45:10.461Z</lastmod>
+    <lastmod>2020-03-09T09:04:59.844Z</lastmod>
     <data>
         <display>
         <title>Shell编程</title>
@@ -81,28 +103,6 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    <lastmod>2020-01-17T05:37:46.484Z</lastmod>
-    <data>
-        <display>
-        <title>linux系统</title>
-        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>shell</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
           
         </display>
     </data>
@@ -505,9 +505,9 @@
         <title>sql进阶</title>
         <pubTime>2017-09-30T04:51:00.000Z</pubTime>
         
-        <tag>oracle</tag>
-         
         <tag>mysql</tag>
+         
+        <tag>oracle</tag>
          
         <tag>sql</tag>
          
@@ -551,9 +551,9 @@
         <title>sql基础</title>
         <pubTime>2017-09-30T04:51:00.000Z</pubTime>
         
-        <tag>oracle</tag>
-         
         <tag>mysql</tag>
+         
+        <tag>oracle</tag>
          
         <tag>sql</tag>
          
@@ -681,9 +681,9 @@
         <title>CentOS服务器使用说明</title>
         <pubTime>2017-01-10T05:19:00.000Z</pubTime>
         
-        <tag>linux</tag>
-         
         <tag>CentOS</tag>
+         
+        <tag>linux</tag>
          
          
            
@@ -1593,9 +1593,9 @@
         <title>db-procedure</title>
         <pubTime>2017-08-24T12:33:00.000Z</pubTime>
         
-        <tag>oracle</tag>
-         
         <tag>mysql</tag>
+         
+        <tag>oracle</tag>
          
         <tag>procedure</tag>
          
@@ -2030,11 +2030,11 @@
         <title>powerdesigner</title>
         <pubTime>2017-12-05T11:41:00.000Z</pubTime>
         
-        <tag>oracle</tag>
+        <tag>model</tag>
          
         <tag>mysql</tag>
          
-        <tag>model</tag>
+        <tag>oracle</tag>
          
          
            
