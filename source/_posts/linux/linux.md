@@ -990,11 +990,20 @@ lsmod |grep br_netfilter
     cat /var/spool/mail/root
     ```
 
-### corn配置
+### cron配置
 
+- 相关命令
+
+    ```bash
+    crontab -l # 查看当前用户定时器
+    sudo crontab -l # 查看root用户
+    crontab -e # 编辑当前用户定时器
+    sudo crontab -e # 编辑root用户定时器，加入`00 02 * * * /home/smalle/script/backup_mysql.sh`
+	systemctl restart crond # 重启crond服务
+    ```
 - 配置举例(需要将此配置加入到crontab)
     - `30 2 1 * * /sbin/reboot` 表示每月第一天的第2个小时的第30分钟，执行命令/sbin/reboot(重启)
-    - `00 02 * * * /home/smalle/script/backup_mysql.sh` 每天执行mysql备份脚本。脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份)
+    - `00 02 * * * /home/smalle/script/backup_mysql.sh` 每天执行mysql备份脚本。脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份(mysqldump))
     - `*/3 * * * * /home/smalle/script/test.sh` 每3分钟执行一次脚本
 
 - 配置说明如下
