@@ -965,7 +965,7 @@ find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...
 
 ## expression#actions
 -exec command # 执行命令。命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\`来escape，或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
-    # eg: -exec cp {} {}.bak \; # 删除查询到的文件
+    # eg: -exec cp {} {}.bak \; # 复制查询到的文件
 ```
 - 示例
 
@@ -997,13 +997,13 @@ done
 - 示例
 
 ```bash
--n num # 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。eg：`cat test.txt | xargs` 多行转单行
+-n<num> # 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。eg：`cat test.txt | xargs` 多行转单行
 -i/-I # 这得看linux支持了，将xargs的每项名称，一般是一行一行赋值给 {}
 -d delim # 分隔符，默认的xargs分隔符是回车，argument的分隔符是空格，这里修改的是xargs的分隔符
 
 ## 示例
 cat test.txt | xargs # 多行转单行
-cat test.txt | xargs -n3 # 多行输出，没此使用3个参数
+cat test.txt | xargs -n3 # 多行输出，每此使用3个参数
 echo "nameXnameXnameXname" | xargs -dX # 定义分割符：name name name name
 ls *.jpg | xargs -n1 -I {} cp {} /data/images # 复制所有图片文件到 /data/images 目录下
 
@@ -1603,6 +1603,10 @@ date_echo() {
     logger -it my_script -p local1.info $1
 }
 date_echo "Starting ..." # 输出：2019-12-05 11:46:43 Starting ...
+
+## 创建日期目录
+mkdir "$(date +"%Y-%m-%d")" # 目录为 2000-01-01
+mkdir -p "$(date +"%Y/%m/%d")" # 为2020/01/01的多级目录，可多次执行
 ```
 
 ## C 源码脚本
