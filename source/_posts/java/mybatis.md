@@ -294,6 +294,9 @@ tags: [mybatis, springboot]
 			int update(UserInfo user);
 
 			int delete(Long id);
+
+            // mybatis-plus：带有分页查询的mapper，再传入Map参数，如果直接通过 #{param.xxx} 取值会报错，需要加 @Param 注解。https://github.com/baomidou/mybatis-plus/issues/894
+            IPage<Map> queryByProjectId(Page page, @Param("param") Map<String,Object> param);
 		}
 		```
 	- Dao实现(映射文件): UserMapper.xml(放在resources/mapper目录下)

@@ -30,166 +30,6 @@ tags: [linux, shell]
         - [openSUSE](https://www.opensuse.org/) 开源
     - [Arch Linux](https://www.archlinux.org/) 开源
 
-### 系统信息查询
-
-- 查看内核版本 `uname -r`
-- 查看操作系统版本 `cat /proc/version`
-    - 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
-- 查看CentOS版本 **`cat /etc/redhat-release`/`cat /etc/system-release`** 如：CentOS Linux release 7.2.1511 (Core)
-- `cat /proc/meminfo && free` 查看内存使用情况
-    - `/proc/meminfo`为内存详细信息
-        - `MemTotal` 内存总数
-        - `MemFree` 系统尚未使用的内存
-        - `MemAvailable` 应用程序可用内存数。系统中有些内存虽然已被使用但是可以回收的，比如cache/buffer、slab都有一部分可以回收，所以MemFree不能代表全部可用的内存，这部分可回收的内存加上MemFree才是系统可用的内存，即：**MemAvailable ≈ MemFree + Buffers + Cached**。MemFree是说的系统层面，MemAvailable是说的应用程序层面
-    - `free` 为内存概要信息
-- `cat /proc/cpuinfo` 查看CPU使用情况
-
-    ```bash
-    # 查看CPU信息(型号): Intel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz
-    cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c
-    # 查看物理CPU个数
-    cat /proc/cpuinfo | grep "physical id"| sort| uniq| wc -l
-    # 查看每个物理CPU中core的个数(即核数)
-    cat /proc/cpuinfo | grep "cpu cores"| uniq
-    # 查看逻辑CPU的个数
-    cat /proc/cpuinfo | grep "processor"| wc -l
-    ```
-- 磁盘使用查看
-    - `df -h` 查看磁盘使用情况和挂载点信息
-        - `df /root -h` **查看/root目录所在挂载点**(一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据)
-    - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况；二级子目录可改成2；`du -h` 查看当前目录及其子目录大小
-- `hostname` 查看hostname
-    - `hostnamectl --static set-hostname aezocn` 修改主机名并重启
-- `env` 查看环境变量
-
-### 查看网络信息
-
-- `ip addr` 查看机器ip，显示说明
-    - `lo`为内部网卡接口，不对外进行广播；`eth0`/`ens33`网卡接口会对外广播
-    - `link/ether 00:0c:29:bb:ea:e2`中link/ether后为`mac`地址
-    - `inet 192.168.6.130/24 brd 192.168.6.255 scope global ens33`中192.168.6.130/24为内网ip和子网掩码(24代表32位中有24个1其他都是0，即255.255.255.0) `brd`(broadcast)后为广播地址
-- `ifconfig`命令(centos7无法使用可安装工具`yum install net-tools`)
-    - `ifconfig ens33:1 192.168.6.10` 给网络接口ens33绑定一个虚拟ip
-    - `ifconfig ens33:1 down` 删除此虚拟ip
-    - 添加虚拟ip方式二
-        - 编辑类似文件`vi /etc/sysconfig/network-scripts/ifcfg-ens33`
-        - 加入代码`IPADDR=192.168.6.130`(本机ip)和`IPADDR1=192.168.6.135`(添加的虚拟ip，可添加多个。删除虚拟ip则去掉IPADDR1)，可永久生效
-        - 重启网卡`systemctl restart network`
-        - 修改ip即修改上述`IPADDR`
-- `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
-- `telnet 192.168.1.1 8080` 检查端口(`yum -y install telnet`)
-- `curl http://www.baidu.com` 获取网页内容。参考：http://www.ruanyifeng.com/blog/2019/09/curl-reference.html
-
-    ```bash
-    -d              # 发送 POST 请求的数据体    # curl -d'login=emma＆password=123'-X POST https://google.com/login
-    -H              # 添加 HTTP 请求的标头      # curl -H 'Accept-Language: en-US' https://google.com
-    -L              # 会让 HTTP 请求跟随服务器的重定向。curl 默认不跟随重定向
-    -O              # 将服务器回应保存成文件，并将 URL 的最后部分当作文件名。等同于wget # curl -O https://www.example.com/foo/bar.html (文件名bar.html)
-    -o              # 将服务器的回应保存成文件并重命名 # curl -o my.html https://www.example.com (文件名my.html)
-    -v              # 输出通信的整个过程，用于调试
-    -b              # 向服务器发送 Cookie       # curl -b 'foo1=bar' -b 'foo2=baz' https://google.com # -b也可接cookie文件
-    -c              # 将服务器设置的 Cookie 写入一个文件
-    --limit-rate    # 用来限制 HTTP 请求和回应的带宽，模拟慢网速的环境  # curl --limit-rate 200k https://google.com
-    --socks5        # 使用socks5协议            # curl --socks5 127.0.0.1:1080 http://www.qq.com
-    ```
-- `wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
-    - `wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com` wget爬取网站
-- `netstat -lnp` 查看端口占用情况(端口、PID)
-    - `ss -ant` CentOS 7 查看所有监听端口
-    - root运行：`sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
-    - `netstat -tnl` 查看开放的端口
-    - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
-    - **`yum install net-tools`** 安装net-tools即可使用netstat、ifconfig等命令
-- `ss -lnt` 查看端口
-
-### 查看进程信息
-
-- **`ps -ef | grep java`**(其中java可换成run.py等)
-    - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
-    - `ps axo pid,ppid,comm,pmem,lstart,etime,cmd | grep java` lstart启动时间，etime运行时间
-- `pwdx <pid>` **查看进程执行目录**(同`ls -al /proc/8888 | grep cwd`)
-- `ls -al /proc/进程id` 查看此进程信息
-    - `cwd`符号链接的是进程运行目录 **`ls -al /proc/8888 | grep cwd`**
-    - `exe`符号连接就是执行程序的绝对路径
-    - `cmdline`就是程序运行时输入的命令行命令
-    - `environ`记录了进程运行时的环境变量
-    - `fd`目录下是进程打开或使用的文件的符号连接
-
-#### top命令
-
-- 自带程序`top`查看，推荐安装功能更强大的`htop`
-- 面板介绍 [^11]
-    - `Load Average`: 负载均值。对应的三个数分别代表不同时间段的系统平均负载（一分钟、五 分钟、以及十五分钟），它们的数字当然是越小越好；数字越高说明服务器的负载越大。如果是单核，load=1表示CPU所有的资源都在处理请求，一般维持0.7以下，如果长期在1左右建议进行监测，维持在2左右则说明负载很高。多核情况，**即负载最好要小于`CPU个数 * 核数 * 0.7`**
-
-    ![top面板介绍](/data/images/linux/top-view.jpg)
-
-    - VIRT 值最高的进程就是内存使用最多的进程
-    - S列进程状态：一般 I 代表空闲，R 代表运行，S 代表休眠，D 代表不可中断的睡眠状态，Z 代表(zombie)僵尸进程，T 或 t 代表停止
-- 快捷键
-
-    ```bash
-    # h 进入帮助；Exc/q 退出帮助
-    Help for Interactive Commands - procps-ng version 3.3.10
-    Window 3:Mem: Cumulative mode On.  System: Delay 3.0 secs; Secure mode Off.
-
-        Z,B,E,e   Global: 'Z' colors; 'B' bold; 'E'/'e' summary/task memory scale
-        # l 显示负载(默认显示)；t 显示CPU使用图示；m 显示内存使用图示
-        l,t,m     Toggle Summary: 'l' load avg; 't' task/cpu stats; 'm' memory info
-        0,1,2,3,I Toggle: '0' zeros; '1/2/3' cpus or numa node views; 'I' Irix mode
-        f,F,X     Fields: 'f'/'F' add/remove/order/sort; 'X' increase fixed-width
-
-        # <,> 切换排序列
-        L,&,<,> . Locate: 'L'/'&' find/again; Move sort column: '<'/'>' left/right
-        R,H,V,J . Toggle: 'R' Sort; 'H' Threads; 'V' Forest view; 'J' Num justify
-        # c 显示Command详细命令
-        c,i,S,j . Toggle: 'c' Cmd name/line; 'i' Idle; 'S' Time; 'j' Str justify
-        # x,y 高亮显示排序列和运行行
-        x,y     . Toggle highlights: 'x' sort field; 'y' running tasks
-        z,b     . Toggle: 'z' color/mono; 'b' bold/reverse (only if 'x' or 'y')
-        u,U,o,O . Filter by: 'u'/'U' effective/any user; 'o'/'O' other criteria
-        n,\#,^O  . Set: 'n'/'#' max tasks displayed; Show: Ctrl+'O' other filter(s)
-        C,...   . Toggle scroll coordinates msg for: up,down,left,right,home,end
-
-        k,r       Manipulate tasks: 'k' kill; 'r' renice
-        d or s    Set update interval
-        W,Y       Write configuration file 'W'; Inspect other output 'Y'
-        q         Quit
-                ( commands shown with '.' require a visible task display window ) 
-    Press 'h' or '?' for help with Windows,
-    Type 'q' or <Esc> to continue 
-    ```
-
-### 查看IO信息
-
-- 参考：https://www.cnblogs.com/quixotic/p/3258730.html [^12]
-
-#### 系统级IO监控
-
-- 安装iostat `yum install sysstat`(iostat属于sysstat软件包)
-- `iostat -xdm 1` 
-    - -x输出扩展信息；-d仅显示磁盘统计信息(与-c仅显示CPU信息互斥)；-m显示磁盘读写速度单位为MB(默认为KB，影响rMB/s、wMB/s选项)
-    - 显示结果含义如下
-        - `rMB/s`、`wMB/s` 磁盘读写速度
-        - `avgrq-sz` 提交给驱动层的IO请求大小，一般不小于4K，不大于max(readahead_kb, max_sectors_kb)。可用于判断尤其是磁盘繁忙时，越大代表顺序读，越小代表随机读
-        - **`%util`** 代表磁盘繁忙程度。100% 表示磁盘繁忙，0%表示磁盘空闲。但是磁盘繁忙不代表磁盘利用率高(重要指标)
-        - **`svctm`** 一次IO请求的服务时间，对于单块盘，完全随机读时基本在7ms左右，既寻道+旋转延迟时间(重要指标)
-
-#### 进程级IO监控
-
-- 安装iotop `yum install iotop`(io版的top)
-- `iotop` 命令可直接运行，界面操作快捷键如下
-    - 左右箭头：改变排序方式，默认是按IO排序
-    - r：改变排序顺序
-    - o：只显示有IO输出的进程
-    - p：进程/线程的显示方式的切换
-    - a：显示累积使用量
-    - q：退出
-- `iotop -p <pid>` 单独监控此进程
-
-#### 业务级IO监控
-
-- `pt-ioprofile` **不建议在生产环境使用**
-
 ### 基础操作
 
 - 强制关闭重启
@@ -1030,7 +870,170 @@ lsmod |grep br_netfilter
     - `,` 表示附加一个可能值
     - `/` 符号前表示开始时间，符号后表示每次递增的值
 
-## 工具
+## 运维&工具
+
+### 系统信息查询
+
+- 查看内核版本 `uname -r`
+- 查看操作系统版本 `cat /proc/version`
+    - 如腾讯云服务器 `Linux version 3.10.0-327.36.3.el7.x86_64 (builder@kbuilder.dev.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-4) (GCC) ) #1 SMP Mon Oct 24 16:09:20 UTC 2016` 中的 `3.10.0` 表示内核版本 `x86_64` 表示是64位系统
+- 查看CentOS版本 **`cat /etc/redhat-release`/`cat /etc/system-release`** 如：CentOS Linux release 7.2.1511 (Core)
+- `cat /proc/meminfo && free` 查看内存使用情况
+    - `/proc/meminfo`为内存详细信息
+        - `MemTotal` 内存总数
+        - `MemFree` 系统尚未使用的内存
+        - `MemAvailable` 应用程序可用内存数。系统中有些内存虽然已被使用但是可以回收的，比如cache/buffer、slab都有一部分可以回收，所以MemFree不能代表全部可用的内存，这部分可回收的内存加上MemFree才是系统可用的内存，即：**MemAvailable ≈ MemFree + Buffers + Cached**。MemFree是说的系统层面，MemAvailable是说的应用程序层面
+    - `free` 为内存概要信息
+- `cat /proc/cpuinfo` 查看CPU使用情况
+
+    ```bash
+    # 查看CPU信息(型号): Intel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz
+    cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c
+    # 查看物理CPU个数
+    cat /proc/cpuinfo | grep "physical id"| sort| uniq| wc -l
+    # 查看每个物理CPU中core的个数(即核数)
+    cat /proc/cpuinfo | grep "cpu cores"| uniq
+    # 查看逻辑CPU的个数
+    cat /proc/cpuinfo | grep "processor"| wc -l
+    ```
+- 磁盘使用查看
+    - `df -h` 查看磁盘使用情况和挂载点信息
+        - `df /root -h` **查看/root目录所在挂载点**(一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据)
+    - `du -h --max-depth=1` 查看当前目录以及一级子目录磁盘使用情况；二级子目录可改成2；`du -h` 查看当前目录及其子目录大小
+- `hostname` 查看hostname
+    - `hostnamectl --static set-hostname aezocn` 修改主机名并重启
+- `env` 查看环境变量
+
+### 查看网络信息
+
+- 更多网络知识参考：[《网络》http://blog.aezo.cn/2019/06/20/linux/network/](/_posts/linux/network.md)
+- `ip addr` 查看机器ip，显示说明
+    - `lo`为内部网卡接口，不对外进行广播；`eth0`/`ens33`网卡接口会对外广播
+    - `link/ether 00:0c:29:bb:ea:e2`中link/ether后为`mac`地址
+    - `inet 192.168.6.130/24 brd 192.168.6.255 scope global ens33`中192.168.6.130/24为内网ip和子网掩码(24代表32位中有24个1其他都是0，即255.255.255.0) `brd`(broadcast)后为广播地址
+- `ifconfig`命令(centos7无法使用可安装工具`yum install net-tools`)
+    - `ifconfig ens33:1 192.168.6.10` 给网络接口ens33绑定一个虚拟ip
+    - `ifconfig ens33:1 down` 删除此虚拟ip
+    - 添加虚拟ip方式二
+        - 编辑类似文件`vi /etc/sysconfig/network-scripts/ifcfg-ens33`
+        - 加入代码`IPADDR=192.168.6.130`(本机ip)和`IPADDR1=192.168.6.135`(添加的虚拟ip，可添加多个。删除虚拟ip则去掉IPADDR1)，可永久生效
+        - 重启网卡`systemctl restart network`
+        - 修改ip即修改上述`IPADDR`
+- `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
+- `telnet 192.168.1.1 8080` 检查端口(`yum -y install telnet`)
+- `curl http://www.baidu.com` 获取网页内容。参考：http://www.ruanyifeng.com/blog/2019/09/curl-reference.html
+
+    ```bash
+    -d              # 发送 POST 请求的数据体    # curl -d'login=emma＆password=123'-X POST https://google.com/login
+    -H              # 添加 HTTP 请求的标头      # curl -H 'Accept-Language: en-US' https://google.com
+    -L              # 会让 HTTP 请求跟随服务器的重定向。curl 默认不跟随重定向
+    -O              # 将服务器回应保存成文件，并将 URL 的最后部分当作文件名。等同于wget # curl -O https://www.example.com/foo/bar.html (文件名bar.html)
+    -o              # 将服务器的回应保存成文件并重命名 # curl -o my.html https://www.example.com (文件名my.html)
+    -v              # 输出通信的整个过程，用于调试
+    -b              # 向服务器发送 Cookie       # curl -b 'foo1=bar' -b 'foo2=baz' https://google.com # -b也可接cookie文件
+    -c              # 将服务器设置的 Cookie 写入一个文件
+    --limit-rate    # 用来限制 HTTP 请求和回应的带宽，模拟慢网速的环境  # curl --limit-rate 200k https://google.com
+    --socks5        # 使用socks5协议            # curl --socks5 127.0.0.1:1080 http://www.qq.com
+    ```
+- `wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
+    - `wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com` wget爬取网站
+- `netstat -lnp` 查看端口占用情况(端口、PID)
+    - `ss -ant` CentOS 7 查看所有监听端口
+    - root运行：`sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
+    - `netstat -tnl` 查看开放的端口
+    - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
+    - **`yum install net-tools`** 安装net-tools即可使用netstat、ifconfig等命令
+- `ss -lnt` 查看端口
+
+### 查看进程信息
+
+- **`ps -ef | grep java`**(其中java可换成run.py等)
+    - 结果如：`root   23672 22596  0 20:36 pts/1    00:00:02 python -u main.py`. 运行用户、进程id、...
+    - `ps axo pid,ppid,comm,pmem,lstart,etime,cmd | grep java` lstart启动时间，etime运行时间
+- `pwdx <pid>` **查看进程执行目录**(同`ls -al /proc/8888 | grep cwd`)
+- `ls -al /proc/进程id` 查看此进程信息
+    - `cwd`符号链接的是进程运行目录 **`ls -al /proc/8888 | grep cwd`**
+    - `exe`符号连接就是执行程序的绝对路径
+    - `cmdline`就是程序运行时输入的命令行命令
+    - `environ`记录了进程运行时的环境变量
+    - `fd`目录下是进程打开或使用的文件的符号连接
+
+#### top命令
+
+- 自带程序`top`查看，推荐安装功能更强大的`htop`
+- 面板介绍 [^11]
+    - `Load Average`: 负载均值。对应的三个数分别代表不同时间段的系统平均负载（一分钟、五 分钟、以及十五分钟），它们的数字当然是越小越好；数字越高说明服务器的负载越大。如果是单核，load=1表示CPU所有的资源都在处理请求，一般维持0.7以下，如果长期在1左右建议进行监测，维持在2左右则说明负载很高。多核情况，**即负载最好要小于`CPU个数 * 核数 * 0.7`**
+
+    ![top面板介绍](/data/images/linux/top-view.jpg)
+
+    - VIRT 值最高的进程就是内存使用最多的进程
+    - S列进程状态：一般 I 代表空闲，R 代表运行，S 代表休眠，D 代表不可中断的睡眠状态，Z 代表(zombie)僵尸进程，T 或 t 代表停止
+- 快捷键
+
+    ```bash
+    # h 进入帮助；Exc/q 退出帮助
+    Help for Interactive Commands - procps-ng version 3.3.10
+    Window 3:Mem: Cumulative mode On.  System: Delay 3.0 secs; Secure mode Off.
+
+        Z,B,E,e   Global: 'Z' colors; 'B' bold; 'E'/'e' summary/task memory scale
+        # l 显示负载(默认显示)；t 显示CPU使用图示；m 显示内存使用图示
+        l,t,m     Toggle Summary: 'l' load avg; 't' task/cpu stats; 'm' memory info
+        0,1,2,3,I Toggle: '0' zeros; '1/2/3' cpus or numa node views; 'I' Irix mode
+        f,F,X     Fields: 'f'/'F' add/remove/order/sort; 'X' increase fixed-width
+
+        # <,> 切换排序列
+        L,&,<,> . Locate: 'L'/'&' find/again; Move sort column: '<'/'>' left/right
+        R,H,V,J . Toggle: 'R' Sort; 'H' Threads; 'V' Forest view; 'J' Num justify
+        # c 显示Command详细命令
+        c,i,S,j . Toggle: 'c' Cmd name/line; 'i' Idle; 'S' Time; 'j' Str justify
+        # x,y 高亮显示排序列和运行行
+        x,y     . Toggle highlights: 'x' sort field; 'y' running tasks
+        z,b     . Toggle: 'z' color/mono; 'b' bold/reverse (only if 'x' or 'y')
+        u,U,o,O . Filter by: 'u'/'U' effective/any user; 'o'/'O' other criteria
+        n,\#,^O  . Set: 'n'/'#' max tasks displayed; Show: Ctrl+'O' other filter(s)
+        C,...   . Toggle scroll coordinates msg for: up,down,left,right,home,end
+
+        k,r       Manipulate tasks: 'k' kill; 'r' renice
+        d or s    Set update interval
+        W,Y       Write configuration file 'W'; Inspect other output 'Y'
+        q         Quit
+                ( commands shown with '.' require a visible task display window ) 
+    Press 'h' or '?' for help with Windows,
+    Type 'q' or <Esc> to continue 
+    ```
+
+### 查看IO信息
+
+- 参考：https://www.cnblogs.com/quixotic/p/3258730.html [^12]
+
+#### 系统级IO监控
+
+- 安装iostat `yum install sysstat`(iostat属于sysstat软件包)
+- `iostat -xdm 1` 
+    - -x输出扩展信息；-d仅显示磁盘统计信息(与-c仅显示CPU信息互斥)；-m显示磁盘读写速度单位为MB(默认为KB，影响rMB/s、wMB/s选项)
+    - 显示结果含义如下
+        - `rMB/s`、`wMB/s` 磁盘读写速度
+        - `avgrq-sz` 提交给驱动层的IO请求大小，一般不小于4K，不大于max(readahead_kb, max_sectors_kb)。可用于判断尤其是磁盘繁忙时，越大代表顺序读，越小代表随机读
+        - **`%util`** 代表磁盘繁忙程度。100% 表示磁盘繁忙，0%表示磁盘空闲。但是磁盘繁忙不代表磁盘利用率高(重要指标)
+        - **`svctm`** 一次IO请求的服务时间，对于单块盘，完全随机读时基本在7ms左右，既寻道+旋转延迟时间(重要指标)
+
+#### 进程级IO监控
+
+- 安装iotop `yum install iotop`(io版的top)
+- `iotop` 命令可直接运行，界面操作快捷键如下
+    - 左右箭头：改变排序方式，默认是按IO排序
+    - r：改变排序顺序
+    - o：只显示有IO输出的进程
+    - p：进程/线程的显示方式的切换
+    - a：显示累积使用量
+    - q：退出
+- `iotop -p <pid>` 单独监控此进程
+
+#### 业务级IO监控
+
+- `pt-ioprofile` **不建议在生产环境使用**
+
+### 其他
 
 - https://linuxtools-rst.readthedocs.io/zh_CN/latest/tool/index.html
 - `pstack` 跟踪进程栈

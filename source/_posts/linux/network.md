@@ -360,6 +360,42 @@ ebtables -t filter -A OUTPUT -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-p
 ebtables -t nat -A POSTROUTING -p ipv4 --ip-proto 1 --log-level 6 --log-ip --log-prefix "TRACE: eb:nat:POSTROUTING" -j ACCEPT
 ```
 
+### iftop 监控网络带宽使用(基于IP)
+
+```bash
+## 安装
+yum install iftop -y
+
+# 监控某网卡
+iftop -i eth0
+# 监控某个特定IP的带宽访问情况
+iftop -i eth1 -B -F 192.168.***.10
+
+## 界面说明:
+"<="与"=>"：表示的是流量的方向
+"TX"：从网卡发出的流量
+"RX"：网卡接收流量
+"TOTAL"：网卡发送接收总流量
+"cum"：iftop开始运行到当前时间点的总流量
+"peak"：网卡流量峰值
+"rates"：分别表示最近2s、10s、40s 的平均流量
+```
+
+### nethogs 监控网络带宽使用(基于进程)
+
+```bash
+## 安装
+yum -y install libpcap nethogs
+
+# 监控网卡eth0的带宽占用情况，每五秒刷新一次
+nethogs eth0 -d 5
+
+## 命令
+m :修改单位
+s :按发送流量排序
+r :按接收流量排序
+q :退出命令提示符
+```
 
 ## 网络异常排查案例
 
