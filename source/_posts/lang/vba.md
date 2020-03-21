@@ -25,30 +25,42 @@ tags: [excel, vb]
 - `ActiveWindow.SmallScroll Down:=6`等是对窗口进行移动，不影响计算
 - **代码必须运行在过程中**，如定义一个过程main，此时执行运行-运行子过程
 
-    ```vb
-    Public Sub main()
-        With CreateObject("Internetexplorer.application")
-            .Visible = True
-            .Navigate "https://www.baidu.com/s?wd=扯乎"
-            '关闭网页
-            .Quit
-        End With
-    End Sub
-    ```
+```vb
+Public Sub main()
+    MsgBox "hello world..."
+    With CreateObject("Internetexplorer.application")
+        .Visible = True
+        .Navigate "https://www.baidu.com/s?wd=扯乎"
+        '关闭网页
+        .Quit
+    End With
+End Sub
+```
 
 ## VBA配置
 
 - Excel 2016
-    - 开启VBA菜单：文件-选项-自定义功能区-勾选右边开发工具
-    - 显示工程管理器：视图-工程资源管理器
-    - 创建代码窗口：视图-代码窗口
+    - 开启VBA菜单：文件 - 选项 - 自定义功能区 - 勾选右边开发工具
+    - 创建代码窗口：Visual Basic - 视图 - 代码窗口
+    - 显示工程管理器：视图 - 工程资源管理器
+    - 保存工作簿作为`excel 启用宏的工作簿 (* xlsm)`，下次打开文件则会包含宏代码
+    - 让Excel在打开时就自动执行宏代码
+        - 在左边project exploer中双击This workbook
+        - 出现代码窗口，最上两个下拉菜单，左选workbook，右选open，VBE自动出现code：
+
+            ```vb
+            Private Sub Workbook_Open()
+            'MsgBox "hello world..."
+            End Sub
+            ```
+        - 保存文件并重新打开即可运行宏
 - Access 2016
-    - 显示工程管理器：视图-工程资源管理器
+    - 显示工程管理器：视图 - 工程资源管理器
         - 创建模块：右键工程目录 - 插入 - 模块
         - 代码必须运行在过程中，过程必须写在模块中
 - VBA配置
-    - 设置字体：工具-选项-编辑器格式-标准字体-Consolas (西方)
-    - 设置语法检测：工具-选项-编辑器-自动语法检测去勾选。防止编辑时弹框提示语法错误，运行时语法错误会提示
+    - 设置字体：工具 - 选项 - 编辑器格式 - 标准字体 - Consolas (西方)
+    - 设置语法检测：工具 - 选项 - 编辑器 - 自动语法检测去勾选。防止编辑时弹框提示语法错误，运行时语法错误会提示
 
 ## 示例
 

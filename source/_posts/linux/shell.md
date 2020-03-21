@@ -19,6 +19,7 @@ tags: [shell, linux, lang]
 
 ### 特殊符号
 
+- 注释：`#`单行注释，`<<COMMENT xxx COMMENT`多行注释
 -  linux 引号
     - 反引号：**\`cmd\`** 命令替换，类似`$(cmd)`
     - 双引号: **""** 变量替换
