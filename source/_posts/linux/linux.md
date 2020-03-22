@@ -24,7 +24,7 @@ tags: [linux, shell]
         - `Fedora Core` (由原来的Redhat桌面版本发展而来，免费版本)
         - [CentOS](https://www.centos.org/) (RHEL的社区克隆版本，免费)
     - `Debian系列` 使用`apt-get / dpkg`包管理方式
-        - `Debian`
+        - [Debian](https://www.debian.org/)、[Man Docs](https://manpages.debian.org/)
         - [Ubuntu](https://cn.ubuntu.com/)
     - `SUSE Linux`
         - [openSUSE](https://www.opensuse.org/) 开源
@@ -675,14 +675,16 @@ lsmod |grep br_netfilter
         su - smalle -c 'ls'
         ```
 - `userdel -rf aezo` 删除用户(会删除对应的家目录)
-- 用户组
+- 用户组(一个用户可以属于多个组，但是只能有一个默认组)
     - `cat /etc/group` 查看组
     - `groupadd aezocn` 新建组
     - `groupdel aezocn` 删除组
     - `groups` 查看当前登录用户所属组
-        - `groups test` 查看test用户所属组
+        - `groups smalle` 查看smalle用户所属组，如返回`smalle : test root`表示smalle属于test和root组，默认组为test
     - `usermod -g test smalle` 修改用户smalle的默认组为test
-    - `usermod -G wheel smalle` 将smalle加入到组wheel(一个用户可以属于多个组)
+    - `usermod -G wheel smalle` 将用户smalle加入到组wheel，并去除之前的非默认组
+    - `usermod -a -G wheel smalle` 保留之前的非默认组
+    - `gpasswd -d smalle test` 将smalle从test组移除
 - 查看用户
     - `cat /etc/passwd` 查看用户
         - 如`smalle(账号名称):x(密码):1000(账号UID):1000(账号GID):aezocn(用户说明):/home/smalle(家目录):/bin/bash(shell环境)`

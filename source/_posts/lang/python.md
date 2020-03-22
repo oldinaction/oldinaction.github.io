@@ -442,6 +442,11 @@ if __name__ == "__main__":
 
 ```py
 ## 获取控制台输入
+# raw_input获取控制台输入，最终返回字符串，参数为提示内容
+name = raw_input("please input name:") # 获取输入源（获取数据默认都是字符串）
+print 'name:', name # 打印 "name: smalle"
+
+# input在p2中返回带类型的数据，p3中返回的是字符串
 i = input('请确认是否继续操作？[y/n]:')
     if (i != 'n'):
         return
@@ -560,10 +565,6 @@ print "10".isdigit() == True # 判断是为整数
 print ord('1') # 返回ascii码，此时为49
 
 # 2
-name = raw_input("please input name:") # 获取输入源（获取数据默认都是字符串）
-print 'name:', name # 打印 "name: smalle"
-
-# 3
 import random # 导入random模块
 num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 ```

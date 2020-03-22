@@ -397,6 +397,46 @@ r :按接收流量排序
 q :退出命令提示符
 ```
 
+### Socket测试(TCP/UDP)
+
+- linux测试工具[Netcat](http://netcat.sourceforge.net/)。Netcat是一款非常出名的网络工具，简称"NC"，有渗透测试中的"瑞士军刀"之称。它可以用作端口监听、端口扫描、远程文件传输、还可以实现远程shell等功能 [^15]
+
+    ```bash
+    yum install -y nc
+
+    # （网络诊断）测试某个远程主机的监听端口是否可达，无法连接会退回到命令行
+    nc 127.0.0.1 1000
+    # （网络诊断）判断防火墙是否允许or禁止某个端口，如下在服务器上启动监听，然后在另外一台机器上进行端口可达测试
+    nc -lv -p 8080 # -l进入监听模式，-v显示详细信息
+    # （渗透测试）用 nc 端口扫描。不论是 TCP 还是 UDP，协议规定的端口号范围都是：1 ~ 65535
+    nc -znv 127.0.0.1 1-1024 2>&1 | grep succeeded # 扫描此ip的1-1024端口开启情况。
+
+    ## 命令参数（其实常用的就几个参数-n,-v,-l,-p,-q）
+    -c shell commands shell模式
+    -e filename 程序重定向 [危险!!]
+    -b 允许广播
+    -d 无命令行界面,使用后台模式
+    -g gateway 源路由跳跃点, 不超过8
+    -G num 源路由指示器: 4, 8, 12, ...
+    -h 获取帮助信息
+    -i secs 延时设置,端口扫描时使用
+    -k 设置在socket上的存活选项
+    -l 监听入站信息
+    -n 不对IP地址进行DNS解析
+    -o file 使进制记录
+    -p port 本地端口
+    -r 随机本地和远程的端口
+    -q secs 在标准输入且延迟后退出（翻译的不是很好，后面实例介绍）
+    -s addr 本地源地址
+    -T tos 设置服务类型
+    -t 以TELNET的形式应答入站请求
+    -u UDP模式
+    -v 显示详细信息 [使用=vv获取更详细的信息
+    -w secs 连接超时设置
+    -z I/O 模式,只进行连接不进行通信 [扫描时使用]
+    ```
+- windows测试工具如[SocketTest](https://sourceforge.net/projects/sockettest/)，可测试TCP/UDP，包含服务端和客户端
+
 ## 网络异常排查案例
 
 ### TTL=1导致虚拟机/docker无法访问外网
@@ -532,4 +572,4 @@ q :退出命令提示符
 [^12]: https://www.tianmaying.com/tutorial/NetWorkInstrument (集线器、网桥、交换机、路由器、网关大解析)
 [^13]: https://blog.csdn.net/gongjun12345/article/details/83788087
 [^14]: https://blog.csdn.net/tycoon1988/article/details/40826235
-
+[^15]: https://medium.com/@programthink/%E6%89%AB%E7%9B%B2-netcat-%E7%BD%91%E7%8C%AB-%E7%9A%84-n-%E7%A7%8D%E7%94%A8%E6%B3%95-%E4%BB%8E-%E7%BD%91%E7%BB%9C%E8%AF%8A%E6%96%AD-%E5%88%B0-%E7%B3%BB%E7%BB%9F%E5%85%A5%E4%BE%B5-3c12b3ce0fdf

@@ -685,6 +685,7 @@ helm del --purge grafana
 
 > 参考：https://hub.kubeapps.com/charts/stable/prometheus-blackbox-exporter
 
+- 网络异常/性能监控，常见的是http_get,http_post,tcp,icmp监控模式
 - 安装 [^3]
 
 ```bash
