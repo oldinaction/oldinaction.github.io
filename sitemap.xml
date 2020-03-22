@@ -2,9 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
+    
+    <lastmod>2020-03-22T10:16:25.829Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/03/20/linux/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</loc>
     
-    <lastmod>2020-03-21T11:09:24.661Z</lastmod>
+    <lastmod>2020-03-22T07:30:24.783Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2020-03-22T06:59:54.609Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
+    
+    <lastmod>2020-03-22T05:53:13.821Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
+    
+    <lastmod>2020-03-22T05:11:09.141Z</lastmod>
     
   </url>
   
@@ -23,23 +51,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
-    
-    <lastmod>2020-03-20T07:39:11.033Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
     <lastmod>2020-03-20T07:32:50.501Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2020-03-20T06:38:32.770Z</lastmod>
     
   </url>
   
@@ -107,13 +121,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
-    
-    <lastmod>2020-01-09T08:53:08.361Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/</loc>
     
     <lastmod>2020-01-09T08:19:20.765Z</lastmod>
@@ -131,13 +138,6 @@
     <loc>http://blog.aezo.cn/2018/09/24/lang/django/</loc>
     
     <lastmod>2020-01-06T10:33:16.290Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/04/28/lang/python/</loc>
-    
-    <lastmod>2020-01-06T10:32:35.455Z</lastmod>
     
   </url>
   
