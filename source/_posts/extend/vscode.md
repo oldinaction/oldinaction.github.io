@@ -35,9 +35,9 @@ tags: [ide, web]
     // 关闭对vue文件eslint校验
     "vetur.validation.template": false
     ```
-- `ESLint` 代码书写规范(语法和格式校验)
+- [ESLint](https://eslint.org/) 代码书写规范(语法和格式校验)
     - `.eslintrc.js`(推荐)、`.eslintrc.json`、`.eslintrc.yml` 校验规则配置
-        - 关闭校验：将`.eslintrc.js`中的`extends`和`rules`注释掉即可
+        - **对某个项目关闭校验**：将`.eslintrc.js`中的`extends`和`rules`注释掉即可
     - vscode首选项配置(ide + eslint)
         
         ```js
@@ -57,6 +57,35 @@ tags: [ide, web]
         }
         ```
     - vue项目的`build/webpack.base.config.js`中加入eslint的loader(ci + eslint)。项目编译的时候会进行格式校验
+    - `.eslintrc.js`个人习惯配置
+
+        ```js
+        module.exports = {
+            root: true,
+            'extends': [
+                'plugin:vue/essential',
+                '@vue/standard'
+            ],
+            rules: {
+                // allow async-await
+                'generator-star-spacing': 'off',
+                // allow debugger during development
+                'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+                'vue/no-parsing-error': [2, {
+                'x-invalid-end-tag': false
+                }],
+                'no-undef': 'off',
+                'camelcase': 'off',
+                // func() {} 函数名和()可无空格
+                "space-before-function-paren": ["error", "never"],
+                // 不强制使用 ===
+                "eqeqeq": ["error", "smart"] // smart特点：数字比较必须要 ===
+            },
+            parserOptions: {
+                parser: 'babel-eslint'
+            }
+        }
+        ```
 - `Beautify` 文件格式化，加下列配置格式化vue文件
 
 	```json
@@ -82,7 +111,8 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 ## 用户配置
 
 - 打开文件空格个数发生变化异常：去勾选User Settings -> Text Editor -> Detect Indentation
-- json文件配置(早起版本支持)
+- json文件配置(新版本打开设置后在右上角点击打开json配置按钮)
+
 ```json
 // 关闭预览模式。预览模式：单击文件会在一个预览窗口中覆盖显示(文件名显示为斜体)，双击文件/双击Tab标题则是真正打开文件
 // "workbench.editor.enablePreview": false,
@@ -92,13 +122,17 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 
 // 关闭自动检测文件Tab大小
 "editor.detectIndentation": false	
+"editor.fontSize": 16,
 // tab占的空格数
 "editor.tabSize": 4,
 "[html]": {
     "editor.tabSize": 2,
 },
+"[javascript]": {
+    "editor.tabSize": 2,
+},
 "[vue]": {
-    "editor.defaultFormatter": "octref.vetur", // 不支持选定代码进行格式化
+    "editor.defaultFormatter": "octref.vetur",
     "editor.tabSize": 2
 },
 
@@ -110,10 +144,31 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 	]
 },
 
-// 关闭vue文件eslint校验
-"vetur.validation.template": false,
-// 格式化vue文件(不能安装一些不兼容的格式化插件)
+// 格式化、校验、修复：https://juejin.im/post/5aeddf14f265da0b736d8a66 (部分参数过时)
+// vetur默认配置
+"vetur.format.defaultFormatterOptions": {
+    "js-beautify-html": {
+        "wrap_attributes": "aligned-multiple" // 当超出折行长度时，将属性进行垂直对齐，还有其他几个参数可选
+    },
+    "prettyhtml": {
+        "printWidth": 100,
+        "singleQuote": false,
+        "wrapAttributes": false,
+        "sortAttributes": false
+    }
+},
+// 使用格式化vue文件的html(不能安装一些不兼容的格式化插件)
 "vetur.format.defaultFormatter.html": "js-beautify-html",
+// 使用typescript语法格式化js，屏蔽vetur的js格式化(none)
+"vetur.format.defaultFormatter.js": "vscode-typescript",
+// 关闭vetur的eslint校验
+"vetur.validation.template": false,
+// 保存自动化
+"editor.formatOnSave": true,
+// 保存时自动fix(需要安装ESLint插件，且项目中有.eslintrc.js等文件；如果是自动保存，可文件右键-源代码操作-Fix)
+"editor.codeActionsOnSave": {
+    "source.fixAll.tslint": true
+},
 
 // 开启emmet对vue的支持，如输入div>ul>li按下Tab可快速构建一个dom树，更多语法参考emmet
 "emmet.triggerExpansionOnTab": true,
@@ -121,6 +176,10 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
     "vue-html": "html",
     "vue": "html"
 }
+
+"files.associations": {
+    "*.wpy": "vue"
+},
 ```
 
 ## 用户代码片段

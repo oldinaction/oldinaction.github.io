@@ -633,7 +633,9 @@ this.$root.eventHub.$on('eventName', (data) => {
 
 ### 基本概念
 
-- `query`和`params`的区别：query参数会拼接到url上面，param不会。因此使用param时路由跳转后再次刷新页面会导致参数丢失
+- `query`和`params`的区别
+    - query参数会拼接到url上面，param不会
+    - param的参数值可以赋值给路由路径中的动态参数。因此使用param时路由跳转后再次刷新页面会导致参数丢失
 
 ```js
 this.$router.push({
@@ -643,8 +645,9 @@ this.$router.push({
     })
 });
 ```
-
-- `$route`和`$router`区别：`$route`为当前路由，`$router`为路由管理器(全局的)
+- `$route`和`$router`区别
+    - `$route`为当前路由，为vue内置
+    - `$router`为路由管理器(全局的)，一般在main.js中new Vue()时挂载
 
 ```js
 export default {
@@ -660,29 +663,33 @@ export default {
   }
 }
 ```
-
+- push和replace的区别
+    - 编程式`router.push(...)`和声明式`<router-link :to="...">`类似，都是往 history 栈添加一个新的记录，所以，当用户点击浏览器后退按钮时，则回到之前的 URL
+    - `router.replace(...)`和`<router-link :to="..." replace>`类似，它们不会向 history 添加新记录，而是替换掉当前的 history 记录
+    - `router.go(n)`类似`window.history.go(n)`
 - `<router-view></router-view>` 嵌套路由
 
 > 嵌套路由（https://router.vuejs.org/zh/guide/essentials/nested-routes.html）
 
 ```js
-// 此处的router-view是用于渲染顶级组件，即此时的Mobile组件
 <div id="app">
   <router-view></router-view>
 </div>
 
-// 此时由于mVisitInfo基于Mobile的，因此Mobile中必须要有一个路由出口(<router-view>)来展示mVisitInfo
+// 此时由于visit_info基于Mobile的，因此Mobile中必须要有一个路由出口(<router-view />)来展示visit_info。即表示含有children属性的组件(Mobile)的template中必须要有一个<router-view />
 const routers = [{
   path: "/m",
   name: "mobile",
+  // 访问 /m 时，会将Mobile渲染到app的router-view中，相当于渲染顶级组件
   component: Mobile,
   children: [{
-    path: "mVisitInfo", // path带/表示绝对路径。此时不带/，到通过name=mVisitInfo路由进来时，url会自动变成/m/mVisitInfo
-    name: "mVisitInfo",
+    path: "visit/info", // path带/表示绝对路径。此时不带/，到通过name=visit_info路由进来时，url会自动变成/m/visit/info
+    name: "visit_info",
     meta: {
       title: "拜访录入"
     },
-    component: () => import("@/views/mobile/mVisitInfo.vue")
+    // 当访问 /m/visit/info 时，会将visit_info.vue渲染到其父组件(Mobile)的router-view中，因此此时Mobile需要有一个<router-view />的出口
+    component: () => import("@/views/mobile/visit_info.vue")
   }]
 }]
 ```
@@ -693,17 +700,20 @@ const routers = [{
 
 > 官方说明 https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96
 
-- 当使用路由参数时，例如从 /user/foo 导航到 /user/bar，原来的组件实例会被复用。因为两个路由都渲染同个组件(User)，比起销毁再创建，复用则显得更加高效。不过，这也意味着组件的生命周期钩子不会再被调用
+- 当使用路由参数时，例如参数 `/user/:username`，且从 /user/foo 导航到 /user/bar，原来的组件实例会被复用
+    - 因为两个路由都渲染同个组件(User)，比起销毁再创建，复用则显得更加高效
+    - 不过这也意味着组件的生命周期钩子(如created)不会再被调用
+    - 但是两个路径显示的data数据是缓存两份，不会覆盖
 
 ```js
 const router = new VueRouter({
   routes: [
-    // 动态路径参数 以冒号开头
-    { path: '/user/:id', component: User }
+    // 动态路径参数，以冒号开头，通过route.params.my_id传递参数
+    { path: '/user/:my_id', component: User }
   ]
 })
 
-// 解决办法(都会看到之前的数据突然刷新成了新的数据)
+// 解决办法(都会看到之前的数据突然刷新成了新的数据)。根据路由获取数据：https://router.vuejs.org/zh/guide/advanced/data-fetching.html
 const User = {
     template: '...',
     watch: {
@@ -717,13 +727,22 @@ const User = {
             }
         }
     },
+    // 页面路由钩子(还有全局路由钩子)：https://router.vuejs.org/guide/advanced/navigation-guards.html
     beforeRouteEnter (to, from, next) {
-    // beforeRouteUpdate (to, from, next) {
-        // react to route changes...
-        // don't forget to call next()
+        // 在渲染该组件的对应路由被 confirm 前调用，不！能！获取组件实例 `this`，因为当守卫执行前，组件实例还没被创建
+        // don't forget to call next()，下同
         next(vm => {
             // vm === this; mounted了之后才会调用next
         })
+    },
+    beforeRouteUpdate (to, from, next) {
+        // 在当前路由改变，但是该组件被复用时调用
+        // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+        // 可以访问组件实例 `this`
+    },
+    beforeRouteLeave (to, from, next) {
+        // 导航离开该组件的对应路由时调用
+        // 可以访问组件实例 `this`
     }
 }
 ```
