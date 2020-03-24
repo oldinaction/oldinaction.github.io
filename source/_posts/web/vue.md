@@ -41,7 +41,7 @@ tags: vue
     </script>
     ```
 
-### vue生命周期
+### vue生命周期(含路由)
 
 - 生命周期钩子
     - 根组件实例：8个 (beforeCreate、created、beforeMount、mounted、beforeUpdate、updated、beforeDestroy、destroyed)
@@ -629,10 +629,70 @@ this.$root.eventHub.$on('eventName', (data) => {
 
 - https://segmentfault.com/q/1010000013184129?sort=created
 
+### keep-alive [^5]
+
+- 默认被切换掉（非当前显示）的组件，是直接被移除了。假如需要子组件在切换后，依然需要他保留在内存中，避免下次出现的时候重新渲染，可使用`keep-alive`
+- 用法
+
+    ```html
+    <!-- 缓存动态组件 -->
+    <keep-alive>
+        <component :is="view"></component>
+    </keep-alive>
+
+    <!-- 多个条件判断的子组件 -->
+    <keep-alive>
+        <comp-a v-if="a > 1"></comp-a>
+        <comp-b v-else></comp-b>
+    </keep-alive>
+
+    <!-- 缓存路由组件，可以将所有路径匹配到的路由组件都缓存起来，包括路由组件里面的组件。如果使用include属性则可有条件的缓存 -->
+    <keep-alive>
+        <router-view></router-view>
+    </keep-alive>
+    ```
+- 生命周期钩子：在被keep-alive包含的组件/路由中，会多出两个生命周期的钩子 `activated` 与 `deactivated`(写在匹配到的组件中)
+    - activated：在第一次渲染时和之后激活都会被调用
+    - deactivated：组件被停用(离开路由)时调用，使用了keep-alive就不会调用beforeDestroy(组件销毁前钩子)和destroyed(组件销毁)，因为组件没被销毁，被缓存起来了
+- `include` 和 `exclude`(Vue2.1.0新增，之前版本可通过其他方式代替)
+
+    ```html
+    <!-- 缓存路由 -->
+    <!-- 逗号分隔字符串 -->
+    <keep-alive include="a,b">
+        <component :is="view"></component>
+    </keep-alive>
+
+    <!-- 正则表达式 (使用 `v-bind`) -->
+    <keep-alive :include="/a|b/">
+        <component :is="view"></component>
+    </keep-alive>
+
+    <!-- 数组 (使用 `v-bind`) -->
+    <keep-alive :include="['a', 'b']">
+        <component :is="view"></component>
+    </keep-alive>
+
+    <!-- 缓存路由，仍然可以使用数组 -->
+    <keep-alive include='a'>
+        <router-view></router-view>
+    </keep-alive>
+    ```
+    - 匹配规则
+        - 首先匹配组件的name选项，如果name选项不可用
+        - 则匹配它的局部注册名称(父组件 components 选项的键值)
+        - 匿名组件，不可匹配(比如路由组件没有name选项时，并且没有注册的组件名)
+        - 只能匹配当前被包裹的组件，不能匹配更下面嵌套的子组件(比如用在路由上，只能匹配路由组件的name选项，不能匹配路由组件里面的嵌套组件的name选项)
+        - `<keep-alive>`不会在函数式组件中正常工作，因为它们没有缓存实例
+        - exclude的优先级大于include
+
 ## 路由
+
+> https://yuchengkai.cn/blog/2018-07-27.html 源码解析
 
 ### 基本概念
 
+- 路由生命周期见上文
 - `query`和`params`的区别
     - query参数会拼接到url上面，param不会
     - param的参数值可以赋值给路由路径中的动态参数。因此使用param时路由跳转后再次刷新页面会导致参数丢失
@@ -667,7 +727,8 @@ export default {
     - 编程式`router.push(...)`和声明式`<router-link :to="...">`类似，都是往 history 栈添加一个新的记录，所以，当用户点击浏览器后退按钮时，则回到之前的 URL
     - `router.replace(...)`和`<router-link :to="..." replace>`类似，它们不会向 history 添加新记录，而是替换掉当前的 history 记录
     - `router.go(n)`类似`window.history.go(n)`
-- `<router-view></router-view>` 嵌套路由
+- 动态路由、嵌套路由、`<router-view />`
+    - 实现嵌套路由有两个要点：在组件内部使用`<router-view />`标签、VueRouter 的参数中使用 children 配置
 
 > 嵌套路由（https://router.vuejs.org/zh/guide/essentials/nested-routes.html）
 
@@ -678,21 +739,25 @@ export default {
 
 // 此时由于visit_info基于Mobile的，因此Mobile中必须要有一个路由出口(<router-view />)来展示visit_info。即表示含有children属性的组件(Mobile)的template中必须要有一个<router-view />
 const routers = [{
+  // 访问 /m 时，会将Mobile渲染到app的router-view中，相当于渲染顶级组件
   path: "/m",
   name: "mobile",
-  // 访问 /m 时，会将Mobile渲染到app的router-view中，相当于渲染顶级组件
   component: Mobile,
   children: [{
-    path: "visit/info", // path带/表示绝对路径。此时不带/，到通过name=visit_info路由进来时，url会自动变成/m/visit/info
+    // 当访问 /m/visit/info/1 时，会将visit_info.vue渲染到其父组件(Mobile)的router-view中，因此此时Mobile需要有一个<router-view />的出口
+    // 如果父组件中没有router-view路由出口，则此子组件将无妨成功created；且只有当路由到此子路径时，才会开始创建此子组件(仅访问父路径不会创建子组件)
+    path: "visit/info/:info_id", // path带/表示绝对路径。此时不带/。要通过name=visit_info路由(且路由params参数中info_id=1)进来时，url会自动变成/m/visit/info/1
     name: "visit_info",
     meta: {
-      title: "拜访录入"
+      title: "拜访编辑"
     },
-    // 当访问 /m/visit/info 时，会将visit_info.vue渲染到其父组件(Mobile)的router-view中，因此此时Mobile需要有一个<router-view />的出口
     component: () => import("@/views/mobile/visit_info.vue")
   }]
 }]
 ```
+- 路由懒加载(当打包构建应用时，Javascript 包会变得非常大，影响页面加载速度)
+    - https://router.vuejs.org/zh/guide/advanced/lazy-loading.html
+    - https://panjiachen.github.io/vue-element-admin-site/zh/guide/advanced/lazy-loading.html
 
 ### 路由变化页面数据不刷新
 
@@ -756,9 +821,25 @@ const User = {
     - hash模式
         - 前进、后退、刷新均不会请求后端，仅刷新路由
         - 缺点：Url中带有`#`号，nginx同域名多项目配置不支持
+        - router.beforeEach 中执行 next({..from}) 跳转后，不会执行afterEach()；而history模式会在执行一次beforeEach后执行afterEach。参考 https://www.okcode.net/article/70038
     - history模式
         - 前进、后退不会请求后端，**但是刷新、f5会请求后端**(nginx)，如果后端无浏览器地址栏中的路径则会404
         - 缺点：需要浏览器支持(IE=10)，刷新可能会出404
+    - 两种模式对于router.push、replace、go的效果一致
+- history模式使用(https://router.vuejs.org/zh/guide/essentials/history-mode.html)
+
+```js
+// 开启history模式
+const router = new Router({
+  routes,
+  mode: 'history' // 默认为hash模式
+})
+
+// 如后端nginx服务器配置
+location / {
+  try_files $uri $uri/ /index.html;
+}
+```
 
 ## 样式
 
@@ -876,5 +957,5 @@ function addStyleResource (rule) {
 [^2]: https://segmentfault.com/a/1190000008879966#articleHeader14 (vue生命周期)
 [^3]: https://asyncoder.com/2018/07/20/%E8%AE%B0%E4%B8%80%E6%AC%A1Vue%E4%B8%AD%E7%9A%84v-for%E8%B8%A9%E5%9D%91%E4%B9%8B%E6%97%85/
 [^4]: https://juejin.im/post/5b4ca076f265da0f900e0a7d
-
+[^5]: https://juejin.im/post/5b41bdef6fb9a04fe63765f1
 

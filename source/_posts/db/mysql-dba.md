@@ -112,7 +112,7 @@ select user, host from user; -- 查询用户可登录host
 	# date format for backup file (eg: 20190407214357)
 	time="$(date +"%Y%m%d%H%M%S")"
 	# 需要确保当前linux用户有执行mysqldump权限
-	mysqldump -h $db_host -P $db_port -u$db_user -p$db_passwd $db_name | gzip > "$backup_dir/$db_name"_"$time.sql.gz"
+	/opt/soft/mysql57/bin/mysqldump -h $db_host -P $db_port -u$db_user -p$db_passwd $db_name | gzip > "$backup_dir/$db_name"_"$time.sql.gz"
 
 	# 删除30天之前的备份
 	find $backup_dir -name $db_name"*.sql.gz" -type f -mtime +30 -exec rm -rf {} \; > /dev/null 2>&1

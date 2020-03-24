@@ -135,6 +135,9 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
     "editor.defaultFormatter": "octref.vetur",
     "editor.tabSize": 2
 },
+"[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+},
 
 "beautify.language": {
 	"html": [

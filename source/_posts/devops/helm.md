@@ -834,13 +834,15 @@ persistence:
   enabled: true
   resourcePolicy: "keep"
   persistentVolumeClaim:
+    # registry存放镜像
     registry:
       storageClass: "nfs-client"
+      size: "20Gi" # 默认是5Gi，放5个项目就要进场清理
     chartmuseum:
       storageClass: "nfs-client"
     jobservice:
       storageClass: "nfs-client"
-    # 如果使用外部数据库则不需要
+    # 如果使用外部数据库则不需要(上面已配置外部数据库)
     #database:
     #  storageClass: "nfs-client"
 EOF

@@ -626,6 +626,21 @@ ceph osd purge {osd-num} --yes-i-really-mean-it # purge命令为Luminous版本�
 ls /dev/mapper/ceph--9f84f55e--6baa--4ac2--a721--4dfd97f9a8f1-osd--block--cf4926bd--96c4--4787--a1fc--af3078ba3d0c | xargs -I% -- dmsetup remove % # 此处可通过 `lsblk` 查看对应映射名称
 ```
 
+### 镜像扩容缩容(rbd-images)
+
+```bash
+## 管理界面操作
+Block - images - xxx - 编辑 - Size
+
+## 管理端操作
+rbd ls -p kube
+# 调整大小为20G(1024换算)
+rbd resize kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 --size 20480
+rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 重新查看镜像空间使用情况
+
+## 客户端扩容方式略
+```
+
 ## 常见问题
 
 - 调试说明

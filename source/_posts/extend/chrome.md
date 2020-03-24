@@ -25,7 +25,7 @@ tags: [plugins, debug]
 - `Evernote Web Clipper` 印象笔记·剪藏
 - `新浪微博图床`
 - `Octotree` github源码目录展现
-- `Tampermonkey` 油猴脚本
+- `Tampermonkey` 油猴脚本。相关脚本：https://greasyfork.org/zh-CN/scripts
 - `IDM Integration Module` IDM下载
 - `Secure Shell` ssh客户端
 - `Postman` Http请求客户端
