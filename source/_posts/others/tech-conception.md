@@ -106,6 +106,9 @@ tags: [java, conception]
     - `BO` 业务对象，封装对象、复杂对象 ，里面可能包含多个类
     - `DTO` 传输对象，前端调用时传输
     - `VO` 表现对象，前端界面展示
+- `贫血模型`、`充血模型`
+    - 贫血模型是指领域对象里只有get和set方法，所有的业务逻辑都不包含在内而是放在Business Logic层；充血模型则在领域对象中包含业务逻辑方法(行为)
+    - 在使用Spring的时候，通常暗示着使用了贫血模型，把Domain类用来单纯地存储数据
 - `EJB`(Enterprise JavaBean)是sun的JavaEE服务器端组件模型。设计目标与核心应用是部署分布式应用程序。简单来说就是把已经编写好的程序（即：类）打包放在服务器上执行。 在J2EE里，EJB 称为Java 企业Bean，是Java的核心代码，分别是会话Bean（Session Bean），实体Bean（Entity Bean）和消息驱动Bean（MessageDriven Bean）
     - SessionBean用于实现业务逻辑，它可以是有状态的，也可以是无状态的。每当客户端请求时，容器就会选择一个SessionBean来为客户端服务。Session Bean可以直接访问数据库，但更多时候，它会通过Entity Bean实现数据访问
     - Entity Bean是域模型对象，用于实现O/R映射，负责将数据库中的表记录映射为内存中的Entity对象，事实上，创建一个Entity Bean对象相当于新建一条记录。

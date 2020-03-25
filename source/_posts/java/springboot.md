@@ -849,6 +849,115 @@ public MultipartConfigElement multipartConfigElement() {
 }
 ```
 
+### 自定义字段映射规则
+
+```java
+// 暴露自定义映射规则类
+@Bean
+public CustomObjectMapper customObjectMapper() {
+    return new CustomObjectMapper()
+            .setNotContainNull()
+            .setDateFormatPattern("yyyy/MM/dd HH:mm:ss");
+            // .setCamelCaseToLowerCaseWithUnderscores();
+}
+
+@Bean
+public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+    return new MappingJackson2HttpMessageConverter(this.customObjectMapper());
+}
+
+// 统一日期转换
+@Autowired
+private RequestMappingHandlerAdapter handlerAdapter;
+@PostConstruct
+public void initEditableAvlidation() {
+    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer) handlerAdapter.getWebBindingInitializer();
+    GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
+    genericConversionService.addConverter(new StringToDateConverter());
+}
+
+// 自定义规则类
+public class CustomObjectMapper extends ObjectMapper {
+    public CustomObjectMapper() {
+        this.configure(SerializationFeature.INDENT_OUTPUT, true);
+    }
+
+    public CustomObjectMapper setNotContainNull() {
+        this.setSerializationInclusion(JsonInclude.Include.NON_NULL); // com.fasterxml.jackson.annotation.JsonInclude
+        return this;
+    }
+
+    // 驼峰转下划线
+    public CustomObjectMapper setCamelCaseToLowerCaseWithUnderscores() {
+        this.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        return this;
+    }
+
+    public CustomObjectMapper setDateFormatPattern(String dateFormatPattern) {
+        if (StringUtils.isNotEmpty(dateFormatPattern)) { // org.apache.commons.lang3.StringUtils;
+            DateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
+            this.setDateFormat(dateFormat);
+        }
+
+        return this;
+    }
+
+    public CustomObjectMapper setNotContainNullKey() {
+        this.getSerializerProvider().setNullKeySerializer(new MyNullKeySerializer());
+        return this;
+    }
+
+    private class MyNullKeySerializer extends JsonSerializer<Object> {
+        @Override
+        public void serialize(Object nullKey, JsonGenerator jsonGenerator, SerializerProvider unused) throws IOException {
+            jsonGenerator.writeFieldName("");
+        }
+    }
+}
+
+// 日期转换类
+public class StringToDateConverter implements Converter<String, Date> { // org.springframework.core.convert.converter.Converter;
+    private static final String dateFormat = "yyyy-MM-dd HH:mm:ss";
+    private static final String dateFormat2 = "yyyy/MM/dd HH:mm:ss";
+    private static final String shortDateFormat = "yyyy-MM-dd";
+    private static final String shortDateFormat2 = "yyyy/MM/dd";
+    private static final String timeStampFormat = "^\\d+$";
+
+    @Override
+    public Date convert(String value) {
+        if(StringUtils.isEmpty(value)) {
+            return null;
+        }
+        value = value.trim();
+        try {
+            if (value.contains("-")) {
+                SimpleDateFormat formatter;
+                if (value.contains(":")) {
+                    formatter = new SimpleDateFormat(dateFormat);
+                } else {
+                    formatter = new SimpleDateFormat(shortDateFormat);
+                }
+                return formatter.parse(value);
+            } else if (value.matches(timeStampFormat)) {
+                Long lDate = new Long(value);
+                return new Date(lDate);
+            } else if (value.contains("/")) {
+                SimpleDateFormat formatter;
+                if (value.contains(":")) {
+                    formatter = new SimpleDateFormat(dateFormat2);
+                } else {
+                    formatter = new SimpleDateFormat(shortDateFormat2);
+                }
+                return formatter.parse(value);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("parser %s to Date fail", value));
+        }
+        throw new RuntimeException(String.format("parser %s to Date fail", value));
+    }
+}
+```
+
 ## 数据访问
 
 - 数据库驱动

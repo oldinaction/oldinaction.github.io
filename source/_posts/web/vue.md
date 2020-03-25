@@ -62,6 +62,29 @@ tags: vue
     - beforeRouteEnter的next的回调
     - nextTick
 
+### 事件
+
+```html
+<!-- stop阻止冒泡，prevent阻止原生事件(如表单提交页面刷新) -->
+<a v-on:click.stop.prevent="doThis"></a>
+<!-- 只当事件在该元素本身点击时触发事件，子元素点击则不执行 -->
+<div @click.self="doThat"></div>
+
+<!-- 关于click事件不生效，以iview的Drawer组件为例 -->
+<template>
+  <!-- 点击后不会执行a函数，因为Drawer实际渲染dom并不在此div中 -->
+  <div @click.native="a">
+    <!-- 点击后不会执行b函数，因为Drawer组件并没有定义click事件 -->
+    <Drawer @click="b">
+    </Drawer>
+
+    <!-- 点击后会执行c函数，此处表示使用原生click事件 -->
+    <Drawer @click.native="c">
+    </Drawer>
+  </div>
+<template>
+```
+
 ## 页面渲染
 
 ### 父子组件加载

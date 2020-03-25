@@ -72,14 +72,16 @@ tags: [ide, web]
                 // allow debugger during development
                 'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
                 'vue/no-parsing-error': [2, {
-                'x-invalid-end-tag': false
+                    'x-invalid-end-tag': false
                 }],
                 'no-undef': 'off',
                 'camelcase': 'off',
                 // func() {} 函数名和()可无空格
                 "space-before-function-paren": ["error", "never"],
                 // 不强制使用 ===
-                "eqeqeq": ["error", "smart"] // smart特点：数字比较必须要 ===
+                "eqeqeq": ["error", "smart"], // smart特点：数字比较必须要 ===
+                // A && B换行时，符合在行头。https://eslint.org/docs/rules/operator-linebreak
+                "operator-linebreak": ["error", "before"]
             },
             parserOptions: {
                 parser: 'babel-eslint'

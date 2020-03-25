@@ -39,9 +39,9 @@ tags: [vue, UI]
     </Select>
     ```
 
-### Select 远程搜索
+### Select
 
-- Select 标签，检索数据项的多个属性时远程搜索无效 [^1]
+- Select 远程搜索。问题：检索数据项的多个属性时远程搜索无效 [^1]
 
 ```html
 <i-select
@@ -88,6 +88,11 @@ tags: [vue, UI]
         }
       }
 </script>
+```
+- 手动触发click事件展示下拉选项
+
+```js
+this.$refs.mySelect.visible = true
 ```
 
 ### 表格
