@@ -2,9 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2020-03-26T10:20:44.382Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2020-03-26T03:50:41.329Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
+    
+    <lastmod>2020-03-26T03:09:56.654Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
+    
+    <lastmod>2020-03-26T02:19:45.845Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
-    <lastmod>2020-03-25T11:35:38.279Z</lastmod>
+    <lastmod>2020-03-25T14:38:46.272Z</lastmod>
     
   </url>
   
@@ -33,13 +61,6 @@
     <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
     
     <lastmod>2020-03-24T14:05:26.933Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
-    
-    <lastmod>2020-03-24T07:35:02.219Z</lastmod>
     
   </url>
   
@@ -135,13 +156,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2020-01-13T10:19:08.668Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
     
     <lastmod>2020-01-11T13:39:59.028Z</lastmod>
@@ -184,23 +198,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
-    
-    <lastmod>2020-01-03T02:11:41.700Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/10/12/others/business-conception/</loc>
     
     <lastmod>2019-12-26T09:21:20.072Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2019-12-26T06:31:19.249Z</lastmod>
     
   </url>
   
