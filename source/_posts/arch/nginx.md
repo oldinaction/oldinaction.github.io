@@ -502,7 +502,7 @@ $http_user_agent #客户端agent信息
 $http_cookie #客户端cookie信息
 $limit_rate #这个变量可以限制连接速率
 $request_method #客户端请求的动作，通常为GET或POST
-$remote_addr #客户端的IP地址
+$remote_addr #客户端的IP地址(***)
 $remote_port #客户端的端口
 $remote_user #已经经过Auth Basic Module验证的用户名
 $request_filename #当前请求的文件路径，由root或alias指令与URI请求生成
@@ -549,6 +549,8 @@ location / {
     allow 10.1.1.0/16;
     allow 2001:0db8::/32; # ipv6
     deny  all; # 阻止所有，和allow配合使用
+
+    # ...
 }
 ```
 

@@ -26,11 +26,11 @@ tag: [monitor, cncf]
 - 相关概念
     - Prometheus 中存储的数据为时间序列，是由 metric 的名字和一系列的标签（键值对）唯一标识的，不同的标签则代表不同的时间序列。metric 名字格式：`<metric name>{<label name>=<label value>, …}`，例如：`http_requests_total{method="POST",endpoint="/api/tracks"}`
 
-## 安装
+## 安装使用
 
 ### 基于docker安装
 
-#### Prometheus Server 安装
+#### Prometheus Server 安装使用
 
 - 安装命令 [^3]
 
@@ -120,7 +120,7 @@ groups:
           description: "详细异常. {{$labels.instance}}: Memory usage is above 80% (current value is:{{ $value }})"
 ```
 
-#### Alertmanager 安装
+#### Alertmanager 安装使用
 
 - 安装(**如使用Grafana告警则不需要安装，但是Grafana告警比较有限**)
 
@@ -200,7 +200,7 @@ receivers:
     #text: "{{ range .Alerts }}:small_orange_diamond:{{ .Annotations.summary }}。{{ .Annotations.description }}\n\n{{ end }}"
 ```
 
-#### Push Gateway 安装
+#### Push Gateway 安装使用
 
 - 安装及使用
 
@@ -232,6 +232,16 @@ curl -X DELETE http://192.168.6.131:9091/metrics/job/aezo/instance/node1
 ```
 - server配置中需要添加pull拉取pushgateway节点任务
 - 存在认证问题。直接推送到pushgateway路径`http://192.168.6.131:9091/metrics/job/<my_job>/instance/<my_instance>`(my_instance如hostname或ip)，然后server根据my_job和my_instance进行记录，server无需其他额外配置
+- 适用于监控服务器(A)和被监控服务器(B)不在同一网络，且B无法开通额外的外网端口。此时可在B上启动Exporter，并通过定时curl将本地监控数据转交到A
+
+    ```bash
+    ## B服务器
+    # crontab
+    */1 * * * * /root/script/push-metrics.sh > /dev/null 2>&1 &
+
+    # push-metrics.sh
+    curl -s http://localhost:9100/metrics | curl --data-binary @- http://pushgateway.aezo.cn/metrics/job/my-app/instance/my-node  
+    ```
 
 ### 基于prometheus-operator安装prometheus(k8s环境)
 
@@ -387,7 +397,7 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
         wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
         tar -xvzf node_exporter-0.18.1.linux-amd64.tar.gz # 只有一个node_exporter的可执行程序
         mv node_exporter-0.18.1.linux-amd64/node_exporter /usr/sbin/node_exporter # 可删除下载文件
-        # 启动服务，默认监听9100端口，正式环境可自定义成服务后台运行。`./node_exporter -h` 查看参数设置
+        # 启动服务，默认监听9100端口，正式环境可自定义成服务后台运行(如果要暴露外网，可修改此端口)。`./node_exporter -h` 查看参数设置
         /usr/sbin/node_exporter
         # 查看metrics信息
         curl http://localhost:9100/metrics

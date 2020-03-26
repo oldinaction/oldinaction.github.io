@@ -363,6 +363,20 @@ public class BaseController {
 ```java
 // 法一
 @Bean
+CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(Arrays.asList("*"));
+    configuration.setAllowedMethods(Arrays.asList("*"));
+    configuration.setAllowedHeaders(Arrays.asList("*"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
+
+// 法二
+@Bean
 public WebMvcConfigurer corsConfigurer() {
 	return new WebMvcConfigurerAdapter() {
 		@Override
@@ -374,20 +388,6 @@ public WebMvcConfigurer corsConfigurer() {
 					.allowCredentials(true);
 		}
 	};
-}
-
-// 法二
-@Bean
-CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("*"));
-    configuration.setAllowedHeaders(Arrays.asList("*"));
-    configuration.setAllowCredentials(true);
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
 }
 ```
 - 使用spring security的CORS配置可参考相应文章
@@ -562,6 +562,157 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 }
 ```
 
+### HttpMessageConverter(字段转换器/格式处理)
+
+```java
+// 暴露自定义映射规则类
+@Bean
+public CustomObjectMapper customObjectMapper() {
+    return new CustomObjectMapper()
+            .setNotContainNull()
+            .setDateFormatPattern("yyyy/MM/dd HH:mm:ss");
+            // .setCamelCaseToLowerCaseWithUnderscores();
+}
+
+@Bean
+public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+    // 可能使用MappingJackson2HttpMessageConverter导致post无法获取到参数的问题。此转换器默认只支持application/json，如果浏览器请求时为application/json;charset=UTF-8则会出现此问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
+    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(this.customObjectMapper());
+    MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_FORM_URLENCODED};
+    converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
+    return converter;
+}
+
+// 统一日期转换(方式一)
+@Autowired
+private RequestMappingHandlerAdapter handlerAdapter; // 如果程序中有注入WebMvcConfigurer则会报错(如上文跨域资源共享配置方式二)
+@PostConstruct
+public void initEditableAvlidation() {
+    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer) handlerAdapter.getWebBindingInitializer();
+    if(initializer.getConversionService() != null) {
+        GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
+        genericConversionService.addConverter(new StringToDateConverter());
+    }
+}
+// 统一日期转换(方式二)
+@ControllerAdvice
+public class CourseControllerHandler {
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
+        if (genericConversionService != null) {
+            genericConversionService.addConverter(new StringToDateConverter());
+        }
+    }
+}
+
+// 自定义规则类
+public class CustomObjectMapper extends ObjectMapper {
+    private String dateTimeFormatPattern = "yyyy/MM/dd HH:mm:ss";
+    private String dateFormatPattern = "yyyy/MM/dd";
+    private String timeFormatPattern = "HH:mm:ss";
+
+    public CustomObjectMapper() {
+        init();
+    }
+
+    public CustomObjectMapper(String dateTimeFormatPattern, String dateFormatPattern, String timeFormatPattern) {
+        this.dateTimeFormatPattern = dateTimeFormatPattern;
+        this.dateFormatPattern = dateFormatPattern;
+        this.timeFormatPattern = timeFormatPattern;
+
+        init();
+    }
+
+    private void init() {
+        this.configure(SerializationFeature.INDENT_OUTPUT, true);
+        
+        // LocalDateTime 转换参考：https://blog.csdn.net/junlovejava/article/details/78112240
+        // (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`
+        // (2) 返回时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(dateTimeFormatPattern)));
+        javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(dateFormatPattern)));
+        javaTimeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(timeFormatPattern)));
+        this.registerModule(javaTimeModule);
+    }
+
+    public CustomObjectMapper setNotContainNull() {
+        this.setSerializationInclusion(JsonInclude.Include.NON_NULL); // com.fasterxml.jackson.annotation.JsonInclude
+        return this;
+    }
+
+    // 驼峰转下划线
+    public CustomObjectMapper setCamelCaseToLowerCaseWithUnderscores() {
+        this.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        return this;
+    }
+
+    public CustomObjectMapper setDateFormatPattern(String dateFormatPattern) {
+        if (StringUtils.isNotEmpty(dateFormatPattern)) { // org.apache.commons.lang3.StringUtils;
+            DateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
+            this.setDateFormat(dateFormat);
+        }
+
+        return this;
+    }
+
+    public CustomObjectMapper setNotContainNullKey() {
+        this.getSerializerProvider().setNullKeySerializer(new MyNullKeySerializer());
+        return this;
+    }
+
+    private class MyNullKeySerializer extends JsonSerializer<Object> {
+        @Override
+        public void serialize(Object nullKey, JsonGenerator jsonGenerator, SerializerProvider unused) throws IOException {
+            jsonGenerator.writeFieldName("");
+        }
+    }
+}
+
+// 日期转换类
+public class StringToDateConverter implements Converter<String, Date> { // org.springframework.core.convert.converter.Converter;
+    private static final String dateFormat = "yyyy-MM-dd HH:mm:ss";
+    private static final String dateFormat2 = "yyyy/MM/dd HH:mm:ss";
+    private static final String shortDateFormat = "yyyy-MM-dd";
+    private static final String shortDateFormat2 = "yyyy/MM/dd";
+    private static final String timeStampFormat = "^\\d+$";
+
+    @Override
+    public Date convert(String value) {
+        if(StringUtils.isEmpty(value)) {
+            return null;
+        }
+        value = value.trim();
+        try {
+            if (value.contains("-")) {
+                SimpleDateFormat formatter;
+                if (value.contains(":")) {
+                    formatter = new SimpleDateFormat(dateFormat);
+                } else {
+                    formatter = new SimpleDateFormat(shortDateFormat);
+                }
+                return formatter.parse(value);
+            } else if (value.matches(timeStampFormat)) {
+                Long lDate = new Long(value);
+                return new Date(lDate);
+            } else if (value.contains("/")) {
+                SimpleDateFormat formatter;
+                if (value.contains(":")) {
+                    formatter = new SimpleDateFormat(dateFormat2);
+                } else {
+                    formatter = new SimpleDateFormat(shortDateFormat2);
+                }
+                return formatter.parse(value);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("parser %s to Date fail", value));
+        }
+        throw new RuntimeException(String.format("parser %s to Date fail", value));
+    }
+}
+```
+
 ### AOP
 
 - 添加依赖
@@ -601,6 +752,7 @@ myConfig:
 	server.context-path=/myapp
 	```
 - 请求协议
+    - https://www.hangge.com/blog/cache/detail_2485.html (POST请求示例)、https://www.hangge.com/blog/cache/detail_2484.html  (GET请求示例)
 
 request-method |Content-Type   |postman   |springboot   |说明
 --|---|---|---|---
@@ -846,115 +998,6 @@ public MultipartConfigElement multipartConfigElement() {
 	MultipartConfigFactory factory = new MultipartConfigFactory();  
 	factory.setLocation("/app/tmp");
 	return factory.createMultipartConfig();
-}
-```
-
-### 自定义字段映射规则
-
-```java
-// 暴露自定义映射规则类
-@Bean
-public CustomObjectMapper customObjectMapper() {
-    return new CustomObjectMapper()
-            .setNotContainNull()
-            .setDateFormatPattern("yyyy/MM/dd HH:mm:ss");
-            // .setCamelCaseToLowerCaseWithUnderscores();
-}
-
-@Bean
-public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
-    return new MappingJackson2HttpMessageConverter(this.customObjectMapper());
-}
-
-// 统一日期转换
-@Autowired
-private RequestMappingHandlerAdapter handlerAdapter;
-@PostConstruct
-public void initEditableAvlidation() {
-    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer) handlerAdapter.getWebBindingInitializer();
-    GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
-    genericConversionService.addConverter(new StringToDateConverter());
-}
-
-// 自定义规则类
-public class CustomObjectMapper extends ObjectMapper {
-    public CustomObjectMapper() {
-        this.configure(SerializationFeature.INDENT_OUTPUT, true);
-    }
-
-    public CustomObjectMapper setNotContainNull() {
-        this.setSerializationInclusion(JsonInclude.Include.NON_NULL); // com.fasterxml.jackson.annotation.JsonInclude
-        return this;
-    }
-
-    // 驼峰转下划线
-    public CustomObjectMapper setCamelCaseToLowerCaseWithUnderscores() {
-        this.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-        return this;
-    }
-
-    public CustomObjectMapper setDateFormatPattern(String dateFormatPattern) {
-        if (StringUtils.isNotEmpty(dateFormatPattern)) { // org.apache.commons.lang3.StringUtils;
-            DateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
-            this.setDateFormat(dateFormat);
-        }
-
-        return this;
-    }
-
-    public CustomObjectMapper setNotContainNullKey() {
-        this.getSerializerProvider().setNullKeySerializer(new MyNullKeySerializer());
-        return this;
-    }
-
-    private class MyNullKeySerializer extends JsonSerializer<Object> {
-        @Override
-        public void serialize(Object nullKey, JsonGenerator jsonGenerator, SerializerProvider unused) throws IOException {
-            jsonGenerator.writeFieldName("");
-        }
-    }
-}
-
-// 日期转换类
-public class StringToDateConverter implements Converter<String, Date> { // org.springframework.core.convert.converter.Converter;
-    private static final String dateFormat = "yyyy-MM-dd HH:mm:ss";
-    private static final String dateFormat2 = "yyyy/MM/dd HH:mm:ss";
-    private static final String shortDateFormat = "yyyy-MM-dd";
-    private static final String shortDateFormat2 = "yyyy/MM/dd";
-    private static final String timeStampFormat = "^\\d+$";
-
-    @Override
-    public Date convert(String value) {
-        if(StringUtils.isEmpty(value)) {
-            return null;
-        }
-        value = value.trim();
-        try {
-            if (value.contains("-")) {
-                SimpleDateFormat formatter;
-                if (value.contains(":")) {
-                    formatter = new SimpleDateFormat(dateFormat);
-                } else {
-                    formatter = new SimpleDateFormat(shortDateFormat);
-                }
-                return formatter.parse(value);
-            } else if (value.matches(timeStampFormat)) {
-                Long lDate = new Long(value);
-                return new Date(lDate);
-            } else if (value.contains("/")) {
-                SimpleDateFormat formatter;
-                if (value.contains(":")) {
-                    formatter = new SimpleDateFormat(dateFormat2);
-                } else {
-                    formatter = new SimpleDateFormat(shortDateFormat2);
-                }
-                return formatter.parse(value);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("parser %s to Date fail", value));
-        }
-        throw new RuntimeException(String.format("parser %s to Date fail", value));
-    }
 }
 ```
 

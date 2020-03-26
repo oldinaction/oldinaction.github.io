@@ -911,27 +911,56 @@ kubectl delete -f sq-pod.yaml
 
 - Ingress Control不直接运行为kube-controller-manager的一部分，它仅仅是Kubernetes集群的一个附件，类似于CoreDNS，需要在集群上单独部署
 - 部署Ingress Controller
-    - Ingress Controller可基于Nginx、Traefik、Envoy等来进行部署，此处使用[ingress-nginx](https://github.com/kubernetes/ingress-nginx)
+    - Ingress Controller可基于`Nginx`、`Traefik`(基于go开放，和k8s融合更紧密)、`Envoy`等来进行部署，此处使用[ingress-nginx](https://github.com/kubernetes/ingress-nginx)
 
 ```bash
-## 部署Ingress Controller，此时是Ingress Controller部署为Deployment。如果只执行此部署，则只能在集群内部访问
+## 部署Ingress Controller，此时是Ingress Controller部署为Deployment。如果只执行此部署，则只能在集群内部访问，还需下文暴露成如Nodeport
 wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.25.1/deploy/static/mandatory.yaml
 # 修改镜像地址(quay.io有时候会很慢)
 sed -i 's#quay.io/kubernetes-ingress-controller#registry.cn-hangzhou.aliyuncs.com/google_containers#g' mandatory.yaml
 kubectl apply -f mandatory.yaml
 kubectl get deployment -n ingress-nginx
+
 ## (生产环境一般使用 LoadBalancer) 使用Nodeport暴露Ingress Controller，如需修改暴露的节点端口，可添加 nodePort: 30080 和 nodePort: 30443 来指定
 wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.25.1/deploy/static/provider/baremetal/service-nodeport.yaml
 kubectl apply -f service-nodeport.yaml
 # kubectl expose deployment nginx-ingress-controller --port 80 --external-ip 192.168.6.132 # 或者基于 LoadBalancer + externalIPs 来暴露服务
 kubectl get svc -n ingress-nginx
+
 ## 取消HSTS配置：https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-# 修改配置，伪代码：添加 `data.hsts="false"`。取消成功后查看nginx配置时则无`Strict-Transport-Security`相关配置
-kubectl edit configmap nginx-configuration -n ingress-nginx
+# 修改配置，具体见下文nginx-ingress-controller配置。修改后可能得半分钟左右生效
+kubectl edit configmap nginx-ingress-controller -n ingress-nginx
 ## 查看 ingress-controller 对应pod的nginx配置
 kubectl exec -it nginx-ingress-controller-74c6b9c45c-9qm54 -n ingress-nginx cat /etc/nginx/nginx.conf
 # 查看日志(cat /var/log/nginx/access.log 卡死)
 kubectl logs nginx-ingress-controller-74c6b9c45c-9qm54 -n ingress-nginx
+```
+- nginx-ingress-controller配置(configmap)
+
+```yml
+# https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
+apiVersion: v1
+kind: ConfigMap
+data:
+  # 取消hsts，配置成功后查看nginx配置时则无`Strict-Transport-Security`相关代码
+  hsts: "false"
+  # 设置日志格式(此处使用json格式)
+  log-format-upstream: '{"time": "$time_iso8601", "remote_addr": "$remote_addr", "x-forward-for": "$proxy_add_x_forwarded_for",
+    "http_x_forwarded_for": "$http_x_forwarded_for", 
+    "the_real_ip": $the_real_ip, "full_x_forwarded_for": $full_x_forwarded_for,
+    "request_id": "$req_id", "remote_user": "$remote_user",
+	"bytes_sent": "$bytes_sent", "request_time": "$request_time", "status": "$status", "vhost": "$host",
+	"request_proto": "$server_protocol", "path": "$uri", "request_query": "$args", "request_length": "$request_length",
+    "duration": "$request_time", "method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent"}'
+    
+    compute-full-forwarded-for: "true"
+    forwarded-for-header: "X-Forwarded-For"
+    use-forwarded-headers: "true"
+metadata:
+  labels:
+    app: ingress-nginx
+  name: nginx-ingress-controller
+  namespace: ingress-nginx
 ```
 
 #### 创建Ingress示例
@@ -1258,7 +1287,7 @@ spec:
                     - VxLan模式流量走向：cn0 -> flannel.1 -> ens33；Directouting则为：cn0 -> ens33(中间通过路由转换了)
                 - `Host Gateway` 要求各节点必须在一个网段
     - `calico` 支持网络配置、网络策略(功能强大，但较flannel复杂)
-    - `canel` 上述二者合并
+    - `canel` 上述二者合并(推荐)
         - Calico可以独立地为Kubernetes提供网络解决方案和网络策略，也可以和flannel相结合，由flannel提供网络解决方案，Calico仅用于提供网络策略，此时将Calico称为Canal
         - 安装(安装canel则无需单独再安装flannel)
 

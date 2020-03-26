@@ -504,6 +504,7 @@ pushgateway:
     enabled: true
     storageClass: "monitoring-sc-01"
   ingress:
+    # 可设置白名单，如下文alertmanager配置
     enabled: true
     hosts:
     - pushgateway.prometheus.k8s.aezo.cn
@@ -541,6 +542,18 @@ extraScrapeConfigs: |
 alertmanager:
   persistentVolume:
     storageClass: "monitoring-sc-01"
+  ingress:
+    #enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/server-snippet: |
+        location / {
+            # 只允许某些ip访问
+            allow 10.10.10.0/24;
+            allow 10.10.11.100;
+            deny all; # 开白名单时，此行必须有且在最后
+        }
+    hosts:
+    - alertmanager.prometheus.k8s.aezo.cn
 alertmanagerFiles:
   alertmanager.yml:
     global:
