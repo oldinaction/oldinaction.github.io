@@ -2,30 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
     
-    <lastmod>2020-03-26T10:20:44.382Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2020-03-26T03:50:41.329Z</lastmod>
+    <lastmod>2020-03-27T13:00:22.544Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
     
-    <lastmod>2020-03-26T03:09:56.654Z</lastmod>
+    <lastmod>2020-03-27T11:42:45.283Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
     
-    <lastmod>2020-03-26T02:19:45.845Z</lastmod>
+    <lastmod>2020-03-27T10:35:54.007Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2020-03-27T07:38:24.262Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2020-03-27T06:30:23.468Z</lastmod>
     
   </url>
   
@@ -96,13 +103,6 @@
     <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
     
     <lastmod>2020-03-22T06:59:54.609Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
-    
-    <lastmod>2020-03-22T05:53:13.821Z</lastmod>
     
   </url>
   
