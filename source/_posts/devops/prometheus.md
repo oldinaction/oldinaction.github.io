@@ -85,7 +85,7 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets: ['192.168.6.131:9100']  # 客户端(此时为本机) node_exporter 的 endpoint
-    # 重命名标签。参考：https://www.li-rui.top/2019/04/16/monitor/Prometheus%E4%B8%ADrelabel_configs%E7%9A%84%E4%BD%BF%E7%94%A8/
+    # 重命名标签。参考：https://blog.gmem.cc/prometheus-study-note
     # relabel_configs:
 # 警告规则设置文件，需要安装Alertmanager，见下文。如使用Grafana告警则不需要
 rule_files:

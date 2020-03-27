@@ -709,9 +709,9 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
         - `targetPort` 被暴露的容器端口
         - `nodePort` 仅type=NodePort/LoadBalancer时，使用Node的端口映射服务端口(确保Node端口可用)，不指定则随机。NodePort默认端口范围为30000~32768
     - `externalName` 仅用于type=ExternalName，取值应该是一个外部域名，CNAME记录。CNAME -> FQDN
-    - `externalIPs` 可配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡，即用来定义VIP(直接填写一个和节点同一个段没使用过的IP即可，无需创建VIP)；可以和任一类型的Service一起使用(LoadBalancer)
+    - `externalIPs` 可配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡，即用来定义VIP(直接填写一个和节点同一网段没使用过的IP即可，无需创建VIP)；可以和任一类型的Service一起使用(如LoadBalancer)
     - `sessionAffinity` 是否session感知的：ClientIP(同一个客户永远访问的是同一个pod)、None(默认)
-    - `externalTrafficPolicy` 取值：Cluster(默认。隐藏源IP，可能会导致第二跳，负载较好)、Local(保留客户端源 IP 地址)。如果服务需要将外部流量路由到本地节点或者集群级别的端点，即service type 为LoadBalancer或NodePort，那么需要指明该参数
+    - `externalTrafficPolicy` 取值：Cluster(默认。隐藏源IP，可能会导致第二跳进行转发，负载可用性好)、Local(保留客户端源 IP 地址，不会尝试转发)。如果服务需要将外部流量路由到本地节点或者集群级别的端点，即service type 为LoadBalancer或NodePort，那么需要指明该参数
 - `status` 当前状态(current state)。由K8s进行维护，用户无需修改
 
 #### 简单示例
@@ -868,7 +868,7 @@ kubectl delete -f sq-pod.yaml
         - client-pod -> iptables -> kube-proxy -> server-pod
     - iptablse/ipvs
         - iptablse和ipvs工作流程一直，如下图。k8s配置成ipvs时，如果内核不支持，则会自动使用iptables
-        - ipvs(IP Virtual Server)实现了传输层负载均衡，也就是常说的4层LAN交换，作为 Linux 内核的一部分。是运行在LVS(Linux Virtual Server)下的提供负载平衡功能的一种技术。[^6]
+        - ipvs(IP Virtual Server)实现了传输层负载均衡，也就是常说的4层LAN交换，作为 Linux 内核的一部分。是运行在LVS(Linux Virtual Server)下的提供负载平衡功能的一种技术 [^6]
 
         ![k8s-ipvs](/data/images/devops/k8s-ipvs.png)
         - apiserver提交修改(pod变更等) -> kube-proxy -> 修改ipvs规则
@@ -905,13 +905,15 @@ kubectl delete -f sq-pod.yaml
     - 实际上Ingress也是Kubernetes API的标准资源类型之一，它其实就是一组基于DNS名称（host）或URL路径把请求转发到指定的Service资源的规则，用于将集群外部的请求流量转发到集群内部完成的服务发布。Ingress资源自身不能进行"流量穿透"，仅仅是一组规则的集合，这些集合规则还需要其他功能的辅助，比如监听某套接字，然后根据这些规则的匹配进行路由转发，这些能够为Ingress资源监听套接字并将流量转发的组件就是Ingress Controller
     - 此时使用NodePort暴露Ingress Controller；也可以(使Node)直接访问到Ingress Controller，不经过前面的Service(NodePort)。需要将Ingress Controller设置成DaemonSet，且共享Node的IP和端口
 - Ingress的资源类型：单Service资源型Ingress、基于URL路径进行流量转发、基于主机名称的虚拟主机、TLS类型的Ingress资源
-- K8s创建HAProxy可使用插件：Nginx、Traefik(为微服务而生)、Envoy(常用于微服务/服务网格)
+- K8s中Ingress Control支持类型
+    - 传统的七层负载均衡如Nginx，HAproxy，开发了适应微服务应用的插件，具有成熟，高性能等优点；
+    - 新型微服务负载均衡如Traefik(基于go开放，和k8s融合更紧密)，Envoy，Istio，专门适用于微服务+容器化应用场景，具有动态更新特点
 
-#### Ingress Nginx部署
+#### Ingress Controller部署(以ingress-nginx为例)
 
 - Ingress Control不直接运行为kube-controller-manager的一部分，它仅仅是Kubernetes集群的一个附件，类似于CoreDNS，需要在集群上单独部署
-- 部署Ingress Controller
-    - Ingress Controller可基于`Nginx`、`Traefik`(基于go开放，和k8s融合更紧密)、`Envoy`等来进行部署，此处使用[ingress-nginx](https://github.com/kubernetes/ingress-nginx)
+- [ingress-nginx](https://github.com/kubernetes/ingress-nginx)，此为kubernetes维护的开源组件；还有一个类似的是nginx维护的(nginx-ingress)
+- 手动安装如下，可以[基于helm安装](/_posts/devops/helm.md#ingress-nginx)
 
 ```bash
 ## 部署Ingress Controller，此时是Ingress Controller部署为Deployment。如果只执行此部署，则只能在集群内部访问，还需下文暴露成如Nodeport
@@ -928,14 +930,14 @@ kubectl apply -f service-nodeport.yaml
 kubectl get svc -n ingress-nginx
 
 ## 取消HSTS配置：https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-# 修改配置，具体见下文nginx-ingress-controller配置。修改后可能得半分钟左右生效
-kubectl edit configmap nginx-ingress-controller -n ingress-nginx
+# 修改配置，具体见下文nginx-configuration配置。修改后可能得半分钟左右生效
+kubectl edit configmap nginx-configuration -n ingress-nginx # 如果基于helm安装则是 nginx-ingress-controller
 ## 查看 ingress-controller 对应pod的nginx配置
 kubectl exec -it nginx-ingress-controller-74c6b9c45c-9qm54 -n ingress-nginx cat /etc/nginx/nginx.conf
 # 查看日志(cat /var/log/nginx/access.log 卡死)
 kubectl logs nginx-ingress-controller-74c6b9c45c-9qm54 -n ingress-nginx
 ```
-- nginx-ingress-controller配置(configmap)
+- nginx-configuration配置(configmap)
 
 ```yml
 # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
@@ -944,18 +946,6 @@ kind: ConfigMap
 data:
   # 取消hsts，配置成功后查看nginx配置时则无`Strict-Transport-Security`相关代码
   hsts: "false"
-  # 设置日志格式(此处使用json格式)
-  log-format-upstream: '{"time": "$time_iso8601", "remote_addr": "$remote_addr", "x-forward-for": "$proxy_add_x_forwarded_for",
-    "http_x_forwarded_for": "$http_x_forwarded_for", 
-    "the_real_ip": $the_real_ip, "full_x_forwarded_for": $full_x_forwarded_for,
-    "request_id": "$req_id", "remote_user": "$remote_user",
-	"bytes_sent": "$bytes_sent", "request_time": "$request_time", "status": "$status", "vhost": "$host",
-	"request_proto": "$server_protocol", "path": "$uri", "request_query": "$args", "request_length": "$request_length",
-    "duration": "$request_time", "method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent"}'
-    
-    compute-full-forwarded-for: "true"
-    forwarded-for-header: "X-Forwarded-For"
-    use-forwarded-headers: "true"
 metadata:
   labels:
     app: ingress-nginx
@@ -1026,10 +1016,6 @@ metadata:
   namespace: default
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    # 如kubernetes-dashboard需要实现tls访问，则需要加入此注解。否则提示"无法访问此网页"，且ingress-nginx容器日志报错"ingress dashboard upstream sent no valid HTTP/1.0 header while reading response header from upstream"
-        # This annotation was deprecated in 0.18.0 and removed after the release of 0.20.0，之前为 `nginx.ingress.kubernetes.io/secure-backends: "true"`
-        # 参考：http://bbs.bugcode.cn/t/18544 、https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-protocol
-    #nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   # 定义后端转发的规则
   rules:
@@ -1042,7 +1028,7 @@ spec:
           servicePort: 8080
         # 配置访问路径，如果通过url进行转发，需要修改；空默认为访问的路径为"/"
         path: "/"
-  # 配置TLS站点才需要(结合下文)
+  # 配置TLS站点才需要(结合下文构建TLS站点示例)
   tls:
   - secretName: sq-ingress-secret
     hosts:
@@ -1241,8 +1227,7 @@ spec:
 ### 网络
 
 - K8s网络类型：节点网络、Service网络(10.xx，生成虚拟的IP)、Pod网络(默认10.244.0.0/16)
-    - 节点一：cni0(10.244.0.1/24)、flannel.1(10.244.0.1/32)
-    - 其他节点：10.244.1.x, ... , 10.244.x.x
+    - 节点一：cni0网桥(10.244.0.1/24)、flannel.1网卡(10.244.0.1/32)；其他节点：10.244.1.x, ... , 10.244.x.x
     - `--pod-network-cidr=10.244.0.0/16` 初始master节点参数，则规定pod网络为此参数设定的。运行pod后会产生一个`cni0`的网桥，pod网络只能在K8s集群内部使用
 - 通信方式 [^7]
 
@@ -1252,7 +1237,7 @@ spec:
 
     - 同一个Pod内多个容器之间通信：Pod本地
         - 一个Pod内多个容器共享同一个网络命名空间，每个Docker容器拥有与Pod相同的IP和port地址空间，可以通过localhost相互访问。本质是是使用Docker的`-net=container`网络模型
-    - 各Pod之间通信：物理网桥、Overlay叠加网络
+    - 各Pod之间通信：物理网桥、Overlay叠加网络(常用)
         - 同一Node上的两个Pod通过veth对链接到root网络命名空间(宿主机)，并且通过网桥(宿主机的docker0)进行通信
         - 不同Node上的Pod通信(如上图k8s-network2：Node-vm1上的Pod1与Node-vm2上Pod4之间进行交互)
             - 首先pod1通过自己的以太网设备eth0把数据包发送到关联到root命名空间的veth0上，然后数据包被Node1上的网桥设备cbr0(docker0)接受到，网桥查找转发表发现找不到pod4的Mac地址，则会把包转发到默认路由(root命名空间的eth0设备)，然后数据包经过eth0就离开了Node1，被发送到网络
@@ -1274,7 +1259,7 @@ spec:
         - 会运行在所有的`kubelet`上，每个节点会运行一个相应的pod(DaemonSet守护进程)
         - 对应ConfigMap参数(`kubectl get configmap kube-flannel-cfg -o yaml -n kube-system`)
             - `Network` flannel使用的CIDR格式的网络地址，用于为Pod配置网络功能
-                - 示例一：`10.244.0.0/16`(可容纳256个节点，默认)：master(此节点上的pod网络为10.244.0.0/24)、node01(10.244.1.0/24)、...、node255(10.244.255.0/24)
+                - 示例一：集群pod网络为`10.244.0.0/16`(可容纳256个节点，默认)：master(此节点上的pod网络为10.244.0.0/24)、node01(10.244.1.0/24)、...、node255(10.244.255.0/24)
                     - 此时可容纳256个节点，每个节点还可以部署256个容器。理论上一个节点不会部署太多容器，因此可适当调节子网掩码从而扩大节点个数
                 - 示例二：`10.0.0.0/8`(可容纳2^16=65536个节点)：10.0.0.0/24、...、10.255.255.0/24(默认第2-3段为子网，第4段为节点内部使用)
             - `SubnetLen` 把Network切分子网供各节点使用时，使用的掩码切分长度节点网络，默认24位(则剩余8位可为主机号，即一个节点上可运行的pod数量为256)掩码

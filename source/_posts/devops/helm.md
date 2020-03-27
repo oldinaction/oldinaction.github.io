@@ -343,7 +343,7 @@ spec:
 
 ### ingress-nginx
 
-> https://hub.kubeapps.com/charts/stable/nginx-ingress
+> https://hub.kubeapps.com/charts/stable/nginx-ingress (基于kubernetes维护的ingress-nginx仓库实现)
 
 ```bash
 helm repo update
@@ -355,15 +355,30 @@ kubectl label node node1 node-role.kubernetes.io/edge=
 cat > ingress-nginx.yaml << EOF
 controller:
   replicaCount: 1
-  # 使用VIP地址达到负载均衡的效果?
-  #service:
-  #  externalIPs:
-  #  - 192.168.6.129
-  # 临时可使用宿主机网络测试
-  hostNetwork: true
-  # 取消HSTS配置
+  # 使用VIP地址达到负载均衡的效果(将域名绑定到此VIP，如果不设置可能无法通过域名访问。删除需要重新创建ingress-nginx-pod才会生效)
+  service:
+    externalIPs:
+    - 192.168.6.129
+  # 临时可使用宿主机网络测试(如果使用externalIPs则不能使用此属性)
+  #hostNetwork: true
   config:
+    # 取消HSTS配置
     hsts: "false"
+    # 设置日志格式(此处使用json格式)
+    log-format-upstream: '{"time": "$time_iso8601", "remote_addr": "$remote_addr", "x-forward-for": "$proxy_add_x_forwarded_for",
+        "http_x_forwarded_for": "$http_x_forwarded_for", 
+        "the_real_ip": $the_real_ip, "full_x_forwarded_for": $full_x_forwarded_for,
+        "request_id": "$req_id", "remote_user": "$remote_user",
+        "bytes_sent": "$bytes_sent", "request_time": "$request_time", "status": "$status", "vhost": "$host",
+        "request_proto": "$server_protocol", "path": "$uri", "request_query": "$args", "request_length": "$request_length",
+        "duration": "$request_time", "method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent"}'
+    # 允许跨域配置
+    # 获取客户端真实IP(未成功)
+    use-forwarded-headers: "true"
+    proxy-real-ip-cidr: 10.244.0.0/0
+    compute-full-forwarded-for: "true"
+    forwarded-for-header: "X-Forwarded-For"
+    # use-proxy-protocol: "true"
   # 选择含边缘标签的节点(上文有边缘节点才需要)
   nodeSelector:
     node-role.kubernetes.io/edge: ''
@@ -545,13 +560,8 @@ alertmanager:
   ingress:
     #enabled: true
     annotations:
-      nginx.ingress.kubernetes.io/server-snippet: |
-        location / {
-            # 只允许某些ip访问
-            allow 10.10.10.0/24;
-            allow 10.10.11.100;
-            deny all; # 开白名单时，此行必须有且在最后
-        }
+      # 设置可访问的白名单
+      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.6.0/24
     hosts:
     - alertmanager.prometheus.k8s.aezo.cn
 alertmanagerFiles:

@@ -730,6 +730,69 @@ server {
         - 基于cookies实现
         - 在`upstream`中加入`session_sticky;`
 
+### ngx-http-map-module(变量转换)
+
+- `ngx-http-map-module` 可以基于其他变量及变量值进行变量创建，其允许分类，或者映射多个变量到不同值并存储在一个变量中。(nginx默认已存在，除非由人为移除--without-http_map_module)
+- `map $var1 $var2 {...}`
+    - 配置段位http
+    - $var1 为源变量，$var2 是自定义变量。$var2 的值取决于 $var1 在对应表达式的匹配情况。如果一个都匹配不到则 $var2 就是 default 对应的值
+    - 部分参数
+        - default： 指定源变量匹配不到任何表达式时将使用的默认值。当没有设置 default，将会用一个空的字符串作为默认的结果
+- 示例
+
+```bash
+# 如果 $http_user_agent 为 curl 则 $agent=curl，如果 $http_user_agent 为 apachebench 则 $agent=ab，否则为 ""
+map $http_user_agent $agent {
+    default "";
+    # 可以使用正则(~表示大小写敏感，~*表示大小写不敏感)
+    ~curl curl;
+    ~*apachebench ab;
+}
+```
+
+### ngx-http-geo-module(客户端IP-变量)
+
+- `ngx-http-geo-module` 可以用来创建变量，变量值依赖于客户端 ip 地址(nginx默认已存在)
+- `geo [$address] $variable { ... }` 配置段位http
+- 示例：限速白名单的配置实例
+
+```bash
+http{
+    # geo指令，定义变量是否为白名单$whiteiplist(默认1；1表示限制速度，0表示不限制)。如果客户端IP与白名单列出的IP相匹配，则$whiteiplist值为0也就是不受限制
+    geo $whiteiplist {
+        default 1;
+        127.0.0.1 0;
+        192.168.0.0/16 0;
+    }
+    
+    # map指令，将$whiteiplist值为1的，也就是受限制的IP，映射为客户端IP。将$whiteiplist值为0的，也就是白名单IP，映射为空的字符串。并赋值给 $limit
+    map $whiteiplist $limit {
+        1 $binary_remote_addr;
+        0 "";
+    }
+
+    # limit_conn_zone和limit_req_zone指令对于键为空值的将会被忽略，从而实现对于列出来的IP不做限制
+    limit_conn_zone $limit zone=limit:10m;
+
+    server {
+        listen 80;
+        server_name test.example.com;
+
+        location ~ / {
+            root /var/www/test/;         
+            index index.html index.php index.htm;
+        }
+
+        location ^~ /download/ {
+            limit_conn limit 4; # 最大的并发连接数
+            limit_rate 200k; # 每个连接的带宽
+            alias /data/download/;
+        }
+    }
+}
+```
+
+
 ## 结合keepalived实现高可用
 
 - 示意图

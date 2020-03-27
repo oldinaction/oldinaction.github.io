@@ -19,7 +19,7 @@ yum install -y bridge-utils
 brctl show
 ```
 
-### ip信息
+### ip信息/路由信息
 
 - `ip a` ip信息
     - `ip a`/`ip addr` 可以查看网卡的ip、mac等，即使网卡处于down状态，也能显示出网卡状态，但是`ifconfig`查看就看不到
@@ -95,7 +95,7 @@ tcpdump -i docker0 -n -vv -e icmp
 tcpdump -n -s 0 -e -i ens33 -v "icmp or arp or udp"
 # 过滤来源/目的端口
 tcpdump -i eth1 port 21 # tcpdump -i eth1 src/dst port 21 # 精确指定来源/目的端口
-# 抓取所有经过eth1，目的地址是192.168.1.254或192.168.1.200端口是80的TCP数据
+# 抓取所有经过eth1，目的地址是192.168.1.254或192.168.1.200端口是80的TCP数据(src - dst)
 tcpdump -i eth1 '((tcp) and (port 80) and ((dst host 192.168.1.254) or (dst host 192.168.1.200)))'
 # 抓取所有经过eth1，目标MAC地址是00:01:02:03:04:05的ICMP数据
 tcpdump -i eth1 '((icmp) and ((ether dst host 00:01:02:03:04:05)))'
