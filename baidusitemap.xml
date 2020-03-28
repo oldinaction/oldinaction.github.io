@@ -4,8 +4,52 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
+    <lastmod>2020-03-28T01:11:13.085Z</lastmod>
+    <data>
+        <display>
+        <title>Helm | K8s包管理器</title>
+        <pubTime>2019-06-22T04:38:00.000Z</pubTime>
+        
+        <tag>k8s</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    <lastmod>2020-03-27T13:29:51.642Z</lastmod>
+    <data>
+        <display>
+        <title>Kubernetes</title>
+        <pubTime>2019-06-01T04:38:00.000Z</pubTime>
+        
+        <tag>k8s</tag>
+         
+        <tag>cncf</tag>
+         
+        <tag>docker</tag>
+         
+         
+           
+             
+              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
-    <lastmod>2020-03-27T13:00:22.544Z</lastmod>
+    <lastmod>2020-03-27T13:00:45.965Z</lastmod>
     <data>
         <display>
         <title>网络</title>
@@ -28,26 +72,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
-    <lastmod>2020-03-27T11:42:45.283Z</lastmod>
-    <data>
-        <display>
-        <title>Helm | K8s包管理器</title>
-        <pubTime>2019-06-22T04:38:00.000Z</pubTime>
-        
-        <tag>k8s</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
     <lastmod>2020-03-27T10:35:54.007Z</lastmod>
     <data>
@@ -58,30 +82,6 @@
         <tag>monitor</tag>
          
         <tag>cncf</tag>
-         
-         
-           
-             
-              <breadCrumb title="devops" url="http://blog.aezo.cn/categories/devops/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    <lastmod>2020-03-27T07:38:24.262Z</lastmod>
-    <data>
-        <display>
-        <title>Kubernetes</title>
-        <pubTime>2019-06-01T04:38:00.000Z</pubTime>
-        
-        <tag>k8s</tag>
-         
-        <tag>cncf</tag>
-         
-        <tag>docker</tag>
          
          
            
@@ -701,9 +701,9 @@
         <title>sql进阶</title>
         <pubTime>2017-09-30T04:51:00.000Z</pubTime>
         
-        <tag>mysql</tag>
-         
         <tag>oracle</tag>
+         
+        <tag>mysql</tag>
          
         <tag>sql</tag>
          
@@ -747,9 +747,9 @@
         <title>sql基础</title>
         <pubTime>2017-09-30T04:51:00.000Z</pubTime>
         
-        <tag>mysql</tag>
-         
         <tag>oracle</tag>
+         
+        <tag>mysql</tag>
          
         <tag>sql</tag>
          
@@ -1633,9 +1633,9 @@
         <title>db-procedure</title>
         <pubTime>2017-08-24T12:33:00.000Z</pubTime>
         
-        <tag>mysql</tag>
-         
         <tag>oracle</tag>
+         
+        <tag>mysql</tag>
          
         <tag>procedure</tag>
          
@@ -1939,9 +1939,9 @@
         <title>access</title>
         <pubTime>2018-11-20T06:06:00.000Z</pubTime>
         
-        <tag>db</tag>
-         
         <tag>microsoft</tag>
+         
+        <tag>db</tag>
          
          
            
@@ -2048,11 +2048,11 @@
         <title>powerdesigner</title>
         <pubTime>2017-12-05T11:41:00.000Z</pubTime>
         
-        <tag>model</tag>
+        <tag>oracle</tag>
          
         <tag>mysql</tag>
          
-        <tag>oracle</tag>
+        <tag>model</tag>
          
          
            
