@@ -89,7 +89,7 @@ search      # 关键字搜索chart。eg: helm search mysql
 serve       # 启动一个本地的http server用于展示本地charts和提供下载
     # helm serve --address=192.168.6.131:8879
 status      # 查看release状态信息
-    # helm status grafana # 安装完chart也会自动执行一次
+    # helm status grafana # 重新展示安装完成后的状态信息
 template    # 本地模板
 test        # release测试
 upgrade     # 更新release
@@ -366,19 +366,17 @@ controller:
     hsts: "false"
     # 设置日志格式(此处使用json格式)
     log-format-upstream: '{"time": "$time_iso8601", "remote_addr": "$remote_addr", "x-forward-for": "$proxy_add_x_forwarded_for",
-        "http_x_forwarded_for": "$http_x_forwarded_for", 
-        "the_real_ip": $the_real_ip, "full_x_forwarded_for": $full_x_forwarded_for,
-        "request_id": "$req_id", "remote_user": "$remote_user",
+        "the_real_ip": $the_real_ip, "request_id": "$req_id", "remote_user": "$remote_user",
         "bytes_sent": "$bytes_sent", "request_time": "$request_time", "status": "$status", "vhost": "$host",
         "request_proto": "$server_protocol", "path": "$uri", "request_query": "$args", "request_length": "$request_length",
         "duration": "$request_time", "method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent"}'
     # 允许跨域配置
     # 获取客户端真实IP(未成功)
-    use-forwarded-headers: "true"
-    proxy-real-ip-cidr: 10.244.0.0/0
-    compute-full-forwarded-for: "true"
-    forwarded-for-header: "X-Forwarded-For"
-    # use-proxy-protocol: "true"
+    #use-forwarded-headers: "true"
+    #proxy-real-ip-cidr: 10.244.0.0/0
+    #compute-full-forwarded-for: "true"
+    #forwarded-for-header: "X-Forwarded-For"
+    ## use-proxy-protocol: "true"
   # 选择含边缘标签的节点(上文有边缘节点才需要)
   nodeSelector:
     node-role.kubernetes.io/edge: ''
@@ -955,6 +953,31 @@ helm del --purge jenkins # 如果删除部署后重新部署，会重新创建�
 ### OpenLDAP
 
 - 使用参考[LDAP](/_posts/db/LDAP.md#基于k8s安装)
+
+### skydive(网络分析)
+
+- [官网](http://skydive.network/index.html)
+
+> https://hub.kubeapps.com/charts/ibm-charts/ibm-skydive-dev
+
+```bash
+# ibm仓库(skydive测试版)
+helm repo add ibm-charts https://raw.githubusercontent.com/IBM/charts/master/repo/stable/
+
+cat > skydive-values.yaml << 'EOF'
+image:
+  repository: docker.mirrors.ustc.edu.cn/ibmcom/skydive
+EOF
+helm install --name skydive --namespace monitoring ibm-charts/ibm-skydive-dev --version=1.1.2 -f skydive-values.yaml
+
+helm upgrade skydive ibm-charts/ibm-skydive-dev --version=1.1.2 -f skydive-values.yaml
+helm del --purge skydive
+
+# 访问。等待pod正常运行后获取访问ip
+export UI_PORT=$(kubectl get --namespace monitoring -o jsonpath="{.spec.ports[0].nodePort}" services skydive-ibm-skydive-dev-service)
+export UI_IP=$(kubectl get nodes --namespace monitoring -o jsonpath="{.items[0].status.addresses[0].address}")
+echo "skydive end-point: http://$UI_IP:$UI_PORT"
+```
 
 ## Chart说明
 

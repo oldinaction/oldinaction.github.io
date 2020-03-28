@@ -952,6 +952,9 @@ metadata:
   name: nginx-ingress-controller
   namespace: ingress-nginx
 ```
+- Ingress资源注解说明
+    - `nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.6.0/24,192.168.1.100` 访问白名单
+    - `nginx.ingress.kubernetes.io/canary: true` [金丝雀(canary)/灰度发布功能](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#canary)
 
 #### 创建Ingress示例
 
