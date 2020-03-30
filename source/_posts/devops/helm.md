@@ -957,6 +957,9 @@ helm del --purge jenkins # 如果删除部署后重新部署，会重新创建�
 ### skydive(网络分析)
 
 - [官网](http://skydive.network/index.html)
+- Skydive 是一款开放式源代码的实时网络拓扑和协议分析器，并可通过WEB界面展示
+    - Skydive agent，运行在各个节点上，捕捉该节点的拓扑和流量信息
+    - Skydive analyzer，收集所有agents捕获的信息
 
 > https://hub.kubeapps.com/charts/ibm-charts/ibm-skydive-dev
 

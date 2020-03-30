@@ -2376,6 +2376,30 @@ public class DynamicAddTests {
 			- add folder：选择jre目录(如果上面exe4j第6步填写的是`./jre`，则此处还需要给jre外面包裹一层文件夹如jre-home，然后此处选择jre-home路径即可。最终会jre目录和exe4j生成的exe文件仍然处于同级目录。因此可以将exe4j第6步设置成`.`，则最终可以去掉`jre`这层目录)
 			- add files：选择上述`*.vmoptions`
 
+### 注册成windows服务
+
+参考：https://github.com/winsw/winsw
+
+### 设置开机启动
+
+- linux设置到chkconfg
+- windows
+
+    ```bash
+    ## 方式一
+    Windows+R运行，输入gpedit.msc进入组策略编辑器，选中windows设置，双击脚本(启动/关机)，添加-浏览-选择脚本-确定
+
+    ## 方式二(未成功)
+    # 1.创建 start_my_app.bat
+    java -jar my_app.jar
+    # 2.创建 start_my_app.vb
+    Set ws = CreateObject("Wscript.Shell")
+    ws.run "cmd /c D:\test\start_my_app.bat",vbhide
+    # 3.将start_my_app.vb文件放到 C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup 目录
+
+    ## 方式三：使用服务
+    ```
+
 ## 常见错误
 
 - `nested exception is java.lang.IllegalArgumentException: Could not resolve placeholder 'crm.tempFolder' in value "${crm.tempFolder}"`

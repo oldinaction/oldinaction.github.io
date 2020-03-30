@@ -190,8 +190,13 @@ pid /run/nginx.pid;
 events {
     # 参考事件模型，use [ kqueue | rtsig | epoll | /dev/poll | select | poll ]; epoll模型是Linux 2.6以上版本内核中的高性能网络I/O模型，如果跑在FreeBSD上面，就用kqueue模型。
     #use epoll;
+    
     #单个进程最大连接数（最大并发数/连接数 = 单个进程最大连接数 * 进程数）
     worker_connections 65535; #（*）
+
+    # accept_mutex的意义：当一个新连接到达时，如果accept_mutex=on，那么多个Worker将以串行方式来处理，其中有一个Worker会被唤醒，其他的Worker继续保持休眠状态；如果accept_mutex=off，那么所有的Worker都会被唤醒，不过只有一个Worker能获取新连接，其它的Worker会重新进入休眠状态，这就是「惊群问题」
+    # 默认是on(接受互斥)。对Nginx而言，一般来说， worker_processes 会设置成CPU个数，所以最多也就几十个，即便发生惊群问题的话，影响相对也较小(Apache动辄就会启动成百上千的进程，如果发生惊群问题的话，影响相对较大)。如果网站访问量比较大，为了系统的吞吐量，可关闭accept_mutex
+    accept_mutex off;
 }
 
 # load modules compiled as Dynamic Shared Object (DSO)
@@ -242,6 +247,12 @@ http {
 
     # 默认配置。使用main格式进行输出访问日志
     # access_log  /var/log/nginx/access.log  main;
+    # 按照天对access.log进行分割(否则时间长了日志文件会很大)
+    map $time_iso8601 $logdate {
+		'~^(?<ymd>\d{4}-\d{2}-\d{2})' $ymd;
+		default                       'date-not-found';
+	}
+	access_log logs/access-$logdate.log main; # 需将上述log_format  main开启
     
     #charset utf-8; #默认编码
     #server_names_hash_bucket_size 128; #服务器名字的hash表大小
@@ -988,6 +999,11 @@ fi
 
 - v1.12.1
     - 当访问`http://www.aezo.cn/index.html`不进入对应的页面，而是显示默认的`/usr/share/nginx/html/index.html`。解决办法：注释掉此文件即可
+
+## 常见错误
+
+- 错误代码`10060`。某次：windows server 2012，无并发，某天开始出现此错误，最终通过修改注册表解决(需重启，将localhost优先按ipv4解析)，参考：https://blog.csdn.net/u010267491/article/details/52775115
+
 
 
 

@@ -97,6 +97,9 @@ private static enum YellEnum implements Yell {
     - `UTC`：协调世界时，又称世界标准时间或世界协调时间，简称UTC(Universal Time Coordinated)。是最主要的世界时间标准，其以原子时秒长为基础，在时刻上尽量接近于格林尼治标准时间
     - `CST` China Standard Time 中国标准时间(北京时间)。在时区划分上，属东八区，比协调世界时早8小时，记为`UTC+8`(CST=GMT+8)
         - 但是CST的缩写还是其他几个时间的缩写：Central Standard Time (USA) UT-6:00、Central Standard Time (Australia) UT+9:30、China Standard Time UT+8:00、Cuba Standard Time UT-4:00
+    - ISO8061和UTC
+        - `ISO8601`时间格式如：2018-6-5T11:46:50Z
+        - `UTC`时间格式: 2018-06-05T03:46:50+08:00。其中"T"用来分割日期和时间，时间后面跟着的"-07:00"表示西七区，"+08:00"表示东八区。时区默认是0时区，可以用"Z"表示，也可以不写。对于我国，要使用"+08:00"，表示东八区
 - `Date`记录的是1970至今的毫秒数，不保存时区信息(因为时间戳和时区没有关系)
 - 时间转换
 
