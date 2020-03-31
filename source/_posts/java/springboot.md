@@ -625,7 +625,8 @@ public class CustomObjectMapper extends ObjectMapper {
     }
 
     private void init() {
-        this.configure(SerializationFeature.INDENT_OUTPUT, true);
+        this.configure(SerializationFeature.INDENT_OUTPUT, true); // 返回数据自动缩进
+        this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 对于非实体参数进行忽略，否则报错：Jackson with JSON: Unrecognized field
         
         // LocalDateTime 转换参考：https://blog.csdn.net/junlovejava/article/details/78112240
         // (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`
@@ -756,8 +757,8 @@ myConfig:
 
 request-method |Content-Type   |postman   |springboot   |说明
 --|---|---|---|---
-post |`application/json`   |row-json   |(String param, @RequestBody User user)   |`String param`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List等对象)。而idea的http文件中url参数拼在地址上无法获取(请求机制不同)
-post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`
+post |`application/json`   |row-json   |(String param, @RequestBody User user) 或 (Long userId)  |`String param`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List等对象)，而idea的http文件中url参数拼在地址上无法获取(请求机制不同)。**对于application/json中的body数据，如果为基础数据类型和其包装类型可省略 @RequestBody，其他必须用 @RequestBody 接受参数**。
+post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`。**对于application/x-www-form-urlencoded类型的数据，无需 @RequestBody 接受参数**
 post |`multipart/form-data`  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
@@ -834,13 +835,17 @@ public String user(@PathVariable("id") Integer id) {}
 - POST请求
 
 ```java
+// 请求头为application/x-www-form-urlencoded(不能是application/json，否则无法注入)
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
 public String hello(User user) {}
+public String hello(Map<String, Object> map) {}
+
 // 如请求头为`application/json`，此body中为一个json对象(请求时无需加 data={} 等key，直接为 {} 对象)。
-// 获取body中的参数，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以成功转成Map，此处也可以用Map<String, Object>接受
+// 直接通过 `@RequestBody User user` 获取body中的参数(springboot会自动映射)，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以成功转成Map/List，此处也可以用 `@RequestBody Map<String, Object>`接受
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public String addUser(@RequestBody List<User> user) {}
-// public String addUser(Map<String, Object> user) {} // body数据可以成功转成Map时
+public String addUser(@RequestBody List<User> user) {} // body数据可以成功转成Map/List时
+public String addUser(@RequestBody Map<String, Object> map) {}
+
 // 请求数据http://localhost/?name=smalle&pass=123
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
 public String addUser(@RequestBody String param) {} // 此时param拿到的值为 name=smalle&pass=123
@@ -2383,22 +2388,7 @@ public class DynamicAddTests {
 ### 设置开机启动
 
 - linux设置到chkconfg
-- windows
-
-    ```bash
-    ## 方式一
-    Windows+R运行，输入gpedit.msc进入组策略编辑器，选中windows设置，双击脚本(启动/关机)，添加-浏览-选择脚本-确定
-
-    ## 方式二(未成功)
-    # 1.创建 start_my_app.bat
-    java -jar my_app.jar
-    # 2.创建 start_my_app.vb
-    Set ws = CreateObject("Wscript.Shell")
-    ws.run "cmd /c D:\test\start_my_app.bat",vbhide
-    # 3.将start_my_app.vb文件放到 C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup 目录
-
-    ## 方式三：使用服务
-    ```
+- windows参考 [开机启动java等程序](/_posts/extend/windows.md#开机启动java等程序)
 
 ## 常见错误
 

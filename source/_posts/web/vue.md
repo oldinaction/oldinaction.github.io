@@ -811,7 +811,7 @@ const User = {
         '$route' (to, from) {
             if (to.name == "XXX") {
                 // 对路由变化作出响应...
-                // this.init();
+                this.init();
             }
         }
     },
@@ -831,6 +831,16 @@ const User = {
     beforeRouteLeave (to, from, next) {
         // 导航离开该组件的对应路由时调用
         // 可以访问组件实例 `this`
+    },
+    created() {
+        this.init()
+    },
+    methods: {
+        init() {
+            this.userId = this.$route.params.userId
+            this.fetchData()
+        },
+        fetchData() {}
     }
 }
 ```

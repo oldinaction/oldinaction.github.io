@@ -42,31 +42,55 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 
 ## 常用技巧
 
-- 开机启动java等程序
-    - 基于创建服务也可实现。如使用[Windows Service Wrapper](https://github.com/kohsuke/winsw)工具注册服务，此处已nginx注册成服务为例
-        - 下载`WinSW.NET4.exe`，放到nginx安装目录，并重命名为`nginx-service.exe`
-        - 在nginx安装目录新建WinSW配置文件`nginx-service.xml`(需要和nginx-service.exe保持一致)，如下
+### 开机启动java等程序
 
-            ```xml
-            <service>
-                <id>nginx</id>
-                <name>nginx service</name>
-                <description>nginx service made by WinSW.NET4</description>
-                <logpath>D:/software/nginx-1.14.0/</logpath>
-                <logmode>roll</logmode>
-                <depend></depend>
-                <executable>D:/software/nginx-1.14.0/nginx.exe</executable>
-                <stopexecutable>D:/software/nginx-1.14.0/nginx.exe -s stop</stopexecutable>
-            </service>
-            ```
-        - 管理员模式执行 `nginx-service.exe install` 进行nginx服务注册
-        - `nginx-service.exe uninstall` 卸载nginx服务
-    - 基于创建bat脚本
-        - 法一：将bat脚本的快捷方式放到启动目录
-            - 全局启动目录：`C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`(.../「开始」菜单/程序/启动)
-            - 用户启动目录：`C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
-        - 法二：运行栏输入`taskschd.msc`打开`计划任务工具`，这里可以创建`基本任务`，有开机启动执行程序等选项可以设置
-            - 运行exe程序的最好写成bat脚本运行。如nginx.exe写到bat脚本中去运行，然后任务中运行此脚本
+- 自启动的程序可在任务管理器-启动列查看
+- 基于创建服务也可实现。如使用[Windows Service Wrapper](https://github.com/kohsuke/winsw)工具注册服务，此处以nginx注册成服务为例
+    - 下载`WinSW.NET4.exe`，放到nginx安装目录，并重命名为`nginx-service.exe`
+    - 在nginx安装目录新建WinSW配置文件`nginx-service.xml`(需要和nginx-service.exe保持一致)，如下
+
+        ```xml
+        <service>
+            <id>nginx</id>
+            <name>nginx service</name>
+            <description>nginx service made by WinSW.NET4</description>
+            <logpath>D:/software/nginx-1.14.0/</logpath>
+            <logmode>roll</logmode>
+            <depend></depend>
+            <executable>D:/software/nginx-1.14.0/nginx.exe</executable>
+            <stopexecutable>D:/software/nginx-1.14.0/nginx.exe -s stop</stopexecutable>
+        </service>
+        ```
+    - 管理员模式执行 `nginx-service.exe install` 进行nginx服务注册
+    - `nginx-service.exe uninstall` 卸载nginx服务
+- 基于创建bat脚本(未成功)
+    - 法一：将bat脚本的快捷方式放到启动目录
+        - **用户启动目录**：cmd - `shell:startup`(或手动`C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`)
+        - 全局启动目录：`C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`(.../「开始」菜单/程序/启动)
+    - 法二：参考下文`任务计划`
+    - 法三：基于bat和vb
+
+        ```bash
+        # 1.创建 start_my_app.bat
+        java -jar my_app.jar
+        # 2.创建 start_my_app.vb
+        Set ws = CreateObject("Wscript.Shell")
+        ws.run "cmd /c D:\test\start_my_app.bat",vbhide
+        # 3.将start_my_app.vb文件放到 C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup 目录
+        ```
+- 基于组策略编辑器(未成功)
+    - Windows+R运行，输入`gpedit.msc`进入组策略编辑器，选中windows设置，双击脚本(启动/关机)，添加-浏览-选择脚本-确定
+
+### 任务计划
+
+- 运行栏输入`taskschd.msc`打开`计划任务工具`
+- 如创建开机启动任务
+    - 任务计划程序库 - 选择用户 - 创建任务
+        - 常规：任务名称`start-outlook`，描述`开机启动outlook`
+        - 触发器：新建 - 开始任务"启动时" - 确定
+        - 操作：新建 - 启动程序 - 选择程序或脚本(如果安装了bash.exe，也可以执行sh脚本)
+    - 运行exe程序的最好写成bat脚本运行。如nginx.exe写到bat脚本中去运行，然后任务中运行此脚本
+
 ## bat脚本
 
 参考[bat脚本：http://blog.aezo.cn/2017/05/10/lang/bat/](/_posts/lang/bat.md)
@@ -147,6 +171,14 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
         - 执行`ping`等命令返回乱码：如果是Cgywin客户端，则设置文本-编码为zh_CN/GBK；如果是xshell连接的，则设置xshell的编码为GBK
         - ls显示颜色：在`~/.bashrc`文件中加入`alias ls='ls --color --show-control-chars'`
         - 建立SSH隧道时，运行一段时间会出现客户端进行的连接会一直增多，且通过`netstat -ano | findstr "10010"` 查询打此通道上的PID，但是在任务管理器和tasklist都无法查询到此进程ID，如果需要重启服务职能将sshd/ssh相关的进程全部关闭，再重启sshd服务
+
+### Outlook
+
+- Outlook开机启动：参考上文将快捷方式加入到用户的启动目录
+- 禁止退出：参考 https://www.cnblogs.com/beeone/p/10556609.html
+- 最小化隐藏任务栏：右键图标 - 最小化隐藏
+- Outlook可和Foxmail互导联系人
+
 
 ---
 
