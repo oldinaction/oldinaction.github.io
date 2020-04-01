@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    
+    <lastmod>2020-04-01T08:17:45.481Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2020-03-31T08:54:23.192Z</lastmod>
@@ -75,13 +82,6 @@
     <loc>http://blog.aezo.cn/2017/11/28/extend/vscode/</loc>
     
     <lastmod>2020-03-25T02:11:12.624Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    
-    <lastmod>2020-03-24T14:05:26.933Z</lastmod>
     
   </url>
   
