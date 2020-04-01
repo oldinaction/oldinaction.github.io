@@ -47,6 +47,26 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 }
 ```
 
+### 文字省略
+
+```css
+/* 单行缩略（部分浏览器需要设置宽度） */
+span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 多行省略 */
+p {
+    overflow : hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 对2行文字进行省略 */
+    -webkit-box-orient: vertical;
+}
+```
+
 ## 色彩
 
 - 渐变色

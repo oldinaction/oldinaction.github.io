@@ -38,6 +38,12 @@ tags: [vue, UI]
         <Option v-for="(item, index) in subResult" :value="item.id" :key="index">{{ item.nodeName }}</Option>
     </Select>
     ```
+- 可通过ref使用组件内部属性
+    - 获取组件名称`this.$refs.myRef.prefixCls`，如：ivu-select、ivu-date-picker、ivu-cascader
+    - 如获取部分组件的展示值
+        - `Select`: this.$refs.myRef.query
+        - `DatePicker`: this.$refs.myRef.publicStringValue
+        - `Cascader`: this.$refs.myRef.displayRender(参考下文Cascader说明)
 
 ### Select
 
@@ -179,6 +185,88 @@ this.$refs.mySelect.visible = true
     }
   }
 </style>
+```
+
+### Cascader数据结构(含后台)
+
+```html
+<!-- 获取 Cascader 显示值，伪代码如下 -->
+<div>{{ $refs.module_editable_actual != null ? $refs.module_editable_actual.displayRender : '' }}</div>
+<Cascader ref="module_editable_actual" :data="moduleData" v-model="moduleIdList" @on-change="v => moduleId = v.splice(-1)"></Cascader>
+
+<script>
+import { findLeafParent } from '@/libs/util'
+
+export default {
+    created() {
+        this.moduleIdList = findLeafParent(this.moduleData, 'id', this.moduleId)
+    }
+}
+
+// @/libs/util 代码
+/**
+ * 获取叶子节点的所有节点
+ */
+export function findLeafParent(array, leafKey, leafValue) {
+  let retArr = []
+  let going = true
+
+  let find = (array, leafValue) => {
+    array.forEach(item => {
+      if (!going) return
+      retArr.push(item[leafKey])
+      if (item[leafKey] === leafValue) {
+        going = false
+      } else if (item['children']) {
+        find(item['children'], leafValue)
+      } else {
+        retArr.pop()
+      }
+    })
+    if (going) retArr.pop()
+  }
+
+  find(array, leafValue)
+
+  return retArr
+}
+</script>
+```
+- java代码
+
+```java
+// select *, id value, name label from d_project_module where project_id=#{projectId} and valid_status=1 // 将value和label单独取出
+List<Map<String, Object>> list = projectModuleMapper.selectCascader(map);
+List<Map<String, Object>> recursion = MyUtil.recursion(list, 0, null);
+
+// MyUtil.recursion
+public static List<Map<String, Object>> recursion(List<Map<String, Object>> listData, Integer i, Object id) {
+    List<Map<String, Object>> treeList = new ArrayList<Map<String, Object>>();
+    Iterator it = listData.iterator();
+    i++;
+    while (it.hasNext()) {
+        Map<String, Object> map = (Map<String, Object>) it.next();
+        if(CommUtil.isEmpty(id)) {
+            if(CommUtil.isEmpty(map.get("pid")) || "0".equals(map.get("pid").toString())) {
+                map.put("i", i);
+                treeList.add(map);
+                // 使用Iterator，以便在迭代时把listData中已经添加到treeList的数据删除，迭代次数
+                it.remove();
+            }
+        } else {
+            if(String.valueOf(id).equals(String.valueOf(map.get("pid")))) {
+                map.put("i", i);
+                treeList.add(map);
+                it.remove();
+            }
+        }
+    }
+
+    for (Map<String, Object> map : treeList) {
+        map.put("children", recursion(map.get("id"), listData, i));
+    }
+    return treeList;
+}
 ```
 
 ## 样式

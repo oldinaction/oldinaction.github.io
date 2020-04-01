@@ -10,13 +10,15 @@ tags: js
 
 ### Array对象
 
-> http://javascript.ruanyifeng.com/stdlib/array.html
+- [Array API](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array)
+- http://javascript.ruanyifeng.com/stdlib/array.html
 
-- map/filter/reduce/sort方法
-    - `map` 映射操作。对原数组每个元素进行处理，并回传新的数组
-    - `filter` 过滤操作。筛选符合条件的所有元素，若为true则返回组成新数组
-    - `reduce` 归并操作。总共两个参数，第一个是参数，可以理解为累加器，遍历数组累加回传的返回值，第二个是初始元素。如果没有提供初始元素，则将使用数组中的第一个元素
-    - `sort` 排序操作。默认排序顺序是根据字符串Unicode码点
+#### map/filter/reduce/sort方法
+
+- `map` 映射操作。对原数组每个元素进行处理，并回传新的数组
+- `filter` 过滤操作。筛选符合条件的所有元素，若为true则返回组成新数组
+- `reduce` 归并操作。总共两个参数，第一个是参数，可以理解为累加器，遍历数组累加回传的返回值，第二个是初始元素。如果没有提供初始元素，则将使用数组中的第一个元素
+- `sort` 排序操作。默认排序顺序是根据字符串Unicode码点
 - 示例
 
 ```js
@@ -31,7 +33,7 @@ const people = ['Beck, Glenn', ...... , 'Blake, William'];
 // 以数组形式，列出其名与姓
 const fullnames = inventors.map(inventor => `${inventor.first} ${inventor.last}`)
 // 筛选出生于16世纪的发明家
-const fifteen = inventors.filter(inventor => (inventor.year >= 1500 && inventor.year < 1600))
+const fifteenObj = inventors.filter(inventor => (inventor.year >= 1500 && inventor.year < 1600))
 // 计算所有的发明家加起来一共活了几岁
 const totalyears = inventors.reduce((total, inventor) => { return total + (inventor.passed - inventor.year) }, 0)
 // 根据其出生日期，并从大到小排序
