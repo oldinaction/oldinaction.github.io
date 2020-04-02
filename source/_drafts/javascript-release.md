@@ -40,6 +40,13 @@ const totalyears = inventors.reduce((total, inventor) => { return total + (inven
 const birthdate = inventors.sort((inventora, inventorb) => (inventorb.year - inventora.year))
 ```
 
+### slice/splice
+
+- `array.slice([begin[, end]])` 返回一个新的浅拷贝数组对象。原始数组不会被改变
+    - begin：提取起始处的索引（默认从 0 开始）。如果该参数为负数，则表示从原数组中的倒数第几个元素开始提取，slice(-2) 表示提取原数组中的倒数第二个元素到最后一个元素（包含最后一个元素）
+    - end：默认从0开始，但截取的不包含此索引元素。必须大于start，否则返回[]，省略则表示到数组末尾
+- `array.splice(start[, deleteCount[, item1[, item2[, ...]]]])` 通过删除或替换现有元素或者原地添加新的元素来修改数组,并以数组形式返回被修改的内容。此方法会改变原数组
+
 ## ES6 (ES2017)
 
 ### Promise
