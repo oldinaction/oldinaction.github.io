@@ -18,6 +18,11 @@ tags: js
 - `map` 映射操作。对原数组每个元素进行处理，并回传新的数组
 - `filter` 过滤操作。筛选符合条件的所有元素，若为true则返回组成新数组
 - `reduce` 归并操作。总共两个参数，第一个是参数，可以理解为累加器，遍历数组累加回传的返回值，第二个是初始元素。如果没有提供初始元素，则将使用数组中的第一个元素
+    - `array.reduce(callback(accumulator, currentValue[, index[, array]])[, initialValue])`，接受参数如下
+        - Accumulator (acc) (累计器)
+        - Current Value (cur) (当前值)
+        - Current Index (idx) (当前索引)
+        - Source Array (src) (源数组)
 - `sort` 排序操作。默认排序顺序是根据字符串Unicode码点
 - 示例
 

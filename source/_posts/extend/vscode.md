@@ -122,8 +122,8 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 // 文件自动保存
 "files.autoSave": "afterDelay",
 
-// 关闭自动检测文件Tab大小
-"editor.detectIndentation": false	
+"editor.snippetSuggestions": "top", // 将用户代码片段显示在提示的最上方
+"editor.detectIndentation": false, // 关闭自动检测文件Tab大小
 "editor.fontSize": 16,
 // tab占的空格数
 "editor.tabSize": 4,

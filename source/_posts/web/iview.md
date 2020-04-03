@@ -41,7 +41,7 @@ tags: [vue, UI]
 - 可通过ref使用组件内部属性
     - 获取组件名称`this.$refs.myRef.prefixCls`，如：ivu-select、ivu-date-picker、ivu-cascader
     - 如获取部分组件的展示值
-        - `Select`: this.$refs.myRef.query
+        - `Select`: this.$refs.myRef.publicValue(单选时，需要结合)
         - `DatePicker`: this.$refs.myRef.publicStringValue
         - `Cascader`: this.$refs.myRef.displayRender(参考下文Cascader说明)
 

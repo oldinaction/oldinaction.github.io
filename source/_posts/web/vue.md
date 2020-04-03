@@ -61,6 +61,8 @@ tags: vue
     - 根组件 mounted
     - beforeRouteEnter的next的回调
     - nextTick
+- 浏览器地址栏刷新/回车/F5
+    - 所有页面组件重新创建，重头调用`beforeCreate`；且在某页面刷新时，改页面的`beforeDestroy`等钩子不会被执行
 
 ### 事件
 
@@ -125,10 +127,10 @@ created(): {
 - 官方说明
     - https://cn.vuejs.org/v2/guide/list.html#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
     - https://cn.vuejs.org/v2/guide/reactivity.html#%E6%A3%80%E6%B5%8B%E5%8F%98%E5%8C%96%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
-    - 由于 JavaScript 的限制，Vue 不能检测以下变动的数组：
+    - **由于 JavaScript 的限制，Vue 不能检测以下变动的数组**
         - 当你利用索引直接设置一个项时，例如：`vm.items[indexOfItem] = newValue`
         - 当你修改数组的长度时，例如：`vm.items.length = newLength`
-    - 还是由于 JavaScript 的限制，Vue 不能检测对象属性的添加或删除
+    - **由于 JavaScript 的限制，Vue 不能检测对象属性的添加或删除**
 
         ```js
         var vm = new Vue({
@@ -139,16 +141,16 @@ created(): {
                 }
             }
         })
-        // `vm.a` 是响应的
+        // `vm.a` 是响应的，`vm.b` 是非响应的(添加新属性)
         vm.b = 2
-        // `vm.b` 是非响应的(添加新属性)
         vm.user.name = 'smalle' // 是响应的
         vm.user.password = '123456' // 是非响应的(添加新属性)
         ```
 - **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
     - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)
-    - 对于select，必须定义key值(只需要当前select的key值唯一，无需整个页面的key值唯一)保证唯一性。否则容易出现无法选择/无法修改该select的值，导致数据响应不触发
-    - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
+    - **对于v-for，最好定义key值**，否则容易出现无法选择/无法修改该select的值，导致数据响应不触发
+        - 如结合select的option循环时，只需要当前select的option的key值唯一，无需整个页面的key值唯一)保证唯一性
+        - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
         - `key="&#123;{Date.now() + Math.random()}&#123;"` (此处双括号使用了转义符)
 - 扩展说明
 
@@ -470,7 +472,9 @@ Vue.component('base-checkbox', {
 - 自定义事件`$emit`，子组件可以向父组件传递数据(参考以下示例)
 - **通过`$refs`属性，父组件可直接取得、修改、调用子组件的数据**
     - 场景还原：父组件点击按钮，控制显示子组件的弹框(`iview`弹框)，此时当`iview`弹框关闭时会修改`v-model`的值，如果用`props`则违反了`props`单向数据流的原则
-    - `ref`可以用于标记一个节点或组件
+    - `ref`可以用于标记一个普通元素或组件
+    - `$refs`只有`mounted`了之后才能获取到数据
+- 在子组件中可以通过`$parent`调用父组件属性和方法
 - 在父组件中使用`sync`修饰符修饰props属性，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景
 
 #### 知识点
