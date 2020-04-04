@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
+    
+    <lastmod>2020-04-04T13:45:00.101Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/03/20/linux/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</loc>
+    
+    <lastmod>2020-04-04T13:34:55.547Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
     
     <lastmod>2020-04-03T09:22:02.608Z</lastmod>
@@ -103,13 +117,6 @@
     <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
     
     <lastmod>2020-03-24T06:11:23.980Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/03/20/linux/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</loc>
-    
-    <lastmod>2020-03-22T07:30:24.783Z</lastmod>
     
   </url>
   
@@ -313,13 +320,6 @@
     <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
     
     <lastmod>2019-11-22T02:07:34.241Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
-    
-    <lastmod>2019-11-22T01:11:15.759Z</lastmod>
     
   </url>
   
