@@ -149,6 +149,9 @@ algolia:
   applicationID: '你的Application ID'
   apiKey: '你的Search-Only API Key'
   indexName: '输入刚才创建index name'
+
+# 命令行执行，上传数据生成索引
+hexo algolia
 ```
 
 #### PlantUML
