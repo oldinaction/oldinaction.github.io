@@ -143,7 +143,12 @@ tags: [tag1, tag2, tag3]
 # 安装插件
 npm install hexo-algolia --save
 
-# 
+# 站点根目录打开_config.yml添加以下代码
+# Algolia Search API Key
+algolia:
+  applicationID: '你的Application ID'
+  apiKey: '你的Search-Only API Key'
+  indexName: '输入刚才创建index name'
 ```
 
 #### PlantUML
