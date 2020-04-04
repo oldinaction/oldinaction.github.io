@@ -138,7 +138,10 @@ tags: [tag1, tag2, tag3]
 - 基于 [Algolia](https://www.algolia.com/) 的搜索
 
 ```bash
+# 参考：http://blog.langpz.com/Hexo-Next%E9%9B%86%E6%88%90Algolia%E6%90%9C%E7%B4%A2.html
+
 # 注册 Algolia 账号
+# 创建索引，手动创建KEY并设置权限
 
 # 安装插件
 npm install hexo-algolia --save
@@ -151,6 +154,7 @@ algolia:
   indexName: '输入刚才创建index name'
 
 # 命令行执行，上传数据生成索引
+export HEXO_ALGOLIA_INDEXING_KEY=a91f1b54121e881406b55730276f2384 # Search-Only API Key
 hexo algolia
 ```
 

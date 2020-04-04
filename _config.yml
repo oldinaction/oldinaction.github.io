@@ -84,5 +84,5 @@ baidusitemap:
 
 algolia:
   applicationID: BWD6R9FA4K
-  apiKey: a91f1b54121e881506b95730276f6884
+  apiKey: 3330f3cbaa099dfc30395de5f5b20151
   indexName: 'blog'
