@@ -51,45 +51,56 @@ a:hover {
 }
 
 /* markdown标题编号 */
-// h1 {
-// 	counter-increment: counter_h1;
-// 	counter-reset: counter_h2;
-// }
-// h1:before {
-// 	content: counter(counter_h1)"　";
-// }
-h2 {
-	counter-increment: counter_h2;
-	counter-reset: counter_h3;
+.post-body {
+    // h1 {
+    // 	counter-increment: counter_h1;
+    // 	counter-reset: counter_h2;
+    // }
+    // h1:before {
+    // 	content: counter(counter_h1)"　";
+    // }
+    h2 {
+        counter-increment: counter_h2;
+        counter-reset: counter_h3;
+    }
+    h2:before {
+        content: counter(counter_h2)"　";
+    }
+    h3 {
+        counter-increment: counter_h3;
+        counter-reset: counter_h4;
+    }
+    h3:before {
+        content: counter(counter_h2)"."counter(counter_h3)"　";
+    }
+    h4 {
+        counter-increment: counter_h4;
+        counter-reset: counter_h5;
+    }
+    h4:before {
+        content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"　";
+    }
+    h5 {
+        counter-increment: counter_h5;
+        counter-reset: counter_h6;
+    }
+    h5:before {
+        content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"　";
+    }
+    h6 {
+        counter-increment: counter_h6;
+    }
+    h6:before {
+        content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"."counter(counter_h6)"　";
+    }
 }
-h2:before {
-	content: counter(counter_h2)"　";
+
+/* 右侧大纲默认展开一层 */
+.post-toc .nav .nav-level-2>.nav-child { 
+   display: block; 
 }
-h3 {
-	counter-increment: counter_h3;
-	counter-reset: counter_h4;
-}
-h3:before {
-	content: counter(counter_h2)"."counter(counter_h3)"　";
-}
-h4 {
-	counter-increment: counter_h4;
-	counter-reset: counter_h5;
-}
-h4:before {
-	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"　";
-}
-h5 {
-	counter-increment: counter_h5;
-	counter-reset: counter_h6;
-}
-h5:before {
-	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"　";
-}
-h6 {
-	counter-increment: counter_h6;
-}
-h6:before {
-	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"."counter(counter_h6)"　";
+
+.drift-frame-controller {
+    margin-right: 100px;
 }
 

@@ -3,10 +3,10 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: SmalleBlog | AEZOCN
+title: Smalle's Blog | AEZOCN
 subtitle: Better Code, Better Life
 description: 代码，让生活更美好(AEZO.CN)
-author: Smalle
+author: smalle
 language: zh-Hans
 timezone: Asia/Shanghai
 
@@ -81,3 +81,8 @@ sitemap:
   path: sitemap.xml
 baidusitemap:
   path: baidusitemap.xml
+
+algolia:
+  applicationID: BWD6R9FA4K
+  apiKey: a91f1b54121e881506b95730276f6884
+  indexName: 'blog'

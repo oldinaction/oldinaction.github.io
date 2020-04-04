@@ -135,7 +135,16 @@ tags: [tag1, tag2, tag3]
   - 安装：`npm install --save hexo-generator-search`
   - 开启local_search
   - 还可手动写本地搜索功能 [^1]
-- 基于Swiftype的搜索
+- 基于 [Algolia](https://www.algolia.com/) 的搜索
+
+```bash
+# 注册 Algolia 账号
+
+# 安装插件
+npm install hexo-algolia --save
+
+# 
+```
 
 #### PlantUML
 
@@ -161,48 +170,50 @@ Bob->Alice : hello
 
 ```css
 /* markdown标题编号 */
-/* 文章标题习惯从h2开始
-h1 {
-    counter-increment: counter_h1;
-    counter-reset: counter_h2;
-}
-h1:before {
-    content: counter(counter_h1)"　";
-} 
-*/
-h2 {
-	counter-increment: counter_h2;
-	counter-reset: counter_h3;
-}
-h2:before {
-	content: counter(counter_h2)"　";
-}
-h3 {
-	counter-increment: counter_h3;
-	counter-reset: counter_h4;
-}
-h3:before {
-	content: counter(counter_h2)"."counter(counter_h3)"　";
-}
-h4 {
-	counter-increment: counter_h4;
-	counter-reset: counter_h5;
-}
-h4:before {
-	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"　";
-}
-h5 {
-	counter-increment: counter_h5;
-	counter-reset: counter_h6;
-}
-h5:before {
-	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"　";
-}
-h6 {
-	counter-increment: counter_h6;
-}
-h6:before {
-	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"."counter(counter_h6)"　";
+.post-body {
+    /* 文章标题习惯从h2开始
+    h1 {
+        counter-increment: counter_h1;
+        counter-reset: counter_h2;
+    }
+    h1:before {
+        content: counter(counter_h1)"　";
+    } 
+    */
+    h2 {
+        counter-increment: counter_h2;
+        counter-reset: counter_h3;
+    }
+    h2:before {
+        content: counter(counter_h2)"　";
+    }
+    h3 {
+        counter-increment: counter_h3;
+        counter-reset: counter_h4;
+    }
+    h3:before {
+        content: counter(counter_h2)"."counter(counter_h3)"　";
+    }
+    h4 {
+        counter-increment: counter_h4;
+        counter-reset: counter_h5;
+    }
+    h4:before {
+        content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"　";
+    }
+    h5 {
+        counter-increment: counter_h5;
+        counter-reset: counter_h6;
+    }
+    h5:before {
+        content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"　";
+    }
+    h6 {
+        counter-increment: counter_h6;
+    }
+    h6:before {
+        content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"."counter(counter_h6)"　";
+    }
 }
 ```
 
