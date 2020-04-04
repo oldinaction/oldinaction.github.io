@@ -1,26 +1,9 @@
 // Custom styles.
 $main-width = 95%;
-$first-color: #ffad33
-$second-color: #ffad33
-$sub-color: #ffad33
-
-.main-inner {
-    width: $main-width;
-}
-@media (min-width: 1600px)
-    .main-inner
-        width $main-width !important;
-
-.header-inner {
-    width: $main-width;
-}
-.footer-inner {
-    width: $main-width;
-}
-
-.back-to-top, .sidebar-toggle {
-    right: 70px;
-}
+$first-color = #FED136;
+$second-color = #ffdd68;
+$third-color = #ffe690;
+$opposite-color = #4339b1;
 
 /* 滚动条 */
 ::-webkit-scrollbar {
@@ -31,11 +14,82 @@ $sub-color: #ffad33
 ::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background-color: #FFF;
-    background-image: -webkit-gradient(linear, 40% 0%, 75% 84%, from(#ff9900), to(#ffad33), color-stop(.6,#fec207));
+    background-image: -webkit-gradient(linear, 40% 0%, 75% 84%, from($third-color), to($first-color), color-stop(.6,$second-color));
 }
 ::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
     background-color: #F5F5F5;
     border-radius: 10px;
+}
+
+/* 首页 */
+a:hover {
+    border-bottom-color: $first-color;
+}
+.menu .menu-item a:hover {
+    background: $third-color;
+}
+.posts-expand .post-title-link::before {
+    background-color: $first-color;
+}
+
+/* 详情 */
+.main-inner {
+    width: $main-width;
+}
+@media (min-width: 1600px)
+    .main-inner
+        width $main-width !important;
+.header-inner {
+    width: $main-width;
+}
+.footer-inner {
+    width: $main-width;
+}
+.back-to-top, .sidebar-toggle {
+    right: 70px;
+}
+
+/* markdown标题编号 */
+// h1 {
+// 	counter-increment: counter_h1;
+// 	counter-reset: counter_h2;
+// }
+// h1:before {
+// 	content: counter(counter_h1)"　";
+// }
+h2 {
+	counter-increment: counter_h2;
+	counter-reset: counter_h3;
+}
+h2:before {
+	content: counter(counter_h2)"　";
+}
+h3 {
+	counter-increment: counter_h3;
+	counter-reset: counter_h4;
+}
+h3:before {
+	content: counter(counter_h2)"."counter(counter_h3)"　";
+}
+h4 {
+	counter-increment: counter_h4;
+	counter-reset: counter_h5;
+}
+h4:before {
+	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"　";
+}
+h5 {
+	counter-increment: counter_h5;
+	counter-reset: counter_h6;
+}
+h5:before {
+	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"　";
+}
+h6 {
+	counter-increment: counter_h6;
+}
+h6:before {
+	content: counter(counter_h2)"."counter(counter_h3)"."counter(counter_h4)"."counter(counter_h5)"."counter(counter_h6)"　";
 }
 

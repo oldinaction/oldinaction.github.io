@@ -67,6 +67,27 @@ p {
 }
 ```
 
+### 滚动条样式
+
+- 样例参考：http://www.xuanfengge.com/demo/201311/scroll/css3-scroll.html [^1]
+
+```css
+::-webkit-scrollbar {
+    width: 12px;
+    background-color: #F5F5F5;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #D62929;
+}
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    background-color: #F5F5F5;
+}
+```
+
 ## 色彩
 
 - 渐变色
@@ -84,3 +105,11 @@ div {
     background: -webkit-linear-gradient(0deg, rgb(251, 176, 30), rgb(229, 2, 18), rgb(192, 6, 156));
 }
 ```
+
+
+
+
+---
+
+[^1]: https://segmentfault.com/a/1190000012800450
+
