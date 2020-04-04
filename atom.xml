@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>SmalleBlog | AEZOCN</title>
+  <title>Smalle&#39;s Blog | AEZOCN</title>
   
   <subtitle>Better Code, Better Life</subtitle>
   <link href="/atom.xml" rel="self"/>
@@ -10,7 +10,7 @@
   <id>http://blog.aezo.cn/</id>
   
   <author>
-    <name>Smalle</name>
+    <name>smalle</name>
     
   </author>
   
