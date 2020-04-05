@@ -42,6 +42,7 @@
   </div>
 </div>
 
+<!-- 实时沟通，或可使用 http://www.daovoice.io/ -->
 <!-- Start of Async Drift Code -->
 <script>
 "use strict";

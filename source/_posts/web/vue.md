@@ -369,6 +369,11 @@ render: (h, params) => {
 }
 ```
 
+### 报错 You may have an infinite update loop in a component render function
+
+- 参考：https://www.itread01.com/content/1541599683.html
+- `render method is triggered whenever any state changes` vue组件中任何属性改变致使render函数重新执行。如果在模板中直接修改vue属性或调用的方法中修改了属性(如双括号中，而@click等事件中是可以修改vue属性的)，就会导致重新render。从而产生**render - 属性改变 - render**无限循环
+
 ## 组件
 
 ### 自定义组件中使用 v-model

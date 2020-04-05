@@ -135,7 +135,10 @@ tags: [tag1, tag2, tag3]
   - 安装：`npm install --save hexo-generator-search`
   - 开启local_search
   - 还可手动写本地搜索功能 [^1]
+  - 速度较慢，可搜索内容
 - 基于 [Algolia](https://www.algolia.com/) 的搜索
+    - 免费账户总共有 10,000 条记录，每月有 50,000 的可以操作数(操作索引)，可无限搜索
+    - 速度较快但是只能搜索标题标签等，不能搜索内容
 
 ```bash
 # 参考：http://blog.langpz.com/Hexo-Next%E9%9B%86%E6%88%90Algolia%E6%90%9C%E7%B4%A2.html
