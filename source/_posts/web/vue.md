@@ -899,7 +899,7 @@ location / {
 }
 
 /* scoped穿透问题：需要在局部组件中修改第三方组件库(如 iview)的样式，而又不想去除scoped属性造成组件之间的样式覆盖，这时可以通过特殊的方式穿透scoped */
-/* less/sass格式如：`外层 /deep/ 第三方组件 {样式}`(外层也可省略)，stylus则是将 /deep/  换成 >>> */
+/* less/sass格式如：`外层 /deep/ 第三方组件 {样式}`(外层也可省略)，stylus则是将 /deep/ 换成 >>> */
 .wrapper /deep/ .ivu-table th {
     background-color: #eef8ff;
 }
@@ -910,10 +910,11 @@ location / {
 
 > https://cli.vuejs.org/zh/guide/css.html#%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AF%BC%E5%85%A5
 
-- 以vue-cli为例
+- 以vue-cli自动导入stylus为例
 
 ```js
-// 需要提前安装依赖：npm i style-resources-loader -D
+npm i style-resources-loader -D // 需要提前安装依赖
+// npm i sass-resources-loader -D // sass/less 
 
 // vue.config.js
 const path = require('path')
@@ -936,10 +937,30 @@ function addStyleResource (rule) {
     .loader('style-resources-loader')
     .options({
       patterns: [
-        // index.less 文件中可以定义全局变量或者全局样式，或者导入其他样式文件
+        // index.less 文件中可以定义全局变量或者全局样式，或者导入其他样式文件 (不能使用别名路径)
         path.resolve(__dirname, './src/assets/theme/default/index.less'),
       ],
     })
+}
+```
+- less/sass为例(stylus亦可)
+
+```bash
+# 更新vue cli到3.0以上
+vue --version # @vue/cli 4.3.0
+npm install -g @vue/cli
+
+# 增加依赖(会将相应依赖添加到package.json)
+vue add style-resources-loader
+
+# vue.config.js 配置
+module.exports = {
+    pluginOptions: {
+        'style-resources-loader': {
+            preProcessor: 'less',
+            patterns: [path.resolve(__dirname, 'src/styles/theme/index.less')]
+        }
+    }
 }
 ```
 - main.js引入样式文件、全局样式自动化导入、vue文件中样式关系
@@ -988,6 +1009,14 @@ function addStyleResource (rule) {
 }
 ```
 
+## vue-cli v3
+
+- 安装
+
+```bash
+npm install -g @vue/cli
+vue --version # @vue/cli 4.3.0
+```
 
 
 

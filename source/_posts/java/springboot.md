@@ -631,11 +631,12 @@ public class CustomObjectMapper extends ObjectMapper {
         // LocalDateTime 转换参考：https://blog.csdn.net/junlovejava/article/details/78112240
         // (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`
         // (2) 返回时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(dateTimeFormatPattern)));
-        javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(dateFormatPattern)));
-        javaTimeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(timeFormatPattern)));
-        this.registerModule(javaTimeModule);
+        JavaTimeModule module = new JavaTimeModule();
+        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(dateTimeFormatPattern)));
+        module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(dateFormatPattern)));
+        module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(timeFormatPattern)));
+        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(dateTimeFormatPattern)));
+        this.registerModule(module);
     }
 
     public CustomObjectMapper setNotContainNull() {

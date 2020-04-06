@@ -192,14 +192,20 @@ this.$refs.mySelect.visible = true
 ```html
 <!-- 获取 Cascader 显示值，伪代码如下 -->
 <div>{{ $refs.module_editable_actual != null ? $refs.module_editable_actual.displayRender : '' }}</div>
-<Cascader ref="module_editable_actual" :data="moduleData" v-model="moduleIdList" @on-change="v => moduleId = v.splice(-1)"></Cascader>
+<Cascader ref="module_editable_actual" :data="moduleList" v-model="moduleIdList" @on-change="v => moduleId = v.splice(-1)"></Cascader>
 
 <script>
 import { findLeafParent } from '@/libs/util'
 
 export default {
-    created() {
-        this.moduleIdList = findLeafParent(this.moduleData, 'id', this.moduleId)
+    methods: {
+        init() {
+            // 如果重新赋值了Cascader的data 则其v-model的修改必须在$nextTick中，否则数据更新后显示不会变更。参考 https://github.com/iview/iview/issues/1637
+            this.moduleList = xxx
+            this.$nextTick(() => {
+                this.moduleIdList = findLeafParent(this.moduleList, 'id', this.moduleId)
+            })
+        }
     }
 }
 
@@ -270,6 +276,45 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 ```
 
 ## 样式
+
+### 主题
+
+- 配置
+
+```css
+/* src/styles/index.less(最后在main.js中引入) */
+@import '~view-design/src/styles/index.less';
+@import 'theme/index.less';
+@import 'common.less';
+
+/* src/styles/theme/index.less 覆盖iview默认变量 */
+@primary-color: #8c0776;
+
+/* src/styles/common.less */
+.primary-color {
+    color: @primary-color; /* 由于此文件最终由main.js导入到全局，因此此处可以使用theme/index.less中的变量 */
+}
+
+/* 其他less文件中应用全局变量，请参考 [vue样式-全局样式](/_posts/web/vue.md#样式) */
+```
+- [内置变量](https://github.com/view-design/ViewUI/blob/master/src/styles/custom.less)
+
+```less
+// 常用
+@primary-color: #32b642; // 全局主色
+@warning-color: #faad14; // 警告色
+@error-color: #f5222d; // 错误色
+@link-color: #32b642; // 链接色
+@font-size-base: 14px; // 主字号
+@heading-color: rgba(0, 0, 0, 0.85); // 标题色
+@text-color: rgba(0, 0, 0, 0.65); // 主文本色
+@text-color-secondary : rgba(0, 0, 0, .45); // 次文本色
+@disabled-color : rgba(0, 0, 0, .25); // 失效色
+@border-radius-base: 4px; // 组件/浮层圆角
+@border-color-base: #d9d9d9; // 边框色
+@box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15); // 浮层阴影
+@line: #e8e8e8; // 分割线颜色
+```
 
 ### 通用标签属性
 
