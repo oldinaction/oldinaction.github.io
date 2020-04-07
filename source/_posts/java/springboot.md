@@ -562,65 +562,38 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 }
 ```
 
-### HttpMessageConverter(字段转换器/格式处理)
+### jackson字段映射
+
+- yaml配置方式`spring.jackson` [^17]
+- javabean方式
 
 ```java
+// 参考：https://segmentfault.com/a/1190000021906586
 // 暴露自定义映射规则类
 @Bean
 public CustomObjectMapper customObjectMapper() {
     return new CustomObjectMapper()
             .setNotContainNull()
-            .setDateFormatPattern("yyyy/MM/dd HH:mm:ss");
+            .setDateFormatPattern("yyyy-MM-dd HH:mm:ss");
             // .setCamelCaseToLowerCaseWithUnderscores();
 }
 
-@Bean
-public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
-    // 可能使用MappingJackson2HttpMessageConverter导致post无法获取到参数的问题。此转换器默认只支持application/json，如果浏览器请求时为application/json;charset=UTF-8则会出现此问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
-    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(this.customObjectMapper());
-    MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_FORM_URLENCODED};
-    converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
-    return converter;
-}
-
-// 统一日期转换(方式一)
-@Autowired
-private RequestMappingHandlerAdapter handlerAdapter; // 如果程序中有注入WebMvcConfigurer则会报错(如上文跨域资源共享配置方式二)
-@PostConstruct
-public void initEditableAvlidation() {
-    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer) handlerAdapter.getWebBindingInitializer();
-    if(initializer.getConversionService() != null) {
-        GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
-        genericConversionService.addConverter(new StringToDateConverter());
-    }
-}
-// 统一日期转换(方式二)
-@ControllerAdvice
-public class CourseControllerHandler {
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
-        if (genericConversionService != null) {
-            genericConversionService.addConverter(new StringToDateConverter());
-        }
-    }
-}
+// @Bean
+// public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+//     // 可能使用MappingJackson2HttpMessageConverter导致post无法获取到参数的问题。此转换器默认只支持application/json，如果浏览器请求时为application/json;charset=UTF-8则会出现此问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
+//     MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(this.customObjectMapper());
+//     MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_FORM_URLENCODED};
+//     converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
+//     return converter;
+// }
 
 // 自定义规则类
 public class CustomObjectMapper extends ObjectMapper {
-    private String dateTimeFormatPattern = "yyyy/MM/dd HH:mm:ss";
-    private String dateFormatPattern = "yyyy/MM/dd";
-    private String timeFormatPattern = "HH:mm:ss";
+    public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"; // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
 
     public CustomObjectMapper() {
-        init();
-    }
-
-    public CustomObjectMapper(String dateTimeFormatPattern, String dateFormatPattern, String timeFormatPattern) {
-        this.dateTimeFormatPattern = dateTimeFormatPattern;
-        this.dateFormatPattern = dateFormatPattern;
-        this.timeFormatPattern = timeFormatPattern;
-
         init();
     }
 
@@ -628,14 +601,20 @@ public class CustomObjectMapper extends ObjectMapper {
         this.configure(SerializationFeature.INDENT_OUTPUT, true); // 返回数据自动缩进
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 对于非实体参数进行忽略，否则报错：Jackson with JSON: Unrecognized field
         
+        // 解析post请求body体
         // LocalDateTime 转换参考：https://blog.csdn.net/junlovejava/article/details/78112240
         // (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`
         // (2) 返回时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")
         JavaTimeModule module = new JavaTimeModule();
-        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(dateTimeFormatPattern)));
-        module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(dateFormatPattern)));
-        module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(timeFormatPattern)));
-        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(dateTimeFormatPattern)));
+        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
+        module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
+        module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
+        // 解析前台传入日期时间(此时可以解析2000/01/01 00:00:00，否则只能解析2000/01/01T00:00:00Z)
+        // iview的日前选择建议使用 :value 绑定(不要使用v-model)，如 <DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>
+        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
+        // module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
+        // module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
+
         this.registerModule(module);
     }
 
@@ -672,45 +651,27 @@ public class CustomObjectMapper extends ObjectMapper {
     }
 }
 
-// 日期转换类
-public class StringToDateConverter implements Converter<String, Date> { // org.springframework.core.convert.converter.Converter;
-    private static final String dateFormat = "yyyy-MM-dd HH:mm:ss";
-    private static final String dateFormat2 = "yyyy/MM/dd HH:mm:ss";
-    private static final String shortDateFormat = "yyyy-MM-dd";
-    private static final String shortDateFormat2 = "yyyy/MM/dd";
-    private static final String timeStampFormat = "^\\d+$";
-
-    @Override
-    public Date convert(String value) {
-        if(StringUtils.isEmpty(value)) {
-            return null;
+// (利用jackson转换无需) StringToDateConverter为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
+// 注入转换器方式一
+@Autowired
+private RequestMappingHandlerAdapter handlerAdapter; // 如果程序中有注入WebMvcConfigurer则会报错(如上文跨域资源共享配置方式二)
+@PostConstruct
+public void initEditableAvlidation() {
+    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer) handlerAdapter.getWebBindingInitializer();
+    if(initializer.getConversionService() != null) {
+        GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
+        genericConversionService.addConverter(new StringToDateConverter());
+    }
+}
+// 注入转换器方式二
+@ControllerAdvice
+public class CourseControllerHandler {
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
+        if (genericConversionService != null) {
+            genericConversionService.addConverter(new StringToDateConverter());
         }
-        value = value.trim();
-        try {
-            if (value.contains("-")) {
-                SimpleDateFormat formatter;
-                if (value.contains(":")) {
-                    formatter = new SimpleDateFormat(dateFormat);
-                } else {
-                    formatter = new SimpleDateFormat(shortDateFormat);
-                }
-                return formatter.parse(value);
-            } else if (value.matches(timeStampFormat)) {
-                Long lDate = new Long(value);
-                return new Date(lDate);
-            } else if (value.contains("/")) {
-                SimpleDateFormat formatter;
-                if (value.contains(":")) {
-                    formatter = new SimpleDateFormat(dateFormat2);
-                } else {
-                    formatter = new SimpleDateFormat(shortDateFormat2);
-                }
-                return formatter.parse(value);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("parser %s to Date fail", value));
-        }
-        throw new RuntimeException(String.format("parser %s to Date fail", value));
     }
 }
 ```
@@ -1027,7 +988,7 @@ public MultipartConfigElement multipartConfigElement() {
 	# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
 	spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 	# 端口默认3306可以省略
-	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?useUnicode=true&useSSL=false&characterEncoding=utf-8
+	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?serverTimezone=Asia/Shanghai&useUnicode=true&useSSL=false&characterEncoding=utf8
 	spring.datasource.username=root
 	spring.datasource.password=root
 	# springboot连接池默认使用的是tomcat-jdbc-pool，在处理utf8mb4类型数据(Emoji表情、生僻汉字。uft8默认只能存储1-3个字节的汉字，上述是4个字节)的时候，需要大致两步
@@ -2432,3 +2393,5 @@ User user = this.userRepositroy.findById(id).get();
 [^14]: http://blog.didispace.com/springbootmultidatasource/
 [^15]: https://blog.csdn.net/neosmith/article/details/61202084
 [^16]: https://ifengkou.github.io/spring_boot%E5%8A%A8%E6%80%81%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE&%E8%BF%90%E8%A1%8C%E6%97%B6%E6%96%B0%E5%A2%9E%E6%95%B0%E6%8D%AE%E6%BA%90.html
+[^17]: https://www.cnblogs.com/liaojie970/p/9396334.html
+

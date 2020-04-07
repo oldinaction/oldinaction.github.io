@@ -35,12 +35,27 @@ accessDbInfos.forEach(item -> {
 });
 ```
 
-### 方法引用
+### 方法引用(::)
 
-- Class::new
-- Class::static_method
-- Class::method
-- instance::method
+- `方法引用`或者说`双冒号运算`对应的参数类型是 `Function<T, R>`，T表示传入类型，R表示返回类型。基于Lambda表达式实现
+- 比如表达式`person -> person.getAge();` 传入参数是person，返回值是person.getAge()，那么方法引用`Person::getAge`就对应着`Function<Person,Integer>`类型
+- 示例
+    - Class::new
+    - Class::static_method
+    - Class::method
+    - instance::method
+- 使用案例
+
+    ```java
+    private String getUserInfo(User user, Function<User, Object> func) {
+        Object value = func.apply(user); // 如果参数为 Function<User, String> 则返回类型为 String
+        return value;
+    }
+
+    // 调用
+    Object username = getUserInfo(user, User::getUsername);
+    Object password = getUserInfo(user, User::getPassword);
+    ```
 
 ### Streams
 
@@ -101,7 +116,6 @@ List<Integer> nos = students
                     .sorted()
                     .collect(Collectors.toList());
 ```
-
 - parallelStream
     - https://blog.csdn.net/u011001723/article/details/52794455
 

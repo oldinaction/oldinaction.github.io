@@ -41,7 +41,7 @@ tags: [vue, UI]
 - 可通过ref使用组件内部属性
     - 获取组件名称`this.$refs.myRef.prefixCls`，如：ivu-select、ivu-date-picker、ivu-cascader
     - 如获取部分组件的展示值
-        - `Select`: this.$refs.myRef.publicValue(单选时，需要结合)
+        - `Select`: this.$refs.myRef.publicValue(单选时。如果要在模板中展示则不能这样调用，会出现死循环，参考下文[可编辑表单](#可编辑表单))
         - `DatePicker`: this.$refs.myRef.publicStringValue
         - `Cascader`: this.$refs.myRef.displayRender(参考下文Cascader说明)
 
@@ -187,6 +187,15 @@ this.$refs.mySelect.visible = true
 </style>
 ```
 
+### DatePicker
+
+```html
+<!-- (推荐) 返回的是string类型数据(配合on-change使用)。监控前台请求，此字段字符串如 2000-03-17" -->
+<DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>
+<!-- 返回的是Date类型数据。监控前台请求，此字段字符串如 2000-03-16T16:00:00.000Z" -->
+<DatePicker type="date" v-model="workLevelItem.startTm"></DatePicker>
+```
+
 ### Cascader数据结构(含后台)
 
 ```html
@@ -320,6 +329,13 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 
 - `transfer` 让元素置顶层显示，防止被其他元素遮挡(如果未遮挡慎用)
 - 使用空的`Col`完成排版`<Col span="2">&nbsp;</Col>`
+
+## 示例
+
+### 可编辑表单
+
+
+
 
 ---
 

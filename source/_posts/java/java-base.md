@@ -86,20 +86,24 @@ private static enum YellEnum implements Yell {
 }
 ```
 
-
 ## 集合
 
 ## 时间
 
-- GMT、UTC、CST [^1]
+- GMT、**UTC**、CST [^1]
     - `GMT`：格林尼治平时(Greenwich Mean Time，GMT)是指位于英国伦敦郊区的皇家格林尼治天文台的标准时间。由于地球自转导致存在误差，因此格林尼治时间已经不再被作为标准时间使用。现在的标准时间，是由原子钟报时的协调世界时间(UTC)
         - 当 Timestamp 为 0，就表示时间(GMT)1970年1月1日0时0分0秒。中国使用北京时间，处于东 8 区，相应就是早上 8 点
-    - `UTC`：协调世界时，又称世界标准时间或世界协调时间，简称UTC(Universal Time Coordinated)。是最主要的世界时间标准，其以原子时秒长为基础，在时刻上尽量接近于格林尼治标准时间
-    - `CST` China Standard Time 中国标准时间(北京时间)。在时区划分上，属东八区，比协调世界时早8小时，记为`UTC+8`(CST=GMT+8)
-        - 但是CST的缩写还是其他几个时间的缩写：Central Standard Time (USA) UT-6:00、Central Standard Time (Australia) UT+9:30、China Standard Time UT+8:00、Cuba Standard Time UT-4:00
-    - ISO8061和UTC
-        - `ISO8601`时间格式如：2018-6-5T11:46:50Z
-        - `UTC`时间格式: 2018-06-05T03:46:50+08:00。其中"T"用来分割日期和时间，时间后面跟着的"-07:00"表示西七区，"+08:00"表示东八区。时区默认是0时区，可以用"Z"表示，也可以不写。对于我国，要使用"+08:00"，表示东八区
+    - `UTC`：协调世界时，又称世界标准时间或世界协调时间，简称`UTC(Universal Time Coordinated)`。是最主要的世界时间标准，其以原子时秒长为基础，在时刻上尽量接近于格林尼治标准时间
+    - `CST` China Standard Time 中国标准时间(北京时间)。在时区划分上，属东八区，比协调世界时早8小时，记为`UTC+8`(`CST=GMT+8`)
+        - 但是CST的缩写还是其他几个时间的缩写：`Central Standard Time (USA) UT-6:00`、`Central Standard Time (Australia) UT+9:30`、`China Standard Time UT+8:00、Cuba Standard Time UT-4:00`
+- 时间字符串
+    - `ISO 8061`格式
+        - ISO 8601的标准格式是：`YYYY-MM-DDTHH:mm:ss.sssZ`
+            - T仅仅为分隔日期和时间
+            - Z为时区，指定Z时表示UTC时间，不指定时表示的是本地时间，可以取值：`Z`(UFC)、`Z+HH:mm`、`Z-HH:mm`("-07:00"表示西七区，"+08:00"表示东八区，时区默认是0时区，可以用Z表示)
+            - UTC时间 2000-01-01T16:00:00.000Z 等同于本地时间 2000-01-02 00:00:00
+    - `RFC-2822` 格式
+        - 如：`Thu Jan 01 1970 00:00:00 GMT+0800`、`Thu Jan 01 1970 00:00:00 GMT+0800 (CST)`
 - `Date`记录的是1970至今的毫秒数，不保存时区信息(因为时间戳和时区没有关系)
 - 时间转换
 
@@ -112,16 +116,16 @@ System.out.println(new Date(0)); // Thu Jan 01 08:00:00 CST 1970
 System.out.println(Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles")).getTime()); // Wed Nov 06 16:47:23 CST 2019
 // 获取美国洛杉矶时间
 TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles")); // 设置系统默认时区(不会真正修改操作系统默认时区)
-System.out.println(new Date()); // Wed Nov 06 00:45:19 PST 2000 (上海时间为 2000-11-6 16:45:19)
+System.out.println(new Date()); // Wed Nov 06 00:00:00 PST 2000 (上海时间为 2000-11-6 16:00:00)
 
 // Java 8与时区(Asia/Shanghai)
-System.out.println(LocalDateTime.now()); // 2000-11-06T16:50:00.375
-System.out.println(LocalDateTime.now(ZoneId.of("America/Los_Angeles"))); // 2000-11-06T00:50:00.375 (上海时间为 2000-11-06T16:50:00.375)
+System.out.println(LocalDateTime.now()); // 2000-11-06T16:00:00.000
+System.out.println(LocalDateTime.now(ZoneId.of("America/Los_Angeles"))); // 2000-11-06T00:00:00.000 (上海时间为 2000-11-06T16:00:00.000)
 
 // 1.UTC格式时间转java.util.Date
 // 当前时间 2000-01-01 10:00:00
 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())); // 2000-01-01 10:00:00
-// 其中 T代表后面跟着时间，Z代表UTC统一时间
+// 其中 T代表后面跟着时间，Z代表UTC时区
 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())); // 2000-01-01T10:00:00+0800
 ```
 
@@ -131,7 +135,7 @@ new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())); // 2000-01-0
 
 ```java
 // final Integer i = 1;
-// i = 2;// 语法错误
+// i = 2; // 语法错误
 
 // final Map map = new HashMap();
 // map.put("a", 1); // 运行正常
@@ -155,4 +159,4 @@ boolean mkdirs()
 
 参考文章
 
-[^1]: https://www.hollischuang.com/archives/3082
+[^1]: https://segmentfault.com/a/1190000004292140
