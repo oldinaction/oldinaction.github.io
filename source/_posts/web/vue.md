@@ -8,38 +8,74 @@ tags: vue
 
 ## 基本
 
+### 约定俗成
+
 - 习惯
     - 项目url固定链接不以`/`结尾，使用地方手动加`/`方便全局搜索
 - 注意
     - **vue单文件组件，每个文件里面只能含有一个script标签；如果含有多个，默认只解析最后一个**
 
-- 文件引入
-    
-    ```html
-    <!-- css -->
-    <style lang="less">
-        @import '../styles/common.less';
-    </style>
+### 文件引入
+ 
+```html
+<!-- css -->
+<style lang="less">
+    @import '../styles/common.less';
+</style>
 
-    <script>
-    // (1)引入
-    import MyModule1 from "./../common/MyModule1.vue";
-    // @表示项目源码根目录(src)
-    import MyModule1 from "@/common/MyModule1.vue";
+<script>
+// (1)引入
+import MyModule1 from "./../common/MyModule1.vue";
+// @表示项目源码根目录(src)
+import MyModule1 from "@/common/MyModule1.vue";
 
-    // (2) 封装组件库 sm-util.js 
-    // ==> 示例一
-    export default {} // 导入：import SmUtil from './libs/sm-util.js'
+// (2) 封装组件库 sm-util.js 
+// ==> 示例一
+export default {} // 导入：import SmUtil from './libs/sm-util.js'
 
-    // ==> 示例二
-    import axios from 'axios'; // 导入其他组件
-    const SmUtil = {}
-    export default SmUtil
+// ==> 示例二
+import axios from 'axios'; // 导入其他组件
+const SmUtil = {}
+export default SmUtil
 
-    // ==> 示例三
-    export const SmUtil = {}
-    </script>
-    ```
+// ==> 示例三
+export const SmUtil = {}
+</script>
+```
+
+### vue组件
+
+```html
+<template>
+
+</template>
+
+<script>
+import { myUtil } from '@/libs/util'
+
+export default {
+  name: 'component_name',
+  data() {
+    return {
+    }
+  },
+  created() {
+    this.init()
+  },
+  methods: {
+    myUtil: myUtil, // 这样才可以在模板中使用：{{ myUtil }}
+    init() {
+      this.fetchData()
+    },
+    fetchData() {
+    }
+  }
+}
+</script>
+
+<style lang="less" scoped>
+</style>
+```
 
 ### vue生命周期(含路由)
 
@@ -299,7 +335,69 @@ render: (h, params) => {
     }
 }
 ```
+- 参数
 
+```json
+{
+  // 其他特殊顶层属性
+  key: 'myKey',
+  ref: 'myRef',
+  // 和`v-bind:class`一样的 API
+  // class: 'class-name'
+  'class': {
+    foo: true,
+    bar: false
+  },
+  // 和`v-bind:style`一样的 API
+  style: {
+    color: 'red',
+    fontSize: '14px',
+    paddingRight: '10px'
+  },
+  // 正常的 HTML 特性
+  attrs: {
+    id: 'foo'
+  },
+  // 组件 props
+  props: {
+    myProp: 'bar'
+  },
+  // DOM 属性
+  domProps: {
+    innerHTML: 'baz'
+  },
+  // 事件监听器基于 `on`
+  // 所以不再支持如 `v-on:keyup.enter` 修饰器
+  // 需要手动匹配 keyCode。
+  on: {
+    click: this.clickHandler
+  },
+  // 仅对于组件，用于监听原生事件，而不是组件内部使用 `vm.$emit` 触发的事件。
+  nativeOn: {
+    click: this.nativeClickHandler
+  },
+  // 自定义指令。注意事项：不能对绑定的旧值设值
+  // Vue 会为您持续追踪
+  directives: [
+    {
+      name: 'my-custom-directive',
+      value: '2',
+      expression: '1 + 1',
+      arg: 'foo',
+      modifiers: {
+        bar: true
+      }
+    }
+  ],
+  // Scoped slots in the form of
+  // { name: props => VNode | Array<VNode> }
+  scopedSlots: {
+    default: props => createElement('span', props.text)
+  },
+  // 如果组件是其他组件的子组件，需为插槽指定名称
+  slot: 'name-of-slot'
+}
+```
 - iview示例：此时Poptip和Tag都是Vue对象，因此要设置参数props
 
 ```js
@@ -317,6 +415,7 @@ render: (h, params) => {
 			transfer: true
 		}
 	}, [
+        // Poptip-Tag
 		h('Tag', {
 			// 此处必须写在props里面，不能直接将组件属性放在元素性质里面
 			props: function() {
@@ -331,7 +430,14 @@ render: (h, params) => {
 			// 此时this为函数作用域类，拿不到vue对象，通过vm传递
 			console.log(vm)
 			return params.row.CorporateName + '...'
-		}(this)),
+        }(this)),
+
+        // Poptip-xxx
+        (function(vm) {
+            return params.row.content
+        }(this)),
+        
+        // Poptip-div
 		h('div', {
 			slot: 'content'
 		}, [
@@ -340,7 +446,9 @@ render: (h, params) => {
 					padding: '4px'
 				}
 			}, '用户名：' + params.row.name)
-		]),
+        ]),
+        
+        // Poptip-div
 		return h("div", [
 			h("Button", {
 				props: {
@@ -479,7 +587,7 @@ Vue.component('base-checkbox', {
     - 场景还原：父组件点击按钮，控制显示子组件的弹框(`iview`弹框)，此时当`iview`弹框关闭时会修改`v-model`的值，如果用`props`则违反了`props`单向数据流的原则
     - `ref`可以用于标记一个普通元素或组件
     - `$refs`只有`mounted`了之后才能获取到数据
-- 在子组件中可以通过`$parent`调用父组件属性和方法
+- 在子组件中可以通过`$parent`调用父组件属性和方法，**修改父组件的属性也不会报错**。注意：像被iview的TabPane包裹的组件，其父组件就是TabPane
 - 在父组件中使用`sync`修饰符修饰props属性，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景
 
 #### 知识点
@@ -805,8 +913,8 @@ const routers = [{
 ```js
 const router = new VueRouter({
   routes: [
-    // 动态路径参数，以冒号开头，通过route.params.my_id传递参数
-    { path: '/user/:my_id', component: User }
+    // 动态路径参数，以冒号开头，通过route.params.userId传递参数。从路由中获取的参数均为字符串，Id一般需要通过Number()转换一下，防止后面 === 比较不正确
+    { path: '/user/:userId', component: User }
   ]
 })
 
@@ -846,7 +954,7 @@ const User = {
     },
     methods: {
         init() {
-            this.userId = this.$route.params.userId
+            this.userId = Number(this.$route.params.userId)
             this.fetchData()
         },
         fetchData() {}

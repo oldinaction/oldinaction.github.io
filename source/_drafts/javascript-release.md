@@ -23,7 +23,7 @@ tags: js
         - Current Value (cur) (当前值)
         - Current Index (idx) (当前索引)
         - Source Array (src) (源数组)
-- `sort` 排序操作。默认排序顺序是根据字符串Unicode码点
+- `sort` 排序操作，修改的是原数组(返回值也是原数组)。默认排序顺序是根据字符串Unicode码点
 - 示例
 
 ```js
