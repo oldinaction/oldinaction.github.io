@@ -76,11 +76,15 @@ tags: [ide, web]
                 }],
                 'no-undef': 'off',
                 'camelcase': 'off',
-                // func() {} 函数名和()可无空格
-                "space-before-function-paren": ["error", "never"],
+                // function函数名和()见增加空格
+                "space-before-function-paren": ["error", {
+                    "anonymous": "always",
+                    "named": "always",
+                    "asyncArrow": "always"
+                }],
                 // 不强制使用 ===
                 "eqeqeq": ["error", "smart"], // smart特点：数字比较必须要 ===
-                // A && B换行时，符合在行头。https://eslint.org/docs/rules/operator-linebreak
+                // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
                 "operator-linebreak": ["error", "before"]
             },
             parserOptions: {
@@ -133,6 +137,8 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 "[javascript]": {
     "editor.tabSize": 2,
 },
+// 函数function和()间增加空格
+"javascript.format.insertSpaceBeforeFunctionParenthesis": true,
 "[vue]": {
     "editor.defaultFormatter": "octref.vetur",
     "editor.tabSize": 2
@@ -223,8 +229,15 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
 	// $1, $2 for tab stops, ${id} and ${id:label} and ${1:label} for variables. Variables with the same id are connected.
 	// Example:
+	"Print to console": {
+		"prefix": "log",
+		"body": [
+			"console.log('$1')",
+		],
+		"description": "Log output to console"
+	},
 	"Create vue template": {
-		"prefix": "vue",
+		"prefix": "vuec",
 		"body": [
 			"<template>",
 			"",
@@ -232,16 +245,27 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 			"",
 			"<script>",
 			"export default {",
-			"  name: \"${1:component_name}\",",
-			"  data () {",
+			"  name: '${1:component_name}',",
+			"  data() {",
 			"    return {",
-			"    };",
-			"  }",
+			"    }",
+            "  },",
+            "  created() {",
+            "    this.init()",
+            "  },",
+            "  methods: {",
+            "    init() {",
+            "      this.fetchData()",
+            "    },",
+            "    fetchData() {",
+            "    }",
+            "  }",
 			"}",
 			"</script>",
 			"",
-			"<style lang=\"${2:css}\">",
-			"</style>"
+			"<style lang=\"${2:less}\" scoped>",
+            "</style>",
+            ""
 		],
 		"description": "Create vue template"
 	}

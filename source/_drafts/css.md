@@ -55,6 +55,8 @@ span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: inline-block;
+    width: 100px;
 }
 
 /* 多行省略 */

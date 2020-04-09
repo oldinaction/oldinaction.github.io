@@ -121,7 +121,8 @@ this.$refs.mySelect.visible = true
             type: "expand",
             width: 1, // 设置成0不行
             render: (h, params) => {
-              return h(expandRow, {
+              // ExpandRow 为自定义组件
+              return h(ExpandRow, {
                 props: { row: params.row }
               });
             }
