@@ -8,22 +8,53 @@ tags: js
 
 ## ES5
 
-### Array对象
+### 关键字
+
+#### import/export [^1]
+
+```js
+// 命名导出
+export { myFunction }; 
+export const foo = Math.sqrt(2);
+// 默认导出（函数）
+export default function() {}
+// 默认导出（类）
+export default class {}
+```
+
+### Object
+
+- `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象
+  - 将b合并到a但是不能影响到a：`Object.assign({}, a, b)`
+  - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
+  - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1));`
+
+### Array
 
 - [Array API](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array)
 - http://javascript.ruanyifeng.com/stdlib/array.html
 
-#### map/filter/reduce/sort方法
+#### 数组相关方法
 
-- `map` 映射操作。对原数组每个元素进行处理，并回传新的数组
-- `filter` 过滤操作。筛选符合条件的所有元素，若为true则返回组成新数组
-- `reduce` 归并操作。总共两个参数，第一个是参数，可以理解为累加器，遍历数组累加回传的返回值，第二个是初始元素。如果没有提供初始元素，则将使用数组中的第一个元素
-    - `array.reduce(callback(accumulator, currentValue[, index[, array]])[, initialValue])`，接受参数如下
-        - Accumulator (acc) (累计器)
-        - Current Value (cur) (当前值)
-        - Current Index (idx) (当前索引)
-        - Source Array (src) (源数组)
-- `sort` 排序操作，修改的是原数组(返回值也是原数组)。默认排序顺序是根据字符串Unicode码点
+- 修改原数组
+    - `pop` 从数组中删除最后一个元素，并返回该元素的值
+    - `push` 将一个或多个元素添加到数组的末尾，并返回该数组的新长度
+    - `unshift` 将一个或多个元素添加到数组的开头，并返回该数组的新长度(该方法修改原有数组)
+    - `splice` 基于下标修改某个元素
+        - `array.splice(start[, deleteCount[, item1[, item2[, ...]]]])` 通过删除或替换现有元素或者原地添加新的元素来修改数组，并以数组形式返回被修改的内容。此方法会改变原数组
+    - `sort` 排序操作，修改的是原数组(返回值也是原数组)。默认排序顺序是根据字符串Unicode码点
+- 返回新数组
+    - `array.slice([begin[, end]])` 返回一个新的浅拷贝数组对象。原始数组不会被改变
+        - begin：提取起始处的索引（默认从 0 开始）。如果该参数为负数，则表示从原数组中的倒数第几个元素开始提取，slice(-2) 表示提取原数组中的倒数第二个元素到最后一个元素（包含最后一个元素）
+        - end：默认从0开始，但截取的不包含此索引元素。必须大于start，否则返回[]，省略则表示到数组末尾
+    - `map` 映射操作。对原数组每个元素进行处理，并回传新的数组
+    - `filter` 过滤操作。筛选符合条件的所有元素，若为true则返回组成新数组
+    - `reduce` 归并操作。总共两个参数，第一个是参数，可以理解为累加器，遍历数组累加回传的返回值，第二个是初始元素。如果没有提供初始元素，则将使用数组中的第一个元素
+        - `array.reduce(callback(accumulator, currentValue[, index[, array]])[, initialValue])`，接受参数如下
+            - Accumulator (acc) (累计器)
+            - Current Value (cur) (当前值)
+            - Current Index (idx) (当前索引)
+            - Source Array (src) (源数组)
 - 示例
 
 ```js
@@ -45,12 +76,112 @@ const totalyears = inventors.reduce((total, inventor) => { return total + (inven
 const birthdate = inventors.sort((inventora, inventorb) => (inventorb.year - inventora.year))
 ```
 
-### slice/splice
+#### 伪数组
 
-- `array.slice([begin[, end]])` 返回一个新的浅拷贝数组对象。原始数组不会被改变
-    - begin：提取起始处的索引（默认从 0 开始）。如果该参数为负数，则表示从原数组中的倒数第几个元素开始提取，slice(-2) 表示提取原数组中的倒数第二个元素到最后一个元素（包含最后一个元素）
-    - end：默认从0开始，但截取的不包含此索引元素。必须大于start，否则返回[]，省略则表示到数组末尾
-- `array.splice(start[, deleteCount[, item1[, item2[, ...]]]])` 通过删除或替换现有元素或者原地添加新的元素来修改数组,并以数组形式返回被修改的内容。此方法会改变原数组
+- 特点
+    - 具有length属性
+    - 按索引方式存储数据
+    - 不具有数组的push()、pop()等方法
+- 将伪数组转换成真正的数组
+    
+    ```js
+    // 此处仅列举两种方法
+    arr = [].slice.call(objs)
+    arr = Array.prototype.slice.call(objs)
+    ```
+- 示例
+
+    ```js
+    // 得到一个伪数组，原型为 HTMLCollection
+    var tables = document.getElementsByTagName('table')
+    // 将为素组转换成真正的数组
+    var tableArr = Array.prototype.slice.call(tables)
+
+    // 构造一个伪数组
+    var obj = {
+        "0": "abc",
+        "1": 123,
+        "length": 2,
+        "push": Array.prototype.push,
+        "splice": Array.prototype.splice
+    }
+    obj.push('hello') // 3
+    ```
+
+### Function
+
+#### call/apply/bind [^2]
+
+- call、apply、bind 都是为了改变某个函数运行时的上下文(context)而存在的，换句话说，就是为了改变函数体内部 this 的指向
+- call、apply、bind 参数
+    - 三者第一个参数都是this要指向的对象，也就是想指定的上下
+    - 三者都可以利用后续参数传参，call从第二个参数开始对应被调用函数参数，apply是通过数组传递被调用函数参数
+- call、apply、bind 调用方式
+    - call、apply 是立即调用；bind 是返回对应函数，便于稍后调用
+- 示例
+
+    ```js
+    // 1.call、apply、bind 对比
+    var obj = {name: 'smalle'}
+
+    var foo = {
+        get: function(count) { return this.name + '-' + count; }
+    }
+    
+    console.log(foo.get.call(obj, 1));      // smalle-1
+    console.log(foo.get.apply(obj, [2]));   // smalle-2
+    console.log(foo.get.bind(obj, 3)());    // smalle-3
+
+    // 2.自定义console.log方法
+    function log() {
+        // arguments参数是个伪数组，通过 Array.prototype.slice.call 转化为标准数组(才可以使用unshift等方法)
+        var args = Array.prototype.slice.call(arguments)
+        args.unshift('[aezo] ')
+        
+        console.log.apply(console, args)
+    }
+    log("hello world") // [aezo] hello world
+    ```
+
+### 操作Dom
+
+- 动态创建iframe(异步加载，加快主站相应速度)
+
+```js
+function createIframe() {
+    var i = document.createElement("iframe");
+    i.id="iframe"
+    i.src = "http://localhost/test";
+    i.frameborder = "0";
+    i.width = "100%";
+    i.height = "100%";
+    i.onload=myOnloadFunc;
+    document.getElementById("iframeDiv").appendChild(i);
+};
+
+if (window.addEventListener) window.addEventListener("load", createIframe, false);
+else if (window.attachEvent) window.attachEvent("onload", createIframe);
+else window.onload = createIframe;
+```
+
+### 事件
+
+#### onblur与onclick事件冲突(弹框穿透) 
+
+- 场景：百度的搜索框，输入检索字后下拉会有对应的列表出来，要求点击搜索框外的区域下拉列表消失，点击下拉列表的某个记录后跳转。实现方式为 input 的onchange+onblur 与列表的onclik 。这样就会存在一个问题，当点击列表时 input 的onblur就先发挥作用，导致列表的onclik无效（js的单线程限制了只允许一个事件触发，onblur的优先性高于onclick）
+- 解决办法：用`onMouseDown`代替`onClick`(onmousedown需要根据event区分鼠标左右键点击)
+- 说明
+    - onClick:是鼠标点击弹起后触发的的事件，即一次完整的鼠标点击过程。
+    - onMouseDown:是指鼠标按下的瞬间触发的。
+    - onMouseUp：在松开鼠标的时候触发，只要弹起的时候在你所要执行的区域上，就会触发。
+    - 即onClick的作用=onMouseDown（按下触发）+onMouseUp（弹起触发）
+
+### 易错点
+
+```js
+[1].indexOf(1) // 0
+[1].indexOf("1") // -1
+```
 
 ## ES6 (ES2017)
 
@@ -196,4 +327,5 @@ let runtimeError = {
 参考文章
 
 [^1]: https://blog.csdn.net/qq_30100043/article/details/53424750 (javascript对象的扩展运算符)
+[^2]: https://www.cnblogs.com/zt123123/p/8287725.html
 

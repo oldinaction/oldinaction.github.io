@@ -159,7 +159,10 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 // vetur默认配置
 "vetur.format.defaultFormatterOptions": {
     "js-beautify-html": {
-        "wrap_attributes": "aligned-multiple" // 当超出折行长度时，将属性进行垂直对齐，还有其他几个参数可选
+        "wrap_line_length": 140,
+        "wrap_attributes": "auto",
+        // "wrap_attributes": "aligned-multiple", // 当超出折行长度时，将属性进行垂直对齐，还有其他几个参数可选
+        "end_with_newline": false
     },
     "prettyhtml": {
         "printWidth": 100,

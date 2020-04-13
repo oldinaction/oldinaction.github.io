@@ -8,18 +8,65 @@ tags: [css]
 
 ## 简介
 
-- 参考：[MDN CSS 参考](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference)
+- [MDN CSS 参考](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference)
 
-## 知识点
+## CSS 知识点
 
-### flex布局
+## CSS3 知识点
 
+- CSS3使用时一般带有私有前缀，对应关系如下
+    - `-webkit-` 对应 `Safari and Chrome`
+    - `-moz-` 对应 `Firefox`
+    - `-o-` 对应 `Opera`
+    - `-ms-` 对应 `Internet Explorer`
+
+### display: box; 弹性盒子模型(Flexible Box Model)
+
+> http://www.zhangxinxu.com/wordpress/?p=1338
+
+- 作用于父元素上
+    - `display: box;` 只有父元素声明了使用box模型，子元素才能使用box-flex属性
+    - `box-orient` 用来确定子元素的方向，是横着排还是竖着排。horizontal | inline-axis | inherit：横排；vertical | block-axis：竖排
+    - `box-direction` 用来确定子元素的排列顺序。normal | inherit：普通；reverse：反转(原本dom应该从左到右是1-2-3的，此时结果显示为3-2-1)
+    - `box-align` 用来决定盒子垂直方向上的空间利用(同vertical-align一起记忆)。start(垂直方式则是向顶部对齐) | end | center | baseline(基线对齐，文字底边线) | stretch(默认值，拉伸)
+    - `box-pack` 用来决定盒子水平方向上的空间利用。start(水平方向则是向左对齐) | end | center | justify(两端对齐)
+    - `box-lines` 貌似暂不支持
+    - `box-flex-group` 貌似暂不支持
+    - `box-ordinal-group` 定义一个数字级别的，决定了显示位置，越小显示越靠前。也可基于此属性实现 box-direction: reverse 的效果
+- 作用于子元素上
+    - `box-flex: 2;` 子元素占用宽度比例，此时只占用2份。如果其他子元素有定义width、margin值，则优先分配width、margin宽度
+- 示例
+
+```less
+/* 只有父元素声明了使用box模型，子元素才能使用 box-flex 属性 */
+.father { 
+    display: box;
+    display: -webkit-box; /* 支持其他浏览器也可以依次加上 */
+    
+    .child-a {
+        box-flex: 1;
+        -webkit-box-flex: 1;
+        box-ordinal-group: 2; /* child-a 类型的元素将显示在 child-b 类型元素后面 */
+        -webkit-box-ordinal-group: 2;
+    }
+    .child-b {
+        box-flex: 1;
+        -webkit-box-flex: 1;
+        box-ordinal-group: 1;
+        -webkit-box-ordinal-group: 1;
+    }
+}
+```
+
+### display: flex; Flex布局
+
+https://www.zhangxinxu.com/wordpress/?p=8063
 https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 
 ## 常用css
 
 - 响应式布局，head中加`<meta name="viewport" content="width=device-width,initialscale=1.0,maximum-scale=1.0,user-scalable=0">`
-- 解决iPhone中overflow:scroll;滑动速度慢或者卡的问题：`-webkit-overflow-scrolling : touch;`
+- 解决iPhone中 overflow:scroll; 滑动速度慢或者卡的问题：`-webkit-overflow-scrolling : touch;`
 
 ### 虚线
 
@@ -86,9 +133,7 @@ p {
 }
 ```
 
-## 色彩
-
-- 渐变色
+### 渐变色
 
 ```css
 div {
@@ -103,7 +148,6 @@ div {
     background: -webkit-linear-gradient(0deg, rgb(251, 176, 30), rgb(229, 2, 18), rgb(192, 6, 156));
 }
 ```
-
 
 
 

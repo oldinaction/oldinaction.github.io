@@ -6,67 +6,6 @@ categories: [web]
 tags: [js]
 ---
 
-## 注意点
-
-### 事件
-
-#### onblur与onclick事件冲突(弹框穿透) 
-
-- 场景：百度的搜索框 输入检索字后下拉会有对应的列表出来，要求点击搜索框外的区域下拉列表消失，点击下拉列表的某个记录后跳转。实现方式为 input 的onchange+onblur 与列表的onclik 。这样就会存在一个问题，当点击列表时 input 的onblur就先发挥作用，导致列表的onclik无效（js的单线程限制了只允许一个事件触发，onblur的优先性高于onclick）
-- 解决办法：用`onmousedown`代替`onclick`(onmousedown需要根据event区分鼠标左右键点击)
-
-### 关键字
-
-#### import/export [^1]
-
-```js
-// 命名导出
-export { myFunction }; 
-export const foo = Math.sqrt(2);
-// 默认导出（函数）
-export default function() {}
-// 默认导出（类）
-export default class {}
-```
-
-### js对象
-
-#### Object
-
-- `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象
-  - 将b合并到a但是不能影响到a：`Object.assign({}, a, b)`
-  - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
-  - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1));`
-
-### 易错点
-
-```js
-[1].indexOf(1) // 0
-[1].indexOf("1") // -1
-```
-
-### 操作Dom
-
-- 动态创建iframe(异步加载，加快主站相应速度)
-
-```js
-function createIframe() {
-    var i = document.createElement("iframe");
-    i.id="iframe"
-    i.src = "http://localhost/test";
-    i.frameborder = "0";
-    i.width = "100%";
-    i.height = "100%";
-    i.onload=myOnloadFunc;
-    document.getElementById("iframeDiv").appendChild(i);
-};
-
-if (window.addEventListener) window.addEventListener("load", createIframe, false);
-else if (window.attachEvent) window.attachEvent("onload", createIframe);
-else window.onload = createIframe;
-```
-
-
 ## 笔记
 
 ### javaScript 介绍
@@ -157,35 +96,32 @@ javaScript 特点：
 
 **function.html**
 
-1. 基本语法
-
-  ```js
-  function 函数名(参数列表){
-    ...
-    return 返回值; // 函数可以不需要返回值
-  }
-  ```
-
-  - `window`对象：是整个网页的全局作用域对象
-  - 对未声明的变量进行赋值，js默认会在全局进行声明这个变量
-  - 函数作用域在调用方法时创建，方法执行完就被销毁
-2. 全局函数：ECMAScript定义了标准，由各浏览器实现的函数。eg:
-  - `encodeURIComponent()` 对统一资源标识符中的部分单字节再次进行编码（也可对汉字进行编码，建议使用）
-  - `decodeURIComponent()` 解码
-    > - encodeURI() 对统一资源标识符进行编码，将url中的非法字符转换为单字节字符(编码，utf-8格式)
-    > - decodeURI() 将encodeURI转换后的字符串转换为原文(解码)
-    > - 如果在URL中再次出现保留字则是非法，如 `/ ? $ : `等，在传输过程中会出错，使用encodeURI无法进行单字节编码，需要使用encodeURIComponent进行编码
-
-  - eval() 执行纯字符串格式的代码(可以将服务器传回来的数据转成对象)
-
-3. if、switch、while、for
-  - 增强for循环（拿到的是下标）
+- 基本语法
 
     ```js
-      var arr = ['a', 'b', 'c'];
-      for(var i in arr) { // i 是下标
+    function 函数名(参数列表){
+    // ...
+        return 返回值; // 函数可以不需要返回值
+    }
+    ```
+    - `window`对象：是整个网页的全局作用域对象
+    - 对未声明的变量进行赋值，js默认会在全局进行声明这个变量
+    - 函数作用域在调用方法时创建，方法执行完就被销毁
+- 全局函数：ECMAScript定义了标准，由各浏览器实现的函数。eg:
+    - `encodeURIComponent()` 对统一资源标识符中的部分单字节再次进行编码（也可对汉字进行编码，建议使用）
+    - `decodeURIComponent()` 解码
+        - `encodeURI()` 对统一资源标识符进行编码，将url中的非法字符转换为单字节字符(编码，utf-8格式)
+        - `decodeURI()` 将encodeURI转换后的字符串转换为原文(解码)
+        - 如果在URL中再次出现保留字则是非法，如 `/ ? $ : `等，在传输过程中会出错，使用encodeURI无法进行单字节编码，需要使用encodeURIComponent进行编码
+    - `eval()` 执行纯字符串格式的代码(可以将服务器传回来的数据转成对象)
+- `if`、`switch`、`while`、`for`
+    - 增强for循环（拿到的是下标）
+
+    ```js
+    var arr = ['a', 'b', 'c'];
+    for(var i in arr) { // i 是下标
         console.log(i + "==>" + arr[i]); // 0==>a ...
-      }
+    }
     ```
 
 #### 数组

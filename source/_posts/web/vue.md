@@ -55,19 +55,19 @@ import { myUtil } from '@/libs/util'
 
 export default {
   name: 'component_name',
-  data() {
+  data () {
     return {
     }
   },
-  created() {
+  created () {
     this.init()
   },
   methods: {
     myUtil: myUtil, // 这样才可以在模板中使用：{{ myUtil }}
-    init() {
-      this.fetchData()
+    init () {
+      this.fetchData ()
     },
-    fetchData() {
+    fetchData () {
     }
   }
 }
@@ -335,7 +335,7 @@ render: (h, params) => {
     }
 }
 ```
-- 参数
+- vue的data对象对应属性
 
 ```json
 {
@@ -551,7 +551,7 @@ Vue.component('base-checkbox', {
         },
         watch: {
             value(n, o) {
-                this.model = this.value // 此处保证了父组件(调用MyEleSelect的组件)可以将最近的值更新到model中(从而传递到<el-select>中)
+                if (n !== o) this.model = this.value // 此处保证了父组件(调用MyEleSelect的组件)可以将最近的值更新到model中(从而传递到<el-select>中)
             }
         },
         methods: {
@@ -602,9 +602,10 @@ props: {
     list: {
         type: Array,
         // Props with type Object/Array must use a factory function to return the default value.
-        default: function() {
-            return []; // 或者return {};
-        }
+        default: () => [] // 或者 default: () => {}
+        // default: function() {
+        //     return [];
+        // }
     },
     age: {
         type: Number,
@@ -991,6 +992,30 @@ location / {
 }
 ```
 
+## 事件
+
+### 监控全局点击事件
+
+```js
+// 1. main.js
+// 定义全局点击函数
+Vue.prototype.globalClick = function (callback) {
+  document.getElementById('app').onclick = function (e) {
+      callback(e)
+  }
+}
+
+// 2. 组件中使用
+mounted () {
+    this.globalClick(this.handleGlobalClick)
+},
+methods: {
+    handleGlobalClick (e) {
+        
+    }
+}
+```
+
 ## 样式
 
 ### lang 和 scoped
@@ -1117,6 +1142,80 @@ module.exports = {
 }
 ```
 
+## JSX使用
+
+- vue的jsx语法是基于[babel-plugin-transform-vue-jsx](https://github.com/vuejs/babel-plugin-transform-vue-jsx)插件实现的 [^7]
+
+    ![vue-jsx](/data/images/web/vue-jsx.png)
+- 使用vue-cli3则不需要手动安装上述babel插件即可使用（否则会报错Duplicate declaration "h"）。其他方式需要手动安装
+
+```bash
+npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-vue-jsx-merge-props babel-preset-env --save-dev
+
+# .babelrc文件中增加配置
+"plugins": ["transform-vue-jsx"]
+```
+- 使用 [^6] [^7]
+    - babel插件会通过正则匹配的方式在编译阶段将书写在组件上属性进行分类
+        - onXXX的均被认为是事件，nativeOnXXX是原生事件，domPropsXXX是Dom属性，class、staticClass、style、key、ref、refInFor、slot、scopedSlots这些被认为是顶级属性，至于组件声明的props，以及html属性attrs，不需要加前缀，插件会将其统一分类到attrs属性下，然后在运行阶段根据是否在props声明来决定属性归属
+        - 不建议声明onXXX的属性
+    - 对于原生指令，只有v-show是支持的。v-if可用(&& 或 ?:)代替；v-for代替array.map；v-model使用事件触发；自定义指令使用...解构
+    - 对于事件
+        - 使用 `on-[eventName]` 格式, 比如 on-click-two, on-click, on-camelCaseEvent
+        - 使用 `on[eventName]` 格式，比如 onClick, onCamelCaseEvent。click-two 需要这样写 onClick-two，onClickTwo 是不对的
+        - 使用 spread 语法，即 `{...{on: {event: handlerFunction}}}`
+- 示例
+
+```js
+// v-if使用 && 代替，v-if 和 v-else 使用 ?: 代替
+render() {
+    return (
+        <div class='wrapper'>
+        {
+            this.hello && (<div class='content'>hello</div>)
+        }
+        </div>
+    )
+}
+
+// v-for使用 array.map 代替
+render() {
+    return (
+      <div class='wrapper'>
+        <ul>
+          {
+            this.items.map(item => (
+              <li>{ item.name }</li>
+            ))
+          }
+        </ul>
+      </div>
+    )
+}
+
+// v-model
+render() {
+    return (
+        <component
+            value={ this.test }
+            onInput={ val => { this.test = val } }
+        >
+        </component>
+    )
+}
+
+// iview的部分组件，此时只能使用下划线，如：Button需要是i-button。更多见官网
+{
+    title: '计划日期',
+    key: 'planTm',
+    render: (h, params) => {
+        return (
+            <date-picker type="date" value={ params.row.planTm } on-on-change={v => { this.planTm = v }} />
+        )
+    }
+}
+```
+
 ## vue-cli v3
 
 - 安装
@@ -1137,4 +1236,7 @@ vue --version # @vue/cli 4.3.0
 [^3]: https://asyncoder.com/2018/07/20/%E8%AE%B0%E4%B8%80%E6%AC%A1Vue%E4%B8%AD%E7%9A%84v-for%E8%B8%A9%E5%9D%91%E4%B9%8B%E6%97%85/
 [^4]: https://juejin.im/post/5b4ca076f265da0f900e0a7d
 [^5]: https://juejin.im/post/5b41bdef6fb9a04fe63765f1
+[^6]: https://www.yuque.com/zeka/vue/vu60wg
+[^7]: https://www.njleonzhang.com/2018/08/21/vue-jsx.html
+
 
