@@ -179,8 +179,16 @@ else window.onload = createIframe;
 ### 易错点
 
 ```js
+// 1.数据类型
 [1].indexOf(1) // 0
 [1].indexOf("1") // -1
+
+// 2.判断
+let flag = null // undefined、null、''、0、false 在直接if判断时都认为是false
+if(flag) console.log(1) // 无输出
+if('') console.log(1) // 无输出
+if(0) console.log(1) // 无输出
+if(!0) console.log(1) // 1
 ```
 
 ## ES6 (ES2017)

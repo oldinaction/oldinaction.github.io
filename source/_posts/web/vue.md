@@ -100,29 +100,6 @@ export default {
 - 浏览器地址栏刷新/回车/F5
     - 所有页面组件重新创建，重头调用`beforeCreate`；且在某页面刷新时，改页面的`beforeDestroy`等钩子不会被执行
 
-### 事件
-
-```html
-<!-- stop阻止冒泡，prevent阻止原生事件(如表单提交页面刷新) -->
-<a v-on:click.stop.prevent="doThis"></a>
-<!-- 只当事件在该元素本身点击时触发事件，子元素点击则不执行 -->
-<div @click.self="doThat"></div>
-
-<!-- 关于click事件不生效，以iview的Drawer组件为例 -->
-<template>
-  <!-- 点击后不会执行a函数，因为Drawer实际渲染dom并不在此div中 -->
-  <div @click.native="a">
-    <!-- 点击后不会执行b函数，因为Drawer组件并没有定义click事件 -->
-    <Drawer @click="b">
-    </Drawer>
-
-    <!-- 点击后会执行c函数，此处表示使用原生click事件 -->
-    <Drawer @click.native="c">
-    </Drawer>
-  </div>
-<template>
-```
-
 ## 页面渲染
 
 ### 父子组件加载
@@ -475,6 +452,29 @@ render: (h, params) => {
 		])
 	])
 }
+```
+
+### transition 动画
+
+- 参考：[API](https://cn.vuejs.org/v2/api/#transition)、[guide](https://cn.vuejs.org/v2/guide/transitions.html)
+
+```html
+<!-- 
+    name：用于自动生成 CSS 过渡类名。例如：name: 'fade' 将自动拓展为.fade-enter，.fade-enter-active等，只需要提前定义好对应的css即可
+    mode：控制离开/进入的过渡时间序列。有效的模式有 "out-in" 和 "in-out"；默认同时生效
+    tag：<transition> 它会以一个真实元素呈现：默认为一个 <span>，可以通过 tag 属性更换为其他元素
+    @after-enter：绑定进入后的事件，还有其他事件可以监听
+-->
+<transition name="fade" mode="out-in">
+    <!-- transition 只能包含一个根节点，两个可以使用 v-if/v-else 或动态组件 -->
+    <span v-if="true"></span>
+    <span v-else></span>
+</transition>
+
+<!-- 只能用于列表过渡(v-for)，列表需要有唯一key -->
+<transition-group name="list" tag="p">
+    <span v-for="item in items" :key="item">{{ item }}</span>
+</transition-group>
 ```
 
 ### 报错 You may have an infinite update loop in a component render function
@@ -994,7 +994,34 @@ location / {
 
 ## 事件
 
-### 监控全局点击事件
+### 示例
+
+```html
+<!-- stop阻止冒泡，prevent阻止原生事件(如表单提交页面刷新) -->
+<a v-on:click.stop.prevent="doThis"></a>
+<!-- 只当事件在该元素本身点击时触发事件，子元素点击则不执行 -->
+<div @click.self="doThat"></div>
+
+<!-- 关于click事件不生效，以iview的Drawer组件为例 -->
+<template>
+  <!-- 点击后不会执行a函数，因为Drawer实际渲染dom并不在此div中 -->
+  <div @click.native="a">
+    <!-- 点击后会执行c函数，此处表示使用原生click事件 -->
+    <Drawer @click.native="c"></Drawer>
+
+    <!-- ** 点击后不会执行b函数 **，因为Drawer组件并没有定义click事件 -->
+    <Drawer @click="b"></Drawer>
+  </div>
+<template>
+```
+
+### 鼠标点击其他区域事件
+
+- 基于指令
+    - 简易版本参考：https://www.jianshu.com/p/9e1c241d8edb
+    - iview版本参考：iview/src/directives/v-click-outside-x.js
+
+### 监控全局点击事件(不推荐)
 
 ```js
 // 1. main.js
@@ -1011,7 +1038,7 @@ mounted () {
 },
 methods: {
     handleGlobalClick (e) {
-        
+        // 修改data数据不会更新到dom，可以watch到
     }
 }
 ```
@@ -1197,7 +1224,9 @@ render() {
 render() {
     return (
         <component
+            // 保证value会随着this.test进行变化
             value={ this.test }
+            // 保证组件的值可以传递给this.test
             onInput={ val => { this.test = val } }
         >
         </component>
@@ -1210,7 +1239,7 @@ render() {
     key: 'planTm',
     render: (h, params) => {
         return (
-            <date-picker type="date" value={ params.row.planTm } on-on-change={v => { this.planTm = v }} />
+            <date-picker type="date" value={ params.row.planTm } on-on-change={ v => { this.planTm = v } } />
         )
     }
 }

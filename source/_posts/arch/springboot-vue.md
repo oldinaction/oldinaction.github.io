@@ -481,6 +481,16 @@ location ^~ /dist/ {
 - 必须要绑定Dom
 - 必须要触发点击事件（触发其他Dom的点击事件，然后js触发目的dom的点击事件也可）
 
+### 扫码
+
+- H5页面扫码
+    - 在微信浏览器打开H5页面，可引入微信的js SDK解决
+    - 在系统浏览器打开H5页面
+        - 扫码二维码参考：https://www.cnblogs.com/yisuowushinian/p/5145262.html
+            - 此方案在前端 js 解析二维码，依赖一个第三方的解析库`jsqrcode`。这个库已经支持在浏览器端呼起摄像头的操作了，但是依赖一个叫`getUserMedia`的属性，该属性移动端的浏览器支持的都不是很好，低版本只能间接的上传图片的方式解析二维码。此插件需要配合 zepto.js 或者 jQuery.js 使用
+            - iphone7扫二维码成功，条形码不成功。扫码时无扫码框，需要点击拍照 - 确定识别
+        - `quagga.js` 可进行条形码解析。如uni-app插件：https://ext.dcloud.net.cn/plugin?id=1619
+
 ## 浏览器
 
 ### 常见兼容性问题
