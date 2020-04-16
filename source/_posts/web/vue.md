@@ -529,7 +529,7 @@ Vue.component('base-checkbox', {
     export default {
         name: 'MyEleSelect',
         model: {
-            event: 'change' // 只能代表本组件中的事件
+            event: 'change' // 只能代表本组件中的事件，默认是input
         },
         props: {
             // 取得是 v-model="myValue" 中 myValue 的值

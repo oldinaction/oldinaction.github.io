@@ -381,9 +381,11 @@ select *
 ### 数据库基本
 
 - Mysql数据类型
-    - `tinyint`     短整型
-    - `int`		    整型(Integer)，最大11个字节，相当于Oracle里的的number(X)
-    - `bigint`      长正型(Long)
+    - `tinyint`     超短整型，存储长度1个字节(带符号存储区间：-127 ~ 127，不带符号存储区间：0-255)
+    - `smallint`    短整型，存储长度为2个字节
+    - `mediumint`   中整型，存储长度为3个字节
+    - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，有符号signed区间：-2147483647 ~ 2147483647，无符号unsigned区间：0 ~ 4294967295)。最大显示11个字节，int(1)也会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的。类似于Oracle里的的number(X)
+    - `bigint`      长正型(Long)，**存储长度为8个字节**。类似于Oracle里的的number(X)
     - `double`		浮点型，相当于Oracle里的的 number(X, Y)
     - `decimal`     金额，相当于Oracle里的的 decimal(X, Y)
     - `char`		定长字符串，同Oracle的char

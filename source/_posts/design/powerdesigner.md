@@ -21,6 +21,7 @@ tags: [model, mysql, oracle]
     - `Table` 表
     - `View` 视图
     - `Reference` 外键关联，会产生外键
+- Architecture Areas(架构模块)：创建Areas - 将关联的表加入到其Attached Objects中 - Areas名称会自动显示在区域最上方 - 最后在进行排版
 
 ### 表字段编辑
 
@@ -29,6 +30,7 @@ tags: [model, mysql, oracle]
     - `Name` 显示的中文名(最终为该字段的说明)
     - `Code` 字段名
     - `Comment` 字段备注(不会生成到数据库中)
+    - `D`(Displayed) 是否展示在类图上
     - `I`：自增序列(mysql可以勾选)
     - `P`：PirmaryKey 主键
     - `F`：ForeignKey 外键
@@ -124,10 +126,13 @@ tags: [model, mysql, oracle]
     - Database -> edit current dbms -> Script -> Objects -> Table/Sequence -> Drop的value设为`-- drop table [%QUALIFIER%]%TABLE% [cascade constraints]`(oracle drop时，如果表不存在会报错)
     - sql语句的生成还和Table Properties -> More -> Pyhsical Options -> 右边窗口中的物理结果配置相关
 
- ### 反向生成/更新模型
+### 反向生成/更新模型
 
- - 创建一个空的PDM模型
- - 选择 **Database - Update Model from Database** (更新模型也可以，不会打乱现有排版)
+- 连接数据步骤参考[根据模型生成表结构](#根据模型生成表结构)
+- 创建一个空的PDM模型
+- 选择 **Database - Update Model from Database** - 确定Useing DataSource - 输入连接账号密码 - 进入Table选择 - 点击右上角Deselect All先去掉勾选 - 再选择需要更新的表
+    - 更新模型也可以，不会打乱现有排版
+    - 更新后如果Code和数据库字段名相同，则不会覆盖name；其他属性会全部覆盖掉。如果模型中的字段Code数据库中没有也不会删除
 
 ### 数据字典 [^1]
 
