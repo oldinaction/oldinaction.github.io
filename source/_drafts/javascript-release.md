@@ -13,13 +13,19 @@ tags: js
 #### import/export [^1]
 
 ```js
+// myexp.js
 // 命名导出
-export { myFunction }; 
-export const foo = Math.sqrt(2);
-// 默认导出（函数）
+export { myFunc1, myFunc2 }
+export const foo = Math.sqrt(2) // 导出只能是const对象
+
+// 默认导出，一个文件只能有一个默认导出
+export default {}
 export default function() {}
-// 默认导出（类）
 export default class {}
+
+import func from 'myexp.js' // 或'myexp'，导出默认对象赋值到func
+import myFunc1 as func from 'myexp'
+import { myFunc1, myFunc2 } from 'myexp'
 ```
 
 ### Object

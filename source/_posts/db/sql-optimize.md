@@ -296,6 +296,13 @@ select distinct ypyn.plan_yard_num_id, ypyn.plan_id, ypyn.bcc_cont_id, ypyn.cont
     - Using index condition：这是MySQL 5.6出来的新特性，叫做"索引条件推送"。简单说一点就是MySQL原来在索引上是不能执行如like这样的操作的，但是现在可以了，这样减少了不必要的IO操作，但是只能用在二级索引上，详情点这里。
     - Using where：使用了WHERE从句来限制哪些行将与下一张表匹配或者是返回给用户
 
+### SQL Server
+
+```sql
+SET SHOWPLAN_ALL ON; -- 开启执行计划展示，开启后再运行sql语句
+SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
+```
+
 
 
 ---

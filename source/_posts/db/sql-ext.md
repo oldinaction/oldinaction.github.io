@@ -56,6 +56,28 @@ select * from `user`; -- mysql
 select * from [Order]; -- sqlserver
 ```
 
+## 复杂查询
+
+### 基于用户属性表统计每个公司不同用户属性的用户数
+
+```sql
+-- 1个公司对于多个用户，1个用户对应多个属性
+select
+	c.id,
+	c.name,-- 公司名称
+	count( distinct u.id ) count_user,-- 该公司的用户数
+	count( case when ua.key = 'JobTitle' and ua.value = 'employee' then c.id end ) count_employee,-- 该公司的普通员工数
+	count( case when ua.key = 'JobTitle' and ua.value = 'manager' then c.id end ) count_manager,-- 该公司的经理数
+	count( case when ua.key = 'Sex' and ua.value = 'boy' then c.id end ) count_boy -- 该公司男性用户数
+from
+	company c
+	left join users u on c.id = u.company_id
+	left join user_attr ua on ua.user_id = u.id 
+group by
+	c.id,
+	c.name
+```
+
 ## Mysql
 
 ### 常见问题
