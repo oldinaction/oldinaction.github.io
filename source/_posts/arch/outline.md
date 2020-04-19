@@ -2,7 +2,7 @@
 layout: "post"
 title: "大纲"
 date: "2020-01-11 19:10"
-categories: java
+categories: arch
 ---
 
 ## 多线程与高并发

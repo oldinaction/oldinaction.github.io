@@ -6,10 +6,168 @@ categories: [db]
 tags: [oracle, dba, sql]
 ---
 
-
 ## 总结
 
 - 比如统计用户的点击情况，根据用户年龄分两种情况，年龄小于10岁或大于50岁的一次点击算作2，其他年龄段的一次点击算作1(实际情况可能更复杂)。如果在where条件中使用or可能会导致查询很慢，此时可以考虑查询出所有用户、年龄类别、点击次数，再在外层套一层查询通过case when进行合计
+
+## Mysql调优
+
+- mysql架构：客户端 -> 服务端(连接器 - 分析器 - 优化器 - 执行器) -> 存储引擎
+
+### 性能监控
+
+- 使用 `show profile` 命令(**之后mysql版本可能会被移除**)
+    - 使用
+        - 此工具默认是禁用的，可以通过服务器变量在会话级别动态的修改 `set profiling=1;`
+        - 当设置完成之后，在服务器上执行的所有语句，都会测量其耗费的时间和其他一些查询执行状态变更相关的数据。select * from emp;
+        - 在mysql的命令行模式下只能显示两位小数的时间，可以使用如下命令查看具体的执行时间 `show profiles;`
+        - 执行如下命令可以查看详细的每个步骤的时间 `show profile for query 2;`
+    - type
+        - all：显示所有性能信息。show profile all for query n
+        - block io：显示块io操作的次数。show  profile block io for query n
+        - context switches：显示上下文切换次数，被动和主动。show profile context switches for query n
+        - cpu：显示用户cpu时间、系统cpu时间。show profile cpu for query n
+        - IPC：显示发送和接受的消息数量。show profile ipc for query n
+        - Memory：暂未实现
+        - page faults：显示页错误数量。show profile page faults for query n
+        - source：显示源码中的函数名称与位置。show profile source for query n
+        - swaps：显示swap的次数。show profile swaps for query n
+- 更多的是使用`performance schema`来监控mysql。服务器默认是开启状态(关闭可在my.ini中设置)，开启后会有一个performance_schema数据库(表中数据记录在内存，服务关闭则数据销毁)
+    - [MYSQL performance schema详解](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/MYSQL%20performance%20schema%E8%AF%A6%E8%A7%A3.md)
+    - 数据库CPU飙高问题参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/java/Java应用CPU和内存异常分析.md#Mysql)
+- 使用`show processlist`查看连接的线程个数，来观察是否有大量线程处于不正常的状态或者其他不正常的特征
+    - command表示当前状态
+        - sleep：线程正在等待客户端发送新的请求
+        - query：线程正在执行查询或正在将结果发送给客户端
+        - locked：在mysql的服务层，该线程正在等待表锁
+        - analyzing and statistics：线程正在收集存储引擎的统计信息，并生成查询的执行计划
+        - Copying to tmp table：线程正在执行查询，并且将其结果集都复制到一个临时表中
+        - sorting result：线程正在对结果集进行排序
+        - sending data：线程可能在多个状态之间传送数据，或者在生成结果集或者向客户端返回数据
+    - state表示命令执行状态
+
+### schema与数据类型优化
+
+- [数据类型的优化](#数据类型的优化)
+- 合理使用范式和反范式
+    - 在企业中很少能做到严格意义上的范式或者反范式，一般需要混合使用
+        - 在一个网站实例中，这个网站，允许用户发送消息，并且一些用户是付费用户。现在想查看付费用户最近的10条信息。在user表和message表中都存储用户类型(account_type)而不用完全的反范式化。这避免了完全反范式化的插入和删除问题，因为即使没有消息的时候也绝不会丢失用户的信息。这样也不会把user_message表搞得太大，有利于高效地获取数据
+        - 另一个从父表冗余一些数据到子表的理由是排序的需要
+        - 缓存衍生值也是有用的。如果需要显示每个用户发了多少消息（类似论坛的），可以每次执行一个昂贵的自查询来计算并显示它；也可以在user表中建一个num_messages列，每当用户发新消息时更新这个值
+- 主键的选择
+    - 包含代理主键、自然主键(如身份证号)。一般选择代理主键，它不与业务耦合，可很好的配合主键生成策略使用
+- 字符集的选择
+    - 纯拉丁字符能表示的内容，可使用默认的 latin1
+    - 多语言才会用到utf8(mysql的utf8编码最大只能存放3个字节)、utf8mb4(mb4指most bytes 4，因此最大可以存放4个字节)。中文有可能占用2、3、4个字节，mysql的utf8编码可以存放大部分中文，而少数中文需要用到utf8mb4
+    - MySQL的字符集可以精确到字段，可以通过对不同表不同字段使用不同的数据类型来较大程度减小数据存储量，进而降低 IO 操作次数并提高缓存命中率
+- 存储引擎的选择
+
+    ![myisam-innodb对别](/data/images/db/myisam-innodb.png)
+- 适当的数据冗余
+    - 被频繁引用且只能通过 Join 2张(或者更多)大表的方式才能得到的独立小字段。这样的场景由于每次Join仅仅只是为了取得某个小字段的值，Join到的记录又大，会造成大量不必要的 IO，完全可以通过空间换取时间的方式来优化。不过，冗余的同时需要确保数据的一致性不会遭到破坏，确保更新的同时冗余字段也被更新
+- 适当拆分
+    - 当我们的表中存在类似于 TEXT 或者是很大的 VARCHAR类型的大字段的时候，如果我们大部分访问这张表的时候都不需要这个字段，我们就该义无反顾的将其拆分到另外的独立表中，以减少常用数据所占用的存储空间。这样做的一个明显好处就是每个数据块中可以存储的数据条数可以大大增加，既减少物理 IO 次数，也能大大提高内存中的缓存命中率
+    - 分库分表：垂直拆分(不同的业务表存放再不同数据库)、水平拆分(同一表结构的不同数据存放在不同数据库，如基于id取模)
+
+#### 数据类型的优化
+
+- 占用存储空间更小的通常更好
+- 整型比字符操作代价更低
+- 使用mysql自建类型，如不用字符串来存储日期和时间
+- 用整型存储IP地址
+    - `select INET_ATON('255.255.255.255')` 将ip转换成整型进行存储，最大值为4294967295
+    - `select INET_ATON(4294967295)` 将整型转换成ip
+- 尽量避免null (通常情况下null的列改为not null带来的性能提升比较小，所有没有必要将所有的表的schema进行修改，但是应该尽量避免设计成可为null的列)
+- 数据类型选择，参考[mysql数据类型](/_posts/db/sql-base.md#数据库基本)
+    - 整型：尽量使用满足需求的最小数据类型
+    - 字符和字符串类型 [^6]
+        - varchar根据实际内容长度保存数据
+            - varchar(n) n小于等于255使用一个字节保存长度，n>255使用两个字节保存长度
+            - 5.0版本以上，varchar(20)，指的是20字符，无论存放的是数字、字母还是UTF8汉字（每个汉字3字节），都可以存放20个。超过20个字符也可以存放，最大大小是65532字节
+            - varchar在mysql5.6之前变更长度，或者从255一下变更到255以上时时，都会导致锁表
+            - 应用场景：存储长度波动较大的数据，如文章
+        - char固定长度的字符串
+            - 最大长度255
+            - 会自动删除末尾的空格
+            - 检索效率、写效率会比varchar高，以空间换时间
+            - 应用场景：存储长度波动不大的数据，如md5摘要；存储短字符串、经常更新的字符串
+    - BLOB和TEXT类型：分别采用二进制和字符方式存储。一般不用此类型，而是将数据直接存储在文件中，并存储文件的路径到数据库
+    - datetime、timestamp(常用)、date
+        - datetime：占用8个字节，与时区无关，可保存到毫秒，存储范围1000-01-01到9999-12-31
+        - timestamp：占用4个字节，可保存时区(依赖数据库设置的时区)，精确到秒，采用明整型存储，存储范围1970-01-01到2038-01-19
+        - date：占用3个字节，精确到日期，存储范围同datetime
+    - 使用枚举代替字符串类型
+
+        ```sql
+        create table enum_test(e enum('fish','apple','dog') not null); -- 枚举字段排序基于枚举值定义的位置进行(mysql在内部会将每个值在列表中的位置保存为整数，并且在表的.frm文件中保存"数字-字符串"映射关系的查找表)
+
+        insert into enum_test(e) values('fish'),('dog'),('apple');
+        select e+0 from enum_test; -- 查询枚举的索引
+        select e from enum_test; -- 查询显示值
+        ```
+
+### 执行计划(explain)
+
+- [参考：mysql执行计划](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/mysql%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.md)
+- `explain`查看执行计划。如`explain select * from t_test;`
+- explain返回字段：id、select_type、table、type、possible_keys、key、key_len、ref、rows、Extra，含义如下 [^5]
+  - id：id越大的语句越先执行，相同的则从上向下依次执行
+  - select_type有下列常见几种
+    - SIMPLE：最简单的SELECT查询，没有使用UNION或子查询
+    - PRIMARY：在嵌套的查询中是最外层的SELECT语句，在UNION查询中是最前面的SELECT语句
+    - UNION：UNION中第二个以及后面的SELECT语句
+    - DERIVED：派生表SELECT语句中FROM子句中的SELECT语句
+    - UNION RESULT：一个UNION查询的结果
+    - DEPENDENT UNION：首先需要满足UNION的条件，及UNION中第二个以及后面的SELECT语句，同时该语句依赖外部的查询
+    - SUBQUERY：子查询中第一个SELECT语句
+    - DEPENDENT SUBQUERY：和DEPENDENT UNION相对UNION一样
+  - table：显示的这一行信息是关于哪一张表的。有时候并不是真正的表名。如`<derivedN>`N就是id值、`<unionM,N>`这种类型，出现在UNION语句中
+  - **type**：type列很重要，是用来说明表与表之间是如何进行关联操作的，有没有使用索引。主要有下面几种类别(查询速度依次递减)
+    - const：当确定最多只会有一行匹配的时候，MySQL优化器会在查询前读取它而且只读取一次，因此非常快。const只会用在将常量和主键或唯一索引进行比较时，而且是比较所有的索引字段
+    - system：这是const连接类型的一种特例，表仅有一行满足条件
+    - eq_ref：eq_ref类型是除了const外最好的连接类型，它用在一个索引的所有部分被联接使用并且索引是UNIQUE或PRIMARY KEY。需要注意InnoDB和MyISAM引擎在这一点上有点差别。InnoDB当数据量比较小的情况type会是All
+    - ref：这个类型跟eq_ref不同的是，它用在关联操作只使用了索引的最左前缀，或者索引不是UNIQUE和PRIMARY KEY。ref可以用于使用=或<=>操作符的带索引的列
+    - fulltext：联接是使用全文索引进行的，一般我们用到的索引都是B树
+    - ref_or_null：该类型和ref类似。但是MySQL会做一个额外的搜索包含NULL列的操作。在解决子查询中经常使用该联接类型的优化
+    - index_merger：该联接类型表示使用了索引合并优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
+    - unique_subquery：该类型替换了下面形式的IN子查询的ref，是一个索引查找函数，可以完全替换子查询，效率更高
+    - index_subquery：该联接类型类似于unique_subquery
+    - range：只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引。key_len包含所使用索引的最长关键元素。在该类型中ref列为NULL。当使用=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN或者IN操作符，用常量比较关键字列时，可以使用range
+    - index：该联接类型与ALL相同，除了只有索引树被扫描。这通常比ALL快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
+    - ALL：最慢的一种方式，即全表扫描
+  - possible_keys：指出MySQL能使用哪个索引在该表中找到行
+  - key：显示MySQL实际决定使用的键（索引）。如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX
+  - key_len：显示MySQL决定使用的键长度。如果键是NULL，则长度为NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
+  - ref：显示使用哪个列或常数与key一起从表中选择行
+  - rows：显示MySQL认为它执行查询时必须检查的行数。注意这是一个预估值
+  - filtered：表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数
+  - **Extra**：显示MySQL在查询过程中的一些详细信息
+    - Using filesort：MySQL有两种方式可以生成有序的结果，通过排序操作或者使用索引，当Extra中出现了Using filesort 说明MySQL使用了后者，但注意虽然叫filesort但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，所以一般这时也要考虑优化查询了
+    - Using temporary：说明使用了临时表，一般看到它说明查询需要优化了，就算避免不了临时表的使用也要尽量避免硬盘临时表的使用。
+    - Not exists：MYSQL优化了LEFT JOIN，一旦它找到了匹配LEFT JOIN标准的行， 就不再搜索了。
+    - Using index：说明查询是覆盖了索引的，这是好事情。MySQL直接从索引中过滤不需要的记录并返回命中的结果。这是MySQL服务层完成的，但无需再回表查询记录。
+    - Using index condition：这是MySQL 5.6出来的新特性，叫做"索引条件推送"。简单说一点就是MySQL原来在索引上是不能执行如like这样的操作的，但是现在可以了，这样减少了不必要的IO操作，但是只能用在二级索引上，详情点这里。
+    - Using where：使用了WHERE从句来限制哪些行将与下一张表匹配或者是返回给用户
+
+### 通过索引进行优化
+
+#### 索引基本知识
+
+- 索引的优点
+    - 大大减少了服务器需要扫描的数据量
+    - 帮助服务器避免排序和临时表
+    - 将随机io变成顺序io
+- 索引的用处
+    - 快速查找匹配WHERE子句的行
+    - 从consideration中消除行。如果可以在多个索引之间进行选择，mysql通常会使用找到最少行的索引
+    - 如果表具有多列索引，则优化器可以使用索引的任何最左前缀来查找行
+    - 当有表连接的时候，从其他表检索行数据
+    - 查找特定索引列的min或max值
+    - 如果排序或分组时在可用索引的最左前缀上完成的，则对表进行排序和分组
+    - 在某些情况下，可以优化查询以检索值而无需查询数据行
+- 索引的分类：主键索引、唯一索引(和主键索引的区别是可以有空值)、普通索引、全文索引(innodb 5.6才支持)、组合索引(多个字段组成的索引)
+- 技术名词
+
 
 ## Oracle
 
@@ -253,50 +411,7 @@ select distinct ypyn.plan_yard_num_id, ypyn.plan_id, ypyn.bcc_cont_id, ypyn.cont
 
     ![oracle-explain-yard7](/data/images/db/oracle-explain-yard7.png)
 
-## Mysql
-
-### explain说明 [^5]
-
-- explain查看执行计划。如`explain select * from t_test;`，返回字段如：id、select_type、table、type、possible_keys、key、key_len、ref、rows、Extra
-  - id：id越大的语句越先执行
-  - select_type有下列常见几种
-    - SIMPLE：最简单的SELECT查询，没有使用UNION或子查询
-    - PRIMARY：在嵌套的查询中是最外层的SELECT语句，在UNION查询中是最前面的SELECT语句
-    - UNION：UNION中第二个以及后面的SELECT语句
-    - DERIVED：派生表SELECT语句中FROM子句中的SELECT语句
-    - UNION RESULT：一个UNION查询的结果
-    - DEPENDENT UNION：首先需要满足UNION的条件，及UNION中第二个以及后面的SELECT语句，同时该语句依赖外部的查询
-    - SUBQUERY：子查询中第一个SELECT语句
-    - DEPENDENT SUBQUERY：和DEPENDENT UNION相对UNION一样
-  - table：显示的这一行信息是关于哪一张表的。有时候并不是真正的表名。如`<derivedN>`N就是id值、`<unionM,N>`这种类型，出现在UNION语句中
-  - **type**：type列很重要，是用来说明表与表之间是如何进行关联操作的，有没有使用索引。主要有下面几种类别(查询速度依次递减)
-    - const：当确定最多只会有一行匹配的时候，MySQL优化器会在查询前读取它而且只读取一次，因此非常快。const只会用在将常量和主键或唯一索引进行比较时，而且是比较所有的索引字段
-    - system：这是const连接类型的一种特例，表仅有一行满足条件
-    - eq_ref：eq_ref类型是除了const外最好的连接类型，它用在一个索引的所有部分被联接使用并且索引是UNIQUE或PRIMARY KEY。需要注意InnoDB和MyISAM引擎在这一点上有点差别。InnoDB当数据量比较小的情况type会是All
-    - ref：这个类型跟eq_ref不同的是，它用在关联操作只使用了索引的最左前缀，或者索引不是UNIQUE和PRIMARY KEY。ref可以用于使用=或<=>操作符的带索引的列
-    - fulltext：联接是使用全文索引进行的，一般我们用到的索引都是B树
-    - ref_or_null：该类型和ref类似。但是MySQL会做一个额外的搜索包含NULL列的操作。在解决子查询中经常使用该联接类型的优化
-    - index_merger：该联接类型表示使用了索引合并优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
-    - unique_subquery：该类型替换了下面形式的IN子查询的ref，是一个索引查找函数，可以完全替换子查询，效率更高
-    - index_subquery：该联接类型类似于unique_subquery
-    - range：只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引。key_len包含所使用索引的最长关键元素。在该类型中ref列为NULL。当使用=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN或者IN操作符，用常量比较关键字列时，可以使用range
-    - index：该联接类型与ALL相同，除了只有索引树被扫描。这通常比ALL快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
-    - ALL：最慢的一种方式，即全表扫描
-  - possible_keys：指出MySQL能使用哪个索引在该表中找到行
-  - key：显示MySQL实际决定使用的键（索引）。如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX
-  - key_len：显示MySQL决定使用的键长度。如果键是NULL，则长度为NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
-  - ref：显示使用哪个列或常数与key一起从表中选择行
-  - rows：显示MySQL认为它执行查询时必须检查的行数。注意这是一个预估值
-  - filtered：表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数
-  - **Extra**：显示MySQL在查询过程中的一些详细信息
-    - Using filesort：MySQL有两种方式可以生成有序的结果，通过排序操作或者使用索引，当Extra中出现了Using filesort 说明MySQL使用了后者，但注意虽然叫filesort但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，所以一般这时也要考虑优化查询了
-    - Using temporary：说明使用了临时表，一般看到它说明查询需要优化了，就算避免不了临时表的使用也要尽量避免硬盘临时表的使用。
-    - Not exists：MYSQL优化了LEFT JOIN，一旦它找到了匹配LEFT JOIN标准的行， 就不再搜索了。
-    - Using index：说明查询是覆盖了索引的，这是好事情。MySQL直接从索引中过滤不需要的记录并返回命中的结果。这是MySQL服务层完成的，但无需再回表查询记录。
-    - Using index condition：这是MySQL 5.6出来的新特性，叫做"索引条件推送"。简单说一点就是MySQL原来在索引上是不能执行如like这样的操作的，但是现在可以了，这样减少了不必要的IO操作，但是只能用在二级索引上，详情点这里。
-    - Using where：使用了WHERE从句来限制哪些行将与下一张表匹配或者是返回给用户
-
-### SQL Server
+## SQL Server
 
 ```sql
 SET SHOWPLAN_ALL ON; -- 开启执行计划展示，开启后再运行sql语句
@@ -314,3 +429,4 @@ SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
 [^3]: https://www.cnblogs.com/hellokitty1/p/4584333.html (Oracle数据库之FORALL与BULK COLLECT语句)
 [^4]: https://www.cnblogs.com/wishyouhappy/p/3681771.html (oracle索引)
 [^5]: https://www.cnblogs.com/zhanjindong/p/3439042.html
+[^6]: https://www.cnblogs.com/gomysql/p/3615897.html

@@ -87,7 +87,7 @@ group by
 	- 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
 	- 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
 	- 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
-- 字段值不区分大小写问题(**oracle默认区分大小写**)
+- 字段值不区分大小写问题(**oracle默认区分大小写，sqlserver也不区分大小写**)
 	- 如果字段为`utf8_general_ci`存储时，可以在字段前加`binary`强行要求此字段进行二进制查询，即区分大小写。如`select * from `t_test` where binary username = 'aezocn'`
 	- 设置字段排序规则为`utf8_bin`(`utf8_general_ci`中`ci`表示case insensitive，即不区分大小写)。设置成`utf8_bin`只是说字段值中每一个字符用二进制数据存储，区分大小写，显示和查询并不是二进制
 - `null`判断问题
@@ -98,7 +98,7 @@ group by
 	- 字段排序时，null默认最小
 	- `select * from t_test order by username is null, username asc;` 此时先按照是否为null进行排序，是空的排在下面(返回1)
 - 字段类型和大小
-	- varchar(10)表示可以存储10个字符，字符集utf8时一个中文为一个字符
+	- varchar(10)表示可以显示10个字符，字符集utf8时一个中文为一个字符
 
 ### 常用函数
 
