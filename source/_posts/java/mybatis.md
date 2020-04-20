@@ -327,9 +327,12 @@ tags: [mybatis, springboot]
 			<sql id="UserInfoColumns">id, group_id, nick_name, hobby</sql>
 			<sql id="userColumns">${alias}.id, ${alias}.username, ${alias}.password</sql><!-- alias不能通过bind在此sql内部设值 -->
 
-			<!--id对应接口的方法名; resultType(类全称或别名, 如内置别名map) 与 resultMap(自定义数据库字段与实体字段转换关系map) 不能并用; -->
-			<!-- statementType: STATEMENT(statement)、PREPARED(preparedstatement, 默认)、CALLABLE(callablestatement)-->
-			<!-- resultSetType: FORWARD_ONLY(游标向前滑动)，SCROLL_SENSITIVE(滚动敏感)，SCROLL_INSENSITIVE(不区分大小写的滚动)-->
+			<!-- 
+                id对应接口的方法名
+                resultType (类全称或别名, 如内置别名map) 与 resultMap(自定义数据库字段与实体字段转换关系map) 不能并用
+                statementType: STATEMENT(statement)、PREPARED(preparedstatement, 默认)、CALLABLE(callablestatement)
+                resultSetType: FORWARD_ONLY(游标向前滑动)，SCROLL_SENSITIVE(滚动敏感)，SCROLL_INSENSITIVE(不区分大小写的滚动)
+            -->
 			<select id="findAll" resultMap="UserInfoResultMap">
 				select
 				<!-- 如果引用在同一命名空间则可省略命名空间。但是 findAll 如果被其他命名空间引用则容易找到不 UserInfoColumns。因此建议一直加上命名空间 -->
@@ -351,6 +354,7 @@ tags: [mybatis, springboot]
 				<if test="username != null and username != ''">username=#{username}</if>
 			</sql>
 			<sql id="someinclude">from <include refid="${include_target}"/></sql>
+            <!-- 返回 List<Map> 对象 -->
 			<select id="selectMain" resultType="map">
 				select *
 				<include refid="someinclude">
