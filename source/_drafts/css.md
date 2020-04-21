@@ -63,6 +63,24 @@ tags: [css]
 https://www.zhangxinxu.com/wordpress/?p=8063
 https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 
+
+- 作用在flex容器上
+    - flex-direction
+    - flex-wrap
+    - flex-flow
+    - `justify-content` 决定了水平方向子项的对齐和分布方式
+        - 取值：flex-start | flex-end | center | space-between(两端对齐) | space-around | space-evenly
+        - CSS的text-align有个属性值为justify，可实现两端对齐，可联合记忆
+    - align-items
+    - align-content
+- 作用在flex子项上
+    - order
+    - flex-grow
+    - flex-shrink
+    - flex-basis
+    - flex
+    - align-self
+
 ## 常用css
 
 - 响应式布局，head中加`<meta name="viewport" content="width=device-width,initialscale=1.0,maximum-scale=1.0,user-scalable=0">`

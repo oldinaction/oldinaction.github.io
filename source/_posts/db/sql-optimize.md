@@ -168,8 +168,8 @@ tags: [oracle, dba, sql]
 - 索引的分类：主键索引、唯一索引(和主键索引的区别是可以有空值)、普通索引、全文索引(innodb 5.6才支持)、组合索引(多个字段组成的索引)
 - [索引采用的数据结构](一#108#1:26:06)
     - mysql数据文件
-        - myisam存储引擎包含三个文件，如表test_table对应：test_table.frm 表描述、test_table.MYD 数据、test_table.MYI 索引 (非聚簇索引。基于索引的查询过程是先找到索引对应的值，即数据的地址；再根据数据的地址到数据文件中查询实际数据)
-        - innodb存储引擎包含两个文件，如表test_table对应：test_table.frm 表描述、test_table.ibd 数据和索引保存在一起 (聚簇索引)
+        - myisam存储引擎包含三个文件，如表test_table对应：test_table.frm 表描述、test_table.MYD 数据、test_table.MYI 索引
+        - innodb存储引擎包含两个文件，如表test_table对应：test_table.frm 表描述、test_table.ibd 数据和索引保存在一起
     - mysql使用的数据结构
         - 哈希表：memory型的存储引擎使用的数据结构
         - B+树：innodb等使用
@@ -193,18 +193,52 @@ tags: [oracle, dba, sql]
                 - 通过稍微降低查询效率来提高插入和删除效率
         - B树、B+树、B*树
             - B树：将key值(索引列值)对磁盘块进行分割，如`p1,10,p2,20,p3`(p1为key<10的子树，10和20可直接获取保存的data数据，p2为10<=key<20的子树，p3为key>=20的子树；如果读取key=5的data数据，则需要再根据p1获取子树进行判断)。由于data数据(表中的一条记录数据)占用空间较大，导致查询每个存储块能存储的key较少，因此mysql最终选择B+树
-            - B+树
+            - **B+树**
                 - 根节点和分支节点只存储指针和键值，而将数据全部存在叶子节点。B+树的叶子节点互相通过指针进行连接
                 - 基本3层树结构，即3次io可支持千万级别的索引存储
                 - innodb的由于数据文件和索引文件在一个文件，索引data存储的是每一行记录的所有数据，而myisam的data存储的则是行记录数据的地址，需要通过数据地址到.MYD文件中再进行io查询出实际数据
             - B*树：在B+树的基础上，分支节点也会通过指针进行连接
 - 技术名词
-    - 回表
-    - 覆盖索引
-    - 最左匹配
-    - 索引下推
+    - `回表`：如通过普通索引找到的数据(B+树的data值)为主键值，需要获取其他数据时则需要根据主键索引重新检索。`select id, name, sex from user where name = 'smalle'`
+    - `覆盖索引`：通过普通索引查询数据时，只取出主键或索引字段，此时则不需要第二次检索。`select id,name from user where name = 'smalle'`
+    - `最左匹配`：组合索引时，要么where条件中包含索引的字段，要么包含组合索引的第一个字段才会触发组合索引
+        
+        ```sql
+        -- 如组合索引name, age
+        select id, name, sex from t_user where name = 'smalle' and age = 18; -- 会触发组合索引
+        select id, name, sex from t_user where name = 'smalle'; -- 会触发组合索引
+        select id, name, sex from t_user where age = 18; -- 不会触发组合索引
+        -- 如果要实现上述3个sql都通过索引查询，有以下索引创建方案
+        /*
+        1.name + age
+        2.age,name + name
+        3.name,age + age 的2个索引(其中name,age可触发 name=? and age=? 和 name=? 的查询；而age则为第3个sql准备)
+        第1中方案会出现索引合并从而可能降低效率；第2种和第3种的区别是单独的age索引占用磁盘空间比name索引少，从而更优。故而选择第3种
+        */
+        ```
+    - `索引下推`
+        
+        ```sql
+        select * from t_user where name like '张%' and age > 18
+        /*
+        1.根据（name,age）组合索引查询所有满足名称以"张"开头的索引，然后回表查询出相应的全行数据，然后再筛选出满足年龄大于18的用户数据
+        2.根据（name,age）组合索引查询所有满足名称以"张"开头的索引，然后直接再筛选出年龄大于18的索引，之后再回表查询全行数据
+        其中，第2种方式需要回表查询的全行数据比较少，这就是mysql的索引下推。mysql默认启用索引下推
+        */
+        ```
+- 索引匹配方式 (如给staff表创建组合索引name,age,pos)
+    - 全值匹配：指的是和索引中的所有列进行匹配。select * from staffs where name = 'July' and age = '23' and pos = 'dev';
+    - 匹配最左前缀：只匹配前面的几列。select * from staffs where name = 'July' and age = '23';
+    - 匹配列前缀：可以匹配某一列的值的开头部分。select * from staffs where name like 'J%';
+    - 匹配范围值：可以查找某一个范围的数据。select * from staffs where name > 'Mary';
+    - 精确匹配某一列并范围匹配另外一列：可以查询第一列的全部和第二列的部分。select * from staffs where name = 'July' and age > 25;
+    - 只访问索引的查询：查询的时候只需要访问索引，不需要访问数据行，本质上就是覆盖索引。select name,age,pos from staffs where name = 'July' and age = 25 and pos = 'dev';
+
+
+
 
 索引合并
+非聚簇索引。基于索引的查询过程是先找到索引对应的值，即数据的地址；再根据数据的地址到数据文件中查询实际数据
 
 ## Oracle
 

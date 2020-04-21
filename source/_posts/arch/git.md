@@ -16,7 +16,9 @@ tags: [git]
 
 ## git入门 [^1]
 
-### git全局配置
+### git配置
+
+#### 全局配置
 
 - `git config --global user.name smalle` 设置用户名
 - `git config --global user.email oldinaction@qq.com` 设置邮箱
@@ -32,6 +34,28 @@ tags: [git]
 > - 点击`esc`退出编辑模式，进入到vi命令行模式；
 > - 输入`:x`/`ZZ`将刚刚修改的文件进行保存，退出编辑页面，回到初始命令行
 > `ls`查看当前目录结构，`ls -A`可以显示隐藏的目录
+
+#### 项目配置
+
+- `.git/config` 文件
+
+```ini
+# 分支信息
+[remote "origin"]
+    # 如果远程仓库修改了，把此处的url换掉即可，提交历史还会保留
+	url = http://xxx/xxx.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+# 提交的用户信息
+[user]
+    name = smalle
+    email = smalle@163.com
+```
 
 ### repository
 
