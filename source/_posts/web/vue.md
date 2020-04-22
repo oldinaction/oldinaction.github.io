@@ -141,7 +141,7 @@ created(): {
     - https://cn.vuejs.org/v2/guide/list.html#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
     - https://cn.vuejs.org/v2/guide/reactivity.html#%E6%A3%80%E6%B5%8B%E5%8F%98%E5%8C%96%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
     - **由于 JavaScript 的限制，Vue 不能检测以下变动的数组**
-        - 当你利用索引直接设置一个项时，例如：`vm.items[indexOfItem] = newValue`
+        - 当你利用索引直接设置一个项时，例如：`vm.items[indexOfItem] = newValue`。如v-for循环想动态给item增加属性，此时只能先定义一个List，动态在方法中设置此List值，并通过JSON进行转换赋值
         - 当你修改数组的长度时，例如：`vm.items.length = newLength`
     - **由于 JavaScript 的限制，Vue 不能检测对象属性的添加或删除**
 
@@ -827,171 +827,6 @@ this.$root.eventHub.$on('eventName', (data) => {
         - `<keep-alive>`不会在函数式组件中正常工作，因为它们没有缓存实例
         - exclude的优先级大于include
 
-## 路由
-
-> https://yuchengkai.cn/blog/2018-07-27.html 源码解析
-
-### 基本概念
-
-- 路由生命周期见上文
-- `query`和`params`的区别
-    - query参数会拼接到url上面，param不会
-    - param的参数值可以赋值给路由路径中的动态参数。因此使用param时路由跳转后再次刷新页面会导致参数丢失
-
-```js
-this.$router.push({
-    name: "VisitInfo",
-    query: Object.assign({}, contact, {
-        visitId: this.visitId
-    })
-});
-```
-- `$route`和`$router`区别
-    - `$route`为当前路由，为vue内置
-    - `$router`为路由管理器(全局的)，一般在main.js中new Vue()时挂载
-
-```js
-export default {
-  computed: {
-    username () {
-      return this.$route.params.username
-    }
-  },
-  methods: {
-    goBack () {
-      window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/')
-    }
-  }
-}
-```
-- push和replace的区别
-    - 编程式`router.push(...)`和声明式`<router-link :to="...">`类似，都是往 history 栈添加一个新的记录，所以，当用户点击浏览器后退按钮时，则回到之前的 URL
-    - `router.replace(...)`和`<router-link :to="..." replace>`类似，它们不会向 history 添加新记录，而是替换掉当前的 history 记录
-    - `router.go(n)`类似`window.history.go(n)`
-- 动态路由、嵌套路由、`<router-view />`
-    - 实现嵌套路由有两个要点：在组件内部使用`<router-view />`标签、VueRouter 的参数中使用 children 配置
-
-> 嵌套路由（https://router.vuejs.org/zh/guide/essentials/nested-routes.html）
-
-```js
-<div id="app">
-  <router-view></router-view>
-</div>
-
-// 此时由于visit_info基于Mobile的，因此Mobile中必须要有一个路由出口(<router-view />)来展示visit_info。即表示含有children属性的组件(Mobile)的template中必须要有一个<router-view />
-const routers = [{
-  // 访问 /m 时，会将Mobile渲染到app的router-view中，相当于渲染顶级组件
-  path: "/m",
-  name: "mobile",
-  component: Mobile,
-  children: [{
-    // 当访问 /m/visit/info/1 时，会将visit_info.vue渲染到其父组件(Mobile)的router-view中，因此此时Mobile需要有一个<router-view />的出口
-    // 如果父组件中没有router-view路由出口，则此子组件将无妨成功created；且只有当路由到此子路径时，才会开始创建此子组件(仅访问父路径不会创建子组件)
-    path: "visit/info/:info_id", // path带/表示绝对路径。此时不带/。要通过name=visit_info路由(且路由params参数中info_id=1)进来时，url会自动变成/m/visit/info/1
-    name: "visit_info",
-    meta: {
-      title: "拜访编辑"
-    },
-    component: () => import("@/views/mobile/visit_info.vue")
-  }]
-}]
-```
-- 路由懒加载(当打包构建应用时，Javascript 包会变得非常大，影响页面加载速度)
-    - https://router.vuejs.org/zh/guide/advanced/lazy-loading.html
-    - https://panjiachen.github.io/vue-element-admin-site/zh/guide/advanced/lazy-loading.html
-
-### 路由变化页面数据不刷新
-
-- 参考上文【父子组件加载】中的示例，监控`$route`变化
-
-> 官方说明 https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96
-
-- 当使用路由参数时，例如参数 `/user/:username`，且从 /user/foo 导航到 /user/bar，原来的组件实例会被复用
-    - 因为两个路由都渲染同个组件(User)，比起销毁再创建，复用则显得更加高效
-    - 不过这也意味着组件的生命周期钩子(如created)不会再被调用
-    - 但是两个路径显示的data数据是缓存两份，不会覆盖
-
-```js
-const router = new VueRouter({
-  routes: [
-    // 动态路径参数，以冒号开头，通过route.params.userId传递参数。从路由中获取的参数均为字符串，Id一般需要通过Number()转换一下，防止后面 === 比较不正确
-    { path: '/user/:userId', component: User }
-  ]
-})
-
-// 解决办法(都会看到之前的数据突然刷新成了新的数据)。根据路由获取数据：https://router.vuejs.org/zh/guide/advanced/data-fetching.html
-const User = {
-    template: '...',
-    watch: {
-        // 观测 $route 时组件第一次创建和挂载都不会监测(触发)到，因此需要和created/mounted等结合使用
-        // 只要此组件在声明周期中就会，此方法就会一致监测到变化并执行逻辑(尽管此组件的元素没有显示在浏览器中也会如此)
-        // 单引号可以省略
-        '$route' (to, from) {
-            if (to.name == "XXX") {
-                // 对路由变化作出响应...
-                this.init();
-            }
-        }
-    },
-    // 页面路由钩子(还有全局路由钩子)：https://router.vuejs.org/guide/advanced/navigation-guards.html
-    beforeRouteEnter (to, from, next) {
-        // 在渲染该组件的对应路由被 confirm 前调用，不！能！获取组件实例 `this`，因为当守卫执行前，组件实例还没被创建
-        // don't forget to call next()，下同
-        next(vm => {
-            // vm === this; mounted了之后才会调用next
-        })
-    },
-    beforeRouteUpdate (to, from, next) {
-        // 在当前路由改变，但是该组件被复用时调用
-        // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
-        // 可以访问组件实例 `this`
-    },
-    beforeRouteLeave (to, from, next) {
-        // 导航离开该组件的对应路由时调用
-        // 可以访问组件实例 `this`
-    },
-    created() {
-        this.init()
-    },
-    methods: {
-        init() {
-            this.userId = Number(this.$route.params.userId)
-            this.fetchData()
-        },
-        fetchData() {}
-    }
-}
-```
-
-### hash和history路由模式
-
-- 为了构建 SPA(单页面应用)，需要引入前端路由系统，这也就是 Vue-Router 存在的意义。前端路由的核心，就在于改变视图的同时不会向后端发出请求。为了达到这种目的，浏览器当前提供了hash和history两种支持模式，Vue-Router是基于此两者特性完成 [^4]
-    - `hash`：即地址栏 URL 中的 `#` 符号(此 hash 不是密码学里的散列运算)。比如这个 URL：http://www.abc.com/#/hello，hash 的值为 #/hello。它的特点在于：hash 虽然出现在 URL 中，但不会被包括在 HTTP 请求中，对后端完全没有影响，因此改变 hash 不会重新加载页面
-    - `history`：利用了 HTML5 History Interface 中新增的 `pushState()` 和 `replaceState()` 方法。[支持的浏览器(IE=10)](https://developer.mozilla.org/zh-CN/docs/Web/API/History)。这两个方法应用于浏览器的历史记录栈，在当前已有的 back、forward、go 的基础之上，它们提供了对历史记录进行修改的功能。只是当它们执行修改时，虽然改变了当前的 URL，但浏览器不会立即向后端发送请求
-- Vue-Router使用对比
-    - hash模式
-        - 前进、后退、刷新均不会请求后端，仅刷新路由
-        - 缺点：Url中带有`#`号，nginx同域名多项目配置不支持
-        - router.beforeEach 中执行 next({..from}) 跳转后，不会执行afterEach()；而history模式会在执行一次beforeEach后执行afterEach。参考 https://www.okcode.net/article/70038
-    - history模式
-        - 前进、后退不会请求后端，**但是刷新、f5会请求后端**(nginx)，如果后端无浏览器地址栏中的路径则会404
-        - 缺点：需要浏览器支持(IE=10)，刷新可能会出404
-    - 两种模式对于router.push、replace、go的效果一致
-- history模式使用(https://router.vuejs.org/zh/guide/essentials/history-mode.html)
-
-```js
-// 开启history模式
-const router = new Router({
-  routes,
-  mode: 'history' // 默认为hash模式
-})
-
-// 如后端nginx服务器配置
-location / {
-  try_files $uri $uri/ /index.html;
-}
-```
-
 ## 事件
 
 ### 示例
@@ -1167,6 +1002,224 @@ module.exports = {
         }
     }
 }
+```
+
+## 路由
+
+> https://yuchengkai.cn/blog/2018-07-27.html 源码解析
+
+### 基本概念
+
+- 路由生命周期见上文
+- `query`和`params`的区别
+    - query参数会拼接到url上面，param不会
+    - param的参数值可以赋值给路由路径中的动态参数。因此使用param时路由跳转后再次刷新页面会导致参数丢失
+
+```js
+this.$router.push({
+    name: "VisitInfo",
+    query: Object.assign({}, contact, {
+        visitId: this.visitId
+    })
+});
+```
+- `$route`和`$router`区别
+    - `$route`为当前路由，为vue内置
+    - `$router`为路由管理器(全局的)，一般在main.js中new Vue()时挂载
+
+```js
+export default {
+  computed: {
+    username () {
+      return this.$route.params.username
+    }
+  },
+  methods: {
+    goBack () {
+      window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/')
+    }
+  }
+}
+```
+- push和replace的区别
+    - 编程式`router.push(...)`和声明式`<router-link :to="...">`类似，都是往 history 栈添加一个新的记录，所以，当用户点击浏览器后退按钮时，则回到之前的 URL
+    - `router.replace(...)`和`<router-link :to="..." replace>`类似，它们不会向 history 添加新记录，而是替换掉当前的 history 记录
+    - `router.go(n)`类似`window.history.go(n)`
+- 动态路由、嵌套路由、`<router-view />`
+    - 实现嵌套路由有两个要点：在组件内部使用`<router-view />`标签、VueRouter 的参数中使用 children 配置
+
+> 嵌套路由（https://router.vuejs.org/zh/guide/essentials/nested-routes.html）
+
+```js
+<div id="app">
+  <router-view></router-view>
+</div>
+
+// 此时由于visit_info基于Mobile的，因此Mobile中必须要有一个路由出口(<router-view />)来展示visit_info。即表示含有children属性的组件(Mobile)的template中必须要有一个<router-view />
+const routers = [{
+  // 访问 /m 时，会将Mobile渲染到app的router-view中，相当于渲染顶级组件
+  path: "/m",
+  name: "mobile",
+  component: Mobile,
+  children: [{
+    // 当访问 /m/visit/info/1 时，会将visit_info.vue渲染到其父组件(Mobile)的router-view中，因此此时Mobile需要有一个<router-view />的出口
+    // 如果父组件中没有router-view路由出口，则此子组件将无妨成功created；且只有当路由到此子路径时，才会开始创建此子组件(仅访问父路径不会创建子组件)
+    path: "visit/info/:info_id", // path带/表示绝对路径。此时不带/。要通过name=visit_info路由(且路由params参数中info_id=1)进来时，url会自动变成/m/visit/info/1
+    name: "visit_info",
+    meta: {
+      title: "拜访编辑"
+    },
+    component: () => import("@/views/mobile/visit_info.vue")
+  }]
+}]
+```
+- 路由懒加载(当打包构建应用时，Javascript 包会变得非常大，影响页面加载速度)
+    - https://router.vuejs.org/zh/guide/advanced/lazy-loading.html
+    - https://panjiachen.github.io/vue-element-admin-site/zh/guide/advanced/lazy-loading.html
+
+### 路由变化页面数据不刷新
+
+- 参考上文【父子组件加载】中的示例，监控`$route`变化
+
+> 官方说明 https://router.vuejs.org/zh/guide/essentials/dynamic-matching.html#%E5%93%8D%E5%BA%94%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E7%9A%84%E5%8F%98%E5%8C%96
+
+- 当使用路由参数时，例如参数 `/user/:username`，且从 /user/foo 导航到 /user/bar，原来的组件实例会被复用
+    - 因为两个路由都渲染同个组件(User)，比起销毁再创建，复用则显得更加高效
+    - 不过这也意味着组件的生命周期钩子(如created)不会再被调用
+    - 但是两个路径显示的data数据是缓存两份，不会覆盖
+
+```js
+const router = new VueRouter({
+  routes: [
+    // 动态路径参数，以冒号开头，通过route.params.userId传递参数。从路由中获取的参数均为字符串，Id一般需要通过Number()转换一下，防止后面 === 比较不正确
+    { path: '/user/:userId', component: User }
+  ]
+})
+
+// 解决办法(都会看到之前的数据突然刷新成了新的数据)。根据路由获取数据：https://router.vuejs.org/zh/guide/advanced/data-fetching.html
+const User = {
+    template: '...',
+    watch: {
+        // 观测 $route 时组件第一次创建和挂载都不会监测(触发)到，因此需要和created/mounted等结合使用
+        // 只要此组件在声明周期中就会，此方法就会一致监测到变化并执行逻辑(尽管此组件的元素没有显示在浏览器中也会如此)
+        // 单引号可以省略
+        '$route' (to, from) {
+            if (to.name == "XXX") {
+                // 对路由变化作出响应...
+                this.init();
+            }
+        }
+    },
+    // 页面路由钩子(还有全局路由钩子)：https://router.vuejs.org/guide/advanced/navigation-guards.html
+    beforeRouteEnter (to, from, next) {
+        // 在渲染该组件的对应路由被 confirm 前调用，不！能！获取组件实例 `this`，因为当守卫执行前，组件实例还没被创建
+        // don't forget to call next()，下同
+        next(vm => {
+            // vm === this; mounted了之后才会调用next
+        })
+    },
+    beforeRouteUpdate (to, from, next) {
+        // 在当前路由改变，但是该组件被复用时调用
+        // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+        // 可以访问组件实例 `this`
+    },
+    beforeRouteLeave (to, from, next) {
+        // 导航离开该组件的对应路由时调用
+        // 可以访问组件实例 `this`
+    },
+    created() {
+        this.init()
+    },
+    methods: {
+        init() {
+            this.userId = Number(this.$route.params.userId)
+            this.fetchData()
+        },
+        fetchData() {}
+    }
+}
+```
+
+### hash和history路由模式
+
+- 为了构建 SPA(单页面应用)，需要引入前端路由系统，这也就是 Vue-Router 存在的意义。前端路由的核心，就在于改变视图的同时不会向后端发出请求。为了达到这种目的，浏览器当前提供了hash和history两种支持模式，Vue-Router是基于此两者特性完成 [^4]
+    - `hash`：即地址栏 URL 中的 `#` 符号(此 hash 不是密码学里的散列运算)。比如这个 URL：http://www.abc.com/#/hello，hash 的值为 #/hello。它的特点在于：hash 虽然出现在 URL 中，但不会被包括在 HTTP 请求中，对后端完全没有影响，因此改变 hash 不会重新加载页面
+    - `history`：利用了 HTML5 History Interface 中新增的 `pushState()` 和 `replaceState()` 方法。[支持的浏览器(IE=10)](https://developer.mozilla.org/zh-CN/docs/Web/API/History)。这两个方法应用于浏览器的历史记录栈，在当前已有的 back、forward、go 的基础之上，它们提供了对历史记录进行修改的功能。只是当它们执行修改时，虽然改变了当前的 URL，但浏览器不会立即向后端发送请求
+- Vue-Router使用对比
+    - hash模式
+        - 前进、后退、刷新均不会请求后端，仅刷新路由
+        - 缺点：Url中带有`#`号，nginx同域名多项目配置不支持
+        - router.beforeEach 中执行 next({..from}) 跳转后，不会执行afterEach()；而history模式会在执行一次beforeEach后执行afterEach。参考 https://www.okcode.net/article/70038
+    - history模式
+        - 前进、后退不会请求后端，**但是刷新、f5会请求后端**(nginx)，如果后端无浏览器地址栏中的路径则会404
+        - 缺点：需要浏览器支持(IE=10)，刷新可能会出404
+    - 两种模式对于router.push、replace、go的效果一致
+- history模式使用(https://router.vuejs.org/zh/guide/essentials/history-mode.html)
+
+```js
+// 开启history模式
+const router = new Router({
+  routes,
+  mode: 'history' // 默认为hash模式
+})
+
+// 如后端nginx服务器配置
+location / {
+  try_files $uri $uri/ /index.html;
+}
+```
+
+## Vuex
+
+- [Vuex](https://vuex.vuejs.org/zh/)
+- 刷新浏览器地址会导致vuex的state状态丢失，一般是默认给state的相应属性赋值Cookie的值或者在使用的地方通过Cookie重新获
+
+```js
+import Cookies from 'js-cookie'
+
+const user = {
+  // 开启严格模式，仅需在创建 store 的时候传入 strict: true。在严格模式下，无论何时发生了状态变更且不是由 mutation 函数引起的，将会抛出错误
+  strict: process.env.NODE_ENV !== 'production'
+  // 状态
+  // this.$store.state.name 或 this.$store.user.state.name(被嵌入到modules)
+  state: {
+    token: Cookies.get('X-Token'), // 刷新浏览器后，初始化时数据线从Cookies中获取
+    name: '' // 刷新浏览器数据会丢失
+  },
+  // 更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。它会接受 state 作为第一个参数
+  // 调用：this.$store.commit('SET_TOKEN', 'my-token-xxx') 
+  mutations: {
+    SET_TOKEN: (state, token) => {
+      state.token = token
+    },
+    SET_NAME: (state, name) => {
+      state.name = name
+    }
+  },
+  // Action 类似于 mutation，不同在于：Action 提交的是 mutation，而不是直接变更状态；Action 可以包含任意异步操作
+  // 调用：this.$store.dispatch('Login')
+  actions: {
+    Login({ commit }, userInfo) {
+      const username = userInfo.username.trim()
+      return new Promise((resolve, reject) => {
+        login(username, userInfo.password).then(data => {
+          setToken(data.token) // 存储在 Cookies
+          commit('SET_TOKEN', data.token)
+          resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    }
+  },
+  // 引入其他模块
+  // 调用：this.$store.permission.state.access
+  modules: {
+    permission // Vuex对象
+  }
+}
+
+export default user
 ```
 
 ## JSX使用
