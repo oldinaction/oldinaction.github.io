@@ -8,10 +8,10 @@ tags: [db, mongodb]
 
 ## mongodb简介
 
-- MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。
+- MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的
 - 官网：[https://www.mongodb.com](https://www.mongodb.com)
 
-## mongodb安装
+## mongodb安装运行
 
 ### windows
 
@@ -38,13 +38,13 @@ sudo ./mongo                                                                    
 # sudo ./mongod --dbpath=/data/db --rest                                        # 访问 http://localhost:28017 可进入web界面
 ```
 
-## 运行mongodb
+### 运行mongodb
 
-1. 法一：命令行运行
+- 法一：命令行运行
   - cmd进入到安装目录的bin目录下
   - 运行 `mongod.exe --dbpath D:\software\mongodb\db --auth`
-      - 其中参数`--auth`表示开启安全验证。如若不开启，则admin无密码登录可以查看admin下其他用户的数据
-2. 法二：将MongoDB服务器作为Windows服务运行
+      - **其中参数`--auth`表示开启安全验证。如若不开启，则无密码登录可以查看admin下其他用户的数据**
+- 法二：将MongoDB服务器作为Windows服务运行
     - (以管理员运行)cmd进入到安装目录的`D:\software\mongodb\bin`目录下
     - 运行(注意参数说明) `mongod.exe --logpath "D:\software\mongodb\log\mongodb.log" --logappend --dbpath "D:\software\mongodb\db" --port 27018 --serviceName "mongodb" --serviceDisplayName "mongodb" --install`
         - 参数描述
@@ -59,12 +59,14 @@ sudo ./mongo                                                                    
         - `mongod.exe --auth --logpath "D:\software\mongodb\log\mongodb.log" --logappend --dbpath "D:\software\mongodb\db" --port 27018 --serviceName "mongodb" --serviceDisplayName "mongodb" --reinstall` 其中`--auth`表示开启安全验证、`--reinstall`表示重新注册服务
     - 卸载：管理员运行`sc delete 服务名称`
 
-## MongoDB牛刀小试
+## MongoDB使用
+
+### MongoDB牛刀小试
 
 MongoDB Shell是MongoDB自带的交互式Javascript shell,用来对MongoDB进行操作和管理的交互式环境。
 
 - 重启一个dos窗口，进入到安装目录的bin目录下
-- 运行命令 `mongo`, 看到版本号则运行成功。当你进入mongoDB后台后，它默认会链接到 test 文档（数据库），mongodb默认内置有两个数据库，一个名为admin，一个名为local
+- 运行命令 `mongo`, 看到版本号则运行成功。当进入mongoDB后台后，它默认会链接到 test 文档（数据库），mongodb默认内置有两个数据库，一个名为admin，一个名为local
     - `mongo --port 27018` 指定端口进行连接
 - 牛刀小试
   - 输入 `2+2` 回车，会打印 4
@@ -72,23 +74,46 @@ MongoDB Shell是MongoDB自带的交互式Javascript shell,用来对MongoDB进行
   - 运行 `db.myvar.insert({"num":10})` 表示将10插入到集合myvar的num字段中(直接运行后如果没有myvar的集合则新建一个)
   - 运行 `db.myvar.find()` 会打印集合myvar的情况
 
-## MongoDB使用
+### 用户管理
 
-### 设置用户名密码
+- 创建用户
 
-- `use admin` 切换到admin数据库
-- `db.createUser({user:"root",pwd:"root",roles:["root"]})` 创建管理员账号
-- `db.auth("root","root")` 验证登录
-- `exit` 退出
-- 重新启动，并以`--auth`模式启动
-- `mongo --port 27018 -u root -p root admin` 使用root/root登录admin数据库
+    ```sql
+    -- 切换到admin数据库
+    use admin
+    -- 创建管理员账号。具体参数见下文
+    db.createUser({user: "smalle", pwd: "smalle", roles:[{role: "root", db: "admin"}]})
+    -- 验证密码
+    db.auth("smalle", "smalle")
+    ```
+    - roles：指定用户的角色，可以用一个空数组给新用户设定空角色。其中role字段，可以指定内置角色和用户定义的角色
+    - db：指定该用户某个指定数据库的角色
+    - role：用户角色，内置角色如下
+        - 数据库用户角色：read、readWrite
+        - 数据库管理角色：dbAdmin、dbOwner、userAdmin
+        - 集群管理角色：clusterAdmin、clusterManager、clusterMonitor、hostManager
+        - 备份恢复角色：backup、restore
+        - 所有数据库角色：readAnyDatabase、readWriteAnyDatabase、userAdminAnyDatabase、dbAdminAnyDatabase
+        - 超级用户角色：root // 这里还有几个角色间接或直接提供了系统超级用户的访问（dbOwner 、userAdmin、userAdminAnyDatabase）
+        - 内部角色：__system
+    - 具体角色的功能
+        - read：允许用户读取指定数据库
+        - readWrite：允许用户读写指定数据库
+        - dbAdmin：允许用户在指定数据库中执行管理函数，如索引创建、删除，查看统计或访问system.profile
+        - userAdmin：允许用户向system.users集合写入，可以找指定数据库里创建、删除和管理用户
+        - clusterAdmin：只在admin数据库中可用，赋予用户所有分片和复制集相关函数的管理权限
+        - readAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的读权限
+        - readWriteAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的读写权限
+        - userAdminAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的userAdmin权限
+        - dbAdminAnyDatabase：只在admin数据库中可用，赋予用户所有数据库的dbAdmin权限
+        - root：只在admin数据库中可用。超级账号，超级权限
+    - 一般可给某数据库管理员角色：read、readWrite、dbAdmin、userAdmin
 
-### MongoDB管理工具robomongo
+## 客户端管理工具Robo 3T
 
-1. 下载地址 `https://robomongo.org/download` (`Download portable version for Windows 64-bit`为免安装版)
+- 下载地址 `https://robomongo.org/download` (`Download portable version for Windows 64-bit`为免安装版)
 
 
+参考文章
 
-> 参考文章
->
-> - [MongoDB 教程] http://www.runoob.com/mongodb/mongodb-tutorial.html
+- http://www.runoob.com/mongodb/mongodb-tutorial.html (MongoDB 教程)

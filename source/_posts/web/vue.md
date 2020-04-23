@@ -389,8 +389,14 @@ render: (h, params) => {
 			trigger: 'hover',
 			title: params.row.name + '的信息',
 			placement: 'bottom',
-			transfer: true
-		}
+            transfer: true
+            // confirm: true
+        },
+        // on: {
+        //     'on-ok': () => {
+        //         this.confirm()
+        //     }
+        // }
 	}, [
         // Poptip-Tag
 		h('Tag', {

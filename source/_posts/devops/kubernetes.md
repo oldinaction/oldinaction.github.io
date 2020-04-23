@@ -421,6 +421,7 @@ Basic Commands (Beginner):
     --replicas      # 部署的节点数量
     --restart       # 重启方式，取值：Never(表示不自动启动)
     -it             # 进入pod容器
+    --rm            # 退出容器后删除
     # kubectl run nginx --image=nginx # 启动单实例
     # kubectl run sq-nginx --image=nginx:1.14-alpine --replicas=3 # 启动3个实例
     # kubectl run busybox1 -it --image=busybox --restart=Never --overrides='{ "apiVersion": "v1", "spec": { "nodeName": "node1" } }' # 启动busybox并进入容器，此时添加了额外参数 --overrides 来覆盖资源配置
@@ -1890,9 +1891,26 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 
 ### pod
 
-- 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container` 可查看对应pod的日志
-- 报错`Back-off restarting failed container`，可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
+- 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container`
+    - 可查看对应pod的日志
+- 报错`Back-off restarting failed container`
+    - 可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
 - 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试，实际是过几分钟便自动恢复了)
+- 报错`pod has unbound immediate PersistentVolumeClaims`
+    - 此时pod日志显示`AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"`，且PV和PVC均正常显示Bound(PV也符合PVC的要求)。后发现pod日志只显示`Pulling image "docker.io/bitnami/mongodb:4.2.6"`，并未显示`Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"`，后发现对接节点确实没有相应镜像，由此推断镜像获取失败导致
+    - pod日志顺序
+
+        ```bash
+        Successfully assigned devops/mongodb-devops-7d556f9578-4gjmz to dev2-1
+        AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"
+        # pod has unbound immediate PersistentVolumeClaims (repeated 4 times) # 报错日志
+        # 卡在此处
+        Pulling image "docker.io/bitnami/mongodb:4.2.6"
+        Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"
+        # Container image "docker.io/bitnami/mongodb:4.2.6" already present on machine # 如果镜像原本存在则打印此行
+        Created container mongodb-devops
+        Started container mongodb-devops
+        ```
 
 ### pv/pvc
 

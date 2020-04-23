@@ -13,6 +13,7 @@ tags: [k8s]
     - Helm组成：`Helm`客户端、`Tiller`服务器、`Charts`仓库
     - 原理：Helm客户端从远程Charts仓库(Repository)拉取Chart(应用程序配置模板)，并添加Chart安装运行时所需要的Config(配置信息)，然后将此Chart和Config提交到Tiller服务器，Tiller服务器则在k8s生成`Release`，并完成部署
 - [官方Charts仓库](https://github.com/helm/charts)、[官方Charts仓库展示](https://hub.helm.sh/)、[Kubeapps Charts仓库(速度较快)](https://hub.kubeapps.com/charts)
+- [国内docker镜像](/_posts/devops/docker.md#国内镜像)
 
 ## 安装Helm客户端及服务
 
@@ -114,6 +115,90 @@ version     # 打印客户端和服务端的版本信息
         helm install stable/mysql -f myvalues.yaml
         helm install --values=myvalues.yaml stable/mysql
         ```
+## Chart说明
+
+- 安装某个 Chart 后，可在 `~/.helm/cache/archive` 中找到 Chart 的 tar 包，可解压查看 Chart 文件信息(`tar -zxvf nginx-ingress-0.9.5.tgz`)
+- 创建 Chart 案例 [^1]
+
+    ```bash
+    # 创建名为 mychart 的 Chart. 此时会创建一个包含nginx相关配置的的模板包
+    helm create mychart
+    # tree mychart
+    # 检测 chart 的语法
+    helm lint mychart
+    # 模拟安装 chart，并输出每个模板生成的 YAML 内容(--dry-run 实际没有部署到k8s)
+    helm install --dry-run --debug mychart
+    # 部署到k8s
+    helm install ./mychart --name mychart --namespace test
+    helm upgrade mychart ./mychart
+    
+    # 测试
+    export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=test-chart" -o jsonpath="{.items[0].metadata.name}")
+    kubectl port-forward --address 0.0.0.0 $POD_NAME 8080:80
+    # 在本地访问http://127.0.0.1:8080即可访问到nginx
+
+    # 修改配置文件(也可同时配合--set修改配置)后更新部署。如果直接修改value.yaml里面的image.tag提交更新后k8s无反应
+    # 此处image.tag不能使用过长的数字(yyyyMMddHHmmss生成的数字)，过长传递到k8s则变成了科学计数导致出错
+    helm upgrade --set image.tag=20190902 mychart ./mychart
+    helm history mychart # 查看更新历史
+
+    ## 复制后修改项目名
+    sed -i 's/mychart/mychart2/g' `grep mychart -rl ./mychart2`
+    ```
+- `tree mychart` 显示目录信息如下
+
+    ```bash
+    # 其中 Chart.yaml 和 values.yaml 必须，其他可选
+    mychart
+    ├── charts                          # 依赖的chart
+    ├── requirements.yaml               # 该chart的依赖配置(create创建的无此文件)
+    ├── Chart.yaml                      # Chart本身的版本和配置信息。其中的name是chart的名称，并不一定是release的名称
+    ├── templates                       # 配置模板目录，下是yaml文件的模板，遵循Go template语法
+    │   ├── deployment.yaml             # kubernetes Deployment object
+    │   ├── _helpers.tpl                # 用于修改kubernetes objcet配置的模板
+    │   ├── ingress.yaml                # kubernetes Ingress(默认未启用)
+    │   ├── NOTES.txt
+    │   ├── service.yaml                # kubernetes Serivce
+    │   └── tests
+    │       └── test-connection.yaml
+    └── values.yaml                     # kubernetes object configuration
+    ```
+    - 比如在`deployment.yaml`中定义的容器镜像
+        
+        ```bash
+        # 其中`.Values`代表后面属性获取`values.yaml`文件中的数据，如`.Values.image.repository`就是`nginx`，`.Values.image.tag`就是`stable`
+        # Values为内置对象。更多内置对象参考：https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/builtin_objects-zh_cn.html
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ```
+- 打包分享
+    - chart 通过测试后可以将其添加到仓库，团队其他成员就能够使用。任何 HTTP Server 都可以用作 chart 仓库
+
+    ```bash
+    ## 在node2启动一个 HTTP Server，如果已有可忽略。此处node2服务地址为 http://192.168.6.132:8080/
+    docker run -d -p 8080:80 -v /var/www/:/usr/local/apache2/htdocs/ httpd
+
+    ## 在node1操作
+    # 生成压缩包 mychart-0.1.0.tgz，并同步到 local 的仓库
+    helm package mychart
+    # 生成仓库的 index 文件
+    mkdir myrepo
+    mv mychart-0.1.0.tgz myrepo/
+    # Helm 会扫描 myrepo 目录中的所有 tgz 包并生成 index.yaml
+    helm repo index myrepo/ --url http://192.168.6.132:8080/charts
+    cat myrepo/index.yaml
+    # 需要提前在node2创建 /var/www/charts/
+    scp myrepo/* root@node2:/var/www/charts/
+    helm repo add newrepo http://192.168.6.132:8080/charts
+    helm repo list
+    helm search mychart
+    # 如果以后仓库添加了新的 chart，需要用 helm repo update 更新本地的 index
+    helm repo update
+    ```
+- chart语法参考[Go template语法](#Go%20template语法)
+- chart参考文章[chart_template_guide](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/index-zh_cn.html)
+    - [chart内置对象](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/builtin_objects-zh_cn.html)
+        - `Release.Name`
+        - `Release.Namespace`
 
 ## 使用案例
 
@@ -736,7 +821,7 @@ persistence:
   storageClass: 'nfs-client'
 service:
   type: NodePort
-  nodePort: 30004
+  nodePort: 30000
 EOF
 helm install --name postgresql-devops --namespace devops stable/postgresql --version=6.5.3 -f postgresql-values.yaml
 
@@ -778,7 +863,7 @@ master:
     storageClass: 'nfs-client'
   service:
     type: NodePort
-    nodePort: 30002
+    nodePort: 30000
   configmap: |-
     appendfsync everysec
 slave:
@@ -786,7 +871,7 @@ slave:
     storageClass: 'nfs-client'
   service:
     type: NodePort
-    nodePort: 30003
+    nodePort: 30001
 EOF
 helm install --name redis-devops --namespace devops stable/redis --version=9.5.0 -f redis-values.yaml
 
@@ -801,6 +886,31 @@ helm del --purge redis-devops
         - 进入pod后，先执行`cp data/appendonly.aof data/appendonly.aof.bak`，然后执行`redis-check-aof --fix data/appendonly.aof`输入Y进行AOF文件修复(一般为redis突然掉电导致aof文件损坏，此前由于直接删除原pod导致)
         - 还原pod原始启动参数并重新启动
     - 测试时数据貌似有丢失?? 0.0
+
+### MongoDB
+
+> https://github.com/bitnami/charts/blob/master/bitnami/mongodb/README.md
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+cat > mongodb-values.yaml << 'EOF'
+image:
+  # registry: docker.mirrors.ustc.edu.cn # 国内镜像下载不成功
+  tag: 4.2.6
+mongodbRootPassword: Hello1234!
+service:
+  type: NodePort
+  nodePort: 30000
+persistence:
+  storageClass: 'nfs-client'
+EOF
+helm install --name mongodb-devops --namespace devops bitnami/mongodb --version=7.12.0 -f mongodb-values.yaml
+# 使用root账号连接默认数据库(admin): `mongo --host 192.168.6.130 --port 30000 --authenticationDatabase admin -u root -p Hello1234!` 使用 Robo 3T 1.3 客户端连接时，秘钥方式选择SCRAM-SHA-1
+
+helm upgrade mongodb-devops bitnami/mongodb --version=7.12.0 -f mongodb-values.yaml
+helm del --purge mongodb-devops
+```
 
 ### Harbor
 
@@ -981,90 +1091,6 @@ export UI_PORT=$(kubectl get --namespace monitoring -o jsonpath="{.spec.ports[0]
 export UI_IP=$(kubectl get nodes --namespace monitoring -o jsonpath="{.items[0].status.addresses[0].address}")
 echo "skydive end-point: http://$UI_IP:$UI_PORT"
 ```
-
-## Chart说明
-
-- 安装某个 Chart 后，可在 `~/.helm/cache/archive` 中找到 Chart 的 tar 包，可解压查看 Chart 文件信息(`tar -zxvf nginx-ingress-0.9.5.tgz`)
-- 创建 Chart 案例 [^1]
-
-    ```bash
-    # 创建名为 mychart 的 Chart. 此时会创建一个包含nginx相关配置的的模板包
-    helm create mychart
-    # tree mychart
-    # 检测 chart 的语法
-    helm lint mychart
-    # 模拟安装 chart，并输出每个模板生成的 YAML 内容(--dry-run 实际没有部署到k8s)
-    helm install --dry-run --debug mychart
-    # 部署到k8s
-    helm install ./mychart --name mychart --namespace test
-    
-    # 测试
-    export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=test-chart" -o jsonpath="{.items[0].metadata.name}")
-    kubectl port-forward --address 0.0.0.0 $POD_NAME 8080:80
-    # 在本地访问http://127.0.0.1:8080即可访问到nginx
-
-    # 修改配置文件(也可同时配合--set修改配置)后更新部署。如果直接修改value.yaml里面的image.tag提交更新后k8s无反应
-    # 此处image.tag不能使用过长的数字(yyyyMMddHHmmss生成的数字)，过长传递到k8s则变成了科学计数导致出错
-    helm upgrade --set image.tag=20190902 mychart ./mychart
-    helm history mychart # 查看更新历史
-
-    ## 复制后修改项目名
-    sed -i 's/mychart/mychart2/g' `grep mychart -rl ./mychart2`
-    ```
-- `tree mychart` 显示目录信息如下
-
-    ```bash
-    # 其中 Chart.yaml 和 values.yaml 必须，其他可选
-    mychart
-    ├── charts                          # 依赖的chart
-    ├── requirements.yaml               # 该chart的依赖配置(create创建的无此文件)
-    ├── Chart.yaml                      # Chart本身的版本和配置信息。其中的name是chart的名称，并不一定是release的名称
-    ├── templates                       # 配置模板目录，下是yaml文件的模板，遵循Go template语法
-    │   ├── deployment.yaml             # kubernetes Deployment object
-    │   ├── _helpers.tpl                # 用于修改kubernetes objcet配置的模板
-    │   ├── ingress.yaml                # kubernetes Ingress(默认未启用)
-    │   ├── NOTES.txt
-    │   ├── service.yaml                # kubernetes Serivce
-    │   └── tests
-    │       └── test-connection.yaml
-    └── values.yaml                     # kubernetes object configuration
-    ```
-    - 比如在`deployment.yaml`中定义的容器镜像
-        
-        ```bash
-        # 其中`.Values`代表后面属性获取`values.yaml`文件中的数据，如`.Values.image.repository`就是`nginx`，`.Values.image.tag`就是`stable`
-        # Values为内置对象。更多内置对象参考：https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/builtin_objects-zh_cn.html
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        ```
-- 打包分享
-    - chart 通过测试后可以将其添加到仓库，团队其他成员就能够使用。任何 HTTP Server 都可以用作 chart 仓库
-
-    ```bash
-    ## 在node2启动一个 HTTP Server，如果已有可忽略。此处node2服务地址为 http://192.168.6.132:8080/
-    docker run -d -p 8080:80 -v /var/www/:/usr/local/apache2/htdocs/ httpd
-
-    ## 在node1操作
-    # 生成压缩包 mychart-0.1.0.tgz，并同步到 local 的仓库
-    helm package mychart
-    # 生成仓库的 index 文件
-    mkdir myrepo
-    mv mychart-0.1.0.tgz myrepo/
-    # Helm 会扫描 myrepo 目录中的所有 tgz 包并生成 index.yaml
-    helm repo index myrepo/ --url http://192.168.6.132:8080/charts
-    cat myrepo/index.yaml
-    # 需要提前在node2创建 /var/www/charts/
-    scp myrepo/* root@node2:/var/www/charts/
-    helm repo add newrepo http://192.168.6.132:8080/charts
-    helm repo list
-    helm search mychart
-    # 如果以后仓库添加了新的 chart，需要用 helm repo update 更新本地的 index
-    helm repo update
-    ```
-- chart语法参考[Go template语法](#Go%20template语法)
-- chart参考文章[chart_template_guide](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/index-zh_cn.html)
-    - [chart内置对象](https://whmzsu.github.io/helm-doc-zh-cn/chart_template_guide/builtin_objects-zh_cn.html)
-        - `Release.Name`
-        - `Release.Namespace`
 
 ## Go template语法
 
