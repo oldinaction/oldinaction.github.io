@@ -188,7 +188,7 @@ public class App {
 
 - `@Autowired` Spring提供
     - 默认按类型by type(根据类)
-    - 如果想用by name，则联合使用`@Qualifier("my-bean-name")`
+    - 如果想用by name，则联合使用`@Qualifier("my-bean-name")`。对于默认的Bean可通过添加`@Primary`
     - `@Autowired List<Monitor> monitors;` 也可以注入集合
 - `@Resource` JSR-250提供(常用)
 - `@Inject` JSR-330提供
@@ -210,7 +210,7 @@ public class App {
 - 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
 - 内置条件
     - `@ConditionalOnProperty` 要求配置属性匹配条件
-        - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false) matchIfMissing=false表示无此参数则不符合条件
+        - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)。其中：havingValue表示对应参数值，matchIfMissing=false表示无此参数则不符合条件
     - `@ConditionalOnMissingBean` 当给定的类型、类名、注解、昵称在beanFactory中不存在时返回true，各类型间是or的关系
         - eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
     - `@ConditionalOnBean` 与上相反，在存在某个bean的时候
