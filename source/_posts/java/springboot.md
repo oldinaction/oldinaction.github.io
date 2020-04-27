@@ -723,14 +723,14 @@ request-method |Content-Type   |postman   |springboot   |说明
 --|---|---|---|---
 post |`application/json`   |row-json   |(String userIdUrlParam, @RequestBody User user) |`String userIdUrlParam`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List对象，此时body中的数据不能直接通过String等接受)，而idea的http文件中url参数拼在地址上无法获取(请求机制不同)
 post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`。**对于application/x-www-form-urlencoded类型的数据，可无需 @RequestBody 接受参数**
-post |`multipart/form-data`  |form-data   |(HttpServletRequest request, User user, @RequestParam("hello") String hello)   |参考实例1。可进行文件上传(包含参数)
+post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考实例1，可进行文件上传(包含参数)。此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放再body中，且数据格式为json
 	- 服务器response设置content-type标明返回的数据类型。接口开发时，设置请求参数是无法改变服务器数据返回类型的。部分工具提供专门的设置，通过工具内部转换的方式实现设定返回数据类型
 - `content-type: multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
 	- `javascript XHR`需要使用`new FormData()`进行数据传输(可查看postman代码)
-	- 还可使用`MultipartFile`来接受单个文件, 使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件 [^3]
+	- 还可使用`MultipartFile`来接受单个文件，使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件
 
 	```java
 	// 此时User会根据前台参数和User类的set方法自动填充(调用的是User类的set方法)
@@ -2383,7 +2383,6 @@ User user = this.userRepositroy.findById(id).get();
 
 [^1]: http://412887952-qq-com.iteye.com/blog/2322756 (h2介绍)
 [^2]: https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache (idea连接h2)
-[^3]: http://blog.csdn.net/coding13/article/details/54577076 (spring-boot文件上传)
 [^6]: http://www.cnblogs.com/ityouknow/p/6828919.html (Springboot中mongodb的使用)
 [^7]: http://www.cnblogs.com/yjbjingcha/p/6752265.html (Spring在代码中获取bean的几种方式)
 [^8]: http://blog.csdn.net/v2sking/article/details/72795742 (异步调用Async)

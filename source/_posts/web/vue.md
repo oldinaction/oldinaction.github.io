@@ -1233,11 +1233,11 @@ export default user
 - vue的jsx语法是基于[babel-plugin-transform-vue-jsx](https://github.com/vuejs/babel-plugin-transform-vue-jsx)插件实现的 [^7]
 
     ![vue-jsx](/data/images/web/vue-jsx.png)
-- 使用vue-cli3则不需要手动安装上述babel插件即可使用（否则会报错Duplicate declaration "h"）。其他方式需要手动安装
+- **使用vue-cli3则不需要手动安装上述babel插件即可使用**(如果重复安装会报错Duplicate declaration "h")。其他方式需要手动安装
 
 ```bash
+# 非vue-cli3需要手动安装
 npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-vue-jsx-merge-props babel-preset-env --save-dev
-
 # .babelrc文件中增加配置
 "plugins": ["transform-vue-jsx"]
 ```
@@ -1247,9 +1247,11 @@ npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-
         - 不建议声明onXXX的属性
     - 对于原生指令，只有v-show是支持的。v-if可用(&& 或 ?:)代替；v-for代替array.map；v-model使用事件触发；自定义指令使用...解构
     - 对于事件
-        - 使用 `on-[eventName]` 格式, 比如 on-click-two, on-click, on-camelCaseEvent
+        - 使用 `on-[eventName]` 格式, 比如 on-on-change, on-click, on-camelCaseEvent
         - 使用 `on[eventName]` 格式，比如 onClick, onCamelCaseEvent。click-two 需要这样写 onClick-two，onClickTwo 是不对的
         - 使用 spread 语法，即 `{...{on: {event: handlerFunction}}}`
+    - 对于样式
+        - 如果组件中使用了scoped，则对该组件的JSX标签中的css类进行样式编写时必须添加`/deep/`等作用于穿透标识
 - 示例
 
 ```js
@@ -1263,6 +1265,23 @@ render() {
         </div>
     )
 }
+
+// iview 列
+columns: [{
+    title: '处理人',
+    key: 'workerName',
+    width: 95,
+    // render (h, params) {
+    //     此作用域的this和param类似
+    // },
+    render: (h, params) => {
+        // 此组件可以拿到vue组件 this
+        return (
+            <FieldEdit type="select" value={params.row.worker} dataList={this.projectUserList} dataKey="uid" dataLabel="uname"
+            on-on-change={v => this.editWork('worker', v, params.row)} />
+        )
+    }
+}]
 
 // v-for使用 array.map 代替
 render() {

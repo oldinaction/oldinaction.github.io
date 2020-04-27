@@ -69,9 +69,10 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
     - flex-wrap
     - flex-flow
     - `justify-content` 决定了水平方向子项的对齐和分布方式
-        - 取值：flex-start | flex-end | center | space-between(两端对齐) | space-around | space-evenly
+        - 取值：`flex-start` | `flex-end` | `center` | `space-between`(两端对齐) | `space-around` | `space-evenly`
         - CSS的text-align有个属性值为justify，可实现两端对齐，可联合记忆
-    - align-items
+    - `align-items` 决定了垂直方向子项的对齐和分布方式
+        - 取值：`stretch`(类似于flex-start) | `flex-start`(顶部对齐) | `flex-end` | `center` | `baseline`(类似于flex-end)
     - align-content
 - 作用在flex子项上
     - order
