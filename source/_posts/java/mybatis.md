@@ -377,6 +377,11 @@ tags: [mybatis, springboot]
 				where id = #{id}
 			</select>
 
+            <!-- 动态order by。此处传入orderBy参数即可，注意需要使用$(此时用#会报错) -->
+            <select id="findList">
+				select name from user_info order by ${orderBy}
+			</select>
+
 			<!-- insert/update返回主键(默认返回修改的数据执行状态/影响行数)
 			1.定义方式
 				方式一：基于JDBC(Mysql/SqlServer都适用，Oracle不适用)
@@ -407,6 +412,18 @@ tags: [mybatis, springboot]
 			<delete id="delete2">
 				delete from user_info where id = #{id}
 			</delete>
+            
+            <!-- if else写法，和Boolean类型判断 -->
+            <choose>
+                <when test="boolField">
+                </when>
+                <otherwise>
+                </otherwise>
+            </choose>
+            <!-- null 认为是 false -->
+            <if test='boolField'></if>
+            <if test='!boolField'></if>
+            <if test='not boolField'></if>
 		</mapper>
 		```
 
@@ -490,7 +507,7 @@ Char |  | Char | Char
 
 ## mybatis常见问题
 
-- **关于`<`、`>`转义字符**(在xml的sql语句中则不需要专业)
+- **关于`<`、`>`转义字符**(在annotation中需要转义，在xml的sql语句中则不需要转义)
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
 	- 使用**CDATA** `<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
 - 双引号转义：`<if test='help.title != null and type = \"MY_TYPE\"'>`
@@ -504,7 +521,7 @@ Char |  | Char | Char
 	- 多个字符则认为是字符串，单个字符则认为是Character字符.(如mybatis认为：test="validStatus == 'Y'"中的Y是字符，test="validStatus == 'YY'"中的YY则是字符串)
 
 		```xml
-		<!-- 传入参数validStatus="Y", 此时会报错NumberFormatException；mybatis认为传入参数是字符串对象Y，比较值是字符'Y'，经过几个判断都不相等，再转成数值时则报错了 -->
+		<!-- 传入参数validStatus='Y', 此时会报错NumberFormatException；mybatis认为传入参数是字符串对象Y，比较值是字符'Y'，经过几个判断都不相等，再转成数值时则报错了 -->
 		<if test="validStatus == 'Y'">and validStatus = 1</if>
 		<!-- 正确写法 -->
 		<if test='validStatus == "Y"'>and validStatus = 1</if>

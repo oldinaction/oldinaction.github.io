@@ -151,13 +151,18 @@ created(): {
                 a: 1,
                 user: {
                     name: null
-                }
+                },
+                list: []
             }
         })
+        
         // `vm.a` 是响应的，`vm.b` 是非响应的(添加新属性)
         vm.b = 2
         vm.user.name = 'smalle' // 是响应的
         vm.user.password = '123456' // 是非响应的(添加新属性)
+
+        vm.list = [{name: 'hello'}] // 响应的
+        vm.list[0].name = 'smalle' // 响应的
         ```
 - **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
     - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)

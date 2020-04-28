@@ -285,6 +285,15 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 }
 ```
 
+### Drawer
+
+```html
+<!-- style="z-index:1500; position:fixed" 防止Drawer在多层弹框/Drawer显示时被遮盖 -->
+<Drawer :closable="false" v-model="fileDrawer" style="z-index:1500; position:fixed">
+    123
+</Drawer>
+```
+
 ## 样式
 
 ### 主题
