@@ -723,7 +723,7 @@ request-method |Content-Type   |postman   |springboot   |说明
 --|---|---|---|---
 post |`application/json`   |row-json   |(String userIdUrlParam, @RequestBody User user) |`String userIdUrlParam`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List对象，此时body中的数据不能直接通过String等接受)，而idea的http文件中url参数拼在地址上无法获取(请求机制不同)
 post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`。**对于application/x-www-form-urlencoded类型的数据，可无需 @RequestBody 接受参数**
-post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考实例1，可进行文件上传(包含参数)。此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错
+post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考实例1，可进行文件上传(包含参数)。此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；如果接受参数是Map则无法映射
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放再body中，且数据格式为json

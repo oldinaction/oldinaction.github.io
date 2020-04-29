@@ -146,10 +146,13 @@ p {
 }
 ::-webkit-scrollbar-thumb {
     border-radius: 10px;
-    background-color: #D62929; /* 滚动条颜色 */
+    background-color: tint(#adb0b8, 50%); /* 滚动条颜色，50%为半透明，100%为完全透明 */
 }
 ::-webkit-scrollbar-track {
     border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: tint(#adb0b8, 20%);
 }
 ```
 
