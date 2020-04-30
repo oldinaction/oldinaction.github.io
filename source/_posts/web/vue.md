@@ -164,12 +164,13 @@ created(): {
         vm.list = [{name: 'hello'}] // 响应的
         vm.list[0].name = 'smalle' // 响应的
         ```
+    - Vue.set和Vue.delete的作用
+    - Vue3.X新版本开始将采用ES6的Proxy来进行双向绑定。可解决上述问题(可以直接监听对象而非属性，可以直接监听数组下标的变化)
 - **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
     - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)
-    - **对于v-for，最好定义key值**，否则容易出现无法选择/无法修改该select的值，导致数据响应不触发
-        - 如结合select的option循环时，只需要当前select的option的key值唯一，无需整个页面的key值唯一)保证唯一性
+    - **对于v-for，最好定义key值(且不能使用index作为key)**，否则容易出现无法选择/无法修改该select的值
+        - 如结合select的option循环时，只需要当前select的option的key值唯一，无需整个页面的key值保证唯一性
         - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
-        - `key="&#123;{Date.now() + Math.random()}&#123;"` (此处双括号使用了转义符)
 - 扩展说明
 
 ```html
@@ -492,6 +493,33 @@ render: (h, params) => {
 
 - 参考：https://www.itread01.com/content/1541599683.html
 - `render method is triggered whenever any state changes` vue组件中任何属性改变致使render函数重新执行。如果在模板中直接修改vue属性或调用的方法中修改了属性(如双括号中，而@click等事件中是可以修改vue属性的)，就会导致重新render。从而产生**render - 属性改变 - render**无限循环
+
+### 页面渲染优化(性能优化)
+
+- 参考文章 [^9]
+- vue渲染流程
+
+![vue-render](/data/images/web/vue-render.png)
+
+- [Chrome Devtool  Performance使用](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/)
+
+#### 指令优化
+
+- `v-if` & `v-show` [^8]
+    - 生命周期
+        - v-if 控制着绑定元素或者子组件实例 重新挂载（条件为真）/销毁（条件为假） 到DOM上，并且包含其元素绑定的事件监听器，会重新开启监听。
+        - v-show 控制CSS的切换，元素永远挂载在DOM上
+    - 权限问题
+        - 涉及到权限相关的UI展示无疑用的是v-if
+    - UI操作
+        - 初始化渲染，如果要加快首屏渲染，建议用v-if
+        - 频次选择，如果是频繁切换使用，建议使用v-show
+- `v-key`使用
+    - v-for需要配合v-key使用，且不能使用index作为key
+
+#### Vuex使用及优化
+
+- 参考[Vuex的使用场景](#Vuex的使用场景)
 
 ## 组件
 
@@ -1198,7 +1226,7 @@ const user = {
     name: '' // 刷新浏览器数据会丢失
   },
   // 更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。它会接受 state 作为第一个参数
-  // 调用：this.$store.commit('SET_TOKEN', 'my-token-xxx') 
+  // 同步调用：this.$store.commit('SET_TOKEN', 'my-token-xxx') 
   mutations: {
     SET_TOKEN: (state, token) => {
       state.token = token
@@ -1208,7 +1236,7 @@ const user = {
     }
   },
   // Action 类似于 mutation，不同在于：Action 提交的是 mutation，而不是直接变更状态；Action 可以包含任意异步操作
-  // 调用：this.$store.dispatch('Login')
+  // 异步调用：this.$store.dispatch('Login')
   actions: {
     Login({ commit }, userInfo) {
       const username = userInfo.username.trim()
@@ -1232,6 +1260,61 @@ const user = {
 
 export default user
 ```
+
+### Vuex的使用场景
+
+- 采用单向数据流的模式，子组件修改数据必须通过事件触发回调。如果当组件的层级越来越深，会造成父组件可能会与很远的组件之间共享同份数据，如果此时很远的组件需要修改数据时，就会造成事件回调需要层层返回。因此可通过Vuex这个状态管理库来统一维护 [^8]
+- **实践**：父组件负责渲染Store的数据状态(初始化)且通过computed监听状态变化，然后通过props传递数据到子组件中，子组件触发事件提交更改状态的action, Store可以在Dispatcher上监听到Action并做出相应的操作，当数据模型发生变化时，就触发刷新整个父组件界面
+- 利用computed的特性，用get和set来获取和设值
+
+    ```js
+    computed: {
+        message: {
+            get () {
+                return this.$store.state.message
+            },
+            set (value) {
+                this.$store.commit('updateMessage', value)
+            }
+        }
+    }
+    ```
+- 分离渲染UI数据量大的属性，以免其他不必要的状态改变而影响它
+
+    ```js
+    // 假设某组件A会通过商铺名获取商铺信息。如果A商铺loading状态变更，则state1.shops属性变化，这时Getter监听到变化后，会通知绑定的组件（商铺A，商铺B，...），然后UI响应变化。像fruits本没有变化也会触发水果组件重新渲染，而其数据量大会导致性能变差
+    const state1 = {
+        shops: {
+            // 对应商铺组件
+            商铺A: {
+                startDate: "2018-11-01",
+                endDate: "2018-11-30",
+                loading: false,
+                diplayMoreFruitsLink: true,
+                fruits: [{},{},{}...], // 水果，对应水果组件
+            },
+            商铺B:{...},
+            ...
+        }
+    }
+    // 改进后。此时商铺信息变化并不会影响"商铺A_fruits"属性变化，水果组件不会重新渲染
+    const state2 = {
+        shops: {
+            商铺A: {
+                startDate: "2018-11-01",
+                endDate: "2018-11-30",
+                loading: false,
+                diplayMoreFruitsLink: true,
+                fruits: [{},{},{}...], // 水果
+            },
+            商铺B:{...},
+            ...
+        },
+        商铺A_fruits: [{},{},{}...],
+        商铺B_fruits: [{},{},{}...],
+        ...
+    }
+    ```
 
 ## JSX使用
 
@@ -1330,11 +1413,51 @@ render() {
 
 ## vue-cli v3
 
+- [官网](https://cli.vuejs.org/zh/)
 - 安装
 
 ```bash
 npm install -g @vue/cli
 vue --version # @vue/cli 4.3.0
+```
+- package.json 常用配置
+
+```json
+{
+    "scripts": {
+        "serve": "vue-cli-service serve", // 一般为运行开发环境(此时process.env.NODE_ENV='development')。执行命令：npm run serve
+        "dev": "vue-cli-service serve --open --port=8000", // 类似serve，其中 --open 表示自动打开浏览器，--port 指定端口
+        // 在vue-cli2中打包时可以修改 "build" 和 "config" 中的文件来区分不同的线上环境。而vue-cli3号称0配置，无法直接修改打包文件进行环境区分，具体见下文
+        "build": "vue-cli-service build", // 一般为生成环境打包(此时process.env.NODE_ENV='production')
+        // 区分环境进行打包，此时在 vue.config.js 文件的同级目录(根目录)创建文件 .env.test-sq，其中可添加变量如 `NODE_ENV = test-sq` (一行一个变量，最终都会挂载到 process.env 下)
+        "build-test-sq": "vue-cli-service build --mode test-sq",
+    },
+}
+```
+- vue.config.js 常用配置
+
+```js
+module.exports = {
+    publicPath: '/', // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)。如果nginx的location
+    lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验
+    chainWebpack: config => {
+    config.resolve.alias
+        .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
+        .set('_c', resolve('src/components'))
+    },
+    pluginOptions: {
+    'style-resources-loader': {
+        preProcessor: 'less',
+        patterns: [path.resolve(__dirname, 'src/styles/theme/index.less')]
+    }
+    },
+    // 打包时不生成.map文件
+    productionSourceMap: false
+    // 这里写你调用接口的基础路径，来解决跨域，如果设置了代理，那你本地开发环境的axios的baseUrl要写为 '' ，即空字符串
+    // devServer: {
+    //   proxy: 'localhost:3000'
+    // }
+}
 ```
 
 
@@ -1350,5 +1473,5 @@ vue --version # @vue/cli 4.3.0
 [^5]: https://juejin.im/post/5b41bdef6fb9a04fe63765f1
 [^6]: https://www.yuque.com/zeka/vue/vu60wg
 [^7]: https://www.njleonzhang.com/2018/08/21/vue-jsx.html
-
-
+[^8]: https://juejin.im/entry/5c30f46be51d4551b508fec0
+[^9]: https://juejin.im/post/5b960fcae51d450e9d645c5f (Vue 应用性能优化指南)
