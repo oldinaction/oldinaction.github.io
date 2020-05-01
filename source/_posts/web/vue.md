@@ -520,6 +520,57 @@ render: (h, params) => {
 #### Vuex使用及优化
 
 - 参考[Vuex的使用场景](#Vuex的使用场景)
+    - 扁平化 Store 数据结构
+    - 避免持久化 Store 数据带来的性能问题：对必要数据进行写入；多次写入操作合并为一次
+    - 避免持久化存储的容量持续增长
+
+#### 使用Object.freeze()进行优化
+
+- `Object.freeze()`是ES5新增的特性，可以冻结一个对象，防止对象被修改 [^10]
+    - const定义的对象不能被重新赋值引用，但是对象属性可进行修改
+    - Object.freeze()定义的对象可以重新赋值引用，但是对象属性不能修改
+- 当把一个普通的 JavaScript 对象传给 Vue 实例的 data 选项，Vue 将遍历此对象所有的属性，并使用 Object.defineProperty 把这些属性全部转为 getter/setter，以便 Vue 追踪依赖，在属性被访问和修改时通知变化，进行页面重新渲染。但 Vue 在遇到像 Object.freeze() 这样被设置为不可配置之后的对象属性时，不会为对象加上 setter getter 等数据劫持的方法
+- 示例
+
+```js
+new Vue({
+    data: {
+        list: []
+    },
+    mounted () {
+        this.fetchData()
+    },
+    methods: {
+        fetchData () {
+            // vue不会对list里的object做getter、setter绑定
+            this.list = Object.freeze([{ value: 100 },{ value: 200 }])
+        },
+        changeData () {
+            // 界面不会有响应
+            this.list[0].value = 200;
+
+            // 下面两种做法，界面都会响应
+            this.list = [{ value: 200 },{ value: 200 }]
+            this.list = Object.freeze([{ value: 200 },{ value: 200 }])
+        }
+    }
+})
+```
+
+#### 优化无限列表性能
+
+- 如果应用存在非常长或者无限滚动的列表，那么采用窗口化的技术来优化性能，只需要渲染少部分区域的内容，减少重新渲染组件和创建 dom 节点的时间
+- 开源工具如：[vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller) 和 [vue-virtual-scroll-list](https://github.com/tangbc/vue-virtual-scroll-list)
+
+#### 组件懒加载
+
+- 使用组件懒加载在不可见时只需要渲染一个骨架屏，不需要渲染一些隐藏组件
+- [插件vue-lazy-component](https://github.com/xunleif2e/vue-lazy-component)
+
+#### 服务端渲染/预渲染
+
+- [服务端渲染](https://ssr.vuejs.org/zh/)
+- [预渲染插件prerender-spa-plugin](https://github.com/chrisvfritz/prerender-spa-plugin)
 
 ## 组件
 
@@ -1264,7 +1315,7 @@ export default user
 ### Vuex的使用场景
 
 - 采用单向数据流的模式，子组件修改数据必须通过事件触发回调。如果当组件的层级越来越深，会造成父组件可能会与很远的组件之间共享同份数据，如果此时很远的组件需要修改数据时，就会造成事件回调需要层层返回。因此可通过Vuex这个状态管理库来统一维护 [^8]
-- **实践**：父组件负责渲染Store的数据状态(初始化)且通过computed监听状态变化，然后通过props传递数据到子组件中，子组件触发事件提交更改状态的action, Store可以在Dispatcher上监听到Action并做出相应的操作，当数据模型发生变化时，就触发刷新整个父组件界面
+    - 实践：父组件负责渲染Store的数据状态(初始化)且通过computed监听状态变化，然后通过props传递数据到子组件中，子组件触发事件提交更改状态的action, Store可以在Dispatcher上监听到Action并做出相应的操作，当数据模型发生变化时，就触发刷新整个父组件界面
 - 利用computed的特性，用get和set来获取和设值
 
     ```js
@@ -1279,7 +1330,10 @@ export default user
         }
     }
     ```
-- 分离渲染UI数据量大的属性，以免其他不必要的状态改变而影响它
+- 持久化工具[vuex-persistedstate]。可将store数据写入到localStorage中
+- 扁平化 Store 数据结构
+    - 可基于JSON数据规范化(normalize)，使用如 [Normalizr](https://github.com/paularmstrong/normalizr) 等开源的工具，可以将深层嵌套的 JSON 对象通过定义好的 schema 转变成使用 id 作为字典的实体表示的对象
+    - 分离渲染UI数据量大的属性，以免其他不必要的状态改变而影响它
 
     ```js
     // 假设某组件A会通过商铺名获取商铺信息。如果A商铺loading状态变更，则state1.shops属性变化，这时Getter监听到变化后，会通知绑定的组件（商铺A，商铺B，...），然后UI响应变化。像fruits本没有变化也会触发水果组件重新渲染，而其数据量大会导致性能变差
@@ -1434,29 +1488,34 @@ vue --version # @vue/cli 4.3.0
     },
 }
 ```
-- vue.config.js 常用配置
+- .env.test-sq (多)环境变量配置
+
+    ```bash
+    # 使用都是 process.env.xxx
+    NODE_ENV = test-sq
+    # 自定义变量必须以 VUE_APP_ 开头
+    VUE_APP_VUE_ROUTER_BASE = /my-app/
+    ```
+- vue.config.js 常用配置。多项目配置参考[多项目配置](/_posts/arch/springboot-vue.md#多项目配置)
 
 ```js
 module.exports = {
     publicPath: '/', // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)。如果nginx的location
+    outputDir: 'dist', // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到www目录
     lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验
     chainWebpack: config => {
-    config.resolve.alias
-        .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
-        .set('_c', resolve('src/components'))
+        config.resolve.alias
+            .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
+            .set('_c', resolve('src/components'))
     },
     pluginOptions: {
-    'style-resources-loader': {
-        preProcessor: 'less',
-        patterns: [path.resolve(__dirname, 'src/styles/theme/index.less')]
-    }
+        'style-resources-loader': {
+            preProcessor: 'less',
+            patterns: [path.resolve(__dirname, 'src/styles/theme/index.less')]
+        }
     },
     // 打包时不生成.map文件
     productionSourceMap: false
-    // 这里写你调用接口的基础路径，来解决跨域，如果设置了代理，那你本地开发环境的axios的baseUrl要写为 '' ，即空字符串
-    // devServer: {
-    //   proxy: 'localhost:3000'
-    // }
 }
 ```
 
@@ -1475,3 +1534,8 @@ module.exports = {
 [^7]: https://www.njleonzhang.com/2018/08/21/vue-jsx.html
 [^8]: https://juejin.im/entry/5c30f46be51d4551b508fec0
 [^9]: https://juejin.im/post/5b960fcae51d450e9d645c5f (Vue 应用性能优化指南)
+[^10]: https://juejin.im/post/5d5e89aee51d453bdb1d9b61
+[^11]: https://juejin.im/post/59bf501ff265da06602971b9 (性能优化之组件懒加载: Vue Lazy Component 介绍)
+
+
+

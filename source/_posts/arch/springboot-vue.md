@@ -426,12 +426,13 @@ location / {
 ### 多项目配置
 
 - 路由必须使用history模式(路由中`#`会去掉)。参考[hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
-- vue.config.js [^7]
+- vue.config.js，参考[vue-cli v3](/_posts/web/vue.md#vue-cli%20v3) [^7]
 
 ```js
 module.exports = {
-    // 此处的两个dist需要和下文保持一致
-    publicPath: '/dist/',
+    // 表示index.html中引入的静态文件地址。如生成 `/my-app/js/app.28dc7003.js`
+    publicPath: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_VUE_ROUTER_BASE = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
+    // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到 www 目录。此时放到 /www/my-app 目录下
     outputDir: 'dist',
     // ...
 }
@@ -440,7 +441,8 @@ module.exports = {
 
 ```js
 new Router({
-    base: 'dist',
+    // 路由的基础路径，类似publicPath。只不过publicPath是针对静态文件，而此次是将<router-link>中的路径添加此基础路径
+    base: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_VUE_ROUTER_BASE = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
     mode: 'history', // H5新特性，需要浏览器支持
     routes: []
 })
@@ -448,13 +450,13 @@ new Router({
 - nginx
 
 ```bash
-root /html;
-# 此处的两个dist需要和上文保持一致
-location ^~ /dist/ {
-    try_files $uri $uri/ /dist/index.html;
+# 此处的两个my-app需要和上文的base、publicPath保持一致
+location ^~ /my-app/ {
+    root /www;
+    try_files $uri $uri/ /my-app/index.html;
 }
 ```
-- 浏览器访问`http://localhost/dist/`
+- 浏览器访问`http://localhost/my-app/`
 
 ### https
 

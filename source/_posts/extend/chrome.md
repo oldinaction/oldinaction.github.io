@@ -35,7 +35,6 @@ tags: [plugins, debug]
 - `Vue.js devtools` Vue.js调试工具
 - `Set Character Encoding` 解决chrome查看源码乱码问题
 
-
 ## 调试技巧
 
 - `ctrl + shift + i`/`F12` 打开开发者工具
@@ -56,6 +55,10 @@ tags: [plugins, debug]
         - `debugger` 相应代码。如某些函数通过eval定义，在调用此函数的地方debugger，运行到该行后，点击此行数就会出VM文件
 - 打开新标签自动debug
     - Setting - DevTools - Auto-open DevTools for popups
+
+## 性能分析(Devtool Performance)
+
+- 参考：https://zhuanlan.zhihu.com/p/29879682
 
 ## 生成桌面系统
 

@@ -188,6 +188,48 @@ this.$refs.mySelect.visible = true
 </style>
 ```
 
+### Page 假分页
+
+```html
+<template>
+    <Table :columns="columns" :data="pageList"></Table>
+    <Page :total="pageTotal" :page-size="pageSize" @on-change="handlePaging" @on-page-size-change="handlePageSizeChange" size="small" show-total show-elevator show-sizer />
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      dataList: [],
+      pageList: [],
+      pageTotal: 0,
+      pageSize: 20,
+      columns: []
+    }
+  },
+  mounted () {
+    this.dataList = [{}, ...]
+    this.handlePaging(1)
+  },
+  methods: {
+    handlePaging (currentPage) {
+      let list = []
+      for (var i = this.pageSize * (currentPage - 1) + 1;
+        i <= ((this.pageTotal > this.pageSize * currentPage) ? (this.pageSize * currentPage) : (this.pageTotal));
+        i++) {
+        list.push(this.dataList[i - 1])
+      }
+      this.pageList = list
+    },
+    handlePageSizeChange (pageSize) {
+      this.pageSize = pageSize
+      this.handlePaging(1)
+    },
+  }
+}
+</script>
+```
+
 ### DatePicker
 
 ```html
