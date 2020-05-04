@@ -30,17 +30,48 @@ import { myFunc1, myFunc2 } from 'myexp'
 
 ### Object
 
+- https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object
+
+#### 相关方法
+
 - `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象
-  - 将b合并到a但是不能影响到a：`Object.assign({}, a, b)`
-  - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
-  - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1));`
+    - `let c = Object.assign({}, a, b)` 将b合并到a，再将a合并到target并返回，且不会改变a和b
+    - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
+    - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1))`
+- `Object.defineProperty(obj, prop, descriptor)` 增加或修改对象属性。vue 2.x基于此特性实现响应式
+- `Object.keys(obj)` 返回对象的所有可枚举属性的字符串数组(属性名)
+    - 返回属性的顺序与手动遍历该对象属性时的一致
+- `Object.getOwnPropertyNames(obj)` 在给定对象上找到的自身属性对应的字符串数组
+    - 包括可枚举和不可枚举的所有属性。其中可枚举属性的顺序同Object.keys返回的顺序，不可枚举属性的顺序未定义
+    - 如类数组对象可通过此方法进行遍历
+- `Object.create(proto[, propertiesObject])` 使用某对象作为原型__proto__来创建新对象
+    - proto 新创建对象的原型对象
+- `Object.freeze(obj)` 冻结对象。不能修改对象属性，但是可重新赋值。vue项目对data属性使用此特性可提示性能
+
+#### 示例
+
+```js
+var arr = ["a", "b", "c"];
+console.log(Object.getOwnPropertyNames(arr).sort()); // ["0", "1", "2", "length"]
+
+var obj = {
+    0: "a",
+    1: "b",
+    "getName": function() {
+        return "smalle"
+    }
+};
+obj.name = 'hello'
+console.log(Object.getOwnPropertyNames(obj).sort()); // ["0", "1", "getName", "name"]
+console.log(obj["1"]); // b，通过obj.1会报错
+```
 
 ### Array
 
-- [Array API](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array)
+- https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array)
 - http://javascript.ruanyifeng.com/stdlib/array.html
 
-#### 数组相关方法
+#### 相关方法
 
 - 修改原数组
     - `pop` 从数组中删除最后一个元素，并返回该元素的值
@@ -61,7 +92,8 @@ import { myFunc1, myFunc2 } from 'myexp'
             - Current Value (cur) (当前值)
             - Current Index (idx) (当前索引)
             - Source Array (src) (源数组)
-- 示例
+
+#### 示例
 
 ```js
 // 发明家：包含名、姓、出生日期以及死亡日期
@@ -131,7 +163,9 @@ const birthdate = inventors.sort((inventora, inventorb) => (inventorb.year - inv
     var obj = {name: 'smalle'}
 
     var foo = {
-        get: function(count) { return this.name + '-' + count; }
+        get: function(count) {
+            return this.name + '-' + count; 
+        }
     }
     
     console.log(foo.get.call(obj, 1));      // smalle-1

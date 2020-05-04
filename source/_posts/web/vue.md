@@ -496,14 +496,14 @@ render: (h, params) => {
 
 ### 页面渲染优化(性能优化)
 
-- 参考文章 [^9]
+- 参考文章 [^9] [^12]
 - vue渲染流程
 
 ![vue-render](/data/images/web/vue-render.png)
 
 - [Chrome Devtool  Performance使用](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/)
 
-#### 指令优化
+#### 指令等语法优化
 
 - `v-if` & `v-show` [^8]
     - 生命周期
@@ -516,6 +516,9 @@ render: (h, params) => {
         - 频次选择，如果是频繁切换使用，建议使用v-show
 - `v-key`使用
     - v-for需要配合v-key使用，且不能使用index作为key
+- computed 和 watch 区分使用场景
+    - 需要进行数值计算，并且依赖于其它数据时，应该使用 computed，因为可以利用 computed 的缓存特性，避免每次获取值时，都要重新计算
+    - 需要在数据变化时执行异步或开销较大的操作时，应该使用 watch，使用 watch 选项允许我们执行异步操作(访问一个 API)，限制我们执行该操作的频率
 
 #### Vuex使用及优化
 
@@ -562,10 +565,18 @@ new Vue({
 - 如果应用存在非常长或者无限滚动的列表，那么采用窗口化的技术来优化性能，只需要渲染少部分区域的内容，减少重新渲染组件和创建 dom 节点的时间
 - 开源工具如：[vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller) 和 [vue-virtual-scroll-list](https://github.com/tangbc/vue-virtual-scroll-list)
 
+#### 图片资源懒加载
+
+- [vue-lazyload](https://github.com/hilongjw/vue-lazyload) 插件使用
+
 #### 组件懒加载
 
 - 使用组件懒加载在不可见时只需要渲染一个骨架屏，不需要渲染一些隐藏组件
 - [插件vue-lazy-component](https://github.com/xunleif2e/vue-lazy-component)
+
+#### 第三方插件的按需引入
+
+- 基于babel-plugin-component插件
 
 #### 服务端渲染/预渲染
 
@@ -1536,6 +1547,6 @@ module.exports = {
 [^9]: https://juejin.im/post/5b960fcae51d450e9d645c5f (Vue 应用性能优化指南)
 [^10]: https://juejin.im/post/5d5e89aee51d453bdb1d9b61
 [^11]: https://juejin.im/post/59bf501ff265da06602971b9 (性能优化之组件懒加载: Vue Lazy Component 介绍)
-
+[^12]: https://juejin.im/post/5d548b83f265da03ab42471d (Vue 项目性能优化 — 实践指南)
 
 

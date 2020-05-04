@@ -2,7 +2,7 @@
 layout: "post"
 title: "Quasar - Vue UI Framework"
 date: "2018-05-14 13:06"
-categories: extends
+categories: web
 tags: [vue, ui]
 ---
 

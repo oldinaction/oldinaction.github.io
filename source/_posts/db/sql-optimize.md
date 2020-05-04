@@ -13,6 +13,12 @@ tags: [oracle, dba, sql]
 ## Mysql调优
 
 - mysql架构：客户端 -> 服务端(连接器 - 分析器 - 优化器 - 执行器) -> 存储引擎
+- mysql测试表结构和数据：https://dev.mysql.com/doc/index-other.html (Example Databases)
+    - [employee data](https://github.com/datacharmer/test_db)
+    - [world database](https://downloads.mysql.com/docs/world.sql.zip)
+    - [world_x database](https://downloads.mysql.com/docs/world_x-db.zip)
+    - [sakila database](https://downloads.mysql.com/docs/sakila-db.zip)
+    - [menagerie database](https://downloads.mysql.com/docs/menagerie-db.zip)
 
 ### 性能监控
 
@@ -45,6 +51,49 @@ tags: [oracle, dba, sql]
         - sorting result：线程正在对结果集进行排序
         - sending data：线程可能在多个状态之间传送数据，或者在生成结果集或者向客户端返回数据
     - state表示命令执行状态
+
+### 执行计划(explain)
+
+- [参考：mysql执行计划](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/mysql%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.md)
+- `explain`查看执行计划。如`explain select * from t_test;`
+- explain返回字段：id、select_type、table、type、possible_keys、key、key_len、ref、rows、Extra，含义如下 [^5]
+  - id：id越大的语句越先执行，相同的则从上向下依次执行
+  - select_type有下列常见几种
+    - SIMPLE：最简单的SELECT查询，没有使用UNION或子查询
+    - PRIMARY：在嵌套的查询中是最外层的SELECT语句，在UNION查询中是最前面的SELECT语句
+    - UNION：UNION中第二个以及后面的SELECT语句
+    - DERIVED：派生表SELECT语句中FROM子句中的SELECT语句
+    - UNION RESULT：一个UNION查询的结果
+    - DEPENDENT UNION：首先需要满足UNION的条件，及UNION中第二个以及后面的SELECT语句，同时该语句依赖外部的查询
+    - SUBQUERY：子查询中第一个SELECT语句
+    - DEPENDENT SUBQUERY：和DEPENDENT UNION相对UNION一样
+  - table：显示的这一行信息是关于哪一张表的。有时候并不是真正的表名。如`<derivedN>`N就是id值、`<unionM,N>`这种类型，出现在UNION语句中
+  - **type**：type列很重要，是用来说明表与表之间是如何进行关联操作的，有没有使用索引。主要有下面几种类别(查询速度依次递减)
+    - const：当确定最多只会有一行匹配的时候，MySQL优化器会在查询前读取它而且只读取一次，因此非常快。const只会用在将常量和主键或唯一索引进行比较时，而且是比较所有的索引字段
+    - system：这是const连接类型的一种特例，表仅有一行满足条件
+    - eq_ref：eq_ref类型是除了const外最好的连接类型，它用在一个索引的所有部分被联接使用并且索引是UNIQUE或PRIMARY KEY。需要注意InnoDB和MyISAM引擎在这一点上有点差别。InnoDB当数据量比较小的情况type会是All
+    - ref：这个类型跟eq_ref不同的是，它用在关联操作只使用了索引的最左前缀，或者索引不是UNIQUE和PRIMARY KEY。ref可以用于使用=或<=>操作符的带索引的列
+    - fulltext：联接是使用全文索引进行的，一般我们用到的索引都是B树
+    - ref_or_null：该类型和ref类似。但是MySQL会做一个额外的搜索包含NULL列的操作。在解决子查询中经常使用该联接类型的优化
+    - index_merger：该联接类型表示使用了索引合并优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
+    - unique_subquery：该类型替换了下面形式的IN子查询的ref，是一个索引查找函数，可以完全替换子查询，效率更高
+    - index_subquery：该联接类型类似于unique_subquery
+    - range：只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引。key_len包含所使用索引的最长关键元素。在该类型中ref列为NULL。当使用=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN或者IN操作符，用常量比较关键字列时，可以使用range
+    - index：该联接类型与ALL相同，除了只有索引树被扫描。这通常比ALL快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
+    - ALL：最慢的一种方式，即全表扫描
+  - possible_keys：指出MySQL能使用哪个索引在该表中找到行
+  - key：显示MySQL实际决定使用的键（索引）。如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX
+  - key_len：显示MySQL决定使用的键长度。如果键是NULL，则长度为NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
+  - ref：显示使用哪个列或常数与key一起从表中选择行
+  - rows：显示MySQL认为它执行查询时必须检查的行数。注意这是一个预估值
+  - filtered：表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数
+  - **Extra**：显示MySQL在查询过程中的一些详细信息
+    - Using filesort：MySQL有两种方式可以生成有序的结果，通过排序操作或者使用索引，当Extra中出现了Using filesort 说明MySQL使用了后者，但注意虽然叫filesort但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，所以一般这时也要考虑优化查询了
+    - Using temporary：说明使用了临时表，一般看到它说明查询需要优化了，就算避免不了临时表的使用也要尽量避免硬盘临时表的使用。
+    - Not exists：MYSQL优化了LEFT JOIN，一旦它找到了匹配LEFT JOIN标准的行， 就不再搜索了。
+    - Using index：说明查询是覆盖了索引的，这是好事情。MySQL直接从索引中过滤不需要的记录并返回命中的结果。这是MySQL服务层完成的，但无需再回表查询记录。
+    - Using index condition：这是MySQL 5.6出来的新特性，叫做"索引条件推送"。简单说一点就是MySQL原来在索引上是不能执行如like这样的操作的，但是现在可以了，这样减少了不必要的IO操作，但是只能用在二级索引上，详情点这里。
+    - Using where：使用了WHERE从句来限制哪些行将与下一张表匹配或者是返回给用户
 
 ### schema与数据类型优化
 
@@ -106,49 +155,6 @@ tags: [oracle, dba, sql]
         select e from enum_test; -- 查询显示值
         ```
 
-### 执行计划(explain)
-
-- [参考：mysql执行计划](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/mysql%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92.md)
-- `explain`查看执行计划。如`explain select * from t_test;`
-- explain返回字段：id、select_type、table、type、possible_keys、key、key_len、ref、rows、Extra，含义如下 [^5]
-  - id：id越大的语句越先执行，相同的则从上向下依次执行
-  - select_type有下列常见几种
-    - SIMPLE：最简单的SELECT查询，没有使用UNION或子查询
-    - PRIMARY：在嵌套的查询中是最外层的SELECT语句，在UNION查询中是最前面的SELECT语句
-    - UNION：UNION中第二个以及后面的SELECT语句
-    - DERIVED：派生表SELECT语句中FROM子句中的SELECT语句
-    - UNION RESULT：一个UNION查询的结果
-    - DEPENDENT UNION：首先需要满足UNION的条件，及UNION中第二个以及后面的SELECT语句，同时该语句依赖外部的查询
-    - SUBQUERY：子查询中第一个SELECT语句
-    - DEPENDENT SUBQUERY：和DEPENDENT UNION相对UNION一样
-  - table：显示的这一行信息是关于哪一张表的。有时候并不是真正的表名。如`<derivedN>`N就是id值、`<unionM,N>`这种类型，出现在UNION语句中
-  - **type**：type列很重要，是用来说明表与表之间是如何进行关联操作的，有没有使用索引。主要有下面几种类别(查询速度依次递减)
-    - const：当确定最多只会有一行匹配的时候，MySQL优化器会在查询前读取它而且只读取一次，因此非常快。const只会用在将常量和主键或唯一索引进行比较时，而且是比较所有的索引字段
-    - system：这是const连接类型的一种特例，表仅有一行满足条件
-    - eq_ref：eq_ref类型是除了const外最好的连接类型，它用在一个索引的所有部分被联接使用并且索引是UNIQUE或PRIMARY KEY。需要注意InnoDB和MyISAM引擎在这一点上有点差别。InnoDB当数据量比较小的情况type会是All
-    - ref：这个类型跟eq_ref不同的是，它用在关联操作只使用了索引的最左前缀，或者索引不是UNIQUE和PRIMARY KEY。ref可以用于使用=或<=>操作符的带索引的列
-    - fulltext：联接是使用全文索引进行的，一般我们用到的索引都是B树
-    - ref_or_null：该类型和ref类似。但是MySQL会做一个额外的搜索包含NULL列的操作。在解决子查询中经常使用该联接类型的优化
-    - index_merger：该联接类型表示使用了索引合并优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
-    - unique_subquery：该类型替换了下面形式的IN子查询的ref，是一个索引查找函数，可以完全替换子查询，效率更高
-    - index_subquery：该联接类型类似于unique_subquery
-    - range：只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引。key_len包含所使用索引的最长关键元素。在该类型中ref列为NULL。当使用=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN或者IN操作符，用常量比较关键字列时，可以使用range
-    - index：该联接类型与ALL相同，除了只有索引树被扫描。这通常比ALL快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
-    - ALL：最慢的一种方式，即全表扫描
-  - possible_keys：指出MySQL能使用哪个索引在该表中找到行
-  - key：显示MySQL实际决定使用的键（索引）。如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX
-  - key_len：显示MySQL决定使用的键长度。如果键是NULL，则长度为NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
-  - ref：显示使用哪个列或常数与key一起从表中选择行
-  - rows：显示MySQL认为它执行查询时必须检查的行数。注意这是一个预估值
-  - filtered：表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数
-  - **Extra**：显示MySQL在查询过程中的一些详细信息
-    - Using filesort：MySQL有两种方式可以生成有序的结果，通过排序操作或者使用索引，当Extra中出现了Using filesort 说明MySQL使用了后者，但注意虽然叫filesort但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，所以一般这时也要考虑优化查询了
-    - Using temporary：说明使用了临时表，一般看到它说明查询需要优化了，就算避免不了临时表的使用也要尽量避免硬盘临时表的使用。
-    - Not exists：MYSQL优化了LEFT JOIN，一旦它找到了匹配LEFT JOIN标准的行， 就不再搜索了。
-    - Using index：说明查询是覆盖了索引的，这是好事情。MySQL直接从索引中过滤不需要的记录并返回命中的结果。这是MySQL服务层完成的，但无需再回表查询记录。
-    - Using index condition：这是MySQL 5.6出来的新特性，叫做"索引条件推送"。简单说一点就是MySQL原来在索引上是不能执行如like这样的操作的，但是现在可以了，这样减少了不必要的IO操作，但是只能用在二级索引上，详情点这里。
-    - Using where：使用了WHERE从句来限制哪些行将与下一张表匹配或者是返回给用户
-
 ### 通过索引进行优化
 
 #### 索引基本知识
@@ -165,7 +171,7 @@ tags: [oracle, dba, sql]
     - 查找特定索引列的min或max值
     - 如果排序或分组时在可用索引的最左前缀上完成的，则对表进行排序和分组
     - 在某些情况下，可以优化查询以检索值而无需查询数据行
-- 索引的分类：主键索引、唯一索引(和主键索引的区别是可以有空值)、普通索引、全文索引(innodb 5.6才支持)、组合索引(多个字段组成的索引)
+- 索引的分类：主键索引、唯一索引(和主键索引的区别是可以有空值)、普通索引、全文索引(innodb 5.6才支持)、组合索引(多个字段组成的索引，注意点见下文[技术名词-最左匹配])
 - [索引采用的数据结构](一#108#1:26:06)
     - mysql数据文件
         - myisam存储引擎包含三个文件，如表test_table对应：test_table.frm 表描述、test_table.MYD 数据、test_table.MYI 索引
@@ -194,21 +200,24 @@ tags: [oracle, dba, sql]
         - B树、B+树、B*树
             - B树：将key值(索引列值)对磁盘块进行分割，如`p1,10,p2,20,p3`(p1为key<10的子树，10和20可直接获取保存的data数据，p2为10<=key<20的子树，p3为key>=20的子树；如果读取key=5的data数据，则需要再根据p1获取子树进行判断)。由于data数据(表中的一条记录数据)占用空间较大，导致查询每个存储块能存储的key较少，因此mysql最终选择B+树
             - **B+树**
-                - 根节点和分支节点只存储指针和键值，而将数据全部存在叶子节点。B+树的叶子节点互相通过指针进行连接
+                - 根节点和分支节点只存储指针和键值，而将数据全部存在叶子节点(如果索引是主键则数据存放整好数据，如果索引是其他字段则数据存放的是主键)。B+树的叶子节点互相通过指针进行连接
                 - 基本3层树结构，即3次io可支持千万级别的索引存储
                 - innodb的由于数据文件和索引文件在一个文件，索引data存储的是每一行记录的所有数据，而myisam的data存储的则是行记录数据的地址，需要通过数据地址到.MYD文件中再进行io查询出实际数据
             - B*树：在B+树的基础上，分支节点也会通过指针进行连接
 - 技术名词
-    - `回表`：如通过普通索引找到的数据(B+树的data值)为主键值，需要获取其他数据时则需要根据主键索引重新检索。`select id, name, sex from user where name = 'smalle'`
-    - `覆盖索引`：通过普通索引查询数据时，只取出主键或索引字段，此时则不需要第二次检索。`select id,name from user where name = 'smalle'`
-    - `最左匹配`：组合索引时，要么where条件中包含索引的字段，要么包含组合索引的第一个字段才会触发组合索引
+    - **回表**：如通过普通索引找到的数据(B+树的data值)为主键值，需要获取其他数据时则需要根据主键索引重新检索。`select id, name, sex from user where name = 'smalle'`
+    - **覆盖索引**：通过普通索引查询数据时，只取出主键或索引字段，此时则不需要第二次检索。`select id,name from user where name = 'smalle'`
+        - 当发起一个被索引覆盖的查询时，在explain的extra列可以看到using index的信息，此时就使用了覆盖索引
+        - 覆盖索引只能覆盖那些只访问索引中部分列的查询，不过可以使用innodb的二级索引来覆盖查询
+        - memory存储引擎不支持覆盖索引
+    - **最左匹配**：组合索引时，要么where条件中包含索引的字段，要么包含组合索引的第一个字段才会触发组合索引
         
         ```sql
         -- 如组合索引name, age
         select id, name, sex from t_user where name = 'smalle' and age = 18; -- 会触发组合索引
         select id, name, sex from t_user where name = 'smalle'; -- 会触发组合索引
         select id, name, sex from t_user where age = 18; -- 不会触发组合索引
-        -- 如果要实现上述3个sql都通过索引查询，有以下索引创建方案
+        -- 如果要实现上述3个sql都通过索引查询，有以下组合索引创建方案(组合索引创建需要考虑查询的顺序和空间使用)
         /*
         1.name + age
         2.age,name + name
@@ -216,29 +225,112 @@ tags: [oracle, dba, sql]
         第1中方案会出现索引合并从而可能降低效率；第2种和第3种的区别是单独的age索引占用磁盘空间比name索引少，从而更优。故而选择第3种
         */
         ```
-    - `索引下推`
+    - **索引下推**
         
         ```sql
+        -- 索引下推是在存储引擎层完成数据过滤，在服务层完成数据过滤则不属于索引下推
         select * from t_user where name like '张%' and age > 18
         /*
-        1.根据（name,age）组合索引查询所有满足名称以"张"开头的索引，然后回表查询出相应的全行数据，然后再筛选出满足年龄大于18的用户数据
-        2.根据（name,age）组合索引查询所有满足名称以"张"开头的索引，然后直接再筛选出年龄大于18的索引，之后再回表查询全行数据
-        其中，第2种方式需要回表查询的全行数据比较少，这就是mysql的索引下推。mysql默认启用索引下推
+        1.非索引下推：根据（name,age）组合索引查询所有满足名称以"张"开头的索引，然后回表查询出相应的全行数据，然后再筛选出满足年龄大于18的用户数据
+        2.索引下推：根据（name,age）组合索引查询所有满足名称以"张"开头的索引，然后直接再筛选出年龄大于18的索引，之后再回表查询全行数据
+        其中，第2种方式需要回表查询的全行数据比较少，这就是mysql的索引下推。mysql 5.7开始支持索引下推，且默认启用
         */
         ```
-- 索引匹配方式 (如给staff表创建组合索引name,age,pos)
-    - 全值匹配：指的是和索引中的所有列进行匹配。select * from staffs where name = 'July' and age = '23' and pos = 'dev';
-    - 匹配最左前缀：只匹配前面的几列。select * from staffs where name = 'July' and age = '23';
-    - 匹配列前缀：可以匹配某一列的值的开头部分。select * from staffs where name like 'J%';
-    - 匹配范围值：可以查找某一个范围的数据。select * from staffs where name > 'Mary';
-    - 精确匹配某一列并范围匹配另外一列：可以查询第一列的全部和第二列的部分。select * from staffs where name = 'July' and age > 25;
-    - 只访问索引的查询：查询的时候只需要访问索引，不需要访问数据行，本质上就是覆盖索引。select name,age,pos from staffs where name = 'July' and age = 25 and pos = 'dev';
+- 索引匹配方式 (如给staffs表创建组合索引name,age,position)
+    - **全值匹配**：指的是和索引中的所有列进行匹配
+        - `select * from staffs where name = 'July' and position = 'dev' and age = '23';` 使用type=ref,ref=const,const,const(将索引的3个值当成常量)的索引，尽管此时顺序上position在age的前面，但是mysql优化器会进行优化成索引的顺序
+        - `select * from staffs where name = 'July' and position = 1 and age = '23';` 使用type=ref,ref=const,const(将索引的2个值当成常量)的索引。此时position字段类型为varchar，不可能存在position=1的数据，因此没有用到position的索引
+        - `select * from staffs where age = '23';` 不会使用索引，因为检索时发现where中没有name则直接跳过后面的索引列
+    - **最左匹配**：只匹配前面的几列
+        - `select * from staffs where name = 'July' and age = '23';` 使用type=ref,ref=const,const(将索引的2个值当成常量)的索引
+    - **匹配列前缀**：可以匹配某一列的值的开头部分
+        - `select * from staffs where name like 'J%';` 使用的是type=range,ref=NULL的索引
+        - `select * from staffs where name like '%y';` 不会使用索引，只能匹配索引开头部分
+    - **匹配范围值**：可以查找某一个范围的数据
+        - `select * from staffs where name > 'Mary';` 使用type=range,ref=NULL的索引
+    - **精确匹配某一列并范围匹配另外一列**：可以查询第一列的全部和第二列的部分
+        - `select * from staffs where name = 'July' and age > 25 position = 'dev';` 使用type=range,ref=NULL的索引(使用了name和age进行索引查找，由于age使用范围查找则后面的position被忽略掉)
+        - `select * from staffs where name = 'July' and position > 'dev';` 使用type=ref,ref=const的索引(由于索引的顺序是name,age,position，当没有age时，position会被忽略，所有此处position并不会当成索引，而只使用了name)
+    - **覆盖索引**：只访问索引的查询，查询的时候只需要访问索引，不需要访问数据行，本质上就是覆盖索引
+        - `select id,name,age,position from staffs where name = 'July' and age = 25 and position = 'dev';` 使用type=ref,ref=const,const,const,Extra=Using index(其中Extra=Using index表示索引覆盖)
+
+#### 哈希索引
+
+- 基于哈希表的实现，只有精确匹配索引所有列的查询才有效(范围匹配不行)
+- 在mysql中，只有memory的存储引擎显式支持哈希索引
+- 哈希索引自身只需存储对应的hash值，所以索引的结构十分紧凑，这让哈希索引查找的速度非常快
+- 哈希索引的限制
+    - 哈希索引只包含哈希值和行指针，而不存储字段值，索引不能使用索引中的值来避免读取行(即不支持覆盖索引)
+    - 哈希索引数据并不是按照索引值顺序存储的，所以无法进行排序(即不支持索引排序)
+    - 哈希索引不支持部分列匹配查找，哈希索引是使用索引列的全部内容来计算哈希值(即不支持最左匹配)
+    - 哈希索引支持等值比较查询，不支持任何范围查询
+    - 容易出现哈希冲突。访问哈希索引的数据非常快，除非有很多哈希冲突，当出现哈希冲突的时候，存储引擎必须遍历链表中的所有行指针，逐行进行比较，直到找到所有符合条件的行
+    - 哈希冲突比较多的话，维护的代价也会很高
+- 案例
+    - `select id fom url where url_crc=CRC32("http://www.baidu.com") and url="http://www.baidu.com";` 爬虫项目存储url时需要先判断是否存在此url，此时如果直接直接将url作为索引，则占用空间较大，效率低；需在存储的时候将url按照`CRC32`算法转换并存储(转换后得到的是整数，crc32区间为2^32-1)，再通过url_crc索引检索，但是crc32会出现碰撞，因此加上url的辅助筛选
+    - CRC32算法又称循环冗余校验，类似还有CRC64(出现碰撞的概率小)，常用于校验网络上传输的文件。对应的还有MD5和SHA1等，这些效率较CRC32要差，主要用于加密
+
+#### 聚簇索引与非聚簇索引
+
+- 聚簇索引：不是单独的索引类型，而是一种数据存储方式，指的是数据行跟相邻的键值紧凑的存储在一起。通过索引可以很快的找到数据化，IO少。如InnoDB
+    - 优点
+        - 可以把相关数据保存在一起
+        - 数据访问更快，因为索引和数据保存在同一个树中
+        - 使用覆盖索引扫描的查询可以直接使用页节点中的主键值
+    - 缺点
+        - 聚簇数据最大限度地提高了IO密集型应用的性能，如果数据全部在内存，那么聚簇索引就没有什么优势
+        - 插入速度严重依赖于插入顺序，按照主键的顺序插入是最快的方式
+        - 更新聚簇索引列的代价很高，因为会强制将每个被更新的行移动到新的位置
+        - 基于聚簇索引的表在插入新行，或者主键被更新导致需要移动行的时候，可能面临页分裂的问题
+        - 聚簇索引可能导致全表扫描变慢，尤其是行比较稀疏，或者由于页分裂导致数据存储不连续的时候
+- 非聚簇索引：数据文件跟索引文件分开存放。基于索引的查询过程是先找到索引对应的值，即数据的地址，再根据数据的地址到数据文件中查询实际数据。如MyISAM
+
+#### 优化小细节
+
+- 当使用索引列进行查询的时候尽量不要使用表达式，把计算放到业务层而不是数据库层
+- 尽量使用主键查询，而不是其他索引，因为主键查询不会触发回表查询
+- 使用前缀索引(非最左匹配)
+    - 有时候需要索引很长的字符串，这会让索引变的大且慢，通常情况下可以使用某个列开始的部分字符串，这样大大的节约索引空间，从而提高索引效率。但这会降低索引的选择性，索引的选择性是指不重复的索引值和数据表记录总数的比值，范围从1/#T到1之间。索引的选择性越高则查询效率越高，因为选择性更高的索引可以让mysql在查找的时候过滤掉更多的行。如数据AB123、AB234、AB345，如果使用前2位作为索引则选择性低，如果使用前3位或前4位则选择性高
+    - 一般情况下某个列前缀的选择性也是足够高的，足以满足查询的性能，但是对应BLOB,TEXT,VARCHAR类型的列，必须要使用前缀索引，因为mysql不允许索引这些列的完整长度，**使用前缀索引的诀窍在于要选择足够长的前缀以保证较高的选择性，通过又不能太长**
+    - 前缀索引是一种能使索引更小更快的有效方法，但是也包含缺点：**mysql无法使用前缀索引做order by 和 group by**
+    - 案例
+
+        ```sql
+        select 
+            count(distinct left(city,3))/count(*) as sel3, -- 0.0239. 使用前3列作为索引时，不同的值占所有值的比率
+            count(distinct left(city,4))/count(*) as sel4, -- 0.0293
+            count(distinct left(city,5))/count(*) as sel5, -- 0.0305
+            count(distinct left(city,6))/count(*) as sel6, -- 0.0309
+            count(distinct left(city,7))/count(*) as sel7, -- 0.0310
+            count(distinct left(city,8))/count(*) as sel8  -- 0.0310
+        from citydemo;
+
+        -- 可以看到当前缀长度到达7之后，再增加前缀长度，选择性提升的幅度已经很小了，因此可将前7位创建为索引
+        alter table citydemo add key(city(7));
+        ```
+- 使用索引扫描来排序
+    - mysql有两种方式可以生成有序的结果：通过排序操作或者按索引顺序扫描。如果explain出来的type=index，则说明mysql使用了索引扫描来做排序
+    - 扫描索引本身是很快的，因为只需要从一条索引记录移动到紧接着的下一条记录。但如果索引不能覆盖查询所需的全部列，那么就不得不每扫描一条索引记录就得回表查询一次对应的行，这基本都是随机IO，因此按索引顺序读取数据的速度通常要比顺序地全表扫描慢
+    - mysql可以使用同一个索引即满足排序，又用于查找行，如果可能的话，设计索引时应该尽可能地同时满足这两种任务
+    - 只有当索引的列顺序和order by子句的顺序完全一致，并且所有列的排序方式都一样(都为asc或都为desc)时，mysql才能够使用索引来对结果进行排序。如果查询需要关联多张表，则只有当order by子句引用的字段全部为第一张表时，才能使用索引做排序。order by子句和查找型查询的限制是一样的，需要满足索引的最左前缀的要求(where字句和order by字句组合达到最左前缀也可)，否则，mysql都需要执行顺序操作，而无法利用索引排序
+    - 案例
+
+        ```sql
+        -- sakila数据库中rental表在rental_date,inventory_id,customer_id上有索引
+        explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id,customer_id; -- type=ref,Extra=Using index condition. 此时order by子句不满足索引的最左前缀的要求，也可以用于查询排序，这是因为索引的第一列在where字句中被指定为一个常数(如果第一列是范围查询则无法触发索引排序)
+        explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id desc; -- type=ref,Extra=Using where. 该查询为索引的第一列提供了常量条件，而使用第二列进行排序，将两个列组合在一起，就形成了索引的最左前缀
+        explain select rental_id,staff_id from rental where rental_date > '2005-05-25' order by rental_date,inventory_id; -- -- type=ALL,Extra=Using where; Using filesort. 不会利用索引，该查询索引第一列是区间查询
+        explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id desc,customer_id asc; -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询使用了两中不同的排序方向，索引都是正序排的(如果索引列全部降序也可以使用索引排序)
+        explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id,staff_id; -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询引用了一个不在索引中的列
+        ```
+
+112 
 
 
-
+### 其他
 
 索引合并
-非聚簇索引。基于索引的查询过程是先找到索引对应的值，即数据的地址；再根据数据的地址到数据文件中查询实际数据
+
 
 ## Oracle
 
