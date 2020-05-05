@@ -109,6 +109,41 @@ group by
 	- 回车符：\r=0x0d (13) (carriage return)
 	- 换行符：\n=0x0a (10) (newline)
 
+### 自定义变量
+
+- 自定义变量的限制
+    - 无法使用查询缓存
+    - 不能在使用常量或者标识符的地方使用自定义变量，例如表名、列名或者limit子句
+    - 用户自定义变量的生命周期是在一个连接中有效，所以不能用它们来做连接间的通信
+    - 不能显式地声明自定义变量地类型
+    - mysql优化器在某些场景下可能会将这些变量优化掉，这可能导致代码不按预想地方式运行
+    - 赋值符号：=的优先级非常低，所以在使用赋值表达式的时候应该明确的使用括号
+    - 使用未定义变量不会产生任何语法错误
+    - 用户自定义变量只在session有效，退出后数据丢失
+- 自定义变量的使用案例
+
+    ```sql
+    -- 自定义变量的使用(@@为系统自定义变量)
+    set @one :=1;
+    select @one;
+    set @min_actor :=(select min(actor_id) from actor);
+    set @last_week :=(current_date-interval 1 week);
+    -- 在给一个变量赋值的同时使用这个变量
+    select actor_id,@rownum:=@rownum+1 as rownum from actor limit 10;
+
+    -- 避免重新查询刚刚更新的数据。eg:当需要高效的更新一条记录的时间戳，同时希望查询当前记录中存放的时间戳是什么
+    update t1 set lastUpdated=now() where id =1;
+    select lastUpdated from t1 where id =1;
+    -- 优化后：避免重新查询刚刚更新的数据
+    update t1 set lastupdated = now() where id = 1 and @now:=now();
+    select @now;
+
+    -- 注意where和select在查询的不同阶段执行
+    set @rownum:=0;
+    select actor_id,@rownum:=@rownum+1 as cnt from actor where @rownum<=1; -- 有问题的
+    select actor_id,@rownum as cnt from actor where (@rownum:=@rownum+1)<=1;
+    ```
+
 ## Oracle
 
 ### 常用函数

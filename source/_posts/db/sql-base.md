@@ -201,7 +201,7 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
 
 ##### 表连接
 
-- 交叉连接(cross join)，如：`select ename, dname from emp cross join dept;`
+- 交叉连接(cross join)，又称笛卡尔连接，如果每个表分别具有n和m行，则结果集将具有n*m行。如：`select ename, dname from emp cross join dept;`
 - 等值连接，如：`select ename, dname from emp join dept on (emp.deptno = dept.deptno);`
 - 多表连接，如：
 
@@ -228,7 +228,7 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
     - left join和left outer join都表示左外连接，如果两个表进行连接，且连接后左边一个表中的数据不能显示出来，此时可以使用左连接(此时的king)。如：`select e1.ename, e2.ename from emp e1 left join emp e2 on (e1.mgr = e2.empno);`
 - `left join`(以左边表为主)、`right join`(以右边表为主)、`inner join`(只显示on条件成立的)、`full join`(显示所有数据)、`join`(默认是inner join)
 - **关联表时，and的位置**
-    - `left join/right join` 当`and`再`on`的后面只是对关联表的过滤(最终可能导致select关联表的字段为空，不会影响主表记录的条数)，当`and`在`where`后面则是对关联之后的视图进行过滤(会影响主表记录的条数)
+    - `left join/right join` 当`and`在`on`的后面只是对关联表的过滤(主表记录默认全部取出。如果能通过on和and关联上副表最好，关联不上则副表对应字段为Null)，当`and`在`where`后面则是对关联之后的视图进行过滤(会影响主表记录的条数)
     - `join` 不管`and`在什么位置都会影响主表记录的条数
 - Oracle `select 1 as a, t.b, t.c from dual left join (select 2 as b, 3 as c from dual) t on 1=1` 可返回a,b,c三个字段的值。(join必须要有一个on)
 
@@ -502,6 +502,27 @@ select *
 
 ### 索引
 
+- Mysql索引
+
+    ```sql
+    -- ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引
+    alter table d_user add index idx_name (name)
+    alter table d_user add unique (card_no)
+    alter table d_user add primary key (id)
+
+    -- CREATE INDEX可对表增加普通索引或UNIQUE索引
+    create index idx_name_age on d_user (name, age)
+    create unique index idx_card_no on d_user (card_no)
+
+    -- 删除索引
+    drop index d_user on talbe_name
+    alter table d_user drop index index_name
+    alter table table_name drop primary key -- 删除主键索引，一个表只能有一个主键，因此无需指定主键索引名
+
+    -- 查看索引
+    show index from d_user;
+    show keys from d_user;
+    ```
 - Oracle索引
     - 当给表加主键或者唯一约束时，Oracle会自动将此字段建立索引；给字段建立索引后，查询快读取慢
     - `create index idx_stu_email on stu(email);` 建立索引idx_stu_email

@@ -97,6 +97,8 @@ tags: [oracle, dba, sql]
 
 ### schema与数据类型优化
 
+> https://dev.mysql.com/doc/refman/5.7/en/optimizing-database-structure.html
+
 - [数据类型的优化](#数据类型的优化)
 - 合理使用范式和反范式
     - 在企业中很少能做到严格意义上的范式或者反范式，一般需要混合使用
@@ -157,8 +159,11 @@ tags: [oracle, dba, sql]
 
 ### 通过索引进行优化
 
+> https://dev.mysql.com/doc/refman/5.7/en/optimization-indexes.html
+
 #### 索引基本知识
 
+- 操作索引语句：参考[sql-base.md#索引](/_posts/db/sql-base.md#索引)
 - 索引的优点
     - 大大减少了服务器需要扫描的数据量
     - 帮助服务器避免排序和临时表
@@ -287,6 +292,7 @@ tags: [oracle, dba, sql]
 
 #### 优化小细节
 
+- 禁止使用select *
 - 当使用索引列进行查询的时候尽量不要使用表达式，把计算放到业务层而不是数据库层
 - 尽量使用主键查询，而不是其他索引，因为主键查询不会触发回表查询
 - 使用前缀索引(非最左匹配)
@@ -308,23 +314,125 @@ tags: [oracle, dba, sql]
         -- 可以看到当前缀长度到达7之后，再增加前缀长度，选择性提升的幅度已经很小了，因此可将前7位创建为索引
         alter table citydemo add key(city(7));
         ```
-- 使用索引扫描来排序
+- 排序优化：使用索引扫描来排序
     - mysql有两种方式可以生成有序的结果：通过排序操作或者按索引顺序扫描。如果explain出来的type=index，则说明mysql使用了索引扫描来做排序
     - 扫描索引本身是很快的，因为只需要从一条索引记录移动到紧接着的下一条记录。但如果索引不能覆盖查询所需的全部列，那么就不得不每扫描一条索引记录就得回表查询一次对应的行，这基本都是随机IO，因此按索引顺序读取数据的速度通常要比顺序地全表扫描慢
     - mysql可以使用同一个索引即满足排序，又用于查找行，如果可能的话，设计索引时应该尽可能地同时满足这两种任务
-    - 只有当索引的列顺序和order by子句的顺序完全一致，并且所有列的排序方式都一样(都为asc或都为desc)时，mysql才能够使用索引来对结果进行排序。如果查询需要关联多张表，则只有当order by子句引用的字段全部为第一张表时，才能使用索引做排序。order by子句和查找型查询的限制是一样的，需要满足索引的最左前缀的要求(where字句和order by字句组合达到最左前缀也可)，否则，mysql都需要执行顺序操作，而无法利用索引排序
+    - **只有当索引的列顺序和order by子句的顺序完全一致，并且所有列的排序方式都一样(都为asc或都为desc)时，mysql才能够使用索引来对结果进行排序。如果查询需要关联多张表，则只有当order by子句引用的字段全部为第一张表时，才能使用索引做排序。order by子句和查找型查询的限制是一样的，需要满足索引的最左前缀的要求(where字句和order by字句组合达到最左前缀也可)。**否则，mysql都需要执行顺序操作，而无法利用索引排序。(group by也是对于一张表的字段group by才会使用索引)
     - 案例
 
         ```sql
         -- sakila数据库中rental表在rental_date,inventory_id,customer_id上有索引
         explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id,customer_id; -- type=ref,Extra=Using index condition. 此时order by子句不满足索引的最左前缀的要求，也可以用于查询排序，这是因为索引的第一列在where字句中被指定为一个常数(如果第一列是范围查询则无法触发索引排序)
         explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id desc; -- type=ref,Extra=Using where. 该查询为索引的第一列提供了常量条件，而使用第二列进行排序，将两个列组合在一起，就形成了索引的最左前缀
-        explain select rental_id,staff_id from rental where rental_date > '2005-05-25' order by rental_date,inventory_id; -- -- type=ALL,Extra=Using where; Using filesort. 不会利用索引，该查询索引第一列是区间查询
+        explain select rental_id,staff_id from rental where rental_date > '2005-05-25' order by rental_date,inventory_id; -- -- type=ALL,Extra=Using where; Using filesort. 不会利用索引，该查询索引第一列是区间查询。**有说如果读取的数据少于30%时，此处也会使用索引排序**
         explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id desc,customer_id asc; -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询使用了两中不同的排序方向，索引都是正序排的(如果索引列全部降序也可以使用索引排序)
         explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id,staff_id; -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询引用了一个不在索引中的列
         ```
+- union all、in、or都能够使用索引，但是推荐使用in。union all最少会执行两条语句，or会循环比对
+- 优化union查询：除非确实需要服务器消除重复的行，否则一定要使用`union all`，因此没有all关键字，mysql会在查询的时候给临时表加上distinct的关键字，这个操作的代价很高
+- 范围列可以用到索引
+    - 范围条件是：<、<=、>、>=、between
+    - 范围列后面的列无法用到索引，索引最多用于一个范围列
+- 强制类型转换会导致全表扫描。如user表age(int类型)字段索引
+    - `explain select * from user where age = 18;` 会使用索引
+    - `explain select * from user where age = '18';` 不会使用索引
+- 更新十分频繁、数据区分度不高的字段上不宜建立索引
+    - 更新会变更B+树，更新频繁的字段建立索引会大大降低数据库性能
+    - 类似于性别这类区分不大的属性，建立索引是没有意义的，不能有效的过滤数据。一般区分度在80%以上的时候就可以建立索引，区分度可以使用 `count(distinct(列名))/count(*)` 来计算
+- 创建索引的列最好不允许为null
+- 当需要进行表连接的时候，最好不要超过三张表
+    - **mysql的join算法**：Simple Nested-Loop Join(简单嵌套循环连接)、Index Nested-Loop Join(索引嵌套循环连接)、Block Nested-Loop Join(缓存块嵌套循环连接) [^7]
+        - `Simple Nested-Loop Join` 匹配次数=外层表行数 * 内层表行数
+        - `Index Nested-Loop Join` 就是通过外层表匹配条件 直接与内层表索引进行匹配，避免和内层表的每条记录去进行比较， 这样极大的减少了对内层表的匹配次数，此时匹配次数变成了外层表的行数 * 内层表索引的高度，极大的提升了join的性能
+        - `Block Nested-Loop Join` 其优化思路是减少外层表的循环次数，通过一次性缓存多条数据，把参与查询的列缓存到join buffer里，然后拿join buffer里的数据批量与内层表的数据进行匹配，从而减少了外层循环的次数，当不使用Index Nested-Loop Join的时候，默认使用的是Block Nested-Loop Join(`Show variables like 'optimizer_switc%';`)。其中join buffer的大小默认是256kb，可进行设置(64位最大可使用4G的Join Buffer空间，查询如`Show variables like 'join_buffer_size%';`)
+    - 表连接查询的优化思路
+        - 永远用小结果集驱动大结果集(其本质就是减少外层循环的数据数量)。如果a表结果集小于b表，理论上应该是a join b会更快；但是mysql优化器会进行优化，最终决定可能是b驱动a，即b join a(mysql中指定了连接条件时，满足查询条件的记录行数少的表为驱动表；如未指定查询条件，则扫描行数少的为驱动表)；也可以通过 a straight_join b 强制让a进行驱动(straight_join只能用于inner join)，但是一般建议使用mysql优化器而不强制指定
+        - 为匹配的条件增加索引(减少内层表的循环次数)
+        - 增大join buffer size的大小(一次缓存的数据越多，那么外层表循环的次数就越少)
+        - 减少不必要的字段查询(字段越少，join buffer 所缓存的数据就越多，外层表的循环次数就越少)
+- 能使用limit的时候尽量使用limit
+- 单表索引建议控制在5个以内
+- 单索引(组合索引)字段数不允许超过5个
+- 创建索引的时候应该避免以下错误概念：索引越多越好；过早优化，在不了解系统的情况下进行优化
 
-112 
+#### 索引监控
+
+- `show status like 'Handler_read%';`
+    - Handler_read_first：读取索引第一个条目的次数
+    - **Handler_read_key**：通过index获取数据的次数(越大越好)
+    - Handler_read_last：读取索引最后一个条目的次数
+    - Handler_read_next：通过索引读取下一条数据的次数
+    - Handler_read_prev：通过索引读取上一条数据的次数
+    - Handler_read_rnd：从固定位置读取数据的次数
+    - **Handler_read_rnd_next**：从数据节点读取下一条数据的次数(越大越好)
+
+### *查询优化*
+
+- 查询慢的原因：网络、CPU、IO、上下文切换、系统调用、生成统计信息、锁等待时间
+- 优化数据访问：减少访问数据量，需要考虑是否向数据库请求了不需要的数据
+    - 查询不需要的记录，某些场景可以使用limit进行优化
+    - 多表关联时返回全部列
+    - 总是取出全部列，禁止使用select *
+    - 重复查询相同的数据，基于查询缓存优化(查询缓存只适用于改动不频繁的数据，mysql 8已经移除了查询缓存)
+- 执行过程的优化
+    - 查询缓存
+        - 在解析一个查询语句之前，如果查询缓存是打开的，那么mysql会优先检查这个查询是否命中查询缓存中的数据，如果查询恰好命中了查询缓存，那么会在返回结果之前会检查用户权限，如果权限没有问题，那么mysql会跳过所有的阶段，就直接从缓存中拿到结果并返回给客户端
+        - 查询缓存只适用于改动不频繁的数据，mysql 8已经移除了查询缓存
+    - 查询过程优化(解析SQL、预处理、优化SQL执行计划)
+        - mysql语法解析器和预处理：mysql通过关键字将SQL语句进行解析，并生成AST抽象语法树(如开源工具[calcite](https://calcite.apache.org/)也可解析出AST)。mysql解析器将使用mysql语法规则验证和解析查询，例如验证使用使用了错误的关键字或者顺序是否正确等等，预处理器会进一步检查解析树是否合法，例如表名和列名是否存在，是否有歧义，还会验证权限等等
+        - mysql查询优化器：当语法树没有问题之后，相应的要由优化器将其转成执行计划，一条查询语句可以使用非常多的执行方式，最后都可以得到对应的结果，但是不同的执行方式带来的效率是不同的，优化器的最主要目的就是要选择最有效的执行计划，mysql使用的是基于成本优化(CBV，还有RBV基于规则优化)，在优化的时候会尝试预测一个查询使用某种查询计划时候的成本，并选择其中成本最小的一个
+            - 在很多情况下mysql会选择错误的执行计划，原因如下
+                - 统计信息不准确：InnoDB因为其mvcc的架构，并不能维护一个数据表的行数的精确统计信息
+                - 执行计划的成本估算不等同于实际执行的成本：有时候某个执行计划虽然需要读取更多的页面，但是他的成本却更小，因为如果这些页面都是顺序读或者这些页面都已经在内存中的话，那么它的访问成本将很小，mysql层面并不知道哪些页面在内存中，哪些在磁盘，所以查询之际执行过程中到底需要多少次IO是无法得知的
+                - mysql的优化是基于成本模型的优化，但是有可能不是最快的优化
+                - mysql不考虑其他并发执行的查询
+                - mysql不会考虑不受其控制的操作成本，如执行存储过程或者用户自定义函数的成本
+            - 优化器的优化策略
+                - 静态优化：直接对解析树进行分析，并完成优化
+                - 动态优化：动态优化与查询的上下文有关，也可能跟取值、索引对应的行数有关
+                - mysql对查询的静态优化只需要一次，但对动态优化在每次执行时都需要重新评估
+            - 优化器的优化类型
+	            - 重新定义关联表的顺序：数据表的关联并不总是按照在查询中指定的顺序进行，决定关联顺序时优化器很重要的功能
+	            - 将外连接转化成内连接，内连接的效率要高于外连接
+	            - 使用等价变换规则，mysql可以使用一些等价变化来简化并规划表达式
+	            - 优化count(),min(),max()：如果某列存在索引，要找到该列的最小值，只需要查询该索引的最左端的记录即可，不需要全文扫描比较
+	            - 预估并转化为常数表达式，当mysql检测到一个表达式可以转化为常数的时候，就会一直把该表达式作为常数进行处理
+	            - 索引覆盖扫描，当索引中的列包含所有查询中需要使用的列的时候，可以使用覆盖索引
+	            - 子查询优化
+	            - 等值传播：如`select 1 from a join b on a.id = b.id where a.id = 1`和`select 1 from a join b on a.id = b.id where a.id = 1 and b.id = 1`效果是一样的
+            - 关联查询优化：参考上文mysql的join算法
+            - 排序优化
+                - 推荐使用利用索引进行排序，但是当不能使用索引的时候，mysql就需要自己进行排序，如果数据量小则再内存中进行，如果数据量大就需要使用磁盘，mysql中称之为filesort。如果需要排序的数据量小于排序缓冲区(`show variables like '%sort_buffer_size%';`)，mysql使用内存进行快速排序操作，如果内存不够排序，那么mysql就会先将数据分块，对每个独立的块使用快速排序进行排序，并将各个块的排序结果存放再磁盘上，然后将各个排好序的块进行合并，最后返回排序结果
+                - 排序的算法
+	                - 两次传输排序：第一次数据读取是将需要排序的字段读取出来，然后进行排序，第二次是将排好序的结果按照需要去读取数据行。这种方式效率比较低，原因是第二次读取数据的时候因为已经排好序，需要去读取所有记录而此时更多的是随机IO，读取数据成本会比较高。两次传输的优势，在排序的时候存储尽可能少的数据，让排序缓冲区可以尽可能多的容纳行数来进行排序操作
+	                - 单次传输排序：先读取查询所需要的所有列，然后再根据给定列进行排序，最后直接返回排序结果，此方式只需要一次顺序IO读取所有的数据，而无须任何的随机IO，问题在于查询的列特别多的时候，会占用大量的存储空间，无法存储大量的数据
+	                - 当需要排序的列的总大小超过`max_length_for_sort_data`定义的字节，mysql会选择两次排序，反之使用单次排序，当然，用户可以设置此参数的值来选择排序的方式
+    - 优化特定类型的查询
+	    - 优化count()查询
+            - count(*)、count(id)、count(1)执行效率一样
+		    - myisam的count函数比较快，这是有前提条件的：只有没有任何where条件的count(*)才是比较快的
+		    - 使用近似值：在某些应用场景中，不需要完全精确的值，可以参考使用近似值来代替，比如可以使用explain来获取近似的值。其实在很多OLAP的应用中，需要计算某一个列值的基数，有一个计算近似值的算法叫HyperLogLog
+		    - 更复杂的优化：一般情况下，count()需要扫描大量的行才能获取精确的数据，其实很难优化，在实际操作的时候可以考虑使用索引覆盖扫描，或者增加汇总表，或者增加外部缓存系统
+	    - 优化关联查询
+		    - 确保on或者using子句中的列上有索引，在创建索引的时候就要考虑到关联的顺序。当表A和表B使用列C关联的时候，如果优化器的关联顺序是B、A，那么就不需要再B表的对应列上建上索引，没有用到的索引只会带来额外的负担，一般情况下来说，只需要在关联顺序中的第二个表的相应列上创建索引
+            - 确保任何的group by和order by中的表达式只涉及到一个表中的列，这样mysql才有可能使用索引来优化这个过程
+	    - 优化子查询：子查询的优化最重要的优化建议是尽可能使用关联查询代替
+	    - 优化limit分页：优化此类查询的最简单的办法就是尽可能地使用覆盖索引，而不是查询所有的列
+
+            ```sql
+			select film_id,description from film order by title limit 50,5;
+            -- 优化后(实际情况扫描表更多)
+			explain select film.film_id,film.description from film join (select film_id from film limit 50,5) as lim using(film_id);
+            ```
+	    - 优化union查询：除非确实需要服务器消除重复的行，否则一定要使用`union all`，因此没有all关键字，mysql会在查询的时候给临时表加上distinct的关键字，这个操作的代价很高
+	    - 推荐使用用户自定义变量：参考[sql-ext.md#自定义变量](/_posts/db/sql-ext.md#自定义变量)
+		    
+### 分区分表
+
+
+115
+
 
 
 ### 其他
@@ -593,3 +701,5 @@ SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
 [^4]: https://www.cnblogs.com/wishyouhappy/p/3681771.html (oracle索引)
 [^5]: https://www.cnblogs.com/zhanjindong/p/3439042.html
 [^6]: https://www.cnblogs.com/gomysql/p/3615897.html
+[^7]: https://www.cnblogs.com/rainwang/p/12123310.html
+
