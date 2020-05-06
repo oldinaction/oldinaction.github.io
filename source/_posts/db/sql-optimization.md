@@ -408,7 +408,7 @@ tags: [oracle, dba, sql]
 	                - 两次传输排序：第一次数据读取是将需要排序的字段读取出来，然后进行排序，第二次是将排好序的结果按照需要去读取数据行。这种方式效率比较低，原因是第二次读取数据的时候因为已经排好序，需要去读取所有记录而此时更多的是随机IO，读取数据成本会比较高。两次传输的优势，在排序的时候存储尽可能少的数据，让排序缓冲区可以尽可能多的容纳行数来进行排序操作
 	                - 单次传输排序：先读取查询所需要的所有列，然后再根据给定列进行排序，最后直接返回排序结果，此方式只需要一次顺序IO读取所有的数据，而无须任何的随机IO，问题在于查询的列特别多的时候，会占用大量的存储空间，无法存储大量的数据
 	                - 当需要排序的列的总大小超过`max_length_for_sort_data`定义的字节，mysql会选择两次排序，反之使用单次排序，当然，用户可以设置此参数的值来选择排序的方式
-    - 优化特定类型的查询
+    - **优化特定类型的查询**
 	    - 优化count()查询
             - count(*)、count(id)、count(1)执行效率一样
 		    - myisam的count函数比较快，这是有前提条件的：只有没有任何where条件的count(*)才是比较快的
@@ -421,19 +421,128 @@ tags: [oracle, dba, sql]
 	    - 优化limit分页：优化此类查询的最简单的办法就是尽可能地使用覆盖索引，而不是查询所有的列
 
             ```sql
-			select film_id,description from film order by title limit 50,5;
-            -- 优化后(实际情况扫描表更多)
-			explain select film.film_id,film.description from film join (select film_id from film limit 50,5) as lim using(film_id);
+			select film_id,description from film order by title limit 10000,5;
+            -- 优化后(数据量大时才有效果)
+			explain select a.film_id,a.description from film a join (select film_id from film order by title limit 10000,5) as b using(film_id);
             ```
 	    - 优化union查询：除非确实需要服务器消除重复的行，否则一定要使用`union all`，因此没有all关键字，mysql会在查询的时候给临时表加上distinct的关键字，这个操作的代价很高
 	    - 推荐使用用户自定义变量：参考[sql-ext.md#自定义变量](/_posts/db/sql-ext.md#自定义变量)
 		    
-### 分区分表
+### 分区表
 
+> https://dev.mysql.com/doc/refman/5.7/en/partitioning.html
 
-115
+- 分区表为mysql功能，不同于分区分表，但是效果类似
+- 对于用户而言，分区表是一个独立的逻辑表，但是底层是由多个物理子表组成。分区表对于用户而言是一个完全封装底层实现的黑盒子，对用户而言是透明的，从文件系统中可以看到多个使用#分隔命名的表文件。mysql在创建表时使用partition by子句定义每个分区存放的数据，在执行查询的时候，优化器会根据分区定义过滤那些没有我们需要数据的分区，这样查询就无须扫描所有分区。
+- 分区表的应用场景
+	- 表非常大以至于无法全部都放在内存中，或者只在表的最后部分有热点数据，其他均是历史数据
+	- 分区表的数据更容易维护：批量删除大量数据可以使用清除整个分区的方式；对一个独立分区进行优化、检查、修复等操作
+	- 分区表的数据可以分布在不同的物理设备上，从而高效地利用多个硬件设备
+	- 可以使用分区表来避免某些特殊的瓶颈：innodb的单个索引的互斥访问；ext3文件系统的inode锁竞争
+	- 可以备份和恢复独立的分区
+- 分区表的限制
+	- 一个表最多只能有1024个分区，在5.7版本的时候可以支持8196个分区(即8196个文件)
+	- 在早期的mysql中，分区表达式必须是整数或者是返回整数的表达式，在mysql5.5中，某些场景可以直接使用列来进行分区
+	- 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
+	- 分区表无法使用外键约束
+- 分区表的底层原理
+    - 分区表由多个相关的底层表实现，这个底层表也是由句柄对象标识，我们可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样（所有的底层表都必须使用相同的存储引擎），分区表的索引知识在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部
+    - 当查询/新增/删除一个分区表的时候，分区层先打开并锁住所有的底层表，优化器先判断是否可以过滤部分分区；当更新一条记录时，分区层先打开并锁住所有的底层表，mysql先确定需要更新的记录再哪个分区，然后取出数据并更新，再判断更新后的数据应该再哪个分区，最后对底层表进行写入操作，并对源数据所在的底层表进行删除操作
+    - 虽然每个操作都会"先打开并锁住所有的底层表"，但这并不是说分区表在处理过程中是锁住全表的，如果存储引擎能够自己实现行级锁，例如innodb，则会在分区层释放对应表锁
+- 分区表的类型
+    - 范围分区
+    - 列表分区
+        - 类似于按range分区，区别在于list分区是基于列值匹配一个离散值集合中的某个值来进行选择
+    - 列分区
+        - mysql从5.5开始支持column分区，可以认为i是range和list的升级版，在5.5之后，可以使用column分区替代range和list，但是column分区只接受普通列不接受表达式
+    - hash分区
+    - key分区
+        - 类似于hash分区，区别在于key分区只支持一列或多列，且mysql服务器提供其自身的哈希函数，必须有一列或多列包含整数值
+    - 子分区
+        - 在分区的基础之上，再进行分区后存储
+    - 案例
 
+        ```sql
+        -- 范围分区
+        CREATE TABLE members (
+            username VARCHAR(16) NOT NULL,
+            joined DATE NOT NULL
+        )
+        PARTITION BY RANGE(YEAR(joined)) (
+            PARTITION p0 VALUES LESS THAN (2000),
+            PARTITION p1 VALUES LESS THAN (2010),
+            PARTITION p2 VALUES LESS THAN MAXVALUE
+        );
 
+        -- 列表分区
+        CREATE TABLE employees (
+            id INT NOT NULL,
+            fname VARCHAR(30),
+            store_id INT
+        )
+        PARTITION BY LIST(store_id) (
+            PARTITION pNorth VALUES IN (3,5,6,9,17),
+            PARTITION pEast VALUES IN (1,2,10,11,19,20),
+            PARTITION pWest VALUES IN (4,12,13,14,18),
+            PARTITION pCentral VALUES IN (7,8,15,16)
+        );
+
+        -- 列分区
+        CREATE TABLE members (
+            firstname VARCHAR(25) NOT NULL,
+            lastname VARCHAR(25) NOT NULL,
+            username VARCHAR(16) NOT NULL,
+            company_id INT NOT NULL
+        )
+        PARTITION BY RANGE COLUMNS(company_id, firstname) (
+            PARTITION p0 VALUES LESS THAN (5,'aaa') ENGINE = InnoDB,
+            PARTITION p1 VALUES LESS THAN (10,'bbb') ENGINE = InnoDB
+        );
+
+        -- hash分区
+        CREATE TABLE employees (
+            id INT NOT NULL,
+            fname VARCHAR(30),
+            store_id INT
+        )
+        PARTITION BY HASH(store_id)
+        PARTITIONS 4; -- 按4取模分成4个分区
+
+        -- key分区
+        CREATE TABLE tk (
+            col1 INT NOT NULL,
+            col2 CHAR(5),
+            col3 DATE
+        )
+        PARTITION BY LINEAR KEY (col1)
+        PARTITIONS 3;
+
+        -- 子分区
+        CREATE TABLE ts (id INT, purchased DATE)
+        PARTITION BY RANGE( YEAR(purchased) )
+        SUBPARTITION BY HASH( TO_DAYS(purchased) )
+        SUBPARTITIONS 2 (
+            PARTITION p0 VALUES LESS THAN (1990),
+            PARTITION p1 VALUES LESS THAN (2000),
+            PARTITION p2 VALUES LESS THAN MAXVALUE
+        );
+
+        CREATE TABLE ts (id INT, purchased DATE)
+        PARTITION BY RANGE( YEAR(purchased) )
+        SUBPARTITION BY HASH( TO_DAYS(purchased) ) (
+            PARTITION p0 VALUES LESS THAN (1990) (
+                SUBPARTITION s0,
+                SUBPARTITION s1
+            ),
+            PARTITION p1 VALUES LESS THAN (2000),
+            PARTITION p2 VALUES LESS THAN MAXVALUE (
+                SUBPARTITION s2,
+                SUBPARTITION s3
+            )
+        );
+        ```
+
+116
 
 ### 其他
 

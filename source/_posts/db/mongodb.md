@@ -8,7 +8,7 @@ tags: [db, mongodb]
 
 ## mongodb简介
 
-- MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的
+- MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的 [^1]
 - 官网：[https://www.mongodb.com](https://www.mongodb.com)
 
 ## mongodb安装运行
@@ -19,6 +19,7 @@ tags: [db, mongodb]
 - 运行.msi文件，选择custom模式后可以选择安装位置(如：D:/software/mongodb)
 - 进入到安装目录D:/software/mongodb
 - 新建 `log` 和 `db` 两个文件夹
+- `D:/software/mongodb/bin/mongo --version` 查看版本
 
 ### linux
 
@@ -31,6 +32,7 @@ sudo mkdir -p /data/db                                                          
 
 # 运行测试
 cd /usr/local/mongodb/bin
+mongo --version                                                                 # 查看版本
 sudo ./mongod                                                                   # 启动服务
 sudo ./mongo                                                                    # 登录后台管理
 
@@ -61,18 +63,41 @@ sudo ./mongo                                                                    
 
 ## MongoDB使用
 
-### MongoDB牛刀小试
+- **mongodb默认内置有3个数据库，一个名为admin，一个名为local、还有一个默认库test(隐藏库)**
+- MongoDB Shell是MongoDB自带的交互式Javascript shell，用来对MongoDB进行操作和管理的交互式环境
+- 连接MongoDB Shell
+    - 重启一个dos窗口，进入到安装目录的bin目录下
+    - 运行命令 `mongo`，看到版本号则运行成功，之后会进入MongoDB Shell，它默认会链接到 test 数据库
+        - `mongo --port 27018` 指定端口进行连接
 
-MongoDB Shell是MongoDB自带的交互式Javascript shell,用来对MongoDB进行操作和管理的交互式环境。
+### 数据库和集合(表)
 
-- 重启一个dos窗口，进入到安装目录的bin目录下
-- 运行命令 `mongo`, 看到版本号则运行成功。当进入mongoDB后台后，它默认会链接到 test 文档（数据库），mongodb默认内置有两个数据库，一个名为admin，一个名为local
-    - `mongo --port 27018` 指定端口进行连接
-- 牛刀小试
-  - 输入 `2+2` 回车，会打印 4
-  - 运行 `db` 查看当前数据库(test)
-  - 运行 `db.myvar.insert({"num":10})` 表示将10插入到集合myvar的num字段中(直接运行后如果没有myvar的集合则新建一个)
-  - 运行 `db.myvar.find()` 会打印集合myvar的情况
+```bash
+2+2 # 执行计算，会打印 4
+
+## 数据库操作
+db # 查看当前数据库(不选择数据库则默认是test)
+show dbs # 查看所有数据库
+use aezo # 如果数据库不存在，则创建数据库，否则切换到指定数据库
+db.dropDatabase() # 删除当前数据库，可使用db查看
+
+## 集合操作
+show collections # 或show tables，查看当前数据库所有集合
+db.createCollection("mycol1") # 简单的创建集合
+db.createCollection("mycol2", {capped: true, autoIndexId: true, size: 6142800, max: 10000}) # 创建集合并指定参数。此时为创建固定集合(capped: true)，自动在 _id 字段创建索引(autoIndexId: true)，整个集合空间大小 6142800 KB, 文档最大个数为 10000 个
+db.mycol3.insert({"name": "smalle"}) # 自动创建集合。在插入一些文档时，如果没有对应集合，MongoDB 会自动创建集合
+db.mycol1.drop() # 删除指定集合
+
+## 插入并查询文档
+db.mydoc.insert({title: 'hello world', view: 10, tags: ['hello', 'world']}) # 插入成功会自动创建_id字段
+db.mydoc.find() # 会打印集合mydoc的所有数据
+```
+
+### CRUD
+
+- 插入文档 `db.COLLECTION_NAME.insert(document)`
+- 更新文档
+
 
 ### 用户管理
 
@@ -109,11 +134,22 @@ MongoDB Shell是MongoDB自带的交互式Javascript shell,用来对MongoDB进行
         - root：只在admin数据库中可用。超级账号，超级权限
     - 一般可给某数据库管理员角色：read、readWrite、dbAdmin、userAdmin
 
+## 复杂查询
+
+
+
+
 ## 客户端管理工具Robo 3T
 
 - 下载地址 `https://robomongo.org/download` (`Download portable version for Windows 64-bit`为免安装版)
 
 
+
+
+
+
+---
+
 参考文章
 
-- http://www.runoob.com/mongodb/mongodb-tutorial.html (MongoDB 教程)
+[^1]: http://www.runoob.com/mongodb/mongodb-tutorial.html (MongoDB 教程)
