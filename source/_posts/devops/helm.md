@@ -41,7 +41,7 @@ tags: [k8s]
     kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
     # 检查是否安装成功
     kubectl -n kube-system get pods|grep tiller
-    # 显示版本即表示 Client 和 Server 均正常
+    # Client 和 Server 都显示各自版本，即表示 Client 和 Server 均正常
     helm version
     # (可选)查看并修改远程仓库地址。上文默认使用了阿里的镜像
     helm repo add stable http://mirror.azure.cn/kubernetes/charts
@@ -216,6 +216,8 @@ mysqlUser: devops
 mysqlPassword: devops1234!
 # 此时k8s看到的是Init1234!的密码，但是实际是被下文init.sql中修改后的密码
 # mysqlRootPassword: Init1234!
+strategy:
+  maxSurge: 0
 service:
   type: NodePort
   nodePort: 30000

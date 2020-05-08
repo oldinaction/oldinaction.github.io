@@ -266,7 +266,7 @@ docker run -d -v /my/data/directory:/home/vsftpd \
 - 基于k8s
     - 共享主机网络主被动模式都可正常使用，可临时测试。不使用共享主机网络主被动均未测试成功
     - 测试步骤
-        - 配置文件如`sq-ftp.yaml`，使用了rook-ceph进行存储，具体参考[rook-ceph](/_posts/devops/rook-ceph.md简单使用)
+        - 配置文件如`sq-ftp.yaml`，使用了rook-ceph进行存储，具体参考[rook-ceph](/_posts/devops/rook.md简单使用)
         - `kubectl get pods -o wide` 查看pod被调度到那个k8s-node节点(如：192.168.6.133)，然后使用`ftp 192.168.6.133`连接
 
 ```yml

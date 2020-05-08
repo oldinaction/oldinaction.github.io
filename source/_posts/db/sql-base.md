@@ -386,15 +386,15 @@ select *
     - `mediumint`   中整型，存储长度为3个字节
     - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，有符号signed区间：-2147483647 ~ 2147483647，无符号unsigned区间：0 ~ 4294967295)。最大显示11个字节，int(1)也会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的。类似于Oracle里的的number(X)
     - `bigint`      长正型(Long)，**存储长度为8个字节**。类似于Oracle里的的number(X)
-    - `double`		浮点型，相当于Oracle里的的 number(X, Y)
-    - `decimal`     金额，相当于Oracle里的的 decimal(X, Y)
-    - `char`		定长字符串，同Oracle的char
-    - `varchar` 	变长字符串，最大255字节，相当于Oracle里的的varchar2
-    - `datetime`	日期，相当于Oracle里的date
-    - `tinytext`    短文本型。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式
-    - `text`		文本型。最大长度为65535个字节(2^31-1)，其他同tinytext
-    - `longtext`	长文本型。最大4G，相当于Oracle里的long，其他同tinytext
-    - `tinyblob/blob/longblob` 
+    - `double`		浮点型(Float)，相当于Oracle里的的 number(X, Y)
+    - `decimal`     金额(Bigdecimal)，相当于Oracle里的的 decimal(X, Y)。decimal(2,1) 表示总数据长度不能超过2位，且小数要占1位，因此最大为9.9
+    - `char`		定长字符串(String)，同Oracle的char
+    - `varchar` 	变长字符串(String)，最大255字节，相当于Oracle里的的varchar2
+    - `datetime`	日期(DateTime/LocalDateTime)，相当于Oracle里的date
+    - `tinytext`    短文本型(String)。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式
+    - `text`		文本型(String)。最大长度为65535个字节(2^31-1)，其他同tinytext
+    - `longtext`	长文本型(String)。最大4G，相当于Oracle里的long，其他同tinytext
+    - `tinyblob/blob/longblob` 二进制数据(byte[])
 - Oracle数据结构
     - `char`		定长字符串；存取时效率高，空间可能会浪费
     - `varchar2`	变长字符串,大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持

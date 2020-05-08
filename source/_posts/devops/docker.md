@@ -22,8 +22,8 @@ tags: [docker, arch]
     vi /etc/docker/daemon.json
     {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}
 
-    ## docker.io镜像加速
-    # 中科大 `docker.mirrors.ustc.edu.cn`
+    ## docker.io镜像加速。参考：https://juejin.im/post/5cd2cf01f265da0374189441
+    # 中科大 `docker.mirrors.ustc.edu.cn`；阿里云私有加速器 `bzyep49h.mirror.aliyuncs.com`
     docker pull xxx:yyy "可替换为" docker pull docker.mirrors.ustc.edu.cn/library/xxx:yyy
     docker pull xxx/yyy:zz "可替换为" docker pull docker.mirrors.ustc.edu.cn/xxx/yyy:zz
     # Azure中国镜像 `dockerhub.azk8s.cn`

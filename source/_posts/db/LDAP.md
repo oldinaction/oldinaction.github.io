@@ -73,13 +73,15 @@ tags: [auth]
 > https://hub.kubeapps.com/charts/stable/openldap
 
 ```bash
-helm fetch stable/openldap --version=1.2.2
-# 修改 templates/service.yaml，为参数 spec.ports['ldap-port'] 增加属性`nodePort: {{ .Values.service.nodePort }}`
+helm fetch stable/openldap --version=1.2.2 # 下载chart到当前目录
+# 进入chart，修改 templates/service.yaml，为参数 spec.ports['ldap-port'] 增加属性`nodePort: {{ .Values.service.nodePort }}`
 
 cat > openldap-values.yaml << 'EOF'
 # admin账户密码
 adminPassword: Test1
 configPassword: Test2
+strategy:
+  maxSurge: 0
 persistence:
   enabled: true
   storageClass: 'nfs-client'

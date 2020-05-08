@@ -452,7 +452,7 @@ ceph osd pool create kube 128
 # 创建kube客户端
 ceph auth get-or-create client.kube mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=kube' -o ceph.client.kube.keyring
 
-## 创建。当PVC创建后StorageClass就会自动创建PV、rbd镜像(eg：`rbd ls -p kube` 显示 `kubernetes-dynamic-pvc-**`)
+## 创建(最终会创建StorageClass)。当PVC创建后StorageClass就会自动创建PV、rbd镜像(eg：`rbd ls -p kube` 显示 `kubernetes-dynamic-pvc-**`)
 kubectl create -f ceph-rbd-pool-default.yaml
 # 此方式创建的 PV 名称和ceph镜像名称并不对应，但是可在 PV 详情中查看对应的镜像名称
 # kubectl get pv pvc-41fea0ae-f8aa-422a-a5b3-84fab3a0a9e3 -o go-template='{{.spec.rbd.image}}' # 查看pv对应哪个rbd image
@@ -462,7 +462,7 @@ kubectl create -f ceph-rbd-pool-default.yaml
 - ceph-rbd-pool-default.yaml
 
 ```yaml
-## ceph-rbd-pvc-test.yaml
+## ceph-rbd-pvc-test.yaml (可选，测试自动创建PVC配置)
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:

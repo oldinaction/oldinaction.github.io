@@ -1113,7 +1113,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
     - `PVC`状态：`Pending`(准备中) -> `Bound`(绑定)
         - PVC一直处于Pending状态，而PV却处于Bound状态，可能情况：如使用的NFS服务器关闭了；定义的PV大小、读写类型不符合PVC的要求
         - PV一直处于Released状态：如果确认此PV不再使用(对应的数据文件目录)，可删除此PV重新创建PV
-    - `SC`资源配置，参考：[http://blog.aezo.cn/2019/06/22/devops/rook-ceph/](/_posts/devops/rook-ceph.md#简单使用)
+    - `SC`资源配置，参考：[http://blog.aezo.cn/2019/06/22/devops/rook-ceph/](/_posts/devops/rook.md#简单使用)
         - 在pvc申请存储空间时，未必就有现成的pv符合pvc申请的需求。当用户突然需要使用PVC时，可通过restful发送请求StorageClass，继而SC让存储空间创建相应的存储image，之后在集群中定义对应的PV供给当前的PVC作为挂载使用。因此存储系统必须支持restful接口，比如ceph分布式存储，而glusterfs则需要借助第三方接口完成这样的请求
     - PV和PVC创建无需先后顺序
 - `ConfigMap`和`Secret`为一种特殊的存储卷
@@ -1175,7 +1175,7 @@ spec:
   nfs:
     server: 192.168.6.10
     path: /data/volumes/v1
-  accessModes: ["ReadWriteMany","ReadWriteOnce"]
+  accessModes: ["ReadWriteMany", "ReadWriteOnce"]
   capacity:
     storage: 1Gi
 ---
@@ -1891,26 +1891,33 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 
 ### pod
 
+- **pod常见日志顺序**
+
+    ```bash
+    # pod has unbound immediate PersistentVolumeClaims (repeated 3 times) # 有时可能出现几次此种报错，如果一直不打印下一行assigned日志则确实有问题
+    Successfully assigned devops/mongodb-devops-7d556f9578-4gjmz to dev2-1
+    Unable to mount volumes for pod "mysql-devops-5b7d797b9b-q5jmv_devops(110dbfea-067b-4477-a6d5-e723ba6d5adb)": timeout expired waiting for volumes to attach or mount for pod "devops"/"mysql-devops-5b7d797b9b-q5jmv". list of unmounted volumes=[data]. list of unattached volumes=[configurations migrations data default-token-bs8fb]
+    
+    AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"
+    # 卡在此处
+    Pulling image "docker.io/bitnami/mongodb:4.2.6"
+    Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"
+    # Container image "docker.io/bitnami/mongodb:4.2.6" already present on machine # 如果镜像原本存在则打印此行
+    Created container mongodb-devops
+    Started container mongodb-devops
+    ```
 - 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container`
     - 可查看对应pod的日志
 - 报错`Back-off restarting failed container`
     - 可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
 - 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试，实际是过几分钟便自动恢复了)
 - 报错`pod has unbound immediate PersistentVolumeClaims`
-    - 此时pod日志显示`AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"`，且PV和PVC均正常显示Bound(PV也符合PVC的要求)。后发现pod日志只显示`Pulling image "docker.io/bitnami/mongodb:4.2.6"`，并未显示`Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"`，后发现对接节点确实没有相应镜像，由此推断镜像获取失败导致
-    - pod日志顺序
+    - 情况一：此时pod日志显示`AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"`，且PV和PVC均正常显示Bound(PV也符合PVC的要求)。后发现pod日志只显示`Pulling image "docker.io/bitnami/mongodb:4.2.6"`，并未显示`Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"`，后发现对接节点确实没有相应镜像，由此推断镜像获取失败导致
+    - 情况二：一直卡在`pod has unbound immediate PersistentVolumeClaims`，无后续日志 [^12] [^13] [^10]
+        - 出现场景：pod之前正常运行，但是某时刻该节点震荡，导致此pod不可用，并自动创建了新pod；且pv是基于StorageClass从ceph请求存储空间；且创建pod时pvc申请策略为ReadWriteOnce
+        - 原因分析：由于ceph只支持ReadWriteOnce模式，便将pvc设置成了ReadWriteOnce；而此时滚动更新时会产生多一个pod，而ReadWriteOnce的访问模式又不允许两个pod挂载同一个volume
+        - 解决：RollingUpdate模式下设置strategy.maxSurge=0
 
-        ```bash
-        Successfully assigned devops/mongodb-devops-7d556f9578-4gjmz to dev2-1
-        AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"
-        # pod has unbound immediate PersistentVolumeClaims (repeated 4 times) # 报错日志
-        # 卡在此处
-        Pulling image "docker.io/bitnami/mongodb:4.2.6"
-        Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"
-        # Container image "docker.io/bitnami/mongodb:4.2.6" already present on machine # 如果镜像原本存在则打印此行
-        Created container mongodb-devops
-        Started container mongodb-devops
-        ```
 
 ### pv/pvc
 
@@ -1935,4 +1942,5 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^9]: https://zhuanlan.zhihu.com/p/44269163
 [^10]: https://fengxsong.github.io/2018/05/30/%E8%8A%82%E7%82%B9%E5%A5%94%E6%BA%83%E9%87%8D%E5%90%AF%E5%90%8E%E9%83%A8%E5%88%86pvc%E4%B8%8D%E8%83%BD%E6%AD%A3%E5%B8%B8%E6%8C%82%E8%BD%BD/
 [^11]: https://www.jianshu.com/p/a67316ee0288
-
+[^12]: https://jeremy-xu.oschina.io/2019/07/%E8%A7%A3%E5%86%B3pvc%E6%97%A0%E6%B3%95mount%E7%9A%84%E9%97%AE%E9%A2%98/
+[^13]: https://blog.csdn.net/pencc/article/details/84333315
