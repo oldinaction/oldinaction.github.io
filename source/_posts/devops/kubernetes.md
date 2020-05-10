@@ -1387,9 +1387,10 @@ dig -t A sq-nginx-75875cf46f-829nm.sq-nginx.default.svc.cluster.local @10.96.0.1
                 - `resources` 资源列表，如：`["nodes", "pods", "deployments", "namespaces"]`
                 - `verbs` 可执行动作列表，如：`["get", "list", "watch", "create", "update", "patch", "delete"]` 或者 `['*']`
         - `ClusterRole` 集群角色(无namespace概念)
-    - `RoleBinding` 和 `ClusterRoleBinding` 则是(普通/集群)角色和用户的绑定关系
+    - `RoleBinding` 和 `ClusterRoleBinding` 则是(某个命名空间/集群)角色和用户的绑定关系
 - 创建访问API Server账号
-    - 如果是创建Dashboard访问账号，则是创建ServiceAccount，参考下文手动安装Dashboard
+    - 如果是创建Dashboard访问账号(或在pod中需要访问api server)，则是创建ServiceAccount，参考下文手动安装Dashboard
+    - 创建sa账号后会自动在同一命名空间创建一个xxx-token-xxx的secret；删除sa账号时也会同步删除
 
 ```bash
 # 创建证书
@@ -1446,8 +1447,9 @@ kubectl config view --kubeconfig=/tmp/test.conf
 ```bash
 kubectl create namespace aezo-test
 kubectl create serviceaccount sa-aezo-admin -n aezo-test
-# --serviceaccount=SA命名空间:SA。此处-n aezo-test则代表rolebinding属于此命名空间，则相当于赋予此SA账户clusterrole=admin所拥有的aezo-test命名空间的部分权限
-kubectl create rolebinding test:sa-aezo-admin --clusterrole=admin --serviceaccount=aezo-test:sa-aezo-admin -n aezo-test
+# test:sa-aezo-admin为绑定名称(可随便取)；--serviceaccount=SA命名空间:SA；cluster-admin是k8s内置的集群角色，也可自己创建集群角色；此处-n aezo-test则代表rolebinding属于此命名空间，则相当于赋予此SA账户clusterrole=cluster-admin所拥有的aezo-test命名空间的部分权限
+kubectl create rolebinding test:sa-aezo-admin --clusterrole=cluster-admin --serviceaccount=aezo-test:sa-aezo-admin -n aezo-test
+# 获取ServiceAccount关联的secret(xxx-token-xxx)
 kubectl get secret $(kubectl get secret -n aezo-test|grep sa-aezo-admin-token|awk '{print $1}') -n aezo-test -o jsonpath={.data.token}|base64 -d |xargs echo
 # 问题：登录后页面默认显示的是default命名空间，需要手动输入或者访问带上命名空间：https://192.168.6.131:30000/#!/overview?namespace=java-test
 ```
@@ -1846,7 +1848,7 @@ kubectl delete pod kubernetes-dashboard-5dc4c54b55-ft4xh -n kube-system # 按情
 ## 创建 ServiceAccount 和 ClusterRoleBinding
 # 创建serviceaccount
 kubectl create serviceaccount sa-admin -n kube-system
-# service account账户绑定到集群角色admin
+# service account账户绑定到集群角色admin，dev:cluster-sa-admin为绑定名称(可随便取)
 kubectl create clusterrolebinding dev:cluster-sa-admin --clusterrole=cluster-admin --serviceaccount=kube-system:sa-admin
 
 ## 法一：基于token登录
@@ -1895,15 +1897,23 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 
     ```bash
     # pod has unbound immediate PersistentVolumeClaims (repeated 3 times) # 有时可能出现几次此种报错，如果一直不打印下一行assigned日志则确实有问题
+
     Successfully assigned devops/mongodb-devops-7d556f9578-4gjmz to dev2-1
-    Unable to mount volumes for pod "mysql-devops-5b7d797b9b-q5jmv_devops(110dbfea-067b-4477-a6d5-e723ba6d5adb)": timeout expired waiting for volumes to attach or mount for pod "devops"/"mysql-devops-5b7d797b9b-q5jmv". list of unmounted volumes=[data]. list of unattached volumes=[configurations migrations data default-token-bs8fb]
-    
+
+    # Unable to mount volumes for pod "mysql-devops-5b7d797b9b-q5jmv_devops(110dbfea-067b-4477-a6d5-e723ba6d5adb)": timeout expired waiting for volumes to attach or mount for pod "devops"/"mysql-devops-5b7d797b9b-q5jmv". list of unmounted volumes=[data]. list of unattached volumes=[configurations migrations data default-token-bs8fb] # 报错日志
+
+    # MountVolume.WaitForAttach failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd image kube/kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 is still being used # 报错日志
+
     AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"
-    # 卡在此处
+
     Pulling image "docker.io/bitnami/mongodb:4.2.6"
+
     Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"
+
     # Container image "docker.io/bitnami/mongodb:4.2.6" already present on machine # 如果镜像原本存在则打印此行
+
     Created container mongodb-devops
+
     Started container mongodb-devops
     ```
 - 一直CrashLoopBackOff，且describe显示`Back-off restarting failed container`
@@ -1911,12 +1921,15 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 - 报错`Back-off restarting failed container`
     - 可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
 - 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试，实际是过几分钟便自动恢复了)
+    - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
+- 报错`MountVolume.WaitForAttach failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd image kube/kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 is still being used`
+    - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
 - 报错`pod has unbound immediate PersistentVolumeClaims`
     - 情况一：此时pod日志显示`AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"`，且PV和PVC均正常显示Bound(PV也符合PVC的要求)。后发现pod日志只显示`Pulling image "docker.io/bitnami/mongodb:4.2.6"`，并未显示`Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"`，后发现对接节点确实没有相应镜像，由此推断镜像获取失败导致
     - 情况二：一直卡在`pod has unbound immediate PersistentVolumeClaims`，无后续日志 [^12] [^13] [^10]
         - 出现场景：pod之前正常运行，但是某时刻该节点震荡，导致此pod不可用，并自动创建了新pod；且pv是基于StorageClass从ceph请求存储空间；且创建pod时pvc申请策略为ReadWriteOnce
         - 原因分析：由于ceph只支持ReadWriteOnce模式，便将pvc设置成了ReadWriteOnce；而此时滚动更新时会产生多一个pod，而ReadWriteOnce的访问模式又不允许两个pod挂载同一个volume
-        - 解决：RollingUpdate模式下设置strategy.maxSurge=0
+        - 解决：RollingUpdate模式下设置strategy.rollingUpdate.maxSurge=0
 
 
 ### pv/pvc

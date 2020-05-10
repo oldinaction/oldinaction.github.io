@@ -104,6 +104,20 @@ volumes:
 - Run/Debug中添加tomcat配置，Deployment选择jenkins-war:war
 - debug启动tomcat。也可在远程启动debug监听 `mvnDebug jenkins-dev:run` 默认监听端口8000，可通过remote debug进行远程调试
 
+## Pipeline
+
+> https://www.jenkins.io/doc/book/pipeline/getting-started/
+
+- 案例参考[Pipline+K8s+Harbor+Gitlab+Springboot+Maven](#Pipline+K8s+Harbor+Gitlab+Springboot+Maven)
+- 调用凭证(隐藏密码，暂未发现pipline如何使用全局密码)
+
+```groovy
+withCredentials([usernamePassword(credentialsId: '0c108a09-e321-45c6-bf9c-06626ddd1e4a', passwordVariable: 'MY_PASSWORD', usernameVariable: 'MY_USERNAME')]) {
+    // 打印 U: **** P: ****
+	sh "echo U: ${MY_USERNAME} P: ${MY_PASSWORD}"
+}
+```
+
 ## 构建
 
 ### 项目构建界面说明
@@ -277,9 +291,10 @@ java -jar target/${NAME}-${VERSION}.jar
     echo "exec command end..."
     ```
 
-#### 模式二(推荐)
+#### 模式二
 
 - 上述流程需要开发先将镜像打包到镜像仓库，此处也可以通过在jenkins所在服务器打包(自动处理版本问题)。如下
+- 构建触发器参考[构建触发器-Gitlab](#构建触发器)
 - 构建环境 - Inject passwords to the build as environment variables - 勾选Global passwords(全局密码在系统设置中添加)
 - 构建 - Execute Shell(打包镜像并上传到Harbor)
     
@@ -318,6 +333,27 @@ java -jar target/${NAME}-${VERSION}.jar
     sudo /usr/local/bin/helm upgrade --set image.tag=${DOCKER_TAG} ${HELM_NAME} /root/helm-chart/test/${HELM_NAME}
     ```
 
+### (推荐)Pipline+K8s+Harbor+Gitlab+Springboot+Maven
+
+> http://www.mydlq.club/article/8/
+
+- 创建项目 - 风格选择Pipline
+- General：(为了安全)勾选不允许并发构建、(为了提升效率)勾选流水线效率、持久保存设置覆盖(Performance-optimized...)
+- 构建触发器参考[构建触发器-Gitlab](#构建触发器)
+- 流水线 - Pipeline script(另一个选项为Pipeline script from SCM)
+    - 勾选`使用 Groovy 沙盒`
+    - Jenkinsfile脚本
+
+        ```
+        
+        ```
+- 常见问题
+    - 第一次构建可能报错`Scripts not permitted to use method org.apache.maven.model.Model getArtifactId`，是因为在沙箱环境下getArtifactId等脚本方法需要管理员通过才可执行
+        - 解决：在系统管理 - In-process Script Approval - approved(method org.apache.maven.model.Model getArtifactId)
+
+
+kubectl get secret $(kubectl get secret -n kube-system|grep tiller-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo
+
 ## 系统管理(Manage Jenkins)
 
 ### 系统设置(Configure System)
@@ -328,7 +364,7 @@ java -jar target/${NAME}-${VERSION}.jar
 - Jenkins Location
     - Jenkins URL：jenkins的路径，如：`http://192.168.1.100:8080/`。如果此处配置成外网，当通过内网访问时会提示`反向代理设置有误`，但是不影响使用。发送的邮件中一般会用到此地址
     - 系统管理员邮件地址：此地址需要和SMTP发件地址一致，如：`aezo-jenkins<test@example.com>`(from地址可添加昵称：`昵称<from>`)
-- Global Passwords：全局密码
+- Global Passwords：全局密码(pipline无法使用，但可配合withCredentials使用凭证功能)
     - 使用：通过【构建环境-Inject passwords to the build as environment variables】导入密码到环境变量
 - 邮件通知：配置smtp服务器
     - SMTP server不能带端口
@@ -430,48 +466,127 @@ java -jar target/${NAME}-${VERSION}.jar
                 - Content Type：HTML (text/html)
                 - Attach Build Log：Attach Build Log
 
-##### Kubernetes插件
+##### Kubernetes(连接k8s创建jenkins-agent)
 
 - 在Kubernetes集群中运行动态代理节点(agent)的Jenkins插件，[参考](https://plugins.jenkins.io/kubernetes)
 - 安装此插件增加的扩展配置：系统管理 - 系统配置 - 云
     - 名称：默认`kubernetes`
     - Kubernetes 地址：`https://kubernetes.default.svc.cluster.local`，或者省略`svc.cluster.local`，即https://kubernetes.default
     - Kubernetes 命名空间：留空或default
-    - 凭据：留空
+    - 凭据：留空(默认使用jenkins主pod的ServiceAccount账号访问k8 api server)
     - Jenkins 地址：`http://jenkins.devops:8080`，此处jenkins基于k8s部署，中间表示`服务名称.命名空间`
     - Jenkins 通道：agent通过jnlp和jenkins通信通道，此处如`jenkins-agent.devops:50000`(jenkins-agent为k8s服务名，如果jenkins普通部署此处填jenkins的hostname即可)。此处的50000需要k8s暴露到服务层，对应jenkins-pod的端口也是50000(在系统配置-全局安全配置-代理-TCP port for inbound agents-指定端口50000)
-    - 镜像(Kubernetes Pod Template)
+    - 创建agent的Pod模板(Kubernetes Pod Template)，可以创建多个模板
         - 名称：jnlp-agent
         - 命名空间：agent-pod运行的命名空间，留空则和jenkins-pod运行于同一空间
-        - 标签列表：jnlp-agent
-        - 容器列表(Container Template)
-            - 名称：jnlp
-            - Docker 镜像：jenkins/jnlp-slave:3.27-1
-            - 工作目录：/home/jenkins/agent
-            - 分配伪终端：留空
-        - 卷
+        - 标签列表(label)：`jnlp-agent` 可用于构建时基于标签选择不同的 Pod Template
+        - 卷(如agent需要执行docker等命令，可挂载jenkins pod的docker，或者agent pod中包含docker容器)
             - 增加Host Path Volume(为了让此agent可以调用宿主机的docker命令)
                 - 主机路径、挂载路径：/var/run/docker.sock
                 - 主机路径、挂载路径：/usr/bin/docker
         - Pod 的原始 yaml(pod基础配置，策略为Override则表示，上述配置如果和原始yaml重复则按照上述配置来)
 
-            ```yml
-            # 需要使用空格排版
-            apiVersion: v1
-            kind: Pod
-            spec:
-              securityContext:
-                runAsUser: 0
-              affinity:
-                nodeAffinity:
-                  preferredDuringSchedulingIgnoredDuringExecution:
-                  - weight: 80
-                    preference:
-                      matchExpressions:
-                      - {key: "aezo/jenkins-agent", operator: In, values: ["enabled"]}
-            ```
+```yaml
+# 需要使用空格排版
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: jenkins-slave
+spec:
+  securityContext:                  #容器安全设置
+    runAsUser: 0                    #以ROOT用户运行容器
+    privileged: true                #赋予特权执行容器
+  # 如果不需要agent执行如下命令则不行配置容器
+  containers:
+  - name: jnlp                      #Jenkins Slave镜像
+    image: bzyep49h.mirror.aliyuncs.com/jenkins/jnlp-slave:3.27-1
+    #设置工作目录
+    workingDir: /home/jenkins/agent
+    tty: true
+  - name: docker                    #Docker镜像
+    image: bzyep49h.mirror.aliyuncs.com/library/docker:18.06.2-dind
+    command: ['cat']
+    tty: true
+    volumeMounts:
+    - name: docker
+      mountPath: /usr/bin/docker
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+    - name: docker-config
+      mountPath: /etc/docker
+  - name: maven                     #Maven镜像
+    image: bzyep49h.mirror.aliyuncs.com/library/maven:3.6.0-jdk-8-alpine
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: maven-m2
+      mountPath: /root/.m2
+  - name: helm-kubectl              #Kubectl & Helm镜像
+    image: bzyep49h.mirror.aliyuncs.com/dtzar/helm-kubectl:2.14.3
+    command:
+    - cat
+    tty: true
+  volumes:
+  - name: docker                    #将宿主机 Docker 文件夹挂进容器，方便存储&拉取本地镜像
+    hostPath: 
+      path: /usr/bin/docker
+  - name: docker-sock               #将宿主机 Docker.sock 挂进容器
+    hostPath: 
+      path: /var/run/docker.sock
+  - name: docker-config             #将宿主机 Docker 配置挂在进入容器
+    hostPath: 
+      path: /etc/docker
+  - name: maven-m2                  #Maven 本地仓库挂在到 NFS 共享存储，方便不同节点能同时访问与存储
+    nfs: 
+      server: 192.168.17.75
+      path: "/home/data/nfs/m2"
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+          - {key: "unilog/jenkins-agent", operator: In, values: ["enabled"]}
+```
         - Yaml merge strategy：Override
         - Show raw yaml in console：勾选表示jenkins构建日志中会显示agent的pod-yaml配置，调试的时候可以勾选
+
+##### Kubernetes CLI Plugin
+
+- 可执行k8s命令
+
+```groovy
+// 提供 kubectl 执行的环境，其中得设置存储了 token 的凭据ID和 kubernetes api 地址(需要此service account token有权限获取nodes)
+withKubeConfig([credentialsId: "xxxx-xxxx-xxxx-xxxx", serverUrl: "https://kubernetes.default.svc.cluster.local"]) {
+    sh "kubectl get nodes"
+}
+```
+
+##### Config File Provider
+
+- 配置管理 - Managed files
+- 如配置全局maven的setting.xml
+    - Add a new Config - Global Maven settings.xml - 修改maven镜像为阿里云镜像
+    - 会生成一个全局ID，可在pipline中使用
+
+        ```groovy
+        configFileProvider([configFile(fileId: "15263da5-15d5-4bb5-abb7-5dd604def581", targetLocation: "settings.xml")]) {
+            sh "mvn clean install -Dmaven.test.skip=true --settings settings.xml"
+        }
+        ```
+
+##### Pipeline Utility Steps
+
+- 功能：提取/创建Zip文件、生成(yaml)文件、读取 maven 项目的 pom.xml 文件(参数)、读取 properties 文件参数、从工作区中的文件中读取JSON、在工作区中查找文件
+- Pipeline模式下使用
+
+    ```groovy
+    // 读取 pom.xml 文件
+    pom = readMavenPom file: "./pom.xml"
+    echo "${pom.artifactId}:${pom.version}"
+    ```
 
 ### 节点管理(Manage Nodes)
 

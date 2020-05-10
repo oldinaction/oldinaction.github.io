@@ -66,6 +66,8 @@ get         # 下载一个release
 history     # release历史信息
 home        # 显示helm的家目录
 init        # 在客户端和服务端初始化helm
+    --client-only # 只初始化客户端
+    --stable-repo-url # 修改stable默认仓库地址(需要公开地址)。如：https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts
 inspect     # 查看charts的详细配置信息(values.yaml)
     # helm inspect stable/nginx-ingress # 查看此chart说明信息
     # helm inspect values stable/nginx-ingress # 查看此chart的values.yaml信息
@@ -115,7 +117,8 @@ version     # 打印客户端和服务端的版本信息
         helm install stable/mysql -f myvalues.yaml
         helm install --values=myvalues.yaml stable/mysql
         ```
-## Chart说明
+
+## Chart使用(手动创建)
 
 - 安装某个 Chart 后，可在 `~/.helm/cache/archive` 中找到 Chart 的 tar 包，可解压查看 Chart 文件信息(`tar -zxvf nginx-ingress-0.9.5.tgz`)
 - 创建 Chart 案例 [^1]
@@ -137,7 +140,7 @@ version     # 打印客户端和服务端的版本信息
     kubectl port-forward --address 0.0.0.0 $POD_NAME 8080:80
     # 在本地访问http://127.0.0.1:8080即可访问到nginx
 
-    # 修改配置文件(也可同时配合--set修改配置)后更新部署。如果直接修改value.yaml里面的image.tag提交更新后k8s无反应
+    # 修改配置文件(也可同时配合--set修改配置)后更新部署
     # 此处image.tag不能使用过长的数字(yyyyMMddHHmmss生成的数字)，过长传递到k8s则变成了科学计数导致出错
     helm upgrade --set image.tag=20190902 mychart ./mychart
     helm history mychart # 查看更新历史
@@ -208,6 +211,7 @@ version     # 打印客户端和服务端的版本信息
 
 ```bash
 cat > mysql-values.yaml << 'EOF'
+image: hub-mirror.c.163.com/library/mysql
 persistence:
   storageClass: 'nfs-client'
 timezone: Asia/Shanghai
@@ -216,8 +220,11 @@ mysqlUser: devops
 mysqlPassword: devops1234!
 # 此时k8s看到的是Init1234!的密码，但是实际是被下文init.sql中修改后的密码
 # mysqlRootPassword: Init1234!
-strategy:
-  maxSurge: 0
+# 原节点挂掉后，无法创建新的pod，提示 rbd image xxx is still being used。此解决方法待验证
+# strategy:
+#   type: RollingUpdate
+#   rollingUpdate:
+#     maxSurge: 0
 service:
   type: NodePort
   nodePort: 30000
@@ -1002,6 +1009,20 @@ create database harbor_notary_signer;
 ```
 - 命令行镜像推送参考：[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#Harbor)
 - 说明
+    - 此版本支持docker registry和helm charts仓库。其功能类似开源项目chartmuseum
+        - 可单独创建一个仓库来放charts或将charts放在每个项目中，如此处单独创建harbor项目charts
+        - 上传chart
+            - 进入charts项目，在Helm Charts标签页下，可以上传chart压缩包(注意需要是使用.tar或.tar.gz压缩文件，rar是不可以的)
+            - 或者通过命令上传
+
+                ```bash
+                # 添加helm push命令
+                helm plugin install https://github.com/chartmuseum/helm-push
+
+                # 将对应charts仓库添加到helm。其中用户名和密码为harbor账号，且此账户要有charts仓库的权限；此处charts是指上述的harbor项目名
+                helm repo add myrepo https://xx.xx.xx.xx/chartrepo/charts --username <username> --password <password>
+                helm push charts/test-1.0.0.tar.gz myrepo # 推送镜像到仓库
+                ```
     - 出现过一次异常：upgrade后，导致harbor-harbor-jobservice和harbor-harbor-chartmuseum的历史副本集无法自动删除，导致新的副本集提示启动失败(占用了pvc)，可手动删除历史副本集解决
 
 ### Jenkins
@@ -1059,8 +1080,9 @@ helm upgrade jenkins stable/jenkins --version=1.7.8 -f jenkins-values.yaml
 helm del --purge jenkins # 如果删除部署后重新部署，会重新创建新PV
 ```
 - 说明
-    - 构建时会自动创建子pod(slave节点，镜像jenkins/jnlp-slave)，workspace目录则保存在执行任务的slave节点上，当构建完成后会自动删除子pod(包括任务的工作空间)。更多参考[jenkins](/_posts/devops/jenkins.md#Kubernetes插件)
+    - 会默认安装插件Kubernetes，可基于k8s创建agent。即构建时会自动创建子pod(slave节点，镜像jenkins/jnlp-slave)，workspace目录则保存在执行任务的slave节点上，当构建完成后会自动删除子pod(包括任务的工作空间)。更多参考[jenkins](/_posts/devops/jenkins.md#Kubernetes(连接k8s创建jenkins-agent))
     - 多次部署更新jenkins，历史安装的插件不会丢失。如果删除部署后重新部署，会重新创建新PV
+    - 容器中jenkins数据目录为 `/var/jenkins_home`
 
 ### OpenLDAP
 

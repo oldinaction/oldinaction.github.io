@@ -23,7 +23,7 @@ tags: [docker, arch]
     {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}
 
     ## docker.io镜像加速。参考：https://juejin.im/post/5cd2cf01f265da0374189441
-    # 中科大 `docker.mirrors.ustc.edu.cn`；阿里云私有加速器 `bzyep49h.mirror.aliyuncs.com`
+    # 中科大 `docker.mirrors.ustc.edu.cn`；阿里云私有加速器 `bzyep49h.mirror.aliyuncs.com`；网易 `hub-mirror.c.163.com`
     docker pull xxx:yyy "可替换为" docker pull docker.mirrors.ustc.edu.cn/library/xxx:yyy
     docker pull xxx/yyy:zz "可替换为" docker pull docker.mirrors.ustc.edu.cn/xxx/yyy:zz
     # Azure中国镜像 `dockerhub.azk8s.cn`
@@ -444,7 +444,7 @@ consul members
     ADD hom?.txt /mydir/    # ? is replaced with any single character, e.g., "home.txt"
     ```
 - ADD遵守如下规则
-    - `<src>`路径必须在构建上下文内。不能`ADD ../something /something`，因为docker build的第一步已经把上下文目录和子目录发送到docker daemon了
+    - `<src>`路径必须在构建上下文内。**不能`ADD ../something /something`，因为docker build的第一步已经把上下文目录和子目录发送到docker daemon了**
     - 如果`<src>`是一个目录，目录的所有内容都将复制，包括文件系统元数据，但是不包括目录本身
     - `ADD http://example.com/foobar /test` 将创建文件 `/test/foobar`
     - 如果`<src>`是一个本地的可识别的tar压缩文件(如gzip、bzip2或xz)，那么将在容器内解压为目录。远程URL的压缩文件将不会解压
@@ -953,7 +953,7 @@ docker run -itd -p 8080:80 192.168.17.196:5000/nginx:sm_1
 
 - [Harbor](https://goharbor.io/)、[github](https://github.com/goharbor/harbor)
 - Harbor是基于GO开发的一个用于存储和分发Docker镜像的企业级Registry服务器(私有仓库)，提供web界面访问，角色控制。其提供镜像复制功能：镜像可以在多个Registry实例中复制（同步），尤其适合于负载均衡，高可用，混合云和多云的场景 [^3]
-- 安装(内部包含一个registry服务器的安装)
+- 安装(内部包含一个registry服务器的安装)。基于helm安装参考[helm.md#Harbor](/_posts/devops/helm.md#Harbor)
 
 ```bash
 ## 安装docker-compose

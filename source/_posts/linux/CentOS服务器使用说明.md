@@ -658,6 +658,7 @@ showmount -e
 
 ## 在其他机器测试挂载nfs存储卷
 # mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
+# mount -t nfs 192.168.6.10:/data/volumes/v1/subpath /mnt # 挂载子路径，需要提前创建好子路径
 ```
 - 配置说明
     - `ro`：只读权限

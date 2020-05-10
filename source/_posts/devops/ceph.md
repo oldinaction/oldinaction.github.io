@@ -341,7 +341,7 @@ kubectl apply -f ceph-pod.yaml
 
 ## 动态PV(只适用于手动安装kubernetes，如果基于kubeadm安装请见下文rbd-provisioner使用)
 kubectl apply -f ceph-sc.yaml
-kubectl apply -f ceph-pvc.yaml # 修改storageClassName
+kubectl apply -f ceph-pvc.yaml # 开启storageClassName配置
 # 此时会发现 pvc 一直处于pending状态。`kubectl describe pvc ceph-pvc`时提示 `Failed to provision volume with StorageClass "ceph-sc": failed to create rbd image: executable file not found in $PATH, command output`。解决方法见下文使用rbd-provisioner提供rbd持久化存储
 ```
 - yaml文件
@@ -387,8 +387,7 @@ metadata:
   name: ceph-pvc
   namespace: default
 spec:
-  # 使用动态PV时需要开启
-  # storageClassName: ceph-sc
+  # storageClassName: ceph-sc # 使用动态PV时需要开启
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
@@ -633,7 +632,8 @@ ls /dev/mapper/ceph--9f84f55e--6baa--4ac2--a721--4dfd97f9a8f1-osd--block--cf4926
 Block - images - xxx - 编辑 - Size
 
 ## 管理端操作
-rbd ls -p kube
+rbd ls -p kube # 列举所有镜像
+rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 查看此镜像空间使用情况
 # 调整大小为20G(1024换算)
 rbd resize kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 --size 20480
 rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 重新查看镜像空间使用情况
@@ -686,9 +686,9 @@ rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 重新
         ```bash
         ## 存在watcher的情况
         rbd status kube/img # 获取kube/img镜像的watcher
-        ceph osd blacklist add 192.168.6.131:0/1135656048 # 添加watcher到黑名单
-        rbd rm kube/img # 删除镜像
-        ceph osd blacklist rm 192.168.6.131:0/1135656048 # 移除黑名单
+        ceph osd blacklist add 192.168.6.131:0/1135656048 # 添加watcher到黑名单1h(1小时候会自动移除)
+        # rbd rm kube/img # 可选，删除镜像
+        # ceph osd blacklist rm 192.168.6.131:0/1135656048 # 手动移除黑名单
         ceph osd blacklist ls
         ```
 - 更换mon时，执行`ceph-deploy mon add node4`报错`admin_socket: exception getting command descriptions: [Errno 2] No such file or directory`
@@ -704,6 +704,7 @@ ceph osd tree       # 查看所有osd
 
 rbd ls kube         # 列举kube存储池所有存储块
 rbd showmapped      # 列举本机已映射的块设备(pool、image等信息)。存储块必须映射后才能挂载
+rbd du kube/image-xxx # 查看镜像空间使用情况
 ```
 
 ### ceph

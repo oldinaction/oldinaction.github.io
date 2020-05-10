@@ -464,9 +464,9 @@ lsmod |grep br_netfilter
 
 #### tar
 
-- 解压：**`tar -xvzf archive.tar.gz -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
+- 解压：**`tar -zxvf archive.tar.gz -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
     - `tar -xvf archive.tar` 表示解压到当前目录
-- 压缩：**`tar -cvzf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
+- 压缩：**`tar -zcvf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
 - 参数说明
     - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
         - **`-x`**：解压
