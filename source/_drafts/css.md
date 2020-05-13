@@ -72,7 +72,7 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
         - 取值：`flex-start` | `flex-end` | `center` | `space-between`(两端对齐) | `space-around` | `space-evenly`
         - CSS的text-align有个属性值为justify，可实现两端对齐，可联合记忆
     - `align-items` 决定了垂直方向子项的对齐和分布方式
-        - 取值：`stretch`(类似于flex-start) | `flex-start`(顶部对齐) | `flex-end` | `center` | `baseline`(类似于flex-end)
+        - 取值：`stretch`(类似于flex-start) | `flex-start`(顶部对齐) | `flex-end`(底部对齐) | `center` | `baseline`(类似于flex-end)
     - align-content
 - 作用在flex子项上
     - order
@@ -169,6 +169,104 @@ div {
     /* 从下到上，从蓝色开始渐变、到高度40%位置是绿色渐变开始、最后以红色结束 */
     background: linear-gradient(0deg, blue, green 40%, red);
     background: -webkit-linear-gradient(0deg, rgb(251, 176, 30), rgb(229, 2, 18), rgb(192, 6, 156));
+}
+```
+
+### 图片
+
+- 图片阴影
+
+```css
+-webkit-filter: drop-shadow(10px 20px 20px rgba(0, 0, 0, 0.5));
+filter: drop-shadow(10px 20px 20px rgba(0, 0, 0, 0.5)); /*考虑浏览器兼容性：兼容 Chrome, Safari, Opera */
+```
+- 显示原型图片(需要原图为正方形)
+
+```css
+border-radius: 50%;
+```
+
+### 箭头动画(纯css)
+
+```less
+/* 箭头特效。向上箭头使用：<div class="sq-arrow sq-arrow_top"></div> */
+.sq-arrow {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-bottom: 4px solid #fff;
+    border-right: 4px solid #fff;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    cursor: pointer;
+    opacity: 0.8;
+    
+    -webkit-transition: opacity .2s ease-in-out, transform .5s ease-in-out .2s;
+    transition: opacity .2s ease-in-out, transform .5s ease-in-out .2s;
+
+    &.sq-arrow_left {
+        /* 设置帧名称sq-arrow-x，帧时间0.5s，ease-in-out缓慢进入退出，infinite继承父容器特效 */
+        -webkit-animation: sq-arrow-x .5s ease-in-out alternate infinite;
+        animation: sq-arrow-x .5s ease-in-out alternate infinite;
+
+        /* 对元素进行变换，旋转135度 */
+        -webkit-transform: rotate(135deg);
+        -ms-transform: rotate(135deg);
+        transform: rotate(135deg);
+    }
+    &.sq-arrow_right {
+        -webkit-animation: sq-arrow-x .5s ease-in-out alternate infinite;
+        animation: sq-arrow-x .5s ease-in-out alternate infinite;
+
+        -webkit-transform: rotate(-45deg);
+        -ms-transform: rotate(-45deg);
+        transform: rotate(-45deg);
+    }
+    &.sq-arrow_top {
+        -webkit-animation: sq-arrow-y .5s ease-in-out alternate infinite;
+        animation: sq-arrow-y .5s ease-in-out alternate infinite;
+
+        -webkit-transform: rotate(-135deg);
+        -ms-transform: rotate(-135deg);
+        transform: rotate(-135deg);
+    }
+    &.sq-arrow_bottom {
+        -webkit-animation: sq-arrow-y .5s ease-in-out alternate infinite;
+        animation: sq-arrow-y .5s ease-in-out alternate infinite;
+
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+}
+.sq-arrow:hover {
+    -webkit-transition-delay: 0;
+    transition-delay: 0;
+    opacity: 1;
+}
+
+/* 左右箭头动画帧设置 */
+@-webkit-keyframes sq-arrow-x {
+    100% {
+        left: 20px
+    }
+}
+@keyframes sq-arrow-x {
+    100% {
+        left: 20px
+    }
+}
+/* 上下箭头动画帧设置 */
+@-webkit-keyframes sq-arrow-y {
+    100% {
+        top: 20px
+    }
+}
+@keyframes sq-arrow-y {
+    100% {
+        top: 20px
+    }
 }
 ```
 

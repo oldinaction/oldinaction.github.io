@@ -466,29 +466,6 @@ render: (h, params) => {
 }
 ```
 
-### transition 动画
-
-- 参考：[API](https://cn.vuejs.org/v2/api/#transition)、[guide](https://cn.vuejs.org/v2/guide/transitions.html)
-
-```html
-<!-- 
-    name：用于自动生成 CSS 过渡类名。例如：name: 'fade' 将自动拓展为.fade-enter，.fade-enter-active等，只需要提前定义好对应的css即可
-    mode：控制离开/进入的过渡时间序列。有效的模式有 "out-in" 和 "in-out"；默认同时生效
-    tag：<transition> 它会以一个真实元素呈现：默认为一个 <span>，可以通过 tag 属性更换为其他元素
-    @after-enter：绑定进入后的事件，还有其他事件可以监听
--->
-<transition name="fade" mode="out-in">
-    <!-- transition 只能包含一个根节点，两个可以使用 v-if/v-else 或动态组件 -->
-    <span v-if="true"></span>
-    <span v-else></span>
-</transition>
-
-<!-- 只能用于列表过渡(v-for)，列表需要有唯一key -->
-<transition-group name="list" tag="p">
-    <span v-for="item in items" :key="item">{{ item }}</span>
-</transition-group>
-```
-
 ### 报错 You may have an infinite update loop in a component render function
 
 - 参考：https://www.itread01.com/content/1541599683.html
@@ -1000,6 +977,9 @@ methods: {
     background-color: #eef8ff;
 }
 </style>
+<!-- 也可在组件中额外定义全局样式 -->
+<style>
+</style>
 ```
 
 ### 全局样式/自动化导入
@@ -1066,7 +1046,10 @@ module.exports = {
         - 引入的 css 都是全局生效的
         - 引入的 js 文件只在 main.js 中生效。是因为 main.js 在webpack中是一个模块，引入的 js 文件也是一个模块，在其他地方是访问不到的，这就是ES6的模块化。所以如果想 main.js 引入的 js 全局可用，就需要绑定到全局对象上，比如绑定 Vue 上
 
+
 ### 样式使用举例
+
+- 使用案例
 
 ```less
 // src/assets/theme/default/index.less
@@ -1104,6 +1087,66 @@ module.exports = {
     }
 }
 ```
+- vue组件中给body设置样式
+
+```html
+<!-- 法一：通过生命周期直接修改body样式 -->
+<script>
+export default {
+  beforeCreate () {
+    document.querySelector('body').setAttribute('style', 'background: transparent !important')
+  },
+  beforeDestroy () {
+    document.querySelector('body').removeAttribute('style')
+  }
+}
+</script>
+
+<!-- 法二：给template中的第一个div设置如下样式。只是加了一个遮住，如果是想把此页面通过iframe嵌套在其他页面进行透明则无此方法无效  -->
+<style>
+.body-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+  background-color: #000;
+}
+</style>
+```
+
+### transition 动画
+
+- 参考：[API](https://cn.vuejs.org/v2/api/#transition)、[guide](https://cn.vuejs.org/v2/guide/transitions.html)
+
+```html
+<!-- 
+    name：用于自动生成 CSS 过渡类名。例如：name: 'fade' 将自动拓展为.fade-enter，.fade-enter-active等class，只需要提前定义好对应的css即可
+    mode：控制离开/进入的过渡时间序列。有效的模式有 "out-in" 和 "in-out"；默认同时生效
+    tag：<transition> 它会以一个真实元素呈现：默认为一个 <span>，可以通过 tag 属性更换为其他元素
+    @after-enter：绑定进入后的事件，还有其他事件可以监听
+-->
+<transition name="fade" mode="out-in">
+    <!-- transition 只能包含一个根节点，两个可以使用 v-if/v-else 或动态组件 -->
+    <span v-if="true"></span>
+    <span v-else></span>
+</transition>
+<style>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+</style>
+
+<!-- 只能用于列表过渡(v-for)，列表需要有唯一key -->
+<transition-group name="list" tag="p">
+    <span v-for="item in items" :key="item">{{ item }}</span>
+</transition-group>
+```
+- 结合[Velocity.js](https://github.com/julianshapiro/velocity)，Velocity 和 jQuery.animate 的工作方式类似，也是用来实现 JavaScript 动画
 
 ## 路由
 

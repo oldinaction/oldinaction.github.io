@@ -344,15 +344,27 @@ java -jar target/${NAME}-${VERSION}.jar
     - 勾选`使用 Groovy 沙盒`
     - Jenkinsfile脚本
 
-        ```
+        ```groovy
         
         ```
+- springboot项目配置
+
+    ```bash
+    # git项目文件结构
+    |-- oa-dev-center-web
+    |-- oa-dev-center-api
+    |---- src
+    |---- devops
+    |------ runboot.sh
+    |------ values.yaml # helm charts values.yaml
+    |------ wait-for-it.sh
+    |---- Dockerfile
+    |---- pom.xml
+    ```
 - 常见问题
     - 第一次构建可能报错`Scripts not permitted to use method org.apache.maven.model.Model getArtifactId`，是因为在沙箱环境下getArtifactId等脚本方法需要管理员通过才可执行
         - 解决：在系统管理 - In-process Script Approval - approved(method org.apache.maven.model.Model getArtifactId)
-
-
-kubectl get secret $(kubectl get secret -n kube-system|grep tiller-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo
+    - 访问api server时，需要对应的ServiceAccount账号，此处可直接使用Tiller的sa账号。获取方式如`kubectl get secret $(kubectl get secret -n kube-system|grep tiller-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo`，将秘钥保存到jenkins凭证中获取凭证ID供pipline脚本使用
 
 ## 系统管理(Manage Jenkins)
 
@@ -579,7 +591,7 @@ withKubeConfig([credentialsId: "xxxx-xxxx-xxxx-xxxx", serverUrl: "https://kubern
 
 ##### Pipeline Utility Steps
 
-- 功能：提取/创建Zip文件、生成(yaml)文件、读取 maven 项目的 pom.xml 文件(参数)、读取 properties 文件参数、从工作区中的文件中读取JSON、在工作区中查找文件
+- 功能：提取/创建Zip文件、生成(yaml)文件、读取maven项目的pom.xml文件(参数)、读取properties文件参数、从工作区中的文件中读取JSON、在工作区中查找文件
 - Pipeline模式下使用
 
     ```groovy

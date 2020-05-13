@@ -44,6 +44,10 @@ tags: [java, conception]
     - 网站采用 HSTS 后，用户访问时无需手动在地址栏中输入 HTTPS，浏览器会自动采用 HTTPS 访问网站地址。当用户下次使用 HTTP 访问，客户端就会进行内部跳转，并且能够看到 307 Redirect Internel 的响应码
     - 使用HSTS：在HTTPS响应头添加`Strict-Transport-Security: max-age=expireTime [; includeSubDomains] [; preload]`
         - 如max-age=31536000则表示：在一年中浏览器必须采用HTTPS来发起连接(浏览器应当自动将 http 转写成 https)，如果该服务器发送的TLS证书无效，用户不能忽略浏览器警告继续访问网站。此时只能续期证书或更换域名
+- 上行、下行带宽
+    - `上行带宽`：指服务器将数据传送给用户的带宽，如20M
+    - `下行带宽`：指用户从服务器下载的带宽，如100M
+    - 上行带宽较下行要贵
 
 ## 数据库
 

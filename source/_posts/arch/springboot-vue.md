@@ -425,15 +425,15 @@ location / {
 
 ### 多项目配置
 
-- 路由必须使用history模式(路由中`#`会去掉)。参考[hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
+- <s>(非必须)路由必须使用history模式(路由中`#`会去掉)。</s> 参考 [hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
 - vue.config.js，参考[vue-cli v3](/_posts/web/vue.md#vue-cli%20v3) [^7]
 
 ```js
 module.exports = {
     // 表示index.html中引入的静态文件地址。如生成 `/my-app/js/app.28dc7003.js`
-    publicPath: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_VUE_ROUTER_BASE = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
-    // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到 www 目录。此时放到 /www/my-app 目录下
-    outputDir: 'dist',
+    publicPath: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_BASE_URL = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
+    // 打包后的文件生成在此项目的my-app根文件夹。一般是把此文件夹下的文件(index.html和一些静态文件)放到服务器 www 目录，此时多项目需要放到 /www/my-app 目录下
+    outputDir: 'my-app', // 也可以是其他命名，但是最终要把index.html放在服务器的 /www/my-app 目录下
     // ...
 }
 ```
@@ -442,8 +442,8 @@ module.exports = {
 ```js
 new Router({
     // 路由的基础路径，类似publicPath。只不过publicPath是针对静态文件，而此次是将<router-link>中的路径添加此基础路径
-    base: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_VUE_ROUTER_BASE = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
-    mode: 'history', // H5新特性，需要浏览器支持
+    base: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_BASE_URL = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
+    // mode: 'history', // H5新特性，需要浏览器支持；hash模式也支持多项目
     routes: []
 })
 ```
@@ -452,15 +452,19 @@ new Router({
 ```bash
 # 此处的两个my-app需要和上文的base、publicPath保持一致
 location ^~ /my-app/ {
-    root /www;
+    root /www; # 在/www目录放项目文件夹my-app(index.html在此文件夹根目录)
     try_files $uri $uri/ /my-app/index.html;
+    # 禁止缓存index.html文件
+    if ($request_filename ~* .*\.(?:htm|html)$) {
+        add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+    }
 }
 ```
 - 浏览器访问`http://localhost/my-app/`
 
 ### https
 
-- 静态资源使用`//`，它会判断当前的页面协议是http还是https来决定资源请求url的协议，可用于处理网站使用的协议和网页中请求的外网资源不一致的问题
+- 静态资源使用`//aezo.cn/xxx`，它会判断当前的页面协议是http还是https来决定资源请求url的协议，可用于处理网站使用的协议和网页中请求的外网资源不一致的问题
 
 ```html
 <script src="//aezo.cn/images/jquery/jquery-1.10.2.min.js" type="text/javascript"></script>

@@ -55,6 +55,7 @@ tags: [plugins, debug]
         - `debugger` 相应代码。如某些函数通过eval定义，在调用此函数的地方debugger，运行到该行后，点击此行数就会出VM文件
 - 打开新标签自动debug
     - Setting - DevTools - Auto-open DevTools for popups
+- 每次重新打开无痕模式，缓存会清空
 
 ## 性能分析(Devtool Performance)
 

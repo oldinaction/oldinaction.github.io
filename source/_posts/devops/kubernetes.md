@@ -634,7 +634,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
     - `containers` 描述容器(<[]Object>)
         - `name` 容器名
         - `image` 容器镜像地址。如：quay.io/coreos/kube-rbac-proxy:v0.4.1、prom/node-exporter(此时省略host，则docker默认host)
-        - `imagePullPolicy` Always(永远重新拉取镜像，镜像latest默认), Never, IfNotPresent(如果本地有则不拉取镜像，其他默认)。创建Pod后无法修改此字段
+        - `imagePullPolicy` Always(永远重新拉取镜像，镜像latest默认)、Never、IfNotPresent(如果本地有则不拉取镜像，其他默认)。创建Pod后无法修改此字段
         - `ports`(<[]Object>)
             - `containerPort` 将此容器中的某个端口暴露到pod中
             - `name` 如：http/https
@@ -654,6 +654,10 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
                 - `resourceFieldRef` 从资源占用中获取信息
                     - `containerName`
                     - `resource` 如：limits.cpu、requests.memory
+        - `volumeMounts` 挂载目录(`<[]Object>`)
+            - `name` 外部存储空间名称，需要和volumes属性配合使用(一个容器可以在同一存储空间上挂载多个目录，可基于subPath)，如：node1-nfs存在空间的根目录/data
+            - `mountPath` 容器需要挂载到外部的路径，如：/usr/share/nginx/html/
+            - `subPath` 在存储空间创建子目录来映射容器的路径，需要相对路径。如：此时为www/，则表示将/usr/share/nginx/html/映射到/data/www/目录
         - `securityContext` [参考](https://www.kubernetes.org.cn/security-context-psp)。此时仅影响容器级别(Container-level Security Context仅应用到指定的容器上，并且不会影响Volume)
             - `privileged` true(设置容器运行在特权模式)
             - `runAsUser` 启动容器用户。0代表root用户

@@ -740,26 +740,36 @@ networks:
 
 ```bash
 server {
-  listen  80; # 此处必须是容器中的端口
-  # server_name  localhost;
+    listen       80; # 此处必须是容器中的端口
+    listen  [::]:80;
+    # server_name  localhost;
 
-  # **启用后响应头中会包含`Content-Encoding: gzip`**
-  gzip on; #开启gzip压缩输出
-  # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
-  gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
-  
-  access_log /var/log/nginx/test.access.log main;
+    # **启用后响应头中会包含`Content-Encoding: gzip`**
+    gzip on; #开启gzip压缩输出
+    # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
+    gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
 
-  location = /index.html {
-    add_header Cache-Control "no-cache, no-store";
-  }
+    access_log /var/log/nginx/test.access.log main;
 
-  location / {
-    # $PWD/html/test 目录下添加一个index.html文件，即可通过 `宿主机IP:7000` 访问
-    root   /usr/share/nginx/html/test; # 此处必须是容器中的目录
-    # 出现过再部分机器上运行docker无法访问index.html文件(报错：/etc/nginx/html/index.html" failed (2: No such file or directory))？但是可以访问index.htm等其他文件，可以考虑将打包主页文件生成为index.html
-    index  index.html index.htm;
-  }
+    location = /index.html {
+        root   /usr/share/nginx/html;
+        add_header Cache-Control "no-cache, no-store";
+    }
+
+    location ^~ /oa-dev-center/ {
+		root /usr/share/nginx/html;
+		try_files $uri $uri/ /oa-dev-center/index.html;
+		if ($request_filename ~* .*\.(?:htm|html)$) {
+			add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+		}
+	}
+
+    location / {
+        # $PWD/html/test 目录下添加一个index.html文件，即可通过 `宿主机IP:7000` 访问
+        root   /usr/share/nginx/html/test; # 此处必须是容器中的目录
+        # 出现过再部分机器上运行docker无法访问index.html文件(报错：/etc/nginx/html/index.html" failed (2: No such file or directory))？但是可以访问index.htm等其他文件，可以考虑将打包主页文件生成为index.html
+        index  index.html index.htm;
+    }
 }
 ```
 - 更新配置说明

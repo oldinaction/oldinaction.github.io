@@ -82,8 +82,7 @@ group by
 
 ### 常见问题
 
-- 查询空格问题 
-	- 如：`select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`可以查询到数据库中`ABC  `的，`ABC  `也可以查询到数据库中`ABC`的数据
+- 查询空格问题。如：`select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`和`ABC  `都可以查询到数据库中`ABC`的数据
 	- 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
 	- 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
 	- 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
@@ -98,7 +97,7 @@ group by
 	- 字段排序时，null默认最小
 	- `select * from t_test order by username is null, username asc;` 此时先按照是否为null进行排序，是空的排在下面(返回1)
 - 字段类型和大小
-	- varchar(10)表示可以显示10个字符，字符集utf8时一个中文为一个字符
+	- varchar(10)表示可以显示10个字符，字符集utf8时一个中文为一个字符。mysql的utf8编码最大只能存放3个字节；utf8mb4中mb4指most bytes 4，因此最大可以存放4个字节。中文有可能占用2、3、4个字节
 
 ### 常用函数
 

@@ -89,6 +89,28 @@ server {
         expires -1s; # 对于不支持http1.1的浏览器，还是需要expires来控制
         add_header Cache-Control "no-cache, no-store"; # 会加在 response headers
     }
+    # 所有*.html的文件均不缓存，但是其优先级低于 ^~ 的匹配方式
+    location ~ .*.(htm|html)?$ {
+		add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+		access_log on;
+	}
+    # 如vue子项目index.html缓存设置
+    location ^~ /demo1/ {
+        root   /home/www/demo1;
+        # index  index.html index.htm
+        try_files $uri $uri/ /demo1/index.html;
+        
+        if ($request_filename ~* .*\.(?:htm|html)$) {
+            add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+        }
+        if ($request_filename ~* .*\.(?:js|css)$) {
+            expires      7d;
+        }
+        if ($request_filename ~* .*\.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm)$) {
+            expires      7d;
+        }
+    }
+
     # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)。内部重定向使用proxy_pass
     location = / {
         rewrite / http://$server_name/hello break;

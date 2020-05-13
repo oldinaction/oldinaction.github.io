@@ -86,6 +86,7 @@ repo        # add(增加), list（列出）, remove（移除）, update（更新
     # helm repo add stable http://mirror.azure.cn/kubernetes/charts # 替换原有 stable(使用微软镜像，阿里镜像有中断更新)
     # helm repo add incubator http://mirror.azure.cn/kubernetes/charts-incubator/
     # helm repo add fabric8 https://fabric8.io/helm
+    # helm repo update
 reset       # 卸载tiller
 rollback    # release版本回滚
 search      # 关键字搜索chart。eg: helm search mysql
@@ -116,6 +117,11 @@ version     # 打印客户端和服务端的版本信息
         # 基于某个 values 文件进行安装，此文件和默认文件会进行值合并覆盖
         helm install stable/mysql -f myvalues.yaml
         helm install --values=myvalues.yaml stable/mysql
+        ```
+    - `values.yaml` 和 `--set` 联合使用时，--set的优先级更高
+
+        ```bash
+        helm upgrade --install oa-dev-center --namespace devops -f oa-dev-center-api/devops/values.yaml --set 'image.repository=192.168.10.130/devops/oa-dev-center,image.tag=1.0.0-SNAPSHOT' aezo/springboot --version 1.0.0 --dry-run --debug
         ```
 
 ## Chart使用(手动创建)
@@ -249,6 +255,7 @@ helm install --name mysql-devops --namespace devops stable/mysql --version 1.4.0
 
 # 更新报错
 helm upgrade mysql-devops stable/mysql --version 1.4.0 -f mysql-values.yaml
+# helm upgrade mysql-devops stable/mysql --version 1.6.3 -f mysql-values.yaml # 基于新版本进行更新，不会删除此helm，只是做更新
 helm del --purge mysql-devops
 ```
 - k8s集群内部连接的主机名为 `mysql-devops.devops.svc.cluster.local`
@@ -1021,7 +1028,7 @@ create database harbor_notary_signer;
 
                 # 将对应charts仓库添加到helm。其中用户名和密码为harbor账号，且此账户要有charts仓库的权限；此处charts是指上述的harbor项目名
                 helm repo add myrepo https://xx.xx.xx.xx/chartrepo/charts --username <username> --password <password>
-                helm push charts/test-1.0.0.tar.gz myrepo # 推送镜像到仓库
+                helm push test-1.0.0.tar.gz myrepo # 推送镜像到仓库
                 ```
     - 出现过一次异常：upgrade后，导致harbor-harbor-jobservice和harbor-harbor-chartmuseum的历史副本集无法自动删除，导致新的副本集提示启动失败(占用了pvc)，可手动删除历史副本集解决
 
@@ -1129,7 +1136,7 @@ echo "skydive end-point: http://$UI_IP:$UI_PORT"
 
 ```go
 {{/* comment */}}
-{{- xxxx -}} // -去除前后的空白(包括换行符、制表符、空格等)，可只去其中一个
+{{- xxxx -}} // 前后的 `-` 表示去除前后的空白(包括换行符、制表符、空格等)，可只去其中一个
 ```
 
 - **管道符 `|`** (类似unix)。helm-chart中常使用`|-`载入配置文件(`|-`后面按照原配置文件书写，不用考虑`yaml`格式)
