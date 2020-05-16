@@ -82,6 +82,23 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
     - flex
     - align-self
 
+### @media
+
+- 用`min-width`时，小的放上面大的在下面，同理如果是用`max-width`那么就是大的在上面
+
+```css
+@media (min-width: 768px) {
+    /* >=768的设备 */
+    body { font-size: 12px; }
+}
+@media (min-width: 992px) { /* >=992的设备 */ }
+@media (min-width: 1200) { /* >=1200的设备 */ }
+
+@media (max-width: 1199) { /* <=1200的设备 */ }
+@media (max-width: 991px) { /* <=992的设备 */ }
+@media (max-width: 767px) { /* <=768的设备 */ }
+```
+
 ## 常用css
 
 - 响应式布局，head中加`<meta name="viewport" content="width=device-width,initialscale=1.0,maximum-scale=1.0,user-scalable=0">`

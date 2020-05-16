@@ -12,6 +12,7 @@ tags: [oracle, dba, sql]
 
 ## Mysql调优
 
+- 参考：https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/Mysql%E8%B0%83%E4%BC%98.xmind
 - mysql架构：客户端 -> 服务端(连接器 - 分析器 - 优化器 - 执行器) -> 存储引擎
 - mysql测试表结构和数据：https://dev.mysql.com/doc/index-other.html (Example Databases)
     - [employee data](https://github.com/datacharmer/test_db)
@@ -75,7 +76,7 @@ tags: [oracle, dba, sql]
     - ref：这个类型跟eq_ref不同的是，它用在关联操作只使用了索引的最左前缀，或者索引不是UNIQUE和PRIMARY KEY。ref可以用于使用=或<=>操作符的带索引的列
     - fulltext：联接是使用全文索引进行的，一般我们用到的索引都是B+树
     - ref_or_null：该类型和ref类似。但是MySQL会做一个额外的搜索包含NULL列的操作。在解决子查询中经常使用该联接类型的优化
-    - index_merger：该联接类型表示使用了索引合并优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
+    - index_merger：该联接类型表示使用了`索引合并`优化方法。在这种情况下，key列包含了使用的索引的清单，key_len包含了使用的索引的最长的关键元素
     - unique_subquery：该类型替换了下面形式的IN子查询的ref，是一个索引查找函数，可以完全替换子查询，效率更高
     - index_subquery：该联接类型类似于unique_subquery
     - range：只检索给定范围的行，使用一个索引来选择行。key列显示使用了哪个索引。key_len包含所使用索引的最长关键元素。在该类型中ref列为NULL。当使用=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN或者IN操作符，用常量比较关键字列时，可以使用range
@@ -241,6 +242,8 @@ tags: [oracle, dba, sql]
         其中，第2种方式需要回表查询的全行数据比较少，这就是mysql的索引下推。mysql 5.7开始支持索引下推，且默认启用
         */
         ```
+    - `索引合并`
+        
 - 索引匹配方式 (如给staffs表创建组合索引name,age,position)
     - **全值匹配**：指的是和索引中的所有列进行匹配
         - `select * from staffs where name = 'July' and position = 'dev' and age = '23';` 使用type=ref,ref=const,const,const(将索引的3个值当成常量)的索引，尽管此时顺序上position在age的前面，但是mysql优化器会进行优化成索引的顺序
@@ -444,6 +447,12 @@ tags: [oracle, dba, sql]
 	- 在早期的mysql中，分区表达式必须是整数或者是返回整数的表达式，在mysql5.5中，某些场景可以直接使用列来进行分区
 	- 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
 	- 分区表无法使用外键约束
+- 在使用分区表的时候需要注意的问题
+	- null值会使分区过滤无效
+	- 分区列和索引列不匹配，会导致查询无法进行分区过滤
+	- 选择分区的成本可能很高
+	- 打开并锁住所有底层表的成本可能很高
+	- 维护分区的成本可能很高
 - 分区表的底层原理
     - 分区表由多个相关的底层表实现，这个底层表也是由句柄对象标识，我们可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样（所有的底层表都必须使用相同的存储引擎），分区表的索引知识在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部
     - 当查询/新增/删除一个分区表的时候，分区层先打开并锁住所有的底层表，优化器先判断是否可以过滤部分分区；当更新一条记录时，分区层先打开并锁住所有的底层表，mysql先确定需要更新的记录再哪个分区，然后取出数据并更新，再判断更新后的数据应该再哪个分区，最后对底层表进行写入操作，并对源数据所在的底层表进行删除操作
@@ -541,12 +550,80 @@ tags: [oracle, dba, sql]
         );
         ```
 
-116
+### 服务器参数设置
 
-### 其他
-
-索引合并
-
+- 通用参数
+    - `datadir=/var/lib/mysql` 数据文件存放的目录
+    - `socket=/var/lib/mysql/mysql.sock` mysql.socket表示server和client在同一台服务器，并且使用localhost进行连接，就会使用socket进行连接
+    - `pid_file=/var/lib/mysql/mysql.pid` 存储mysql的pid
+    - `port=3306` mysql服务的端口号
+    - `default_storage_engine=InnoDB` mysql存储引擎
+    - **`skip-grant-tables`** 当忘记mysql的用户名密码的时候，可以在mysql配置文件中配置该参数，跳过权限表验证，不需要密码即可登录mysql
+- 字符集参数
+    - `character_set_server` mysql server的默认字符集
+    - `character_set_client` 客户端数据的字符集
+    - `character_set_connection` mysql处理客户端发来的信息时，会把这些数据转换成连接的字符集格式
+    - `character_set_database` 数据库默认的字符集
+    - `character_set_results` mysql发送给客户端的结果集所用的字符集
+- 连接参数
+    - `max_connections` mysql的最大连接数，如果数据库的并发连接请求比较大，应该调高该值
+    - `max_user_connections` 限制每个用户的连接个数
+    - `back_log` mysql能够暂存的连接数量，当mysql的线程在一个很短时间内得到非常多的连接请求时，就会起作用，如果mysql的连接数量达到max_connections时，新的请求会被存储在堆栈中，以等待某一个连接释放资源，如果等待连接的数量超过back_log，则不再接受连接资源
+    - `wait_timeout` 和 `interactive_timeout` [^8]
+        - `wait_timeout` mysql在关闭一个非交互的连接之前需要等待的时长。默认值是28800s(8h)，最大为24天。一般连接池的超时时间要小于此时间
+        - `interactive_timeout` 关闭一个交互连接之前需要等待的秒数。默认值wait_timeout
+        - 控制连接最大空闲时长的wait_timeout参数(seesion级别：`set session WAIT_TIMEOUT=10;`)
+        - 对于交互式连接(即在mysql_real_connect函数中使用了CLIENT_INTERACTIVE选项)，类似于mysql客户端连接，wait_timeout的值继承自服务器端全局变量interactive_timeout(`set global INTERACTIVE_TIMEOUT=10;`)。对于非交互式连接，类似于jdbc连接，wait_timeout的值继承自服务器端全局变量wait_timeout
+        - 判断一个连接的空闲时间，可通过show processlist输出中Sleep状态的时间
+- 日志参数
+    - `log_error` 指定错误日志文件名称，用于记录当mysqld启动和停止时，以及服务器在运行中发生任何严重错误时的相关信息
+    - `log_bin` 指定二进制日志文件名称，用于记录对数据造成更改的所有查询语句
+    - `binlog_do_db` 指定需要将更新记录到二进制日志的数据库名，其他所有没有显式指定的数据库更新将忽略，不记录在日志中
+    - `binlog_ignore_db` 指定不将更新记录到二进制日志的数据库
+    - `sync_binlog` 指定多少次写日志后同步磁盘
+    - `general_log` 是否开启查询日志记录
+    - `general_log_file` 指定查询日志文件名，用于记录所有的查询语句
+    - **`slow_query_log`** 是否开启慢查询日志记录
+        - `slow_query_log_file` 指定慢查询日志文件名称，用于记录耗时比较长的查询语句。默认值为host_name-slow.log
+        - `long_query_time` 设置慢查询的时间，超过这个时间的查询语句才会记录日志。默认10秒
+        - `min_examined_row_limit` 设置慢查询返回结果数，超过这个值查询语句才会记录日志。默认是0
+        - 默认情况，管理类的SQL语句、不使用索引的SQL语句都不会被记录。`log_slow_admin_statements` 和 `log_queries_not_using_indexes` 两个变量决定了是否能记录前面提到的情况
+- 缓存参数
+    - `key_buffer_size`
+        索引缓存区的大小（只对myisam表起作用）
+    - query cache 查询缓存
+        - `query_cache_size` 查询缓存的大小，未来版本被删除，`show status like '%Qcache%';` 查看缓存的相关属性
+            - `Qcache_free_blocks` 缓存中相邻内存块的个数，如果值比较大，那么查询缓存中碎片比较多
+            - `Qcache_free_memory` 查询缓存中剩余的内存大小
+            - `Qcache_hits` 表示有多少次命中缓存
+            - `Qcache_inserts` 表示多少次未命中而插入
+            - `Qcache_lowmen_prunes` 多少条query因为内存不足而被移除cache
+            - `Qcache_queries_in_cache` 当前cache中缓存的query数量
+            - `Qcache_total_blocks` 当前cache中block的数量
+        - `query_cache_limit` 超出此大小的查询将不被缓存
+        - `query_cache_min_res_unit` 缓存块最小大小
+        - `query_cache_type` 缓存类型，决定缓存什么样的查询
+            - `0` 表示禁用
+            - `1` 表示将缓存所有结果，除非sql语句中使用sql_no_cache禁用查询缓存
+            - `2` 表示只缓存select语句中通过sql_cache指定需要缓存的查询
+    - `sort_buffer_size` 每个需要排序的线程分派该大小的缓冲区
+    - `max_allowed_packet` 限制server接受的数据包大小
+    - `join_buffer_size` 表示关联缓存的大小
+    - `thread_cache_size` 线程缓存
+        - `Threads_cached` 代表当前此时此刻线程缓存中有多少空闲线程
+        - `Threads_connected` 代表当前已建立连接的数量
+        - `Threads_created` 代表最近一次服务启动，已创建现成的数量，如果该值比较大，那么服务器会一直再创建线程
+        - `Threads_running` 代表当前激活的线程数
+- Innodb存储引擎参数
+    - `innodb_buffer_pool_size` 该参数指定大小的内存来缓冲数据和索引，最大可以设置为物理内存的80%
+    - `innodb_flush_log_at_trx_commit` 主要控制innodb将log buffer中的数据写入日志文件并flush磁盘的时间点，值分别为`0`，`1`，`2`
+    - `innodb_thread_concurrency` 设置innodb线程的并发数，默认为0表示不受限制，如果要设置建议跟服务器的cpu核心数一致或者是cpu核心数的两倍
+    - `innodb_log_buffer_size` 此参数确定日志文件所用的内存大小，以M为单位
+    - `innodb_log_file_size` 此参数确定数据日志文件的大小，以M为单位
+    - `innodb_log_files_in_group` 以循环方式将日志文件写到多个文件中
+    - `read_buffer_size` mysql读入缓冲区大小，对表进行顺序扫描的请求将分配到一个读入缓冲区
+    - `read_rnd_buffer_size` mysql随机读的缓冲区大小
+    - `innodb_file_per_table` 此参数确定为每张表分配一个新的文件
 
 ## Oracle
 
@@ -810,4 +887,5 @@ SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
 [^5]: https://www.cnblogs.com/zhanjindong/p/3439042.html
 [^6]: https://www.cnblogs.com/gomysql/p/3615897.html
 [^7]: https://www.cnblogs.com/rainwang/p/12123310.html
+[^8]: https://www.cnblogs.com/ivictor/p/5979731.html (MySQL中interactive_timeout和wait_timeout的区别)
 

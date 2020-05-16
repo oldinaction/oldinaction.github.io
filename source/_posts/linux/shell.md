@@ -972,7 +972,7 @@ find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...
 
 ```bash
 sudo find / -name nginx.conf # 全局查询文件位置(查看`nginx.conf`文件所在位置)
-find /home/smalle/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）
+find /home/smalle/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/smalle/s_*/in/* -type f
 find path_A -name '*AAA*' -exec mv -t path_B {} + # 批量移动，下同
 find path_A -name "*AAA*" -print0 | xargs -0 -I {} mv {} path_B
 find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数

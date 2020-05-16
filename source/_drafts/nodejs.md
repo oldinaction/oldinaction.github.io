@@ -6,6 +6,27 @@ categories: lang
 tags: [nodejs]
 ---
 
+## 安装使用
+
+### 安装
+
+- [nodejs官网](https://nodejs.org/zh-cn/)
+
+### 多版本管理
+
+- 基于[nvm](https://github.com/coreybutler/nvm-windows)等工具实现node多版本管理
+- [下载安装包](https://github.com/coreybutler/nvm-windows/releases/download/1.1.7/nvm-setup.zip)
+- 安装前可先卸载之前的nodejs，安装时需要指定nvm和之后nodejs的安装目录
+- 使用
+
+```bash
+nvm list # 查看已安装的版本
+nvm install 12.16.3 # 安装指定版本node：8.17.0、10.20.1
+
+nvm use 12.16.3 # 使用某版本(需要管理员运行)，实际是将该版本nodejs包释放到指定nodejs安装目录
+node -v
+```
+
 ## 常用依赖包
 
 ### PM2
@@ -16,5 +37,8 @@ tags: [nodejs]
 ```bash
 # 全局安装
 npm install -g pm2
+
+pm2 -h # 查看帮助
+pm2 l # 列举所有进程
 ```
 
