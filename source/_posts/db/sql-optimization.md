@@ -19,6 +19,7 @@ tags: [oracle, dba, sql]
     - [world database](https://downloads.mysql.com/docs/world.sql.zip)
     - [world_x database](https://downloads.mysql.com/docs/world_x-db.zip)
     - [sakila database](https://downloads.mysql.com/docs/sakila-db.zip)
+        - [sakila数据库说明](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/sakila%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AF%B4%E6%98%8E.md)
     - [menagerie database](https://downloads.mysql.com/docs/menagerie-db.zip)
 
 ### 性能监控
@@ -40,8 +41,38 @@ tags: [oracle, dba, sql]
         - source：显示源码中的函数名称与位置。show profile source for query n
         - swaps：显示swap的次数。show profile swaps for query n
 - 更多的是使用`performance schema`来监控mysql。服务器默认是开启状态(关闭可在my.ini中设置)，开启后会有一个performance_schema数据库(表中数据记录在内存，服务关闭则数据销毁)
-    - [MYSQL performance schema详解](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/MYSQL%20performance%20schema%E8%AF%A6%E8%A7%A3.md)
     - 数据库CPU飙高问题参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/java/Java应用CPU和内存异常分析.md#Mysql)
+    - [MYSQL performance schema详解](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/MYSQL%20performance%20schema%E8%AF%A6%E8%A7%A3.md)
+        
+        ```sql
+        --语句事件记录表，这些表记录了语句事件信息
+        --当前语句事件表events_statements_current(_current表中每个线程只保留一条记录，一旦线程完成工作，该表中不会再记录该线程的事件信息)
+        --历史语句事件表events_statements_history(_history表中记录每个线程应该执行完成的事件信息，但每个线程的事件信息只会记录10条，且总记录数量是10000，超过就会被覆盖掉)
+        --长语句历史事件表events_statements_history_long
+        --以及聚合后的摘要表summary，其中，summary表还可以根据帐号(account)，主机(host)，程序(program)，线程(thread)，用户(user)和全局(global)再进行细分
+        show tables like '%statement%';
+
+        --等待事件记录表，与语句事件类型的相关记录表类似
+        show tables like '%wait%';
+
+        --阶段事件记录表，记录语句执行的阶段事件的表
+        show tables like '%stage%';
+
+        --事务事件记录表，记录事务相关的事件的表
+        show tables like '%transaction%';
+
+        --监控文件系统层调用的表
+        show tables like '%file%';
+
+        --监视内存使用的表
+        show tables like '%memory%';
+
+        --动态对performance_schema进行配置的配置表。​ instruments: 生产者，用于采集mysql中各种各样的操作产生的事件信息；​consumers：消费者，对应的消费者表用于存储来自instruments采集的数据
+        show tables like '%setup%';
+
+        -- instance表记录了哪些类型的对象会被检测。这些对象在被server使用时，在该表中将会产生一条事件记录
+        select * from file_instances limit 20;  -- 例如，file_instances表列出了文件I/O操作及其关联文件名
+        ```
 - 使用`show processlist`查看连接的线程个数，来观察是否有大量线程处于不正常的状态或者其他不正常的特征
     - command表示当前状态
         - sleep：线程正在等待客户端发送新的请求
@@ -216,11 +247,13 @@ tags: [oracle, dba, sql]
         - 当发起一个被索引覆盖的查询时，在explain的extra列可以看到using index的信息，此时就使用了覆盖索引
         - 覆盖索引只能覆盖那些只访问索引中部分列的查询，不过可以使用innodb的二级索引来覆盖查询
         - memory存储引擎不支持覆盖索引
-    - **最左匹配**：组合索引时，要么where条件中包含索引的字段，要么包含组合索引的第一个字段才会触发组合索引
-        
+    - **最左匹配**
+        - 组合索引时，要么where条件中包含索引的字段，要么包含组合索引的第一个字段才会触发组合索引
+        - 注意最左前缀，并不是是指一定要按照各个字段出现在where中的顺序来建立复合索引的，最终优化器会优化sql语句来按照组合索引顺序查询
+
         ```sql
         -- 如组合索引name, age
-        select id, name, sex from t_user where name = 'smalle' and age = 18; -- 会触发组合索引
+        select id, name, sex from t_user where age = 18 and name = 'smalle'; -- 会触发组合索引(优化器会跳转字段顺序)
         select id, name, sex from t_user where name = 'smalle'; -- 会触发组合索引
         select id, name, sex from t_user where age = 18; -- 不会触发组合索引
         -- 如果要实现上述3个sql都通过索引查询，有以下组合索引创建方案(组合索引创建需要考虑查询的顺序和空间使用)
@@ -242,8 +275,23 @@ tags: [oracle, dba, sql]
         其中，第2种方式需要回表查询的全行数据比较少，这就是mysql的索引下推。mysql 5.7开始支持索引下推，且默认启用
         */
         ```
-    - `索引合并`
-        
+    - **索引合并**
+        - where 条件(或者join)的多个索引字段进行 AND 或者 OR，那么此时就有**可能**会使用到 index merge 技术。index merge 技术如果简单的说，其实就是：对多个索引分别进行条件扫描，然后将它们各自的结果进行合并(intersect/union)。索引合并的时候，会对索引进行并集(union，多个添加为OR连接)，交集(intersect，多个添加为AND连接)或者先交集再并集(先内部intersect然后在外面union)操作，以便合并成一个索引
+        - 这些需要合并的索引只能是一个表的，不能对多表进行索引合并
+        - 相同模式的sql语句，仅where字段取值不同，可能有时能使用索引，有时不能使用索引。是否能使用索引，取决于mysql查询优化器对统计数据分析后，是否认为使用索引更快
+        - 在使用explain对sql语句进行操作时，如果使用了索引合并，那么在输出内容的type列会显示 index_merge，key列会显示出所有使用的索引
+
+        ```sql
+        -- 可能会使用索引合并
+        select * from test where key1=1 and key2=2; -- 可能会使用 intersect
+        select * from test where key1=1 or key2=2;  -- 可能会使用 union
+        select * from test where key1_col1=1 and key1_col2=2 or key2=2;  -- 可能会使用 union
+        -- 不会使用索引合并
+        select * from test where key1_col2=2 and key2=2; -- 使用单一索引key2
+        select * from test where key1_col2=2 or key2=2; -- 第一个索引不符合最左前缀，因此不会索引合并；且是or，因此整个语句不会使用索引
+        -- 显然我们是可以在这三个字段上建立一个复合索引来进行优化的，这样就只需要扫描一个索引一次，而不是对三个所以分别扫描一次
+        select * from test where key1=1 and key2=2 and key3=3;
+        ```
 - 索引匹配方式 (如给staffs表创建组合索引name,age,position)
     - **全值匹配**：指的是和索引中的所有列进行匹配
         - `select * from staffs where name = 'July' and position = 'dev' and age = '23';` 使用type=ref,ref=const,const,const(将索引的3个值当成常量)的索引，尽管此时顺序上position在age的前面，但是mysql优化器会进行优化成索引的顺序
@@ -580,18 +628,24 @@ tags: [oracle, dba, sql]
     - `log_bin` 指定二进制日志文件名称，用于记录对数据造成更改的所有查询语句
     - `binlog_do_db` 指定需要将更新记录到二进制日志的数据库名，其他所有没有显式指定的数据库更新将忽略，不记录在日志中
     - `binlog_ignore_db` 指定不将更新记录到二进制日志的数据库
-    - `sync_binlog` 指定多少次写日志后同步磁盘
+    - **`sync_binlog`** 指定多少次写日志后同步磁盘
+        - sync_binlog=0，表示MySQL不控制binlog的刷新，由文件系统自己控制它的缓存的刷新。这时候的性能是最好的，但是风险也是最大的。因为一旦系统Crash，在binlog_cache中的所有binlog信息都会被丢失
+        - 如果sync_binlog>0，表示每sync_binlog次事务提交，MySQL调用文件系统的刷新操作将缓存刷下去。最安全的就是sync_binlog=1了，表示每次事务提交，MySQL都会把binlog刷下去，是最安全但是性能损耗最大的设置。这样的话，在数据库所在的主机操作系统损坏或者突然掉电的情况下，系统才有可能丢失1个事务的数据。但是binlog虽然是顺序IO，但是设置sync_binlog=1，多个事务同时提交，同样很大的影响MySQL和IO性能。虽然可以通过group commit的补丁缓解，但是刷新的频率过高对IO的影响也非常大。对于高并发事务的系统来说，sync_binlog设置为0和设置为1的系统写入性能差距可能高达5倍甚至更多
+        - 所以很多MySQL DBA设置的sync_binlog并不是最安全的1，而是100或者是0。这样牺牲一定的一致性，可以获得更高的并发和性能。
     - `general_log` 是否开启查询日志记录
     - `general_log_file` 指定查询日志文件名，用于记录所有的查询语句
-    - **`slow_query_log`** 是否开启慢查询日志记录
+    - **`slow_query_log`** 是否开启慢查询日志记录。`set global slow_query_log=1`
         - `slow_query_log_file` 指定慢查询日志文件名称，用于记录耗时比较长的查询语句。默认值为host_name-slow.log
         - `long_query_time` 设置慢查询的时间，超过这个时间的查询语句才会记录日志。默认10秒
         - `min_examined_row_limit` 设置慢查询返回结果数，超过这个值查询语句才会记录日志。默认是0
         - 默认情况，管理类的SQL语句、不使用索引的SQL语句都不会被记录。`log_slow_admin_statements` 和 `log_queries_not_using_indexes` 两个变量决定了是否能记录前面提到的情况
 - 缓存参数
-    - `key_buffer_size`
-        索引缓存区的大小（只对myisam表起作用）
+    - `key_buffer_size` 索引缓存区的大小(只对myisam表起作用)
     - query cache 查询缓存
+        - `query_cache_type` 缓存类型，决定缓存什么样的查询
+            - `0` 表示禁用
+            - `1` 表示将缓存所有结果。除非sql语句中使用`select sql_no_cache * from test`禁用查询缓存
+            - `2` 表示只缓存select语句中通过`select sql_cache * from test`指定需要缓存的查询
         - `query_cache_size` 查询缓存的大小，未来版本被删除，`show status like '%Qcache%';` 查看缓存的相关属性
             - `Qcache_free_blocks` 缓存中相邻内存块的个数，如果值比较大，那么查询缓存中碎片比较多
             - `Qcache_free_memory` 查询缓存中剩余的内存大小
@@ -602,28 +656,34 @@ tags: [oracle, dba, sql]
             - `Qcache_total_blocks` 当前cache中block的数量
         - `query_cache_limit` 超出此大小的查询将不被缓存
         - `query_cache_min_res_unit` 缓存块最小大小
-        - `query_cache_type` 缓存类型，决定缓存什么样的查询
-            - `0` 表示禁用
-            - `1` 表示将缓存所有结果，除非sql语句中使用sql_no_cache禁用查询缓存
-            - `2` 表示只缓存select语句中通过sql_cache指定需要缓存的查询
-    - `sort_buffer_size` 每个需要排序的线程分派该大小的缓冲区
-    - `max_allowed_packet` 限制server接受的数据包大小
-    - `join_buffer_size` 表示关联缓存的大小
+    - **`sort_buffer_size`** 每个需要排序的线程分派该大小的缓冲区，通用配置。像各存储引擎如innodb有`innodb_sort_buffer_size`可覆盖此参数(innodb默认1M，1048576)
+    - **`max_allowed_packet`** 限制server接受的数据包大小。如果太小，大量数据初始化导入时可能会报错
+    - **`join_buffer_size`** 表示关联缓存的大小，默认256k(262144)。参考上文排序优化
     - `thread_cache_size` 线程缓存
         - `Threads_cached` 代表当前此时此刻线程缓存中有多少空闲线程
         - `Threads_connected` 代表当前已建立连接的数量
         - `Threads_created` 代表最近一次服务启动，已创建现成的数量，如果该值比较大，那么服务器会一直再创建线程
         - `Threads_running` 代表当前激活的线程数
-- Innodb存储引擎参数
-    - `innodb_buffer_pool_size` 该参数指定大小的内存来缓冲数据和索引，最大可以设置为物理内存的80%
-    - `innodb_flush_log_at_trx_commit` 主要控制innodb将log buffer中的数据写入日志文件并flush磁盘的时间点，值分别为`0`，`1`，`2`
-    - `innodb_thread_concurrency` 设置innodb线程的并发数，默认为0表示不受限制，如果要设置建议跟服务器的cpu核心数一致或者是cpu核心数的两倍
-    - `innodb_log_buffer_size` 此参数确定日志文件所用的内存大小，以M为单位
-    - `innodb_log_file_size` 此参数确定数据日志文件的大小，以M为单位
-    - `innodb_log_files_in_group` 以循环方式将日志文件写到多个文件中
+- [Innodb存储引擎参数](https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html)
+    - **`innodb_buffer_pool_size`** 该参数指定大小的内存来缓冲数据和索引，默认值128MB，最大可以设置为物理内存的80%
+    - **`innodb_flush_log_at_trx_commit`** 主要控制innodb将log buffer中的数据写入日志文件并flush磁盘的时间点，值分别为`0`，`1`，`2`，默认是1。详细参考[sql-base.md#InnoDB日志(Redo/Undo)](/_posts/db/sql-base.md#InnoDB日志(Redo/Undo))
+    - **`innodb_log_buffer_size`** 写日志文件到磁盘的缓冲区大小，以M为单位，默认8M
+    - **`innodb_log_file_size`** 日志组中每个日志文件大小，以M为单位，默认48M
+    - **`innodb_log_files_in_group`** 日志组中日志文件个数，默认2。InnoDB以循环方式将日志文件写到多个文件中(第一个文件写完则写第二个，第二写完则写第一个，循环往复)
     - `read_buffer_size` mysql读入缓冲区大小，对表进行顺序扫描的请求将分配到一个读入缓冲区
     - `read_rnd_buffer_size` mysql随机读的缓冲区大小
-    - `innodb_file_per_table` 此参数确定为每张表分配一个新的文件
+    - `innodb_sort_buffer_size` 每个需要排序的线程分派该大小的缓冲区
+    - `innodb_file_per_table` 此参数确定为每张表分配一个新的文件，否则数据文件都保存在`ibdata1`文件中
+    - `innodb_thread_concurrency` 设置innodb线程的并发数，默认为0表示不受限制，如果要设置建议跟服务器的cpu核心数一致或者是cpu核心数的两倍
+
+### Mysql集群
+
+#### 主从复制
+
+#### 读写分离
+
+#### 分库分表
+
 
 ## Oracle
 

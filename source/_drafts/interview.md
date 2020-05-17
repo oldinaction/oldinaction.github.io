@@ -33,3 +33,12 @@ Spring的两种代理方式：JDK动态代理和CGLIB动态代理
 https://www.cnblogs.com/lr393993507/p/5909804.html
 https://chenzhou123520.iteye.com/blog/1860954
 https://chenzhou123520.iteye.com/blog/1863407
+
+- mysql索引匹配方式
+- 什么是回表(innodb、myisam)
+	- 如何减少回表
+- mysql索引采用的数据结构
+	- innodb为什么不选择其他树
+- innodb更新数据时两阶段提交的过程
+	- 为什么要分两阶段提交
+- innodb刷新数据到磁盘有哪几种方式(innodb_flush_log_at_trx_commit)

@@ -305,7 +305,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     else
     ```
 
-- yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录。`yum install mysql`无法选定版本)
+- yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录。`yum install mysql`安装的是客户端)
 
     ```bash
     # 下载mysql源安装包
@@ -314,7 +314,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     yum localinstall mysql57-community-release-el7-8.noarch.rpm
     # 检查mysql源是否安装成功
     yum repolist enabled | grep "mysql.*-community.*"
-    # 安装mysql
+    # 安装mysql(速度较慢)
     yum install mysql-community-server
     # 启动
     systemctl start mysqld
@@ -323,7 +323,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     # 登录
     mysql -uroot -p
     # 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)
-    alter user 'root'@'localhost' identified by 'mynewpass4!';
+    alter user 'root'@'localhost' identified by 'Hello1234!';
     # 添加smalle用户，并赋权，且允许远程登录
     grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;
     flush privileges;
@@ -362,14 +362,30 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     # Disabling symbolic-links is recommended to prevent assorted security risks
     symbolic-links=0
     ```
+- 卸载
+
+    ```bash
+    yum remove mysql # 卸载
+
+    rpm -qa | grep -i mysql # 查看mysql的依赖
+    yum remove mysql-xxx # 依次卸载
+
+    find / -name mysql # 查看和mysql相关文件/文件夹
+    # 删除
+    rm -rf /var/lib/mysql
+    rm -rf /var/lib/mysql/mysql
+    rm -rf /etc/logrotate.d/mysql
+    rm -rf /usr/share/mysql
+    rm -rf /usr/bin/mysql
+    rm -rf /usr/lib64/mysql
+
+    rpm -qa | grep -i mysql # 如果没有显式则表示卸载完成
+
+    # 删除mysql相关用户和组
+    userdel -rf mysql # 包括删除家目录
+    groupdel mysql
+    ```
 - 其他
-    - 卸载yum方式安装
-        - `yum remove mysql` 卸载
-        - `find / -name mysql` 查看和mysql相关文件/文件夹
-            - `rm -rf xxx` 删除
-        - `rpm -qa | grep -i mysql` 查看mysql的依赖
-            - `yum remove mysql-xxx` 依次卸载
-        - 删除mysql相关用户和组。`userdel -rf mysql`(包括删除家目录)，`groupdel mysql`
     - `show variables like '%dir%';` sql命令查看mysql相关文件(数据/日志)存放位置
         - 数据文件默认位置：`/var/lib/mysql`
 - 常见问题

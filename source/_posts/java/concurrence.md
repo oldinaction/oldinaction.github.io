@@ -18,6 +18,9 @@ tags: [concurrence]
 
 ## 线程基础
 
+- 创建线程
+    - (T1 extends Thread).start()
+    - new Thread(new MyRunnable()).start()，或者JDK8：new Thread(()->{...}).start();
 - 线程的相关方法(sleep/yield/join)
     - `Thread.sleep()`和`wait`的区别 [^4]
         - sleep是Thread类的方法，wait是Object类中定义的方法
@@ -25,12 +28,67 @@ tags: [concurrence]
         - sleep不会导致锁行为的改变。所谓sleep是指让线程暂停被调度一段时间，或者挂起一段时间。整个sleep过程除了修改挂起状态之外，不会动任何其他的资源，这些资源包括任何持有的任何形式的锁。至于认为sleep消耗资源的情况如下：如果A线程抢到一把锁，然后sleep，B线程无论如何也无法获取该锁，从而B的执行被卡住，浪费了CPU
     - `Thread.yield()`：当前线程让出CPU一小会调度其他线程，并进入等待队列等待CPU的下次调度，也可能存在让出CPU之后仍然调度的是此线程
     - `join()`：CPU执行A线程一段时间，当在A线程的代码中遇到b.join()，此时CPU会到B线程中去执行，等B执行完后再回到A线程继续执行。感觉像把B线程加入到A线程
-- 线程的状态
+- 线程的状态： Thread.State.NEW、RUNNABLE、TERMINATED、TIMED_WAITING、WAITING、BLOCKED
 
     ![thread-state](/data/images/java/thread-state.png)
-- synchronized关键字
 
-## JUC(java.util.concurrent)
+### synchronized线程同步
+
+- **锁的方式**
+    - 锁定对象(把任意一个非NULL的对象当作锁，不能使用String常量、Integer、Long等包装数据类型)
+        - ... synchronized(this) {} ...
+        - public synchronized void test() {...}
+        - ... synchronized(o) {} ...，其中o可以为private Object o = new Object();
+    - 锁定类
+        - ... synchronized(MyTest.class) {} ...
+        - public synchronized static void test() {...}
+- 注意点
+    - 锁的是对象不是代码块
+    - 锁定方法和非锁定方法可同时执行
+- 锁的类型 [^5]
+    - 乐观锁
+        - 是一种乐观思想，即认为读多写少，遇到并发写的可能性低。每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据，采取在写时先读出当前版本号，然后加锁操作（比较跟上一次的版本号，如果一样则更新），如果失败则要重复读-比较-写的操作
+        - java中的乐观锁基本都是通过`CAS`(Compare And Swap，比较并替换)操作实现的，CAS是一种更新的原子操作，比较当前值跟传入值是否一样，一样则更新，否则失败
+    - 悲观锁
+        - 悲观锁是就是悲观思想，即认为写多，遇到并发写的可能性高，每次去拿数据的时候都认为别人会修改，所以每次在读写数据的时候都会上锁，这样别人想读写这个数据就会block直到拿到锁
+        - java中的悲观锁就是Synchronized，`AQS`框架下的锁则是先尝试cas乐观锁去获取锁，获取不到，才会转换为悲观锁，如`RetreenLock`
+- java线程阻塞的代价
+    - java的线程是映射到操作系统原生线程之上的，如果要阻塞或唤醒一个线程就需要操作系统介入，需要在户态与核心态之间切换，这种切换会消耗大量的系统资源
+    - synchronized会导致争用不到锁的线程进入阻塞状态，所以说它是java语言中一个重量级的同步操纵，被称为重量级锁。为了缓解上述性能问题，JVM从1.5开始，引入了轻量锁与偏向锁，默认启用了自旋锁，他们都属于乐观锁
+    - JDK早期是重量级的基于OS的锁；后来引入了锁升级的概念，synchronized通过锁升级技术达到和Atomic等类(使用自旋锁)效率差不多
+- java对象markword数据部分
+    - 在HotSpot虚拟机中，对象在内存中存储的布局可以分为3块区域：对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）
+    - HotSpot虚拟机的对象头包括两部分信息
+        - markword：用于存储对象自身的运行时数据，如哈希码（HashCode）、GC分代年龄、**锁状态标志**(最后2bit)、线程持有的锁、**偏向线程ID**、偏向时间戳等，这部分数据的长度在32位和64位的虚拟机（未开启压缩指针）中分别为32bit和64bit
+        - klass：对象头的另外一部分是klass类型指针，即对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例
+    - **32bit操作系统markword数据结构**
+        
+        ![java-markword-32.png](/data/images/java/java-markword-32.png)
+- 底层实现
+    - **synchronized锁升级流程：无锁 - 偏向锁 - 自旋锁 - 重量级**(锁是没法降级的)
+        - 偏向锁(Biased Locking)，是Java6引入的一项多线程优化
+            - 顾名思义，它会偏向于第一个访问锁的线程，如果在运行过程中，同步锁只有一个线程访问，不存在多线程争用的情况，则线程是不需要触发同步的，这种情况下，就会给线程加一个偏向锁。如果在运行过程中，遇到了其他线程抢占锁，则持有偏向锁的线程会被挂起，JVM会消除它身上的偏向锁，将锁恢复到标准的轻量级锁
+            - 偏向锁获取流程
+                - 1.访问Mark Word中偏向锁的标识是否设置成1，锁标志位是否为01，确认为可偏向状态
+                - 2.如果为可偏向状态，则测试线程ID是否指向当前线程，如果是，进入步骤5，否则进入步骤3
+                - 3.如果线程ID并未指向当前线程，则通过CAS操作竞争锁。如果竞争成功，则将Mark Word中线程ID设置为当前线程ID，然后执行5；如果竞争失败，执行4
+                - 4.如果CAS获取偏向锁失败，则表示有竞争。当到达全局安全点（safepoint，会导致stop the word，时间很短）时获得偏向锁的线程被挂起，偏向锁升级为轻量级锁，然后被阻塞在安全点的线程继续往下执行同步代码。（撤销偏向锁的时候会导致stop the word）
+                - 5.执行同步代码
+            - 偏向锁的释放：偏向锁只有遇到其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁，线程不会主动去释放偏向锁
+        - 如果线程争用，则升级为自旋锁
+        - 自旋10次之后，仍然没有获取到锁，则升级为重量级锁(从OS获取锁)
+    - 自旋锁和系统锁(OS锁/重量级锁)
+        - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高；系统锁会进入到等待队列，等待CPU调用，不占用CPU资源
+        - 执行时间短、线程数比较少时使用自旋锁较好；执行时间长、线程数多时用系统锁较好
+
+46
+
+
+## 多线程与高并发-JUC(java.util.concurrent)
+
+> https://github.com/bjmashibing/JUC
+
+
 
 
 
@@ -391,4 +449,4 @@ public abstract class AbstractMultiThreadTestSimpleTemplate {
 [^2]: https://blog.csdn.net/xiao__gui/article/details/51064317
 [^3]: https://www.infoq.cn/article/fork-join-introduction
 [^4]: https://www.zhihu.com/question/23328075
-
+[^5]: https://www.cnblogs.com/linghu-java/p/8944784.html (Java锁---偏向锁、轻量级锁、自旋锁、重量级锁)

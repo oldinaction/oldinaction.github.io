@@ -6,7 +6,409 @@ categories: [db]
 tags: [mysql, oracle, sql]
 ---
 
-> 未做特殊说明的语句都是基于Mysql的语法
+## SQL基础
+
+- 下文未做特殊说明的语句都是基于Mysql的语法
+- [mysql练习题](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/mysql%E7%BB%83%E4%B9%A0%E9%A2%98.md)
+
+## 设计表
+
+### 三范式
+
+- 三范式
+    - 第一范式：要有主键，列不可分。(如：如果要分别获取姓、名，则应该设计两个字段，而不应该设置为姓名一个字段当查询出来后再进行分割)
+    - 第二范式：不能存在部分依赖。即当一张表中有多个字段作为主键时，非主键的字段不能依赖于部分主键
+    - 第三范式：不能存在传递依赖。如：雇员表中描述雇员需要描述他所在部门，因此只需记录其部门编号即可，如果把部门相关的信息(部门名称、部门位置)加入到雇员表则存在传递依赖
+- 三范式强调的是表不存在冗余数据(同样的数据不存第二遍)
+- 符合了三范式后会增加查询难度，要做表连接
+
+### 常用建表模型
+
+- 字典表(t_type_code)：id、type、code、name、value、note、rank(排序)、permission_code(权限落在行级)、valid_status、input_user_id、input_time、update_user_id、update_time
+- 大字段表
+- 树型表(t_structure)：id、structure_type_code(树类型)、parent_id、node_level、node_code、node_name、node_note、node_rank(节点排序)
+- 属性表(t_attr)：id、attr_type、parent_id、code、value、note、permission_code(属性表可和树型表连用)
+- 权限相关表
+    - 权限组(t_security_group)：id、security_group、note
+    - 权限(t_promission)：id、promission、note
+    - 权限组-权限关系表(t_security_group_promission、多对多)：id、security_group、promission
+    - 用户权限组关系表(t_user_security_group、多对多)：id、user_id、security_group
+- 角色相关表 `RBAC`
+    - 角色类型树：如总经理、销售经理、市场经理、员工
+    - 部门树
+- 主要实体暂存功能
+
+### 案例
+
+- 根据不同的拜访目的显示不同拜访结果和子结果，根据拜访结果归纳出错误客户信息(某几个拜访结果:信息错误-电话错误; 信息错误-三次无人接听)的拜访
+    - 原始情况：拜访结果和子结果以树型存储，根据不同的拜访目的存储不同"XXX拜访目的-拜访结果"树(拜访结果大致相同)，且保存树节点ID为了提高查询效率；拜访表添加一个结果状态字段用来在保存的时候根据不同的结果归纳出最终的状态(已提交/信息错误/其他)
+    - 导致困境
+        - 拜访结果确实可根据数据库定义的"XXX拜访目的-拜访结果"树自动联动。但是查询拜访时想获取同一类型，则搜索选项的下拉都很难显示(要基于所有的结果根据结果代码group by, 而且有可能结果的名称不同)，获取到代码后再根据代码查询到相应的节点ID，通过IN(结果ID)的进行sql查询
+        - 基于不同结果提取出一个最终的状态，导致每次修改数据都要更新此状态
+    - 建议方案
+        - 数据库中只保存一份拜访结果和子结果(将代码和名称归纳到一起)，展示的时候写属性代码矫正联动显示；保存拜访的时候保存结果代码。(最好是拜访结果/拜访目的单独维护表)
+        - 去掉归纳字段，所有的查询直接根据结果代码来(可利用索引优化查询)
+
+### 设计树状结构的存储
+
+```sql
+/*创建表*/
+create table article(
+    id int primary key,
+    cont text,
+    pid int,/*注释：表示父id*/
+    isleaf int(1),/*注释：0代表非叶子节点，1代表叶子节点*/
+    alevel int(2)/*注释：表示层级(可通过层级0表示非叶子节点)*/
+);
+
+/*插入数据*/
+insert into article values(1,'蚂蚁大战大象', 0, 0, 0);
+insert into article values(2,'大象被打趴下了', 1, 0, 0);
+insert into article values(3,'蚂蚁也不好过', 2, 1, 2);
+insert into article values(4,'瞎说', 2, 0, 2);
+insert into article values(5,'没有瞎说', 4, 1, 3);
+insert into article values(6,'怎么可能', 1, 0, 1);
+insert into article values(7,'怎么没有可能', 6, 1, 2);
+insert into article values(8,'可能性是很大的', 6, 1, 2);
+insert into article values(9,'大象进医院了', 2, 0, 2);
+insert into article values(10,'护士是蚂蚁', 9, 1, 3);
+
+/*显示*/
+蚂蚁大战大象
+  大象被打趴下了
+    蚂蚁也不好过
+    瞎说
+      没有瞎说
+    大象进医院了
+      护士是蚂蚁
+  怎么可能
+    怎么没有可能
+    可能性是很大的
+
+-- 使用递归打印树状结构
+create or replace procedual p(v_pid acticle.pid%type, v_level binary_integer) is
+  cursor c is select * from article where pid = v_pid;
+  v_preStr varchar2(1024) = '';
+begin
+  for i in 1..v_level loop
+    v_preStr := v_preStr || '****';
+  end loop;
+  for v_article in c loop
+    dbms_output.put_line(v_preStr || v_article.cont);
+    if(v_article.isleaf = 0) then
+      p(v_article.id, v_preStr + 1);
+    end if;  
+  end loop;
+end;
+/
+exec p(0, 0);
+```
+
+## 数据库表信息
+
+- `show databases;` 显示所有数据库
+
+```html
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| sqltest            |
++--------------------+
+```
+
+> Oracle一个实例，就是一个数据库，所以没有对应的 show databases 语句。使用`select * from gv$instance;`查看所有实例
+
+- `use sqltest` 选择数据库
+- `show tables;` 显示该数据库的所有表
+
+```html
++-------------------+
+| Tables_in_sqltest |
++-------------------+
+| dept              |
+| emp               |
+| salgrade          |
++-------------------+
+```
+
+- 雇员表`desc emp;`或者`describe emp;` 描述一张表的字段详情
+    - date只包含年月日，datetime、timestamp包含了完整的日期时间
+
+```html
++----------+-------------+------+-----+---------+-------+
+| Field    | Type        | Null | Key | Default | Extra |
++----------+-------------+------+-----+---------+-------+
+| empno    | int(4)      | NO   |     | NULL    |       |雇员编号
+| ename    | varchar(10) | YES  |     | NULL    |       |雇员姓名
+| job      | varchar(9)  | YES  |     | NULL    |       |工种
+| mgr      | int(4)      | YES  |     | NULL    |       |经理人编号
+| hiredate | timestamp   | YES  |     | NULL    |       |雇佣日期
+| sal      | double(7,2) | YES  |     | NULL    |       |工资
+| comm     | double(7,2) | YES  |     | NULL    |       |津贴
+| deptno   | int(2)      | YES  |     | NULL    |       |部门编号
++----------+-------------+------+-----+---------+-------+
+```
+- 部门表`desc dept;`
+
+```html
++--------+-------------+------+-----+---------+-------+
+| Field  | Type        | Null | Key | Default | Extra |
++--------+-------------+------+-----+---------+-------+
+| deptno | int(2)      | NO   |     | NULL    |       |部门编号
+| dname  | varchar(14) | YES  |     | NULL    |       |部门名称
+| loc    | varchar(13) | YES  |     | NULL    |       |所在地
++--------+-------------+------+-----+---------+-------+
+- 薪资表`desc salgrade;`
++-------+---------+------+-----+---------+-------+
+| Field | Type    | Null | Key | Default | Extra |
++-------+---------+------+-----+---------+-------+
+| grade | int(2)  | YES  |     | NULL    |       |薪资级别
+| losal | int(11) | YES  |     | NULL    |       |最低薪资
+| hisal | int(11) | YES  |     | NULL    |       |最高薪资
++-------+---------+------+-----+---------+-------+
+```
+- sqltest中含有emp、dept、salgrade三张表，具体数据如下：
+
+    - `select * from emp;`
+
+    ```html
+    +-------+--------+-----------+------+---------------------+---------+---------+--------+
+    | empno | ename  | job       | mgr  | hiredate            | sal     | comm    | deptno |
+    +-------+--------+-----------+------+---------------------+---------+---------+--------+
+    |  7369 | smith  | clerk     | 7902 | 1980-12-17 00:00:00 |  800.00 |    NULL |     20 |
+    |  7499 | allen  | salesman  | 7698 | 1981-02-20 00:00:00 | 1600.00 |  300.00 |     30 |
+    |  7521 | ward   | salesman  | 7698 | 1981-02-20 00:00:00 | 1250.00 |  500.00 |     30 |
+    |  7566 | jones  | manager   | 7839 | 1981-02-04 00:00:00 | 2975.00 |    NULL |     20 |
+    |  7654 | martin | salesman  | 7698 | 1981-09-28 00:00:00 | 1250.00 | 1400.00 |     30 |
+    |  7698 | blake  | manager   | 7839 | 1981-05-01 00:00:00 | 2850.00 |    NULL |     30 |
+    |  7782 | clark  | manager   | 7839 | 1981-06-09 00:00:00 | 2450.00 |    NULL |     10 |
+    |  7788 | scott  | analyst   | 7566 | 1987-04-19 00:00:00 | 3000.00 |    NULL |     20 |
+    |  7839 | king   | president | NULL | 1981-11-17 00:00:00 | 5000.00 |    NULL |     10 |
+    |  7844 | turner | salesman  | 7698 | 1981-09-08 00:00:00 | 1500.00 |    0.00 |     30 |
+    |  7876 | adams  | clerk     | 7788 | 1987-05-23 00:00:00 | 1100.00 |    NULL |     20 |
+    |  7900 | james  | clerk     | 7698 | 1981-03-12 00:00:00 |  950.00 |    NULL |     30 |
+    +-------+--------+-----------+------+---------------------+---------+---------+--------+
+    ```
+    - `select * from dept;`
+    
+    ```html
+    +--------+------------+----------+
+    | deptno | dname      | loc      |
+    +--------+------------+----------+
+    |     10 | accounting | new york |
+    |     20 | research   | dallas   |
+    |     30 | sales      | chicago  |
+    |     40 | operations | boston   |
+    +--------+------------+----------+
+    ```
+    
+    - `select * from salgrade;`
+    
+    ```html
+    +-------+-------+-------+
+    | grade | losal | hisal |
+    +-------+-------+-------+
+    |     1 |   700 |  1200 |
+    |     2 |  1201 |  1400 |
+    |     3 |  1401 |  2000 |
+    |     4 |  2001 |  3000 |
+    |     5 |  3001 |  9999 |
+    +-------+-------+-------+
+    ```
+
+## 数据库模式定义语言DDL(Data Definition Language)
+
+### 创建和使用数据库
+
+- `create database sqltest;/*创建数据库*/`
+- `use sqltest;/*使用数据库，之后在这个数据库上进行表的创建、展示等操作*/`
+
+### 数据库基本
+
+- Mysql数据类型，参考[数据类型的优化](/_posts/db/sql-optimize.md#数据类型的优化)
+    - `tinyint`     超短整型，存储长度1个字节(带符号存储区间：-127 ~ 127，不带符号存储区间：0-255)
+    - `smallint`    短整型，存储长度为2个字节
+    - `mediumint`   中整型，存储长度为3个字节
+    - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，有符号signed区间：-2147483647 ~ 2147483647，无符号unsigned区间：0 ~ 4294967295)。最大显示11个字节，int(1)也会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的。类似于Oracle里的的number(X)
+    - `bigint`      长正型(Long)，**存储长度为8个字节**。类似于Oracle里的的number(X)
+    - `double`		浮点型(Float)，相当于Oracle里的的 number(X, Y)
+    - `decimal`     金额(Bigdecimal)，相当于Oracle里的的 decimal(X, Y)。decimal(2,1) 表示总数据长度不能超过2位，且小数要占1位，因此最大为9.9
+    - `char`		定长字符串(String)，同Oracle的char
+    - `varchar` 	变长字符串(String)，最大255字节，相当于Oracle里的的varchar2
+    - `datetime`	日期(DateTime/LocalDateTime)，相当于Oracle里的date
+    - `tinytext`    短文本型(String)。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式
+    - `text`		文本型(String)。最大长度为65535个字节(2^31-1)，其他同tinytext
+    - `longtext`	长文本型(String)。最大4G，相当于Oracle里的long，其他同tinytext
+    - `tinyblob/blob/longblob` 二进制数据(byte[])
+- Oracle数据结构
+    - `char`		定长字符串；存取时效率高，空间可能会浪费
+    - `varchar2`	变长字符串,大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
+    - `long`		变长字符串，大小可达到2G
+    - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
+    - `date`		日期(插入时，sysdate即表示系统当前时间；select时默认展示年月日，要想展示时分秒则需要to_char转换)
+    - ...还有很多，如用来存字节，可以把一张图片存在数据库（但是实际只是存图片存在硬盘，数据库中存图片路径）
+- Mysql注释使用`/**/`，Oracle注释使用`/**/`或`--`
+
+### 创建、删除、复制表、更新
+
+- Mysql表相关约束constraint(起名不能为关键字)
+    - 字段约束，加在字段的末尾加unique
+    - 表约束，加在所有字段末尾
+    - 约束类型：非空、唯一、主键、外键、check
+    - 主键约束：唯一且非空，主键字段可代表一条单独的记录
+    - 外键约束：外键约束是建立在两个字段上的，某一个字段(stu.class)会参考另一个字段(class.id)的值；且被参考的字段必须主键；当被参考的字段已经被参考了，那么则不能删除这条记录
+- 创建class班级表和stu学生表示例
+    - class班级表：创建stu表时需要先创建一个班级class的表
+
+        ```sql
+        create table class
+        (
+        id int(4) primary key,
+        name varchar(20) not null
+        );
+        ```
+    - stu学生表
+
+        ```sql
+        create table stu/*由于使用了外键约束，故创建stu表时需要先创建一个班级class的表*/
+        (
+        id int(6) primary key auto_increment,/*主键约束(primary key);自动递增(auto_increment)*/
+        name varchar(20) not null,/*非空约束,插数据时不能为null*/
+        sex int(1),
+        age int(3),
+        sdate timestamp,
+        grade int(2) default 1,/*年级默认为1*/
+        class int(4),
+        email varchar(50) unique,/*字段约束;唯一约束,两个NULL值不算重复*/
+        constraint stu_class_fk foreign key(class) references class(id)/*外键约束;表约束;可以省略constraint stu_class_fk即自己不命名此约束*/
+        );
+        ```
+#### Oracle创建
+
+- 创建班级表
+
+    ```sql
+    create table class
+    (
+    id number(4) primary key,
+    name varchar(20) not null
+    );
+    ```
+- 创建学生表
+
+    ```sql
+    create table stu
+    (
+    id number(6) primary key,/*主键约束；也可加在表级上，如：constraint stu_id_pk primary key(id)*/
+    name varchar2(20) constraint stu_name_no not null,/*constraint给约束条件(非空)起名为stu_name_no；非空约束，插数据时不能为null*/
+    sex number(1),
+    age number(3),
+    sdate date,
+    grade number(2) default 1,
+    class number(4) references class(id),/*外键约束；也可加在表级上，如：constraint stu_class_fk foreign key(class) references class(id)*/
+    email varchar2(50),
+    constraint stu_name_email_uni unique(email, name)/*表约束，此时表示email和name的组合不能重复*/
+    );
+    ```
+- Oracle的sequence序列：唯一的自动递增的一列数
+    - `create sequence seq;` 创建一个序列
+    - `drop sequence seq;`  删除一个序列
+    - `select seq.nextval from dual;` 利用sequence中的nextval字段获取序列中的下一个数
+    - 示例：
+	    `create sequence seq_stu_id start with 1 increment by 1;` 产生一个从1开始每次递增1的序列
+	    `insert into stu values(seq_stu_id.nextval, 'name', 0, 18, sysdate, 1, 1, 'oldinaction@qq.com');` sysdate获取系统时间
+
+#### 删除表
+
+- 删除表 `drop table table_name;` 如果存在外键约束，应该先删除含有外键约束的那个表，再删除被参考的那个表(也会删除表结构)
+
+#### 复制表
+
+- **复制表结构及数据到新表** `create table 新表 as select * from 旧表`
+    - oracle不会复制到表结构的备注和默认值；mysql可以复制备注，但是主键会丢失
+    - 根据备份表还原数据的时候需要delete掉原表的数据，不能drop**
+    - `200w`的数据`3s`复制完成
+- 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`
+    - `create table t2 like t1` like创建出来的新表包含源表的完整表结构和索引信息(mysql适用)。oracle支持as，也是只有表结构没有索引；oracle不支持like
+- 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
+- **复制旧表的数据到新表(假设两个表结构一样)** `insert into 新表 select * from 旧表`
+- 复制旧表的数据到新表(假设两个表结构不一样) `insert into 新表(字段1,字段2,.......) select 字段1,字段2,...... from 旧表`
+- 创建临时表并复制数据 `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
+
+### 修改表结构
+
+- 添加一个字段 `alter table stu add(addr varchar(100));`
+- 修改字段类型 `alter table stu modify addr varchar(150);`
+    - 修改之后的字段容量必须大于原有数据的大小
+- 修改字段名 `alter table stu change addr address varchar(50);`
+- Oracle删除、添加表的约束条件
+    - 删除外键约束 `alter table stu drop constraint stu_class_fk;`
+	- 增加外键约束 `alter table stu add constraint stu_class_fk foreign key(class) references class(id);`
+
+### 索引
+
+- Mysql索引
+
+    ```sql
+    -- ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引
+    alter table d_user add index idx_name (name)
+    alter table d_user add unique (card_no)
+    alter table d_user add primary key (id)
+
+    -- CREATE INDEX可对表增加普通索引或UNIQUE索引
+    create index idx_name_age on d_user (name, age)
+    create unique index idx_card_no on d_user (card_no)
+
+    -- 删除索引
+    drop index d_user on talbe_name
+    alter table d_user drop index index_name
+    alter table table_name drop primary key -- 删除主键索引，一个表只能有一个主键，因此无需指定主键索引名
+
+    -- 查看索引
+    show index from d_user;
+    show keys from d_user;
+    ```
+- Oracle索引
+    - 当给表加主键或者唯一约束时，Oracle会自动将此字段建立索引；给字段建立索引后，查询快读取慢
+    - `create index idx_stu_email on stu(email);` 建立索引idx_stu_email
+    - `drop index idx_stu_email;` 删除索引idx_stu_email
+
+### 视图
+
+- 视图创建：`create view 视图名 as 表(通过select子查询得到);`
+- Mysql写法
+
+    ```sql
+    create view v1 as select deptno, avg(sal) 'avg_sal' from emp group by deptno;
+    create view v2 as
+    select deptno, avg_sal, grade from v1
+    join salgrade s
+    on (v1.avg_sal between s.losal and s.hisal)
+    ;
+    ```
+- Oracle写法
+
+    ```sql
+    create view v$_view as
+	select deptno, avg_sal, grade from
+	(select deptno, avg(sal) 'avg_sal' from emp group by deptno) t1
+	join salgrade s
+	on (t1.avg_sal between s.losal and s.hisal)
+	;
+    ```
+- Mysql创建视图的select语句不能包含from子句中的子查询，可以创建两次视图。而Oracle可以包含子查询
+- 视图就相当于一个子查询，建立视图可以简化查询、保护数据，但是增加维护难度
+- 可以更新视图里面的数据，但是更新的是实际中的表的数据，故一般不这么做
+
+### Oracle数据字典
+
+- 描述系统自带的数据字典表 `desc dictionary;`
+- `select * from dictionary;`
+    - `select table_name from user_tables;` 显示当前用户下有哪些表
+    - `select view_name from user_views;` 显示当前用户下有哪些视图
+    - `select constraint_name, table_name from user_constraints;` 显示当前用户下有哪些约束
+    - `select index_name from user_indexes;` 显示当前用户下有哪些索引
 
 ## 数据库操作语言DML(Data Manipulation Language，即CRUD)
 
@@ -46,14 +448,6 @@ create table t_test as
 - `delete from dept2 where deptno < 25;` 删除deptno < 25的条目
 - `delete from emp2 where deptno in (select deptno from dept2 where deptno < 25)` 子查询不能有别名(oracle)
 - `truncate table emp2;` oracle清空表数据，适用于表中含有大量数据
-
-### 事物
-
-- Mysql和Oracle提交事物：`commit;`；Oracle的撤销操作：`rollback;`
-- Oracle的transaction(事物)：
-    - 一个transaction起始于一个dml(增删查改)语句
-    - 当执行撤销"rollback;"后，回到最原始状态，相当于此transaction结束；或当执行提交"commit;"后，此transaction结束（此时在撤销则不能回到原始状态）。
-    - 当执行一个ddl语句(如：创建表create table)或者一个dcl语句(如：设置权限grant)后，transaction也自动结束。
 
 ### 查询
 
@@ -371,312 +765,6 @@ select *
 
 - Oracle `select 1 as a from dual union select 2 as b from dual`
 
-## 数据库模式定义语言DDL(Data Definition Language)
-
-### 创建和使用数据库
-
-- `create database sqltest;/*创建数据库*/`
-- `use sqltest;/*使用数据库，之后在这个数据库上进行表的创建、展示等操作*/`
-
-### 数据库基本
-
-- Mysql数据类型，参考[数据类型的优化](/_posts/db/sql-optimize.md#数据类型的优化)
-    - `tinyint`     超短整型，存储长度1个字节(带符号存储区间：-127 ~ 127，不带符号存储区间：0-255)
-    - `smallint`    短整型，存储长度为2个字节
-    - `mediumint`   中整型，存储长度为3个字节
-    - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，有符号signed区间：-2147483647 ~ 2147483647，无符号unsigned区间：0 ~ 4294967295)。最大显示11个字节，int(1)也会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的。类似于Oracle里的的number(X)
-    - `bigint`      长正型(Long)，**存储长度为8个字节**。类似于Oracle里的的number(X)
-    - `double`		浮点型(Float)，相当于Oracle里的的 number(X, Y)
-    - `decimal`     金额(Bigdecimal)，相当于Oracle里的的 decimal(X, Y)。decimal(2,1) 表示总数据长度不能超过2位，且小数要占1位，因此最大为9.9
-    - `char`		定长字符串(String)，同Oracle的char
-    - `varchar` 	变长字符串(String)，最大255字节，相当于Oracle里的的varchar2
-    - `datetime`	日期(DateTime/LocalDateTime)，相当于Oracle里的date
-    - `tinytext`    短文本型(String)。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式
-    - `text`		文本型(String)。最大长度为65535个字节(2^31-1)，其他同tinytext
-    - `longtext`	长文本型(String)。最大4G，相当于Oracle里的long，其他同tinytext
-    - `tinyblob/blob/longblob` 二进制数据(byte[])
-- Oracle数据结构
-    - `char`		定长字符串；存取时效率高，空间可能会浪费
-    - `varchar2`	变长字符串,大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
-    - `long`		变长字符串，大小可达到2G
-    - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
-    - `date`		日期(插入时，sysdate即表示系统当前时间；select时默认展示年月日，要想展示时分秒则需要to_char转换)
-    - ...还有很多，如用来存字节，可以把一张图片存在数据库（但是实际只是存图片存在硬盘，数据库中存图片路径）
-- Mysql注释使用`/**/`，Oracle注释使用`/**/`或`--`
-
-### 创建、删除、复制表、更新
-
-- Mysql表相关约束constraint(起名不能为关键字)
-    - 字段约束，加在字段的末尾加unique
-    - 表约束，加在所有字段末尾
-    - 约束类型：非空、唯一、主键、外键、check
-    - 主键约束：唯一且非空，主键字段可代表一条单独的记录
-    - 外键约束：外键约束是建立在两个字段上的，某一个字段(stu.class)会参考另一个字段(class.id)的值；且被参考的字段必须主键；当被参考的字段已经被参考了，那么则不能删除这条记录
-- 创建class班级表和stu学生表示例
-    - class班级表：创建stu表时需要先创建一个班级class的表
-
-        ```sql
-        create table class
-        (
-        id int(4) primary key,
-        name varchar(20) not null
-        );
-        ```
-    - stu学生表
-
-        ```sql
-        create table stu/*由于使用了外键约束，故创建stu表时需要先创建一个班级class的表*/
-        (
-        id int(6) primary key auto_increment,/*主键约束(primary key);自动递增(auto_increment)*/
-        name varchar(20) not null,/*非空约束,插数据时不能为null*/
-        sex int(1),
-        age int(3),
-        sdate timestamp,
-        grade int(2) default 1,/*年级默认为1*/
-        class int(4),
-        email varchar(50) unique,/*字段约束;唯一约束,两个NULL值不算重复*/
-        constraint stu_class_fk foreign key(class) references class(id)/*外键约束;表约束;可以省略constraint stu_class_fk即自己不命名此约束*/
-        );
-        ```
-#### Oracle创建
-
-- 创建班级表
-
-    ```sql
-    create table class
-    (
-    id number(4) primary key,
-    name varchar(20) not null
-    );
-    ```
-- 创建学生表
-
-    ```sql
-    create table stu
-    (
-    id number(6) primary key,/*主键约束；也可加在表级上，如：constraint stu_id_pk primary key(id)*/
-    name varchar2(20) constraint stu_name_no not null,/*constraint给约束条件(非空)起名为stu_name_no；非空约束，插数据时不能为null*/
-    sex number(1),
-    age number(3),
-    sdate date,
-    grade number(2) default 1,
-    class number(4) references class(id),/*外键约束；也可加在表级上，如：constraint stu_class_fk foreign key(class) references class(id)*/
-    email varchar2(50),
-    constraint stu_name_email_uni unique(email, name)/*表约束，此时表示email和name的组合不能重复*/
-    );
-    ```
-- Oracle的sequence序列：唯一的自动递增的一列数
-    - `create sequence seq;` 创建一个序列
-    - `drop sequence seq;`  删除一个序列
-    - `select seq.nextval from dual;` 利用sequence中的nextval字段获取序列中的下一个数
-    - 示例：
-	    `create sequence seq_stu_id start with 1 increment by 1;` 产生一个从1开始每次递增1的序列
-	    `insert into stu values(seq_stu_id.nextval, 'name', 0, 18, sysdate, 1, 1, 'oldinaction@qq.com');` sysdate获取系统时间
-
-#### 删除表
-
-- 删除表 `drop table table_name;` 如果存在外键约束，应该先删除含有外键约束的那个表，再删除被参考的那个表(也会删除表结构)
-
-#### 复制表
-
-- **复制表结构及数据到新表** `create table 新表 as select * from 旧表`
-    - oracle不会复制到表结构的备注和默认值；mysql可以复制备注，但是主键会丢失
-    - 根据备份表还原数据的时候需要delete掉原表的数据，不能drop**
-    - `200w`的数据`3s`复制完成
-- 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`
-    - `create table t2 like t1` like创建出来的新表包含源表的完整表结构和索引信息(mysql适用)。oracle支持as，也是只有表结构没有索引；oracle不支持like
-- 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
-- **复制旧表的数据到新表(假设两个表结构一样)** `insert into 新表 select * from 旧表`
-- 复制旧表的数据到新表(假设两个表结构不一样) `insert into 新表(字段1,字段2,.......) select 字段1,字段2,...... from 旧表`
-- 创建临时表并复制数据 `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
-
-### 修改表结构
-
-- 添加一个字段 `alter table stu add(addr varchar(100));`
-- 修改字段类型 `alter table stu modify addr varchar(150);`
-    - 修改之后的字段容量必须大于原有数据的大小
-- 修改字段名 `alter table stu change addr address varchar(50);`
-- Oracle删除、添加表的约束条件
-    - 删除外键约束 `alter table stu drop constraint stu_class_fk;`
-	- 增加外键约束 `alter table stu add constraint stu_class_fk foreign key(class) references class(id);`
-
-### 索引
-
-- Mysql索引
-
-    ```sql
-    -- ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引
-    alter table d_user add index idx_name (name)
-    alter table d_user add unique (card_no)
-    alter table d_user add primary key (id)
-
-    -- CREATE INDEX可对表增加普通索引或UNIQUE索引
-    create index idx_name_age on d_user (name, age)
-    create unique index idx_card_no on d_user (card_no)
-
-    -- 删除索引
-    drop index d_user on talbe_name
-    alter table d_user drop index index_name
-    alter table table_name drop primary key -- 删除主键索引，一个表只能有一个主键，因此无需指定主键索引名
-
-    -- 查看索引
-    show index from d_user;
-    show keys from d_user;
-    ```
-- Oracle索引
-    - 当给表加主键或者唯一约束时，Oracle会自动将此字段建立索引；给字段建立索引后，查询快读取慢
-    - `create index idx_stu_email on stu(email);` 建立索引idx_stu_email
-    - `drop index idx_stu_email;` 删除索引idx_stu_email
-
-### 视图
-
-- 视图创建：`create view 视图名 as 表(通过select子查询得到);`
-- Mysql写法
-
-    ```sql
-    create view v1 as select deptno, avg(sal) 'avg_sal' from emp group by deptno;
-    create view v2 as
-    select deptno, avg_sal, grade from v1
-    join salgrade s
-    on (v1.avg_sal between s.losal and s.hisal)
-    ;
-    ```
-- Oracle写法
-
-    ```sql
-    create view v$_view as
-	select deptno, avg_sal, grade from
-	(select deptno, avg(sal) 'avg_sal' from emp group by deptno) t1
-	join salgrade s
-	on (t1.avg_sal between s.losal and s.hisal)
-	;
-    ```
-- Mysql创建视图的select语句不能包含from子句中的子查询，可以创建两次视图。而Oracle可以包含子查询
-- 视图就相当于一个子查询，建立视图可以简化查询、保护数据，但是增加维护难度
-- 可以更新视图里面的数据，但是更新的是实际中的表的数据，故一般不这么做
-
-### Oracle数据字典
-
-- 描述系统自带的数据字典表 `desc dictionary;`
-- `select * from dictionary;`
-    - `select table_name from user_tables;` 显示当前用户下有哪些表
-    - `select view_name from user_views;` 显示当前用户下有哪些视图
-    - `select constraint_name, table_name from user_constraints;` 显示当前用户下有哪些约束
-    - `select index_name from user_indexes;` 显示当前用户下有哪些索引
-
-## 数据库表信息
-
-- `show databases;` 显示所有数据库
-
-```html
-+--------------------+
-| Database           |
-+--------------------+
-| information_schema |
-| sqltest            |
-+--------------------+
-```
-
-> Oracle一个实例，就是一个数据库，所以没有对应的 show databases 语句。使用`select * from gv$instance;`查看所有实例
-
-- `use sqltest` 选择数据库
-- `show tables;` 显示该数据库的所有表
-
-```html
-+-------------------+
-| Tables_in_sqltest |
-+-------------------+
-| dept              |
-| emp               |
-| salgrade          |
-+-------------------+
-```
-
-- 雇员表`desc emp;`或者`describe emp;` 描述一张表的字段详情
-    - date只包含年月日，datetime、timestamp包含了完整的日期时间
-
-```html
-+----------+-------------+------+-----+---------+-------+
-| Field    | Type        | Null | Key | Default | Extra |
-+----------+-------------+------+-----+---------+-------+
-| empno    | int(4)      | NO   |     | NULL    |       |雇员编号
-| ename    | varchar(10) | YES  |     | NULL    |       |雇员姓名
-| job      | varchar(9)  | YES  |     | NULL    |       |工种
-| mgr      | int(4)      | YES  |     | NULL    |       |经理人编号
-| hiredate | timestamp   | YES  |     | NULL    |       |雇佣日期
-| sal      | double(7,2) | YES  |     | NULL    |       |工资
-| comm     | double(7,2) | YES  |     | NULL    |       |津贴
-| deptno   | int(2)      | YES  |     | NULL    |       |部门编号
-+----------+-------------+------+-----+---------+-------+
-```
-- 部门表`desc dept;`
-
-```html
-+--------+-------------+------+-----+---------+-------+
-| Field  | Type        | Null | Key | Default | Extra |
-+--------+-------------+------+-----+---------+-------+
-| deptno | int(2)      | NO   |     | NULL    |       |部门编号
-| dname  | varchar(14) | YES  |     | NULL    |       |部门名称
-| loc    | varchar(13) | YES  |     | NULL    |       |所在地
-+--------+-------------+------+-----+---------+-------+
-- 薪资表`desc salgrade;`
-+-------+---------+------+-----+---------+-------+
-| Field | Type    | Null | Key | Default | Extra |
-+-------+---------+------+-----+---------+-------+
-| grade | int(2)  | YES  |     | NULL    |       |薪资级别
-| losal | int(11) | YES  |     | NULL    |       |最低薪资
-| hisal | int(11) | YES  |     | NULL    |       |最高薪资
-+-------+---------+------+-----+---------+-------+
-```
-- sqltest中含有emp、dept、salgrade三张表，具体数据如下：
-
-    - `select * from emp;`
-
-    ```html
-    +-------+--------+-----------+------+---------------------+---------+---------+--------+
-    | empno | ename  | job       | mgr  | hiredate            | sal     | comm    | deptno |
-    +-------+--------+-----------+------+---------------------+---------+---------+--------+
-    |  7369 | smith  | clerk     | 7902 | 1980-12-17 00:00:00 |  800.00 |    NULL |     20 |
-    |  7499 | allen  | salesman  | 7698 | 1981-02-20 00:00:00 | 1600.00 |  300.00 |     30 |
-    |  7521 | ward   | salesman  | 7698 | 1981-02-20 00:00:00 | 1250.00 |  500.00 |     30 |
-    |  7566 | jones  | manager   | 7839 | 1981-02-04 00:00:00 | 2975.00 |    NULL |     20 |
-    |  7654 | martin | salesman  | 7698 | 1981-09-28 00:00:00 | 1250.00 | 1400.00 |     30 |
-    |  7698 | blake  | manager   | 7839 | 1981-05-01 00:00:00 | 2850.00 |    NULL |     30 |
-    |  7782 | clark  | manager   | 7839 | 1981-06-09 00:00:00 | 2450.00 |    NULL |     10 |
-    |  7788 | scott  | analyst   | 7566 | 1987-04-19 00:00:00 | 3000.00 |    NULL |     20 |
-    |  7839 | king   | president | NULL | 1981-11-17 00:00:00 | 5000.00 |    NULL |     10 |
-    |  7844 | turner | salesman  | 7698 | 1981-09-08 00:00:00 | 1500.00 |    0.00 |     30 |
-    |  7876 | adams  | clerk     | 7788 | 1987-05-23 00:00:00 | 1100.00 |    NULL |     20 |
-    |  7900 | james  | clerk     | 7698 | 1981-03-12 00:00:00 |  950.00 |    NULL |     30 |
-    +-------+--------+-----------+------+---------------------+---------+---------+--------+
-    ```
-    - `select * from dept;`
-    
-    ```html
-    +--------+------------+----------+
-    | deptno | dname      | loc      |
-    +--------+------------+----------+
-    |     10 | accounting | new york |
-    |     20 | research   | dallas   |
-    |     30 | sales      | chicago  |
-    |     40 | operations | boston   |
-    +--------+------------+----------+
-    ```
-    
-    - `select * from salgrade;`
-    
-    ```html
-    +-------+-------+-------+
-    | grade | losal | hisal |
-    +-------+-------+-------+
-    |     1 |   700 |  1200 |
-    |     2 |  1201 |  1400 |
-    |     3 |  1401 |  2000 |
-    |     4 |  2001 |  3000 |
-    |     5 |  3001 |  9999 |
-    +-------+-------+-------+
-    ```
-
 ## Mysql连接JDBC
 
 - 先在Mysql官网下载驱动JDBC(Mysql Drivers提供了很多语言的驱动)：mysql-connector-java-5.0.8
@@ -751,98 +839,107 @@ select *
     }
     ```
 
-## 设计表
+## (Mysql)事物
 
-### 三范式
-
-- 三范式
-    - 第一范式：要有主键，列不可分。(如：如果要分别获取姓、名，则应该设计两个字段，而不应该设置为姓名一个字段当查询出来后再进行分割)
-    - 第二范式：不能存在部分依赖。即当一张表中有多个字段作为主键时，非主键的字段不能依赖于部分主键
-    - 第三范式：不能存在传递依赖。如：雇员表中描述雇员需要描述他所在部门，因此只需记录其部门编号即可，如果把部门相关的信息(部门名称、部门位置)加入到雇员表则存在传递依赖
-- 三范式强调的是表不存在冗余数据(同样的数据不存第二遍)
-- 符合了三范式后会增加查询难度，要做表连接
-
-### 常用建表模型
-
-- 字典表(t_type_code)：id、type、code、name、value、note、rank(排序)、permission_code(权限落在行级)、valid_status、input_user_id、input_time、update_user_id、update_time
-- 大字段表
-- 树型表(t_structure)：id、structure_type_code(树类型)、parent_id、node_level、node_code、node_name、node_note、node_rank(节点排序)
-- 属性表(t_attr)：id、attr_type、parent_id、code、value、note、permission_code(属性表可和树型表连用)
-- 权限相关表
-    - 权限组(t_security_group)：id、security_group、note
-    - 权限(t_promission)：id、promission、note
-    - 权限组-权限关系表(t_security_group_promission、多对多)：id、security_group、promission
-    - 用户权限组关系表(t_user_security_group、多对多)：id、user_id、security_group
-- 角色相关表 `RBAC`
-    - 角色类型树：如总经理、销售经理、市场经理、员工
-    - 部门树
-- 主要实体暂存功能
-
-### 案例
-
-- 根据不同的拜访目的显示不同拜访结果和子结果，根据拜访结果归纳出错误客户信息(某几个拜访结果:信息错误-电话错误; 信息错误-三次无人接听)的拜访
-    - 原始情况：拜访结果和子结果以树型存储，根据不同的拜访目的存储不同"XXX拜访目的-拜访结果"树(拜访结果大致相同)，且保存树节点ID为了提高查询效率；拜访表添加一个结果状态字段用来在保存的时候根据不同的结果归纳出最终的状态(已提交/信息错误/其他)
-    - 导致困境
-        - 拜访结果确实可根据数据库定义的"XXX拜访目的-拜访结果"树自动联动。但是查询拜访时想获取同一类型，则搜索选项的下拉都很难显示(要基于所有的结果根据结果代码group by, 而且有可能结果的名称不同)，获取到代码后再根据代码查询到相应的节点ID，通过IN(结果ID)的进行sql查询
-        - 基于不同结果提取出一个最终的状态，导致每次修改数据都要更新此状态
-    - 建议方案
-        - 数据库中只保存一份拜访结果和子结果(将代码和名称归纳到一起)，展示的时候写属性代码矫正联动显示；保存拜访的时候保存结果代码。(最好是拜访结果/拜访目的单独维护表)
-        - 去掉归纳字段，所有的查询直接根据结果代码来(可利用索引优化查询)
-
-### 设计树状结构的存储
+- 事物sql
 
 ```sql
-/*创建表*/
-create table article(
-    id int primary key,
-    cont text,
-    pid int,/*注释：表示父id*/
-    isleaf int(1),/*注释：0代表非叶子节点，1代表叶子节点*/
-    alevel int(2)/*注释：表示层级(可通过层级0表示非叶子节点)*/
-);
+--查看是否是自动提交 1表示开启(默认)，0表示关闭
+select @@autocommit;
+--设置关闭
+set autocommit = 0;
+-- 开始事物
+start transaction;
+-- Mysql和Oracle提交事物`commit;`；Oracle的撤销操作`rollback;`
+commit;
 
-/*插入数据*/
-insert into article values(1,'蚂蚁大战大象', 0, 0, 0);
-insert into article values(2,'大象被打趴下了', 1, 0, 0);
-insert into article values(3,'蚂蚁也不好过', 2, 1, 2);
-insert into article values(4,'瞎说', 2, 0, 2);
-insert into article values(5,'没有瞎说', 4, 1, 3);
-insert into article values(6,'怎么可能', 1, 0, 1);
-insert into article values(7,'怎么没有可能', 6, 1, 2);
-insert into article values(8,'可能性是很大的', 6, 1, 2);
-insert into article values(9,'大象进医院了', 2, 0, 2);
-insert into article values(10,'护士是蚂蚁', 9, 1, 3);
-
-/*显示*/
-蚂蚁大战大象
-  大象被打趴下了
-    蚂蚁也不好过
-    瞎说
-      没有瞎说
-    大象进医院了
-      护士是蚂蚁
-  怎么可能
-    怎么没有可能
-    可能性是很大的
-
--- 使用递归打印树状结构
-create or replace procedual p(v_pid acticle.pid%type, v_level binary_integer) is
-  cursor c is select * from article where pid = v_pid;
-  v_preStr varchar2(1024) = '';
-begin
-  for i in 1..v_level loop
-    v_preStr := v_preStr || '****';
-  end loop;
-  for v_article in c loop
-    dbms_output.put_line(v_preStr || v_article.cont);
-    if(v_article.isleaf = 0) then
-      p(v_article.id, v_preStr + 1);
-    end if;  
-  end loop;
-end;
-/
-exec p(0, 0);
+-- 设置当前session的隔离级别
+set session transaction isolation level read uncommitted;
 ```
+- ACID
+    - A原子性：innodb通过undo log实现
+    - I隔离性：通过锁实现
+    - D持久性：innodb通过redo log实现
+    - C一致性：通过上述AID实现
+- 隔离级别
+    - 产生数据不一致的情况：脏读、不可重复读、幻读
+        - 脏读：读到了其他事物未提交的数据
+        - 不可重复读：第一次读取记录后，其他事物修改了该记录，再次读取此记录发现数据变化了
+        - 幻读：第一次读取记录发现没有id=10的行，但是在插入id=10时提示已存在此行，尽管再次读取还是没有id=10
+        - mysql 的幻读并非什么读取两次返回结果集不同，而是事务在插入事先检测不存在的记录时(mysql插入时会隐式读取一次)，惊奇的发现这些数据已经存在了，之前的检测读获取到的数据如同鬼影一般。**不可重复读侧重表达`读-读`，幻读则是说`读-写`，用写来证实读的是鬼影**
+    - 从上往下，隔离级别越来越高，意味着数据越来越安全
+        - `read uncommitted` 读未提交。会出现脏读、不可重复读、幻读
+        - `read commited` 读已提交(oracle默认级别)。会出现不可重复读、幻读
+        - `repeatable read` 可重复读(mysql默认级别)。会出现幻读
+        - `seariable` 序列化执行，串行执行
+- Oracle的transaction(事物)
+    - 一个transaction起始于一个dml(增删查改)语句
+    - 当执行撤销"rollback;"后，回到最原始状态，相当于此transaction结束；或当执行提交"commit;"后，此transaction结束（此时在撤销则不能回到原始状态）
+    - 当执行一个ddl语句(如：创建表create table)或者一个dcl语句(如：设置权限grant)后，transaction也自动结束
+
+## Mysql日志原理
+
+- https://www.cnblogs.com/f-ck-need-u/p/9010872.html
+
+### InnoDB日志(Redo/Undo)
+
+- Redo log和Undo log都是innodb存储引擎才有日志文件
+- Redo Log是为了实现数据持久性
+    - **当发生数据修改的时候， innodb引擎会先将数据更新内存并写到redo log(buffer)中，此时更新就算是完成了**；同时innodb引擎会在合适的时机将记录操作到磁盘中
+    - redo log是固定大小的，是循环写的过程，空间会用完(可通过参数配置其大小)
+    - redo log是物理日志，即数据页中的真实二级制数据，恢复速度快
+    - innodb存储引擎数据的单位是页，redo log也是基于页进行存储，一个默认16K大小的页中存了很多512Byte的log block，log block的存储格式如[log block header 12Byte，log block body 492 Bytes，log block tailer 8 Bytes]
+    - 用途重做数据页。有了redo log之后，innodb就可以保证即使数据库发生异常重启，之前的记录也不会丢失，系统会自动恢复之前记录，叫做crash-safe
+- 既然要避免io，为什么写redo log的时候不会造成io的问题？
+
+    ![mysql-redo-log.png](/data/images/db/mysql-redo-log.png)
+    - 内部是基于缓存实现，可先将数据写到log buffer。为了确保每次日志都能写入到事务日志文件中，之后操作系统定期调用fsync(等待写磁盘操作结束，然后返回)写入到磁盘
+    - 图二中
+        - 控制commit动作是否刷新log buffer到磁盘，可通过变量 `innodb_flush_log_at_trx_commit` 的值来决定。该变量有3种值：0、1、2，默认为1
+            - 0：事务提交时不会将log buffer中日志写入到os buffer，而是每秒写入os buffer并调用fsync()写入到log file on disk中。也就是说设置为0时是(大约)每秒刷新写入到磁盘中的，当系统崩溃，会丢失1秒钟的数据
+            - 1：事务每次提交都会将log buffer中的日志写入os buffer并调用fsync()刷到log file on disk中。这种方式即使系统崩溃也不会丢失任何数据，但是因为每次提交都写入磁盘，IO的性能较差
+            - 2：类似0。区别是0虽然是写入到用户空间缓存，再写入到文件。但是写入文件必须通过操作系统完成，此时还是会写入到操作系统缓存，最后写入到文件
+        - 安全性：1 > 0/2
+        - 效率：2 > 0 > 1
+- Undo Log是为了实现事务的原子性，在MySQL数据库InnoDB存储引擎中，还用Undo Log来实现多版本并发控制(简称MVCC)
+    - 在操作任何数据之前，首先将数据备份到一个地方（这个存储数据备份的地方称为Undo Log），然后进行数据的修改。如果出现了错误或者用户执行了ROLLBACK语句，系统可以利用Undo Log中的备份将数据恢复到事务开始之前的状态
+    - Undo log是逻辑日志，可以理解为
+        - 当insert一条记录时，undo log中会记录一条对应的delete记录
+        - 当update一条记录时，它记录一条对应相反的update记录
+        - 当delete一条记录时，undo log中会记录一条对应的insert记录
+
+### 服务端的日志Binlog
+
+- Binlog是server层的日志，因此和存储引擎无关，其主要做mysql功能层面的事情
+- 与Redo日志的区别
+    - redo是innodb独有的， binlog是所有引擎都可以使用的
+    - redo是物理日志，记录的是在某个数据页上做了什么修改，binlog是逻辑日志，记录的是这个语句的原始逻辑
+    - redo是循环写的，空间会用完；binlog是可以追加写的，不会覆盖之前的日志信息
+- 一般在企业中数据库会有备份系统，可以定期执行备份，备份的周期可以自己设置。恢复数据的过程
+    - 到最近一次的全量备份数据
+    - 从备份的时间点开始，将备份的binlog取出来，重放到要恢复的那个时刻
+
+### 数据更新的流程
+
+![mysql-innodb-update.png](/data/images/db/mysql-innodb-update.png)
+
+- 执行流程
+    - 执行器先从存储引擎中查找数据。存储引擎查找时，如果在内存中直接返回，如果不在内存中，查询后返回
+    - 执行器拿到数据之后会先修改数据，然后调用引擎接口重新写入数据
+    - 存储引擎将数据更新到内存，同时写数据到redo中，此时处于prepare阶段，并通知执行器执行完成，随时可以操作
+    - 执行器生成这个操作的binlog
+    - 执行器调用引擎的事务提交接口，引擎把刚刚写完的redo改成commit状态，更新完成
+- Redo log的两阶段提交(2PC)
+    - prepare：redolog写入log buffer，并fsync持久化到磁盘，在redolog事务中记录2PC的XID，在redolog事务打上prepare标识
+    - commit：binlog写入log buffer，并fsync持久化到磁盘，在binlog事务中记录2PC的XID，同时在redolog事务打上commit标识
+    - 其中，prepare和commit阶段所提到的事务，都是指内部XA事务，即2PC。且此事物是包含在begin...commit的内部
+    - 原因
+        - 可以使用binlog替代redolog进行数据恢复吗？
+            - 不可以。innodb利用wal技术进行数据恢复，write ahead logging技术依赖于物理日志进行数据恢复，binlog不是物理日志是逻辑日志，因此无法使用
+        - 可以只使用redolog而不使用binlog吗？
+            - 不可以。redolog是循环写，写到末尾要回到开头继续写，这样的日志无法保留历史记录，无法进行数据复制
+        - 为什么redolog和binlog要进行二阶段提交？
+            - 如果redo log持久化并进行了提交，而binlog未持久化数据库就crash了，则从库从binlog拉取数据会少于主库，造成不一致。因此需要内部事务来保证两种日志的一致性
 
 ## SQLServer
 

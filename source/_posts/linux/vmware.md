@@ -72,7 +72,7 @@ tags: [vmware, linux, centos]
 
 - `ip addr`查看虚拟机地址(`ens33`/`eth0`)，`ipconfig`查看windows主机地址，并看能否双向`ping`通
 - `systemctl status sshd` 查看ssh服务是否启动(如果未安装，可手动安装sshd)
-- 使用`xshell`/`xftp`以ssh/sftp的方式连接，端口`22`，用户名要使用`smalle/smalle`（root连接失败）
+- 使用`xshell`/`xftp`以ssh/sftp的方式连接，端口`22`，用户名要使用`smalle/smalle`(root连接失败)
 
 ## 常见问题
 
@@ -107,6 +107,8 @@ tags: [vmware, linux, centos]
         # DNS1=114.114.114.114
         # DNS2=114.114.115.115
         ```
+- 虚拟机可以访问外网和内网，但是宿主无法通过xshell连接虚拟机，查看宿主机vmnet8的ip地址和虚拟机的ip地址不在一个网段
+    - 可进入宿主机更改网络适配器设置 - 右键vmnet8适配器 - 修改ipv4属性为自动获取ip地址 - 禁用此适配器并重新启用 - 最终宿主机和虚拟机处于同一网段
 - xshell卡在`To escape to local shell, press 'Ctrl+Alt+]'.`
     - 关闭防火墙
     - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
