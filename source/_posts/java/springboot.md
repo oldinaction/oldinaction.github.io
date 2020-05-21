@@ -564,6 +564,8 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 
 ### jackson字段映射
 
+- 注意点
+    - 在映射时对应第二个字母大写的驼峰容易出错，如将xPoint映射成了xpoint。此为jackson的一个bug(v2.9.9) [^18]
 - yaml配置方式`spring.jackson` [^17]
 - javabean方式
 
@@ -2393,4 +2395,4 @@ User user = this.userRepositroy.findById(id).get();
 [^15]: https://blog.csdn.net/neosmith/article/details/61202084
 [^16]: https://ifengkou.github.io/spring_boot%E5%8A%A8%E6%80%81%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE&%E8%BF%90%E8%A1%8C%E6%97%B6%E6%96%B0%E5%A2%9E%E6%95%B0%E6%8D%AE%E6%BA%90.html
 [^17]: https://www.cnblogs.com/liaojie970/p/9396334.html
-
+[^18]: https://zhuanlan.zhihu.com/p/81854008

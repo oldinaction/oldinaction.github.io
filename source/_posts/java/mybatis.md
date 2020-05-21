@@ -341,11 +341,19 @@ tags: [mybatis, springboot]
 				from user_info
 				where 1=1
 				<if test='name != null and name != ""'>
-					<!-- bind 元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文-->
+					<!-- bind 元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变 -->
 					<!-- _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name') -->
 					<bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
 					and upper(name) like #{nameUpper}
 				</if>
+                and hobby in
+                <!-- index默认从0开始；separator也可使用变量，但是只能使用#，不能使用$，也可以省略此属性 -->
+                <foreach item="item" index="index" collection="hobbyList" separator="," open="(" close=")">
+                    #{item.hobby, jdbcType=VARCHAR}
+                </foreach>
+                <if test="birthdate != null">
+                    <![CDATA[ and DATE_FORMAT(birthdate, '%Y/%m/%d') >= DATE_FORMAT(#{birthdate}, '%Y/%m/%d') ]]>
+                </if>
 			</select>
 
 			<!-- property参数使用. 此时#{username}可以拿到selectMain的上下文 -->
@@ -368,7 +376,7 @@ tags: [mybatis, springboot]
 					1.1 使用typeAliases进行类型别名映射后可写成resultType="userInfo"(自动扫描包mybatis.type-aliases-package, 默认该包下的类名首字母小写为别名).
 					1.2 传入parameterType="java.util.HashMap"(可省略)，也可使用 #{myKey} 获取传入参数map中的值
 				2.如果返回结果使用resultType="cn.aezo.springboot.mybatis.model.UserInfo", 则nickName，groupId则为null(数据库中下划线对应实体驼峰转换失败，解决办法：设置mybatis.configuration.map-underscore-to-camel-case=true). 此处使用resultMap指明字段对应关系
-				3. #{}是实现的是PrepareStatement，${}实现的是普通Statement 
+				3. #{}是实现的是PrepareStatement，${}实现的是普通Statement。使用$时，如字符串值就需要手动增加单引号，如果需要实现动态字段，则需要使用$；#则会自动给字符串值增加单引号
 			-->
 			<select id="getOne" parameterType="java.lang.Long" resultType="userInfo">
 				select
@@ -393,7 +401,12 @@ tags: [mybatis, springboot]
 			2.获取方式：userMapper.insert(userInfo); userInfo.getUserId();
 			 -->
 			<insert id="insert" parameterType="cn.aezo.springboot.mybatis.model.UserInfo" keyProperty="userId" useGeneratedKeys="true">
-				insert into user_info (nick_name, group_id, hobby) values (#{nickName}, #{groupId}, #{hobby})
+				insert into user_info
+                <!-- trim 可以在自己包含的内容前加上某些前缀，也可以在其后加上某些后缀 -->
+                <trim prefix="(" suffix=")">
+                    nick_name, group_id, hobby
+                </trim> 
+                values (#{nickName}, #{groupId}, #{hobby})
 			</insert>
 
 			<update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
@@ -401,6 +414,15 @@ tags: [mybatis, springboot]
 				<!--动态sql, 标签：if、choose (when, otherwise)、trim (where, set)、foreach-->
 				<if test="nickName != null">nick_name = #{nickName},</if>
 				hobby = #{hobby}
+				where id = #{id}
+			</update>
+            <update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
+				update user_info set
+                <!-- set 在更新操作的时候，在包含的语句前输出一个set  -->
+                <set>
+				    <if test="nickName != null">nick_name = #{nickName},</if>
+				    <if test="hobby != null">hobby = #{hobby},</if>
+                </set>
 				where id = #{id}
 			</update>
 
@@ -533,10 +555,10 @@ Char |  | Char | Char
 	```xml
 	<!-- <if test='dataSourceList != null and dataSourceList.size() > 0 and dataSourceList.get(0).dataSource != null'> -->
 	<if test='submitTm != null and submitTm.length >= 1 and submitTm[0] != null'>
-	<foreach collection="submitTm" index="i" item="item">
-		<if test='i == 0 and item != null'>and v.submit_tm &gt;= #{item}</if>
-		<if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>
-	</foreach>
+        <foreach collection="submitTm" index="i" item="item">
+            <if test='i == 0 and item != null'>and v.submit_tm &gt;= #{item}</if>
+            <if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>
+        </foreach>
 	</if>
 	```
 - mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较

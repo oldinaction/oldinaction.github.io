@@ -259,7 +259,7 @@ git branch -d develop/test
 
 - [官网凭证存储说明](https://git-scm.com/book/zh/v2/ch00/r_credential_caching)
 - `git config --list`中`credential.helper`即为凭证存储模式
-- `git  config --global credential.helper store` 设置凭证存储为store模式
+- `git config --global credential.helper store` 设置凭证存储为store模式
 - 凭证存储模式
 	- manage 使用windows凭证管理(控制面板 - 用户管理 - 凭证管理，Git-2.15.1.2-64-bit默认)
 	- cache 凭证保存在内存中，默认15分钟有效，过期运行git命令则需要重新登录
@@ -309,6 +309,8 @@ git branch -d develop/test
 
 		# 4.提示上面文件开放权限太大，在git客户端设置`chmod 600 /root/.ssh/id_rsa`，可正常使用
 		```
+- 通过ssh获取代码时，在命令行可以正常获取，在idea界面中无法拉取代码(idea的命令行可以)
+    - 设置idea中Git配置项的SSH executable=Native
 
 #### 忽略控制文件
 

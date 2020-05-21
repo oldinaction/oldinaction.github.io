@@ -34,7 +34,7 @@ tags: [concurrence]
 
 ### synchronized线程同步
 
-- **锁的方式**
+- **加锁方式**
     - 锁定对象(把任意一个非NULL的对象当作锁，不能使用String常量、Integer、Long等包装数据类型)
         - ... synchronized(this) {} ...
         - public synchronized void test() {...}

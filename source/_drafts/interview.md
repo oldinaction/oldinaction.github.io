@@ -9,6 +9,15 @@ wait(): 让线程处于冻结状态，被wait的线程会被存储到线程池�
 notify():唤醒线程池中一个线程(任意)，没有顺序。
 notifyAll():唤醒线程池中的所有线程。
 
+- 线程的几种状态和进行状态切换的相关方法
+
+- synchronized加锁方式
+    - synchronized锁升级流程：无锁 - 偏向锁 - 自旋锁 - 重量级
+    - 结合乐观锁和悲观锁，cas(Compare And Swap，比较并替换，乐观锁)
+- volitail的作用：保证(属性)线程可见性，防止指令重排；volitail不保证原子性
+    - 防止指令重排一般可用于单例模式，说下实现单例模式的几种方式
+
+
 - JAVA 中堆和栈的区别，说下java 的内存机制
 a.基本数据类型比变量和对象的引用都是在栈分配的
 b.堆内存用来存放由new创建的对象和数组
@@ -34,6 +43,16 @@ https://www.cnblogs.com/lr393993507/p/5909804.html
 https://chenzhou123520.iteye.com/blog/1860954
 https://chenzhou123520.iteye.com/blog/1863407
 
+
+- 线程的几种状态和进行状态切换的相关方法
+- synchronized加锁方式
+    - synchronized锁升级流程：无锁 - 偏向锁 - 自旋锁 - 重量级
+    - 结合乐观锁和悲观锁，cas(Compare And Swap，比较并替换，乐观锁)
+- volitail的作用：保证(属性)线程可见性，防止指令重排；volitail不保证原子性
+    - 防止指令重排一般可用于单例模式，说下实现单例模式的几种方式
+- Spring AOP的底层实现
+    - jdk动态代理和cglib动态代理实现的区别
+- 说下java 的内存机制
 - mysql索引匹配方式
 - 什么是回表(innodb、myisam)
 	- 如何减少回表
@@ -42,3 +61,5 @@ https://chenzhou123520.iteye.com/blog/1863407
 - innodb更新数据时两阶段提交的过程
 	- 为什么要分两阶段提交
 - innodb刷新数据到磁盘有哪几种方式(innodb_flush_log_at_trx_commit)
+- vue的生命周期
+

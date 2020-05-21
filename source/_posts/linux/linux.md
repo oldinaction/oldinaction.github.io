@@ -235,7 +235,8 @@ lsmod |grep br_netfilter
     - `df -Th` 查询文件系统格式
 - `du -h --max-depth=1 | sort -h` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**
     - `du -sh /home/smalle | sort -h` 查看某个目录
-    - `du`它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
+    - `du -hsx * | sort -rh | head -10` 查看最大的10个文件
+    - `du` 它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
     - `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
 - `lsblk` **树形显示磁盘即分区**
     - `fdisk -l` 查看磁盘设备
@@ -1004,20 +1005,39 @@ lsmod |grep br_netfilter
     Type 'q' or <Esc> to continue 
     ```
 
-### 查看IO信息
+### 查看IO信息(磁盘读写情况)
 
 - 参考：https://www.cnblogs.com/quixotic/p/3258730.html [^12]
 
 #### 系统级IO监控
 
-- 安装iostat `yum install sysstat`(iostat属于sysstat软件包)
-- `iostat -xdm 1` 
-    - -x输出扩展信息；-d仅显示磁盘统计信息(与-c仅显示CPU信息互斥)；-m显示磁盘读写速度单位为MB(默认为KB，影响rMB/s、wMB/s选项)
-    - 显示结果含义如下
-        - `rMB/s`、`wMB/s` 磁盘读写速度
-        - `avgrq-sz` 提交给驱动层的IO请求大小，一般不小于4K，不大于max(readahead_kb, max_sectors_kb)。可用于判断尤其是磁盘繁忙时，越大代表顺序读，越小代表随机读
-        - **`%util`** 代表磁盘繁忙程度。100% 表示磁盘繁忙，0%表示磁盘空闲。但是磁盘繁忙不代表磁盘利用率高(重要指标)
-        - **`svctm`** 一次IO请求的服务时间，对于单块盘，完全随机读时基本在7ms左右，既寻道+旋转延迟时间(重要指标)
+- 基于`top`查看
+    - top面板的`%Cpu`展示栏中的 wa 的百分比数值可以大致的体现出当前的磁盘io请求是否频繁。如果 wa 较大，说明等待输入输出的的io比较多，如 75 wa表示75%的IO等待
+- 基于`vmstat`
+    - vmstat是Virtual Meomory Statistics(虚拟内存统计，Swap Space)的缩写，可对操作系统的虚拟内存、进程、CPU活动进行监控。是对系统的整体情况进行统计，不足之处是无法对某个进程进行深入分析
+    - `vmstat 5 5` 在5秒时间内进行5次采样
+    - 字段说明
+        - Procs(进程)：r:运行队列中进程数量，b:等待IO的进程数量
+        - Memory(内存)：swpd:使用虚拟内存大小，free:可用内存大小，buff:用作缓冲的内存大小，cache:用作缓存的内存大小
+        - Swap：si:每秒从交换区写到内存的大小，so:每秒写入交换区的内存大小
+        - IO(单位1kb)：bi:每秒读取的块数，bo:每秒写入的块数
+        - System：in: 每秒中断数(包括时钟中断)，cs: 每秒上下文切换数
+        - CPU(%)： us:用户进程执行时间(user time)；sy:系统进程执行时间(system time)；id:空闲时间(包括IO等待时间)，中央处理器的空闲时间，以百分比表示；wa:等待IO时间
+    - 状态说明
+        - 如果r经常大于4，id经常少于40，表示cpu的负荷很重
+        - 如果bi，bo长期不等于0，表示内存不足
+        - 如果disk经常不等于0，且在b中的队列大于3，表示io性能不好
+- 基于iostat查看
+    - 安装iostat `yum install sysstat`(iostat属于sysstat软件包)
+    - `iostat -xdm 1`
+        - -x输出扩展信息；-d仅显示磁盘统计信息(与-c仅显示CPU信息互斥)；-m显示磁盘读写速度单位为MB(默认为KB，影响rMB/s、wMB/s选项)；1秒统计一次
+        - 显示结果含义如下
+            - `r/s`、`w/s` 每秒的读操作和写操作，磁盘读写速度
+            - `rKB/s`、`wKB/s` 每秒读和写的数据量(KB为单位)，对应的有rMB/s、wMB/s
+                - 如果r/s、w/s，rKB/s、wKB/s这两对数据值都很高的话说明磁盘io操作是很频繁
+            - `avgrq-sz` 提交给驱动层的IO请求大小，一般不小于4K，不大于max(readahead_kb, max_sectors_kb)。可用于判断尤其是磁盘繁忙时，越大代表顺序读，越小代表随机读
+            - **`%util`** 代表磁盘繁忙程度。100% 表示磁盘繁忙，0%表示磁盘空闲。但是磁盘繁忙不代表磁盘利用率高(重要指标)
+            - **`svctm`** 一次IO请求的服务时间，对于单块盘，完全随机读时基本在7ms左右，既寻道+旋转延迟时间(重要指标)
 
 #### 进程级IO监控
 

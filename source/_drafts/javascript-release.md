@@ -76,6 +76,7 @@ console.log(obj["1"]); // b，通过obj.1会报错
 - 修改原数组
     - `pop` 从数组中删除最后一个元素，并返回该元素的值
     - `push` 将一个或多个元素添加到数组的末尾，并返回该数组的新长度
+    - `shift` 用于把数组的第一个元素从其中删除，并返回第一个元素的值
     - `unshift` 将一个或多个元素添加到数组的开头，并返回该数组的新长度(该方法修改原有数组)
     - `splice` 基于下标修改某个元素
         - `array.splice(start[, deleteCount[, item1[, item2[, ...]]]])` 通过删除或替换现有元素或者原地添加新的元素来修改数组，并以数组形式返回被修改的内容。此方法会改变原数组
@@ -104,7 +105,7 @@ const inventors = [
 ];
 const people = ['Beck, Glenn', ...... , 'Blake, William'];
 
-// 以数组形式，列出其名与姓
+// 以数组形式，列出其名与姓 ['Albert Einstein', 'Hanna Hammarström', ...]；获返回list<map>: arr.map(o => {return {...}})
 const fullnames = inventors.map(inventor => `${inventor.first} ${inventor.last}`)
 // 筛选出生于16世纪的发明家
 const fifteenObj = inventors.filter(inventor => (inventor.year >= 1500 && inventor.year < 1600))
@@ -285,8 +286,7 @@ function test() {
 
 ### 扩展运算符(...) [^1]
 
-- ES7 有一个提案，将 Rest 解构赋值 / 扩展运算符(...)引入对象。 Babel 转码器已经支持这项功能
-
+- ES7 有一个提案，将 Rest 解构赋值/扩展运算符(...)引入对象。Babel 转码器已经支持这项功能
 - Rest 解构赋值
     - 解构赋值必须是最后一个参数，否则会报错 (2)
     - Rest解构赋值的拷贝是浅拷贝。即如果一个键的值是复合类型的值（数组、对象、函数），那么 Rest 解构赋值拷贝的是这个值的引用，而不是这个值的副本 (3)
@@ -307,7 +307,6 @@ let { ...x } = obj;
 obj.a.b = 2;
 console.log(x.a.b) // 2
 ```
-
 - 扩展运算符
     - 等同于 Object.assign (2)
     - 如果用户自定义的属性，放在扩展运算符后面，则扩展运算符内部的同名属性会被覆盖掉 (3)

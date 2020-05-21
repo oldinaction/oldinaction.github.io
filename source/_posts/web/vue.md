@@ -779,23 +779,24 @@ props: {
 #### 子组件和子组件通信(Bus)
 
 ```js
-// 在初始化web app的时候，main.js给data添加一个 名字为eventHub的空vue对象。就可以使用 this.$root.eventHub 获取对象
+// 在初始化web app的时候，main.js给data添加一个 名字为eventBus的空vue对象。就可以使用 this.$root.eventBus 获取对象
 new Vue({
     el: '#app',
     router,
     render: h => h(App),
     data: {
-        eventHub: new Vue()
+        eventBus: new Vue()
     }
 })
 
-// 在一个组件内调用事件触发。通过this.$root.eventHub获取此对象，调用 $emit 方法
-this.$root.eventHub.$emit('eventName', data)
+// 在一个组件内调用事件触发。通过this.$root.eventBus获取此对象，调用 $emit 方法
+this.$root.eventBus.$emit('eventName', data)
 
-// 在另一个组件调用事件接受，移除事件监听器使用$off方法。
-this.$root.eventHub.$on('eventName', (data) => {
+// 在另一个组件调用事件接受(如created)，移除事件监听器使用$off方法(如destroyed)
+this.$root.eventBus.$on('eventName', (data) => {
     // 处理数据
 })
+this.$root.eventBus.$off('eventName')
 ```
 
 ### 动态组件 [^1]
