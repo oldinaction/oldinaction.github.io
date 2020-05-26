@@ -83,6 +83,7 @@ dig -t A nginx.default.svc.cluster.local @10.96.0.10
 
 ### tcpdump
 
+- `yum -y install tcpdump`
 - 命令参数
 
 ```bash

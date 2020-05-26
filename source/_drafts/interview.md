@@ -43,16 +43,33 @@ https://www.cnblogs.com/lr393993507/p/5909804.html
 https://chenzhou123520.iteye.com/blog/1860954
 https://chenzhou123520.iteye.com/blog/1863407
 
+## java
+
+### 多线程
 
 - 线程的几种状态和进行状态切换的相关方法
+- wait()和sleep()的区别
 - synchronized加锁方式
     - synchronized锁升级流程：无锁 - 偏向锁 - 自旋锁 - 重量级
     - 结合乐观锁和悲观锁，cas(Compare And Swap，比较并替换，乐观锁)
 - volitail的作用：保证(属性)线程可见性，防止指令重排；volitail不保证原子性
     - 防止指令重排一般可用于单例模式，说下实现单例模式的几种方式
+- cas
+    - aba问题
+- ReentrantLock、ReadWriteLock
+
+### Spring等源码
+
 - Spring AOP的底层实现
     - jdk动态代理和cglib动态代理实现的区别
+
+### jvm
+
 - 说下java 的内存机制
+
+## db
+
+- mysql索引类型
 - mysql索引匹配方式
 - 什么是回表(innodb、myisam)
 	- 如何减少回表
@@ -61,5 +78,8 @@ https://chenzhou123520.iteye.com/blog/1863407
 - innodb更新数据时两阶段提交的过程
 	- 为什么要分两阶段提交
 - innodb刷新数据到磁盘有哪几种方式(innodb_flush_log_at_trx_commit)
+
+## web
+
 - vue的生命周期
 

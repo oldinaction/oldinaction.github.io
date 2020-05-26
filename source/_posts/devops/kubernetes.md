@@ -508,7 +508,7 @@ Troubleshooting and Debugging Commands:
     # kubectl exec -it sq-pod -c sq-busybox -- sh # -it同docker表示进入容器
   port-forward   Forward one or more local ports to a pod # 通过端口转发映射本地端口到指定的应用端口(proxy)
     # 一般是为了测试将集群中的某个服务的端口映射到节点的端口上，此时命令行会使命令行一直处于监听状态
-    # 语法：kubectl port-forward TYPE/NAME [options] [LOCAL_PORT:]REMOTE_PORT [...[LOCAL_PORT_N:]REMOTE_PORT_N]
+    # 语法：kubectl port-forward TYPE/NAME [options] [LOCAL_PORT:]REMOTE_PORT [...[LOCAL_PORT_N:]REMOTE_PORT_N]。此处REMOTE_PORT指的是pod的端口，而不是service的端口
     # eg:
         # kubectl port-forward --address 0.0.0.0 sq-pod-8696c98b6f-j2stv 8080:80 1443:443 # 此时访问 http://192.168.6.131:8080/ 即可
         # kubectl port-forward --address 0.0.0.0 $(kubectl get pods --namespace default -l "app=wordpress,tier=mysql" -o jsonpath="{.items[0].metadata.name}") 13306:3306
@@ -715,8 +715,9 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
         - `nodePort` 仅type=NodePort/LoadBalancer时，使用Node的端口映射服务端口(确保Node端口可用)，不指定则随机。NodePort默认端口范围为30000~32768
     - `externalName` 仅用于type=ExternalName，取值应该是一个外部域名，CNAME记录。CNAME -> FQDN
     - `externalIPs` 可配合`IPVS`实现将外部流量引入到集群内部，同时实现负载均衡，即用来定义VIP(直接填写一个和节点同一网段没使用过的IP即可，无需创建VIP)；可以和任一类型的Service一起使用(如LoadBalancer)
-    - `sessionAffinity` 是否session感知的：ClientIP(同一个客户永远访问的是同一个pod)、None(默认)
     - `externalTrafficPolicy` 取值：Cluster(默认。隐藏源IP，可能会导致第二跳进行转发，负载可用性好)、Local(保留客户端源 IP 地址，不会尝试转发)。如果服务需要将外部流量路由到本地节点或者集群级别的端点，即service type 为LoadBalancer或NodePort，那么需要指明该参数
+        - 当取值Cluster时，kube-proxy会在所有节点监听对应的nodePort，且可访问任意节点IP+nodePort访问到应用(可能会进行第二跳转发，且源IP会丢失)；当取值Local时，kube-proxy仅会在pod对应节点监听端口，且此时只能根据该节点IP访问到应用
+    - `sessionAffinity` 是否session感知的：ClientIP(同一个客户永远访问的是同一个pod)、None(默认)
 - `status` 当前状态(current state)。由K8s进行维护，用户无需修改
 
 #### 简单示例
@@ -902,7 +903,7 @@ kubectl delete -f sq-pod.yaml
     - 如果使用https访问，则只需要在Ingress Control进行配置证书(否则所有的Pod都需要配置证书)，k8s内部Pod无需处理，内部仍然使用http明文调用(此时相当于再进行一次反向代理)
         - 客户域名进行访问，此时是访问到NodePort Service，而Service调度到Pod是第四层转换，而Https是工作在第七层。要建立Https连接必须要和最终主机(Pod)完成，因此就需要所有Pod配置https证书(K8s最终选择Ingress解决Https问题)
 - `Ingress` 简单的理解就是你原来需要改 Nginx 配置，然后配置各种域名对应哪个 Service，现在把这个动作抽象出来，变成一个 Ingress 对象，可以用 yaml 创建，每次不要去改 Nginx 了，直接改 yaml 然后创建/更新就行了；那么问题来了："nginx 该怎么处理？"
-- `Ingress Controller` 就是解决 "Nginx 的处理方式"的，Ingress Controoler 通过与 Kubernetes API 交互，动态的去感知集群中 Ingress 规则变化，然后读取他，按照他自己模板生成一段 Nginx 配置，再写到 Nginx Pod 里，最后 reload 一下，工作流程如下图
+- `Ingress Controller` 就是解决 "Nginx 的处理方式"的，Ingress Controoler 通过与 Kubernetes API 交互，动态的去感知集群中 Ingress 规则变化，然后读取他，按照他自己模板生成一段 Nginx 配置，再写到 Nginx Pod(Ingress-nginx) 里，最后 reload 一下，工作流程如下图
 
     ![k8s-ingress](/data/images/devops/k8s-ingress.png)
 
@@ -911,8 +912,8 @@ kubectl delete -f sq-pod.yaml
     - 此时使用NodePort暴露Ingress Controller；也可以(使Node)直接访问到Ingress Controller，不经过前面的Service(NodePort)。需要将Ingress Controller设置成DaemonSet，且共享Node的IP和端口
 - Ingress的资源类型：单Service资源型Ingress、基于URL路径进行流量转发、基于主机名称的虚拟主机、TLS类型的Ingress资源
 - K8s中Ingress Control支持类型
-    - 传统的七层负载均衡如Nginx，HAproxy，开发了适应微服务应用的插件，具有成熟，高性能等优点；
-    - 新型微服务负载均衡如Traefik(基于go开放，和k8s融合更紧密)，Envoy，Istio，专门适用于微服务+容器化应用场景，具有动态更新特点
+    - 传统的七层负载均衡，如Nginx，HAproxy，开发了适应微服务应用的插件，具有成熟，高性能等优点；
+    - 新型微服务负载均衡，如Traefik(基于go开放，和k8s融合更紧密)，Envoy，Istio，专门适用于微服务+容器化应用场景，具有动态更新特点
 
 #### Ingress Controller部署(以ingress-nginx为例)
 
@@ -1013,7 +1014,9 @@ spec:
         - name: ajp
           containerPort: 8009
 ```
-- 编写ingress的配置清单。如果有多个应用，可以创建多个Ingress
+- 编写ingress的配置清单
+    - Ingress必须基于域名进行设置，测试可将域名-IP对应关系写到本地hosts中
+    - 如果有多个应用，可以创建多个Ingress
 
 ```yml
 # ingress-sq-ingress.yaml
@@ -1104,7 +1107,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
     - `accessModes` 定义访问模式，必须是PV的访问模式的子集。一般如`ReadWriteOnce`
     - `resources` 定义申请资源的大小
         - `requests`
-            - `storage` 定义大小，eg：3Gi
+            - `storage` 定义大小，eg：2Gi
     - `storageClassName` 可自动根据PVC创建PV
 - `kubectl explain sc` 查看StorageClass(sc)配置
     - `provisioner` 存储提供者，如`rook-ceph.rbd.csi.ceph.com`(基于rook-ceph的存储方案)

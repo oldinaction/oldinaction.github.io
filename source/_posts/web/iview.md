@@ -336,6 +336,10 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 </Drawer>
 ```
 
+### Progress
+
+- percent必须不能使用子对象属性，否则无法代码增减进度
+
 ## 样式
 
 ### 主题

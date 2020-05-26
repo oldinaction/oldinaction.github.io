@@ -458,8 +458,15 @@ controller:
   replicaCount: 1
   # 使用VIP地址达到负载均衡的效果(将域名绑定到此VIP，如果不设置可能无法通过域名访问。删除需要重新创建ingress-nginx-pod才会生效)
   service:
+    # 服务类型使用默认值LoadBalancer，此时需要指定externalIPs
+    type: LoadBalancer
     externalIPs:
     - 192.168.6.129
+    # # 服务类型使用NodePort，此时需要指定监听的节点端口nodePorts
+    # type: NodePort
+    # nodePorts:
+    #   http: 30080
+    #   https: 30443
   # 临时可使用宿主机网络测试(如果使用externalIPs则不能使用此属性)
   #hostNetwork: true
   config:
@@ -499,6 +506,8 @@ kubectl get pod -n ingress-nginx -o wide
 # 更新部署的release
 # 修改配置文件后执行
 helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-nginx.yaml
+
+helm del --purge nginx-ingress
 ```
 
 ### Kubernetes Dashboard
@@ -850,12 +859,15 @@ helm del --purge postgresql-devops
 - ceph存储使用说明
     - 基于helm部署，如果删除helm-release则会与原PV关联断开，即使重新部署也会产生新的PV
     - 如果仅仅删除pod，则原PV是继续使用的(RS会重新创建)
-    - 
 - 数据迁移
 
 ```bash
 ## 备份数据到新pv(此处将文件整体备份，还可导出数据库配置进行备份)
-# 1.tar打包原数据，创建新pv省略
+# 1.tar打包原数据；创建新pvc(会自动创建新pv)省略
+rbd map --name client.admin kube/kubernetes-dynamic-pvc-64748f59-92ce-11ea-bc8c-3e7edb1ad634 # 映射，生成原镜像设备名称，输出如 `/dev/rbd0`
+mount /dev/rbd0 /mnt # 临时挂载，打包原数据
+umount /mnt # 卸载设备
+rbd unmap /dev/rbd0 # 取消映射
 # 2.(此处使用ceph存储)映射-创建文件系统-临时挂载
 rbd map --name client.admin kube/kubernetes-dynamic-pvc-4c04b64e-09c0-11ea-89b1-5aa8347da671 # 输出 `/dev/rbd2`
 mkfs.ext4 -m2 /dev/rbd/kube/kubernetes-dynamic-pvc-4c04b64e-09c0-11ea-89b1-5aa8347da671
@@ -863,8 +875,12 @@ mount /dev/rbd2 /mnt
 # 3.复制tar包数据到临时挂载目录
 # 4.卸载原挂载目录(卸载目录时不能有用户处于/mnt目录)
 umount /dev/rbd2
+rbd unmap /dev/rbd2
 # 5.注释掉原 persistence.storageClass 配置，增加 persistence.existingClaim 配置为新的pvc
 # 6.重新创建chart
+# 7.删除原镜像
+
+## 或者先创建好pod，然后再将原数据复制到自动挂载的目录
 ```
 
 ### Redis
@@ -1099,7 +1115,7 @@ helm del --purge jenkins # 如果删除部署后重新部署，会重新创建�
 
 - [官网](http://skydive.network/index.html)
 - Skydive 是一款开放式源代码的实时网络拓扑和协议分析器，并可通过WEB界面展示
-    - Skydive agent，运行在各个节点上，捕捉该节点的拓扑和流量信息
+    - Skydive agent，运行在各个节点上，捕捉该节点的拓扑和流量信息。会占用每个节点的8081端口，如果访问http://192.168.6.131:8081可访问此节点的网络拓扑
     - Skydive analyzer，收集所有agents捕获的信息
 
 > https://hub.kubeapps.com/charts/ibm-charts/ibm-skydive-dev
@@ -1117,11 +1133,16 @@ helm install --name skydive --namespace monitoring ibm-charts/ibm-skydive-dev --
 helm upgrade skydive ibm-charts/ibm-skydive-dev --version=1.1.2 -f skydive-values.yaml
 helm del --purge skydive
 
-# 访问。等待pod正常运行后获取访问ip
-export UI_PORT=$(kubectl get --namespace monitoring -o jsonpath="{.spec.ports[0].nodePort}" services skydive-ibm-skydive-dev-service)
+# 管理端，可获取全局拓扑。等待pod正常运行后获取访问ip
 export UI_IP=$(kubectl get nodes --namespace monitoring -o jsonpath="{.items[0].status.addresses[0].address}")
+export UI_PORT=$(kubectl get --namespace monitoring -o jsonpath="{.spec.ports[0].nodePort}" services skydive-ibm-skydive-dev-service)
 echo "skydive end-point: http://$UI_IP:$UI_PORT"
 ```
+- 管理端界面使用
+    - Filter 过滤网络
+        - `G.V()` 获取所有节点级别网络
+        - `G.V().Has("Manager",NE("k8s"))` 获取k8s级别网络拓扑
+
 
 ## Go template语法
 

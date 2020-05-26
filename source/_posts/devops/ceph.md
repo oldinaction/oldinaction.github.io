@@ -833,6 +833,8 @@ inventory                #Get this nodes available disk inventory # 查看节点
 
 ```bash
 See 'rbd help <command>' for help on a specific command.
+# 全局可选项
+--name/-n arg # client name
 
 ### rbd <xxx> <pool-name>/<image-name>  # pool-name不填则为rbd
 info        # 查看镜像信息 Show information about image size, striping, etc.
@@ -855,7 +857,7 @@ deep copy (deep cp)               # Deep copy src image to dest.
 device list (showmapped)          # List mapped rbd images.
     # rbd showmapped    # 列举已映射块设备(pool、image等信息)，存储块必须映射后才能挂载
 device map (map)                  # 映射块设备
-    # rbd map --name client.admin mypool/myrbd # 执行成功打印如`/dev/rbd2`
+    # rbd map --name client.admin mypool/myrbd # 执行成功打印设备名称，如`/dev/rbd2`
 device unmap (unmap)              # 取消块设备映射
     # rbd unmap /dev/rbd2 # 取消块设备映射
 disk-usage (du)                   # Show disk usage stats for pool, image or snapshot.

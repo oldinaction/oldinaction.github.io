@@ -16,7 +16,13 @@ tags: [concurrence]
     - 8.0 中的 Lambda(如Stream)
 - https://www.cnblogs.com/dolphin0520/category/1426288.html
 
-## 线程基础
+## 多线程与高并发
+
+> https://github.com/bjmashibing/JUC
+
+### 线程基础
+
+#### 线程基础
 
 - 创建线程
     - (T1 extends Thread).start()
@@ -32,7 +38,7 @@ tags: [concurrence]
 
     ![thread-state](/data/images/java/thread-state.png)
 
-### synchronized线程同步
+#### synchronized线程同步
 
 - **加锁方式**
     - 锁定对象(把任意一个非NULL的对象当作锁，不能使用String常量、Integer、Long等包装数据类型)
@@ -81,14 +87,116 @@ tags: [concurrence]
         - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高；系统锁会进入到等待队列，等待CPU调用，不占用CPU资源
         - 执行时间短、线程数比较少时使用自旋锁较好；执行时间长、线程数多时用系统锁较好
 
-46
+#### volitail
 
+#### CAS
 
-## 多线程与高并发-JUC(java.util.concurrent)
+- CAS(Compare And Set/Swap)，进行无锁操作，本质属于乐观锁。当期望值(原值)等于要更新的值时，再进行修改；如果值不相等则循环等待
+- `AtomicXXX` 相关类底层都是基于CAS实现
+- ABA问题 (一#46#1:37)
+    - 指某个对象的子引用可能在中途已经发生了变化。通俗的，如路人A的女朋友和他复合之后，中间经历了其他男人
 
-> https://github.com/bjmashibing/JUC
+### JUC(java.util.concurrent)
 
+#### 相关类
 
+##### Atomic相关类
+
+- AtomicXXX相关类底层都是基于[CAS](#CAS)实现
+- 当线程很大的时候(如10000个)，数递增效率：LongAdder > AtomicLong > Synchronized
+    - LongAdder使用了**分段锁**，AtomicLong使用了CAS操作，而Synchronized可能会申请重量级锁
+        - 分段锁：
+
+##### ReentrantLock可重入锁
+
+- ReentrantLock可重入锁：
+    - ReentrantLock可替代synchronized
+    - synchronized也是属于可重入锁，否则子类调用父类无法实现
+- ReentrantLock需手动加锁lock.lock()和解锁lock.unlock()。一般在try中加锁，finally中进行解锁
+- 相比synchronized的优势
+    - 可使用lock.tryLock(5, TimeUnit.SECONDS)进行尝试锁定，如果5秒钟之类拿到了锁则返回true
+    - 可使用lock.lockInterruptibly()指定此锁为可被打断锁，之后可通过thread.interrupt()打断线程释放锁
+    - 可使用new ReentrantLock(true)创建一个**公平锁**(此时的true，默认为非公平锁)，synchronized是非公平锁
+        - 公平锁：
+
+```java
+Lock lock = new ReentrantLock();
+lock.lock();
+lock.unlock();
+lock.lockInterruptibly();
+```
+
+##### CountDownLatch倒数门栓
+
+- CountDown倒数，Latch门栓，当倒数结束后，打开门栓
+
+```java
+CountDownLatch latch = new CountDownLatch(10); // 初始化一个计数器
+...
+latch.countDown(); // 如当一个线程结束，则倒数一下(也可在一个线程countDown多次)
+...
+latch.await(); // 当latch倒数到0则往下执行，否则会停在此处
+...
+```
+
+##### CyclicBarrier循环栅栏
+
+```java
+CyclicBarrier barrier = new CyclicBarrier(10); // 计数器
+...
+barrier.await(); // 某个线程在等待，计数器+1；当计数器满后则释放所有线程等待
+...
+```
+
+##### Phaser分段栅栏
+
+```java
+Phaser phaser = new Phaser(); // 也可继承Phaser，重写其onAdvance方法(所有人到达栅栏时会自动调用此方法)
+...
+phaser.register(); // 加入一个选手
+phaser.bulkRegister(10); // 批量加入选手
+...
+phaser.arriveAndAwaitAdvance(); // 到达此栅栏，并等待其他选手到达后跑向下一个栅栏
+...
+phaser.arriveAndDeregister(); // 到达并退出比赛
+```
+
+##### ReadWriteLock读写锁(共享锁和排他锁)
+
+- 读的时候为共享锁(所有线程都可以读)，写的时候为排他锁(只能当前线程操作)
+
+```java
+ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+Lock readLock = readWriteLock.readLock(); // 读锁
+Lock writeLock = readWriteLock.writeLock(); // 写锁
+readLock.lock(); // 当前线程获取读锁。如果读的时候不加锁，其他线程可能会写入，导致脏读
+```
+
+##### Semaphore信号量
+
+- 如用在限流上
+
+```java
+Semaphore s = new Semaphore(10); // 信号灯数量，此处允许10个线程同时执行
+s.acquire(); // 阻塞方法，直到获得一个信号灯(锁)才可继续执行
+s.release(); // 释放得到的信号灯
+
+Semaphore s = new Semaphore(10, true); // true表示公平锁，默认是非公平的
+```
+
+##### Exchanger交换器
+
+```java
+Exchanger<String> exchanger = new Exchanger<>();
+
+// 对两个线程的数据进行交换，最终str1给到线程2，str2给到了线程1
+ret1 = exchanger.exchange(str1); // 在线程1中执行
+ret2 = exchanger.exchange(str2); // 在线程2中执行
+```
+
+#### 底层原理
+
+58
 
 
 

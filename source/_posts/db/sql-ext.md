@@ -55,6 +55,26 @@ select sysdate, add_months(sysdate, -12) from dual; -- 减1年
 select * from `user`; -- mysql
 select * from [Order]; -- sqlserver
 ```
+- 空值
+
+```sql
+-- oracle null包含了空字符串('' == null)
+select * from users where last_name is null;
+select * from users where last_name is not null;
+-- mysql null不包含空字符串('' != null)
+select * from users where last_name is null or last_name = '';
+select * from users where last_name is not null and last_name != '';
+```
+
+### 排序
+
+- 控制排序
+
+```sql
+order by my_field [asc|desc] nulls [first|last] -- oracle
+order by IF(ISNULL(my_field),1,0), my_field [asc|desc] -- mysql默认将null值放在下面
+order by IF(ISNULL(my_field),0,1), my_field [asc|desc] -- mysql默认将null值放在上面
+```
 
 ## 复杂查询
 
