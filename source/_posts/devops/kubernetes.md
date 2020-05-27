@@ -1931,13 +1931,15 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
     - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
 - 报错`MountVolume.WaitForAttach failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd image kube/kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 is still being used`
     - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
+    - 将原rbd观察者加入到黑名单后，新的观察者即可自动添加(历史数据不会丢失)
 - 报错`pod has unbound immediate PersistentVolumeClaims`
     - 情况一：此时pod日志显示`AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"`，且PV和PVC均正常显示Bound(PV也符合PVC的要求)。后发现pod日志只显示`Pulling image "docker.io/bitnami/mongodb:4.2.6"`，并未显示`Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"`，后发现对接节点确实没有相应镜像，由此推断镜像获取失败导致
     - 情况二：一直卡在`pod has unbound immediate PersistentVolumeClaims`，无后续日志 [^12] [^13] [^10]
         - 出现场景：pod之前正常运行，但是某时刻该节点震荡，导致此pod不可用，并自动创建了新pod；且pv是基于StorageClass从ceph请求存储空间；且创建pod时pvc申请策略为ReadWriteOnce
         - 原因分析：由于ceph只支持ReadWriteOnce模式，便将pvc设置成了ReadWriteOnce；而此时滚动更新时会产生多一个pod，而ReadWriteOnce的访问模式又不允许两个pod挂载同一个volume
         - 解决：RollingUpdate模式下设置strategy.rollingUpdate.maxSurge=0
-
+- 报错`MountVolume.MountDevice failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd: failed to mount device /dev/rbd5 at /var/lib/kubelet/plugins/kubernetes.io/rbd/mounts/kube-image-kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 (fstype: ext4), error 'fsck' found errors on device /dev/rbd5 but could not correct them: fsck from util-linux 2.23.2 /dev/rbd5: recovering journal /dev/rbd5 contains a file system with errors, check forced. /dev/rbd5: Unconnected directory inode 131149 (/???) /dev/rbd5: UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY. (i.e., without -a or -p options)`
+    - 进入到对应节点，手动执行`fsck /dev/rbd5`进行磁盘检查。注意进行数据备份
 
 ### pv/pvc
 

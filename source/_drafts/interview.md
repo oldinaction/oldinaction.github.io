@@ -54,9 +54,10 @@ https://chenzhou123520.iteye.com/blog/1863407
     - 结合乐观锁和悲观锁，cas(Compare And Swap，比较并替换，乐观锁)
 - volitail的作用：保证(属性)线程可见性，防止指令重排；volitail不保证原子性
     - 防止指令重排一般可用于单例模式，说下实现单例模式的几种方式
-- cas
-    - aba问题
+- CAS
+    - ABA问题
 - ReentrantLock、ReadWriteLock
+- AQS
 
 ### Spring等源码
 

@@ -15,6 +15,14 @@ tags: [concurrence]
     - 7.0 中的 Fork/Join 框架
     - 8.0 中的 Lambda(如Stream)
 - https://www.cnblogs.com/dolphin0520/category/1426288.html
+- 源码阅读技巧
+    - 跑不起来不读
+    - 解决问题即可
+    - 理解别人的思路
+    - 一条线索到底
+    - 无关细节略过
+    - 一般不读静态
+    - 数据结构基础，设计模式基础
 
 ## 多线程与高并发
 
@@ -25,18 +33,39 @@ tags: [concurrence]
 #### 线程基础
 
 - 创建线程
-    - (T1 extends Thread).start()
+    - new (T1 extends Thread).start()
     - new Thread(new MyRunnable()).start()，或者JDK8：new Thread(()->{...}).start();
 - 线程的相关方法(sleep/yield/join)
     - `Thread.sleep()`和`wait`的区别 [^4]
         - sleep是Thread类的方法，wait是Object类中定义的方法
         - sleep和wait都会暂停当前的线程，对于CPU资源来说，不管是哪种方式暂停的线程，都表示它暂时不再需要CPU的执行时间，OS会将执行时间分配给其它线程。区别是，调用wait后，需要别的线程执行notify/notifyAll才能够重新获得CPU执行时间；而sleep到达一定时间则会继续执行
-        - sleep不会导致锁行为的改变。所谓sleep是指让线程暂停被调度一段时间，或者挂起一段时间。整个sleep过程除了修改挂起状态之外，不会动任何其他的资源，这些资源包括任何持有的任何形式的锁。至于认为sleep消耗资源的情况如下：如果A线程抢到一把锁，然后sleep，B线程无论如何也无法获取该锁，从而B的执行被卡住，浪费了CPU
-    - `Thread.yield()`：当前线程让出CPU一小会调度其他线程，并进入等待队列等待CPU的下次调度，也可能存在让出CPU之后仍然调度的是此线程
-    - `join()`：CPU执行A线程一段时间，当在A线程的代码中遇到b.join()，此时CPU会到B线程中去执行，等B执行完后再回到A线程继续执行。感觉像把B线程加入到A线程
+        - sleep不会导致锁行为的改变；wait会释放锁，notify不会释放锁，wait回来继续执行时，仍然需要获得锁才能继续执行。所谓sleep是指让线程暂停被调度一段时间，或者挂起一段时间。整个sleep过程除了修改挂起状态之外，不会动任何其他的资源，这些资源包括任何持有的任何形式的锁。至于认为sleep消耗资源的情况如下：如果A线程抢到一把锁，然后sleep，B线程无论如何也无法获取该锁，从而B的执行被卡住，浪费了CPU
+    - `Thread.yield()`
+        - 当前线程让出CPU一小会调度其他线程，并进入等待队列等待CPU的下次调度，也可能存在让出CPU之后仍然调度的是此线程
+    - `join()`
+        - CPU执行A线程一段时间，当在A线程的代码中遇到b.join()，此时CPU会到B线程中去执行，等B执行完后再回到A线程继续执行。感觉像把B线程加入到A线程；类似于方法调用，只不过方法调用是同一个线程
 - 线程的状态： Thread.State.NEW、RUNNABLE、TERMINATED、TIMED_WAITING、WAITING、BLOCKED
 
     ![thread-state](/data/images/java/thread-state.png)
+
+#### 锁
+
+- 乐观锁和悲观锁 [^5]
+    - 乐观锁：假设不会发生并发冲突，直接不加锁去完成某项更新，如果冲突就返回失败(认为读多写少)
+    - 悲观锁：假设一定会发生并发冲突，通过阻塞其他所有线程来保证数据的完整性(认为写多读少)
+    - java中的乐观锁基本都是通过`CAS`(Compare And Swap，比较并替换)操作实现的，CAS是一种更新的原子操作，比较当前值跟传入值是否一样，一样则更新，否则失败
+    - 如Synchronized就是悲观锁；`AQS`框架下的锁则是先尝试cas乐观锁去获取锁，获取不到，才会转换为悲观锁，如`RetreenLock`
+- 共享锁和排他锁
+    - 共享锁(读锁)：就是允许多个线程同时获取一个锁，一个锁可以同时被多个线程拥有
+    - 排它锁(写锁)：也称作独占锁，一个锁在某一时刻只能被一个线程占有，其它线程必须等待锁被释放之后才可能获取到锁
+    - 如ReadWriteLock可分别获得读锁和写锁
+- 公平锁和非公平锁
+    - 公平锁：锁前先查看是否有排队等待的线程，有的话优先处理排在前面的线程，先来先得
+    - 非公平锁：线程需要加锁时直接尝试获取锁，获取不到就自动到队尾等待
+    - 更多的是直接使用非公平锁：非公平锁比公平锁性能高5-10倍，因为公平锁需要在多核情况下维护一个队列，如果当前线程不是队列的第一个无法获取锁，增加了线程切换次数
+- 分段锁(一种锁的设计模式)
+    - 容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率
+    - 对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
 
 #### synchronized线程同步
 
@@ -51,13 +80,6 @@ tags: [concurrence]
 - 注意点
     - 锁的是对象不是代码块
     - 锁定方法和非锁定方法可同时执行
-- 锁的类型 [^5]
-    - 乐观锁
-        - 是一种乐观思想，即认为读多写少，遇到并发写的可能性低。每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据，采取在写时先读出当前版本号，然后加锁操作（比较跟上一次的版本号，如果一样则更新），如果失败则要重复读-比较-写的操作
-        - java中的乐观锁基本都是通过`CAS`(Compare And Swap，比较并替换)操作实现的，CAS是一种更新的原子操作，比较当前值跟传入值是否一样，一样则更新，否则失败
-    - 悲观锁
-        - 悲观锁是就是悲观思想，即认为写多，遇到并发写的可能性高，每次去拿数据的时候都认为别人会修改，所以每次在读写数据的时候都会上锁，这样别人想读写这个数据就会block直到拿到锁
-        - java中的悲观锁就是Synchronized，`AQS`框架下的锁则是先尝试cas乐观锁去获取锁，获取不到，才会转换为悲观锁，如`RetreenLock`
 - java线程阻塞的代价
     - java的线程是映射到操作系统原生线程之上的，如果要阻塞或唤醒一个线程就需要操作系统介入，需要在户态与核心态之间切换，这种切换会消耗大量的系统资源
     - synchronized会导致争用不到锁的线程进入阻塞状态，所以说它是java语言中一个重量级的同步操纵，被称为重量级锁。为了缓解上述性能问题，JVM从1.5开始，引入了轻量锁与偏向锁，默认启用了自旋锁，他们都属于乐观锁
@@ -89,6 +111,8 @@ tags: [concurrence]
 
 #### volitail
 
+- 只能观测到简单数据类型和引用的变化，如果引用指向的对象值变化了是监测不到的
+
 #### CAS
 
 - CAS(Compare And Set/Swap)，进行无锁操作，本质属于乐观锁。当期望值(原值)等于要更新的值时，再进行修改；如果值不相等则循环等待
@@ -104,26 +128,32 @@ tags: [concurrence]
 
 - AtomicXXX相关类底层都是基于[CAS](#CAS)实现
 - 当线程很大的时候(如10000个)，数递增效率：LongAdder > AtomicLong > Synchronized
-    - LongAdder使用了**分段锁**，AtomicLong使用了CAS操作，而Synchronized可能会申请重量级锁
-        - 分段锁：
+    - LongAdder使用了分段锁，AtomicLong使用了CAS操作，而Synchronized可能会申请重量级锁
 
 ##### ReentrantLock可重入锁
 
-- ReentrantLock可重入锁：
+- ReentrantLock可重入锁
     - ReentrantLock可替代synchronized
     - synchronized也是属于可重入锁，否则子类调用父类无法实现
 - ReentrantLock需手动加锁lock.lock()和解锁lock.unlock()。一般在try中加锁，finally中进行解锁
 - 相比synchronized的优势
     - 可使用lock.tryLock(5, TimeUnit.SECONDS)进行尝试锁定，如果5秒钟之类拿到了锁则返回true
     - 可使用lock.lockInterruptibly()指定此锁为可被打断锁，之后可通过thread.interrupt()打断线程释放锁
-    - 可使用new ReentrantLock(true)创建一个**公平锁**(此时的true，默认为非公平锁)，synchronized是非公平锁
-        - 公平锁：
+    - 可使用new ReentrantLock(true)创建一个公平锁(此时的true，默认为非公平锁)，synchronized是非公平锁
+    - 可使用lock.newCondition()创建不同的等待队列，批量等待或唤醒某一个等待队列里面的线程
 
 ```java
 Lock lock = new ReentrantLock();
 lock.lock();
 lock.unlock();
-lock.lockInterruptibly();
+lock.tryLock(5, TimeUnit.SECONDS) // 进行尝试锁定
+lock.lockInterruptibly(); // 指定此锁为可被打断锁
+new ReentrantLock(true) // 创建一个公平锁
+
+Condition condition1 = lock.newCondition(); // 相当于一个等待队列。可以定义多个等待队列，来获取同一把锁，此时等待或唤醒可以基于不同的等待队列进行操作
+Condition condition2 = lock.newCondition();
+condition1.await();
+condition1.signalAll();
 ```
 
 ##### CountDownLatch倒数门栓
@@ -194,11 +224,33 @@ ret1 = exchanger.exchange(str1); // 在线程1中执行
 ret2 = exchanger.exchange(str2); // 在线程2中执行
 ```
 
-#### 底层原理
+##### LockSupport
 
-58
+```java
+LockSupport.park(); // 阻塞当前线程，线程进入到WAITING状态
+LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于park之前调用，则等到park执行时也不会阻塞
+```
 
+#### 面试题
 
+- t1线程负责打印1-10，t2线程负责监控；当t1打印到5时，t2进行提示并结束。可通过如下方式实现
+    - wait，notify
+    - LockSupport
+    - Semaphore，join
+- t1、t2两个线程，t1线程负责打印A-Z，t2线程负责打印1-26，如果交替打印A1B2...Z26
+- 有一个2个生成者，10个消费者，且容器最大可以装10个产品，如果完成消费和生产过程
+    - synchronized，wait，notiy
+    - ReentrantLock
+
+#### AQS底层原理
+
+- AQS(CLH)
+    - 基于CAS+volitail实现 
+- AQS数据结构
+
+### ThreadLocal
+
+62
 
 ## 常用类
 

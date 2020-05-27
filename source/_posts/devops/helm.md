@@ -1021,6 +1021,7 @@ helm del --purge harbor
 wget https://github.com/goharbor/harbor-helm/archive/v1.2.1.tar.gz
 tar -xvzf v1.2.1.tar.gz
 helm install --name harbor --namespace devops ./harbor-helm-1.2.1 -f harbor-values.yaml
+helm upgrade harbor ./harbor-helm-1.2.1 -f harbor-values.yaml
 ```
 - 数据库初始化语句如
 

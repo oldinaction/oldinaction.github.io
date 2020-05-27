@@ -705,6 +705,13 @@ myConfig:
   # classpath为编译后classes目录的路径
   path: classpath:../db/default.accdb
 ```
+- [获取Maven版本号](https://blog.yeskery.com/articles/382195730)
+
+```yml
+# 再通过@Value注入，返回如：1.0.0-SNAPSHOT
+version:
+  @project.version@
+```
 
 ## 请求及响应
 
