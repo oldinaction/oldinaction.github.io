@@ -957,6 +957,19 @@ methods: {
 }
 ```
 
+### 点击按钮后下载
+
+```html
+<!-- click方法中不能直接使用window对象 -->
+<a @click="linkDownload('https://www.baidu.com')">百度</a>
+
+<script>
+linkDownload (url) {
+    window.open(url, '_blank') // 新窗口打开外链接
+}
+</script>
+```
+
 ## 样式
 
 ### lang 和 scoped

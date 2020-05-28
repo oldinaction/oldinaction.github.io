@@ -459,7 +459,7 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
     ```sql
     -- Oracle：如果a表和b表的字段相同，最好给两张表加别名
     update a set (a1, a2, a3) = (select b1, b2, b3 from b where a.id = b.id) where exists (select 1  from b where a.id = b.id);
-    -- Mysql：update的表不能加别名，oracle可以加别名
+    -- Mysql：update的表不能加别名，oracle可以加别名。当字段相同时直接使用表名做前缀
     update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id;
     update a left join b on a0 = b0 set a1 = b1, a2 = b2, a3 = b3 where a.valid_status = 1;
     ```

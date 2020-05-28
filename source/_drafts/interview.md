@@ -58,6 +58,10 @@ https://chenzhou123520.iteye.com/blog/1863407
     - ABA问题
 - ReentrantLock、ReadWriteLock
 - AQS
+    - VarHandle
+- ThreadLocal
+    - 内部为什么要使用弱引用
+- 
 
 ### Spring等源码
 

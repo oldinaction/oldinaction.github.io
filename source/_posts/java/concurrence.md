@@ -135,10 +135,10 @@ tags: [concurrence]
 - ReentrantLock可重入锁
     - ReentrantLock可替代synchronized
     - synchronized也是属于可重入锁，否则子类调用父类无法实现
-- ReentrantLock需手动加锁lock.lock()和解锁lock.unlock()。一般在try中加锁，finally中进行解锁
+- ReentrantLock需手动加锁lock.lock()和解锁lock.unlock()。**一般在try中加锁，finally中进行解锁(否则可能异常导致解锁失败产生死锁)**。lock.unlock()在未获得锁时执行会报异常IllegalMonitorStateException
 - 相比synchronized的优势
     - 可使用lock.tryLock(5, TimeUnit.SECONDS)进行尝试锁定，如果5秒钟之类拿到了锁则返回true
-    - 可使用lock.lockInterruptibly()指定此锁为可被打断锁，之后可通过thread.interrupt()打断线程释放锁
+    - 可使用lock.lockInterruptibly()指定此锁为可被打断锁，之后可通过thread.interrupt()打断线程释放锁。实际测试lock.lock()也可以被打断
     - 可使用new ReentrantLock(true)创建一个公平锁(此时的true，默认为非公平锁)，synchronized是非公平锁
     - 可使用lock.newCondition()创建不同的等待队列，批量等待或唤醒某一个等待队列里面的线程
 
@@ -152,8 +152,8 @@ new ReentrantLock(true) // 创建一个公平锁
 
 Condition condition1 = lock.newCondition(); // 相当于一个等待队列。可以定义多个等待队列，来获取同一把锁，此时等待或唤醒可以基于不同的等待队列进行操作
 Condition condition2 = lock.newCondition();
-condition1.await();
-condition1.signalAll();
+condition1.await(); // 让condition1队列中的线程进行等待
+condition2.signalAll(); // 唤醒condition2队列中的线程
 ```
 
 ##### CountDownLatch倒数门栓
@@ -231,26 +231,56 @@ LockSupport.park(); // 阻塞当前线程，线程进入到WAITING状态
 LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于park之前调用，则等到park执行时也不会阻塞
 ```
 
+#### AQS底层原理
+
+- AQS(CLH)
+    - 基于CAS+volitail实现 
+- AQS数据结构
+    - volitail state 具体代表看子类怎么实现
+    - 加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待
+- `VarHandle`类 (JDK9才有)
+    - 可对普通属性进行原子性操作
+    - 比反射快，直接操纵二进制码
+
 #### 面试题
 
 - t1线程负责打印1-10，t2线程负责监控；当t1打印到5时，t2进行提示并结束。可通过如下方式实现
     - wait，notify
     - LockSupport
     - Semaphore，join
-- t1、t2两个线程，t1线程负责打印A-Z，t2线程负责打印1-26，如果交替打印A1B2...Z26
-- 有一个2个生成者，10个消费者，且容器最大可以装10个产品，如果完成消费和生产过程
-    - synchronized，wait，notiy
-    - ReentrantLock
+- t1、t2两个线程，t1线程负责打印A-Z，t2线程负责打印1-26，如何交替打印A1B2...Z26
+- 写一个固定容量同步容器，拥有put和get方法，能够支持2个生产者线程以及10个消费者线程的阻塞调用
+    - synchronized，wait，notiyAll
+    - ReentrantLock，Condition
 
-#### AQS底层原理
+#### ThreadLocal
 
-- AQS(CLH)
-    - 基于CAS+volitail实现 
-- AQS数据结构
+- 最终将数据放到当前Thread的Map对象中
+- ThreadLocal用途
+    - 如声明式事务，保证同一个Connection。不同的方法拿Connection时先从ThreadLocal中获取连接，防止拿到的Connection不是同一个对象
+- Java引用类型：强软弱虚
+    - 强引用：Object o = new Object(); (普通引用)为强引用，当 o = null 时，上述对象才会被GC回收
+    - 软引用(SoftReference)：一个对象如果只被软引用对象指向时，当内存不足时(可指定IDEA的VM参数如-Xms20M -Xmx20M)才会回收该对象，否则不会回收。主要用在缓存
+    - **弱引用**(WeakReference)：只要遭遇到GC就会被回收。如果一个对象除了被弱引用指向，还被一个强引用指向时，当强引用消失后，这个对象也会被回收，如ThreadLocal中使用了这个特性。弱引用一般用在Java容器中，WeakHashMap
+    - 虚引用(PhantomReference)
+        - 主要管理堆外内存。如底层在实现JVM时会使用，Netty也会使用
+        - 遇到GC时，虚引用肯定被回收。当虚引用被回收时，只会往相应队列中放一个值，从而监测队列来获取回收通知
+        - 无法通过虚引用获取指向的对象的值
 
-### ThreadLocal
+### 容器
 
-62
+- 容器分为Collection和Map接口，Collection又分为List、Set、Queue(主要用在高并发)
+- 最早的容器(1.0)：Vector，Hashtable
+    - 其中Vector实现了List接口，Hashtable实现了Map接口，他们的缺点是所有的方法都加了synchronized了(有些场景不需要加锁，所有此场景效率低)
+    - 现在基本不用
+- 后来增加了HashMap，此类的方法全部无锁。Map map = Collections.synchronizedMap(new HashMap()); 返回一个加锁的HashMap(仍然基于synchronized实现)，通过此方式使HashMap可以适用加锁和无锁的场景
+
+
+#### Ve Hashtable
+
+
+
+
 
 ## 常用类
 

@@ -382,7 +382,7 @@ consul members
     # Version 1.0
 
     # FROM 基础镜像
-    FROM centos
+    FROM bzyep49h.mirror.aliyuncs.com/library/centos
 
     # MAINTAINER 维护者信息
     MAINTAINER smalle
@@ -692,7 +692,7 @@ volumes:
 - 在文件夹test下创建文件`Dockerfile`，并将`jdk-7u80-linux-x64.tar.gz`复制进去
 
 ```Dockerfile
-FROM centos:7
+FROM bzyep49h.mirror.aliyuncs.com/library/centos:7
 MAINTAINER smalle
 # ADD https://github.com/frekele/oracle-java/releases/download/7u80-b15/jdk-7u80-linux-x64.tar.gz /usr/local
 ADD jdk-7u80-linux-x64.tar.gz /usr/local
