@@ -106,7 +106,7 @@ tags: [concurrence]
         - 如果线程争用，则升级为自旋锁
         - 自旋10次之后，仍然没有获取到锁，则升级为重量级锁(从OS获取锁)
     - 自旋锁和系统锁(OS锁/重量级锁)
-        - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高；系统锁会进入到等待队列，等待CPU调用，不占用CPU资源
+        - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高；系统锁会进入到等待队列，等待CPU调用，不占用CPU资源。CAS属于自旋锁，有的认为CAS是无锁
         - 执行时间短、线程数比较少时使用自旋锁较好；执行时间长、线程数多时用系统锁较好
 
 #### volitail
@@ -227,7 +227,7 @@ ret2 = exchanger.exchange(str2); // 在线程2中执行
 ##### LockSupport
 
 ```java
-LockSupport.park(); // 阻塞当前线程，线程进入到WAITING状态
+LockSupport.park(); // 阻塞当前线程，线程进入到WAITING状态，并不是锁
 LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于park之前调用，则等到park执行时也不会阻塞
 ```
 
@@ -249,6 +249,8 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - LockSupport
     - Semaphore，join
 - t1、t2两个线程，t1线程负责打印A-Z，t2线程负责打印1-26，如何交替打印A1B2...Z26
+    - wait，notify
+    - LockSupport
 - 写一个固定容量同步容器，拥有put和get方法，能够支持2个生产者线程以及10个消费者线程的阻塞调用
     - synchronized，wait，notiyAll
     - ReentrantLock，Condition
@@ -269,16 +271,84 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 
 ### 容器
 
-- 容器分为Collection和Map接口，Collection又分为List、Set、Queue(主要用在高并发)
-- 最早的容器(1.0)：Vector，Hashtable
-    - 其中Vector实现了List接口，Hashtable实现了Map接口，他们的缺点是所有的方法都加了synchronized了(有些场景不需要加锁，所有此场景效率低)
-    - 现在基本不用
-- 后来增加了HashMap，此类的方法全部无锁。Map map = Collections.synchronizedMap(new HashMap()); 返回一个加锁的HashMap(仍然基于synchronized实现)，通过此方式使HashMap可以适用加锁和无锁的场景
+- 发展历史
+    - 最早的容器(1.0)：Vector，Hashtable
+        - 其中Vector实现了List接口，Hashtable实现了Map接口，他们的缺点是所有的方法都加了synchronized了(有些场景不需要加锁，所有此场景效率低)
+        - 现在基本不用
+    - 后来增加了HashMap，此类的方法全部无锁。Map map = Collections.synchronizedMap(new HashMap()); 返回一个加锁的HashMap(仍然基于synchronized实现)，通过此方式使HashMap可以适用加锁和无锁的场景
+    - 直到现在的ConcurrentHashMap等
+- 容器
+    - Collection 主要用来放单个对象，其子接口
+        - List
+            - Vector
+                - Stack 栈，为LIFO(后进先出)
+            - ArrayList
+            - LinkedList
+            - CopyOnWriteList，写入会加锁，取出不会(也不用)加锁，因此写慢读快
+        - Set
+            - HashSet
+                - LinkedHashSet
+            - SortedSet
+                - TreeSet
+            - EnumSet
+            - CopyOnWriteArrayList
+            - CopyOnWriteSkipListSet
+        - Queue 高并发较常用
+            - 相关方法
+                - add 添加，加不进去会报错
+                - offer 添加，加入成功或不成功会返回一个Boolean
+                - remove 移除
+                - peek 取出
+                - poll 取出并移除元素
+                - element
+            - **BlockingQueue** 天然的生产者消费者模型，线程池中会使用到
+                - 相关方法
+                    - put 放入元素，满了会阻塞等待
+                    - take 取出元素，没有则阻塞等待
+                - DelayQueue
+                    - 元素需要实现Delayed接口，通过compareTo方法决定哪个先执行(常规的是按照队列顺序执行)
+                    - 常用于基于时间的任务调度，等待时间段的先执行
+                - SynchronusQueue 同步Queue
+                    - 线程的容量为0，不能往里面放元素，调用add会报错
+                    - 当调用put放入元素后，如果没有被取走(take)，则put后会一致等待直到take拿走元素。类似于Exchanger可作线程间数据交换
+                - TransferQueue
+                    - 相关方法
+                        - transfer 相比put的区别是，放入元素后，直到被取走，否则一直阻塞等待
+                    - LinkedTransferQueue
+                - ArrayBlockingQueue
+                - PriorityBlockingQueue
+            - Deque 是double ended queue的简称，习惯上称之为双端队列(头尾均可加入取出元素)。发音为deck
+                - 当作为队列使用时，为FIFO(先进先出)模型，对应使用方法
+                    - addLast
+                    - offerLast
+                    - removeFirst
+                    - pollFirst
+                    - peekFirst
+                    - getFirst
+                - 当作为栈使用时，为LIFO(后进先出)模型，此接口优于传统的Stack类，对应使用方法
+                    - addFirst
+                    - removeFirst(同上)
+                    - peekFirst(同上)
+                - ArrayDeque
+                - BlockingDeque
+                    - LinkedBlockingDeque
+            - PriorityQueue 最小的先执行，内部是一个堆排序的二叉树
+            - ConcurrentLinkedQueue
+    - Map 用来放Key-Value型数据
+        - HashMap
+            - LinkedHashMap
+        - TreeMap
+        - WeakHashMap
+        - IdentityHashMap
+        - **ConcurrentHashMap**
+        - ConcurrentSkipListMap
+- Queue和List的区别
+    - Queue主要加入了一些线程有好的API，如offer、peek、poll
+    - Queue的子类BlockingQueue又加入了put、take
 
+### 线程池
 
-#### Ve Hashtable
-
-
+69  22:45
 
 
 
