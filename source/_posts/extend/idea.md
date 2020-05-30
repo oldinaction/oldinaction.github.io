@@ -105,6 +105,8 @@ ThisCrackLicenseId-{
         - 点击其中任何一个依赖，会在右侧显示重复引用的来源(基于版本降序) 
         - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
 - `jclasslib Bytecode viewer` 查看java class字节代码。安装后在View - Show Bytecode With jclasslib(打开一个类可进行查看)
+- `JMH plugin` Java基准测插件
+- `JMeter plugin`
 
 ### Lombox
 

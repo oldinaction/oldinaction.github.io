@@ -113,14 +113,15 @@ tags: [concurrence]
 
 - 只能观测到简单数据类型和引用的变化，如果引用指向的对象值变化了是监测不到的
 
+
+### JUC(java.util.concurrent)同步工具
+
 #### CAS
 
 - CAS(Compare And Set/Swap)，进行无锁操作，本质属于乐观锁。当期望值(原值)等于要更新的值时，再进行修改；如果值不相等则循环等待
 - `AtomicXXX` 相关类底层都是基于CAS实现
 - ABA问题 (一#46#1:37)
     - 指某个对象的子引用可能在中途已经发生了变化。通俗的，如路人A的女朋友和他复合之后，中间经历了其他男人
-
-### JUC(java.util.concurrent)
 
 #### 相关类
 
@@ -283,7 +284,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
             - Vector
                 - Stack 栈，为LIFO(后进先出)
             - ArrayList
-            - LinkedList
+            - LinkedList 链表插入快，遍历慢
             - CopyOnWriteList，写入会加锁，取出不会(也不用)加锁，因此写慢读快
         - Set
             - HashSet
@@ -308,7 +309,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - DelayQueue
                     - 元素需要实现Delayed接口，通过compareTo方法决定哪个先执行(常规的是按照队列顺序执行)
                     - 常用于基于时间的任务调度，等待时间段的先执行
-                - SynchronusQueue 同步Queue
+                - SynchronousQueue 同步Queue
                     - 线程的容量为0，不能往里面放元素，调用add会报错
                     - 当调用put放入元素后，如果没有被取走(take)，则put后会一致等待直到take拿走元素。类似于Exchanger可作线程间数据交换
                 - TransferQueue
@@ -316,6 +317,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                         - transfer 相比put的区别是，放入元素后，直到被取走，否则一直阻塞等待
                     - LinkedTransferQueue
                 - ArrayBlockingQueue
+                - LinkedBlockingQueue
                 - PriorityBlockingQueue
             - Deque 是double ended queue的简称，习惯上称之为双端队列(头尾均可加入取出元素)。发音为deck
                 - 当作为队列使用时，为FIFO(先进先出)模型，对应使用方法
@@ -333,9 +335,9 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - BlockingDeque
                     - LinkedBlockingDeque
             - PriorityQueue 最小的先执行，内部是一个堆排序的二叉树
-            - ConcurrentLinkedQueue
+            - ConcurrentLinkedQueue JDK中没有ConcurrentArrayQueue
     - Map 用来放Key-Value型数据
-        - HashMap
+        - **HashMap**
             - LinkedHashMap
         - TreeMap
         - WeakHashMap
@@ -348,7 +350,236 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 
 ### 线程池
 
-69  22:45
+- Executor 接口(java.util.concurrent.Executor)
+    - execute
+    - ExecutorService 接口
+        - submit 异步执行线程，返回Future。如 Future future = executorService.submit(callable);
+- Callable 类似于Runnable，只不过Callable有返回值，而Runnable没有
+    - call 类似于run，call有返回值，而run没有
+- Future
+    - get 获取返回结果，阻塞方法
+    - FutureTask 最终实现了Runnable和Future接口
+    - CompletableFuture 可方便管理多个Future结果
+        - supplyAsync
+        - allOf 所有任务完成了之后
+- Executors 线程池工厂，见下文
+- 线程池主要分为ThreadPoolExecutor和ForkJoinPool两种类型
+
+#### ThreadPoolExecutor
+
+- 继承自AbstractExecutorService(实现了ExecutorService接口 ==> 实现了Executor接口)
+- **7个参数**
+    - corePoolSize 核心线程数，一般即使不使用也不归还给系统
+    - maximumPoolSize 最大线程数
+    - keepAliveTime 生存时间，超过此时间没有使用则归还给系统
+    - 生存时间单位
+    - 线程队列
+        - 如：ArrayBlockingQueue
+    - 线程工厂
+        - 可使用Executors.defaultThreadFactory()获取默认提供的DefaultThreadFactory，也可自己实现ThreadFactory
+    - 拒绝策略
+        - 线程数忙，且线程队列忙，则执行拒绝策略
+        - 默认类型(也可自定义)
+            - Abort 抛异常。new ThreadPoolExecutor.AbortPolcy()
+            - Discard 扔掉，不抛异常
+            - DiscardOldest 扔掉排队时间最久的
+            - CallerRuns 调用者(调用execute方法的线程)处理任务
+- 线程池调度过程
+    - 线程池实例化后创建核心线程
+    - 核心线程使用完后，新线程则放入到任务队列(此时是放到队列而不是启动新线程)
+    - 如果还有新线程，则启动新线程来处理
+    - 如果还有新线程，线程数也达到指定的最大值，且线程队列满了，则执行拒绝策略
+    - 线程不使用了则归还线程数，最终保留核心线程数
+- Executors中基于ThreadPoolExecutor实现线程池的方法
+    - singleThreadExecutor 只有一个线程的线程池
+    - newFixedThreadPool 固定线程数的线程池，如用于线程数比较平稳的常见
+    - newCachedTreadPoll 核心线程数为0，最大线程数为Integer.MAX_VALUE，线程队列为SynchronousQueue(只有元素被取走了才能继续放元素)，如用于线程数波动比较大的场景
+    - newScheduledThreadPool 用于执行定时任务的线程池，实际用定时任务中间件较多
+- 阿里开发者手册不建议使用JDK自带线程池，主要原因是自带线程池的线程队列最大为Integer.MAX_VALUE，容易出现OOM，而且线程数太多，会竞争CPU，浪费时间在上下文切换上；且一般也建议自定义拒绝策略？
+- ThreadPoolExecutor源码解析
+
+#### ForkJoinPool
+
+- 将大任务分解成小任务(Fork)，最后进行汇总(Join)。ForkJoinPool中放的Task为ForkJoinTask
+- ForkJoinTask 抽象类(implements Future)
+    - RecursiveAction 抽象类(Recursive递归，当任务不够小时可一直切分)，无返回值
+    - RecursiveTask 抽象类，有返回值
+- WorkStealingPool 每个线程有自己单独的队列，当某个线程的队列消耗完后则从其他线程队列中拿任务。基于ForkJoinPool实现
+    - push 将任务放到线程队列
+    - pop 从线程队列拿任务
+    - poll 从其他线程队列拿任务，需要加锁
+- Executors中基于ForkJoinPool实现线程池的方法
+    - newWorkStealingPool
+- ParallelStream API [^7]
+    - Stream(流)是JDK8中引入的一种类似与迭代器(Iterator)的单向迭代访问数据的工具。ParallelStream则是并行的流，它通过Fork/Join 框架(JSR166y)来拆分任务(本质是基于ForkJoinPool实现)，加速流的处理过程。如list.parallelStream()，普通的流式是list.stream()
+    - ParallelStream使用了线程名为ForkJoinPool.commonPool-worker-*的线程，而这些线程来自于 ForkJoinPool#makeCommonPool (由此也可说明底层使用了ForkJoinPool)。也可能将main线程作为执行线程
+    - ParallelStream是阻塞的
+    - ParallelStream是多线程，注意线程安全
+    - 其性能测试可参看[下文JMH测试工具的示例](#JMH测试工具)
+
+<details>
+<summary>ParallelStream示例</summary>
+
+```java
+public class T01_ParallelStream {
+    public static void main(String[] args) {
+        // ParallelStream的执行线程来自于ForkJoinPool#makeCommonPool中的线程或main线程
+        testPrintParallelStreamThreadName();
+
+        // ParallelStream是多线程，注意线程安全
+        testThreadSafe();
+    }
+
+    public static void testPrintParallelStreamThreadName() {
+        List<Integer> lists = Lists.newArrayList();
+        for (int i = 0; i < 10000; i++) {
+            lists.add(i);
+        }
+
+        // 普通的循环
+        // [main]
+        Set<String> sequenceThreadNameSet = Sets.newHashSet();
+        lists.forEach(e -> sequenceThreadNameSet.add(Thread.currentThread().getName()));
+        System.out.println(sequenceThreadNameSet);
+
+        // ParallelStream使用了线程名为ForkJoinPool.commonPool-worker-*的线程，而这些线程来自于 ForkJoinPool#makeCommonPool (由此也可说明底层使用了ForkJoinPool)。也可能将main线程作为执行线程
+        // [ForkJoinPool.commonPool-worker-1, ForkJoinPool.commonPool-worker-2, main, ForkJoinPool.commonPool-worker-3, ForkJoinPool.commonPool-worker-4]
+        Set<String> parallelThreadNameSet = Sets.newHashSet();
+        lists.parallelStream().forEach(e -> parallelThreadNameSet.add(Thread.currentThread().getName()));
+        System.out.println(parallelThreadNameSet);
+    }
+
+    // 此方法执行可能会报错，或者parallelStorage可能产生null
+    public static void testThreadSafe() {
+        List<Integer> nums = new ArrayList<>();
+        for (int i = 0; i <100; i++) {
+            nums.add(i);
+        }
+
+        // parallelStorage可能产生null，因为在ArrayList中存储数据的过程不是一个线程安全的过程导致的
+        List<Integer> parallelStorage = new ArrayList<>();
+        nums
+            .parallelStream()
+            .filter(i->i%2==0)
+            .forEach(i->parallelStorage.add(i));
+
+        // 此处为了将null打印在前面。如：null null 0 2 4 6 8 10 12 ...
+        parallelStorage
+            .stream()
+            .sorted((o1, o2) -> {
+                if (o1 == null) {
+                    return -1;
+                } else if (o2 == null) {
+                    return 1;
+                } else {
+                    return o1 > o2 ? 1 : o1.equals(o2) ? 0 : -1;
+                }
+            })
+            .forEach(e -> System.out.print(e + " "));
+    }
+}
+```
+</details>
+
+### JMH测试工具
+
+- JMH(Java Microbenchmark Harness)，为Java微基准测工具，[官网](http://openjdk.java.net/projects/code-tools/jmh/) [^6]
+- 依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-core -->
+<dependency>
+    <groupId>org.openjdk.jmh</groupId>
+    <artifactId>jmh-core</artifactId>
+    <version>1.21</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-generator-annprocess -->
+<dependency>
+    <groupId>org.openjdk.jmh</groupId>
+    <artifactId>jmh-generator-annprocess</artifactId>
+    <version>1.21</version>
+    <scope>test</scope>
+</dependency>
+```
+- 安装IDEA插件：JMH plugin
+- 由于JMH用到了注解，需要打开IDEA运行程序注解配置：Build - compiler -> Annotation Processors -> Enable Annotation Processing
+- 注解
+    - `@Benchmark ` 方法注解，表示该方法是需要进行 benchmark 的对象
+    - `@BenchmarkMode(Mode.Throughput)` 不同的测量的维度或测量方式
+        - Throughput 整体吞吐量
+        - AverageTime 调用的平均时间
+        - SampleTime 随机取样，最后输出取样结果的分布，例如"99%的调用在xxx毫秒以内，99.99%的调用在xxx毫秒以内"
+        - SingleShotTime 以上模式都是默认一次 iteration 是 1s，唯有 SingleShotTime 是只运行一次。往往同时把 warmup 次数设为0，用于测试冷启动时的性能
+    - `@Warmup(iterations = 1, time = 3)` 进行预热1次，执行3秒。因为 JVM 的 JIT 机制的存在，如果某个函数被调用多次之后，JVM 会尝试将其编译成为机器码从而提高执行速度。为了让 benchmark 的结果更加接近真实情况就需要进行预热
+    - `@Measurement(iterations = 10, time = 3)` 执行10次测试，执行3秒
+    - `@Fork(5)` 进行 fork 的次数，可用于类或者方法上。如此时 JMH 会 fork 出5个进程来进行测试
+
+<details>
+<summary>JMH示例</summary>
+
+```java
+// 被测试类方法
+public class T01_PS {
+    private static List<Integer> nums = new ArrayList<>();
+
+    static {
+        Random r = new Random();
+        for (int i = 0; i < 1000; i++) {
+            nums.add(1000000 + r.nextInt(1000000));
+        }
+    }
+
+    static void foreach() {
+        nums.forEach(T01_PS::isPrime);
+    }
+
+    // 内部使用了ForkJoinPool
+    static void parallelStreamForeach() {
+        nums.parallelStream().forEach(T01_PS::isPrime);
+    }
+
+    // 判断是否为质数
+    static boolean isPrime(Integer num) {
+        for (int i=2; i<=num/2; i++) {
+            if(num % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+// 测试类，放在maven的test文件夹下
+/**
+ * Benchmark                              Mode  Cnt  Score   Error  Units
+ * T01_PSTest.testForeach                thrpt    5  0.289 ± 0.099  ops/s
+ * T01_PSTest.testParallelStreamForeach  thrpt    5  0.968 ± 1.460  ops/s
+ */
+@Warmup(iterations = 1, time = 3)
+@Fork(5)
+@BenchmarkMode(Mode.Throughput)
+@Measurement(iterations = 1, time = 3) // 此处只执行1此，实际iterations可设置大些
+public class T01_PSTest {
+
+    @Benchmark
+    public void testForeach() {
+        T01_PS.foreach();
+    }
+
+    @Benchmark
+    public void testParallelStreamForeach() {
+        T01_PS.parallelStreamForeach();
+    }
+}
+```
+</details>
+
+### Disruptor单机最快MQ
+
+- 单机性能极高，无锁(cas)，使用环形Buffer，直接覆盖(不用清除)旧数据，降低GC频率，实现了基于事件的生产者消费者模式(观察者模式)
+- ConcurrentLinkedQueue
+
 
 
 
@@ -710,3 +941,5 @@ public abstract class AbstractMultiThreadTestSimpleTemplate {
 [^3]: https://www.infoq.cn/article/fork-join-introduction
 [^4]: https://www.zhihu.com/question/23328075
 [^5]: https://www.cnblogs.com/linghu-java/p/8944784.html (Java锁---偏向锁、轻量级锁、自旋锁、重量级锁)
+[^6]: https://www.jianshu.com/p/ad34c4c8a2a3
+[^7]: https://blog.liexing.me/2018/11/03/parallelstream-trap/
