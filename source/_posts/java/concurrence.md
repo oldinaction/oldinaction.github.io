@@ -50,6 +50,7 @@ tags: [concurrence]
 
 #### 锁
 
+- [不可不说的Java“锁”事](https://mp.weixin.qq.com/s?__biz=MjM5NjQ5MTI5OA==&mid=2651749434&idx=3&sn=5ffa63ad47fe166f2f1a9f604ed10091&chksm=bd12a5778a652c61509d9e718ab086ff27ad8768586ea9b38c3dcf9e017a8e49bcae3df9bcc8&scene=38#wechat_redirect)
 - 乐观锁和悲观锁 [^5]
     - 乐观锁：假设不会发生并发冲突，直接不加锁去完成某项更新，如果冲突就返回失败(认为读多写少)
     - 悲观锁：假设一定会发生并发冲突，通过阻塞其他所有线程来保证数据的完整性(认为写多读少)
@@ -63,6 +64,9 @@ tags: [concurrence]
     - 公平锁：锁前先查看是否有排队等待的线程，有的话优先处理排在前面的线程，先来先得
     - 非公平锁：线程需要加锁时直接尝试获取锁，获取不到就自动到队尾等待
     - 更多的是直接使用非公平锁：非公平锁比公平锁性能高5-10倍，因为公平锁需要在多核情况下维护一个队列，如果当前线程不是队列的第一个无法获取锁，增加了线程切换次数
+- 可重入锁和非可重入锁
+    - 可重入锁：一个线程中的多个流程可以获取同一把锁。就是一个加锁的代码片段调用了另外一个加锁的代码片段，如果是同一个线程被调用的第二个代码片段是可以获得第一个代码片段的锁的
+    - 非可重入锁：反之
 - 分段锁(一种锁的设计模式)
     - 容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率
     - 对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
@@ -109,19 +113,139 @@ tags: [concurrence]
         - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高；系统锁会进入到等待队列，等待CPU调用，不占用CPU资源。CAS属于自旋锁，有的认为CAS是无锁
         - 执行时间短、线程数比较少时使用自旋锁较好；执行时间长、线程数多时用系统锁较好
 
-#### volitail
+#### volatile
 
-- 只能观测到简单数据类型和引用的变化，如果引用指向的对象值变化了是监测不到的
+- volatile作用
+    - 保证线程可见性。只能观测到简单数据类型和引用的变化，如果引用指向的对象属性值(包括数组)变化了是监测不到的
+    - 防止指令重排
+- volatile不能替代synchronized来保证线程安全
+- volatile基于**内存屏障**实现
+    - 内存屏障基本概念
+        - 就是一个CPU指令，包括读屏障和写屏障，主要功能(1)确保一些特定操作执行的顺序，(2)影响一些数据的可见性(可能是某些指令执行后的结果)
+        - 编译器和CPU可以在保证输出结果一样的情况下对指令重排序，使性能得到优化。插入一个内存屏障，相当于告诉CPU和编译器先于这个命令的必须先执行，后于这个命令的必须后执行
+        - 内存屏障另一个作用是强制更新一次不同CPU的缓存。例如，一个写屏障会把这个屏障前写入的数据刷新到缓存，这样任何试图读取该数据的线程将得到最新值，而不用考虑到底是被哪个CPU核心或者哪颗CPU执行的。参考下文[CPU缓存一致性协议MESI](#Disruptor)
+    - 如果字段是volatile，Java内存模型将在写操作后插入一个写屏障指令(storefence)，在读操作前插入一个读屏障指令(loadfence)
+    - 对性能的影响主要在刷新缓存的开销上。如[Disruptor](#Disruptor)提供Batch操作实现对序列号的读写频率降到最低
+- DLC(Double Check Lock)单例中对volatile的应用 (一#46#0:35:54)
 
+<details>
+<summary>DLC示例</summary>
+
+```java
+public class T02_DLC_Singleton {
+    private static volatile T02_DLC_Singleton INSTANCE;
+
+    private T02_DLC_Singleton() {
+    }
+
+    public static T02_DLC_Singleton getInstance() {
+        // do something...
+        if (INSTANCE == null) {
+            // synchronized不锁定在方法上是为了减少锁定代码量
+            synchronized (T02_DLC_Singleton.class) {
+                // 双重检查。如果不进行双重检查，有可能出现两个线程同时进行第一次判断发现INSTANCE为空，进入到synchronized，此时会先后执行两次实例初始化
+                if(INSTANCE == null) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    /*
+                     * Object o = new Object(); 可分为4步(此处同理)
+                     * 1.new #11 <java/lang/Object>：申请内存(并设置默认值，如设置此o对象的某属性为int a = 0)
+                     * 2.dup
+                     * 3.invokespecial #1 <java/lang/Object.<init>>：实例化对象(设置属性的初始值，a = 1)
+                     * 4.astore_1：将此对象的引用赋值给变量o
+                     *
+                     *
+                     * 如果不加volatile则可能出现指令重排，可能出现1-2-4-3的执行顺序(就是将没有初始化完全的对象引用提前赋值给了变量)
+                     * 如果第一个线程执行按照此方式执行到第4(还未执行3)，第二个线程判断发现INSTANCE不为空(已经被赋值了引用地址)
+                     * 则第二个线程可能会使用第一个线程创建的对象，此时可能使用到对象中的一些未初始化好的属性产生意想不到的结果
+                     */
+                    INSTANCE = new T02_DLC_Singleton();
+                }
+            }
+        }
+        return INSTANCE;
+    }
+
+    public static void main(String[] args) {
+        for(int i=0; i<100; i++) {
+            new Thread(()->{
+                System.out.println(T02_DLC_Singleton.getInstance().hashCode());
+            }).start();
+        }
+    }
+}
+```
+</details>
 
 ### JUC(java.util.concurrent)同步工具
 
 #### CAS
 
-- CAS(Compare And Set/Swap)，进行无锁操作，本质属于乐观锁。当期望值(原值)等于要更新的值时，再进行修改；如果值不相等则循环等待
-- `AtomicXXX` 相关类底层都是基于CAS实现
-- ABA问题 (一#46#1:37)
-    - 指某个对象的子引用可能在中途已经发生了变化。通俗的，如路人A的女朋友和他复合之后，中间经历了其他男人
+- CAS(Compare And Swap)
+    - 进行无锁操作(有认为是无锁，也有认为是自旋锁)，本质属于乐观锁。当期望值(原值)等于要更新的值时，再进行修改；如果值不相等则循环等待
+    - 最终基于`sun.misc.Unsafe.compareAndSwapXXX`实现。Unsafe可以直接操作JVM内存，如对于方法allocateMemory(分配内存，对应C中的malloc，C++中的new)和freeMemory(释放内存，对应C中的free，C++中的delete)
+- **AtomicXXX、AQS 类底层都是基于CAS实现**
+- ABA问题 (一#46#1:37:00)
+    - 指某个对象的子引用可能在中途已经发生了变化(如果是普通数据类型则无所谓)。通俗的，如路人A的女朋友和他复合之后，中间经历了其他男人
+    - 解决办法增加版本号，如AtomicStampedReference
+
+#### AQS底层原理
+
+- [从ReentrantLock的实现看AQS的原理及应用](https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html)
+- AQS(AbstractQueuedSynchronizer) **基于CAS + volatile实现**
+- AQS数据结构
+
+    ![aqs-structure](/data/images/java/aqs-structure.png)
+    - AQS使用一个volatile的int类型的成员变量来表示同步状态，通过内置的FIFO队列来完成资源获取的排队工作，通过CAS完成对state值的修改
+    - CLH(Craig、Landin and Hagersten，人名)队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列(FIFO)，AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配
+- 以ReentrantLock为例说明AQS执行过程
+
+    ![reentrantlock-aqs](/data/images/java/reentrantlock-aqs.png)
+    - 加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待
+- 为什么 AQS 需要一个虚拟 head 节点
+    - Node 类的 waitStatus 变量用于表名当前节点状态。其中SIGNAL表示当当前节点释放锁的时候，需要唤醒下一个节点，所有每个节点在休眠前，都需要将前置节点的 waitStatus 设置成 SIGNAL，否则自己永远无法被唤醒
+        - 初始状态是 0
+        - CANCELLED 被取消了，为1
+        - SIGNAL 释放锁时，唤醒下一个节点，为-1
+        - CONDITION 线程处于等待状态，为-2
+        - PROPAGATE
+    - AbstractQueuedSynchronizer.enq中可查看代码
+- `VarHandle`类 (JDK9才有)
+    - 可对普通属性进行原子性操作
+    - 比反射快，直接操纵二进制码
+
+#### ReentrantLock可重入锁
+
+- ReentrantLock可重入锁
+    - ReentrantLock可替代synchronized(也是属于可重入的)
+    - synchronized也是属于可重入锁，否则子类调用父类无法实现
+- ReentrantLock需手动加锁lock.lock()和解锁lock.unlock()。**一般在try中加锁，finally中进行解锁(否则可能异常导致解锁失败产生死锁)**。lock.unlock()在未获得锁时执行会报异常IllegalMonitorStateException
+- 与synchronized对比
+
+    ![reentrantlock-synchronized对比](/data/images/java/reentrantlock-synchronized.png)
+    - 可使用lock.tryLock(5, TimeUnit.SECONDS)进行尝试锁定，如果5秒钟之类拿到了锁则返回true
+    - 可使用lock.lockInterruptibly()指定此锁为可被打断锁，之后可通过thread.interrupt()打断线程释放锁。实际测试lock.lock()也可以被打断
+    - 可使用new ReentrantLock(true)创建一个公平锁(此时的true，默认为非公平锁)，synchronized是非公平锁
+    - 可使用lock.newCondition()创建不同的等待队列，批量等待或唤醒某一个等待队列里面的线程
+- 简单使用
+
+```java
+Lock lock = new ReentrantLock();
+lock.lock();
+lock.unlock();
+lock.tryLock(5, TimeUnit.SECONDS); // 进行尝试锁定
+lock.lockInterruptibly(); // 指定此锁为可被打断锁
+new ReentrantLock(true); // 创建一个公平锁
+
+Condition condition1 = lock.newCondition(); // 相当于一个等待队列。可以定义多个等待队列，来获取同一把锁，此时等待或唤醒可以基于不同的等待队列进行操作
+Condition condition2 = lock.newCondition();
+condition1.await(); // 让condition1队列中的线程进行等待
+condition2.signalAll(); // 唤醒condition2队列中的线程
+```
 
 #### 相关类
 
@@ -131,51 +255,34 @@ tags: [concurrence]
 - 当线程很大的时候(如10000个)，数递增效率：LongAdder > AtomicLong > Synchronized
     - LongAdder使用了分段锁，AtomicLong使用了CAS操作，而Synchronized可能会申请重量级锁
 
-##### ReentrantLock可重入锁
-
-- ReentrantLock可重入锁
-    - ReentrantLock可替代synchronized
-    - synchronized也是属于可重入锁，否则子类调用父类无法实现
-- ReentrantLock需手动加锁lock.lock()和解锁lock.unlock()。**一般在try中加锁，finally中进行解锁(否则可能异常导致解锁失败产生死锁)**。lock.unlock()在未获得锁时执行会报异常IllegalMonitorStateException
-- 相比synchronized的优势
-    - 可使用lock.tryLock(5, TimeUnit.SECONDS)进行尝试锁定，如果5秒钟之类拿到了锁则返回true
-    - 可使用lock.lockInterruptibly()指定此锁为可被打断锁，之后可通过thread.interrupt()打断线程释放锁。实际测试lock.lock()也可以被打断
-    - 可使用new ReentrantLock(true)创建一个公平锁(此时的true，默认为非公平锁)，synchronized是非公平锁
-    - 可使用lock.newCondition()创建不同的等待队列，批量等待或唤醒某一个等待队列里面的线程
-
-```java
-Lock lock = new ReentrantLock();
-lock.lock();
-lock.unlock();
-lock.tryLock(5, TimeUnit.SECONDS) // 进行尝试锁定
-lock.lockInterruptibly(); // 指定此锁为可被打断锁
-new ReentrantLock(true) // 创建一个公平锁
-
-Condition condition1 = lock.newCondition(); // 相当于一个等待队列。可以定义多个等待队列，来获取同一把锁，此时等待或唤醒可以基于不同的等待队列进行操作
-Condition condition2 = lock.newCondition();
-condition1.await(); // 让condition1队列中的线程进行等待
-condition2.signalAll(); // 唤醒condition2队列中的线程
-```
-
 ##### CountDownLatch倒数门栓
 
-- CountDown倒数，Latch门栓，当倒数结束后，打开门栓
+- CountDown倒数，Latch门栓，当倒数结束后，打开门栓。**和线程数无关，可在一个线程中countDown多次**
 
 ```java
 CountDownLatch latch = new CountDownLatch(10); // 初始化一个计数器
 ...
 latch.countDown(); // 如当一个线程结束，则倒数一下(也可在一个线程countDown多次)
 ...
-latch.await(); // 当latch倒数到0则往下执行，否则会停在此处
+latch.await(); // 当latch倒数到0则往下执行，否则会阻塞此处
 ...
+```
+- 底层基于AQS实现
+
+```java
+public void countDown() {
+    sync.releaseShared(1); // CountDownLatch.Sync extends AbstractQueuedSynchronizer
+}
 ```
 
 ##### CyclicBarrier循环栅栏
 
+- 基于ReentrantLock实现
+
 ```java
 CyclicBarrier barrier = new CyclicBarrier(10); // 计数器
 ...
-barrier.await(); // 某个线程在等待，计数器+1；当计数器满后则释放所有线程等待
+barrier.await(); // 某个线程在等待，计数器+1；当计数器满后则释放所有线程等待。基于ReentrantLock实现
 ...
 ```
 
@@ -232,17 +339,6 @@ LockSupport.park(); // 阻塞当前线程，线程进入到WAITING状态，并�
 LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于park之前调用，则等到park执行时也不会阻塞
 ```
 
-#### AQS底层原理
-
-- AQS(CLH)
-    - 基于CAS+volitail实现 
-- AQS数据结构
-    - volitail state 具体代表看子类怎么实现
-    - 加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待
-- `VarHandle`类 (JDK9才有)
-    - 可对普通属性进行原子性操作
-    - 比反射快，直接操纵二进制码
-
 #### 面试题
 
 - t1线程负责打印1-10，t2线程负责监控；当t1打印到5时，t2进行提示并结束。可通过如下方式实现
@@ -277,7 +373,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         - 其中Vector实现了List接口，Hashtable实现了Map接口，他们的缺点是所有的方法都加了synchronized了(有些场景不需要加锁，所有此场景效率低)
         - 现在基本不用
     - 后来增加了HashMap，此类的方法全部无锁。Map map = Collections.synchronizedMap(new HashMap()); 返回一个加锁的HashMap(仍然基于synchronized实现)，通过此方式使HashMap可以适用加锁和无锁的场景
-    - 直到现在的ConcurrentHashMap等
+    - 直到现在的ConcurrentHashMap、Queue等
 - 容器
     - Collection 主要用来放单个对象，其子接口
         - List
@@ -306,6 +402,9 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - 相关方法
                     - put 放入元素，满了会阻塞等待
                     - take 取出元素，没有则阻塞等待
+                - ArrayBlockingQueue(ABQ)
+                - LinkedBlockingQueue
+                - PriorityBlockingQueue 基于优先级的队列，数据机构为heap(堆，用数组实现的完全二叉树)
                 - DelayQueue
                     - 元素需要实现Delayed接口，通过compareTo方法决定哪个先执行(常规的是按照队列顺序执行)
                     - 常用于基于时间的任务调度，等待时间段的先执行
@@ -315,10 +414,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - TransferQueue
                     - 相关方法
                         - transfer 相比put的区别是，放入元素后，直到被取走，否则一直阻塞等待
-                    - LinkedTransferQueue
-                - ArrayBlockingQueue
-                - LinkedBlockingQueue
-                - PriorityBlockingQueue
+                    - LinkedTransferQueue 无锁(cas)
             - Deque 是double ended queue的简称，习惯上称之为双端队列(头尾均可加入取出元素)。发音为deck
                 - 当作为队列使用时，为FIFO(先进先出)模型，对应使用方法
                     - addLast
@@ -334,8 +430,8 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - ArrayDeque
                 - BlockingDeque
                     - LinkedBlockingDeque
+            - ConcurrentLinkedQueue 无锁(cas)，线程安全。JDK中没有ConcurrentArrayQueue
             - PriorityQueue 最小的先执行，内部是一个堆排序的二叉树
-            - ConcurrentLinkedQueue JDK中没有ConcurrentArrayQueue
     - Map 用来放Key-Value型数据
         - **HashMap**
             - LinkedHashMap
@@ -344,9 +440,25 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         - IdentityHashMap
         - **ConcurrentHashMap**
         - ConcurrentSkipListMap
+- 有界队列和无界队列
+    - 有界队列：就是有固定大小的队列。比如设定固定大小的 LinkedBlockingQueue
+    - 无界队列：指的是没有设置固定大小的队列。这些队列的特点是可以直接入列，直到溢出。当然现实几乎不会有到这么大的容量(超过 Integer.MAX_VALUE)，所以从使用者的体验上，就相当于"无界"。比如没有设定固定大小的 LinkedBlockingQueue
+    - 一般情况下要配置一下队列大小，设置成有界队列，否则JVM内存会被撑爆
 - Queue和List的区别
     - Queue主要加入了一些线程有好的API，如offer、peek、poll
     - Queue的子类BlockingQueue又加入了put、take
+- ArryaList和LinkedList
+    - 查询：ArrayList可直接通过下标查找数据(并且数据组对处理的缓存机制较友好，缓存行每次会读取相邻数据以撑满)，而LinkedList的链表需要遍历每个元素直到找到为止，因此查询时ArrayList性能高
+    - 插入：ArrayList是单向链表，底层是数组存储形式，如果在List中添加完元素之后，导致超过底层数组的长度，就会垃圾回收原来的数组，并且用System.copyArray赋值到新的数组当中，这开销就会变大(复制和实例化新数组)。而LikedList在插入时候，明显高于ArrayList，因为LinkedList是双向链表，只需要修改指针即可完成添加和删除元素
+    - 删除：ArrayList 整体的会向前移动一格，然后再要删除的index位置置空操作，ArrayList的remove要比add的时候更快，因为不用再复制到新的数组当中了。LikedList 的remove操作相对于ArrayList remove更快
+    - 使用与场景：如果查询较多可以使用ArrayList；但是如果是经常进行插入，删除操作可使用LinkedList
+- 常用的线程安全队列
+
+    ![juc-queue](/data/images/java/juc-queue.png)
+    - 队列的底层一般分成三种：数组、链表和堆。其中，堆一般情况下是为了实现带有优先级特性的队列
+    - ConcurrentLinkedQueue和LinkedTransferQueue都是通过原子变量compare and swap(CAS)这种不加锁的方式来实现的
+    - 通过不加锁的方式实现的队列都是无界的(无法保证队列的长度在确定的范围内)；而加锁的方式，可以实现有界队列。在稳定性要求特别高的系统中，为了防止生产者速度过快，导致内存溢出，只能选择有界队列；同时，为了减少Java的垃圾回收对系统性能的影响，会尽量选择array/heap格式的数据结构
+    - 下文提到的[Disruptor](#Disruptor)中使用的是环形队列+cas，性能极高
 
 ### 线程池
 
@@ -514,6 +626,7 @@ public class T01_ParallelStream {
     - `@Warmup(iterations = 1, time = 3)` 进行预热1次，执行3秒。因为 JVM 的 JIT 机制的存在，如果某个函数被调用多次之后，JVM 会尝试将其编译成为机器码从而提高执行速度。为了让 benchmark 的结果更加接近真实情况就需要进行预热
     - `@Measurement(iterations = 10, time = 3)` 执行10次测试，执行3秒
     - `@Fork(5)` 进行 fork 的次数，可用于类或者方法上。如此时 JMH 会 fork 出5个进程来进行测试
+- [官方样例](http://hg.openjdk.java.net/code-tools/jmh/file/tip/jmh-samples/src/main/java/org/openjdk/jmh/samples/)
 
 <details>
 <summary>JMH示例</summary>
@@ -575,13 +688,101 @@ public class T01_PSTest {
 ```
 </details>
 
-### Disruptor单机最快MQ
+### Disruptor
 
-- 单机性能极高，无锁(cas)，使用环形Buffer，直接覆盖(不用清除)旧数据，降低GC频率，实现了基于事件的生产者消费者模式(观察者模式)
-- ConcurrentLinkedQueue
+- [官网](http://lmax-exchange.github.io/disruptor/)、[github](https://github.com/LMAX-Exchange/disruptor)、[原理相关](https://ifeve.com/disruptor/)
+- Disruptor
+    - 是英国外汇交易公司LMAX开发的一个高性能队列，研发的初衷是解决内存队列(Kafka等位分布式队列)的延迟问题，为目前单机最快MQ，基于事件驱动
+    - 使用无锁(cas获取游标)，环形数组(RingBuffer)，直接覆盖(不用清除)旧数据，降低GC频率，实现了基于事件的生产者消费者模式(观察者模式)
+    - 目前，包括Apache Storm、Camel、Log4j2在内的很多知名项目都应用了Disruptor以获取高性能
+- ArrayBlockingQueue相比Disruptor的缺陷
+    - 加锁：多线程情况下，加锁通常会严重地影响性能，通常加锁比CAS性能要差
+    - [伪共享](https://www.cnblogs.com/cyfonly/p/5800758.html)
+        - 缓存系统中是以缓存行(cache line)为单位存储的，当多线程修改互相独立的变量时(发起的RFO请求会耗性能)，如果这些变量共享同一个缓存行，就会无意中影响彼此的性能，这就是伪共享
+            - CPU 缓存可以分为一级缓存(L1)，二级缓存(L2)，部分高端 CPU 还具有三级缓存(L3)。每一级缓存中所储存的全部数据都是下一级缓存的一部分，越靠近 CPU 的缓存越快也越小，所以 L1 缓存很小但很快。L1,L2只能被单独的 CPU 核使用，L3被单个插槽上的所有 CPU 核共享。主存(常说的内存)则由全部插槽上的所有 CPU 核共享
+            - MESI 协议及 RFO 请求：MSI、MESI(M修改, E专有, S共享, I无效)、MOSI及Dragon Protocol等都是为了解决缓存一致性的协议；RFO(Request For Owner)请求，为MESI协议中需要将当前核心的某缓存行设置为E，将其他核心的该缓存行设置为I
+        - ArrayBlockingQueue有三个成员变量：takeIndex需要被取走的元素下标，putIndex可被元素插入的位置的下标，count队列中元素的数量。这三个变量很可能放到一个缓存行中，但是之间修改没有太多的关联。所以每次修改，都会使之前(一级)缓存的数据失效，从而不能完全达到共享的效果
+        - 解决伪共享：采用缓存行填充(空间换时间)，JDK8开始可以使用@Contended注解来避免伪共享。Disruptor就是通过缓存行填充实现，如其[Sequence](https://github.com/LMAX-Exchange/disruptor/blob/46f57d94a188c2d9347e2aa0975e20332b0ae39a/src/main/java/com/lmax/disruptor/Sequence.java#L28)
+- Disruptor提供Batch操作实现对序列号的读写频率降到最低，主要考虑到sequence.value为volatile修饰，批量操作可以减少volatile产生的内存屏障，从而减少同步缓存
+- 依赖
 
+```xml
+<dependency>
+    <groupId>com.lmax</groupId>
+    <artifactId>disruptor</artifactId>
+    <version>3.4.2</version>
+</dependency>
+```
 
+<details>
+<summary>Disruptor示例</summary>
 
+```java
+public class Main {
+    public static void handleEvent(MyEvent event, long sequence, boolean endOfBatch) {
+        System.out.println(event.get());
+    }
+
+    public static void translate(MyEvent event, long sequence, ByteBuffer buffer) {
+        event.set(buffer.getLong(0));
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        // Specify the size of the ring buffer, must be power of 2. (长度为2的n次幂，利于二进制计算)
+        int bufferSize = 1024;
+
+        // 使用Lambda传入EventFactory，也可手动实现EventFactory接口再传入
+        Disruptor<MyEvent> disruptor = new Disruptor<>(MyEvent::new, bufferSize, DaemonThreadFactory.INSTANCE);
+
+        disruptor.handleEventsWith(Main::handleEvent);
+
+        disruptor.start();
+
+        // Get the ring buffer from the Disruptor to be used for publishing.
+        RingBuffer<MyEvent> ringBuffer = disruptor.getRingBuffer();
+
+        ByteBuffer bb = ByteBuffer.allocate(8);
+        // 不推荐。原因是这是一个capturing lambda, 每一个lambda会产生一个对象来承接bb，这样会产生大量的小对象
+        // ringBuffer.publishEvent((event, sequence) -> event.set(bb.getLong(0)));
+        // 推荐
+        for (long l = 0; true; l++) {
+            bb.putLong(0, l);
+            ringBuffer.publishEvent(Main::translate, bb); // 此时会通过CAS获取可sequence，具体可查看源码：MultiProducerSequencer.next
+            Thread.sleep(1000);
+        }
+    }
+}
+
+public class MyEvent {
+    private long value;
+
+    public long get() {
+        return value;
+    }
+
+    public void set(long value) {
+        this.value = value;
+    }
+}
+```
+</details>
+
+- ProducerType生产者线程模式
+    - 包括Producer.MULTI(会加锁)和Producer.SINGLE(不会加锁)
+    - 默认是MULTI，表示在多线程模式下产生sequence；如果确认是单线程生产者，那么可以指定SINGLE，效率会提升
+    - 如果是多个生产者(多线程)，但模式指定为SINGLE，则会出现线程不安全问题
+- (消费者)等待策略
+    - BlockingWaitStrategy(常用)：通过线程阻塞的方式，等待生产者唤醒，被唤醒后，再循环检查依赖的sequence是否已经消费
+    - SleepingWaitStrategy(常用): sleep
+    - YieldingWaitStrategy(常用)：尝试100次，然后Thread.yield()让出cpu
+    - BusySpinWaitStrategy：线程一直自旋等待，可能比较耗cpu
+    - LiteBlockingWaitStrategy：线程阻塞等待生产者唤醒。与BlockingWaitStrategy相比，区别在signalNeeded.getAndSet，如果两个线程同时访问，一个访问waitfor，一个访问signalAll时，可以减少lock加锁次数
+    - LiteTimeoutBlockingWaitStrategy：与LiteBlockingWaitStrategy相比，设置了阻塞时间，超过时间后抛异常
+    - TimeoutBlockingWaitStrategy：相对于BlockingWaitStrategy来说，设置了等待时间，超过后抛异常
+    - PhasedBackoffWaitStrategy：根据时间参数和传入的等待策略来决定使用哪种等待策略
+- 消费者异常处理
+    - disruptor.setDefaultExceptionHandler()
+    - disruptor.handleExceptionFor().with()
 
 ## 常用类
 

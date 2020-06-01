@@ -98,6 +98,58 @@ group by
 	c.name
 ```
 
+### 行转列/列转行
+
+- sqlserver
+    - 行转列：`PIVOT`用于将列值旋转为列名；也可用聚合函数配合CASE语句实现
+    - 列转行：`UNPIVOT`用于将列明转为列值；也可以用UNION来实现
+
+```sql
+/*
+
+-- course
+id  stu_no  course_name course_score
+1   1       yuewen      90
+2   1       shuxue      80
+3   1       yingyu      85
+4   2       yuewen      95
+5   2       shuxue      100
+6   2       yingyu      55
+
+-- course2
+stu_no  yuewen  shuxue  yingyu
+1       90      80      85
+2       95      100     55
+
+*/
+
+-- 行转列
+-- 基于pivot
+select a.stu_no, max(a.yuwen) as yuwen, max(a.shuxue) as shuxue, max(a.yingyu) as yingyu
+from course pivot(max(course_score) for course_name in(yuwen,shuxue,yingyu)) a 
+group by a.stu_no
+
+-- 基于case when
+select stu_no,
+max(case course_name when 'yuwen' then course_score else 0 end) as 'yuwen',
+max(case course_name when 'shuxue' then course_score else 0 end) as 'shuxue',
+max(case course_name when 'yingyu' then course_score else 0 end) as 'yingyu'
+from course group by stu_no
+
+-- 列转行
+select a.stu_no , a.course_name, a.course_score from course2 unpivot(course_score for course_name in(yuwen,shuxue,yingyu)) a
+
+select t.stu_no, t.course_name, t.course_score from
+(
+	select stu_no, course_name='yuwen', course_score=yuwen from course2
+	union all
+	select stu_no, course_name='shuxue', course_score=shuxue from course2
+	union all
+	select stu_no, course_name='yingyu', course_score=yingyu from course2
+) t order by t.stu_no, case t.course_name when 'yuwen' then 1 when 'shuxue' then 2 when 'yingyu' then 3 end
+```
+
+
 ## Mysql
 
 ### 常见问题

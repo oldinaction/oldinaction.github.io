@@ -34,6 +34,14 @@ accessDbInfos.forEach(item -> {
     }
 });
 ```
+- (变量)捕获和非捕获
+
+```java
+list.forEach(i -> System.out.println(i)); // 非变量捕获
+
+int origin = 10;
+list.forEach(i -> System.out.println(origin + i)); // 变量捕获(内部使用非传入参数)
+```
 
 ### 方法引用(::)
 
