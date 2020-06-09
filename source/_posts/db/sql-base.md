@@ -879,20 +879,22 @@ set session transaction isolation level read uncommitted;
 
 ## Mysql日志原理
 
-- https://www.cnblogs.com/f-ck-need-u/p/9010872.html
+- 参考文章 [^2] [^3]
 
 ### InnoDB日志(Redo/Undo)
 
-- Redo log和Undo log都是innodb存储引擎才有日志文件
+- Redo log(重做日志)和Undo log都是innodb存储引擎才有日志文件
 - Redo Log是为了实现数据持久性
     - **当发生数据修改的时候， innodb引擎会先将数据更新内存并写到redo log(buffer)中，此时更新就算是完成了**；同时innodb引擎会在合适的时机将记录操作到磁盘中
     - redo log是固定大小的，是循环写的过程，空间会用完(可通过参数配置其大小)
+        - 如果redolog太小，会导致很快被写满，然后就不得不强行刷redolog，这样WAL机制的能力就无法发挥出来。如果磁盘能达到几TB，那么可以将redolog设置4个一组，每个日志文件大小为1GB，写到3号文件末尾后就回到0号文件开头。`show variables like '%innodb_log_file%';`查看单个文件的大小
     - redo log是物理日志，即数据页中的真实二级制数据，恢复速度快
     - innodb存储引擎数据的单位是页，redo log也是基于页进行存储，一个默认16K大小的页中存了很多512Byte的log block，log block的存储格式如[log block header 12Byte，log block body 492 Bytes，log block tailer 8 Bytes]
-    - 用途重做数据页。有了redo log之后，innodb就可以保证即使数据库发生异常重启，之前的记录也不会丢失，系统会自动恢复之前记录，叫做crash-safe
+    - 用途是重做数据页。有了redo log之后，innodb就可以保证即使数据库发生异常重启，之前的记录也不会丢失，系统会自动恢复之前记录，叫做crash-safe(不包含误删数据的恢复)
 - 既然要避免io，为什么写redo log的时候不会造成io的问题？
 
     ![mysql-redo-log.png](/data/images/db/mysql-redo-log.png)
+    - 如果每次更新操作都需要直接写入磁盘 **(在磁盘中找到相关的记录并更新)**，整个过程的IO成本和查找成本都很高。针对这种情况，MySQL采用的是WAL技术（Write-Ahead Logging）：先写日志，再写磁盘(虽然写日志也是写到磁盘，但是不用考虑原数据的位置)
     - 内部是基于缓存实现，可先将数据写到log buffer。为了确保每次日志都能写入到事务日志文件中，之后操作系统定期调用fsync(等待写磁盘操作结束，然后返回)写入到磁盘
     - 图二中
         - 控制commit动作是否刷新log buffer到磁盘，可通过变量 `innodb_flush_log_at_trx_commit` 的值来决定。该变量有3种值：0、1、2，默认为1
@@ -910,11 +912,18 @@ set session transaction isolation level read uncommitted;
 
 ### 服务端的日志Binlog
 
-- Binlog是server层的日志，因此和存储引擎无关，其主要做mysql功能层面的事情
+- Binlog(归档日志)是server层的日志，因此和存储引擎无关，其主要做mysql功能层面的事情
 - 与Redo日志的区别
     - redo是innodb独有的， binlog是所有引擎都可以使用的
     - redo是物理日志，记录的是在某个数据页上做了什么修改，binlog是逻辑日志，记录的是这个语句的原始逻辑
     - redo是循环写的，空间会用完；binlog是可以追加写的，不会覆盖之前的日志信息
+- sync_binlog 参数来控制数据库的binlog刷到磁盘上去方式。参考[服务器参数设置](/_posts/db/sql-optimization.md#服务器参数设置)
+- 有两份日志的历史原因
+    - 一开始并没有InnoDB，采用的是MyISAM，但MyISAM没有crash-safe的能力，binlog日志只能用于归档
+    - InnoDB是以插件的形式引入MySQL的，为了实现crash-safe，InnoDB采用了redolog的方案
+- binlog一开始的设计就是不支持崩溃恢复(原库)的，如果不考虑搭建从库等操作，binlog是可以关闭的(`show variables like '%sql_log_bin%';`)
+    - redolog主要用于crash-safe(原库恢复)，binlog主要用于恢复成临时库(从库)
+    - 数据从 A-B-C 后，可根据binlog选择恢复的位置
 - 一般在企业中数据库会有备份系统，可以定期执行备份，备份的周期可以自己设置。恢复数据的过程
     - 到最近一次的全量备份数据
     - 从备份的时间点开始，将备份的binlog取出来，重放到要恢复的那个时刻
@@ -933,6 +942,12 @@ set session transaction isolation level read uncommitted;
     - prepare：redolog写入log buffer，并fsync持久化到磁盘，在redolog事务中记录2PC的XID，在redolog事务打上prepare标识
     - commit：binlog写入log buffer，并fsync持久化到磁盘，在binlog事务中记录2PC的XID，同时在redolog事务打上commit标识
     - 其中，prepare和commit阶段所提到的事务，都是指内部XA事务，即2PC。且此事物是包含在begin...commit的内部
+    - 崩溃恢复过程
+        - redolog prepare + binlog成功，提交事务
+        - redolog prepare + binlog失败，回滚事务
+        - 崩溃恢复后是会从checkpoint开始往后主动刷数据
+            - checkpoint是当前要擦除的位置，擦除记录前需要先把对应的数据落盘
+            - write pos到checkpoint之间的部分可以用来记录新的操作。checkpoint到write pos之间的部分等待落盘，恢复数据也是恢复这一部分
     - 原因
         - 可以使用binlog替代redolog进行数据恢复吗？
             - 不可以。innodb利用wal技术进行数据恢复，write ahead logging技术依赖于物理日志进行数据恢复，binlog不是物理日志是逻辑日志，因此无法使用
@@ -953,3 +968,6 @@ set session transaction isolation level read uncommitted;
 参考文章
 
 [^1]: https://www.cnblogs.com/discuss/articles/1866953.html (Oracle中针对中文进行排序)
+[^2]: https://www.cnblogs.com/f-ck-need-u/p/9010872.html
+[^3]: http://zhongmingmao.me/2019/01/15/mysql-redolog-binlog/
+

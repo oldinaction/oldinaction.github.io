@@ -6,6 +6,11 @@ categories: [java]
 tags: [javase]
 ---
 
+## 运算
+
+- `<<` 左移，乘以2^x。如：3 << 4 = 3 * 2^4 = 48
+- `>>` 右移，除以2^x，被除数比除数小则为0。如：32 >> 3 = 32 / 2^3 = 4; 4 >> 3 = 4 / 2^3 = 0
+
 ## 类
 
 ### 内部类
@@ -87,6 +92,12 @@ private static enum YellEnum implements Yell {
 ```
 
 ## 集合
+
+- 参考[容器](/_posts/java/concurrence.md#容器)
+- ConcurrentModificationException问题
+    - 用for循环遍历List删除元素时，需要注意索引会左移(i--)的问题
+    - 使用foreach遍历List删除元素，不能直接调用list.remove。主要是foreach本质是调用iterator，则只能用iterator.remove移除元素
+    - 可直接通过list.iterator()获取iterator对象，再遍历时通过iterator.remove移除元素
 
 ## 时间
 

@@ -305,7 +305,7 @@ tags: [oracle, dba, sql]
     - **匹配范围值**：可以查找某一个范围的数据
         - `select * from staffs where name > 'Mary';` 使用type=range,ref=NULL的索引
     - **精确匹配某一列并范围匹配另外一列**：可以查询第一列的全部和第二列的部分
-        - `select * from staffs where name = 'July' and age > 25 position = 'dev';` 使用type=range,ref=NULL的索引(使用了name和age进行索引查找，由于age使用范围查找则后面的position被忽略掉)
+        - `select * from staffs where name = 'July' and age > 25 and position = 'dev';` 使用type=range,ref=NULL的索引(使用了name和age进行索引查找，由于age使用范围查找则后面的position被忽略掉)
         - `select * from staffs where name = 'July' and position > 'dev';` 使用type=ref,ref=const的索引(由于索引的顺序是name,age,position，当没有age时，position会被忽略，所有此处position并不会当成索引，而只使用了name)
     - **覆盖索引**：只访问索引的查询，查询的时候只需要访问索引，不需要访问数据行，本质上就是覆盖索引
         - `select id,name,age,position from staffs where name = 'July' and age = 25 and position = 'dev';` 使用type=ref,ref=const,const,const,Extra=Using index(其中Extra=Using index表示索引覆盖)

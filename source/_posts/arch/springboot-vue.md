@@ -47,11 +47,12 @@ tags: [springboot, vue]
     - 可以实现页面和里面iframe页面之间的通讯
     - 可以实现窗口和通过window.open的窗口间的通讯
     - 可以实现窗口和通过a标签(`<a href="B页面" target="_blank">新打开B页面</a>`)新打开的窗口间的通讯
+    - 示例：将b页面嵌入在a页面中
 
     ```html
     <!-- ======a给b发送消息send-from-a，然后b给a回复消息send-from-b======= -->
     <!-- a.html 其中onload表示iframe加载(iframe项目代码已经加载到浏览器)后执行，如果将iframe隐藏也不会影响其加载 -->
-    <iframe src="http://localhost:4000/b.html" frameborder="0" id="frame" onload="load()"></iframe>
+    <iframe src="http://localhost:4000/b.html" frameborder="0" id="iframe" onload="load()"></iframe>
     <script>
         /*
         someWindow.postMessage(message, targetOrigin, [transfer]);
@@ -60,8 +61,8 @@ tags: [springboot, vue]
             transfer(可选): 是一串和 message 同时传递的 Transferable 对象. 这些对象的所有权将被转移给消息的接收方，而发送一方将不再保有所有权
         */
         function load() {
-            // 给子页面(嵌入的iframe)发送消息。此时targetOrigin为'http://localhost:4000'或者'*'均可
-            document.getElementById('frame').contentWindow.postMessage('send-from-a', 'http://localhost:4000')
+            // 给子页面(嵌入的iframe)发送消息。此时targetOrigin为'http://localhost:4000'或者'*'均可，http://localhost:4000/ 也可以
+            document.getElementById('iframe').contentWindow.postMessage({from: 'send-from-a', request: 'get-name'}, 'http://localhost:4000')
 
             // 接受数据
             window.onmessage = function(e) {
@@ -74,7 +75,7 @@ tags: [springboot, vue]
     <script>
         window.onmessage = function(e) {
             console.log(e.data) // send-from-a
-            e.source.postMessage('send-from-b', e.origin) // 使用e.origin表示回复源窗口消息
+            e.source.postMessage({from: 'send-from-b', response: 'get-name', name: 'smalle'}, e.origin) // 使用e.origin表示回复源窗口消息
         }
         // 或者监听事件
         /*
@@ -88,7 +89,7 @@ tags: [springboot, vue]
         }, false)
 
         // 主动给父页面发送消息
-        window.parent.postMessage({"name": "smalle"}, '*')
+        window.parent.postMessage('hello...', '*')
     </script>
     ```
 

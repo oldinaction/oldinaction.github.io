@@ -501,33 +501,7 @@ tags: [mybatis, springboot]
     </resultMap>
 	```
 
-### 控制主键自增和获取自增主键值
-
-- 获取自增主键(mysql为例，需要数据库设置主键自增) [^3]
-	- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)
-	- 方式二：`<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>`
-	- 获取方式：`userMapper.insert(userInfo); userInfo.getUserId();`
-
-### MyBatis、Java、Oracle、MySql数据类型对应关系
-
-- Mybatis的数据类型用JDBC的数据类型
-- JDBC数据类型转换
-
-JDBC | Java | Mysql | Oracle
----------|----------|---------|---------
-Integer | Integer | Int | 
-Bigint  | Long | Bigint | Number
-Numeric  | Long |  | Number
-Timestamp| Date | Datetime | Date
-Date | Date | Date | Date
-Decimal | BigDecimal | Decimal | Number(20, 6) 
-Char |  | Char | Char
- Blob |  | Blob | Blob
- Clob |  | Text | Clob
-
-- **BLOB为二进制大对象**，可存储图片(转成二进制，实际用的很少)；**CLOB文本大对象**，可用来存储博客文章等；Mybatis对CLOB可直接解析成字符串，而BLOB则需要些对应关系
-
-## mybatis常见问题
+### mybatis常见问题
 
 - **关于`<`、`>`转义字符**(在annotation中需要转义，在xml的sql语句中则不需要转义)
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
@@ -560,6 +534,16 @@ Char |  | Char | Char
             <if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>
         </foreach>
 	</if>
+
+    <!-- 对于时间数组 -->
+    <if test='planTmSection != null and planTmSection.size() > 0
+            and planTmSection.get(0) != null and planTmSection.get(0) != ""
+            and planTmSection.get(1) != null and planTmSection.get(1) != ""'>
+        and date_format(wl.plan_tm,'%Y-%m-%d') between
+        <foreach item="item" collection="planTmSection" separator="and">
+            #{item}
+        </foreach>
+    </if>
 	```
 - mysql当前时间获取`now()`，数据库日期型可和前台时间字符串进行比较
 - 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
@@ -567,6 +551,33 @@ Char |  | Char | Char
 - 支持`choose (when, otherwise)`语句
 - xml文件修改无需重新部署，立即生效
 - `Cause: java.sql.SQLException: 无法转换为内部表示` 可能是由于类型转换导致，如强制将数据库中字符串类型字段映射某个对象的Long类型属性上
+
+
+### 控制主键自增和获取自增主键值
+
+- 获取自增主键(mysql为例，需要数据库设置主键自增) [^3]
+	- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)
+	- 方式二：`<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>`
+	- 获取方式：`userMapper.insert(userInfo); userInfo.getUserId();`
+
+### MyBatis、Java、Oracle、MySql数据类型对应关系
+
+- Mybatis的数据类型用JDBC的数据类型
+- JDBC数据类型转换
+
+JDBC | Java | Mysql | Oracle
+---------|----------|---------|---------
+Integer | Integer | Int | 
+Bigint  | Long | Bigint | Number
+Numeric  | Long |  | Number
+Timestamp| Date | Datetime | Date
+Date | Date | Date | Date
+Decimal | BigDecimal | Decimal | Number(20, 6) 
+Char |  | Char | Char
+ Blob |  | Blob | Blob
+ Clob |  | Text | Clob
+
+- **BLOB为二进制大对象**，可存储图片(转成二进制，实际用的很少)；**CLOB文本大对象**，可用来存储博客文章等；Mybatis对CLOB可直接解析成字符串，而BLOB则需要些对应关系
 
 ## MyBatis Generator
 
@@ -816,6 +827,7 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 ## mybatis-plus
 
 - [mybatis-plus](https://mp.baomidou.com/)、[github](https://github.com/baomidou/mybatis-plus)
+- 返回结果集类型为List，当没有数据时返回大小为0的List，而不是null
 - springboot依赖
 
 ```xml

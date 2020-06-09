@@ -235,6 +235,8 @@ export default {
 ```html
 <!-- (推荐) 返回的是string类型数据(配合on-change使用)。监控前台请求，此字段字符串如 2000-03-17" -->
 <DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>
+<!-- 返回数组 -->
+<DatePicker type="daterange" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>
 <!-- 返回的是Date类型数据。监控前台请求，此字段字符串如 2000-03-16T16:00:00.000Z" -->
 <DatePicker type="date" v-model="workLevelItem.startTm"></DatePicker>
 ```
@@ -340,6 +342,133 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 
 - percent必须不能使用子对象属性，否则无法代码增减进度
 
+### Modal
+
+- 点击确定(on-ok事件)按钮不关闭弹框
+
+```js
+this.$refs.modal.visible = true
+this.showModal = true
+return false
+```
+- 全屏嵌套其他页面
+
+```vue
+<template>
+  <Modal v-model="show" fullscreen footer-hide>
+    <span slot="header"></span>
+    <Button type="text" @click="goBack" class="go-back">
+      <Icon type="md-arrow-round-back" />
+    </Button>
+    <Spin fix v-show="spinShow"></Spin>
+    <iframe :src="extUrl" />
+  </Modal>
+</template>
+
+<script>
+export default {
+  name: 'tab-dev-oa',
+  props: ['pId', 'id', 'access', 'mainUser'],
+  data () {
+    return {
+      show: true,
+      spinShow: false,
+      extUrl: null
+    }
+  },
+  created () {
+    this.init()
+  },
+  mounted () {
+    const that = this
+    document.getElementById('iframe').onload = function () {
+      that.spinShow = false
+    }
+  },
+  methods: {
+    init () {
+      this.extUrl = 'http://www.baidu.com'
+    },
+    goBack () {
+      this.$emit('on-go-back')
+    }
+  }
+}
+</script>
+
+<style lang="less" scoped>
+/deep/ .ivu-modal-content {
+  .ivu-modal-header {
+    padding: 0;
+  }
+  .ivu-modal-body {
+    top: 0;
+    padding: 0px;
+  }
+  >a.ivu-modal-close {
+    display: none;
+  }
+}
+
+.go-back {
+  top: -5px;
+  left: -5px;
+  position: absolute;
+  font-size: 20px;
+  /deep/ &.ivu-btn-text:active, &.ivu-btn-text.active, &.ivu-btn-text:hover {
+    background-color: transparent;
+  }
+  /deep/ &.ivu-btn-text:focus {
+    box-shadow: none;
+  }
+}
+
+iframe {
+  width: 100%;
+  border: 0px;
+}
+@media (max-width: 1920px) {
+  iframe {
+    height: calc(100% - 3px) !important;
+  }
+}
+@media (max-width: 1366px) {
+  iframe {
+    height: calc(100% - 1px) !important;
+  }
+}
+</style>
+```
+
+## Form
+
+- 表单排版
+
+```html
+<!-- 一行排列多个元素使用Row-Col；如果使用Form的inline属性，则需要自定义宽度来美化 -->
+<Form :model="searchModel" label-position="right" :label-width="100">
+    <Row>
+    <Col span="3">
+        <FormItem label="项目名称">
+            <Select v-model="searchModel.projectId">
+            <Option v-for="item in projectList" :value="item.id" :key="item.id">{{ item.projectName }}</Option>
+            </Select>
+        </FormItem>
+    </Col>
+    <Col span="3">
+        <FormItem label="创建时间">
+            <DatePicker type="daterange" :v-for="searchModel.inputTm" placement="bottom-end" style="width: 200px"></DatePicker>
+        </FormItem>
+    </Col>
+    <Col span="2">
+        <FormItem>
+            <Button type="primary">查询</Button>
+        </FormItem>
+    </Col>
+    </Row>
+</Form>
+```
+
 ## 样式
 
 ### 主题
@@ -390,7 +519,9 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 
 ### 可编辑表单
 
+## iview-admin
 
+- iview-admin刷新浏览器地址跳转到首页，将`src/components/main/main.vue#mounted()`"设置了如果当前打开页面不在标签栏中，跳到homeName页"相关代码注释
 
 
 ---

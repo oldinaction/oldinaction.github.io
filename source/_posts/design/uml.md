@@ -8,22 +8,21 @@ tags: [UML, StarUML, PlantUML]
 
 ## UML介绍
 
-1. `UML`(Unified Modeling Language): 统一建模语言，是一种图形化的语言，它可以帮助我们在OOAD过程中标识元素、构建模块、分析过程并可通过文档说明系统中的重要细节。
-
-    > - `OO`(Object Oriented)：面向对象
-    > - `OOAD`(OOA&D)：面向对象的分析与设计
-    > - `OOP`(Object Oriented Programming)：面向对象编程
-    > - OOP的主要特征：`抽象`(abstract)、`封装`(encapsulation)、`继承`(inheritance)、`多态`(polymorphism)、`关联`(association)、`聚合`(aggregation)、`组合`(composition)、`内聚与耦合`(cohesion & coupling)
-    > - `RUP`(Rational Unified Process)：统一过程，是一个采用面向对象思想，使用UML作为软件分析设计语言，并结合了项目管理、质量管理等软件工程知识综合而成的软件方法。RUP分为四个阶段：`初始`，`精化`，`构建`（编码），`交付`（使用部署图）。RUP拥抱了需求的变化，好于瀑布式开发（照搬建筑模型，需求变化后修改很麻烦）
-2. UML包括：事物、关系、图、扩展机制
-3. 事物包括：
+- `UML`(Unified Modeling Language): 统一建模语言，是一种图形化的语言，它可以帮助我们在OOAD过程中标识元素、构建模块、分析过程并可通过文档说明系统中的重要细节。
+    - `OO`(Object Oriented)：面向对象
+    - `OOAD`(OOA&D)：面向对象的分析与设计
+    - `OOP`(Object Oriented Programming)：面向对象编程
+    - OOP的主要特征：`抽象`(abstract)、`封装`(encapsulation)、`继承`(inheritance)、`多态`(polymorphism)、`关联`(association)、`聚合`(aggregation)、`组合`(composition)、`内聚与耦合`(cohesion & coupling)
+    - `RUP`(Rational Unified Process)：统一过程，是一个采用面向对象思想，使用UML作为软件分析设计语言，并结合了项目管理、质量管理等软件工程知识综合而成的软件方法。RUP分为四个阶段：`初始`，`精化`，`构建`（编码），`交付`（使用部署图）。RUP拥抱了需求的变化，好于瀑布式开发（照搬建筑模型，需求变化后修改很麻烦）
+- UML包括：事物、关系、图、扩展机制
+- 事物包括：
     - 结构：类、接口、构件、节点等
     - 行为：交互（消息）、状态等
     - 分组：包、子系统等
     - 注释：注释
-4. **关系** 包括：`依赖`、`关联`、`泛化`(extend、继承)、`实现`
-5. **九种建模图** 即：`用例图`(User Case)、`类图`、`对象图`、`顺序图`(Sequence)、`协作图`(Collaboration)、`状态图`(Statechart)、`活动图`(Activity)、`组件图`、`配置图`
-6. 使用UML完成项目顺序
+- **关系** 包括：`依赖`、`关联`、`泛化`(extend、继承)、`实现`
+- **九种建模图** 即：`用例图`(User Case)、`类图`、`对象图`、`顺序图`(Sequence)、`协作图`(Collaboration)、`状态图`(Statechart)、`活动图`(Activity)、`组件图`、`配置图`
+- 使用UML完成项目顺序
     1. 完成User Case以及document
     2. 对于比较复杂的User Case 使用Activity活动图辅助说明或者Sequence顺序图
     3. 根据User Case Document和Activity 分析业务领域的概念，抽象出概念模型
@@ -40,13 +39,13 @@ tags: [UML, StarUML, PlantUML]
 
 UML中的关系包括：依赖、关联、泛化(extend)、实现
 
-1. `依赖`(Dependence)：虚线箭头
+- `依赖`(Dependence)：虚线箭头
 
     ![依赖关系](/data/images/2016/07/依赖.png)
 
     低耦合：表示要降低跟不稳定的对象之间的依赖关系
 
-2. `关联`(Associations)：实线箭头
+- `关联`(Associations)：实线箭头
 
     相关概念：关联名、导航(单向关联/双向关联)、角色、多重性、聚合、组合
 
@@ -66,11 +65,11 @@ UML中的关系包括：依赖、关联、泛化(extend)、实现
 
         ![聚合和组合](/data/images/2016/07/聚合和组合.png)
 
-3. `泛化`(Extend/Generalization、继承)：实线三角箭头
+- `泛化`(Extend/Generalization、继承)：实线三角箭头
 
     ![泛化](/data/images/2016/07/泛化.png)
 
-4. `实现`(Implement/Realize)：虚线三角箭头
+- `实现`(Implement/Realize)：虚线三角箭头
 
     ![实现](/data/images/2016/07/实现.png)
 

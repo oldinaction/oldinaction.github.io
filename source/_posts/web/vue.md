@@ -1332,6 +1332,45 @@ location / {
 }
 ```
 
+### 刷新页面
+
+- 参考：https://segmentfault.com/a/1190000019635080
+
+```vue
+<!-- 添加组件src/views/redirect.vue -->
+<script>
+export default {
+  created () {
+    const { params, query } = this.$route
+    const { path } = params
+    this.$router.replace({
+      path: '/' + path,
+      query
+    })
+  },
+  render: function (h) {
+    return h()
+  }
+}
+</script>
+
+<!-- 添加路由 -->
+{
+    path: '/redirect/:path*',
+    name: 'redirect',
+    component: () => import('@/views/redirect'),
+    hidden: true
+}
+
+<!-- 自定义刷新方法 -->
+refresh () {
+    const { fullPath } = this.$route
+    this.$router.replace({
+        path: '/redirect' + fullPath
+    })
+}
+```
+
 ## Vuex
 
 - [Vuex](https://vuex.vuejs.org/zh/)

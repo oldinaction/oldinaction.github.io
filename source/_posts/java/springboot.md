@@ -996,7 +996,7 @@ public MultipartConfigElement multipartConfigElement() {
 	```bash
 	# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
 	spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-	# 端口默认3306可以省略
+	# 端口默认3306可以省略。使用mysql-connector-java v8.0.0以上则必须加serverTimezone
 	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?serverTimezone=Asia/Shanghai&useUnicode=true&useSSL=false&characterEncoding=utf8
 	spring.datasource.username=root
 	spring.datasource.password=root
@@ -1663,9 +1663,9 @@ public static String sha1(String str) throws NoSuchAlgorithmException, Unsupport
     }
     ```
 
-### WebSocket [^11]
+### WebSocket
 
-- 引入依赖
+- 引入依赖 [^11]
 
     ```xml
     <dependency>
