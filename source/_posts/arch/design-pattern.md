@@ -8,7 +8,7 @@ tags: [设计模式, java]
 
 ## 简介
 
-- [Java设计模式](http://c.biancheng.net/design_pattern/)
+- [Java设计模式](http://c.biancheng.net/design_pattern/)、[设计模式](https://www.runoob.com/design-pattern/adapter-pattern.html)
 - `OOA` Object-Oriented Analysis(面向对象分析方法)
 - `OOD` Object-Oriented Design(面向对象设计)
 - [UML中的类图及类图之间的关系](http://c.biancheng.net/view/1319.html)，参考：[uml.md#关系](/_posts/design/uml.md#关系)
@@ -39,12 +39,31 @@ tags: [设计模式, java]
 ### GoF的23种设计模式分类
 
 - 创建型模式
-    - 单例（Singleton）模式：某个类只能生成一个实例，且提供一个方法供外部获取该实例。其拓展是有限多例模式
+    - 单例（Singleton）模式：某个类只能生成一个实例，且提供一个方法供外部获取该实例
     - 原型（Prototype）模式：将一个对象作为原型，通过对其进行复制而克隆出多个和原型类似的新实例
     - 工厂方法（FactoryMethod）模式：定义一个用于创建产品的接口，由子类决定生产什么产品
     - 抽象工厂（AbstractFactory）模式：提供一个创建产品族的接口，其每个子类可以生产一系列相关的产品
     - 建造者（Builder）模式：将一个复杂对象分解成多个相对简单的部分，然后根据不同需要分别创建它们，最后构建成该复杂对象
-
+- 结构型模式
+    - 代理（Proxy）模式：为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性
+    - 适配器（Adapter）模式：将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作
+    - 桥接（Bridge）模式：将抽象与实现分离，使它们可以独立变化。它是用组合关系代替继承关系来实现，从而降低了抽象和实现这两个可变维度的耦合度
+    - 装饰（Decorator）模式：动态的给对象增加一些职责，即增加其额外的功能
+    - 外观（Facade）模式：为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问
+    - 享元（Flyweight）模式：运用共享技术来有效地支持大量细粒度对象的复用
+    - 组合（Composite）模式：将对象组合成树状层次结构，使用户对单个对象和组合对象具有一致的访问性
+- 行为型模式
+    - 模板方法（TemplateMethod）模式：定义一个操作中的算法骨架，而将算法的一些步骤延迟到子类中，使得子类可以不改变该算法结构的情况下重定义该算法的某些特定步骤
+    - 策略（Strategy）模式：定义了一系列算法，并将每个算法封装起来，使它们可以相互替换，且算法的改变不会影响使用算法的客户
+    - 命令（Command）模式：将一个请求封装为一个对象，使发出请求的责任和执行请求的责任分割开
+    - 职责链（Chain of Responsibility）模式：把请求从链中的一个对象传到下一个对象，直到请求被响应为止。通过这种方式去除对象之间的耦合
+    - 状态（State）模式：允许一个对象在其内部状态发生改变时改变其行为能力
+    - 观察者（Observer）模式：多个对象间存在一对多关系，当一个对象发生改变时，把这种改变通知给其他多个对象，从而影响其他对象的行为
+    - 中介者（Mediator）模式：定义一个中介对象来简化原有对象之间的交互关系，降低系统中对象间的耦合度，使原有对象之间不必相互了解
+    - 迭代器（Iterator）模式：提供一种方法来顺序访问聚合对象中的一系列数据，而不暴露聚合对象的内部表示
+    - 访问者（Visitor）模式：在不改变集合元素的前提下，为一个集合中的每个元素提供多种访问方式，即每个元素有多个访问者对象访问
+    - 备忘录（Memento）模式：在不破坏封装性的前提下，获取并保存一个对象的内部状态，以便以后恢复它
+    - 解释器（Interpreter）模式：提供如何定义语言的文法，以及对语言句子的解释方法，即解释器
 
 ### MSB
 
@@ -59,6 +78,9 @@ tags: [设计模式, java]
 - 观察者模式(10.1)
 - 组合模式(10.3#0:34:16)
 - 享元模式(10.3#0:57:25)
+- 代理模式(11)
+- 迭代器模式(12.1-12.2#16:00)
+- 访问这(12.2#16:00)
 
 ## 创建型模式
 
@@ -67,7 +89,7 @@ tags: [设计模式, java]
 > http://c.biancheng.net/view/1338.html
 
 - 单例模式定义
-    - 指一个类只有一个实例，且该类能自行创建这个实例的一种模式
+    - **某个类只能生成一个实例，且提供一个方法供外部获取该实例**
     - 例如，Windows 中只能打开一个任务管理器
 - 方式
     - 饿汉式(`private static final Mgr01_1 INSTANCE = new Mgr01_1();`)
@@ -80,7 +102,7 @@ tags: [设计模式, java]
         - 内部类只有在用到时才会加载到内存
     - 基于枚举
         - 不仅可以线程同步，还可以防止反序列化(其他方法可通过class反序列化获取新的实例)
-- 单例模式可扩展为有限的多例(Multitcm)模式，这种模式可生成有限个实例并保存在 List 中，客户需要时可随机获取
+- 单例模式可扩展为有限的**多例模式(Multitcm)**，这种模式可生成有限个实例并保存在 List 中，客户需要时可随机获取
 
 <details>
 <summary>主要代码</summary>
@@ -116,7 +138,7 @@ public enum Mgr04 {
 > http://c.biancheng.net/view/1343.html
 
 - 原型模式定义
-    - 用一个已经创建的实例作为原型，通过复制该原型对象来创建一个和原型相同或相似的新对象
+    - **将一个对象作为原型，通过对其进行复制而克隆出多个和原型类似的新实例**
     - 原型实例指定了要创建的对象的种类
     - 用这种方式创建对象非常高效，根本无须知道对象创建的细节
     - 例如：Windows 操作系统的安装通常较耗时，如果复制就快了很多
@@ -168,8 +190,8 @@ public class SimpleClone implements Cloneable {
 > http://c.biancheng.net/view/1348.html
 
 - 工厂方法模式定义
-    - 定义一个创建产品对象的工厂接口，将产品对象的实际创建工作推迟到具体子工厂类当中
-    - **有一个抽象工厂定义了生产抽象产品，并且有一个具体的工厂实现了抽象工厂来生产具体的产品**
+    - **定义一个用于创建产品的接口，由子类决定生产什么产品**
+    - 有一个工厂接口定义了生产抽象产品，并且有一个具体的工厂实现了此工厂接口来生产具体的产品
 - 简单工厂模式和静态工厂
     - **简单工厂模式**：如果要创建的产品不多，只要一个工厂类就可以完成(可以创建不同类型的产品)。它不属于 GoF 的 23 种经典设计模式，它的缺点是增加新产品时会违背开闭原则
         - 工厂方法模式是对简单工厂模式的进一步抽象化，其好处是可以使系统在不修改原来代码的情况下引进新的产品，即满足开闭原则
@@ -184,6 +206,7 @@ public class SimpleClone implements Cloneable {
 > http://c.biancheng.net/view/1351.html
 
 - 抽象工厂模式定义
+    - **提供一个创建产品族的接口，其每个子类可以生产一系列相关的产品**
     - 抽象工厂模式是工厂方法模式的升级，工厂方法模式只生产一个类型的产品，而抽象工厂模式可生产一系列产品
     - 如 java 的 AWT 中的 Button 和 Text 等构件在 Windows 和 UNIX 中的本地实现是不同的
 - 系统一次只可能消费其中某一系列产品，即同族的产品一起使用
@@ -197,7 +220,8 @@ public class SimpleClone implements Cloneable {
 > http://c.biancheng.net/view/1354.html
 
 - 建造者模式定义
-    - 将一个复杂的对象分解为多个简单的对象，然后一步一步构建而成。它将变与不变相分离，即产品的组成部分是不变的，但每一部分是可以灵活选择的
+    - **将一个复杂对象分解成多个相对简单的部分，然后根据不同需要分别创建它们，最后构建成该复杂对象**
+    - 它将变与不变相分离，即产品的组成部分是不变的，但每一部分是可以灵活选择的
 - 建造者模式和工厂模式的关注点不同：建造者模式注重零部件的组装过程，而工厂方法模式更注重零部件的创建过程，但两者可以结合使用
 
 <details>
@@ -243,57 +267,128 @@ public class PersonBuilder {
 > http://c.biancheng.net/view/1359.html
 
 - 代理模式定义
-    - 为某对象提供一种代理来进行访问此对象。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性
-- 类图
+    - **为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性**
+- 代理分为静态代理和动态代理，其中动态代理主要有JDK动态代理和Cglib动态代理，最终都是基于ASM操纵字节码
+    - JDK动态代理和静态代理类似，代理类和被代理需要实现相同的接口
+    - Cglib动态代理是生成被代理类的子类，因此被代理类不能被final修饰
+- Spring AOP基于动态代理完成，参考[spring.md#AOP](/_posts/java/spring.md#AOP)
+- (静态代理)类图
 
 ![DP-Proxy](/data/images/arch/DP-Proxy.png)
 
 <details>
-<summary>主要代码</summary>
+<summary>静态代理主要代码</summary>
 
 ```java
-/*
+/*结果如：
 pre...
-smalle...
+move...
+move time: 446
 post...
 */
-public static void main(String[] args) {
-    NameResourceProxy proxy = new NameResourceProxy();
-    proxy.showResource();
+public class Main {
+
+    public static void main(String[] args) {
+        // 此处可嵌套，类似装饰器
+        MovableLogProxy proxy = new MovableLogProxy(new MovableTimeProxy(new Dog()));
+        proxy.move();
+    }
 }
 
-public class NameResourceProxy implements Resource {
-    private NameResource nameResource;
+public interface Movable {
+    void move();
+}
 
+// 被代理者
+public class Dog implements Movable {
     @Override
-    public void showResource() {
-        if (nameResource == null) {
-            nameResource = new NameResource();
+    public void move() {
+        System.out.println("move...");
+        try {
+            Thread.sleep(new Random().nextInt(1000));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+    }
+}
 
-        this.preShowResource();
-        nameResource.showResource();
-        this.postShowResource();
+// 代理者
+public class MovableLogProxy implements Movable {
+    private Movable movable;
+
+    public MovableLogProxy(Movable movable) {
+        this.movable = movable;
     }
 
-    private void preShowResource() {
+    @Override
+    public void move() {
+        this.preMove();
+        movable.move();
+        this.postMove();
+    }
+
+    private void preMove() {
         System.out.println("pre...");
     }
 
-    private void postShowResource() {
+    private void postMove() {
         System.out.println("post...");
     }
 }
 
-public class NameResource implements Resource {
+// 代理者
+public class MovableTimeProxy implements Movable {
+    private Movable movable;
+
+    public MovableTimeProxy(Movable movable) {
+        this.movable = movable;
+    }
+
     @Override
-    public void showResource() {
-        System.out.println("smalle...");
+    public void move() {
+        long start = System.currentTimeMillis();
+        movable.move();
+        long end = System.currentTimeMillis();
+        System.out.println("move time: " + (end - start));
     }
 }
+```
+</details>
 
-public interface Resource {
-    void showResource();
+<details>
+<summary>动态代理主要代码</summary>
+
+```java
+// 1.JDK动态代理。还需Dog 和 Movable，同上文
+public static void main(String[] args) {
+    Dog dog = new Dog();
+    Movable movable = (Movable) Proxy.newProxyInstance(Dog.class.getClassLoader(), new Class[]{Movable.class}, new InvocationHandler() {
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("pre...");
+            Object o = method.invoke(dog, args);
+            System.out.println("post...");
+            return o;
+        }
+    });
+    movable.move();
+}
+
+// 2.Cglib动态代理(maven依赖为：cglib#cglib#3.3.0)。只需要Dog，同上文
+public static void main(String[] args) {
+    Enhancer enhancer = new Enhancer();
+    enhancer.setSuperclass(Dog.class);
+    enhancer.setCallback(new MethodInterceptor() {
+        @Override
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+            System.out.println("pre...");
+            Object result = methodProxy.invokeSuper(o, objects);
+            System.out.println("post...");
+            return result;
+        }
+    });
+    Dog dog = (Dog) enhancer.create();
+    dog.move();
 }
 ```
 </details>
@@ -303,10 +398,62 @@ public interface Resource {
 > http://c.biancheng.net/view/1361.html
 
 - 适配器模式定义
-    - 将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作
-- 适配器模式分为类适配器和对象适配器两种，前者类之间的耦合度比后者高，且要求程序员了解现有组件库中的相关组件的内部结构，所以应用相对较少些
-- 
+    - **将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作**
+- 适配器模式分为类适配器和对象适配器两种
+    - 类适配器基于继承
+    - 对象适配器基于依赖
+    - 对象适配器相对类适配器耦合度更低，更常用
+- 类图
 
+![DP-Adapter](/data/images/arch/DP-Adapter.png)
+
+<details>
+<summary>动态代理主要代码</summary>
+
+```java
+public static void main(String[] args) {
+    Adaptee adaptee = new Adaptee();
+    Target target = new ObjectAdapter(adaptee);
+    String data = target.request();
+    System.out.println(data);
+}
+
+// 期待的接口
+public interface Target {
+    String request();
+}
+
+// 被适配者(一般为由于特殊原因不能进行代码修改的类)
+public class Adaptee {
+    public String specialRequest() {
+        return "data...";
+    }
+}
+
+// 适配器
+public class ObjectAdapter implements Target {
+    private Adaptee adaptee;
+
+    public ObjectAdapter(Adaptee adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    @Override
+    public String request() {
+        System.out.println("do somthing...");
+        return adaptee.specialRequest();
+    }
+}
+```
+</details>
+
+### 桥接模式(Bridge)
+
+> http://c.biancheng.net/view/1364.html
+
+- 桥接模式定义
+    - **将抽象与实现分离，使它们可以独立变化。它是用组合关系代替继承关系来实现，从而降低了抽象和实现这两个可变维度的耦合度**
+- 关键代码：抽象类依赖实现类
 
 
 ## 策略模式(Strategy)

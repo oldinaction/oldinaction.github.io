@@ -446,6 +446,7 @@ tags: [mybatis, springboot]
             <if test='boolField'></if>
             <if test='!boolField'></if>
             <if test='not boolField'></if>
+            <if test='boolField != null'></if><!-- 存在问题：true/false都满足 -->
 		</mapper>
 		```
 

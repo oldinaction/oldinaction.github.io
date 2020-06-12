@@ -233,11 +233,13 @@ lsmod |grep br_netfilter
 - `df -h` 查看磁盘使用情况、分区、挂载点(**只会显示成功挂载的分区，新磁盘需要进行分区和挂载**)
     - `df -h /home/smalle` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `df -Th` 查询文件系统格式
-- `du -h --max-depth=1 | sort -h` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**
-    - `du -sh /home/smalle | sort -h` 查看某个目录
-    - `du -hsx * | sort -rh | head -10` 查看最大的10个文件
+- `du -ah --max-depth=1 | sort -h` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**
     - `du` 它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
-    - `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
+    - 参数说明
+        - `-a` 所有文件，包括目录和普通文件，默认只统计目录
+    - `du -hsx * | sort -rh | head -10` 查看最大的10个文件
+    - `du -sh /home/smalle | sort -h` 查看某个目录
+- `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
 - `lsblk` **树形显示磁盘即分区**
     - `fdisk -l` 查看磁盘设备
     - `ll /dev | grep disk`查看磁盘设备
@@ -725,6 +727,11 @@ lsmod |grep br_netfilter
 - 常用命令
     - `find . -type d -exec chmod 755 {} \;` 修改当前目录及其子目录为775
     - `find . -type f -exec chmod 644 {} \;` 修改当前目录及其子目录的所有文件为644
+
+### 系统资源权限
+
+- ulimit命令：https://man.linuxde.net/ulimit
+- Linux core文件：https://blog.csdn.net/arau_sh/article/details/8182744
 
 ## ssh
 

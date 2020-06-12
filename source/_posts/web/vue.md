@@ -1176,7 +1176,7 @@ export default {
 - 路由生命周期见上文
 - `query`和`params`的区别
     - query参数会拼接到url上面，param不会
-    - param的参数值可以赋值给路由路径中的动态参数。因此使用param时路由跳转后再次刷新页面会导致参数丢失
+    - params的参数值可以赋值给路由路径中的动态参数。因此使用params时路由跳转后再次刷新页面会导致参数丢失($router.go也会丢失params参数)
 
 ```js
 this.$router.push({

@@ -139,6 +139,30 @@ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())); // 2000-01-01 1
 // 其中 T代表后面跟着时间，Z代表UTC时区
 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())); // 2000-01-01T10:00:00+0800
 ```
+- 时间相关方法
+
+```java
+LocalDate startTm = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth()); // 获取本月开始
+LocalDate endTm = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()); // 获取本月结束
+// 字符串转LocalDate
+LocalDate startTm2 = LocalDate.parse((CharSequence) params.get("startTm"), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+```
+
+## 数字计算
+
+- BigDecimal计算绩效基数
+
+```java
+LocalDate startTm = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+LocalDate endTm = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+Period diff = Period.between(startTm, endTm);
+Float baseTime = new BigDecimal(diff.getDays() + 1)
+                .divide(new BigDecimal(365), 4, BigDecimal.ROUND_HALF_UP) // 保留4位小数，四舍五入
+                .multiply(new BigDecimal(261)) // 月平均计薪天数 = (365天-104天休息日) ÷ 12月 = 21.75天
+                .multiply(new BigDecimal(7)) // 一天按照7小时计算
+                .setScale(2, BigDecimal.ROUND_HALF_UP)
+                .floatValue();
+```
 
 ## 易错点
 

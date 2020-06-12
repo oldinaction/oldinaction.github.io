@@ -13,6 +13,7 @@ tags: [CPU, 内存, 运维, oracle, ofbiz]
 - java应用常见故障：**高CPU占用**、**高内存占用**、**高I/O占用**(包括磁盘I/O、网络I/O、数据库I/O等)
 - 高CPU常见场景：死循环(如while导致的较多)、高内存导致
     - 高内存占用也会引起高CPU占用：**内存溢出后，java的GC便会运行非常频繁，从而导致高CPU(此时可能已经产生了dump文件，但是应用还能访问，只是速度较慢。临时可考虑先重启服务)**
+    - 相关命令参考[常用命令介绍：1-4](#常用命令介绍)
 - 高内存常见场景：List集合数据量过大(常见从数据库获取大量数据，而没有进行分页获取) [^2]
     - `java.lang.OutOfMemoryError: PermGen space`，原因可能为
         - 程序启动需要加载大量的第三方jar包。例如：在一个Tomcat下部署了太多的应用
@@ -323,11 +324,13 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 	- 查询到上述情况线程ID进行查杀
 - `show open tables where in_use > 0;` 查看正在使用的表(锁表)
 
-## JVM致命错误日志(hs_err_pid.log)
+## JVM致命错误日志(hs_err_xxx-pid.log)
 
-- 当JVM发生致命错误导致崩溃时，会生成一个hs_err_pid_xxx.log这样的文件，该文件包含了导致 JVM crash 的重要信息。该文件默认生成在工作目录下的，可通过JVM参数指定
-`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
+- 当JVM发生致命错误导致崩溃时，会生成一个hs_err_pid_xxx.log这样的文件，该文件包含了导致 JVM crash 的重要信息
+- 该文件默认生成在工作目录下的，可通过JVM参数指定`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
 - 日志分析 [^5]
+    - 此处由于java的Java_java_util_zip_Deflater_deflateBytes(相关的还有Java_java_util_zip-xxx等方法)调用了系统libzip的相关方导致。由java堆栈可以看出在渲染FTL时，tomcat会进行文件压缩再返回给用户，从而调用了系统的libzip相关方法
+    - 此案例解决办法：关闭tomcat压缩，使用nginx压缩。ofbiz关闭压缩方法：设置`framework/catalina/ofbiz-component.xml`文件参数`catalina-container.http-connector.compression=off`
 
 ```bash
 # ##################### 日志头文件
@@ -348,7 +351,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 # Problematic frame:
 # C  [libzip.so+0x4982]  newEntry+0x62
 
-# ### 问题描述即建议
+# ### **问题描述及建议**
 # Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
 #
 # If you would like to submit a bug report, please visit:
@@ -361,15 +364,15 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 ---------------  T H R E A D  ---------------
 # ### 这部分内容包含出发 JVM 致命错误的线程详细信息和线程栈
     # 0x00007f83d8245800：出错的线程指针
-    # JavaThread：线程类型，此时为Java线程，其他还有
+    # JavaThread：**线程类型**，此时为Java线程，其他还有
         # JavaThread：Java线程
         # VMThread：JVM 的内部线程
         # CompilerThread：用来调用JITing，实时编译装卸class。通常，jvm会启动多个线程来处理这部分工作，线程名称后面的数字也会累加，例如：CompilerThread1
         # GCTaskThread：执行gc的线程
         # WatcherThread：JVM 周期性任务调度的线程，是一个单例对象
         # ConcurrentMarkSweepThread：jvm在进行CMS GC的时候，会创建一个该线程去进行GC，该线程被创建的同时会创建一个SurrogateLockerThread（简称SLT）线程并且启动它，SLT启动之后，处于等待阶段。CMST开始GC时，会发一个消息给SLT让它去获取Java层Reference对象的全局锁：Lock
-    # OFBiz-AdminPortThread：线程名称
-    # _thread_in_native：当前线程状态，此时为在运行native代码。该描述还包含有： 
+    # http-bio-0.0.0.0-7100-exec-4：线程名称
+    # _thread_in_native：**当前线程状态**，此时为在运行native代码。该描述还包含有： 
         # _thread_in_native：在运行native代码
         # _thread_uninitialized：线程还没有创建，它只在内存原因崩溃的时候才出现
         # _thread_new：线程已经被创建，但是还没有启动
@@ -380,7 +383,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
         # …_trans：以_trans结尾，线程正处于要切换到其它状态的中间状态
     # id=8964：线程ID
     # stack(0x00007f83b5371000,0x00007f83b5472000)：栈区间
-Current thread (0x00007f83d8245800):  JavaThread "OFBiz-AdminPortThread" [_thread_in_native, id=8964, stack(0x00007f83b5371000,0x00007f83b5472000)]
+Current thread (0x00007f83d8245800):  JavaThread "http-bio-0.0.0.0-7100-exec-4" [_thread_in_native, id=8964, stack(0x00007f83b5371000,0x00007f83b5472000)]
 
 # ### 表示导致虚拟机终止的非预期的信号信息
 siginfo:si_signo=SIGBUS: si_errno=0, si_code=2 (BUS_ADRERR), si_addr=0x00007f83de55e6e7
@@ -417,27 +420,38 @@ RSP=0x00007f83b546e560 is pointing into the stack for thread: 0x00007f83d8245800
 # ...
 
 # ### 线程栈信息。包含了地址、栈顶、栈计数器和线程尚未使用的栈信息。到这里就基本上已经确定了问题所在原因了
+# 此处由于java的Java_java_util_zip_Deflater_deflateBytes(相关的还有Java_java_util_zip-xxx等方法)调用了系统libzip的相关方导致。由java堆栈可以看出在渲染FTL时，tomcat会进行文件压缩再返回给用户，从而调用了系统的libzip相关方法。解决办法：关闭tomcat压缩，使用nginx压缩
+# 额外参考：https://bugs.openjdk.java.net/browse/JDK-8175970
 Stack: [0x00007f83b5371000,0x00007f83b5472000],  sp=0x00007f83b546e560,  free space=1013k
 Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
-C  [libzip.so+0x4982]  newEntry+0x62
-C  [libzip.so+0x50b0]  ZIP_GetEntry+0xd0
-C  [libzip.so+0x3eed]  Java_java_util_zip_ZipFile_getEntry+0xad
-J 44  java.util.zip.ZipFile.getEntry(J[BZ)J (0 bytes) @ 0x00007f83d4c4642e [0x00007f83d4c46360+0xce]
+C  [libzip.so+0x1001f]  _tr_stored_block+0x14f
+C  [libzip.so+0x10b37]  _tr_flush_block+0x117
+C  [libzip.so+0x8b90]  deflate_stored+0x1a0
+C  [libzip.so+0x7433]  deflate+0x163
+C  [libzip.so+0x3049]  Java_java_util_zip_Deflater_deflateBytes+0x269
+J 2783  java.util.zip.Deflater.deflateBytes(J[BIII)I (0 bytes) @ 0x00007fc3e991586d [0x00007fc3e99157a0+0xcd]
 
 Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
-J 44  java.util.zip.ZipFile.getEntry(J[BZ)J (0 bytes) @ 0x00007f83d4c463b8 [0x00007f83d4c46360+0x58]
-J 46 C2 java.util.jar.JarFile.getEntry(Ljava/lang/String;)Ljava/util/zip/ZipEntry; (22 bytes) @ 0x00007f83d4c55828 [0x00007f83d4c55760+0xc8]
-J 1029 C2 sun.misc.URLClassPath$JarLoader.getResource(Ljava/lang/String;Z)Lsun/misc/Resource; (91 bytes) @ 0x00007f83d4f2aaa8 [0x00007f83d4f2aa20+0x88]
-J 1343 C2 java.net.URLClassLoader$1.run()Ljava/lang/Object; (5 bytes) @ 0x00007f83d4d46490 [0x00007f83d4d46280+0x210]
-v  ~StubRoutines::call_stub
-J 1341  java.security.AccessController.doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object; (0 bytes) @ 0x00007f83d4f7a503 [0x00007f83d4f7a4a0+0x63]
-j  java.net.URLClassLoader.findClass(Ljava/lang/String;)Ljava/lang/Class;+13
-J 1508 C2 java.lang.ClassLoader.loadClass(Ljava/lang/String;Z)Ljava/lang/Class; (122 bytes) @ 0x00007f83d50cc038 [0x00007f83d50cbdc0+0x278]
-j  sun.misc.Launcher$AppClassLoader.loadClass(Ljava/lang/String;Z)Ljava/lang/Class;+36
-j  java.lang.ClassLoader.loadClass(Ljava/lang/String;)Ljava/lang/Class;+3
-v  ~StubRoutines::call_stub
-j  org.ofbiz.base.start.Start$AdminPortThread.processClientRequest(Ljava/net/Socket;)V+112
-j  org.ofbiz.base.start.Start$AdminPortThread.run()V+108
+J 2783  java.util.zip.Deflater.deflateBytes(J[BIII)I (0 bytes) @ 0x00007fc3e99157f3 [0x00007fc3e99157a0+0x53]
+J 2784 C2 java.util.zip.Deflater.deflate([BII)I (9 bytes) @ 0x00007fc3e99ad56c [0x00007fc3e99ad480+0xec]
+J 2877 C2 org.apache.coyote.http11.filters.FlushableGZIPOutputStream.deflate()V (40 bytes) @ 0x00007fc3e99f29b0 [0x00007fc3e99f2920+0x90]
+J 2902 C2 java.util.zip.DeflaterOutputStream.write([BII)V (88 bytes) @ 0x00007fc3e9a2ee78 [0x00007fc3e9a2ec20+0x258]
+J 4548 C2 org.apache.coyote.http11.filters.FlushableGZIPOutputStream.flushLastByte()V (27 bytes) @ 0x00007fc3ea07fc50 [0x00007fc3ea07fba0+0xb0]
+j  org.apache.coyote.http11.filters.FlushableGZIPOutputStream.flush()V+26
+J 4521 C2 org.apache.coyote.http11.AbstractOutputBuffer.flush()V (105 bytes) @ 0x00007fc3ea06b5d4 [0x00007fc3ea06b3c0+0x214]
+J 2837 C2 org.apache.coyote.http11.AbstractHttp11Processor.action(Lorg/apache/coyote/ActionCode;Ljava/lang/Object;)V (602 bytes) @ 0x00007fc3e981a3e8 [0x00007fc3e981a160+0x288]
+J 4951 C2 org.apache.catalina.connector.OutputBuffer.doFlush(Z)V (123 bytes) @ 0x00007fc3ea1b9e24 [0x00007fc3ea1b9be0+0x244]
+j  org.apache.catalina.connector.OutputBuffer.flush()V+2
+j  org.apache.catalina.connector.CoyoteWriter.flush()V+12
+j  freemarker.core.Environment.process()V+45
+j  org.ofbiz.base.util.template.FreeMarkerWorker.renderTemplate(Lfreemarker/template/Template;Ljava/util/Map;Ljava/lang/Appendable;)Lfreemarker/core/Environment;+25
+j  org.ofbiz.widget.screen.HtmlWidget.renderHtmlTemplate(Ljava/lang/Appendable;Lorg/ofbiz/base/util/string/FlexibleStringExpander;Ljava/util/Map;)V+109
+# ...
+J 5676 C2 org.apache.tomcat.util.net.JIoEndpoint$SocketProcessor.run()V (608 bytes) @ 0x00007fc3ea590864 [0x00007fc3ea590740+0x124]
+J 5126 C2 java.util.concurrent.ThreadPoolExecutor.runWorker(Ljava/util/concurrent/ThreadPoolExecutor$Worker;)V (225 bytes) @ 0x00007fc3ea2d12a8 [0x00007fc3ea2d1000+0x2a8]
+j  java.util.concurrent.ThreadPoolExecutor$Worker.run()V+5
+j  org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run()V+4
+j  java.lang.Thread.run()V+11
 v  ~StubRoutines::call_stub
 
 # ##################### 所有线程信息
@@ -453,6 +467,7 @@ Java Threads: ( => current thread )
   0x00007f83d81e7000 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=8959, stack(0x00007f83b5f21000,0x00007f83b6022000)]
   0x00007f83d81bf000 JavaThread "Finalizer" daemon [_thread_blocked, id=8958, stack(0x00007f83b6022000,0x00007f83b6123000)]
   0x00007f83d81bd000 JavaThread "Reference Handler" daemon [_thread_blocked, id=8957, stack(0x00007f83b6123000,0x00007f83b6224000)]
+  0x00007f1fdc002000 JavaThread "http-bio-0.0.0.0-7100-exec-2" daemon [_thread_blocked, id=3346, stack(0x00007f20b19dc000,0x00007f20b1add000)]
 
 Other Threads:
   0x00007f83d81b8800 VMThread [stack: 0x00007f83b6224000,0x00007f83b6325000] [id=8956]

@@ -6,9 +6,7 @@ categories: [web]
 tags: [js]
 ---
 
-## 笔记
-
-### javaScript 介绍
+## javaScript 介绍
 
 > - 前端三大语言：HTML、CSS、JS
 > - 专门设计网页交互的语言
@@ -30,9 +28,9 @@ javaScript 特点：
 - 弱类型
 - 基于对象
 
-### javascript 知识点
+## javascript 知识点
 
-#### 基本知识
+### 基本知识
 
 - 区分大小写
 - 字符串必须用单双引号包裹，语句有无分号效果一样
@@ -49,7 +47,7 @@ javaScript 特点：
 > - 网页的显示最好在7秒内，`<script>`一般放在body最后，为了使DOM先加载完
 > `var input = prompt("请输入数据");` // 用于收集用户输入数据的对话框
 
-#### 变量、数据类型、运算符
+### 变量、数据类型、运算符
 
 **base.html**
 
@@ -92,7 +90,12 @@ javaScript 特点：
 >
 > Unicode每个字符占两字节；UTF-8字母数字占1字节，汉字占3字节。
 
-#### 函数
+- js字符串转数字与小数点保留：https://juejin.im/post/5cafdf075188251aee3a6071
+- 浮点数运算，参考：https://blog.csdn.net/u013347241/article/details/79210840
+    - `console.log(0.1+0.2)` 返回 0.30000000000000004
+    - 解决：如使用[bignumber](https://github.com/MikeMcl/bignumber.js)等类库
+
+### 函数
 
 **function.html**
 
@@ -124,7 +127,7 @@ javaScript 特点：
     }
     ```
 
-#### 数组
+### 数组
 
 **array.html**
 

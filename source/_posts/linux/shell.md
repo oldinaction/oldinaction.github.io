@@ -946,8 +946,8 @@ find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...
     # eg: -maxdepth 0 # 只处理当前目录的文件(.)
 
 ## expression#tests
--name <patten> # 基本的文件名与shell模式pattern相匹配。正则建议使用""包裹
-    # eg: -name "*.log" # `.log`开头的文件
+-name <patten> # 基本的文件名与shell模式pattern相匹配。**正则建议使用""或''包裹**
+    # eg: -name "*.log" # `.log`开头的文件。如果不用双引号包裹，*可能展开为当前目录下所有的文件；或者使用\转义
 -type <c> # 文件类型，c取值
     f # 普通文件(regular file)
     d # 目录(directory)
@@ -1432,7 +1432,7 @@ echo "===============START $NOW==================" >> $LOG_FILE
 rm -rfv /home/data/mysql/my_db_name-log-bin.0* >> $LOG_FILE # 待考虑？
 
 # 删除日志文件
-find /home/smalle/demo/ -name *.log -type f -mtime +$LOG_SAVE_DAYS -exec rm -fv {} \; >> $LOG_FILE
+find /home/smalle/demo/ -name '*.log' -type f -mtime +$LOG_SAVE_DAYS -exec rm -fv {} \; >> $LOG_FILE
 # 删除日志目录(日志文件基于日期分类)
 lastMon=$(date -d"-$LOG_SAVE_DAYS day" +'%Y%m%d') # 获取30天前的日期
 for dir in module1 module2 ; do 

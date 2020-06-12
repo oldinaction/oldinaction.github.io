@@ -429,11 +429,7 @@ site.url=www.aezo.cn
 - maven依赖
 
     ```xml
-    <dependency>
-        <groupId>org.aspectj</groupId>
-        <artifactId>aspectjrt</artifactId><!--不要也可测试成功-->
-        <version>1.8.10</version>
-    </dependency>
+    <!-- 基于xml实现aop只需要spring-context，如果基于annotation使用aop则额外需要此依赖 -->
     <dependency>
         <groupId>org.aspectj</groupId>
         <artifactId>aspectjweaver</artifactId>
@@ -446,7 +442,7 @@ site.url=www.aezo.cn
         <artifactId>spring-boot-starter-aop</artifactId>
     </dependency>
     ```
-- 编写切面
+- 编写切面(基于xml的参考源码)
 
     ```java
     // 示例一
