@@ -188,22 +188,6 @@ this.$refs.mySelect.visible = true
 </style>
 ```
 
-#### Fixed模式下导致自定义滚动条被遮挡
-
-```css
-/deep/ .ivu-table-fixed, /deep/ .ivu-table-fixed-body {
-  bottom: 10px;
-}
-/deep/ .ivu-table-fixed-header thead tr th {
-  padding: 8px 0 18px 0;
-}
-
-::-webkit-scrollbar {
-    width: 6px; /* 针对纵向滚动条 */
-    height: 10px; /* 针对横向滚动条 */
-}
-```
-
 ### Page 假分页
 
 ```html

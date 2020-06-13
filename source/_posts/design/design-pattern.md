@@ -2,13 +2,13 @@
 layout: "post"
 title: "设计模式"
 date: "2017-08-12 09:47"
-categories: [arch]
+categories: [design]
 tags: [设计模式, java]
 ---
 
 ## 简介
 
-- [Java设计模式](http://c.biancheng.net/design_pattern/)、[设计模式](https://www.runoob.com/design-pattern/adapter-pattern.html)
+- [Java设计模式](http://c.biancheng.net/design_pattern/)、[设计模式](https://www.runoob.com/design-pattern/design-pattern-tutorial.html)
 - `OOA` Object-Oriented Analysis(面向对象分析方法)
 - `OOD` Object-Oriented Design(面向对象设计)
 - [UML中的类图及类图之间的关系](http://c.biancheng.net/view/1319.html)，参考：[uml.md#关系](/_posts/design/uml.md#关系)
@@ -47,7 +47,7 @@ tags: [设计模式, java]
 - 结构型模式
     - 代理（Proxy）模式：为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性
     - 适配器（Adapter）模式：将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作
-    - 桥接（Bridge）模式：将抽象与实现分离，使它们可以独立变化。它是用组合关系代替继承关系来实现，从而降低了抽象和实现这两个可变维度的耦合度
+    - 桥接（Bridge）模式：将抽象与实现分离，使它们可以独立变化
     - 装饰（Decorator）模式：动态的给对象增加一些职责，即增加其额外的功能
     - 外观（Facade）模式：为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问
     - 享元（Flyweight）模式：运用共享技术来有效地支持大量细粒度对象的复用
@@ -83,6 +83,8 @@ tags: [设计模式, java]
 - 访问这(12.2#16:00)
 
 ## 创建型模式
+
+- 创建型模式的主要关注点是"怎样创建对象？"，它的主要特点是将对象的创建与使用分离
 
 ### 单例模式(Singleton)
 
@@ -199,7 +201,7 @@ public class SimpleClone implements Cloneable {
 - 工厂方法模式由抽象工厂、具体工厂、抽象产品和具体产品等4个要素构成
 - 类图
 
-![DP-FactoryMethod](/data/images/arch/DP-FactoryMethod.png)
+![DP-FactoryMethod](/data/images/design/DP-FactoryMethod.png)
 
 ### 抽象工厂模式(AbstractFactory)
 
@@ -213,7 +215,7 @@ public class SimpleClone implements Cloneable {
 - 其缺点是：当产品族中需要增加一个新的产品时，所有的工厂类都需要进行修改
 - 类图
 
-![DP-AbstractFactory](/data/images/arch/DP-AbstractFactory.png)
+![DP-AbstractFactory](/data/images/design/DP-AbstractFactory.png)
 
 ### 建造者模式(Bulider)
 
@@ -262,6 +264,8 @@ public class PersonBuilder {
 
 ## 结构型模式
 
+- 结构型模式描述如何将类或对象按某种布局组成更大的结构。它分为类结构型模式和对象结构型模式，前者采用继承机制来组织接口和类，后者釆用组合或聚合来组合对象
+
 ### 代理模式(Proxy)
 
 > http://c.biancheng.net/view/1359.html
@@ -274,7 +278,7 @@ public class PersonBuilder {
 - Spring AOP基于动态代理完成，参考[spring.md#AOP](/_posts/java/spring.md#AOP)
 - (静态代理)类图
 
-![DP-Proxy](/data/images/arch/DP-Proxy.png)
+![DP-Proxy](/data/images/design/DP-Proxy.png)
 
 <details>
 <summary>静态代理主要代码</summary>
@@ -405,10 +409,10 @@ public static void main(String[] args) {
     - 对象适配器相对类适配器耦合度更低，更常用
 - 类图
 
-![DP-Adapter](/data/images/arch/DP-Adapter.png)
+![DP-Adapter](/data/images/design/DP-Adapter.png)
 
 <details>
-<summary>动态代理主要代码</summary>
+<summary>适配器模主要代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -430,7 +434,7 @@ public class Adaptee {
     }
 }
 
-// 适配器
+// 适配器(提供一个对外统一接口，内部实现对被适配者的调用)
 public class ObjectAdapter implements Target {
     private Adaptee adaptee;
 
@@ -452,98 +456,523 @@ public class ObjectAdapter implements Target {
 > http://c.biancheng.net/view/1364.html
 
 - 桥接模式定义
-    - **将抽象与实现分离，使它们可以独立变化。它是用组合关系代替继承关系来实现，从而降低了抽象和实现这两个可变维度的耦合度**
-- 关键代码：抽象类依赖实现类
+    - **将抽象与实现分离，使它们可以独立变化**
+    - 如Controller持有Service引用
 
 
-## 策略模式(Strategy)
+### 装饰模式(Decorator)
 
-- `java.lang.Comparable` 可排序的，需实现compareTo方法
-- `java.util.Comparator` 比较策略，需要实现compare方法，使用了策略模式。如：Collections.sort(list, Comparator); 需传入被排序集合和排序策略
+> http://c.biancheng.net/view/1366.html
+
+- 装饰模式定义
+    - **动态的给对象增加一些职责，即增加其额外的功能**
+    - 装饰器可混合使用，装饰器接口和被装饰物实现了同一个接口。如InputStream相关的类
+    - 结合[静态代理模式](#代理模式(Proxy))
+- 如：房子框架搭建完成 - 房子墙面刷白完成 - 房子周围花园建造完成
+
+### 外观模式(Facade)
+
+> http://c.biancheng.net/view/1369.html
+
+- 外观模式(又称**门面模式**)定义
+    - **为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问**
+    - - 将复杂的关系封装到一起，再对外提供服务。此时对外认为是外观(或门面)，对内认为是调停者模式/中介者模式(有了调停者，当内部有新加入成员时，只需要给调停者打交道，不需要和其他成员打交道)
+- 类图
+
+![DP-Facade](/data/images/design/DP-Facade.png)    
 
 <details>
-<summary>Comparator使用-理解Strategy</summary>
+<summary>外观模式主要代码</summary>
 
 ```java
-/**
- * Comparator比较策略，需要实现compare方法
- *
- * 结果：
- *
- * [T1_Comparator{name='b', age=18}, T1_Comparator{name='c', age=30}, T1_Comparator{name='a', age=50}]
- * [T1_Comparator{name='a', age=50}, T1_Comparator{name='b', age=18}, T1_Comparator{name='c', age=30}]
- *
- * @author smalle
- * @date 2020-06-07 22:22
- */
-public class T2_Comparator {
-    private String name;
-    private Integer age;
+public static void main(String[] args) {
+    Facade facade = new Facade();
+    facade.service();
+}
 
-    public T2_Comparator(String name, Integer age) {
-        this.name = name;
-        this.age = age;
+// 外观。当增加或移除子系统时需要修改外观类，这违背了"开闭原则"。也可以引入抽象外观类，则在一定程度上解决了该问题
+public class Facade {
+    // 外观必须自己实例化子系统(即客户不需要关心子系统 )
+    private SubSystemA subSystemA = new SubSystemA();
+    private SubSystemB subSystemB = new SubSystemB();
+    private SubSystemC subSystemC = new SubSystemC();
+
+    public void service() {
+        System.out.println("接受到客户请求...");
+
+        subSystemA.serviceA();
+        subSystemB.serviceB();
+        subSystemC.serviceC();
+
+        System.out.println("向客户反馈结果...");
     }
+}
 
-    @Override
-    public String toString() {
-        return "T1_Comparator{" +
-                "name='" + name + '\'' +
-                ", age=" + age +
-                '}';
+public class SubSystemA {
+    public void serviceA() {
+        System.out.println("子系统 SubSystemA 执行了一系列操作...");
     }
-
-    static class C1 implements Comparator<T2_Comparator> {
-        @Override
-        public int compare(T2_Comparator o1, T2_Comparator o2) {
-            if(o1.age > o2.age) return 1;
-            else if(o1.age < o2.age) return -1;
-            else return 0;
-        }
+}
+public class SubSystemB {
+    public void serviceB() {
+        System.out.println("子系统 SubSystemB 执行了一系列操作...");
     }
-
-    static class C2 implements Comparator<T2_Comparator> {
-        @Override
-        public int compare(T2_Comparator o1, T2_Comparator o2) {
-            return o1.name.compareTo(o2.name);
-        }
-    }
-
-
-    public static void main(String[] args) {
-        List<T2_Comparator> list = new ArrayList<>();
-        list.add(new T2_Comparator("c", 30));
-        list.add(new T2_Comparator("b", 18));
-        list.add(new T2_Comparator("a", 50));
-
-        // 传入被排序集合和排序策略
-        Collections.sort(list, new C1());
-        System.out.println(list);
-
-        // Comparator使用了策略模式，因此此处可以很方便的改变排序策略
-        Collections.sort(list, (T2_Comparator o1, T2_Comparator o2) -> {
-            return o1.name.compareTo(o2.name);
-        });
-        System.out.println(list);
+}
+public class SubSystemC {
+    public void serviceC() {
+        System.out.println("子系统 SubSystemC 执行了一系列操作...");
     }
 }
 ```
 </details>
 
-## 工厂模式
+### 享元模式(Flyweight)
 
-- 工厂方法
-    - 生成一个产品
-- 抽象工厂
-    - 有一个抽象工厂可以生产一系列抽象产品
-    - 对应的具体产品继承抽象产品
-    - 可自定义不同的具体工厂实现此抽象工厂，来生成这一系列(抽象产品对应的)具体产品
-- 简单工厂
-- 静态工厂(静态方法产生的类)
-- bean工厂
+> https://www.runoob.com/design-pattern/flyweight-pattern.html
 
-- 任何可以产生对象的方法或类，都可以称之为工厂。单例也可认为是一种工厂(有称为静态工厂)，不可死抠概念
-- 为什么有了new之后，还要工厂？灵活控制生成过程，如权限、修饰、日志
+- 享元模式定义
+    - **运用共享技术来有效地支持大量细粒度对象的复用**
+    - 如java中的常量字符串，有一个常量池，如果下次需要的常量字符串在这个里面有则直接使用
+
+<details>
+<summary>享元模式主要代码</summary>
+
+```java
+public static void main(String[] args) {
+    String[] colors = new String[]{"red", "blue", "yellow", "black", "white"};
+    Random random = new Random();
+
+    for (int i = 0; i < 10; i++) {
+        int index = random.nextInt(5);
+        Shape shape = ShapeFactory.getShape(colors[index]);
+        shape.draw();
+    }
+}
+
+public interface Shape {
+    void draw();
+}
+
+public class Circle implements Shape {
+    private String color;
+
+    public Circle(String color){
+        this.color = color;
+    }
+
+    @Override
+    public void draw() {
+        System.out.println("color:" + color);
+    }
+}
+
+public class ShapeFactory {
+    private static final HashMap<String, Shape> map = new HashMap<>();
+
+    public static Shape getShape(String color) {
+        Shape shape = map.get(color);
+        if(shape == null) {
+            shape = new Circle(color);
+            System.out.println("create Circle, color:" + color);
+            map.put(color, shape);
+        }
+        return shape;
+    }
+}
+```
+</details>
+
+### 组合模式(Composite)
+
+- 组合模式定义
+    - 将对象组合成树状层次结构，使用户对单个对象和组合对象具有一致的访问性
+- 透明方式和安全模式
+    - 透明方式
+        - 在该方式中，由于抽象构件声明了所有子类中的全部方法，所以客户端无须区别树叶对象和树枝对象，对客户端来说是透明的
+        - 其缺点是：树叶构件本来没有 add()、remove() 方法，却要实现它们（空实现或抛异常），这样会带来一些安全性问题
+    - 安全方式
+        - 将管理子构件的方法移到树枝构件中，抽象构件和树叶构件没有对子对象的管理方法，这样就避免了透明方式的安全性问题
+        - 但由于叶子和分支有不同的接口，客户端在调用时要知道树叶对象和树枝对象的存在，所以失去了透明性
+
+<details>
+<summary>组合模式(透明方式)主要代码</summary>
+
+```java
+/*
+枝干节点1
+    叶子1
+    枝干节点2
+        叶子2
+        叶子3
+*/
+public static void main(String[] args) {
+    Component composite1 = new Composite("枝干节点1");
+    Component composite2 = new Composite("枝干节点2");
+    Component leaf1 = new Leaf("叶子1");
+    Component leaf2 = new Leaf("叶子2");
+    Component leaf3 = new Leaf("叶子3");
+
+    composite1.add(leaf1);
+    composite1.add(composite2);
+    composite2.add(leaf2);
+    composite2.add(leaf3);
+
+    composite1.operation(0);
+}
+
+public interface Component {
+    void add(Component c);
+    void remove(Component c);
+    void operation(int level);
+}
+
+public class Composite implements Component {
+    private final List<Component> children = new ArrayList<>();
+
+    private String name;
+
+    public Composite(String name) {
+        this.name = name;
+    }
+
+
+    @Override
+    public void add(Component c) {
+        children.add(c);
+    }
+
+    @Override
+    public void remove(Component c) {
+        children.remove(c);
+    }
+
+    @Override
+    public void operation(int level) {
+        String space = "";
+        for (int i = 0; i < level; i++) {
+            space += "    ";
+        }
+        System.out.println(space + name);
+
+        level++;
+        for(Component obj: children) {
+            obj.operation(level);
+        }
+    }
+}
+
+public class Leaf implements Component {
+    private String name;
+
+    public Leaf(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public void add(Component c) {
+
+    }
+
+    @Override
+    public void remove(Component c) {
+
+    }
+
+    @Override
+    public void operation(int level) {
+        String space = "";
+        for (int i = 0; i < level; i++) {
+            space += "    ";
+        }
+        System.out.println(space + name);
+    }
+}
+```
+</details>
+
+## 行为型模式
+
+- 行为型模式用于描述程序在运行时复杂的流程控制，即描述多个类或对象之间怎样相互协作共同完成单个对象都无法单独完成的任务，它涉及算法与对象间职责的分配
+- 行为型模式分为类行为模式和对象行为模式，前者采用继承机制来在类间分派行为，后者采用组合或聚合在对象间分配行为
+
+### 模板方法模式(TemplateMethod)
+
+- 模板方法模式定义
+    - **定义一个操作中的算法骨架，而将算法的一些步骤延迟到子类中，使得子类可以不改变该算法结构的情况下重定义该算法的某些特定步骤**
+
+![DP-TemplateMethod](/data/images/design/DP-TemplateMethod.png)
+
+<details>
+<summary>模板方法模式主要代码</summary>
+
+```java
+public static void main(String[] args) {
+    AbstractClass abstractClass = new ConcreteClass();
+    abstractClass.templateMethod();
+}
+
+public abstract class AbstractClass {
+
+    public void templateMethod() {
+        abstractMethod1();
+        specificMethod();
+        abstractMethod2();
+    }
+
+    private void specificMethod() {
+        System.out.println("specificMethod...");
+    }
+
+    public abstract void abstractMethod1();
+    public abstract void abstractMethod2();
+}
+
+public class ConcreteClass extends AbstractClass {
+    @Override
+    public void abstractMethod1() {
+        System.out.println("abstractMethod1...");
+    }
+
+    @Override
+    public void abstractMethod2() {
+        System.out.println("abstractMethod2...");
+    }
+}
+```
+</details>
+
+### 策略模式(Strategy)
+
+- 策略模式定义
+    - **定义了一系列算法，并将每个算法封装起来，使它们可以相互替换，且算法的改变不会影响使用算法的客户**
+    - `java.lang.Comparable` 可排序的，需实现compareTo方法
+    - `java.util.Comparator` 比较策略，需要实现compare方法，使用了策略模式。如：Collections.sort(list, Comparator); 需传入被排序集合和排序策略
+
+![DP-Stategy](/data/images/design/DP-Stategy.png)
+
+<details>
+<summary>策略模式核心代码(基于Comparator使用)</summary>
+
+```java
+public static void main(String[] args) {
+    List<Person> list = new ArrayList<>();
+    list.add(new Person("c", 30));
+    list.add(new Person("b", 18));
+    list.add(new Person("a", 50));
+
+    // 传入被排序集合和排序策略
+    Collections.sort(list, new PersonAgeComparator());
+    System.out.println(list);
+
+    // Comparator使用了策略模式，因此此处可以很方便的改变排序策略
+    Collections.sort(list, (Person o1, Person o2) -> {
+        return o1.getName().compareTo(o2.getName());
+    });
+    System.out.println(list);
+}
+
+// 对于java.util.Comparator可以有不同的实现。一般自己写策略模式需要定义一个类似Comparator的接口
+public class PersonAgeComparator implements Comparator<Person> {
+    @Override
+    public int compare(Person o1, Person o2) {
+        if(o1.getAge() > o2.getAge()) return 1;
+        else if(o1.getAge() < o2.getAge()) return -1;
+        else return 0;
+    }
+}
+```
+</details>
+
+### 命令模式(Command)
+
+- 命令模式定义
+    - **将一个请求封装为一个对象，使发出请求的责任和执行请求的责任分割开**
+    - 结合[适配器模式](#适配器模式(Adapter))
+
+![DP-Command](/data/images/design/DP-Command.png)
+
+<details>
+<summary>命令模式核心代码</summary>
+
+```java
+public static void main(String[] args) {
+    Command command = new ConcreteCommand();
+    command.execute();
+}
+
+public interface Command {
+    void execute();
+}
+public class ConcreteCommand implements Command {
+    Receiver receiver = new Receiver();
+
+    @Override
+    public void execute() {
+        receiver.action();
+    }
+}
+
+public class Receiver {
+    public void action() {
+        System.out.println("执行命令...");
+    }
+}
+```
+</details>
+
+### 职责链模式(Chain of Responsibility)
+
+- 职责链模式定义
+    - **把请求从链中的一个对象传到下一个对象，直到请求被响应为止。通过这种方式去除对象之间的耦合**
+
+![DP-Chain-of-Responsibility](/data/images/design/DP-Chain-of-Responsibility.png)
+
+<details>
+<summary>命令模式核心代码</summary>
+
+```java
+public static void main(String[] args) {
+    // 组装责任链
+    Handler handler1 = new ConcreteHandler();
+    Handler handler2 = new ConcreteHandler();
+    handler1.setNext(handler2);
+
+    // 提交请求
+    handler1.handleRequest();
+}
+
+public abstract class Handler {
+    protected Handler next; // 持有后继的责任对象
+
+    // 示意处理请求的方法，虽然这个示意方法是没有传入参数的。但实际是可以传入参数的，根据具体需要来选择是否传递参数
+    // 也可以通过boolean判断是否继续执行
+    public abstract boolean handleRequest();
+
+    public Handler getNext() {
+        return next;
+    }
+
+    public void setNext(Handler next) {
+        this.next = next;
+    }
+}
+
+public class ConcreteHandler extends Handler {
+    @Override
+    public boolean handleRequest() {
+        // 判断是否有后继的责任对象。如果有，就转发请求给后继的责任对象；如果没有，则处理请求
+        if(getNext() != null) {
+            System.out.println("放过请求");
+
+            return getNext().handleRequest();
+        } else {
+            System.out.println("处理请求");
+            return true;
+        }
+    }
+}
+```
+</details>
+
+### 状态模式(State)
+
+- 状态模式定义
+    - **允许一个对象在其内部状态发生改变时改变其行为能力**
+
+### 观察者模式(Observer)
+
+- 观察者模式定义
+    - **多个对象间存在一对多关系，当一个对象发生改变时，把这种改变通知给其他多个对象，从而影响其他对象的行为**
+
+<details>
+<summary>观察者模式核心代码</summary>
+
+```java
+/*
+具体目标发生改变...
+ConcreteObserver1 response...
+ConcreteObserver2 response...
+*/
+public static void main(String[] args) {
+    IObserver observer1 = new ConcreteObserver1();
+    IObserver observer2 = new ConcreteObserver2();
+
+    Subject subject = new ConcreteSubject();
+    subject.add(observer1);
+    subject.add(observer2);
+
+    subject.notifyObserver();
+}
+
+public interface IObserver {
+    void response();
+}
+public class ConcreteObserver1 implements IObserver {
+    @Override
+    public void response() {
+        System.out.println("ConcreteObserver1 response...");
+    }
+}
+public class ConcreteObserver2 implements IObserver {
+    @Override
+    public void response() {
+        System.out.println("ConcreteObserver2 response...");
+    }
+}
+
+public abstract class Subject {
+    protected List<IObserver> observers = new ArrayList<IObserver>();
+
+    public void add(IObserver observer) {
+        observers.add(observer);
+    }
+
+    public void remove(IObserver observer) {
+        observers.remove(observer);
+    }
+
+    public abstract void notifyObserver(); // 通知观察者方法
+}
+public class ConcreteSubject extends Subject {
+    @Override
+    public void notifyObserver() {
+        System.out.println("具体目标发生改变...");
+
+        for(Object obs : observers) {
+            ((IObserver)obs).response();
+        }
+    }
+}
+```
+</details>
+
+### 中介者模式(Mediator)
+
+- 中介者模式(又称**调停者模式**)定义
+    - **定义一个中介对象来简化原有对象之间的交互关系，降低系统中对象间的耦合度，使原有对象之间不必相互了解**
+
+![DP-Mediator](/data/images/design/DP-Mediator.png)
+
+
+```java
+
+```
+
+
+
+
+
+
+- 迭代器（Iterator）模式：提供一种方法来顺序访问聚合对象中的一系列数据，而不暴露聚合对象的内部表示
+- 访问者（Visitor）模式：在不改变集合元素的前提下，为一个集合中的每个元素提供多种访问方式，即每个元素有多个访问者对象访问
+- 备忘录（Memento）模式：在不破坏封装性的前提下，获取并保存一个对象的内部状态，以便以后恢复它
+- 解释器（Interpreter）模式：提供如何定义语言的文法，以及对语言句子的解释方法，即解释器
+
+
+
+
+
+
 
 
 
@@ -559,18 +988,6 @@ public class T2_Comparator {
 ## 观察者模式(Observer)
 
 - Observer、Listener、Hook、Callback都属于观察者模式
-
-## 装饰器模式(Decorator)
-
-- 装饰器可混合使用，装饰器接口和被装饰物实现了同一个接口。如InputStream相关的类
-
-## 组合模式(Composite)
-
-- 主要用于树状结构
-
-## 享元模式(Flyweight)
-
-- 如java中的常量字符串，有一个常量池，如果下次需要的常量字符串在这个里面有则直接使用
 
 
 11
