@@ -226,7 +226,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         - 使用ws(websocket)模式
 
             ```json
-            // 在 inbounds 里添加一个 inbound(默认包含一个tcp类型的inbound)，id 部分请使用 /usr/bin/v2ray/v2ctl uuid 命令随机生成一个，端口必须设置为 80
+            // 在 inbounds 里添加一个 inbound(默认包含一个tcp类型的inbound)，id 部分请使用 /usr/bin/v2ray/v2ctl uuid 命令随机生成一个。如果基于域名则端口必须设置为 80；如果基于IP，端口可设置成其他
             // vi /etc/v2ray/config.json
             {
                 "settings": {

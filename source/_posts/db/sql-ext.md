@@ -98,6 +98,23 @@ group by
 	c.name
 ```
 
+### 基于关系表统计多个关系同时存在的主表记录
+
+```sql
+/*
+通知表：notice
+通知-用户关系表：notice_relation
+发布通知时可选择部分用户，此时查询出用户1、2、3同时收到的通知记录，并统计出每个通知的已读和未读人数
+*/
+select nr.notice_id, count(1) as send_user_counts,
+    count(case when nm.read_status = 1 then 1 end) yes_read,
+    count(case when nm.read_status = 0 then 1 end) no_read
+from notice_relation nr
+where nr.user_id in (1, 2, 3)
+group by nr.notice_id
+having count(1) = 3
+```
+
 ### 行转列/列转行
 
 - sqlserver
@@ -106,7 +123,6 @@ group by
 
 ```sql
 /*
-
 -- course
 id  stu_no  course_name course_score
 1   1       yuewen      90
@@ -120,10 +136,9 @@ id  stu_no  course_name course_score
 stu_no  yuewen  shuxue  yingyu
 1       90      80      85
 2       95      100     55
-
 */
 
--- 行转列
+-- ## 行转列
 -- 基于pivot
 select a.stu_no, max(a.yuwen) as yuwen, max(a.shuxue) as shuxue, max(a.yingyu) as yingyu
 from course pivot(max(course_score) for course_name in(yuwen,shuxue,yingyu)) a 
@@ -136,7 +151,7 @@ max(case course_name when 'shuxue' then course_score else 0 end) as 'shuxue',
 max(case course_name when 'yingyu' then course_score else 0 end) as 'yingyu'
 from course group by stu_no
 
--- 列转行
+-- ## 列转行
 select a.stu_no , a.course_name, a.course_score from course2 unpivot(course_score for course_name in(yuwen,shuxue,yingyu)) a
 
 select t.stu_no, t.course_name, t.course_score from

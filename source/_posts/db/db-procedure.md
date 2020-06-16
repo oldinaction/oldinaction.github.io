@@ -425,9 +425,7 @@ as
 	--通过条件将符合要求的数据汇聚到临时表#temp上
 	set @Context='select row_number() over(order by '+@pkey+') as [No],* into #temp  from '+@Table
 	--判断是否有筛选条件传入
-	if(@Conditions is not null)
-
-			set @Context=@Context+' where '+@Conditions
+	if(@Conditions is not null) set @Context=@Context+' where '+@Conditions
 	--通过查询#temp 表实现分页.
 	set @Context=@Context+'  select * from #temp where No between '+cast(@start as nvarchar(4))+' and '+cast(@end as nvarchar(4))
 	--返回出总共可以分成多少页

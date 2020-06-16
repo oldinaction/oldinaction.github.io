@@ -8,12 +8,16 @@ tags: [设计模式, java]
 
 ## 简介
 
+16
+
 - [Java设计模式](http://c.biancheng.net/design_pattern/)、[设计模式](https://www.runoob.com/design-pattern/design-pattern-tutorial.html)
 - `OOA` Object-Oriented Analysis(面向对象分析方法)
 - `OOD` Object-Oriented Design(面向对象设计)
 - [UML中的类图及类图之间的关系](http://c.biancheng.net/view/1319.html)，参考：[uml.md#关系](/_posts/design/uml.md#关系)
     - 依赖关系(持有对方引用)、关联关系(你中有我，我中有你)、聚合关系、组合关系、泛化关系(继承)和实现关系
     - 目标为高内聚，低耦合。耦合度：继承 > 聚合(属性为另外一个对象的引用) > 关联(方法参数或返回值是另外一个对象)
+- GRASP模式、JBPM工作流
+- 类可以是提取需求中的名词；抽象类和接口的区别：一般是脑子里有一个概念但是没有具体的东西可以设计为抽象类，如交通工具(车、飞机)，他有一个方法go()；如果只是考虑一类事物和几类事物共同的特征一般设计为接口，如会跑的(Movable)，他有一个方法go()
 
 ### 面向对象设计原则
 
@@ -39,29 +43,29 @@ tags: [设计模式, java]
 ### GoF的23种设计模式分类
 
 - 创建型模式
-    - 单例（Singleton）模式：某个类只能生成一个实例，且提供一个方法供外部获取该实例
+    - **单例**（Singleton）模式：某个类只能生成一个实例，且提供一个方法供外部获取该实例
     - 原型（Prototype）模式：将一个对象作为原型，通过对其进行复制而克隆出多个和原型类似的新实例
-    - 工厂方法（FactoryMethod）模式：定义一个用于创建产品的接口，由子类决定生产什么产品
-    - 抽象工厂（AbstractFactory）模式：提供一个创建产品族的接口，其每个子类可以生产一系列相关的产品
+    - **工厂方法**（FactoryMethod）模式：定义一个用于创建产品的接口，由子类决定生产什么产品
+    - **抽象工厂**（AbstractFactory）模式：提供一个创建产品族的接口，其每个子类可以生产一系列相关的产品
     - 建造者（Builder）模式：将一个复杂对象分解成多个相对简单的部分，然后根据不同需要分别创建它们，最后构建成该复杂对象
 - 结构型模式
-    - 代理（Proxy）模式：为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性
+    - **代理**（Proxy）模式：为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性
     - 适配器（Adapter）模式：将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作
     - 桥接（Bridge）模式：将抽象与实现分离，使它们可以独立变化
-    - 装饰（Decorator）模式：动态的给对象增加一些职责，即增加其额外的功能
-    - 外观（Facade）模式：为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问
+    - **装饰**（Decorator）模式：动态的给对象增加一些职责，即增加其额外的功能
+    - **外观**（Facade）模式：为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问
     - 享元（Flyweight）模式：运用共享技术来有效地支持大量细粒度对象的复用
     - 组合（Composite）模式：将对象组合成树状层次结构，使用户对单个对象和组合对象具有一致的访问性
 - 行为型模式
     - 模板方法（TemplateMethod）模式：定义一个操作中的算法骨架，而将算法的一些步骤延迟到子类中，使得子类可以不改变该算法结构的情况下重定义该算法的某些特定步骤
     - 策略（Strategy）模式：定义了一系列算法，并将每个算法封装起来，使它们可以相互替换，且算法的改变不会影响使用算法的客户
     - 命令（Command）模式：将一个请求封装为一个对象，使发出请求的责任和执行请求的责任分割开
-    - 职责链（Chain of Responsibility）模式：把请求从链中的一个对象传到下一个对象，直到请求被响应为止。通过这种方式去除对象之间的耦合
+    - **职责链**（Chain of Responsibility）模式：把请求从链中的一个对象传到下一个对象，直到请求被响应为止。通过这种方式去除对象之间的耦合
     - 状态（State）模式：允许一个对象在其内部状态发生改变时改变其行为能力
-    - 观察者（Observer）模式：多个对象间存在一对多关系，当一个对象发生改变时，把这种改变通知给其他多个对象，从而影响其他对象的行为
-    - 中介者（Mediator）模式：定义一个中介对象来简化原有对象之间的交互关系，降低系统中对象间的耦合度，使原有对象之间不必相互了解
-    - 迭代器（Iterator）模式：提供一种方法来顺序访问聚合对象中的一系列数据，而不暴露聚合对象的内部表示
-    - 访问者（Visitor）模式：在不改变集合元素的前提下，为一个集合中的每个元素提供多种访问方式，即每个元素有多个访问者对象访问
+    - **观察者**（Observer）模式：多个对象间存在一对多关系，当一个对象发生改变时，把这种改变通知给其他多个对象，从而影响其他对象的行为
+    - **中介者**（Mediator）模式：定义一个中介对象来简化原有对象之间的交互关系，降低系统中对象间的耦合度，使原有对象之间不必相互了解
+    - 迭代器（Iterator）模式：提供一种方法来顺序访问聚合对象中的一系列数据，而不暴露聚合对象的内部结构
+    - **访问者**（Visitor）模式：在不改变集合元素的前提下，为一个集合中的每个元素提供多种访问方式，即每个元素有多个访问者对象访问
     - 备忘录（Memento）模式：在不破坏封装性的前提下，获取并保存一个对象的内部状态，以便以后恢复它
     - 解释器（Interpreter）模式：提供如何定义语言的文法，以及对语言句子的解释方法，即解释器
 
@@ -80,7 +84,7 @@ tags: [设计模式, java]
 - 享元模式(10.3#0:57:25)
 - 代理模式(11)
 - 迭代器模式(12.1-12.2#16:00)
-- 访问这(12.2#16:00)
+- 访问者(12.2#16:00)
 
 ## 创建型模式
 
@@ -107,7 +111,7 @@ tags: [设计模式, java]
 - 单例模式可扩展为有限的**多例模式(Multitcm)**，这种模式可生成有限个实例并保存在 List 中，客户需要时可随机获取
 
 <details>
-<summary>主要代码</summary>
+<summary>单例模式示例代码</summary>
 
 ```java
 // 饿汉式
@@ -144,11 +148,11 @@ public enum Mgr04 {
     - 原型实例指定了要创建的对象的种类
     - 用这种方式创建对象非常高效，根本无须知道对象创建的细节
     - 例如：Windows 操作系统的安装通常较耗时，如果复制就快了很多
-- 由于 Java 提供了对象的 clone() 方法，所以用 Java 实现原型模式很简单，需要实现Cloneable接口
-- 原型模式的克隆分为浅克隆和深克隆，Java 中的 Object 类提供了浅克隆的 clone() 方法，**具体原型类只要实现Cloneable接口**就可实现对象的浅克隆，这里的 Cloneable 接口就是抽象原型类
+- 由于 Java 提供了对象的 clone() 方法，所以用 Java 实现原型模式很简单，需要实现Cloneable接口，并重写clone()方法
+- 原型模式的克隆分为浅克隆和深克隆，Java 中的 Object 类提供了浅克隆的 clone() 方法。具体原型类只要实现Cloneable接口就可实现对象的浅克隆，实现深克隆则需要对象属性也实现Cloneable接口
 
 <details>
-<summary>主要代码</summary>
+<summary>原型模式示例代码</summary>
 
 ```java
 /*
@@ -157,31 +161,52 @@ public enum Mgr04 {
 o1.name equals o2.name? true
 o1.o equals o2.o? true
 o1.o == o2.o? true
+o1.data == o2.data? false
 */
 public class SimpleClone implements Cloneable {
     private String name;
     private Object o;
+    private Data data;
 
-    public SimpleClone(String name, Object o) {
+    public SimpleClone(String name, Object o, Data data) {
         this.name = name;
         this.o = o;
+        this.data = data;
         System.out.println("具体原型创建成功！");
     }
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
         System.out.println("具体原型复制成功！");
-        return super.clone();
+        // 实现Data的深克隆
+        SimpleClone o = (SimpleClone) super.clone();
+        o.data = (Data) data.clone();
+        return o;
     }
 
     public static void main(String[] args) throws CloneNotSupportedException {
         Object o = new Object();
-        SimpleClone o1 = new SimpleClone("o1", o);
+        Data data = new Data("V1");
+        SimpleClone o1 = new SimpleClone("o1", o, data);
         SimpleClone o2 = (SimpleClone) o1.clone();
 
         System.out.println("o1.name equals o2.name? " + (o1.name.equals(o2.name)));
         System.out.println("o1.o equals o2.o? " + (o1.o.equals(o2.o)));
         System.out.println("o1.o == o2.o? " + (o1.o == o2.o));
+        System.out.println("o1.data == o2.data? " + (o1.data == o2.data));
+    }
+}
+
+class Data implements Cloneable {
+    String data;
+
+    public Data(String data) {
+        this.data = data;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }
 ```
@@ -227,7 +252,7 @@ public class SimpleClone implements Cloneable {
 - 建造者模式和工厂模式的关注点不同：建造者模式注重零部件的组装过程，而工厂方法模式更注重零部件的创建过程，但两者可以结合使用
 
 <details>
-<summary>主要代码</summary>
+<summary>建造者模式示例代码</summary>
 
 ```java
 // 简单的Person Model省略
@@ -272,7 +297,7 @@ public class PersonBuilder {
 
 - 代理模式定义
     - **为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性**
-- 代理分为静态代理和动态代理，其中动态代理主要有JDK动态代理和Cglib动态代理，最终都是基于ASM操纵字节码
+- 代理分为静态代理和动态代理，其中动态代理主要有JDK动态代理和Cglib动态代理，最终都是基于[ASM](https://asm.ow2.io/)操纵字节码
     - JDK动态代理和静态代理类似，代理类和被代理需要实现相同的接口
     - Cglib动态代理是生成被代理类的子类，因此被代理类不能被final修饰
 - Spring AOP基于动态代理完成，参考[spring.md#AOP](/_posts/java/spring.md#AOP)
@@ -281,7 +306,7 @@ public class PersonBuilder {
 ![DP-Proxy](/data/images/design/DP-Proxy.png)
 
 <details>
-<summary>静态代理主要代码</summary>
+<summary>静态代理示例代码</summary>
 
 ```java
 /*结果如：
@@ -360,7 +385,7 @@ public class MovableTimeProxy implements Movable {
 </details>
 
 <details>
-<summary>动态代理主要代码</summary>
+<summary>动态代理示例代码</summary>
 
 ```java
 // 1.JDK动态代理。还需Dog 和 Movable，同上文
@@ -403,6 +428,8 @@ public static void main(String[] args) {
 
 - 适配器模式定义
     - **将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作**
+    - 如`InputStreamReader`就是Adapter模式。FileInputStream默认只能一个字节一个字节的读，此时通过InputStreamReader适配，最后可使用BufferedReader进行一行一行的读
+    - 常见的以Adapter命名的反而不是基于适配器模式，如WindowAdapter(主要为了方便编程，对接口的方法有默认的实现，只需要去继承重写关心的方法)；常见以Bridge命名却有可能是Adapter模式
 - 适配器模式分为类适配器和对象适配器两种
     - 类适配器基于继承
     - 对象适配器基于依赖
@@ -412,7 +439,7 @@ public static void main(String[] args) {
 ![DP-Adapter](/data/images/design/DP-Adapter.png)
 
 <details>
-<summary>适配器模主要代码</summary>
+<summary>适配器模示例代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -459,7 +486,6 @@ public class ObjectAdapter implements Target {
     - **将抽象与实现分离，使它们可以独立变化**
     - 如Controller持有Service引用
 
-
 ### 装饰模式(Decorator)
 
 > http://c.biancheng.net/view/1366.html
@@ -482,7 +508,7 @@ public class ObjectAdapter implements Target {
 ![DP-Facade](/data/images/design/DP-Facade.png)    
 
 <details>
-<summary>外观模式主要代码</summary>
+<summary>外观模式示例代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -535,7 +561,7 @@ public class SubSystemC {
     - 如java中的常量字符串，有一个常量池，如果下次需要的常量字符串在这个里面有则直接使用
 
 <details>
-<summary>享元模式主要代码</summary>
+<summary>享元模式示例代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -595,7 +621,7 @@ public class ShapeFactory {
         - 但由于叶子和分支有不同的接口，客户端在调用时要知道树叶对象和树枝对象的存在，所以失去了透明性
 
 <details>
-<summary>组合模式(透明方式)主要代码</summary>
+<summary>组合模式(透明方式)示例代码</summary>
 
 ```java
 /*
@@ -703,7 +729,7 @@ public class Leaf implements Component {
 ![DP-TemplateMethod](/data/images/design/DP-TemplateMethod.png)
 
 <details>
-<summary>模板方法模式主要代码</summary>
+<summary>模板方法模式示例代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -748,10 +774,10 @@ public class ConcreteClass extends AbstractClass {
     - `java.lang.Comparable` 可排序的，需实现compareTo方法
     - `java.util.Comparator` 比较策略，需要实现compare方法，使用了策略模式。如：Collections.sort(list, Comparator); 需传入被排序集合和排序策略
 
-![DP-Stategy](/data/images/design/DP-Stategy.png)
+![DP-Strategy](/data/images/design/DP-Strategy.png)
 
 <details>
-<summary>策略模式核心代码(基于Comparator使用)</summary>
+<summary>策略模式示例代码(基于Comparator使用)</summary>
 
 ```java
 public static void main(String[] args) {
@@ -792,7 +818,7 @@ public class PersonAgeComparator implements Comparator<Person> {
 ![DP-Command](/data/images/design/DP-Command.png)
 
 <details>
-<summary>命令模式核心代码</summary>
+<summary>命令模式示例代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -824,11 +850,12 @@ public class Receiver {
 
 - 职责链模式定义
     - **把请求从链中的一个对象传到下一个对象，直到请求被响应为止。通过这种方式去除对象之间的耦合**
+    - servelet中的Filter和FilterChain就是使用了责任链模式
 
 ![DP-Chain-of-Responsibility](/data/images/design/DP-Chain-of-Responsibility.png)
 
 <details>
-<summary>命令模式核心代码</summary>
+<summary>命令模式示例代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -878,14 +905,80 @@ public class ConcreteHandler extends Handler {
 
 - 状态模式定义
     - **允许一个对象在其内部状态发生改变时改变其行为能力**
+    - 此时将状态抽象出来，并让state对象去执行行为，此时传入不同的state对象。如果state的类型不会增加，其实switch case即可
+
+<details>
+<summary>状态模式示例代码</summary>
+
+```java
+/*
+Player is in start state
+Start State
+Player is in stop state
+Stop State
+*/
+public static void main(String[] args) {
+    Context context = new Context();
+
+    StartState startState = new StartState();
+    startState.doAction(context);
+    System.out.println(context.getState());
+
+    StopState stopState = new StopState();
+    stopState.doAction(context);
+    System.out.println(context.getState());
+}
+
+public class Context {
+    private State state;
+
+    public Context(){
+        state = null;
+    }
+
+    public void setState(State state){
+        this.state = state;
+    }
+
+    public State getState(){
+        return state;
+    }
+}
+
+public interface State {
+    void doAction(Context context);
+}
+public class StartState implements State {
+    public void doAction(Context context) {
+        System.out.println("Player is in start state");
+        context.setState(this);
+    }
+
+    public String toString(){
+        return "Start State";
+    }
+}
+public class StopState implements State {
+    public void doAction(Context context) {
+        System.out.println("Player is in stop state");
+        context.setState(this);
+    }
+
+    public String toString(){
+        return "Stop State";
+    }
+}
+```
+</details>
 
 ### 观察者模式(Observer)
 
 - 观察者模式定义
     - **多个对象间存在一对多关系，当一个对象发生改变时，把这种改变通知给其他多个对象，从而影响其他对象的行为**
+    - Observer、Listener、Hook、Callback都属于观察者模式
 
 <details>
-<summary>观察者模式核心代码</summary>
+<summary>观察者模式示例代码</summary>
 
 ```java
 /*
@@ -953,149 +1046,348 @@ public class ConcreteSubject extends Subject {
 
 ![DP-Mediator](/data/images/design/DP-Mediator.png)
 
+<details>
+<summary>中介者模式(简单实现)示例代码</summary>
 
 ```java
+/*
+具体同事类A'发出请求...
+具体同事类B'收到请求...
+---------------
+具体同事类B'发出请求...
+具体同事类A'收到请求...
+*/
+public static void main(String[] args) {
+    Colleague colleague1 = new ConcreteColleagueA();
+    Colleague colleague2 = new ConcreteColleagueB();
 
-```
+    colleague1.send();
+    System.out.println("---------------");
+    colleague2.send();
+}
 
-
-
-
-
-
-- 迭代器（Iterator）模式：提供一种方法来顺序访问聚合对象中的一系列数据，而不暴露聚合对象的内部表示
-- 访问者（Visitor）模式：在不改变集合元素的前提下，为一个集合中的每个元素提供多种访问方式，即每个元素有多个访问者对象访问
-- 备忘录（Memento）模式：在不破坏封装性的前提下，获取并保存一个对象的内部状态，以便以后恢复它
-- 解释器（Interpreter）模式：提供如何定义语言的文法，以及对语言句子的解释方法，即解释器
-
-
-
-
-
-
-
-
-
-## 外观模式(Facade)和中介者模式(Mediator)
-
-- 将复杂的关系封装到一起，再对外提供服务。此时对外认为是外观(或门面)，对内认为是调停者(有了调停者，当内部有新加入成员时，只需要给调停者打交道，不需要和其他成员打交道)
-
-## 责任链模式
-
-- 责任链实现责任接口
-- 责任接口返回boolean控制责任链是否继续执行
-
-## 观察者模式(Observer)
-
-- Observer、Listener、Hook、Callback都属于观察者模式
-
-
-11
-
-
-
-## 责任链模式
-
-- Tomcat中的Filter就是使用了责任链模式，创建一个Filter除了要在web.xml文件中做相应配置外，还需要实现javax.servlet.Filter接口
-- 参与者
-    - `Handler`(抽象处理者)：定义出一个处理请求的接口。可选实现后继链(可返回下一个责任对象的)
-    - `ConcreteHandler`(具体处理者)：处理他所负责的请求；可访问他的后继者；如果可处理该请求，就处理之，否则将该请求转发给它的后继者
-- 可插拔编程/插件开发常用
-- 案例 [^1]
-
-```java
-// Handler.java
-public abstract class Handler {
-    // 持有后继的责任对象
-    protected Handler successor;
-
-    // 示意后继的责任对象处理请求的方法。根据具体需要来选择是否传递参数
-    public abstract void handleRequest();
-
-    public Handler getSuccessor() {
-        return successor;
+public interface Colleague {
+    void receive();
+    void send();
+}
+public class ConcreteColleagueA implements Colleague {
+    public ConcreteColleagueA() {
+        SimpleMediator.register(this);
     }
 
-    public void setSuccessor(Handler successor) {
-        this.successor = successor;
+    @Override
+    public void receive() {
+        System.out.println("具体同事类A'收到请求...");
+    }
+
+    @Override
+    public void send() {
+        System.out.println("具体同事类A'发出请求...");
+        SimpleMediator.relay(this); // 请中介者转发
+    }
+}
+public class ConcreteColleagueB implements Colleague {
+    public ConcreteColleagueB() {
+        SimpleMediator.register(this);
+    }
+
+    @Override
+    public void receive() {
+        System.out.println("具体同事类B'收到请求...");
+    }
+
+    @Override
+    public void send() {
+        System.out.println("具体同事类B'发出请求...");
+        SimpleMediator.relay(this); // 请中介者转发
     }
 }
 
-// ConcreteHandler.java
-public class ConcreteHandler extends Handler {
-    // 处理方法，调用此方法处理请求
-    @Override
-    public void handleRequest() {
-        // 具体处理逻辑
-        if(getSuccessor() != null) {
-            System.out.println("放过请求");
+public class SimpleMediator {
+    private static final List<Colleague> colleagues = new ArrayList<>();
+    private static final SimpleMediator simpleMediator = new SimpleMediator();
 
-            // 调用后续责任对象处理
-            getSuccessor().handleRequest();
-        } else {
-            System.out.println("处理请求");
+    public static void register(Colleague c) {
+        if(!colleagues.contains(c)) {
+            colleagues.add(c);
+        }
+    }
+
+    public static void relay(Colleague c) {
+        for(Colleague obj : colleagues) {
+            if(!obj.equals(c)) {
+                obj.receive();
+            }
         }
     }
 }
+```
+</details>
 
-// Client.java
-public class Client {
-    public static void main(String[] args) {
-        // 组装责任链。实际可将所有的责任对象放到集合中
-        Handler handler1 = new ConcreteHandler();
-        Handler handler2 = new ConcreteHandler();
-        handler1.setSuccessor(handler2);
+### 迭代器模式(Iterator)
 
-        // 提交请求，先交由第一个处理
-        handler1.handleRequest();
+- 迭代器模式定义
+    - **提供一种方法来顺序访问聚合对象中的一系列数据，而不暴露聚合对象的内部结构**
+    - 参考集合的Iterator实现
+
+![DP-Iterator](/data/images/design/DP-Iterator.png)
+
+### 访问者模式(Visitor)
+
+- 访问者模式定义
+    - **在不改变集合元素的前提下，为一个集合中的每个元素提供多种访问方式，即每个元素有多个访问者对象访问**
+    - 访问者模式能把处理方法从数据结构中分离出来，并可以根据需要增加新的处理方法，且不用修改原来的程序代码与数据结构，这提高了程序的扩展性和灵活性
+    - 如：顾客在商场购物时放在购物车中的商品，顾客主要关心所选商品的性价比，而收银员关心的是商品的价格和数量，并且不同的顾客评价不一
+    - `某对象.accept(访问者)` => 某对象接受访问者的访问 => 某对象会调用访问者的visit方法
+- 优点
+    - 扩展性好。能够在不修改对象结构的情况下，为对象结构中的元素添加新的功能
+    - 符合单一职责原则。访问者模式把相关的行为封装在一起，构成一个访问者，使每一个访问者的功能都比较单一
+- 缺点
+    - 增加新的元素类很困难。在访问者模式中，每增加一个新的元素类，都要在每一个具体访问者类中增加相应的具体操作，这违背了开闭原则
+    - 破坏封装。具体方法被从类中抽离出来了
+    - 违反了依赖倒置原则。访问者模式依赖了具体类，而没有依赖抽象类
+
+![DP-Visitor](/data/images/design/DP-Visitor.png)
+
+<details>
+<summary>访问者模式示例代码</summary>
+
+```java
+/*
+BoyCustomerVisitor喜欢酒
+BoyCustomerVisitor不喜欢化妆品
+------------
+GirlCustomerVisitor不喜欢酒
+GirlCustomerVisitor喜欢化妆品
+*/
+public static void main(String[] args) {
+    BoyCustomerVisitor boyCustomerVisitor = new BoyCustomerVisitor();
+    GirlCustomerVisitor girlCustomerVisitor = new GirlCustomerVisitor();
+
+    Goods wine = new Wine();
+    Goods makeup = new Makeup();
+
+    wine.accept(boyCustomerVisitor);
+    makeup.accept(boyCustomerVisitor);
+
+    System.out.println("------------");
+
+    wine.accept(girlCustomerVisitor);
+    makeup.accept(girlCustomerVisitor);
+}
+
+public interface Goods {
+    void accept(CustomerVisitor customerVisitor);
+}
+public class Wine implements Goods {
+    @Override
+    public void accept(CustomerVisitor customerVisitor) {
+        customerVisitor.visit(this);
+    }
+}
+public class Makeup implements Goods {
+    @Override
+    public void accept(CustomerVisitor customerVisitor) {
+        customerVisitor.visit(this);
     }
 }
 
-// 打印结果：
-// 放过请求
-// 处理请求
+public interface CustomerVisitor {
+    void visit(Wine mouse);
+    void visit(Makeup keyboard);
+}
+public class BoyCustomerVisitor implements CustomerVisitor {
+    @Override
+    public void visit(Wine wine) {
+        System.out.println("BoyCustomerVisitor喜欢酒");
+    }
+
+    @Override
+    public void visit(Makeup makeup) {
+        System.out.println("BoyCustomerVisitor不喜欢化妆品");
+    }
+}
+public class GirlCustomerVisitor implements CustomerVisitor {
+    @Override
+    public void visit(Wine wine) {
+        System.out.println("GirlCustomerVisitor不喜欢酒");
+    }
+
+    @Override
+    public void visit(Makeup makeup) {
+        System.out.println("GirlCustomerVisitor喜欢化妆品");
+    }
+}
 ```
+</details>
+
+### 备忘录模式(Memento)
+
+- 备忘录模式定义
+    - **在不破坏封装性的前提下，获取并保存一个对象的内部状态，以便以后恢复它**
+    - 类似的可以将所有的类和属性实现Serializable接口，则可进行序列化存盘
+    - 主要用在存盘，如游戏存档
+
+![DP-Memento](/data/images/design/DP-Memento.png)
+
+<details>
+<summary>备忘录模式示例代码</summary>
+
+```java
+/*
+原始状态:S0
+新的状态:S1
+恢复状态:S0
+*/
+public static void main(String[] args) {
+    Originator originator = new Originator();
+    Caretaker caretaker = new Caretaker();
+
+    originator.setState("S0");
+    System.out.println("原始状态:" + originator.getState());
+    caretaker.setMemento(originator.createMemento()); // 保存状态
+
+    originator.setState("S1");
+    System.out.println("新的状态:" + originator.getState());
+
+    originator.restoreMemento(caretaker.getMemento()); // 恢复状态
+    System.out.println("恢复状态:" + originator.getState());
+}
+
+public class Memento {
+    private String state;
+
+    public Memento(String state) {
+        this.state = state;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+}
+
+public class Caretaker {
+    private Memento memento;
+
+    public Memento getMemento() {
+        return memento;
+    }
+
+    public void setMemento(Memento memento) {
+        this.memento = memento;
+    }
+}
+
+public class Originator {
+    private String state;
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public Memento createMemento() {
+        return new Memento(state);
+    }
+
+    public void restoreMemento(Memento memento) {
+        this.setState(memento.getState());
+    }
+}
+```
+</details>
 
 
-### 马士兵谈设计模式
+### 解释器模式(Interpreter)
 
-> - GRASP模式、JBPM工作流
-> - 类可以是提取需求中的名词；
-> - 抽象类和接口的区别：一般是脑子里有一个概念但是没有具体的东西可以设计为抽象类，如交通工具(车、飞机)，他有一个方法go()；如果只是考虑一类事物和几类事物共同的特征一般设计为接口，如会跑的(Movable)，他有一个方法go().
+- 解释器模式定义
+    - **提供如何定义语言的文法，以及对语言句子的解释方法，即解释器**
 
-- Observer案例：小孩醒了，爸爸需要喂奶
-    - 本来是爸爸需要一直观察小孩是否醒了，那么需要爸爸启动线程监听。但此处让小孩启动线程，醒来后就调用爸爸的方法(或者发出一个事件)
-    - 本身是需要喂奶，如果需求复杂就可能是小孩不同时间醒了需要做不同的事情(早上喂奶, 中午看电视, 晚上散步)。此时则新加一个事件对象，小孩醒了就发出一个事件，有爸爸去监听做出响应
-    - 可能小孩醒了不仅爸爸需要喂奶，爷爷/奶奶也要做出响应，则此时应该基于接口编程。有一个小孩醒来的事件监听接口，小孩只需要调用此接口的事件响应方法，爷爷/奶奶只需要实现此接口即可
-    - 可将接口的实现从配置文件中读取，读取出对应的类名，并通过`Class.forName(myClassName).newInstance()`进行实例化
+![DP-Interpreter](/data/images/design/DP-Interpreter.png)
 
-- ThinkingInOO案例
+<details>
+<summary>解释器模式示例代码</summary>
 
+```java
+/*
+文法规则：
+<expression> ::= <city>的<person>
+<city> ::= 上海|广州
+<person> ::= 老人|妇女|儿童
 
+结果：
+您是上海的老人，您本次乘车免费！
+上海的年轻人，您不是免费人员，本次乘车扣费2元！
+您是广州的妇女，您本次乘车免费！
+您是广州的儿童，您本次乘车免费！
+山东的儿童，您不是免费人员，本次乘车扣费2元！
+*/
+public static void main(String[] args) {
+    Context bus = new Context();
+    bus.freeRide("上海的老人");
+    bus.freeRide("上海的年轻人");
+    bus.freeRide("广州的妇女");
+    bus.freeRide("广州的儿童");
+    bus.freeRide("山东的儿童");
+}
 
+public class Context {
+    private Expression cityPerson;
 
+    public Context() {
+        String[] citys = {"上海", "广州"};
+        String[] persons = {"老人", "妇女", "儿童"};
+        Expression city = new TerminalExpression(citys);
+        Expression person = new TerminalExpression(persons);
+        cityPerson = new AndExpression(city, person);
+    }
 
+    public void freeRide(String info) {
+        boolean ok = cityPerson.interpret(info);
+        if(ok) System.out.println("您是" + info + "，您本次乘车免费！");
+        else System.out.println(info + "，您不是免费人员，本次乘车扣费2元！");
+    }
+}
 
+public interface Expression {
+    boolean interpret(String info); // 解释方法
+}
 
+public class AndExpression implements Expression {
+    private Expression city = null;
+    private Expression person = null;
 
+    public AndExpression(Expression city, Expression person) {
+        this.city = city;
+        this.person = person;
+    }
 
+    public boolean interpret(String info) {
+        String s[] = info.split("的");
+        return city.interpret(s[0]) && person.interpret(s[1]);
+    }
+}
 
+public class TerminalExpression implements Expression {
+    private Set<String> set= new HashSet<>();
 
+    public TerminalExpression(String[] data) {
+        set.addAll(Arrays.asList(data));
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public boolean interpret(String info) {
+        return set.contains(info);
+    }
+}
+```
+</details>
 
 
 
@@ -1104,5 +1396,3 @@ public class Client {
 参考文章
 
 [^1]: https://www.cnblogs.com/java-my-life/archive/2012/05/28/2516865.html
-
-

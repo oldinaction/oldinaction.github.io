@@ -616,6 +616,13 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         - submit 异步执行线程，返回Future。如 Future future = executorService.submit(callable);
         - shutdown 停止，不再接受新的任务，但是会把队列中的任务执行完成才停止。如果不执行shutdown则主线程会一直处于阻塞状态
         - shutdownNow 立即停止，会给未执行完的任务发送一个interrupted指令
+        - AbstractExecutorService
+            - ThreadPoolExecutor
+        - ScheduledExecutorService 接口
+            - ScheduledThreadPoolExecutor
+                - 也继承了ThreadPoolExecutor，也就是说其拥有execute()和submit()提交异步任务的基础功能
+                - 能够延时执行任务和周期执行任务的功能
+                - 两个重要的内部类：DelayedWorkQueue和ScheduledFutureTask。其中DelayedWorkQueue实现了BlockingQueue接口，也就是一个阻塞队列，ScheduledFutureTask则是继承了FutureTask类，也表示该类用于返回异步任务的结果
 - Callable 类似于Runnable，只不过Callable有返回值，而Runnable没有。不能通过new Thread执行，可通过ExecutorService调用，如executorService.submit(callable);
     - call 类似于run，call有返回值，而run没有
 - Future

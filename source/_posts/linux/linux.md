@@ -233,12 +233,15 @@ lsmod |grep br_netfilter
 - `df -h` 查看磁盘使用情况、分区、挂载点(**只会显示成功挂载的分区，新磁盘需要进行分区和挂载**)
     - `df -h /home/smalle` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `df -Th` 查询文件系统格式
-- `du -ah --max-depth=1 | sort -h` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**
+- `du -ahm --max-depth=1 | sort -nr | head -10` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**(查看大目录)
     - `du` 它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
     - 参数说明
         - `-a` 所有文件，包括目录和普通文件，默认只统计目录
+        - `-h` 显示人类可读的文件大小
+        - `-m` 已MB大小为单位
     - `du -hsx * | sort -rh | head -10` 查看最大的10个文件
     - `du -sh /home/smalle | sort -h` 查看某个目录
+    - `find . -type f -size +500M  -print0 | xargs -0 du -hm | sort -nr` 查看大于500M的前10个文件(查看大文件)
 - `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
 - `lsblk` **树形显示磁盘即分区**
     - `fdisk -l` 查看磁盘设备

@@ -294,6 +294,67 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
         - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
         - SpringSecurity登录必须使用POST
 
+### 带参数文件上传
+
+```html
+<Upload
+    :max-size="10*1024"
+    :on-remove="handleRemove"
+    multiple
+    :before-upload="handleUpload"
+    :action = this.action
+>
+<Button icon="ios-cloud-upload-outline">上传附件</Button>
+</Upload>
+
+<script>
+handleUpload (file) {
+    var falg = true
+    var maxSize = 10 * (1024 * 1000)
+    if (file.size > maxSize) {
+        alert('当前文件超过10MB，不允许上传')
+        return
+    }
+    for (var i = 0; i < this.fileList.length; i++ ) { // lastModified是文件的唯一值，如果当前文件集合存在文件就不存了
+        if (this.fileList[i].lastModified == file.lastModified) {
+            falg = false
+        }
+    }
+    if (falg) {
+        this.fileList[this.fileindex] = file
+        this.file += file.name + '&nbsp;&nbsp;&nbsp;&nbsp;'
+        this.fileindex++
+    }
+    return true;
+},
+handleRemove (file) {
+    for (var i = 0;i<this.fileList.length;i++) {
+        if(this.fileList[i].name == file.name) {
+            this.fileList.splice(i, 1)
+            this.fileindex--
+        }
+    }
+},
+submit () {
+    var formData = new FormData()
+    formData.append('title', "标题")
+    formData.append('desc', "描述")
+    for( var i = 0; i < that.fileList.length; i++ ) {
+        formData.append('files', that.fileList[i])
+    }
+    this.$ajax.post('http://localhost:8080/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data;boundary = ' + new Date().getTime()
+        }
+    }).then(response => {})
+}
+
+// java
+@RequestMapping("/submit")
+public Object addNotice(MultipartFile[] files, @Param("title") String title, @Param("desc") String desc) {}
+</script>
+```
+
 ## 性能优化
 
 ### 用户浏览器缓存问题 [^5]
