@@ -15,8 +15,8 @@ tags: [sql, oracle, mysql]
 
 ### 数据类型转换
 
-- mysql：`CAST()`和 `CONVERT()` 可将一个类型转成另外一个类型
-    - 语法：CAST(expr AS type)、CONVERT(expr, type)、CONVERT(expr USING transcoding_name)   
+- mysql：`cast()`和 `convert()` 可将一个类型转成另外一个类型
+    - 语法：cast(expr as type)、convert(expr, type)、convert(expr using transcoding_name)   
 
 ```sql
 -- mysql、h2。可用类型：二进制 BINARY、字符型，可带参数 CHAR()、日期 DATE、TIME、DATETIME、浮点数 DECIMAL、整数 SIGNED、无符号整数 UNSIGNED
@@ -45,6 +45,15 @@ sysdate + interval '1 1:1' day to minute -- 当前日期 + 1日1时1分
 sysdate + 1 -- 加1天
 sysdate - 1/24/60/60 -- 减1秒
 select sysdate, add_months(sysdate, -12) from dual; -- 减1年
+
+-- sqlserver
+select 
+GETDATE(), -- 获取当前时间 2000-01-01 08:00:00.000
+GETUTCDATE(), -- 当前UTC时间 2000-01-01 00:00:00.000
+DATEDIFF(hour, GETUTCDATE(), GETDATE()), -- 获取当前时间-当前UTC时间的相差小时 8
+DATEADD(hour, DATEDIFF(hour, GETUTCDATE(), GETDATE()), GETUTCDATE()); -- 对UTC时间增加时区差 2000-01-01 08:00:00.000
+
+select CONVERT(VARCHAR(10), GETDATE(), 120); -- 格式化日期(120为一种格式) 2000-01-01
 ```
 
 ### 查询

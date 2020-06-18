@@ -8,20 +8,14 @@ tags: [mysql, dba]
 
 ## 基本
 
-- mysql安装：[http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/](/_posts/linux/CentOS服务器使用说明.md#mysql安装)
-- windows安装mysql，千万不要用通过记事本编辑`my.ini`，容易让文件变成BOM格式导致服务无法启动.
+- mysql 安装：[http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/](/_posts/linux/CentOS服务器使用说明.md#mysql安装)
+- windows 安装 mysql，千万不要用通过记事本编辑`my.ini`，容易让文件变成 BOM 格式导致服务无法启动.
 - 查看系统版本：命令行登录后欢迎信息中有版本信息，或者登录仅命令行执行`status`查看
 
 ### 登录
 
-- Mysql进入系统
-	- `mysql -uroot -p` 用户名登陆，输入回车后再输入root密码即可登陆（在cmd中定位到mysql.exe所在目录）
-	- `mysql -h 192.168.1.1 -P 3307 -uroot -p my_db_name` 登录并选择数据库
-	- `exit`、`quit` 退出
-- 忘记root密码
-	- `my.ini`配置文件的`[mysqld]`下增加`skip-grant-tables`参数，重启数据库
-	- 修改`mysql.user`中该用户的密码
-	- 去掉启动参数重新启动
+- Mysql 进入系统 - `mysql -uroot -p` 用户名登陆，输入回车后再输入 root 密码即可登陆（在 cmd 中定位到 mysql.exe 所在目录） - `mysql -h 192.168.1.1 -P 3307 -uroot -p my_db_name` 登录并选择数据库 - `exit`、`quit` 退出
+- 忘记 root 密码 - `my.ini`配置文件的`[mysqld]`下增加`skip-grant-tables`参数，重启数据库 - 修改`mysql.user`中该用户的密码 - 去掉启动参数重新启动
 
 ### 创建删除用户
 
@@ -69,62 +63,49 @@ select user, host from user; -- 查询用户可登录host
 
 ## 数据备份/恢复
 
-- `mysqldump` 是一款mysql逻辑备份的工具，它将数据库里面的对象(表)导出作为SQL脚本文件。对于导出几个G的数据库，还是不错的；一旦数据量达到几十上百G，无论是对原库的压力还是导出的性能都存在问题 [^2]
-- `Xtrabackup` 是由percona开源的免费数据库热备份软件，它能对InnoDB数据库和XtraDB存储引擎的数据库非阻塞地备份。对于较大数据的数据库可以选择`Percona-Xtrabackup`备份工具，可进行全量、增量、单表备份和还原
-- `mariadb10.3.x`及以上的版本用Percona XtraBackup工具会有问题，此时可以使用`mariabackup`，它是MariaDB提供的一个开源工具
+- `mysqldump` 是一款 mysql 逻辑备份的工具，它将数据库里面的对象(表)导出作为 SQL 脚本文件。对于导出几个 G 的数据库，还是不错的；一旦数据量达到几十上百 G，无论是对原库的压力还是导出的性能都存在问题 [^2]
+- `Xtrabackup` 是由 percona 开源的免费数据库热备份软件，它能对 InnoDB 数据库和 XtraDB 存储引擎的数据库非阻塞地备份。对于较大数据的数据库可以选择`Percona-Xtrabackup`备份工具，可进行全量、增量、单表备份和还原
+- `mariadb10.3.x`及以上的版本用 Percona XtraBackup 工具会有问题，此时可以使用`mariabackup`，它是 MariaDB 提供的一个开源工具
 
 ### 导出导入
 
-- 使用`mysqldump/source`方法进行导出导入：15分钟导出1.6亿条记录，导出的文件中平均7070条记录拼成一个insert语句；通过source进行批量插入，导入1.6亿条数据耗时将近5小时，平均速度3200W条/h（网测）
-- **导出整个数据库** `%MYSQL_HOME%/bin/mysqldump -h 192.168.1.1 -P 3306 -uroot -p my_db_name > d:/exp.sql` (回车后输入密码)
-	- 默认导出表结构和数据，text格式数据也能被导出。测试样例：36M数据导出耗时15s
-	- 只导出数据库表结构 `mysqldump -h localhost -P 3306 -uroot -p -d --add-drop-table my_db_name > d:/exp.sql` (-d 没有数据 --add-drop-table 在每个create语句之前增加一个drop table)
-	- 导出一张表 `mysqldump -h localhost -P 3306 -uroot -p my_db_name my_table_name > d:/exp.sql`
-	- 压缩备份 `mysqldump -h localhost -P 3306 -uroot -p my_db_name | gzip > d:/mysql_bak.$(date +%F).sql.gz`
-	- 参数
-		- `-h`默认为本地
-		- `-P`默认为3306
-- 导入数据
-	- `mysql -h localhost -P 3306 -uroot -p my_db_name < d:/exp.sql` 直接CMD命令行导入
-	- source方式. Navicat命令行使用source报错，且通过界面UI界面导入数据也容易出错。建议到mysql服务器命令行导入
-		- 命令行登陆用户 `mysql -uroot -p`
-		- 选择数据库 `use my_db_name`
-		- 执行导入 `source d:/exp.sql`
+- 使用`mysqldump/source`方法进行导出导入：15 分钟导出 1.6 亿条记录，导出的文件中平均 7070 条记录拼成一个 insert 语句；通过 source 进行批量插入，导入 1.6 亿条数据耗时将近 5 小时，平均速度 3200W 条/h（网测）
+- **导出整个数据库** `%MYSQL_HOME%/bin/mysqldump -h 192.168.1.1 -P 3306 -uroot -p my_db_name > d:/exp.sql` (回车后输入密码) - 默认导出表结构和数据，text 格式数据也能被导出。测试样例：36M 数据导出耗时 15s - 只导出数据库表结构 `mysqldump -h localhost -P 3306 -uroot -p -d --add-drop-table my_db_name > d:/exp.sql` (-d 没有数据 --add-drop-table 在每个 create 语句之前增加一个 drop table) - 导出一张表 `mysqldump -h localhost -P 3306 -uroot -p my_db_name my_table_name > d:/exp.sql` - 压缩备份 `mysqldump -h localhost -P 3306 -uroot -p my_db_name | gzip > d:/mysql_bak.$(date +%F).sql.gz` - 参数 - `-h`默认为本地 - `-P`默认为 3306
+- 导入数据 - `mysql -h localhost -P 3306 -uroot -p my_db_name < d:/exp.sql` 直接 CMD 命令行导入 - source 方式. Navicat 命令行使用 source 报错，且通过界面 UI 界面导入数据也容易出错。建议到 mysql 服务器命令行导入 - 命令行登陆用户 `mysql -uroot -p` - 选择数据库 `use my_db_name` - 执行导入 `source d:/exp.sql`
 
 #### 导出表结构
 
-- MySQL-Front：可导出html格式(样式和字段比较人性化)，直接复制到word中
-- SQLyong(数据库-在创建数据库架构HTML)：可导出很完整的字段结构(太过完整，无法自定义)
-- DBExportDoc V1.0 For MySQL：基于提供的word模板(包含宏命令)和ODBC导出结构到模板word中(表格无线框)
+- MySQL-Front：可导出 html 格式(样式和字段比较人性化)，直接复制到 word 中
+- SQLyong(数据库-在创建数据库架构 HTML)：可导出很完整的字段结构(太过完整，无法自定义)
+- DBExportDoc V1.0 For MySQL：基于提供的 word 模板(包含宏命令)和 ODBC 导出结构到模板 word 中(表格无线框)
 
-### linux脚本备份(mysqldump)
+### linux 脚本备份(mysqldump)
 
-- 备份mysql和删除备份文件脚本`backup_mysql.sh`(加可执行权限先进行测试)
+- 备份 mysql 和删除备份文件脚本`backup_mysql.sh`(加可执行权限先进行测试)
 
-	```bash
-	db_user="root"
-	db_passwd="root"
-	db_name="db_test"
-	db_host="127.0.0.1"
-	db_port="3306"
-	# the directory for story your backup file.you shall change this dir
-	backup_dir="/home/data/backup/mysqlbackup"
-	# date format for backup file (eg: 20190407214357)
-	time="$(date +"%Y%m%d%H%M%S")"
-	# 需要确保当前linux用户有执行mysqldump权限
-	/opt/soft/mysql57/bin/mysqldump -h $db_host -P $db_port -u$db_user -p$db_passwd $db_name | gzip > "$backup_dir/$db_name"_"$time.sql.gz"
+      	```bash
+      	db_user="root"
+      	db_passwd="root"
+      	db_name="db_test"
+      	db_host="127.0.0.1"
+      	db_port="3306"
+      	# the directory for story your backup file.you shall change this dir
+      	backup_dir="/home/data/backup/mysqlbackup"
+      	# date format for backup file (eg: 20190407214357)
+      	time="$(date +"%Y%m%d%H%M%S")"
+      	# 需要确保当前linux用户有执行mysqldump权限
+      	/opt/soft/mysql57/bin/mysqldump -h $db_host -P $db_port -u$db_user -p$db_passwd $db_name | gzip > "$backup_dir/$db_name"_"$time.sql.gz"
 
-	# 删除30天之前的备份
-	find $backup_dir -name $db_name"*.sql.gz" -type f -mtime +30 -exec rm -rf {} \; > /dev/null 2>&1
-	```
-	- 说明
-		- 删除一分钟之前的备份 `find $backup_dir -name $db_name"*.sql.gz" -type f -mmin +1 -exec rm -rf {} \; > /dev/null 2>&1`
-		- `-type f` 表示查找普通类型的文件，f 表示普通文件，可不写
-		- `-mtime +7` 按照文件的更改时间来查找文件，+7表示文件更改时间距现在7天以前;如果是-mmin +7表示文件更改时间距现在7分钟以前
-		- `-exec rm {} ;` 表示执行一段shell命令，exec选项后面跟随着所要执行的命令或脚本，然后是一对{ }，一个空格和一个\，最后是一个分号;
-- 将上述脚本加入到`crond`定时任务中
-	- `sudo crontab -e` 编辑定时任务，加入`00 02 * * * /home/smalle/script/backup_mysql.sh`
-	- `systemctl restart crond` 重启crond服务
+      	# 删除30天之前的备份
+      	find $backup_dir -name $db_name"*.sql.gz" -type f -mtime +30 -exec rm -rf {} \; > /dev/null 2>&1
+      	```
+      	- 说明
+      		- 删除一分钟之前的备份 `find $backup_dir -name $db_name"*.sql.gz" -type f -mmin +1 -exec rm -rf {} \; > /dev/null 2>&1`
+      		- `-type f` 表示查找普通类型的文件，f 表示普通文件，可不写
+      		- `-mtime +7` 按照文件的更改时间来查找文件，+7表示文件更改时间距现在7天以前;如果是-mmin +7表示文件更改时间距现在7分钟以前
+      		- `-exec rm {} ;` 表示执行一段shell命令，exec选项后面跟随着所要执行的命令或脚本，然后是一对{ }，一个空格和一个\，最后是一个分号;
+
+- 将上述脚本加入到`crond`定时任务中 - `sudo crontab -e` 编辑定时任务，加入`00 02 * * * /home/smalle/script/backup_mysql.sh` - `systemctl restart crond` 重启 crond 服务
 
 ### 主从同步
 
@@ -140,76 +121,68 @@ start slave;
 
 ### 配置
 
-- mysql在windows系统下安装好后，默认是对表名大小写不敏感的。但是在linux下，一些系统需要手动设置：打开并修改`/etc/my.cnf`在`[mysqld]`节点下，加入一行： 		`lower_case_table_names=1`(表名大小写：0是大小写敏感，1是大小写不敏感)。重启mysql服务`systemctl restart mysqld`
-- mysql服务器编码问题
-	- 保存到数据库编码错误：1.编辑器编码(复制的代码要注意原始代码格式) 2.数据库/表/字段编码 3.服务器编码
-	- 查看服务器编码`show variables like '%char%';`，如果`character_set_server=latin1`就说明有问题(曾经因为这个问题遇到这么个场景：此数据库下大部分表可以正常插入中文，但是有一张表的一个字段死活插入乱码，当尝试修改java代码中此sql语句的另外几个传入参数并连续插入两次可以正常插入，不产生乱码。此情景简直可以怀疑人生，最终修改character_set_server后一切正常)
-	- 修改character_set_server编码：linux修改`/etc/my.cnf`，在`[mysqld]`节点下加入一行`character-set-server=utf8`，重启mysqld服务
+- mysql 在 windows 系统下安装好后，默认是对表名大小写不敏感的。但是在 linux 下，一些系统需要手动设置：打开并修改`/etc/my.cnf`在`[mysqld]`节点下，加入一行： `lower_case_table_names=1`(表名大小写：0 是大小写敏感，1 是大小写不敏感)。重启 mysql 服务`systemctl restart mysqld`
+- mysql 服务器编码问题 - 保存到数据库编码错误：1.编辑器编码(复制的代码要注意原始代码格式) 2.数据库/表/字段编码 3.服务器编码 - 查看服务器编码`show variables like '%char%';`，如果`character_set_server=latin1`就说明有问题(曾经因为这个问题遇到这么个场景：此数据库下大部分表可以正常插入中文，但是有一张表的一个字段死活插入乱码，当尝试修改 java 代码中此 sql 语句的另外几个传入参数并连续插入两次可以正常插入，不产生乱码。此情景简直可以怀疑人生，最终修改 character_set_server 后一切正常) - 修改 character_set_server 编码：linux 修改`/etc/my.cnf`，在`[mysqld]`节点下加入一行`character-set-server=utf8`，重启 mysqld 服务
 
 ### 查询
 
-- `show variables like '%dir%';` 查看mysql相关文件(数据/日志)存放位置
-	- 数据文件(datadir)默认位置：`/var/lib/mysql`
-- `show variables like 'autocommit';`
-	- MySQL默认操作模式就是autocommit自动提交模式(ON/1)
-	- 这就表示除非显式地开始一个事务(mysql> `set autocommit=0;`)，否则每个查询都被当做一个单独的事务自动执行。当mysql> `commit;`之后则又回到自动提交模式
-- 查看数据库大小
-	- InnoDB存储引擎将表保存在一个表空间内，该表空间可由数个文件创建。表空间的最大容量为64TB
-	- MySQL单表大约在2千万条记录(4G)下能够良好运行，经过数据库的优化后5千万条记录(10G)下运行良好
+- `show variables like '%dir%';` 查看 mysql 相关文件(数据/日志)存放位置 - 数据文件(datadir)默认位置：`/var/lib/mysql`
+- `show variables like 'autocommit';` - MySQL 默认操作模式就是 autocommit 自动提交模式(ON/1) - 这就表示除非显式地开始一个事务(mysql> `set autocommit=0;`)，否则每个查询都被当做一个单独的事务自动执行。当 mysql> `commit;`之后则又回到自动提交模式
+- 查看数据库大小 - InnoDB 存储引擎将表保存在一个表空间内，该表空间可由数个文件创建。表空间的最大容量为 64TB - MySQL 单表大约在 2 千万条记录(4G)下能够良好运行，经过数据库的优化后 5 千万条记录(10G)下运行良好
 
-	```sql
-	use information_schema;
-	-- 查询所有数据大小
-	select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables;
-	-- 查看指定数据库大小
-	select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables where table_schema='my_db_name';
-	-- 查看表数据大小
-	select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables where table_schema='my_db_name' and table_name='my_table_name';
+      	```sql
+      	use information_schema;
+      	-- 查询所有数据大小
+      	select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables;
+      	-- 查看指定数据库大小
+      	select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables where table_schema='my_db_name';
+      	-- 查看表数据大小
+      	select concat(round(sum(data_length/1024/1024),2),'MB') as data from tables where table_schema='my_db_name' and table_name='my_table_name';
 
-	-- 查看指定数据库数据大小
-	select 
-	table_schema as '数据库',
-	sum(table_rows) as '记录数',
-	sum(truncate(data_length/1024/1024, 2)) as '数据容量(MB)',
-	sum(truncate(index_length/1024/1024, 2)) as '索引容量(MB)'
-	from information_schema.tables
-	where table_schema='mysql';
+      	-- 查看指定数据库数据大小
+      	select
+      	table_schema as '数据库',
+      	sum(table_rows) as '记录数',
+      	sum(truncate(data_length/1024/1024, 2)) as '数据容量(MB)',
+      	sum(truncate(index_length/1024/1024, 2)) as '索引容量(MB)'
+      	from information_schema.tables
+      	where table_schema='mysql';
 
-	-- 查看指定数据库各表容量大小
-	select 
-	table_schema as '数据库',
-	table_name as '表名',
-	table_rows as '记录数',
-	truncate(data_length/1024/1024, 2) as '数据容量(MB)',
-	truncate(index_length/1024/1024, 2) as '索引容量(MB)'
-	from information_schema.tables
-	where table_schema='mysql'
-	order by data_length desc, index_length desc;
+      	-- 查看指定数据库各表容量大小
+      	select
+      	table_schema as '数据库',
+      	table_name as '表名',
+      	table_rows as '记录数',
+      	truncate(data_length/1024/1024, 2) as '数据容量(MB)',
+      	truncate(index_length/1024/1024, 2) as '索引容量(MB)'
+      	from information_schema.tables
+      	where table_schema='mysql'
+      	order by data_length desc, index_length desc;
 
-	-- 查看所有数据库数据大小(比较耗时)
-	select 
-	table_schema as '数据库',
-	sum(table_rows) as '记录数',
-	sum(truncate(data_length/1024/1024, 2)) as '数据容量(MB)',
-	sum(truncate(index_length/1024/1024, 2)) as '索引容量(MB)'
-	from information_schema.tables
-	group by table_schema
-	order by sum(data_length) desc, sum(index_length) desc;
+      	-- 查看所有数据库数据大小(比较耗时)
+      	select
+      	table_schema as '数据库',
+      	sum(table_rows) as '记录数',
+      	sum(truncate(data_length/1024/1024, 2)) as '数据容量(MB)',
+      	sum(truncate(index_length/1024/1024, 2)) as '索引容量(MB)'
+      	from information_schema.tables
+      	group by table_schema
+      	order by sum(data_length) desc, sum(index_length) desc;
 
-	-- 查看所有数据库各表数据大小(比较耗时)
-	select 
-	table_schema as '数据库',
-	table_name as '表名',
-	table_rows as '记录数',
-	truncate(data_length/1024/1024, 2) as '数据容量(MB)',
-	truncate(index_length/1024/1024, 2) as '索引容量(MB)'
-	from information_schema.tables
-	order by data_length desc, index_length desc;
-	```
+      	-- 查看所有数据库各表数据大小(比较耗时)
+      	select
+      	table_schema as '数据库',
+      	table_name as '表名',
+      	table_rows as '记录数',
+      	truncate(data_length/1024/1024, 2) as '数据容量(MB)',
+      	truncate(index_length/1024/1024, 2) as '索引容量(MB)'
+      	from information_schema.tables
+      	order by data_length desc, index_length desc;
+      	```
 
-### 数据库CPU飙高问题
+### 数据库 CPU 飙高问题
 
-参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/java/Java应用CPU和内存异常分析.md#Mysql)
+参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/devops/Java应用CPU和内存异常分析.md#Mysql)
 
 ## 测试
 
@@ -247,7 +220,7 @@ delimiter // -- 修改mysql delimiter：'//'
 drop function if exists `rand_string` //
 set names utf8 //
 create function `rand_string` (n int) returns varchar(255) charset 'utf8'
-begin 
+begin
     declare char_str varchar(100) default 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz0123456789';
     declare return_str varchar(255) default '';
     declare i int default 0;
@@ -292,20 +265,8 @@ select count(*) from `t_test_vote`;
 
 ## 其他
 
-- 命令行执行sql
-	- Mysql通过上下左右按键修改语句
-	- 或者新建一个文本文件h:/demo/test.sql，将sql语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号
-	- Oracle输入ed则打开记事本可进行修改修改DOS中的数据
-- Oracle表结构与Mysql表结构转换：使用navicat转换
-	- 点击`工具 -> 数据转换`。左边选择oracle数据库和对应的用户，右边转成sql文件(直接转换会出现Date转换精度错误)
-	- 将sql文件中的数据进行转换
-		- `datetime(7)` -> `datetime(6)`
-		- `decimal(20,0)` -> `bigint(20)`(原本在oracle中是Number(20))
-		- `decimal(1,0)` -> `int(1)`
-		- `decimal(10,0)` -> `int(10)` 以此类推
-		- 默认值丢失
-	- 导入sql文件到mysql数据库中
-
+- 命令行执行 sql - Mysql 通过上下左右按键修改语句 - 或者新建一个文本文件 h:/demo/test.sql，将 sql 语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号 - Oracle 输入 ed 则打开记事本可进行修改修改 DOS 中的数据
+- Oracle 表结构与 Mysql 表结构转换：使用 navicat 转换 - 点击`工具 -> 数据转换`。左边选择 oracle 数据库和对应的用户，右边转成 sql 文件(直接转换会出现 Date 转换精度错误) - 将 sql 文件中的数据进行转换 - `datetime(7)` -> `datetime(6)` - `decimal(20,0)` -> `bigint(20)`(原本在 oracle 中是 Number(20)) - `decimal(1,0)` -> `int(1)` - `decimal(10,0)` -> `int(10)` 以此类推 - 默认值丢失 - 导入 sql 文件到 mysql 数据库中
 
 ---
 
@@ -313,6 +274,3 @@ select count(*) from `t_test_vote`;
 
 [^1]: https://www.cnblogs.com/digdeep/p/4892953.html
 [^2]: https://segmentfault.com/a/1190000019305858#item-2-5
-
-
-

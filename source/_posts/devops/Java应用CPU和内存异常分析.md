@@ -2,7 +2,7 @@
 layout: "post"
 title: "Java应用CPU和内存异常分析"
 date: "2018-03-13 13:35"
-categories: java
+categories: devops
 tags: [CPU, 内存, 运维, oracle, ofbiz]
 ---
 
@@ -323,6 +323,55 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 	- `select * from information_schema.innodb_trx;` 未提交事物，阻塞DDL (`kill #trx_mysql_thread_id`)
 	- 查询到上述情况线程ID进行查杀
 - `show open tables where in_use > 0;` 查看正在使用的表(锁表)
+
+### Sqlserver
+
+```sql
+-- 查看sql耗时情况，根据平均耗时降序排列
+SELECT creation_time  N'语句编译时间'
+        ,last_execution_time  N'上次执行时间'
+        ,total_physical_reads N'物理读取总次数'
+        ,total_logical_reads/execution_count N'每次逻辑读次数'
+        ,total_logical_reads  N'逻辑读取总次数'
+        ,total_logical_writes N'逻辑写入总次数'
+        ,execution_count  N'执行次数'
+        ,total_worker_time/1000 N'所用的CPU总时间ms'
+        ,total_elapsed_time/1000  N'总花费时间ms'
+        ,(total_elapsed_time / execution_count)/1000  N'平均时间ms'
+        ,SUBSTRING(st.text, (qs.statement_start_offset/2) + 1,
+         ((CASE statement_end_offset
+          WHEN -1 THEN DATALENGTH(st.text)
+          ELSE qs.statement_end_offset END
+            - qs.statement_start_offset)/2) + 1) N'执行语句'
+FROM sys.dm_exec_query_stats AS qs
+CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) st
+where SUBSTRING(st.text, (qs.statement_start_offset/2) + 1,
+         ((CASE statement_end_offset
+          WHEN -1 THEN DATALENGTH(st.text)
+          ELSE qs.statement_end_offset END
+            - qs.statement_start_offset)/2) + 1) not like '%fetch%'
+ORDER BY  total_elapsed_time / execution_count DESC;
+
+-- 查看运行中的sql，根据耗时降序排列
+SELECT DISTINCT
+    SUBSTRING(qt.TEXT, (er.statement_start_offset/2)+1, ((CASE er.statement_end_offset WHEN -1 THEN DATALENGTH(qt.TEXT) ELSE er.statement_end_offset END - er.statement_start_offset)/2)+1) AS query_sql,
+    er.session_id AS pid,
+    er.status AS status,
+    er.command AS command,
+    sp.hostname AS hostname,
+    DB_NAME(sp.dbid) AS db_name,
+    sp.program_name AS program_name,
+    er.cpu_time AS cpu_time,
+    er.total_elapsed_time AS cost_time
+FROM sys.sysprocesses AS sp LEFT JOIN sys.dm_exec_requests AS er ON sp.spid = er.session_id
+CROSS APPLY sys.dm_exec_sql_text(er.sql_handle) AS qt
+WHERE 1 = CASE WHEN er.status IN ('RUNNABLE', 'SUSPENDED', 'RUNNING') THEN 1 WHEN er.status = 'SLEEPING' AND sp.open_tran  > 0 THEN 1 ELSE 0 END
+AND er.command = 'SELECT'
+ORDER BY er.total_elapsed_time DESC;
+
+-- kill pid 杀掉对应查询session
+kill <pid>
+```
 
 ## JVM致命错误日志(hs_err_xxx-pid.log)
 

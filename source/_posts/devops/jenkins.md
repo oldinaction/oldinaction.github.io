@@ -195,7 +195,7 @@ withCredentials([usernamePassword(credentialsId: '0c108a09-e321-45c6-bf9c-06626d
         echo "build ofbiz end..."
         ```
         - 其中`source /etc/profile`为了防止报错`java: command not found`(jenkins不会自动加载环境变量)
-        - 当windows启动项目bat脚本时，一直有输出的话，Dos窗口会一直处于等待状态，而jenkins的构建时会输出windows的脚本运行信息，所有Jenkins也会一直处于构建状态。此时可考虑bat脚本后台运行，如使用`.vbe`脚本对bat文件进行包装
+        - 当windows启动项目bat脚本时，一直有输出的话，Dos窗口会一直处于等待状态，而jenkins的构建时会输出windows的脚本运行信息，所以Jenkins也会一直处于构建状态。此时可考虑bat脚本后台运行，如使用`.vbe`脚本对bat文件进行包装
 - 调用顶层Maven目标
     - Maven Version：可选择全局工具配置中配置的maven，若无此选项可参考下文全局工具配置
     - Goals：如`clean package -Dmaven.test.skip=true`

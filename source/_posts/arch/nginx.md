@@ -116,6 +116,7 @@ server {
         rewrite / http://$server_name/hello break;
     }
     location / {
+        # 尽管windows下支持\的路径，但是仍然尽量使用/的路径。因为如果路径带有\n和\t则会被转义导致报CreateFile错
         root   /home/aezocn/www;
         index  index.html index.htm;
     }

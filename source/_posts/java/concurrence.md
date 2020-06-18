@@ -856,11 +856,9 @@ public class T01_PSTest {
 - ArrayBlockingQueue相比Disruptor的缺陷
     - 加锁：多线程情况下，加锁通常会严重地影响性能，通常加锁比CAS性能要差
     - [伪共享](https://www.cnblogs.com/cyfonly/p/5800758.html)
-        - 缓存系统中是以缓存行(cache line)为单位存储的，当多线程修改互相独立的变量时(发起的RFO请求会耗性能)，如果这些变量共享同一个缓存行，就会无意中影响彼此的性能，这就是伪共享
-            - CPU 缓存可以分为一级缓存(L1)，二级缓存(L2)，部分高端 CPU 还具有三级缓存(L3)。每一级缓存中所储存的全部数据都是下一级缓存的一部分，越靠近 CPU 的缓存越快也越小，所以 L1 缓存很小但很快。L1,L2只能被单独的 CPU 核使用，L3被单个插槽上的所有 CPU 核共享。主存(常说的内存)则由全部插槽上的所有 CPU 核共享
-            - MESI 协议及 RFO 请求：MSI、MESI(M修改, E专有, S共享, I无效)、MOSI及Dragon Protocol等都是为了解决缓存一致性的协议；RFO(Request For Owner)请求，为MESI协议中需要将当前核心的某缓存行设置为E，将其他核心的该缓存行设置为I
+        - 参考[计算机底层知识.md#内存](/_posts/linux/计算机底层知识.md#内存)
         - ArrayBlockingQueue有三个成员变量：takeIndex需要被取走的元素下标，putIndex可被元素插入的位置的下标，count队列中元素的数量。这三个变量很可能放到一个缓存行中，但是之间修改没有太多的关联。所以每次修改，都会使之前(一级)缓存的数据失效，从而不能完全达到共享的效果
-        - 解决伪共享：采用缓存行填充(空间换时间)，JDK8开始可以使用@Contended注解来避免伪共享。Disruptor就是通过缓存行填充实现，如其[Sequence](https://github.com/LMAX-Exchange/disruptor/blob/46f57d94a188c2d9347e2aa0975e20332b0ae39a/src/main/java/com/lmax/disruptor/Sequence.java#L28)
+        - 解决伪共享：采用缓存行填充(空间换时间)，JDK8开始可以使用@Contended注解(需加JVM参数：-XX:-RestrictContended)来避免伪共享。Disruptor就是通过缓存行填充实现，如其[Sequence](https://github.com/LMAX-Exchange/disruptor/blob/46f57d94a188c2d9347e2aa0975e20332b0ae39a/src/main/java/com/lmax/disruptor/Sequence.java#L28)
 - Disruptor提供Batch操作实现对序列号的读写频率降到最低，主要考虑到sequence.value为volatile修饰，批量操作可以减少volatile产生的内存屏障，从而减少同步缓存
 - 依赖
 

@@ -24,12 +24,12 @@ tags: [spring, spring-mvc]
 - maven依赖
 
     ```xml
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <!--包含spring-core、spring-beans、spring-aop、spring-expression、spring-instrument-->
-            <artifactId>spring-context</artifactId>
-            <version>4.3.8.RELEASE</version>
-        </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <!--包含spring-core、spring-beans、spring-aop、spring-expression、spring-instrument-->
+        <artifactId>spring-context</artifactId>
+        <version>4.3.8.RELEASE</version>
+    </dependency>
     ```
 - 调用
 
