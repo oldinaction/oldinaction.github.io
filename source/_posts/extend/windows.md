@@ -125,7 +125,15 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 
 ### ssh服务器
 
-- MobaXterm包含ssh服务器
+- Cygwin
+- [PowerShell Server](https://www.nsoftware.com/powershell/server/)
+    - Service - Run as a Windows Service 作为服务运行则可自动启动(默认为普通程序运行)
+    - Server Setting 设置端口和欢迎语
+    - SFTP：尽管不勾选也是开启SFTP的，保险起见可勾选。修改SFTP根目录
+    - Authentication 认证信息，默认是基于windows密码认证；可增加基于秘钥认证，勾选Enable Public Key，选择File Based Public Key Authentication对应保存公钥的认证文件authentication_keys(文件名无所谓，但是需要一行一个公钥)
+    - Other：Write log to File记录日志到文件，Text Encoding为UTF-8(防止中文件名乱码)
+- MobaXterm包含的ssh服务器
+- openssh
 
 ### Cygwin
 

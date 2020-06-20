@@ -752,7 +752,7 @@ EOF
     grep -A 5 'parttern' filename # 打印匹配行的后5行
     grep -B 5 'parttern' filename # 打印匹配行的前5行
 
-    grep -E 'A|B' filename # 打印匹配 A 或 B 的数据
+    grep -E 'A|B|C.*' filename # 打印匹配 A 或 B 或 C* 的数据
     echo office365 | grep -P '\d+' -o # 返回 365
     grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
     grep -v 'A' filename # 打印不包含 A 的数据

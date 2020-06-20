@@ -106,9 +106,108 @@ volumes:
 
 ## Pipeline
 
-> https://www.jenkins.io/doc/book/pipeline/getting-started/
+- [官网入门](https://www.jenkins.io/doc/book/pipeline/getting-started/)、[pipeline支持的steps及支持的相关插件](https://www.jenkins.io/doc/pipeline/steps/)
+- 对于插件的使用可以参考pipline脚本编辑处的**流水线语法**：https://jenkins-host/job/my-job-name/pipeline-syntax/
+- 案例参考[Pipline+K8s+Harbor+Gitlab+Springboot+Maven](#(推荐)Pipline+K8s+Harbor+Gitlab+Springboot+Maven)
+- 一个Jenkinsfile就是一个文本文件，Pipeline支持两种形式，一种是Declarative管道，一个是Scripted管道
 
-- 案例参考[Pipline+K8s+Harbor+Gitlab+Springboot+Maven](#Pipline+K8s+Harbor+Gitlab+Springboot+Maven)
+```groovy
+// 1.Declarative风格 比较常用
+pipeline {
+    agent any
+
+    stages {
+        stage('编译阶段') {
+            steps {
+                echo 'Building..'
+            }
+        }
+        stage('部署阶段') {
+            steps {
+                echo 'Deploying..'
+            }
+        }
+    }
+}
+
+// 2.Scripted风格
+node {  
+    stage('Build') { 
+        // 
+    }
+    stage('Deploy') { 
+        // 
+    }
+}
+
+// 3.或者直接调用命令，下文[常用插件命令-调用凭证即可直接运行](#常用插件命令)
+```
+- [常用关键字](https://www.jenkins.io/doc/book/pipeline/syntax/)
+
+```groovy
+// pipeline前面可以有其他代码，例如导入语句，和其他功能代码
+pipeline {
+    // agent 指令指定整个管道或某个特定的stage的执行环境。它的参数可用使用：
+        // any - 任意一个可用的agent
+        // none - 如果放在pipeline顶层，那么每一个stage都需要定义自己的agent指令
+        // label - 在jenkins环境中指定标签的agent上面执行，比如agent { label 'my-defined-label' }
+        // node - agent { node { label 'labelName' } } 和 label一样，但是可用定义更多可选项
+        // docker - 指定在docker容器中运行
+        // dockerfile - 使用源码根目录下面的Dockerfile构建容器来运行
+    agent any
+    // 定义键值对的环境变量
+    environment {
+        APP_VERSION = 'v1.0.0'
+    }
+    // 定义自动安装并自动放入PATH里面的工具集合，工具名称必须预先在Jenkins中配置好了 → Global Tool Configuration
+    tools {
+        maven 'apache-maven-3.0.1'
+    }
+    // 由一个或多个stage指令组成，stages块也是核心逻辑的部分
+    stages {
+        stage('Test') {
+            steps {
+                environment {
+                    BROWSER_NAME = 'chrome'
+                }
+                // when内置条件满足，expression语句才会执行
+                when { branch 'production' }
+                // when { environment name: 'DEPLOY_TO', value: 'production' }
+                expression {
+                    return params.DEBUG_BUILD
+                }
+
+                echo 'Test..'
+                echo "Running on ${env.BROWSER_NAME}"
+                script {
+                    def browsers = ['chrome', 'firefox']
+                    for (int i = 0; i < browsers.size(); ++i) {
+                        echo "Testing the ${browsers[i]} browser"
+                        if( browsers[i] == env.BROWSER_NAME ) {
+                            return
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // post：管道执行结束后要进行的操作。支持在里面定义很多Conditions块
+        // always 不管返回什么状态都会执行
+        // changed 如果当前管道返回值和上一次已经完成的管道返回值不同时候执行
+        // failure 当前管道返回状态值为failed时候执行，在Web UI界面上面是红色的标志
+        // success 返回success时候执行，在Web UI界面上面是绿色的标志
+        // unstable 返回状态值为unstable时执行，通常因为测试失败，代码不合法引起的。在Web UI界面上面是黄色的标志
+    post {
+        always {
+            echo 'I will always say Hello again!'
+        }
+    }
+}
+```
+
+### 常用插件命令
+
+- 更多可查看下文每个插件的使用或在网站流水线语法中查看
 - 调用凭证(隐藏密码，暂未发现pipline如何使用全局密码)
 
 ```groovy
@@ -410,9 +509,23 @@ java -jar target/${NAME}-${VERSION}.jar
 ##### Publish over SSH(执行远程命令)
 
 - [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
-- 利用此插件可以连接远程Linux服务器，进行文件的上传或是命令的提交，也可以连接提供SSH服务的windows服务器
+- 利用此插件可以连接远程Linux服务器，进行文件的上传或是命令的提交；也可以连接提供SSH服务的windows服务器，windows提供ssh服务参考[windows.md#ssh服务器#PowerShell Server](/_posts/extend/windows.md#ssh服务器)
 - BapSshHostConfiguration#createClient 进行服务器连接
 - 此插件1.20.1界面`Test Configuration`测试代理连接存在bug，实际是支持代理连接的
+- pipline使用
+
+```groovy
+// configName为系统设置的SSH服务器名
+sshPublisher(publishers: [sshPublisherDesc(configName: 'node1', transfers: [
+    // 会将匹配到的文件和文件夹(多个用,分割)一起复制到远程目录(会相当于SFTP根目录创建此远程目录)
+    sshTransfer(sourceFiles: 'target/*.jar', remoteDirectory: 'demo', execCommand: 
+        '''
+        cd d:/temp
+        ls
+        '''
+    )
+])])
+```
 
 ##### GitLab
 
@@ -549,10 +662,10 @@ spec:
       path: /var/run/docker.sock
   - name: docker-config             #将宿主机 Docker 配置挂在进入容器
     hostPath: 
-      path: /etc/docker
+      path: /etc/docker 
   - name: maven-m2                  #Maven 本地仓库挂在到 NFS 共享存储，方便不同节点能同时访问与存储
     nfs: 
-      server: 192.168.17.75
+      server: 192.168.1.130
       path: "/home/data/nfs/m2"
   affinity:
     nodeAffinity:
