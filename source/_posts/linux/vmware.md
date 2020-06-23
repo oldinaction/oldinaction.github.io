@@ -93,7 +93,7 @@ tags: [vmware, linux, centos]
         # nameserver 114.114.114.114
         # nameserver 192.168.6.2 # 或者配置虚拟网关地址
 
-        # vi /etc/sysconfig/network-scripts/ifcfg-ens33 并重启network。配置参数说明参考：https://blog.51cto.com/xtbao/1671739
+        # vi /etc/sysconfig/network-scripts/ifcfg-ens33 并systemctl restart network重启。配置参数说明参考：https://blog.51cto.com/xtbao/1671739
         # 网卡名称，一般配对ifcfg-xxx
         DEVICE=ens33
         ONBOOT=yes

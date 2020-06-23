@@ -145,8 +145,9 @@ echo !str!
 
 #### for语句 [^4]
 
-- `FOR %variable IN (set) DO command [command-parameters]` 在cmd窗口中，for之后的形式变量 i 必须使用单百分号引用，即 %i；而在批处理文件中，引用形式变量i必须使用双百分号，即 %%i
+- `FOR %variable IN (set) DO command [command-parameters]` **在cmd窗口中，for之后的形式变量 i 必须使用单百分号引用，即 %i**；而在批处理文件中，引用形式变量i必须使用双百分号，即 %%i
 - for /f (delims、tokens、skip、eol、userbackq、变量延迟)
+    - tokens 提取列 
 - for /r (递归遍历)
 - for /d (遍历目录)
 - for /l (计数循环)
@@ -186,7 +187,17 @@ call:myFuncName
 - `echo 123456>>0.txt` 输出123456至0.txt追加至末尾
 - `del 0.txt` 删除文件
 
+## 常用命令
+
+- `taskkill`
+    - `taskkill /pid -f 10021`
+    - `-t` 结束该进程 
+    - `-f` 强制结束该进程以及所有子进程
+    - `/im` 指定要终止的进程的图像名，如`taskkill /F /IM notepad.exe`
+
 ## 常用脚本
+
+### 零散(如java程序控制)
 
 - 运行java
 
@@ -205,6 +216,25 @@ call:myFuncName
     - 此时配置文件应和jar包位于同一目录
     - 如果`set MY_PROJECT_HOME=%~p0..\`则表示设置bat文件所在目录的的上级目录为项目根目录
     - 如果不是系统默认jdk，可将`%JAVA_HOME%`换成对应的路径
+- 停止进程(此脚本停止java等进程不是很友好，netstat查询出的端口可能很多)
+
+    ```bat
+    @echo off
+    ::chcp 65001
+    set port=8080
+    for /f "tokens=5" %%i in ('netstat -aon ^| findstr ":%port%"') do (set n=%%i)
+    if "%n%" neq "" (
+        taskkill /pid %n% -F
+    ) else (echo proc not running...)
+    ```
+- 停止java进程
+
+    ```bat
+    REM 复制一个java.exe到项目jar包目录，并重名为java-test.exe，每个启动的jar必须拥有唯一的名称
+    REM 启动jar则使用 java-test.exe -jar test.jar
+    REM 停止进程
+    taskkill /f /im java-test.exe
+    ```
 - 后台运行bat文件
     - bat语法运行。缺点：执行`start xxx.exe`后，bat脚本窗口关闭了，但是exe执行程序弹框无法关闭（可使用RunHiddenConsole.exe）
         
@@ -236,8 +266,8 @@ call:myFuncName
 
         :ok
 
-        :: start /b 启动应用程序时不必打开新的“命令提示符”窗口。除非应用程序启用 CTRL+C，否则将忽略 CTRL+C 操作。使用 CTRL+BREAK 中断应用程序
-        :: CTRL+BREAK按键. 键位标识PB：Pause Break，SL：Scroll Lock，PS：PrtSc SysRq
+        :: start /b 启动应用程序时不必打开新的命令提示符窗口。除非应用程序启用 CTRL+C，否则将忽略 CTRL+C 操作。使用 CTRL+BREAK 中断应用程序
+        :: CTRL+BREAK按键. 键位标识PS：PrtSc SysRq，SL：Scroll Lock，PB：Pause Break
         start /b bin\test.exe >> log\console.log 2>&1 &
 
         echo start successfully

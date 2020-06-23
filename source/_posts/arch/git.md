@@ -197,6 +197,7 @@ tags: [git]
 - `git help` 查看帮助。`[]`为可选，`<>`为必输
 
 - `git log`查看提交日志，`Ctrl+Z` 退出查看
+    - `git log -1` 查看最近一条提交
 	- `git log --oneline` 可以显示更加短小的提交ID
 	- `git log --graph` 显示何时出现了分支和合并等信息
 	- `git log --pretty=raw` 显示所有提交对象的parent属性

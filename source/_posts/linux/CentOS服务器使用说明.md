@@ -64,6 +64,15 @@ tags: [CentOS, linux]
 ## 常用软件安装
 
 - 自定义服务参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)
+- 常用表安装
+
+```bash
+yum -y install psmisc # pstree命令
+yum -y install net-tools # netstat命令
+yum -y install tcpdump
+yum -y install htop
+yum -y install lsof
+```
 
 ### 安装方式说明 [^2]
 

@@ -685,6 +685,8 @@ volumes:
 - `java:8-jre` 一般是docker-compose中引入
 - `python:3.6`
 - `busybox`
+- `maven:3.6.0-jdk-8-alpine`
+- `docker:18.06.2-dind`
 
 ### 自行编译jdk
 
