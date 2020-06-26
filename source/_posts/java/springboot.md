@@ -129,8 +129,12 @@ logging:
 	path: ${LOG_PATH:D:/temp/logs/test/module}
 	# 基于xml文件可以将日志级别不同的生成到不同的文件中。如果日志配置文件为：resource/logback.xml、resource/logback-spring.xml则无需此配置
 	config: classpath:logback-test.xml
-# 打印mybatis的sql语句。也可以按照yml正常的风格写，会覆盖logback.xml中的配置
+# 将mybatis的DEBUG日志记录在文件的前提是(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
+# 打印mybatis的sql语句，会覆盖logback.xml中的配置
 logging.level.cn.aezo.test.mapper: DEBUG
+logging:
+    level:
+        cn.aezo.test.mapper: DEBUG
 
 # 打印mybatis的sql语句时需要，或者加在mybatis-config.xml中
 mybatis:

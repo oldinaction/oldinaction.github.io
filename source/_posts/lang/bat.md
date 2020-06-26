@@ -189,6 +189,10 @@ call:myFuncName
 
 ## 常用命令
 
+- `help` 查看帮助
+- `help /?` 查看help命令的帮助
+- `tasklist` 列举进程(进程名太长则可能显示不全)
+    - `/fo <table|csv|list>` 显示结果格式。`tasklist /fo csv` 以cvs格式显示结果，可以将进程名显示完全
 - `taskkill`
     - `taskkill /pid -f 10021`
     - `-t` 结束该进程 

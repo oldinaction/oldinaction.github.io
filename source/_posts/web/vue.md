@@ -45,6 +45,8 @@ export const SmUtil = {}
 
 ### vue组件
 
+- 文件名建议大写开头驼峰或者小写下划线分割。windows下组件文件名对大小写不敏感，linux下组件文件名对大小写敏感
+
 ```html
 <template>
 

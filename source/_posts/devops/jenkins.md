@@ -108,8 +108,12 @@ volumes:
 
 ## Pipeline
 
-- [官网入门](https://www.jenkins.io/zh/doc/book/pipeline/)、[pipeline 支持的 steps 及支持的相关插件](https://www.jenkins.io/doc/pipeline/steps/)
-- 对于插件的使用可以参考 pipline 脚本编辑处的**流水线语法**：https://jenkins-host/job/my-job-name/pipeline-syntax/
+- [官网入门](https://www.jenkins.io/zh/doc/book/pipeline/)
+- [pipeline 支持的 steps 及支持的相关插件](https://www.jenkins.io/doc/pipeline/steps/)
+- [基本的steps命令](https://www.jenkins.io/doc/pipeline/steps/workflow-basic-steps/)
+- 内置文档
+    - 对于插件的使用可以参考 pipline 脚本编辑处的**流水线语法**：https://<jenkins-host>/job/<my-job-name>/pipeline-syntax/
+    - 全局变量：https://<jenkins-host>/pipeline-syntax/globals
 - 遵循 Groovy 语法规则
 - 案例参考[Pipline+K8s+Harbor+Gitlab+Springboot+Maven](<#(推荐)Pipline+K8s+Harbor+Gitlab+Springboot+Maven>)
 - 一个 Jenkinsfile 就是一个文本文件，Pipeline 支持两种形式，一种是 Declarative 管道，一个是 Scripted 管道
@@ -152,6 +156,8 @@ node {
 // 系统设置中设置global pipeline libraries，名字为jenkins_library，添加git地址共享库
 library "jenkins_library"
 
+def context = [:] // 定义一个全局变量(map)，但是不能在自定义函数中使用
+
 // pipeline前面可以有其他代码，例如导入语句，和其他功能代码
 pipeline {
     // agent 指令指定整个管道或某个特定的stage的执行环境。它的参数可用使用：
@@ -162,32 +168,37 @@ pipeline {
         // docker - 指定在docker容器中运行
         // dockerfile - 使用源码根目录下面的Dockerfile构建容器来运行
     agent any
+    // agent { label "jnlp-agent" }
+
     // 定义键值对的环境变量
     environment {
         APP_VERSION = 'v1.0.0'
+        BROWSER_NAME = 'chrome'
     }
+
     // 定义自动安装并自动放入PATH里面的工具集合，工具名称必须预先在Jenkins中配置好了 → Global Tool Configuration
     tools {
         maven 'apache-maven-3.0.1'
     }
-    // 由一个或多个stage指令组成，stages块也是核心逻辑的部分
+
+    // 由一个或多个stage指令组成，stages块也是核心逻辑的部分. 可进行嵌套
     stages {
         stage('Test') {
+            // when指令允许Pipeline根据给定条件确定是否应执行该阶段。该when指令必须至少包含一个条件。如果when指令包含多个条件，则所有子条件必须返回true才能执行该阶段
+            when {
+                branch 'production'
+                // environment name: 'DEPLOY_TO', value: 'production' // 环境变量
+                // expression { return true } // 表达式返回true时触发
+                // 还有如equals、allOf等
+            }
             steps {
-                environment {
-                    BROWSER_NAME = 'chrome'
-                }
-                // when内置条件满足，expression语句才会执行
-                when { branch 'production' }
-                // when { environment name: 'DEPLOY_TO', value: 'production' }
-                expression {
-                    return params.DEBUG_BUILD
-                }
-
-                println 'hello...'
+                // 基本的steps命令(其他命令不能再steps中，可以使用一个script包裹) https://www.jenkins.io/doc/pipeline/steps/workflow-basic-steps/
+                println 'hello...' // println可以打印对象，echo只能打印字符串
                 echo 'Test..'
                 echo "Running on ${env.BROWSER_NAME}"
+
                 script {
+                    context.flag = false // 给全局变量赋值
                     def browsers = ['chrome', 'firefox']
                     for (int i = 0; i < browsers.size(); ++i) {
                         echo "Testing the ${browsers[i]} browser"
@@ -204,7 +215,7 @@ pipeline {
                 sh 'echo ${myDir}' // 无法获取变量
                 sh "echo ${myDir}" // 可以获取变量
                 sh """echo ${myDir}""" // 可换行文本，可以获取变量('''的可换行文本不行)
-                sh "echo ${gitlabMergeRequestTitle}" // 无法获取到环境比变量
+                sh "echo ${gitlabMergeRequestTitle}" // 无法获取到环境比变量。gitlab hook时会注入gitlabMergeRequestTitle
                 sh "echo ${evn.gitlabMergeRequestTitle}" // 无法获取环境比变量
                 sh "echo \$gitlabMergeRequestTitle" // 可以打印出环境比变量(获取shell的环境变量，防止被groovy注入的当前脚本变量)
                 sh "echo \$evn\\.gitlabMergeRequestTitle" // 可以打印出环境比变量
@@ -212,6 +223,7 @@ pipeline {
                 result = sh (script: "cat test.txt | grep 123", returnStatus: true) // 返回执行状态。找到了返回0，未找到返回1
                 result = sh (script: "cat test.txt", returnStdout: true) // 返回命令的输出
             }
+            // stages {}
         }
         stage('steps test') {
             steps {
@@ -219,8 +231,8 @@ pipeline {
                 // timeout闭包内运行的步骤超时时间
                 timeout(50) {
                     // 一直循环运行闭包内容，直到return true，经常与timeout同时使用
-                    waitUntil{
-                        script{
+                    waitUntil {
+                        script {
                             def r = sh script: 'curl http://xxx', returnStatus: true
                             return (r == 0)
                         }
@@ -228,12 +240,28 @@ pipeline {
                 }
                 // 闭包内脚本重复执行次数
                 retry(10){
-                    script{
+                    script {
                         sh script: 'curl http://xxx', returnStatus: true
                     }
                 }
                 // 暂停pipeline一段时间，单位为秒
                 sleep(20)
+            }
+        }
+        stage("parallel test") {
+            parallel {
+                stage('Stage1') {
+                    agent { label "test1" }
+                    steps {
+                        echo "在 agent test1 上执行的并行任务 1."
+                    }
+                }
+                stage('Stage2') {
+                    agent { label "test2" }
+                    steps {
+                        echo "在 agent test2 上执行的并行任务 2."
+                    }
+                }
             }
         }
     }
@@ -246,6 +274,8 @@ pipeline {
     post {
         always {
             echo 'I will always say Hello again!'
+            println context.flag
+            script {}
         }
     }
 }

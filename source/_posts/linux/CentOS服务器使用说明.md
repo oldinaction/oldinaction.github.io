@@ -34,10 +34,11 @@ tags: [CentOS, linux]
 - 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#文件权限)
 - 证书登录、禁用root(内部集群一般不建议，因为经常需要ssh远程登录)及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#ssh)
 - 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
-- 更换镜像，见下文
+- [更换镜像，见下文](#镜像管理)
 - 内核升级(Centos7 默认使用内核版本为`3.10`，目前内核长期支持版为`4.4`)
 - `yum update -y` 更新软件版本和内核次版本。初始化机器可执行，生成环境不建议重复更新内核版本
     - `yum upgrade` 只更新软件版本，不更新内核版本
+- [常用软件安装](#常用软件安装)
 
 ### 新服务器常见问题
 
@@ -67,11 +68,12 @@ tags: [CentOS, linux]
 - 常用表安装
 
 ```bash
-yum -y install psmisc # pstree命令
-yum -y install net-tools # netstat命令
-yum -y install tcpdump
+yum -y install net-tools # netstat、ifconfig命令
 yum -y install htop
-yum -y install lsof
+# yum -y install tcpdump
+# yum -y install psmisc # pstree命令
+# yum -y install lsof
+# yum -y install strace
 ```
 
 ### 安装方式说明 [^2]

@@ -126,7 +126,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 ### ssh服务器
 
 - Cygwin
-- [PowerShell Server](https://www.nsoftware.com/powershell/server/)
+- [PowerShell Server](https://www.nsoftware.com/powershell/server/)，部分命令语法和cmd不同，详细查看
     - Service - Run as a Windows Service 作为服务运行则可自动启动(默认为普通程序运行)
     - Server Setting 设置端口和欢迎语
     - SFTP：尽管不勾选也是开启SFTP的，保险起见可勾选。修改SFTP根目录

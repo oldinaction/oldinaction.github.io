@@ -124,10 +124,10 @@ server {
     ## root 和 alias 区别和联系
         # 都是用于暴露静态文件。均只能根据文件完整路径访问，无法通过目录列举文件(即无法访问目录)
         # alias只能位于location块中，而root的权限不限于location块中
-        # 路径拼接区别：具体见下文
+        # 路径拼接区别：************alias文件路径为url路径减去location路径，root文件路径为直接拼接location路径************。具体见下文
     # - alias基于路径(^~，**推荐：vue代码和静态资源单独部署时**)。案例：文件实际路径为 /www/logo.png，需实现 http://www.aezo.cn/res/img/logo.png
     location ^~ /res/img/ {
-        # 基于alias指定目录 + (url路径 - location路径)
+        # ************基于alias指定目录 + (url路径 - location路径)************
         alias /www/;
     }
     # 和上面的区别是location和alias都不以/结尾，效果一样。location和alias要么都以/结尾，要么都不以/结尾
@@ -140,9 +140,9 @@ server {
         alias /www/$1_upload/$2;
     }
     # - root基于路径。案例：文件实际路径为 /www/res/img2/logo.png，需实现 http://www.aezo.cn/res/img2/logo.png 访问该文件
-    location ^~ /res/img2/ {
-        # 基于root指定目录(加不加/都一样) + location路径
-        root /www; # windows路径分隔符可使用/或\，linux不能使用\
+    location ^~ /res/img2/ { # ^~ /res/img2/ 和 /res/img2/ 效果差不多
+        # ************基于root指定目录(加不加/都一样) + location路径************
+        root /www; # windows路径分隔符可使用/或\(尽量少使用，容易出现\n等转义)，linux不能使用\
         access_log off; # 关闭访问日志
     }
 

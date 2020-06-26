@@ -1076,7 +1076,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
 
 - csi(Container Storage Interface)[https://github.com/container-storage-interface/spec]
 - 常用分类
-    - `emptyDir` 临时目录。pod删除，数据也会被清除，这种存储成为emptyDir，用于数据的临时存储
+    - `emptyDir` 临时目录
     - `hostPath` 宿主机目录映射
     - PVC持久化存储
         - 本地存储 `SAN`(`iSCSI`、`FC`)、`NAS`(`nfs`、`cifs`、`http`)
@@ -1084,7 +1084,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
         - 云存储 `EBS`、`Azure Disk`
     - 存储选型：私有云可考虑使用`Rook`/`Ceph` [^8]
 - `kubectl explain pod.spec.volumes` 查看k8s支持的存储类型及配置
-    - `emptyDir` 临时目录存储，Pod删除，数据也会丢失。取值`{}`时，则子字段为默认值
+    - `emptyDir` 临时目录存储，取值`{}`时，则子字段为默认值。**Pod删除，数据也会丢失**，容器的crashing事件并不会导致emptyDir中的数据被删除
     - `hostPath` 宿主机目录存储，重新创建Pod后数据还在，但各节点目录不共享。[doc](https://kubernetes.io/docs/concepts/storage/volumes#hostpath)
         - `type` 存储类型。默认""，取值：DirectoryOrCreate(可自动创建存储目录)/DirectoryFileOrCreate/File/Socket/CharDevice/BlockDevice
         - `path` 数据存储在Node节点上存储目录

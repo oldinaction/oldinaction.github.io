@@ -499,13 +499,13 @@ module.exports = {
     // ...
 }
 ```
-- router/index.js
+- router/index.js (非必须)
 
 ```js
 new Router({
     // 路由的基础路径，类似publicPath。只不过publicPath是针对静态文件，而此次是将<router-link>中的路径添加此基础路径
     base: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_BASE_URL = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
-    // mode: 'history', // H5新特性，需要浏览器支持；hash模式也支持多项目
+    // mode: 'history', // H5新特性，需要浏览器支持；***hash模式也支持多项目***
     routes: []
 })
 ```
@@ -516,6 +516,7 @@ new Router({
 location ^~ /my-app/ {
     root /www; # 在/www目录放项目文件夹my-app(index.html在此文件夹根目录)
     try_files $uri $uri/ /my-app/index.html;
+    # index  index.html index.htm; # hash模式
     # 禁止缓存index.html文件
     if ($request_filename ~* .*\.(?:htm|html)$) {
         add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";

@@ -41,7 +41,7 @@ tags: [jvm]
 // System.getProperty(<name>)
 
 // 示例
-java -Dtest.name=aezocn -jar app.jar // 启动添加参数
+java -Dtest.name=aezocn -jar app.jar // 启动添加参数。值如果有空格可以使用""
 System.getProperty("test.name") // 程序中取值，无此参数则为null
 ```
 

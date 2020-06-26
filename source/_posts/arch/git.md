@@ -56,6 +56,7 @@ tags: [git]
     name = smalle
     email = smalle@163.com
 ```
+- `git config core.ignorecase false` 配置项目大小写敏感
 
 ### repository
 

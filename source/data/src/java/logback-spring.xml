@@ -30,7 +30,7 @@
 
     <!-- ERROR级别日志 -->
     <!-- 滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件 RollingFileAppender-->
-    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="ERROR-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 过滤器，只记录WARN级别的日志 -->
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
@@ -72,7 +72,7 @@
     </appender>
 
     <!-- WARN级别日志 appender -->
-    <appender name="WARN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="WARN-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>WARN</level>
             <onMatch>ACCEPT</onMatch>
@@ -90,7 +90,7 @@
     </appender>
 
     <!-- INFO级别日志 appender -->
-    <appender name="INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="INFO-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>INFO</level>
             <onMatch>ACCEPT</onMatch>
@@ -108,7 +108,7 @@
     </appender>
 
     <!-- DEBUG级别日志 appender。如果root中不使用此appender则可将其注释掉 -->
-    <appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="DEBUG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>DEBUG</level>
             <onMatch>ACCEPT</onMatch>
@@ -126,7 +126,7 @@
     </appender>
 
     <!-- TRACE级别日志 appender -->
-    <appender name="TRACE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="TRACE-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>TRACE</level>
             <onMatch>ACCEPT</onMatch>
@@ -183,6 +183,8 @@
         1.默认日志级别，可以单独在上面设置每个包的日志级别
         2.root将级别为INFO及大于INFO的日志信息交给已经配置好的名为STDOUT、ERROR的appender处理，STDOUT的appender将信息打印到控制台，ERROR的则打印到error-%i.log文件中
         3.level用来设置打印级别，大小写无关。TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，还有一个特殊值INHERITED或者同义词NULL，代表强制执行上级的级别。如果未设置此属性，那么当前loger将会继承上级的级别
+        4.yml配置文件单个包的打印级别 > logger-level标签级别 > root-level默认级别
+        5.将mybatis的DEBUG日志记录在文件的前提是(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
     -->
     <root level="INFO">
 		<!--输出到数据库-->
@@ -191,11 +193,11 @@
         <!-- 控制台输出 -->
         <appender-ref ref="STDOUT" />
 
-        <!-- 文件输出：如果使用文件输出，则下面的打开级别的才会记录 -->
-        <appender-ref ref="ERROR" />
-        <appender-ref ref="INFO" />
-        <appender-ref ref="WARN" />
-        <!-- <appender-ref ref="DEBUG" /> -->
-        <!--<appender-ref ref="TRACE" />-->
+        <!-- 文件输出：*****如果使用文件输出，则下面的打开级别的才会记录***** -->
+        <appender-ref ref="ERROR-FILE" />
+        <appender-ref ref="WARN-FILE" />
+        <appender-ref ref="INFO-FILE" />
+        <appender-ref ref="DEBUG-FILE" />
+        <appender-ref ref="TRACE-FILE" />
     </root>
 </configuration>
