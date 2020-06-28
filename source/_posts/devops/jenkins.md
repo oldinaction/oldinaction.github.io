@@ -112,10 +112,10 @@ volumes:
 - [pipeline 支持的 steps 及支持的相关插件](https://www.jenkins.io/doc/pipeline/steps/)
 - [基本的steps命令](https://www.jenkins.io/doc/pipeline/steps/workflow-basic-steps/)
 - 内置文档
-    - 对于插件的使用可以参考 pipline 脚本编辑处的**流水线语法**：https://<jenkins-host>/job/<my-job-name>/pipeline-syntax/
+    - 对于插件的使用可以参考 Pipeline 脚本编辑处的**流水线语法**：https://<jenkins-host>/job/<my-job-name>/pipeline-syntax/
     - 全局变量：https://<jenkins-host>/pipeline-syntax/globals
 - 遵循 Groovy 语法规则
-- 案例参考[Pipline+K8s+Harbor+Gitlab+Springboot+Maven](<#(推荐)Pipline+K8s+Harbor+Gitlab+Springboot+Maven>)
+- 案例参考下文[Pipeline相关](#构建示例)
 - 一个 Jenkinsfile 就是一个文本文件，Pipeline 支持两种形式，一种是 Declarative 管道，一个是 Scripted 管道
 
 ```groovy
@@ -286,7 +286,7 @@ pipeline {
 - 更多可查看下文每个插件的使用或在网站流水线语法中查看
 
 ```groovy
-// 1.调用凭证(隐藏密码，暂未发现 pipline 如何使用全局密码)
+// 1.调用凭证(隐藏密码，暂未发现 Pipeline 如何使用全局密码)
 withCredentials([usernamePassword(credentialsId: '0c108a09-e321-45c6-bf9c-06626ddd1e4a', passwordVariable: 'MY_PASSWORD', usernameVariable: 'MY_USERNAME')]) {
     // 打印 U: **** P: ****
 	sh "echo U: ${MY_USERNAME} P: ${MY_PASSWORD}"
@@ -303,12 +303,16 @@ sshPublisher(publishers: [sshPublisherDesc(configName: 'node1', transfers: [
     // 连接服务器node1，将jenkins工作目录的文件传输到远程的test目录(相当于SFTP根目录)，如果没有此test目录则会创建(创建的前提是没有此目录且有文件要传输)
     // 注意：此时sourceFiles千万不能用./来表示当前目录，这样是过滤不到文件的
     // removePrefix为复制到目标目录时去掉目录前缀
+    // sourceFiles文件格式遵守ant规范，http://ant.apache.org/manual/dirtasks.html#patterns
     sshTransfer(sourceFiles: "module1/target/*.jar", removePrefix: "module1/target", remoteDirectory: "${projectName}", execCommand:
         """
         echo ${projectName}
         """
     )
 ])])
+
+// 4.发送邮件
+emailext body: '$DEFAULT_CONTENT', postsendScript: '$DEFAULT_POSTSEND_SCRIPT', presendScript: '$DEFAULT_PRESEND_SCRIPT', recipientProviders: [developers()], replyTo: '$DEFAULT_REPLYTO', subject: '$DEFAULT_SUBJECT', to: '$DEFAULT_RECIPIENTS;admin@qq.com'
 ```
 
 ## 构建
@@ -404,11 +408,11 @@ sshPublisher(publishers: [sshPublisherDesc(configName: 'node1', transfers: [
   - 多个邮箱使用空格分开
   - 需要先到系统管理中设置邮件发送服务器，其中 SMTP 发件地址需要和系统管理员邮件地址一致
 
-### Pipline 和 Jenkinsfile 构建
+### Pipeline 和 Jenkinsfile 构建
 
 > 本示例 Jenkins 基于 docker 进行安装。参考：https://jenkins.io/zh/doc/tutorials/build-a-java-app-with-maven/#run-jenkins-in-docker
 
-- 创建 Pipline：新建 Item - 流水线(Pipline)
+- 创建 Pipeline：新建 Item - 流水线(Pipeline)
 - General、构建触发器、高级项目选项此示例可不用填写(实际可按需填写)
 - 流水线
   - 定义：`Pipeline script`(在 Jenkins 配置中定义 Pipeline 脚本)、`Pipeline script from SCM`(从软件配置管理系统，如 Git 仓库获取脚本；可配置脚本所在 Git 仓库的文件路径)
@@ -531,41 +535,404 @@ java -jar target/${NAME}-${VERSION}.jar
   sudo /usr/local/bin/helm upgrade --set image.tag=${DOCKER_TAG} ${HELM_NAME} /root/helm-chart/test/${HELM_NAME}
   ```
 
-### (推荐)Pipline+K8s+Harbor+Gitlab+Springboot+Maven
+### (推荐)Pipeline+K8s+Harbor+Gitlab+Springboot+Maven(可改成Declarative风格)
 
 > http://www.mydlq.club/article/8/
 
-- 创建项目 - 风格选择 Pipline
+- 创建项目 - 风格选择 Pipeline
 - General：(为了安全)勾选不允许并发构建、(为了提升效率)勾选流水线效率、持久保存设置覆盖(Performance-optimized...)
 - 构建触发器参考[构建触发器-Gitlab](#构建触发器)
 - 流水线 - Pipeline script(另一个选项为 Pipeline script from SCM)
+    - 勾选`使用 Groovy 沙盒`
+    - Jenkinsfile 脚本
 
-  - 勾选`使用 Groovy 沙盒`
-  - Jenkinsfile 脚本
+```groovy
+// 声明执行Helm的方法
+def helmDeploy(Map args) {
+    if(args.init) {
+        println "Helm 客户端初始化"
+        sh "helm init --client-only --stable-repo-url https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts"
+		withCredentials([usernamePassword(credentialsId: '7f3ee3d0-af55-4783-b65d-42cfb22576a8', passwordVariable: 'HELM_REPO_USER_PASS', usernameVariable: 'HELM_REPO_USER')]) {
+			sh "helm repo add aezocn ${args.url} --username ${HELM_REPO_USER} --password ${HELM_REPO_USER_PASS}"
+		}
+    } else if (args.dry_run) {
+        println "尝试 Helm 部署，验证是否能正常部署"
+        sh "helm upgrade --install ${args.name} --namespace ${args.namespace} ${args.values} --set ${args.sets} aezocn/${args.template} --dry-run --debug"
+    } else {
+        println "正式 Helm 部署"
+        sh "helm upgrade --install ${args.name} --namespace ${args.namespace} ${args.values} --set ${args.sets} aezocn/${args.template}"
+    }
+}
 
-    ```groovy
-
-    ```
+// jenkins slave 执行流水线任务
+// 整个构建超时时间为600s
+timeout(time: 600, unit: 'SECONDS') {
+    try{
+        // 代理名称，填写系统设置中设置的 Cloud 中 Template 模板的 label
+		def label = "jnlp-agent"
+		
+		// 调用Kubernetes提供的方法
+        podTemplate(label: label, cloud: 'kubernetes') {
+			// 在代理节点上运行脚本
+			node (label) {
+				// 将源码拉取到当前目录(/home/jenkins/agent/workspace/my-jenkins-project-name/)，即此项目的工作空间
+				stage('Git阶段') {
+					git credentialsId: '0c108a09-e321-47c6-bf9c-06626ccd1e4a', branch: "master", changelog: true, url: "${G_GIT_HTTP_URL}aezocn/test.git"
+				}
+				stage('Maven阶段') {
+					// 使用pod中的某个容器
+					container('maven') {
+						// 这里引用上面设置的全局的 settings.xml 文件，根据其ID将其引入并创建该文件
+						configFileProvider([configFile(fileId: "15263da5-15d5-4bb5-abb7-5cc604def581", targetLocation: "settings.xml")]) {
+							sh 'mvn -f ./oa-dev-center-api/pom.xml clean install -Dmaven.test.skip=true --settings settings.xml'
+						}
+					}
+				}
+				stage('Docker阶段') {
+					echo "Docker 阶段"
+					container('docker') {
+						// 读取pom参数
+						echo "读取 pom.xml 参数"
+						pom = readMavenPom file: './oa-dev-center-api/pom.xml'
+						println pom
+						// 设置镜像仓库地址
+						harbor_host = "${G_DOCKER_REGISTRY}"
+						// 设置仓库项目名
+						harbor_project_name = "devops"
+						echo "编译 Docker 镜像"
+						// harbor账号id 
+						docker.withRegistry("http://${harbor_host}", "8bbd8356-ff16-4afb-b782-4f253a36d0e1") {
+							echo "构建镜像"
+							// 指定dockerfile文件目录打包镜像(如果镜像在当前目录则可不需要第二个参数)，pom里面设置的项目名与版本号打标签
+							def customImage = docker.build("${harbor_host}/${harbor_project_name}/${pom.artifactId}:${pom.version}", "./oa-dev-center-api")
+							echo "推送镜像"
+							customImage.push()
+							echo "删除镜像"
+							sh "docker rmi ${harbor_host}/${harbor_project_name}/${pom.artifactId}:${pom.version}"
+						}
+					}
+				}
+				stage('Helm阶段') {
+					container('helm-kubectl') {
+						// 此处可直接使用Tiller的sa账号，将sa的token秘钥保存到凭证中
+						withKubeConfig([credentialsId: "4cd72b9c-c5a0-6e6e-b68a-cc1d3472b694", serverUrl: "https://kubernetes.default.svc.cluster.local"]) {
+							name = "${pom.artifactId}"
+							namespace = "devops"
+							repo_url = "${G_HELM_REPO_URL}"
+							template = "springboot --version 1.1.0"
+							
+							// 检测是否存在yaml文件
+							def values = ""
+							if (fileExists('oa-dev-center-api/devops/values.yaml')) {
+								values = "-f oa-dev-center-api/devops/values.yaml"
+							}
+							
+							image = "image.repository=${harbor_host}/${harbor_project_name}/${pom.artifactId}"
+							tag = "image.tag=${pom.version}"
+							pullPolicy = "image.pullPolicy=Always"
+							now = new Date().format("yyyyMMddHHmmss")
+							env = "evn.BUILD_TIME=${now},env.DATABASES_NAME=oa_dev_center,env.DATABASES_HOST=192.168.6.130,env.DATABASES_PORT=3306,env.DATABASES_USER=oa-dev-center,env.DATABASES_PASSWORD=root,env.APP_OPTS='--spring.profiles.active=test'"
+							sets = "${image},${tag},${pullPolicy},${env}"
+							
+							// 执行 Helm 方法
+							echo "Helm 初始化"
+							helmDeploy(init: true, url: "${repo_url}");
+							echo "Helm 执行部署测试"
+							helmDeploy(init: false, dry_run: true, name: "${name}", namespace: "${namespace}", template: "${template}", values: "${values}", sets: "${sets}")
+							echo "Helm 执行正式部署"
+							helmDeploy(init: false, dry_run: false, name: "${name}", namespace: "${namespace}", template: "${template}", values: "${values}", sets: "${sets}")
+						}
+					}
+				}
+			}
+		}
+    } catch(Exception e) {
+		echo "失败。。。"
+		println e
+        currentBuild.result = "FAILURE"
+    } finally {
+        // 获取执行状态
+        def currResult = currentBuild.result ?: 'SUCCESS'
+        // 判断执行任务状态，根据不同状态发送邮件
+        stage('email') {
+            if (currResult == 'SUCCESS') {
+                echo "发送成功邮件"
+                emailext body: '$DEFAULT_CONTENT', postsendScript: '$DEFAULT_POSTSEND_SCRIPT', presendScript: '$DEFAULT_PRESEND_SCRIPT', attachLog: true, compressLog: true, recipientProviders: [developers()], replyTo: '$DEFAULT_REPLYTO', subject: '$DEFAULT_SUBJECT', to: '$DEFAULT_RECIPIENTS;admin@qq.com'
+            } else {
+                echo "发送失败邮件"
+                emailext body: '$DEFAULT_CONTENT', postsendScript: '$DEFAULT_POSTSEND_SCRIPT', presendScript: '$DEFAULT_PRESEND_SCRIPT', attachLog: true, compressLog: true, recipientProviders: [developers()], replyTo: '$DEFAULT_REPLYTO', subject: '$DEFAULT_SUBJECT', to: '$DEFAULT_RECIPIENTS;admin@qq.com'
+            }
+        }
+    }
+}
+```
 
 - springboot 项目配置
 
-  ```bash
-  # git项目文件结构
-  |-- oa-dev-center-web
-  |-- oa-dev-center-api
-  |---- src
-  |---- devops
-  |------ runboot.sh
-  |------ values.yaml # helm charts values.yaml
-  |------ wait-for-it.sh
-  |---- Dockerfile
-  |---- pom.xml
-  ```
+    ```bash
+    # git项目文件结构
+    |-- oa-dev-center-web
+    |-- oa-dev-center-api
+    |---- src
+    |---- devops
+    |------ runboot.sh
+    |------ values.yaml # helm charts values.yaml
+    |------ wait-for-it.sh
+    |---- Dockerfile
+    |---- pom.xml
+    ```
 
 - 常见问题
-  - 第一次构建可能报错`Scripts not permitted to use method org.apache.maven.model.Model getArtifactId`，是因为在沙箱环境下 getArtifactId 等脚本方法需要管理员通过才可执行
-    - 解决：在系统管理 - In-process Script Approval - approved(method org.apache.maven.model.Model getArtifactId)
-  - 访问 api server 时，需要对应的 ServiceAccount 账号，此处可直接使用 Tiller 的 sa 账号。获取方式如`kubectl get secret $(kubectl get secret -n kube-system|grep tiller-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo`，将秘钥保存到 jenkins 凭证中获取凭证 ID 供 pipline 脚本使用
+    - 第一次构建可能报错`Scripts not permitted to use method org.apache.maven.model.Model getArtifactId`，是因为在沙箱环境下 getArtifactId 等脚本方法需要管理员通过才可执行
+        - 解决：在系统管理 - In-process Script Approval - approved(method org.apache.maven.model.Model getArtifactId)
+    - 访问 api server 时，需要对应的 ServiceAccount 账号，此处可直接使用 Tiller 的 sa 账号。获取方式如`kubectl get secret $(kubectl get secret -n kube-system|grep tiller-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo`，将秘钥保存到 jenkins 凭证中获取凭证 ID 供 Pipeline 脚本使用
+
+### Pipeline(Declarative)+Docker+Gilab+Windows
+
+- General
+    - 勾选流水线效率、持久保存设置覆盖
+    - 去勾选不允许并发构建
+- 构建触发器(其他配置参考上文)
+    - 选择Filter branches by regex
+        - Target Branch Regex如 `test|master|fixbug|test-.*` (只要目标分支为其中一个就会触发构建)
+- 流水线
+    - Pipeline script from SCM - Git
+    - Repository URL 为 `${gitlabTargetRepoHttpUrl}` (基于gitlab hook注入到jenkins的环境变量自动获取需要构建的git仓库地址)
+    - Branches to build 为 `origin/${gitlabTargetBranch}` (自动获取分支)
+    - 脚本路径为`devops/Jenkinsfile`
+    - 轻量级检出
+- git仓库需要存放`devops/Jenkinsfile`文件
+
+```groovy
+/**
+ * jenkins slave 执行流水线任务。基于windows power shell(可在windows服务器上安装如windows power server来提供ssh服务)，必须通过gitlab触发
+ */
+def context = [:]
+//==============================================================================================================
+// 自定义服务器相关参数(发布的服务器共用一套配置即可)
+//==============================================================================================================
+// 远程服务器，需要在jenkins中配置过
+context.remoteServerName = 'node1'
+// 远程服务器SFTP服务根目录，如node1为C:/temp/jenkins
+context.remoteSftpRoot = 'C:/temp/jenkins'
+// (构建后台API需要) 远程服务器JAVA_HOME目录。如node1为C:/Program Files/Java/jre1.8.0_181
+context.remoteJavaHome = 'C:/Program Files/Java/jre1.8.0_181'
+// (构建后台API需要) 远程服务器RunHiddenConsole程序路径(windows下使程序后台运行)
+context.remoteRunHiddenConsole = 'D:/soft/RunHiddenConsole.exe'
+
+//==============================================================================================================
+// ***自定义项目相关参数(每个项目配置不同)***
+//==============================================================================================================
+// 项目名称(可使用git仓库名或公司唯一项目名)
+context.projectName = 'demo'
+context.emailToUser = 'admin@example.com;system@example.com'
+
+// **是否需要构建后台API**
+context.apiStage = true
+// API部署在远程服务器的目录
+context.remoteApiDir = 'C:/demo_dir'
+// pom.xml文件在git仓库中的相对位置。**相对路径，但不能使用./开头**；pom在git仓库根目录则留空，如果在子目录如 def pomDir = 'my-api/'
+context.pomDir = ''
+// 启动jar参数
+context.startJarArgs = '--spring.profile=test'
+
+// **是否需要构建WEB(不含nginx配置)**
+context.webStage = false
+// WEB部署在远程服务器的目录
+context.remoteWebDir = 'C:/demo_dir'
+// package.json文件在git仓库中的相对位置。**相对路径，但不能使用./开头**；pom在git仓库根目录则留空，如果在子目录如 def pomDir = 'my-web/'
+context.packageJsonDir = ''
+// 编译静态包的命令
+context.npmBuildCommand = "npm run test"
+// 编译出的静态包后，需要复制到远程服务器的文件或文件夹路径
+// 如果需要将编译后的dist放到context.remoteWebDir则填dist/**，如果需要将dist/index.html、dist/static等文件放到context.remoteWebDir则填["dist/index.html","dist/static/**"]
+context.distNameArr = ["dist/**"]
+
+//==============================================================================================================
+// 上传编译文件到服务器并启动和通用参数配置
+//==============================================================================================================
+// 是否自动发送邮件
+context.sendEmailFlag = true
+
+// 上传jar包到服务器并启动
+def sshJarUploadAndExec(Map args) {
+    now = new Date().format("yyyy-MM-dd HH:mm:ss")
+    projectDir = "${args.projectName}-api"
+    sshPublisher(publishers: [sshPublisherDesc(configName: "${args.remoteServerName}", transfers: [
+		// 将编译好文件上传到服务器的sftp目录。sourceFiles基于ant文件命名规范来的
+        sshTransfer(sourceFiles: "${args.pomDir}target/${args.apiJarName}", removePrefix: "${args.pomDir}target", remoteDirectory: "${projectDir}", execCommand:
+            """
+            echo running...
+            # 备份。创建备份目录 C:/demo_dir/demo-build-10，并将原C:/demo_dir目录下的jar包复制到备份目录
+            if(-not (test-path "${args.remoteApiDir}/${args.projectName}-build-${env.BUILD_NUMBER}")) { mkdir "${args.remoteApiDir}/${args.projectName}-build-${env.BUILD_NUMBER}" }
+            if(test-path "${args.remoteApiDir}/${args.apiJarName}*") { cp "${args.remoteApiDir}/${args.apiJarName}*" "${args.remoteApiDir}/${args.projectName}-build-${env.BUILD_NUMBER}" }
+            # 停止原进程。基于java.exe的包装文件进行停职进程
+            if(test-path '${args.remoteApiDir}/java-${projectDir}.exe') { tasklist /fo csv | findstr 'java-${projectDir}.exe' ; if(\$?) { taskkill /f /im java-${projectDir}.exe ; sleep 10 } }
+            # 复制文件。1.将java.exe复制到项目录并重命名，之后以此文件启动jar，方便上面停止进程 2.从sftp目录复制编译文件到发布目录
+            cp "${args.remoteJavaHome}/bin/java.exe" "${args.remoteApiDir}/java-${projectDir}.exe"
+            cp "${args.remoteSftpRoot}/${projectDir}/${args.apiJarName}" "${args.remoteApiDir}/${args.apiJarName}"
+            # 启动程序。使用RunHiddenConsole和上述重名的java.exe启动jar
+            ${args.remoteRunHiddenConsole} ${args.remoteApiDir}/java-${projectDir}.exe -DBUILD_TIME="${env.BUILD_NUMBER}_${now}" -jar "${args.remoteApiDir}/${args.apiJarName}" ${args.startJarArgs}
+            """
+        )
+    ])])
+}
+
+// 上传前台静态文件到服务器
+def sshWebUpload(Map args) {
+    projectDir = "${args.projectName}-web"
+    sourceFileStr = ""
+    backupDirStrCommand = ""
+    rmDirStrCommand = ""
+    moveDirCommand = ""
+	// 基于配置的文件或文件夹组装命令
+    for (int i=0; i < args.distNameArr.size(); i++) {
+        dir = args.distNameArr.get(i)
+        sourceFileStr += "${args.packageJsonDir}${dir}"
+        if((i+1) != args.distNameArr.size()) {
+            sourceFileStr +=","
+        }
+		// 去掉文件夹的/**，防止复制文件夹中文件时漏复制文件夹本身
+        dir = "\$('${dir}' -replace '/\\**\$','')"
+        backupDirStrCommand += "if(test-path \"${args.remoteWebDir}/${dir}\") { cp -erroraction 'silentlycontinue' -Recurse \"${args.remoteWebDir}/${dir}\" '${args.remoteWebDir}/${args.projectName}-build-${env.BUILD_NUMBER}' } \n"
+        rmDirStrCommand += "if(test-path \"${args.remoteWebDir}/${dir}\") { rm -Recurse -Force \"${args.remoteWebDir}/${dir}\" } \n"
+        moveDirCommand += "if(test-path \"${args.remoteSftpRoot}/${projectDir}/${dir}\") { mv \"${args.remoteSftpRoot}/${projectDir}/${dir}\" '${args.remoteWebDir}/' } \n"
+    }
+
+    sshPublisher(publishers: [sshPublisherDesc(configName: "${args.remoteServerName}", transfers: [
+        sshTransfer(sourceFiles: "${sourceFileStr}", removePrefix: "${args.packageJsonDir}", remoteDirectory: "${projectDir}", execCommand:
+            """
+            echo running...
+            # 备份
+            if(-not (test-path "${args.remoteWebDir}/${args.projectName}-build-${env.BUILD_NUMBER}")) { mkdir "${args.remoteWebDir}/${args.projectName}-build-${env.BUILD_NUMBER}" }
+            ${backupDirStrCommand}
+            # 删除原文件
+            ${rmDirStrCommand}
+            # 复制文件到www目录(需提前将nginx映射到该目录)
+            ${moveDirCommand}
+            """
+        )
+    ])])
+}
+
+pipeline {
+    agent {
+        label "jnlp-agent"
+    }
+    stages {
+        stage('Git阶段') {
+            steps {
+                script {
+					// 如果提交的标题有[ci skip]则跳过此次构建
+                    result = sh (script: "echo \$gitlabMergeRequestTitle | grep '\\[ci skip\\]' | wc -l", returnStdout: true)
+                    if (result == "1\n") {
+                        context.sendEmailFlag = false
+                        throw new hudson.AbortException('[ci skip]')
+                    }
+                }
+            }
+        }
+        stage("构建阶段") {
+            parallel {
+                stage('API构建阶段') {
+                    when {
+                        expression {
+							// 如果提交的标题有[ci skip api]则跳过API构建
+                            result = sh (script: "echo \$gitlabMergeRequestTitle | grep '\\[ci skip api\\]' | wc -l", returnStdout: true)
+                            return context.apiStage && result == "0\n"
+                        }
+                    }
+                    options {
+                        timeout(time: 600, unit: "SECONDS")
+                    }
+                    stages {
+                        stage('Maven阶段') {
+                            steps {
+                                script {
+                                    container('maven') {
+                                        configFileProvider([configFile(fileId: "15263da5-15d5-4bb5-abb7-5dd604def581", targetLocation: "settings.xml")]) {
+                                            sh (script: "mvn -f ${context.pomDir}pom.xml clean install -Dmaven.test.skip=true --settings settings.xml")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        stage('上传JAR包并启动阶段') {
+                            steps {
+                                script {
+                                    pom = readMavenPom file: "${context.pomDir}pom.xml"
+                                    context.apiJarName = "${pom.artifactId}-${pom.version}.jar"
+                                    sshJarUploadAndExec(context)
+                                }
+                            }
+                        }
+                    }
+                }
+                stage('WEB构建阶段') {
+                    when {
+                        expression {
+                            result = sh (script: "echo \$gitlabMergeRequestTitle | grep '\\[ci skip web\\]' | wc -l", returnStdout: true)
+                            return context.webStage && result == "0\n"
+                        }
+                    }
+                    options {
+                        timeout(time: 1200, unit: "SECONDS")
+                    }
+                    stages {
+                        stage('NodeJS编译阶段') {
+                            steps {
+                                script {
+                                    container('nodejs') {
+                                        packageJsonDir = context.packageJsonDir
+                                        if(packageJsonDir == "") {
+                                            packageJsonDir = "./"
+                                        }
+                                        sh """
+                                        pwd
+                                        cd ${packageJsonDir}
+                                        npm install --registry=${G_NPM_REGISTRY}
+                                        ${context.npmBuildCommand}
+                                        """
+                                    }
+                                }
+                            }
+                        }
+                        stage('上传前台编译包') {
+                            steps {
+                                script {
+                                    sshWebUpload(context)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                echo "是否发送邮件: ${context.sendEmailFlag}"
+                if(context.sendEmailFlag) {
+                    def currResult = currentBuild.result ?: 'SUCCESS'
+
+                    if (currResult == 'SUCCESS') {
+                        echo "发送成功邮件"
+                        emailext body: '$DEFAULT_CONTENT', postsendScript: '$DEFAULT_POSTSEND_SCRIPT', presendScript: '$DEFAULT_PRESEND_SCRIPT', attachLog: true,
+                                subject: "\$PROJECT_NAME: \$BUILD_STATUS! (Build: #\$BUILD_NUMBER, Repo: ${gitlabTargetRepoHttpUrl}, Target Branch: origin/${gitlabTargetBranch})",
+                                recipientProviders: [developers()], replyTo: '$DEFAULT_REPLYTO', to: "\$DEFAULT_RECIPIENTS;${context.emailToUser}"
+                    } else {
+                        echo "发送失败邮件"
+                        emailext body: '$DEFAULT_CONTENT', postsendScript: '$DEFAULT_POSTSEND_SCRIPT', presendScript: '$DEFAULT_PRESEND_SCRIPT', attachLog: true,
+                                subject: "\$PROJECT_NAME: \$BUILD_STATUS! (Build: #\$BUILD_NUMBER, Repo: ${gitlabTargetRepoHttpUrl}, Target Branch: origin/${gitlabTargetBranch})",
+                                recipientProviders: [developers()], replyTo: '$DEFAULT_REPLYTO', to: "\$DEFAULT_RECIPIENTS;${context.emailToUser}"
+                    }
+                }
+            }
+        }
+    }
+}
+```
 
 ## 系统管理(Manage Jenkins)
 
@@ -573,32 +940,32 @@ java -jar target/${NAME}-${VERSION}.jar
 
 - 主目录：基于 docker 安装时一般为`/var/jenkins_home`
 - 全局属性
-  - 环境变量：自定义全局环境变量，在所有任务中均可使用
+    - 环境变量：自定义全局环境变量，在所有任务中均可使用
 - Jenkins Location
-  - Jenkins URL：jenkins 的路径，如：`http://192.168.1.100:8080/`。如果此处配置成外网，当通过内网访问时会提示`反向代理设置有误`，但是不影响使用。发送的邮件中一般会用到此地址
-  - 系统管理员邮件地址：此地址需要和 SMTP 发件地址一致，如：`aezo-jenkins<test@example.com>`(from 地址可添加昵称：`昵称<from>`)
-- Global Passwords：全局密码(pipline 无法使用，但可配合 withCredentials 使用凭证功能)
-  - 使用：通过【构建环境-Inject passwords to the build as environment variables】导入密码到环境变量
+    - Jenkins URL：jenkins 的路径，如：`http://192.168.1.100:8080/`。如果此处配置成外网，当通过内网访问时会提示`反向代理设置有误`，但是不影响使用。发送的邮件中一般会用到此地址
+    - 系统管理员邮件地址：此地址需要和 SMTP 发件地址一致，如：`aezo-jenkins<test@example.com>`(from 地址可添加昵称：`昵称<from>`)
+- Global Passwords：全局密码(Pipeline 无法使用，但可配合 withCredentials 使用凭证功能)
+    - 使用：通过【构建环境-Inject passwords to the build as environment variables】导入密码到环境变量
 - 邮件通知：配置 smtp 服务器
-  - SMTP server 不能带端口
-  - 其中 SMTP 发件地址需要和系统管理员邮件地址一致
+    - SMTP server 不能带端口
+    - 其中 SMTP 发件地址需要和系统管理员邮件地址一致
 - Publish over SSH
-  - SSH Servers：配置目标服务器，高级功能中可使用 HTTP/SOCKS5 代理(可能存在测试代理连接失败 BUG，但是可以正常使用)
+    - SSH Servers：配置目标服务器，高级功能中可使用 HTTP/SOCKS5 代理(可能存在测试代理连接失败 BUG，但是可以正常使用)
 
 ### 全局工具配置(Global Tool Configuration)
 
 - Maven [^1]
-  - 安装 Jenkins 默认不含 maven，可通过下列方法解决
-    - docker 安装 Jenkins 时，pipeline 风格可在`agant`中运行 maven 镜像
-    - 自由风格可使用宿主机 maven 或通过 jenkins 自动安装
-  - 使用宿主机 maven 配置：Name`maven3.6`；去勾选自动安装；MAVEN_HOME 填写宿主机目录(如果是 docker 安装的 jenkins 可将本地 maven 安装目录挂载到容器目录如/var/maven_home，然后此处使用/var/maven_home)
-  - 通过 jenkins 自动安装
-    - 配置：Name`maven3.6`；勾选自动安装；Version`3.6.1`(之后重新进入此配置页面，可能默认不会显示之前的配置)
-    - 需要安装`Maven Integration`插件
-    - 进行了上述配置和插件安装默认还是不会自动安装 maven，需要`构建一个maven项目`，然后构建此项目才会自动安装(安装成功后，在资源风格项目中也可以使用)
-  - 自动安装的 maven 插件位置：`/data/docker/volumes/jenkins-data/_data/tools/hudson.tasks.Maven_MavenInstallation/maven3.6` (基于 docker 安装 jenkins)
-    - 可修改`conf/settings.xml`相关配置，如配置阿里云镜像地址
-  - maven 仓库默认保存在宿主机的`/root/.m2`目录
+    - 安装 Jenkins 默认不含 maven，可通过下列方法解决
+        - docker 安装 Jenkins 时，pipeline 风格可在`agant`中运行 maven 镜像
+        - 自由风格可使用宿主机 maven 或通过 jenkins 自动安装
+    - 使用宿主机 maven 配置：Name`maven3.6`；去勾选自动安装；MAVEN_HOME 填写宿主机目录(如果是 docker 安装的 jenkins 可将本地 maven 安装目录挂载到容器目录如/var/maven_home，然后此处使用/var/maven_home)
+    - 通过 jenkins 自动安装
+        - 配置：Name`maven3.6`；勾选自动安装；Version`3.6.1`(之后重新进入此配置页面，可能默认不会显示之前的配置)
+        - 需要安装`Maven Integration`插件
+        - 进行了上述配置和插件安装默认还是不会自动安装 maven，需要`构建一个maven项目`，然后构建此项目才会自动安装(安装成功后，在资源风格项目中也可以使用)
+    - 自动安装的 maven 插件位置：`/data/docker/volumes/jenkins-data/_data/tools/hudson.tasks.Maven_MavenInstallation/maven3.6` (基于 docker 安装 jenkins)
+        - 可修改`conf/settings.xml`相关配置，如配置阿里云镜像地址
+    - maven 仓库默认保存在宿主机的`/root/.m2`目录
 
 ### 插件管理
 
@@ -614,7 +981,7 @@ java -jar target/${NAME}-${VERSION}.jar
 - 利用此插件可以连接远程 Linux 服务器，进行文件的上传或是命令的提交；也可以连接提供 SSH 服务的 windows 服务器，windows 提供 ssh 服务参考[windows.md#ssh 服务器#PowerShell Server](/_posts/extend/windows.md#ssh服务器)
 - BapSshHostConfiguration#createClient 进行服务器连接
 - 此插件 1.20.1 界面`Test Configuration`测试代理连接存在 bug，实际是支持代理连接的
-- pipline 使用
+- Pipeline 使用
 
 ```groovy
 // configName为系统设置的SSH服务器名
@@ -680,22 +1047,23 @@ sshPublisher(publishers: [sshPublisherDesc(configName: 'node1', transfers: [
 > https://wiki.jenkins.io/display/JENKINS/Email-ext+plugin
 
 - 邮件发送扩展 [^3]
-  - 原本 jenkins 自带邮件发送功能，但是不够强大，参考[系统设置(Configure System)](<#系统设置(Configure%20System)>)
-  - 此扩展可自定义何时(成功、失败等)出发邮件发送
+    - 原本 jenkins 自带邮件发送功能，但是不够强大，参考[系统设置(Configure System)](<#系统设置(Configure%20System)>)
+    - 此扩展可自定义何时(成功、失败等)出发邮件发送
 - 相应配置在【系统管理-系统配置-Extended E-mail Notification】中
-  - 配置 smtp 认证同 jenkins 自带邮件发送
-  - Default Content Type：HTML (text/html)
-  - Default Subject：【jenkins】$PROJECT_NAME: $BUILD_STATUS! (Build #\$BUILD_NUMBER)
-  - Default Content：[Email-Extension-Default-Content](#Email-Extension-Default-Content)
-  - Default Pre-send Script：可不设置。该脚本将在发送电子邮件之前运行，以允许在发送之前修改电子邮件；也可以通过将布尔变量 cancel 设置为 true 来取消发送电子邮件；在任务设置中可编辑此项或使用\${DEFAULT_PRESEND_SCRIPT}导入此系统配置
+    - 配置 smtp 认证同 jenkins 自带邮件发送
+    - Allowed Domains 可配置允许发送邮件的域
+    - Default Content Type：HTML (text/html)
+    - Default Subject：【jenkins】$PROJECT_NAME: $BUILD_STATUS! (Build #\$BUILD_NUMBER)
+    - Default Content：[Email-Extension-Default-Content](#Email-Extension-Default-Content)
+    - Default Pre-send Script：可不设置。该脚本将在发送电子邮件之前运行，以允许在发送之前修改电子邮件；也可以通过将布尔变量 cancel 设置为 true 来取消发送电子邮件；在任务设置中可编辑此项或使用\${DEFAULT_PRESEND_SCRIPT}导入此系统配置
 - 任务设置：构建后操作-Editable Email Notification
-  - Advanced Settings...
-    - Triggers - Add Trigger - [Success(构建成功)/Failure - Any(所有失败)/Always(一直)]
-      - Send To：默认选中了`Developers`这个组。即给此次合并提交所涉及的开发发送邮件(从 git 信息中提取邮箱)
-      - 高级
-        - Recipient List：收件人(除了 Send To 中的收件人，此处可额外定义收件人)。如：`a@example.com,cc:b@example.com,bcc:c@example.com`(CC 抄送，BCC 密件抄送)
-        - Content Type：HTML (text/html)
-        - Attach Build Log：Attach Build Log
+    - Advanced Settings...
+        - Triggers - Add Trigger - [Success(构建成功)/Failure - Any(所有失败)/Always(一直)]
+            - Send To：默认选中了`Developers`这个组。即给此次合并提交所涉及的开发发送邮件(从 git 信息中提取邮箱)
+            - 高级
+                - Recipient List：收件人(除了 Send To 中的收件人，此处可额外定义收件人)。如：`a@example.com,cc:b@example.com,bcc:c@example.com`(CC 抄送，BCC 密件抄送)
+                - Content Type：HTML (text/html)
+                - Attach Build Log：Attach Build Log
 
 ##### Kubernetes(连接k8s创建jenkins-agent)
 
@@ -811,7 +1179,7 @@ withKubeConfig([credentialsId: "xxxx-xxxx-xxxx-xxxx", serverUrl: "https://kubern
 - 如配置全局 maven 的 setting.xml
 
   - Add a new Config - Global Maven settings.xml - 修改 maven 镜像为阿里云镜像
-  - 会生成一个全局 ID，可在 pipline 中使用
+  - 会生成一个全局 ID，可在 Pipeline 中使用
 
     ```groovy
     configFileProvider([configFile(fileId: "15263da5-15d5-4bb5-abb7-5dd604def581", targetLocation: "settings.xml")]) {

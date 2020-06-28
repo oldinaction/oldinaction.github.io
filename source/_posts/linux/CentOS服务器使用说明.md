@@ -203,10 +203,10 @@ yum search vsftpd
 - 通过ftp上传jdk对应tar压缩包到对应目录并进行解压
 - 下载tar格式（推荐）
   - 下载tar文件并上传到服务器
-  - 解压tar **`tar -zxvf jdk-7u80-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
+  - 解压tar **`tar -zxvf jdk-8u161-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
 - 下载rpm格式
-  - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 7 -> Java SE Development Kit 7u80 -> Accept License Agreement -> jdk-7u80-linux-x64.rpm
-  - `rmp -ivh jdk-7u80-linux-x64.rpm` 安装rpm文件
+  - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 8 -> Java SE Development Kit 8u161 -> Accept License Agreement -> jdk-8u161-linux-x64.rpm
+  - `rmp -ivh jdk-8u161-linux-x64.rpm` 安装rpm文件
 
 #### 配置环境变量
 
@@ -214,7 +214,7 @@ yum search vsftpd
 - 在末尾输入并保存（注意JAVA_HOME需要按照实际路径）
 
 ```bash
-export JAVA_HOME=/opt/soft/jdk1.7.0_80
+export JAVA_HOME=/opt/soft/jdk1.8.0_161
 export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ```
