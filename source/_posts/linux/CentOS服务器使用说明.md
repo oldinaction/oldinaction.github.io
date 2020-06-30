@@ -72,8 +72,9 @@ yum -y install net-tools # netstat、ifconfig命令
 yum -y install htop
 # yum -y install tcpdump
 # yum -y install psmisc # pstree命令
-# yum -y install lsof
-# yum -y install strace
+# yum -y install lsof # 查看进程使用的文件描述符
+# yum -y install strace # 用于记录系统调用
+# yum -y install nc # Ncat
 ```
 
 ### 安装方式说明 [^2]

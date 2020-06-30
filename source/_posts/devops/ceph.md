@@ -428,6 +428,7 @@ parameters:
   # 正式建议使用特定的ceph用户
   userId: admin
   userSecretName: ceph-secret
+allowVolumeExpansion: true
 ```
 
 ### 使用rbd-provisioner(推荐)
@@ -520,6 +521,7 @@ parameters:
   imageFormat: "2"
   imageFeatures: "layering"
 reclaimPolicy: Retain
+allowVolumeExpansion: true
 ```
 
 ## 运维案例
@@ -637,6 +639,7 @@ rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 查看
 # 调整大小为20G(1024换算)
 rbd resize kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 --size 20480
 rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 重新查看镜像空间使用情况
+# 然后修改k8s pvc对应大小为指定大小
 
 ## 客户端扩容方式略
 ```
@@ -679,7 +682,7 @@ rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 重新
 - ceph警告 `HEALTH_WARN application not enabled on 1 pool(s)`，且通过k8s storageClass创建的镜像无法查询到
     - 原因：新创建的pool没有开启rbd application
     - 解决：`ceph osd pool application enable kube rbd` (此处存储池为kube)
-- `rbd: error: image still has watchers` 无法删除镜像，参考：https://www.cnblogs.com/sisimi/p/7776633.html
+- `rbd: error: image still has watchers` **无法删除镜像**，参考：https://www.cnblogs.com/sisimi/p/7776633.html
     - 原因：镜像无法删除的原因一般为存在快照或者watcher(此情况)
     - 解决
 

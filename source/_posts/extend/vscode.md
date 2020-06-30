@@ -177,8 +177,8 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 "vetur.format.defaultFormatter.js": "vscode-typescript",
 // 关闭vetur的eslint校验
 "vetur.validation.template": false,
-// 保存自动化
-"editor.formatOnSave": true,
+// 关闭保存时自动格式化
+"editor.formatOnSave": false,
 // 保存时自动fix(需要安装ESLint插件，且项目中有.eslintrc.js等文件；如果是自动保存，可文件右键-源代码操作-Fix)
 "editor.codeActionsOnSave": {
     "source.fixAll.tslint": true

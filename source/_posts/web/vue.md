@@ -1502,7 +1502,7 @@ npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-
     - babel插件会通过正则匹配的方式在编译阶段将书写在组件上属性进行分类
         - onXXX的均被认为是事件，nativeOnXXX是原生事件，domPropsXXX是Dom属性，class、staticClass、style、key、ref、refInFor、slot、scopedSlots这些被认为是顶级属性，至于组件声明的props，以及html属性attrs，不需要加前缀，插件会将其统一分类到attrs属性下，然后在运行阶段根据是否在props声明来决定属性归属
         - 不建议声明onXXX的属性
-    - 对于原生指令，只有v-show是支持的。v-if可用(&& 或 ?:)代替；v-for代替array.map；v-model使用事件触发；自定义指令使用...解构
+    - 对于原生指令，只有v-show是支持的。v-if可用(&& 或 ?:)代替；v-for可用array.map代替；v-model使用事件触发；自定义指令使用...解构
     - 对于事件
         - 使用 `on-[eventName]` 格式, 比如 on-on-change, on-click, on-camelCaseEvent
         - 使用 `on[eventName]` 格式，比如 onClick, onCamelCaseEvent。click-two 需要这样写 onClick-two，onClickTwo 是不对的
@@ -1568,7 +1568,7 @@ render() {
     )
 }
 
-// iview的部分组件，此时只能使用下划线，如：Button需要是i-button。更多见官网
+// iview的部分组件，此时只能使用下划线，如：Button需要是i-button，Tag=>tag。更多见官网
 {
     title: '计划日期',
     key: 'planTm',

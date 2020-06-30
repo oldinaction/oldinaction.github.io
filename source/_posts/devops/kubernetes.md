@@ -1109,10 +1109,11 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
         - `requests`
             - `storage` 定义大小，eg：2Gi
     - `storageClassName` 可自动根据PVC创建PV
-- `kubectl explain sc` 查看StorageClass(sc)配置
+- `kubectl explain sc` 查看StorageClass(sc)配置。使用参考[ceph.md#k8s使用ceph存储](/_posts/devops/ceph.md#k8s使用ceph存储)
     - `provisioner` 存储提供者，如`rook-ceph.rbd.csi.ceph.com`(基于rook-ceph的存储方案)
     - `parameters` 相关参数
     - `reclaimPolicy` 类似pv的persistentVolumeReclaimPolicy参数取值：Retain、Recycle、Delete(默认)，创建后无法修改
+    - `allowVolumeExpansion` 是否允许扩容(true允许)
 - PVC、PV、SC
     - 存储管理员提前创建不同存储服务(nfs、glusterfs等)，K8s集群管理根据不同的持久化卷类型配置存储卷映射(PV，集群公共资源)，用户基于存储卷创建定义PVC
     - `PV`状态：`Available`(可用) -> `Bound`(绑定) -> `Released`(释放) -> Failed(失败。该卷的自动回收失败)
@@ -1869,6 +1870,10 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 # 下载 ./cluster-sa-admin.conf 文件到宿主机，登录选择此文件即可
 ```
 
+## 运维案例
+
+- 扩容PVC，参考[ceph.md#镜像扩容缩容(rbd-images)](/_posts/devops/ceph.md#镜像扩容缩容(rbd-images))
+
 ## 常见问题
 
 - 日志查看
@@ -1907,7 +1912,7 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 
     Successfully assigned devops/mongodb-devops-7d556f9578-4gjmz to dev2-1
 
-    # Unable to mount volumes for pod "mysql-devops-5b7d797b9b-q5jmv_devops(110dbfea-067b-4477-a6d5-e723ba6d5adb)": timeout expired waiting for volumes to attach or mount for pod "devops"/"mysql-devops-5b7d797b9b-q5jmv". list of unmounted volumes=[data]. list of unattached volumes=[configurations migrations data default-token-bs8fb] # 报错日志
+    # Unable to mount volumes for pod "mysql-devops-5b7d797b9b-q5jmv_devops(110dbfea-067b-4477-a6d5-e723ba6d5adb)": timeout expired waiting for volumes to attach or mount for pod "devops"/"mysql-devops-5b7d797b9b-q5jmv". list of unmounted volumes=[data]. list of unattached volumes=[configurations migrations data default-token-bs8fb] # 报错日志，尝试删除所有历史副本集
 
     # MountVolume.WaitForAttach failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd image kube/kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 is still being used # 报错日志
 

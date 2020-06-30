@@ -588,8 +588,9 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
 - group by分组
     - `select deptno, avg(sal) from emp group by deptno;` 求每个部门的平均工资
     - `select deptno, job, max(sal) from emp group by deptno, job;` 按照多个字段进行分组
-    - 出现在select列表中的字段，如果没有出现在组函数里面则必须出现在group by子句里面。如：
-        - `select deptno, max(sal) from emp group by deptno;` 求每个部门的最高工资。此时是根据部门分组，所有每个部门都只有一条输出
+    - 出现在select列表中的字段，如果没有出现在组函数里面则必须出现在group by子句里面，**或者group by中有主表的id**
+        - 如：`select deptno, max(sal) from emp group by deptno;` 求每个部门的最高工资。此时是根据部门分组，所有每个部门都只有一条输出
+        - 如：`select w.work_no from d_work w left join d_work_tag wt on wt.work_id = w.id group by w.id`
 - having对group by 分组后的结果进行限制
     - `select deptno, avg(sal) from emp group by deptno having avg(sal) > 2000;` 求部门平均工资大于2000的部门
 

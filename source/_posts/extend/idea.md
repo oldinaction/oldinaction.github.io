@@ -96,7 +96,9 @@ ThisCrackLicenseId-{
 - `jrebel` java热部署. **修改代码后使用`Ctrl+Shif+F9`进行热部署**
     - jrebel破解可使用`myJRebel`
 - `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
-- `MybatisX` 可自动识别mybatis的mapper(实现)，Ctrl+Alt可实现相应跳转
+- `Free MyBatis plugin` 可自动识别mybatis的mapper(实现)
+    - `MybatisX` 类似插件，Ctrl+Alt可实现相应跳转
+- `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
 - `PlantUML integration` 基于PlantUML语法画UML图
 - `Maven Helper` 可显示冲突的maven依赖
     - 此插件依赖`Maven Intergration`，在安装后也要启用

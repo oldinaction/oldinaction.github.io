@@ -692,6 +692,8 @@ timeout(time: 600, unit: 'SECONDS') {
 - General
     - 勾选流水线效率、持久保存设置覆盖
     - 去勾选不允许并发构建
+        - 多个触发会创建多个agent来进行构建
+        - 一个触发构建执行完成后会自动删除agent/workspace/job中从git仓库获取的文件，像脚本中创建的不会自动删除
 - 构建触发器(其他配置参考上文)
     - 选择Filter branches by regex
         - Target Branch Regex如 `test|master|fixbug|test-.*` (只要目标分支为其中一个就会触发构建)
@@ -702,6 +704,7 @@ timeout(time: 600, unit: 'SECONDS') {
     - 脚本路径为`devops/Jenkinsfile`
     - 轻量级检出
 - git仓库需要存放`devops/Jenkinsfile`文件
+    - 此案例只需要定义一个jenkins job便可构建多个项目。缺点时获取的构建变更不准确
 
 ```groovy
 /**
@@ -888,7 +891,6 @@ pipeline {
                                             packageJsonDir = "./"
                                         }
                                         sh """
-                                        pwd
                                         cd ${packageJsonDir}
                                         npm install --registry=${G_NPM_REGISTRY}
                                         ${context.npmBuildCommand}
@@ -968,6 +970,9 @@ pipeline {
     - maven 仓库默认保存在宿主机的`/root/.m2`目录
 
 ### 插件管理
+
+- 修改插件镜像地址
+    - 插件管理 - 高级 - 升级站点URL设置成`https://updates.jenkins-zh.cn/update-center.json` - 提交 - 立即获取
 
 #### 默认安装插件
 
