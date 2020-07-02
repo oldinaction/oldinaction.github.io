@@ -171,40 +171,6 @@ lsmod |grep br_netfilter
 - `ctrl-r` 搜索命令行历史记录(重复按下 ctrl-r 会向后查找匹配项)
 - `ctrl-l` 可以清屏
 
-### 其他命令
-
-- `ls --help` 查看ls的命令说明(或`help ls`)
-- `man ls` 查看ls的详细命令说明
-    - 安装中文man手册
-        
-        ```bash
-        wget https://src.fedoraproject.org/repo/pkgs/man-pages-zh-CN/manpages-zh-1.5.2.tar.bz2/cab232c7bb49b214c2f7ee44f7f35900/manpages-zh-1.5.2.tar.bz2
-        
-        yum install bzip2
-        tar jxvf  manpages-zh-1.5.2.tar.bz2
-
-        cd manpages-zh-1.5.2
-        sudo ./configure --disable-zhtw #默认安装 
-        sudo make && sudo make install
-
-        vi ~/.bash_profile
-        alias cman='man -M /usr/local/share/man/zh_CN' # 为了不抵消man，创建cman命令
-        source ~/.bash_profile
-        ```
-- `\` 回车后可将命令分多行运行(后面不能带空格)
-- `clear` 清屏
-- `date` 显示当前时间; `cal` 显示日历
-- `history` 查看历史执行命令
-    - 默认记录1000条命令，编号越大表示越近执行。用户所键入的命令都会记录在用户家目录下的`.bash_history`文件中
-        - `!n` 再次执行此命令(n 是命令编号)
-        - `!$` 它用于指代上次键入的参数
-        - `!!` 可以指代上次键入的命令
-    - `history -c` 清除历史。其他人登录也将看不到，历史中不会显示清除的命令
-- `alias ll='ls -latr'` 定义一个命令别名(仅当前会话生效)，也可将别名保存在`~/.bashrc`(所有会话)
-- `last` 查看最近登录用户
-- `w` 查看计算机运行时间，当前登录用户信息
-- `wall <msg>` 通知所有人登录人一些信息
-
 ### shell脚本
 
 参考 [《Shell编程》http://blog.aezo.cn/2017/01/10/linux/shell/](/_posts/linux/shell.md)
@@ -242,152 +208,37 @@ lsmod |grep br_netfilter
     - `du -hsx * | sort -rh | head -10` 查看最大的10个文件
     - `du -sh /home/smalle | sort -h` 查看某个目录
     - `find . -type f -size +500M  -print0 | xargs -0 du -hm | sort -nr` 查看大于500M的前10个文件(查看大文件)
-- `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
 - `lsblk` **树形显示磁盘即分区**
     - `fdisk -l` 查看磁盘设备
     - `ll /dev | grep disk`查看磁盘设备
 - `findmnt` 查看所有挂载的目录
 - `dmesg -T | grep CD` 显示光盘信息，`-T`时间格式化。**其中dmesg为显示硬件信息，可用于硬件故障诊断**
-- 磁盘分区和挂载
-    - 参考《阿里云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘》 [^10]
-    - 一般阿里云服务器买的磁盘未进行格式化文件系统和挂载，`df -h`无法查询到磁盘设备，只能通过`fdisk -l`查看磁盘设备
-    - 阿里云`/dev/vda`表示系统盘，`/dev/vdb-z`表示数据盘，`dev/xvd?`表示非I/O优化实例。`/dev/vda1`/`/dev/vdb1`表示对应磁盘上的分区
-    - 无法卸载，提示`umount.nfs: /data: device is busy`时，可使用`fuser`(`yum install -y psmisc`安装)查看占用资源用户和进程信息(`fuser -m -v /data/`)，并退出相关进程
+- `alias ll='ls -latr'` 定义一个命令别名(仅当前会话生效)，也可将别名保存在`~/.bashrc`(所有会话)
 
-    ```bash
-    # **最好使用root用户进行操作，`fdisk -l`一般用户查询不到**
-    # 查看磁盘设备。包括系统盘和数据盘，如：Disk：/dev/vda ... Disk：/dev/vdb表示有两块磁盘
-    fdisk -l
-
-    # 查看/dev/vdb磁盘设备的分区情况(/dev/vdb1表示此磁盘的第一个分区)
-    fdisk -l /dev/vdb
-
-    # 1.进行磁盘分区
-    fdisk /dev/vdb
-    # 输入`p`：查看数据盘的分区情况(输入m获取帮助)
-    # 再次输入`n`：创建一个新分区
-    # 分区类型选择（p主分区, e扩展分区），新磁盘第一次分区可选择主分区，输入p; 分区号码从1-4，可以输入最小可用分区号
-    # 第一个扇区一般都使用默认的，直接回车即可；最后一个扇区大小根据你自己需要指定，但是一定要在给定范围内，这里是2048-20971519(10G的磁盘，=1024*1024*2*10G，此处需要多乘以2)，如果整个磁盘就分一个分区则继续回车(默认即为最大)，如根需要此分区设置大小为200M，则输入`+200M`（单位可为K/M/G/T/P）
-    # 再次输入`p`查看将要到达的分区情况
-    # 确认后输入`w`写入分区表，并在写入后退出；输入`q`放弃分区并退出
-    # 到这里分区就完成了，但是新的分区还是不能使用的，要对新分区进行格式化，然后将它挂载到某个可访问目录下才能进行操作
-        # 如果w后提示 WARNING: Re-reading the partition table failed with error 16: Device or resource busy. The kernel still uses the old table. The new table will be used at the next reboot or after you run partprobe(8) or kpartx(8)
-        # 为了不reboot就能生效，强制内核重新读取分区表，执行命令`partprobe`后继续后续命令
-        # partprobe
-
-    # 查看分区(未挂载的分区也会显示)
-    cat /proc/partitions
-
-    # 2.为此分区创建一个ext4文件系统，此时会格式化磁盘. 如果需要在 Linux、Windows 和 Mac 系统之间共享文件，可以使用 mkfs.vfat 创建 VFAT 文件系统
-    mkfs.ext4 /dev/vdb1 # centos7默认xfs文件格式，此时可使用 mkfs.xfs /dev/vdb1
-
-    # 如果使用LVM功能，则需先执行LVM相关命令创建LV分区后再挂载
-    # 3.挂载分区到/home目录(需要确保此目录存在，并不会影响父目录的挂载。如此时只会改变 /home，不会影响 /)，**如果/home目录之前有数据会被清除，建议先备份**
-    mount /dev/vdb1 /home
-
-    # 4.备份 /etc/fstab（建议）
-    cp /etc/fstab /etc/fstab.bak
-    # 向 /etc/fstab 写入新分区信息(注意目录和上面对应)，防止下次开机挂载丢失（不执行此步骤只是临时挂载到相应目录，下次开机则会丢失挂载）
-    echo /dev/vdb1 /home ext4 defaults 0 0 >> /etc/fstab
-
-    # 查看目前磁盘空间和使用情(只会显示成功挂载的分区)
-    df -h
-
-    # 重新挂载了磁盘需要重启
-    # reboot
-    ```
-- LVM使用(centos安装时如果使用分区类型为LVM则会出现时/dev/mapper/centos-root等)
-    - LVM使用参考 https://blog.51cto.com/13438667/2084924
-
-        ![lvm](/data/images/lang/lvm.png)
-        
-        ```bash
-        # **先fdisk创建分区/dev/vdb1和/dev/vdb2，无需格式化(略)**
-        # pvcreate命令在新建的分区上创建PV
-        pvcreate /dev/vdb1 /dev/vdb2
-        # 查看pv详细信息
-        pvs/pvdisplay
-        # vgcreate命令创建一个VG组，并将创建的两个PV加入VG组
-        vgcreate vg1 /dev/vdb1 /dev/vdb2 # 组名vg1
-        # 查看卷组信息
-        vgs/vgdisplay
-        # 在vg1卷组下创建一个逻辑卷lv1，对应路径为/dev/vg1/lv1
-        # 此时lv1可能会同时使用/dev/vdb1 /dev/vdb2这两个PV，这也是LVM一个PV损毁会导致整个卷组数据损毁
-        # **可通过VG来分区(如取home、data两个卷组分别挂载到/home、/data；初始化时可初始化名为/dev/home/main的LV)，之后对该分区扩容只需往相应VG中加PV即可**
-        lvcreate -L 199G -n lv1 vg1 # 如果200G的卷组，此时无法正好创建出一个200G的LV，需稍微少一点。最终显示成 /dev/vg1/lv1
-        # 查看逻辑卷详细
-        lvs/lvsdisplay
-        # 格式化卷组
-        mkfs.xfs /dev/vg1/lv1
-        # 挂载
-        mount /dev/vg1/lv1 /home/data # df -h显示/dev/mapper/vg1-lv1
-        # 写入fstab
-        echo /dev/vg1/lv1 /home/data xfs defaults 0 0 >> /etc/fstab
-        ```
-    - 调整同VG下不同LV的大小，如调整home和root容量大小如下
-
-        ```bash
-        # 如果centos卷组有额外的空间，如加入了物理卷，则无需减少home分区容量
-        cp -r /home/ homebak/ # 备份/home(建议打成tar)
-        umount /home # 卸载​ /home
-        # 删除某LVM分区(需要先备份数据，并取消挂载)
-        lvremove /dev/mapper/centos-home
-
-        ### =========扩展分区
-        # 只要/dev/mapper/centos-root(LV)对应的卷组(VG)有额外的空间即可扩展
-        lvextend -L +20G /dev/mapper/centos-root # 扩展/root所在的lv
-        # resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
-        xfs_growfs /dev/mapper/centos-root # 激活修改的配置
-        ### =========扩展分区
-
-        # 恢复原来的home分区
-        vgdisplay # 其中的Free PE表示LVM分区剩余的可用磁盘
-        lvcreate -L 100G -n home centos # 重新创建home lv 分区的大小
-        mkfs.xfs /dev/centos/home # 创建文件系统
-        mount /dev/centos/home /home # 挂载 home
-        # 使永久有效，写入 etc/fstab 见上文
-        ```
-    - 调整磁盘大小(慎用)
-
-        ```bash
-        ### vg
-        ## 扩展vg
-        pvcreate /dev/sdc1 # 将新的磁盘分区创建为pv
-        vgextend centos /dev/sdc1 # 将pv添加大vg组
-        ## 缩小vg
-        vgreduce centos /dev/sdc1 # 将一个PV从指定卷组中移除
-        pvremove /dev/sdc1 # 移除对应pv
-
-        ### pv
-        ## 重设物理分区为120g。调整PV大小(进而缩小了VG的大小)
-        pvresize --setphysicalvolumesize 120g /dev/sdb1
-
-        ### lv (xfs分区是不支持减小操作的)
-        ## 直接调整大小
-        lvresize -L 500M -r /dev/mapper/centos-home # -r 相当于 resize2fs
-        ## 缩小lv大小到10g
-        umount /dev/mapper/centos-home
-        # e2fsck -f /dev/mapper/centos-home
-        resize2fs /dev/mapper/centos-home 10G # 缩小文件系统
-        lvreduce -L -10G /dev/mapper/centos-home # 缩小lv
-        ## 扩展lv
-        lvextend -L +2G /dev/mapper/centos-home
-        # resize2fs /dev/mapper/centos-home # 更新文件系统。resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
-        xfs_growfs /dev/mapper/centos-home
-        ```
-    - 重命名VG、LV(无需umount和备份，数据也不会丢失)
-        
-        ```bash
-        # 查看并记录基本信息。需要将/dev/hdd/hdd1改成/dev/vdisk/main
-        vgs/lvs
-        vgrename hdd vdisk
-        lvrename /dev/vdisk/hdd1 main # 修改lv，注意此时vg为新的
-        vi /etc/fstab # 修改之前的挂载信息
-        ```
-    - 删除lvm磁盘挂载，直接删除/etc/fstab中对应条目，lvm相关配置会自动去掉
 
 ### 文件
 
+- `touch <fileName>` 新建文件(linux下文件后缀名无实际意义)
+- `vi <fileName>` 编辑文件
+    - `vim <fileName>` 编辑文件，有的可能默认没有安装vim
+- `> <file>` 清空文件内容
+- `rm <file>` 删除文件
+    - `rm -rf` 强制删除某个文件或文件夹(recursion递归、force强制)
+    - 提示 `rm: remove regular file 'test'?` 时，在后面输入 `yes或y` 回车
+    - `rm -f *2019-04*` 正则删除，可删除如access-2019-04-01.log、error-2019-04-02.log
+- `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
+    - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
+    - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下(此处/home不能写成/home/)
+        - `scp -r /home/smalle/dir root@192.168.1.1:/home` 复制文件夹到远程机器
+- `mv a.txt /home` 移动a.txt到/home目录
+    - `mv a.txt b.txt` 将a.txt重命名为b.txt
+    - `mv a.txt /home/b.txt` 移动并重名名
+- `ln my.txt my_link` 创建硬链接(在当前目录为my.txt创建一个my_link的文件并将这两个文件关联起来)
+    - `ln -s /home/dir /home/my_link_soft` 对某一目录所有文件创建软链接(相当于快捷方式)，无需提前创建目录`/home/my_link_soft`(如果/home/dir存则则软连接显示绿色，如果不存在，软连接显示红色)
+        - `rm -f /home/my_link_soft` **删除软链接**(源目录的文件不会被删除)
+        - `rm -f /home/my_link_soft/` **删除软链接下的文件**(源目录的文件全部被删除；软链接仍然存在)
+    - 修改原文件，硬链接对应的文件也会改变；删除原文件，硬链接对应的文件不会删除，软连接对应的文件会被删除
+    - 目录无法创建硬链接，可以创建软链接
 - `cat <fileName>` 输出文件内容
     - `more` 分页显示文件内容(按空格分页)
         - 向后翻一屏：`SPACE`；向前翻一屏：`b`；向后翻一行：`ENTER`；向前翻一行：`k`
@@ -398,26 +249,16 @@ lsmod |grep br_netfilter
         - `tail -f /var/log/messages` -f 表示它将会以一定的时间实时追踪该档的所有更新（查看服务启动日志）
     - `cat -n <fileName>` **输出文件内容，并显示行号**
     - `cat > fileName` 创建文件并书写内容，此时会进入书写模式，Ctrl+C保存书写内容
-- `pwd` 查看当前目录完整路径
-- `sudo find / -name nginx.conf` 全局查询文件位置(查看`nginx.conf`文件所在位置)
-    - `find ./ -mtime +30 -name "*.gz" | xargs ls -lh` 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
-    - `find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf` 删除30天之前的gz压缩文件
 - `whereis <binName>` 查询可执行文件位置
     - `which <exeName>` 查询可执行文件位置 (在PATH路径中寻找)
     - `echo $PATH` 打印环境变量
 - `stat <file>` **查看文件的详细信息**
 - `file <fileName>` 查看文件属性
+- `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
 - `wc <file>` 统计指定文本文件的行数、字数、字节数 
     - `wc -l <file>` 查看行数
-- `ln my.txt my_link` 创建硬链接(在当前目录为my.txt创建一个my_link的文件并将这两个文件关联起来)
-    - `ln -s /home/dir /home/my_link_soft` 对某一目录所有文件创建软链接(相当于快捷方式)，无需提前创建目录`/home/my_link_soft`(如果/home/dir存则则软连接显示绿色，如果不存在，软连接显示红色)
-        - `rm -f /home/my_link_soft` **删除软链接**(源目录的文件不会被删除)
-        - `rm -f /home/my_link_soft/` **删除软链接下的文件**(源目录的文件全部被删除；软链接仍然存在)
-    - 修改原文件，硬链接对应的文件也会改变；删除原文件，硬链接对应的文件不会删除，软连接对应的文件会被删除
-    - 目录无法创建硬链接，可以创建软链接
-- lrzsz上传下载文件，小型文件可通过此工具完成。需要安装`yum install lrzsz`
-    - `rz` 跳出窗口进行上传
-    - `sz 文件名` 下载文件
+- `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
+    - `lsof -op $$` 查看当前进程的文件描述符
 - `ls` 列举文件 [^3]
     - `ll` 列举文件详细
         - **`ll test*`**/`ls *.txt` 模糊查询文件
@@ -436,22 +277,12 @@ lsmod |grep br_netfilter
     > - 接下来的字符中,以三个为一组,且均为『rwx』 的三个参数的组合< [ r ]代表可读(read)、[ w ]代表可写(write)、[ x ]代表可执行(execute) 要注意的是,这三个权限的位置不会改变,如果没有权限,就会出现减号[ - ]而已>
     >   - 第一组为『文件拥有者的权限』、第二组为『同群组的权限』、第三组为『其他非本群组的权限』
     >   - 当 s 标志出现在文件拥有者的 x 权限上时即为特殊权限。特殊权限如 SUID, SGID, SBIT
-- `touch <fileName>` 新建文件(linux下文件后缀名无实际意义)
-- `vi <fileName>` 编辑文件
-    - `vim <fileName>` 编辑文件，有的可能默认没有安装vim
-- `> <file>` 清空文件内容
-- `rm <file>` 删除文件
-    - `rm -rf` 强制删除某个文件或文件夹(recursion递归、force强制)
-    - 提示 `rm: remove regular file 'test'?` 时，在后面输入 `yes或y` 回车
-    - `rm -f *2019-04*` 正则删除，可删除如access-2019-04-01.log、error-2019-04-02.log
-- `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
-    - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
-    - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下(此处/home不能写成/home/)
-        - `scp -r /home/smalle/dir root@192.168.1.1:/home` 复制文件夹到远程机器
-- `mv a.txt /home` 移动a.txt到/home目录
-    - `mv a.txt b.txt` 将a.txt重命名为b.txt
-    - `mv a.txt /home/b.txt` 移动并重名名
-- `tree mydir` 树形展示目录
+- `sudo find / -name nginx.conf` 全局查询文件位置(查看`nginx.conf`文件所在位置)
+    - `find ./ -mtime +30 -name "*.gz" | xargs ls -lh` 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
+    - `find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf` 删除30天之前的gz压缩文件
+- lrzsz上传下载文件，小型文件可通过此工具完成。需要安装`yum install lrzsz`
+    - `rz` 跳出窗口进行上传
+    - `sz 文件名` 下载文件
 
 ### 文件夹/目录
 
@@ -465,6 +296,151 @@ lsmod |grep br_netfilter
     - `cd ..` 返回上一级目录
     - `cd /usr/local/xxx` 返回某一级目录
     - `cd ~`或`cd回车` 返回家目录
+- `pwd` 查看当前目录完整路径
+    - `pwdx $$` 查看当前进程启动文件所在目录
+- `tree mydir` 树形展示目录
+
+### 磁盘分区和挂载
+
+- 参考《阿里云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘》 [^10]
+- 一般阿里云服务器买的磁盘未进行格式化文件系统和挂载，`df -h`无法查询到磁盘设备，只能通过`fdisk -l`查看磁盘设备
+- 阿里云`/dev/vda`表示系统盘，`/dev/vdb-z`表示数据盘，`dev/xvd?`表示非I/O优化实例。`/dev/vda1`/`/dev/vdb1`表示对应磁盘上的分区
+- 无法卸载，提示`umount.nfs: /data: device is busy`时，可使用`fuser`(`yum install -y psmisc`安装)查看占用资源用户和进程信息(`fuser -m -v /data/`)，并退出相关进程
+
+```bash
+# **最好使用root用户进行操作，`fdisk -l`一般用户查询不到**
+# 查看磁盘设备。包括系统盘和数据盘，如：Disk：/dev/vda ... Disk：/dev/vdb表示有两块磁盘
+fdisk -l
+
+# 查看/dev/vdb磁盘设备的分区情况(/dev/vdb1表示此磁盘的第一个分区)
+fdisk -l /dev/vdb
+
+# 1.进行磁盘分区
+fdisk /dev/vdb
+# 输入`p`：查看数据盘的分区情况(输入m获取帮助)
+# 再次输入`n`：创建一个新分区
+# 分区类型选择（p主分区, e扩展分区），新磁盘第一次分区可选择主分区，输入p; 分区号码从1-4，可以输入最小可用分区号
+# 第一个扇区一般都使用默认的，直接回车即可；最后一个扇区大小根据你自己需要指定，但是一定要在给定范围内，这里是2048-20971519(10G的磁盘，=1024*1024*2*10G，此处需要多乘以2)，如果整个磁盘就分一个分区则继续回车(默认即为最大)，如根需要此分区设置大小为200M，则输入`+200M`（单位可为K/M/G/T/P）
+# 再次输入`p`查看将要到达的分区情况
+# 确认后输入`w`写入分区表，并在写入后退出；输入`q`放弃分区并退出
+# 到这里分区就完成了，但是新的分区还是不能使用的，要对新分区进行格式化，然后将它挂载到某个可访问目录下才能进行操作
+    # 如果w后提示 WARNING: Re-reading the partition table failed with error 16: Device or resource busy. The kernel still uses the old table. The new table will be used at the next reboot or after you run partprobe(8) or kpartx(8)
+    # 为了不reboot就能生效，强制内核重新读取分区表，执行命令`partprobe`后继续后续命令
+    # partprobe
+
+# 查看分区(未挂载的分区也会显示)
+cat /proc/partitions
+
+# 2.为此分区创建一个ext4文件系统，此时会格式化磁盘. 如果需要在 Linux、Windows 和 Mac 系统之间共享文件，可以使用 mkfs.vfat 创建 VFAT 文件系统
+mkfs.ext4 /dev/vdb1 # centos7默认xfs文件格式，此时可使用 mkfs.xfs /dev/vdb1
+
+# 如果使用LVM功能，则需先执行LVM相关命令创建LV分区后再挂载
+# 3.挂载分区到/home目录(需要确保此目录存在，并不会影响父目录的挂载。如此时只会改变 /home，不会影响 /)，**如果/home目录之前有数据会被清除，建议先备份**
+mount /dev/vdb1 /home
+
+# 4.备份 /etc/fstab（建议）
+cp /etc/fstab /etc/fstab.bak
+# 向 /etc/fstab 写入新分区信息(注意目录和上面对应)，防止下次开机挂载丢失（不执行此步骤只是临时挂载到相应目录，下次开机则会丢失挂载）
+echo /dev/vdb1 /home ext4 defaults 0 0 >> /etc/fstab
+
+# 查看目前磁盘空间和使用情(只会显示成功挂载的分区)
+df -h
+
+# 重新挂载了磁盘需要重启
+# reboot
+```
+
+### LVM使用
+
+- centos安装时如果使用分区类型为LVM则会出现时/dev/mapper/centos-root等
+- LVM使用参考 https://blog.51cto.com/13438667/2084924
+
+    ![lvm](/data/images/lang/lvm.png)
+    
+    ```bash
+    # **先fdisk创建分区/dev/vdb1和/dev/vdb2，无需格式化(略)**
+    # pvcreate命令在新建的分区上创建PV
+    pvcreate /dev/vdb1 /dev/vdb2
+    # 查看pv详细信息
+    pvs/pvdisplay
+    # vgcreate命令创建一个VG组，并将创建的两个PV加入VG组
+    vgcreate vg1 /dev/vdb1 /dev/vdb2 # 组名vg1
+    # 查看卷组信息
+    vgs/vgdisplay
+    # 在vg1卷组下创建一个逻辑卷lv1，对应路径为/dev/vg1/lv1
+    # 此时lv1可能会同时使用/dev/vdb1 /dev/vdb2这两个PV，这也是LVM一个PV损毁会导致整个卷组数据损毁
+    # **可通过VG来分区(如取home、data两个卷组分别挂载到/home、/data；初始化时可初始化名为/dev/home/main的LV)，之后对该分区扩容只需往相应VG中加PV即可**
+    lvcreate -L 199G -n lv1 vg1 # 如果200G的卷组，此时无法正好创建出一个200G的LV，需稍微少一点。最终显示成 /dev/vg1/lv1
+    # 查看逻辑卷详细
+    lvs/lvsdisplay
+    # 格式化卷组
+    mkfs.xfs /dev/vg1/lv1
+    # 挂载
+    mount /dev/vg1/lv1 /home/data # df -h显示/dev/mapper/vg1-lv1
+    # 写入fstab
+    echo /dev/vg1/lv1 /home/data xfs defaults 0 0 >> /etc/fstab
+    ```
+- 调整同VG下不同LV的大小，如调整home和root容量大小如下
+
+    ```bash
+    # 如果centos卷组有额外的空间，如加入了物理卷，则无需减少home分区容量
+    cp -r /home/ homebak/ # 备份/home(建议打成tar)
+    umount /home # 卸载​ /home
+    # 删除某LVM分区(需要先备份数据，并取消挂载)
+    lvremove /dev/mapper/centos-home
+
+    ### =========扩展分区
+    # 只要/dev/mapper/centos-root(LV)对应的卷组(VG)有额外的空间即可扩展
+    lvextend -L +20G /dev/mapper/centos-root # 扩展/root所在的lv
+    # resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
+    xfs_growfs /dev/mapper/centos-root # 激活修改的配置
+    ### =========扩展分区
+
+    # 恢复原来的home分区
+    vgdisplay # 其中的Free PE表示LVM分区剩余的可用磁盘
+    lvcreate -L 100G -n home centos # 重新创建home lv 分区的大小
+    mkfs.xfs /dev/centos/home # 创建文件系统
+    mount /dev/centos/home /home # 挂载 home
+    # 使永久有效，写入 etc/fstab 见上文
+    ```
+- 调整磁盘大小(慎用)
+
+    ```bash
+    ### vg
+    ## 扩展vg
+    pvcreate /dev/sdc1 # 将新的磁盘分区创建为pv
+    vgextend centos /dev/sdc1 # 将pv添加大vg组
+    ## 缩小vg
+    vgreduce centos /dev/sdc1 # 将一个PV从指定卷组中移除
+    pvremove /dev/sdc1 # 移除对应pv
+
+    ### pv
+    ## 重设物理分区为120g。调整PV大小(进而缩小了VG的大小)
+    pvresize --setphysicalvolumesize 120g /dev/sdb1
+
+    ### lv (xfs分区是不支持减小操作的)
+    ## 直接调整大小
+    lvresize -L 500M -r /dev/mapper/centos-home # -r 相当于 resize2fs
+    ## 缩小lv大小到10g
+    umount /dev/mapper/centos-home
+    # e2fsck -f /dev/mapper/centos-home
+    resize2fs /dev/mapper/centos-home 10G # 缩小文件系统
+    lvreduce -L -10G /dev/mapper/centos-home # 缩小lv
+    ## 扩展lv
+    lvextend -L +2G /dev/mapper/centos-home
+    # resize2fs /dev/mapper/centos-home # 更新文件系统。resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
+    xfs_growfs /dev/mapper/centos-home
+    ```
+- 重命名VG、LV(无需umount和备份，数据也不会丢失)
+    
+    ```bash
+    # 查看并记录基本信息。需要将/dev/hdd/hdd1改成/dev/vdisk/main
+    vgs/lvs
+    vgrename hdd vdisk
+    lvrename /dev/vdisk/hdd1 main # 修改lv，注意此时vg为新的
+    vi /etc/fstab # 修改之前的挂载信息
+    ```
+- 删除lvm磁盘挂载，直接删除/etc/fstab中对应条目，lvm相关配置会自动去掉
 
 ### 压缩包(推荐tar) [^1]
 
@@ -733,7 +709,14 @@ lsmod |grep br_netfilter
 
 ### 系统资源权限
 
-- ulimit命令：https://man.linuxde.net/ulimit
+- `ulimit` 用来限制系统用户对shell资源的访问
+    - `ulimit -a` 查看对单一用户资源限制情况
+        - 如`open files`为能打开的文件(包括网络连接产生的文件描述符)个数限制
+        - -H(hard) 设定资源的硬性限制，即不允许超过这个限制
+        - -S(soft) 设定资源的弹性限制，可在资源不足的情况下修改此设置，但是不能超过hard
+    - `ulimit -SHn 50000` 设定打开文件个数上限为50000(一般1G内存可以打开10W个文件，可通过`cat /proc/sys/fs/file-max`查看硬件最大能打开的文件)
+        - 这个设置只是针对普通用户，root用户可能会超过这个设置
+    - `vi /etc/security/limits.conf` 也可通过修改配置文件设置资源限制
 - Linux core文件：https://blog.csdn.net/arau_sh/article/details/8182744
 
 ## ssh
@@ -882,6 +865,485 @@ lsmod |grep br_netfilter
     - `-` 表示一个指定的范围
     - `,` 表示附加一个可能值
     - `/` 符号前表示开始时间，符号后表示每次递增的值
+
+## linux命令
+
+- [man-pages](https://man7.org/linux/man-pages/dir_all_alphabetic.html)、[Linux命令大全](https://man.linuxde.net/)
+- linux三剑客grep、sed、awk语法
+
+### grep过滤器
+
+- 语法
+
+    ```bash
+    grep [-acinv] [--color=auto] '搜寻字符串' filename
+    # filename不能缺失
+
+    # 选项与参数：
+    # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
+    # -R/-r 递归查询子目录
+    # -i 忽略大小写的不同，所以大小写视为相同
+    # -l 显示文件名
+    # -E 以 egrep 模式匹配
+    # -P 应用正则表达式
+    # -n 顺便输出行号
+    # -c 计算找到 '搜寻字符串' 的次数
+    # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
+    # -a 将 binary 文件以 text 文件的方式搜寻数据
+    ```
+- [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
+- 常见用法
+
+    ```bash
+    grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
+    grep 'search content' *.sql # 查找已`.sql`结尾的文件
+    grep -R 'test' /data/* # 在/data目录及其字母查询
+    grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
+
+    grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
+    grep -A 5 'parttern' filename # 打印匹配行的后5行
+    grep -B 5 'parttern' filename # 打印匹配行的前5行
+
+    grep -E 'A|B|C.*' filename # 打印匹配 A 或 B 或 C* 的数据
+    echo office365 | grep -P '\d+' -o # 返回 365
+    grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
+    grep -v 'A' filename # 打印不包含 A 的数据
+
+    # 根据日志查询最近执行命令时间(结合tail -1)
+    grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
+    ```
+- grep结果单独处理
+
+    ```bash
+    # 方式一
+    ps -ewo pid,etime,cmd | grep ofbiz.jar | grep -v grep | while read -r pid etime cmd ; do echo "===>$pid $cmd $etime"; done;
+
+    # 方式二
+    while read -r proc; do
+        echo '====>' $proc
+    done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
+    ```
+
+### sed行编辑器
+
+- 文本处理，默认不编辑原文件，仅对模式空间中的数据做处理；而后处理结束后将模式空间打印至屏幕
+- 语法 `sed [options] '内部命令表达式' file ...`
+- 参数
+    - `-n` 静默模式，不再默认显示模式空间中的内容
+	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
+	- `-e script -e script` 可以同时执行多个脚本
+	- `-f`：如`sed -f /path/to/scripts file`
+	- `-r` 表示使用扩展正则表达式
+- 内部命令
+    - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
+	- **`s/pattern/string/修饰符`** 查找并替换
+        - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
+        - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
+        - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
+	- `d` 删除符合条件的行
+	- `p` 显示符合条件的行
+	- `a \string`: 在指定的行后面追加新行，内容为string
+		- `\n` 可以用于换行
+	- `i \string`: 在指定的行前面添加新行，内容为string
+	- `r <file>` 将指定的文件的内容添加至符合条件的行处
+	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
+	- `&` 引用模式匹配整个串
+- 示例
+
+    ```bash
+    # 删除/etc/grub.conf文件中行首的空白符
+    sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
+    # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
+    sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
+    # 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
+    sed '/^$/d' /etc/inittab
+    # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
+    sed -i -e '/^$/d' /home/smalle/test.txt
+    # 修改当前目录极其子目录下所有文件
+    sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
+
+    # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
+    echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
+    ```
+    - [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
+
+### awk文本分析工具
+
+- 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格/tab为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
+- 语法 
+
+    ```bash
+    awk '[BEGIN {}] {pattern + action} [END {}]' {filenames}
+    # pattern 表示AWK在文件中查找的内容。pattern就是要表示的正则表达式，用斜杠(`'/xxx/'`)括起来
+    # action 是在找到匹配内容时所执行的一系列命令(awk主命令)
+    # 花括号(`{}`)不需要在程序中始终出现，但它们用于根据特定的模式对一系列指令进行分组
+
+    ## awk --help
+    Usage: awk [POSIX or GNU style options] -f progfile [--] file ...
+    Usage: awk [POSIX or GNU style options] [--] 'program' file ...
+    POSIX options:		GNU long options: (standard)
+    -f progfile		--file=progfile         # 指定程序文件
+    -F fs			--field-separator=fs    # 指定域分割符(可使用正则，如 `-F '[\t \\\\]'`)
+    -v var=val		--assign=var=val
+    # ...
+    ```
+- awk中同时提供了`print`和`printf`两种打印输出的函数
+    - `print` 参数可以是变量、数值或者字符串。**字符串必须用双引号引用，参数用逗号分隔。**如果没有逗号，参数就串联在一起而无法区分。
+    - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时
+- 案例
+
+```bash
+# 显示最近登录的5个帐号。读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
+last -n 5 | awk '{print $1}'
+last -n 5 | awk '{print $1,$2}' # print多个变量用逗号分割，显示默认带有空格
+
+# 只是显示/etc/passwd中的账户。`-F`指定域分隔符为`:`，默认是空格/tab
+cat /etc/passwd | awk -F ':' '{print $1}'
+
+# 查找root开头的用户记录
+awk -F : '/^root/' /etc/passwd
+```
+
+#### 变量
+
+- `$0`变量是指整条记录，`$1`表示当前行的第一个域，`$2`表示当前行的第二个域，以此类推
+- awk内置变量：awk有许多内置变量用来设置环境信息，这些变量可以被改变，下面给出了最常用的一些变量
+    - `ARGC` 命令行参数个数
+    - `ARGV` 命令行参数排列
+    - `ENVIRON` 支持队列中系统环境变量的使用
+    - `FILENAME` awk浏览的文件名
+    - `FNR` 浏览文件的记录数
+    - `FS` 设置输入域分隔符，等价于命令行-F选项
+    - `NF` 浏览记录的域的个数
+    - `NR` 已读的记录数
+    - `OFS` 输出域分隔符
+    - `ORS` 输出记录分隔符(`\n`)
+    - `RS` 控制记录分隔符
+- 自定义变量
+    - 下面统计/etc/passwd的账户人数
+
+        ```bash
+        awk '{count++;print $0;} END {print "user count is ", count}' /etc/passwd
+        # 打印如下
+        # root:x:0:0:root:/root:/bin/bash
+        # ......
+        # user count is 40
+        ```
+        - count是自定义变量。之前的action{}里都是只有一个print，其实print只是一个语句，而action{}可以有多个语句，以;号隔开。这里没有初始化count，虽然默认是0，但是妥当的做法还是初始化为0
+- awk与shell之间的变量传递方法
+    - awk中使用shell中的变量
+
+        ```bash
+        # 获取普通变量(第一个双引号为了转义单引号，第二个双引号为了转义变量中的空格)
+        var="hello world" && awk 'BEGIN{print "'"$var"'"}'
+        # 把系统变量var传递给了awk变量awk_var
+        var="hello world" && awk -v awk_var="$var" 'BEGIN {print awk_var}'
+
+        # 获取环境变量(ENVIRON)
+        var="hello world" && export var && awk 'BEGIN{print ENVIRON["var"]}'
+        ```
+    - awk向shell变量传递值
+
+        ```bash
+        eval $(awk 'BEGIN{print "var1='"'str 1'"';var2='"'str 2'"'"}') && echo "var1=$var1 ----- var2=$var2" # var1=str1 ----- var2=str2
+        # 读取temp_file中数据设置到变量中(temp_file中输入`hello world:test`，如果文件中有多行，则最后一行会覆盖原来的赋值)
+        eval $(awk '{printf("var3=%s; var4=%s;",$1,$2)}' temp_file) && echo "var3=$var3 ----- var4=$var4" # var3=hello ----- var4=world:test
+        ```
+
+#### BEGIN/END
+
+- 提供`BEGIN/END`语句(必须大写)
+    - BEGIN和END，这两者都可用于pattern中，**提供BEGIN的作用是扫描输入之前赋予程序初始状态，END是扫描输入结束且在程序结束之后执行一些扫尾工作**。任何在BEGIN之后列出的操作(紧接BEGIN后的{}内)将在awk开始扫描输入之前执行，而END之后列出的操作将在扫描完全部的输入之后执行。通常使用BEGIN来显示变量和预置(初始化)变量，使用END来输出最终结果。
+    - 统计某个文件夹下的文件占用的字节数，过滤4096大小的文件(一般都是文件夹):
+
+        ```bash
+        ls -l | awk 'BEGIN {size=0;print "[start]size is", size} {if($5!=4096){size=size+$5;}} END {print "[end]size is", size/1024/1024, "M"}'
+        # 打印如下
+        # [start]size is 0
+        # [end]size is 30038.8 M
+        ```
+- 支持if判断、循环等语句
+
+### date
+
+```bash
+date -d 'yesterday' # 获取昨天。或 date -d 'last day' 
+date -d 'tomorrow' # 获取明天。或 date -d 'next day' 
+date -d 'last month' # 获取上个月 
+date -d 'next month' # 获取下个月 
+date -d 'last year' # 获取上一年 
+date -d 'next year' # 获取下一年 
+date -d '1 minute ago' # 获取1分钟前
+date -d '3 year ago' # 三年前 
+date -d '-5 year ago' # 五年后 
+date -d '-2 day ago' # 两天后 
+date -d '1 month ago' # 一个月前 
+
+time=$(date "+%Y-%m-%d %H:%M:%S")
+```
+
+### find
+
+- 语法
+
+```bash
+# default path is the current directory; default expression is -print
+# expression由options、tests、actions组成
+find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...] [expression]
+
+## expression#options
+-mindepth n # 目录进入最小深度
+    # eg: -mindepth 1 # 意味着处理所有的文件，除了命令行参数指定的目录中的文件
+-maxdepth n # 目录进入最大深度
+    # eg: -maxdepth 0 # 只处理当前目录的文件(.)
+
+## expression#tests
+-name <patten> # 基本的文件名与shell模式pattern相匹配。**正则建议使用""或''包裹**
+    # eg: -name "*.log" # `.log`开头的文件。如果不用双引号包裹，*可能展开为当前目录下所有的文件；或者使用\转义
+-type <c> # 文件类型，c取值
+    f # 普通文件(regular file)
+    d # 目录(directory)
+    s # socket
+
+-atime <n> # 针对文件的访问时间，判断 "其访问时间" < "当前时间-(n*24小时)" 是否为真。对应stat命令获取的 Access 时间，读取文件或者执行文件时更改的
+-mtime <n> # 针对文件的修改时间(天)。对应stat命令获取的 Modify 时间，是在写入文件时随文件内容的更改而更改的
+    # eg: -mtime +30 # 30天之前的修改过的文件
+    # eg：-mtime -30 # 过去30天之内修改过的文件
+-ctime <n> # 针对文件的改变时间(天)。对应stat命令获取的 Change 时间，是在写入文件，更改所有者，权限或链接设置是随inode(存放文件基本信息)内容的更改而更改的
+-amin <n> # 类似-atime，只不过此参数是基于分钟计算
+-mmin <n>
+-cmin <n>
+-newerXY <reference> # 比较文件的时间戳，其中XY的取值为：a(访问时间)、c、m、t(绝对时间)、B(文件引用的出现时间)
+    # find . -type f -newermt '2020-01-17 13:40' ! -newermt '2020-01-17 13:45' -exec cp {} ./bak \; # 将当前目录下2020-01-17 13:40到2020-01-17 13:45时间段内修改或生成的文件拷贝到bak目录下。同理：-newerat、-newerct
+
+## expression#actions
+-exec command # 执行命令。命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\`来escape，或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
+    # eg: -exec cp {} {}.bak \; # 复制查询到的文件
+```
+- 示例
+
+```bash
+sudo find / -name nginx.conf # 全局查询文件位置(查看`nginx.conf`文件所在位置)
+find /home/smalle/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/smalle/s_*/in/* -type f
+find path_A -name '*AAA*' -exec mv -t path_B {} + # 批量移动，下同
+find path_A -name "*AAA*" -print0 | xargs -0 -I {} mv {} path_B
+find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数
+
+find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
+find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644
+
+find -name '*.TXT' -type f -mtime +15 -exec mv {} ./bak \; # 将15天前修改过的文件移动到备份目录
+find . -name '*.log' -newermt "$(($(date +%Y)-1))-01-01" ! -newermt "$(($(date +%Y)-1))-12-31" | xargs -i mv {} ./backup/backup_log_$(($(date +%Y)-1)) # 将当前目录下的去年修改过的文件移动到备份目录
+
+find -type f | xargs # xargs会在一行中打印出所有值
+for item in $(find -type f | xargs) ; do # 循环打印每个文件
+    file $item
+done
+
+```
+
+### xrags
+
+- xargs 可以将管道或标准输入(stdin)数据转换成命令行参数，也能够从文件的输出中读取数据。它能够捕获一个命令的输出，然后传递给另外一个命令
+- xargs 默认的命令是 echo
+- xargs 也可以将单行或多行文本输入转换为其他格式，例如多行变单行，单行变多行
+- 示例
+
+```bash
+-n<num> # 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。eg：`cat test.txt | xargs` 多行转单行
+-i/-I # 这得看linux支持了，将xargs的每项名称，一般是一行一行赋值给 {}
+-d delim # 分隔符，默认的xargs分隔符是回车，argument的分隔符是空格，这里修改的是xargs的分隔符
+
+## 示例
+cat test.txt | xargs # 多行转单行
+cat test.txt | xargs -n3 # 多行输出，每此使用3个参数
+echo "nameXnameXnameXname" | xargs -dX # 定义分割符：name name name name
+ls *.jpg | xargs -n1 -I {} cp {} /data/images # 复制所有图片文件到 /data/images 目录下
+
+# 配合自定义函数使用
+echo 'echo $*' > my.sh
+cat > arg.txt << EOF
+aaa
+bbb
+EOF
+cat arg.txt | xargs -I {} ./my.sh {} ...
+# 打印
+aaa ...
+bbb ...
+```
+
+### logger
+
+- `rsyslog`是一个C/S架构的服务，可监听于某套接字，帮其它主机记录日志信息。rsyslog是CentOS 6以后的系统使用的日志系统，之前为syslog
+- `logger` 是用于往系统中写入日志，他提供一个shell命令接口到rsyslog系统模块。默认记录到系统日志文件`/var/log/messages`
+- Linux系统日志信息分为两个部分内核信息和设备信息。共用配置文件`/etc/rsyslog.conf`(CentOS 6之前为`/etc/syslog.conf`)
+    - 内核信息 -> klogd -> syslogd -> /var/log/messages等文件
+    - 设备信息 -> syslogd -> /var/log/dmesg、/var/log/messages等文件
+        - 设备可以使用自定义的设备local0-local7，使用自定义的设备照样可以将设备信息(日志)发送给rsyslog
+- 查看linux相关日志
+    - `/var/log/messages` 查看系统日志
+    - `dmesg` 查看设备日志，如引导时的日志
+    - `last` 查看登录成功记录
+    - `lastb -10` 查看最近10条登录失败记录
+    - `history` 执行命令历史
+- CentOS 7 修改日志时间戳格式 [^8]
+
+```bash
+# Jul 14 13:30:01 localhost systemd: Starting Session 38 of user root.
+# 2018-07-14 13:32:57 desktop0 systemd: Starting System Logging Service...
+
+## 修改 /etc/rsyslog.conf 
+# Use default timestamp format
+#$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat # 这行是原来的将它注释，添加下面两行
+$template CustomFormat,"%$NOW% %TIMESTAMP:8:15% %HOSTNAME% %syslogtag% %msg%\n"
+$ActionFileDefaultTemplate CustomFormat
+
+## 重启
+systemctl restart rsyslog.service
+```
+- logger使用案例 [^6]
+
+```bash
+## 简单使用
+# 默认记录到系统日志文件 /var/log/messages
+logger hello world  # 记录如 `Dec  5 15:34:58 localhost root: hello world`
+# -i 记录进程id
+logger -i test1...  # `Dec  5 15:34:58 localhost root[23162]: test1`
+# -s 输出标准错误(命令行会显示此错误)，并且将信息打印到系统日志中
+logger -i -s test2  # `Dec  5 15:34:58 localhost root[23162]: test2`
+# -t 日志标记，默认是root
+logger -i -t test test3 # `Dec  5 15:34:58 localhost test[23162]: test2`
+# -p 指定输入消息日志级别，优先级可以是数字或者指定为 "facility(设施、信道).level(优先级)" 的格式(默认级别为 "user.notice")，日志会根据配置文件/etc/rsyslog.conf将日志输出到对应日志文件，默认为/var/log/messages
+# 固定的 facility 和 level 的类型参考：https://www.cnblogs.com/xingmuxin/p/8656498.html
+logger -it test -p syslog.info "test4..." # `Dec  5 15:34:58 localhost test[23162]: test4...`
+
+## 基于日志级别自定义日志输出文件
+# 修改日志配置文件。增加配置`local1.info /var/log/local1-info.log`
+vi /etc/rsyslog.conf
+systemctl restart rsyslog # 重启使配置文件生效
+logger -it test -p local1.info "test5..." # 此时在 /var/log/local1-info.log 中可看到 `Dec  5 15:34:58 localhost test[23162]: test5...`
+```
+- `/etc/rsyslog.conf` 配置说明
+    - 会自动根据日志文件大小切割日志，生成 xxx-YYYYMMDD 的日志历史
+    - 修改日志文件后需要重启服务 `systemctl restart rsyslog` (重启后新配置生效会有一点延迟)
+
+```bash
+#### RULES ####
+# 如果日志级别为 local1.info，则将日志输出到文件 /var/log/local1-info.log
+local1.info /var/log/local1-info.log
+
+# ### begin forwarding rule ###
+# 可配置同步日志到远程机器
+```
+
+#### 记录命令执行历史到日志文件
+
+```bash
+# root用户执行
+su - root
+source <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/conf-recode-cmd-history.sh)
+# 查看日志
+tail -f /var/log/local1-info.log
+```
+
+### dd 磁盘读写测试
+
+- 磁盘性能
+    - 固态硬盘，在SATA 2.0接口上平均读取速度在`225MB/S`，平均写入速度在`71MB/S`。在SATA 3.0接口上，平均读取速度骤然提升至`311MB/S`
+
+- 用于复制文件并对原文件的内容进行转换和格式化处理
+    
+```bash
+## 参数说明
+if      # 代表输入文件。如果不指定if，默认就会从stdin中读取输入
+of      # 代表输出文件。如果不指定of，默认就会将stdout作为默认输出
+bs      # 代表字节为单位的块大小，如64k
+count   # 代表被复制的块数，如4k/4000
+# 大多数文件系统的默认I/O操作都是缓存I/O，数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。dd命令不指定oflag或conv参数时默认使用缓存I/O
+oflag=direct    # 指定采用直接I/O操作。直接I/O的优点是通过减少操作系统内核缓冲区和应用程序地址空间的数据拷贝次数，降低了对文件读取和写入时所带来的CPU的使用以及内存带宽的占用
+oflag=dsync     # dd在执行时每次都会进行同步写入操作，可能是最慢的一种方式了，因为基本上没有用到写缓存(write cache)。每次读取64k后就要先把这64k写入磁盘(每次都同步)，然后再读取下面这64k，一共重复4k次(4000)。可能听到磁盘啪啪的响，比较伤磁盘
+oflag=syns      # 与上者dsyns类似，但同时也对元数据（描述一个文件特征的系统数据，如访问权限、文件拥有者及文件数据块的分布信息等。）生效，dd在执行时每次都会进行数据和元数据的同步写入操作
+conv=fdatasync  # dd命令执行到最后会执行一次"同步(sync)"操作，这时候得到的速度是读取这286M数据到内存并写入到磁盘上所需的时间
+conv=fsync      # 与上者fdatasync类似，但同时元数据也一同写入
+
+/dev/null # 伪设备，回收站，写该文件不会产生IO
+/dev/zero # 伪设备，会产生空字符流，但不会产生IO
+```
+- `dd if=/dev/zero of=test bs=64k count=4k oflag=dsync` 在当前目录创建文件test，并每次以64k的大小往文件中读写数据，总共执行4000次，最终产生test文件大小为268M。以此测试磁盘操作速度
+- 测试案例
+
+```bash
+# dd if=/dev/zero of=test bs=64k count=4k oflag=dsync # 测试结果如下
+268435456 bytes (268 MB) copied, 26.3299 s, 10.2 MB/s               # 本地 SSD 磁盘直接操作
+268435456 bytes (268 MB) copied, 261.475 s, 1.0 MB/s                # 本地 HDD 磁盘直接操作
+268435456 bytes (268 MB) copied, 14.8903 s, 18.0 MB/s               # 阿里云 SSD 磁盘直接操作
+268435456 bytes (268 MB, 256 MiB) copied, 1637.61 s, 164 kB/s       # 本地ceph集群(1 ssd + 2 hdd)
+268435456 bytes (268 MB, 256 MiB) copied, 90.0906 s, 3.0 MB/s       # 本地ceph集群(3 ssd)
+```
+
+### sgdisk 磁盘操作工具
+
+```bash
+# 安装
+yum install -y gdisk
+
+# 查看所有GPT分区
+sgdisk -p /dev/sdb
+# 查看第一个分区
+sgdisk -i 1 /dev/sdb
+# 创建了一个不指定大小、不指定分区号的分区
+sgdisk -n 0:0:0 /dev/sdb # -n 分区号:起始地址:结束地址
+# 创建分区1，从默认起始地址开始的10G的分区
+sgdisk -n 1:0:+10G /dev/sdb
+# 将分区方案写入文件进行备份
+sgdisk --backup=/root/sdb.partitiontable /dev/sdb
+# 删除第一分区
+sgdisk -d 1 /dev/sdb
+# 删除所有分区(提示：GPT data structures destroyed!)
+sgdisk --zap-all --clear --mbrtogpt /dev/sdb
+```
+
+### 其他命令
+
+- 帮助
+    - `ls --help` 查看ls的命令说明
+    - `curl -h` 查看curl命令帮助
+    - `help ulimit` 查看ulimit命令帮助
+    - `info ls`
+    - `man ls` 查看ls的详细命令说明
+        - `yum install -y man man-pages`
+        - 安装中文man手册
+            
+            ```bash
+            wget https://src.fedoraproject.org/repo/pkgs/man-pages-zh-CN/manpages-zh-1.5.2.tar.bz2/cab232c7bb49b214c2f7ee44f7f35900/manpages-zh-1.5.2.tar.bz2
+            
+            yum install bzip2
+            tar jxvf  manpages-zh-1.5.2.tar.bz2
+
+            cd manpages-zh-1.5.2
+            sudo ./configure --disable-zhtw #默认安装 
+            sudo make && sudo make install
+
+            vi ~/.bash_profile
+            alias cman='man -M /usr/local/share/man/zh_CN' # 为了不抵消man，创建cman命令
+            source ~/.bash_profile
+            ```
+- 系统
+    - `date` 显示当前时间; `cal` 显示日历
+    - `history` 查看历史执行命令
+        - 默认记录1000条命令，编号越大表示越近执行。用户所键入的命令都会记录在用户家目录下的`.bash_history`文件中
+            - `!n` 再次执行此命令(n 是命令编号)
+            - `!$` 它用于指代上次键入的参数
+            - `!!` 可以指代上次键入的命令
+        - `history -c` 清除历史。其他人登录也将看不到，历史中不会显示清除的命令
+    - `last` 查看最近登录用户
+    - `w` 查看计算机运行时间，当前登录用户信息
+    - `wall <msg>` 通知所有人登录人一些信息 
+- 技巧
+    - `clear` 清屏
+    - `yes y` 一直输出字符串y
+        - `yes y | cp -i new old` `cp` 用文件覆盖就文件(`-i`存在old文件需进行提示，否则无需提示；`-f`始终不进行提示)，而此时前面会一致输出`y`，相当于自动输入了y进行确认cp操作
+    - `\` 回车后可将命令分多行运行(后面不能带空格)
 
 ## 运维&工具
 
@@ -1069,7 +1531,9 @@ lsmod |grep br_netfilter
 
 - https://linuxtools-rst.readthedocs.io/zh_CN/latest/tool/index.html
 - `pstack` 跟踪进程栈
-- `strace` 跟踪进程中的系统调用
+- `strace` 跟踪进程中的系统调用(软中断)
+    - `yum -y install strace`
+    - `strace -ff -o out java HelloWorld` 将跟踪日志写入到out文件中
 - `top` linux下的任务管理器
 
 ## 内核

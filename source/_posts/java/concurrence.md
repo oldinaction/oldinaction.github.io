@@ -64,7 +64,7 @@ tags: [concurrence]
         - 当前线程让出CPU一小会调度其他线程，并进入等待队列等待CPU的下次调度，也可能存在让出CPU之后仍然调度的是此线程
     - `join()`
         - CPU执行A线程一段时间，当在A线程的代码中遇到b.join()，此时CPU会到B线程中去执行，等B执行完后再回到A线程继续执行。感觉像把B线程加入到A线程；类似于方法调用，只不过方法调用是同一个线程
-- 线程的状态： Thread.State.NEW、RUNNABLE、TERMINATED、TIMED_WAITING、WAITING、BLOCKED
+- 线程的6种状态： Thread.State.NEW、RUNNABLE、TERMINATED、TIMED_WAITING、WAITING、BLOCKED
 
     ![thread-state](/data/images/java/thread-state.png)
 
