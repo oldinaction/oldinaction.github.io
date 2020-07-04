@@ -13,7 +13,8 @@ tags: [jvm]
 
 ## 简介
 
-- [JVM Specification](https://docs.oracle.com/javase/specs/jvms/se14/html/index.html)
+- [Java Language Specification](https://docs.oracle.com/javase/specs/jls/se14/html/index.html)
+- [Java Virtual Machine Specification](https://docs.oracle.com/javase/specs/jvms/se14/html/index.html)
 - Java执行
     - x.java - javac - x.class
     - 将x.class加载到ClassLoader，并将一些java类库加载进来
@@ -42,7 +43,7 @@ tags: [jvm]
         u2             major_version; // 主版本号，JDK8为52
         u2             constant_pool_count; // 常量池个数
         cp_info        constant_pool[constant_pool_count-1]; // 常量池
-        u2             access_flags; // 描述符，如ACC_PUBLIC(0x0001)/ACC_INTERFACE等
+        u2             access_flags; // 描述符，如ACC_PUBLIC(0x0001)、ACC_INTERFACE等
         u2             this_class;
         u2             super_class;
         u2             interfaces_count;
@@ -55,6 +56,8 @@ tags: [jvm]
         attribute_info attributes[attributes_count];
     }
     ```
+- access_flags描述符
+    - ACC_PUBLIC(0x0001)、ACC_INTERFACE、ACC_SYNCHRONIZED、ACC_VOLATILE
 - 字段描述符解释
     - Ljava.lang.String(引用)、[(数组)、[[(二位数组)、J(Long)、Z(boolean)、B(byte)，其他同B基本以首字母开头
 - 常量池标识
@@ -63,7 +66,7 @@ tags: [jvm]
     - 7 CONSTANT_Class
     - 8 CONSTANT_String
     - ...
-- [语句](https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.10.1.9)，如
+- [语句/指令](https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.10.1.9)，如
     - `aload, aload_<n>`
     - `invokespecial` 调用实例方法，对父类实例化的特殊处理
     - `return` 返回void
@@ -87,7 +90,7 @@ tags: [jvm]
             - `-Xcomp` 使用编译执行模式，启动相对较慢，执行快
     - `Linking`
         - `Verification` 验证格式
-        - `Preparation` 给静态变量赋默认值(如0/false)
+        - `Preparation` 依次给静态变量赋默认值(如0/false)
             - 类加载：赋默认值 -> 赋初始值. [示例](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c02_classloader/T08_ClassLoadingProcedure.java)
             - new对象(类似类加载)：申请内存 -> 赋默认值 -> 赋初始值
         - `Resolution` 解析
@@ -145,6 +148,8 @@ tags: [jvm]
                     sun.misc.PerfCounter.getFindClasses().increment();
                 }
             }
+
+            // Resolution阶段
             if (resolve) {
                 resolveClass(c);
             }
@@ -166,20 +171,177 @@ tags: [jvm]
     }    
     ```
 
-
 ## Java内存模型
 
+- 对象在内存中的存储布局
+- 对象头
+
+### 面试题：关于对象
+
+- 请解释一下对象的创建过程
+    - class加载
+        - class loading
+        - class linking(verification、preparation、resolution)
+        - class initialization
+    - 申请对象内存
+    - 成员变量赋默认值
+    - 调用构造方法
+        - 成员变量依次赋初始值
+        - 执行构造方法语句
+- 对象在内存中的存储布局
+    - 普通对象
+        - 对象头：markword 占8个字节
+        - ClassPointer指针：增加 -XX:+UseCompressedClassPointers(开启ClassPointer指针压缩) 参数时为4字节，不开启(换成减号，-XX:-UseCompressedClassPointers)则为8字节
+            - `java -XX:+PrintCommandLineFlags -version` 可查看JVM配置
+            - Hotspot开启内存压缩的规则(64位机)：4G以下直接砍掉高32位；4G-32G默认开启内存压缩(ClassPointers、Oops)；32G以上压缩无效，使用64位，内存并不是越大越好
+        - 实例数据
+            - 主要是成员变量，基础数据类型、引用类型
+            - 引用类型：开启 -XX:+UseCompressedOops(开启普通对象指针压缩) 配置时为4字节，不开启(换成减号)则为8字节。Oops：Ordinary Object Pointers
+        - Padding对齐：对象总大小保证为8的倍数
+    - 数组对象(多了一个数组长度)
+        - 对象头：markword，同上
+        - ClassPointer指针，同上
+        - 数组长度为4字节
+        - 数组数据，同上
+        - Padding对齐，同上
+- 对象头具体包括什么
+    - 32位操作系统markword如下
+
+        ![jvm-32-markword](/data/images/java/jvm-32-markword.png)
+        - markword包含的内容和对象的状态有关。最后两位是锁标志位；无锁和偏向锁时，倒数第三位记录了偏向锁状态；分代年龄占4位(2^4=0->15)，因此GC年龄最大为15
+        - 无锁状态时可能存储了hashCode，占25bit
+            - 只有未重写hashCode方法且调用了hashCode方法/System.identityHashCode时才会将hashCode存放在markword中(重写了hashCode方法的计算结果不会存放在此处)
+            - 未重写hashCode方法的，那么默认调用os::random产生hashcode，一旦生成便会记录在markword中，可以通过System.identityHashCode获取
+        - 当一个对象计算过identityHashCode之后，不能进入偏向锁状态(因为记录偏向锁线程的位置被hashCode占用了)
+    - 64位操作系统markword如下
+
+        ![jvm-64-markword](/data/images/java/jvm-64-markword.png)
+- [对象怎么定位](https://blog.csdn.net/clover_lily/article/details/80095580)
+    - 句柄池、直接指针
+    - 不同的JVM实现可能不同，HotSpot使用的直接指针(寻找对象快，GC相对慢)
+- 对象怎么分配
+- Object o = new Object()在内存中占用多少字节(64位系统)
+    - 基于jvm agent完成：在将class加载到内存是，会先执行指定的agent，此时可拦截class进行操作(如获取大小)。参考[ObjectSizeAgent.java.bak](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c03_object_size/ObjectSizeAgent.java.bak)
+    - 开启ClassLoader压缩：8(markword) + 4(ClassPointer指针) + 0(无实例数据/属性) + 4(Padding对齐) = 16字节
+    - 未开ClassLoader压缩：8(markword) + 8(ClassPointer指针) + 0(无实例数据/属性) + 0(Padding对齐) = 16字节
+
+## Runtime Data Area运行时数据区
+
+- [Runtime Data Area](https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-2.html#jvms-2.5)
+
+![jvm-runtime-data-area](/data/images/java/jvm-runtime-data-area.png)
+- java线程有各自的PC(Program Counter程序计数器，记录指令的执行位置)、VMS(Virtual Machine Stack)、NMS(Native Method Stack)；但是他们共用Heap、Method Area [^1]
+    - PC 程序计数器：存放指令位置
+    - JVM Stack
+        - 一个线程会有一个Stack，一个Stack有多个Frame栈帧组成，每个方法对应一个Frame栈帧
+        - Frame栈帧组成
+            - 局部变量表(`Local Variables`)
+            - 操作数栈(`Opreand Stack`) 或表达式栈
+            - 动态链接 (`Dynamic Linking`) 或指向运行时常量的方法引用
+                - 在Java源文件被编译到字节码文件中时，所有的变量和方法引用都作为符号引用(Symbolic Reference )保存在class文件的常量池里。比如，描述一个方法调用其他方法时，就是通过常量池中指向方法的符号引用来表示的，那么动态链接的作用就是为了将这些符号引用转换为调用方法的直接引用
+                - 加载类的Resolution阶段就是将符号应用转换为直接引用
+            - 返回地址(Return Address) 或方法退出的引用的定义(a方法调用b方法，b方法返回的值保存的位置)
+    - Native Method Stack
+    - Method Area
+        - JDK<1.8时，实际是保存在 Perm Space。字符串常量位于PermSpace，此时FGC不会清理，大小在启动的时候指定，不能变
+        - JDK>=1.8时，实际是保存在 Meta Space。字符串常量位于堆，会触发FGC清理，不设定的话，最大就是物理内存
+    - Runtime Constant Pool
+
+## Instruction Set常用指令
+
+> https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-4.html#jvms-4.10.1.9
+
+- 压栈和弹栈(此处栈均指Opreand Stack)
+    - 压栈：将值放到栈顶，如store类型指令
+    - 弹栈：将栈顶的值从栈中取出(包含从栈中移除)
+        - 根据命令特点确定是否需要弹栈和弹出几个操作值。如sub命令，是对两个数进行操作，因此是从栈顶中弹出两个值
+- 常用指令
+    - load 从本地变量表中取值并放到栈顶(压栈)
+        - `iload_<n>` 从第n个本地变量表中的int型值取出并放到栈顶。如果是short等则会转换为int
+        - `lload_<n>` 从第n个本地变量表中的long型值取出并放到栈顶
+        - `fstore_<n>` float型
+        - `dstore_<n>` double型
+        - `astore_<n>` 引用型
+    - const 将常量值放到栈顶(压栈)
+        - `iconst_<i>` 将int型常量值i放到栈顶。其他数据类型同load
+    - store 存表
+        - `istore_<n>` 将栈顶int型数值存入第n个本地变量。其他数据类型同load
+    - new 创建一个对象，并将其引用值压入栈顶
+    - dup 复制栈顶数值并将复制值压入栈顶
+    - invoke
+        - invokestatic 调用静态方法
+        - invokevirtual 非private的成员方法(自带多态，此指令会根据实际对象的引用调用对应方法)
+        - invokeinterface
+        - inovkespecial 可以直接定位，不需要多态的方法 private 方法、构造方法(<init>)。final修饰的方法是InvokeVirtual
+        - invokedynamic 如lambda表达式、反射、其他动态语言(scala kotlin等)、CGLib、ASM等动态产生的class，会用到此指令
+    - pop 将栈顶数值弹出 (数值不能是long或double类型的)
+    - pop2 将栈顶的一个(long或double类型的)或两个数值弹
+    - inc 
+        - `iinc` 如：iinc 0 by 1 表示将本地变量表的第0个位置(int型)值增加1(仅修改了本地变量表的值，并没有修改栈中的值)
+    - add 将栈顶两int型数值相加并将结果压入栈顶
+    - sub 相减
+    - mul 相乘
+- 案例一
+
+```java
+/**
+ * 通过jclasslib观察指令的不同
+ *
+ * 1.add1的指令
+ *
+ *  0 iconst_3                                          // 将int型常量放到栈顶(执行后栈底->栈顶：3)
+ *  1 istore_0                                          // 将int型值保存到第0个本地变量表(执行后栈底->栈顶：空)
+ *  2 iload_0                                           // 将第0个本地变量表的int型值放到栈顶(执行后栈底->栈顶：3)
+ *  3 iinc 0 by 1                                       // 将本地变量表的第0个位置(int型)值增加1(仅修改了本地变量表的值，此时为1，并没有修改栈中的值；执行后栈底->栈顶：0)
+ *  6 istore_0                                          // 将栈顶的值(0)保存在本地变量表的第0个位置(此时本地变量第0个位置值为0；执行后栈底->栈顶：空)
+ *  7 getstatic #4 <java/lang/System.out>
+ * 10 iload_0                                           // 加载本地变量表的第0个位置值到栈顶(执行后栈底->栈顶：3)
+ * 11 invokevirtual #5 <java/io/PrintStream.println>    // 打印栈顶的值(执行后栈底->栈顶：空)
+ * 14 return
+ *
+ * 2.add2的指令
+ *
+ *  0 iconst_3
+ *  1 istore_0
+ *  2 iinc 0 by 1
+ *  5 iload_0
+ *  6 istore_0
+ *  7 getstatic #4 <java/lang/System.out>
+ * 10 iload_0
+ * 11 invokevirtual #5 <java/io/PrintStream.println>
+ * 14 return
+ */
+public class T01_IntAddAdd {
+    public static void main(String[] args) {
+        add1(); // 3
+
+        add2(); // 4
+    }
+
+    public static void add1() {
+        int i = 3;
+        i = i++;
+        System.out.println(i);
+    }
+
+    public static void add2() {
+        int i = 3;
+        i = ++i;
+        System.out.println(i);
+    }
+}
+```
+- 案例二
+
+    ![jvm-runtime-stacks-example](/data/images/java/jvm-runtime-stacks-example.png)
+    - main方法第0号指令：创建一个对象，并将其引用值压入栈顶(执行后栈为：对象引用h)
+    - main方法第3号指令：dup复制一个栈顶值(执行后栈为：对象引用h、对象引用h)
+    - main方法第4号指令：调用Hello_02的构造方法，此时会弹出一个栈顶值(因此需要先dup一次；执行后栈为：对象引用h)
+    - main方法第7号指令：将栈顶值赋值到本地变量表第1个位置(即赋值引用地址给h；执行后栈为：空)
 
 
 
 
-
-
-93 Java内存模型 地址
-
-97 内存屏障与JVM指令 地址
-
-102 Java运行时数据区和常用指令 地址
 
 110 JVM调优必备理论知识-GC Collector-三色标记 地址
 
@@ -294,4 +456,10 @@ WantedBy=multi-user.target
 ```
 
 
+
+---
+
+参考文章
+
+[^1]: https://www.cnblogs.com/ding-dang/p/13051143.html
 

@@ -132,6 +132,10 @@ tags: [concurrence]
     - 自旋锁和系统锁(OS锁/重量级锁)
         - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高；系统锁会进入到等待队列，等待CPU调用，不占用CPU资源。CAS属于自旋锁，有的认为CAS是无锁
         - 执行时间短、线程数比较少时使用自旋锁较好；执行时间长、线程数多时用系统锁较好
+- synchronized 实现细节
+    - 字节码层面：ACC_SYNCHRONIZED(修饰方法)，monitorenter、monitorexit(指令)
+    - JVM层面：基于 C/C++ 调用了操作系统提供的同步机制
+    - OS和硬件层面(X86)：lock cmpxchg(比较并交换指令)。参考 https://blog.csdn.net/21aspnet/article/details/88571740
 
 #### volatile
 
@@ -146,6 +150,15 @@ tags: [concurrence]
         - 内存屏障另一个作用是强制更新一次不同CPU的缓存。例如，一个写屏障会把这个屏障前写入的数据刷新到缓存，这样任何试图读取该数据的线程将得到最新值，而不用考虑到底是被哪个CPU核心或者哪颗CPU执行的。参考下文[CPU缓存一致性协议MESI](#Disruptor)
     - 如果字段是volatile，Java内存模型将在写操作后插入一个写屏障指令(storefence)，在读操作前插入一个读屏障指令(loadfence)
     - 对性能的影响主要在刷新缓存的开销上。如[Disruptor](#Disruptor)提供Batch操作实现对序列号的读写频率降到最低
+- volatile 实现细节
+    - 字节层面：编译后是ACC_VOLATILE
+    - JVM层面：读写操作都加了内存屏障
+        - StoreStoreBarrier;volatile写操作;StoreLoadBarrier;
+        - LoadLoadBarrier;volatile读操作;LoadStoreBarrier;
+    - OS层面：https://blog.csdn.net/qq_26222859/article/details/52235930
+        - hsdis(HotSpot Dis Assembler)工具可记录实际执行的汇编代码
+        - windows 基于 lock 指令实现，linux 基于MESI实现
+- volatile 修饰一个对象时，只要对象任何属性有变化则会有禁止指令重排
 - DLC(Double Check Lock)单例中对volatile的应用 (一#46#0:35:54)
 
 <details>
@@ -1065,7 +1078,6 @@ public ExecutorService myExecutorService() {
 ```
 
 ### ScheduledThreadPoolExecutor
-
 
 ### Semaphore
 

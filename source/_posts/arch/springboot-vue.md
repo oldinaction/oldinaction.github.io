@@ -545,6 +545,8 @@ location ^~ /my-app/ {
 
 ## 常用插件
 
+## cross-env启动时增加环境变量
+
 ### Clipboard 复制内容到剪贴板
 
 - 必须要绑定Dom
@@ -555,10 +557,13 @@ location ^~ /my-app/ {
 - H5页面扫码
     - 在微信浏览器打开H5页面，可引入微信的js SDK解决
     - 在系统浏览器打开H5页面
-        - 扫码二维码参考：https://www.cnblogs.com/yisuowushinian/p/5145262.html
-            - 此方案在前端 js 解析二维码，依赖一个第三方的解析库`jsqrcode`。这个库已经支持在浏览器端呼起摄像头的操作了，但是依赖一个叫`getUserMedia`的属性，该属性移动端的浏览器支持的都不是很好，低版本只能间接的上传图片的方式解析二维码。此插件需要配合 zepto.js 或者 jQuery.js 使用
+        - 基于[jsqrcode](https://github.com/LazarSoft/jsqrcode)库，可进行二维码/条形码解析
+            - 参考：https://www.cnblogs.com/yisuowushinian/p/5145262.html，此方案在前端 js 解析二维码，依赖`jsqrcode`
+            - 这个库已经支持在浏览器端呼起摄像头的操作了，但是依赖一个叫`getUserMedia`的属性，该属性移动端的浏览器支持的都不是很好，低版本只能间接的上传图片的方式解析二维码
+            - 此插件需要配合 zepto.js 或者 jQuery.js 使用
             - iphone7扫二维码成功，条形码不成功。扫码时无扫码框，需要点击拍照 - 确定识别
-        - `quagga.js` 可进行条形码解析。如uni-app插件：https://ext.dcloud.net.cn/plugin?id=1619
+        - 基于`quagga.js`库，可进行条形码解析
+            - 如uni-app插件：https://ext.dcloud.net.cn/plugin?id=1619
 
 ## 浏览器
 

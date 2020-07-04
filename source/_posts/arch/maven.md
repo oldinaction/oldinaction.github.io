@@ -15,12 +15,12 @@ tags: [maven]
 - 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签(windows/linux均可)
 
 	```xml
-		<mirror> 
-			<id>alimaven</id>  
-			<name>aliyun maven</name>  
-			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-			<mirrorOf>central</mirrorOf>          
-		</mirror>  
+    <mirror> 
+        <id>alimaven</id>  
+        <name>aliyun maven</name>  
+        <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        <mirrorOf>central</mirrorOf>          
+    </mirror>  
 	```
 - 证书问题导致，下载jar包时只返回一个更新文件，且里面报错`unable to find valid certification path to requested target`。需按照下列方式修改jdk证书 [^4]
 

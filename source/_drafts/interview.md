@@ -1,21 +1,5 @@
 
 
-- wait()和sleep()的区别
-sleep来自Thread类，和wait来自Object类
-调用sleep()方法的过程中，线程不会释放对象锁。而 调用 wait 方法线程会释放对象锁
-sleep睡眠后不出让系统资源，wait让出系统资源其他线程可以占用CPU
-sleep(milliseconds)需要指定一个睡眠时间，时间一到会自动唤醒
-wait(): 让线程处于冻结状态，被wait的线程会被存储到线程池中。
-notify():唤醒线程池中一个线程(任意)，没有顺序。
-notifyAll():唤醒线程池中的所有线程。
-
-- 线程的几种状态和进行状态切换的相关方法
-
-- synchronized加锁方式
-    - synchronized锁升级流程：无锁 - 偏向锁 - 自旋锁 - 重量级
-    - 结合乐观锁和悲观锁，cas(Compare And Swap，比较并替换，乐观锁)
-- volitail的作用：保证(属性)线程可见性，防止指令重排；volitail不保证原子性
-    - 防止指令重排一般可用于单例模式，说下实现单例模式的几种方式
 
 
 - JAVA 中堆和栈的区别，说下java 的内存机制
@@ -42,6 +26,17 @@ Spring的两种代理方式：JDK动态代理和CGLIB动态代理
 https://www.cnblogs.com/lr393993507/p/5909804.html
 https://chenzhou123520.iteye.com/blog/1860954
 https://chenzhou123520.iteye.com/blog/1863407
+
+## os
+
+- CPU 的基本组成
+- 三级缓存和伪共享
+- 乱序执行与防止指令重排
+- 进程/线程/纤程
+- 中断
+- 内存的分页装入、虚拟地址、软硬件结合寻址
+- nio包中的ByteBuffer和FileChannel.map的读写
+- BIO、NIO、多路复用器
 
 ## java
 

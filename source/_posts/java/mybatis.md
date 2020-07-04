@@ -97,7 +97,7 @@ tags: [mybatis, springboot]
 	- Dao层：UserMapper.java
 
 		```java
-		// @Mapper // 在启动类中定义需要扫码mapper的包：@MapperScan("cn.aezo.springboot.mybatis.mapper"), 则此处无需声明@Mapper
+		// @Mapper // 在启动类中定义需要扫描mapper的包：@MapperScan("cn.aezo.springboot.mybatis.mapper"), 则此处无需声明@Mapper
 		public interface UserMapper {
 			// 1. 此处注入变量可以使用#或者$, 区别：# 创建的是一个prepared statement语句, $ 符创建的是一个inlined statement语句
 			// 2. 一个参数可以省略@Param，多个需要进行指定(反射机制)
