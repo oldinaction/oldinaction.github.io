@@ -762,9 +762,11 @@ select *
     where paging_t2.rn > 10;
 ```
 
-#### union合并
+#### union合集
 
 - Oracle `select 1 as a from dual union select 2 as b from dual`
+
+#### intersect交集
 
 ## Mysql连接JDBC
 

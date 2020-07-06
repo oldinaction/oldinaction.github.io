@@ -54,7 +54,7 @@ jstack <pid> > jstack.out
 # 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前10个对象）；或者保存到文件（jmap -histo:live <pid> > /home/jmap.out）
 jmap -histo:live <pid> | head -n 10
 # 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析
-# jmap命令获取：执行时JVM是暂停服务的，所以对线上的运行会产生影响（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟，实际测试系统可能会暂停无法访问）
+# jmap命令获取：***执行时JVM是暂停服务的，所以对线上的运行会产生较大影响***（生成文件大小和程序占用内存差不多；2G大概暂停10秒钟，实际测试系统可能会暂停无法访问）
 jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 
 ## 5.项目启动添加jvm参数获取(不能实时获取)

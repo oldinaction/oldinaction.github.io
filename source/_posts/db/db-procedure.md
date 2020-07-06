@@ -100,8 +100,7 @@ begin
 		v_y := 1;
 	
 		--使用连接符拼接成一条完整SQL. oracle转义字符为 ' ，如 '' 转义后就是 '
-		v_sql := 'select * from ycross_storage t where t.yes_storage = 1 and t.location_id = ' ||
-						loc.location_id;
+		v_sql := 'select * from ycross_storage t where t.yes_storage = 1 and t.location_id = ' || loc.location_id;
 		-- 字符串分割案例。v_sql := 'select * from table (cast (sm_split (''' || myStr || ''', ''/'') as sm_type_arr_str))';
 
 		--打开游标
@@ -110,9 +109,7 @@ begin
 			fetch v_cur_storage into r_storage;
 			exit when v_cur_storage%notfound; -- 跳出循环
 
-			update ycross_storage t
-				set t.ycross_x = v_x, t.ycross_y = v_y
-			where t.id = r_storage.id;
+			update ycross_storage t set t.ycross_x = v_x, t.ycross_y = v_y where t.id = r_storage.id;
 
 			if v_y < 7 then -- 也可以使用 like 等关键字
 				v_y := v_y + 1;

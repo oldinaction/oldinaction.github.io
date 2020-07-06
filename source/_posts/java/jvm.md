@@ -349,7 +349,7 @@ public class T01_IntAddAdd {
     - main方法第4号指令：调用Hello_02的构造方法，此时会弹出一个栈顶值(因此需要先dup一次；执行后栈为：对象引用h)
     - main方法第7号指令：将栈顶值赋值到本地变量表第1个位置(即赋值引用地址给h；执行后栈为：空)
 
-## 堆分代模型和垃圾回收器
+## 垃圾回收器
 
 - `GC`(Garbage Collector) 垃圾回收器
 - `Minor GC/Yong GC(MGC/YGC)` 年轻代(Eden)空间耗尽时触发
@@ -396,9 +396,9 @@ public class T01_IntAddAdd {
 ### JVM内存(堆)分代模型
 
 - 内存分代模型用于分代垃圾回收算法，部分垃圾回收器使用此模型
-    - 除Epsilon、ZGC、Shenandoah之外的GC都是使用逻辑分代模型
+    - G1之前(Serial、PS、CMS等)不仅逻辑分代，而且物理分代
     - G1是逻辑分代，物理不分代(实际内存分不同的分代区)
-    - 除此之外(CMS等)不仅逻辑分代，而且物理分代
+    - 到Epsilon、ZGC、Shenandoah不分代
 - **堆内存逻辑分区**(不适用不分代垃圾回收器)
 
     ![jvm-heap-area](/data/images/java/jvm-heap-area.png)
@@ -458,9 +458,38 @@ public class T01_IntAddAdd {
 - 垃圾回收器历史
     - JDK诞生，便有Serial垃圾回收器
     - 为了提高效率，诞生了PS
-    - 为了配合CMS，诞生了PN
-    - 后来有了G1、ZGC等
-- JDK1.8默认的垃圾回收：PS + ParallelOld
+    - JDK1.4后期引入了CMS，为了配合CMS，诞生了PN
+    - JDK1.7引入了G1
+    - 之后出现了ZGC等
+- JDK版本于垃圾回收器
+    - JDK6一般是PS+PO，也可使用CMS
+    - JDK7一般是PS+PO或CMS，出现了G1可能不太成熟
+    - JDK8默认PS+PO，可使用G1(特别是大内存)
+    - JDK9默认G1
+- 垃圾回收器算法相关概念
+    - **`三色标记`** 指将对象标记为不同的颜色
+
+        ![JVM-三色标记](/data/images/java/JVM-三色标记.png)
+        - 白色(未被标记的对象)、灰色(自身被标记，成员变量未被标记)、黑色(自身和成员变量均被标记)
+        - 从根对象开始标记对象，标记了的则是存活的对象，没有标记的则是垃圾对象
+        - 漏标出现的情况
+            - 上图中黑色对象A指向了白色对象D，且原来灰色对象B指向D的引用消失(B不在指向D)
+            - 此时白色D只有一个黑色对象指向，因此会漏标(黑色不会再扫描属性)。而白色D此时是存活对象，漏标导致D被回收
+        - 解决漏标的算法
+            - `Incremental Update`：增量更新，关注引用的增加(即A指向D)；把黑色重新下标记为灰色，下次重新扫描属性
+            - `SATB`(snapshot at the beginning) 关注引用的删除(B不在指向D)，当引用消失时，把此应用推倒GC的堆栈
+            - 为什么G1使用SATB
+                - SATB结合RSet效率很高。SATB监控到的消失引用，会放到GC堆栈，下次扫描时根据此堆栈的对象引用，到RSet去查找
+                - 增量更新则需要重新把标记过的对象重新检查其属性
+    - `颜色指针` 指在对象头上会有一个color pointer标识此对象引用是否改变过
+    - `Card Table`
+        - 由于做YGC时，需要判断这个对象是否被其他对象引用，有可能这个对象已经在old区了，但是扫描整个old区，效率非常低，所以JVM设计了CardTable
+        - 首先将old区分为多个CardTable，将对象放在CardTable中。当某个CardTable有对象指向Yong区，就将它设为Dirty状态，下次扫描时，只需要扫描Dirty CardTable的对象
+        - CardTable用BitMap(010101标识每个CardTable是否为Dirty)来实现
+    - `CSet`(Collection Set) 一组可被回收的分区集合，占用堆空间的1%作用
+    - `RSet`(RemembeeredSet) 记录了其他Region中的对象到本Region的引用，占用堆10%左右
+        - 作用在于垃圾收集只需要扫码RSet便可得知哪些对象引用了当前分区(从而不需扫码整个堆)
+        - 由于RSet的存在，每次给对象赋引用的时候，就得做一些额外操作，GC中称为写屏障(不同于内存屏障)
 - 常见的垃圾回收器
 
     ![jvm-gc](/data/images/java/jvm-gc.png)
@@ -470,14 +499,16 @@ public class T01_IntAddAdd {
     - `ParallelOld` 老年代，并行回收(多线程)，会出现STW，使用Mark-Compact算法。一般和PS结合使用
     - `ParNew`(PN) 年轻代，并行回收(多线程)，会出现STW，使用Copying算法清理(PS的一个升级版本)。般配合CMS的并行回收
     - `CMS`(ConcurrentMarkSweep) 老年代，并行回收(多线程)，且并发回收(垃圾回收和应用程序同时运行)，使用Mark-Sweep算法
+        - CMS使用算法：**三色标记 + Incremental Update**(相关概念见G1)
         - CMS是1.4版本后期引入，CMS是里程碑式的GC，它开启了并发回收的过程，但是CMS毛病较多，因此目前任何一个JDK版本默认是CMS，只能手工指定CMS
         - 包含4步
 
             ![jvm-cms](/data/images/java/jvm-cms.png)
-            - initial mark 只标记根对象
-            - concurrent mark
-            - remark
-            - concurrent sweep
+            - initial mark 初始标记，会产生STW；由于只标记根对象，因此STW时间很短
+            - concurrent mark 并发标记，不会产生STW；基于根对象查找，此段时间相对较长
+            - preclean 也称Card Marking，标记Card Table为Dirty
+            - remark 重新标记，会产生STW，占用时间不会太长；由于并发标记的同时，可能某些标记为垃圾的对象又被重新引用了，此时相当于去掉这些对象的标记
+            - concurrent sweep 并发清理，不会产生STW；此阶段可能还会产生新的垃圾，即浮动垃圾，会在下一个循环回收
         - CMS的缺点
             - Memory Fragmentation(内存碎片化)
                 - 使用Mark-Sweep算法会产生很多碎片，这些碎片会占用且镂空老年代内存(可能存在有些未用的空间被碎片占位导致无法使用，见上文Mark-Sweep算法图)，碎片到达一定程度，CMS的老年代分配对象分配不下的时候，此时会使用SerialOld进行老年代回收
@@ -487,13 +518,28 @@ public class T01_IntAddAdd {
                     - `-XX:CMSFullGCsBeforeCompaction` 默认为0，指经过多少次FGC才进行压缩
             - Floating Garbage(浮动垃圾，在concurrent sweep并发清理的同时产生的垃圾)
                 - -XX:CMSInitiatingOccupancyFraction 92%(JDK1.8默认，当老年代使用到达92%时触发FGC。可适当调小从而给浮动垃圾多留一点空间，下次并发回收便会清理)
-        - 算法：三色标记 + Incremental Update
-    - `G1` 使用算法：三色标记 + SATB。STW时间为10ms左右
+    - `G1`(Garbadge First Collector)，参考：https://www.oracle.com/technical-resources/articles/java/g1gc.html
+        - G1使用算法：**三色标记 + SATB**
+        - STW时间为10ms左右；响应时间比CMS高，但是吞吐量比CMS差15%左右
+        - 内存结构
+
+            ![jvm-G1](/data/images/java/jvm-G1.png)
+            - G1的内存结构和传统的内存空间划分有比较的不同。G1将内存划分成了多个大小相等的Region(默认是512K)，Region逻辑上连续，物理内存地址不连续。同时每个Region被标记成E、S、O、H，分别表示Eden、Survivor、Old、Humongous(大对象)。其中E、S属于年轻代，O与H属于老年代
+            - G1新老年代比例5%-60%(CMS默认是1:2)，一般不用手工指定，G1会动态变化。可设置一个停顿时间，G1会动态调整此比例以趋近设置的停顿时间
+        - 标记回收阶段
+            - Initial mark
+            - Root region scanning
+            - Concurrent marking
+        - G1包括YGC、MixedGC(相当于一个CMS)、FGC
+        - G1产生FGC时处理
+            - 扩内存、提高CPU性能
+            - **降低MixedGC触发的阈值**，让MixedGC提早发生(默认是-XX:InitiatingHeapOccupacyPercent 45%)
+            - JDK10以前G1的FullGC是串行的，之后是并行的
     - `ZGC` 使用PK C++
         - 使用算法：ColoredPointers + LoadBarrier。STW时间为1ms左右
     - `Shenandoah` 使用算法：ColoredPointers + WriteBarrier
     - `Eplison`
-- 垃圾收集器适用的内存大小
+- 垃圾回收器适用的内存大小
     - Serial 几十兆
     - PS 上百兆-几个G
     - CMS 20G
@@ -502,7 +548,7 @@ public class T01_IntAddAdd {
 - 常见垃圾回收器组合参数设定
     - `-XX:+UseSerialGC` 使用Serial New (DefNew) + Serial Old。适用于小型程序；默认情况下不会是这种选项，HotSpot会根据计算及配置和JDK版本自动选择收集器
     - `-XX:+UseParNewGC` 使用ParNew + SerialOld。这个组合已经很少用，[在某些版本中已经废弃](https://stackoverflow.com/questions/34962257/why-remove-support-for-parnewserialold-anddefnewcms-in-the-future)
-    - `-XX:+UseConcurrentMarkSweepGC`(有点是-XX:+UseConcMarkSweepGC) 使用ParNew + CMS + Serial Old
+    - `-XX:+UseConcurrentMarkSweepGC`(有的是-XX:+UseConcMarkSweepGC) 使用ParNew + CMS + Serial Old
     - `-XX:+UseParallelGC` 使用Parallel Scavenge + Parallel Old，**1.8默认**
     - `-XX:+UseParallelOldGC` 使用Parallel Scavenge + Parallel Old
     - `-XX:+UseG1GC` 使用G1
@@ -536,7 +582,9 @@ public class T01_IntAddAdd {
  *      HelloGC!
  *      Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
  * 2. -XX:+UseConcMarkSweepGC -XX:+PrintCommandLineFlags -XX:+PrintGC 使用CMS垃圾回收器；PrintGC打印GC日志(PrintGCDetails打印详细、PrintGCTimeStamps打印产生时间、PrintGCCause打印GC产生原因)
- * 3. -Xmn10M -Xms40M -Xmx60M -XX:+PrintCommandLineFlags -XX:+PrintGCDetails 设置新生代大小为10M；老年代最小为40M，最大为60M
+ * 3. -Xmn10M -Xms40M -Xmx60M -XX:+PrintCommandLineFlags -XX:+PrintGCDetails 设置新生代大小为10M；老年代最小为40M，最大为60M；使用PS+PO
+ * 4. -Xmn10M -Xms40M -Xmx60M -XX:+UseConcurrentMarkSweepGC -XX:+PrintGCDetails 使用CMS
+ * 5. -Xmn10M -Xms40M -Xmx60M -XX:+UseG1GC -XX:+PrintGCDetails 使用G1
  *
  * @author smalle
  * @date 2020-07-05 19:12
@@ -552,9 +600,12 @@ public class T02_HelloGC {
     }
 }
 ```
-- 上文使用`-Xmn10M -Xms40M -Xmx60M -XX:+PrintGCDetails`产生如下OOM日志
+
+<details>
+<summary>GC日志</summary>
 
 ```bash
+## 使用PS+PO产生如下OOM日志
 # GC表示产生了YGC
     # (Allocation Failure)为产生原因
     # PSYoungGen表示使用PS进行年轻代回收(还有如DefNew表示单线程Serial进行年轻代回收)
@@ -603,19 +654,30 @@ Heap
 # 报错信息
 Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 	at cn.aezo.jvm.c05_gc.T02_HelloGC.main(T02_HelloGC.java:23)
+
+## 使用CMS日志类似
+
+
+
+## 使用G1日志类似
 ```
+</details>
 
 ### 调优前的基础概念
 
 - 吞吐量：用户代码时间 / (用户代码执行时间 + 垃圾回收时间)
 - 响应时间：STW越短，响应时间越好
-- 所谓调优，首先确定，追求啥？吞吐量优先；还是响应时间优先；还是在满足一定的响应时间的情况下，要求达到多大的吞吐量...
-    - 科学计算、数据挖掘等：一般注重吞吐量，因此可使用PS + PO
+- 所谓调优，首先确定，追求啥？吞吐量优先；还是响应时间优先；还是在满足一定的响应时间的情况下，要求达到多大的吞吐量
+    - 科学计算、数据挖掘等：一般注重吞吐量，因此可使用PS+PO
     - 网站、GUI、API等：一般注重响应时间，因此可使用G1等
 - 什么是调优
     - 根据需求进行JVM规划和预调优
     - 优化运行JVM运行环境(慢，卡顿)
     - 解决JVM运行过程中出现的各种问题(OOM)
+
+### 调优实践
+
+- 参考[Java应用CPU和内存异常分析.md](/_posts/devops/Java应用CPU和内存异常分析.md)
 - JVM规划和预调优
     - 调优一般可先从业务场景开始
     - 无监控(压力测试，能看到结果)不调优。估算一个事务会消耗多少内存，可用压测来确定，看能承受多少TPS
@@ -645,23 +707,98 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
         - 12306的一种可能的模型：下单 -> 减库存(redis，redis可支撑单机1W并发) 和 订单(kafka) 同时(多线程)异步进行 -> 等付款
         - 如果把库存记录在一台机器上，则减库存最后还会把压力压到一台服务器。可以做分布式本地库存 + 单独服务器做库存均衡
         - 大流量的处理方法：分而治之
+- 优化环境
+    - 系统CPU经常100%，如何调优？(面试高频)
+        - CPU 100%那么一定有线程在占用系统资源，找出哪个进程cpu高 (top)
+        - 该进程中的哪个线程cpu高 (top -Hp)
+        - 导出该线程的堆栈 (jstack)
+        - 查找哪个方法(栈帧)消耗时间 (jstack)
+        - 工作线程占比高(while死循环)、垃圾回收线程占比高(内存不足)
+    - 系统内存飙高，如何查找问题？（面试高频）
+        - 导出堆内存 (jmap)
+        - 分析 (jhat、jvisualvm、mat、jprofiler ... )
+    - 如何监控JVM
+        - jstat、jvisualvm、jprofiler、arthas、top...
+- 解决JVM运行中的问题
+    - `java -Xms200M -Xmx200M -XX:+PrintGC HelloWorld` 启动问题程序
+    - **`top`** 命令观察到问题：内存不断增长 CPU占用率居高不下，且某个进程占CPU较高
+        - **`top -Hp <pid>`** 观察进程中的线程，哪个线程CPU和内存占比高
+    - `jps` 定位具体java进程
+    - **`jstack <pid>`** 定位线程状况，重点关注：`WAITING`、`BLOCKED`
+        - eg. waiting on <0x0000000088ca3310> (a java.lang.Object) 假如有一个进程中100个线程，很多线程都在waiting on(等待0x0000000088ca3310这把锁/地址编号)，一定要找到是哪个线程持有这把锁。怎么找？执行`jstack <pid> | grep 0x0000000088ca3310`看哪个线程持有这把锁(该线程可能处于RUNNABLE)
+        - 为什么阿里规范里规定，线程的名称（尤其是线程池）都要写有意义的名称，就是为了容易定位线程的功能
+    - `jinfo <pid>` 列举JVM的一些信息
+    - `jstat -gc` 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
+        - `arthas`/`jvisualvm`/`jconsole`/`Jprofiler`(最好用，收费)
+            - [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(阿尔萨斯)，常用命令如下
+                - 为什么需要在线排查
+                    - 在生产上我们经常会碰到一些不好排查的问题，例如线程安全问题，用最简单的threaddump或者heapdump不好查到问题原因
+                    - 为了排查这些问题，有时我们会临时加一些日志，比如在一些关键的函数里打印出入参，然后重新打包发布，如果打了日志还是没找到问题，继续加日志，重新打包发布
+                    - 对于上线流程复杂而且审核比较严的公司，从改代码到上线需要层层的流转，会大大影响问题排查的进度
+                - `jvm` 观察jvm信息，类似jinfo
+                - `thread` 定位线程问题，类似jstack
+                - `dashboard` 观察系统情况
+                - `heapdump` 相当于使用jmap导出堆信息，也会影响线上程序
+                - `jad` 反编译。主要用于：动态代理生成类的问题定位、第三方的类、版本问题(确定自己最新提交的版本是不是被使用)
+                - `redefine` 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
+                - `sc` search class
+                - `watch` watch method
+                - 没有包含的功能：`jmap -histo`
+            - jvisualvm远程连接：https://www.cnblogs.com/liugh/p/7620336.html
+            - jconsole远程连接
+                - `java -Djava.rmi.server.hostname=192.168.6.134 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=11111 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false HelloWorld` 增加JMX相关参数
+                - 如果遭遇 Local host name unknown：XXX的错误，修改/etc/hosts文件，把XXX加入进去
+                - 关闭linux防火墙（并且应该打开对应端口远程访问）
+                - windows上打开 jconsole远程连接 192.168.6.134:11111
+            - 如果面试官问你是怎么定位OOM问题的？如果你回答用图形界面（错误）
+                - 已经上线的系统不应该启用JMX进程影响生产环境，而应该使用cmd命令、arthas
+                - 图形界面主要用在测试的时候进行监控（压测观察）
+        - `jstat -gc <pid> 500`：每个500个毫秒打印GC的情况
+    - **`jmap -histo <pid> | head -20*`** 查找有多少对象产生(线上执行影响相对较小)
+    - **`jmap -dump:format=b,file=/home/dump.hprof <pid>`** 导出堆转储文件
+        - **线上系统，内存特别大，jmap执行期间会对进程产生很大影响，甚至卡顿**(可在重启前下载dump文件)
+            - 很多服务器备份(高可用)，停掉这台服务器对其他服务器不影响(**此方案比较通用**)
+            - 设定-XX:+HeapDumpOnOutOfMemoryError参数，当OOM的时候会自动产生堆转储文件(线上也不是很好的方案)
+            - 在线定位(一般小点儿公司用不到)
+        - 使用jhat/jvisualvm/MAT进行dump文件分析。[jhat使用](https://www.cnblogs.com/baihuitestsoftware/articles/6406271.html)
+            - `jhat -J-mx512M /home/dump.hprof` 使用512M内存进行dump文件分析，分析时间可能较长。分析完后会在本地启动一个7000端口来展示结果信息，可以在线使用OQL语句进行查找特定对象
+            - `jvisualvm` 文件 - 装入dump文件，也可使用OQL语句进行查找
+    - 找到代码的问题
 
+### 一些案例
 
+- 线程池不当运用产生OOM问题，见T03_FullGC_Problem01
+- tomcat http-header-size过大问题。如：server.max-http-header-size=10000000
+    - `Http11OutputBuffer`对象占用太大内存
+- 重写finalize引发频繁GC
+    - 小米云，HBase同步系统，系统通过nginx访问超时报警，最后排查，C++程序员重写finalize引发频繁GC问题
+    - 可能重写的finalize中有耗时比较长的逻辑
+- Distuptor有个可以设置链的长度，如果过大，然后对象大，消费完不主动释放，会溢出
+- 硬件升级系统反而卡顿的问题
+    - 当内存越大，每次FGC(产生STW)时间可能越长，如CMS可能会出现使用SerialOld进行FGC
+- 栈溢出问题，如a方法中调用a方法。可通过`-Xss`设定太小
+- 如果有一个系统，内存一直消耗不超过10%，但是观察GC日志，发现FGC总是频繁产生，会是什么引起的。可能手动调用了System.gc(会产生FGC)
+- lambda表达式导致方法区溢出问题(MethodArea/Perm Metaspace)
+    - `-XX:MaxMetaspaceSize=10M -XX:+PrintGCDetails` 设置方法区大小
+    - 产生错误：java.lang.OutOfMemoryError: Compressed class spacce
+- 直接内存溢出问题(少见)
+    - 《深入理解Java虚拟机》P59，使用Unsafe分配直接内存，或者使用NIO的问题
+- mycat用崩过，1.6.5某个临时版本解析sql子查询算法有问题，9个exists的联合sql就导致生成几百万的对象
+- new 大量线程，会产生 native thread OOM
+    - 应该用线程池，解决方案减少堆空间，预留更多内存产生native thread
+    - JVM内存占物理内存比例一般是50% - 80%
+- 下面第一种方式更好
 
+```java
+Object o = null;
+for(int i=0; i<100; i++) {
+    o = new Object();
+}
 
-
-
-
-119 JVM实战调优 地址
-
-124 JVM实战调优 地址
-
-128 垃圾回收算法串讲 地址
-
-132 JVM常见参数总结 地址
-
-
-
+for(int i=0; i<100; i++) {
+    Object o = new Object();
+}
+```
 
 ## jvm常用配置
 
@@ -682,7 +819,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 -Xss|	JDK1.5+ | 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的
 -XX:NewRatio||	新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
 -XX:SurvivorRatio||	新生代中 Eden 与 Survivor 的比值。默认值为 8。即 Eden 占新生代空间的 8/10，另外两个 Survivor 各占 1/10
--XX:+UseConcMarkSweepGC||    指定使用的垃圾收集器，这里使用CMS收集器
+-XX:+UseConcMarkSweepGC||    指定使用的垃圾回收器，这里使用CMS收集器
 -XX:ErrorFile||    设置jvm致命错误日志文件生成位置(默认生成在工作目录下)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
 
 - 自定义jvm参数

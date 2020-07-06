@@ -438,7 +438,7 @@ tags: [oracle, dba, sql]
   - Handler_read_rnd：从固定位置读取数据的次数
   - **Handler_read_rnd_next**：从数据节点读取下一条数据的次数(越大越好)
 
-### _查询优化_
+### 查询优化
 
 - 查询慢的原因：网络、CPU、IO、上下文切换、系统调用、生成统计信息、锁等待时间
 - 优化数据访问：减少访问数据量，需要考虑是否向数据库请求了不需要的数据
@@ -708,28 +708,36 @@ select count(1)
 
 ### 批量更新优化
 
-- 批量更新基于 PL/SQL 更新
+> https://www.cnblogs.com/Marydon20170307/p/10097243.html
+
+- 批量更新基于 PL/SQL 分批提交更新
   - `update`语句比较耗资源
     - 测试一条 update 语句修改`2w`条数据(总共`18w`条数据的表，查询出这 2w 条很快)，运行时间太长，基本不可行
     - 在`200w`的数据中修改`300`条数据，set 基于临时表，where 中基于临时表嵌套其他表和结合 exists 进行数据过滤，耗时`3s`
   - 使用 PL/SQL Developer 里面的 Test Window(可进行调试)写循环更新，`2w`条更新耗时`0.7s`。如果数据量再大一些可以分批 commit
-- `forall`与`bulk collect`语句提高效率 [^2] [^3]
+- **`bulk collect`与`forall`**语句提高效率 [^2] [^3]
 
 ```sql
 declare
   -- 作废大连分办关联的客户 (5000条)
   cursor c is select * from t_structure_customer sc where sc.valid_status = 1 and sc.structure_id = (select s.id from t_structure s where s.node_code = 'DLC' and s.node_level = 10);
-  type tb_structure is table of t_structure_customer%rowtype;
+  type tb_structure is table of c%rowtype;
   rd_structure tb_structure;
 
   n_visit number := 0;
   n_office number := 0;
-
-  n_commit_count number := 0;
 begin
   open c;
   loop
-    fetch c bulk collect into rd_structure limit 500; -- PL/SQL引擎会向SQL引擎发送 10 次请求. 最终跑完耗时3分钟左右(下面的select可以再优化成只查询一次？？？)
+    fetch c bulk collect into rd_structure limit 500; -- PL/SQL引擎会向SQL引擎发送 10 次请求. 最终跑完耗时3分钟左右(下面的select可以再优化成只查询一次？)
+    exit when c%notfound;
+
+    /*
+    -- forall的性能高于for的性能
+    forall i in 1..rd_structure.count
+      update t_customer c set c.valid_status = 0, c.update_tm = sysdate where c.valid_status = 1 and c.id = rd_structure(i).customer_id;
+    commit;
+    */
     for i in 1..rd_structure.count loop
       -- 是否有拜访记录. 拜访记录有 200w 条数据, 如果不使用bulk collect的情况下，基本无法运行(卡死，在loop的第一行都无法输出任何数据)。如果此处select小表还可以执行完此程序
       select count(1) into n_visit from t_visit v where v.valid_status = 1 and v.customer_id = rd_structure(i).customer_id;
@@ -748,10 +756,6 @@ begin
     end loop;
 
     commit;
-    n_commit_count := n_commit_count + 1;
-    dbms_output.put_line(n_commit_count);
-
-    exit when c%notfound;
   end loop;
   close c;
 end;
@@ -759,7 +763,7 @@ end;
 
 ### Oracle 执行计划(Explain Plan) [^1]
 
-- 在 PL/SQL 的`Explain plan window`中执行并查看
+- 在 **PL/SQL** 的`Explain plan window`中执行并查看
 - sqlplus 下执行
   - `explain plan for select * from emp;` 创建执行计划
   - `select * from table(dbms_xplan.display);` 查看执行计划

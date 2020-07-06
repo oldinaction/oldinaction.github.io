@@ -746,6 +746,28 @@ end;
     - 每半年定时执行(7.1和1.1) `interval => add_months(trunc(sysdate, 'yyyy'),6)+1/24`
     - 每年定时执行 `interval => add_months(trunc(sysdate, 'yyyy'), 12)+1/24`
 
+## SqlServer
+
+-CET和表变量
+
+```sql
+-- 方式一
+select * from Customer where Id in (select EntityId from GenericAttribute where [Key] = 'FirstName' and [Value] = 'John');
+
+-- 方式二：使用表变量，维护性增高(子句不能有分号)；表变量实际上使用了临时表，从而增加了额外的I/O开销，不太适合数据量大且频繁查询的情况
+declare @t table(EntityId nvarchar(3))
+insert into @t(EntityId) (select EntityId from GenericAttribute where [Key] = 'FirstName' and [Value] = 'John')
+select * from Customer where Id in (select * from @t);
+
+-- 方式三：使用CTE公用表表达式，性能高于表变量；其中ca是一个自定义的公用表表达式
+with
+ca as
+(
+	select EntityId from GenericAttribute where [Key] = 'FirstName' and [Value] = 'John'
+)
+select * from Customer where Id in (select * from ca);
+```
+
 
 
 ---
