@@ -1107,7 +1107,7 @@ helm del --purge jenkins # 如果删除部署后重新部署，会重新创建�
     - 会默认安装插件Kubernetes，可基于k8s创建agent。即构建时会自动创建子pod(slave节点，镜像jenkins/jnlp-slave)，workspace目录则保存在执行任务的slave节点上，当构建完成后会自动删除子pod(包括任务的工作空间)。更多参考[jenkins](/_posts/devops/jenkins.md#Kubernetes(连接k8s创建jenkins-agent))
     - 多次部署更新jenkins，历史安装的插件不会丢失。如果删除部署后重新部署，会重新创建新PV
     - 容器中jenkins数据目录为 `/var/jenkins_home`
-    - jenkins pod重启创建需要初始化，初始化会安装插件，此过程耗时较长，测试时达到40分钟(可使用插件的国内镜像)
+    - jenkins pod重启创建需要初始化，初始化会安装插件(可在日志-初始容器copy-default-config查看安装日志)。此过程耗时较长，测试时达到40分钟(可使用插件的国内镜像)
 
 ### OpenLDAP
 

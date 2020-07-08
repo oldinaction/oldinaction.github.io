@@ -104,6 +104,8 @@ tags: [ide, web]
     },
 	```
 - `Bracket Pair Colorizer 2` 代码括号对应颜色标识
+- `Git Graph` git图片提交历史图形界面
+- `GitLens` 显示每一行的提交人(会卡顿)
 - `Flutter` Flutter开发插件
 
 ### php debug

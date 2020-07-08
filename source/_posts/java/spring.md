@@ -342,7 +342,7 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 }
 ```
 
-### 属性赋值
+### 属性赋值(@Value)
 
 - `@Value` 在其中输入EL表达式(Spring-EL)。可对资源进行注入
 - `@PropertySource` 注入外部配置文件值。springboot通过spring-boot-configuration-processor这个依赖会把配置文件的值注入到@Value里面
@@ -355,17 +355,33 @@ public class ELConfig {
     @Value("I Love You") // 基本数值赋值
     private String normal;
 
+    @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止未定义此参数值(特别是通过命令行传入的参数)
+    private String siteUrl;
+
+    // 对于普通的Boolean(值不要加引号)、Integer、Long、Float、Double均可使用${xxx}直接导入
+    @Value("#{${site.time}}") // site.time=24*7，此处进行了计算
+    private Long siteTime;
+
+    @Value("${site.tags}")
+    private String[] tags; // 获取数组，yml中可定义site.tags=a,b,c # 默认会基于`,`分割。(yml中使用`-`则需要定义配置类实体)
+
+    @Value("#{'${test.array}'.split(',')}") // test.array=1,2,3
+    private String[] testArray;
+
+    @Value("#{'${test.list}'.split(',')}")  // test.list=1,2,3
+    private List<String> testList;
+
+    @Value("#{'${test.set}'.split(',')}")   // test.set=1,2,3
+    private Set<String> testSet;
+
+    @Value("#{${test.map}}")                // test.map={name:"张三", age:18}
+    private Map<String, Object> testMap;
+
     @Value("#{systemProperties['os.name']}") // 获取系统名称. SpEL: @Value("#{20-2}") => 18
     private String osName;
 
     @Value("#{T(java.lang.Math).random() * 100.0}")
     private String randomNumber;
-
-    @Value("${site.url:www.aezo.cn}/index.html") // 读取配置文件(需要注入配置文件)，使用$而不是#。冒号后面是缺省值. `${site.url:}`无则为""，防止未定义此参数值(特别是通过命令行传入的参数)
-    private String siteUrl;
-
-    @Value("${site.tags}")
-    private String[] tags; // 获取数组，yml中可定义site.tags=a,b,c # 默认会基于`,`分割。(yml中使用`-`则需要定义配置类实体)
 
     @Value("#{demoService.another}") // 读取其他类属性的@Value注解值
     private String fromAnother;

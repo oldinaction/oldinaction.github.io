@@ -15,7 +15,7 @@ tags: [LB, HA]
         - 第四层如：`lvs`(只能操作ip和端口，在操作系统内核中)
         - 第七层(应用层：http/ajp/https)如：`nginx`、`httpd`(apache)、`haproxy`
 - Lvs的组成包括 `ipvs` 和 `ipvsadm`
-    - ipvs(ip virtual server)：一段代码工作在内核空间，叫ipvs，是真正生效实现调度的代码(所有的linux都有此功能)
+    - ipvs(ip virtual server)：一段代码工作在内核空间，叫ipvs(所有的linux都有此功能)
     - ipvsadm：另外一段是工作在用户空间，叫ipvsadm，负责为ipvs内核框架编写规则，定义谁是集群服务，而谁是后端真实的服务器(Real Server)。安装`yum install ipvsadm -y`
 - lvs默认是用的`wlc`调度算法：会根据后端 RS 的连接数来决定把请求分发给谁，比如 RS1 连接数比 RS2 连接数少，那么请求就优先发给 RS1。并考虑权重
 - 相关术语
@@ -30,12 +30,12 @@ tags: [LB, HA]
 
 ![LVS/NAT](/data/images/arch/lvs-nat.png)
 
-1. 当用户请求到达Director Server，此时请求的数据报文会先到内核空间的PREROUTING链。 此时报文的源IP为CIP，目标IP为VIP 
-2. PREROUTING检查发现数据包的目标IP是本机，将数据包送至INPUT链
-3. IPVS比对数据包请求的服务是否为集群服务，若是，修改数据包的目标IP地址为后端服务器IP，然后将数据包发至POSTROUTING链。 此时报文的源IP为CIP，目标IP为RIP 
-4. POSTROUTING链通过选路，将数据包发送给Real Server
-5. Real Server比对发现目标为自己的IP，开始构建响应报文发回给Director Server。 此时报文的源IP为RIP，目标IP为CIP 
-6. Director Server在响应客户端前，此时会将源IP地址修改为自己的VIP地址，然后响应给客户端。 此时报文的源IP为VIP，目标IP为CIP
+- 当用户请求到达Director Server，此时请求的数据报文会先到内核空间的PREROUTING链。 此时报文的源IP为CIP，目标IP为VIP 
+- PREROUTING检查发现数据包的目标IP是本机，将数据包送至INPUT链
+- IPVS比对数据包请求的服务是否为集群服务，若是，修改数据包的目标IP地址为后端服务器IP，然后将数据包发至POSTROUTING链。 此时报文的源IP为CIP，目标IP为RIP 
+- POSTROUTING链通过选路，将数据包发送给Real Server
+- Real Server比对发现目标为自己的IP，开始构建响应报文发回给Director Server。 此时报文的源IP为RIP，目标IP为CIP 
+- Director Server在响应客户端前，此时会将源IP地址修改为自己的VIP地址，然后响应给客户端。 此时报文的源IP为VIP，目标IP为CIP
 
 ## LVS的DR模式实践
 

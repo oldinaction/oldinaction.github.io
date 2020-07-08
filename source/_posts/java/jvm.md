@@ -216,7 +216,7 @@ tags: [jvm]
 - [对象怎么定位](https://blog.csdn.net/clover_lily/article/details/80095580)
     - 句柄池、直接指针
     - 不同的JVM实现可能不同，HotSpot使用的直接指针(寻找对象快，GC相对慢)
-- 对象怎么分配
+- 对象怎么分配，见下文垃圾回收器
 - Object o = new Object()在内存中占用多少字节(64位系统)
     - 基于jvm agent完成：在将class加载到内存是，会先执行指定的agent，此时可拦截class进行操作(如获取大小)。参考[ObjectSizeAgent.java.bak](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c03_object_size/ObjectSizeAgent.java.bak)
     - 开启ClassLoader压缩：8(markword) + 4(ClassPointer指针) + 0(无实例数据/属性) + 4(Padding对齐) = 16字节
@@ -356,7 +356,7 @@ public class T01_IntAddAdd {
 - `Major GC/Full GC` 在老年代无法继续分配空间时触发，新生代老年代同时进行回收(比较慢、重量级)
 - `STW`(Stop The World) 所有的工作线程必须停下等垃圾回收完成
 
-### 处理垃圾相关算法
+### 垃圾清除算法
 
 - 垃圾(Garbage)
     - 没有任何引用指向的一个对象或多个对象就是垃圾
@@ -518,7 +518,7 @@ public class T01_IntAddAdd {
                     - `-XX:CMSFullGCsBeforeCompaction` 默认为0，指经过多少次FGC才进行压缩
             - Floating Garbage(浮动垃圾，在concurrent sweep并发清理的同时产生的垃圾)
                 - -XX:CMSInitiatingOccupancyFraction 92%(JDK1.8默认，当老年代使用到达92%时触发FGC。可适当调小从而给浮动垃圾多留一点空间，下次并发回收便会清理)
-    - `G1`(Garbadge First Collector)，参考：https://www.oracle.com/technical-resources/articles/java/g1gc.html
+    - `G1`(Garbadge First Collector)，参考：https://www.oracle.com/cn/technical-resources/articles/java/g1gc.html
         - G1使用算法：**三色标记 + SATB**
         - STW时间为10ms左右；响应时间比CMS高，但是吞吐量比CMS差15%左右
         - 内存结构
@@ -530,6 +530,8 @@ public class T01_IntAddAdd {
             - Initial mark
             - Root region scanning
             - Concurrent marking
+            - Remark
+            - Cleanup
         - G1包括YGC、MixedGC(相当于一个CMS)、FGC
         - G1产生FGC时处理
             - 扩内存、提高CPU性能
@@ -655,11 +657,77 @@ Heap
 Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 	at cn.aezo.jvm.c05_gc.T02_HelloGC.main(T02_HelloGC.java:23)
 
-## 使用CMS日志类似
+
+## 使用CMS日志(非上文案例)
+# ParNew：年轻代收集器
+    # 6144->640(6144)：收集前后的对比 (整个年轻代容量)
+    # 6585->2770(19840)：整个堆的前后对比情况 (整个堆大小)
+[GC (Allocation Failure) [ParNew: 6144K->640K(6144K), 0.0265885 secs] 6585K->2770K(19840K), 0.0268035 secs] [Times: user=0.02 sys=0.00, real=0.02 secs]
+# CMS Initial Mark 进入初始化标记阶段，老年代GC开始
+    # 8511 (13696) 老年代使用 (老年代最大使用空间)
+    # 9866 (19840) 整个堆使用 (整个堆使用最大使用空间)
+[GC (CMS Initial Mark) [1 CMS-initial-mark: 8511K(13696K)] 9866K(19840K), 0.0040321 secs] [Times: user=0.01 sys=0.00, real=0.00 secs]
+# 并发标记开始
+[CMS-concurrent-mark-start]
+[CMS-concurrent-mark: 0.018/0.018 secs] [Times: user=0.01 sys=0.00, real=0.02 secs] 
+# 标记Card为Dirty，也称为Card Marking
+[CMS-concurrent-preclean-start]
+[CMS-concurrent-preclean: 0.000/0.000 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+# Remark重新标记极端，会出现STW
+    # YG occupancy:年轻代占用及容量
+	# Rescan (parallel)：STW下的存活对象标记
+	# weak refs processing: 弱引用处理
+	# class unloading: 卸载用不到的class
+	# scrub symbol(string) table: 
+		# cleaning up symbol and string tables which hold class-level metadata and 
+		# internalized string respectively
+	# CMS-remark: 8511K(13696K) 阶段过后的老年代占用及容量；10108K(19840K) 阶段过后的堆占用及容量
+[GC (CMS Final Remark) [YG occupancy: 1597 K (6144 K)][Rescan (parallel) , 0.0008396 secs][weak refs processing, 0.0000138 secs][class unloading, 0.0005404 secs][scrub symbol table, 0.0006169 secs][scrub string table, 0.0004903 secs][1 CMS-remark: 8511K(13696K)] 10108K(19840K), 0.0039567 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+# 标记已经完成，进行并发清理
+[CMS-concurrent-sweep-start]
+[CMS-concurrent-sweep: 0.005/0.005 secs] [Times: user=0.00 sys=0.00, real=0.01 secs]
+# 重置内部结构，为下次GC做准备 
+[CMS-concurrent-reset-start]
+[CMS-concurrent-reset: 0.000/0.000 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
 
 
-
-## 使用G1日志类似
+## 使用G1日志(非上文案例)
+# 年轻代 Evacuation => 复制存活对象 
+    # initial-mark 混合回收的阶段，这里是YGC+老年代一起回收
+[GC pause (G1 Evacuation Pause) (young) (initial-mark), 0.0015790 secs]
+   [Parallel Time: 1.5 ms, GC Workers: 1] # 一个GC线程
+      [GC Worker Start (ms):  92635.7]
+      [Ext Root Scanning (ms):  1.1]
+      [Update RS (ms):  0.0]
+         [Processed Buffers:  1]
+      [Scan RS (ms):  0.0]
+      [Code Root Scanning (ms):  0.0]
+      [Object Copy (ms):  0.1]
+      [Termination (ms):  0.0]
+         [Termination Attempts:  1]
+      [GC Worker Other (ms):  0.0]
+      [GC Worker Total (ms):  1.2]
+      [GC Worker End (ms):  92636.9]
+   [Code Root Fixup: 0.0 ms]
+   [Code Root Purge: 0.0 ms]
+   [Clear CT: 0.0 ms]
+   [Other: 0.1 ms]
+      [Choose CSet: 0.0 ms]
+      [Ref Proc: 0.0 ms]
+      [Ref Enq: 0.0 ms]
+      [Redirty Cards: 0.0 ms]
+      [Humongous Register: 0.0 ms]
+      [Humongous Reclaim: 0.0 ms]
+      [Free CSet: 0.0 ms]
+   [Eden: 0.0B(1024.0K)->0.0B(1024.0K) Survivors: 0.0B->0.0B Heap: 18.8M(20.0M)->18.8M(20.0M)]
+ [Times: user=0.00 sys=0.00, real=0.00 secs] 
+# 以下是混合回收其他阶段
+[GC concurrent-root-region-scan-start]
+[GC concurrent-root-region-scan-end, 0.0000078 secs]
+[GC concurrent-mark-start]
+# 无法evacuation，进行FGC
+[Full GC (Allocation Failure)  18M->18M(20M), 0.0719656 secs]
+   [Eden: 0.0B(1024.0K)->0.0B(1024.0K) Survivors: 0.0B->0.0B Heap: 18.8M(20.0M)->18.8M(20.0M)], [Metaspace: 3876K->3876K(1056768K)] [Times: user=0.07 sys=0.00, real=0.07 secs]
 ```
 </details>
 
@@ -800,49 +868,92 @@ for(int i=0; i<100; i++) {
 }
 ```
 
-## jvm常用配置
+## JVM常用配置
 
 - [oracle推荐jvm配置(含默认值)](http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html)
 
- 配置参数|	版本|功能
- ---------| ---------|----------
--Xms||	**初始堆大小**。如：`-Xms512m`(如果资源充足也可把初始堆和最大堆设置成一致)
--Xmx||	**最大堆大小**。如：`-Xmx1g`
--XX:+PrintGCDetails||	打印 GC 信息
--XX:+HeapDumpOnOutOfMemoryError||    **让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用**
--XX:HeapDumpPath=/home/jvmlogs| |    **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
--XX:MaxMetaspaceSize=128m|  JDK8+| 元空间最大大小(类似-XX:MaxPermSize)
--XX:MetaspaceSize=128m| JDK8+| 元空间默认大小(类似-XX:PermSize)
--XX:MaxPermSize=64m|    JDK8-|	永久代/方法区/非堆区的最大值(默认64M)，太小容易出现`java.lang.OutOfMemoryError: PermGen space`。如：`-XX:MaxPermSize=512m`
--XX:PermSize64m|   JDK8-|	永久代/方法区/非堆区的初始大小(默认64M)。如：`-XX:PermSize=256m`
--Xmn||	新生代大小。通常为 Xmx 的 1/3 或 1/4。`新生代 = Eden + 2 个 Survivor 空间`。实际可用空间为 = Eden + 1 个 Survivor，即 90%
--Xss|	JDK1.5+ | 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的
--XX:NewRatio||	新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
--XX:SurvivorRatio||	新生代中 Eden 与 Survivor 的比值。默认值为 8。即 Eden 占新生代空间的 8/10，另外两个 Survivor 各占 1/10
--XX:+UseConcMarkSweepGC||    指定使用的垃圾回收器，这里使用CMS收集器
--XX:ErrorFile||    设置jvm致命错误日志文件生成位置(默认生成在工作目录下)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
+### GC常用参数
 
-- 自定义jvm参数
+- `-Xmn -Xms -Xmx -Xss` **年轻代 最小堆(如果资源充足也可把初始堆和最大堆设置成一致) 最大堆 栈空间**
+    - -Xms512m、-Xmx1g
+    - 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的
+    - `-XX:MetaspaceSize=128m` 需JDK1.8+，元空间最大大小(类似`-XX:MaxPermSize`)
+    - `-XX:MaxPermSize=512m` 需JDK1.7及以下，设置永久代/方法区最大值(默认64M)，太小容易出现`java.lang.OutOfMemoryError: PermGen space`
+- `-XX:+PrintGC`
+- `-XX:+PrintGCDetails` **打印GC详细信息**
+- `-XX:+PrintGCTimeStamps`
+- `-XX:+PrintHeapAtGC` 每次GC打印堆信息
+- `-XX:+PrintFlagsFinal` `-XX:+PrintFlagsInitial` **打印最终参数和初始参数**
+- `-XX:+PrintVMOptions`
+- `-verbose:class` 类加载详细过程
+- `-XX:+HeapDumpOnOutOfMemoryError` **让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用**
+- `-XX:HeapDumpPath=/home/jvmlogs` **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
+- `-XX:ErrorFile` 设置jvm致命错误日志文件生成位置(默认生成在工作目录下)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
+- `-Xloggc:opt/log/gc.log`
+- `-XX:NewRatio` 新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
+- `-XX:MaxTenuringThreshold` 升代年龄，最大值15
+- `-XX:+PrintGCApplicationConcurrentTime` 打印应用程序时间
+- `-XX:+PrintGCApplicationStoppedTime` 打印暂停时长
+- `-XX:+PrintReferenceGC` 记录回收了多少种不同引用类型的引用
+- `-XX:+DisableExplictGC` 默认开启，忽略System.gc命令，此命令会产生FGC
+- `-XX:+UseTLAB` 使用TLAB，默认打开
+- `-XX:+PrintTLAB` 打印TLAB的使用情况
+- `-XX:TLABSize` 设置TLAB大小
+- `-XX:PreBlockSpin` 锁自旋次数
+- `-XX:CompileThreshold` 热点代码检测参数，还有如逃逸分析、标量替换
+
+### Parallel常用参数
+
+- `-XX:SurvivorRatio=8` 设置Survivor比例(Eden、Survivor默认是8:1:1)
+- `-XX:PreTenureSizeThreshold` 超过这个值的时候，对象直接在old区分配内存。默认值是0，意思是不管多大都是先在eden中分配内存
+- `-XX:MaxTenuringThreshold` 控制新生代需要经历多少次GC晋升到老年代中的最大阈值。在JVM中用4个bit存储（放在对象头中），所以其最大值是15(CMS默认为6)
+- `-XX:+ParallelGCThreads` 并行收集器的线程数，同样适用于CMS，一般设为和CPU核数相同
+- `-XX:+UseAdaptiveSizePolicy` 自动选择各区大小比例
+
+### CMS常用参数
+
+- `-XX:+UseConcMarkSweepGC` 使用CMS垃圾回收器
+- `-XX:ParallelCMSThreads` CMS线程数量
+- `-XX:CMSInitiatingOccupancyFraction` 使用多少比例的老年代后开始CMS收集，默认是68%(近似值)。如果频繁发生SerialOld卡顿，应该调小(频繁CMS回收)
+- `-XX:+UseCMSCompactAtFullCollection` 在FGC时进行压缩
+- `-XX:CMSFullGCsBeforeCompaction` 多少次FGC之后进行压缩
+- `-XX:+CMSClassUnloadingEnabled` 垃圾回收会清理持久代，移除不再使用的classes；默认不开启
+- `-XX:CMSInitiatingPermOccupancyFraction` 达到什么比例时进行Perm回收
+- `-XX:GCTimeRatio` 设置吞吐量大小(GC时间占用程序运行时间的百分比)，它的值是一个 0-100 之间的整数。假设 GCTimeRatio 的值为n，那么系统将花费不超过 1/(1+n) 的时间用于垃圾收集
+- `-XX:MaxGCPauseMillis` 停顿时间，是一个建议时间，GC会尝试用各种手段达到这个时间，比如减小年轻代
+
+### G1常用参数
+
+- `-XX:+UseG1GC` 使用G1垃圾回收器
+- `-XX:MaxGCPauseMillis` 建议值，G1会尝试调整Young区的块数来达到这个值
+- `-XX:GCPauseIntervalMillis` 停顿间隔时间
+- `-XX:+G1HeapRegionSize` 分区(Region)大小，取值范围从1M到32M，且是2的指数。如果不设定，那么G1会根据Heap大小自动决定。建议逐渐增大，因为随着size增加，垃圾的存活时间更长，GC间隔更长，但每次GC的时间也会更长(ZGC做了改进，动态区块大小)
+- `-XX:G1NewSizePercent` 新生代最小比例，默认为5%
+- `-XX:G1MaxNewSizePercent` 新生代最大比例，默认为60%
+- `-XX:GCTimeRatio` GC时间建议比例，G1会根据这个值调整堆空间
+- `-XX:ConcGCThreads` 线程数量
+- `-XX:InitiatingHeapOccupancyPercent` 启动G1的堆空间占用比例，默认45%
+
+
+### JVM参数使用
+
+- jvm配置位置
+    - `java`：`java -XX:PrintFlagsFinal -version`
+    - `tomcat`：修改`%TOMCAT_HOME%/bin/catalina.bat`或`%TOMCAT_HOME%/bin/catalina.sh`中的`JAVA_OPTS`，在`echo "Using CATALINA_BASE:   $CATALINA_BASE"`上面加入以下行：`JAVA_OPTS="-server -Xms256m -Xmx512m`(启动时运行的startup.bat/startup.sh，其内部调用catalina.bat)
+    - `weblogic`：修改`bea/weblogic/common中CommEnv`中参数
+    - `springboot`：可直接加在java命令后面，如`java -Xms256 -jar xxx.jar`
+    - `idea`：Run/Debug Configruations中修改VM Options(单独运行tomcat或者springboot项目都如此)
+    - `eclipse`：修改eclipse中tomcat的配置
+- 自定义JVM参数
 
 ```java
-// 格式
-// -D<name>=<value>
-// System.getProperty(<name>)
-
+// 自定义JVM参数格式 -D<name>=<value>
 // 示例
 java -Dtest.name=aezocn -jar app.jar // 启动添加参数。值如果有空格可以使用""
 System.getProperty("test.name") // 程序中取值，无此参数则为null
 ```
 
-## jvm配置位置
-
-- `tomcat`：修改`%TOMCAT_HOME%/bin/catalina.bat`或`%TOMCAT_HOME%/bin/catalina.sh`中的`JAVA_OPTS`，在`echo "Using CATALINA_BASE:   $CATALINA_BASE"`上面加入以下行：`JAVA_OPTS="-server -Xms256m -Xmx512m`(启动时运行的startup.bat/startup.sh，其内部调用catalina.bat)
-- `weblogic`：修改`bea/weblogic/common中CommEnv`中参数
-- `springboot`：可直接加在java命令后面，如`java -Xms256 -jar xxx.jar`
-- `idea`：Run/Debug Configruations中修改VM Options(单独运行tomcat或者springboot项目都如此)
-- `eclipse`：修改eclipse中tomcat的配置
-
-## 常用配置推荐
+### 常用配置推荐
 
 - 启动脚本
 
@@ -871,30 +982,14 @@ VMARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:HeapDumpPath=/home/jvmlogs
 # 开启JMX远程连接
--Djava.rmi.server.hostname=192.168.1.1
--Dcom.sun.management.jmxremote=true
--Dcom.sun.management.jmxremote.port=8091
--Dcom.sun.management.jmxremote.ssl=false 
--Dcom.sun.management.jmxremote.authenticate=false
+#-Djava.rmi.server.hostname=192.168.1.1
+#-Dcom.sun.management.jmxremote=true
+#-Dcom.sun.management.jmxremote.port=8091
+#-Dcom.sun.management.jmxremote.ssl=false 
+#-Dcom.sun.management.jmxremote.authenticate=false
 # 如果authenticate为true时需要下面的两个配置。在JAVA_HOME/jre/lib/management下有模板。文件权限 chmod 600 jmxremote.password
 #-Dcom.sun.management.jmxremote.password.file=/usr/java/default/jre/lib/management/jmxremote.password
 #-Dcom.sun.management.jmxremote.access.file=/usr/java/default/jre/lib/management/jmxremote.access
-```
-
-- 自定义服务
-
-```bash
-[Unit]
-Description=ASF
-After=network.target remote-fs.target nss-lookup.target
-[Service]
-Type=forking
-PIDFile=/var/run/asf.pid
-ExecStart=/home/amass/project/java/asf/asf.sh
-ExecReload=/home/amass/project/java/asf/asf.sh -s reload
-ExecStop=/home/amass/project/java/asf/asf.sh -s stop
-[Install]
-WantedBy=multi-user.target
 ```
 
 

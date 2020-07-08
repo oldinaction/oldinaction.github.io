@@ -70,6 +70,7 @@ tags: [CentOS, linux]
 ```bash
 yum -y install net-tools # netstat、ifconfig命令
 yum -y install htop
+yum -y install gcc # 编译c
 # yum -y install tcpdump
 # yum -y install psmisc # pstree命令
 # yum -y install lsof # 查看进程使用的文件描述符

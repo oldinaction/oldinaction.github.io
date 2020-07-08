@@ -67,7 +67,18 @@ https://chenzhou123520.iteye.com/blog/1863407
 
 ### jvm
 
-- 说下java 的内存机制
+- Class File Format
+- 关于对象
+    - 类加载过程
+    - 对象头
+- 运行时数据区
+- 常用指令
+- 垃圾回收器
+    - 垃圾清除算法
+    - 分代模型
+    - 常见的垃圾回收器
+- JVM调优
+- jvm常用配置
 
 ## db
 
