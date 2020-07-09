@@ -2,7 +2,7 @@
 layout: "post"
 title: "算法(algorithms)"
 date: "2017-04-24 19:55"
-categories: [extend]
+categories: [linux]
 tags: [algorithms]
 ---
 
@@ -52,12 +52,17 @@ tags: [algorithms]
 
 ## 常见算法
 
-### LRU
+### 最不常用算法(LRU)
 
-- LRU(Least Recently Used)算法，又称最不常用算法，需要实现O(1)复杂度的操作，见LeetCode 146题，见[msb#一#161#00:58:13]
+- `LRU`(Least Recently Used)算法，又称**最不常用算法**，需要实现O(1)复杂度的操作，见LeetCode 146题，见[msb#一#161#00:58:13]
     - 使用哈希表 + 双向链表实现
     - 哈希表保证查找最不常用元素操作O(1)
     - 链表保证排序操作和新增操作O(1)
     - 双向链表保证移动最不常用元素后，左边指针能指向右边元素O(1)。单向链表无法通过右边元素找到左边元素，因此查找左边元素又是基于链表进行遍历查询，此时是O(N)
+
+### 跳跃表(skip-list)
+
+![skip-list](/data/images/linux/algo-skip-list.png)
+
 
 

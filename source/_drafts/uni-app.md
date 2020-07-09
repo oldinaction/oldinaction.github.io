@@ -8,6 +8,10 @@ tags: [H5, 小程序, App]
 
 ## 简介
 
+- [官网](https://uniapp.dcloud.io/)
+- 组件插件
+    - [uviewui](https://www.uviewui.com/)
+
 ### 文件
 
 > https://uniapp.dcloud.net.cn/collocation/pages
@@ -21,16 +25,18 @@ tags: [H5, 小程序, App]
 
         ```json
         "uni-app": {  
-            "scripts": {  
+            "scripts": { 
+                // 自定义脚本(启动方式)，对于内置启动方式可修改 manifest.json
                 "build-h5-api1": {   
                     "title":"生产环境API地址一(H5)",   
                     "env": {
                         "UNI_PLATFORM": "h5",
+                        "NODE_ENV": "production",
                         "APP_ENV": "api1" // 自定义环境变量，可和process.env.NODE_ENV配合使用
                     } 
                 }  
             }  
-        },
+        }
         ```
 - `App.vue` 是uni-app的主组件，所有页面都是在App.vue下进行切换的，是页面入口文件
     - 作用包括：调用应用生命周期函数、配置全局样式、配置全局的存储globalData。如根据不同访问模式，跳转不同入口页
@@ -69,6 +75,11 @@ tags: [H5, 小程序, App]
     </script>
     ```
 
+## API兼容问题
+
+- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
+    - Vue特性支持表
+
 ## 小技巧
 
 - 可使用HBuilder创建项目或vue-cli创建项目，参考：https://uniapp.dcloud.net.cn/quickstart
@@ -92,6 +103,26 @@ tags: [H5, 小程序, App]
     - 编译期判断，使用`// #ifdef H5`，`// #endif`
     - 运行期判断，`uni.getSystemInfoSync().platform = android|ios|devtools` 判断客户端环境是 Android、iOS 还是小程序开发工具
 - 扫码功能参考[uni.scanCode](https://uniapp.dcloud.net.cn/api/system/barcode?id=scancode)、[springboot-vue.md#扫码](/_posts/arch/springboot-vue.md#扫码)
+
+
+## uView插件
+
+- u-cell-item使用slot时标题无法增加空格(使用padding解决)
+
+```html
+<u-cell-group>
+    <u-cell-item>
+        <span slot="title" class="u-p-l-10">退出</span>
+        <uni-icons slot="icon" type="close" size="17" style="color: #606266;"></uni-icons>
+    </u-cell-item>
+</u-cell-group>
+```
+
+## 常见问题
+
+- 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
+    - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
+
 
 
 

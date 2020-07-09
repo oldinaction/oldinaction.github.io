@@ -801,6 +801,29 @@ this.$root.eventBus.$on('eventName', (data) => {
 this.$root.eventBus.$off('eventName')
 ```
 
+### slot插槽
+
+```html
+<!-- 组件comp.vue -->
+<div>
+    <div v-for="item in list">
+        <!-- name为插槽名称，如果只有一个可省略(即为默认插槽)；v-bind:item="item"将item传递到子组件(此处两个item必须一致) -->
+        <slot name="content" v-bind:item="item"></slot>
+    </div>
+</div>
+
+<!-- 组件调用者 -->
+<comp>
+    <!--插槽实际内容
+        1.content为上述插槽名称，如果组件只有一个默认插槽，则此处可将:content换成:default或省略；v2.6开始，具名插槽可缩写为 <template #content="{ item }">
+        2.使用了解构获取item；还可使用v-slot:content="slotProps"获取作用域，并通过slotProps.item获取值；v2.6之前，是使用<template slot="content" slot-scope="slotProps">
+    -->
+    <template v-slot:content="{ item }">
+        {{ item }}
+    </template>
+</comp>
+```
+
 ### 动态组件 [^1]
 
 - `v-bind:is="组件名"`：就是几个组件放在一个挂载点下，然后根据父组件的某个变量来决定显示哪个，或者都不显示
@@ -844,12 +867,29 @@ this.$root.eventBus.$off('eventName')
         }  
     });  
 </script>
-
 ```
 
 ### Vue.use
 
-- https://segmentfault.com/q/1010000013184129?sort=created
+```js
+// config.js
+import Vue from 'vue'
+
+let config = {
+    name: 'hello world'
+}
+
+export default {
+    install(Vue) {
+        // 之后在组件中可使用this.$config
+		Vue.prototype.$config = config
+	}
+}
+
+// main.js
+import config from './config/index.js'
+Vue.use(config)
+```
 
 ### keep-alive [^5]
 

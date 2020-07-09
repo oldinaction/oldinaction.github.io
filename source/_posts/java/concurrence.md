@@ -685,6 +685,8 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 - 阿里开发者手册不建议使用JDK自带线程池，主要原因是自带线程池的线程队列最大为Integer.MAX_VALUE，容易出现OOM，而且线程数太多，会竞争CPU，浪费时间在上下文切换上；且一般也建议自定义拒绝策略？
 - ThreadPoolExecutor源码解析
 
+#### ScheduledThreadPoolExecutor
+
 #### ForkJoinPool
 
 - 将大任务分解成小任务(Fork)，最后进行汇总(Join)。ForkJoinPool中放的Task为ForkJoinTask

@@ -9,7 +9,7 @@ tags: redis
 ## Redis简介
 
 - Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 `string`，`hash`，`list`，`set`，`sorted` `set`，`bitmap` 和 `hyperloglog`，所以常常被称为数据结构服务器
-- [官网：http://redis.io/](http://redis.io/)、[Redis Github](https://github.com/antirez/redis)
+- [redis.cn](http://redis.cn/)、[官网：http://redis.io/](http://redis.io/)、[Redis Github](https://github.com/antirez/redis)
 - 常见的缓存如：memcached、redis
     - memcached的value无类型概念，部分场景可使用json代替，但是如果要从value中过滤获取部分数据则需要在客户端完成(服务器只能返回整个value值)
     - redis的value有类型概念，弥补了memcached上述弊端
@@ -77,13 +77,20 @@ tags: redis
 
 ## 命令使用
 
-- string
-    - 
-- list
+- [string](#string)
+    - 字符类型
+    - 数值类型计算
+    - bitmaps位图
+- [list](#list)
     - 栈(同向操作)
     - 队列(反向操作)
     - 数组
     - 阻塞，单播队列(FIFO)
+- [hash](#hash)
+- [set](#set)
+    - 无序去重集合
+    - 随机事件，如可用于抽奖
+- [sorted set](#sorted_set)
 
 ### 基础
 
@@ -99,6 +106,7 @@ select 2 # 选择2号数据库
 help @string # 查看string类型的相关操作
 help set # 查看set命令：group为string则说明set操作的是字符串
 keys * # 查看所有key
+keys key* # 查看所有key开头的key
 flushdb # 清空整个库(删除全部数据)，生产环境一般改写此命令
 del key1 # 删除某个key
 type key1 # 查看key1值的类型
@@ -165,6 +173,9 @@ bitop or orkey1 b2 b3 # C(01000011)
 ### list
 
 - 首字母L/R代表left/right，L有时候可能值list，B代表blocking
+- list结构
+
+![redis-list](/data/images/db/redis-list.png)
 
 ```bash
 help @list
@@ -201,7 +212,91 @@ lpushx kn 1 # (integer) 0
 blpop k4 0
 ```
 
+### hash(map)
 
+- 命令字母H开头表示hash
+
+```bash
+help @hash
+# 设置smalle这个hash为 {name: smalle}
+hset smalle name smalle
+hset smalle age 18
+hget smalle age # 18
+
+hmget smalle name age # 返回smalle、18两行
+hkeys smalle # 返回name、age两行
+hgetall smalle # 返回name、smalle、age、18四行
+
+# 对属性age增加0.5
+hincrbyfloat smalle age 0.5 # 18.5
+# 对属性age减少1
+hincrbyfloat smalle age -1 # 17.5
+```
+
+### set
+
+```bash
+help @set
+# 插入后无序，可能为k1=[c,b,d,a,e]
+sadd k1 a b c d e a
+# 获取集合(多次获取顺序一样)，返回c、b、d、a、e五行
+smembers k1
+# 返回集合元素个数
+scard k1 # 5
+# 移除元素b、c(修改后顺序可能编号)，移除后k1=[a,e,d]
+srem k1 b c 
+sadd k2 d e f
+# 获取交集，直接返回e、d两行
+sinter k1 k2
+# 获取交集，将结果放到destkey中
+sinterstore destkey k1 k2
+# 获取并集，直接返回e、a、f、d
+sunion k1 k2 
+# 取差集(k1是被减数)，直接返回a
+sdiff k1 k2
+# 取差集，直接返回f
+sdiff k2 k1
+# 随机获取5个值，由于是正数，因此返回结果不会重复，但是结果数可能小于期望数
+srandmember k1 5
+# 随机获取5个值，由于是负数，因此结果可能会重复，结果数等于期望数
+srandmember k1 -5
+# 弹出一个值并返回(会移除此元素)
+spop k1
+```
+
+### sorted_set
+
+- Z开头命令表示sorted set，REV表示取反
+- 排序细实现原理：[skip list(跳跃表)](/_posts/linux/algorithms.md#跳跃表(skip-list))
+
+```bash
+help @sorted_set
+# 基于分值(会基于分值从小到大排序)添加元素，物理内存做小右大
+zadd k1 5 apple 2 banana 7 orange
+
+# 获取元素：banana,apple,orange
+zrange k1 0 -1
+# 获取元素和分值：banana,2,apple,5,orange,7
+zrange k1 0 -1 withscores
+# 取出分值4-7的元素：apple、orange
+zrangebyscore k1 4 7
+# rev取反：orange、apple
+zrevrange k1 0 1
+
+# 获取分数：5
+zscore k1 apple
+# 获取元素apple在集合中的下标：1
+zrank k1 apple
+
+# 对banana的分值加4.5 => 之后k1排序结果为：apple,5,banana,6.5,orange,7
+zincrby k1 4.5 banana
+
+zadd k2 3 apple 1 pear # k2为：pear,1,apple,3
+# 取并集(会合计分值)，`zrange destkey1 0 -1` => pear,1,banana,6.5,orange,7,apple,8
+zunionstore destkey1 2 k1 k2
+# 基于权重(k1的权重为0.5，则k1的分值*0.5的权重后再去做加法)取并集 => pear,1,banana,3.25,orange3.5,apple,5.5
+zunionstore destkey2 2 k1 k2 weights 0.5 1
+```
 
 ## 进阶
 
@@ -227,6 +322,94 @@ blpop k4 0
     bitop or destkey 0101 0102
     bitcount destkey 0 -1 # 2 => 这两天的活跃用户数为2
     ```
+
+### pipeline管道
+
+- 在管道中可一次性发送多条命令
+
+```bash
+# nc连接服务器，然后直接发数据回车即可获得返回
+# -e支持换行符，一次性发送多条命令
+echo -e "set k1 1\nkeys *\nincr k1" | nc 127.0.0.1 6379
+
+# 通过文件批量发送命令，pipe.txt中每一行一个命令
+cat pipe.txt | redis-cli --pipe
+```
+
+### transactions事物
+
+- 注意redis是单线程的，因此是按照时间先后顺序响应客户端命令
+
+```bash
+## 相关命令
+multi # 开启一个事务，它总是返回 OK
+exec # 提交事务。将每条命令的结果放在数组中返回
+discard # 放弃事务。事务队列会被清空，并且客户端会从事务状态中退出
+watch # 观测某个key(必须在multi之前)，可以为 Redis 事务提供 check-and-set（CAS）行为。如果开启事务前和提交事务前的值一致则事务提交成功(观测的客户端修改此值，事务可正常提交；其他客户端修改此值事务提交失败)；否则事务执行失败，返回(nil)，不报错
+unwatch # 去掉所有观测
+
+## 案例1
+# 客户端1执行
+multi
+set k1 hello # 返回QUEUED
+keys * # 返回QUEUED
+# 客户端2执行
+multi
+get k1
+# 客户端2执行，返回：1) (nil)
+exec
+# 客户端1执行，返回：1) OK、2) 1) "k1"
+exec
+# 如果客户端1先执行exec提交事务，客户端2后提交事务，则客户端2执行exec是返回：1) "hello"
+
+## 案例2
+# 客户端1执行
+set k1 hello
+watch k1
+multi
+get k1
+# 客户端2执行
+multi
+set k1 world
+exec
+# 客户端1执行，此时返回：(nil)。由于观测的值以及发生了变化
+exec
+```
+
+### 布隆过滤器
+
+- `布隆过滤器`(Bloom Filter)：一种比较巧妙的概率型数据结构，**它可以告诉你某种东西一定不存在或者可能存在**。布隆过滤器相对于Set、Map 等数据结构来说，它可以更高效地插入和查询，并且占用空间更少。缺点是判断某种东西是否存在时，可能会被误判，但是只要参数设置的合理，它的精确度也可以控制的相对精确，只会有小小的误判概率
+
+![redis-bloom](/data/images/db/redis-bloom.png)
+- **解决缓存穿透的问题**
+    - 一般情况下，先查询缓存是否有该条数据，缓存中没有时，再查询数据库。当数据库也不存在该条数据时，每次查询都要访问数据库，这就是缓存穿透。缓存穿透带来的问题是，当有大量请求查询数据库不存在的数据时，就会给数据库带来压力，甚至会拖垮数据库
+    - 可以使用布隆过滤器解决缓存穿透的问题，把已存在数据的key存在布隆过滤器中。当有新的请求时，先到布隆过滤器中查询是否存在，如果缓存中不存在该条数据直接返回；如果缓存中存在该条数据再查询数据库
+- redis中可以手动添加[布隆过滤器模块(实际也可在客户端实现布隆算法从而到达过滤效果)
+
+```bash
+
+
+1，访问redis.io
+2,modules
+3,访问RedisBloom的github
+      
+4，linux中wget  *.zip
+5,yum install unzip
+6,unzip *.zip
+7,make
+8,cp bloom.so  /opt/mashibing/redis5/
+9,redis-server --loadmodule  /opt/mashibing/redis5/redisbloom.so
+
+10 ,redis-cli  
+11,bf.add  ooxx  abc
+bf.exits   abc
+bf.exits  sdfsdf
+
+
+12,cf.add   #  布谷鸟过滤器
+```
+
+
 
 ### AOF
 
