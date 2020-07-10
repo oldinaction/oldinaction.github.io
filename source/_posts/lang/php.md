@@ -2,7 +2,7 @@
 layout: "post"
 title: "php"
 date: "2017-08-20 11:39"
-categories: [extend]
+categories: [lang]
 tags: [php]
 ---
 
@@ -16,6 +16,9 @@ tags: [php]
 - php安装
     - windows：http://php.net/downloads.php
     - linux：`yum install -y php`
+
+### 配合nginx使用 
+
 - windows + nginx + fastcgi运行php程序(php5.3版本之后已经有了`php-cgi.exe`的可执行程序，经测试本地开发就很容易挂)
     - nginx配置
 
@@ -37,7 +40,7 @@ tags: [php]
             root /project/phphome/myphp;
         }
         ```
-    - 快捷操作脚本
+    - 快捷操作脚本(需提前启动，监听在19000端口上)
 
         ```bat
         :: 启动脚本 start_php_cgi.bat(直接执行php-cgi.exe默认监听端口是9000)。此处使用`RunHiddenConsole.exe`需要加入到PATH，下载地址`http://redmine.lighttpd.net/attachments/download/660/RunHiddenConsole.zip`

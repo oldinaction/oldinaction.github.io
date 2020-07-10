@@ -487,7 +487,7 @@ location / {
 
 ### 多项目配置
 
-- <s>(非必须)路由必须使用history模式(路由中`#`会去掉)。</s> 参考 [hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
+- **路由使用hash模式和history模式均可**，参考 [hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
 - vue.config.js，参考[vue-cli v3](/_posts/web/vue.md#vue-cli%20v3) [^7]
 
 ```js

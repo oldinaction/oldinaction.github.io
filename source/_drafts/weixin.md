@@ -9,10 +9,6 @@ tags: [H5, App]
 ## 简介
 
 - 此处微信开发包含微信公众号开发，公众号H5开发，微信小程序开发，微信支付等
-- [微信网页开发](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)
-    - 通过微信浏览器打开网页时的场景。此时可调用JS-SDK获取一些硬件能力
-    - 通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力，为微信用户提供更优质的网页体验
-
 
 ## 微信小程序限制
 
@@ -53,18 +49,31 @@ tags: [H5, App]
     - 可通过url传递参数进行用户验证
 - **小程序不支持多环境编译**，对于API地址完全取决于上传到微信平台时代码中的地址(只能为一个，无法获取环境)。因此通过uni-app开发时，需要点击发行才会对应到生产环境API
 
+## 微信登录
+
+- [微信浏览器中获取用户信息](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html)。如微信公众号点击菜单H5连接进入网页时获取用户信息
+    - 引导用户访问如`https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect`，如让用户打开网站主页，然后再主页加载后自动跳转到此地址
+    - 访问上述连接，会进行用户授权验证，用户同意授权，获取code。此时code通过上述链接配置的回调地址会当做参数带回(还会原封不动的带回state参数)
+    - 通过code换取openid、网页授权access_token(用户的access_token，有效期为2h；不同于公众号的access_token)、网页授权refresh_token(有效期为30天)。由于此接口调用次数不限制，可需要获取access_token时重新调用微信接口，也可存储下来
+    - 或者刷新access_token
+    - 基于网页授权access_token和openid拉取用户信息
+
 ## 微信H5开发
 
+- [微信网页开发](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)
+    - 通过微信浏览器打开网页时的场景。此时可调用JS-SDK获取一些硬件能力
+    - 通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力，为微信用户提供更优质的网页体验
 - **微信开发者工具可模拟微信内置浏览器进行微信H5页面调试**
     - 如果在微信内置浏览器打开，则js中可以拿到`wx`对象，即[JS-SDK](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)，也无需引入此js-sdk文件
-- 微信公众号测试账号申请：开发者工具 - 公众平台测试帐号。一个微信账号对应一个测试号，和登录的公众号无关
-- 微信H5项目开发一般包含：微信内置浏览器访问，项目后台管理两块
-- 基于目前流行框架一般会将后台服务和界面进行分离，数据以REST的形式传输。基于REST数据传输也可分为前后分离项目和非前后分离项目
-    - 如果为REST形式非前后分离项目则有三块：`/api`、`/admin`、`/myapp`，这是控制层的顶级路径(可理解为contextPath)，之后再分模块和功能等(方便做权限控制、路由等)
+- **微信公众号测试账号申请和使用**
+    - 申请：开发者工具 - 公众平台测试帐号
+    - 测试帐号接口权限基本都有；一个微信账号对应一个测试号，和登录的公众号无关
+    - 设置登录验证时的重定向地址：体验接口权限表 - 网页授权获取用户基本信息 - 修改(只需填域名)
+- 参考[微信登录](#微信登录)
 
-### 前台界面
+### 内网穿透
 
-- 获取的微信用户头像可缩放为`160*160.jpg`保存
+- http://service.oray.com/question/5570.html
 
 
 

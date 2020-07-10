@@ -376,44 +376,145 @@ exec
 exec
 ```
 
-### 布隆过滤器
+### redis作为缓存
 
-- `布隆过滤器`(Bloom Filter)：一种比较巧妙的概率型数据结构，**它可以告诉你某种东西一定不存在或者可能存在**。布隆过滤器相对于Set、Map 等数据结构来说，它可以更高效地插入和查询，并且占用空间更少。缺点是判断某种东西是否存在时，可能会被误判，但是只要参数设置的合理，它的精确度也可以控制的相对精确，只会有小小的误判概率
+- 缓存数据不重要、不是全量数据，缓存应该随着访问变化(保存热数据，内存是有限的)
 
-![redis-bloom](/data/images/db/redis-bloom.png)
+#### key的有效期
+
+- 通常Redis keys创建时没有设置相关过期时间，他们会一直存在，除非使用显示的命令移除，例如使用DEL命令
+- `expire` 倒计时，当key执行过期操作时，Redis会确保按照规定时间删除他们(尽管中途使用过，过期时间也不会自动改变)。从 Redis 2.6 起，过期时间误差缩小到0-1毫秒
+- `expireat` 定时失效
+- 过期判定原理
+    - 被动访问时判定、主动周期轮询判定(增量：随机取20个key判断，超过25%，则再取20个判断)
+    - 目的，稍微牺牲下内存(延时过期)，但是保住了redis性能为王
+
+```bash
+set k1 "hello"
+# 设置k1在10s之后过期(删除此key)。尽管中途使用过，过期时间也不会自动改变
+expire k1 10
+# 查看k1剩余有效期，-2表示此key已经不存在，-1表示此key永远不会过期
+ttl k1 # (integer) 5、(integer) -2等
+set k1 world
+ttl k1 # (integer) -1
+
+# 获取当前时间戳：1) "1594293836"、2) "713339"
+time
+set k2 hello
+expireat k1 1594294836
+ttl k2
+```
+
+#### 布隆和布谷鸟过滤器
+
+- `布隆过滤器`(Bloom Filter)：一种比较巧妙的概率型数据结构，**它可以告诉你某种东西一定不存在或者可能存在**
+    - 布隆过滤器相对于Set、Map 等数据结构来说，它可以更高效地插入和查询，并且占用空间更少。缺点是判断某种东西是否存在时，可能会被误判，但是只要参数设置的合理，它的精确度也可以控制的相对精确，只会有小小的误判概率
+    - 牺牲存储空间来换查询速度
+
+    ![redis-bloom](/data/images/db/redis-bloom.png)
+- `布谷鸟过滤器`
+    - 相比布谷鸟过滤器而言布隆过滤器有以下不足：查询性能弱、空间利用效率低、不支持反向操作（删除）以及不支持计数
 - **解决缓存穿透的问题**
     - 一般情况下，先查询缓存是否有该条数据，缓存中没有时，再查询数据库。当数据库也不存在该条数据时，每次查询都要访问数据库，这就是缓存穿透。缓存穿透带来的问题是，当有大量请求查询数据库不存在的数据时，就会给数据库带来压力，甚至会拖垮数据库
     - 可以使用布隆过滤器解决缓存穿透的问题，把已存在数据的key存在布隆过滤器中。当有新的请求时，先到布隆过滤器中查询是否存在，如果缓存中不存在该条数据直接返回；如果缓存中存在该条数据再查询数据库
-- redis中可以手动添加[布隆过滤器模块(实际也可在客户端实现布隆算法从而到达过滤效果)
+- redis中可以手动添加[布隆过滤器模块(包含布谷鸟)](https://github.com/RedisBloom/RedisBloom)，实际也可在客户端实现布隆算法从而到达过滤效果
 
 ```bash
+# 安装
+wget https://github.com/RedisBloom/RedisBloom/archive/v2.2.3.zip
+yum install unzip
+unzip v2.2.3.zip
+cd RedisBloom-2.2.3/
+make # 编译，会生成bloom.so库
+cp redisbloom.so /opt/soft/redis5/
 
+# 操作(该模块提供了bf.*、cf.*等命令)
+redis-server --loadmodule /opt/soft/redis5/redisbloom.so # 启动时加载布隆过滤器模块
+redis-cli
+bf.add k1 123 # 通过布隆过滤器添加元素123到k1中
+type k1 # MBbloom--
+bf.exists k1 abc # (integer) 0，判断k1中是否存在abc
+bf.exists k1 123 # (integer) 1
 
-1，访问redis.io
-2,modules
-3,访问RedisBloom的github
-      
-4，linux中wget  *.zip
-5,yum install unzip
-6,unzip *.zip
-7,make
-8,cp bloom.so  /opt/mashibing/redis5/
-9,redis-server --loadmodule  /opt/mashibing/redis5/redisbloom.so
-
-10 ,redis-cli  
-11,bf.add  ooxx  abc
-bf.exits   abc
-bf.exits  sdfsdf
-
-
-12,cf.add   #  布谷鸟过滤器
+# 布谷鸟过滤器，使用同上
+cf.add
+cf.exists
 ```
 
+#### 回收策略配置
+
+- [将redis当做使用LRU算法的缓存来使用](http://redis.cn/topics/lru-cache.html)
+
+```bash
+# 编辑支持的最大内存(maxmemory)和回收策略
+vi /etc/redis/6379.conf
+# maxmemory <bytes>
+
+# MAXMEMORY POLICY: how Redis will select what to remove when maxmemory
+# is reached. You can select among five behaviors:
+# volatile-lru -> Evict using approximated LRU among the keys with an expire set.   # 回收最久使用的键，但仅限于在过期集合的键
+# allkeys-lru -> Evict any key using approximated LRU.                              # 回收最久使用的键
+# volatile-lfu -> Evict using approximated LFU among the keys with an expire set.   # 回收最少使用的键，但仅限于在过期集合的键
+# allkeys-lfu -> Evict any key using approximated LFU.                              # 回收最少使用的键
+# volatile-random -> Remove a random key among the ones with an expire set.         # 随机回收建，但仅限于在过期集合的键
+# allkeys-random -> Remove a random key, any key.                                   # 随机回收建
+# volatile-ttl -> Remove the key with the nearest expire time (minor TTL)           # 回收在过期集合的键，并且优先回收存活时间（TTL）较短的键
+# noeviction -> Don't evict anything, just return an error on write operations.     # 当客户端需要使用更多内存，且内存不足时返回错误
+#
+# LRU means Least Recently Used # 最近使用的
+# LFU means Least Frequently Used # 最频繁使用的
+# 
+# The default is:
+# maxmemory-policy noeviction
+```
+
+### redis作为数据库
+
+- 数据不能丢失，即需要做持久化
+- `RDB`方式
+    - 使用fork()进程时的`copy on write`来实现，参考![特殊符号-管道符`|`](/_posts/linux/shell.md#特殊符号)
+    - 特点
+        - 优点：恢复速度相对快
+        - 不支持拉链，只有一个dump.rdb文件
+        - 丢失数据相对多一些，两次持久化话之间的数据容易丢失
+    - rdb配置
+
+        ```bash
+        ################################ SNAPSHOTTING  ################################
+        # save "" # 关闭写磁盘
+
+        # 以下条件将会被触发自动保存 => 创建子进程进行数据持久化
+        save 900 1 # 当900s后有1个key发生了改变则会触发save
+        save 300 10 # 当300s后有10个key发生了改变则会触发save
+        save 60 10000
+
+        # 数据持久化的文件名
+        dbfilename dump.rdb
+        # 数据保存的文件目录
+        dir /var/lib/redis/6379
+        ```
+- `AOF`(Append Only Mode) Redis的写操作记录到文件中
+    - 丢失数据少
+    - 弊端：体量大、恢复慢。减少日志量的方法如下
+        - v4.0前，重写(删除抵消的命令，合并重复的命令)
+        - v4.0后，重写前先将老的数据RDB到AOF文件中，将增量以指令的方式Append到AOF中(AOF使用了RDB的快速，利用了日志的全量)
+    - redis中，RDB和AOF可同时开启。如果开启了AOF，只会用AOF恢复。v4.0后，AOF包含RDB全量，增加记录新的写操作
+    - redis当做内存数据库，写操作会触发IO，相关配置如
+
+        ```bash
+        ############################## APPEND ONLY MODE ###############################
+        # 默认是关闭AOF，开启设置成yes
+        appendonly no
+        # 记录日志的文件
+        appendfilename "appendonly.aof"
+
+        # 进行flush的时机
+        # appendfsync always # 每个写指令都进行flush
+        appendfsync everysec # 每秒调用flush
+        # appendfsync no # redis不控制flush，交由OS控制
+        ```
 
 
-### AOF
-
-- Redis 持久化之 AOF：http://tech-happen.site/fd3e9e30.html
 
 
 ## 应用

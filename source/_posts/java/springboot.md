@@ -939,7 +939,7 @@ Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity,
 ```java
 // 如果不设置 RestTemplate 相关属性，则无需手动引入
 @Bean // spirngboot > 1.4 无需其他依赖
-public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
+public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) {
 	// 服务器内存溢出，还未宕机时，是可以请求服务，但是一直获取不到返回。需要超时机制
     RestTemplate restTemplate = restTemplateBuilder
 			.setConnectTimeout(3000)
@@ -962,7 +962,7 @@ public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
 
 @Primary // 默认的Bean
 @Bean
-public RestTemplate RestTemplate() {
+public RestTemplate restTemplate() {
 	return new RestTemplate();
 }
 ```

@@ -219,6 +219,8 @@ tags: [git]
 - `git stash list` 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
 - `git stash clear` 清空Git栈
 
+https://blog.csdn.net/kuangdacaikuang/article/details/82804051
+
 #### commit对象
 
 - commit 对象中 parent 属性指向前一个 commit，tree 属性指向一个 tree 对象（此 tree 对象可以指向文件或者文件夹）

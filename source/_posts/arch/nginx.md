@@ -442,7 +442,7 @@ http {
             # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
             # try_files      $uri = /404.html;
             root           $project_root;
-            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_pass   127.0.0.1:9000; # 需提前启动fastcgi服务，参考[php.md#配合nginx使用](/_posts/lang/php.md#配合nginx使用)
             fastcgi_index  index.php;
             # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
             fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
