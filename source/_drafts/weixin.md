@@ -60,11 +60,22 @@ tags: [H5, App]
 
 ## 微信H5开发
 
-- [微信网页开发](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)
+- 微信网页开发
     - 通过微信浏览器打开网页时的场景。此时可调用JS-SDK获取一些硬件能力
     - 通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力，为微信用户提供更优质的网页体验
+- **JSSDK使用步骤**，[参考](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)
+    - 绑定域名(JS接口安全域名)。注意是域名，不需要http协议头(否则报错：invalid url domain)
+    - 引入JS文件(必须)
+        - 直接引入`jweixin-1.6.0.js`，则可直接使用wx对象
+        - 或者通过`npm install -S weixin-js-sdk`，然后通过`import wx from 'weixin-js-sdk'`导入
+    - 通过config接口注入权限验证配置
+        - 所有需要使用JS-SDK的页面必须先注入配置信息，否则将无法调用
+        - 同一个url仅需调用一次，对于变化url的SPA的web app可在每次url变化时进行调用。即通过Vue Router进行跳转不需要重复注入配置，可在main.js中注入即可
+        - 需要配合后台服务进行验签，后台主要需要获取微信公众号access_token和jsapi_ticket，然后将加密串返回到前台进行验证。参考：https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#62
+    - 通过ready接口处理成功验证，通过error接口处理失败验证
+    - 通过wx对象调用相关接口
 - **微信开发者工具可模拟微信内置浏览器进行微信H5页面调试**
-    - 如果在微信内置浏览器打开，则js中可以拿到`wx`对象，即[JS-SDK](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)，也无需引入此js-sdk文件
+    - 如果在微信内置浏览器打开，则js中可以拿到`wx`对象(只是一个声明)，但是还需引入JS-SDK(实现)。参考上文JSSDK使用步骤
 - **微信公众号测试账号申请和使用**
     - 申请：开发者工具 - 公众平台测试帐号
     - 测试帐号接口权限基本都有；一个微信账号对应一个测试号，和登录的公众号无关

@@ -44,15 +44,15 @@ tags: redis
     cd redis-5.0.8
     # 可查看README.md进行安装
 
-    ## 编译
+    ## 编译及安装
     # 编译测试(可能会提示：Redis need tcl 8.5 or newer。解决办法：yum install tcl。其他问题参考：http://blog.csdn.net/for_tech/article/details/51880647)
     # 编译测试不通过也可正常运行
-    make test # 可选
-    make install # 需要有gcc(yum -y install gcc)
+    make test # 可选，make需要有gcc(yum -y install gcc)
+    make install # 在源码目录安装(建议如下文安装到特定目录)
     # make distclean # 安装失败可进行清除
     # 编译成功后，可直接在源码目录运行命令(一般为临时测试)：启动 `src/redis-server`，客户端连接 `src/redis-cli`
 
-    ## 安装
+    ## 安装到特定目录
     make PREFIX=/opt/soft/reds5 install
     vi /etc/profile
     # 增加以下两行
@@ -64,8 +64,8 @@ tags: redis
     ## 安装成服务
     # 一个物理机中可以有多个redis实例(进程)，通过port区分
     # 可执行程序就一份在目录，但是内存中未来的多个实例需要各自的配置文件，持久化目录等资源
-    ./utils/install_server.sh
-    # 安装成功后会自动启动(自启动脚本在/etc/init.d目录)，查看服务状态
+    ./utils/install_server.sh # 默认即可。多次运行安装多节点时可输入不同的端口
+    # 安装成功后会自动启动(自启动脚本在/etc/init.d目录)并设置为开机启动，查看服务状态
     service redis_6379 status
 
     ## 测试
@@ -102,13 +102,17 @@ redis-cli --raw # redis是二进制安全的。如果客户端以不同的编码
 
 ## redis-cli命令行，命令不区分大小写
 exit # 退出redis-cli命令行
-select 2 # 选择2号数据库
 help @string # 查看string类型的相关操作
 help set # 查看set命令：group为string则说明set操作的是字符串
+info # 查看服务器信息
+info Replication # 查看服务器主从复制相关信息
+
+select 2 # 选择2号数据库
+flushdb # 清空整个库(删除全部数据)，生产环境一般改写此命令
 keys * # 查看所有key
 keys key* # 查看所有key开头的key
-flushdb # 清空整个库(删除全部数据)，生产环境一般改写此命令
 del key1 # 删除某个key
+
 type key1 # 查看key1值的类型
 object encoding key1 # 查看key1编码类型，如返回int说明此字符串可以进行计算
 ```
@@ -323,6 +327,19 @@ zunionstore destkey2 2 k1 k2 weights 0.5 1
     bitcount destkey 0 -1 # 2 => 这两天的活跃用户数为2
     ```
 
+### 发布订阅
+
+```bash
+# 客户端A往p1通道里面发送消息
+publish p1 hello
+# 客户端B监听在通道p1上(可监听多个)，会阻塞客户端；由于在A发送消息之后监听，因此默认无法收到消息
+subscribe p1 # 执行后打印3行：1) "subscribe"、2) "p1"、3) (integer) 1
+publish p1 hi # 客户端A再次发送消息，客户端B收到消息：1) "message"、2) "p1"、3) "hi"
+
+# 基于正则(通道名)监听消息，可写多个正则。此时*表示监听所有通道消息
+psubscribe * # 收到消息时打印如：1) "pmessage"、2) "*"、3) "p2"、4) "hi"
+```
+
 ### pipeline管道
 
 - 在管道中可一次性发送多条命令
@@ -376,9 +393,9 @@ exec
 exec
 ```
 
-### redis作为缓存
+### redis数据有效期(缓存)
 
-- 缓存数据不重要、不是全量数据，缓存应该随着访问变化(保存热数据，内存是有限的)
+- redis作为缓存数据不重要、不是全量数据，缓存应该随着访问变化(保存热数据，内存是有限的)
 
 #### key的有效期
 
@@ -420,7 +437,7 @@ ttl k2
 - redis中可以手动添加[布隆过滤器模块(包含布谷鸟)](https://github.com/RedisBloom/RedisBloom)，实际也可在客户端实现布隆算法从而到达过滤效果
 
 ```bash
-# 安装
+## 安装
 wget https://github.com/RedisBloom/RedisBloom/archive/v2.2.3.zip
 yum install unzip
 unzip v2.2.3.zip
@@ -428,7 +445,8 @@ cd RedisBloom-2.2.3/
 make # 编译，会生成bloom.so库
 cp redisbloom.so /opt/soft/redis5/
 
-# 操作(该模块提供了bf.*、cf.*等命令)
+## 操作(该模块提供了bf.*、cf.*等命令)
+# 启动时载入布隆模块，也可在配置文件的MODULES部分进行配置
 redis-server --loadmodule /opt/soft/redis5/redisbloom.so # 启动时加载布隆过滤器模块
 redis-cli
 bf.add k1 123 # 通过布隆过滤器添加元素123到k1中
@@ -468,60 +486,254 @@ vi /etc/redis/6379.conf
 # maxmemory-policy noeviction
 ```
 
-### redis作为数据库
+### 持久化(数据库)
 
-- 数据不能丢失，即需要做持久化
-- `RDB`方式
-    - 使用fork()进程时的`copy on write`来实现，参考![特殊符号-管道符`|`](/_posts/linux/shell.md#特殊符号)
-    - 特点
-        - 优点：恢复速度相对快
-        - 不支持拉链，只有一个dump.rdb文件
-        - 丢失数据相对多一些，两次持久化话之间的数据容易丢失
-    - rdb配置
+- redis持久化主要有：RBD、AOF、**AOF&RBD**(默认)
+- redis作为数据库，数据不能丢失，即需要做持久化，一般使用AOF(最好结合RBD)；如果作为缓存使用RBD就行，数据丢失可再从数据库获取
 
-        ```bash
-        ################################ SNAPSHOTTING  ################################
-        # save "" # 关闭写磁盘
+#### RDB方式持久化
 
-        # 以下条件将会被触发自动保存 => 创建子进程进行数据持久化
-        save 900 1 # 当900s后有1个key发生了改变则会触发save
-        save 300 10 # 当300s后有10个key发生了改变则会触发save
-        save 60 10000
+- 使用fork()进程时的`copy on write`来实现，参考![特殊符号-管道符`|`](/_posts/linux/shell.md#特殊符号)
+- 特点
+    - 优点：恢复速度相对快
+    - 不支持拉链，只有一个dump.rdb文件(为二进制编码，但是以REDIS开头)
+    - 丢失数据相对多一些，两次持久化话之间的数据容易丢失
+- rdb配置
 
-        # 数据持久化的文件名
-        dbfilename dump.rdb
-        # 数据保存的文件目录
-        dir /var/lib/redis/6379
-        ```
+    ```bash
+    ################################ SNAPSHOTTING  ################################
+    # save "" # 关闭写磁盘
+
+    # 以下条件将会被触发自动保存 => 创建子进程进行数据持久化
+    save 900 1 # 当900s后有1个及以上key发生了改变则会触发save
+    save 300 10 # 当300s后有10个及以上key发生了改变则会触发save
+    save 60 10000
+    # 如900后有1个key发送改变时的日志如下
+    # 7447:S 11 Jul 2020 15:49:17.306 * 1 changes in 900 seconds. Saving...
+    # 7447:S 11 Jul 2020 15:49:17.307 * Background saving started by pid 7582
+    # 7582:C 11 Jul 2020 15:49:17.514 * DB saved on disk
+    # 7582:C 11 Jul 2020 15:49:17.515 * RDB: 4 MB of memory used by copy-on-write
+    # 7447:S 11 Jul 2020 15:49:17.551 * Background saving terminated with success
+
+    # 数据持久化的文件名
+    dbfilename dump.rdb
+    # 数据保存的文件目录
+    dir /var/lib/redis/6379
+    ```
+- redis命令行执行`save`(会占用主进程)或`bgsave`(后台运行)生成dump文件
+
+#### AOF方式持久化
+
 - `AOF`(Append Only Mode) Redis的写操作记录到文件中
+- 特点
     - 丢失数据少
     - 弊端：体量大、恢复慢。减少日志量的方法如下
-        - v4.0前，重写(删除抵消的命令，合并重复的命令)
-        - v4.0后，重写前先将老的数据RDB到AOF文件中，将增量以指令的方式Append到AOF中(AOF使用了RDB的快速，利用了日志的全量)
-    - redis中，RDB和AOF可同时开启。如果开启了AOF，只会用AOF恢复。v4.0后，AOF包含RDB全量，增加记录新的写操作
-    - redis当做内存数据库，写操作会触发IO，相关配置如
+- AOF&RDB混合使用
+    - v4.0前，重写(删除抵消的命令，合并重复的命令)
+        - 默认生成的aof文件是全指令，在redis命令行执行`bgrewriteaof`会清空原aof文件，并将两次执行bgrewriteaof之间的命令合并后记录到aof文件中，之后每次执行命令会记录全部指令
+    - v4.0后，重写前先将老的数据RDB到AOF文件中，将增量以指令的方式Append到AOF中(AOF使用了RDB的快速，利用了日志的全量)
+        - 执行`bgrewriteaof`后会先清空aof文件，再把RDB内容放到aof文件中，然后继续记录aof明文指令
+- redis中，RDB和AOF可同时开启。如果开启了AOF，只会用AOF恢复。v4.0后，AOF包含RDB全量，增加记录新的写操作
+- redis当做内存数据库，写操作会触发IO，相关配置如
 
-        ```bash
-        ############################## APPEND ONLY MODE ###############################
-        # 默认是关闭AOF，开启设置成yes
-        appendonly no
-        # 记录日志的文件
-        appendfilename "appendonly.aof"
+    ```bash
+    ############################## APPEND ONLY MODE ###############################
+    # 默认是关闭AOF，开启设置成yes
+    appendonly no
+    # 记录日志的文件
+    appendfilename "appendonly.aof"
 
-        # 进行flush的时机
-        # appendfsync always # 每个写指令都进行flush
-        appendfsync everysec # 每秒调用flush
-        # appendfsync no # redis不控制flush，交由OS控制
-        ```
+    # 进行flush的时机
+    # appendfsync always # 每个写指令都进行flush
+    appendfsync everysec # 每秒调用flush
+    # appendfsync no # redis不控制flush，交由OS控制
 
+    # aof自动重写，也可调用bgrewriteaof手动重写
+    # aof文件增长比例，指当前aof文件比上次重写的增长比例大小为100%时触发重写
+    auto-aof-rewrite-percentage 100
+    # aof文件重写最小的文件大小，即最开始aof文件必须要达到这个文件时才触发，后面的每次重写就不会根据这个变量了(根据上一次重写完成之后的大小)
+    auto-aof-rewrite-min-size 64mb
 
+    # 是否开启RDB和AOF混合使用(v4.0才有，重写前先将老的数据RDB到AOF文件中)
+    aof-use-rdb-preamble yes
+    ```
+- aof文件说明
 
+    ```bash
+    # 表示是RDB和AOF混合使用
+    #REDIS...
+    # *代表需要读取的记录行，此时读取两个：select 0
+    *2
+    # $表示读取的字节
+    $6
+    # 为实际的命令组成
+    select
+    $1
+    0
+    ```
 
-## 应用
+### 集群方式
+
+- redis单机(单节点、单实例)问题
+    - 单点故障
+    - 容量有限
+    - 压力太大
+- AKF
+    - X轴：表示主备，全量备份
+    - Y轴：基于业务模块进行细分，可再结合X周特性进行主备
+    - Z轴：在XY的情况下，对某模块下的单一业务再次划分XY(如对用户基于身份证号进行划分)
+- 数据同步方式
+    - 同步(强一致性)：client对主请求，主保存数据后通知给备，等所有备返回后再返回给client。可能丢失可用性
+    - 异步(弱一致性)：client对主请求，主保存数据后立即返回给client。之后再同步给备。可能产生数据不一致
+    - 队列(最终一致性)：client对主请求，主保存数据后并发送给队列(如kafaka)，然后返回给client。之后从节点从队列中获取数据并保存
+- 主备和主从(redis的这两种模式可进行配置，默认主备)
+    - 主备：一般只有主对外提供服务
+    - 主从：主提供全量服务，从提供部分服务
+    - 这两种情况都需要有一个主，如果主挂了则也不可用，因此需要对主做高可用(HA)
+- 高可用(HA)方式
+    - 一般使用奇数节点监控，并超过半数进行主备切换
+        - 为什么使用奇数节点进行监控：如3台和4台都允许挂1台，同样的情况使用4台更容易挂掉一台
+- 集群相关配置
+
+```bash
+# 当一个slave失去和master的连接，或者同步正在进行中，slave的行为有两种可能：
+# 1) "yes" (默认值)，slave会继续响应客户端请求，可能是正常数据，也可能是还没获得值的空数据
+# 2) "no"，slave会回复"正在从master同步（SYNC with master in progress）"来处理各种请求，除了 INFO 和 SLAVEOF 命令
+replica-serve-stale-data yes
+# 从节点是否为只读(no则可接受写请求)
+replica-read-only yes
+# 是否不使用磁盘方式进行同步。同步策略: 磁盘或socket(网络)，默认磁盘方式；磁盘方式表示先数据线落到主节点磁盘，然后同步给字节点；网络方式表示直接通过网络同步给子节点
+repl-diskless-sync no
+# 设置数据备份的backlog大小。backlog是一个slave在一段时间内断开连接时记录新增的数据缓冲，所以一个slave在重新连接时，不必要全量的同步，而是一个增量同步就足够了，将在断开连接的这段时间内把slave丢失的部分数据传送给它。
+# 同步的backlog越大，slave能够进行增量同步并且允许断开连接的时间就越长。backlog只分配一次并且至少需要一个slave连接
+repl-backlog-size 1mb 
+# 当健康的slave的个数小于3个时，mater就禁止写入。这个配置虽然不能保证N个slave都一定能接收到master的写操作，但是能避免没有足够健康的slave的时候，master不能写入来避免数据丢失。设置为0是关闭该功能，默认是关闭
+min-replicas-to-write 3
+# 延迟小于等于10秒的slave才认为是健康的slave。是从最后一个从slave接收到的ping（通常每秒发送）开始计数
+min-replicas-max-lag 10
+```
+
+#### 主备设置实践
+
+- 主备设置相关命令
+
+```bash
+# 在备节点(6380)中运行，追随主节点(6379)。5.0之前的命令使用slaveof
+replicaof 127.0.0.1 6379 # 此时会先把备节点的数据删除掉，然后再同步主节点数据
+# 当主节点挂了之后，此时可手动将某个从节点设置为不追随(此时数据不会丢失)，然后将其他从通过replicaof命令重新追随新的主
+replicaof no one 
+```
+
+<details>
+<summary>主备配置完整测试(伪主备)</summary>
+
+```bash
+# 1.在一台机器上安装2个redis服务(伪主备)，先关闭所有redis服务，之后手动启动哦
+# 2.复制一份配置文件出来测试
+cp /etc/redis/6379.conf .
+cp /etc/redis/6380.conf .
+# 修改配置`daemonize no`(不后台运行)，注释`logfile /var/log/redis_xxx.log`(日志打印在前台)
+
+# 3.启动服务端，打印日志如下
+redis-server ./6379.conf
+redis-server ./6380.conf
+# 打印日志如
+# 7507:M 11 Jul 2020 15:33:15.083 * DB loaded from disk: 0.000 seconds
+# 7507:M 11 Jul 2020 15:33:15.083 * Ready to accept connections
+
+# 4.启动3个客户端连接不同的服务端
+redis-cli -p 6379 # A客户端
+redis-cli -p 6380 # B
+
+# 5.B客户端执行，使6380追随6379。或者在启动6380时使用`redis-server --port 6380 --slaveof 127.0.0.1 6379`(也可写到配置文件)
+replicaof 127.0.0.1 6379
+# 此时6379打印日志(PID: 7442)
+# 7442:M 11 Jul 2020 15:35:11.247 * Replica 127.0.0.1:6380 asks for synchronization
+# 7442:M 11 Jul 2020 15:35:11.247 * Partial resynchronization not accepted: Replication ID mismatch (Replica asked for '8a87f600ddb2cace3efff018319c1964f0c38909', my replication IDs are '8a51a8a1a9eddd18477322b15611a839230c2cb9' and '0000000000000000000000000000000000000000')
+# 7442:M 11 Jul 2020 15:35:11.247 * Starting BGSAVE for SYNC with target: disk      # 开始保存数据到磁盘
+# 7442:M 11 Jul 2020 15:35:11.455 * Background saving started by pid 7549           # 开启新线程保存数据到磁盘
+# 7549:C 11 Jul 2020 15:35:11.641 * DB saved on disk
+# 7549:C 11 Jul 2020 15:35:11.642 * RDB: 6 MB of memory used by copy-on-write
+# 7442:M 11 Jul 2020 15:35:11.655 * Background saving terminated with success
+# 7442:M 11 Jul 2020 15:35:11.655 * Synchronization with replica 127.0.0.1:6380 succeeded
+# 此时6380打印日志(PID: 7447)
+# 7447:S 11 Jul 2020 15:35:11.145 * Before turning into a replica, using my master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.
+# 7447:S 11 Jul 2020 15:35:11.145 * REPLICAOF 127.0.0.1:6379 enabled (user request from 'id=3 addr=127.0.0.1:41764 fd=7 name= age=55 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=44 qbuf-free=32724 obl=0 oll=0 omem=0 events=r cmd=replicaof')
+# 7447:S 11 Jul 2020 15:35:11.246 * Connecting to MASTER 127.0.0.1:6379
+# 7447:S 11 Jul 2020 15:35:11.247 * MASTER <-> REPLICA sync started
+# 7447:S 11 Jul 2020 15:35:11.247 * Non blocking connect for SYNC fired the event.
+# 7447:S 11 Jul 2020 15:35:11.247 * Master replied to PING, replication can continue...
+# 7447:S 11 Jul 2020 15:35:11.247 * Trying a partial resynchronization (request 8a87f600ddb2cace3efff018319c1964f0c38909:1).
+# 7447:S 11 Jul 2020 15:35:11.460 * Full resync from master: 7a40d80043aa6c94a09ee0efbd1139515a2e39bf:0
+# 7447:S 11 Jul 2020 15:35:11.460 * Discarding previously cached master state.
+# 7447:S 11 Jul 2020 15:35:11.655 * MASTER <-> REPLICA sync: receiving 330 bytes from master
+# 7447:S 11 Jul 2020 15:35:11.655 * MASTER <-> REPLICA sync: Flushing old data                      # 删除本地之前老的数据，好准备同步主节点数据
+# 7447:S 11 Jul 2020 15:35:11.656 * MASTER <-> REPLICA sync: Loading DB in memory
+# 7447:S 11 Jul 2020 15:35:11.656 * MASTER <-> REPLICA sync: Finished with success
+
+# 6.对A节点增加数据
+set k1 hello
+# 然后在B节点获取数据
+get k1 # 返回hello
+set k2 hello # 默认从节点是不能进行写操作的。(error) READONLY You can't write against a read only replica.
+
+# 此时让6379挂掉，从节点打印如下日志，但是数据不会丢失
+# 7447:S 11 Jul 2020 15:56:19.049 # Connection with master lost.
+# 7447:S 11 Jul 2020 15:56:19.049 * Caching the disconnected master state.
+# 7447:S 11 Jul 2020 15:56:19.131 * Connecting to MASTER 127.0.0.1:6379
+# 7447:S 11 Jul 2020 15:56:19.131 * MASTER <-> REPLICA sync started
+# 7447:S 11 Jul 2020 15:56:19.131 # Error condition on socket for SYNC: Connection refused
+
+# 7.在B节点运行，让6380不再追随其他节点，此时此节点可但对对外提供服务
+replicaof no one
+# 7447:M 11 Jul 2020 15:57:39.542 # Setting secondary replication ID to 7a40d80043aa6c94a09ee0efbd1139515a2e39bf, valid up to offset: 1838. New replication ID is a7579908c5a0445e4da0e53ee1b9a35f543d257e
+# 7447:M 11 Jul 2020 15:57:39.542 * Discarding previously cached master state.
+# 7447:M 11 Jul 2020 15:57:39.542 * MASTER MODE enabled (user request from 'id=3 addr=127.0.0.1:41764 fd=7 name= age=1404 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=36 qbuf-free=32732 obl=0 oll=0 omem=0 events=r cmd=replicaof')
+set k2 hello
+```
+</details>
+
+#### 高可用(基于Sentinel哨兵)
+
+- Sentinel使用
+
+```bash
+# 默认`redis-sentinel`程序在redis安装源码的src目录，安装到特定目录时只是将`redis-sentinel`程序链接到`redis-server`(即只能通过redis-server启动)
+
+# 详细配置文件在下载的redis源码目录的`sentinel.conf`文件中，主要如下
+port 26379                                  # Sentinel监听的端口
+sentinel monitor mymaster 127.0.0.1 6379 2  # 监控的redis集群的主节点配置(可监听多个集群，给此集群取名为mymaster)，2表示投票达到2票才算通过(此时一般使用3个Sentinel节点)
+# sentinel各节点无需手动关联，原因是各节点之间是通过PUB/SUB发布订阅进行探测的各哨兵节点，通道为__sentinel__:hello
+
+# 基于redis-server启动sentinel(此redis-server并不对外提供redis服务)
+redis-server ./sentinel-26379.conf --sentinel
+```
+- 实践
+
+```bash
+# 1.创建sentinel-26379.conf、sentinel-26380.conf、sentinel-26381.conf，写入以下配置(注意修改port)
+port 26379
+sentinel monitor mymaster 127.0.0.1 6379 2
+# 2.如主备设置实践中启动3个服务端，并让其他节点追随6379
+# 3.启动3个sentinel进程
+redis-server ./sentinel-26379.conf --sentinel
+# 启动后打印日志如下
+# 7639:X 11 Jul 2020 16:26:56.733 # Sentinel ID is 6a0417e39932ff9648ad92fd6a2bebcc739cf17a
+# 7639:X 11 Jul 2020 16:26:56.733 # +monitor master mymaster 127.0.0.1 6379 quorum 2
+# 7639:X 11 Jul 2020 16:26:56.735 * +slave slave 127.0.0.1:6380 127.0.0.1 6380 @ mymaster 127.0.0.1 6379
+# 7639:X 11 Jul 2020 16:26:56.736 * +slave slave 127.0.0.1:6381 127.0.0.1 6381 @ mymaster 127.0.0.1 6379
+# 7639:X 11 Jul 2020 16:27:10.755 * +sentinel sentinel 83ea631a6cc216429ebce610f8c6f6ce60e4e718 127.0.0.1 26380 @ mymaster 127.0.0.1 6379
+# 7639:X 11 Jul 2020 16:27:21.476 * +sentinel sentinel cc806355286a306e2f7298b5de9f8f3a020b68d7 127.0.0.1 26381 @ mymaster 127.0.0.1 6379
+
+# 4.使6379退出，此时会自动从6380/6381中选取一个作为主节点，并让另外一个追随新的主节点
+# 5.使用6379重新启动，此时会发现6379会自动追随刚选出来的新主节点
+```
+
+## Java使用
 
 ### 解决session一致性(session共享)
 
-参考《nginx》的【反向代理和负载均衡】部分
+- 参考《nginx》的【反向代理和负载均衡】部分
 
 ### springboot使用redis
 
