@@ -32,6 +32,9 @@ select to_days('2016-01-02');
 -- oracel
 select to_char(sysdate, 'yyyy-mm-dd HH24:mi:ss') from dual;
 select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
+--sqlserver
+select CONVERT(VARCHAR(10), GETDATE(), 120); -- 格式化日期(120为一种格式) 2000-01-01
+select CONVERT(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:00:00.000
 ```
 
 ### 日期
@@ -45,16 +48,16 @@ sysdate + interval '1 1:1' day to minute -- 当前日期 + 1日1时1分
 sysdate + 1 -- 加1天
 sysdate - 1/24/60/60 -- 减1秒
 select sysdate, add_months(sysdate, -12) from dual; -- 减1年
-
 -- sqlserver
 select 
-GETDATE(), -- 获取当前时间 2000-01-01 08:00:00.000
-GETUTCDATE(), -- 当前UTC时间 2000-01-01 00:00:00.000
-DATEDIFF(hour, GETUTCDATE(), GETDATE()), -- 获取当前时间-当前UTC时间的相差小时 8
-DATEADD(hour, DATEDIFF(hour, GETUTCDATE(), GETDATE()), GETUTCDATE()); -- 对UTC时间增加时区差 2000-01-01 08:00:00.000
-
-select CONVERT(VARCHAR(10), GETDATE(), 120); -- 格式化日期(120为一种格式) 2000-01-01
+    GETDATE(), -- 获取当前时间(带时间) 2000-01-01 08:11:12.000
+    GETUTCDATE(), -- 当前UTC时间 2000-01-01 00:11:12.000
+    DATEDIFF(hour, GETUTCDATE(), GETDATE()), -- 获取当前时间-当前UTC时间的相差小时 8
+    DATEADD(hour, DATEDIFF(hour, GETUTCDATE(), GETDATE()), GETUTCDATE()); -- 对UTC时间增加时区差 2000-01-01 08:11:12.000
+select DATEADD(DAY, 0, DATEDIFF(DAY, 0, GETDATE())); -- 2000-01-01 00:00:00.000
+select CAST(CAST(GETDATE() as date) as varchar(10)) + ' 00:00:00'; -- 2000-01-01 00:00:00.000
 ```
+- 日期数据类型转换见上文
 
 ### 查询
 
@@ -70,9 +73,13 @@ select * from [Order]; -- sqlserver
 -- oracle null包含了空字符串('' == null)
 select * from users where last_name is null;
 select * from users where last_name is not null;
+nvl(counts, 0)
 -- mysql null不包含空字符串('' != null)
 select * from users where last_name is null or last_name = '';
 select * from users where last_name is not null and last_name != '';
+ifnull(counts, 0)
+-- sqlserver
+isnull(counts, 0)
 ```
 
 ### 排序

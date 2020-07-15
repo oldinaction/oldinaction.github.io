@@ -503,7 +503,7 @@ module.exports = {
 
 ```js
 new Router({
-    // 路由的基础路径，类似publicPath。只不过publicPath是针对静态文件，而此次是将<router-link>中的路径添加此基础路径
+    // 路由的基础路径，类似publicPath。只不过publicPath是针对静态文件，而此处是将<router-link>中的路径添加此基础路径
     base: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_BASE_URL = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
     // mode: 'history', // H5新特性，需要浏览器支持；***hash模式也支持多项目***
     routes: []

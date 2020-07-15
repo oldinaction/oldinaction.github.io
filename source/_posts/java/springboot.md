@@ -702,7 +702,7 @@ public class CourseControllerHandler {
 // 获取编译后classes目录下的`images/tray-running.png`文件，resources目录下的文件默认会放在classes根目录(上层无resources这层目录)
 MyTest.class.getClassLoader().getResource("images/tray-running.png")
 ```
-- yml配置
+- classpath使用
 
 ```yml
 myConfig:
@@ -715,6 +715,22 @@ myConfig:
 # 再通过@Value注入，返回如：1.0.0-SNAPSHOT
 version:
   @project.version@
+```
+- yml配置
+
+```yml
+# https://blog.csdn.net/Mrqiang9001/article/details/83002988
+# 结果为：hello wor\nld
+str1: |
+  hello wor
+  ld
+# 结果为：hello wor ld
+str2: >
+  hello wor
+  ld
+# 结果为：hello world。注意必须加双引号
+str3: "hello wor\
+  ld"
 ```
 
 ## 请求及响应
@@ -735,6 +751,7 @@ version:
 request-method |Content-Type   |postman   |springboot   |说明
 --|---|---|---|---
 post |`application/json`   |row-json   |(String userIdUrlParam, @RequestBody User user) |`String userIdUrlParam`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List对象，此时body中的数据不能直接通过String等接受)，而idea的http文件中url参数拼在地址上无法获取(请求机制不同)
+(x)post |`application/json`   |row-json   |(@RequestParam username) |如果前台为application/json + {username: smale}或者application/json + username=smalle均报400；此时需要application/x-www-form-urlencoded + username=smalle才可请求成功
 post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`。**对于application/x-www-form-urlencoded类型的数据，可无需 @RequestBody 接受参数**
 post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考实例1，可进行文件上传(包含参数)。此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；如果接受参数是Map则无法映射
 

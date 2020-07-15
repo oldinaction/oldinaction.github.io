@@ -8,8 +8,11 @@ tags: redis
 
 ## Redis简介
 
-- Redis 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统。由于 Redis 的键包括 `string`，`hash`，`list`，`set`，`sorted` `set`，`bitmap` 和 `hyperloglog`，所以常常被称为数据结构服务器
 - [redis.cn](http://redis.cn/)、[官网：http://redis.io/](http://redis.io/)、[Redis Github](https://github.com/antirez/redis)
+- Redis
+    - 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统
+    - 由于 Redis 的键包括 `string`，`hash`，`list`，`set`，`sorted set`，`bitmap` 和 `hyperloglog`，所以常常被称为数据结构服务器
+    - 单实例，单进程、单线程(epoll)，占用资源少(单实例只使用1M内存)
 - 常见的缓存如：memcached、redis
     - memcached的value无类型概念，部分场景可使用json代替，但是如果要从value中过滤获取部分数据则需要在客户端完成(服务器只能返回整个value值)
     - redis的value有类型概念，弥补了memcached上述弊端
@@ -402,13 +405,16 @@ exec
 - 通常Redis keys创建时没有设置相关过期时间，他们会一直存在，除非使用显示的命令移除，例如使用DEL命令
 - `expire` 倒计时，当key执行过期操作时，Redis会确保按照规定时间删除他们(尽管中途使用过，过期时间也不会自动改变)。从 Redis 2.6 起，过期时间误差缩小到0-1毫秒
 - `expireat` 定时失效
-- 过期判定原理
-    - 被动访问时判定、主动周期轮询判定(增量：随机取20个key判断，超过25%，则再取20个判断)
-    - 目的，稍微牺牲下内存(延时过期)，但是保住了redis性能为王
+- `pexpire` 
+- `pexpireat`
+- 过期判定原理：**被动访问判定、主动轮询判定**
+    - 主动轮询判定为增量：默认每秒进行10此扫码，每次随机取20个key判断，超过25%过期，则再取20个判断，并且默认的每次扫描时间上限不会超过25ms
+    - 目的：redis是单线程，此时稍微牺牲下内存(延时过期)，但是保住了redis性能为王
 
 ```bash
+## expire和expireat
 set k1 "hello"
-# 设置k1在10s之后过期(删除此key)。尽管中途使用过，过期时间也不会自动改变
+# 设置k1在10s之后过期(删除此key，设置为负值则相当于认为已经过期)。尽管中途使用过，初始过期时间也不会自动改变(且实际过期时间会随着时间流逝而减少)
 expire k1 10
 # 查看k1剩余有效期，-2表示此key已经不存在，-1表示此key永远不会过期
 ttl k1 # (integer) 5、(integer) -2等
@@ -420,6 +426,16 @@ time
 set k2 hello
 expireat k1 1594294836
 ttl k2
+
+## 注意事项
+# 1.设值并设置过期时间为300s
+set k3 hello ex 300
+# 2.set/getset会丢失过期时间；incr/lpush/hset不会丢失过期时间；pesis
+set k3 hi # 过期时间会丢失
+# 3.持久化一个key，会清除过期时间
+persist k3
+# 4.重命名key，过期时间会转到新key上
+rename k2 k2_new 
 ```
 
 #### 布隆和布谷鸟过滤器
@@ -578,14 +594,15 @@ vi /etc/redis/6379.conf
     - 单点故障
     - 容量有限
     - 压力太大
-- AKF
+- AKF拆分原则
     - X轴：表示主备，全量备份
     - Y轴：基于业务模块进行细分，可再结合X周特性进行主备
     - Z轴：在XY的情况下，对某模块下的单一业务再次划分XY(如对用户基于身份证号进行划分)
+    - 设计微服务的4个原则：AKF拆分原则、前后端分离原则、无状态服务、Restful的通信风格
 - 数据同步方式
     - 同步(强一致性)：client对主请求，主保存数据后通知给备，等所有备返回后再返回给client。可能丢失可用性
     - 异步(弱一致性)：client对主请求，主保存数据后立即返回给client。之后再同步给备。可能产生数据不一致
-    - 队列(最终一致性)：client对主请求，主保存数据后并发送给队列(如kafaka)，然后返回给client。之后从节点从队列中获取数据并保存
+    - 队列(最终一致性)：client对主请求，主保存数据后并发送给队列(如kafka)，然后返回给client。之后从节点从队列中获取数据并保存
 - 主备和主从(redis的这两种模式可进行配置，默认主备)
     - 主备：一般只有主对外提供服务
     - 主从：主提供全量服务，从提供部分服务
@@ -613,7 +630,7 @@ min-replicas-to-write 3
 min-replicas-max-lag 10
 ```
 
-#### 主备设置实践
+#### 主备设置实践(replicaof)
 
 - 主备设置相关命令
 
@@ -629,10 +646,9 @@ replicaof no one
 
 ```bash
 # 1.在一台机器上安装2个redis服务(伪主备)，先关闭所有redis服务，之后手动启动哦
-# 2.复制一份配置文件出来测试
+# 2.复制一份配置文件出来测试。修改配置文件中的port端口，修改`daemonize no`(不后台运行)，注释`logfile /var/log/redis_xxx.log`(日志打印在前台)
 cp /etc/redis/6379.conf .
 cp /etc/redis/6380.conf .
-# 修改配置`daemonize no`(不后台运行)，注释`logfile /var/log/redis_xxx.log`(日志打印在前台)
 
 # 3.启动服务端，打印日志如下
 redis-server ./6379.conf
@@ -641,7 +657,7 @@ redis-server ./6380.conf
 # 7507:M 11 Jul 2020 15:33:15.083 * DB loaded from disk: 0.000 seconds
 # 7507:M 11 Jul 2020 15:33:15.083 * Ready to accept connections
 
-# 4.启动3个客户端连接不同的服务端
+# 4.启动2个客户端连接不同的服务端
 redis-cli -p 6379 # A客户端
 redis-cli -p 6380 # B
 
@@ -711,7 +727,7 @@ redis-server ./sentinel-26379.conf --sentinel
 - 实践
 
 ```bash
-# 1.创建sentinel-26379.conf、sentinel-26380.conf、sentinel-26381.conf，写入以下配置(注意修改port)
+# 1.创建sentinel-26379.conf、sentinel-26380.conf、sentinel-26381.conf，写入以下配置(注意修改port)。哨兵启动后会动态修改此配置文件
 port 26379
 sentinel monitor mymaster 127.0.0.1 6379 2
 # 2.如主备设置实践中启动3个服务端，并让其他节点追随6379
@@ -728,6 +744,244 @@ redis-server ./sentinel-26379.conf --sentinel
 # 4.使6379退出，此时会自动从6380/6381中选取一个作为主节点，并让另外一个追随新的主节点
 # 5.使用6379重新启动，此时会发现6379会自动追随刚选出来的新主节点
 ```
+
+#### 分区/片
+
+- 一般针对业务无法拆分的功能，受到单机容量限制，从而需要进行分区/片(每个节点存放的不是全量数据)
+- 分区方式(以下3个模式均不能做数据库用)
+    - 基于`modula`算法(hash取模)拆分
+        - 缺点：取模的数必须固定，影响分布式下的扩展性(增加节点必须全量重新hash计算)
+    - 基于`random`算法拆分(随机放到不同的节点)
+        - 缺点：客户端不能精确知道数据具体存放的节点
+        - 应用场景：消息队列
+            - 客户端通过lpush存放到key为xxx的集合中，另外一个客户端只需要通过lpop任意取出一个进行消费即可
+            - 类似kafka，此时xxx可理解为topic，redis节点可认为是partition
+    - 基于`ketama`算法(一致性hash算法)拆分
+        - 规划一个虚拟哈希环，不同的节点通过hash算法落到此环的某个点，数据通过key进行hash得到该环的位置，并将数据存放在最近的节点上
+        - 优点：新增节点可以分担其他节点的压力，不会造成全局洗牌
+        - 缺点：新增节点造成一小部分数据不能命中(如增加node3，key为xxx对应数据原本在node1，此时客户端会到最近的node3上去找)
+            - 问题：击穿，压到mysql
+            - 方案：去取最近的2个物理节点数据(只能减少一部分问题)
+        - 数据倾斜问题：节点太少可能在某一节点的数据太多，可创建多个虚拟节点
+    - 图解
+
+        ![redis-sharding](/data/images/db/redis-sharding.png)
+    - 缺点
+        - 以上3个模式均不能做数据库用，主要是新增节点时会出现一段时间的数据丢失
+        - 解决方案：[预分区、Redis Cluster](#Redis%20Cluster)
+- 数据分治(分区)产生问题
+    - 聚合操作很难实现(不同的key分布在不同的几点)，因此涉及多个key的操作通常不会被支持
+    - 事务很难实现
+    - 分区时动态扩容或缩容可能非常复杂
+- hash tag
+    - 命令可以为`{tag1}key1`、`{tag1}key2`，从而可将相同的tag放到同一个节点，实现一定程度的支持事物等功能
+
+#### Redis Cluster
+
+- https://redis.io/topics/cluster-tutorial
+- redis预分区
+
+    ![redis-预分区](/data/images/db/redis-预分区.png)
+    - 假设刚开始只有2个节点，一般此时算法是hash%2，此时可改成直接hash%10(实际会更大，Redis 集群有16384个哈希槽)，那么所有数据会在刚开始就分布在不同的槽位(0-9)；当新增节点时，只需要将部分槽位的数据复制到新节点即可；当客户端查询的数据不再该节点时，会自动路由到目标节点
+- Redis Cluster测试
+
+```bash
+# Redis Cluster 在5.0之后取消了ruby脚本 redis-trib.rb的支持。而是集成在redis-cli进行集群管理，查看Redis Cluster帮助
+redis-cli --cluster help
+
+## 安装
+# 进入redis源码目录，查看README文件的集群配置帮助
+utils/create-cluster
+# 可修改配置，如PORT、NODES、REPLICAS
+vi create-cluster
+./create-cluster start # 启动实例
+# 创建集群(需要输入yes进程插槽划分)：创建6个节点，--cluster-replicas为1表示创建一个副本(从节点)，因此是6/(1+1)=3套主从(3个主，3个从，一般是前3个节点未主)
+redis-cli --cluster create 127.0.0.1:30001 127.0.0.1:30002 127.0.0.1:30003 127.0.0.1:30004 127.0.0.1:30005 127.0.0.1:30006 --cluster-replicas 1
+
+## 测试
+redis-cli -c -p 30001 # 使用以上其他端口进行连接亦可
+# redis命令操作记录
+127.0.0.1:30001> set k1 1
+# -> Redirected to slot [12706] located at 127.0.0.1:30003      # 根据key进行hash得出k1应该在30003上，因此自动路由(跳转)到30003
+# OK
+127.0.0.1:30003> set k2 2
+# -> Redirected to slot [449] located at 127.0.0.1:30001        # k2应该在30001上，再跳转到30001
+# OK
+127.0.0.1:30001> set k3 3
+# OK
+127.0.0.1:30001> multi                                          # 在30001上开启了事物
+# OK
+127.0.0.1:30001> set k1 2                                       # k1在30003上，因此跳转到了30003
+# -> Redirected to slot [12706] located at 127.0.0.1:30003
+# OK
+127.0.0.1:30003> exec                                           # 在30003上提交事物报错，因为30003并没有开启事物
+# (error) ERR EXEC without MULTI
+127.0.0.1:30003> set {order}k1 1                                # 基于hash tag设置(相同tag会落到同一机器)
+OK
+127.0.0.1:30003> multi
+OK
+127.0.0.1:30003> set {order}k1 2
+QUEUED
+127.0.0.1:30003> exec                                           # 提交事物成功。此结果是因为中途没有跳转到其他机器，如果跳转到其他机器事物仍然执行失败
+1) OK
+```
+
+#### 代理
+
+- 如果客户端直接连接redis各节点会产生较高的连接成本，因此可使用代理(类似nginx)，客户端只连接代理
+
+    ![redis-proxy](/data/images/db/redis-proxy.png)
+- 常见redis代理组件
+    - [twemproxy](https://github.com/twitter/twemproxy)，twitter开源
+    - [predixy](https://github.com/joyieldInc/predixy)，性能较高
+    - codis
+    - redis-cerberus
+- redis代理组件对比：https://blog.csdn.net/rebaic/article/details/76384028
+
+    ![redis-proxy-vs](/data/images/db/redis-proxy-vs.png)
+
+##### twemproxy测试
+
+```bash
+## 安装
+yum install -y git automake libtool
+git clone https://github.com/twitter/twemproxy.git
+cd twemproxy
+autoreconf -fvi
+./configure
+make # 编译，会在src目录生成nutcracker的可执行文件
+src/nutcracker -h # 查看帮助
+
+## 上述nutcracker可直接使用，下面将它设置成服务
+cp scripts/nutcracker.init /etc/init.d/twemproxy
+chmod +x /etc/init.d/twemproxy
+chkconfig --add twemproxy # 设置twemproxy为服务
+systemctl status twemproxy
+mkdir /etc/nutcracker # 复制nutcracker.yml等配置文件到scripts/nutcracker.init脚本中指定的位置
+cp conf/* /etc/nutcracker
+cp src/nutcracker /usr/bin/ # 复制可执行程序到scripts/nutcracker.init脚本中指定的位置
+
+## 测试
+vi /etc/nutcracker/nutcracker.yml # 参考下文进行代理配置
+# 参考上文[主备设置实践](#主备设置实践(replicaof))启动两个redis节点。然后启动twemproxy并连接
+systemctl start twemproxy
+redis-cli -p 22121
+# 1.普通设值
+set k1 hello # 存放在6379
+set k1 hi # 存放在6379
+set 1 1 # 存放在6380
+get k1 # hello
+redis-cli -p 6379 # 单独连接各节点，发现3个key分布在不同节点(如果在同一节点可设置不同的key试试)
+# 2.keys *、watch k1、mulit等命令不能执行(由于进行了分片，key可能落在多个节点)
+keys * # Error: Server closed the connection
+# 3.断开6380节点，发现6379的数据可正常get，但是挂掉的6380数据无法正常访问
+get 1 # (error) ERR Connection refused
+set 1 2 # OK。6380挂掉后，重新设置此key会保存到6379
+# 4.不支持形如`{xx}key`的hash tag
+```
+- /etc/nutcracker/nutcracker.yml测试配置
+
+```yml
+# 代理名称
+alpha:
+  listen: 127.0.0.1:22121       # 代理监听的地址，之后客户端连接此地址访问redis即可
+  hash: fnv1a_64                # hash算法 
+  distribution: ketama          # 分片方式(每个节点存放的不是全量数据)
+  auto_eject_hosts: true
+  redis: true
+  server_retry_timeout: 2000
+  server_failure_limit: 1
+  servers:
+   - 127.0.0.1:6379:1           # 节点配置，最后的1表示权重(不同节点存放数据量的多少)
+   - 127.0.0.1:6380:1
+# 可配置多个代理
+```
+
+##### predixy测试
+
+```bash
+# https://github.com/joyieldInc/predixy/blob/master/README_CN.md
+## 安装
+wget https://github.com/joyieldInc/predixy/releases/download/1.0.5/predixy-1.0.5-bin-amd64-linux.tar.gz
+tar -zxvf predixy-1.0.5-bin-amd64-linux.tar.gz
+cd predixy-1.0.5
+# bin/predixy conf/predixy.conf # 启动
+
+## 测试
+# 修改主配置：打开监听端口`Bind 127.0.0.1:7617`；使用哨兵模式，导入配置`Include sentinel.conf`(去掉此行注释，并注释掉`Include try.conf`)
+vi conf/predixy.conf
+vi conf/sentinel.conf # 修改哨兵配置，如下文
+# 启动哨兵，配置如下文(同样启动26380/26381)，并监听两套主从节点
+vi ~/sentinel-26379.conf
+redis-server ./sentinel-26379.conf --sentinel
+# 参考上文[主备设置实践](#主备设置实践(replicaof))启动两套redis主从(36379、36380和46379、46380)
+redis-server ./36379.conf
+redis-server ./36380.conf --slaveof 127.0.0.1 36379
+# 启动并连接
+bin/predixy conf/predixy.conf
+redis-cli -p 7617
+# 1.普通设值
+set k1 1 # 存放在36379主从中
+set k2 2 # 存放在46379主从中
+# 2.hash tag设值。以{order}开头的全部存放在同一节点
+set {order}k1 1
+set {order}k2 2
+# 3.当前版本只支持Sentinel搭配一个Group的主从时才支持事物等功能，此处conf/sentinel.conf有两个Group(xxx、yyy)因此无法支持以下命令
+multi # (error) ERR forbid transaction in current server pool
+keys * # (error) ERR unknown command 'keys'
+# 4.挂掉某一套的从节点，系统仍然可用
+# 5.挂掉某一套的主节点，系统刚开始不可用，等到哨兵重新设置主节点后恢复可用
+set k3 3 # (error) ERR server connection close => (error) ERR no server connection avaliable => OK
+# 6.挂掉了一套主从节点(整个一套全部挂掉)，此时如果某hash tag存放在此节点，则同样的hash tag将无法继续创建
+set {order}k3 3 # (error) ERR server connection close
+# 7.配置conf/sentinel.conf中只保留一个Group(实际Sentinel仍然监控了两套主从)，则可支持事物
+keys * # (error) ERR unknown command 'keys'
+multi # OK
+keys * # QUEUED
+exec # 通过事物执行keys *可成功
+watch k1 # OK
+```
+- 测试配置
+
+```bash
+## conf/sentinel.conf
+SentinelServerPool {
+    Databases 16
+    Hash crc16
+    HashTag "{}"
+    Distribution modula
+    MasterReadPriority 60
+    StaticSlaveReadPriority 50
+    DynamicSlaveReadPriority 50
+    RefreshInterval 1
+    ServerTimeout 1
+    ServerFailureLimit 10
+    ServerRetryTimeout 1
+    KeepAlive 120
+    # 配置3个哨兵节点
+    Sentinels {
+        + 127.0.0.1:26379
+        + 127.0.0.1:26380
+        + 127.0.0.1:26381
+    }
+    # 哨兵配置文件中定义监控组名称(xxx为一套主从，yyy为一套主从)。如果需要支持事物，此处只能配置一个Group
+    Group xxx {
+    }
+    Group yyy {
+    }
+}
+
+## sentinel-26379.conf(监控两套主从)，同理创建26380、26381
+port 26379
+sentinel monitor xxx 127.0.0.1 36379 2
+sentinel monitor yyy 127.0.0.1 46379 2
+```
+
+### 击穿、穿透、雪崩、分布式锁
+
+-击穿、穿透、雪崩
+
+![redis-击穿-穿透-雪崩](/data/images/db/redis-击穿-穿透-雪崩.png)
 
 ## Java使用
 

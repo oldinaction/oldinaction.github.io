@@ -19,6 +19,43 @@ tags: [H5, 小程序, App]
 - `pages.json` 文件用来对 uni-app 进行全局配置，决定页面文件的路径、窗口样式、原生的导航栏、底部的原生tabbar 等
     - 它类似微信小程序中app.json的页面管理部分
 - `manifest.json` 文件是应用的配置文件，用于指定应用的名称、图标、权限(如定位)等
+
+    ```json
+    // h5模式相关配置
+    "h5" : {
+        // 项目发布在/test-demo1/端点下，只支持发行的时候(开发时运行无效)
+        "publicPath" : "/test-demo1/",
+        "router" : {
+            "base" : "/test-demo1/"
+        },
+        // 本地开发配置
+        "devServer" : {
+            // 防止出现Invalid Host header问题(使用反向代理时出现)
+            "disableHostCheck" : true,
+            "port" : 80,
+            "publicPath": "/test-demo1/", // 本地访问http://localhost/test-demo1/#/
+            "proxy" : {
+                // 匹配/api-sq/xxx开头的请求，并将其转发到8080/xxx上(pathRewrite去掉了前缀)。可解决跨域问题
+                "/api-sq/" : {
+                    "target" : "http://127.0.0.1:8080/", // 请求的目标地址
+                    "changeOrigin" : true,
+                    "secure" : false,
+                    "pathRewrite" : {
+                        "^/api-sq" : ""
+                    }
+                }
+            }
+        },
+        "optimization" : {
+            "treeShaking" : {
+                "enable" : true
+            }
+        },
+        "uniStatistics" : {
+            "enable" : false
+        }
+    }
+    ```
 - `package.json` 使用HBuilder编辑创建的项目默认无此文件，可手动创建或npm init创建
     - uni-app在文件中增加uni-app扩展节点，可实现自定义条件编译平台
     - 增加编译时的环境变量，可在package.json文件中增加以下节点，然后再发行-自定义发行菜单中可看到此标题
@@ -103,7 +140,9 @@ tags: [H5, 小程序, App]
     - 编译期判断，使用`// #ifdef H5`，`// #endif`
     - 运行期判断，`uni.getSystemInfoSync().platform = android|ios|devtools` 判断客户端环境是 Android、iOS 还是小程序开发工具
 - 扫码功能参考[uni.scanCode](https://uniapp.dcloud.net.cn/api/system/barcode?id=scancode)、[springboot-vue.md#扫码](/_posts/arch/springboot-vue.md#扫码)
-
+- 路径问题
+    - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
+- H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#文件)
 
 ## uView插件
 

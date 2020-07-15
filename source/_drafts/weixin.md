@@ -64,7 +64,7 @@ tags: [H5, App]
     - 通过微信浏览器打开网页时的场景。此时可调用JS-SDK获取一些硬件能力
     - 通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力，为微信用户提供更优质的网页体验
 - **JSSDK使用步骤**，[参考](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)
-    - 绑定域名(JS接口安全域名)。注意是域名，不需要http协议头(否则报错：invalid url domain)
+    - 绑定域名(JS接口安全域名)。**注意是域名**(因此测试也需要使用域名)，不需要http协议头(否则报错：invalid url domain)
     - 引入JS文件(必须)
         - 直接引入`jweixin-1.6.0.js`，则可直接使用wx对象
         - 或者通过`npm install -S weixin-js-sdk`，然后通过`import wx from 'weixin-js-sdk'`导入
