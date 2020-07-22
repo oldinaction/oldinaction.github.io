@@ -235,7 +235,7 @@ if(!0) console.log(1) // 1
 
 ## ES6 (ES2017)
 
-### Promise
+### Promise/async/await
 
 - Promise基本用法
 
@@ -259,8 +259,69 @@ new Promise(function (resolve, reject) {
     log('Failed: ' + reason);
 });
 ```
+- [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
+    - 说明
+        - 使用 async 关键字，把它放在函数声明之前，使其成为 async function
+        - await 只在异步函数里面才起作用
+    - async简单使用
 
-- ajax返回Promise
+        ```js
+        // 1.async
+        async function hello() { return "Hello" }
+        hello() // 返回一个Promise
+
+        // 2.async
+        let hello = async () => { return "Hello" }
+        hello().then((value) => console.log(value)) // 或者 hello().then(console.log)
+        ```
+    - async、await
+
+        ```js
+        function timeoutPromise(interval) {
+            return new Promise((resolve, reject) => {
+                setTimeout(function(){
+                    resolve("done");
+                }, interval);
+            });
+        };
+
+        // 方式一：耗时9004。简单async、await，下面3个函数要依次等待执行
+        async function timeTest1() {
+            await timeoutPromise(3000);
+            await timeoutPromise(3000);
+            await timeoutPromise(3000);
+        }
+
+        // 方式二：耗时3002。通过将 Promise 对象存储在变量中来同时开始3个timeoutPromise，然后同步等待结果
+        async function timeTest2() {
+            const timeoutPromise1 = timeoutPromise(3000);
+            const timeoutPromise2 = timeoutPromise(3000);
+            const timeoutPromise3 = timeoutPromise(3000);
+
+            await timeoutPromise1;
+            await timeoutPromise2;
+            await timeoutPromise3;
+        }
+
+        // 方式三：耗时3002。Promise.all
+        async function timeTest3() {
+            const timeoutPromise1 = timeoutPromise(3000);
+            const timeoutPromise2 = timeoutPromise(3000);
+            const timeoutPromise3 = timeoutPromise(3000);
+
+            let values = await Promise.all([timeoutPromise1, timeoutPromise2, timeoutPromise3]);
+            console.log(values) // ["done", "done", "done"]
+        }
+
+        let startTime = Date.now();
+        timeTest1().then(() => {
+            let finishTime = Date.now();
+            let timeTaken = finishTime - startTime;
+            alert("Time taken in milliseconds: " + timeTaken);
+        })
+        ```
+
+- axios返回Promise
 
 ```js
 function res() {

@@ -260,7 +260,7 @@ tags: [oracle, dba, sql]
     - 当发起一个被索引覆盖的查询时，在 explain 的 extra 列可以看到 using index 的信息，此时就使用了覆盖索引
     - 覆盖索引只能覆盖那些只访问索引中部分列的查询，不过可以使用 innodb 的二级索引来覆盖查询
     - memory 存储引擎不支持覆盖索引
-  - **最左匹配**
+  - **最左匹配**(最左前缀)
 
     - 组合索引时，要么 where 条件中包含索引的字段，要么包含组合索引的第一个字段才会触发组合索引
     - 注意最左前缀，并不是是指一定要按照各个字段出现在 where 中的顺序来建立复合索引的，最终优化器会优化 sql 语句来按照组合索引顺序查询
@@ -313,7 +313,7 @@ tags: [oracle, dba, sql]
     - `select * from staffs where name = 'July' and position = 'dev' and age = '23';` 使用 type=ref,ref=const,const,const(将索引的 3 个值当成常量)的索引，尽管此时顺序上 position 在 age 的前面，但是 mysql 优化器会进行优化成索引的顺序
     - `select * from staffs where name = 'July' and position = 1 and age = '23';` 使用 type=ref,ref=const,const(将索引的 2 个值当成常量)的索引。此时 position 字段类型为 varchar，不可能存在 position=1 的数据，因此没有用到 position 的索引
     - `select * from staffs where age = '23';` 不会使用索引，因为检索时发现 where 中没有 name 则直接跳过后面的索引列
-  - **最左匹配**：只匹配前面的几列
+  - **最左匹配**(最左前缀)：只匹配前面的几列
     - `select * from staffs where name = 'July' and age = '23';` 使用 type=ref,ref=const,const(将索引的 2 个值当成常量)的索引
   - **匹配列前缀**：可以匹配某一列的值的开头部分
     - `select * from staffs where name like 'J%';` 使用的是 type=range,ref=NULL 的索引

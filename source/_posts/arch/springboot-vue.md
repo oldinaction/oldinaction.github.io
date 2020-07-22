@@ -456,6 +456,87 @@ server {
 ```
 - Vue首页加载慢问题，一般为`main.js`打包出来的体积太大，可以考虑减少main.js中的import包
 
+## 代码格式
+
+### eslint格式化
+
+- `vue add eslint` 安装插件，选择standard；安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)。https://eslint.vuejs.org/
+- `.eslintrc.js` 放在vue项目根目录，详细参考：https://cn.eslint.org/ [^10]
+
+```js
+module.exports = {
+  root: true,
+  'extends': [
+    'plugin:vue/essential',
+    '@vue/standard'
+  ],
+  rules: {
+    // allow async-await
+    'generator-star-spacing': 'off',
+    // allow debugger during development
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'vue/no-parsing-error': [2, {
+      'x-invalid-end-tag': false
+    }],
+    'no-undef': 'off',
+    'camelcase': 'off',
+    // function函数名和()见增加空格
+    "space-before-function-paren": ["error", {
+        "anonymous": "always",
+        "named": "always",
+        "asyncArrow": "always"
+    }],
+    // 不强制使用 ===
+    "eqeqeq": ["error", "smart"],
+    // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
+    "operator-linebreak": ["error", "before"],
+  },
+  parserOptions: {
+    parser: 'babel-eslint'
+  }
+}
+```
+- `.eslintignore` 放在vue项目根目录
+
+```bash
+# 不进行校验的的文件或文件夹
+src/components
+```
+- vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
+
+### editorconfig格式化
+
+- Eslint 和 .editorconfig
+    - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒。而 .editorconfig 更偏向于代码风格，如缩进等
+    - 二者并不冲突，同时配合使用可以使代码风格更加优雅
+- vscode安装`Editorconfig`插件。该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的
+- `.editorconfig` 放在vue项目根目录
+
+```ini
+# http://editorconfig.org
+root = true
+
+[*]
+#缩进风格：空格
+indent_style = space
+#缩进大小2
+indent_size = 2
+#换行符lf
+end_of_line = lf
+#字符集utf-8
+charset = utf-8
+#是否删除行尾的空格
+trim_trailing_whitespace = true
+#是否在文件的最后插入一个空行
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+```
+
 ## 其他
 
 - 使用nginx导致部分地址直接浏览器访问报404(如基于`quasar`的项目)。可修改nginx配置如下
@@ -545,7 +626,12 @@ location ^~ /my-app/ {
 
 ## 常用插件
 
-## cross-env启动时增加环境变量
+### cross-env 启动时增加环境变量
+
+### 省市区级联
+
+- `area-cascader` 省市区选择器
+- `area-puppeteer` 省市区数据
 
 ### Clipboard 复制内容到剪贴板
 
@@ -564,6 +650,7 @@ location ^~ /my-app/ {
             - iphone7扫二维码成功，条形码不成功。扫码时无扫码框，需要点击拍照 - 确定识别
         - 基于`quagga.js`库，可进行条形码解析
             - 如uni-app插件：https://ext.dcloud.net.cn/plugin?id=1619
+        - 基于[jsQR](https://github.com/cozmo/jsQR)、[vue-qrcode-reader](https://github.com/gruhn/vue-qrcode-reader)调取摄像头(进行录像)识别二维码，每个页面需要同意调用摄像头(网页可设置永久同意)
 
 ## 浏览器
 
@@ -588,6 +675,6 @@ location ^~ /my-app/ {
 [^7]: https://juejin.im/post/5cfe23b3e51d4556f76e8073
 [^8]: https://mp.weixin.qq.com/s/LV7qziMyrMt0_EJWo05qkA (九种跨域方式实现原理)
 [^9]: https://juejin.im/post/5c09cbb1f265da617006ee83
-
+[^10]: https://juejin.im/post/5ceb480cf265da1b614fd537
 
 

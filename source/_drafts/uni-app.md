@@ -117,6 +117,52 @@ tags: [H5, 小程序, App]
 - [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
     - Vue特性支持表
 
+## 生命周期
+
+> https://uniapp.dcloud.io/collocation/frame/lifecycle
+
+- 应用生命周期
+    - `onLaunch` 当uni-app 初始化完成时触发（全局只触发一次）
+    - `onShow` 当 uni-app 启动，或从后台进入前台显示
+- 页面生命周期中
+    - `onLoad` 触发一次
+    - `onShow` 每次展示时触发
+- onLaunch中进行同步执行后再执行onShow的解决方式
+
+```js
+// main.js
+Vue.prototype.$onResolve = new Promise(resolve => {
+    Vue.prototype.$emitResolve = resolve
+})
+
+// App.vue
+export default {
+    onLaunch: function() {
+        // #ifdef H5
+        if(this.$utils.isWeiXinH5()) {
+            wechat.weChatJsSdkSignature('/m/auth/weChatJsSdkSignature').then(() => {
+                this.$emitResolve() // 释放
+            })
+        } else {
+            this.$emitResolve() // else的情况一定也要释放，否则页面可能会卡在await
+        }
+        // #endif
+    },
+    onShow: function() {
+        // #ifdef H5
+        this.h5Login()
+        // #endif
+    },
+    methods: {
+        // onLaunch、onShow不能定义为async
+        async h5Login() {
+            await this.$onResolve
+            // do somthing
+        }
+    }
+}
+```
+
 ## 小技巧
 
 - 可使用HBuilder创建项目或vue-cli创建项目，参考：https://uniapp.dcloud.net.cn/quickstart
@@ -124,8 +170,8 @@ tags: [H5, 小程序, App]
     - HBuilder创建的项目默认无package.json，可手动创建或npm init创建，之后可通过npm安装插件
     - HBuilder创建的项目代码对应vue-cli创建项目的src代码
     - vue-cli创建的项目还需手动安装sass-loader(`cnpm install sass-loader node-sass -D`)
-- uni.navigateTo 不关闭之前页面，uni.redirectTo 关闭之前页面
-- onLoad触发一次，onShow每次触发
+- uni.navigateTo 不关闭之前页面，uni.redirectTo 关闭之前页面，uni.switchTab 关闭之前页面并显示Tab主页
+    - 所有的路由都是基于page.json中的路径，注意如果路径中无.vue后缀，则路由时的路径也不能有.vue后缀
 - 路由挂载：需要跳转的页面必须在page.json中注册过。如需采用 Vue Router 方式管理路由，可在uni-app插件市场找Vue-Router相关插件
 - uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需虚拟化成字符串)
 - uni.showToastr 无Error图片(微信也没有)

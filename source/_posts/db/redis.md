@@ -979,7 +979,7 @@ sentinel monitor yyy 127.0.0.1 46379 2
 
 ### 击穿、穿透、雪崩、分布式锁
 
--击穿、穿透、雪崩
+- 击穿、穿透、雪崩
 
 ![redis-击穿-穿透-雪崩](/data/images/db/redis-击穿-穿透-雪崩.png)
 

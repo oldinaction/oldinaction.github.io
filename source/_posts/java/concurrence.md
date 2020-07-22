@@ -959,6 +959,18 @@ public class MyEvent {
     - disruptor.setDefaultExceptionHandler()
     - disruptor.handleExceptionFor().with()
 
+### 线程不安全常见问题
+
+- SimpleDateFormat为线程不安全，《阿里巴巴 Java 开发手册》也明确了此类的使用
+    - 例如在Filter中使用SimpleDateFormat静态变量进行数据日期格式化时，会产生问题。Filter中会出现多线程访问
+    - 原因：多个线程之间共享变量calendar，并修改calendar。如调用format方法时，多个线程会同时调用calender.setTime方法
+    - 解决
+        - 将SimpleDateFormat定义成局部变量。尽量不要定义为static属性，非static属性时不要在多个线程中共用
+        - 或者加锁
+        - 使用ThreadLocal
+        - 使用LocalDateTime代替Date，从而使用DateTimeFormatter进行格式化(JDK8)
+            - String dateNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+
 ## 常用类
 
 ### ExecutorService [^1]

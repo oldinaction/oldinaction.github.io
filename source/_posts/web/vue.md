@@ -874,17 +874,22 @@ this.$root.eventBus.$off('eventName')
 ```js
 // config.js
 import Vue from 'vue'
-
 let config = {
     name: 'hello world'
 }
-
 export default {
     install(Vue) {
         // 之后在组件中可使用this.$config
 		Vue.prototype.$config = config
 	}
 }
+/*
+// 等同于
+const install = Vue => {
+    Vue.prototype.$config = config
+}
+export default { install }
+*/
 
 // main.js
 import config from './config/index.js'
@@ -1428,13 +1433,16 @@ const user = {
   // this.$store.state.name 或 this.$store.user.state.name(被嵌入到modules)
   state: {
     token: Cookies.get('X-Token'), // 刷新浏览器后，初始化时数据线从Cookies中获取
-    name: '' // 刷新浏览器数据会丢失
+    name: '', // 刷新浏览器数据会丢失
+    info: Cookies.get('info') ? JSON.parse(Cookies.get('info')) : {} // Cookies获取的是字符串，需要转换
   },
   // 更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。它会接受 state 作为第一个参数
   // 同步调用：this.$store.commit('SET_TOKEN', 'my-token-xxx') 
   mutations: {
     SET_TOKEN: (state, token) => {
       state.token = token
+      // this.commit('SET_NAME', 'hello') // 内部调用
+      // this.dispatch('Login', {}) // 内部调用
     },
     SET_NAME: (state, name) => {
       state.name = name

@@ -768,6 +768,8 @@ select *
 
 #### intersect交集
 
+#### except差集
+
 ## Mysql连接JDBC
 
 - 先在Mysql官网下载驱动JDBC(Mysql Drivers提供了很多语言的驱动)：mysql-connector-java-5.0.8

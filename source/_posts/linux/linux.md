@@ -229,7 +229,9 @@ lsmod |grep br_netfilter
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
     - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
     - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下(此处/home不能写成/home/)
-        - `scp -r /home/smalle/dir root@192.168.1.1:/home` 复制文件夹到远程机器
+        - `scp -r /home/smalle/dir root@192.168.1.1:/home` 复制文件夹下的文件到远程机器的home目录下
+        - `scp -r /home/smalle/dir root@192.168.1.1:/home/dir/` 复制文件夹下的文件到远程机器的home/dir目录下
+        - scp免密登录需要将客户端的公钥放到服务器
 - `mv a.txt /home` 移动a.txt到/home目录
     - `mv a.txt b.txt` 将a.txt重命名为b.txt
     - `mv a.txt /home/b.txt` 移动并重名名
