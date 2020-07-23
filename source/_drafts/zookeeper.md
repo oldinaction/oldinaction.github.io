@@ -43,12 +43,6 @@ tags: HA
     - 统一视图：无论服务器连接到哪个服务器，客户端都将看到相同的服务视图(临时节点数据也可见)
     - 可靠性：一旦应用了更新，它将从那时起持续到客户端覆盖更新
     - 及时性：系统的客户视图保证在特定时间范围内是最新的
-- zookeeper每个节点需配置两个端口，如监听2888和3888端口
-    - 2888：leader接受write请求
-    - 3888：选主投票用的
-    - 启动后3888端口的连接如下，假设4个节点，则每个节点和其他3个节点进行连接
-        
-        ![zookeeper-3888](/data/images/arch/zookeeper-3888.png)
 
 ## ZooKeeper安装和使用
 
@@ -88,6 +82,7 @@ tags: HA
         server.1=node1:2888:3888
         server.2=node2:2888:3888
         server.3=node3:2888:3888
+        #server.4=node4:2888:3888:observer # 设置节点为Observer角色
         ```
 - 启动与停止
 
@@ -129,6 +124,51 @@ ls -s /abc # 结果如下
     # numChildren = 4                                   # 子节点个数
 ```
 
+## 原理
+
+- 角色：Leader、Follower、Observer
+    - 只有Follower才能选举(加快恢复速度)
+    - Observer只提供读取服务，不能选举。利用Observer放大查询能力，读写分离。zk适合读多写少的场景
+- zookeeper每个节点需配置两个端口
+    - 如监听2888和3888端口，可通过`netstat -natp | egrep '(2888|3888)'`查看
+        - 2888：leader接受write请求，即其他从节点会连接到leader的2888端口
+        - 3888：选主投票用的
+    - 启动后3888端口的连接如下，假设4个节点，则每个节点和其他3个节点进行连接
+        
+        ![zookeeper-3888](/data/images/arch/zookeeper-3888.png)
+
+### Zab协议
+
+- ZooKeeper 是通过 `Zab`(ZooKeeper Atomic Broadcast，ZooKeeper 原子广播协议)协议来保证分布式事务的最终一致性和支持崩溃恢复 [^1]
+    - ZAB基于[Paxos](https://zh.wikipedia.org/zh-cn/Paxos%E7%AE%97%E6%B3%95)算法演进而来。Paxos 是理论，Zab 是实践
+- Zab 协议主要功能：消息广播、崩溃恢复、数据同步
+- **消息广播**。写操作可理解为2PC过程
+
+    ![zookeeper-2pc](/data/images/arch/zookeeper-2pc.png)
+    - 接受写请求：在 ZooKeeper 中所有的事务请求都由 Leader 节点来处理，其他服务器为 Follower
+        - Leader或Follower都对外提供读写操作
+        - 客户端对Follower发起写操作时，会由Follower提交到Leader进行写操作
+    - 广播事务操作：Leader 将客户端的事务请求转换为事务 Proposal(提议)，并且将 Proposal 分发给集群中其他所有的 Follower
+        - Leader会为每个请求生成一个Zxid(高32位是epoch，用来标识leader选举周期；低32位用于递增计数。在Paxos中epoch叫Ballot Number)
+        - Leader 会为每一个 Follower 服务器分配一个单独的 FIFO 队列，然后把 Proposal 放到队列中
+        - Follower 节点收到对应的 Proposal 之后会把它持久到磁盘上(zk的数据状态在内存，用磁盘保存日志)。当完全写入之后，发一个 ACK 给 Leader
+    - 广播提交操作：Leader 等待 Follwer 反馈，当有过半数的 Follower 反馈信息后，Leader 将再次向集群内 Follower 广播 Commit 信息(上述Proposal)，Follower 收到 Commit 之后，完成各自的事务提交
+- **崩溃恢复**。若某一时刻 Leader 挂了，此时便开始 Leader 选举，过程如
+    - 各个节点变更状态，变更为 Looking(选举状态)
+    - 各个 Server 节点都会发出一个投票(第一次默认投自己)，参与选举
+    - 集群接收来自各个服务器的投票，开始处理投票和选举
+    - 新Leader选举原则：先考虑Zxid大的，再考虑myid大的
+- **数据同步**
+    - 崩溃恢复完成选举以后，接下来的工作就是数据同步，在选举过程中，通过投票已经确认 Leader 服务器是最大Zxid 的节点，同步阶段就是利用 Leader 前一阶段获得的最新Proposal历史，同步集群中所有的副本
+
+### 一致性
+
+- CAP理论
+- 一致性分类
+- 对于zookeeper来说，它实现了A可用性、P分区容错性、C中的写入强一致性，丧失的是C中的读取一致性
+
+https://blog.csdn.net/nawenqiang/article/details/85236952
+
 ## Java中使用
 
 
@@ -140,5 +180,7 @@ ls -s /abc # 结果如下
 
 ---
 
+参考文章
 
+[^1]: https://www.cnblogs.com/zz-ksw/p/12786067.html
 

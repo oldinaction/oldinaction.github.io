@@ -630,8 +630,8 @@ location ^~ /my-app/ {
 
 ### 省市区级联
 
-- `area-cascader` 省市区选择器
-- `area-puppeteer` 省市区数据
+- [vue-area-linkage](https://github.com/dwqs/vue-area-linkage) 省市区选择器(需结合省市区数据)
+- [area-puppeteer](https://github.com/dwqs/area-puppeteer) 省市区数据
 
 ### Clipboard 复制内容到剪贴板
 

@@ -1257,8 +1257,7 @@ export default {
     - `router.go(n)`类似`window.history.go(n)`
 - 动态路由、嵌套路由、`<router-view />`
     - 实现嵌套路由有两个要点：在组件内部使用`<router-view />`标签、VueRouter 的参数中使用 children 配置
-
-> 嵌套路由（https://router.vuejs.org/zh/guide/essentials/nested-routes.html）
+    - 嵌套路由（https://router.vuejs.org/zh/guide/essentials/nested-routes.html）
 
 ```js
 <div id="app">
@@ -1416,6 +1415,99 @@ refresh () {
         path: '/redirect' + fullPath
     })
 }
+```
+
+### 子模块路由案例(iview-admin为例)
+
+- 隐藏菜单
+
+```js
+// 路由
+{
+    path: '/base',
+    name: 'base',
+    component: Main,
+    meta: {
+      access: [],
+      icon: 'md-people',
+      showAlways: true,
+      title: '客户管理'
+    },
+    icon: 'md-home',
+    children: [
+      { name: 'customer', path: 'customer', meta: { title: '客户管理' }, component: () => import('@/views/customer/CustomerList') },
+      {
+        name: 'customerInfo',
+        path: 'customer/customerInfo/:customerId',
+        meta: { title: '客户信息', hideInMenu: true }, // iview-admin中hideInMenu为隐藏菜单
+        component: () => import('@/views/customer/CustomerInfo.vue')
+      }
+    ]
+}
+
+// 路由跳转
+this.$router.push({
+    name: 'customerInfo',
+    params: {
+        customerId: 1
+    }
+})
+```
+- 子组件路由(嵌套路由，参考上文)
+
+```js
+// 路由
+{
+    path: '/workspace',
+    name: '',
+    component: Main, // Main为iview-admin的基础组件，组件内包含一个router-view出口来展示下面的children
+    children: [
+      {
+        path: 'project/:projectId',
+        name: 'project',
+        component: () => import('@/view/workspace/project/project-index.vue'), // 组件内必须包含一个router-view出口来展示下面的children
+        children: [
+          {
+            path: 'workbench/:levelId',
+            name: 'workbench',
+            component: () => import('@/view/workspace/project/workbench/workbench-index.vue'), // 组件内必须包含一个router-view出口来展示下面的children
+            children: [
+              {
+                path: 'work-level/:workLevelId',
+                name: 'work-edit',
+                component: () => import('@/view/workspace/project/workbench/work/work-edit.vue')
+              }
+            ]
+          },
+          {
+            path: 'document',
+            name: 'document',
+            meta: {
+              title: route => `${route.params.name}`
+            },
+            component: () => import('@/view/workspace/project/document/document-index.vue')
+          }
+        ]
+      }
+    ]
+}
+
+// project-index.vue包含，workbench-index.vue同理
+<div class="project-info">
+    <keep-alive>
+    <router-view />
+    </keep-alive>
+</div>
+
+// 路由跳转
+this.$router.push({
+    name: 'work-edit',
+    params: {
+        projectId: 1,
+        levelId: 1,
+        workLevelId: 1
+    }
+})
 ```
 
 ## Vuex
