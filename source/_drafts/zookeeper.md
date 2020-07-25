@@ -129,13 +129,17 @@ ls -s /abc # 结果如下
 - 角色：Leader、Follower、Observer
     - 只有Follower才能选举(加快恢复速度)
     - Observer只提供读取服务，不能选举。利用Observer放大查询能力，读写分离。zk适合读多写少的场景
-- zookeeper每个节点需配置两个端口
-    - 如监听2888和3888端口，可通过`netstat -natp | egrep '(2888|3888)'`查看
-        - 2888：leader接受write请求，即其他从节点会连接到leader的2888端口
-        - 3888：选主投票用的
+- zookeeper每个节点需配置几个端口。可通过`netstat -natp | egrep '(2188|2888|3888)'`查看
+    - 2188：客户端连接使用
+    - 2888：leader接受write请求，即其他从节点会连接到leader的2888端口
+    - 3888：选主投票用的
     - 启动后3888端口的连接如下，假设4个节点，则每个节点和其他3个节点进行连接
         
         ![zookeeper-3888](/data/images/arch/zookeeper-3888.png)
+- 客户端watch一个目录后，当该目录发生改变后，会触发事件通知到客户端
+
+    ![zookeeper-watch](/data/images/arch/zookeeper-watch.png)
+- zookeeper是有session的概念，因此客户端使用时不能使用线程池
 
 ### Zab协议
 
@@ -154,10 +158,13 @@ ls -s /abc # 结果如下
         - Follower 节点收到对应的 Proposal 之后会把它持久到磁盘上(zk的数据状态在内存，用磁盘保存日志)。当完全写入之后，发一个 ACK 给 Leader
     - 广播提交操作：Leader 等待 Follwer 反馈，当有过半数的 Follower 反馈信息后，Leader 将再次向集群内 Follower 广播 Commit 信息(上述Proposal)，Follower 收到 Commit 之后，完成各自的事务提交
 - **崩溃恢复**。若某一时刻 Leader 挂了，此时便开始 Leader 选举，过程如
-    - 各个节点变更状态，变更为 Looking(选举状态)
-    - 各个 Server 节点都会发出一个投票(第一次默认投自己)，参与选举
-    - 集群接收来自各个服务器的投票，开始处理投票和选举
-    - 新Leader选举原则：先考虑Zxid大的，再考虑myid大的
+    - 当发现Leader挂掉后，将本节点变更状态，变更为 Looking(选举状态)
+    - 然后上述节点会发出一个投票，参与选举
+    - 其他节点收到投票提议，开始处理投票选举
+        - 新Leader选举原则：**先考虑Zxid大的，再考虑myid大的**。如初始化集群启动时Zxid=0，因此看myid；和启动顺序有关，如果过半，则已启动的中的myid最大的为Leader
+        - 如果A节点收到B节点的投票提议，当A发现B的zxid-myid比自己小时，会反驳提议(即A也发起自己的投票提议)
+        - 发起投票者都会投一票给自己
+        - 如果收到超过半数的票则会当选为Leader，即3个节点得2票、4个节点得3票。只要有超过半数的节点存活，则ZK服务仍然可用
 - **数据同步**
     - 崩溃恢复完成选举以后，接下来的工作就是数据同步，在选举过程中，通过投票已经确认 Leader 服务器是最大Zxid 的节点，同步阶段就是利用 Leader 前一阶段获得的最新Proposal历史，同步集群中所有的副本
 
@@ -171,8 +178,223 @@ https://blog.csdn.net/nawenqiang/article/details/85236952
 
 ## Java中使用
 
+- pom中导入客户端依赖(客户端需要和服务端保持同一版本)
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+<dependency>
+    <groupId>org.apache.zookeeper</groupId>
+    <artifactId>zookeeper</artifactId>
+    <version>3.6.1</version>
+</dependency>
+```
+- 示例
+
+<details>
+<summary>测试代码</summary>
+
+```java
+/**
+ * 1.启动日志，可见session id = 0x100033765980001，且连接到的是192.168.6.131：
+ *
+ * 2020-07-25 13:24:23,918 [myid:] - INFO  [main:ZooKeeper@1005] - Initiating client connection, connectString=192.168.6.131:2181,192.168.6.132:2181,192.168.6.133:2181 sessionTimeout=5000 watcher=cn.aezo.zookeeper.App$1@27f8302d
+ * 2020-07-25 13:24:23,923 [myid:] - INFO  [main:X509Util@77] - Setting -D jdk.tls.rejectClientInitiatedRenegotiation=true to disable client-initiated TLS renegotiation
+ * 2020-07-25 13:24:24,634 [myid:] - INFO  [main:ClientCnxnSocket@239] - jute.maxbuffer value is 1048575 Bytes
+ * 2020-07-25 13:24:24,649 [myid:] - INFO  [main:ClientCnxn@1703] - zookeeper.request.timeout value is 0. feature enabled=false
+ * 2020-07-25 13:24:26,348 [myid:192.168.6.131:2181] - INFO  [main-SendThread(192.168.6.131:2181):ClientCnxn$SendThread@1154] - Opening socket connection to server 192.168.6.131/192.168.6.131:2181.
+ * 2020-07-25 13:24:26,349 [myid:192.168.6.131:2181] - INFO  [main-SendThread(192.168.6.131:2181):ClientCnxn$SendThread@1156] - SASL config status: Will not attempt to authenticate using SASL (unknown error)
+ * 2020-07-25 13:24:26,354 [myid:192.168.6.131:2181] - INFO  [main-SendThread(192.168.6.131:2181):ClientCnxn$SendThread@986] - Socket connection established, initiating session, client: /192.168.6.1:52677, server: 192.168.6.131/192.168.6.131:2181
+ * 2020-07-25 13:24:26,394 [myid:192.168.6.131:2181] - INFO  [main-SendThread(192.168.6.131:2181):ClientCnxn$SendThread@1420] - Session establishment complete on server 192.168.6.131/192.168.6.131:2181, session id = 0x100033765980001, negotiated timeout = 3000
+ * ZooKeeper watchedEvent = WatchedEvent state:SyncConnected type:None path:null
+ * ZooKeeper path = null
+ * ZooKeeper SyncConnected...
+ * CONNECTED...
+ * s = /aezo
+ * ......此处省略testGetSync和testGetAsync的日志
+ *
+ * 2.当停掉192.168.6.131上的ZK服务时，日志如下：此时会自动重新连接192.168.6.132这台ZK服务器，且session id = 0x100033765980001不变
+ *
+ * 2020-07-25 13:25:39,978 [myid:192.168.6.131:2181] - WARN  [main-SendThread(192.168.6.131:2181):ClientCnxn$SendThread@1272] - Session 0x100033765980001 for sever 192.168.6.131/192.168.6.131:2181, Closing socket connection. Attempting reconnect except it is a SessionExpiredException.
+ * java.io.IOException: 远程主机强迫关闭了一个现有的连接。
+ * ......
+ * getData watchedEvent = WatchedEvent state:Disconnected type:None path:null
+ * 2020-07-25 13:25:40,236 [myid:192.168.6.132:2181] - INFO  [main-SendThread(192.168.6.132:2181):ClientCnxn$SendThread@1154] - Opening socket connection to server ingress.aezocn.local/192.168.6.132:2181.
+ * 2020-07-25 13:25:40,237 [myid:192.168.6.132:2181] - INFO  [main-SendThread(192.168.6.132:2181):ClientCnxn$SendThread@1156] - SASL config status: Will not attempt to authenticate using SASL (unknown error)
+ * 2020-07-25 13:25:40,240 [myid:192.168.6.132:2181] - INFO  [main-SendThread(192.168.6.132:2181):ClientCnxn$SendThread@986] - Socket connection established, initiating session, client: /192.168.6.1:52722, server: ingress.aezocn.local/192.168.6.132:2181
+ * 2020-07-25 13:25:40,256 [myid:192.168.6.132:2181] - INFO  [main-SendThread(192.168.6.132:2181):ClientCnxn$SendThread@1420] - Session establishment complete on server ingress.aezocn.local/192.168.6.132:2181, session id = 0x100033765980001, negotiated timeout = 5000
+ * ZooKeeper watchedEvent = WatchedEvent state:Disconnected type:None path:null
+ * ZooKeeper path = null
+ * getData watchedEvent = WatchedEvent state:SyncConnected type:None path:null
+ * ZooKeeper watchedEvent = WatchedEvent state:SyncConnected type:None path:null
+ * ZooKeeper path = null
+ * ZooKeeper SyncConnected...
+ */
+public class HelloWorld {
+    public static void main( String[] args ) throws IOException, InterruptedException, KeeperException {
+
+        // 创建时，会迅速返回一个ZooKeeper对象，然后异步去连接服务器，因此可通过CountDownLatch等待
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        // 此处设置session超时时间为3s(即表示断开连接，如此线程执行完毕，等待3s之后，session消失，对应的临时节点也会消失)。由于session的存在，因此zookeeper连接时不存在线程池的概念
+        ZooKeeper zk = new ZooKeeper("192.168.6.131:2181,192.168.6.132:2181,192.168.6.133:2181", 3000, new Watcher() {
+            // ZooKeeper连接服务的监听
+            @Override
+            public void process(WatchedEvent watchedEvent) {
+                Event.EventType type = watchedEvent.getType();
+                Event.KeeperState state = watchedEvent.getState();
+                String path = watchedEvent.getPath();
+
+                System.out.println("ZooKeeper watchedEvent = " + watchedEvent);
+                System.out.println("ZooKeeper path = " + path);
+
+                switch (type) {
+                    case None:
+                        break;
+                    case NodeCreated:
+                        System.out.println("ZooKeeper NodeCreated...");
+                        break;
+                    case NodeDeleted:
+                        break;
+                    case NodeDataChanged:
+                        break;
+                    case NodeChildrenChanged:
+                        break;
+                    case DataWatchRemoved:
+                        break;
+                    case ChildWatchRemoved:
+                        break;
+                    case PersistentWatchRemoved:
+                        break;
+                }
+
+                switch (state) {
+                    case Unknown:
+                        break;
+                    case Disconnected:
+                        break;
+                    case NoSyncConnected:
+                        break;
+                    case SyncConnected:
+                        countDownLatch.countDown();
+                        System.out.println("ZooKeeper SyncConnected...");
+                        break;
+                    case AuthFailed:
+                        break;
+                    case ConnectedReadOnly:
+                        break;
+                    case SaslAuthenticated:
+                        break;
+                    case Expired:
+                        break;
+                    case Closed:
+                        break;
+                }
+            }
+        });
+
+        countDownLatch.await();
+        ZooKeeper.States state = zk.getState();
+        switch (state) {
+            case CONNECTING:
+                System.out.println("CONNECTING...");
+                break;
+            case ASSOCIATING:
+                break;
+            case CONNECTED:
+                System.out.println("CONNECTED...");
+                break;
+            case CONNECTEDREADONLY:
+                break;
+            case CLOSED:
+                break;
+            case AUTH_FAILED:
+                break;
+            case NOT_CONNECTED:
+                break;
+        }
+
+        // 创建节点
+        String s = zk.create("/aezo", "v1".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        System.out.println("s = " + s);
+
+        // 获取数据
+        testGetSync(zk);
+        testGetAsync(zk);
+
+        Thread.sleep(1000*60);
+        zk.close();
+    }
+
+    /**
+     * 打印如下：
+     *
+     * new String(b) = v1
+     * stat = 25769803781,25769803781,1595651178729,1595651178729,0,0,0,216176315692285952,2,0,25769803781
+     *
+     * getData watchedEvent = WatchedEvent state:SyncConnected type:NodeDataChanged path:/aezo
+     * newStat1 = 25769803781,25769803782,1595651178729,1595651178802,1,0,0,216176315692285952,2,0,25769803781
+     *
+     * getData watchedEvent = WatchedEvent state:SyncConnected type:NodeDataChanged path:/aezo // 此行为增加zk.getData("/aezo", this, stat);时才会有
+     * newStat2 = 25769803781,25769803783,1595651178729,1595651178821,2,0,0,216176315692285952,2,0,25769803781
+     *
+     */
+    private static void testGetSync(ZooKeeper zk) throws KeeperException, InterruptedException {
+        // 创建一个Stat用于存储节点元信息；节点的数据信息同步方法可直接返回异步方法可通过回调获取
+        Stat stat = new Stat();
+        byte[] b = zk.getData("/aezo", new Watcher() {
+            // 此Watcher是监控节点在数据发生变化时触发，且只会触发一次
+            @Override
+            public void process(WatchedEvent watchedEvent) {
+                System.out.println("getData watchedEvent = " + watchedEvent);
+
+                // 由于Watcher只会触发一次，因此此处重新watch，从而每次修改数据都可以监控到
+                try {
+                    zk.getData("/aezo", this, stat);
+                    // zk.getData("/aezo", true, stat); // true表示重新创建new ZooKeeper时的监控
+                } catch (KeeperException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, stat);
+        System.out.println("new String(b) = " + new String(b)); // new String(b) = v1
+        System.out.println("stat = " + stat);
 
 
+        Stat newStat = zk.setData("/aezo", "v2".getBytes(), 0);
+        System.out.println("newStat1 = " + newStat);
+
+        // 如果不在Watcher中增加zk.getData("/aezo", this, stat);的重新调用，则第二次修改数据不会被监听到
+        newStat = zk.setData("/aezo", "v2".getBytes(), newStat.getVersion());
+        System.out.println("newStat2 = " + newStat);
+    }
+
+    /**
+     * ------async start--------
+     * ------async end--------
+     * ------async callback--------
+     * o = abc
+     * new String(bytes) = v2
+     */
+    private static void testGetAsync(ZooKeeper zk) {
+        System.out.println("------async start--------");
+        zk.getData("/aezo", new Watcher() {
+            @Override
+            public void process(WatchedEvent watchedEvent) {
+                System.out.println("getData2 watchedEvent = " + watchedEvent);
+            }
+        }, new AsyncCallback.DataCallback() {
+            @Override
+            public void processResult(int i, String s, Object o, byte[] bytes, Stat stat) {
+                System.out.println("------async callback--------");
+                System.out.println("o = " + o); // o = abc
+                System.out.println("new String(bytes) = " + new String(bytes)); // new String(bytes) = v2
+            }
+        }, "abc");
+        System.out.println("------async end--------");
+    }
+}
+```
+</details>
 
 
 
