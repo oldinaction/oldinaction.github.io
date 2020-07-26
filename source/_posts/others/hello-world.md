@@ -57,6 +57,7 @@ tags: [others]
     - 如写vue代码的时会出现双大括号导致hexo编译失败，此时提示如`Template render error: (unknown path) [Line 31, Column 21]`。**如果写成代码块则不会报错**，或普通文本时使用`&#123;&#123;&#125;&#125;`进行转义
     - `{` 对应 `&#123;`
     - `}` 对应 `&#125;`
+    - 不建议在一行中出现`<xxx>`字符
 - hexo文章元信息`---`后面不能有空格，否则容易报错`YAMLException: bad indentation of a sequence entry`
 - 锚链接和连接带空格案例 `[MD 语法](#MD%20语法)` [MD 语法。连接中空格使用%20代替](#MD%20语法)
 
