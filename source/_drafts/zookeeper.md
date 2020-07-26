@@ -95,12 +95,9 @@ zkServer.sh stop # 停止服务
 - 客户端使用
 
 ```bash
-## 命令
-create [-s] [-e] [-c] [-t ttl] path [data] [acl] # 其中，-s或-e分别指顺序或临时节点，若不指定，则表示持久节点(可同时使用)；acl用来进行权限控制
-
-## 测试
 zkCli.sh # 进入zookeeper客户端命令行，如：[zk: localhost:2181(CONNECTED) 0]
-help
+
+help # 见下文客户端命令说明
 ls / # 查看根节点，默认有一个[zookeeper]的子目录
 create /abc "" # 打印Created /abc，创建/abc目录，此时根目录为：[abc, zookeeper]
 create -s /abc/123 # 打印Created 创建/abc/1230000000000的序列目录，此时根目录不变，且/abc/目录为：[1230000000000]
@@ -111,18 +108,53 @@ set /abc "hello world" # 设置节点数据
 get /abc # 获取节点数据，hello world
 ls -s /abc # 结果如下
     # [1230000000000, 1230000000001, d, e0000000003]    # 节点
-    # cZxid = 0x100000002                               # Zookeeper为节点分配的Id
+    # cZxid = 0x100000002                               # 该数据节点被创建时的事务ID
     # ctime = Mon Jul 20 23:12:45 CST 2020              # 节点创建时间
-    # mZxid = 0x200000006                               # 修改后的id
+    # mZxid = 0x200000006                               # 该数据节点被修改时的事务ID
     # mtime = Mon Jul 20 23:44:21 CST 2020              # 修改时间
-    # pZxid = 0x200000003                               # 子节点id
+    # pZxid = 0x200000003                               # 该节点的子节点列表个数最后一次被修改时生成的事务ID，如果某个子节点内容修改并不会生成新的pzxid
     # cversion = 4                                      # 子节点的version
     # dataVersion = 1                                   # 当前节点数据的版本号
     # aclVersion = 0                                    # 权限Version
-    # ephemeralOwner = 0x0
+    # ephemeralOwner = 0x0                              # 临时节点所有者(对应session id)，如：ephemeralOwner = 0x200008343170002
     # dataLength = 11                                   # 数据长度
     # numChildren = 4                                   # 子节点个数
 ```
+- 客户端命令
+
+```bash
+# help展示帮助
+ZooKeeper -server host:port -client-configuration properties-file cmd args
+	addWatch [-m mode] path # optional mode is one of [PERSISTENT, PERSISTENT_RECURSIVE] - default is PERSISTENT_RECURSIVE
+	addauth scheme auth
+	close 
+	config [-c] [-w] [-s]
+	connect host:port
+	create [-s] [-e] [-c] [-t ttl] path [data] [acl] # 其中，-s或-e分别指顺序或临时节点，若不指定，则表示持久节点(可同时使用)；acl用来进行权限控制
+	delete [-v version] path # 删除节点，delete /test
+	deleteall path [-b batch size]
+	delquota [-n|-b] path
+	get [-s] [-w] path # 获取节点数据，get /test
+	getAcl [-s] path
+	getAllChildrenNumber path
+	getEphemerals path
+	history 
+	listquota path
+	ls [-s] [-w] [-R] path
+	printwatches on|off
+	quit 
+	reconfig [-s] [-v version] [[-file path] | [-members serverID=host:port1:port2;port3[,...]*]] | [-add serverId=host:port1:port2;port3[,...]]* [-remove serverId[,...]*]
+	redo cmdno
+	removewatches path [-c|-d|-a] [-l]
+	set [-s] [-v version] path data # 设置节点数据，set /test "hello"；每次修改版本会变化，如果基于版本设值，则传入的版本和数据版本一致才会修改成功
+	setAcl [-s] [-v version] [-R] path acl
+	setquota -n|-b val path
+	stat [-w] path
+	sync path  # 同步节点，sync /test
+	version 
+Command not found: Command not found help
+```
+
 
 ## 原理
 
@@ -188,7 +220,8 @@ https://blog.csdn.net/nawenqiang/article/details/85236952
     <version>3.6.1</version>
 </dependency>
 ```
-- 示例
+
+### 简单示例
 
 <details>
 <summary>测试代码</summary>
@@ -396,8 +429,19 @@ public class HelloWorld {
 ```
 </details>
 
+### 实现分布式配置中心/服务发现
 
+- 使用zk的`watch`功能
+- 参考：https://github.com/oldinaction/smjava/tree/master/zookeeper/src/main/java/cn/aezo/zookeeper/distributed_config_center_service_discover
 
+### 实现分布式锁
+
+- 使用zk的session功能可防止死锁
+- 使用zk的sequence+watch
+    - 使用zk的`watch`功能可在释放锁时，其他节点更快得知(如果主动轮询判断是否可获取锁则会有延时)
+    - 使用sequence可让后一个节点关注前一个节点的变化。永远让第一个节点获得锁，当第一个节点执行完毕后释放锁，从而触发后面一个节点的事件回调进行锁获取
+        - 释放锁只会给后一个节点发送回调通知，如果释放锁给全部节点发送回调，一个弊端是zk需要对多个节点发送数据，另外一个弊端是其他节点获取通知后可能产生锁争抢
+- 参考：https://github.com/oldinaction/smjava/tree/master/zookeeper/src/main/java/cn/aezo/zookeeper/distributed_lock
 
 
 ---
