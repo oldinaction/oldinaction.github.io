@@ -654,7 +654,7 @@ tags: [oracle, dba, sql]
     - `Threads_running` 代表当前激活的线程数
 - [Innodb 存储引擎参数](https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html)
   - **`innodb_buffer_pool_size`** 该参数指定大小的内存来缓冲数据和索引，默认值 128MB，最大可以设置为物理内存的 80%
-  - **`innodb_flush_log_at_trx_commit`** 主要控制 innodb 将 log buffer 中的数据写入日志文件并 flush 磁盘的时间点，值分别为`0`，`1`，`2`，默认是 1。详细参考[sql-base.md#InnoDB 日志(Redo/Undo)](</_posts/db/sql-base.md#InnoDB日志(Redo/Undo)>)
+  - **`innodb_flush_log_at_trx_commit`** 主要控制 innodb 将 log buffer 中的数据写入日志文件并 flush 磁盘的时间点，值分别为`0`，`1`，`2`，默认是 1。详细参考[sql-base.md#InnoDB 日志(Redo/Undo)](/_posts/db/sql-base.md#InnoDB日志(Redo/Undo))
   - **`innodb_log_buffer_size`** 写日志文件到磁盘的缓冲区大小，以 M 为单位，默认 8M
   - **`innodb_log_file_size`** 日志组中每个日志文件大小，以 M 为单位，默认 48M
   - **`innodb_log_files_in_group`** 日志组中日志文件个数，默认 2。InnoDB 以循环方式将日志文件写到多个文件中(第一个文件写完则写第二个，第二写完则写第一个，循环往复)
