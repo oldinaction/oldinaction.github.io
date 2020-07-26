@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
+    
+    <lastmod>2020-07-26T16:03:21.052Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
+    
+    <lastmod>2020-07-26T15:59:53.779Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
+    
+    <lastmod>2020-07-26T11:32:17.282Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
+    
+    <lastmod>2020-07-26T10:08:24.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
     
     <lastmod>2020-07-24T15:16:05.556Z</lastmod>
@@ -47,13 +75,6 @@
     <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
     
     <lastmod>2020-07-17T07:26:41.230Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
-    
-    <lastmod>2020-07-17T06:04:43.009Z</lastmod>
     
   </url>
   
@@ -114,13 +135,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
-    
-    <lastmod>2020-07-07T09:27:46.375Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/11/28/extend/vscode/</loc>
     
     <lastmod>2020-07-07T09:02:17.518Z</lastmod>
@@ -131,13 +145,6 @@
     <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
     
     <lastmod>2020-07-07T02:11:46.346Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
-    
-    <lastmod>2020-07-07T01:44:13.627Z</lastmod>
     
   </url>
   
@@ -390,13 +397,6 @@
     <loc>http://blog.aezo.cn/2017/12/05/design/powerdesigner/</loc>
     
     <lastmod>2020-04-15T06:42:07.310Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
-    
-    <lastmod>2020-04-05T16:25:38.090Z</lastmod>
     
   </url>
   
