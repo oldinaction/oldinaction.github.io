@@ -102,6 +102,9 @@ tags: [tag1, tag2, tag3]
   $ git push origin master:source
   $ hexo g && gulp && hexo d
   ```
+- 其中gulp仅仅是压缩代码，提高访问速度
+    - `npm install --global gulp-cli`
+    - `npm install gulp-htmlclean gulp-htmlmin gulp-minify-css gulp-uglify gulp-imagemin --save`
 
 ### 博客源码管理和博客更新
 

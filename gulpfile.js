@@ -43,6 +43,6 @@ gulp.task('minify-images', function() {
         .pipe(gulp.dest('./public/images'))
 });
 // д╛хохннЯ
-gulp.task('default', [
+gulp.task('default', gulp.parallel(
     'minify-html','minify-css','minify-js','minify-images'
-]);
+));

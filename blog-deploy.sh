@@ -1,5 +1,3 @@
-nvm use 8.17.0
-
 cd D:/gitwork/coding/blog
 hexo clean
 git add .
@@ -8,4 +6,3 @@ git push origin master:source
 export HEXO_ALGOLIA_INDEXING_KEY=3330f3cbaa099dfc30395de5f5b20151
 hexo g && gulp && hexo algolia && hexo d
 
-nvm use 12.16.3
