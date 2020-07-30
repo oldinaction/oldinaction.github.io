@@ -1030,6 +1030,7 @@ import './index.css'
 <!-- lang：可选。默认是以css的方式解析样式；也可指定如 less/sass/stylus 等预处理器(需要提前安装对应依赖，如less需安装 `npm install -D less-loader less`) -->
 <!-- scoped：可选。不写scoped时，本身写在vue组件内的样式只会对当前组件和引入此文件的另一组件产生影响，不会影响全局样式；写scoped时，表示该样式只对此组件产生影响，最终会生成样式如 `.example[data-v-5558831a] {color: blue;}` -->
 <style scoped lang="less">
+/* @import '~view-design/src/styles/index.less'; 使用iview的变量需要导入 */
 @import './assets/globle-varables.less'; /* 引入外部文件。@default-color: red; */
 @default-color: blue; /* 覆盖外部文件变量或自定义变量 */
 
@@ -1414,6 +1415,18 @@ refresh () {
     this.$router.replace({
         path: '/redirect' + fullPath
     })
+}
+```
+
+### 打开新页面
+
+```js
+open() {
+   let route = this.$router.resolve({
+     path: "/open",
+     query: {id: 96}
+   })
+   window.open(route.href, '_blank')
 }
 ```
 

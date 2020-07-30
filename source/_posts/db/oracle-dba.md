@@ -246,7 +246,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
   - 查看服务是否启动：`tnsping local_orcl` cmd 直接运行
     - 远程查看(cmd 运行)：`tnsping 192.168.1.1:1521/orcl`、或者`tnsping remote_orcl`(其中 remote_orcl 已经在本地建立好了监听映射，如配置在 tnsnames.ora)
     - 如果能够 ping 通，则说明客户端能解析 listener 的机器名，而且 lister 也已经启动，但是并不能说明数据库已经打开，而且 tsnping 的过程与真正客户端连接的过程也不一致。但是如果不能用 tnsping 通，则肯定连接不到数据库
-    - 实例 tnsping 突然高达 1w 多毫秒，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
+    - **实例 tnsping 突然高达 1w 多毫秒**，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
   - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
   - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
 - 用户相关查询
@@ -489,6 +489,7 @@ Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Ca
   - `本地-监听程序-LISTENER`中的主机要为计算机全名(如：ST-008)，对应文件`$ORACLE_HOME/NETWORK/ADMIN/listener.ora`
     - 使用 pl/sql 也需要配置，且第一个 ADDRESS 需要类似配置为`TCP/IP，ST-008，1521`
   - `本地-服务命名`下的都为`网络服务名`，对应文件`tnsnames.ora`
+  - 有的需参考 https://blog.csdn.net/pengpengpeng85/article/details/78757484 创建监听程序配置和本地网络服务名配置
 - 文本操作
 
   - 使用 sqlplus 登录时，可直接修改`$ORACLE_HOME/NETWORK/ADMIN/tnsnames.ora`
@@ -578,6 +579,15 @@ oracle 和 mysql 不同，此处的创建表空间相当于 mysql 的创建数�
 ### Oracle 表结构与 Mysql 表结构转换
 
 参考 [mysql-dba.md#Oracle 表结构与 Mysql 表结构转换](/_posts/db/mysql-dba.md#其他)
+
+## 日常维护
+
+- 检查`listener.log`是否过大
+    - 可能产生异常场景：实例 tnsping 突然高达 1w 多毫秒，发现listener.log达到4G
+    - 解决：日志文件过大，可重新创建一个此日志文件
+    - 查看文件位置`show parameter dump;`得到如`user_dump_dest => g:\app\administrator\diag\rdbms\orcl\orcl\trace`，得知日志目录为：`g:\app\administrator\diag`，然后在此目录查找`tnslsnr/主机名/listener/trace/listener.log`文件
+
+
 
 ---
 

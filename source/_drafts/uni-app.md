@@ -61,15 +61,22 @@ tags: [H5, 小程序, App]
     - 增加编译时的环境变量，可在package.json文件中增加以下节点，然后再发行-自定义发行菜单中可看到此标题
 
         ```json
+        // 方式一
+        "scripts": {
+            // 使用VUE_APP_开头定义环境类型；此处UNI_PLATFORM等环境变量在代码中无法获取，但是uni-app可以获取进行判断；NODE_ENV不同编译方式不同(production才会进行代码压缩)
+            "h5-test": "D: && cd D:/software/HBuilderX/plugins/uniapp-cli && cross-env UNI_INPUT_DIR=$INIT_CWD/ UNI_OUTPUT_DIR=$INIT_CWD/unpackage/dist/build/h5 UNI_PLATFORM=h5 NODE_ENV=testing VUE_APP_NODE_ENV=testing node bin/uniapp-cli.js",
+            "h5-prod": "D: && cd D:/software/HBuilderX/plugins/uniapp-cli && cross-env UNI_INPUT_DIR=$INIT_CWD/ UNI_OUTPUT_DIR=$INIT_CWD/unpackage/dist/build/h5 UNI_PLATFORM=h5 NODE_ENV=production VUE_APP_NODE_ENV=production node bin/uniapp-cli.js"
+        },
+        // 方式二(实测无效)
         "uni-app": {  
             "scripts": { 
                 // 自定义脚本(启动方式)，对于内置启动方式可修改 manifest.json
-                "build-h5-api1": {   
+                "build-h5-api1": {
                     "title":"生产环境API地址一(H5)",   
                     "env": {
                         "UNI_PLATFORM": "h5",
                         "NODE_ENV": "production",
-                        "APP_ENV": "api1" // 自定义环境变量，可和process.env.NODE_ENV配合使用
+                        "APP_ENV": "api1" // 自定义环境变量，实测无效
                     } 
                 }  
             }  
@@ -165,23 +172,32 @@ export default {
 
 ## 小技巧
 
-- 可使用HBuilder创建项目或vue-cli创建项目，参考：https://uniapp.dcloud.net.cn/quickstart
+### 环境问题
+
+- 可使用HBuilder创建项目或vue-cli创建项目，[参考文档](https://uniapp.dcloud.net.cn/quickstart)
     - 发布app必须通过HBuilder，vue-cli可以发布h5/小程序。基于vue-cli创建项目时默认安装了cross-env插件，基于此插件在启动命令前增加了NODE_ENV等参数的配置
     - HBuilder创建的项目默认无package.json，可手动创建或npm init创建，之后可通过npm安装插件
     - HBuilder创建的项目代码对应vue-cli创建项目的src代码
-    - vue-cli创建的项目还需手动安装sass-loader(`cnpm install sass-loader node-sass -D`)
+    - vue-cli创建的项目还需手动安装less相关依赖(`cnpm install less less-loader -D`)或sass(`cnpm install sass-loader node-sass -D`)
+- **多环境编译问题**
+    - 使用XBuilder开发(一些依赖安装在HBuilder中)
+        - 点击运行获取到的`process.env.NODE_ENV = 'development'`，点击发行获取到的是production
+            - HBuilder中点击运行或发行便会把此环境对应的API地址编译成微信小程序代码，之后小程序上传的便是此时编译的地址(微信小程序中无法获取process.env.NODE_ENV)。因此发布线上小程序需要点击发行
+        - 增加编译时的环境变量或使用cross-env定义script，参考上文[文件-package.json](#文件)
+    - 使用vscode等开发(vue-cli创建项目，依赖全部安装在项目中)
+        - 使用cross-env定义script
+
+### 其他
+
 - uni.navigateTo 不关闭之前页面，uni.redirectTo 关闭之前页面，uni.switchTab 关闭之前页面并显示Tab主页
     - 所有的路由都是基于page.json中的路径，注意如果路径中无.vue后缀，则路由时的路径也不能有.vue后缀
+- navigator标签问题：当登录后，通过uni.switchTab进入到首页，首页此时如果是使用`<navigator url="../hello">`，会导致第一次进入时无法路由。解决方法使用绝对路径`<navigator url="/pages/hello">`，且不能带.vue后缀
 - 路由挂载：需要跳转的页面必须在page.json中注册过。如需采用 Vue Router 方式管理路由，可在uni-app插件市场找Vue-Router相关插件
 - uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需虚拟化成字符串)
 - uni.showToastr 无Error图片(微信也没有)
 - 需使用web-view组件代替iframe，嵌套页才会在微信小程序中显示
     - 且web-view会撑满全屏，即无视非web-view中的元素
     - uni-app本身可使用iframe，可在h5下显示，但是微信小程序中不会显示
-- **多环境编译问题**
-    - 点击运行获取到的`process.env.NODE_ENV = 'development'`，点击发行获取到的是production
-    - HBuilder中点击运行或发行便会把此环境对应的API地址编译成微信小程序代码，之后小程序上传的便是此时编译的地址(微信小程序中无法获取process.env.NODE_ENV)。因此发布线上小程序需要点击发行
-    - 增加编译时的环境变量，参考上文[文件](#文件)
 - 判断平台
     - 编译期判断，使用`// #ifdef H5`，`// #endif`
     - 运行期判断，`uni.getSystemInfoSync().platform = android|ios|devtools` 判断客户端环境是 Android、iOS 还是小程序开发工具
@@ -208,6 +224,9 @@ export default {
 - 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
     - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
 
+## 兼容问题
+
+- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
 
 
 

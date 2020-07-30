@@ -974,7 +974,7 @@ VMARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
 ( cd "$APP_HOME" && java $VMARGS -jar xxx.jar --spring.profiles.active=prod )
 
 ## 3.1G内存机器推荐配置
--Xms128M
+-Xms512M
 -Xmx512M
 -XX:PermSize=256M
 -XX:MaxPermSize=512M

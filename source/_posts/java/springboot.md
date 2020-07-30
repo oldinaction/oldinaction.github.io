@@ -732,6 +732,12 @@ str2: >
 str3: "hello wor\
   ld"
 ```
+设置文件临时存储路径
+
+```yml
+# Linux下会自动清除tmp目录下10天没有使用过的文件，SpringBoot启动的时候会在/tmp目录下生成一个Tomcat.*的文件目录，用于"java.io.tmpdir"文件流操作，因为放假期间无人操作，导致Linux系统自动删除了临时文件，所以导致上传报错
+spring.http.multipart.location: /var/tmp
+```
 
 ## 请求及响应
 

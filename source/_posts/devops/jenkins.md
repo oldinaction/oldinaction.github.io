@@ -687,7 +687,7 @@ timeout(time: 600, unit: 'SECONDS') {
         - 解决：在系统管理 - In-process Script Approval - approved(method org.apache.maven.model.Model getArtifactId)
     - 访问 api server 时，需要对应的 ServiceAccount 账号，此处可直接使用 Tiller 的 sa 账号。获取方式如`kubectl get secret $(kubectl get secret -n kube-system|grep tiller-token|awk '{print $1}') -n kube-system -o jsonpath={.data.token}|base64 -d |xargs echo`，将秘钥保存到 jenkins 凭证中获取凭证 ID 供 Pipeline 脚本使用
 
-### Pipeline(Declarative)+Docker+Gilab+Windows
+### Pipeline(Declarative)+Windows+Gilab
 
 - General
     - 勾选流水线效率、持久保存设置覆盖
@@ -748,8 +748,11 @@ context.packageJsonDir = ''
 // 编译静态包的命令
 context.npmBuildCommand = "npm run test"
 // 编译出的静态包后，需要复制到远程服务器的文件或文件夹路径
-// 如果需要将编译后的dist放到context.remoteWebDir则填dist/**，如果需要将dist/index.html、dist/static等文件放到context.remoteWebDir则填["dist/index.html","dist/static/**"]
+// (1)如果需要将编译后的dist放到context.remoteWebDir则填dist/**
+// (2)如果需要将dist/index.html、dist/static等文件(不包含dist目录)放到context.remoteWebDir则填["dist/index.html","dist/static/**"]
 context.distNameArr = ["dist/**"]
+// 移动文件时需要移除的目录前缀，默认无需移除，配合context.distNameArr的场景(1)使用，对于场景(2)则需要填写'dist/'
+context.removeDistNamePrefix = ''
 
 //==============================================================================================================
 // 上传编译文件到服务器并启动和通用参数配置
@@ -766,9 +769,9 @@ def sshJarUploadAndExec(Map args) {
         sshTransfer(sourceFiles: "${args.pomDir}target/${args.apiJarName}", removePrefix: "${args.pomDir}target", remoteDirectory: "${projectDir}", execCommand:
             """
             echo running...
-            # 备份。创建备份目录 C:/demo_dir/demo-build-10，并将原C:/demo_dir目录下的jar包复制到备份目录
-            if(-not (test-path "${args.remoteApiDir}/${args.projectName}-build-${env.BUILD_NUMBER}")) { mkdir "${args.remoteApiDir}/${args.projectName}-build-${env.BUILD_NUMBER}" }
-            if(test-path "${args.remoteApiDir}/${args.apiJarName}*") { cp "${args.remoteApiDir}/${args.apiJarName}*" "${args.remoteApiDir}/${args.projectName}-build-${env.BUILD_NUMBER}" }
+            # 备份。创建备份目录 C:/demo_dir/demo-bak-10，并将原C:/demo_dir目录下的jar包复制到备份目录
+            if(-not (test-path "${args.remoteApiDir}/${args.projectName}-bak-${env.BUILD_NUMBER}")) { mkdir "${args.remoteApiDir}/${args.projectName}-bak-${env.BUILD_NUMBER}" }
+            if(test-path "${args.remoteApiDir}/${args.apiJarName}*") { cp "${args.remoteApiDir}/${args.apiJarName}*" "${args.remoteApiDir}/${args.projectName}-bak-${env.BUILD_NUMBER}" }
             # 停止原进程。基于java.exe的包装文件进行停职进程
             if(test-path '${args.remoteApiDir}/java-${projectDir}.exe') { tasklist /fo csv | findstr 'java-${projectDir}.exe' ; if(\$?) { taskkill /f /im java-${projectDir}.exe ; sleep 10 } }
             # 复制文件。1.将java.exe复制到项目录并重命名，之后以此文件启动jar，方便上面停止进程 2.从sftp目录复制编译文件到发布目录
@@ -797,8 +800,10 @@ def sshWebUpload(Map args) {
         }
 		// 去掉文件夹的/**，防止复制文件夹中文件时漏复制文件夹本身
         dir = "\$('${dir}' -replace '/\\**\$','')"
-        backupDirStrCommand += "if(test-path \"${args.remoteWebDir}/${dir}\") { cp -erroraction 'silentlycontinue' -Recurse \"${args.remoteWebDir}/${dir}\" '${args.remoteWebDir}/${args.projectName}-build-${env.BUILD_NUMBER}' } \n"
-        rmDirStrCommand += "if(test-path \"${args.remoteWebDir}/${dir}\") { rm -Recurse -Force \"${args.remoteWebDir}/${dir}\" } \n"
+        removePrefixDir = "\$(${dir} -replace '^${args.removeDistNamePrefix}','')"
+
+        backupDirStrCommand += "if(test-path \"${args.remoteWebDir}/${removePrefixDir}\") { cp -erroraction 'silentlycontinue' -Recurse \"${args.remoteWebDir}/${removePrefixDir}\" '${args.remoteWebDir}/${args.projectName}-bak-${env.BUILD_NUMBER}' } \n"
+        rmDirStrCommand += "if(test-path \"${args.remoteWebDir}/${removePrefixDir}\") { rm -Recurse -Force \"${args.remoteWebDir}/${removePrefixDir}\" } \n"
         moveDirCommand += "if(test-path \"${args.remoteSftpRoot}/${projectDir}/${dir}\") { mv \"${args.remoteSftpRoot}/${projectDir}/${dir}\" '${args.remoteWebDir}/' } \n"
     }
 
@@ -807,7 +812,7 @@ def sshWebUpload(Map args) {
             """
             echo running...
             # 备份
-            if(-not (test-path "${args.remoteWebDir}/${args.projectName}-build-${env.BUILD_NUMBER}")) { mkdir "${args.remoteWebDir}/${args.projectName}-build-${env.BUILD_NUMBER}" }
+            if(-not (test-path "${args.remoteWebDir}/${args.projectName}-bak-${env.BUILD_NUMBER}")) { mkdir "${args.remoteWebDir}/${args.projectName}-bak-${env.BUILD_NUMBER}" }
             ${backupDirStrCommand}
             # 删除原文件
             ${rmDirStrCommand}
