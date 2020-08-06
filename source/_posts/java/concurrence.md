@@ -3,7 +3,7 @@ layout: "post"
 title: "并发编程"
 date: "2018-12-05 14:28"
 categories: java
-tags: [concurrence]
+tags: [concurrence, collection, juc, 线程池]
 ---
 
 ## 简介
@@ -49,15 +49,15 @@ tags: [concurrence]
     - `wait/notify/notifyAll`
         - wait/notify/notifyAll方法是Object的本地final方法，无法被重写
         - wait会暂停当前的线程，会让出CPU
+        - **wait/notify/notifyAll使用，前提是必须先获得锁，即一般在 synchronized 同步代码块里使用**
+            - 只有当 notify/notifyAll 被执行时候，才会唤醒一个或多个正处于等待状态的线程，然后继续往下执行，直到执行完synchronized代码块的代码或是中途遇到wait再次释放锁
         - **wait会释放锁，notify/notifyAll不会释放锁**
             - **wait回来继续执行时，仍然需要获得锁才能继续执行**
             - notify/notifyAll 的执行只是唤醒沉睡的线程，而不会立即释放锁，锁的释放要看代码块的具体执行情况。所以在编程中，**尽量在使用了notify/notifyAll后立即退出同步代码块，以让唤醒的线程获得锁**
-        - **wait/notify/notifyAll使用，前提是必须先获得锁，即一般在 synchronized 同步代码块里使用**
-            - 只有当 notify/notifyAll 被执行时候，才会唤醒一个或多个正处于等待状态的线程，然后继续往下执行，直到执行完synchronized代码块的代码或是中途遇到wait再次释放锁
         - wait 需要被try catch包围，以便发生异常中断也可以使wait等待的线程唤醒
         - **notify 和 wait 的顺序不能错**，否则报错IllegalMonitorStateException。如果A线程先执行notify方法，B线程再执行wait方法，那么B线程是无法被唤醒的(不会报错，LockSupport得unpark可在park之前运行)
         - notify方法只唤醒一个等待(对象的)线程并使该线程开始执行。所以如果有多个线程等待一个对象，这个方法只会唤醒其中一个线程，选择哪个线程取决于操作系统对多线程管理的实现。notifyAll 会唤醒所有等待(对象的)线程，尽管哪一个线程将会第一个处理取决于操作系统的实现
-        - **在多线程中要测试某个条件的变化，使用if还是while来包裹wait？**
+        - **在多线程中要测试某个条件的变化，使用if还是while来包裹wait？** (while)
             - 要注意，notify唤醒沉睡的线程A后，A线程会接着上次的执行继续往下执行(需要重新获取锁)。所以在进行条件判断时候，可以先把 wait 语句忽略不计来进行考虑
     - `LockSupport.park`
         - **阻塞当前线程的执行，且不会释放当前线程占有的锁资源**
@@ -79,7 +79,7 @@ tags: [concurrence]
     - 乐观锁：假设不会发生并发冲突，直接不加锁去完成某项更新，如果冲突就返回失败(认为读多写少)
     - 悲观锁：假设一定会发生并发冲突，通过阻塞其他所有线程来保证数据的完整性(认为写多读少)
     - java中的乐观锁基本都是通过`CAS`(Compare And Swap，比较并替换)操作实现的，CAS是一种更新的原子操作，比较当前值跟传入值是否一样，一样则更新，否则失败
-    - 如Synchronized就是悲观锁；`AQS`框架下的锁则是先尝试cas乐观锁去获取锁，获取不到，才会转换为悲观锁，如`RetreenLock`
+    - 如Synchronized就是悲观锁；`AQS`框架下的锁则是先尝试cas乐观锁去获取锁，获取不到，才会转换为悲观锁，如`ReentrantLock`
 - 共享锁和排他锁
     - 共享锁(读锁)：就是允许多个线程同时获取一个锁，一个锁可以同时被多个线程拥有
     - 排它锁(写锁)：也称作独占锁，一个锁在某一时刻只能被一个线程占有，其它线程必须等待锁被释放之后才可能获取到锁
@@ -93,7 +93,7 @@ tags: [concurrence]
     - 非可重入锁：反之
 - 分段锁(一种锁的设计模式)
     - 容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率
-    - 对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
+    - 对于ConcurrentHashMap(之前使用的是分段锁，后面直接使用ReentrantLock)而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
 
 #### synchronized线程同步
 
