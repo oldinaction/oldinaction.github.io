@@ -3,7 +3,7 @@ layout: "post"
 title: "算法(algorithms)"
 date: "2017-04-24 19:55"
 categories: [linux]
-tags: [algorithms]
+tags: [arch]
 ---
 
 ## 预备知识
@@ -63,6 +63,18 @@ tags: [algorithms]
 ### 跳跃表(skip-list)
 
 ![skip-list](/data/images/linux/algo-skip-list.png)
+
+## 常见面试题
+
+### PathToNum
+
+- 进阶41#00:15:06
+
+![PathToNum](/data/images/arch/algorithms-PathToNum.png)
+
+### 动态规划之四边形不等式优化
+
+
 
 
 
