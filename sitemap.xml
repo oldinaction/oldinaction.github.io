@@ -2,23 +2,114 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
+    <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
     
-    <lastmod>2020-07-26T16:03:21.052Z</lastmod>
+    <lastmod>2020-08-08T11:50:00.198Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
+    
+    <lastmod>2020-08-08T11:16:09.483Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/28/devops/cat/</loc>
+    
+    <lastmod>2020-08-08T11:15:07.575Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
+    
+    <lastmod>2020-08-08T10:32:22.124Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
+    
+    <lastmod>2020-08-08T04:29:36.018Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/04/arch/lvs/</loc>
+    
+    <lastmod>2020-08-08T03:11:17.839Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/13/devops/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</loc>
+    
+    <lastmod>2020-08-07T07:43:01.043Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
     
-    <lastmod>2020-07-26T15:59:53.779Z</lastmod>
+    <lastmod>2020-08-07T07:21:15.922Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
+    
+    <lastmod>2020-08-07T01:44:16.753Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2020-08-07T01:31:57.551Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    
+    <lastmod>2020-08-06T05:12:33.461Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
+    
+    <lastmod>2020-08-03T02:38:11.359Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2020-07-30T01:18:50.113Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
+    
+    <lastmod>2020-07-29T02:16:07.041Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    
+    <lastmod>2020-07-27T07:57:31.427Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2016/04/10/others/hello-world/</loc>
     
-    <lastmod>2020-07-26T11:32:17.282Z</lastmod>
+    <lastmod>2020-07-26T16:04:38.339Z</lastmod>
     
   </url>
   
@@ -30,13 +121,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
-    
-    <lastmod>2020-07-24T15:16:05.556Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2020-07-23T08:58:45.406Z</lastmod>
@@ -44,30 +128,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
-    
-    <lastmod>2020-07-23T07:11:22.800Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2020-07-22T07:00:28.515Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
     
     <lastmod>2020-07-20T14:58:43.392Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    
-    <lastmod>2020-07-18T02:50:17.927Z</lastmod>
     
   </url>
   
@@ -128,13 +191,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/03/04/arch/lvs/</loc>
-    
-    <lastmod>2020-07-07T11:18:53.219Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/11/28/extend/vscode/</loc>
     
     <lastmod>2020-07-07T09:02:17.518Z</lastmod>
@@ -156,13 +212,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/03/13/devops/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</loc>
-    
-    <lastmod>2020-07-05T15:28:21.752Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/12/29/arch/maven/</loc>
     
     <lastmod>2020-07-03T16:12:55.261Z</lastmod>
@@ -177,23 +226,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2020-07-03T06:50:27.162Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
     
     <lastmod>2020-06-30T09:01:45.998Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
-    
-    <lastmod>2020-06-30T07:29:51.216Z</lastmod>
     
   </url>
   
@@ -243,13 +278,6 @@
     <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
     
     <lastmod>2020-06-22T01:14:32.805Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    
-    <lastmod>2020-06-18T09:09:28.212Z</lastmod>
     
   </url>
   
@@ -380,13 +408,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2020/01/11/arch/outline/</loc>
-    
-    <lastmod>2020-04-19T02:52:14.156Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2020/04/18/service/nodejs-service/</loc>
     
     <lastmod>2020-04-18T10:47:55.851Z</lastmod>
@@ -474,13 +495,6 @@
     <loc>http://blog.aezo.cn/2019/09/23/devops/rook/</loc>
     
     <lastmod>2019-11-16T13:44:05.125Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
-    
-    <lastmod>2019-11-15T03:01:46.403Z</lastmod>
     
   </url>
   
@@ -597,13 +611,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/28/devops/cat/</loc>
-    
-    <lastmod>2019-10-08T01:13:42.695Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2019/09/30/devops/ansible/</loc>
     
     <lastmod>2019-10-06T09:37:47.731Z</lastmod>
@@ -656,13 +663,6 @@
     <loc>http://blog.aezo.cn/2017/10/21/db/h2/</loc>
     
     <lastmod>2019-08-02T03:35:56.857Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
-    
-    <lastmod>2019-07-08T09:10:08.934Z</lastmod>
     
   </url>
   
