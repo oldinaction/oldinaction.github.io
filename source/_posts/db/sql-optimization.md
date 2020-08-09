@@ -672,6 +672,16 @@ tags: [oracle, dba, sql]
 
 #### 分库分表
 
+### SQL写法优化
+
+- 判断是否存在
+
+```sql
+select count(*) from table where a = 1 and b = 2;
+-- 性能更优
+select 1 from table where a = 1 and b = 2 limit 1;
+```
+
 ## Oracle
 
 > 如无特殊说明，此文测试环境均为 Oracle 11.2g

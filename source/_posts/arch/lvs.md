@@ -12,7 +12,8 @@ tags: [LB, HA]
 - 负载均衡解决方案主要分为硬件层面和软件层面
     - 硬件如：F5等(一台一般15万)
     - **软件可分为第四层和第七层协议**
-        - 第四层如：`lvs`(只能操作ip和端口，在操作系统内核中)
+        - 第四层如：`lvs`
+            -  LVS 在实现上，介于网络层（IP）和传输层（TCP）之间；只能操作ip和端口，在操作系统内核中
         - 第七层(应用层：http/ajp/https)如：`nginx`、`httpd`(apache)、`haproxy`
 - Lvs的组成包括 `ipvs` 和 `ipvsadm`
     - ipvs(ip virtual server)：一段代码工作在内核空间，叫ipvs(所有的linux都有此功能)

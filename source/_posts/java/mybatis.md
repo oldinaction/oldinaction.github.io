@@ -561,6 +561,17 @@ tags: [mybatis, springboot]
 	- 方式二：`<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>`
 	- 获取方式：`userMapper.insert(userInfo); userInfo.getUserId();`
 
+### 批量执行语句
+
+- mybatis foreach
+- mybatis batch
+    - Mybatis内置的ExecutorType有3种，默认的是simple，该模式下它为每个语句的执行创建一个新的预处理语句，单条提交sql；而batch模式重复使用已经预处理的语句，并且批量执行所有更新语句
+    - 使用batch模式需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
+- jdbc batch
+    - 采用PreparedStatement.addBatch()方式实现
+    - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
+- 性能比较，同个表插入一万条数据时间近似值：JDBC BATCH 1.1秒左右 > Mybatis BATCH 2.2秒左右 > Mybatis foreach 4.5秒左右
+
 ### MyBatis、Java、Oracle、MySql数据类型对应关系
 
 - Mybatis的数据类型用JDBC的数据类型

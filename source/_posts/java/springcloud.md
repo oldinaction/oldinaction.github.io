@@ -60,6 +60,17 @@ tags: [SpringCloud, 微服务]
     - AWS概念：us-east-1c、us-east-1d等是zone，它们都属于us-east-1这个region
     - 在应用启动后，将会向Eureka Server发送心跳（默认周期为30秒）。如果Eureka Server在多个心跳周期内没有接收到某个节点的心跳，Eureka Server将会从服务注册表中把这个服务节点移除（默认90秒）
     - Eureka还提供了客户端缓存的机制，即使所有的Eureka Server都挂掉，客户端依然可以利用缓存中的信息消费其他服务的API
+- **Eurka 工作流程**
+    - Eureka Server 启动成功，等待服务端注册。在启动过程中如果配置了集群，集群之间定时通过 Replicate 同步注册表，每个 Eureka Server 都存在独立完整的服务注册表信息
+    - Eureka Client 启动时根据配置的 Eureka Server 地址去注册中心注册服务
+    - Eureka Client 会每 30s 向 Eureka Server 发送一次心跳请求，证明客户端服务正常
+    - 当 Eureka Server 90s 内没有收到 Eureka Client 的心跳，注册中心则认为该节点失效，会注销该实例
+    - 单位时间内 Eureka Server 统计到有大量的 Eureka Client 没有上送心跳，则认为可能为网络异常，进入自我保护机制，不再剔除没有上送心跳的客户端
+    - 当 Eureka Client 心跳请求恢复正常之后，Eureka Server 自动退出自我保护模式
+    - Eureka Client 定时全量或者增量从注册中心获取服务注册表，并且将获取到的信息缓存到本地
+    - 服务调用时，Eureka Client 会先从本地缓存找寻调取的服务。如果获取不到，先从注册中心刷新注册表，再同步到本地缓存
+    - Eureka Client 获取到目标服务器信息，发起服务调用
+    - Eureka Client 程序关闭时向 Eureka Server 发送取消请求，Eureka Server 将实例从注册表中删除
 
 ### eureka server
 

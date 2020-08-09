@@ -312,7 +312,7 @@ zunionstore destkey2 2 k1 k2 weights 0.5 1
 ### 使用场景
 
 - `incr` 可用于统计不要求太精准的字段，如点赞数、评论数、抢购、秒杀等。从而规避并发下对数据库的事物操作，完全由redis内存操作代替
-- `nx` 表示如果不存在此key时才允许创建。可用于分布式锁
+- `set my_lock id_12345678 nx ex 60` 实现**分布式锁**，参考下文[实现分布式锁](#实现分布式锁)。其中nx表示如果不存在此key时才允许创建
 - `msetnx`命令：nx如上，m表示set多个key，此时要么都成功要么都失败。可用于原子性赋值操作
 - `setbit`位图命令使用。参考上文setbit相关案例
 
@@ -979,7 +979,7 @@ sentinel monitor xxx 127.0.0.1 36379 2
 sentinel monitor yyy 127.0.0.1 46379 2
 ```
 
-### 击穿、穿透、雪崩、分布式锁
+### 击穿、穿透、雪崩
 
 - 击穿、穿透、雪崩
 
@@ -1016,12 +1016,71 @@ sentinel monitor yyy 127.0.0.1 46379 2
     redisTemplate.opsForHash().get("myRedisKey", "myMapKey");
     ```
 
+### 实现分布式锁
+
+- 示例 [^4]
+
+```java
+public class RedisTool {
+    private static final String LOCK_SUCCESS = "OK";
+    private static final String SET_IF_NOT_EXIST = "NX";
+    private static final String SET_WITH_EXPIRE_TIME = "PX";
+    private static final Long RELEASE_SUCCESS = 1L;
+
+    /**
+     * 尝试获取分布式锁
+     * @param jedis Redis客户端
+     * @param lockKey 锁
+     * @param requestId 请求标识
+     * @param expireTime 超期时间
+     * @return 是否获取成功
+     */
+    public static boolean tryGetDistributedLock(Jedis jedis, String lockKey, String requestId, int expireTime) {
+        String result = jedis.set(lockKey, requestId, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, expireTime);
+        if (LOCK_SUCCESS.equals(result)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 释放分布式锁
+     * @param jedis Redis客户端
+     * @param lockKey 锁
+     * @param requestId 请求标识
+     * @return 是否释放成功
+     */
+    public static boolean releaseDistributedLock(Jedis jedis, String lockKey, String requestId) {
+        // Lua脚本，从而而确保解锁操作是原子性的
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        // 将Lua代码传到jedis.eval()方法里，并使参数KEYS[1]赋值为lockKey，ARGV[1]赋值为requestId。eval()方法是将Lua代码交给Redis服务端执行
+        Object result = jedis.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
+        if (RELEASE_SUCCESS.equals(result)) {
+            return true;
+        }
+        return false;
+    }
+}
+```
+- `jedis.set(String key, String value, String nxxx, String expx, int time)` 对应如 `set my_lock id_12345678 nx ex 60`
+    - 使用key来当锁，因为key是唯一的
+    - value传的是requestId，就可知道这把锁是哪个请求加的了，在解锁的时候就可以有依据。**解铃还须系铃人**。requestId可以使用UUID.randomUUID().toString()方法生成
+    - NX，意思是SET IF NOT EXIST，即当key不存在时，进行set操作；若key已经存在，则不做任何操作。**互斥性**
+    - PX，意思是要给这个key加一个过期的设置，具体时间由第五个参数决定。**防止死锁**
+    - time，与第四个参数相呼应，代表key的过期时间
+    - **此时只考虑Redis单机部署的场景，所以没有考虑容错性**
+- 分布式锁错误使用
+    - 错误方式：jedis.setnx()和jedis.expire()组合使用
+        - 由于这是两条Redis命令，不具有原子性，如果程序在执行完setnx()之后突然崩溃，导致锁没有设置过期时间，那么将会发生死锁
+        - 网上之所以有人这样实现，是因为低版本的jedis并不支持多参数的set()方法
+    - 错误方式：jedis.del()方法删除锁
+        - 这种不先判断锁的拥有者而直接解锁的方式，会导致任何客户端都可以随时进行解锁，即使这把锁不是它的
+
 ### java中操作Redis
 
-- 引入jar包
+- 引入jar包(参考上文pom)
   - 使用Java操作Redis需要jedis-2.1.0.jar，下载地址：http://files.cnblogs.com/liuling/jedis-2.1.0.jar.zip
   - 如果需要使用Redis连接池的话，还需commons-pool-1.5.4.jar，下载地址:http://files.cnblogs.com/liuling/commons-pool-1.5.4.jar.zip
-
 - 使用连接池实例
 
 ```java
@@ -1099,3 +1158,6 @@ sentinel monitor yyy 127.0.0.1 46379 2
 [^1]: http://www.runoob.com/redis/redis-tutorial.html (菜鸟教程)
 [^2]: http://wiki.jikexueyuan.com/project/redis-guide/ (极客学院 Wiki)
 [^3]: http://www.cnblogs.com/edisonfeng/p/3571870.html (java对redis的基本操作)
+[^4]: https://www.cnblogs.com/moxiaotao/p/10829799.html
+
+

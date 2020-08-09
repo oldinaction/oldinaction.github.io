@@ -8,6 +8,7 @@ tags: [monitor]
 
 ## 简介
 
+- CAT是一个实时和接近全量的监控系统(调用链监控，不适用于全链路监控)，它侧重于对Java应用的监控。提供系统的性能指标、健康状况、监控告警等功能
 - [github](https://github.com/dianping/cat)、[深入详解美团点评CAT跨语言服务监控](https://blog.csdn.net/caohao0591/article/details/80693289)
 - CAT服务端不可用时，不会影响客户端执行；待服务端重启成功后客户端会将不可用期间的日志重新发给服务端
 - 客户端将监控日志上传到服务端，服务端先存储在内存中，定期会将上一个小时的数据落到数据库中(hourlyreport、hourly_report_content)，天/周/月数据则在凌晨进行计算落库
@@ -636,7 +637,6 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
 
     }
 }
-
 ```
 
 

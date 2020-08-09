@@ -3,7 +3,7 @@ layout: "post"
 title: "Zookeeper"
 date: "2017-10-22 19:24"
 categories: arch
-tags: HA
+tags: [HA, 分布式锁]
 ---
 
 ## 介绍
@@ -436,12 +436,28 @@ public class HelloWorld {
 
 ### 实现分布式锁
 
+#### 分布式锁
+
+- 分布式锁一般有三种实现方式
+    - 数据库乐观锁
+    - [基于Redis的分布式锁](/_posts/db/redis.md#实现分布式锁)
+    - 基于ZooKeeper的分布式锁
+- 为了确保分布式锁可用，至少要确保锁的实现同时满足以下四个条件
+    - 互斥性。在任意时刻，只有一个客户端能持有锁
+    - 不会发生死锁
+    - 具有容错性。只要大部分的Redis节点正常运行，客户端就可以加锁和解锁
+    - 解铃还须系铃人。加锁和解锁必须是同一个客户端，客户端自己不能把别人加的锁给解了
+
+#### 基于zk实现分布式锁
+    
 - 使用zk的session功能可防止死锁
 - 使用zk的sequence+watch
     - 使用zk的`watch`功能可在释放锁时，其他节点更快得知(如果主动轮询判断是否可获取锁则会有延时)
     - 使用sequence可让后一个节点关注前一个节点的变化。永远让第一个节点获得锁，当第一个节点执行完毕后释放锁，从而触发后面一个节点的事件回调进行锁获取
         - 释放锁只会给后一个节点发送回调通知，如果释放锁给全部节点发送回调，一个弊端是zk需要对多个节点发送数据，另外一个弊端是其他节点获取通知后可能产生锁争抢
 - 参考：https://github.com/oldinaction/smjava/tree/master/zookeeper/src/main/java/cn/aezo/zookeeper/distributed_lock
+
+
 
 
 ---

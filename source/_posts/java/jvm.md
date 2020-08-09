@@ -778,7 +778,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 - 优化环境
     - 系统CPU经常100%，如何调优？(面试高频)
         - CPU 100%那么一定有线程在占用系统资源，找出哪个进程cpu高 (top)
-        - 该进程中的哪个线程cpu高 (top -Hp)
+        - 该进程中的哪个线程cpu高 (top -Hp <pid>)
         - 导出该线程的堆栈 (jstack)
         - 查找哪个方法(栈帧)消耗时间 (jstack)
         - 工作线程占比高(while死循环)、垃圾回收线程占比高(内存不足)
