@@ -242,7 +242,7 @@ eureka:
     # robbin负载均衡策略优先级：配置文件策略 > 代码级别策略 > ribbon默认策略(com.netflix.loadbalancer.ZoneAvoidanceRule)
     provider-user:
         ribbon:
-            # 当访问服务provider-user时采用随机策略RandomRule，此时访问其他服务时仍然为默认策略ZoneAvoidanceRule；WeightedResponseTimeRule响应时间加权策略
+            # 当访问服务provider-user时采用随机策略RandomRule，此时访问其他服务时仍然为默认策略ZoneAvoidanceRule(复合判断server所在区域的性能和server的可用性选择server)；还有WeightedResponseTimeRule响应时间加权策略等
             NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
     ```
 - 脱离Eureka的配置，此时仍然可以运行Ribbon，但是不从eureka中获取服务地址，而是从配置文件中读取
@@ -388,14 +388,14 @@ hystrix.command.HystrixCommandKey.execution.isolation.thread.timeoutInMillisecon
 ```
 - 配置文件中加
 
-```bash
+```yml
 management:
   endpoints:
     web:
       exposure:
         include: ["hystrix.stream"]
 
-# 也可通过java代码暴露端口
+# 也可通过java代码暴露端点
 # @Bean
 # public ServletRegistrationBean getServlet(){
 #     HystrixMetricsStreamServlet streamServlet = new HystrixMetricsStreamServlet();
@@ -416,6 +416,7 @@ management:
 
 ### Turbine
 
+- 发音：`/ˈtɜːrbaɪn/`
 - 基于Hystrix Dashboard之上，可以监控多个节点的数据(推荐)
 - 需要添加依赖
 
@@ -435,7 +436,7 @@ management:
 </dependency>
 ```
 - 启动类加注解`@EnableHystrixDashboard`、`@EnableTurbine`
-- 配置文件配置
+- 配置
 
 ```yml
 turbine:
@@ -443,7 +444,7 @@ turbine:
   appConfig: consumer-movie-ribbon,consumer-movie-ribbon2
   # 参数指定了集群名称为 default，当我们服务数量非常多的时候，可以启动多个 Turbine 服务来构建不同的聚合集群，而该参数可以用来区分这些不同的聚合集群，同时该参数值可以在 Hystrix 仪表盘中用来定位不同的聚合集群
 #  clusterNameExpression: new String("default") # 或者 "'default'"
-  # 匹配被监控节点eureka.instance.metadata-map.cluster的值中包含turbine.aggregator.clusterConfig的参数值
+  # 匹配被监控节点eureka.instance.metadata-map.cluster的值中包含turbine.aggregator.clusterConfig(见下文)的参数值
   clusterNameExpression: metadata['cluster']
   aggregator:
     # 指定聚合哪些集群，多个使用","分割，默认为default。可使用http://.../turbine.stream?cluster=<clusterConfig之一>访问
@@ -483,18 +484,18 @@ turbine:
           sensitive-headers:
           routes:
             # 通配符(ant规范)：? 代表一个任意字符，* 代表多个任意字符，** 代表多个任意字符且支持多级目录
-            # 此处路径在配置文件中越靠前的约优先（系统将所有路径放到LinkedHashMap中，当匹配到一个后就终止匹配）
+            # 此处路径在配置文件中越靠前的越优先（系统将所有路径放到 LinkedHashMap 中，当匹配到一个后就终止匹配）
             # 现在可以同时访问http://localhost:5555/consumer-movie-ribbon/movie/1?accessToken=smalle 和 http://localhost:5555/api-movie/movie/1?accessToken=smalle （有熔断保护，可能会超时，多刷新几遍）
             # api-movie为规则名, 可通过spring cloud config进行动态加载(覆盖)
             api-movie:
-              # sensitive-headers: # 单独配置敏感headers
+              # 匹配此路径则转发到对应serviceId上
               path: /api-movie/**
               # 从eureka中获取此服务(spring.application.name)的地址(面向服务的路由)
               serviceId: consumer-movie-ribbon
             api-user:
               # 个性化定义敏感headers
               custom-sensitive-headers: true
-              sensitive-headers: Cookie,Set-Cookie,Authorization
+              sensitive-headers: Cookie,Set-Cookie,Authorization # 单独配置敏感headers
               path: /api-user/**
               serviceId: provider-user
             # 本地跳转(当访问/api-local/**的时候，则会转到当前应用的/local/**的地址)
@@ -650,22 +651,19 @@ turbine:
                         search-paths: config-repo
                         username: smalle
                         password: aezocn
-
     server:
         port: 7000
-
     security:
         basic:
             enabled: true # 开启权限验证(默认是false)
         user:
             name: smalle
             password: smalle
-
     # eureka客户端配置
     eureka:
         client:
             serviceUrl:
-            defaultZone: http://smalle:smalle@localhost:8761/eureka/
+                defaultZone: http://smalle:smalle@localhost:8761/eureka/
         instance:
             # 启用ip访问
             prefer-ip-address: true

@@ -65,7 +65,7 @@ tags: LB, HA
 
 ```bash
 server {
-    # 监听的端口，注意要在服务器后台开启80端口外网访问权限
+    # 监听的端口，注意要在服务器后台开启80端口外网访问权限。[Windows上80端口占用问题解决](/_posts/lang/C%23.md#IIS)
     listen   80;
     # 服务器的地址
     server_name www.aezo.cn;
