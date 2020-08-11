@@ -5,7 +5,7 @@
     
   <url>
     <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
-    <lastmod>2020-08-08T11:50:00.198Z</lastmod>
+    <lastmod>2020-08-11T01:25:36.256Z</lastmod>
     <data>
         <display>
         <title>SpringCloud</title>
@@ -19,6 +19,94 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    <lastmod>2020-08-10T08:56:17.345Z</lastmod>
+    <data>
+        <display>
+        <title>Nginx</title>
+        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
+        
+        <tag>LB, HA</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2018/11/19/lang/C#/</loc>
+    <lastmod>2020-08-10T08:39:57.248Z</lastmod>
+    <data>
+        <display>
+        <title>C#</title>
+        <pubTime>2018-11-19T09:23:00.000Z</pubTime>
+        
+        <tag>.NET</tag>
+         
+        <tag>C#</tag>
+         
+         
+           
+             
+              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    <lastmod>2020-08-10T01:43:56.919Z</lastmod>
+    <data>
+        <display>
+        <title>Shell编程</title>
+        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>shell</tag>
+         
+        <tag>lang</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
+    <lastmod>2020-08-10T01:41:42.763Z</lastmod>
+    <data>
+        <display>
+        <title>计算机底层知识</title>
+        <pubTime>2020-06-16T12:50:00.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>cpu</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
           
         </display>
     </data>
@@ -468,28 +556,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
-    <lastmod>2020-07-11T04:16:20.512Z</lastmod>
-    <data>
-        <display>
-        <title>计算机底层知识</title>
-        <pubTime>2020-06-16T12:50:00.000Z</pubTime>
-        
-        <tag>java</tag>
-         
-        <tag>cpu</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
     <lastmod>2020-07-10T04:43:11.221Z</lastmod>
     <data>
@@ -498,26 +564,6 @@
         <pubTime>2016-04-16T04:40:00.000Z</pubTime>
         
         <tag>git</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    <lastmod>2020-07-10T01:38:36.958Z</lastmod>
-    <data>
-        <display>
-        <title>Nginx</title>
-        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
-        
-        <tag>LB, HA</tag>
          
          
            
@@ -543,30 +589,6 @@
            
              
               <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    <lastmod>2020-07-09T23:50:54.437Z</lastmod>
-    <data>
-        <display>
-        <title>Shell编程</title>
-        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>shell</tag>
-         
-        <tag>lang</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
           
         </display>
     </data>
@@ -1500,9 +1522,9 @@
         <title>虚拟化服务器搭建 | 私有云</title>
         <pubTime>2019-05-30T08:11:00.000Z</pubTime>
         
-        <tag>server</tag>
-         
         <tag>linux</tag>
+         
+        <tag>server</tag>
          
         <tag>cloud</tag>
          
