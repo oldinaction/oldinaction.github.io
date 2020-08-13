@@ -608,6 +608,7 @@ location ^~ /my-app/ {
 
 ### https
 
+- 浏览器使用的协议(http/https)必须和请求后台的协议一致，否则Chrome进行拦截掉了
 - 静态资源使用`//aezo.cn/xxx`，它会判断当前的页面协议是http还是https来决定资源请求url的协议，可用于处理网站使用的协议和网页中请求的外网资源不一致的问题
 
 ```html
@@ -623,6 +624,7 @@ location ^~ /my-app/ {
 }
 </style>
 ```
+- js中使用`//aezo.cn/api`进行动态请求后端地址，会动态获取document的协议
 
 ## 常用插件
 
@@ -646,11 +648,20 @@ location ^~ /my-app/ {
         - 基于[jsqrcode](https://github.com/LazarSoft/jsqrcode)库，可进行二维码/条形码解析
             - 参考：https://www.cnblogs.com/yisuowushinian/p/5145262.html，此方案在前端 js 解析二维码，依赖`jsqrcode`
             - 这个库已经支持在浏览器端呼起摄像头的操作了，但是依赖一个叫`getUserMedia`的属性，该属性移动端的浏览器支持的都不是很好，低版本只能间接的上传图片的方式解析二维码
-            - 此插件需要配合 zepto.js 或者 jQuery.js 使用
-            - iphone7扫二维码成功，条形码不成功。扫码时无扫码框，需要点击拍照 - 确定识别
+            - 此插件需要配合 zepto.js 或者 jQuery.js 使用(主要用来拍照的，如果使用uni-app则不需要此依赖，可使用uni.chooseImage拍照)；webpack打包需要canvas
+                - 安装 `cnpm install jsqrcode -S`、`cnpm install canvas -S`
+            - 扫码时无扫码框，需要点击拍照 - 确定识别（iphone7扫二维码成功，条形码不成功）
+            - 缺点需要确认拍照进行识别，拍照需要清晰，出错率高
         - 基于`quagga.js`库，可进行条形码解析
             - 如uni-app插件：https://ext.dcloud.net.cn/plugin?id=1619
-        - 基于[jsQR](https://github.com/cozmo/jsQR)、[vue-qrcode-reader](https://github.com/gruhn/vue-qrcode-reader)调取摄像头(进行录像)识别二维码，每个页面需要同意调用摄像头(网页可设置永久同意)
+        - 基于[jsQR](https://github.com/cozmo/jsQR)、[vue-qrcode-reader(本质基于jsQR)](https://github.com/gruhn/vue-qrcode-reader)
+            - 调取摄像头(进行录像)识别二维码，每个页面需要同意调用摄像头(网页可设置永久同意)
+            - 优点是无需拍照确认识别(会自动识别，出错率低)，**但是必须要https才行**
+- H5页面扫码案例
+
+```
+
+```
 
 ## 浏览器
 

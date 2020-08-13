@@ -18,7 +18,6 @@ tags: [LB, HA]
 - Lvs的组成包括 `ipvs` 和 `ipvsadm`
     - ipvs(ip virtual server)：一段代码工作在内核空间，叫ipvs(所有的linux都有此功能)
     - ipvsadm：另外一段是工作在用户空间，叫ipvsadm，负责为ipvs内核框架编写规则，定义谁是集群服务，而谁是后端真实的服务器(Real Server)。安装`yum install ipvsadm -y`
-- lvs默认是用的`wlc`调度算法：会根据后端 RS 的连接数来决定把请求分发给谁，比如 RS1 连接数比 RS2 连接数少，那么请求就优先发给 RS1。并考虑权重
 - 相关术语
     - `DS`：Director Server。指的是前端负载均衡器节点
     - `RS`：Real Server。后端真实的工作服务器
@@ -26,6 +25,23 @@ tags: [LB, HA]
     - `DIP`：Director Server IP，主要用于和内部主机通讯的IP地址
     - `RIP`：Real Server IP，后端服务器的IP地址
     - `CIP`：Client IP，访问客户端的IP地址
+- LVS类型：
+    - DR：直接路由
+    - NAT：地址转换，跟DNAT原理相同，多目标
+    - TUN：隧道
+- LVS的调度方法(有10种)
+    - 固定调度，也叫静态调度，有四种
+        - rr：轮叫，轮询
+        - wrr：Weight, 加权
+        - sh：source hash，源地址hash
+        - dh：目标地址hash
+    - 动态调度方法，有六种
+        - lc：最少连接。`active*256+inactive` 谁的小，挑谁
+        - **wlc：默认，加权最少连接**。`(active*256+inactive)/weight`。会根据后端 RS 的连接数来决定把请求分发给谁，比如 RS1 连接数比 RS2 连接数少，那么请求就优先发给 RS1。并考虑权重
+        - sed：最短期望延迟。`(active+1)*256/weight`
+        - nq：never queue
+        - LBLC：基于本地的最少连接
+        - LBLCR：基于本地的带复制功能的最少连接
 
 ## LVS的DR模式原理 [^1]
 
@@ -43,17 +59,17 @@ tags: [LB, HA]
 ### 基本说明
 
 - 请求流程
-    - CIP-VIP的请求数据包发送到DS**(所以此时DS必须绑定可访问的VIP)**RIP-CIP的返回
+    - CIP-VIP的请求数据包发送到DS **(所以此时DS必须绑定可访问的VIP)** RIP-CIP的返回
     - CIP-RIP的请求数据包发送到RS(通过DS转发)
         - RIP-CIP的响应数据包可从RS发送，但是客户端不会接受，因为CIP请求的是VIP。所有必须是RS响应VIP-CIP的数据包(相当于IP欺骗)
-    - VIP-CIP的响应数据包由RS返回到客户端**(所以此时RS必须绑定隐藏的VIP)**
+    - VIP-CIP的响应数据包由RS返回到客户端 **(所以此时RS必须绑定隐藏的VIP)**
 - 上述流程中DS和RS都绑定的VIP，但是一个网络中不能有两台机器同时绑定一个IP。但是RS是隐藏的VIP，**隐藏VIP的前提是：不对外广播和不对外响应**
 - 通过修改以下内核参数来隐藏RS的VIP
     - `arp_ignore`：定义接收到ARP请求时的**响应级别**
         - 0：只要在本地配置的有相应地址，就给予响应(默认)
         - 1：仅在请求的目标MAC地址与请求的网络接口匹配时，才给予响应(mac地址和ip地址匹配时才响应；lvs设置此级别)
     - `arp_announce`：定义将自己地址向外**通告级别**
-        - 0：将本地任何接口上的任何地址向外通过(默认)
+        - 0：将本地任何接口上的任何地址向外通告(默认)
         - 1：试图仅向目标网络通告与其网络匹配的地址
         - 2：仅向与本地接口MAC地址匹配的网络进行通告(mac地址和ip地址匹配时才通告；lvs设置此级别)
 - 步骤(可将以下步骤封装成脚本)
@@ -107,9 +123,9 @@ tags: [LB, HA]
 - 修改RS(`192.168.6.131`、`192.168.6.132`)的nginx安装目录下`html/50x.html`文件，分别加入`<h1>server1</h1>`和`<h1>server2</h1>`(前提是通过 http://192.168.6.131/50x.html 可访问到对应的文件)
 - 访问`http://192.168.6.120/50x.html`观察显示页面
 
-## LVS结合keepalive
+## LVS结合keepAlive
 
-- **LVS可以实现负载均衡，但是不能够进行健康检查**，比如一个rs出现故障，LVS 仍然会把请求转发给故障的rs服务器，这样就会导致请求的无效性。**keepalive 软件可以进行健康检查，而且能同时实现 LVS 的高可用性，解决 LVS 单点故障的问题**。其实 keepalive 就是为 LVS 而生的。
+- **LVS可以实现负载均衡，但是不能够进行健康检查**，比如一个rs出现故障，LVS 仍然会把请求转发给故障的rs服务器，这样就会导致请求的无效性。**keepalive 软件可以进行健康检查，而且能同时实现 LVS 的高可用性，解决 LVS 单点故障的问题**。其实 keepalive 就是为 LVS 而生的
 
 
 

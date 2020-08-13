@@ -10,6 +10,19 @@ tags: [java, conception]
 
 ## 架构
 
+- `SOA`
+    - 面向服务的架构，主要流行于零几年，基于XML的Webservice进行不同服务间调用
+    - 主要针对业务层面进行服务拆分。而微服务则是粒度更细的服务拆分，更倾向于功能级别
+- `SOAP` 简单对象访问协议(Simple Object Access Protocol)。webService三要素：SOAP、WSDL、UDDI
+    - SOAP封装
+    - SOAP编码规则：定义了一种序列化的机制
+    - SOAP RPC：定义了用于表示远程过程调用和应答的协定
+    - SOAP绑定
+- `RPC` 远程过程调用(Remote Procedure Call)
+    - 相关框架
+        - 应用级的服务框架：阿里的 Dubbo/Dubbox、Google gRPC、Facebook 的 Thrift、Twitter 的 Finagle
+        - 远程通信协议：RMI、Socket、SOAP(HTTP XML)
+-  `gRPC` 是一个高性能、开源和通用的 RPC 框架，目前提供 C、Java 和 Go 语言版本
 - `垂直扩展`和`水平扩展`
     - 垂直扩展就是升级原有的服务器或更换为更强大的硬件。这是比较直接的方法，比如说内存不足时就增加更多的内容。或者，花费一大笔钱为一个大型主机服务器增加存储吞吐量和/或计算能力。 
     - 水平(Horizontal)扩展指的是通过增加更多的服务器来分散负载，从而实现存储能力和计算能力的扩展。这可以通过增加本地的刀片服务器（虽然有些人认为增加刀片服务器是一种垂直扩展形式），或者增加云端的虚拟机和服务器

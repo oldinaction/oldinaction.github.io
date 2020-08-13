@@ -9,7 +9,7 @@ tags: [lucene, solr]
 ## 简介
 
 - `Solr`它是一种开放源码的、基于 Lucene Java 的搜索服务器，易于加入到 Web 应用程序中。
-    - 基于开放接口（XML和HTTP）的标准进行索引创建和查询**(基于Lucene通过HTTP请求进行数据索引管理)**
+    - 基于开放接口（XML和HTTP）的标准进行索引创建和查询 **(基于Lucene通过HTTP请求进行数据索引管理)**
     - 可伸缩性－能够有效地复制到另外一个Solr搜索服务器
     - 附带了一个基于HTTP管理界面
 - Solr与Lucene 并不是竞争对立关系，恰恰相反Solr 依存于Lucene，因为Solr底层的核心技术是使用Lucene 来实现的。Lucene专注于搜索底层的建设，而Solr专注于企业应用

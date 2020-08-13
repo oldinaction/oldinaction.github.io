@@ -680,7 +680,7 @@ turbine:
 
 - [下载jce扩展jar包](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)：将`local_policy.jar`、`US_export_policy.jar`放入`$JAVA_HOME/jre/lib/security`(覆盖之前文件)
 - 生成秘钥对
-    - 命令行运行`keytool -genkeypair -alias config-server -keyalg RSA -keypass aezocn -keystore config-server.jks -storepass aezocn`(一路回车，最好一个输入Y)，会在命令的当前目录生成一个`config-server.jks`的文件
+    - 命令行运行`keytool -genkeypair -alias config-server -keyalg RSA -keypass aezocn -keystore config-server.jks -storepass aezocn`(一路回车，最后一个输入Y)，会在命令的当前目录生成一个`config-server.jks`的文件
     - 将`config-server.jks`文件放在项目`resources`目录
 - `bootstrap.yml`中配置
 
@@ -709,7 +709,7 @@ turbine:
             username: '{cipher}AQCY22PkcuNZCfPS98zTv2TQD...'
             password: '{cipher}...'
     ```
-- 去掉`bootstrap.yml`中配置`encrypt.key-store`。通过环境变量(或者location改成类似`file:${user.home}/config-server.jks`)定义`encrypt.key-store`参数值。**由于可通过/decrypt进行反向解密，此方式并不能完全隐藏密码。此安全策略主要用于开发组设置不同环境dev/prod的配置进行开发，最终交由运维组进行部署，prod中的加密密码可有运维提前给到开发组(config-server.jks秘钥文件由运维保管)，部署时指定秘钥文件即可。**
+- 去掉`bootstrap.yml`中配置`encrypt.key-store`。通过环境变量(或者location改成类似`file:${user.home}/config-server.jks`)定义`encrypt.key-store`参数值。**由于可通过/decrypt进行反向解密，此方式并不能完全隐藏密码。此安全策略主要用于开发组设置不同环境dev/prod的配置进行开发，最终交由运维组进行部署，prod中的加密密码可由运维提前给到开发组(config-server.jks秘钥文件由运维保管)，部署时指定秘钥文件即可。**
 - `encrypt.key-store`对应的环境变量为：`ENCRYPT_KEY_STORE_LOCATION` `ENCRYPT_KEY_STORE_ALIAS` `ENCRYPT_KEY_STORE_PASSWORD` `ENCRYPT_KEY_STORE_SECRET`
     - 测试环境变量没有生效，**可以使用`encrypt.key-store.location=file:${user.home}/config-server.jks`** ${user.home}只机器当前登录用户目录
 
@@ -758,7 +758,7 @@ turbine:
 - 测试程序
 
     ```java
-    // @RefreshScope // 之后刷新config后可重新注入值
+    // @RefreshScope // 之后刷新config后可重新注入值。参考下文动态刷新
     @RestController
     public class ConfigController {
         @Value("${from:none}")
@@ -771,9 +771,8 @@ turbine:
         }
     }
     ```
-- 动态刷新配置(可获取最新配置信息的git提交)
 - config客户端重启会刷新配置(重新注入配置信息)
-- 动态刷新
+- 动态刷新配置(可获取最新配置信息的git提交)
     - 在需要动态加载配置的Bean上加注解`@RefreshScope`(如ConfigController中加入了此注解，则只有此类的配置可刷新，其他类的配置不会获取最新值)
     - 给 **config client** 加入权限验证依赖(`org.springframework.boot/spring-boot-starter-security`)，并在对应的application.yml中开启验证
         - 否则访问`/refresh`端点会失败，报错：`Consider adding Spring Security or set 'management.security.enabled' to false.`(需要加入Spring Security或者关闭端点验证)
@@ -781,8 +780,8 @@ turbine:
     - 再次访问config client的 http://localhost:9000/from 即可获取最新git提交的数据(由于开启了验证，所有端点都需要输入用户名密码)
         - 得到如`["from"]`的结果(from配置文件中改变的key)
 - 动态加载网关配置
-- 在`api-gateway-zuul`服务中同上述一样加`bootstrap.yml`，并对eureka和config server进行配置
-- 在`application.yml`对
+    - 在`api-gateway-zuul`服务中同上述一样加`bootstrap.yml`，并对eureka和config server进行配置
+    - 在`application.yml`对
 
     ```yml
     zuul:
@@ -802,7 +801,7 @@ turbine:
         name: smalle
         password: smalle
     ```
-- 在git仓库中加入`api-gateway-zuul-prod.yml`等配置文件，并加入配置
+    - 在git仓库中加入`api-gateway-zuul-prod.yml`等配置文件，并加入配置
 
     ```yml
     zuul:
@@ -811,7 +810,7 @@ turbine:
           path: /api-movie-config/**
           serviceId: consumer-movie-ribbon
     ```
-- `POST`请求`http://localhost:5555/refresh`即可刷新`api-gateway-zuul`的配置，因此动态加载了路由规则zuul.routes.api-movie
+    - `POST`请求`http://localhost:5555/refresh`即可刷新`api-gateway-zuul`的配置，因此动态加载了路由规则zuul.routes.api-movie
 
 ## Bus 消息总线(Spring Cloud Bus)
 
@@ -856,7 +855,7 @@ turbine:
 
 ### 以Kafka为例
 
-> Kafka是有LinkedIn开发的分布式消息系统，现由Apache维护，使用Scala实现。
+> Kafka是由LinkedIn开发的分布式消息系统，现由Apache维护，使用Scala实现。
 
 - 更换依赖
 
@@ -867,7 +866,7 @@ turbine:
 	</dependency>
     ```
 - 只需更换依赖，其他地方同rabbitmq即可(使用kafka默认配置时会产生一个Topic为)
-- 启动kafka(包括zookeeper). 关于`Kafka`使用可查看文章【Kafka】
+- 启动kafka(包括zookeeper). 关于`Kafka`使用可查看文章[Kafka](/_posts/arch/kafka.md)
 - 启动应用后会产生一个名为springCloudBus的Topic
 
 ## Stream 消息驱动(Spring Cloud Stream)
@@ -897,13 +896,13 @@ turbine:
             # Spring Cloud Stream配置
             stream:
               bindings:
-                # input为定义的通道名称
+                # input为自定义的通道名称，可为其他(默认为input，使用@Input("input")时可省略input)
                 input:
                   # 通道数据传输类型
                   # content-type: text/plain # application/json
                   # 将此实例的某个Stream(input)定义为某个消费组(同一个消费组里面的实例只有其中一个对消息进行消费, 否则所有的实例都会消费, 建议定义)
                   group: group-movie
-                  # 应用中的监听的input通道对应中间件的主题(rabbitmq的Exchange, kafka的Topic)为xxx(默认是通道名称, 此时即input)
+                  # 应用中监听的input通道对应中间件的主题(rabbitmq的Exchange, kafka的Topic)为xxx(默认是通道名称, 此时即input)
                   # destination: xxx
                 # ...此处省略其他通道配置...
         ```
@@ -1051,7 +1050,7 @@ turbine:
     # 开启消费者分区功能
     spring.cloud.stream.bindings.input.consumer.partitioned=true
 
-    # 生成者配置
+    # 生产者配置
     spring.cloud.stream.bindings.output.destination=input
     # 可根据实际消息规则配置SpEL表达式生成分区键用于分配出站数据, 用于消息分区
     spring.cloud.stream.bindings.output.producer.partitionKeyExpression=payload
@@ -1205,7 +1204,7 @@ turbine:
             ```
         - 如果zipkin没有使用eureka， 则需要在application.yml中添加`spring.zipkin.base-url: http://localhost:9411/` (zipkin server地址)
     - 进入到zipkin server后台界面查看跟踪信息：http://localhost:9411/ (跟踪信息可能会有延迟)
-- 整合ELK日志分析系统(Logstash)
+- 整合ELK日志分析系统
     - ELK平台包含：ElasticSerch(分布式搜索引擎)、Logstash(日志收集-过滤-存储)、Kibana(界面展现)三个开源工具。(与Zipkin类似，二者不建议同时使用)
     - 引入依赖
 

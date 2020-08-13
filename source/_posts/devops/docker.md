@@ -101,6 +101,10 @@ Management Commands:
   stack       Manage Docker stacks
   swarm       Manage Swarm
   system      Manage Docker
+    prune # docker system prune # 清理资源：停止的容器、未被任何容器所使用的卷、未被任何容器所关联的网络、所有悬空镜像
+    df # docker system df # 查看所占的硬盘大小
+    info
+    events
   volume      Manage volumes # 管理容器卷(可理解成就是一个目录)。https://docs.docker.com/storage/volumes/
     # volume绕过container的文件系统，直接将数据写到host机器上(默认存放路径 /var/lib/docker/volumes)
     # 修改默认存储位置，参考：https://blog.51cto.com/nanfeibobo/2091960

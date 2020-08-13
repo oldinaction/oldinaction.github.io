@@ -14,7 +14,7 @@ tags: [keepalived]
 
 - `yum -y install keepalived`
 - 源码安装 [^1]
-- `systemctl start keepalived` 启动**(需要关闭`SELinux`)**
+- `systemctl start keepalived` 启动 **(需要关闭`SELinux`)**
     - 启动后自动绑定虚拟ip，通过`ip addr`可查看绑定的虚拟ip
 
 ## keepalived.conf配置说明
@@ -138,13 +138,13 @@ virtual_server 192.168.200.1 8110 {
 
 ## 相关应用
 
+### lvs + keepalived
+
 ### nginx + keepalived实现高可用
 
-参考`《nginx》`的`【结合keepalived实现高可用】`章节
+参考[nginx.md#结合keepalived实现高可用](/_posts/arch/nginx.md#结合keepalived实现高可用)
 
-### 其他
-
-- mysql + keepalived
+### mysql + keepalived
 
 
 

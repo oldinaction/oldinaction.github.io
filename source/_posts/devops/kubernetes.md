@@ -1873,6 +1873,11 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 ## 运维案例
 
 - 扩容PVC，参考[ceph.md#镜像扩容缩容(rbd-images)](/_posts/devops/ceph.md#镜像扩容缩容(rbd-images))
+- k8s证书过期
+    - 由 kubeadm 生成的客户端证书在 1 年后到期。`kubeadm alpha certs check-expiration` 查看所有证书过期时间
+    - 手动更新证书，参考：https://stackoverflow.com/questions/56320930/renew-kubernetes-pki-after-expired/56334732#56334732 、 https://feisky.gitbooks.io/kubernetes/content/practice/certificate-rotation.html
+    - 或者升级K8S则会自动更新证书
+    - 可设置证书有效期
 
 ## 常见问题
 

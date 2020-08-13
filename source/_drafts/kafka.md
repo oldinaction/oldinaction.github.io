@@ -9,7 +9,7 @@ tags: [mq]
 ## 简介
 
 - 官网：[http://kafka.apache.org/](http://kafka.apache.org/)
-- Kafka是有LinkedIn开发的分布式消息系统，现由Apache维护，使用Scala实现
+- Kafka是由LinkedIn开发的分布式消息系统，现由Apache维护，使用Scala实现
 - 安装(示例版本`2.12_2.2.0`)
     - 下载[kafka_2.12_2.2.0.tgz](https://www.apache.org/dyn/closer.cgi?path=/kafka/2.2.0/kafka_2.12-2.2.0.tgz)解压即可
     - 其中`bin`目录为shell文件，`bin/windows`为bat文件，`config`目录为配置文件
