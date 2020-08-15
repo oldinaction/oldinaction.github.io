@@ -113,6 +113,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 ## 软件下载推荐
 
 - `Visio` 流程图。[Microsoft visio pro 2019 32位/64位](https://www.jb51.net/softs/634165.html#downintro2)
+- `DBeaver` 数据库连接工具(开源免费，支持数据库丰富)
 
 ## 其他
 

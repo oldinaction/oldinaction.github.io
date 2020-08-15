@@ -1454,26 +1454,34 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     # h 进入帮助；Exc/q 退出帮助
     Help for Interactive Commands - procps-ng version 3.3.10
     Window 3:Mem: Cumulative mode On.  System: Delay 3.0 secs; Secure mode Off.
-
+        # 全局配置：Z 颜色，B 背景
         Z,B,E,e   Global: 'Z' colors; 'B' bold; 'E'/'e' summary/task memory scale
-        # l 显示负载(默认显示)；t 显示CPU使用图示；m 显示内存使用图示
+        # 总的统计：l 显示负载(默认显示)；t 显示CPU使用图示；m 显示内存使用图示
         l,t,m     Toggle Summary: 'l' load avg; 't' task/cpu stats; 'm' memory info
         0,1,2,3,I Toggle: '0' zeros; '1/2/3' cpus or numa node views; 'I' Irix mode
+        # 字段配置：f 进入字段操作界面（d 增加/删除字段，s 切换排序字段）；F 进入字段列显示顺序排序界面(选中一行上下切换即可)
         f,F,X     Fields: 'f'/'F' add/remove/order/sort; 'X' increase fixed-width
 
-        # <,> 切换排序列
+        # 定位配置：L 查找字符串, & 查找下一个; <,> 切换排序列
         L,&,<,> . Locate: 'L'/'&' find/again; Move sort column: '<'/'>' left/right
+        # 切换配置：R切换排序； H 显示线程视图；V 显示父子进程树
         R,H,V,J . Toggle: 'R' Sort; 'H' Threads; 'V' Forest view; 'J' Num justify
         # c 显示Command详细命令
         c,i,S,j . Toggle: 'c' Cmd name/line; 'i' Idle; 'S' Time; 'j' Str justify
         # x,y 高亮显示排序列和运行行
         x,y     . Toggle highlights: 'x' sort field; 'y' running tasks
+        # 当使用x,y时，同z改变字体颜色，b改变背景
         z,b     . Toggle: 'z' color/mono; 'b' bold/reverse (only if 'x' or 'y')
+        # 过滤：o/O 增加过滤项（其中O区分大小写。如输入 COMMAND=java 表示COMMAND含java字符串的，或 !PID=100 表示PID不含100的，或 %CPU>5.0，回车即可应用过滤条件）
         u,U,o,O . Filter by: 'u'/'U' effective/any user; 'o'/'O' other criteria
+        # Ctrl+O 展示过滤条件；top界面输入 = 即可清除所有过滤条件
         n,\#,^O  . Set: 'n'/'#' max tasks displayed; Show: Ctrl+'O' other filter(s)
+        # 显示成滚动窗口，在通过上下左右键/home/end移动
         C,...   . Toggle scroll coordinates msg for: up,down,left,right,home,end
-
+        
+        # 管理进程：k 杀死某个进程；r 重设优先级
         k,r       Manipulate tasks: 'k' kill; 'r' renice
+        # 设置数据更新频率，默认3秒
         d or s    Set update interval
         W,Y       Write configuration file 'W'; Inspect other output 'Y'
         q         Quit
@@ -1643,7 +1651,7 @@ vm.dirty_writeback_centisecs = 500
 
 - `/etc/profile` 系统环境信息，如环境变量，对所有用户生效；当用户第一次登录时，该文件被执行。并从 `/etc/profile.d` 目录的配置文件中收集 shell 的设置。对 /etc/profile 有修改的话必须得 source 一下修改才会生效(如果第二次登录仍然不生效可考虑重启一下系统，当系统不能重启时，可考虑将设置添加到`/etc/bashrc`)
 - `/etc/bashrc` 当 bash shell 被打开时，该文件被读取执行，对所有用户生效。修改文件后，重新打开一个 bash 即可生效
-- `~/.bash_profile` 当用户登录时，文件仅仅执行一次，对当前用户生效。默认情况下，为了设置一些环境变量，和**执行用户的 `~/.bashrc` 文件**
+- `~/.bash_profile` 当用户登录时，文件仅仅执行一次，对当前用户生效(有时候修改了此文件，不想重新登录，可通过source执行一下此文件使其生效)。默认情况下，为了设置一些环境变量，和**执行用户的 `~/.bashrc` 文件**
 - `~/.bashrc` 对当前登录用户生效，每次打开 bash shell 时生效，**默认调用了`/etc/bashrc`**
 - `~/.bash_logout` 当每次退出系统(退出 bash shell)时，执行该文件
 - `/etc/environment` 设置环境变量。/etc/profile > /etc/environment > ~/.bash_profile

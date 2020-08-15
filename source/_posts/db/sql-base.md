@@ -892,7 +892,7 @@ set session transaction isolation level read uncommitted;
 - Redo Log是为了实现数据持久性
     - **当发生数据修改的时候， innodb引擎会先将数据更新内存并写到redo log(buffer)中，此时更新就算是完成了**；同时innodb引擎会在合适的时机将记录操作到磁盘中
     - redo log是固定大小的，是循环写的过程，空间会用完(可通过参数配置其大小)
-        - 如果redolog太小，会导致很快被写满，然后就不得不强行刷redolog，这样WAL机制的能力就无法发挥出来。如果磁盘能达到几TB，那么可以将redolog设置4个一组，每个日志文件大小为1GB，写到3号文件末尾后就回到0号文件开头。`show variables like '%innodb_log_file%';`查看单个文件的大小
+        - 如果redolog太小，会导致很快被写满，然后就不得不强行刷redolog，这样WAL机制(见下文)的能力就无法发挥出来。如果磁盘能达到几TB，那么可以将redolog设置4个一组，每个日志文件大小为1GB，写到3号文件末尾后就回到0号文件开头。`show variables like '%innodb_log_file%';`查看单个文件的大小
     - redo log是物理日志，即数据页中的真实二级制数据，恢复速度快
     - innodb存储引擎数据的单位是页，redo log也是基于页进行存储，一个默认16K大小的页中存了很多512Byte的log block，log block的存储格式如[log block header 12Byte，log block body 492 Bytes，log block tailer 8 Bytes]
     - 用途是重做数据页。有了redo log之后，innodb就可以保证即使数据库发生异常重启，之前的记录也不会丢失，系统会自动恢复之前记录，叫做crash-safe(不包含误删数据的恢复)

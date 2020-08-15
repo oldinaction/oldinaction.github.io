@@ -392,7 +392,6 @@ public class HelloWorld {
         System.out.println("new String(b) = " + new String(b)); // new String(b) = v1
         System.out.println("stat = " + stat);
 
-
         Stat newStat = zk.setData("/aezo", "v2".getBytes(), 0);
         System.out.println("newStat1 = " + newStat);
 

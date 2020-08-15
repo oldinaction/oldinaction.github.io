@@ -165,7 +165,7 @@ tags: [git]
 - `git pull 远程仓库地址` 取回远程仓库的变化到当前分支的工作区
 	- `git pull` 获取本分支追踪的远程分支
 	- `git pull origin develop` 获取远程develop分支(使用 `git branch -a` 查看时显示为remotes/origin/develop)
-	- `git pull origin master:master` 取回远程的master分支到本地master分支
+	- `git pull origin master:test` 取回远程的master分支到本地test分支
 - `git push 远程仓库地址` 将本地仓库内容同步到远程仓库，回车后输入用户名和密码即可
 
 ### 查看git状态和文件差别

@@ -35,7 +35,7 @@ tags: [jvm]
     // 1个16进制数(0x1或0xC)对应4位二进制数，1个字节是8位(二进制数)，因此2个16进制数代表一个字节
     ClassFile {
         u4             magic; // 文件头信息 0xCAFEBABE，u4表示无符号的4个字节，下同
-        u2             minor_version; // 此版本号
+        u2             minor_version; // 次版本号
         u2             major_version; // 主版本号，JDK8为52
         u2             constant_pool_count; // 常量池个数
         cp_info        constant_pool[constant_pool_count-1]; // 常量池
@@ -55,7 +55,7 @@ tags: [jvm]
 - access_flags描述符
     - ACC_PUBLIC(0x0001)、ACC_INTERFACE、ACC_SYNCHRONIZED、ACC_VOLATILE
 - 字段描述符解释
-    - Ljava.lang.String(引用)、[(数组)、[[(二位数组)、J(Long)、Z(boolean)、B(byte)，其他同B基本以首字母开头
+    - `Ljava.lang.String` 引用、`[` 数组、`[[` 二维数组、`J` Long、`Z` boolean、`B` byte，其他同B基本以首字母开头
 - 常量池标识
     - 1 CONSTANT_Utf8(1为Tag类型)
     - 3 CONSTANT_Integer
@@ -74,8 +74,8 @@ tags: [jvm]
         - 将class加载到内存(一方面创建一个内存区域保存字节码，另一方面会创建一个Class对象指向此区域，之后使用此类需要通过此Class对象进行访问)
         - 双亲委派机制，见下文
         - [LazyLoading 五种情况](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c02_classloader/T06_LazyLoading.java)
-            - new getstatic putstatic invokestatic指令，访问final变量除外
-            - java.lang.reflect对类进行反射调用时
+            - new getstatic putstatic invokestatic指令会初始化；访问final变量除外，即不会初始化
+            - java.lang.reflect对类进行反射调用、使用 Class.forName 时会初始化
             - 初始化子类的时候，父类首先初始化
             - 虚拟机启动时，被执行的主类必须初始化
             - 动态语言支持java.lang.invoke.MethodHandle解析的结果为REF_getstatic REF_putstatic REF_invokestatic的方法句柄时，该类必须初始化
@@ -86,21 +86,25 @@ tags: [jvm]
             - `-Xcomp` 使用编译执行模式，启动相对较慢，执行快
     - `Linking`
         - `Verification` 验证格式
-        - `Preparation` 依次给静态变量赋默认值(如0/false)
+        - **`Preparation`** 依次给静态变量赋默认值(如0/false)
             - 类加载：赋默认值 -> 赋初始值. [示例](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c02_classloader/T08_ClassLoadingProcedure.java)
             - new对象(类似类加载)：申请内存 -> 赋默认值 -> 赋初始值
-        - `Resolution` 解析
+        - `Resolution` 解析(将符号引用转换为直接引用)
             - 将类、方法、属性等符号引用解析为直接引用，常量池中的各种符号引用解析为指针、偏移量等内存地址的直接引用
-    - `Initializing` 给静态变量赋初始值
+            - 符号引用：通常是设计过的字符串，用文本形式来表示引用关系
+            - 直接引用：是JVM（或其它运行时环境）所能直接使用的形式，如直接指针
+    - **`Initializing`** 给静态变量赋初始值
 - 双亲委派机制(Loading时)
 
     ![jvm-类加载器](/data/images/java/jvm-类加载器.png)
-    - 先从子到父查找缓存，再从父到子超找class文件并加载
-    - 主要为了安全考虑。如不用双亲委派，则可能自己定义一个java.lang.String进行自定义加载
+    - **先从子到父查找缓存，再从父到子查找class文件并加载**
     - 加载过程(参考sun.misc.Launcher)
         - .class文件通过(自定义)ClassLoader#loadClass加载，先在(自定义)ClassLoader的缓存中查找是否有此类，有则返回结果，没有则让父加载器App进行缓存加载
-        - 以此类推直到Bootstrap，如果Bootstrap在内存中找打了则返回，否则回过头让ExtClassLoader查找class文件并加载，找到则加载后返回结果，没找到则让下级Loader查找class文件并加载
+        - 以此类推到ExtClassLoader，最后到Bootstrap，如果Bootstrap在内存中找打了则返回，否则回过头让ExtClassLoader查找class文件并加载，找到则加载后返回结果，没找到则让下级Loader查找class文件并加载
         - 直到最后的(自定义)ClassLoader，如果还找到不class文件则返回Class Not Found
+    - 作用
+        - 防止重复加载同一个.class
+        - 保证核心.class不能被篡改，为了安全考虑。假设自己定义一个java.lang.String进行自定义加载，用了双亲委派，则自定义加载器没有还需要到上层加载器询问，此时官方有定义这个类，则上层加载器会加载，自定义的String类则无效
     - 自定义ClassLoader：继承自ClassLoader，并重写findClass方法
     - 打破双亲委派
         - 重写loadClass()。JDK1.2之前，自定义ClassLoader都必须重写loadClass()
@@ -182,7 +186,7 @@ tags: [jvm]
         - class initialization
     - 申请对象内存
     - 成员变量赋默认值
-    - 调用构造方法
+    - 调用构造方法(如果有继承则会先执行父类的构造方法)
         - 成员变量依次赋初始值
         - 执行构造方法语句
 - 对象在内存中的存储布局
@@ -192,7 +196,7 @@ tags: [jvm]
             - `java -XX:+PrintCommandLineFlags -version` 可查看JVM默认配置
             - Hotspot开启内存压缩的规则(64位机)：4G以下直接砍掉高32位；4G-32G默认开启内存压缩(ClassPointers、Oops)；32G以上压缩无效，使用64位，内存并不是越大越好
         - 实例数据
-            - 主要是成员变量，基础数据类型、引用类型
+            - 主要是成员变量：基础数据类型、引用类型
             - 引用类型：开启 -XX:+UseCompressedOops(开启普通对象指针压缩) 配置时为4字节，不开启(换成减号)则为8字节。Oops：Ordinary Object Pointers
         - Padding对齐：对象总大小保证为8的倍数
     - 数组对象(多了一个数组长度)
@@ -205,7 +209,10 @@ tags: [jvm]
     - 32位操作系统markword如下
 
         ![jvm-32-markword](/data/images/java/jvm-32-markword.png)
-        - markword包含的内容和对象的状态有关。最后两位是锁标志位；无锁和偏向锁时，倒数第三位记录了偏向锁状态；分代年龄占4位(2^4=0->15)，因此GC年龄最大为15
+        - markword包含的内容和对象的状态有关
+            - 最后两位是锁标志位
+            - 无锁和偏向锁时，倒数第三位记录了偏向锁状态
+            - 分代年龄占4位(2^4=0->15)，因此GC年龄最大为15
         - 无锁状态时可能存储了hashCode，占25bit
             - 只有未重写hashCode方法且调用了hashCode方法/System.identityHashCode时才会将hashCode存放在markword中(重写了hashCode方法的计算结果不会存放在此处)
             - 未重写hashCode方法的，那么默认调用os::random产生hashcode，一旦生成便会记录在markword中，可以通过System.identityHashCode获取
@@ -222,7 +229,7 @@ tags: [jvm]
     - 开启ClassLoader压缩：8(markword) + 4(ClassPointer指针) + 0(无实例数据/属性) + 4(Padding对齐) = 16字节
     - 未开ClassLoader压缩：8(markword) + 8(ClassPointer指针) + 0(无实例数据/属性) + 0(Padding对齐) = 16字节
 
-## Runtime Data Area运行时数据区
+### Runtime Data Area运行时数据区
 
 - [Runtime Data Area](https://docs.oracle.com/javase/specs/jvms/se14/html/jvms-2.html#jvms-2.5)
 
@@ -244,7 +251,7 @@ tags: [jvm]
         - JVM规范中定义的一个概念，用于存储类信息、常量池(Runtime Constant Pool)、静态变量、JIT编译后的代码等数据
         - 具体放在哪里，不同的实现可以放在不同的地方
             - JDK<1.8时，实际指 Perm Space(在Hotspot中，方法区只是在逻辑上独立，物理上还是包含在堆区中，又称永久代)。此时FGC不会清理，大小在启动的时候指定，不能变
-            - JDK>=1.8时，实际指 Meta Space(并不在虚拟机中，而是使用本地内存。会触发FGC清理，不设定的话，最大就是物理内存
+            - JDK>=1.8时，实际指 Meta Space(并不在虚拟机中，而是使用本地内存)。会触发FGC清理，不设定的话，最大就是物理内存
 
 ## Instruction Set常用指令
 
@@ -428,13 +435,13 @@ public class T01_IntAddAdd {
     - 一个对象产生时，首先尝试在栈上分配，如果符合条件分配在栈了；当方法结束时，栈弹出，对象就终结了
     - 如果没在栈上分配，就判断对象大小，如果特别大直接进入Old区，否则的话就分配至Eden区(TLAB也属于Eden区)
     - 如果进入Eden区：经过一次YGC后，存活对象在S1和S2交替，每换个区对象的年龄+1
-    - 多次垃圾回收后，对象的年龄到了，就进入Old区
+    - 多次垃圾回收后，对象的年龄到了，就进入Old区(当然还有动态年龄、分配担保、大对象可进入Old区，见下文)
 - 直接分配在Eden区的话，会存在多线程的竞争，效率较低。为了提高效率，减少多线程的竞争，会优先考虑分配在栈上和TLAB上
     - 栈上分配
         - 条件
             - 线程私有小对象
-            - 没有逃逸(只在某段代码中使用)
-            - 支持标量替换(这个对象可以用几个简单的变量替换)
+            - 没有逃逸(只在某个方法中使用)
+            - 支持标量替换(这个对象可以用几个简单的变量替换，如成员变量都是基于类型或String)
         - 多线程没有竞争；方法结束，栈弹出，对象消失，不用GC回收
         - 一般无需调整
     - 线程本地分配TLAB(Thread Local Allocation Buffer)
@@ -443,15 +450,18 @@ public class T01_IntAddAdd {
         - 多线程没有竞争，或者竞争很少
         - 一般也无需调整
 - 对象进入老年代的时机
-    - age超过`-XX:MaxTenuringThreshold`指定次数(TGC)时进入老年代
+    - 分代年龄    
+        - age超过`-XX:MaxTenuringThreshold`指定次数时进入老年代
         - 对象头markword里面，GC age标识位占用4位，所以对象的年龄最大为15
             - Parallel Scavenge 回收器阈值为 15
             - CMS为6
             - G1为15
-    - 动态年龄
-        - 假设有次的YGC是Eden&S1->S2，如果S2中的存活对象超过了S2空间的一半，就把S2中年龄最大的对象放入老年代
-    - [分配担保](https://cloud.tencent.com/developer/article/1082730)
-        - YGC期间Survivor区空间不够了，空间担保直接进入老年代
+    - [动态年龄](https://aijishu.com/a/1060000000025656)
+        - 假如当前放对象的Survivor，一批对象(分代年龄从小到大排)的总大小大于这块Survivor(一个Survivor区)内存的50%(默认`-XX:TargetSurvivorRatio=50`)，那么大于这批对象年龄的对象，就可以直接进入老年代了
+    - 分配担保
+        - YGC期间Survivor区空间不够了，空间担保直接进入老年代(老年代不够会进行FGC)
+    - 大对象直接进入老年代（如G1垃圾回收器）
+        - 如果设置了`-XX:PretenureSizeThreshold`这个参数，那么如果你要创建的对象大于这个参数的值，比如分配一个超大的字节数组，此时就直接把这个大对象放入到老年代，不会经过新生代
 
 ### 常见的垃圾回收器
 
@@ -467,7 +477,7 @@ public class T01_IntAddAdd {
     - JDK8默认PS+PO，可使用G1(特别是大内存)
     - JDK9默认G1
 - 垃圾回收器算法相关概念
-    - **`三色标记`** 指将对象标记为不同的颜色
+    - **`三色标记`** 指将对象标记为不同的颜色（CMS和G1使用）
 
         ![JVM-三色标记](/data/images/java/JVM-三色标记.png)
         - 白色(未被标记的对象)、灰色(自身被标记，成员变量未被标记)、黑色(自身和成员变量均被标记)
@@ -477,37 +487,38 @@ public class T01_IntAddAdd {
             - 此时白色D只有一个黑色对象指向，因此会漏标(黑色不会再扫描属性)。而白色D此时是存活对象，漏标导致D被回收
         - 解决漏标的算法
             - `Incremental Update`：增量更新，关注引用的增加(即A指向D)；把黑色重新下标记为灰色，下次重新扫描属性
-            - `SATB`(snapshot at the beginning) 关注引用的删除(B不在指向D)，当引用消失时，把此应用推倒GC的堆栈
+            - `SATB`(snapshot at the beginning) 关注引用的删除(B不在指向D)，当引用消失时，把此引用推倒GC的堆栈
             - 为什么G1使用SATB
                 - SATB结合RSet效率很高。SATB监控到的消失引用，会放到GC堆栈，下次扫描时根据此堆栈的对象引用，到RSet去查找
                 - 增量更新则需要重新把标记过的对象重新检查其属性
-    - `颜色指针` 指在对象头上会有一个color pointer标识此对象引用是否改变过
+    - `颜色指针`（ZGC使用）
+        - 指在对象头上会有一个color pointer标识此对象引用是否改变过
     - `Card Table`
         - 由于做YGC时，需要判断这个对象是否被其他对象引用，有可能这个对象已经在old区了，但是扫描整个old区，效率非常低，所以JVM设计了CardTable
-        - 首先将old区分为多个CardTable，将对象放在CardTable中。当某个CardTable有对象指向Yong区，就将它设为Dirty状态，下次扫描时，只需要扫描Dirty CardTable的对象
+        - 首先将old区分为多个CardTable，将对象放在CardTable中。**当某个CardTable有对象指向Yong区，就将它设为Dirty状态**，下次扫描时，只需要扫描Dirty CardTable的对象
         - CardTable用BitMap(010101标识每个CardTable是否为Dirty)来实现
-    - `CSet`(Collection Set) 一组可被回收的分区集合，占用堆空间的1%作用
+    - `CSet`(Collection Set) 一组可被回收的分区集合，占用堆空间的1%左右
     - `RSet`(RemembeeredSet) 记录了其他Region中的对象到本Region的引用，占用堆10%左右
         - 作用在于垃圾收集只需要扫码RSet便可得知哪些对象引用了当前分区(从而不需扫码整个堆)
-        - 由于RSet的存在，每次给对象赋引用的时候，就得做一些额外操作，GC中称为写屏障(不同于内存屏障)
+        - 由于RSet的存在，每次给对象赋引用的时候，就得做一些额外操作，GC中称为**写屏障(不同于内存屏障)**
 - 常见的垃圾回收器
 
     ![jvm-gc](/data/images/java/jvm-gc.png)
-    - `Serial` 针对年轻代垃圾回收，串行执行(单线程进行回收)，会出现STW，使用Copying算法清理
+    - `Serial`(读音：/ˈsɪriəl/) 针对年轻代垃圾回收，串行执行(单线程进行回收)，会出现STW，使用**Copying**算法清理(年轻代常用，主要快速)
     - `SerialOld` 针对老年代回收，串行执行(单线程)，会出现STW。一般和Serial结合使用
-    - `Parallel Scavenge`(PS) 年轻代，并行回收(多线程进行回收)，会出现STW，使用Copying算法清理
+    - `Parallel Scavenge`(PS) 年轻代，**并行回收**(多线程进行回收)，会出现STW，使用**Copying**算法清理
     - `ParallelOld` 老年代，并行回收(多线程)，会出现STW，使用Mark-Compact算法。一般和PS结合使用
-    - `ParNew`(PN) 年轻代，并行回收(多线程)，会出现STW，使用Copying算法清理(PS的一个升级版本)。般配合CMS的并行回收
-    - `CMS`(ConcurrentMarkSweep) 老年代，并行回收(多线程)，且并发回收(垃圾回收和应用程序同时运行)，使用Mark-Sweep算法
-        - CMS使用算法：**三色标记 + Incremental Update**(相关概念见G1)
+    - `ParNew`(PN) 年轻代，并行回收(多线程)，会出现STW，使用**Copying**算法清理(PS的一个升级版本)。般配合CMS的并行回收
+    - `CMS`(ConcurrentMarkSweep) 老年代，**并行回收**(多线程)，且**并发回收**(垃圾回收和应用程序同时运行)，使用**Mark-Sweep**算法
+        - CMS使用算法：**三色标记 + Incremental Update + 写屏障**(相关概念见上文)
         - CMS是1.4版本后期引入，CMS是里程碑式的GC，它开启了并发回收的过程，但是CMS毛病较多，因此目前任何一个JDK版本默认是CMS，只能手工指定CMS
-        - 包含4步
+        - 包含5步
 
             ![jvm-cms](/data/images/java/jvm-cms.png)
             - initial mark 初始标记，会产生STW；由于只标记根对象，因此STW时间很短
             - concurrent mark 并发标记，不会产生STW；基于根对象查找，此段时间相对较长
             - preclean 也称Card Marking，标记Card Table为Dirty
-            - remark 重新标记，会产生STW，占用时间不会太长；由于并发标记的同时，可能某些标记为垃圾的对象又被重新引用了，此时相当于去掉这些对象的标记
+            - remark 重新标记，会产生STW，占用时间不会太长；由于并发标记的同时，可能某些标记为垃圾的对象又被重新引用了，此时相当于去掉这些对象的标记（新产生的垃圾不会重新标记，从而会产生浮动垃圾）
             - concurrent sweep 并发清理，不会产生STW；此阶段可能还会产生新的垃圾，即浮动垃圾，会在下一个循环回收
         - CMS的缺点
             - Memory Fragmentation(内存碎片化)
@@ -517,14 +528,14 @@ public class T01_IntAddAdd {
                     - `-XX:+UseCMSCompactAtFullCollection` 在FGC时进行压缩从而清理碎片
                     - `-XX:CMSFullGCsBeforeCompaction` 默认为0，指经过多少次FGC才进行压缩
             - Floating Garbage(浮动垃圾，在concurrent sweep并发清理的同时产生的垃圾)
-                - -XX:CMSInitiatingOccupancyFraction 92%(JDK1.8默认，当老年代使用到达92%时触发FGC。可适当调小从而给浮动垃圾多留一点空间，下次并发回收便会清理)
+                - -XX:CMSInitiatingOccupancyFraction 92%（JDK1.8默认，当老年代使用到达92%时触发FGC。可适当调小从而给浮动垃圾多留一点空间，下次并发回收便会清理）
     - `G1`(Garbadge First Collector)，参考：https://www.oracle.com/cn/technical-resources/articles/java/g1gc.html
-        - G1使用算法：**三色标记 + SATB**
+        - G1使用算法：**三色标记 + SATB + 写屏障**
         - STW时间为10ms左右；响应时间比CMS高，但是吞吐量比CMS差15%左右
         - 内存结构
 
             ![jvm-G1](/data/images/java/jvm-G1.png)
-            - G1的内存结构和传统的内存空间划分有比较的不同。G1将内存划分成了多个大小相等的Region(默认是512K)，Region逻辑上连续，物理内存地址不连续。同时每个Region被标记成E、S、O、H，分别表示Eden、Survivor、Old、Humongous(大对象)。其中E、S属于年轻代，O与H属于老年代
+            - G1的内存结构和传统的内存空间划分有比较的不同。G1将内存划分成了多个大小相等的Region(默认是512K)，Region逻辑上连续，物理内存地址不连续。同时每个Region被标记成E、S、O、H，分别表示Eden、Survivor、Old、Humongous（/hjuːˈmʌŋɡəs/，大对象）。其中E、S属于年轻代，O与H属于老年代
             - G1新老年代比例5%-60%(CMS默认是1:2)，一般不用手工指定，G1会动态变化。可设置一个停顿时间，G1会动态调整此比例以趋近设置的停顿时间
         - 标记回收阶段
             - Initial mark
@@ -537,9 +548,11 @@ public class T01_IntAddAdd {
             - 扩内存、提高CPU性能
             - **降低MixedGC触发的阈值**，让MixedGC提早发生(默认是-XX:InitiatingHeapOccupacyPercent 45%)
             - JDK10以前G1的FullGC是串行的，之后是并行的
-    - `ZGC` 使用PK C++
-        - 使用算法：ColoredPointers + LoadBarrier。STW时间为1ms左右
-    - `Shenandoah` 使用算法：ColoredPointers + WriteBarrier
+    - `ZGC`
+        - 使用算法：**颜色指针 + 着色指针 + 读屏障**
+        - STW时间为10ms以下，实测1ms左右
+    - `Shenandoah`
+        - 使用算法：**颜色指针 + 写屏障**
     - `Eplison`
 - 垃圾回收器适用的内存大小
     - Serial 几十兆
@@ -548,12 +561,12 @@ public class T01_IntAddAdd {
     - G1 上百G
     - ZGC 4T-16T(JDK13)
 - 常见垃圾回收器组合参数设定
-    - `-XX:+UseSerialGC` 使用Serial New (DefNew) + Serial Old。适用于小型程序；默认情况下不会是这种选项，HotSpot会根据计算及配置和JDK版本自动选择收集器
+    - **`-XX:+UseSerialGC`** 使用Serial New (DefNew) + Serial Old。适用于小型程序；默认情况下不会是这种选项，HotSpot会根据计算及配置和JDK版本自动选择收集器
     - `-XX:+UseParNewGC` 使用ParNew + SerialOld。这个组合已经很少用，[在某些版本中已经废弃](https://stackoverflow.com/questions/34962257/why-remove-support-for-parnewserialold-anddefnewcms-in-the-future)
-    - `-XX:+UseConcurrentMarkSweepGC`(有的是-XX:+UseConcMarkSweepGC) 使用ParNew + CMS + Serial Old
-    - `-XX:+UseParallelGC` 使用Parallel Scavenge + Parallel Old，**1.8默认**
+    - **`-XX:+UseConcurrentMarkSweepGC`** (有的是-XX:+UseConcMarkSweepGC) 使用ParNew + CMS + Serial Old
+    - **`-XX:+UseParallelGC`** 使用Parallel Scavenge + Parallel Old，**1.8默认**
     - `-XX:+UseParallelOldGC` 使用Parallel Scavenge + Parallel Old
-    - `-XX:+UseG1GC` 使用G1
+    - **`-XX:+UseG1GC`** 使用G1，**1.9默认**
     - `java -XX:+PrintCommandLineFlags -version` 查看默认配置，可发现1.8.0_131使用的是PS+PO(-XX:+UseParallelGC)
 
 ## JVM调优
@@ -778,7 +791,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 - 优化环境
     - 系统CPU经常100%，如何调优？(面试高频)
         - CPU 100%那么一定有线程在占用系统资源，找出哪个进程cpu高 (top)
-        - 该进程中的哪个线程cpu高 (top -Hp <pid>)
+        - 该进程中的哪个线程cpu高 (`top -Hp <pid>` 参数Hp的顺序不能改变)
         - 导出该线程的堆栈 (jstack)
         - 查找哪个方法(栈帧)消耗时间 (jstack)
         - 工作线程占比高(while死循环)、垃圾回收线程占比高(内存不足)
@@ -798,7 +811,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
     - `jinfo <pid>` 列举JVM的一些信息
     - `jstat -gc` 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
         - `arthas`/`jvisualvm`/`jconsole`/`Jprofiler`(最好用，收费)
-            - [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(阿尔萨斯)，常用命令如下
+            - [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(**阿尔萨斯**)，常用命令如下
                 - 为什么需要在线排查
                     - 在生产上我们经常会碰到一些不好排查的问题，例如线程安全问题，用最简单的threaddump或者heapdump不好查到问题原因
                     - 为了排查这些问题，有时我们会临时加一些日志，比如在一些关键的函数里打印出入参，然后重新打包发布，如果打了日志还是没找到问题，继续加日志，重新打包发布
@@ -826,7 +839,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
     - **`jmap -dump:format=b,file=/home/dump.hprof <pid>`** 导出堆转储文件
         - **线上系统，内存特别大，jmap执行期间会对进程产生很大影响，甚至卡顿**(可在重启前下载dump文件)
             - 很多服务器备份(高可用)，停掉这台服务器对其他服务器不影响(**此方案比较通用**)
-            - 设定-XX:+HeapDumpOnOutOfMemoryError参数，当OOM的时候会自动产生堆转储文件(线上也不是很好的方案)
+            - 设定-XX:+HeapDumpOnOutOfMemoryError参数，当OOM的时候会自动产生堆转储文件(**线上也不是很好的方案**)
             - 在线定位(一般小点儿公司用不到)
         - 使用jhat/jvisualvm/MAT进行dump文件分析。[jhat使用](https://www.cnblogs.com/baihuitestsoftware/articles/6406271.html)
             - `jhat -J-mx512M /home/dump.hprof` 使用512M内存进行dump文件分析，分析时间可能较长。分析完后会在本地启动一个7000端口来展示结果信息，可以在线使用OQL语句进行查找特定对象
@@ -844,7 +857,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 - Distuptor有个可以设置链的长度，如果过大，然后对象大，消费完不主动释放，会溢出
 - 硬件升级系统反而卡顿的问题
     - 当内存越大，每次FGC(产生STW)时间可能越长，如CMS可能会出现使用SerialOld进行FGC
-- 栈溢出问题，如a方法中调用a方法。可通过`-Xss`设定太小
+- 栈溢出问题，如a方法中调用a方法。可通过`-Xss`设定大小
 - 如果有一个系统，内存一直消耗不超过10%，但是观察GC日志，发现FGC总是频繁产生，会是什么引起的。可能手动调用了System.gc(会产生FGC)
 - lambda表达式导致方法区溢出问题(MethodArea/Perm Metaspace)
     - `-XX:MaxMetaspaceSize=10M -XX:+PrintGCDetails` 设置方法区大小

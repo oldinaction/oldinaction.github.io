@@ -34,6 +34,8 @@ tags: [CPU, 内存, 运维, oracle, ofbiz]
 ## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%
 # Windows可以使用ProcessExplorer.exe查看进程和线程信息
 top
+# 快捷键：x,y 高亮显示行和列；<,> 切换排序列；R 切换排序。更多参考[top命令](/_posts/linux/linux.md#top命令)
+top -Hp <pid> # 查看某个进程的所有线程信息(-Hp顺序不能改变)
 
 ## 2.显示某进程的线程列表。pid：进程id;
 # 结果说明：（1）第一行为统计（2）%CPU为此线程CPU占用率（3）TIME为线程运行时间（4）%MEM为内存占用率
@@ -50,7 +52,7 @@ jstack <pid> | grep `printf "%x\n" <tid>` -A 30
 # 获取thread dump到文件
 jstack <pid> > jstack.out
 
-## 4.Java的jmap命令(生产环境会有一定影响)：显示一个进程下具体线程的内存占用情况
+## 4.Java的jmap命令(**生产环境会有一定影响**)：显示一个进程下具体线程的内存占用情况
 # 可以查看当前Java进程创建的活跃对象数目和占用内存大小（此处按照大小查询前10个对象）；或者保存到文件（jmap -histo:live <pid> > /home/jmap.out）
 jmap -histo:live <pid> | head -n 10
 # 获取heap dump，方便用专门的内存分析工具（例如：MAT）来分析

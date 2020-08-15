@@ -6,8 +6,6 @@ categories: others
 tags: [java, conception]
 ---
 
-## 未分类
-
 ## 架构
 
 - `SOA`
@@ -23,12 +21,25 @@ tags: [java, conception]
         - 应用级的服务框架：阿里的 Dubbo/Dubbox、Google gRPC、Facebook 的 Thrift、Twitter 的 Finagle
         - 远程通信协议：RMI、Socket、SOAP(HTTP XML)
 -  `gRPC` 是一个高性能、开源和通用的 RPC 框架，目前提供 C、Java 和 Go 语言版本
+- `CAP`理论 [^2]
+    - 一个分布式系统最多只能同时满足一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance）这三项中的两项
+    - 一致性：所有节点在同一时间的数据完全一致；可用性：服务一直可用，而且是正常响应时间；分区容错性：即分布式系统在遇到某节点或网络分区故障的时候，仍然能够对外提供满足一致性和可用性的服务
+- `BASE`理论
+    - BASE理论是对CAP理论的延伸，核心思想是即使无法做到强一致性（Strong Consistency，CAP的一致性就是强一致性），但应用可以采用适合的方式达到最终一致性（Eventual Consitency）
+    - BASE是指基本可用（Basically Available）、软状态（ Soft State）、最终一致性（ Eventual Consistency）
+    - 基本可用：是指分布式系统在出现故障的时候，允许损失部分可用性，即保证核心可用。电商大促时，为了应对访问量激增，部分用户可能会被引导到降级页面，服务层也可能只提供降级服务。这就是损失部分可用性的体现
+    - 软状态：是指允许系统存在中间状态，而该中间状态不会影响系统整体可用性。分布式存储中一般一份数据至少会有三个副本，允许不同节点间副本同步的延时就是软状态的体现。mysql replication的异步复制也是一种体现
+    - 最终一致性：是指系统中的所有数据副本经过一定时间后，最终能够达到一致的状态。弱一致性和强一致性相反，最终一致性是弱一致性的一种特殊情况
+    - ACID(刚性事务)是传统数据库常用的设计理念，追求强一致性模型。BASE(柔性事务)支持的是大型分布式系统，提出通过牺牲强一致性获得高可用性
+- [^3]
 - `垂直扩展`和`水平扩展`
     - 垂直扩展就是升级原有的服务器或更换为更强大的硬件。这是比较直接的方法，比如说内存不足时就增加更多的内容。或者，花费一大笔钱为一个大型主机服务器增加存储吞吐量和/或计算能力。 
     - 水平(Horizontal)扩展指的是通过增加更多的服务器来分散负载，从而实现存储能力和计算能力的扩展。这可以通过增加本地的刀片服务器（虽然有些人认为增加刀片服务器是一种垂直扩展形式），或者增加云端的虚拟机和服务器
 - `QPS` 每秒查询率。QPS是对一个特定的查询服务器在规定时间内所处理流量多少的衡量标准
     - QPS = 并发量 / 平均响应时间
     - 并发量 = QPS * 平均响应时间
+    - 如优化程序10QPS -> 200QPS
+- `TPS` 每秒处理事务数
 
 ## 网络
 
@@ -144,6 +155,13 @@ tags: [java, conception]
 
 - `IDC` 互联网数据中心(Internet Data Center)
 
+## 安全
+
+- `DDoS` 全称是 Distributed Denial of Service，分布式拒绝服务。一般来说是指攻击者利用“肉鸡”对目标网站在较短的时间内发起大量请求，大规模消耗目标网站的主机资源，让它无法正常服务
+    - 全球DDoS流量展示：https://cybermap.kaspersky.com/cn、https://threatmap.checkpoint.com/
+- `CSRF` 跨站点请求伪造(Cross—Site Request Forgery)。攻击者盗用了你的身份，以你的名义发送恶意请求，对服务器来说这个请求是完全合法的。常见的如第三方Cookie传递导致信息泄露，因此像银行类网站使用完建议退出，这样可清除Cookie
+- `XSS` 跨站脚本攻击是指恶意攻击者往Web页面里插入恶意Script代码，当用户浏览该页之时，嵌入其中Web里面的Script代码会被执行，从而达到恶意攻击用户的目的
+
 ## 项目管理
 
 - `UAT` 用户验收测试(User Acceptance Test)
@@ -185,6 +203,6 @@ tags: [java, conception]
 
 参考文章
 
-[1^]: http://www.ruanyifeng.com/blog/2011/05/how_to_choose_free_software_licenses.html
-
-
+[^1]: http://www.ruanyifeng.com/blog/2011/05/how_to_choose_free_software_licenses.html
+[^2]: https://my.oschina.net/foodon/blog/372703
+[^3]: https://www.jianshu.com/p/d70df89665b9 (分布式事务：从刚性事务到柔性事务)
