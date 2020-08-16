@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/08/12/design/design-pattern/</loc>
+    
+    <lastmod>2020-08-16T06:04:22.134Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
     
-    <lastmod>2020-08-15T14:14:24.469Z</lastmod>
+    <lastmod>2020-08-16T05:57:23.091Z</lastmod>
     
   </url>
   
@@ -33,13 +40,6 @@
     <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
     
     <lastmod>2020-08-15T04:11:36.194Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/08/12/design/design-pattern/</loc>
-    
-    <lastmod>2020-08-15T03:26:04.304Z</lastmod>
     
   </url>
   
