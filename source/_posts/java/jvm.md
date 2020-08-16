@@ -575,17 +575,6 @@ public class T01_IntAddAdd {
     - 内存泄漏memory leak：指有某块内存永远不会被回收，内存泄漏不一定会产生内存溢出(比如内存足够大)
     - 内存溢出out of memory：内存不够了
 
-### 常用命令
-
-- JVM的命令行参数参考：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
-    - `java -XX:+PrintFlagsInitial` 打印默认参数值
-    - `java -XX:+PrintFlagsFinal` 打印最终参数值
-        - `java -XX:+PrintFlagsFinal | grep GC` 找到GC相关参数
-- HotSpot参数分类
-    - 标准：`-` 开头，所有的HotSpot都支持
-    - 非标准：`-X` 开头，特定版本HotSpot支持特定命令。`java -X`查看支持的参数
-    - 不稳定：`-XX` 开头，下个版本可能取消
-
 ### 简单测试及GC日志
 
 - 测试Demo
@@ -848,6 +837,8 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 
 ### 一些案例
 
+> https://www.cnblogs.com/lazyegg/p/13353474.html
+
 - 线程池不当运用产生OOM问题，见T03_FullGC_Problem01
 - tomcat http-header-size过大问题。如：server.max-http-header-size=10000000
     - `Http11OutputBuffer`对象占用太大内存
@@ -885,6 +876,17 @@ for(int i=0; i<100; i++) {
 
 - [oracle推荐jvm配置(含默认值)](http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html)
 
+### 参数说明
+
+- JVM的命令行参数参考：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
+    - `java -XX:+PrintFlagsInitial` 打印默认参数值
+    - `java -XX:+PrintFlagsFinal` 打印最终参数值
+        - `java -XX:+PrintFlagsFinal | grep GC` 找到GC相关参数
+- HotSpot参数分类
+    - 标准：`-` 开头，所有的HotSpot都支持
+    - 非标准：`-X` 开头，特定版本HotSpot支持特定命令。`java -X`查看支持的参数
+    - 不稳定：`-XX` 开头，下个版本可能取消
+
 ### GC常用参数
 
 - `-Xmn -Xms -Xmx -Xss` **年轻代 最小堆(如果资源充足也可把初始堆和最大堆设置成一致) 最大堆 栈空间**
@@ -903,8 +905,9 @@ for(int i=0; i<100; i++) {
 - `-XX:HeapDumpPath=/home/jvmlogs` **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
 - `-XX:ErrorFile` 设置jvm致命错误日志文件生成位置(默认生成在工作目录下)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
 - `-Xloggc:opt/log/gc.log`
-- `-XX:NewRatio` 新生代与老年代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
+- `-XX:NewRatio` 老年代与新生代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
 - `-XX:MaxTenuringThreshold` 升代年龄，最大值15
+- `-XX:TargetSurvivorRatio=50` 动态年龄时的低年龄比例
 - `-XX:+PrintGCApplicationConcurrentTime` 打印应用程序时间
 - `-XX:+PrintGCApplicationStoppedTime` 打印暂停时长
 - `-XX:+PrintReferenceGC` 记录回收了多少种不同引用类型的引用
@@ -914,6 +917,7 @@ for(int i=0; i<100; i++) {
 - `-XX:TLABSize` 设置TLAB大小
 - `-XX:PreBlockSpin` 锁自旋次数
 - `-XX:CompileThreshold` 热点代码检测参数，还有如逃逸分析、标量替换
+- 常见垃圾回收器组合参数设定见上文
 
 ### Parallel常用参数
 
@@ -946,7 +950,6 @@ for(int i=0; i<100; i++) {
 - `-XX:GCTimeRatio` GC时间建议比例，G1会根据这个值调整堆空间
 - `-XX:ConcGCThreads` 线程数量
 - `-XX:InitiatingHeapOccupancyPercent` 启动G1的堆空间占用比例，默认45%
-
 
 ### JVM参数使用
 
