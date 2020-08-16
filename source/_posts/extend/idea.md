@@ -109,6 +109,7 @@ ThisCrackLicenseId-{
 - `jclasslib Bytecode viewer` 查看java class字节代码。安装后在View - Show Bytecode With jclasslib(打开一个类可进行查看)
 - `JMH plugin` Java基准测插件
 - `JMeter plugin`
+- `leetcode` 算法刷题，参考：https://github.com/shuzijun/leetcode-editor/blob/master/doc/CustomCode_ZH.md
 
 ### Lombox
 

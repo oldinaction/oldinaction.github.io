@@ -99,12 +99,12 @@ tags: [concurrence, collection, juc, 线程池]
 
 - **加锁方式**
     - 锁定对象(把任意一个非NULL的对象当作锁，不能使用String常量、Integer、Long等包装数据类型)
-        - ... synchronized(this) {} ...
         - public synchronized void test() {...}
+        - ... synchronized(this) {} ...
         - ... synchronized(o) {} ...，其中o可以为private Object o = new Object();
     - 锁定类
-        - ... synchronized(MyTest.class) {} ...
         - public synchronized static void test() {...}
+        - ... synchronized(MyTest.class) {} ...
 - 注意点
     - 锁的是对象不是代码块
     - 锁定方法和非锁定方法可同时执行
@@ -113,13 +113,13 @@ tags: [concurrence, collection, juc, 线程池]
     - synchronized会导致争用不到锁的线程进入阻塞状态，所以说它是java语言中一个重量级的同步操纵，被称为重量级锁。为了缓解上述性能问题，JVM从1.5开始，引入了轻量锁与偏向锁，默认启用了自旋锁，他们都属于乐观锁
     - JDK早期是重量级的基于OS的锁；后来引入了锁升级的概念，synchronized通过锁升级技术达到和Atomic等类(使用自旋锁)效率差不多
 - java对象markword数据部分
-    - 在HotSpot虚拟机中，对象在内存中存储的布局可以分为3块区域：对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）
+    - 在HotSpot虚拟机中，对象在内存中存储的布局可以分为4块区域：对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）
     - HotSpot虚拟机的对象头包括两部分信息
         - markword：用于存储对象自身的运行时数据，如哈希码（HashCode）、GC分代年龄、**锁状态标志**(最后2bit)、线程持有的锁、**偏向线程ID**、偏向时间戳等，这部分数据的长度在32位和64位的虚拟机（未开启压缩指针）中分别为32bit和64bit
-        - klass：对象头的另外一部分是klass类型指针，即对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例
+        - klass（也称ClassPointer?）：对象头的另外一部分是klass类型指针，即对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例
     - **32bit操作系统markword数据结构**
         
-        ![java-markword-32.png](/data/images/java/java-markword-32.png)
+        ![jvm-32-markword](/data/images/java/jvm-32-markword.png)
 - 底层实现
     - **synchronized锁升级流程：无锁 - 偏向锁 - 自旋锁 - 重量级**(锁是没法降级的)
         - 偏向锁(Biased Locking)，是Java6引入的一项多线程优化
@@ -134,10 +134,11 @@ tags: [concurrence, collection, juc, 线程池]
         - 如果线程争用，则升级为自旋锁
         - 自旋10次之后，仍然没有获取到锁，则升级为重量级锁(从OS获取锁)
     - 自旋锁和系统锁(OS锁/重量级锁)
-        - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高；系统锁会进入到等待队列，等待CPU调用，不占用CPU资源。CAS属于自旋锁，有的认为CAS是无锁
+        - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高
+        - 系统锁，会进入到等待队列，等待CPU调用，不占用CPU资源。CAS属于自旋锁，有的认为CAS是无锁
         - 执行时间短、线程数比较少时使用自旋锁较好；执行时间长、线程数多时用系统锁较好
 - synchronized 实现细节
-    - 字节码层面：ACC_SYNCHRONIZED(修饰方法)，monitorenter、monitorexit(指令)
+    - 字节码层面：修饰方法时，编译为ACC_SYNCHRONIZED；代码块中，编译为monitorenter、monitorexit(指令)
     - JVM层面：基于 C/C++ 调用了操作系统提供的同步机制
     - OS和硬件层面(X86)：lock cmpxchg(比较并交换指令)。参考 https://blog.csdn.net/21aspnet/article/details/88571740
 
@@ -149,7 +150,7 @@ tags: [concurrence, collection, juc, 线程池]
 - volatile不能替代synchronized来保证线程安全
 - volatile基于**内存屏障**实现
     - 内存屏障基本概念
-        - 就是一个CPU指令，包括读屏障和写屏障，主要功能(1)确保一些特定操作执行的顺序，(2)影响一些数据的可见性(可能是某些指令执行后的结果)
+        - 就是一个CPU指令，包括读屏障和写屏障，主要功能：(1)确保一些特定操作执行的顺序；(2)影响一些数据的可见性(可能是某些指令执行后的结果)
         - 编译器和CPU可以在保证输出结果一样的情况下对指令重排序，使性能得到优化。插入一个内存屏障，相当于告诉CPU和编译器先于这个命令的必须先执行，后于这个命令的必须后执行
         - 内存屏障另一个作用是强制更新一次不同CPU的缓存。例如，一个写屏障会把这个屏障前写入的数据刷新到缓存，这样任何试图读取该数据的线程将得到最新值，而不用考虑到底是被哪个CPU核心或者哪颗CPU执行的。参考下文[CPU缓存一致性协议MESI](#Disruptor)
     - 如果字段是volatile，Java内存模型将在写操作后插入一个写屏障指令(storefence)，在读操作前插入一个读屏障指令(loadfence)
@@ -160,8 +161,8 @@ tags: [concurrence, collection, juc, 线程池]
         - StoreStoreBarrier;volatile写操作;StoreLoadBarrier;
         - LoadLoadBarrier;volatile读操作;LoadStoreBarrier;
     - OS层面：https://blog.csdn.net/qq_26222859/article/details/52235930
+        - linux 基于MESI实现，windows 基于 lock 指令实现
         - hsdis(HotSpot Dis Assembler)工具可记录实际执行的汇编代码
-        - windows 基于 lock 指令实现，linux 基于MESI实现
 - volatile 修饰一个对象时，只要对象任何属性有变化则会有禁止指令重排
 - DLC(Double Check Lock)单例中对volatile的应用 (一#46#0:35:54)
 
@@ -245,12 +246,12 @@ public class T02_DLC_Singleton {
 - AQS数据结构
 
     ![aqs-structure](/data/images/java/aqs-structure.png)
-    - AQS使用一个volatile的int类型的成员变量来表示同步状态，通过内置的FIFO队列来完成资源获取的排队工作，通过CAS完成对state值的修改
+    - **AQS使用一个 volatile int state 的成员变量来表示同步状态，通过内置的FIFO队列来完成资源获取的排队工作，通过CAS完成对state值的修改**
     - CLH(Craig、Landin and Hagersten，人名)队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列(FIFO)，AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配
 - 以ReentrantLock为例说明AQS执行过程
 
     ![aqs-reentrantlock-uml](/data/images/java/aqs-reentrantlock-uml.png)
-    - 加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待
+    - **加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待**
 - 为什么 AQS 需要一个虚拟 head 节点
     - Node 类的 waitStatus 变量用于表名当前节点状态。其中SIGNAL表示当当前节点释放锁的时候，需要唤醒下一个节点，所有每个节点在休眠前，都需要将前置节点的 waitStatus 设置成 SIGNAL，否则自己永远无法被唤醒
         - 初始状态是 0
@@ -446,7 +447,7 @@ exchanger.exchange(V x, long timeout, TimeUnit unit) // 设置超时时间
 
 ##### LockSupport
 
-- **unpark可以基于park之前调用，且等到park后执行时也不会阻塞**
+- **unpark可以在park之前调用，此时park执行也不会阻塞**
 
 ```java
 LockSupport.park(); // 阻塞当前线程，线程进入到WAITING状态，并不是锁
@@ -468,8 +469,8 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 #### ThreadLocal
 
 - Java引用类型：**强软弱虚**(一#62#1:15:34)
-    - 强引用：又称普通引用，当每有强引用指向该对象时，该对象才会被垃圾回收。即Object o = new Object();为强引用，当 o = null 时，上述对象才会被GC回收
-    - 软引用(SoftReference)：一个对象如果只被软引用对象指向时，当内存不足时(可指定IDEA的VM参数如-Xms20M -Xmx20M)才会回收该对象，否则不会回收。主要用在缓存
+    - 强引用：又称普通引用，当每有强引用指向该对象时，该对象才会被垃圾回收。即Object o = new Object();为强引用，当 o = null 时，上述对象才会(此对象没有其他引用)被GC回收
+    - 软引用(SoftReference)：一个对象如果只被软引用对象指向时，当内存不足时(可指定IDEA的VM参数如-Xms20M -Xmx20M)才会回收该对象(且没有其他强引用)，否则不会回收。主要用在缓存
     - **弱引用**(WeakReference)
         - 只要遭遇到GC就会被回收
         - 如果一个对象除了被弱引用指向，还被一个强引用指向时，当强引用消失后，这个对象也会被回收，**如ThreadLocal中使用了这个特性**
@@ -519,7 +520,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 创建ThreadLocal对象时，会有一个强引用tl1指向此对象
     - 执行tl1.set时，会将数据对象保存到obj1，且value1指向此对象。**由于ThreadLocal.ThreadLocalMap的Entry对象继承了WeakReference，且将Key保存在此需引用对象中，因此会有一个虚引用key1也指向此ThreadLocal**(上文源码中`map.set(this, value);`)
     - 如果key1为强引用，当tl1 = null时，则仍然由一个强引用key1执行该ThreadLocal对象，从而导致ThreadLocal无法被回收；如果此线程结束，则threadLocals执行的Map被回收，此时ThreadLocal也被回收；但是有一些线程是守护线程，或者执行时间很长的线程，则很难回收ThreadLocal对象，从而导致内存泄露(指有块内存永远无法被回收；不同于OOM内存溢出，OOM指内存不足)；**因此key1需要使用虚引用**
-    - 当key1为需应用时，tl1 = null，从而ThreadLocal对象被回收，此时key1也会变为null，那么value1指向的对象将无法被访问到，从而也容易出现内存泄露；**因此使用完ThreadLocal需要执行tl1.remove()清理**
+    - 当key1为虚引用时，tl1 = null，从而ThreadLocal对象被回收，此时key1也会变为null，那么value1指向的对象将无法被访问到，从而也容易出现内存泄露；**因此使用完ThreadLocal需要执行tl1.remove()清理**
 
 ### 容器
 
@@ -534,16 +535,16 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         - List
             - Vector 线程安全(使用synchronized)
                 - Stack 栈，为LIFO(后进先出)
-            - ArrayList
-            - LinkedList 链表插入快，遍历慢
-            - CopyOnWriteArrayList 写入时通过synchronized加锁，取出不会(也不用)加锁，因此读快写慢；每次add是通过Arrays.copyOf复制出一个新数组
+            - **ArrayList**
+            - **LinkedList** 链表插入快，遍历慢
+            - **CopyOnWriteArrayList** 写入时通过synchronized加锁，取出不会(也不用)加锁，因此读快写慢；每次add是通过Arrays.copyOf复制出一个新数组
         - Set
-            - HashSet 类
-                - LinkedHashSet
+            - **HashSet** 类
+                - **LinkedHashSet** 类
             - SortedSet 接口
-                - TreeSet 为有序Set，默认找元素大小排序，可定义比较器；TreeSet 中的元素必须实现Comparable接口并重写compareTo()方法；线程不安全
+                - **TreeSet** 为有序Set，默认找元素大小排序，可定义比较器；TreeSet 中的元素必须实现Comparable接口并重写compareTo()方法；线程不安全
             - EnumSet
-            - CopyOnWriteArraySet 线程安全
+            - **CopyOnWriteArraySet** 线程安全
             - CopyOnWriteSkipListSet
         - Queue 高并发较常用
             - 相关方法(ABQ为例)
@@ -553,7 +554,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - poll 移除头部元素并返回此元素，如果没有则返回null
                 - element 获取头部元素，如果没有则抛出异常
                 - peek 获取头部元素，如果没有则返回null
-            - **BlockingQueue** 天然的生产者消费者模型，线程池中会使用到
+            - **BlockingQueue**(接口) 天然的生产者消费者模型，线程池中会使用到
                 - 相关方法(ABQ为例)
                     - put (设计上)放入元素，满了会阻塞等待
                     - take (设计上)移除头部元素并返回此元素，没有则阻塞等待
@@ -563,19 +564,21 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - PriorityBlockingQueue
                     - put入队不阻塞(调用offer)，take出队阻塞
                     - 基于优先级的队列，内部有一个排序器(放入的元素必须实现Comparable接口)。数据机构为heap(堆，用数组实现的完全二叉树)
-                - DelayQueue 延迟队列
+                - DelayQueue 延迟队列(类)
                     - put入队不阻塞，take出队阻塞
                     - 队列中的元素必须是实现Delayed接口，队列中的元素不但会按照延迟时间delay进行排序，且只有等待元素的延迟时间delay到期后才能出队
                     - 常用于基于时间的任务调度，等待时间段的先执行
-                - SynchronousQueue 同步Queue
+                - SynchronousQueue 同步Queue(类)
                     - 当调用put放入元素后，如果没有被取走(take)，则put后会一致等待直到take拿走元素
                     - 底层基于TransferQueue实现，类似于Exchanger可作线程间数据交换
-                    - 线程的容量为0，不能往里面直接add元素，会报错
-                - TransferQueue
+                    - 队列的容量为0，不能往里面直接add元素，会报错
+                - TransferQueue(接口)
                     - 相关方法
                         - transfer 相比put的区别是，放入元素后，直到被取走，否则一直阻塞等待
                     - LinkedTransferQueue 无锁(cas)
-            - Deque 是double ended queue的简称，习惯上称之为双端队列(头尾均可加入取出元素)。发音为/dek/
+            - **ConcurrentLinkedQueue** 类，无锁(cas)，线程安全，无界队列。JDK中没有ConcurrentArrayQueue
+            - PriorityQueue 为java.util.PriorityQueue类，线程不安全(线程安全考虑可使用PriorityBlockingQueue)；最小的先执行，内部是一个堆排序的二叉树
+            - Deque 是double ended queue的简称，习惯上称之为**双端队列**(头尾均可加入取出元素)。发音为/dek/
                 - 当作为队列使用时，为FIFO(先进先出)模型，对应使用方法
                     - addLast
                     - offerLast
@@ -594,14 +597,12 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - ArrayDeque 数组类型的双端队列，线程不安全
                 - BlockingDeque 接口
                     - LinkedBlockingDeque 线程安全
-            - ConcurrentLinkedQueue 无锁(cas)，线程安全，无界队列。JDK中没有ConcurrentArrayQueue
-            - PriorityQueue 最小的先执行，内部是一个堆排序的二叉树
     - Map 用来放Key-Value型数据
         - Hashtable 线程安全，put方法上加synchronized
         - **HashMap** 线程不安全，put后最中map.size()可能大于实际值
-            - LinkedHashMap
+            - **LinkedHashMap**
+        - **TreeMap**
         - **ConcurrentHashMap** 线程安全，put过程中使用synchronized
-        - TreeMap
         - WeakHashMap 使用弱引用保存Key对象。当使用 WeakHashMap 时，即使没有删除任何元素，它的size、get方法返回值也可能不一样
         - IdentityHashMap 基于地址来的判断key值是否相同的(==判断的是地址，equals判断的是hashcode)；HashMap的key值是否相同是基于key的hashcode值来的
         - ConcurrentSkipListMap
@@ -610,7 +611,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 无界队列：指的是没有设置固定大小的队列。这些队列的特点是可以直接入列，直到溢出。当然现实几乎不会有到这么大的容量(超过 Integer.MAX_VALUE)，所以从使用者的体验上，就相当于"无界"。比如没有设定固定大小的 LinkedBlockingQueue
     - 一般情况下要配置一下队列大小，设置成有界队列，否则JVM内存会被撑爆
 - Queue和List的区别
-    - Queue主要加入了一些线程有好的API，如offer、peek、poll
+    - Queue主要加入了一些线程友好的API，如offer、poll、peek
     - Queue的子类BlockingQueue又加入了put、take
 - ArryaList和LinkedList
     - 查询：ArrayList可直接通过下标查找数据(并且数据组对处理的缓存机制较友好，缓存行每次会读取相邻数据以撑满)，而LinkedList的链表需要遍历每个元素直到找到为止，因此查询时ArrayList性能高
@@ -634,9 +635,10 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         - shutdown 停止，不再接受新的任务，但是会把队列中的任务执行完成才停止。如果不执行shutdown则主线程会一直处于阻塞状态
         - shutdownNow 立即停止，会给未执行完的任务发送一个interrupted指令
         - AbstractExecutorService
-            - ThreadPoolExecutor
+            - **ThreadPoolExecutor**
+            - **ForkJoinPool**
         - ScheduledExecutorService 接口
-            - ScheduledThreadPoolExecutor
+            - **ScheduledThreadPoolExecutor**
                 - 也继承了ThreadPoolExecutor，也就是说其拥有execute()和submit()提交异步任务的基础功能
                 - 能够延时执行任务和周期执行任务的功能
                 - 两个重要的内部类：DelayedWorkQueue和ScheduledFutureTask。其中DelayedWorkQueue实现了BlockingQueue接口，也就是一个阻塞队列，ScheduledFutureTask则是继承了FutureTask类，也表示该类用于返回异步任务的结果
@@ -689,21 +691,22 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 
 #### ForkJoinPool
 
-- 将大任务分解成小任务(Fork)，最后进行汇总(Join)。ForkJoinPool中放的Task为ForkJoinTask
-- ForkJoinTask 抽象类(implements Future)
-    - RecursiveAction 抽象类(Recursive递归，当任务不够小时可一直切分)，无返回值
-    - RecursiveTask 抽象类，有返回值
-- WorkStealingPool 每个线程有自己单独的队列，当某个线程的队列消耗完后则从其他线程队列中拿任务(任务窃取算法)。基于ForkJoinPool实现
-    - push 将任务放到线程队列
-    - pop 从线程队列拿任务
-    - poll 从其他线程队列拿任务，需要加锁
+- ForkJoin思想：将大任务分解成小任务(Fork)，最后进行汇总(Join)
+    - ForkJoinPool中放的Task为ForkJoinTask
+    - ForkJoinTask 抽象类(implements Future)
+        - RecursiveAction 抽象类(Recursive递归，当任务不够小时可一直切分)，无返回值
+        - RecursiveTask 抽象类，有返回值
 - Executors中基于ForkJoinPool实现线程池的方法
-    - newWorkStealingPool
+    - newWorkStealingPool 每个线程有自己单独的队列，当某个线程的队列消耗完后则从其他线程队列中拿任务(任务窃取算法)
+    - 方法
+        - push 将任务放到线程队列
+        - pop 从线程队列拿任务
+        - poll 从其他线程队列拿任务，需要加锁
 - ParallelStream API [^7]
     - Stream(流)是JDK8中引入的一种类似与迭代器(Iterator)的单向迭代访问数据的工具。ParallelStream则是并行的流，它通过Fork/Join 框架(JSR166y)来拆分任务(本质是基于ForkJoinPool实现)，加速流的处理过程。如list.parallelStream()，普通的流式是list.stream()
     - ParallelStream使用了线程名为ForkJoinPool.commonPool-worker-*的线程，而这些线程来自于 ForkJoinPool#makeCommonPool (由此也可说明底层使用了ForkJoinPool)。也可能将main线程作为执行线程
     - **ParallelStream是阻塞的**
-    - **ParallelStream是多线程，注意线程安全**
+    - **ParallelStream是多线程，因此注意线程安全，如内部使用ArrayList容易出现线程安全问题**
     - 其性能测试可参看[下文JMH测试工具的示例](#JMH测试工具)
 
 <details>
@@ -869,13 +872,13 @@ public class T01_PSTest {
 
 - [官网](http://lmax-exchange.github.io/disruptor/)、[github](https://github.com/LMAX-Exchange/disruptor)、[原理相关](https://ifeve.com/disruptor/)
 - Disruptor
-    - 是英国外汇交易公司LMAX开发的一个高性能队列，研发的初衷是解决内存队列(Kafka等位分布式队列)的延迟问题，为目前单机最快MQ，基于事件驱动
+    - 是英国外汇交易公司LMAX开发的一个高性能队列，研发的初衷是解决内存队列(Kafka等为分布式队列)的延迟问题，为目前单机最快MQ，基于事件驱动
     - 使用无锁(cas获取游标)，环形数组(RingBuffer)，直接覆盖(不用清除)旧数据，降低GC频率，实现了基于事件的生产者消费者模式(观察者模式)
     - 目前，包括Apache Storm、Camel、Log4j2在内的很多知名项目都应用了Disruptor以获取高性能
 - ArrayBlockingQueue相比Disruptor的缺陷
     - 加锁：多线程情况下，加锁通常会严重地影响性能，通常加锁比CAS性能要差
     - [伪共享](https://www.cnblogs.com/cyfonly/p/5800758.html)
-        - 参考[计算机底层知识.md#内存](/_posts/linux/计算机底层知识.md#内存)
+        - 参考[计算机底层知识.md#三级缓存和伪共享](/_posts/linux/计算机底层知识.md#三级缓存和伪共享)
         - ArrayBlockingQueue有三个成员变量：takeIndex需要被取走的元素下标，putIndex可被元素插入的位置的下标，count队列中元素的数量。这三个变量很可能放到一个缓存行中，但是之间修改没有太多的关联。所以每次修改，都会使之前(一级)缓存的数据失效，从而不能完全达到共享的效果
         - 解决伪共享：采用缓存行填充(空间换时间)，JDK8开始可以使用@Contended注解(需加JVM参数：-XX:-RestrictContended)来避免伪共享。Disruptor就是通过缓存行填充实现，如其[Sequence](https://github.com/LMAX-Exchange/disruptor/blob/46f57d94a188c2d9347e2aa0975e20332b0ae39a/src/main/java/com/lmax/disruptor/Sequence.java#L28)
 - Disruptor提供Batch操作实现对序列号的读写频率降到最低，主要考虑到sequence.value为volatile修饰，批量操作可以减少volatile产生的内存屏障，从而减少同步缓存
@@ -893,6 +896,13 @@ public class T01_PSTest {
 <summary>Disruptor示例</summary>
 
 ```java
+/**
+ * 打印：
+ * 0
+ * 1
+ * 2
+ * ...
+ */
 public class Main {
     public static void handleEvent(MyEvent event, long sequence, boolean endOfBatch) {
         System.out.println(event.get());
@@ -905,24 +915,22 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         // Specify the size of the ring buffer, must be power of 2. (长度为2的n次幂，利于二进制计算)
         int bufferSize = 1024;
-
         // 使用Lambda传入EventFactory，也可手动实现EventFactory接口再传入
         Disruptor<MyEvent> disruptor = new Disruptor<>(MyEvent::new, bufferSize, DaemonThreadFactory.INSTANCE);
-
         disruptor.handleEventsWith(Main::handleEvent);
-
         disruptor.start();
 
+        // 获取环形队列并往其中放值(产生事件)
         // Get the ring buffer from the Disruptor to be used for publishing.
         RingBuffer<MyEvent> ringBuffer = disruptor.getRingBuffer();
-
         ByteBuffer bb = ByteBuffer.allocate(8);
-        // 不推荐。原因是这是一个capturing lambda, 每一个lambda会产生一个对象来承接bb，这样会产生大量的小对象
-        // ringBuffer.publishEvent((event, sequence) -> event.set(bb.getLong(0)));
-        // 推荐
         for (long l = 0; true; l++) {
             bb.putLong(0, l);
-            ringBuffer.publishEvent(Main::translate, bb); // 此时会通过CAS获取可sequence，具体可查看源码：MultiProducerSequencer.next
+            // 不推荐。原因是这是一个capturing lambda, 每一个lambda会产生一个对象来承接bb，这样会产生大量的小对象
+            // ringBuffer.publishEvent((event, sequence) -> event.set(bb.getLong(0)));
+            
+            // 推荐
+            ringBuffer.publishEvent(Main::translate, bb);
             Thread.sleep(1000);
         }
     }

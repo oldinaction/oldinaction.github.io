@@ -34,7 +34,7 @@ accessDbInfos.forEach(item -> {
     }
 });
 ```
-- (变量)捕获和非捕获
+- （变量）捕获和非捕获
 
 ```java
 list.forEach(i -> System.out.println(i)); // 非变量捕获

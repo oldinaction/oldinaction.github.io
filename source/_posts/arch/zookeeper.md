@@ -36,7 +36,7 @@ tags: [HA, 分布式锁]
         - 1M数据 -> 统一配置
         - path结构 -> 分组管理
         - sequential -> 统一命名
-        - 临时节点 -> 同步 -> 分布式锁
+        - 临时节点（ephemeral，读音：/ɪˈfemərəl/） -> 同步 -> 分布式锁
 - 特征
     - 顺序一致性：客户端的更新将按发送顺序应用
     - 原子性：全部更新成功或失败
@@ -154,7 +154,6 @@ ZooKeeper -server host:port -client-configuration properties-file cmd args
 	version 
 Command not found: Command not found help
 ```
-
 
 ## 原理
 

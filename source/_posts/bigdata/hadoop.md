@@ -256,22 +256,22 @@ server4 | 192.168.6.134 | DataNode
     - 优点：高容错性(自动保存副本，自动恢复)、适合批处理、适合大数据(TB/PB)处理、可构建在廉价机器上
     - 缺点：占用内存大、修改文件成本过高
 - 数据块/数据存储单元(Block)
-    - 文件被切分成固定大小的数据块,数据块默认大小为128MB(Hadoop 1.x默认为64M)。若文件大小不到128MB，则单独存成一个Block
+    - 文件被切分成固定大小的数据块，数据块默认大小为128MB(Hadoop 1.x默认为64M)。若文件大小不到128MB，则单独存成一个Block
     - 一个文件存储方式：按大小被切分成若干个Block，存储到不同节点上。默认情况下每个Block都有三个副本
     - Block大小和副本数通过Client端上传文件时设置，文件上传成功后副本数可以变更，Block Size不可变更
 - `NameNode`(NN)
     - NameNode主要功能
         - 接受客户端的读写服务
         - 保存`metadate`(元数据)信息
-            - 元数据信息包括**`fsimage`和`edits`**
-            - 以上两个文件主要记录了文件包含哪些Block，Block保存在哪个DataNode(由DataNode启动时上报)
     - NameNode的metadate信息说明
+        - 元数据信息包括 **`fsimage`和`edits`**
+            - `fsimage` metadata存储到磁盘文件名为fsimage(format格式化的时候产生)
+            - `edits` 记录对metadata的操作日志(客户端读写日志)，会自动合并到fsimage中
+            - 以上两个文件主要记录了文件包含哪些Block，Block保存在哪个DataNode(由DataNode启动时上报)
         - NameNode的metadate信息在启动后会加载到内存
-        - metadata存储到磁盘文件名为`fsimage`(format格式化的时候产生)
         - Block的位置信息不会保存到fsimage(NN将block位置存放到内存中)
-        - `edits`记录对metadata的操作日志(客户端读写日志)，会自动合并到fsimage中
 - `SecondaryNameNode`(SNN)
-    - 它不是NN的备份，也不是HA，它的主要工作是帮助NN合并edits日志，减少NN启动时间。
+    - 它不是NN的备份，也不是HA，它的主要工作是帮助NN合并edits日志，减少NN启动时间
     - SNN执行合并时机：根据配置文件设置的时间间隔`fs.checkpoint.period`默认3600秒；根据配置文件设置edits日志大小 `fs.checkpoint.size`规定edits文件的最大值默认是64MB
 - `DataNode`(DN)
     - 存储数据(Block)

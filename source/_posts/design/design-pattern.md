@@ -48,10 +48,10 @@ tags: [设计模式, java]
     - 建造者（Builder）模式：将一个复杂对象分解成多个相对简单的部分，然后根据不同需要分别创建它们，最后构建成该复杂对象
 - 结构型模式（7种）
     - **代理**（Proxy）模式：为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性
-    - 适配器（Adapter）模式：将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作
-    - 桥接（Bridge）模式：将抽象与实现分离，使它们可以独立变化
+    - **适配器**（Adapter）模式：将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作
     - **装饰**（Decorator）模式：动态的给对象增加一些职责，即增加其额外的功能
     - **外观**（Facade）模式：为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问
+    - 桥接（Bridge）模式：将抽象与实现分离，使它们可以独立变化
     - 享元（Flyweight）模式：运用共享技术来有效地支持大量细粒度对象的复用
     - 组合（Composite）模式：将对象组合成树状层次结构，使用户对单个对象和组合对象具有一致的访问性
 - 行为型模式（11种）
@@ -295,6 +295,7 @@ public class PersonBuilder {
 
 - 代理模式定义
     - **为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性**
+    - **个人理解，对象适配器和装饰器模式类似代理模式：实现目标接口；代理对象/适配器/装饰器构造时传入目标对象(可嵌套)**
 - 代理分为静态代理和动态代理，其中动态代理主要有JDK动态代理和Cglib动态代理，最终都是基于[ASM](https://asm.ow2.io/)操纵字节码
     - JDK动态代理和静态代理类似，代理类和被代理需要实现相同的接口
     - Cglib动态代理是生成被代理类的子类，因此被代理类不能被final修饰
@@ -426,8 +427,9 @@ public static void main(String[] args) {
 
 - 适配器模式定义
     - **将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作**
-    - 如`InputStreamReader`就是Adapter模式。FileInputStream默认只能一个字节一个字节的读，此时通过InputStreamReader适配，最后可使用BufferedReader进行一行一行的读
-    - 常见的以Adapter命名的反而不是基于适配器模式，如WindowAdapter(主要为了方便编程，对接口的方法有默认的实现，只需要去继承重写关心的方法)；常见以Bridge命名却有可能是Adapter模式
+    - 如`InputStreamReader`就是Adapter模式。FileInputStream默认只能一个字节一个字节的读，此时通过InputStreamReader适配，最后可使用BufferedReader进行一行一行的读，如`new BufferedReader(new InputStreamReader(new FileInputStream("c:/test.text")));`
+    - **常见的以Adapter命名的反而不是基于适配器模式，如WindowAdapter**(主要为了方便编程，对接口的方法有默认的实现，只需要去继承重写关心的方法)；**常见以Bridge命名却有可能是Adapter模式**
+    - **个人理解，对象适配器和装饰器模式类似代理模式：实现目标接口；代理对象/适配器/装饰器构造时传入目标对象(可嵌套)**
 - 适配器模式分为类适配器和对象适配器两种
     - 类适配器基于继承
     - 对象适配器基于依赖
@@ -476,14 +478,6 @@ public class ObjectAdapter implements Target {
 ```
 </details>
 
-### 桥接模式(Bridge)
-
-> http://c.biancheng.net/view/1364.html
-
-- 桥接模式定义
-    - **将抽象与实现分离，使它们可以独立变化**
-    - 如Controller持有Service引用
-
 ### 装饰模式(Decorator)
 
 > http://c.biancheng.net/view/1366.html
@@ -491,16 +485,17 @@ public class ObjectAdapter implements Target {
 - 装饰模式定义
     - **动态的给对象增加一些职责，即增加其额外的功能**
     - 装饰器可混合使用，装饰器接口和被装饰物实现了同一个接口。如InputStream相关的类
-    - 结合[静态代理模式](#代理模式(Proxy))
+    - **个人理解，对象适配器和装饰器模式类似代理模式：实现目标接口；代理对象/适配器/装饰器构造时传入目标对象(可嵌套)**
 - 如：房子框架搭建完成 - 房子墙面刷白完成 - 房子周围花园建造完成
 
 ### 外观模式(Facade)
 
 > http://c.biancheng.net/view/1369.html
 
-- 外观模式(又称**门面模式**)定义
+- 外观模式(又称**门面模式**)定义(Facade读音：/fəˈsɑːd/)
     - **为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问**
-    - - 将复杂的关系封装到一起，再对外提供服务。此时对外认为是外观(或门面)，对内认为是调停者模式/中介者模式(有了调停者，当内部有新加入成员时，只需要给调停者打交道，不需要和其他成员打交道)
+    - 将复杂的关系封装到一起，再对外提供服务。如政务服务的统一窗口，用户只需给该窗口提交资料，至于政务内部涉及到多个部门审核由统一窗口协调，对用户不可见
+    - 此时对外认为是外观(或门面)，对内认为是调停者模式/中介者模式(有了调停者，当内部有新加入成员时，只需要给调停者打交道，不需要和其他成员打交道)
 - 类图
 
 ![DP-Facade](/data/images/design/DP-Facade.png)    
@@ -549,6 +544,14 @@ public class SubSystemC {
 }
 ```
 </details>
+
+### 桥接模式(Bridge)
+
+> http://c.biancheng.net/view/1364.html
+
+- 桥接模式定义
+    - 将抽象与实现分离，使它们可以独立变化
+    - **如Controller持有Service引用**
 
 ### 享元模式(Flyweight)
 
@@ -658,7 +661,6 @@ public class Composite implements Component {
     public Composite(String name) {
         this.name = name;
     }
-
 
     @Override
     public void add(Component c) {
@@ -812,7 +814,6 @@ public class PersonAgeComparator implements Comparator<Person> {
 
 - 命令模式定义
     - **将一个请求封装为一个对象，使发出请求的责任和执行请求的责任分割开**
-    - 结合[适配器模式](#适配器模式(Adapter))
 
 ![DP-Command](/data/images/design/DP-Command.png)
 
@@ -854,7 +855,7 @@ public class Receiver {
 ![DP-Chain-of-Responsibility](/data/images/design/DP-Chain-of-Responsibility.png)
 
 <details>
-<summary>命令模式示例代码</summary>
+<summary>职责链模式示例代码</summary>
 
 ```java
 public static void main(String[] args) {
@@ -974,7 +975,7 @@ public class StopState implements State {
 
 - 观察者模式定义
     - **多个对象间存在一对多关系，当一个对象发生改变时，把这种改变通知给其他多个对象，从而影响其他对象的行为**
-    - Observer、Listener、Hook、Callback都属于观察者模式
+    - **Observer、Listener、Hook、Callback都属于观察者模式**
 
 <details>
 <summary>观察者模式示例代码</summary>
@@ -1104,7 +1105,6 @@ public class ConcreteColleagueB implements Colleague {
 
 public class SimpleMediator {
     private static final List<Colleague> colleagues = new ArrayList<>();
-    private static final SimpleMediator simpleMediator = new SimpleMediator();
 
     public static void register(Colleague c) {
         if(!colleagues.contains(c)) {
@@ -1239,8 +1239,8 @@ public class GirlCustomerVisitor implements CustomerVisitor {
 恢复状态:S0
 */
 public static void main(String[] args) {
-    Originator originator = new Originator();
-    Caretaker caretaker = new Caretaker();
+    Originator originator = new Originator(); // 创造者
+    Caretaker caretaker = new Caretaker(); // 守护者
 
     originator.setState("S0");
     System.out.println("原始状态:" + originator.getState());
@@ -1269,6 +1269,7 @@ public class Memento {
     }
 }
 
+// 也可省略，直接把 Memento 保存在 Originator 中
 public class Caretaker {
     private Memento memento;
 

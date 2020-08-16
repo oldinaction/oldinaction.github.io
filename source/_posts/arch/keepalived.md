@@ -8,14 +8,16 @@ tags: [keepalived]
 
 ## 简介
 
-- [Keepalived](http://www.keepalived.org/)是一个免费开源的，用C编写的类似于layer3, 4 & 7交换机制软件，具备我们平时说的第3层、第4层和第7层交换机的功能。主要提供loadbalancing（负载均衡）和 high-availability（高可用）功能，负载均衡实现需要依赖Linux的虚拟服务内核模块（ipvs），而高可用是通过`VRRP`协议实现多台机器之间的故障转移服务
+- [Keepalived](http://www.keepalived.org/)是一个免费开源的，用C编写的类似于layer3, 4 & 7交换机制软件，具备我们平时说的第3层、第4层和第7层交换机的功能
+    - 主要提供loadbalancing（负载均衡）和 high-availability（高可用）功能
+    - 负载均衡实现需要依赖Linux的虚拟服务内核模块（ipvs），而高可用是通过`VRRP`（虚拟路由冗余协议Virtual Router Redundancy Protocol）协议实现多台机器之间的故障转移服务
 
 ## 安装使用
 
-- `yum -y install keepalived`
-- 源码安装 [^1]
+- `yum -y install keepalived` 直接安装
+- 或者源码安装 [^1]
 - `systemctl start keepalived` 启动 **(需要关闭`SELinux`)**
-    - 启动后自动绑定虚拟ip，通过`ip addr`可查看绑定的虚拟ip
+    - **启动后自动绑定虚拟ip**，通过`ip addr`可查看绑定的虚拟ip
 
 ## keepalived.conf配置说明
 
@@ -103,7 +105,7 @@ vrrp_instance VI_1 {
 virtual_server 192.168.200.1 8110 {
     #　健康检查时间间隔，单位：秒
     delay_loop 6
-    # 负载均衡调度算法，互联网应用常用方式为wlc或rr。取值rr|wrr|lc|wlc|sh|dh|lblc 
+    # 负载均衡调度算法，互联网应用常用方式为 wlc 或 rr。取值rr|wrr|lc|wlc|sh|dh|lblc 
     lb_algo rr
     # 负载均衡转发规则。包括DR、NAT、TUN，一般使用路由（DR）转发规则。
     lb_kind DR

@@ -191,19 +191,21 @@ tags: [jvm]
         - 执行构造方法语句
 - 对象在内存中的存储布局
     - 普通对象
-        - 对象头：markword 占8个字节
-        - ClassPointer指针：增加 -XX:+UseCompressedClassPointers(开启ClassPointer指针压缩) 参数时为4字节，不开启(换成减号，-XX:-UseCompressedClassPointers)则为8字节
-            - `java -XX:+PrintCommandLineFlags -version` 可查看JVM默认配置
-            - Hotspot开启内存压缩的规则(64位机)：4G以下直接砍掉高32位；4G-32G默认开启内存压缩(ClassPointers、Oops)；32G以上压缩无效，使用64位，内存并不是越大越好
+        - 对象头
+            - markword 占8个字节
+            - ClassPointer 用来指向对象对应的Class对象（其对应的元数据对象）的内存地址（也称Klass?）
+                - 增加 **`-XX:+UseCompressedClassPointers`** (开启ClassPointer指针压缩) 参数时为4字节，不开启(换成减号，-XX:-UseCompressedClassPointers)则为8字节。`java -XX:+PrintCommandLineFlags -version` 可查看JVM默认配置（64位开启了ClassPointer指针压缩）
+                - Hotspot开启内存压缩的规则(64位机)：4G以下直接砍掉高32位；4G-32G默认开启内存压缩(ClassPointers、Oops)；32G以上压缩无效，使用64位，内存并不是越大越好
         - 实例数据
             - 主要是成员变量：基础数据类型、引用类型
-            - 引用类型：开启 -XX:+UseCompressedOops(开启普通对象指针压缩) 配置时为4字节，不开启(换成减号)则为8字节。Oops：Ordinary Object Pointers
+            - 引用类型：开启 **`-XX:+UseCompressedOops`** (开启普通对象指针压缩) 配置时为4字节，不开启(换成减号)则为8字节。Oops：Ordinary Object Pointers
         - Padding对齐：对象总大小保证为8的倍数
     - 数组对象(多了一个数组长度)
-        - 对象头：markword，同上
-        - ClassPointer指针，同上
-        - 数组长度为4字节
-        - 数组数据，同上
+        - 对象头
+            - markword，同上
+            - ClassPointer，同上
+            - **数组长度**，占4字节
+        - 实例数据，同上
         - Padding对齐，同上
 - 对象头具体包括什么
     - 32位操作系统markword如下
@@ -491,8 +493,8 @@ public class T01_IntAddAdd {
             - 为什么G1使用SATB
                 - SATB结合RSet效率很高。SATB监控到的消失引用，会放到GC堆栈，下次扫描时根据此堆栈的对象引用，到RSet去查找
                 - 增量更新则需要重新把标记过的对象重新检查其属性
-    - `颜色指针`（ZGC使用）
-        - 指在对象头上会有一个color pointer标识此对象引用是否改变过
+    - `颜色指针`（Color Pointer，ZGC使用）
+        - 指在对象引用（指针）上会有一个color pointer标识此对象引用是否改变过
     - `Card Table`
         - 由于做YGC时，需要判断这个对象是否被其他对象引用，有可能这个对象已经在old区了，但是扫描整个old区，效率非常低，所以JVM设计了CardTable
         - 首先将old区分为多个CardTable，将对象放在CardTable中。**当某个CardTable有对象指向Yong区，就将它设为Dirty状态**，下次扫描时，只需要扫描Dirty CardTable的对象
@@ -501,7 +503,7 @@ public class T01_IntAddAdd {
     - `RSet`(RemembeeredSet) 记录了其他Region中的对象到本Region的引用，占用堆10%左右
         - 作用在于垃圾收集只需要扫码RSet便可得知哪些对象引用了当前分区(从而不需扫码整个堆)
         - 由于RSet的存在，每次给对象赋引用的时候，就得做一些额外操作，GC中称为**写屏障(不同于内存屏障)**
-- 常见的垃圾回收器
+- **常见的垃圾回收器**
 
     ![jvm-gc](/data/images/java/jvm-gc.png)
     - `Serial`(读音：/ˈsɪriəl/) 针对年轻代垃圾回收，串行执行(单线程进行回收)，会出现STW，使用**Copying**算法清理(年轻代常用，主要快速)
@@ -511,46 +513,13 @@ public class T01_IntAddAdd {
     - `ParNew`(PN) 年轻代，并行回收(多线程)，会出现STW，使用**Copying**算法清理(PS的一个升级版本)。般配合CMS的并行回收
     - `CMS`(ConcurrentMarkSweep) 老年代，**并行回收**(多线程)，且**并发回收**(垃圾回收和应用程序同时运行)，使用**Mark-Sweep**算法
         - CMS使用算法：**三色标记 + Incremental Update + 写屏障**(相关概念见上文)
-        - CMS是1.4版本后期引入，CMS是里程碑式的GC，它开启了并发回收的过程，但是CMS毛病较多，因此目前任何一个JDK版本默认是CMS，只能手工指定CMS
-        - 包含5步
-
-            ![jvm-cms](/data/images/java/jvm-cms.png)
-            - initial mark 初始标记，会产生STW；由于只标记根对象，因此STW时间很短
-            - concurrent mark 并发标记，不会产生STW；基于根对象查找，此段时间相对较长
-            - preclean 也称Card Marking，标记Card Table为Dirty
-            - remark 重新标记，会产生STW，占用时间不会太长；由于并发标记的同时，可能某些标记为垃圾的对象又被重新引用了，此时相当于去掉这些对象的标记（新产生的垃圾不会重新标记，从而会产生浮动垃圾）
-            - concurrent sweep 并发清理，不会产生STW；此阶段可能还会产生新的垃圾，即浮动垃圾，会在下一个循环回收
-        - CMS的缺点
-            - Memory Fragmentation(内存碎片化)
-                - 使用Mark-Sweep算法会产生很多碎片，这些碎片会占用且镂空老年代内存(可能存在有些未用的空间被碎片占位导致无法使用，见上文Mark-Sweep算法图)，碎片到达一定程度，CMS的老年代分配对象分配不下的时候，此时会使用SerialOld进行老年代回收
-                - 如果内存较大(32G及以上不建议使用CMS)，出现SerialOld单线程回收时，会很耗时，因此STW时间会很长(几十个G内存可能几个小时到几天)。因此可能出现硬件升级反而出现卡顿
-                - 可使用以下参数优化
-                    - `-XX:+UseCMSCompactAtFullCollection` 在FGC时进行压缩从而清理碎片
-                    - `-XX:CMSFullGCsBeforeCompaction` 默认为0，指经过多少次FGC才进行压缩
-            - Floating Garbage(浮动垃圾，在concurrent sweep并发清理的同时产生的垃圾)
-                - -XX:CMSInitiatingOccupancyFraction 92%（JDK1.8默认，当老年代使用到达92%时触发FGC。可适当调小从而给浮动垃圾多留一点空间，下次并发回收便会清理）
+        - [具体见下文](#CMS)
     - `G1`(Garbadge First Collector)，参考：https://www.oracle.com/cn/technical-resources/articles/java/g1gc.html
         - G1使用算法：**三色标记 + SATB + 写屏障**
-        - STW时间为10ms左右；响应时间比CMS高，但是吞吐量比CMS差15%左右
-        - 内存结构
-
-            ![jvm-G1](/data/images/java/jvm-G1.png)
-            - G1的内存结构和传统的内存空间划分有比较的不同。G1将内存划分成了多个大小相等的Region(默认是512K)，Region逻辑上连续，物理内存地址不连续。同时每个Region被标记成E、S、O、H，分别表示Eden、Survivor、Old、Humongous（/hjuːˈmʌŋɡəs/，大对象）。其中E、S属于年轻代，O与H属于老年代
-            - G1新老年代比例5%-60%(CMS默认是1:2)，一般不用手工指定，G1会动态变化。可设置一个停顿时间，G1会动态调整此比例以趋近设置的停顿时间
-        - 标记回收阶段
-            - Initial mark
-            - Root region scanning
-            - Concurrent marking
-            - Remark
-            - Cleanup
-        - G1包括YGC、MixedGC(相当于一个CMS)、FGC
-        - G1产生FGC时处理
-            - 扩内存、提高CPU性能
-            - **降低MixedGC触发的阈值**，让MixedGC提早发生(默认是-XX:InitiatingHeapOccupacyPercent 45%)
-            - JDK10以前G1的FullGC是串行的，之后是并行的
-    - `ZGC`
+        - [具体见下文](#G1)
+    - `ZGC`(zero paused GC)
         - 使用算法：**颜色指针 + 着色指针 + 读屏障**
-        - STW时间为10ms以下，实测1ms左右
+        - [具体见下文](#ZGC)
     - `Shenandoah`
         - 使用算法：**颜色指针 + 写屏障**
     - `Eplison`
@@ -568,6 +537,66 @@ public class T01_IntAddAdd {
     - `-XX:+UseParallelOldGC` 使用Parallel Scavenge + Parallel Old
     - **`-XX:+UseG1GC`** 使用G1，**1.9默认**
     - `java -XX:+PrintCommandLineFlags -version` 查看默认配置，可发现1.8.0_131使用的是PS+PO(-XX:+UseParallelGC)
+
+#### CMS
+
+- CMS使用算法：**三色标记 + Incremental Update + 写屏障**(相关概念见上文)
+- CMS是1.4版本后期引入，CMS是里程碑式的GC，它开启了并发回收的过程，但是CMS毛病较多，因此目前任何一个JDK版本默认是CMS，只能手工指定CMS
+- 包含5步
+
+    ![jvm-cms](/data/images/java/jvm-cms.png)
+    - initial mark 初始标记，会产生STW；由于只标记根对象，因此STW时间很短
+    - concurrent mark 并发标记，不会产生STW；基于根对象查找，此段时间相对较长
+    - preclean 也称Card Marking，标记Card Table为Dirty
+    - remark 重新标记，会产生STW，占用时间不会太长；由于并发标记的同时，可能某些标记为垃圾的对象又被重新引用了，此时相当于去掉这些对象的标记（新产生的垃圾不会重新标记，从而会产生浮动垃圾）
+    - concurrent sweep 并发清理，不会产生STW；此阶段可能还会产生新的垃圾，即浮动垃圾，会在下一个循环回收
+- CMS的缺点
+    - Memory Fragmentation(内存碎片化)
+        - 使用Mark-Sweep算法会产生很多碎片，这些碎片会占用且镂空老年代内存(可能存在有些未用的空间被碎片占位导致无法使用，见上文Mark-Sweep算法图)，碎片到达一定程度，CMS的老年代分配对象分配不下的时候，此时会使用SerialOld进行老年代回收
+        - 如果内存较大(32G及以上不建议使用CMS)，出现SerialOld单线程回收时，会很耗时，因此STW时间会很长(几十个G内存可能几个小时到几天)。因此可能出现硬件升级反而出现卡顿
+        - 可使用以下参数优化
+            - `-XX:+UseCMSCompactAtFullCollection` 在FGC时进行压缩从而清理碎片
+            - `-XX:CMSFullGCsBeforeCompaction` 默认为0，指经过多少次FGC才进行压缩
+    - Floating Garbage(浮动垃圾，在concurrent sweep并发清理的同时产生的垃圾)
+        - -XX:CMSInitiatingOccupancyFraction 92%（JDK1.8默认，当老年代使用到达92%时触发FGC。可适当调小从而给浮动垃圾多留一点空间，下次并发回收便会清理）
+
+#### G1
+
+- G1使用算法：**三色标记 + SATB + 写屏障**
+- STW时间为10ms左右；响应时间比CMS高，但是吞吐量比CMS差15%左右
+- 内存结构
+
+    ![jvm-G1](/data/images/java/jvm-G1.png)
+    - G1的内存结构和传统的内存空间划分有比较的不同。G1将内存划分成了多个大小相等的Region(默认是512K)，Region逻辑上连续，物理内存地址不连续。同时每个Region被标记成E、S、O、H，分别表示Eden、Survivor、Old、Humongous（/hjuːˈmʌŋɡəs/，大对象）。其中E、S属于年轻代，O与H属于老年代
+    - G1新老年代比例5%-60%(CMS默认是1:2)，一般不用手工指定，G1会动态变化。可设置一个停顿时间，G1会动态调整此比例以趋近设置的停顿时间
+- 标记回收阶段
+    - Initial mark
+    - Root region scanning
+    - Concurrent marking
+    - Remark
+    - Cleanup
+- G1包括YGC、MixedGC(相当于一个CMS)、FGC
+- G1产生FGC时处理
+    - 扩内存、提高CPU性能
+    - **降低MixedGC触发的阈值**，让MixedGC提早发生(默认是-XX:InitiatingHeapOccupacyPercent 45%)
+    - JDK10以前G1的FullGC是串行的，之后是并行的
+
+#### ZGC
+
+- ZGC(zero paused GC)使用算法：**颜色指针 + 着色指针 + 读屏障**
+- STW时间为10ms以下，实测1ms左右
+- GC 信息记录在指针上，不是记录在 Java 对象的头部。如果记录在头部要回收则需要修改头信息，而 ZGC 只需要修改指针信息。优点是 immediate memory use
+- 在 64 位系统中，ZGC 利用了对象引用的 4bit，低 42 位为对象的实际地址(因此最大寻址空间为 2^42=4T)，高 18 位为预留
+
+     ![jvm-ZGC](/data/images/java/jvm-ZGC.png)
+
+    - Marked0/marked1：判断对象是否已标记
+    - Remapped：判断引用是否已指向新的地址
+    - Finalizable：判断对象是否只能被 Finalizer 访问
+- JDK13 最大寻址空间为 16T=2^44
+    - 理论上 64 位系统(指针地址大小为 64 位)，去掉 4 位标记信息，剩下的为 2^60 寻址空间可用
+    - 但是由于主板制造商为了节约成本，地址总线并没有提供 64 根，而是 48 根，从而最大寻址空间为 2^(48-4)=2^44=16T
+- ZGC 为 NUMA aware：分配内存会优先分配该线程所在 CPU 的最近内存。NUMA(非同一内存访问)
 
 ## JVM调优
 

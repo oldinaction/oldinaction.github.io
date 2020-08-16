@@ -1,3 +1,4 @@
+# node v8.17.0
 cd D:/gitwork/coding/blog
 hexo clean
 git add .

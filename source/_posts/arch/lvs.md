@@ -15,7 +15,7 @@ tags: [LB, HA]
         - 第四层如：`lvs`
             -  LVS 在实现上，介于网络层（IP）和传输层（TCP）之间；只能操作ip和端口，在操作系统内核中
         - 第七层(应用层：http/ajp/https)如：`nginx`、`httpd`(apache)、`haproxy`
-- Lvs的组成包括 `ipvs` 和 `ipvsadm`
+- LVS 的组成包括 `ipvs` 和 `ipvsadm`
     - ipvs(ip virtual server)：一段代码工作在内核空间，叫ipvs(所有的linux都有此功能)
     - ipvsadm：另外一段是工作在用户空间，叫ipvsadm，负责为ipvs内核框架编写规则，定义谁是集群服务，而谁是后端真实的服务器(Real Server)。安装`yum install ipvsadm -y`
 - 相关术语
@@ -25,13 +25,13 @@ tags: [LB, HA]
     - `DIP`：Director Server IP，主要用于和内部主机通讯的IP地址
     - `RIP`：Real Server IP，后端服务器的IP地址
     - `CIP`：Client IP，访问客户端的IP地址
-- LVS类型：
-    - DR：直接路由
-    - NAT：地址转换，跟DNAT原理相同，多目标
-    - TUN：隧道
+- LVS类型
+    - **DR**：直接路由（常用）
+    - NAT：地址转换，跟DNAT原理相同，多目标。数据进出都通过 LVS，性能不是很好
+    - TUNL：隧道
 - LVS的调度方法(有10种)
     - 固定调度，也叫静态调度，有四种
-        - rr：轮叫，轮询
+        - **rr**：轮叫，轮询
         - wrr：Weight, 加权
         - sh：source hash，源地址hash
         - dh：目标地址hash
