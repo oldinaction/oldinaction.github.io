@@ -2,16 +2,65 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2017/08/12/design/design-pattern/</loc>
+    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
     
-    <lastmod>2020-08-16T06:04:22.134Z</lastmod>
+    <lastmod>2020-08-16T12:26:41.350Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
     
-    <lastmod>2020-08-16T05:57:23.091Z</lastmod>
+    <lastmod>2020-08-16T12:19:07.279Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
+    
+    <lastmod>2020-08-16T12:08:48.912Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    
+    <lastmod>2020-08-16T11:49:56.346Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
+    
+    <lastmod>2020-08-16T11:16:04.199Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
+    
+    <lastmod>2020-08-16T08:19:15.830Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/04/arch/lvs/</loc>
+    
+    <lastmod>2020-08-16T08:15:54.609Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/03/arch/keepalived/</loc>
+    
+    <lastmod>2020-08-16T08:12:03.008Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/08/12/design/design-pattern/</loc>
+    
+    <lastmod>2020-08-16T07:43:41.543Z</lastmod>
     
   </url>
   
@@ -72,13 +121,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
-    
-    <lastmod>2020-08-14T00:09:55.850Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/03/13/bigdata/solr/</loc>
     
     <lastmod>2020-08-13T10:13:20.255Z</lastmod>
@@ -86,23 +128,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/03/03/arch/keepalived/</loc>
-    
-    <lastmod>2020-08-13T08:48:20.977Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
     
     <lastmod>2020-08-13T08:47:44.218Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/03/04/arch/lvs/</loc>
-    
-    <lastmod>2020-08-13T08:17:11.155Z</lastmod>
     
   </url>
   
@@ -156,13 +184,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
-    
-    <lastmod>2020-08-10T01:41:42.763Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
     
     <lastmod>2020-08-08T11:16:09.483Z</lastmod>
@@ -194,13 +215,6 @@
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
     <lastmod>2020-08-07T01:31:57.551Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    
-    <lastmod>2020-08-06T05:12:33.461Z</lastmod>
     
   </url>
   
@@ -285,13 +299,6 @@
     <loc>http://blog.aezo.cn/2016/12/29/arch/maven/</loc>
     
     <lastmod>2020-07-03T16:12:55.261Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
-    
-    <lastmod>2020-06-30T09:01:45.998Z</lastmod>
     
   </url>
   
@@ -824,13 +831,6 @@
     <loc>http://blog.aezo.cn/2018/03/13/bigdata/lucene/</loc>
     
     <lastmod>2018-07-21T03:54:26.131Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
-    
-    <lastmod>2018-07-21T03:54:26.130Z</lastmod>
     
   </url>
   
