@@ -268,9 +268,42 @@ select count(*) from `t_test_vote`;
 - 命令行执行 sql - Mysql 通过上下左右按键修改语句 - 或者新建一个文本文件 h:/demo/test.sql，将 sql 语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号 - Oracle 输入 ed 则打开记事本可进行修改修改 DOS 中的数据
 - Oracle 表结构与 Mysql 表结构转换：使用 navicat 转换 - 点击`工具 -> 数据转换`。左边选择 oracle 数据库和对应的用户，右边转成 sql 文件(直接转换会出现 Date 转换精度错误) - 将 sql 文件中的数据进行转换 - `datetime(7)` -> `datetime(6)` - `decimal(20,0)` -> `bigint(20)`(原本在 oracle 中是 Number(20)) - `decimal(1,0)` -> `int(1)` - `decimal(10,0)` -> `int(10)` 以此类推 - 默认值丢失 - 导入 sql 文件到 mysql 数据库中
 
+## 常见问题
+
+### 锁相关
+
+- Mysql造成锁的情况有很多，下面我们就列举一些情况
+    - 执行DML操作没有commit，再执行删除操作就会锁表
+    - 在同一事务内先后对同一条数据进行插入和更新操作
+    - 长事物（如期间进行了HTTP请求且等待时间太长），阻塞DDL，继而阻塞所有同表的后续操作
+    - 表索引设计不当，导致数据库出现死锁
+- 更新数据时报错 `Lock wait timeout exceeded; try restarting transaction` 数据结构ddl操作的锁的等待时间 [^3]
+    
+    ```bash
+    # 事物等待锁超时，如：一个事物还没有提交（对某些表加锁了还没释放），另外一个线程需要获取锁，从而等待超时
+
+    show variables like 'autocommit'; # 查看事物是否为自动提交，NO 为自动提交
+    # set global autocommit=1; # 如果不是自动提交可进行设置
+    
+    show processlist; # 查看是否有执行慢的sql
+    # 相关的表：innodb_locks 当前出现的锁，innodb_lock_waits 锁等待的对应关系
+    # 字段：trx_mysql_thread_id 事务线程 ID；trx_tables_locked 当前执行 SQL 的行锁数量
+    select * from information_schema.innodb_trx; # 查看当前运行的所有事务，应该会发现有一个事物开始时间很早，但是一直存在此表中（因为还未提交）
+    kill <trx_mysql_thread_id> # 可临时杀掉卡死的这个事物线程，从而释放锁
+
+    show variables like 'innodb_lock_wait_timeout'; # 查看锁等待超时时间（默认为50s）
+    set global innodb_lock_wait_timeout=100; # 设置超时时间（global的修改对当前线程是不生效的，只有建立新的连接才生效）
+    # 或者修改参数文件/etc/my.cnf 中 innodb_lock_wait_timeout = 100
+    ```
+    - 情景：information_schema.innodb_trx 中有一条事物线程一直存在，且锁定了两行记录（innodb_locks 和 innodb_lock_waits 中并未锁/锁等待记录）；最后发现为卡死的事物中进行了HTTP请求，正好HTTP请求一直卡死不返回，导致其他地方修改这个表记录时报错
+
+
 ---
 
 参考文章
 
 [^1]: https://www.cnblogs.com/digdeep/p/4892953.html
 [^2]: https://segmentfault.com/a/1190000019305858#item-2-5
+[^3]: https://juejin.im/post/6844904078749728782
+
+

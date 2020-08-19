@@ -112,7 +112,7 @@ info Replication # 查看服务器主从复制相关信息
 
 select 2 # 选择2号数据库
 flushdb # 清空整个库(删除全部数据)，生产环境一般改写此命令
-keys * # 查看所有key
+keys * # 查看所有key，生产环境一般改写此命令
 keys key* # 查看所有key开头的key
 del key1 # 删除某个key
 
@@ -209,12 +209,12 @@ linsert k2 after b 1
 rpush k3 1 a a 2 a 2 2 # k3=[1,a,a,2,a,2,2]
 # 从左边开始移除(count=2的值为正数则从左边开始移除)2个a元素，k3=[1,2,a,2,2]
 lrem k3 2 a
-# 从右边开始移除2元素1个，k3=[1,2,a,2]
+# 从右边（负号）开始移除1个"2"元素，k3=[1,2,a,2]
 lrem k3 -1 2
 
 # 返回list长度
 llen k2 # 3
-# 如果list存在，则向左边插入值
+# 如果kn对应的list存在，则向左边插入值。此时不存在
 lpushx kn 1 # (integer) 0
 
 # 从左边弹出k4，如果k4没有则等待一定超时时间，0表示一直阻塞直到k4有值；如果有多个客户度阻塞弹出k4的值，则谁先阻塞谁先弹出，且一次只能弹出1个(放掉一个客户端) => 阻塞，单播队列，FIFO
@@ -236,10 +236,8 @@ hmget smalle name age # 返回smalle、18两行
 hkeys smalle # 返回name、age两行
 hgetall smalle # 返回name、smalle、age、18四行
 
-# 对属性age增加0.5
+# 对属性age增加0.5（负数则表示减少）
 hincrbyfloat smalle age 0.5 # 18.5
-# 对属性age减少1
-hincrbyfloat smalle age -1 # 17.5
 ```
 
 ### set
@@ -313,7 +311,7 @@ zunionstore destkey2 2 k1 k2 weights 0.5 1
 
 - `incr` 可用于统计不要求太精准的字段，如点赞数、评论数、抢购、秒杀等。从而规避并发下对数据库的事物操作，完全由redis内存操作代替
 - `set my_lock id_12345678 nx ex 60` 实现**分布式锁**，参考下文[实现分布式锁](#实现分布式锁)。其中nx表示如果不存在此key时才允许创建
-- `msetnx`命令：nx如上，m表示set多个key，此时要么都成功要么都失败。可用于原子性赋值操作
+- `msetnx`命令：nx如上，m表示set多个key，此时要么都成功要么都失败。可用于字符串类型的**原子性赋值操作**
 - `setbit`位图命令使用。参考上文setbit相关案例
 
     ```bash
@@ -484,17 +482,18 @@ cf.exists
 ```bash
 # 编辑支持的最大内存(maxmemory)和回收策略
 vi /etc/redis/6379.conf
-# maxmemory <bytes>
+
+# maxmemory <bytes> # 配置Redis存储数据时指定限制的内存大小，比如100m。当缓存消耗的内存超过这个数值时, 将触发数据淘汰。该数据配置为0时，表示缓存的数据量没有限制, 即LRU功能不生效。64位的系统默认值为0，32位的系统默认内存限制为3GB
 
 # MAXMEMORY POLICY: how Redis will select what to remove when maxmemory
 # is reached. You can select among five behaviors:
-# volatile-lru -> Evict using approximated LRU among the keys with an expire set.   # 回收最久使用的键，但仅限于在过期集合的键
+# volatile-lru -> Evict using approximated LRU among the keys with an expire set.   # 回收最久使用的键，但仅对设置了过期时间的键
 # allkeys-lru -> Evict any key using approximated LRU.                              # 回收最久使用的键
-# volatile-lfu -> Evict using approximated LFU among the keys with an expire set.   # 回收最少使用的键，但仅限于在过期集合的键
+# volatile-lfu -> Evict using approximated LFU among the keys with an expire set.   # 回收最少使用的键，但仅对设置了过期时间的键
 # allkeys-lfu -> Evict any key using approximated LFU.                              # 回收最少使用的键
-# volatile-random -> Remove a random key among the ones with an expire set.         # 随机回收建，但仅限于在过期集合的键
+# volatile-random -> Remove a random key among the ones with an expire set.         # 随机回收建，但仅对设置了过期时间的键
 # allkeys-random -> Remove a random key, any key.                                   # 随机回收建
-# volatile-ttl -> Remove the key with the nearest expire time (minor TTL)           # 回收在过期集合的键，并且优先回收存活时间（TTL）较短的键
+# volatile-ttl -> Remove the key with the nearest expire time (minor TTL)           # 回收生存时间TTL(Time To Live)更小的键，但仅对设置了过期时间的键
 # noeviction -> Don't evict anything, just return an error on write operations.     # 当客户端需要使用更多内存，且内存不足时返回错误
 #
 # LRU means Least Recently Used # 最近使用的
@@ -511,8 +510,8 @@ vi /etc/redis/6379.conf
 
 #### RDB方式持久化
 
-- 使用fork()进程时的`copy on write`来实现，参考[特殊符号-管道符`|`](/_posts/linux/shell.md#特殊符号)
-- 特点
+- 调用bgsave命令时，使用`fork()`进程时的`copy-on-write`写时复制机制来实现。具体参考[Copy-On-Write写时复制](/_posts/linux/计算机底层知识.md#Copy-On-Write写时复制)
+- RDB特点
     - 优点：恢复速度相对快
     - 不支持拉链，只有一个dump.rdb文件(为二进制编码，但是以REDIS开头)
     - 丢失数据相对多一些，两次持久化之间的数据容易丢失
@@ -528,10 +527,10 @@ vi /etc/redis/6379.conf
     save 60 10000
     # 如900后有1个key发送改变时的日志如下
     # 7447:S 11 Jul 2020 15:49:17.306 * 1 changes in 900 seconds. Saving...
-    # 7447:S 11 Jul 2020 15:49:17.307 * Background saving started by pid 7582
-    # 7582:C 11 Jul 2020 15:49:17.514 * DB saved on disk
-    # 7582:C 11 Jul 2020 15:49:17.515 * RDB: 4 MB of memory used by copy-on-write
-    # 7447:S 11 Jul 2020 15:49:17.551 * Background saving terminated with success
+    # 7447:S 11 Jul 2020 15:49:17.307 * Background saving started by pid 7582           # 开启（fork）新进程保存数据到磁盘
+    # 7582:C 11 Jul 2020 15:49:17.514 * DB saved on disk                                # 数据已经保存到磁盘上
+    # 7582:C 11 Jul 2020 15:49:17.515 * RDB: 4 MB of memory used by copy-on-write       # 4M 内存数据使用copy-on-write的方式被使用
+    # 7447:S 11 Jul 2020 15:49:17.551 * Background saving terminated with success       # 保存成功, 进程中断
 
     # 数据持久化的文件名
     dbfilename dump.rdb
@@ -621,9 +620,9 @@ vi /etc/redis/6379.conf
 replica-serve-stale-data yes
 # 从节点是否为只读(no则可接受写请求)
 replica-read-only yes
-# 是否不使用磁盘方式进行同步。同步策略: 磁盘或socket(网络)，默认磁盘方式；磁盘方式表示先数据线落到主节点磁盘，然后同步给字节点；网络方式表示直接通过网络同步给子节点
+# 是否不使用磁盘方式进行同步。同步策略: 磁盘或socket(网络)，默认磁盘方式；磁盘方式表示先数据线落到主节点磁盘，然后同步给子节点；网络方式表示直接通过网络同步给子节点
 repl-diskless-sync no
-# 设置数据备份的backlog大小。backlog是一个slave在一段时间内断开连接时记录新增的数据缓冲，所以一个slave在重新连接时，不必要全量的同步，而是一个增量同步就足够了，将在断开连接的这段时间内把slave丢失的部分数据传送给它。
+# 设置数据备份的backlog大小。backlog是一个slave在一段时间内断开连接时记录新增的数据缓冲，所以一个slave在重新连接时，不必要全量的同步，而是一个增量同步就足够了，将在断开连接的这段时间内把slave丢失的部分数据传送给它
 # 同步的backlog越大，slave能够进行增量同步并且允许断开连接的时间就越长。backlog只分配一次并且至少需要一个slave连接
 repl-backlog-size 1mb 
 # 当健康的slave的个数小于3个时，mater就禁止写入。这个配置虽然不能保证N个slave都一定能接收到master的写操作，但是能避免没有足够健康的slave的时候，master不能写入来避免数据丢失。设置为0是关闭该功能，默认是关闭
@@ -639,16 +638,16 @@ min-replicas-max-lag 10
 ```bash
 # 在备节点(6380)中运行，追随主节点(6379)。5.0之前的命令使用slaveof
 replicaof 127.0.0.1 6379 # 此时会先把备节点的数据删除掉，然后再同步主节点数据
-# 当主节点挂了之后，此时可手动将某个从节点设置为不追随(此时数据不会丢失)，然后将其他从通过replicaof命令重新追随新的主
-replicaof no one 
+# 当主节点挂了之后，此时可手动将某个从节点设置为不追随(此时数据不会丢失)，然后将其他从节点通过replicaof命令重新追随新的主
+replicaof no one
 ```
 
 <details>
 <summary>主备配置完整测试(伪主备)</summary>
 
 ```bash
-# 1.在一台机器上安装2个redis服务(伪主备)，先关闭所有redis服务，之后手动启动哦
-# 2.复制一份配置文件出来测试。修改配置文件中的port端口，修改`daemonize no`(不后台运行)，注释`logfile /var/log/redis_xxx.log`(日志打印在前台)
+# 1.在一台机器上安装2个redis服务(伪主备)，先关闭所有redis服务，之后手动启动
+# 2.复制一份配置文件出来测试(生产环境不需要)。修改配置文件中的port端口，修改`daemonize no`(不后台运行)，注释`logfile /var/log/redis_xxx.log`(日志打印在前台)
 cp /etc/redis/6379.conf .
 cp /etc/redis/6380.conf .
 
@@ -669,7 +668,7 @@ replicaof 127.0.0.1 6379
 # 7442:M 11 Jul 2020 15:35:11.247 * Replica 127.0.0.1:6380 asks for synchronization
 # 7442:M 11 Jul 2020 15:35:11.247 * Partial resynchronization not accepted: Replication ID mismatch (Replica asked for '8a87f600ddb2cace3efff018319c1964f0c38909', my replication IDs are '8a51a8a1a9eddd18477322b15611a839230c2cb9' and '0000000000000000000000000000000000000000')
 # 7442:M 11 Jul 2020 15:35:11.247 * Starting BGSAVE for SYNC with target: disk      # 开始保存数据到磁盘
-# 7442:M 11 Jul 2020 15:35:11.455 * Background saving started by pid 7549           # 开启新线程保存数据到磁盘
+# 7442:M 11 Jul 2020 15:35:11.455 * Background saving started by pid 7549           # 开启（fork）新进程保存数据到磁盘
 # 7549:C 11 Jul 2020 15:35:11.641 * DB saved on disk
 # 7549:C 11 Jul 2020 15:35:11.642 * RDB: 6 MB of memory used by copy-on-write
 # 7442:M 11 Jul 2020 15:35:11.655 * Background saving terminated with success
@@ -713,7 +712,7 @@ set k2 hello
 
 #### 高可用(基于Sentinel哨兵)
 
-- Sentinel使用
+- Sentinel简单说明
 
 ```bash
 # 默认`redis-sentinel`程序在redis安装源码的src目录，安装到特定目录时只是将`redis-sentinel`程序链接到`redis-server`(即只能通过redis-server启动)
@@ -785,6 +784,11 @@ redis-server ./sentinel-26379.conf --sentinel
 
     ![redis-预分区](/data/images/db/redis-预分区.png)
     - 假设刚开始只有2个节点，一般此时算法是hash%2，此时可改成直接hash%10(实际会更大，Redis 集群有16384个哈希槽)，那么所有数据会在刚开始就分布在不同的槽位(0-9)；当新增节点时，只需要将部分槽位的数据复制到新节点即可；当客户端查询的数据不再该节点时，会自动路由到目标节点
+- Redis Cluster特点
+    - 直连某个redis，会自动进行跳转（下文的代理则是连接代理端口）
+    - 支持分区、主备模式
+    - 部分情况下，支持事物（多条命令执行期间，没有进行redis端口跳转的情况下才支持）
+    - 支持hash tag
 - Redis Cluster测试
 
 ```bash
@@ -834,8 +838,16 @@ QUEUED
 
     ![redis-proxy](/data/images/db/redis-proxy.png)
 - 常见redis代理组件
-    - [twemproxy](https://github.com/twitter/twemproxy)，twitter开源
-    - [predixy](https://github.com/joyieldInc/predixy)，性能较高
+    - [twemproxy](https://github.com/twitter/twemproxy)
+        - twitter开源
+        - 仅支持分区模式
+        - 不支持事物等命令
+        - 不支持hash tag（形如`{xx}key`）
+    - [predixy](https://github.com/joyieldInc/predixy)
+        - 性能较高
+        - 仅支持分区、主备模式
+        - 支持监控一套主备的哨兵模式（仅支持主备，分区则不支持），此情况才支持事物等命令（分区后不支持事物）
+        - 支持hash tag（分区+主备也支持）
     - codis
     - redis-cerberus
 - redis代理组件对比：https://blog.csdn.net/rebaic/article/details/76384028
@@ -873,8 +885,8 @@ set k1 hello # 存放在6379
 set k1 hi # 存放在6379
 set 1 1 # 存放在6380
 get k1 # hello
-redis-cli -p 6379 # 单独连接各节点，发现3个key分布在不同节点(如果在同一节点可设置不同的key试试)
-# 2.keys *、watch k1、mulit等命令不能执行(由于进行了分片，key可能落在多个节点)
+# redis-cli -p 6379 # 单独连接各节点，发现3个key分布在不同节点(如果在同一节点可设置不同的key试试)
+# 2.在代理客户端上执行，keys *、watch k1、mulit等命令不能执行(由于进行了分片，key可能落在多个节点)
 keys * # Error: Server closed the connection
 # 3.断开6380节点，发现6379的数据可正常get，但是挂掉的6380数据无法正常访问
 get 1 # (error) ERR Connection refused
@@ -912,16 +924,20 @@ cd predixy-1.0.5
 ## 测试
 # 修改主配置：打开监听端口`Bind 127.0.0.1:7617`；使用哨兵模式，导入配置`Include sentinel.conf`(去掉此行注释，并注释掉`Include try.conf`)
 vi conf/predixy.conf
-vi conf/sentinel.conf # 修改哨兵配置，如下文
-# 启动哨兵，配置如下文(同样启动26380/26381)，并监听两套主从节点
+vi conf/sentinel.conf # 修改predixy中的哨兵配置，如下文
+
+# 启动哨兵。配置如下文(同样启动26380/26381)，并监听两套主从节点
 vi ~/sentinel-26379.conf
 redis-server ./sentinel-26379.conf --sentinel
-# 参考上文[主备设置实践](#主备设置实践(replicaof))启动两套redis主从(36379、36380和46379、46380)
+
+# 启动redis主备。参考上文[主备设置实践](#主备设置实践(replicaof))启动两套redis主从(36379、36380和46379、46380)
 redis-server ./36379.conf
 redis-server ./36380.conf --slaveof 127.0.0.1 36379
+
 # 启动并连接
 bin/predixy conf/predixy.conf
 redis-cli -p 7617
+
 # 1.普通设值
 set k1 1 # 存放在36379主从中
 set k2 2 # 存放在46379主从中
@@ -985,11 +1001,34 @@ sentinel monitor yyy 127.0.0.1 46379 2
 
 ![redis-击穿-穿透-雪崩](/data/images/db/redis-击穿-穿透-雪崩.png)
 
+- 穿透解决方案：布隆过滤器、布谷鸟过滤器
+- 击穿解决方案：setnx，伪代码如下
+
+```java
+public String get(key) {
+    String value = redis.get(key);
+    if (value == null) { // 代表缓存值过期
+        // 加锁，并设置3min的超时，防止del操作失败的时候，下次缓存过期一直不能load db
+        if (redis.setnx(key_mutex, 1, 3 * 60) == 1) { // 代表设置成功
+            value = db.get(key);
+            redis.set(key, value, expire_secs);
+            redis.del(key_mutex);
+        } else { // 这个时候代表有其他线程获取到锁，已经或正在load db并回设到缓存，这时候重试获取缓存值即可
+            sleep(50);
+            get(key); // 重试（递归调用，如果值为空还是会尝试获取锁）
+        }
+    } else {
+        return value;      
+    }
+}
+```
+- 雪崩解决方案：随机过期时间、加锁或队列、二级缓存
+
 ## Java使用
 
 ### 解决session一致性(session共享)
 
-- 参考《nginx》的【反向代理和负载均衡】部分
+- 参考[nginx.md#反向代理和负载均衡](/_posts/arch/nginx.md#反向代理和负载均衡)
 
 ### springboot使用redis
 
@@ -1062,7 +1101,7 @@ public class RedisTool {
     }
 }
 ```
-- `jedis.set(String key, String value, String nxxx, String expx, int time)` 对应如 `set my_lock id_12345678 nx ex 60`
+- `jedis.set(String key, String value, String nxxx, String expx, int time)` 对应如 **`set my_lock id_12345678 nx ex 60`**
     - 使用key来当锁，因为key是唯一的
     - value传的是requestId，就可知道这把锁是哪个请求加的了，在解锁的时候就可以有依据。**解铃还须系铃人**。requestId可以使用UUID.randomUUID().toString()方法生成
     - NX，意思是SET IF NOT EXIST，即当key不存在时，进行set操作；若key已经存在，则不做任何操作。**互斥性**

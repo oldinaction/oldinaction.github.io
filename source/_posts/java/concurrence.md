@@ -544,7 +544,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
             - SortedSet 接口
                 - **TreeSet** 为有序Set，默认找元素大小排序，可定义比较器；TreeSet 中的元素必须实现Comparable接口并重写compareTo()方法；线程不安全
             - EnumSet
-            - **CopyOnWriteArraySet** 线程安全
+            - **CopyOnWriteArraySet** 线程安全，具体参考[Copy-On-Write写时复制](/_posts/linux/计算机底层知识.md#Copy-On-Write写时复制)
             - CopyOnWriteSkipListSet
         - Queue 高并发较常用
             - 相关方法(ABQ为例)

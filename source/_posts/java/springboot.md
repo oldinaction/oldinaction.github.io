@@ -15,6 +15,7 @@ tags: springboot
 ## 简介
 
 - [Docs](https://docs.spring.io/spring-boot/docs/)
+- IDEA使用Spring initializr 创建SpringBoot项目超时，可以使用`https://start.aliyun.com`的镜像
 
 ## 版本说明
 
@@ -963,13 +964,39 @@ Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity,
 // 如果不设置 RestTemplate 相关属性，则无需手动引入
 @Bean // spirngboot > 1.4 无需其他依赖
 public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) {
-	// 服务器内存溢出，还未宕机时，是可以请求服务，但是一直获取不到返回。需要超时机制
+	// 1.服务器内存溢出，还未宕机时，是可以请求服务，但是一直获取不到返回。需要超时机制
     RestTemplate restTemplate = restTemplateBuilder
-			.setConnectTimeout(3000)
-			.setReadTimeout(3000)
+			.setConnectTimeout(3000) // 连接主机的超时时间（单位：毫秒），3s
+			.setReadTimeout(3000) // 从主机读取数据的超时时间（单位：毫秒），3s
 			.build();
-    // 自定义拦截器restTrackInterceptor(implements org.springframework.http.client.ClientHttpRequestInterceptor)。必须通过此拦截器才可以修改如Header中的值，AOP无法修改
+    
+    // 2.自定义拦截器restTrackInterceptor(implements org.springframework.http.client.ClientHttpRequestInterceptor)。必须通过此拦截器才可以修改如Header中的值，AOP无法修改
     restTemplate.setInterceptors(Collections.singletonList(restTrackInterceptor));
+
+    // 3.忽略证书
+    try {
+        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+                .loadTrustMaterial(null, new TrustStrategy() {
+                    @Override
+                    public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                        return true;
+                    }
+                })
+                .build();
+        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setSSLSocketFactory(csf)
+                .build();
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(httpClient);
+        restTemplate = new RestTemplate(requestFactory);
+    } catch (Exception e) {
+        log.error("RestTemplate 忽略证书调用错误：", e);
+    }
+
+    // 4.处理中文乱码
+    restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
 	return restTemplate;
 }
 

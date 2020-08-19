@@ -227,11 +227,16 @@ export default {
 ## 兼容问题
 
 - 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
-
-
+- IOS 和 Android 对时间的解析有区别 [^1]
+    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
+    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
 
 
 
 
 
 ---
+
+参考文章
+
+[^1]: https://www.jianshu.com/p/a6b3221807f0

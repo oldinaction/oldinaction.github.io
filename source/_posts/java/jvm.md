@@ -193,7 +193,7 @@ tags: [jvm]
     - 普通对象
         - 对象头
             - markword 占8个字节
-            - ClassPointer 用来指向对象对应的Class对象（其对应的元数据对象）的内存地址（也称Klass?）
+            - ClassPointer 用来指向对象对应的Class对象（其对应的元数据对象）的内存地址（也称Klass word）
                 - 增加 **`-XX:+UseCompressedClassPointers`** (开启ClassPointer指针压缩) 参数时为4字节，不开启(换成减号，-XX:-UseCompressedClassPointers)则为8字节。`java -XX:+PrintCommandLineFlags -version` 可查看JVM默认配置（64位开启了ClassPointer指针压缩）
                 - Hotspot开启内存压缩的规则(64位机)：4G以下直接砍掉高32位；4G-32G默认开启内存压缩(ClassPointers、Oops)；32G以上压缩无效，使用64位，内存并不是越大越好
         - 实例数据
@@ -868,7 +868,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 
 > https://www.cnblogs.com/lazyegg/p/13353474.html
 
-- 线程池不当运用产生OOM问题，见T03_FullGC_Problem01
+- 线程池不当运用产生OOM问题，见T03_FullGC_Problem01；或者使用 newFixedThreadPool 等线程池
 - tomcat http-header-size过大问题。如：server.max-http-header-size=10000000
     - `Http11OutputBuffer`对象占用太大内存
 - 重写finalize引发频繁GC

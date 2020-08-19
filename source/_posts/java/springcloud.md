@@ -8,9 +8,11 @@ tags: [SpringCloud, 微服务]
 
 ## 介绍
 
+- [Greenwich 版中文文档](https://www.springcloud.cc/spring-cloud-greenwich.html)、[github](https://github.com/spring-cloud)
 - Spring Cloud是基于Spring Boot的用于快速构建分布式系统工具集
 - Spring Cloud特点：约定优于配置、开箱即用，快速启动、轻量级组件、组件丰富、选型中立
 - 本文相关软件：JDK: 1.8，SpringCloud: `Dalston.SR1`(如无特殊说明)
+- [历史版本](https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies)，历史文档可以找网上的PDF资源（官网貌似没有）
 - [本文相关源码](https://github.com/oldinaction/springcloud)
 
 ## 微服务构建
@@ -67,8 +69,8 @@ tags: [SpringCloud, 微服务]
     - 当 Eureka Server 90s 内没有收到 Eureka Client 的心跳，注册中心则认为该节点失效，会注销该实例
     - 单位时间内 Eureka Server 统计到有大量的 Eureka Client 没有上送心跳，则认为可能为网络异常，进入自我保护机制，不再剔除没有上送心跳的客户端
     - 当 Eureka Client 心跳请求恢复正常之后，Eureka Server 自动退出自我保护模式
-    - Eureka Client 定时全量或者增量从注册中心获取服务注册表，并且将获取到的信息缓存到本地
-    - 服务调用时，Eureka Client 会先从本地缓存找寻调取的服务。如果获取不到，先从注册中心刷新注册表，再同步到本地缓存
+    - Eureka Client 定时全量或者增量从注册中心获取服务注册表，并缓存到本地
+    - 服务调用时，Eureka Client 会先从本地缓存找寻调取的服务；如果获取不到，则从注册中心刷新注册表，再同步到本地缓存
     - Eureka Client 获取到目标服务器信息，发起服务调用
     - Eureka Client 程序关闭时向 Eureka Server 发送取消请求，Eureka Server 将实例从注册表中删除
 
@@ -140,6 +142,8 @@ tags: [SpringCloud, 微服务]
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-eureka</artifactId>
+        <!-- Edgware 版本开始，依赖名称改成下面的 artifactId -->
+        <!-- <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId> -->
     </dependency>
     ```
 - 在Application.java中加注解`@EnableEurekaClient`

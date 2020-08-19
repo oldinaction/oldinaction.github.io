@@ -1456,7 +1456,7 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     Window 3:Mem: Cumulative mode On.  System: Delay 3.0 secs; Secure mode Off.
         # 全局配置：Z 颜色，B 背景
         Z,B,E,e   Global: 'Z' colors; 'B' bold; 'E'/'e' summary/task memory scale
-        # 总的统计：l 显示负载(默认显示)；t 显示CPU使用图示；m 显示内存使用图示
+        # 总的统计：l 显示负载(默认显示)；t 显示CPU使用图示（重复按键可切换显示模式）；m 显示内存使用图示（重复按键可切换显示模式）
         l,t,m     Toggle Summary: 'l' load avg; 't' task/cpu stats; 'm' memory info
         0,1,2,3,I Toggle: '0' zeros; '1/2/3' cpus or numa node views; 'I' Irix mode
         # 字段配置：f 进入字段操作界面（d 增加/删除字段，s 切换排序字段）；F 进入字段列显示顺序排序界面(选中一行上下切换即可)

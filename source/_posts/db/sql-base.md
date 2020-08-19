@@ -888,12 +888,12 @@ set session transaction isolation level read uncommitted;
 
 ### InnoDB日志(Redo/Undo)
 
-- Redo log(重做日志)和Undo log都是innodb存储引擎才有日志文件
-- Redo Log是为了实现数据持久性
+- `Redo log` (重做日志)和 `Undo log` 都是innodb存储引擎才有日志文件
+- `Redo Log` 是为了实现数据持久性
     - **当发生数据修改的时候， innodb引擎会先将数据更新内存并写到redo log(buffer)中，此时更新就算是完成了**；同时innodb引擎会在合适的时机将记录操作到磁盘中
-    - redo log是固定大小的，是循环写的过程，空间会用完(可通过参数配置其大小)
+    - redo log是**固定大小**的，是**循环写**的过程，空间会用完(可通过参数配置其大小)
         - 如果redolog太小，会导致很快被写满，然后就不得不强行刷redolog，这样WAL机制(见下文)的能力就无法发挥出来。如果磁盘能达到几TB，那么可以将redolog设置4个一组，每个日志文件大小为1GB，写到3号文件末尾后就回到0号文件开头。`show variables like '%innodb_log_file%';`查看单个文件的大小
-    - redo log是物理日志，即数据页中的真实二级制数据，恢复速度快
+    - redo log是**物理日志**，数据页中为真实二级制数据，恢复速度快
     - innodb存储引擎数据的单位是页，redo log也是基于页进行存储，一个默认16K大小的页中存了很多512Byte的log block，log block的存储格式如[log block header 12Byte，log block body 492 Bytes，log block tailer 8 Bytes]
     - 用途是重做数据页。有了redo log之后，innodb就可以保证即使数据库发生异常重启，之前的记录也不会丢失，系统会自动恢复之前记录，叫做crash-safe(不包含误删数据的恢复)
 - 既然要避免io，为什么写redo log的时候不会造成io的问题？
@@ -910,7 +910,7 @@ set session transaction isolation level read uncommitted;
         - 效率：2 > 0 > 1
 - Undo Log是为了实现事务的原子性，在MySQL数据库InnoDB存储引擎中，还用Undo Log来实现多版本并发控制(简称MVCC)
     - 在操作任何数据之前，首先将数据备份到一个地方（这个存储数据备份的地方称为Undo Log），然后进行数据的修改。如果出现了错误或者用户执行了ROLLBACK语句，系统可以利用Undo Log中的备份将数据恢复到事务开始之前的状态
-    - Undo log是逻辑日志，可以理解为
+    - Undo log是**逻辑日志**，可以理解为
         - 当insert一条记录时，undo log中会记录一条对应的delete记录
         - 当update一条记录时，它记录一条对应相反的update记录
         - 当delete一条记录时，undo log中会记录一条对应的insert记录
@@ -920,8 +920,8 @@ set session transaction isolation level read uncommitted;
 - Binlog(归档日志)是server层的日志，因此和存储引擎无关，其主要做mysql功能层面的事情
 - 与Redo日志的区别
     - redo是innodb独有的， binlog是所有引擎都可以使用的
-    - redo是物理日志，记录的是在某个数据页上做了什么修改，binlog是逻辑日志，记录的是这个语句的原始逻辑
-    - redo是循环写的，空间会用完；binlog是可以追加写的，不会覆盖之前的日志信息
+    - redo是物理日志，记录的是在某个数据页上做了什么修改，**binlog是逻辑日志（也是二进制格式）**，记录的是这个语句的原始逻辑
+    - redo是循环写的，空间会用完；**binlog是可以追加写的**，不会覆盖之前的日志信息
 - sync_binlog 参数来控制数据库的binlog刷到磁盘上去方式。参考[服务器参数设置](/_posts/db/sql-optimization.md#服务器参数设置)
 - 有两份日志的历史原因
     - 一开始并没有InnoDB，采用的是MyISAM，但MyISAM没有crash-safe的能力，binlog日志只能用于归档

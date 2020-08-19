@@ -829,23 +829,23 @@ public class JobManager {
 }
 ```
 
-### 事物支持
+## 事物支持
 
 - Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的
     - **`@Transactional`注解只能被应用到 public 可见度的方法上**
     - **自调用导致`@Transactional`失效问题**：同一个类中的方法相互调用，发起方法无`@Transactional`，则被调用的方法`@Transactional`无效 [^3]
         - 方案：通过BeanPostProcessor 在目标对象中注入代理对象
         - 原因：由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，**自调用时不存在代理对象的调用，这时不会产生注解@Transactional配置的参数**，因此无效
-- **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
-	- `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(throw出来的)捕获异常Exception时也回滚
-	- `@Transactional(noRollbackFor=RuntimeException.class)` 指定不回滚
-- **服务内部捕获异常Exception/RuntimeException，统一返回错误结果对象，如自定义`Result`，此时无法回滚事物**，解决方案如下
-    - `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)
-    - 或者手动抛出RuntimeException
-    - 或者基于自定义注解统一回滚
-- **事物生命周期是从AOP调用的目标方法开始的，到该方法执行完成事物环境即消失**
-- 一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)，具体见下文事物传播行为
-- 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
+    - **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
+        - `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(声明上throws出来的)捕获异常Exception时也回滚
+        - `@Transactional(noRollbackFor=RuntimeException.class)` 指定不回滚
+    - **服务内部捕获异常Exception/RuntimeException，统一返回错误结果对象，如自定义`Result`，此时无法回滚事物**，解决方案如下
+        - `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)
+        - 或者手动抛出RuntimeException
+        - 或者基于自定义注解统一回滚
+    - **事物生命周期是从AOP调用的目标方法开始的，到该方法执行完成事物环境即消失**
+    - **一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)**，具体见下文事物传播行为
+    - 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
 - **隔离级别** `@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读 [^2]
 	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是`READ_COMMITTED`；然而mysql的默认值是`REPEATABLE_READ`
 	- `READ_UNCOMMITTED`：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读和不可重复读，因此很少使用该隔离级别
@@ -854,10 +854,10 @@ public class JobManager {
 	- `SERIALIZABLE`：所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
 - **传播行为** `@Transactional(propagation = Propagation.REQUIRED)`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
 	- `REQUIRED`：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务
-	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行
-	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
 	- `REQUIRES_NEW`：创建一个新的事务，如果当前存在事务，则把当前事务挂起
+	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行
 	- `NOT_SUPPORTED`：以非事务方式运行，如果当前存在事务，则把当前事务挂起
+	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
 	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常
 	- `NESTED`：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED
 - 示例
@@ -906,7 +906,7 @@ public Result addTest() throws Exception {
     return null;
 }
 
-// 3.## 在Test测试程序中通过此Controller相关Bean调用该方法 和 浏览器直接访问，都无法正常回滚
+// 3.## 在Test测试程序中通过此Controller相关Bean调用该方法和浏览器直接访问，都无法正常回滚
 // Controller1.java
 @RequestMapping("/addTest")
 public Result addTest() {
