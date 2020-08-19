@@ -2,16 +2,72 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
+    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
     
-    <lastmod>2020-08-16T12:26:41.350Z</lastmod>
+    <lastmod>2020-08-19T00:09:09.975Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
-    <lastmod>2020-08-16T12:19:07.279Z</lastmod>
+    <lastmod>2020-08-18T08:30:02.576Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
+    
+    <lastmod>2020-08-18T07:59:42.454Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2020-08-18T06:49:40.475Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
+    
+    <lastmod>2020-08-18T06:27:56.691Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
+    
+    <lastmod>2020-08-18T05:59:25.882Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
+    
+    <lastmod>2020-08-17T05:44:39.163Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
+    
+    <lastmod>2020-08-17T04:06:49.842Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
+    
+    <lastmod>2020-08-17T02:21:10.113Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    
+    <lastmod>2020-08-17T02:18:47.973Z</lastmod>
     
   </url>
   
@@ -19,13 +75,6 @@
     <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
     
     <lastmod>2020-08-16T12:08:48.912Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    
-    <lastmod>2020-08-16T11:49:56.346Z</lastmod>
     
   </url>
   
@@ -72,20 +121,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2020-08-15T11:50:24.298Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
-    
-    <lastmod>2020-08-15T11:10:17.240Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
     
     <lastmod>2020-08-15T04:11:36.194Z</lastmod>
@@ -100,23 +135,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
-    
-    <lastmod>2020-08-14T06:40:07.925Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
     
     <lastmod>2020-08-14T06:07:03.760Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
-    
-    <lastmod>2020-08-14T02:29:20.923Z</lastmod>
     
   </url>
   
@@ -198,13 +219,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
-    
-    <lastmod>2020-08-08T10:32:22.124Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
     
     <lastmod>2020-08-07T01:44:16.753Z</lastmod>
@@ -222,13 +236,6 @@
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2020-08-03T02:38:11.359Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2020-07-30T01:18:50.113Z</lastmod>
     
   </url>
   
@@ -334,13 +341,6 @@
     <loc>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz%E8%BF%9B%E9%98%B6/</loc>
     
     <lastmod>2020-06-18T09:09:27.223Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
-    
-    <lastmod>2020-06-18T09:09:24.977Z</lastmod>
     
   </url>
   
