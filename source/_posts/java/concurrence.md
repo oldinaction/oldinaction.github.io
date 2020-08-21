@@ -51,8 +51,8 @@ tags: [concurrence, collection, juc, 线程池]
         - wait会暂停当前的线程，会让出CPU
         - **wait/notify/notifyAll使用，前提是必须先获得锁，即一般在 synchronized 同步代码块里使用**
             - 只有当 notify/notifyAll 被执行时候，才会唤醒一个或多个正处于等待状态的线程，然后继续往下执行，直到执行完synchronized代码块的代码或是中途遇到wait再次释放锁
-        - **wait会释放锁，notify/notifyAll不会释放锁**
-            - **wait回来继续执行时，仍然需要获得锁才能继续执行**
+        - **wait会释放锁，notify/notifyAll不会释放锁**（wait不用退出同步代码块就会释放锁，而notify/notifyAll必须退出同步代码块才会释放）
+            - **wait醒来继续执行时，仍然需要获得锁才能继续执行**（因为wait下面的代码块一般也在同步块中，此时需要对应notify释放锁，即notify退出同步代码块）
             - notify/notifyAll 的执行只是唤醒沉睡的线程，而不会立即释放锁，锁的释放要看代码块的具体执行情况。所以在编程中，**尽量在使用了notify/notifyAll后立即退出同步代码块，以让唤醒的线程获得锁**
         - wait 需要被try catch包围，以便发生异常中断也可以使wait等待的线程唤醒
         - **notify 和 wait 的顺序不能错**，否则报错IllegalMonitorStateException。如果A线程先执行notify方法，B线程再执行wait方法，那么B线程是无法被唤醒的(不会报错，LockSupport得unpark可在park之前运行)
@@ -121,8 +121,8 @@ tags: [concurrence, collection, juc, 线程池]
         
         ![jvm-32-markword](/data/images/java/jvm-32-markword.png)
 - 底层实现
-    - **synchronized锁升级流程：无锁 - 偏向锁 - 自旋锁 - 重量级**(锁是没法降级的)
-        - 偏向锁(Biased Locking)，是Java6引入的一项多线程优化
+    - **synchronized锁升级流程：无锁 - 偏向锁 - 轻量级锁 - 重量级**(锁是没法降级的)
+        - 偏向锁：Biased Locking，是Java6引入的一项多线程优化
             - 顾名思义，它会偏向于第一个访问锁的线程，如果在运行过程中，同步锁只有一个线程访问，不存在多线程争用的情况，则线程是不需要触发同步的，这种情况下，就会给线程加一个偏向锁。如果在运行过程中，遇到了其他线程抢占锁，则持有偏向锁的线程会被挂起，JVM会消除它身上的偏向锁，将锁恢复到标准的轻量级锁
             - 偏向锁获取流程
                 - 1.访问Mark Word中偏向锁的标识是否设置成1，锁标志位是否为01，确认为可偏向状态
@@ -131,8 +131,13 @@ tags: [concurrence, collection, juc, 线程池]
                 - 4.如果CAS获取偏向锁失败，则表示有竞争。当到达全局安全点（safepoint，会导致stop the word，时间很短）时获得偏向锁的线程被挂起，偏向锁升级为轻量级锁，然后被阻塞在安全点的线程继续往下执行同步代码。（撤销偏向锁的时候会导致stop the word）
                 - 5.执行同步代码
             - 偏向锁的释放：偏向锁只有遇到其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁，线程不会主动去释放偏向锁
-        - 如果线程争用，则升级为自旋锁
-        - 自旋10次之后，仍然没有获取到锁，则升级为重量级锁(从OS获取锁)
+        - 轻量级锁：如果线程争用，则升级为轻量级锁
+            - 拷贝Mark Word到锁记录栈帧：在代码进入同步块的时候，如果同步对象锁状态为无锁状态（锁标志位为“01”，为偏向锁标志位为“0”），虚拟机首先将在当前线程的栈帧中建立一个名为锁记录（Lock Record）的空间，然后拷贝对象头中的Mark Word到锁记录中
+            - 设置Mark Word和锁记录的Owner：拷贝成功后，虚拟机将使用CAS操作尝试将对象的Mark Word（前30位）更新为指向Lock Record的指针，并将Lock Record里的owner指针指向对象的Mark Word
+            - 设置轻量级锁状态：如果这个更新动作成功了，那么这个线程就拥有了该对象的锁，并且对象Mark Word的锁标志位设置为“00”，表示此对象处于轻量级锁定状态
+            - 如果轻量级锁的更新操作失败了，虚拟机首先会检查对象的Mark Word是否指向当前线程的栈帧，如果是就说明当前线程已经拥有了这个对象的锁，那就可以直接进入同步块继续执行，否则说明多个线程竞争锁
+            - 若当前只有一个等待线程，则该线程通过自旋进行等待。但是当自旋超过一定的次数，或者一个线程在持有锁，一个在自旋，又有第三个来访时，轻量级锁升级为重量级锁
+        - 重量级锁：JDK6之前自旋10次之后，仍然没有获取到锁，则升级为重量级锁(从OS获取锁)；JDK6开始引入自适应自旋（次数动态变化）
     - 自旋锁和系统锁(OS锁/重量级锁)
         - 自旋锁时，线程不会进入等待队列，而是定时while循环尝试获取锁，此时会占用CPU，但是加锁解锁不经过内核态因此加解锁效率高
         - 系统锁，会进入到等待队列，等待CPU调用，不占用CPU资源。CAS属于自旋锁，有的认为CAS是无锁
@@ -227,7 +232,7 @@ public class T02_DLC_Singleton {
     - 最终基于`sun.misc.Unsafe`实现
         - Unsafe提供了访问底层的机制，这种机制主要供java核心类库使用。可通过反射获取Unsafe实例
         - CompareAndSwap操作：CAS基于此类操作完成
-        - park/unpark：LockSupport.park()/unpark()，它们底层都是调用的Unsafe的这两个方法
+        - LockSupport.park()/unpark()：它们底层都是调用的Unsafe的这两个方法
         - 可以直接操作堆外内存：如对于方法allocateMemory(分配堆外内存，对应C中的malloc，C++中的new)和freeMemory(释放内存，对应C中的free，C++中的delete)
         - 可进行对象实例化：`User user = (User) unsafe.allocateInstance(User.class);`(只会给对象分配内存，并不会调用构造方法)
         - 修改私有字段的值：`Field age = user.getClass().getDeclaredField("age"); unsafe.putInt(user, unsafe.objectFieldOffset(age), 20);`
@@ -248,10 +253,11 @@ public class T02_DLC_Singleton {
     ![aqs-structure](/data/images/java/aqs-structure.png)
     - **AQS使用一个 volatile int state 的成员变量来表示同步状态，通过内置的FIFO队列来完成资源获取的排队工作，通过CAS完成对state值的修改**
     - CLH(Craig、Landin and Hagersten，人名)队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列(FIFO)，AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配
-- 以ReentrantLock为例说明AQS执行过程
+- 以 ReentrantLock 为例说明AQS执行过程
 
     ![aqs-reentrantlock-uml](/data/images/java/aqs-reentrantlock-uml.png)
     - **加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待**
+    - setExclusiveOwnerThread 主要是为了记录当前获取锁的线程，对于可重入锁可以此进行判断
 - 为什么 AQS 需要一个虚拟 head 节点
     - Node 类的 waitStatus 变量用于表名当前节点状态。其中SIGNAL表示当当前节点释放锁的时候，需要唤醒下一个节点，所有每个节点在休眠前，都需要将前置节点的 waitStatus 设置成 SIGNAL，否则自己永远无法被唤醒
         - 初始状态是 0
@@ -380,7 +386,7 @@ barrier.await(); // 某个线程在等待，计数器+1；当计数器满后则�
 ##### Phaser分段栅栏
 
 - 适用一个大任务可以分为多个阶段完成，且每个阶段的任务可以多个线程并发执行，但是必须上一个阶段的任务都完成了才可以执行下一个阶段的任务
-- Phaser相对于CyclicBarrier和CountDownLatch的优势
+- Phaser（/'feɪzə/）相对于CyclicBarrier和CountDownLatch的优势
     - Phaser可以完成多阶段，且阶段数可以控制；而CyclicBarrier或者CountDownLatch对多阶段的控制不是很方便
     - Phaser每个阶段的任务数量可以控制，而一个CyclicBarrier或者CountDownLatch任务数量一旦确定不可修改
     - Phaser支持分层(Tiering，一种树形结构)，因为当一个Phaser有大量参与者(parties)的时候，内部的同步操作会使性能急剧下降，而分层可以降低竞争，从而减小因同步导致的额外开销
@@ -548,36 +554,35 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
             - CopyOnWriteSkipListSet
         - Queue 高并发较常用
             - 相关方法(ABQ为例)
-                - add 添加，超过集合容量会报错：java.lang.IllegalStateException: Queue full
-                - offer 添加，超过集合容量则不再放入，也不报错，线程不会阻塞，返回是否放入成功
-                - remove 移除头部元素并返回此元素，如果没有则抛出异常java.util.NoSuchElementException
-                - poll 移除头部元素并返回此元素，如果没有则返回null
-                - element 获取头部元素，如果没有则抛出异常
-                - peek 获取头部元素，如果没有则返回null
+                - `add` 添加，超过集合容量会报错：java.lang.IllegalStateException: Queue full
+                - `offer` 添加，超过集合容量则不再放入，**也不报错，线程不会阻塞，返回是否放入成功**
+                - `remove` 移除头部元素并返回此元素，如果没有则抛出异常java.util.NoSuchElementException
+                - `poll` 移除头部元素并返回此元素，如果没有则返回null
+                - `element` 获取头部元素，如果没有则抛出异常
+                - `peek` 获取头部元素，如果没有则返回null
             - **BlockingQueue**(接口) 天然的生产者消费者模型，线程池中会使用到
                 - 相关方法(ABQ为例)
-                    - put (设计上)放入元素，满了会阻塞等待
-                    - take (设计上)移除头部元素并返回此元素，没有则阻塞等待
+                    - `put` (设计上)放入元素，**满了会阻塞等待**
+                    - `take` (设计上)移除头部元素并返回此元素，没有则阻塞等待
                 - **ArrayBlockingQueue(ABQ)** 基于ReentrantLock加锁
                     - put入队阻塞，take出队阻塞
                 - LinkedBlockingQueue
-                - PriorityBlockingQueue
-                    - put入队不阻塞(调用offer)，take出队阻塞
-                    - 基于优先级的队列，内部有一个排序器(放入的元素必须实现Comparable接口)。数据机构为heap(堆，用数组实现的完全二叉树)
+                - PriorityBlockingQueue 基于优先级的队列，内部有一个排序器(放入的元素必须实现Comparable接口)
+                    - **put入队不阻塞(调用offer)，take出队阻塞**
+                    - heap结构(堆，用数组实现的完全二叉树)，无界队列
                 - DelayQueue 延迟队列(类)
-                    - put入队不阻塞，take出队阻塞
+                    - **put入队不阻塞，take出队阻塞**
                     - 队列中的元素必须是实现Delayed接口，队列中的元素不但会按照延迟时间delay进行排序，且只有等待元素的延迟时间delay到期后才能出队
                     - 常用于基于时间的任务调度，等待时间段的先执行
+                    - heap结构，无界队列
+                - TransferQueue(接口)
+                    - `transfer` 方法相比put的区别是，**放入元素后，直到被取走，否则一直阻塞等待**
+                    - LinkedTransferQueue **无锁(cas)**
                 - SynchronousQueue 同步Queue(类)
                     - 当调用put放入元素后，如果没有被取走(take)，则put后会一致等待直到take拿走元素
                     - 底层基于TransferQueue实现，类似于Exchanger可作线程间数据交换
                     - 队列的容量为0，不能往里面直接add元素，会报错
-                - TransferQueue(接口)
-                    - 相关方法
-                        - transfer 相比put的区别是，放入元素后，直到被取走，否则一直阻塞等待
-                    - LinkedTransferQueue 无锁(cas)
-            - **ConcurrentLinkedQueue** 类，无锁(cas)，线程安全，无界队列。JDK中没有ConcurrentArrayQueue
-            - PriorityQueue 为java.util.PriorityQueue类，线程不安全(线程安全考虑可使用PriorityBlockingQueue)；最小的先执行，内部是一个堆排序的二叉树
+            - **ConcurrentLinkedQueue** 类，**无锁(cas)**，线程安全，无界队列。JDK中没有ConcurrentArrayQueue
             - Deque 是double ended queue的简称，习惯上称之为**双端队列**(头尾均可加入取出元素)。发音为/dek/
                 - 当作为队列使用时，为FIFO(先进先出)模型，对应使用方法
                     - addLast
@@ -597,9 +602,11 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - ArrayDeque 数组类型的双端队列，线程不安全
                 - BlockingDeque 接口
                     - LinkedBlockingDeque 线程安全
+            - 其他
+                - PriorityQueue 并未实现Queue接口，为java.util.PriorityQueue类，线程不安全(线程安全考虑可使用PriorityBlockingQueue)；最小的先执行，内部是一个堆排序的二叉树
     - Map 用来放Key-Value型数据
         - Hashtable 线程安全，put方法上加synchronized
-        - **HashMap** 线程不安全，put后最中map.size()可能大于实际值
+        - **HashMap** 线程不安全，put后最终map.size()可能大于实际值
             - **LinkedHashMap**
         - **TreeMap**
         - **ConcurrentHashMap** 线程安全，put过程中使用synchronized
@@ -622,7 +629,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 
     ![juc-queue](/data/images/java/juc-queue.png)
     - 队列的底层一般分成三种：数组、链表和堆。其中，堆一般情况下是为了实现带有优先级特性的队列
-    - ConcurrentLinkedQueue和LinkedTransferQueue都是通过原子变量compare and swap(CAS)这种不加锁的方式来实现的
+    - ConcurrentLinkedQueue 和 LinkedTransferQueue 都是通过原子变量compare and swap(CAS)这种不加锁的方式来实现的
     - 通过不加锁的方式实现的队列都是无界的(无法保证队列的长度在确定的范围内)；而加锁的方式，可以实现有界队列。在稳定性要求特别高的系统中，为了防止生产者速度过快，导致内存溢出，只能选择有界队列；同时，为了减少Java的垃圾回收对系统性能的影响，会尽量选择array/heap格式的数据结构
     - 下文提到的[Disruptor](#Disruptor)中使用的是环形队列+cas，性能极高
 
@@ -631,7 +638,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 - Executor 接口(java.util.concurrent.Executor)
     - execute
     - ExecutorService 接口
-        - submit 异步执行线程，返回Future。如 Future future = executorService.submit(callable);
+        - `submit` 异步执行线程，返回Future。如 Future future = executorService.submit(callable);
         - shutdown 停止，不再接受新的任务，但是会把队列中的任务执行完成才停止。如果不执行shutdown则主线程会一直处于阻塞状态
         - shutdownNow 立即停止，会给未执行完的任务发送一个interrupted指令
         - AbstractExecutorService
@@ -641,16 +648,18 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
             - **ScheduledThreadPoolExecutor**
                 - 也继承了ThreadPoolExecutor，也就是说其拥有execute()和submit()提交异步任务的基础功能
                 - 能够延时执行任务和周期执行任务的功能
-                - 两个重要的内部类：DelayedWorkQueue和ScheduledFutureTask。其中DelayedWorkQueue实现了BlockingQueue接口，也就是一个阻塞队列，ScheduledFutureTask则是继承了FutureTask类，也表示该类用于返回异步任务的结果
-- Callable 类似于Runnable，只不过Callable有返回值，而Runnable没有。不能通过new Thread执行，可通过ExecutorService调用，如executorService.submit(callable);
+                - 两个重要的内部类：DelayedWorkQueue 和 ScheduledFutureTask。其中DelayedWorkQueue实现了BlockingQueue接口，也就是一个阻塞队列，ScheduledFutureTask则是继承了FutureTask类，也表示该类用于返回异步任务的结果
+            - `schedule` 方法，类似submit异步提交任务，返回ScheduledFuture
+- Callable
     - call 类似于run，call有返回值，而run没有
+    - 类似于Runnable。区别是Callable有返回值，而Runnable没有；且不能通过new Thread执行，可通过ExecutorService调用，如executorService.submit(callable)
 - Future
     - get 获取返回结果，阻塞方法
-    - FutureTask 实现了RunnableFuture接口，是Runnable和Future接口的合体
+    - **FutureTask** 实现了RunnableFuture接口，是Runnable和Future接口的合体
     - CompletableFuture 可方便管理多个Future结果
         - CompletableFuture.supplyAsync(Runnable) 返回CompletableFuture对象
         - CompletableFuture.allOf 所有任务完成了之后
-- Executors 线程池工厂，见下文
+- Executors 线程池工具类，见下文
 - 线程池主要分为ThreadPoolExecutor和ForkJoinPool两种类型
 
 #### ThreadPoolExecutor
@@ -682,9 +691,19 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - newSingleThreadExecutor 只有一个线程(核心和最大线程数都为1)的线程池，其队列为LinkedBlockingQueue无界队列(容易内存溢出)
     - newFixedThreadPool 固定线程数的线程池(核心和最大线程数都为指定值)，且队列为LinkedBlockingQueue无界队列，如用于线程数比较平稳的常见
     - newCachedTreadPoll 核心线程数为0，最大线程数为Integer.MAX_VALUE，线程队列为SynchronousQueue(只有元素被取走了才能继续放元素)，如用于线程数波动比较大的场景
-    - newScheduledThreadPool 用于执行定时任务的线程池，实际用定时任务中间件较多
+    - newScheduledThreadPool 用于执行定时任务的线程池，实际用定时任务中间件较多。最大线程数为Integer.MAX_VALUE，线程队列为 DelayedWorkQueue
     - newWorkStealingPool 创建一个具有抢占式操作的线程池，JDK1.8新增，基于ForkJoinPool实现。适合使用在很耗时的操作
 - 阿里开发者手册不建议使用JDK自带线程池，主要原因是自带线程池的线程队列最大为Integer.MAX_VALUE，容易出现OOM，而且线程数太多，会竞争CPU，浪费时间在上下文切换上；且一般也建议自定义拒绝策略？
+- 完整示例
+
+```java
+@Bean
+public ExecutorService myExecutorService() {
+    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("my-pool-%d").build();
+    return new ThreadPoolExecutor(5, 200, 0, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
+}
+```
 - ThreadPoolExecutor源码解析
 
 #### ScheduledThreadPoolExecutor
@@ -692,9 +711,9 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 #### ForkJoinPool
 
 - ForkJoin思想：将大任务分解成小任务(Fork)，最后进行汇总(Join)
-    - ForkJoinPool中放的Task为ForkJoinTask
-    - ForkJoinTask 抽象类(implements Future)
-        - RecursiveAction 抽象类(Recursive递归，当任务不够小时可一直切分)，无返回值
+    - ForkJoinPool 类，中放的Task为ForkJoinTask
+    - ForkJoinTask 抽象类(implements Future)，一般使用时手动继承RecursiveAction或RecursiveTask两个抽象类
+        - RecursiveAction 抽象类(Recursive递归，当任务不够时可一直切分)，无返回值
         - RecursiveTask 抽象类，有返回值
 - Executors中基于ForkJoinPool实现线程池的方法
     - newWorkStealingPool 每个线程有自己单独的队列，当某个线程的队列消耗完后则从其他线程队列中拿任务(任务窃取算法)
@@ -1071,38 +1090,6 @@ public void submit() throws ExecutionException, InterruptedException {
 }
 ```
 
-### ThreadPoolExecutor
-
-- 在操作系统中，线程是一个非常重要的资源，频繁创建和销毁大量线程会大大降低系统性能。Java线程池原理类似于数据库连接池，目的就是帮助实现线程复用，减少频繁创建和销毁线程 [^2]
-- 常用构造方法`ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue)`
-    - `corePoolSize` 核心线程数量。默认情况下核心线程会一直存活，即使处于闲置状态也不会受存keepAliveTime限制，除非将allowCoreThreadTimeOut设置为true
-    - `maximumPoolSize` 最大线程数量。超过这个数的线程将被阻塞，当任务队列为没有设置大小的LinkedBlockingDeque时，这个值无效
-    - `keepAliveTime`：当线程池中线程数量大于核心线程数量，如果一个线程的空闲时间大于keepAliveTime，则该线程会被销毁
-    - `unit` 是keepAliveTime的时间单位，如`TimeUnit.SECONDS`
-    - `workQueue` 阻塞队列。常用的有三种队列，`LinkedBlockingDeque`、`ArrayBlockingQueue`、`SynchronousQueue`
-    - `ThreadFactory`参数：the factory to use when the executor creates a new thread
-    - `RejectedExecutionHandler`参数：当线程池中的资源已经全部使用，添加新线程被拒绝时，会调用RejectedExecutionHandler的rejectedExecution方法(**此时可能出现创建的线程超过定义的最大线程数**)。在 ThreadPoolExecutor 里面定义了4种 handler 策略
-        - `CallerRunsPolicy`：这个策略重试添加当前的任务，他会自动重复调用 execute() 方法，直到成功
-        - `AbortPolicy`：对拒绝任务抛弃处理，并且抛出异常
-        - `DiscardPolicy`：对拒绝任务直接无声抛弃，没有异常信息
-        - `DiscardOldestPolicy`：对拒绝任务不抛弃，而是抛弃队列里面等待最久的一个线程，然后把拒绝任务加到队列
-- **线程池添加任务的整个流程**
-    - 线程池刚刚创建是，线程数量为0
-    - 执行`execute`添加新的任务时会在线程池创建一个新的线程
-    - 当线程数量达到`corePoolSize`时，再添加新任务则会将任务放到`workQueue`队列
-    - 当队列已满，放不下新的任务，再添加新任务则会继续创建新线程，但线程数量不超过`maximumPoolSize`
-    - 当线程数量达到`maximumPoolSize`时，再添加新任务则会抛出异常，如`RejectedExecutionException`
-- 完整示例
-
-```java
-@Bean
-public ExecutorService myExecutorService() {
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("my-pool-%d").build();
-    return new ThreadPoolExecutor(5, 200, 0, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
-}
-```
-
 ### ScheduledThreadPoolExecutor
 
 ### Semaphore
@@ -1332,7 +1319,6 @@ public abstract class AbstractMultiThreadTestSimpleTemplate {
 参考文章
 
 [^1]: https://my.oschina.net/bairrfhoinn/blog/177639 (ExecutorService 的理解与使用)
-[^2]: https://blog.csdn.net/xiao__gui/article/details/51064317
 [^3]: https://www.infoq.cn/article/fork-join-introduction
 [^4]: https://www.cnblogs.com/tong-yuan/p/11768904.html
 [^5]: https://www.cnblogs.com/linghu-java/p/8944784.html (Java锁---偏向锁、轻量级锁、自旋锁、重量级锁)

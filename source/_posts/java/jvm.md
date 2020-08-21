@@ -192,8 +192,8 @@ tags: [jvm]
 - 对象在内存中的存储布局
     - 普通对象
         - 对象头
-            - markword 占8个字节
-            - ClassPointer 用来指向对象对应的Class对象（其对应的元数据对象）的内存地址（也称Klass word）
+            - `Mark Word` 标记字段，占8个字节
+            - `Klass Pointer` 类型指针，用来指向对象对应的Class对象（其对应的元数据对象）的内存地址（也称ClassPointer）
                 - 增加 **`-XX:+UseCompressedClassPointers`** (开启ClassPointer指针压缩) 参数时为4字节，不开启(换成减号，-XX:-UseCompressedClassPointers)则为8字节。`java -XX:+PrintCommandLineFlags -version` 可查看JVM默认配置（64位开启了ClassPointer指针压缩）
                 - Hotspot开启内存压缩的规则(64位机)：4G以下直接砍掉高32位；4G-32G默认开启内存压缩(ClassPointers、Oops)；32G以上压缩无效，使用64位，内存并不是越大越好
         - 实例数据
@@ -202,8 +202,8 @@ tags: [jvm]
         - Padding对齐：对象总大小保证为8的倍数
     - 数组对象(多了一个数组长度)
         - 对象头
-            - markword，同上
-            - ClassPointer，同上
+            - Mark Word，同上
+            - Klass Pointer，同上
             - **数组长度**，占4字节
         - 实例数据，同上
         - Padding对齐，同上
@@ -944,7 +944,8 @@ for(int i=0; i<100; i++) {
 - `-XX:+UseTLAB` 使用TLAB，默认打开
 - `-XX:+PrintTLAB` 打印TLAB的使用情况
 - `-XX:TLABSize` 设置TLAB大小
-- `-XX:PreBlockSpin` 锁自旋次数
+- `-XX:+UseSpinning` 开启自适应自旋，JDK1.6开始默认开启，并且引入了自适应自旋
+- `-XX:PreBlockSpin` 锁自旋次数（JDK6之前，之后使用自适应自旋）
 - `-XX:CompileThreshold` 热点代码检测参数，还有如逃逸分析、标量替换
 - 常见垃圾回收器组合参数设定见上文
 

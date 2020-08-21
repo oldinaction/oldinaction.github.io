@@ -83,6 +83,7 @@ ThisCrackLicenseId-{
     - `Deployment`中将刚刚的war配置进入
     - 在`Before launch`中加入Build这个war包
 - 打包：Build - Build Artifacts - xxx:war - build (在上述Output directory中可看到war包)
+- idea报错：Error：java不支持发行版本5的解决方法：https://www.cnblogs.com/wqy0314/p/11726107.html
 
 ### maven
 
@@ -135,6 +136,7 @@ ThisCrackLicenseId-{
     - `Ctrl + W` 语句感知
     - `Ctrl + Shift + Entry` 完成整句
     - `Ctrl + Shift + F7` 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处
+    - `Ctrl + H` 类似Navigate - Call Hierarchy 命令查看一个Java类的继承管理
 
 - 快捷键图片
 

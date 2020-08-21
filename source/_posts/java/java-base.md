@@ -99,6 +99,18 @@ private static enum YellEnum implements Yell {
     - 使用foreach遍历List删除元素，不能直接调用list.remove。主要是foreach本质是调用iterator，则只能用iterator.remove移除元素
     - 可直接通过list.iterator()获取iterator对象，再遍历时通过iterator.remove移除元素
 
+## 流
+
+- 字节字符流 [^2]
+
+    ![字节字符流](/data/images/java/java-io1.png)
+- 处理流
+
+    ![处理流](/data/images/java/java-io2.png)
+
+    - `BufferedReader#readLine`
+        - `new BufferedReader(new InputStreamReader(new FileInputStream("c:/test.text"))).readLine()` InputStreamReader起到把字节流转换成字符流
+
 ## 时间
 
 - GMT、**UTC**、CST [^1]
@@ -108,11 +120,11 @@ private static enum YellEnum implements Yell {
     - `CST` China Standard Time 中国标准时间(北京时间)。在时区划分上，属东八区，比协调世界时早8小时，记为`UTC+8`(`CST=GMT+8`)
         - 但是CST的缩写还是其他几个时间的缩写：`Central Standard Time (USA) UT-6:00`、`Central Standard Time (Australia) UT+9:30`、`China Standard Time UT+8:00、Cuba Standard Time UT-4:00`
 - 时间字符串
-    - `ISO 8061`格式
-        - ISO 8601的标准格式是：`YYYY-MM-DDTHH:mm:ss.sssZ`
+    - `ISO-8061`格式
+        - ISO-8601的标准格式是：`YYYY-MM-DDTHH:mm:ss.sssZ`
             - T仅仅为分隔日期和时间
             - Z为时区，指定Z时表示UTC时间，不指定时表示的是本地时间，可以取值：`Z`(UFC)、`Z+HH:mm`、`Z-HH:mm`("-07:00"表示西七区，"+08:00"表示东八区，时区默认是0时区，可以用Z表示)
-            - UTC时间 2000-01-01T16:00:00.000Z 等同于本地时间 2000-01-02 00:00:00
+            - UTC时间 2000-01-01T16:00:00.000Z 等同于本地时间（东八区） 2000-01-02 00:00:00
     - `RFC-2822` 格式
         - 如：`Thu Jan 01 1970 00:00:00 GMT+0800`、`Thu Jan 01 1970 00:00:00 GMT+0800 (CST)`
 - `Date`记录的是1970至今的毫秒数，不保存时区信息(因为时间戳和时区没有关系)
@@ -195,3 +207,5 @@ boolean mkdirs()
 参考文章
 
 [^1]: https://segmentfault.com/a/1190000004292140
+[^2]: https://juejin.im/post/6844903910348603405
+

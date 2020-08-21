@@ -73,6 +73,7 @@ tags: [SpringCloud, 微服务]
     - 服务调用时，Eureka Client 会先从本地缓存找寻调取的服务；如果获取不到，则从注册中心刷新注册表，再同步到本地缓存
     - Eureka Client 获取到目标服务器信息，发起服务调用
     - Eureka Client 程序关闭时向 Eureka Server 发送取消请求，Eureka Server 将实例从注册表中删除
+- Eureka控制台介绍：https://blog.csdn.net/qq_25112523/article/details/83028529
 
 ### eureka server
 
@@ -123,7 +124,7 @@ tags: [SpringCloud, 微服务]
             serviceUrl:
                 defaultZone: http://user:password@${eureka.instance.hostname}:${server.port}/eureka/
         server:
-            # 是否开启自我保护机制(Eureka 会统计15分钟之内心跳失败的比例低于85%将会触发保护机制，不剔除服务提供者). 在开发阶段，需要频繁重启，关闭自我保护可以立即剔除不可用节点。生成环境建议开启
+            # 是否开启自我保护机制(Eureka 会统计15分钟之内心跳失败的比例低于85%将会触发保护机制，不剔除服务提供者). 在开发阶段，需要频繁重启，关闭自我保护可以立即剔除不可用节点；生产环境建议开启。关闭保护机制，信息面板中会显示 THE SELF PRESERVATION MODE IS TURNED OFF
             enable-self-preservation: false
             # 清理间隔（单位毫秒，默认是60*1000），开发环境设置如下可快速移除不可用的服务
             eviction-interval-timer-in-ms: 5000

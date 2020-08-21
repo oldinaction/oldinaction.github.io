@@ -667,10 +667,11 @@ location ^~ /my-app/ {
 
 ### 常见兼容性问题
 
-- Chrome和Firefox的preview和response显示数据不一致问题 [^6]
+- Chrome和Firefox查看请求结果时preview和response显示数据不一致问题 [^6]
     - 原因可能是因为数据为Long型，返回给浏览器以后，浏览器转换数据格式的时候出现问题。解决方案：在返回数据之前就将数据转换为字符串
-
-
+- Chrome 84默认启用了SameSite=Lax属性 [^11] [^12]
+    - SameSite 可取值：Strict（所有情况都不发送Cookies给第三方）、Lax（少部分情况发送）、None（发送，但是需要为HTTPS访问）
+    - 如果A网页嵌入B网页时，用户打开A网页。如A与B属于同一域名，则B网站可在（前后端）对Cookies进行操作，也可传递Cookies给B；如果不是，则认为B网站为第三方页面，只对其开发部分情况（如a标签跳转、get类型的form提交）的Cookies传递
 
 
 ---
@@ -687,5 +688,6 @@ location ^~ /my-app/ {
 [^8]: https://mp.weixin.qq.com/s/LV7qziMyrMt0_EJWo05qkA (九种跨域方式实现原理)
 [^9]: https://juejin.im/post/5c09cbb1f265da617006ee83
 [^10]: https://juejin.im/post/5ceb480cf265da1b614fd537
-
+[^11]: http://www.ruanyifeng.com/blog/2019/09/cookie-samesite.html
+[^12]: https://web.dev/samesite-cookies-explained/
 

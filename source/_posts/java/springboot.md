@@ -2430,7 +2430,7 @@ public class DynamicAddTests {
 		- [《maven.md#结合springboot》](/_posts/arch/maven.md#结合springboot)。实际中主要是没有将`src/main/resources`目录添加到maven的resource中
 		- 或者在每中环境配置文件中都定义`crm.tempFolder`参数值
 
-## springboot 2.0.1 改动
+## springboot 2.0.1 改动及相关问题
 
 - jpa
 
@@ -2441,6 +2441,18 @@ public class DynamicAddTests {
 // User user = this.userRepositroy.getOne(id); // getOne获取的是代理对象；jpa1时，和findOne类似；jpa2时，getOne在jackjson转换时会报错，推荐使用findById
 // spring boot 2.0.1
 User user = this.userRepositroy.findById(id).get();
+```
+- 数据库循环引用，报错如下。参考：https://blog.csdn.net/Small_StarOne/article/details/106018215
+
+```java
+   org.springframework.boot.actuate.autoconfigure.jdbc.DataSourceHealthIndicatorAutoConfiguration
+┌─────┐
+|  dataSource
+↑     ↓
+|  scopedTarget.dataSource defined in class path resource [org/springframework/boot/autoconfigure/jdbc/DataSourceConfiguration$Hikari.class]
+↑     ↓
+|  org.springframework.boot.autoconfigure.jdbc.DataSourceInitializerInvoker
+└─────┘
 ```
 
 

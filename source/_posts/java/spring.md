@@ -85,7 +85,7 @@ tags: [spring, spring-mvc]
 
 - `@Import("cn.aezo.test.MyBean")`
     - Spring Boot中大量的EnableXXX都使用了@Import注解
-    - 可以导入导入普通的POJO类或带有`@Configuration`注解的配置类，或导入实现了`ImportSelector`/`ImportBeanDefinitionRegistrar`/`DeferredImportSelector`接口的返回的类。功能类似XML配置用来导入配置类
+    - 可以导入普通的POJO类或带有`@Configuration`注解的配置类，或导入实现了`ImportSelector`/`ImportBeanDefinitionRegistrar`/`DeferredImportSelector`接口的返回的类。功能类似XML配置用来导入配置类
         - DeferredImportSelector 为 ImportSelector 的子接口。区别是他会在所有的@Configuration类加载完成之后再加载返回的配置类，而ImportSelector会在当前Configuration类加载之前去加载返回的配置类
         - 可以使用@Order注解或者Ordered接口来指定DeferredImportSelector的加载顺序
     - `@ImportResource` 和@Import类似，区别就是@ImportResource导入的是配置文件。其属性default和locations作用相同，都是用来指定配置文件的位置；reader属性则用来指定配置文件解析器，内置XmlBeanDefinitionReader和GroovyBeanDefinitionReader，也可自定义。Spring还是推荐使用@Import而不是@ImportResource
@@ -210,8 +210,10 @@ public class App {
 - 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
 - 内置条件
     - `@ConditionalOnProperty` 要求配置属性匹配条件
-        - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)。其中：havingValue表示对应参数值，matchIfMissing=false表示无此参数则不符合条件
-    - `@ConditionalOnMissingBean` 当给定的类型、类名、注解、昵称在beanFactory中不存在时返回true，各类型间是or的关系
+        - `havingValue` 表示对应参数值
+        - `matchIfMissing` 表示缺少该配置属性时是否可以加载。如果为true，即表示没有该配置属性时也会正常加载；反之则不会生效
+        - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)
+    - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在beanFactory中不存在时返回true，各类型间是or的关系
         - eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
     - `@ConditionalOnBean` 与上相反，在存在某个bean的时候
         - eg：@ConditionalOnBean({Client.class})
