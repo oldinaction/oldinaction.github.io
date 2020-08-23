@@ -646,9 +646,6 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
             - **ForkJoinPool**
         - ScheduledExecutorService 接口
             - **ScheduledThreadPoolExecutor**
-                - 也继承了ThreadPoolExecutor，也就是说其拥有execute()和submit()提交异步任务的基础功能
-                - 能够延时执行任务和周期执行任务的功能
-                - 两个重要的内部类：DelayedWorkQueue 和 ScheduledFutureTask。其中DelayedWorkQueue实现了BlockingQueue接口，也就是一个阻塞队列，ScheduledFutureTask则是继承了FutureTask类，也表示该类用于返回异步任务的结果
             - `schedule` 方法，类似submit异步提交任务，返回ScheduledFuture
 - Callable
     - call 类似于run，call有返回值，而run没有
@@ -707,6 +704,12 @@ public ExecutorService myExecutorService() {
 - ThreadPoolExecutor源码解析
 
 #### ScheduledThreadPoolExecutor
+
+- 继承了 ScheduledExecutorService 和 ThreadPoolExecutor，也就是说其拥有schedule()、execute()和submit()提交任务的基础功能
+- 能够延时执行任务和周期执行任务的功能
+- 两个重要的内部类：DelayedWorkQueue 和 ScheduledFutureTask
+    - DelayedWorkQueue 实现了BlockingQueue接口，也就是一个阻塞队列
+    - ScheduledFutureTask 则是继承了FutureTask类，也表示该类用于返回异步任务的结果
 
 #### ForkJoinPool
 

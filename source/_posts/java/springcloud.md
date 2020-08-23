@@ -45,6 +45,7 @@ tags: [SpringCloud, 微服务]
 
 ## Eureka服务发现
 
+- 源码解析参考 [Eureka源码解析](/_posts/src/eureka-src.md)
 - 服务注册与发现
 
     ![服务注册与发现](/data/images/2017/07/服务注册与发现.png)
@@ -73,6 +74,7 @@ tags: [SpringCloud, 微服务]
     - 服务调用时，Eureka Client 会先从本地缓存找寻调取的服务；如果获取不到，则从注册中心刷新注册表，再同步到本地缓存
     - Eureka Client 获取到目标服务器信息，发起服务调用
     - Eureka Client 程序关闭时向 Eureka Server 发送取消请求，Eureka Server 将实例从注册表中删除
+- Eureka参数配置：https://www.cnblogs.com/liukaifeng/p/10052594.html
 - Eureka控制台介绍：https://blog.csdn.net/qq_25112523/article/details/83028529
 
 ### eureka server
@@ -118,7 +120,7 @@ tags: [SpringCloud, 微服务]
         client:
             # eureka server默认也是一个eureka client.以下两行仅将此App当成eureka server，不当成eureka client(由于是单点测试)
             register-with-eureka: false
-            # 是否检索其他服务注册中心, 默认为true。如果这是一个单点的 Eureka Server，则不需要同步其他节点的数据
+            # 要不要去注册中心获取其他服务的地址, 默认为true。如果这是一个单点的 Eureka Server，则不需要同步其他节点的数据
             fetch-registry: false
             # 将eureka注册到哪个url
             serviceUrl:
@@ -216,6 +218,45 @@ eureka:
     serviceUrl:
       defaultZone: http://smalle:smalle@peer1:8761/eureka/
 ```
+
+### 问题记录
+
+- Edgware(.SR6)版本的Eureka客户端向Finchley(.SR2)版本的服务端注册时报错`Could not read JSON document: Unrecognized field "overriddenStatus" (class com.netflix.appinfo.InstanceInfo)`，解决如下
+
+```java
+@Component
+public class CustomerAbstractDiscoveryClientOptionalArgs extends AbstractDiscoveryClientOptionalArgs {
+    public CustomerAbstractDiscoveryClientOptionalArgs() {
+        this.setTransportClientFactories(new RestTemplateTransportClientFactories() {
+            public TransportClientFactory newTransportClientFactory(EurekaClientConfig clientConfig, Collection<Void> additionalFilters, InstanceInfo myInstanceInfo) {
+                return new CustomerRestTemplateTransportClientFactory();
+            }
+        });
+    }
+
+    class CustomerRestTemplateTransportClientFactory extends RestTemplateTransportClientFactory {
+        public MappingJackson2HttpMessageConverter mappingJacksonHttpMessageConverter() {
+            MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+            // 增加自定义配置
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            converter.setObjectMapper(objectMapper);
+            SimpleModule jsonModule = new SimpleModule();
+            jsonModule.setSerializerModifier(createJsonSerializerModifier());
+            converter.getObjectMapper().registerModule(jsonModule);
+            converter.getObjectMapper().configure(SerializationFeature.WRAP_ROOT_VALUE, true);
+            converter.getObjectMapper().configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
+            converter.getObjectMapper().addMixIn(Applications.class, ApplicationsJsonMixIn.class);
+            converter.getObjectMapper().addMixIn(InstanceInfo.class, InstanceInfoJsonMixIn.class);
+            return converter;
+        }
+    }
+}
+```
+
 
 ## Ribbon客户端负载均衡
 
