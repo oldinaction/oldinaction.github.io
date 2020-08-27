@@ -38,11 +38,12 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 - `sc delete 服务名` 卸载某服务
 - `arp -a` 查看局域网下所有机器mac地址
 - `mkdir .ssh` 创建.开头文件夹
+- `type nul > .test` 创建.test文件
 - `echo hi > .npmignore` 创建.开头文件
 
 ## 常用技巧
 
-### 开机启动java等程序
+### 开机启动Java等程序
 
 - 自启动的程序可在任务管理器-启动列查看
 - 基于创建服务也可实现。如使用[Windows Service Wrapper](https://github.com/kohsuke/winsw)工具注册服务，此处以nginx注册成服务为例
@@ -93,7 +94,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 
 ## bat脚本
 
-参考[bat脚本：http://blog.aezo.cn/2017/05/10/lang/bat/](/_posts/lang/bat.md)
+- 参考[bat脚本：http://blog.aezo.cn/2017/05/10/lang/bat/](/_posts/lang/bat.md)
 
 ## 破解反编译
 
@@ -115,7 +116,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 - `Visio` 流程图。[Microsoft visio pro 2019 32位/64位](https://www.jb51.net/softs/634165.html#downintro2)
 - `DBeaver` 数据库连接工具(开源免费，支持数据库丰富)
 
-## 其他
+## 软件使用
 
 ### ssh客户端(不好用)
 
@@ -188,6 +189,17 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 - 禁止退出：参考 https://www.cnblogs.com/beeone/p/10556609.html
 - 最小化隐藏任务栏：右键图标 - 最小化隐藏
 - Outlook可和Foxmail互导联系人
+
+### Wireshark抓包
+
+- 如果是公网抓包，一般需要选择监听类似以太网的网卡
+- 常用表达式
+    - `ip.src == 192.168.1.100 && ip.dst == 114.114.114.114` 监听本机发送给114.114.114.114的包
+    - `(ip.src == 192.168.1.100 && ip.dst == 114.114.114.114) || (ip.src == 114.114.114.114 && ip.dst == 192.168.1.100)` 监听本机发送和收到的114.114.114.114的包
+    - `ip.src == 192.168.1.100 && tcp.dstport == 80` 监听本机发送给服务器80端口的包
+- 表达式字典
+    - 点击表达式输入框右侧的"表达式"按钮可显示所有支持的表达式（已经分好类）
+    - 常用的如`IPv4`、`HTTP2`、`TCP`、`UDP`、`ICMP`等。如搜索IPv4或ip.src和定位到相关表达式，右侧会显示此表达式支持的关系类型(==、!=、in、contains等)
 
 
 ---

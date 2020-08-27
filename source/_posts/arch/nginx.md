@@ -413,9 +413,11 @@ http {
         location /nginxStatus {
             stub_status on;
             access_log on;
-            # 需要认证
-            auth_basic "Hello Nginx";
-            auth_basic_user_file conf/htpasswd; #htpasswd文件的内容可以用apache提供的htpasswd工具来产生。
+            # 需要认证，conf/htpasswd文件的内容可以用apache提供的htpasswd工具来产生
+            # 配置：yum install httpd-tools -y；htpasswd -c -d conf/htpasswd admin
+            # 登录：浏览器会弹出登录框；或 wget --http-user=admin --http-passwd=123456 http://example.com/test；或 curl -u admin:123456 -O http://example.com/test
+            auth_basic "Hello Nginx"; # 提示语
+            auth_basic_user_file conf/htpasswd;
         }
 
         # 伪静态：用户访问 http://aezo.cn/post1.html，实际访问的是 http://aezo.cn/index.php?p=1
@@ -592,7 +594,6 @@ location / {
     # ...
 }
 ```
-
 - 用户认证(`ngx_http_auth_basic_module`) [^4]
     - 需要使用htpasswd等工具生成密码文件，不能直接写明文密码
     - `auth_basic <string | off>;`

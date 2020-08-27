@@ -12,6 +12,7 @@ tags: [k8s, docker, cncf]
 - 相关文章：https://github.com/rootsongjc/kubernetes-handbook/ 、 https://www.cnblogs.com/linuxk/category/1248289.html (视频相关) 、 https://feisky.gitbooks.io/kubernetes/content/
 - [知识图谱](https://github.com/yangchuansheng/k8s-knowledge)
 - 国内镜像参考[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#Docker介绍)
+- **本文若无特殊说明，kubernetes版本均为 v1.15.0**
 
 ### 背景
 
@@ -637,7 +638,8 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
         - `imagePullPolicy` Always(永远重新拉取镜像，镜像latest默认)、Never、IfNotPresent(如果本地有则不拉取镜像，其他默认)。创建Pod后无法修改此字段
         - `ports`(<[]Object>)
             - `containerPort` 将此容器中的某个端口暴露到pod中
-            - `name` 如：http/https
+            - `name` 如：http/https/myhttp
+            - `protocol` 如：TCP
         - `command` 对应ENTRYPOINT，可类似docker-compose使用`[]`
             - command/args不能强依赖于`lifecycle.postStart`的执行结果。此处command是在lifecycle.postStart之前执行的
         - `args` 对应CMD(`<[]Object>`)。[与command对应关系](https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell)
@@ -1376,9 +1378,10 @@ nameserver 10.96.0.10 # dns服务器地址(CoreDNS运行在pod中，此ip为pod�
 search default.svc.cluster.local svc.cluster.local cluster.local # svc.cluster.local为service在k8s集群中的名称；default为命名空间，此时为默认命令空间
 options ndots:5
 
-## 向10.96.0.10的DNS服务器，查询default空间下nginx服务的ip(可以在Node节点上运行)
+# yum install bind-utils # 安装dig
+## 向10.96.0.10的DNS服务器查询default空间下nginx服务的ip(可以在Node节点上运行)
 dig -t A nginx.default.svc.cluster.local @10.96.0.10
-# 格式：pod_name.service_name.namespace_name.svc.cluster.local
+# 查询pod，格式：pod_name.service_name.namespace_name.svc.cluster.local
 dig -t A sq-nginx-75875cf46f-829nm.sq-nginx.default.svc.cluster.local @10.96.0.10
 ```
 - 其他说明
@@ -1907,6 +1910,13 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 - kubelet报错`orphaned pod "501454ff-c11c-4fd0-8ca0-5c89263399de" found, but volume paths are still present on disk`(对整体使用影响不大) [^11]
     - 解决：root执行 `bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/k8s/prod/kubelet-issues-solution.sh)`
     - 查看所有问题podid `cat /var/log/messages|grep 'orphaned pod'|awk -F '"' '{print $2}'|uniq`
+- node节点磁盘`/var/lib/docker/overlay2`目录占用较高，导致node状态为`NotReady` [^14]
+
+    ```bash
+    docker system df # 查看docker磁盘使用情况，RECLAIMABLE 列为可收回的
+    docker system prune # 清理磁盘，删除关闭的容器、无用的数据卷和网络，以及dangling镜像(即无tag的镜像)
+    docker system prune -a # 慎用。命令清理得更加彻底，会把没有开启的容器，以及暂时没有用到的Docker镜像都删掉了
+    ```
 
 ### pod
 
@@ -1976,3 +1986,4 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
 [^11]: https://www.jianshu.com/p/a67316ee0288
 [^12]: https://jeremy-xu.oschina.io/2019/07/%E8%A7%A3%E5%86%B3pvc%E6%97%A0%E6%B3%95mount%E7%9A%84%E9%97%AE%E9%A2%98/
 [^13]: https://blog.csdn.net/pencc/article/details/84333315
+[^14]: https://www.cnblogs.com/snooker/p/10963377.html

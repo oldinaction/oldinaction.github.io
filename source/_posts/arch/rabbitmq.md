@@ -20,6 +20,9 @@ tags: [mq, rabbitMQ]
     - `Producer` 消息生产者，就是投递消息的程序
     - `Consumer` 消息消费者，就是接受消息的程序
     - `Channel` 消息通道，在客户端的每个连接里，可建立多个channel，每个channel代表一个会话任务
+- 数据传输
+
+    ![数据传输](/data/images/arch/rabbitmq-arch.png)
 
 ## RabbitMQ安装
 
@@ -64,8 +67,18 @@ rabbitmqctl purge_queue <queue_name>
   - 运行 `rabbitmq-plugins.bat enable rabbitmq_management`
 - 登录管理后台
   - `http://localhost:15672` 使用`guest/guest`登录(需要激活rabbitmq_management)
-- 添加virtual host：Admin - Virtual Hosts - Add a new virtual host - 输入名称如`/vhost_aezocn_test`
-- 给某用户设置权限：Admin - Users - 选择某用户 - Set permission - 选择Virtual Host，其他一般为`.*`
+- Admin
+    - Users 用户管理
+        - Add a user 添加用户
+        - 点击用户进入详情页面
+            - Permissions 和 Topic permissions 可设置用户权限
+                - 选择Virtual Host，其他为`.*`表示所有权限
+    - Virtual Hosts 虚拟主机管理
+        - Add a new virtual host 添加虚拟主机
+            - 输入名称如`/vhost_aezocn_test`，命名上 abc 和 /abc 是不同的
+            - 需要先有对应的虚拟主机，客户端才能连接
+        - 点击某个虚拟主机进入到详情页面
+            - Permissions 和 Topic permissions 可设置用户权限，参考Users中的
 
 
 

@@ -692,7 +692,7 @@ rbd du kube/kubernetes-dynamic-pvc-8286cda0-09d1-11ea-89b1-5aa8347da671 # 重新
         ceph osd blacklist add 192.168.6.131:0/1135656048 # 添加watcher到黑名单1h(1小时候会自动移除)
         # rbd rm kube/img # 可选，删除镜像
         # ceph osd blacklist rm 192.168.6.131:0/1135656048 # 手动移除黑名单
-        ceph osd blacklist ls
+        ceph osd blacklist ls # 查看黑名单
         ```
 - 更换mon时，执行`ceph-deploy mon add node4`报错`admin_socket: exception getting command descriptions: [Errno 2] No such file or directory`
     - 解决：修改`ceph.conf`文件中的`mon_host`、`public_network`并推送到所有节点 [^7]

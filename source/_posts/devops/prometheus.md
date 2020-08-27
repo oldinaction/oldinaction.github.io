@@ -349,7 +349,7 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 - 可从[Grafana模板中心](https://grafana.com/grafana/dashboards)下载模板对应的json文件，并导入到Grafana的模板中
     - Prometheus数据源推荐模板
         - Kubernetes相关：`8588`(可选择deploy/node进行统计CPU和内存)、`7249`(汇总所有的节点统计CPU和内存)
-        - Node Exporter相关：`8919`、`1860`(选择某一个节点，分类展示系统信息)
+        - Node Exporter相关：**`8919`**、`1860`(选择某一个节点，分类展示系统信息)
         - Blackbox Exporter：9965
 - 插件安装
     - 安装后需要重启grafana服务，k8s-helm安装的pod重新创建后插件和Dashboard还在(已经持久化到磁盘)

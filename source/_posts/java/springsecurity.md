@@ -1451,7 +1451,7 @@ org.springframework.security.access.AccessDeniedException: Access is denied
 // D./error请求完成
 2019-05-31 12:43:35.319 DEBUG 27096 --- [nio-8200-exec-3] s.s.w.c.SecurityContextPersistenceFilter : SecurityContextHolder now cleared, as request processing completed
 2019-05-31 12:44:27.288  INFO 27096 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
-````
+```
 
 ## 源码解析
 

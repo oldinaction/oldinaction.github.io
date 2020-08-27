@@ -444,6 +444,10 @@ site.url=www.aezo.cn
 - 相关注解
     - `@Aspect` 声明一个切面
     - `@Before`、`@After`、`@Around`、`@AfterReturning`、`@AfterThrowing` 定义建言(advice)
+    - `@DeclareParents` 引介增强
+- 切点表达式
+    - args()、this()、target()
+    - @annotation() 、args()、@args()、target()、@within()、@target()、this() 
 - maven依赖
 
     ```xml

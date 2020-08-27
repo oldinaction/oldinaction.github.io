@@ -115,6 +115,8 @@ tags: [linux, shell]
 
 ### 开机启动设置
 
+- 开机启动在/var/log/messages中会打印`kernel: Initializing cgroup subsys cpuset`的日志，可通过`dmesg`查看
+
 #### 系统启动顺序boot sequence
 
 1. load bios(hardware information)：加电后检查，载入BIOS的硬件信息，并取得第一个开机装置的代号
@@ -902,7 +904,7 @@ df -h
     ```bash
     grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
     grep 'search content' *.sql # 查找已`.sql`结尾的文件
-    grep -R 'test' /data/* # 在/data目录及其字母查询
+    grep -R 'test' /data/* # 在/data目录及子目录查询
     grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
 
     grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
@@ -956,17 +958,17 @@ df -h
 - 示例
 
     ```bash
+    # 修改当前目录极其子目录下所有文件。grep -rl 递归显示文件名
+    sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
+    # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
+    sed -i -e '/^$/d' /home/smalle/test.txt
     # 删除/etc/grub.conf文件中行首的空白符
     sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
     # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
     sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
     # 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
     sed '/^$/d' /etc/inittab
-    # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
-    sed -i -e '/^$/d' /home/smalle/test.txt
-    # 修改当前目录极其子目录下所有文件
-    sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
-
+    
     # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
     echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
     ```
@@ -1369,11 +1371,11 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     ```bash
     # 查看CPU信息(型号): Intel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz
     cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c
-    # 查看物理CPU个数
+    # 查看物理CPU个数，eg: 1
     cat /proc/cpuinfo | grep "physical id"| sort| uniq| wc -l
-    # 查看每个物理CPU中core的个数(即核数)
+    # 查看每个物理CPU中core的个数(即核数)，eg：6
     cat /proc/cpuinfo | grep "cpu cores"| uniq
-    # 查看逻辑CPU的个数
+    # 查看逻辑CPU的个数，eg：12
     cat /proc/cpuinfo | grep "processor"| wc -l
     ```
 - 磁盘使用查看
@@ -1641,6 +1643,20 @@ vm.dirty_writeback_centisecs = 500
     - `/tmp` 临时文件目录。和`/var/tmp`目录类似
     - `/var`
         - **`cat /var/log/messages`** 服务运行的日志文件
+        - `/var/log`目录下其他日志文件，详细参考：https://www.cnblogs.com/kaishirenshi/p/7724963.html
+            - `dmesg` 包含内核缓冲信息（kernel ringbuffer）。在系统启动时，会在屏幕上显示许多与硬件有关的信息。可以用dmesg查看
+            - `auth.log` 包含系统授权信息，包括用户登录和使用的权限机制等
+            - `daemon.log` 包含各种系统后台守护进程日志信息
+            - `kern.log` 包含内核产生的日志，有助于在定制内核时解决问题
+            - `yum.log` 包含使用yum安装的软件包信息
+            - `cron` 每当cron进程开始一个工作时，就会将相关信息记录在这个文件中
+            - `secure` 包含验证和授权方面信息。例如，sshd会将所有信息记录（其中包括失败登录）在这里
+            - `faillog` 包含用户登录失败信息。此外，错误登录命令也会记录在本文件中
+            - `wtmp`或`utmp` 包含登录信息。使用wtmp可以找出谁正在登陆进入系统，谁使用命令显示这个文件或信息等
+            - `btmp` 记录所有失败登录信息。使用last命令可以查看btmp文件
+            - `maillog`和`mail.log` 包含来着系统运行电子邮件服务器的日志信息。例如，sendmail日志信息就全部送到这个文件
+            - `anaconda/` 在安装Linux时，所有安装信息都储存在这个文件中
+            - `mail/` 这个子目录包含邮件服务器的额外日志
     - `/usr` 用户目录。系统级的目录，可以理解为C:/Windows/，/usr/lib理解为C:/Windows/System32
         - `/local` **一般为安装软件目录**，源码编译安装一般在`/usr/local/lib`目录下。用户级的程序目录，可以理解为C:/Progrem Files/，用户自己编译的软件默认会安装到这个目录下
         - `src` 系统级的源码目录

@@ -516,6 +516,7 @@ tags: [maven]
 
 ## maven私服搭建(nexus)
 
+- **也可使用阿里云私服**：https://packages.aliyun.com/maven
 - nexus可对maven、docker等私服进行管理
 - 基于docker安装nexus：`docker-compose.yml`
 

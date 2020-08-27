@@ -22,9 +22,8 @@ tags: [mybatis, springboot]
 	<dependency>
 		<groupId>org.mybatis.spring.boot</groupId>
 		<artifactId>mybatis-spring-boot-starter</artifactId>
-		<version>1.3.1</version>
+		<!-- <version>1.3.1</version> -->
 	</dependency>
-
 	<!--mybatis分页插件: https://github.com/pagehelper/Mybatis-PageHelper-->
 	<dependency>
 		<groupId>com.github.pagehelper</groupId>
@@ -38,6 +37,8 @@ tags: [mybatis, springboot]
 		<artifactId>pagehelper-spring-boot-starter</artifactId>
 		<version>1.0.0</version>
 	</dependency>
+
+    <!-- 方式三：使用mybatis-plus(推荐) -->
 	```
 - 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml"})` // 声明需要扫描mapper接口的路径
 - 配置

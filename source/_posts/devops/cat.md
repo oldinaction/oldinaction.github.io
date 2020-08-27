@@ -41,20 +41,20 @@ services:
     container_name: sq-tomcat
     image: tomcat:jdk8
     ports:
-      - 8888:8080
-      - 2280:2280
+      - 8888:8080 # cat控制台界面地址
+      - 2280:2280 # cat通信地址
       #- 8091:8091
     volumes:
       - /home/data/cat/appdatas:/data/appdatas
-      - /home/data/cat/applogs:/data/applogs
+      - /home/data/cat/applogs:/data/applogs # 可不用映射（主要记录 gc 和 dump 日志）
     environment:
       TZ: Asia/Shanghai
-      # CAT服务器本身包含一个名为cat的客户端
+      # CAT服务器本身包含一个名为cat的客户端（会自动创建此目录）
       CAT_HOME: /data/appdatas/cat
       # 注意 -Dhost.ip 视情况填写
-      CATALINA_OPTS: -server -DCAT_HOME=$$CAT_HOME -Djava.awt.headless=true -Xms512M -Xmx1G -XX:PermSize=256m -XX:MaxPermSize=256m -XX:NewSize=512m -XX:MaxNewSize=512m -XX:SurvivorRatio=10 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -XX:MaxTenuringThreshold=13 -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCMSInitiatingOccupancyOnly -XX:+ScavengeBeforeFullGC -XX:+UseCMSCompactAtFullCollection -XX:+CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=9 -XX:CMSInitiatingOccupancyFraction=60 -XX:+CMSClassUnloadingEnabled -XX:SoftRefLRUPolicyMSPerMB=0 -XX:-ReduceInitialCardMarks -XX:+CMSPermGenSweepingEnabled -XX:CMSInitiatingPermOccupancyFraction=70 -XX:+ExplicitGCInvokesConcurrent -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.EPollSelectorProvider -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.util.logging.config.file="$$CATALINA_HOME\conf\logging.properties" -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationConcurrentTime -XX:+PrintHeapAtGC -Xloggc:/data/applogs/heap_trace.txt -XX:-HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/applogs/HeapDumpOnOutOfMemoryError -Djava.util.Arrays.useLegacyMergeSort=true -Dhost.ip=192.168.6.10 # -Xdebug -Xrunjdwp:transport=dt_socket,address=8091,server=y,suspend=n # 开启远程调试
+      CATALINA_OPTS: -server -DCAT_HOME=$$CAT_HOME -Djava.awt.headless=true -Xms512M -Xmx1G -XX:PermSize=256m -XX:MaxPermSize=256m -XX:NewSize=512m -XX:MaxNewSize=512m -XX:SurvivorRatio=10 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -XX:MaxTenuringThreshold=13 -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCMSInitiatingOccupancyOnly -XX:+ScavengeBeforeFullGC -XX:+UseCMSCompactAtFullCollection -XX:+CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=9 -XX:CMSInitiatingOccupancyFraction=60 -XX:+CMSClassUnloadingEnabled -XX:SoftRefLRUPolicyMSPerMB=0 -XX:-ReduceInitialCardMarks -XX:+CMSPermGenSweepingEnabled -XX:CMSInitiatingPermOccupancyFraction=70 -XX:+ExplicitGCInvokesConcurrent -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.EPollSelectorProvider -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationConcurrentTime -XX:+PrintHeapAtGC -Xloggc:/data/applogs/cat-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCCause -XX:-HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/applogs/HeapDumpOnOutOfMemoryError -Djava.util.Arrays.useLegacyMergeSort=true -Dhost.ip=192.168.6.10 # -Xdebug -Xrunjdwp:transport=dt_socket,address=8091,server=y,suspend=n # 开启远程调试
     # docker-compose restart也会运行此命令，从而导致失败
-    #command: /bin/sh -c "sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $$CATALINA_HOME/conf/server.xml && catalina.sh run"
+    #command: /bin/sh -c "sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $$CATALINA_HOME/conf/server.xml && $$CATALINA_HOME/bin/catalina.sh run"
     restart: always
 networks:
   default:
@@ -87,14 +87,36 @@ networks:
 - 启动容器`docker-compose up -d`
 - 部署war包`docker cp cat.war sq-tomcat:/usr/local/tomcat/webapps` (每次重新创建了tomcat容器都必须重新部署)
 - 访问`http://192.168.6.10:8888/cat`
-- 配置(未配置访问Transaction菜单等会报错)，默认用户名密码为`admin/admin`
+- 配置(未配置访问Transaction菜单等会报错)，默认用户名密码为`admin/admin`。具体参考下文[管理界面使用](#管理界面使用)
     - 访问`http://192.168.6.10:8888/cat/s/config?op=serverConfigUpdate`进行服务端配置：修改ip为192.168.6.10(视情况修改)，启动hdfs的ip可以不用考虑(默认关闭hdfs)
     - 访问`http://192.168.6.10:8888/cat/s/config?op=routerConfigUpdate`进行客户端路由配置：修改ip为192.168.6.10
     - 重启tomcat
 
+### 基于K8S安装
+
+- Dockerfile
+
+```java
+FROM bzyep49h.mirror.aliyuncs.com/library/tomcat:jdk8
+MAINTAINER smalle
+
+ADD http://unidal.org/nexus/service/local/repositories/releases/content/com/dianping/cat/cat-home/3.0.0/cat-home-3.0.0.war /usr/local/tomcat/webapps
+# ADD ./cat-home-3.0.0.war /usr/local/tomcat/webapps
+RUN mv /usr/local/tomcat/webapps/cat-home-3.0.0.war /usr/local/tomcat/webapps/cat.war
+
+ENV TZ Asia/Shanghai
+ENV CATALINA_OPTS -server -DCAT_HOME=/data/appdatas/cat -Djava.awt.headless=true -Xms512M -Xmx1G -XX:PermSize=256m -XX:MaxPermSize=256m -XX:NewSize=512m -XX:MaxNewSize=512m -XX:SurvivorRatio=10 -XX:+UseParNewGC -XX:ParallelGCThreads=4 -XX:MaxTenuringThreshold=13 -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCMSInitiatingOccupancyOnly -XX:+ScavengeBeforeFullGC -XX:+UseCMSCompactAtFullCollection -XX:+CMSParallelRemarkEnabled -XX:CMSFullGCsBeforeCompaction=9 -XX:CMSInitiatingOccupancyFraction=60 -XX:+CMSClassUnloadingEnabled -XX:SoftRefLRUPolicyMSPerMB=0 -XX:-ReduceInitialCardMarks -XX:+CMSPermGenSweepingEnabled -XX:CMSInitiatingPermOccupancyFraction=70 -XX:+ExplicitGCInvokesConcurrent -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.EPollSelectorProvider -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationConcurrentTime -XX:+PrintHeapAtGC -Xloggc:/data/appdatas/jvmlogs/cat-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCCause -XX:-HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/appdatas/jvmlogs -Djava.util.Arrays.useLegacyMergeSort=true
+
+RUN sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $CATALINA_HOME/conf/server.xml
+
+CMD ["/bin/sh", "-c", "$CATALINA_HOME/bin/catalina.sh run"]
+```
+- hlem chart参考
+- helm安装后会自动申请PVC，找到对应的PV，并创建 cat/datasources.xml 文件（具体参考上文）；然后重新启动POD（之后无需重启）
+
 ### 常见问题
 
-- 基于docker安装，服务端界面显示`出问题CAT的服务端:[192.168.6.10]`，这个显示不影响数据上报和监控，仅仅是IP配置不规范。主要是CAT默认使用获取的内网IP，则此时为docker容器IP，此时可设置`host.ip`
+- 基于docker安装，服务端界面显示`出问题CAT的服务端:[192.168.6.10]`，这个显示不影响数据上报和监控，仅仅是IP配置不规范。主要是CAT默认使用获取的内网IP，则此时为docker容器所在宿主机IP，此时可设置`host.ip`
     - 解决办法：在启动参数中加`-Dhost.ip=192.168.6.10`
 - 加入Cat依赖，客户端启动报错`java.lang.NoClassDefFoundError: org/aspectj/util/PartialOrder$PartialComparable`，表示缺少`aspectjweaver`相关jar包
     - 解决办法：如springboot引入`org.springframework.boot#spring-boot-starter-aop`依赖
@@ -176,10 +198,12 @@ public void test() {
 
 ### 客户端插件集成
 
-- 参考：https://github.com/dianping/cat/tree/master/integration
+- 参考：https://github.com/dianping/cat/tree/v3.0.0/integration
+    
 - 对所有的URL路径进行拦截。此时后端API暴露的路径都会进行上报统计，也可额外添加对某个路径的自定义拦截
 
 ```java
+// https://github.com/dianping/cat/blob/v3.0.0/integration/spring-boot/CatFilterConfigure.java
 @Bean
 public FilterRegistrationBean catFilter() {
     FilterRegistrationBean registration = new FilterRegistrationBean();
@@ -192,15 +216,18 @@ public FilterRegistrationBean catFilter() {
 }
 ```
 - 对SQL进行拦截。此时可以对有的SQL语句进行上报统计
-    - [mybatis](https://github.com/dianping/cat/tree/master/integration/mybatis)。会自动生成`URL`类型的Transaction、Event日志
+    - [mybatis](https://github.com/dianping/cat/tree/v3.0.0/integration/mybatis)。会自动生成`URL`类型的Transaction、Event日志
     - 从上述链接复制mybatis插件源码`CatMybatisPlugin.java`
-        - 修改源码中`switchDataSource`方法，可去掉`DruidDataSource`判断，并加入HikariDataSource判断：`if(dataSource instanceof HikariDataSource) { url = ((HikariDataSource) dataSource).getJdbcUrl(); }`
+        - 如果数据库连接池使用的是HikariDataSource，则修改源码中`switchDataSource`方法，可去掉`DruidDataSource`判断，并加入HikariDataSource判断：`if(dataSource instanceof HikariDataSource) { url = ((HikariDataSource) dataSource).getJdbcUrl(); }`
     - 加入插件`<plugin interceptor="cn.aezo.test.plugin.CatMybatisPlugin"/>`
+        - 如果是使用mybatis-plus则直接在上述类上增加`@Component`即可注入，无需xml配置
 - 与日志框架整合记录Event。此时可以对`logger.error`类型的日志进行上报统计，可以代替`Cat.logError(e);`以减少代码量
-    - [logback](https://github.com/dianping/cat/tree/master/integration/logback)
+    - [logback](https://github.com/dianping/cat/tree/v3.0.0/integration/logback)
     - 从上述链接复制logback插件源码`CatLogbackAppender.java`，并去掉`Cat.logTrace`相关代码(Cat3.0不支持)
     - 在logback.xml文件中加入对应的Appender和appender-ref
-    - 注意：logback记录日志的时候需要传入异常对象，如果不传无法在cat中的problem展示错误信息。如：`logger.error(e.getMessage(), e);`(生成的type如下，name则无法自定义，为e对应的类名)
+    - 注意：logback记录日志的时候需要传入异常对象，如果不传无法在cat中的problem展示错误信息
+        - 正确的如 `logger.error(e.getMessage(), e);` 生成的type为error；name（status栏）则无法自定义，自动取e对应的类名
+        - 错误的如 `logger.error("error...");` 不会上报的cat
 
 ### 分布式调用链监控
 
@@ -517,7 +544,16 @@ public class CatHystrixFeignAspect {
 ## 管理界面使用
 
 - 项目配置信息
-    - 新增：CAT上项目名称-事业部-产品线，如果客户端只是在`app.properties`中配置`app.name`则会归并到`Default-Default`的事业部和产品线
+    - 项目基本信息
+        - 新增或者基于app.name查找项目（暂时没有一个列表进行展示）
+        - CAT上项目名称
+            - `事业部-产品线`是分组，在展示界面可基于此分组展示
+            - 如果客户端只是在`app.properties`中配置`app.name`则会归并到`Default-Default`的事业部和产品线
+- 全局系统配置（配置信息均保存在数据库的config表中）
+    - 服务端配置
+        - 修改remote-servers的值如192.168.6.10:8888 和 `<server id="192.168.17.74">`（修改为可对外访问的IP，如容器的宿主机IP），启动hdfs的ip可以不用考虑(默认关闭hdfs)。需重启tomcat
+    - 客户端路由配置
+        - 修改ip如192.168.6.10（同上）。需重启tomcat
 - 修改默认admin账号密码：可修改cat-home源码后重新编译，参考：http://www.bubuko.com/infodetail-3091160.html
 - 邮件告警需要自行启动邮件发送服务，参考：https://github.com/dianping/cat/blob/master/integration/cat-alert/README.md
 

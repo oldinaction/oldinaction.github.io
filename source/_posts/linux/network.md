@@ -70,7 +70,9 @@ ping -c 1 192.168.1.1
 - ARP表：设备通过ARP解析到目的MAC地址后，将会在自己的ARP表中增加IP地址到MAC地址的映射表项，以用于后续到同一目的地报文的转发
 - `arp -a` 查看地址表
 
-### DNS查询(dig)
+### DNS查询
+
+- `dig`
 
 ```bash
 yum install bind-utils # 安装dig工具
@@ -79,6 +81,16 @@ yum install bind-utils # 安装dig工具
 dig baidu.com
 # 向10.96.0.10的DNS服务器查询hostname=nginx.default.svc.cluster.local的A记录(IP信息)
 dig -t A nginx.default.svc.cluster.local @10.96.0.10
+```
+- `nslookup`
+
+```bash
+# type可以是：A、CNAME、MX、NS、TXT等（默认为A记录）；如果没指定dns-server，用系统默认的dns服务器
+nslookup -qt=type domain [dns-server]
+
+# 示例
+nslookup baidu.com
+nslookup -qt=mx baidu.com 8.8.8.8
 ```
 
 ### tcpdump

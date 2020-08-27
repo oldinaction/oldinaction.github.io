@@ -18,17 +18,41 @@ tags: [javase]
 - `Class.this`使用
 
 ```java
-class Outer{
+class Outer {
     String data = "外部类別";
 
-    public class Inner{
+    // 必须先实例化外部类，才能实例化内部类
+    public class Inner {
         String data = "內部类別";
         public String getOuterData() {
             // 有时会看到Class.this的使用，这个用法多用于在nested class(内部类)中，当inner class(内部类)必顺使用到outer class(外部类)的this instance(实例)时
             return Outer.this.data;
         }
     }
+
+    // 无需实例化外部类
+    public static class Inner2 {
+
+    }
 }
+```
+
+### 匿名类及其构造函数
+
+```java
+// 此时传入hello是因为父类构造函数需要
+Child c = new Father("hello") {  
+    {
+        // 相当于构造函数
+        System.out.println("匿名类虽然没有名字，但可以有一个初始化块来充当构造函数");
+    }
+};
+// 实现接口
+MyInterfaceImpl o = new MyInterface() {
+    void hello() {
+        // 实现接口方法
+    }
+};
 ```
 
 ### 枚举

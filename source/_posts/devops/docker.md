@@ -23,7 +23,7 @@ tags: [docker, arch]
     {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}
 
     ## docker.io镜像加速。参考：https://juejin.im/post/5cd2cf01f265da0374189441
-    # 中科大 `docker.mirrors.ustc.edu.cn`；阿里云私有加速器 `bzyep49h.mirror.aliyuncs.com`；网易 `hub-mirror.c.163.com`
+    # 中科大 `docker.mirrors.ustc.edu.cn`；网易 `hub-mirror.c.163.com`；阿里云私有加速器(只有部分镜像) `bzyep49h.mirror.aliyuncs.com`
     docker pull xxx:yyy "可替换为" docker pull docker.mirrors.ustc.edu.cn/library/xxx:yyy
     docker pull xxx/yyy:zz "可替换为" docker pull docker.mirrors.ustc.edu.cn/xxx/yyy:zz
     # Azure中国镜像 `dockerhub.azk8s.cn`
@@ -163,6 +163,7 @@ Commands:
         -p  # 绑定本地端口到容器端口，可使用多个 -p 绑定多组端口. eg: -p 8080:80 (本地8080:容器80)
         -v  # 挂在本地目录或文件到容器中去做数据卷，可以使用多个 -v. eg: -v /home/smalle/logs:/temp/app，也可以使用volume数据卷
             # 目录或者文件映射，需要先在宿主机创建此文件或目录。如果要映射出来的目录中存在文件，则需要新创建对应的文件，docker不会进行初始化这些文件
+            # windows的目录则使用 /c/Users/smalle 格式代替 c:
         -e  # 设置环境变量，eg: -e MYSQL_HOST=localhost -e MYSQL_DATABASE=aezocn
         --name      # 指定启动容器名称(从Docker 1.10 版本开始，docker daemon 实现了一个内嵌的DNS server，使容器可以直接通过"容器名"通信)
         --network   # 指定使用的网络
@@ -550,7 +551,7 @@ services:
       - 13307:3306
     volumes:
       # 用于保存数据文件。虚拟机中无此/home/smalle/data/test目录时，会自动创建
-	    - /home/smalle/data/test:/var/lib/mysql
+	  - /home/smalle/data/test:/var/lib/mysql
     # entrypoint会覆盖Dockerfile中的ENTRYPOINT(可为字符串或数组)，command会覆盖CMD(可为字符串或数组)。参考Dockerfile中的ENTRYPOINT和CMD比较。docker-compose restart也会执行此命令
     # entrypoint: ["/my-script.sh","/entrypoint.sh"] # 如果想在容器启动前执行命令，可覆盖此参数
 	command: 
@@ -612,7 +613,7 @@ services:
         # 值可以是 `- 服务名`，也可以是`- "服务名:别名"`
         - sq-mysql:my_mysql
 ```
-- `$VARIABLE`和`${VARIABLE}`两种写法都支持，可以使用双美元符号(`$$`)来转义美元符号。如果使用的是2.1文件格式，还可以在一行中设置默认的值：
+- `$VARIABLE`和`${VARIABLE}`两种写法都支持，**可以使用双美元符号(`$$`)来转义美元符号**。如果使用的是2.1文件格式，还可以在一行中设置默认的值：
     - `${VARIABLE:-default}` 当VARIABLE没有设置或为空值时使用default值
     - `${VARIABLE-default}` 仅当VARIABLE没有设置时使用default值
 - 容器启动先后顺序问题 [^7]
@@ -707,12 +708,19 @@ ENV JRE_HOME /usr/local/jdk1.7.0_80/jre
 ENV CLASSPATH .:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
 ENV PATH $PATH:$JAVA_HOME/bin:$JRE_HOME/bin
 ```
-- `docker build --rm -t jdk:1.7 -f ./Dockerfile .` 打包生成镜像(大概508M)
-- `docker run ae4c031a5cb6 java -version` 查看java版本
-- 推送
-    - `docker login 192.168.17.196:10010` 输入registry(harbor)账号密码登录。[https证书配置参考上文Harbor](#Harbor)
-    - `docker tag ae4c031a5cb6 192.168.17.196:10010/library/jdk:1.7`
-    - `docker push 192.168.17.196:10010/library/jdk:1.7`
+- 打包及推送
+
+```bash
+# 打包生成镜像(大概508M)
+docker build --rm -t jdk:1.7 -f ./Dockerfile .
+# docker run ae4c031a5cb6 java -version # 本地运行镜像，查看java版本
+
+## 推送
+# 输入registry(harbor)账号密码登录。[https证书配置参考上文Harbor](#Harbor)
+docker login 192.168.17.196:10010
+docker tag ae4c031a5cb6 192.168.17.196:10010/library/jdk:1.7
+docker push 192.168.17.196:10010/library/jdk:1.7
+```
 
 ### nginx
 
@@ -877,7 +885,7 @@ services:
       - 8888:8080
     environment:
       TZ: Asia/Shanghai
-    # command: /bin/sh -c "sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $$CATALINA_HOME/conf/server.xml && catalina.sh run"
+    # command: /bin/sh -c "sed -i 's/<Connector/<Connector URIEncoding=\"UTF-8\"/' $$CATALINA_HOME/conf/server.xml && $$CATALINA_HOME/bin/catalina.sh run"
     restart: always
 ```
 

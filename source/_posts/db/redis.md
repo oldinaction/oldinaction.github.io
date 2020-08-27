@@ -16,6 +16,7 @@ tags: redis
 - 常见的缓存如：memcached、redis
     - memcached的value无类型概念，部分场景可使用json代替，但是如果要从value中过滤获取部分数据则需要在客户端完成(服务器只能返回整个value值)
     - redis的value有类型概念，弥补了memcached上述弊端
+- [redis 在线测试](https://try.redis.io/)
 - redis windows客户端(64x，官网不提供window安装包)：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
 - redis客户端连接管理软件：`RedisDesktopManager`
 - `jedis`：java操作redis(jar)，[jedis Github](https://github.com/xetorthio/jedis)
@@ -26,7 +27,7 @@ tags: redis
     - 计算机的2个基础设施
         - 冯诺依曼体系的硬件
         - 以太网，tcp/ip的网络
-- bio-nio-select-epoll
+- bio-nio-select-epoll，参考[网络IO](/_posts/linux/计算机底层知识.md#网络IO)
 
 ![bio-nio-select-epoll](/data/images/linux/bio-nio-select-epoll.png)
 
@@ -83,7 +84,7 @@ tags: redis
 - [string](#string)
     - 字符类型
     - 数值类型计算
-    - bitmaps位图
+    - bitmap位图
 - [list](#list)
     - 栈(同向操作)
     - 队列(反向操作)
@@ -125,6 +126,7 @@ object encoding key1 # 查看key1编码类型，如返回int说明此字符串�
 ```bash
 set name smalle
 get name # 返回 smalle
+getset <key> <value> # 设置key的值并返回旧值
 
 # 批量设置
 mset k1 123 k2 v2
@@ -250,10 +252,10 @@ sadd k1 a b c d e a
 smembers k1
 # 返回集合元素个数
 scard k1 # 5
-# 移除元素b、c(修改后顺序可能编号)，移除后k1=[a,e,d]
-srem k1 b c 
+# 移除元素b、c(修改后顺序可能变化)，移除后k1=[a,e,d]
+srem k1 b c
 sadd k2 d e f
-# 获取交集，直接返回e、d两行
+# 获取交集（intersection），直接返回e、d两行
 sinter k1 k2
 # 获取交集，将结果放到destkey中
 sinterstore destkey k1 k2
@@ -273,7 +275,7 @@ spop k1
 
 ### sorted_set
 
-- Z开头命令表示sorted set，REV表示取反
+- Z开头命令表示sorted set，REV表示取反（reversal）
 - 排序细实现原理：[skip list(跳跃表)](/_posts/linux/algorithms.md#跳跃表(skip-list))
 
 ```bash
@@ -396,7 +398,7 @@ exec
 exec
 ```
 
-### redis数据有效期(缓存)
+### 数据有效期(作为缓存)
 
 - redis作为缓存数据不重要、不是全量数据，缓存应该随着访问变化(保存热数据，内存是有限的)
 
@@ -430,7 +432,7 @@ ttl k2
 ## 注意事项
 # 1.设值并设置过期时间为300s
 set k3 hello ex 300
-# 2.set/getset会丢失过期时间；incr/lpush/hset不会丢失过期时间；pesis
+# 2.set/getset会丢失过期时间；incr/lpush/hset不会丢失过期时间
 set k3 hi # 过期时间会丢失
 # 3.持久化一个key，会清除过期时间
 persist k3
@@ -493,7 +495,7 @@ vi /etc/redis/6379.conf
 # allkeys-lfu -> Evict any key using approximated LFU.                              # 回收最少使用的键
 # volatile-random -> Remove a random key among the ones with an expire set.         # 随机回收建，但仅对设置了过期时间的键
 # allkeys-random -> Remove a random key, any key.                                   # 随机回收建
-# volatile-ttl -> Remove the key with the nearest expire time (minor TTL)           # 回收生存时间TTL(Time To Live)更小的键，但仅对设置了过期时间的键
+# volatile-ttl -> Remove the key with the nearest expire time (minor TTL)           # 回收生存时间TTL(Time To Live)更小的键（即将过期），但仅对设置了过期时间的键
 # noeviction -> Don't evict anything, just return an error on write operations.     # 当客户端需要使用更多内存，且内存不足时返回错误
 #
 # LRU means Least Recently Used # 最近使用的
@@ -522,9 +524,9 @@ vi /etc/redis/6379.conf
     # save "" # 关闭写磁盘
 
     # 以下条件将会被触发自动保存 => 创建子进程进行数据持久化
-    save 900 1 # 当900s后有1个及以上key发生了改变则会触发save
-    save 300 10 # 当300s后有10个及以上key发生了改变则会触发save
-    save 60 10000
+    save 900 1 # 当900s(15m)后有1个及以上key发生了改变则会触发save
+    save 300 10 # 当300s(5m)后有10个及以上key发生了改变则会触发save
+    save 60 10000 # 当60s(1m)...
     # 如900后有1个key发送改变时的日志如下
     # 7447:S 11 Jul 2020 15:49:17.306 * 1 changes in 900 seconds. Saving...
     # 7447:S 11 Jul 2020 15:49:17.307 * Background saving started by pid 7582           # 开启（fork）新进程保存数据到磁盘
@@ -755,14 +757,16 @@ redis-server ./sentinel-26379.conf --sentinel
     - 基于`random`算法拆分(随机放到不同的节点)
         - 缺点：客户端不能精确知道数据具体存放的节点
         - 应用场景：消息队列
-            - 客户端通过lpush存放到key为xxx的集合中，另外一个客户端只需要通过lpop任意取出一个进行消费即可
+            - 客户端通过lpush存放到key为xxx的集合中，另外一个客户端只需要通过rpop任意取出一个进行消费即可
             - 类似kafka，此时xxx可理解为topic，redis节点可认为是partition
     - 基于`ketama`算法(一致性hash算法)拆分
-        - 规划一个虚拟哈希环，不同的节点通过hash算法落到此环的某个点，数据通过key进行hash得到该环的位置，并将数据存放在最近的节点上
+        - **一致性hash算法** [^5]
+            - 是对2^32方取模，即一致性Hash算法将整个Hash空间组织成一个虚拟的圆环，Hash函数的值空间为0 ~ 2^32 - 1(一个32位无符号整型)
+            - 规划一个虚拟哈希环，不同的节点通过hash算法落到此环的某个点，数据通过key进行hash得到该环的位置，并将数据存放在最近的节点上
         - 优点：新增节点可以分担其他节点的压力，不会造成全局洗牌
         - 缺点：新增节点造成一小部分数据不能命中(如增加node3，key为xxx对应数据原本在node1，此时客户端会到最近的node3上去找)
             - 问题：击穿，压到mysql
-            - 方案：去取最近的2个物理节点数据(只能减少一部分问题)
+            - 方案：去取最近的2个物理节点获取数据(只能减少一部分问题)
         - 数据倾斜问题：节点太少可能在某一节点的数据太多，可创建多个虚拟节点
     - 图解
 
@@ -1022,7 +1026,7 @@ public String get(key) {
     }
 }
 ```
-- 雪崩解决方案：随机过期时间、加锁或队列、二级缓存
+- 雪崩解决方案：随机过期时间、二级缓存、加锁或队列（针对时点性高的场景）
 
 ## Java使用
 
@@ -1115,7 +1119,7 @@ public class RedisTool {
     - 错误方式：jedis.del()方法删除锁
         - 这种不先判断锁的拥有者而直接解锁的方式，会导致任何客户端都可以随时进行解锁，即使这把锁不是它的
 
-### java中操作Redis
+### Java中操作Redis
 
 - 引入jar包(参考上文pom)
   - 使用Java操作Redis需要jedis-2.1.0.jar，下载地址：http://files.cnblogs.com/liuling/jedis-2.1.0.jar.zip
@@ -1198,5 +1202,5 @@ public class RedisTool {
 [^2]: http://wiki.jikexueyuan.com/project/redis-guide/ (极客学院 Wiki)
 [^3]: http://www.cnblogs.com/edisonfeng/p/3571870.html (java对redis的基本操作)
 [^4]: https://www.cnblogs.com/moxiaotao/p/10829799.html
-
+[^5]: https://www.jianshu.com/p/528ce5cd7e8f
 

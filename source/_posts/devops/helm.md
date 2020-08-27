@@ -61,7 +61,7 @@ create      # 创建一个新的charts
 delete      # 删除指定版本的release
     # helm delete --purge my-dev # **删除 release，也会删除相应k8s资源**
 dependency  # 管理charts的依赖
-fetch       # 下载charts到当前目录
+fetch       # 下载charts到当前目录。eg：helm fetch stable/prometheus --version 9.0.0
 get         # 下载一个release
 history     # release历史信息
 home        # 显示helm的家目录
@@ -135,7 +135,7 @@ version     # 打印客户端和服务端的版本信息
     # tree mychart
     # 检测 chart 的语法
     helm lint mychart
-    # 模拟安装 chart，并输出每个模板生成的 YAML 内容(--dry-run 实际没有部署到k8s)
+    # **模拟安装 chart**，并输出每个模板生成的 YAML 内容(--dry-run 实际没有部署到k8s)
     helm install --dry-run --debug mychart
     # 部署到k8s
     helm install ./mychart --name mychart --namespace test
@@ -164,7 +164,7 @@ version     # 打印客户端和服务端的版本信息
     ├── Chart.yaml                      # Chart本身的版本和配置信息。其中的name是chart的名称，并不一定是release的名称
     ├── templates                       # 配置模板目录，下是yaml文件的模板，遵循Go template语法
     │   ├── deployment.yaml             # kubernetes Deployment object
-    │   ├── _helpers.tpl                # 用于修改kubernetes objcet配置的模板
+    │   ├── _helpers.tpl                # 定义了一些基础模板（一般是一些全局变量），如`{{- define "harbor.fullname" -}}`
     │   ├── ingress.yaml                # kubernetes Ingress(默认未启用)
     │   ├── NOTES.txt
     │   ├── service.yaml                # kubernetes Serivce
@@ -773,14 +773,19 @@ helm del --purge prometheus
 ```bash
 # kubectl create secret generic grafana-secret -n monitoring --from-literal=admin-user=admin --from-literal=admin-password=Hello1234
 cat > grafana-values.yaml << 'EOF'
-#admin:
-#  existingSecret: "" # 可自定义admin Secret(参考上文)。默认会自动生成名为grafana的Secret(包含admin账号和密码)
-#  userKey: 'admin-user' # 指定admin Secret(map)文件中获取admin账号对应的key，默认key为admin-user。passwordKey同理
+image:
+  repository: docker.mirrors.ustc.edu.cn/grafana/grafana
+admin:
+  existingSecret: 'grafana-secret' # 可自定义admin Secret(参考上文)。默认会自动生成名为grafana的Secret(包含admin账号和密码)
+  # userKey: 'admin-user' # 指定admin Secret(map)文件中获取admin账号对应的key，默认key为admin-user。passwordKey同理
+  # passwordKey: 'admin-password'
 persistence:
   enabled: true
   type: 'pvc'
   storageClassName: 'nfs-client'
-# tls类型连接测试未成功
+env:
+  # 强制使用go进行dns解析，解决前台界面随机出现502问题，具体参考下文
+  GODEBUG: netdns=go
 ingress:
   enabled: true
   hosts:
@@ -803,7 +808,7 @@ grafana.ini:
 initChownData:
   enabled: false
 EOF
-helm install --name grafana --namespace monitoring stable/grafana --version 3.10.2 -f grafana-values.yaml
+helm install --name grafana --namespace monitoring stable/grafana --version 3.10.2 -f grafana-values.yaml # Grafana v6.4.2
 
 helm upgrade grafana stable/grafana --version 3.10.2 -f grafana-values.yaml
 helm del --purge grafana
@@ -811,6 +816,10 @@ helm del --purge grafana
 - 使用
     - 增加数据源，数据源地址如`http://prometheus-server.monitoring.svc.cluster.local`
     - 具体参考[Grafana](/_posts/devops/prometheus.md#Grafana)
+- 常见问题
+    - 管理面板会随机出现有些请求不成功，提示502，grafana日志显示`http: proxy error: dial tcp: lookup prometheus-server.monitoring.svc.cluster.local: no such host`。参考 [^4] [^5]
+        - 在6.4版中，Grafana将其基本映像从Ubuntu切换到了Alpine，从而部分机器会出现DNS解析失败的问题。因此从Grafana 6.5开始，他们提供了两个图像，一个基于Alpine，另一个基于Ubuntu。https://github.com/linkerd/linkerd2/pull/4600#issuecomment-645012122
+        - 解决方案（使用方法一解决成功）：(1) 增加`GODEBUG: netdns=go`的环境变量，可强制使用go DNS解析器而不是OS的解析器，参考上文yaml文件 (2) 或者换成Ubuntu的镜像
 
 ### Prometheus Blackbox Exporter
 
@@ -1113,6 +1122,40 @@ helm del --purge jenkins # 如果删除部署后重新部署，会重新创建�
 
 - 使用参考[LDAP](/_posts/db/LDAP.md#基于k8s安装)
 
+### Nexus(未测试)
+
+> https://hub.kubeapps.com/charts/sonatype/nexus-repository-manager
+
+- 参考[maven私服搭建(nexus)](/_posts/arch/maven.md#maven私服搭建(nexus))
+
+```bash
+helm repo add sonatype https://sonatype.github.io/helm3-charts/
+
+cat > nexus-values.yaml << 'EOF'
+statefulset:
+  enabled: true
+image:
+  repository: docker.mirrors.ustc.edu.cn/sonatype/nexus3
+persistence:
+  storageClass: 'nfs-client'
+ingress:
+  enabled: true
+  hosts:
+  - host: nexus.k8s.aezo.cn
+    paths: [/]
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  tls:
+  - secretName: nexus-tls
+    hosts:
+    - nexus.k8s.aezo.cn
+EOF
+helm install --name nexus-devops --namespace devops sonatype/nexus-repository-manager --version 25.0.2 -f nexus-values.yaml
+
+helm upgrade nexus-devops sonatype/nexus-repository-manager --version 25.0.2 -f nexus-values.yaml
+helm del --purge nexus-devops
+```
+
 ### skydive(网络分析)
 
 - [官网](http://skydive.network/index.html)
@@ -1176,6 +1219,7 @@ echo "skydive end-point: http://$UI_IP:$UI_PORT"
 {{ println $how_long }} // 输出6
 
 {{ $name := default .Chart.Name .Values.nameOverride }} // 赋值多个值，此时$name相当于一个数组
+{{ .Values.persistence.existingClaim | default (printf "%s-%s" (include "cat.fullname" .) "applogs") }} // 如果没有则默认取如 cat-applogs
 {{ if contains $name .Release.Name }} ... {{ end }} // $name为上文定义，判断$name中是否包含.Release.Name的值
 
 {{.}} // 表示当前对象，如user对象
@@ -1239,8 +1283,8 @@ grafana.ini:
 - 模板嵌套
 
 ```go
-{{define "module_name"}}content{{end}} //声明
-{{template "module_name"}} //调用
+{{ define "module_name" }}content{{ end }} //声明
+{{ template "module_name" }} //调用
 ```
 - 内置函数
 
@@ -1279,5 +1323,8 @@ ingress:
 [^1]: https://jimmysong.io/kubernetes-handbook/practice/helm.html
 [^2]: https://www.cnblogs.com/linuxk/p/10607805.html
 [^3]: https://www.cnblogs.com/aguncn/p/9933204.html
+[^4]: https://github.com/grafana/grafana/issues/20096
+[^5]: https://github.com/linkerd/linkerd2/pull/4600
+
 
 

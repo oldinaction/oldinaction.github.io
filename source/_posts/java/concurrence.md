@@ -54,7 +54,7 @@ tags: [concurrence, collection, juc, 线程池]
         - **wait会释放锁，notify/notifyAll不会释放锁**（wait不用退出同步代码块就会释放锁，而notify/notifyAll必须退出同步代码块才会释放）
             - **wait醒来继续执行时，仍然需要获得锁才能继续执行**（因为wait下面的代码块一般也在同步块中，此时需要对应notify释放锁，即notify退出同步代码块）
             - notify/notifyAll 的执行只是唤醒沉睡的线程，而不会立即释放锁，锁的释放要看代码块的具体执行情况。所以在编程中，**尽量在使用了notify/notifyAll后立即退出同步代码块，以让唤醒的线程获得锁**
-        - wait 需要被try catch包围，以便发生异常中断也可以使wait等待的线程唤醒
+        - **wait 需要被try catch包围**，以便发生异常中断也可以使wait等待的线程唤醒
         - **notify 和 wait 的顺序不能错**，否则报错IllegalMonitorStateException。如果A线程先执行notify方法，B线程再执行wait方法，那么B线程是无法被唤醒的(不会报错，LockSupport得unpark可在park之前运行)
         - notify方法只唤醒一个等待(对象的)线程并使该线程开始执行。所以如果有多个线程等待一个对象，这个方法只会唤醒其中一个线程，选择哪个线程取决于操作系统对多线程管理的实现。notifyAll 会唤醒所有等待(对象的)线程，尽管哪一个线程将会第一个处理取决于操作系统的实现
         - **在多线程中要测试某个条件的变化，使用if还是while来包裹wait？** (while)
@@ -253,11 +253,18 @@ public class T02_DLC_Singleton {
     ![aqs-structure](/data/images/java/aqs-structure.png)
     - **AQS使用一个 volatile int state 的成员变量来表示同步状态，通过内置的FIFO队列来完成资源获取的排队工作，通过CAS完成对state值的修改**
     - CLH(Craig、Landin and Hagersten，人名)队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列(FIFO)，AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配
-- 以 ReentrantLock 为例说明AQS执行过程
+- 以 ReentrantLock 为例说明AQS执行过程 [^9]
 
-    ![aqs-reentrantlock-uml](/data/images/java/aqs-reentrantlock-uml.png)
+    ![aqs-reentrantlock-uml](/data/images/java/aqs-reentrantlock-uml.jpg)
     - **加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待**
     - setExclusiveOwnerThread 主要是为了记录当前获取锁的线程，对于可重入锁可以此进行判断
+    - Node#waitStatus
+        - 0：新结点入队时的默认状态
+        - CANCELLED(1)：表示当前结点已取消调度。当timeout或被中断（响应中断的情况下），会触发变更为此状态，进入该状态后的结点将不会再变化
+        - SIGNAL(-1)：表示后继结点在等待当前结点唤醒。后继结点入队时，会将前继结点的状态更新为SIGNAL
+        - CONDITION(-2)：表示结点等待在Condition上，当其他线程调用了Condition的signal()方法后，CONDITION状态的结点将从等待队列转移到同步队列中，等待获取同步锁
+        - PROPAGATE(-3)：共享模式下，前继结点不仅会唤醒其后继结点，同时也可能会唤醒后继的后继结点
+        - 注意：负值表示结点处于有效等待状态，而正值表示结点已被取消。所以源码中很多地方用>0、<0来判断结点的状态是否正常
 - 为什么 AQS 需要一个虚拟 head 节点
     - Node 类的 waitStatus 变量用于表名当前节点状态。其中SIGNAL表示当当前节点释放锁的时候，需要唤醒下一个节点，所有每个节点在休眠前，都需要将前置节点的 waitStatus 设置成 SIGNAL，否则自己永远无法被唤醒
         - 初始状态是 0
@@ -343,7 +350,7 @@ condition2.signalAll(); // 唤醒condition2队列中的线程。注意不是cond
 ##### Atomic相关类
 
 - AtomicXXX相关类底层都是基于[CAS](#CAS)实现
-- 当线程很大的时候(如10000个)，数递增效率：LongAdder > AtomicLong > Synchronized
+- 当线程很大的时候(如10000个)，数递增效率：`LongAdder` > `AtomicLong` > `Synchronized`
     - LongAdder使用了分段锁，AtomicLong使用了CAS操作，而Synchronized可能会申请重量级锁
 
 ##### CountDownLatch倒数门栓
@@ -454,6 +461,7 @@ exchanger.exchange(V x, long timeout, TimeUnit unit) // 设置超时时间
 ##### LockSupport
 
 - **unpark可以在park之前调用，此时park执行也不会阻塞**
+- 它们底层都是调用的Unsafe的这两个方法
 
 ```java
 LockSupport.park(); // 阻塞当前线程，线程进入到WAITING状态，并不是锁
@@ -536,95 +544,168 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         - 现在基本不用
     - 后来增加了HashMap，此类的方法全部无锁。Map map = Collections.synchronizedMap(new HashMap()); 返回一个加锁的HashMap(仍然基于synchronized实现)，通过此方式使HashMap可以适用加锁和无锁的场景
     - 直到现在的ConcurrentHashMap、Queue等
-- 容器
-    - Collection 主要用来放单个对象，其子接口
-        - List
-            - Vector 线程安全(使用synchronized)
-                - Stack 栈，为LIFO(后进先出)
-            - **ArrayList**
-            - **LinkedList** 链表插入快，遍历慢
-            - **CopyOnWriteArrayList** 写入时通过synchronized加锁，取出不会(也不用)加锁，因此读快写慢；每次add是通过Arrays.copyOf复制出一个新数组
-        - Set
-            - **HashSet** 类
-                - **LinkedHashSet** 类
-            - SortedSet 接口
-                - **TreeSet** 为有序Set，默认找元素大小排序，可定义比较器；TreeSet 中的元素必须实现Comparable接口并重写compareTo()方法；线程不安全
-            - EnumSet
-            - **CopyOnWriteArraySet** 线程安全，具体参考[Copy-On-Write写时复制](/_posts/linux/计算机底层知识.md#Copy-On-Write写时复制)
-            - CopyOnWriteSkipListSet
-        - Queue 高并发较常用
-            - 相关方法(ABQ为例)
-                - `add` 添加，超过集合容量会报错：java.lang.IllegalStateException: Queue full
-                - `offer` 添加，超过集合容量则不再放入，**也不报错，线程不会阻塞，返回是否放入成功**
-                - `remove` 移除头部元素并返回此元素，如果没有则抛出异常java.util.NoSuchElementException
-                - `poll` 移除头部元素并返回此元素，如果没有则返回null
-                - `element` 获取头部元素，如果没有则抛出异常
-                - `peek` 获取头部元素，如果没有则返回null
-            - **BlockingQueue**(接口) 天然的生产者消费者模型，线程池中会使用到
-                - 相关方法(ABQ为例)
-                    - `put` (设计上)放入元素，**满了会阻塞等待**
-                    - `take` (设计上)移除头部元素并返回此元素，没有则阻塞等待
-                - **ArrayBlockingQueue(ABQ)** 基于ReentrantLock加锁
-                    - put入队阻塞，take出队阻塞
-                - LinkedBlockingQueue
-                - PriorityBlockingQueue 基于优先级的队列，内部有一个排序器(放入的元素必须实现Comparable接口)
-                    - **put入队不阻塞(调用offer)，take出队阻塞**
-                    - heap结构(堆，用数组实现的完全二叉树)，无界队列
-                - DelayQueue 延迟队列(类)
-                    - **put入队不阻塞，take出队阻塞**
-                    - 队列中的元素必须是实现Delayed接口，队列中的元素不但会按照延迟时间delay进行排序，且只有等待元素的延迟时间delay到期后才能出队
-                    - 常用于基于时间的任务调度，等待时间段的先执行
-                    - heap结构，无界队列
-                - TransferQueue(接口)
-                    - `transfer` 方法相比put的区别是，**放入元素后，直到被取走，否则一直阻塞等待**
-                    - LinkedTransferQueue **无锁(cas)**
-                - SynchronousQueue 同步Queue(类)
-                    - 当调用put放入元素后，如果没有被取走(take)，则put后会一致等待直到take拿走元素
-                    - 底层基于TransferQueue实现，类似于Exchanger可作线程间数据交换
-                    - 队列的容量为0，不能往里面直接add元素，会报错
-            - **ConcurrentLinkedQueue** 类，**无锁(cas)**，线程安全，无界队列。JDK中没有ConcurrentArrayQueue
-            - Deque 是double ended queue的简称，习惯上称之为**双端队列**(头尾均可加入取出元素)。发音为/dek/
-                - 当作为队列使用时，为FIFO(先进先出)模型，对应使用方法
-                    - addLast
-                    - offerLast
-                    - removeFirst
-                    - pollFirst
-                    - getFirst
-                    - peekFirst
-                    - removeLast
-                    - ...
-                - 当作为栈使用时，为LIFO(后进先出)模型，此接口优于传统的Stack类，对应使用方法
-                    - addFirst(push调用的addFirst)
-                    - offerFirst
-                    - removeFirst(同上)
-                    - pollFirst
-                    - ...
-                - ArrayDeque 数组类型的双端队列，线程不安全
-                - BlockingDeque 接口
-                    - LinkedBlockingDeque 线程安全
-            - 其他
-                - PriorityQueue 并未实现Queue接口，为java.util.PriorityQueue类，线程不安全(线程安全考虑可使用PriorityBlockingQueue)；最小的先执行，内部是一个堆排序的二叉树
-    - Map 用来放Key-Value型数据
-        - Hashtable 线程安全，put方法上加synchronized
-        - **HashMap** 线程不安全，put后最终map.size()可能大于实际值
-            - **LinkedHashMap**
-        - **TreeMap**
-        - **ConcurrentHashMap** 线程安全，put过程中使用synchronized
-        - WeakHashMap 使用弱引用保存Key对象。当使用 WeakHashMap 时，即使没有删除任何元素，它的size、get方法返回值也可能不一样
-        - IdentityHashMap 基于地址来的判断key值是否相同的(==判断的是地址，equals判断的是hashcode)；HashMap的key值是否相同是基于key的hashcode值来的
-        - ConcurrentSkipListMap
 - 有界队列和无界队列
     - 有界队列：就是有固定大小的队列。比如设定固定大小的 LinkedBlockingQueue
     - 无界队列：指的是没有设置固定大小的队列。这些队列的特点是可以直接入列，直到溢出。当然现实几乎不会有到这么大的容量(超过 Integer.MAX_VALUE)，所以从使用者的体验上，就相当于"无界"。比如没有设定固定大小的 LinkedBlockingQueue
     - 一般情况下要配置一下队列大小，设置成有界队列，否则JVM内存会被撑爆
+
+#### 容器分类
+
+- Collection 主要用来放单个对象，其子接口
+    - List
+        - Vector 线程安全(使用synchronized)
+            - Stack 栈，为LIFO(后进先出)
+        - **ArrayList**
+        - **LinkedList** 链表插入快，遍历慢
+        - **CopyOnWriteArrayList** 写入时通过synchronized加锁，取出不会(也不用)加锁，因此读快写慢；每次add是通过Arrays.copyOf复制出一个新数组
+    - Set
+        - **HashSet** 类
+            - **LinkedHashSet** 类
+        - SortedSet 接口
+            - **TreeSet** 为有序Set，默认找元素大小排序，可定义比较器；TreeSet 中的元素必须实现Comparable接口并重写compareTo()方法；线程不安全
+        - EnumSet
+        - **CopyOnWriteArraySet** 线程安全，具体参考[Copy-On-Write写时复制](/_posts/linux/计算机底层知识.md#Copy-On-Write写时复制)
+        - CopyOnWriteSkipListSet
+    - Queue 高并发较常用
+        - 相关方法(ABQ为例)
+            - `add` 添加，超过集合容量会报错：java.lang.IllegalStateException: Queue full
+            - `offer` 添加，超过集合容量则不再放入，**也不报错，线程不会阻塞，返回是否放入成功**
+            - `remove` 移除头部元素并返回此元素，如果没有则抛出异常java.util.NoSuchElementException
+            - `poll` 移除头部元素并返回此元素，如果没有则返回null
+            - `element` 获取头部元素，如果没有则抛出异常
+            - `peek` 获取头部元素，如果没有则返回null
+        - **BlockingQueue**(接口) 天然的生产者消费者模型，线程池中会使用到
+            - 相关方法(ABQ为例)
+                - `put` (设计上)放入元素，**满了会阻塞等待**
+                - `take` (设计上)移除头部元素并返回此元素，没有则阻塞等待
+            - **ArrayBlockingQueue(ABQ)** 基于ReentrantLock加锁
+                - put入队阻塞，take出队阻塞
+            - LinkedBlockingQueue
+            - PriorityBlockingQueue 基于优先级的队列，内部有一个排序器(放入的元素必须实现Comparable接口)
+                - **put入队不阻塞(调用offer)，take出队阻塞**
+                - heap结构(堆，用数组实现的完全二叉树)，无界队列
+            - DelayQueue 延迟队列(类)
+                - **put入队不阻塞，take出队阻塞**
+                - 队列中的元素必须是实现Delayed接口，队列中的元素不但会按照延迟时间delay进行排序，且只有等待元素的延迟时间delay到期后才能出队
+                - 常用于基于时间的任务调度，等待时间段的先执行
+                - heap结构，无界队列
+            - TransferQueue(接口)
+                - `transfer` 方法相比put的区别是，**放入元素后，直到被取走，否则一直阻塞等待**
+                - LinkedTransferQueue **无锁(cas)**
+            - SynchronousQueue 同步Queue(类)
+                - 当调用put放入元素后，如果没有被取走(take)，则put后会一致等待直到take拿走元素
+                - 底层基于TransferQueue实现，类似于Exchanger可作线程间数据交换
+                - 队列的容量为0，不能往里面直接add元素，会报错
+        - **ConcurrentLinkedQueue** 类，**无锁(cas)**，线程安全，无界队列。JDK中没有ConcurrentArrayQueue
+        - Deque 是double ended queue的简称，习惯上称之为**双端队列**(头尾均可加入取出元素)。发音为/dek/
+            - 当作为队列使用时，为FIFO(先进先出)模型，对应使用方法
+                - addLast
+                - offerLast
+                - removeFirst
+                - pollFirst
+                - getFirst
+                - peekFirst
+                - removeLast
+                - ...
+            - 当作为栈使用时，为LIFO(后进先出)模型，此接口优于传统的Stack类，对应使用方法
+                - addFirst(push调用的addFirst)
+                - offerFirst
+                - removeFirst(同上)
+                - pollFirst
+                - ...
+            - ArrayDeque 数组类型的双端队列，线程不安全
+            - BlockingDeque 接口
+                - LinkedBlockingDeque 线程安全
+        - 其他
+            - PriorityQueue 并未实现Queue接口，为java.util.PriorityQueue类，线程不安全(线程安全考虑可使用PriorityBlockingQueue)；最小的先执行，内部是一个堆排序的二叉树
+- Map 用来放Key-Value型数据
+    - Hashtable 线程安全，put方法上加synchronized
+    - **HashMap** 线程不安全，put后最终map.size()可能大于实际值
+        - **LinkedHashMap**
+    - **TreeMap**
+    - **ConcurrentHashMap** 线程安全，put过程中使用synchronized
+    - WeakHashMap 使用弱引用保存Key对象。当使用 WeakHashMap 时，即使没有删除任何元素，它的size、get方法返回值也可能不一样
+    - IdentityHashMap 基于地址来的判断key值是否相同的(==判断的是地址，equals判断的是hashcode)；HashMap的key值是否相同是基于key的hashcode值来的
+    - ConcurrentSkipListMap
+
+#### ArryaList和LinkedList
+
+- 查询：ArrayList可直接通过下标查找数据(并且数据组对处理的缓存机制较友好，缓存行每次会读取相邻数据以撑满)，而LinkedList的链表需要遍历每个元素直到找到为止，因此查询时ArrayList性能高
+- 插入：ArrayList是单向链表，底层是数组存储形式，如果在List中添加完元素之后，导致超过底层数组的长度，就会垃圾回收原来的数组，并且用System.copyArray赋值到新的数组当中，这开销就会变大(复制和实例化新数组)。而LikedList在插入时候，明显高于ArrayList，因为LinkedList是双向链表，只需要修改指针即可完成添加和删除元素
+- 删除：ArrayList 整体的会向前移动一格，然后再要删除的index位置置空操作，ArrayList的remove要比add的时候更快，因为不用再复制到新的数组当中了。LikedList 的remove操作相对于ArrayList remove更快
+- 使用与场景：如果查询较多可以使用ArrayList；但是如果是经常进行插入，删除操作可使用LinkedList
+
+#### HashMap和HashTable
+
+- 添加元素流程 [^10]
+    - 判断 `table[]` 是否为空，为空则进行初始化(resize)
+    - 根据键值key计算hash值得到插入的数组索引 i，判断`table[i]`是否有值，无则直接添加
+    - 判断`table[i]`的首个元素是否和key一样，如果相同直接覆盖value 
+    - 判断`table[i]`是否为treeNode，即`table[i]`是否是红黑树，如果是红黑树，则直接在树中插入键值对
+    - 不为红黑树时，判断链表长度是否大于8，大于8的话把链表转换为红黑树，在红黑树中执行插入操作；否则进行链表的插入操作（插入在头部），若发现key已经存在直接覆盖value即可
+    - 添加完成，判断元素个数是否超过集合阈值，超过则进行扩容
+- HashMap 容量起始值为16，负载因子为0.75，扩容时增加2n个元素
+- 为什么哈希表的容量一定要是2的整数次幂 [^11]
+    - 首先，length为2的整数次幂的话，**`h&(length-1)`就相当于对length取模**，这样便保证了散列的均匀，同时也提升了效率
+    - 其次，length为2的整数次幂的话，为偶数，这样length-1为奇数，奇数的最后一位是1，**这样便保证了h&(length-1)的最后一位可能为0，也可能为1（这取决于h的值）**，即与后的结果可能为偶数，也可能为奇数，这样便可以保证散列的均匀性。而如果length为奇数的话，很明显length-1为偶数，它的最后一位是0，这样 h&(length-1) 的最后一位肯定为0，即只能为偶数，这样任何hash值都只会被散列到数组的偶数下标位置上，这便浪费了近一半的空间。因此，length取2的整数次幂，是为了使不同hash值发生碰撞的概率较小，这样就能使元素在哈希表中均匀地散列
+- HashMap源码（JDK1.8）
+
+```java
+public V put(K key, V value) {
+    // hash(key) 内部为 return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+    return putVal(hash(key), key, value, false, true);
+}
+
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                   boolean evict) {
+    Node<K,V>[] tab; Node<K,V> p; int n, i;
+    if ((tab = table) == null || (n = tab.length) == 0)
+        n = (tab = resize()).length;
+    if ((p = tab[i = (n - 1) & hash]) == null)
+        tab[i] = newNode(hash, key, value, null);
+    else {
+        Node<K,V> e; K k;
+        if (p.hash == hash &&
+            ((k = p.key) == key || (key != null && key.equals(k))))
+            e = p;
+        else if (p instanceof TreeNode)
+            e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+        else {
+            for (int binCount = 0; ; ++binCount) {
+                if ((e = p.next) == null) {
+                    p.next = newNode(hash, key, value, null);
+                    if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                        treeifyBin(tab, hash);
+                    break;
+                }
+                if (e.hash == hash &&
+                    ((k = e.key) == key || (key != null && key.equals(k))))
+                    break;
+                p = e;
+            }
+        }
+        if (e != null) { // existing mapping for key
+            V oldValue = e.value;
+            if (!onlyIfAbsent || oldValue == null)
+                e.value = value;
+            afterNodeAccess(e);
+            return oldValue;
+        }
+    }
+    ++modCount;
+    if (++size > threshold)
+        resize();
+    afterNodeInsertion(evict);
+    return null;
+}
+```
+
+#### 线程安全队列说明
+
+- 具体见上文容器分类中Queue
 - Queue和List的区别
     - Queue主要加入了一些线程友好的API，如offer、poll、peek
     - Queue的子类BlockingQueue又加入了put、take
-- ArryaList和LinkedList
-    - 查询：ArrayList可直接通过下标查找数据(并且数据组对处理的缓存机制较友好，缓存行每次会读取相邻数据以撑满)，而LinkedList的链表需要遍历每个元素直到找到为止，因此查询时ArrayList性能高
-    - 插入：ArrayList是单向链表，底层是数组存储形式，如果在List中添加完元素之后，导致超过底层数组的长度，就会垃圾回收原来的数组，并且用System.copyArray赋值到新的数组当中，这开销就会变大(复制和实例化新数组)。而LikedList在插入时候，明显高于ArrayList，因为LinkedList是双向链表，只需要修改指针即可完成添加和删除元素
-    - 删除：ArrayList 整体的会向前移动一格，然后再要删除的index位置置空操作，ArrayList的remove要比add的时候更快，因为不用再复制到新的数组当中了。LikedList 的remove操作相对于ArrayList remove更快
-    - 使用与场景：如果查询较多可以使用ArrayList；但是如果是经常进行插入，删除操作可使用LinkedList
 - 常用的线程安全队列
 
     ![juc-queue](/data/images/java/juc-queue.png)
@@ -675,8 +756,8 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         - 线程数忙，且线程队列忙，则执行拒绝策略
         - 默认类型(也可自定义)
             - Abort 抛异常。new ThreadPoolExecutor.AbortPolcy()
-            - Discard 扔掉，不抛异常
-            - DiscardOldest 扔掉排队时间最久的
+            - Discard 丢弃，不抛异常
+            - DiscardOldest 丢弃排队时间最久的
             - CallerRuns 调用者(调用execute方法的线程)处理任务
 - 线程池调度过程
     - 线程池实例化后创建核心线程
@@ -685,9 +766,9 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 如果还有新线程，线程数也达到指定的最大值，且线程队列满了，则执行拒绝策略
     - 线程不使用了则归还线程数，最终保留核心线程数
 - Executors可调用以下方法获得ExecutorService对象
-    - newSingleThreadExecutor 只有一个线程(核心和最大线程数都为1)的线程池，其队列为LinkedBlockingQueue无界队列(容易内存溢出)
+    - newSingleThreadExecutor 只有一个线程(核心和最大线程数都为1)的线程池，**其队列为LinkedBlockingQueue无界队列**(容易内存溢出)
     - newFixedThreadPool 固定线程数的线程池(核心和最大线程数都为指定值)，且队列为LinkedBlockingQueue无界队列，如用于线程数比较平稳的常见
-    - newCachedTreadPoll 核心线程数为0，最大线程数为Integer.MAX_VALUE，线程队列为SynchronousQueue(只有元素被取走了才能继续放元素)，如用于线程数波动比较大的场景
+    - newCachedTreadPoll 核心线程数为0，**最大线程数为Integer.MAX_VALUE**，线程队列为SynchronousQueue(只有元素被取走了才能继续放元素)，如用于线程数波动比较大的场景
     - newScheduledThreadPool 用于执行定时任务的线程池，实际用定时任务中间件较多。最大线程数为Integer.MAX_VALUE，线程队列为 DelayedWorkQueue
     - newWorkStealingPool 创建一个具有抢占式操作的线程池，JDK1.8新增，基于ForkJoinPool实现。适合使用在很耗时的操作
 - 阿里开发者手册不建议使用JDK自带线程池，主要原因是自带线程池的线程队列最大为Integer.MAX_VALUE，容易出现OOM，而且线程数太多，会竞争CPU，浪费时间在上下文切换上；且一般也建议自定义拒绝策略？
@@ -1328,4 +1409,7 @@ public abstract class AbstractMultiThreadTestSimpleTemplate {
 [^6]: https://www.jianshu.com/p/ad34c4c8a2a3
 [^7]: https://blog.liexing.me/2018/11/03/parallelstream-trap/
 [^8]: https://juejin.im/post/5d929b475188250f782ab84d
+[^9]: https://www.cnblogs.com/waterystone/p/4920797.html
+[^10]: https://tech.meituan.com/2016/06/24/java-hashmap.html (Java 8系列之重新认识HashMap)
+[^11]: https://www.cnblogs.com/peizhe123/p/5790252.html
 

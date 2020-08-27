@@ -789,7 +789,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
         - 选定CPU(越高越好)
         - 设定年代大小、升级年龄
         - 设定日志参数
-            - `-Xloggc:/var/log/my-test-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause` 使用循环日志，日志个数为5个，每个日志大小为20M
+            - `-Xloggc:/var/log/test-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause` 使用循环日志，日志个数为5个，每个日志大小为20M
         - 观察日志情况
     - 案例1：垂直电商(只卖一类产品)，最高每日百万订单，处理订单系统需要什么样的服务器配置？
         - **淘宝2019双11最大并发54W；12306春节最大并发100w以上**。电商的并发一般值TPS(每秒能完成的事物数，即每秒成创建多少个订单)，其他性能评判指标如QPS
@@ -933,7 +933,7 @@ for(int i=0; i<100; i++) {
 - `-XX:+HeapDumpOnOutOfMemoryError` **让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用**
 - `-XX:HeapDumpPath=/home/jvmlogs` **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
 - `-XX:ErrorFile` 设置jvm致命错误日志文件生成位置(默认生成在工作目录下)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
-- `-Xloggc:opt/log/gc.log`
+- `-Xloggc:/opt/log/gc.log` 具体参考上文循环记录日志
 - `-XX:NewRatio` 老年代与新生代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
 - `-XX:MaxTenuringThreshold` 升代年龄，最大值15
 - `-XX:TargetSurvivorRatio=50` 动态年龄时的低年龄比例
@@ -1004,38 +1004,33 @@ System.getProperty("test.name") // 程序中取值，无此参数则为null
 - 启动脚本
 
 ```bash
-## 1.简单配置
+## 1.简单配置（如2G内存）
 APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
-( cd "$APP_HOME" && java -Xmx512M -jar xxx.jar --spring.profiles.active=prod )
+( cd "$APP_HOME" && java -Xms1G -Xmx1G -jar xxx.jar --spring.profiles.active=prod )
 
 ## 2.基于bash的VM参数
 APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
-#MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m -Dfile.encoding=UTF-8"
-OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/"
-#IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'` #automatic IP address for linux（内网地址）
-#RMIIF="-Djava.rmi.server.hostname=$IPADDR"
-#JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
-#DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
-VMARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG"
-( cd "$APP_HOME" && java $VMARGS -jar xxx.jar --spring.profiles.active=prod )
 
-## 3.1G内存机器推荐配置
--Xms512M
--Xmx512M
--XX:PermSize=256M
--XX:MaxPermSize=512M
-# 监控内存溢出
--XX:+HeapDumpOnOutOfMemoryError
--XX:HeapDumpPath=/home/jvmlogs
+MEMIF="-Xms1G -Xmx1G -Dfile.encoding=UTF-8"
+
+GC_LOG="-Xloggc:/var/log/app-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause"
+OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/"
+
+# automatic IP address for linux（内网地址）
+IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
+RMIIF="-Djava.rmi.server.hostname=$IPADDR"
+
 # 开启JMX远程连接
-#-Djava.rmi.server.hostname=192.168.1.1
-#-Dcom.sun.management.jmxremote=true
-#-Dcom.sun.management.jmxremote.port=8091
-#-Dcom.sun.management.jmxremote.ssl=false 
-#-Dcom.sun.management.jmxremote.authenticate=false
 # 如果authenticate为true时需要下面的两个配置。在JAVA_HOME/jre/lib/management下有模板。文件权限 chmod 600 jmxremote.password
 #-Dcom.sun.management.jmxremote.password.file=/usr/java/default/jre/lib/management/jmxremote.password
 #-Dcom.sun.management.jmxremote.access.file=/usr/java/default/jre/lib/management/jmxremote.access
+JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
+
+DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
+
+# VMARGS="$MEMIF $GC_LOG $OOME $RMIIF $JMX $DEBUG"
+VMARGS="$GC_LOG $OOME"
+( cd "$APP_HOME" && java $VMARGS -jar xxx.jar --spring.profiles.active=prod )
 ```
 
 
