@@ -61,9 +61,11 @@ tags: LB, HA
 ## nginx配置(nginx.conf)
 
 - 查找配置文件 `sudo find / -name nginx.conf`
-- 配置示例
+
+#### 配置示例
 
 ```bash
+# http {} 模块下
 server {
     # 监听的端口，注意要在服务器后台开启80端口外网访问权限。[Windows上80端口占用问题解决](/_posts/lang/C%23.md#IIS)
     listen   80;
@@ -193,7 +195,8 @@ server {
     }
 }
 ```
-- 配置详细说明
+
+#### 配置详细说明
 
 ```bash
 # ***.定义Nginx运行的用户和用户组。如果出现403 forbidden (13: Permission denied)错误可将此处设置成启动用户，如root
@@ -234,7 +237,7 @@ events {
 #    load ngx_http_rewrite_module.so; # 加载重写模块
 #}
 
-# 直接根据流转换. 如：oracle数据库映射外网、sshd转换、ws转换
+## **代理TCP/UDP协议**。如：oracle数据库映射外网、sshd转换、ws转换
 stream {
     # 进行oracle数据映射。不能使用http模块转换，否则连接时报错ORA-12569包解析出错
     upstream oracledb {
@@ -246,6 +249,14 @@ stream {
         #公网机器监听端口，连接oracle的tns中填公网ip和端口即可
         listen 1521;
         proxy_pass oracledb;
+
+        # 也支持socket
+        # proxy_pass unix:/var/lib/mysql/mysql.socket;
+
+        # 加密
+        # proxy_ssl  on;
+        # proxy_ssl_certificate     /etc/ssl/certs/backend.crt;
+        # proxy_ssl_certificate_key /etc/ssl/certs/backend.key;
     }
 
     # 进行sshd转换(局域网某台机器的虚拟上安装了Linux，暴露这些虚拟机给局域网)，每暴露一台需要监听一个端口
@@ -258,6 +269,7 @@ stream {
     }
 }
 
+## **代理HTTP协议**。如：springmvc应用
 # 设定http服务(也支持smtp邮件服务)。全局只能有一个http节点
 http {
     include mime.types; #文件扩展名与文件类型映射表(对应当前目录下文件mime.types)
@@ -484,7 +496,7 @@ http {
 }
 ```
 
-## 配置
+## 字段说明
 
 ### server_name和listen
 

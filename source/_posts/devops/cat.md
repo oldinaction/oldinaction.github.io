@@ -27,7 +27,7 @@ tags: [monitor]
 
     - 在实际开发和部署中，cat-consumer和cat-home是部署在一个jvm内部
 
-## 安装及使用
+## 安装(服务端)
 
 ### 基于docker安装服务端
 
@@ -41,8 +41,8 @@ services:
     container_name: sq-tomcat
     image: tomcat:jdk8
     ports:
-      - 8888:8080 # cat控制台界面地址
-      - 2280:2280 # cat通信地址
+      - 8888:8080 # cat控制台界面地址(HTTP)
+      - 2280:2280 # cat数据上报通信地址(TCP)
       #- 8091:8091
     volumes:
       - /home/data/cat/appdatas:/data/appdatas
@@ -121,18 +121,29 @@ CMD ["/bin/sh", "-c", "$CATALINA_HOME/bin/catalina.sh run"]
 - 加入Cat依赖，客户端启动报错`java.lang.NoClassDefFoundError: org/aspectj/util/PartialOrder$PartialComparable`，表示缺少`aspectjweaver`相关jar包
     - 解决办法：如springboot引入`org.springframework.boot#spring-boot-starter-aop`依赖
 
-### 客户端(Windows下IDEA启动)
+## 使用(客户端)
+
+### Windows下IDEA启动
 
 - 参考：https://github.com/dianping/cat/blob/master/lib/java/README.zh-CN.md
-- 创建文件`D:\data\appdatas\cat\client.xml`
-    - windows环境时，此处D盘和tomcat运行盘符一致；linux系统则为/data/appdatas/cat目录；或者设置CAT_HOME环境变量。**如果无此文件，Java应用仍然可以正常启动运行**
-    - 生成的运行日志文件位于`D:\data\applogs\cat`
+- 创建文件`D:/data/appdatas/cat/client.xml`
+    - **如果无此文件，Java应用仍然可以正常启动运行**
+    - **此处D盘和tomcat运行盘符一致**，或者设置CAT_HOME=D:/data/appdatas/cat环境变量
+    - windows环境一般为`D:/data/appdatas`，linux系统则为/data/appdatas/cat目录
+    - 生成的运行日志文件位于`D:/data/applogs/cat`（会自动创建文件夹，和appdatas同级目录）
     - 部署了多个客户端时，此配置文件和日志文件可以共用
+    - 客户端启动后会在appdatas目录创建一个1M的`sq-test.mark`二进制文件
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <config mode="client" xmlns:xsi="http://www.w3.org/2001/XMLSchema" xsi:noNamespaceSchemaLocation="config.xsd">
     <servers>
+        <!--
+            1.客户端启动后，会先访问：http://192.168.6.10:8888/cat/s/router?domain=sq-test&ip=192.168.6.1&op=json 获取cat数据上报通信地址(TCP)等配置，此处的domain和ip均为客户端的(参考下文配置)
+            2.服务器接收到此HTTP请求，根据domain读取"客户端路由配置"获取数据上报通信地址，其他配置同理查询。最终返回如：{"kvs":{"startTransactionTypes":"Cache.;Squirrel.","block":"false","routers":"192.168.6.10:2280;","sample":"1.0","matchTransactionTypes":"SQL"}}
+            3.如果此HTTP请求失败，则使用默认配置，cat数据上报则使用此处配置的地址(ip:port)。且会定时获取配置更新，具体可在applogs中查看日志
+            4.如果此处有多个server，只会上报数据到其中一个服务端
+        -->
         <server ip="192.168.6.10" port="2280" http-port="8888" />
     </servers>
 </config>
@@ -142,7 +153,7 @@ CMD ["/bin/sh", "-c", "$CATALINA_HOME/bin/catalina.sh run"]
 ```xml
 <!-- 
     1.CAT v3.0.0按照下述引用，客户端启动报错 java.lang.NoClassDefFoundError: Could not initialize class com.dianping.cat.message.internal.DefaultMessageProducer
-    2.可以下载源码，然后复制手动打包/上传到私有仓库，然后下载生成的cat-client对应jar包
+    2.可以下载源码，然后手动打包/上传到私有仓库，再下载生成的cat-client对应jar包
 -->
 <dependency>
     <groupId>com.dianping.cat</groupId>
@@ -158,7 +169,7 @@ CMD ["/bin/sh", "-c", "$CATALINA_HOME/bin/catalina.sh run"]
 </repositories>
 ```
 - 创建`src/main/resources/META-INF/app.properties`，并写入`app.name=sq-test`
-- 在测试项目中写入埋点代码，即可进行测试
+- 在测试项目中写入埋点代码，即可进行测试（或者参考下文集成方案进行部分场景自动埋点）
 
 ```java
 public void test() {
@@ -199,7 +210,6 @@ public void test() {
 ### 客户端插件集成
 
 - 参考：https://github.com/dianping/cat/tree/v3.0.0/integration
-    
 - 对所有的URL路径进行拦截。此时后端API暴露的路径都会进行上报统计，也可额外添加对某个路径的自定义拦截
 
 ```java
@@ -551,13 +561,41 @@ public class CatHystrixFeignAspect {
             - 如果客户端只是在`app.properties`中配置`app.name`则会归并到`Default-Default`的事业部和产品线
 - 全局系统配置（配置信息均保存在数据库的config表中）
     - 服务端配置
-        - 修改remote-servers的值如192.168.6.10:8888 和 `<server id="192.168.17.74">`（修改为可对外访问的IP，如容器的宿主机IP），启动hdfs的ip可以不用考虑(默认关闭hdfs)。需重启tomcat
+        - 修改remote-servers的值为，如192.168.6.10:8888 和 `<server id="192.168.6.10">`（修改为可对外访问的IP，如容器的宿主机IP），启动hdfs的ip可以不用考虑(默认关闭hdfs)。需重启tomcat
     - 客户端路由配置
-        - 修改ip如192.168.6.10（同上）。需重启tomcat
+        
+        ```xml
+        <?xml version="1.0" encoding="utf-8"?>
+            <router-config backup-server="192.168.6.10" backup-server-port="2280">
+            <default-server id="192.168.6.10" weight="1.0" port="2280" enable="true"/>
+            <network-policy id="default" title="默认" block="false" server-group="default_group">
+            </network-policy>
+            <server-group id="default_group" title="default-group">
+                <group-server id="192.168.6.10"/>
+            </server-group>
+            <!-- 客户端会基于HTTP请求服务端，获取数据上报的TCP地址和端口。基于传入参数domain进行判断，无则使用默认default-server -->
+            <domain id="sq-test">
+                <group id="default">
+                    <server id="192.168.6.10" port="2280" weight="1.0"/>
+                </group>
+            </domain>
+        </router-config>
+        ```
 - 修改默认admin账号密码：可修改cat-home源码后重新编译，参考：http://www.bubuko.com/infodetail-3091160.html
 - 邮件告警需要自行启动邮件发送服务，参考：https://github.com/dianping/cat/blob/master/integration/cat-alert/README.md
 
 ## 源码分析
+
+- 本地启动：把cat-home添加到tomcat中
+
+### 原理说明
+
+- 基于[plexus容器](https://codehaus-plexus.github.io/)，类似Spring的IOC容器
+- 相关类
+    - UserConfigManager
+    - TimerSyncTask
+
+### 相关源码
 
 ```java
 // ## cat-home

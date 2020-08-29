@@ -1033,6 +1033,7 @@ spec:
   # 定义后端转发的规则
   rules:
   - host: ingress.aezocn.local
+    # ingress只能代理http端口，如果需要代理tcp/udp可参考[ingress-nginx](/_posts/devops/helm.md#ingress-nginx)
     http:
       paths:
       # 配置后端服务

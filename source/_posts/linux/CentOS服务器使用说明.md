@@ -84,19 +84,22 @@ yum -y install gcc # 编译c
 
 - **更换镜像源**
 
-    ```bash
-    # 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。**可更换镜像列表** [^3]
-    cd /etc/yum.repos.d
-    # 备份
-    mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-    # 基础源，下载阿里云镜像
-    curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-    # 安装EPEL源(新增镜像源)
-    curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
-    # 生成缓存
-    yum makecache
-    ```
-- 新增镜像源
+```bash
+# 查看yum的配置文件，其中`CentOS-Base.repo`为镜像列表配置。**可更换镜像列表** [^3]
+cd /etc/yum.repos.d
+# 备份
+mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+# 基础源，下载阿里云镜像
+curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+# 安装EPEL源(新增镜像源)
+curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+# 生成缓存
+yum makecache
+```
+- 安装`EPEL`(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
+    - 下载epel源(可使用上述阿里云镜像) `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
+    - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
+- 手动新增镜像源
 
 ```bash
 ## 直接下载镜像源文件新增
@@ -117,43 +120,40 @@ EOF
 # 列举镜像
 yum repolist
 ```
-- 安装`EPEL`(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
-    - 下载epel源(可使用上述阿里云镜像) `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
-    - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
 
 #### rpm安装(软件包管理器)
 
 - `rpm`格式文件安装(redhat package manage。有依赖关系，安装和卸载也有先后顺序)
-    - RPM包的命名规范：`name-version-release.os.arch.rpm`
-        - os：即说明RPM包支持的操作系统版本。如el6(即rhel6)、centos6、el5、suse11
-        - arch：主机平台。如i686、x86_64、amd64、ppc(power-pc)、noarch(即不依赖平台)
+- RPM包的命名规范：`name-version-release.os.arch.rpm`
+    - os：即说明RPM包支持的操作系统版本。如el6(即rhel6)、centos6、el5、suse11
+    - arch：主机平台。如i686、x86_64、amd64、ppc(power-pc)、noarch(即不依赖平台)
 - 命令
 
-    ```bash
-    rpm <option> xxx
-    # -i：表示安装
-    # -v, -vv, -vvv：表示详细信息
-    # -h：以"#"号显示安装进度
-    # -q：查询某一个RPM包是否已安装
-        # -qi：查询某一个RPM包的详细信息
-        # -ql：列出某RPM包中所包含的文件
-        # -qf：查询某文件是哪个RPM包生成的
-        # -qa：列出当前系统所有已安装的包
-    # -e：卸载指定包名
-    # -U：升级软件，若未软件尚未安装，则安装软件
-    # -F：升级软件
-    # -V：对RPM包进行验证
-    # --force：强行安装，可以实现重装或降级
+```bash
+rpm <option> xxx
+# -i：表示安装
+# -v, -vv, -vvv：表示详细信息
+# -h：以"#"号显示安装进度
+# -q：查询某一个RPM包是否已安装
+    # -qi：查询某一个RPM包的详细信息
+    # -ql：列出某RPM包中所包含的文件
+    # -qf：查询某文件是哪个RPM包生成的
+    # -qa：列出当前系统所有已安装的包
+# -e：卸载指定包名
+# -U：升级软件，若未软件尚未安装，则安装软件
+# -F：升级软件
+# -V：对RPM包进行验证
+# --force：强行安装，可以实现重装或降级
 
-    ## 举例
-    rpm -ivh jdk-7u80-linux-x64.rpm # 安装程序包(jdk)
-    rpm -qa # 查看安装的程序包(`rpm -qa | grep nginx` 查看是否安装nginx)
-    rpm -qc nginx # 查询指定包安装的配置文件
-    rpm -ql jdk | more # 查询指定包安装后生成的文件列表
-    rpm -e nginx # 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
-    rpm -Uvh nginx # 如果装有老版本则升级，否则安装
-    rpm -Fvh nginx # 如果装有老版本则升级，否则退出
-    ```
+## 举例
+rpm -ivh jdk-7u80-linux-x64.rpm # 安装程序包(jdk)
+rpm -qa # 查看安装的程序包(`rpm -qa | grep nginx` 查看是否安装nginx)
+rpm -qc nginx # 查询指定包安装的配置文件
+rpm -ql jdk | more # 查询指定包安装后生成的文件列表
+rpm -e nginx # 卸载某个包(程序)，其中的rpm包名可通过上述命令查看
+rpm -Uvh nginx # 如果装有老版本则升级，否则安装
+rpm -Fvh nginx # 如果装有老版本则升级，否则退出
+```
 
 #### yum安装(软件包管理器的前端工具)
 
@@ -164,6 +164,7 @@ yum install -y nginx
 yum remove nginx
 # 查看版本。`yum install -y ceph-common-14.2.4-0.el7.x86_64` 安装指定版本
 yum list | grep ceph-common # ceph-common.x86_64                        2:14.2.4-0.el7                 @Ceph
+yum list installed # 查看已安装的
 # 查找软件vsftpd源
 yum search vsftpd
 ```

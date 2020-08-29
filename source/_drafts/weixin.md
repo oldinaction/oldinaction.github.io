@@ -63,9 +63,26 @@ tags: [H5, App]
 
 - [微信浏览器中获取用户信息](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html)。如微信公众号点击菜单H5连接进入网页时获取用户信息
     - 前提
-        - 绑定网页授权域名(和授权回调地址一致。微信公众号 - 开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息)
-        - **无需绑定微信公众号服务器配置**(此配置是用来管理微信公众号的)
-    - 引导用户访问如`https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect`，如让用户打开网站主页，然后再主页加载后自动跳转到此地址
+        - **绑定网页授权域名**(和授权回调地址一致。微信公众号 - 开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息)
+            - **无需绑定微信公众号服务器配置**(该配置是用来管理微信公众号的)
+            - **一定要是域名，不要加http://等协议头，也不要加子路径**
+                - 假设网页运行在/abc目录，此时也要加example.com，而不能是example.com/abc，因此必须是http://example.com/MP_verify_cm2fJ4wmTLQpvkZr.txt来进行验证
+                - 业务域名和JS安全域名是否需要加子路径未测试
+        - **设置IP白名单**（测试账号无需）
+            - 为了防止公众号appid和秘钥泄露，在向微信服务器获取access_token请求时，需要限制开发者服务器所在的外网IP（微信服务器获取的请求者IP）
+    - 引导用户访问如`https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect`，如让用户打开网站主页，然后再主页加载后自动跳转到此地址。回调地址必须完整，如果动态协议头，可以使用如`window.location.protocol + '//aezo.cn/xxx'`
+
+        ```js
+        redirectWechatForCode(appid, redirectUrl, state) {
+            // https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
+            let path = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
+                    + appid
+                    + "&redirect_uri="
+                    + encodeURIComponent(redirectUrl)
+                    + "&response_type=code&scope=snsapi_userinfo&state=" + state + "#wechat_redirect";
+            window.location.href = path
+        }
+        ```
     - 访问上述连接，会进行用户授权验证，用户同意授权，获取code。此时code通过上述链接配置的回调地址会当做参数带回(还会原封不动的带回state参数)
     - 通过code换取openid、网页授权access_token(用户的access_token，有效期为2h；不同于公众号的access_token)、网页授权refresh_token(有效期为30天)。由于此接口调用次数不限制，可需要获取access_token时重新调用微信接口，也可存储下来
     - 或者刷新access_token

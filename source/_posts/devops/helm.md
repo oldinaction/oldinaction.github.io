@@ -455,6 +455,8 @@ kubectl label node node1 node-role.kubernetes.io/edge=
 # 修改参数启用RBAC. 否则报错：`User "system:serviceaccount:ingress-nginx:default" cannot get resource "services"`
 cat > ingress-nginx.yaml << EOF
 controller:
+  image:
+    repository: quay.mirrors.ustc.edu.cn/kubernetes-ingress-controller/nginx-ingress-controller
   replicaCount: 1
   # 使用VIP地址达到负载均衡的效果(将域名绑定到此VIP，如果不设置可能无法通过域名访问。删除需要重新创建ingress-nginx-pod才会生效)
   service:
@@ -467,6 +469,8 @@ controller:
     # nodePorts:
     #   http: 30080
     #   https: 30443
+    #   tcp: # 进行tcp代理的时候才需要，对应下文配置的tcp
+    #     9000: 31000
   # 临时可使用宿主机网络测试(如果使用externalIPs则不能使用此属性)
   #hostNetwork: true
   config:
@@ -497,6 +501,9 @@ defaultBackend:
 ## Enable RBAC
 rbac:
   create: true
+# 进行tcp代理的时候才需要，9000为nginx-controller中开启的代理端口，后面表示代理的namespace/svc:port
+tcp:
+  9000: "monitoring/cat:2280"
 EOF
 # 安装
 helm install stable/nginx-ingress --version 1.15.1 -n nginx-ingress --namespace ingress-nginx -f ingress-nginx.yaml
@@ -509,6 +516,27 @@ helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-ngin
 
 helm del --purge nginx-ingress
 ```
+- 开启TCP/UDP代理（暴露相应服务）
+    - 参考：https://kubernetes.github.io/ingress-nginx/user-guide/exposing-tcp-udp-services/
+    - 说明：Ingress默认只能代理http，nginx却可以代理http/tcp/udp
+    - 配置参考上文的 `tcp` 和 `controller.service.nodePorts.tcp`。具体可参考stable/nginx-ingress中的chart文件
+    - 创建成功后，生成nginx.conf中如下
+
+        ```bash
+        stream {
+            # ...
+            # TCP services
+            server {
+                preread_by_lua_block {
+                        ngx.var.proxy_upstream_name="tcp-monitoring-cat-2280";
+                }
+                listen                  9000;
+
+                proxy_timeout           600s;
+                proxy_pass              upstream_balancer;
+            }
+        }
+        ```
 
 ### Kubernetes Dashboard
 
@@ -1219,7 +1247,8 @@ echo "skydive end-point: http://$UI_IP:$UI_PORT"
 {{ println $how_long }} // 输出6
 
 {{ $name := default .Chart.Name .Values.nameOverride }} // 赋值多个值，此时$name相当于一个数组
-{{ .Values.persistence.existingClaim | default (printf "%s-%s" (include "cat.fullname" .) "applogs") }} // 如果没有则默认取如 cat-applogs
+{{ .Values.name | default "applogs" }} // 字符串需要加双引号，否则会被认为是变量
+{{ .Values.name | default (printf "%s-%s" (include "cat.fullname" .) "applogs") }} // 如果没有则默认取如 cat-applogs
 {{ if contains $name .Release.Name }} ... {{ end }} // $name为上文定义，判断$name中是否包含.Release.Name的值
 
 {{.}} // 表示当前对象，如user对象
@@ -1250,7 +1279,7 @@ echo "skydive end-point: http://$UI_IP:$UI_PORT"
 // 当exp不为0值时，则"."设置为exp运算的值，并执行T1；否则执行else语句块
 {{with exp}} T1 {{else}} T0 {{end}}
 ```
-- **range**
+- **range**、**index**
 
 ```go
 // range循环来遍历map(将所有k-v依次展示)
@@ -1275,6 +1304,27 @@ grafana.ini:
     host: "smtp.gmail.com:587"
     user: "test@gmail.com"
     password: "pass"
+`
+
+// index 返回第一个参数的索引值，如"index x 1 2 3" 相当于 x[1][2][3]
+{{- range $key, $value := .Values.tcp }}
+- name: "{{ $key }}-tcp"
+  port: {{ $key }}
+  protocol: TCP
+  targetPort: "{{ $key }}-tcp"
+  {{- if $.Values.nodePorts.tcp }}
+  {{- if index $.Values.nodePorts.tcp $key }} // 相当于获取 $.Values.nodePorts.tcp[$key]
+  nodePort: {{ index $.Values.nodePorts.tcp $key }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+`
+# value.yaml中配置
+nodePorts:
+  tcp:
+    9000: 31000
+tcp:
+  9000: "monitoring/cat:2280"
 `
 ```
 
