@@ -223,32 +223,32 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
             - 开启代理 - v2ray状态栏的图标点右键 - 勾选启用http代理 - 在http代理模式中选择PAC模式
             - 保存后会自动启动，控制台显示`started`。且在界面底部会显示`SOCKS5/HTTP/PAC`代理对应的地址，且会自动将PAC加入到windows的系统代理中(每次重启PAC地址会改变)。默认的代理ip为127.0.0.1只需本地使用，可在 **`参数设置-v2rayN设置-运行来自局域网的连接`**，重启后局域网都可以使用此代理正常上文
             - **访问外网测试**。通过`IE`、`IE Edge`、`Opera`浏览器可直接访问(默认使用了系统代理)；`Google`需要关闭所有代理插件；`Firefox`需要使用上述代理地址进行配置
-        - 使用ws(websocket)模式
+    - 使用ws(websocket)模式（v2ray服务端设置）
 
-            ```json
-            // 在 inbounds 里添加一个 inbound(默认包含一个tcp类型的inbound)，id 部分请使用 /usr/bin/v2ray/v2ctl uuid 命令随机生成一个。如果基于域名则端口必须设置为 80；如果基于IP，端口可设置成其他
-            // vi /etc/v2ray/config.json
-            {
-                "settings": {
-                    "clients": [{
-                        "id": "使用`/usr/bin/v2ray/v2ctl uuid`自行生成",
-                        "alterId":64
-                    }]
+        ```json
+        // 在 inbounds 里添加一个 inbound(默认包含一个tcp类型的inbound)，id 部分请使用 /usr/bin/v2ray/v2ctl uuid 命令随机生成一个。如果基于域名则端口必须设置为 80；如果基于IP，端口可设置成其他
+        // vi /etc/v2ray/config.json
+        {
+            "settings": {
+                "clients": [{
+                    "id": "使用`/usr/bin/v2ray/v2ctl uuid`自行生成",
+                    "alterId":64
+                }]
+            },
+            "protocol": "vmess",
+            "port": 80,
+            "streamSettings": {
+                "wsSettings": {
+                    "path": "/",
+                    "headers": {}
                 },
-                "protocol": "vmess",
-                "port": 80,
-                "streamSettings": {
-                    "wsSettings": {
-                        "path": "/",
-                        "headers": {}
-                    },
-                    "network": "ws"
-                }
+                "network": "ws"
             }
+        }
 
-            // 修改后重启v2ray服务：systemctl restart v2ray
-            ```
-            - 客户端配置修改：端口使用80(后面如果使用CDN则此处端口必须使用80，否则可以使用其他)，传输协议使用ws，路径使用/，其他同tcp模式配置
+        // 修改后重启v2ray服务：systemctl restart v2ray
+        ```
+        - 客户端配置修改：端口使用80(后面如果使用CDN则此处端口必须使用80，否则可以使用其他)，传输协议使用ws，路径使用/，其他同tcp模式配置
 - v2ray + CDN(相对直接使用v2ray安全，测试Youtube的Connection Speed=2000左右，延迟较高)
     - [CloudFlare](https://www.cloudflare.com/zh-cn/)为一款国外CDN，可免费支持一个域名
         - 添加域名 - 修改DNS - 解析子域名如`v2ray`到vps对应ip

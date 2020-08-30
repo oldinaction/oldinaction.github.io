@@ -38,9 +38,7 @@ tags: [app, dart]
 - 安装git
 - [下载Flutter SDK](https://github.com/flutter/flutter/releases)，解压，并将`%flutter_home%/bin`设置到环境变量，执行`flutter doctor`看是否成功安装(可运行即可)
 - `Dart SDK`已经捆绑在Flutter SDK中，故无需在单独安装Dart SDK
-- 安装Android SDK(任意一种)
-    - 直接安装Android Studio可内置安装Android SDK和Android模拟器(Tools菜单)
-    - (不推荐)国内在 https://www.androiddevtools.cn/ 下载 SDK Tools 进行 Android SDK 安装(安装参考https://zhuanlan.zhihu.com/p/37974829)。会提示
+- 安装Android SDK，参考[android.md#安装](/_posts/lang/android.md#安装)
 - 配置编辑器(任意一种)
     - Android Studio：为Flutter提供完整的IDE体验
     - IntelliJ IDEA：安装插件Flutter、Dart

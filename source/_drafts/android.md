@@ -10,6 +10,17 @@ tags: [android]
 
 ## 安装
 
+- 安装Android SDK(任意一种)
+    - 直接安装Android Studio可内置安装Android SDK和Android模拟器(Tools菜单)
+    - 基于SDK Tools安装
+- 基于SDK Tools安装（参考https://zhuanlan.zhihu.com/p/37974829)）
+  - 国内在 https://www.androiddevtools.cn/ 下载 SDK Tools 进行 Android SDK 安装
+    - zip包下载地址：https://dl.google.com/android/android-sdk_r24.4.1-windows.zip?utm_source=androiddevtools&utm_medium=website
+  - 启动SDK Manager，安装Tools、API、Extras（可使用代理下载）
+  - 设置`ANDROID_HOME=D:\software\android-sdk`
+  - 把`%ANDROID_HOME%\platform-tools;%ANDROID_HOME%\tools`添加到Path环境变量中
+  - 命令行输入`adb`测试是否安装成功
+
 ## 命令
 
 ### adb

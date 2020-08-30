@@ -124,9 +124,10 @@ yum repolist
 #### rpm安装(软件包管理器)
 
 - `rpm`格式文件安装(redhat package manage。有依赖关系，安装和卸载也有先后顺序)
-- RPM包的命名规范：`name-version-release.os.arch.rpm`
+- rpm包的命名规范：`name-version-release.os.arch.rpm`
     - os：即说明RPM包支持的操作系统版本。如el6(即rhel6)、centos6、el5、suse11
     - arch：主机平台。如i686、x86_64、amd64、ppc(power-pc)、noarch(即不依赖平台)
+- 有的rpm包需要.asc的秘钥。镜像源可认为是rpm包的公有仓库，一般也会配置.gpg秘钥
 - 命令
 
 ```bash

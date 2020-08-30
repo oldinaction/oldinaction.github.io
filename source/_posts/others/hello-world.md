@@ -75,6 +75,13 @@ tags: [others]
 [^1]: [http://blog.aezo.cn](http://blog.aezo.cn)
 </pre>
 
+### 表格
+
+|  表头   | 表头   |
+| -       | ----- |
+| 单元格  | 单元格 |
+| 单元格  | 单元格 |
+
 ## github-jeykll-markdown个人书写习惯
 
 > 2017-07-01 之后使用hexo书写博客, 格式依然可用
