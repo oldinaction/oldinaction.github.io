@@ -165,11 +165,12 @@ Commands:
             # 目录或者文件映射，需要先在宿主机创建此文件或目录。如果要映射出来的目录中存在文件，则需要新创建对应的文件，docker不会进行初始化这些文件
             # windows的目录则使用 /c/Users/smalle 格式代替 c:
         -e  # 设置环境变量，eg: -e MYSQL_HOST=localhost -e MYSQL_DATABASE=aezocn
-        --name      # 指定启动容器名称(从Docker 1.10 版本开始，docker daemon 实现了一个内嵌的DNS server，使容器可以直接通过"容器名"通信)
-        --network   # 指定使用的网络
-        --restart   # 重启模式：--restart=always失败永远重启(包括宿主主机开机后自启动)
-        --link      # 链接其他容器。eg：docker run --link my_nginx my_db -d wordpress # 表示在wordpress中可以放访问被链接容器
         -h  # 指定容器的hostname。eg：-h aezocn
+        --name          # 指定启动容器名称(从Docker 1.10 版本开始，docker daemon 实现了一个内嵌的DNS server，使容器可以直接通过"容器名"通信)
+        --network/--net # 指定使用的网络（windows的help中并没有说明可简写为--net）
+        --restart       # 重启模式：--restart=always失败永远重启(包括宿主主机开机后自启动)
+        --link          # 链接其他容器。eg：docker run --link my_nginx my_db -d wordpress # 表示在wordpress中可以放访问被链接容器
+        --privileged    # 使用该参数，container内的root拥有真正的root权限。否则container内的root只是外部的一个普通用户权限。privileged启动的容器，可以看到很多host上的设备，并且可以执行mount，甚至允许你在docker容器中启动docker容器
     save      Save an image to a tar archive                # 保存一个镜像为一个 tar 包[对应 load]
     search    Search for an image on the Docker Hub         # 在 docker hub 中搜索镜像
     start     Start a stopped containers                    # 启动容器

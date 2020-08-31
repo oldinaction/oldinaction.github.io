@@ -652,6 +652,27 @@ b4 = str(base64.b64encode('hello world'.encode('utf-8')), 'utf-8'))
 str(base64.b64decode(b4), "utf-8")
 ```
 
+#### unittest
+
+- 内置测试框架，类似Junit
+
+```py
+import unittest
+
+class MyTests(unittest.TestCase):
+    def setUp(self):
+        '''测试前执行'''
+        pass
+    
+    def test_xxx(self):
+        '''测试方法'''
+        self.assertEqual(1, 1) 
+
+    def tearDown(self):
+        '''测试后执行'''
+        pass
+```
+
 ### 模块扩展
 
 #### pip镜像及模块安装
@@ -663,7 +684,7 @@ str(base64.b64decode(b4), "utf-8")
 # 清华 https://pypi.tuna.tsinghua.edu.cn/simple
 # 官方 https://pypi.python.org/simple
 # 阿里云 https://mirrors.aliyun.com/pypi/simple
-# 豆瓣 http://pypi.douban.com/simple/
+# 豆瓣 http://pypi.douban.com/simple
 
 # Linux下，修改 ~/.pip/pip.conf (没有就创建一个)， 修改 index-url至tuna，内容如下：
 [global]
@@ -673,6 +694,15 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 [global]
 index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+- `pip` 可用于安装管理python其他模块
+    - 安装（windows默认已经安装）
+        - 将`https://bootstrap.pypa.io/get-pip.py`中的内容保存到本地`get-pip.py`文件中
+        - 上传`get-pip.py`至服务器，并设置为可执行
+        - `python get-pip.py` 安装
+        - 检查是否安装成功：`pip list` 可查看已经被管理的模块
+    - 更新：`pip3 install --user --upgrade pip` 如果idea+virtualenv更新失败，可进入虚拟环境目录通过管理员更新
+    - 常见问题
+        - 安装成功后，使用`pip list`仍然报错。windows执行`where pip`查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
 - 模块安装
     - `pip install xxx` [pip](https://pypi.org/)
         - python3也可以使用`pip3 install xxx`
@@ -682,14 +712,23 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
     - `pip list` 列举安装的模块
         - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
     - `pip uninstall xxx` 卸载
-- `pip` 可用于安装管理python其他模块
-    - 安装（windows默认已经安装）
-        - 将`https://bootstrap.pypa.io/get-pip.py`中的内容保存到本地`get-pip.py`文件中
-        - 上传`get-pip.py`至服务器，并设置为可执行
-        - `python get-pip.py` 安装
-        - 检查是否安装成功：`pip list` 可查看已经被管理的模块
-    - 常见问题
-        - 安装成功后，使用`pip list`仍然报错。windows执行`where pip`查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
+
+#### virtualenv
+
+- python虚拟环境
+
+```bash
+pip3 install virtualenv
+# 在项目目录执行，创建虚拟环境demo_env
+virtualenv demo_env
+# 每次进入项目时，激活虚拟环境
+demo_env/Scripts/activate.bat # 或 source demo_env/bin/activate
+# 查看当前环境的依赖
+pip3 list
+
+## 记录客户端依赖
+pip freeze > requirements.txt
+```
 
 #### ConfigParser 配置文件读取
 

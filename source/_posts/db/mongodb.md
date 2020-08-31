@@ -10,6 +10,7 @@ tags: [db, mongodb]
 
 - MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的 [^1]
 - 官网：[https://www.mongodb.com](https://www.mongodb.com)
+- MongoDB 存储的是 BSON 结构，类似的文档型数据库 `RethinkDB` 是一个主要用来存储 JSON 结构的
 
 ## mongodb安装运行
 
