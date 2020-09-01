@@ -3,7 +3,7 @@ layout: "post"
 title: "RabbitMQ"
 date: "2016-08-14 16:49"
 categories: [arch]
-tags: [mq, rabbitMQ]
+tags: [mq]
 ---
 
 ## RabbitMQ 简介

@@ -159,7 +159,7 @@ version     # 打印客户端和服务端的版本信息
     ```bash
     # 其中 Chart.yaml 和 values.yaml 必须，其他可选
     mychart
-    ├── charts                          # 依赖的chart
+    ├── charts                          # 依赖的chart。如 https://hub.kubeapps.com/charts/bitnami/elasticsearch，elasticsearch依赖了kibana
     ├── requirements.yaml               # 该chart的依赖配置(create创建的无此文件)
     ├── Chart.yaml                      # Chart本身的版本和配置信息。其中的name是chart的名称，并不一定是release的名称
     ├── templates                       # 配置模板目录，下是yaml文件的模板，遵循Go template语法
@@ -1145,6 +1145,96 @@ helm del --purge jenkins # 如果删除部署后重新部署，会重新创建�
     - 多次部署更新jenkins，历史安装的插件不会丢失。如果删除部署后重新部署，会重新创建新PV
     - 容器中jenkins数据目录为 `/var/jenkins_home`
     - jenkins pod重启创建需要初始化，初始化会安装插件(可在日志-初始容器copy-default-config查看安装日志)。此过程耗时较长，测试时达到40分钟(可使用插件的国内镜像)
+
+### ELK
+
+#### elasticsearch+kibana
+
+> https://hub.kubeapps.com/charts/bitnami/elasticsearch
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+cat > elasticsearch-values.yaml << 'EOF'
+global:
+  imageRegistry: docker.mirrors.ustc.edu.cn
+  storageClass: 'nfs-client'
+  # 引入内嵌的kibana，配置见下文
+  kibanaEnabled: true
+# 可使用`kubectl -n monitoring delete job -l app=elasticsearch,role=curator`移除
+curator:
+  enabled: true
+# 开启Prometheus(启动了一个Prometheus-exporter)
+metrics:
+  enabled: true
+# kibana配置，所有参数可参考(elasticsearch文档中列举了部分)：https://hub.kubeapps.com/charts/bitnami/kibana
+kibana:
+  ingress:
+    enabled: true
+    certManager: true
+    annotations:
+      kubernetes.io/tls-acme: "true"
+    hosts:
+    - name: kibana.k8s.aezo.cn
+      tls: true
+      tlsSecret: kibana-tls
+EOF
+helm install --name elasticsearch-monitoring --namespace monitoring bitnami/elasticsearch --version=12.6.2 -f elasticsearch-values.yaml
+
+helm upgrade elasticsearch-monitoring bitnami/elasticsearch --version=12.6.2 -f elasticsearch-values.yaml
+helm del --purge elasticsearch-monitoring
+```
+- 说明
+  - elasticsearch-master 的容器初始化会自动执行 `sysctl -w vm.max_map_count=262144 && sysctl -w fs.file-max=65536`
+  - k8s中对应的elasticsearch服务地址`http://elasticsearch-monitoring-coordinating-only.monitoring.svc.cluster.local:9200`
+
+#### logstash
+
+> https://hub.kubeapps.com/charts/bitnami/logstash
+
+```bash
+cat > logstash-values.yaml << 'EOF'
+global:
+  imageRegistry: docker.mirrors.ustc.edu.cn
+  storageClass: 'nfs-client'
+ingress:
+  enabled: true
+  certManager: true
+  annotations:
+    kubernetes.io/tls-acme: "true"
+  hosts:
+  - name: logstash.k8s.aezo.cn
+  tls:
+  - hosts:
+    - logstash.k8s.aezo.cn
+    secretName: logstash-tls
+extraEnvVars:
+- name: ELASTICSEARCH_HOST
+  value: "elasticsearch-monitoring-coordinating-only.monitoring.svc.cluster.local"
+- name: ELASTICSEARCH_PORT
+  value: "9200"
+# ref: https://www.elastic.co/guide/en/logstash/current/input-plugins.html
+input: |-
+  # tcp {
+  #   port => 5000
+  #   codec => "json"
+  # }
+  http { port => 8080 }
+# ref: https://www.elastic.co/guide/en/logstash/current/filter-plugins.html
+# filter: |-
+# ref: https://www.elastic.co/guide/en/logstash/current/output-plugins.html
+output: |-
+  elasticsearch {
+    hosts => ["${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"]
+    index => "micro-%{service_name}"
+  }
+  stdout {}
+EOF
+helm install --name logstash-monitoring --namespace monitoring bitnami/logstash --version=0.4.7 -f logstash-values.yaml
+
+helm upgrade logstash-monitoring bitnami/logstash --version=0.4.7 -f logstash-values.yaml
+helm del --purge logstash-monitoring
+```
 
 ### OpenLDAP
 
