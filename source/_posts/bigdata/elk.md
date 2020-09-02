@@ -18,11 +18,13 @@ tags: [Elasticsearch, db, kafka]
 
 ## Elasticsearch
 
+- [Elasticsearch文档](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
+
 ### 基础概念
 
 - `Lucence`：一个Jar包，主要用做分词。其集群实现较难维护
-- `ES倒排索引`
-  - `正排索引`是从文档到关键字的映射（已知文档求关键字），`倒排索引`是从关键字到文档的映射（已知关键字求文档）
+- ES`倒排索引`
+  - 正排索引是从文档到关键字的映射（已知文档求关键字），`倒排索引`是从关键字到文档的映射（已知关键字求文档）
   - 倒排表以字词为关键字进行索引，可查询到这个字词的所有文档，它记录该文档的ID和字符在该文档中出现的位置情况
   - 存储的数据结构
     - 包含关键词的doc list
@@ -49,7 +51,7 @@ tags: [Elasticsearch, db, kafka]
   - Field：一个数据字段，与index和type一起，可以定位一个doc
   - Document：ES最小的数据单元，JSON格式
   - Type：逻辑上的数据分类，es 7.x中删除了type的概念
-  - Index：一类相同或者类似的doc
+  - Index：一类相同或者类似的doc，不能包含大写字母
   - 和传统数据库对比：Document->row，Type->table，Index-db
 - Shard分片
     - 一个index包含多个Shard，默认5P，默认每个P(primary shrad分片)分配一个R(replica shard副本)。P的数量在创建索引的时候设置，如果想修改，需要重建索引
@@ -58,6 +60,178 @@ tags: [Elasticsearch, db, kafka]
     - 一个doc是不可能同时存在于多个PShard中的，但是可以存在于多个RShard中
     - P和对应的R不能同时存在于同一个节点，所以最低的可用配置是两个节点，互为主备
 
+### 语法
+
+#### REST API
+
+```bash
+## 索引操作
+PUT /my_index # 创建索引。返回结果`"acknowledged" : true`表示创建成功
+DELETE /my_index # 删除索引
+GET _cat/indices?v # 查询索引列表
+## 插入数据（_id=1）
+PUT /my_index/_doc/1
+{
+  "name": "smalle",
+  "age": 18 
+}
+## 更新数据
+# 更新字段
+POST /my_index/_doc/1/_update
+{
+  "doc": {
+    "name": "aezo"
+  }
+}
+# 全量更新：会完整替换原始数据（_source），因此会丢失age参数
+PUT /my_index/_doc/1
+{
+  "name": "hello"
+}
+## 查询
+GET /my_index/_search # 查询所有。也可使用：GET /my_index/_doc/_search，但是v7.x已经不推荐使用type
+GET /my_index/_search?q=name:smalle # 查询name字段包含smalle的
+GET /my_index/_search?from=0&size=2&sort=age:asc # 分页和排序
+GET /_search?timeout=1s # 超时机制（单位:s/ms/m）。默认没有timeout，如果设置了timeout，那么会执行timeout机制
+```
+
+#### Query DSL
+
+```bash
+## https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html
+## 伪代码
+GET /product/_search
+{
+  "query": {
+    ## 全文检索
+    # 1.match_all 匹配所有
+    "match_all": {},
+    # 2.match：匹配name中包含nfc的
+    "match": {
+      "name": "nfc"
+    },
+    # 3.multi_match：匹配多个字段，即匹配name、desc字段中包含nfc的doc
+    "multi_match": {
+      "query": "nfc",
+      "fields": ["name","desc"]
+    },
+    ## Term-level queries
+    # match和term区别：term不会被分词，而match会被分词。即此时term会查包含"nfc phone"，而match会查包含"nfc"和"phone"
+    "term": {
+      "name": "nfc phone"
+    },
+    # name必须包含nfc和phone
+    "terms": {
+      "name":["nfc","phone"]
+    },
+    ## 短语搜索：和全文检索相反。"nfc phone"会作为一个短语去检索(可以理解为也不分词)
+    "match_phrase": {
+      "name": "nfc phone"
+    }
+  },
+  # constant_score：类似query，区别在于constant_score不计算分数，查询更快，但是不会排序(query默认基于分数排序)
+  "constant_score": {
+      "match_all": {},
+  },
+
+  # 排序
+  "sort": [
+    {
+      "price": "desc"
+    }
+  ],
+  # _source 元数据：默认包含所有，此时只会返回结果下面定义的字段
+  "_source": ["name","desc","price"],
+  # 分页：查询第一页（每页两条数据）
+  "from": 0,
+  "size": 2
+}
+
+## 组合查询(Compound queries)、过滤
+GET /product/_search
+{
+  "query": {
+    # bool：可以组合多个查询条件，采用more_matches_is_better的机制，因此满足must和should子句的文档将会合并起来计算分值
+    "bool": {
+      # must：必须都包含。子句（查询）必须出现在匹配的文档中，并将有助于得分
+      "must": [
+        {"match": {"name": "xiaomi"}},
+        {"match": {"desc": "shouji"}}
+      ],
+      # must_not：必须都不包含。子句在过滤器上下文中执行，这意味着计分被忽略，并且子句被视为用于缓存
+      "must_not": [
+        {"match": {"name": "erji"}}
+      ],
+      # should：至少满足几个条件（由于下文"minimum_should_match": 1，所以至少满足一个条件）。参见下面的minimum_should_match的解释
+      "should": [
+        {"match": {
+          "desc": "nfc"
+        }}
+      ],
+      # minimum_should_match：参数指定should返回的文档必须匹配的子句的数量或百分比。如果bool查询包含至少一个should子句，而没有must或filter子句，则默认值为1。否则，默认值为0
+      "minimum_should_match": 1,
+      # filter：过滤器，不计算相关度分数，且有缓存机制，filter一般会先与query之前执行。子句（查询）必须出现在匹配的文档中，但是分数将被忽略。filter子句在filter上下文中执行，这意味着计分被忽略，并且子句被考虑用于缓存
+      "filter": [
+        {"match_phrase": {"name": "xiaomi phone"}},
+        # range：区间匹配。查询 price > 1999 的
+        {"range": {
+          "price": {
+            "gt": 1999
+          }
+        }},
+        # 嵌套查询
+        "bool": {
+          "must": [
+            {"match": {"name": "nfc"}}
+          ]
+        }
+      ]
+    }
+  }
+}
+
+## Deep paging和Scroll search
+# Deep paging分页：如果要取前100条数据，假设该索引有3个分片，则会在3个分片中取出前100条数据，之后合并后再次排序进行返回。比较耗性能，因此当数据超过1W或需要的结果超过1000个(500个以下为宜)尽量不要使用
+# Scroll search查询：解决Deep paging问题；Scroll search只能下一页，没办法上一页，不适合实时查询(用户界面查询)
+GET /product/_search?scroll=1m # 第一次查询设置scroll的时间窗口期为1分钟，进行查询，会返回scroll_id(第二次查询会用到)
+{
+  "query": {
+    "match_all": {}
+  },
+  "sort": [
+    {
+      "price": "desc"
+    }
+  ],
+  "size": 2
+}
+GET /_search?scroll # 第二次查询的时间间隔如果再1分钟内则可通过上一次返回的scroll_id进行继续查询，并更新时间窗口
+{
+  "scroll": "1m",
+  "scroll_id": "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFGlzOFZUblFCb3JVcHBIUVpZS21QAAAAAAAAAY4WcWxraDZOSGxTMmVEczhyUXJkYTJiUQ=="
+}
+
+## mapping
+GET /product/_mapping
+
+## 测试分词。使用standard分词器对text文本分词，会返回分词的结果，此时为4个次
+GET /_analyze
+{
+  "analyzer": "standard",
+  "text":"xiaomi nfc zhineng phone"
+}
+```
+- filter缓存原理
+
+    ![es-filter-cache.png](/data/images/bigdata/es-filter-cache.png)
+    - filter cache保存的是匹配结果，下次查询不需要再从倒排索引中去查找比对，提供了查询速度
+    - 当filter执行某个查询一定次数（动态变化）时才会进行cache
+    - filter会优先从稀疏的数据中进行过滤来保存cache数据
+    - filter一般会在query之前执行，过滤掉一部分数据，从而提供query速度
+    - filter不计算相关度分数，执行效率较query高
+    - 当元数据发生变化时，cache也会更新
+
+#### 
 
 ## Logstash
 
@@ -82,20 +256,24 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 
 ### Discover显示
 
-- 需要先创建索引表达式
+- 需要先创建索引表达式，参考 Management - Kibana设置 - Index Patterns
+- New新增查询、Save保存当前查询、Open打开查询、Share分享查询、Inspect
+
 
 ### Management
 
 - Elasticsearch设置
 - Kibana设置
-  - Index Patterns
-    - 创建索引表达式：Create index pattern - 输入正则匹配现有的索引 - 可在Discover中查看
+  - Index Patterns 显示的是创建好的索引表达式
+    - Create index pattern创建索引表达式 - 输入正则匹配现有的索引(如：sq-demo-*) - 可在Discover中查看
+  - Saved Objects 为保存的Objects，如：配置信息（Advanced Settings）、索引表达式（index pattern）、查询面板（search）、分享短连接
   - Advanced Settings
-    - General 
-      - 修改日志日期显示：Date format - `YYYY/MM/DD HH:mm:ss.SSS`; Day of week - `Monday`
-      - 接收异常邮件：Admin email
+    - General
+      - `Date format` 日志时间显示，如：`YYYY/MM/DD HH:mm:ss.SSS`
+      - `Day of week` 没周的第一天，如`Monday`
+      - `Admin email` 接收异常邮件
     - Discover
-      - 定义"发现"标签页上默认显示的列：Default columns - `message,logger_name` (默认显示message和logger_name两个字段)
+      - `Default columns` 定义"发现"标签页上默认显示的列(默认为显示列为_source，即以key:value的格式显示在一起)。此处修改如：`spring_application_name,level,thread_name,logger_name,message` (基于springboot项目定制，这样会影响全局，不建议修改)
 
 ### 其他
 
@@ -108,21 +286,24 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 
 ### 基于容器安装
 
-- 安装`Elasticsearch`(下载会较慢，可尝试下载几次)
-    - `docker run -d -it --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.1.0`
-    - 重新启动`docker start es`
-    - 访问`http://192.168.99.100:9200/`查看Elasticsearch信息。(其中`192.168.99.100`为docker所在宿主机IP，此处为docker运行在windows虚拟机上的IP)
-        - http://192.168.99.100:9200/_cat/ 和 http://192.168.99.100:9200/_cat/nodes 信息
-    - 访问`http://192.168.99.100:9200/micro-sq-auth/_search` 查看micro-sq-auth这个index下的日志信息
-- 安装`Logstash`，并指定输入输出。将输入声明为TCP(兼容LogstashTcpSocketAppender的日志记录器)，声明Elasticsearch为输出
-    - `docker run -d -it --name logstash -p 5000:5000 docker.elastic.co/logstash/logstash:7.1.0 -e 'input { tcp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } }'`
-        - 此处的`-e`为logstash的参数而不是docker命令的参数(`192.168.99.100:9200`为elasticsearch服务端口)
-        - input表示Logstash开放5000的TCP端口供外部调用
-        - **可以在output中同时加入控制台输出调试观察日志是否传入Logstash**，如`output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } stdout { codec => rubydebug } }`
-- 安装`Kibana`，并将其连接到Elasticsearch
-    - `docker run -d -it --name kibana --link es:elasticsearch -p 5601:5601 docker.elastic.co/kibana/kibana:7.1.0`
-    - 重新启动`docker start kibana`
-    - 访问`http://192.168.99.100:5601`显示日志UI界面
+```bash
+## 安装 **Elasticsearch** (下载会较慢，可尝试下载几次)
+docker run -d -it --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.1.0
+# docker start es # 重新启动
+# 查看Elasticsearch信息。(其中`192.168.99.100`为docker所在宿主机IP，此处为docker运行在windows虚拟机上的IP)。其他的地址如：http://192.168.99.100:9200/_cat/ 和 http://192.168.99.100:9200/_cat/nodes 信息。访问`http://192.168.99.100:9200/micro-sq-auth/_search` 查看micro-sq-auth这个index下的日志信息
+http://192.168.99.100:9200/
+
+## 安装 **Logstash**，并指定输入输出。将输入声明为TCP(兼容LogstashTcpSocketAppender的日志记录器)，声明Elasticsearch为输出
+# 此处的 -e 为logstash的参数而不是docker命令的参数(192.168.99.100:9200为elasticsearch服务端口)
+    # input表示Logstash开放5000的TCP端口供外部调用
+    # 可以在output中同时加入控制台输出调试观察日志是否传入Logstash，如`output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } stdout { codec => rubydebug } }`
+docker run -d -it --name logstash -p 5000:5000 docker.elastic.co/logstash/logstash:7.1.0 -e 'input { tcp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } }'
+
+## 安装 **Kibana**，并将其连接到Elasticsearch
+docker run -d -it --name kibana --link es:elasticsearch -p 5601:5601 docker.elastic.co/kibana/kibana:7.1.0
+# docker start kibana # 重新启动
+http://192.168.99.100:5601 # 显示日志UI界面
+```
 
 ### Elasticsearch
 
@@ -135,6 +316,7 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 #### SpringBoot引入依赖
 
 ```xml
+<!-- 参考：https://github.com/logstash/logstash-logback-encoder -->
 <dependency>
     <groupId>net.logstash.logback</groupId>
     <artifactId>logstash-logback-encoder</artifactId>
@@ -150,8 +332,8 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
     2. logback使用application.yml中的属性：必须通过springProperty才可引入application.yml中的值，可以设置默认值
 -->
 
-<!-- 定义环境变量 -->
-<springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
+<!-- 定义环境变量spring_application_name，供logstash使用 -->
+<springProperty scope="context" name="spring_application_name" source="spring.application.name"/>
 <property name="LOGSTASH_DESTINATION" value="${LOGSTASH_DESTINATION:-192.168.99.100:5000}"/>
 
 <appender name="LOGSTASH_TCP" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
@@ -159,14 +341,12 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
     <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
         <providers>
             <mdc />
-            <context />
+            <context /><!-- 会把spring_application_name传递进来 -->
             <logLevel />
             <loggerName />
             <pattern>
-                <!-- 此处 serviceName 对应 `output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" }` 中的 serviceName -->
                 <pattern>
                     {
-                        "serviceName": "${springApplicationName:-}",
                         "pid": "${PID:-}"
                     }
                 </pattern>
@@ -191,7 +371,8 @@ https://yq.aliyun.com/articles/645316
 ### 测试
 
 - 配置好上述流程后，运行SpringBoot项目
-- 进入kibana面板，进入Kibana设置，并创建索引表达式
+- 进入Kibana面板创建索引表达式
+  - Management - Stack Management - Kibana - Index patterns(显示的是创建好的索引表达式) - Create index pattern(创建新的所有表达式，可查看到所有的索引)
 - 进入Discover查看日志
 
 

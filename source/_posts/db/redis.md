@@ -1006,7 +1006,7 @@ sentinel monitor yyy 127.0.0.1 46379 2
 ![redis-击穿-穿透-雪崩](/data/images/db/redis-击穿-穿透-雪崩.png)
 
 - 穿透解决方案：布隆过滤器、布谷鸟过滤器
-- 击穿解决方案：setnx，伪代码如下
+- 击穿解决方案：setnx加锁，伪代码如下
 
 ```java
 public String get(key) {

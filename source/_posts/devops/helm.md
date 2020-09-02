@@ -510,10 +510,8 @@ helm install stable/nginx-ingress --version 1.15.1 -n nginx-ingress --namespace 
 kubectl get pod -n ingress-nginx -o wide
 # 访问 curl https://192.168.6.131/ ，显示 `default backend - 404`/`404 page not found` 则正常
 
-# 更新部署的release
-# 修改配置文件后执行
+# （注意：会导致集群的对外端点暂时不可用）更新部署的release（修改配置文件后执行）
 helm upgrade nginx-ingress stable/nginx-ingress --version 1.15.1 -f ingress-nginx.yaml
-
 helm del --purge nginx-ingress
 ```
 - 开启TCP/UDP代理（暴露相应服务）
@@ -1208,6 +1206,26 @@ ingress:
   - hosts:
     - logstash.k8s.aezo.cn
     secretName: logstash-tls
+service:
+  ports:
+    syslog-tcp:
+      port: 5000
+      targetPort: syslog-tcp
+      protocol: TCP
+    http:
+      port: 8080
+      targetPort: http
+      protocol: TCP
+containerPorts:
+  - name: syslog-tcp
+    containerPort: 5000
+    protocol: TCP
+  - name: http
+    containerPort: 8080
+    protocol: TCP
+  - name: monitoring
+    containerPort: 9600
+    protocol: TCP
 extraEnvVars:
 - name: ELASTICSEARCH_HOST
   value: "elasticsearch-monitoring-coordinating-only.monitoring.svc.cluster.local"
@@ -1215,20 +1233,23 @@ extraEnvVars:
   value: "9200"
 # ref: https://www.elastic.co/guide/en/logstash/current/input-plugins.html
 input: |-
-  # tcp {
-  #   port => 5000
-  #   codec => "json"
-  # }
-  http { port => 8080 }
+  # 需要设置tcp代理，参考上文基于helm安装ingress-nginx
+  tcp {
+    port => 5000
+    codec => "json"
+  }
+  # http { port => 8080 } # logback通过http发送日志未测试成功(直接curl通过http发送请求到logstash成功)
 # ref: https://www.elastic.co/guide/en/logstash/current/filter-plugins.html
 # filter: |-
 # ref: https://www.elastic.co/guide/en/logstash/current/output-plugins.html
 output: |-
   elasticsearch {
     hosts => ["${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}"]
-    index => "micro-%{service_name}"
+    # 动态获取数据中spring_application_name的值组成index(最终如：sq-demo-2020.01)
+    index => "%{spring_application_name}-%{+YYYY.MM}"
   }
-  stdout {}
+  # 开启控制台打印
+  # stdout {}
 EOF
 helm install --name logstash-monitoring --namespace monitoring bitnami/logstash --version=0.4.7 -f logstash-values.yaml
 
@@ -1302,10 +1323,9 @@ export UI_PORT=$(kubectl get --namespace monitoring -o jsonpath="{.spec.ports[0]
 echo "skydive end-point: http://$UI_IP:$UI_PORT"
 ```
 - 管理端界面使用
-    - Filter 过滤网络
+    - Filter 过滤网络。基于`Gremlin`语法，参考：http://skydive.network/documentation/cli、http://tinkerpop.apache.org/gremlin.html、http://tang.love/2018/11/15/gremlin_traversal_language/
         - `G.V()` 获取所有节点级别网络
-        - `G.V().Has("Manager",NE("k8s"))` 获取k8s级别网络拓扑
-
+        - `G.V().Has("Manager",NE("k8s"))` 获取docker级别（Manager != k8s）网络拓扑
 
 ## Go template语法
 

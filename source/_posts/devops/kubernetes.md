@@ -891,9 +891,11 @@ kubectl delete -f sq-pod.yaml
     - ExternalName(将k8s外部服务映射到集群)
         - CNAME -> FQDN(将外部服务映射到内部，通过内部DNS服务进行访问)
     - 特殊服务：无头服务(headless services)
-        - ServiceName -> PodIP
-        - 此时`clusterIP=None`，且未定义type
+        - 此时`clusterIP=None`，且未定义type，即headless不分配clusterIP
         - kube-proxy 不会处理它们，而且平台也不会为它们进行负载均衡和路由。DNS 如何实现自动配置，依赖于 Service 是否定义了 selector
+        - 通过ServiceName获取PodIP
+          - headless service可以通过解析service的DNS，返回所有Pod的地址和DNS(statefulSet部署的Pod才有DNS)
+          - 普通的service只能通过解析service的DNS返回service的ClusterIP
 - Service通过观测(watch) API Server，每当Pod变化，API Server就会通知Service进行变更选择的Pod
 - 集群内部源Pod通过Service地址访问目标Pod时，可使用Service的ip/hostname:port，其中hostname格式为`service_name.namespace_name.svc`，如访问：http://prometheus-k8s.monitoring.svc:9090
 
@@ -914,9 +916,12 @@ kubectl delete -f sq-pod.yaml
     - 此时使用NodePort暴露Ingress Controller；也可以(使Node)直接访问到Ingress Controller，不经过前面的Service(NodePort)。需要将Ingress Controller设置成DaemonSet，且共享Node的IP和端口
 - Ingress的资源类型：单Service资源型Ingress、基于URL路径进行流量转发、基于主机名称的虚拟主机、TLS类型的Ingress资源
 - K8s中Ingress Control支持类型
-    - 传统的七层负载均衡，如Nginx，HAproxy，开发了适应微服务应用的插件，具有成熟，高性能等优点；
+    - 传统的七层负载均衡，如Nginx，HAproxy，开发了适应微服务应用的插件，具有成熟，高性能等优点
     - 新型微服务负载均衡，如Traefik(基于go开放，和k8s融合更紧密)，Envoy，Istio，专门适用于微服务+容器化应用场景，具有动态更新特点
-
+- ingress-nginx支持的代理类型
+  - http、tcp、udp，具体参考[ingress-nginx](/_posts/devops/helm.md#ingress-nginx)
+  - ingress仅支持http代理，如果是tcp、udp代理需要额外开放端口
+    
 #### Ingress Controller部署(以ingress-nginx为例)
 
 - Ingress Control不直接运行为kube-controller-manager的一部分，它仅仅是Kubernetes集群的一个附件，类似于CoreDNS，需要在集群上单独部署
