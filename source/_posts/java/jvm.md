@@ -508,10 +508,10 @@ public class T01_IntAddAdd {
     ![jvm-gc](/data/images/java/jvm-gc.png)
     - `Serial`(读音：/ˈsɪriəl/) 针对年轻代垃圾回收，串行执行(单线程进行回收)，会出现STW，使用**Copying**算法清理(年轻代常用，主要快速)
     - `SerialOld` 针对老年代回收，串行执行(单线程)，会出现STW。一般和Serial结合使用
-    - `Parallel Scavenge`(PS) 年轻代，**并行回收**(多线程进行回收)，会出现STW，使用**Copying**算法清理
-    - `ParallelOld` 老年代，并行回收(多线程)，会出现STW，使用Mark-Compact算法。一般和PS结合使用
-    - `ParNew`(PN) 年轻代，并行回收(多线程)，会出现STW，使用**Copying**算法清理(PS的一个升级版本)。般配合CMS的并行回收
-    - `CMS`(ConcurrentMarkSweep) 老年代，**并行回收**(多线程)，且**并发回收**(垃圾回收和应用程序同时运行)，使用**Mark-Sweep**算法
+    - `Parallel Scavenge`(PS) 年轻代，**并发回收**(多线程进行回收)，会出现STW，使用**Copying**算法清理
+    - `ParallelOld` 老年代，并发回收(多线程)，会出现STW，使用Mark-Compact算法。一般和PS结合使用
+    - `ParNew`(PN) 年轻代，并发回收(多线程)，会出现STW，使用**Copying**算法清理(PS的一个升级版本)。般配合CMS的并行回收
+    - `CMS`(ConcurrentMarkSweep) 老年代，**并发回收**(多线程)，且**并行回收**(垃圾回收和应用程序同时运行)，使用**Mark-Sweep**算法
         - CMS使用算法：**三色标记 + Incremental Update + 写屏障**(相关概念见上文)
         - [具体见下文](#CMS)
     - `G1`(Garbadge First Collector)，参考：https://www.oracle.com/cn/technical-resources/articles/java/g1gc.html

@@ -774,13 +774,14 @@ df -h
         - **AWS服务器(EC2)使用**
             - 使用PuTTY连接时：PuTTY 本身不支持 Amazon EC2 生成的私有密钥格式 (.pem)，PuTTY 有一个名为 PuTTYgen 的工具，可将密钥转换成所需的 PuTTY 格式 (.ppk)
         - 如何客户端登录失败，可在服务器查看访问日志`cat /var/log/secure`
-- ssh配置 [^7]
+- 当支持证书登录后，可修改ssh配置禁用密码登录 [^7]
 
     ```bash
     vi /etc/ssh/sshd_config
 
     ## 修改文件内容
-    # 是否允许root用户登陆(no不允许)
+    Port 222 # 修改原22端口为222端口
+    # (可选)是否允许root用户登陆(no不允许)，**如果要基于root证书登录则还是需要设置为yes**
     PermitRootLogin no
     # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录。在没有生成好Key，并且成功使用之前，不要设置为no)
     PasswordAuthentication no
@@ -958,7 +959,7 @@ df -h
 - 示例
 
     ```bash
-    # 修改当前目录极其子目录下所有文件。grep -rl 递归显示文件名
+    # （未加-i参数不会真正修改数据）修改当前目录极其子目录下所有文件，将zhangsan改成lisi。grep -rl 递归显示文件名
     sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
     # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
     sed -i -e '/^$/d' /home/smalle/test.txt
@@ -977,7 +978,7 @@ df -h
 ### awk文本分析工具
 
 - 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格/tab为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
-- 语法 
+- 语法
 
     ```bash
     awk '[BEGIN {}] {pattern + action} [END {}]' {filenames}
@@ -1651,9 +1652,9 @@ vm.dirty_writeback_centisecs = 500
             - `yum.log` 包含使用yum安装的软件包信息
             - `cron` 每当cron进程开始一个工作时，就会将相关信息记录在这个文件中
             - `secure` 包含验证和授权方面信息。例如，sshd会将所有信息记录（其中包括失败登录）在这里
+            - `btmp` 记录所有失败登录信息。使用last命令可以查看btmp文件（centos7）
             - `faillog` 包含用户登录失败信息。此外，错误登录命令也会记录在本文件中
             - `wtmp`或`utmp` 包含登录信息。使用wtmp可以找出谁正在登陆进入系统，谁使用命令显示这个文件或信息等
-            - `btmp` 记录所有失败登录信息。使用last命令可以查看btmp文件
             - `maillog`和`mail.log` 包含来着系统运行电子邮件服务器的日志信息。例如，sendmail日志信息就全部送到这个文件
             - `anaconda/` 在安装Linux时，所有安装信息都储存在这个文件中
             - `mail/` 这个子目录包含邮件服务器的额外日志

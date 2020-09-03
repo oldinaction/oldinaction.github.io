@@ -44,6 +44,11 @@ tags: [regex, javascript, java]
     var str = 'aaa<div style="font-color:red;">123456</div>bbb';
     str.match(/<.+>/); // <div style="font-color:red;">123456</div>
     str.match(/<.+?>/); // <div style="font-color:red;">
+
+    // 匹配不包含某些字符串，参考：https://www.jb51.net/article/52491.htm
+    // 匹配不包含www的cnblog网站
+    "www.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // null
+    "images2018.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // images2018.cnblogs.com、images2018
     ```
 - 多选分支
 

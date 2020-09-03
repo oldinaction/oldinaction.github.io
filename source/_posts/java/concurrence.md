@@ -93,7 +93,7 @@ tags: [concurrence, collection, juc, 线程池]
     - 非可重入锁：反之
 - 分段锁(一种锁的设计模式)
     - 容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率
-    - 对于ConcurrentHashMap(之前使用的是分段锁，后面直接使用ReentrantLock)而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
+    - 对于ConcurrentHashMap(之前使用的是分段锁，后面直接使用synchronize锁定数组的第一个元素)而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
 
 #### synchronized线程同步
 
@@ -116,7 +116,7 @@ tags: [concurrence, collection, juc, 线程池]
     - 在HotSpot虚拟机中，对象在内存中存储的布局可以分为4块区域：对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）
     - HotSpot虚拟机的对象头包括两部分信息
         - markword：用于存储对象自身的运行时数据，如哈希码（HashCode）、GC分代年龄、**锁状态标志**(最后2bit)、线程持有的锁、**偏向线程ID**、偏向时间戳等，这部分数据的长度在32位和64位的虚拟机（未开启压缩指针）中分别为32bit和64bit
-        - klass（也称ClassPointer?）：对象头的另外一部分是klass类型指针，即对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例
+        - Klass Pointer（也称ClassPointer?）：对象头的另外一部分是klass类型指针，即对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例
     - **32bit操作系统markword数据结构**
         
         ![jvm-32-markword](/data/images/java/jvm-32-markword.png)
@@ -267,11 +267,6 @@ public class T02_DLC_Singleton {
         - 注意：负值表示结点处于有效等待状态，而正值表示结点已被取消。所以源码中很多地方用>0、<0来判断结点的状态是否正常
 - 为什么 AQS 需要一个虚拟 head 节点
     - Node 类的 waitStatus 变量用于表名当前节点状态。其中SIGNAL表示当当前节点释放锁的时候，需要唤醒下一个节点，所有每个节点在休眠前，都需要将前置节点的 waitStatus 设置成 SIGNAL，否则自己永远无法被唤醒
-        - 初始状态是 0
-        - CANCELLED 被取消了，为1
-        - SIGNAL 释放锁时，唤醒下一个节点，为-1
-        - CONDITION 线程处于等待状态，为-2
-        - PROPAGATE
     - AbstractQueuedSynchronizer.enq中可查看代码
 - `VarHandle`类 (JDK9才有) 指向引用的变量(引用句柄)，一般开发中不会用到
     - 可对普通属性进行原子性操作
@@ -517,7 +512,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
             Object value;
 
             Entry(ThreadLocal<?> k, Object v) {
-                super(k); // 将key(this thread)保存为弱引用
+                super(k); // 将k(this thread)保存为弱引用
                 value = v;
             }
         }
@@ -545,7 +540,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 后来增加了HashMap，此类的方法全部无锁。Map map = Collections.synchronizedMap(new HashMap()); 返回一个加锁的HashMap(仍然基于synchronized实现)，通过此方式使HashMap可以适用加锁和无锁的场景
     - 直到现在的ConcurrentHashMap、Queue等
 - 有界队列和无界队列
-    - 有界队列：就是有固定大小的队列。比如设定固定大小的 LinkedBlockingQueue
+    - 有界队列：就是有固定大小的队列。比如设定固定大小的 ArrayBlockingQueue
     - 无界队列：指的是没有设置固定大小的队列。这些队列的特点是可以直接入列，直到溢出。当然现实几乎不会有到这么大的容量(超过 Integer.MAX_VALUE)，所以从使用者的体验上，就相当于"无界"。比如没有设定固定大小的 LinkedBlockingQueue
     - 一般情况下要配置一下队列大小，设置成有界队列，否则JVM内存会被撑爆
 
@@ -623,7 +618,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - **HashMap** 线程不安全，put后最终map.size()可能大于实际值
         - **LinkedHashMap**
     - **TreeMap**
-    - **ConcurrentHashMap** 线程安全，put过程中使用synchronized
+    - **ConcurrentHashMap** 线程安全，put过程中使用synchronize锁定数组的第一个元素
     - WeakHashMap 使用弱引用保存Key对象。当使用 WeakHashMap 时，即使没有删除任何元素，它的size、get方法返回值也可能不一样
     - IdentityHashMap 基于地址来的判断key值是否相同的(==判断的是地址，equals判断的是hashcode)；HashMap的key值是否相同是基于key的hashcode值来的
     - ConcurrentSkipListMap
@@ -642,12 +637,12 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 根据键值key计算hash值得到插入的数组索引 i，判断`table[i]`是否有值，无则直接添加
     - 判断`table[i]`的首个元素是否和key一样，如果相同直接覆盖value 
     - 判断`table[i]`是否为treeNode，即`table[i]`是否是红黑树，如果是红黑树，则直接在树中插入键值对
-    - 不为红黑树时，判断链表长度是否大于8，**大于8的话且数组的长度大于64时**（如果小于64则直接进行扩容）把链表转换为红黑树，在红黑树中执行插入操作；否则进行链表的插入操作（插入在头部），若发现key已经存在直接覆盖value即可
-    - 添加完成，判断元素个数是否超过集合阈值，超过则进行扩容
+    - 不为红黑树时，则逐个判断链表上的key是否和插入的相同，相同则覆盖，不相同则放到链表最后。然后判断添加之后链表长度是否大于等于8，**大于等于8的话且数组的长度大于等于64时**（如果小于64则直接进行扩容）把链表转换为红黑树
+    - 如果属于插入(之前不存此key)，则插入完成后判断元素个数是否超过集合阈值，超过则进行扩容
 - HashMap 容量起始值为16，负载因子为0.75，扩容时增加2n个元素
 - 为什么哈希表的容量一定要是2的整数次幂 [^11]
     - 首先，length为2的整数次幂的话，**`h&(length-1)`就相当于对length取模**，这样便保证了散列的均匀，同时也提升了效率
-    - 其次，length为2的整数次幂的话，为偶数，这样length-1为奇数，奇数的最后一位是1，**这样便保证了h&(length-1)的最后一位可能为0，也可能为1（这取决于h的值）**，即与后的结果可能为偶数，也可能为奇数，这样便可以保证散列的均匀性。而如果length为奇数的话，很明显length-1为偶数，它的最后一位是0，这样 h&(length-1) 的最后一位肯定为0，即只能为偶数，这样任何hash值都只会被散列到数组的偶数下标位置上，这便浪费了近一半的空间。因此，length取2的整数次幂，是为了使不同hash值发生碰撞的概率较小，这样就能使元素在哈希表中均匀地散列
+    - 其次，length为2的整数次幂的话，为偶数，这样length-1为奇数，奇数的最后一位是1，**这样便保证了h&(length-1)的最后一位可能为0，也可能为1（这取决于h的值）**，即与后的结果可能为偶数，也可能为奇数，这样便可以保证散列的均匀性。*而如果length为奇数的话，很明显length-1为偶数，它的最后一位是0，这样 h&(length-1) 的最后一位肯定为0，即只能为偶数，这样任何hash值都只会被散列到数组的偶数下标位置上，这便浪费了近一半的空间。*因此，length取2的整数次幂，是为了使不同hash值发生碰撞的概率较小，这样就能使元素在哈希表中均匀地散列
 - HashMap源码（JDK1.8）
 
 ```java
@@ -673,7 +668,9 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
         else {
             for (int binCount = 0; ; ++binCount) {
                 if ((e = p.next) == null) {
+                    // p.next == null 说明遍历到了链表的末尾，此时将元素添加到链表的末尾
                     p.next = newNode(hash, key, value, null);
+                    // 添加到末尾后判断添加之后链表的长度是否大于等于8
                     if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                         treeifyBin(tab, hash);
                     break;
@@ -684,6 +681,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                 p = e;
             }
         }
+        // 说明key存在，需进行覆盖(无需判断扩容)
         if (e != null) { // existing mapping for key
             V oldValue = e.value;
             if (!onlyIfAbsent || oldValue == null)
@@ -692,6 +690,8 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
             return oldValue;
         }
     }
+
+    // 说明key不存在，需新增(也需要判断扩容)
     ++modCount;
     if (++size > threshold)
         resize();
@@ -1072,7 +1072,7 @@ public class MyEvent {
 
 ### 线程不安全常见问题
 
-- SimpleDateFormat为线程不安全，《阿里巴巴 Java 开发手册》也明确了此类的使用
+- `SimpleDateFormat` 为线程不安全，《阿里巴巴 Java 开发手册》也明确了此类的使用
     - 例如在Filter中使用SimpleDateFormat静态变量进行数据日期格式化时，会产生问题。Filter中会出现多线程访问
     - 原因：多个线程之间共享变量calendar，并修改calendar。如调用format方法时，多个线程会同时调用calender.setTime方法
     - 解决

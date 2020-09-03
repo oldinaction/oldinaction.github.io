@@ -33,14 +33,6 @@ tags: [Elasticsearch, db, kafka]
     - 关键词在当前doc中出现的次数
     - 每个doc的长度，越长相关度越低
     - 包含每个关键词的所有doc的平均长度
-- ES集群优点
-  - 面向开发者友好，屏蔽了Lucene的复杂特性，集群自动发现（cluster discovery）
-  - 自动维护数据在多个节点上的建立
-  - 包含搜索请求的负载均衡
-  - 自动维护冗余副本，保证了部分节点宕机的情况下仍然不会有任何数据丢失
-  - ES基于Lucene提供了很多高级功能：复合查询、聚合分析、基于地理位置等
-  - 可以构建几百台服务器的大型分布式集群，处理PB级别数据
-  - 相比统数据库的有点：提供了全文检索，同义词处理，相关度排名，聚合分析以及海量数据的近实时（`NTR`）处理
 - 应用领域
   - 百度（全文检索、高亮、搜索推荐）
   - 用户行为日志（用户点击、浏览、收藏、评论）
@@ -53,12 +45,38 @@ tags: [Elasticsearch, db, kafka]
   - Type：逻辑上的数据分类，es 7.x中删除了type的概念
   - Index：一类相同或者类似的doc，不能包含大写字母
   - 和传统数据库对比：Document->row，Type->table，Index-db
-- Shard分片
-    - 一个index包含多个Shard，默认5P，默认每个P(primary shrad分片)分配一个R(replica shard副本)。P的数量在创建索引的时候设置，如果想修改，需要重建索引
-    - 每个Shard都是一个Lucene实例，有完整的创建索引的处理请求能力
-    - ES会自动在nodes上为做shard均衡
-    - 一个doc是不可能同时存在于多个PShard中的，但是可以存在于多个RShard中
-    - P和对应的R不能同时存在于同一个节点，所以最低的可用配置是两个节点，互为主备
+
+#### 读写过程及原理
+
+- ES 写数据过程 [^2]
+  - 客户端选择一个 node 发送请求过去，这个 node 就是 coordinating node （协调节点）
+  - coordinating node 对 document 进行路由，将请求转发给对应的 node（有 primary shard）
+  - 实际的 node 上的 primary shard 处理请求，然后将数据同步到 replica node
+  - primary node 和所有 replica node 都写完之后，协调节点就返回响应结果给客户端
+- ES 搜索数据过程
+  - 客户端发送请求到一个 coordinate node
+  - 协调节点将搜索请求转发到所有对应的 primary shard 或 replica shard
+  - query phase：每个 shard 将自己的搜索结果（其实就是一些 doc id ）返回给协调节点，由协调节点进行数据的合并、排序、分页等操作，产出最终结果
+  - fetch phase：接着由协调节点根据 doc id 去各个节点上拉取实际的 document 数据，最终返回给客户端
+- ES 读数据过程（基于doc id）
+  - 客户端发送请求到任意一个 node，这个 node 就是 coordinate node 
+  - coordinate node 对 doc id 进行哈希路由，将请求转发到对应的 node，此时会使用 round-robin 随机轮询算法，在 primary shard 以及其所有 replica 中随机选择一个，让读请求负载均衡
+  - 接收请求的 node 返回 document 给 coordinate node
+  - coordinate node 返回 document 给客户端
+- 写入数据底层原理
+  - 数据先写入内存 buffer（ES进程），并同时写入translog
+  - 然后每隔 1s或内存 buffer快满了，将数据 **`refresh`** 到一个新的segment file（中间还是会先写到os cache），到了 os cache 数据就能被搜索到（所以ES为NRT近实时，near real-time，因为中间有 1s 的延迟）
+  - **`translog`** 大到一定程度，或者默认每隔 30min，会触发 commit 操作，将缓冲区的数据都 **`flush`** 到 segment file 磁盘文件中
+    - commit/flush操作
+      - 将buffer中现有数据refresh到os cache中去，清空buffer
+      - 将一个commit point写入磁盘文件，里面标识着这个commit point对应的所有segment file
+      - 将os cache数据fsync强刷到磁盘上去
+      - 清空translog日志文件
+    - translog其实也是先写入os cache的，默认每隔5秒刷一次到磁盘中去，所以可能会丢失5秒钟的数据
+    - translog日志作用：在你执行commit操作之前，数据要么是停留在buffer中，要么是停留在os cache中，二者都是内存，一旦这台机器死了，内存中的数据就全丢；而此时重启后可通过translog日志进行恢复
+  - 如果是删除操作，commit的时候会生成一个.del文件，里面将某个doc标识为deleted状态
+  - 如果是更新操作，就是将原来的doc标识为deleted状态，然后新写入一条数据
+  - buffer每1秒refresh一次，就会产生一个新的segment file，因此会定期执行 **`merge`**，即将多个segment file合并成一个，同时这里会将标识为deleted的doc给物理删除掉，然后将新的segment file写入磁盘
 
 ### 语法
 
@@ -192,7 +210,7 @@ GET /product/_search
 
 ## Deep paging和Scroll search
 # Deep paging分页：如果要取前100条数据，假设该索引有3个分片，则会在3个分片中取出前100条数据，之后合并后再次排序进行返回。比较耗性能，因此当数据超过1W或需要的结果超过1000个(500个以下为宜)尽量不要使用
-# Scroll search查询：解决Deep paging问题；Scroll search只能下一页，没办法上一页，不适合实时查询(用户界面查询)
+# Scroll search查询：解决Deep paging问题；Scroll search只能下一页，没办法上一页或跳页
 GET /product/_search?scroll=1m # 第一次查询设置scroll的时间窗口期为1分钟，进行查询，会返回scroll_id(第二次查询会用到)
 {
   "query": {
@@ -231,7 +249,38 @@ GET /_analyze
     - filter不计算相关度分数，执行效率较query高
     - 当元数据发生变化时，cache也会更新
 
-#### 
+#### mapping
+
+### 集群
+
+- ES集群优点
+  - 面向开发者友好，屏蔽了Lucene的复杂特性，集群自动发现（cluster discovery）
+  - 自动维护数据在多个节点上的建立
+  - 包含搜索请求的负载均衡
+  - 自动维护冗余副本，保证了部分节点宕机的情况下仍然不会有任何数据丢失
+  - ES基于Lucene提供了很多高级功能：复合查询、聚合分析、基于地理位置等
+  - 可以构建几百台服务器的大型分布式集群，处理PB级别数据
+  - 相比统数据库的有点：提供了全文检索，同义词处理，相关度排名，聚合分析以及海量数据的近实时（`NTR`）处理
+- Shard分片
+  - 一个index包含多个Shard，默认5P，默认每个P(primary shrad分片)分配一个R(replica shard副本)。P的数量在创建索引的时候设置，如果想修改，需要重建索引
+  - 每个Shard都是一个Lucene实例，有完整的创建索引的处理请求能力
+  - ES会自动在nodes上为做shard均衡
+  - 一个doc是不可能同时存在于多个PShard中的，但是可以存在于多个RShard中
+  - P和对应的R不能同时存在于同一个节点，所以最低的可用配置是两个节点，互为主备
+
+#### ES生
+- es 生产集群我们部署了 5 台机器，每台机器是 6 核 64G 的，集群总内存是 320G
+- 我们 es 集群的日增量数据大概是 2000 万条，每天日增量数据大概是 500MB，每月增量数据大概是 6 亿，15G。目前系统已经运行了几个月（6个月），现在 es 集群里数据总量大概是 100G 左右
+- 目前线上有 5 个索引（这个结合你们自己业务来，看看自己有哪些数据可以放 es 的），每个索引的数据量大概是 20G，所以这个数据量之内，我们每个索引分配的是 8 个 shard（比默认的 5 个 shard 多了 3 个 shard）
+
+### 性能优化
+
+- 增加系统内存
+- 无用的字段（不用来做检索的字段）不要保存到es中。可将全量数据保存在mysql/hbase中，通过关键字在es中查询到id，然后去获取相应数据
+- 数据预热：就是对热数据（如热销商品、微博大V）每隔一段时间，就提前访问一下，让数据进入内存里面去
+- 冷热分离：es 可以做类似于 mysql 的水平拆分，冷数据写入一个索引中，然后热数据写入另外一个索引中
+- document 模型设计：先在 Java 系统里就完成关联（复杂的SQL查询），将关联好的数据直接写入 es 中（document 模型存储复杂SQL的结果），尽量避免在es中进行 join/nested/parent-child 等查询
+- 分页性能优化：使用scroll search或search_after来防止深度分页
 
 ## Logstash
 
@@ -288,7 +337,7 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 
 ```bash
 ## 安装 **Elasticsearch** (下载会较慢，可尝试下载几次)
-docker run -d -it --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.1.0
+docker run -d -it --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.mirrors.ustc.edu.cn/elastic/elasticsearch:7.1.0
 # docker start es # 重新启动
 # 查看Elasticsearch信息。(其中`192.168.99.100`为docker所在宿主机IP，此处为docker运行在windows虚拟机上的IP)。其他的地址如：http://192.168.99.100:9200/_cat/ 和 http://192.168.99.100:9200/_cat/nodes 信息。访问`http://192.168.99.100:9200/micro-sq-auth/_search` 查看micro-sq-auth这个index下的日志信息
 http://192.168.99.100:9200/
@@ -297,10 +346,10 @@ http://192.168.99.100:9200/
 # 此处的 -e 为logstash的参数而不是docker命令的参数(192.168.99.100:9200为elasticsearch服务端口)
     # input表示Logstash开放5000的TCP端口供外部调用
     # 可以在output中同时加入控制台输出调试观察日志是否传入Logstash，如`output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } stdout { codec => rubydebug } }`
-docker run -d -it --name logstash -p 5000:5000 docker.elastic.co/logstash/logstash:7.1.0 -e 'input { tcp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } }'
+docker run -d -it --name logstash -p 5000:5000 docker.mirrors.ustc.edu.cn/elastic/logstash:7.1.0 -e 'input { tcp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } }'
 
 ## 安装 **Kibana**，并将其连接到Elasticsearch
-docker run -d -it --name kibana --link es:elasticsearch -p 5601:5601 docker.elastic.co/kibana/kibana:7.1.0
+docker run -d -it --name kibana --link es:elasticsearch -p 5601:5601 docker.mirrors.ustc.edu.cn/elastic/kibana:7.1.0
 # docker start kibana # 重新启动
 http://192.168.99.100:5601 # 显示日志UI界面
 ```
@@ -383,4 +432,6 @@ https://yq.aliyun.com/articles/645316
 参考文章
 
 [^1]: https://www.oschina.net/translate/monitoring-microservices-with-spring-cloud-sleuth
+[^2]: https://github.com/doocs/advanced-java/blob/master/docs/high-concurrency/es-write-query-search.md
+
 

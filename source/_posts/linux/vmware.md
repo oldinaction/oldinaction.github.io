@@ -111,7 +111,7 @@ tags: [vmware, linux, centos]
     - 可进入宿主机更改网络适配器设置 - 右键vmnet8适配器 - 修改ipv4属性为自动获取ip地址 - 禁用此适配器并重新启用 - 最终宿主机和虚拟机处于同一网段
 - xshell卡在`To escape to local shell, press 'Ctrl+Alt+]'.`
     - 关闭防火墙
-    - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
+    - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`（如果是`#UseDNS no`则需要去掉#），并重启sshd
 - 虚拟机提示`请按“获取所有权(T)”`：找到虚拟机所在目录，将`.lck`文件夹删除或备份成`.lck.bak`，然后重新获取所有权即可
 
 ## windows安装

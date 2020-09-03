@@ -32,7 +32,7 @@ tags: [CentOS, linux]
 - 校验系统时间，参考[时间同步](#时间同步)
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#权限系统)
 - 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#文件权限)
-- 证书登录、禁用root(内部集群一般不建议，因为经常需要ssh远程登录)及密码登录：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#ssh)
+- 证书登录、禁用root(内部集群一般不建议，因为经常需要ssh远程登录)及密码登录、修改ssh的22端口：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#ssh)
 - 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
 - [更换镜像，见下文](#镜像管理)
 - 内核升级(Centos7 默认使用内核版本为`3.10`，目前内核长期支持版为`4.4`)

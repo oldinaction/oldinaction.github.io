@@ -103,6 +103,7 @@ redis-cli # 启动客户端
 redis-cli -h # 进入命令行，也可输入help+Tab获取帮助，如`help set`
 redis-cli -p 6379 -n 1 # 连接6379的第一个数据库(默认从0开始，总共有16个库)
 redis-cli --raw # redis是二进制安全的。如果客户端以不同的编码(如GBK/UTF-8)连接；当GBK连接时存储"中"，则占用2个字节，如果UTF-8连接时，则占用3个字节；实际存储是按照二进制存储的，如果不加--raw默认以16进制显示(只能显示ASCII码)，加了--raw会按照此时的客户端连接编码进行解码显示出"中"
+redis-cli --pipe
 
 ## redis-cli命令行，命令不区分大小写
 exit # 退出redis-cli命令行
@@ -567,7 +568,7 @@ vi /etc/redis/6379.conf
     appendfsync everysec # 每秒调用flush
     # appendfsync no # redis不控制flush，交由OS控制
 
-    # aof自动重写，也可调用bgrewriteaof手动重写
+    # aof自动重写，也可调用bgrewriteaof手动重写。AOF重写不会读取老的AOF文件，而是根据当前服务器的状态生成一份新的AOF文件，将老的AOF文件进行替换
     # aof文件增长比例，指当前aof文件比上次重写的增长比例大小为100%时触发重写
     auto-aof-rewrite-percentage 100
     # aof文件重写最小的文件大小，即最开始aof文件必须要达到这个文件时才触发，后面的每次重写就不会根据这个变量了(根据上一次重写完成之后的大小)
@@ -714,27 +715,18 @@ set k2 hello
 
 #### 高可用(基于Sentinel哨兵)
 
-- Sentinel简单说明
+- Sentinel实践
 
 ```bash
 # 默认`redis-sentinel`程序在redis安装源码的src目录，安装到特定目录时只是将`redis-sentinel`程序链接到`redis-server`(即只能通过redis-server启动)
 
-# 详细配置文件在下载的redis源码目录的`sentinel.conf`文件中，主要如下
-port 26379                                  # Sentinel监听的端口
-sentinel monitor mymaster 127.0.0.1 6379 2  # 监控的redis集群的主节点配置(可监听多个集群，给此集群取名为mymaster)，2表示投票达到2票才算通过(此时一般使用3个Sentinel节点)
-# sentinel各节点无需手动关联，原因是各节点之间是通过PUB/SUB发布订阅进行探测的各哨兵节点，通道为__sentinel__:hello
+# 1.创建sentinel-26379.conf、sentinel-26380.conf、sentinel-26381.conf，写入以下配置(注意修改port)，哨兵启动后会动态修改此配置文件。详细配置文件在下载的redis源码目录的`sentinel.conf`文件中，主要如下
+port 26379                                      # Sentinel监听的端口
+sentinel monitor mymaster 127.0.0.1 6379 2      # 监控的redis集群的主节点配置(可监听多个集群，给此集群取名为mymaster)，2表示投票达到2票才算通过(此时一般使用3个Sentinel节点)。sentinel各节点无需手动关联，原因是各节点之间是通过PUB/SUB发布订阅进行探测的各哨兵节点，通道为__sentinel__:hello
 
-# 基于redis-server启动sentinel(此redis-server并不对外提供redis服务)
-redis-server ./sentinel-26379.conf --sentinel
-```
-- 实践
-
-```bash
-# 1.创建sentinel-26379.conf、sentinel-26380.conf、sentinel-26381.conf，写入以下配置(注意修改port)。哨兵启动后会动态修改此配置文件
-port 26379
-sentinel monitor mymaster 127.0.0.1 6379 2
 # 2.如主备设置实践中启动3个服务端，并让其他节点追随6379
-# 3.启动3个sentinel进程
+
+# 3.启动3个sentinel进程。基于redis-server启动sentinel(此redis-server并不对外提供redis服务)
 redis-server ./sentinel-26379.conf --sentinel
 # 启动后打印日志如下
 # 7639:X 11 Jul 2020 16:26:56.733 # Sentinel ID is 6a0417e39932ff9648ad92fd6a2bebcc739cf17a
@@ -1028,6 +1020,10 @@ public String get(key) {
 ```
 - 雪崩解决方案：随机过期时间、二级缓存、加锁或队列（针对时点性高的场景）
 
+### 双写一致性问题
+
+- 在更新缓存方面，可先更新数据库，再删缓存，如果更新失败则通过消息队列重试更新。（为了减少对业务代码的入侵，可更新数据库后，订阅binlog日志，进行缓存更新，再结合消息队列处理失败的更新） [^6]
+
 ## Java使用
 
 ### 解决session一致性(session共享)
@@ -1203,4 +1199,5 @@ public class RedisTool {
 [^3]: http://www.cnblogs.com/edisonfeng/p/3571870.html (java对redis的基本操作)
 [^4]: https://www.cnblogs.com/moxiaotao/p/10829799.html
 [^5]: https://www.jianshu.com/p/528ce5cd7e8f
+[^6]: https://www.cnblogs.com/wangwust/p/9467586.html
 
