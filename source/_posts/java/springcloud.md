@@ -257,7 +257,6 @@ public class CustomerAbstractDiscoveryClientOptionalArgs extends AbstractDiscove
 }
 ```
 
-
 ## Ribbon客户端负载均衡
 
 - 简介

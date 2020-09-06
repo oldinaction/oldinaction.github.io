@@ -267,6 +267,9 @@ stream {
         listen 22128;
         proxy_pass sshd128;
     }
+
+    # upstream负载均衡，自动剔除宕机节点
+    # https://blog.csdn.net/zsycsnd/article/details/81436759、https://blog.csdn.net/wy0123/article/details/88551915、https://blog.csdn.net/lxb15959168136/article/details/53113996/
 }
 
 ## **代理HTTP协议**。如：springmvc应用

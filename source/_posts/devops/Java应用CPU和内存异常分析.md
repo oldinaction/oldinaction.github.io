@@ -34,8 +34,9 @@ tags: [CPU, 内存, 运维, oracle, ofbiz]
 ## 1.查看linux运行状态(htop工具显示更强大)：如8核则CPU可能达到800%
 # Windows可以使用ProcessExplorer.exe查看进程和线程信息
 top
-# 快捷键：x,y 高亮显示行和列；<,> 切换排序列；R 切换排序。更多参考[top命令](/_posts/linux/linux.md#top命令)
-top -Hp <pid> # 查看某个进程的所有线程信息(-Hp顺序不能改变)
+jps -l # 由于PID里面也包含了该进程ID和线程ID，可结合jps快速找到进程ID
+# 快捷键：x,y 高亮显示行和列；<,> 切换排序列；R 切换排序；H查看进程。更多参考[top命令](/_posts/linux/linux.md#top命令)
+top -Hp <pid> # 查看某个进程的所有线程信息(-Hp顺序不能改变)。PID里面也包含了该进程ID和线程ID
 
 ## 2.显示某进程的线程列表。pid：进程id;
 # 结果说明：（1）第一行为统计（2）%CPU为此线程CPU占用率（3）TIME为线程运行时间（4）%MEM为内存占用率
@@ -48,8 +49,9 @@ ps -mp <pid> -o THREAD,tid,time,rss,size,%mem
 #    java.lang.Thread.State: RUNNABLE
 #       at java.net.SocketInputStream.socketRead0(Native Method)
 #       ......
+# 如果提示`20279: Unable to open socket file: target process not responding or HotSpot VM not loaded`，有可能是PID找错了，比如把线程ID当成了PID
 jstack <pid> | grep `printf "%x\n" <tid>` -A 30
-# 获取thread dump到文件
+# 获取thread dump到文件。如果失败了可使用-F强制打印
 jstack <pid> > jstack.out
 
 ## 4.Java的jmap命令(**生产环境会有一定影响**)：显示一个进程下具体线程的内存占用情况

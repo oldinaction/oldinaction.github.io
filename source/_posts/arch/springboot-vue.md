@@ -373,10 +373,10 @@ public Object addNotice(MultipartFile[] files, @Param("title") String title, @Pa
     - `Cache-Control`(HTTP 1.1)
         - 当值设为max-age=300时，则代表在这个请求正确返回时间的5分钟内再次加载资源，就会命中强缓存
         - Cache-control其他常用的设置值(haeder中可包含多个Cache-control)
-            - `-no-cache`：**不使用本地缓存，但是需要使用协商缓存**
-            - `-no-store`：直接禁止浏览器缓存数据，每次用户请求该资源，都会向服务器发送一个请求，每次都会下载完整的资源
-            - `-public`：可以被所有的用户缓存，包括终端用户和CDN等中间代理服务器
-            - `-private`：只能被终端用户的浏览器缓存，不允许CDN等中继缓存服务器对其缓存
+            - `no-cache`：**不使用本地缓存，但是需要使用协商缓存**
+            - `no-store`：直接禁止浏览器缓存数据，每次用户请求该资源，都会向服务器发送一个请求，每次都会下载完整的资源
+            - `public`：可以被所有的用户缓存，包括终端用户和CDN等中间代理服务器
+            - `private`：只能被终端用户的浏览器缓存，不允许CDN等中继缓存服务器对其缓存
     - `Expires`和`max-age`
         - `Expires = 时间`，HTTP 1.0 版本，缓存的载止时间，允许客户端在这个时间之前不去检查(发请求)
         - `Cache-Control: max-age = 秒`，HTTP 1.1版本，资源在本地缓存多少秒，此时`Expires = max-age + "每次下载时的当前的request时间"`。主要解决Expires表示的是时间，但是服务器和客户端之前的时间可能相差很大

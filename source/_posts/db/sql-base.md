@@ -861,7 +861,7 @@ commit;
 -- 设置当前session的隔离级别
 set session transaction isolation level read uncommitted;
 ```
-- ACID
+- ACID  [^4]
     - A原子性：innodb通过undo log实现
     - I隔离性：通过锁实现
     - D持久性：innodb通过redo log实现
@@ -871,7 +871,7 @@ set session transaction isolation level read uncommitted;
         - 脏读：读到了其他事物未提交的数据
         - 不可重复读：第一次读取记录后，其他事物修改了该记录，再次读取此记录发现数据变化了
         - 幻读：第一次读取记录发现没有id=10的行，但是在插入id=10时提示已存在此行，尽管再次读取还是没有id=10
-            - mysql 的幻读并非什么读取两次返回结果集不同，而是事务在插入事先检测不存在的记录时(mysql插入时会隐式读取一次)，惊奇的发现这些数据已经存在了，之前的检测读获取到的数据如同鬼影一般。**不可重复读侧重表达`读-读`，幻读则是说`读-写`，用写来证实读的是鬼影**
+            - mysql 的幻读并非指读取两次返回结果集不同，而是事务在插入事先检测不存在的记录时(mysql插入时会隐式读取一次)，惊奇的发现这些数据已经存在了，之前的检测读获取到的数据如同鬼影一般。**不可重复读侧重表达`读-读`，幻读则是说`读-写`，用写来证实读的是鬼影**
     - 从上往下，隔离级别越来越高，意味着数据越来越安全
         - `read uncommitted` 读未提交。会出现脏读、不可重复读、幻读
         - `read commited` 读已提交(oracle默认级别)。会出现不可重复读、幻读
@@ -903,8 +903,8 @@ set session transaction isolation level read uncommitted;
     - 内部是基于缓存实现，可先将数据写到log buffer。为了确保每次日志都能写入到事务日志文件中，之后操作系统定期调用fsync(等待写磁盘操作结束，然后返回)写入到磁盘
     - 图二中
         - 控制commit动作是否刷新log buffer到磁盘，可通过变量 `innodb_flush_log_at_trx_commit` 的值来决定。该变量有3种值：0、1、2，默认为1
-            - 0：事务提交时不会将log buffer中日志写入到os buffer，而是每秒写入os buffer并调用fsync()写入到log file on disk中。也就是说设置为0时是(大约)每秒刷新写入到磁盘中的，当系统崩溃，会丢失1秒钟的数据
-            - 1：事务每次提交都会将log buffer中的日志写入os buffer并调用fsync()刷到log file on disk中。这种方式即使系统崩溃也不会丢失任何数据，但是因为每次提交都写入磁盘，IO的性能较差
+            - 0：事务提交时仅写到log buffer，然后每秒写入os buffer并调用fsync()写入到log file on disk中。也就是说设置为0时是(大约)每秒刷新写入到磁盘中的，当系统崩溃，会丢失1秒钟的数据
+            - 1：事务每次提交都会将log buffer中的日志写入os buffer，并调用fsync()刷到log file on disk中。这种方式即使系统崩溃也不会丢失任何数据，但是因为每次提交都写入磁盘，IO的性能较差
             - 2：类似0。区别是0虽然是写入到用户空间缓存，再写入到文件。但是写入文件必须通过操作系统完成，此时还是会写入到操作系统缓存，最后写入到文件
         - 安全性：1 > 0/2
         - 效率：2 > 0 > 1
@@ -933,7 +933,7 @@ set session transaction isolation level read uncommitted;
     - 到最近一次的全量备份数据
     - 从备份的时间点开始，将备份的binlog取出来，重放到要恢复的那个时刻
 
-### 数据更新的流程
+### 数据更新的流程(2PC)
 
 ![mysql-innodb-update.png](/data/images/db/mysql-innodb-update.png)
 
@@ -975,4 +975,5 @@ set session transaction isolation level read uncommitted;
 [^1]: https://www.cnblogs.com/discuss/articles/1866953.html (Oracle中针对中文进行排序)
 [^2]: https://www.cnblogs.com/f-ck-need-u/p/9010872.html
 [^3]: http://zhongmingmao.me/2019/01/15/mysql-redolog-binlog/
+[^4]: https://www.cnblogs.com/kismetv/p/10331633.html
 

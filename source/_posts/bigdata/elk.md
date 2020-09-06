@@ -23,10 +23,11 @@ tags: [Elasticsearch, db, kafka]
 ### 基础概念
 
 - `Lucence`：一个Jar包，主要用做分词。其集群实现较难维护
-- ES`倒排索引`
-  - 正排索引是从文档到关键字的映射（已知文档求关键字），`倒排索引`是从关键字到文档的映射（已知关键字求文档）
-  - 倒排表以字词为关键字进行索引，可查询到这个字词的所有文档，它记录该文档的ID和字符在该文档中出现的位置情况
-  - 存储的数据结构
+- ES的`正排索引`和`倒排索引`
+  - `正排索引`是从文档到关键字的映射（已知文档求关键字：doc_id, terms），`倒排索引`是从关键字到文档的映射（已知关键字求文档：term, doc_ids）
+  - 二者都是在索引创建的时候生成的，会保存在磁盘，如果内存足够大也会保存在内存中
+  - 倒排索引以字词为关键字进行索引，可查询到这个字词的所有文档，它记录该文档的ID和字符在该文档中出现的位置情况
+  - 倒排索引存储的数据结构
     - 包含关键词的doc list
     - 关键词在每个doc中出现的次数（TF：item frequency）
     - 关键词在整个索引中出现的次数（IDF：inverse doc frequency）
@@ -65,14 +66,14 @@ tags: [Elasticsearch, db, kafka]
   - coordinate node 返回 document 给客户端
 - 写入数据底层原理
   - 数据先写入内存 buffer（ES进程），并同时写入translog
-  - 然后每隔 1s或内存 buffer快满了，将数据 **`refresh`** 到一个新的segment file（中间还是会先写到os cache），到了 os cache 数据就能被搜索到（所以ES为NRT近实时，near real-time，因为中间有 1s 的延迟）
+  - 然后每隔 1s或内存 buffer快满了，将数据 **`refresh`** 到一个新的segment file（中间还是会先写到os cache），到了 os cache 数据就能被搜索到（所以ES为NRT近实时，near real-time，**因为中间有 1s 的延迟**）
   - **`translog`** 大到一定程度，或者默认每隔 30min，会触发 commit 操作，将缓冲区的数据都 **`flush`** 到 segment file 磁盘文件中
     - commit/flush操作
       - 将buffer中现有数据refresh到os cache中去，清空buffer
       - 将一个commit point写入磁盘文件，里面标识着这个commit point对应的所有segment file
       - 将os cache数据fsync强刷到磁盘上去
       - 清空translog日志文件
-    - translog其实也是先写入os cache的，默认每隔5秒刷一次到磁盘中去，所以可能会丢失5秒钟的数据
+    - translog其实也是先写入os cache的，默认每隔5秒刷一次到磁盘中去，**所以可能会丢失5秒钟的数据**
     - translog日志作用：在你执行commit操作之前，数据要么是停留在buffer中，要么是停留在os cache中，二者都是内存，一旦这台机器死了，内存中的数据就全丢；而此时重启后可通过translog日志进行恢复
   - 如果是删除操作，commit的时候会生成一个.del文件，里面将某个doc标识为deleted状态
   - 如果是更新操作，就是将原来的doc标识为deleted状态，然后新写入一条数据
@@ -80,19 +81,27 @@ tags: [Elasticsearch, db, kafka]
 
 ### 语法
 
-#### REST API
+- 字段搜索方式
+  - `exact value` 精确匹配：在倒排索引过程中，分词器会将field作为一个整体创建到索引中
+  - `full text` 全文检索：分词、近义词同义词、混淆词、大小写、词性、过滤、时态转换等（normaliztion）
+
+#### CRUD
 
 ```bash
 ## 索引操作
 PUT /my_index # 创建索引。返回结果`"acknowledged" : true`表示创建成功
 DELETE /my_index # 删除索引
 GET _cat/indices?v # 查询索引列表
+
 ## 插入数据（_id=1）
 PUT /my_index/_doc/1
+# PUT /my_index/_create/1 # 强制创建（如果存在则返回错误）
+# PUT /my_index/_doc # 自动创建ID
 {
   "name": "smalle",
   "age": 18 
 }
+
 ## 更新数据
 # 更新字段
 POST /my_index/_doc/1/_update
@@ -106,7 +115,8 @@ PUT /my_index/_doc/1
 {
   "name": "hello"
 }
-## 查询
+
+## 查询(REST API)，DSL的查询见下文
 GET /my_index/_search # 查询所有。也可使用：GET /my_index/_doc/_search，但是v7.x已经不推荐使用type
 GET /my_index/_search?q=name:smalle # 查询name字段包含smalle的
 GET /my_index/_search?from=0&size=2&sort=age:asc # 分页和排序
@@ -151,14 +161,13 @@ GET /product/_search
   "constant_score": {
       "match_all": {},
   },
-
   # 排序
   "sort": [
     {
       "price": "desc"
     }
   ],
-  # _source 元数据：默认包含所有，此时只会返回结果下面定义的字段
+  # _source 元数据，默认包含所有。(1)如果为false则不返回_source原数据 (2)数组，只会返回结果下面定义的字段 (3) 对象，可在定义`include: []`和`exclude: []`
   "_source": ["name","desc","price"],
   # 分页：查询第一页（每页两条数据）
   "from": 0,
@@ -229,7 +238,26 @@ GET /_search?scroll # 第二次查询的时间间隔如果再1分钟内则可通
   "scroll_id": "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFGlzOFZUblFCb3JVcHBIUVpZS21QAAAAAAAAAY4WcWxraDZOSGxTMmVEczhyUXJkYTJiUQ=="
 }
 
-## mapping
+## _mget 批量查询
+GET /product/_mget
+{
+    "ids": [2,3]
+}
+
+## _bulk 批量增删改：create(为强制创建)、update、index(创建或更新)、delete
+POST /_bulk
+# POST /_bulk?filter_path=items.*.error # 创建时，只返回执行失败的数据
+{ "create": { "_index": "my_index",  "_id": "1" }} # create创建。json格式必须在一行
+{ "name": "_bulk create 1" } # 为上一行create插入的数据
+{ "create": { "_index": "my_index",  "_id": "2" }}
+{ "name": "_bulk create 2" }
+{ "update": { "_index": "my_index",  "_id": "1", "retry_on_conflict" : "3"} } # update更新，更新如果出现并发冲突(乐观锁)，则重试3次
+{ "doc" : {"name" : "_bulk update 1"} }
+{ "index":  { "_index": "my_index",  "_id": "2" }} # index创建或更新
+{ "doc" : {"name" : "_bulk index(create/update) 2"} }
+{ "delete": { "_index": "my_index",  "_id": "3" }} # delete删除。由于没有id=3的数据，会返回"status" : 404
+
+## mapping，具体参考下文
 GET /product/_mapping
 
 ## 测试分词。使用standard分词器对text文本分词，会返回分词的结果，此时为4个次
@@ -251,6 +279,315 @@ GET /_analyze
 
 #### mapping
 
+##### mapping定义和dynamic mapping
+
+- mapping定义
+  - mapping就是字段field的元数据（可理解为MySQL的字段定义）
+  - ES在创建索引的时候，通过dynamic mapping机制会自动为不同的数据指定相应mapping，当然也可以手动定义mapping
+  - mapping中包含了字段的类型、搜索方式（exact value或者full text）、分词器等
+
+```js
+// 手动创建mappings
+PUT /my_index
+{
+  "mappings": {
+    "properties": {
+        "xxx_field": {
+          "type": "xxx_file_type",
+          "xxx_mapping_parameter": "xxx_parameter_value"
+        }
+      }
+  }
+}
+
+// dynamic mapping案例
+// 1.自动创建my_index索引（只有在第一次新增数据的时候才会创建mapping）
+PUT /my_index/_doc/1
+{
+  "name": "smalle",
+  "age": 18,
+  "birthday": "2020-01-01"
+}
+// 2.查看mapping，返回如下json结果
+GET /my_index/_mapping
+{
+  "my_index" : {
+    "mappings" : {
+      "properties" : {
+        "age" : {
+          "type" : "long" // 此处是long类型而不是integer，主要是因为es的mapping_type是由JSON分析器检测数据类型，而Json没有隐式类型转换（integer=>long or float=> double），所以dynamic mapping会选择一个比较宽的数据类型
+        },
+        "birthday" : {
+          "type" : "date" // 自动转成了日期类型
+        },
+        "name" : {
+          "type" : "text", // 字符串类型
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+##### ES数据类型
+
+> https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-types.html
+
+- 核心类型
+  - 数字类型：long, integer, short, byte, double, float, half_float, scaled_float
+  - 字符串：keyword、text
+    - keyword：适用于索引结构化的字段，可以用于过滤、排序、聚合。keyword类型的字段只能通过精确值（exact value）搜索到。Id应该用keyword
+    - text：字段内容会被分析，在生成倒排索引以前，字符串会被分析器分成一个一个词项，从而用于全文检索，如产品描述。text类型的字段不用于排序，很少用于聚合（主要是字段数据会占用大量堆空间，加载字段数据是一个昂贵的过程）
+    - 同一个字段有时可能同时具有text和keyword：一个用于全文本搜索，另一个用于聚合和排序
+  - 日期：date、date_nanos(ES7 新增)
+  - 布尔：boolean
+  - 二进制：binary
+  - 区间类型：integer_range、float_range、long_range、double_range、date_range
+- array：数组。在ES中，数组不需要专用的字段数据类型，默认情况下，任何字段都可以包含零个或多个值，但是，数组中的所有值都必须具有相同的数据类型
+- 复杂类型
+  - object：用于单个JSON对象
+  - nested：用于JSON对象数组
+- 地理位置
+    - geo-point：纬度/经度积分
+    - geo-shape：用于多边形等复杂形状
+- 特有类型
+  - ip：用于IPv4和IPv6地址
+  - completion：提供自动完成建议
+  - token_count：计算字符串中令牌的数量
+  - murmur3：在索引时计算值的哈希并将其存储在索引中
+  - annotated-text：索引包含特殊标记的文本（通常用于标识命名实体）
+  - percolator：接受来自query-dsl的查询
+  - join：为同一索引内的文档定义父/子关系
+  - rank_features：记录数字功能以提高查询时的点击率
+  - dense_vector：记录浮点值的密集向量
+  - sparse_vector：记录浮点值的稀疏向量
+  - search-as-you-type：针对查询优化的文本字段，以实现按需输入的完成
+  - alias：为现有字段定义别名
+  - flattened：允许将整个JSON对象索引为单个字段
+  - shape：对于任意笛卡尔几何
+  - histogram：用于百分位数聚合的预聚合数值
+  - constant_keyword：当所有文档都具有相同值时的情况
+
+##### Mapping parameters
+
+```js
+// 参考：https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
+PUT /my_index
+{
+    "mappings": {
+        "properties": {
+            "username": {
+                // 类型
+                "type": "text",
+                // mapping_parameter
+                "index": true, // 是否对当前字段创建索引，默认true，如果不创建索引，该字段不会通过索引被搜索到，但是仍然会在_source元数据中展示
+                "doc_values": true, // 是否生成正排索引，为了提升排序和聚合效率，默认true。如果确定不需要对字段进行排序或聚合，也不需要通过脚本访问字段值，则可以禁用doc值以节省磁盘空间，但是设置完了之后则不能改变，需要改变则只能重新创建索引。（不支持text和annotated_text）
+                "fielddata": false, //（慎用）默认text类型的数据类型是不能用作聚合、排序等操作的，可使用keyword、doc_values、fielddata=true，但fielddata的效率没有keyword高
+                "coerce": false, // 是否允许强制类型转换。true时，"1" => 1（可转换成功）
+                "eager_global_ordinal": , // 用于聚合的字段上，优化聚合性能。Frozen indices（冻结索引）：有些索引使用率很高，会被保存在内存中，有些使用率特别低，宁愿在使用的时候重新创建，在使用完毕后丢弃数据，Frozen indices的数据命中频率小，不适用于高搜索负载，数据不会被保存在内存中，堆空间占用比普通索引少得多，Frozen indices是只读的，请求可能是秒级或者分钟级。eager_global_ordinals不适用于Frozen indices 
+                "fields": , // 给field创建多字段，用于不同目的（全文检索或者聚合分析排序）
+                "search_analyzer": "standard", // 设置单独的查询时分析器，可存储的分词器不同
+
+                "analyzer": "character filter", // 指定分析器，如：character filter、tokenizer、Token filters
+                "boost": 1, // 对当前字段相关度的评分权重，默认1
+                "copy_to": "full_name", // 将username的值拷贝到full_name字段中，实际full_name中并不会保存的，但是查询full_name是可以查到username的值的
+                "dynamic": true, // 控制是否可以动态添加新字段。(1) true：新检测到的字段将添加到映射中（默认）；(2) false：新检测到的字段将被忽略，这些字段将不会被索引，因此将无法搜索，但仍会出现在_source返回的匹配项中；(3) strict：如果检测到新字段，则会引发异常并拒绝文档，必须将新字段显式添加到映射中
+                "enable": false, // 是否创建倒排索引，可以对字段操作，也可以对索引操作，如果不创建索引，仍然可以检索并在_source元数据中展示，谨慎使用，该状态无法修改
+                "format" "yyyy-MM-dd", // 格式化。如type=date时，可使用yyyy-MM-dd等
+                "ignore_above": 256, // 超过长度将被忽略
+                "ignore_malformed": true, // 忽略类型错误。如type=integer，当输入字符串时不报错
+                "index_options": , // 控制将哪些信息添加到反向索引中以进行搜索和突出显示。仅用于text字段
+                "index_phrases": , // 提升exact_value查询速度，但是要消耗更多磁盘空间
+                "index_prefixes": { // 前缀搜索
+                    "min_chars" : 1, // 前缀最小长度>1，默认2（包含）
+                    "max_chars" : 10 // 前缀最大长度<10，默认5（包含）
+                },
+                "meta": , // 附加元数据
+                "normalizer": ,
+                "norms": true, // 是否禁用评分（在filter和聚合字段上应该禁用）
+                "null_value": "NULL", // 为null值设置默认值
+                "position_increment_gap": ,
+                "proterties": , // 除了mapping还可用于object的属性设置
+                "similarity" , // 为字段设置相关度算法，支持BM25、claassic（TF-IDF）、boolean
+                "store": , // 设置字段是否仅查询
+                "term_vector": ,
+            }
+        }
+    }
+}
+```
+- `doc_values`和`fielddata`
+  - 当字段的doc_values=false，但是又需要聚合时，可打开fielddata，然后临时在内存中创建正排索引（首次查询时生成），fielddata的构建和管理都发生在JVM Heap中
+  - fielddata使用的是JVM内存；doc_value在内存不足时会保存在磁盘中，只有当内存充足时，才会加载到内存加快查询
+  - ES采用circuit breaker（熔断）机制避免fielddata一次性超过物理内存大小而导致内存溢出。如果触发熔断，查询会被终止并返回异常
+  - fielddata默认是false的，因为text字段较长，一般只做分词和索引，很少拿来做聚合排序
+
+##### Metadata fields元数据字段
+
+- `_field_names`
+- `_ignored`
+- `_id`
+- `_index`
+- `_meta`
+- `_routing`
+- `_source` 原始数据
+- `_type`
+
+#### 聚合查询
+
+```js
+GET /product/_search
+{
+    // 使用聚合查询
+    "aggs": {
+        // 自定义的聚合查询名称
+        "my_tag_agg_avg": {
+            // 1.根据平均值降序排列
+            "terms": {
+                // 聚合字段是tags.keyword（聚合字段必须是exact value类型，此时tags为text，所有需要使用tags.keyword）
+                "field": "tags.keyword",
+                "order": {
+                    "my_avg_price": "desc"
+                }
+            },
+            // 2.对字段price进行分组，此时会分成两组，然后求平均值
+            "range": {
+                "field": "price",
+                "ranges": [{
+                    "from": 1000,
+                    "to": 2000
+                }, {
+                    "from": 2000
+                }]
+            },
+            // 聚合嵌套
+            "aggs": {
+                "my_avg_price": {
+                    // 调用avg函数计算price字段
+                    "avg": {
+                        "field": "price"
+                    }
+                }
+            }
+        }
+    },
+    // 不返回原始数据，只返回聚合结果aggregations
+    "size":0
+}
+```
+
+#### Scripts脚本
+
+- ES脚本语言支持 painless(默认)、expression、mustache、java
+  - painless：用于内联和存储脚本，类似于Java，也有注释、关键字、类型、变量、函数等，安全的脚本语言
+  - expression：可以非常快速地执行，甚至比编写native脚本还要快，支持javascript语法的子集：单个表达式。缺点：只能访问数字，布尔值，日期和geo_point字段，存储的字段不可用
+  - ES 5.0之前还支持Groovy，但是由于其不安全（容易爆内存），被弃用了
+- script模板
+  - 缓存在集群的cache中，作用域为整个集群，只有发生变更时重新编译。没有过期时间，默认缓存大小是100MB，脚本最大64MB
+  - 可以手工设置过期时间script.cache.expire，通过script.cache.max_size设置缓存大小，通过script.max_size_in_bytes配置脚本大小
+- 案例
+
+```bash
+## https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html
+
+## 简单使用
+POST /product/_update/1
+{
+    # ctx为内部变量
+    # 可以简写为 `"script": "ctx._source.price -= 1"`
+    "script": {
+        # 脚本代码。脚本可保存为模板，见下文
+        "source": "ctx._source.price -= 1" # 将所有doc的price字段数值-1
+
+        # 给tags字段(数组)增加一个元素
+        # "source": "ctx._source.tags.add('new_tag')"
+
+        # 删除id=1的文档
+        # "source": "ctx.op = 'delete'"
+
+        # Dates日期：ZonedDateTime类型，因此它们支持诸如之类的方法getYear，getDayOfWeek，或例如从历元开始到毫秒getMillis。要在脚本中使用它们，需省略get前缀并继续使用首字母小写的方法名其余部分
+        # "source": "doc.createtime.value.year" # 获取字段createtime的年份
+    }
+}
+
+# upsert：无此文档则新增（此时不会执行脚本代码），有则执行脚本代码
+POST /product/_update/10
+{
+    "script": {
+        "source": "ctx._source.price -= 1"
+    },
+    "upsert": {
+      "price": 10
+    }
+}
+
+# lang脚本语言指定
+GET /product/_search
+{
+    "script_fields": {
+        # 返回字段名称
+        "test_lang": {
+            "script": {
+                # 指定脚本语言。默认为painless（可以省略），如果是painless，则source为`doc['price'].value * 0.8`
+                "lang": "expression", # expression更适合数字计算，效率比painless高
+                "source": "doc['price'] * 0.8",
+            }
+        }
+    }
+}
+
+# 参数化脚本
+GET /product/_search
+{
+    "script_fields": {
+        # 返回字段名称
+        "discount_price": {
+            "script": {
+                # 参数化查询。第一次查询会把script.source中的表达式进行编译，之后查询速度会更快；如果表达式改变了则需要重新编译，此时使用参数则无需重新编译即可实现不同的算法
+                # doc为内置变量
+                "source": "doc['price'].value * params.discount",
+                # "id": "calculate-discount", # 或者使用script模板，参考下文
+                "params": {
+                    "discount": 0.8
+                }
+            }
+        },
+        # 返回字段为数组
+        "array_price": {
+            "script": {
+                "source": "[doc['price'].value * params.discount_9, doc['price'].value * params.discount_8, doc['price'].value * params.discount_7]",
+                # "id": "calculate-discount", # 或者使用script模板，参考下文
+                "params": {
+                    "discount_9": 0.9,
+                    "discount_8": 0.8,
+                    "discount_7": 0.7
+                }
+            }
+        }
+    }
+}
+
+## script模板
+# 创建、查询、删除模板，具体使用参考上文
+POST _scripts/calculate-discount # 脚本模板名称calculate-discount
+{
+  "script": {
+    "lang": "painless",
+    "source": "doc['price'].value * params.discount"
+  }
+}
+GET _scripts/calculate-discount
+DELETE _scripts/calculate-discount
+
+## painless复杂脚本
+```
+
 ### 集群
 
 - ES集群优点
@@ -268,8 +605,9 @@ GET /_analyze
   - 一个doc是不可能同时存在于多个PShard中的，但是可以存在于多个RShard中
   - P和对应的R不能同时存在于同一个节点，所以最低的可用配置是两个节点，互为主备
 
-#### ES生
-- es 生产集群我们部署了 5 台机器，每台机器是 6 核 64G 的，集群总内存是 320G
+#### ES生产集群部署(基本表)
+
+- ES 生产集群我们部署了 5 台机器，每台机器是 6 核 64G 的，集群总内存是 320G
 - 我们 es 集群的日增量数据大概是 2000 万条，每天日增量数据大概是 500MB，每月增量数据大概是 6 亿，15G。目前系统已经运行了几个月（6个月），现在 es 集群里数据总量大概是 100G 左右
 - 目前线上有 5 个索引（这个结合你们自己业务来，看看自己有哪些数据可以放 es 的），每个索引的数据量大概是 20G，所以这个数据量之内，我们每个索引分配的是 8 个 shard（比默认的 5 个 shard 多了 3 个 shard）
 

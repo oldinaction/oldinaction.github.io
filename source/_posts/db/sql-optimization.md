@@ -623,7 +623,7 @@ tags: [oracle, dba, sql]
     - sync_binlog=0，表示 MySQL 不控制 binlog 的刷新，由文件系统自己控制它的缓存的刷新。这时候的性能是最好的，但是风险也是最大的。因为一旦系统 Crash，在 binlog_cache 中的所有 binlog 信息都会被丢失
     - 如果 sync_binlog>0，表示每 sync_binlog 次事务提交，MySQL 调用文件系统的刷新操作将缓存刷下去
       - 最安全的就是 sync_binlog=1 了，表示每次事务提交，MySQL 都会把 binlog 刷下去，是最安全但是性能损耗最大的设置。这样的话，在数据库所在的主机操作系统损坏或者突然掉电的情况下，系统才有可能丢失 1 个事务的数据。但是 binlog 虽然是顺序 IO，但是设置 sync_binlog=1，多个事务同时提交，同样很大的影响 MySQL 和 IO 性能。虽然可以通过 group commit 的补丁缓解，但是刷新的频率过高对 IO 的影响也非常大。对于高并发事务的系统来说，sync_binlog 设置为 0 和设置为 1 的系统写入性能差距可能高达 5 倍甚至更多
-      - 所以很多 MySQL DBA 设置的 sync_binlog 并不是最安全的 1，而是 100 或者是 0。这样牺牲一定的一致性，可以获得更高的并发和性能。
+      - 所以很多 MySQL DBA 设置的 sync_binlog 并不是最安全的 1，而是 100 或者是 0。这样牺牲一定的一致性，可以获得更高的并发和性能
   - `general_log` 是否开启查询日志记录
   - `general_log_file` 指定查询日志文件名，用于记录所有的查询语句
   - **`slow_query_log`** 是否开启慢查询日志记录。`set global slow_query_log=1`

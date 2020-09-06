@@ -407,7 +407,7 @@ rabbitmqctl stop_app
 # 加入到集群 rabbit@test1 （需要hosts中有test1的ip映射）
 rabbitmqctl join_cluster rabbit@test1 # 成功则提示 Clustering node rabbit@test2 with rabbit@test1
 # 重新启动 rabbitmq 进程
-rabbitmqctl stop_app
+rabbitmqctl start_app
 
 ## 查看集群状态。也可以在管理界面的 Overview-Nodes 看到多个节点
 rabbitmqctl cluster_status

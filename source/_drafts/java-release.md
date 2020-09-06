@@ -93,6 +93,10 @@ public class T1_VarHandle {
 
 ### Lambda表达式
 
+- 原理 [^4]
+  - 在类编译时，会生成一个私有静态方法+一个内部类
+  - 在内部类中实现了函数式接口，在实现接口的方法中，会调用上述编译器生成的静态方法
+  - 在使用lambda表达式的地方，通过传递内部类实例，来调用函数式接口方法
 - 无法使用continue/break语句，只能使用return(相当于continue)语句
 - 作用域：可以直接访问标记了final的外层局部变量，或者成员变量以及静态变量
 - 变量捕获和非捕获
@@ -325,3 +329,4 @@ Base64.getMimeEncoder(), Base64.getMimeDecoder()
 [^1]: https://www.cnblogs.com/xingzc/p/6002873.html (JAVA8十大新特性详解)
 [^2]: https://www.ibm.com/developerworks/cn/java/j-lo-java8streamapi/ (Java 8 中的 Streams API 详解)
 [^3]: https://www.runoob.com/java/java9-new-features.html
+[^4]: https://blog.csdn.net/jiankunking/article/details/79825928

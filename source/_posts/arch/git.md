@@ -20,11 +20,30 @@ tags: [git]
 
 #### 全局配置
 
-- `git config --global user.name smalle` 设置用户名
-- `git config --global user.email oldinaction@qq.com` 设置邮箱
-	- `git config user.name "username"`、`git config user.email "email"` 为单一仓库设置
-- `git config --global color.ui true` 设置在命令行打印的代码带颜色
-- `git config --list`  列出所有配置
+- 配置
+
+```bash
+# 列出所有配置
+git config --list
+
+## 设置全局用户名和邮箱
+git config --global user.name smalle
+git config --global user.email admin@qq.com
+# 为单一仓库设置
+git config user.name "username"
+git config user.email "email"
+
+## 设置回车和换行
+# Git 可以在你提交时自动地把回车CR和换行LF转换成换行LF，而在检出代码时把换行LF转换成回车CR和换行LF。Windows 系统上，把它设置成 true
+git config --global core.autocrlf true
+# 如果使用以换行（LF）作为行结束符的 Linux 或 Mac，你不需要 Git 在检出文件时进行自动的转换。然而当一个以回车（CR）和换行（LF）作为行结束符的文件不小心被引入时，你肯定想让 Git 修正
+git config --global core.autocrlf input
+# 如果你是 Windows 程序员，且正在开发仅运行在 Windows 上的项目，可以设置 false 取消此功能
+git config --global core.autocrlf false
+
+## 设置在命令行打印的代码带颜色
+git config --global color.ui true
+```
 
 以上操作其实是对git的根目录下.gitconfig（`~/.gitconfig`，`~`代表根目录，`cat  ~/.gitconfig`查看此文件）进行的操作，也可直接对这个文件进行修改
 

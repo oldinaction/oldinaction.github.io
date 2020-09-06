@@ -898,6 +898,8 @@ df -h
     # -c 计算找到 '搜寻字符串' 的次数
     # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
     # -a 将 binary 文件以 text 文件的方式搜寻数据
+    # -A <n> 打印匹配行的后几行
+    # -B <n> 打印匹配行的前几行
     ```
 - [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
 - 常见用法
@@ -1449,6 +1451,7 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
 
     ![top面板介绍](/data/images/linux/top-view.jpg)
 
+    - **PID：包含了该进程ID和线程ID**
     - VIRT 值最高的进程就是内存使用最多的进程
     - S列进程状态：一般 I 代表空闲，R 代表运行，S 代表休眠，D 代表不可中断的睡眠状态，Z 代表(zombie)僵尸进程，T 或 t 代表停止
 - 快捷键

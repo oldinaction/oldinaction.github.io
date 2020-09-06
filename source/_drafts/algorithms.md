@@ -193,6 +193,8 @@ public class Node {
 
 ### 跳跃表(skip-list)
 
+- redis 的 sorted_set数据结构就是基于跳跃表完成排序的
+
 ![skip-list](/data/images/linux/algo-skip-list.png)
 
 ## 常见面试题
@@ -220,7 +222,7 @@ public class Node {
 
 #### 棋子楼层问题
 
-![棋子楼层问题.](/data/images/arch/algorithms-棋子楼层问题..png)
+![棋子楼层问题.](/data/images/arch/algorithms-棋子楼层问题.png)
 
 
 

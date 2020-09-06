@@ -277,7 +277,7 @@ spop k1
 ### sorted_set
 
 - Z开头命令表示sorted set，REV表示取反（reversal）
-- 排序细实现原理：[skip list(跳跃表)](/_posts/linux/algorithms.md#跳跃表(skip-list))
+- 排序器实现原理：[skip list(跳跃表)](/_posts/linux/algorithms.md#跳跃表(skip-list))
 
 ```bash
 help @sorted_set
