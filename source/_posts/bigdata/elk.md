@@ -199,6 +199,7 @@ GET /product/_search
       "minimum_should_match": 1,
       # filter：过滤器，不计算相关度分数，且有缓存机制，filter一般会先与query之前执行。子句（查询）必须出现在匹配的文档中，但是分数将被忽略。filter子句在filter上下文中执行，这意味着计分被忽略，并且子句被考虑用于缓存
       "filter": [
+        # 短语搜索
         {"match_phrase": {"name": "xiaomi phone"}},
         # range：区间匹配。查询 price > 1999 的
         {"range": {
@@ -286,8 +287,8 @@ GET /_analyze
   - ES在创建索引的时候，通过dynamic mapping机制会自动为不同的数据指定相应mapping，当然也可以手动定义mapping
   - mapping中包含了字段的类型、搜索方式（exact value或者full text）、分词器等
 
-```js
-// 手动创建mappings
+```bash
+# 手动创建mappings
 PUT /my_index
 {
   "mappings": {
@@ -300,28 +301,28 @@ PUT /my_index
   }
 }
 
-// dynamic mapping案例
-// 1.自动创建my_index索引（只有在第一次新增数据的时候才会创建mapping）
+# dynamic mapping案例
+# 1.自动创建my_index索引（只有在第一次新增数据的时候才会创建mapping）
 PUT /my_index/_doc/1
 {
   "name": "smalle",
   "age": 18,
   "birthday": "2020-01-01"
 }
-// 2.查看mapping，返回如下json结果
+# 2.查看mapping，返回如下json结果
 GET /my_index/_mapping
 {
   "my_index" : {
     "mappings" : {
       "properties" : {
         "age" : {
-          "type" : "long" // 此处是long类型而不是integer，主要是因为es的mapping_type是由JSON分析器检测数据类型，而Json没有隐式类型转换（integer=>long or float=> double），所以dynamic mapping会选择一个比较宽的数据类型
+          "type" : "long" # 此处是long类型而不是integer，主要是因为es的mapping_type是由JSON分析器检测数据类型，而Json没有隐式类型转换（integer=>long or float=> double），所以dynamic mapping会选择一个比较宽的数据类型
         },
         "birthday" : {
-          "type" : "date" // 自动转成了日期类型
+          "type" : "date" # 自动转成了日期类型
         },
         "name" : {
-          "type" : "text", // 字符串类型
+          "type" : "text", # 字符串类型
           "fields" : {
             "keyword" : {
               "type" : "keyword",
@@ -376,46 +377,46 @@ GET /my_index/_mapping
 
 ##### Mapping parameters
 
-```js
-// 参考：https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
+```bash
+# 参考：https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
 PUT /my_index
 {
     "mappings": {
         "properties": {
             "username": {
-                // 类型
+                # 类型
                 "type": "text",
-                // mapping_parameter
-                "index": true, // 是否对当前字段创建索引，默认true，如果不创建索引，该字段不会通过索引被搜索到，但是仍然会在_source元数据中展示
-                "doc_values": true, // 是否生成正排索引，为了提升排序和聚合效率，默认true。如果确定不需要对字段进行排序或聚合，也不需要通过脚本访问字段值，则可以禁用doc值以节省磁盘空间，但是设置完了之后则不能改变，需要改变则只能重新创建索引。（不支持text和annotated_text）
-                "fielddata": false, //（慎用）默认text类型的数据类型是不能用作聚合、排序等操作的，可使用keyword、doc_values、fielddata=true，但fielddata的效率没有keyword高
-                "coerce": false, // 是否允许强制类型转换。true时，"1" => 1（可转换成功）
-                "eager_global_ordinal": , // 用于聚合的字段上，优化聚合性能。Frozen indices（冻结索引）：有些索引使用率很高，会被保存在内存中，有些使用率特别低，宁愿在使用的时候重新创建，在使用完毕后丢弃数据，Frozen indices的数据命中频率小，不适用于高搜索负载，数据不会被保存在内存中，堆空间占用比普通索引少得多，Frozen indices是只读的，请求可能是秒级或者分钟级。eager_global_ordinals不适用于Frozen indices 
-                "fields": , // 给field创建多字段，用于不同目的（全文检索或者聚合分析排序）
-                "search_analyzer": "standard", // 设置单独的查询时分析器，可存储的分词器不同
+                # mapping_parameter
+                "index": true, # 是否对当前字段创建索引，默认true，如果不创建索引，该字段不会通过索引被搜索到，但是仍然会在_source元数据中展示
+                "doc_values": true, # 是否生成正排索引，为了提升排序和聚合效率，默认true。如果确定不需要对字段进行排序或聚合，也不需要通过脚本访问字段值，则可以禁用doc值以节省磁盘空间，但是设置完了之后则不能改变，需要改变则只能重新创建索引。（不支持text和annotated_text）
+                "fielddata": false, #（慎用）默认text类型的数据类型是不能用作聚合、排序等操作的，可使用keyword、doc_values、fielddata=true，但fielddata的效率没有keyword高
+                "coerce": false, # 是否允许强制类型转换。true时，"1" => 1（可转换成功）
+                "eager_global_ordinal": , # 用于聚合的字段上，优化聚合性能。Frozen indices（冻结索引）：有些索引使用率很高，会被保存在内存中，有些使用率特别低，宁愿在使用的时候重新创建，在使用完毕后丢弃数据，Frozen indices的数据命中频率小，不适用于高搜索负载，数据不会被保存在内存中，堆空间占用比普通索引少得多，Frozen indices是只读的，请求可能是秒级或者分钟级。eager_global_ordinals不适用于Frozen indices 
+                "fields": , # 给field创建多字段，用于不同目的（全文检索或者聚合分析排序）
+                "search_analyzer": "standard", # 设置单独的查询时分析器，可存储的分词器不同
 
-                "analyzer": "character filter", // 指定分析器，如：character filter、tokenizer、Token filters
-                "boost": 1, // 对当前字段相关度的评分权重，默认1
-                "copy_to": "full_name", // 将username的值拷贝到full_name字段中，实际full_name中并不会保存的，但是查询full_name是可以查到username的值的
-                "dynamic": true, // 控制是否可以动态添加新字段。(1) true：新检测到的字段将添加到映射中（默认）；(2) false：新检测到的字段将被忽略，这些字段将不会被索引，因此将无法搜索，但仍会出现在_source返回的匹配项中；(3) strict：如果检测到新字段，则会引发异常并拒绝文档，必须将新字段显式添加到映射中
-                "enable": false, // 是否创建倒排索引，可以对字段操作，也可以对索引操作，如果不创建索引，仍然可以检索并在_source元数据中展示，谨慎使用，该状态无法修改
-                "format" "yyyy-MM-dd", // 格式化。如type=date时，可使用yyyy-MM-dd等
-                "ignore_above": 256, // 超过长度将被忽略
-                "ignore_malformed": true, // 忽略类型错误。如type=integer，当输入字符串时不报错
-                "index_options": , // 控制将哪些信息添加到反向索引中以进行搜索和突出显示。仅用于text字段
-                "index_phrases": , // 提升exact_value查询速度，但是要消耗更多磁盘空间
-                "index_prefixes": { // 前缀搜索
-                    "min_chars" : 1, // 前缀最小长度>1，默认2（包含）
-                    "max_chars" : 10 // 前缀最大长度<10，默认5（包含）
+                "analyzer": "character filter", # 指定分析器，如：character filter、tokenizer、Token filters
+                "boost": 1, # 对当前字段相关度的评分权重，默认1
+                "copy_to": "full_name", # 将username的值拷贝到full_name字段中，实际full_name中并不会保存的，但是查询full_name是可以查到username的值的
+                "dynamic": true, # 控制是否可以动态添加新字段。(1) true：新检测到的字段将添加到映射中（默认）；(2) false：新检测到的字段将被忽略，这些字段将不会被索引，因此将无法搜索，但仍会出现在_source返回的匹配项中；(3) strict：如果检测到新字段，则会引发异常并拒绝文档，必须将新字段显式添加到映射中
+                "enable": false, # 是否创建倒排索引，可以对字段操作，也可以对索引操作，如果不创建索引，仍然可以检索并在_source元数据中展示，谨慎使用，该状态无法修改
+                "format" "yyyy-MM-dd", # 格式化。如type=date时，可使用yyyy-MM-dd等
+                "ignore_above": 256, # 超过长度将被忽略
+                "ignore_malformed": true, # 忽略类型错误。如type=integer，当输入字符串时不报错
+                "index_options": , # 控制将哪些信息添加到反向索引中以进行搜索和突出显示。仅用于text字段
+                "index_phrases": , # 提升exact_value查询速度，但是要消耗更多磁盘空间
+                "index_prefixes": { # 前缀搜索
+                    "min_chars" : 1, # 前缀最小长度>1，默认2（包含）
+                    "max_chars" : 10 # 前缀最大长度<10，默认5（包含）
                 },
-                "meta": , // 附加元数据
+                "meta": , # 附加元数据
                 "normalizer": ,
-                "norms": true, // 是否禁用评分（在filter和聚合字段上应该禁用）
-                "null_value": "NULL", // 为null值设置默认值
+                "norms": true, # 是否禁用评分（在filter和聚合字段上应该禁用）
+                "null_value": "NULL", # 为null值设置默认值
                 "position_increment_gap": ,
-                "proterties": , // 除了mapping还可用于object的属性设置
-                "similarity" , // 为字段设置相关度算法，支持BM25、claassic（TF-IDF）、boolean
-                "store": , // 设置字段是否仅查询
+                "proterties": , # 除了mapping还可用于object的属性设置
+                "similarity" , # 为字段设置相关度算法，支持BM25、claassic（TF-IDF）、boolean
+                "store": , # 设置字段是否仅查询
                 "term_vector": ,
             }
         }
@@ -439,24 +440,36 @@ PUT /my_index
 - `_source` 原始数据
 - `_type`
 
-#### 聚合查询
+#### aggregations聚合查询
 
-```js
+```bash
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
+
 GET /product/_search
 {
-    // 使用聚合查询
+    # 使用聚合查询
     "aggs": {
-        // 自定义的聚合查询名称
+        # 自定义的聚合查询名称
         "my_tag_agg_avg": {
-            // 1.根据平均值降序排列
+            # 1.根据平均值降序排列所有的关键字
+            # terms：基于某个字段(field)进行聚合(group by)，且聚合字段必须是exact value类型；返回结果中包含一个 buckets[{"key": "聚合字段值","doc_count": 文档数}]
             "terms": {
-                // 聚合字段是tags.keyword（聚合字段必须是exact value类型，此时tags为text，所有需要使用tags.keyword）
+                # 聚合字段是tags.keyword，案例中tags字段为text，所有需要使用tags.keyword
                 "field": "tags.keyword",
                 "order": {
                     "my_avg_price": "desc"
                 }
             },
-            // 2.对字段price进行分组，此时会分成两组，然后求平均值
+            # 聚合嵌套
+            "aggs": {
+                "my_avg_price": {
+                    # 调用avg函数计算price字段
+                    "avg": {
+                        "field": "price"
+                    }
+                }
+            }
+            # 2.对字段price进行分组，此时会分成两组，然后求平均值
             "range": {
                 "field": "price",
                 "ranges": [{
@@ -466,18 +479,16 @@ GET /product/_search
                     "from": 2000
                 }]
             },
-            // 聚合嵌套
-            "aggs": {
-                "my_avg_price": {
-                    // 调用avg函数计算price字段
-                    "avg": {
-                        "field": "price"
-                    }
+            # 过滤
+            "filters" : {
+                "filters" : {
+                    "errors" :   { "match" : { "level" : "ERROR"   }},
+                    "warnings" : { "match" : { "level" : "WARNING" }}
                 }
             }
         }
     },
-    // 不返回原始数据，只返回聚合结果aggregations
+    # 不返回原始数据，只返回聚合结果aggregations
     "size":0
 }
 ```
@@ -491,6 +502,9 @@ GET /product/_search
 - script模板
   - 缓存在集群的cache中，作用域为整个集群，只有发生变更时重新编译。没有过期时间，默认缓存大小是100MB，脚本最大64MB
   - 可以手工设置过期时间script.cache.expire，通过script.cache.max_size设置缓存大小，通过script.max_size_in_bytes配置脚本大小
+- `doc['field'].value` 和 `params['_source']['field']`区别
+  - 首先，使用doc关键字，将导致该字段的条件被加载到内存（缓存），这将导致更快的执行，但更多的内存消耗。此外，`doc[...]`符号只允许简单类型（不能返回一个复杂类型(json对象或者nested类型)），只有在非分析或单个词条的基础上有意义
+  - `_source`每次使用时都必须加载并解析，使用_source非常缓慢。因此，doc仍然是从文档访问值的推荐方式
 - 案例
 
 ```bash
@@ -508,7 +522,7 @@ POST /product/_update/1
         # 给tags字段(数组)增加一个元素
         # "source": "ctx._source.tags.add('new_tag')"
 
-        # 删除id=1的文档
+        # 删除id=1的文档。ctx.op = 'noop' 则不做任何操作
         # "source": "ctx.op = 'delete'"
 
         # Dates日期：ZonedDateTime类型，因此它们支持诸如之类的方法getYear，getDayOfWeek，或例如从历元开始到毫秒getMillis。要在脚本中使用它们，需省略get前缀并继续使用首字母小写的方法名其余部分
@@ -586,6 +600,38 @@ GET _scripts/calculate-discount
 DELETE _scripts/calculate-discount
 
 ## painless复杂脚本
+POST /product/_update/1
+{
+    "script": {
+        # 使用多行脚本。里面可使用变量、if、for、正则(需要开启对应配置，不推荐使用，会越过painless的内存安全控制)等
+        "source": """
+        if(ctx._source.price < 1000) {
+            ctx._source.name += '~~hot~~'
+        }
+        """
+    }
+}
+GET /product/_search
+{
+    "aggs": {
+        "sum_color_red": {
+            "sum": {
+                "script": {
+                    "source": """
+                    int total = 0;
+                    # 由于tags_obj为复杂对象，因此不能直接通过doc取值，而要使用params['_source']取值
+                    for(int i=0; i < params['_source']['tags_obj'].length; i++) {
+                        if(params['_source']['tags_obj'][i]['color'] == 'red') {
+                            total += 1;
+                        }
+                    }
+                    return total;
+                    """
+                }
+            }
+        }
+    }
+}
 ```
 
 ### 集群
@@ -620,6 +666,47 @@ DELETE _scripts/calculate-discount
 - document 模型设计：先在 Java 系统里就完成关联（复杂的SQL查询），将关联好的数据直接写入 es 中（document 模型存储复杂SQL的结果），尽量避免在es中进行 join/nested/parent-child 等查询
 - 分页性能优化：使用scroll search或search_after来防止深度分页
 
+### 运维
+
+#### 集群信息
+
+- `_cat` 信息
+
+```bash
+## 查看_cat子路径
+GET _cat
+
+## 子路径明细
+# /_cat/allocation?v # 加上参数v表示显示标题
+/_cat/allocation                # 查看集群所在磁盘的分配状况。shards: 各节点的分片数；disk.indices: 该节点中所有索引在该磁盘所占空间
+/_cat/shards
+/_cat/shards/{index}
+/_cat/master
+/_cat/nodes                     # 集群的节点信息
+/_cat/tasks
+/_cat/indices                   # 索引信息
+/_cat/indices/{index}
+/_cat/segments                  # segments文件状态
+/_cat/segments/{index}
+/_cat/count
+/_cat/count/{index}
+/_cat/recovery
+/_cat/recovery/{index}
+/_cat/health                    # 集群的健康状态。status: 集群健康状态(green健康，yellow警告，red不可用)；node.data: 数据节点个数；pri: 主分片数(primary shards)
+/_cat/pending_tasks
+/_cat/aliases
+/_cat/aliases/{alias}
+/_cat/thread_pool
+/_cat/thread_pool/{thread_pools}
+/_cat/plugins
+/_cat/fielddata
+/_cat/fielddata/{fields}
+/_cat/nodeattrs
+/_cat/repositories
+/_cat/snapshots/{repository}
+/_cat/templates
+```
+
 ## Logstash
 
 ```bash
@@ -629,6 +716,7 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 
 ## Kibana
 
+- [文档](https://www.elastic.co/guide/en/kibana/7.8/index.html)
 - 面板介绍
     - Discover：日志管理视图(主要进行搜索和查询)
     - Visualize：统计视图(构建可视化的图表)
@@ -673,6 +761,9 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 
 ### 基于容器安装
 
+- 基于k8s-helm安装参考：[ELK](/_posts/devops/helm.md#ELK)
+- 基于docker安装
+
 ```bash
 ## 安装 **Elasticsearch** (下载会较慢，可尝试下载几次)
 docker run -d -it --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.mirrors.ustc.edu.cn/elastic/elasticsearch:7.1.0
@@ -683,8 +774,8 @@ http://192.168.99.100:9200/
 ## 安装 **Logstash**，并指定输入输出。将输入声明为TCP(兼容LogstashTcpSocketAppender的日志记录器)，声明Elasticsearch为输出
 # 此处的 -e 为logstash的参数而不是docker命令的参数(192.168.99.100:9200为elasticsearch服务端口)
     # input表示Logstash开放5000的TCP端口供外部调用
-    # 可以在output中同时加入控制台输出调试观察日志是否传入Logstash，如`output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } stdout { codec => rubydebug } }`
-docker run -d -it --name logstash -p 5000:5000 docker.mirrors.ustc.edu.cn/elastic/logstash:7.1.0 -e 'input { tcp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "micro-%{serviceName}" } }'
+    # 可以在output中同时加入控制台输出调试观察日志是否传入Logstash，如`output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "%{spring_application_name}-%{+YYYY.MM}" } stdout { codec => rubydebug } }`
+docker run -d -it --name logstash -p 5000:5000 docker.mirrors.ustc.edu.cn/elastic/logstash:7.1.0 -e 'input { tcp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["192.168.99.100:9200"] index => "%{spring_application_name}-%{+YYYY.MM}" } }'
 
 ## 安装 **Kibana**，并将其连接到Elasticsearch
 docker run -d -it --name kibana --link es:elasticsearch -p 5601:5601 docker.mirrors.ustc.edu.cn/elastic/kibana:7.1.0
