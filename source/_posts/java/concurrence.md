@@ -246,7 +246,7 @@ public class T02_DLC_Singleton {
 - [从ReentrantLock的实现看AQS的原理及应用](https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html)
 - `AQS`(AbstractQueuedSynchronizer) 
     - **基于volatile、CAS、LockSupport实现**
-    - 如ReentrantLock、CountDownLatch、CyclicBarrier、ReentrantReadWriteLock、Semaphore都是基于AQS实现
+    - 如ReentrantLock、CountDownLatch、ReentrantReadWriteLock、Semaphore都是基于AQS实现，CyclicBarrier基于ReentrantLock
     - AQS.ConditionObject实现了Condition接口，reentrantLock.newCondition()实例化此对象
 - AQS数据结构
 
@@ -481,20 +481,19 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 强引用：又称普通引用，当每有强引用指向该对象时，该对象才会被垃圾回收。即Object o = new Object();为强引用，当 o = null 时，上述对象才会(此对象没有其他引用)被GC回收
     - 软引用(SoftReference)：一个对象如果只被软引用对象指向时，当内存不足时(可指定IDEA的VM参数如-Xms20M -Xmx20M)才会回收该对象(且没有其他强引用)，否则不会回收。主要用在缓存
     - **弱引用**(WeakReference)
-        - 只要遭遇到GC就会被回收
-        - 如果一个对象除了被弱引用指向，还被一个强引用指向时，当强引用消失后，这个对象也会被回收，**如ThreadLocal中使用了这个特性**
+        - 只要遭遇到GC就会被回收（没有其他强引用）
+        - 如果一个对象除了被弱引用指向，还被一个强引用指向时，当强引用消失后，当遭遇到GC时，这个对象就会被回收，**如ThreadLocal中使用了这个特性**
         - 弱引用一般还用在Java容器中，**如WeakHashMap**
     - 虚引用(PhantomReference, /ˈfæntəm/)，如：`new PhantomReference<>(new Z(), referenceQueue)`
         - 遇到GC时，虚引用肯定被回收。当虚引用被回收时，只会将此引用放入到相应队列，从而可监测队列来获取垃圾回收虚引用的通知
         - 主要管理堆外内存，如当虚引用被回收时，通过监控ReferenceQueue来获取通知，从而进行堆外内存清理。使用场景如底层在实现JVM时会使用，Netty也会使用
         - 无法通过虚引用获取指向的对象的值
-- set()方法最终将数据放到当前Thread的Map对象(ThreadLocal.ThreadLocalMap)中；get()方法则从中取数据；remove()从溢ThreadLocalMap中移除此ThreadLocal对象，防止内存泄露
+- set()方法最终将数据放到当前Thread的Map对象(ThreadLocal.ThreadLocalMap)中；get()方法则从中取数据；remove()从ThreadLocalMap中移除此ThreadLocal对象，防止内存泄露
 - ThreadLocal用途
     - 如声明式事务，保证同一个Connection。不同的方法拿Connection时先从ThreadLocal中获取连接，防止拿到的Connection不是同一个对象
-- 源码
+- 源码（ThreadLocal.java）
 
     ```java
-    // ThreadLocal.java
     public void set(T value) {
         Thread t = Thread.currentThread(); // 获取当前线程对象
         ThreadLocalMap map = getMap(t); // Thread中保存的ThreadLocal.ThreadLocalMap threadLocals属性值
@@ -505,6 +504,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
         }
     }
 
+    // Thread中包含一个ThreadLocal.ThreadLocalMap threadLocals的属性
     static class ThreadLocalMap {
         // 继承WeakReference弱引用
         static class Entry extends WeakReference<ThreadLocal<?>> {
@@ -528,8 +528,8 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 当线程创建后，此Thread对象则会包含一个属性threadLocals(ThreadLocal.ThreadLocalMap)，则会在线程栈中创建此引用变量
     - 创建ThreadLocal对象时，会有一个强引用tl1指向此对象
     - 执行tl1.set时，会将数据对象保存到obj1，且value1指向此对象。**由于ThreadLocal.ThreadLocalMap的Entry对象继承了WeakReference，且将Key保存在此需引用对象中，因此会有一个虚引用key1也指向此ThreadLocal**(上文源码中`map.set(this, value);`)
-    - 如果key1为强引用，当tl1 = null时，则仍然由一个强引用key1执行该ThreadLocal对象，从而导致ThreadLocal无法被回收；如果此线程结束，则threadLocals执行的Map被回收，此时ThreadLocal也被回收；但是有一些线程是守护线程，或者执行时间很长的线程，则很难回收ThreadLocal对象，从而导致内存泄露(指有块内存永远无法被回收；不同于OOM内存溢出，OOM指内存不足)；**因此key1需要使用虚引用**
-    - 当key1为虚引用时，tl1 = null，从而ThreadLocal对象被回收，此时key1也会变为null，那么value1指向的对象将无法被访问到，从而也容易出现内存泄露；**因此使用完ThreadLocal需要执行tl1.remove()清理**
+    - 如果key1为强引用，当tl1 = null时，则仍然由一个强引用key1指向该ThreadLocal对象，从而导致ThreadLocal无法被回收；如果此线程结束，则threadLocals执行的Map被回收，此时ThreadLocal也被回收；但是有一些线程是守护线程，或者执行时间很长的线程，则很难回收ThreadLocal对象，从而导致内存泄露(指有块内存永远无法被回收；不同于OOM内存溢出，OOM指内存不足)；**因此key1需要使用虚引用**
+    - 当key1为虚引用时，tl1 = null，从而ThreadLocal对象被回收，此时key1也会变为null，那么value1指向的对象将无法被访问到，从而产生内存泄露（非内存溢出）。**因此使用完ThreadLocal需要执行tl1.remove()清理**；另外，ThreadLocal中expungeStaleEntry(threadLocal调用get/set/remove触发)方法会自动将key为null的value也设置为null，且将该Entry设置为null，方便下次GC，一定程度解决了内存泄漏的问题
 
 ### 容器
 
@@ -1110,7 +1110,7 @@ public class MyEvent {
     - 对同一个系统而言，支持的线程数越多，QPS越高。假设一个RT是80ms,则可以很容易的计算出QPS,QPS = 1000/80 = 12.5
 - QPS统计
   - 统计access.log
-  - 在接口中记录
+  - 在接口中用AtomicLong记录
 
 
 ## 常用类

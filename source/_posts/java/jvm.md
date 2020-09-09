@@ -358,49 +358,7 @@ public class T01_IntAddAdd {
     - main方法第4号指令：调用Hello_02的构造方法，此时会弹出一个栈顶值(因此需要先dup一次；执行后栈为：对象引用h)
     - main方法第7号指令：将栈顶值赋值到本地变量表第1个位置(即赋值引用地址给h；执行后栈为：空)
 
-## 垃圾回收器
-
-- `GC`(Garbage Collector) 垃圾回收器
-- `Minor GC/Yong GC(MGC/YGC)` 年轻代(Eden)空间耗尽时触发
-- `Major GC/Full GC` 在老年代无法继续分配空间时触发，新生代老年代同时进行回收(比较慢、重量级)
-- `STW`(Stop The World) 所有的工作线程必须停下等垃圾回收完成
-
-### 垃圾清除算法
-
-- 垃圾(Garbage)
-    - 没有任何引用指向的一个对象或多个对象就是垃圾
-    - C内存操：malloc free；C++: new delete
-    - C/C++ 手动回收内存，Java自动回收
-    - 自动内存回收，编程上简单，系统不容易出错；手动释放内存，容易出两种类型的问题：忘记回收、多次回收
-- 垃圾查找算法
-    - `reference count` 引用计数，当计数为0时则认为是那就。不能解决循环引用
-    - `root searching` **根可达算法**，从根对象开始找到都是有用的对象
-        - 根对象：线程栈变量、静态变量、常量池、JNI指针
-- **垃圾清除算法**
-    - Mark-Sweep 标记清除
-    - Copying 拷贝
-    - Mark-Compact 标记压缩
-- `Mark-Sweep`
-    - 算法相对简单，存活对象比较多的情况下效率高
-    - 两遍扫描(标记+清除)，效率较低
-    - 容易产生碎片
-
-    ![jvm-Mark-Sweep](/data/images/java/jvm-Mark-Sweep.png)
-- `Copying`
-    - 适用于存活对象较少的情况
-    - 一遍扫描
-    - 移动复制对象，需要调整对象引用
-    - 不会产生碎片
-    - 产生内存减半，空间浪费
-
-    ![jvm-Copying](/data/images/java/jvm-Copying.png)
-- `Mark-Compact`
-    - 扫描两次
-    - 移动复制对象，需要调整对象引用
-    - 不会产生碎片，方便对象分配
-    - 不会产生内存减半
-
-    ![jvm-Mark-Compact](/data/images/java/jvm-Mark-Compact.png)
+## 分代模型
 
 ### JVM内存(堆)分代模型
 
@@ -465,6 +423,75 @@ public class T01_IntAddAdd {
     - 大对象直接进入老年代（如G1垃圾回收器）
         - 如果设置了`-XX:PretenureSizeThreshold`这个参数，那么如果你要创建的对象大于这个参数的值，比如分配一个超大的字节数组，此时就直接把这个大对象放入到老年代，不会经过新生代
 
+## 垃圾回收器
+
+- `GC`(Garbage Collector) 垃圾回收器
+- `Minor GC/Yong GC(MGC/YGC)` 年轻代(Eden)空间耗尽时触发
+- `Major GC/Full GC` 在老年代无法继续分配空间时触发，新生代老年代同时进行回收(比较慢、重量级)
+- `STW`(Stop The World) 所有的工作线程必须停下等垃圾回收完成
+- `Garbage` 垃圾
+    - 没有任何引用指向的一个对象或多个对象就是垃圾
+    - C内存操：malloc free；C++: new delete
+    - C/C++ 手动回收内存，Java自动回收
+    - 自动内存回收，编程上简单，系统不容易出错；手动释放内存，容易出两种类型的问题：忘记回收、多次回收
+
+### 垃圾回收器相关概念
+
+- 垃圾查找算法
+    - `reference count` 引用计数，当计数为0时则认为是那就。不能解决循环引用
+    - `root searching` **根可达算法**，从根对象开始找到都是有用的对象
+        - 根对象：线程栈变量、静态变量、常量池、JNI指针
+- **垃圾清除算法**
+  - `Mark-Sweep` 标记清除
+    - 算法相对简单，存活对象比较多的情况下效率高
+    - 两遍扫描(标记+清除)，效率较低。标记算法如：三色标记
+    - 容易产生碎片
+
+    ![jvm-Mark-Sweep](/data/images/java/jvm-Mark-Sweep.png)
+  - `Copying` 拷贝（标记-拷贝）
+    - 适用于存活对象较少的情况
+    - 一遍扫描
+    - 移动复制对象，需要调整对象引用
+    - 不会产生碎片
+    - 产生内存减半，空间浪费
+
+    ![jvm-Copying](/data/images/java/jvm-Copying.png)
+  - `Mark-Compact` 标记压缩
+    - 扫描两次
+    - 移动复制对象，需要调整对象引用
+    - 不会产生碎片，方便对象分配
+    - 不会产生内存减半
+
+    ![jvm-Mark-Compact](/data/images/java/jvm-Mark-Compact.png)
+- 标记步骤中的算法如：**`三色标记`** 指将对象标记为不同的颜色（CMS和G1使用）
+
+    ![JVM-三色标记](/data/images/java/JVM-三色标记.png)
+    - 白色(未被标记的对象)、灰色(自身被标记，成员变量未被标记)、黑色(自身和成员变量均被标记)
+    - 从根对象开始标记对象，标记了的则是存活的对象，没有标记的则是垃圾对象
+    - 存在问题
+      - 会产生浮动垃圾：黑色A断开了灰色B的引用，此时B对象的属性则可能是垃圾
+      - 漏标出现的情况(清除了正常的对象)
+        - 上图中黑色对象A指向了白色对象D，且原来灰色对象B指向D的引用消失(B不在指向D)
+        - 此时白色D只有一个黑色对象指向，因此会漏标(黑色不会再扫描属性)。而白色D此时是存活对象，漏标导致D被回收
+    - 解决漏标的算法
+      - `Incremental Update`：增量更新，关注引用的增加(即A指向D)；把黑色重新下标记为灰色，下次重新扫描属性
+      - `SATB`(snapshot at the beginning) 关注引用的删除(B不在指向D)，当引用消失时，把此引用推倒GC的堆栈
+    - 在引用增加和删除时，结合读写屏障（不同于内存屏障，可理解为AOP，在读写前增加一些额外操作），从而记录变化的引用
+    - 为什么G1使用SATB
+      - SATB结合`RSet`（参考下文）效率很高。SATB监控到的消失引用，会放到GC堆栈，下次扫描时根据此堆栈的对象引用，到RSet去查找
+      - 增量更新则需要重新把标记过的对象重新检查其属性
+    - CMS算法：三色标记 + Incremental Update + 写屏障；G1使用算法：三色标记 + SATB + 写屏障；ZGC算法：颜色指针 + 读屏障
+- `颜色指针`（Color Pointer，ZGC使用）
+    - 指在对象引用（指针）上会有一个color pointer标识此对象引用是否改变过，参考下文[ZGC](#ZGC)
+- `Card Table`
+    - 由于做YGC时，需要判断这个对象是否被其他对象引用，有可能这个对象已经在old区了，但是扫描整个old区，效率非常低，所以JVM设计了CardTable
+    - 首先将old区分为多个CardTable，将对象放在CardTable中。**当某个CardTable有对象指向Yong区，就将它设为Dirty状态**，下次扫描时，只需要扫描Dirty CardTable的对象
+    - CardTable用BitMap(010101标识每个CardTable是否为Dirty)来实现
+- `RSet`(RemembeeredSet) 记录了其他Region中的对象到本Region的引用，占用堆10%左右
+    - 作用在于垃圾收集只需要扫码RSet便可得知哪些对象引用了当前分区(从而不需扫码整个堆)
+    - 由于RSet的存在，每次给对象赋引用的时候，就得做一些额外操作，GC中称为写屏障（参考上文三色标记）
+- `CSet`(Collection Set) 一组可被回收的分区集合，占用堆空间的1%左右
+
 ### 常见的垃圾回收器
 
 - 垃圾回收器历史
@@ -478,31 +505,6 @@ public class T01_IntAddAdd {
     - JDK7一般是PS+PO或CMS，出现了G1可能不太成熟
     - JDK8默认PS+PO，可使用G1(特别是大内存)
     - JDK9默认G1
-- 垃圾回收器算法相关概念
-    - **`三色标记`** 指将对象标记为不同的颜色（CMS和G1使用）
-
-        ![JVM-三色标记](/data/images/java/JVM-三色标记.png)
-        - 白色(未被标记的对象)、灰色(自身被标记，成员变量未被标记)、黑色(自身和成员变量均被标记)
-        - 从根对象开始标记对象，标记了的则是存活的对象，没有标记的则是垃圾对象
-        - 漏标出现的情况
-            - 上图中黑色对象A指向了白色对象D，且原来灰色对象B指向D的引用消失(B不在指向D)
-            - 此时白色D只有一个黑色对象指向，因此会漏标(黑色不会再扫描属性)。而白色D此时是存活对象，漏标导致D被回收
-        - 解决漏标的算法
-            - `Incremental Update`：增量更新，关注引用的增加(即A指向D)；把黑色重新下标记为灰色，下次重新扫描属性
-            - `SATB`(snapshot at the beginning) 关注引用的删除(B不在指向D)，当引用消失时，把此引用推倒GC的堆栈
-            - 为什么G1使用SATB
-                - SATB结合RSet效率很高。SATB监控到的消失引用，会放到GC堆栈，下次扫描时根据此堆栈的对象引用，到RSet去查找
-                - 增量更新则需要重新把标记过的对象重新检查其属性
-    - `颜色指针`（Color Pointer，ZGC使用）
-        - 指在对象引用（指针）上会有一个color pointer标识此对象引用是否改变过
-    - `Card Table`
-        - 由于做YGC时，需要判断这个对象是否被其他对象引用，有可能这个对象已经在old区了，但是扫描整个old区，效率非常低，所以JVM设计了CardTable
-        - 首先将old区分为多个CardTable，将对象放在CardTable中。**当某个CardTable有对象指向Yong区，就将它设为Dirty状态**，下次扫描时，只需要扫描Dirty CardTable的对象
-        - CardTable用BitMap(010101标识每个CardTable是否为Dirty)来实现
-    - `CSet`(Collection Set) 一组可被回收的分区集合，占用堆空间的1%左右
-    - `RSet`(RemembeeredSet) 记录了其他Region中的对象到本Region的引用，占用堆10%左右
-        - 作用在于垃圾收集只需要扫码RSet便可得知哪些对象引用了当前分区(从而不需扫码整个堆)
-        - 由于RSet的存在，每次给对象赋引用的时候，就得做一些额外操作，GC中称为**写屏障(不同于内存屏障)**
 - **常见的垃圾回收器**
 
     ![jvm-gc](/data/images/java/jvm-gc.png)

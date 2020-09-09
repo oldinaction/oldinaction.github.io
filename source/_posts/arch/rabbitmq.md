@@ -31,6 +31,7 @@ tags: [mq]
   ![消息模型](/data/images/arch/rabbitmq-message-model.png)
   - 常用：点对点、work、订阅（fanout 广播、direct 直连、topic 主题）
   - Direct 直连（RoutingKey 固定）；Topic 基于通配符（RoutingKey 包含通配符：\*匹配一个单词，#匹配多个单词）
+  - Publisher Confirms（发送确认）：用来实现消息的可靠投递。当在某个通道(channel)上开启发布确认后，客户端发布的消息会被MQ服务器(broker)异步的确认 [^2]
 
 ## RabbitMQ 安装
 
@@ -487,4 +488,6 @@ Ctrl+G, q # 退出（需要输入两次两次命令）
 参考文章
 
 [^1]: https://blog.csdn.net/qq_41709494/article/details/86740162
+[^2]: https://blog.csdn.net/Lamb_IT/article/details/102649484
+
 

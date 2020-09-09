@@ -30,14 +30,12 @@ tags: [HA, 分布式锁]
 - ZooKeeper可能出现可用和不可用两种状态
     - 当Leader挂掉后，集群短暂不可用，此时不会接受客户端请求
     - 并且会在200ms左右恢复成可用，即重新选出Leader
-- 是一个目录树结构
-    - 每个节点可以存放1MB数据
-    - 节点分为：持久节点、临时节点(session)、序列节点
-    - 实现功能
-        - 1M数据 -> 统一配置
-        - path结构 -> 分组管理
-        - sequential -> 统一命名
-        - 临时节点（ephemeral，读音：/ɪˈfemərəl/） -> 同步 -> 分布式锁
+- 数据模型
+  - 是一个目录树结构 => 分组管理
+  - 每个节点可以存放1MB数据 => 统一配置
+  - 节点分为：持久节点、临时节点(session)、序列节点
+    - sequential => 统一命名
+    - ephemeral（读音：/ɪˈfemərəl/，临时节点） => 分布式锁
 
 ## ZooKeeper安装和使用
 
@@ -153,8 +151,11 @@ Command not found: Command not found help
 ## 原理
 
 - 角色：Leader、Follower、Observer
-    - 只有Follower才能选举(加快恢复速度)
-    - Observer只提供读取服务，不能选举。利用Observer放大查询能力，读写分离。zk适合读多写少的场景
+    - 只有Follower才能选举投票(加快恢复速度)
+    - 只有Leader、Follower可进行事务请求Proposal的投票
+    - Observer：是弱化版的Follower（不能进行任何投票）
+      - 引入这个角色主要是为了在不影响集群事务处理能力的前提下提升集群的非事务处理的吞吐量
+      - 利用Observer放大查询能力，读写分离。zk适合读多写少的场景
 - zookeeper每个节点需配置几个端口。可通过`netstat -natp | egrep '(2181|2888|3888)'`查看
     - 2181：客户端连接使用
     - 2888：leader接受write请求，即其他从节点会连接到leader的2888端口

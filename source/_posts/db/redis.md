@@ -335,7 +335,7 @@ zunionstore destkey2 2 k1 k2 weights 0.5 1
 ```bash
 # 客户端A往p1通道里面发送消息
 publish p1 hello
-# 客户端B监听在通道p1上(可监听多个)，会阻塞客户端；由于在A发送消息之后监听，因此默认无法收到消息
+# 客户端B监听在通道p1上(可监听多个)，会阻塞客户端；由于在A发送消息之后监听，因此默认无法收到之前的消息
 subscribe p1 # 执行后打印3行：1) "subscribe"、2) "p1"、3) (integer) 1
 publish p1 hi # 客户端A再次发送消息，客户端B收到消息：1) "message"、2) "p1"、3) "hi"
 
@@ -408,8 +408,10 @@ exec
 - `pexpire` 
 - `pexpireat`
 - 过期判定原理：**被动访问判定、主动轮询判定**
-    - 主动轮询判定为增量：默认每秒进行10此扫码，每次随机取20个key判断，超过25%过期，则再取20个判断，并且默认的每次扫描时间上限不会超过25ms
-    - 目的：redis是单线程，此时稍微牺牲下内存(延时过期)，但是保住了redis性能为王
+    - 被动访问判定：当访问某个key时判断其是否过期，过期则先执行移除
+    - 主动轮询判定为增量
+      - 默认每秒进行10此扫码，每次随机取20个key判断，超过25%过期，则再取20个判断，并且默认的每次扫描时间上限不会超过25ms
+      - 目的：redis是单线程，此时稍微牺牲下内存(延时过期)，但是保住了redis性能为王
 
 ```bash
 ## expire和expireat
@@ -438,52 +440,16 @@ persist k3
 rename k2 k2_new 
 ```
 
-#### 布隆和布谷鸟过滤器
+#### 回收策略配置/数据淘汰机制
 
-- `布隆过滤器`(Bloom Filter)：一种比较巧妙的概率型数据结构，**它可以告诉你某种东西一定不存在或者可能存在**
-    - 布隆过滤器相对于Set、Map 等数据结构来说，它可以更高效地插入和查询，并且占用空间更少。缺点是判断某种东西是否存在时，可能会被误判，但是只要参数设置的合理，它的精确度也可以控制的相对精确，只会有小小的误判概率
-    - 牺牲存储空间来换查询速度
-
-    ![redis-bloom](/data/images/db/redis-bloom.png)
-- `布谷鸟过滤器`
-    - 相比布谷鸟过滤器而言布隆过滤器有以下不足：查询性能弱、空间利用效率低、不支持反向操作（删除）以及不支持计数
-- **解决缓存穿透的问题**
-    - 一般情况下，先查询缓存是否有该条数据，缓存中没有时，再查询数据库。当数据库也不存在该条数据时，每次查询都要访问数据库，这就是缓存穿透。缓存穿透带来的问题是，当有大量请求查询数据库不存在的数据时，就会给数据库带来压力，甚至会拖垮数据库
-    - 可以使用布隆过滤器解决缓存穿透的问题，把已存在数据的key存在布隆过滤器中。当有新的请求时，先到布隆过滤器中查询是否存在，如果缓存中不存在该条数据直接返回；如果缓存中存在该条数据再查询数据库
-- redis中可以手动添加[布隆过滤器模块(包含布谷鸟)](https://github.com/RedisBloom/RedisBloom)，实际也可在客户端实现布隆算法从而到达过滤效果
-
-```bash
-## 安装
-wget https://github.com/RedisBloom/RedisBloom/archive/v2.2.3.zip
-yum install unzip
-unzip v2.2.3.zip
-cd RedisBloom-2.2.3/
-make # 编译，会生成bloom.so库
-cp redisbloom.so /opt/soft/redis5/
-
-## 操作(该模块提供了bf.*、cf.*等命令)
-# 启动时载入布隆模块，也可在配置文件的MODULES部分进行配置
-redis-server --loadmodule /opt/soft/redis5/redisbloom.so # 启动时加载布隆过滤器模块
-redis-cli
-bf.add k1 123 # 通过布隆过滤器添加元素123到k1中
-type k1 # MBbloom--
-bf.exists k1 abc # (integer) 0，判断k1中是否存在abc
-bf.exists k1 123 # (integer) 1
-
-# 布谷鸟过滤器，使用同上
-cf.add
-cf.exists
-```
-
-#### 回收策略配置
-
+- 回收策略不同于上文过期策略，二者有一定的区别
 - [将redis当做使用LRU算法的缓存来使用](http://redis.cn/topics/lru-cache.html)
 
 ```bash
 # 编辑支持的最大内存(maxmemory)和回收策略
 vi /etc/redis/6379.conf
 
-# maxmemory <bytes> # 配置Redis存储数据时指定限制的内存大小，比如100m。当缓存消耗的内存超过这个数值时, 将触发数据淘汰。该数据配置为0时，表示缓存的数据量没有限制, 即LRU功能不生效。64位的系统默认值为0，32位的系统默认内存限制为3GB
+# maxmemory <bytes> # 配置Redis存储数据时指定限制的内存大小，比如100m。**当缓存消耗的内存超过这个数值时, 将触发数据淘汰**。该数据配置为0时，表示缓存的数据量没有限制, 即LRU功能不生效。64位的系统默认值为0，32位的系统默认内存限制为3GB
 
 # MAXMEMORY POLICY: how Redis will select what to remove when maxmemory
 # is reached. You can select among five behaviors:
@@ -746,8 +712,8 @@ redis-server ./sentinel-26379.conf --sentinel
     - 基于`random`算法拆分(随机放到不同的节点)
         - 缺点：客户端不能精确知道数据具体存放的节点
         - 应用场景：消息队列
-            - 客户端通过lpush存放到key为xxx的集合中，另外一个客户端只需要通过rpop任意取出一个进行消费即可
-            - 类似kafka，此时xxx可理解为topic，redis节点可认为是partition
+            - 客户端通过lpush存放到某个key的集合中，另外一个客户端只需要通过rpop任意取出一个进行消费即可
+            - 类似kafka，此时key可理解为topic，redis节点可认为是partition
     - 基于`ketama`算法(一致性hash算法)拆分
         - **一致性hash算法** [^5]
             - 是对2^32方取模，即一致性Hash算法将整个Hash空间组织成一个虚拟的圆环，Hash函数的值空间为0 ~ 2^32 - 1(一个32位无符号整型)
@@ -794,7 +760,7 @@ utils/create-cluster
 # 可修改配置，如PORT、NODES、REPLICAS
 vi create-cluster
 ./create-cluster start # 启动实例
-# 创建集群(需要输入yes进程插槽划分)：创建6个节点，--cluster-replicas为1表示创建一个副本(从节点)，因此是6/(1+1)=3套主从(3个主，3个从，一般是前3个节点未主)
+# 创建集群(需要输入yes进程插槽划分)：创建6个节点，--cluster-replicas为1表示创建一个副本(从节点)，因此是6/(1+1)=3套主从(3个主，3个从，一般是前3个节点为主)
 redis-cli --cluster create 127.0.0.1:30001 127.0.0.1:30002 127.0.0.1:30003 127.0.0.1:30004 127.0.0.1:30005 127.0.0.1:30006 --cluster-replicas 1
 
 ## 测试
@@ -838,7 +804,7 @@ QUEUED
         - 不支持hash tag（形如`{xx}key`）
     - [predixy](https://github.com/joyieldInc/predixy)
         - 性能较高
-        - 仅支持分区、主备模式
+        - 支持分区、主备模式
         - 支持监控一套主备的哨兵模式（仅支持主备，分区则不支持），此情况才支持事物等命令（分区后不支持事物）
         - 支持hash tag（分区+主备也支持）
     - codis
@@ -1016,6 +982,43 @@ public String get(key) {
 }
 ```
 - 雪崩解决方案：随机过期时间、二级缓存、加锁或队列（针对时点性高的场景）
+
+#### 布隆和布谷鸟过滤器
+
+- `布隆过滤器`(Bloom Filter)：一种比较巧妙的概率型数据结构，**它可以告诉你某种东西一定不存在或者可能存在**
+    - 布隆过滤器相对于Set、Map 等数据结构来说，它可以更高效地插入和查询，并且占用空间更少。缺点是判断某种东西是否存在时，可能会被误判，但是只要参数设置的合理，它的精确度也可以控制的相对精确，只会有小小的误判概率
+    - 牺牲存储空间来换查询速度
+
+    ![redis-bloom](/data/images/db/redis-bloom.png)
+- `布谷鸟过滤器`
+    - 相比布谷鸟过滤器而言布隆过滤器有以下不足：查询性能弱、空间利用效率低、不支持反向操作（删除）以及不支持计数
+- **解决缓存穿透的问题**
+    - 一般情况下，先查询缓存是否有该条数据，缓存中没有时，再查询数据库。当数据库也不存在该条数据时，每次查询都要访问数据库，这就是缓存穿透。缓存穿透带来的问题是，当有大量请求查询数据库不存在的数据时，就会给数据库带来压力，甚至会拖垮数据库
+    - 可以使用布隆过滤器解决缓存穿透的问题，把已存在数据的key存在布隆过滤器中。当有新的请求时，先到布隆过滤器中查询是否存在，如果缓存中不存在该条数据直接返回；如果缓存中存在该条数据再查询数据库
+- redis中可以手动添加[布隆过滤器模块(包含布谷鸟)](https://github.com/RedisBloom/RedisBloom)，实际也可在客户端实现布隆算法从而到达过滤效果
+
+```bash
+## 安装
+wget https://github.com/RedisBloom/RedisBloom/archive/v2.2.3.zip
+yum install unzip
+unzip v2.2.3.zip
+cd RedisBloom-2.2.3/
+make # 编译，会生成bloom.so库
+cp redisbloom.so /opt/soft/redis5/
+
+## 操作(该模块提供了bf.*、cf.*等命令)
+# 启动时载入布隆模块，也可在配置文件的MODULES部分进行配置
+redis-server --loadmodule /opt/soft/redis5/redisbloom.so # 启动时加载布隆过滤器模块
+redis-cli
+bf.add k1 123 # 通过布隆过滤器添加元素123到k1中
+type k1 # MBbloom--
+bf.exists k1 abc # (integer) 0，判断k1中是否存在abc
+bf.exists k1 123 # (integer) 1
+
+# 布谷鸟过滤器，使用同上
+cf.add
+cf.exists
+```
 
 ### 双写一致性问题
 
