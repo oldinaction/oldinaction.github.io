@@ -4,8 +4,96 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
+    <lastmod>2020-09-09T11:38:05.150Z</lastmod>
+    <data>
+        <display>
+        <title>Zookeeper</title>
+        <pubTime>2017-10-22T11:24:00.000Z</pubTime>
+        
+        <tag>分布式锁</tag>
+         
+        <tag>HA</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/08/14/arch/rabbitmq/</loc>
+    <lastmod>2020-09-09T10:15:40.073Z</lastmod>
+    <data>
+        <display>
+        <title>RabbitMQ</title>
+        <pubTime>2016-08-14T08:49:00.000Z</pubTime>
+        
+        <tag>mq</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    <lastmod>2020-09-09T08:44:05.176Z</lastmod>
+    <data>
+        <display>
+        <title>并发编程</title>
+        <pubTime>2018-12-05T06:28:00.000Z</pubTime>
+        
+        <tag>concurrence</tag>
+         
+        <tag>collection</tag>
+         
+        <tag>juc</tag>
+         
+        <tag>线程池</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
+    <lastmod>2020-09-09T07:23:51.416Z</lastmod>
+    <data>
+        <display>
+        <title>JVM</title>
+        <pubTime>2017-01-20T05:07:00.000Z</pubTime>
+        
+        <tag>jvm</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
-    <lastmod>2020-09-08T14:54:37.498Z</lastmod>
+    <lastmod>2020-09-09T01:48:46.841Z</lastmod>
     <data>
         <display>
         <title>redis</title>
@@ -219,40 +307,14 @@
         
         <tag>oracle</tag>
          
-        <tag>sql</tag>
-         
         <tag>dba</tag>
+         
+        <tag>sql</tag>
          
          
            
              
               <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    <lastmod>2020-09-04T07:35:43.382Z</lastmod>
-    <data>
-        <display>
-        <title>并发编程</title>
-        <pubTime>2018-12-05T06:28:00.000Z</pubTime>
-        
-        <tag>concurrence</tag>
-         
-        <tag>collection</tag>
-         
-        <tag>juc</tag>
-         
-        <tag>线程池</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -302,26 +364,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2016/08/14/arch/rabbitmq/</loc>
-    <lastmod>2020-09-04T05:15:02.974Z</lastmod>
-    <data>
-        <display>
-        <title>RabbitMQ</title>
-        <pubTime>2016-08-14T08:49:00.000Z</pubTime>
-        
-        <tag>mq</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
     <lastmod>2020-09-04T05:05:59.928Z</lastmod>
     <data>
@@ -357,48 +399,6 @@
            
              
               <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
-    <lastmod>2020-09-04T02:07:38.645Z</lastmod>
-    <data>
-        <display>
-        <title>Zookeeper</title>
-        <pubTime>2017-10-22T11:24:00.000Z</pubTime>
-        
-        <tag>分布式锁</tag>
-         
-        <tag>HA</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
-    <lastmod>2020-09-03T13:56:56.935Z</lastmod>
-    <data>
-        <display>
-        <title>JVM</title>
-        <pubTime>2017-01-20T05:07:00.000Z</pubTime>
-        
-        <tag>jvm</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -1674,9 +1674,9 @@
         <title>虚拟化服务器搭建 | 私有云</title>
         <pubTime>2019-05-30T08:11:00.000Z</pubTime>
         
-        <tag>server</tag>
-         
         <tag>linux</tag>
+         
+        <tag>server</tag>
          
         <tag>cloud</tag>
          
@@ -1986,11 +1986,11 @@
         <title>Swagger</title>
         <pubTime>2018-09-23T10:41:00.000Z</pubTime>
         
+        <tag>springboot</tag>
+         
         <tag>doc</tag>
          
         <tag>api</tag>
-         
-        <tag>springboot</tag>
          
          
            

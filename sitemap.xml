@@ -2,9 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
+    
+    <lastmod>2020-09-09T11:38:05.150Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/08/14/arch/rabbitmq/</loc>
+    
+    <lastmod>2020-09-09T10:15:40.073Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    
+    <lastmod>2020-09-09T08:44:05.176Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
+    
+    <lastmod>2020-09-09T07:23:51.416Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
     
-    <lastmod>2020-09-08T14:54:37.498Z</lastmod>
+    <lastmod>2020-09-09T01:48:46.841Z</lastmod>
     
   </url>
   
@@ -72,13 +100,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    
-    <lastmod>2020-09-04T07:35:43.382Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
     
     <lastmod>2020-09-04T07:23:38.490Z</lastmod>
@@ -93,13 +114,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/08/14/arch/rabbitmq/</loc>
-    
-    <lastmod>2020-09-04T05:15:02.974Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
     
     <lastmod>2020-09-04T05:05:59.928Z</lastmod>
@@ -110,20 +124,6 @@
     <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
     
     <lastmod>2020-09-04T04:12:23.228Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
-    
-    <lastmod>2020-09-04T02:07:38.645Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
-    
-    <lastmod>2020-09-03T13:56:56.935Z</lastmod>
     
   </url>
   
