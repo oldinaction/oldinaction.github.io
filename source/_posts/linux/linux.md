@@ -518,8 +518,18 @@ df -h
 
 #### rar
 
-- `unrar e archive.rar` 解压rar
-- `rar a aezocn.rar *.jpg` rar格式的压缩，需要先下载rar for linux
+```bash
+## 安装
+wget https://www.rarlab.com/rar/rarlinux-x64-5.9.1.tar.gz
+tar -xzvf rarlinux-x64-5.9.1.tar.gz -C /usr/local
+ln -s /usr/local/rar/rar /usr/local/bin/rar
+ln -s /usr/local/rar/unrar /usr/local/bin/unrar
+
+# 解压rar。e: 解压文件到当前目录
+unrar e archive.rar
+# 压缩成rar格式
+rar a aezocn.rar *.jpg
+```
 
 ### 文件误删恢复
 

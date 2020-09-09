@@ -8,15 +8,12 @@ tags: redis
 
 ## Redis简介
 
-- [redis.cn](http://redis.cn/)、[官网：http://redis.io/](http://redis.io/)、[Redis Github](https://github.com/antirez/redis)
+- [redis.cn](http://redis.cn/)、[官网：http://redis.io/](http://redis.io/)、[Redis Github](https://github.com/antirez/redis)、[redis 在线测试](https://try.redis.io/)
 - Redis
     - 是一款开源的，基于 BSD 许可的，高级键值 (key-value) 缓存 (cache) 和存储 (store) 系统
     - 由于 Redis 的键包括 `string`，`hash`，`list`，`set`，`sorted set`，`bitmap` 和 `hyperloglog`，所以常常被称为数据结构服务器
     - 单实例，单进程、单线程(epoll)，占用资源少(单实例只使用1M内存)
-- 常见的缓存如：memcached、redis
-    - memcached的value无类型概念，部分场景可使用json代替，但是如果要从value中过滤获取部分数据则需要在客户端完成(服务器只能返回整个value值)
-    - redis的value有类型概念，弥补了memcached上述弊端
-- [redis 在线测试](https://try.redis.io/)
+- [常见的缓存memcached、redis比较参考](/_posts/arch/分布式架构原理及选型方案.md#缓存)
 - redis windows客户端(64x，官网不提供window安装包)：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
 - redis客户端连接管理软件：`RedisDesktopManager`
 - `jedis`：java操作redis(jar)，[jedis Github](https://github.com/xetorthio/jedis)
@@ -1188,6 +1185,20 @@ public class RedisTool {
 > redis本身适合作为缓存工具，不建议使用模糊查询等操作
 
 - 使用[https://code.google.com/archive/p/redis-search4j/](redis-search4j) ，使用了分词，解决了中文的模糊查询。（效果不好，测试发现会在服务器中存储大量无用的key）
+
+## 高级
+
+### Redis通信协议规范
+
+- Redis通信协议
+  - Redis客户端使用RESP协议（Redis的序列化协议）与Redis的服务器端进行通信
+  - 客户端连接到Redis的服务器，创建到端口6379的TCP连接
+  - 请求-响应模型
+- RESP协议描述（RESP protocol description）
+  - 支持以下数据类型的序列化协议：简单字符串（Simple Strings，响应的第一个字节为`+`），整数（Integers，`:`），数组（Arrays，`*`），块字符串/批量字符串（Bulk Strings，`$`）和错误（Errors，`-`）
+  - 请求-响应流程
+    - 客户端将命令作为批量字符串的RESP数组发送到Redis服务器
+    - 服务器（Server）根据命令执行的情况返回一个具体的RESP类型作为回复，有些的数据类型取决于响应的第一个字节（参考上文）
 
 
 ---
