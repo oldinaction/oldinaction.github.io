@@ -33,7 +33,7 @@ tags: [springcloud, eureka]
     ```
 - EurekaClient 接口类图说明
 
-    ![CloudEurekaClient](/data/images/src/eureka-1.png)
+    ![CloudEurekaClient](/data/images/java/eureka-1.png)
     - CloudEurekaClient 为 springcloud 对 DiscoveryClient 的继承，具体的逻辑还是由 DiscoveryClient 完成
 - **`DiscoveryClient`** 类说明
     - register() 客户端注册
@@ -84,7 +84,7 @@ DiscoveryClient(ApplicationInfoManager applicationInfoManager, EurekaClientConfi
 ```
 - 流程图
 
-    ![Eureka客户端原理](/data/images/src/Eureka客户端原理.jpg)
+    ![Eureka客户端原理](/data/images/java/Eureka客户端原理.jpg)
 
 
 

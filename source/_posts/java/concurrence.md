@@ -94,6 +94,20 @@ tags: [concurrence, collection, juc, 线程池]
 - 分段锁(一种锁的设计模式)
     - 容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率
     - 对于ConcurrentHashMap(之前使用的是分段锁，后面直接使用synchronize锁定数组的第一个元素)而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
+- 锁粗化：锁的获取与释放会消耗一定的资源，因此尽量把多次锁的请求合并成一个请求，以降低短时间内大量锁请求、同步、释放带来的性能损耗
+- 锁消除
+  - 指即时编译器(JIT)在运行时，对一些代码上要求同步，但是被检测到不可能存在共享数据竞争的锁进行削除
+  - 同时以server模式运行和开启逃逸分析：`-server -XX:+DoEscapeAnalysis -XX:+EliminateLocks`
+  - 如以下代码JIT会在append时进行锁消除操作
+
+    ```java
+    public static String createStringBuffer(String str1, String str2) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(str1); // append方法是同步操作
+        sb.append(str2);
+        return sb.toString(); // sb只有在本方法(线程)中使用，没有被其他地方使用。如果返回是sb则无法进行锁消除
+    }
+    ```
 
 #### synchronized线程同步
 
@@ -744,7 +758,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 
 - 继承自AbstractExecutorService(实现了ExecutorService接口 ==> 实现了Executor接口)
 - **7个参数**
-    - corePoolSize 核心线程数，一般即使不使用也不归还给系统
+    - corePoolSize 核心线程数，一般即使不使用也不归还给系统。简单的设置规则：CPU密集型取N+1(N为核心数)，IO密集型取2N+1
     - maximumPoolSize 最大线程数
     - keepAliveTime 生存时间，超过此时间没有使用则归还给系统
     - 生存时间单位

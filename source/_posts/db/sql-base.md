@@ -905,7 +905,7 @@ set session transaction isolation level read uncommitted;
         - 控制commit动作是否刷新log buffer到磁盘，可通过变量 `innodb_flush_log_at_trx_commit` 的值来决定。该变量有3种值：0、1、2，默认为1
             - 0：事务提交时仅写到log buffer，然后每秒写入os buffer并调用fsync()写入到log file on disk中。也就是说设置为0时是(大约)每秒刷新写入到磁盘中的，当系统崩溃，会丢失1秒钟的数据
             - 1：事务每次提交都会将log buffer中的日志写入os buffer，并调用fsync()刷到log file on disk中。这种方式即使系统崩溃也不会丢失任何数据，但是因为每次提交都写入磁盘，IO的性能较差
-            - 2：类似0。区别是0虽然是写入到用户空间缓存，再写入到文件。但是写入文件必须通过操作系统完成，此时还是会写入到操作系统缓存，最后写入到文件
+            - 2：直接写入到os buffer，然后每秒调用一次fsync()刷到磁盘
         - 安全性：1 > 0/2
         - 效率：2 > 0 > 1
 - Undo Log是为了实现事务的原子性，在MySQL数据库InnoDB存储引擎中，还用Undo Log来实现多版本并发控制(简称MVCC)

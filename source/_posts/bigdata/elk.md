@@ -68,7 +68,7 @@ tags: [Elasticsearch, db, kafka]
   - 数据先写入内存 buffer（ES进程），并同时写入translog
   - 然后每隔 1s或内存 buffer快满了，将数据 **`refresh`** 到一个新的segment file（中间还是会先写到os cache），到了 os cache 数据就能被搜索到（所以ES为NRT近实时，near real-time，**因为中间有 1s 的延迟**）
   - **`translog`** 大到一定程度，或者默认每隔 30min，会触发 commit 操作，将缓冲区的数据都 **`flush`** 到 segment file 磁盘文件中
-    - commit/flush操作
+    - commit/flush操作过程
       - 将buffer中现有数据refresh到os cache中去，清空buffer
       - 将一个commit point写入磁盘文件，里面标识着这个commit point对应的所有segment file
       - 将os cache数据fsync强刷到磁盘上去

@@ -150,6 +150,7 @@ public class AppConfig {}
 
 ```java
 // ### 实现FactoryBean
+@Component
 public class MyFactoryBean implements FactoryBean {
     @Override
     public MyBean getObject() throws Exception {
@@ -866,6 +867,10 @@ public class JobManager {
 	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
 	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常
 	- `NESTED`：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED
+- REQUIRES_NEW 和 NESTED的区别
+    - REQUIRES_NEW执行到B时，A事物被挂起，B会新开了一个事务进行执行。B发生异常后，B中的修改都会回滚，然后外部事物继续执行；B正常执行提交后，则数据已经持久化了，可能产生脏读，且A如果之后失败回滚时，B是不会回滚的
+    - NESTED执行到B时，会创建一个savePoint，如果B中执行失败，会将数据回滚到这个savePoint；如果B正常执行，此时B中的修改并不会立即提交，而是在A提交时一并提交，如果A失败，则A和B都会回滚
+
 - 示例
 
 ```java

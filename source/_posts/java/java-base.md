@@ -41,7 +41,7 @@ class Outer {
 
 ```java
 // 此时传入hello是因为父类构造函数需要
-Child c = new Father("hello") {  
+Child c = new Father("hello") {
     {
         // 相当于构造函数
         System.out.println("匿名类虽然没有名字，但可以有一个初始化块来充当构造函数");

@@ -112,6 +112,7 @@ ls -s /abc # 结果如下
     # ephemeralOwner = 0x0                              # 临时节点所有者(对应session id)，如：ephemeralOwner = 0x200008343170002
     # dataLength = 11                                   # 数据长度
     # numChildren = 4                                   # 子节点个数
+delete /abc # 删除节点
 ```
 - 客户端命令
 

@@ -199,6 +199,10 @@ public class Node {
 
 ![skip-list](/data/images/linux/algo-skip-list.png)
 
+### 回溯算法
+
+- 回溯法可以理解为通过选择不同的岔路口寻找目的地，一个岔路口一个岔路口的去尝试找到目的地。如果走错了路，继续返回来找到岔路口的另一条路，直到找到目的地
+
 ## 常见面试题
 
 - [Leet Code HOT 100](https://leetcode-cn.com/problemset/hot-100/)
