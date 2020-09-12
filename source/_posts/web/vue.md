@@ -1369,6 +1369,8 @@ const User = {
 ```js
 // 开启history模式
 const router = new Router({
+  // 路由的基础路径，类似publicPath。只不过publicPath是针对静态文件，而此处是将<router-link>中的路径添加此基础路径
+  // base: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_BASE_URL = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
   routes,
   mode: 'history' // 默认为hash模式
 })
@@ -1752,11 +1754,11 @@ vue --version # @vue/cli 4.3.0
         // 在vue-cli2中打包时可以修改 "build" 和 "config" 中的文件来区分不同的线上环境。而vue-cli3号称0配置，无法直接修改打包文件进行环境区分，具体见下文
         "build": "vue-cli-service build", // 一般为生成环境打包(此时process.env.NODE_ENV='production')
         // 区分环境进行打包，此时在 vue.config.js 文件的同级目录(根目录)创建文件 .env.test-sq，其中可添加变量如 `NODE_ENV = test-sq` (一行一个变量，最终都会挂载到 process.env 下)
-        "build-test-sq": "vue-cli-service build --mode test-sq",
+        "build-test-sq": "vue-cli-service build --mode test-sq"
     },
 }
 ```
-- .env.test-sq (多)环境变量配置
+- `.env.test-sq` (多)环境变量配置
 
     ```bash
     # 使用都是 process.env.xxx
@@ -1768,7 +1770,8 @@ vue --version # @vue/cli 4.3.0
 
 ```js
 module.exports = {
-    publicPath: '/', // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)。如果nginx的location
+    // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)
+    publicPath: '/', // 对应vue-cli2 或者 webpack中的 assetsPublicPath 参数
     outputDir: 'dist', // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到www目录
     lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验
     chainWebpack: config => {

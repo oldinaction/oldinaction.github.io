@@ -1503,7 +1503,15 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
         q         Quit
                 ( commands shown with '.' require a visible task display window ) 
     Press 'h' or '?' for help with Windows,
-    Type 'q' or <Esc> to continue 
+    Type 'q' or <Esc> to continue
+
+    # 其他快捷键
+    M # 按照内存排序
+    N # 按照PID排序
+    V # 排序反转
+    0 # 隐藏Time为0的数据
+    1 # 显示CPU所有核心的信息
+    2 # 显示NUMA信息
     ```
 
 ### 查看IO信息(磁盘读写情况)

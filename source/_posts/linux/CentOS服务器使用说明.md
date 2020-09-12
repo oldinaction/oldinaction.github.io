@@ -703,26 +703,6 @@ showmount -e
     - `subtree_check`(默认)：若输出目录是一个子目录，则nfs服务器将检查其父目录的权限
     - `no_subtree_check`：即使输出目录是一个子目录，nfs服务器也不检查其父目录的权限，这样可以提高效率
 
-### httpd-tools(ab)
-
-```bash
-## 安装
-yum install httpd-tools
-
-## 测试案例
-# -n：总请求次数
-# -c：并发次数（最小默认为1且不能大于总请求次数，如：10个请求，10个并发，实际就是1人请求1次）
-# -p：post参数文档路径（如下文中 d:/data.txt 中的数据如 `key1=value1&key2=value2`）
-# -T：header头内容类型
-ab -c 100 -n 50000 http://10.106.200.196/
-ab -n 10 -c 10 -p d:/data.txt -T application/x-www-form-urlencoded http://10.106.200.196/
-
-## 测试结果
-Requests per second # 吞吐率。服务器并发处理能力的量化描述，单位是reqs/s，指的是某个并发用户数下单位时间内处理的请求数。计算公式：总请求数 / 处理完成这些请求数所花费的时间
-Time per request(上) # 用户平均请求等待时间
-Time per request(下) # 服务器平均请求处理时间
-```
-
 ## yum直接安装
 
 - `yum -y install memcached` 安装memcached(默认端口11211)

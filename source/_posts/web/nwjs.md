@@ -3,7 +3,7 @@ layout: "post"
 title: "nwjs"
 date: "2018-11-18 19:30"
 categories: [web]
-tags: [node, web, desktop]
+tags: [node, desktop]
 ---
 
 ## 介绍
@@ -12,6 +12,7 @@ tags: [node, web, desktop]
 - `NW.js`，之前为`node-webkit`，是一个结合了 Chromium 和 node.js 的应用运行时，通过它可以用 HTML 和 JavaScript 编写原生应用程序。可基于html、css、js写桌面系统。打包后可运行的环境包括32位和64位的Window(windows xp及以上)、Linux和Mac OS
 - 建议下载SDK，开发时才可进行debug，[nwjs-sdk-v0.34.4-win-x64.zip下载](https://dl.nwjs.io/v0.34.4/nwjs-sdk-v0.34.4-win-x64.zip)。[支持windows xp最终版本为v0.14.7](https://dl.nwjs.io/v0.14.7)。下载完成后解压SDK，可将SDK目录加入到path环境变量中，从此可直接执行`nw`
 - 可使用`nw-builder`进行打包。打包后大概200M，再压成安装包大概80M
+- **相同的框架如Electron**
 
 ## 案例
 
