@@ -210,7 +210,7 @@ nw.build().then(function () {
 
 - `nw-builder` 打包
     - 管理员Cmd执行`npm run build`(node运行此项目build.js)
-    - Enigma Virtual Box 再次打包
+    - Enigma Virtual Box 再次打包，或者通过`Inno Setup`打成安装包
 - `node-adodb`连接`access`数据库。参考[http://blog.aezo.cn/2018/11/20/db/access/](/_posts/db/access.md). 无需通过nw-gpy重新构建
 
 
