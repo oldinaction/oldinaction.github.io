@@ -50,10 +50,10 @@ tags: [mybatis, springboot]
 	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置
 	mybatis.config-location=classpath:mybatis-config.xml
 
-	# 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
-	#mybatis.configuration.map-underscore-to-camel-case=true
-	# 类型别名定义扫描的包(可结合@Alias使用, 默认是类名首字母小写)
-	#mybatis.type-aliases-package=cn.aezo.springboot.mybatis.model
+    ## 不设置mybatis配置文件时
+	# mybatis.configuration.map-underscore-to-camel-case=true # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
+	# mybatis.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl # 声明打印日志到控制台。如果打印到日志需要到logback.xml中增加配置，或者配置logging.level.cn.aezo.mapper=DEBUG
+	# mybatis.type-aliases-package=cn.aezo.springboot.mybatis.model # 类型别名定义扫描的包(可结合@Alias使用, 默认是类名首字母小写)
 	```
 - mybatis配置文件: `mybatis-config.xml`
 
@@ -578,17 +578,18 @@ tags: [mybatis, springboot]
 - Mybatis的数据类型用JDBC的数据类型
 - JDBC数据类型转换
 
-JDBC | Java | Mysql | Oracle
----------|----------|---------|---------
-Integer | Integer | Int | 
-Bigint  | Long | Bigint | Number
-Numeric  | Long |  | Number
-Timestamp| Date | Datetime | Date
-Date | Date | Date | Date
-Decimal | BigDecimal | Decimal | Number(20, 6) 
-Char |  | Char | Char
- Blob |  | Blob | Blob
- Clob |  | Text | Clob
+| JDBC      | Java       | Mysql    | Oracle        |
+| --------- | ---------- | -------- | ------------- |
+| Integer   | Integer    | Int      |
+| Bigint    | Long       | Bigint   | Number        |
+| Numeric   | Long       |          | Number        |
+| Timestamp | Date       | Datetime | Date          |
+| Date      | Date       | Date     | Date          |
+| Decimal   | BigDecimal | Decimal  | Number(20, 6) |
+| Char      |            | Char     | Char          |
+| Blob      |            | Blob     | Blob          |
+| Clob      |            | Text     | Clob          |
+| Boolean   | Boolean    | Bit      |               |
 
 - **BLOB为二进制大对象**，可存储图片(转成二进制，实际用的很少)；**CLOB文本大对象**，可用来存储博客文章等；Mybatis对CLOB可直接解析成字符串，而BLOB则需要些对应关系
 
@@ -841,7 +842,8 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 
 - [mybatis-plus](https://mp.baomidou.com/)、[github](https://github.com/baomidou/mybatis-plus)
 - 返回结果集类型为List，当没有数据时返回大小为0的List，而不是null
-- springboot依赖
+
+#### springboot依赖及配置
 
 ```xml
 <!-- 包含 mybatis、mybatis-plus、generator -->
@@ -851,9 +853,36 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
     <version>3.0.6</version>
 </dependency>
 ```
-- 使用
-    - 此处的`SubscribeService`继承了`ServiceImpl`，对应接口继承了`IService`
-    - 使用mapper，如`SubscribeMapper`则会继承`BaseMapper`
+- application.yaml配置
+
+```yml
+# mybatis-plus 配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  # 实体扫描
+  typeAliasesPackage: cn.aezo.demo.entity
+  global-config:
+    #逻辑删除配置
+    db-config:
+      logic-delete-value: 0
+      logic-not-delete-value: 1
+  # 原生配置
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+```
+
+#### 使用
+
+- 注解说明
+    - 如果Model主键名称不为`id`，则需要在对应主键字段上注解`@TableId`
+    - 如果Model名称不为表名，则可通过`@TableName`进行注解真实名称
+    - 如果Model的字段不为表字段，可通过`@TableField(exist = false)`注解
+- API使用
+  - 此处的`SubscribeService`继承了`ServiceImpl`，对应接口继承了`IService`
+  - 使用mapper，如`SubscribeMapper`则会继承`BaseMapper`
 
 ```java
 List<Subscribe> subscribes = subscribeService.list(
@@ -866,7 +895,31 @@ List<Map<String, Object>> list = templateItemDao.selectMaps(
                     .eq(TemplateItem::getTemplateId, 1)
                     .eq(TemplateItem::getTemplateId, templateId));
 
-// 分页
+// 批量保存
+subscribeService.saveBatch(List<Subscribe>);
+```
+
+#### 分页
+
+```java
+// 1.启用分页插件
+@Bean
+public PaginationInterceptor paginationInterceptor() {
+    PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
+    // paginationInterceptor.setLimit(500); // 最大单页限制数量，默认 500 条，小于 0 如 -1 不受限制
+    return paginationInterceptor;
+}
+
+// 2.Controller 
+@RequestMapping("/findList")
+public Result findList(@RequestBody Map<String, Object> map) {
+    Page<Map> page = new Page(
+            Long.valueOf(ValidU.isEmpty(map.get("current")) ? "1" : map.get("current").toString()),
+            Long.valueOf(ValidU.isEmpty(map.get("size")) ? "20" : map.get("size").toString()));
+    IPage<Users> users = userMapper.findList(page, map);
+    return Result.success(users);
+}
+// 2.1 基于Service Lambda查询进行分页
 Page<Subscribe> subscribePage = new Page<>(0, 100);
 LambdaQueryWrapper lambdaQueryWrapper = new LambdaQueryWrapper<Subscribe>()
 		.eq(Subscribe::getFlowStatus, flowStatus)
@@ -875,22 +928,24 @@ LambdaQueryWrapper lambdaQueryWrapper = new LambdaQueryWrapper<Subscribe>()
 		.orderByAsc(date != null, Subscribe::getClawCount); // 基于某个条件添加排序
 subscribePage = (Page<Subscribe>) subscribeService.page(subscribePage, lambdaQueryWrapper);
 List<Subscribe> subscribes =  subscribePage.getRecords();
-```
-- 注解说明
-    - 如果Model主键名称不为`id`，则需要在对应主键字段上注解`@TableId`
-    - 如果Model名称不为表名，则可通过`@TableName`进行注解真实名称
-    - 如果Model的字段不为表字段，可通过`@TableField(exist = false)`注解
-- 启用分页插件
 
-```java
-@Bean
-public PaginationInterceptor paginationInterceptor() {
-    PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
-    // paginationInterceptor.setLimit(500); // 最大单页限制数量，默认 500 条，小于 0 如 -1 不受限制
-    return paginationInterceptor;
-}
+// 3.Mapper
+IPage<Users> findList(Page<?> page, @Param("ctx") Map<String, Object> context);
+
+// 4.XML
+<select id="findList" resultType="cn.aezo.demo.entity.Users">
+    select username 
+    from t_users u 
+    where u.valid_status = 1
+    <if test='ctx.username != null and ctx.username != ""'>
+        and u.username = #{ctx.username}
+    </if>
+</select>
 ```
-- 乐观锁插件：https://mybatis.plus/guide/optimistic-locker-plugin.html
+
+#### 乐观锁插件
+
+- https://mybatis.plus/guide/optimistic-locker-plugin.html
 
 ```java
 // 1.启用乐观锁插件
@@ -909,17 +964,24 @@ User user = userMapper.selectById(1);
 user.setAge(18);
 int res = userMapper.updateById(user); // 1成功。生成的sql类似: update t_user set age = 18,version = 2 where id = 1 and version = 1
 ```
-- 代码生成，参考：https://mp.baomidou.com/guide/generator.html，常用配置如下
 
-    ```java
-    GlobalConfig gc = new GlobalConfig();
-    gc.setIdType(IdType.ID_WORKER_STR); // ID使用字符串序列
-    gc.setDateType(DateType.SQL_PACK); // 时间使用数据库类型对应，否则生成 LocalDateTime 等
+#### 代码生成
 
-    StrategyConfig strategy = new StrategyConfig();
-    strategy.setVersionFieldName("version"); // 设置乐观锁字段(表中无此字段则不会生成对应注解)
-    strategy.setLogicDeleteFieldName("valid_status"); // 生成逻辑删除(可配置成逻辑删除或逻辑有效)
-    ```
+```java
+GlobalConfig gc = new GlobalConfig();
+gc.setIdType(IdType.ID_WORKER_STR); // ID使用字符串序列
+gc.setDateType(DateType.SQL_PACK); // 时间使用数据库类型对应，否则生成 LocalDateTime 等
+
+StrategyConfig strategy = new StrategyConfig();
+strategy.setTablePrefix("f_"); // 此处可以修改表前缀
+strategy.setColumnNaming(NamingStrategy.underline_to_camel); // 表名生成策略
+strategy.setEntityLombokModel(true);
+strategy.setRestControllerStyle(true);
+strategy.setControllerMappingHyphenStyle(true);
+strategy.setVersionFieldName("version"); // 设置乐观锁字段(表中无此字段则不会生成对应注解)
+strategy.setLogicDeleteFieldName("valid_status"); // 生成逻辑删除(可配置成逻辑删除或逻辑有效)
+strategy.setInclude(tableNameArr); // 需要生成的表名
+```
 
 
 

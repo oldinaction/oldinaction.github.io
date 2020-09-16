@@ -804,6 +804,9 @@ rar a aezocn.rar *.jpg
         - 在知道密钥文件时，可以通过Putty连接到服务器(命令行)，通过WinSCP连接到服务器的文件系统(FTP形式显示)
         - Puttygen使用：`类型选择RSA，大小2048` - `点击生成` - `鼠标在空白处滑动` - `保存公钥和密钥`
         - Putty使用：`Session的Host Name输入username@ip，端口22` - `Connection-SSH-Auth选择密钥文件` - `回到Session，在save session输入一个会话名称` - `点击保存会话` - `点击open登录服务器` - `下次可直接点击会话名称登录`
+    - 通过PuttyGen将id_rsa转为.ppk(PuTTY format private key file)，将.ppk转成.pem(OpenSSH) [^13]
+      - 将id_rsa转为.ppk：PuttyGen - Conversions - Import key - Save private Key
+      - 将.ppk转成.pem：PuttyGen - Load - Conversions - Export OpenSSH Key - 保存为.pem文件
     - xshell/xftp是一个连接ssh的客户端
         - 使用xshell生成的秘钥进行连接：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录`cat /home/aezo/.ssh/id_rsa.pub >> /home/aezo/.ssh/authorized_keys`)。(必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录)
         - 使用服务器生成的秘钥文件连接：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览导入(**导入服务器生成的秘钥文件id_rsa，不是公钥文件**)
@@ -1722,5 +1725,5 @@ vm.dirty_writeback_centisecs = 500
 [^10]: https://help.aliyun.com/document_detail/108501.html (云服务器 ECS > 块存储 > 云盘 > 分区格式化数据盘 > Linux 格式化数据盘)
 [^11]: https://zhuanlan.zhihu.com/p/24464526
 [^12]: https://www.cnblogs.com/quixotic/p/3258730.html (Linux下的IO监控与分析)
-
+[^13]: https://www.cnblogs.com/cidgur/p/9447847.html
 

@@ -8,7 +8,7 @@ tags: [desctop]
 
 ## 简介
 
-- [官网](http://www.electronjs.org/)
+- [官网](http://www.electronjs.org/)、[w3cschool文档](https://www.w3cschool.cn/electronmanual/)
 - `Electron`
   - 使用 JavaScript，HTML 和 CSS 构建跨平台（Mac、Windows 和 Linux）的桌面应用程序
   - Electron 结合了 Chromium、Node.js 和用于调用操作系统本地功能的 API（如打开文件窗口、通知、图标等）
@@ -32,7 +32,7 @@ npm start
   - 在自己的 vue 的项目中引入插件，然后打包（本文案例）
   - 将自己的 vue 项目打包，放到官方的 demo 文件中，改变打包路径
   - 通过`simulatedgreg/electron-vue`等插件创建vue项目，则包含了Electron
-- 案例
+- 案例（本案例基于electron-packager打包，不过更推荐electron-builder，具体见下文）
 
 ```bash
 # 之前已经基于vue-cli的项目，如基于iview-admin实现的。现在基于Electron官方demo进行集成
@@ -63,10 +63,10 @@ npm run electron_dev
 # 7.打包
 # 7.1 在 public 目录创建文件 package.json，并写入 `{}`
 # 7.2 执行打包
-npm config set ELECTRON_MIRROR https://npm.taobao.org/mirrors/electron/ # 打包时会下载electron压缩包，此时设置镜像进行加速
+npm i -g mirror-config-china --registry=https://registry.npm.taobao.org # 安装相关镜像。包含了 npm config set ELECTRON_MIRROR https://npm.taobao.org/mirrors/electron/ # 打包时会下载electron压缩包，此时设置镜像进行加速
 npm run electron_build # 打包，会生成 xxx-win32-x64 文件夹
 
-# 8.通过Inno Setup将文件再次打包成安装包后分发给客户
+# 8.通过Inno Setup将文件再次打包成安装包后分发给客户，如皋使用electron-builder则自带打包成安装包
 ```
 - 打包说明
     - vue项目文件目录结构
@@ -109,13 +109,114 @@ npm run electron_build # 打包，会生成 xxx-win32-x64 文件夹
 
 ## 基于electron-builder进行打包
 
-https://github.com/QDMarkMan/CodeBlog/tree/master/Electron
-
-https://juejin.im/post/6844903693683261453
-
-https://www.electron.build/configuration/configuration
+### 简单打包
 
 ```bash
-cnpm install electron-builder@20.44.4 -D # node 8.x 需要安装 20.44.4以下版本
+# 参考：https://github.com/QDMarkMan/CodeBlog/tree/master/Electron
+npm i -g mirror-config-china --registry=https://registry.npm.taobao.org # 安装相关镜像
+npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
 
+# 修改public/index.js(上文electron-quick-start/main.js)中的 `mainWindow.loadFile('index.html')` 为 `mainWindow.loadURL('file://' + __dirname + '/index.html')`
+
+# 修改package.json配置文件，见下文
 ```
+- package.json配置文件
+
+```json
+{
+  "scripts": {
+    "e_dev": "vue-cli-service build --mode electron_dev && electron dist/index.js",
+    "e_test": "vue-cli-service build --mode electron_test && electron-builder --dir",
+    "e_prod": "vue-cli-service build --mode electron_prod && electron-builder", // 默认64位
+    "e_prod_x32": "vue-cli-service build --mode electron_prod && electron-builder --ia32"
+  },
+  "main": "./dist/index.js",
+  // electron-builder配置
+  "build": {
+    "productName": "Flight", // 项目名，这也是生成的exe文件的前缀名
+    "appId": "com.unilog.flight",
+    "copyright": "UNILOG",
+    // 需要打包的文件
+    "files": [
+      "dist/**"
+    ],
+    // output编译后输出文件目录
+    "directories": {
+        "output": "electron-out"
+    },
+    // "asar": true, // 进行asar打包，默认为true
+    // windows相关的配置
+    "win": {
+      "icon": "electron-build/icons/icon.ico", // (安装包和可执行程序的)图标路径，需要256*256以上
+      // 当执行 electron-builder 打包时，生成nsis安装包和zip压缩包。如皋执行 electron-builder --dir 进行测试打包时，则不会生成
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    // mac打包选项
+    "dmg": {
+      //窗口左上角起始坐标和窗口大小
+      "window": {
+        "x": 100,
+        "y": 100,
+        "width": 1366,
+        "height": 768
+      }
+    },
+    // mac
+    "mac": {
+      "icon": "electron-build/icons/icon.icns"
+    },
+    // linux
+    "linux": {
+      "icon": "electron-build/icons"
+    },
+    "nsis": {
+        "oneClick": false, // 是否一键安装，默认为true（会自动安装到 C:\Users\xxx\AppData\Local\Programs\）
+        "allowElevation": true, // 允许请求提升。如果为false，则用户必须使用提升的权限重新启动安装程序
+        "allowToChangeInstallationDirectory": true, // 允许修改安装目录，非一键安装时
+        "installerIcon": "electron-build/icons/icon.ico", // 安装图标
+        "uninstallerIcon": "electron-build/icons/icon.ico", //卸载图标
+        "installerHeaderIcon": "electron-build/icons/icon.ico", // 安装时头部图标
+        "createDesktopShortcut": true, // 创建桌面图标
+        "createStartMenuShortcut": true, // 创建开始菜单图标
+        "shortcutName": "xxxx", // 图标名称
+        "include": "electron-build/script/installer.nsh" // 包含的自定义nsis脚本，这个对于构建需求严格得安装过程相当有用
+    }
+  }
+}
+```
+- 常见问题
+  - 报错：`Unresolved node modules: vue`。解决：此问题为cnpm安装依赖导致，**需要使用npm安装**，然后配合mirror-config-china进行安装 [^1]
+
+### 自动更新
+
+- 更新方式
+    - 替换html文件更新，这个比较节约资源，但是并不适用于builder打包出来的程序
+    - 替换asar文件，这个比较小众
+    - electron-builder + electron-updater 实现全量更新
+- 安装`npm i electron-updater -S`
+- package.json增加publish配置
+
+```json
+{
+    "build": {
+        // 这个配置会生成latest.yml文件，用于自动更新的配置信息
+        "publish": [{
+            "provider": "generic", // 服务器提供商，也可以是GitHub等等
+            "url": "http://appupdate.xxx.xxx.cn/" // 更新地址
+        }]
+    }
+}
+```
+
+
+
+
+
+---
+
+参考文章
+
+[^1]: https://blog.csdn.net/g_soledad/article/details/105053322

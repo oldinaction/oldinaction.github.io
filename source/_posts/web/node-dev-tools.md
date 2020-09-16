@@ -8,12 +8,21 @@ tags: [node, tools]
 
 ## npm 包管理工具
 
-### npm安装
+### npm安装及镜像
 
 - **安装node的时候会默认包含npm**
     - `npm install npm@latest -g` 更新npm
-    - `npm -version` 查看npm版本
-- 安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
+    - `npm -v` 查看npm版本
+- 设置镜像
+    
+    ```bash
+    # 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载。具体[参考下文mirror-config-china](#mirror-config-china)
+    npm get registry # 查看镜像
+    npm config set registry https://registry.npm.taobao.org/ # 设置为淘宝镜像
+    npm config set registry https://registry.npmjs.org/ # 设置为官方镜像
+    npm config list # 查看配置
+    ```
+- 或者安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
     - `cnpm install <module-name>` 安装模块
 
 ### 基本命令
@@ -111,6 +120,19 @@ nrm del myrepo # 删除源
 nrm test npm # 测试源
 ```
 
+## mirror-config-china
+
+- 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载，此插件将常用组件的镜像地址全部加入到了上述文件夹
+
+```bash
+# https://www.npmjs.com/package/mirror-config-china
+# 安装
+npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+# 检查是否安装成功。会往用户配置文件(~/.npmrc)中写入electron-mirror、node-sass等组件的镜像源为淘宝镜像
+npm config list
+# 之后使用 npm install 安装即可
+```
+
 ## npx Node包执行工具
 
 - npm 从5.2版开始，增加了 npx 命令，用来执行Node包命令
@@ -138,14 +160,22 @@ npx -p lolcatjs -p cowsay -c 'cowsay hello | lolcatjs' # 如果 npx 安装多个
 - 官网：[https://yarnpkg.com/zh-Hans/](https://yarnpkg.com/zh-Hans/)
 - 安装 `npm install -g yarn`，通过官网的`msi`容易报'yarn' 不是内部或外部命令，也不是可运行的程序
 - 类似于`npm`，基于`package.json`进行包管理
+- 设置镜像
+    
+    ```bash
+    yarn get registry # 查看镜像
+    yarn config set registry https://registry.npm.taobao.org/ # 设置为淘宝镜像
+    yarn config set registry https://registry.npmjs.org/ # 设置为官方镜像
+    yarn config list # 查看配置
+    ```
 - 使用
 
 ```bash
 # 查看版本 
-yarn --version
+yarn -v
 
 # 初始化新项目 (新建package.json)
-yarn init 
+yarn init
 
 # 添加依赖包
 yarn add [package]
