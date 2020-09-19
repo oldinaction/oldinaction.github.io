@@ -576,6 +576,8 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 
 ```java
 // 参考：https://segmentfault.com/a/1190000021906586
+
+// 方案一(推荐)
 // 暴露自定义映射规则类
 @Bean
 public CustomObjectMapper customObjectMapper() {
@@ -658,6 +660,7 @@ public class CustomObjectMapper extends ObjectMapper {
     }
 }
 
+// 方案二(不推荐)
 // (利用jackson转换无需) StringToDateConverter为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
 // 注入转换器方式一
 @Autowired
