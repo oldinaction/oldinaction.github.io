@@ -128,7 +128,7 @@ npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
     "e_dev": "vue-cli-service build --mode electron_dev && electron dist/index.js",
     "e_test": "vue-cli-service build --mode electron_test && electron-builder --dir",
     "e_prod": "vue-cli-service build --mode electron_prod && electron-builder", // 默认64位
-    "e_prod_x32": "vue-cli-service build --mode electron_prod && electron-builder --ia32"
+    "e_prod_x32": "vue-cli-service build --mode electron_prod && electron-builder --ia32" // 打包32位
   },
   "main": "./dist/index.js",
   // electron-builder配置
@@ -150,8 +150,8 @@ npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
       "icon": "electron-build/icons/icon.ico", // (安装包和可执行程序的)图标路径，需要256*256以上
       // 当执行 electron-builder 打包时，生成nsis安装包和zip压缩包。如皋执行 electron-builder --dir 进行测试打包时，则不会生成
       "target": [
-        "nsis",
-        "zip"
+        "nsis"
+        // ,"zip"
       ]
     },
     // mac打包选项
@@ -195,7 +195,7 @@ npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
 - 更新方式
     - 替换html文件更新，这个比较节约资源，但是并不适用于builder打包出来的程序
     - 替换asar文件，这个比较小众
-    - electron-builder + electron-updater 实现全量更新
+    - **electron-builder + electron-updater 实现全量更新**
 - 安装`npm i electron-updater -S`
 - package.json增加publish配置
 
@@ -205,13 +205,17 @@ npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
         // 这个配置会生成latest.yml文件，用于自动更新的配置信息
         "publish": [{
             "provider": "generic", // 服务器提供商，也可以是GitHub等等
-            "url": "http://appupdate.xxx.xxx.cn/" // 更新地址
+            "url": "" // 更新服务器地址，可为空，在代码中会再次设定
         }]
     }
 }
 ```
 
+https://www.electronjs.org/docs/api
 
+https://segmentfault.com/a/1190000012904543
+
+autoUpdater借助Squirrel实现自动升级
 
 
 
