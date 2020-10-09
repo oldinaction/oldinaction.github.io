@@ -107,7 +107,7 @@ npm run electron_build # 打包，会生成 xxx-win32-x64 文件夹
       - 而index.js中通过`mainWindow.loadFile('index.html')`引入vue打包生成的index.html文件（原public/index.html文件），从而启动了vue应用
 - [electron-builder（参考下文）](#基于electron-builder进行打包) 和 electron-packager 均可用于打包。electron-builder配置根灵活清晰
 
-## 基于electron-builder进行打包
+## 基于electron-builder + electron-updater打包和自动更新
 
 ### 简单打包
 
@@ -125,12 +125,13 @@ npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
 ```json
 {
   "scripts": {
-    "e_dev": "vue-cli-service build --mode electron_dev && electron dist/index.js",
-    "e_test": "vue-cli-service build --mode electron_test && electron-builder --dir",
+    "dev": "vue-cli-service serve", // 通过普通浏览器展示
+    "e_dev": "vue-cli-service build --mode electron_dev && electron dist/index.js", // 重新打开一个electron创建进行展示
+    "e_test": "vue-cli-service build --mode electron_test && electron-builder --dir", // 生成测试包
     "e_prod": "vue-cli-service build --mode electron_prod && electron-builder", // 默认64位
     "e_prod_x32": "vue-cli-service build --mode electron_prod && electron-builder --ia32" // 打包32位
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.js", // electron主进程入口文件
   // electron-builder配置
   "build": {
     "productName": "Flight", // 项目名，这也是生成的exe文件的前缀名

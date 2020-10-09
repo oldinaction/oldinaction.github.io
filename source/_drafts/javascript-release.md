@@ -254,6 +254,8 @@ new Promise(function (resolve, reject) {
         }
     }, timeOut * 1000);
 }).then(function (r) {
+    return new Promise(...);
+}).then(function (r) {
     log('Done: ' + r);
 }).catch(function (reason) {
     log('Failed: ' + reason);

@@ -610,19 +610,22 @@ public class CustomObjectMapper extends ObjectMapper {
         this.configure(SerializationFeature.INDENT_OUTPUT, true); // 返回数据自动缩进
         this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 对于非实体参数进行忽略，否则报错：Jackson with JSON: Unrecognized field
         
-        // 解析post请求body体
         // LocalDateTime 转换参考：https://blog.csdn.net/junlovejava/article/details/78112240
         // (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`
-        // (2) 返回时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")
+        // (2) 返回数据时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")
+
+        // 返回数据格式化
         JavaTimeModule module = new JavaTimeModule();
         module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
         module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
         module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
+
+        // 解析post请求的body体
         // 解析前台传入日期时间(此时可以解析2000/01/01 00:00:00，否则只能解析2000/01/01T00:00:00Z)
-        // iview的日前选择建议使用 :value 绑定(不要使用v-model)，如 <DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>
+        // ***iview的日前选择建议使用 :value 绑定(不要使用v-model)***，如 <DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>
         module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
-        // module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
-        // module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
+        module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
+        module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
 
         this.registerModule(module);
     }
@@ -661,7 +664,7 @@ public class CustomObjectMapper extends ObjectMapper {
 }
 
 // 方案二(不推荐)
-// (利用jackson转换无需) StringToDateConverter为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
+// (利用jackson转换无需此步骤) StringToDateConverter为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
 // 注入转换器方式一
 @Autowired
 private RequestMappingHandlerAdapter handlerAdapter; // 如果程序中有注入WebMvcConfigurer则会报错(如上文跨域资源共享配置方式二)

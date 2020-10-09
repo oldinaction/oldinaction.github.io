@@ -537,7 +537,7 @@ tags: [mybatis, springboot]
         </foreach>
 	</if>
 
-    <!-- 对于时间数组 -->
+    <!-- 对于时间集合 -->
     <if test='planTmSection != null and planTmSection.size() > 0
             and planTmSection.get(0) != null and planTmSection.get(0) != ""
             and planTmSection.get(1) != null and planTmSection.get(1) != ""'>
@@ -553,7 +553,6 @@ tags: [mybatis, springboot]
 - 支持`choose (when, otherwise)`语句
 - xml文件修改无需重新部署，立即生效
 - `Cause: java.sql.SQLException: 无法转换为内部表示` 可能是由于类型转换导致，如强制将数据库中字符串类型字段映射某个对象的Long类型属性上
-
 
 ### 控制主键自增和获取自增主键值
 

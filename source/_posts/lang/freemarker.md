@@ -67,7 +67,7 @@ ${(appVersion)!}
     </tr>
     </#if>
 </#list>
-<!-- 变量名加 _index、_has_next、break -->
+<!-- **变量名加 _index、_has_next**、break -->
 <#list searchFields?if_exists as field>
     <!-- 判断第一个 -->
     <#if field_index == 0>[</#if>
@@ -80,8 +80,36 @@ ${(appVersion)!}
 
 ### 内置函数
 
+> https://freemarker.apache.org/docs/ref_builtins.html
+
 ```html
+<!-- 判断变量类型（is_...函数）：https://freemarker.apache.org/docs/ref_builtins_expert.html -->
+<#if arr?is_enumerable>arr为集合或序列，可被#list变量</#if><!-- 判断是否为集合或序列 -->
+
+<!-- 格式化日期字符串 -->
 ${(item.inputTm?string("yyyy-MM-dd HH:mm"))!}
+
+<!-- 首字母小写 -->
+${'AdminUser'?uncap_first}
+
+<!-- 驼峰转下划线，都得到 camel_to_under_score_test -->
+${"CamelToUnderScoreTest"?replace("([a-z])([A-Z]+)","$1_$2","r")?lower_case}
+${"camelToUnderScoreTest"?replace("([a-z])([A-Z]+)","$1_$2","r")?lower_case}
+
+
+<!-- 下划线转驼峰 -->
+<#function dashedToCamel(s)>
+  <#return s
+  ?replace('(^_+)|(_+$)', '', 'r')
+  ?replace('\\_+(\\w)?', ' $1', 'r')
+  ?replace('([A-Z])', ' $1', 'r')
+  ?capitalize
+  ?replace(' ' , '')
+  ?uncap_first
+  >
+</#function>
+${dashedToCamel("camel_to_under_score_test")} <!-- 结果为：camelToUnderScoreTest -->
+${dashedToCamel("___caMel___to_under_scOre_teSt____")} <!-- 结果为：caMelToUnderScOreTeSt -->
 ```
 
 ## 解析模板字符串

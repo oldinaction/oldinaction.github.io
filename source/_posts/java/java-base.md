@@ -135,6 +135,36 @@ private static enum YellEnum implements Yell {
     - `BufferedReader#readLine`
         - `new BufferedReader(new InputStreamReader(new FileInputStream("c:/test.text"))).readLine()` InputStreamReader起到把字节流转换成字符流
 
+## 文件
+
+- IDEA中获取src目录文件内容
+
+```java
+// 方式一
+public static String getResourceFileContent(String srcXpath) throws Exception {
+    if (srcXpath.startsWith("/")) {
+        String content;
+        InputStream inputStream = Main.class.getResourceAsStream(srcXpath);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "utf-8"));
+        StringBuilder builder = new StringBuilder();
+        char[] charArray = new char[200];
+        int number;
+        while ((number = reader.read(charArray)) != -1) {
+            builder.append(charArray, 0, number);
+        }
+        content = builder.toString();
+        return content;
+    }
+    return null;
+}
+
+getResourceFileContent("/Main.java");
+getResourceFileContent("/cn/aezo/Test.java");
+
+// 方拾二
+new File(System.getProperty("user.dir") + "/src/main/data.json")
+```
+
 ## 时间
 
 - GMT、**UTC**、CST [^1]
