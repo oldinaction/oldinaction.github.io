@@ -292,7 +292,7 @@ tags: [mybatis, springboot]
 
 			int insert(UserInfo user); // 成功返回1
 
-			int update(UserInfo user);
+			int update(UserInfo user); // jdbc url参数中需要加 &useAffectedRows=true
 
 			int delete(Long id);
 
@@ -529,15 +529,16 @@ tags: [mybatis, springboot]
 -  dao中可以使用`submitTm[0]`获取值; xml中不行，其处理数组(如时间段)的方式如下
 
 	```xml
+    <!-- （1）xml方式 -->
 	<!-- <if test='dataSourceList != null and dataSourceList.size() > 0 and dataSourceList.get(0).dataSource != null'> -->
+    <!-- （2）@Select方式 -->
 	<if test='submitTm != null and submitTm.length >= 1 and submitTm[0] != null'>
         <foreach collection="submitTm" index="i" item="item">
             <if test='i == 0 and item != null'>and v.submit_tm &gt;= #{item}</if>
             <if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>
         </foreach>
 	</if>
-
-    <!-- 对于时间集合 -->
+    <!-- 或者 -->
     <if test='planTmSection != null and planTmSection.size() > 0
             and planTmSection.get(0) != null and planTmSection.get(0) != ""
             and planTmSection.get(1) != null and planTmSection.get(1) != ""'>
@@ -564,13 +565,46 @@ tags: [mybatis, springboot]
 ### 批量执行语句
 
 - mybatis foreach
+
+    ```xml
+    <!-- mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） -->
+    <insert id="insertbatch">
+        insert into t_user(id, name) values
+        <foreach collection ="list" item="user" separator =",">
+            (#{user.id}, #{user.name})
+        </foreach >
+    </insert>
+    ```
 - mybatis batch
     - Mybatis内置的ExecutorType有3种，默认的是simple，该模式下它为每个语句的执行创建一个新的预处理语句，单条提交sql；而batch模式重复使用已经预处理的语句，并且批量执行所有更新语句
     - 使用batch模式需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
+    - 案例
+
+        ```java
+        @Autowired
+        SqlSessionTemplate sqlSessionTemplate; // 或者注入SqlSessionFactory
+
+        @Test
+        public void testInsertBatch2() throws Exception {
+            User user;
+            SqlSession sqlSession = sqlSessionTemplate.getSqlSessionFactory().openSession(ExecutorType.BATCH, false);
+            UserDao mapper = sqlSession.getMapper(UserDao.class);
+            for (int i = 0; i < 500; i++) {
+                user = new User();
+                user.setId(i+1);
+                user.setName("name" + i);
+                mapper.insert(user);
+            }
+            sqlSession.commit();
+        }
+        ```
+- mybatis-plus 服务中的saveBatch访问，见下文
 - jdbc batch
     - 采用PreparedStatement.addBatch()方式实现
     - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
-- 性能比较，同个表插入一万条数据时间近似值：JDBC BATCH 1.1秒左右 > Mybatis BATCH 2.2秒左右 > Mybatis foreach 4.5秒左右
+- 性能比较，同个表插入一万条数据时间近似值
+  - JDBC BATCH 1.1秒左右 > Mybatis BATCH 2.2秒左右 > Mybatis foreach 4.5秒左右
+  - 有测试说 Mybatis foreach > Mybatis BATCH
 
 ### MyBatis、Java、Oracle、MySql数据类型对应关系
 
@@ -941,6 +975,12 @@ IPage<Users> findList(Page<?> page, @Param("ctx") Map<String, Object> context);
     </if>
 </select>
 ```
+
+#### NULL空值处理
+
+- mybatis-plus默认策略为：在执行updateById(user)，如果user对象的属性为NULL，则不会更新(空字符串会更新)
+- 如果需要进行NULL更新，则可通过设置字段策略或者通过UpdateWrapper进行（推荐）
+  - 参考：https://baomidou.com/guide/faq.html#%E6%8F%92%E5%85%A5%E6%88%96%E6%9B%B4%E6%96%B0%E7%9A%84%E5%AD%97%E6%AE%B5%E6%9C%89-%E7%A9%BA%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%88%96%E8%80%85-null
 
 #### 乐观锁插件
 

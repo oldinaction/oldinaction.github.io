@@ -101,6 +101,13 @@ tags: [vue, UI]
 this.$refs.mySelect.visible = true
 ```
 
+### Checkbox
+
+```html
+<!-- Checkbox标签中有值则显示此值，无值则显示label值；传入到后台的是永远是label值 -->
+<Checkbox label="香蕉" value="xj">显示值</Checkbox>
+```
+
 ### 表格
 
 #### 去掉自带扩展行图标，换成按钮控制

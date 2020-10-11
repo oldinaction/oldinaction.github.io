@@ -105,7 +105,7 @@ const inventors = [
 ];
 const people = ['Beck, Glenn', ...... , 'Blake, William'];
 
-// 以数组形式，列出其名与姓 ['Albert Einstein', 'Hanna Hammarström', ...]；获返回list<map>: arr.map(o => {return {...}})
+// 以数组形式，列出其名与姓 ['Albert Einstein', 'Hanna Hammarström', ...]；或返回list<map>: arr.map(o => {return {...}})
 const fullnames = inventors.map(inventor => `${inventor.first} ${inventor.last}`)
 // 筛选出生于16世纪的发明家
 const fifteenObj = inventors.filter(inventor => (inventor.year >= 1500 && inventor.year < 1600))

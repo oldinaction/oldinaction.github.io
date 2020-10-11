@@ -78,6 +78,15 @@ ${(appVersion)!}
 </#list>
 ```
 
+### 其他指令
+
+```html
+<#t> <!-- 去掉左右空白和回车换行 -->
+<#lt> <!-- 去掉左边空白和回车换行 --> 
+<#rt> <!-- 去掉右边空白和回车换行 -->
+<#nt> <!-- 取消上面的效果 -->
+```
+
 ### 内置函数
 
 > https://freemarker.apache.org/docs/ref_builtins.html

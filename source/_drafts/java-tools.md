@@ -6,6 +6,17 @@ categories: java
 tags: tools
 ---
 
+## Hutool
+
+> https://hutool.cn/docs/
+
+- Bean操作
+
+```java
+// 忽略NULL值(不会忽略空值)，和忽略部分属性
+BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
+```
+
 ## Yaml解析(基于jyaml)
 
 - 依赖
