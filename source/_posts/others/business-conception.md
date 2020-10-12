@@ -31,6 +31,12 @@ tags: [business, conception]
 
 - `MVP` 最小价值产品或最小可视化产品(Minimal Viable Product) [^2]
 
+## 费用
+
+- 费目、费目计算规则(影响因素)、费率本(将多个基础费目进行收付的组合方便输入)
+
+
+
 
 
 

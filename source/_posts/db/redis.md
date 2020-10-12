@@ -1030,7 +1030,7 @@ cf.exists
 
 - 参考[nginx.md#反向代理和负载均衡](/_posts/arch/nginx.md#反向代理和负载均衡)
 
-### springboot使用redis
+### SpringBoot使用Redis
 
 - 引入依赖
 
@@ -1039,6 +1039,17 @@ cf.exists
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-data-redis</artifactId>
     </dependency>
+    ```
+- 配置
+
+    ```yml
+    # Redis缓存配置
+    spring:
+      redis:
+       host: 127.0.0.1
+       port: 6379
+       database: 0
+       password:
     ```
 - 使用
 

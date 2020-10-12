@@ -1546,7 +1546,7 @@ public static String sha1(String str) throws NoSuchAlgorithmException, Unsupport
 
 #### 整合redis
 
-参考《redis》[http://blog.aezo.cn/2016/07/02/db/redis/](/_posts/db/redis)
+参考 [http://blog.aezo.cn/2016/07/02/db/redis/](/_posts/db/redis.md#SpringBoot使用Redis)
 
 #### 整合Mongodb
 
