@@ -106,6 +106,11 @@ this.$refs.mySelect.visible = true
 ```html
 <!-- Checkbox标签中有值则显示此值，无值则显示label值；传入到后台的是永远是label值 -->
 <Checkbox label="香蕉" value="xj">显示值</Checkbox>
+
+<!-- ***** 此处v-model必须绑定顶级变量，如果绑定formData.typeCodeList则容易出现值不改变的问题 ***** -->
+<CheckboxGroup v-model="typeCodeList">
+    <Checkbox v-for="item in searchForm.typeCodeList" :label="item.value" :key="item.value" border>{{ item.label }}</Checkbox>
+</CheckboxGroup>
 ```
 
 ### 表格
@@ -449,6 +454,16 @@ iframe {
 
 ## Form
 
+- 表单验证
+  
+  ```html
+  <!-- 注意:model必须赋值，且所有的prop都定义过，如：userDataForm: {username: ''}。如果不定义自定则使用 required: true 规则时会一直报错 -->
+  <Form :model="userDataForm" :rules="userDataFormRule" ref="userDataForm">
+    <FormItem label="Login Name" prop="username">
+        <Input v-model="userDataForm.username" placeholder="Login Name"></Input>
+    </FormItem>
+  </Form>
+  ```
 - 表单排版
 
 ```html
