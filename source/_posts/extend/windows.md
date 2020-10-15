@@ -65,7 +65,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
     - 管理员模式执行 `nginx-service.exe install` 进行nginx服务注册
     - `nginx-service.exe uninstall` 卸载nginx服务
 - 基于组策略编辑器(**成功**)
-    - Windows+R运行，输入`gpedit.msc`进入组策略编辑器，选中windows设置，双击脚本(启动/关机)，添加-浏览-选择脚本-确定
+    - Windows+R运行，输入`gpedit.msc`进入组策略编辑器 - 选中windows设置 - 双击脚本(启动/关机) - 添加 - 浏览 - 选择脚本 - 确定
 - 基于创建bat脚本
     - 法一：参考下文`任务计划`(**成功**)
     - 法二：将bat脚本的快捷方式放到启动目录

@@ -40,6 +40,7 @@ tags: [.NET, C#]
 
 - VS解决方案A文件夹：A下的*.sln => eclipse的.project；A下的packages类似jar包；A下的项目文件夹(如：A)
 - 添加引用 => 导入jar包；导入命名空间(using System) => 代码中的`import java.lang.System`
+- `.sln`和`.csproj`区别：`.csproj`为一个c#项目/模块，里面配置有此项目/模块的引用路径；`.sln`则是对多个`.csproj`的描述
 
 ## Web
 

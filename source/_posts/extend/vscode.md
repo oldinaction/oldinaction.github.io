@@ -132,15 +132,18 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 "editor.detectIndentation": false, // 关闭自动检测文件Tab大小
 "editor.fontSize": 16,
 // tab占的空格数
-"editor.tabSize": 4,
+"editor.tabSize": 2,
 "[html]": {
     "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
 "[javascript]": {
     "editor.tabSize": 2,
+    "editor.defaultFormatter": "vscode.typescript-language-features"
 },
 // 函数function和()间增加空格
 "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+"javascript.updateImportsOnFileMove.enabled": "always",
 "[vue]": {
     "editor.defaultFormatter": "octref.vetur",
     "editor.tabSize": 2
@@ -148,6 +151,13 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 "[less]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
+"[markdown]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+},
+"[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
 
 "beautify.language": {
 	"html": [
@@ -191,7 +201,7 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 "emmet.includeLanguages": {
     "vue-html": "html",
     "vue": "html"
-}
+},
 
 "files.associations": {
     "*.wpy": "vue"
