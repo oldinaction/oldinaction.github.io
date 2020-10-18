@@ -61,6 +61,10 @@ tags: [.NET, C#]
     - 下载`dll`引用文件，如存放在`D:/work/dll`
     - VS - 解决方案管理器 - 当前项目 - 引用 - 右键添加引用 - 浏览 - 选择上述dll文件 - 确定 - 重新生成项目并启动
     - 之后此dll文件不能删除，删除后就会丢失引用
+- 启动项目
+    - 选中项目模块 - 右键 - 设为启动项目
+    - 选中项目模块 - 右键 - 属性 - Web - 服务器 - 项目URL（如http://localhost:8080/） - 创建虚拟目录 - 去掉覆盖引用程序根URL
+    - 然后修改项目目录下`.vs/MyModule/config/applicationhost.config`文件，配置`system.applicationHost#sites#site#bindingInformation="*:8080:localhost"`或`bindingInformation="*:8080:192.168.1.100"`对外访问
 
 #### .NET Core
 
@@ -109,6 +113,20 @@ dotnet run # 在项目目录运行
     - 最后可考虑是否重启IIS
         - 在管理员命令行运行`iisreset/stop`可停止IIS，开启使用`iisreset/start`
         - 服务里重启`World Wide Web Publishing Service`
+
+### 使用Oracle
+
+- 项目的`Web.config`增加配置
+
+    ```xml
+    <!-- data source为TNS Name名称 -->
+    <connectionStrings>
+        <add name="MyConnectionName1" connectionString="data source=local;user id=root;password=root;" />
+        <add name="MyConnectionName2" connectionString="data source=local;user id=root;password=root;" />
+    </connectionStrings>
+    ```
+- 需要启动TNS服务，并在tnsnames.ora中配置上述数据源
+- 如果报错`The provider is not compatible with the version of Oracle client`需要确认`Oracle.DataAccess.dll`的版本是否和ODAC版本一致。右键`Oracle.DataAccess.dll`可查看其版本，如11.02.3，则需要`ODAC112030`版本（ODAC 4 112.3），参考[oracle-dba.md#ODAC和ODBC](/_posts/db/oracle-dba.md#ODAC和ODBC)
 
 ## 窗体应用(Winform)
 

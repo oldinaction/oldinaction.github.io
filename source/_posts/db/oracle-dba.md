@@ -457,11 +457,11 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
 
 - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
 - oracle 静默安装, 关闭客户端后再次以 oracle 用户登录无法运行 sql 命名, 需要执行`source ~/.bash_profile`
+- oracle目录
+  - Oracle基目录为`D:/java/oracle`，基目录只是把不同版本的oracle放在一起
+  - ORACLE_HOME 为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入 imp.exe、导出 exp.exe）
 
 ## pl/sql 安装和使用
-
-- ORACLE_HOME 为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入 imp.exe、导出 exp.exe）
-- 这个只是服务器端才会使用的到
 
 ### pl/sql 安装
 
@@ -503,6 +503,14 @@ Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Ca
     ```
 
 - 如果 oracle 服务在远程机器上，本地通过 plsql 连接，则不需要在本地启动任何和 oracle 相关的服务。如果本地机器作为 oracle 服务器，则需要启动 OracleServiceORCL，此时只能在命令行连接数据库，如果需要通过 plsql 连接则需要启动类似"OracleOraDb11g_home1TNSListener"的 TNS 远程监听服务
+
+## ODAC和ODBC
+
+- ODAC全称：oracle Date Access Components，为oracle数据访问组件，[32位的安装包](http://pan.baidu.com/s/1ntZf92p)在32位，64位的都可以采用的
+    - 执行安装程序 - 下一步 - Oracle Client 11.2.0.3 - Oracle基目录=D:\java\oracle，软件位置名称=OraClient11g_home2，路径=D:\java\oracle\product\11.2.0\dbhome_2 - 下一步 - 安装
+	- 如果提示“服务OracleMTSRecoveryService已经存在” - 忽略
+    - 或者下载ODAC112030Xcopy_64bit.zip等压缩包进行安装，推荐
+- ODBC：Windows上通过配置不同数据库（SQL Server、Oracle等）的驱动进行访问数据库。找到控制面板-管理工具-数据源ODBC
 
 ## 创建表空间 [^2]
 

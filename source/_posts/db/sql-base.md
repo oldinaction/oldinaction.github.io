@@ -963,6 +963,25 @@ set session transaction isolation level read uncommitted;
 
 ## SQLServer
 
+### 安装
+
+- SQL Server版本
+  - 包含Express(完整版)、Develop
+  - v10=2008, v12=2014, v13=2016, v14=2017
+- `SQL Server Management Studio` (SSMS) 类似PL/SQL Develop
+- 安装是可注意下是否有开启"SQLserver 和windows 身份验证模式"，有则勾选，没有则需要通过SSMS之后进行设置
+- 安装成功后使用
+  - 安装成功后会提示链接字符串如`Server=localhost\SQLEXPRESS;Database=master;Trusted_Connection=True;`，此时链接时设置主机=localhost\SQLEXPRESS，初始数据库=master，验证=Windows验证即可连接
+  - 开启sa账号登录
+    - 使用SSMS，先通过windows 身份验证进行连接
+    - 安全性 - 登录名 - sa - 设置sa的密码 - 取消强制密码策略 - 状态：启动此登录名登录
+    - 设置SQLserver 和windows 身份验证模式：右键连接 - 属性 - 安全性 - 进行设置后重启服务(获取重启机器)
+  - 设置内网访问
+    - 开始菜单中找到SQLServer Configuration Manager(配置管理器) - SQL Server 网络配置 - 选择实例 - TCP/IP右键启用 - TCP/IP双击 - IP地址 - 找到需要开启的IP地址，设置TCP端口为1433，并设置已启动为是 - 修改最下面的IPALL中IP端口为1433
+    - 继续配置管理器 - SQL Server服务 - 选择实例 - 右键重启即可
+
+### 其他
+
 - 表名和字段名均不区分大小写
 - 命令行导入sql文件
     - `sqlcmd -S localhost -U sa -P root -d fedex -i C:\Users\smalle\Desktop\update20190528.sql`(windows上文件路径必须用右斜杠)

@@ -81,6 +81,8 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
         ws.run "cmd /c D:\test\start_my_app.bat",vbhide
         # 3.将start_my_app.vb文件放到 C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup 目录
         ```
+- 基于注册表(**成功**，可解决策略编辑器、任务计划不成功的情况)
+    - `regedit`打开注册表 - 搜索`Hkey_local_machine\software\wow6432node\microsoft\windows\currentversion\run` - 右键新建字符串值 - 名称可自定义，类型REG_SZ，值如`"C:\Program Files (x86)\Tencent\DeskGo\2.9.1051.127\DesktopMgr.exe" --cmd=autorun`
 
 ### 任务计划
 
@@ -115,6 +117,9 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 
 - `Visio` 流程图。[Microsoft visio pro 2019 32位/64位](https://www.jb51.net/softs/634165.html#downintro2)
 - `DBeaver` 数据库连接工具(开源免费，支持数据库丰富)
+  - 驱动JAR下载(官网提供的下载地址无法访问)
+    - 下载仓库`https://gitee.com/moshowgame/dbeaver-driver-all`中的jar
+    - 编辑连接 - 编辑驱动设置 - 添加文件夹 - 找到刚刚下载的git仓库中对应数据库文件夹
 
 ## 软件使用
 

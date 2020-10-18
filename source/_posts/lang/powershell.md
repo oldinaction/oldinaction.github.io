@@ -91,3 +91,17 @@ foreach($letter in $letterarray) { write-host $letter } # 打印a-d(带有换行
 
 while($val -ne 3) { write-host $val; $val++ } # 打印：空(换行)、1(换行)、2(换行)
 ```
+
+## 案例
+
+### 输出某个文件下所有jar名称
+
+```bash
+# Power Shell命令行运行即可输出所有jar文件的文件名
+Get-ChildItem "D:/test/target" -Include *.jar -Recurse -Force| ForEach-Object -Process{
+    if($_ -is [System.IO.FileInfo])
+    {
+        Write-Host $_.Name　
+    }
+}
+```

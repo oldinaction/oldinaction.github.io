@@ -94,8 +94,8 @@ ThisCrackLicenseId-{
 
 ## 插件使用
 
-- `jrebel` java热部署. **修改代码后使用`Ctrl+Shif+F9`进行热部署**
-    - jrebel破解可使用`myJRebel`
+- `jrebel` java热部署(会自动热部署新代码。如果不使用jrebel，springboot-devtools可修改代码后使用`Ctrl+Shif+F9`进行热部署)
+    - jrebel破解参考：http://www.cicoding.cn/other/jrebel-activation/
 - `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
 - `Free MyBatis plugin` 可自动识别mybatis的mapper(实现)
     - `MybatisX` 类似插件，Ctrl+Alt可实现相应跳转
