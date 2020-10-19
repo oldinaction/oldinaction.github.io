@@ -220,6 +220,15 @@ autoUpdater借助Squirrel实现自动升级
 
 
 
+ts引入ele报错：@types/node Class 'Module' incorrectly implements interface 'NodeModule'
+
+    https://github.com/DefinitelyTyped/DefinitelyTyped/issues/19601
+    npm install --save-dev @types/node@14.0.27
+
+TypeError: fs.existsSync is not a function | import { ipcRenderer } from 'electron'
+    https://blog.csdn.net/weixin_41217541/article/details/106496186 无效
+    https://www.jianshu.com/p/d2d4deaccdc1
+
 ---
 
 参考文章
