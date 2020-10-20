@@ -1083,6 +1083,8 @@ create database harbor_notary_signer;
                 helm push test-1.0.0.tar.gz myrepo # 推送镜像到仓库
                 ```
     - 出现过一次异常：upgrade后，导致harbor-harbor-jobservice和harbor-harbor-chartmuseum的历史副本集无法自动删除，导致新的副本集提示启动失败(占用了pvc)，可手动删除历史副本集解决
+- 常见问题
+  - 日志提示`failed to initialize database: register db Ping default, pq: could not open file "base/16384/2601": Read-only file system`，原因可能为postgresql无法正常访问；且发现集群中postgresql正常运行，但是通过其他桌面客户端无法连接，报类似错误。解决：通过重新创建postgresql容器解决
 
 ### Jenkins
 

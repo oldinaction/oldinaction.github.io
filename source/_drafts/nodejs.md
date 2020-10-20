@@ -42,3 +42,13 @@ pm2 -h # 查看帮助
 pm2 l # 列举所有进程
 ```
 
+## 零散
+
+### 获取命令行参数
+
+```bash
+node arg.js arg1 arg2 arg3 # 执行命令
+#  process是一个全局对象，argv返回的是一组包含命令行参数的数组
+process.argv # ["D:\\software\\nodejs\\node.exe", "D:\\test\\arg.js", "arg1", "arg2", "arg3"]
+var args = process.argv.splice(2) # ["arg1", "arg2", "arg3"]
+```
