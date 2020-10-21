@@ -10,7 +10,37 @@ tags: tools
 
 > https://hutool.cn/docs/
 
-- Bean操作
+### Bean/Map/Json相互转化
+
+```java
+// Bean转成JSON字符串
+String str = JSONUtil.toJsonStr(person);
+// JSON字符串转成Bean
+Person person = JSONUtil.toBean(str, Person.class);
+// 实现深度拷贝。使用 BeanUtil.copyProperties 为浅拷贝
+Person newPerson = JSONUtil.toBean(JSONUtil.toJsonStr(person), Person.class);
+```
+
+### 集合
+
+```java
+// ## 做减法，如：[1, 2] - [2, 3] = [1]
+List<String> oldCodes = new ArrayList<>();
+// List<String> newCodes = Arrays.asList(menuIds); // 类型为 Array$ArrayList
+List<String> newCodes = new ArrayList<>(Arrays.asList(menuIds)); // 类型为 ArrayList
+List<String> codes = CollUtil.subtract(newCodes, oldCodes); // 返回新对象。此时两个对象类型必须一致，如其中一个为Array$ArrayList，则会报错
+```
+
+## 类型转化
+
+```java
+// ## List转成数组
+List<String> oldCodes = new ArrayList<>();
+Object[] objArr = oldCodes.toArray;
+String[] strArr = Convert.toStrArray(list.toArray); // 将list转成 String[]
+```
+
+### Bean操作
 
 ```java
 // 忽略NULL值(不会忽略空值)，和忽略部分属性

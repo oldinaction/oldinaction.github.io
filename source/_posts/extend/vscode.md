@@ -129,9 +129,9 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 "files.autoSave": "afterDelay",
 
 "editor.snippetSuggestions": "top", // 将用户代码片段显示在提示的最上方
-"editor.detectIndentation": false, // 关闭自动检测文件Tab大小
+"editor.detectIndentation": false, // 因为vscode默认启用了根据文件类型自动设置tabsize的选项
 "editor.fontSize": 16,
-// tab占的空格数
+// tab占的空格数。Vue项目中尽管设置了Tab空格数为2，但是打开文件依旧变成了4个空格，则需要配置`.editconfig`文件中的空格数，参考[.editconfig文件](/_posts/arch/springboot-vue.md#.editorconfig格式化)
 "editor.tabSize": 2,
 "[html]": {
     "editor.tabSize": 2,

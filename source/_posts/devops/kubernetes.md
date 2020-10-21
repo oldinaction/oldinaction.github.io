@@ -1955,6 +1955,8 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
     - 可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
 - 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试，实际是过几分钟便自动恢复了)
     - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
+    - 有时候无watcher，但是提示被其他节点占用，后来发现改副本集包含一个卡在Running状态的pod，因此重新创建pod一致失败。此时可以考虑将副本集删除掉会自动创建新副本集
+    - 参考：https://cloud.tencent.com/developer/article/1469533
 - 报错`MountVolume.WaitForAttach failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd image kube/kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 is still being used`
     - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
     - 将原rbd观察者加入到黑名单后，新的观察者即可自动添加(历史数据不会丢失)

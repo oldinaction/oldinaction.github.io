@@ -504,12 +504,12 @@ src/components
 ```
 - vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
 
-### editorconfig格式化
+### .editorconfig格式化
 
 - Eslint 和 .editorconfig
     - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒。而 .editorconfig 更偏向于代码风格，如缩进等
     - 二者并不冲突，同时配合使用可以使代码风格更加优雅
-- vscode安装`Editorconfig`插件。该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的
+- vscode安装`Editorconfig`插件。该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，**如果没有安装这个插件，光有一个配置文件是无法生效的**，此插件配置的格式优先于vscode配置的，如缩进
 - `.editorconfig` 放在vue项目根目录
 
 ```ini

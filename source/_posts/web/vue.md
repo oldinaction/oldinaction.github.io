@@ -223,21 +223,21 @@ export default {
     watch: {
         // 利用computed观测子对象具体属性的变化
         province(newValue, oldValue) {
-    　　　　this.provinceChange()
+            this.provinceChange()
     　　},
         // 扩展：观测整个子对象的变化
         customer: {
-    　　　　handler(newValue, oldValue) {
-    　　　　　　console.log(newValue)
-    　　　　},
-    　　　　deep: true
-    　　},
+            handler(newValue, oldValue) {
+                console.log(newValue)
+            },
+            deep: true
+        },
         products: {
             immediate: true, // 代表如果在 wacth 里声明了之后，就会立即先去执行里面的handler方法。(可解决 list 变更后无法watch到变化的问题)
             handler(n, o) {
-    　　　　　　console.log(n)
-    　　　　},
-    　　　　// deep: true
+                console.log(n)
+            },
+            // deep: true
         }
     },
     methods: {
@@ -1507,10 +1507,10 @@ this.$router.push({
     ]
 }
 
-// project-index.vue包含，workbench-index.vue同理
+// project-index.vue包含下列代码。workbench-index.vue同理
 <div class="project-info">
     <keep-alive>
-    <router-view />
+        <router-view />
     </keep-alive>
 </div>
 

@@ -17,6 +17,8 @@ tags: [freemarker, java, template]
 
 ### 变量
 
+- 参考：https://blog.csdn.net/J080624/article/details/78648786
+
 ```html
 <!-- 定义变量、ftl提供调用类的静态方法。加?if_exists防止null时报错 -->
 <!--
@@ -89,6 +91,23 @@ ${(appVersion)!}
 <#nt> <!-- 取消上面的效果 -->
 ```
 
+### 数据类型
+
+#### 数组
+
+- `?split(",")` 分割字符串获取数组
+- `_index` 获取当前循环下标
+- `_has_next` 判断当前循环元素后面是否还有元素
+- `${list[0].name}` 通过下标取值
+- 案例
+
+```html
+<!-- 分割字符串获得数组 -->
+<#list "张三,李四,王五"?split(",") as name>
+    ${name}<#if name_has_next>,</#if>
+</#list>
+```
+
 ### 内置函数
 
 > https://freemarker.apache.org/docs/ref_builtins.html
@@ -102,11 +121,12 @@ ${(item.inputTm?string("yyyy-MM-dd HH:mm"))!}
 
 <!-- 首字母小写 -->
 ${'AdminUser'?uncap_first}
+<!-- 首字母大写 -->
+${'AdminUser'?cap_first}
 
 <!-- 驼峰转下划线，都得到 camel_to_under_score_test -->
 ${"CamelToUnderScoreTest"?replace("([a-z])([A-Z]+)","$1_$2","r")?lower_case}
 ${"camelToUnderScoreTest"?replace("([a-z])([A-Z]+)","$1_$2","r")?lower_case}
-
 
 <!-- 下划线转驼峰 -->
 <#function dashedToCamel(s)>
@@ -121,6 +141,11 @@ ${"camelToUnderScoreTest"?replace("([a-z])([A-Z]+)","$1_$2","r")?lower_case}
 </#function>
 ${dashedToCamel("camel_to_under_score_test")} <!-- 结果为：camelToUnderScoreTest -->
 ${dashedToCamel("___caMel___to_under_scOre_teSt____")} <!-- 结果为：caMelToUnderScOreTeSt -->
+
+<!-- 判断包含 -->
+<#if "a,b,c,"?contains("a")>包含字符串a</#if>
+
+
 ```
 
 ## 解析模板字符串
@@ -213,3 +238,33 @@ public class FtlU {
 }
 ```
 
+## 自定义工具方法
+
+```html
+<#-- freemarker 的一些工具方法 -->
+
+<#-- 驼峰转其他字符 -->
+<#-- @param str       待转换的文本 -->
+<#-- @param character 要转换成的字符 -->
+<#-- @param case      转换大小写（normal 不转换，lower 小写，upper 大写） -->
+<#function camelToChar(str, character, case='normal')>
+  <#assign text=str?replace("([a-z])([A-Z]+)","$1${character}$2","r")/>
+  <#if case=="upper">
+    <#return text?upper_case>
+  <#elseif case=="lower">
+    <#return text?lower_case>
+  <#else>
+    <#return text>
+  </#if>
+</#function>
+
+<#-- 驼峰转下划线 -->
+<#function camelToDashed(str, case='normal')>
+  <#return camelToChar(str, "_", case)>
+</#function>
+
+<#-- 驼峰转横线 -->
+<#function camelToHorizontal(str, case='normal')>
+  <#return camelToChar(str, "-", case)>
+</#function>
+```
