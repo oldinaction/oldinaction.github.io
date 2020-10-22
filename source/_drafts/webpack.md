@@ -10,6 +10,16 @@ tags: [webpack, node]
 
 ## 设置
 
+### 外网访问
+
+```json
+// --host 0.0.0.0 指定开发的ip
+// --disableHostCheck true 指定不检查Host，否则容易出现`Invalid Host header`(也可以使用--public)解决
+"scripts": {
+    "dev": "webpack-dev-server --content-base ./ --open --inline --hot --compress --config build/webpack.dev.config.js --disableHostCheck true --host 0.0.0.0 --port 7710",
+},
+```
+
 ### 环境变量
 
 - 基于cross-env进行操作：`npm i cross-env -D` 安装cross-env插件

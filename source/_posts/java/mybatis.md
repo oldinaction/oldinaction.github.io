@@ -514,6 +514,7 @@ tags: [mybatis, springboot]
 
 		```xml
 		<!-- 此时Integer status = 0;时，下列语句返回false. 所有Integer类型的不要加status != '' -->
+        <!-- 前台尽量不要传递 '0' 的字符串，可能导致生成的sql为 status = '0'，则存在隐式转换 -->
 		<if test="status != null and status != ''">and status = #{status}</if>  
 		```
 	- 多个字符则认为是字符串，单个字符则认为是Character字符.(如mybatis认为：test="validStatus == 'Y'"中的Y是字符，test="validStatus == 'YY'"中的YY则是字符串)
@@ -598,7 +599,7 @@ tags: [mybatis, springboot]
             sqlSession.commit();
         }
         ```
-- mybatis-plus 服务中的saveBatch访问，见下文
+- mybatis-plus 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)访问，见下文
 - jdbc batch
     - 采用PreparedStatement.addBatch()方式实现
     - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
@@ -928,8 +929,10 @@ List<Map<String, Object>> list = templateItemDao.selectMaps(
                     .eq(TemplateItem::getTemplateId, 1)
                     .eq(TemplateItem::getTemplateId, templateId));
 
-// 批量保存
+// 批量新增/更新/删除
 subscribeService.saveBatch(List<Subscribe>);
+subscribeService.updateBatchById(List<Subscribe>);
+subscribeService.removeByIds(List<Subscribe>);
 ```
 
 #### 分页
