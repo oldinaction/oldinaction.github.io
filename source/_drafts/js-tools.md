@@ -15,7 +15,7 @@ tags: tools
 
 - 表格显示/隐藏后样式丢失问题
   - `sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
-- 多选 + 修改页面表格数据(仅修改页面数据缓存)
+- 多选 + 修改页面表格数据(仅修改页面数据)
 
 ```js
 // 获取行记录
@@ -32,7 +32,20 @@ checkboxRow.forEach((row) => {
     this.$refs.tableRef.reloadRow(row, null, 'validStatus'); // 仅修改单个字段
     // this.$refs.tableRef.reloadRow(currentRow, rowNewData, null); // 基于rowNewData修改一整行的数据(如果rowNewData无表格列定义的字段将会置空)
 });
+
+// 从列表中移除数据行
+// 1.修改页面显示缓存，this.allData数据并没有删除
+this.$refs.tableRef.remove(row)
+this.$refs.tableRef.removeCheckboxRow() // 移除选中行
+// 2.修改页面数据，this.allData数据删除了
+this.allData = this.allData.filter((item) => item.id != row.id)
+this.$refs.tableRef.loadData(this.allData)
+
+// 重新加载整个表格数据
+this.$refs.tableRef.loadData(this.allData);
 ```
+
+
 
 
 

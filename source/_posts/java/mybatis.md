@@ -599,7 +599,7 @@ tags: [mybatis, springboot]
             sqlSession.commit();
         }
         ```
-- mybatis-plus 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)访问，见下文
+- mybatis-plus 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)/saveOrUpdateBatch(新增或基于ID修改)访问，见下文
 - jdbc batch
     - 采用PreparedStatement.addBatch()方式实现
     - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
@@ -902,7 +902,7 @@ mybatis-plus:
       logic-not-delete-value: 1
   # 原生配置
   configuration:
-    map-underscore-to-camel-case: true
+    map-underscore-to-camel-case: true  # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
     cache-enabled: false
     call-setters-on-nulls: true
     jdbc-type-for-null: 'null'
@@ -933,6 +933,7 @@ List<Map<String, Object>> list = templateItemDao.selectMaps(
 subscribeService.saveBatch(List<Subscribe>);
 subscribeService.updateBatchById(List<Subscribe>);
 subscribeService.removeByIds(List<Subscribe>);
+subscribeService.saveOrUpdateBatch(List<Subscribe>);
 ```
 
 #### 分页

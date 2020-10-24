@@ -456,14 +456,19 @@ iframe {
 
 - 表单验证
   
-  ```html
-  <!-- 注意:model必须赋值，且所有的prop都定义过，如：userDataForm: {username: ''}。如果不定义自定则使用 required: true 规则时会一直报错 -->
-  <Form :model="userDataForm" :rules="userDataFormRule" ref="userDataForm">
-    <FormItem label="Login Name" prop="username">
-        <Input v-model="userDataForm.username" placeholder="Login Name"></Input>
+    ```html
+    <!-- 注意:model必须赋值，且所有的prop都定义过，如：userDataForm: {username: ''}。如果不定义自定则使用 required: true 规则时会一直报错 -->
+    <Form :model="userDataForm" :rules="userDataFormRule" ref="userDataForm">
+        <FormItem label="Login Name" prop="username">
+            <Input v-model="userDataForm.username" placeholder="Login Name"></Input>
+        </FormItem>
+    </Form>
+
+    <!-- InputNumber验证时必须定义type，佛足额required一直报错。amount: [{ required: true, type:'number', message: "金额必填", trigger: "blur" }]-->
+    <FormItem label="金额" prop="amount">
+        <InputNumber v-model="editForm.amount"></InputNumber>
     </FormItem>
-  </Form>
-  ```
+    ```
 - 表单排版
 
 ```html

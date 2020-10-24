@@ -308,6 +308,11 @@ border-radius: 50%;
 - text-indent属性引起的行内元素在盒子的左右边界外
 - 一个绝对定位的子孙元素，部分内容在盒子外，但超出的部分不会被剪裁(overflow: hidden;)
 
+## 性能优化
+
+- 使用`img`图片比元素使用`background(url)`快
+
+
 
 
 ---

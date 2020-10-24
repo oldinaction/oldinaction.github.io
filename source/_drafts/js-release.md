@@ -113,6 +113,12 @@ const fifteenObj = inventors.filter(inventor => (inventor.year >= 1500 && invent
 const totalyears = inventors.reduce((total, inventor) => { return total + (inventor.passed - inventor.year) }, 0)
 // 根据其出生日期，并从大到小排序
 const birthdate = inventors.sort((inventora, inventorb) => (inventorb.year - inventora.year))
+
+// === 语法
+var newArray = arr.filter(callback(element[, index[, array]])[, thisArg])
+var new_array = arr.map(function callback(currentValue[, index[, array]]) {
+    // Return element for new_array 
+}[, thisArg])
 ```
 
 #### 伪数组
@@ -133,7 +139,7 @@ const birthdate = inventors.sort((inventora, inventorb) => (inventorb.year - inv
     ```js
     // 得到一个伪数组，原型为 HTMLCollection
     var tables = document.getElementsByTagName('table')
-    // 将为素组转换成真正的数组
+    // 将伪数组转换成真正的数组
     var tableArr = Array.prototype.slice.call(tables)
 
     // 构造一个伪数组
