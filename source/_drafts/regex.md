@@ -68,6 +68,9 @@ tags: [regex, javascript, java]
 /^[a-zA-Z]:\\([^\\:*<>|"?\r\n/]+\\)*([^\\:*<>|"?\r\n/]+)?$/
 // 匹配id
 '<div id="container" class="main"></div>'.match(/id="([^"]*)"/); // ['id="container"', 'container']
+
+// 用户名（4-16位）
+/^[a-zA-Z0-9_-]{4,16}$/
 ```
 
 ## java

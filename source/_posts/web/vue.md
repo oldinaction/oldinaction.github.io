@@ -1017,6 +1017,30 @@ linkDownload (url) {
 </script>
 ```
 
+### 插入字符串
+
+```html
+<Select v-model="editForm.alertField">
+    <Option v-for="item in alertFieldList" :value="item.code" :key="item.code">{{ item.name }}</Option>
+</Select>
+<Button @click="insertStr()" style="margin-left: 15px;">插入</Button>
+<textarea ref="content" v-model="editForm.content" class="ivu-input" type="text" rows="3"required></textarea>
+
+<script>
+insertStr() {
+    if(this.editForm.content) {
+        const start = this.that.$refs.content.selectionStart // 获取光标位置
+        const a = this.editForm.content.substring(0, start)
+        const b = this.editForm.content.substring(start, this.editForm.content.length)
+        this.editForm.content = a + this.editForm.alertField + b
+    } else {
+        this.editForm.content = this.editForm.alertField
+    }
+    this.editForm = JSON.parse(JSON.stringify(this.editForm))
+}
+</script>
+```
+
 ## 样式
 
 ### lang 和 scoped

@@ -113,7 +113,7 @@ this.$refs.mySelect.visible = true
 </CheckboxGroup>
 ```
 
-### 表格
+### Form
 
 #### 去掉自带扩展行图标，换成按钮控制
 
@@ -198,6 +198,18 @@ this.$refs.mySelect.visible = true
     }
   }
 </style>
+```
+
+#### FormItem可嵌套使用
+
+```html
+<!-- 可让时间组件在一行，且可进行验证 -->
+<FormItem label="时间" prop="etdTime">
+    <DatePicker :value="editForm.etdTime" @on-change="v => editForm.etdTime = v" style="width: 210px;"></DatePicker>-
+    <FormItem prop="etdTimeEnd" style="display: inline-block;">
+        <DatePicker :value="editForm.etdTimeEnd" @on-change="v => editForm.etdTimeEnd = v" style="width: 200px;"></DatePicker>
+    </FormItem>
+</FormItem>
 ```
 
 ### Page 假分页

@@ -209,12 +209,16 @@ select t.stu_no, t.course_name, t.course_score from
 
 ### 常用函数
 
-- 时间函数
+- `sysdate`
 	- `update t_test t set t.update_tm = sysdate() where id = 1` 其中`sysdate()`可获取当前时间
-- `select * from t_test where instr(username, char(13)) > 0 or instr(username, char(10)) > 0` 查找表中某字段含有`\r\n`的数据
-	- linux/unix下的行结尾符号是`\n`，windows中的行结尾符号是`\r\n`，Mac系统下的行结尾符号是`\r`
-	- 回车符：\r=0x0d (13) (carriage return)
-	- 换行符：\n=0x0a (10) (newline)
+- `instr`
+    - `select * from t_test where instr(username, char(13)) > 0 or instr(username, char(10)) > 0` 查找表中某字段含有`\r\n`的数据
+    	- linux/unix下的行结尾符号是`\n`，windows中的行结尾符号是`\r\n`，Mac系统下的行结尾符号是`\r`
+    	- 回车符：\r=0x0d (13) (carriage return)
+    	- 换行符：\n=0x0a (10) (newline)
+- `find_in_set` 字段值通过`,`分割存放，可精确匹配分割后的某个值
+  - `select * from article where find_in_set('2', type);` 找出所有热点的文章
+    - type字段表示：1头条、2推荐、3热点。现在有一篇文章即是头条又是热点，即type=1,2
 
 ### 自定义变量
 
@@ -250,6 +254,59 @@ select t.stu_no, t.course_name, t.course_score from
     select actor_id,@rownum:=@rownum+1 as cnt from actor where @rownum<=1; -- 有问题的
     select actor_id,@rownum as cnt from actor where (@rownum:=@rownum+1)<=1;
     ```
+
+### JSON数据类型
+
+- 参考官网：https://dev.mysql.com/doc/refman/5.7/en/json.html、https://dev.mysql.com/doc/refman/5.7/en/json-functions.html
+
+```sql
+-- 创建数据类型为json的字段val（如果字段类型为字符串也是可以使用相关函数的，只不过存在隐式转换；且如果类型是json，则在插入数据时会进行格式校验）
+create table test (val json);
+insert into test(val) values('{"name": "smalle", "hello": "Hi, \\"AEZO\\"", "hobby": [{"item": {"name": "book", "weight": 5}}, "game"], "attr": {"t1": "v1", "t2": [1, true, false]}}');
+/*
+{
+  "attr": {
+    "t1": "v1",
+    "t2": [
+      1,
+      true,
+      false
+    ]
+  },
+  "name": "smalle",
+  "hello": "Hi, \"AEZO\"",
+  "hobby": [
+    {
+      "item": {
+        "name": "book",
+        "weight": 5
+      }
+    },
+    "game"
+  ]
+}
+*/
+
+-- 查询
+select val from test; -- {"attr": {"t1": "v1", "t2": [1, true, false]}, "name": "smalle", "hello": "Hi, \"aezo\"", "hobby": [{"item": {"name": "book", "weight": 5}}, "game"]}
+-- 可以使用column-path运算符 ->
+select val->"$.hello" from test; -- "hi, \"aezo\""
+-- 或内联路径运算符 ->> (去掉了引号和转义符)。可能由于服务器no_backslash_escapes的配置导致无法使用 ->>，可如下使用json_unquote()
+select val->>"$.hello" from test; -- hi, "aezo"
+select json_unquote(val->"$.hello") from test; -- hi, "aezo"
+
+-- 搜索
+select json_unquote(json_extract(val, '$.*')) from test; -- 将所有一级key对应的值放入到数组中：[{"t1": "v1", "t2": [1, true, false]}, "smalle", "Hi, \"AEZO\"", [{"item": {"name": "book", "weight": 5}}, "game"]]
+select json_unquote(json_extract(val, '$.name')) from test; -- smalle
+select json_unquote(json_extract(val, '$.hobby[0].item')) from test; -- {"name": "book", "weight": 5}
+select json_unquote(json_extract(val, '$**.name')) from test; -- 返回所有最底相应key值：["smalle", "book"]
+select json_unquote(json_extract(val, '$.hobby[*].item.*')) from test; -- ["book", 5]
+select json_unquote(json_extract(val->'$.hobby', '$[0].item.name')) from test; -- book
+select json_unquote(json_extract('[1, 2, 3]', '$[0]')); -- 1
+
+-- 如果存放json的字段类型为字符串，取出数据时可进行转换编码
+select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using utf8mb4); -- 张三
+```
 
 ## Oracle
 

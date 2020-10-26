@@ -241,9 +241,10 @@ exec p(0, 0);
     - `text`		文本型(String)。最大长度为65535个字节(2^31-1)，其他同tinytext
     - `longtext`	长文本型(String)。最大4G，相当于Oracle里的long，其他同tinytext
     - `tinyblob/blob/longblob` 二进制数据(byte[])
+    - `json`        JSON格式(String)。大小基于参数max_allowed_packet，参考[JSON数据类型](/_posts/db/sql-ext.md#JSON数据类型)
 - Oracle数据结构
     - `char`		定长字符串；存取时效率高，空间可能会浪费
-    - `varchar2`	变长字符串,大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
+    - `varchar2`	变长字符串，大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
     - `long`		变长字符串，大小可达到2G
     - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
     - `date`		日期(插入时，sysdate即表示系统当前时间；select时默认展示年月日，要想展示时分秒则需要to_char转换)

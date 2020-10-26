@@ -93,6 +93,8 @@ ${(appVersion)!}
 
 ### 数据类型
 
+- 在模板处理时，会将Java类型包装为对应的TemplateModel实现。比如将一个String包装为`SimpleScalar`(对应接口`TemplateScalarModel`)来存储同样的值。对于每个Java类型，具体选择什么TemplateModel实现去包装，取决于对象包装器（ObjectWrapper）的实现策略
+
 #### 数组
 
 - `?split(",")` 分割字符串获取数组
@@ -105,6 +107,27 @@ ${(appVersion)!}
 <!-- 分割字符串获得数组 -->
 <#list "张三,李四,王五"?split(",") as name>
     ${name}<#if name_has_next>,</#if>
+</#list>
+```
+
+#### Map
+
+```html
+<!--创建一个map，注意在freemarker中，map的key只能是字符串来作为key-->
+<#assign userMap={"1": "刘德华", "2": "张学友"}/>
+
+<!-- 获取map中的值、keys、values -->
+${userMap["1"]}
+<#assign keys=userMap?keys/>
+<#assign values=userMap?values/>
+
+<!-- 遍历map -->
+<#list userMap?keys as key>
+    key: ${key}, value: ${userMap["${key}"]}
+</#list>
+<!-- 直接遍历map的values -->
+<#list userMap?values as value>
+    ${value}
 </#list>
 ```
 
@@ -148,7 +171,181 @@ ${dashedToCamel("___caMel___to_under_scOre_teSt____")} <!-- 结果为：caMelToU
 
 ```
 
-## 解析模板字符串
+## 配置
+
+- 基本使用
+
+```java
+// 1.基本配置
+Configuration cfg = new Configuration(Configuration.VERSION_2_3_23); //通过FreeMarker的Configuration对象可以读取ftl文件
+cfg.setDefaultEncoding("UTF-8");
+
+// 2.基于Classpath设置模板加载器
+cfg.setClassForTemplateLoading(Main.class, "/abc"); // 设置模板文件的目录，classpath:/abc
+Template template = cfg.getTemplate("test.ftl"); // classpath:/abc/test.ftl => ${name} => smalle
+template.process(MapUtil.builder(new HashMap<String, Object>()).put("name", "smalle").build(),
+                new PrintWriter(System.out));
+
+// 3.基于字符串设置模板加载器
+StringTemplateLoader stringLoader = new StringTemplateLoader();
+stringLoader.putTemplate("template", "${name}");
+cfg.setTemplateLoader(stringLoader);
+Template template = cfg.getTemplate("template", "utf-8");
+
+// 4.共享变量
+    // 共享变量是为所有模板定义的变量(通过配置对象渲染时的所有模板。如a引入了b，此时a和b中均可使用此共享变量)
+    // 如果配置对象在多线程环境中使用，不要使用 `TemplateModel` 实现类来作为共享变量，因为它是不是线程安全的
+    // 用户自定义指令使用时需要用 @ 来代替 #
+cfg.setSharedVariable("company", "Foo Inc.");
+cfg.setSharedVariable("sq_repeat", new SqRepeatDirective()); // 自定义指令，参考下文
+```
+
+## 自定义指令和自定义函数
+
+- 使用(定义如下文) [^1]
+
+```html
+<!-- classpath:/test.ftl模板文件 -->
+${name}
+
+<#assign ctx = {"k1": "v1"}>
+<@sq_repeat count=5 hr=false ctx=ctx; step>
+    ${step}. ${name}
+</@>
+
+${sqSum(1, 2, 3, 4)}
+
+<!-- 结果打印 -->
+ctx = {"k1": "v1"}
+smalle
+
+    1. smalle
+    2. smalle
+    3. smalle
+    4. smalle
+    5. smalle
+
+10
+```
+- 定义如下
+
+```java
+public class Main {
+    public static void main(String[] args) throws IOException, TemplateException {
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
+        cfg.setClassForTemplateLoading(Main.class, "/");
+        cfg.setSharedVariable("sq_repeat", new SqRepeatDirective());
+
+        Template template = cfg.getTemplate("test.ftl");
+        Map<String, Object> root = MapUtil.builder(new HashMap<String, Object>()).put("name", "smalle").build();
+        root.put("sqSum", new SqSumMethod());
+
+        template.process(root, new PrintWriter(System.out));
+    }
+}
+
+/**
+ * 自定义函数
+ */
+class SqRepeatDirective implements TemplateDirectiveModel {
+    protected static BeansWrapper build = new BeansWrapperBuilder(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).build();
+
+    // 循环次数
+    private static final String COUNT = "count";
+    // 是否需要用hr标签间隔
+    private static final String HR = "hr";
+    // 内置变量名
+    private static final String VARIABLE_NAME = "item";
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public void execute(Environment env, Map params, TemplateModel[] loopVars,
+                        TemplateDirectiveBody body) throws TemplateException, IOException {
+        // 扩展说明1：params中可以拿到ftl中定义的参数，如此处的ctx(map)
+        System.out.println("ctx = " + params.get("ctx")); // ctx = {"k1": "v1"}
+        // 扩展说明2：本类可接受SqlSession等访问数据库对象，然后数据库中保存好sql语句模板(基于ftl写的sql语句拼接)，此时根据接受的参数(如对应sql的查询条件)，从而执行sql获取数据。然后将数据在body中渲染
+
+        // 获取count参数，并校验是否合法
+        TemplateModel countModel = (TemplateModel) params.get(COUNT); // 获取标签参数值的包装
+        if (countModel == null) {
+            throw new TemplateModelException("缺少必须参数count！");
+        }
+        if (!(countModel instanceof TemplateNumberModel)) {
+            throw new TemplateModelException("count参数必须为数值型！");
+        }
+        int count = ((TemplateNumberModel) countModel).getAsNumber().intValue();
+        if (count < 0) {
+            throw new TemplateModelException("count参数值必须为正整数！");
+        }
+
+        // 获取hr参数，并校验是否合法
+        boolean hr = false;
+        TemplateModel hrModel = (TemplateModel) params.get(HR);
+        if (hrModel != null) {
+            if (!(hrModel instanceof TemplateBooleanModel)) {
+                throw new TemplateModelException("hr参数值必须为布尔型！");
+            }
+            hr = ((TemplateBooleanModel) hrModel).getAsBoolean();
+        }
+
+        // 检验内嵌内容是否为空
+        if (body == null) {
+            throw new RuntimeException("内嵌内容不能为空！");
+        }
+
+        // 最多只允许一个循环变量
+        if (loopVars.length > 1) {
+            throw new TemplateModelException("最多只允许一个循环变量！");
+        }
+
+        // 循环渲染内嵌内容
+        TemplateModel oldVar = env.getVariable(VARIABLE_NAME);
+        for (int i = 0; i < count; i++) {
+            // 用第一个循环变量记录循环次数
+            if (loopVars.length == 1) {
+                loopVars[0] = new SimpleNumber(i + 1);
+            }
+
+            // 将i进行封装，并设置成此标签内置变量
+            TemplateModel itemModel = build.wrap(i);
+            env.setVariable(VARIABLE_NAME, itemModel);
+
+            // 上面设置循环变量的操作必须在该render前面，因为内嵌内容中使用到了该循环变量
+            body.render(env.getOut());
+            if (hr) {
+                env.getOut().write("<hr>");
+            }
+
+            // 还原此名称的变量
+            env.setVariable(VARIABLE_NAME, oldVar);
+        }
+    }
+}
+
+/**
+ * 自定义函数
+ */
+class SqSumMethod implements TemplateMethodModelEx {
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Object exec(List arg0) throws TemplateModelException {
+        if (arg0 == null || arg0.size() == 0) {
+            return new SimpleNumber(0);
+        }
+
+        double sum = 0d;
+        double tmp;
+        for (int i = 0; i < arg0.size(); i++) {
+            tmp = Double.valueOf(arg0.get(i).toString());
+            sum += tmp;
+        }
+        return new SimpleNumber(sum);
+    }
+}
+```
+
+## 工具类
 
 ```java
 public class FtlU {
@@ -238,7 +435,7 @@ public class FtlU {
 }
 ```
 
-## 自定义工具方法
+## 工具方法
 
 ```html
 <#-- freemarker 的一些工具方法 -->
@@ -268,3 +465,13 @@ public class FtlU {
   <#return camelToChar(str, "-", case)>
 </#function>
 ```
+
+
+
+---
+
+参考文章
+
+[^1]: https://www.cnblogs.com/genein/p/5271113.html
+
+
