@@ -210,7 +210,7 @@ ${name}
 
 <#assign ctx = {"k1": "v1"}>
 <@sq_repeat count=5 hr=false ctx=ctx; step>
-    ${step}. ${name}
+    ${step}. ${name} = ${item}
 </@>
 
 ${sqSum(1, 2, 3, 4)}
@@ -219,11 +219,11 @@ ${sqSum(1, 2, 3, 4)}
 ctx = {"k1": "v1"}
 smalle
 
-    1. smalle
-    2. smalle
-    3. smalle
-    4. smalle
-    5. smalle
+    1. smalle = smalle
+    2. smalle = smalle
+    3. smalle = smalle
+    4. smalle = smalle
+    5. smalle = smalle
 
 10
 ```

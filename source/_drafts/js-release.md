@@ -282,7 +282,7 @@ new Promise(function (resolve, reject) {
         let hello = async () => { return "Hello" }
         hello().then((value) => console.log(value)) // 或者 hello().then(console.log)
         ```
-    - async、await
+    - async、await、Promise.all
 
         ```js
         function timeoutPromise(interval) {
@@ -311,7 +311,7 @@ new Promise(function (resolve, reject) {
             await timeoutPromise3;
         }
 
-        // 方式三：耗时3002。Promise.all
+        // **方式三**：耗时3002。Promise.all
         async function timeTest3() {
             const timeoutPromise1 = timeoutPromise(3000);
             const timeoutPromise2 = timeoutPromise(3000);

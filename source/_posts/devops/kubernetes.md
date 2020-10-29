@@ -459,7 +459,7 @@ Basic Commands (Intermediate):
     --force --grace-period=0 # 删除资源状态一直是Terminating，可加以上参数
     # kubectl delete pods sq-nginx-75875cf46f-829nm # 删除某个pod
     # kubectl delete -f sq-pod.yaml # 基于配置文件删除资源
-    # kubectl get pods -n rook-ceph | grep Terminating | awk '{print $1}' | xargs kubectl delete pods -n rook-ceph --force --grace-period=0 # 批量删除pods
+    # kubectl get pods -n devops | grep Terminating | awk '{print $1}' | xargs kubectl delete pods -n devops --force --grace-period=0 # ***批量强制删除Terminating状态的pods***
 
 # 部署相关
 Deploy Commands:
@@ -704,7 +704,7 @@ kubectl get pods cm-acme-http-solver-9vxsd -o go-template --template='{{.metadat
     - `strategy` Deployment创建pod的策略(如更新pod配置时)
         - `type` 取值：Recreate、RollingUpdate(默认。滚动更新：在新Pod进入readiness就绪之前，仍然由旧Pod提供服务；当新Pod就绪后，则移除就Pod)
         - `rollingUpdate`
-            - `maxSurge` 操作pod时，可控制的最大数量，如修改配置后可能创建新版本pod和依次删除历史pod同时进行。(DaemonSet无)
+            - `maxSurge` 操作pod时，可控制的最大数量，如修改配置后可能创建新版本pod和依次删除历史pod同时进行。(DaemonSet无，如果等于0则类似Recreate)
             - `maxUnavailable` 更新配置时，不可用的最大数量
     - `updateStrategy` DaemonSet更新pod策略(类似strategy)
     ---
@@ -1091,6 +1091,14 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
         - 分布式存储 `glusterfs`、`rbd`、`ceph`/`rook`
         - 云存储 `EBS`、`Azure Disk`
     - 存储选型：私有云可考虑使用`Rook`/`Ceph` [^8]
+- 存储卷挂载过程
+    - provision，卷分配成功，这个操作由PVController完成
+    - attach，卷挂载在对应worker node，这个操作为AttachDetachController完成
+    - mount，卷挂载为文件系统并且映射给对应Pod，这个操作为VolumeManager完成
+- 存储卷卸载过程
+    - umount，卷已经和对应worker node解除映射，且已经从文件系统umount
+    - detach，卷已经从worker node卸载
+    - recycle，卷被回收
 - `kubectl explain pod.spec.volumes` 查看k8s支持的存储类型及配置
     - `emptyDir` 临时目录存储，取值`{}`时，则子字段为默认值。**Pod删除，数据也会丢失**，容器的crashing事件并不会导致emptyDir中的数据被删除
     - `hostPath` 宿主机目录存储，重新创建Pod后数据还在，但各节点目录不共享。[doc](https://kubernetes.io/docs/concepts/storage/volumes#hostpath)
@@ -1831,6 +1839,7 @@ spec:
 - 副本集(ReplicaSet)
 - 服务(Service)
 - 配置与存储(Secret)
+- **有时候存在界面上资源的状态显示和命令行不一致**
 
 #### 安装
 
@@ -1953,13 +1962,14 @@ kubectl config use-context sa-admin@kubernetes --kubeconfig=./cluster-sa-admin.c
     - 可查看对应pod的日志
 - 报错`Back-off restarting failed container`
     - 可在Deploy中(实际是Pod)覆盖镜像的command，即加`command: [ "/bin/sh", "-ce", "sleep 1h" ]`(-c参数中命令可以使用`\n`进行换行)从而先进入容器，然后手动启动，并查看日志
-- 报错`Volume is already exclusively attached to one node and can't be attached to another`(且停留时间非常长) [^10] (未测试，实际是过几分钟便自动恢复了)
-    - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
-    - 有时候无watcher，但是提示被其他节点占用，后来发现改副本集包含一个卡在Running状态的pod，因此重新创建pod一致失败。此时可以考虑将副本集删除掉会自动创建新副本集
-    - 参考：https://cloud.tencent.com/developer/article/1469533
-- 报错`MountVolume.WaitForAttach failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd image kube/kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 is still being used`
+- 报错`Multi-Attach error for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" Volume is already exclusively attached to one node and can't be attached to another` [^10]
     - 手动移除rbd image watcher，参考：[ceph.md#常见问题(无法删除镜像)](/_posts/devops/ceph.md#常见问题)
     - 将原rbd观察者加入到黑名单后，新的观察者即可自动添加(历史数据不会丢失)
+    - 有时候无watcher，但是提示被其他节点占用，后来发现改副本集包含一个卡在Running状态的pod，因此重新创建pod一致失败。此时可以考虑将副本集删除掉会自动创建新副本集
+    - 有时候删掉副本集之后，还是无法创建成功，反而会出现两个Pod（老的一个Pod在Dashboard上显示Running，在命令行显示Terminating）。此时可尝试在命令行强制删除老的Pod，之后可考虑重新创建副本集
+    - 对于ReadWriteOnce类似的PVC，可设置Deployment的strategy=Recreate，或设置strategy=RollingUpdate和strategy.rollingUpdate.maxSurge=0(表示滚动更新时不创建额外的pod，其实就是禁止滚动更新)
+- 报错`MountVolume.WaitForAttach failed for volume "pvc-bc0366a4-56d4-4a42-a610-e3d7075499b1" : rbd image kube/kubernetes-dynamic-pvc-216c730c-2555-11ea-93a3-8ab700667926 is still being used`。解决方案同上
+- 报错`Unable to attach or mount volumes: unmounted volumes`。解决方案同上
 - 报错`pod has unbound immediate PersistentVolumeClaims`
     - 情况一：此时pod日志显示`AttachVolume.Attach succeeded for volume "pvc-b9668e8c-6564-4084-9192-d431393ff201"`，且PV和PVC均正常显示Bound(PV也符合PVC的要求)。后发现pod日志只显示`Pulling image "docker.io/bitnami/mongodb:4.2.6"`，并未显示`Successfully pulled image "docker.io/bitnami/mongodb:4.2.6"`，后发现对接节点确实没有相应镜像，由此推断镜像获取失败导致
     - 情况二：一直卡在`pod has unbound immediate PersistentVolumeClaims`，无后续日志 [^12] [^13] [^10]

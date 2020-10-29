@@ -214,6 +214,119 @@ nvm ls # 查看本地安装的Node版本，*号代表当前使用版本
 nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
 ```
 
+## vue 命令行工具(vue-cli)
+
+- 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
+
+```bash
+npm install -g @vue/cli
+vue --version # @vue/cli 4.3.0
+```
+
+## eslint格式化
+
+- 直接安装
+- 基于vue-cli安装，参考：https://eslint.vuejs.org/
+    - `vue add eslint` 基于vue安装插件，选择Standard、Lint on save
+    - 安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)
+    - 安装后会在package.json中增加如下配置，安装对应的包到项目目录，并增加文件`.eslintrc.js`和`.editorconfig`
+
+        ```json
+        "scripts": {                                            
+            "lint": "vue-cli-service lint",
+        },
+        "devDependencies": {
+            "@vue/cli-plugin-eslint": "~4.5.0",
+            "@vue/eslint-config-standard": "^5.1.2",
+            "eslint": "^6.7.2",
+            "eslint-plugin-import": "^2.20.2",
+            "eslint-plugin-node": "^11.1.0",
+            "eslint-plugin-promise": "^4.2.1",
+            "eslint-plugin-standard": "^4.0.0",
+            "eslint-plugin-vue": "^6.2.2"
+        }
+        ```
+- `.eslintrc.js` 放在vue项目根目录，详细参考：https://cn.eslint.org/ [^10]
+
+```js
+module.exports = {
+  root: true,
+  'extends': [
+    'plugin:vue/essential',
+    '@vue/standard'
+  ],
+  rules: {
+    // allow async-await
+    'generator-star-spacing': 'off',
+    // allow debugger during development
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'vue/no-parsing-error': [2, {
+      'x-invalid-end-tag': false
+    }],
+    'no-undef': 'off',
+    'camelcase': 'off',
+    // function函数名和()见增加空格
+    "space-before-function-paren": ["error", {
+        "anonymous": "always",
+        "named": "always",
+        "asyncArrow": "always"
+    }],
+    // 不强制使用 ===
+    "eqeqeq": ["error", "smart"],
+    // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
+    "operator-linebreak": ["error", "before"],
+  },
+  parserOptions: {
+    parser: 'babel-eslint'
+  }
+}
+```
+- `.eslintignore` 放在vue项目根目录
+
+```bash
+# 不进行校验的的文件或文件夹
+src/components
+```
+- vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
+
+## .editorconfig格式化
+
+- **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**。该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的。**此插件配置的格式优先于vscode配置的，如缩进**
+- Eslint 和 .editorconfig
+    - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒。而 .editorconfig 更偏向于代码风格，如缩进等
+    - 二者并不冲突，同时配合使用可以使代码风格更加优雅
+- `.editorconfig` 放在vue项目根目录
+
+```ini
+# http://editorconfig.org
+root = true
+
+[*]
+#缩进风格：空格
+indent_style = space
+#缩进大小2
+indent_size = 2
+#换行符lf
+end_of_line = lf
+#字符集utf-8
+charset = utf-8
+#是否删除行尾的空格
+trim_trailing_whitespace = true
+#是否在文件的最后插入一个空行
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+```
+
+
+
+
+
+
 
 
 ---

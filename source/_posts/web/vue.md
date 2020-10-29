@@ -1325,7 +1325,7 @@ const routers = [{
 ```js
 const router = new VueRouter({
   routes: [
-    // 动态路径参数，以冒号开头，通过route.params.userId传递参数。从路由中获取的参数均为字符串，Id一般需要通过Number()转换一下，防止后面 === 比较不正确
+    // 动态路径参数，以冒号开头，通过route.params.userId传递参数。从路由中获取的参数均为字符串，Id一般需要通过Number()转换一下，防止后面 === 比较不正确，新增可用0
     { path: '/user/:userId', component: User }
   ]
 })
@@ -1759,7 +1759,7 @@ render() {
 }
 ```
 
-## vue-cli v3
+## vue-cli
 
 - [官网](https://cli.vuejs.org/zh/)
 - 安装

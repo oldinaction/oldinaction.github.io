@@ -22,7 +22,7 @@ tags: [desctop]
 # 运行官方示例
 git clone https://github.com.cnpmjs.org/electron/electron-quick-start.git
 cd electron-quick-start
-cnpm install
+npm install
 npm start
 ```
 
@@ -32,14 +32,15 @@ npm start
   - 在自己的 vue 的项目中引入插件，然后打包（本文案例）
   - 将自己的 vue 项目打包，放到官方的 demo 文件中，改变打包路径
   - 通过`simulatedgreg/electron-vue`等插件创建vue项目，则包含了Electron
+- **大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载**。可使用mirror-config-china插件将常用组件的镜像地址全部加入到了上述文件夹。**electron项目用cnpm可能会出现一些奇怪的现象**
 - 案例（本案例基于electron-packager打包，不过更推荐electron-builder，具体见下文）
 
 ```bash
 # 之前已经基于vue-cli的项目，如基于iview-admin实现的。现在基于Electron官方demo进行集成
 
 # 1.添加依赖
-cnpm install electron --save-dev
-cnpm install electron-packager --save-dev # 这个是打成exe文件的插件。如果是node v8.x可使用版本v14.2.1，而v15.x需要node v10.x。还可使用electron-builder进行打包
+npm install electron --save-dev
+npm install electron-packager --save-dev # 这个是打成exe文件的插件。如果是node v8.x可使用版本v14.2.1，而v15.x需要node v10.x。还可使用electron-builder进行打包
 
 # 参考上文简单使用下载electron-quick-start项目
 # 2.把electron-quick-start项目中的main.js和preload.js（老的示例可能没有）复制到vue的public文件中(vue打包的模板目录)，并将main.js重命名为index.js

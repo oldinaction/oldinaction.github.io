@@ -531,9 +531,9 @@ tags: [mybatis, springboot]
 
 	```xml
     <!-- （1）xml方式 -->
-	<!-- <if test='dataSourceList != null and dataSourceList.size() > 0 and dataSourceList.get(0).dataSource != null'> -->
+	<!-- <if test='dataSourceList != null and dataSourceList.size() >= 1'> -->
     <!-- （2）@Select方式 -->
-	<if test='submitTm != null and submitTm.length >= 1 and submitTm[0] != null'>
+	<if test='submitTm != null and submitTm.length >= 1'>
         <foreach collection="submitTm" index="i" item="item">
             <if test='i == 0 and item != null'>and v.submit_tm &gt;= #{item}</if>
             <if test='i == 1 and item != null'>and v.submit_tm &lt;= #{item}</if>

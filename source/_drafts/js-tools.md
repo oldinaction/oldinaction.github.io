@@ -6,12 +6,23 @@ categories: js
 tags: tools
 ---
 
-## vxe-table
+## 基础类
+
+### cross-env 启动时增加环境变量
+
+### 省市区级联
+
+- [vue-area-linkage](https://github.com/dwqs/vue-area-linkage) 省市区选择器(需结合省市区数据)
+- [area-puppeteer](https://github.com/dwqs/area-puppeteer) 省市区数据
+
+## UI类
+
+### vxe-table
 
 - 一款基于Vue的表格插件，支持大量数据渲染，编辑表格等功能
 - [github](https://github.com/x-extends/vxe-table)、[doc](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/start/install)
 
-### 案例
+#### 案例
 
 - 表格显示/隐藏后样式丢失问题
   - `sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
@@ -45,7 +56,264 @@ this.$refs.tableRef.loadData(this.allData)
 this.$refs.tableRef.loadData(this.allData);
 ```
 
+## 底层硬件类
+
+### Clipboard 复制内容到剪贴板
+
+- 必须要绑定Dom
+- 必须要触发点击事件（触发其他Dom的点击事件，然后js触发目的dom的点击事件也可）
+
+### 扫码/条码生成
+
+#### H5页面扫码
+
+- 在微信浏览器打开H5页面，可引入微信的js SDK解决（需域名和微信公众号绑定）
+- 在系统浏览器打开H5页面
+    - 基于[jsQR](https://github.com/cozmo/jsQR)、[vue-qrcode-reader(本质基于jsQR)](https://github.com/gruhn/vue-qrcode-reader)
+        - 调取摄像头(进行录像)识别二维码，每个页面需要同意调用摄像头(网页可设置永久同意)
+        - 优点是无需拍照确认识别(会自动识别，出错率低)，**但是必须要https才行**
+    - 基于[jsqrcode](https://github.com/LazarSoft/jsqrcode)库，可进行二维码/条形码解析，可生成条形码
+        - 参考：https://www.cnblogs.com/yisuowushinian/p/5145262.html，此方案在前端 js 解析二维码，依赖`jsqrcode`
+        - 这个库已经支持在浏览器端呼起摄像头的操作了，但是依赖一个叫`getUserMedia`的属性，该属性移动端的浏览器支持的都不是很好，低版本只能间接的上传图片的方式解析二维码
+        - 此插件需要配合 zepto.js 或者 jQuery.js 使用(主要用来拍照的，如果使用uni-app则不需要此依赖，可使用uni.chooseImage拍照)；webpack打包需要canvas
+            - 安装 `cnpm install jsqrcode -S`、`cnpm install canvas -S`
+        - 扫码时无扫码框，需要点击拍照 - 确定识别（iphone7扫二维码成功，条形码不成功）
+        - 缺点需要确认拍照进行识别，拍照需要清晰，出错率高
+    - 基于`quagga.js`库，可进行条形码解析
+        - 如uni-app插件：https://ext.dcloud.net.cn/plugin?id=1619
+
+#### H5页面扫码案例（基于uni-app）
+
+- 扫码流程
+    - 通过微信浏览器访问的，默认调用微信扫码。需要引入`weixin-js-sdk`
+    - 通过手机普通浏览器访问的，如果是https模式访问，则调用摄像头录像扫码，需引入`vue-qrcode-reader`
+    - 如果是普通浏览器访问，且以http默认访问，则调用拍照扫码，需引入`jsqrcode`和`canvas`
+- scan.vue
+
+```vue
+<template>
+  <div>
+	<text class="lg cuIcon-scan margin-right" @click="handleScan" style="font-size: 40upx;"></text>
+	
+    <span v-if="showQrcode">
+		<view class="cu-modal show" v-show="showQrcodeDialog">
+			<view class="cu-dialog">
+				<view class="cu-bar bg-white justify-end scan-close">
+					<view class="action" @tap="closeDialog">
+						<text class="cuIcon-close text-red"></text>
+					</view>
+				</view>
+				<view class="bg-white">
+					<qrcode-stream @decode="onDecode" @init="onInit" />
+				</view>
+			</view>
+		</view>
+	</span>
+  </div>
+</template>
+
+<script>
+import wechat from '@/utils/wechat.js' 
+import { QrcodeStream } from 'vue-qrcode-reader' // "vue-qrcode-reader": "^2.3.9"
+let Canvas = require('canvas') // "canvas": "^2.6.1"
+let jsqrcode = require('jsqrcode')(Canvas) // "jsqrcode": "^0.0.7"
+
+export default {
+  components: { QrcodeStream },
+  props: {
+	  callback: {
+		  type: Function,
+		  default: () => {}
+	  }
+  },
+  data () {
+    return {
+	  showQrcode: false,
+	  showQrcodeDialog: false
+    }
+  },
+  methods: {
+    onInit(promise) {
+      promise.then(() => {
+		this.showQrcodeDialog = true
+      }).catch(error => {
+		console.log(error);
+		this.showQrcode = false
+		
+		let errorMessage = ""
+		if (error.name === 'NotAllowedError') {
+		  errorMessage = '请允许访问摄像头'
+		} else if (error.name === 'NotFoundError') {
+		  errorMessage = '此设备无摄像头'
+		} else if (error.name === 'NotSupportedError') {
+		  errorMessage = 'Seems like this page is served in non-secure context (HTTPS, localhost or file://)'
+		} else if (error.name === 'NotReadableError') {
+		  errorMessage = '无法访问摄像头，请确认摄像头是否正常工作'
+		} else if (error.name === 'OverconstrainedError') {
+		  errorMessage = '摄像头不兼容'
+		} else {
+		  errorMessage = 'UNKNOWN ERROR: ' + error.message
+		}
+		
+		// 尝试使用jsqrcode
+		uni.chooseImage({
+			sourceType: ['camera'],
+			sizeType: 'original',
+			count: 1,
+			success: (res) => {
+				let image = new Image()
+				let that = this
+				image.onload = function() {
+				  let result
+				  try {
+				    result = jsqrcode.decode(image)
+				    that.callback(result)
+				  } catch(e) {
+					console.error(e);
+					
+					errorMessage += '；请确认是否为有效二维码或机器不兼容'
+					uni.showToast({
+						title: errorMessage,
+						icon: 'none',
+						duration: 4000
+					})
+				  }
+				}
+				image.src = res.tempFilePaths
+			},
+			fail: (err) => {
+				console.log(err);
+			}
+		})
+      })
+    },
+	onDecode (result) {
+		this.closeDialog()
+		this.callback(result)
+	},
+	handleScan () {
+		if(uni.getStorageSync("apsm-h5-wx")) {
+			wechat.scan((res) => {
+				this.callback(res)
+			})
+		} else {
+			this.showQrcode = true
+		}
+	},
+	closeDialog() {
+		this.showQrcodeDialog = false
+		this.showQrcode = false
+	}
+  }
+}
+</script>
+<style>
+.scan-close {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 1;
+	background: transparent;
+}
+</style>
+```
+- wechat.js
+
+```js
+// #ifdef H5
+import wx from 'weixin-js-sdk';
+// #endif
+
+const wechat = {
+    scan(callback) {
+        if(uni.getStorageSync("apsm-h5-wx")) {
+            wx.scanQRCode({
+                needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果
+                scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                success: function (res) {
+                    callback(res.resultStr)
+                },
+                error: function(res) {
+                    uni.showToast({
+                        title: res,
+                        icon: 'none'
+                    });
+                }
+            });
+        } else {
+            uni.showToast({
+                title: '仅支持在微信中进行扫码',
+                icon: 'none'
+            });
+        }
+    }
+}
+export default wechat
+```
+- 调用
+
+```vue
+<template>
+    <div>
+        <Scan :callback="handleScan"></Scan>
+    </div>
+</template>
+
+<script>
+export default {
+    methods: {
+        handleScan (res) {
+            if(res) {
+                uni.navigateTo({
+                    url: './person?id=' + res
+                });
+            } else {
+                uni.showToast({
+                    title: "未知二维码",
+                    icon: 'none'
+                });
+            }
+        }
+    }
+}
+</script>
+```
+
+#### 条码生成
+
+- 相关插件
+    - `jsqrcode` 可生成二维码
+    - `jsbarcode` 可生成条形码
+    - 对应的vue插件
+        - [vue-barcode](https://github.com/lindell/vue-barcode)
+        - [vue-qr](https://github.com/Binaryify/vue-qr)
+        - 使用相对简单，参考：https://blog.csdn.net/qq_44833743/article/details/108773476
+
+### 打印
 
 
+### 生成PDF
 
+#### jsPDF
+
+- [github](https://github.com/MrRio/jsPDF)、[doc](https://rawgit.com/MrRio/jsPDF/master/docs/index.html)
+- 使用
+
+### 生成ZIP文件
+
+npm install jszip -S
+npm install file-saver -S
+
+### 网页保存为图片
+
+https://github.com/niklasvh/html2canvas
+
+https://segmentfault.com/a/1190000011478657
+
+
+- html2canvas操作隐藏元素
+
+    <div style="position: absolute; opacity: 0.0;">
+    Failed to execute 'createPattern' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0.
+    https://stackoverflow.com/questions/20605269/screenshot-of-hidden-div-using-html2canvas
 

@@ -897,6 +897,7 @@ pipeline {
                                         }
                                         sh """
                                         cd ${packageJsonDir}
+                                        # npm i mirror-config-china --registry=https://registry.npm.taobao.org # electron等应用可能需要
                                         npm install --registry=${G_NPM_REGISTRY}
                                         ${context.npmBuildCommand}
                                         """
@@ -1141,7 +1142,7 @@ spec:
         - cat
       tty: true
     - name: nodejs # node镜像
-      image: bzyep49h.mirror.aliyuncs.com/library/node:lts-alpine3.11
+      image: bzyep49h.mirror.aliyuncs.com/library/node:10.23.0
       command:
         - cat
       tty: true

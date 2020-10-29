@@ -71,6 +71,9 @@ tags: [regex, javascript, java]
 
 // 用户名（4-16位）
 /^[a-zA-Z0-9_-]{4,16}$/
+
+// JAVA和JS字符串每4个字符添加空格
+// https://www.cnblogs.com/eternityz/p/13686419.html
 ```
 
 ## java

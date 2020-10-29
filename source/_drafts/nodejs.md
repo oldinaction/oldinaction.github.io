@@ -11,6 +11,23 @@ tags: [nodejs]
 ### 安装
 
 - [nodejs官网](https://nodejs.org/zh-cn/)
+- centos
+
+```bash
+wget https://npm.taobao.org/mirrors/node/v10.23.0/node-v10.23.0-linux-x64.tar.gz
+tar -zxvf node-v10.23.0-linux-x64.tar.gz -C /opt
+ln -s /opt/node-v10.23.0-linux-x64/bin/node /usr/local/bin/
+ln -s /opt/node-v10.23.0-linux-x64/bin/npm /usr/local/bin/
+ln -s /opt/node-v10.23.0-linux-x64/bin/npx /usr/local/bin/
+chown -R root:root /opt/node-v10.23.0-linux-x64 # 文件夹权限默认是500:500
+node -v
+
+# 提供node、npm可通过sudo执行
+sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node /usr/bin/node
+sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node /usr/lib/node
+sudo ln -s /opt/node-v10.23.0-linux-x64/bin/npm /usr/bin/npm
+sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node-waf /usr/bin/node-waf
+```
 
 ### 多版本管理
 

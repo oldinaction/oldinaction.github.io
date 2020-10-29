@@ -113,9 +113,9 @@ this.$refs.mySelect.visible = true
 </CheckboxGroup>
 ```
 
-### Form
+### Table
 
-#### 去掉自带扩展行图标，换成按钮控制
+- 去掉自带扩展行图标，换成按钮控制
 
 ![iview-expand.png](/data/images/web/iview-expand.png)
 
@@ -198,18 +198,6 @@ this.$refs.mySelect.visible = true
     }
   }
 </style>
-```
-
-#### FormItem可嵌套使用
-
-```html
-<!-- 可让时间组件在一行，且可进行验证 -->
-<FormItem label="时间" prop="etdTime">
-    <DatePicker :value="editForm.etdTime" @on-change="v => editForm.etdTime = v" style="width: 210px;"></DatePicker>-
-    <FormItem prop="etdTimeEnd" style="display: inline-block;">
-        <DatePicker :value="editForm.etdTimeEnd" @on-change="v => editForm.etdTimeEnd = v" style="width: 200px;"></DatePicker>
-    </FormItem>
-</FormItem>
 ```
 
 ### Page 假分页
@@ -464,7 +452,7 @@ iframe {
 </style>
 ```
 
-## Form
+### Form
 
 - 表单验证
   
@@ -505,6 +493,23 @@ iframe {
         </FormItem>
     </Col>
     </Row>
+
+    <!-- FormItem可嵌套使用，但不能嵌套验证 -->
+    <FormItem label="时间">
+        <Row type="flex" justify="start">
+            <Col span="12" style="width: 210px;">
+                <FormItem prop="etdTime">
+                    <DatePicker :value="editForm.etdTime" @on-change="v => editForm.etdTime = v" style="width: 210px;"></DatePicker>
+                </FormItem>
+            </Col>
+            <Col span="1" style="text-align: center">-</Col>
+            <Col span="11">
+                <FormItem prop="etdTimeEnd">
+                    <DatePicker :value="editForm.etdTimeEnd" @on-change="v => editForm.etdTimeEnd = v" style="width: 160px;"></DatePicker>
+                </FormItem>
+            </Col>
+        </Row>
+    </FormItem>
 </Form>
 ```
 
