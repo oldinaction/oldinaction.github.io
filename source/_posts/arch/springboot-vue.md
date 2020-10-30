@@ -134,7 +134,7 @@ server {
 // 如果加了此配置仍然提示跨域，可检查是否有其他Filter已经返回了此请求
 @Bean
 public Filter corsFilter() {
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource(); // org.springframework.web.cors
     CorsConfiguration config = new CorsConfiguration();
     config.addAllowedOrigin("*");
     config.addAllowedMethod("*");

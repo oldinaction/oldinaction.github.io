@@ -104,10 +104,11 @@ this.$refs.mySelect.visible = true
 ### Checkbox
 
 ```html
-<!-- Checkbox标签中有值则显示此值，无值则显示label值；传入到后台的是永远是label值 -->
-<Checkbox label="香蕉" value="xj">显示值</Checkbox>
+<!-- label只在单独使用时有效；单独使用只能用value或v-model（且严格判断为true才勾选，为1不勾选） -->
+<Checkbox value="xj">显示值</Checkbox>
 
 <!-- ***** 此处v-model必须绑定顶级变量，如果绑定formData.typeCodeList则容易出现值不改变的问题 ***** -->
+<!-- Checkbox标签中有值则显示此值，无值则显示label值；传入到后台的是永远是label值 -->
 <CheckboxGroup v-model="typeCodeList">
     <Checkbox v-for="item in searchForm.typeCodeList" :label="item.value" :key="item.value" border>{{ item.label }}</Checkbox>
 </CheckboxGroup>
