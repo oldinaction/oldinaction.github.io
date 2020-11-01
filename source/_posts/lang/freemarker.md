@@ -466,6 +466,100 @@ public class FtlU {
 </#function>
 ```
 
+## 源码解析
+
+```java
+// 入口方法：template中可能嵌套了其他模板，但是整体认为是一次渲染
+template.process(map, new PrintWriter(System.out));
+
+// 1.createProcessingEnvironment创建此次渲染的Environment实例；process渲染模板
+public void process(Object dataModel, Writer out) throws TemplateException, IOException {
+    this.createProcessingEnvironment(dataModel, out, (ObjectWrapper)null).process();
+}
+
+// 2.1 createProcessingEnvironment
+TemplateModel wrappedDataModel = wrapper.wrap(dataModel); // DefaultObjectWrapper wrapper
+new Environment(this, (TemplateHashModel)dataModelHash, out); // environment.rootDataModel <= dataModelHash <= map
+
+// 2.1.1 wrapper.wrap
+if (obj instanceof Map) {
+    // 如果this.useAdaptersForContainers=true则使用dataModelHash = map，否则通过SimpleHash进行clone（即调用process后，整个渲染使用传入模型数据map的镜像）
+    // cfg.setIncompatibleImprovements(Configuration.VERSION_2_3_22); // 只要设置的版本大于等于 VERSION_INT_2_3_22 则 this.useAdaptersForContainers = true （即调用process后，传入的map在中途可已经修改，且修改后会影响之后的渲染。如自定义标签中进行使用此特点）
+    return (TemplateModel)(this.useAdaptersForContainers ? DefaultMapAdapter.adapt((Map)obj, this) : new SimpleHash((Map)obj, this));
+}
+
+// 2.2 Environment.process
+public void process() throws TemplateException, IOException {
+    Object savedEnv = threadEnv.get();
+    threadEnv.set(this);
+
+    try {
+        this.clearCachedValues();
+
+        try {
+            this.doAutoImportsAndIncludes(this);
+            // 关键代码，使用visitor模式。获取模板的根节点去访问visit方法
+            this.visit(this.getTemplate().getRootTreeNode());
+            if (this.getAutoFlush()) {
+                this.out.flush();
+            }
+        } finally {
+            this.clearCachedValues();
+        }
+    } finally {
+        threadEnv.set(savedEnv);
+    }
+
+}
+
+// 2.2.1
+void visit(TemplateElement element) throws IOException, TemplateException {
+    this.pushElement(element);
+
+    try {
+        // 根据TemplateElement实现，利用Java多态特性进行渲染
+        // 如模板根节点(当前模板，如果当前应用了其他模板则为子模板)一般为 MixedContent 类型，此类型调用accept处理结果为：将模板内容进行切割成普不同类型的TemplateElement
+        // TemplateElement常见实现：如普通文本TextBlock：abc；DollarVariable标签文本：${abc}；UnifiedCall自定义标签文本：<@test flag=true />
+        // 如模板 `hello[BR] ${name}`（[BR]表示换行），会被解析成`hello\r\n `和`${name}`
+        TemplateElement[] templateElementsToVisit = element.accept(this);
+        if (templateElementsToVisit != null) {
+            // 为null则表示为普通文本，无需调用visit渲染
+            TemplateElement[] var3 = templateElementsToVisit;
+            int var4 = templateElementsToVisit.length;
+
+            for(int var5 = 0; var5 < var4; ++var5) {
+                TemplateElement el = var3[var5];
+                if (el == null) {
+                    break;
+                }
+
+                // 递归调用此方法，说明渲染是按照文档流进行依次递归渲染的
+                this.visit(el);
+            }
+        }
+    } catch (TemplateException var10) {
+        this.handleTemplateException(var10);
+    } finally {
+        this.popElement();
+    }
+}
+
+// 2.2.1 DollarVariable#accept 为例，进行标签解析
+Object moOrStr = this.calculateInterpolatedStringOrMarkup(env);
+Writer out = env.getOut();
+if (moOrStr instanceof String) {
+    String s = (String)moOrStr;
+    if (this.autoEscape) {
+        this.markupOutputFormat.output(s, out);
+    } else {
+        // 将解析后的数据添加的输出流
+        out.write(s);
+    }
+}
+```
+
+
+
 
 
 ---
