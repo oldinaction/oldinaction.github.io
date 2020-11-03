@@ -239,6 +239,17 @@ List<Integer> nos = students
                     .map(o -> Integer.valueOf(o.getNo())) // 取出学生编号并转成int（不能用mapToInt）
                     .sorted()
                     .collect(Collectors.toList());
+
+// 1st argument, init value = 0
+int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+int sum = Arrays.stream(numbers).reduce(0, (a, b) -> a + b); // 55
+int sum = Arrays.stream(numbers).reduce(0, Integer::sum);
+
+// Map & Reduce
+BigDecimal sum = invoices.stream()
+                .map(x -> x.getNum().multiply(x.getPrice()))    // map，对集合中的元素进行操作
+                .reduce(BigDecimal.ZERO, BigDecimal::add)       // reduce，将上一步得到的结果进行合并得到最终的结果
+                .setScale(2, BigDecimal.ROUND_HALF_UP);         // 四舍五入，保留2位小数
 ```
 - parallelStream
     - https://blog.csdn.net/u011001723/article/details/52794455

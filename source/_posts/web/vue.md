@@ -695,7 +695,7 @@ props: {
         }
     },
     myFunc: {
-        type: Function,
+        type: Function, // default省略亦可
         /*如果是Object/Function/Array，default需要通过函数表示*/
         // default() {} // 亦可
         default: (item) => {
