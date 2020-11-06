@@ -10,6 +10,20 @@ tags: tools
 
 ### cross-env 启动时增加环境变量
 
+### 数学计算
+
+- mathjs
+
+```js
+npm install mathjs -S
+
+import * as math from 'mathjs'
+
+math.add(0.1, 0.2)     //  0.30000000000000004
+math.number(math.add(math.bignumber(0.1), math.bignumber(0.2))) // 0.3 math.number转换BigNumber类型为number类型
+math.number(math.chain(math.bignumber(0.1)).add(math.bignumber(0.2)).add(math.bignumber(0.3)).done()) // 0.6
+```
+
 ### 省市区级联
 
 - [vue-area-linkage](https://github.com/dwqs/vue-area-linkage) 省市区选择器(需结合省市区数据)
@@ -54,6 +68,16 @@ this.$refs.tableRef.loadData(this.allData)
 
 // 重新加载整个表格数据
 this.$refs.tableRef.loadData(this.allData);
+```
+- 监听行的选中事件
+
+```js
+// <vxe-table @checkbox-change="checkboxChange">
+checkboxChange(table, event) {
+    // table对应key如下
+    // "row"(当前选中或取消选中行), "checked"(操作完当前行后的选中状态), "items"(所有行数据), "data"(所有行数据), "records"(目前选中的所有行数据), "selection"(目前选中的所有行数据)
+    // "$table", "$grid", "$event", "reserves", "indeterminates", "$seq", "seq", "rowid", "rowIndex", "$rowIndex", "column", "columnIndex", "$columnIndex", "_columnIndex", "fixed", "type", "isHidden", "level", "visibleData", "cell"
+}
 ```
 
 ## 底层硬件类

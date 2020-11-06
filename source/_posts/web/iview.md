@@ -465,9 +465,10 @@ iframe {
         </FormItem>
     </Form>
 
-    <!-- InputNumber验证时必须定义type，佛足额required一直报错。amount: [{ required: true, type:'number', message: "金额必填", trigger: "blur" }]-->
+    <!-- InputNumber验证时必须定义type，否则required一直报错。amount: [{ required: true, type:'number', message: "金额必填", trigger: "blur" }]-->
     <FormItem label="金额" prop="amount">
         <InputNumber v-model="editForm.amount"></InputNumber>
+        <Input v-model="editForm.amount" number></Input><!-- 或者增加number属性 -->
     </FormItem>
     ```
 - 表单排版

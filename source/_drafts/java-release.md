@@ -248,6 +248,7 @@ int sum = Arrays.stream(numbers).reduce(0, Integer::sum);
 // Map & Reduce
 BigDecimal sum = invoices.stream()
                 .map(x -> x.getNum().multiply(x.getPrice()))    // map，对集合中的元素进行操作
+                // .reduce((i, j) -> i + j)                     // reduce表达式(i + j)执行完后仍然需要返回相同类型的结果
                 .reduce(BigDecimal.ZERO, BigDecimal::add)       // reduce，将上一步得到的结果进行合并得到最终的结果
                 .setScale(2, BigDecimal.ROUND_HALF_UP);         // 四舍五入，保留2位小数
 ```

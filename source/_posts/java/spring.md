@@ -847,7 +847,7 @@ public class JobManager {
         - `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(声明上throws出来的)捕获异常Exception时也回滚
         - `@Transactional(noRollbackFor=RuntimeException.class)` 指定不回滚
     - **服务内部捕获异常Exception/RuntimeException，统一返回错误结果对象，如自定义`Result`，此时无法回滚事物**，解决方案如下
-        - `TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();` 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)
+        - **`TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();`** 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)。**Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用**
         - 或者手动抛出RuntimeException
         - 或者基于自定义注解统一回滚
     - **事物生命周期是从AOP调用的目标方法开始的，到该方法执行完成事物环境即消失**
@@ -937,7 +937,7 @@ public Result addTestTransactional() {
         Long.valueOf("abc");
     } catch (Exception e) {
         e.printStackTrace();
-        // 此时手动回滚不会生效，并且会报：org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope
+        // 此时手动回滚不会生效，并且会报：org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope。*****Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用****
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
     }
 
