@@ -101,6 +101,7 @@ ThisCrackLicenseId-{
     - `MybatisX` 类似插件，Ctrl+Alt可实现相应跳转
 - `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
 - `PlantUML integration` 基于PlantUML语法画UML图
+- `SequenceDiagram` 根据源码生成时序图
 - `Maven Helper` 可显示冲突的maven依赖
     - 此插件依赖`Maven Intergration`，在安装后也要启用
     - 点击pom.xml文件，右下角会出现`Dependency Analyzer`

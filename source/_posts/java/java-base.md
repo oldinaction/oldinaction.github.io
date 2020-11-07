@@ -122,6 +122,7 @@ private static enum YellEnum implements Yell {
     - 用for循环遍历List删除元素时，需要注意索引会左移(i--)的问题
     - 使用foreach遍历List删除元素，不能直接调用list.remove。主要是foreach本质是调用iterator，则只能用iterator.remove移除元素
     - 可直接通过list.iterator()获取iterator对象，再遍历时通过iterator.remove移除元素
+- 集合的for循环必须判空(NULL)，如`for(Object o : list)`和`list.forEach(o -> {})`均需要判空
 
 ## 流
 

@@ -567,34 +567,30 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 }
 ```
 
-### jackson字段映射
+### 请求参数字段映射
 
 - 注意点
-    - 在映射时对应第二个字母大写的驼峰容易出错，如将xPoint映射成了xpoint。此为jackson的一个bug(v2.9.9) [^18]
+    - 原理参考：[spring-src.md#请求参数解析](/_posts/java/spring-src.md#请求参数解析)
+    - **LocalDateTime 等类型转换** [^19] [^20]
+        - Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`。不适合参数通过 @RequestBody 修饰
+        - Bean字段增加注解`@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。适用于 @RequestBody 接收(如 application/json 请求类型)；适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)
+        - 如下文方案一自定义 ObjectMapper。只适用于 application/json(@RequestBody 接收) 请求方式
+        - 如下文方案二注入Converter转换器。适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)；不支持 @RequestBody
+    - **在映射时对应第二个字母大写的驼峰容易出错**，如将xPoint映射成了xpoint。此为jackson的一个bug(v2.9.9) [^18]
 - yaml配置方式`spring.jackson` [^17]
-- javabean方式
+    - 同下文方案一，只适用于 @RequestBody
+- JavaBean 方式
 
 ```java
-// 参考：https://segmentfault.com/a/1190000021906586
-
-// 方案一(推荐)
+// 方案一：只支持 POST application/json方式（请求参数通过 @RequestBody 修饰）
 // 暴露自定义映射规则类
 @Bean
 public CustomObjectMapper customObjectMapper() {
     return new CustomObjectMapper()
             .setNotContainNull()
-            .setDateFormatPattern("yyyy-MM-dd HH:mm:ss");
+            .setDateFormatPattern("yyyy-MM-dd HH:mm:ss"); // Bean字段类型为 Date 的格式化(如果是LocalDateTime等则参考上文配置)
             // .setCamelCaseToLowerCaseWithUnderscores();
 }
-
-// @Bean
-// public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
-//     // 可能使用MappingJackson2HttpMessageConverter导致post无法获取到参数的问题。此转换器默认只支持application/json，如果浏览器请求时为application/json;charset=UTF-8则会出现此问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
-//     MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(this.customObjectMapper());
-//     MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_FORM_URLENCODED};
-//     converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
-//     return converter;
-// }
 
 // 自定义规则类
 public class CustomObjectMapper extends ObjectMapper {
@@ -608,21 +604,21 @@ public class CustomObjectMapper extends ObjectMapper {
 
     private void init() {
         this.configure(SerializationFeature.INDENT_OUTPUT, true); // 返回数据自动缩进
-        this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 对于非实体参数进行忽略，否则报错：Jackson with JSON: Unrecognized field
+        this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 对于非实体字段名的参数进行忽略，否则报错：Jackson with JSON: Unrecognized field
         
         // LocalDateTime 转换参考：https://blog.csdn.net/junlovejava/article/details/78112240
         // (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`
         // (2) 返回数据时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")
 
-        // 返回数据格式化
         JavaTimeModule module = new JavaTimeModule();
+        // 返回数据格式化
         module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
         module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
         module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
 
         // 解析post请求的body体
-        // 解析前台传入日期时间(此时可以解析2000/01/01 00:00:00，否则只能解析2000/01/01T00:00:00Z)
-        // ***iview的日前选择建议使用 :value 绑定(不要使用v-model)***，如 <DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>
+        // 解析前台传入日期时间字符串(此时可以解析2000/01/01 00:00:00，否则只能解析2000/01/01T00:00:00Z)
+        // ***iview的日前选择建议使用 :value 绑定(不要使用v-model)***，如 `<DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>` 此时传入到后台的startTm格式即为日期字符串(v-model传入的为日期格式)
         module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
         module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
         module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
@@ -630,6 +626,7 @@ public class CustomObjectMapper extends ObjectMapper {
         this.registerModule(module);
     }
 
+    // 空值参数不进行序列化(不返回到前台)
     public CustomObjectMapper setNotContainNull() {
         this.setSerializationInclusion(JsonInclude.Include.NON_NULL); // com.fasterxml.jackson.annotation.JsonInclude
         return this;
@@ -641,6 +638,7 @@ public class CustomObjectMapper extends ObjectMapper {
         return this;
     }
 
+    // Bean字段类型为 Date 的格式化(如果是LocalDateTime等则参考上文配置)
     public CustomObjectMapper setDateFormatPattern(String dateFormatPattern) {
         if (StringUtils.isNotEmpty(dateFormatPattern)) { // org.apache.commons.lang3.StringUtils;
             DateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
@@ -650,11 +648,11 @@ public class CustomObjectMapper extends ObjectMapper {
         return this;
     }
 
+    // 格式化字段名为空的情况
     public CustomObjectMapper setNotContainNullKey() {
         this.getSerializerProvider().setNullKeySerializer(new MyNullKeySerializer());
         return this;
     }
-
     private class MyNullKeySerializer extends JsonSerializer<Object> {
         @Override
         public void serialize(Object nullKey, JsonGenerator jsonGenerator, SerializerProvider unused) throws IOException {
@@ -663,31 +661,93 @@ public class CustomObjectMapper extends ObjectMapper {
     }
 }
 
-// 方案二(不推荐)
-// (利用jackson转换无需此步骤) StringToDateConverter为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
+// 可选。由于 MappingJackson2HttpMessageConverter 默认只支持 application/json(请求参数通过 @RequestBody 修饰)，如果浏览器请求时为application/json;charset=UTF-8则会转换问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
+// @Bean
+// public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+//     MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(this.customObjectMapper());
+//     MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_FORM_URLENCODED};
+//     converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
+//     return converter;
+// }
+
+// 方案二：注入Converter转换器。适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)；不支持 @RequestBody
+// StringToLocalDateTimeConverter 为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
 // 注入转换器方式一
-@Autowired
-private RequestMappingHandlerAdapter handlerAdapter; // 如果程序中有注入WebMvcConfigurer则会报错(如上文跨域资源共享配置方式二)
-@PostConstruct
-public void initEditableAvlidation() {
-    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer) handlerAdapter.getWebBindingInitializer();
-    if(initializer.getConversionService() != null) {
-        GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
-        genericConversionService.addConverter(new StringToDateConverter());
-    }
-}
-// 注入转换器方式二
 @ControllerAdvice
 public class CourseControllerHandler {
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
-        if (genericConversionService != null) {
-            genericConversionService.addConverter(new StringToDateConverter());
+        genericConversionService.addConverter(new StringToLocalDateTimeConverter());
+    }
+}
+public static class StringToLocalDateTimeConverter implements Converter<String, LocalDateTime> {
+    @Override
+    public LocalDateTime convert(String source) {
+        if (StringUtils.isEmpty(source)) {
+            return null;
         }
+        return LocalDateTimeUtils.convert(source.trim()); // 转换工具见下文
+    }
+}
+// 注入转换器方式二
+@Autowired
+private RequestMappingHandlerAdapter handlerAdapter; // 如果程序中有注入 WebMvcConfigurer 则会报错(如上文跨域资源共享配置方式二)
+@PostConstruct
+public void initEditableAvlidation() {
+    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer) handlerAdapter.getWebBindingInitializer();
+    if(initializer.getConversionService() != null) {
+        GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
+        genericConversionService.addConverter(new StringToLocalDateTimeConverter());
+    }
+}
+// 注入转换器方式三
+@Configuration
+public class MvcConfig implements WebMvcConfigurer {
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StringToLocalDateTimeConverter());
+    }
+}
+// 转换工具类。支持秒时间戳，毫秒时间戳，自定义时间格式yyyy-MM-dd HH:mm[:ss][.sss]，ISO标准时间yyyy-MM-ddTHH:mm[:ss][.sss]，UTC标准时间yyyy-MM-ddTHH:mm:ss[.sss]Z
+public class LocalDateTimeUtils {
+    private final static String REGEX_TIME = "^(\\d{10,13}|\\d{4}-\\d{2}-\\d{2}.\\d{2}:\\d{2}.*)$";
+
+    public static LocalDateTime convert(String resolver) {
+        if (Pattern.matches(REGEX_TIME, resolver)) {
+            Instant instant;
+            switch (resolver.length()) {
+                case 10:
+                    instant = Instant.ofEpochSecond(Long.parseLong(resolver));
+                    return LocalDateTime.ofInstant(instant, ZoneId.of("GMT+8"));
+                case 13:
+                    instant = Instant.ofEpochMilli(Long.parseLong(resolver));
+                    return LocalDateTime.ofInstant(instant, ZoneId.of("GMT+8"));
+                default:
+                    break;
+            }
+
+            if (resolver.endsWith("Z")) {
+                return LocalDateTime.ofInstant(Instant.parse(resolver), ZoneId.of("GMT+8"));
+            } else if (resolver.charAt(10) == 'T') {
+                return LocalDateTime.parse(resolver, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } else if (resolver.charAt(10) == ' ') {
+                return LocalDateTime.parse(resolver, new DateTimeFormatterBuilder()
+                    .parseCaseInsensitive()
+                    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                    .appendLiteral(' ')
+                    .append(DateTimeFormatter.ISO_LOCAL_TIME)
+                    .toFormatter());
+            }
+        }
+        return null;
     }
 }
 ```
+
+### 文件上传下载配置
+
+- 参考下文[文件上传下载](#文件上传下载)
 
 ### AOP
 
@@ -738,12 +798,6 @@ str2: >
 # 结果为：hello world。注意必须加双引号
 str3: "hello wor\
   ld"
-```
-设置文件临时存储路径
-
-```yml
-# Linux下会自动清除tmp目录下10天没有使用过的文件，SpringBoot启动的时候会在/tmp目录下生成一个Tomcat.*的文件目录，用于"java.io.tmpdir"文件流操作，因为放假期间无人操作，导致Linux系统自动删除了临时文件，所以导致上传报错
-spring.http.multipart.location: /var/tmp
 ```
 
 ## 请求及响应
@@ -866,7 +920,7 @@ public String addUser(@RequestBody String param) {} // 此时param拿到的值�
 public String uploading(@RequestParam("file") MultipartFile file, String otherFiled) {}
 ```
 
-- 自定义方法：通过request获取body数据(参考getBodyStringFromReq)。request.getParameter无法获取body
+- 自定义方法：通过request获取body数据(参考 getBodyStringFromReq)。request.getParameter无法获取body
 
 ```java
 // InputStream对象只能获取一次
@@ -893,12 +947,59 @@ public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper
 filterChain.doFilter(customerHttpServletRequestWrapper, servletResponse);
 ```
 
+### 文件上传下载
+
+- 常用配置
+
+```yml
+# Linux下会自动清除tmp目录下10天没有使用过的文件，SpringBoot启动的时候会在/tmp目录下生成一个Tomcat.*的文件目录，用于"java.io.tmpdir"文件流操作，因为放假期间无人操作，导致Linux系统自动删除了临时文件，所以导致上传报错
+spring:
+  http:
+    multipart:
+      # 另一种配置方式参考下文 MultipartConfigElement
+      location: /var/tmp
+```
+- **文件上传案例**
+    - 前台代码
+
+        ```
+        
+        ```
+    - 后台代码
+- 上传文件临时目录问题
+	- 项目启动默认会产生一个tomcat上传文件临时目录，如：`/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT`
+	- 而linux会定期清除tmp目录下文件，尽管项目仍然处于启动状态。从而会导致错误`Caused by: java.io.IOException: The temporary upload location [/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT] is not valid`
+
+```java
+// 自定义上传文件临时目录
+@Bean 
+public MultipartConfigElement multipartConfigElement() {
+	MultipartConfigFactory factory = new MultipartConfigFactory();  
+	factory.setLocation("/app/tmp");
+	return factory.createMultipartConfig();
+}
+```
+
+### 响应
+
+- `@ResponseBody`
+	- 表示以json返回数据
+	- 定义在类名上，表示所有的方法都是`@ResponseBody`的，也可单独定义在方法上
+- `@RestController`中包含`@ResponseBody`
+
+### RestTemplate
+
+- 具体参考[RestTemplate](/_posts/java/java-http.md#RestTemplate)
+
 ### 前端数组/对象处理
 
-- json字符串传输：前端通过`JSON.stringify`转成json字符串，然后后台JSONObject等转成Bean/Map等
+- json字符串传输方式一(不推荐)
+    - 前端通过`JSON.stringify`转成json字符串，然后后台JSONObject等转成Bean/Map等
 - Spring的Bean自动注入
-	- 请求类型 `POST`、`Content-Type: application/x-www-form-urlencoded`
-	- chrome开发模式看到的`FormData`(格式化后的。实际请求是将每一项通过`URL encoded`进行转义之后再已`&`连接组装成url参数，此时POST参数是没有长度限制的)如：
+    - 请求类型 `POST`、`Content-Type: application/json`，后端方法为`public Result edit(@RequestBody CustomerInfo customerInfo)`接受，chrome开发者模式看到的为json对象
+    - 请求类型 `POST`、`Content-Type: multipart/form-data`、使用FormData传输参数，后端可使用`public Result edit(Multipart myFile, CustomerInfo customerInfo)`接受，chrome开发者模式看到的同上文FormData
+	- 请求类型 `POST`、`Content-Type: application/x-www-form-urlencoded`(也可传输文件)
+	    - chrome开发模式看到的`FormData`(格式化后的。实际请求是将每一项通过`URL encoded`进行转义之后再已`&`连接组装成url参数，此时POST参数是没有长度限制的)如：
         - 后端写好对应的Bean，且后端方法如`public Result edit(CustomerInfo customerInfo)`
             - 后端代码`public Result edit(Map<String, Object> params)`报错
             - 后端代码`public Result edit(String customerNameCn, List customerLines)`报错
@@ -920,33 +1021,6 @@ filterChain.doFilter(customerHttpServletRequestWrapper, servletResponse);
 		customerContacts[0].customerId: 766706
 		customerContacts[0].lastName: 客户联系人1
 		```
-
-### 响应
-
-- `@ResponseBody`
-	- 表示以json返回数据
-	- 定义在类名上，表示所有的方法都是`@ResponseBody`的，也可单独定义在方法上
-- `@RestController`中包含`@ResponseBody`
-
-### RestTemplate
-
-具体参考[RestTemplate](/_posts/java/java-http.md#RestTemplate)
-
-### 文件上传下载
-
-- 上传文件临时目录
-	- 项目启动默认会产生一个tomcat上传文件临时目录，如：`/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT`
-	- 而linux会定期清除tmp目录下文件，尽管项目仍然处于启动状态。从而会导致错误`Caused by: java.io.IOException: The temporary upload location [/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT] is not valid`
-
-```java
-// 自定义上传文件临时目录
-@Bean 
-public MultipartConfigElement multipartConfigElement() {
-	MultipartConfigFactory factory = new MultipartConfigFactory();  
-	factory.setLocation("/app/tmp");
-	return factory.createMultipartConfig();
-}
-```
 
 ## 数据访问
 
@@ -2383,3 +2457,5 @@ User user = this.userRepositroy.findById(id).get();
 [^16]: https://ifengkou.github.io/spring_boot%E5%8A%A8%E6%80%81%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE&%E8%BF%90%E8%A1%8C%E6%97%B6%E6%96%B0%E5%A2%9E%E6%95%B0%E6%8D%AE%E6%BA%90.html
 [^17]: https://www.cnblogs.com/liaojie970/p/9396334.html
 [^18]: https://zhuanlan.zhihu.com/p/81854008
+[^19]: https://segmentfault.com/a/1190000021906586
+[^20]: https://blog.teble.me/2019/11/05/SpringBoot-LocalDateTime-%E5%90%8E%E7%AB%AF%E6%8E%A5%E6%94%B6%E5%8F%82%E6%95%B0%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/

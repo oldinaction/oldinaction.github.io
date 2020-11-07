@@ -234,7 +234,7 @@ else window.onload = createIframe;
 let flag = null // undefined、null、''、0、false 在直接if判断时都认为是false，但是 []、{} 认为是 true
 if(flag) console.log(1) // 无输出
 if('') console.log(1) // 无输出
-if(0) console.log(1) // 无输出
+if(0) console.log(1) // false, 无输出
 if([]) console.log(1) // 1
 if(!0) console.log(1) // 1
 ```
