@@ -215,6 +215,8 @@ axios.get("/hello", {
 
 ### qs插件使用
 
+- qs插件会自动设置请求头为`application/x-www-form-urlencoded`
+
 ```js
 // 安装：npm install qs -S -D
 import qs from 'qs'
@@ -288,71 +290,196 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
         - axios的params和data两者关系
             - params是添加到url的请求字符串中的，一般用于GET请求
-            - data是添加到请求体body中的， 用于POST请求。Spring中可在通过`getUser(@RequestBody User user)`获取body中的数据，从request对象中只能以流的形式获取
+            - data是添加到请求体body中的，用于POST请求。Spring中可在通过`getUser(@RequestBody User user)`获取body中的数据，从request对象中只能以流的形式获取
             - 如果POST请求参数写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也无法直接获取，必须通过@RequestBody)
         - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据以url序列化的方式进行传递，所以服务器能够正确解析
         - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
         - SpringSecurity登录必须使用POST
 
-### 带参数文件上传
+### 文件上传案例
+
+- 手动上传，和其他Bean字段一起提交
+- 前台代码(vue + iview)
 
 ```html
-<Upload
-    :max-size="10*1024"
-    :on-remove="handleRemove"
-    multiple
-    :before-upload="handleUpload"
-    :action = this.action
->
-<Button icon="ios-cloud-upload-outline">上传附件</Button>
-</Upload>
+<FormItem label="文件上传" prop="cvReceiptNo">
+    <Upload :before-upload="handleUpload" action="" :max-size="10*1024" style="display: inline-block;margin-right: 16px;"><a
+        href="javascript:;">{{ file && file.name ? file.name : '点击上传' }}</a></Upload>
+    <a v-if="editForm.filePath" target="_blank" :href="that.$staticPath + editForm.filePath">点击查看</a>
+</FormItem>
+<Button type="info" @click="doUpload">提交</Button>
 
-<script>
-handleUpload (file) {
-    var falg = true
-    var maxSize = 10 * (1024 * 1000)
-    if (file.size > maxSize) {
-        alert('当前文件超过10MB，不允许上传')
-        return
-    }
-    for (var i = 0; i < this.fileList.length; i++ ) { // lastModified是文件的唯一值，如果当前文件集合存在文件就不存了
-        if (this.fileList[i].lastModified == file.lastModified) {
-            falg = false
+<script lang="ts">
+export default {
+    data: {}, // 省略
+    methods: {
+        handleUpload(file) {
+            var maxSize = 10 * (1024 * 1000)
+            if (file.size > maxSize) {
+                alert('当前文件超过10MB，不允许上传')
+                return false
+            }
+            this.file = file;
+            return false; // 返回false可防止Upload自定上传文件，此时可交由程序控制
+        },
+        doUpload() {
+            this.editForm = {
+                id: 1,
+                feeAmount: null,
+                createTm: '2000-01-01 00:00:00',
+                file: this.file, // 之后不能对 editForm 进行序列化，否则会丢失文件信息
+                items: [{itemId: 1},{itemId: 2}],
+                files: [this.file, this.file],
+                fileList: [this.file, this.file]
+            }
+            const formData = this.jsonToFormData(this.editForm) // 将json格式转成FormData格式，见下文。或者使用 qs 插件格式化
+            formData.append("myFile", this.file)
+            formData.append("myFiles", this.file)
+            formData.append("myFiles", this.file)
+            formData.append("myFileList", this.file)
+            formData.append("myFileList", this.file)
+            // 这种方式后台无法通过普通的 MultipartFile 参数接受（但是如果Bean的字段类型是 MultipartFile, 则可以接受此格式）
+            // formData.append("myFiles[0]", this.file)
+            // formData.append("myFiles[1]", this.file)
+
+            /*
+            // 重新定义一个axios实例，并挂载到Vue原型上。此处重新定义是防止使用项目中默认的axios实例(一般会通过axios.interceptors.request.use进行处理，而处理后的实例在上传时后台会报错：no multipart boundary was found，然而后台本身是没有问题)
+            export const uploadAxios = axios.create({
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'access_token': Cookies.get('access_token'),
+                }
+            })
+            */
+            this.$uploadAxios.post("http://localost:8080/order/upload", formData).then((resp) => {}) 
+
+            /*
+            // 如果是multipart/form-data，请求参数会自动增加 boundary=...
+            // Content-Type: multipart/form-data; boundary=----WebKitFormBoundarybSHF77IaICmNerQk
+
+            // 请求时 formData 在chrome中格式化显示成
+            id: 1
+            feeAmount: 
+            createTm: 2000-01-01 00:00:00
+            file: (binary)
+            items[0].itemId: 1
+            items[1].itemId: 2
+            files[0]: (binary)
+            files[1]: (binary)
+            fileList[0]: (binary)
+            fileList[1]: (binary)
+            myFile: (binary)
+            myFiles: (binary)
+            myFiles: (binary)
+            myFileList: (binary)
+            myFileList: (binary)
+            
+            // 请求时 formData 在chrome中部分源码显示
+            ------WebKitFormBoundarybSHF77IaICmNerQk
+            Content-Disposition: form-data; name="id"
+
+            1
+            ------WebKitFormBoundarybSHF77IaICmNerQk
+            Content-Disposition: form-data; name="files[0]"
+
+
+            ------WebKitFormBoundarybSHF77IaICmNerQk
+            Content-Disposition: form-data; name="files[1]"
+
+
+            ------WebKitFormBoundarybSHF77IaICmNerQk
+            Content-Disposition: form-data; name="myFile"
+
+            null
+            ------WebKitFormBoundarybSHF77IaICmNerQk
+            Content-Disposition: form-data; name="myFiles"
+
+            null
+            ------WebKitFormBoundarybSHF77IaICmNerQk
+            Content-Disposition: form-data; name="myFiles"
+
+            null
+            */
+        },
+        jsonToFormData(data) {
+            function buildFormData(formData, data, parentKey) {
+                if (data && typeof data === 'object' && !(data instanceof Date) && !(data instanceof File)) {
+                    Object.keys(data).forEach(key => {
+                        const parentKeyFormat = parentKey ? (data instanceof Array ? `${parentKey}[${key}]` : `${parentKey}.${key}`) : key
+                        buildFormData(formData, data[key], parentKeyFormat);
+                    });
+                } else {
+                    const value = data == null ? '' : data;
+                    formData.append(parentKey, value);
+                }
+            }
+            
+            const formData = new FormData();
+            buildFormData(formData, data);
+            return formData;
         }
     }
-    if (falg) {
-        this.fileList[this.fileindex] = file
-        this.file += file.name + '&nbsp;&nbsp;&nbsp;&nbsp;'
-        this.fileindex++
+}
+</script>
+```
+- 后台代码
+
+```java
+@RestController
+@RequestMapping("/order")
+public class OrderController {
+    // 以下参数全部可以获取到值。由于请求类型为 multipart/form-data(是基于@RequestParam的方式接受参数), 因此无法通过 Map 来接受参数
+    @RequestMapping("/upload")
+    public Result upload(MultipartFile myFile, MultipartFile[] myFiles, List<MultipartFile> myFileList, Order order) {
+        return Result.success();
     }
-    return true;
-},
-handleRemove (file) {
-    for (var i = 0;i<this.fileList.length;i++) {
-        if(this.fileList[i].name == file.name) {
-            this.fileList.splice(i, 1)
-            this.fileindex--
+
+    // 扩展说明
+    // 1.效果同上。多文件上传时Layui会重复请求此接口多次. MultipartFile 并非 File对象，可通过 InputStream/OutputStream 将 MultipartFile 转换成 File
+    public String uploading(@RequestParam("file") MultipartFile file, String otherFiled) {}
+    // 2.使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件
+    // 此时User会根据前台参数和User类的set方法自动填充(调用的是User类的set方法)，前端可以使用js对象FormData进行文件和普通参数的传输，请求类型仍然为 multipart/form-data
+    @RequestMapping(path = "/editUser", method = RequestMethod.POST)
+    public Map<String, Object> editUser(HttpServletRequest request, User user, @RequestParam("hello") String hello) {
+        Map<String, Object> result = new HashMap<>();
+
+        System.out.println("hello = " + hello); // hello world
+        System.out.println("user.getName() = " + user.getName()); // smalle
+
+        try {
+            // 为了获取文件项。或者使用Spring提供的MultipartFile进行文件接收
+            Collection<Part> parts = request.getParts();
+
+            // part中包含了所有数据(参数和文件)
+            for (Part part: parts) {
+                String originName = part.getSubmittedFileName(); // 上传文件对应的文件名
+                System.out.println("originName = " + originName);
+
+                if(null != originName) {
+                    // 此part为文件
+                    InputStream inputStream = part.getInputStream();
+                    // ...
+                }
+            }
+        }  catch (Exception e) {
+            e.printStackTrace();
         }
+
+        return result;
     }
-},
-submit () {
-    var formData = new FormData()
-    formData.append('title', "标题")
-    formData.append('desc', "描述")
-    for( var i = 0; i < that.fileList.length; i++ ) {
-        formData.append('files', that.fileList[i])
-    }
-    this.$ajax.post('http://localhost:8080/upload', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data;boundary = ' + new Date().getTime()
-        }
-    }).then(response => {})
 }
 
-// java
-@RequestMapping("/submit")
-public Object addNotice(MultipartFile[] files, @Param("title") String title, @Param("desc") String desc) {}
-</script>
+@Data
+public class Order implements Serializable {
+    private Long id;
+    private BigDecimal feeAmount;
+    private LocalDateTime createTm; // LocalDateTime格式化参考 [请求参数字段映射](#请求参数字段映射)
+    private MultipartFile file;
+    private String filePath; // 用于保存文件后，回传文件路径
+    List<OrderItem> items; // OrderItem 略
+    private MultipartFile[] files;
+    private List<MultipartFile> fileList;
+}
 ```
 
 ## 性能优化

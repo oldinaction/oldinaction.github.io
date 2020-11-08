@@ -2,8 +2,8 @@
 layout: "post"
 title: "Maven"
 date: "2016-12-29 10:18"
-categories: [arch]
-tags: [maven]
+categories: [java]
+tags: [build]
 ---
 
 ## maven简介

@@ -804,63 +804,31 @@ str3: "hello wor\
 
 - 相关配置
 
-	```bash
-	# 端口
-	server.port=9090
-	# context-path路径
-	server.context-path=/myapp
-	```
+```bash
+# 端口
+server.port=9090
+# context-path路径
+server.context-path=/myapp
+```
 
 ### 请求协议
 
-- https://www.hangge.com/blog/cache/detail_2485.html (POST请求示例)、https://www.hangge.com/blog/cache/detail_2484.html  (GET请求示例)
+- 参考文章
+    - 原理参考：[spring-src.md#请求参数解析](/_posts/java/spring-src.md#请求参数解析)
+    - https://www.hangge.com/blog/cache/detail_2485.html (POST请求示例)
+    - https://www.hangge.com/blog/cache/detail_2484.html  (GET请求示例)
+- 常见请求方式
 
 request-method |Content-Type   |postman   |springboot   |说明
 --|---|---|---|---
 post |`application/json`   |row-json   |(String userIdUrlParam, @RequestBody User user) |`String userIdUrlParam`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List对象，此时body中的数据不能直接通过String等接受)，而idea的http文件中url参数拼在地址上无法获取(请求机制不同)
 (x)post |`application/json`   |row-json   |(@RequestParam username) |如果前台为application/json + {username: smale}或者application/json + username=smalle均报400；此时需要application/x-www-form-urlencoded + username=smalle才可请求成功
 post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`。**对于application/x-www-form-urlencoded类型的数据，可无需 @RequestBody 接受参数**
-post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考实例1，可进行文件上传(包含参数)。此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；如果接受参数是Map则无法映射
+post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考[文件上传下载](#文件上传下载)，可进行文件上传(包含参数)；javascript XHR(包括axios等插件)需要使用new FormData()进行数据传输；此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；如果接受参数是Map则无法映射
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放再body中，且数据格式为json
 	- 服务器response设置content-type标明返回的数据类型。接口开发时，设置请求参数是无法改变服务器数据返回类型的。部分工具提供专门的设置，通过工具内部转换的方式实现设定返回数据类型
-- `content-type: multipart/form-data;`(postman对应form-data)：可进行文件上传(包含参数), 响应代码如：
-	- `javascript XHR`需要使用`new FormData()`进行数据传输(可查看postman代码)
-	- 还可使用`MultipartFile`来接受多个文件，使用`List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("file");`获取多个文件
-
-	```java
-	// 此时User会根据前台参数和User类的set方法自动填充(调用的是User类的set方法)
-	// 前端可以使用js对象FormData进行文件和普通参数的传输
-	@RequestMapping(path = "/edit-user", method = RequestMethod.POST)
-	public Map<String, Object> editEvent(HttpServletRequest request, User user, @RequestParam("hello") String hello) {
-		Map<String, Object> result = new HashMap<>();
-
-		System.out.println("hello = " + hello); // hello world
-		System.out.println("user.getName() = " + user.getName()); // smalle
-
-		try {
-			// 为了获取文件项。或者使用Spring提供的MultipartFile进行文件接收
-			Collection<Part> parts = request.getParts();
-
-			// part中包含了所有数据(参数和文件)
-			for (Part part: parts) {
-				String originName = part.getSubmittedFileName(); // 上传文件对应的文件名
-				System.out.println("originName = " + originName);
-
-				if(null != originName) {
-					// 此part为文件
-					InputStream inputStream = part.getInputStream();
-					// ...
-				}
-			}
-		}  catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return result;
-	}
-	```
 
 ### 请求参数
 
@@ -912,14 +880,6 @@ public String addUser(@RequestBody Map<String, Object> map) {}
 public String addUser(@RequestBody String param) {} // 此时param拿到的值为 name=smalle&pass=123
 ```
 
-- 文件上传
-
-```java
-// 多文件上传时Layui会重复请求此接口多次. MultipartFile 并非 File对象，可通过 InputStream/OutputStream 将 MultipartFile 转换成 File
-@RequestMapping(value = "/upload", method = RequestMethod.POST)
-public String uploading(@RequestParam("file") MultipartFile file, String otherFiled) {}
-```
-
 - 自定义方法：通过request获取body数据(参考 getBodyStringFromReq)。request.getParameter无法获取body
 
 ```java
@@ -949,23 +909,27 @@ filterChain.doFilter(customerHttpServletRequestWrapper, servletResponse);
 
 ### 文件上传下载
 
+- 案例参考[springboot-vue.md#文件上传案例](/_posts/arch/springboot-vue.md#文件上传案例)
 - 常用配置
 
 ```yml
-# Linux下会自动清除tmp目录下10天没有使用过的文件，SpringBoot启动的时候会在/tmp目录下生成一个Tomcat.*的文件目录，用于"java.io.tmpdir"文件流操作，因为放假期间无人操作，导致Linux系统自动删除了临时文件，所以导致上传报错
 spring:
   http:
     multipart:
-      # 另一种配置方式参考下文 MultipartConfigElement
+      # Linux下会自动清除tmp目录下10天没有使用过的文件，SpringBoot启动的时候会在/tmp目录下生成一个Tomcat.*的文件目录，用于"java.io.tmpdir"文件流操作，因为放假期间无人操作，导致Linux系统自动删除了临时文件，所以导致上传报错。另一种配置方式参考下文 MultipartConfigElement
       location: /var/tmp
+  servlet:
+    multipart:
+      # 允许的最大文件大小
+      max-file-size: 50MB
+      max-request-size: 50MB
+  mvc:
+    # 通过后台访问文件的路径(一般需要排除对此路径的权限验证)。相当于一个映射，映射的本地路径为 spring.resources.static-locations
+    static-path-pattern: files/**
+  resources:
+    # 后台可访问的本地文件路径
+    static-locations: file:/data/app
 ```
-- **文件上传案例**
-    - 前台代码
-
-        ```
-        
-        ```
-    - 后台代码
 - 上传文件临时目录问题
 	- 项目启动默认会产生一个tomcat上传文件临时目录，如：`/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT`
 	- 而linux会定期清除tmp目录下文件，尽管项目仍然处于启动状态。从而会导致错误`Caused by: java.io.IOException: The temporary upload location [/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT] is not valid`
@@ -979,6 +943,18 @@ public MultipartConfigElement multipartConfigElement() {
 	return factory.createMultipartConfig();
 }
 ```
+- 后台会报错：no multipart boundary was found。此问题本身不是后台的原因，解决方法如下 [^21]
+    - 通过`axios.create`重新定义一个axios实例，并挂载到Vue原型上。此处重新定义是防止使用项目中默认的axios实例(一般会通过axios.interceptors.request.use进行处理，而处理后的实例在上传时后台会报错)。具体见上文案例
+    - 不严谨的处理
+
+        ```js
+        // $axios为上文提到的被处理过的axios实例
+        this.$axios.post('http://localhost:8080/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data;boundary = ' + new Date().getTime()
+            }
+        }).then(response => {})
+        ```
 
 ### 响应
 
@@ -997,8 +973,8 @@ public MultipartConfigElement multipartConfigElement() {
     - 前端通过`JSON.stringify`转成json字符串，然后后台JSONObject等转成Bean/Map等
 - Spring的Bean自动注入
     - 请求类型 `POST`、`Content-Type: application/json`，后端方法为`public Result edit(@RequestBody CustomerInfo customerInfo)`接受，chrome开发者模式看到的为json对象
-    - 请求类型 `POST`、`Content-Type: multipart/form-data`、使用FormData传输参数，后端可使用`public Result edit(Multipart myFile, CustomerInfo customerInfo)`接受，chrome开发者模式看到的同上文FormData
-	- 请求类型 `POST`、`Content-Type: application/x-www-form-urlencoded`(也可传输文件)
+    - 请求类型 `POST`、`Content-Type: multipart/form-data`、使用FormData传输参数，后端可使用`public Result edit(Multipart myFile, CustomerInfo customerInfo)`接受，chrome开发者模式看到的同上文FormData。传输文件必须格式
+	- 请求类型 `POST`、`Content-Type: application/x-www-form-urlencoded`
 	    - chrome开发模式看到的`FormData`(格式化后的。实际请求是将每一项通过`URL encoded`进行转义之后再已`&`连接组装成url参数，此时POST参数是没有长度限制的)如：
         - 后端写好对应的Bean，且后端方法如`public Result edit(CustomerInfo customerInfo)`
             - 后端代码`public Result edit(Map<String, Object> params)`报错
@@ -2459,3 +2435,4 @@ User user = this.userRepositroy.findById(id).get();
 [^18]: https://zhuanlan.zhihu.com/p/81854008
 [^19]: https://segmentfault.com/a/1190000021906586
 [^20]: https://blog.teble.me/2019/11/05/SpringBoot-LocalDateTime-%E5%90%8E%E7%AB%AF%E6%8E%A5%E6%94%B6%E5%8F%82%E6%95%B0%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/
+[^21]: https://www.cnblogs.com/czy960731/p/11105166.html
