@@ -3,18 +3,18 @@ layout: "post"
 title: "Electron —— 基于前端构建跨平台桌面应用程序"
 date: "2020-09-11 15:43"
 categories: web
-tags: [desctop]
+tags: [desktop]
 ---
 
 ## 简介
 
 - [官网](http://www.electronjs.org/)、[w3cschool文档](https://www.w3cschool.cn/electronmanual/)
 - `Electron`
-  - 使用 JavaScript，HTML 和 CSS 构建跨平台（Mac、Windows 和 Linux）的桌面应用程序
-  - Electron 结合了 Chromium、Node.js 和用于调用操作系统本地功能的 API（如打开文件窗口、通知、图标等）
+    - 使用 JavaScript，HTML 和 CSS 构建跨平台（Mac、Windows 和 Linux）的桌面应用程序
+    - Electron 结合了 Chromium、Node.js 和用于调用操作系统本地功能的 API（如打开文件窗口、通知、图标等）
 - 案例：VS Code、Slack、Facebook Messenger等
 - 相关文章
-  - [Electron 与 Vue 的性能优化](https://aotu.io/notes/2016/11/15/xcel/index.html)
+    - [Electron 与 Vue 的性能优化](https://aotu.io/notes/2016/11/15/xcel/index.html)
 
 ## 简单使用
 
@@ -26,24 +26,31 @@ npm install
 npm start
 ```
 
-## VUE项目基于Electron打包
+## 与VUE项目结合
 
 - 将VUE项目集成Electron有两种方式
-  - 在自己的 vue 的项目中引入插件，然后打包（本文案例）
-  - 将自己的 vue 项目打包，放到官方的 demo 文件中，改变打包路径
-  - 通过`simulatedgreg/electron-vue`等插件创建vue项目，则包含了Electron
+    - 在自己的 vue 的项目中引入插件，然后打包（本文案例）
+    - 将自己的 vue 项目打包，放到官方的 demo 文件中，改变打包路径
+    - 通过`simulatedgreg/electron-vue`等插件创建vue项目，则包含了Electron
 - **大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载**。可使用mirror-config-china插件将常用组件的镜像地址全部加入到了上述文件夹。**electron项目用cnpm可能会出现一些奇怪的现象**
-- 案例（本案例基于electron-packager打包，不过更推荐electron-builder，具体见下文）
+
+### 基于 electron-builder 插件打包(推荐)
 
 ```bash
 # 之前已经基于vue-cli的项目，如基于iview-admin实现的。现在基于Electron官方demo进行集成
 
 # 1.添加依赖
-npm install electron --save-dev
-npm install electron-packager --save-dev # 这个是打成exe文件的插件。如果是node v8.x可使用版本v14.2.1，而v15.x需要node v10.x。还可使用electron-builder进行打包
+npm install electron -S
 
 # 参考上文简单使用下载electron-quick-start项目
 # 2.把electron-quick-start项目中的main.js和preload.js（老的示例可能没有）复制到vue的public文件中(vue打包的模板目录)，并将main.js重命名为index.js
+
+```
+
+### 基于 electron-packager 插件打包
+
+```bash
+npm install electron-packager -S # 这个是打成exe文件的插件。如果是node v8.x可使用版本v14.2.1，而v15.x需要node v10.x。还可使用electron-builder进行打包
 
 # 3.package.json文件增加如下脚本代码
 "scripts": {
@@ -136,7 +143,7 @@ npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
   // electron-builder配置
   "build": {
     "productName": "Flight", // 项目名，这也是生成的exe文件的前缀名
-    "appId": "com.unilog.flight",
+    "appId": "cn.aezo.flight",
     "copyright": "UNILOG",
     // 需要打包的文件
     "files": [
@@ -229,6 +236,20 @@ ts引入ele报错：@types/node Class 'Module' incorrectly implements interface 
 TypeError: fs.existsSync is not a function | import { ipcRenderer } from 'electron'
     https://blog.csdn.net/weixin_41217541/article/details/106496186 无效
     https://www.jianshu.com/p/d2d4deaccdc1
+
+
+- electron-store本地配置文件
+https://xushanxiang.com/2019/12/electron-store.html
+https://www.thinbug.com/q/40146701 (解决打包后区分测试和生产环境，预置配置到用户端)
+
+
+- log
+
+https://blog.csdn.net/qq_32596527/article/details/106415532
+https://www.npmjs.com/package/electron-log
+    - on Windows: %USERPROFILE%\AppData\Roaming\{app name}\logs\{process type}.log
+
+
 
 ---
 

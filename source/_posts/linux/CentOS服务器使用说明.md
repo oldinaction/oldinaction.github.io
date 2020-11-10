@@ -97,8 +97,10 @@ curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
 yum makecache
 ```
 - 安装`EPEL`(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
-    - 下载epel源(可使用上述阿里云镜像) `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
-    - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
+    - 方式一：使用上述阿里云镜像
+    - 方式二：
+        - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
+        - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
 - 手动新增镜像源
 
 ```bash

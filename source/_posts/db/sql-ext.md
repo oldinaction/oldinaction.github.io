@@ -736,6 +736,8 @@ select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
 
 ### Oracle中DBlink实现跨实例查询
 
+- 同示例，跨用户可使用别名进行访问
+
 ```sql
 -- 创建DBLINK
 create public database link my_dblink
@@ -752,7 +754,7 @@ connect to smalle identified by smalle -- 需要连接的数据库信息
 -- 删除
 dblink drop public database link my_dblink;
 
--- 查询。后台调用mybatis支持oracle的@dblink使用，所以直接在xml文件中使用sql语句即可
+-- 查询。并且mybatis是支持oracle的@dblink，相关sql语句表名后增加dblink名即可
 select * from tbl_ost_notebook@my_dblink;
 ```
 

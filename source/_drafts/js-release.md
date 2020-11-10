@@ -274,7 +274,7 @@ new Promise(function (resolve, reject) {
 - [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
     - 说明
         - 使用 async 关键字，把它放在函数声明之前，使其成为 async function
-        - await 只在异步函数里面才起作用
+        - await 只在异步函数（async修饰）里面才起作用
     - async简单使用
 
         ```js

@@ -221,13 +221,11 @@ select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
    and object_type = 'TABLE';
 
 -- 批量设置表别名
--- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || table_grant_user || '.' || v_tabname || ' for ' || table_owenr_user || '.' || v_tabname;）
+-- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || [table_grant_user] || '.' || [v_tabname] || ' for ' || [table_owenr_user] || '.' || [v_tabname];）
 -- （2）获取添加表别名语句
-select 'create or replace synonym smalle.' || object_name || ' for ' ||
-        owner || '.' || object_name || ';'
+select 'create or replace synonym smalle.' || object_name || ' for ' || owner || '.' || object_name || ';'
    from dba_objects
-  where owner in ('OFBIZ')
-    and object_type = 'table';
+   where owner in ('OFBIZ') and object_type = 'table';
 ```
 
 ### sqlplus 使用技巧
@@ -287,7 +285,6 @@ select 'create or replace synonym smalle.' || object_name || ' for ' ||
     - `dba_extents` 所有用户段的扩展段信息
     - `dba_objects` 所有用户对象的基本信息（包括素引，表，视图，序列等）
 - 数据库组件相关的数据字典(`v$`代表视图，等价于`v_$`)
-
   - 基本
     - `v$database` 同义词 v\_\$database，记录系统的运行情况
     - `v$instance` 实例信息

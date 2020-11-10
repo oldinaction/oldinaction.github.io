@@ -82,12 +82,205 @@ gradle -h # 帮助
 - 创建文件`build.gradle`，然后执行`gradle hello`，命令行会打印`Hello world!`
 
 ```groovy
+// build.gradle 基于 groovy 语法
+// task为gradle关键字，hello为Task名，doLast为gradle关键字(表示最后执行)
 task hello {
 	doLast {
-		println 'Hello world!'
+		println 'Hello World!'
 	}
 }
+
+// 或者使用 build.gradle.kts 基于 Kotlin 语法
+tasks.register("hello") {
+    doLast {
+        println("Hello World!")
+    }
+}
 ```
+
+### Task
+
+- 创建文件`build.gradle`(见下文)，然后执行`gradle -q run`
+
+```bash
+# 案例一打印结果如下
+gradle -q # 或者执行 `gradle -q run`(仅不会调用clean任务)、`gradle -q run clean`
+
+<< EOF
+run...                                                      
+hello...                                                    
+Hello World! myHelloProperty: myValue                       
+Hi~! myHelloProperty: myValue                               
+此任务名为：hello                                                 
+Hello Ink                                                   
+ * a.txt *                                 
+aaa                                                         
+a.txt Checksum: 47bce5c74f589f4867dbd57e9ca9f808            
+ * b.txt *                                           
+bbb                                                         
+b.txt Checksum: 08f8e0260c64418510cefb2b06eee5cd            
+I'm task number 2                                           
+I'm task number 3                                           
+I'm task number 0                                           
+原始值: my_name                                                
+转成大写: MY_NAME                                               
+0 1 2 3 Run doLast! myHelloProperty: myValue               
+Cleaning...                                                 
+EOF
+
+# 案例二
+gradle -q release
+
+<< EOF
+run...
+hello...
+We build the zip with version=1.0
+We release now
+EOF
+
+# 案例三
+gradle -q release
+
+<< EOF
+run...
+hello...
+hello world encode: aGVsbG8gd29ybGQ=
+EOF
+```
+- build.gradle
+
+```groovy
+// https://docs.gradle.org/current/userguide/tutorial_using_tasks.html
+
+import org.apache.commons.codec.binary.Base64; // 案例三需要
+
+buildscript { // 案例三需要
+    // 依赖仓库地址
+    repositories {
+        mavenCentral()
+    }
+    // 引入依赖。此时脚本中可以使用 org.apache.commons.codec.binary.Base64 类
+    dependencies {
+        classpath group: 'commons-codec', name: 'commons-codec', version: '1.2'
+    }
+}
+
+// 案例一
+// 执行命令`gradle`时，则会依次执行默认Task
+defaultTasks 'run', 'clean'
+
+println 'run...'
+
+task hello {
+    // 添加额外参数
+    ext.myHelloProperty = "myValue"
+    // 任务最先执行
+    doFirst {
+        println "Hello World! myHelloProperty: ${hello.myHelloProperty}" // 变量必须在双引号中使用
+    }
+    // 任务最后执行
+	doLast {
+		println "Hi~! myHelloProperty: ${hello.myHelloProperty}"
+	}
+    // 先于 doFirst, doLast 运行
+	println 'hello...'
+}
+task run {
+    // 依赖其他任务(此时会把hello整个任务执行完成，尽管部分逻辑再下文才指定，如hello.doLast)
+    dependsOn hello
+    // 懒加载依赖(可加载未定义的Task，如定义在此Task的下方，或定义在其他子project中)，此时不能通过 shortcut notations(见下文) 访问任务信息
+    dependsOn 'varTest'
+    dependsOn 'task0' // 下文的动态Task
+    dependsOn 'loadfile' // 下文Task
+	doLast {
+		println "Run doLast! myHelloProperty: ${hello.myHelloProperty}"
+	}
+}
+task varTest {
+    doLast {
+        String someString = 'my_name'
+        println "原始值: $someString"
+        println "转成大写: ${someString.toUpperCase()}"
+        4.times { print "$it " }
+    }
+}
+// Dynamic tasks 动态Task
+4.times { counter ->
+    task "task$counter" {
+        doLast {
+            println "I'm task number $counter"
+        }
+    }
+}
+// 基于API操作Task
+task0.dependsOn task2, task3
+// 可以往任务上添加多个doFirst和doLast，会按照顺序执行
+hello.doLast {
+    println "此任务名为：$hello.name" // shortcut notations(每个任务可作为构建脚本的属性来访问)
+}
+hello.configure {
+    doLast {
+        println 'Hello Ink'
+    }
+}
+// Ant Tasks：在 Gradle 中使用 Ant 参考 https://docs.gradle.org/current/userguide/ant.html#ant
+task loadfile {
+    doLast {
+		// 调用自定义函数。需要在当前文件目录创建antLoadfileResources目录，并创建a.txt(aaa)、b.txt(bbb)
+		fileList('./antLoadfileResources').each { File file ->
+			// 基于 AntBuilder 执行 ant.loadfile 等目标(ant target)
+			ant.loadfile(srcFile: file, property: file.name) // 将文件内容进行加载，保存到属性 file.name 中
+            ant.checksum(file: file, property: "cs_$file.name") // 对文件进行 Checksum，将值保存在属性 "cs_$file.name" 中
+			println " * $file.name *"
+			println "${ant.properties[file.name]}" // 提出属性值(此时为文件内容)
+            println "$file.name Checksum: ${ant.properties["cs_$file.name"]}"
+        }
+    }
+}
+// 自定义函数
+File[] fileList(String dir) {
+    file(dir).listFiles({file -> file.isFile()} as FileFilter).sort()
+}
+
+task clean {
+    doLast {
+        println 'Cleaning...'
+    }
+}
+
+// 案例二
+task distribution {
+    doLast {
+        println "We build the zip with version=$version"
+    }
+}
+task release {
+    dependsOn 'distribution'
+    doLast {
+        println 'We release now'
+    }
+}
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(":release")) {
+        // 不能改成其他变量
+        version = '1.0'
+    } else {
+        version = '1.0-SNAPSHOT'
+    }
+}
+
+// 案例三
+task encode {
+    doLast {
+        def byte[] encodedString = new Base64().encode('hello world'.getBytes())
+        println "hello world encode: " + new String(encodedString)
+    }
+}
+```
+
+### 多项目构建
+
+- https://docs.gradle.org/current/userguide/multi_project_builds.html
 
 ### 编译Java项目
 

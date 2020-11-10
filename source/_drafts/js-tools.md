@@ -6,11 +6,21 @@ categories: js
 tags: tools
 ---
 
-## 基础类
+## 库说明
+
+- `babel` 是一个转码器，可以将es6，es7转为es5代码。Babel默认只转换新的JavaScript句法（syntax），而不转换新的API，比如Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如Object.assign）都不会转码，所以为了使用完整的 ES6 的API，我们需要另外安装：babel-polyfill 或者 babel-runtime [^1]
+    - `babel-polyfill` 会把全局对象统统覆盖一遍，不管你是否用得到。缺点：包会比较大100k左右。如果是移动端应用，要衡量一下。一般保存在dependencies中
+    - `babel-runtime` 可以按照需求引入。缺点：覆盖不全。一般在写库的时候使用。建议不要直接使用babel-runtime，因为transform-runtime依赖babel-runtime，大部分情况下都可以用`transform-runtime`来达成目的
+        - 在babel的配置文件 `.babelrc` 中配置了`"plugins": ["transform-runtime"]`后，就不用再手动单独引入某个 `core-js/*` 特性，如 core-js/features/promise，因为转换时会自动加上而且是根据需要只抽离代码里需要的部分
+    - `babel-cli` 在命令行中使用babel命令对js文件进行转换。如`babel entry.js --out-file out.js`进行语法转换
+- [core-js](https://github.com/zloirock/core-js) 是 babel-polyfill、babel-runtime 的核心包，他们都只是对 core-js 和 regenerator 进行的封装。core-js 通过各种奇技淫巧，用 ES3 实现了大部分的 ES2017 原生标准库，同时还要严格遵循规范。支持IE6+
+    - core-js 组织结构非常清晰，高度的模块化。比如 `core-js/es6` 里包含了 es6 里所有的特性。而如果只想实现 promise 可以单独引入 `core-js/features/promise`
+
+## 基础库
 
 ### cross-env 启动时增加环境变量
 
-### 数学计算
+### 数学计算mathjs
 
 - mathjs
 
@@ -29,7 +39,7 @@ math.number(math.chain(math.bignumber(0.1)).add(math.bignumber(0.2)).add(math.bi
 - [vue-area-linkage](https://github.com/dwqs/vue-area-linkage) 省市区选择器(需结合省市区数据)
 - [area-puppeteer](https://github.com/dwqs/area-puppeteer) 省市区数据
 
-## UI类
+## UI库
 
 ### vxe-table
 
@@ -80,7 +90,7 @@ checkboxChange(table, event) {
 }
 ```
 
-## 底层硬件类
+## 底层硬件库
 
 ### Clipboard 复制内容到剪贴板
 
@@ -341,3 +351,12 @@ https://segmentfault.com/a/1190000011478657
     Failed to execute 'createPattern' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0.
     https://stackoverflow.com/questions/20605269/screenshot-of-hidden-div-using-html2canvas
 
+
+
+
+
+---
+
+参考文章
+
+[^1]: https://www.dazhuanlan.com/2019/12/31/5e0b08829f823/

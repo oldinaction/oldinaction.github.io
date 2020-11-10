@@ -12,7 +12,7 @@
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
     <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
-    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径。yml中配置的logging.path > LOG_PATH环境变量 > 此处默认值(必须要有-)-->
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径。yml中配置的 logging.path > LOG_PATH环境变量 > 此处默认值(必须要有-)-->
     <springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
     <property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}" />
     <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
@@ -52,7 +52,7 @@
             <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
         </rollingPolicy>
 
-        <!-- 
+        <!--
         <!- 按照固定窗口模式生成日志文件 ->
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
             <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/.log.zip</fileNamePattern>
@@ -158,7 +158,7 @@
     <!-- 生成html格式日志开始（过滤器，只记录WARN级别的日志）
     <appender name="HTML" class="ch.qos.logback.core.FileAppender">
       <filter class="ch.qos.logback.classic.filter.LevelFilter">
-        <level>info</level> 
+        <level>info</level>
         <onMatch>ACCEPT</onMatch>
         <onMismatch>DENY</onMismatch>
       </filter>
@@ -171,7 +171,7 @@
     </appender>
     -->
 
-    <!-- 每天生成一个html格式的日志开始 
+    <!-- 每天生成一个html格式的日志开始
     <appender name="HTML_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
         <FileNamePattern>${LOG_PATH}/log.%d{yyyy-MM-dd}.html

@@ -142,7 +142,7 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 ```
-- 参考配置文件[/data/src/java/logback-spring.xml](/data/src/java/logback-spring.xml)和表结构(如果保存在数据库中时)文件[/data/src/java/logback.sql](/data/src/java/logback.sql)
+- 参考配置文件[/data/src/java/logback-spring.xml](/data/src/java/logback-spring.xml)。如果保存在数据库中时，表结构文件[/data/src/java/logback.sql](/data/src/java/logback.sql)
 - springboot的日志配置文件`<include resource="org/springframework/boot/logging/logback/base.xml"/>`。里面包含一下参数，表示为配置LOG_PATH等环境变量时，在linux环境下会自动创建`/tmp/spring.log`文件作为日志输出文件，而/tmp目录一般只有使用root用户运行项目才可以创建此文件
     
     ```xml

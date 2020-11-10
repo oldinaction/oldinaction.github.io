@@ -10,7 +10,9 @@ tags: tools
 
 > https://hutool.cn/docs/
 
-### Bean/Map/Json相互转化
+### Bean操作
+
+- Bean/Map/Json相互转化
 
 ```java
 // ### Bean <==> JSON; 深度拷贝
@@ -18,12 +20,25 @@ String str = JSONUtil.toJsonStr(person); // Bean => JSON字符串
 Person person = JSONUtil.toBean(str, Person.class); // JSON字符串 => Bean
 Person newPerson = JSONUtil.toBean(JSONUtil.toJsonStr(person), Person.class); // 实现深度拷贝。使用 BeanUtil.copyProperties 为浅拷贝
 
-// ### Bean <==> Map
+// ### Bean <==> Map。具体参考[类型转换](#类型转换)
 BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的参数。从而可将controller接受参数设为@RequestBody Map<String, Object> params，保存时再进行转换)
+```
+
+- 复制Bean
+
+```java
+// 忽略NULL值(不会忽略空值，NULL值不会覆盖目标对象)，和忽略部分属性。痛点：像 org.springframework.beans.BeanUtils.copyProperties 则无法忽略空值
+BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
 ```
 
 ### 集合
 
+- 快速组装Map
+
+```java
+Dict dict = Dict.create().set("key1", 1).set("key2", 1000L); // Dict继承HashMap，其key为String类型，value为Object类型
+Long v2 = dict.getLong("key2");
+```
 - 交/并/差等
 
 ```java
@@ -34,6 +49,7 @@ List<String> codes = CollUtil.subtractToList(newCodes, oldCodes); // 返回新�
 ```
 
 - 分组
+    - *暂未找到基于字段值分组成数组的方法*
 
 ```java
 // 基于id字段进行分组成Map
@@ -53,19 +69,38 @@ Long id = Convert.toLong(params.get("id"));
 List<Long> ids = Convert.toList(Long.class, params.get("ids")); // 痛点：controller中通过map接受参数时(@RequestBody Map<String, Object> params)，小值数据会被转成Integer，而ID一般设置成了Long
 ```
 
-### Bean操作
+### 验证
+
+- 断言
 
 ```java
-// 忽略NULL值(不会忽略空值，NULL值不会覆盖目标对象)，和忽略部分属性。
-BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
+// 不满足会抛出 IllegalArgumentException 异常
+Assert.notNull(a); // 是否不为NULL
+Assert.notEmpty(a); // 是否非空
+Assert.notBlank(a); // 是否非空白符
+Assert.assertEquals("value", val);
+// 不满足会抛出IllegalStateException异常
+Assert.state
+```
+- 字段验证器
+
+```java
+// 判断验证
+boolean flag = Validator.isEmpty(str);
+boolean flag = Validator.isNotEmpty(str);
+boolean flag = Validator.isEmail("demo@example.com");
+// 异常验证，失败会抛出 ValidateException 异常
+Validator.validateChinese("我是一段zhongwen", "内容中包含非中文");
 ```
 
 ### 数字操作
 
 ```java
 // NumberUtil会将double转为BigDecimal后计算，解决float和double类型无法进行精确计算的问题；BigDecimal并不能解决小数点问题
+/* 痛点：
 new BigDecimal(0.1).add(new BigDecimal(1)); // 1.1000000000000000055511151231257827021181583404541015625
 new BigDecimal("0.1").add(new BigDecimal("1")); // 1.1
+*/
 NumberUtil.add(0.1, 1); // 1.1
 NumberUtil.div(10, 1, 2); // 7
 NumberUtil.mul(0.55, 1.27); // 0.6985 返回类型为double
