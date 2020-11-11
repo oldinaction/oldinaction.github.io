@@ -230,10 +230,13 @@ lsmod |grep br_netfilter
     - `rm -f *2019-04*` 正则删除，可删除如access-2019-04-01.log、error-2019-04-02.log
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
     - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
-    - 复制文件到远程服务器：`scp /home/test root@192.168.1.1:/home` 将本地linux系统的test文件复制到远程的home目录下(此处/home不能写成/home/)
-        - `scp -r /home/smalle/dir root@192.168.1.1:/home` 复制文件夹下的文件到远程机器的home目录下
-        - `scp -r /home/smalle/dir root@192.168.1.1:/home/dir/` 复制文件夹下的文件到远程机器的home/dir目录下
-        - scp免密登录需要将客户端的公钥放到服务器
+- `scp` 跨机器文件传输
+    - scp免密登录需要将客户端的公钥放到服务器
+    - 复制文件到远程服务器
+        - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(此处/home/dir不能写成/home/dir/)
+    - 从远程服务器传输文件到本地
+        - `scp -r root@192.168.1.1:/opt/soft/test /opt/soft/` 下载远程 /opt/soft/test 文件或目录(及其子目录)到本地的 /opt/soft/ 目录来
+        - `scp -r root@192.168.1.1:/home/test/2018* .` 将远程目录的2018开头的文件夹及其子文件复制到本地当前目录(备份)
 - `mv a.txt /home` 移动a.txt到/home目录
     - `mv a.txt b.txt` 将a.txt重命名为b.txt
     - `mv a.txt /home/b.txt` 移动并重名名
@@ -362,7 +365,7 @@ df -h
     ![lvm](/data/images/lang/lvm.png)
     
     ```bash
-    # **先fdisk创建分区/dev/vdb1和/dev/vdb2，无需格式化(略)**
+    # **先 fdisk 创建分区 /dev/vdb1 和 /dev/vdb2，无需格式化(略)**
     # pvcreate命令在新建的分区上创建PV
     pvcreate /dev/vdb1 /dev/vdb2
     # 查看pv详细信息
@@ -743,7 +746,7 @@ rar a aezocn.rar *.jpg
 - SSH是建立在传输层和应用层上面的一种安全的传输协议。SSH目前较为可靠，专为远程登录和其他网络提供的安全协议。在主机远程登录的过程中有两种认证方式：
     - `基于口令认证`：只要你知道自己帐号和口令，就可以登录到远程主机。所有传输的数据都会被加密，但是不能保证你正在连接的服务器就是你想连接的服务器。可能会有别的服务器在冒充真正的服务器，也就是受到“中间人”这种方式的攻击。
     - `基于秘钥认证`：需要依靠秘钥，也就是你必须为自己创建一对秘钥，并把公用的秘钥放到你要访问的服务器上，客户端软件就会向服务器发出请求，请求用你的秘钥进行安全验证。服务器收到请求之后，现在该服务器你的主目录下寻找你的公用秘钥，然后吧它和你发送过来的公用秘钥进行比较。弱两个秘钥一致服务器就用公用秘钥加密“质询”并把它发送给客户端软件，客户端软件收到质询之后，就可以用你的私人秘钥进行解密再把它发送给服务器。
-- 用基于秘钥认证，你必须要知道自己的秘钥口令。但是与第一种级别相比，这种不需要再网络上传输口令。第二种级别不仅加密所有传送的数据，而且“中间人”这种攻击方式也是不可能的（因为他没有你的私人密匙）。但是整个登录的过程可能需要10秒。
+- 用基于秘钥认证，你必须要知道自己的秘钥口令。但是与第一种级别相比，这种不需要再网络上传输口令。第二种级别不仅加密所有传送的数据，而且“中间人”这种攻击方式也是不可能的（因为他没有你的私人密匙）。但是整个登录的过程可能需要10秒
 
 ### 查看SSH服务
 
@@ -761,44 +764,43 @@ rar a aezocn.rar *.jpg
 
 ### SSH客户端连接服务器（秘钥认证）
 
-- **客户端(可能也是一台服务器)需要连接服务器，则需要将客户端上的公钥如`id_rsa.pub`内容追加到服务器的`~/.ssh/authorized_keys`文件中，且客户端需要在.ssh文件夹保留上述公钥对应的秘钥如`~/.ssh/id_rsa`**
-    - 公钥需要写入到服务端的`authorized_keys`文件(文件名有s)，客户端/服务端`known_hosts`会保存已认证的客户端信息。(生成的公钥/私钥无需保存在服务端，自行备份即可)
-    - "公钥/私钥对"可以是客户端、服务器端或其他地方生成的秘钥对数据
-    - 客户端登录成功后会将服务器ip等信息加入到客户端/服务端`known_hosts`文件中(没有此文件时会自动新建)
-- 秘钥对生成和使用
-    - 生成公钥(.pub)和私钥(.ppk)。运行 **`ssh-keygen`** 命令后再按三次回车会看到`RSA`。生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`
-        - 会包括`id_rsa`(密钥)、`id_rsa.pub`(公钥)、`known_hosts`(此机器作为客户端进行ssh连接时，认证过的服务器信息) 3 个文件。如：此客户端ip为`192.168.1.2`
-        - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
-        - `ssh-keygen -t rsa -C "xxx@qq.com"` -C起到一个密码备注的作用，可以为任何内容
-    - 把生成的公钥保存到服务器`authorized_keys`文件中
-        - **`ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1`** 输入192.168.1.1密码实现发送，自动保存在服务器的`/root/.ssh/authorized_keys`文件中去(或者手动追加到authorized_keys文件中)。**此时需要保证192.168.1.1服务器的root用户没有被禁用**
-    - 在`192.168.1.2`客户端上登录上述服务器
-        - `ssh 192.168.1.1` 此时不需要输入密码
-        - 如果需要在`192.168.1.1`(客户机)上通过ssh登录`192.168.1.1`(服务器)，需要按照上述命令把公钥保存到服务器的`authorized_keys`
-    - 其他说明
-        - 如果是为了让root用户登录则将公钥放入到/root/.ssh目录；如果密钥提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下。`.ssh`目录不存在可手动新建（可通过`ll -al`查看） [^5]
-        - **阿里云服务器使用**
-            - 阿里云服务器需要将密钥对保存到阿里云管理后台，并关联到对应的服务器上
-            - 关联阿里云服务器秘钥后，需要到阿里云管理后进行服务器重启(不能再终端重启)。重启后会自动禁用密码登录
-            - 可以使用阿里云进行秘钥生成(只能下载到秘钥，公钥可通过xshell连接后进行查看或连接后到服务器的authorized_keys文件中查看)，也可自行导入公钥
-        - **AWS服务器(EC2)使用**
-            - 使用PuTTY连接时：PuTTY 本身不支持 Amazon EC2 生成的私有密钥格式 (.pem)，PuTTY 有一个名为 PuTTYgen 的工具，可将密钥转换成所需的 PuTTY 格式 (.ppk)
-        - 如何客户端登录失败，可在服务器查看访问日志`cat /var/log/secure`
-- 当支持证书登录后，可修改ssh配置禁用密码登录 [^7]
-
-    ```bash
-    vi /etc/ssh/sshd_config
-
-    ## 修改文件内容
-    Port 222 # 修改原22端口为222端口
-    # (可选)是否允许root用户登陆(no不允许)，**如果要基于root证书登录则还是需要设置为yes**
-    PermitRootLogin no
-    # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录。在没有生成好Key，并且成功使用之前，不要设置为no)
-    PasswordAuthentication no
-
-    # 使配置生效
-    systemctl restart sshd
-    ```
+- SSH连接
+    - **`ssh-keygen` 生成秘钥对**。可以在服务器、客户端、开发机上生成
+    - **将公钥 `id_rsa.pub` 内容追加到服务器的 `~/.ssh/authorized_keys` 文件中**。如登录服务器root账号则是`/root/.ssh/authorized_keys`，如登录aezo账号则是`/home/aezo/.ssh/authorized_keys`
+    - **将私钥 `id_rsa` 保存在客户端的`~/.ssh/`目录**
+- `ssh-keygen` 命令生成秘钥对
+    - 运行 `ssh-keygen` 命令后再按三次回车会看到`RSA`，生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`。包含文件
+        - `id_rsa` 密钥，保存在客户端。**客户端在通过ssh登录时，默认查找 id_rsa 文件，那么如果想让此客户端登录多个服务器，一般需要将此秘钥对应的公钥保存在多个服务器上，因此还需保管好相应公钥备用**
+        - `id_rsa.pub` 公钥，保存服务端。
+        - `known_hosts`(此机器作为客户端进行ssh连接时，认证过的服务器信息) 3 个文件。如：此客户端ip为`192.168.1.2`
+    - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
+    - `ssh-keygen -t rsa -C "xxx@qq.com"` -C起到一个密码备注的作用，可以为任何内容
+- **公钥保存到服务器**
+    - 手动追加到authorized_keys文件中
+    - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` 输入192.168.1.1密码，则会自动将公钥保存在服务器的`/root/.ssh/authorized_keys`文件中去此时。需要保证192.168.1.1服务器的root用户没有被禁用
+- **秘钥保存在客户端**
+    - 如果是为了让客户端root用户登录服务器，则将公钥放入到/root/.ssh目录；如果提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下
+    - `.ssh`目录不存在可手动新建（可通过`ll -al`查看） [^5]
+- 服务器说明
+    - 把生成的公钥保存到服务器`authorized_keys`文件中(文件名有s)
+- 客户端说明
+    - 客户端可能是windos、linux，在某种业务场景可能也被当做一台服务器
+    - 客户端公钥需要写入到服务端的`authorized_keys`文件
+    - 客户端登录成功后会将服务器ip等信息加入到客户端`known_hosts`文件中(没有此文件时会自动新建)
+- 免密登录服务器
+    - `ssh 192.168.1.1` 此时不需要输入密码
+    - 如果需要在`192.168.1.1`(客户机)上通过ssh登录`192.168.1.1`(服务器)，需要按照上述命令把公钥保存到服务器的`authorized_keys`
+    - 如果是使用服务器的aezo账号登录服务器，则将公钥追加到/home/aezo/.ssh/authorized_keys文件中，并通过 `ssh aezo@192.168.1.1`进行登录
+- 其他说明
+    - 如何客户端登录失败，可在服务器查看访问日志`cat /var/log/secure`
+        - 客户端登录提示`Permission denied (publickey,gssapi-keyex,gssapi-with-mic).`。说明秘钥验证失败，检查服务端是否有公钥，客户端是否有正确秘钥
+    - **阿里云服务器使用**
+        - 方式一：如上文所述方式，此时无需重启阿里云服务器
+        - 方式二
+            - 在阿里云管理后台生成秘钥或手动导入秘钥对，并关联到对应ECS上。阿里云生成的只能下载到秘钥，公钥可通过xshell连接后进行查看或连接后到服务器的authorized_keys文件中查看
+            - 关联阿里云服务器秘钥后，需要到阿里云管理后进行服务器重启(不能在终端重启)。*重启后会自动禁用密码登录*
+    - **AWS服务器(EC2)使用**
+        - 使用PuTTY连接时：PuTTY 本身不支持 Amazon EC2 生成的私有密钥格式 (.pem)，PuTTY 有一个名为 PuTTYgen 的工具，可将密钥转换成所需的 PuTTY 格式 (.ppk)
 - Putty/WinSCP 和 xshell/xftp
     - Putty是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。它包含Puttygen等工具，Puttygen可用于生成公钥和密钥（还可以将如AWS亚马逊云的密钥文件.pem转换为.ppk的通用密钥文件）
         - 在知道密钥文件时，可以通过Putty连接到服务器(命令行)，通过WinSCP连接到服务器的文件系统(FTP形式显示)
@@ -816,6 +818,21 @@ rar a aezocn.rar *.jpg
 	- Unix终端：`ssh -i my_private_file root@10.10.10.10`
         - `-i` 登录时指定私钥文件。ssh登录服务器默认使用的私有文件为`~/.ssh/id_dsa`、`~/.ssh/id_ecdsa`、`~/.ssh/id_ed25519`、`~/.ssh/id_rsa`，其他则需要使用`-i`指定
     - `cat /var/log/secure`查看登录日志
+- **当支持证书登录后，可修改ssh配置禁用密码登录** [^7]
+
+    ```bash
+    vi /etc/ssh/sshd_config
+
+    ## 修改文件内容
+    Port 222 # 修改原22端口为222端口
+    # (可选)是否允许root用户登陆(no不允许)，**如果要基于root证书登录则还是需要设置为yes**
+    PermitRootLogin no
+    # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录。在没有生成好Key，并且成功使用之前，不要设置为no)
+    PasswordAuthentication no
+
+    # 使配置生效
+    systemctl restart sshd
+    ```
 
 ## corn定时任务 [^4]
 

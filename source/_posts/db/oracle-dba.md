@@ -189,7 +189,7 @@ create user smalle identified by smalle1234 default tablespace ofbiz; -- 创建�
 grant create session to smalle; -- 赋予登录权限
 grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限（可使用下列批量赋权语句）
 grant create synonym to smalle; -- 赋予创建别名权限
-create or replace SYNONYM smalle.yothers_advice_collection FOR OFBIZ.yothers_advice_collection; -- 创建表别名,之后smalle查询OFBIZ的这张表可直接使用表名（可使用下列语句进行批量设置）
+create or replace SYNONYM smalle.yothers_advice_collection FOR OFBIZ.yothers_advice_collection; -- 创建表别名（同义词），之后smalle查询OFBIZ的这张表可直接使用表名（可使用下列语句进行批量设置）
 
 -- 批量赋值表查询权限
 -- （1） 使用游标将OFBIZ用户所有的表的查询权限赋给smalle用户（推荐）
@@ -220,7 +220,7 @@ select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
  where owner in ('OFBIZ')
    and object_type = 'TABLE';
 
--- 批量设置表别名
+-- 批量设置表别名（同义词）
 -- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || [table_grant_user] || '.' || [v_tabname] || ' for ' || [table_owenr_user] || '.' || [v_tabname];）
 -- （2）获取添加表别名语句
 select 'create or replace synonym smalle.' || object_name || ' for ' || owner || '.' || object_name || ';'

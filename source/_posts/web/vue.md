@@ -482,6 +482,97 @@ render: (h, params) => {
 
 - [Chrome Devtool  Performance使用](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/)
 
+#### 打包优化
+
+- 减少打包后文件体积的方法 [^13]
+    - 采用懒加载
+    - 启用 Gzip 压缩
+    - 将依赖库挂到 CDN 上
+    - 减少不必要的库依赖
+- 采用懒加载
+    - 将 `import Hello from '@/components/Hello'` 改成 `const Hello = () => import('@/components/Hello')`。本质上，它是利用了Promise
+    - 如使用动态加载的路由配置方式
+
+        ```js
+        // 未使用：打包后代码在一个 chunk-vendors 文件中
+        import Hello from '@/pages/Hello'
+        {
+            path: 'hello1',
+            name: 'hello1',
+            component: Hello
+        }
+
+        // 使用动态加载的路由配置方式：打包后代码被分散到多个 chunk-* 文件中，之后客户端可按需加载
+        {
+            path: 'hello2',
+            name: 'hello2',
+            component: () => import('@/pages/Hello')
+        }
+        ```
+- 启用 Gzip 压缩（以下两种方式建议同时进行）
+    - 开启nginx等服务器gzip。参考[nginx.md#配置示例](/_posts/arch/nginx.md#配置示例)
+    - 使用 [compression-webpack-plugin](https://www.webpackjs.com/plugins/compression-webpack-plugin/) 将静态资源提前压缩成 gz 格式，且nginx开启`gzip_static on;`，就不用在服务器进行压缩。参考[nginx.md#配置示例](/_posts/arch/nginx.md#配置示例)。速度比服务器压缩要更快，且传输资源更少
+
+        ```js
+        npm install compression-webpack-plugin --save-dev
+        
+        // vue-cli为例。开发环境不进行压缩，否则页面无法显示
+        chainWebpack: config => {
+            if(process.env.NODE_ENV !== 'development') {
+                const CompressionPlugin = require('compression-webpack-plugin');
+                config.plugin('compressionPlugin')
+                .use(new CompressionPlugin({
+                    algorithm: 'gzip',
+                    test: /\.(js|css|json|txt|html|ico|svg)(\?.*)?$/i,
+                    threshold: 10240,
+                    minRatio: 0.8
+                    // ,deleteOriginalAssets: true // 是否删除原资源，如果为true，.gz也会被删除
+                }));
+            }
+        }
+        ```
+- 将依赖库挂到 CDN 上。可以提高首屏响应速度
+    - 在 `public/index.html` 中引入库，部分代码如下
+
+        ```html
+        <body>
+            <div id="app"></div>
+            <!-- built files will be auto injected -->
+            <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
+        </body>
+        ```
+    - 配置
+
+        ```js
+        // 然后在 webpack(vue-cli为例) 中配置额外依赖
+        configureWebpack: {
+            externals: {
+                html2canvas: "html2canvas",
+            }
+        }
+
+        // 删除 package.json 的 dependencies 中此插件的依赖
+
+        // vue 页面可正常使用，无需修改
+        import html2Canvas from 'html2canvas'
+        ```
+- 减少不必要的库依赖
+    
+    ```js
+    npm install webpack-bundle-analyzer --save-dev
+
+    // vue-cli为例。执行 npm run build 后会自动打开 http://127.0.0.1:8888/ 显示包依赖信息
+    chainWebpack: config => {
+        if(process.env.NODE_ENV !== 'development') {
+            const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+            config.plugin('bundleAnalyzerPlugin').use(new BundleAnalyzerPlugin({
+                openAnalyzer: false // 不自动打开 http://127.0.0.1:8888/
+            }))
+        }
+    }
+    ```
+
+
 #### 指令等语法优化
 
 - `v-if` & `v-show` [^8]
@@ -1798,6 +1889,8 @@ module.exports = {
     publicPath: '/', // 对应vue-cli2 或者 webpack中的 assetsPublicPath 参数
     outputDir: 'dist', // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到www目录
     lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验
+    // 打包时不生成.map文件
+    productionSourceMap: false, // 项目打包后，代码都是经过压缩加密的，如果运行时报错，输出的错误信息无法准确得知是哪里的代码报错。有了map就可以像未加密的代码一样，准确的输出是哪一行哪一列有错。但是在生产环境中我们就不需要了
     chainWebpack: config => {
         config.resolve.alias
             .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
@@ -1809,8 +1902,6 @@ module.exports = {
             patterns: [path.resolve(__dirname, 'src/styles/theme/index.less')]
         }
     },
-    // 打包时不生成.map文件
-    productionSourceMap: false
 }
 ```
 
@@ -1832,5 +1923,5 @@ module.exports = {
 [^10]: https://juejin.im/post/5d5e89aee51d453bdb1d9b61
 [^11]: https://juejin.im/post/59bf501ff265da06602971b9 (性能优化之组件懒加载: Vue Lazy Component 介绍)
 [^12]: https://juejin.im/post/5d548b83f265da03ab42471d (Vue 项目性能优化 — 实践指南)
-
+[^13]: https://juejin.im/post/6844903584899792909
 

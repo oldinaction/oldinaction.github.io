@@ -79,10 +79,13 @@ server {
     # 服务器的地址
     server_name www.aezo.cn;
 
-    # **启用后响应头中会包含`Content-Encoding: gzip`**
-    gzip on; #开启gzip压缩输出
+    # #开启gzip压缩输出。**启用后响应头中会包含`Content-Encoding: gzip`；且chrome-network-size可以看到黑色的为传输大小，灰色的为实际大小，如果比黑色小则压缩生效**
+    gzip on;
     # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
     gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+    # Nginx的动态压缩是对每个请求先压缩再输出，这样造成虚拟机浪费了很多cpu，解决这个问题可以利用nginx模块Gzip Precompression，这个模块的作用是对于需要压缩的文件，直接读取已经压缩好的文件(文件名为加.gz)，而不是动态压缩，对于不支持gzip的请求则读取原文件（无 .gz 静态文件则在服务器动态压缩）。其优先级高于动态的gzip。可通过webapck插件 compression-webpack-plugin 提前将dist文件打包成 .gz 格式，从而减少服务器压缩
+    gzip_static on;
+
 
     access_log /var/log/nginx/test.access.log main;
 

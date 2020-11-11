@@ -573,10 +573,12 @@ public class Order implements Serializable {
 server {
     ...
 
-    # **启用后响应头中会包含`Content-Encoding: gzip`**
-    gzip on; #开启gzip压缩输出
+    # 开启gzip压缩输出。**启用后响应头中会包含`Content-Encoding: gzip`**
+    gzip on;
     # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
     gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+    # 其优先级高于动态的gzip。可通过webapck插件 compression-webpack-plugin 提前将dist文件打包成 .gz 格式，从而减少服务器压缩
+    gzip_static on;
 
     ...
 }
