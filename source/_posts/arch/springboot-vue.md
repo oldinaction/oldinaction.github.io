@@ -683,10 +683,11 @@ location ^~ /my-app/ {
 
 ```json
 .babelrc
-.env.dev
+.env.dev            // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)。vue-cli环境变量配置文件
 .env.test
 .postcssrc.js
 tsconfig.json       // 参考[typescript.md#tsconfig.json](/_posts/web/typescript.md#tsconfig.json)
+jsconfig.json       // https://www.jianshu.com/p/b0ec870ddfdf 、 https://www.cnblogs.com/leslie1943/p/13493829.html
 vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
 .eslintrc.js        // 参考[node-dev-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
 .eslintignore       // 参考[node-dev-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)

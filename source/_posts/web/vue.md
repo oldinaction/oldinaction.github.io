@@ -484,12 +484,7 @@ render: (h, params) => {
 
 #### 打包优化
 
-- 减少打包后文件体积的方法 [^13]
-    - 采用懒加载
-    - 启用 Gzip 压缩
-    - 将依赖库挂到 CDN 上
-    - 减少不必要的库依赖
-- 采用懒加载
+- 采用懒加载 [^13]
     - 将 `import Hello from '@/components/Hello'` 改成 `const Hello = () => import('@/components/Hello')`。本质上，它是利用了Promise
     - 如使用动态加载的路由配置方式
 
@@ -518,7 +513,7 @@ render: (h, params) => {
         
         // vue-cli为例。开发环境不进行压缩，否则页面无法显示
         chainWebpack: config => {
-            if(process.env.NODE_ENV !== 'development') {
+            if(process.env.NODE_ENV === 'production') {
                 const CompressionPlugin = require('compression-webpack-plugin');
                 config.plugin('compressionPlugin')
                 .use(new CompressionPlugin({
@@ -526,19 +521,31 @@ render: (h, params) => {
                     test: /\.(js|css|json|txt|html|ico|svg)(\?.*)?$/i,
                     threshold: 10240,
                     minRatio: 0.8
-                    // ,deleteOriginalAssets: true // 是否删除原资源，如果为true，.gz也会被删除
+                    // ,deleteOriginalAssets: true // 是否删除原资源，即只保留 .gz 文件。Electron打包需要保留原资源，否则安装包找不到相应js文件
                 }));
             }
         }
         ```
 - 将依赖库挂到 CDN 上。可以提高首屏响应速度
+    - 常用CDN服务商
+        - [bootcdn](https://www.bootcdn.cn/)
+        - [七牛云](http://staticfile.org/)
+        - [又拍云](http://jscdn.upai.com/)
+        - [unpkg](https://unpkg.com/)
+        - [jsdelivr](https://www.jsdelivr.com/)
+        - [cdnjs](https://cdnjs.net/)
     - 在 `public/index.html` 中引入库，部分代码如下
 
         ```html
         <body>
             <div id="app"></div>
             <!-- built files will be auto injected -->
-            <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
+            <!-- 引入相应版本的库文件 -->
+            <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+            <script src="https://cdn.bootcss.com/vue-router/3.0.7/vue-router.min.js"></script>
+            <script src="https://cdn.bootcss.com/vuex/3.1.1/vuex.min.js"></script>
+            <script src="https://cdn.bootcss.com/axios/0.19.0/axios.min.js"></script>
+            <script src="https://cdn.bootcss.com/element-ui/2.10.1/index.js"></script>
         </body>
         ```
     - 配置
@@ -547,31 +554,48 @@ render: (h, params) => {
         // 然后在 webpack(vue-cli为例) 中配置额外依赖
         configureWebpack: {
             externals: {
-                html2canvas: "html2canvas",
+                'vue': 'Vue',
+                'vue-router': 'VueRouter',
+                'vuex': 'Vuex',
+                'element-ui': 'elementUI',
+                'axios': 'axios',
             }
         }
 
         // 删除 package.json 的 dependencies 中此插件的依赖
 
         // vue 页面可正常使用，无需修改
-        import html2Canvas from 'html2canvas'
+        import Vue from 'vue'
         ```
 - 减少不必要的库依赖
     
     ```js
+    // 包依赖分析工具
     npm install webpack-bundle-analyzer --save-dev
 
-    // vue-cli为例。执行 npm run build 后会自动打开 http://127.0.0.1:8888/ 显示包依赖信息
+    // vue-cli为例。执行 npm run build 后会自动打开 http://127.0.0.1:8888/ 显示包依赖信息。**使用完之后可注释此行代码，否则命令行一直不会退出，给人一种没打包完成的错觉**
     chainWebpack: config => {
-        if(process.env.NODE_ENV !== 'development') {
+        if(process.env.NODE_ENV === 'production') {
             const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
-            config.plugin('bundleAnalyzerPlugin').use(new BundleAnalyzerPlugin({
-                openAnalyzer: false // 不自动打开 http://127.0.0.1:8888/
-            }))
+            config.plugin('bundleAnalyzerPlugin').use(new BundleAnalyzerPlugin({}))
         }
     }
     ```
+- 去掉 .map 文件：vue-cli设置`productionSourceMap: false`，参考下文[vue-cli](#vue-cli)
+- 使用 UglifyJsPlugin 丑化js，去掉debugger/console等信息
+- 使用`cnpm i -save-dev image-webpack-loader`对图片进行压缩
+- 测试环境和生产环境出来的包不一致问题：测试环境 js 文件在 dist 根目录下，且存在很大的 main.js 和 app.js；build 打包之后 js 文件在 dist/js 目录下，main和app也被分割成几个小文件了
+    - `NODE_ENV` 为webpack内置参数，可通过`process.env.NODE_ENV`获取，当其值是`production`(固定值)时，会进行压缩混淆等操作。所以测试环境和生产环境打包都应该设置`NODE_ENV=production`，然后通过`.env.test`和`.env.prod`环境变量文件(vue-cli功能)区分不同环境的API地址，如created
 
+        ```js
+        // .env.test
+        NODE_ENV = production
+        VUE_APP_ENV = testenv
+
+        // .env.prod
+        NODE_ENV = production
+        VUE_APP_ENV = production
+        ```
 
 #### 指令等语法优化
 
@@ -1850,6 +1874,10 @@ render() {
 }
 ```
 
+## Vue对Typescript的支持
+
+- 参考[typescript.md#Vue结合Typescript](/_posts/web/typescript.md#Vue结合Typescript)
+
 ## vue-cli
 
 - [官网](https://cli.vuejs.org/zh/)
@@ -1888,7 +1916,7 @@ module.exports = {
     // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)
     publicPath: '/', // 对应vue-cli2 或者 webpack中的 assetsPublicPath 参数
     outputDir: 'dist', // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到www目录
-    lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验
+    lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验。如果校验不通过则开发时页面无法显示
     // 打包时不生成.map文件
     productionSourceMap: false, // 项目打包后，代码都是经过压缩加密的，如果运行时报错，输出的错误信息无法准确得知是哪里的代码报错。有了map就可以像未加密的代码一样，准确的输出是哪一行哪一列有错。但是在生产环境中我们就不需要了
     chainWebpack: config => {

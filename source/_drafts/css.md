@@ -99,6 +99,14 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 @media (max-width: 767px) { /* <=768的设备 */ }
 ```
 
+## 响应式
+
+### vm/rpx/rem
+
+- https://www.cnblogs.com/tu-0718/p/10826846.html
+- https://imgcook.taobao.org/docs?slug=rem-adapter
+
+
 ## 常用css
 
 - 响应式布局，head中加`<meta name="viewport" content="width=device-width,initialscale=1.0,maximum-scale=1.0,user-scalable=0">`

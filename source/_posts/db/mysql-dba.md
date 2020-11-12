@@ -268,11 +268,10 @@ select count(*) from `t_test_vote`;
 - 命令行执行 sql 
   -  Mysql 通过上下左右按键修改语句 - 或者新建一个文本文件 h:/demo/test.sql，将 sql 语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号
   - Oracle 输入 ed 则打开记事本可进行修改修改 DOS 中的数据
-- Oracle 表结构与 Mysql 表结构转换
-  - 使用 navicat 转换 - 点击`工具 -> 数据转换`
-    - 左边选择 oracle 数据库和对应的用户，右边转成 sql 文件(直接转换会出现 Date 转换精度错误) 
-    - 将 sql 文件中的数据进行转换：`datetime(7)` -> `datetime(6)`，`decimal(20,0)` -> `bigint(20)`(原本在 oracle 中是 Number(20))，`decimal(1,0)` -> `int(1)`，`decimal(10,0)` -> `int(10)`
-    - 以此类推 - 默认值丢失 - 导入 sql 文件到 mysql 数据库中
+- **Oracle 表结构与 Mysql 表结构转换**
+    - 使用 navicat 转换 - 点击`工具 -> 数据传输 - 左边选择源数据库 - 右边选择文件 - 去勾选与原服务器相同`
+        - 其他选项：去勾选创建记录，去勾选创建前删除表(如果目标库中无次表则会报错)，勾选转换对象名为大写/小写(创建oracle表时不会自动将小写转大写，mysql也不会自动转小写)
+        - 存在问题：小数点精度丢失(如手动替换 `Number` 为 `Number(10,2)`)、默认值丢失
 
 ## 常见问题
 

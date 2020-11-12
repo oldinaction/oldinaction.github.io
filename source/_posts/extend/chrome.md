@@ -24,7 +24,6 @@ tags: [plugins, debug]
 - `有道词典Chrome划词插件`
 - `Evernote Web Clipper` 印象笔记·剪藏
 - `新浪微博图床`
-- `Octotree` github源码目录展现
 - `Tampermonkey` 油猴脚本。相关脚本：https://greasyfork.org/zh-CN/scripts
 - `IDM Integration Module` IDM下载
 - `Secure Shell` ssh客户端
@@ -34,6 +33,13 @@ tags: [plugins, debug]
 - `Axure RP Extension for Chrome` Axure设计
 - `Vue.js devtools` Vue.js调试工具
 - `Set Character Encoding` 解决chrome查看源码乱码问题
+- github相关
+    - `SourceGraph` 基于目录显示文件，类之间的跳转，代码搜索等功能
+    - `Octotree` 展现源码目录
+    - `Enhanced GitHub` 显示每个文件大小，并提供单独下载链接
+    - `GitZip` 下载文件夹：双击文件夹选中，点击页面右下角下载图标
+    - `OctoLinker` 实现类名点击跳转
+    - `Remu` 收藏项目管理，项目备注/标签管理
 
 ## 调试技巧
 
