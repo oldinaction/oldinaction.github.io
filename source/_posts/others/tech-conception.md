@@ -177,9 +177,18 @@ tags: [java, conception]
         - 修订号：做了向下兼容的问题修正时递增
     - 软件版本号由四部分组成，第一个为主版本号(模块/架构)，第二个为子版本号(功能)，第三个为阶段版本号(Bug/优化)，第四部分为日期版本号加希腊字母版本号，希腊字母版本号共有5种，分别为：`base`、`alpha`(内部开发)、`beta`(内测)、`RC`(预发布版)、`release`。例如：`1.1.1.051021_beta`
     - `LTS` 长期支持(Long Term Support)，一般为软件的重要版本
-- 开源协议/许可证 [1^]
+- 开源协议/许可证 [1^] [^4]
 
     ![开源协议](/data/images/others/许可证.png)
+    - `MIT` 无需开源，随便使用
+    - `Apache` 无需开源，仅需文件头放置Apache协议
+    - `BSD` 无需开源，需在文件头放置BSD协议，且不能使用原作者/产品信息做推广
+    - `LGPL` 修改后必须开源
+    - `Mozilla` 修改后必须开源，且需提供相关文档
+    - `GPL` 修改后必须使用GPL协议开源
+    - `AGPL` GPL的前提下，如果提供网络服务也必须开源
+        - GPL的约束生效的前提是"发布"软件，发布至软件通过互联网或光盘release软件
+        - 由于现在网络服务公司兴起（如：google）产生了一定的漏洞，比如使用GPL的自由软件，但是并不发布与网络之中。如使用GPL组件编写一个Web后端系统，不发布这个系统，但是用这个系统在线提供服务，同时不开源系统代码。AGPL则增加了对此做法的约束
 - `Git`提交说明规范参考：http://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html
 
 
@@ -210,3 +219,5 @@ tags: [java, conception]
 [^1]: http://www.ruanyifeng.com/blog/2011/05/how_to_choose_free_software_licenses.html
 [^2]: https://my.oschina.net/foodon/blog/372703
 [^3]: https://www.jianshu.com/p/d70df89665b9 (分布式事务：从刚性事务到柔性事务)
+[^4]: https://blog.csdn.net/chengkaizone/article/details/51504239
+

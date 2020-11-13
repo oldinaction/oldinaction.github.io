@@ -86,7 +86,7 @@ Assert.state
 
 ```java
 // 判断验证
-boolean flag = Validator.isEmpty(str);
+boolean flag = Validator.isEmpty(str); // **不好用，只能验证null和空字符串，不能验证集合为空**
 boolean flag = Validator.isNotEmpty(str);
 boolean flag = Validator.isEmail("demo@example.com");
 // 异常验证，失败会抛出 ValidateException 异常

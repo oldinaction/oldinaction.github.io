@@ -619,7 +619,7 @@ tags: [mybatis, springboot]
 | Numeric   | Long       |          | Number        |
 | Timestamp | Date       | Datetime | Date          |
 | Date      | Date       | Date     | Date          |
-| Decimal   | BigDecimal | Decimal  | Number(20, 6) |
+| Decimal   | BigDecimal | Decimal  | Number(12, 3) |
 | Char      |            | Char     | Char          |
 | Blob      |            | Blob     | Blob          |
 | Clob      |            | Text     | Clob          |
