@@ -145,6 +145,33 @@ ThisCrackLicenseId-{
 
 ## 常用技巧
 
+### Debug调试技巧
+
+- 回退断点：删除掉某个Frame即可，Frame显示的是执行过的和当前执行的帧，如果删除了，则会从上一帧重新调用 [^3]
+- 中断Debug/强制返回：右键帧 - Force Return - 填写返回值
+
+### 查看并搜索/调试/编辑jar包源码
+
+- 点击maven视图 - Dependencies - 右键需要下载源码的依赖 - 下载源码 - 之后点击该依赖的类会自动显示源码文件(无源码则显示class反编译文件)。此方法的源码无法修改
+- **下载源码并支持全局搜索。**如打印日志，在class文件中是无法全局搜索的，只有下载源码才能进行全局搜索
+- 下载源码并调试：class文件是可以通过idea反编译进行调试，但是部分场景很麻烦，如
+
+    ```java
+    // 源码如下
+    this.foo();
+    return this.bar();
+
+    // class文件反编译如下。假设this.bar()执行报错，则在debug class文件时，行显示直接跳过了`var1 = this.bar();`便报错了
+    this.foo();
+    var1 = this.bar();
+    return var1;
+    ```
+- 下载源码并支持修改
+    - 先下载对应源码到某目录，如dir
+    - 点击项目管理视图 - Libraries - 点击相关依赖 - 选择Sources - Add添加源码文件 - 选择刚刚目录下的源码(如果源码为maven结构，则选择改源码的src目录)
+    - 点击该依赖类 - 编辑 - idea提示此文件不为本项目文件，是否需要修改 - 选择是即可
+
+
 ### 开启Run DashBoard配置
 
 - 当项目存在多个可执行模块时，Run DashBoard配置会自动跳出，如果不跳出可以手动配置，在项目的`.idea/workspace.xml`中找到`<component name="RunDashboard">`节点，在此节点中加入下列配置
@@ -156,14 +183,6 @@ ThisCrackLicenseId-{
     </set>
 </option>
 ```
-
-### 查看并编辑jar包源码
-
-- 点击maven视图 - Dependencies - 右键需要下载源码的依赖 - 下载源码 - 之后点击该依赖的类会自动显示源码文件(无源码则显示class反编译文件)。此方法的源码无法修改
-- 下载源码并支持修改
-    - 先下载对应源码到某目录，如dir
-    - 点击项目管理视图 - Libraries - 点击相关依赖 - 选择Sources - Add添加源码文件 - 选择刚刚目录下的源码(如果源码为maven结构，则选择改源码的src目录)
-    - 点击该依赖类 - 编辑 - idea提示此文件不为本项目文件，是否需要修改 - 选择是即可
 
 ## IDEA开发PHP程序
 
@@ -234,3 +253,5 @@ ThisCrackLicenseId-{
 
 [^1]: [java-web项目配置](https://github.com/judasn/IntelliJ-IDEA-Tutorial/blob/newMaster/eclipse-java-web-project-introduce.md)
 [^2]: [intellij-idea12-搭建php开发环境](http://blog.csdn.net/ysjjovo/article/details/13292787)
+[^3]: https://blog.csdn.net/boss2967/article/details/82864044
+

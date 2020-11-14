@@ -329,6 +329,14 @@ Base64.getMimeEncoder(), Base64.getMimeDecoder()
 
 ### Metaspace代替持久代PermGen space
 
+### 其他
+
+```java
+// 类似get，区别在于如果map中没有对应key则返回执行函数，将此函数返回值put到此key上，并返回
+map.computeIfAbsent(str, k -> new ArrayList<>()); // 默认有一个参数来接受 key(此处的str)
+clazzMap.computeIfAbsent(clazz, Reflector::new); // public Reflector(Class<?> clazz) {} 此时 key(clazz) 会自动注入到构造函数的参数中
+```
+
 ## JDK7新特性
 
 ### try-with-resources

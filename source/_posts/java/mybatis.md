@@ -1026,8 +1026,31 @@ strategy.setLogicDeleteFieldName("valid_status"); // 生成逻辑删除(可配�
 strategy.setInclude(tableNameArr); // 需要生成的表名
 ```
 
+#### Oracle序列
 
+```java
+@KeySequence(value = "SEQ_ORACLE_LONG_KEY", clazz = Long.class) // 默认是Long类型
+public class YourEntity {
+    @TableId(value = "ID_LONG", type = IdType.INPUT) // 必须是 IdType.INPUT
+    private String idLong;
+}
 
+@KeySequence(value = "SEQ_ORACLE_STRING_KEY", clazz = String.class)
+public class YourEntity {
+    @TableId(value = "ID_STR", type = IdType.INPUT)
+    private String idStr;
+}
+```
+
+#### 常见问题
+
+- entity不建议继承
+
+    ```java
+    public class Foo extend Bar {}
+    // 当执行下列语句时，生成的sql会包含 Bar 的字段，导致执行报错
+    fooMappler.selectOne(id);
+    ```
 
 
 ---
