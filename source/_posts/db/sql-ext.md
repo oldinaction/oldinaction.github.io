@@ -81,6 +81,20 @@ ifnull(counts, 0)
 -- sqlserver
 isnull(counts, 0)
 ```
+- 字符串类型值
+
+```sql
+-- Mysql 可以使用单引号或双引号，Oracle只能使用单引号
+select name from user where name = "smalle";
+select name from user where name = 'smalle';
+```
+- as
+
+```sql
+-- Mysql/Oracle两种写均支持。只不过mybatis操作oracle返回map时，第一种写法的key全部为大写，第二种写法的key为小写
+select name as username from user where name = "smalle";
+select name as "username" from user where name = "smalle";
+```
 
 ### 排序
 

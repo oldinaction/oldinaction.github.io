@@ -1904,6 +1904,7 @@ vue --version # @vue/cli 4.3.0
 - `.env.test-sq` (多)环境变量配置
 
     ```bash
+    ## 获取的值都是字符串类型
     # 使用都是 process.env.xxx
     NODE_ENV = test-sq
     # 自定义变量必须以 VUE_APP_ 开头

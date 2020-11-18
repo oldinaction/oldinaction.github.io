@@ -55,7 +55,7 @@ tags: [concurrence, collection, juc, 线程池]
             - **wait醒来继续执行时，仍然需要获得锁才能继续执行**（因为wait下面的代码块一般也在同步块中，此时需要对应notify释放锁，即notify退出同步代码块）
             - notify/notifyAll 的执行只是唤醒沉睡的线程，而不会立即释放锁，锁的释放要看代码块的具体执行情况。所以在编程中，**尽量在使用了notify/notifyAll后立即退出同步代码块，以让唤醒的线程获得锁**
         - **wait 需要被try catch包围**，以便发生异常中断也可以使wait等待的线程唤醒
-        - **notify 和 wait 的顺序不能错**，否则报错IllegalMonitorStateException。如果A线程先执行notify方法，B线程再执行wait方法，那么B线程是无法被唤醒的(不会报错，LockSupport得unpark可在park之前运行)
+        - **notify 和 wait 的顺序不能错**，否则报错IllegalMonitorStateException，LockSupport的unpark可在park之前运行。如果A线程先执行notify方法(A报错IllegalMonitorStateException)，B线程再执行wait方法，那么B线程是无法被唤醒的(B不会报错)
         - notify方法只唤醒一个等待(对象的)线程并使该线程开始执行。所以如果有多个线程等待一个对象，这个方法只会唤醒其中一个线程，选择哪个线程取决于操作系统对多线程管理的实现。notifyAll 会唤醒所有等待(对象的)线程，尽管哪一个线程将会第一个处理取决于操作系统的实现
         - **在多线程中要测试某个条件的变化，使用if还是while来包裹wait？** (while)
             - 要注意，notify唤醒沉睡的线程A后，A线程会接着上次的执行继续往下执行(需要重新获取锁)。所以在进行条件判断时候，可以先把 wait 语句忽略不计来进行考虑

@@ -553,8 +553,9 @@ tags: [mybatis, springboot]
 - 数据库字段类型根据mybatis映射转换，`count(*)`转换成`Long`
 - `<when>`/`<if>` 可进行嵌套使用，其子属性test可以使用双引号或单引号
 - 支持`choose (when, otherwise)`语句
-- xml文件修改无需重新部署，立即生效
+- xml文件修改无需重新部署，立即生效?
 - `Cause: java.sql.SQLException: 无法转换为内部表示` 可能是由于类型转换导致，如强制将数据库中字符串类型字段映射某个对象的Long类型属性上
+- mybatis中用Map接收oracle的结果集，返回的数据key为大写。解决：sql可写成`select name as "name" from user`
 
 ### 控制主键自增和获取自增主键值
 
@@ -1024,11 +1025,18 @@ strategy.setControllerMappingHyphenStyle(true);
 strategy.setVersionFieldName("version"); // 设置乐观锁字段(表中无此字段则不会生成对应注解)
 strategy.setLogicDeleteFieldName("valid_status"); // 生成逻辑删除(可配置成逻辑删除或逻辑有效)
 strategy.setInclude(tableNameArr); // 需要生成的表名
+
+// 逻辑删除需要注入
+@Bean
+public LogicSqlInjector logicSqlInjector () {
+    return new LogicSqlInjector();
+}
 ```
 
 #### Oracle序列
 
 ```java
+// Entity增加注解
 @KeySequence(value = "SEQ_ORACLE_LONG_KEY", clazz = Long.class) // 默认是Long类型
 public class YourEntity {
     @TableId(value = "ID_LONG", type = IdType.INPUT) // 必须是 IdType.INPUT
@@ -1039,6 +1047,12 @@ public class YourEntity {
 public class YourEntity {
     @TableId(value = "ID_STR", type = IdType.INPUT)
     private String idStr;
+}
+
+// 注入生成器
+@Bean
+public OracleKeyGenerator oracleKeyGenerator() {
+    return new OracleKeyGenerator();
 }
 ```
 

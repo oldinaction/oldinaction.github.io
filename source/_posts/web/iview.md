@@ -47,7 +47,8 @@ tags: [vue, UI]
 
 ### Select
 
-- Select 远程搜索。问题：检索数据项的多个属性时远程搜索无效 [^1]
+- Select 搜索可搜索问题：检索数据项的多个属性时远程搜索无效 [^1]
+- Select 远程搜索问题：remote-method必须是顶级方法，否则数据无法刷新
 
 ```html
 <i-select
@@ -65,34 +66,47 @@ tags: [vue, UI]
   >
 </i-select>
 
+<!-- 
+    remoteMethod 必须是当前组件的顶级属性，即 this.remoteMethod，不能是 this.map.remoteMethod，否则 list 更新无效
+    loading 可不要，保留时需要自己手动在 remoteMethod 中进行控制其值
+-->
+<Select
+    v-model="model13"
+    filterable
+    :remote-method="remoteMethod"
+    :loading="loading">
+    <Option v-for="(item, index) in list" :value="item.value" :key="index">{{option.label}}</Option>
+</Select>
+
 <script>
-  export default {
-      data() {
+export default {
+    data() {
         user: {},
         options: [],
         queryText: '',
         userList: [] // 赋值省略
-      },
-      methods: {
+    },
+    methods: {
         queryChange(query) {
-        this.queryText = query;
-        if(query !== '') {
-            // 继续用户名和名称过滤
-            this.options = this.userList.filter(item => (item.name.indexOf(query) > -1 || item.username.indexOf(query) > -1))
-            this.options = this.options.map(item => {
-                return {
-                    value: item.id,
-                    label: item.name
-                };
-            });
-        } else {
-            this.options = [];
-        }
+            this.queryText = query;
+            if(query !== '') {
+                // 继续用户名和名称过滤
+                this.options = this.userList.filter(item => (item.name.indexOf(query) > -1 || item.username.indexOf(query) > -1))
+                this.options = this.options.map(item => {
+                    return {
+                        value: item.id,
+                        label: item.name
+                    };
+                });
+            } else {
+                this.options = [];
+            }
         },
         onChange(value) {
 
         }
-      }
+    }
+}
 </script>
 ```
 - 手动触发click事件展示下拉选项
@@ -456,7 +470,7 @@ iframe {
 ### Form
 
 - 表单验证
-  
+
     ```html
     <!-- 注意:model必须赋值，且所有的prop都定义过，如：userDataForm: {username: ''}。如果不定义自定则使用 required: true 规则时会一直报错 -->
     <Form :model="userDataForm" :rules="userDataFormRule" ref="userDataForm">

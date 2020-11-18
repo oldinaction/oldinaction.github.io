@@ -329,8 +329,8 @@ private String val = "smalle"; // 默认值。命令行参数此属性传入空�
 private static String hello;
 
 @Value("${myValue.hello}")
-public void setHello(String hello) {
-	this.hello = hello;
+public void setHello(String h) {
+	hello = h;
 }
 
 // 方法二：定义JavaBean
@@ -571,7 +571,7 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 
 - 注意点
     - 原理参考：[spring-src.md#请求参数解析](/_posts/java/spring-src.md#请求参数解析)
-    - **LocalDateTime 等类型转换** [^19] [^20]
+    - **LocalDateTime 等类型日期时间格式转换** [^19] [^20]
         - Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`。不适合参数通过 @RequestBody 修饰
         - Bean字段增加注解`@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。适用于 @RequestBody 接收(如 application/json 请求类型)；适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)
         - 如下文方案一自定义 ObjectMapper。只适用于 application/json(@RequestBody 接收) 请求方式
