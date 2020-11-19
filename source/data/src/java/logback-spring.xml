@@ -7,14 +7,17 @@
 -->
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
     <!--引入外部配置-->
-    <!--<include resource="org/springframework/boot/logging/logback/base.xml"/>-->
+    <!--<include resource="org/springframework/boot/logging/logback/base.xml"/>--><!-- 会额外产生一个 spring.log 的日志文件，默认达到10M进行分割 -->
+
+    <!-- 颜色转换(下文控制台打印时用到) -->
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
     <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径。yml中配置的 logging.path > LOG_PATH环境变量 > 此处默认值(必须要有-)-->
     <springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
-    <property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}" />
+    <springProperty scope="context" name="loggingPath" source="logging.path"/>
+    <property name="LOG_PATH" value="${loggingPath:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}}" />
     <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <!-- 如果日志统一收集，可以适当减少此处日志保留天数 -->
     <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-30}"/>
@@ -203,12 +206,12 @@
     <!--<logger name="org.apache.zookeeper" level="ERROR"/>-->
     <!--<logger name="com.netflix" level="ERROR"/>-->
 
-	<!-- hibernate日志输入 -->
-	<!-- <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
-	<logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE" />
-	<logger name="org.hibernate.SQL" level="INFO" />
-	<logger name="org.hibernate.engine.QueryParameters" level="INFO" />
-	<logger name="org.hibernate.engine.query.HQLQueryPlan" level="INFO" /> -->
+    <!-- hibernate日志输入 -->
+    <!-- <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE" />
+    <logger name="org.hibernate.SQL" level="INFO" />
+    <logger name="org.hibernate.engine.QueryParameters" level="INFO" />
+    <logger name="org.hibernate.engine.query.HQLQueryPlan" level="INFO" /> -->
 
     <!--mybatis打印日志，此时是debug级别，则会生成到debug-%i.log的文件中-->
     <!-- <logger name="cn.aezo.video.dao" level="DEBUG"/> -->

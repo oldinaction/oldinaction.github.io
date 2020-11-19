@@ -608,23 +608,25 @@ tags: [mybatis, springboot]
   - JDBC BATCH 1.1秒左右 > Mybatis BATCH 2.2秒左右 > Mybatis foreach 4.5秒左右
   - 有测试说 Mybatis foreach > Mybatis BATCH
 
-### MyBatis、Java、Oracle、MySql数据类型对应关系
+### MyBatis/Java/Oracle/MySql数据类型对应关系
 
-- Mybatis的数据类型用JDBC的数据类型
 - JDBC数据类型转换
 
-| JDBC      | Java       | Mysql    | Oracle        |
-| --------- | ---------- | -------- | ------------- |
-| Integer   | Integer    | Int      |
-| Bigint    | Long       | Bigint   | Number        |
-| Numeric   | Long       |          | Number        |
-| Timestamp | Date       | Datetime | Date          |
-| Date      | Date       | Date     | Date          |
-| Decimal   | BigDecimal | Decimal  | Number(12, 3) |
-| Char      |            | Char     | Char          |
-| Blob      |            | Blob     | Blob          |
-| Clob      |            | Text     | Clob          |
-| Boolean   | Boolean    | Bit      |               |
+| JDBC      | Java(Mybatis) | Mysql    | Oracle        |
+| --------- | ------------- | -------- | ------------- |
+| Boolean   | Boolean       | bit      |               |
+| Integer   | Integer       | tinyint  |               |
+| Integer   | Integer       | smallint |               |
+| Integer   | Integer       | mediumint|               |
+| Integer   | Integer       | int      | Number(11)    |
+| Bigint    | Long          | bigint   | Number(20)    |
+| Numeric   | Long          |          | Number        |
+| Timestamp | Date          | datetime | Date          |
+| Date      | Date          | date     | Date          |
+| Decimal   | BigDecimal    | decimal  | Number(12, 3) |
+| Char      |               | char     | Char          |
+| Blob      | byte[]/Object | blob     | Blob          |
+| Clob      | String        | text     | Clob          |
 
 - **BLOB为二进制大对象**，可存储图片(转成二进制，实际用的很少)；**CLOB文本大对象**，可用来存储博客文章等；Mybatis对CLOB可直接解析成字符串，而BLOB则需要些对应关系
 
@@ -920,17 +922,19 @@ mybatis-plus:
   - 使用mapper，如`SubscribeMapper`则会继承`BaseMapper`
 
 ```java
-List<Subscribe> subscribes = subscribeService.list(
-	new LambdaQueryWrapper<Subscribe>()
-		.eq(Subscribe::getFlowStatus, 1));
-
+// ======== 基于 Mapper 进行访问
 // 返回 List<Map<String, Object>>，此时LambdaQueryWrapper基于TemplateItem实体生成sql语句(sql语句驼峰会转成下划线，返回的Map中的key全为大写下划线)
-List<Map<String, Object>> list = templateItemDao.selectMaps(
+List<Map<String, Object>> list = templateItemMapper.selectMaps(
                 new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
                     .eq(TemplateItem::getTemplateId, 1)
                     .eq(TemplateItem::getTemplateId, templateId));
+List<Template> list2 = templateItemMapper.selectByMap(map); // 参数 map 中的字段即为数据库的字段
 
-// 批量新增/更新/删除
+// ======== 基于 Service 进行访问
+List<Subscribe> subscribes = subscribeService.list(new LambdaQueryWrapper<Subscribe>().eq(Subscribe::getFlowStatus, 1));
+
+
+// ======== 批量新增/更新/删除
 subscribeService.saveBatch(List<Subscribe>);
 subscribeService.updateBatchById(List<Subscribe>);
 subscribeService.removeByIds(List<Subscribe>);

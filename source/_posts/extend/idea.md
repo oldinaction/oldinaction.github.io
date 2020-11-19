@@ -6,6 +6,10 @@ categories: extend
 tags: [IDE]
 ---
 
+## 说明
+
+- IDEA使用久了比较占磁盘，可把`C:\Users\smalle\.IntelliJIdea2018.1\system\index`目录下的索引文件全部删掉释放磁盘空间；如果做了C盘搬家，也可删除目标存储目录，如`D:\FileHistory\smalle\AEZO-E480\Data\C\Users\smalle\.IntelliJIdea2018.1\system\index`
+
 ## jetbrains相关编辑器破解
 
 - 在 hosts 文件里面添加如下配置`0.0.0.0 account.jetbrains.com`、`0.0.0.0 www.jetbrains.com``
@@ -96,6 +100,10 @@ ThisCrackLicenseId-{
 
 - `jrebel` java热部署(会自动热部署新代码。如果不使用jrebel，springboot-devtools可修改代码后使用`Ctrl+Shif+F9`进行热部署)
     - jrebel破解参考：http://www.cicoding.cn/other/jrebel-activation/
+    - 无法热部署场景
+        - 修改了Entity，涉及到mybatis的操作无法生效(mybatis缓存了数据类型?)
+        - 修改了mybatis mapper和对应文件一般无法生效
+        - 修改了方法声明
 - `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
 - `Free MyBatis plugin` 可自动识别mybatis的mapper(实现)
     - `MybatisX` 类似插件，Ctrl+Alt可实现相应跳转

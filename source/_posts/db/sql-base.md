@@ -226,7 +226,8 @@ exec p(0, 0);
 
 ### 数据库基本
 
-- Mysql数据类型，参考[数据类型的优化](/_posts/db/sql-optimize.md#数据类型的优化)
+- 与JDBC数据类型映射关系参考[mybatis.md#MyBatis/Java/Oracle/MySql数据类型对应关系](/_posts/java/mybatis.md#MyBatis/Java/Oracle/MySql数据类型对应关系)
+- Mysql数据类型，参考[sql-optimization.md#数据类型的优化](/_posts/db/sql-optimization.md#数据类型的优化)
     - `tinyint`     **超短整型**，存储长度1个字节(带符号存储区间：-127 ~ 127，不带符号存储区间：0-255)
     - `smallint`    短整型，存储长度为2个字节；java可使用Boolean那映射，数据库存储为1/0
     - `mediumint`   中整型，存储长度为3个字节

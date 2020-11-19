@@ -128,9 +128,9 @@ tags: springboot
 logging:
 	# 日志文件保存位置(会自动创建目录). 如果未找到path则不生成日志文件(linux默认是/tem/spring.log)，path有值时后自动在目录生成spring.log的文件(日志级别全部在一起)。如果使用默认路径则无需此配置
 	path: ${LOG_PATH:D:/temp/logs/test/module}
-	# 基于xml文件可以将日志级别不同的生成到不同的文件中。如果日志配置文件为：resource/logback.xml、resource/logback-spring.xml则无需此配置
+	# 基于xml文件可以将日志级别不同的生成到不同的文件中。如果日志配置文件为：resource/logback.xml；resource/logback-spring.xml；也可以自动识别环境，如logback-dev.xml，则无需此配置
 	config: classpath:logback-test.xml
-# 将mybatis的DEBUG日志记录在文件的前提是(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
+# 将mybatis的DEBUG日志记录在文件的前提是：(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
 # 打印mybatis的sql语句，会覆盖logback.xml中的配置
 logging.level.cn.aezo.test.mapper: DEBUG
 logging:
@@ -142,6 +142,7 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 ```
+- 文件的命名和加载顺序有关：logback.xml早于application.yml加载，logback-spring.xml晚于application.yml加载；如果logback配置需要使用application.yml中的属性，需要命名为logback-spring.xml
 - 参考配置文件[/data/src/java/logback-spring.xml](/data/src/java/logback-spring.xml)。如果保存在数据库中时，表结构文件[/data/src/java/logback.sql](/data/src/java/logback.sql)
 - springboot的日志配置文件`<include resource="org/springframework/boot/logging/logback/base.xml"/>`。里面包含一下参数，表示为配置LOG_PATH等环境变量时，在linux环境下会自动创建`/tmp/spring.log`文件作为日志输出文件，而/tmp目录一般只有使用root用户运行项目才可以创建此文件
     
@@ -1551,7 +1552,7 @@ public static String sha1(String str) throws NoSuchAlgorithmException, Unsupport
 		</dependency>
 		```
 - thymeleaf缓存(热部署)
-	- 推荐使用`JRebel`(idea需要Ctrl+Shift+F9刷新)
+	- 推荐使用`JRebel`(idea需要Ctrl+Shift+F9刷新部分静态文件，java文件会自动刷新)
 	- 使用`devtools`(也适用于java文件热部署)
 		- 增加maven配置
 			
