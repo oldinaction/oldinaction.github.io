@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2020-11-20T07:17:24.342Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/09/11/web/electron/</loc>
     
     <lastmod>2020-11-19T10:05:00.795Z</lastmod>
@@ -26,13 +33,6 @@
     <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
     
     <lastmod>2020-11-19T08:14:25.500Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2020-11-19T05:07:57.098Z</lastmod>
     
   </url>
   
