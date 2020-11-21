@@ -1017,7 +1017,7 @@ int res = userMapper.updateById(user); // 1成功。生成的sql类似: update t
 
 ```java
 GlobalConfig gc = new GlobalConfig();
-gc.setIdType(IdType.ID_WORKER_STR); // ID使用字符串序列
+gc.setIdType(IdType.ASSIGN_ID); // ID使用字符串序列
 gc.setDateType(DateType.SQL_PACK); // 时间使用数据库类型对应，否则生成 LocalDateTime 等
 
 StrategyConfig strategy = new StrategyConfig();

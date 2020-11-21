@@ -15,10 +15,11 @@ tags: tools
 - Bean/Map/Json相互转化
 
 ```java
-// ### Bean <==> JSON; 深度拷贝
+// ### Bean/Map <==> JSON; 深度拷贝
 String str = JSONUtil.toJsonStr(person); // Bean => JSON字符串
 Person person = JSONUtil.toBean(str, Person.class); // JSON字符串 => Bean
 Person newPerson = JSONUtil.toBean(JSONUtil.toJsonStr(person), Person.class); // 实现深度拷贝。使用 BeanUtil.copyProperties 为浅拷贝
+Map map = JSONUtil.toBean(str, Map.class);
 
 // ### Bean <==> Map。具体参考[类型转换](#类型转换)
 BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的参数。从而可将controller接受参数设为@RequestBody Map<String, Object> params，保存时再进行转换)
