@@ -18,7 +18,19 @@
     <springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
     <springProperty scope="context" name="loggingPath" source="logging.path"/>
     <property name="LOG_PATH" value="${loggingPath:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}}" />
-    <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <!--
+      1. %clr(%replace(%-35.35caller{1}){'\t|Caller.{1}0|\r\n', ''}){magenta} 显示日志行号和行链接，解析：
+        %clr(...){magenta} 对括号中数据增加 magenta 颜色
+        %replace(...){...} 去掉换行
+        %-35.35caller{1} 获取调用栈最后两个，并格式化宽度为 35
+        其他参数参考：https://www.iteye.com/blog/aub-1103685
+        %d 日期
+        %t 线程
+        %m 日志内容
+        %n 换行
+      2. 简单的使用 %clr(%L){magenta} 代替
+    -->
+    <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(%replace(%-35.35caller{1}){'\t|Caller.{1}0|\r\n', ''}){magenta} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <!-- 如果日志统一收集，可以适当减少此处日志保留天数 -->
     <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-30}"/>
     <property name="LOG_FILE_MAX_SIZE" value="${LOG_FILE_MAX_SIZE:-10MB}"/>
