@@ -129,7 +129,8 @@ logging:
 	# 日志文件保存位置(会自动创建目录). 如果未找到path则不生成日志文件(linux默认是/tem/spring.log)，path有值时后自动在目录生成spring.log的文件(日志级别全部在一起)。如果使用默认路径则无需此配置
 	path: ${LOG_PATH:D:/temp/logs/test/module}
 	# 基于xml文件可以将日志级别不同的生成到不同的文件中。如果日志配置文件为：resource/logback.xml；resource/logback-spring.xml；也可以自动识别环境，如logback-dev.xml，则无需此配置
-	config: classpath:logback-test.xml
+    config: classpath:logback-test.xml
+
 # 将mybatis的DEBUG日志记录在文件的前提是：(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
 # 打印mybatis的sql语句，会覆盖logback.xml中的配置
 logging.level.cn.aezo.test.mapper: DEBUG
@@ -325,7 +326,7 @@ public class SpringContextU implements ApplicationContextAware {
 
 // 取值
 @Value("${myValue.val")
-private String val = "smalle"; // 默认值。命令行参数此属性传入空时，此初始值不会被覆盖
+private String val = "smalle"; // 默认值。在命令行参数给此属性传入空时，此初始值不会被覆盖
 
 private static String hello;
 
@@ -2290,19 +2291,19 @@ public class DynamicAddTests {
 
 ### 替换项目运行时springboot的logo
 
-- 在`resources`添加`banner.txt`文件. 内容自定义(文字转字符：http://patorjk.com/software/taag/)，如：
+- 在`resources`添加`banner.txt`文件. 内容自定义(文字转字符：http://patorjk.com/software/taag/)，如（font=Doom）：
 
 	```html
-    ${AnsiColor.BRIGHT_BLUE}
-	 .oooo.    .ooooo.    oooooooo  .ooooo.   .ooooo.  ooo. .oo.   
-	`P  )88b  d88' `88b  d'""7d8P  d88' `88b d88' `"Y8 `888P"Y88b  
-	 .oP"888  888ooo888    .d8P'   888   888 888        888   888  
-	d8(  888  888    .o  .d8P'  .P 888   888 888   .o8  888   888  
-    `Y888""8o `Y8bod8P' d8888888P  `Y8bod8P' `Y8bod8P' o888o o888o
-    ${AnsiColor.BRIGHT_GREEN}
-    AEZO Version: 2.2.1
-    Spring Boot Version: ${spring-boot.version}${spring-boot.formatted-version}
-    ${AnsiColor.BLACK}
+    ${AnsiColor.BRIGHT_CYAN} _____               _                 ${AnsiColor.YELLOW} _____        ______  _
+    ${AnsiColor.BRIGHT_CYAN}/  ___|             (_)                ${AnsiColor.YELLOW}/  ___|       | ___ \(_)
+    ${AnsiColor.BRIGHT_CYAN}\ `--.  _ __   _ __  _  _ __    __ _   ${AnsiColor.YELLOW}\ `--.   __ _ | |_/ / _  ____
+    ${AnsiColor.BRIGHT_CYAN} `--. \| '_ \ | '__|| || '_ \  / _` |  ${AnsiColor.YELLOW} `--. \ / _` || ___ \| ||_  /
+    ${AnsiColor.BRIGHT_CYAN}/\__/ /| |_) || |   | || | | || (_| |  ${AnsiColor.YELLOW}/\__/ /| (_| || |_/ /| | / /
+    ${AnsiColor.BRIGHT_CYAN}\____/ | .__/ |_|   |_||_| |_| \__, |  ${AnsiColor.YELLOW}\____/  \__, |\____/ |_|/___|
+    ${AnsiColor.BRIGHT_CYAN}       | |                      __/ |  ${AnsiColor.YELLOW}           | |
+    ${AnsiColor.BRIGHT_CYAN}       |_|                     |___/   ${AnsiColor.YELLOW}           |_|
+
+    ${AnsiColor.BLUE}:: SqBiz :: ${spring.application.name:sqbiz}:${AnsiColor.RED}${spring.profiles.active}${AnsiColor.BLUE} :: Running SpringBoot ${spring-boot.version} :: ${AnsiColor.BRIGHT_BLACK}
 	```
 
 ### 打包成exe
