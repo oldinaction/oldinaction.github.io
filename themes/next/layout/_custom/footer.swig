@@ -20,9 +20,6 @@
   </div>
   {% endif %}
 
-  <div class="theme-info">
-    Hosted by <a target="_blank" href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
-  </div>
   <div class="theme-info cnzz" style="margin: 0 0 -5px 10px;">
     <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1276691827'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1276691827%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script>
   </div>

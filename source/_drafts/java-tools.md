@@ -28,7 +28,7 @@ BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的
 - 复制Bean
 
 ```java
-// 忽略NULL值(不会忽略空值，NULL值不会覆盖目标对象)，和忽略部分属性。痛点：像 org.springframework.beans.BeanUtils.copyProperties 则无法忽略空值
+// 忽略NULL值(即NULL值不会覆盖目标对象，但不会忽略空值)，和忽略部分属性。痛点：像 org.springframework.beans.BeanUtils.copyProperties 则无法忽略NULL值
 BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
 ```
 
