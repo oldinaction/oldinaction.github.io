@@ -2205,19 +2205,10 @@ public interface ISubscribeService extends IService<Subscribe> {
 ```java
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@WebAppConfiguration // 开启web上下文测试(只测试service/dao则不需要)
+@AutoConfigureMockMvc // 可以自动的注册所有添加@Controller或者@RestController的路由的MockMvc了
 public class DynamicAddTests {
-    // 注入webApplicationContext
     @Autowired
-    private WebApplicationContext webApplicationContext;
-
     private MockMvc mockMvc;
-
-    // 设置mockMvc
-    @Before
-    public void setMockMvc() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-    }
 
     @Test
     public void login(){

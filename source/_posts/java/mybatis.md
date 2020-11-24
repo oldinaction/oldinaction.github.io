@@ -899,7 +899,7 @@ mybatis-plus:
   # 实体扫描
   typeAliasesPackage: cn.aezo.demo.entity
   global-config:
-    #逻辑删除配置
+    # 逻辑删除配置
     db-config:
       logic-delete-value: 0
       logic-not-delete-value: 1
@@ -1043,7 +1043,7 @@ public LogicSqlInjector logicSqlInjector () {
 // Entity增加注解
 @KeySequence(value = "SEQ_ORACLE_LONG_KEY", clazz = Long.class) // 默认是Long类型
 public class YourEntity {
-    @TableId(value = "ID_LONG", type = IdType.INPUT) // 必须是 IdType.INPUT
+    @TableId(value = "ID_LONG", type = IdType.INPUT) // 如果使用序列必须是 IdType.INPUT
     private String idLong;
 }
 

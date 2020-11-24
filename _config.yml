@@ -73,7 +73,8 @@ deploy:
   # repository: https://github.com/aezocn/aezocn.github.io.git
   repo:
     # github: https://github.com/aezocn/aezocn.github.io.git
-    coding: git@e.coding.net:smalle/blog.git
+    github: git@github.com:oldinaction/oldinaction.github.io.git
+    # coding: git@e.coding.net:smalle/blog.git
   branch: master
 
 # 自动生成sitemap

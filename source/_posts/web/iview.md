@@ -371,6 +371,7 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 
 ### Modal
 
+- 通过路由进入详细页面，保存完数据再回到主页面，之前查询条件丢失。此时可通过子路由+弹框完成，弹框包裹住子路由，回到主页面数据不会丢失
 - 点击确定(on-ok事件)按钮不关闭弹框
 
 ```js
