@@ -2,23 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2020-11-24T01:19:31.592Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    
+    <lastmod>2020-11-23T10:06:32.597Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     
-    <lastmod>2020-11-22T13:25:10.152Z</lastmod>
+    <lastmod>2020-11-23T05:01:51.003Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
-    <lastmod>2020-11-22T11:15:37.347Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2020-11-20T07:17:24.342Z</lastmod>
+    <lastmod>2020-11-23T04:14:12.121Z</lastmod>
     
   </url>
   
@@ -61,13 +68,6 @@
     <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
     
     <lastmod>2020-11-18T09:12:49.653Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    
-    <lastmod>2020-11-18T08:35:30.933Z</lastmod>
     
   </url>
   

@@ -176,9 +176,9 @@
       <category term="lang" scheme="http://blog.aezo.cn/categories/lang/"/>
     
     
-      <category term=".NET" scheme="http://blog.aezo.cn/tags/NET/"/>
-    
       <category term="windows" scheme="http://blog.aezo.cn/tags/windows/"/>
+    
+      <category term=".NET" scheme="http://blog.aezo.cn/tags/NET/"/>
     
   </entry>
   
