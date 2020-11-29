@@ -30,6 +30,8 @@ BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的
 ```java
 // 忽略NULL值(即NULL值不会覆盖目标对象，但不会忽略空值)，和忽略部分属性。痛点：像 org.springframework.beans.BeanUtils.copyProperties 则无法忽略NULL值
 BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
+
+// 仅拷贝部分属性，暂未找到相应方法，可重新定义一个仅有部分字段的Bean进行接收
 ```
 
 ### 集合
@@ -92,6 +94,31 @@ boolean flag = Validator.isNotEmpty(str);
 boolean flag = Validator.isEmail("demo@example.com");
 // 异常验证，失败会抛出 ValidateException 异常
 Validator.validateChinese("我是一段zhongwen", "内容中包含非中文");
+```
+
+### 构建树结构
+
+```java
+List<SysRouter> sysRouters = queryAll();
+
+TreeNodeConfig treeNodeConfig = new TreeNodeConfig();
+// 自定义参数，也可全部使用默认
+treeNodeConfig.setIdKey("id");
+treeNodeConfig.setChildrenKey("children");
+treeNodeConfig.setWeightKey("orderNum"); // 设置排序字段
+treeNodeConfig.setDeep(10); // 配置树深度
+
+//转换器
+List<Tree<String>> treeList = TreeUtil.build(sysRouters, "0", treeNodeConfig, (treeNode, tree) -> {
+    tree.setId(treeNode.getId().toString());
+    tree.setParentId(treeNode.getParentId().toString());
+    tree.setWeight(treeNode.getOrderNum());
+    tree.setName(treeNode.getName());
+
+    // 扩展属性
+    tree.putExtra("path", treeNode.getPath());
+    tree.putExtra("hasClassify", treeNode.getHasClassify());
+});
 ```
 
 ### 数字操作

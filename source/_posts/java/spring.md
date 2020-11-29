@@ -1077,6 +1077,19 @@ public class CustomerHandlerInterceptor implements HandlerInterceptor {
     - `@AutoConfigureBefore`
     - `@AutoConfigureAfter` 在加载某配置的类之后再加载当前类。如：@AutoConfigureAfter({FeignAutoConfiguration.class})
 
+### org.springframework.util
+
+- `AntPathMatcher` 路径通配符匹配
+
+- 示例
+
+```java
+// AntPathMatcher
+String url = "/blog/detail/get.do";
+AntPathMatcher matcher = new AntPathMatcher();
+matcher.match("/blog/**/*.do", url); // true
+```
+
 
 
 

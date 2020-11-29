@@ -218,7 +218,7 @@ axios.get("/hello", {
 - qs插件会自动设置请求头为`application/x-www-form-urlencoded`
 
 ```js
-// 安装：npm install qs -S -D
+// 安装：npm install qs -D
 import qs from 'qs'
 Vue.prototype.$qs = qs;
 

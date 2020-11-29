@@ -44,6 +44,7 @@ tags: [vue, UI]
         - `Select`: this.$refs.myRef.publicValue(单选时。如果要在模板中展示则不能这样调用，会出现死循环，参考下文[可编辑表单](#可编辑表单))
         - `DatePicker`: this.$refs.myRef.publicStringValue
         - `Cascader`: this.$refs.myRef.displayRender(参考下文Cascader说明)
+- `Row`标签无法使用`@click`事件，但是原生`span`标签却可以
 
 ### Select
 

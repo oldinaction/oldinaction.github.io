@@ -82,6 +82,8 @@ tags: [others]
 | 单元格  | 单元格 |
 | 单元格  | 单元格 |
 
+- 复制网页表格到markdown文件：先复制到typora，然后打开typora源码模式复制markdown表格代码
+
 ## github-jeykll-markdown个人书写习惯
 
 > 2017-07-01 之后使用hexo书写博客, 格式依然可用

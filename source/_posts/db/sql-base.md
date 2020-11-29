@@ -764,9 +764,19 @@ select *
     where paging_t2.rn > 10;
 ```
 
-#### union合集
+#### union/union all合集
 
-- Oracle `select 1 as a from dual union select 2 as b from dual`
+- UNION(或 UNION ALL) 操作符用于合并两个或多个 SELECT 语句的结果集，需注意
+    - UNION 内部的 SELECT 语句必须拥有**相同数量的列**
+    - 列也必须拥有**相似的数据类型**
+    - 每条 SELECT 语句中的**列的顺序必须相同**
+    - UNION 结果集中的列名总是等于 UNION 中第一个 SELECT 语句中的列名
+- UNION ALL 允许重复值，而 UNION 会进行去重。如果业务允许重复值，则优先使用 UNION ALL
+
+```sql
+-- oracle 得到 a=[1, 2]
+select 1 as a from dual union select 2 as b from dual;
+```
 
 #### intersect交集
 

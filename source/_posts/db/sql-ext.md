@@ -848,6 +848,18 @@ ca as
 select * from Customer where Id in (select * from ca);
 ```
 
+## 语法树解析
+
+- [Druid](https://github.com/alibaba/druid)
+    - 其组件[SQL-Parser](https://github.com/alibaba/druid/wiki/SQL-Parser)可进行SQL解析
+- [Apache Calcite](https://github.com/apache/calcite)
+    - 只支持通用的文法树，无法对不同数据库提供本地化支持
+- [antlr](https://github.com/antlr/antlr4)
+    - Antlr4是一个Java实现的开源项目，用户需要编写g4后缀的语法文件(有通用文件提供)，Antlr4可以自动生成词法解析器和语法解析器，提供给开发者的接口是已经解析好的抽象语法树以及易于访问的Listener和Visitor基类。支持结构性语法，SQL解析只是其中一个应用场景
+- 参考文章
+    - https://tech.meituan.com/2018/05/20/sql-parser-used-in-mtdp.html
+
+
 
 
 ---

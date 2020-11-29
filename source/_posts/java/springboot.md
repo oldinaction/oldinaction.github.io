@@ -188,66 +188,185 @@ mybatis:
 
 ### 拦截器
 
-- 定义拦截器
+#### 简单拦截器
 
-	```java
-	@Component
-	public class MyInterceptor implements HandlerInterceptor {
+    ```java
+    // 暴露即可 javax.servlet.Filter
+    @Component
+    public class AuthFilter implements Filter {}
 
-		@Override
-		public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-				throws Exception {
-			System.out.println(">>>>>>>>>>在请求处理之前进行调用（Controller方法调用之前）");
-			return true; // 只有返回true才会继续向下执行，返回false取消当前请求
-		}
+    @Component
+    public class AuthFilter2 extends OncePerRequestFilter {}
+    ```
 
-		/**
-		* 这个方法只会在当前这个Interceptor的preHandle方法返回值为true的时候才会执行。
-		* postHandle是进行处理器拦截用的，它的执行时间是在处理器进行处理之后，也就是在Controller的方法调用之后执行，但是它会在DispatcherServlet进行视图的渲染之前执行，也就是说在这个方法中你可以对ModelAndView进行操作。
-		* 这个方法的链式结构跟正常访问的方向是相反的，也就是说先声明的Interceptor拦截器，该方法反而会后调用
-		*/
-		@Override
-		public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-							ModelAndView modelAndView) throws Exception {
-			System.out.println(">>>>>>>>>>请求处理之后进行调用（Controller方法调用之后），但是在视图被渲染之前");
+#### 实现HandlerInterceptor
 
-			if(response.getStatus() == 500) {
-				modelAndView.setViewName("/error/500");
-			} else if(response.getStatus() == 404) {
-				modelAndView.setViewName("/error/404");
-			} else if(response.getStatus() == 403) {
-				modelAndView.setViewName("/error/403");
-			}
-		}
+```java
+// 注册拦截器
+    @Configuration
+    public class InterceptorConfig extends WebMvcConfigurerAdapter {
+        @Override
+        public void addInterceptors(InterceptorRegistry registry) {
+            // 多个拦截器组成一个拦截器链
+            // addPathPatterns 用于添加拦截规则
+            // excludePathPatterns 用于排除拦截
+            registry.addInterceptor(new MyInterceptor()).addPathPatterns("/**"); // 此处路径最终会加上spirng.context的值，才是真正的拦截完整路径
 
-		/**
-		* 该方法也是需要当前对应的Interceptor的preHandle方法的返回值为true时才会执行。
-		* 该方法将在整个请求完成之后，也就是DispatcherServlet渲染了视图执行
-		* 这个方法的主要作用是用于清理资源的，当然这个方法也只能在当前这个Interceptor的preHandle方法的返回值为true时才会执行。
-		*/
-		@Override
-		public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-				throws Exception {
-			System.out.println(">>>>>>>>>>在整个请求结束之后被调用，也就是在DispatcherServlet 渲染了对应的视图之后执行（主要是用于进行资源清理工作）");
-		}
-	}
-	```
-- 注册拦截器
+            super.addInterceptors(registry);
+        }
+    }
 
-	```java
-	@Configuration
-	public class InterceptorConfig extends WebMvcConfigurerAdapter {
-		@Override
-		public void addInterceptors(InterceptorRegistry registry) {
-			// 多个拦截器组成一个拦截器链
-			// addPathPatterns 用于添加拦截规则
-			// excludePathPatterns 用于排除拦截
-			registry.addInterceptor(new MyInterceptor()).addPathPatterns("/**"); // 此处路径最终会加上spirng.context的值，才是真正的拦截完整路径
+// 定义拦截器
+@Component
+public class MyInterceptor implements HandlerInterceptor {
+    // 如果需要存放额外参数可使用 ThreadLocal
+    private static final ThreadLocal<Long> startTimeThreadLocal = new NamedThreadLocal<Long>("ThreadLocal StartTime");
 
-			super.addInterceptors(registry);
-		}
-	}
-	```
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+        System.out.println(">>>>>>>>>>在请求处理之前进行调用（Controller方法调用之前）");
+        return true; // 只有返回true才会继续向下执行，返回false取消当前**请求**
+    }
+
+    /**
+    * 这个方法只会在当前这个Interceptor的preHandle方法返回值为true的时候才会执行。
+    * postHandle是进行处理器拦截用的，它的执行时间是在处理器进行处理之后，也就是在Controller的方法调用之后执行，但是它会在DispatcherServlet进行视图的渲染之前执行，也就是说在这个方法中你可以对ModelAndView进行操作。
+    * 这个方法的链式结构跟正常访问的方向是相反的，也就是说先声明的Interceptor拦截器，该方法反而会后调用
+    */
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+                        ModelAndView modelAndView) throws Exception {
+        System.out.println(">>>>>>>>>>请求处理之后进行调用（Controller方法调用之后），但是在视图被渲染之前");
+
+        if(response.getStatus() == 500) {
+            modelAndView.setViewName("/error/500");
+        } else if(response.getStatus() == 404) {
+            modelAndView.setViewName("/error/404");
+        } else if(response.getStatus() == 403) {
+            modelAndView.setViewName("/error/403");
+        }
+    }
+
+    /**
+    * 该方法也是需要当前对应的Interceptor的preHandle方法的返回值为true时才会执行。
+    * 该方法将在整个请求完成之后，也就是DispatcherServlet渲染了视图执行
+    * 这个方法的主要作用是用于清理资源的，当然这个方法也只能在当前这个Interceptor的preHandle方法的返回值为true时才会执行。
+    */
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+            throws Exception {
+        System.out.println(">>>>>>>>>>在整个请求结束之后被调用，也就是在DispatcherServlet 渲染了对应的视图之后执行（主要是用于进行资源清理工作）");
+    }
+}
+```
+
+#### 拦截request的body数据
+
+- 通过request的body数据（request.getParameter无法获取body）只能通过InputStream获取，而且只能获取一次
+- 常见问题：可能出现自定义Filter中使用了body，导致Controller中无法再使用@RequestBody获取数据
+    - `request.setAttribute("body", body);` 灵活度不高，会影响其他Filter
+	- 如果需要多次获取可以使用HttpServletRequestWrapper进行缓存
+
+```java
+public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper {
+    private final byte[] body;
+    private final ObjectMapper objectMapper;
+    private static final ThreadLocal<Map> MAP_THREAD_LOCAL = new ThreadLocal<>();
+
+    public WarningRequestWrapper(HttpServletRequest request, ObjectMapper objectMapper) throws IOException {
+        super(request);
+        body = StreamUtils.copyToByteArray(request.getInputStream());
+        this.objectMapper = objectMapper;
+        setBodyMap(this.parseBodyMap());
+    }
+
+    @Override
+    public BufferedReader getReader() throws IOException {
+        return new BufferedReader(new InputStreamReader(getInputStream()));
+    }
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        final ByteArrayInputStream bais = new ByteArrayInputStream(body);
+        return new ServletInputStream() {
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public boolean isReady() {
+                return false;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+
+            }
+
+            @Override
+            public int read() throws IOException {
+                return bais.read();
+            }
+        };
+    }
+
+    public Map parseBodyMap() {
+        Map<String, Object> map = new HashMap<>();
+        if(body != null) {
+            if(body.length != 0) {
+                try {
+                    return objectMapper.readValue(body, Map.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            map.put("_body", new String(body, Charset.forName("UTF-8")));
+        }
+
+        return map;
+    }
+
+    public static void setBodyMap(Map map) {
+        MAP_THREAD_LOCAL.set(map);
+    }
+    public static Map getBodyMap() {
+        return MAP_THREAD_LOCAL.get();
+    }
+    public static void removerBodyMap() {
+        MAP_THREAD_LOCAL.remove();
+    }
+}
+
+// 通过filter进行下发（实现 Filter，或继承 OncePerRequestFilter）
+CustomerHttpServletRequestWrapper warpper = new CustomerHttpServletRequestWrapper((HttpServletRequest)request);
+Map body = requestWrapper.getBodyMap();
+filterChain.doFilter(warpper, servletResponse);
+```
+
+#### 拦截response的数据
+
+```java
+@ControllerAdvice
+public class InterceptResponse implements ResponseBodyAdvice<Object>{
+    @Override
+    public boolean supports(MethodParameter methodParameter, Class aClass) {
+        // 返回true则表示进行拦截
+        return true;
+    }
+
+    @Override
+    public Object beforeBodyWrite(Object o, MethodParameter methodParameter, MediaType mediaType, Class aClass, ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
+        ServletServerHttpRequest req = (ServletServerHttpRequest) serverHttpRequest;
+        HttpServletRequest servletRequest = req.getServletRequest();
+        // o 即为返回值，此处临时保存。可结合 HandlerInterceptor，在其 postHandle 方法中再次使用
+        servletRequest.setAttribute("_resultBodyObject", o);
+        return o;
+    }
+}
+```
 
 ### 获取Bean [^7]
 
@@ -882,33 +1001,6 @@ public String addUser(@RequestBody Map<String, Object> map) {}
 public String addUser(@RequestBody String param) {} // 此时param拿到的值为 name=smalle&pass=123
 ```
 
-- 自定义方法：通过request获取body数据(参考 getBodyStringFromReq)。request.getParameter无法获取body
-
-```java
-// InputStream对象只能获取一次
-	// 1.request.setAttribute("body", body);
-	// 2.如果需要多次获取可以使用HttpServletRequestWrapper进行缓存(https://www.jianshu.com/p/85feeb30c1ed)。如果Filter的验证中使用了，则Controller中无法再使用@RequestBody获取数据
-public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper {
-    private final String body;
-    public CustomerHttpServletRequestWrapper(HttpServletRequest request) throws IOException {
-        super(request);
-        body = StreamUtils.copyToString(request.getInputStream(), Charset.forName("UTF-8")); // org.springframework.util.StreamUtils
-    }
-    
-    public Map getBodyMap() {
-        try {
-            return new ObjectMapper().readValue(body, Map.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new HashMap();
-    }
-}
-
-// 通过filter进行下发
-filterChain.doFilter(customerHttpServletRequestWrapper, servletResponse);
-```
-
 ### 文件上传下载
 
 - 案例参考[springboot-vue.md#文件上传案例](/_posts/arch/springboot-vue.md#文件上传案例)
@@ -1129,6 +1221,21 @@ public MultipartConfigElement multipartConfigElement() {
 		}
 	});
 	```
+
+### 数据库连接池(Druid)
+
+- [Druid](https://github.com/alibaba/druid)
+- 使用参考：https://programtip.com/zh/art-70468
+- 依赖
+
+    ```xml
+    <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid-spring-boot-starter</artifactId>
+        <version>1.2.3</version>
+    </dependency>
+    ```
+- 配置：https://github.com/alibaba/druid/tree/master/druid-spring-boot-starter
 
 ### 数据库相关配置
 

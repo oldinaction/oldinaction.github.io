@@ -8,6 +8,9 @@ tags: vue
 
 ## 基本
 
+- 参考文章
+    - https://juejin.cn/post/6844903476661583880
+
 ### 约定俗成
 
 - 习惯
@@ -1901,13 +1904,13 @@ vue --version # @vue/cli 4.3.0
     },
 }
 ```
-- `.env.test-sq` (多)环境变量配置
+- `.env.test-sq` (多)环境变量配置。具体参考：https://cli.vuejs.org/zh/guide/mode-and-env.html
 
     ```bash
     ## 获取的值都是字符串类型
     # 使用都是 process.env.xxx
     NODE_ENV = test-sq
-    # 自定义变量必须以 VUE_APP_ 开头
+    # 以 VUE_APP_ 开头的变量才会被 webpack.DefinePlugin 静态嵌入到客户端侧的包中
     VUE_APP_VUE_ROUTER_BASE = /my-app/
     ```
 - vue.config.js 常用配置。多项目配置参考[多项目配置](/_posts/arch/springboot-vue.md#多项目配置)

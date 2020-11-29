@@ -50,9 +50,6 @@ ThisCrackLicenseId-{
 
 - 新建包文件夹，一定要一层一层的建，或者创建`cn/aezo`的文件夹，不能创建一个`cn.aezo`(不会自动生成两个文件夹)
 - for快捷键使用：`list.for`、`arr.for`. **可以在`File`-`Setting`-`Editor`-`General`-`Postfix Completion`中查看**
-- 代码注释设置 https://blog.csdn.net/weixin_39591795/article/details/78844428
-    - 类注释: Editor - File and Code Templates
-    - 方法注释：Editor - Live Templates
 
 ### java web项目配置(springmvc) [^1]
 
@@ -95,8 +92,14 @@ ThisCrackLicenseId-{
 - `pom.xml`检测通过，但是`Maven Projects`中部分依赖显示红色波浪线
     - 法一：先将`pom.xml`中此种依赖删除，然后`reimport`刷新一下依赖，再将刚刚的依赖粘贴上去，重新`reimport`刷新一下
     - 法二：删除`.m2`中此依赖的相关文件夹，重新下载
+- 创建示例项目
+    - org.apache.maven.archetypes:maven-archetype-quickstart
+    - org.apache.maven.archetypes:maven-archetype-site
+    - org.apache.maven.archetypes:maven-archetype-webapp
 
 ## 插件使用
+
+### 实用
 
 - `jrebel` java热部署(会自动热部署新代码。如果不使用jrebel，springboot-devtools可修改代码后使用`Ctrl+Shif+F9`进行热部署)
     - jrebel破解参考：http://www.cicoding.cn/other/jrebel-activation/
@@ -105,25 +108,40 @@ ThisCrackLicenseId-{
         - 修改了mybatis mapper和对应文件一般无法生效
         - 修改了方法声明
 - `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
+    - 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
 - `Free MyBatis plugin` 可自动识别mybatis的mapper(实现)
     - `MybatisX` 类似插件，Ctrl+Alt可实现相应跳转
 - `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
-- `PlantUML integration` 基于PlantUML语法画UML图
-- `SequenceDiagram` 根据源码生成时序图
+- `Alibaba Java Coding Guidelines` 阿里巴巴代码规范
+- `CodeGlance` 显示代码地图
+
+### 部分场景
+
 - `Maven Helper` 可显示冲突的maven依赖
     - 此插件依赖`Maven Intergration`，在安装后也要启用
     - 点击pom.xml文件，右下角会出现`Dependency Analyzer`
     - `Dependency Analyzer` - `Conflicts`中显示的即为冲突的依赖
         - 点击其中任何一个依赖，会在右侧显示重复引用的来源(基于版本降序) 
         - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
+- `PlantUML integration` 基于PlantUML语法画UML图
+- `SequenceDiagram` 根据源码生成时序图
 - `jclasslib Bytecode viewer` 查看java class字节代码。安装后在View - Show Bytecode With jclasslib(打开一个类可进行查看)
+
+### 其他
+
 - `JMH plugin` Java基准测插件
 - `JMeter plugin`
 - `leetcode` 算法刷题，参考：https://github.com/shuzijun/leetcode-editor/blob/master/doc/CustomCode_ZH.md
+- Translation 翻译插件(可使用系统有道词典代替)
+- Jindent-Source Code Formatter 自定义javadoc注释(收费，无法破解)
 
-### Lombox
+### 未使用
 
-- 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
+- CamelCase 将不是驼峰格式的名称，快速转换成驼峰格式
+- String Manipulation 驼峰式命名和下划线命名交替变化
+- FindBugs-IDEA 检测代码中可能的bug及不规范的位置，检测的模式相比P3GC更多
+- GsonFormat 一键根据json文本生成java类
+- MyBatisCodeHelperPro mybatis代码自动生成插件，大部分单表操作的代码可自动生成
 
 ## 快捷键
 
@@ -150,6 +168,45 @@ ThisCrackLicenseId-{
 - 快捷键图片
 
 ![idea-keys](/data/images/2016/09/idea-keys.png)
+
+## javadoc配置与生成
+
+### 配置
+
+- 方式一：使用`Jindent`插件(收费，无法破解)
+- 方式二 [^4]
+    - 类注释: Editor - File and Code Templates
+    - 方法注释：Editor - Live Templates。无法解决 @return 和 @throws
+
+### 生成
+
+- https://blog.csdn.net/vbirdbest/article/details/80296136
+- Tools - Generate Javadoc
+    - Locale：`zh_CN`
+    - other command line arguments：`-encoding UTF-8 -charset UTF-8`
+    - 如果有自定义的javadoc标签，则需要在other command line arguments框中增加输入定义`-tag XX:a:YY`，例如：`-tag date:a:日期 -tag description:a:"功能描述"`
+
+### javadoc标签
+
+| 标签          | 描述                                                   | 示例                                                         |
+| ------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| @author       | 标识一个类的作者                                       | @author description                                          |
+| @deprecated   | 指名一个过期的类或成员                                 | @deprecated description                                      |
+| {@docRoot}    | 指明当前文档根目录的路径                               | Directory Path                                               |
+| @exception    | 标志一个类抛出的异常                                   | @exception exception-name explanation                        |
+| {@inheritDoc} | 从直接父类继承的注释                                   | Inherits a comment from the immediate surperclass.           |
+| {@link}       | 插入一个到另一个主题的链接                             | {@link name text}                                            |
+| {@linkplain}  | 插入一个到另一个主题的链接，但是该链接显示纯文本字体   | Inserts an in-line link to another topic.                    |
+| @param        | 说明一个方法的参数                                     | @param parameter-name explanation                            |
+| @return       | 说明返回值类型                                         | @return explanation                                          |
+| @see          | 指定一个到另一个主题的链接                             | @see anchor                                                  |
+| @serial       | 说明一个序列化属性                                     | @serial description                                          |
+| @serialData   | 说明通过writeObject( ) 和 writeExternal( )方法写的数据 | @serialData description                                      |
+| @serialField  | 说明一个ObjectStreamField组件                          | @serialField name type description                           |
+| @since        | 标记当引入一个特定的变化时                             | @since release                                               |
+| @throws       | 和 @exception标签一样.                                 | The @throws tag has the same meaning as the @exception tag.  |
+| {@value}      | 显示常量的值，该常量必须是static属性。                 | Displays the value of a constant, which must be a static field. |
+| @version      | 指定类的版本                                           | @version info                                                |
 
 ## 常用技巧
 
@@ -262,4 +319,5 @@ ThisCrackLicenseId-{
 [^1]: [java-web项目配置](https://github.com/judasn/IntelliJ-IDEA-Tutorial/blob/newMaster/eclipse-java-web-project-introduce.md)
 [^2]: [intellij-idea12-搭建php开发环境](http://blog.csdn.net/ysjjovo/article/details/13292787)
 [^3]: https://blog.csdn.net/boss2967/article/details/82864044
+[^4]: https://nanyiniu.github.io/2020/09/01/%E4%BB%A3%E7%A0%81%E6%B3%A8%E9%87%8A%E8%A7%84%E8%8C%83/
 

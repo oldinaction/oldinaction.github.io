@@ -32,7 +32,7 @@ tags: [H5, App]
 
 ### 域名限制
 
-- API地址：必须是https域名，且需在微信后台配置(可配置API、ws、文件上传下载、打开网页域名等)
+- API地址：**必须是https域名(可以是非443端口)**，且需在微信后台配置(可配置API、ws、文件上传下载、打开网页域名等)
     - 开发环境可在微信编辑器中设置成不校验此限制(可为ip地址)，体验版则需打开调试模式(在胶囊中设置)
 - iframe(web-view)地址：必须https域名，且需要在微信后台配置业务域名。开发环境同上
 - 图片地址：必须是https域名，且需要在微信后台配置业务域名。开发环境同上
@@ -48,6 +48,7 @@ tags: [H5, App]
     - 小程序内嵌 web-view 跟微信内置浏览器是一套环境，即Storage等共享
     - 可通过url传递参数进行用户验证
 - **小程序不支持多环境编译**，对于API地址完全取决于上传到微信平台时代码中的地址(只能为一个，无法获取环境)。因此通过uni-app开发时，需要点击发行才会对应到生产环境API
+- 调试体验版或者正式版：体验版调试直接打开小程序调试模式；正式版调试需要先打开体验版调试模式，再访问正式版
 
 ## 微信公众号
 
@@ -58,35 +59,6 @@ tags: [H5, App]
     - EncodingAESKey随机生成一个即可
     - 绑定时会调用后台服务进行验证域名有效性，Java的参考：https://www.cnblogs.com/zhouwen2017/p/10451427.html
     - 验证时提示 **"参数错误，请重新填写"**，可能由于域名被微信屏蔽了。可直接在微信上访问测试，如果屏蔽了会提示"已停止访问该网页"
-
-## 微信登录
-
-- [微信浏览器中获取用户信息](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html)。如微信公众号点击菜单H5连接进入网页时获取用户信息
-    - 前提
-        - **绑定网页授权域名**(和授权回调地址一致。微信公众号 - 开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息)
-            - **无需绑定微信公众号服务器配置**(该配置是用来管理微信公众号的)
-            - **一定要是域名，不要加http://等协议头，也不要加子路径**
-                - 假设网页运行在/abc目录，此时也要加example.com，而不能是example.com/abc，因此必须是http://example.com/MP_verify_cm2fJ4wmTLQpvkZr.txt来进行验证
-                - 业务域名和JS安全域名是否需要加子路径未测试
-        - **设置IP白名单**（测试账号无需）
-            - 为了防止公众号appid和秘钥泄露，在向微信服务器获取access_token请求时，需要限制开发者服务器所在的外网IP（微信服务器获取的请求者IP）
-    - 引导用户访问如`https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect`，如让用户打开网站主页，然后再主页加载后自动跳转到此地址。回调地址必须完整，如果动态协议头，可以使用如`window.location.protocol + '//aezo.cn/xxx'`
-
-        ```js
-        redirectWechatForCode(appid, redirectUrl, state) {
-            // https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
-            let path = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
-                    + appid
-                    + "&redirect_uri="
-                    + encodeURIComponent(redirectUrl)
-                    + "&response_type=code&scope=snsapi_userinfo&state=" + state + "#wechat_redirect";
-            window.location.href = path
-        }
-        ```
-    - 访问上述连接，会进行用户授权验证，用户同意授权，获取code。此时code通过上述链接配置的回调地址会当做参数带回(还会原封不动的带回state参数)
-    - 通过code换取openid、网页授权access_token(用户的access_token，有效期为2h；不同于公众号的access_token)、网页授权refresh_token(有效期为30天)。由于此接口调用次数不限制，可需要获取access_token时重新调用微信接口，也可存储下来
-    - 或者刷新access_token
-    - 基于网页授权access_token和openid拉取用户信息
 
 ## 微信H5开发
 
@@ -119,6 +91,36 @@ tags: [H5, App]
 
 - http://service.oray.com/question/5570.html
 
+## 微信登录
+
+### 微信浏览器中获取用户信息
+
+- [微信浏览器中获取用户信息](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html)。如微信公众号点击菜单H5连接进入网页时获取用户信息
+    - 前提
+        - **绑定网页授权域名**(和授权回调地址一致。微信公众号 - 开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息)
+            - **无需绑定微信公众号服务器配置**(该配置是用来管理微信公众号的)
+            - **一定要是域名，不要加http://等协议头，也不要加子路径**
+                - 假设网页运行在/abc目录，此时也要加example.com，而不能是example.com/abc，因此必须是http://example.com/MP_verify_cm2fJ4wmTLQpvkZr.txt来进行验证
+                - 业务域名和JS安全域名是否需要加子路径未测试
+        - **设置IP白名单**（测试账号无需）
+            - 为了防止公众号appid和秘钥泄露，在向微信服务器获取access_token请求时，需要限制开发者服务器所在的外网IP（微信服务器获取的请求者IP）
+    - 引导用户访问如`https://open.weixin.qq.com/connect/oauth2/authorize?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect`，如让用户打开网站主页，然后再主页加载后自动跳转到此地址。回调地址必须完整，如果动态协议头，可以使用如`window.location.protocol + '//aezo.cn/xxx'`
+
+        ```js
+        redirectWechatForCode(appid, redirectUrl, state) {
+            // https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
+            let path = "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
+                    + appid
+                    + "&redirect_uri="
+                    + encodeURIComponent(redirectUrl)
+                    + "&response_type=code&scope=snsapi_userinfo&state=" + state + "#wechat_redirect";
+            window.location.href = path
+        }
+        ```
+    - 访问上述连接，会进行用户授权验证，用户同意授权，获取code。此时code通过上述链接配置的回调地址会当做参数带回(还会原封不动的带回state参数)
+    - 通过code换取openid、网页授权access_token(用户的access_token，有效期为2h；不同于公众号的access_token)、网页授权refresh_token(有效期为30天)。由于此接口调用次数不限制，可需要获取access_token时重新调用微信接口，也可存储下来
+    - 或者刷新access_token
+    - 基于网页授权access_token和openid拉取用户信息
 
 
 

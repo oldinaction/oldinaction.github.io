@@ -100,7 +100,7 @@ tags: [mybatis, springboot]
 		```java
 		// @Mapper // 在启动类中定义需要扫描mapper的包：@MapperScan("cn.aezo.springboot.mybatis.mapper"), 则此处无需声明@Mapper
 		public interface UserMapper {
-			// 1. 此处注入变量可以使用#或者$, 区别：# 创建的是一个prepared statement语句, $ 符创建的是一个inlined statement语句
+			// 1. 此处注入变量可以使用#或者$
 			// 2. 一个参数可以省略@Param，多个需要进行指定(反射机制)
 			// 3. 当未获取到数据时，返回 null
 			// 4. (使用配置<setting name="mapUnderscoreToCamelCase" value="true"/>因此无需转换) 数据库字段名和model字段名或javaType不一致的均需要@Result转换
@@ -341,6 +341,7 @@ tags: [mybatis, springboot]
 				<include refid="userColumns"><property name="alias" value="t1"/></include>
 				from user_info
 				where 1=1
+                <!-- 注意：如误写成了 `test='name = "smalle"'` 则会把smalle赋值给name字段，可能会覆盖原始参数；常见的为 `test='name == "smalle"'` -->
 				<if test='name != null and name != ""'>
 					<!-- bind 元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变 -->
 					<!-- _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name') -->
@@ -377,7 +378,6 @@ tags: [mybatis, springboot]
 					1.1 使用typeAliases进行类型别名映射后可写成resultType="userInfo"(自动扫描包mybatis.type-aliases-package, 默认该包下的类名首字母小写为别名).
 					1.2 传入parameterType="java.util.HashMap"(可省略)，也可使用 #{myKey} 获取传入参数map中的值
 				2.如果返回结果使用resultType="cn.aezo.springboot.mybatis.model.UserInfo", 则nickName，groupId则为null(数据库中下划线对应实体驼峰转换失败，解决办法：设置mybatis.configuration.map-underscore-to-camel-case=true). 此处使用resultMap指明字段对应关系
-				3. #{}是实现的是PrepareStatement，${}实现的是普通Statement。使用$时，如字符串值就需要手动增加单引号，如果需要实现动态字段，则需要使用$；#则会自动给字符串值增加单引号
 			-->
 			<select id="getOne" parameterType="java.lang.Long" resultType="userInfo">
 				select
@@ -505,6 +505,10 @@ tags: [mybatis, springboot]
 
 ### mybatis常见问题
 
+- `#` 和 `$` 区别
+    - `#` 创建的是一个prepared statement语句, `$` 符创建的是一个inlined statement语句
+    - `#{}`是实现的是PrepareStatement，`${}`实现的是普通Statement。使用`$`时，如字符串值就需要手动增加单引号，如果需要实现动态字段，则需要使用`$`；`#`则会自动给字符串值增加单引号
+    - 字段使用变量代替时需要使用 `$`；foreach.separator 参数如需使用变量，需用 `#`
 - **关于`<`、`>`转义字符**(在annotation中需要转义，在xml的sql语句中则不需要转义)
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
 	- 使用**CDATA** `<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
@@ -524,7 +528,7 @@ tags: [mybatis, springboot]
 		<if test="validStatus == 'Y'">and validStatus = 1</if>
 		<!-- 正确写法 -->
 		<if test='validStatus == "Y"'>and validStatus = 1</if>
-		<if test="validStatus=='Y'.toString()">and validStatus = 1</if>
+		<if test="validStatus == 'Y'.toString()">and validStatus = 1</if>
 		```
 
 -  dao中可以使用`submitTm[0]`获取值; xml中不行，其处理数组(如时间段)的方式如下
