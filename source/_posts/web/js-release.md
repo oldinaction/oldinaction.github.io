@@ -683,7 +683,7 @@ import { myFunc1, myFunc2 } from 'myexp'
 
     // 自定义模板字符串解析方法，解析 {{xxx}} 格式
     String.prototype.render = function (context) {
-        return this.replace(/\{\{([^\}]+)\}\}/g, (match, key) => (context[key] || match));
+        return this.replace(/\{\{([^}]+)\}\}/g, (match, key) => (context[key] || match));
     };
     "hi, {{name}}, {{{{name}}}}".render({name: 'smalle', smalle: 'test'}) // hi, smalle, {{{{name}}}}
     ```

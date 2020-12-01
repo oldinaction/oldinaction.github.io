@@ -14,7 +14,7 @@ tags: [regex, javascript, java]
 
 ### 匹配说明
 
-> https://zhuanlan.zhihu.com/p/27653434
+> https://juejin.cn/post/6844903487155732494
 
 - 两种模糊匹配
 
