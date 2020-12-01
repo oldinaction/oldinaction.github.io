@@ -4,6 +4,26 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
+    <lastmod>2020-12-01T12:59:22.612Z</lastmod>
+    <data>
+        <display>
+        <title>JavaScript知识点</title>
+        <pubTime>2016-06-11T08:51:00.000Z</pubTime>
+        
+        <tag>js</tag>
+         
+         
+           
+             
+              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     <lastmod>2020-12-01T03:02:56.422Z</lastmod>
     <data>
@@ -1189,9 +1209,9 @@
         <title>VPN搭建</title>
         <pubTime>2018-04-04T02:34:00.000Z</pubTime>
         
-        <tag>linux</tag>
-         
         <tag>vpn</tag>
+         
+        <tag>linux</tag>
          
         <tag>network</tag>
          
@@ -1872,9 +1892,9 @@
         <title>虚拟化服务器搭建 | 私有云</title>
         <pubTime>2019-05-30T08:11:00.000Z</pubTime>
         
-        <tag>server</tag>
-         
         <tag>linux</tag>
+         
+        <tag>server</tag>
          
         <tag>cloud</tag>
          
