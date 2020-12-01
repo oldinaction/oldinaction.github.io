@@ -18,6 +18,12 @@ tags: [mybatis, src]
             - delete
             - commit
             - rollback
+    - SqlSessionFactory 从流中读取mapper并初始化
+    - SqlSessionFactoryBuilder
+    - SqlSessionManager 实现了 SqlSessionFactory 和 SqlSession
+- builder
+    - `XMLMapperBuilder` 编译xml类型mapper，保存到Configuration
+    - `MapperAnnotationBuilder` 编译注解类型mapper，保存到Configuration
 - executor
     - `BaseExecutor` 抽象类
         - `SimpleExecutor`

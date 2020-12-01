@@ -78,6 +78,22 @@ tags: [regex, javascript, java]
 
 ## java
 
+- 参考文章
+    - https://segmentfault.com/a/1190000009162306
+- 模式修饰符
+
+```java
+// 在正则的开头指定
+// (?i) 使正则忽略大小写
+// (?s) 表示单行模式（"single line mode"）使正则的 . 匹配所有字符，包括换行符
+// (?m) 表示多行模式（"multi-line mode"），使正则的 ^ 和 $ 匹配字符串中每行的开始和结束
+
+// 案例：匹配 select 类型的 sql 语句。Pattern.CASE_INSENSITIVE忽略大小写，(?s)单行模式(否则无法匹配到\n等字符)，最后的`.*`需要
+Pattern.compile("(?s)^[ \t\n\r]*select[ \t\n\r]+.*", Pattern.CASE_INSENSITIVE).matcher(sql.trim()).matches(); // 返回true或false
+```
+
+- 惰性匹配
+
 ```java
 // (.*?) 惰性匹配
 Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v1/auth/login"); // true
@@ -88,9 +104,9 @@ Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/xxx/login"); // false
 - String的matches
 
 ```java
-"hi, hello world".matches("(.*)hello(.*)")); // true
-"hi, hello world".matches("hello")); // false, ***特别注意此时无法匹配***
-"hi, hello world".matches("(hi(.*)")); // true
+"hi, hello world".matches("(.*)hello(.*)"); // true
+"hi, hello world".matches("hello"); // false, ***特别注意此时无法匹配***
+"hi, hello world".matches("(hi(.*))"); // true
 ```
 
 - 忽略大小写
@@ -103,6 +119,19 @@ Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/xxx/login"); // false
 Pattern p = Pattern.compile("^doc$", Pattern.CASE_INSENSITIVE);
 p.matcher(s).matches(); // true
 ```
+- 或
+
+```java
+[jpg|png] // 代表匹配 j 或 p 或 g 或 p 或 n 或 g 中的任意一个字符
+(jpg|png) // 代表匹配 jpg 或 png
+```
+- 反斜杠
+
+```bash
+# 在匹配 . 或 { 或 [ 或 ( 或 ? 或 $ 或 ^ 或 * 这些特殊字符时，需要在前面加上 \\，比如匹配 . 时，Java 中要写为 \\.，但对于正则表达式来说就是 \.
+# 在匹配 \ 时，Java 中要写为 \\\\，但对于正则表达式来说就是 \\
+```
+
 
 ## php
 

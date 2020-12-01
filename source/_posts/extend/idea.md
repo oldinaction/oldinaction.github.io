@@ -112,6 +112,7 @@ ThisCrackLicenseId-{
 - `Free MyBatis plugin` 可自动识别mybatis的mapper(实现)
     - `MybatisX` 类似插件，Ctrl+Alt可实现相应跳转
 - `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
+- `String Manipulation` 字符串转换(包括下划线/中划线/驼峰等)。鼠标右键会有对应的选项
 - `Alibaba Java Coding Guidelines` 阿里巴巴代码规范
 - `CodeGlance` 显示代码地图
 
@@ -138,7 +139,6 @@ ThisCrackLicenseId-{
 ### 未使用
 
 - CamelCase 将不是驼峰格式的名称，快速转换成驼峰格式
-- String Manipulation 驼峰式命名和下划线命名交替变化
 - FindBugs-IDEA 检测代码中可能的bug及不规范的位置，检测的模式相比P3GC更多
 - GsonFormat 一键根据json文本生成java类
 - MyBatisCodeHelperPro mybatis代码自动生成插件，大部分单表操作的代码可自动生成

@@ -368,6 +368,11 @@ render: (h, params) => {
   // Vue 会为您持续追踪
   directives: [
     {
+      // 如果在标签上使用是 v-permission，此时需要省略 v-
+      name: 'permission',
+      value: ['Button_Report_Manage']
+    },
+    {
       name: 'my-custom-directive',
       value: '2',
       expression: '1 + 1',

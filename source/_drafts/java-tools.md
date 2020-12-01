@@ -96,6 +96,13 @@ boolean flag = Validator.isEmail("demo@example.com");
 Validator.validateChinese("我是一段zhongwen", "内容中包含非中文");
 ```
 
+### 字符串
+
+```java
+// 成对剥掉前后字符
+System.out.println(StrUtil.strip(StrUtil.strip("'1''2\"3'", "\""), "'")); // 1''2"3
+```
+
 ### 构建树结构
 
 ```java

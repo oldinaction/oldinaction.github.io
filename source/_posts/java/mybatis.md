@@ -11,6 +11,21 @@ tags: [mybatis, springboot]
 - [MyBatis3中文文档](http://www.mybatis.org/mybatis-3/zh/index.html)
 - `MyBatis Generator`：mybatis代码生成(model/dao/mapper)，[文档](http://www.mybatis.org/generator/)
 
+### 简单使用
+
+```java
+String resource = "SqlMapConfig.xml";
+InputStream in = Resources.getResourceAsStream(resource);
+SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+SqlSession sqlSession = factory.openSession();
+OrdersMapper mapper = sqlSession.getMapper(OrdersMapper.class);
+
+List<Orders> list = mapper.findAll();
+for (Orders order : list) {
+    System.out.println(order);
+}
+```
+
 ## SpringBoot整合mybatis [^1]
 
 ### 基本配置
