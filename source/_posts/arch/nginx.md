@@ -57,6 +57,25 @@ tags: LB, HA
 - nginx两种进程
     - master进程，root用户打开，接收信号，管理worker进程
     - worker进程，nginx用户打开，工作进程，负责处理http请求
+- 日志分析
+
+
+```bash
+# 根据访问IP统计UV
+awk '{print $1}'  access.log|sort | uniq -c |wc -l
+# 根据访问URL统计PV
+awk '{print $7}' access.log|wc -l
+# 查询访问最频繁的URL
+awk '{print $7}' access.log|sort | uniq -c |sort -n -k 1 -r|more
+# 查询访问最频繁的IP
+awk '{print $1}' access.log|sort | uniq -c |sort -n -k 1 -r|more
+
+# 查找一段时间的日志（此处查询2020-12-03 02到2020-12-03 04的日志，此处使用*表示模糊查询）
+# 注意
+    # 1.开始时间和结束时间必须要是日志里面有的，否则查询不到结果
+    # 2.只会包含一条2020-12-03 04之后的日志
+cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
+```
 
 ## nginx配置(nginx.conf)
 
@@ -293,10 +312,10 @@ http {
     #                   '$status $body_bytes_sent "$http_referer" '
     #                   '"$http_user_agent" "$http_x_forwarded_for"';
 
-    #log_format aezocn '$remote_addr $remote_user [$time_local] "$request" '
-    #                  '$status $body_bytes_sent '
-    #                  '$upstream_addr $request_time $upstream_response_time '
-    #                  '"$http_referer" "$http_user_agent"';
+    #log_format aezocn '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for" '
+    #                  '$upstream_addr $request_time $upstream_response_time';
 
     # 默认配置。使用main格式进行输出访问日志
     # access_log  /var/log/nginx/access.log  main;
@@ -336,7 +355,35 @@ http {
     # **启用后响应头中会包含`Content-Encoding: gzip`**
     gzip on; #开启gzip压缩输出
     # 压缩类型，默认就已经包含text/html(但是vue打包出来的js需要下列定义才会压缩)
-    gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+    gzip_types
+        application/atom+xml
+        application/x-javascript
+        application/javascript
+        application/json
+        application/ld+json
+        application/manifest+json
+        application/rss+xml
+        application/vnd.geo+json
+        application/vnd.ms-fontobject
+        application/x-font-ttf
+        application/x-web-app-manifest+json
+        application/xhtml+xml
+        application/xml
+        font/opentype
+        image/bmp
+        image/svg+xml
+        image/x-icon
+        text/xml
+        text/cache-manifest
+        text/css
+        text/plain
+        text/vcard
+        text/vnd.rim.location.xloc
+        text/vtt
+        text/x-component
+        text/javascript
+        application/octet-stream
+        text/x-cross-domain-policy;
     #gzip_min_length 1k; #最小压缩文件大小
     #gzip_buffers 4 16k; #压缩缓冲区
     ##gzip_http_version 1.0; #压缩版本（默认1.1，前端如果是squid2.5请使用1.0）

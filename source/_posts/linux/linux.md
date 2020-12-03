@@ -304,7 +304,9 @@ lsmod |grep br_netfilter
     - `cd /usr/local/xxx` 返回某一级目录
     - `cd ~`或`cd回车` 返回家目录
 - `pwd` 查看当前目录完整路径
-    - `pwdx $$` 查看当前进程启动文件所在目录
+    - `pwdx $$` 查看当前进程启动文件所在目录，返回如`36240: /root`；`pwdx 10000`查看某个进程
+    - `echo ${PWD}` 查看当前目录绝对路径，如`/root/test`
+    - `echo ${PWD##*/}` 查看当前目录名，如`test`
 - `tree mydir` 树形展示目录
 
 ### 磁盘分区和挂载
@@ -976,13 +978,17 @@ rar a aezocn.rar *.jpg
 	- `-r` 表示使用扩展正则表达式
 - 内部命令
     - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
-	- **`s/pattern/string/修饰符`** 查找并替换
-        - 默认只替换每行中第一次被模式匹配到的字符串；修饰符`g`全局替换；`i`忽略字符大小写；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
-        - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
-        - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
-	- `d` 删除符合条件的行
-	- `p` 显示符合条件的行
-	- `a \string`: 在指定的行后面追加新行，内容为string
+    - 前缀修饰符
+        - `s` 查找并替换，**`s/pattern/string/修饰符`**
+            - 默认只替换每行中第一次被模式匹配到的字符串；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
+            - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
+            - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
+    - 后缀修饰符
+        - `g` 全局查找
+        - `i` 忽略字符大小写
+        - `p` 显示符合条件的行
+        - `d` 删除符合条件的行
+    - `a \string`: 在指定的行后面追加新行，内容为string
 		- `\n` 可以用于换行
 	- `i \string`: 在指定的行前面添加新行，内容为string
 	- `r <file>` 将指定的文件的内容添加至符合条件的行处
@@ -1004,6 +1010,9 @@ rar a aezocn.rar *.jpg
     
     # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
     echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
+
+    # 查找一段时间的日志（此处查询2020-12-03 02到2020-12-03 04的日志，此处使用*表示模糊查询）。注意：开始时间和结束时间必须要是日志里面有的，否则查询不到结果
+    cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
     ```
     - [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
 

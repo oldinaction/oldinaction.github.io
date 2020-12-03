@@ -36,6 +36,28 @@ npm start
 
 ### 基于electron-builder打包(推荐)
 
+- [electron-builder文档](https://www.electron.build/)
+- [electron-builder打包时会下载的一些依赖](https://github.com/electron-userland/electron-builder-binaries)，下载保存的目录为
+    - macOS: `~/Library/Caches/electron-builder`
+    - Linux: `~/.cache/electron-builder`
+    - windows: `%LOCALAPPDATA%\electron-builder\cache` 依赖包存放路径如
+        - nsis
+            - nsis-3.0.3.2
+            - nsis-resources-3.3.0
+        - winCodeSign
+            - winCodeSign-2.4.0
+
+#### 参数说明
+
+```bash
+electron-builder
+
+--dir   # 打包成文件夹，不生成exe文件(不要此参数，默认会生成exe文件)
+--win   # 打包出 windows 可执行的程序。省略此参数，在windows可正常打包，但是在centos上打包出错，具体见下文[centos上打包说明]
+```
+
+#### 使用案例
+
 ```bash
 # 参考：https://github.com/QDMarkMan/CodeBlog/tree/master/Electron
 
@@ -80,7 +102,7 @@ npm run e_prod # 打包，会生成 xxx-win32-x64 文件夹
         // 打包 64位
         "e_test_x64": "vue-cli-service build --mode electron_test && electron-builder --dir",
         "e_test_x32": "vue-cli-service build --mode electron_test && electron-builder --dir --ia32",
-        // 打包 electron 生成环境
+        // 打包 electron 生产环境
         "e_prod": "node ./electron-build.js electron_prod",
         "e_prod_x64": "vue-cli-service build --mode electron_prod && electron-builder",
         "e_prod_x32": "vue-cli-service build --mode electron_prod && electron-builder --ia32"
@@ -280,9 +302,6 @@ async function run_hot () {
 ```
 </details>
 
-- 常见问题
-    - 报错：`Unresolved node modules: vue`。解决：此问题为cnpm安装依赖导致，**需要使用npm安装**，然后配合mirror-config-china进行安装 [^1]
-
 - vue项目文件目录结构
 
     ```bash
@@ -313,12 +332,19 @@ async function run_hot () {
     package.json
     vue.config.js
     ```
-- 启动过程说明
+- **启动过程说明**
     - 点击可执行文件 ShengQi.exe 
     - 从 resources/app/package.json 文件中获取入口文件
     - 如 package.json 定义属性：`"main": "my_dir/my_index.js"`，那么入口文件则是此处指定的，如果没有指定main属性，则入口文件为package.json同目录下的index.js文件
     - 无package.json文件，则点击 ShengQi.exe 无任何反应
     - 而index.js中通过`mainWindow.loadURL('file://' + __dirname + '/index.html')`引入vue打包生成的index.html文件（原public/index.html文件），从而启动了vue应用
+
+#### 常见问题
+
+- 报错：`Unresolved node modules: vue`。解决：此问题为cnpm安装依赖导致，**需要使用npm安装**，然后配合mirror-config-china进行安装 [^1]
+- [centos上打包说明](https://www.electron.build/multi-platform-build#linux)
+    - 需要安装 Wine，部分场景需要安装 Mono等
+    - 获取通过提供的Docker镜像进行编译
 
 ### 自动更新
 
@@ -332,12 +358,13 @@ async function run_hot () {
 
 - 安装`npm i electron-updater -S`
 - 安装`npm i config -S` 主要用于读取客户端配置文件，用于获取不同环境的更新链接。解决打包后区分测试和生产环境，预置配置到用户端 [^4]
+- 使用 electron-updater 更新，只需要每次把打包好的文件(latest.yml和xxx.exe)复制到更新目录即可。**注意每次打包需要升级版本号**
 - package.json增加publish配置
 
 ```json
 {
     "build": {
-        // 这个配置会生成在latest.yml文件，用于自动更新的配置信息(此处可省略，最终在js文件中配置)
+        // 这个配置会生成在latest.yml文件(必须要配置publish，否则不生成latest.yml)，用于自动更新的配置信息(此处可省略，最终在js文件中配置)
         "publish": [{
             "provider": "generic", // 服务器提供商，也可以是GitHub等等
             "url": "" // 更新服务器地址，可为空，在代码中会再次设定
@@ -370,7 +397,8 @@ const updateUrl = config.get('System.updateUrl');
 
 log.info('process.argv: ' + process.argv)
 // const updateUrl = 'http://127.0.0.1:800'
-const feedUrl = `${updateUrl}/${process.platform + '_' + process.arch}`
+// const feedUrl = `${updateUrl}/${process.platform + '_' + process.arch}` // 基于不同系统架构进行下载
+const feedUrl = `${updateUrl}`
 log.info('feedUrl: ' + feedUrl)
 
 let yesManualFlag = false
@@ -427,13 +455,15 @@ const updateHandle = function (mw) {
     autoUpdater.on('update-downloaded', function (event, releaseNotes, releaseName, releaseDate, updateUrl, quitAndUpdate) {
         // 下载最新安装包完成
         log.info('update-downloaded...')
+        // 通知渲染进程并监听其回复，从而判断是否需要立即更新
         ipcMain.on('isUpdateNow', (e, arg) => {
             // 执行新版本安装
             log.info("isUpdateNow...");
             autoUpdater.quitAndInstall();
         })
         mainWindow.webContents.send('isUpdateNow')
-
+        
+        // 弹出系统提示框（如果使用上述web弹框，和渲染进程交互则可省略此处），取消则是退出程序时更新
         dialog.showMessageBox(mainWindow, {
             type: 'info',
             title: '确认',
@@ -481,7 +511,7 @@ function createWindow () {
         width: 1280,
         height: 960,
         webPreferences: {
-            // nodeIntegration: true,
+            nodeIntegration: false,
             preload: path.join(__dirname, 'preload.js')
         }
     })
@@ -507,6 +537,74 @@ app.whenReady().then(() => {
     })
 })
 ```
+- 渲染进程显示更新进度
+
+<details>
+<summary>electron-update.vue文件</summary>
+
+```html
+<!-- electron-update.vue，将其引入到 Main.vue中 -->
+<template>
+  <div v-if="show" style="width: 400px;margin: 0 auto;">
+    <Progress :percent="downloadPercent" :stroke-color="['#108ee9', '#87d068']">更新中...</Progress>
+  </div>
+</template>
+
+<script>
+import isElectron from 'is-electron';
+
+export default {
+  name: 'ElectronUpdate',
+  data () {
+    return {
+      show: false,
+      downloadPercent: 0,
+      tips: ''
+    }
+  },
+  created () {
+    this.init()
+  },
+  beforeDestroy () {
+    // ipcRenderer.removeAll(["message", "downloadProgress", "isUpdateNow"])
+    ipcRenderer.remove("message")
+    ipcRenderer.remove("downloadProgress")
+    ipcRenderer.remove("isUpdateNow")
+  },
+  methods: {
+    init () {
+      if (isElectron()) {
+        this.ipcRendererOn()
+        console.log(ipcRenderer.removeAll)
+      }
+
+      this.fetchData()
+    },
+    fetchData () {
+    },
+    ipcRendererOn () {
+      ipcRenderer.on("message", (event, text) => {
+        console.log(text);
+        this.tips = text;
+      })
+      //注意：downloadProgress 事件可能存在无法触发的问题，只需要限制一下下载网速就可进行测试了
+      ipcRenderer.on("downloadProgress", (event, progressObj) => {
+        console.log(progressObj);
+        this.show = true
+        this.downloadPercent = progressObj.percent || 0;
+      })
+      ipcRenderer.on("isUpdateNow", () => {
+        ipcRenderer.send("isUpdateNow");
+      })
+    }
+  }
+}
+</script>
+
+<style lang="less" scoped>
+</style>
+```
+</details>
 
 ### 基于 electron-packager 插件打包(不推荐)
 
@@ -529,6 +627,33 @@ npm run electron_build # 打包，会生成 xxx-win32-x64 文件夹
 
 # 4.通过Inno Setup将文件再次打包成安装包后分发给客户，如皋使用electron-builder则自带打包成安装包
 ```
+
+### 常见问题
+
+- 通过访问链接下载Excel，不能自动打开。可考虑调用命令打开文件
+
+```js
+// public/index.js
+const { app, BrowserWindow, ipcMain } = require('electron');
+const child_process = require('child_process');
+
+app.setPath('downloads', 'C:/mytmp/'); // 可以找到系统的临时目录
+child_process.exec('mkdir mytmp', {cwd: 'C:/'}); // 创建临时目录
+
+app.whenReady().then(() => {
+    // 监听 electron 提供的 will-download 事件
+    mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+        // event.preventDefault(); // 阻止调用系统的默认下载，之后调用自己的下载函数，如实现断点下载
+
+        // 保存文件到指定目录并执行start打开命令
+        const filePath = path.join(app.getPath('downloads'), item.getFilename());
+        item.setSavePath(filePath);
+        child_process.exec('start ' + filePath);
+    });
+})
+```
+
+## electron-vue
 
 ## 常用插件
 
@@ -555,7 +680,7 @@ import log from 'electron-log';
 
 - TypeError: fs.existsSync is not a function | import { ipcRenderer } from 'electron'
     - https://blog.csdn.net/weixin_41217541/article/details/106496186 无效
-    - https://www.jianshu.com/p/d2d4deaccdc1
+    - https://blog.csdn.net/qq_38333496/article/details/102474532 **方案二成功**
 
 
 

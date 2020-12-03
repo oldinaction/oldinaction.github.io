@@ -97,6 +97,13 @@ ThisCrackLicenseId-{
     - org.apache.maven.archetypes:maven-archetype-site
     - org.apache.maven.archetypes:maven-archetype-webapp
 
+### 其他
+
+- 配置同步到远程
+    - File - Settings Repository - 输入远程地址，如保存到github(输入ssh验证的项目地址) - Overwrite Remote同步到远程
+- 自动收缩空包文件夹
+    - Project浏览Tab - 设置 - Hide Empty Middle Packages
+
 ## 插件使用
 
 ### 实用
@@ -109,15 +116,18 @@ ThisCrackLicenseId-{
         - 修改了方法声明
 - `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
     - 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
-- `Free MyBatis plugin` 可自动识别mybatis的mapper(实现)
-    - `MybatisX` 类似插件，Ctrl+Alt可实现相应跳转
+- `MybatisX` [mybatis-plus提供](https://mybatis.plus/guide/mybatisx-idea-plugin.html)，可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI(未测试成功)，JPA方法命名提示(未测试成功)。Ctrl+Alt可实现相应跳转
+    - 类似插件：`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
 - `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
-- `String Manipulation` 字符串转换(包括下划线/中划线/驼峰等)。鼠标右键会有对应的选项
-- `Alibaba Java Coding Guidelines` 阿里巴巴代码规范
+- `CamelCase` 使用`Alt + Shift + U`将字符串在下划线/中划线/大小驼峰中切换，可重复按快捷键进行切换
+    - `String Manipulation` 字符串转换(包括下划线/中划线/驼峰等)。鼠标右键会有对应的选项，缺点：无快捷键
 - `CodeGlance` 显示代码地图
+- `Codota` Codota AI Autocomplete 代码示例，基于类或方法查找网上流行的使用方式。类似的如Aixcode
+- `Alibaba Java Coding Guidelines` 阿里巴巴代码规范
 
 ### 部分场景
 
+- `RestfulToolkit` 使用`Ctrl + Alt + N`基于路径搜索controller对应的位置
 - `Maven Helper` 可显示冲突的maven依赖
     - 此插件依赖`Maven Intergration`，在安装后也要启用
     - 点击pom.xml文件，右下角会出现`Dependency Analyzer`
@@ -133,38 +143,53 @@ ThisCrackLicenseId-{
 - `JMH plugin` Java基准测插件
 - `JMeter plugin`
 - `leetcode` 算法刷题，参考：https://github.com/shuzijun/leetcode-editor/blob/master/doc/CustomCode_ZH.md
-- Translation 翻译插件(可使用系统有道词典代替)
-- Jindent-Source Code Formatter 自定义javadoc注释(收费，无法破解)
+- `Jindent-Source Code Formatter` 自定义javadoc注释(收费，无法破解)
+- `Key Promoter X` 快捷键提示和统计快捷使用频率
+- `Translation` 翻译插件(可使用系统有道词典代替)
+- `Rainbow Brackets` 彩虹圆/尖括号颜色，会把代码中所有括号变色，有点花里胡哨
+- `HighlightBracketPair` 彩虹大括号，选中高亮，有点花里胡哨
 
 ### 未使用
 
-- CamelCase 将不是驼峰格式的名称，快速转换成驼峰格式
-- FindBugs-IDEA 检测代码中可能的bug及不规范的位置，检测的模式相比P3GC更多
-- GsonFormat 一键根据json文本生成java类
-- MyBatisCodeHelperPro mybatis代码自动生成插件，大部分单表操作的代码可自动生成
+- `FindBugs-IDEA` 检测代码中可能的bug及不规范的位置，检测的模式相比P3GC更多
+- `GsonFormat` 一键根据json文本生成java类
+- `MyBatisCodeHelperPro` mybatis代码自动生成插件，大部分单表操作的代码可自动生成
 
 ## 快捷键
 
-- 常用快捷键
-    - `Ctrl + Shift + F9` 热部署
-    - `Ctrl + Shift + Space` 智能补全(可多次按键扩大搜索范围)
-    - `Ctrl + Shift + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
-    - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
+- 待记忆
+    - `F8` 断点调试下一步
+    - `Double Shift` 全局文件名查找
     - `Alt + Shift + 上下` 上下移动当前行
-    - `Ctrl + Shift + Backspace` 回到上次编辑位置
+    - `Ctrl + Shift + Space` 智能补全(可多次按键扩大搜索范围)
     - `Ctrl + P` 查看方法参数
     - `Ctrl + Q` 查看方法说明
-    - `Ctrl + N` 跳转到类
     - `Ctrl + Shift + N` 搜索文件(可选中文件路径后再按键)
     - `Alt + Insert` 自动生成(Getter/Setter等)
     - `Ctrl + Alt + T` 对选中代码生成try...catch/if等包裹语句
+    - `Alt + F7` 查询方法的使用关系
+    - `Ctrl + ALT + H` 查询方法的调用关系（可以选择引用和被引用）
     - `Ctrl + B` 跳转到声明
     - `Ctrl + E` 最近访问文件
     - `Ctrl + W` 语句感知
     - `Ctrl + Shift + Entry` 完成整句
     - `Ctrl + Shift + F7` 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处
     - `Ctrl + H` 类似Navigate - Call Hierarchy 命令查看一个Java类的继承管理
-
+    - `Ctrl + D` 复制行
+    - `Ctrl + Y` 删除行
+    - `Ctrl shift +` 展开所有方法
+    - `Ctrl shift -` 收缩所有方法
+- 特殊场景
+    - SQL控制台界面
+        - `Ctrl + Enter` 执行SQL
+        - `Ctrl + Alt + E` 查看最近执行SQL
+        - `Ctrl + F12` 查看列定义；选择某一列再点击时，会跳到指定列定义
+- 常用快捷键
+    - `Ctrl + N` 跳转到类
+    - `Ctrl + Shift + F9` 热部署
+    - `Ctrl + Shift + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
+    - `Ctrl + Shift + Backspace` 回到上次编辑位置
+    - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
 - 快捷键图片
 
 ![idea-keys](/data/images/2016/09/idea-keys.png)
@@ -235,7 +260,6 @@ ThisCrackLicenseId-{
     - 先下载对应源码到某目录，如dir
     - 点击项目管理视图 - Libraries - 点击相关依赖 - 选择Sources - Add添加源码文件 - 选择刚刚目录下的源码(如果源码为maven结构，则选择改源码的src目录)
     - 点击该依赖类 - 编辑 - idea提示此文件不为本项目文件，是否需要修改 - 选择是即可
-
 
 ### 开启Run DashBoard配置
 

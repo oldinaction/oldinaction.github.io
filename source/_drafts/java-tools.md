@@ -143,6 +143,19 @@ NumberUtil.round(NumberUtil.mul(0.55, 1.27), 2); // 0.70 返回类型为BigDecim
 NumberUtil.div(12, 2, 3); // 6.0
 ```
 
+### 加解密
+
+```java
+// ################# AES 对称加密
+AES aes = new AES(Mode.CBC, Padding.PKCS5Padding, "ShengQiTech@AEZO".getBytes(), "ShengQiTech@AEZO".getBytes());
+String username = aes.decryptStr(HexUtil.decodeHex("ec251f39e74c3fa672edd6208c74efa7".toCharArray())); // admin
+// 这种默认的解密方式会报错 v5.5.1
+SymmetricCrypto sc = SecureUtil
+    .aes(sqAuthConfig.getTransEncKey().getBytes())
+    .setIv(sqAuthConfig.getTransEncKey().getBytes())
+    .decryptStr(HexUtil.decodeHex("ec251f39e74c3fa672edd6208c74efa7".toCharArray()));
+```
+
 ## Yaml解析(基于jyaml)
 
 - 依赖

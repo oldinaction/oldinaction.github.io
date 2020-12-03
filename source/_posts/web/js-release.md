@@ -537,8 +537,6 @@ function 函数名(参数列表) {
         - 在浏览器中，全局环境就是window对象，所以所有全局属性和函数都是作为window对象的属性和方法创建
     - 函数执行环境
     - Eval执行环境，参考[下文eval](#eval)
-        - 直接的调用 eval，作用域为局部作用域中；间接调用 eval(比如通过引用)，作用域是全局；严格模式下的eval的变量仅存在于eval内部，不外泄
-        - eval内代码可以读取和使用所在作用域的变量，eval中声明的变量也可以在当前作用域中存在
 
 #### 作用域
 
@@ -642,18 +640,23 @@ import myFunc1 as func from 'myexp'
 import { myFunc1, myFunc2 } from 'myexp'
 ```
 
-#### eval
+#### eval和Function
 
 - [eval函数](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/eval)
 - **eval函数存在漏洞，已不建议使用，可参考上述连接中的Function代替方案**
-- **作用域**：直接的调用 eval，作用域为局部作用域中；间接调用 eval(比如通过引用)，作用域是全局；严格模式下的eval的变量仅存在于eval内部，不外泄
+- **作用域**
+    - 直接的调用 eval，作用域为局部作用域中
+    - 间接调用 eval(比如通过引用)，作用域是全局
+    - 严格模式下的eval的变量仅存在于eval内部，不外泄
+- **eval内代码可以读取和使用所在作用域的变量，eval中声明的变量也可以在当前作用域中存在，eval以字符串中最后一个js语句的返回值作为最终返回**
+- eval和new Function均可使用debugger调试，会进入到一个类似VM1308的代码块中
 - 使用如下
 
     ````js
     // eval 使用
     function test() {
         var x = 2, y = 4;
-        console.log(eval('x + y'));  // 直接调用，使用本地作用域，结果是 6
+        console.log(eval('debugger; x + y')); // 直接调用，使用本地作用域，结果是 6
         
         var geval = eval; // 通过引用间接调用，等价于在全局作用域调用
         console.log(geval('x + y')); // 间接调用，使用全局作用域，throws ReferenceError 因为`x`未定义
@@ -662,9 +665,12 @@ import { myFunc1, myFunc2 } from 'myexp'
     ​}
 
     // Function使用。下面示例打印 Saturday
+    let func = new Function('a', 'b', 'debugger; return a+b') // 最后一个为函数体，前面的参数为函数的形参
+    func(1, 2) // 3
+    
     console.log(
-        // return(function(a){return a(5)}) 中的 a 为 Function 第三个括号传递的参数(一个处理函数)
-        Function('"use strict";return(function(a){return a(5)})')()(
+        // return (function(a){return a(5)}) 中的 a 为 Function 第三个括号传递的参数(一个处理函数)
+        Function('"use strict";return (function(a){return a(5)})')()(
             function(a){ return"Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split(" ")[a%7||0] }
         )
     );
@@ -673,13 +679,17 @@ import { myFunc1, myFunc2 } from 'myexp'
 #### 模板字符串
 
 - [模板字符串](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/template_strings)
-- 模板字面量，在ES2015规范的先前版本中被称为“模板字符串”
+- 模板字面量，在ES2015(ES6)规范的先前版本中被称为模板字符串。ES6用反引号进行标识
 - 使用
 
     ```js
     // 使用模板字符串
     var name = 'smalle'
     console.log(`hello ${name}`) // hello smalle
+
+    let str = `hello${obj.name} ${t()} , ${7 + 9} , ${'ok'},
+    这是个换行
+    `;
 
     // 自定义模板字符串解析方法，解析 {{xxx}} 格式
     String.prototype.render = function (context) {
