@@ -2,9 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/10/23/linux/%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86/</loc>
+    
+    <lastmod>2020-12-03T14:49:21.374Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/09/11/web/electron/</loc>
+    
+    <lastmod>2020-12-03T11:05:10.113Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2020-12-03T09:15:33.729Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2020-12-03T09:11:22.434Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
     
-    <lastmod>2020-12-01T12:59:22.612Z</lastmod>
+    <lastmod>2020-12-02T07:10:06.942Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
+    
+    <lastmod>2020-12-02T05:16:52.418Z</lastmod>
     
   </url>
   
@@ -19,13 +54,6 @@
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
     <lastmod>2020-11-30T08:02:46.838Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
-    
-    <lastmod>2020-11-30T04:54:14.793Z</lastmod>
     
   </url>
   
@@ -86,13 +114,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2020/09/11/web/electron/</loc>
-    
-    <lastmod>2020-11-19T10:05:00.795Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/10/12/others/business-conception/</loc>
     
     <lastmod>2020-11-19T08:15:50.269Z</lastmod>
@@ -142,23 +163,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2020-11-11T07:35:43.500Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     
     <lastmod>2020-11-11T05:25:06.938Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2020-11-11T05:01:45.404Z</lastmod>
     
   </url>
   
@@ -474,13 +481,6 @@
     <loc>http://blog.aezo.cn/2020/03/20/linux/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</loc>
     
     <lastmod>2020-08-12T06:39:28.321Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/10/23/linux/%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86/</loc>
-    
-    <lastmod>2020-08-12T06:10:31.065Z</lastmod>
     
   </url>
   
