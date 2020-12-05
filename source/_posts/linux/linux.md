@@ -481,7 +481,7 @@ df -h
 
 #### gz
 
-- `zcat test.sql.gz > test.sql` 解压
+- `zcat test.sql.gz > test.sql` 解压。如果不输出到文件，则直接打印
 
 #### unzip
 

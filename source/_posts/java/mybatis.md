@@ -918,10 +918,11 @@ mybatis-plus:
   # 实体扫描
   typeAliasesPackage: cn.aezo.demo.entity
   global-config:
-    # 逻辑删除配置
+    # 逻辑删除配置(无需其他配置)
     db-config:
-      logic-delete-value: 0
-      logic-not-delete-value: 1
+      logic-delete-field: valid_status # 逻辑字段名，可省略定义 `@TableLogic`
+      logic-delete-value: 0 # 逻辑已删除值
+      logic-not-delete-value: 1 # 逻辑未删除值
   # 原生配置
   configuration:
     map-underscore-to-camel-case: true  # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
@@ -1006,9 +1007,27 @@ IPage<Users> findList(Page<?> page, @Param("ctx") Map<String, Object> context);
 
 #### NULL空值处理
 
-- mybatis-plus默认策略为：在执行updateById(user)，如果user对象的属性为NULL，则不会更新(空字符串会更新)
+- mybatis-plus默认策略为`NOT_NULL`：在执行updateById(user)，如果user对象的属性为NULL，则不会更新(空字符串会更新)；也可以修改策略
 - 如果需要进行NULL更新，则可通过设置字段策略或者通过UpdateWrapper进行（推荐）
-  - 参考：https://baomidou.com/guide/faq.html#%E6%8F%92%E5%85%A5%E6%88%96%E6%9B%B4%E6%96%B0%E7%9A%84%E5%AD%97%E6%AE%B5%E6%9C%89-%E7%A9%BA%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%88%96%E8%80%85-null
+
+```java
+// https://baomidou.com/guide/faq.html#%E6%8F%92%E5%85%A5%E6%88%96%E6%9B%B4%E6%96%B0%E7%9A%84%E5%AD%97%E6%AE%B5%E6%9C%89-%E7%A9%BA%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%88%96%E8%80%85-null
+mapper.update(
+   new User().setName("mp").setAge(3),
+   Wrappers.<User>lambdaUpdate()
+           .set(User::getEmail, null) //把email设置成null
+           .eq(User::getId, 2)
+);
+//也可以参考下面这种写法
+mapper.update(
+    null,
+    Wrappers.<User>lambdaUpdate()
+       .set(User::getAge, 3)
+       .set(User::getName, "mp")
+       .set(User::getEmail, null) //把email设置成null
+       .eq(User::getId, 2)
+);
+```
 
 #### 乐观锁插件
 

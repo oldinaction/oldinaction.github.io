@@ -1103,11 +1103,12 @@ public class MyEvent {
 - https://github.com/xiaojiaqi/10billionhongbaos/wiki/%E6%89%9B%E4%BD%8F100%E4%BA%BF%E6%AC%A1%E8%AF%B7%E6%B1%82%EF%BC%9F%E6%88%91%E4%BB%AC%E6%9D%A5%E8%AF%95%E4%B8%80%E8%AF%95
 - http://www.ideawu.net/blog/archives/740.html
 
+- 1h = 3600s, 1s = 1000ms, 1d = 86400s
 - 观点一：https://my.oschina.net/u/1000241/blog/3065185
-  - 比如微博每天1亿多pv的系统一般也就1500QPS，5000QPS峰值
+  - 比如微博每天1亿多pv的系统一般也就 1500 QPS，5000 QPS峰值
   - 有说
-    - 2C 4G机器单机一般1000QPS
-    - 8C 8G机器单机可承受7000QPS
+    - 2C 4G机器单机一般1000 QPS
+    - 8C 8G机器单机可承受7000 QPS
   - 具体多少QPS跟业务强相关，只读接口读缓存，将压力给到缓存单机3000+没问题，写请求1000+也正常，复杂些可能也就几百+QPS
 - TPS一般会比QPS少好几个数量级，常见QPS有到亿的但TPS只到万，真是情况还要看系统复杂度来衡量
 - 固态硬盘SSD（Solid State Disk）：取和写入高达 1000MB/秒
@@ -1120,7 +1121,7 @@ public class MyEvent {
   - 每天300w PV 的在单台机器上，这台机器需要多少QPS？ ( 3000000 * 0.8 ) / (86400 * 0.2 ) = 139 (QPS)
   - 如果一台机器的QPS是58，需要几台机器来支持？ 139 / 58 = 3
 - RT（Response-time），响应时间
-    - 单线程QPS公式：QPS=1000ms/RT
+    - 单线程QPS公式：QPS = 1000ms/RT = 1s/RT
     - 对同一个系统而言，支持的线程数越多，QPS越高。假设一个RT是80ms,则可以很容易的计算出QPS,QPS = 1000/80 = 12.5
 - QPS统计
   - 统计access.log
