@@ -101,6 +101,7 @@ tags: [spring, springsecurity, springboot, oauth2, 安全]
         }
     }
     ```
+
 ### 示例扩展
 
 - 此示例使用数据库用户名/密码(或扩展验证)进行用户登录验证，并且对登录成功做处理，资源权限控制
@@ -516,7 +517,7 @@ tags: [spring, springsecurity, springboot, oauth2, 安全]
 - `CSRF` 跨站请求伪造(Cross-Site Request Forgery). [csrf](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html)
 - `CORS` 跨站资源共享(Cross Origin Resourse-Sharing).
 
-- 开启cosr [cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
+- 开启cosr：使用spring security时，需要同时在spring mvc 和 spring security中配置CORS。[cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
 
     ```java
     protected void configure(HttpSecurity http) throws Exception {

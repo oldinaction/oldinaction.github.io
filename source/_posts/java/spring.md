@@ -986,72 +986,268 @@ public Result addTestTransactional() {
 
 ## SpringMVC
 
+- SpringMVC 的整个请求流程
+
+![springmvc-flow](/data/images/java/springmvc-flow.png)
+
+### 映射处理器HandlerMapping
+
+- 映射处理器：就是实现了HandlerMapping接口，处理url到bean的映射
+- 常见的
+    - `BeanNameUrlHandlerMapping` 将bean的name作为url进行查找，需要在配置Handler时指定bean name，且必须以 / 开头
+    - `SimpleUrlHandlerMapping` 可以通过内部参数去配置请求的 url 和 handler 之间的映射关系。springboot中使用此类进行映射的地方(调用其setUrlMap进行注入)
+        - ResourceHandlerRegistry
+        - ViewControllerRegistry
+        - WebMvcAutoConfiguration.FaviconConfiguration
+        - DefaultServletHandlerConfigurer 默认没有设置handle，可基于WebMvcConfigurer实现配置(仅使用默认DefaultServletHandlerConfigurer，无法注入自定义的Interceptor，可自定义默认ServletHandler解决)
+- 自定义HandlerMapping [^4]
+
+```java
+@Slf4j
+public class AuthUserInfoHandlerMapping extends SimpleUrlHandlerMapping implements HttpRequestHandler {
+    private AuthManager authManager;
+    private int order = Ordered.LOWEST_PRECEDENCE - 1;
+
+    public void init(AuthManager authManager) {
+        this.authManager = authManager;
+        this.setOrder(order);
+        this.setUrlMap(MiscU.toMap("/core/user/info", this)); // 拦截路径
+    }
+
+    @Override
+    public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // ...类似 controller 进行处理
+        SqAuthUserInfo sqAuthUserInfo = authManager.getUserInfo();
+        BaseRequest.writeSuccess(response, sqAuthUserInfo);
+    }
+}
+
+@Bean
+public AuthUserInfoHandlerMapping mySimpleUrlHandlerMapping(AuthManager authManager) {
+    AuthUserInfoHandlerMapping auim = new AuthUserInfoHandlerMapping();
+    auim.init(authManager);
+    return auim;
+}
+```
+
 ### 拦截器
 
-- 在Filter上注解@Component
-- 往FilterRegistrationBean中注册并暴露Bean，可指定拦截某路径
-- 实现WebMvcConfigurer并暴露Bean，可指定拦截某路径和设定Order顺序
+- Filter 与 Interceptor 区别
+    - **Filter作用在 DispatcherServlet 调用前，Interceptor作用在调用后**
+    - Filter 由 Servlet 标准定义，要求 Filter 需要在 Servlet 被调用之前调用，作用顾名思义，就是用来过滤请求。**在 Spring Web 应用中，DispatcherServlet 就是唯一默认的 Servlet 实现**
+    - Interceptor 由 Spring 自己定义，由 DispatcherServlet 调用，可以定义在 Handler 调用前后的行为。这里的 Handler ，在多数情况下，就是我们的 Controller 中对应的方法
+        - 参考 **DispatcherServlet#doDispatch -> mappedHandler.applyPreHandle -> interceptor.preHandle**(只有URL匹配到了对应的Handler，才会调用preHandle方法)
+        - 默认`/**`路径会被 SimpleUrlHandlerMapping 拦截(静态资源映射使用的类)，因此如果重写了`spring.mvc.static-path-pattern`则可能有些路径找不到对应Handler，从而不执行preHandle
+    
+    ![Filter-Interceptor.png](/data/images/java/Filter-Interceptor.png)
+- 实现方式
+    - 实现 Filter 或继承 OncePerRequestFilter，并增加注解@Component
+    - 往 FilterRegistrationBean 中注册Filter，可指定拦截某路径
+    - 实现 WebMvcConfigurer，并加入自定义的HandlerInterceptor，可指定拦截路径和设定Order顺序
+
+#### 基于Filter进行拦截
+
+```java
+// 暴露即可注入到拦截链中(如果要指定拦截路径，需要手动判断)
+@Component
+public class AuthFilter implements Filter {} // javax.servlet.Filter
+
+@Component
+public class AuthFilter2 extends OncePerRequestFilter {}
+
+// 往FilterRegistrationBean中注册（可指定拦截路径）
+@Bean
+public FilterRegistrationBean indexFilterRegistration() {
+    FilterRegistrationBean<> registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(new AuthFilter()); // 此时Filter无需增加@Component
+    registrationBean.setUrlPatterns("/*");
+    // Filter的init方法中可获取到此参数值：exclusions = filterConfig.getInitParameter("exclusions");
+    registrationBean.addInitParameter("exclusions", "*.js,*.gif,*.jpg,*.png,*.css,*.ico");
+    registrationBean.setOrder(1);
+    return registrationBean;
+}
+```
+
+#### 基于Interceptor进行拦截
+
+```java
+// 定义拦截器(且需如下文注入到 WebMvcConfigurer)
+// @Component
+public class MyInterceptor implements HandlerInterceptor {
+    // 如果需要存放额外参数可使用 ThreadLocal
+    private static final ThreadLocal<Long> startTimeThreadLocal = new NamedThreadLocal<Long>("ThreadLocal StartTime");
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+        System.out.println(">>>>>>>>>>在请求处理之前进行调用（Controller方法调用之前）");
+        return true; // 只有返回true才会继续向下执行，返回false取消当前**请求**
+    }
+
+    /**
+    * 这个方法只会在当前这个Interceptor的preHandle方法返回值为true的时候才会执行。
+    * postHandle是进行处理器拦截用的，它的执行时间是在处理器进行处理之后，也就是在Controller的方法调用之后执行，但是它会在DispatcherServlet进行视图的渲染之前执行，也就是说在这个方法中你可以对ModelAndView进行操作。
+    * 这个方法的链式结构跟正常访问的方向是相反的，也就是说先声明的Interceptor拦截器，该方法反而会后调用
+    */
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+                        ModelAndView modelAndView) throws Exception {
+        System.out.println(">>>>>>>>>>请求处理之后进行调用（Controller方法调用之后），但是在视图被渲染之前");
+        System.out.println(response.getStatus()); // 请求状态
+    }
+
+    /**
+    * 该方法也是需要当前对应的Interceptor的preHandle方法的返回值为true时才会执行。
+    * 该方法将在整个请求完成之后，也就是DispatcherServlet渲染了视图执行
+    * 这个方法的主要作用是用于清理资源的，当然这个方法也只能在当前这个Interceptor的preHandle方法的返回值为true时才会执行。
+    */
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+            throws Exception {
+        System.out.println(">>>>>>>>>>在整个请求结束之后被调用，也就是在DispatcherServlet 渲染了对应的视图之后执行（主要是用于进行资源清理工作）");
+    }
+}
+
+// WebMvcConfigurer 可显示拦截器注入、静态资源映射注入、CROS配置、数据格式转换配置等
+@Configuration
+public class CustomerWebMvcConfig implements WebMvcConfigurer {
+    // 往InterceptorRegistry中注册。或者继承 WebMvcConfigurerAdapter减少不必要接口的实现（Spring5已经废弃，因为 JDK8提供了默认接口）
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 可添加多个组成一个拦截器链；addPathPatterns 用于添加拦截规则，excludePathPatterns 用于排除拦截
+        // 此处路径最终会加上spirng.context的值，才是真正的拦截完整路径
+        registry.addInterceptor(new MyInterceptor()).addPathPatterns("/**");
+    }
+}
+```
+
+#### 拦截request的body数据
+
+- 通过request的body数据（request.getParameter无法获取body）只能通过InputStream获取，而且只能获取一次
+- 常见问题：可能出现自定义Filter中使用了body，导致Controller中无法再使用@RequestBody获取数据
+    - `request.setAttribute("body", body);` 灵活度不高，会影响其他Filter
+	- 如果需要多次获取可以使用HttpServletRequestWrapper进行缓存
+
+```java
+public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper {
+    private final byte[] body;
+    private final ObjectMapper objectMapper;
+    private static final ThreadLocal<Map> MAP_THREAD_LOCAL = new ThreadLocal<>();
+
+    public WarningRequestWrapper(HttpServletRequest request, ObjectMapper objectMapper) throws IOException {
+        super(request);
+        body = StreamUtils.copyToByteArray(request.getInputStream());
+        this.objectMapper = objectMapper;
+        setBodyMap(this.parseBodyMap());
+    }
+
+    @Override
+    public BufferedReader getReader() throws IOException {
+        return new BufferedReader(new InputStreamReader(getInputStream()));
+    }
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        final ByteArrayInputStream bais = new ByteArrayInputStream(body);
+        return new ServletInputStream() {
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+
+            @Override
+            public boolean isReady() {
+                return false;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+
+            }
+
+            @Override
+            public int read() throws IOException {
+                return bais.read();
+            }
+        };
+    }
+
+    public Map parseBodyMap() {
+        Map<String, Object> map = new HashMap<>();
+        if(body != null) {
+            if(body.length != 0) {
+                try {
+                    return objectMapper.readValue(body, Map.class);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            map.put("_body", new String(body, Charset.forName("UTF-8")));
+        }
+
+        return map;
+    }
+
+    public static void setBodyMap(Map map) {
+        MAP_THREAD_LOCAL.set(map);
+    }
+    public static Map getBodyMap() {
+        return MAP_THREAD_LOCAL.get();
+    }
+    public static void removerBodyMap() {
+        MAP_THREAD_LOCAL.remove();
+    }
+}
+
+// 通过filter进行下发（实现 Filter，或继承 OncePerRequestFilter）
+CustomerHttpServletRequestWrapper warpper = new CustomerHttpServletRequestWrapper((HttpServletRequest)request);
+Map body = requestWrapper.getBodyMap();
+filterChain.doFilter(warpper, servletResponse);
+```
+
+#### 拦截response的数据
+
+```java
+@ControllerAdvice
+public class InterceptResponse implements ResponseBodyAdvice<Object>{
+    @Override
+    public boolean supports(MethodParameter methodParameter, Class aClass) {
+        // 返回true则表示进行拦截
+        return true;
+    }
+
+    @Override
+    public Object beforeBodyWrite(Object o, MethodParameter methodParameter, MediaType mediaType, Class aClass, ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
+        ServletServerHttpRequest req = (ServletServerHttpRequest) serverHttpRequest;
+        HttpServletRequest servletRequest = req.getServletRequest();
+        // o 即为返回值，此处临时保存。可结合 HandlerInterceptor，在其 postHandle 方法中再次使用
+        servletRequest.setAttribute("_resultBodyObject", o);
+        return o;
+    }
+}
+```
+
+### WebMvcConfigurer
 
 ```java
 @Configuration
 public class CustomerWebMvcConfig implements WebMvcConfigurer {
-    /**
-     * 往InterceptorRegistry中注册。需要实现 WebMvcConfigurer 接口
-     */
+    
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        // setUseSuffixPatternMatch: 是否启用后缀模式匹配，如 /user 是否匹配 /user.*，默认真即匹配。如果需要完全匹配 /user、/user.html，则设置成false
+        // setUseTrailingSlashMatch: 是否自动后缀路径模式匹配，如 /user 是否匹配 /user/，默认真即匹配
+        configurer.setUseSuffixPatternMatch(true)
+                .setUseTrailingSlashMatch(true);
+    }
+
+    // 往InterceptorRegistry中注册。或者继承 WebMvcConfigurerAdapter减少不必要接口的实现（Spring5已经废弃，因为 JDK8提供了默认接口）
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 可添加多个
-        registry.addInterceptor(new CustomerHandlerInterceptor()).addPathPatterns("/**");
-    }
-
-    /**
-     * 直接返回Filter. 解决同源策略问题（Access-Control-Allow-Origin跨域）。或者在Filter上注解@Component
-     */
-    @Bean
-    public Filter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source); // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
-    }
-
-    /**
-     * 往FilterRegistrationBean中注册. Token验证拦截
-     */
-    @Bean
-    public FilterRegistrationBean indexFilterRegistration() {
-        FilterRegistrationBean<> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new AuthFilter());
-        registrationBean.setUrlPatterns("/*");
-        // Filter的init方法中可获取到此参数值：exclusions = filterConfig.getInitParameter("exclusions");
-        registrationBean.addInitParameter("exclusions", "*.js,*.gif,*.jpg,*.png,*.css,*.ico");
-        registrationBean.setOrder(1);
-        return registrationBean;
-    }
-}
-
-@Configuration
-public class CustomerHandlerInterceptor implements HandlerInterceptor {
-    // 是否进行拦截，返回True表示拦截
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
-        return true;
-    }
-
-    // 处理拦截
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-                           ModelAndView modelAndView) throws Exception {
-    }
-
-    // 拦截后处理
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-            throws Exception {
+        // 可添加多个组成一个拦截器链；addPathPatterns 用于添加拦截规则，excludePathPatterns 用于排除拦截
+        // 此处路径最终会加上spirng.context的值，才是真正的拦截完整路径
+        registry.addInterceptor(myInterceptor).addPathPatterns("/**");
     }
 }
 ```
@@ -1101,4 +1297,5 @@ matcher.match("/blog/**/*.do", url); // true
 [^1]: https://www.cnblogs.com/X-World/p/6113910.html (cron表达式)
 [^2]: http://blog.didispace.com/springboottransactional/ (@Transactional)
 [^3]: http://tech.lede.com/2017/02/06/rd/server/SpringTransactional/ (Spring @Transactional原理及使用)
+[^4]: https://www.cnblogs.com/hujunzheng/p/9902475.html
 

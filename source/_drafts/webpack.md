@@ -69,6 +69,26 @@ module.exports = {
 };
 ```
 
+### index.html
+
+- 变量替换
+
+```html
+<link rel="icon" href="<%= BASE_URL %>favicon.ico">
+
+<% if(VUE_APP_DEBUG_AVUE_URL) { %>
+    <script src="<%= BASE_URL %>avue.js" charset="utf-8"></script>
+<% } else { %>
+    <script src="<%= BASE_URL %>cdn/avue/2.7.3/avue.min.js" charset="utf-8"></script>
+<% } %>
+
+<% for(var k in htmlWebpackPlugin.files.chunks) { %>
+    <% if(k !== 'main'){ %>
+        <script type="text/javascript" src="<%= htmlWebpackPlugin.files.chunks[k].entry %>"></script>
+    <% } %>
+<% } %>
+```
+
 ## Webpack模块打包原理
 
 - 模块规范：[^2]

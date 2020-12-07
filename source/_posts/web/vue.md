@@ -1894,6 +1894,23 @@ render() {
 ```bash
 npm install -g @vue/cli
 vue --version # @vue/cli 4.3.0
+
+# [审查项目的-webpack-配置](https://cli.vuejs.org/zh/guide/webpack.html#%E5%AE%A1%E6%9F%A5%E9%A1%B9%E7%9B%AE%E7%9A%84-webpack-%E9%85%8D%E7%BD%AE)
+# 将 vue-cli 中（vue.config.js）对 webpack 的配置信息导出到 output.js 文件
+vue inspect > output.js
+# 如可以看到如下内容，因此在js中可以使用 `process.env.NODE_ENV`，在 public/index.html 中可使用 href="<%= BASE_URL %>favicon.ico" 进行变量替换
+'''
+new DefinePlugin(
+    {
+        'process.env': {
+            NODE_ENV: '"development"',
+            VUE_APP_BASE_URL: '"http://localhost:8800/api/v1"',
+            VUE_APP_ENV: '"development"',
+            BASE_URL: '"/"'
+        }
+    }
+)
+'''
 ```
 - package.json 常用配置
 
@@ -1932,6 +1949,15 @@ module.exports = {
         config.resolve.alias
             .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
             .set('_c', resolve('src/components'))
+        
+        // 修改插件选项
+        config
+            .plugin('define') // 对应 DefinePlugin 插件，其简称可通过 vue inspect > output.js 生成目标配置查看。其实通过 .env 文件定义的变量会自动加到 DefinePlugin 中
+            .tap(args => {
+                // 修改构造函数参数值并返回
+                args[0]['process.env'].BUILD_ENV = JSON.stringify(process.env.BUILD_ENV)
+                return args
+            })
     },
     pluginOptions: {
         'style-resources-loader': {
