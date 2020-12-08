@@ -142,12 +142,12 @@ created(): {
 
 ### 数组/对象改变数据不刷新问题
 
-- 官方说明
-    - https://cn.vuejs.org/v2/guide/list.html#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
-    - https://cn.vuejs.org/v2/guide/reactivity.html#%E6%A3%80%E6%B5%8B%E5%8F%98%E5%8C%96%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9
+- [官方说明](https://cn.vuejs.org/v2/guide/reactivity.html#%E6%A3%80%E6%B5%8B%E5%8F%98%E5%8C%96%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9)
     - **由于 JavaScript 的限制，Vue 不能检测以下变动的数组**
         - 当你利用索引直接设置一个项时，例如：`vm.items[indexOfItem] = newValue`。如v-for循环想动态给item增加属性，此时只能先定义一个List，动态在方法中设置此List值，并通过JSON进行转换赋值
         - 当你修改数组的长度时，例如：`vm.items.length = newLength`
+        - [下列方法可触发视图更新](https://cn.vuejs.org/v2/guide/list.html#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9)
+            - push()、pop()、shift()、unshift()、splice()、sort()、reverse()
     - **由于 JavaScript 的限制，Vue 不能检测对象属性的添加或删除**
 
         ```js

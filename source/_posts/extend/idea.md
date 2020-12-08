@@ -116,6 +116,7 @@ ThisCrackLicenseId-{
         - 修改了方法声明
 - `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
     - 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
+    - `@Accessors(fluent = true, chain = true, prefix = "p")` 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
 - `MybatisX` [mybatis-plus提供](https://mybatis.plus/guide/mybatisx-idea-plugin.html)，可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI(未测试成功)，JPA方法命名提示(未测试成功)。Ctrl+Alt可实现相应跳转
     - 类似插件：`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
 - `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板

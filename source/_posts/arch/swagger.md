@@ -156,6 +156,11 @@ public class User implements Serializable {
 }
 
 ```
+- 如果不想验证，则需要开放下列路径访问白名单
+    - /webjars/**
+    - /swagger-ui.html
+    - /swagger-resources/**
+    - /v2/api-docs
 - 访问`http://localhost:8080/swagger-ui.html` 查看接口文档
 
 ---
