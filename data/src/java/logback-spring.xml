@@ -19,7 +19,8 @@
     <springProperty scope="context" name="loggingPath" source="logging.path"/>
     <property name="LOG_PATH" value="${loggingPath:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}}" />
     <!--
-      1. %clr(%replace(%-35.35caller{1}){'\t|Caller.{1}0|\r\n', ''}){magenta} 显示日志行号和行链接，解析：
+      1.如：%clr(%replace(%-35.35caller{1}){'\t|Caller.{1}0|\r\n', ''}){magenta} 显示日志行号和行链接
+      2.解析
         %clr(...){magenta} 对括号中数据增加 magenta 颜色
         %replace(...){...} 去掉换行
         %-35.35caller{1} 获取调用栈最后两个，并格式化宽度为 35
@@ -28,13 +29,14 @@
         %t 线程
         %m 日志内容
         %n 换行
-      2. 简单的使用 %clr(%L){magenta} 代替
+        %L 行号
     -->
-    <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(%replace(%-35.35caller{1}){'\t|Caller.{1}0|\r\n', ''}){magenta} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr([%15.15t]){faint} %clr(%-40.40logger{39} %-5.5L){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <!-- 如果日志统一收集，可以适当减少此处日志保留天数 -->
     <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-30}"/>
     <property name="LOG_FILE_MAX_SIZE" value="${LOG_FILE_MAX_SIZE:-10MB}"/>
     <property name="LOG_TOTAL_SIZE_CAP" value="${LOG_TOTAL_SIZE_CAP:-10GB}"/>
+    <property name="LOG_HTML_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-3}"/>
 
     <!-- 控制台输出日志 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -45,7 +47,7 @@
 
     <!-- ERROR级别日志 -->
     <!-- 滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件 RollingFileAppender-->
-    <appender name="ERROR-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 过滤器，只记录WARN级别的日志 -->
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
@@ -87,7 +89,7 @@
     </appender>
 
     <!-- WARN级别日志 appender -->
-    <appender name="WARN-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="WARN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>WARN</level>
             <onMatch>ACCEPT</onMatch>
@@ -105,7 +107,7 @@
     </appender>
 
     <!-- INFO级别日志 appender -->
-    <appender name="INFO-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>INFO</level>
             <onMatch>ACCEPT</onMatch>
@@ -123,7 +125,7 @@
     </appender>
 
     <!-- DEBUG级别日志 appender。如果root中不使用此appender则可将其注释掉 -->
-    <appender name="DEBUG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>DEBUG</level>
             <onMatch>ACCEPT</onMatch>
@@ -141,7 +143,7 @@
     </appender>
 
     <!-- TRACE级别日志 appender -->
-    <appender name="TRACE-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="TRACE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>TRACE</level>
             <onMatch>ACCEPT</onMatch>
@@ -158,6 +160,30 @@
         </encoder>
     </appender>
 
+    <!-- 每天生成一个html格式的日志开始 -->
+    <appender name="HTML_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <!-- 过滤器，只记录WARN级别的日志
+      <filter class="ch.qos.logback.classic.filter.LevelFilter">
+        <level>info</level>
+        <onMatch>ACCEPT</onMatch>
+        <onMismatch>DENY</onMismatch>
+      </filter>
+      -->
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <FileNamePattern>${LOG_PATH}/log-html/%d{yyyyMMdd}/index.html</FileNamePattern>
+        <MaxHistory>${LOG_HTML_MAX_HISTORY}</MaxHistory>
+      </rollingPolicy>
+      <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+        <layout class="ch.qos.logback.classic.html.HTMLLayout">
+          <pattern>%p%d%msg%M%F{32}%L</pattern>
+        </layout>
+      </encoder>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <MaxFileSize>${LOG_FILE_MAX_SIZE}</MaxFileSize>
+      </triggeringPolicy>
+    </appender>
+
+
     <!--输出到mysql数据库的appender配置. 需要pom中引入mysql的jar包，并创建数据库 logback_data，并需要先创建数据库表-->
     <!--
     <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
@@ -167,41 +193,6 @@
             <user>root</user>
             <password>root</password>
         </connectionSource>
-    </appender>
-    -->
-
-    <!-- 生成html格式日志开始（过滤器，只记录WARN级别的日志）
-    <appender name="HTML" class="ch.qos.logback.core.FileAppender">
-      <filter class="ch.qos.logback.classic.filter.LevelFilter">
-        <level>info</level>
-        <onMatch>ACCEPT</onMatch>
-        <onMismatch>DENY</onMismatch>
-      </filter>
-      <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-        <layout class="ch.qos.logback.classic.html.HTMLLayout">
-          <pattern>%p%d%msg%M%F{32}%L</pattern>
-        </layout>
-      </encoder>
-      <file>${LOG_PATH}/error-log.html</file>
-    </appender>
-    -->
-
-    <!-- 每天生成一个html格式的日志开始
-    <appender name="HTML_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <FileNamePattern>${LOG_PATH}/log.%d{yyyy-MM-dd}.html
-        </FileNamePattern>
-        <MaxHistory>30</MaxHistory>
-      </rollingPolicy>
-      <encoder
-        class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-        <layout class="ch.qos.logback.classic.html.HTMLLayout">
-          <pattern>%p%d%msg%M%F{32}%L</pattern>
-        </layout>
-      </encoder>
-      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <MaxFileSize>10MB</MaxFileSize>
-      </triggeringPolicy>
     </appender>
     -->
 
@@ -230,23 +221,28 @@
 
     <!--
         1.默认日志级别，可以单独在上面设置每个包的日志级别
-        2.root将级别为INFO及大于INFO的日志信息交给已经配置好的名为STDOUT、ERROR的appender处理，STDOUT的appender将信息打印到控制台，ERROR的则打印到error-%i.log文件中
+        2.root将级别为INFO及大于INFO的日志信息交给已经配置好的名为STDOUT、ERROR_FILE的appender处理，STDOUT的appender将信息打印到控制台，ERROR_FILE的则打印到error-%i.log文件中
         3.level用来设置打印级别，大小写无关。TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，还有一个特殊值INHERITED或者同义词NULL，代表强制执行上级的级别。如果未设置此属性，那么当前loger将会继承上级的级别
-        4.yml配置文件单个包的打印级别 > logger-level标签级别 > root-level默认级别
+        4.yml配置文件单个包的打印级别 > logger-level标签级别 > root-level默认级别 (因此此处可以打开文件的所有级别类型，默认不会打印debug等日志；如果需要查看debug日志，只需要增加yml配置文件即可)
         5.将mybatis的DEBUG日志记录在文件的前提是(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
     -->
     <root level="INFO">
-		<!--输出到数据库-->
-        <!--<appender-ref ref="DB"/>-->
-
-        <!-- 控制台输出 -->
+        <!-- 输出到控制台(包括生产环境启动的命令行) -->
         <appender-ref ref="STDOUT" />
 
-        <!-- 文件输出：*****如果使用文件输出，则下面的打开级别的才会记录***** -->
-        <appender-ref ref="ERROR-FILE" />
-        <appender-ref ref="WARN-FILE" />
-        <appender-ref ref="INFO-FILE" />
-        <appender-ref ref="DEBUG-FILE" />
-        <appender-ref ref="TRACE-FILE" />
+        <!-- 输出到文件。注意：
+          1.*****如果使用文件输出，则下面的打开级别的才会记录*****
+          2.即如果不打开TRACE_FILE，就算上文logger或yml中配置了某个类的打印基本为TRACE，也不会记录到TRACE_FILE相应的appender(trace-%i.log日志文件)
+        -->
+        <appender-ref ref="ERROR_FILE" />
+        <appender-ref ref="WARN_FILE" />
+        <appender-ref ref="INFO_FILE" />
+        <appender-ref ref="DEBUG_FILE" />
+        <appender-ref ref="TRACE_FILE" />
+
+        <appender-ref ref="HTML_FILE" />
+
+        <!--输出到数据库-->
+        <!--<appender-ref ref="DB"/>-->
     </root>
 </configuration>
