@@ -212,7 +212,7 @@ public class App {
 - 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
 - 内置条件
     - `@ConditionalOnProperty` 要求配置属性匹配条件
-        - `havingValue` 表示对应参数值
+        - `havingValue` 表示对应参数值。注解中如果省略此属性，则此参数为false时，条件结果才为false
         - `matchIfMissing` 表示缺少该配置属性时是否可以加载。如果为true，即表示没有该配置属性时也会正常加载；反之则不会生效
         - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)
     - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在beanFactory中不存在时返回true，各类型间是or的关系
