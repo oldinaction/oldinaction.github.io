@@ -360,7 +360,7 @@ function getAuthHeaders(){
     - 安装[xampp](https://jaist.dl.sourceforge.net/project/xampp/XAMPP%20Windows/7.3.10/xampp-windows-x64-7.3.10-1-VC15-installer.exe)
     - 修改 xampp Apache 端口(此时访问`http://localhost:8110/`访问的是目录`D:\software\xampp\htdocs`)
         - 修改apache配置的`httpd.conf`文件中`80`端口为`8110`
-        - 修改apache配置的`httpd-ssl.conf`文件中`443`为`8443`
+        - 修改apache配置的`extra/httpd-ssl.conf`文件中`443`为`8443`
         - 配置端口(Config - Services and Port Settings)为`8110`
     - 设置xampp Apache虚拟机(此时访问`http://localhost:8111/`访问的是目录`D:\phpwork`，且同时可访问8110)
         

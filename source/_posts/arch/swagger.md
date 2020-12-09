@@ -154,7 +154,6 @@ public class User implements Serializable {
 
     // ...省略get/set方法
 }
-
 ```
 - 如果不想验证，则需要开放下列路径访问白名单
     - /webjars/**
