@@ -358,6 +358,7 @@ function getAuthHeaders(){
 
 - xampp是将php、perl、apache、mysql、tomcat、FileZila等软件打包打一起
     - 安装[xampp](https://jaist.dl.sourceforge.net/project/xampp/XAMPP%20Windows/7.3.10/xampp-windows-x64-7.3.10-1-VC15-installer.exe)
+    - 也支持linux
     - 修改 xampp Apache 端口(此时访问`http://localhost:8110/`访问的是目录`D:\software\xampp\htdocs`)
         - 修改apache配置的`httpd.conf`文件中`80`端口为`8110`
         - 修改apache配置的`extra/httpd-ssl.conf`文件中`443`为`8443`
@@ -402,6 +403,10 @@ function getAuthHeaders(){
         - Run Debug - PHP Web Page - 新建Server(localhost:8110, Xdebug) - Start Url(/test/index.php) - 启动Debug - 访问 http://localhost:8110/test/index.php
     - PHPStorm使用Xdebug进行调试时，没打断点也一直进入到代码第一行：去掉勾选Run - Break at first line in PHP Scripts
     - PHPStorm需要启动Debug监听：`Run - Start Listening for PHP Debug Connection`
+
+## lnmp 类似xampp，专注于linux环境
+
+- https://lnmp.org/
 
 ## 其他
 

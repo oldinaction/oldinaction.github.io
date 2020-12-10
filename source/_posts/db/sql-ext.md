@@ -147,9 +147,15 @@ having count(1) = 3
 
 ### 行转列/列转行
 
-- sqlserver
-    - 行转列：`PIVOT`用于将列值旋转为列名；也可用聚合函数配合CASE语句实现
-    - 列转行：`UNPIVOT`用于将列明转为列值；也可以用UNION来实现
+#### oracle
+
+- 参考[listagg within group行转列](#listagg%20within%20group行转列)
+- 参考[wm_concat行转列](#wm_concat行转列)
+
+#### sqlserver
+
+- 行转列：`PIVOT`用于将列值旋转为列名；也可用聚合函数配合CASE语句实现
+- 列转行：`UNPIVOT`用于将列明转为列值；也可以用UNION来实现
 
 ```sql
 /*
@@ -194,6 +200,9 @@ select t.stu_no, t.course_name, t.course_score from
 ) t order by t.stu_no, case t.course_name when 'yuwen' then 1 when 'shuxue' then 2 when 'yingyu' then 3 end
 ```
 
+#### 拆分以逗号分隔的字符串为多行
+
+- oracle参考下文[正则表达式 regexp_substr](#正则表达式)
 
 ## Mysql
 
@@ -220,6 +229,24 @@ select t.stu_no, t.course_name, t.course_score from
     - `between '2018-10-01' and date_add('2018-11-01', interval 1 day)` 多算了2018-11-02 00:00:00这一秒中的数据
     - 写全时分秒
     - 如果create_time类型为date，则使用between...and没什么问题
+
+### 关键字
+
+#### WITH AS 用法
+
+- 可认为在真正进行查询之前预先构造了一个临时表，之后便可多次使用它做进一步的分析和处理。一次分析，多次使用
+- 语法
+
+```sql
+with tempName as (select ....)
+select ...
+
+-- 针对多个别名
+with
+   tmp as (select * from tb_name),
+   tmp2 as (select * from tb_name2)
+select ...
+```
 
 ### 常用函数
 
@@ -326,7 +353,7 @@ select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using 
 
 ### 常用函数
 
-#### 常用函数
+#### decode和case when
 
 - `decode(被判断表达式, 值1, 转换成值01, 值2, 转换成值02, ..., 转换成默认值)` 只能判断=，不能判断like(like可考虑case when)
 	- `select decode(length(ys.ycross_x), 1, '0' || ys.ycross_x, ys.ycross_x) from ycross_storage ys` 如果ys.ycross_x的长度为1那就在前面加0，否则取本身
@@ -336,30 +363,39 @@ select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using 
 	- `case when t.name = 'admin' then 'admin' when t.name like 'admin%' then 'admin_user' else decode(t.role, 'admin', 'admin', 'admin_user') end`
 	- `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1` sum写在case里面则需要对相关字段(plan_classification_code)进行group by，而sum写外面则不需要对此字段group by. **主要用于分组之后根据条件分列显示**
 
+#### grouping rollup
+
+- http://blog.csdn.net/damenggege123/article/details/38794351
+
+#### trunc时间处理
+
+```sql
+select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天和今天（2018-01-01, 2018-01-02）
+```
+
 #### 聚合函数(aggregate_function)
 
 - `min`、 `max`、`sum`、`avg`、`count`、`variance`、`stddev` 
 - `count(*)`、`count(1)`、`count(id)`、`count(name)` **统计行数，不能统计值的个数**。count(name)，如果有3行，但是name有值的只有2行时结果仍然为3
-- `wm_concat` **行转列，会把多行转成1行** (默认用`,`分割，select的其他字段需要是group by字段)
-    - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
-    - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符
 
-#### 其他函数
+##### wm_concat行转列
 
-- grouping、rollup：http://blog.csdn.net/damenggege123/article/details/38794351
-- `trunc` oracle时间处理
-    
-    ```sql
-    select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天和今天（2018-01-01, 2018-01-02）
-    ```
-- `start with connect by prior` oracle递归查询(树形结构)
+- 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
+- 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
+- `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符
 
-    ```sql
-    select * from my_table t 
-    start with t.pid = 1 -- 基于此条件进行向下查询(省略则表示基于全表为根节点向下查询，可能会有重复数据)
-    connect by nocycle prior t.id = t.pid -- 递归条件(递归查询不支持环形。此处nocycle表示忽略环，如果确认结构中无环形则可省略。有环形则必须加，否则报错)
-    where t.valid_status = 1; -- 将递归获取到的数据再次过滤
-    ```
+##### listagg within group行转列
+
+```sql
+-- 查询部门为20的员工列表
+select
+	t.deptno,
+    -- listagg 可理解为wm_concat；而 within group 表示对没一组的元素进行操作，此时是基于 t.ename 进行排序(即排序后再调用listagg)
+	listagg(t.ename, ',') within group (order by t.ename) names -- 返回 ADAMS,FORD,JONES 即将多行显示在一列中
+from scott.emp t
+where t.deptno = '20'
+group by t.deptno
+```
 
 #### 分析函数
 
@@ -376,6 +412,19 @@ select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using 
 - `rollup()`、`cube()` 排列组合分组。**和group by联合使用**
     - `group by rollup(a, b, c)`：首先会对(a、b、c)进行group by，然后再对(a、b)进行group by，其后再对(a)进行group by，最后对全表进行汇总操作
     - `group by cube(a, b, c)`：  首先会对(a、b、c)进行group by，然后依次是(a、b)，(a、c)，(a)，(b、c)，(b)，(c)，最后对全表进行汇总操作
+
+##### connect by 递归关联
+
+- `start with connect by prior` 递归查询(如树形结构)
+
+```sql
+select * from my_table t 
+start with t.pid = 1 -- 基于此条件进行向下查询(省略则表示基于全表为根节点向下查询，可能会有重复数据)
+connect by nocycle -- 递归条件(递归查询不支持环形。此处nocycle表示忽略环，如果确认结构中无环形则可省略。有环形则必须加，否则报错)
+prior t.id = t.pid -- 增加递归条件，或者 add prior。也可自递归，如 t.id = t.id
+add prior level <= regexp_count(t.names, '[^,]+') -- level为当前递归层级(顶层为1)，此条件无实际意义，仅为了展示其语法功能
+where t.valid_status = 1; -- 将递归获取到的数据再次过滤
+```
 
 ##### over
 
@@ -605,13 +654,117 @@ select substr('17,20,23', regexp_instr('17,20,23', ',') + 1, regexp_instr('17,20
 select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20,23') - regexp_instr('17,20,23', ',')) from dual;
 ```
 
-#### 其他
+#### 案例
 
-- 查找中文：`select * from t_customer t where asciistr(t.customer_name) like '%\%' and instr(t.customer_name, '\') <= 0;`
+##### 查找中文
 
-### 数据库数据更新
+- `select * from t_customer t where asciistr(t.customer_name) like '%\%' and instr(t.customer_name, '\') <= 0;`
 
-##### 更新表
+##### 一个字段存多个ID进行联表查询 
+
+- 参考[connect by 递归关联](#connect%20by%20递归关联) [^9]
+
+```sql
+-- 也可将,进行分割后使用in进行联表查询，但是效率比此方法低很多
+WITH user_info_temp as (
+	SELECT
+    ui.id,
+	ui.username,
+    ui.hobby_id
+	LEVEL C_LEVEL,
+	REGEXP_SUBSTR(ui.hobby_id, '[^,]+', 1, LEVEL) hobby_id_item
+	FROM user_info ui -- 用户表存放的爱好字段hobby_id使用逗号分割存放hobby表id
+	CONNECT BY LEVEL <= REGEXP_COUNT(ui.hobby_id, '[^,]+') -- 递归关联条件：当前递归层级 <= hobby.id 的个数
+	AND PRIOR ui.id = ui.id -- 递归关联条件：进行自关联
+	AND PRIOR DBMS_RANDOM.VALUE IS NOT NULL -- DBMS_RANDOM是Oracle提供的一个PL/SQL包，用于生成随机数据和字符
+)
+SELECT 
+    uit.id,
+	uit.username,
+    uit.hobby_id,
+	LISTAGG(TO_CHAR(h.hobby_name), ',') WITHIN GROUP(ORDER BY uit.C_LEVEL) hobby_name -- 参考[listagg within group行转列](#listagg%20within%20group行转列)
+FROM user_info_temp uit
+INNER JOIN hobby h ON uit.hobby_id_item = h.id
+GROUP BY 
+    uit.id,
+	uit.username,
+    uit.hobby_id;
+```
+
+### 自定义函数
+
+#### 解析json
+
+- 参考：https://blog.csdn.net/cyzshenzhen/article/details/17074543
+    - `select pkg_common.FUNC_PARSEJSON_BYKEY('{"name": "smalle", "age": "18"}', 'name') from dual;` 取不到age?
+
+#### 字符串分割函数
+
+- 使用正则函数
+
+```sql
+-- 基于,分割，返回3行数据
+select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
+  connect by level <= length('17,20,23') - length(regexp_replace('17,20,23', ',', '')) + 1;
+```
+- (1)创建字符串数组类型：`create or replace type sq_type_arr_str is table of varchar2 (60);` (一个数组，每个元素是varchar2 (60))
+- (2)创建自定义函数`sq_split`
+
+  ```sql
+  create or replace function sq_split(p_str       in varchar2,
+                                  p_delimiter in varchar2)
+    return sq_type_arr_str
+    pipelined is
+    j    int := 0;
+    i    int := 1;
+    len  int := 0;
+    len1 int := 0;
+    str  varchar2(4000);
+  begin
+    len  := length(p_str);
+    len1 := length(p_delimiter);
+
+    while j < len loop
+      j := instr(p_str, p_delimiter, i);
+
+      if j = 0 then
+        j   := len;
+        str := substr(p_str, i);
+        pipe row(str);
+        if i >= len then
+          exit;
+        end if;
+      else
+        str := substr(p_str, i, j - i);
+        i   := j + len1;
+        pipe row(str);
+      end if;
+    end loop;
+
+    return;
+  end sq_split;
+  ```
+- 查询示例：`select * from table (cast (sq_split ('aa,,bb,cc,,', ',') as sq_type_arr_str));` (一定要加`as sq_type_arr_str`) 结果如下：
+
+	```html
+		COLUMN_VALUE
+	1	aa
+	2
+	3	bb
+	4	cc
+	5
+	```
+- 示例二
+
+  ```sql
+  select t.*
+    from test_table t
+    where exists (select 1
+            from table(cast(sq_split(t.name, ',') as sq_type_arr_str)) arr
+            where trim(arr.column_value) = 'aa')
+  ```
+
+### 关联表进行数据更新
 
 - **`update set from where`** 将一张表的数据同步到另外一张表
     
@@ -673,80 +826,6 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
             where v.customer_id = t.id
               and v.valid_status = 1)
     ```
-
-### 自定义函数
-
-- 解析json： https://blog.csdn.net/cyzshenzhen/article/details/17074543
-	- select pkg_common.FUNC_PARSEJSON_BYKEY('{"name": "smalle", "age": "18"}', 'name') from dual; 取不到age?
-
-#### 字符串分割函数
-
-##### 使用正则
-
-```sql
--- 基于,分割，返回3行数据
-select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
-  connect by level <= length('17,20,23') - length(regexp_replace('17,20,23', ',', '')) + 1;
-```
-
-##### 使用自定义函数
-
-- 1.创建字符串数组类型：`create or replace type sm_type_arr_str is table of varchar2 (60);` (一个数组，每个元素是varchar2 (60))
-- 2.创建自定义函数`sm_split`
-
-  ```sql
-  create or replace function sm_split(p_str       in varchar2,
-                                  p_delimiter in varchar2)
-    return sm_type_arr_str
-    pipelined is
-    j    int := 0;
-    i    int := 1;
-    len  int := 0;
-    len1 int := 0;
-    str  varchar2(4000);
-  begin
-    len  := length(p_str);
-    len1 := length(p_delimiter);
-
-    while j < len loop
-      j := instr(p_str, p_delimiter, i);
-
-      if j = 0 then
-        j   := len;
-        str := substr(p_str, i);
-        pipe row(str);
-        if i >= len then
-          exit;
-        end if;
-      else
-        str := substr(p_str, i, j - i);
-        i   := j + len1;
-        pipe row(str);
-      end if;
-    end loop;
-
-    return;
-  end sm_split;
-  ```
-- 查询示例：`select * from table (cast (sm_split ('aa,,bb,cc,,', ',') as sm_type_arr_str));` (一定要加`as sm_type_arr_str`) 结果如下：
-
-	```html
-		COLUMN_VALUE
-	1	aa
-	2
-	3	bb
-	4	cc
-	5
-	```
-- 示例二
-
-  ```sql
-  select t.*
-    from test_table t
-    where exists (select 1
-            from table(cast(sm_split(t.name, ',') as sm_type_arr_str)) arr
-            where trim(arr.column_value) = 'aa')
-  ```
 
 ### Oracle中DBlink实现跨实例查询
 
@@ -874,3 +953,4 @@ select * from Customer where Id in (select * from ca);
 [^6]: https://lanjingling.github.io/2015/10/09/oracle-fenxihanshu-3/
 [^7]: https://www.cnblogs.com/seven7seven/p/3662451.html
 [^8]: https://www.smwenku.com/a/5b8dd9d82b71771883410ce1/ 
+[^9]: https://blog.csdn.net/qq_42440234/article/details/84101412
