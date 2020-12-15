@@ -225,6 +225,7 @@ vue --version # @vue/cli 4.3.0
 
 ## eslint格式化
 
+- vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
 - 直接安装
 - 基于vue-cli安装，参考：https://eslint.vuejs.org/
     - `vue add eslint` 基于vue安装插件，选择Standard、Lint on save
@@ -246,6 +247,7 @@ vue --version # @vue/cli 4.3.0
             "eslint-plugin-vue": "^6.2.2"
         }
         ```
+- 支持多种配置文件格式：.eslintrc.js、.eslintrc.yaml、.eslintrc.json、.eslintrc(弃用)、在package.json增加eslintConfig属性。且采用就近原则
 - `.eslintrc.js` 放在vue项目根目录，详细参考：https://cn.eslint.org/ [^10]
 
 ```js
@@ -287,14 +289,15 @@ module.exports = {
 # 不进行校验的的文件或文件夹
 src/components
 ```
-- vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
 
 ## .editorconfig格式化
 
 - **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**。该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的。**此插件配置的格式优先于vscode配置的，如缩进**
-- Eslint 和 .editorconfig
-    - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒。而 .editorconfig 更偏向于代码风格，如缩进等
-    - 二者并不冲突，同时配合使用可以使代码风格更加优雅
+- Eslint、.editorconfig、.prettierrc
+    - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒
+    - .editorconfig 更偏向于简单代码风格，如缩进等
+    - .prettierrc 更偏向于代码美化
+    - 三者并不冲突，同时配合使用可以使代码风格更加优雅
 - `.editorconfig` 放在vue项目根目录
 
 ```ini
@@ -322,6 +325,9 @@ trim_trailing_whitespace = false
 indent_style = tab
 ```
 
+## .prettierrc格式化
+
+- `.prettierrc`文件需要配合插件使用，如vscode的`Prettier`插件
 
 
 

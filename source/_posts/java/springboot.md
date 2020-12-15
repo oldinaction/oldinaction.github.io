@@ -132,7 +132,7 @@ logging:
     config: classpath:logback-test.xml
 
 # 将mybatis的DEBUG日志记录在文件的前提是：(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
-# 打印mybatis的sql语句，会覆盖logback.xml中的配置
+# 打印mybatis的sql语句，会覆盖logback.xml中的配置。logging.level 不支持通配符
 logging.level.cn.aezo.test.mapper: DEBUG
 logging:
     level:
@@ -542,12 +542,13 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
         - 如下文方案一自定义 ObjectMapper。只适用于 application/json(@RequestBody 接收) 请求方式
         - 如下文方案二注入Converter转换器。适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)；不支持 @RequestBody
     - **在映射时对应第二个字母大写的驼峰容易出错**，如将xPoint映射成了xpoint。此为jackson的一个bug(v2.9.9) [^18]
+    - 返回前端Long型丢失精度，JS支持的数字长度有限，示例参考下文 MappingJackson2HttpMessageConverter [^22]
 - yaml配置方式`spring.jackson` [^17]
     - 同下文方案一，只适用于 @RequestBody
 - JavaBean 方式
 
 ```java
-// 方案一：只支持 POST application/json方式（请求参数通过 @RequestBody 修饰）
+// 情景一：只支持 POST application/json方式（请求参数通过 @RequestBody 修饰）
 // 暴露自定义映射规则类
 @Bean
 public CustomObjectMapper customObjectMapper() {
@@ -626,16 +627,24 @@ public class CustomObjectMapper extends ObjectMapper {
     }
 }
 
-// 可选。由于 MappingJackson2HttpMessageConverter 默认只支持 application/json(请求参数通过 @RequestBody 修饰)，如果浏览器请求时为application/json;charset=UTF-8则会转换问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
-// @Bean
-// public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
-//     MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(this.customObjectMapper());
-//     MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_FORM_URLENCODED};
-//     converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
-//     return converter;
-// }
+@Bean
+public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+    // 可选。由于 MappingJackson2HttpMessageConverter 默认只支持 application/json(请求参数通过 @RequestBody 修饰)，如果浏览器请求时为application/json;charset=UTF-8则会转换问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
+    MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8};
+    converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
 
-// 方案二：注入Converter转换器。适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)；不支持 @RequestBody
+    // 解决返回前端Long型丢失精度(js不支持Long型)
+    SimpleModule simpleModule = new SimpleModule();
+    simpleModule.addSerializer(BigInteger.class, ToStringSerializer.instance);
+    simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
+    simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+    this.customObjectMapper().registerModule(simpleModule);
+    converter.setObjectMapper(this.customObjectMapper());
+    return converter;
+}
+
+// 情景二：注入Converter转换器。适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)；不支持 @RequestBody
 // StringToLocalDateTimeConverter 为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
 // 注入转换器方式一
 @ControllerAdvice
@@ -2391,3 +2400,4 @@ User user = this.userRepositroy.findById(id).get();
 [^19]: https://segmentfault.com/a/1190000021906586
 [^20]: https://blog.teble.me/2019/11/05/SpringBoot-LocalDateTime-%E5%90%8E%E7%AB%AF%E6%8E%A5%E6%94%B6%E5%8F%82%E6%95%B0%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/
 [^21]: https://www.cnblogs.com/czy960731/p/11105166.html
+[^22]: https://www.jianshu.com/p/f46699ea331a

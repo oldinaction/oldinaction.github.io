@@ -21,6 +21,8 @@ new Promise(function (resolve, reject) {
         if (timeOut < 1) {
             log('call resolve()...');
             resolve('200 OK');
+            log('还会继续执行...')
+            // return resolve('200 OK');
         } else {
             log('call reject()...');
             reject('timeout in ' + timeOut + ' seconds.');

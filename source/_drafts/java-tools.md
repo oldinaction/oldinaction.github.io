@@ -49,6 +49,9 @@ Long v2 = dict.getLong("key2");
 List<String> oldCodes = new ArrayList<>();
 List<String> newCodes = new ArrayList<>(Arrays.asList(menuIds)); // 类型为 ArrayList。如果 List<String> newCodes = Arrays.asList(menuIds); // 类型为 Array$ArrayList
 List<String> codes = CollUtil.subtractToList(newCodes, oldCodes); // 返回新对象。此时两个对象类型必须一致，如其中一个为Array$ArrayList，则会报错
+
+// 去重、去空字符串(此时传入集合元素必须是字符串，如果去NULL则元素可为任意对象)
+List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String.class, this.row))); // 对Excel中读取的数据进行处理
 ```
 
 - 分组
@@ -154,6 +157,23 @@ SymmetricCrypto sc = SecureUtil
     .aes(sqAuthConfig.getTransEncKey().getBytes())
     .setIv(sqAuthConfig.getTransEncKey().getBytes())
     .decryptStr(HexUtil.decodeHex("ec251f39e74c3fa672edd6208c74efa7".toCharArray()));
+```
+
+### FileUtil文件操作
+
+```java
+// 获取classpath下文件
+// File file = ResourceUtils.getFile("classpath:templates"); // 如果是maven多模块，可能获取失败
+File file = new ClassPathResource("templates").getFile();
+```
+
+### Excel操作
+
+```java
+ExcelReader reader = ExcelUtil.getReader("D:/temp/test.xls");
+List<List<Object>> readAll = reader.read(); // 读取所有数据
+List<Object> row = readAll.get(0); // 获取一行数据。合并单元格的会复制合并组的第一列数据
+List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String.class, this.row))); // 去重、去空字符串
 ```
 
 ## Yaml解析(基于jyaml)

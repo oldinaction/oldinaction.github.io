@@ -80,19 +80,41 @@ tags: [regex, javascript, java]
 
 - 参考文章
     - https://segmentfault.com/a/1190000009162306
-- 模式修饰符
+
+### 匹配符/元字符/限定符
+
+```bash
+### 或
+[jpg|png] # 代表匹配 j 或 p 或 g 或 p 或 n 或 g 中的任意一个字符
+(jpg|png) # 代表匹配 jpg 或 png
+
+### 反斜杠
+# 在匹配 . 或 { 或 [ 或 ( 或 ? 或 $ 或 ^ 或 * 这些特殊字符时，需要在前面加上 \\，比如匹配 . 时，Java 中要写为 \\.，但对于正则表达式来说就是 \.
+# 在匹配 \ 时，Java 中要写为 \\\\，但对于正则表达式来说就是 \\
+```
+
+### 模式修饰符
+
+- 在正则的开头指定
+    - `(?i)` 使正则忽略大小写
+    - `(?s)` 表示单行模式（"single line mode"）使正则的 `.` 匹配所有字符，包括换行符
+    - `(?m)` 表示多行模式（"multi-line mode"），使正则的 `^` 和 `$` 匹配字符串中每行的开始和结束
+- 案例
 
 ```java
-// 在正则的开头指定
-// (?i) 使正则忽略大小写
-// (?s) 表示单行模式（"single line mode"）使正则的 . 匹配所有字符，包括换行符
-// (?m) 表示多行模式（"multi-line mode"），使正则的 ^ 和 $ 匹配字符串中每行的开始和结束
+// 忽略大小写
+// 第一种：直接用正则。(?i)表示整体忽略大小写，如果单个，则可以写成"^d(?i)oc"表示oc忽略大小写，"^d((?i)o)c"表示只有o忽略大小写
+"DoC".matches("^(?i)doc$"); // true
 
-// 案例：匹配 select 类型的 sql 语句。Pattern.CASE_INSENSITIVE忽略大小写，(?s)单行模式(否则无法匹配到\n等字符)，最后的`.*`需要
+// 第二种，采用Patter编译忽略大小写
+Pattern p = Pattern.compile("^doc$", Pattern.CASE_INSENSITIVE);
+p.matcher(s).matches(); // true
+
+// 匹配 select 类型的 sql 语句。Pattern.CASE_INSENSITIVE忽略大小写，(?s)单行模式(否则无法匹配到\n等字符)，最后的`.*`需要
 Pattern.compile("(?s)^[ \t\n\r]*select[ \t\n\r]+.*", Pattern.CASE_INSENSITIVE).matcher(sql.trim()).matches(); // 返回true或false
 ```
 
-- 惰性匹配
+### 惰性匹配
 
 ```java
 // (.*?) 惰性匹配
@@ -101,7 +123,62 @@ Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/auth/login"); // true
 Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/xxx/login"); // false
 ```
 
-- String的matches
+### 分组和反向引用
+
+- 分组：使用`()`进行分组
+- 反向引用：`$0`代表整个正则表达式，`$1`代表第一个括号正则表达式，`$2`代表第二个括号正则表达式，依次类推
+    - `matcher.group()`表示整个正则匹配到的内容，`matcher.group(1)`表示第一个括号匹配到的内容，依次类推
+- 当我们在小括号 `()` 内的模式开头加入 `?:`，那么表示这个模式仅分组，但不创建反向引用。不创建反向应用将不能使用group(x)
+
+```java
+// (1) 去除单词与 , 和 . 之间的空格
+String str = "Hello , World .";
+String pattern = "(\\w)(\\s+)([.,])";
+// $0 匹配 `(\w)(\s+)([.,])` 结果为 `o ,` 和 `d .`
+// $1 匹配 `(\w)` 结果为 `o` 和 `d`
+// $2 匹配 `(\s+)` 结果为 ` ` 和 ` `
+// $3 匹配 `([.,])` 结果为 `,` 和 `.`
+System.out.println(str.replaceAll(pattern, "$1$3")); // Hello, World.
+
+// (2) 使用反向引用
+String str = "img.jpg";
+Pattern pattern = Pattern.compile("(jpg|png)"); // 分组且创建反向引用
+// Pattern pattern = Pattern.compile("(?:jpg|png)"); // 仅分组，但不创建反向引用。此时下面 matcher.group(1) 会报错 IndexOutOfBoundsException
+Matcher matcher = pattern.matcher(str);
+while (matcher.find()) {
+    System.out.println(matcher.group()); // jpg
+    System.out.println(matcher.group(1)); // jpg
+}
+```
+
+### Matcher
+
+- matches() 是全部匹配
+- find() 是部分匹配。如果匹配成功，还可使用下列方法
+    - start() 匹配的子串在输入字符串中的索引位置
+    - end() 匹配的子串的最后一个字符在输入字符串中的索引位置
+    - group() 返回匹配到的子字符串
+
+```java
+Pattern pattern = Pattern .compile ("\\d{4,6}");
+Matcher matcher = pattern.matcher("1234-56789-11");
+System.out.println(matcher.find()); // true. 搜索至第一个"-"
+System.out.println(matcher.find()); // true. 如果前一个匹配成功，则从上一次匹配的字符串的下一个字符开始搜索。此时从第一个"-"开始匹配，匹配失败，接着直接匹配5，然后56789就匹配成功
+System.out.println(matcher.find()); // false. 此时从第二个"-"开始匹配，匹配失败，接着直接匹配11，然后失败；之后继续匹配会一直失败
+
+// 注意结束表达式
+Pattern pattern = Pattern.compile("(?s)([A-Z0-9]*)(.*)(xls|xlsx)", Pattern.CASE_INSENSITIVE);
+// Pattern pattern = Pattern.compile("(?s)([A-Z0-9]*)(.*)", Pattern.CASE_INSENSITIVE); // 会循环两次，且第二次返回的都是空字符串(即未匹配到)
+Matcher matcher = pattern.matcher("ABC_DE_测试.xls");
+while (matcher.find()) {
+    System.out.println(matcher.group()); // ABC_DE_测试.xls
+    System.out.println(matcher.group(1)); // ABC
+    System.out.println(matcher.group(2)); // _DE_测试.
+    System.out.println(matcher.group(3)); // xls
+}
+```
+
+### String的matches
 
 ```java
 "hi, hello world".matches("(.*)hello(.*)"); // true
@@ -109,29 +186,19 @@ Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/xxx/login"); // false
 "hi, hello world".matches("(hi(.*))"); // true
 ```
 
-- 忽略大小写
+### 常见案例
+
+- 匹配中文
 
 ```java
-// 第一种：直接用正则。(?i)表示整体忽略大小写，如果单个，则可以写成"^d(?i)oc"表示oc忽略大小写，"^d((?i)o)c"表示只有o忽略大小写
-"DoC".matches("^(?i)doc$"); // true
-
-// 第二种，采用Patter编译忽略大小写
-Pattern p = Pattern.compile("^doc$", Pattern.CASE_INSENSITIVE);
-p.matcher(s).matches(); // true
+String str = "hello world 你好"
+Pattern pattern = Pattern.compile("(?s)([\\w& ./]+)([\\u4E00-\\u9FA5]+)", Pattern.CASE_INSENSITIVE);
+Matcher matcher = pattern.matcher(str);
+while (matcher.find()) {
+    System.out.println(matcher.group(1)); // hello world 
+    System.out.println(matcher.group(2)); // 你好
+}
 ```
-- 或
-
-```java
-[jpg|png] // 代表匹配 j 或 p 或 g 或 p 或 n 或 g 中的任意一个字符
-(jpg|png) // 代表匹配 jpg 或 png
-```
-- 反斜杠
-
-```bash
-# 在匹配 . 或 { 或 [ 或 ( 或 ? 或 $ 或 ^ 或 * 这些特殊字符时，需要在前面加上 \\，比如匹配 . 时，Java 中要写为 \\.，但对于正则表达式来说就是 \.
-# 在匹配 \ 时，Java 中要写为 \\\\，但对于正则表达式来说就是 \\
-```
-
 
 ## php
 

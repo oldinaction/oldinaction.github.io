@@ -190,7 +190,9 @@ public class App {
 - `@Autowired` Spring提供
     - 默认按类型by type(根据类)
     - 如果想用by name，则联合使用`@Qualifier("my-bean-name")`。Bean定时如`@Bean(name="my-bean-name")，`对于默认的Bean可通过添加`@Primary`(使用时则按照单数据源注入)
-    - `@Autowired List<Monitor> monitors;` 也可以注入集合。注意：如果当前类实现了Monitor接口，则注入到集合中会排除当前类（即要注入的类不能是类本身，会触发无限递归注入）
+    - `@Autowired List<Monitor> monitors;` 也可以注入集合
+        - 注意：如果当前类实现了Monitor接口，则注入到集合中会排除当前类（即要注入的类不能是类本身，会触发无限递归注入）
+        - 如果元素增加`@Order`注解，在注入时会自动进行排序。也可使用 `list.sort(AnnotationAwareOrderComparator.INSTANCE)` 手动排序list(用于非注入的场景，元素也需要增加 @Order 注解)
     - `@Autowired Map<String, Monitor> monitorMap;` 注入到Map中，此时将 Bean 的 name 作为 key
 - `@Resource` JSR-250提供(常用)
 - `@Inject` JSR-330提供

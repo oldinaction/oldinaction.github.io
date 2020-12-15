@@ -6,6 +6,35 @@ categories: [web]
 tags: [html]
 ---
 
+## HTML5新特性
+
+### 表单验证
+
+```html
+<form id="forms" action="" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label class="control-label" for="input-email">店铺名称</label>
+        <input type="text" required="required" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label class="control-label" for="input-email">店铺介绍</label>
+        <input type="text" required="required" class="form-control" />
+    </div>
+</form>
+<script>
+$(function () {
+    var form = document.getElementById("forms");
+    var submitBtn = document.getElementById("submitBtn");
+    submitBtn.addEventListener("click", function() {
+        var invalidFields = form.querySelectorAll(":invalid");
+        if(invalidFields.length == 0) {
+            alert('必填项已全部填写')
+        }
+    });
+})
+</script>
+```
+
 ## HTML实用标签
 
 1. 缩略语`<abbr title="attribute">attr</abbr>` <abbr title="省略的话">...</abbr>
@@ -40,7 +69,6 @@ tags: [html]
 
 <code>&lt;code...&gt;</code>
 <pre>&lt;pre...&gt;</pre>
-
 
 ## HTML模板
 

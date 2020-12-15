@@ -131,6 +131,7 @@ npm run e_prod # 打包，会生成 xxx-win32-x64 文件夹
             "target": [
                 "nsis"
                 // ,"zip"
+                // ,"nsis-web" // 可以直接打包出 32 和 64 位，下载是先下载一个几百K的文件判断环境后自动下载对应版本(但是暂未找到很好的方式监控下载进度条)
             ]
         },
         // mac打包选项
@@ -397,8 +398,8 @@ const updateUrl = config.get('System.updateUrl');
 
 log.info('process.argv: ' + process.argv)
 // const updateUrl = 'http://127.0.0.1:800'
-// const feedUrl = `${updateUrl}/${process.platform + '_' + process.arch}` // 基于不同系统架构进行下载
-const feedUrl = `${updateUrl}`
+// const feedUrl = `${updateUrl}`
+const feedUrl = `${updateUrl}/${process.platform + '_' + process.arch}` // 基于不同系统架构进行下载
 log.info('feedUrl: ' + feedUrl)
 
 let yesManualFlag = false

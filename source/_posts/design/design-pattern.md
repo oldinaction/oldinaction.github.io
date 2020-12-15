@@ -1154,27 +1154,20 @@ public class SimpleMediator {
 ```java
 /*
 BoyCustomerVisitor喜欢酒
-BoyCustomerVisitor不喜欢化妆品
 ------------
 GirlCustomerVisitor不喜欢酒
-GirlCustomerVisitor喜欢化妆品
 */
 public static void main(String[] args) {
+    Goods wine = new Wine();
     BoyCustomerVisitor boyCustomerVisitor = new BoyCustomerVisitor();
     GirlCustomerVisitor girlCustomerVisitor = new GirlCustomerVisitor();
-
-    Goods wine = new Wine();
-    Goods makeup = new Makeup();
-
+    
     wine.accept(boyCustomerVisitor);
-    makeup.accept(boyCustomerVisitor);
-
     System.out.println("------------");
-
     wine.accept(girlCustomerVisitor);
-    makeup.accept(girlCustomerVisitor);
 }
 
+// 被访问着
 public interface Goods {
     void accept(CustomerVisitor customerVisitor);
 }
@@ -1184,37 +1177,21 @@ public class Wine implements Goods {
         customerVisitor.visit(this);
     }
 }
-public class Makeup implements Goods {
-    @Override
-    public void accept(CustomerVisitor customerVisitor) {
-        customerVisitor.visit(this);
-    }
-}
 
+// 访问着
 public interface CustomerVisitor {
-    void visit(Wine mouse);
-    void visit(Makeup keyboard);
+    void visit(Goods goods);
 }
 public class BoyCustomerVisitor implements CustomerVisitor {
     @Override
-    public void visit(Wine wine) {
+    public void visit(Goods goods) {
         System.out.println("BoyCustomerVisitor喜欢酒");
-    }
-
-    @Override
-    public void visit(Makeup makeup) {
-        System.out.println("BoyCustomerVisitor不喜欢化妆品");
     }
 }
 public class GirlCustomerVisitor implements CustomerVisitor {
     @Override
-    public void visit(Wine wine) {
+    public void visit(Goods goods) {
         System.out.println("GirlCustomerVisitor不喜欢酒");
-    }
-
-    @Override
-    public void visit(Makeup makeup) {
-        System.out.println("GirlCustomerVisitor喜欢化妆品");
     }
 }
 ```

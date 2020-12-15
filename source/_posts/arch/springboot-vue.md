@@ -691,6 +691,8 @@ jsconfig.json       // https://www.jianshu.com/p/b0ec870ddfdf 、 https://www.cn
 vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
 .eslintrc.js        // 参考[node-dev-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
 .eslintignore       // 参考[node-dev-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
+.editorconfig       // 跨编辑器和IDE，保持一致的简单代码风格，就近原则（源码文件参考最近的此文件配置）。参考[node-dev-tools.md#.editorconfig格式化](/_posts/web/node-dev-tools.md#.editorconfig格式化)
+.prettierrc         // 代码格式化，就近原则
 ```
 
 ## 浏览器

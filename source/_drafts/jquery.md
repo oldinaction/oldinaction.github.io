@@ -12,6 +12,20 @@ date: "2019-08-05 10:13"
 
 - `parents()`将查找所有祖辈元素，而`children()`只考虑子元素而不考虑所有后代元素
 
+## 事件
+
+```js
+$(function() {
+    // 等待页面加载完后，通过body代理监听元素点击事件，并获取点击元素的data-href属性值，在新标签页显示
+    $("body").delegate(".cat-list-items>.row>.col-md-4", 'click', function() {
+        var href = $(this).data('href')
+        if(href) {
+            window.open(href, '_blank');
+        }
+    })
+})
+```
+
 ## ajax
 
 ```js

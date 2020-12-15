@@ -545,7 +545,7 @@ for (Orders order : list) {
 		<if test='validStatus == "Y"'>and validStatus = 1</if>
 		<if test="validStatus == 'Y'.toString()">and validStatus = 1</if>
 		```
-
+    - **查询结果返回 1 和 0 的数值时可自动注入到`private Boolean hasChildren;`的属性中**
 -  dao中可以使用`submitTm[0]`获取值; xml中不行，其处理数组(如时间段)的方式如下
 
 	```xml
@@ -948,11 +948,11 @@ List<Map<String, Object>> list = templateItemMapper.selectMaps(
                 new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
                     .eq(TemplateItem::getTemplateId, 1)
                     .eq(TemplateItem::getTemplateId, templateId));
-List<Template> list2 = templateItemMapper.selectByMap(map); // 参数 map 中的字段即为数据库的字段
+List<Template> list2 = templateItemMapper.selectByMap(map); // 参数 map 中的字段即为数据库的字段(如：user_id)，且不能有非数据库字段
 
 // ======== 基于 Service 进行访问
 List<Subscribe> subscribes = subscribeService.list(new LambdaQueryWrapper<Subscribe>().eq(Subscribe::getFlowStatus, 1));
-
+subscribeService.listByMap(map); // 参数 map 中的字段即为数据库的字段(如：user_id)，且不能有非数据库字段
 
 // ======== 批量新增/更新/删除
 subscribeService.saveBatch(List<Subscribe>);
@@ -1107,6 +1107,14 @@ public OracleKeyGenerator oracleKeyGenerator() {
     // 当执行下列语句时，生成的sql会包含 Bar 的字段，导致执行报错
     fooMappler.selectOne(id);
     ```
+
+## 拦截器(插件)
+
+- mybatis-plus 的 `InnerInterceptor` 机制是基于 mybatis 的 `Interceptor` 实现的，具体参考 mybatis-plus 类 `MybatisPlusInterceptor`
+- Interceptor 结合 ThreadLocal 参考：https://blog.csdn.net/iteye_19045/article/details/100024506
+
+
+
 
 
 ---

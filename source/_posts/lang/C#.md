@@ -113,6 +113,7 @@ dotnet run # 在项目目录运行
     - 最后可考虑是否重启IIS
         - 在管理员命令行运行`iisreset/stop`可停止IIS，开启使用`iisreset/start`
         - 服务里重启`World Wide Web Publishing Service`
+- 右键某个网站-管理网站-高级设置-物理路径：可查看项目部署目录
 
 ### 使用Oracle
 
