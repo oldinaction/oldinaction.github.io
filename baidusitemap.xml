@@ -4,6 +4,94 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2020/12/16/lang/velocity/</loc>
+    <lastmod>2020-12-16T05:56:40.229Z</lastmod>
+    <data>
+        <display>
+        <title>Velocity</title>
+        <pubTime>2020-12-16T12:03:00.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>template</tag>
+         
+         
+           
+             
+              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
+    <lastmod>2020-12-16T04:23:39.479Z</lastmod>
+    <data>
+        <display>
+        <title>Freemarker</title>
+        <pubTime>2017-04-28T03:39:00.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>template</tag>
+         
+         
+           
+             
+              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
+    <lastmod>2020-12-16T04:23:16.573Z</lastmod>
+    <data>
+        <display>
+        <title>Thymeleaf</title>
+        <pubTime>2017-10-22T03:41:00.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>springboot</tag>
+         
+        <tag>template</tag>
+         
+         
+           
+             
+              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    <lastmod>2020-12-16T01:23:53.787Z</lastmod>
+    <data>
+        <display>
+        <title>SpringBoot</title>
+        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
+        
+        <tag>springboot</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     <lastmod>2020-12-15T06:16:50.582Z</lastmod>
     <data>
@@ -105,26 +193,6 @@
            
              
               <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    <lastmod>2020-12-13T14:23:29.990Z</lastmod>
-    <data>
-        <display>
-        <title>SpringBoot</title>
-        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
-        
-        <tag>springboot</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -826,30 +894,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
-    <lastmod>2020-10-31T16:53:54.684Z</lastmod>
-    <data>
-        <display>
-        <title>Freemarker</title>
-        <pubTime>2017-04-28T03:39:00.000Z</pubTime>
-        
-        <tag>java</tag>
-         
-        <tag>template</tag>
-         
-        <tag>freemarker</tag>
-         
-         
-           
-             
-              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
     <lastmod>2020-10-28T11:19:34.339Z</lastmod>
     <data>
@@ -903,9 +947,9 @@
         
         <tag>oracle</tag>
          
-        <tag>dba</tag>
-         
         <tag>sql</tag>
+         
+        <tag>dba</tag>
          
          
            
@@ -2032,32 +2076,6 @@
            
              
               <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
-    <lastmod>2019-10-08T01:17:48.459Z</lastmod>
-    <data>
-        <display>
-        <title>Thymeleaf</title>
-        <pubTime>2017-10-22T03:41:00.000Z</pubTime>
-        
-        <tag>java</tag>
-         
-        <tag>springboot</tag>
-         
-        <tag>thymeleaf</tag>
-         
-        <tag>template</tag>
-         
-         
-           
-             
-              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
           
         </display>
     </data>

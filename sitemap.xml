@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2020/12/16/lang/velocity/</loc>
+    
+    <lastmod>2020-12-16T05:56:40.229Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
+    
+    <lastmod>2020-12-16T04:23:39.479Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
+    
+    <lastmod>2020-12-16T04:23:16.573Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2020-12-16T01:23:53.787Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     
     <lastmod>2020-12-15T06:16:50.582Z</lastmod>
@@ -33,13 +61,6 @@
     <loc>http://blog.aezo.cn/2016/04/16/web/html/</loc>
     
     <lastmod>2020-12-14T07:10:14.645Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2020-12-13T14:23:29.990Z</lastmod>
     
   </url>
   
@@ -264,13 +285,6 @@
     <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
     
     <lastmod>2020-11-07T08:38:21.982Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/04/28/lang/freemarker/</loc>
-    
-    <lastmod>2020-10-31T16:53:54.684Z</lastmod>
     
   </url>
   
@@ -656,13 +670,6 @@
     <loc>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</loc>
     
     <lastmod>2019-10-17T09:49:38.138Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
-    
-    <lastmod>2019-10-08T01:17:48.459Z</lastmod>
     
   </url>
   
