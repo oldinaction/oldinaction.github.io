@@ -3,7 +3,7 @@ layout: "post"
 title: "Freemarker"
 date: "2017-04-28 11:39"
 categories: [lang]
-tags: [freemarker, java, template]
+tags: [java, template]
 ---
 
 ## 简介

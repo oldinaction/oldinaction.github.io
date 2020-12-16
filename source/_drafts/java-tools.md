@@ -176,6 +176,19 @@ List<Object> row = readAll.get(0); // 获取一行数据。合并单元格的会
 List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String.class, this.row))); // 去重、去空字符串
 ```
 
+### TemplateUtil模板引擎
+
+- 可以操作Beetl、Enjoy、Rythm、FreeMarker、Velocity、Thymeleaf，只需引入相应的jar包
+- 模板规则参考[Velocity](/_posts/lang/velocity.md)、[FreeMarker](/_posts/lang/freemarker.md)、[Thymeleaf](/_posts/lang/thymeleaf.md)
+- 使用
+
+```java
+// 此处从classpath查找模板渲染（也可通过字符串模板、本地文件等方式渲染内容）
+TemplateEngine engine = TemplateUtil.createEngine(new TemplateConfig("templates", TemplateConfig.ResourceMode.CLASSPATH));
+Template template = engine.getTemplate("templates/velocity_test.vtl");
+String result = template.render(Dict.create().set("name", "Hutool"));
+```
+
 ## Yaml解析(基于jyaml)
 
 - 依赖

@@ -550,76 +550,76 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 ```java
 // 情景一：只支持 POST application/json方式（请求参数通过 @RequestBody 修饰）
 // 暴露自定义映射规则类
-@Bean
-public CustomObjectMapper customObjectMapper() {
-    return new CustomObjectMapper()
-            .setNotContainNull()
-            .setDateFormatPattern("yyyy-MM-dd HH:mm:ss"); // Bean字段类型为 Date 的格式化(如果是LocalDateTime等则参考上文配置)
-            // .setCamelCaseToLowerCaseWithUnderscores();
-}
-
-// 自定义规则类
+@Configuration
 public class CustomObjectMapper extends ObjectMapper {
-    public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss"; // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
-    public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
+    private static final long serialVersionUID = 1L;
+    private static final Locale CHINA = Locale.CHINA;
 
     public CustomObjectMapper() {
-        init();
+        super();
+
+        // 设置地点为中国
+        this.setLocale(CHINA);
+
+        // 去掉默认的时间戳格式
+        this.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        // 设置为中国上海时区
+        this.setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()));
+
+        // 日期的统一格式，针对Bean字段类型为 Date 的格式化(如果是LocalDateTime等则参考下文)
+        this.setDateFormat(new SimpleDateFormat(BaseConst.DATE_TIME_FORMAT, Locale.CHINA));
+
+        // 日期格式化
+        this.registerModule(new SqJavaTimeModule());
+        this.findAndRegisterModules();
+
+        // 忽略无法转换的对象
+        this.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        // 对于非实体字段名的参数进行忽略，否则报错：Jackson with JSON: Unrecognized field
+        this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // 反序列化时，属性不存在的兼容处理
+        this.getDeserializationConfig().withoutFeatures(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+        // 单引号处理
+        this.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+
+        // 进行缩进输出
+        this.configure(SerializationFeature.INDENT_OUTPUT, true);
+
+        // 将驼峰转为下划线
+        // this.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        // 排除属性名为空(""/null)的字段
+        // this.getSerializerProvider().setNullKeySerializer(new NullKeySerializer());
+        // 排除值为空属性. [sq] 前端框架 avue 表单重新赋值时，无法用NULL KEY覆盖有值的属性，因此需要返回所有KEY
+        // this.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
-    private void init() {
-        this.configure(SerializationFeature.INDENT_OUTPUT, true); // 返回数据自动缩进
-        this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 对于非实体字段名的参数进行忽略，否则报错：Jackson with JSON: Unrecognized field
-        
-        // LocalDateTime 转换参考：https://blog.csdn.net/junlovejava/article/details/78112240
-        // (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`
-        // (2) 返回数据时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")
+    /**
+     * LocalDateTime 转换参考<br/>
+     * (1) Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`<br/>
+     * (2) 返回数据时，使用 MappingJackson2HttpMessageConverter 转换时，对于 LocalDateTime 等类型转换则必须如下配置。<br/>
+     * 如果不使用 MappingJackson2HttpMessageConverter 可直接在DTO的字段上加如 @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss", timezone="GMT+8")<br/>
+     *
+     * @author smalle
+     * @since 2020/12/15 21:07
+     */
+    private class SqJavaTimeModule extends SimpleModule {
+        public SqJavaTimeModule () {
+            // 返回数据格式化
+            this.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(BaseConst.DATE_TIME_FORMAT)));
+            this.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(BaseConst.DATE_FORMAT)));
+            this.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(BaseConst.TIME_FORMAT)));
 
-        JavaTimeModule module = new JavaTimeModule();
-        // 返回数据格式化
-        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
-        module.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
-        module.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
-
-        // 解析post请求的body体
-        // 解析前台传入日期时间字符串(此时可以解析2000/01/01 00:00:00，否则只能解析2000/01/01T00:00:00Z)
-        // ***iview的日前选择建议使用 :value 绑定(不要使用v-model)***，如 `<DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>` 此时传入到后台的startTm格式即为日期字符串(v-model传入的为日期格式)
-        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)));
-        module.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
-        module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)));
-
-        this.registerModule(module);
-    }
-
-    // 空值参数不进行序列化(不返回到前台)
-    public CustomObjectMapper setNotContainNull() {
-        this.setSerializationInclusion(JsonInclude.Include.NON_NULL); // com.fasterxml.jackson.annotation.JsonInclude
-        return this;
-    }
-
-    // 驼峰转下划线
-    public CustomObjectMapper setCamelCaseToLowerCaseWithUnderscores() {
-        this.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-        return this;
-    }
-
-    // Bean字段类型为 Date 的格式化(如果是LocalDateTime等则参考上文配置)
-    public CustomObjectMapper setDateFormatPattern(String dateFormatPattern) {
-        if (StringUtils.isNotEmpty(dateFormatPattern)) { // org.apache.commons.lang3.StringUtils;
-            DateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
-            this.setDateFormat(dateFormat);
+            // 解析post请求的body体
+            // ***iview的日前选择建议使用 :value 绑定(不要使用v-model)***，如 `<DatePicker type="date" :value="workLevelItem.startTm" @on-change="v => workLevelItem.startTm = v"></DatePicker>` 此时传入到后台的startTm格式即为日期字符串(v-model传入的为日期格式)
+            this.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(BaseConst.DATE_TIME_FORMAT)));
+            this.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(BaseConst.DATE_FORMAT)));
+            this.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(BaseConst.TIME_FORMAT)));
         }
-
-        return this;
     }
 
-    // 格式化字段名为空的情况
-    public CustomObjectMapper setNotContainNullKey() {
-        this.getSerializerProvider().setNullKeySerializer(new MyNullKeySerializer());
-        return this;
-    }
-    private class MyNullKeySerializer extends JsonSerializer<Object> {
+    private class NullKeySerializer extends JsonSerializer<Object> {
         @Override
         public void serialize(Object nullKey, JsonGenerator jsonGenerator, SerializerProvider unused) throws IOException {
             jsonGenerator.writeFieldName("");
@@ -628,7 +628,7 @@ public class CustomObjectMapper extends ObjectMapper {
 }
 
 @Bean
-public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter(CustomObjectMapper customObjectMapper) {
     MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
     // 可选。由于 MappingJackson2HttpMessageConverter 默认只支持 application/json(请求参数通过 @RequestBody 修饰)，如果浏览器请求时为application/json;charset=UTF-8则会转换问题，可增加支持的媒体类型进行解决。参考：https://blog.csdn.net/zw3413/article/details/85257270
     MediaType[] mediaTypes = new MediaType[]{MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8};
@@ -639,8 +639,9 @@ public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter()
     simpleModule.addSerializer(BigInteger.class, ToStringSerializer.instance);
     simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
     simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
-    this.customObjectMapper().registerModule(simpleModule);
-    converter.setObjectMapper(this.customObjectMapper());
+    customObjectMapper.registerModule(simpleModule);
+
+    converter.setObjectMapper(customObjectMapper;
     return converter;
 }
 
@@ -648,7 +649,7 @@ public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter()
 // StringToLocalDateTimeConverter 为手动转换类，实现 org.springframework.core.convert.converter.Converter<S,T> 接口
 // 注入转换器方式一
 @ControllerAdvice
-public class CourseControllerHandler {
+public class ControllerHandler {
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
@@ -661,7 +662,8 @@ public static class StringToLocalDateTimeConverter implements Converter<String, 
         if (StringUtils.isEmpty(source)) {
             return null;
         }
-        return LocalDateTimeUtils.convert(source.trim()); // 转换工具见下文
+        return DateUtil.parseLocalDateTime(source.trim());
+        // return LocalDateTimeUtils.convert(source.trim()); // 转换工具见下文
     }
 }
 // 注入转换器方式二
@@ -683,7 +685,7 @@ public class MvcConfig implements WebMvcConfigurer {
         registry.addConverter(new StringToLocalDateTimeConverter());
     }
 }
-// 转换工具类。支持秒时间戳，毫秒时间戳，自定义时间格式yyyy-MM-dd HH:mm[:ss][.sss]，ISO标准时间yyyy-MM-ddTHH:mm[:ss][.sss]，UTC标准时间yyyy-MM-ddTHH:mm:ss[.sss]Z
+// 转换工具类（可使用 Hutool 的）。支持秒时间戳，毫秒时间戳，自定义时间格式yyyy-MM-dd HH:mm[:ss][.sss]，ISO标准时间yyyy-MM-ddTHH:mm[:ss][.sss]，UTC标准时间yyyy-MM-ddTHH:mm:ss[.sss]Z
 public class LocalDateTimeUtils {
     private final static String REGEX_TIME = "^(\\d{10,13}|\\d{4}-\\d{2}-\\d{2}.\\d{2}:\\d{2}.*)$";
 
