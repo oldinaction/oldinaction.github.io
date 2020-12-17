@@ -34,6 +34,29 @@ tags: [build]
     keytool -list -keystore cacerts -alias aliyun
     # 稍后重新下载jar包
     ```
+- pom.xml指定远程仓库
+
+```xml
+<repositories>
+    <repository>
+        <id>aliyun-repos</id>
+        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+
+<pluginRepositories>
+    <pluginRepository>
+        <id>aliyun-plugin</id>
+        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
+```
 
 ### maven父子项目
 

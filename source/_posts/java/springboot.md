@@ -538,7 +538,7 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
     - 原理参考：[spring-src.md#请求参数解析](/_posts/java/spring-src.md#请求参数解析)
     - **LocalDateTime 等类型日期时间格式转换** [^19] [^20]
         - Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`。不适合参数通过 @RequestBody 修饰
-        - Bean字段增加注解`@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。适用于 @RequestBody 接收(如 application/json 请求类型)；适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)
+        - Bean字段增加注解`@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。适用于 @RequestBody 接收(如 application/json 请求类型)；且适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)
         - 如下文方案一自定义 ObjectMapper。只适用于 application/json(@RequestBody 接收) 请求方式
         - 如下文方案二注入Converter转换器。适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)；不支持 @RequestBody
     - **在映射时对应第二个字母大写的驼峰容易出错**，如将xPoint映射成了xpoint。此为jackson的一个bug(v2.9.9) [^18]
@@ -641,7 +641,7 @@ public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter(C
     simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
     customObjectMapper.registerModule(simpleModule);
 
-    converter.setObjectMapper(customObjectMapper;
+    converter.setObjectMapper(customObjectMapper);
     return converter;
 }
 

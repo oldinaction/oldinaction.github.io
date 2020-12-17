@@ -8,11 +8,11 @@ tags: [doc, api, springboot]
 
 ## 简介
 
-swagger是一个前后端api统一文档和测试框架。不仅是一个api文档，还可以测试API(可直接访问UI界面)
+- `Swagger` 是一个前后端api统一文档和测试框架。不仅是一个api文档，还可以测试API(可直接访问UI界面)
+- `YApi` YApi 是一个可本地部署的、打通前后端及 QA 的、可视化的接口管理平台。提供 Swagger 接口导入功能，输入 Swagger api地址，即可将所有接口导入，达到美化Swagger UI的目的
+- `Knife4j` Swagger 生成 Api 文档的增强解决方案，前身是 `swagger-bootstrap-ui`. [官方文档](https://xiaoym.gitee.io/knife4j/documentation/)
 
 ## springboot中使用
-
-> TODO https://www.baeldung.com/swagger-2-documentation-for-spring-rest-api 权限认证
 
 - 添加依赖
 
@@ -27,6 +27,13 @@ swagger是一个前后端api统一文档和测试框架。不仅是一个api文�
     <groupId>io.springfox</groupId>
     <artifactId>springfox-swagger-ui</artifactId>
     <version>2.9.2</version>
+</dependency>
+
+<!-- swagger 3.0之后可使用 starter. 然后直接在浏览器中访问 :http://ip:port/swagger-ui/ 即可 -->
+<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-boot-starter</artifactId>
+    <version>3.0.0</version>
 </dependency>
 ```
 
@@ -161,6 +168,33 @@ public class User implements Serializable {
     - /swagger-resources/**
     - /v2/api-docs
 - 访问`http://localhost:8080/swagger-ui.html` 查看接口文档
+
+## 结合knife4j增强Swagger
+
+- 引入依赖
+
+```xml
+<!-- springboot项目仅需引入此依赖(swagger的依赖也不需要了) -->
+<!-- https://gitee.com/xiaoym/knife4j -->
+<dependency>
+    <groupId>com.github.xiaoymin</groupId>
+    <artifactId>knife4j-spring-boot-starter</artifactId>
+    <version>3.0.2</version>
+</dependency>
+```
+- 如果使用权限认证，可以开放端点
+    - /swagger-resources/**
+    - /doc.html
+- 访问 `http://ip:port/doc.html`
+
+
+
+
+
+
+
+
+
 
 ---
 
