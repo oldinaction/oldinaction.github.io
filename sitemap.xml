@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/09/23/arch/swagger/</loc>
+    
+    <lastmod>2020-12-17T13:43:39.911Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
+    
+    <lastmod>2020-12-17T12:57:45.243Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2020-12-17T12:37:47.656Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/12/16/lang/velocity/</loc>
     
     <lastmod>2020-12-16T05:56:40.229Z</lastmod>
@@ -19,13 +40,6 @@
     <loc>http://blog.aezo.cn/2017/10/22/lang/thymeleaf/</loc>
     
     <lastmod>2020-12-16T04:23:16.573Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2020-12-16T01:23:53.787Z</lastmod>
     
   </url>
   
@@ -110,13 +124,6 @@
     <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
     
     <lastmod>2020-12-09T08:01:08.121Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/09/23/arch/swagger/</loc>
-    
-    <lastmod>2020-12-09T02:38:05.948Z</lastmod>
     
   </url>
   
@@ -257,13 +264,6 @@
     <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
     <lastmod>2020-11-09T09:52:02.625Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
-    
-    <lastmod>2020-11-08T09:40:34.411Z</lastmod>
     
   </url>
   

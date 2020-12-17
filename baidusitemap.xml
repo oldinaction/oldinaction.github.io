@@ -4,6 +4,70 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2018/09/23/arch/swagger/</loc>
+    <lastmod>2020-12-17T13:43:39.911Z</lastmod>
+    <data>
+        <display>
+        <title>Swagger</title>
+        <pubTime>2018-09-23T10:41:00.000Z</pubTime>
+        
+        <tag>doc</tag>
+         
+        <tag>api</tag>
+         
+        <tag>springboot</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
+    <lastmod>2020-12-17T12:57:45.243Z</lastmod>
+    <data>
+        <display>
+        <title>Maven</title>
+        <pubTime>2016-12-29T02:18:00.000Z</pubTime>
+        
+        <tag>build</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    <lastmod>2020-12-17T12:37:47.656Z</lastmod>
+    <data>
+        <display>
+        <title>SpringBoot</title>
+        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
+        
+        <tag>springboot</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2020/12/16/lang/velocity/</loc>
     <lastmod>2020-12-16T05:56:40.229Z</lastmod>
     <data>
@@ -65,26 +129,6 @@
            
              
               <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    <lastmod>2020-12-16T01:23:53.787Z</lastmod>
-    <data>
-        <display>
-        <title>SpringBoot</title>
-        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
-        
-        <tag>springboot</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -341,30 +385,6 @@
            
              
               <breadCrumb title="js" url="http://blog.aezo.cn/categories/js/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2018/09/23/arch/swagger/</loc>
-    <lastmod>2020-12-09T02:38:05.948Z</lastmod>
-    <data>
-        <display>
-        <title>Swagger</title>
-        <pubTime>2018-09-23T10:41:00.000Z</pubTime>
-        
-        <tag>doc</tag>
-         
-        <tag>api</tag>
-         
-        <tag>springboot</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
           
         </display>
     </data>
@@ -812,26 +832,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
-    <lastmod>2020-11-08T09:40:34.411Z</lastmod>
-    <data>
-        <display>
-        <title>Maven</title>
-        <pubTime>2016-12-29T02:18:00.000Z</pubTime>
-        
-        <tag>build</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2019/08/23/java/ant/</loc>
     <lastmod>2020-11-08T09:40:30.013Z</lastmod>
     <data>
@@ -947,9 +947,9 @@
         
         <tag>oracle</tag>
          
-        <tag>sql</tag>
-         
         <tag>dba</tag>
+         
+        <tag>sql</tag>
          
          
            
