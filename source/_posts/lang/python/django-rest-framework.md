@@ -12,7 +12,7 @@ tags: [python, django, restful]
 - [官网](https://www.django-rest-framework.org/)
 - `pip3 install djangorestframework` 安装
 - 10大特性：权限、认证、节流、版本控制、解析器、序列化、分页、视图、路由、渲染器
-- `rest framework` **主要基于CBV模式，且大部分特性是基于必须是继承了APIView；FBV模式时上述特性无法体现。** FBV/CBV参考：[http://blog.aezo.cn/2018/09/24/lang/django/](/_posts/lang/django)
+- `rest framework` **主要基于CBV模式，且大部分特性是基于必须是继承了APIView；FBV模式时上述特性无法体现。** FBV/CBV参考：[http://blog.aezo.cn/2018/09/24/lang/python/django.md](/_posts/lang/python/django.md)
 
 ## 认证
 

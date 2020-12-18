@@ -1,9 +1,9 @@
 ---
 layout: "post"
-title: "正则(regex)"
+title: "正则(Regex)"
 date: "2017-12-26 10:29"
 categories: [lang]
-tags: [regex, javascript, java]
+tags: [regex, js, java]
 ---
 
 ## 简介

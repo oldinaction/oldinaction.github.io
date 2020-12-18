@@ -179,7 +179,7 @@ List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String
 ### TemplateUtil模板引擎
 
 - 可以操作Beetl、Enjoy、Rythm、FreeMarker、Velocity、Thymeleaf，只需引入相应的jar包
-- 模板规则参考[Velocity](/_posts/lang/velocity.md)、[FreeMarker](/_posts/lang/freemarker.md)、[Thymeleaf](/_posts/lang/thymeleaf.md)
+- 模板规则参考[Velocity](/_posts/java/velocity.md)、[FreeMarker](/_posts/java/freemarker.md)、[Thymeleaf](/_posts/java/thymeleaf.md)
 - 使用
 
 ```java
