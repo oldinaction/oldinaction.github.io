@@ -2,8 +2,8 @@
 layout: "post"
 title: "Velocity"
 date: "2020-12-16 20:03"
-categories: [lang]
-tags: [java, template]
+categories: [java]
+tags: [template]
 ---
 
 ## 简介

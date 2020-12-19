@@ -13,6 +13,7 @@ tags: [k8s, docker, cncf]
 - [知识图谱](https://github.com/yangchuansheng/k8s-knowledge)
 - 国内镜像参考[http://blog.aezo.cn/2017/06/25/devops/docker/](/_posts/devops/docker.md#Docker介绍)
 - **本文若无特殊说明，kubernetes版本均为 v1.15.0**
+- 对所有环境进行集成的[rancher](https://www.rancher.cn/)、适用于物联网/树莓派的轻量级Kubernetes版本[k3s](https://www.rancher.cn/k3s/)
 
 ### 背景
 

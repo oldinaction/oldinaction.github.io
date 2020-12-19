@@ -2,8 +2,8 @@
 layout: "post"
 title: "JS Tools"
 date: "2020-10-9 15:18"
-categories: js
-tags: tools
+categories: web
+tags: [js, tools]
 ---
 
 ## 库说明

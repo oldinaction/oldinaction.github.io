@@ -2,6 +2,7 @@
 layout: "post"
 title: "jquery插件开发"
 date: "2016-07-12 09:47"
+tags: [jquery]
 ---
 
 ## 纯js插件

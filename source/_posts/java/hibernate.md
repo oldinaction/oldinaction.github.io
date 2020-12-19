@@ -3,7 +3,7 @@ layout: "post"
 title: "Hibernate"
 date: "2017-05-21 15:39"
 categories: [java]
-tags: [ssh, orm, springboot]
+tags: [db]
 ---
 
 ## 介绍

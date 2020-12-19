@@ -953,6 +953,211 @@ SET SHOWPLAN_ALL ON; -- 开启执行计划展示，开启后再运行sql语句
 SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
 ```
 
+## 快速生成百万测试数据
+
+- 生成数据工具：https://github.com/gangly/datafaker，基于python
+- 简单的基于存储过程
+
+```sql
+-- 参考：https://www.cnblogs.com/peterpoker/p/9758103.html
+-- 创建部门表
+drop table if exists test_order;
+create table test_order (
+	id bigint not null primary key,
+	p_id bigint,
+	user_id bigint,
+	user_no varchar(20) default '',
+  order_no varchar(20) default '',
+	valid_status int(1) default 1,
+	create_date date comment '创建日期',
+	ext1 varchar(20),
+	ext2 varchar(20),
+	ext3 varchar(20),
+	ext4 varchar(20),
+	ext5 varchar(20),
+	ext6 varchar(20),
+	ext7 varchar(20),
+	ext8 varchar(20),
+	ext9 varchar(20),
+	ext10 varchar(20),
+	ext11 varchar(20),
+	ext12 varchar(20),
+	ext13 varchar(20),
+	ext14 varchar(20),
+	ext15 varchar(20),
+	ext16 varchar(20),
+	ext17 varchar(20),
+	ext18 varchar(20),
+	ext19 varchar(20),
+	ext20 varchar(20),
+	ext21 varchar(20),
+	ext22 varchar(20),
+	ext23 varchar(20),
+	ext24 varchar(20),
+	ext25 varchar(20),
+	ext26 varchar(20),
+	ext27 varchar(20),
+	ext28 varchar(20),
+	ext29 varchar(20),
+	ext30 varchar(20),
+	ext31 varchar(20),
+	ext32 varchar(20),
+	ext33 varchar(20),
+	ext34 varchar(20),
+	ext35 varchar(20),
+	ext36 varchar(20),
+	ext37 varchar(20),
+	ext38 varchar(20),
+	ext39 varchar(20),
+	ext40 varchar(20),
+	ext41 varchar(20),
+	ext42 varchar(20),
+	ext43 varchar(20),
+	ext44 varchar(20),
+	ext45 varchar(20),
+	ext46 varchar(20),
+	ext47 varchar(20),
+	ext48 varchar(20),
+	ext49 varchar(20),
+	ext50 varchar(20)
+);
+
+-- 创建员工表
+drop table if exists test_user;
+create table test_user (
+	id bigint not null primary key,
+  user_no varchar(20) default '0',
+  user_name varchar(20) default '',
+  job varchar(20) default '',
+  mgr varchar(20) default '0' comment '上级编号',
+  hiredate date not null comment '入职日期',
+  salary decimal(7,2) comment '薪水',
+  comm decimal(7,2) comment '红利',
+	ext1 varchar(20),
+	ext2 varchar(20),
+	ext3 varchar(20),
+	ext4 varchar(20),
+	ext5 varchar(20),
+	ext6 varchar(20),
+	ext7 varchar(20),
+	ext8 varchar(20),
+	ext9 varchar(20),
+	ext10 varchar(20),
+	ext11 varchar(20),
+	ext12 varchar(20),
+	ext13 varchar(20),
+	ext14 varchar(20),
+	ext15 varchar(20),
+	ext16 varchar(20),
+	ext17 varchar(20),
+	ext18 varchar(20),
+	ext19 varchar(20),
+	ext20 varchar(20),
+	ext21 varchar(20),
+	ext22 varchar(20),
+	ext23 varchar(20),
+	ext24 varchar(20),
+	ext25 varchar(20),
+	ext26 varchar(20),
+	ext27 varchar(20),
+	ext28 varchar(20),
+	ext29 varchar(20),
+	ext30 varchar(20),
+	ext31 varchar(20),
+	ext32 varchar(20),
+	ext33 varchar(20),
+	ext34 varchar(20),
+	ext35 varchar(20),
+	ext36 varchar(20),
+	ext37 varchar(20),
+	ext38 varchar(20),
+	ext39 varchar(20),
+	ext40 varchar(20),
+	ext41 varchar(20),
+	ext42 varchar(20),
+	ext43 varchar(20),
+	ext44 varchar(20),
+	ext45 varchar(20),
+	ext46 varchar(20),
+	ext47 varchar(20),
+	ext48 varchar(20),
+	ext49 varchar(20),
+	ext50 varchar(20)
+);
+
+-- 创建随机字符串函数，便于创建名称
+drop function if exists test_rand_string;
+create function test_rand_string(n int)
+	returns varchar(255) # 返回字符串，注意：此处关键字是returns 而不是return
+begin
+    #定义一个临时变量，给变量赋值'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz'
+    declare chars_str varchar(100) default 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz';
+    # 定义返回结果字符串
+    declare return_str varchar(255) default '';
+    declare i int default 0;
+    while i < n do
+        set return_str = concat(return_str,substring(chars_str,floor(1+rand()*52),1));
+        set i=i+1;
+    end while;
+    return return_str;
+end;
+
+-- 创建随机编号生成函数
+drop function if exists test_rand_num;
+create function test_rand_num()
+	returns int(5)
+begin
+	declare i int default 0;
+	set i = floor(10+rand()*500);
+	return i;
+end;
+
+-- 插入数据存储过程
+drop procedure if exists test_insert_data;
+create procedure test_insert_data(in start_no int(10), in max_num int(10))
+begin
+	declare i int default 0;
+	# 设置自动提交为false
+	set autocommit = 0;
+	# 开启循环
+	repeat
+		set i = i+1;
+		
+		insert into test_user values(
+				(start_no+i), test_rand_string(20), test_rand_string(12), test_rand_string(6), 0001, curdate(), test_rand_num(), 400,
+				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10),
+				test_rand_string(11), test_rand_string(12), test_rand_string(13), test_rand_string(14), test_rand_string(15), test_rand_string(16), test_rand_string(17), test_rand_string(18), test_rand_string(19), test_rand_string(20),
+				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10),
+				test_rand_string(11), test_rand_string(12), test_rand_string(13), test_rand_string(14), test_rand_string(15), test_rand_string(16), test_rand_string(17), test_rand_string(18), test_rand_string(19), test_rand_string(20),
+				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10)
+		);
+
+		insert into test_order values(
+				(start_no+i), (test_rand_num()+i), test_rand_num(), test_rand_string(12), test_rand_string(20), 1, curdate(),
+				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10),
+				test_rand_string(11), test_rand_string(12), test_rand_string(13), test_rand_string(14), test_rand_string(15), test_rand_string(16), test_rand_string(17), test_rand_string(18), test_rand_string(19), test_rand_string(20),
+				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10),
+				test_rand_string(11), test_rand_string(12), test_rand_string(13), test_rand_string(14), test_rand_string(15), test_rand_string(16), test_rand_string(17), test_rand_string(18), test_rand_string(19), test_rand_string(20),
+				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10)
+		);
+        
+        if (start_no+i)%500=0 then
+			commit;
+		end if;
+	until i=max_num
+	end repeat;
+    commit;
+    set autocommit = 1;
+end;
+
+-- 生成百万级数据
+call test_insert_data(10000, 10000000);
+```
+
+
+
+
+
 ---
 
 参考文章

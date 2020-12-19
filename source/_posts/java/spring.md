@@ -3,7 +3,7 @@ layout: "post"
 title: "Spring"
 date: "2017-07-01 18:47"
 categories: [java]
-tags: [spring, spring-mvc]
+tags: [spring, mvc]
 ---
 
 ## 介绍

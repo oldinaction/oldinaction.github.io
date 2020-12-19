@@ -139,13 +139,14 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 },
 "[javascript]": {
     "editor.tabSize": 2,
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
 },
 // 函数function和()间增加空格
 "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
 "javascript.updateImportsOnFileMove.enabled": "always",
 "[vue]": {
-    "editor.defaultFormatter": "octref.vetur",
+    // "editor.defaultFormatter": "octref.vetur",
+    "editor.defaultFormatter": "esbenp.prettier-vscode", // 使用 prettier 格式化插件
     "editor.tabSize": 2
 },
 "[less]": {
@@ -159,6 +160,7 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
     "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
 
+// beautify美化插件
 "beautify.language": {
 	"html": [
 		"htm",
@@ -170,14 +172,16 @@ https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-
 // 格式化、校验、修复：https://juejin.im/post/5aeddf14f265da0b736d8a66 (部分参数过时)
 // vetur默认配置
 "vetur.format.defaultFormatterOptions": {
+    // js-beautify-html 参数说明：https://github.com/HookyQR/VSCodeBeautify/blob/master/Settings.md
     "js-beautify-html": {
         "wrap_line_length": 140,
-        "wrap_attributes": "auto",
-        // "wrap_attributes": "aligned-multiple", // 当超出折行长度时，将属性进行垂直对齐，还有其他几个参数可选
+        // "wrap_attributes": "auto",
+        "wrap_attributes": "aligned-multiple", // 当超出折行长度时，将属性进行垂直对齐，还有其他几个参数可选
+        // "wrap_attributes": "force-aligned", // 当超出折行长度时，将属性进行垂直对齐，且每个属性一行
         "end_with_newline": false
     },
     "prettyhtml": {
-        "printWidth": 100,
+        "printWidth": 140, // 默认80(适配1366屏幕，1920可设置成140)
         "singleQuote": false,
         "wrapAttributes": false,
         "sortAttributes": false

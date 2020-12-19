@@ -3,7 +3,7 @@ layout: "post"
 title: "Struts2"
 date: "2017-05-06 18:06"
 categories: [java]
-tags: [ssh, mvc]
+tags: [mvc]
 ---
 
 ## 介绍

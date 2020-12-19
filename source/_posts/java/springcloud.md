@@ -3,7 +3,7 @@ layout: "post"
 title: "SpringCloud"
 date: "2017-08-05 19:36"
 categories: [java]
-tags: [SpringCloud, 微服务]
+tags: [spring, 微服务]
 ---
 
 ## 介绍

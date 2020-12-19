@@ -3,7 +3,7 @@ layout: "post"
 title: "JVM"
 date: "2017-01-20 13:07"
 categories: [java]
-tags: [jvm]
+tags: [os]
 ---
 
 ## 简介

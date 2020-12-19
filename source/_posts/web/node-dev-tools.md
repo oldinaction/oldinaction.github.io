@@ -290,14 +290,18 @@ module.exports = {
 src/components
 ```
 
-## .editorconfig格式化
+## .editorconfig/.prettierrc/.jsbeautifyrc格式化
 
-- **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**。该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的。**此插件配置的格式优先于vscode配置的，如缩进**
-- Eslint、.editorconfig、.prettierrc
+- **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**
+    - 该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的
+    - **此插件配置的格式优先于vscode配置的，如缩进**
+- `.prettierrc` 文件需要配合插件使用，如vscode的`Prettier`插件。参考：https://prettier.io/
+- `.jsbeautifyrc` 文件需要配合插件使用，如vscode的`Beautify`插件
+- Eslint、.editorconfig等区别
     - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒
     - .editorconfig 更偏向于简单代码风格，如缩进等
-    - .prettierrc 更偏向于代码美化
-    - 三者并不冲突，同时配合使用可以使代码风格更加优雅
+        - .prettierrc 更偏向于代码美化
+    - 二者并不冲突，同时配合使用可以使代码风格更加优雅
 - `.editorconfig` 放在vue项目根目录
 
 ```ini
@@ -324,10 +328,23 @@ trim_trailing_whitespace = false
 [Makefile]
 indent_style = tab
 ```
+- .prettierrc 常用配置
 
-## .prettierrc格式化
+```js
+{
+  /* 使用单引号包含字符串 */
+  "singleQuote": true,
+  /* 不添加行尾分号 */
+  "semi": false,
+  /* 在对象属性添加空格 */
+  "bracketSpacing": true,
+  /* 优化html闭合标签不换行的问题 */
+  "htmlWhitespaceSensitivity": "ignore",
+  /* 每行最大长度默认80(适配1366屏幕，1920可设置成140) */
+  "printWidth": 140
+}
+```
 
-- `.prettierrc`文件需要配合插件使用，如vscode的`Prettier`插件
 
 
 

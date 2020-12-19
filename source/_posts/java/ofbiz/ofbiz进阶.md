@@ -3,7 +3,7 @@ layout: "post"
 title: "OFBiz进阶"
 date: "2017-12-09 10:17"
 categories: java
-tags: [ofbiz, uml, 源码]
+tags: [ofbiz, uml, src]
 ---
 
 ## 模型

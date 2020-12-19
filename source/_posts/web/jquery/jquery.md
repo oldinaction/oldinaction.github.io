@@ -1,7 +1,8 @@
 ---
 layout: "post"
-title: "jquery"
+title: "JQuery"
 date: "2019-08-05 10:13"
+tags: [jquery]
 ---
 
 ## 简介

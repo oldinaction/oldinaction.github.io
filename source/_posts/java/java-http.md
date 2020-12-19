@@ -3,7 +3,7 @@ layout: "post"
 title: "Java之HTTP请求"
 date: "2020-08-26 17:24"
 categories: [java]
-tags: [http,httpclient,socket]
+tags: [http]
 ---
 
 ## RestTemplate

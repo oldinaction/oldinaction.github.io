@@ -49,8 +49,7 @@ tags: [system, bois]
 
     ```bash
     export LANG=en_US
-    # 同意
-    xdg-user-dirs-gtk-update
+    xdg-user-dirs-gtk-update # 确认时，选择同意
     export LANG=zh_CN
     # 重启后系统会提示是否把转化好的目录改回中文。选择不再提示，并取消修改
     ```
@@ -58,7 +57,7 @@ tags: [system, bois]
     - 法一：`export LC_ALL="en_US.UTF-8"` 重启
     - 法二
         - `sudo locale-gen en_US en_US.UTF-8`
-        - `sudo dpkg-reconfigure locales `
+        - `sudo dpkg-reconfigure locales`
 - 将sh文件发送到桌面快捷方式
     - 在桌面创建`文件名.desktop`文件，内容如为 
 
@@ -230,10 +229,15 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - `sudo update-initramfs -u`
     - 重启
 
-## Centos7安装
+## Centos
+
+### Centos7安装
 
 - centos7镜像下载地址：https://mirrors.aliyun.com/centos/7/isos/x86_64/
     - CentOS-7-x86_64-DVD-1810.iso    标准安装版，一般下载这个就可以了(桌面推荐)
+        - 如果无桌面版，可进行安装图形界面，`yum -y groupinstall "GNOME Desktop" "Graphical Administration Tools"`
+        - `systemctl set-default graphical.target`  将默认模式修改为图形界面模式
+        - `systemctl set-default multi-user.target` 将默认模式修改为命令行模式
     - CentOS-7-x86_64-Minimal-1810.iso    精简版(服务器推荐)
     - CentOS-7-x86_64-NetInstall-1810.iso 网络安装镜像（从网络安装或者救援系统）
     - CentOS-7-x86_64-Everything-1810.iso 对完整版安装盘的软件进行补充，集成所有软件
@@ -256,6 +260,22 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - `/swap` 4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。最终显示如`tmpfs`
         - `/` 80G
         - `/home` 剩余
+
+### centos7使用
+
+- 设置家目录为因为，保留系统语音为中文
+    - 设置 - 区域语言 - 选择English - 重启 - 注销账户重新登录 - 登录后提示会修改家目录(为英文) - 点击更新成新名称
+    - 设置 - 区域语言 - 选择中文 - 重启 - 注销账户重新登录 - 登录后提示会修改家目录(为中文) - 勾选不用再提示 - 点击保持原名称
+- CentOS7设置笔记本合盖后程序仍可以运转
+    
+    ```bash
+    # https://blog.csdn.net/m0_49400972/article/details/108861639
+    vi /etc/systemd/logind.conf
+    # 修改 HandleLidSwitch 盒盖行为
+    HandleLidSwitch=lock
+    # 重启配置
+    systemctl restart systemd-logind
+    ```
 
 ### Centos7系统启动失败排查
 

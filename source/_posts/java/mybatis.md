@@ -3,7 +3,7 @@ layout: "post"
 title: "Mybatis"
 date: "2017-05-22 15:05"
 categories: [java]
-tags: [mybatis, springboot]
+tags: [mybatis, db]
 ---
 
 ## 简介

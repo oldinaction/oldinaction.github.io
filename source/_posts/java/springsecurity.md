@@ -1,9 +1,9 @@
 ---
 layout: "post"
-title: "SpringSecurity" 
+title: "Spring Security" 
 date: "2017-10-22 11:15"
 categories: java
-tags: [spring, springsecurity, springboot, oauth2, 安全]
+tags: [spring, 安全]
 ---
 
 ## 简介
