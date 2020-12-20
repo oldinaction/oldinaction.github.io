@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    
+    <lastmod>2020-12-20T15:27:18.451Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
+    
+    <lastmod>2020-12-20T11:59:03.588Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2020-12-20T11:47:12.232Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/09/08/java/spring-src/</loc>
     
     <lastmod>2020-12-19T14:21:21.211Z</lastmod>
@@ -82,13 +103,6 @@
     <loc>http://blog.aezo.cn/2017/04/28/java/freemarker/</loc>
     
     <lastmod>2020-12-18T01:56:50.017Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
-    
-    <lastmod>2020-12-18T01:56:34.416Z</lastmod>
     
   </url>
   
@@ -187,13 +201,6 @@
     <loc>http://blog.aezo.cn/2016/07/12/web/jquery/jquery-plugin/</loc>
     
     <lastmod>2020-12-18T01:51:12.027Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    
-    <lastmod>2020-12-18T01:50:18.584Z</lastmod>
     
   </url>
   
@@ -397,13 +404,6 @@
     <loc>http://blog.aezo.cn/2017/09/13/extend/chrome/</loc>
     
     <lastmod>2020-11-12T07:37:15.974Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    
-    <lastmod>2020-11-11T05:25:06.938Z</lastmod>
     
   </url>
   
