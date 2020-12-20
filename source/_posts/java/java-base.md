@@ -114,6 +114,38 @@ private static enum YellEnum implements Yell {
 }
 ```
 
+### 泛型
+
+- 获取`T.class`示例，但是前提条件时必须有继承
+
+```java
+public class BaseEntityWrapper<E, V> {
+    Class<V> targetClass;
+
+    public BaseEntityWrapper() {
+        targetClass = (Class<V>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
+    }
+
+    public Class<V> getTargetClass() {
+        return this.targetClass;
+    }
+
+    public static void main(String[] args) {
+        // 可正常打印：cn.aezo.sqbiz.application.module.system.vo.MenuVo
+        MenuWrapper menuWrapper = new MenuWrapper();
+        System.out.println("getTargetClass = " + menuWrapper.getTargetClass());
+
+        // 实例化时报错：java.lang.ClassCastException: java.lang.Class cannot be cast to java.lang.reflect.ParameterizedType
+        BaseEntityWrapper<Menu, MenuVo> baseEntityWrapper = new BaseEntityWrapper<>();
+        System.out.println("getTargetClass = " + baseEntityWrapper.getTargetClass());
+    }
+}
+
+public class MenuWrapper extends BaseEntityWrapper<Menu, MenuVo>  {
+
+}
+```
+
 ## 集合
 
 - 参考[容器](/_posts/java/concurrence.md#容器)

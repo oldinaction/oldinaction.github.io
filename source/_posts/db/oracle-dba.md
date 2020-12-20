@@ -599,8 +599,10 @@ oracle 和 mysql 不同，此处的创建表空间相当于 mysql 的创建数�
 图片说明
 
 - lsnrctl-status 显示图片
-
-  ![lsnrctl-status](/data/images/db/lsnrctl-status.png)
+    - 服务正常如下图有`Service "orcl" has 1 instance(s).`
+    - 服务异常如`The listener supports no services`表示无服务启动
+    
+    ![lsnrctl-status](/data/images/db/lsnrctl-status.png)
 
 ---
 
