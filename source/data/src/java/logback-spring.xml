@@ -16,8 +16,9 @@
 
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径。yml中配置的 logging.path > LOG_PATH环境变量 > 此处默认值(必须要有-)-->
     <springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
+    <springProperty scope="context" name="loggingFilePath" source="logging.file.path"/>
     <springProperty scope="context" name="loggingPath" source="logging.path"/>
-    <property name="LOG_PATH" value="${loggingPath:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}}" />
+    <property name="LOG_PATH" value="${loggingFilePath:-${loggingPath:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}}}" />
     <!--
       1.如：%clr(%replace(%-35.35caller{1}){'\t|Caller.{1}0|\r\n', ''}){magenta} 显示日志行号和行链接
       2.解析

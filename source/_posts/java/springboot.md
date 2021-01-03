@@ -922,6 +922,21 @@ public MultipartConfigElement multipartConfigElement() {
 	- 表示以json返回数据
 	- 定义在类名上，表示所有的方法都是`@ResponseBody`的，也可单独定义在方法上
 - `@RestController`中包含`@ResponseBody`
+- 重定向
+
+```java
+@SneakyThrows
+@RequestMapping("/download/{id}/{fileName}")
+public void download(@PathVariable("id") Integer id, HttpServletRequest request, HttpServletResponse response) {
+    EdiHead info = ediHeadService.info(id);
+    String ediPath = info.getEdiPath();
+    // 内部重定向，/files不以/开头，则会加上原始请求路径
+    request.getRequestDispatcher("/files" + ediPath).forward(request, response);
+
+    // 重定向
+    // response.sendRedirect("/files");
+}
+```
 
 ### RestTemplate
 

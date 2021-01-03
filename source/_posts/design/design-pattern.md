@@ -84,6 +84,11 @@ tags: [设计模式, java]
 - 迭代器模式(12.1-12.2#16:00)
 - 访问者(12.2#16:00)
 
+## 尝试
+
+- 访问者模式
+    - 当解析多个Excel记录(记录了某个人的简历，但是格式可能存在差异)到实体，如果使用访问者模式可以多个访问者同时都有机会读取到某一行记录，但是不好决定用哪一个访问者的姓名解析方法为准来进行姓名解析
+
 ## 创建型模式
 
 - 创建型模式的主要关注点是"怎样创建对象？"，它的主要特点是将对象的创建与使用分离
@@ -295,7 +300,7 @@ public class PersonBuilder {
 
 - 代理模式定义
     - **为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性**
-    - **个人理解，对象适配器和装饰器模式类似代理模式：实现目标接口；代理对象/适配器/装饰器构造时传入目标对象(可嵌套)**
+    - **个人理解，对象适配器和装饰器模式类似代理模式：实现目标接口；代理对象/适配器/装饰器构造时传入目标对象(可嵌套)**，当然也可不传入目标对象，而是传入一些配置，从而动态获取目标对象
 - 代理分为静态代理和动态代理，其中动态代理主要有JDK动态代理和Cglib动态代理，最终都是基于[ASM](https://asm.ow2.io/)操纵字节码
     - JDK动态代理和静态代理类似，代理类和被代理需要实现相同的接口
     - Cglib动态代理是生成被代理类的子类，因此被代理类不能被final修饰
@@ -317,7 +322,7 @@ post...
 public class Main {
 
     public static void main(String[] args) {
-        // 此处可嵌套，类似装饰器
+        // 此处可嵌套，类似装饰器。此处也可不传入目标对象，而是传入一些配置，从而动态获取目标对象
         MovableLogProxy proxy = new MovableLogProxy(new MovableTimeProxy(new Dog()));
         proxy.move();
     }
@@ -344,6 +349,7 @@ public class Dog implements Movable {
 public class MovableLogProxy implements Movable {
     private Movable movable;
 
+    // 此处也可不传入目标对象，而是传入一些配置(如字符串dog)，从而动态获取目标对象
     public MovableLogProxy(Movable movable) {
         this.movable = movable;
     }
@@ -891,7 +897,11 @@ public class ConcreteHandler extends Handler {
         if(getNext() != null) {
             System.out.println("放过请求");
 
-            return getNext().handleRequest();
+            // before do somthing...
+            boolean flag = getNext().handleRequest();
+            // after do somthing...
+            
+            return flag;
         } else {
             System.out.println("处理请求");
             return true;

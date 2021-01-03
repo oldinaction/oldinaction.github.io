@@ -439,6 +439,10 @@ site.url=www.aezo.cn
     }
     ```
 
+### 其他注解
+
+- `@Lazy` 当两个Bean发生循环依赖时，可将其中一个Bean的注入设置成懒加载
+
 ## AOP
 
 - 说明

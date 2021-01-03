@@ -35,6 +35,8 @@ ResponseEntity<Video> responseEntity = restTemplate.postForEntity("http://localh
 video = responseEntity.getBody();
 
 // 4.postForObject
+Map retInfo = restTemplate.postForObject("http://localhost/test", params, Map.class); // params 为 Map 类型请求参数，目标服务需要通过 @RequestBody 接收
+// 定义Header
 HttpHeaders headers = new HttpHeaders(); // org.springframework.http.HttpHeaders impl MultiValueMap
 headers.add("X-Auth-Token", "123456789");
 Map<String, Object> postParameters = new HashMap<>();
@@ -42,6 +44,30 @@ postParameters.add("username", "smalle");
 postParameters.add("age", "18");
 HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(postParameters, headers);
 Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity, Map.class);
+```
+
+### 上传下载
+
+```java
+// 参考：https://www.cnblogs.com/zimug/archive/2020/08/12/13488517.html
+// 下载(大文件可进行流式下载)。前台使用参考：[springboot-vue.md#文件下载案例](/_posts/arch/springboot-vue.md#文件下载案例)
+@SneakyThrows
+@RequestMapping("/download/{id}/{fileName}")
+public void download(@PathVariable("id") Integer id, @PathVariable("fileName") String fileName, HttpServletResponse response){
+    String url = ediHeadList + "/" + id + "/" + fileName;
+    ResponseEntity<byte[]> rsp = restTemplate.getForEntity(url, byte[].class);
+    byte[] body = rsp.getBody();
+    OutputStream os = null;
+    try {
+        os = response.getOutputStream();
+        os.write(body);
+        os.flush();
+    } finally {
+        if(os != null) {
+            os.close();
+        }
+    }
+}
 ```
 
 ### Bean配置

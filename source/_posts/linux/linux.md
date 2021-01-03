@@ -957,6 +957,9 @@ rar a aezocn.rar *.jpg
 
     # 根据日志查询最近执行命令时间(结合tail -1)
     grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
+
+    # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
+    ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
     ```
 - grep结果单独处理
 
@@ -1292,11 +1295,16 @@ local1.info /var/log/local1-info.log
 #### 记录命令执行历史到日志文件
 
 ```bash
+# 注：此脚本无法记录清除日志的的命令`history -c`
 # root用户执行
 su - root
 source <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/conf-recode-cmd-history.sh)
 # 查看日志
 tail -f /var/log/local1-info.log
+
+# 日志格式如下
+2019-01-01 07:55:42 localhost [pybiz_monitor][1594]: [pybiz_monitor.run_script][success]程序启动成功 # python监控脚本日志
+2019-01-01 15:17:20 localhost cmd-hostory[root][14479]: [/root]  3001  2020-12-15 15:17:20 10.10.10.10 root cd /home # 执行命令日志
 ```
 
 ### dd 磁盘读写测试

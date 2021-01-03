@@ -193,108 +193,7 @@ function getParentUrl() {
 ## Http请求及响应
 
 - spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
-
-### axios实现ajax
-
-- axios基本使用
-
-```js
-axios.get("/hello?id=1").then(response => {
-    console.log(response.data)
-});
-
-// 如果将params换成this.$qs.stringify，后台也无法获取到数据
-axios.get("/hello", {
-    params: {
-        userId: 1,
-    }
-}).then(response => {
-    console.log(response.data)
-});
-```
-
-### qs插件使用
-
-- qs插件会自动设置请求头为`application/x-www-form-urlencoded`
-
-```js
-// 安装：npm install qs -D
-import qs from 'qs'
-Vue.prototype.$qs = qs;
-
-this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
-    name: 'smalle'
-})).then(response => {
-
-});
-
-// (1) qs格式化日期
-// qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
-// 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
-this.$qs.stringify(this.formModel, {
-    serializeDate: function(d) {
-        // 转换成时间戳
-        return d.getTime();
-    }
-});
-
-// (2) qs序列化对象属性
-// 下列对象userInfo默认渲染成 `name=smalle&bobby[0][name]=game&hobby[0][level]=1`(未进行url转码)，此时springboot写好对应的POJO是无法进行转换的，报错`is neither an array nor a List nor a Map`
-// 可以使用`allowDots`解决，最终返回 `name=smalle&bobby[0].name=game&hobby[0].level=1`
-var userInfo = {
-    name: 'smalle',
-    hobby: [{
-        name: 'game',
-        level: 1
-    }]
-};
-console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
-```
-
-### axios参数后端接受不到 [^4]
-
-- get请求传递数组
-
-    ```js
-    let vm = this
-    this.$axios.get("/hello", {
-        params: {
-            typeCodes: ["CustomerSource", "VisitLevelCode"]
-        },
-        paramsSerializer: function(params) {
-            return vm.$qs.stringify(params, {arrayFormat: 'repeat'}) // 此时this并不是vue对象
-        }
-    }).then(response => {
-        console.log(response.data)
-    });
-    ```
-- post请求无法接收
-    - 使用`qs`插件(推荐，会自动设置请求头为`application/x-www-form-urlencoded`)
-    - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
-
-        ```js
-        axios({
-            method: 'post', // 同jquery中的type
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            url: 'http://localhost:8080/api/login',
-            params: {
-                username: 'smalle',
-                password: 'smalle'
-            }
-        }).then((res)=>{
-            
-        })
-        ```
-
-        - axios的params和data两者关系
-            - params是添加到url的请求字符串中的，一般用于GET请求
-            - data是添加到请求体body中的，用于POST请求。Spring中可在通过`getUser(@RequestBody User user)`获取body中的数据，从request对象中只能以流的形式获取
-            - 如果POST请求参数写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也无法直接获取，必须通过@RequestBody)
-        - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据以url序列化的方式进行传递，所以服务器能够正确解析
-        - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
-        - SpringSecurity登录必须使用POST
+- axios和qs使用参考[js-tools.md#axios](/_posts/web/js-tools.md#axios)
 
 ### 文件上传案例
 
@@ -479,6 +378,75 @@ public class Order implements Serializable {
     List<OrderItem> items; // OrderItem 略
     private MultipartFile[] files;
     private List<MultipartFile> fileList;
+}
+```
+
+### 文件下载案例
+
+- 前台代码
+
+```js
+// 定义下载的axios实例，并附加到vue原型上
+export const download = (url, params) => {
+  return axios.create({
+    baseURL: baseUrl,
+    timeout: 1000 * 60 * 3,
+    headers: {
+      'Authorization': getToken()
+    }
+  }).request({
+    url: url,
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
+}
+
+methods: {
+    exportData (row) {
+      if (!row.id) return
+      this.$download("/reportConfiguration/runExport/" + row.id, this.searchForm)
+        .then((resp) => {
+          let res = resp.data
+          // 如果是普通文本文件则不需要设置type
+          const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+          this.downFile(blob, row.reportName + ".xlsx")
+        })
+    },
+    downFile (blob, fileName) {
+      if (window.navigator.msSaveOrOpenBlob) {
+        navigator.msSaveBlob(blob, fileName)
+      } else {
+        var link = document.createElement('a')
+        link.href = window.URL.createObjectURL(blob)
+        link.download = fileName
+        link.click()
+        window.URL.revokeObjectURL(link.href)
+      }
+    }
+}
+```
+- 后端代码
+
+```java
+@RequestMapping("/runExport/{id}")
+public void runExport(@PathVariable("id") Integer id, @RequestParam Map<String, Object> params, HttpServletResponse response) {
+    String fileName = reportConfiguration.getReportName() + "_" + System.currentTimeMillis() + ".xls";
+    response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
+    response.setHeader("Content-Disposition","attachment;filename="+ fileName +".xlsx");
+
+    OutputStream os = null;
+    try {
+        byte[] body = ...
+
+        os = response.getOutputStream();
+        os.write(body);
+        os.flush();
+    } finally {
+        if(os != null) {
+            os.close();
+        }
+    }
 }
 ```
 
@@ -714,7 +682,6 @@ vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
 [^1]: http://www.ruanyifeng.com/blog/2016/04/cors.html (跨域资源共享CORS详解)
 [^2]: http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html (浏览器同源政策及其规避方法)
 [^3]: https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html (spring-security-cors)
-[^4]: https://segmentfault.com/a/1190000013312233 (springBoot与axios表单提交)
 [^5]: https://blog.csdn.net/qq_32340877/article/details/80338271 (使用vue框架开发，版本更新，解决用户浏览器缓存问题)
 [^6]: https://www.oschina.net/question/2405524_2154029?sort=time
 [^7]: https://juejin.im/post/5cfe23b3e51d4556f76e8073

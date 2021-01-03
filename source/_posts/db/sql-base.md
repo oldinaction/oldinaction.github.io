@@ -491,7 +491,7 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
 - `select * from emp where job = 'clerk' and sal between 1100 and 1500;` where过滤
     - 可以使用`=、>、<、<>`等判断大小，其中<>表示不等于，字符串是比较每个字母的ASCII码
     - **使用`between and`相当于 `>= and <=`**
-        - `between to_date('2000-01-01', 'yyyy/mm/dd') and to_date('2000-01-31', 'yyyy/mm/dd')` 查询的是`2000-01-01 00:00:00`到`2000-01-31 00:00:00`的数据
+        - `between to_date('2000-01-01', 'yyyy/mm/dd') and to_date('2000-01-31', 'yyyy/mm/dd')` 查询的是`2000-01-01 00:00:00`到`2000-01-31 00:00:00`的数据(包含这这两个时间点，但是不包含01-31之后的数据)
 - `select ename, sal, comm from emp where comm is not null;` 使用`is null`或者`is not null`找出有关空值的条目
     - `=、!=`默认是查询不为空的数据
 - `select ename, sal from emp where ename in('king', 'allen', 'abc');` 使用`in()`或者`not in()`表示相应字段的值是否在这些值里面的条目(本质是循环查询)

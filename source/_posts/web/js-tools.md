@@ -84,7 +84,133 @@ math.number(math.chain(math.bignumber(0.1)).add(math.bignumber(0.2)).add(math.bi
 - [vue-area-linkage](https://github.com/dwqs/vue-area-linkage) 省市区选择器(需结合省市区数据)
 - [area-puppeteer](https://github.com/dwqs/area-puppeteer) 省市区数据
 
+## AJAX
+
+### axios
+
+- 参考[springboot-vue.md#文件上传下载案例](/_posts/arch/springboot-vue.md#文件上传案例)
+- axios基本使用
+
+```js
+axios.get("/hello?id=1").then(response => {
+    console.log(response.data)
+});
+
+// 如果将params换成this.$qs.stringify，后台也无法获取到数据
+axios.get("/hello", {
+    params: {
+        userId: 1,
+    }
+}).then(response => {
+    console.log(response.data)
+});
+```
+#### axios参数后端接受不到 [^2]
+
+- get请求传递数组
+
+    ```js
+    let vm = this
+    this.$axios.get("/hello", {
+        params: {
+            typeCodes: ["CustomerSource", "VisitLevelCode"]
+        },
+        paramsSerializer: function(params) {
+            return vm.$qs.stringify(params, {arrayFormat: 'repeat'}) // 此时this并不是vue对象
+        }
+    }).then(response => {
+        console.log(response.data)
+    });
+    ```
+- post请求无法接收
+    - 使用`qs`插件(推荐，会自动设置请求头为`application/x-www-form-urlencoded`)
+    - `axios`使用`x-www-form-urlencoded`请求，参数应该写到`param`中
+
+        ```js
+        axios({
+            method: 'post', // 同jquery中的type
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            url: 'http://localhost:8080/api/login',
+            params: {
+                username: 'smalle',
+                password: 'smalle'
+            }
+        }).then((res)=>{
+            
+        })
+        ```
+        - axios的params和data两者关系
+            - params是添加到url的请求字符串中的，一般用于GET请求
+            - data是添加到请求体body中的，用于POST请求。Spring中可在通过`getUser(@RequestBody User user)`获取body中的数据，从request对象中只能以流的形式获取
+            - 如果POST请求参数写在`data`中，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也无法直接获取，必须通过@RequestBody)
+        - jquery在执行post请求时，会设置Content-Type为application/x-www-form-urlencoded，且会把data中的数据以url序列化的方式进行传递，所以服务器能够正确解析
+        - 使用原生ajax(axios请求)时，如果不显示的设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据
+        - SpringSecurity登录必须使用POST
+
+### qs插件使用
+
+- qs插件会自动设置请求头为`application/x-www-form-urlencoded`
+
+```js
+// 安装：npm install qs -D
+import qs from 'qs'
+Vue.prototype.$qs = qs;
+
+this.$axios.post(this.$domain + "/base/type_code_list", this.$qs.stringify({
+    name: 'smalle'
+})).then(response => {
+
+});
+
+// (1) qs格式化日期
+// qs格式化时间时，默认格式化成如`1970-01-01T00:00:00.007Z`，可使用serializeDate进行自定义格式化
+// 或者后台通过java转换：new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").setTimeZone(TimeZone.getTimeZone("UTC"));
+this.$qs.stringify(this.formModel, {
+    serializeDate: function(d) {
+        // 转换成时间戳
+        return d.getTime();
+    }
+});
+
+// (2) qs序列化对象属性
+// 下列对象userInfo默认渲染成 `name=smalle&bobby[0][name]=game&hobby[0][level]=1`(未进行url转码)，此时springboot写好对应的POJO是无法进行转换的，报错`is neither an array nor a List nor a Map`
+// 可以使用`allowDots`解决，最终返回 `name=smalle&bobby[0].name=game&hobby[0].level=1`
+var userInfo = {
+    name: 'smalle',
+    hobby: [{
+        name: 'game',
+        level: 1
+    }]
+};
+console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
+```
+
 ## UI库
+
+### Avue
+
+- [官网](https://avuejs.com)
+- 内置函数(在vue组件中可直接使用this调用)
+    - validatenull 校验是否为空(`null/''/0/[]/{}`)
+    - findObject 从数组中查找对象，如`this.findObject(this.formColumn, "parentId")`
+    - vaildData 校验，如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
+    - $Print
+    - $Clipboard
+    - $Log
+    - $NProgress
+    - $Screenshot
+    - deepClone
+    - dataURLtoFile
+    - isJson
+    - setPx
+    - sortArrys
+    - findArray
+    - downFile
+    - loadScript
+    - watermark
+    - asyncValidator
 
 ### vxe-table
 
@@ -405,3 +531,4 @@ https://segmentfault.com/a/1190000011478657
 参考文章
 
 [^1]: https://www.dazhuanlan.com/2019/12/31/5e0b08829f823/
+[^2]: https://segmentfault.com/a/1190000013312233 (springBoot与axios表单提交)

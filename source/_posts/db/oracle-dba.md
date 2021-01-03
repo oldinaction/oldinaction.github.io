@@ -350,6 +350,7 @@ select 'create or replace synonym smalle.' || object_name || ' for ' || owner ||
   - `trace日志`：**追踪文件**，记录各种 sql 操作及所消耗的时间等，根据 trace 文件就可以了解哪些 sql 导致了系统的性能瓶颈，进而采取恰当的方式调优
     - 10g 对应系统初始化参数文件参数`show parameter user_dump_dest`
     - 11g 同 alert 日志可通过`select * from v$diag_info;`查看日志文件位置(ADR Home)
+    - 日志会一致保留，不会自动删除
   - `audit日志`：审计的信息
     - 10g 对应系统初始化参数文件参数`audit_file_dest`
   - `redo日志`：存放数据库的更改信息
@@ -363,11 +364,35 @@ select 'create or replace synonym smalle.' || object_name || ' for ' || owner ||
   ```bash
   # alert_orcl.log为警告日志；*.trc为日志追踪文件；*.trm为追踪文件映射信息；cdmp_20191212101335为备份？
   select * from v$diag_info; # 查看日志目录(ADR Home)
-  ll -rt *.trc | grep ' 23 ' # 列举23号的trc文件。如`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
+  ll -rt *.trc | grep ' 23 ' # 列举23号日期的trc文件。如`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
+  ll -hrt *.trc | grep ' 23 ' | awk '{print $9}' | xargs grep 'ORA-' # 查看23号的oracle trc日志，并找出日志中出现ORA-的情况
   # 使用oracle自带工具tkprof(/u01/app/oracle/product/11.2.0/bin)分析trc文件。参考：http://www.51testing.com/html/34/60434-225024.html
   tkprof /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_dbrm_18576.trc orcl_dbrm_18576.txt sys=no sort=prsela,exeela,fchela
   cat orcl_dbrm_18576.txt # 查看分析结果
   ```
+
+#### 宕机分析
+
+- ORA-27157 ORA-27300 ORA-27301 ORA-27302 错误，这些错误表明共享内存/信号灯在操作系统级别发生了某些情况，信号集可以手动删除，或者由于某种原因由于硬件错误而濒临死亡
+    - 参考文章
+        - https://ora4all.blogspot.com/2017/10/ora-27300-ora-27301-ora-27302-ora-27157.html
+        - https://blog.csdn.net/turk/article/details/53373510
+    - 操作过程
+
+    ```bash
+    # 进入日志文件目录，方式参考上文
+    # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
+    ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
+    # 结果如下(出现多次)
+    orcl_gen0_16692.trc:ORA-27157: OS post/wait facility removed
+    orcl_gen0_16692.trc:ORA-27300: OS system dependent operation:semop failed with status: 43
+    orcl_gen0_16692.trc:ORA-27301: OS failure message: Identifier removed
+    orcl_gen0_16692.trc:ORA-27302: failure occurred at: sskgpwwait1
+    ...
+    # 后来查找操作历史(history)，发现有国外IP登录操作服务器，还清除了操作历史，幸好之前增加了[记录命令执行历史到日志文件](/_posts/linux/linux.md#记录命令执行历史到日志文件)功能才发现
+    
+    # 解决办法：事先已重新重启过服务器，事后增加安全措施
+    ```
 
 ## 业务场景
 

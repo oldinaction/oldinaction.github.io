@@ -162,9 +162,13 @@ SymmetricCrypto sc = SecureUtil
 ### FileUtil文件操作
 
 ```java
+// 获取类同级目录下文件
+File file = new ClassPathResource("templates").getFile(); // 在当前类所在目录获取文件，cn/aezo/test/templates，如果运行在idea中则可以放在resource目录即可
 // 获取classpath下文件
-// File file = ResourceUtils.getFile("classpath:templates"); // 如果是maven多模块，可能获取失败
-File file = new ClassPathResource("templates").getFile();
+// File file = ResourceUtils.getFile("classpath:templates"); // org.springframework.util. 如果是maven多模块，可能获取失败
+File file = new File(FileU.class.getClassLoader().getResource("templates")); // 也可传入 cn/test 等路径
+
+ResourceUtil.getResource("templates"); // 返回 URL
 ```
 
 ### Excel操作
@@ -191,6 +195,7 @@ String result = template.render(Dict.create().set("name", "Hutool"));
 
 ## Yaml解析(基于jyaml)
 
+- json-yaml互转工具：https://www.bejson.com/json/json2yaml
 - 依赖
 
 ```xml
@@ -224,4 +229,21 @@ public class Person {
 // 解析
 File dataFile = new File(System.getProperty("user.dir") + "/src/gen/data.yaml");
 Person person = (Person) Yaml.loadType(dataFile, Person.class);
+
+// 生成Map
+Map map = (Map) Yaml.load(yamlStr);
 ```
+
+## Lombok
+
+- [Lombox](https://projectlombok.org/) 简化代码工具
+- 引入
+    - maven项目中需要加入对应的依赖，从而打包时生成相应代码
+    - idea需要安装Lombox插件，从而编译时生成相应代码，不会报错
+- 使用
+    - 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
+    - `@Accessors(fluent = true, chain = true, prefix = "p")` 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
+    - `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
+        - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
+
+

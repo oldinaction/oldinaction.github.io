@@ -145,6 +145,18 @@ public class MenuWrapper extends BaseEntityWrapper<Menu, MenuVo>  {
 
 }
 ```
+- 方法级别泛型
+
+```java
+public static RuntimeException sneakyThrow(Throwable t) {
+    if (t == null) throw new NullPointerException("t");
+    return Lombok.<RuntimeException>sneakyThrow0(t); // 调用有泛型的方法
+}
+
+private static <T extends Throwable> T sneakyThrow0(Throwable t) throws T {
+    throw (T)t;
+}
+```
 
 ## 集合
 
@@ -169,31 +181,79 @@ public class MenuWrapper extends BaseEntityWrapper<Menu, MenuVo>  {
 
 ## 文件
 
-- IDEA中获取src目录文件内容
+- 获取src和classpath下文件路径 [^3]
 
 ```java
-// 方式一
-public static String getResourceFileContent(String srcXpath) throws Exception {
-    if (srcXpath.startsWith("/")) {
-        String content;
-        InputStream inputStream = Main.class.getResourceAsStream(srcXpath);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "utf-8"));
-        StringBuilder builder = new StringBuilder();
-        char[] charArray = new char[200];
-        int number;
-        while ((number = reader.read(charArray)) != -1) {
-            builder.append(charArray, 0, number);
-        }
-        content = builder.toString();
-        return content;
+/**
+* 基于流从classpath获取文件内容(一般用于读取文本文件)
+* @param srcXpath 如：data.json，/spring/config.xml
+* @throws Exception 如找不到相关文件时会报错
+* @return java.lang.String
+*/
+@SneakyThrows
+public static String getFileContentByClasspath(String srcXpath) {
+    if (!srcXpath.startsWith("/")) {
+        srcXpath = "/" + srcXpath;
     }
-    return null;
+
+    String content;
+    InputStream inputStream = FileU.class.getResourceAsStream(srcXpath);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "utf-8"));
+    StringBuilder builder = new StringBuilder();
+    char[] charArray = new char[200];
+    int number;
+    while ((number = reader.read(charArray)) != -1) {
+        builder.append(charArray, 0, number);
+    }
+    content = builder.toString();
+    return content;
 }
 
-getResourceFileContent("/Main.java");
-getResourceFileContent("/cn/aezo/Test.java");
+/**
+* 基于流读取classpath文件并生成临时文件返回(一般用于读取二进制文件)<br/>
+* 1.SpringBoot打包成jar后无法直接返回File，此方式是生成一个临时文件，使用完之后建议删除临时文件<br/>
+* 2.下列方式在IDEA中可获取，打包成(SpringBoot)JAR后无法获取<br/>
+*
+* ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "data.json"); // spring<br/>
+* FileUtil.file(getClass().getClassLoader().getResource("data.json")); // hutool<br/>
+* FileUtil.file(ResourceUtil.getResource("data.json")); // hutool<br/>
+* FileU.getFileByClasspath("data.json"); // 同 getClass().getClassLoader().getResource("data.json")<br/>
+*
+* @param relativePath
+* @throws Exception 如找不到相关文件时会报错
+* @return java.io.File
+*/
+@SneakyThrows
+public static File getFileTempByClasspath(String relativePath) {
+    File tempFile = null;
+    InputStream in = null;
+    try {
+        ClassPathResource classPathResource = new ClassPathResource(relativePath);
+        in = classPathResource.getStream();
+        tempFile = File.createTempFile(UUID.randomUUID().toString(), "");
+        FileUtil.writeFromStream(in, tempFile);
+    } finally {
+        if(in != null) {
+            IoUtil.close(in);
+        }
+    }
+    return tempFile;
+}
 
-// 方拾二
+/**
+* 根据classpath获取文件(SpringBoot打包成jar后，此方法无效) {@link FileU#getFileTempByClasspath}
+* @param relativePath 相对classpath的路径, 开头不需要/ (如：cn/aezo/utils/data.json)
+* @return
+*/
+public static File getFileByClasspath(String relativePath) {
+    URL url = FileU.class.getClassLoader().getResource(relativePath);
+    if(url == null) {
+        return null;
+    }
+    return new File(url.getFile());
+}
+
+// 使用本地路径获取(仍然无法获取springboot jar中的文件)
 new File(System.getProperty("user.dir") + "/src/main/data.json")
 ```
 
@@ -294,4 +354,4 @@ boolean mkdirs()
 
 [^1]: https://segmentfault.com/a/1190000004292140
 [^2]: https://juejin.im/post/6844903910348603405
-
+[^3]: https://www.sohu.com/a/283165575_120047208

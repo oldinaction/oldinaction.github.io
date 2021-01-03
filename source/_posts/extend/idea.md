@@ -114,9 +114,7 @@ ThisCrackLicenseId-{
         - 修改了Entity，涉及到mybatis的操作无法生效(mybatis缓存了数据类型?)
         - 修改了mybatis mapper和对应文件一般无法生效
         - 修改了方法声明
-- `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)
-    - 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
-    - `@Accessors(fluent = true, chain = true, prefix = "p")` 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
+- `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)。写法参考[java-tools.md#Lombox](/_posts/java/java-tools.md#Lombox)
 - `MybatisX` [mybatis-plus提供](https://mybatis.plus/guide/mybatisx-idea-plugin.html)，可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI(未测试成功)，JPA方法命名提示(未测试成功)。Ctrl+Alt可实现相应跳转
     - 类似插件：`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
 - `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
@@ -158,6 +156,7 @@ ThisCrackLicenseId-{
 
 ## 快捷键
 
+- 类似参考[vscode.md#快捷键](/_posts/extend/vscode.md#快捷键)
 - 待记忆
     - `F8` 断点调试下一步
     - `Double Shift` 全局文件名查找
@@ -180,6 +179,15 @@ ThisCrackLicenseId-{
     - `Ctrl + Y` 删除行
     - `Ctrl shift +` 展开所有方法
     - `Ctrl shift -` 收缩所有方法
+- 批量选择
+    - `Alt + Shift + 左键` 跨行需要每行单点，可以让光标在多个位置出现
+    - `Ctrl + Alt + Shift + 鼠标拖选` 可选择多个矩形
+    - `Alt + Shift + Insert` 然后按住鼠标左键拖动选中多行，此时可选择空白区域。开启鼠标插入选择模式(鼠标右键 - 选中columu select module进行开启)
+    - vscode相关
+        - `Alt + 左键` 跨行需要每行单点
+        - `Alt + Shift + 鼠标拖动` 可选择多个矩形
+        - `Ctrl + Alt + Up/Down` 选中/取消当前行的多行编辑 
+        - `Ctrl + Shift + L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标
 - 特殊场景
     - SQL控制台界面
         - `Ctrl + Enter` 执行SQL

@@ -116,7 +116,7 @@ tags: [oracle, dba, sql]
         -   index：该联接类型与 ALL 相同，除了只有索引树被扫描。这通常比 ALL 快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
         -   ALL：最慢的一种方式，即全表扫描
     -   possible_keys：指出 MySQL 能使用哪个索引在该表中找到行
-    -   key：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 FORCE INDEX、USE INDEX 或者 IGNORE INDEX
+    -   **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 FORCE INDEX、USE INDEX 或者 IGNORE INDEX
     -   key_len：显示 MySQL 决定使用的键长度。如果键是 NULL，则长度为 NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
     -   ref：显示使用哪个列或常数与 key 一起从表中选择行
     -   rows：显示 MySQL 认为它执行查询时必须检查的行数。注意这是一个预估值
@@ -182,7 +182,7 @@ tags: [oracle, dba, sql]
             -   应用场景：存储长度波动不大的数据，如 md5 摘要；存储短字符串、经常更新的字符串
     -   BLOB 和 TEXT 类型：分别采用二进制和字符方式存储。一般不用此类型，而是将数据直接存储在文件中，并存储文件的路径到数据库
     -   timestamp(常用)、datetime、date
-        -   **timestamp**：占用 4 个字节，可保存时区(依赖数据库设置的时区)，精确到秒，采用明整型存储，存储范围 1970-01-01 到 2038-01-19（目前linux已有解决方案到2486年）
+        -   **timestamp**：占用 4 个字节，可保存时区(依赖数据库设置的时区)，精确到秒，采用明整型存储，存储范围 1970-01-01 到 2038-01-19（目前 linux 已有解决方案到 2486 年）
         -   datetime：占用 8 个字节，与时区无关，可保存到毫秒，存储范围 1000-01-01 到 9999-12-31
         -   date：占用 3 个字节，精确到日期，存储范围同 datetime
     -   使用枚举代替字符串类型
@@ -955,8 +955,8 @@ SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
 
 ## 快速生成百万测试数据
 
-- 生成数据工具：https://github.com/gangly/datafaker，基于python
-- 简单的基于存储过程
+-   生成数据工具：https://github.com/gangly/datafaker，基于python
+-   简单的基于存储过程
 
 ```sql
 -- 参考：https://www.cnblogs.com/peterpoker/p/9758103.html
@@ -1122,7 +1122,7 @@ begin
 	# 开启循环
 	repeat
 		set i = i+1;
-		
+
 		insert into test_user values(
 				(start_no+i), test_rand_string(20), test_rand_string(12), test_rand_string(6), 0001, curdate(), test_rand_num(), 400,
 				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10),
@@ -1140,7 +1140,7 @@ begin
 				test_rand_string(11), test_rand_string(12), test_rand_string(13), test_rand_string(14), test_rand_string(15), test_rand_string(16), test_rand_string(17), test_rand_string(18), test_rand_string(19), test_rand_string(20),
 				test_rand_string(1), test_rand_string(2), test_rand_string(3), test_rand_string(4), test_rand_string(5), test_rand_string(6), test_rand_string(7), test_rand_string(8), test_rand_string(9), test_rand_string(10)
 		);
-        
+
         if (start_no+i)%500=0 then
 			commit;
 		end if;
@@ -1153,10 +1153,6 @@ end;
 -- 生成百万级数据
 call test_insert_data(10000, 10000000);
 ```
-
-
-
-
 
 ---
 

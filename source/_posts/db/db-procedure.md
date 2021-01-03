@@ -248,6 +248,7 @@ begin
 	declare v_city_id2 integer;
 	declare v_star_provid integer;
     declare v_err_msg varchar(255);
+    declare v_count int default 0;
 
 	-- 是否未找到数据标记(要在游标之前定义)
 	declare done int default false;
@@ -298,9 +299,12 @@ begin
 		county_name varchar(20)
 	);
 
+    set autocommit = 0;
+
 	-- mysql不能直接定义变量结果集, 此处将结果集放到临时表中, 用于后面变量
 	open cur1;
 	flag_loop: loop
+        set v_count = v_count+1;
 		-- 取出每条记录并赋值给相关变量，注意顺序
 		-- 用游标select的字段数需要与fetch into的变量数一致，**且变量的定义不要和select的列的键同名**, 否则fetch into 会失败！
 		fetch cur1 into v_city_id, v_city_name;
@@ -343,6 +347,10 @@ begin
 		execute stmt;
 		-- 释放掉预处理段
 		deallocate prepare stmt;
+        
+        if (v_count)%500=0 then
+			commit;
+		end if;
 	end loop;
 	close cur1;
 
@@ -362,6 +370,9 @@ begin
 		insert into dict_county(city_id, county_name, s_state, inputer) values(v_city_id2, v_county_name, '1', in_inputer); -- county_id会自增
 	end loop;
 	close cur2;
+    
+    commit;
+    set autocommit = 1;
 
 	-- 删除临时表
 	drop temporary table temp_county;

@@ -6,14 +6,17 @@ categories: [extend]
 tags: [ide, web]
 ---
 
-## 快捷键(基于`IntelliJ IDEA Keybindings`插件模式)
+## 快捷键
 
-- `Ctrl+K Ctrl+S` `文件-首选项-键盘快捷方式` 可查看快捷键
-- `Alt+Shift+A` 注释/取消注释
-- `Ctrl+Shift+L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标，可同时进行修改（如全部转大小写）
-- 自定义
-	- `Ctrl+Shift+U` 转大写
-	- `Ctrl+Shift+Y` 转小写
+- 基于`IntelliJ IDEA Keybindings`插件模式，参考[idea.md#快捷键](/_posts/extend/idea.md#快捷键)
+- 待记忆
+    - `Ctrl+Shift+L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标，可同时进行修改（如全部转大小写）
+- 其他
+    - `Ctrl+K Ctrl+S` `文件-首选项-键盘快捷方式` 可查看快捷键
+    - `Alt+Shift+A` 注释/取消注释
+    - 自定义
+        - `Ctrl+Shift+U` 转大写
+        - `Ctrl+Shift+Y` 转小写
 
 ## 插件推荐
 
