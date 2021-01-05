@@ -39,8 +39,14 @@ tags: [template]
      * ...
     #end
      */
+
+    ## 转义字符"."后进行分割字符串
+    #if("$!{field.comment}" != "")
+        #set($commentName = $!{field.comment.replace("(x)", "").replace("（x）", "").split("\.").get(0).trim()})
+    #end
+
     ## 关键字、符号可以连写，如`#else$string#end`。但是写成`#elseString#end`又无法识别，写成`#else String#end`会多出一个空格
-    #set($string = "String")
+    #set($string = $!{field.format} + "String") ## 仅演示语法
     private #if("$!{field.format}" == "number")Integer#else$string#end$!{field.name};
 #end
 #end

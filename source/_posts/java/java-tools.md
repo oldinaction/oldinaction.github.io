@@ -180,6 +180,31 @@ List<Object> row = readAll.get(0); // 获取一行数据。合并单元格的会
 List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String.class, this.row))); // 去重、去空字符串
 ```
 
+### FTP操作
+
+```java
+// 一次定时操作：创建新的FTP客户端 - 获取文件 - 关闭客户端
+Ftp ftp = null;
+try {
+    ftp = new Ftp(...);
+
+    FTPFile[] ftpFiles = ftp.lsFiles("/in");
+    if(ValidU.isNotEmpty(ftpFiles)) {
+        for (FTPFile ftpFile : ftpFiles) {
+            if(!ftpFile.isFile()) {
+                continue;
+            }
+
+            parseEdi(...);
+        }
+    }
+} finally {
+    if(ftp != null) {
+        ftp.close();
+    }
+}
+```
+
 ### TemplateUtil模板引擎
 
 - 可以操作Beetl、Enjoy、Rythm、FreeMarker、Velocity、Thymeleaf，只需引入相应的jar包
@@ -242,7 +267,9 @@ Map map = (Map) Yaml.load(yamlStr);
     - idea需要安装Lombox插件，从而编译时生成相应代码，不会报错
 - 使用
     - 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
-    - `@Accessors(fluent = true, chain = true, prefix = "p")` 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
+    - `@Accessors(fluent = true, chain = true, prefix = "p")`
+        - 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
+        - 如果作用在entity上，会导致mybatis的xml中resultMap字段无法识别
     - `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
         - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
 

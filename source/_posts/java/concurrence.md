@@ -1096,6 +1096,10 @@ public class MyEvent {
         - 使用LocalDateTime代替Date，从而使用DateTimeFormatter进行格式化(JDK8)
             - String dateNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
 
+### 其他多线程相关类
+
+- `FileLock` 使用FileLock可以给文件加锁，在多线程和多进程(多个JVM)的情况下均有效 [^12]
+
 ## 并发指标
 
 - http://www.kegel.com/c10k.html
@@ -1126,7 +1130,6 @@ public class MyEvent {
 - QPS统计
   - 统计access.log
   - 在接口中用AtomicLong记录
-
 
 ## 常用类
 
@@ -1458,4 +1461,4 @@ public abstract class AbstractMultiThreadTestSimpleTemplate {
 [^9]: https://www.cnblogs.com/waterystone/p/4920797.html
 [^10]: https://tech.meituan.com/2016/06/24/java-hashmap.html (Java 8系列之重新认识HashMap)
 [^11]: https://www.cnblogs.com/peizhe123/p/5790252.html
-
+[^12]: https://blog.csdn.net/wangbaochu/article/details/48546717

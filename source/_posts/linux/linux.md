@@ -1195,7 +1195,6 @@ find -type f | xargs # xargs会在一行中打印出所有值
 for item in $(find -type f | xargs) ; do # 循环打印每个文件
     file $item
 done
-
 ```
 
 ### xrags

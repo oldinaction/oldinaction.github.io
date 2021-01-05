@@ -990,8 +990,9 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
 	```bash
 	# 默认驱动是mysql，但是如果使用oracle需要指明驱动(oracle.jdbc.driver.OracleDriver)，否则打包后运行出错
 	spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-	# 端口默认3306可以省略。使用mysql-connector-java v8.0.0以上则必须加serverTimezone
-	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?serverTimezone=Asia/Shanghai&useUnicode=true&useSSL=false&characterEncoding=utf8
+	# 端口默认3306可以省略
+    # 使用mysql-connector-java v8.0.0以上则必须加serverTimezone; zeroDateTimeBehavior解决日期值为0000-00-00 00:00:00的数据(mysql最小日期为1900-01-01 00:00:00，全部为0会报错)
+	spring.datasource.url=jdbc:mysql://localhost:3306/springboot?serverTimezone=Asia/Shanghai&useUnicode=true&useSSL=false&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
 	spring.datasource.username=root
 	spring.datasource.password=root
 	# springboot连接池默认使用的是tomcat-jdbc-pool，在处理utf8mb4类型数据(Emoji表情、生僻汉字。uft8默认只能存储1-3个字节的汉字，上述是4个字节)的时候，需要大致两步
@@ -2183,6 +2184,58 @@ public interface ISubscribeService extends IService<Subscribe> {
 ### 整合swagger
 
 参考[/_posts/arch/swagger.md#springboot中使用](/_posts/arch/swagger.md#springboot中使用)
+
+### 邮件操作
+
+- 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+```
+- application.yml
+
+```yml
+# email
+spring:
+  mail:
+    host: smtp.mxhichina.com
+    username: it@uni-log.com.cn
+    password: Java1204
+# 设置为SSL协议
+spring.mail.properties.mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory
+# spring.mail.properties.from: your_email@163.com
+```
+- 发送
+
+```java
+@Autowired
+private JavaMailSender javaMailSender;
+
+// 简单邮件
+SimpleMailMessage mailMessage = new SimpleMailMessage();
+mailMessage.setFrom(mailUsername); // spring.mail.username 需要和 username 一致
+mailMessage.setTo(toStr.split(";"));
+mailMessage.setSubject(subject);
+mailMessage.setText(content);
+// mailMessage.setText(content, true); // 内容为html，可通过FTL等模板进行页面美化
+javaMailSender.send(mailMessage);
+
+// 复杂邮件
+MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+// MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
+messageHelper.setFrom(mailUsername);
+messageHelper.setTo(toStr.split(";"));
+messageHelper.setSubject(subject);
+messageHelper.setText(content);
+// messageHelper.setText(content, true);
+messageHelper.addInline("hello.png", new File("/data/hello.png"));
+messageHelper.addAttachment("hello.docx", new File("/data/hello.docx"));
+mailSender.send(mimeMessage);
+```
 
 ## 其他
 
