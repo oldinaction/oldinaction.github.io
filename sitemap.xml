@@ -2,16 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     
-    <lastmod>2020-12-27T06:43:54.686Z</lastmod>
+    <lastmod>2021-01-05T12:19:30.222Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-01-05T10:36:59.504Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-01-05T09:43:44.565Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    
+    <lastmod>2021-01-05T07:54:26.794Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
     
-    <lastmod>2020-12-24T05:51:32.026Z</lastmod>
+    <lastmod>2021-01-05T07:08:34.465Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2020-12-27T06:43:54.686Z</lastmod>
     
   </url>
   
@@ -33,13 +61,6 @@
     <loc>http://blog.aezo.cn/2020/08/26/java/java-http/</loc>
     
     <lastmod>2020-12-23T04:11:50.687Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2020-12-23T04:00:54.075Z</lastmod>
     
   </url>
   
@@ -114,13 +135,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2020-12-21T04:07:50.582Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     
     <lastmod>2020-12-21T04:01:27.151Z</lastmod>
@@ -156,23 +170,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    
-    <lastmod>2020-12-18T01:57:12.234Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/10/22/java/thymeleaf/</loc>
     
     <lastmod>2020-12-18T01:57:00.573Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
-    
-    <lastmod>2020-12-18T01:56:57.184Z</lastmod>
     
   </url>
   

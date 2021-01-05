@@ -4,6 +4,108 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
+    <lastmod>2021-01-05T12:19:30.222Z</lastmod>
+    <data>
+        <display>
+        <title>Velocity</title>
+        <pubTime>2020-12-16T12:03:00.000Z</pubTime>
+        
+        <tag>template</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    <lastmod>2021-01-05T10:36:59.504Z</lastmod>
+    <data>
+        <display>
+        <title>SpringBoot</title>
+        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
+        
+        <tag>spring</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    <lastmod>2021-01-05T09:43:44.565Z</lastmod>
+    <data>
+        <display>
+        <title>linux系统</title>
+        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>shell</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
+    <lastmod>2021-01-05T07:54:26.794Z</lastmod>
+    <data>
+        <display>
+        <title>并发编程</title>
+        <pubTime>2018-12-05T06:28:00.000Z</pubTime>
+        
+        <tag>concurrence</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    <lastmod>2021-01-05T07:08:34.465Z</lastmod>
+    <data>
+        <display>
+        <title>Java Tools</title>
+        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
+        
+        <tag>tools</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
     <lastmod>2020-12-27T06:43:54.686Z</lastmod>
     <data>
@@ -19,26 +121,6 @@
            
              
               <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    <lastmod>2020-12-24T05:51:32.026Z</lastmod>
-    <data>
-        <display>
-        <title>Java Tools</title>
-        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
-        
-        <tag>tools</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -94,26 +176,6 @@
         <pubTime>2020-08-26T09:24:00.000Z</pubTime>
         
         <tag>http</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    <lastmod>2020-12-23T04:00:54.075Z</lastmod>
-    <data>
-        <display>
-        <title>SpringBoot</title>
-        <pubTime>2017-07-23T07:05:00.000Z</pubTime>
-        
-        <tag>spring</tag>
          
          
            
@@ -287,9 +349,9 @@
         
         <tag>oracle</tag>
          
-        <tag>dba</tag>
-         
         <tag>sql</tag>
+         
+        <tag>dba</tag>
          
          
            
@@ -334,28 +396,6 @@
         <pubTime>2020-03-20T07:45:00.000Z</pubTime>
         
         <tag>安全</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    <lastmod>2020-12-21T04:07:50.582Z</lastmod>
-    <data>
-        <display>
-        <title>linux系统</title>
-        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>shell</tag>
          
          
            
@@ -480,52 +520,12 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
-    <lastmod>2020-12-18T01:57:12.234Z</lastmod>
-    <data>
-        <display>
-        <title>并发编程</title>
-        <pubTime>2018-12-05T06:28:00.000Z</pubTime>
-        
-        <tag>concurrence</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2017/10/22/java/thymeleaf/</loc>
     <lastmod>2020-12-18T01:57:00.573Z</lastmod>
     <data>
         <display>
         <title>Thymeleaf</title>
         <pubTime>2017-10-22T03:41:00.000Z</pubTime>
-        
-        <tag>template</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
-    <lastmod>2020-12-18T01:56:57.184Z</lastmod>
-    <data>
-        <display>
-        <title>Velocity</title>
-        <pubTime>2020-12-16T12:03:00.000Z</pubTime>
         
         <tag>template</tag>
          
