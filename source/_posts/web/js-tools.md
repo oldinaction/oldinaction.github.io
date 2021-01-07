@@ -189,6 +189,22 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 ## UI库
 
+### Element-UI
+
+- el-drawer
+
+- 防止整个页面被遮住。modal-append-to-body的使用：遮罩层是否插入至 body 元素上，若为 false，则遮罩层会插入至 Drawer 的父元素上
+
+```html
+<template>
+  <div>
+    <el-drawer title="我是标题" :visible="show" :modal-append-to-body="false">
+      body
+    </el-drawer>
+  </div>
+</template>
+```
+
 ### Avue
 
 - [官网](https://avuejs.com)

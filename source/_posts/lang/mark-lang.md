@@ -8,6 +8,8 @@ tags: [yaml, json]
 
 ## yaml
 
+- 参考 [Yaml解析(基于jyaml)](/_posts/java/java-tools.md#Yaml解析(基于jyaml))
+- json-yaml互转工具：https://www.bejson.com/json/json2yaml
 - yaml多行配置规则参考：https://www.cnblogs.com/didispace/p/12524194.html
 
 ```yml
@@ -28,6 +30,40 @@ string: >
   Hello,
   World.
 ```
+
+## json
+
+- json格式校验工具：https://qqe2.com/
+- [json-path](https://github.com/json-path/JsonPath)：类似xpath获取json值
+- 正确的json字符串
+
+```json
+{
+    "name": "smalle",
+    "age": 18,
+    "hobbys": ["a", "b", 1]
+}
+
+[
+    {
+        "name": "smalle"
+    }, 
+    2
+]
+```
+- 错误的json字符串
+
+```js
+{
+    name: "smalle" // key必须要双引号。且json字符串不能有注释
+}
+
+{
+    "name": "smalle", // 此处不该有逗号
+}
+```
+
+## xpath
 
 
 

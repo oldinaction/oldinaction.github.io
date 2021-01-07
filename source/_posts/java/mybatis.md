@@ -947,7 +947,8 @@ mybatis-plus:
 List<Map<String, Object>> list = templateItemMapper.selectMaps(
                 new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
                     .eq(TemplateItem::getTemplateId, 1)
-                    .eq(TemplateItem::getTemplateId, templateId));
+                    .eq(TemplateItem::getTemplateId, templateId)
+                    .select(TemplateItem.class, x -> selectProps.contains(x.getProperty()))); // 仅获取部分字段
 List<Template> list2 = templateItemMapper.selectByMap(map); // 参数 map 中的字段即为数据库的字段(如：user_id)，且不能有非数据库字段
 
 // ======== 基于 Service 进行访问

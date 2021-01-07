@@ -10,9 +10,9 @@ tags: tools
 
 > https://hutool.cn/docs/
 
-### Bean操作
+### Bean/JSON操作
 
-- Bean/Map/Json相互转化
+- Bean/Map/JSON相互转化
 
 ```java
 // ### Bean/Map <==> JSON; 深度拷贝
@@ -32,6 +32,12 @@ BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的
 BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
 
 // 仅拷贝部分属性，暂未找到相应方法，可重新定义一个仅有部分字段的Bean进行接收
+```
+- JSON
+
+```java
+// 根据路径获取值. 更强大的工具类：https://github.com/json-path/JsonPath 类似xpath获取json值
+JSONUtil.getByPath(JSONUtil.parse(map), "users[0].classInfo.name");
 ```
 
 ### 集合

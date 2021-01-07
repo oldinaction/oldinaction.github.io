@@ -838,7 +838,7 @@ props: {
         <Child ref="child" msg="hello child" @my-event="myEvent"></Child>
         
         <!--使用sync修饰符，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景-->
-        <Child ref="child" :msg.sync="hello" @my-event="myEvent"></Child>
+        <Child ref="child" :show.sync="show" @my-event="myEvent"></Child>
     </div>
 </template>
 
@@ -851,7 +851,8 @@ props: {
         },
         data() {
             return {
-                hello: ''
+                hello: '',
+                show: false
             }
         },
         methods: {
@@ -873,18 +874,33 @@ props: {
 
 <!-- child.vue -->
 <template>
-    <div>${msg}</div>
-    <button @click="triggerMyEvent('smalle')">触发子组件事件</button>
+    <Modal v-model="showView">
+        <div>${msg}</div>
+        <button @click="triggerMyEvent('msg')">触发子组件事件</button>
+    </Modal>
 </template>
 
 <script>
     export default {
         name: "child",
         // 组件定义好组件属性名称
-        props: ["count", "msg"],
+        props: ["count", "msg", "show"],
         data: () {
             return {
-                show: false
+                showView: false
+            }
+        },
+        watch: {
+            show (val) {
+                this.showView = val
+            },
+            showView (val) {
+                if (this.show != val) {
+                    this.$emit('update:show', val) // 必须触发 update:xxx 才能实现子组件中修改props(双向绑定)
+                }
+                if (val) {
+                    this.childMethod()
+                }
             }
         },
         methods: {
