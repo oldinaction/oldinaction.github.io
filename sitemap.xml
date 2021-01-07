@@ -2,6 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
+    
+    <lastmod>2021-01-07T13:44:25.807Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2021-01-07T13:11:01.236Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/21/lang/mark-lang/</loc>
+    
+    <lastmod>2021-01-07T07:04:07.774Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    
+    <lastmod>2021-01-07T07:03:28.580Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2021-01-06T14:31:24.729Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     
     <lastmod>2021-01-05T12:19:30.222Z</lastmod>
@@ -26,20 +61,6 @@
     <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
     
     <lastmod>2021-01-05T07:54:26.794Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    
-    <lastmod>2021-01-05T07:08:34.465Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    
-    <lastmod>2020-12-27T06:43:54.686Z</lastmod>
     
   </url>
   
@@ -219,13 +240,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2020-12-18T01:54:43.088Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/05/21/java/hibernate/</loc>
     
     <lastmod>2020-12-18T01:52:40.426Z</lastmod>
@@ -348,13 +362,6 @@
     <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
     
     <lastmod>2020-12-10T06:01:03.243Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
-    
-    <lastmod>2020-12-08T01:57:59.890Z</lastmod>
     
   </url>
   
