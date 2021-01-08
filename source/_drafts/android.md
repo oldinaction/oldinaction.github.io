@@ -8,6 +8,8 @@ tags: [android]
 
 ## 简介
 
+- 安卓模拟器：`Genymotion`
+
 ## 安装
 
 - 安装Android SDK(任意一种)

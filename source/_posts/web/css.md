@@ -12,6 +12,10 @@ tags: [css]
 
 ## CSS 知识点
 
+### BFC
+
+- https://www.cnblogs.com/heimanba/p/3774086.html
+
 ## CSS3 知识点
 
 - CSS3使用时一般带有私有前缀，对应关系如下
@@ -292,6 +296,33 @@ border-radius: 50%;
     100% {
         top: 20px
     }
+}
+```
+
+### 吸附效果(头部/底部导航)
+
+- position: sticky
+
+```css
+.sticky {
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+}
+```
+
+- position: fixed
+
+```css
+.top {
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+.bottom {
+    position: fixed;
+    left: 0;
+    bottom: 0;
 }
 ```
 

@@ -16,7 +16,10 @@ tags: [k8s, docker, cncf]
 - 简单安装
 
 ```bash
-# v2.5.3 硬件要求：4GB内存、Centos 7.5
+## v2.5.3 硬件要求：4GB内存、Centos 7.5
 sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged docker.mirrors.ustc.edu.cn/rancher/rancher:v2.5.3
 # 安装成功后访问：http://localhost 即可显示管理界面
+
+## 加入agent节点
+
 ```

@@ -208,7 +208,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 ### Avue
 
 - [官网](https://avuejs.com)
-- 内置函数(在vue组件中可直接使用this调用)
+- [内置函数(全局API，在vue组件中可直接使用this调用)](https://avuejs.com/doc/api)
     - validatenull 校验是否为空(`null/''/0/[]/{}`)
     - findObject 从数组中查找对象，如`this.findObject(this.formColumn, "parentId")`
     - vaildData 校验，如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
