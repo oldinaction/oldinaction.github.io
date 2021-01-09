@@ -29,9 +29,15 @@ tags: [springboot, vue]
 
 ## 跨域和session/token
 
+### http/https
+
+- http进行访问无限制
+- https进行访问时，不能使用http，包括请求后台/获取静态资源/iframe-src
+    - 主页面为http访问，主页面嵌入的iframe页面src为https(ip和端口同主页面)，在iframe嵌入的系统内通过`window.parent.frames['iframe-id']`获取时，会产生跨域(因为iframe为主页面元素，在嵌入的系统内通过`window.location.href`获取的是浏览器地址)
+
 ### 同源政策
 
-- 网络协议、ip、端口三者都相同就是同一个域(同源)
+- **网络协议(http/https)、ip、端口三者都相同就是同一个域(同源)**
     - 如`http://localhsot`和`http://localhsot:8080`之间进行数据交互就存在跨域问题（localhost 和 127.0.0.1 不一样）
 - 浏览器"同源政策"限制(针对不同源情况) [^2] [^8]
     - `Cookie、LocalStorage 和 IndexDB 无法读取`

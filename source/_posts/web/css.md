@@ -103,6 +103,18 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 @media (max-width: 767px) { /* <=768的设备 */ }
 ```
 
+### cacl计算
+
+- 需要注意的是，运算符前后都需要保留一个空格
+- 支持+、-、*、/
+
+```css
+.box {
+    width: calc(100% - 10px);
+    height: calc(100vh - 120px); /* 高度用可视高度，而不能用 100% */
+}
+```
+
 ## 响应式
 
 ### vm/rpx/rem
