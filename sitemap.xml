@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    
+    <lastmod>2021-01-11T08:55:13.393Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2021-01-11T08:53:05.731Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2021-01-09T07:26:35.742Z</lastmod>
@@ -12,13 +26,6 @@
     <loc>http://blog.aezo.cn/2018/08/22/web/css/</loc>
     
     <lastmod>2021-01-09T04:41:40.459Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    
-    <lastmod>2021-01-08T13:35:33.525Z</lastmod>
     
   </url>
   
@@ -397,13 +404,6 @@
     <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
     
     <lastmod>2020-11-27T02:36:50.924Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    
-    <lastmod>2020-11-26T11:34:35.239Z</lastmod>
     
   </url>
   
