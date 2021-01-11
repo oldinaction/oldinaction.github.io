@@ -232,9 +232,6 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 - 一款基于Vue的表格插件，支持大量数据渲染，编辑表格等功能
 - [github](https://github.com/x-extends/vxe-table)、[doc](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/start/install)
-
-#### 案例
-
 - 表格显示/隐藏后样式丢失问题
   - `sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
 - 多选 + 修改页面表格数据(仅修改页面数据)
@@ -275,6 +272,110 @@ checkboxChange(table, event) {
     // "row"(当前选中或取消选中行), "checked"(操作完当前行后的选中状态), "items"(所有行数据), "data"(所有行数据), "records"(目前选中的所有行数据), "selection"(目前选中的所有行数据)
     // "$table", "$grid", "$event", "reserves", "indeterminates", "$seq", "seq", "rowid", "rowIndex", "$rowIndex", "column", "columnIndex", "$columnIndex", "_columnIndex", "fixed", "type", "isHidden", "level", "visibleData", "cell"
 }
+```
+- 可编辑表格
+
+```html
+<!-- 
+edit-config: 
+    manual 手动触发+监听cell-dblclick双击事件
+    showStatus 展示修改状态，左上角红色小角标
+    mode 修改时，默认整行转成可编辑状态
+    autoClear 自动保存(关闭修改) => input类型的需要配合 immediate: true
+ -->
+<vxe-table
+    ref="table"
+    border
+    resizable
+    show-overflow
+    keep-source
+    row-id="id"
+    :loading="loading"
+    @scroll="scroll"
+    @checkbox-change="checkboxChange"
+    @cell-dblclick="data => editRow(data.row)"
+    :checkbox-config="{ checkMethod: checkMethod }"
+    :edit-config="{ trigger: 'manual', mode: 'row', showStatus: true, autoClear: false }"
+    @edit-actived="data => (data.row.editingMode = true)"
+    @edit-closed="data => (data.row.editingMode = false)"
+>
+    <vxe-table-column v-if="feeItemEdit" title="操作" width="80">
+    <template v-slot="{ row }">
+        <Button
+            v-if="!row.editingMode"
+            @click="editRow(row)"
+            size="small"
+            icon="ios-create"
+            shape="circle"
+            style="margin-right:5px;"
+        ></Button>
+        <Button
+            v-if="row.editingMode"
+            @click="saveRow([row])"
+            type="primary"
+            size="small"
+            icon="md-checkmark"
+            shape="circle"
+            style="margin-right:5px;"
+        ></Button>
+        <Button v-if="!row.editingMode" @click="deleteMulti(row)" size="small" icon="ios-trash" shape="circle"></Button>
+        <Button v-if="row.editingMode" @click="cancelRow(row)" type="warning" size="small" icon="md-close" shape="circle"></Button>
+    </template>
+    </vxe-table-column>
+
+    <vxe-table-column description="结算客户" field="bizClearingCustomerId" :title="$t('customer_name1')" width="300" :edit-render="{}">
+        <template v-slot:edit="scope">
+            <Select
+            :ref="'bccn' + scope.row.id"
+            v-model="scope.row.bizClearingCustomerId"
+            @on-change="
+                () => {
+                scope.row.bizClearingCustomerName = getSelectFilterableLabel(scope.row.bizClearingCustomerId, dictMap.customerList)
+                $refs.table.updateStatus(scope)
+                }
+            "
+            transfer
+            filterable
+            :remote-method="clearingCustomerRemote"
+            >
+            <Option v-for="item in dictMap.customerList" :value="item.value" :label="item.label" :key="item.value">
+                <span v-if="item.customerNo">{{ item.customerNo }}：</span>
+                {{ item.label }}
+            </Option>
+            </Select>
+        </template>
+        <template v-slot="{ row }">{{ row.bizClearingCustomerName }}</template>
+    </vxe-table-column>
+    <vxe-table-column field="feeCurrentRate" title="汇率" width="90" :edit-render="{ name: 'input', immediate: true }"></vxe-table-column>
+</vxe-table>
+
+<script>
+editRow(row) {
+    if (!this.checkRow()) return false
+    this.$refs.table.setActiveRow(row).then(() => {
+        // 远程搜索解决方案
+        this.$refs['bccn' + row.id].setQuery(row.bizClearingCustomerName)
+    })
+},
+cancelRow() {
+    const table = this.$refs.table
+    table.clearActived().then(() => {
+        table.revertData()
+    })
+},
+checkRow() {
+    const { insertRecords, updateRecords } = this.$refs.table.getRecordset()
+    if (insertRecords.length > 0 || updateRecords.length > 0) {
+        this.$Message.warning('您有待保存数据，请先保存')
+        return false
+    }
+    return true
+},
+getSelectFilterableLabel(value, list, valueProp = 'value', labelField = 'label') {
+    const item = XEUtils.find(list, item => item[valueProp] == value)
+    return item ? item[labelField] : null
+}
+</script>
 ```
 
 ## 底层硬件库

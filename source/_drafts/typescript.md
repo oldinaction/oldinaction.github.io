@@ -211,7 +211,7 @@ declare namespace PersonLog.Options {
             }
         }
         ```
-    - vue的javascript语法转typescript语法异同：https://www.cnblogs.com/wenxinsj/p/13297155.html
+    - **vue的javascript语法转typescript语法异同**：https://www.cnblogs.com/wenxinsj/p/13297155.html
 - Vue组件script标签引入模块
 
 ```html
