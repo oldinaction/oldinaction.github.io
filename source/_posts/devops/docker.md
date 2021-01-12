@@ -18,9 +18,12 @@ tags: [docker, arch]
 - 国内镜像
 
     ```bash
-    ## 设置镜像(无需重启docker)
-    vi /etc/docker/daemon.json
+    ## 设置镜像，docker-compose拉取镜像时可生效
+    vi /etc/docker/daemon.json # 加入下文配置
     {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}
+    # 重启
+    sudo systemctl daemon-reload
+	sudo systemctl restart docker
 
     ## docker.io镜像加速。参考：https://juejin.im/post/5cd2cf01f265da0374189441
     # 中科大 `docker.mirrors.ustc.edu.cn`；网易 `hub-mirror.c.163.com`；阿里云私有加速器(只有部分镜像) `bzyep49h.mirror.aliyuncs.com`

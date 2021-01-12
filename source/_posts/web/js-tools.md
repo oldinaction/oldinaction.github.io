@@ -210,7 +210,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 - [官网](https://avuejs.com)
 - [内置函数(全局API，在vue组件中可直接使用this调用)](https://avuejs.com/doc/api)
     - validatenull 校验是否为空(`null/''/0/[]/{}`)
-    - findObject 从数组中查找对象，如`this.findObject(this.formColumn, "parentId")`
+    - findObject 从数组中查找对象，如`const parentIdProp = this.findObject(this.formColumn/this.crudOption.column, "parentId")`
     - vaildData 校验，如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
     - $Print
     - $Clipboard
@@ -227,6 +227,8 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     - loadScript
     - watermark
     - asyncValidator
+- 获取ref
+    - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
 
 ### vxe-table
 

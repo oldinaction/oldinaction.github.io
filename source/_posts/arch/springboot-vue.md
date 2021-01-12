@@ -248,15 +248,26 @@ export default {
             // formData.append("myFiles[1]", this.file)
 
             /*
-            // 重新定义一个axios实例，并挂载到Vue原型上。此处重新定义是防止使用项目中默认的axios实例(一般会通过axios.interceptors.request.use进行处理，而处理后的实例在上传时后台会报错：no multipart boundary was found，然而后台本身是没有问题)
+            // 或重新定义一个axios实例，并挂载到Vue原型上。此处重新定义是防止使用项目中默认的axios实例(一般会通过axios.interceptors.request.use进行处理，而处理后的实例在上传时后台会报错：no multipart boundary was found，然而后台本身是没有问题)
             export const uploadAxios = axios.create({
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'access_token': Cookies.get('access_token'),
                 }
             })
-            */
             this.$uploadAxios.post("http://localost:8080/order/upload", formData).then((resp) => {}) 
+            */
+            this.$axios.post(url, param, { 'Content-Type': 'multipart/form-data' });
+            // 或
+            this.$axios({
+                url: "http://localost:8080/order/upload",
+                method: 'post',
+                // 全局定义的headers(access_token)最终也会注入
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                data: formData
+            }).then((resp) => {})
 
             /*
             // 如果是multipart/form-data，请求参数会自动增加 boundary=...
@@ -333,7 +344,7 @@ export default {
 @RestController
 @RequestMapping("/order")
 public class OrderController {
-    // 以下参数全部可以获取到值。由于请求类型为 multipart/form-data(是基于@RequestParam的方式接受参数), 因此无法通过 Map 来接受参数
+    // 以下参数全部可以获取到值。由于请求类型为 multipart/form-data(是基于@RequestParam的方式接受参数), ***因此无法通过 Map 来接受参数***
     @RequestMapping("/upload")
     public Result upload(MultipartFile myFile, MultipartFile[] myFiles, List<MultipartFile> myFileList, Order order) {
         return Result.success();
@@ -379,7 +390,7 @@ public class Order implements Serializable {
     private Long id;
     private BigDecimal feeAmount;
     private LocalDateTime createTm; // LocalDateTime格式化参考 [请求参数字段映射](#请求参数字段映射)
-    private MultipartFile file;
+    private MultipartFile file; // 也可获取到文件
     private String filePath; // 用于保存文件后，回传文件路径
     List<OrderItem> items; // OrderItem 略
     private MultipartFile[] files;
