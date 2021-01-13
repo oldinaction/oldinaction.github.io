@@ -663,7 +663,7 @@ public static class StringToLocalDateTimeConverter implements Converter<String, 
             return null;
         }
         return DateUtil.parseLocalDateTime(source.trim());
-        // return LocalDateTimeUtils.convert(source.trim()); // 转换工具见下文
+        // return LocalDateTimeUtils.convert(source.trim()); // 或使用下文转换类
     }
 }
 // 注入转换器方式二

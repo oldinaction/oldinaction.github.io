@@ -394,6 +394,11 @@ http {
     #开启限制IP连接数的时候需要使用
     #limit_zone crawler $binary_remote_addr 10m;
 
+    # Load modular configuration files from the /etc/nginx/conf.d directory.
+    # See http://nginx.org/en/docs/ngx_core_module.html#include
+    # for more information.
+    include /etc/nginx/conf.d/*.conf;
+
     upstream backend {
         #upstream的负载均衡，weight是权重，可以根据机器配置定义权重。weigth参数表示权值，权值越高被分配到的几率越大，可以省略。
         server 192.168.80.121:80 weight=3;
@@ -405,6 +410,9 @@ http {
     server {
         listen 80;
         server_name hello.aezo.cn;
+        
+        # Load configuration files for the default server block.
+        include /etc/nginx/default.d/*.conf;
 
         # location = / {...} 和 location / {...} 联合使用，可以达到访问 hello.aezo.cn/xxx/ 转到 /pc/xxx/。而访问 test.aezo.cn/xxx/ 可同理转到如 /test/xxx/
         location = / {

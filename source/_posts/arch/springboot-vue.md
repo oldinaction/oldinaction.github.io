@@ -237,7 +237,7 @@ export default {
                 files: [this.file, this.file],
                 fileList: [this.file, this.file]
             }
-            const formData = this.jsonToFormData(this.editForm) // 将json格式转成FormData格式，见下文。或者使用 qs 插件格式化
+            const formData = this.convertToFormData(this.editForm) // 将json格式转成FormData格式，见下文。或者使用 qs 插件格式化
             formData.append("myFile", this.file)
             formData.append("myFiles", this.file)
             formData.append("myFiles", this.file)
@@ -317,7 +317,7 @@ export default {
             null
             */
         },
-        jsonToFormData(data) {
+        convertToFormData(data) {
             function buildFormData(formData, data, parentKey) {
                 if (data && typeof data === 'object' && !(data instanceof Date) && !(data instanceof File)) {
                     Object.keys(data).forEach(key => {
@@ -389,8 +389,8 @@ public class OrderController {
 public class Order implements Serializable {
     private Long id;
     private BigDecimal feeAmount;
-    private LocalDateTime createTm; // LocalDateTime格式化参考 [请求参数字段映射](#请求参数字段映射)
-    private MultipartFile file; // 也可获取到文件
+    private LocalDateTime createTm; // LocalDateTime格式化参考 [springboot.md#请求参数字段映射](/_posts/java/springboot.md#请求参数字段映射)
+    private MultipartFile file; // 也可获取到文件，下同
     private String filePath; // 用于保存文件后，回传文件路径
     List<OrderItem> items; // OrderItem 略
     private MultipartFile[] files;

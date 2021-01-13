@@ -72,8 +72,16 @@ tags: [docker, arch]
         - 打开VirtualBox，删除default原有的磁盘，然后添加新磁盘指向D:/data/docker/disk.vmdk
     - windows命令行运行docker命令提示无此命令，可将`D:\software\Docker Toolbox`加入到Path中
 - linux
-    - `yum install docker` 安装
-        - 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存。参考下文volume命令相关内容
+
+    ```bash
+    yum install docker # 安装
+
+    # 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存
+    vi /etc/docker/daemon.json
+    {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"], "graph": "/data/docker", "dns" : ["114.114.114.114", "8.8.8.8"]}
+    # 重启
+    sudo systemctl daemon-reload && sudo systemctl restart docker
+    ```
     - ubuntu安装
         
         ```bash
@@ -498,6 +506,7 @@ consul members
       bundle             Generate a Docker bundle from the Compose file
       config             Validate and view the Compose file # 校验配置文件语法格式
       create             Create services
+        # 创建容器，之后执行start启动容器(docker-compose up -d则会自动创建和启动)
       down               Stop and remove containers, networks, images, and volumes
       events             Receive real time events from containers
       exec               Execute a command in a running container
@@ -514,6 +523,7 @@ consul members
       restart            Restart services  # 重启服务。**不管compose配置文件是否修改，重启都不会重新创建容器**
       rm                 Remove stopped containers # 删除老旧的服务（docker-compose rm my_service_name）
       run                Run a one-off command
+        # docker-compose run my_service_name bash # 可进入到容器中，对于一些启动失败的可以通过此方式调试
       scale              Set number of containers for a service
       start              Start services # 启动服务(如docker-compose.yml有多个服务时，可以只运行其中一个，docker-compose start my_service_name)
       stop               Stop services # 停止服务，类似启动
