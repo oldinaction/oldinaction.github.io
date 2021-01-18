@@ -230,6 +230,100 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 - 获取ref
     - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
 
+### 原理介绍
+
+- 目录结构
+
+```bash
+packages # 实际重写组件目录
+    core
+        common/porps.js # 通用 vue 属性，最终会被mixins
+        common/event.js # 通用事件，最终会被mixins
+        common/locale.js # 国际化，最终会被mixins
+        components/form/index.vue # 表单组件动态判断(临时)，最终会引入avue-form(如：element-ui/form)
+        components/form/index.vue
+    element-ui # 基于 element-ui 框架重写的组件目录
+        crud # avue-crud 组件
+            column.vue # 表格列组件：动态组件列 dynamic-column，其他组件列 el-table-column
+        form # avue-form 组件
+        upload # 文件上传组件
+    vant # 基于 vant 框架
+src
+```
+- packages/element-ui/upload/index.vue
+
+```html
+<template>
+  <!-- bem函数，基于组件名生成组件顶级class -->
+  <div :class="b()"
+       v-loading.lock="loading">
+    <el-upload :class="b({'list':listType=='picture-img','upload':disabled})"
+        ...
+    </el-upload>
+  </div>
+</template>
+
+<script>
+import create from "core/create"; // 创建组件方法，可基于此方法再次混入功能，也可修改给组件名增加前缀
+import props from "../../core/common/props.js"; // 混入 vue 通用属性
+import event from "../../core/common/event.js"; // 混入通用事件
+import locale from "../../core/common/locale"; // 混入国际化功能
+import upload from '../../core/common/upload' // 混入上传功能
+export default create({
+  name: "upload",
+  mixins: [props(), event(), upload(), locale],
+  data () {
+    return {
+      menu: false,
+    };
+  }
+});
+</script>
+```
+- 混入功能举例说明
+
+```js
+// packages/core/common/props.js
+watch: {
+    // 所有组件都有一个text属性，当text属性变化后调用 handleChange 方法（event.js，见下文），在 handleChange 中最后触发了 input 事件，从而监听到 value 属性变化，调用 initVal 进行实际值处理（如传入参数为逗号分割的字符串，可经过此初始化变成数组）
+    text: {
+        handler (n, o) {
+            this.handleChange(n)
+        }
+    },
+    value: {
+        handler (n, o) {
+            this.initVal();
+        }
+    }
+},
+
+// packages/core/common/event.js
+initVal () {
+    this.text = initVal({
+        type: this.type,
+        multiple: this.multiple,
+        dataType: this.dataType,
+        value: this.value,
+        separator: this.separator,
+        callback: (result) => {
+            this.stringMode = result;
+        }
+    });
+},
+handleChange (value) {
+    let result = value;
+    if (this.isString || this.isNumber || this.stringMode || this.listType === "picture-img") {
+        if (Array.isArray(value)) result = value.join(',')
+    }
+    if (typeof this.change === 'function' && this.column.cell !== true) {
+        this.change({ value: result, column: this.column });
+    }
+    this.$emit('input', result);
+    this.$emit('change', result);
+}
+```
+
 ### vxe-table
 
 - 一款基于Vue的表格插件，支持大量数据渲染，编辑表格等功能

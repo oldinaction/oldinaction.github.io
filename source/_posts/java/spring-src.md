@@ -189,6 +189,9 @@ protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
         - ModelAttributeMethodProcessor
             - ServletModelAttributeMethodProcessor 处理无注解的普通Bean
         - RequestResponseBodyMethodProcessor **处理 @RequestBody 注解的参数**(数据在请求body中，常见的会定义body数据格式为application/json，最终通过 AbstractJackson2HttpMessageConverter 解析)
+- org.springframework.web.bind
+    - WebDataBinder 解析参数时，对request参数绑定到方法参数中
+        - ServletRequestDataBinder
 - org.springframework.beans
     - TypeConverterDelegate 类型转换代理
 - org.springframework.core
@@ -217,15 +220,27 @@ public Result hello(MultipartFile file, Person person) {
 @Nullable
 public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer, Object... providedArgs) throws Exception {
     // 解析controller的方法(hello)参数
-    // MethodParameter[] parameters = this.getMethodParameters(); // 获取controller的方法参数列表
-    // if (this.argumentResolvers.supportsParameter(parameter)) // 具体参考B、C类的部分源码
-        /* this.argumentResolvers (属于 HandlerMethodArgumentResolverComposite 类，组合模式，包含多个 HandlerMethodArgumentResolver 解析器) 获取当前类的参数解析器。此次Debug场景有26个，具体见下文注释 */
-        /* 每个解析器实现了 HandlerMethodArgumentResolver 接口的 supportsParameter 方法，来判断是否至此此参数的解析。如下文的 RequestParamMethodArgumentResolver 示例 */
-    Object[] args = this.getMethodArgumentValues(request, mavContainer, providedArgs);
+    MethodParameter[] parameters = this.getMethodParameters(); // 获取controller的方法参数列表
+
+    // getMethodParameters 流程如下
+    {
+        Object[] args = this.getMethodArgumentValues(request, mavContainer, providedArgs); // 获取参数值
+        // getMethodArgumentValues 流程如下
+        {
+            /*
+                this.argumentResolvers (属于 HandlerMethodArgumentResolverComposite 类，组合模式，包含多个 HandlerMethodArgumentResolver 解析器) 获取当前类的参数解析器。此次Debug场景有26个，具体见下文注释
+                每个解析器实现了 HandlerMethodArgumentResolver 接口的 supportsParameter 方法，来判断是否至此此参数的解析。如下文的 RequestParamMethodArgumentResolver 示例
+            */
+            if (this.argumentResolvers.supportsParameter(parameter)) // 判断是否有支持的解析器，具体参考B、C类的部分源码
+                // 如果请求类型是`multipart/form-data`，则数据是在body体中，当通过拦截器拦截body时，不要拦截此类型的请求，否则后面controller将获取不到数据。
+                this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory); // 解析参数，即注入参数值
+        }
+    }
+
     /* 上文注释
     HandlerMethodArgumentResolver 接口方法： supportsParameter, resolveArgument
     result = {LinkedList@13410}  size = 26
-        0 = {RequestParamMethodArgumentResolver@13502}              ==> @RequestParam
+        0 = {RequestParamMethodArgumentResolver@13502}              ==> @RequestParam，可解析 Multipart 类型参数，但是 Bean 属性为 Multipart 则不会走此解析器
         1 = {RequestParamMapMethodArgumentResolver@13503} 
         2 = {PathVariableMethodArgumentResolver@13504}              ==> @PathVariable
         3 = {PathVariableMapMethodArgumentResolver@13505} 
@@ -250,13 +265,14 @@ public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewC
         22 = {SessionStatusMethodArgumentResolver@13524} 
         23 = {UriComponentsBuilderMethodArgumentResolver@13525} 
         24 = {RequestParamMethodArgumentResolver@13526}             ==> @RequestParam
-        25 = {ServletModelAttributeMethodProcessor@13527}           ==> @ModelAttribute，也可以解析无注解的Person等Bean (第6个不会解析)
+        25 = {ServletModelAttributeMethodProcessor@13527}           ==> @ModelAttribute(包含前端视图对象)，也可以解析无注解的Person等简单Bean (第6个不会解析)
     */
 
     if (this.logger.isTraceEnabled()) {
         this.logger.trace("Arguments: " + Arrays.toString(args));
     }
 
+    // 调用方法
     return this.doInvoke(args);
 }
 
@@ -277,6 +293,7 @@ public boolean supportsParameter(MethodParameter parameter) {
     } else {
         parameter = parameter.nestedIfOptional();
         // 是否为 Multipart 类型参数：MultipartFile/Part、isMultipartFileCollection/isPartCollection、isMultipartFileArray/isPartArray
+        // 如果 User 对象的属性包含上述 MultipartFile 等类型时，此解析也不会进行处理
         if (MultipartResolutionDelegate.isMultipartArgument(parameter)) {
             return true;
         } else {
@@ -284,7 +301,7 @@ public boolean supportsParameter(MethodParameter parameter) {
         }
     }
 }
-// 解析参数。主要基于父类 AbstractNamedValueMethodArgumentResolver 实现
+// 解析方法参数名。主要基于父类 AbstractNamedValueMethodArgumentResolver 实现
 @Nullable
 protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
     HttpServletRequest servletRequest = (HttpServletRequest)request.getNativeRequest(HttpServletRequest.class);

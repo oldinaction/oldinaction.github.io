@@ -169,6 +169,16 @@ export default {
     }
 }
 ```
+- onLaunch同步
+
+```js
+async onLaunch() {
+    await this.initData();
+},
+methods: {
+    async initData() {}
+}
+```
 
 ## 小技巧
 
@@ -182,7 +192,7 @@ export default {
 - **多环境编译问题**
     - 使用XBuilder开发(一些依赖安装在HBuilder中)
         - 点击运行获取到的`process.env.NODE_ENV = 'development'`，点击发行获取到的是production
-            - HBuilder中点击运行或发行便会把此环境对应的API地址编译成微信小程序代码，之后小程序上传的便是此时编译的地址(微信小程序中无法获取process.env.NODE_ENV)。因此发布线上小程序需要点击发行
+            - HBuilder中点击运行或发行便会把此环境对应的API地址编译成微信小程序代码，之后小程序上传的便是此时编译的地址(微信小程序中无法获取process.env.NODE_ENV)。因此发布线上小程序需要点击XBuilder发行
         - 增加编译时的环境变量或使用cross-env定义script，参考上文[文件-package.json](#文件)
     - 使用vscode等开发(vue-cli创建项目，依赖全部安装在项目中)
         - 使用cross-env定义script
@@ -205,6 +215,7 @@ export default {
 - 路径问题
     - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
 - H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#文件)
+- web-view使用参考[weixin.md#web-view开发](/_posts/web/weixin.md#web-view开发)
 
 ## uView插件
 

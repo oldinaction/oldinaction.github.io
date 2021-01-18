@@ -203,6 +203,7 @@ function getParentUrl() {
 
 ### 文件上传案例
 
+- **请求类型必须是`multipart/form-data`，因此数据是在body体中，当通过拦截器拦截body时，不要拦截此类型的请求，否则后面controller将获取不到数据。**参考[spring.md#拦截response的数据](/_posts/java/spring.md#拦截response的数据)
 - 手动上传，和其他Bean字段一起提交
 - 前台代码(vue + iview)
 
@@ -248,14 +249,14 @@ export default {
             // formData.append("myFiles[1]", this.file)
 
             /*
-            // 或重新定义一个axios实例，并挂载到Vue原型上。此处重新定义是防止使用项目中默认的axios实例(一般会通过axios.interceptors.request.use进行处理，而处理后的实例在上传时后台会报错：no multipart boundary was found，然而后台本身是没有问题)
-            export const uploadAxios = axios.create({
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'access_token': Cookies.get('access_token'),
-                }
-            })
-            this.$uploadAxios.post("http://localost:8080/order/upload", formData).then((resp) => {}) 
+                // 或重新定义一个axios实例，并挂载到Vue原型上。此处重新定义是防止使用项目中默认的axios实例(一般会通过axios.interceptors.request.use进行处理，而处理后的实例在上传时后台会报错：no multipart boundary was found，然而后台本身是没有问题)
+                export const uploadAxios = axios.create({
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'access_token': Cookies.get('access_token'),
+                    }
+                })
+                this.$uploadAxios.post("http://localost:8080/order/upload", formData).then((resp) => {}) 
             */
             this.$axios.post(url, param, { 'Content-Type': 'multipart/form-data' });
             // 或
@@ -270,51 +271,51 @@ export default {
             }).then((resp) => {})
 
             /*
-            // 如果是multipart/form-data，请求参数会自动增加 boundary=...
-            // Content-Type: multipart/form-data; boundary=----WebKitFormBoundarybSHF77IaICmNerQk
+                // 如果是multipart/form-data，请求参数会自动增加 boundary=...
+                // Content-Type: multipart/form-data; boundary=----WebKitFormBoundarybSHF77IaICmNerQk
 
-            // 请求时 formData 在chrome中格式化显示成
-            id: 1
-            feeAmount: 
-            createTm: 2000-01-01 00:00:00
-            file: (binary)
-            items[0].itemId: 1
-            items[1].itemId: 2
-            files[0]: (binary)
-            files[1]: (binary)
-            fileList[0]: (binary)
-            fileList[1]: (binary)
-            myFile: (binary)
-            myFiles: (binary)
-            myFiles: (binary)
-            myFileList: (binary)
-            myFileList: (binary)
-            
-            // 请求时 formData 在chrome中部分源码显示
-            ------WebKitFormBoundarybSHF77IaICmNerQk
-            Content-Disposition: form-data; name="id"
+                // 请求时 formData 在chrome中格式化显示成
+                id: 1
+                feeAmount: 
+                createTm: 2000-01-01 00:00:00
+                file: (binary)
+                items[0].itemId: 1
+                items[1].itemId: 2
+                files[0]: (binary)
+                files[1]: (binary)
+                fileList[0]: (binary)
+                fileList[1]: (binary)
+                myFile: (binary)
+                myFiles: (binary)
+                myFiles: (binary)
+                myFileList: (binary)
+                myFileList: (binary)
+                
+                // 请求时 formData 在chrome中部分源码显示
+                ------WebKitFormBoundarybSHF77IaICmNerQk
+                Content-Disposition: form-data; name="id"
 
-            1
-            ------WebKitFormBoundarybSHF77IaICmNerQk
-            Content-Disposition: form-data; name="files[0]"
-
-
-            ------WebKitFormBoundarybSHF77IaICmNerQk
-            Content-Disposition: form-data; name="files[1]"
+                1
+                ------WebKitFormBoundarybSHF77IaICmNerQk
+                Content-Disposition: form-data; name="files[0]"
 
 
-            ------WebKitFormBoundarybSHF77IaICmNerQk
-            Content-Disposition: form-data; name="myFile"
+                ------WebKitFormBoundarybSHF77IaICmNerQk
+                Content-Disposition: form-data; name="files[1]"
 
-            null
-            ------WebKitFormBoundarybSHF77IaICmNerQk
-            Content-Disposition: form-data; name="myFiles"
 
-            null
-            ------WebKitFormBoundarybSHF77IaICmNerQk
-            Content-Disposition: form-data; name="myFiles"
+                ------WebKitFormBoundarybSHF77IaICmNerQk
+                Content-Disposition: form-data; name="myFile"
 
-            null
+                null
+                ------WebKitFormBoundarybSHF77IaICmNerQk
+                Content-Disposition: form-data; name="myFiles"
+
+                null
+                ------WebKitFormBoundarybSHF77IaICmNerQk
+                Content-Disposition: form-data; name="myFiles"
+
+                null
             */
         },
         convertToFormData(data) {

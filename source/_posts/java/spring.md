@@ -1185,11 +1185,11 @@ public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper
                 try {
                     return objectMapper.readValue(body, Map.class);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    // do nothing. eg: multipart/form-data
                 }
             }
 
-            map.put("_body", new String(body, Charset.forName("UTF-8")));
+            map.put("_SQ_BODY", new String(body, Charset.forName("UTF-8")));
         }
 
         return map;
@@ -1207,7 +1207,12 @@ public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper
 }
 
 // 通过filter进行下发（实现 Filter，或继承 OncePerRequestFilter）
-CustomerHttpServletRequestWrapper warpper = new CustomerHttpServletRequestWrapper((HttpServletRequest)request);
+CustomerHttpServletRequestWrapper warpper = null;
+if(request.getContentType() != null && request.getContentType().contains(MediaType.MULTIPART_FORM_DATA_VALUE)){
+    // 文件上传类型，不做控制
+} else {
+    wrapper = new CustomerHttpServletRequestWrapper(request, objectMapper);
+}
 Map body = requestWrapper.getBodyMap();
 filterChain.doFilter(warpper, servletResponse);
 ```

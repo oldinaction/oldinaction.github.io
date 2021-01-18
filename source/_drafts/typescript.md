@@ -141,7 +141,8 @@ declare namespace PersonLog.Options {
     ],
     // 项目中用到的别名(vue.config.js和此处都需要配置)
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["*", "src/*"],
+      "@model/*": ["src/model/*"],
       "_c/*": ["src/components/*"]
     },
     // 添加需要的解析的语法，否则TS会检测出错
@@ -212,6 +213,54 @@ declare namespace PersonLog.Options {
         }
         ```
     - **vue的javascript语法转typescript语法异同**：https://www.cnblogs.com/wenxinsj/p/13297155.html
+
+        ```ts
+        import { Component, Prop, Watch, Mixins, Vue } from "vue-property-decorator";
+        import CommonFunc from './CommonFunc'
+        
+        // @Component
+        @Component({
+            components: {
+            }
+        })
+        export default class Order extends Mixins(CommonFunc) {
+            @Prop({ type: String, default: "" }) init!: string;
+
+            // data
+            value: string = ''
+
+            @Watch("tokenExpire", { immediate: true, deep: true })
+            changeToken(val: "tokenExpire") {
+                
+            }
+
+            // computed
+            get loginUrl() {
+                let { loginUrl } = this.commonHosts;
+                return loginUrl;
+            }
+
+            created() {
+                this.hello()
+            }
+        }
+
+        // CommonFunc.ts 文件名建议大写
+        import { Vue, Component, Prop, Watch, Mixins } from "vue-property-decorator";
+        @Component
+        export default class CommonFunc extends Vue {
+            hello: any = null;
+
+            get helloName() {
+                return this['value'] + this.hello + 'Name'
+            }
+
+            hello () : void {
+                console.log('hello...')
+            }
+        }
+
+        ```
 - Vue组件script标签引入模块
 
 ```html

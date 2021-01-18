@@ -390,17 +390,19 @@ public Filter corsFilter() {
 
 ### 全局错误处理
 
-- @ControllerAdvice和@ExceptionHandler联用进行control层错误处理
+- 继承BasicErrorControllers是处理进入control层之前发生的异常(且需要有对应handler)，需要重写error、errorHtml两个方法
+- @ControllerAdvice/@RestControllerAdvice和@ExceptionHandler联用进行control层错误处理
 - Interceptor层异常
 	- 方法@ExceptionHandler会处理所有Controller层抛出的Exception及其子类的异常，Controller层就不需要单独处理异常了。但如上代码只能处理 Controller 层的异常，对于未进入Controller的异常，如Interceptor（拦截器）层的异常，Spring 框架层的异常无效，还是会将错误直接返回给用户
 	- SpringMVC是可以通过增加/error的handler来处理异常的，而REST却不行。因为在Spring REST中，当用户访问了一个不存在的链接时，Spring 默认会将页面重定向到`/error` 上，而不会抛出异常(error对应的视图就是常见的Whitelabel Error Page)
 	- 处理方法是，在application.properties文件中，增加下面两项设置
 
 		```yml
-		spring.mvc.throw-exception-if-no-handler-found=true
+        spring.mvc.throw-exception-if-no-handler-found=true
+        # 会导致后台映射的静态资源无效
 		spring.resources.add-mappings=false
 		```
-- 继承BasicErrorControllers是处理进入control层之前发生的异常，需要重写error、errorHtml两个方法
+- 继承BasicErrorControllers示例
 
 ```java
 @RestControllerAdvice // 包含@RestController(包含@ResponseBody)和@ControllerAdvice
@@ -656,6 +658,7 @@ public class ControllerHandler {
         genericConversionService.addConverter(new StringToLocalDateTimeConverter());
     }
 }
+// 如果需要转换成 LocalDate/LocalTime/Timestamp 需要另写
 public static class StringToLocalDateTimeConverter implements Converter<String, LocalDateTime> {
     @Override
     public LocalDateTime convert(String source) {
@@ -800,7 +803,7 @@ request-method |Content-Type   |postman   |springboot   |说明
 post |`application/json`   |row-json   |(String userIdUrlParam, @RequestBody User user) |`String userIdUrlParam`可以接受url中的参数，使用了`@RequestBody`可以接受body中的参数(最终转成User/Map/List对象，**如`@RequestBody List<Map<String, Object>> items`**，此时body中的数据不能直接通过String等接受)，而idea的http文件中url参数拼在地址上无法获取(请求机制不同)
 (x)post |`application/json`   |row-json   |(@RequestParam username) |如果前台为application/json + {username: smale}或者application/json + username=smalle均报400；此时需要application/x-www-form-urlencoded + username=smalle才可请求成功
 post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`。**对于application/x-www-form-urlencoded类型的数据，可无需 @RequestBody 接受参数**
-post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考[文件上传下载](#文件上传下载)，可进行文件上传(包含参数)；javascript XHR(包括axios等插件)需要使用new FormData()进行数据传输；此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；如果接受参数是Map则无法映射
+post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括axios等插件)需要使用new FormData()进行数据传输；此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是Map则无法映射**；表单数据都保存在http的正文部分，各个表单项之间用boundary隔开，用request.getParameter是取不到数据的，这时需要通过request.getInputStream来取数据
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放再body中，且数据格式为json
@@ -874,10 +877,12 @@ spring:
       max-request-size: 50MB
   mvc:
     # 静态资源映射，通过后台访问文件的路径(一般需要排除对此路径的权限验证)。相当于一个映射，映射的本地路径为 spring.resources.static-locations
-    static-path-pattern: files/**
+    # 实际访问还需要增加servlet.context路径
+    static-path-pattern: /static/**
   resources:
+    # 默认为：classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
     # 后台可访问的本地文件路径
-    static-locations: file:/data/app
+    static-locations: classpath:/META-INF/resources/,classpath:/resources/,file:/data/app
 ```
 - 使用JavaBean进行静态文件映射
 
@@ -886,7 +891,7 @@ spring:
 public class InterceptorConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/image/**").addResourceLocations("file:D:/image/"); // file:/D:/image/ 亦可
+        registry.addResourceHandler("/image/**").addResourceLocations("file:D:/image/"); // file:/D:/image/ 亦可. 实际访问还需要增加servlet.context路径
     }
 }
 ```
@@ -972,6 +977,10 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
 		customerContacts[0].customerId: 766706
 		customerContacts[0].lastName: 客户联系人1
 		```
+
+#### 拦截request的body数据/拦截response的数据
+
+参考[spring.md#拦截response的数据](/_posts/java/spring.md#拦截response的数据)
 
 ## 数据访问
 

@@ -145,6 +145,10 @@ tags: [tag1, tag2, tag3]
 
 ### 功能
 
+#### 文章链接配置
+
+- https://blog.csdn.net/jingbin_/article/details/80617210 暂无理想方案
+
 #### 搜索
 
 - NexT主题本地搜索

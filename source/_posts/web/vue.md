@@ -1092,6 +1092,82 @@ Vue.use(config)
         - `<keep-alive>`不会在函数式组件中正常工作，因为它们没有缓存实例
         - exclude的优先级大于include
 
+### mixins和组件扩展
+
+```html
+<!-- 被导入通用功能组件 -->
+<template>
+  <!-- b()为导入的bem函数，对组件名进行class命名 -->
+  <div :class="b()">
+    
+  </div>
+</template>
+
+<script>
+import create from "core/create";
+import locale from "./locale";
+import hello from './hello'
+
+export default create({
+  name: "upload",
+  mixins: [hello(), locale],
+  data () {
+    return {
+      name: 'smalle',
+    };
+  }
+});
+</script>
+```
+- 通用代码
+
+```js
+// create.js
+import bem from 'utils/bem'; // 对css进行bem命名，参考 https://gitee.com/smallweigit/avue/blob/v2.7.6/src/utils/bem.js
+import { KEY_COMPONENT_NAME } from 'global/variable';
+export default function(sfc) {
+  // 再次封装，sfc为原始组件
+  sfc.name = KEY_COMPONENT_NAME + (sfc.name || ''); // 给组件名加上统一前缀
+  sfc.mixins = sfc.mixins || [];
+  sfc.mixins.push(bem); // 在原混入基础上加入bem功能
+  return sfc;
+}
+
+// upload.js
+export default function () {
+  return {
+    data () {
+      return {
+        hello: null,
+        safe: this
+      }
+    },
+    computed: {
+      helloName () {
+        // this.safe.name => undefined; this['name'] => smalle; this.name => smalle; // ts使用this.name编辑器报红
+        return this['name'] + ' smalle' // this 指当前函数对象，被混入后，也可获取到功能组件(导入此混入的组件)属性
+      }
+    },
+    methods: {
+      hello () {
+        console.log('mixins methods')
+      }
+    }
+  }
+}
+
+// locale.js
+import { t } from 'locale'
+export default {
+  methods: {
+    t(...args) {
+      return t.apply(this, args);
+    }
+  }
+};
+```
+
+
 ## 事件
 
 ### 示例
@@ -1954,6 +2030,8 @@ new DefinePlugin(
 - vue.config.js 常用配置。多项目配置参考[多项目配置](/_posts/arch/springboot-vue.md#多项目配置)
 
 ```js
+const port = process.env.port || process.env.npm_config_port || 9528
+
 module.exports = {
     // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)
     publicPath: '/', // 对应vue-cli2 或者 webpack中的 assetsPublicPath 参数
@@ -1981,6 +2059,28 @@ module.exports = {
             patterns: [path.resolve(__dirname, 'src/styles/theme/index.less')]
         }
     },
+    devServer: {
+        // host: 'localhost', // target host
+        port: port,
+        open: true,
+        overlay: {
+            warnings: false,
+            errors: true
+        },
+        // 参考：https://www.cnblogs.com/liuguiqian/p/11362211.html
+        proxy: {
+            // /api/xxx
+            '^/api': {
+                target: `http://127.0.0.1:${port}/mock`, // url = target + uri(使用pathRewrite去掉原url根路径)
+                changeOrigin: true, // 如果接口跨域，需要进行这个参数配置
+                // ws: true, // proxy websockets
+                pathRewrite: {          // 不重写url为 `http://127.0.0.1:${port}/mock/api/xxx`
+                    '^/api': '/',       // 重写之后url为 `http://127.0.0.1:${port}/mock/xxx`
+                    '^/api': '/api2'    // 重写之后url为 `http://127.0.0.1:${port}/mock/api2/xxx`
+                }
+            }
+        }
+    }
 }
 ```
 

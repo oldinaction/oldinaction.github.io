@@ -29,7 +29,7 @@ git config --list
 ## 设置全局用户名和邮箱
 git config --global user.name smalle
 git config --global user.email admin@qq.com
-# 为单一仓库设置
+# 为单一仓库设置，下同
 git config user.name "username"
 git config user.email "email"
 
@@ -37,9 +37,14 @@ git config user.email "email"
 # Git 可以在你提交时自动地把回车CR和换行LF转换成换行LF，而在检出代码时把换行LF转换成回车CR和换行LF。Windows 系统上，把它设置成 true
 git config --global core.autocrlf true
 # 如果使用以换行（LF）作为行结束符的 Linux 或 Mac，你不需要 Git 在检出文件时进行自动的转换。然而当一个以回车（CR）和换行（LF）作为行结束符的文件不小心被引入时，你肯定想让 Git 修正
-git config --global core.autocrlf input
+# git config --global core.autocrlf input
 # 如果你是 Windows 程序员，且正在开发仅运行在 Windows 上的项目，可以设置 false 取消此功能
-git config --global core.autocrlf false
+# git config --global core.autocrlf false
+
+# 忽略文件权限修改导致的文件变更
+git config --global core.filemode false
+# 拒绝提交包含混合换行符的文件
+git config --global core.safecrlf true
 
 ## 设置在命令行打印的代码带颜色
 git config --global color.ui true
