@@ -1419,7 +1419,8 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
         - `MemFree` 系统尚未使用的内存
         - `MemAvailable` 应用程序可用内存数。系统中有些内存虽然已被使用但是可以回收的，比如cache/buffer、slab都有一部分可以回收，所以MemFree不能代表全部可用的内存，这部分可回收的内存加上MemFree才是系统可用的内存，即：**MemAvailable ≈ MemFree + Buffers + Cached**。MemFree是说的系统层面，MemAvailable是说的应用程序层面
     - `free` 为内存概要信息
-- `cat /proc/cpuinfo` 查看CPU使用情况
+- `lscpu` 列举cpu信息
+    - `cat /proc/cpuinfo` 查看CPU使用情况
 
     ```bash
     # 查看CPU信息(型号): Intel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz
