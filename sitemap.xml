@@ -2,9 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-01-19T01:45:24.765Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
+    
+    <lastmod>2021-01-18T14:56:00.230Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/10/10/web/weixin/</loc>
     
-    <lastmod>2021-01-18T02:46:41.080Z</lastmod>
+    <lastmod>2021-01-18T14:49:12.145Z</lastmod>
     
   </url>
   
@@ -33,13 +47,6 @@
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
     <lastmod>2021-01-16T08:44:49.973Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
-    
-    <lastmod>2021-01-16T02:40:11.813Z</lastmod>
     
   </url>
   
@@ -145,13 +152,6 @@
     <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     
     <lastmod>2021-01-05T12:19:30.222Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-01-05T09:43:44.565Z</lastmod>
     
   </url>
   

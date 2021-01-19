@@ -4,8 +4,50 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    <lastmod>2021-01-19T01:45:24.765Z</lastmod>
+    <data>
+        <display>
+        <title>linux系统</title>
+        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>shell</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
+    <lastmod>2021-01-18T14:56:00.230Z</lastmod>
+    <data>
+        <display>
+        <title>Git</title>
+        <pubTime>2016-04-16T04:40:00.000Z</pubTime>
+        
+        <tag>git</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2017/10/10/web/weixin/</loc>
-    <lastmod>2021-01-18T02:46:41.080Z</lastmod>
+    <lastmod>2021-01-18T14:49:12.145Z</lastmod>
     <data>
         <display>
         <title>微信开发</title>
@@ -35,9 +77,9 @@
         
         <tag>H5</tag>
          
-        <tag>小程序</tag>
-         
         <tag>App</tag>
+         
+        <tag>小程序</tag>
          
          
            
@@ -103,26 +145,6 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
-    <lastmod>2021-01-16T02:40:11.813Z</lastmod>
-    <data>
-        <display>
-        <title>Git</title>
-        <pubTime>2016-04-16T04:40:00.000Z</pubTime>
-        
-        <tag>git</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
           
         </display>
     </data>
@@ -448,28 +470,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    <lastmod>2021-01-05T09:43:44.565Z</lastmod>
-    <data>
-        <display>
-        <title>linux系统</title>
-        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>shell</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
     <lastmod>2021-01-05T07:54:26.794Z</lastmod>
     <data>
@@ -645,9 +645,9 @@
         
         <tag>oracle</tag>
          
-        <tag>dba</tag>
-         
         <tag>sql</tag>
+         
+        <tag>dba</tag>
          
          
            
@@ -2308,9 +2308,9 @@
         <title>Wiki</title>
         <pubTime>2016-10-27T13:36:00.000Z</pubTime>
         
-        <tag>book</tag>
-         
         <tag>wiki</tag>
+         
+        <tag>book</tag>
          
          
            
@@ -2598,9 +2598,9 @@
         <title>access</title>
         <pubTime>2018-11-20T06:06:00.000Z</pubTime>
         
-        <tag>microsoft</tag>
-         
         <tag>db</tag>
+         
+        <tag>microsoft</tag>
          
          
            
