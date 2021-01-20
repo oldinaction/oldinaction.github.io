@@ -18,9 +18,9 @@ tags: [js, tools]
 
 ## 基础库
 
-### cross-env 启动时增加环境变量
+### cross-env启动时增加环境变量
 
-### mockjs 模拟数据
+### mockjs模拟数据
 
 - 语法`Mock.mock(rurl, rtype, function(options))`
     - rurl：拦截的请求地址，支持正则。不使用正则是为完全不配，如`/user/getMenu`无法匹配`http://localhost/user/getMenu`，也无法匹配参数`/user/getMenu?type=0`
@@ -65,7 +65,11 @@ const getUrlParam = (paramName, params) => {
 }
 ```
 
-### mathjs 数学计算
+### dayjs时间操作
+
+- [dayjs](https://github.com/iamkun/dayjs)，相对 moment 体积更小
+
+### mathjs数学计算
 
 - mathjs
 

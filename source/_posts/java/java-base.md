@@ -324,6 +324,14 @@ Float baseTime = new BigDecimal(diff.getDays() + 1)
 
 ## 易错点
 
+- null
+
+```java
+Boolean a = null;
+if(a) { // NullPointerException
+    System.out.println("hello");
+}
+```
 - final
 
 ```java

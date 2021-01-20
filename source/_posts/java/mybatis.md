@@ -55,13 +55,13 @@ for (Orders order : list) {
 
     <!-- 方式三：使用mybatis-plus(推荐) -->
 	```
-- 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml"})` // 声明需要扫描mapper接口的路径
+- 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml", "cn.aezo.springboot.module.*.mapper"})` // 声明需要扫描mapper接口的路径；此处可以使用一层通配符(多层未测试成功)和mybatis.mapper-locations通配符配合使用进行多模块管理
 - 配置
 
 	```bash
-	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml(无法扫描其子目录), classpath:mapper2/*.xml"
+	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml(无法扫描其子目录),classpath:mapper2/*.xml"
     # classpath只会扫描当前moduler的class, 而改为classpath*则会扫描所有jar
-	mybatis.mapper-locations=classpath:mapper/*.xml # classpath:mapper/**/*.xml
+	mybatis.mapper-locations=classpath:mapper/*.xml,classpath:mapper/**/*.xml
 	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置
 	mybatis.config-location=classpath:mybatis-config.xml
 
