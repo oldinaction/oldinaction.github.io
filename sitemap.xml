@@ -2,6 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/10/22/java/springsecurity/</loc>
+    
+    <lastmod>2021-01-23T15:21:59.675Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
+    
+    <lastmod>2021-01-22T11:41:29.566Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
+    
+    <lastmod>2021-01-22T11:36:47.252Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2021-01-22T10:26:36.173Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
+    
+    <lastmod>2021-01-22T07:09:09.976Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
     
     <lastmod>2021-01-20T14:23:06.262Z</lastmod>
@@ -110,13 +145,6 @@
     <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     
     <lastmod>2021-01-13T15:00:49.809Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
-    
-    <lastmod>2021-01-13T07:18:00.695Z</lastmod>
     
   </url>
   
@@ -254,13 +282,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2020-12-18T14:34:44.857Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/10/22/java/thymeleaf/</loc>
     
     <lastmod>2020-12-18T01:57:00.573Z</lastmod>
@@ -292,13 +313,6 @@
     <loc>http://blog.aezo.cn/2017/05/06/java/struts2/</loc>
     
     <lastmod>2020-12-18T01:55:17.553Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/22/java/springsecurity/</loc>
-    
-    <lastmod>2020-12-18T01:55:12.148Z</lastmod>
     
   </url>
   
@@ -474,20 +488,6 @@
     <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
     <lastmod>2020-11-09T09:52:02.625Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
-    
-    <lastmod>2020-10-28T11:19:34.339Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
-    
-    <lastmod>2020-10-20T05:06:09.156Z</lastmod>
     
   </url>
   
