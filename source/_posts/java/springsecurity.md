@@ -231,6 +231,7 @@ tags: [spring, 安全]
 - 根据用户唯一字段(如username、wxCode)获取用户信息
 
     ```java
+    // principal 如用户信息(UserDetailsService)，credentials 如凭证密码信息
     @Component
     public class CustomUserDetailsService implements UserDetailsService {
         private final UserDao userDao;
@@ -491,32 +492,101 @@ tags: [spring, 安全]
 
 ### 在方法(资源)上加权限控制
 
-- 需要权限配置类上加注解`@EnableGlobalMethodSecurity(prePostEnabled=true)`，标识开启方法级别prePostEnabled权限控制，还可以开启其他控制
-- 使用
+-  Spring Security中定义了四个支持使用表达式的注解，分别是@PreAuthorize、@PostAuthorize、@PreFilter和@PostFilter
+    - 其中前两者可以用来在方法调用前或者调用后进行权限检查，后两者可以用来对集合类型的参数或者返回值进行过滤
+    - 注解可作用于Controller、Service、Mapper
+    - 前提是需要开启`@EnableGlobalMethodSecurity(prePostEnabled=true)`配置，标识开启方法级别权限控制
+- 更多权限控制说明：https://docs.spring.io/spring-security/site/docs/4.2.3.RELEASE/reference/htmlsingle/#el-common-built-in，相关方法参考：SecurityExpressionRoot
+- 使用 [^7] [^8]
 
     ```java
+    // ======= 示例1
     // Controller.java
-    // @PreAuthorize("hasRole('ADMIN')") // 可使用自定义注解@HasAdminRole进行封装(可组合更复杂的权限注解)
+    // @PreAuthorize("hasRole('ADMIN')") // 可使用自定义注解@HasAdminRole进行封装(可组合更复杂的权限注解)。一般对应权限
+    // @PreAuthorize("hasRole('ADMIN') or hasRole('SUPER')")
     @HasAdminRole
     @GetMapping("/adminRole")
     public String adminRole() {
         return "/adminRole";
     }
 
-    // HasAdminRole.java
-    // 自定义权限注解，被@HasAdminRole注解的方法需要有ADMIN角色
+    // HasAdminRole.java 自定义权限注解，被@HasAdminRole注解的方法需要有ADMIN角色
     @Retention(RetentionPolicy.RUNTIME)
     @PreAuthorize("hasRole('ADMIN')")
     public @interface HasAdminRole {
     }
+
+    // ======= 示例2
+    // 可以在表达式中使用方法参数
+    @PreAuthorize("#id<10") // 限制只能查询Id小于10的用户
+    public User find(int id) {
+        System.out.println("id=" + id);
+        return null;
+    }
+    @PreAuthorize("principal.username.equals(#username)") // 限制只能查询自己的信息，principal为内置属性
+    public User find(String username) {
+        System.out.println("username=" + username);
+        return null;
+    }
+    @PreAuthorize("#user.name.equals('abc')") // 限制只能新增用户名称为abc的用户
+    // public void add(@P("user") User user) { // 或者使用 @P 或 @Param 注解值
+    public void add(User user) {
+        System.out.println("user=" + user);
+    }
+
+    // ======= 示例3
+    // returnObject为内置返回对象名。@PostAuthorize是在方法调用完成后进行权限检查，它不能控制方法是否能被调用，只能在方法调用完成后检查权限决定是否要抛出AccessDeniedException
+    @PostAuthorize("returnObject.id%2==0")
+    public User find(int id) {
+        User user = new User();
+        user.setId(id);
+        return user;
+    }
+
+    // ======= 示例4
+    // filterObject为内置对象名。使用@PreFilter和@PostFilter时，Spring Security将移除使对应表达式的结果为false的元素。仅能用于返回类型为集合等类型，否则报错：IllegalArgumentException: Filter target must be a collection, array, or stream type, but was Result(status=success, message=null, ...
+    @PreFilter(filterTarget="ids", value="filterObject%2==0") // filterTarget属性指定基于过滤的传参数名
+    public void delete(List<Integer> ids, List<String> usernames) {
+        // ...
+    }
+    @PostFilter("filterObject.id%2==0") // 将对返回结果中id不为偶数的user进行移除
+    public List<User> findAll() {
+        List<User> userList = new ArrayList<User>();
+        User user;
+        for (int i=0; i<10; i++) {
+            user = new User();
+            user.setId(i);
+            userList.add(user);
+        }
+        return userList;
+    }
+    @PostFilter("filterObject.code!='super'") // 作用于Mapper亦可
+	List<RoleVo> selectRolePage(IPage page, RoleVo role);
+
+    // 示例5：引用Beans
+    @webSecurity.check(authentication, request) // webSecurity引用下文Bean判断
+
+    @Component
+    public class WebSecurity {
+		public boolean check(Authentication authentication, HttpServletRequest request) {
+			// 返回true表示有权限，false无权限
+		}
+    }
+
+    // ======= 示例6：hasPermission表达式，具体参考：https://www.baeldung.com/spring-security-create-new-custom-security-expression
+    // @PostAuthorize("hasAuthority('foo_read')")
+    @PostAuthorize("hasPermission(returnObject, 'read')") // 返回对象类型为 Foo
+    @PreAuthorize("hasPermission(#id, 'Foo', 'read')") // #id为方法参数，Foo为类型
+
+    // 示例7：自定义根表达式
+    @PostFilter("hasRoleCode('super') or not hasRoleCode('super') and filterObject.code!='super'") // 自定义方法 hasRoleCode，可基于 SecurityExpressionRoot 和 DefaultMethodSecurityExpressionHandler 实现，具体参考：https://www.baeldung.com/spring-security-create-new-custom-security-expression
+	List<RoleVo> selectRolePage(IPage page, RoleVo role);
     ```
-- 更多权限控制说明：https://docs.spring.io/spring-security/site/docs/4.2.3.RELEASE/reference/htmlsingle/#jc-authentication
 
 ### CSRF、CORS
 
 - `CSRF` 跨站请求伪造(Cross-Site Request Forgery). [csrf](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html)
 - `CORS` 跨站资源共享(Cross Origin Resourse-Sharing).
-
 - 开启cosr：使用spring security时，需要同时在spring mvc 和 spring security中配置CORS。[cors](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/cors.html)
 
     ```java
@@ -1474,3 +1544,5 @@ org.springframework.security.access.AccessDeniedException: Access is denied
 [^4]: https://m635674608.iteye.com/blog/2398708
 [^5]: https://www.cnblogs.com/jfzhu/p/4020928.html (对称加密和非对称加密)
 [^6]: https://www.jianshu.com/p/227f7e7503cb (授权服务器)
+[^7]: https://www.cnblogs.com/ryelqy/p/10283256.html
+[^8]: https://www.baeldung.com/spring-security-create-new-custom-security-expression

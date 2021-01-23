@@ -166,6 +166,7 @@ Commands:
     push      Push an image or a repository to the docker registry server # 推送指定镜像或者库镜像至docker源服务器
     restart   Restart a running container                   # 重启运行的容器
     rm        Remove one or more containers                 # 移除一个或者多个容器
+        # 删除主机上所有容器：docker ps -a | awk '{print $1}' | xargs docker rm -f
     rmi       Remove one or more images                     # 移除一个或多个镜像[无容器使用该镜像才可删除，否则需删除相关容器才可继续或 -f 强制删除]
     run       Run a command in a new container              # 创建一个新的容器(并启动)并运行一个命令
         -i  # 开启标准输出

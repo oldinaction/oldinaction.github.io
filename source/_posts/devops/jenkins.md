@@ -106,6 +106,10 @@ volumes:
 - Run/Debug 中添加 tomcat 配置，Deployment 选择 jenkins-war:war
 - debug 启动 tomcat。也可在远程启动 debug 监听 `mvnDebug jenkins-dev:run` 默认监听端口 8000，可通过 remote debug 进行远程调试
 
+### 项目文件说明
+
+- /var/jenkins_home/config.xml 配置文件入口，可对应配置中的表单字段名
+
 ## Pipeline
 
 - [官网入门](https://www.jenkins.io/zh/doc/book/pipeline/)
