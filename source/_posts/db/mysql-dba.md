@@ -8,14 +8,26 @@ tags: [mysql, dba]
 
 ## 基本
 
-- mysql 安装：[http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/](/_posts/linux/CentOS服务器使用说明.md#mysql安装)
-- windows 安装 mysql，千万不要用通过记事本编辑`my.ini`，容易让文件变成 BOM 格式导致服务无法启动.
+- mysql 安装
+    - 软件下载：[服务器安装包 mysql-installer-community-5.7.32.0.msi](https://downloads.mysql.com/archives/installer/)、[Community Server压缩包 mysql-5.7.32-winx64.zip](https://downloads.mysql.com/archives/community/)。installer安装备注如下
+        - installer默认安装在`C:\Program Files (x86)\MySQL\MySQL Installer for Windows`目录，打开上述msi则会自动安装在此目录，之后可进行配置Server的安装，安装完server之后，仍然可打开此Installer重新安装、增加安装或卸载，尽管下载的是5.7的Installer，但是包含了5.7、8个版本的安装配置
+        - 启动安装，选择Setup Type：Developer Default默认安装了Server和一些连接器和文档，且安装在C盘，如需定义安装目录，需选择Custom
+        - 自定义安装时，选择Mysql Servers - Mysql Server 5.7 x64 - 添加到安装列表，其他的连接器和文档(包括示例数据库)可在安装完Server之后进行增加安装
+        - Windows 10安装Server 5.7可能提示无Visual C++ 2013，此时可去MS官网下载安装后再安装Mysql Server
+    - CentOS-mysql安装：[http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/](/_posts/linux/CentOS服务器使用说明.md#mysql安装)
+    - windows 安装 mysql，千万不要用通过记事本编辑`my.ini`，容易让文件变成 BOM 格式导致服务无法启动.
 - 查看系统版本：命令行登录后欢迎信息中有版本信息，或者登录仅命令行执行`status`查看
 
 ### 登录
 
-- Mysql 进入系统 - `mysql -uroot -p` 用户名登陆，输入回车后再输入 root 密码即可登陆（在 cmd 中定位到 mysql.exe 所在目录） - `mysql -h 192.168.1.1 -P 3307 -uroot -p my_db_name` 登录并选择数据库 - `exit`、`quit` 退出
-- 忘记 root 密码 - `my.ini`配置文件的`[mysqld]`下增加`skip-grant-tables`参数，重启数据库 - 修改`mysql.user`中该用户的密码 - 去掉启动参数重新启动
+- Mysql 进入系统
+    - `mysql -uroot -p` 用户名登陆，输入回车后再输入 root 密码即可登陆（在 cmd 中定位到 mysql.exe 所在目录）
+    - `mysql -h 192.168.1.1 -P 3307 -uroot -p my_db_name` 登录并选择数据库
+    - `exit`、`quit` 退出
+- 忘记 root 密码
+    - `my.ini`配置文件的`[mysqld]`下增加`skip-grant-tables`参数，重启数据库
+    - 修改`mysql.user`中该用户的密码
+    - 去掉启动参数重新启动
 
 ### 创建删除用户
 

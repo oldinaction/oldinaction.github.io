@@ -68,7 +68,7 @@ tags: [spring, mvc]
 
 ##### 组件注解
 
-- `@Component` 没有明确的角色
+- `@Component` 没有明确的角色，或@Component("sq")定义别名
 - `@Service` 在业务逻辑层(cn.aezo.spring.aop_spel.service)使用
 - `@Repository` 在数据访问层(cn.aezo.spring.aop_spel.dao)使用
 - `@Controller` 在展现层使用

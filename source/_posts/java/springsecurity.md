@@ -492,11 +492,30 @@ tags: [spring, 安全]
 
 ### 在方法(资源)上加权限控制
 
--  Spring Security中定义了四个支持使用表达式的注解，分别是@PreAuthorize、@PostAuthorize、@PreFilter和@PostFilter
+-  Spring Security中定义了四个支持使用表达式的注解，分别是`@PreAuthorize`、`@PostAuthorize`、`@PreFilter`和`@PostFilter`
     - 其中前两者可以用来在方法调用前或者调用后进行权限检查，后两者可以用来对集合类型的参数或者返回值进行过滤
     - 注解可作用于Controller、Service、Mapper
+    - 支持SPEL表达式
     - 前提是需要开启`@EnableGlobalMethodSecurity(prePostEnabled=true)`配置，标识开启方法级别权限控制
 - 更多权限控制说明：https://docs.spring.io/spring-security/site/docs/4.2.3.RELEASE/reference/htmlsingle/#el-common-built-in，相关方法参考：SecurityExpressionRoot
+- 配置
+
+```java
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true) // 开启后可使用上述4个注解
+public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+    @Autowired
+    private ApplicationContext context;
+
+    @Override
+    protected MethodSecurityExpressionHandler createExpressionHandler() {
+        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator(new CustomPermissionEvaluator());
+        expressionHandler.setApplicationContext(context); // 引用Beans方法必须
+        return expressionHandler;
+    }
+}
+```
 - 使用 [^7] [^8]
 
     ```java
@@ -536,7 +555,7 @@ tags: [spring, 安全]
 
     // ======= 示例3
     // returnObject为内置返回对象名。@PostAuthorize是在方法调用完成后进行权限检查，它不能控制方法是否能被调用，只能在方法调用完成后检查权限决定是否要抛出AccessDeniedException
-    @PostAuthorize("returnObject.id%2==0")
+    @PostAuthorize("returnObject.id % 2 == 0")
     public User find(int id) {
         User user = new User();
         user.setId(id);
@@ -545,11 +564,11 @@ tags: [spring, 安全]
 
     // ======= 示例4
     // filterObject为内置对象名。使用@PreFilter和@PostFilter时，Spring Security将移除使对应表达式的结果为false的元素。仅能用于返回类型为集合等类型，否则报错：IllegalArgumentException: Filter target must be a collection, array, or stream type, but was Result(status=success, message=null, ...
-    @PreFilter(filterTarget="ids", value="filterObject%2==0") // filterTarget属性指定基于过滤的传参数名
+    @PreFilter(filterTarget="ids", value="filterObject % 2 == 0") // filterTarget属性指定基于过滤的传参数名
     public void delete(List<Integer> ids, List<String> usernames) {
         // ...
     }
-    @PostFilter("filterObject.id%2==0") // 将对返回结果中id不为偶数的user进行移除
+    @PostFilter("filterObject.id % 2 == 0") // 将对返回结果中id不为偶数的user进行移除
     public List<User> findAll() {
         List<User> userList = new ArrayList<User>();
         User user;
@@ -560,15 +579,15 @@ tags: [spring, 安全]
         }
         return userList;
     }
-    @PostFilter("filterObject.code!='super'") // 作用于Mapper亦可
+    @PostFilter("filterObject.code != 'super'") // 作用于Mapper亦可
 	List<RoleVo> selectRolePage(IPage page, RoleVo role);
 
     // 示例5：引用Beans
-    @webSecurity.check(authentication, request) // webSecurity引用下文Bean判断
+    @PostFilter("@ws.check(request)") // ws引用下文Bean判断
 
-    @Component
+    @Component("ws")
     public class WebSecurity {
-		public boolean check(Authentication authentication, HttpServletRequest request) {
+		public boolean check(HttpServletRequest request) {
 			// 返回true表示有权限，false无权限
 		}
     }
@@ -579,7 +598,7 @@ tags: [spring, 安全]
     @PreAuthorize("hasPermission(#id, 'Foo', 'read')") // #id为方法参数，Foo为类型
 
     // 示例7：自定义根表达式
-    @PostFilter("hasRoleCode('super') or not hasRoleCode('super') and filterObject.code!='super'") // 自定义方法 hasRoleCode，可基于 SecurityExpressionRoot 和 DefaultMethodSecurityExpressionHandler 实现，具体参考：https://www.baeldung.com/spring-security-create-new-custom-security-expression
+    @PostFilter("hasRoleCode('super') or not hasRoleCode('super') and filterObject.code != 'super'") // 自定义方法 hasRoleCode，可基于 SecurityExpressionRoot 和 DefaultMethodSecurityExpressionHandler 实现，具体参考：https://www.baeldung.com/spring-security-create-new-custom-security-expression
 	List<RoleVo> selectRolePage(IPage page, RoleVo role);
     ```
 

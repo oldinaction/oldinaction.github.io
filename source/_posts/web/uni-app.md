@@ -12,7 +12,7 @@ tags: [H5, 小程序, App]
 - 组件插件
     - [uviewui](https://www.uviewui.com/)
 
-### 文件
+## 项目文件
 
 > https://uniapp.dcloud.net.cn/collocation/pages
 
@@ -119,11 +119,6 @@ tags: [H5, 小程序, App]
     </script>
     ```
 
-## API兼容问题
-
-- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
-    - Vue特性支持表
-
 ## 生命周期
 
 > https://uniapp.dcloud.io/collocation/frame/lifecycle
@@ -134,20 +129,94 @@ tags: [H5, 小程序, App]
 - 页面生命周期中
     - `onLoad` 触发一次
     - `onShow` 每次展示时触发
-- onLaunch中进行同步执行后再执行onShow的解决方式
+
+## 兼容问题
+
+### API兼容问题
+
+- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
+    - Vue特性支持表
+
+### 其他兼容问题
+
+- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
+- IOS 和 Android 对时间的解析有区别 [^1]
+    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
+    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
+
+## onLaunch等同步写法
+
+- Promise/async/await使用参考：[js-release.md#Promise/async/await](/_posts/web/js-release.md#Promise/async/await)
+- 基本使用
 
 ```js
+// async onLaunch: function() {} // 这种写法不能在onLaunch前面使用async
+async onLaunch() {
+    await this.initData();
+},
+async onShow() {
+    await this.initData();
+},
+methods: {
+    async initData() {
+        await login()
+    }
+}
+
+// 改写 uni.getProvider 等异步函数。uni.getProvider 为异步函数(接收回调，但返回对象不是Promise，无法使用await等特性)
+export const login = () => {
+    // 返回 Promise 对象，从而外部可使用 await login()
+	return new Promise(resolve => {
+		uni.getProvider({
+			service: 'oauth',
+			success: function(res) {
+				if (~res.provider.indexOf('weixin')) {
+					uni.login({
+                        provider: 'weixin',
+                        success: async function(loginRes) {
+							let code = loginRes.code;
+                            let res = await wxLogin(code)
+                            // 释放，标识执行完成
+                            resolve(res)
+                        }
+                        // 或在then中释放
+						// success: function(loginRes) {
+						// 	let code = loginRes.code;
+						// 	wxLogin(code).then(res => {
+						// 		resolve(res)
+						// 	});
+						// }
+					});
+				}
+			}
+		});
+	})
+}
+```
+- onLaunch的执行和所有页面的onShow(App.vue和其他任何页面)执行没有先后顺序，有可能onLaunch没执行完，onShow就执行了。需要达到 onLaunch 中进行同步执行后，再执行 onShow 的需求
+
+```js
+// 参考：https://www.lervor.com/archives/128/
 // main.js
-Vue.prototype.$onResolve = new Promise(resolve => {
+Vue.prototype.$onLaunched = new Promise(resolve => {
     Vue.prototype.$emitResolve = resolve
 })
 
 // App.vue
+const login = () => {
+    postRequest('/m/auth/wxLogin').then(response => {
+        console.log(response)
+    })
+}
+
 export default {
-    onLaunch: function() {
+    async onLaunch() {
         // #ifdef H5
         if(this.$utils.isWeiXinH5()) {
             wechat.weChatJsSdkSignature('/m/auth/weChatJsSdkSignature').then(() => {
+                // await this.h5Login() // 错误写法. 由于 h5Login 并没有返回 Promise 对象，且内部 login 方法并没有同步执行
+                // this.h5Login2() // 错误写法. 此时 h5Login2 内部 login 方法是同步执行了，但是 async h5Login2 表示 h5Login2 为一个异步函数，返回 Promise，导致当前行和之后代码并没有同步执行
+                await this.h5Login2() // 正确写法
                 this.$emitResolve() // 释放
             })
         } else {
@@ -155,28 +224,26 @@ export default {
         }
         // #endif
     },
-    onShow: function() {
-        // #ifdef H5
-        this.h5Login()
-        // #endif
-    },
     methods: {
-        // onLaunch、onShow不能定义为async
-        async h5Login() {
-            await this.$onResolve
-            // do somthing
+        h5Login() {
+            console.log(1.1)
+            login()
+            console.log(1.2) // 不会等login执行完之后再执行
+        },
+        async h5Login2() {
+            console.log(2.1)
+            await login()
+            console.log(2.2) // 会等login执行完之后再执行
         }
     }
 }
-```
-- onLaunch同步
 
-```js
-async onLaunch() {
-    await this.initData();
-},
-methods: {
-    async initData() {}
+// Index.vue
+export default {
+    async onShow() {
+        await this.$onLaunched // 等待释放
+        // do somthing
+    }
 }
 ```
 
@@ -234,13 +301,6 @@ methods: {
 
 - 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
     - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
-
-## 兼容问题
-
-- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
-- IOS 和 Android 对时间的解析有区别 [^1]
-    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
-    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
 
 
 

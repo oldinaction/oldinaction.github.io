@@ -10,6 +10,7 @@ tags: js
 
 ### Promise/async/await
 
+- uni-app使用场景参考：[uni-app.md#onLaunch等同步写法](/_posts/web/uni-app.md#onLaunch等同步写法)
 - Promise基本用法
 
 ```js
@@ -20,7 +21,7 @@ new Promise(function (resolve, reject) {
     setTimeout(function () {
         if (timeOut < 1) {
             log('call resolve()...');
-            resolve('200 OK');
+            resolve('200 OK'); // 相当于调用 then 传入函数
             log('还会继续执行...')
             // return resolve('200 OK');
         } else {
@@ -29,7 +30,10 @@ new Promise(function (resolve, reject) {
         }
     }, timeOut * 1000);
 }).then(function (r) {
-    return new Promise(...);
+    // 此处不返回 Promise, 后面则无法继续 then
+    return new Promise((resolve, reject) => {
+        resolve(r)
+    });
 }).then(function (r) {
     log('Done: ' + r);
 }).catch(function (reason) {
@@ -38,14 +42,14 @@ new Promise(function (resolve, reject) {
 ```
 - [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
     - 说明
-        - 使用 async 关键字，把它放在函数声明之前，使其成为 async function
-        - await 只在异步函数（async修饰）里面才起作用
+        - `async`：把它放在函数声明之前，使其成为 async function。**可单独使用，被标识的函数成为异步函数，返回Promise对象**
+        - `await`：只能在异步函数（async修饰）里面才起作用。**必须和async联用**
     - async简单使用
 
         ```js
         // 1.async
         async function hello() { return "Hello" }
-        hello() // 返回一个Promise
+        hello() // 返回一个 Promise
 
         // 2.async
         let hello = async () => { return "Hello" }
@@ -62,7 +66,7 @@ new Promise(function (resolve, reject) {
             });
         };
 
-        // 方式一：耗时9004。简单async、await，下面3个函数要依次等待执行
+        // 方式一：耗时9004。简单async、await，下面3个函数要依次等待执行，但是 timeTest1 仍然是一个异步函数(返回了 Promise 对象)
         async function timeTest1() {
             await timeoutPromise(3000);
             await timeoutPromise(3000);
@@ -97,7 +101,6 @@ new Promise(function (resolve, reject) {
             alert("Time taken in milliseconds: " + timeTaken);
         })
         ```
-
 - axios返回Promise
 
 ```js
@@ -406,6 +409,7 @@ var arr2 = new Array(1, 'a', true); // 创建3个元素
             - Current Value (cur) (当前值)
             - Current Index (idx) (当前索引)
             - Source Array (src) (源数组)
+        - **`reduce((返回对象, 当前对象) => { retrun 返回对象 }, 返回对象默认值)`** 可将`List<Map>`转`Map`
 - 其他方法
     - `some` 测试数组中是否至少有一个元素满足条件(传入的测试函数)
 
@@ -421,13 +425,13 @@ const inventors = [
 const people = ['Beck, Glenn', ...... , 'Blake, William'];
 
 // 以数组形式，列出其名与姓 ['Albert Einstein', 'Hanna Hammarström', ...]；或返回list<map>: arr.map(o => {return {...}})
-const fullnames = inventors.map(inventor => `${inventor.first} ${inventor.last}`)
+const fullnames = inventors.map(x => `${x.first} ${x.last}`)
 // 筛选出生于16世纪的发明家
-const fifteenObj = inventors.filter(inventor => (inventor.year >= 1500 && inventor.year < 1600))
-// 计算所有的发明家加起来一共活了几岁
-const totalyears = inventors.reduce((total, inventor) => { return total + (inventor.passed - inventor.year) }, 0)
+const fifteenObj = inventors.filter(x => (x.year >= 1500 && x.year < 1600))
+// 计算所有的发明家加起来一共活了几岁。**reduce((返回对象, 当前对象) => { retrun 返回对象 }, 返回对象默认值)** 可将List<Map>转Map
+const totalyears = inventors.reduce((total, x) => { return total + (x.passed - x.year) }, 0)
 // 根据其出生日期，并从大到小排序
-const birthdate = inventors.sort((inventora, inventorb) => (inventorb.year - inventora.year))
+const birthdate = inventors.sort((x, y) => (y.year - x.year))
 
 // === 语法
 var newArray = arr.filter(callback(element[, index[, array]])[, thisArg])
