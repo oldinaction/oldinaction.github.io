@@ -58,6 +58,10 @@ tags: [CentOS, linux]
         - A 是内核版本号：第一次是1994年的 1.0 版，第二次是1996年的 2.0 版，第三次是2011年的 3.0 版发布
         - B 是内核主版本号：奇数为开发版，偶数为稳定版
         - C 是内核次版本号
+- 查看内核版本
+    - `uname -a` 查看当前内核版本
+    - `rpm -qa | grep kernel` 查看安装的内核版本（或者查看启动器：`awk -F\' '$1=="menuentry " {print i++ " : " $2}' /etc/grub2.cfg`）
+    - `yum remove 3.10.0-1062.1.2.el7.x86_64` 删除内核版本
 - Centos7升级内核
     - `bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/centos7-update-kernel.sh) 2>&1 | tee kernel.log`
     - 需使用root用户执行，如果下载rpm失败，可尝试重新执行

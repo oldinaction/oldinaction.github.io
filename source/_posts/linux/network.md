@@ -48,6 +48,20 @@ brctl show
 
 ### curl/wget测试
 
+- curl命令
+
+```bash
+curl [options] [URL...]
+    -d # 传递普通参数
+    -v # 显示日志信息
+    -s # 将不输出错误和进度信息
+    -k # 不考虑https证书验证
+    -X # 请求类型 POST/GET(默认)
+    -H # header参数
+    -L # 让 HTTP 请求跟随服务器的重定向。curl 默认不跟随重定向
+```
+- curl案例
+
 ```bash
 # GET请求
 curl localhost:8080
@@ -55,6 +69,9 @@ curl localhost:8080
 curl -X POST -v -d "username=smalle&password=aezocn" localhost:8080/login
 # POST请求，-H指定header，此时指定Content-Type:application/json，-d中的数据会放到body中
 curl -H "Content-Type:application/json" -H "Authorization: aezocn" -X POST -d '{"orderId": "1"}' http://localhost:8000/order/
+
+# 更新内核脚本。下载脚本并运行
+bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/centos7-update-kernel.sh) 2>&1 | tee kernel.log
 ```
 
 ### ping

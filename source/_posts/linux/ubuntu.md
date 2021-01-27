@@ -276,6 +276,15 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
     # 重启配置
     systemctl restart systemd-logind
     ```
+- wifi无法连接
+
+```bash
+ip addr
+# 开启wifi对应网卡
+sudo ip link set wlp5s0 up
+# 扫码wifi网络
+sudo iw wlp5s0 scan | grep SSID
+```
 
 ### Centos7系统启动失败排查
 

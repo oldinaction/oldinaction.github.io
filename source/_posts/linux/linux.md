@@ -1197,6 +1197,15 @@ for item in $(find -type f | xargs) ; do # 循环打印每个文件
 done
 ```
 
+### sh
+
+```bash
+sh [options] [file] # 同 bash，从标准输入中读取命令，命令在子shell中执行
+    -c # 命令从-c后的字符串读取
+    -s # 后面跟的参数，从第一个非 - 开头的参数，就被赋值为子shell的$1,$2,$3....
+        # echo 'ls $2' | sh -s '' '-l' # 类似 ls -l
+```
+
 ### xrags
 
 - xargs 可以将管道或标准输入(stdin)数据转换成命令行参数，也能够从文件的输出中读取数据。它能够捕获一个命令的输出，然后传递给另外一个命令

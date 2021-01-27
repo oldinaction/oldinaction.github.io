@@ -12,11 +12,11 @@ tags: [mq]
 - RabbitMQ 的官方站：http://www.rabbitmq.com/
 - 相关概念
   - `Broker` 消息队列服务器实体
+  - `VirtualHost` 在 RabbitMQ 中可以虚拟消息服务器 VirtualHost，每个 VirtualHost 相当月一个相对独立的 RabbitMQ 服务器，每个 VirtualHost 之间是相互隔离的，一个 broker 里可以开设多个 vhost，用作不同用户的权限分离。exchange、queue、message 不能互通。VirtualName 一般以/开头
   - `Exchange` 消息交换机，它指定消息按什么规则，路由到哪个队列
   - `Queue` 消息队列载体，每个消息都会被投入到一个或多个队列
   - `Binding` 绑定，它的作用就是把 exchange 和 queue 按照路由规则绑定起来
   - `RoutingKey` 路由关键字，exchange 根据这个关键字进行消息投递
-  - `VirtualHost` 在 RabbitMQ 中可以虚拟消息服务器 VirtualHost，每个 VirtualHost 相当月一个相对独立的 RabbitMQ 服务器，每个 VirtualHost 之间是相互隔离的，一个 broker 里可以开设多个 vhost，用作不同用户的权限分离。exchange、queue、message 不能互通。VirtualName 一般以/开头
   - `Producer` 消息生产者，就是投递消息的程序
   - `Consumer` 消息消费者，就是接受消息的程序
   - `Channel` 消息通道，在客户端的每个连接里，可建立多个 channel，每个 channel 代表一个会话任务
@@ -29,9 +29,19 @@ tags: [mq]
 
 - 7 种消息模型：https://www.rabbitmq.com/getstarted.html
   ![消息模型](/data/images/arch/rabbitmq-message-model.png)
-  - 常用：点对点、work、订阅（fanout 广播、direct 直连、topic 主题）
-  - Direct 直连（RoutingKey 固定）；Topic 基于通配符（RoutingKey 包含通配符：\*匹配一个单词，#匹配多个单词）
-  - Publisher Confirms（发送确认）：用来实现消息的可靠投递。当在某个通道(channel)上开启发布确认后，客户端发布的消息会被MQ服务器(broker)异步的确认 [^2]
+  - 常用
+    - 点对点
+    - work（point和work模式配置相同，当多个消费者监听该队列时则任务是work模式，point只有一个消费者）
+    - 订阅类模式（包括：fanout 广播、direct 直连、topic 主题）
+        - 广播：同一消息，所有的消费者都可以接收到
+        - Direct 直连（RoutingKey 固定），只能接受固定类型的消息
+        - Topic 基于通配符（RoutingKey 包含通配符：\*匹配一个单词，#匹配多个单词），只能接受主题相匹配的消息
+  - Publisher Confirms（发送确认模式）：用来实现消息的可靠投递。当在某个通道(channel)上开启发布确认后，客户端发布的消息会被MQ服务器(broker)异步的确认 [^2]
+- 常用测试配置
+    - 创建虚拟机(可省略，即使用默认的/)：Admin-VirtualHost. 如需要多环境测试可创建虚拟机（因为队列必须一致，最简单的就是改变服务器/虚拟机配置）
+    - 创建项目用户：Admin-Users
+    - 创建项目队列(也可通过程序自动创建)
+    - 创建交换机(当使用订阅类模式时需要)
 
 ## RabbitMQ 安装
 
@@ -287,7 +297,7 @@ rabbitmqctl set_permissions -p /test smalle '.*' '.*' '.*' # 可访问/test虚�
 
 ### 简单使用
 
-- 相关代码参考 github
+- 相关代码参考 [github-smjava-rabbitmq](https://github.com/oldinaction/smjava/tree/master/rabbitmq/src/main/java/cn/aezo/demo/rabbitmq)
 - 引入客户端依赖
 
 ```xml
@@ -298,19 +308,96 @@ rabbitmqctl set_permissions -p /test smalle '.*' '.*' '.*' # 可访问/test虚�
 </dependency>
 ```
 
-- 核心代码（topic 为例）
+#### point/work(点对点/工作模式)
+
+- point和work模式配置相同，当多个消费者监听该队列时则任务是work模式(point只有一个消费者)
 
 ```java
-// 获取连接
+// =============== 生产者
+// 获取连接(springboot则直接在配置文件中配置即可)
 ConnectionFactory factory = new ConnectionFactory();
 factory.setHost("127.0.0.1");
 factory.setPort(5672);
 factory.setUsername("guest");
 factory.setPassword("guest");
-factory.setVirtualHost("/test"); // 需要提前创建好此虚拟主机
+factory.setVirtualHost("/test"); // 需要提前创建好此虚拟主机，默认是 /
+Connection onnection = factory.newConnection();
+
+// 开启一个会话
+Channel channel = connection.createChannel();
+
+/*
+* 声明一个消息队列，如果无此消息队列会自动创建。参数如下：
+* 1.queue: 消息队列名称
+* 2.durable: 是否持久化。true时，管理后台的Queues-Features会增加"D"标识。false不进行持久化，当MQ服务端重启后，消息队列会丢失(包括队列中的数据)
+* 3.exclusive: 是否独占。true独占，表示只能这个channel(会话)访问这个消息队列
+* 4.autoDelete: 是否自动删除。true自动删除，当消息消费完成后，且消费者断开连接，则删除此队列
+* 5.arguments: 额外参数
+*/
+channel.queueDeclare("hello", false, false, false, null);
+
+/*
+* 发布消息，参数如下：
+* 1.exchange: 使用的交换机名。此时案例展示点对点，留空
+* 2.routingKey: 路由键名。此时为点对点传输，填写队列名
+* 3.props: 传递消息的额外配置。AMQP.BasicProperties
+* 4.body: 消息体
+*/
+channel.basicPublish("", "hello", null, "这是一条消息".getBytes());
+
+// 之后关掉 connection 程序才会退出，否则会一直运行
+// 关闭资源
+channel.close();
+connection.close();
+
+// =============== 消费者
+Connection connection = RabbitmqU.getConnection();
+Channel channel = connection.createChannel();
+// 设置prefetchCount=1，一次只能消费一个消息，**否则MQ会把消息队列的中的消息都发channel中，可能导致数据丢失**
+// channel.basicQos(1);
+// 声明队列时，参数需要和生产者定义的队列一样
+channel.queueDeclare("hello", false, false, false, null);
+
+/*
+* 消费消息，参数如下：
+* 1.queue: 消息队列名
+* 2.autoAck: 是否开启自动消息确认机制
+*   - autoAck=true 开启自动确认。则消息发送到channel，不管是否已经消费完成，都会告诉服务端，从而服务端会继续发消息。当有多个消费者的时候是平均消费消息的
+*   - autoAck=false 关闭消息自动确认，即消费完消息后需要手动确认告知MQ服务端。到MQ发送到消费者的Channel，但是又没有手动确认的，会在管理端的Queues-Messages-Unacked显示未确认数
+* 3.deliverCallback: 收到消息回调
+* 4.cancelCallback
+* */
+channel.basicConsume("hello", true, new DefaultConsumer(channel) {
+    @Override
+    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        System.out.println("收到消息：" + new String(body, "UTF-8"));
+    }
+});
+
+// 测试时不关闭，防止还没进行 handle 就退出了
+// RabbitmqU.close(channel, connection);
+```
+
+#### topic
+
+```java
+// 获取连接(springboot则直接在配置文件中配置即可)
+ConnectionFactory factory = new ConnectionFactory();
+factory.setHost("127.0.0.1");
+factory.setPort(5672);
+factory.setUsername("guest");
+factory.setPassword("guest");
+factory.setVirtualHost("/test"); // 需要提前创建好此虚拟主机，默认是 /
 Connection onnection = factory.newConnection();
 
 // 生成者发布消息
+channel.queueDeclare("hello", false, false, false, null);
+/*
+ * 声明一个Exchange交换机，参数如下
+ * 1.exchange: 交换机名称
+ * 2.type: 交换机类型，fanout/direct/topic等。在管理端Exchanges-Type中会显示
+ * 3.其他参数参考 queueDeclare：Durability是否持久化，Auto delete是否自动删除
+ */
 channel.exchangeDeclare("my_exchange_name", "topic");
 channel.basicPublish("my_exchange_name", "aezo.user", null, ("这是一条消息").getBytes());
 
@@ -346,16 +433,16 @@ connection.close();
 
 - 配置 rabbitmq 服务器链接
 
-  ```yml
-  spring:
-    rabbitmq:
-      host: localhost
-      port: 5672
-      username: guest
-  password: guest
-  # 可以基于多环境配置rabbitmq虚拟服务器(队列是隔离的)
-  virtualHost: /test
-  ```
+```yml
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    # 可以基于多环境配置rabbitmq虚拟服务器(队列是隔离的)
+    virtualHost: /test
+```
 
 - 配置队列、生产者、消费者
 
@@ -442,12 +529,22 @@ rabbitmqctl list_policy # 查看策略
 - 登录管理后台
   - `http://localhost:15672` 使用`guest/guest`登录(需要激活 rabbitmq_management)
   - 如果需要通过内网访问，可设置配置 loopback_users.guest=false，具体参考上文安装
-- Admin
+- Overview 概览页面
+- Connections 连接客户端查看页
+- Channels 客户端会话查看页(在客户端的每个连接里，可建立多个 channel，每个 channel 代表一个会话任务)
+- Exchanges 交换机管理页
+- Queues 队列管理页面
+- Admin 管理员操作页面
   - Users 用户管理
     - Add a user 添加用户
     - 点击用户进入详情页面
-      - Permissions 和 Topic permissions 可设置用户权限
-        - 选择 Virtual Host，其他为`.*`表示所有权限
+      - Permissions 可设置用户权限
+        - 选择 Virtual Host，其他为`.*`表示拥有此虚拟机的所有权限(包括配置交换机、队列等)
+      - **Topic permissions** 可设置监听消息队列和订阅权限
+        - 选择 Virtual Host，需要看队列所属的虚拟机
+        - Exchange交换机类型：如direct(默认)、topic
+        - 其他为`.*`表示对此虚拟机下的该交换机类型拥有所有权限
+            - 如写成
   - Virtual Hosts 虚拟主机管理
     - Add a new virtual host 添加虚拟主机
       - 输入名称如`/vhost_aezocn_test`，命名上 abc 和 /abc 是不同的

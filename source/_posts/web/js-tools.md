@@ -233,6 +233,8 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     - asyncValidator
 - 获取ref
     - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
+- 表格组件
+
 
 ### 原理介绍
 
