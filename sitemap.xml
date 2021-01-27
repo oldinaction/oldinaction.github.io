@@ -2,16 +2,65 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
-    <lastmod>2021-01-25T06:19:58.961Z</lastmod>
+    <lastmod>2021-01-27T07:08:33.307Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
+    
+    <lastmod>2021-01-27T06:47:38.657Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-01-27T04:49:54.517Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/08/14/arch/rabbitmq/</loc>
+    
+    <lastmod>2021-01-27T03:25:35.964Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/10/23/linux/%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86/</loc>
+    
+    <lastmod>2021-01-27T02:12:46.803Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2021-01-26T14:26:02.653Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</loc>
+    
+    <lastmod>2021-01-26T14:18:30.239Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/10/10/web/uni-app/</loc>
     
-    <lastmod>2021-01-24T12:41:26.240Z</lastmod>
+    <lastmod>2021-01-25T15:01:00.805Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
+    
+    <lastmod>2021-01-25T06:19:58.961Z</lastmod>
     
   </url>
   
@@ -79,20 +128,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    
-    <lastmod>2021-01-20T01:51:53.701Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-01-19T01:45:24.765Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/04/16/arch/git/</loc>
     
     <lastmod>2021-01-18T14:56:00.230Z</lastmod>
@@ -138,13 +173,6 @@
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2021-01-15T06:52:20.570Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/10/23/linux/%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86/</loc>
-    
-    <lastmod>2021-01-15T06:14:58.820Z</lastmod>
     
   </url>
   
@@ -278,13 +306,6 @@
     <loc>http://blog.aezo.cn/2017/04/02/web/node-dev-tools/</loc>
     
     <lastmod>2020-12-19T13:42:01.124Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</loc>
-    
-    <lastmod>2020-12-19T07:45:42.057Z</lastmod>
     
   </url>
   
@@ -485,13 +506,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
-    
-    <lastmod>2020-11-09T09:52:02.625Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/10/21/db/h2/</loc>
     
     <lastmod>2020-10-17T17:15:53.705Z</lastmod>
@@ -530,13 +544,6 @@
     <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
     
     <lastmod>2020-09-10T03:22:25.286Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/08/14/arch/rabbitmq/</loc>
-    
-    <lastmod>2020-09-09T10:15:40.073Z</lastmod>
     
   </url>
   
@@ -593,13 +600,6 @@
     <loc>http://blog.aezo.cn/2019/09/19/devops/prometheus/</loc>
     
     <lastmod>2020-08-27T05:29:28.768Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/20/linux/network/</loc>
-    
-    <lastmod>2020-08-24T05:57:46.107Z</lastmod>
     
   </url>
   
