@@ -73,7 +73,9 @@ tags: [spring, 安全]
                     .and()
                 .logout().permitAll() // 默认访问/logout(Get)即可登出
                     .and()
-                .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+                .exceptionHandling()
+                    // @PreAuthorize 注解抛出AccessDeniedException异常，不会被accessDeniedHandler捕获，而是会被全局异常捕获; 只能捕获上文 hasAnyRole 等验证
+                    .accessDeniedHandler(accessDeniedHandler);
         }
     }
     ```
@@ -554,7 +556,7 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     }
 
     // ======= 示例3
-    // returnObject为内置返回对象名。@PostAuthorize是在方法调用完成后进行权限检查，它不能控制方法是否能被调用，只能在方法调用完成后检查权限决定是否要抛出AccessDeniedException
+    // returnObject为内置返回对象名。@PostAuthorize是在方法调用完成后进行权限检查，它不能控制方法是否能被调用，只能在方法调用完成后检查权限决定是否要抛出AccessDeniedException，此异常不会被accessDeniedHandler捕获，而是会被全局异常捕获
     @PostAuthorize("returnObject.id % 2 == 0")
     public User find(int id) {
         User user = new User();
@@ -592,7 +594,7 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
 		}
     }
 
-    // ======= 示例6：hasPermission表达式，具体参考：https://www.baeldung.com/spring-security-create-new-custom-security-expression
+    // ======= 示例6：hasPermission表达式(建议使用引用Bean代替)。具体参考：https://www.baeldung.com/spring-security-create-new-custom-security-expression
     // @PostAuthorize("hasAuthority('foo_read')")
     @PostAuthorize("hasPermission(returnObject, 'read')") // 返回对象类型为 Foo
     @PreAuthorize("hasPermission(#id, 'Foo', 'read')") // #id为方法参数，Foo为类型

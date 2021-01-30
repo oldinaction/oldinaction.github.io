@@ -30,6 +30,7 @@ BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的
 ```java
 // 忽略NULL值(即NULL值不会覆盖目标对象，但不会忽略空值)，和忽略部分属性。痛点：像 org.springframework.beans.BeanUtils.copyProperties 则无法忽略NULL值
 BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
+BeanUtil.copyProperties(source, Map.class); // 会直接返回一个新Map，传入Bean的class亦可
 
 // 仅拷贝部分属性，暂未找到相应方法，可重新定义一个仅有部分字段的Bean进行接收
 ```
@@ -61,7 +62,7 @@ List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String
 ```
 
 - 分组
-    - *暂未找到基于字段值分组成数组的方法*
+    - **暂未找到基于字段值分组成数组的方法，可参考MiscU.groupByMapKey和MiscU.groupByBeanKey**
 
 ```java
 // 基于id字段进行分组成Map
@@ -108,8 +109,10 @@ Validator.validateChinese("我是一段zhongwen", "内容中包含非中文");
 ### 字符串
 
 ```java
-// 成对剥掉前后字符
-System.out.println(StrUtil.strip(StrUtil.strip("'1''2\"3'", "\""), "'")); // 1''2"3
+// （成对）剥掉前后字符
+StrUtil.strip("'abc'", "'"); // abc
+StrUtil.strip("[abc]", "[", "]"); // abc
+System.out.println(StrUtil.strip(StrUtil.strip("'1''2\"3'", "\""), "'")); // '1''2"3' => (去掉前后的 ") '1''2"3'  => (去掉前后的 ') 1''2"3
 ```
 
 ### 构建树结构

@@ -544,7 +544,10 @@ rabbitmqctl list_policy # 查看策略
         - 选择 Virtual Host，需要看队列所属的虚拟机
         - Exchange交换机类型：如direct(默认)、topic
         - 其他为`.*`表示对此虚拟机下的该交换机类型拥有所有权限
-            - 如写成
+      - Update this user
+        - Tags 角色
+            - admin(administrator)：管理员角色，可以管理所有虚拟机资源
+            - management：只能管理某个虚拟机下的资源
   - Virtual Hosts 虚拟主机管理
     - Add a new virtual host 添加虚拟主机
       - 输入名称如`/vhost_aezocn_test`，命名上 abc 和 /abc 是不同的

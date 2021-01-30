@@ -3,7 +3,7 @@ layout: "post"
 title: "Ubuntu"
 date: "2016-11-20 13:16"
 categories: [linux]
-tags: [system, bois]
+tags: [system]
 ---
 
 ## Ubuntu介绍
@@ -229,92 +229,8 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
         - `sudo update-initramfs -u`
     - 重启
 
-## Centos
-
-### Centos7安装
-
-- centos7镜像下载地址：https://mirrors.aliyun.com/centos/7/isos/x86_64/
-    - CentOS-7-x86_64-DVD-1810.iso    标准安装版，一般下载这个就可以了(桌面推荐)
-        - 如果无桌面版，可进行安装图形界面，`yum -y groupinstall "GNOME Desktop" "Graphical Administration Tools"`
-        - `systemctl set-default graphical.target`  将默认模式修改为图形界面模式
-        - `systemctl set-default multi-user.target` 将默认模式修改为命令行模式
-    - CentOS-7-x86_64-Minimal-1810.iso    精简版(服务器推荐)
-    - CentOS-7-x86_64-NetInstall-1810.iso 网络安装镜像（从网络安装或者救援系统）
-    - CentOS-7-x86_64-Everything-1810.iso 对完整版安装盘的软件进行补充，集成所有软件
-    - CentOS-7-x86_64-LiveGNOME-1810.iso  GNOME桌面版
-    - CentOS-7-x86_64-LiveKDE-1810.iso    KDE桌面版
-- 使用`UltraISO`刻录到光盘
-- BIOS启动进入安装命令行进行安装，一般选择第一个命令进行安装
-    - 正常会很快一路显示`[OK]`，如果突然卡死后提示`dracut-initqueue : Warning: dracut-initqueue timeout - starting timeout scripts`解决办法 [^11]
-        - 等待执行完进入`dracut`命令行，`ls /dev | grep sd` 查看U盘对应的盘符，如测试时机器本身包含centos系统且含有两块硬盘，根据U盘大小大致可以猜测为`sdcx`的盘符名(如：`sdc4`，如果是CD/DVD安装则可能是`/dev/cdrom`)
-        - reboot重新启动，并重新安装，此时修改执行的安装命令
-        - 在安装命令行主界面，按`e`/`Tab`进入到命令修改状态
-        - 修改`vmlinuz initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64.check quiet` 为 `vmlinuz initrd=initrd.img inst.stage2=hd:/dev/sdc4 quiet` (/dev/sdc4为U盘所在位置)
-        - 然后`Ctrl+x`执行安装
-        - 方式二：修改`U盘/isolinux/isolinux.cfg`里`hd:LABEL=U盘名称`
-- 进入到CentOS图形化安装界面
-    - 修改时区`Date & Time`
-    - `INSTALLATION DESTINATION`进行磁盘分区 - `i will configure partitioning`手动进行分区 - 选择`LVM`(会产生/dev/mapper/centos-root的镜像文件)标准分区 - 可通过`+-`添加新分区或删除历史分区(老系统分区) - 点击+新增分区，其他使用默认值(默认文件系统xfs，也可改成ext4)，分区推荐
-        - (省略)`/boot/efi` 500M
-        - `/boot` 1G
-        - `/swap` 4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。最终显示如`tmpfs`
-        - `/` 80G
-        - `/home` 剩余
-
-### centos7使用
-
-- 设置家目录为因为，保留系统语音为中文
-    - 设置 - 区域语言 - 选择English - 重启 - 注销账户重新登录 - 登录后提示会修改家目录(为英文) - 点击更新成新名称
-    - 设置 - 区域语言 - 选择中文 - 重启 - 注销账户重新登录 - 登录后提示会修改家目录(为中文) - 勾选不用再提示 - 点击保持原名称
-- CentOS7设置笔记本合盖后程序仍可以运转
-    
-    ```bash
-    # https://blog.csdn.net/m0_49400972/article/details/108861639
-    vi /etc/systemd/logind.conf
-    # 修改 HandleLidSwitch 盒盖行为
-    HandleLidSwitch=lock
-    # 重启配置
-    systemctl restart systemd-logind
-    ```
-- wifi无法连接
-
-```bash
-ip addr
-# 开启wifi对应网卡
-sudo ip link set wlp5s0 up
-# 扫码wifi网络
-sudo iw wlp5s0 scan | grep SSID
-```
-
-### Centos7系统启动失败排查
-
-- 进入`sysroot`单用户模式(**系统启动失败时可使用此模式进入系统进行调试**)
-    - 进入BIOS，把启动命令中的ro改成 "rw init=/sysroot/bin/sh"，完成之后按Ctrl+x继续启动
-- `/etc/fstab`磁盘挂载配置出错，重启后启动失败
-    
-    ```bash
-    vi /etc/fstab
-    # 历史挂载配置，其中/dev/vdb1后来被创建成了/dev/home/main的LVM卷（解决办法：进入安全模式修改此文件，删除历史配置即可）
-    /dev/vdb1 /home xfs defaults 0 0
-    # 新挂载配置
-    /dev/home/main /home xfs defaults 0 0
-
-    ## 一般完整的fstab目录如下，丢失/etc/fstab时可安装以下初始化
-    #UUID=baaf0b5a-7e09-4a52-a409-56b1ddaaafa5 /boot xfs defaults 0 0 # UUID对应的即启动盘，如/dev/vda1的磁盘编号
-    /dev/vda1               /boot   xfs     defaults 0 0
-    /dev/mapper/centos-root /       xfs     defaults 0 0
-    /dev/mapper/centos-swap swap    swap    defaults 0 0
-    /dev/home/main          /home   xfs     defaults 0 0
-    ```
-    - 如提示`A start job is running for dev-home-main.device`或者`Timed out waiting for device dev-home-main.device`。表示磁盘dev-home-main.device挂载失败，检查`/etc/fstab`是否书写正确
-- centos7忘记root用户密码找回
-    - 进入`sysroot`单用户模式，可在启动时设置进入`sysroot/bin/sh`进行修改，参考：https://blog.51cto.com/scorpions/2059912
-
-
-
 
 ---
-
 
 参考文章
 
@@ -328,6 +244,5 @@ sudo iw wlp5s0 scan | grep SSID
 [^8]: http://www.educity.cn/linux.1589874.html
 [^9]: http://blog.csdn.net/u014466412/article/details/53666122 (ThinkPad-E425在安装Ubuntu卡在安装界面)
 [^10]: https://blog.csdn.net/woodcorpse/article/details/80503232
-[^11]: https://www.jianshu.com/p/e5db74f04859
 
 

@@ -619,7 +619,7 @@ for (Orders order : list) {
             sqlSession.commit();
         }
         ```
-- mybatis-plus 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)/saveOrUpdateBatch(新增或基于ID修改)访问，见下文
+- mybatis-plus 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)/saveOrUpdateBatch(新增或基于ID修改)访问，见下文。基于mybatis的`openSession(ExecutorType.BATCH)`，默认每1000条提交一次
 - jdbc batch
     - 采用PreparedStatement.addBatch()方式实现
     - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
@@ -920,7 +920,7 @@ mybatis-plus:
   global-config:
     # 逻辑删除配置(无需其他配置)
     db-config:
-      logic-delete-field: valid_status # 逻辑字段名，可省略定义 `@TableLogic`
+      logic-delete-field: valid_status # 逻辑删除字段，可省略定义 `@TableLogic`. IService#remove则是修改逻辑字段(原本为硬删除)，IService的方法则全部加valid_status=1，但是手写的Mapper则需要手动加此条件
       logic-delete-value: 0 # 逻辑已删除值
       logic-not-delete-value: 1 # 逻辑未删除值
   # 原生配置

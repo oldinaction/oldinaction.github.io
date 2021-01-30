@@ -1080,7 +1080,7 @@ public FilterRegistrationBean indexFilterRegistration() {
 // 定义拦截器(且需如下文注入到 WebMvcConfigurer)
 // @Component
 public class MyInterceptor implements HandlerInterceptor {
-    // 如果需要存放额外参数可使用 ThreadLocal
+    // **如果需要存放额外参数可使用 ThreadLocal**
     private static final ThreadLocal<Long> startTimeThreadLocal = new NamedThreadLocal<Long>("ThreadLocal StartTime");
 
     @Override

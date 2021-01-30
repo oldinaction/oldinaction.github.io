@@ -804,6 +804,7 @@ post |`application/json`   |row-json   |(String userIdUrlParam, @RequestBody Use
 (x)post |`application/json`   |row-json   |(@RequestParam username) |如果前台为application/json + {username: smale}或者application/json + username=smalle均报400；此时需要application/x-www-form-urlencoded + username=smalle才可请求成功
 post |`application/x-www-form-urlencoded`   |x-www-form-urlencoded   |(String name, User user, @RequestBody body)   |`String name`可以接受url中的参数，postmant的x-www-form-urlencoded中的参数会和url中参数合并后注入到springboot的参数中；`@RequestBody`会接受url整体的数据，(由于Content-Type)此时不会转换，body接受的参数如`name=hello&name=test&pass=1234`。**对于application/x-www-form-urlencoded类型的数据，可无需 @RequestBody 接受参数**
 post |`multipart/form-data`  |form-data   |(HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello)   |参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括axios等插件)需要使用new FormData()进行数据传输；此时参数映射到User对象，如果字段为null则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是Map则无法映射**；表单数据都保存在http的正文部分，各个表单项之间用boundary隔开，用request.getParameter是取不到数据的，这时需要通过request.getInputStream来取数据
+get |-  |-  |(User user, Page page) |前台传输参数为{username: 'smalle', pageSize: 10}时，可正确分别映射到两个对象；如果此时为post请求则无法映射；get请求时，请求参数会拼接到url上，Google浏览器URL最大长度限制为8182个字符，中文是以urlencode后的编码形式进行传递，如果浏览器的编码为UTF8的话，一个汉字最终编码后的字符长度为9个字符(中dui%E4%B8%AD)
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放再body中，且数据格式为json

@@ -75,7 +75,7 @@ tags: [linux, shell]
     - `-n` 显示最近n行日志 `journalctl -n20`
     - `-k` 查看内容日志
     - `--since`/`--until` 查询某段时间的日志
-- **自定义服务参考[《nginx》http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)**
+- **自定义服务参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)**
 - `systemctl`：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为`/usr/lib/systemd/system` 或 `/etc/systemd/system`)
     - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务，此处`.service`可省略，status状态说明
         - `Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)`中`docker.service`为daemon配置文件，第一个`disabled` 表示服务不是开机启动
@@ -115,57 +115,7 @@ tags: [linux, shell]
 
 ### 开机启动设置
 
-- 开机启动在/var/log/messages中会打印`kernel: Initializing cgroup subsys cpuset`的日志，可通过`dmesg`查看
-
-#### 系统启动顺序boot sequence
-
-1. load bios(hardware information)：加电后检查，载入BIOS的硬件信息，并取得第一个开机装置的代号
-2. read MBR's cofing to find out the OS：读取第一个开机装置的MBR的boot Loader (grub)的开机信息
-3. load the kernel of the OS：载入OS Kernel信息，解压Kernel，尝试驱动硬件
-4. init process starts...：Kernel执行init程序并获得run-level信息(如3或5)
-5. execute /etc/rc.d/sysinit (rc.d 为 runlevel control directory)
-6. start other modulers(/etc/modules.conf) (启动内核外挂模块)
-7. execute the run level scripts
-    - 执行某级别下的脚本如 `/etc/rc0.d`=>`/etc/rc.d/rc0.d`、`/etc/rc1.d` (创建的chkconfig会生成文件到对应级别)
-    - 运行级别：启动只能配置成某一个级别，查看`systemctl get-default`，配置目录`cat /etc/inittab`
-        - 0 停机(千万不要把initdefault 设置为0)
-        - 1 单用户模式
-        - 2 多用户，但是没有 NFS
-        - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)
-        - 4 系统保留的
-        - **5** X11(x window 桌面版)
-        - 6 重新启动(千万不要把initdefault 设置为6)
-    - 修改默认运行级别
-        - `systemctl set-default graphical.target`  将默认模式修改为图形界面模式
-        - `systemctl set-default multi-user.target` 将默认模式修改为命令行模式
-    - 对无图像界面的服务器安装图像界面相关软件 `yum -y groupinstall "GNOME Desktop" "Graphical Administration Tools"`
-8. execute `/etc/rc.d/rc.local`：执行`rc.local`脚本。可基于此文件配置(或者`/etc/rc.local`)，直接在里面添加某些启动命令
-9. execute /bin/login
-10. shell started...
-
-#### 启动设置
-
-- 设置服务自启动，如 `systemctl enable nginx` 或 `chkconfig nginx on`
-- 操作 `/etc/rc.d/sysinit` 或 `/etc/rc.d/rc.local` 或 `~/.bashrc`
-- 设置加载模块。如设置 `br_netfilter` 模块开机自启动
-
-```bash
-# 创建文件
-cat > /etc/rc.d/sysinit <<EOF 
-#!/bin/bash
-for file in /etc/sysconfig/modules/*.modules ; do
-[ -x $file ] && $file
-done
-EOF
-# 创建文件
-cat > /etc/sysconfig/modules/br_netfilter.modules <<EOF
-modprobe br_netfilter
-EOF
-# 增加权限
-chmod 755 /etc/sysconfig/modules/br_netfilter.modules
-# 重启后查看模块是否启动
-lsmod |grep br_netfilter
-```
+- 参考[centos.md#启动原理及设置](/_posts/linux/centos.md#启动原理及设置)
 
 ### bash使用
 

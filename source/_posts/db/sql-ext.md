@@ -147,16 +147,6 @@ having count(1) = 3
 
 ### 行转列/列转行
 
-#### oracle
-
-- 参考[listagg within group行转列](#listagg%20within%20group行转列)
-- 参考[wm_concat行转列](#wm_concat行转列)
-
-#### sqlserver
-
-- 行转列：`PIVOT`用于将列值旋转为列名；也可用聚合函数配合CASE语句实现
-- 列转行：`UNPIVOT`用于将列明转为列值；也可以用UNION来实现
-
 ```sql
 /*
 -- course
@@ -173,7 +163,47 @@ stu_no  yuewen  shuxue  yingyu
 1       90      80      85
 2       95      100     55
 */
+```
 
+#### oracle
+
+- 参考[listagg within group行转列](#listagg%20within%20group行转列)
+- 参考[wm_concat行转列](#wm_concat行转列)
+
+#### mysql
+
+```sql
+-- 参考：https://www.cnblogs.com/xiaoxi/p/7151433.html
+-- 行转列
+select stu_no,
+    sum(case `course_name` when 'yuewen' then course_score else 0 end) as 'yuewen',
+    sum(case `course_name` when 'shuxue' then course_score else 0 end) as 'shuxue',
+    sum(case `course_name` when 'yingyu' then course_score else 0 end) as 'yingyu'
+from course 
+group by stu_no
+-- 方式二
+select ifnull(userid,'total') as userid,
+    sum(if(`course_name`='yuewen',course_score,0)) as yuewen, -- IF(condition, value_if_true, value_if_false)
+    sum(if(`course_name`='shuxue',course_score,0)) as shuxue,
+    sum(if(`course_name`='yingyu',course_score,0)) as yingyu,
+    sum(course_score) as total 
+from course
+group by stu_no with rollup;
+-- 方式三：适用于不确定的列
+SET @EE='';
+SELECT @EE :=CONCAT(@EE,'sum(if(course_name=\'',course_name,'\',course_score,0)) as ',course_name, ',') AS aa FROM (SELECT DISTINCT course_name FROM course) A; -- (1) sum(if(`subject`='语文',score,0)) as 语文; (2) sum(if(`subject`='语文',score,0)) as 语文, sum(if(`subject`='数学',score,0)) as 数学; ...
+SET @QQ = CONCAT('select ifnull(stu_no,\'-NA-\')as stu_no,',@EE,' from course group by stu_no');
+PREPARE stmt FROM @QQ;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+```
+
+#### sqlserver
+
+- 行转列：`PIVOT`用于将列值旋转为列名；也可用聚合函数配合CASE语句实现
+- 列转行：`UNPIVOT`用于将列明转为列值；也可以用UNION来实现
+
+```sql
 -- ## 行转列
 -- 基于pivot
 select a.stu_no, max(a.yuwen) as yuwen, max(a.shuxue) as shuxue, max(a.yingyu) as yingyu
