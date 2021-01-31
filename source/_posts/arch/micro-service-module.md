@@ -28,6 +28,11 @@ tags: [微服务, SpringCloud]
 - 微服务设计原则：单一职责原则、服务自治原则、轻量级通信原则、接口明确原则
 - 微服务开发框架：`Spring Cloud`、`Dubbo`、`Dropwizard`、`Consul`等
 
+### 相关问题
+
+- 微服务架构中如何解决连表查询的问题？
+    - https://www.zhihu.com/question/66256777
+
 ## 微服务架构选型
 
 - 参考文章：[^1] [^2]

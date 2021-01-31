@@ -29,6 +29,11 @@ tags: [template]
 
 #foreach($field in $!{table.fields})
 #if($!{field.name})
+    #if($velocityCount==3 && !$!{field.keyFlag}) ## Velocity中有一个变量 $velocityCount 用作循环计数，初始值是1。这个变量的名字和初始值是在velocity.properties文件里配置的
+        #break      ## 会跳出循环，类似break。continue功能只能通过if实现
+        #stop       ## 退出程序(跳出循环，也不会执行循环之后的程序)，类似exit
+    #end
+
     ## 语句解析后不会出现空行，如下写法生成的注释排版不会乱；replaceAll为直接调用对象方法
     /** 
     #if($!{field.desc})

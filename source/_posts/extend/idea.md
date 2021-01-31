@@ -241,6 +241,7 @@ ThisCrackLicenseId-{
 | @throws       | 和 @exception标签一样.                                 | The @throws tag has the same meaning as the @exception tag.  |
 | {@value}      | 显示常量的值，该常量必须是static属性。                 | Displays the value of a constant, which must be a static field. |
 | @version      | 指定类的版本                                           | @version info                                                |
+| `<pre></pre>` | 可按格式显示文本，如显示代码块                           |                                                             |
 
 ## 常用技巧
 
