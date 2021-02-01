@@ -4,6 +4,30 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
+    <lastmod>2021-02-01T05:13:22.488Z</lastmod>
+    <data>
+        <display>
+        <title>SQL优化</title>
+        <pubTime>2018-07-27T06:58:00.000Z</pubTime>
+        
+        <tag>oracle</tag>
+         
+        <tag>dba</tag>
+         
+        <tag>sql</tag>
+         
+         
+           
+             
+              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     <lastmod>2021-01-31T09:43:26.567Z</lastmod>
     <data>
@@ -922,30 +946,6 @@
         <tag>mysql</tag>
          
         <tag>oracle</tag>
-         
-        <tag>sql</tag>
-         
-         
-           
-             
-              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
-    <lastmod>2020-12-21T07:29:13.286Z</lastmod>
-    <data>
-        <display>
-        <title>SQL优化</title>
-        <pubTime>2018-07-27T06:58:00.000Z</pubTime>
-        
-        <tag>oracle</tag>
-         
-        <tag>dba</tag>
          
         <tag>sql</tag>
          

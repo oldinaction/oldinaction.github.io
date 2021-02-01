@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
+    
+    <lastmod>2021-02-01T05:13:22.488Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     
     <lastmod>2021-01-31T09:43:26.567Z</lastmod>
@@ -306,13 +313,6 @@
     <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
     
     <lastmod>2020-12-21T07:45:06.742Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
-    
-    <lastmod>2020-12-21T07:29:13.286Z</lastmod>
     
   </url>
   
