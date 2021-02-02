@@ -957,7 +957,9 @@ this.$root.eventBus.$off('eventName')
         1.content为上述插槽名称，如果组件只有一个默认插槽，则此处可将:content换成:default或省略；v2.6开始，具名插槽可缩写为 <template #content="{ item }">
         2.使用了解构获取item；还可使用v-slot:content="slotProps"获取作用域，并通过slotProps.item获取值；v2.6之前，是使用<template slot="content" slot-scope="slotProps">
     -->
-    <template v-slot:content="{ item }">
+    <!-- <template v-slot:content="{ item }"> --><!-- 带上指令名 -->
+    <!-- <template slot="content" slot-scope="slotProps"> --><!-- v2.6之前 -->
+    <template #content="{ item }"><!-- v2.6后 -->
         {{ item }}
     </template>
 </comp>
