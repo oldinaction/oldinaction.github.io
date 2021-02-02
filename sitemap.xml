@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
+    
+    <lastmod>2021-02-02T02:09:05.911Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
     
     <lastmod>2021-02-01T05:13:22.488Z</lastmod>
@@ -229,13 +236,6 @@
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2021-01-15T06:52:20.570Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
-    
-    <lastmod>2021-01-14T15:12:42.153Z</lastmod>
     
   </url>
   
