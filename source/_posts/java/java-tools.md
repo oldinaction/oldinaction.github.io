@@ -178,15 +178,28 @@ File file = new ClassPathResource("templates").getFile(); // 在当前类所在�
 File file = new File(FileU.class.getClassLoader().getResource("templates")); // 也可传入 cn/test 等路径
 
 ResourceUtil.getResource("templates"); // 返回 URL
+
+// 如果路径不存在则创建路径
+if (!FileUtil.exist(path)) {
+    FileUtil.mkdir(path);
+}
 ```
 
 ### Excel操作
 
 ```java
+// 读取Excel
 ExcelReader reader = ExcelUtil.getReader("D:/temp/test.xls");
 List<List<Object>> readAll = reader.read(); // 读取所有数据
 List<Object> row = readAll.get(0); // 获取一行数据。合并单元格的会复制合并组的第一列数据
 List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String.class, this.row))); // 去重、去空字符串
+
+// 写出Excel. 此时基于Bean/Map写出，还可以基于数组写出
+ExcelWriter writer = ExcelUtil.getWriter("D:/temp/test.xls");
+writer.addHeaderAlias("no", "编号"); // 设置字段顺序
+writer.addHeaderAlias("name", "姓名");
+writer.write(userList, true);
+writer.close();
 ```
 
 ### FTP操作

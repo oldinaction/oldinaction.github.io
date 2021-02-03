@@ -218,10 +218,10 @@ declare namespace PersonLog.Options {
         import { Component, Prop, Watch, Mixins, Vue } from "vue-property-decorator";
         import CommonFunc from './CommonFunc'
         
-        // @Component
+        // 不加 @Component 注解，会报一些奇奇怪怪的错：（1）is not defined on the instance but referenced during render. Make sure that this property is reactive, either in the data option, or for class-based components, by initializing the property(说子组件的DOM中不能直接使用prop，需要data接收。实际是子组件中可直接使用prop)（2）Error in render: "TypeError: vnode.children.slice is not a function"
+        // @Component // 此缩写也行
         @Component({
-            components: {
-            }
+            components: { XXXComp }
         })
         export default class Order extends Mixins(CommonFunc) {
             @Prop({ type: String, default: "" }) init!: string;

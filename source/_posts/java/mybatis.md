@@ -948,7 +948,9 @@ List<Map<String, Object>> list = templateItemMapper.selectMaps(
                 new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
                     .eq(TemplateItem::getTemplateId, 1)
                     .eq(TemplateItem::getTemplateId, templateId)
-                    .select(TemplateItem.class, x -> selectProps.contains(x.getProperty()))); // 仅获取部分字段
+                    .select(TemplateItem::getTemplateId, TemplateItem::getTemplateName) // 仅获取部分字段
+                    // .select(TemplateItem.class, x -> selectProps.contains(x.getProperty())))
+                    ;
 List<Template> list2 = templateItemMapper.selectByMap(map); // 参数 map 中的字段即为数据库的字段(如：user_id)，且不能有非数据库字段
 
 // ======== 基于 Service 进行访问
@@ -960,6 +962,12 @@ subscribeService.saveBatch(List<Subscribe>);
 subscribeService.updateBatchById(List<Subscribe>);
 subscribeService.removeByIds(List<Subscribe>);
 subscribeService.saveOrUpdateBatch(List<Subscribe>);
+
+// ========= and/or
+// select * from user where name = ? and ( pwd= ? or phone = ?)
+QueryWrapper<User> userWrapper = new QueryWrapper<User>()
+    .eq("name", name);
+    .and(wrapper -> wrapper.eq("pwd", pwd).or().eq("phone", phone));
 ```
 
 #### 分页
@@ -987,7 +995,7 @@ Page<Subscribe> subscribePage = new Page<>(0, 100);
 LambdaQueryWrapper lambdaQueryWrapper = new LambdaQueryWrapper<Subscribe>()
 		.eq(Subscribe::getFlowStatus, flowStatus)
 		.eq(Subscribe::getValidStatus, 1)
-		.and(date != null, obj -> obj.gt(Subscribe::getUpdateTm, date)) // 基于某个条件判断是否添加查询此查询条件
+		.and(date != null, obj -> obj.gt(Subscribe::getUpdateTm, date)) // **基于某个条件判断是否添加查询此查询条件**
 		.orderByAsc(date != null, Subscribe::getClawCount); // 基于某个条件添加排序
 subscribePage = (Page<Subscribe>) subscribeService.page(subscribePage, lambdaQueryWrapper);
 List<Subscribe> subscribes =  subscribePage.getRecords();

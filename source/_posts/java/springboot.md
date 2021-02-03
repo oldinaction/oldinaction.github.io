@@ -286,6 +286,11 @@ public void setHello(String h) {
 @ConfigurationProperties(prefix = "myValue")
 public class MyValue {
 	// ...Model：所有的属性、get、set方法
+    private String val;
+
+    private String hello;
+
+    private Map<String, Object> extMap; // 如 myValue.extMap.a=1 和 myValue.extMap.b=2 可注入进来
 }
 
 // 取值

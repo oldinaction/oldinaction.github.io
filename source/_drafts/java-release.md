@@ -251,6 +251,8 @@ BigDecimal sum = invoices.stream()
                 // .reduce((i, j) -> i + j)                     // reduce表达式(i + j)执行完后仍然需要返回相同类型的结果
                 .reduce(BigDecimal.ZERO, BigDecimal::add)       // reduce，将上一步得到的结果进行合并得到最终的结果
                 .setScale(2, BigDecimal.ROUND_HALF_UP);         // 四舍五入，保留2位小数
+
+invoices.stream().reduce(BigDecimal.ZERO, BigDecimal::add)   
 ```
 - parallelStream
     - https://blog.csdn.net/u011001723/article/details/52794455
