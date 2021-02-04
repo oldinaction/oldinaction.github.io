@@ -2,16 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    <loc>http://blog.aezo.cn/2020/08/26/java/java-http/</loc>
     
-    <lastmod>2021-02-03T08:32:28.712Z</lastmod>
+    <lastmod>2021-02-04T10:01:13.709Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
-    <lastmod>2021-02-03T06:33:13.732Z</lastmod>
+    <lastmod>2021-02-04T07:21:09.681Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    
+    <lastmod>2021-02-03T08:32:28.712Z</lastmod>
     
   </url>
   
@@ -278,13 +285,6 @@
     <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
     
     <lastmod>2021-01-05T07:54:26.794Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/08/26/java/java-http/</loc>
-    
-    <lastmod>2020-12-23T04:11:50.687Z</lastmod>
     
   </url>
   
