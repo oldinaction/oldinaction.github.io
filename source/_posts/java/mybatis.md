@@ -361,7 +361,8 @@ for (Orders order : list) {
 					<!-- bind 元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变 -->
 					<!-- _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name') -->
 					<bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
-					and upper(name) like #{nameUpper}
+                    <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> <!-- 定义了参数名 @Param("userInfo") -->
+					and upper(name) like #{nameUpper} <!-- 不能写成 #{nameUpper.toUpperCase()} -->
 				</if>
                 and hobby in
                 <!-- index默认从0开始；separator也可使用变量，但是只能使用#，不能使用$，也可以省略此属性 -->

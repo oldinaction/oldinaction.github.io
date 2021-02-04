@@ -39,9 +39,7 @@ Map retInfo = restTemplate.postForObject("http://localhost/test", params, Map.cl
 // 定义Header
 HttpHeaders headers = new HttpHeaders(); // org.springframework.http.HttpHeaders impl MultiValueMap
 headers.add("X-Auth-Token", "123456789");
-Map<String, Object> postParameters = new HashMap<>();
-postParameters.add("username", "smalle");
-postParameters.add("age", "18");
+Map<String, Object> postParameters = MiscU.toMap("username", "smalle", "age", "18");
 HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(postParameters, headers);
 Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity, Map.class);
 ```
