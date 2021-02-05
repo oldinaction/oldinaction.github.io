@@ -44,6 +44,7 @@ new Promise(function (resolve, reject) {
     - 说明
         - `async`：把它放在函数声明之前，使其成为 async function。**可单独使用，被标识的函数成为异步函数，返回Promise对象**
         - `await`：只能在异步函数（async修饰）里面才起作用。**必须和async联用**
+        - **在forEach等函数中不能直接使用await调用其他函数(for和for...of中可以)，而是要在回调函数的参数上加async才可正常使用**，见下列
     - async简单使用
 
         ```js
@@ -54,6 +55,13 @@ new Promise(function (resolve, reject) {
         // 2.async
         let hello = async () => { return "Hello" }
         hello().then((value) => console.log(value)) // 或者 hello().then(console.log)
+
+        // 必须在forEach回调函数参数处加async才可正常使用，for和for...of中可直接使用await
+        async test() {
+            arr.forEach(async (item, index) => {
+                await hello()
+            })
+        } 
         ```
     - async、await、Promise.all
 

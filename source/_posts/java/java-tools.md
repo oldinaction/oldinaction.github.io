@@ -155,6 +155,12 @@ NumberUtil.round(NumberUtil.mul(0.55, 1.27), 2); // 0.70 返回类型为BigDecim
 NumberUtil.div(12, 2, 3); // 6.0
 ```
 
+### 日期操作
+
+```java
+DateUtil.isIn(thisDate, DateUtil.offsetDay(new Date(), -10), new Date()); // 判断 thisDate 是否为最近10天的时间
+```
+
 ### 加解密
 
 ```java
