@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/10/09/extend/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/</loc>
+    
+    <lastmod>2021-02-06T06:22:39.690Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
+    
+    <lastmod>2021-02-06T05:31:11.980Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    
+    <lastmod>2021-02-06T04:18:07.486Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
     
     <lastmod>2021-02-05T08:11:48.896Z</lastmod>
@@ -138,13 +159,6 @@
     <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
     
     <lastmod>2021-01-27T15:29:36.578Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
-    
-    <lastmod>2021-01-27T07:08:33.307Z</lastmod>
     
   </url>
   
@@ -660,13 +674,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    
-    <lastmod>2020-08-10T01:43:56.919Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
     
     <lastmod>2020-06-24T16:48:43.835Z</lastmod>
@@ -845,13 +852,6 @@
     <loc>http://blog.aezo.cn/2017/03/13/linux/aws/</loc>
     
     <lastmod>2019-06-25T06:03:20.755Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/09/extend/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/</loc>
-    
-    <lastmod>2019-06-25T05:04:44.909Z</lastmod>
     
   </url>
   
