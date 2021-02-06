@@ -29,7 +29,7 @@ tags: [CentOS, linux]
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
     - 快速修改命令 **`sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`**，并重启
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#磁盘)
-- 校验系统时间，参考[时间同步](#时间同步)
+- 校验系统时间，参考[时间同步](#时间同步)，或使用下文配置脚本
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#权限系统)
 - 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#文件权限)
 - 证书登录、禁用root(内部集群一般不建议，因为经常需要ssh远程登录)及密码登录、修改ssh的22端口：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#ssh)
@@ -40,16 +40,7 @@ tags: [CentOS, linux]
     - `yum upgrade` 只更新软件版本，不更新内核版本
 - [常用软件安装](#常用软件安装)
 
-### 新服务器常见问题
-
-- centos7无法使用`ifconfig`命令解决方案
-    - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
-    - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
-- xshell卡死在`To escape to local shell, press 'Ctrl+Alt+]'.`
-    - 关闭防火墙
-    - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
-
-## 内核升级 [^7]
+### 内核升级 [^7]
 
 - **Centos7 默认使用内核版本为`3.10`**，目前内核长期支持版为`4.4`，主线稳定版为`5.2`
 - 内核版本的定义
@@ -64,7 +55,30 @@ tags: [CentOS, linux]
     - `yum remove 3.10.0-1062.1.2.el7.x86_64` 删除内核版本
 - Centos7升级内核
     - `bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/centos7-update-kernel.sh) 2>&1 | tee kernel.log`
+    - 会直接升级成目前最新的稳定版，如`5.4`(ThinkPadE480 也可正常升级到5.4)
     - 需使用root用户执行，如果下载rpm失败，可尝试重新执行
+
+### 常用配置脚本
+
+```bash
+# 升级内核(root用户执行)，见上文。无法下载脚本时，可参考下文使用sourcegraph
+bash <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/centos7-update-kernel.sh) 2>&1 | tee kernel.log
+
+# 记录系统日志(root用户执行)
+bash <(curl -L https://sourcegraph.com/github.com/oldinaction/scripts@master/-/raw/shell/prod/conf-recode-cmd-history.sh) 2>&1 | tee conf-recode-cmd-history.log
+
+# 设置时间自动同步
+bash <(curl -L https://sourcegraph.com/github.com/oldinaction/scripts@master/-/raw/shell/prod/conf-ntp-sync.sh) 2>&1 | tee conf-ntp-sync.log
+```
+
+### 新服务器常见问题
+
+- centos7无法使用`ifconfig`命令解决方案
+    - 确保有`/sbin/ifconfg`文件，否则安装net-tools(`yum -y install net-tools`)，即可使用netstat、ifconfig等命令
+    - 有则此文件则在`vi /etc/profile`中加`export PATH=$PATH:/usr/sbin`，并执行`source /etc/profile`使之生效
+- xshell卡死在`To escape to local shell, press 'Ctrl+Alt+]'.`
+    - 关闭防火墙
+    - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`，并重启sshd
 
 ## 常用软件安装
 
@@ -203,6 +217,30 @@ yum search vsftpd
     # 编译安装
     make && make install
     ```
+
+### 宝塔面板
+
+- [宝塔](https://www.bt.cn/)Linux面板是提升运维效率的服务器管理软件，支持一键LAMP/LNMP/集群/监控/网站/FTP/数据库/JAVA等100多项服务器管理功能
+
+```bash
+## 安装. 确保是干净的操作系统，没有安装过其它环境带的Apache/Nginx/php/MySQL/pgsql/gitlab/java（已有环境不可安装）
+# 默认只能安装在 /www 目录，因此可提前创建好软连接
+mkdir /home/bt
+ln -s /home/bt /www
+# 安装
+yum install -y wget && wget -O install.sh http://download.bt.cn/install/install_6.0.sh && sh install.sh
+# 安装成功后会显示安全的登录入口和账号密码
+# 可通过执行命令查看登录入口和账号密码
+sudo /etc/init.d/bt default
+
+## 卸载
+wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
+```
+- 目录说明
+    - 软件安装目录 /www/server
+        - data 数据目录(mysql)
+    - 备份目录 /www/backup
+    - 网站根目录 /www/wwwroot
 
 ### 安装jdk
 
@@ -553,6 +591,7 @@ echo "zabbix test mail" | mail -s "zabbix" test@163.com
 
 #### NTP(Network Time Protocol)
 
+- 使用脚本自动配置时间同步`bash <(curl -L https://sourcegraph.com/github.com/oldinaction/scripts@master/-/raw/shell/prod/conf-ntp-sync.sh) 2>&1 | tee conf-ntp-sync.log`
 - 使用 [^8]
 
 ```bash

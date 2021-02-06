@@ -962,11 +962,22 @@ exit $?
 ### 实现交互
 
 ```bash
-read -p "you are sure you wang to xxxxxx?[y/n]" input
+read -p "you are sure you wang to xxxxxx?[y/n, default:y]" input
 echo "you input [$input]"
 if [ $input = "y" ];then
-    echo "ok "
+    echo "ok"
 fi
+case $action in
+	'y')
+		echo "ok"
+		;;
+	'n')
+		echo "no"
+		;;
+	*)
+		echo "ok"
+		;;
+esac
 ```
 
 ### 定时判断
