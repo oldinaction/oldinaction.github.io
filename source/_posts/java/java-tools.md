@@ -241,8 +241,12 @@ try {
 
 ```java
 // 此处从classpath查找模板渲染（也可通过字符串模板、本地文件等方式渲染内容）
-TemplateEngine engine = TemplateUtil.createEngine(new TemplateConfig("templates", TemplateConfig.ResourceMode.CLASSPATH));
-Template template = engine.getTemplate("templates/velocity_test.vtl");
+TemplateConfig templateConfig = new TemplateConfig("/templates/email", TemplateConfig.ResourceMode.CLASSPATH);
+if(customEngine != null) {
+    templateConfig.setCustomEngine(customEngine); // 默认为第一个可用的引擎，即导入对应引擎包即可；此处可进行自定义引擎类，如 VelocityEngine.class
+}
+TemplateEngine engine = TemplateUtil.createEngine(templateConfig);
+Template template = engine.getTemplate("velocity_test.vtl"); // 会在模板前面拼上 /templates/email 路径
 String result = template.render(Dict.create().set("name", "Hutool"));
 ```
 

@@ -2216,12 +2216,13 @@ public interface ISubscribeService extends IService<Subscribe> {
 # email
 spring:
   mail:
-    host: smtp.mxhichina.com
-    username: it@uni-log.com.cn
-    password: Java1204
-# 设置为SSL协议
-spring.mail.properties.mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory
-# spring.mail.properties.from: your_email@163.com
+    host: smtp.exmail.qq.com # qq企业邮箱
+    port: 465 # 使用SSL协议需要
+    username: test@qq.com
+    password: 4ZfWRqjXzhdxxyhW
+    properties: # map格式
+      from: 自定义昵称<${spring.mail.username}> # 发件人显示名
+      mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory # 使用SSL协议需要
 ```
 - 发送
 
@@ -2231,7 +2232,7 @@ private JavaMailSender javaMailSender;
 
 // 简单邮件
 SimpleMailMessage mailMessage = new SimpleMailMessage();
-mailMessage.setFrom(mailUsername); // spring.mail.username 需要和 username 一致
+mailMessage.setFrom(mailFrom); // 发件人显示名：xxx<${spring.mail.username}>
 mailMessage.setTo(toStr.split(";"));
 mailMessage.setSubject(subject);
 mailMessage.setText(content);
@@ -2242,7 +2243,7 @@ javaMailSender.send(mailMessage);
 MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
 // MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
-messageHelper.setFrom(mailUsername);
+messageHelper.setFrom(mailFrom);
 messageHelper.setTo(toStr.split(";"));
 messageHelper.setSubject(subject);
 messageHelper.setText(content);
