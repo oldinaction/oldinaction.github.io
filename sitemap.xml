@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-02-07T12:17:16.964Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    
+    <lastmod>2021-02-07T05:28:47.381Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-02-07T05:26:42.383Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/10/09/extend/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/</loc>
     
     <lastmod>2021-02-06T06:22:39.690Z</lastmod>
@@ -19,13 +40,6 @@
     <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
     
     <lastmod>2021-02-06T04:18:07.486Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    
-    <lastmod>2021-02-05T08:11:48.896Z</lastmod>
     
   </url>
   
@@ -54,13 +68,6 @@
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
     <lastmod>2021-02-04T07:21:09.681Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-02-02T14:49:35.056Z</lastmod>
     
   </url>
   
@@ -131,13 +138,6 @@
     <loc>http://blog.aezo.cn/2016/11/20/linux/centos/</loc>
     
     <lastmod>2021-01-28T06:05:10.763Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-01-28T05:57:10.262Z</lastmod>
     
   </url>
   
