@@ -30,7 +30,7 @@ BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的
 ```java
 // 忽略NULL值(即NULL值不会覆盖目标对象，但不会忽略空值)，和忽略部分属性。痛点：像 org.springframework.beans.BeanUtils.copyProperties 则无法忽略NULL值
 BeanUtil.copyProperties(source, target, CopyOptions.create().ignoreNullValue().setIgnoreProperties("id", "inputer", "inputTm"));
-BeanUtil.copyProperties(source, Map.class); // 会直接返回一个新Map，传入Bean的class亦可
+BeanUtil.copyProperties(source, Map.class); // 会直接返回一个新Map，传入Bean的class亦可。有写场景不行，需要先new HashMap
 
 // 仅拷贝部分属性，暂未找到相应方法，可重新定义一个仅有部分字段的Bean进行接收
 ```
@@ -65,7 +65,7 @@ List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String
     - **暂未找到基于字段值分组成数组的方法，可参考MiscU.groupByMapKey和MiscU.groupByBeanKey**
 
 ```java
-// 基于id字段进行分组成Map
+// 基于id字段进行分组成Map。但是被分组的集合只能是对象集合，不能是Map集合，可使用 MiscU.fieldValueMap 代替
 Map<Long, Person> feeRuleMap = CollUtil.fieldValueMap(personList, "id");
 ```
 

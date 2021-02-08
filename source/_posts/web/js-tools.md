@@ -18,6 +18,10 @@ tags: [js, tools]
 
 ## 基础库
 
+### lodash工具类
+
+- [lodash](https://lodash.com/)
+
 ### cross-env启动时增加环境变量
 
 ### mockjs模拟数据
@@ -67,7 +71,12 @@ const getUrlParam = (paramName, params) => {
 
 ### dayjs时间操作
 
-- [dayjs](https://github.com/iamkun/dayjs)，相对 moment 体积更小
+- [dayjs](https://github.com/iamkun/dayjs)，相对 moment 体积更小、[官方文档](https://dayjs.gitee.io/docs/zh-CN/installation/installation)
+- 举例
+
+```js
+dayjs('2020-01-01').add(1, 'day').format('YYYY-MM-DD'); // 2020-01-02
+```
 
 ### mathjs数学计算
 
@@ -336,7 +345,7 @@ handleChange (value) {
 - [github](https://github.com/x-extends/vxe-table)、[doc](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/start/install)
 - 表格显示/隐藏后样式丢失问题
   - `sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
-- 多选 + 修改页面表格数据(仅修改页面数据)
+- 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
 
 ```js
 // 获取行记录
@@ -375,6 +384,18 @@ checkboxChange(table, event) {
     // "$table", "$grid", "$event", "reserves", "indeterminates", "$seq", "seq", "rowid", "rowIndex", "$rowIndex", "column", "columnIndex", "$columnIndex", "_columnIndex", "fixed", "type", "isHidden", "level", "visibleData", "cell"
 }
 ```
+- 表格筛选
+    - 通过设置 filters 属性和 filter-method 方法可以开启列筛选功能，通过 filter-multiple=false 设置为单选
+        - filters不支持动态修改筛选配置，可通过setFilter方法
+
+            ```js
+            this.hobbyOpts = XEUtils.orderBy(XEUtils.uniq(this.listData.map(x => x.hobby))).map(x => {
+                return {label: x, value: x}
+            })
+            this.$refs.userTable.setFilter('hobby', this.hobbyOpts)
+            ```
+    - 如果是服务端筛选，只需加上 filter-config={remote: true} 和 filter-change 事件就可以实现
+        - 本地筛选和服务端筛选不能同时使用，会优先触发filter-change，而不触发filter-method 
 - 可编辑表格
 
 ```html
