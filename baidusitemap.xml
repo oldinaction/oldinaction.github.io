@@ -4,6 +4,48 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    <lastmod>2021-02-08T08:50:43.676Z</lastmod>
+    <data>
+        <display>
+        <title>Java Tools</title>
+        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
+        
+        <tag>tools</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    <lastmod>2021-02-08T05:49:12.846Z</lastmod>
+    <data>
+        <display>
+        <title>JS Tools</title>
+        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
+        
+        <tag>tools</tag>
+         
+        <tag>js</tag>
+         
+         
+           
+             
+              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
     <lastmod>2021-02-07T12:17:16.964Z</lastmod>
     <data>
@@ -19,26 +61,6 @@
            
              
               <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    <lastmod>2021-02-07T05:28:47.381Z</lastmod>
-    <data>
-        <display>
-        <title>Java Tools</title>
-        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
-        
-        <tag>tools</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -247,9 +269,9 @@
         
         <tag>oracle</tag>
          
-        <tag>dba</tag>
-         
         <tag>sql</tag>
+         
+        <tag>dba</tag>
          
          
            
@@ -531,28 +553,6 @@
            
              
               <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    <lastmod>2021-01-26T14:26:02.653Z</lastmod>
-    <data>
-        <display>
-        <title>JS Tools</title>
-        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
-        
-        <tag>tools</tag>
-         
-        <tag>js</tag>
-         
-         
-           
-             
-              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
           
         </display>
     </data>
@@ -2368,9 +2368,9 @@
         <title>Wiki</title>
         <pubTime>2016-10-27T13:36:00.000Z</pubTime>
         
-        <tag>wiki</tag>
-         
         <tag>book</tag>
+         
+        <tag>wiki</tag>
          
          
            
