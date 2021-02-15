@@ -1117,7 +1117,14 @@ export default create({
     return {
       name: 'smalle',
     };
-  }
+  },
+  // 打印结果为: 111-333-222-444
+  mounted: function () {
+    console.log(333)
+    this.$nextTick(function () {
+      console.log(444)
+    })
+  },
 });
 </script>
 ```
@@ -1135,7 +1142,7 @@ export default function(sfc) {
   return sfc;
 }
 
-// upload.js
+// hello.js
 export default function () {
   return {
     data () {
@@ -1149,6 +1156,12 @@ export default function () {
         // this.safe.name => undefined; this['name'] => smalle; this.name => smalle; // ts使用this.name编辑器报红
         return this['name'] + ' smalle' // this 指当前函数对象，被混入后，也可获取到功能组件(导入此混入的组件)属性
       }
+    },
+    mounted: function () {
+      console.log(111)
+      this.$nextTick(function () {
+        console.log(222)
+      })
     },
     methods: {
       hello () {
@@ -1168,7 +1181,6 @@ export default {
   }
 };
 ```
-
 
 ## 事件
 

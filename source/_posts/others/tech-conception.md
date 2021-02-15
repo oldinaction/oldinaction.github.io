@@ -44,6 +44,9 @@ tags: [java, conception]
     - 主要优点是把动态语言和 HTTP 服务器分离开来。多数流行的 HTTP 服务器都支持 FastCGI，包括 Apache 、 Nginx 和 Lighttpd 等
     - 同时，FastCGI也被许多脚本语言所支持，例如当前比较流行的脚本语言PHP
     - FastCGI 接口采用的是C/S架构，它可以将 HTTP 服务器和脚本服务器分开，同时还能在脚本解析服务器上启动一个或多个脚本来解析守护进程。当 HTTP 服务器遇到动态程序时，可以将其直接交付给 FastCGI 进程来执行，然后将得到结果返回给浏览器
+- `JAX-RS` 全称为Java API for RESTful Web Services，核心概念是resource，即面向资源
+- `ESB` 全称为Enterprise Service Bus，一般指企业服务总线。指的是传统中间件技术与XML、Web服务等技术结合的产物
+- [WSO2](https://wso2.com/) 是一个领先的开源SOA解决方案提供者，提供了SOA相关的各种基础设施、技术框架和相关工具等等，并且都是Apache 2.0开源协议的
 
 ## 网络
 

@@ -9,6 +9,10 @@ tags: [jenkins]
 ## 简介
 
 - [jenkins](https://jenkins.io/zh/)
+- Jenkins CI，用Jenkins来进行持续集成，需要自己架设服务器
+- Travis CI是在线托管的CI服务，用Travis来进行持续集成，不需要自己搭服务器，使用方便，对开源项目是免费的，支持多数主流语言
+    - https://travis-ci.org/ 非盈利的，为GitHub上Public的repository提供免费服务；对应的也有收费服务
+    - Travis 要求项目的根目录下面，必须有一个.travis.yml文件。这是配置文件，指定了 Travis 的行为
 
 ## 安装编译及运行
 

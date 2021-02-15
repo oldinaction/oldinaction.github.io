@@ -76,7 +76,9 @@ tags: [vue, UI]
     filterable
     :remote-method="remoteMethod"
     :loading="loading">
-    <!-- 格式化插件导致 Option 标签换行，从而显示时下拉框中有空白，解决：Option 标签体中显示数据外，可额外定义 label 属性 -->
+    <!-- 
+        格式化插件导致 Option 标签换行，从而显示时下拉框中有空白，解决：Option 标签体中显示数据外，可额外定义 label 属性，但是label属性值会作为搜索值
+    -->
     <Option v-for="(item, index) in list" :value="item.value" :key="index">{{option.label}}</Option>
 </Select>
 

@@ -1119,7 +1119,7 @@ find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...
 -amin <n> # 类似-atime，只不过此参数是基于分钟计算
 -mmin <n>
 -cmin <n>
--newerXY <reference> # 比较文件的时间戳，其中XY的取值为：a(访问时间)、c、m、t(绝对时间)、B(文件引用的出现时间)
+-newerXY <reference> # 比较文件的时间戳，其中XY的取值为：a(访问时间)、c(改变时间,移动目录时间也会变)、m(修改时间)、t(绝对时间)、B(文件引用的出现时间)
     # find . -type f -newermt '2020-01-17 13:40' ! -newermt '2020-01-17 13:45' -exec cp {} ./bak \; # 将当前目录下2020-01-17 13:40到2020-01-17 13:45时间段内修改或生成的文件拷贝到bak目录下。同理：-newerat、-newerct
 
 ## expression#actions
@@ -1139,7 +1139,8 @@ find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
 find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644
 
 find -name '*.TXT' -type f -mtime +15 -exec mv {} ./bak \; # 将15天前修改过的文件移动到备份目录
-find . -name '*.log' -newermt "$(($(date +%Y)-1))-01-01" ! -newermt "$(($(date +%Y)-1))-12-31" | xargs -i mv {} ./backup/backup_log_$(($(date +%Y)-1)) # 将当前目录下的去年修改过的文件移动到备份目录
+# **将当前目录下的去年修改过的文件移动到备份目录**
+find . -name '*.log' -newermt "$(($(date +%Y)-1))-01-01" ! -newermt "$(($(date +%Y)-1))-12-31" | xargs -i mv {} ./backup/backup_log_$(($(date +%Y)-1))
 
 find -type f | xargs # xargs会在一行中打印出所有值
 for item in $(find -type f | xargs) ; do # 循环打印每个文件

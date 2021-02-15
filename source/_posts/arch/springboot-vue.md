@@ -661,6 +661,10 @@ location ^~ /my-app/ {
 - js中使用`//aezo.cn/api`进行动态请求后端地址，会动态获取document的协议
 - 或者使用 `window.location.protocol + '//aezo.cn/api'` 得到完整地址，如微信网页授权需要将重定向地址当成参数传递，则应该传入完整地址
 
+### 页面弹框管理
+
+- 基于发布订阅+后台统一管理弹框显隐逻辑 https://github.com/accforgit/blog-data/tree/master/%E8%B7%9F%E6%B7%B7%E4%B9%B1%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%BC%B9%E7%AA%97%E8%AF%B4%E5%86%8D%E8%A7%81
+
 ## 常用插件
 
 - 参考[js-tools.md](/_posts/web/js-tools.md)

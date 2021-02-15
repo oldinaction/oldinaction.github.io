@@ -445,7 +445,7 @@ tags: [build]
 - 添加多环境配置(会在idea的maven project菜单中显示)
 
 ```xml
-</project>
+<project>
 	<profiles>
         <profile>
             <id>prod</id>
