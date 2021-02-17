@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2021-02-17T06:27:45.762Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
+    
+    <lastmod>2021-02-16T14:42:22.915Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2021-02-15T07:56:01.480Z</lastmod>
@@ -117,13 +131,6 @@
     <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
     
     <lastmod>2021-02-01T05:13:22.488Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
-    
-    <lastmod>2021-01-31T09:43:26.567Z</lastmod>
     
   </url>
   
@@ -278,13 +285,6 @@
     <loc>http://blog.aezo.cn/2020/09/08/java/spring-src/</loc>
     
     <lastmod>2021-01-15T06:54:04.352Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2021-01-13T02:08:30.963Z</lastmod>
     
   </url>
   

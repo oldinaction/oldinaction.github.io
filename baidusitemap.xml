@@ -4,6 +4,46 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    <lastmod>2021-02-17T06:27:45.762Z</lastmod>
+    <data>
+        <display>
+        <title>Nginx</title>
+        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
+        
+        <tag>LB, HA</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
+    <lastmod>2021-02-16T14:42:22.915Z</lastmod>
+    <data>
+        <display>
+        <title>Velocity</title>
+        <pubTime>2020-12-16T12:03:00.000Z</pubTime>
+        
+        <tag>template</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     <lastmod>2021-02-15T07:56:01.480Z</lastmod>
     <data>
@@ -159,9 +199,9 @@
         <title>技术概念(名词)汇总</title>
         <pubTime>2016-09-01T01:19:00.000Z</pubTime>
         
-        <tag>conception</tag>
-         
         <tag>java</tag>
+         
+        <tag>conception</tag>
          
          
            
@@ -361,26 +401,6 @@
            
              
               <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
-    <lastmod>2021-01-31T09:43:26.567Z</lastmod>
-    <data>
-        <display>
-        <title>Velocity</title>
-        <pubTime>2020-12-16T12:03:00.000Z</pubTime>
-        
-        <tag>template</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -849,26 +869,6 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    <lastmod>2021-01-13T02:08:30.963Z</lastmod>
-    <data>
-        <display>
-        <title>Nginx</title>
-        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
-        
-        <tag>LB, HA</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
           
         </display>
     </data>
