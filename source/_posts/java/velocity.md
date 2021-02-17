@@ -8,7 +8,7 @@ tags: [template]
 
 ## 简介
 
-- [官网](http://velocity.apache.org/)、[Doc](http://velocity.apache.org/engine/devel/user-guide.html)
+- [官网](http://velocity.apache.org/)、[Doc-1](http://velocity.apache.org/engine/devel/user-guide.html)、[Doc-2](http://velocity.apache.org/engine/devel/developer-guide.html)
 - 依赖
 
 ```xml
@@ -17,6 +17,12 @@ tags: [template]
     <artifactId>velocity-engine-core</artifactId>
     <version>2.2</version>
 </dependency>
+```
+
+## 使用
+
+```java
+
 ```
 
 ## 控制语句
@@ -48,6 +54,11 @@ tags: [template]
     ## 转义字符"."后进行分割字符串
     #if("$!{field.comment}" != "")
         #set($commentName = $!{field.comment.replace("(x)", "").replace("（x）", "").split("\.").get(0).trim()})
+        // \$message ## 转义 $, 渲染出来为: // $message; 如果无此变量则无需转义
+    #end
+
+    #if($!{field.comment} && $!{field.comment} != "")
+        ## 判空
     #end
 
     ## 关键字、符号可以连写，如`#else$string#end`。但是写成`#elseString#end`又无法识别，写成`#else String#end`会多出一个空格
@@ -56,4 +67,16 @@ tags: [template]
 #end
 #end
 ```
+- 循环
+
+```html
+## 循环map
+#foreach($item in $!softTypeMap.entrySet())
+<option value="$!{item.key}">$!{item.value}</option>
+#end
+```
+
+## 其他
+
+- 调用静态方法，如`context.put("Math", Math.class);`：http://velocity.apache.org/engine/devel/developer-guide.html#support-for-static-classes
 

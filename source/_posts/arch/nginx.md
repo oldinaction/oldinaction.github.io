@@ -504,6 +504,9 @@ http {
         location / {
             root   D:/wamp/www/aezo;
             index  index.php index.html index.htm;
+            # try_files $uri $uri/ /index.php?$args;
+            # 重定向：第一个参数路径匹配成功后跳转到第二个参数路径
+            # 第3个参数为. last: 继续向下匹配规则; break: 停止向下匹配; redirect: 返回302临时重定向; permanent: 返回301永久重定向
             rewrite ^(.*)/post(\d+)\.html$ $1/index.php?p=$2 last;
         }
 
