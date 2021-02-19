@@ -401,7 +401,7 @@ checkboxChange(table, event) {
             ```
     - 如果是服务端筛选，只需加上 filter-config={remote: true} 和 filter-change 事件就可以实现
         - 本地筛选和服务端筛选不能同时使用，会优先触发filter-change，而不触发filter-method 
-- 可编辑表格
+- 可编辑表格、滚动分页
 
 ```html
 <!-- 
@@ -426,6 +426,7 @@ edit-config:
     :edit-config="{ trigger: 'manual', mode: 'row', showStatus: true, autoClear: false }"
     @edit-actived="data => (data.row.editingMode = true)"
     @edit-closed="data => (data.row.editingMode = false)"
+    @scroll="scroll"
 >
     <vxe-table-column v-if="feeItemEdit" title="操作" width="80">
     <template v-slot="{ row }">
@@ -502,6 +503,34 @@ checkRow() {
 getSelectFilterableLabel(value, list, valueProp = 'value', labelField = 'label') {
     const item = XEUtils.find(list, item => item[valueProp] == value)
     return item ? item[labelField] : null
+},
+
+// 滚动分页
+scroll (table, $event) {
+    this.vexScrollPage(
+        table,
+        this.tableRef['$el'],
+        this.allData,
+        this.searchForm,
+        this.fetchData
+    )
+},
+vexScrollPage(table, el, allData, searchForm, fetchData) {
+  if (allData.length >= searchForm.pageTotal) {
+    return
+  }
+  let scrollHeight = el.getElementsByClassName('body--wrapper')[1].scrollHeight
+  const scrollHeight2 = el.getElementsByClassName('vxe-body--y-space')[0].style.height.replace('px', '')
+  if (scrollHeight2) {
+    // 矫正，有时候scrollHeight会多出一个48px值导致无法获取下一页
+    scrollHeight = Number(scrollHeight2)
+  }
+  const clientHeight = el.getElementsByClassName('body--wrapper')[1].clientHeight
+  const scrollTop = el.getElementsByClassName('body--wrapper')[1].scrollTop
+  if (scrollHeight === clientHeight + scrollTop) {
+    searchForm.pageCurrent = searchForm.pageCurrent + 1
+    fetchData()
+  }
 }
 </script>
 ```
@@ -741,32 +770,193 @@ export default {
 
 ### 打印
 
+- web打印分页的问题，可使用`page-break-after`等css参数解决。参考：https://www.w3school.com.cn/cssref/index.asp#print
+- 基于[hiprint](http://hiprint.io/)插件
+    - 特点：基于Jquery；可视化配置模板，自动分页打印
+- 基于[print-js](https://printjs.crabbly.com/)
+- vue和electron打印问题
+
+```js
+// 方案一(原生API，不推荐)：VUE和electron中均可正常局部打印，只不过打印完主界面会刷新。且使用<div style="page-break-after:always"></div>强制分页也存在问题
+let doc = document
+let oldHtml = doc.body.innerHTML;//将body内容先行存储
+let printbox = doc.getElementById("printPage1").innerHTML;//再将所要打印区域内容赋值给body
+doc.body.innerHTML = printbox;//再将所要打印区域内容赋值给body
+window.print();//调用全部打印事件
+doc.body.innerHTML = oldHtml;//将body内容再返回原页面。必须，否则页面空白
+window.location.reload();//打印取消后刷新页面防止按钮不能点击。必须
+
+// 方案二(基于jquery)：未测试
+function toPrint(obj) {
+	var newWindow=window.open("打印窗口","_blank");
+	var docStr = obj.innerHTML; // 可使用分页css
+	var str = '<!DOCTYPE html>'  
+	    str +='<html>'  
+	    str +='<head>'  
+	    str +='<meta charset="utf-8">'  
+	    str +='<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">'
+	    str +='</head>'  
+	    str +='<body style="-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;">'  
+	    str +='<div style="width:250px;height:300px;">'
+	    str += docStr
+	    str += '</div>'
+	    str +='</body>'  
+	    str +='</html>'  
+	  newWindow.document.write(str);
+	  newWindow.document.close();
+	  newWindow.print();
+	  newWindow.close();  
+}
+
+// 方案三(不推荐)：VUE中可正常新开标签，打印后关闭；但是electron中无法弹出打印界面
+this.webviewHref = this.$router.resolve({
+    path: "/myPrint?orderId=1"
+}).href
+let newWindow = window.open(this.webviewHref, "_blank"); // 打开新页面，相当于局部打印
+let oldMatched = false
+let matched = false
+newWindow.onload = function() {
+    newWindow.matchMedia('print').addListener(function(e) {
+        oldMatched = matched
+        matched = e.matches
+        if (oldMatched && !matched) {
+            // 点击打印或取消
+            newWindow.close();
+        }
+    })
+}
+newWindow.print();
+
+// 方案四(基于print-js): 可局部打印正常分页，VUE可正常打印；electron不会跳预览页面，但是可打印；可使用<div style="page-break-after:always"></div>强制分页
+// 将要打印的数据放在主页面进行隐藏
+<div style="width:0; height:0; overflow: hidden">
+    <Print id="printPage" :rows="checkboxRecords" @on-change="onPrintChange"/>
+</div>
+import printJS from "print-js";
+onPrintChange() {
+    this.that.$nextTick(() => {
+        printJS({
+            printable: "printPage",
+            type: "html",
+            // 防止Print组件中的样式不起作用
+            targetStyles: ['*'],
+            font: '',
+            font_size: ''
+        });
+    })
+}
+// 基于electron的打印，可成功获取打印机，webview未测试成功。参考：https://zhuanlan.zhihu.com/p/63019335
+```
 
 ### 生成PDF
 
-#### jsPDF
+- [jsPDF插件](https://github.com/MrRio/jsPDF)、[doc](https://rawgit.com/MrRio/jsPDF/master/docs/index.html)
+- jsPDF使用
 
-- [github](https://github.com/MrRio/jsPDF)、[doc](https://rawgit.com/MrRio/jsPDF/master/docs/index.html)
-- 使用
+```js
+// 建议局部导入，此处仅做参考
+import jspdf from '@/libs/jspdf.js'
+Vue.use(jspdf)
+
+this.toPDF('domId', 'pdf文件名')
+this.toPDFZip(this, 'domId', 'pdf文件名')
+```
+- 自定义`jspdf.js`
+
+```js
+// 导出页面为PDF格式
+import html2Canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import JSZip from 'jszip' // 导出pdf并压缩
+import { saveAs } from 'file-saver'
+
+export default {
+  install (Vue, options) {
+    Vue.prototype.getPDF = function (doc) {
+      return new Promise((resolve, reject) => {
+        html2Canvas(doc, {
+          allowTaint: true
+        }).then(function (canvas) {
+          let contentWidth = canvas.width
+          let contentHeight = canvas.height
+          let pageHeight = contentWidth / 592.28 * 841.89
+          let leftHeight = contentHeight
+          let position = 0
+          let imgWidth = 595.28
+          let imgHeight = 592.28 / contentWidth * contentHeight
+          let pageData = canvas.toDataURL('image/jpeg', 1.0)
+          let PDF = new jsPDF('', 'pt', 'a4')
+          if (leftHeight < pageHeight) {
+            PDF.addImage(pageData, 'JPEG', 0, 0, imgWidth, imgHeight)
+          } else {
+            while (leftHeight > 0) {
+              PDF.addImage(pageData, 'JPEG', 0, position, imgWidth, imgHeight)
+              leftHeight -= pageHeight
+              position -= 841.89
+              if (leftHeight > 0) {
+                PDF.addPage()
+              }
+            }
+          }
+          resolve({pdf: PDF})
+        })
+      })
+    }
+
+    Vue.prototype.toPDF = function (elementId, pdfTitle) {
+      var title = pdfTitle
+      this.getPDF(document.querySelector('#' + elementId)).then(data => {
+        data.pdf.save(title + '.pdf')
+      })
+    }
+
+    Vue.prototype.toPDFZip = async (that, elementId, title) => {
+      var zip = new JSZip();
+      const box = document.querySelector('#' + elementId)
+      const items = box.querySelectorAll(".item-box")
+      const func = (that, item, index) => new Promise((resolve, reject) => {
+        that.getPDF(item).then(data => {
+          const dataId = item.attributes["data-id"].nodeValue || index;
+          try {
+            zip.file(dataId + '.pdf', data.pdf.output('blob'));
+            resolve()
+          } catch {
+            reject('Something went wrong!')
+          }
+        })
+      })
+
+      let arr = []
+      items.forEach((item, index) => {
+        arr.push(func(that, item, index))
+      })
+      await Promise.all(arr);
+
+      zip.generateAsync({type:'blob'}).then(function(content) {
+        saveAs(content, title + '.zip');
+      });
+    }
+  }
+}
+```
 
 ### 生成ZIP文件
 
+- 安装
+
+```bash
 npm install jszip -S
 npm install file-saver -S
+```
+- 使用参考[生成PDF](#生成PDF)
 
 ### 网页保存为图片
 
-https://github.com/niklasvh/html2canvas
-
-https://segmentfault.com/a/1190000011478657
-
-
+- [html2canvas](https://github.com/niklasvh/html2canvas)、使用参考：https://segmentfault.com/a/1190000011478657
 - html2canvas操作隐藏元素
-
-    <div style="position: absolute; opacity: 0.0;">
-    Failed to execute 'createPattern' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0.
-    https://stackoverflow.com/questions/20605269/screenshot-of-hidden-div-using-html2canvas
-
+    - `<div style="position: absolute; opacity: 0.0;">`
+    - Failed to execute 'createPattern' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0. 
+    - 参考 https://stackoverflow.com/questions/20605269/screenshot-of-hidden-div-using-html2canvas
 
 
 

@@ -14,6 +14,7 @@ tags: js
 - Promise基本用法
 
 ```js
+// 基本用法1
 new Promise(function (resolve, reject) {
     log('start new Promise...');
     var timeOut = Math.random() * 2;
@@ -26,19 +27,49 @@ new Promise(function (resolve, reject) {
             // return resolve('200 OK');
         } else {
             log('call reject()...');
-            reject('timeout in ' + timeOut + ' seconds.');
+            reject('timeout in ' + timeOut + ' seconds.'); // 相当于调用catch传入函数
         }
     }, timeOut * 1000);
-}).then(function (r) {
-    // 此处不返回 Promise, 后面则无法继续 then
+}).then(function (r0) {
+    // 此处不返回 Promise, 后面也可继续 then, 只是拿不到数据
+    // 如果此处为`return "00";`，则后面再 then(r1 => console.log(r1)) 打印的为 undefined
     return new Promise((resolve, reject) => {
-        resolve(r)
+        resolve(r0 + "0", 'r2') // 假设 r0 为 "0"，则后面 r1 为 "00", r2 为 "r2"
     });
-}).then(function (r) {
-    log('Done: ' + r);
-}).catch(function (reason) {
+}).then(function (r1, r2) {
+    log(r1, r2);
+}).then(data => {
+    log(data); // undefined
+}).catch(reason => {
     log('Failed: ' + reason);
 });
+
+// 基本用法2
+Promise.resolve('foo') // 等价于 new Promise(resolve => resolve('foo'))
+Promise.resolve() // 不带参数返回
+Promise.reject('error')
+
+// 如果参数是 Promise 实例，那么Promise.resolve将不做任何修改、原封不动地返回这个实例
+// 参数是一个thenable对象()，Promise.resolve方法会将这个对象转为 Promise 对象，然后就立即执行thenable对象的then方法
+let thenable = {
+  then: function(resolve, reject) {
+    resolve(42);
+  }
+}
+Promise.resolve(thenable)
+
+// 需要注意的是，立即resolve的 Promise 对象，是在本轮“事件循环”（event loop）的结束时，而不是在下一轮“事件循环”的开始时
+// 下面代码中，setTimeout(fn, 0)在下一轮“事件循环”开始时执行，Promise.resolve()在本轮“事件循环”结束时执行，console.log('one')则是立即执行，因此最先输出
+setTimeout(function () {
+  console.log('three')
+}, 0)
+Promise.resolve().then(function () {
+  console.log('two')
+})
+console.log('one')
+// one
+// two
+// three
 ```
 - [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
     - 说明
@@ -50,11 +81,13 @@ new Promise(function (resolve, reject) {
         ```js
         // 1.async
         async function hello() { return "Hello" }
+        // 等同于
+        // async function hello() { return new Promise((resolve, reject) => {resolve("Hello")}) }
         hello() // 返回一个 Promise
 
         // 2.async
         let hello = async () => { return "Hello" }
-        hello().then((value) => console.log(value)) // 或者 hello().then(console.log)
+        hello().then((data) => console.log(data)).catch(err => console.log(err)) // 或者 hello().then(console.log)
 
         // 必须在forEach回调函数参数处加async才可正常使用，for和for...of中可直接使用await
         async test() {

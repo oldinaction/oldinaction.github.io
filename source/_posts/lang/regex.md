@@ -164,7 +164,7 @@ String str = "img.jpg";
 Pattern pattern = Pattern.compile("(jpg|png)"); // 分组且创建反向引用
 // Pattern pattern = Pattern.compile("(?:jpg|png)"); // 仅分组，但不创建反向引用。此时下面 matcher.group(1) 会报错 IndexOutOfBoundsException
 Matcher matcher = pattern.matcher(str);
-while (matcher.find()) {
+while (matcher.find()) { // 可能会匹配到多次
     System.out.println(matcher.group()); // jpg
     System.out.println(matcher.group(1)); // jpg
 }

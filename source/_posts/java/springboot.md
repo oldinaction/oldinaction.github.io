@@ -1137,7 +1137,6 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
 ### 数据库相关配置
 
 - 数据库/表新建时命名策略(JPA) [doc](https://docs.spring.io/spring-boot/docs/1.5.6.RELEASE/reference/htmlsingle/#howto-configure-hibernate-naming-strategy)
-
 	- `org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy`为springboot默认提供命令策略(实体驼峰转成数据库下划线)
 	- 示例：给表名加前缀
 		- 配置：`spring.jpa.hibernate.naming.physical-strategy=cn.aezo.springboot.CustomPhysicalNamingStrategy`
@@ -1176,7 +1175,6 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
 				return Character.isLowerCase(before) && Character.isUpperCase(current) && Character.isLowerCase(after);
 			}
 		}
-
 		```
 
 ### 使用H2数据库 [^1] [^2]

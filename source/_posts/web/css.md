@@ -196,6 +196,17 @@ p {
     background: tint(#adb0b8, 20%);
 }
 ```
+- 隐藏滚动条(但是可以滚动)
+
+```css
+#box {
+  height: 300px;
+  overflow-y: scroll;
+}
+#box::-webkit-scrollbar {
+  display: none;
+}
+```
 
 ### 渐变色
 

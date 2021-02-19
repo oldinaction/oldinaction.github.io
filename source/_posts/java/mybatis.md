@@ -540,7 +540,7 @@ for (Orders order : list) {
 	- 多个字符则认为是字符串，单个字符则认为是Character字符.(如mybatis认为：test="validStatus == 'Y'"中的Y是字符，test="validStatus == 'YY'"中的YY则是字符串)
 
 		```xml
-		<!-- 传入参数validStatus='Y', 此时会报错NumberFormatException；mybatis认为传入参数是字符串对象Y，比较值是字符'Y'，经过几个判断都不相等，再转成数值时则报错了 -->
+		<!-- 错误写法。传入参数validStatus='Y', 此时会报错NumberFormatException；mybatis认为传入参数是字符串对象Y，比较值是字符'Y'，经过几个判断都不相等，再转成数值时则报错了 -->
 		<if test="validStatus == 'Y'">and validStatus = 1</if>
 		<!-- 正确写法 -->
 		<if test='validStatus == "Y"'>and validStatus = 1</if>
