@@ -992,6 +992,7 @@ public Result addTestTransactional() {
 
 ## SpringMVC
 
+- 关键类：**`DispatcherServlet#doDispatch`**
 - SpringMVC 的整个请求流程
 
 ![springmvc-flow](/data/images/java/springmvc-flow.png)

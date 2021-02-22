@@ -2,7 +2,7 @@
 layout: "post"
 title: "阿里云产品使用"
 date: "2020-05-11 21:08"
-categories: [extend]
+categories: [arch]
 ---
 
 ## 域名证书

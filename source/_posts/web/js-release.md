@@ -14,7 +14,7 @@ tags: js
 - Promise基本用法
 
 ```js
-// 基本用法1
+// ==============================基本用法1
 new Promise(function (resolve, reject) {
     log('start new Promise...');
     var timeOut = Math.random() * 2;
@@ -44,7 +44,7 @@ new Promise(function (resolve, reject) {
     log('Failed: ' + reason);
 });
 
-// 基本用法2
+// ==============================基本用法2
 Promise.resolve('foo') // 等价于 new Promise(resolve => resolve('foo'))
 Promise.resolve() // 不带参数返回
 Promise.reject('error')
@@ -482,6 +482,13 @@ var new_array = arr.map(function callback(currentValue[, index[, array]]) {
 
 // === 其他
 console.log([1, 2, 3, 4, 5].some((element) => element % 2 === 0)); // true
+
+// splice
+let arr = [1, 2, 3]
+arr.splice(1) // [2, 3], arr=[1]. 从下标为1开始，移除所有元素。并返回删除的元素
+arr.splice(-1) // [3], arr=[1, 2]. 从倒数第一位开始，移除所有元素(相当于移除最后一个元素)
+arr.splice(0, 1, 'fir'); // [1], arr=['fir', 2, 3]. 替换第一个元素。并返回移除的元素
+arr.splice(1, 0, 'sec'); // [], arr=[1, 'sec', 2, 3]. 在数组的第二个元素位置插入元素'sec'(原来的第二个元素还在)
 ```
 
 #### 伪数组

@@ -174,7 +174,7 @@ protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 }
 ```
 
-## 请求参数解析
+## MVC请求参数解析
 
 - `@RequestParam` 可以获取GET请求、POST请求的Param参数(添加到URL中的参数，无法获取Body中的数据)
 - `@RequestBody` 仅适用于获取POST请求的Body数据(可以是json/txt等格式)

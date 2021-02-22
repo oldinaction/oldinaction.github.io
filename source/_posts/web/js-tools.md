@@ -349,7 +349,7 @@ handleChange (value) {
 - 一款基于Vue的表格插件，支持大量数据渲染，编辑表格等功能
 - [github](https://github.com/x-extends/vxe-table)、[doc](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/start/install)
 - 表格显示/隐藏后样式丢失问题
-  - `sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
+  - `auto-resize`或`sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
 - 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
 
 ```js
@@ -772,7 +772,9 @@ export default {
 
 - web打印分页的问题，可使用`page-break-after`等css参数解决。参考：https://www.w3school.com.cn/cssref/index.asp#print
 - 基于[hiprint](http://hiprint.io/)插件
-    - 特点：基于Jquery；可视化配置模板，自动分页打印
+    - 特点：基于Jquery；可视化配置模板，自动分页打印；可免费使用
+    - 缺点：源代码没开源，没有抽离 npm 包
+    - 基于vue使用参考：https://blog.csdn.net/byc233518/article/details/107705278
 - 基于[print-js](https://printjs.crabbly.com/)
 - vue和electron打印问题
 
@@ -834,7 +836,7 @@ newWindow.print();
 </div>
 import printJS from "print-js";
 onPrintChange() {
-    this.that.$nextTick(() => {
+    this.$nextTick(() => {
         printJS({
             printable: "printPage",
             type: "html",

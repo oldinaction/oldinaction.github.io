@@ -3,7 +3,7 @@ layout: "post"
 title: "微信开发"
 date: "2017-10-10 21:34"
 categories: [web]
-tags: [H5, App]
+tags: [H5, App, 小程序, mobile]
 ---
 
 ## 简介

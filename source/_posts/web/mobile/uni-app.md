@@ -3,7 +3,7 @@ layout: "post"
 title: "uni-app"
 date: "2017-10-10 21:34"
 categories: [web]
-tags: [H5, 小程序, App]
+tags: [H5, 小程序, App, mobile]
 ---
 
 ## 简介
@@ -282,7 +282,7 @@ export default {
 - 路径问题
     - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
 - H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#文件)
-- web-view使用参考[weixin.md#web-view开发](/_posts/web/weixin.md#web-view开发)
+- web-view使用参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
 - css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa
 
 ## uView插件

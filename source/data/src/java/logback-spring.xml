@@ -55,7 +55,9 @@
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-        <!-- 最常用的滚动策略，它根据时间来制定滚动策略，同时也负责触发滚动 -->
+        <!--
+          最常用的滚动策略，它根据时间来制定滚动策略，同时也负责触发滚动
+         -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- each file should be at most 10MB, keep 30 days worth of history, but at most 10GB -->
             <!-- 滚动后的文件名，也包括了滚动时间的选择，可相对和绝对路径 -->
@@ -163,27 +165,25 @@
 
     <!-- 每天生成一个html格式的日志开始 -->
     <appender name="HTML_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <!-- 过滤器，只记录WARN级别的日志
-      <filter class="ch.qos.logback.classic.filter.LevelFilter">
-        <level>info</level>
-        <onMatch>ACCEPT</onMatch>
-        <onMismatch>DENY</onMismatch>
-      </filter>
-      -->
-      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <FileNamePattern>${LOG_PATH}/log-html/%d{yyyyMMdd}/index.html</FileNamePattern>
-        <MaxHistory>${LOG_HTML_MAX_HISTORY}</MaxHistory>
-      </rollingPolicy>
-      <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-        <layout class="ch.qos.logback.classic.html.HTMLLayout">
-          <pattern>%p%d%msg%M%F{32}%L</pattern>
-        </layout>
-      </encoder>
-      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <MaxFileSize>${LOG_FILE_MAX_SIZE}</MaxFileSize>
-      </triggeringPolicy>
+        <!-- 过滤器，只记录WARN级别的日志
+          <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>info</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+          </filter>
+        -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/log-html/%d{yyyyMMdd}/index-%i.html</fileNamePattern>
+            <maxFileSize>1MB</maxFileSize>
+            <maxHistory>${LOG_HTML_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.html.HTMLLayout">
+                <pattern>%p%d%msg%M%F{32}%L</pattern>
+            </layout>
+        </encoder>
     </appender>
-
 
     <!--输出到mysql数据库的appender配置. 需要pom中引入mysql的jar包，并创建数据库 logback_data，并需要先创建数据库表-->
     <!--

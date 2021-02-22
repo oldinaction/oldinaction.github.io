@@ -57,6 +57,11 @@ https://blog.csdn.net/runningtortoises/article/details/51425299
     - 把Cmder.exe存放的目录添加到系统环境变量
     - cmd管理员模式运行命令`Cmder.exe /REGISTER ALL`
 
+### Linux相关软件
+
+- grep
+    - [grep for windows](http://gnuwin32.sourceforge.net/packages/grep.htm)、[下载](http://downloads.sourceforge.net/gnuwin32/grep-2.5.4-setup.exe)
+
 ### MobaXterm
 
 - 代替xshell、xftp客户端，用作web服务器、ssh服务器

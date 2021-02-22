@@ -18,6 +18,7 @@ tags: [os]
     - 调用执行引擎
 - 只要是能编译成class文件的便可以在JVM上执行，如java、groovy、scale等100多种；而不同的操作系统Unix/Linux/Windows/Android会有不同的JVM实现
 - JVM是一种规范，有不同的实现，如HostSpot(oracle官方)、OpenJDK(HostSpot的开源版本)、JcrocKit(被Oracle收购，合并到hostspot)、J9(IBM)、Microsoft VM、TaobaoVM、[azul zing](www.azul.com)
+- `javassist`：处理 Java 字节码的类库，它可以在一个已经编译好的类中添加新的方法，或者是修改已有的方法
 
 ## Class File Format
 

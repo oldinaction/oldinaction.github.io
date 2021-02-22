@@ -171,7 +171,7 @@ ThisCrackLicenseId-{
     - `Ctrl + ALT + H` 查询方法的调用关系（可以选择引用和被引用）
     - `Ctrl + B` 跳转到声明
     - `Ctrl + E` 最近访问文件
-    - `Ctrl + W` 语句感知
+    - `Ctrl + W` 单词语句感知选择，多次点击会扩大选中范围；`Ctrl + Shift + W` 相反
     - `Ctrl + Shift + Entry` 完成整句
     - `Ctrl + Shift + F7` 高亮所用之处：把光标放在某元素上，类似与快速查找此文件此元素出现处
     - `Ctrl + H` 类似Navigate - Call Hierarchy 命令查看一个Java类的继承管理
@@ -185,9 +185,11 @@ ThisCrackLicenseId-{
     - `Alt + Shift + Insert` 然后按住鼠标左键拖动选中多行，此时可选择空白区域。开启鼠标插入选择模式(鼠标右键 - 选中columu select module进行开启)
     - vscode相关
         - `Alt + 左键` 跨行需要每行单点
-        - `Alt + Shift + 鼠标拖动` 可选择多个矩形
+        - `Alt + Shift + 鼠标拖动` 可选择多个矩形(或移动上下键)
         - `Ctrl + Alt + Up/Down` 选中/取消当前行的多行编辑 
         - `Ctrl + Shift + L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标
+        - 选中多行后，可结合`Ctrl + 左右键`进行跨单词移动光标
+        - 选中多行复制后，并再新的地方选择多行，然后粘贴即可粘贴多行
 - 特殊场景
     - SQL控制台界面
         - `Ctrl + Enter` 执行SQL

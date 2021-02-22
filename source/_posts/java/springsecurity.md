@@ -10,15 +10,20 @@ tags: [spring, 安全]
 
 - 官网：[http://projects.spring.io/spring-security/](http://projects.spring.io/spring-security/)
 - 文档：[V4.2.3](https://docs.spring.io/spring-security/site/docs/4.2.3.RELEASE/reference/htmlsingle/)
+
+### 说明
+
 - 开启日志(yml配置)：`logging.level.org.springframework.security: DEBUG`
-
-### spring security实现方法 [^1]
-
-- 总共有四种用法，从简到深为
+- 主要类
+    - 配置接口 `WebSecurityConfigurer`；结合springmvc，可继承`WebSecurityConfigurerAdapter`
+    - 认证时(登录)需要提供 `AuthenticationProvider`，默认是`AbstractUserDetailsAuthenticationProvider`进行登录判断
+    - 认证逻辑管理接口 `AuthenticationManager`
+- spring security实现方法 [^1]
     - 不用数据库，全部数据写在配置文件，这个也是官方文档里面的demo
     - 使用数据库，根据spring security默认实现代码设计数据库，也就是说数据库已经固定了，这种方法不灵活，而且那个数据库设计得很简陋，实用性差
     - spring security和Acegi不同，它不能修改默认filter了，但支持插入filter，所以根据这个，我们可以插入自己的filter来灵活使用 **（可基于此数据库结构进行自定义参数认证）**
     - 暴力手段，修改源码，前面说的修改默认filter只是修改配置文件以替换filter而已，这种是直接改了里面的源码，但是这种不符合OO设计原则，而且不实际，不可用
+- 如果使用内存中用户，默认会创建一个user用户，密码自动生成并打印日志如`Using generated security password: 126ad028-4bd5-4b8b-a8d3-d4d4b6b716ed`
 
 ### 注意
 
@@ -50,6 +55,7 @@ tags: [spring, 安全]
 
         @Autowired
         public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+            // 如果使用内存中用户，默认会创建一个user用户，密码自动生成并打印日志如`Using generated security password: 126ad028-4bd5-4b8b-a8d3-d4d4b6b716ed`
             auth.inMemoryAuthentication()
                 .withUser("admin").password("admin").roles("ADMIN") // 在内存中定义用户名密码为admin/admin, 角色为ADMIN的用户(用于登录和权限判断)
                 .and()
@@ -1374,7 +1380,7 @@ public String getOrder(@PathVariable String id, String access_token, Authenticat
 */
 ```
 
-### 常见问题
+## 常见问题
 
 - sso登录报错`Authentication Failed: Could not obtain access token`
     - 1.use server.context-path to move each App to different paths, note that you need to do this for both(两个应用使用不同的hostname)

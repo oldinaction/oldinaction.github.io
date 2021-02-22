@@ -2,8 +2,8 @@
 layout: "post"
 title: "Flutter"
 date: "2019-11-22 14:54"
-categories: lang
-tags: [app, dart]
+categories: [web]
+tags: [App, dart, mobile]
 ---
 
 ## 简介

@@ -251,8 +251,9 @@ public class SpringContextU implements ApplicationContextAware {
 - 启动类加注解`@EnableAsync`，服务类方法加注解`@Async`即可
 - 可额外通过实现`AsyncConfigurer`配置`Executor`，参考[http://blog.aezo.cn/2017/07/01/java/spring/](/_posts/java/spring.md)
 
-### `@Value`给静态成员设值
+### @Value给静态成员设值
 
+- 参考[属性赋值(@Value)](/_posts/java/spring.md#属性赋值(@Value))
 - springboot v2.0.1之后，定义自定义参数(MyValue.java)要么写到Application.java同目录，要么加下列依赖。这个依赖会把配置文件的值注入到@Value里面，也可以通过@PropertySource("classpath:application.yml")注入
 
 ```xml
@@ -298,7 +299,7 @@ public class MyValue {
 private MyValue myValue;
 ```
 
-### `@Autowired`注入给静态属性
+### @Autowired注入给静态属性
 
 ```java
 @Component
@@ -318,53 +319,7 @@ public class BaseController {
 
 ### 跨域资源共享(CORS) [^9]
 
-```java
-// 法一
-@Bean
-CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("*"));
-    configuration.setAllowedHeaders(Arrays.asList("*"));
-    configuration.setAllowCredentials(true);
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
-
-// 法二
-@Bean
-public WebMvcConfigurer corsConfigurer() {
-	return new WebMvcConfigurerAdapter() {
-		@Override
-		public void addCorsMappings(CorsRegistry registry) {
-			registry.addMapping("/**")
-					.allowedHeaders("*")
-					.allowedMethods("*")
-					.allowedOrigins("*")
-					.allowCredentials(true)
-                    // 可被客户端缓存时间(s)
-                    .maxAge(3600);
-		}
-	};
-}
-
-// 法三：基于 CorsFilter
-@Bean
-public Filter corsFilter() {
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOrigin("*");
-    config.addAllowedHeader("*");
-    config.addAllowedMethod("*");
-    source.registerCorsConfiguration("/**", config);
-    return new CorsFilter(source); // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
-}
-
-// 法四：在@GetMapping处再增加下面注解
-@CrossOrigin(origins = ["http://localhost:8080"])
-```
+- 参考[springboot解决跨域](/_posts/arch/springboot-vue.md#springboot解决跨域)
 - 使用spring security时，需要同时在spring mvc 和 spring security中配置CORS
 
 ### 国际化
@@ -542,7 +497,7 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 ### 请求参数字段映射
 
 - 注意点
-    - 原理参考：[spring-src.md#请求参数解析](/_posts/java/spring-src.md#请求参数解析)
+    - 原理参考：[spring-src.md#MVC请求参数解析](/_posts/java/spring-src.md#MVC请求参数解析)
     - **LocalDateTime 等类型日期时间格式转换** [^19] [^20]
         - Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`。不适合参数通过 @RequestBody 修饰
         - Bean字段增加注解`@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。适用于 @RequestBody 接收(如 application/json 请求类型)；且适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)
@@ -745,6 +700,45 @@ public class LocalDateTimeUtils {
 ```
 - 示例参考【多数据源/动态数据源/运行时增加数据源】章节中的【动态数据源】
 
+### spring.factories文件
+
+- `spring.factories`主要为让Spring容器扫描配置文件中定义的类，默认只会扫描SpringBoot的启动类所在根目录及子目录，此方式主要加载第三方类库
+- 案例
+
+```bash
+main
+    java
+        cn.aezo.test1
+            test11
+            # 启动类。启动后默认值只能扫描`cn.aezo.test1`包下的Bean
+            TestApplication.java
+        cn.aezo.test2
+            # @Configuration配置类，默认无法被扫描到，因此也不会被Spring容器管理
+            Test2Config.java
+    resources
+        META-INF
+            # 方式一：定义额外需要扫码的类，从而让Test2Config也可以被扫描到，并加入到Spring容器
+            # org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test2.Test2Config
+            # 方式二：在TestApplication类上加入`@Import(value={Test2Config.class})`，从而进行导入
+            spring.factories
+```
+- `spring.factories`配置说明
+
+```ini
+# 导入第三方Bean
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test2.Test2Config
+# 用于加载自定义配置路径文件[参考](#EnvironmentPostProcessor加载自定义配置路径文件)
+org.springframework.boot.env.EnvironmentPostProcessor=cn.aezo.test.ConfEnvironmentPostProcessor
+```
+
+### EnvironmentPostProcessor加载自定义配置路径文件
+
+- 通常spring boot项目的配置文件都是配置在classpath环境变量下面，系统会默认使用ConfigFileApplicationListener去加载；但是如果项目打成war、jar包并且已经升级过了或者在项目之外有自定义的配置文件，这时候想改配置，文件这时候就需要重新打包了，这样很麻烦，而Spring boot也给我们提供了扩展的接口`EnvironmentPostProcessor`
+- 参考：https://blog.csdn.net/yaomingyang/article/details/99463212
+    - 实现EnvironmentPostProcessor接口
+    - 并将相应类设置到`spring.factories`文件中
+    - 在配置`spring.profiles.*`等参数
+
 ### 其他
 
 - 获取资源文件
@@ -798,7 +792,7 @@ server.context-path=/myapp
 ### 请求协议
 
 - 参考文章
-    - 原理参考：[spring-src.md#请求参数解析](/_posts/java/spring-src.md#请求参数解析)
+    - 原理参考：[spring-src.md#MVC请求参数解析](/_posts/java/spring-src.md#MVC请求参数解析)
     - https://www.hangge.com/blog/cache/detail_2485.html (POST请求示例)
     - https://www.hangge.com/blog/cache/detail_2484.html  (GET请求示例)
 - 常见请求方式

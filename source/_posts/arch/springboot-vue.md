@@ -127,27 +127,68 @@ server {
 
 ### 跨域资源共享(CORS, Cross-origin resource sharing) [^1]
 
-- **`CORS`需要浏览器和服务器同时支持。**目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。**浏览器会自动完成CORS通信过程，开发只需配置服务器同源限制**
-- 如果CORS通信过程中，响应的头信息没有包含`Access-Control-Allow-Origin`字段，浏览器则认为无法请求，便会抛出异常被XHR的onerror捕获
+- **`CORS`需要浏览器和服务器同时支持。**目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
+- **浏览器会自动完成CORS通信过程，开发只需配置服务器同源限制**
+- **如果CORS通信过程中，响应的头信息没有包含`Access-Control-Allow-Origin`字段，浏览器则认为无法请求**，便会抛出异常被XHR的onerror捕获
 - `Spring`对CORS的支持[https://spring.io/blog/2015/06/08/cors-support-in-spring-framework](https://spring.io/blog/2015/06/08/cors-support-in-spring-framework)
     - 可在方法级别进行控制，使用注解`@CrossOrigin`
     - 全局CORS配置，声明一个`WebMvcConfigurer`的bean
     - 基于`Filter`，声明一个`CorsFilter`的bean
 
-#### springboot可基于Filter实现
+#### springboot解决跨域
+
+- **使用了下列方法仍然出现跨域时**
+    - 如果是使用Filter解决跨域，检查是否在进入此跨域Filter之前，请求已经返回，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
+    - 如果请求参数出现错误(如GET请求URL中包含`[]`等特殊字符)，状态码返回400等情况(如果出现跨域，OPTIONS请求返回的应该是403)，此时都还进入到Cros处理环节，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
 
 ```java
-// 如果加了此配置仍然提示跨域，可检查是否有其他Filter已经返回了此请求
+// 法一
+@Bean
+CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(Arrays.asList("*"));
+    configuration.setAllowedMethods(Arrays.asList("*"));
+    configuration.setAllowedHeaders(Arrays.asList("*"));
+    // axios.defaults.withCredentials = true; // 当前端设置了携带cookie，则需要后端配合加入下列代码
+    configuration.setAllowCredentials(true); // 接受cookie
+    // 设置可被客户端缓存时间(s)，可不设置
+    configuration.setMaxAge(3600L);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
+
+// 法二
+@Bean
+public WebMvcConfigurer corsConfigurer() {
+	return new WebMvcConfigurerAdapter() {
+		@Override
+		public void addCorsMappings(CorsRegistry registry) {
+			registry.addMapping("/**")
+					.allowedHeaders("*")
+					.allowedMethods("*")
+					.allowedOrigins("*")
+					.allowCredentials(true);
+		}
+	};
+}
+
+// 法三：基于 CorsFilter。**如果加了此配置仍然提示跨域，可检查是否有其他Filter已经返回了此请求**
 @Bean
 public Filter corsFilter() {
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource(); // org.springframework.web.cors
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();  // org.springframework.web.cors
     CorsConfiguration config = new CorsConfiguration();
     config.addAllowedOrigin("*");
-    config.addAllowedMethod("*");
     config.addAllowedHeader("*");
+    config.addAllowedMethod("*");
+    config.setAllowCredentials(true);
     source.registerCorsConfiguration("/**", config);
-    return new CorsFilter(source);
+    return new CorsFilter(source); // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
 }
+
+// 法四：在@GetMapping处再增加下面注解
+@CrossOrigin(origins = ["http://localhost:8080"])
 ```
 
 #### spring security的cors配置 [^3]
@@ -161,7 +202,7 @@ public Filter corsFilter() {
         // ...
     }
 
-    // 配置cors
+    // 配置cors，或使用上文其他方式
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -414,9 +455,9 @@ export const download = (url, params) => {
     }
   }).request({
     url: url,
-    method: 'get',
-    params,
-    responseType: 'blob'
+    method: 'post',
+    data: params,
+    responseType: 'blob' // 后台返回数据格式为Blob对象(不可变的类文件对象): https://developer.mozilla.org/zh-CN/docs/Web/API/Blob
   })
 }
 
@@ -448,7 +489,7 @@ methods: {
 
 ```java
 @RequestMapping("/runExport/{id}")
-public void runExport(@PathVariable("id") Integer id, @RequestParam Map<String, Object> params, HttpServletResponse response) {
+public void runExport(@PathVariable("id") Integer id, @RequestBody Map<String, Object> params, HttpServletResponse response) {
     String fileName = reportConfiguration.getReportName() + "_" + System.currentTimeMillis() + ".xls";
     response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
     response.setHeader("Content-Disposition","attachment;filename="+ fileName +".xlsx");

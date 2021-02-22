@@ -318,8 +318,8 @@ tags: [build]
 			- java
 				- xxx
 			- resources
-			- WEB-INFO
-				- web.xml
+			    - WEB-INF
+				    - web.xml
 		- test
 	```
 
