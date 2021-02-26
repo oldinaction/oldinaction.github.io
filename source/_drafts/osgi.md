@@ -18,6 +18,7 @@ categories: [arch, java]
 - [Gemimi Blueprint](http://www.eclipse.org/gemini/) 由Eclipse维护，部分代码由SpringSource捐献的`Spring DM`(Spring Dynamic Modules，前身为Spring OSGi)项目代码 [^3]
     - SpringDM并不是OSGi的标准实现，它的运行必须依赖OSGi的标准容器，比如Equinox、Felix或是Knopflerfish等
     - SpringDM完成了OSGi服务的注册、查询、使用和监听，我们也可以将这些OSGi服务称之为Bean
+- 基于[springboot osgi demo](https://github.com/klebeer/karaf-springboot.git)未测试成功
 
 ### 相关文档
 
@@ -384,15 +385,22 @@ start 61
 start 60
 ```
 
+## idea使用
+
+- 配置. 参考：https://www.jb51.net/article/160461.htm
+    - 下载Felix
+    - File - Settings - Languages & Frameworks - OSGi Framework Instances - 导入Felix
+    - File - Settings - Languages & Frameworks - OSGi
+    - 启动配置：Edit configuration - 新建一个OSGi启动配置
+
 ## karaf容器
 
 ### karaf命令
 
 ```bash
-# 列举bundle
-ls
+ls      # 列举bundle
     # ls 100 # 列举某个bundle
-
+start   # 启动bundle(调用bundle的BundleActivator.start方法)
 ```
 
 

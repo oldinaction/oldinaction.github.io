@@ -338,12 +338,12 @@ public class MyBean3 implements InitializingBean, DisposableBean {
     // Bean创建完成，且属性赋值完成后调用
     @Override
     public void afterPropertiesSet() throws Exception {
-        System.out.println("afterPropertiesSet MyBean3...");
+        System.out.println("InitializingBean afterPropertiesSet MyBean3...");
     }
 
     @Override
     public void destroy() throws Exception {
-        System.out.println("destroy MyBean3...");
+        System.out.println("DisposableBean destroy MyBean3...");
     }
 }
 ```

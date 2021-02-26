@@ -250,6 +250,23 @@ Template template = engine.getTemplate("velocity_test.vtl"); // 会在模板前�
 String result = template.render(Dict.create().set("name", "Hutool"));
 ```
 
+## Excel/Word/Pdf操作
+
+### poi
+
+- 其他基本都是基于此衍生而来
+
+### Easypoi
+
+- [Easypoi](https://gitee.com/lemur/easypoi)、[文档](http://doc.wupaas.com/docs/easypoi)
+- 优点
+    - 基础变量模板导出
+    - excel和html互转
+- 缺点
+    - excel转html不灵活，无法设置转出的页面样式，如宽度
+    - pdf导出文档不详
+    - 测试demo运行不完整
+
 ## Yaml解析(基于jyaml)
 
 - json-yaml互转工具：https://www.bejson.com/json/json2yaml

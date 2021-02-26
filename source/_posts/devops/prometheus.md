@@ -371,7 +371,7 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
 
 ### 告警插件(默认安装)
 
-- Grafana是基于图标进行告警，Alertmanager则没有此限制，可同时使用
+- Grafana是基于图表进行告警，Alertmanager则没有此限制，可同时使用
 - Alerting/Alert Rules 查看告警规则，新增需要在每个Panel的设置中进行
 - Notification channels 设置告警通道，可使用Email(可以定义多个邮件通道)、webhook、Slack、钉钉(DingDing)等
     - 使用邮件通道时，需提前配置邮件发送服务器

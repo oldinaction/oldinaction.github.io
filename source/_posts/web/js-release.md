@@ -10,7 +10,7 @@ tags: js
 
 ### Promise/async/await
 
-- uni-app使用场景参考：[uni-app.md#onLaunch等同步写法](/_posts/web/uni-app.md#onLaunch等同步写法)
+- uni-app使用场景参考：[uni-app.md#onLaunch等同步写法](/_posts/web/mobile/uni-app.md#onLaunch等同步写法)
 - Promise基本用法
 
 ```js
@@ -75,7 +75,8 @@ console.log('one')
     - 说明
         - `async`：把它放在函数声明之前，使其成为 async function。**可单独使用，被标识的函数成为异步函数，返回Promise对象**
         - `await`：只能在异步函数（async修饰）里面才起作用。**必须和async联用**
-        - **在forEach等函数中不能直接使用await调用其他函数(for和for...of中可以)，而是要在回调函数的参数上加async才可正常使用**，见下列
+        - **在forEach/map/reduce等函数中不能直接使用await调用其他函数(for和for...of中可以)，尽管在回调函数的参数上加async也不行**，见下列
+            - 原理应该是foreach内部封装了while，循环并行执行，而且并行执行数组的所有callback函数，不会等待里面的callback的返回
     - async简单使用
 
         ```js
@@ -141,6 +142,62 @@ console.log('one')
             let timeTaken = finishTime - startTime;
             alert("Time taken in milliseconds: " + timeTaken);
         })
+        ```
+    - async、forEach/map不建议联用
+
+        ```js
+        var test = {
+            main: () => {
+                // 普通for，结果为顺序执行，耗时较长。start-1 -> return-1 -> end-1 -> ... -> over
+                test.run()
+            },
+            main2: () => {
+                // 存在异步，耗时较短。start-1 -> 顺序 -> start-10 -> return-1 -> end-1 -> 顺序 -> over
+                test.run2()
+            },
+            main3: () => {
+                // 存在异步，耗时较短。start-1 -> 顺序 -> start-10 -> return-1 -> end-1 -> 顺序 -> over
+                test.run3()
+            },
+            run: async () => {
+                for (let index = 0; index < 10; index++) {
+                    console.log('start-' + index)
+                    await test.timeoutPromise(index * 10).then(data => {
+                        console.log('return-' + index)
+                    })
+                    console.log('end-' + index)
+                }
+                console.log('over')
+            },
+            run2: () => {
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(async (index) => {
+                    console.log('start-' + index)
+                    await test.timeoutPromise(index * 10).then(data => {
+                        console.log('return-' + index)
+                    })
+                    console.log('end-' + index)
+                })
+                console.log('over')
+            },
+            run3: async () => {
+                // 此处去掉 Promise.all 或者换成 map 结果都一样
+                await Promise.all([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(async (index) => {
+                    console.log('start-' + index)
+                    await test.timeoutPromise(index * 10).then(data => {
+                        console.log('return-' + index)
+                    })
+                    console.log('end-' + index)	
+                }))
+                console.log('over')
+            },
+            timeoutPromise: (interval) => {
+                return new Promise((resolve, reject) => {
+                    setTimeout(function(){
+                        resolve("done");
+                    }, interval);
+                });
+            }
+        }
         ```
 - axios返回Promise
 

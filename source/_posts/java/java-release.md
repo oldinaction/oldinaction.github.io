@@ -344,6 +344,50 @@ clazzMap.computeIfAbsent(clazz, Reflector::new); // public Reflector(Class<?> cl
 ### try-with-resources
 
 
+## 未知
+
+### package-info.java
+
+- 是一个Java文件，可以放到任意Java源码包执行。不过里面的内容有特定的要求，其主要目的是为了提供包级别相关的操作，比如包级别的注解、注释及公共变量
+- 提供包级别的注解
+
+```java
+// 创建包注解
+@Target(ElementType.PACKAGE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TestPkg {}
+
+// package-info.java文件内容
+@TestPkg
+package cn.aezo.test;
+
+// 获取包注解
+Package pkg = Package.getPackage("cn.aezo.test");
+Annotation[] annotations = pkg.getAnnotations(); // 可获取到 TestPkg
+Class test = Class.forName("cn.aezo.test.Test");
+Annotation[] annotations2 = test.getAnnotations(); // Test类上并没有注解，但可获取到 TestPkg
+```
+- 提供包级别的变量
+
+```java
+// package-info.java文件内容
+// 包类
+class PACKAGE_CLASS{
+    public void test(){
+    }
+}
+// 包常量
+class PACKAGE_CONST{
+    public static final String TEST_01="TEST";
+}
+
+// 在包内的任意类中可使用此变量，其他包不能使用
+```
+- 提供包级别的注释
+    - 使用JavaDoc的时候，通过在package-info.java添加注释，生成JavaDoc实现对应包的注释说明
+
+
+
 ---
 
 参考文章

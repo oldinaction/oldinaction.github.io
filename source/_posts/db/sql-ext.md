@@ -30,7 +30,7 @@ select str_to_date('2016-01-02 10:00:00.000','%Y-%m-%d %H:%i:%s.%f');
 select to_days(now()); -- 727666 从0年开始到当前的天数
 select to_days('2016-01-02');
 -- oracel
-select to_char(sysdate, 'yyyy-mm-dd HH24:mi:ss') from dual;
+select to_char(sysdate, 'yyyy-MM-dd HH24:mi:ss') from dual;
 select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
 --sqlserver
 select CONVERT(VARCHAR(10), GETDATE(), 120); -- 格式化日期(120为一种格式) 2000-01-01

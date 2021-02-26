@@ -348,6 +348,14 @@ handleChange (value) {
 
 - 一款基于Vue的表格插件，支持大量数据渲染，编辑表格等功能
 - [github](https://github.com/x-extends/vxe-table)、[doc](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/start/install)
+- 优点
+    - 大数据表格
+    - 自带打印功能：区域、分页、模板、样式等打印功能
+- 说明
+    - vxe-table 只能用于静态列（vxe-table-column，避免使用 v-for 去动态修改，如果要动态列其使用 v-grid）
+    - vxe-grid 支持一切动态场景
+        - grid 继承 table 100%的功能，vxe-grid 的性能也比 vxe-table 快一倍
+        - vue 多数情况还是推荐使用语义化标签的形式；而对于动态场景用 grid 就更加灵活，可以实现远程配置化一体化
 - 表格显示/隐藏后样式丢失问题
   - `auto-resize`或`sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
 - 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
@@ -533,6 +541,24 @@ vexScrollPage(table, el, allData, searchForm, fetchData) {
   }
 }
 </script>
+```
+- 打印，[参考](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/module/print)
+
+```js
+import VXETable from 'vxe-table'
+VXETable.print({
+    sheetName: '打印自定义模板',
+    // 区域打印，可自己写组件，而不是通过字符串拼接。但是有个问题，如果使用了vxe-table等插件渲染html元素，则样式会丢失，可自己写简单的html标签和样式解决
+    content: nodeToString(this.$refs.printDivId.$el)
+})
+
+nodeToString ( node ) {
+    let tmpNode = document.createElement("div");
+    tmpNode.appendChild(node.cloneNode(true));
+    let str = tmpNode.innerHTML;
+    tmpNode = node = null;
+    return str;
+}
 ```
 
 ## 底层硬件库
@@ -771,18 +797,20 @@ export default {
 ### 打印
 
 - web打印分页的问题，可使用`page-break-after`等css参数解决。参考：https://www.w3school.com.cn/cssref/index.asp#print
+- 常见打印纸大小(宽mm*高mm，可在wps中查看)：A1 = {841,594}, A2 = {420,594}, A3 = {420,297}, **A4 = {210,297}**, A5 = {210,148}, A6 = {105,148}, A7 = {105,74}, A8 = {52,74}, B1 = {1e3,707}, B2 = {500,707}, B3 = {500,353}, B4 = {250,353}, B5 = {250,176}, B6 = {125,176}, B7 = {125,88}, B8 = {62,88}
 - 基于[hiprint](http://hiprint.io/)插件
     - 特点：基于Jquery；可视化配置模板，自动分页打印；可免费使用
     - 缺点：源代码没开源，没有抽离 npm 包
     - 基于vue使用参考：https://blog.csdn.net/byc233518/article/details/107705278
 - 基于[print-js](https://printjs.crabbly.com/)
+- 使用vxe-table等插件自带打印功能
 - vue和electron打印问题
 
 ```js
 // 方案一(原生API，不推荐)：VUE和electron中均可正常局部打印，只不过打印完主界面会刷新。且使用<div style="page-break-after:always"></div>强制分页也存在问题
 let doc = document
 let oldHtml = doc.body.innerHTML;//将body内容先行存储
-let printbox = doc.getElementById("printPage1").innerHTML;//再将所要打印区域内容赋值给body
+let printbox = doc.getElementById("printPageId").innerHTML;//再将所要打印区域内容赋值给body
 doc.body.innerHTML = printbox;//再将所要打印区域内容赋值给body
 window.print();//调用全部打印事件
 doc.body.innerHTML = oldHtml;//将body内容再返回原页面。必须，否则页面空白
@@ -829,22 +857,23 @@ newWindow.onload = function() {
 }
 newWindow.print();
 
-// 方案四(基于print-js): 可局部打印正常分页，VUE可正常打印；electron不会跳预览页面，但是可打印；可使用<div style="page-break-after:always"></div>强制分页
+// 方案四(基于print-js, `npm i print-js`): 可局部打印正常分页，VUE可正常打印；electron不会跳预览页面，但是可打印；可使用<div style="page-break-after:always"></div>强制分页
 // 将要打印的数据放在主页面进行隐藏
 <div style="width:0; height:0; overflow: hidden">
-    <Print id="printPage" :rows="checkboxRecords" @on-change="onPrintChange"/>
+    <Print id="printPageId" :rows="checkboxRecords" @on-change="onPrint"/>
 </div>
-import printJS from "print-js";
-onPrintChange() {
+
+import printJS from 'print-js'
+onPrint() {
     this.$nextTick(() => {
         printJS({
-            printable: "printPage",
-            type: "html",
+            printable: 'printPageId',
+            type: 'html',
             // 防止Print组件中的样式不起作用
             targetStyles: ['*'],
             font: '',
             font_size: ''
-        });
+        })
     })
 }
 // 基于electron的打印，可成功获取打印机，webview未测试成功。参考：https://zhuanlan.zhihu.com/p/63019335

@@ -837,7 +837,7 @@ public String getUserByName(@RequestParam("username") String name) {}
 public String getUser(User user) {} // 此时User对象必须声明getter/setter方法
 // @PathVariable 获取 url 中的参数
 @RequestMapping(value="/hello/{id}")
-public String user(@PathVariable("id") Integer id) {}
+public String user(@PathVariable("id") Long id) {} // 100可转成Long
 ```
 
 - POST请求
