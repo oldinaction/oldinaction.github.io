@@ -322,4 +322,88 @@ Map map = (Map) Yaml.load(yamlStr);
     - `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
         - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
 
+## pf4j
+
+- [PF4J](https://github.com/pf4j/pf4j) 是一个 Java 的插件框架，为第三方提供应用扩展的渠道。PF4J 本身非常轻量级，只有 50KB 左右，目前只依赖了 slf4j。Gitblit 项目使用的就是 PF4J 进行插件管理
+- 组件
+    - `Plugin` 是所有插件类型的基类。为了避免冲突，每个插件都被加载到一个单独的类加载器中
+    - `PluginManager` 用于插件管理的所有方面（加载、启动、停止）
+    - `PluginLoader` 加载插件所需的所有信息（类）
+    - 可以将任何接口或抽象类标记为扩展点（即继承`ExtensionPoint`接口），并使用`@Extension`标记扩展点的实现类
+- 相关生态
+    - pf4j-update（PF4J的更新机制）
+    - pf4j-spring（PF4J-Spring框架集成）
+    - pf4j-wicket（PF4J-Wicket集成）
+    - pf4j-web（web应用程序中的PF4J）
+    - springboot-plugin-framework（见下文）
+- 案例
+
+```java
+// 参考：https://www.cnblogs.com/fengyun2050/p/12809204.html
+// 主程序定义扩展点
+public interface Greeting extends ExtensionPoint {
+    String getGreeting();
+}
+
+// 插件定义实现类
+@Extension
+public class WelcomeGreeting implements Greeting {
+    public String getGreeting() {
+        return "Welcome";
+    }
+}
+// 插件maven打包（参考下文maven配置），会在MANIFEST.MF文件生成如下(可以将插件作为jar文件分发)
+// 插件id为welcome-plugin（强制属性）、版本为0.0.1（强制属性）、类为cn.aezo.test.pf4j.welcome.WelcomePlugin（可选属性）作者为Smalle的插件；以及与插件x, y, z（可选属性）的依赖关系
+Plugin-Id: welcome-plugin
+Plugin-Version: 0.0.1
+Plugin-Class: cn.aezo.test.pf4j.welcome.WelcomePlugin
+Plugin-Provider: Smalle
+Plugin-Dependencies: x, y, z
+
+// 主程序中使用插件
+public static void main(String[] args) {
+    // jar插件管理器
+    PluginManager pluginManager = new JarPluginManager();// or "new ZipPluginManager() / new DefaultPluginManager()"
+
+    // 加载指定路径插件
+    pluginManager.loadPlugin(Paths.get("plugins-0.0.1-SNAPSHOT.jar")); // 或 pluginManager.loadPlugins(); 加载所有
+
+    // 启动指定插件(也可以加载所有插件)
+    pluginManager.startPlugin("welcome-plugin"); // 或 pluginManager.startPlugins(); 启动所有
+
+    // 执行插件
+    List<Greeting> greetings = pluginManager.getExtensions(Greeting.class);
+    for (Greeting greeting : greetings) {
+        System.out.println(">>> " + greeting.getGreeting()); // Welcome
+    }
+}
+```
+- 插件maven打包
+
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-jar-plugin</artifactId>
+  <version>2.3.1</version>
+  <configuration>
+    <archive>
+      <manifestEntries>
+        <Plugin-Id>welcome-plugin</Plugin-Id>
+        <Plugin-Version>0.0.1</Plugin-Version>
+      </manifestEntries>
+    </archive>
+  </configuration>
+</plugin>
+```
+
+## springboot-plugin-framework
+
+- [springboot-plugin-framework](https://gitee.com/starblues/springboot-plugin-framework-parent)、[文档](http://www.starblues.cn/)
+- 基于[pf4j](https://github.com/pf4j/pf4j)
+- 插件相互调用
+    - 插件1调用插件2方法，插件1的POM中无需引入插件2。主程序也无需引入插件的POM
+    - 插件1调用插件2方法，插件1中需要重新定义一次插件2中需要调用的方法
+- 说明
+    - 新建插件时，需要继承`BasePlugin`类，并将其放在插件src根目录(否则插件中的controller等将无法扫描到)。因为会基于此类进行扫码插件其他类，并进行分组，分组相关类参考包`com.gitee.starblues.factory.process.pipe.classs.group`
+    - 插件controller层路径：server.servlet.context-path + DefaultIntegrationConfiguration.pluginRestPathPrefix + (enablePluginIdRestPathPrefix=true时还需加入插件ID) + Controller#RequestMapping + Method#RequestMapping
 

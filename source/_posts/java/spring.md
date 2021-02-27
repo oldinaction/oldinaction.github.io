@@ -990,6 +990,34 @@ public Result addTestTransactional() {
 }
 ```
 
+## ApplicationContext
+
+```java
+@Component
+public class SpringU implements ApplicationContextAware {
+
+    private static ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        if(SpringU.applicationContext == null) {
+            SpringU.applicationContext = applicationContext;
+        }
+    }
+
+    public static Object getBean(String name){
+        return getApplicationContext().getBean(name);
+    }
+
+    // 向 ApplicationContext 注册一个 Bean
+    public static void registerBean(String beanName, Object singletonObject) {
+        GenericApplicationContext genericApplicationContext = (GenericApplicationContext) applicationContext;
+        DefaultListableBeanFactory defaultListableBeanFactory = genericApplicationContext.getDefaultListableBeanFactory();
+        defaultListableBeanFactory.registerSingleton(beanName, singletonObject);
+    }
+}
+```
+
 ## SpringMVC
 
 - 关键类：**`DispatcherServlet#doDispatch`**

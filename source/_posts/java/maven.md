@@ -529,13 +529,16 @@ tags: [build]
 
 ## maven插件
 
-### Maven Enforcer Plugin
-
+- `maven-compiler-plugin` 编译插件
+- `maven-jar-plugin` 默认的打包插件，用来打普通的project JAR包
+- `maven-shade-plugin` 用来打可执行JAR包，也就是所谓的fat JAR包
+- `maven-assembly-plugin` 支持自定义的打包结构，也可以定制依赖项等
+- `spring-boot-maven-plugin` 打包SpringBoot项目
 - `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
-- [内置规则(亦可基于接口自定义)](http://maven.apache.org/enforcer/enforcer-rules/)
-	- `requireMavenVersion` 校验maven版本
-	- `requireJavaVersion` 校验java版本
-	- `bannedDependencies` 校验依赖关系，检查是否存在或不存在某依赖
+    - [内置规则(亦可基于接口自定义)](http://maven.apache.org/enforcer/enforcer-rules/)
+        - `requireMavenVersion` 校验maven版本
+        - `requireJavaVersion` 校验java版本
+        - `bannedDependencies` 校验依赖关系，检查是否存在或不存在某依赖
 
 ## maven私服搭建(nexus)
 
@@ -608,6 +611,17 @@ services:
 </repository>
 ```
 
+## 常见问题
+
+- idea自带maven插件
+- `pom.xml`检测通过，但是`Maven Projects`中部分依赖显示红色波浪线
+    - 将`pom.xml`中此种依赖删除，然后`reimport`刷新一下依赖，再将刚刚的依赖粘贴上去，重新`reimport`刷新一下
+    - 将`pom.xml`中repositories的配置删除，然后`reimport`刷新一下依赖
+    - 删除`.m2`中此依赖的相关文件夹，重新下载
+- 创建示例项目
+    - org.apache.maven.archetypes:maven-archetype-quickstart
+    - org.apache.maven.archetypes:maven-archetype-site
+    - org.apache.maven.archetypes:maven-archetype-webapp
 
 ---
 

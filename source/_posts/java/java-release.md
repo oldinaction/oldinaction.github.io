@@ -386,7 +386,16 @@ class PACKAGE_CONST{
 - 提供包级别的注释
     - 使用JavaDoc的时候，通过在package-info.java添加注释，生成JavaDoc实现对应包的注释说明
 
+### SPI
 
+- `SPI`(Service Provider Interface) 是调用方来制定接口规范，提供给外部来实现，调用方在调用时则选择自己需要的外部实现。从使用人员上来说，SPI 被框架扩展人员使用 [^5]
+- 核心类`java.util.ServiceLoader`
+- 使用
+    - 主项目中定义接口`cn.aezo.test.IService`
+    - 插件开发者，在插件项目resources目录下新建`META-INF/services`目录，然后在这个目录下新建`cn.aezo.test.IService`文件，并在这个文件中写入实现的类名`cn.aezo.test.IServiceImpl`(多个可换行写入)
+    - 将插件jar放到主项目的classpath目录，主项目通过`ServiceLoader<IService> service = ServiceLoader.load(IService.class);`就可以加载实现类了
+- dubbo作为一个高度可扩展的rpc框架，也依赖于java的SPI，并且dubbo对java原生的spi机制作出了一定的扩展，使得其功能更加强大
+- Pf4j插件框架也是基于java的SPI实现
 
 ---
 
@@ -396,3 +405,5 @@ class PACKAGE_CONST{
 [^2]: https://www.ibm.com/developerworks/cn/java/j-lo-java8streamapi/ (Java 8 中的 Streams API 详解)
 [^3]: https://www.runoob.com/java/java9-new-features.html
 [^4]: https://blog.csdn.net/jiankunking/article/details/79825928
+[^5]: https://www.cnblogs.com/jy107600/p/11464985.html
+

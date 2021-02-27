@@ -19,6 +19,9 @@ categories: [arch, java]
     - SpringDM并不是OSGi的标准实现，它的运行必须依赖OSGi的标准容器，比如Equinox、Felix或是Knopflerfish等
     - SpringDM完成了OSGi服务的注册、查询、使用和监听，我们也可以将这些OSGi服务称之为Bean
 - 基于[springboot osgi demo](https://github.com/klebeer/karaf-springboot.git)未测试成功
+- **Java其他插件化开发(OSGi文档较少，弃用)**
+    - [pf4j](https://github.com/pf4j/pf4j)
+    - [springboot-plugin-framework, 基于pf4j](https://gitee.com/starblues/springboot-plugin-framework-parent)
 
 ### 相关文档
 

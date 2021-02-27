@@ -81,3 +81,19 @@ public StatementHandler newStatementHandler(Executor executor, MappedStatement m
 }
 ```
 
+## mybatis-spring
+
+### @MapperScan
+
+- 使用：一般在springboot主类(或任何配置类)上注解`@MapperScan({"cn.aezo.**.mapper"})`表明需要扫码的包
+- 原理
+    - 主要由于@MapperScan注解上有一行`@Import({MapperScannerRegistrar.class})`，从而以`MapperScannerRegistrar`为入口对mybatis进行初始化
+    - 而MapperScannerRegistrar实现了`ImportBeanDefinitionRegistrar`接口从而通过registerBeanDefinitions方法注册Bean。参考[spring.md#@Import给容器导入一个组件](/_posts/java/spring.md#@Import给容器导入一个组件)
+
+### SqlSessionFactoryBean
+
+- SqlSessionFactoryBean实现接口
+    - `InitializingBean` 作用是spring初始化的时候会执行实现了InitializingBean接口的afterPropertiesSet方法
+    - `ApplicationListener` 作用是在spring容器执行的各个阶段进行监听，为了容器刷新的时候，更新sqlSessionFactory，可参考onApplicationEvent方法实现
+    - `FactoryBean` 表示这个类是一个工厂bean，通常是为了给返回的类进行加工处理的，而且获取类返回的是通过getObj返回的
+
