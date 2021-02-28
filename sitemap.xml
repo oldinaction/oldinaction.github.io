@@ -2,16 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
     
-    <lastmod>2021-02-27T13:54:20.662Z</lastmod>
+    <lastmod>2021-02-28T08:59:56.768Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
     
-    <lastmod>2021-02-27T08:34:40.824Z</lastmod>
+    <lastmod>2021-02-28T07:01:59.092Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2021-02-28T02:50:31.038Z</lastmod>
     
   </url>
   
@@ -166,13 +173,6 @@
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2021-02-19T15:33:07.443Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2021-02-19T10:06:55.651Z</lastmod>
     
   </url>
   
