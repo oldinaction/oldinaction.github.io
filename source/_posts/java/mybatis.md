@@ -966,8 +966,8 @@ subscribeService.saveOrUpdateBatch(List<Subscribe>);
 
 // ========= and/or
 // select * from user where name = ? and ( pwd= ? or phone = ?)
-QueryWrapper<User> userWrapper = new QueryWrapper<User>()
-    .eq("name", name);
+QueryWrapper<User> userWrapper = new QueryWrapper<User>() // 必须加上<>泛型标识才能链式调用
+    .eq("name", name)
     .and(wrapper -> wrapper.eq("pwd", pwd).or().eq("phone", phone));
 ```
 

@@ -315,7 +315,10 @@ Map map = (Map) Yaml.load(yamlStr);
     - maven项目中需要加入对应的依赖，从而打包时生成相应代码
     - idea需要安装Lombox插件，从而编译时生成相应代码，不会报错
 - 使用
-    - 使用Builder构造器模式，添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
+    - 使用Builder构造器模式
+        - 添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
+        - 使用`@SuperBuilder`(v1.18.4)解决子类在链式赋值时无法设置父类的字段问题 [^1]
+        - `@Builder(toBuilder = true)`表示相应对象会附带`toBuilder`方法，将其转换成功Builder对象继续进行链式赋值。默认只能通过MyClass.builder()获取链式调用入口
     - `@Accessors(fluent = true, chain = true, prefix = "p")`
         - 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
         - 如果作用在entity上，会导致mybatis的xml中resultMap字段无法识别
@@ -400,10 +403,50 @@ public static void main(String[] args) {
 
 - [springboot-plugin-framework](https://gitee.com/starblues/springboot-plugin-framework-parent)、[文档](http://www.starblues.cn/)
 - 基于[pf4j](https://github.com/pf4j/pf4j)
+- [springboot-plugin-framework扩展](https://gitee.com/starblues/springboot-plugin-framework-parent/tree/master/springboot-plugin-framework-extension)
+    - 对mybatis和mybatis-plus进行了支持，插件中可使用mybatis
+    - 对resources进行了支持，插件中可使用资源文件，从而显示视图层返回模板页面
 - 插件相互调用
     - 插件1调用插件2方法，插件1的POM中无需引入插件2。主程序也无需引入插件的POM
     - 插件1调用插件2方法，插件1中需要重新定义一次插件2中需要调用的方法
 - 说明
-    - 新建插件时，需要继承`BasePlugin`类，并将其放在插件src根目录(否则插件中的controller等将无法扫描到)。因为会基于此类进行扫码插件其他类，并进行分组，分组相关类参考包`com.gitee.starblues.factory.process.pipe.classs.group`
-    - 插件controller层路径：server.servlet.context-path + DefaultIntegrationConfiguration.pluginRestPathPrefix + (enablePluginIdRestPathPrefix=true时还需加入插件ID) + Controller#RequestMapping + Method#RequestMapping
+    - **开发时**，让 idea 启动主程序时，自动编译插件包的配置。为了在每次启动主程序的时候，能够动态编译插件包，保证插件包的target是最新的
+        - 选择 File->Project Structure->Project Settings->Artifacts->点击+号->JAR->From modules whith dependencies->选择对应的插件包->确认OK
+        - 启动配置: 在Before launch 下-> 点击小+号 -> Build -> Artifacts -> 选择上一步新增的>Artifacts
+        - 开发时需要提前将插件编译出jar，再启动主程序
+    - 新建插件时，**需要继承`BasePlugin`类，并将其放在插件src根目录**(否则插件中的controller等将无法扫描到)。因为会基于此类进行扫码插件其他类，并进行分组，分组相关类参考包`com.gitee.starblues.factory.process.pipe.classs.group`
+    - **插件controller层路径**："http://ip:port/" + server.servlet.context-path + DefaultIntegrationConfiguration.pluginRestPathPrefix + (enablePluginIdRestPathPrefix=true时还需加入插件ID) + Controller#RequestMapping + Method#RequestMapping
+    - **在插件中无法直接注入主项目Bean，需要通过`PluginUtils`简介获取**
+        - PluginUtils可直接注入到插件项目中，然后通过`@PostConstruct`在初始化方法中调用`pluginUtils.getMainBean(MainIService.class)`获取主程序Bean
+        - PluginUtils功能：可在插件中获取主程序中Spring容器中的bean，可获取当前插件的信息，只能作用于当前插件
+    - 插件自定义yml配置，映射Bean时，不能通过`@ConfigurationProperties`注解，而要使用`@ConfigDefinition`
+    - maven配置说明
 
+        ```xml
+        <!-- 主项目：高版本(>Spring-boot 2.1.1.RELEASE)需要新增repackage -->
+
+        <!-- 
+            1.插件如果引入了第三方包(而主程序又没有引入的)，则需要使用 maven-assembly-plugin 的 jar-with-dependencies 功能将依赖的class全部打包到插件的jar包中 
+            2.打包插件时，必须将插件包与主程序相同的依赖(特别是版本号不同的)排除掉，不要打入jar包中
+        -->
+        ```
+- 使用mybatis扩展(参考官方源码中文的)
+    - xmlLocationsMatch中定义的xml路径不能和主程序中的xml路径在`resources`相对一致，建议使用不同名称区分开。如`xmlLocationsMatch.add("classpath:mapper/minions/**/*Mapper.xml");`
+    - **定义的Mapper接口需要加上注解`@Mapper`**
+    - 插件默认使用主程序的数据源配置，可通过reSetMainConfig进行重写配置（重写后不影响主程序的配置, 只在当前插件中起作用）；插件也可以使用自定义的数据源
+    - **在插件中无法使用mybatis-plus的 `LambdaQueryWrapper` 条件构造器**，部分场景可使用QueryWrapper + Lombok的@SuperBuilder链式调用
+    - 插件的mapper.xml文件无法引用主程序中的sql片段
+- 使用resources扩展(参考官方源码中文的)
+    - 插件中需实现接口`StaticResourceConfig`，并映射出静态文件目录如`classpath:static/minions`
+    - 插件中`resources`中存放的资源文件目录一定不能和主程序相同，否则就会加载到主程序的资源
+
+
+
+
+
+
+---
+
+参考文章
+
+[^1]: https://blog.csdn.net/qq_20021569/article/details/102471373

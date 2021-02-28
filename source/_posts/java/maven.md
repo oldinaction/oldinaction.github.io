@@ -97,10 +97,6 @@ tags: [build]
 - child
 
 	```xml
-	<groupId>cn.aezo</groupId>
-	<artifactId>demo</artifactId>
-	<packaging>jar</packaging>
-
 	<!--声明父项目坐标。maven的parent是单继承，如果需要依赖多个父项目可以在dependencyManagement中添加依赖的scope为import。eg:springcloud应用 -->
 	<parent>
 		<groupId>cn.aezo</groupId>
@@ -111,6 +107,10 @@ tags: [build]
 		<!-- 建议写上，否则仅打包子项目的时候会出错 -->
 		<relativePath>../pom.xml</relativePath>
 	</parent>
+
+    <artifactId>demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
 	<properties></properties>
 	<!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号-->
@@ -242,6 +242,7 @@ tags: [build]
 	- install 命令完成了package的功能，同时把打好的可执行jar包（war包或其它形式的包）布署到本地maven仓库
 	- deploy 完成了install的功能，同时部署到远程maven私服仓库
 	- 常用：`mvn clean package` 清理并打包
+    - 报错是可增加`-X`参数显示debug信息
 - 跳过测试进行编译
 	- 方式一 `mvn package -DskipTests`
     - 方式二
@@ -327,14 +328,14 @@ tags: [build]
 
 - `dependency#scope` 决定依赖的包是否加入本工程的classpath下
 
-	依赖范围(Scope)|	编译classpath|	测试classpath|	运行时classpath|	传递性|	说明
-	--|---|---|---|---|---
-	compile	|	Y|	Y|	Y|	Y|	默认，compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时|
-	runtime	|	-|	Y|	Y|	Y|	运行和test的类路径下可以访问|
-	test	|	-|	Y|	-|	-|	只对测试时有用，包括测试代码的编译和运行|
-	provided|	Y|	Y|	-|	-|	该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供|
-	system	|	Y|	Y|	-|	Y|	该依赖项由本地文件系统提供，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径|
-	import	|	|	|	|	|	maven的`<parent>`只支持单继承，如果还需要继承其他模块的配置，可以如此使用(eg: springboot项目引入springcloud)|
+	依赖范围(Scope)|	编译classpath|	测试classpath|	运行时classpath| 打包文件是否包含此依赖|	传递性|	说明
+	--|---|---|---|---|---|---
+	compile	|	Y|	Y|	Y|	Y|	N|	默认，compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时，仅打包无|
+	runtime	|	-|	Y|	Y|	Y|	N|	运行和test的类路径下可以访问|
+	test	|	-|	Y|	-|	-|	N|	只对测试时有用，包括测试代码的编译和运行|
+	provided|	Y|	Y|	-|	-|	N|	该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供|
+	system	|	Y|	Y|	-|	Y|	Y|	该依赖项由本地文件系统提供，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径|
+	import	|	|	|	|	|	-|	maven的`<parent>`只支持单继承，如果还需要继承其他模块的配置，可以如此使用(eg: springboot项目引入springcloud)|
 
 	- import举例
 
@@ -369,13 +370,25 @@ tags: [build]
 		</dependencyManagement>
 		```
 - `dependency#optional` 仅限制依赖包的传递性，不影响依赖包的classpath
-	- 如`<optional>true</optional>`表示父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入。如smtools中引入了一些jar进行扩展，可正常编译，其他项目使用此jar则需要自行引入
-- optional与scope区别在于：仅限制依赖包的传递性，不影响依赖包的classpath [^3]
-	- `A->B, B->C(scope:compile, optional:true)`，B的编译/运行/测试classpath都有C，A中的编译/运行/测试classpath都不存在C(尽管C的scope声明为compile)，A调用B的那些依赖C的方法就会出错。此时只能手动加入C的依赖
-	- `A->B, B->C(scope:provided)`，B的编译/测试classpath有C，A中的编译/运行/测试classpath都不存在C，但是A使用B(需要依赖C)的接口时就会出现找不到C的错误。此时要么是手动加入C的依赖，即A->C；否则需要容器提供C的依赖包到运行时classpath
+	- 如`<optional>true</optional>`**表示父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入。**如smtools中引入了一些jar进行扩展，可正常编译，其他项目使用此jar则需要自行引入
+- **optional与scope区别在于：仅限制依赖包的传递性，不影响依赖包的classpath** [^3]
+	- `A->B, B->C(scope:compile, optional:true)`
+        - B的编译/测试classpath都有C(打包无C)
+        - A中的编译/测试classpath都不存在C(尽管C的scope声明为compile)，A调用B的那些依赖C的方法就会出错。此时A只能手动加入C的依赖
+	- `A->B, B->C(scope:provided)`
+        - B的编译/测试classpath有C(打包无C)
+        - A中的编译/测试classpath都不存在C，但是A使用B(需要依赖C)的接口时就会出现找不到C的错误。此时要么是A手动加入C的依赖，即A->C；否则需要容器(如Tomcat等)提供C的依赖包到运行时classpath
 
 ### build节点
 
+- 结构
+
+    ```xml
+    <build>
+        <!-- 重命名打包后的jar包名 -->
+        <finalName>${project.artifactId}-${project.version}</finalName>
+    <build>
+    ```
 - 解决打包编译时，默认只编译resource下的xml等资源文件
 
 	```xml
@@ -522,6 +535,32 @@ tags: [build]
 		<plugin>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-maven-plugin</artifactId>
+            <!-- 
+                1.此插件打包出来的jar文件结构如下，此时如果有个模块需要引用此模块的代码则会在打包时失败(编译可成功，如基于springboot-plugin-framework的项目)
+                    BOOT-INF
+                        classes
+                            cn.aezo.test
+                            mapper
+                            application.yml
+                        lib
+                            spring-boot-2.3.7.RELEASE.jar
+                    META-INF
+                    org.springframework.boot.loader
+                2.上述情况可增加下列扩展命令，最终打包出两个jar：一个为demo-1.0.0.jar(普通jar包结构，即上文classes目录下文件)，另外一个为demo-1.0.0-exec.jar(结构为同上文jar)
+             -->
+            <!--
+            <executions>
+                <execution>
+                    <id>repackage</id>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                    <configuration>
+                        <classifier>exec</classifier>
+                    </configuration>
+                </execution>
+            </executions>
+            -->
 		</plugin>
 	</plugins>
 </build>
@@ -532,7 +571,91 @@ tags: [build]
 - `maven-compiler-plugin` 编译插件
 - `maven-jar-plugin` 默认的打包插件，用来打普通的project JAR包
 - `maven-shade-plugin` 用来打可执行JAR包，也就是所谓的fat JAR包
-- `maven-assembly-plugin` 支持自定义的打包结构，也可以定制依赖项等
+- `maven-assembly-plugin` 支持自定义的打包结构，也可以定制依赖项等 [^5]
+
+    ```xml
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.1</version>
+        <!-- 配置执行器 -->
+        <executions>
+            <execution>
+                <id>make-assembly</id>
+                <phase>package</phase><!-- 绑定到package生命周期阶段上. 或 mvn package 会触发动作 -->
+                <goals>
+                    <goal>single</goal><!-- 只运行一次. 即使用 mvn assembly:single 执行动作 -->   
+                </goals>
+            </execution>
+        </executions>
+        <configuration>
+            <!-- 生成的打包文件名如：aezo-test-0.0.1.jar -->
+            <finalName>aezo-${project.artifactId}-${project.version}</finalName>
+            <archive>
+                <manifest>
+                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                    <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                </manifest>
+                <!-- 会自动生成到MANIFEST.MF中 -->
+                <manifestEntries>
+                    <Plugin-Id>${plugin.id}</Plugin-Id>
+                    <Plugin-Version>${plugin.version}</Plugin-Version>
+                    <Plugin-Class>${plugin.class}</Plugin-Class>
+                    <Plugin-Provider>${plugin.provider}</Plugin-Provider>
+                </manifestEntries>
+            </archive>
+            <!--
+                1.引用插件内置描述文件，一般和descriptors使用其中一个
+                2.maven-assembly-plugin内置了几个可以用的assembly descriptor
+                    bin：类似于默认打包，会将bin目录下的文件打到包中
+                    jar-with-dependencies：会将所有依赖都解压打包到生成物中
+                    src：只将源码目录下的文件打包
+                    project：将整个project资源打包
+            -->
+            <!--<descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>-->
+            <!--配置自定义描述文件-->
+            <descriptors>
+                <!--描述文件路径-->
+                <descriptor>src/assembly/jar-with-dependencies.xml</descriptor>
+            </descriptors>
+        </configuration>
+    </plugin>
+
+    <!-- src/assembly/jar-with-dependencies.xml -->
+    <assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+        <id>dep</id>
+        <!--
+            id：标识符，添加到生成文件名称的后缀符。如果指定 id 的话，目标文件则类似 ${artifactId}-${id}.tar.gz
+            format：指定打包类型，支持的打包格式有zip、tar、tar.gz (or tgz)、tar.bz2 (or tbz2)、jar、dir、war，可以同时指定多个打包格式
+            includeBaseDirectory：指定是否包含打包层目录（比如finalName是output，当值为true，所有文件被放在output目录下，否则直接放在包的根目录下） 
+            fileSets：指定要包含的文件集，可以定义多个fileSet
+            directory：指定要包含的目录；
+            outputDirectory：指定当前要包含的目录的目的地
+            dependencySets：用来定制工程依赖 jar 包的打包方式，核心元素如下表所示
+        -->
+        <formats>
+            <format>release</format>
+        </formats>
+        <includeBaseDirectory>false</includeBaseDirectory>
+        <dependencySets>
+            <dependencySet>
+                <!-- 指定包依赖目录，该目录是相对于根目录 -->
+                <outputDirectory>/</outputDirectory>
+                <useProjectArtifact>true</useProjectArtifact>
+                <unpack>true</unpack>
+                <scope>runtime</scope>
+                <!-- excludes：排除依赖不进行打包；includes：包含的依赖进行打包；不写在全部打包 -->
+                <excludes>
+                    <exclude>org.projectlombok:lombok</exclude>
+                </excludes>
+            </dependencySet>
+        </dependencySets>
+    </assembly>
+    ```
 - `spring-boot-maven-plugin` 打包SpringBoot项目
 - `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
     - [内置规则(亦可基于接口自定义)](http://maven.apache.org/enforcer/enforcer-rules/)
@@ -631,5 +754,5 @@ services:
 [^2]: https://yulaiz.com/spring-boot-maven-profiles/ (Spring-Boot application.yml 文件拆分，实现 maven 多环境动态启用 Profiles)
 [^3]: https://blog.csdn.net/xhyzjiji/article/details/72731276
 [^4]: https://blog.csdn.net/frankcheng5143/article/details/52164939
-
+[^5]: https://www.cnblogs.com/sidesky/p/10651266.html
 
