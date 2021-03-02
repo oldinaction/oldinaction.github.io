@@ -972,27 +972,38 @@ this.$root.eventBus.$off('eventName')
 - `activate`：钩子，延迟加载
 - `transition-mode`过渡模式
 
-```js
+```html
 <div id="app">  
     <button @click="toshow">点击让子组件显示</button>
     <component v-bind:is="which_to_show" keep-alive></component>  
 </div>
 
-<script>  
+<script>
     var vm = new Vue({  
         el: '#app',  
         data: {  
             which_to_show: "first"  
         },  
-        methods: {  
-            toshow: function () {   //切换组件显示  
+        methods: {
+            toshow () {
+                //切换组件显示  
                 var arr = ["first", "second", "third", ""];  
                 var index = arr.indexOf(this.which_to_show);  
                 if (index < 3) {  
                     this.which_to_show = arr[index + 1];  
                 } else {  
                     this.which_to_show = arr[0];  
-                }  
+                }
+
+                // 或者动态导入组件(更多用法参考官网)
+                Vue.component('first', () => import('./first.vue'))
+                let second = './second'
+                Vue.component('first',
+                    () => ({
+                        component: import(second + ''), // 此处必须在变量后加单引号才可引入组件成功
+                        error: MyDefaultComp // 加载失败可显示默认组件
+                    })
+                )
             }  
         },  
         components: {  

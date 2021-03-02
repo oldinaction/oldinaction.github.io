@@ -796,14 +796,26 @@ export default {
 
 ### 打印
 
-- web打印分页的问题，可使用`page-break-after`等css参数解决。参考：https://www.w3school.com.cn/cssref/index.asp#print
-- 常见打印纸大小(宽mm*高mm，可在wps中查看)：A1 = {841,594}, A2 = {420,594}, A3 = {420,297}, **A4 = {210,297}**, A5 = {210,148}, A6 = {105,148}, A7 = {105,74}, A8 = {52,74}, B1 = {1e3,707}, B2 = {500,707}, B3 = {500,353}, B4 = {250,353}, B5 = {250,176}, B6 = {125,176}, B7 = {125,88}, B8 = {62,88}
+- 常见打印纸大小(宽mm*高mm，可在wps中查看)：A1 = {841,594}, A2 = {420,594}, A3 = {420,297}, **A4 = {210,297}**, A5 = {210,148}, A6 = {105,148}, A7 = {105,74}, A8 = {52,74}, B1 = {1e3,707}, B2 = {500,707}, B3 = {500,353}, B4 = {250,353}, B5 = {250,176}, B6 = {125,176}, B7 = {125,88}, B8 = {62,88} [^3]
+
+    ![a4-size.png](/data/images/web/a4-size.png)
+    - 至于mm和px换算还和屏幕尺寸有关，1920*1080下测试`A4像素=760px*1075px`
+- web打印分页的问题
+    - 可使用`page-break-after`等css参数解决，如`<div style="page-break-after: auto | always"></div>`。参考：https://www.w3school.com.cn/cssref/index.asp#print
+    - 修改默认打印边距`@page {margin: 20pt 16pt 0 16pt;}`，或者再chrome打印预览时通过自带界面修改
+    - 如果元素未`display: none;` 则不会显示在打印界面
+    - table打印问题(参考下文案例)
+        - table包含thead、tfoot(写在tbody上面)、tbody
+        - 如果一个表格太长，会自动分页，则thead和tfoot会在每一页出现
+        - 如果不希望thead重复出现，可将表头行写到tbody中
+        - 当table分页后，没一页会自动出现一个分页横线，暂未找到简单方法去掉。可通过增加`<tfoot></tfoot>`(里面不要有数据，否则可能会出现tfoot边框无法去掉)，来占位，并设置小page边距
+        - 当有多个小table时，需要自动判断一页显示的table个数。如vue，先渲染出页面，再计算每个table的高度，当超过一定高度，则增加一个`<div style="page-break-after: always"></div>`使其自动分页
 - 基于[hiprint](http://hiprint.io/)插件
     - 特点：基于Jquery；可视化配置模板，自动分页打印；可免费使用
     - 缺点：源代码没开源，没有抽离 npm 包
     - 基于vue使用参考：https://blog.csdn.net/byc233518/article/details/107705278
 - 基于[print-js](https://printjs.crabbly.com/)
-- 使用vxe-table等插件自带打印功能
+- 使用[vxe-table等插件自带打印功能
 - vue和electron打印问题
 
 ```js
@@ -877,6 +889,12 @@ onPrint() {
     })
 }
 // 基于electron的打印，可成功获取打印机，webview未测试成功。参考：https://zhuanlan.zhihu.com/p/63019335
+```
+- table打印案例
+
+```html
+
+
 ```
 
 ### 生成PDF
@@ -998,3 +1016,4 @@ npm install file-saver -S
 
 [^1]: https://www.dazhuanlan.com/2019/12/31/5e0b08829f823/
 [^2]: https://segmentfault.com/a/1190000013312233 (springBoot与axios表单提交)
+[^3]: http://www.a4size.net/

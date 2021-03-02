@@ -129,6 +129,11 @@ show slave status \G;
 stop slave;
 start slave;
 
+### flashback闪回
+
+- binlog2sq：https://github.com/danfengcao/binlog2sql
+- 参考 https://www.cnblogs.com/waynechou/p/mysql_flashback_intro.html
+
 ## 管理员
 
 ### 配置
