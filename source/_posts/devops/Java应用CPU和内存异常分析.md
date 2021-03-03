@@ -208,13 +208,14 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 - 查看数据库sql运行占用CPU时间较长的会话信息，并kill此会话
 
     ```sql
+    -- 获取cpu总消耗时间过长的sql
     select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000, 2) peer_secondes, sql_text, sql_fulltext
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
     where cpu_time > 20000
     order by round(cpu_time/executions/1000, 2) desc;
 
-    -- cpu_time为微秒
+    -- 获取每次消耗cpu > 3s的sql. cpu_time为微秒
     select sid, serial#, sql_text, sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
@@ -267,6 +268,9 @@ https://blog.csdn.net/Aviciie/article/details/79281080
     ```sql
     -- 列出数据库里每张表的记录条数
     select t.table_name,t.num_rows from user_tables t ORDER BY NUM_ROWS DESC;
+    -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
+    select segment_name, sum(bytes)/1024/1024 as "mb" from user_extents group by segment_name order by sum(bytes) desc;
+    -- 查看表空间大小参考[oracle-dba.md#表空间不足](/_posts/db/oracle-dba.md#表空间不足)
 
     -- 列出消耗磁盘读取最多的5个sql
     select b.username username,

@@ -53,6 +53,10 @@ cnpm install
 npm run <xxx>
 npm run dev # 常见的启动项目命令(具体run的命令名称根据package.json来)
 npm run build # 常见的打包项目命令(具体run的命令名称根据package.json来)
+
+## npm link用来在本地项目和本地npm模块之间建立连接，可以在本地进行模块测试
+npm link...
+npm unlink...
 ```
 
 ### npm版本管理
@@ -344,6 +348,12 @@ indent_style = tab
   "printWidth": 140
 }
 ```
+
+## docz项目文档生成
+
+- https://github.com/doczjs/docz/
+
+
 
 
 

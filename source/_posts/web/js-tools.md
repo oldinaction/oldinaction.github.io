@@ -203,7 +203,7 @@ var userInfo = {
 console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 ```
 
-## UI库
+## Vue相关UI库
 
 ### Element-UI
 
@@ -220,6 +220,10 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
   </div>
 </template>
 ```
+
+### iview
+
+- 参考[iview.md](/_posts/web/iview.md)
 
 ### Avue
 
@@ -249,8 +253,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
 - 表格组件
 
-
-### 原理介绍
+#### 原理介绍
 
 - 目录结构
 
@@ -548,6 +551,7 @@ vexScrollPage(table, el, allData, searchForm, fetchData) {
 import VXETable from 'vxe-table'
 VXETable.print({
     sheetName: '打印自定义模板',
+    style: printStyle, // 自定义样式（传入content的html中只能写行内样式，块样式需从此处传入）
     // 区域打印，可自己写组件，而不是通过字符串拼接。但是有个问题，如果使用了vxe-table等插件渲染html元素，则样式会丢失，可自己写简单的html标签和样式解决
     content: nodeToString(this.$refs.printDivId.$el)
 })
@@ -560,6 +564,13 @@ nodeToString ( node ) {
     return str;
 }
 ```
+
+### MyUI
+
+- [MyUI](http://newgateway.gitee.io/my/)
+- 包含基础组件、**图表**、**地图**、关系图、**大屏**等功能
+    - 内置了百度、高德
+    - 支持与ECharts结合实现散点、飞行迁徙等基于地理位置的图表
 
 ## 底层硬件库
 
@@ -799,23 +810,29 @@ export default {
 - 常见打印纸大小(宽mm*高mm，可在wps中查看)：A1 = {841,594}, A2 = {420,594}, A3 = {420,297}, **A4 = {210,297}**, A5 = {210,148}, A6 = {105,148}, A7 = {105,74}, A8 = {52,74}, B1 = {1e3,707}, B2 = {500,707}, B3 = {500,353}, B4 = {250,353}, B5 = {250,176}, B6 = {125,176}, B7 = {125,88}, B8 = {62,88} [^3]
 
     ![a4-size.png](/data/images/web/a4-size.png)
-    - 至于mm和px换算还和屏幕尺寸有关，1920*1080下测试`A4像素=760px*1075px`
-- web打印分页的问题
-    - 可使用`page-break-after`等css参数解决，如`<div style="page-break-after: auto | always"></div>`。参考：https://www.w3school.com.cn/cssref/index.asp#print
-    - 修改默认打印边距`@page {margin: 20pt 16pt 0 16pt;}`，或者再chrome打印预览时通过自带界面修改
+- web打印问题(分页问题等)
+    - 可使用 **`page-break-after`** 等css参数解决，如`<div style="page-break-after: auto | always"></div>`。参考：https://www.w3school.com.cn/cssref/index.asp#print
+    - 修改默认打印边距 **`@page {margin: 24px 18px 0 18px;}`**，或者再chrome打印预览时通过自带界面修改
+    - 修改纸张方向 **`@page {size: portrait | landscape;}`**，其中portrait纵向、landscape横向，设置后则无法在预览页面修改
+    - 至于mm和px换算
+        - 公制长度单位与屏幕分辨率进行换算时，必须用到一个DPI(Dot Per Inch, 像素/英寸)指标。网页打印中，默认采用的是96dpi(像素/英寸)，而非72dpi
+        - **A4为 210mm\*297mm，而1英寸=25.41mm，浏览器默认为96dpi(像素/英寸)，因此对应像素为 794px\*1123px**
+            - 此处A4，打印页边距设定为 0mm 时，网页内最大元素的分辨率794×1123
+            - 可设置div高度为297mm，然后通过js获取div.clientHeight得出像素高度
+        - 通过高度计算时，一般结合div的clientHeight进行计算，还需考虑页面边距。**通过 1123px 等像素和手动计算高度分页，总是存在误差，效果不好**
     - 如果元素未`display: none;` 则不会显示在打印界面
     - table打印问题(参考下文案例)
         - table包含thead、tfoot(写在tbody上面)、tbody
-        - 如果一个表格太长，会自动分页，则thead和tfoot会在每一页出现
+        - 如果一个表格太长，会自动分页，则thead和tfoot会在每一页出现(有说需额外设置`display: table-header-group`，实测无需)
         - 如果不希望thead重复出现，可将表头行写到tbody中
-        - 当table分页后，没一页会自动出现一个分页横线，暂未找到简单方法去掉。可通过增加`<tfoot></tfoot>`(里面不要有数据，否则可能会出现tfoot边框无法去掉)，来占位，并设置小page边距
+        - 当table分页后，没一页会自动出现一个分页横线，暂未找到简单方法去掉。可通过增加`<tfoot></tfoot>`(里面不要有数据，否则可能会出现tfoot边框无法去掉，有时候也不管用)，来占位，并设置小page边距
         - 当有多个小table时，需要自动判断一页显示的table个数。如vue，先渲染出页面，再计算每个table的高度，当超过一定高度，则增加一个`<div style="page-break-after: always"></div>`使其自动分页
 - 基于[hiprint](http://hiprint.io/)插件
     - 特点：基于Jquery；可视化配置模板，自动分页打印；可免费使用
     - 缺点：源代码没开源，没有抽离 npm 包
     - 基于vue使用参考：https://blog.csdn.net/byc233518/article/details/107705278
 - 基于[print-js](https://printjs.crabbly.com/)
-- 使用[vxe-table等插件自带打印功能
+- 使用[vxe-table](#vxe-table)等插件自带打印功能
 - vue和electron打印问题
 
 ```js
@@ -893,8 +910,130 @@ onPrint() {
 - table打印案例
 
 ```html
+<div class="sq-print">
+    <div class="header" style="padding-bottom: 6px;">
+        <div class="main-title">打印报表标题</div>
+        <div class="sub-title">Print Demo</div>
+        <div>{{ dayjs().format('YYYY年MM月DD日') }}</div>
+    </div>
+    <div class="content" style="font-size: 12px;">
+        <div v-for="(group, index) in groupList" :key="index" style="padding-bottom: 25px;">
+            <table :ref="`table${index}`">
+                <!-- 部分时候表格分页直接到页底边了 -->
+                <tfoot></tfoot>
+                <!-- 只有增加了tr>td才会在底部留一点空白，但是存在另外一个问题：td会有一条横线无法去除 -->
+                <!-- <tfoot style="border: none;background-color: #fff;color: #fff;">
+                    <tr style="border: none;background-color: #fff;color: #fff;">
+                        <td style="border: none;background-color: #fff;color: #fff;"></td>
+                    </tr>
+                </tfoot> -->
+                <tbody>
+                <tr style="text-align:center;">
+                    <td style="width: 22%;">标题1<br/>A</td>
+                    <td style="width: 14%;" colspan="2">标题2<br/>B</td>
+                    <td style="width: 10%;">标题3<br/>C</td>
+                    <td style="width: 5%;">标题4<br/>D</td>
+                    <td style="width: 5%;">标题5<br/>E</td>
+                    <td style="width: 10%;">标题6<br/>F</td>
+                    <td style="width: 6%;">标题7<br/>G</td>
+                    <td style="width: 6%;">标题8<br/>&nbsp;</td>
+                    <td style="width: 6%;">标题9<br/>&nbsp;</td>
+                    <td style="width: 16%;text-align:left;">
+                    <span>标题10</span><br/>
+                    <span style="border-top: 1px solid #000;width:100%;display:inline-block;">J</span>
+                    </td>
+                </tr>
+                <tr v-for="(row, rindex) in group.list" :key="rindex">
+                    <td v-for="(column, cindex) in groupField" :key="cindex" :style="{width: column.indexOf('B') > 0 ? '7%' : ''}">
+                        <!-- 前后增加空格 -->
+                        {{ '&nbsp;' + row[column] + '&nbsp;'}}
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>XXX</td>
+                </tr>
+                </tbody>
+            </table>
+            <!-- 判断是否需要分页，只有二次渲染才可（第一次需要渲染出表格，并基于表格计算高度，从而进行第二次渲染） -->
+            <div v-if="group.pageBreak" style="page-break-after: always"></div>
+        </div>
+    </div>
+</div>
 
+<script>
+import './print.less'
 
+export default {
+  name: 'ReportPrint',
+  data () {
+    return {
+      dataList: [],
+      groupList: [],
+      groupField: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+      heightSum: 100,
+      checkedHeight: false
+    }
+  },
+  watch: {
+    dataList (n) {
+      this.initGroup(n)
+    },
+    groupList (n) {
+      this.checkBreak()
+    }
+  },
+  created () {
+    this.initGroup(this.dataList)
+    this.checkBreak()
+  },
+  methods: {
+    initGroup (data) {
+      // ... 大致结构
+      this.groupList = [{
+        pageBreak: false,
+        list: []
+      }, ...]
+    },
+    checkBreak () {
+      // 每一页可以打印 760px * 1075px
+      this.$nextTick(() => {
+        if (this.checkedHeight || this.groupList.length === 0) {
+          return
+        }
+        let pre = null // 循环的上一个table
+        for (let index = 0; index < this.groupList.length; index++) {
+          const table = this.$refs[`table${index}`]
+          const curHeight = table[0].clientHeight + 25 // 25为padding
+          this.heightSum += curHeight
+          if (this.heightSum > 1075) {
+            // 加上次table则会超出长度，从而设置上一个table需要分页，并设置下一次循环高度为当前table高度
+            pre.pageBreak = true
+            this.heightSum = curHeight
+          }
+          pre = this.groupList[index]
+        }
+        // 重新渲染出分页div
+        this.groupList = JSON.parse(JSON.stringify(this.groupList))
+        this.checkedHeight = true
+      })
+    }
+  }
+}
+</script>
+
+<style>
+/* print.less */
+.sq-print {
+  @page { margin: 20pt 16pt 0 16pt; }
+  color: #000;
+  table { width: 100%; min-height: 24px; line-height: 24px; text-align: left; border-collapse: collapse; margin: 0 auto; }
+  table thead tr th, table tbody tr td { border: 1px solid #000; }
+  .header { margin-bottom: 5px; text-align: center; font-size: 16px; }
+  .header .main-title { font-weight: 700; font-size: 24px; }
+  .header .sub-title { margin: 5px 0; }
+}
+</style>
 ```
 
 ### 生成PDF

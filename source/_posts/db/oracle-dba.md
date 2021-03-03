@@ -429,13 +429,14 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
   - 为 USERS 表空间新增 1G 的数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`
     - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
     - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
-    - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致)
+    - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
   - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
 
     ```sql
-    -- 查看表空间(如果表空间不足，此sql语句可能无法显示出来改表空间，可单独查询其中的a表)
+    -- 查看表空间
+    -- 如果表空间不足，此sql语句可能无法显示出来该表空间，可单独查询其中的a表空间
     select a.tablespace_name "表空间名",
-        a.bytes / 1024 / 1024 "表空间大小(m)",
+        a.bytes / 1024 / 1024 "表空间大小(m)", -- 此文件对应空间不够则会自动递增，一直增加到最大文件大小 32G
         (a.bytes - nvl(b.bytes, 0)) / 1024 / 1024 "已使用空间(m)",
         case when b.bytes is null then 0 else b.bytes / 1024 / 1024 end "空闲空间(m)",
         case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
@@ -455,8 +456,13 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
     select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
     from dba_temp_files
     group by tablespace_name, file_name, autoextensible, increment_by;
-    ```
 
+    -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
+    select segment_name, sum(bytes)/1024/1024/1024 as "GB" from user_extents group by segment_name order by sum(bytes) desc;
+
+    -- 列出数据库里每张表的记录条数
+    select t.table_name,t.num_rows from user_tables t order by num_rows desc;
+    ```
 - 报错`ORA-01654:unable to extend index`，解决步骤 [^8]
   - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经 32G(表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
     - 解决方案：通过上述方法增加数据文件解决
