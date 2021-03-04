@@ -349,6 +349,18 @@ indent_style = tab
 }
 ```
 
+## npm-run-all
+
+- `npm-run-all` 提供了多种运行多个命令的方式，常用的有以下几个
+    - `--serial`: 多个命令按排列顺序执行，例如：`npm-run-all --serial clean build:**` 先执行当前package.json中 npm run clean 命令, 再执行当前package.json中所有的`build:`开头的scripts
+    - `--parallel`: 并行运行多个命令，例如：npm-run-all --parallel lint build
+    - `--continue-on-error`: 是否忽略错误，添加此参数 npm-run-all 会自动退出出错的命令，继续运行正常的
+    - `--race`: 添加此参数之后，只要有一个命令运行出错，那么 npm-run-all 就会结束掉全部的命令
+
+## rollup.js
+
+- Rollup 是一个 JavaScript 模块打包器，可以将小块代码编译成大块复杂的代码，例如 library 或应用程序
+
 ## docz项目文档生成
 
 - https://github.com/doczjs/docz/

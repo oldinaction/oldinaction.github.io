@@ -8,6 +8,14 @@ tags: [vue]
 
 ## 简介
 
+- 微前端: 由微服务衍生而来
+- 微前端架构中一般会有个容器应用（container application）将各子应用(Bundle)集成起来 [^1]
+- 多 Bundle 集成方式
+    - 服务端集成：如服务端渲染SSR
+    - 构建时集成：如Code Splitting
+        - 常见的构建时集成方式是将子应用发布成独立的 npm 包，共同作为主应用的依赖项，构建生成一个供部署的 JS Bundle。然而，构建时集成最大的问题是会在发布阶段造成耦合，任何一个子应用有变更，都要整个重新编译
+    - 运行时集成：如通过 iframe、JS、Web Components 等方式
+        - iframe实现缺点：https://www.yuque.com/kuitos/gky7yw/gesexv
 - SPA(SinglePage Web Application)单页应用和MPA(MultiPage Application)多页应用区别参考：https://juejin.cn/post/6844903512107663368
 - 相关资源
     - [vue动态组件和异步组件说明](https://cn.vuejs.org/v2/guide/components-dynamic-async.html)
@@ -21,6 +29,15 @@ tags: [vue]
     - 参考：[每日优鲜供应链前端基于single-spa改造介绍](https://juejin.cn/post/6844903943873675271)
     - [基于 vue 示例](https://github.com/joeldenning/coexisting-vue-microfrontends)
     - [子项目为 vue & react & angular 结合示例](https://gitee.com/Janlaywss/vue-single-spa/tree/master)
+
+
+
+
+---
+
+参考文章
+
+[^1]: https://zhuanlan.zhihu.com/p/96464401
 
 
 

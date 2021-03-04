@@ -231,6 +231,12 @@ try {
         ftp.close();
     }
 }
+
+// 上传
+ftp.upload("/tmp/", file);
+// 移动文件
+FTPClient client = ftp.getClient();
+client.rename("/tmp/" + file.getName(), "/dest/" + file.getName());
 ```
 
 ### TemplateUtil模板引擎

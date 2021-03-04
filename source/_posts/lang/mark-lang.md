@@ -29,6 +29,11 @@ string: 'Hello,
 string: >
   Hello,
   World.
+
+# Java配置文件可以映射为 Map
+map:
+  key: val
+map2: {}
 ```
 
 ## json

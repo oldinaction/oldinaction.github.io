@@ -165,20 +165,26 @@ interface Formula {
 }
 ```
 
-### 函数式接口
+### 函数式接口(方法回调)
 
 - 每一个lambda表达式都对应一个类型，通常是接口类型。而“函数式接口”是指仅仅只包含一个抽象方法的接口，每一个该类型的lambda表达式都会被匹配到这个抽象方法。默认方法不算抽象方法，所以可以给函数式接口添加默认方法
 - 增加`@FunctionalInterface`注解是为了告诉编译器此接口只能有一个抽象方法
 
 ```java
 @FunctionalInterface // 如果没有指定，下面的代码也是对的，只不过编译器不会检查
-interface Converter<F, T> {
+interface MyConverter<F, T> {
     T convert(F from);
 }
 
 // 调用
 Converter<String, Integer> converter = (from) -> Integer.valueOf(from);
 Integer converted = converter.convert("123"); // 123
+
+// 包装成方法回调
+public static T test(F val, Converter<F, T> convert) {
+    return convert.convert(val);
+}
+test("123", (from) -> Integer.valueOf(from)); // 123
 ```
 
 ### Streams
