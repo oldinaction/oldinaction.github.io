@@ -2,9 +2,51 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2020/10/21/lang/mark-lang/</loc>
+    
+    <lastmod>2021-03-04T08:08:38.543Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    
+    <lastmod>2021-03-04T08:08:04.645Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-03-04T07:40:35.867Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/04/11/java/java-release/</loc>
+    
+    <lastmod>2021-03-04T06:29:07.346Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/07/21/web/web/</loc>
+    
+    <lastmod>2021-03-03T14:42:26.826Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2021-03-03T14:23:33.802Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/04/02/web/node-dev-tools/</loc>
     
-    <lastmod>2021-03-03T14:06:36.205Z</lastmod>
+    <lastmod>2021-03-03T14:16:45.019Z</lastmod>
     
   </url>
   
@@ -58,13 +100,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    
-    <lastmod>2021-02-28T07:01:59.092Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
     <lastmod>2021-02-28T02:50:31.038Z</lastmod>
@@ -75,13 +110,6 @@
     <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
     
     <lastmod>2021-02-27T08:21:04.860Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/04/11/java/java-release/</loc>
-    
-    <lastmod>2021-02-27T02:21:30.602Z</lastmod>
     
   </url>
   
@@ -117,13 +145,6 @@
     <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
     
     <lastmod>2021-02-25T10:23:32.434Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-02-24T06:16:01.388Z</lastmod>
     
   </url>
   
@@ -194,13 +215,6 @@
     <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
     
     <lastmod>2021-02-21T03:29:48.646Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2021-02-20T10:23:41.183Z</lastmod>
     
   </url>
   
@@ -387,13 +401,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2020/10/21/lang/mark-lang/</loc>
-    
-    <lastmod>2021-01-07T07:04:07.774Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/12/05/java/concurrence/</loc>
     
     <lastmod>2021-01-05T07:54:26.794Z</lastmod>
@@ -558,13 +565,6 @@
     <loc>http://blog.aezo.cn/2017/08/20/lang/php/</loc>
     
     <lastmod>2020-12-10T07:05:32.947Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/07/21/web/web/</loc>
-    
-    <lastmod>2020-11-18T13:29:44.132Z</lastmod>
     
   </url>
   
