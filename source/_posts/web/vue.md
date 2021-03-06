@@ -1909,7 +1909,7 @@ export default user
 - vue的jsx语法是基于[babel-plugin-transform-vue-jsx](https://github.com/vuejs/babel-plugin-transform-vue-jsx)插件实现的 [^7]
 
     ![vue-jsx](/data/images/web/vue-jsx.png)
-- **使用vue-cli3则不需要手动安装上述babel插件即可使用**(如果重复安装会报错Duplicate declaration "h")。其他方式需要手动安装
+- **使用vue-cli3则不需要手动安装下述babel插件即可使用**(如果重复安装会报错Duplicate declaration "h")。其他方式需要手动安装
 
 ```bash
 # 非vue-cli3需要手动安装
@@ -2077,6 +2077,26 @@ module.exports = {
                 args[0]['process.env'].BUILD_ENV = JSON.stringify(process.env.BUILD_ENV)
                 return args
             })
+        
+        // 修改 Loader 和新增 Loader
+        config.module
+            .rule('vue')
+            .use('vue-loader')
+            .tap(options => {
+                // 修改它的选项...
+                return options
+            })
+            // 你还可以再添加一个 loader
+            .use('other-loader')
+            .loader('other-loader')
+            .end()
+
+        // 入口文件修改
+        config.entry('app').add('./src/mock.js') // 会在默认的源文件(src/main.js)后加入mock.js一起打包成app.js的入口文件
+        // config.entryPoints.clear().end() // vue-cli默认生成的入口文件为app.js(chunk文件)，clear方法会把vue-cli默认的.entry('app')清空
+        //     .entry('main').add('./src/main.js').end() // main chunk. 可以在同一个chunk，add多个模块
+        //     .entry('routes').add('./src/app-routes.js');
+
     },
     pluginOptions: {
         'style-resources-loader': {

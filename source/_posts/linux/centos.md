@@ -210,8 +210,16 @@ lsmod |grep br_netfilter
 ## 系统启动故障排查
 
 - [Centos启动各种故障情况分析](https://blog.51cto.com/14228129/2382310)
-- 进入`sysroot`单用户模式(**系统启动失败时可使用此模式进入系统进行调试**)
-    - 进入BIOS，把启动命令中的ro改成 "rw init=/sysroot/bin/sh"，完成之后按Ctrl+x继续启动
+- **单用户模式和救援模式(系统启动失败时可使用此模式进入系统进行调试)**
+    - https://www.xujun.org/note-8736.html
+    - 单用户模式
+        - 进入内核选择列表，光标选择一个内核，按e编辑启动命令，把启动命令linuxefi行中的 "ro" 改成 "rw init=/sysroot/bin/sh"，完成之后按Ctrl+x继续启动
+        - 进入系统后，其实只是进入了一个安全模式下的内存系统，并不是原本的系统
+            - 此时`/sysroot/`目录下才是原系统的文件(/home/目录可能没有数据，因为磁盘没有挂载等原因)。有时间配置错误了，可直接修改/sysroot/etc/目录下文件
+            - `chroot /sysroot/` 切换到正常系统中去
+    - 救援模式
+        - 插入并启动U盘系统，安装系统界面会有一个`Troubleshooting`表示故障排查，然后选择`Rescue a CentOS Linux system`救援系统
+        - 同单用户模式，此系统不是原本系统。`/mnt/sysimage/`目录下才是原系统数据
 - `/etc/fstab`磁盘挂载配置出错，重启后启动失败
     
     ```bash

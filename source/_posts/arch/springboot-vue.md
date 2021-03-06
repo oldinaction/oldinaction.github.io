@@ -713,6 +713,7 @@ location ^~ /my-app/ {
 ## 常见文件
 
 ```json
+babel.config.js     // 参考[js-tools.md#babel](/_posts/web/js-tools.md#babel)
 .babelrc
 .env.dev            // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)。vue-cli环境变量配置文件
 .env.test
@@ -720,9 +721,9 @@ location ^~ /my-app/ {
 tsconfig.json       // 参考[typescript.md#tsconfig.json](/_posts/web/typescript.md#tsconfig.json)
 jsconfig.json       // https://www.jianshu.com/p/b0ec870ddfdf 、 https://www.cnblogs.com/leslie1943/p/13493829.html
 vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
-.eslintrc.js        // 参考[node-dev-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
-.eslintignore       // 参考[node-dev-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
-.editorconfig       // 跨编辑器和IDE，保持一致的简单代码风格，就近原则（源码文件参考最近的此文件配置）。参考[node-dev-tools.md#.editorconfig格式化](/_posts/web/node-dev-tools.md#.editorconfig格式化)，下同
+.eslintrc.js        // 参考[js-tools.md#eslint格式化](/_posts/web/js-tools.md#eslint格式化)
+.eslintignore       // 参考[js-tools.md#eslint格式化](/_posts/web/js-tools.md#eslint格式化)
+.editorconfig       // 跨编辑器和IDE，保持一致的简单代码风格，就近原则（源码文件参考最近的此文件配置）。参考[js-tools.md#.editorconfig格式化](/_posts/web/js-tools.md#.editorconfig格式化)，下同
 .prettierrc         // 代码格式化
 .jsbeautifyrc       // 代码格式化
 ```

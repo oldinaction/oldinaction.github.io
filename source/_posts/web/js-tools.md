@@ -6,23 +6,7 @@ categories: web
 tags: [js, tools]
 ---
 
-## 库说明
-
-- `babel` 是一个转码器，可以将es6，es7转为es5代码。Babel默认只转换新的JavaScript句法（syntax），而不转换新的API，比如Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如Object.assign）都不会转码，所以为了使用完整的 ES6 的API，我们需要另外安装：babel-polyfill 或者 babel-runtime [^1]
-    - `babel-polyfill` 会把全局对象统统覆盖一遍，不管你是否用得到。缺点：包会比较大100k左右。如果是移动端应用，要衡量一下。一般保存在dependencies中
-    - `babel-runtime` 可以按照需求引入。缺点：覆盖不全。一般在写库的时候使用。建议不要直接使用babel-runtime，因为transform-runtime依赖babel-runtime，大部分情况下都可以用`transform-runtime`来达成目的
-        - 在babel的配置文件 `.babelrc` 中配置了`"plugins": ["transform-runtime"]`后，就不用再手动单独引入某个 `core-js/*` 特性，如 core-js/features/promise，因为转换时会自动加上而且是根据需要只抽离代码里需要的部分
-    - `babel-cli` 在命令行中使用babel命令对js文件进行转换。如`babel entry.js --out-file out.js`进行语法转换
-- [core-js](https://github.com/zloirock/core-js) 是 babel-polyfill、babel-runtime 的核心包，他们都只是对 core-js 和 regenerator 进行的封装。core-js 通过各种奇技淫巧，用 ES3 实现了大部分的 ES2017 原生标准库，同时还要严格遵循规范。支持IE6+
-    - core-js 组织结构非常清晰，高度的模块化。比如 `core-js/es6` 里包含了 es6 里所有的特性。而如果只想实现 promise 可以单独引入 `core-js/features/promise`
-
-## 基础库
-
-### lodash工具类
-
-- [lodash](https://lodash.com/)
-
-### cross-env启动时增加环境变量
+## 开发库
 
 ### mockjs模拟数据
 
@@ -68,6 +52,69 @@ const getUrlParam = (paramName, params) => {
   return null
 }
 ```
+
+### babel
+
+- [babeljs中文网](https://www.babeljs.cn)
+- `babel`(@babel/core) 是一个转码器，可以将es6，es7转为es5代码
+    - Babel默认只转换新的JavaScript句法（syntax），而不转换新的API，比如Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如Object.assign）都不会转码
+    - 所以为了使用完整的 ES6 的API，我们需要另外安装：babel-polyfill 或者 babel-runtime [^1]
+        - `@babel/polyfill` 会把全局对象统统覆盖一遍，不管你是否用得到。缺点：包会比较大100k左右。如果是移动端应用，要衡量一下。一般保存在dependencies中
+        - `babel-runtime` 可以按照需求引入。缺点：覆盖不全。一般在写库的时候使用。建议不要直接使用babel-runtime，因为transform-runtime依赖babel-runtime，大部分情况下都可以用`transform-runtime`预设来达成目的
+- [core-js](https://github.com/zloirock/core-js) 是 babel-polyfill、babel-runtime 的核心包，他们都只是对 core-js 和 regenerator 进行的封装。core-js 通过各种奇技淫巧，用 ES3 实现了大部分的 ES2017 原生标准库，同时还要严格遵循规范。支持IE6+
+    - core-js 组织结构非常清晰，高度的模块化。比如 `core-js/es6` 里包含了 es6 里所有的特性。而如果只想实现 promise 可以单独引入 `core-js/features/promise`
+- babel配置文件可为 `.babelrc` 或 `babel.config.js`(v7.8.0)。已`babel.config.js`为例
+
+    ```js
+    module.exports = {
+        presets: ['@vue/cli-plugin-babel/preset'],
+        plugins: [
+            // 一般在写库的时候使用，包含了 babel-runtime
+            // 配置了 transform-runtime 插件，就不用再手动单独引入某个 `core-js/*` 特性，如 core-js/features/promise，因为转换时会自动加上而且是根据需要只抽离代码里需要的部分
+            "transform-runtime",
+            
+            // 基于vue的预设
+            // "@vue/app",
+        ]
+    }
+    ```
+- `@babel/cli` 在命令行中使用babel命令对js文件进行转换。如`babel entry.js --out-file out.js`进行语法转换
+- 插件和预设（Presets）
+    - 基于Babel的插件参考：https://www.babeljs.cn/docs/plugins
+    - 需要基于某个环境进行开发，如typescript，则需手动安装一堆 Babel 插件，此时可以使用 Presets(包含了一批插件的组合)
+    - 官方 Preset 已经针对常用环境编写了一些 preset。其他社区定义的预设可在[npm](https://www.npmjs.com/search?q=babel-preset)上获取
+        - `@babel/preset-env` 对浏览器环境的通用支持
+        - `@babel/preset-react` 对 React 的支持
+        - `@babel/preset-typescript` 对 Typescript 支持，参考[typescript.md#Webpack转译Typescript现有方案](/_posts/web/typescript.md#Webpack转译Typescript现有方案)
+        - `@babel/preset-flow` 如果使用了 [Flow](https://flow.org/en/)，则建议您使用此预设（preset），Flow 是一个针对 JavaScript 代码的静态类型检查器
+- 常见安装
+
+```bash
+# 语法转换
+npm install --save-dev @babel/core @babel/cli @babel/preset-env
+# 通过 Polyfill 方式在目标环境中添加缺失的特性
+npm install --save @babel/polyfill
+```
+
+### npm-run-all
+
+- `npm-run-all` 提供了多种运行多个命令的方式，常用的有以下几个
+    - `--serial`: 多个命令按排列顺序执行，例如：`npm-run-all --serial clean build:**` 先执行当前package.json中 npm run clean 命令, 再执行当前package.json中所有的`build:`开头的scripts
+    - `--parallel`: 并行运行多个命令，例如：npm-run-all --parallel lint build
+    - `--continue-on-error`: 是否忽略错误，添加此参数 npm-run-all 会自动退出出错的命令，继续运行正常的
+    - `--race`: 添加此参数之后，只要有一个命令运行出错，那么 npm-run-all 就会结束掉全部的命令
+
+### rollup.js
+
+- Rollup 是一个 JavaScript 模块打包器，可以将小块代码编译成大块复杂的代码，例如 library 或应用程序
+
+## 基础库
+
+### lodash工具类
+
+- [lodash](https://lodash.com/)
+
+### cross-env启动时增加环境变量
 
 ### dayjs时间操作
 
@@ -1145,6 +1192,136 @@ npm install file-saver -S
     - `<div style="position: absolute; opacity: 0.0;">`
     - Failed to execute 'createPattern' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0. 
     - 参考 https://stackoverflow.com/questions/20605269/screenshot-of-hidden-div-using-html2canvas
+
+## 格式规范化
+
+### eslint格式化
+
+- vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
+- 直接安装
+- 基于vue-cli安装，参考：https://eslint.vuejs.org/
+    - `vue add eslint` 基于vue安装插件，选择Standard、Lint on save
+    - 安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)
+    - 安装后会在package.json中增加如下配置，安装对应的包到项目目录，并增加文件`.eslintrc.js`和`.editorconfig`
+
+        ```json
+        "scripts": {                                            
+            "lint": "vue-cli-service lint",
+        },
+        "devDependencies": {
+            "@vue/cli-plugin-eslint": "~4.5.0",
+            "@vue/eslint-config-standard": "^5.1.2",
+            "eslint": "^6.7.2",
+            "eslint-plugin-import": "^2.20.2",
+            "eslint-plugin-node": "^11.1.0",
+            "eslint-plugin-promise": "^4.2.1",
+            "eslint-plugin-standard": "^4.0.0",
+            "eslint-plugin-vue": "^6.2.2"
+        }
+        ```
+- 支持多种配置文件格式：.eslintrc.js、.eslintrc.yaml、.eslintrc.json、.eslintrc(弃用)、在package.json增加eslintConfig属性。且采用就近原则
+- `.eslintrc.js` 放在vue项目根目录，详细参考：https://cn.eslint.org/ [^10]
+
+```js
+module.exports = {
+  root: true,
+  'extends': [
+    'plugin:vue/essential',
+    '@vue/standard'
+  ],
+  rules: {
+    // allow async-await
+    'generator-star-spacing': 'off',
+    // allow debugger during development
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'vue/no-parsing-error': [2, {
+      'x-invalid-end-tag': false
+    }],
+    'no-undef': 'off',
+    'camelcase': 'off',
+    // function函数名和()见增加空格
+    "space-before-function-paren": ["error", {
+        "anonymous": "always",
+        "named": "always",
+        "asyncArrow": "always"
+    }],
+    // 不强制使用 ===
+    "eqeqeq": ["error", "smart"],
+    // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
+    "operator-linebreak": ["error", "before"],
+  },
+  parserOptions: {
+    parser: 'babel-eslint'
+  }
+}
+```
+- `.eslintignore` 放在vue项目根目录
+
+```bash
+# 不进行校验的的文件或文件夹
+src/components
+```
+
+### .editorconfig/.prettierrc/.jsbeautifyrc格式化
+
+- **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**
+    - 该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的
+    - **此插件配置的格式优先于vscode配置的，如缩进**
+- `.prettierrc` 文件需要配合插件使用，如vscode的`Prettier`插件。参考：https://prettier.io/
+- `.jsbeautifyrc` 文件需要配合插件使用，如vscode的`Beautify`插件
+- Eslint、.editorconfig等区别
+    - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒
+    - .editorconfig 更偏向于简单代码风格，如缩进等
+        - .prettierrc 更偏向于代码美化
+    - 二者并不冲突，同时配合使用可以使代码风格更加优雅
+- `.editorconfig` 放在vue项目根目录
+
+```ini
+# http://editorconfig.org
+root = true
+
+[*]
+#缩进风格：空格
+indent_style = space
+#缩进大小2
+indent_size = 2
+#换行符lf
+end_of_line = lf
+#字符集utf-8
+charset = utf-8
+#是否删除行尾的空格
+trim_trailing_whitespace = true
+#是否在文件的最后插入一个空行
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+```
+- .prettierrc 常用配置
+
+```js
+{
+  /* 使用单引号包含字符串 */
+  "singleQuote": true,
+  /* 不添加行尾分号 */
+  "semi": false,
+  /* 在对象属性添加空格 */
+  "bracketSpacing": true,
+  /* 优化html闭合标签不换行的问题 */
+  "htmlWhitespaceSensitivity": "ignore",
+  /* 每行最大长度默认80(适配1366屏幕，1920可设置成140) */
+  "printWidth": 140
+}
+```
+
+## 其他
+
+### docz项目文档生成
+
+- https://github.com/doczjs/docz/
 
 
 

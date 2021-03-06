@@ -21,6 +21,12 @@ tags: [vue]
     - [vue动态组件和异步组件说明](https://cn.vuejs.org/v2/guide/components-dynamic-async.html)
     - [使用http-vue-loader可在非单页应用中引入.vue组件](https://github.com/FranckFreiburger/http-vue-loader)
     - [可插拔式系统讨论](https://v2ex.com/t/581581)
+- TODO
+    - https://blog.csdn.net/weixin_42234168/article/details/112180703
+- 相关框架
+    - [qiankun](#qiankun)
+    - [飞冰icestark](#飞冰icestark)
+    - [Alfa](https://github.com/aliyun/alibabacloud-alfa)
 
 ## qiankun
 
@@ -29,6 +35,15 @@ tags: [vue]
     - 参考：[每日优鲜供应链前端基于single-spa改造介绍](https://juejin.cn/post/6844903943873675271)
     - [基于 vue 示例](https://github.com/joeldenning/coexisting-vue-microfrontends)
     - [子项目为 vue & react & angular 结合示例](https://gitee.com/Janlaywss/vue-single-spa/tree/master)
+
+## 飞冰icestark
+
+- [飞冰icestark](https://github.com/ice-lab/icestark)，为飞冰(ice生态的一个微前端解决方案
+- 主应用和微应用皆支持 React/Vue/Angular... 等不同框架
+- 支持VSCode拖拽组件
+
+
+
 
 
 
