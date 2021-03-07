@@ -35,6 +35,9 @@ tags: [vue]
     - 参考：[每日优鲜供应链前端基于single-spa改造介绍](https://juejin.cn/post/6844903943873675271)
     - [基于 vue 示例](https://github.com/joeldenning/coexisting-vue-microfrontends)
     - [子项目为 vue & react & angular 结合示例](https://gitee.com/Janlaywss/vue-single-spa/tree/master)
+- 主应用通过`history.pushState(state, title[, url])`跳转到微应用
+- 基于Fetch(类似ajax)获取微应用页面，并将其加入到相应DOM(此时是同一个域)，因此微应用可以获取到主应用的所有状态(Cookies/Storeage) [^2]
+- 由于主应用和微应用最终输入同源页面，因此所有状态(Cookies/Storeage)共享，对于不想共享的数据可增加key前缀区分
 
 ## 飞冰icestark
 
@@ -53,6 +56,6 @@ tags: [vue]
 参考文章
 
 [^1]: https://zhuanlan.zhihu.com/p/96464401
-
+[^2]: (https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API/Using_Fetch)
 
 
