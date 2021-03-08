@@ -28,6 +28,7 @@ tags: [vue]
     - [飞冰icestark](#飞冰icestark)
     - [Alfa](https://github.com/aliyun/alibabacloud-alfa)
 
+
 ## qiankun
 
 - [蚂蚁金服qiankun(乾坤)](https://github.com/umijs/qiankun)
@@ -38,6 +39,43 @@ tags: [vue]
 - 主应用通过`history.pushState(state, title[, url])`跳转到微应用
 - 基于Fetch(类似ajax)获取微应用页面，并将其加入到相应DOM(此时是同一个域)，因此微应用可以获取到主应用的所有状态(Cookies/Storeage) [^2]
 - 由于主应用和微应用最终输入同源页面，因此所有状态(Cookies/Storeage)共享，对于不想共享的数据可增加key前缀区分
+- 相关文章
+    - ["巨石应用"的诞生](https://juejin.cn/post/6889956096501350408)
+    - [从qiankun看子应用加载](https://juejin.cn/post/6891888458919641096)
+    - [从qiankun看沙箱隔离](https://juejin.cn/post/6896643767353212935)
+
+### 沙箱隔离
+
+- qiankun 做沙箱隔离主要分为三种：legacySandBox、proxySandBox、snapshotSandBox
+- 其中 legacySandBox、proxySandBox 是基于 Proxy API 来实现的，在不支持 Proxy API 的低版本浏览器中，会降级为 snapshotSandBox。在现版本中，legacySandBox 仅用于 singular 单实例模式，而多实例模式会使用 proxySandBox
+- [proxySandbox]()
+
+```js
+function createFakeWindow(global: Window) {
+    // 对于getter类型的参数单独放置在Map中，读取时效率更高(其实fakeWindow中也存在)
+    const propertiesWithGetter = new Map<PropertyKey, boolean>();
+    // 模拟一个window对象，如进入子应用则是使用的此对象
+    const fakeWindow = {} as FakeWindow;
+
+    // make top/self/window property configurable and writable, otherwise it will cause TypeError while get trap return.
+    // 将 top/self/window 设置成 configurable 和 writable，否则通过 Proxy 进行 getOwnPropertyDescriptor 代理时会报错
+    Object.getOwnPropertyNames(global).filter(...).forEach(...)
+
+    return {
+        fakeWindow,
+        propertiesWithGetter,
+    };
+}
+
+export default class ProxySandbox implements SandBox {
+    active() {
+        if (!this.sandboxRunning) activeSandboxCount++;
+        this.sandboxRunning = true;
+    }
+}
+```
+
+
 
 ## 飞冰icestark
 

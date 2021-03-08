@@ -860,7 +860,7 @@ export default {
 - web打印问题(分页问题等)
     - 可使用 **`page-break-after`** 等css参数解决，如`<div style="page-break-after: auto | always"></div>`。参考：https://www.w3school.com.cn/cssref/index.asp#print
     - 修改默认打印边距 **`@page {margin: 24px 18px 0 18px;}`**，或者再chrome打印预览时通过自带界面修改
-    - 修改纸张方向 **`@page {size: portrait | landscape;}`**，其中portrait纵向、landscape横向，设置后则无法在预览页面修改
+    - 修改纸张方向 **`@page {size: portrait | landscape;}`**，其中portrait纵向、landscape横向，设置后则无法在预览页面修改。谷歌支持，火狐85.0还不支持
     - 至于mm和px换算
         - 公制长度单位与屏幕分辨率进行换算时，必须用到一个DPI(Dot Per Inch, 像素/英寸)指标。网页打印中，默认采用的是96dpi(像素/英寸)，而非72dpi
         - **A4为 210mm\*297mm，而1英寸=25.41mm，浏览器默认为96dpi(像素/英寸)，因此对应像素为 794px\*1123px**

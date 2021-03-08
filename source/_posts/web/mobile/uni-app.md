@@ -247,6 +247,10 @@ export default {
 }
 ```
 
+### web-view开发
+
+- 参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
+
 ## 小技巧
 
 ### 环境问题

@@ -349,6 +349,16 @@ let runtimeError = {
 #### 变量
 
 - 使用`var`声明变量(一般驼峰)，**使用`const`定义常量** (一般大写)
+
+    ```js
+    let a = {a: 1}
+    const b = a // 此时指向a的引用，当a被重新赋值时，会拷贝a的数据。类似Copy On Write机制
+    b = {b: 1} // 报错：Uncaught TypeError: Assignment to constant variable.
+    a.b = 2
+    console.log(b) // {a: 1, b: 2}
+    a = {}
+    console.log(b) // {a: 1, b: 2}
+    ```
 - js中新同名变量的空间会替换旧变量的空间
 - 程序都是在内存中运行的。变量声明-初始化-使用。声明是在内存中开辟一个空间，并起一个名字
 
@@ -635,6 +645,28 @@ function 函数名(参数列表) {
     log("hello world") // [aezo] hello world
     ```
 
+### Proxy
+
+- 参考: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+
+```js
+// 语法
+let proxy = new Proxy(target, handler);
+
+// 案例
+let test = {
+    name: "smalle"
+};
+test = new Proxy(test, {
+    // handler对象还有其他属性如：set、apply、construct(new操作符的捕捉器)等
+    get(target, key) {
+        console.log('获取了getter属性'); // 获取了getter属性
+        return target[key];
+    }
+});
+console.log(test.name); // smalle
+```
+
 ### 执行环境与作用域
 
 #### 执行环境
@@ -750,6 +782,18 @@ export default class {}
 import func from 'myexp.js' // 或'myexp'，导出默认对象赋值到func
 import myFunc1 as func from 'myexp'
 import { myFunc1, myFunc2 } from 'myexp'
+```
+- export命令规定的是对外的接口，必须与模块内部的变量建立一一对应关系
+
+```js
+// 这两种写法导出的全部是1，1只是一个值，不是接口
+export 1;
+var m = 1; export m;
+
+// 正确的三种写法
+export var m = 1;
+var m = 1; export {m};
+var n = 1; export {n as m};
 ```
 
 #### eval和Function
