@@ -2,8 +2,8 @@
 layout: "post"
 title: "powerdesigner"
 date: "2017-12-05 19:41"
-categories: design
-tags: [model, mysql, oracle]
+categories: extend
+tags: [model, mysql, oracle, design]
 ---
 
 ## 简介

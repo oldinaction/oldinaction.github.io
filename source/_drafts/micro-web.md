@@ -28,7 +28,6 @@ tags: [vue]
     - [飞冰icestark](#飞冰icestark)
     - [Alfa](https://github.com/aliyun/alibabacloud-alfa)
 
-
 ## qiankun
 
 - [蚂蚁金服qiankun(乾坤)](https://github.com/umijs/qiankun)
@@ -46,17 +45,20 @@ tags: [vue]
 
 ### 沙箱隔离
 
+- 由于主应用和子应用在同一个窗口，因此不进行沙箱隔离，则主子应用访问到同一个window，可能导致数据混乱
 - qiankun 做沙箱隔离主要分为三种：legacySandBox、proxySandBox、snapshotSandBox
 - 其中 legacySandBox、proxySandBox 是基于 Proxy API 来实现的，在不支持 Proxy API 的低版本浏览器中，会降级为 snapshotSandBox。在现版本中，legacySandBox 仅用于 singular 单实例模式，而多实例模式会使用 proxySandBox
-- [proxySandbox]()
+- [proxySandbox](https://github.com/umijs/qiankun/blob/v2.4.0/src/sandbox/proxySandbox.ts)
 
 ```js
 function createFakeWindow(global: Window) {
-    // 对于getter类型的参数单独放置在Map中，读取时效率更高(其实fakeWindow中也存在)
+    // 对于non-configurable且有getter类型的参数单独放置在Map中，读取时效率更高(其实fakeWindow中也存在)，如document(父子应用共享)
     const propertiesWithGetter = new Map<PropertyKey, boolean>();
-    // 模拟一个window对象，如进入子应用则是使用的此对象
+    // 虚拟一个window对象，如进入子应用则是使用的此对象
     const fakeWindow = {} as FakeWindow;
 
+    // copy the non-configurable property of global to fakeWindow
+    // 如 top/self/window/document 等是全局共享的
     // make top/self/window property configurable and writable, otherwise it will cause TypeError while get trap return.
     // 将 top/self/window 设置成 configurable 和 writable，否则通过 Proxy 进行 getOwnPropertyDescriptor 代理时会报错
     Object.getOwnPropertyNames(global).filter(...).forEach(...)
@@ -67,15 +69,74 @@ function createFakeWindow(global: Window) {
     };
 }
 
+// 每次进入微应用会实例化 ProxySandbox, 重新创建虚拟window
 export default class ProxySandbox implements SandBox {
+    // window 值变更记录
+    private updatedValueSet = new Set<PropertyKey>();
+
+    // 激活沙箱
     active() {
         if (!this.sandboxRunning) activeSandboxCount++;
         this.sandboxRunning = true;
     }
+
+    // 注销沙箱
+    inactive() {
+        if (process.env.NODE_ENV === 'development') {
+            console.info(`[qiankun:sandbox] ${this.name} modified global properties restore...`, [
+                ...this.updatedValueSet.keys(),
+            ]);
+        }
+        // ...
+    }
+
+    constructor(name: string) {
+        // 原始window，即主应用window
+        const rawWindow = window;
+        // 创建虚拟window
+        const { fakeWindow, propertiesWithGetter } = createFakeWindow(rawWindow);
+
+        const proxy = new Proxy(fakeWindow, {
+            set: (target: FakeWindow, p: PropertyKey, value: any): boolean => {
+                if (this.sandboxRunning) {
+                    // We must kept its description while the property existed in rawWindow before
+                    if (!target.hasOwnProperty(p) && rawWindow.hasOwnProperty(p)) {
+                        // 原window中有的，且虚拟window中不存在的。此时如果修改，则是直接修改的原window，需要判断是否为 writable
+                        const descriptor = Object.getOwnPropertyDescriptor(rawWindow, p);
+                        const { writable, configurable, enumerable } = descriptor!;
+                        if (writable) {
+                            Object.defineProperty(target, p, {
+                                configurable,
+                                enumerable,
+                                writable,
+                                value,
+                            });
+                        }
+                    } else {
+                        // 虚拟window中存在的，或原window不存在的，全部保存到虚拟window中
+                        target[p] = value;
+                    }
+
+                    // 对于白名单中的全局变量，可直接修改原window的值
+                    if (variableWhiteList.indexOf(p) !== -1) {
+                        rawWindow[p] = value;
+                    }
+
+                    // 将修改过的全局变量保存，注销时会打印出来
+                    updatedValueSet.add(p);
+
+                    this.latestSetProp = p;
+
+                    return true;
+                }
+            },
+
+            // 取值：propertiesWithGetter > 模拟window > 原始window
+            get(target: FakeWindow, p: PropertyKey): any {}
+        })
+    }
 }
 ```
-
-
 
 ## 飞冰icestark
 

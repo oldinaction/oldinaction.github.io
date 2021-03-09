@@ -267,11 +267,12 @@ String result = template.render(Dict.create().set("name", "Hutool"));
 - [Easypoi](https://gitee.com/lemur/easypoi)、[文档](http://doc.wupaas.com/docs/easypoi)
 - 优点
     - 基础变量模板导出
-    - excel和html互转
+    - excel和html互转。html转excel需要导入org.jsoup#jsoup包，支持将多个table生成到多个sheet中，每个table标签设置一个sheetName属性
 - 缺点
-    - excel转html不灵活，无法设置转出的页面样式，如宽度
     - pdf导出文档不详
     - 测试demo运行不完整
+    - excel转html不灵活，无法设置转出的页面样式，如宽度
+    - html转excel不完善，仅支持table转换，其他html标签不支持，且有些样式会丢失
 
 ## Yaml解析(基于jyaml)
 

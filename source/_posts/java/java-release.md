@@ -177,11 +177,11 @@ interface MyConverter<F, T> {
 }
 
 // 调用
-Converter<String, Integer> converter = (from) -> Integer.valueOf(from);
+MyConverter<String, Integer> converter = (from) -> Integer.valueOf(from);
 Integer converted = converter.convert("123"); // 123
 
 // 包装成方法回调
-public static T test(F val, Converter<F, T> convert) {
+public static T test(F val, MyConverter<F, T> convert) {
     return convert.convert(val);
 }
 test("123", (from) -> Integer.valueOf(from)); // 123

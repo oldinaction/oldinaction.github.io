@@ -874,6 +874,7 @@ export default {
         - 如果不希望thead重复出现，可将表头行写到tbody中
         - 当table分页后，没一页会自动出现一个分页横线，暂未找到简单方法去掉。可通过增加`<tfoot></tfoot>`(里面不要有数据，否则可能会出现tfoot边框无法去掉，有时候也不管用)，来占位，并设置小page边距
         - 当有多个小table时，需要自动判断一页显示的table个数。如vue，先渲染出页面，再计算每个table的高度，当超过一定高度，则增加一个`<div style="page-break-after: always"></div>`使其自动分页
+- 基于[lodop](http://www.lodop.net/index.html)打印控件
 - 基于[hiprint](http://hiprint.io/)插件
     - 特点：基于Jquery；可视化配置模板，自动分页打印；可免费使用
     - 缺点：源代码没开源，没有抽离 npm 包

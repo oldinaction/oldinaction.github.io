@@ -2,8 +2,8 @@
 layout: "post"
 title: "设计模式"
 date: "2017-08-12 09:47"
-categories: [design]
-tags: [设计模式, java]
+categories: [arch]
+tags: [设计模式, java, design]
 ---
 
 ## 简介

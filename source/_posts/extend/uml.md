@@ -2,8 +2,8 @@
 layout: "post"
 title: "UML"
 date: "2016-07-17 11:01"
-categories: design
-tags: [UML, StarUML, PlantUML]
+categories: extend
+tags: [UML, StarUML, PlantUML, design]
 ---
 
 ## UML介绍
