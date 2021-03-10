@@ -16,6 +16,15 @@ tags: [css]
 
 - https://www.cnblogs.com/heimanba/p/3774086.html
 
+### table样式
+
+```css
+/* 设置表格第一列无边框 */
+table tbody tr td:first-child {border: none;}
+/* 设置表格第三列无边框 */
+table tbody tr td:first-child+td+td {border: none;}
+```
+
 ## CSS3 知识点
 
 - CSS3使用时一般带有私有前缀，对应关系如下

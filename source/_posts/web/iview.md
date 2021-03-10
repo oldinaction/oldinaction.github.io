@@ -68,8 +68,9 @@ tags: [vue, UI]
 </i-select>
 
 <!-- 
-    remoteMethod 必须是当前组件的顶级属性，即 this.remoteMethod，不能是 this.map.remoteMethod，否则 list 更新无效
-    loading 可不要，保留时需要自己手动在 remoteMethod 中进行控制其值
+    1.remoteMethod 必须是当前组件的顶级属性，即 this.remoteMethod，不能是 this.map.remoteMethod，否则 list 更新无效
+    2.loading 可不要，保留时需要自己手动在 remoteMethod 中进行控制其值
+    3.远程组件编辑时回显问题：remoteMethod(query, init)接受两个参数，当获取到表单数据时，手动调用remoteMethod(this.model.selectVal, true)进行初始化，当获取到下拉列表后再通过this.model.selectVal = query进行赋值
 -->
 <Select
     v-model="model13"
