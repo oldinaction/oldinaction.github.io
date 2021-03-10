@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    
+    <lastmod>2021-03-10T12:25:30.559Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/08/22/web/css/</loc>
+    
+    <lastmod>2021-03-10T06:46:39.438Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/04/11/java/java-release/</loc>
     
     <lastmod>2021-03-09T08:30:50.721Z</lastmod>
@@ -275,13 +289,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/08/22/web/css/</loc>
-    
-    <lastmod>2021-02-19T03:16:10.137Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     
     <lastmod>2021-02-16T14:42:22.915Z</lastmod>
@@ -292,13 +299,6 @@
     <loc>http://blog.aezo.cn/2018/10/09/devops/jenkins/</loc>
     
     <lastmod>2021-02-09T09:51:31.637Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    
-    <lastmod>2021-02-09T07:28:17.834Z</lastmod>
     
   </url>
   
