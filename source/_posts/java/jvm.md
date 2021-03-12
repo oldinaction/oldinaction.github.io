@@ -12,7 +12,7 @@ tags: [os]
 - [Java Virtual Machine Specification](https://docs.oracle.com/javase/specs/jvms/se14/html/index.html)
 - 本文无特殊说明，默认基于JDK1.8
 - Java执行
-    - x.java - javac - x.class
+    - `javac` x.java -> x.class
     - 将x.class加载到ClassLoader，并将一些java类库加载进来
     - 再通过字节码解释器或JIT即时编译器(一些常用的代码会自动编译成本地代码)
     - 调用执行引擎

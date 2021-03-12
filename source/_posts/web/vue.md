@@ -732,10 +732,10 @@ Vue.component('base-checkbox', {
     export default {
         name: 'MyEleSelect',
         model: {
-            event: 'change' // 只能代表本组件中的事件，默认是input
+            event: 'change' // ***只能代表本组件中的事件，默认是input***
         },
         props: {
-            // 取得是 v-model="myValue" 中 myValue 的值
+            // ***取得是 v-model="myValue" 中 myValue 的值***
             value: {
                 type: Array,
                 default: function () {
@@ -765,7 +765,7 @@ Vue.component('base-checkbox', {
                 // 此处保证了子组件发送的数据会被父组件的v-model="myValue"接受，再被value="myValue"传回
                 // 如果上面没有定义model.event="change"，则此处的事件必须是'input'
                 // el-select中也有change事件，但是该事件传回的值只能到此组件的v-model中，无法再往外面传输，因此此处必须触发新的事件(本组件中定义的事件)
-                // ***.自定义组件中也可以不用有类似的input表单元素，自定义一个model字段名，并指定其model.event，并在此处emit即可修改model
+                // *** 自定义组件中也可以不用有类似的input表单元素，自定义一个model字段名，并指定其model.event，并在此处emit即可修改model ***
                 this.$emit('change', this.model) // 不能直接修改this.value的值，需要通过修改此处的model属性然后传递到外部组件
             }
         },

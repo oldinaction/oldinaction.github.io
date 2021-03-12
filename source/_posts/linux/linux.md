@@ -184,6 +184,9 @@ tags: [linux, shell]
     - `rm -f *2019-04*` 正则删除，可删除如access-2019-04-01.log、error-2019-04-02.log
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
     - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
+    - `/bin/cp -f /dir1/test /dir2` **强制覆盖文件**
+        - 此处使用`cp -f`可能失效，由于cp命令被系统默认设置了别名`alias cp=cp -i`(-i, --interactive表示需要交互进行确认，同样的如mv)
+        - `alias` 查看被重写的命令，`unalias cp`取消cp的别名(不建议取消)
 - `scp` 跨机器文件传输
     - scp免密登录需要将客户端的公钥放到服务器
     - 复制文件到远程服务器
@@ -790,9 +793,9 @@ rar a aezocn.rar *.jpg
     systemctl restart sshd
     ```
 
-## corn定时任务 [^4]
+## corn定时任务
 
-- crontab命令语法：`crontab [ -u user ] { -e | -l | -r }`
+- crontab命令语法：`crontab [ -u user ] { -e | -l | -r }` [^4]
     - `-u` 指定某用户任务(**默认是当前用户**，最终目标命令会已此用户身份运行)
         - `sudo crontab -e` 此时未指定`-u`，sudo则相当于`-u root`
     - `-e` 编辑当前用户的定时任务，默认在`/var/spool/`目录。或者 `sudo vi /etc/crontab`
@@ -846,7 +849,7 @@ rar a aezocn.rar *.jpg
     # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
     # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
     # |  |  |  |  |
-    # *  *  *  *  * my-command
+    # *  *  *  *  * [user] my-command
     # (1) 其中用户名一般可以省略
     # (2) 精确到秒解决方案, 以下3行表示每20秒执行一次
     # * * * * * my-command

@@ -1008,8 +1008,8 @@ echo 'to do what...'
 ### 删除日志文件
 
 - 定时删除
-    - `crontab -e` 编辑定时任务配置
-    - `00 02 * * * root /home/smalle/script/clear-log.sh` 添加配置
+    - `crontab -e` 编辑定时任务配置，参考[linux.md#corn定时任务](/_posts/linux/linux.md#corn定时任务)
+    - `00 02 * * * /home/smalle/script/clear-log.sh` 添加配置，每天凌晨2点执行定时
     - `systemctl restart crond` 重启定时任务
 - clear-log.sh
 
@@ -1018,7 +1018,7 @@ echo 'to do what...'
 LOG_FILE=~/script/clear-log.log
 LOG_SAVE_DAYS=30 # 日志保留天数
 NOW=$(date +'%y/%m/%d %H:%M:%S')
-echo "===============START $NOW==================" >> $LOG_FILE
+echo "===============START $(date +'%y/%m/%d %H:%M:%S')==================" >> $LOG_FILE
 
 # 删除数据库日志(主备库会产生my_db_name-log-bin.0的日志)
 rm -rfv /home/data/mysql/my_db_name-log-bin.0* >> $LOG_FILE # 待考虑？
@@ -1038,7 +1038,7 @@ done
 
 # 删除jvm日志(保留近3天的)
 find /home/smalle/jvmlogs/ -type f -mtime +3 -exec rm -rfv {} \; >> $LOG_FILE
-echo "===============END $NOW==================" >> $LOG_FILE
+echo "===============END $(date +'%y/%m/%d %H:%M:%S')==================" >> $LOG_FILE
 ```
 
 ### 生成随机数和字符串
