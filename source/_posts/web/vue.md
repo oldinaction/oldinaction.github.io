@@ -95,15 +95,24 @@ export default {
     - `<keep-alive>` 组件 `activated` 和 `deactivated`
 - 钩子执行顺序
     - 路由勾子 (beforeEach、beforeRouteEnter、afterEach)
-    - 根组件 (beforeCreate、created、beforeMount)
+    - App根组件 (beforeCreate、created、beforeMount)
+    - 父组件-mixins (beforeCreate、created、beforeMount): 父组件 beforeCreate -> mixins beforeCreate -> 父组件 created -> ...
     - 组件 (beforeCreate、created、beforeMount)
     - 指令 (bind、inserted)
     - 组件 mounted
-    - 根组件 mounted
+    - 父组件-mixins (mounted)
+    - App根组件 (mounted)
     - beforeRouteEnter的next的回调
     - nextTick
+- 销毁顺序
+    - mixinx (beforeDestroy)
+    - 父组件 (beforeDestroy)
+    - 组件 (beforeDestroy)
+    - 组件 (destroyed)
+    - mixinx (destroyed)
+    - 父组件 (destroyed)
 - 浏览器地址栏刷新/回车/F5
-    - 所有页面组件重新创建，重头调用`beforeCreate`；且在某页面刷新时，改页面的`beforeDestroy`等钩子不会被执行
+    - 所有页面组件重新创建，重头调用`beforeCreate`；且在某页面刷新时，该页面的`beforeDestroy`等钩子不会被执行
 
 ## 页面渲染
 
@@ -1106,6 +1115,8 @@ Vue.use(config)
         - exclude的优先级大于include
 
 ### mixins和组件扩展
+
+- 案例
 
 ```html
 <!-- 被导入通用功能组件 -->

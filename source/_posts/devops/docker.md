@@ -14,7 +14,7 @@ tags: [docker, arch]
 - [官方文档](https://docs.docker.com)
 - [在线docker测试地址](https://labs.play-with-docker.com/)
 - docker基础镜像包含`alpine`(apk)、`centos`(yum)、`ubuntu`(apt-get)三种
-- 本文基于docker版本`Server Version: 18.05.0-ce`
+- 本文基于docker版本`Server Version: 1.13.1`
 - 国内镜像
 
     ```bash
@@ -100,7 +100,7 @@ docker   # docker 命令帮助
 
 Management Commands:
   container   Manage containers
-  image       Manage images
+  image       Manage images     # 展示所有镜像
   network     Manage networks
     ls			# docker network ls # 列举网络(使用docker-compose启动，容器默认会加入到一个xxx_default的网络中)
 	  rm			# sudo docker network rm my_net1 my_net2 # 移除网络
@@ -231,7 +231,7 @@ Run 'docker COMMAND --help' for more information on a command.
     - `docker exec -dt <container_id | container_name> ls` 运行容器中的命令，但是不会进入容器
     - `docker exec -it <container_id | container_name> /bin/bash -c 'ls'` 也不会进入容器
 - `docker attach <container_id | container_name>` 进入某运行的容器 **(组合建ctrl+p+q退出)**，部分容器无法使用ctrl+p+q退出
-- `docker inspect a8f590736b62` 查看容器详细(存储、网络等)。详细`--format`语法如下 [^8]
+- `docker inspect a8f590736b62` 查看容器详细(存储、网络等)。详细`--format`语法如下(Go模板语法) [^8]
 	
 	```bash
 	## 查看nginx绑定的端口
@@ -255,22 +255,27 @@ Run 'docker COMMAND --help' for more information on a command.
 
 ## docker网络
 
-- 网络类型：host、bridge(默认)、none、container. 使用如：`docker run --network=host busybox`
+- 网络类型：host、bridge(默认)、container、none. 使用如：`docker run --network=host busybox`
     - `host` 和宿主主机使用相同的网络(包括端口，此时无需-p指定端口映射)
     - `bridge` 桥接模式。中间通过`docker0`虚拟网卡(docker默认网卡)进行网络传输。此时与外网连通，需要开启ip转发
-        - 开启IP转发，此时宿主主机相当于一个NAT，容器的`eth0`通过docker规定的网络接口与`docker0`连接，`docker0`又处于宿主主机。当容器向公网发起请求时 -> 容器的`eth0` -> `docker0` -> (由于开启ip转发)宿主主机`eth0` -> 此时原地址会改成宿主主机向公网发送IP包
+        - 从docker0子网中分配一个IP给容器使用，并设置docker0的IP地址为容器的默认网关。在主机上创建一对虚拟网卡veth pair设备，Docker将veth pair设备的一端放在新创建的容器中，并命名为eth0（容器的网卡），另一端放在主机中，以vethx这样类似的名字命名，并将这个网络设备加入到docker0网桥中。可以通过`brctl show`命令查看
+        - 需开启宿主机IP转发，此时宿主主机相当于一个NAT，容器的`eth0`通过docker规定的网络接口与`docker0`连接，`docker0`又处于宿主主机
+            - 当容器向公网发起请求时 -> 容器的`eth0` -> `docker0` -> (由于开启ip转发)宿主主机`eth0` -> 此时原地址会改成宿主主机向公网发送IP包
 
-        ```bash
-        ## 临时开启转发(1是允许转发，0不允许转发)
-        echo 1 > /proc/sys/net/ipv4/ip_forward
-        ## 永久修改，加入配置
-        # net.ipv4.ip_forward=1
-        # net.ipv6.conf.all.forwarding=1
-        sudo vi /etc/sysctl.conf
-        # 使文件生效
-        sudo sysctl -p /etc/sysctl.conf
-        ```
+            ```bash
+            ## 临时开启转发(1是允许转发，0不允许转发)
+            echo 1 > /proc/sys/net/ipv4/ip_forward
+            ## 永久修改，加入配置
+            # net.ipv4.ip_forward=1
+            # net.ipv6.conf.all.forwarding=1
+            sudo vi /etc/sysctl.conf
+            # 使文件生效
+            sudo sysctl -p /etc/sysctl.conf
+            ```
         - 无法连接外网分析：[http://blog.aezo.cn/2019/06/20/linux/network/](/_posts/linux/network.md#TTL=1导致虚拟机/docker无法访问外网)
+    - `container` 容器和另外一个容器共享Network namespace。 kubernetes中的pod就是多个容器共享一个Network namespace
+        - `--network=container:web1` 指定 jointed 容器为 web1
+    - `none` Docker容器拥有自己的Network Namespace，但是，并不为Docker容器进行任何网络配置。也就是说，这个Docker容器没有网卡、IP、路由等信息。需要我们自己为Docker容器添加网卡、配置IP等。这种网络模式下容器只有lo回环网络，没有其他网卡
 - docker部署在本地虚拟机上
     - 此时docker的宿主主机为虚拟机，虚拟机和本地机器属于同一网络。然后在docker中启动一个容器，docker会自动在宿主主机上创建一个虚拟网络，用于桥接宿主主机和容器内部网络
     - **容器会继承docker宿主主机的网络**，在容器内部是可以向外访问到宿主主机所在网络，如本地物理机
@@ -280,11 +285,11 @@ Run 'docker COMMAND --help' for more information on a command.
 
 ### docker跨容器通信
 
-- none、host、bridge、joined解决了单个 Docker Host 内容器通信的问题
-- 跨容器通信解决方案
+- host、bridge、container、none解决了单个 Docker Host 内容器通信的问题
+- 跨(宿主机)容器通信解决方案
     - 可通过直接路由方式(NAT)
     - 桥接方式(如pipework)完成跨容器通信(二层VLAN网络，大二层方式，只适合小于4096节点集群，且存在广播风暴问题)
-    - docker 内置的 Overlay 和 macvlan 则解决了跨容器通信，第三方方案常用的包括 flannel、weave 、calico
+    - docker 内置的 Overlay 和 macvlan 则解决了跨容器通信，第三方方案常用的包括 flannel、weave、calico
 - Overlay网络
     - Overlay网络是指在不改变现有网络基础设施的前提下，通过某种约定通信协议，把二层报文封装在IP报文之上的新的数据格式。这样不但能够充分利用成熟的IP路由协议进程数据分发，而且能够突破VLAN的4096数量限制，支持高达16M的用户，并在必要时可将广播流量转化为组播流量，避免广播数据泛滥
     - 三种Overlay的实现标准，分别是：虚拟可扩展LAN(VxLAN)、采用通用路由封装的网络虚拟化(NVGRE)和无状态传输协议(SST)，其中以VxLAN的支持厂商最为雄厚，VxLan数据包格式

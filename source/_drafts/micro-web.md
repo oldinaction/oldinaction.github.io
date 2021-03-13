@@ -23,6 +23,7 @@ tags: [vue]
     - [可插拔式系统讨论](https://v2ex.com/t/581581)
 - TODO
     - https://blog.csdn.net/weixin_42234168/article/details/112180703
+    - https://www.yuque.com/blueju/blog/uxlrlr
 - 相关框架
     - [qiankun](#qiankun)
     - [飞冰icestark](#飞冰icestark)
