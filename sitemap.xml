@@ -2,6 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2021-03-14T14:02:32.699Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-03-14T08:36:37.038Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/05/29/web/webpack/</loc>
+    
+    <lastmod>2021-03-14T04:20:49.316Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/07/21/web/web/</loc>
+    
+    <lastmod>2021-03-14T03:50:06.942Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-03-13T16:14:34.451Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/06/25/devops/docker/</loc>
     
     <lastmod>2021-03-13T12:00:21.685Z</lastmod>
@@ -33,20 +68,6 @@
     <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
     
     <lastmod>2021-03-11T07:41:47.406Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-03-11T07:07:34.958Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-03-11T05:07:32.551Z</lastmod>
     
   </url>
   
@@ -124,13 +145,6 @@
     <loc>http://blog.aezo.cn/2017/10/10/web/mobile/uni-app/</loc>
     
     <lastmod>2021-03-08T11:33:18.611Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/07/21/web/web/</loc>
-    
-    <lastmod>2021-03-06T09:13:24.952Z</lastmod>
     
   </url>
   
@@ -383,13 +397,6 @@
     <loc>http://blog.aezo.cn/2019/06/22/devops/helm/</loc>
     
     <lastmod>2021-01-22T11:36:47.252Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2021-01-22T10:26:36.173Z</lastmod>
     
   </url>
   
