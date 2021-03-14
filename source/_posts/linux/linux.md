@@ -934,7 +934,7 @@ rar a aezocn.rar *.jpg
     - `-n` 静默模式，不再默认显示模式空间中的内容
 	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
 	- `-e script -e script` 可以同时执行多个脚本
-	- `-f`：如`sed -f /path/to/scripts file`
+	- `-f` 如`sed -f /path/to/scripts file`
 	- `-r` 表示使用扩展正则表达式
 - 内部命令
     - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量

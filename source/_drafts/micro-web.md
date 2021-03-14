@@ -22,8 +22,7 @@ tags: [vue]
     - [使用http-vue-loader可在非单页应用中引入.vue组件](https://github.com/FranckFreiburger/http-vue-loader)
     - [可插拔式系统讨论](https://v2ex.com/t/581581)
 - TODO
-    - https://blog.csdn.net/weixin_42234168/article/details/112180703
-    - https://www.yuque.com/blueju/blog/uxlrlr
+    - 父子应用数据同步：https://blog.csdn.net/weixin_42234168/article/details/112180703
 - 相关框架
     - [qiankun](#qiankun)
     - [飞冰icestark](#飞冰icestark)
@@ -139,7 +138,14 @@ export default class ProxySandbox implements SandBox {
 }
 ```
 
-## 飞冰icestark
+### 常见问题
+
+- 报错：Application died in status LOADING_SOURCE_CODE: You need to export the functional lifecycles in xxx entry
+    - 参考：https://qiankun.umijs.org/zh/faq
+    - 有可能vue.config.js配置的入口函数存在问题，没有将main.js写成入口函数的最后一个文件，参考[webpack.md#复杂案例](/_posts/web/webpack.md#复杂案例)
+- 子项目不支持动态路由(动态从服务端获取路由配置，通过addRoutes加入路由)，基于vue暂未找到方案。https://www.yuque.com/blueju/blog/uxlrlr
+
+## icestark飞冰
 
 - [飞冰icestark](https://github.com/ice-lab/icestark)，为飞冰(ice生态的一个微前端解决方案
 - 主应用和微应用皆支持 React/Vue/Angular... 等不同框架

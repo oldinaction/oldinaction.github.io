@@ -25,7 +25,7 @@ tags: [k8s, docker, cncf]
         - mesos(资源分配工具)、marathon(面向容器的编排框架)
         - kubernetes(市场占据80%份额)
 - `Docker`与`K8s`(kubernetes)
-    - Docker本质上是一种虚拟化技术，类似于KVM、XEN、VMWARE，但其更轻量化，且将Docker部署在Linux环境时，其依赖于Linux容器技术(LXC)。Docker较传统KVM等虚拟化技术的一个区别是无内核，即多个Docker虚拟机共享宿主机内核，简而言之，可把Docker看作是无内核的虚拟机，每Docker虚拟机有自己的软件环境，相互独立
+    - Docker本质上是一种虚拟化技术，类似于KVM、XEN、VMWARE，但其更轻量化，且将Docker部署在Linux环境时，其依赖于Linux容器技术(LXC)。Docker较传统KVM等虚拟化技术的一个区别是无内核，即多个Docker虚拟机共享宿主机内核，简而言之，可把Docker看作是无内核的虚拟机，每个Docker虚拟机有自己的软件环境，相互独立
     - K8s与Docker之间的关系，如同Openstack之于KVM、VSphere之于VMWARE。K8S是容器集群管理系统，底层容器虚拟化可使用Docker技术，应用人员无需与底层Docker节点直接打交道，通过K8s统筹管理即可
 - 相关概念
     - `DevOps` 是开发与运维之间沟通的过程。透过自动化"软件交付"和"架构变更"的流程，来使得构建、测试、发布软件能够更加地快捷、频繁和可靠
@@ -311,7 +311,6 @@ kubectl delete node node3
 - `cat 10-kubeadm.conf`
 
 ```bash
-
 [Service]
 Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
 Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
@@ -354,7 +353,6 @@ systemReserved:
   memory: 1024Mi
 # ...
 ```
-
 
 ### 常见问题
 
@@ -503,7 +501,7 @@ Troubleshooting and Debugging Commands:
     -f          # 实时打印日志
     --all-containers # 查看pod下所有容器日志
     -c          # 查看pod下某个容器日志
-    --previous  # 查看不在运行的pod日志
+    --previous  # ***查看不在运行的pod日志***
     # kubectl logs sq-pod sq-busybox # 打印 sq-pod 中 sq-busybox 容器的日志
   attach         Attach to a running container
   exec           Execute a command in a container # 在容器中执行命令
@@ -897,7 +895,7 @@ kubectl delete -f sq-pod.yaml
         - 通过ServiceName获取PodIP
           - headless service可以通过解析service的DNS，返回所有Pod的地址和DNS(statefulSet部署的Pod才有DNS)
           - 普通的service只能通过解析service的DNS返回service的ClusterIP
-- Service通过观测(watch) API Server，每当Pod变化，API Server就会通知Service进行变更选择的Pod
+- **Service通过观测(watch) API Server，每当Pod变化，API Server就会通知Service进行变更选择的Pod**
 - 集群内部源Pod通过Service地址访问目标Pod时，可使用Service的ip/hostname:port，其中hostname格式为`service_name.namespace_name.svc`，如访问：http://prometheus-k8s.monitoring.svc:9090
 
 ### Ingress & Ingress Control [^3]

@@ -877,11 +877,11 @@ spring:
       max-request-size: 50MB
   mvc:
     # 静态资源映射，通过后台访问文件的路径(一般需要排除对此路径的权限验证)。相当于一个映射，映射的本地路径为 spring.resources.static-locations
-    # 实际访问还需要增加servlet.context路径
-    static-path-pattern: /static/**
+    # 实际访问还需要增加servlet.context路径(/api)，如访问 /api/static/test/test.js -> test/test.js(此时test目录会自动识别属于哪个目录)
+    static-path-pattern: /static/** # 此路径尽量不要和classpath目录下文件夹重名
   resources:
     # 默认为：classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
-    # 后台可访问的本地文件路径
+    # 后台可访问的本地文件路径. **最终的URL路径不需要携带此前缀，其应该保存各目录下的顶级子目录不会重复。如果重复了，static-locations值中排在前面的优先**
     static-locations: classpath:/META-INF/resources/,classpath:/resources/,file:/data/app
 ```
 - 使用JavaBean进行静态文件映射
@@ -891,6 +891,8 @@ spring:
 public class InterceptorConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 可添加多条，优先级先添加的高于后添加的
+        // 通过此方式添加的映射优先级高于上文static-path-pattern配置的
         registry.addResourceHandler("/image/**").addResourceLocations("file:D:/image/"); // file:/D:/image/ 亦可. 实际访问还需要增加servlet.context路径
     }
 }
