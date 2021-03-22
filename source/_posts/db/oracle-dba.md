@@ -164,7 +164,9 @@ alter index index_in_out_regist_id rebuild online;
   alter user scott account unlock; -- 新建数据库scott默认未解锁
   commit;
   ```
-- 密码过期：(1) 重新设置密码即可`alter user aezo identified by aezo;` (2)设置永久不过期`alter profile default limit password_life_time unlimited;`
+- 密码过期(ORA-28001)
+    - 重新设置密码即可 `alter user aezo identified by aezo;`
+    - 设置永久不过期 `alter profile default limit password_life_time unlimited;`
 - 授权
   - `grant create session to aezo;` 授予 aezo 用户创建 session 的权限，即登陆权限
   - `grant unlimited tablespace to aezo;` 授予 aezo 用户使用表空间的权限

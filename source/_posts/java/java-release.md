@@ -403,6 +403,10 @@ class PACKAGE_CONST{
 - dubbo作为一个高度可扩展的rpc框架，也依赖于java的SPI，并且dubbo对java原生的spi机制作出了一定的扩展，使得其功能更加强大
 - Pf4j插件框架也是基于java的SPI实现
 
+
+
+
+
 ---
 
 参考文章

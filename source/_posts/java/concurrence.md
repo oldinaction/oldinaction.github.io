@@ -578,10 +578,10 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - Queue 高并发较常用
         - 相关方法(ABQ为例)
             - `add` 添加，超过集合容量会报错：java.lang.IllegalStateException: Queue full
-            - `offer` 添加，超过集合容量则不再放入，**也不报错，线程不会阻塞，返回是否放入成功**
             - `remove` 移除头部元素并返回此元素，如果没有则抛出异常java.util.NoSuchElementException
-            - `poll` 移除头部元素并返回此元素，如果没有则返回null
             - `element` 获取头部元素，如果没有则抛出异常
+            - `offer` 添加，超过集合容量则不再放入，**也不报错，线程不会阻塞，返回是否放入成功**
+            - `poll` 移除头部元素并返回此元素，如果没有则返回null
             - `peek` 获取头部元素，如果没有则返回null
         - **BlockingQueue**(接口) 天然的生产者消费者模型，线程池中会使用到
             - 相关方法(ABQ为例)
@@ -646,7 +646,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 
 #### HashMap和HashTable
 
-- 添加元素流程 [^10]
+- HashMap(JDK1.8)添加元素流程 [^10]
     - 判断 `table[]` 是否为空，为空则进行初始化(resize)
     - 根据键值key计算hash值得到插入的数组索引 i，判断`table[i]`是否有值，无则直接添加
     - 判断`table[i]`的首个元素是否和key一样，如果相同直接覆盖value 
@@ -655,7 +655,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 如果属于插入(之前不存此key)，则插入完成后判断元素个数是否超过集合阈值，超过则进行扩容
 - HashMap 容量起始值为16，负载因子为0.75，扩容时增加2n个元素
 - 为什么哈希表的容量一定要是2的整数次幂 [^11]
-    - 首先，length为2的整数次幂的话，**`h&(length-1)`就相当于对length取模**，这样便保证了散列的均匀，同时也提升了效率
+    - 首先，length为2的整数次幂的话，**`h&(length-1)`就相当于对length取模**(前提是length=2^n)，这样便保证了散列的均匀，同时也提升了效率
     - 其次，length为2的整数次幂的话，为偶数，这样length-1为奇数，奇数的最后一位是1，**这样便保证了h&(length-1)的最后一位可能为0，也可能为1（这取决于h的值）**，即与后的结果可能为偶数，也可能为奇数，这样便可以保证散列的均匀性。*而如果length为奇数的话，很明显length-1为偶数，它的最后一位是0，这样 h&(length-1) 的最后一位肯定为0，即只能为偶数，这样任何hash值都只会被散列到数组的偶数下标位置上，这便浪费了近一半的空间。*因此，length取2的整数次幂，是为了使不同hash值发生碰撞的概率较小，这样就能使元素在哈希表中均匀地散列
 - HashMap源码（JDK1.8）
 

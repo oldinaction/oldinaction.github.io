@@ -166,7 +166,7 @@ Pattern pattern = Pattern.compile("(jpg|png)"); // 分组且创建反向引用
 Matcher matcher = pattern.matcher(str);
 while (matcher.find()) { // 可能会匹配到多次
     System.out.println(matcher.group()); // jpg
-    System.out.println(matcher.group(1)); // jpg
+    System.out.println(matcher.group(1)); // jpg 取第一个括号的值
 }
 ```
 

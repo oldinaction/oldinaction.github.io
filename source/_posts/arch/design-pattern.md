@@ -126,7 +126,6 @@ private static final Mgr01_1 INSTANCE = new Mgr01_1();
 private static class Mgr03Instance {
     private static final Mgr03 INSTANCE = new Mgr03();
 }
-
 public static Mgr03 getInstance() {
     return Mgr03Instance.INSTANCE;
 }

@@ -286,7 +286,8 @@ export default {
 - 路径问题
     - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
 - H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#文件)
-- web-view使用参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
+- `web-view`使用参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
+- `rich-text`可以通过vue的v-html进行渲染，但是传入的字符串不能包含body、html等节点(如果使用了不受信任的HTML节点，该节点及其所有子节点将会被移除)
 - css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa
 
 ## uView插件

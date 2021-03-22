@@ -645,6 +645,19 @@ function 函数名(参数列表) {
     log("hello world") // [aezo] hello world
     ```
 
+#### 内置函数
+
+- `setInterval` 周期执行函数，直到 clearInterval 被调用或窗口被关闭
+
+```js
+let int = setInterval(() => {
+    if (this.flag) {
+        console.log(this.flag)
+        window.clearInterval(int)
+    }
+}, 50)
+```
+
 ### Proxy
 
 - 参考: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy
@@ -805,7 +818,7 @@ var n = 1; export {n as m};
     - 间接调用 eval(比如通过引用)，作用域是全局
     - 严格模式下的eval的变量仅存在于eval内部，不外泄
 - **eval内代码可以读取和使用所在作用域的变量，eval中声明的变量也可以在当前作用域中存在，eval以字符串中最后一个js语句的返回值作为最终返回**
-- eval和new Function均可使用debugger调试，会进入到一个类似VM1308的代码块中
+- eval和new Function均可使用debugger调试，会进入到一个类似VM1308的代码块中。eslint默认对二者均报错
 - 使用如下
 
     ````js
@@ -820,14 +833,14 @@ var n = 1; export {n as m};
         (0, eval)('x + y'); // 另一个间接调用的例子
     ​}
 
-    // Function使用。下面示例打印 Saturday
+    // Function使用1
     let func = new Function('a', 'b', 'debugger; return a+b') // 最后一个为函数体，前面的参数为函数的形参
     func(1, 2) // 3
-    
+    // Function使用2。下面示例打印 4
     console.log(
-        // return (function(a){return a(5)}) 中的 a 为 Function 第三个括号传递的参数(一个处理函数)
-        Function('"use strict";return (function(a){return a(5)})')()(
-            function(a){ return"Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split(" ")[a%7||0] }
+        // "return (function(a){return a(3)})" 中的 a 为 Function 第三个括号传递的参数(一个处理函数)
+        Function('"use strict"; return (function(a){return a(3)})')()(
+            function(index){ return [1, 2, 3, 4, 5][index % 5] }
         )
     );
     ```

@@ -77,7 +77,7 @@ tags: spring
 
 - profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`)
 - 使用配置文件(优先级从高到低)
-	- 外部配置：`java -jar aezocn.jar --spring.profiles.active=prod`
+	- 外部配置：`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
 	- 配置文件：`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
 - 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
 - 配置示例

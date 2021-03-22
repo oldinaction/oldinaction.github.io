@@ -534,6 +534,24 @@ edit-config:
         <template v-slot="{ row }">{{ row.bizClearingCustomerName }}</template>
     </vxe-table-column>
     <vxe-table-column field="feeCurrentRate" title="汇率" width="90" :edit-render="{ name: 'input', immediate: true }"></vxe-table-column>
+
+    <!-- 自定义筛选 -->
+    <vxe-table-column field="orderNo" title="订单号" sortable
+        :filters="[{data: ''}]" :filter-method="({ option, row }) => row.orderNo === option.data">
+        <template #filter="{ $panel, column }">
+            <AutoComplete
+            v-for="(option, index) in column.filters" :key="index"
+            type="type"
+            v-model="option.data"
+            :data="row._orderNoFilterList"
+            @on-search="(v) => {
+                row._orderNoFilterList = allData.filter(x => x.orderNo && x.orderNo.indexOf(v) >= 0).map(x => x.orderNo)
+            }"
+            @on-change="(value, $event) => $panel.changeOption($event, !!option.data, option)"
+            @keyup.enter.native="$panel.confirmFilter()"
+            ></AutoComplete>
+        </template>
+        </vxe-table-column>
 </vxe-table>
 
 <script>

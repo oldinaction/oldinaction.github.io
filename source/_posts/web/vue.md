@@ -696,7 +696,7 @@ new Vue({
 
 ## 组件
 
-### 自定义组件中使用 v-model
+### v-model使用
 
 - [官方说明](https://cn.vuejs.org/v2/guide/components-custom-events.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E7%9A%84-v-model)
 - 双向数据绑定主要需要解决表单元素值改变后对应的变量值同时变化(变量值变化表单元素的值变化是肯定的)
@@ -801,10 +801,28 @@ Vue.component('base-checkbox', {
     - `$refs`只有`mounted`了之后才能获取到数据
 - 在子组件中可以通过`$parent`调用父组件属性和方法，**修改父组件的属性也不会报错**。注意：像被iview的TabPane包裹的组件，其父组件就是TabPane
 - 在父组件中使用`sync`修饰符修饰props属性，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景
+- **全量绑定props参数**
 
-#### 知识点
+```html
+<!-- 假设子组件接受参数：name, age, sex -->
+<child-component v-bind="dataBind"></child-component>
 
-##### props定义说明
+<script>
+    // 此时子组件参数全部使用默认值
+    dataBind = null;
+    // 指定部分参数
+    dataBind = {
+        name: 'smalle',
+        // age: 18, // 不传递age则使用默认值
+        sex: true,
+        xxx: '不接受此参数，传递也不报错'
+    }
+    // 或者通过 $props 将父组件的 props 一起传给子组件
+    dataBind = this.$props;
+</script>
+```
+
+#### props定义说明
 
 ```js
 props: ['count', 'name']
@@ -1170,7 +1188,11 @@ export default function () {
     data () {
       return {
         hello: null,
-        safe: this
+        safe: this,
+        // 所有的对象，只有组件定义了，则全部按照组件定义的为准。**组件的属性不会和mixins的属性进行合并**
+        map: {
+         num: 1
+        }
       }
     },
     computed: {

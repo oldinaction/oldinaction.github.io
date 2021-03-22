@@ -683,6 +683,7 @@ select substr('17,20,23', 1, regexp_instr('17,20,23', ',') - 1) from dual;
 select substr('17,20,23', regexp_instr('17,20,23', ',') + 1, regexp_instr('17,20,23', ',', 1, 2) - regexp_instr('17,20,23', ',') - 1) from dual;
 select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20,23') - regexp_instr('17,20,23', ',')) from dual;
 ```
+- 
 
 #### 案例
 

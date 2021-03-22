@@ -1143,7 +1143,7 @@ kubectl create secret tls sq-ingress-secret --cert=aezocn.crt --key=aezocn.key
 
 #### emptyDir案例
 
-- 此时busybox与nginx使用的存储卷相同，因此可看成是同一个目录
+- 下例中，busybox与nginx使用的存储卷相同，因此可看成是同一个目录
     - busybox修改容器中/data/index.hmtl文件 -> 相当于busybox挂载的存储卷html下index.html被修改 -> 相当于nginx容器/usr/share/nginx/html目录下的index.html文件被修改。实际是同一个文件
     - `kubectl get pods -o wide`查看pod对应IP，再使用`curl 10.244.1.22`访问即可看到网页变化
 - 测试案例配置
