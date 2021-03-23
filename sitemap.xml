@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/08/22/web/css/</loc>
+    
+    <lastmod>2021-03-23T13:38:48.745Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
+    
+    <lastmod>2021-03-23T08:11:33.713Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
+    
+    <lastmod>2021-03-23T02:36:03.569Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
+    
+    <lastmod>2021-03-23T02:32:11.733Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/07/02/db/redis/</loc>
     
     <lastmod>2021-03-22T09:57:49.781Z</lastmod>
@@ -19,13 +47,6 @@
     <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
     
     <lastmod>2021-03-22T05:11:04.725Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
-    
-    <lastmod>2021-03-22T04:53:34.162Z</lastmod>
     
   </url>
   
@@ -121,13 +142,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2019/06/01/devops/kubernetes/</loc>
-    
-    <lastmod>2021-03-14T15:19:55.968Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
     
     <lastmod>2021-03-14T08:36:37.038Z</lastmod>
@@ -187,13 +201,6 @@
     <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
     
     <lastmod>2021-03-10T12:25:30.559Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/08/22/web/css/</loc>
-    
-    <lastmod>2021-03-10T06:46:39.438Z</lastmod>
     
   </url>
   
@@ -705,13 +712,6 @@
     <loc>http://blog.aezo.cn/2019/11/14/devops/ceph/</loc>
     
     <lastmod>2020-08-24T02:54:57.062Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/06/16/linux/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%BA%95%E5%B1%82%E7%9F%A5%E8%AF%86/</loc>
-    
-    <lastmod>2020-08-17T02:21:10.113Z</lastmod>
     
   </url>
   
