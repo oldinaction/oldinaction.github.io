@@ -40,6 +40,12 @@ tags: [k8s, docker, cncf]
 - 整体架构
 
     ![kubernetes-arch](/data/images/devops/kubernetes-arch.png)
+
+    - 用户执行kubectl/userClient向apiserver发起一个命令
+    - 经过认证授权后，经过scheduler的各种策略，得到一个目标node，然后告诉apiserver
+    - apiserver 会请求相关node的kubelet，通过kubelet把pod运行起来，apiserver还会将pod的信息保存在etcd
+    - pod运行起来后，controllermanager就会负责管理pod的状态，如，若pod挂了，controllermanager就会重新创建一个一样的pod，或者像扩缩容等
+    - pod有一个独立的ip地址，但pod的IP是易变的，如异常重启，或服务升级的时候，IP都会变，这就有了service；完成service工作的具体模块是kube-proxy；在每个node上都会有一个kube-proxy，在任何一个节点上访问一个service的虚拟ip，都可以访问到pod；service的IP可以在集群内部访问到，外部访问需要暴露服务
 - Kubernetes主要由以下几个核心组件组成
     - `etcd` 保存了整个集群的状态
     - `API Server` 提供了资源操作的唯一入口(CLI/GUI)，并提供认证、授权、访问控制、API注册和发现等机制

@@ -131,6 +131,37 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 - https://www.cnblogs.com/tu-0718/p/10826846.html
 - https://imgcook.taobao.org/docs?slug=rem-adapter
 
+## SVG
+
+- [SVG文档](https://developer.mozilla.org/zh-CN/docs/Web/SVG)
+- loading图片案例(最终是一个灰色的圆环加载图片)
+
+```xml
+<!-- svg根节点
+    viewBox: 定义了画布上可以显示的区域(0,0坐标在左上角，X轴向右，Y轴向下)
+    width/height: 画布的整体宽高
+    fill: 颜色 
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="#646568">
+    <!-- path路径 
+        d: 
+            M = moveto(M X,Y) ：将画笔移动到指定的坐标位置
+            L = lineto(L X,Y) ：画直线到指定的坐标位置
+            H = horizontal lineto(H X)：画水平线到指定的X坐标位置
+            V = vertical lineto(V Y)：画垂直线到指定的Y坐标位置
+            C = curveto(C X1,Y1,X2,Y2,ENDX,ENDY)：三次贝赛曲线
+            S = smooth curveto(S X2,Y2,ENDX,ENDY)：平滑曲率
+            Q = quadratic Belzier curve(Q X,Y,ENDX,ENDY)：二次贝赛曲线
+            T = smooth quadratic Belzier curveto(T ENDX,ENDY)：映射
+            A = elliptical Arc(A RX,RY,XROTATION,FLAG1,FLAG2,X,Y)：弧线
+            Z = closepath()：关闭路径
+    -->
+    <path opacity=".25" d="M16 0 A16 16 0 0 0 16 32 A16 16 0 0 0 16 0 M16 4 A12 12 0 0 1 16 28 A12 12 0 0 1 16 4"/>
+    <path d="M16 0 A16 16 0 0 1 32 16 L28 16 A12 12 0 0 0 16 4z">
+        <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="0.8s" repeatCount="indefinite" />
+    </path>
+</svg>
+```
 
 ## 常用css
 
