@@ -113,6 +113,9 @@ Validator.validateChinese("我是一段zhongwen", "内容中包含非中文");
 StrUtil.strip("'abc'", "'"); // abc
 StrUtil.strip("[abc]", "[", "]"); // abc
 System.out.println(StrUtil.strip(StrUtil.strip("'1''2\"3'", "\""), "'")); // '1''2"3' => (去掉前后的 ") '1''2"3'  => (去掉前后的 ') 1''2"3
+
+// 连接字符串
+StrUtil.join(":", 1, "2", null, "4", 5.00); // 1:2:null:4:5.0
 ```
 
 ### 构建树结构
@@ -261,6 +264,13 @@ String result = template.render(Dict.create().set("name", "Hutool"));
 ### poi
 
 - 其他基本都是基于此衍生而来
+- 基本使用
+
+```java
+// 合并单元格：将第2行的第1-2列合并
+sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 1));
+sheet.getRow(1).getCell(0).setCellValue('合并单元格设值，只需要针对左上角的单元格设值');
+```
 
 ### Easypoi
 
