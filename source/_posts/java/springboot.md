@@ -1129,6 +1129,11 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
     </dependency>
     ```
 - 配置：https://github.com/alibaba/druid/tree/master/druid-spring-boot-starter
+- 源码
+    - supprot 为扩展包
+        - `http.ResourceServlet` 抽象类包含了对登录、主页显示等请求的处理
+        - `http.StatViewServlet` 为`ResourceServlet` 的子类，通过`DruidStatViewServletConfiguration`(druid-spring-boot-starter)注入到Spring容器，并设置Servlet的init-parameter，如设置loginUsername等
+
 
 ### 数据库相关配置
 

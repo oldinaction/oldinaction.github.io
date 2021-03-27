@@ -75,7 +75,7 @@ tags: [H5, App, 小程序, mobile]
         </script>
 
         <!-- 注意：
-            1.如果是h5也是用uni开发，则下文引入uni.webview库容易导致和默认uni对象冲突，解决：修改下列js文件中的3处uni为uniWebview，再使用uniWebview调用。参考：https://github.com/oldinaction/smweb/blob/master/uni-app/uni.webview.1.5.2.js
+            1.******如果是h5也是用uni开发，则下文引入uni.webview库容易导致和默认uni对象冲突。******解决：修改下列js文件中的3处uni为uniWebview，再使用uniWebview调用。参考：https://github.com/oldinaction/smweb/blob/master/uni-app/uni.webview.1.5.2.js
             2.jweixin-1.4.0.js和uni.webview.1.5.2.js也支持直接import按需导入
             3.如果此处web-view所在项目非小程序，如uni-app写的H5项目需要通过web-view引入另外一个H5，则不需要引入jweixin，也可实现postMessag(通过window.postMessag)；如果是小程序中使用web-view，则在H5中引入jweixin库后，可直接使用wx.miniProgram.postMessage，不用额外引入uni-webview库
         -->
@@ -88,7 +88,7 @@ tags: [H5, App, 小程序, mobile]
                 document.write('<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.4.0.js"><\/script>');
             }
         </script>
-        <!-- uni 的 SDK，小程序可无需此库，但是需要使用 wx.miniProgram.postMessage 进行调研 -->
+        <!-- uni 的 SDK，小程序可无需此库，但是需要使用 wx.miniProgram.postMessage 进行调用 -->
         <script type="text/javascript" src="https://js.cdn.aliyun.dcloud.net.cn/dev/uni-app/uni.webview.1.5.2.js"></script>
 
         <!-- H5-使用 -->
@@ -96,9 +96,9 @@ tags: [H5, App, 小程序, mobile]
             // 注意:
             // 1.调试H5需要打开小程序编辑器，进入H5页面后右键，编辑器上方会出现一个调试按钮，点击后进入小程序(H5页面会再次刷新)
             // 2.向小程序传递参数后，小程序端不会立即收到消息，需要在点击返回(到小程序页面)、分享、重定向(原页面被销毁)等情况才会真正发送给小程序；当点击返回小程序原页面，或通过navigateTo跳转到小程序原始页面(可经过多次点击跳转亦可)，或redirectTo跳转到小程序页面(原页面销毁)也会受到消息
-            // uniWebview.postMessag最终是通过调用jweixin#miniProgram.postMessage，最终jweixin库通过调用WeixinJSBridge(由容器提供，如小程序编辑器或微信客户端)实现通信
+            // uniWebview.postMessag(uniWebview为上文修改过的uni.webview.js)最终是通过调用jweixin#miniProgram.postMessage，最终jweixin库通过调用WeixinJSBridge(由容器提供，如小程序编辑器或微信客户端)实现通信
 
-            // 向小程序传递参数
+            // 向小程序传递参数(uniWebview为上文修改过的uni.webview.js)
             uniWebview.postMessage({
                 data: {
                     action: 'message...'

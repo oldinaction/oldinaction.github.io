@@ -471,6 +471,15 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
   - 情况二表空间未满：查询的表空间剩余 400M，且该索引的 next_extent=700MB，即给该索引分配空间时不足
     - 解决方案：重建该索引`alter index index_name rebuild tablespace indexes storage(initial 256K next 256K pctincrease 0)`(还未测试)
 
+### 数据库无法连接
+
+```sql
+-- 查看当前数据库建立的会话情况
+select sid,serial#,username,program,machine,status from v$session;
+-- 查询数据库允许的最大连接数，一般如300
+select value from v$parameter where name = 'processes';
+```
+
 ### 其他
 
 - 表空间数据文件丢失时，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
