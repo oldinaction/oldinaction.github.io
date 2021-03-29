@@ -1134,7 +1134,6 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
         - `http.ResourceServlet` 抽象类包含了对登录、主页显示等请求的处理
         - `http.StatViewServlet` 为`ResourceServlet` 的子类，通过`DruidStatViewServletConfiguration`(druid-spring-boot-starter)注入到Spring容器，并设置Servlet的init-parameter，如设置loginUsername等
 
-
 ### 数据库相关配置
 
 - 数据库/表新建时命名策略(JPA) [doc](https://docs.spring.io/spring-boot/docs/1.5.6.RELEASE/reference/htmlsingle/#howto-configure-hibernate-naming-strategy)

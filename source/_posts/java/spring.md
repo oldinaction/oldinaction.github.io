@@ -1162,6 +1162,7 @@ public class CustomerWebMvcConfig implements WebMvcConfigurer {
 - 常见问题：可能出现自定义Filter中使用了body，导致Controller中无法再使用@RequestBody获取数据
     - `request.setAttribute("body", body);` 灵活度不高，会影响其他Filter
 	- 如果需要多次获取可以使用HttpServletRequestWrapper进行缓存
+    - `application/x-www-form-urlencoded` 请求类型时，数据会以a=1&b=2的形式保存在body里面。当执行request.getParameterMap()时，会将数据从body中取出进行缓存
 
 ```java
 public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper {
@@ -1237,13 +1238,28 @@ public class CustomerHttpServletRequestWrapper extends HttpServletRequestWrapper
 
 // 通过filter进行下发（实现 Filter，或继承 OncePerRequestFilter）
 CustomerHttpServletRequestWrapper warpper = null;
-if(request.getContentType() != null && request.getContentType().contains(MediaType.MULTIPART_FORM_DATA_VALUE)){
+boolean multipart = false;
+String contentType = request.getContentType();
+if (contentType != null) {
+    if(request.getContentType().contains(MediaType.MULTIPART_FORM_DATA_VALUE)) {
+        multipart = true;
+    } else if(request.getContentType().contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+        // 如果是 application/x-www-form-urlencoded, 参数值在request body中以 a=1&b=2&c=3...形式存在
+        // 若直接构造 BodyReaderHttpServletRequestWrapper, 在将流读取并存到copy字节数组里之后, request.getParameterMap()将返回空值
+        // 若运行一下 request.getParameterMap(), 则会将body中的数据缓存, 并清空body中数据
+        // 所以两者是互斥的. https://www.jianshu.com/p/f7f8237861e7
+        request.getParameterMap();
+    }
+}
+if(multipart){
     // 文件上传类型，不做控制
 } else {
     wrapper = new CustomerHttpServletRequestWrapper(request, objectMapper);
 }
-Map body = requestWrapper.getBodyMap();
 filterChain.doFilter(warpper, servletResponse);
+
+// 之后获取
+Map body = warpper.getBodyMap();
 ```
 
 #### 拦截response的数据

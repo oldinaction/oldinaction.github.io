@@ -1894,7 +1894,16 @@ export default user
             set (value) {
                 this.$store.commit('updateMessage', value)
             }
-        }
+        },
+        // 对于一些需要动态转换的属性较为实用
+        curList: {
+            get () {
+                return this[`${this.searchForm.dataType}List`]
+            },
+            set (newValue) {
+                this[`${this.searchForm.dataType}List`] = newValue
+            }
+        },
     }
     ```
 - 持久化工具[vuex-persistedstate]。可将store数据写入到localStorage中

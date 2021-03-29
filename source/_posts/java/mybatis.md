@@ -55,7 +55,9 @@ for (Orders order : list) {
 
     <!-- 方式三：使用mybatis-plus(推荐) -->
 	```
-- 启动类中加：`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml", "cn.aezo.springboot.module.*.mapper"})` // 声明需要扫描mapper接口的路径；此处可以使用一层通配符(多层未测试成功)和mybatis.mapper-locations通配符配合使用进行多模块管理
+- 启动类中加：**`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml", "cn.aezo.springboot.module.*.mapper"})`**
+    - 声明需要扫描mapper接口的路径；此处可以使用一层通配符(多层未测试成功)和mybatis.mapper-locations通配符配合使用进行多模块管理
+    - mybatis-plus注解方式也是使用此类
 - 配置
 
 	```bash
@@ -910,14 +912,14 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
     <version>3.0.6</version>
 </dependency>
 ```
+- 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(类)
 - application.yaml配置
 
 ```yml
 # mybatis-plus 配置
 mybatis-plus:
-  mapper-locations: classpath:mapper/*.xml
-  # 实体扫描
-  typeAliasesPackage: cn.aezo.demo.entity
+  # mapper-locations: classpath:mapper/*.xml
+  # typeAliasesPackage: cn.aezo.demo.entity
   global-config:
     # 逻辑删除配置(无需其他配置)
     db-config:
@@ -925,11 +927,11 @@ mybatis-plus:
       logic-delete-value: 0 # 逻辑已删除值
       logic-not-delete-value: 1 # 逻辑未删除值
   # 原生配置
-  configuration:
-    map-underscore-to-camel-case: true  # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
-    cache-enabled: false
-    call-setters-on-nulls: true
-    jdbc-type-for-null: 'null'
+  # configuration:
+  #   map-underscore-to-camel-case: true  # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
+  #   cache-enabled: false
+  #   call-setters-on-nulls: true
+  #   jdbc-type-for-null: 'null'
 ```
 
 #### 使用
