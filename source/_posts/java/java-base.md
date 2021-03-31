@@ -148,14 +148,22 @@ public class MenuWrapper extends BaseEntityWrapper<Menu, MenuVo>  {
 - 方法级别泛型
 
 ```java
+// 调用者
 public static RuntimeException sneakyThrow(Throwable t) {
     if (t == null) throw new NullPointerException("t");
     return Lombok.<RuntimeException>sneakyThrow0(t); // 调用有泛型的方法
 }
-
+// 泛型方法
 private static <T extends Throwable> T sneakyThrow0(Throwable t) throws T {
     throw (T)t;
 }
+
+// 调用者
+public Result test() {
+    return Util.foo(); // 此时不会编译报错
+}
+// 泛型方法，对应的Util类无需增加泛型标识
+public static <T> T foo() {}
 ```
 
 ## 集合
