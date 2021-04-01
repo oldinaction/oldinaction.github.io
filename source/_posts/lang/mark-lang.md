@@ -39,7 +39,9 @@ map2: {}
 ## json
 
 - json格式校验工具：https://qqe2.com/
-- [json-path](https://github.com/json-path/JsonPath)：类似xpath获取json值
+- 类似xpath获取json值
+    - [java版本的json-path](https://github.com/json-path/JsonPath)
+    - [js版本的jmespath](https://github.com/jmespath/jmespath.js)
 - 正确的json字符串
 
 ```json

@@ -114,6 +114,47 @@ export default {
 - 浏览器地址栏刷新/回车/F5
     - 所有页面组件重新创建，重头调用`beforeCreate`；且在某页面刷新时，该页面的`beforeDestroy`等钩子不会被执行
 
+### 后端模板中使用VUE
+
+- 主页面
+
+```html
+<head>
+    <!-- 引入vue.js等通用js -->
+    <#include "./common/resource.ftl">
+    <!-- 引入所有需要使用的组件 -->
+    <#include "./components/my-widget.ftl">
+    <style>
+        [v-cloak]{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 当网络较慢，网页还在加载 Vue.js ，而导致 Vue 来不及渲染，这时页面就会显示出 Vue 源代码。我们可以使用 v-cloak 指令来解决这一问题 -->
+    <div id="app" v-cloak>
+        {{name}}
+        <my-widget-test ref="test"></my-widget-test>
+    </div>
+</body>
+```
+- 组件页面
+
+```html
+<!-- 模板的一部分 my-widget.ftl -->
+<script type="text/x-template" id="widget">
+    <div>content</div>
+</script>
+<script>
+    Vue.component('my-widget-test', {
+        template: '#widget',
+        data() {
+            return {}
+        }
+    })
+</script>
+```
+
 ## 页面渲染
 
 ### 父子组件加载
@@ -485,7 +526,7 @@ render: (h, params) => {
 }
 ```
 
-### 报错 You may have an infinite update loop in a component render function
+#### 报错 You may have an infinite update loop in a component render function
 
 - 参考：https://www.itread01.com/content/1541599683.html
 - `render method is triggered whenever any state changes` vue组件中任何属性改变致使render函数重新执行。如果在模板中直接修改vue属性或调用的方法中修改了属性(如双括号中，而@click等事件中是可以修改vue属性的)，就会导致重新render。从而产生**render - 属性改变 - render**无限循环

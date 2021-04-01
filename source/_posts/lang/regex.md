@@ -8,56 +8,64 @@ tags: [regex, js, java]
 
 ## 简介
 
+- [regexr](https://regexr.com/)
+
 ## javascript正则
+
+- **在线测试**：https://c.runoob.com/front-end/854
+- 参考文章：https://juejin.cn/post/6844903487155732494
 
 ### 语法说明
 
-### 匹配说明
+- 修饰符
+    - `g` 全局匹配
+    - `i` 忽略大小写
+    - `m` 多行匹配
 
-> https://juejin.cn/post/6844903487155732494
+### 匹配说明
 
 - 两种模糊匹配
 
-    ```js
-    // 横向模糊匹配
-    "abc abbc abbbc abbbbc abbbbbc abbbbbbc".match(/ab{2,5}c/g); // ["abbc", "abbbc", "abbbbc", "abbbbbc"]
-    // 纵向模糊匹配
-    "a0b a1b a2b a3b a4b".match(/a[123]b/g); // ["a1b", "a2b", "a3b"]
-    ```
+```js
+// 横向模糊匹配
+"abc abbc abbbc abbbbc abbbbbc abbbbbbc".match(/ab{2,5}c/g); // ["abbc", "abbbc", "abbbbc", "abbbbbc"]
+// 纵向模糊匹配
+"a0b a1b a2b a3b a4b".match(/a[123]b/g); // ["a1b", "a2b", "a3b"]
+```
 - 字符组
 
-    ```js
-    // [abc]表示匹配一个字符，它可以是"a"、"b"、"c"之一
-    "abcde".match(/[abc]/g); // ["a", "b", "c"]
-    // [^abc]表示排除字符组，除"a"、"b"、"c"之外的任意一个字符
-    "abcde".match(/[^abc]/g); // ["d", "e"]
-    ```
+```js
+// [abc]表示匹配一个字符，它可以是"a"、"b"、"c"之一
+"abcde".match(/[abc]/g); // ["a", "b", "c"]
+// [^abc]表示排除字符组，除"a"、"b"、"c"之外的任意一个字符
+"abcde".match(/[^abc]/g); // ["d", "e"]
+```
 - 贪婪匹配尽可能多的匹配；惰性匹配尽可能少的匹配。**惰性匹配可以基于`?`实现**
 
-    ```js
-    var str = "123 1234 12345 123456";
-    // 其中正则/\d{2,5}/，表示数字连续出现2到5次。会匹配2位、3位、4位、5位连续数字
-    str.match(/\d{2,5}/g); // ["123", "1234", "12345", "12345"]
-    // 其中/\d{2,5}?/表示，虽然2到5次都行，当2个就够的时候，就不在往下尝试了
-    str.match(/\d{2,5}?/g); // ["12", "12", "34", "12", "34", "12", "34", "56"]
+```js
+var str = "123 1234 12345 123456";
+// 其中正则/\d{2,5}/，表示数字连续出现2到5次。会匹配2位、3位、4位、5位连续数字
+str.match(/\d{2,5}/g); // ["123", "1234", "12345", "12345"]
+// 其中/\d{2,5}?/表示，虽然2到5次都行，当2个就够的时候，就不在往下尝试了
+str.match(/\d{2,5}?/g); // ["12", "12", "34", "12", "34", "12", "34", "56"]
 
-    var str = 'aaa<div style="font-color:red;">123456</div>bbb';
-    str.match(/<.+>/); // <div style="font-color:red;">123456</div>
-    str.match(/<.+?>/); // <div style="font-color:red;">
+var str = 'aaa<div style="font-color:red;">123456</div>bbb';
+str.match(/<.+>/); // <div style="font-color:red;">123456</div>
+str.match(/<.+?>/); // <div style="font-color:red;">
 
-    // 匹配不包含某些字符串，参考：https://www.jb51.net/article/52491.htm
-    // 匹配不包含www的cnblog网站
-    "www.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // null
-    "images2018.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // images2018.cnblogs.com、images2018
-    ```
+// 匹配不包含某些字符串，参考：https://www.jb51.net/article/52491.htm
+// 匹配不包含www的cnblog网站
+"www.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // null
+"images2018.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // images2018.cnblogs.com、images2018
+```
 - 多选分支
 
-    ```js
-    "good idea, nice try.".match(/good|nice/g); // ["good", "nice"]
-    // 分支结构是惰性匹配
-    "goodby".match(/good|goodby/g); // ["good"]
-    "goodby".match(/goodby|good/g); // ["goodby"]
-    ```
+```js
+"good idea, nice try.".match(/good|nice/g); // ["good", "nice"]
+// 分支结构是惰性匹配
+"goodby".match(/good|goodby/g); // ["good"]
+"goodby".match(/goodby|good/g); // ["goodby"]
+```
 
 ### 案例
 

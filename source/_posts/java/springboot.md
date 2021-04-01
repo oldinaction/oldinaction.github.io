@@ -881,7 +881,7 @@ spring:
     static-path-pattern: /static/** # 此路径尽量不要和classpath目录下文件夹重名
   resources:
     # 默认为：classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
-    # 后台可访问的本地文件路径. **最终的URL路径不需要携带此前缀，其应该保存各目录下的顶级子目录不会重复。如果重复了，static-locations值中排在前面的优先**
+    # 后台可访问的本地文件路径. **最终的URL路径不需要携带此前缀，即应该保存各目录下的顶级子目录不会重复。如果重复了，static-locations值中排在前面的优先**
     static-locations: classpath:/META-INF/resources/,classpath:/resources/,file:/data/app
 ```
 - 使用JavaBean进行静态文件映射

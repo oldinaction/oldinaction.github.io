@@ -33,12 +33,15 @@ tags: [plugins, debug]
 - `Axure RP Extension for Chrome` Axure设计
 - `Vue.js devtools` Vue.js调试工具
 - `Set Character Encoding` 解决chrome查看源码乱码问题
-- github相关
+- Github相关
     - `SourceGraph` 基于目录显示文件，类之间的跳转，代码搜索等功能
     - `Octotree` 展现源码目录
+    - `GitHub加速`
     - `Enhanced GitHub` 显示每个文件大小，并提供单独下载链接
-    - `GitZip` 下载文件夹：双击文件夹选中，点击页面右下角下载图标
+    - `GitZip` 下载文件夹：双击文件空白区域选中，点击页面右下角下载图标
+    - `Awesome Autocomplete for GitHub` github实时搜索
     - `OctoLinker` 实现类名点击跳转
+    - `GitHub Hovercard` 鼠标停留在 GitHub 网站的用户头像或者仓库链接地址上时，会自动弹出一个悬浮框，带你提前预览基本信息
     - `Remu` 收藏项目管理，项目备注/标签管理
 
 ## 调试技巧
