@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-04-04T10:21:29.320Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/09/13/extend/chrome/</loc>
     
     <lastmod>2021-04-01T07:24:04.162Z</lastmod>
@@ -26,13 +33,6 @@
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2021-03-31T16:06:24.761Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-03-31T15:05:58.833Z</lastmod>
     
   </url>
   
