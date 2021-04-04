@@ -1057,9 +1057,9 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
 	}
 	// 4.**基于实体查询**，也可查询集合(同查询8)
 	// 注意：如果直接按照下面注释的写法会查询失败，仅有警告信息(IncorrectResultSetColumnCountException: Incorrect column count: expected 1, actual 10)，不会报错
-	// UserVo userVo = uscUmcJdbcTemplate.queryForObject(
+	// UserVo userVo = jdbcTemplate.queryForObject(
 	//         "select * from u_user_login ul where ul.username = ? and ul.valid_status = 1 limit 1", UserVo.class, username);
-	UserVo userVo = uscUmcJdbcTemplate.queryForObject(
+	UserVo userVo = jdbcTemplate.queryForObject(
 			"select * from u_user_login ul where ul.username = ? and ul.valid_status = 1 limit 1",
 			new Object[]{username},
 			new BeanPropertyRowMapper<>(UserVo.class));
@@ -2250,6 +2250,11 @@ messageHelper.addInline("hello.png", new File("/data/hello.png"));
 messageHelper.addAttachment("hello.docx", new File("/data/hello.docx"));
 mailSender.send(mimeMessage);
 ```
+
+### 整合ureport可视化报表
+
+- [ureport](https://github.com/youseries/ureport)、[ureport文档](https://www.w3cschool.cn/ureport/ureport-5j7b2h8l.html)
+- 参考：https://www.pianshen.com/article/72751541487/
 
 ## 其他
 
