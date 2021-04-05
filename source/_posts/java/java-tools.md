@@ -427,13 +427,14 @@ public static void main(String[] args) {
     - 插件1调用插件2方法，插件1的POM中无需引入插件2。主程序也无需引入插件的POM
     - 插件1调用插件2方法，插件1中需要重新定义一次插件2中需要调用的方法
 - 说明
-    - **开发时**，让 idea 启动主程序时，自动编译插件包的配置。为了在每次启动主程序的时候，能够动态编译插件包，保证插件包的target是最新的
+    - **开发时**，开发时需要提前将插件编译出jar，再启动主程序
+        - 从而可让 idea 启动主程序时，自动编译插件包的配置。为了在每次启动主程序的时候，能够动态编译插件包，保证插件包的target是最新的
         - 选择 File->Project Structure->Project Settings->Artifacts->点击+号->JAR->From modules whith dependencies->选择对应的插件包->确认OK
         - 启动配置: 在Before launch 下-> 点击小+号 -> Build -> Artifacts -> 选择上一步新增的>Artifacts
-        - 开发时需要提前将插件编译出jar，再启动主程序
-    - 新建插件时，**需要继承`BasePlugin`类，并将其放在插件src根目录**(否则插件中的controller等将无法扫描到)。因为会基于此类进行扫码插件其他类，并进行分组，分组相关类参考包`com.gitee.starblues.factory.process.pipe.classs.group`
-    - **插件controller层路径**："http://ip:port/" + server.servlet.context-path + DefaultIntegrationConfiguration.pluginRestPathPrefix + (enablePluginIdRestPathPrefix=true时还需加入插件ID) + Controller#RequestMapping + Method#RequestMapping
-    - **在插件中无法直接注入主项目Bean，需要通过`PluginUtils`简介获取**
+        - 之后启动时会产生一个out/artifacts的目录保存编译好的插件jar包
+    - 新建插件时，**需要继承`BasePlugin`类，并将其放在插件src根目录**(否则插件中的controller等将无法扫描到)。因为会基于此类进行扫描插件其他类，并进行分组，分组相关逻辑参考包`com.gitee.starblues.factory.process.pipe.classs.group`
+    - **插件controller层路径**：`"http://ip:port/" + server.servlet.context-path + DefaultIntegrationConfiguration.pluginRestPathPrefix + (enablePluginIdRestPathPrefix=true时还需加入插件ID) + Controller#RequestMapping + Method#RequestMapping`
+    - **在插件中无法直接注入主项目Bean，需要通过`PluginUtils`间接获取**
         - PluginUtils可直接注入到插件项目中，然后通过`@PostConstruct`在初始化方法中调用`pluginUtils.getMainBean(MainIService.class)`获取主程序Bean
         - PluginUtils功能：可在插件中获取主程序中Spring容器中的bean，可获取当前插件的信息，只能作用于当前插件
     - 插件自定义yml配置，映射Bean时，不能通过`@ConfigurationProperties`注解，而要使用`@ConfigDefinition`

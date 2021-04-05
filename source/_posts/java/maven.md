@@ -633,12 +633,12 @@ tags: [build]
             format：指定打包类型，支持的打包格式有zip、tar、tar.gz (or tgz)、tar.bz2 (or tbz2)、jar、dir、war，可以同时指定多个打包格式
             includeBaseDirectory：指定是否包含打包层目录（比如finalName是output，当值为true，所有文件被放在output目录下，否则直接放在包的根目录下） 
             fileSets：指定要包含的文件集，可以定义多个fileSet
-            directory：指定要包含的目录；
+            directory：指定要包含的目录
             outputDirectory：指定当前要包含的目录的目的地
             dependencySets：用来定制工程依赖 jar 包的打包方式，核心元素如下表所示
         -->
         <formats>
-            <format>release</format>
+            <format>jar</format>
         </formats>
         <includeBaseDirectory>false</includeBaseDirectory>
         <dependencySets>
@@ -648,7 +648,7 @@ tags: [build]
                 <useProjectArtifact>true</useProjectArtifact>
                 <unpack>true</unpack>
                 <scope>runtime</scope>
-                <!-- excludes：排除依赖不进行打包；includes：包含的依赖进行打包；不写在全部打包 -->
+                <!-- excludes：排除依赖不进行打包；includes：包含的依赖进行打包；不写则全部打包 -->
                 <excludes>
                     <exclude>org.projectlombok:lombok</exclude>
                 </excludes>
@@ -657,6 +657,8 @@ tags: [build]
     </assembly>
     ```
 - `spring-boot-maven-plugin` 打包SpringBoot项目
+- `org.codehaus.mojo#exec-maven-plugin`
+    - 可执行shell命令、构建docker镜像、用npm打包等。特别是结合phase使用
 - `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
     - [内置规则(亦可基于接口自定义)](http://maven.apache.org/enforcer/enforcer-rules/)
         - `requireMavenVersion` 校验maven版本

@@ -99,10 +99,15 @@ tags: [os]
 
     ![jvm-类加载器](/data/images/java/jvm-类加载器.png)
     - **先从子到父查找缓存，再从父到子查找class文件并加载**
-    - 加载过程(参考sun.misc.Launcher)
         - .class文件通过(自定义)ClassLoader#loadClass加载，先在(自定义)ClassLoader的缓存中查找是否有此类，有则返回结果，没有则让父加载器App进行缓存加载
         - 以此类推到ExtClassLoader，最后到Bootstrap，如果Bootstrap在内存中找打了则返回，否则回过头让ExtClassLoader查找class文件并加载，找到则加载后返回结果，没找到则让下级Loader查找class文件并加载
         - 直到最后的(自定义)ClassLoader，如果还找到不class文件则返回Class Not Found
+    - 加载过程(参考**sun.misc.Launcher**)
+        - Launcher：java程序入口，负责实例化相关class，ExtClassLoader和AppClassLoader都是其内部实现类
+        - Bootstrap classLoader：底层由C++编写，已嵌入到了JVM内核当中，当JVM启动后，Bootstrap ClassLoader也随着启动，负责加载完核心类库后，并构造Extension ClassLoader和App ClassLoader类加载器
+        - URLClassLoader：支持从jar文件和文件夹中获取class
+        - ExtClassLoader：扩展类加载器，继承自URLClassLoader，加载位于$JAVA_HOME/jre/lib/ext目录下的扩展jar，查看源代码可知System.getProperty("java.ext.dirs")
+        AppClassLoader：应用类加载器，继承自URLClassLoader，也叫系统类加载器，ClassLoader.getSystemClassLoader()可得到它，它负载加载应用的classpath下的类，查找范围System.getProperty("java.class.path")，通过-cp或-classpath指定的类都会被其加载
     - 作用
         - 防止重复加载同一个.class
         - 保证核心.class不能被篡改，为了安全考虑。假设自己定义一个java.lang.String进行自定义加载，用了双亲委派，则自定义加载器没有还需要到上层加载器询问，此时官方有定义这个类，则上层加载器会加载，自定义的String类则无效
