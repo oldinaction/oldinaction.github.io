@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
+    
+    <lastmod>2021-04-05T11:20:50.759Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
+    
+    <lastmod>2021-04-05T10:39:34.834Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    
+    <lastmod>2021-04-05T07:52:08.635Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
     <lastmod>2021-04-04T10:21:29.320Z</lastmod>
@@ -58,13 +79,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
-    
-    <lastmod>2021-03-28T06:03:20.112Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/10/10/web/mobile/weixin/</loc>
     
     <lastmod>2021-03-27T06:43:02.917Z</lastmod>
@@ -75,13 +89,6 @@
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     
     <lastmod>2021-03-26T04:33:14.202Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    
-    <lastmod>2021-03-24T10:28:23.881Z</lastmod>
     
   </url>
   
@@ -236,13 +243,6 @@
     <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
     
     <lastmod>2021-03-11T07:41:47.406Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
-    
-    <lastmod>2021-03-11T02:10:57.796Z</lastmod>
     
   </url>
   
