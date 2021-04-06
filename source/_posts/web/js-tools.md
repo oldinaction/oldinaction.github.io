@@ -610,6 +610,57 @@ vexScrollPage(table, el, allData, searchForm, fetchData) {
 }
 </script>
 ```
+- vxe-grid
+
+```html
+<!-- toolbar-config: 工具栏，开启字段自定义、打印、导出；custom-config：字段自定义配置，此时将自定义字段保存到localStorage，否则每次刷新会重置（需要定义全局唯一ID，整个项目全部保存在名为VXE_TABLE_CUSTOM_COLUMN_VISIBLE的localStorage中） -->
+<vxe-grid size="mini" ref="notShipTable" id="TransferManageNotShipTable"
+    border resizable show-overflow keep-source
+    class="sq-vxe__toolmin sq-vxe__modal"
+    :loading="notShipLoading"
+    :height="scrollerHeight"
+    :columns="getColumns('notShip')"
+    :toolbar-config="{custom: true, export: true, print: true}"
+    :custom-config="{storage: {visible: true}}" :exportConfig="{}" :printConfig="{}">
+</vxe-grid>
+
+<!-- 解决和iview Tabs结合使用问题：modal不跟随当前Tab展示 -->
+<style lang="less">
+.sq-vxe__toolmin {
+  .vxe-grid--toolbar-wrapper {
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    top: -50px;
+    .vxe-toolbar {
+      height: auto;
+    }
+  }
+}
+.ivu-tabs-tabpane {
+  position: relative;
+  .vxe-table {
+    .vxe-modal--wrapper,.vxe-modal--box {
+      position: absolute;
+    }
+  }
+}
+.sq-vxe__modal {
+  .vxe-modal--box {
+    top: 70px !important;
+    left: 500px !important;
+  }
+}
+@media screen and (max-width: 1400px){
+  .sq-vxe__modal {
+    .vxe-modal--box {
+      top: 0px !important;
+      left: 150px !important;
+    }
+  }
+}
+</style>
+```
 - 打印，[参考](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/module/print)
 
 ```js

@@ -643,8 +643,15 @@ tags: [build]
         <includeBaseDirectory>false</includeBaseDirectory>
         <dependencySets>
             <dependencySet>
-                <!-- 指定包依赖目录，该目录是相对于根目录 -->
+                <!-- 指定包依赖目录，该目录是相对于根目录。如果值为/dir，则打包出来的jar的根目录为dir -->
                 <outputDirectory>/</outputDirectory>
+                <!-- 将所有依赖的jar(所有版本)打包到jar包的lib目录
+                <outputDirectory>lib</outputDirectory>
+                <includes>
+                    <include>*:jar:*</include>
+                </includes> 
+                -->
+
                 <useProjectArtifact>true</useProjectArtifact>
                 <unpack>true</unpack>
                 <scope>runtime</scope>
@@ -654,11 +661,23 @@ tags: [build]
                 </excludes>
             </dependencySet>
         </dependencySets>
+
+        <!-- 将项目的target/classes目录下文件打包到jar包的classes目录
+        <fileSets>
+            <fileSet>
+                <directory>target/classes</directory>
+                <outputDirectory>classes</outputDirectory>
+            </fileSet>
+        </fileSets> 
+        -->
     </assembly>
     ```
 - `spring-boot-maven-plugin` 打包SpringBoot项目
 - `org.codehaus.mojo#exec-maven-plugin`
     - 可执行shell命令、构建docker镜像、用npm打包等。特别是结合phase使用
+- maven-dependency-plugin   
+    - https://blog.csdn.net/u011781521/article/details/79055605
+    - https://my.oschina.net/LucasZhu/blog/1539468
 - `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
     - [内置规则(亦可基于接口自定义)](http://maven.apache.org/enforcer/enforcer-rules/)
         - `requireMavenVersion` 校验maven版本
