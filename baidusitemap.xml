@@ -4,8 +4,74 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2021/04/06/java/springboot-plugin-framework/</loc>
+    <lastmod>2021-04-06T14:04:52.869Z</lastmod>
+    <data>
+        <display>
+        <title>springboot-plugin-framework库</title>
+        <pubTime>2021-04-06T13:54:00.000Z</pubTime>
+        
+        <tag>src</tag>
+         
+        <tag>springboot</tag>
+         
+        <tag>plugin</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    <lastmod>2021-04-06T13:54:53.794Z</lastmod>
+    <data>
+        <display>
+        <title>Java Tools</title>
+        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
+        
+        <tag>tools</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    <lastmod>2021-04-06T06:52:36.786Z</lastmod>
+    <data>
+        <display>
+        <title>JS Tools</title>
+        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
+        
+        <tag>tools</tag>
+         
+        <tag>js</tag>
+         
+         
+           
+             
+              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
-    <lastmod>2021-04-05T11:20:50.759Z</lastmod>
+    <lastmod>2021-04-05T16:40:31.219Z</lastmod>
     <data>
         <display>
         <title>Maven</title>
@@ -32,26 +98,6 @@
         <pubTime>2017-01-20T05:07:00.000Z</pubTime>
         
         <tag>os</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    <lastmod>2021-04-05T07:52:08.635Z</lastmod>
-    <data>
-        <display>
-        <title>Java Tools</title>
-        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
-        
-        <tag>tools</tag>
          
          
            
@@ -588,28 +634,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    <lastmod>2021-03-15T15:33:11.535Z</lastmod>
-    <data>
-        <display>
-        <title>JS Tools</title>
-        <pubTime>2020-10-09T07:18:00.000Z</pubTime>
-        
-        <tag>tools</tag>
-         
-        <tag>js</tag>
-         
-         
-           
-             
-              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
     <lastmod>2021-03-14T08:36:37.038Z</lastmod>
     <data>
@@ -1103,9 +1127,9 @@
         <title>Vue源码</title>
         <pubTime>2020-05-02T11:49:00.000Z</pubTime>
         
-        <tag>vue</tag>
-         
         <tag>src</tag>
+         
+        <tag>vue</tag>
          
          
            
