@@ -449,6 +449,7 @@ site.url=www.aezo.cn
     - Spring AOP的底层原理就是动态代理，因此局限于方法拦截
     - Spring AOP默认是使用JDK动态代理，如果代理的类没有接口则会使用CGLib代理
     - JDK动态代理是需要实现某个接口了，而我们类未必全部会有接口，于是CGLib代理就有了，CGLib代理其生成的动态代理对象是目标类的子类。如果是单例的我们最好使用CGLib代理，如果是多例的我们最好使用JDK代理(JDK在创建代理对象时的性能要高于CGLib代理，而生成代理对象的运行性能却比CGLib的低)
+    - 自调用导致`@Transactional`失效问题，参考上文[事物支持](#事物支持)
 - 相关注解
     - `@Aspect` 声明一个切面
     - `@Before`、`@After`、`@Around`、`@AfterReturning`、`@AfterThrowing` 定义建言(advice)
@@ -848,8 +849,46 @@ public class JobManager {
 - Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的
     - **`@Transactional`注解只能被应用到 public 可见度的方法上**
     - **自调用导致`@Transactional`失效问题**：同一个类中的方法相互调用，发起方法无`@Transactional`，则被调用的方法`@Transactional`无效 [^3]
-        - 方案：通过BeanPostProcessor 在目标对象中注入代理对象
         - 原因：由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，**自调用时不存在代理对象的调用，这时不会产生注解@Transactional配置的参数**，因此无效
+        - **通过`SpringU.getBean(UserService.class);`解决**(不需要设置exposeProxy属性)
+        - 通过AopContext解决
+
+            ```java
+            // 假设UserController调用UserService
+            userService.run();
+            System.out.println(AopContext.currentProxy()); // IllegalStateException 此处没有AOP上下文
+
+            public class UserServiceImpl implements UserService {
+                @Override
+                public void run() {
+                    for(params : list) {
+                        try {
+                            // this.updateByMap(params); // 无法实现事物
+
+                            // 法一(简单)
+                            SpringU.getBean(UserService.class).updateByMap(params); // 可实现事物，即可保证list里面的部分条目可提交成功
+
+                            // 法二
+                            // springboot启动项增加注解：@EnableAspectJAutoProxy(exposeProxy = true)开启AOP切面，且支持proxy
+                            UserService userService = (UserService) AopContext.currentProxy();
+                            userService.updateByMap(params); // 可实现事物
+                        } catch (Exception e) {
+                           System.out.println("error...");
+                        }
+                    }
+                }
+
+                @Override
+                @Transactional(rollbackFor = Exception.class)
+                public void updateByMap(params) {
+                    if(params.get("name") == null) {
+                        throw new RuntimeException("invalid");
+                    }
+                    jdbcTemplate.update("update t_user set sex = 1 where name = ?", params.get("name"));
+                }
+            }
+            ```
+            - 上述方案及其他方案参考：https://blog.csdn.net/u012528360/article/details/70336319
     - **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
         - `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(声明上throws出来的)捕获异常Exception时也回滚
         - `@Transactional(noRollbackFor=RuntimeException.class)` 指定不回滚
@@ -1103,7 +1142,7 @@ public FilterRegistrationBean indexFilterRegistration() {
 }
 ```
 
-#### 基于Interceptor进行拦截
+#### 基于HandlerInterceptor/WebRequestInterceptor进行拦截
 
 ```java
 // 定义拦截器(且需如下文注入到 WebMvcConfigurer)
@@ -1116,7 +1155,7 @@ public class MyInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
         System.out.println(">>>>>>>>>>在请求处理之前进行调用（Controller方法调用之前）");
-        return true; // 只有返回true才会继续向下执行，返回false取消当前**请求**
+        return true; // 只有返回true才会继续向下执行，**返回false取消当前请求**
     }
 
     /**

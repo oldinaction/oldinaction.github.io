@@ -698,7 +698,8 @@ public class LocalDateTimeUtils {
 	<artifactId>spring-boot-starter-aop</artifactId>
 </dependency>
 ```
-- 示例参考【多数据源/动态数据源/运行时增加数据源】章节中的【动态数据源】
+- 参考[spring.md#AOP](/_posts/java/spring.md#AOP)
+- 示例参考下文[多数据源/动态数据源/运行时增加数据源](#动态数据源)
 
 ### spring.factories文件
 
@@ -1114,6 +1115,15 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
 		}
 	});
 	```
+- in语句处理
+
+    ```java
+    NamedParameterJdbcTemplate namedJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate.getDataSource());
+    Map<String, Object> params = new HashMap<>();
+    params.put("sex", 1);
+    params.put("idList", MiscU.toList(1, 2, 3));
+    namedJdbcTemplate.update("update t_user set sex = :sex where id in (:idList) ", params);
+    ```
 
 ### 数据库连接池(Druid)
 

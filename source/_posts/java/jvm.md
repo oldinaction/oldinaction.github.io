@@ -831,9 +831,50 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
     - **`top`** 命令观察到问题：内存不断增长 CPU占用率居高不下，且某个进程占CPU较高
         - **`top -Hp <pid>`** 观察进程中的线程，哪个线程CPU和内存占比高
     - `jps` 定位具体java进程
-    - **`jstack <pid>`** 定位线程状况，重点关注：`WAITING`、`BLOCKED`
-        - eg: `waiting on <0x0000000088ca3310>` (a java.lang.Object) 假如有一个进程中100个线程，很多线程都在waiting on(等待0x0000000088ca3310这把锁/地址编号)，一定要找到是哪个线程持有这把锁。怎么找？执行`jstack <pid> | grep 0x0000000088ca3310`看哪个线程持有这把锁(该线程可能处于RUNNABLE)
-        - 为什么阿里规范里规定，线程的名称（尤其是线程池）都要写有意义的名称，就是为了容易定位线程的功能
+    - **`jstack <pid>`** 定位线程状况，重点关注：`WAITING`、`BLOCKED`。举例
+        - `waiting on <0x0000000088ca3310>` (a java.lang.Object) 假如有一个进程中100个线程，很多线程都在waiting on(等待0x0000000088ca3310这把锁/地址编号)，一定要找到是哪个线程持有这把锁
+        - 怎么找？执行`jstack <pid> | grep 0x0000000088ca3310`看哪个线程持有这把锁(该线程可能处于RUNNABLE)
+            - 如果是死锁的话，当前线程就会出现`locked <0x0000000088ca3310>`
+            - 为什么阿里规范里规定，线程的名称（尤其是线程池）都要写有意义的名称，就是为了容易定位线程的功能
+        - 如果一个事物中，修改数据后，方法一直未执行完(如调用restTemplate卡住)，可能会报`Lock wait timeout exceeded; try restarting transaction`
+        - 遇到下面死锁情况，但是程序可以正常运行，原因未知
+
+            ```bash
+            # 正常应该不会出现这种情况，实际遇到了这种情况，但是程序可以正常运行
+            # waiting和locked在同一个线程中
+            "Abandoned connection cleanup thread" daemon prio=10 tid=0x00007f504cca8800 nid=0x191a in Object.wait() [0x00007f504047a000]
+            java.lang.Thread.State: TIMED_WAITING (on object monitor)
+                at java.lang.Object.wait(Native Method)
+                - waiting on <0x0000000786c1f928> (a java.lang.ref.ReferenceQueue$Lock)
+                at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
+                - locked <0x0000000786c1f928> (a java.lang.ref.ReferenceQueue$Lock)
+                at com.mysql.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:43)
+
+            "Tomcat JDBC Pool Cleaner[1863944551:1617781592472]" daemon prio=10 tid=0x00007f504ec31800 nid=0x1919 in Object.wait() [0x00007f504057b000]
+            java.lang.Thread.State: TIMED_WAITING (on object monitor)
+                at java.lang.Object.wait(Native Method)
+                - waiting on <0x00000007868eec38> (a java.util.TaskQueue)
+                at java.util.TimerThread.mainLoop(Timer.java:552)
+                - locked <0x00000007868eec38> (a java.util.TaskQueue)
+                at java.util.TimerThread.run(Timer.java:505)
+
+            "Finalizer" daemon prio=10 tid=0x00007f504c136000 nid=0x1900 in Object.wait() [0x00007f5042ea2000]
+            java.lang.Thread.State: WAITING (on object monitor)
+                at java.lang.Object.wait(Native Method)
+                - waiting on <0x0000000785e470f8> (a java.lang.ref.ReferenceQueue$Lock)
+                at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
+                - locked <0x0000000785e470f8> (a java.lang.ref.ReferenceQueue$Lock)
+                at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:151)
+                at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)
+
+            "Reference Handler" daemon prio=10 tid=0x00007f504c134000 nid=0x18ff in Object.wait() [0x00007f5042fa3000]
+            java.lang.Thread.State: WAITING (on object monitor)
+                at java.lang.Object.wait(Native Method)
+                - waiting on <0x0000000785e42d08> (a java.lang.ref.Reference$Lock)
+                at java.lang.Object.wait(Object.java:503)
+                at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
+                - locked <0x0000000785e42d08> (a java.lang.ref.Reference$Lock)
+            ```
     - `jinfo <pid>` 列举JVM的一些信息
     - `jstat -gc` 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
         - `arthas`/`jvisualvm`/`jconsole`/`Jprofiler`(最好用，收费)

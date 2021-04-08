@@ -2080,6 +2080,13 @@ render() {
         )
     }
 }
+
+// 属性
+return (
+    <span {...{
+        style: { color: color }
+    }}>{ msg }</span>
+)
 ```
 
 ## Vue对Typescript的支持

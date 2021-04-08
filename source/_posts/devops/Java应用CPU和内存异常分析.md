@@ -381,6 +381,10 @@ ORDER BY er.total_elapsed_time DESC;
 kill <pid>
 ```
 
+## JVM调优实践及相关案例
+
+- 参考[jvm.md#调优实践](/_posts/java/jvm.md#调优实践)
+
 ## JVM致命错误日志(hs_err_xxx-pid.log)
 
 - 当JVM发生致命错误导致崩溃时，会生成一个hs_err_pid_xxx.log这样的文件，该文件包含了导致 JVM crash 的重要信息

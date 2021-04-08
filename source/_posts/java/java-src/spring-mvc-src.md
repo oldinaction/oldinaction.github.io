@@ -11,6 +11,10 @@ tags: [spring, src]
 - `@RequestParam` 可以获取GET请求、POST请求的Param参数(添加到URL中的参数，无法获取Body中的数据)
 - `@RequestBody` 仅适用于获取POST请求的Body数据(可以是json/txt等格式)
 - 使用参考：[springboot.md#请求参数字段映射](/_posts/java/springboot.md#请求参数字段映射)
+- 关键类：**`DispatcherServlet#doDispatch`**
+- SpringMVC 的整个请求流程
+
+![springmvc-flow](/data/images/java/springmvc-flow.png)
 
 ## 类关系
 

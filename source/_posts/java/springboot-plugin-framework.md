@@ -13,34 +13,35 @@ tags: [src, springboot, plugin]
 - [springboot-plugin-framework扩展](https://gitee.com/starblues/springboot-plugin-framework-parent/tree/master/springboot-plugin-framework-extension)
     - 对mybatis和mybatis-plus进行了支持，插件中可使用mybatis
     - 对resources进行了支持，插件中可使用资源文件，从而显示视图层返回模板页面
+- **开发时**，开发时需要提前将插件编译出jar，再启动主程序
+    - 从而可让 idea 启动主程序时，自动编译插件包的配置。为了在每次启动主程序的时候，能够动态编译插件包，保证插件包的target是最新的
+    - 选择 File->Project Structure->Project Settings->Artifacts->点击+号->JAR->From modules whith dependencies->选择对应的插件包->确认OK
+    - 启动配置: 在Before launch 下-> 点击小+号 -> Build -> Artifacts -> 选择上一步新增的>Artifacts
+    - 之后启动时会产生一个out/artifacts的目录保存编译好的插件jar包
 
 ## 使用
 
+- 新建插件时，**需要继承`BasePlugin`类，并将其放在插件src根目录**(插件只能扫描到当前类同级目录或其子目录下的类)
+    - 因为会基于此类进行扫描插件其他类，并进行分组，分组相关逻辑参考包`com.gitee.starblues.factory.process.pipe.classs.group`
+- **插件controller层路径**
+    - `"http://ip:port/" + server.servlet.context-path + DefaultIntegrationConfiguration.pluginRestPathPrefix + (enablePluginIdRestPathPrefix=true时还需加入插件ID) + Controller#RequestMapping + Method#RequestMapping`
+- **在插件中无法直接注入主项目Bean，需要通过`PluginUtils`间接获取**
+    - PluginUtils可直接注入到插件项目中，然后通过`@PostConstruct`在初始化方法中调用`pluginUtils.getMainBean(MainIService.class)`获取主程序Bean
+    - PluginUtils功能：可在插件中获取主程序中Spring容器中的bean，可获取当前插件的信息，只能作用于当前插件
+- 插件自定义yml配置，映射Bean时，不能通过`@ConfigurationProperties`注解，而要使用`@ConfigDefinition`
+- maven配置说明
+
+    ```xml
+    <!-- 主项目：高版本(>Spring-boot 2.1.1.RELEASE)需要新增repackage -->
+
+    <!-- 
+        1.插件如果引入了第三方包(而主程序又没有引入的)，则需要使用 maven-assembly-plugin 的 jar-with-dependencies 功能将依赖的class全部打包到插件的jar包中 
+        2.打包插件时，必须将插件包与主程序相同的依赖(特别是版本号不同的)排除掉，不要打入jar包中
+    -->
+    ```
 - 插件相互调用
     - 插件1调用插件2方法，插件1的POM中无需引入插件2。主程序也无需引入插件的POM
     - 插件1调用插件2方法，插件1中需要重新定义一次插件2中需要调用的方法
-- 说明
-    - **开发时**，开发时需要提前将插件编译出jar，再启动主程序
-        - 从而可让 idea 启动主程序时，自动编译插件包的配置。为了在每次启动主程序的时候，能够动态编译插件包，保证插件包的target是最新的
-        - 选择 File->Project Structure->Project Settings->Artifacts->点击+号->JAR->From modules whith dependencies->选择对应的插件包->确认OK
-        - 启动配置: 在Before launch 下-> 点击小+号 -> Build -> Artifacts -> 选择上一步新增的>Artifacts
-        - 之后启动时会产生一个out/artifacts的目录保存编译好的插件jar包
-    - 新建插件时，**需要继承`BasePlugin`类，并将其放在插件src根目录**(否则插件中的controller等将无法扫描到)。因为会基于此类进行扫描插件其他类，并进行分组，分组相关逻辑参考包`com.gitee.starblues.factory.process.pipe.classs.group`
-    - **插件controller层路径**：`"http://ip:port/" + server.servlet.context-path + DefaultIntegrationConfiguration.pluginRestPathPrefix + (enablePluginIdRestPathPrefix=true时还需加入插件ID) + Controller#RequestMapping + Method#RequestMapping`
-    - **在插件中无法直接注入主项目Bean，需要通过`PluginUtils`间接获取**
-        - PluginUtils可直接注入到插件项目中，然后通过`@PostConstruct`在初始化方法中调用`pluginUtils.getMainBean(MainIService.class)`获取主程序Bean
-        - PluginUtils功能：可在插件中获取主程序中Spring容器中的bean，可获取当前插件的信息，只能作用于当前插件
-    - 插件自定义yml配置，映射Bean时，不能通过`@ConfigurationProperties`注解，而要使用`@ConfigDefinition`
-    - maven配置说明
-
-        ```xml
-        <!-- 主项目：高版本(>Spring-boot 2.1.1.RELEASE)需要新增repackage -->
-
-        <!-- 
-            1.插件如果引入了第三方包(而主程序又没有引入的)，则需要使用 maven-assembly-plugin 的 jar-with-dependencies 功能将依赖的class全部打包到插件的jar包中 
-            2.打包插件时，必须将插件包与主程序相同的依赖(特别是版本号不同的)排除掉，不要打入jar包中
-        -->
-        ```
 - 使用mybatis扩展(参考官方源码中文的)
     - xmlLocationsMatch中定义的xml路径不能和主程序中的xml路径在`resources`相对一致，建议使用不同名称区分开。如`xmlLocationsMatch.add("classpath:mapper/minions/**/*Mapper.xml");`
     - **定义的Mapper接口需要加上注解`@Mapper`**
@@ -50,7 +51,6 @@ tags: [src, springboot, plugin]
 - 使用resources扩展(参考官方源码中文的)
     - 插件中需实现接口`StaticResourceConfig`，并映射出静态文件目录如`classpath:static/minions`
     - 插件中`resources`中存放的资源文件目录一定不能和主程序相同，否则就会加载到主程序的资源
-
 
 ## 源码说明
 
@@ -165,7 +165,7 @@ public synchronized boolean initPlugins(PluginInitializerListener pluginInitiali
     }
 }
 
-// DefaultPluginFactory.java
+// DefaultPluginFactory.java 注册某个插件
 @Override
 public synchronized PluginFactory registry(PluginRegistryInfo pluginRegistryInfo) throws Exception {
     if(pluginRegistryInfo == null){
@@ -181,8 +181,8 @@ public synchronized PluginFactory registry(PluginRegistryInfo pluginRegistryInfo
     }
     try {
         // ***对一个插件进行流水线处理
-        // PluginPipeProcessorFactory为入口，后续流水线如：PluginClassProcess(对class进行分组)、PluginInterceptorsPipeProcessor、ThymeleafProcessor(官方extension扩展)
-        // 详细参考
+        // PluginPipeProcessorFactory 为入口，后续流水线如：PluginClassProcess(对class进行分组)、PluginPipeApplicationContextProcessor(进行插件bean的扫描和注册)、PluginInterceptorsPipeProcessor、ThymeleafProcessor(官方extension扩展)
+        // 详细参考下文[注册流水线处理](#注册流水线处理)
         pluginPipeProcessor.registry(pluginRegistryInfo);
         registerPluginInfoMap.put(pluginWrapper.getPluginId(), pluginRegistryInfo);
         buildContainer.add(pluginRegistryInfo);
@@ -195,6 +195,7 @@ public synchronized PluginFactory registry(PluginRegistryInfo pluginRegistryInfo
     }
 }
 
+// 注册成功的后续操作
 @Override
 public synchronized void build() throws Exception {
     if(buildContainer.isEmpty()){
@@ -231,11 +232,196 @@ private void registryBuild() throws Exception {
 }
 ```
 
-### 注册流水线
+### 注册插件流水线处理
 
-- PluginClassProcess.java
+#### PluginClassProcess.java对类进行分组
 
-### Controller处理
+```java
+// 初始化组类型
+@Override
+public void initialize() {
+    pluginClassGroups.add(new ComponentGroup());
+    // 处理Controller
+    pluginClassGroups.add(new ControllerGroup());
+    pluginClassGroups.add(new RepositoryGroup());
+    pluginClassGroups.add(new ConfigDefinitionGroup());
+    pluginClassGroups.add(new ConfigBeanGroup());
+    pluginClassGroups.add(new SupplierGroup());
+    pluginClassGroups.add(new CallerGroup());
+    pluginClassGroups.add(new OneselfListenerGroup());
+    // 添加扩展
+    pluginClassGroups.addAll(ExtensionInitializer.getClassGroupExtends());
+}
+
+// 流水线处理某个插件
+@Override
+public void registry(PluginRegistryInfo pluginRegistryInfo) throws Exception {
+    BasePlugin basePlugin = pluginRegistryInfo.getBasePlugin();
+    ResourceWrapper resourceWrapper = pluginRegistryInfo.getPluginLoadResource(PluginClassLoader.KEY);
+    if(resourceWrapper == null){
+        return;
+    }
+    List<Resource> pluginResources = resourceWrapper.getResources();
+    if(pluginResources == null){
+        return;
+    }
+    for (PluginClassGroup pluginClassGroup : pluginClassGroups) {
+        try {
+            pluginClassGroup.initialize(basePlugin);
+        } catch (Exception e){
+            log.error("PluginClassGroup {} initialize exception. {}", pluginClassGroup.getClass(),
+                    e.getMessage(), e);
+        }
+    }
+    Set<String> classPackageNames = resourceWrapper.getClassPackageNames();
+    ClassLoader classLoader = basePlugin.getWrapper().getPluginClassLoader();
+    for (String classPackageName : classPackageNames) {
+        Class<?> aClass = Class.forName(classPackageName, false, classLoader);
+        if(aClass == null){
+            continue;
+        }
+        boolean findGroup = false;
+        // 判断属于哪个组，并将类添加到该组
+        for (PluginClassGroup pluginClassGroup : pluginClassGroups) {
+            if(pluginClassGroup == null || StringUtils.isEmpty(pluginClassGroup.groupId())){
+                continue;
+            }
+            if(pluginClassGroup.filter(aClass)){
+                pluginRegistryInfo.addGroupClasses(pluginClassGroup.groupId(), aClass);
+                findGroup = true;
+            }
+        }
+        if(!findGroup){
+            // 默认放到其他组
+            pluginRegistryInfo.addGroupClasses(OTHER, aClass);
+        }
+        pluginRegistryInfo.addClasses(aClass);
+    }
+}
+```
+
+#### PluginPipeApplicationContextProcessor.java进行插件bean的扫描和注册
+
+```java
+@Override
+public void initialize() throws Exception {
+    pluginBeanDefinitionRegistrars.add(new PluginInsetBeanRegistrar());
+    // 插件中实现 ConfigBean 接口的的处理者
+    pluginBeanDefinitionRegistrars.add(new ConfigBeanRegistrar());
+    pluginBeanDefinitionRegistrars.add(new ConfigFileBeanRegistrar(mainApplicationContext));
+    pluginBeanDefinitionRegistrars.add(new BasicBeanRegistrar());
+    pluginBeanDefinitionRegistrars.add(new InvokeBeanRegistrar());
+    pluginBeanDefinitionRegistrars.addAll(ExtensionInitializer.getPluginBeanRegistrarExtends());
+}
+
+@Override
+public void registry(PluginRegistryInfo pluginRegistryInfo) throws Exception {
+    GenericApplicationContext pluginApplicationContext = pluginRegistryInfo.getPluginApplicationContext();
+    // 进行bean注册
+    for (PluginBeanRegistrar pluginBeanDefinitionRegistrar : pluginBeanDefinitionRegistrars) {
+        pluginBeanDefinitionRegistrar.registry(pluginRegistryInfo);
+    }
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    try {
+        Thread.currentThread().setContextClassLoader(pluginRegistryInfo.getPluginClassLoader());
+        pluginApplicationContext.refresh();
+    } finally {
+        Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+
+    // 向插件静态容器中新增插件的ApplicationContext
+    String pluginId = pluginRegistryInfo.getPluginWrapper().getPluginId();
+    PluginInfoContainers.addPluginApplicationContext(pluginId, pluginApplicationContext);
+}
+
+// ConfigBeanRegistrar.java为例，其他也是调用SpringBeanRegister进行注册到插件IOC
+@Override
+public void registry(PluginRegistryInfo pluginRegistryInfo) throws Exception {
+    List<Class<?>> configBeans =
+            pluginRegistryInfo.getGroupClasses(ConfigBeanGroup.GROUP_ID);
+    if(configBeans == null || configBeans.isEmpty()){
+        return;
+    }
+    String pluginId = pluginRegistryInfo.getPluginWrapper().getPluginId();
+    SpringBeanRegister springBeanRegister = pluginRegistryInfo.getSpringBeanRegister();
+    for (Class<?> aClass : configBeans) {
+        if(aClass == null){
+            continue;
+        }
+        // 注册Bean到IOC
+        springBeanRegister.register(pluginId, aClass);
+    }
+}
+
+// SpringBeanRegister.java 通用Bean注册
+public String register(String pluginId, Class<?> aClass,
+                           Consumer<AnnotatedGenericBeanDefinition> consumer) {
+    AnnotatedGenericBeanDefinition beanDefinition = new AnnotatedGenericBeanDefinition(aClass);
+    beanDefinition.setBeanClass(aClass);
+    BeanNameGenerator beanNameGenerator =
+            new PluginAnnotationBeanNameGenerator(pluginId);
+    String beanName = beanNameGenerator.generateBeanName(beanDefinition, applicationContext);
+
+    if(applicationContext.containsBean(beanName)){
+        String error = MessageFormat.format("Bean name {0} already exist of {1}",
+                beanName, aClass.getName());
+        logger.debug(error);
+        return beanName;
+    }
+    if(consumer != null){
+        consumer.accept(beanDefinition);
+    }
+    // 此处为插件级别上下文，因此Bean是注册到插件的IOC容器中。上下文为实例化 PluginRegistryInfo 时初始化
+    applicationContext.registerBeanDefinition(beanName, beanDefinition);
+    return beanName;
+}
+```
+
+#### PluginInterceptorsPipeProcessor.java处理SpringMVC拦截器
+
+```java
+@Override
+public void registry(PluginRegistryInfo pluginRegistryInfo) throws Exception {
+    if(handlerMapping == null){
+        return;
+    }
+    // 获取插件上下文
+    GenericApplicationContext pluginApplicationContext = pluginRegistryInfo.getPluginApplicationContext();
+    // 获取PluginInterceptorRegister(starblues)类型的Bean，需要将插件中SpringMVC的拦截器HandlerInterceptor通过此类进行注册
+    // 因此常规的通过Spring的InterceptorRegistry进行注册是无法成功的
+    List<PluginInterceptorRegister> interceptorRegisters = SpringBeanUtils.getBeans(pluginApplicationContext,
+            PluginInterceptorRegister.class);
+    List<HandlerInterceptor> interceptorsObjects = new ArrayList<>();
+    List<HandlerInterceptor> adaptedInterceptors = getAdaptedInterceptors();
+    if(adaptedInterceptors == null){
+        return;
+    }
+    // 根据拦截的controller的前缀进行处理，如：/plugins/plugin-id
+    String pluginRestPrefix = CommonUtils.getPluginRestPrefix(configuration, pluginRegistryInfo.getPluginWrapper().getPluginId());
+
+    for (PluginInterceptorRegister interceptorRegister : interceptorRegisters) {
+        PluginInterceptorRegistry interceptorRegistry = new PluginInterceptorRegistry(pluginRestPrefix);
+        // 注册实际的SpringMVC的拦截器HandlerInterceptor
+        interceptorRegister.registry(interceptorRegistry);
+        // 获取插件拦截器
+        List<Object> interceptors = interceptorRegistry.getInterceptors();
+        if(interceptors == null || interceptors.isEmpty()){
+            continue;
+        }
+        for (Object interceptor : interceptors) {
+            // 转换拦截器为 HandlerInterceptor 类
+            HandlerInterceptor handlerInterceptor = adaptInterceptor(interceptor);
+            adaptedInterceptors.add(handlerInterceptor);
+            interceptorsObjects.add(handlerInterceptor);
+        }
+    }
+    pluginRegistryInfo.addExtension(INTERCEPTORS, interceptorsObjects);
+}
+```
+
+### 插件注册后流水线处理
+
+#### Controller处理
 
 ```java
 // 以 PluginControllerPostProcessor 为例
@@ -262,6 +448,7 @@ public void registry(List<PluginRegistryInfo> pluginRegistryInfos) throws Except
                 throw e;
             }
         }
+        // 调用扩展出的接口控制器
         resolveProcessExtend(extend->{
             try {
                 extend.registry(pluginId, controllerBeanWrappers);

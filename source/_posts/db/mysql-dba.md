@@ -304,7 +304,7 @@ select count(*) from `t_test_vote`;
     ```bash
     # 事物等待锁超时，如：一个事物还没有提交（对某些表加锁了还没释放），另外一个线程需要获取锁，从而等待超时
 
-    show variables like 'autocommit'; # 查看事物是否为自动提交，NO 为自动提交
+    show variables like 'autocommit'; # 查看事物是否为自动提交，ON 为自动提交
     # set global autocommit=1; # 如果不是自动提交可进行设置
     
     show processlist; # 查看是否有执行慢的sql

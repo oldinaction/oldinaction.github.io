@@ -231,7 +231,21 @@ List<String> list = myGoods.stream()
                             // .sorted(Comparator.reverseOrder()) // 降序排列
                             .collect(Collectors.toList());
 
+// 排序
 Goods goods = myGoods.stream().sorted(Comparator.comparing(Goods::getNo).reversed()).findFirst().orElse(null);
+// 基于List<Map>的排序
+List<Map<String, Object>> collect = list.stream().sorted(Comparator.comparing(TestClass::comparingByName).collect(Collectors.toList());
+Map<String, Object> recordLatest = list.stream()
+                    // 过滤数据RECORD_TIM > inputTm的时间
+                    .filter(x -> {
+                        Date recordTim = (Date) x.get("RECORD_TIM"); // Oracle查询返回的 java.sql.Timestamp
+                        return recordTim.compareTo(inputTm) > 0;
+                    })
+                    .sorted(Comparator.comparing(TransRecvServiceImpl::comparingByName).reversed()) // 默认升序，reversed反转(降序)
+                    .findFirst().orElse(null);
+private static String comparingByName(Map<String, Object> map) { // TestClass.java
+    return (String) map.get("name");
+}
 
 myGoods.stream()
         .map(item -> item.getColor())
