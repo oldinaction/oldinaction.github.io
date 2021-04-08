@@ -2,9 +2,65 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
+    
+    <lastmod>2021-04-08T12:55:14.686Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/04/11/java/java-release/</loc>
+    
+    <lastmod>2021-04-08T12:07:16.294Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-04-08T10:49:41.789Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/09/08/java/java-src/spring-mvc-src/</loc>
+    
+    <lastmod>2021-04-07T13:49:23.406Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2021/04/06/java/springboot-plugin-framework/</loc>
     
-    <lastmod>2021-04-06T14:04:52.869Z</lastmod>
+    <lastmod>2021-04-07T12:22:11.808Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
+    
+    <lastmod>2021-04-07T10:42:08.744Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
+    
+    <lastmod>2021-04-07T08:42:20.512Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/13/devops/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</loc>
+    
+    <lastmod>2021-04-07T08:38:25.536Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
+    
+    <lastmod>2021-04-07T06:55:11.238Z</lastmod>
     
   </url>
   
@@ -30,20 +86,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
-    
-    <lastmod>2021-04-05T10:39:34.834Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-04-04T10:21:29.320Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/09/13/extend/chrome/</loc>
     
     <lastmod>2021-04-01T07:24:04.162Z</lastmod>
@@ -65,23 +107,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
-    
-    <lastmod>2021-03-31T16:06:24.761Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
     
     <lastmod>2021-03-31T02:24:12.797Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
-    
-    <lastmod>2021-03-28T09:36:45.837Z</lastmod>
     
   </url>
   
@@ -163,23 +191,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/04/11/java/java-release/</loc>
-    
-    <lastmod>2021-03-21T08:41:01.781Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2020/09/08/java/java-src/spring-ioc-src/</loc>
     
     <lastmod>2021-03-20T12:12:50.195Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/09/08/java/java-src/spring-mvc-src/</loc>
-    
-    <lastmod>2021-03-20T10:55:55.692Z</lastmod>
     
   </url>
   
@@ -306,20 +320,6 @@
     <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
     
     <lastmod>2021-03-03T14:23:33.802Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/03/13/devops/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</loc>
-    
-    <lastmod>2021-03-03T10:11:02.489Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
-    
-    <lastmod>2021-03-01T02:09:20.665Z</lastmod>
     
   </url>
   
