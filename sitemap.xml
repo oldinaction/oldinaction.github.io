@@ -2,9 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-04-10T10:03:04.309Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/04/06/java/springboot-plugin-framework/</loc>
+    
+    <lastmod>2021-04-10T09:56:44.211Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
+    
+    <lastmod>2021-04-10T09:56:25.614Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/02/09/java/osgi/</loc>
+    
+    <lastmod>2021-04-10T09:55:37.295Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/09/08/java/java-src/spring-mvc-src/</loc>
+    
+    <lastmod>2021-04-10T04:45:28.380Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     
-    <lastmod>2021-04-08T12:55:14.686Z</lastmod>
+    <lastmod>2021-04-10T04:13:05.318Z</lastmod>
     
   </url>
   
@@ -12,27 +47,6 @@
     <loc>http://blog.aezo.cn/2018/04/11/java/java-release/</loc>
     
     <lastmod>2021-04-08T12:07:16.294Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-04-08T10:49:41.789Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/09/08/java/java-src/spring-mvc-src/</loc>
-    
-    <lastmod>2021-04-07T13:49:23.406Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2021/04/06/java/springboot-plugin-framework/</loc>
-    
-    <lastmod>2021-04-07T12:22:11.808Z</lastmod>
     
   </url>
   
@@ -61,13 +75,6 @@
     <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
     
     <lastmod>2021-04-07T06:55:11.238Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/java/java-tools/</loc>
-    
-    <lastmod>2021-04-06T13:54:53.794Z</lastmod>
     
   </url>
   
