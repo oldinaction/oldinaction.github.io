@@ -2,11 +2,15 @@
 layout: "post"
 title: "OSGi —— Java动态模块化规范"
 date: "2021-02-09 19:10"
-categories: [arch, java]
+categories: java
 ---
 
 ## 简介
 
+- **Java其他插件化开发(OSGi文档较少，2021-02弃用)**
+    - [sofastack](https://www.sofastack.tech/)
+    - [pf4j](https://github.com/pf4j/pf4j)
+    - [springboot-plugin-framework, 基于pf4j](https://gitee.com/starblues/springboot-plugin-framework-parent)
 - OSGi：`Open Service Gateway Initiative` 是一个Java模块化规范
 - [官网：https://www.osgi.org/](https://www.osgi.org/)
 - Eclipse的插件机制就是基于OSGI规范实现
@@ -19,9 +23,6 @@ categories: [arch, java]
     - SpringDM并不是OSGi的标准实现，它的运行必须依赖OSGi的标准容器，比如Equinox、Felix或是Knopflerfish等
     - SpringDM完成了OSGi服务的注册、查询、使用和监听，我们也可以将这些OSGi服务称之为Bean
 - 基于[springboot osgi demo](https://github.com/klebeer/karaf-springboot.git)未测试成功
-- **Java其他插件化开发(OSGi文档较少，弃用)**
-    - [pf4j](https://github.com/pf4j/pf4j)
-    - [springboot-plugin-framework, 基于pf4j](https://gitee.com/starblues/springboot-plugin-framework-parent)
 
 ### 相关文档
 

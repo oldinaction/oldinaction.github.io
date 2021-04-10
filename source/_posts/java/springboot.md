@@ -985,6 +985,27 @@ public void download(@PathVariable("id") Integer id, HttpServletRequest request,
 
 参考[spring.md#拦截response的数据](/_posts/java/spring.md#拦截response的数据)
 
+#### SpringBoot中使用Servlet
+
+- 使用方法
+
+```java
+// 方式一: 访问 http://localhost:8080/api/test/* 都可以进入到此servlet
+@Bean
+public ServletRegistrationBean testServlet() {
+    return new ServletRegistrationBean(new TestServlet(), "/test/*");
+}
+
+// 方式二：启动类加 @ServletComponentScan + @WebServlet(urlPatterns = "/test/*")
+// @WebServlet(urlPatterns = "/test/*") // 方式二需要
+public class TestServlet extends HttpServlet{
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.getWriter().append("TestServlet");
+    }
+}
+```
+
 ## 数据访问
 
 - 数据库驱动

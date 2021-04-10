@@ -1068,6 +1068,7 @@ public class SpringU implements ApplicationContextAware {
 
 - 映射处理器：就是实现了HandlerMapping接口，处理url到bean的映射
 - 常见的
+    - `RequestMappingHandlerMapping` 处理@RequestMapping
     - `BeanNameUrlHandlerMapping` 将bean的name作为url进行查找，需要在配置Handler时指定bean name，且必须以 / 开头
     - `SimpleUrlHandlerMapping` 可以通过内部参数去配置请求的 url 和 handler 之间的映射关系。springboot中使用此类进行映射的地方(调用其setUrlMap进行注入)
         - ResourceHandlerRegistry

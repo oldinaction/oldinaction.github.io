@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "springboot-plugin-framework库"
+title: "springboot-plugin-framework —— 插件化"
 date: "2021-04-06 21:54"
 categories: java
 tags: [src, springboot, plugin]
@@ -8,6 +8,7 @@ tags: [src, springboot, plugin]
 
 ## 简介
 
+- **2021-04转向sofastack**
 - [springboot-plugin-framework](https://gitee.com/starblues/springboot-plugin-framework-parent)、[文档](http://www.starblues.cn/)
 - 基于[pf4j](https://github.com/pf4j/pf4j)
 - [springboot-plugin-framework扩展](https://gitee.com/starblues/springboot-plugin-framework-parent/tree/master/springboot-plugin-framework-extension)
@@ -51,6 +52,84 @@ tags: [src, springboot, plugin]
 - 使用resources扩展(参考官方源码中文的)
     - 插件中需实现接口`StaticResourceConfig`，并映射出静态文件目录如`classpath:static/minions`
     - 插件中`resources`中存放的资源文件目录一定不能和主程序相同，否则就会加载到主程序的资源
+- 插件依赖其他jar包时配置说明
+
+```xml
+<!-- sqbiz-plugin父工程 -->
+<build>
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <!--支持自定义的打包结构，也可以定制依赖项，设置MANIFEST.MF文件等-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven-assembly-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <finalName>sqbiz-${project.artifactId}-${project.version}</finalName>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Plugin-Id>${plugin.id}</Plugin-Id>
+                            <Plugin-Version>${plugin.version}</Plugin-Version>
+                            <Plugin-Provider>${plugin.provider}</Plugin-Provider>
+                            <Plugin-Class>${plugin.class}</Plugin-Class>
+                            <Plugin-Description>${plugin.dependencies}</Plugin-Description>
+                        </manifestEntries>
+                    </archive>
+                    <descriptors>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptors>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+
+<!-- 插件 -->
+<!-- 假设插件的dependencies依赖了一个A.jar，如果A.jar中用到了和主程序相同的依赖，则需要去除 -->
+<!-- build配置 -->
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.8</version>
+            <executions>
+                <execution>
+                    <id>copy-dependencies</id>
+                    <phase>package</phase>
+                    <goals>
+                        <!-- 复制依赖到lib目录，因为pf4j会把target/lib下的jar包也作为classpath环境 -->
+                        <goal>copy-dependencies</goal>
+                    </goals>
+                    <configuration>
+                        <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        <!-- 去除主程序中的依赖 -->
+                        <excludeScope>provided</excludeScope>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
 
 ## 源码说明
 
@@ -425,6 +504,15 @@ public void registry(PluginRegistryInfo pluginRegistryInfo) throws Exception {
 
 ```java
 // 以 PluginControllerPostProcessor 为例
+public PluginControllerPostProcessor(ApplicationContext mainApplicationContext){
+    Objects.requireNonNull(mainApplicationContext);
+    // 获取主系统的RequestMappingHandlerMapping对象
+    this.requestMappingHandlerMapping = mainApplicationContext.getBean(RequestMappingHandlerMapping.class);
+    this.configuration = mainApplicationContext.getBean(IntegrationConfiguration.class);
+    this.pluginControllerProcessors = ExtensionFactory
+            .getPluginControllerProcessorExtend(mainApplicationContext);
+}
+
 @Override
 public void registry(List<PluginRegistryInfo> pluginRegistryInfos) throws Exception {
     for (PluginRegistryInfo pluginRegistryInfo : pluginRegistryInfos) {
@@ -481,6 +569,9 @@ private ControllerWrapper registry(PluginRegistryInfo pluginRegistryInfo, Class<
             if (isHaveRequestMapping(method)) {
                 RequestMappingInfo requestMappingInfo = (RequestMappingInfo)
                         getMappingForMethod.invoke(requestMappingHandlerMapping, method, aClass);
+                // 最终会调用到springmvc的AbstractHandlerMethodMapping#register方法
+                // 将URL-HandlerMethod映射关系保存到**主系统**的mappingRegistry中(requestMappingHandlerMapping为主系统Bean)
+                // 参考[spring-mvc-src.md#mappingRegistry初始化](/_posts/java/java-src/spring-mvc-src.md#mappingRegistry初始化)
                 requestMappingHandlerMapping.registerMapping(requestMappingInfo, object, method);
                 requestMappingInfos.add(requestMappingInfo);
             }
@@ -531,4 +622,79 @@ private void setPathPrefix(String pluginId, Class<?> aClass) {
         log.error("Define Plugin RestController pathPrefix error : {}", e.getMessage(), e);
     }
 }
+```
+
+## pf4j
+
+- **2021-04转向sofastack**
+- [PF4J](https://github.com/pf4j/pf4j) 是一个 Java 的插件框架，为第三方提供应用扩展的渠道。PF4J 本身非常轻量级，只有 50KB 左右，目前只依赖了 slf4j。Gitblit 项目使用的就是 PF4J 进行插件管理
+- 组件
+    - `Plugin` 是所有插件类型的基类。为了避免冲突，每个插件都被加载到一个单独的类加载器中
+    - `PluginManager` 用于插件管理的所有方面（加载、启动、停止）
+    - `PluginLoader` 加载插件所需的所有信息（类）
+    - 可以将任何接口或抽象类标记为扩展点（即继承`ExtensionPoint`接口），并使用`@Extension`标记扩展点的实现类
+- 相关生态
+    - pf4j-update（PF4J的更新机制）
+    - pf4j-spring（PF4J-Spring框架集成）
+    - pf4j-wicket（PF4J-Wicket集成）
+    - pf4j-web（web应用程序中的PF4J）
+    - springboot-plugin-framework（见下文）
+- 案例
+
+```java
+// 参考：https://www.cnblogs.com/fengyun2050/p/12809204.html
+// 主程序定义扩展点
+public interface Greeting extends ExtensionPoint {
+    String getGreeting();
+}
+
+// 插件定义实现类
+@Extension
+public class WelcomeGreeting implements Greeting {
+    public String getGreeting() {
+        return "Welcome";
+    }
+}
+// 插件maven打包（参考下文maven配置），会在MANIFEST.MF文件生成如下(可以将插件作为jar文件分发)
+// 插件id为welcome-plugin（强制属性）、版本为0.0.1（强制属性）、类为cn.aezo.test.pf4j.welcome.WelcomePlugin（可选属性）作者为Smalle的插件；以及与插件x, y, z（可选属性）的依赖关系
+Plugin-Id: welcome-plugin
+Plugin-Version: 0.0.1
+Plugin-Class: cn.aezo.test.pf4j.welcome.WelcomePlugin
+Plugin-Provider: Smalle
+Plugin-Dependencies: x, y, z
+
+// 主程序中使用插件
+public static void main(String[] args) {
+    // jar插件管理器
+    PluginManager pluginManager = new JarPluginManager();// or "new ZipPluginManager() / new DefaultPluginManager()"
+
+    // 加载指定路径插件
+    pluginManager.loadPlugin(Paths.get("plugins-0.0.1-SNAPSHOT.jar")); // 或 pluginManager.loadPlugins(); 加载所有
+
+    // 启动指定插件(也可以加载所有插件)
+    pluginManager.startPlugin("welcome-plugin"); // 或 pluginManager.startPlugins(); 启动所有
+
+    // 执行插件
+    List<Greeting> greetings = pluginManager.getExtensions(Greeting.class);
+    for (Greeting greeting : greetings) {
+        System.out.println(">>> " + greeting.getGreeting()); // Welcome
+    }
+}
+```
+- 插件maven打包
+
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-jar-plugin</artifactId>
+  <version>2.3.1</version>
+  <configuration>
+    <archive>
+      <manifestEntries>
+        <Plugin-Id>welcome-plugin</Plugin-Id>
+        <Plugin-Version>0.0.1</Plugin-Version>
+      </manifestEntries>
+    </archive>
+  </configuration>
+</plugin>
 ```

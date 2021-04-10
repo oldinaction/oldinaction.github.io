@@ -6,17 +6,415 @@ categories: [java]
 tags: [spring, src]
 ---
 
+## 请求流程
+
+- SpringMVC 的整个请求流程 [^2]
+
+    ![springmvc-flow](/data/images/java/springmvc-flow.png)
+    - 用户请求发送到**前端控制器DispatcherServlet**
+    - 前端控制器DispatcherServlet接收到请求后，DispatcherServlet会使用HandlerMapping来处理，**HandlerMapping会查找到具体进行处理请求的Handler对象**
+    - HandlerMapping找到对应的Handler之后，返回一个**Handler执行链**，在这个执行链中包括了拦截器和处理请求的Handler
+    - DispatcherServlet接收到执行链之后，会**调用Handler适配器**去执行Handler
+    - Handler适配器执行完成**Handler（也就是我们写的Controller）**之后会得到一个ModelAndView，并返回给DispatcherServlet
+    - DispatcherServlet接收到Handler适配器返回的ModelAndView之后，会根据其中的视图名**调用视图解析器**
+    - 视图解析器根据逻辑视图名解析成一个**真正的View视图**，并返回给DispatcherServlet
+    - DispatcherServlet接收到视图之后，会根据上面的ModelAndView中的model来进行视图中数据的填充，也就是所谓的**视图渲染**
+    - 渲染完成之后，DispatcherServlet就可以将结果返回给用户了
+- 说明
+    - springboot直接使用Servlet，这种请求是不会进入SpringMVC的流程的
+
+### 请求进入DispatcherServlet
+
+- FrameworkServlet.java
+
+```java
+// DispatcherServlet 继承自 FrameworkServlet，请求先进入到 service 方法
+public abstract class FrameworkServlet extends HttpServletBean implements ApplicationContextAware {
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpMethod httpMethod = HttpMethod.resolve(request.getMethod());
+        if (httpMethod != HttpMethod.PATCH && httpMethod != null) {
+            super.service(request, response);
+        } else {
+            // 
+            this.processRequest(request, response);
+        }
+    }
+}
+
+protected final void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    // ...
+    try {
+        this.doService(request, response);
+    }
+    // ...
+}
+
+protected abstract void doService(HttpServletRequest var1, HttpServletResponse var2) throws Exception;
+```
+- **DispatcherServlet.java**
+
+```java
+// 实现 FrameworkServlet 的抽象方法
+protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // ...
+    try {
+        this.doDispatch(request, response);
+    } finally {
+        if (!WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted() && attributesSnapshot != null) {
+            this.restoreAttributesAfterInclude(request, attributesSnapshot);
+        }
+    }
+}
+
+// 主要处理方法
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    HttpServletRequest processedRequest = request;
+    HandlerExecutionChain mappedHandler = null;
+    boolean multipartRequestParsed = false;
+    // SpringMVC中异步请求的相关
+    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+
+    try {
+        try {
+            ModelAndView mv = null;
+            Object dispatchException = null;
+
+            try {
+                // 先检查是不是Multipart类型的，比如上传等
+                // 如果是Multipart类型的，则转换为 MultipartHttpServletRequest 类型
+                processedRequest = this.checkMultipart(request);
+                multipartRequestParsed = processedRequest != request;
+
+                // **基于HandlerMapping获取当前请求的Handler**，参考下文[查找请求对应的Handler对象](#查找请求对应的Handler对象(Controller))
+                mappedHandler = this.getHandler(processedRequest);
+                if (mappedHandler == null) {
+                    this.noHandlerFound(processedRequest, response);
+                    return;
+                }
+
+                // **获取当前请求的Handler适配器**，参考下文[获取对应请求的Handler适配器](#获取对应请求的Handler适配器)
+                HandlerAdapter ha = this.getHandlerAdapter(mappedHandler.getHandler());
+
+                // 对于header中last-modified的处理
+                String method = request.getMethod();
+                boolean isGet = "GET".equals(method);
+                if (isGet || "HEAD".equals(method)) {
+                    long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+                    if ((new ServletWebRequest(request, response)).checkNotModified(lastModified) && isGet) {
+                        return;
+                    }
+                }
+
+                // 拦截器的preHandle方法进行处理
+                if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+                    return;
+                }
+
+                // 真正调用Handler的地方
+                mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+                if (asyncManager.isConcurrentHandlingStarted()) {
+                    return;
+                }
+
+                // 处理成默认视图名，就是添加前缀和后缀等
+                this.applyDefaultViewName(processedRequest, mv);
+
+                // 拦截器postHandle方法进行处理
+                mappedHandler.applyPostHandle(processedRequest, response, mv);
+            } catch (Exception var20) {
+                dispatchException = var20;
+            } catch (Throwable var21) {
+                dispatchException = new NestedServletException("Handler dispatch failed", var21);
+            }
+
+            // 处理最后的结果，渲染之类的都在这里
+            this.processDispatchResult(processedRequest, response, mappedHandler, mv, (Exception)dispatchException);
+        } catch (Exception var22) {
+            this.triggerAfterCompletion(processedRequest, response, mappedHandler, var22);
+        } catch (Throwable var23) {
+            this.triggerAfterCompletion(processedRequest, response, mappedHandler, new NestedServletException("Handler processing failed", var23));
+        }
+    } finally {
+        if (asyncManager.isConcurrentHandlingStarted()) {
+            if (mappedHandler != null) {
+                mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);
+            }
+        } else if (multipartRequestParsed) {
+            this.cleanupMultipart(processedRequest);
+        }
+
+    }
+}
+```
+
+### 查找请求对应的Handler对象(Controller)
+
+- DispatcherServlet.java
+
+```java
+@Nullable
+protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+    if (this.handlerMappings != null) {
+        // 遍历所有的handlerMappings进行处理
+        // handlerMappings是在启动的时候预先注册好的
+        for (HandlerMapping mapping : this.handlerMappings) {
+            HandlerExecutionChain handler = mapping.getHandler(request);
+            if (handler != null) {
+                return handler;
+            }
+        }
+    }
+    return null;
+}
+```
+- AbstractHandlerMapping.java
+
+```java
+@Override
+@Nullable
+public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+    // 根据request获取handler，getHandlerInternal为抽象方法
+    Object handler = getHandlerInternal(request);
+    if (handler == null) {
+        // 如果没有找到就使用默认的handler
+        handler = getDefaultHandler();
+    }
+    if (handler == null) {
+        return null;
+    }
+
+    // 如果Handler是String，表明是一个bean名称
+    if (handler instanceof String) {
+        String handlerName = (String) handler;
+        handler = obtainApplicationContext().getBean(handlerName);
+    }
+
+    // 封装Handler执行链
+    HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
+
+    // ...
+    return executionChain;
+}
+```
+- 以 AbstractHandlerMethodMapping.java 为例
+
+```java
+@Override
+protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+    // 获取request中的url，用来匹配handler. **如：/test/ping (此时不包含servlet.context)**
+    String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
+    request.setAttribute(LOOKUP_PATH, lookupPath);
+    this.mappingRegistry.acquireReadLock();
+    try {
+        // 根据路径寻找Handler，具体见下文
+        HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
+        // 根据handlerMethod中的bean来实例化Handler并添加进HandlerMethod
+        return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
+    }
+    finally {
+        this.mappingRegistry.releaseReadLock();
+    }
+}
+
+@Nullable
+protected HandlerMethod lookupHandlerMethod(String lookupPath, HttpServletRequest request) throws Exception {
+    List<Match> matches = new ArrayList<>();
+    // 直接匹配. MappingRegistry在启动时初始化并扫描所有的类，将HTTP URL和方法名进行映射。参考下文[MappingRegistry类说明](#MappingRegistry类说明)
+    List<T> directPathMatches = this.mappingRegistry.getMappingsByUrl(lookupPath);
+    // 如果有匹配的，就添加进匹配列表中
+    if (directPathMatches != null) {
+        addMatchingMappings(directPathMatches, matches, request);
+    }
+    // 还没有匹配的，就遍历所有的处理方法查找
+    if (matches.isEmpty()) {
+        // No choice but to go through all mappings...
+        addMatchingMappings(this.mappingRegistry.getMappings().keySet(), matches, request);
+    }
+
+    // 找到了匹配的
+    if (!matches.isEmpty()) {
+        Match bestMatch = matches.get(0);
+        if (matches.size() > 1) {
+            Comparator<Match> comparator = new MatchComparator(getMappingComparator(request));
+            matches.sort(comparator);
+            // 排序之后，获取第一个
+            bestMatch = matches.get(0);
+            if (logger.isTraceEnabled()) {
+                logger.trace(matches.size() + " matching mappings: " + matches);
+            }
+            if (CorsUtils.isPreFlightRequest(request)) {
+                return PREFLIGHT_AMBIGUOUS_MATCH;
+            }
+            // 如果有多个匹配的，会找到第二个进行比较一下
+            Match secondBestMatch = matches.get(1);
+            if (comparator.compare(bestMatch, secondBestMatch) == 0) {
+                Method m1 = bestMatch.handlerMethod.getMethod();
+                Method m2 = secondBestMatch.handlerMethod.getMethod();
+                String uri = request.getRequestURI();
+                throw new IllegalStateException(
+                        "Ambiguous handler methods mapped for '" + uri + "': {" + m1 + ", " + m2 + "}");
+            }
+        }
+        request.setAttribute(BEST_MATCHING_HANDLER_ATTRIBUTE, bestMatch.handlerMethod);
+        // 设置request参数
+        handleMatch(bestMatch.mapping, lookupPath, request);
+        // 返回匹配的url的处理的方法
+        return bestMatch.handlerMethod;
+    }
+    else {
+        return handleNoMatch(this.mappingRegistry.getMappings().keySet(), lookupPath, request);
+    }
+}
+```
+- 如果是使用@RequestMapping(如SpringBoot中)，则通过RequestMappingInfoHandlerMapping.java可解析出Handle(继承自AbstractHandlerMethodMapping)
+
+```java
+@Override
+protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+    request.removeAttribute(PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
+    try {
+        // AbstractHandlerMethodMapping.java
+        return super.getHandlerInternal(request);
+    }
+    finally {
+        ProducesRequestCondition.clearMediaTypesAttribute(request);
+    }
+}
+```
+- AbstractHandlerMapping.java
+
+```java
+protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+    // 如果当前Handler不是执行链类型，就使用一个新的执行链实例封装起来
+    HandlerExecutionChain chain = (handler instanceof HandlerExecutionChain ?
+            (HandlerExecutionChain) handler : new HandlerExecutionChain(handler));
+
+    // 当前的url
+    String lookupPath = this.urlPathHelper.getLookupPathForRequest(request, LOOKUP_PATH);
+    // 遍历拦截器，找到跟当前url对应的，添加进执行链中去
+    for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
+        if (interceptor instanceof MappedInterceptor) {
+            MappedInterceptor mappedInterceptor = (MappedInterceptor) interceptor;
+            if (mappedInterceptor.matches(lookupPath, this.pathMatcher)) {
+                chain.addInterceptor(mappedInterceptor.getInterceptor());
+            }
+        }
+        else {
+            chain.addInterceptor(interceptor);
+        }
+    }
+    return chain;
+}
+```
+
+### 获取对应请求的Handler适配器
+
+```java
+protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
+    if (this.handlerAdapters != null) {
+        // 遍历所有的HandlerAdapter，找到和当前Handler匹配的就返回
+        // 我们这里会匹配到RequestMappingHandlerAdapter
+        for (HandlerAdapter adapter : this.handlerAdapters) {
+            if (adapter.supports(handler)) {
+                return adapter;
+            }
+        }
+    }
+    throw new ServletException("No adapter for handler [" + handler +
+            "]: The DispatcherServlet configuration needs to include a HandlerAdapter that supports this handler");
+}
+```
+
+## 系统初始化
+
+### mappingRegistry初始化
+
+- mappingRegistry主要记录了URL-HandlerMethod(Controller方法)的映射
+- 映射处理器HandlerMapping接口说明，参考[spring.md#映射处理器HandlerMapping](/_posts/java/spring.md#映射处理器HandlerMapping)
+    - AbstractHandlerMapping(实现getHandler方法)
+    - AbstractHandlerMethodMapping(通过MappingRegistry初始化URL-HandlerMethod映射)
+    - 对应的实现类
+        - RequestMappingHandlerMapping 处理@RequestMapping
+        - SimpleUrlHandlerMapping 简单的urlMap保存了URL到HttpRequestHandler的映射
+        - BeanNameUrlHandlerMapping 将bean的name作为url进行查找，需要在配置Handler时指定bean name，且必须以 / 开头
+        - 还可自定义
+
+#### MappingRegistry类说明
+
+```java
+public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMapping implements InitializingBean {
+    // mappingRegistry主要记录了URL-HandlerMethod(Controller方法)的映射
+    private final MappingRegistry mappingRegistry = new MappingRegistry();
+
+    // 内部类
+    class MappingRegistry {
+        // ...
+        private final Map<T, HandlerMethod> mappingLookup = new LinkedHashMap<>();
+        private final MultiValueMap<String, T> urlLookup = new LinkedMultiValueMap<>();
+        private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+        // 获取映射，参考上文[查找请求对应的Handler对象(Controller)](#查找请求对应的Handler对象(Controller))
+        public Map<T, HandlerMethod> getMappings() {
+			return this.mappingLookup;
+		}
+
+        // 直接通过URL获取映射
+		@Nullable
+		public List<T> getMappingsByUrl(String urlPath) {
+			return this.urlLookup.get(urlPath);
+		}
+
+        // 注册URL-HandlerMethod映射
+        public void register(T mapping, Object handler, Method method) {
+            // Assert that the handler method is not a suspending one.
+            if (KotlinDetector.isKotlinType(method.getDeclaringClass())) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if ((parameterTypes.length > 0) && "kotlin.coroutines.Continuation".equals(parameterTypes[parameterTypes.length - 1].getName())) {
+                    throw new IllegalStateException("Unsupported suspending handler method detected: " + method);
+                }
+            }
+            // 加锁
+            this.readWriteLock.writeLock().lock();
+            try {
+                HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+                validateMethodMapping(handlerMethod, mapping);
+                // 将映射关系保存起来
+                this.mappingLookup.put(mapping, handlerMethod);
+
+                List<String> directUrls = getDirectUrls(mapping);
+                for (String url : directUrls) {
+                    this.urlLookup.add(url, mapping);
+                }
+
+                String name = null;
+                if (getNamingStrategy() != null) {
+                    name = getNamingStrategy().getName(handlerMethod, mapping);
+                    addMappingName(name, handlerMethod);
+                }
+
+                CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
+                if (corsConfig != null) {
+                    this.corsLookup.put(handlerMethod, corsConfig);
+                }
+
+                this.registry.put(mapping, new MappingRegistration<>(mapping, handlerMethod, directUrls, name));
+            }
+            finally {
+                // 释放锁
+                this.readWriteLock.writeLock().unlock();
+            }
+        }
+    }
+}
+```
+
 ## MVC请求参数解析
 
 - `@RequestParam` 可以获取GET请求、POST请求的Param参数(添加到URL中的参数，无法获取Body中的数据)
 - `@RequestBody` 仅适用于获取POST请求的Body数据(可以是json/txt等格式)
 - 使用参考：[springboot.md#请求参数字段映射](/_posts/java/springboot.md#请求参数字段映射)
-- 关键类：**`DispatcherServlet#doDispatch`**
-- SpringMVC 的整个请求流程
 
-![springmvc-flow](/data/images/java/springmvc-flow.png)
-
-## 类关系
+### 类关系
 
 - org.springframework.web.method
     - InvocableHandlerMethod 参数处理器
@@ -43,7 +441,7 @@ tags: [spring, src]
             - AbstractJackson2HttpMessageConverter **最终通过 ObjectMapper(可进行自定义映射规则)进行转换**
                 - MappingJackson2HttpMessageConverter 通过Jackson解析application/json格式数据
 
-## 流程 [^1]
+### 流程 [^1]
 
 ```java
 // 测试方法
@@ -273,7 +671,7 @@ public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewC
 参考文章
 
 [^1]: https://blog.teble.me/2019/11/05/SpringBoot-LocalDateTime-%E5%90%8E%E7%AB%AF%E6%8E%A5%E6%94%B6%E5%8F%82%E6%95%B0%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/
-
+[^2]: https://www.jianshu.com/p/3450e3a764aa
 
 
 
