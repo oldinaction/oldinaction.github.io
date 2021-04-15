@@ -569,8 +569,8 @@ tags: [build]
 ## maven插件
 
 - `maven-compiler-plugin` 编译插件
-- `maven-jar-plugin` 默认的打包插件，用来打普通的project JAR包
-- `maven-shade-plugin` 用来打可执行JAR包，也就是所谓的fat JAR包
+- `maven-jar-plugin` 默认的打包插件，用来打普通的**Project jar**包(不包含依赖)
+- `maven-shade-plugin` 用来打**Fat jar**包(包含依赖)，一般为可执行jar包
 - `maven-assembly-plugin` 支持自定义的打包结构，也可以定制依赖项，设置MANIFEST.MF文件等 [^5]
 
     ```xml
@@ -675,7 +675,7 @@ tags: [build]
 - `spring-boot-maven-plugin` 打包SpringBoot项目
 - `org.codehaus.mojo#exec-maven-plugin`
     - 可执行shell命令、构建docker镜像、用npm打包等。特别是结合phase使用
-- maven-dependency-plugin   
+- maven-dependency-plugin 操作项目依赖文件，如将依赖jar全部复制到lib目录 
     - https://blog.csdn.net/u011781521/article/details/79055605
     - https://my.oschina.net/LucasZhu/blog/1539468
 - `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
@@ -683,6 +683,8 @@ tags: [build]
         - `requireMavenVersion` 校验maven版本
         - `requireJavaVersion` 校验java版本
         - `bannedDependencies` 校验依赖关系，检查是否存在或不存在某依赖
+- license-maven-plugin 为项目源文件顶部添加许可证
+    - https://www.pingfangushi.com/posts/57675/
 
 ## maven私服搭建(nexus)
 

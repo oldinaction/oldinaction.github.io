@@ -10,6 +10,7 @@ tags: [HA, 分布式锁]
 
 - [ZooKeeper官网](http://zookeeper.apache.org/)
 - ZooKeeper **分布式协调服务(提供分布式锁)，是一个为分布式应用提供一致性服务的软件**，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件
+- [zookeeper开源客户端curator](http://curator.apache.org/)
 
 ## 基本概念
 

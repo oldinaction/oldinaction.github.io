@@ -172,7 +172,7 @@ interface Formula {
 
 ```java
 @FunctionalInterface // 如果没有指定，下面的代码也是对的，只不过编译器不会检查
-interface MyConverter<F, T> {
+interface MyConverter<F, T> { // 如果用到了翻新，则必须定义在类上
     T convert(F from);
 }
 

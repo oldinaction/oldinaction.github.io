@@ -330,6 +330,27 @@ Float baseTime = new BigDecimal(diff.getDays() + 1)
                 .floatValue();
 ```
 
+## 反射
+
+- 简单使用
+
+```java
+Class clazz = Class.forName("cn.aezo.test.MyService"); // obj.getClass();
+Method method = clazz.getMethod("test", String.class, int.class);
+Object ret = method.invoke(clazz.newInstance(), "hello", 1);
+```
+- 和spring结合
+
+```java
+@RequestMapping("/doPost/{serviceName}/{methodName}")
+public Result doPost(@PathVariable("serviceName") String serviceName, @PathVariable("methodName") String methodName,
+                        @RequestBody Map<String, Object> paramsMap) {
+    // 或者使用 ReflectU.invoke 来解决 ReflectUtil 反射获取不到最终异常
+    Object object = SpringU.getObject(serviceName);
+    return (Result) ReflectUtil.invoke(object, methodName, args);
+}
+```
+
 ## 易错点
 
 - null

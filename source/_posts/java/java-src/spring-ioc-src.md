@@ -12,18 +12,19 @@ tags: [spring, src]
 
 - 类关系图 [^1]
 
-![spring-ioc](/data/images/java/spring-src-ioc.png)
-
+    ![spring-ioc](/data/images/java/spring-src-ioc.png)
+    - ApplicationContext 继承了 ListableBeanFactory，这个 Listable 的意思就是，通过这个接口，我们可以获取多个 Bean。最顶层 BeanFactory 接口的方法都是获取单个 Bean 的
+    - ApplicationContext 继承了 HierarchicalBeanFactory, Hierarchical 单词本身(分层的)已经能说明问题了，也就是说我们可以在应用中起多个 BeanFactory，然后可以将各个 BeanFactory 设置为父子关系
+    - AutowireCapableBeanFactory 这个名字中的 Autowire，它就是用来自动装配 Bean 用的，但是仔细看上图，ApplicationContext 并没有继承它，但是使用组合可以获取它，从 ApplicationContext 接口定义中的最后一个方法 getAutowireCapableBeanFactory() 可说明
+    - ConfigurableListableBeanFactory 也是一个特殊的接口，看图，特殊之处在于它继承了第二层所有的三个接口，而 ApplicationContext 没有
 - **AnnotationConfigApplicationContext**
+    - 实现接口: ApplicationContext - ListableBeanFactory - BeanFactory
+    - 继承自: DefaultListableBeanFactory
     - AnnotationConfigRegistry
     - BeanDefinitionRegistry
-    - ApplicationContext
-        - ListableBeanFactory
-            - BeanFactory
-    - ~DefaultListableBeanFactory beanFactory
 - **DefaultListableBeanFactory**
-    - BeanFactory
-    - BeanDefinitionRegistry
+    - 实现接口: BeanFactory、BeanDefinitionRegistry
+    - 子类: AnnotationConfigApplicationContext
 - BeanDefinition 描述了一个Bean实例的属性值，构造函数参数值
 
 ## 基于ClassPathXmlApplicationContext执行流程
@@ -41,7 +42,7 @@ public class AppXml {
 }
 ```
 
-### AnnotationConfigApplicationContext 创建
+### AnnotationConfigApplicationContext创建
 
 ```java
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
@@ -73,7 +74,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 }
 ```
 
-### refresh 方法概览
+### refresh方法概览
 
 ```java
 @Override
@@ -160,9 +161,9 @@ public void refresh() throws BeansException, IllegalStateException {
 }
 ```
 
-### 创建 Bean 容器前的准备工作
+### 创建Bean容器前的准备工作
 
-#### prepareRefresh 创建 Bean 容器前的准备工作
+#### prepareRefresh创建Bean容器前的准备工作
 
 ```java
 protected void prepareRefresh() {
@@ -252,7 +253,7 @@ protected final void refreshBeanFactory() throws BeansException {
 }
 ```
 
-#### customizeBeanFactory 配置是否允许 BeanDefinition 覆盖、循环引用
+#### customizeBeanFactory配置是否允许BeanDefinition覆盖、循环引用
 
 - BeanDefinition 的覆盖问题
     - 就是在配置文件中定义 bean 时使用了相同的 id 或 name，默认情况下，allowBeanDefinitionOverriding 属性为 null，如果在同一配置文件中重复了，会抛错，但是如果不是同一配置文件中，会发生覆盖
@@ -274,7 +275,7 @@ protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
 }
 ```
 
-#### loadBeanDefinitions 加载并注册 Bean
+#### loadBeanDefinitions加载并注册Bean
 
 - AbstractXmlApplicationContext.java
 
@@ -598,7 +599,7 @@ public AbstractBeanDefinition parseBeanDefinitionElement(
 ```
 </details>
 
-#### registerBeanDefinition 注册Bean
+#### registerBeanDefinition注册Bean
 
 - BeanDefinitionReaderUtils.java 上文 BeanDefinitionReaderUtils.registerBeanDefinition 进行调用的
 
@@ -708,18 +709,15 @@ public void registerBeanDefinition(String beanName, BeanDefinition beanDefinitio
 }
 ```
 
-### Bean 容器实例化完成后
+### Bean容器实例化完成后
 
 - prepareBeanFactory 准备 Bean 容器
 - finishBeanFactoryInitialization 初始化所有的 singleton beans
     - preInstantiateSingletons 开始初始化
         - getBean 获取或创建Bean
             - createBean 创建Bean
-                - dd
-                - checkCandidate
-                - vvv
 
-#### prepareBeanFactory 准备 Bean 容器
+#### prepareBeanFactory准备Bean容器
 
 ```java
 protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
@@ -791,7 +789,7 @@ protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 }
 ```
 
-#### finishBeanFactoryInitialization 初始化所有的 singleton beans
+#### finishBeanFactoryInitialization初始化所有的singleton-beans
 
 - 到目前为止，应该说 BeanFactory 已经创建完成，并且所有的实现了 BeanFactoryPostProcessor 接口的 Bean 都已经初始化并且其中的 postProcessBeanFactory(factory) 方法已经得到回调执行了。而且 Spring 已经“手动”注册了一些特殊的 Bean，如 environment、systemProperties 等
 - AbstractApplicationContext.java
@@ -838,7 +836,7 @@ protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory b
 }
 ```
 
-#### preInstantiateSingletons 开始初始化
+#### preInstantiateSingletons开始初始化
 
 - DefaultListableBeanFactory.java
 
@@ -912,7 +910,7 @@ public void preInstantiateSingletons() throws BeansException {
 }
 ```
 
-#### getBean 获取或创建Bean
+#### getBean获取或创建Bean
 
 - AbstractBeanFactory.java
 
@@ -1096,7 +1094,7 @@ protected <T> T doGetBean(
 }
 ```
 
-#### createBean 创建Bean
+#### createBean创建Bean
 
 - AbstractAutowireCapableBeanFactory.java 在Bean属性赋值时，可自动对 @Autowired 注解的属性注入属性值
 
@@ -1263,7 +1261,7 @@ protected Object doCreateBean(final String beanName, final RootBeanDefinition mb
 }
 ```
 
-#### createBeanInstance 创建Bean实例
+#### createBeanInstance创建Bean实例
 
 - AbstractAutowireCapableBeanFactory.java
 
@@ -1394,7 +1392,7 @@ public Object instantiate(RootBeanDefinition bd, String beanName, BeanFactory ow
 }
 ```
 
-#### populateBean 注入Bean属性
+#### populateBean注入Bean属性
 
 - AbstractAutowireCapableBeanFactory.java
 
@@ -1479,7 +1477,7 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, BeanWrapper
 }
 ```
 
-#### initializeBean 处理回调
+#### initializeBean处理回调
 
 - AbstractAutowireCapableBeanFactory.java
 

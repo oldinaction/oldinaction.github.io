@@ -627,7 +627,10 @@ private void setPathPrefix(String pluginId, Class<?> aClass) {
 ## pf4j
 
 - **2021-04转向sofastack**
-- [PF4J](https://github.com/pf4j/pf4j) 是一个 Java 的插件框架，为第三方提供应用扩展的渠道。PF4J 本身非常轻量级，只有 50KB 左右，目前只依赖了 slf4j。Gitblit 项目使用的就是 PF4J 进行插件管理
+- [PF4J](https://github.com/pf4j/pf4j) 是一个 Java 的插件框架，为第三方提供应用扩展的渠道
+    - 基于java特性[SPI](/_posts/java/java-release.md#SPI)进行开发
+    - PF4J 本身非常轻量级，只有 50KB 左右，目前只依赖了 slf4j
+    - Gitblit 项目使用的就是 PF4J 进行插件管理
 - 组件
     - `Plugin` 是所有插件类型的基类。为了避免冲突，每个插件都被加载到一个单独的类加载器中
     - `PluginManager` 用于插件管理的所有方面（加载、启动、停止）

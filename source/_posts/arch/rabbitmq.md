@@ -521,6 +521,50 @@ rabbitmqctl list_policy # 查看策略
   * Erlang cookie hash: Jx59lsGpH45Mhu5eAkFMGQ==
   ```
 
+## 插件
+
+### 日志插件
+
+- rabbitmq默认没有开启日志插件
+- 开启插件
+
+```bash
+# 开启插件
+rabbitmq-plugins enable rabbitmq_tracing
+# 关闭插件
+rabbitmq-plugins disable rabbitmq_tracing
+
+# 查看插件列表(有标记的表示已开启)
+rabbitmq-plugins list
+```
+- 开启插件后还需手动设置，在后台管理界面 - Admin - Tracing可查看
+    - Add a new trace增加一个日志规则，假设Name=test，Format=Text，则会生成一个test.log的文件
+    - 在后台管理界面也可查看
+- 日志格式
+
+```bash
+## 发送消息为"my-msg"
+================================================================================
+2021-04-14 20:02:55:020: Message published
+
+Node:         rabbit@node1
+Connection:   <rabbit@node1.3.1620.0>
+Virtual host: /
+User:         guest
+Channel:      1
+Exchange:     amq.direct
+Routing keys: [<<>>]
+Routed queues: []
+Properties:   [{<<"delivery_mode">>,signedint,2},{<<"headers">>,table,[]}]
+Payload: 
+my-msg
+
+## 接受消息
+================================================================================
+2021-04-14 20:02:55:020: Message received
+...
+```
+
 ## 后台管理
 
 - 激活 Rabbit MQ's Management Plugin(可激活管理插件)

@@ -436,10 +436,17 @@ for(var i in arr) { // i 是下标
 
 #### 相关方法
 
-- `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象
+- `Object.assign(target, ...sources)` 将所有属性值从源对象复制到目标对象，并返回目标对象(此时返回值和传入参数target一致，会被改变)
     - `let c = Object.assign({}, a, b)` 将b合并到a，再将a合并到target并返回，且不会改变a和b
-    - 只能进行浅拷贝，假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
-    - 深拷贝解决方法：`let obj2 = JSON.parse(JSON.stringify(obj1))`
+    - **只能进行浅拷贝**。假如源对象的属性值是一个指向对象的引用（源对象和目标对象的该属性指向同一个地址，修改会互相影响），它也只拷贝那个引用值
+    - **深拷贝解决方法**
+        - `let obj2 = JSON.parse(JSON.stringify(obj1))` **存在如下弊端**
+            - 对象原型会改变，拷贝后原型都会变成Object
+            - 时间类型会变成字符串类型
+            - 如果对象中存在循环引用的情况也无法正确实现深拷贝
+            - JSON.stringify()只能序列化对象的可枚举的自有属性，如obj中的对象是有构造函数生成的，拷贝后会丢失constructor
+            - 其他参考：https://blog.csdn.net/u013565133/article/details/102819929
+        - 使用一些深拷贝函数
 - `Object.defineProperty(obj, prop, descriptor)` 增加或修改对象属性。vue 2.x基于此特性实现响应式
 - `Object.keys(obj)` 返回对象的所有可枚举属性的字符串数组(属性名)
     - 返回属性的顺序与手动遍历该对象属性时的一致

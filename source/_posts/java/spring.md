@@ -218,7 +218,33 @@ public class App {
         - `matchIfMissing` 表示缺少该配置属性时是否可以加载。如果为true，即表示没有该配置属性时也会正常加载；反之则不会生效
         - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)
     - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在beanFactory中不存在时返回true，各类型间是or的关系
-        - eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
+
+        ```java
+        // eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
+
+        //可以标注在类和方法上
+        @Target({ElementType.TYPE, ElementType.METHOD})
+        @Retention(RetentionPolicy.RUNTIME)
+        @Documented
+        //使用了@Conditional注解，条件类是OnBeanCondition(逻辑实现)
+        @Conditional({OnBeanCondition.class})
+        public @interface ConditionalOnMissingBean {
+            // 需要检查的 bean 的 class 类型。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配。
+            Class<?>[] value() default {}; 
+            // 需要检查的 bean 的 class 类型名称。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配。
+            String[] type() default {};
+            // 识别匹配 bean 时，可以被忽略的 bean 的 class 类型
+            Class<?>[] ignored() default {};
+            // 识别匹配 bean 时，可以被忽略的 bean 的 class 类型名称
+            String[] ignoredType() default {};
+            // 当 ApplicationContext 不包含带有这些注解的 bean 时条件匹配。
+            Class<? extends Annotation>[] annotation() default {};
+            // 需要检查的 bean 的 name。当 ApplicationContext 不包含任意指定的每一个的 class 时条件匹配。
+            String[] name() default {};
+            // 搜索容器层级:当前容器/父容器/所有(默认)
+            SearchStrategy search() default SearchStrategy.ALL;
+        }
+        ```
     - `@ConditionalOnBean` 与上相反，在存在某个bean的时候
         - eg：@ConditionalOnBean({Client.class})
     - `@ConditionalOnMissingClass` 当前classpath不可以找到某个类型的类时，各类型间是and的关系

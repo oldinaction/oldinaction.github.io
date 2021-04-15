@@ -75,11 +75,17 @@ tags: spring
 
 ## 配置文件(properties/yml)
 
-- profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`)
+- profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`) [^3]
 - 使用配置文件(优先级从高到低)
-	- 外部配置：`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
-	- 配置文件：`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
+	- 外置，`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
+    - 外置，应用程序运行目录的/congfig子目录里
+    - 外置，在应用程序运行的目录里
+	- 内置，`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
+    - 内置，src/main/resources/config包内
+    - 内置，src/main/resources包内
+    - application.yml > application.properties
 - 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
+- 使用`@PropertySource("classpath:hello.properties")`结合@ConfigurationProperties可设置读取某个配置文件注入到JavaBean
 - 配置示例
 
 	```yml
@@ -2471,7 +2477,10 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 	- 原因分析：一般由于存在多个`application`配置文件，然后并没有指定。则使用默认配置，运行时出现`No active profile set, falling back to default profiles: default`，从而缺少部分配置。实践时发现application.properties中已经配置了`spring.profiles.active=dev`，再idea中通过main方法启动时不报错，但是通过maven打包是测试不通过
 	- 解决办法参考
 		- [《maven.md#结合springboot》](/_posts/arch/maven.md#结合springboot)。实际中主要是没有将`src/main/resources`目录添加到maven的resource中
-		- 或者在每中环境配置文件中都定义`crm.tempFolder`参数值
+		- 或者在每种环境配置文件中都定义`crm.tempFolder`参数值
+- `Correct the classpath of your application so that it contains a single, compatible version of xxx`(xxx为某个jar包中的类名)
+    - **可能对应jar包冲突或引入改jar包的依赖版本不匹配**
+    - 使用springboot，一般会将其设置为parent，假设parent(springboot)的pom中配置了A-1.0.0.jar的版本；当项目中引入B.jar，如果他依赖A-2.0.0.jar，那么实际引入的版本会是A-1.0.0.jar，从而可能出现上述问题。此时必须手动引入A-2.0.0.jar(且要保证不冲突)，并排除B.jar对A.jar的依赖
 
 ## springboot 2.0.1 改动及相关问题
 
@@ -2506,6 +2515,7 @@ User user = this.userRepositroy.findById(id).get();
 
 [^1]: http://412887952-qq-com.iteye.com/blog/2322756 (h2介绍)
 [^2]: https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache (idea连接h2)
+[^3]: https://www.cnblogs.com/shamo89/p/8178109.html
 [^6]: http://www.cnblogs.com/ityouknow/p/6828919.html (Springboot中mongodb的使用)
 [^7]: http://www.cnblogs.com/yjbjingcha/p/6752265.html (Spring在代码中获取bean的几种方式)
 [^8]: http://blog.csdn.net/v2sking/article/details/72795742 (异步调用Async)
