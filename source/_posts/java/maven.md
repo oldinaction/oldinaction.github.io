@@ -324,7 +324,7 @@ tags: [build]
 		- test
 	```
 
-### 标签介绍
+### dependency节点
 
 - `dependency#scope` 决定依赖的包是否加入本工程的classpath下
 
@@ -369,7 +369,7 @@ tags: [build]
 			</dependencies>
 		</dependencyManagement>
 		```
-- `dependency#optional` 仅限制依赖包的传递性，不影响依赖包的classpath
+- `optional`属性：仅限制依赖包的传递性，不影响依赖包的classpath
 	- 如`<optional>true</optional>`**表示父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入。**如smtools中引入了一些jar进行扩展，可正常编译，其他项目使用此jar则需要自行引入
 - **optional与scope区别在于：仅限制依赖包的传递性，不影响依赖包的classpath** [^3]
 	- `A->B, B->C(scope:compile, optional:true)`
@@ -378,6 +378,27 @@ tags: [build]
 	- `A->B, B->C(scope:provided)`
         - B的编译/测试classpath有C(打包无C)
         - A中的编译/测试classpath都不存在C，但是A使用B(需要依赖C)的接口时就会出现找不到C的错误。此时要么是A手动加入C的依赖，即A->C；否则需要容器(如Tomcat等)提供C的依赖包到运行时classpath
+- `classifier`属性
+    - 可以是任意的字符串，用于拼接在GAV之后来确定指定的文件
+    - 需要注意classifier的位置
+
+```xml
+<!-- json-lib-2.2.2-jdk15-javadoc.jar -->
+<dependency>  
+    <groupId>net.sf.json-lib</groupId>   
+    <artifactId>json-lib</artifactId>   
+    <version>2.2.2</version>  
+    <classifier>jdk15-javadoc</classifier>    
+</dependency>
+
+<!-- json-lib-jdk15-javadoc-2.2.2.jar -->
+<dependency>  
+    <groupId>net.sf.json-lib</groupId>   
+    <artifactId>json-lib</artifactId>   
+    <classifier>jdk15-javadoc</classifier>  
+    <version>2.2.2</version>   
+</dependency> 
+```
 
 ### build节点
 
@@ -461,13 +482,6 @@ tags: [build]
 <project>
 	<profiles>
         <profile>
-            <id>prod</id>
-            <properties>
-				<!--传递的参数-->
-                <profiles.active>prod</profiles.active>
-            </properties>
-        </profile>
-        <profile>
             <id>dev</id>
             <properties>
                 <profiles.active>dev</profiles.active>
@@ -483,11 +497,20 @@ tags: [build]
 			<modules>
 				<module>xxx</module>
 			</modules>
+            <!-- 需要额外引入的依赖 -->
+            <dependencies></dependencies>
         </profile>
         <profile>
             <id>test</id>
             <properties>
                 <profiles.active>test</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+				<!--传递的参数-->
+                <profiles.active>prod</profiles.active>
             </properties>
         </profile>
     </profiles>

@@ -112,7 +112,7 @@ tags: [springboot, plugin, 微服务]
 <!-- 主模块需要加模块隔离依赖 -->
 <dependency>
     <groupId>com.alipay.sofa</groupId>
-    <artifactId>c-sofa-boot-starter</artifactId>
+    <artifactId>isle-sofa-boot-starter</artifactId>
 </dependency>
 <!-- 可选，主模块中增加健康检查。启动后可访问 http://localhost:8088/actuator 查看信息 -->
 <dependency>

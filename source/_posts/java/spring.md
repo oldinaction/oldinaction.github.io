@@ -197,6 +197,75 @@ public class App {
 - `@Resource` JSR-250提供(常用)
 - `@Inject` JSR-330提供
 
+#### 获取Bean
+
+- 自动注入 [^5]
+
+```java
+@Autowired
+private ApplicationContext applicationContext;
+
+public void test() {
+	Mytest mytest = applicationContext.getBean(Mytest.class);
+}
+```
+- 实现`ApplicationContextAware`接口
+    - 下列工具相当于把`ApplicationContext`存储在属性中，其他类对象可通过此对象属性获取ApplicationContext
+    - 上述其他类对象，如自行new的对象中需要注入其他Bean，此时当前类没有被Spring托管，则可通过SpringContextU中间缓存获取
+
+```java
+@Component("springContextU")
+public class SpringContextU implements ApplicationContextAware {
+
+	private static ApplicationContext applicationContext;
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		if(SpringContextU.applicationContext == null) {
+			SpringContextU.applicationContext = applicationContext;
+		}
+	}
+
+	// 获取applicationContext
+	public static ApplicationContext getApplicationContext() {
+		return applicationContext;
+	}
+
+	// 通过name获取 Bean
+	public static Object getBean(String name){
+		return getApplicationContext().getBean(name);
+	}
+
+	// 通过class获取Bean
+	public static <T> T getBean(Class<T> clazz){
+		return getApplicationContext().getBean(clazz);
+	}
+
+	// 通过name以及Clazz返回指定的Bean
+	public static <T> T getBean(String name,Class<T> clazz){
+		return getApplicationContext().getBean(name, clazz);
+	}
+}
+```
+
+#### @Autowired注入给静态属性示例
+
+```java
+@Component
+public class BaseController {
+	private static Logger logger = LoggerFactory.getLogger(BaseController.class);
+
+	private static CustomObjectMapper customObjectMapper;
+
+	public BaseController() {}
+
+	@Autowired // 类加载时调用此构造方法并赋值给静态属性
+	public BaseController(CustomObjectMapper customObjectMapper) {
+		BaseController.customObjectMapper = customObjectMapper;
+	}
+}
+```
+
 ### @Scope
 
 - `@Scope("prototype")` 注解类(配置Bean的作用域，可和`@Bean`联合使用)
@@ -376,12 +445,14 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 
 ### 属性赋值(@Value)
 
+#### Spring中使用属性赋值
+
 - `@Value` 在其中输入EL表达式(Spring-EL)。可对资源进行注入
-- `@PropertySource` 注入外部配置文件值。springboot通过spring-boot-configuration-processor这个依赖会把配置文件的值注入到@Value里面
+- `@PropertySource` 注入外部配置文件值
 
 ```java
+// @ComponentScan("cn.aezo.spring.base.annotation.el")
 @Configuration
-@ComponentScan("cn.aezo.spring.base.annotation.el")
 @PropertySource("classpath:cn/aezo/spring/base/annotation/el/el.properties") // 注入配置文件
 public class ELConfig {
     @Value("I Love You") // 基本数值赋值
@@ -447,6 +518,60 @@ public class ELConfig {
 // el.properties
 site.url=www.aezo.cn
 ```
+
+#### SpringBoot中使用属性赋值
+
+- `@PropertySource` 在springboot应用中注入外部配置文件值，支持如下两种配置方式，如果注入application配置则@PropertySource可省略
+    - @PropertySource + @Value
+    - @PropertySource + @ConfigurationProperties
+- springboot v2.0.1之后，定义自定义参数(MyValue.java)要么写到Application.java同目录，要么加下列依赖。这个依赖会把配置文件的值注入到@Value里面，也可以通过@PropertySource("classpath:application.yml")注入
+
+    ```xml
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-configuration-processor</artifactId>
+        <optional>true</optional>
+    </dependency>
+    ```
+- 定义/调用
+	- 优先级：命令行参数 > application.properties > JavaBean
+	- 说明：命令行参数设置了此属性配置，但属性的值为空，此时可以覆盖`application.properties`的初始值，但是不会覆盖JavaBean的初始值
+
+```java
+// ### 方法一
+// 设值：在application.properties中设置`myValue.val`的值
+
+// 取值
+@Value("${myValue.val")
+private String val = "smalle"; // 默认值。在命令行参数给此属性传入空时，此初始值不会被覆盖
+
+private static String hello;
+
+@Value("${myValue.hello}")
+public void setHello(String h) {
+	hello = h;
+}
+
+// 方法二：定义JavaBean
+@Configuration
+@ConfigurationProperties(prefix = "myValue")
+public class MyValue {
+	// ...Model：所有的属性、get、set方法
+    private String val;
+
+    private String hello;
+
+    private Map<String, Object> extMap; // 如 myValue.extMap.a=1 和 myValue.extMap.b=2 可注入进来
+}
+
+// 取值
+@Autowired
+private MyValue myValue;
+```
+
+#### @PropertySource分环境读取配置
+
+- https://segmentfault.com/a/1190000017831251 未测试
 
 ### 组合注解、元注解
 
@@ -612,7 +737,7 @@ site.url=www.aezo.cn
 
 - 不同的环境读取不同的配置文件：`dev`/`prod`
 
-## Application Event
+## ApplicationEvent
 
 - 事件：一个Bean(A)完成某个任务后，可以给另外一个Bean(B)发送事件，前提是B对A进行了监听
 - 方法：
@@ -662,7 +787,7 @@ site.url=www.aezo.cn
         }
         ```
 
-## Spring Aware
+## SpringAware
 
 - Spring依赖注入最大的亮点就是你所有的Bean对Spring容器的存在是无意识的。即你可以将容器换成其他容器，如Google Guice，这是Bean之间的耦合度很低。
 - Spring Aware可以让你的Bean调用Spring提供的资源，缺点是Bean会和Spring框架耦合。
@@ -704,7 +829,7 @@ site.url=www.aezo.cn
     }
     ```
 
-## 多线程 @EnableAsync
+## 多线程@EnableAsync
 
 - Spring通过任务执行器(TaskExecutor)来实现多线程和并发编程。使用`ThreadPoolTaskExecutor`可实现一个基于线程池的TaskExecutor。
 - `@EnableAsync` 可开启对异步任务的支持。需要对应的配置类实现
@@ -748,7 +873,7 @@ site.url=www.aezo.cn
     }
     ```
 
-## 计划任务 @Scheduled
+## 计划任务@Scheduled
 
 - `@EnableScheduling` 开启定时任务
 - `@Scheduled` 执行任务的方法
@@ -1420,4 +1545,4 @@ matcher.match("/blog/**/*.do", url); // true
 [^2]: http://blog.didispace.com/springboottransactional/ (@Transactional)
 [^3]: http://tech.lede.com/2017/02/06/rd/server/SpringTransactional/ (Spring @Transactional原理及使用)
 [^4]: https://www.cnblogs.com/hujunzheng/p/9902475.html
-
+[^5]: http://www.cnblogs.com/yjbjingcha/p/6752265.html (Spring在代码中获取bean的几种方式)

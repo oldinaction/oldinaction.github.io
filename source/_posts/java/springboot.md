@@ -81,8 +81,9 @@ tags: spring
     - 外置，应用程序运行目录的/congfig子目录里
     - 外置，在应用程序运行的目录里
 	- 内置，`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
-    - 内置，src/main/resources/config包内
-    - 内置，src/main/resources包内
+    - **内置，src/main/resources/config包内**
+        - 可写成到通用包中作为通用配置，但是如果定会了`server.servlet.context-path`，则无法被覆盖
+    - **内置，src/main/resources包内**
     - application.yml > application.properties
 - 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
 - 使用`@PropertySource("classpath:hello.properties")`结合@ConfigurationProperties可设置读取某个配置文件注入到JavaBean
@@ -201,57 +202,6 @@ mybatis:
     - 拦截request的body数据
     - 拦截response的数据
 
-### 获取Bean [^7]
-
-- 自动注入
-
-```java
-@Autowired
-private ApplicationContext applicationContext;
-
-public void test() {
-	Mytest mytest = applicationContext.getBean(Mytest.class);
-}
-```
-- 实现`ApplicationContextAware`接口
-    - 下列工具相当于把`ApplicationContext`存储在属性中，其他类对象可通过此对象属性获取ApplicationContext
-    - 上述其他类对象，如自行new的对象中需要注入其他Bean，此时当前类没有被Spring托管，则可通过SpringContextU中间缓存获取
-
-```java
-@Component("springContextU")
-public class SpringContextU implements ApplicationContextAware {
-
-	private static ApplicationContext applicationContext;
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		if(SpringContextU.applicationContext == null) {
-			SpringContextU.applicationContext = applicationContext;
-		}
-	}
-
-	// 获取applicationContext
-	public static ApplicationContext getApplicationContext() {
-		return applicationContext;
-	}
-
-	// 通过name获取 Bean
-	public static Object getBean(String name){
-		return getApplicationContext().getBean(name);
-	}
-
-	// 通过class获取Bean
-	public static <T> T getBean(Class<T> clazz){
-		return getApplicationContext().getBean(clazz);
-	}
-
-	// 通过name以及Clazz返回指定的Bean
-	public static <T> T getBean(String name,Class<T> clazz){
-		return getApplicationContext().getBean(name, clazz);
-	}
-}
-```
-
 ### 异步执行服务 [^8]
 
 - 启动类加注解`@EnableAsync`，服务类方法加注解`@Async`即可
@@ -259,69 +209,11 @@ public class SpringContextU implements ApplicationContextAware {
 
 ### @Value给静态成员设值
 
-- 参考[属性赋值(@Value)](/_posts/java/spring.md#属性赋值(@Value))
-- springboot v2.0.1之后，定义自定义参数(MyValue.java)要么写到Application.java同目录，要么加下列依赖。这个依赖会把配置文件的值注入到@Value里面，也可以通过@PropertySource("classpath:application.yml")注入
-
-```xml
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-configuration-processor</artifactId>
-	<optional>true</optional>
-</dependency>
-```
-- 定义/调用
-	- 命令行参数 > application.properties > JavaBean
-	- 命令行参数设置了此属性配置，但属性的值为空。此时可以覆盖`application.properties`的初始值，但是不会覆盖JavaBean的初始值
-
-```java
-// ### 方法一
-// 设值：在application.properties中设置`myValue.val`的值
-
-// 取值
-@Value("${myValue.val")
-private String val = "smalle"; // 默认值。在命令行参数给此属性传入空时，此初始值不会被覆盖
-
-private static String hello;
-
-@Value("${myValue.hello}")
-public void setHello(String h) {
-	hello = h;
-}
-
-// 方法二：定义JavaBean
-@Configuration
-@ConfigurationProperties(prefix = "myValue")
-public class MyValue {
-	// ...Model：所有的属性、get、set方法
-    private String val;
-
-    private String hello;
-
-    private Map<String, Object> extMap; // 如 myValue.extMap.a=1 和 myValue.extMap.b=2 可注入进来
-}
-
-// 取值
-@Autowired
-private MyValue myValue;
-```
+- 参考[spring.md#属性赋值(@Value)](/_posts/java/spring.md#属性赋值(@Value))
 
 ### @Autowired注入给静态属性
 
-```java
-@Component
-public class BaseController {
-	private static Logger logger = LoggerFactory.getLogger(BaseController.class);
-
-	private static CustomObjectMapper customObjectMapper;
-
-	public BaseController() {}
-
-	@Autowired // 类加载时调用此构造方法并赋值给静态属性
-	public BaseController(CustomObjectMapper customObjectMapper) {
-		BaseController.customObjectMapper = customObjectMapper;
-	}
-}
-```
+- 参考[spring.md#获取Bean](/_posts/java/spring.md#获取Bean)
 
 ### 跨域资源共享(CORS) [^9]
 
@@ -2517,7 +2409,6 @@ User user = this.userRepositroy.findById(id).get();
 [^2]: https://stackoverflow.com/questions/31498682/spring-boot-intellij-embedded-database-headache (idea连接h2)
 [^3]: https://www.cnblogs.com/shamo89/p/8178109.html
 [^6]: http://www.cnblogs.com/ityouknow/p/6828919.html (Springboot中mongodb的使用)
-[^7]: http://www.cnblogs.com/yjbjingcha/p/6752265.html (Spring在代码中获取bean的几种方式)
 [^8]: http://blog.csdn.net/v2sking/article/details/72795742 (异步调用Async)
 [^9]: https://spring.io/blog/2015/06/08/cors-support-in-spring-framework (Spring对CORS的支持)
 [^11]: http://www.cnblogs.com/GoodHelper/p/7078381.html (WebSocket)

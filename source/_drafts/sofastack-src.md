@@ -654,6 +654,7 @@ public class DynamicSpringContextLoader implements SpringContextLoader {
             .setAutowireCandidateResolver(new QualifierAnnotationAutowireCandidateResolver());
         GenericApplicationContext ctx = sofaModuleProperties.isPublishEventToParent() ? new GenericApplicationContext(
             beanFactory) : new SofaModuleApplicationContext(beanFactory);
+        // 获取激活的环境类型
         String activeProfiles = sofaModuleProperties.getActiveProfiles();
         if (StringUtils.hasText(activeProfiles)) {
             String[] profiles = activeProfiles.split(SofaBootConstants.PROFILE_SEPARATOR);
@@ -684,6 +685,7 @@ public class DynamicSpringContextLoader implements SpringContextLoader {
         beanDefinitionReader
             .setBeanClassLoader(deployment.getApplicationContext().getClassLoader());
         beanDefinitionReader.setResourceLoader(ctx);
+        // 加载配置文件中定义的Bean
         loadBeanDefinitions(deployment, beanDefinitionReader);
         addPostProcessors(beanFactory);
     }
@@ -739,7 +741,7 @@ public abstract class AbstractDeploymentDescriptor implements DeploymentDescript
     }
 }
 ```
-- FileDeploymentDescriptor.java 基于文件安装的模块
+- FileDeploymentDescriptor.java 基于文件安装的模块，另外一个实现是基于Jar(JarDeploymentDescriptor)
 
 ```java
 public class FileDeploymentDescriptor extends AbstractDeploymentDescriptor {
