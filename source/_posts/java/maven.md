@@ -331,7 +331,7 @@ tags: [build]
 	依赖范围(Scope)|	编译classpath|	测试classpath|	运行时classpath| 打包文件是否包含此依赖|	传递性|	说明
 	--|---|---|---|---|---|---
 	compile	|	Y|	Y|	Y|	Y|	N|	默认，compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时，仅打包无|
-	runtime	|	-|	Y|	Y|	Y|	N|	运行和test的类路径下可以访问|
+	runtime	|	-|	Y|	Y|	Y|	N|	运行和test的类路径下可以访问| 如编译时只需要JDBC API的jar，而只有运行时才需要JDBC驱动实现
 	test	|	-|	Y|	-|	-|	N|	只对测试时有用，包括测试代码的编译和运行|
 	provided|	Y|	Y|	-|	-|	N|	该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供|
 	system	|	Y|	Y|	-|	Y|	Y|	该依赖项由本地文件系统提供，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径|
@@ -370,14 +370,12 @@ tags: [build]
 		</dependencyManagement>
 		```
 - `optional`属性：仅限制依赖包的传递性，不影响依赖包的classpath
-	- 如`<optional>true</optional>`**表示父项目可以使用此依赖进行编码，子项目如果需要父项目此依赖的相关功能，则自行引入。**如smtools中引入了一些jar进行扩展，可正常编译，其他项目使用此jar则需要自行引入
-- **optional与scope区别在于：仅限制依赖包的传递性，不影响依赖包的classpath** [^3]
-	- `A->B, B->C(scope:compile, optional:true)`
-        - B的编译/测试classpath都有C(打包无C)
-        - A中的编译/测试classpath都不存在C(尽管C的scope声明为compile)，A调用B的那些依赖C的方法就会出错。此时A只能手动加入C的依赖
-	- `A->B, B->C(scope:provided)`
-        - B的编译/测试classpath有C(打包无C)
-        - A中的编译/测试classpath都不存在C，但是A使用B(需要依赖C)的接口时就会出现找不到C的错误。此时要么是A手动加入C的依赖，即A->C；否则需要容器(如Tomcat等)提供C的依赖包到运行时classpath
+	- 如`<optional>true</optional>`**表示工具包可以使用此依赖进行编码，主项目如果需要工具包此依赖的相关功能，则自行引入。**如smtools中引入了一些jar进行扩展，可正常编译，其他项目使用此jar则需要自行引入
+- **optional与scope区别在于** [^3]
+	- `A->B, B->C(scope=compile|runtime)`，此时A依赖C，相当于A引入了C的依赖
+	- `A->B, B->C(scope=provided)`，此时A不依赖C
+        - 但是A使用B(需要依赖C)的接口时就会出现找不到C的错误，此时要么是A手动加入C的依赖；否则需要容器(如Tomcat等)提供C的依赖包到运行时classpath
+    - `A->B, B->C(scope=test)`，此时A仅在测试时依赖C
 - `classifier`属性
     - 可以是任意的字符串，用于拼接在GAV之后来确定指定的文件
     - 需要注意classifier的位置

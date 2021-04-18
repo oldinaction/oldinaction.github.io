@@ -949,8 +949,12 @@ mybatis-plus:
 // 返回 List<Map<String, Object>>，此时LambdaQueryWrapper基于TemplateItem实体生成sql语句(sql语句驼峰会转成下划线，返回的Map中的key全为大写下划线)
 List<Map<String, Object>> list = templateItemMapper.selectMaps(
                 new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
-                    .eq(TemplateItem::getTemplateId, 1)
                     .eq(TemplateItem::getTemplateId, templateId)
+                    .ne(TemplateItem::getTemplateId, 1) // != 1
+                    .apply(StrUtil.isNotBlank(startDate),
+                        "date_format (optime,'%Y-%m-%d') >= date_format('" + startDate + "','%Y-%m-%d')")
+                    .apply(StrUtil.isNotBlank(endDate),
+                        "date_format (optime,'%Y-%m-%d') <= date_format('" + endDate + "','%Y-%m-%d')")
                     .select(TemplateItem::getTemplateId, TemplateItem::getTemplateName) // 仅获取部分字段
                     // .select(TemplateItem.class, x -> selectProps.contains(x.getProperty())))
                     ;

@@ -571,7 +571,40 @@ private MyValue myValue;
 
 #### @PropertySource分环境读取配置
 
-- https://segmentfault.com/a/1190000017831251 未测试
+```java
+// 创建 minions.yml、minions-dev.yml 等配置文件
+@Data
+@ToString
+@Configuration
+@ConfigurationProperties(prefix = "minions")
+@PropertySource(value = "classpath:minions-${spring.profiles.active}.yml", factory = SqPropertySourceFactory.class)
+public class MinionsProp {
+    private String projectCode;
+}
+
+public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
+    @Override
+    public PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {
+        String sourceName = name != null ? name : resource.getResource().getFilename();
+        if(sourceName != null) {
+            if (!resource.getResource().exists()) {
+                return new PropertiesPropertySource(sourceName, new Properties());
+            } else if (sourceName.endsWith(".yml") || sourceName.endsWith(".yaml")) {
+                Properties propertiesFromYaml = loadYml(resource);
+                return new PropertiesPropertySource(sourceName, propertiesFromYaml);
+            }
+        }
+        return super.createPropertySource(name, resource);
+    }
+
+    private Properties loadYml(EncodedResource resource) throws IOException {
+        YamlPropertiesFactoryBean factory = new YamlPropertiesFactoryBean();
+        factory.setResources(resource.getResource());
+        factory.afterPropertiesSet();
+        return factory.getObject();
+    }
+}
+```
 
 ### 组合注解、元注解
 
