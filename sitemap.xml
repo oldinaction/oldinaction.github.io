@@ -2,16 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
+    
+    <lastmod>2021-04-18T12:05:43.921Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
-    <lastmod>2021-04-17T12:06:19.397Z</lastmod>
+    <lastmod>2021-04-18T11:02:00.214Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/12/26/lang/regex/</loc>
+    
+    <lastmod>2021-04-18T10:29:24.145Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
     
-    <lastmod>2021-04-17T05:21:21.816Z</lastmod>
+    <lastmod>2021-04-18T06:46:39.056Z</lastmod>
     
   </url>
   
@@ -19,13 +33,6 @@
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
     <lastmod>2021-04-17T03:12:18.915Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
-    
-    <lastmod>2021-04-17T02:11:25.718Z</lastmod>
     
   </url>
   
@@ -138,13 +145,6 @@
     <loc>http://blog.aezo.cn/2017/09/13/extend/chrome/</loc>
     
     <lastmod>2021-04-01T07:24:04.162Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/12/26/lang/regex/</loc>
-    
-    <lastmod>2021-04-01T06:12:48.529Z</lastmod>
     
   </url>
   
