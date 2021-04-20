@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
+    
+    <lastmod>2021-04-20T13:15:39.898Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     
-    <lastmod>2021-04-19T14:48:30.686Z</lastmod>
+    <lastmod>2021-04-19T14:48:54.636Z</lastmod>
     
   </url>
   
@@ -649,13 +656,6 @@
     <loc>http://blog.aezo.cn/2020/11/15/web/backone-underscore-js/</loc>
     
     <lastmod>2020-11-15T15:54:10.109Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
-    
-    <lastmod>2020-11-10T07:21:03.546Z</lastmod>
     
   </url>
   
