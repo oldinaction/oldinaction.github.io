@@ -572,12 +572,12 @@ private MyValue myValue;
 #### @PropertySource分环境读取配置
 
 ```java
-// 创建 minions.yml、minions-dev.yml 等配置文件
+// 创建 minions.yml、minions-dev.yml 等配置文件。可根据环境读取，且支持覆盖
 @Data
 @ToString
 @Configuration
 @ConfigurationProperties(prefix = "minions")
-@PropertySource(value = "classpath:minions-${spring.profiles.active}.yml", factory = SqPropertySourceFactory.class)
+@PropertySource(name="minions.yml", value = "classpath:minions-${spring.profiles.active:}.yml", factory = SqPropertySourceFactory.class)
 public class MinionsProp {
     private String projectCode;
 }
@@ -585,16 +585,47 @@ public class MinionsProp {
 public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
     @Override
     public PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {
-        String sourceName = name != null ? name : resource.getResource().getFilename();
-        if(sourceName != null) {
-            if (!resource.getResource().exists()) {
-                return new PropertiesPropertySource(sourceName, new Properties());
-            } else if (sourceName.endsWith(".yml") || sourceName.endsWith(".yaml")) {
-                Properties propertiesFromYaml = loadYml(resource);
-                return new PropertiesPropertySource(sourceName, propertiesFromYaml);
+        Properties mainProperties = new Properties();
+        if(ValidU.isNotEmpty(name)) {
+            if(!name.contains(".")) {
+                name += ".properties";
+            }
+            mainProperties = loadProp(name, resource.getEncoding());
+        }
+
+        Properties envProperties = null;
+        if(resource != null) {
+            String sourceName = resource.getResource().getFilename();
+            if(ValidU.isNotEmpty(sourceName) && resource.getResource().exists()) {
+                envProperties = loadProp(sourceName, resource);
+                name = sourceName;
             }
         }
-        return super.createPropertySource(name, resource);
+        if(envProperties != null) {
+            mainProperties.putAll(envProperties);
+        }
+        return new PropertiesPropertySource(name, mainProperties);
+    }
+
+    private Properties loadProp(String sourceName, String encoding) throws IOException {
+        Resource resource = new ClassPathResource(sourceName);
+        EncodedResource encodedResource = new EncodedResource(resource, encoding);
+
+        if (!encodedResource.getResource().exists()) {
+            return new Properties();
+        } else if (sourceName.endsWith(".yml") || sourceName.endsWith(".yaml")) {
+            return loadYml(encodedResource);
+        } else {
+            return PropertiesLoaderUtils.loadProperties(resource);
+        }
+    }
+
+    private Properties loadProp(String sourceName, EncodedResource resource) throws IOException {
+        if (sourceName.endsWith(".yml") || sourceName.endsWith(".yaml")) {
+            return loadYml(resource);
+        } else {
+            return PropertiesLoaderUtils.loadProperties(resource);
+        }
     }
 
     private Properties loadYml(EncodedResource resource) throws IOException {
