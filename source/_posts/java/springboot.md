@@ -75,6 +75,7 @@ tags: spring
 
 ## 配置文件(properties/yml)
 
+- 参考`ConfigFileApplicationListener`类实现
 - profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`) [^3]
 - 使用配置文件(优先级从高到低)
 	- 外置，`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
@@ -82,10 +83,14 @@ tags: spring
     - 外置，在应用程序运行的目录里
 	- 内置，`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
     - **内置，src/main/resources/config包内**
-        - 可写成到通用包中作为通用配置，但是如果定会了`server.servlet.context-path`，则无法被覆盖
+        - 可写成到通用包中作为通用配置，后面可以进行补充，但是不能覆盖
     - **内置，src/main/resources包内**
     - application.yml > application.properties
+    - bootstrap.yml 其优先级高于 application.yml
 - 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
+    - spring.profiles.include=common,dev
+    - spring.profiles.active=dev
+    - 此时只有写在dev里面的才能覆盖commm, 写在application中的无法覆盖
 - 使用`@PropertySource("classpath:hello.properties")`结合@ConfigurationProperties可设置读取某个配置文件注入到JavaBean
 - 配置示例
 

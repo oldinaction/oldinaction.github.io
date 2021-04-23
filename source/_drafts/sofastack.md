@@ -51,6 +51,16 @@ tags: [springboot, plugin, 微服务]
     - 不允许运行时动态发布模块服务
     - 没有解决同一个类多版本的问题
 
+## 模块简介
+
+- `isle-sofa-boot-starter` SOFABoot模块隔离
+- `sofa-ark-springboot-starter` SOFAArk类隔离
+- `runtime-sofa-boot-plugin` 用于提供 SOFA JVM 服务通信能力，参考[Ark 服务通信(Biz 之间的通信问题)](https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/)
+- `web-ark-plugin` 用于提供多 web 应用合并部署能力等
+- `sofa-ark-container` Ark容器
+- `healthcheck-sofa-boot-starter` SOFABoot监控检测
+- `runtime-sofa-boot-starter` SOFABoot 在 v2.6.0 开始提供异步初始化 Spring Bean 能力
+
 ## SAFOBoot
 
 - 使用参考: https://github.com/sofastack-guides/sofa-boot-guides

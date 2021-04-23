@@ -270,15 +270,24 @@ String result = template.render(Dict.create().set("name", "Hutool"));
 // 合并单元格：将第2行的第1-2列合并
 sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 1));
 sheet.getRow(1).getCell(0).setCellValue('合并单元格设值，只需要针对左上角的单元格设值');
+
+// 移动行
+// startRow 要移动的开始行
+// endRow 要移动的结束行, 必须 >= startRow
+// n 要移动的行数，n为负数代表向上移动
+// copyRowHeight 是否复制行高
+// resetOriginalRowHeight 是否重置行高
+sheet.shiftRows(int startRow, int endRow, int n, boolean copyRowHeight, boolean resetOriginalRowHeight)
 ```
 
-### Easypoi
+### Easypoi(不推荐)
 
 - [Easypoi](https://gitee.com/lemur/easypoi)、[文档](http://doc.wupaas.com/docs/easypoi)
 - 优点
     - 基础变量模板导出
     - excel和html互转。html转excel需要导入org.jsoup#jsoup包，支持将多个table生成到多个sheet中，每个table标签设置一个sheetName属性
 - 缺点
+    - **BUG较多**
     - pdf导出文档不详
     - 测试demo运行不完整
     - excel转html不灵活，无法设置转出的页面样式，如宽度
@@ -342,6 +351,11 @@ Map map = (Map) Yaml.load(yamlStr);
     - `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
         - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
 
+## 字节码操作
+
+- https://blog.csdn.net/luanlouis/article/details/24589193
+- https://www.cnblogs.com/rickiyang/p/11336268.html
+- https://blog.csdn.net/chosen0ne/article/details/50790372
 
 
 
