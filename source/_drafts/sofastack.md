@@ -230,6 +230,6 @@ Require-Module=com.alipay.sofa.service-provider
 
 
 
-
+- 错误： https://github.com/sofastack/sofa-boot/issues/327
 - 相关文章
     - https://zhuanlan.zhihu.com/p/114647271

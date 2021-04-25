@@ -35,8 +35,7 @@ tags: [vpn, linux, network]
     localip 192.168.0.2-20
     remoteip 192.168.0.200-250
     ```
-- `sudo vi /etc/sysctl.conf` 改为`net.ipv4.ip_forward = 1`
-- `sudo sysctl -p` 使sysctl配置生效
+- `sudo vi /etc/sysctl.conf` 改为`net.ipv4.ip_forward = 1`，并执行`sudo sysctl -p` 使sysctl配置生效
 - `sudo systemctl start pptpd` 启动pptpd服务
 - 配置iptables防火墙放行和转发规则
     - **`sudo iptables -L -n -t nat`** 查看 iptables 配置规则

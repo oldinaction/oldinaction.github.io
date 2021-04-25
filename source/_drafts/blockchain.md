@@ -13,7 +13,7 @@ categories: [arch]
         - 区块头保存当前区块的特征值：当前时间、上一个区块的Hash、当前区块体Hash、Nonce(随机项，工作量证明，计算正确hash值的次数)等
         - 区块体保存实际数据，大小为1M
     - 每个块类似链表进行连接（下一个区块记录了上一个区块的区块头Hash）
-- 采矿
+- 挖矿
     - 通过大量计算，将数据成功写入到区块链中即是采矿。每次写入数据，就是创建一个区块
     - 新的有效区块规则
         - `目标值 = 一个常量 / 难度系数`。难度系数越大，目标值就越小
@@ -22,11 +22,17 @@ categories: [arch]
         - 难度系数的动态调节：中本聪设计了难度系数的动态调节机制，将产出速率趋于十分钟每个
     - 区块链的分叉
         - 新节点总是采用最长的那条区块链。如果区块链有分叉，将看哪个分支在分叉点后面，先达到6个新区块（称为"六次确认"）。按照10分钟一个区块计算，一小时就可以确认，因此比特币交易一般有1小时左右的延迟
+    - 比特币挖矿为什幺烧显卡 http://www.elecfans.com/xinkeji/611328.html
+- 挖矿的人叫矿工，挖矿的机器叫矿机/工人
+- 矿池
+    - 即多人合作挖矿，获得的比特币奖励也由多人依照贡献度分享
+    - 矿池费率计算方式：PPS、PPS+、FPPS、PPLNS、SOLO
 - 参考文章
-    - [区块链入门教程](https://www.ruanyifeng.com/blog/2017/12/blockchain-tutorial.html)
-    - [比特币入门教程](http://www.ruanyifeng.com/blog/2018/01/bitcoin-tutorial.html)
-    - [基于java开发一套简易的区块链系统](https://www.codenong.com/cs106604338/)
-- 比特币钱包如：[blockchain](https://www.blockchain.com/)
+
+- [区块链入门教程](https://www.ruanyifeng.com/blog/2017/12/blockchain-tutorial.html)
+- [比特币入门教程](http://www.ruanyifeng.com/blog/2018/01/bitcoin-tutorial.html)
+- [基于java开发一套简易的区块链系统](https://www.codenong.com/cs106604338/)
+- [数字货币导航](https://1234btc.com/)
 
 ## 相关概念
 
@@ -88,11 +94,25 @@ categories: [arch]
     - 激励层：主要是实现区块链代币的发行和分配机制，是公有链的范畴
     - 应用层：一般把区块链系统作为一个平台，在平台之上实现一些去中心化的应用程序或者智能合约，平台提供运行这些应用的虚拟机
 
+## 虚拟货币
 
+### 门罗币(XMR)
 
+- [官网](https://web.getmonero.org/zh-cn/)、[Web端钱包](https://wallet.mymonero.com)
+- [申请门罗钱包](https://mp.weixin.qq.com/s/yxuO51VanFnVfRTCOJFvBA)
+- 矿池
+    - https://www.minergate.com/
+    - https://www.supportxmr.com/、https://www.xmrpool.me/
+    - https://2miners.com/zh
+- 门罗币挖矿程序[xmrig](https://github.com/xmrig/xmrig)，[挖矿教程](https://www.xmr-zh.com/tech/mining-tech.html)
 
-
-
+    ```bash
+    wget https://github.com/xmrig/xmrig/releases/download/v6.12.1/xmrig-6.12.1-linux-x64.tar.gz
+    tar -zxvf xmrig-6.12.1-linux-x64.tar.gz && cd xmrig-6.12.1
+    # 修改 pools.url=pool.supportxmr.com:5555、pools.user=钱包地址、pools.pass=工人名(任意); 可适当修改 cpu.max-threads-hint
+    vi config.json
+    nohup ./xmrig > /dev/null 2>&1 &
+    ```
 
 
 
@@ -106,3 +126,5 @@ categories: [arch]
 [^2]: http://www.ruanyifeng.com/blog/2018/01/bitcoin-tutorial.html (比特币入门教程)
 [^3]: https://www.infoq.cn/article/2018/09/how-choose-blockchain-framework
 [^4]: https://www.codenong.com/cs106604338/ (基于java开发一套完整的区块链系统详细教程)
+[^5]: http://www.wabi.com/news/24364.html
+

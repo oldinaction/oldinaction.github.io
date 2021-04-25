@@ -292,6 +292,8 @@ sheet.shiftRows(int startRow, int endRow, int n, boolean copyRowHeight, boolean 
     - 测试demo运行不完整
     - excel转html不灵活，无法设置转出的页面样式，如宽度
     - html转excel不完善，仅支持table转换，其他html标签不支持，且有些样式会丢失
+- 说明
+    - 常量在Excel中为`'常量值'`，由于可能存在转义，所有需要设置成`''常量值'`
 
 ## Yaml解析(基于jyaml)
 

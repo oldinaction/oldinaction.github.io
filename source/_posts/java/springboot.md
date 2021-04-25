@@ -77,6 +77,20 @@ tags: spring
 
 - 参考`ConfigFileApplicationListener`类实现
 - profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`) [^3]
+- SpringBoot项目属性配置加载顺序
+    - 使用命令行方式启动时，在命令行中传入的参数
+        - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖，如增加`spring.application.json={"spring.application.admin.enabled": false}`
+    - SPRING_APPLICATION_JSON中的属性。SPRING_APPLICATION_JSON是以JSON的格式配置在系统环境变量中的内容，或`--spring.application.json='{"foo":"bar"}'`参数
+    - java:comp/env中的JNDI属性
+    - Java的系统属性，可以通过System.getProperties()获得的内容
+    - 操作系统的环境变量，即Path等
+    - 通过random.*配置的随机属性
+    - 位于当前应用jar包之外，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或YAML格式定义的配置文件，如application-dev.properties
+    - 位于当前应用jar包之内，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或是YAML定义的配置文件
+    - 位于当前应用jar包之外的application.properties和YAML配置内容
+    - 位于当前应用jar包之内的 application.properties和YAML配置内容
+    - 在@Configuration注解修改的类中，通过@PropertySource注解定义的属性
+    - 应用默认属性，使用SpringApplication.setDefaultProperties定义的内容
 - 使用配置文件(优先级从高到低)
 	- 外置，`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
     - 外置，应用程序运行目录的/congfig子目录里

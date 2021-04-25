@@ -211,6 +211,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 ### 其他软件
 
 - SpaceSniffer v1.1.2 空间占用检查
+- [spacedesk](https://spacedesk.net/) 分屏软件(Windows和ipad分屏)
 
 
 ---

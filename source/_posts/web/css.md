@@ -163,6 +163,10 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 </svg>
 ```
 
+## 字体
+
+- 导出Excel使用`Arial Unicode MS`字体，打印出来较美观
+
 ## 常用css
 
 - 响应式布局，head中加`<meta name="viewport" content="width=device-width,initialscale=1.0,maximum-scale=1.0,user-scalable=0">`
