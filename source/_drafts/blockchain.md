@@ -22,17 +22,21 @@ categories: [arch]
         - 难度系数的动态调节：中本聪设计了难度系数的动态调节机制，将产出速率趋于十分钟每个
     - 区块链的分叉
         - 新节点总是采用最长的那条区块链。如果区块链有分叉，将看哪个分支在分叉点后面，先达到6个新区块（称为"六次确认"）。按照10分钟一个区块计算，一小时就可以确认，因此比特币交易一般有1小时左右的延迟
-    - 比特币挖矿为什幺烧显卡 http://www.elecfans.com/xinkeji/611328.html
+    - 比特币挖矿为什幺烧显卡: http://www.elecfans.com/xinkeji/611328.html
 - 挖矿的人叫矿工，挖矿的机器叫矿机/工人
 - 矿池
     - 即多人合作挖矿，获得的比特币奖励也由多人依照贡献度分享
     - 矿池费率计算方式：PPS、PPS+、FPPS、PPLNS、SOLO
+- 钱包
+    - 热钱包类似股票的交易账户，冷钱包就像管理证券账户的银行
+    - 如币安有一个现货账户(可直接购买各种数字货币)，和一个C2C账户(用户和用户直接进行银行卡-法定数字货币交易)
+- 交易所
+    - [币安](https://www.binance.com/zh-CN)，参考: http://www.pc6.com/infoview/Article_188310.html
 - 参考文章
-
-- [区块链入门教程](https://www.ruanyifeng.com/blog/2017/12/blockchain-tutorial.html)
-- [比特币入门教程](http://www.ruanyifeng.com/blog/2018/01/bitcoin-tutorial.html)
-- [基于java开发一套简易的区块链系统](https://www.codenong.com/cs106604338/)
-- [数字货币导航](https://1234btc.com/)
+    - [区块链入门教程](https://www.ruanyifeng.com/blog/2017/12/blockchain-tutorial.html)
+    - [比特币入门教程](http://www.ruanyifeng.com/blog/2018/01/bitcoin-tutorial.html)
+    - [基于java开发一套简易的区块链系统](https://www.codenong.com/cs106604338/)
+    - [数字货币导航](https://1234btc.com/)
 
 ## 相关概念
 
@@ -101,19 +105,30 @@ categories: [arch]
 - [官网](https://web.getmonero.org/zh-cn/)、[Web端钱包](https://wallet.mymonero.com)
 - [申请门罗钱包](https://mp.weixin.qq.com/s/yxuO51VanFnVfRTCOJFvBA)
 - 矿池
-    - https://www.minergate.com/
-    - https://www.supportxmr.com/、https://www.xmrpool.me/
-    - https://2miners.com/zh
-- 门罗币挖矿程序[xmrig](https://github.com/xmrig/xmrig)，[挖矿教程](https://www.xmr-zh.com/tech/mining-tech.html)
+    - https://minexmr.com/ 最小提现0.004XMR
+    - https://www.minergate.com/ 最小提现0.005XMR
+    - https://www.supportxmr.com/、https://www.xmrpool.me/ 最小提现0.1XMR
+- 门罗币挖矿程序
+    - [挖矿教程](https://www.xmr-zh.com/tech/mining-tech.html)
+    - [xmr-stak](https://github.com/fireice-uk/xmr-stak)
+    - [xmrig](https://github.com/xmrig/xmrig) 支持Windows/Linux/MacOS
 
-    ```bash
-    wget https://github.com/xmrig/xmrig/releases/download/v6.12.1/xmrig-6.12.1-linux-x64.tar.gz
-    tar -zxvf xmrig-6.12.1-linux-x64.tar.gz && cd xmrig-6.12.1
-    # 修改 pools.url=pool.supportxmr.com:5555、pools.user=钱包地址、pools.pass=工人名(任意); 可适当修改 cpu.max-threads-hint
-    vi config.json
-    nohup ./xmrig > /dev/null 2>&1 &
-    ```
-
+        ```bash
+        # xmrig
+        wget https://github.com/xmrig/xmrig/releases/download/v6.12.1/xmrig-6.12.1-linux-x64.tar.gz
+        tar -zxvf xmrig-6.12.1-linux-x64.tar.gz && cd xmrig-6.12.1
+        # 修改
+            # pools.url="sg.minexmr.com:4444"(矿池, windows也可直接使用sg.minexmr.com)
+            # pools.user="25dGDsxxxx"(钱包地址)
+            # pools.rig-id="w001"(工人名, 任意)
+            # donate-level=1(捐献比，最小1%)
+        # 可适当修改
+            # cpu.max-threads-hint=80(暂用CPU比例)
+        vi config.json # 修改配置后，无需重启
+        ./xmrig # 无法后台运行，关闭命令行就会停止
+        ```
+    - Centos下CPU加入MinerGate矿池教程 https://www.bobobk.com/973.html
+        - centos7上编译CPUMiner-Multi并在minergate矿池中挖矿，不过由于是cpu，效率较低，1核的速度只有大约20 H/s的速度
 
 
 
