@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2021-04-27T06:56:31.050Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
+    
+    <lastmod>2021-04-27T06:44:50.955Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-04-27T01:49:11.545Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/04/04/extend/vpn/</loc>
     
     <lastmod>2021-04-25T03:55:38.514Z</lastmod>
@@ -40,20 +61,6 @@
     <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
     
     <lastmod>2021-04-19T14:48:54.636Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
-    
-    <lastmod>2021-04-19T09:37:22.624Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2021-04-18T11:02:00.214Z</lastmod>
     
   </url>
   
@@ -250,13 +257,6 @@
     <loc>http://blog.aezo.cn/2017/10/10/web/mobile/uni-app/</loc>
     
     <lastmod>2021-03-17T14:13:07.645Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-03-14T08:36:37.038Z</lastmod>
     
   </url>
   
