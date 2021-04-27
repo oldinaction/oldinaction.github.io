@@ -120,10 +120,13 @@ categories: [arch]
         # 修改
             # pools.url="sg.minexmr.com:4444"(矿池, windows也可直接使用sg.minexmr.com)
             # pools.user="25dGDsxxxx"(钱包地址)
-            # pools.rig-id="w001"(工人名, 任意)
+            # pools.rig-id="w001"(机器名, 任意)；有的是修改pools.pass来显示机器名，还有点是设置`pools.user=钱包地址.机器名`
             # donate-level=1(捐献比，最小1%)
         # 可适当修改
             # cpu.max-threads-hint=80(暂用CPU比例)
+            # "rx": [0, 1, 2] 表示启动 3 个 CPU 核心
+        # 运行中
+            # hupa pages=100% 表示开启了大内存优化(否则建议优化)
         vi config.json # 修改配置后，无需重启
         ./xmrig # 无法后台运行，关闭命令行就会停止
         ```

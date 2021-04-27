@@ -59,6 +59,17 @@ tags: [linux, shell]
         - `./myscript.sh 2>&1 | tee mylog.log` **tee实时重定向日志(同时也会在控制台打印，并且可进行交互)**
     - `Ctrl+c` 关闭程序，回到终端
     - `Ctrl+z` 后台运行程序，回到终端
+    - 也可使用`screen/tmux`等命令实现脱机运行
+        - 会话的一个重要特点是，窗口与其中启动的进程是连在一起的。打开窗口，会话开始；关闭窗口，会话结束，会话内部的进程也会随之终止，不管有没有运行完，一个典型的例子就是，SSH 登录远程计算机。screen/tmux可使会话与窗口"解绑"
+
+        ```bash
+        yum -y install screen
+        screen # 进入screen终端
+        ./test # 执行程序。此时关闭SSH，此程序不会终止
+        screen -ls # 查看所有screen终端: 4680.pts-2.dev2-1 (Attached|Detached)。Attached表示有人看守状态，Detached表示无人看守
+        screen -r 4680 # 重新连接 screen_id 为 4680 的 screen终端(此时4680必须为Detached)
+        Ctrl+a d # 退出screen终端
+        ```
 - 设置环境变量
     - `/etc/profile` 记录系统环境变量，在此文件末尾加入`export JAVA_HOME=/usr/java/jdk1.8` 将`JAVA_HOME`设置成所有用户可访问
     - `/home/smalle/.bash_profile` 每个用户登录的环境变量(/home/smalle为用户家目录)

@@ -255,9 +255,9 @@ select t.stu_no, t.course_name, t.course_score from
 - 字段类型和大小
 	- varchar(10)表示可以显示10个字符，字符集utf8时一个中文为一个字符。mysql的utf8编码最大只能存放3个字节；utf8mb4中mb4指most bytes 4，因此最大可以存放4个字节。中文有可能占用2、3、4个字节
 - **`between...and` 左右边界都包含。**当处理时间时(类型为datetime)，语句`between '2018-10-01' and '2018-11-01'`，实际执行`between 2018-10-01 00:00:00 and 2018-11-01 00:00:00`，从而少算了11-1的数据。解决办法
-    - 写全时分秒
+    - 写全时分秒，2018-10-01 00:00:00至2018-10-01 23:59:59
     - 如果create_time类型为date(日期类型，而不是日期时间)，则使用between...and没什么问题
-    - `date_format(a.create_time,'%Y-%m-%d') between '2018-10-01' and '2018-11-01'`
+    - `date_format(a.create_time,'%Y-%m-%d') between '2018-10-01' and '2018-11-01'` 转成字符串进行比较
     - `between '2018-10-01' and date_add('2018-11-01', interval 1 day)` 多算了2018-11-02 00:00:00这一秒中的数据
 
 ### 关键字
