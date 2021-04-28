@@ -509,6 +509,60 @@ public void runExport(@PathVariable("id") Integer id, @RequestBody Map<String, O
 }
 ```
 
+### 基于commons.fileupload上传文件
+
+```java
+// 获取上传文件及表单其他字段
+public static Map<String, Object> getData(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    Map<String, Object> retMap = new HashMap<>();
+
+    // 判断enctype属性是否为multipart/form-data
+    // boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+    // org.apache.commons.fileupload.disk.DiskFileItemFactory;
+    DiskFileItemFactory factory = new DiskFileItemFactory();
+
+    // 当上传文件太大时，因为虚拟机能使用的内存是有限的，所以此时要通过临时文件来实现上传文件的保存，此方法是设置是否使用临时文件的临界值（单位：字节）   
+    factory.setSizeThreshold(1024*1024);
+    // 与上一个结合使用，设置临时文件的路径（绝对路径） 
+    File tempFolderFile = new File("/tmp");
+    if(!tempFolderFile.isDirectory()) {
+        tempFolderFile.mkdirs();
+    }
+    factory.setRepository(tempFolderFile);  
+
+    // org.apache.commons.fileupload.servlet.ServletFileUpload;
+    ServletFileUpload upload = new ServletFileUpload(factory);
+        
+    // 设置上传内容的大小限制（单位：字节） 
+    // upload.setSizeMax(yourMaxRequestSize); 
+
+    try {
+        List<?> items = upload.parseRequest(request);
+        Iterator<?> iter = items.iterator();  
+        while (iter.hasNext()) {  
+            FileItem item = (FileItem) iter.next();  
+            
+            if (item.isFormField()) {  
+                // 如果是普通表单字段  
+                String name = item.getFieldName();  
+                String value = item.getString();  
+                retMap.put(name, value);
+            } else {  
+                // 如果是文件字段/列名(可直接读流)
+                String fileName = item.getName();
+                File file1 = new File("/home/test/" + fileName);
+                item.write(file1);
+                retMap.put("file1", file1);
+            }  
+        }  
+    } catch (Exception e) {
+        e.printStackTrace();
+    }  
+ 
+    return retMap;
+}
+```
+
 ## 性能优化
 
 ### 用户浏览器缓存问题 [^5]

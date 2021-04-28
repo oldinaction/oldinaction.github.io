@@ -68,7 +68,8 @@ tags: [linux, shell]
         ./test # 执行程序。此时关闭SSH，此程序不会终止
         screen -ls # 查看所有screen终端: 4680.pts-2.dev2-1 (Attached|Detached)。Attached表示有人看守状态，Detached表示无人看守
         screen -r 4680 # 重新连接 screen_id 为 4680 的 screen终端(此时4680必须为Detached)
-        Ctrl+a d # 退出screen终端
+        Ctrl+A+D # 保持会话并退出
+        exit # 完全退出
         ```
 - 设置环境变量
     - `/etc/profile` 记录系统环境变量，在此文件末尾加入`export JAVA_HOME=/usr/java/jdk1.8` 将`JAVA_HOME`设置成所有用户可访问

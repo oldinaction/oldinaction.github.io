@@ -111,7 +111,7 @@ categories: [arch]
 - 门罗币挖矿程序
     - [挖矿教程](https://www.xmr-zh.com/tech/mining-tech.html)
     - [xmr-stak](https://github.com/fireice-uk/xmr-stak)
-    - [xmrig](https://github.com/xmrig/xmrig) 支持Windows/Linux/MacOS
+    - [xmrig](https://github.com/xmrig/xmrig) 支持Windows/Linux/MacOS，[官方文档](https://xmrig.com/docs/miner)
 
         ```bash
         # xmrig
@@ -126,9 +126,16 @@ categories: [arch]
             # cpu.max-threads-hint=80(暂用CPU比例)
             # "rx": [0, 1, 2] 表示启动 3 个 CPU 核心
         # 运行中
-            # hupa pages=100% 表示开启了大内存优化(否则建议优化)
+            # hupa pages=100% 表示开启了大内存优化(否则建议优化, linux下管理员启动即可). https://xmrig.com/docs/miner/hugepages
         vi config.json # 修改配置后，无需重启
-        ./xmrig # 无法后台运行，关闭命令行就会停止
+        sudo ./xmrig # 可使用screen命令后台运行
+
+        # docker 部署
+        docker run --restart=always --network host -d -v /etc/xmrig/config.json:/etc/xmrig/config.json -e CPU_USAGE=80 --name xmr snowdream/xmr
+
+        # 查看是否有GPU
+        lspci | grep -i vga # 查看是否有AMD
+        lspci | grep -i nvidia # 查看是否有N卡
         ```
     - Centos下CPU加入MinerGate矿池教程 https://www.bobobk.com/973.html
         - centos7上编译CPUMiner-Multi并在minergate矿池中挖矿，不过由于是cpu，效率较低，1核的速度只有大约20 H/s的速度
