@@ -104,6 +104,7 @@ categories: [arch]
 
 - [官网](https://web.getmonero.org/zh-cn/)、[Web端钱包](https://wallet.mymonero.com)
 - [申请门罗钱包](https://mp.weixin.qq.com/s/yxuO51VanFnVfRTCOJFvBA)
+- 挖矿收益计算: https://www.babaofan.com/miner/
 - 矿池
     - https://minexmr.com/ 最小提现0.004XMR
     - https://www.minergate.com/ 最小提现0.005XMR
