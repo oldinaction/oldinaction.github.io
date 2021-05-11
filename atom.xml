@@ -555,9 +555,9 @@
       <category term="web" scheme="http://blog.aezo.cn/categories/web/"/>
     
     
-      <category term="vue" scheme="http://blog.aezo.cn/tags/vue/"/>
-    
       <category term="src" scheme="http://blog.aezo.cn/tags/src/"/>
+    
+      <category term="vue" scheme="http://blog.aezo.cn/tags/vue/"/>
     
   </entry>
   
