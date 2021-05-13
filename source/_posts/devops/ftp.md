@@ -38,6 +38,9 @@ cd
 quote pasv
 # 开启/关闭被动模式，再次输入此命令可回到上一模式
 passive
+
+## wget下载
+wget ftp://ip --ftp-user=user --ftp-password=passwd
 ```
 
 ## FTP服务器
@@ -58,7 +61,7 @@ passive
 #### 安装 [^1]
 
 - 安装`yum install vsftpd`
-- 启动服务`systemctl start vsftpd`(修改主配置需要重启服务)
+- 启动服务`systemctl enable vsftpd && systemctl restart vsftpd`(修改主配置需要重启服务)
 - IE浏览器访问`ftp://192.168.1.1`失败(部分浏览器只支持主动模式)。谷歌浏览器正常访问并使用，或者ftp客户端登录
 
 #### 配置
@@ -95,7 +98,7 @@ passive
     anonymous_enable=NO
     # ***.禁止匿名用户上传
     anon_upload_enable=NO
-    #启用本地系统用户，包括虚拟用户. 基于虚拟用户的访问必须加上次配置，使用真实用户(宿主用户)访问可进行关闭
+    #启用本地系统用户，包括虚拟用户. 基于虚拟用户的访问必须加上此配置，使用真实用户(宿主用户)访问可进行关闭
     local_enable=YES
 
     # chroot_local_user=YES限制用户不能离开FTP主目录，chroot_list_enable=YES启用并设置例外用户，此时chroot_list_file为例外的用户名(即可以登出主目录的)
@@ -111,16 +114,16 @@ passive
     userlist_deny=YES
     userlist_file=/etc/vsftpd/user_list
 
+    # ***.开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口
+    pasv_enable=YES
     # ***.vsftpd服务器的外网IP（否则卡死在`227 Entering Passive Mode`，但是可以通过主动模式连接）
     pasv_address=192.168.1.1
     # ***.监听端口21，需要开放对应端口防火墙
     #listen_port=21
-    # ***.NO表示关闭ftp-data端口，相当于不使用主动模式. 如果是主动模式则需要开启，且防火墙需要开放20端口
-    connect_from_port_20=NO
-    # ***.开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口
-    pasv_enable=YES
     pasv_min_port=30000
     pasv_max_port=30999
+    # ***.NO表示关闭ftp-data端口，相当于不使用主动模式. 如果是主动模式则需要开启，且防火墙需要开放20端口
+    connect_from_port_20=NO
 
     ### 使用虚拟用户才需要
     #虚拟用户权限是否与本地用户相同。为NO时表示将与匿名用户的权限相同，可在每个虚拟用户配置文件里设置此虚拟用户的权限(相当于在相应用户配置中针对匿名用户权限进行配置，即是对虚拟用户权限进行配置)
