@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/03/19/devops/ftp/</loc>
+    
+    <lastmod>2021-05-13T13:58:37.474Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2021-04-28T13:02:14.702Z</lastmod>
@@ -782,13 +789,6 @@
     <loc>http://blog.aezo.cn/2016/05/22/extend/load-runner/</loc>
     
     <lastmod>2020-05-14T14:28:28.887Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/03/19/devops/ftp/</loc>
-    
-    <lastmod>2020-05-09T01:05:02.432Z</lastmod>
     
   </url>
   
