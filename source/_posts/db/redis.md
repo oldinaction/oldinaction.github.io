@@ -17,13 +17,6 @@ tags: redis
 - redis windows客户端(64x，官网不提供window安装包)：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
 - redis客户端连接管理软件：`RedisDesktopManager`
 - `jedis`：java操作redis(jar)，[jedis Github](https://github.com/xetorthio/jedis)
-- 常识
-    - 磁盘寻址是ms级，带宽是G、M
-    - 内存寻址是ns级，带宽很大；磁盘比内存寻址慢了10w倍
-    - 磁盘扇区大小一般是512Byte，此时获取数据成本较高，因此无论读取数据多少，操作系统每次都是从磁盘中拿4K的数据
-    - 计算机的2个基础设施
-        - 冯诺依曼体系的硬件
-        - 以太网，tcp/ip的网络
 - bio-nio-select-epoll，参考[网络IO](/_posts/linux/计算机底层知识.md#网络IO)
 
 ![bio-nio-select-epoll](/data/images/linux/bio-nio-select-epoll.png)
