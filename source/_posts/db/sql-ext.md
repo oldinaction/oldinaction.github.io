@@ -563,7 +563,7 @@ select *
         -- 可再次group by；或者使用row_number()再加子查询rn=1获取最大最小值
 
         -- =============== 使用 Keep ===============
-        -- Keep测试一(基于主表group by)
+        -- *****Keep测试一(基于主表group by)*****：如查分组中最新的数据(非分组字段通过keep获取，如果同最近的ID再次管理表则效率低一些)
         select
         v.customer_id, v.visit_type
         ,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id -- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2)，并取第一排序集(1-1)中v.id最大的

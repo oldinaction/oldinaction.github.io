@@ -208,13 +208,6 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 - 查看数据库sql运行占用CPU时间较长的会话信息，并kill此会话
 
     ```sql
-    -- 获取cpu总消耗时间过长的sql
-    select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000, 2) peer_secondes, sql_text, sql_fulltext
-    from v$sql
-    join v$session on v$sql.sql_id = v$session.sql_id
-    where cpu_time > 20000
-    order by round(cpu_time/executions/1000, 2) desc;
-
     -- 获取每次消耗cpu > 3s的sql. cpu_time为微秒
     select sid, serial#, sql_text, sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
     from v$sql
@@ -225,6 +218,13 @@ https://blog.csdn.net/Aviciie/article/details/79281080
     -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
     -- 从根源上解决问题需要对对应的sql_fulltext进行sql优化
     alter system kill session 'sid, serial#';
+
+    -- 获取cpu总消耗时间过长的sql(大于20s)
+    select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000000, 2) peer_secondes, sql_text, sql_fulltext
+    from v$sql
+    join v$session on v$sql.sql_id = v$session.sql_id
+    where cpu_time > 20
+    order by round(cpu_time/executions/1000000, 2) desc;
     ```
 - 查看服务器CPU占用高较高的进程运行的sql语句(v$sqltext中的sql语句是被分割存储)，运行下列sql后输入进程pid
     - `top`查看占用CPU较高的进程，Commad中可以看到连接数据的命令信息，如`oracleorcl (LOCAL=NO)`为OFBiz的连接信息

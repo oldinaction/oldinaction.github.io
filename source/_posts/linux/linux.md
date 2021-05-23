@@ -202,10 +202,11 @@ tags: [linux, shell]
 - `scp` 跨机器文件传输
     - scp免密登录需要将客户端的公钥放到服务器
     - 复制文件到远程服务器
-        - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(此处/home/dir不能写成/home/dir/)
+        - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(本地和远程目录要么都以/结尾，要么都不要/)
     - 从远程服务器传输文件到本地
         - `scp -r root@192.168.1.1:/opt/soft/test /opt/soft/` 下载远程 /opt/soft/test 文件或目录(及其子目录)到本地的 /opt/soft/ 目录来
         - `scp -r root@192.168.1.1:/home/test/2018* .` 将远程目录的2018开头的文件夹及其子文件复制到本地当前目录(备份)
+        - "scp jdk-8u202-linux-x64.rpm root@node02:`pwd`"(pwd用锐音符包裹) 将文件复制到另一台机器的相同目录
 - `mv a.txt /home` 移动a.txt到/home目录
     - `mv a.txt b.txt` 将a.txt重命名为b.txt
     - `mv a.txt /home/b.txt` 移动并重名名
@@ -747,8 +748,9 @@ rar a aezocn.rar *.jpg
     - `ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa` 以dsa模式生成
     - `ssh-keygen -t rsa -C "xxx@qq.com"` -C起到一个密码备注的作用，可以为任何内容
 - **公钥保存到服务器**
-    - 手动追加到authorized_keys文件中
-    - `ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1` 输入192.168.1.1密码，则会自动将公钥保存在服务器的`/root/.ssh/authorized_keys`文件中去此时。需要保证192.168.1.1服务器的root用户没有被禁用
+    - **`ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1`** 输入192.168.1.1密码，则会自动将公钥保存在服务器的`/root/.ssh/authorized_keys`文件中去此时。需要保证192.168.1.1服务器的root用户没有被禁用
+    - 手动追加到authorized_keys文件中，`cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
+    - **注意`authorized_keys`权限必须是600**。如果没有此文件，上述两种方式会自动创建，其中ssh-copy-id创建的是600，而通过cat追加创建的可能不是600权限导致无法使用
 - **秘钥保存在客户端**
     - 如果是为了让客户端root用户登录服务器，则将公钥放入到/root/.ssh目录；如果提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下
     - `.ssh`目录不存在可手动新建（可通过`ll -al`查看） [^5]

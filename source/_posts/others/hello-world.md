@@ -58,6 +58,7 @@ tags: [others]
     - `{` 对应 `&#123;`
     - `}` 对应 `&#125;`
     - 不建议在一行中出现`<xxx>`字符
+    - 相关转义符：https://www.dazhuanlan.com/2020/04/19/5e9be4c323d8a/
 - hexo文章元信息`---`后面不能有空格，否则容易报错`YAMLException: bad indentation of a sequence entry`
 - 锚链接和连接带空格案例 `[MD 语法](#MD%20语法)` [MD 语法。连接中空格使用%20代替](#MD%20语法)
 

@@ -640,6 +640,15 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
 ## spring security oauth2 [^2]
 
 - [理解Oauth 2.0-阮一峰](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
+- Oauth与SSO
+    - **OAuth是为解决不同公司的不同产品实现登陆的一种简便授权方案**。通常这些授权服务都是由大公司提供的，如QQ，新浪微博，人人网等。使用OAuth授权的好处是，在为用户提供某些服务时，可减少或避免因用户懒于注册而导致的用户流失问题
+    - **SSO通常处理的是一个公司的不同应用间的访问登陆问题**。如企业应用有很多业务子系统，只需登陆一个系统，就可以实现不同子系统间的跳转，而避免了登陆操作
+        - A/B应用仅仅使用同一套JWT规则是否无法实现单点登录。即如果A/B单独通过浏览器访问，未登录的系统存在无法自动获取token的问题；如果将A/B嵌入到C，浏览器中访问C可实现统一认证
+        - 单点登陆需要浏览器可同时访问A/B，只需要登陆一次
+    - OAuth与SSO的应用场景不同，虽然**可以使用OAuth实现SSO**，但并不建议这么做。不过，如果SSO和OAuth结合起来的话，理论上是可以打通各个公司的各个不同应用间的登陆问题，但现实往往是残酷的
+    - SSO相关文章
+        - https://www.cnblogs.com/wxj-106/p/8097880.html
+        - https://www.cnblogs.com/ywlaker/p/6113927.html#!comments
 - oauth2根据使用场景不同，分成了4种模式
     - 授权码模式(authorization code)：授权码模式使用到了回调地址，是最为复杂的方式，通常网站中经常出现的微博，qq第三方登录，都会采用这个形式
         - 用户访问客户端，后者将前者导向认证服务器
@@ -1045,8 +1054,14 @@ spring:
 
 #### 单点登录
 
-> 源码参考 spring-security-oauth2 -> oauth2-authorization-code -> oauth2-authorization-code-sso(授权服务器为oauth2-authorization-code-qq)
-
+- 测试说明
+    - 源码参考 spring-security-oauth2 -> oauth2-authorization-code -> oauth2-authorization-code-sso(授权服务器为oauth2-authorization-code-qq)
+    - 启动本项目下的client1、client2、resource，并启动第三方认证服务oauth2-authorization-code-qq
+    - 在hosts下增加 `127.0.0.1 aezocn.local`(client1)、`127.0.0.1 smalle.local`(client2) 的映射
+    - 访问 `http://aezocn.local:8081/client1`
+    - USER账号密码 123456/admin 进行登录
+    - 访问 `http://smalle.local:8082/client2` 会发现无需登录
+    - 同理，先登录client2，再访问client1也无需登录
 - 授权服务器配置
 
 ```java

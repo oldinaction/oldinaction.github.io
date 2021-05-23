@@ -250,11 +250,12 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
 
 - 通过ftp上传jdk对应tar压缩包到对应目录并进行解压
 - 下载tar格式（推荐）
-  - 下载tar文件并上传到服务器
-  - 解压tar **`tar -zxvf jdk-8u161-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
+    - 下载tar文件并上传到服务器
+    - 解压tar **`tar -zxvf jdk-8u161-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
 - 下载rpm格式
-  - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 8 -> Java SE Development Kit 8u161 -> Accept License Agreement -> jdk-8u161-linux-x64.rpm
-  - `rmp -ivh jdk-8u161-linux-x64.rpm` 安装rpm文件
+    - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 8 -> Java SE Development Kit 8u161 -> Accept License Agreement -> jdk-8u161-linux-x64.rpm
+    - `rmp -ivh jdk-8u161-linux-x64.rpm` 安装rpm文件，可执行文件保存在`/usr/java/jdk1.8.0_161-amd64/jre/bin/java`
+    - 设置环境变量。可设置`JAVA_HOME=/usr/java/default`
 
 #### 配置环境变量
 
@@ -589,9 +590,10 @@ echo "zabbix test mail" | mail -s "zabbix" test@163.com
     - `date -s "2019-04-07 10:00:00"` 设置时间
     - `hwclock -w` 将时间写入bios固件避免重启失效
 
-#### NTP(Network Time Protocol)
+#### NTP网络时间同步
 
-- 使用脚本自动配置时间同步`bash <(curl -L https://sourcegraph.com/github.com/oldinaction/scripts@master/-/raw/shell/prod/conf-ntp-sync.sh) 2>&1 | tee conf-ntp-sync.log`
+- NTP(Network Time Protocol)
+- **使用脚本自动配置时间同步** `bash <(curl -L https://sourcegraph.com/github.com/oldinaction/scripts@master/-/raw/shell/prod/conf-ntp-sync.sh) 2>&1 | tee conf-ntp-sync.log`
 - 使用 [^8]
 
 ```bash
