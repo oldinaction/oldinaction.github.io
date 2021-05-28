@@ -54,7 +54,7 @@ tags: [App, dart, mobile]
         maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
     }
     ```
-    - 如果仍然无法下载依赖，则修改项目目录的`android/build.gradle`文件，在`buildscript.repositories`和`allprojects.repositories`同上述一样修改。(出现于需要安装系统尚未安装的Android SDK版本)
+    - 如果仍然无法下载依赖，则修改项目目录的`android/build.gradle`文件，在`buildscript.repositories`和`allprojects.repositories`(建议也要配置一下)同上述一样修改。(出现于需要安装系统尚未安装的Android SDK版本)
 - 真机调试
     - USB连接必须选择传输文件或者MTP(多媒体传输)
     - 手机设置开启USB调试

@@ -42,42 +42,48 @@ tags: [HA, 分布式锁]
 
 - 基于v3.4.6，使用3台机器进行搭建。文档[http://zookeeper.apache.org/doc/r3.4.6/index.html](http://zookeeper.apache.org/doc/r3.4.6/index.html)
 
-    ```bash
-    ## 需要保证安装了JDK，参考[CentOS服务器使用说明.md#安装jdk](/_posts/linux/CentOS服务器使用说明.md#安装jdk)
-    ## 安装
-    date # 检查所有机器的时间是否相差不大(30秒内)，并查看是否关闭防火墙
-    wget https://mirror.bit.edu.cn/apache/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
-    mkdir /opt/soft
-    tar -zxvf apache-zookeeper-3.6.1-bin.tar.gz -C /opt/soft
-    cd /opt/soft/apache-zookeeper-3.6.1-bin
-    cp conf/zoo_sample.cfg conf/zoo.cfg
-    vi conf/zoo.cfg # 参考下文
-    scp -r /opt/soft/apache-zookeeper-3.6.1-bin root@node2:/opt/soft/apache-zookeeper-3.6.1-bin/ # 复制node1下的zookeeper目录到其他两台机器
-    scp -r /opt/soft/apache-zookeeper-3.6.1-bin root@node3:/opt/soft/apache-zookeeper-3.6.1-bin/
+```bash
+## 需要保证安装了JDK，参考[CentOS服务器使用说明.md#安装jdk](/_posts/linux/CentOS服务器使用说明.md#安装jdk)
+## 安装
+date # 检查所有机器的时间是否相差不大(30秒内)，并查看是否关闭防火墙
+wget https://archive.apache.org/dist/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
+mkdir /opt/soft
+tar -zxvf apache-zookeeper-3.6.1-bin.tar.gz -C /opt/soft
+cd /opt/soft/apache-zookeeper-3.6.1-bin
+cp conf/zoo_sample.cfg conf/zoo.cfg
+# 参考下文
+vi conf/zoo.cfg
+# 复制node1下的zookeeper目录到其他两台机器
+scp -r /opt/soft/apache-zookeeper-3.6.1-bin root@node2:/opt/soft/apache-zookeeper-3.6.1-bin/
+scp -r /opt/soft/apache-zookeeper-3.6.1-bin root@node3:/opt/soft/apache-zookeeper-3.6.1-bin/
 
-    mkdir -p /opt/data/zookeeper
-    echo 1 > /opt/data/zookeeper/myid # 创建dataDir目录，并再此目录创建`myid`文件，然后在每台机器的`myid`文件中写入对应的服务号(服务名server.X中的X)
+# 创建数据目录
+mkdir -p /var/zookeeper
+echo 1 > /var/zookeeper/myid # 创建dataDir目录，并再此目录创建`myid`文件，然后在每台机器的`myid`文件中写入对应的服务号(服务名server.X中的X，即1/2/3)
 
-    vi /etc/profile # 加入如下配置
-    #export ZOOKEEPER_HOME=/opt/soft/apache-zookeeper-3.6.1-bin
-    #export PATH=$PATH:$ZOOKEEPER_HOME/bin
-    source /etc/profile
-    ```
-    - conf/zoo.cfg配置示例
+# 加入环境变量
+#export ZOOKEEPER_HOME=/opt/soft/apache-zookeeper-3.6.1-bin
+#export PATH=$PATH:$ZOOKEEPER_HOME/bin
+vi /etc/profile
+source /etc/profile
+```
+- conf/zoo.cfg配置示例
 
-        ```bash
-        tickTime=2000
-        initLimit=10
-        syncLimit=2
-        # 内存数据库存放目录
-        dataDir=/opt/data/zookeeper
-        clientPort=2181
-        # zookeeper服务名 = 服务器地址和端口。每台机器将自己服务名(server.X)中的X存放在dataDir下的myid文件中
-        server.1=node1:2888:3888
-        server.2=node2:2888:3888
-        server.3=node3:2888:3888
-        #server.4=node4:2888:3888:observer # 设置节点为Observer角色
-        ```
+```bash
+## 先清空整个文件
+# 配置文件默认有以下3个配置
+tickTime=2000
+initLimit=10
+syncLimit=5
+# 内存数据库存放目录，配置文件中默认是/tmp/zookeeper
+dataDir=/var/zookeeper
+clientPort=2181
+# zookeeper服务名 = 服务器地址和端口。每台机器将自己服务名(server.X)中的X存放在dataDir下的myid文件中
+server.1=node1:2888:3888
+server.2=node2:2888:3888
+server.3=node3:2888:3888
+#server.4=node4:2888:3888:observer # 设置节点为Observer角色
+```
 - 启动与停止
 
 ```bash

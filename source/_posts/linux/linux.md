@@ -202,7 +202,7 @@ tags: [linux, shell]
 - `scp` 跨机器文件传输
     - scp免密登录需要将客户端的公钥放到服务器
     - 复制文件到远程服务器
-        - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(本地和远程目录要么都以/结尾，要么都不要/)
+        - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(本地和远程目录要么都以/结尾，要么都不要/)。**需要提前创建目标目录的父目录**
     - 从远程服务器传输文件到本地
         - `scp -r root@192.168.1.1:/opt/soft/test /opt/soft/` 下载远程 /opt/soft/test 文件或目录(及其子目录)到本地的 /opt/soft/ 目录来
         - `scp -r root@192.168.1.1:/home/test/2018* .` 将远程目录的2018开头的文件夹及其子文件复制到本地当前目录(备份)

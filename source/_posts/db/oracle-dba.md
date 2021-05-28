@@ -70,7 +70,7 @@ startup
 
 #### 执行脚本
 
-- plsql 执行 sql 文件：`@ D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交，建议 start）
+- plsql 打开命令行窗口，执行 sql 文件：`start D:\sql\my.sql` 或 `@ D:/sql/my.sql`（部分语句需要执行`commit`提交，建议 start）
 - bat 脚本(data.bat)：`sqlplus user/password@serverip/database @"%cd%\data.sql"` (data.sql 和 data.bat 同级，此处只能用@)
 - 后台运行脚本 `nohup bash run.sh > run.log 2>&1 &`
 

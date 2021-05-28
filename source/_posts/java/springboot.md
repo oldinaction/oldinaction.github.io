@@ -1028,6 +1028,15 @@ public class TestServlet extends HttpServlet{
     int count = jdbcTemplate.update("update t_user set username = 'smalle' where username = 'hello'");  
 	```
 
+- `NamedParameterJdbcTemplate`(处理in语句)
+
+    ```java
+    NamedParameterJdbcTemplate namedJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate.getDataSource());
+    Map<String, Object> params = new HashMap<>();
+    params.put("sex", 1);
+    params.put("idList", MiscU.toList(1, 2, 3));
+    namedJdbcTemplate.update("update t_user set sex = :sex where id in (:idList) ", params);
+    ```
 - jdbc批量执行sql语句
 
 	```java
@@ -1053,15 +1062,6 @@ public class TestServlet extends HttpServlet{
 		}
 	});
 	```
-- in语句处理
-
-    ```java
-    NamedParameterJdbcTemplate namedJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate.getDataSource());
-    Map<String, Object> params = new HashMap<>();
-    params.put("sex", 1);
-    params.put("idList", MiscU.toList(1, 2, 3));
-    namedJdbcTemplate.update("update t_user set sex = :sex where id in (:idList) ", params);
-    ```
 
 ### 数据库连接池(Druid)
 

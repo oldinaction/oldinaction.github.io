@@ -10,9 +10,9 @@ tags: [hadoop]
 
 - `Hadoop`([hædu:p])作者`Doug cutting`，名字来源于Doug Cutting儿子的玩具大象
 - 模块
-    - 分布式存储系统`HDFS`(Hadoop Distributed File System)
-    - 分布式计算框架`Hadoop MapReduce`
-    - `Hadoop YARN` 资源管理系统
+    - `HDFS`(Hadoop Distributed File System) 分布式存储系统
+    - `Hadoop MapReduce` 分布式计算框架
+    - `Hadoop YARN` 资源管理系统(Hadoop 2.x才有)
     - `Hadoop Common`
 - 网址
     - [官网](http://hadoop.apache.org/)
@@ -24,9 +24,11 @@ tags: [hadoop]
     - 《Bigtable: A Distributed Storage System for Structured Data》 2006年
 - 版本：2016年10月hadoop-2.6.5，2017年12月hadoop-3.0.0
 - [大数据生态CDH提供商](http://www.cloudera.com)
-- 本文基于`hadoop-2.5.1`**(需要`jdk1.7`)**
+- 本文基于`hadoop-2.10.1`(jdk1.8)
 
-## HDFS概念
+## HDFS
+
+### HDFS基础概念
 
 - HDFS优缺点
     - 优点：高容错性(自动保存副本，自动恢复)、适合批处理、适合大数据(TB/PB)处理、可构建在廉价机器上
@@ -157,17 +159,85 @@ tags: [hadoop]
 ## MapReduce
 
 - Map-reduce的思想就是"分而治之"
-- 主要分为`Map`和`Reduce`两个阶段，也可细分为`Split`、`Map`、`Shuffler(sort、copy、merge)`、`Reduce`几个阶段
-- split大小：`max(min.split,min(max.split, block))` 其中默认min.split=10M，max.split=100M，block=128M
-- MapReduce架构图
+- 主要分为`Map`和`Reduce`两个阶段
+    - Map和Reduce是阻塞的，必须先完成Map阶段才可进入Reduce阶段，这种计算方式属于批量计算（不同于流式计算）
+    - Map负责映射、变换、过滤；Reduce负责分解、缩小、归纳；二者通过KV关联，并根据K分组
+    - 也可细分为`Split`、`Map`、`Shuffler(sort、copy、merge)`、`Reduce`几个阶段
+- Map-Reduce整体架构图
 
     ![MapReduce架构图](/data/images/bigdata/hadoop-mp.png)
+    - 从split块中以一条记录为单位，执行map方法映射成KV；相同的key为一组，这一组数据调用一次reduce方法，在方法内迭代计算这一组数据
+    - 数据按照一定的切割规律提交到每个Map进程中
+        - block是物理切割，split是逻辑切割(可根据资源情况，设置切割大小)，默认对应Block大小
+        - 有说切割大小为 `max(min.split, min(max.split, block))` 其中默认min.split=10M，max.split=100M，block=128M
+    - reduce计算使用迭代器模式：数据集较大时，使用迭代的计算方式，可有效节省内存(只需要获取一条数据到内存中进行计算)
+- MapTask-ReduceTask执行原理
+    
+    ![MapReduce执行原理](/data/images/bigdata/hadoop-mp-detail.png)
+    - MapTask流程
+        - split切片会格式化出记录(如以换行符或开闭标签等方式来进行切割)，以记录为单位调用map方法
+        - map的输出映射成KV，KV会参与分区计算，拿着key算出分区号P(如按照reduce个数取模)，最终为K,V,P
+        - 将上述单条记录处理好后保存到buffer中，buffer满后按照分区P和键K进行快速排序，然后按照归并排序写入到一个本地文件中(最终得到的文件是先按分区排，分区内按照K排)
+            - 使用buffer是为了减少IO，如果每次将单条记录写入到文件中会频繁产生IO(系统调用)
+            - 按分区排好序是方便后面ReduceTask读取MapTask结果文件时只需读取一部分(分区部分)，不用扫描整个文件
+            - 按K排好序也是方便后面ReduceTask计算时使用迭代器模式，不用扫描整个分区片段
+    - ReduceTask流程
+        - 从不同MapTask中获取结果文件，读取当前ReduceTask处理的分区片段
+        - 将几个分区片段按照归并排序合并后提交到Reduce方法中进行迭代计算
+            - reduce的归并排序其实可以和reduce方法的计算同时发生
+            - 且无需将所有片段合并到文件再计算，从而减少IO，因为有迭代器模式的支持
+        - 将计算结果输出
+- 执行流程举例(查询文件中的重复行)
 
-## 安装
+    ![MapReduce执行流程举例](/data/images/bigdata/hadoop-mp-demo.png)
 
-### Hadoop-HA安装
+## YARN
 
-> HA模式安装：https://hadoop.apache.org/docs/r2.10.1/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html
+- 由于MapReduce注重计算向数据移动(将计算用到的算法程序拷贝到数据所在节点执行，减少数据IO)，而一份数据一般会有几个备份，且集群中可能同时运行着多个任务，因此需要资源管理(考量节点CPU/内存/网络等因素)来协调运行计算的节点
+- YARN是Haddop 2.x才出现的集群资源管理独立模块，只要是Hadoop生态均可使用；最早资源管理系统是集成在MapReduce中的
+
+### Haddop 1.x
+
+- MR资源管理
+
+    ![MR资源管理](/data/images/bigdata/hadoop-jt-tt.png)
+- 客户端
+    - 需要从NN中获取到源数据保存的DN节点，从而才能将MR计算程序拷贝到相应节点运行(计算向数据移动)，实际的计算(执行M/R方法)发送在数据节点
+    - 而适合运行此计算任务的需要从JobTracker中获知
+    - 上传源数据的客户端和发起计算任务的客户端可能是不同的客户端
+- `JobTracker`(JT)主要负责管理集群资源和任务调度
+    - 接受TaskTracker(TT)上报的资源数据，从而判断出适合运行MR程序的节点
+    - 将MR计算程序拷贝到相应节点执行计算
+    - JobTracker以常服务(永久运行的)运行在MR中，YARN之后MR则无此常服务
+- `TaskTracker`(TT)主要负责当前DataNode资源上报，每个DataNode会运行一个TaskTracker
+- 存在问题
+    - JobTracker单点问题(不稳定、负载不好)
+    - JobTracker和MR耦合度太高，不利于整合对其他框架
+
+### Haddop 2.x
+
+- YARN原理
+    
+    ![YARN原理](/data/images/bigdata/hadoop-yarn.png)
+- ResourceManager：类似JobTracker(只包含其资源管理，不包含其任务调度)
+    - 接受NodeManager上报的状态信息
+    - 接受客户端发起的计算任务请求
+        - ResourceManager会告诉NodeManager启动一个AppMaster(即JobTracker的任务调度功能)
+        - AppMaster会向ResourceManager上报信息(监控挂掉可重新启动一个新的)，并提交请求的资源信息(需要的Container数)
+        - ResourceManager会告诉NodeManager启动Container(用来执行M/R方法)，Container向AppMaster上报信息
+        - 每个请求任务有各自独立的AppMaster，从而减少了负载。计算任务完成，AppMaster和Container会停止
+    - 集群单点有个节点运行ResourceManager
+    - 可基于ZK进行HA部署，但是和HDFS不同的是不需要ZKFC这个角色
+        - Hadoop 1.x的时候HDFS存在单点故障，因此在开发Haddop 2.x的时候增加了HA，但是为了向老版本兼容，不想过多修改1.x的程序，从而出现了ZKFC来控制HA的切换
+        - 而在Haddop 2.x的时候开发YARN是新的模块，从而切换功能直接在ResourceManager中
+- NodeManager：类似TaskTracker，运行在各个DN
+
+## Hadoop-HA安装
+
+- HA模式安装：https://hadoop.apache.org/docs/r2.10.1/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html
+- [单节点安装见下文](#单节点安装(不常用))
+
+### HDFS安装
 
 #### 服务器配置
 
@@ -181,27 +251,32 @@ tags: [hadoop]
 - `date` 检查4台机器的时间是否相差不大(30秒内)，并查看是否关闭防火墙
 - 4台主机的`/etc/hosts`文件都需要包含一下内容
 
-    ```bash
-    192.168.6.131	node01
-    192.168.6.132	node02
-    192.168.6.133	node03
-    192.168.6.134	node04
-    ```
-- 免密码登录：使node01可以免密码登录到自己和其他3台服务器，因为启动hdfs的时候通过node01启动其他3台机器
-    - 启动start-dfs.sh脚本的机器需要将公钥分发给别的节点，从而启动其他节点
+```bash
+192.168.6.131	node01
+192.168.6.132	node02
+192.168.6.133	node03
+192.168.6.134	node04
+```
+
+#### 免密登录
+
+- 免密登录：使NN(node01和node02)可以免密码登录到自己和其他3台服务器
+    - 启动start-dfs.sh脚本的机器，会去启动其他节点
     - 在HA模式下，每一个NN所在节点会启动ZKFC，ZKFC会用免密的方式控制自己和其他NN节点的NN状态
 
-    ```bash
-    su - test # 使用普通用户登录并安装
-    ## 为4台机器都生成ssh密钥和公钥文件(可通过xshell的快速命令发送到全部会话)
-    ssh-keygen -P '' # -P设置密码
-    ## 将node01和node02(NameNode)的公钥文件内容追加到自己和其他3台机器的的认证文件中
-    ## 将本机器公钥文件内容追加到认证文件中。此时可以通过命令如`ssh node01`无需密码即可登录本地机器，记得要`exit`退出会话
-    ssh-copy-id -i ~/.ssh/id_rsa.pub test@node01 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node02 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node03 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node04
-    # 测试登录
-    ssh test@node03
-    # node02公钥复制同理
-    ```
+```bash
+## 设置node01
+su - test # 使用普通用户登录并安装
+## 为4台机器都生成ssh密钥和公钥文件(可通过xshell的快速命令发送到全部会话)
+ssh-keygen -P '' # -P设置密码
+## 将node01和node02(NameNode)的公钥文件内容追加到自己和其他3台机器的的认证文件中
+## 将本机器公钥文件内容追加到认证文件中。此时可以通过命令如`ssh node01`无需密码即可登录本地机器，记得要`exit`退出会话
+ssh-copy-id -i ~/.ssh/id_rsa.pub test@node01 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node02 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node03 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node04
+# 测试登录
+ssh test@node03
+
+## node02公钥复制同理
+```
 
 #### 在node01上进行安装hadoop
 
@@ -210,7 +285,11 @@ sudo mkdir -p /opt/bigdata/hadoop
 sudo wget https://archive.apache.org/dist/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
 # 解压`hadoop-2.10.1.tar.gz`(官方提供的是32位；32位的包可以运行在64位机器上，只是有警告；反之不行)
 sudo tar -zxvf hadoop-2.10.1.tar.gz -C /opt/bigdata
-cd /opt/bigdata/hadoop-2.10.1
+# 生产环境一般不使用root，改成test用户，也方便后面测试权限
+chown -R test:test /opt/bigdata/hadoop-2.10.1
+# 数据目录
+mkdir -p /var/bigdata/hadoop
+chown -R test:test /var/bigdata/hadoop
 
 # 配置环境变量(必须配置 JAVA_HOME)
     #export JAVA_HOME=/usr/java/default
@@ -225,149 +304,346 @@ vi $HADOOP_HOME/etc/hadoop/hadoop-env.sh
 ```
 - `vi $HADOOP_HOME/etc/hadoop/core-site.xml` 进行如下配置。[配置项参考](http://hadoop.apache.org/docs/r2.10.1/hadoop-project-dist/hadoop-common/core-default.xml)
     
-    ```xml
-    <configuration>
-        <property>
-            <!--配置NameNode的dfs.nameservices-->
-            <name>fs.defaultFS</name>
-            <value>hdfs://aezocn</value>
-        </property>
-        <property>
-            <!-- Zookeeper集群 -->
-            <name>ha.zookeeper.quorum</name>
-            <value>node01:2181,node02:2181,node03:2181</value>
-        </property>
-        <property>
-            <!-- 其他临时目录的基目录 -->
-            <name>hadoop.tmp.dir</name>
-            <value>/var/bigdata/hadoop/tmp</value>
-        </property>
-    </configuration>
-    ```
+```xml
+<configuration>
+    <property>
+        <!--配置NameNode的dfs.nameservices-->
+        <name>fs.defaultFS</name>
+        <value>hdfs://aezocn</value>
+    </property>
+    <property>
+        <!-- Zookeeper集群 -->
+        <name>ha.zookeeper.quorum</name>
+        <value>node01:2181,node02:2181,node03:2181</value>
+    </property>
+    <property>
+        <!-- 其他临时目录的基目录 -->
+        <name>hadoop.tmp.dir</name>
+        <value>/var/bigdata/hadoop/tmp</value>
+    </property>
+</configuration>
+```
 - `vi $HADOOP_HOME/etc/hadoop/hdfs-site.xml` 进行如下配置。[配置项参考文档]( http://hadoop.apache.org/docs/r2.10.1/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml)
 
-    ```xml
-    <configuration>
-        <property>
-            <name>dfs.replication</name>
-            <value>2</value>
-        </property>
-        <property>
-            <name>dfs.namenode.name.dir</name>
-            <value>/var/bigdata/hadoop/dfs/name</value>
-        </property>
-        <property>
-            <name>dfs.datanode.data.dir</name>
-            <value>/var/bigdata/hadoop/dfs/data</value>
-        </property>
-        
-        <!-- 一个hdfs实例的唯一标识 -->
-        <property>
-            <name>dfs.nameservices</name>
-            <value>aezocn</value>
-        </property>
-        <!-- NameNode标识(dfs.ha.namenodes.[dfs.nameservices])，多个用逗号分割 -->
-        <property>
-            <name>dfs.ha.namenodes.aezocn</name>
-            <value>nn1,nn2</value>
-        </property>
+```xml
+<configuration>
+    <!-- 一个hdfs实例的唯一标识 -->
+    <property>
+        <name>dfs.nameservices</name>
+        <value>aezocn</value>
+    </property>
+    <!-- NameNode标识(dfs.ha.namenodes.[dfs.nameservices])，多个用逗号分割 -->
+    <property>
+        <name>dfs.ha.namenodes.aezocn</name>
+        <value>nn1,nn2</value>
+    </property>
 
-        <!-- rpc协议用于hdfs文件上传和读取 -->
-        <property>
-            <name>dfs.namenode.rpc-address.aezocn.nn1</name>
-            <value>node01:8020</value>
-        </property>
-        <property>
-            <name>dfs.namenode.rpc-address.aezocn.nn2</name>
-            <value>node02:8020</value>
-        </property>
-        <!-- http协议用于后台监控 -->
-        <property>
-            <name>dfs.namenode.http-address.aezocn.nn1</name>
-            <value>node01:50070</value>
-        </property>
-        <property>
-            <name>dfs.namenode.http-address.aezocn.nn2</name>
-            <value>node02:50070</value>
-        </property>
+    <!-- rpc协议用于hdfs文件上传和读取，zkfc会监控此端口 -->
+    <property>
+        <name>dfs.namenode.rpc-address.aezocn.nn1</name>
+        <value>node01:8020</value>
+    </property>
+    <property>
+        <name>dfs.namenode.rpc-address.aezocn.nn2</name>
+        <value>node02:8020</value>
+    </property>
+    <!-- http协议用于后台监控 -->
+    <property>
+        <name>dfs.namenode.http-address.aezocn.nn1</name>
+        <value>node01:50070</value>
+    </property>
+    <property>
+        <name>dfs.namenode.http-address.aezocn.nn2</name>
+        <value>node02:50070</value>
+    </property>
 
-        <!-- 指定3台JournalNode服务地址，jndir目录会自动新建，用于存放edits数据 -->
-        <property>
-            <name>dfs.namenode.shared.edits.dir</name>
-            <value>qjournal://node02:8485;node03:8485;node04:8485/jndir</value>
-        </property>
-        <!-- 为JournalNode存放edits数据文件的根目录(会在此目录创建jndir)，会自动创建 -->
-        <property>
-            <name>dfs.journalnode.edits.dir</name>
-            <value>/var/bigdata/hadoop/dfs/jn</value>
-        </property>
+    <!-- 指定3台JournalNode服务地址。aezocn为JN的存储目录，且会自动新建，用于存放edits数据；这样多个Hadoop集群可以共用一个JN集群 -->
+    <property>
+        <name>dfs.namenode.shared.edits.dir</name>
+        <value>qjournal://node02:8485;node03:8485;node04:8485/aezocn</value>
+    </property>
 
-        <!-- 启用Zookeeper Failover Controller自动切换 -->
-        <property>
-            <name>dfs.ha.automatic-failover.enabled</name>
-            <value>true</value>
-        </property>
-        <!-- HA角色切换的代理类，帮助客户端查询一个活动的NameNode(Active)，固定为下面的类名 -->
-        <property>
-            <name>dfs.client.failover.proxy.provider.aezocn</name>
-            <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
-        </property>
-        <!-- 对NameNode进行远程切换时，此处通过ssh实现运行远程命令。设置ssh免密 -->    
-        <property>
-            <name>dfs.ha.fencing.methods</name>
-            <value>sshfence</value>
-        </property>
-        <property>
-            <name>dfs.ha.fencing.ssh.private-key-files</name>
-            <value>/home/test/.ssh/id_dsa</value>
-        </property>
-    </configuration>
-    ```
+    <!-- 启用Zookeeper Failover Controller自动切换 -->
+    <property>
+        <name>dfs.ha.automatic-failover.enabled</name>
+        <value>true</value>
+    </property>
+    <!-- HA角色切换的代理类，帮助客户端查询一个活动的NameNode(Active)，固定为下面的类名；后面接集群名 -->
+    <property>
+        <name>dfs.client.failover.proxy.provider.aezocn</name>
+        <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+    </property>
+    <!-- 对NameNode进行远程切换时，此处通过ssh实现运行远程命令(还可通过shell脚本实现)。并设置ssh免密(由于使用test启动程序，因此需要test进行免密登录) -->    
+    <property>
+        <name>dfs.ha.fencing.methods</name>
+        <value>sshfence</value>
+    </property>
+    <property>
+        <name>dfs.ha.fencing.ssh.private-key-files</name>
+        <value>/home/test/.ssh/id_rsa</value>
+    </property>
+
+    <!-- 副本个数 -->
+    <property>
+        <name>dfs.replication</name>
+        <value>2</value>
+    </property>
+    <!-- fsimage文件会存放在此目录，默认是/tmp下，而此目录重启会清空，容易造成fsimage丢失。会自动创建文件夹 -->
+    <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>/var/bigdata/hadoop/dfs/name</value>
+    </property>
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>/var/bigdata/hadoop/dfs/data</value>
+    </property>
+    <!-- 为JournalNode存放edits数据文件的根目录(会在此目录创建jndir)，会自动创建 -->
+    <property>
+        <name>dfs.journalnode.edits.dir</name>
+        <value>/var/bigdata/hadoop/dfs/jn</value>
+    </property>
+</configuration>
+```
 - `vi $HADOOP_HOME/etc/hadoop/slaves` 配置`DataNode`主机名
 
-    ```bash
-    node02
-    node03
-    node04
-    ```
+```bash
+node02
+node03
+node04
+```
 
 #### 拷贝项目目录到其他3台机器
 
 ```bash
 # 提前在其他机器创建目录
-mkdir -p /opt/bigdata/hadoop-2.10.1
+mkdir -p /opt/bigdata
 
 # 在node01上将文件复复制到其他节点
-scp -r /opt/bigdata/hadoop-2.10.1 root@node02:/opt/bigdata/hadoop-2.10.1
-# 配置4台机器的hadoop环境变量。如果几台机器的配置一致，可通过scp拷贝到其他节点
+scp -r /opt/bigdata/hadoop-2.10.1 root@node02:/opt/bigdata
+chown -R test:test /opt/bigdata/hadoop-2.10.1
+# 配置另外3台机器的hadoop环境变量。如果几台机器的配置一致，可通过scp拷贝到其他节点
 scp /etc/profile root@node02:/etc/profile
 # 在其他节点运行使配置生效
 source /etc/profile
 ```
 
-#### 启动
+#### 初始化
 
-- 安装并启动Zookeeper，参考[/_posts/arch/zookeeper.md](/_posts/arch/zookeeper.md)
-- `hadoop-daemon.sh start journalnode` 分别启动三台`JournalNode`(node02、node03、node04)。并查看日志是否有错`tail -200 /opt/soft/hadoop-2.5.1/logs/hadoop-root-journalnode-node02.log`
-- 初始化元数据
-    - 格式化`node01(NameNode)`的hdfs：`hdfs namenode -format` 第一次运行格式化hdfx获得元数据(不报错则成功)。会创建上述`/opt/data/hadoop`文件夹，并在里面创建`fsimage`
-    - 拷贝上述fsimage到另外一台`NameNode(node02)`：`scp -r /opt/data/hadoop root@node02:/opt/data/`
-- 在某一台NameNode上初始化Zookeeper：`hdfs zkfc -formatZK`
-- 启动与停止
-    - **`start-dfs.sh`** 在某一台NameNode上启动。
-        - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、JN、ZKFC)
+- **安装并启动Zookeeper**。参考[/_posts/arch/zookeeper.md](/_posts/arch/zookeeper.md)。`jps`会发现有一个`QuorumPeerMain`的进程
+- 初始化(第一次安装才需要)
+    - 切换test用户执行(则创建的数据目录所属用户为test)
+    - **先启动JN**
+        - `hadoop-daemon.sh start journalnode` 分别在三台JN节点上执行命令进行启动
+        - 可通过`jps`查看相应节点是否有`JournalNode`进程
+        - 或查看日志是否有错，如`tail -f /opt/bigdata/hadoop-2.10.1/logs/hadoop-root-journalnode-node02.log` **不是.out文件**
+        - **启动/重启程序时，都必须先启动JN**，因为JN中存在最完整的数据；如果先启动了NN，则可能吧NN中不完整的数据覆盖掉了JN中的数据
+    - **`hdfs namenode -format`** 初始化NN元数据
+            - 选择一个NN 做格式化，第一次运行格式化hdfs获得元数据(不报错则成功，应该会有类似`Storage directory /var/bigdata/hadoop/dfs/name has been successfully formatted.`的日志)
+            - 只能在一台机器上执行一次，之后也不用执行。因为每次执行会生成一个唯一clusterID，如果两台机器都执行则会产生两个不同的clusterID
+            - 会创建上述`/opt/data/hadoop`文件夹及其name子文件夹(/var/bigdata/hadoop/dfs/name/current)
+                - 并在里面创建`fsimage`文件和VERSION等文件
+                - 且会将NN的数据同步到JN相应目录，如：/var/bigdata/hadoop/dfs/jn/aezocn/current/VERSION
+    - **`hadoop-daemon.sh start namenode`** 启动上述格式化的NN节点，以备另外一台同步。`jps`会出现一个`NameNode`的进程
+    - **`hdfs namenode -bootstrapStandby`** 在另外一台NN中以Standby模式初始化
+        - 会自动同步元数据，且打印日志如`Storage directory /var/bigdata/hadoop/dfs/name has been successfully formatted.`
+        - 或者手动拷贝上述fsimage到另外一台NameNode(node02)：`scp -r /var/bigdata/hadoop root@node02:/var/bigdata`
+    - **`hdfs zkfc -formatZK`** 在主NN中运行
+        - 在某一台NameNode上初始化Zookeeper，只需在一台机器上执行一次，之后不用执行
+        - 本质是在ZK上创建一个hadoop目录(/hadoop-ha/aezocn)，之后会创建ZKFC的临时节点
+    
+#### 启动/停止/使用
+
+- test用户启动
+- **需先确保Zookeeper集群已经启动**
+- **`start-dfs.sh`** 在某一台NameNode上启动
+    - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、JN、ZKFC)
         - journalnode在上述启动过，此处不会重新启动
-        - 单独启动一个NameNode `hadoop-daemon.sh start namenode`
-        - 单独启动一个DataNode **`hadoop-daemon.sh start datanode`**
-    - **`stop-dfs.sh`** 停止所有hadoop服务
-    - 所有的启动日志均在`logs`目录
-- 访问`http://192.168.6.131:50070`和`http://192.168.6.132:50070` 查看NameNode监控。会发现一个为active，一个为standby
-    - 关闭active对应的NameNode服务，可发现standby对应的服务变为active，实现了NameNode接管。如node02无法切换为active，可查看对应ZKFC的日志 `tail -200 /opt/soft/hadoop-2.5.1/logs/hadoop-root-zkfc-node02.log`。常见无法切换错误
-        - 提示`Unable to fence NameNode`，可检查是否可进行免密码登录
-        - 提示`ssh: bash: fuser: 未找到命令`，可在NameNode上安装 `yum -y install psmisc`
-    - 手动切换nn2为active：`hdfs haadmin -transitionToActive nn2`(在未开启自动切换模式下才可使用)
+        - 启动后，则会自动同步数据到JN，如：edits_inprogress_0000000000000000001
+        - 启动后，查看ZK(`zkCli.sh -> ls /hadoop-ha/aezocn`)会发现多出`ActiveBreadCrumb, ActiveStandbyElectorLock`两个节点(ActiveStandbyElectorLock记录了当前谁获得了锁，即那个节点是active)
+        - 需要保证数据目录`/var/bigdata/hadoop`为test用户有权读写(因为此处通过test用户启动)
 
-### 单节点安装(不常用)
+        ```bash
+        # 日志如下
+        Starting namenodes on [node01 node02]
+        node02: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node02.out
+        node01: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node01.out
+        node03: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node03.out
+        node04: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node04.out
+        node02: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node02.out
+        Starting journal nodes [node02 node03 node04]
+        node04: starting journalnode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-journalnode-node04.out
+        node03: starting journalnode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-journalnode-node03.out
+        node02: starting journalnode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-journalnode-node02.out
+        Starting ZK Failover Controllers on NN hosts [node01 node02]
+        node02: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.out
+        node01: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node01.out
+        ```
+    - `hadoop-daemon.sh start namenode` 在某节点运行，则单独启动一个NameNode
+    - `hadoop-daemon.sh start datanode` 在某节点运行，单独启动一个DataNode
+    - `hadoop-daemon.sh start journalnode` 在某节点运行，单独启动一个JN
+    - `hadoop-daemon.sh start zkfc` 在某节点运行，单独启动一个ZKFC
+- **`stop-dfs.sh`** 停止所有hadoop服务
+- 所有的启动日志均在`logs`目录，且Hadoop日志文件格式类似：**`hadoop-用户-角色-节点.log`**
+- 访问`http://192.168.6.131:50070`和`http://192.168.6.132:50070` 查看NameNode监控。会发现一个为active，一个为standby
+    - 关闭active对应的NameNode服务，可发现standby对应的服务变为active，实现了NameNode接管
+        - 如node02无法切换为active，可查看对应ZKFC的日志 `tail -f /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.log`。常见无法切换错误
+            - 提示`Unable to fence NameNode`，可检查是否可进行免密码登录
+            - 提示`ssh: bash: fuser: 未找到命令`，可在NameNode上安装 `yum -y install psmisc`
+        - 手动切换nn2为active：`hdfs haadmin -transitionToActive nn2`(在未开启自动切换模式下才可使用)
+    - 关闭active对应的ZKFC服务，可发现standby对应的服务变为active
+    - 关闭active对应节点的网络，此时会发现standby对应节点会抢到ZK锁，但是无法将自己升级为active(因为ZKFC无法与原active节点通信，因此无法确定对方节点状态)
+- 简单使用
+
+```bash
+## 查看dfs命令帮助. 客户端都可以执行，一些只要有集群配置，则可执行hdfs命令，还有一些必须要在NN上执行才可
+hdfs dfs
+
+## 进入管理界面 - Utilities - Browse the file system 查看创建的目录
+# 创建目录
+hdfs dfs -mkdir /bigdata
+# 创建test用户目录
+hdfs dfs -mkdir -p /user/test
+
+# 上传文件（不指定目录，则默认上传当当前用户目录，即允许此命令用户对应目录）
+hdfs dfs -put hadoop*.tar.gz
+# 可以在管理界面查看到文件上传了node02、node03两个DN，找到一个DN查看上传文件，可以看到有`blk_xxxBlockID`的文件即为block(默认块大小为128M，此处上传会有两个block)
+# cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
+
+# 测试设置块大小为1M
+for i in `seq 100000`;do echo "hello hadoop $i" >> data.txt ;done # 文件大小为1.9M
+# 上传文件，指定块大小，并将上传的文件名重命名为 /bigdata/data
+hdfs dfs -D dfs.blocksize=1048576 -put data.txt /bigdata/data
+# 会产生两个快，第一个的内容为`hello hadoop 1...hello hadoop 5`，第二个的内容为`5773...hello hadoop 100000`
+# cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
+```
+
+## HDFS权限
+
+- hdfs是一个文件系统，类似linux有用户概念
+- hdfs没有相关命令和接口去创建用户
+    - 默认情况使用操作系统提供的用户
+    - 也可扩展 LDAP/kerberos/继承第三方用户认证系统
+- 有超级用户的概念
+    - linux系统中超级用户：root
+    - hdfs系统中超级用户：namenode进程的启动用户(如test启动，则test为hdfs的超级用户，其他包括root都为普通用户)
+- 有权限概念
+	- hdfs的权限是自己控制的，来自于hdfs的超级用户
+    - 默认hdfs依赖操作系统上的用户和组
+- 用户权限测试
+
+```bash
+## 设置目录权限，在node01(NN)上执行
+su - test
+hdfs dfs -mkdir /temp # drwxr-xr-x test supergroup
+hdfs dfs -chown test:aezo /temp # drwxr-xr-x test aezo 尽管集群没有同步到aezo这个组名，仍然可以修改成功
+hdfs dfs -chmod 770 /temp # drwxrwx--- test aezo 此时test用户在管理后台也无法进入改文件夹，提示Permission denied: user=dr.who, access=READ_EXECUTE, inode="/temp":test:aezo:drwxrwx---
+
+## 测试上传，在node04(DN)上执行(随便找一台执行测试)
+su - root
+# 创建用户和组，并关联
+useradd smalle && groupadd aezo && usermod -a -G aezo smalle && id smalle # uid=1001(smalle) gid=1001(smalle) groups=1001(smalle),1002(aezo)
+su - smalle
+# 创建文件夹失败：因为hdfs已经启动了，不知道操作系统又创建了用户和组(解决见瞎玩)
+hdfs dfs -mkdir /temp/abc # mkdir: Permission denied: user=smalle, access=EXECUTE, inode="/temp":test:aezo:drwxrwx---
+hdfs groups # smalle :
+
+## 同步新的用户和组到集群，**必须在NN所在节点执行**
+su - root
+useradd smalle && groupadd aezo && usermod -a -G aezo smalle && id smalle # uid=1001(smalle) gid=1001(smalle) groups=1001(smalle),1002(aezo)
+# 切换到集群管理员(因为使用test启动的集群)同步用户和组
+su - test
+hdfs dfsadmin -refreshUserToGroupsMappings
+
+## 重新测试上传，在node04(DN)上执行
+su - smalle
+# 创建文件夹成功
+hdfs dfs -mkdir /temp/abc
+hdfs groups # smalle : smalle aezo
+```
+
+## API使用
+
+- 基于IDEA开发hadoop的client
+- 在windows上创建`HADOOP_USER_NAME=test`的环境变量，用于Hadoop获取当前用户；设置JDK版本和Hadoop服务器版本一致
+- 创建maven项目，引入客户端依赖
+
+```xml
+<dependency>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-client</artifactId>
+    <!-- 和服务器版本一致 -->
+    <version>2.10.1</version>
+</dependency>
+```
+- 在resources目录放置core-site.xml、hdfs-site.xml配置文件
+
+### HDFS测试代码
+
+```java
+public class TestHDFS {
+
+    public Configuration conf = null;
+    public FileSystem fs = null;
+
+    //C/S
+    @Before
+    public void conn() throws Exception {
+        // 读取当前classpath下的core-site.xml、hdfs-site.xml配置
+        conf = new Configuration(true);
+        // fs = FileSystem.get(conf);
+        fs = FileSystem.get(URI.create("hdfs://aezocn/"), conf, "test"); // 也可基于配置文件覆盖配置
+    }
+
+    @Test
+    public void mkdir() throws Exception {
+        Path dir = new Path("/idea-client");
+        if(fs.exists(dir)) {
+            fs.delete(dir,true);
+        }
+        fs.mkdirs(dir);
+    }
+
+    @Test
+    public void upload() throws Exception {
+        // 本地文件流
+        BufferedInputStream input = new BufferedInputStream(new FileInputStream(new File("./data/hello.txt")));
+        // 目标文件流
+        Path outfile = new Path("/idea-client/hello-word.txt");
+        FSDataOutputStream output = fs.create(outfile);
+        IOUtils.copyBytes(input, output, conf,true);
+    }
+
+    @Test
+    public void blocks() throws Exception {
+        Path file = new Path("/bigdata/data"); // 一个1.8M的文件，并设定一个Block为1M。[参考上文测试文件](#启动/停止/使用)
+        FileStatus fss = fs.getFileStatus(file);
+
+        // 获取文件块信息。第一个的内容为`hello hadoop 1...hello hadoop 5`，第二个的内容为`5773...hello hadoop 100000`
+        BlockLocation[] blks = fs.getFileBlockLocations(fss, 0, fss.getLen());
+        for (BlockLocation b : blks) {
+            // 0,1048576,node02,node03
+            // 1048576,840319,node02,node03
+            System.out.println(b);
+        }
+
+        FSDataInputStream in = fs.open(file);
+        // 设置偏移为1M，相当于从第二个Block开始读。因此多个客户端可设置不同的偏移来同时读取一个文件，最后合并
+        //计算向数据移动后，期望的是分治，只读取自己关心（通过seek实现），同时具备距离的概念（优先和本地的DN获取数据--框架的默认机制）
+        in.seek(1048576);
+        System.out.println((char)in.readByte()); // 5
+        System.out.println((char)in.readByte()); // 7
+        System.out.println((char)in.readByte()); // 7
+        // ...
+    }
+
+    @After
+    public void close() throws Exception {
+        fs.close();
+    }
+}
+```
+
+## 单节点安装(不常用)
 
 > 单节点：http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/SingleCluster.html
 
@@ -431,6 +707,15 @@ node04 | 192.168.6.134 | DataNode
     - `start-dfs.sh` 在`node01(NameNode)`上执行
     - `stop-dfs.sh` 停止所有hadoop服务
 - 访问`http://192.168.6.131:50070` 查看NameNode监控、`http://192.168.6.132:50090` 查看SecondaryNameNode监控
+
+
+
+
+
+
+
+
+
 
 
 

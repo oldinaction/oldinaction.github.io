@@ -22,7 +22,7 @@ tags: [build]
 allprojects{
     repositories {
         def ALIYUN_REPOSITORY_URL = 'http://maven.aliyun.com/nexus/content/groups/public'
-        def ALIYUN_JCENTER_URL = 'http://maven.aliyun.com/nexus/content/repositories/jcenter'
+        def ALIYUN_JCENTER_URL = 'http://maven.aliyun.com/nexus/content/repositories/jcenter' // 已废弃: 停止更新
         all { ArtifactRepository repo ->
             if(repo instanceof MavenArtifactRepository){
                 def url = repo.url.toString()
@@ -43,22 +43,37 @@ allprojects{
     }
 }
 ```
-- 对单个项目有效：在项目的build.gradle文件中添加以下内容
+- 对单个项目有效：在项目的`build.gradle`文件中添加以下内容，配置好后使用Sync同步依赖
 
 ```groovy
 buildscript {
+    // https://docs.gradle.org/7.0.2/dsl/org.gradle.api.artifacts.dsl.RepositoryHandler.html
     repositories {
-        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
-        maven { url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        // gradle内置中心仓库
+        // google()
+        // jcenter()
+        // mavenCentral()
+        // mavenLocal()
+
+        // 使用镜像
+        maven { url 'https://maven.aliyun.com/repository/google' } // Android项目需要
+        maven { url 'https://maven.aliyun.com/repository/jcenter' } // 已经不再更新
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
     }
+    // 依赖写法
     dependencies {
+        // Android项目为例。最终会把包下载到：C:\Users\smalle\.gradle\caches\modules-2\files-2.1\com.android.tools.build\gradle目录
+        classpath 'com.android.tools.build:gradle:4.2.0' // 和Android Studio版本没有关系
+        classpath group: 'commons-codec', name: 'commons-codec', version: '1.2'
     }
 }
 
+// 建议也配置一下。否则像Android项目可能会报错Could not resolve all files for configuration ':_internal_aapt2_binary'.(在启动时内部模块才会下载aapt2依赖)
 allprojects {
     repositories {
-        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
-        maven { url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
     }
 }
 ```
