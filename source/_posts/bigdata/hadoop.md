@@ -222,6 +222,7 @@ tags: [hadoop]
 - ResourceManager：类似JobTracker(只包含其资源管理，不包含其任务调度)
     - 接受NodeManager上报的状态信息
     - 接受客户端发起的计算任务请求
+        - 客户端会把计算程序(jar)上传到HDFS集群，最终会由AppMaster读取并分发到其他节点，计算完成后会清除此jar
         - ResourceManager会告诉NodeManager启动一个AppMaster(即JobTracker的任务调度功能)
         - AppMaster会向ResourceManager上报信息(监控挂掉可重新启动一个新的)，并提交请求的资源信息(需要的Container数)
         - ResourceManager会告诉NodeManager启动Container(用来执行M/R方法)，Container向AppMaster上报信息
@@ -455,8 +456,9 @@ source /etc/profile
 
 - test用户启动
 - **需先确保Zookeeper集群已经启动**
+- **`hadoop-daemon.sh start journalnode`** 分别在三台JN节点上执行命令进行启动(**必须在NN之前启动**)
 - **`start-dfs.sh`** 在某一台NameNode上启动
-    - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、JN、ZKFC)
+    - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、ZKFC, JN已提前启动)
         - journalnode在上述启动过，此处不会重新启动
         - 启动后，则会自动同步数据到JN，如：edits_inprogress_0000000000000000001
         - 启动后，查看ZK(`zkCli.sh -> ls /hadoop-ha/aezocn`)会发现多出`ActiveBreadCrumb, ActiveStandbyElectorLock`两个节点(ActiveStandbyElectorLock记录了当前谁获得了锁，即那个节点是active)
@@ -465,15 +467,15 @@ source /etc/profile
         ```bash
         # 日志如下
         Starting namenodes on [node01 node02]
-        node02: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node02.out
         node01: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node01.out
+        node02: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node02.out
+        node02: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node02.out
         node03: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node03.out
         node04: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node04.out
-        node02: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node02.out
         Starting journal nodes [node02 node03 node04]
-        node04: starting journalnode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-journalnode-node04.out
-        node03: starting journalnode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-journalnode-node03.out
-        node02: starting journalnode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-journalnode-node02.out
+        node02: journalnode running as process 16792. Stop it first.
+        node03: journalnode running as process 15892. Stop it first.
+        node04: journalnode running as process 15820. Stop it first.
         Starting ZK Failover Controllers on NN hosts [node01 node02]
         node02: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.out
         node01: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node01.out
@@ -484,7 +486,7 @@ source /etc/profile
     - `hadoop-daemon.sh start zkfc` 在某节点运行，单独启动一个ZKFC
 - **`stop-dfs.sh`** 停止所有hadoop服务
 - 所有的启动日志均在`logs`目录，且Hadoop日志文件格式类似：**`hadoop-用户-角色-节点.log`**
-- 访问`http://192.168.6.131:50070`和`http://192.168.6.132:50070` 查看NameNode监控。会发现一个为active，一个为standby
+- 访问`http://node01:50070`和`http://node02:50070` 查看NameNode监控。会发现一个为active，一个为standby
     - 关闭active对应的NameNode服务，可发现standby对应的服务变为active，实现了NameNode接管
         - 如node02无法切换为active，可查看对应ZKFC的日志 `tail -f /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.log`。常见无法切换错误
             - 提示`Unable to fence NameNode`，可检查是否可进行免密码登录
@@ -504,17 +506,111 @@ hdfs dfs -mkdir /bigdata
 # 创建test用户目录
 hdfs dfs -mkdir -p /user/test
 
-# 上传文件（不指定目录，则默认上传当当前用户目录，即允许此命令用户对应目录）
+# 上传文件（不指定目录，则默认上传到当前用户目录，即运行此命令的用户对应的HDFS用户目录）。当文件正在上传时，后台界面看到的是 `hadoop-2.10.1.tar.gz._COPYING_`
 hdfs dfs -put hadoop*.tar.gz
 # 可以在管理界面查看到文件上传了node02、node03两个DN，找到一个DN查看上传文件，可以看到有`blk_xxxBlockID`的文件即为block(默认块大小为128M，此处上传会有两个block)
 # cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
 
 # 测试设置块大小为1M
 for i in `seq 100000`;do echo "hello hadoop $i" >> data.txt ;done # 文件大小为1.9M
-# 上传文件，指定块大小，并将上传的文件名重命名为 /bigdata/data
+# 上传文件，指定块大小，上传目录为 /bigdata/data
 hdfs dfs -D dfs.blocksize=1048576 -put data.txt /bigdata/data
 # 会产生两个快，第一个的内容为`hello hadoop 1...hello hadoop 5`，第二个的内容为`5773...hello hadoop 100000`
 # cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
+
+# 下载某个文件到当前目录
+hdfs dfs -get /data/wc/output/part-r-00000 ./
+# 删除文件
+hdfs dfs -rm /bigdata/data/data.txt
+```
+
+### YARN安装
+
+- 在node03-node04上运行ResourceManager，NodeManager运行在各个DN上，无需额外配置
+- 安装启动
+
+```bash
+# 只需要在安装好的hdfs配置上，增加几个配置文件。无需重启hdfs
+# 在node01上修改配置文件，见下文
+cd $HADOOP_HOME/etc/hadoop
+cp mapred-site.xml.template mapred-site.xml
+vi mapred-site.xml
+vi hadoop/yarn-site.xml
+vi slaves # 设置需要运行NodeManager的节点，可以不用设置，搭建hdfs时候已经设置了DN(和NM一一对应)
+
+# 分发到node02-node04
+scp mapred-site.xml yarn-site.xml node02:`pwd`
+
+# node01上启动。会在所有DN上启动NM，但是不能自动启动RM，需要手动启动；由于RM不会在node01上启动，会看执行此脚本后先在node01上启动RM，之后会自动退出(正常现象)
+start-yarn.sh
+# stop-yarn.sh
+
+# 在node03-node04上分别执行，手动启动RM
+yarn-daemon.sh start resourcemanager
+# zkCli.sh进入zk命令行，结果为 [ActiveBreadCrumb, ActiveStandbyElectorLock]，ActiveStandbyElectorLock中记录了主RM
+# ls /yarn-leader-election/myyarn
+
+# 查看后台
+http://node03:8088
+# 如果node04为从节点，直接访问会返回 `This is standby RM. Redirecting to the current active RM: http://node03:8088/`，并跳转到ndoe03
+# 如果访问具体路径则不会跳转：http://node04:8088/cluster/cluster
+http://node04:8088
+```
+- mapred-site.xml
+
+```xml
+<property>
+    <name>mapreduce.framework.name</name>
+    <!-- mapreduce on yarn，启动yarn后便可执行MapReduce程序 -->
+    <value>yarn</value>
+</property>
+```
+- yarn-site.xml
+
+```xml
+<property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+</property>
+
+<!-- 开启ha -->
+<property>
+    <name>yarn.resourcemanager.ha.enabled</name>
+    <value>true</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.zk-address</name>
+    <value>node02:2181,node03:2181,node04:2181</value>
+</property>
+
+<!-- yarn监控资源的RM集群别名 -->
+<property>
+    <name>yarn.resourcemanager.cluster-id</name>
+    <value>myyarn</value>
+</property>
+<!-- 集群部署节点 -->
+<property>
+    <name>yarn.resourcemanager.ha.rm-ids</name>
+    <value>rm1,rm2</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.hostname.rm1</name>
+    <value>node03</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.hostname.rm2</name>
+    <value>node04</value>
+</property>
+
+<!-- 否则报错 MRClientService.getHttpPort NullPointerException -->
+<property>
+    <name>yarn.resourcemanager.webapp.address.rm1</name>
+    <value>node03:8088</value>
+</property>
+<property>
+    <name>yarn.resourcemanager.webapp.address.rm2</name>
+    <value>node04:8088</value>
+</property>
 ```
 
 ## HDFS权限
@@ -643,7 +739,169 @@ public class TestHDFS {
 }
 ```
 
-## 单节点安装(不常用)
+### MapReduce测试代码
+
+- 需要安装好HDFS和YARN
+- 提交任务方式
+    - 将my-mr.jar上传到集群中的某一个节点，再执行类似`hadoop jar my-mr.jar input output`的命令提交任务到YARN
+    - 嵌入集群方式，在linux/windows上开发程序并直接提交任务到YARN(计算发生在集群)。参考下文案例
+    - local单机执行(计算发生在本机)
+        - 在win的系统中部署我们的hadoop，并设置HADOOP_HOME
+        - 设置`mapreduce.framework.name=local`和`mapreduce.app-submission.cross-platform=true`
+        - 额外下载相应版本的`hadoop.dll`、`winutils.exe`(参考：https://github.com/cdarlint/winutils)，分办放到C:\windwos\system32\和%HADOOP_HOME%/bin目录
+
+#### 测试hadoop提供的单词统计案例
+
+```bash
+# 创建wc程序输入数据保存目录
+hdfs dfs -mkdir -p /data/wc/input
+# 上传输入数据文件
+# for i in `seq 100000`;do echo "hello hadoop $i" >> data.txt ;done
+hdfs dfs -D dfs.blocksize=1048576 -put data.txt /data/wc/input
+
+# 提交MR任务。参数分别为：MR算法程序jar，wordcount为程序中定义的启动类(一般使用全类名)，输入数据目录(可为文件/目录/多个目录或文件)，最后一个为输出数据文件夹(一般要是一个不存在的目录)
+# 21/05/28 22:09:30 INFO impl.YarnClientImpl: Submitted application application_1622210933585_0001
+# 21/05/28 22:09:30 INFO mapreduce.Job: The url to track the job: http://node03:8088/proxy/application_1622210933585_0001/
+# 21/05/28 22:09:30 INFO mapreduce.Job: Running job: job_1622210933585_0001
+# 21/05/28 22:09:59 INFO mapreduce.Job: Job job_1622210933585_0001 running in uber mode : false
+# 21/05/28 22:09:59 INFO mapreduce.Job:  map 0% reduce 0%
+# 21/05/28 22:10:56 INFO mapreduce.Job:  map 100% reduce 0%
+# 21/05/28 22:11:30 INFO mapreduce.Job:  map 100% reduce 100%
+# 21/05/28 22:11:32 INFO mapreduce.Job: Job job_1622210933585_0001 completed successfully
+cd $HADOOP_HOME/share/hadoop/mapreduce
+hadoop jar hadoop-mapreduce-examples-2.10.1.jar wordcount /data/wc/input /data/wc/output
+
+# 查看结果
+# /data/wc/output/_SUCCESS # 标志成功的文件
+# /data/wc/output/part-r-00000 # 返回结果文件(可能有多个)：m表示map运算后的结果(reduce个数=0时)，r表示reduce运算后的结果
+hdfs dfs -ls /data/wc/output
+# 结果为
+# ...
+# 99998	1
+# 99999	1
+# hadoop	100000
+# hello	100000
+hdfs dfs -cat /data/wc/output/part-r-00000
+hdfs dfs -get /data/wc/output/part-r-00000 ./ # 下载结果文件到当前目录
+```
+- 案例：计算温度最高的前两天(数据源如下)
+
+```bash
+hdfs dfs -mkdir -p /data/twc/input
+hdfs dfs -D dfs.blocksize=1048576 -put data.txt /data/wc/input
+```
+
+#### 手写MR程序来完成单词统计
+
+- 操作流程
+
+```bash
+hdfs dfs -mkdir -p /data/twc/input
+# for i in `seq 100000`;do echo "hello hadoop $i" >> data.txt ;done
+hdfs dfs -D dfs.blocksize=1048576 -put data.txt /data/twc/input
+
+# 使用本地提交任务方式
+# 编写相应代码，并打包成jar
+# 在IDEA中设置Programe arguments=/data/twc/input /data/twc/output
+# 执行main方法
+# 到YARN后台查看执行结果
+http://node03:8088/cluster/apps # 可以看到执行的任务列表，点击一个`application_xxx`进去可看到`appattempt_xxx`的执行任务尝试(其中的Node即为当前尝试时，AppMaster运行的节点)
+```
+- 将`mapred-site.xml`和`yarn-site.xml`复制到项目的resources目录
+- 算法程序如下
+
+```java
+// TestWordCount.java
+public class TestWordCount {
+
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration(true); // import org.apache.hadoop.conf.Configuration;
+
+        // hadoop command [genericOptions] [commandOptions]
+        // eg: hadoop jar test.jar myTest -D name=test inpath outpath
+        // args 包含2类参数: genericOptions commandOptions
+        // 工具类会把-D类型的属性(genericOptions)直接set到conf，会留下commandOptions
+        GenericOptionsParser parser = new GenericOptionsParser(conf, args);
+        String[] remainingArgs = parser.getRemainingArgs();
+
+        // 在本地运行MR程序，任务不会提交到YARN
+        // conf.set("mapreduce.framework.name", "local");
+        // windows上执行必须配置: 从而可得知文件分隔符
+        conf.set("mapreduce.app-submission.cross-platform", "true");
+
+        Job job = Job.getInstance(conf); // import org.apache.hadoop.mapreduce.Job;
+        // 在本地提交任务到YARN上需要，否则无需
+        job.setJar("D:\\gitwork\\smjava\\hadoop\\target\\hadoop-0.0.1-SNAPSHOT.jar");
+        job.setJarByClass(TestWordCount.class);
+        job.setJobName("TestWordCount");
+
+        TextInputFormat.addInputPath(job, new Path(remainingArgs[0])); // import org.apache.hadoop.mapreduce.lib.input.TextInputFormat; 注意使用2.x api(lib包下)
+        Path outFile = new Path(remainingArgs[1]);
+        if (outFile.getFileSystem(conf).exists(outFile)) {
+            // 如果存在此目录则删除
+            outFile.getFileSystem(conf).delete(outFile, true);
+        }
+        TextOutputFormat.setOutputPath(job, outFile); // import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+
+        // 设定Map方法类
+        job.setMapperClass(TestMapper.class);
+        // 设置map方法执行完之后返回的KV类型
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
+        // 设置Reduce方法类
+        job.setReducerClass(TestReduce.class);
+
+        // 默认Reduce个数为1；如果只做过滤，即只运行map方法，可设置为0
+        // job.setNumReduceTasks(0);
+
+        // 提交任务并等待
+        job.waitForCompletion(true);
+    }
+}
+
+// TestMapper.java
+public class TestMapper extends Mapper<Object, Text, Text, IntWritable> { // import org.apache.hadoop.mapreduce.Mapper; import org.apache.hadoop.io.Text; import org.apache.hadoop.io.IntWritable;
+
+    // hadoop有自己一套可以序列化、反序列化类. 如Test => String, IntWritable => Integer
+    // 也可自己开发数据类型，但是必须实现：序列化接口、反序列化接口、比较器接口
+    // 排序比较分为：字典序、数值顺序
+    private Text k = new Text();
+    private IntWritable v = new IntWritable(1);
+
+    // key: 是每一行字符串自己第一个字节面向源文件的偏移量
+    // value: hello hadoop 1
+    // value: hello hadoop 2
+    @Override
+    public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        StringTokenizer itr = new StringTokenizer(value.toString());
+        while (itr.hasMoreTokens()) {
+            // 将k,v定义为成员变量的原因: 由于大量数据处理时，会重复调用此map方法很多次，如果频繁new对象，则会频繁触发GC，从而计算效率变慢
+            k.set(itr.nextToken());
+            context.write(k, v);
+        }
+    }
+}
+
+// TestReduce.java
+public class TestReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+    private IntWritable result = new IntWritable();
+
+    // 相同的key为一组，这一组数据调用一次reduce
+    // key value: hello 1
+    // key value: hello 1
+    @Override
+    protected void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+        int sum = 0;
+        for (IntWritable value : values) {
+            sum += value.get();
+        }
+        result.set(sum);
+        context.write(key, result);
+    }
+}
+```
+
+## HDFS单节点安装(不常用)
 
 > 单节点：http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/SingleCluster.html
 

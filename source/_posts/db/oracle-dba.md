@@ -106,7 +106,7 @@ call p_customer_exists_sync();
 -- 查询被锁表的信息（多刷新几次，应用可能会临时锁表）
 select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s
     where l.object_id　= o.object_id and l.session_id = s.sid;
--- 关闭锁表的连接
+-- 关闭锁表的连接：alter system kill session '200, 50791';
 alter system kill session '某个sid, 某个serial#';
 ```
 
@@ -416,6 +416,38 @@ startup
 rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
 ```
 
+### 清理存储空间
+
+- `truncate table emp;` oracle清空无用表数据，适用于表中含有大量数据
+    - truncate与drop是DDL语句，执行后无法回滚（无法通过binlog回滚）；delete是DML语句，可回滚
+    - truncate不会激活与表有关的删除触发器；delete可以
+    - truncate后会使表和索引所占用的空间会恢复到初始大小；delete操作不会减少表或索引所占用的空间，drop语句将表所占用的空间全释放掉
+    - truncate不能对有外键约束引用的表使用
+    - 执行truncate需要drop权限
+- 使用move移动数据所在表空间
+    - 可以起到清理存储碎片的功能。类似的有`shrink space`，但是清理效果没move好
+    - move一个表到另外一个表空间时，索引不会跟着一起move，而且会失效(一般需要重建索引)
+        - move过的普通表，在不用到失效的索引的操作语句中，语句执行正常，但如果操作的语句用到了索引（主键当做唯一索引），则此时报告用到的索引失效，语句执行失败，其他如外键，非空约束，缺省值等不会失效
+    - LONG类型不能通过MOVE来传输特别提示，尽量不要用LONG类型
+    - LOB类型在建立含有lob字段的表时，oracle会自动为lob字段建立两个单独的segment,一个用来存放数据（segment_type=LOBSEGMENT），另一个用来存放索引（segment_type=LOBINDEX），默认它们会存储在和表一起的表空间。我们对表MOVE时，LOG类型字段和该字段的索引不会跟着MOVE，必须要单独来进行MOVE
+
+    ```sql
+    -- 移动表到当前空间，即重建此表数据(清理存储碎片功能)：可解决delete删除的表数据减少了，但是表空间占用量不会变
+    alter table emp move;
+    -- 移动表到users表空间
+    alter table emp move tablespace users;
+    -- 移动LOB类型(CLOB/BLOB)字段en到另外一个表空间(未测试)
+    alter table emp move lob(en) store as (tablespace users);
+    
+    -- 重建索引
+    alter index index_name rebuild;
+    alter index pk_name rebuild;
+    ```
+- delete删除的表数据减少了，但是表空间占用量不会变。可使用move移动数据所在表空间
+- `UNDOTBS1`占用较大表空间
+    - https://blog.csdn.net/wxlbrxhb/article/details/14448777 未测试
+
+
 ## 常见错误
 
 ### 数据库服务器 CPU 飙高
@@ -425,14 +457,13 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
 ### 表空间不足
 
 - 报错`ORA-01653: unable to extend table` [^7]
-
-  - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
-  - 开启表空间自动扩展，每次递增 50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
-  - 为 USERS 表空间新增 1G 的数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`
-    - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
-    - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
-    - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
-  - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
+    - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
+    - 开启表空间自动扩展，每次递增 50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
+    - 为 USERS 表空间新增 1G 的数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`
+        - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
+        - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
+        - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
+    - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
 
     ```sql
     -- 查看表空间
@@ -460,6 +491,7 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
     group by tablespace_name, file_name, autoextensible, increment_by;
 
     -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
+    -- 返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过`select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';`查看属于哪张表
     select segment_name, sum(bytes)/1024/1024/1024 as "GB" from user_extents group by segment_name order by sum(bytes) desc;
 
     -- 列出数据库里每张表的记录条数

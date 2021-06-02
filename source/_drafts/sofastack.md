@@ -223,11 +223,19 @@ Require-Module=com.alipay.sofa.service-provider
     - telnet：Ark容器默认会启动一个监听在1234端口的telnet服务
     - API：使用`ArkClient`类
     - zookeeper方式
+- Ark 容器启动流程：https://www.sofastack.tech/projects/sofa-boot/sofa-ark-startup/
 
 ### 使用
 
 - 参考 https://github.com/sofastack-guides/sofa-ark-dynamic-guides
+- 命令
 
+```bash
+# 连接container，成功会显示命令行`sofa-ark>`
+telnet localhost 1234
+help # 查看帮助
+biz -a # 查看所有安装的biz包
+```
 
 
 - 错误： https://github.com/sofastack/sofa-boot/issues/327

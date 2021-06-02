@@ -233,6 +233,7 @@ exec p(0, 0);
     - `mediumint`   中整型，存储长度为3个字节
     - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，有符号signed区间：-2147483647 ~ 2147483647，无符号unsigned区间：0 ~ 4294967295)。最大显示11个字节，int(1)也会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的。类似于Oracle里的的number(X)
     - `bigint`      长正型(Long)，**存储长度为8个字节**。类似于Oracle里的的number(X)
+        - oracle中: Long不能使用insert into...select...等带select的模式；且不能通过MOVE来传输。尽量不要用LONG类型
     - `double`		浮点型(Float)，相当于Oracle里的的 number(X, Y)
     - `decimal`     金额(Bigdecimal)，相当于Oracle里的的 decimal(X, Y)。decimal(2,1) 表示总数据长度不能超过2位，且小数要占1位，因此最大为9.9
     - `char`		定长字符串(String)，同Oracle的char

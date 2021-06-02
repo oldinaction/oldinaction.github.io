@@ -365,30 +365,29 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     else
     ```
 
-- yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录。`yum install mysql`安装的是客户端)
+- yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录)
 
     ```bash
     # 下载mysql源安装包
     wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
     # 安装mysql源
-    yum localinstall mysql57-community-release-el7-8.noarch.rpm
+    rpm -ivh mysql57-community-release-el7-8.noarch.rpm
     # 检查mysql源是否安装成功
     yum repolist enabled | grep "mysql.*-community.*"
-    # 安装mysql(速度较慢)
-    yum install mysql-community-server
-    # 启动
-    systemctl start mysqld
+    # 安装mysql服务端和客户端(速度较慢)。`yum install mysql`仅仅安装了客户端
+    yum -y install mysql-server
+    # 设置开机启动，并启动
+    systemctl enable mysqld && systemctl start mysqld
     # 查看临时密码
     grep 'temporary password' /var/log/mysqld.log
     # 登录
     mysql -uroot -p
-    # 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)
+    # 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)。必须修改密码才能执行sql语句
     alter user 'root'@'localhost' identified by 'Hello1234!';
-    # 添加smalle用户，并赋权，且允许远程登录
-    grant all privileges on *.* to 'smalle'@'%' identified by 'Hello1234!' with grant option;
+    # 添加 'root'@'%' 用户，并赋权，且允许远程登录
+    grant all privileges on *.* to 'root'@'%' identified by 'Hello1234!' with grant option;
     flush privileges;
-    # 设置开机启动
-    systemctl enable mysqld
+    quit # 退出使用新密码重新登录
     ```
 - 配置文件默认路径 `/etc/my.cnf`(修改配置后需要重启服务)
 
@@ -448,6 +447,8 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 - 其他
     - `show variables like '%dir%';` sql命令查看mysql相关文件(数据/日志)存放位置
         - 数据文件默认位置：`/var/lib/mysql`
+    - mysql-jdbc驱动下载
+        - 5.7对应5.1的驱动 `wget https://downloads.mysql.com/archives/get/p/3/file/mysql-connector-java-5.1.49.tar.gz`(mysql-connector-java-5.1.49.jar)
 - 常见问题
     - 报错`cd: /usr/local/mysql: No such file or directory`。建议检查是否修改了`/etc/init.d/mysqld`文件中的basedir和datadir。[^6]
     - 重新启动服务会报错`ERROR! The server quit without updating PID file .`。同上

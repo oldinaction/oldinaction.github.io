@@ -6,6 +6,435 @@ categories: java
 tags: [springboot, plugin, 微服务, src]
 ---
 
+## isle-sofa-boot
+
+### 初始化
+
+- 初始化SOFABoot模块
+
+#### Spring启动完成后广播事件
+
+- Spring相关
+
+```java
+// AbstractApplicationContext.java，参考[spring-ioc-src.md#refresh方法概览](/_posts/java/java-src/spring-ioc-src.md#refresh方法概览)
+public void refresh() throws BeansException, IllegalStateException {
+    // ...
+    this.finishRefresh();
+}
+
+// ServletWebServerApplicationContext.java
+protected void finishRefresh() {
+    // 调用父类
+    super.finishRefresh();
+    WebServer webServer = this.startWebServer();
+    if (webServer != null) {
+        this.publishEvent(new ServletWebServerInitializedEvent(webServer, this));
+    }
+}
+
+// AbstractApplicationContext.java
+protected void finishRefresh() {
+    this.clearResourceCaches();
+    this.initLifecycleProcessor();
+    this.getLifecycleProcessor().onRefresh();
+    // 广播事件
+    this.publishEvent((ApplicationEvent)(new ContextRefreshedEvent(this)));
+    LiveBeansView.registerApplicationContext(this);
+}
+```
+- SofaModuleContextRefreshedListener.java 监听Spring启动后事件
+
+```java
+// SofaModuleContextRefreshedListener实例化参考[sofa-boot-autoconfigure](#sofa-boot-autoconfigure)
+public class SofaModuleContextRefreshedListener implements PriorityOrdered,
+                                               ApplicationListener<ContextRefreshedEvent>,
+                                               ApplicationContextAware {
+   @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        if (applicationContext.equals(event.getApplicationContext())) {
+            try {
+                // 处理 pipeline 流水线
+                pipelineContext.process();
+            } catch (Throwable t) {
+                SofaLogger.error("process pipeline error", t);
+                throw new RuntimeException(t);
+            }
+        }
+    }                                                
+}
+```
+
+#### 处理pipeline流水线
+
+- DefaultPipelineContext.java, 其实例化参考[sofa-boot-autoconfigure](#sofa-boot-autoconfigure)
+
+```java
+public class DefaultPipelineContext implements PipelineContext {
+    @Autowired
+    private List<PipelineStage> stageList;
+
+    @Override
+    public void process() throws Exception {
+        // 依次处理所有 PipelineStage：**ModelCreatingStage、SpringContextInstallStage、ModuleLogOutputStage**
+        for (PipelineStage pipelineStage : stageList) {
+            pipelineStage.process();
+        }
+    }
+
+    // ...
+}
+```
+
+##### SpringContextInstallStage为例
+
+```java
+// AbstractPipelineStage.java
+public abstract class AbstractPipelineStage implements PipelineStage {
+    @Override
+    public void process() throws Exception {
+        // ++++++++++++++++++ SpringContextInstallStage of SqBiz Main Start +++++++++++++++++
+        SofaLogger.info("++++++++++++++++++ {} of {} Start +++++++++++++++++", this.getClass()
+            .getSimpleName(), appName); // appName 为 spring.application.name
+        // 实际处理程序
+        doProcess();
+        // ++++++++++++++++++ SpringContextInstallStage of SqBiz Main End +++++++++++++++++
+        SofaLogger.info("++++++++++++++++++ {} of {} End +++++++++++++++++", this.getClass()
+            .getSimpleName(), appName);
+    }
+}
+
+// SpringContextInstallStage.java, 其实例化参考[sofa-boot-autoconfigure](#sofa-boot-autoconfigure)
+public class SpringContextInstallStage extends AbstractPipelineStage {
+    private void doProcess(ApplicationRuntimeModel application) throws Exception {
+        // 打印模块信息
+        /*
+        All activated module list(2) >>>>>>>
+            ├─ cn.aezo.sqbiz.sqbiz-plugin.service-consumer
+            └─ cn.aezo.sqbiz.sqbiz-plugin.service-provider
+
+        Modules that could install(2) >>>>>>>
+            ├─ cn.aezo.sqbiz.sqbiz-plugin.service-provider
+            └─ cn.aezo.sqbiz.sqbiz-plugin.service-consumer
+        */
+        outputModulesMessage(application);
+        // 创建模块的SpringContextLoader(上下文加载器). new DynamicSpringContextLoader(applicationContext)
+        SpringContextLoader springContextLoader = createSpringContextLoader();
+        // **加载SpringContext配置文件**
+        installSpringContext(application, springContextLoader);
+
+        if (sofaModuleProperties.isModuleStartUpParallel()) {
+            // **并行刷新SpringContext，初始化Bean**
+            refreshSpringContextParallel(application);
+        } else {
+            // 刷新SpringContext
+            refreshSpringContext(application);
+        }
+    }
+}
+```
+
+###### 创建模块的SpringContextLoader(上下文加载器)
+
+- SpringContextInstallStage.java
+
+```java
+protected SpringContextLoader createSpringContextLoader() {
+    return new DynamicSpringContextLoader(applicationContext);
+}
+```
+
+- DynamicSpringContextLoader.java解析spring配置文件，加载Bean。下文[加载SpringContext配置文件](#加载SpringContext配置文件)会调用
+
+```java
+public class DynamicSpringContextLoader implements SpringContextLoader {
+    @Override
+    public void loadSpringContext(DeploymentDescriptor deployment,
+                                  ApplicationRuntimeModel application) throws Exception {
+        // rootApplicationContext 如主模块上下文
+        SofaModuleProperties sofaModuleProperties = rootApplicationContext
+            .getBean(SofaModuleProperties.class);
+
+        BeanLoadCostBeanFactory beanFactory = new BeanLoadCostBeanFactory(
+            sofaModuleProperties.getBeanLoadCost(), deployment.getModuleName());
+        beanFactory
+            .setAutowireCandidateResolver(new QualifierAnnotationAutowireCandidateResolver());
+        GenericApplicationContext ctx = sofaModuleProperties.isPublishEventToParent() ? new GenericApplicationContext(
+            beanFactory) : new SofaModuleApplicationContext(beanFactory);
+        // 获取激活的环境类型
+        String activeProfiles = sofaModuleProperties.getActiveProfiles();
+        if (StringUtils.hasText(activeProfiles)) {
+            String[] profiles = activeProfiles.split(SofaBootConstants.PROFILE_SEPARATOR);
+            ctx.getEnvironment().setActiveProfiles(profiles);
+        }
+        setUpParentSpringContext(ctx, deployment, application);
+        final ClassLoader moduleClassLoader = deployment.getClassLoader();
+        ctx.setClassLoader(moduleClassLoader);
+        CachedIntrospectionResults.acceptClassLoader(moduleClassLoader);
+
+        // set allowBeanDefinitionOverriding
+        ctx.setAllowBeanDefinitionOverriding(sofaModuleProperties.isAllowBeanDefinitionOverriding());
+
+        ctx.getBeanFactory().setBeanClassLoader(moduleClassLoader);
+        ctx.getBeanFactory().addPropertyEditorRegistrar(new PropertyEditorRegistrar() {
+
+            public void registerCustomEditors(PropertyEditorRegistry registry) {
+                registry.registerCustomEditor(Class.class, new ClassEditor(moduleClassLoader));
+                registry.registerCustomEditor(Class[].class,
+                    new ClassArrayEditor(moduleClassLoader));
+            }
+        });
+        deployment.setApplicationContext(ctx);
+
+        XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(ctx);
+        beanDefinitionReader.setValidating(true);
+        beanDefinitionReader.setNamespaceAware(true);
+        beanDefinitionReader
+            .setBeanClassLoader(deployment.getApplicationContext().getClassLoader());
+        beanDefinitionReader.setResourceLoader(ctx);
+        // 加载配置文件中定义的Bean
+        loadBeanDefinitions(deployment, beanDefinitionReader);
+        addPostProcessors(beanFactory);
+    }
+}
+```
+
+###### 加载SpringContext配置文件
+
+- SpringContextInstallStage.java
+
+```java
+// 加载SpringContext配置文件
+protected void installSpringContext(ApplicationRuntimeModel application,
+                                    SpringContextLoader springContextLoader) {
+    ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
+    // 循环处理依赖的模块：sofa-module.properties
+    for (DeploymentDescriptor deployment : application.getResolvedDeployments()) {
+        // 判断是否有Spring配置文件
+        if (deployment.isSpringPowered()) {
+            // Start install SqBiz Main's module: cn.aezo.sqbiz.sqbiz-plugin.service-provider
+            SofaLogger.info("Start install " + application.getAppName() + "'s module: "
+                            + deployment.getName());
+            try {
+                // 记录加载器，如：BizClassLoader(bizIdentity=Startup In IDE:Mock version)
+                Thread.currentThread().setContextClassLoader(deployment.getClassLoader());
+                // 参考上文[创建模块的SpringContextLoader(上下文加载器)](#创建模块的SpringContextLoader(上下文加载器))
+                springContextLoader.loadSpringContext(deployment, application);
+            } catch (Throwable t) {
+                SofaLogger.error("Install module {} got an error!", deployment.getName(), t);
+                application.addFailed(deployment);
+            } finally {
+                Thread.currentThread().setContextClassLoader(oldClassLoader);
+            }
+        }
+    }
+}
+```
+- AbstractDeploymentDescriptor.java
+
+```java
+public abstract class AbstractDeploymentDescriptor implements DeploymentDescriptor {
+    // Spring配置文件
+    Map<String, Resource>                   springResources;
+
+    @Override
+    public boolean isSpringPowered() {
+        // 配置文件不存在则先读取XML文件
+        if (springResources == null) {
+            this.loadSpringXMLs();
+        }
+        // 如果存在配置文件，则说明存在Spring上下文环境，之后可进行刷新SpringContext
+        return !springResources.isEmpty();
+    }
+}
+```
+- FileDeploymentDescriptor.java 基于文件安装的模块，另外一个实现是基于Jar(JarDeploymentDescriptor)
+
+```java
+public class FileDeploymentDescriptor extends AbstractDeploymentDescriptor {
+    @Override
+    public void loadSpringXMLs() {
+        springResources = new HashMap<>();
+
+        try {
+            // When path contains special characters (e.g., white space, Chinese), URL converts them to UTF8 code point.
+            // In order to processing correctly, create File from URI
+            // Spring配置文件目录, 如: C:\Users\smalle\Desktop\sofa-ark-dynamic-guides-master\ark-dynamic-module\target\classes\META-INF\spring
+            URI springXmlUri = new URI("file://"
+                                       + url.getFile().substring(
+                                           0,
+                                           url.getFile().length()
+                                                   - SofaBootConstants.SOFA_MODULE_FILE.length())
+                                       + SofaBootConstants.SPRING_CONTEXT_PATH); // META-INF/spring
+            File springXml = new File(springXmlUri);
+            List<File> springFiles = new ArrayList<>();
+            if (springXml.exists()) {
+                listFiles(springFiles, springXml, ".xml");
+            }
+
+            for (File f : springFiles) {
+                // 保存到 springResources 缓存中
+                springResources.put(f.getAbsolutePath(), new FileSystemResource(f));
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+###### 并行刷新SpringContext
+
+- SpringContextInstallStage.java
+
+```java
+private void refreshSpringContextParallel(ApplicationRuntimeModel application) {
+    ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
+    List<DeploymentDescriptor> coreRoots = new ArrayList<>();
+    // 定义线程执行器，初始化模块时的线程名如：sofa-module-start-cn.aezo.sqbiz.sqbiz-plugin.service-provider
+    ThreadPoolExecutor executor = new SofaThreadPoolExecutor(CPU_COUNT + 1, CPU_COUNT + 1, 60,
+        TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory(
+            "sofa-module-start"), new ThreadPoolExecutor.CallerRunsPolicy(),
+        "sofa-module-start", "sofa-boot", 60, 30, TimeUnit.SECONDS);
+    try {
+        // 循环处理依赖的模块：sofa-module.properties
+        for (DeploymentDescriptor deployment : application.getResolvedDeployments()) {
+            DependencyTree.Entry entry = application.getDeployRegistry().getEntry(
+                deployment.getModuleName());
+            // 判断当前模块是否有依赖, Require-Module
+            if (entry != null && entry.getDependencies() == null) {
+                coreRoots.add(deployment);
+            }
+        }
+        // 处理底层(被依赖)模块，内部包含了处理上层调用模块，具体见下文
+        refreshSpringContextParallel(coreRoots, application.getResolvedDeployments().size(),
+            application, executor);
+
+    } finally {
+        executor.shutdown();
+        Thread.currentThread().setContextClassLoader(oldClassLoader);
+    }
+}
+
+private void refreshSpringContextParallel(List<DeploymentDescriptor> rootDeployments,
+                                              int totalSize,
+                                              final ApplicationRuntimeModel application,
+                                              final ThreadPoolExecutor executor) {
+    if (rootDeployments == null || rootDeployments.size() == 0) {
+        return;
+    }
+
+    final CountDownLatch latch = new CountDownLatch(totalSize);
+    List<Future> futures = new CopyOnWriteArrayList<>();
+
+    // 依次处理每个模块
+    for (final DeploymentDescriptor deployment : rootDeployments) {
+        refreshSpringContextParallel(deployment, application, executor, latch, futures);
+    }
+
+    try {
+        latch.await();
+    } catch (InterruptedException e) {
+        throw new RuntimeException("Wait for Sofa Module Refresh Fail", e);
+    }
+
+    for (Future future : futures) {
+        try {
+            future.get();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+}
+
+// 某个模块处理逻辑
+private void refreshSpringContextParallel(final DeploymentDescriptor deployment,
+                                              final ApplicationRuntimeModel application,
+                                              final ThreadPoolExecutor executor,
+                                              final CountDownLatch latch, final List<Future> futures) {
+    // 提交任务
+    futures.add(executor.submit(new Runnable() {
+        @Override
+        public void run() {
+            // 任务逻辑
+            String oldName = Thread.currentThread().getName();
+            try {
+                Thread.currentThread().setName(
+                    "sofa-module-start-" + deployment.getModuleName());
+                Thread.currentThread().setContextClassLoader(deployment.getClassLoader());
+                if (deployment.isSpringPowered()
+                    && !application.getFailed().contains(deployment)) {
+                    // 是Spring应用，且加载成功时执行
+                    doRefreshSpringContext(deployment, application);
+                }
+                // 当前模块
+                DependencyTree.Entry<String, DeploymentDescriptor> entry = application
+                    .getDeployRegistry().getEntry(deployment.getModuleName());
+                if (entry != null && entry.getDependsOnMe() != null) {
+                    // 循环初始化依赖我的模块(初始化上层调用模块)
+                    for (final DependencyTree.Entry<String, DeploymentDescriptor> child : entry
+                        .getDependsOnMe()) {
+                        child.getDependencies().remove(entry);
+                        if (child.getDependencies().size() == 0) {
+                            refreshSpringContextParallel(child.get(), application, executor,
+                                latch, futures);
+                        }
+                    }
+                }
+            }
+            // ...
+        }
+    }));
+}
+
+protected void doRefreshSpringContext(DeploymentDescriptor deployment,
+                                          ApplicationRuntimeModel application) {
+    // Begin refresh Spring Application Context of module cn.aezo.sqbiz.sqbiz-plugin.service-provider of application SqBiz Main.
+    SofaLogger.info("Begin refresh Spring Application Context of module {} of application {}.",
+        deployment.getName(), application.getAppName());
+    // 获取模块的上下文
+    ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) deployment
+        .getApplicationContext();
+    if (ctx != null) {
+        try {
+            deployment.startDeploy(); // 只是记录一下时间
+            // 刷新，即调用 ApplicationContext#refresh 方法。参考上文[ServiceComponent为例](#ServiceComponent为例)
+            // 依次打印日志：Registering component - <<PreOut Binding - <<Out Binding - Register Service
+            ctx.refresh();
+            // 注册SpringContext组件，参考上文[SpringContextComponent为例](#SpringContextComponent为例)。方法详细参考下文
+            publishContextAsSofaComponent(deployment, application, ctx);
+            application.addInstalled(deployment);
+        } catch (Throwable t) {
+            SofaLogger.error(
+                "Refreshing Spring Application Context of module {} got an error.",
+                deployment.getName(), t);
+            application.addFailed(deployment);
+        } finally {
+            deployment.deployFinish();
+        }
+    } else {
+        String errorMsg = "Spring Application Context of module " + deployment.getName()
+                            + " is null!";
+        application.addFailed(deployment);
+        SofaLogger.error(errorMsg, new RuntimeException(errorMsg));
+    }
+}
+
+private void publishContextAsSofaComponent(DeploymentDescriptor deployment,
+                                               ApplicationRuntimeModel application,
+                                               ApplicationContext context) {
+    // 实例化
+    ComponentName componentName = ComponentNameFactory.createComponentName(
+        SpringContextComponent.SPRING_COMPONENT_TYPE, deployment.getModuleName());
+    Implementation implementation = new SpringContextImplementation(context);
+    ComponentInfo componentInfo = new SpringContextComponent(componentName, implementation,
+        application.getSofaRuntimeContext());
+    // 注册
+    application.getSofaRuntimeContext().getComponentManager().register(componentInfo);
+}
+```
+
 ## runtime-sofa-boot组件
 
 ### 初始化
@@ -499,435 +928,6 @@ public class SpringContextComponent extends AbstractComponent {
 }
 ```
 
-## isle-sofa-boot
-
-### 初始化
-
-- 初始化SOFABoot模块
-
-#### Spring启动完成后广播事件
-
-- Spring相关
-
-```java
-// AbstractApplicationContext.java，参考[spring-ioc-src.md#refresh方法概览](/_posts/java/java-src/spring-ioc-src.md#refresh方法概览)
-public void refresh() throws BeansException, IllegalStateException {
-    // ...
-    this.finishRefresh();
-}
-
-// ServletWebServerApplicationContext.java
-protected void finishRefresh() {
-    // 调用父类
-    super.finishRefresh();
-    WebServer webServer = this.startWebServer();
-    if (webServer != null) {
-        this.publishEvent(new ServletWebServerInitializedEvent(webServer, this));
-    }
-}
-
-// AbstractApplicationContext.java
-protected void finishRefresh() {
-    this.clearResourceCaches();
-    this.initLifecycleProcessor();
-    this.getLifecycleProcessor().onRefresh();
-    // 广播事件
-    this.publishEvent((ApplicationEvent)(new ContextRefreshedEvent(this)));
-    LiveBeansView.registerApplicationContext(this);
-}
-```
-- SofaModuleContextRefreshedListener.java 监听Spring启动后事件
-
-```java
-// SofaModuleContextRefreshedListener实例化参考[sofa-boot-autoconfigure](#sofa-boot-autoconfigure)
-public class SofaModuleContextRefreshedListener implements PriorityOrdered,
-                                               ApplicationListener<ContextRefreshedEvent>,
-                                               ApplicationContextAware {
-   @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-        if (applicationContext.equals(event.getApplicationContext())) {
-            try {
-                // 处理 pipeline 流水线
-                pipelineContext.process();
-            } catch (Throwable t) {
-                SofaLogger.error("process pipeline error", t);
-                throw new RuntimeException(t);
-            }
-        }
-    }                                                
-}
-```
-
-#### 处理pipeline流水线
-
-- DefaultPipelineContext.java, 其实例化参考[sofa-boot-autoconfigure](#sofa-boot-autoconfigure)
-
-```java
-public class DefaultPipelineContext implements PipelineContext {
-    @Autowired
-    private List<PipelineStage> stageList;
-
-    @Override
-    public void process() throws Exception {
-        // 依次处理所有 PipelineStage：**ModelCreatingStage、SpringContextInstallStage、ModuleLogOutputStage**
-        for (PipelineStage pipelineStage : stageList) {
-            pipelineStage.process();
-        }
-    }
-
-    // ...
-}
-```
-
-##### SpringContextInstallStage为例
-
-```java
-// AbstractPipelineStage.java
-public abstract class AbstractPipelineStage implements PipelineStage {
-    @Override
-    public void process() throws Exception {
-        // ++++++++++++++++++ SpringContextInstallStage of SqBiz Main Start +++++++++++++++++
-        SofaLogger.info("++++++++++++++++++ {} of {} Start +++++++++++++++++", this.getClass()
-            .getSimpleName(), appName); // appName 为 spring.application.name
-        // 实际处理程序
-        doProcess();
-        // ++++++++++++++++++ SpringContextInstallStage of SqBiz Main End +++++++++++++++++
-        SofaLogger.info("++++++++++++++++++ {} of {} End +++++++++++++++++", this.getClass()
-            .getSimpleName(), appName);
-    }
-}
-
-// SpringContextInstallStage.java, 其实例化参考[sofa-boot-autoconfigure](#sofa-boot-autoconfigure)
-public class SpringContextInstallStage extends AbstractPipelineStage {
-    private void doProcess(ApplicationRuntimeModel application) throws Exception {
-        // 打印模块信息
-        /*
-        All activated module list(2) >>>>>>>
-            ├─ cn.aezo.sqbiz.sqbiz-plugin.service-consumer
-            └─ cn.aezo.sqbiz.sqbiz-plugin.service-provider
-
-        Modules that could install(2) >>>>>>>
-            ├─ cn.aezo.sqbiz.sqbiz-plugin.service-provider
-            └─ cn.aezo.sqbiz.sqbiz-plugin.service-consumer
-        */
-        outputModulesMessage(application);
-        // 创建模块的SpringContextLoader(上下文加载器). new DynamicSpringContextLoader(applicationContext)
-        SpringContextLoader springContextLoader = createSpringContextLoader();
-        // **加载SpringContext配置文件**
-        installSpringContext(application, springContextLoader);
-
-        if (sofaModuleProperties.isModuleStartUpParallel()) {
-            // **并行刷新SpringContext，初始化Bean**
-            refreshSpringContextParallel(application);
-        } else {
-            // 刷新SpringContext
-            refreshSpringContext(application);
-        }
-    }
-}
-```
-
-###### 创建模块的SpringContextLoader(上下文加载器)
-
-- SpringContextInstallStage.java
-
-```java
-protected SpringContextLoader createSpringContextLoader() {
-    return new DynamicSpringContextLoader(applicationContext);
-}
-```
-
-- DynamicSpringContextLoader.java解析spring配置文件，加载Bean。下文[加载SpringContext配置文件](#加载SpringContext配置文件)会调用
-
-```java
-public class DynamicSpringContextLoader implements SpringContextLoader {
-    @Override
-    public void loadSpringContext(DeploymentDescriptor deployment,
-                                  ApplicationRuntimeModel application) throws Exception {
-        // rootApplicationContext 如主模块上下文
-        SofaModuleProperties sofaModuleProperties = rootApplicationContext
-            .getBean(SofaModuleProperties.class);
-
-        BeanLoadCostBeanFactory beanFactory = new BeanLoadCostBeanFactory(
-            sofaModuleProperties.getBeanLoadCost(), deployment.getModuleName());
-        beanFactory
-            .setAutowireCandidateResolver(new QualifierAnnotationAutowireCandidateResolver());
-        GenericApplicationContext ctx = sofaModuleProperties.isPublishEventToParent() ? new GenericApplicationContext(
-            beanFactory) : new SofaModuleApplicationContext(beanFactory);
-        // 获取激活的环境类型
-        String activeProfiles = sofaModuleProperties.getActiveProfiles();
-        if (StringUtils.hasText(activeProfiles)) {
-            String[] profiles = activeProfiles.split(SofaBootConstants.PROFILE_SEPARATOR);
-            ctx.getEnvironment().setActiveProfiles(profiles);
-        }
-        setUpParentSpringContext(ctx, deployment, application);
-        final ClassLoader moduleClassLoader = deployment.getClassLoader();
-        ctx.setClassLoader(moduleClassLoader);
-        CachedIntrospectionResults.acceptClassLoader(moduleClassLoader);
-
-        // set allowBeanDefinitionOverriding
-        ctx.setAllowBeanDefinitionOverriding(sofaModuleProperties.isAllowBeanDefinitionOverriding());
-
-        ctx.getBeanFactory().setBeanClassLoader(moduleClassLoader);
-        ctx.getBeanFactory().addPropertyEditorRegistrar(new PropertyEditorRegistrar() {
-
-            public void registerCustomEditors(PropertyEditorRegistry registry) {
-                registry.registerCustomEditor(Class.class, new ClassEditor(moduleClassLoader));
-                registry.registerCustomEditor(Class[].class,
-                    new ClassArrayEditor(moduleClassLoader));
-            }
-        });
-        deployment.setApplicationContext(ctx);
-
-        XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(ctx);
-        beanDefinitionReader.setValidating(true);
-        beanDefinitionReader.setNamespaceAware(true);
-        beanDefinitionReader
-            .setBeanClassLoader(deployment.getApplicationContext().getClassLoader());
-        beanDefinitionReader.setResourceLoader(ctx);
-        // 加载配置文件中定义的Bean
-        loadBeanDefinitions(deployment, beanDefinitionReader);
-        addPostProcessors(beanFactory);
-    }
-}
-```
-
-###### 加载SpringContext配置文件
-
-- SpringContextInstallStage.java
-
-```java
-// 加载SpringContext配置文件
-protected void installSpringContext(ApplicationRuntimeModel application,
-                                    SpringContextLoader springContextLoader) {
-    ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
-    // 循环处理依赖的模块：sofa-module.properties
-    for (DeploymentDescriptor deployment : application.getResolvedDeployments()) {
-        // 判断是否有Spring配置文件
-        if (deployment.isSpringPowered()) {
-            // Start install SqBiz Main's module: cn.aezo.sqbiz.sqbiz-plugin.service-provider
-            SofaLogger.info("Start install " + application.getAppName() + "'s module: "
-                            + deployment.getName());
-            try {
-                // 记录加载器，如：BizClassLoader(bizIdentity=Startup In IDE:Mock version)
-                Thread.currentThread().setContextClassLoader(deployment.getClassLoader());
-                // 参考上文[创建模块的SpringContextLoader(上下文加载器)](#创建模块的SpringContextLoader(上下文加载器))
-                springContextLoader.loadSpringContext(deployment, application);
-            } catch (Throwable t) {
-                SofaLogger.error("Install module {} got an error!", deployment.getName(), t);
-                application.addFailed(deployment);
-            } finally {
-                Thread.currentThread().setContextClassLoader(oldClassLoader);
-            }
-        }
-    }
-}
-```
-- AbstractDeploymentDescriptor.java
-
-```java
-public abstract class AbstractDeploymentDescriptor implements DeploymentDescriptor {
-    // Spring配置文件
-    Map<String, Resource>                   springResources;
-
-    @Override
-    public boolean isSpringPowered() {
-        // 配置文件不存在则先读取XML文件
-        if (springResources == null) {
-            this.loadSpringXMLs();
-        }
-        // 如果存在配置文件，则说明存在Spring上下文环境，之后可进行刷新SpringContext
-        return !springResources.isEmpty();
-    }
-}
-```
-- FileDeploymentDescriptor.java 基于文件安装的模块，另外一个实现是基于Jar(JarDeploymentDescriptor)
-
-```java
-public class FileDeploymentDescriptor extends AbstractDeploymentDescriptor {
-    @Override
-    public void loadSpringXMLs() {
-        springResources = new HashMap<>();
-
-        try {
-            // When path contains special characters (e.g., white space, Chinese), URL converts them to UTF8 code point.
-            // In order to processing correctly, create File from URI
-            // Spring配置文件目录, 如: C:\Users\smalle\Desktop\sofa-ark-dynamic-guides-master\ark-dynamic-module\target\classes\META-INF\spring
-            URI springXmlUri = new URI("file://"
-                                       + url.getFile().substring(
-                                           0,
-                                           url.getFile().length()
-                                                   - SofaBootConstants.SOFA_MODULE_FILE.length())
-                                       + SofaBootConstants.SPRING_CONTEXT_PATH); // META-INF/spring
-            File springXml = new File(springXmlUri);
-            List<File> springFiles = new ArrayList<>();
-            if (springXml.exists()) {
-                listFiles(springFiles, springXml, ".xml");
-            }
-
-            for (File f : springFiles) {
-                // 保存到 springResources 缓存中
-                springResources.put(f.getAbsolutePath(), new FileSystemResource(f));
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-```
-
-###### 并行刷新SpringContext
-
-- SpringContextInstallStage.java
-
-```java
-private void refreshSpringContextParallel(ApplicationRuntimeModel application) {
-    ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
-    List<DeploymentDescriptor> coreRoots = new ArrayList<>();
-    // 定义线程执行器，初始化模块时的线程名如：sofa-module-start-cn.aezo.sqbiz.sqbiz-plugin.service-provider
-    ThreadPoolExecutor executor = new SofaThreadPoolExecutor(CPU_COUNT + 1, CPU_COUNT + 1, 60,
-        TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory(
-            "sofa-module-start"), new ThreadPoolExecutor.CallerRunsPolicy(),
-        "sofa-module-start", "sofa-boot", 60, 30, TimeUnit.SECONDS);
-    try {
-        // 循环处理依赖的模块：sofa-module.properties
-        for (DeploymentDescriptor deployment : application.getResolvedDeployments()) {
-            DependencyTree.Entry entry = application.getDeployRegistry().getEntry(
-                deployment.getModuleName());
-            // 判断当前模块是否有依赖, Require-Module
-            if (entry != null && entry.getDependencies() == null) {
-                coreRoots.add(deployment);
-            }
-        }
-        // 处理底层(被依赖)模块，内部包含了处理上层调用模块，具体见下文
-        refreshSpringContextParallel(coreRoots, application.getResolvedDeployments().size(),
-            application, executor);
-
-    } finally {
-        executor.shutdown();
-        Thread.currentThread().setContextClassLoader(oldClassLoader);
-    }
-}
-
-private void refreshSpringContextParallel(List<DeploymentDescriptor> rootDeployments,
-                                              int totalSize,
-                                              final ApplicationRuntimeModel application,
-                                              final ThreadPoolExecutor executor) {
-    if (rootDeployments == null || rootDeployments.size() == 0) {
-        return;
-    }
-
-    final CountDownLatch latch = new CountDownLatch(totalSize);
-    List<Future> futures = new CopyOnWriteArrayList<>();
-
-    // 依次处理每个模块
-    for (final DeploymentDescriptor deployment : rootDeployments) {
-        refreshSpringContextParallel(deployment, application, executor, latch, futures);
-    }
-
-    try {
-        latch.await();
-    } catch (InterruptedException e) {
-        throw new RuntimeException("Wait for Sofa Module Refresh Fail", e);
-    }
-
-    for (Future future : futures) {
-        try {
-            future.get();
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-}
-
-// 某个模块处理逻辑
-private void refreshSpringContextParallel(final DeploymentDescriptor deployment,
-                                              final ApplicationRuntimeModel application,
-                                              final ThreadPoolExecutor executor,
-                                              final CountDownLatch latch, final List<Future> futures) {
-    // 提交任务
-    futures.add(executor.submit(new Runnable() {
-        @Override
-        public void run() {
-            // 任务逻辑
-            String oldName = Thread.currentThread().getName();
-            try {
-                Thread.currentThread().setName(
-                    "sofa-module-start-" + deployment.getModuleName());
-                Thread.currentThread().setContextClassLoader(deployment.getClassLoader());
-                if (deployment.isSpringPowered()
-                    && !application.getFailed().contains(deployment)) {
-                    // 是Spring应用，且加载成功时执行
-                    doRefreshSpringContext(deployment, application);
-                }
-                // 当前模块
-                DependencyTree.Entry<String, DeploymentDescriptor> entry = application
-                    .getDeployRegistry().getEntry(deployment.getModuleName());
-                if (entry != null && entry.getDependsOnMe() != null) {
-                    // 循环初始化依赖我的模块(初始化上层调用模块)
-                    for (final DependencyTree.Entry<String, DeploymentDescriptor> child : entry
-                        .getDependsOnMe()) {
-                        child.getDependencies().remove(entry);
-                        if (child.getDependencies().size() == 0) {
-                            refreshSpringContextParallel(child.get(), application, executor,
-                                latch, futures);
-                        }
-                    }
-                }
-            }
-            // ...
-        }
-    }));
-}
-
-protected void doRefreshSpringContext(DeploymentDescriptor deployment,
-                                          ApplicationRuntimeModel application) {
-    // Begin refresh Spring Application Context of module cn.aezo.sqbiz.sqbiz-plugin.service-provider of application SqBiz Main.
-    SofaLogger.info("Begin refresh Spring Application Context of module {} of application {}.",
-        deployment.getName(), application.getAppName());
-    // 获取模块的上下文
-    ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) deployment
-        .getApplicationContext();
-    if (ctx != null) {
-        try {
-            deployment.startDeploy(); // 只是记录一下时间
-            // 刷新，即调用 ApplicationContext#refresh 方法。参考上文[ServiceComponent为例](#ServiceComponent为例)
-            // 依次打印日志：Registering component - <<PreOut Binding - <<Out Binding - Register Service
-            ctx.refresh();
-            // 注册SpringContext组件，参考上文[SpringContextComponent为例](#SpringContextComponent为例)。方法详细参考下文
-            publishContextAsSofaComponent(deployment, application, ctx);
-            application.addInstalled(deployment);
-        } catch (Throwable t) {
-            SofaLogger.error(
-                "Refreshing Spring Application Context of module {} got an error.",
-                deployment.getName(), t);
-            application.addFailed(deployment);
-        } finally {
-            deployment.deployFinish();
-        }
-    } else {
-        String errorMsg = "Spring Application Context of module " + deployment.getName()
-                            + " is null!";
-        application.addFailed(deployment);
-        SofaLogger.error(errorMsg, new RuntimeException(errorMsg));
-    }
-}
-
-private void publishContextAsSofaComponent(DeploymentDescriptor deployment,
-                                               ApplicationRuntimeModel application,
-                                               ApplicationContext context) {
-    // 实例化
-    ComponentName componentName = ComponentNameFactory.createComponentName(
-        SpringContextComponent.SPRING_COMPONENT_TYPE, deployment.getModuleName());
-    Implementation implementation = new SpringContextImplementation(context);
-    ComponentInfo componentInfo = new SpringContextComponent(componentName, implementation,
-        application.getSofaRuntimeContext());
-    // 注册
-    application.getSofaRuntimeContext().getComponentManager().register(componentInfo);
-}
-```
-
 ## sofa-boot-autoconfigure
 
 - spring.factories
@@ -994,6 +994,163 @@ public class SofaModuleAutoConfiguration {
     // ...
 }
 ```
+
+## Ark容器启动流程
+
+- 参考：https://www.sofastack.tech/projects/sofa-boot/sofa-ark-startup/
+- 流程图
+
+    ![sofa-ark.png](/data/images/java/sofa-ark.png)
+
+### sofa-ark-support-starter
+
+- 启动Ark入口
+- ArkApplicationStartListener.java 监听类
+
+```java
+// spring.factories声明此类
+// org.springframework.context.ApplicationListener=com.alipay.sofa.ark.springboot.listener.ArkApplicationStartListener
+public class ArkApplicationStartListener implements ApplicationListener<SpringApplicationEvent> {
+    // ...
+
+    @Override
+    public void onApplicationEvent(SpringApplicationEvent event) {
+        try {
+            // springboot 2.x 启动
+            if (isSpringBoot2()
+                && APPLICATION_STARTING_EVENT.equals(event.getClass().getCanonicalName())) {
+                startUpArk(event);
+            }
+
+            if (isSpringBoot1()
+                && APPLICATION_STARTED_EVENT.equals(event.getClass().getCanonicalName())) {
+                startUpArk(event);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException("Meet exception when determine whether to start SOFAArk!", e);
+        }
+    }
+
+    public void startUpArk(SpringApplicationEvent event) {
+        if (LAUNCH_CLASSLOADER_NAME.equals(this.getClass().getClassLoader().getClass().getName())) {
+            // 执行 SofaArkBootstrap 启动
+            SofaArkBootstrap.launch(event.getArgs());
+        }
+    }
+}
+```
+- SofaArkBootstrap.java
+
+```java
+public class SofaArkBootstrap {
+    private static final String BIZ_CLASSLOADER = "com.alipay.sofa.ark.container.service.classloader.BizClassLoader";
+    private static final String MAIN_ENTRY_NAME = "remain";
+    private static EntryMethod  entryMethod;
+
+    public static void launch(String[] args) {
+        try {
+            if (!isSofaArkStarted()) {
+                entryMethod = new EntryMethod(Thread.currentThread());
+                IsolatedThreadGroup threadGroup = new IsolatedThreadGroup(
+                    entryMethod.getDeclaringClassName());
+                // 下面launchThread线程会执行的任务
+                // 传入参数：类名、方法名、参数。最终LaunchRunner#run中反射调用此方法(MAIN_ENTRY_NAME=remain)，即此类下文方法
+                LaunchRunner launchRunner = new LaunchRunner(SofaArkBootstrap.class.getName(),
+                    MAIN_ENTRY_NAME, args);
+                Thread launchThread = new Thread(threadGroup, launchRunner,
+                    entryMethod.getMethodName());
+                launchThread.start();
+                // 等threadGroup执行完成(包含launchThread线程)，时程序启动后阻塞在此处
+                LaunchRunner.join(threadGroup);
+                threadGroup.rethrowUncaughtException();
+                System.exit(0);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // LaunchRunner#run最终反射调用此方法
+    private static void remain(String[] args) throws Exception {// NOPMD
+        AssertUtils.assertNotNull(entryMethod, "No Entry Method Found.");
+        URL[] urls = getURLClassPath();
+        // 执行 ClasspathLauncher#launch。传入参数 ClassPathArchive 记录了(urls：classpath下依赖的jar，arkConfBaseDir: 配置conf/ark/bootstrap.properties文件路径)
+        // 最终反射调用ArkContainer入口：ArkContainer.main 方法，见[sofa-ark-container](#sofa-ark-container)
+        new ClasspathLauncher(new ClassPathArchive(entryMethod.getDeclaringClassName(), entryMethod.getMethodName(), urls))
+            .launch(args, getClasspath(urls), entryMethod.getMethod());
+    }
+}
+```
+
+### sofa-ark-container
+
+- **ArkContainer.java**
+
+```java
+public class ArkContainer {
+    // args中包含上文传入的3个参数
+    // -Aclasspath=...
+    // -BclassName=cn.aezo.sqbiz.SqBizApplication
+    // -BmethodName=main
+    public static Object main(String[] args) throws ArkRuntimeException {
+        try {
+            // 解析参数
+            LaunchCommand launchCommand = LaunchCommand.parse(args);
+            // ...
+
+            ClassPathArchive classPathArchive = new ClassPathArchive(
+                launchCommand.getEntryClassName(), launchCommand.getEntryMethodName(),
+                launchCommand.getClasspath());
+            // 创建Ark容器并启动
+            return new ArkContainer(classPathArchive, launchCommand).start();
+        } catch (IOException e) {
+            throw new ArkRuntimeException(String.format("SOFAArk startup failed, commandline=%s",
+                LaunchCommand.toString(args)), e);
+        }
+    }
+
+    public Object start() throws ArkRuntimeException {
+        AssertUtils.assertNotNull(arkServiceContainer, "arkServiceContainer is null !");
+        if (started.compareAndSet(false, true)) {
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    stop();
+                }
+            }));
+            // 准备参数：将conf/ark/bootstrap.properties中的参数缓存到ArkConfigs.CFG中
+            prepareArkConfig();
+            // 重新初始化ark日志. 获取配置优先级：System.getProperty > ArkConfigs.CFG > defaultValue
+            reInitializeArkLogger();
+            // 启动 ArkServiceContainer (控制台会显示 SOFA-ARK-telnet-server-worker 的日志)
+            arkServiceContainer.start();
+            // 初始化Pipeline，会返回 StandardPipeline
+            Pipeline pipeline = arkServiceContainer.getService(Pipeline.class);
+            // 会依次执行Pipeline：
+                // HandleArchiveStage   解析出Ark包
+                // RegisterServiceStage 注册Ark包：只是将所有包下的服务都记录下来
+                // ExtensionLoaderStage 扩展，参考 sofa-ark-spi
+                // DeployPluginStage    启动所有的Ark插件
+                // DeployBizStage       启动所有的Ark Biz
+                    // ArkTomcatWebServer.initialize 主程序和其他Biz程序启动
+                // FinishStartupStage   启动完成事件
+            pipeline.process(pipelineContext);
+            // Ark container started in xxx ms. 项目启动成功
+            System.out.println("Ark container started in " + (System.currentTimeMillis() - start) //NOPMD
+                               + " ms.");
+        }
+        return this;
+    }
+}
+```
+
+
+
+
+
+## sofa-ark-maven-plugin插件
+
+- 插件打包流程参考：https://zhuanlan.zhihu.com/p/114647271
 
 ## 启动日志示例
 
