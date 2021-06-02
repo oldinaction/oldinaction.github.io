@@ -4,8 +4,28 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
+    <lastmod>2021-06-01T15:31:38.571Z</lastmod>
+    <data>
+        <display>
+        <title>Hive</title>
+        <pubTime>2021-06-01T11:58:00.000Z</pubTime>
+        
+        <tag>hadoop</tag>
+         
+         
+           
+             
+              <breadCrumb title="bigdata" url="http://blog.aezo.cn/categories/bigdata/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
-    <lastmod>2021-05-28T14:09:05.245Z</lastmod>
+    <lastmod>2021-06-01T15:13:04.556Z</lastmod>
     <data>
         <display>
         <title>Hadoop</title>
@@ -17,6 +37,116 @@
            
              
               <breadCrumb title="bigdata" url="http://blog.aezo.cn/categories/bigdata/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
+    <lastmod>2021-06-01T14:56:45.797Z</lastmod>
+    <data>
+        <display>
+        <title>CentOS服务器使用说明</title>
+        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>CentOS</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    <lastmod>2021-06-01T14:35:49.555Z</lastmod>
+    <data>
+        <display>
+        <title>linux系统</title>
+        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+        <tag>shell</tag>
+         
+         
+           
+             
+              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    <lastmod>2021-06-01T05:47:23.648Z</lastmod>
+    <data>
+        <display>
+        <title>Oracle DBA</title>
+        <pubTime>2016-10-12T13:06:00.000Z</pubTime>
+        
+        <tag>oracle</tag>
+         
+        <tag>dba</tag>
+         
+         
+           
+             
+              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
+    <lastmod>2021-05-31T06:23:31.053Z</lastmod>
+    <data>
+        <display>
+        <title>sql基础</title>
+        <pubTime>2017-09-30T04:51:00.000Z</pubTime>
+        
+        <tag>mysql</tag>
+         
+        <tag>oracle</tag>
+         
+        <tag>sql</tag>
+         
+         
+           
+             
+              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
+    <lastmod>2021-05-28T15:50:23.132Z</lastmod>
+    <data>
+        <display>
+        <title>JavaScript知识点</title>
+        <pubTime>2016-06-11T08:51:00.000Z</pubTime>
+        
+        <tag>js</tag>
+         
+         
+           
+             
+              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
           
         </display>
     </data>
@@ -37,28 +167,6 @@
            
              
               <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    <lastmod>2021-05-27T05:03:12.637Z</lastmod>
-    <data>
-        <display>
-        <title>Oracle DBA</title>
-        <pubTime>2016-10-12T13:06:00.000Z</pubTime>
-        
-        <tag>oracle</tag>
-         
-        <tag>dba</tag>
-         
-         
-           
-             
-              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
           
         </display>
     </data>
@@ -130,28 +238,6 @@
 
     
   <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
-    <lastmod>2021-05-25T13:29:45.674Z</lastmod>
-    <data>
-        <display>
-        <title>CentOS服务器使用说明</title>
-        <pubTime>2017-01-10T05:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>CentOS</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>http://blog.aezo.cn/2017/10/22/arch/zookeeper/</loc>
     <lastmod>2021-05-24T11:52:50.945Z</lastmod>
     <data>
@@ -167,28 +253,6 @@
            
              
               <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    <lastmod>2021-05-23T13:58:49.610Z</lastmod>
-    <data>
-        <display>
-        <title>linux系统</title>
-        <pubTime>2016-07-21T11:19:00.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-        <tag>shell</tag>
-         
-         
-           
-             
-              <breadCrumb title="linux" url="http://blog.aezo.cn/categories/linux/"/>
           
         </display>
     </data>
@@ -619,26 +683,6 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
-    <lastmod>2021-04-13T09:29:36.621Z</lastmod>
-    <data>
-        <display>
-        <title>JavaScript知识点</title>
-        <pubTime>2016-06-11T08:51:00.000Z</pubTime>
-        
-        <tag>js</tag>
-         
-         
-           
-             
-              <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
           
         </display>
     </data>
@@ -1379,9 +1423,9 @@
         <title>Vue源码</title>
         <pubTime>2020-05-02T11:49:00.000Z</pubTime>
         
-        <tag>vue</tag>
-         
         <tag>src</tag>
+         
+        <tag>vue</tag>
          
          
            
@@ -1659,30 +1703,6 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
-    <lastmod>2020-12-21T07:45:06.742Z</lastmod>
-    <data>
-        <display>
-        <title>sql基础</title>
-        <pubTime>2017-09-30T04:51:00.000Z</pubTime>
-        
-        <tag>mysql</tag>
-         
-        <tag>oracle</tag>
-         
-        <tag>sql</tag>
-         
-         
-           
-             
-              <breadCrumb title="db" url="http://blog.aezo.cn/categories/db/"/>
           
         </display>
     </data>
