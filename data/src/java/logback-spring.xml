@@ -163,7 +163,7 @@
         </encoder>
     </appender>
 
-    <!-- 每天生成一个html格式的日志开始 -->
+    <!-- 每天生成一个html格式的日志开始。也可通过WS实时显示在页面：https://blog.csdn.net/weixin_30791095/article/details/96556980 -->
     <appender name="HTML_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 过滤器，只记录WARN级别的日志
           <filter class="ch.qos.logback.classic.filter.LevelFilter">
