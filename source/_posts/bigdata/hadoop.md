@@ -454,10 +454,10 @@ source /etc/profile
     
 #### 启动/停止/使用
 
-- test用户启动
 - **需先确保Zookeeper集群已经启动**
-- **`hadoop-daemon.sh start journalnode`** 分别在三台JN节点上执行命令进行启动(**必须在NN之前启动**)
-- **`start-dfs.sh`** 在某一台NameNode上启动
+- **`hadoop-daemon.sh start journalnode`** 用test用户分别在三台JN(node02-node04)节点上执行命令进行启动(**必须在NN之前启动**)
+    - 可在rc.local中增加自动启动`sudo -H -u test bash -c '/opt/bigdata/hadoop-2.10.1/sbin/hadoop-daemon.sh start journalnode'`
+- **`start-dfs.sh`** 在某一台NameNode上用test用户启动
     - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、ZKFC, JN已提前启动)
         - journalnode在上述启动过，此处不会重新启动
         - 启动后，则会自动同步数据到JN，如：edits_inprogress_0000000000000000001
@@ -540,7 +540,10 @@ vi slaves # 设置需要运行NodeManager的节点，可以不用设置，搭建
 
 # 分发到node02-node04
 scp mapred-site.xml yarn-site.xml node02:`pwd`
+```
+- 启动
 
+```bash
 # node01上启动。会在所有DN上启动NM，但是不能自动启动RM，需要手动启动；由于RM不会在node01上启动，会看执行此脚本后先在node01上启动RM，之后会自动退出(正常现象)
 start-yarn.sh
 # stop-yarn.sh

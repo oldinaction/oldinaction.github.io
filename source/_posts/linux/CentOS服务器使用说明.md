@@ -601,11 +601,15 @@ echo "zabbix test mail" | mail -s "zabbix" test@163.com
 ## ntpd是步进式的逐渐调整时间(慢慢调整到正确时间)，而ntpdate是断点更新(直接重写时间为正确时间)
 sudo yum install -y ntp ntpdate ntp-doc
 
-## 立即与国家授时中心同步。`systemctl stop ntpd` 同步时可关闭ntpd(防止被慢慢同步成错误时间)
+## 立即与国家授时中心同步
+# systemctl stop ntpd 同步时可关闭ntpd(防止被慢慢同步成错误时间)
 sudo ntpdate 0.cn.pool.ntp.org
 
 ## 开启ntpd服务之后自动同步
 cat > /etc/ntp.conf << 'EOF'
+# 可以保证ntpd在时间差较大时依然工作。如果本地时间和目标服务器差别太大，ntpd不会进行时间同步，且会自动退出
+tinker panic 0
+
 # restrict default ignore # 设置默认策略为允许任何主机进行时间同步
 restrict default kod nomodify notrap nopeer noquery
 restrict -6 default kod nomodify notrap nopeer noquery  # `restrict -6` 表示针对ipv6设置
@@ -650,6 +654,7 @@ NTPDATE_OPTIONS=""
 EOF
 
 systemctl enable ntpd --now # 设置开机重启并此时立即启动
+systemctl status ntpd
 ```
 - 配置文件说明
     - restrict控制权限，参数如下
@@ -676,6 +681,8 @@ ntpstat
     # delay    - 网络延迟
     # offset   - 时间补偿
     # jitter   - 系统时间与bios时间差
+
+# ntpq用来监视ntpd操作
 ntpq -p
 ```
 

@@ -1084,6 +1084,8 @@ public class SofaArkBootstrap {
 
 ### sofa-ark-container
 
+#### ArkContainer
+
 - **ArkContainer.java**
 
 ```java
@@ -1131,7 +1133,7 @@ public class ArkContainer {
                 // RegisterServiceStage 注册Ark包：只是将所有包下的服务都记录下来
                 // ExtensionLoaderStage 扩展，参考 sofa-ark-spi
                 // DeployPluginStage    启动所有的Ark插件
-                // DeployBizStage       启动所有的Ark Biz
+                // DeployBizStage       启动所有的Ark Biz(见下文)
                     // ArkTomcatWebServer.initialize 主程序和其他Biz程序启动
                 // FinishStartupStage   启动完成事件
             pipeline.process(pipelineContext);
@@ -1144,9 +1146,173 @@ public class ArkContainer {
 }
 ```
 
+#### 以DeployBizStage为例
 
+- DeployBizStage.java
 
+```java
+@Singleton
+public class DeployBizStage implements PipelineStage {
+    @Inject
+    private BizDeployService  bizDeployService;
 
+    @Override
+    public void process(PipelineContext pipelineContext) throws ArkRuntimeException {
+        String[] args = pipelineContext.getLaunchCommand().getLaunchArgs();
+        // 启动
+        bizDeployService.deploy(args);
+        eventAdminService.sendEvent(new AfterFinishDeployEvent());
+    }
+}
+```
+- BizDeployServiceImpl.java
+
+```java
+@Override
+public void deploy(String[] args) throws ArkRuntimeException {
+    ServiceReference<BizDeployer> serviceReference = registryService
+        .referenceService(BizDeployer.class);
+    // DefaultBizDeployer
+    bizDeployer = serviceReference.getService();
+
+    LOGGER.info(String.format("BizDeployer=\'%s\' is starting.", bizDeployer.getDesc()));
+
+    bizDeployer.init(args);
+    // 启动Biz
+    bizDeployer.deploy();
+}
+```
+- DefaultBizDeployer.java
+
+```java
+@Override
+public void deploy() {
+    for (Biz biz : bizManagerService.getBizInOrder()) {
+        try {
+            LOGGER.info(String.format("Begin to start biz: %s", biz.getBizName()));
+            // 执行启动
+            biz.start(arguments);
+            LOGGER.info(String.format("Finish to start biz: %s", biz.getBizName()));
+        } catch (Throwable e) {
+            LOGGER.error(String.format("Start biz: %s meet error", biz.getBizName()), e);
+            throw new ArkRuntimeException(e);
+        }
+    }
+}
+```
+- BizModel.java
+
+```java
+public class BizModel implements Biz {
+    @Override
+    public void start(String[] args) throws Throwable {
+        AssertUtils.isTrue(bizState == BizState.RESOLVED, "BizState must be RESOLVED");
+        if (mainClass == null) {
+            throw new ArkRuntimeException(String.format("biz: %s has no main method", getBizName()));
+        }
+        ClassLoader oldClassLoader = ClassLoaderUtils.pushContextClassLoader(this.classLoader);
+        EventAdminService eventAdminService = ArkServiceContainerHolder.getContainer().getService(
+            EventAdminService.class);
+        try {
+            eventAdminService.sendEvent(new BeforeBizStartupEvent(this));
+            resetProperties();
+            // 包装Biz的mian方法
+            MainMethodRunner mainMethodRunner = new MainMethodRunner(mainClass, args);
+            // 反射调用Biz的main方法，如SpringBootApplication.main
+            mainMethodRunner.run();
+            // this can trigger health checker handler
+            eventAdminService.sendEvent(new AfterBizStartupEvent(this));
+        } catch (Throwable e) {
+            bizState = BizState.BROKEN;
+            throw e;
+        } finally {
+            ClassLoaderUtils.popContextClassLoader(oldClassLoader);
+        }
+        BizManagerService bizManagerService = ArkServiceContainerHolder.getContainer().getService(
+            BizManagerService.class);
+        if (bizManagerService.getActiveBiz(bizName) == null) {
+            bizState = BizState.ACTIVATED;
+        } else {
+            bizState = BizState.DEACTIVATED;
+        }
+    }
+}
+```
+
+#### 启动Biz服务
+
+- ServletWebServerApplicationContext.java
+
+```java
+// org.springframework.boot.web.servlet.context
+public class ServletWebServerApplicationContext extends GenericWebApplicationContext implements ConfigurableWebServerApplicationContext {
+    protected void onRefresh() {
+        super.onRefresh();
+
+        try {
+            // 创建Web服务器
+            this.createWebServer();
+        } catch (Throwable var2) {
+            throw new ApplicationContextException("Unable to start web server", var2);
+        }
+    }
+
+    private void createWebServer() {
+        WebServer webServer = this.webServer;
+        ServletContext servletContext = this.getServletContext();
+        if (webServer == null && servletContext == null) {
+            ServletWebServerFactory factory = this.getWebServerFactory();
+            this.webServer = factory.getWebServer(new ServletContextInitializer[]{this.getSelfInitializer()});
+        } else if (servletContext != null) {
+            try {
+                this.getSelfInitializer().onStartup(servletContext);
+            } catch (ServletException var4) {
+                throw new ApplicationContextException("Cannot initialize servlet context", var4);
+            }
+        }
+
+        this.initPropertySources();
+    }
+}
+```
+- ArkTomcatServletWebServerFactory.java
+
+```java
+// sofa-ark-springboot-starter-1.1.5.jar
+public class ArkTomcatServletWebServerFactory extends TomcatServletWebServerFactory {
+
+    @Override
+    public WebServer getWebServer(ServletContextInitializer... initializers) {
+        if (embeddedServerService == null) {
+            return super.getWebServer(initializers);
+        } else if (embeddedServerService.getEmbedServer() == null) {
+            embeddedServerService.setEmbedServer(initEmbedTomcat());
+        }
+
+        // tomcat-embed-core-9.0.37.jar > org.apache.catalina.startup.Tomcat
+        Tomcat embedTomcat = embeddedServerService.getEmbedServer();
+        prepareContext(embedTomcat.getHost(), initializers);
+        return getWebServer(embedTomcat);
+    }
+
+    protected WebServer getWebServer(Tomcat tomcat) {
+        return new ArkTomcatWebServer(tomcat, getPort() >= 0, tomcat);
+    }
+}
+```
+- ArkTomcatWebServer
+
+```java
+public class ArkTomcatWebServer implements WebServer {
+    // 初始化
+    private void initialize() throws WebServerException {
+        logger.info("Tomcat initialized with port(s): " + getPortsDescription(false));
+        synchronized (this.monitor) {
+            // ...
+        }
+    }
+}
+```
 
 ## sofa-ark-maven-plugin插件
 

@@ -1377,6 +1377,8 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     - `last` 查看最近登录用户
     - `w` 查看计算机运行时间，当前登录用户信息
     - `wall <msg>` 通知所有人登录人一些信息 
+- 程序
+    - `sudo -H -u www bash -c 'nohup /home/web/start /home/web/conf.json &'` 调用www用户运行指定命令(其他用户或系统自动执行此命令)
 - 技巧
     - `clear` 清屏
     - `yes y` 一直输出字符串y

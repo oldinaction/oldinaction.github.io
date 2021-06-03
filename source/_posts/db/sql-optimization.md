@@ -743,6 +743,19 @@ select count(1)
          group by t.customer_name_cn
         having count(cc.id) = 0) -- 此处还无法使用上面定义的 counts
 ```
+- 关联条件位置
+
+```sql
+-- 出现一个问题：cid = 2可以正常查询，cid = 1无法查询出，报错 ORA-03113
+select a.*
+from t_a a
+left join t_b b on b.pid = a.id
+where b.cid = 1
+-- 可正常查询：增加关联条件并改成join，右边 t_b 这张表会变小，从而关联数据变少（上面相当于全部关联，然后再过滤）
+select a.*
+from t_a a
+join t_b b on b.pid = a.id and b.cid = 1
+```
 
 ### 批量更新优化
 

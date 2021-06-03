@@ -236,8 +236,15 @@ telnet localhost 1234
 help # 查看帮助
 biz -a # 查看所有安装的biz包
 ```
+- 多Biz启动
+    - 开发环境
+        - 在启动类所有模块根目录增加`conf/ark/bootstrap.properties`
+        - 并设置master biz: `com.alipay.sofa.ark.master.biz=Startup In IDE`
+        - 然后将其他biz-jar放到某个文件夹下，并将此文件夹添加到此模块的依赖包中(ark会扫码classpath下所有jar看是否为plugin或biz)
 
+## 错误
 
-- 错误： https://github.com/sofastack/sofa-boot/issues/327
-- 相关文章
-    - https://zhuanlan.zhihu.com/p/114647271
+- IDE启动报错：`InstanceAlreadyExistsException: org.springframework.boot:type=Admin,name=SpringAllication`
+    - 参考：https://github.com/sofastack/sofa-boot/issues/327
+    - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖，如增加`spring.application.json={"spring.application.admin.enabled": false}`
+

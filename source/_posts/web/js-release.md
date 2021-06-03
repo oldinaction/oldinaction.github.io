@@ -929,6 +929,10 @@ else window.onload = createIframe;
 ### clientHeight、offsetHeight、scrollHeight区别
 
 - 参考：https://blog.csdn.net/shibazijiang/article/details/103894498
+    - scrollHeight 元素内容的高度
+    - clientHeight 元素像素高度(如div高度，即可视高度)
+    - scrollTop 元素顶部到内容顶部
+    - 判断滚动条是否见底：scrollHeight === clientHeight + scrollTop
 
 
 ### 常见问题

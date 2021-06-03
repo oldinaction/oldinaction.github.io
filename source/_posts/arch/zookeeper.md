@@ -49,20 +49,21 @@ date # 检查所有机器的时间是否相差不大(30秒内)，并查看是否
 wget https://archive.apache.org/dist/zookeeper/zookeeper-3.6.1/apache-zookeeper-3.6.1-bin.tar.gz
 mkdir /opt/soft
 tar -zxvf apache-zookeeper-3.6.1-bin.tar.gz -C /opt/soft
-cd /opt/soft/apache-zookeeper-3.6.1-bin
+mv apache-zookeeper-3.6.1-bin zookeeper-3.6.1
+cd /opt/soft/zookeeper-3.6.1
 cp conf/zoo_sample.cfg conf/zoo.cfg
 # 参考下文
 vi conf/zoo.cfg
 # 复制node1下的zookeeper目录到其他两台机器
-scp -r /opt/soft/apache-zookeeper-3.6.1-bin root@node2:/opt/soft/apache-zookeeper-3.6.1-bin/
-scp -r /opt/soft/apache-zookeeper-3.6.1-bin root@node3:/opt/soft/apache-zookeeper-3.6.1-bin/
+scp -r /opt/soft/zookeeper-3.6.1 root@node2:/opt/soft/zookeeper-3.6.1/
+scp -r /opt/soft/zookeeper-3.6.1 root@node3:/opt/soft/zookeeper-3.6.1/
 
 # 创建数据目录
 mkdir -p /var/zookeeper
 echo 1 > /var/zookeeper/myid # 创建dataDir目录，并再此目录创建`myid`文件，然后在每台机器的`myid`文件中写入对应的服务号(服务名server.X中的X，即1/2/3)
 
 # 加入环境变量
-#export ZOOKEEPER_HOME=/opt/soft/apache-zookeeper-3.6.1-bin
+#export ZOOKEEPER_HOME=/opt/soft/zookeeper-3.6.1
 #export PATH=$PATH:$ZOOKEEPER_HOME/bin
 vi /etc/profile
 source /etc/profile
@@ -91,6 +92,7 @@ zkServer.sh start # zkServer.sh start-foreground 此方式日志直接打印在�
 tail -100 logs/zookeeper-root-server-node1.out # [LeaderConnector-node3/192.168.6.133:2888:Learner$LeaderConnector@330] - Successfully connected to leader, using address: node3/192.168.6.133:2888
 zkServer.sh status # 查看zookpeer状态。显示`Mode: leader`或`Mode: follower`则成功
 zkServer.sh stop # 停止服务
+# 可在rc.local中增加自动启动`zkServer.sh start`
 ```
 - 客户端使用
 

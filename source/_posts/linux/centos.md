@@ -170,7 +170,7 @@ sudo iw wlp5s0 scan | grep SSID
             - `systemctl set-default graphical.target`  将默认模式修改为图形界面模式
             - `systemctl set-default multi-user.target` 将默认模式修改为命令行模式
         - 对无图像界面的服务器安装图像界面相关软件 `yum -y groupinstall "GNOME Desktop" "Graphical Administration Tools"`
-    - *execute `/etc/rc.d/rc.local`*：执行`rc.local`脚本。可基于此文件配置(或者`/etc/rc.local`)，直接在里面添加某些启动命令
+    - *execute `/etc/rc.d/rc.local`*：执行`rc.local`脚本。可基于此文件配置(或者`/etc/rc.local`)，直接在里面添加某些启动命令。centos7以不推荐使用
     - *execute /bin/login*
     - *shell started...*
 - centos7后续启动流程
@@ -179,7 +179,25 @@ sudo iw wlp5s0 scan | grep SSID
     - systemd执行默认target配置，配置文件/etc/systemd/system/default.target
     - systemd执行sysinit.target初始化系统及basic.target准备操作系统
     - systemd启动multi-user.target下的本机与服务器服务
-    - systemd执行multi-user.target下的/etc/rc.d/rc.local
+    - systemd执行multi-user.target下的`/etc/rc.d/rc.local`。**centos7以不推荐使用，如需使用必须执行`chmod +x /etc/rc.d/rc.local`**
+        - 此时`$PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin`，profile中尚未生效，命令路径一般需绝对路径
+
+        ```bash
+        # 添加此文件是为了兼容性
+        THIS FILE IS ADDED FOR COMPATIBILITY PURPOSES
+        #创建自己的systemd服务或udev规则是非常明智的
+        It is highly advisable to create own systemd services or udev rules
+        #在引导过程中运行脚本，而不是使用这个文件。
+        to run scripts during boot instead of using this file.
+        #与以前的版本相比，由于在引导过程中并行执行
+        In contrast to previous versions due to parallel execution during boot
+        #此脚本将不会在所有其他服务之后运行。
+        this script will NOT be run after all other services.
+        #请注意，您必须运行'chmod +x /etc/rc.d/rc.local'
+        Please note that you must run 'chmod +x /etc/rc.d/rc.local' to ensure
+        #该脚本将在引导期间执行。*
+        that this script will be executed during boot.*
+        ```
     - Systemd执行multi-user.target下的getty.target及登录服务
     - systemd执行graphical需要的服务
 
