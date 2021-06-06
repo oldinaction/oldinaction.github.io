@@ -2,9 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/04/04/extend/vpn/</loc>
+    
+    <lastmod>2021-06-06T10:34:11.443Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-06-05T06:12:40.373Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
+    
+    <lastmod>2021-06-04T01:54:57.647Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
     
-    <lastmod>2021-06-03T15:30:43.470Z</lastmod>
+    <lastmod>2021-06-03T15:36:11.043Z</lastmod>
     
   </url>
   
@@ -75,13 +96,6 @@
     <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
     
     <lastmod>2021-05-27T07:41:09.192Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-05-27T02:23:23.654Z</lastmod>
     
   </url>
   
@@ -166,13 +180,6 @@
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
     <lastmod>2021-04-27T06:56:31.050Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/04/04/extend/vpn/</loc>
-    
-    <lastmod>2021-04-25T03:55:38.514Z</lastmod>
     
   </url>
   
@@ -502,13 +509,6 @@
     <loc>http://blog.aezo.cn/2017/10/09/extend/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/</loc>
     
     <lastmod>2021-02-06T06:22:39.690Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
-    
-    <lastmod>2021-01-31T07:21:09.659Z</lastmod>
     
   </url>
   
