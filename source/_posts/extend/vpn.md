@@ -274,7 +274,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
     - BifrostV (Android)
     - [V2RayNG (Android)](https://github.com/2dust/v2rayNG/releases)
 - ios的app store境内无法下载问题
-    - 解决：下载对应ipa文件，然后通过`爱思助手`通过电脑导入安装到手机，免费，相对安全。如：[Shadowrocket v2.1.12](https://files.flyzy2005.cn/%E5%AE%A2%E6%88%B7%E7%AB%AF/%E4%B8%8D%E5%8F%AF%E6%8F%8F%E8%BF%B0%E7%9A%84%E5%AE%A2%E6%88%B7%E7%AB%AF/IOS_Shadowrocket_2.1.12%28%E6%97%A0%E9%9C%80%E9%AA%8C%E8%AF%81appleId%29.ipa)
+    - 解决：下载对应ipa文件，然后通过`爱思助手`通过电脑`导入安装`ipa类型程序到手机，免费，相对安全。如：[Shadowrocket v2.1.12](https://files.flyzy2005.cn/%E5%AE%A2%E6%88%B7%E7%AB%AF/%E4%B8%8D%E5%8F%AF%E6%8F%8F%E8%BF%B0%E7%9A%84%E5%AE%A2%E6%88%B7%E7%AB%AF/IOS_Shadowrocket_2.1.12%28%E6%97%A0%E9%9C%80%E9%AA%8C%E8%AF%81appleId%29.ipa)
     - [ios神秘商店，收取小额费用](https://aneeo.com/ios)
 
 

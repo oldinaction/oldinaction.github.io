@@ -47,6 +47,7 @@ tags: [微服务, SpringCloud]
 - Eureka
     - Netflix Eureka 经过生产级大流量验证的，携程 Apollo 配置中心也是使用 Eureka 做软负载。Eureka 支持跨数据中心高可用，但它是 AP 最终一致系统，不是强一致性系统
     - 其它产品如 Zookeeper/Etcd/Consul 等，都是比较通用的产品，还需要进一步封装定制才可生产级使用
+- nacos 阿里开源
 
 ### 服务网关
 
@@ -105,20 +106,25 @@ tags: [微服务, SpringCloud]
 - [调用链选型之Zipkin，Pinpoint，SkyWalking，CAT对比](https://www.jianshu.com/p/0fbbf99a236e)、[各大厂分布式链路跟踪系统架构对比](https://www.cnblogs.com/zhangs1986/p/8879744.html)
 - [CAT](https://github.com/dianping/cat)，具体参考[cat.md](/_posts/devops/cat.md)
     - CAT为大众点评开源。在点评，携程，陆金所，拍拍贷等公司有成功落地案例，因为是国产调用链监控产品，界面展示和功能等更契合国内文化，更易于在国内公司落地
-    - 优点：报表丰富、社区活跃
+    - 优点
+        - 报表丰富、社区活跃
+        - 监控粒度为代码级(高于方法级)
     - 缺点
         - 代码侵入，需要开发进行埋点（可通过拦截器快速监控暴露的URL端点）
         - cat系统的定位：logview是cat原始的log采集方式，cat的logview使用的技术是threadlocal，将一个thread里面的打点聚合上报，有一点弱化版本的链路功能，但是cat并不是一个标准的全链路系统，全链路系统参考dapper的论文，业内比较知名的鹰眼，zipkin等，其实经常拿cat和这类系统进行比较其实是不合适的。cat的logview在异步线程等等一些场景下，其实不合适，cat本身模型并不适合这个。在美团点评内部，有mtrace专门做全链路分析
     - 使用：[深入详解美团点评CAT跨语言服务监控](https://blog.csdn.net/caohao0591/article/details/80693289)
-- Google Dapper、阿里-鹰眼均未开源
 - [Zipkin](https://github.com/openzipkin/zipkin)
     - Spring Cloud 支持基于 Zipkin 的调用链监控，Zipkin 最早是由 Twitter 在消化 Google Dapper 论文的基础上研发，在 Twitter 内部有较成功应用，但是在开源出来的时候把不少重要的统计报表功能给阉割了（因为依赖于一些比较重的大数据分析平台），只是开源了一个半成品，能简单查询和呈现可视化调用链，但是细粒度的调用性能数据报表没有开源
     - Zipkin UI非常简洁，可以通过如时间、服务名以及端点名称这类查询条件过滤请求
     - 优点：代码侵入较少、社区活跃(但中文文档较少)
-    - 缺点：报表单一
-- OpenTracing 基于Google Dapper研发
-- Skywalking 国产，处于Apache孵化
+    - 缺点：报表单一，监控粒度为接口级
+- [Skywalking](http://skywalking.apache.org/) 国产，Apache顶级项目
+    - 基于字节码注入的调用链分析，以及应用监控分析工具。特点是支持多种插件，UI功能较强，接入端无代码侵入
+    - 监控粒度为方法级
+    - 存储方式ES，H2
 - Spring Cloud Sleuth 是针对每个请求的计时统计。可与Zipkin结合使用，即发送追踪统计到Zipkin
+- Google Dapper、阿里-鹰眼均未开源
+- OpenTracing 基于Google Dapper研发
 
 ### Metrics监控
 

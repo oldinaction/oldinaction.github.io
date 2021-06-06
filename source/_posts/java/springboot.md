@@ -87,8 +87,8 @@ tags: spring
     - 通过random.*配置的随机属性
     - 位于当前应用jar包之外，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或YAML格式定义的配置文件，如application-dev.properties
     - 位于当前应用jar包之内，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或是YAML定义的配置文件
-    - 位于当前应用jar包之外的application.properties和YAML配置内容
-    - 位于当前应用jar包之内的 application.properties和YAML配置内容
+    - 位于当前应用jar包之外的 application.properties 和YAML配置内容
+    - 位于当前应用jar包之内的 application.properties 和YAML配置内容
     - 在@Configuration注解修改的类中，通过@PropertySource注解定义的属性
     - 应用默认属性，使用SpringApplication.setDefaultProperties定义的内容
 - 使用配置文件(优先级从高到低)

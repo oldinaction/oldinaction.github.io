@@ -136,7 +136,7 @@ hive
     - 默认情况下，所有的表存在于default数据库，在hdfs上的展示形式是将此数据库的表保存在hive的默认路径下
     - 如果创建了数据库，那么会在hive的默认路径下生成一个database_name.db的文件夹，此数据库的所有表会保存在database_name.db的目录下
 - 内部表跟外部表的区别
-	- hive内部表创建的时候数据存储在hive的默认存储目录中，外部表在创建的时候需要制定额外的目录
+	- hive内部表创建的时候数据存储在hive的默认存储目录中，外部表在创建的时候需要制定额外的目录(不会在hive默认数据目录创建数据库文件夹)
 	- hive内部表删除的时候，会将元数据和数据都删除，而外部表只会删除元数据，不会删除数据
 	- 应用场景
 		- 内部表: 需要先创建表，然后向表中添加数据，适合做中间表的存储
@@ -212,22 +212,22 @@ drop database test;
 - 创建表. 参考：https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-CreateTable
 
 ```sql
--- 外部表(需要添加external和location的关键字)
+-- 外部表(需要添加external和location的关键字). 不会在hive默认数据目录创建文件夹
 -- 分区表(partitioned)
 -- 自定义分隔符
-create external table psn2
+create external table psn_part
 (
     id int,
     name string,
     likes array<string>,
     address map<string,string>
 )
-partitioned by(gender string, age int) -- 定义多个分区，注意分区字段和普通字段不能重复。参数目录 /data/hive/psn_part/age=10
+partitioned by(gender string, age int) -- 定义多个分区，注意分区字段和普通字段不能重复。如产生目录 /data/hive/psn_part/gender=man/age=10
 row format delimited -- 自定义分隔符。默认分隔符`^A(\001)、^B(\002)、^C(\003)`，其中 ^A 等为特殊分割符(cat文件时不可见)，需使用 `Control + V + A` 进行输入
 fields terminated by ',' -- 字段分割符
 collection items terminated by '-' -- 集合分隔符
 map keys terminated by ':' -- map的key:value分隔符
-location '/data'; -- 数据保存在/data目录，表
+location '/data/hive/psn_part'; -- 数据保存在/data目录，表
 ;
 ```
 - 修改表结构
@@ -254,7 +254,7 @@ hdfs dfs -put /home/test/data/psn_part_data_10 /data/hive/psn_part/age=10
 -- 3,test2,book-music2,addr1:guangzhou
 hdfs dfs -put /home/test/data/psn_part_data_20 /data/hive/psn_part/age=20
 
---创建外部分区表
+-- 在hive中创建外部分区表
 create external table psn_part
 (
     id int,
@@ -274,6 +274,9 @@ select * from psn_part;
 --修复分区
 msck repair table psn_part;
 --查询结果（有数据）
+-- 1	smalle	["games","music"]	{"addr1":"shanghai","add2":"beijing"}	10
+-- 2	test1	["book","music1"]	{"addr1":"guangzhou","add2":"beijing"}	20
+-- 3	test2	["book","music2"]	{"addr1":"guangzhou"}	20
 select * from psn_part;
 ```
 

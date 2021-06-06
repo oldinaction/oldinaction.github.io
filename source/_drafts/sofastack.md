@@ -244,7 +244,7 @@ biz -a # 查看所有安装的biz包
 
 ## 错误
 
-- IDE启动报错：`InstanceAlreadyExistsException: org.springframework.boot:type=Admin,name=SpringAllication`
+- IDE启动报错：`javax.management.InstanceAlreadyExistsException: org.springframework.boot:type=Admin,name=SpringApplication`
     - 参考：https://github.com/sofastack/sofa-boot/issues/327
     - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖，如增加`spring.application.json={"spring.application.admin.enabled": false}`
 
