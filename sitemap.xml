@@ -2,6 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2021-06-09T12:55:11.565Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
+    
+    <lastmod>2021-06-09T11:41:15.154Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
+    
+    <lastmod>2021-06-09T11:29:04.609Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2021-06-09T09:47:56.731Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/10/10/web/mobile/weixin/</loc>
+    
+    <lastmod>2021-06-09T09:20:28.615Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
+    
+    <lastmod>2021-06-08T10:55:36.649Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
+    
+    <lastmod>2021-06-08T10:36:01.556Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
+    
+    <lastmod>2021-06-07T09:00:42.160Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/04/04/extend/vpn/</loc>
     
     <lastmod>2021-06-06T10:34:11.443Z</lastmod>
@@ -65,13 +121,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
-    
-    <lastmod>2021-06-03T07:46:33.610Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
     
     <lastmod>2021-06-03T04:54:18.010Z</lastmod>
@@ -82,13 +131,6 @@
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     
     <lastmod>2021-06-01T05:47:23.648Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-base/</loc>
-    
-    <lastmod>2021-05-31T06:23:31.053Z</lastmod>
     
   </url>
   
@@ -124,13 +166,6 @@
     <loc>http://blog.aezo.cn/2017/10/22/java/springsecurity/</loc>
     
     <lastmod>2021-05-21T10:04:22.330Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/09/30/db/sql-ext/</loc>
-    
-    <lastmod>2021-05-21T05:44:58.676Z</lastmod>
     
   </url>
   
@@ -173,13 +208,6 @@
     <loc>http://blog.aezo.cn/2017/12/25/arch/springboot-vue/</loc>
     
     <lastmod>2021-04-28T13:02:14.702Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2021-04-27T06:56:31.050Z</lastmod>
     
   </url>
   
@@ -268,30 +296,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
-    
-    <lastmod>2021-04-07T10:42:08.744Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/01/20/java/jvm/</loc>
     
     <lastmod>2021-04-07T08:42:20.512Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/mysql-dba/</loc>
-    
-    <lastmod>2021-04-07T06:55:11.238Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    
-    <lastmod>2021-04-06T06:52:36.786Z</lastmod>
     
   </url>
   
@@ -306,13 +313,6 @@
     <loc>http://blog.aezo.cn/2020/10/21/lang/mark-lang/</loc>
     
     <lastmod>2021-04-01T05:03:26.554Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/10/10/web/mobile/weixin/</loc>
-    
-    <lastmod>2021-03-27T06:43:02.917Z</lastmod>
     
   </url>
   
