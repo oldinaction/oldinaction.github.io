@@ -687,6 +687,11 @@ test = new Proxy(test, {
 console.log(test.name); // smalle
 ```
 
+### Storage/Cookies
+
+- `localStorage` 没有时间限制的持久的数据存储，只要你不主动删除可以想存多久存多久。
+- `sessionStorage` 针对一个 session 的数据存储，这些数据只有在同一个会话中的页面才能访问，当会话结束后数据也随之销毁（例如你在网页上存储一些数据后关闭网页再重新打开，存储的数据就没有了）
+
 ### 执行环境与作用域
 
 #### 执行环境

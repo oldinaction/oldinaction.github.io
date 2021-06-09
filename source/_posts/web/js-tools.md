@@ -98,6 +98,7 @@ npm install --save @babel/polyfill
 
 ### npm-run-all
 
+- `npm install npm-run-all --save-dev` 安装
 - `npm-run-all` 提供了多种运行多个命令的方式，常用的有以下几个
     - `--serial`: 多个命令按排列顺序执行，例如：`npm-run-all --serial clean build:**` 先执行当前package.json中 npm run clean 命令, 再执行当前package.json中所有的`build:`开头的scripts
     - `--parallel`: 并行运行多个命令，例如：npm-run-all --parallel lint build
@@ -394,6 +395,10 @@ handleChange (value) {
 }
 ```
 
+### ag-grid超强表格
+
+- [官网案例](https://www.ag-grid.com/example.php)、[整合vue案例](https://github.com/ag-grid/ag-grid-vue-example)
+
 ### vxe-table
 
 - 一款基于Vue的表格插件，支持大量数据渲染，编辑表格等功能
@@ -619,10 +624,16 @@ vexScrollPage(table, el, allData, searchForm, fetchData) {
     class="sq-vxe__toolmin sq-vxe__modal"
     :loading="notShipLoading"
     :height="scrollerHeight"
-    :columns="getColumns('notShip')"
+    :columns="notShipCols"
     :toolbar-config="{custom: true, export: true, print: true}"
     :custom-config="{storage: {visible: true}}" :exportConfig="{}" :printConfig="{}">
 </vxe-grid>
+<script>
+create() {
+    // 不要直接在DOM中调用 getColumns, 否则编辑点击新增/编辑等按钮是，此方法会重复调用从而导致排序丢失
+    this.notShipCols = this.getColumns('notShip')
+}
+</script>
 
 <!-- 解决和iview Tabs结合使用问题：modal不跟随当前Tab展示 -->
 <style lang="less">

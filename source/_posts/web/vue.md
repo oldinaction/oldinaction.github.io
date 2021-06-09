@@ -2154,6 +2154,18 @@ module.exports = {
     lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验。如果校验不通过则开发时页面无法显示
     // 打包时不生成.map文件
     productionSourceMap: false, // 项目打包后，代码都是经过压缩加密的，如果运行时报错，输出的错误信息无法准确得知是哪里的代码报错。有了map就可以像未加密的代码一样，准确的输出是哪一行哪一列有错。但是在生产环境中我们就不需要了
+    configureWebpack: config => {
+        let plugins = []
+        // if (process.env.NODE_ENV === 'production') {
+        //   // 打生产包，进行依赖分析
+        //   const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+        //   plugins.push(new BundleAnalyzerPlugin())
+        // }
+        return {
+            devtool: 'source-map', // 生成source-map, 否则debugger容易定位不准确
+            plugins: plugins
+        }
+    },
     chainWebpack: config => {
         config.resolve.alias
             .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js

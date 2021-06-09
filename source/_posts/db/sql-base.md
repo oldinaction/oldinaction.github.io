@@ -993,11 +993,128 @@ set session transaction isolation level read uncommitted;
     - 开始菜单中找到SQLServer Configuration Manager(配置管理器) - SQL Server 网络配置 - 选择实例 - TCP/IP右键启用 - TCP/IP双击 - IP地址 - 找到需要开启的IP地址，设置TCP端口为1433，并设置已启动为是 - 修改最下面的IPALL中IP端口为1433
     - 继续配置管理器 - SQL Server服务 - 选择实例 - 右键重启即可
 
+### sqlcmd
+
+- sqlcmd命令行执行（是sqlserver自带的命令行工具）
+
+```bash
+# CMD命令行导入sql文件. windows上文件路径必须用右斜杠
+sqlcmd -S localhost -U sa -P sa -d fedex -i C:\Users\smalle\Desktop\update20190528.sql
+
+# 连接数据库。出现 1> 表示连接成功
+# 等同于 `osql -S 192.168.1.100 -U sa -P sa`
+# `osql ?/` 查看命令帮助
+sqlcmd -S localhost -U sa -P sa
+
+# 查看数据. 在第二行输入 go 回车才会执行
+select name from master.dbo.sysdatabases
+go
+
+# 进入数据库
+use master
+go
+
+# 查看数据表
+select name from sysobjects where xtype='U'
+go
+
+# 查看数据表中的列
+select c.name,c.length from syscolumns c inner join sysobjects t on c.id = t.id and t.name='spt_monitor'
+go
+
+# 查看数据
+select * from t_test
+go
+```
+
+### DBCC
+
+- DBCC是SQL Server提供的一组控制台命令
+- 常用. 参考：https://www.cnblogs.com/lilycnblogs/archive/2011/03/31/2001372.html
+
+```bash
+## DBCC 帮助类命令
+DBCC HELP('?') # 查询所有的DBCC命令
+DBCC HELP('命令') # 查询指定的DBCC命令的语法说明
+
+## DBCC跟踪标记. 跟踪标志参考：https://www.cnblogs.com/Sungeek/p/11843178.html
+# 打开 3604 跟踪标志，会记录到日志，通过 `EXEC master..xp_readerrorlog` 可查看日志
+DBCC TRACEON (3604)
+# 全局(-1)打开 1204(返回参与死锁的锁的资源和类型，以及受影响的当前命令)、1222(以不符合任何 XSD 架构的 XML 格式，返回参与死锁的锁的资源和类型，以及受影响的当前命令) 类型跟踪标志。开启以后，会打印死锁日志到errorlog
+DBCC TRACEON(1204,1222,-1)
+# 查看状态
+DBCC TRACESTATUS(1204,1222,-1)
+# 全局关闭
+DBCC TRACEOFF(1204,1222,-1)
+```
+
 ### 其他
 
 - 表名和字段名均不区分大小写
-- 命令行导入sql文件
-    - `sqlcmd -S localhost -U sa -P root -d fedex -i C:\Users\smalle\Desktop\update20190528.sql`(windows上文件路径必须用右斜杠)
+
+### 运维
+
+#### 死锁
+
+```sql
+-- 查询死锁
+select request_session_id spid, OBJECT_NAME(resource_associated_entity_id) tableName    
+from sys.dm_tran_locks
+where resource_type='OBJECT';
+
+-- 杀死死锁
+kill spid
+```
+- 日志分析
+
+```bash
+# 开启死锁日志记录
+DBCC TRACEON(1204,1222,-1)
+# 查看日志
+EXEC master..xp_readerrorlog
+# 关闭日志记录
+DBCC TRACEOFF(1204,1222,-1)
+```
+- 日志举例
+
+```bash
+# 死锁列表
+2021-06-08 18:12:42.270 spid19s      deadlock-list
+2021-06-08 18:12:42.270 spid19s       deadlock victim=process3b13cbc28
+# 进程列表
+2021-06-08 18:12:42.270 spid19s        process-list
+# process id=process3b13cbc28 进程ID; lockMode=U 获取更新锁;
+2021-06-08 18:12:42.270 spid19s         process id=process3b13cbc28 taskpriority=0 logused=0 waitresource=PAGE: 7:1:2398  waittime=6183 ownerId=497876 transactionname=DELETE lasttranstarted=2021-06-08T18:12:36.060 XDES=0x474bdbbf0 lockMode=U schedulerid=1 kpid=7744 status=suspended spid=55 sb
+# executionStack 执行的堆信息
+2021-06-08 18:12:42.270 spid19s          executionStack
+2021-06-08 18:12:42.270 spid19s           frame procname=adhoc line=1 stmtstart=18 stmtend=134 sqlhandle=0x02000000c0fabf0634d24304a83e22f2b063fc8036237a470000000000000000000000000000000000000000
+2021-06-08 18:12:42.270 spid19s      unknown     
+2021-06-08 18:12:42.270 spid19s           frame procname=unknown line=1 sqlhandle=0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+2021-06-08 18:12:42.270 spid19s      unknown     
+2021-06-08 18:12:42.270 spid19s          inputbuf
+2021-06-08 18:12:42.270 spid19s      (@P0 int)delete from tc_declaration_body
+        where decl_id = @P0            
+2021-06-08 18:12:42.270 spid19s         process id=process3b85d64e8 taskpriority=0 logused=632 waitresource=PAGE: 7:1:2398  waittime=3805 ownerId=497821 transactionname=DELETE lasttranstarted=2021-06-08T18:12:35.003 XDES=0x474ae9bf0 lockMode=U schedulerid=4 kpid=4620 status=suspended spid=56 
+2021-06-08 18:12:42.270 spid19s          executionStack
+2021-06-08 18:12:42.270 spid19s           frame procname=adhoc line=1 stmtstart=18 stmtend=134 sqlhandle=0x02000000c0fabf0634d24304a83e22f2b063fc8036237a470000000000000000000000000000000000000000
+2021-06-08 18:12:42.270 spid19s      unknown     
+2021-06-08 18:12:42.270 spid19s           frame procname=unknown line=1 sqlhandle=0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+2021-06-08 18:12:42.270 spid19s      unknown     
+2021-06-08 18:12:42.270 spid19s          inputbuf
+2021-06-08 18:12:42.270 spid19s      (@P0 int)delete from tc_declaration_body
+        where decl_id = @P0            
+2021-06-08 18:12:42.270 spid19s         process id=process3b13cb468 taskpriority=0 logused=10000 waittime=3089 schedulerid=1 kpid=4200 status=suspended spid=56 sbid=0 ecid=0 priority=0 trancount=2 lastbatchstarted=2021-06-08T18:12:35.003 lastbatchcompleted=2021-06-08T18:12:34.990 lastattentio
+2021-06-08 18:12:42.270 spid19s          executionStack
+2021-06-08 18:12:42.270 spid19s           frame procname=adhoc line=1 stmtstart=18 stmtend=134 sqlhandle=0x02000000c0fabf0634d24304a83e22f2b063fc8036237a470000000000000000000000000000000000000000
+2021-06-08 18:12:42.270 spid19s      unknown     
+2021-06-08 18:12:42.270 spid19s           frame procname=unknown line=1 sqlhandle=0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+2021-06-08 18:12:42.270 spid19s      unknown     
+2021-06-08 18:12:42.270 spid19s          inputbuf
+2021-06-08 18:12:42.270 spid19s      (@P0 int)delete from tc_declaration_body
+        where decl_id = @P0 
+```
+
+
 
 
 ---

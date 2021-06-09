@@ -318,6 +318,13 @@ select count(*) from `t_test_vote`;
     # 或者修改参数文件/etc/my.cnf 中 innodb_lock_wait_timeout = 100
     ```
     - 情景：information_schema.innodb_trx 中有一条事物线程一直存在，且锁定了两行记录（innodb_locks 和 innodb_lock_waits 中并未锁/锁等待记录）；最后发现为卡死的事物中进行了HTTP请求，正好HTTP请求一直卡死不返回，导致其他地方修改这个表记录时报错
+- 死锁
+    - mysql5.6的jdbc连接参数useServerPrepStmts=true是个官方bug，所以建议不要用这个，可能会导致select死锁
+    - 更新/删除死锁，可能两个session操作到了同一行数据
+        - mysql默认是行级锁，如果操作到不同行数据则不会产生
+- 降低死锁
+    - 选择合理的事务大小，小事务发生锁冲突的概率一般也更小
+    - 在不同线程中去访问一组DB的数据表时，尽量约定以相同的顺序进行访问；对于同一个单表而言，尽可能以固定的顺序存取表中的行
 
 
 ---

@@ -566,7 +566,7 @@ select *
         -- *****Keep测试一(基于主表group by)*****：如查分组中最新的数据(非分组字段通过keep获取，如果同最近的ID再次管理表则效率低一些)
         select
         v.customer_id, v.visit_type
-        ,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id -- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2)，并取第一排序集(1-1)中v.id最大的
+        ,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id -- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2. 因为存在两个拜访时间2018/9/21一样，因此排序值都为1，当遇到不同排序值+1)，并取第一排序集(1-1的两条记录)中v.id最大的
         ,max(v.visit_tm) keep(dense_rank first order by v.visit_tm desc) as visit_tm
         ,max(v.comments) keep(dense_rank first order by v.visit_tm desc) as comments
         ,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id -- 排序值为 1-2-3
