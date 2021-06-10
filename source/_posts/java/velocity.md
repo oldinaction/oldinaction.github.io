@@ -27,6 +27,8 @@ tags: [template]
 
 ## 控制语句
 
+### 举例
+
 ```html
 ## 这是注释
 #*
@@ -67,12 +69,18 @@ tags: [template]
 #end
 #end
 ```
-- 循环
+
+### 循环
 
 ```html
 ## 循环map
 #foreach($item in $!softTypeMap.entrySet())
 <option value="$!{item.key}">$!{item.value}</option>
+#end
+
+## 判断循环最后一个。如果不是最后一个元素，则添加逗号
+#foreach($column in $columns)
+    ${column.columnName}#if($foreach.hasNext),#end
 #end
 ```
 

@@ -21,21 +21,26 @@ tags: [oracle, dba]
 
 ## 启动/停止
 
-- 重启
+- 监听程序(重启数据库可不用重启监听程序)
 
 ```bash
 ## 启动监听程序(shell命令行运行即可)
 lsnrctl start
 # 查看服务状态(见下图"lsnrctl-status显示图片")
 lsnrctl status
+```
 
+- **重启数据库**
+
+```bash
 ## 重启服务
 # su - oracle && source ~/.bash_profile
 # 以nolog、sysdba身份登录，进入sql命令行
 sqlplus / as sysdba # sqlplus /nolog
 # 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，可无需分号)
-shutdown immediate; # `shutdown;` 则是有用户连接就不关闭，直到所有用户断开连接
-# 正常启动（sql下运行；1启动实例，2打开控制文件，3打开数据文件）
+shutdown immediate;
+# `shutdown;` 则是有用户连接就不关闭，直到所有用户断开连接
+# 正常启动（sql下运行；1启动实例，2打开控制文件，3打开数据文件）。提示`Database opened.`则表示数据库启动成功
 startup
 # 退出sqlplus
 exit;
@@ -475,10 +480,11 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
         case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
         a.file_name "全路径的数据文件名称",
         autoextensible "表空间自动扩展",
-        increment_by "自增块(默认1blocks=8k)"
-    from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes
+        increment_by "自增块(默认1blocks=8k)",
+        a.online_status "表空间文件状态"
+    from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes, online_status
             from dba_data_files
-        group by tablespace_name, file_name, autoextensible, increment_by) a
+        group by tablespace_name, file_name, autoextensible, increment_by, online_status) a
     left join
         (select tablespace_name, sum(bytes) bytes, max(bytes) largest
             from dba_free_space
@@ -491,8 +497,9 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
     group by tablespace_name, file_name, autoextensible, increment_by;
 
     -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
-    -- 返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过`select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';`查看属于哪张表
     select segment_name, sum(bytes)/1024/1024/1024 as "GB" from user_extents group by segment_name order by sum(bytes) desc;
+    -- 上面结果返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过下面语句查看属于哪张表
+    select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';
 
     -- 列出数据库里每张表的记录条数
     select t.table_name,t.num_rows from user_tables t order by num_rows desc;
@@ -617,7 +624,7 @@ oracle 和 mysql 不同，此处的创建表空间相当于 mysql 的创建数�
     - 加上 `rows=n` 表示不导出数据行，只导出结构
   - 表模式：`exp scott/tiger file=d:/exp.dmp tables=emp` 导出 scott 的 emp 表
     - 导出其他用户的表：`exp system/manager file=d:/exp.dmp tables=scott.emp, scott.dept` 导出 scott 的 emp、dept 表，用户 system 需要相关权限
-    - 导出部分表数据：`exp scott/tiger file=d:/exp.dmp tables=emp query=\" where ename like '%AR%'\"`
+    - **导出部分表数据**：`exp scott/tiger file=d:/exp.dmp tables=emp query=\" where ename like '%AR%'\"`
     - 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
   - 导出全部：`exp system/manager file=d:/exp.dmp full=y`
     - 用户 system/manager 必须具有相关权限
@@ -635,7 +642,8 @@ oracle 和 mysql 不同，此处的创建表空间相当于 mysql 的创建数�
 
 #### sql 导出导入(sqlplus)
 
-- 导出查询结果 []
+- 导出查询结果
+
   ```sql
   set echo off;
   set heading off;

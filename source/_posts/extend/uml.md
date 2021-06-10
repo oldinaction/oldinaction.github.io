@@ -195,6 +195,18 @@ Bob->Alice : hello
 - [github](https://github.com/knsv/mermaid)
 
 
+## diagrams
+
+- [diagrams在线版](https://app.diagrams.net/)
+- 免费，开源，基于electron开发，支持桌面端
+
+
+
+
+
+
+
+
 ---
 
 参考文章

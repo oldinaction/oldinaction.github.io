@@ -234,8 +234,33 @@ tags: [linux, shell]
 - `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
 - `wc <file>` 统计指定文本文件的行数、字数、字节数 
     - `wc -l <file>` 查看行数
-- `lsof | grep deleted`列举删除的文件(可能会造成du/df统计的值不一致)
-    - `lsof -op $$` 查看当前进程的文件描述符
+- [lsof](https://www.netadmintools.com/html/lsof.man.html) 列出打开文件(lists openfiles), linux一切皆文件
+
+    ```bash
+    lsof -h
+        # -a: 结果进行“与”运算（而不是“或”）
+        # -t: 仅获取进程ID
+
+    # 显示与指定目录或文件交互的所有一切
+    lsof /var/log/messages/
+    lsof /var/log/messages/my.log
+
+    # 显示指定用户打开的文件
+    lsof -u root
+    # 杀死指定用户开启的所有进程
+    kill -9 `lsof -t -u apache`
+
+    # 列举删除的文件仍然占用空间的文件(从而导致du/df统计的值不一致)
+    lsof | grep deleted
+
+    # 查看当前进程的文件描述符
+    lsof -op $$
+
+    # lsof -i[46] [protocol][@hostname|hostaddr][:service|port]
+    # 显示所有IPv4连接
+    lsof -i
+    lsof -i :22
+    ```
 - `ls` 列举文件 [^3]
     - `ll` 列举文件详细
         - **`ll test*`**/`ls *.txt` 模糊查询文件
