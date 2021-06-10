@@ -2,6 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    
+    <lastmod>2021-06-10T09:25:30.707Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/17/extend/uml/</loc>
+    
+    <lastmod>2021-06-10T07:46:52.774Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-06-10T06:48:18.853Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-06-10T02:04:42.244Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
+    
+    <lastmod>2021-06-09T13:24:36.492Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
     
     <lastmod>2021-06-09T12:55:11.565Z</lastmod>
@@ -65,13 +100,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-06-05T06:12:40.373Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
     
     <lastmod>2021-06-04T01:54:57.647Z</lastmod>
@@ -100,13 +128,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-06-03T13:48:11.759Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
     <lastmod>2021-06-03T13:40:36.113Z</lastmod>
@@ -124,13 +145,6 @@
     <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
     
     <lastmod>2021-06-03T04:54:18.010Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    
-    <lastmod>2021-06-01T05:47:23.648Z</lastmod>
     
   </url>
   
@@ -408,13 +422,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/17/extend/uml/</loc>
-    
-    <lastmod>2021-03-09T03:53:33.404Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/05/extend/powerdesigner/</loc>
     
     <lastmod>2021-03-09T03:53:28.463Z</lastmod>
@@ -488,13 +495,6 @@
     <loc>http://blog.aezo.cn/2017/07/16/lang/python/scrapy/</loc>
     
     <lastmod>2021-02-22T01:35:54.604Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
-    
-    <lastmod>2021-02-16T14:42:22.915Z</lastmod>
     
   </url>
   
