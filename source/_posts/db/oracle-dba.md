@@ -8,7 +8,9 @@ tags: [oracle, dba]
 
 ## 简介
 
-> 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl 指配置的本地数据库服务名，remote_orcl 指配置的远程数据库服务名。以 11g 为例
+- 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl 指配置的本地数据库服务名，remote_orcl 指配置的远程数据库服务名。以 11g 为例
+- 安装oracle 11.2g参考印象笔记(测试通过)
+    - **需要注意数据文件目录(/u01/app/oracle/oradata)挂载的磁盘，建议将`/u01`目录挂载到单独的数据盘上**
 
 ### oracle 相关名词和原理
 
@@ -26,7 +28,7 @@ tags: [oracle, dba]
 ```bash
 ## 启动监听程序(shell命令行运行即可)
 lsnrctl start
-# 查看服务状态(见下图"lsnrctl-status显示图片")
+# 查看服务状态(见下图"lsnrctl-status显示图片")。如：Instance "orcl", status READY, has 1 handler(s) for this service...
 lsnrctl status
 ```
 
@@ -42,8 +44,13 @@ shutdown immediate;
 # `shutdown;` 则是有用户连接就不关闭，直到所有用户断开连接
 # 正常启动（sql下运行；1启动实例，2打开控制文件，3打开数据文件）。提示`Database opened.`则表示数据库启动成功
 startup
+# 查看示例状态为OPEN
+select status from v$instance;
 # 退出sqlplus
 exit;
+
+# 查看oracle相关进程
+ps -ef | grep ora_ | grep -v grep
 ```
 
 - startup 说明
@@ -176,9 +183,9 @@ alter index index_in_out_regist_id rebuild online;
   - `grant create session to aezo;` 授予 aezo 用户创建 session 的权限，即登陆权限
   - `grant unlimited tablespace to aezo;` 授予 aezo 用户使用表空间的权限
   - `grant dba to aezo;` 授予管理权限(有 dba 角色就有建表等权限)
-  - `grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to dewell;` 赋予 dewell 查询 OFBIZ 用户的 ZIP_SALES_TAX_LOOKUP 表权限
+  - `grant select on AEZO.ZIP_SALES_TAX_LOOKUP to test;` 赋予 test 用户查询 AEZO 用户的 ZIP_SALES_TAX_LOOKUP 表权限
   - `grant create synonym to smalle;` 赋予创建别名权限
-    - `create or replace SYNONYM smalle.ZIP_SALES_TAX_LOOKUP FOR OFBIZ.ZIP_SALES_TAX_LOOKUP;` 添加别名，否则 smalle 查询 ofbiz 的表必须加`ofbiz.`，添加别名后省略`ofbiz.`
+    - `create or replace SYNONYM smalle.ZIP_SALES_TAX_LOOKUP FOR AEZO.ZIP_SALES_TAX_LOOKUP;` 添加别名，否则 smalle 用户查询 aezo 用户的表必须加`aezo.`，添加别名后省略`aezo.`
 
 #### 创建 dba 账户
 
@@ -192,16 +199,16 @@ grant dba to aezo; -- 授予管理权限(有dba角色就有建表等权限)
 #### 新建用户并赋予表查询权限
 
 ```sql
-create user smalle identified by smalle1234 default tablespace ofbiz; -- 创建用户
+create user smalle identified by smalle default tablespace aezo; -- 创建用户
 grant create session to smalle; -- 赋予登录权限
-grant select on OFBIZ.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询OFBIZ用户的ZIP_SALES_TAX_LOOKUP表权限（可使用下列批量赋权语句）
+grant select on AEZO.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询AEZO用户的ZIP_SALES_TAX_LOOKUP表权限（可使用下列批量赋权语句）
 grant create synonym to smalle; -- 赋予创建别名权限
-create or replace SYNONYM smalle.yothers_advice_collection FOR OFBIZ.yothers_advice_collection; -- 创建表别名（同义词），之后smalle查询OFBIZ的这张表可直接使用表名（可使用下列语句进行批量设置）
+create or replace SYNONYM smalle.yothers_advice_collection FOR AEZO.yothers_advice_collection; -- 创建表别名（同义词），之后smalle查询AEZO的这张表可直接使用表名（可使用下列语句进行批量设置）
 
 -- 批量赋值表查询权限
--- （1） 使用游标将OFBIZ用户所有的表的查询权限赋给smalle用户（推荐）
+-- （1） 使用游标将AEZO用户所有的表的查询权限赋给smalle用户（推荐）
 declare
-  table_owenr_user    VARCHAR2(200) := 'OFBIZ'; -- TODO 修改表所属用户名(注意要大写)
+  table_owenr_user    VARCHAR2(200) := 'AEZO'; -- TODO 修改表所属用户名(注意要大写)
   table_grant_user    VARCHAR2(200) := 'smalle'; -- TODO 修改表授权用户名(此处大小写无所谓)
   cursor c_tabname is select table_name from dba_tables where owner = table_owenr_user;
   v_tabname dba_tables.table_name%TYPE;
@@ -224,7 +231,7 @@ end;
 -- （2） 通过查询获取赋值语句，然后运行每一行赋值语句
 select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
   from dba_objects
- where owner in ('OFBIZ')
+ where owner in ('AEZO')
    and object_type = 'TABLE';
 
 -- 批量设置表别名（同义词）
@@ -232,7 +239,7 @@ select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
 -- （2）获取添加表别名语句
 select 'create or replace synonym smalle.' || object_name || ' for ' || owner || '.' || object_name || ';'
    from dba_objects
-   where owner in ('OFBIZ') and object_type = 'table';
+   where owner in ('AEZO') and object_type = 'table';
 ```
 
 ### sqlplus 使用技巧
@@ -450,8 +457,28 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
     ```
 - delete删除的表数据减少了，但是表空间占用量不会变。可使用move移动数据所在表空间
 - `UNDOTBS1`占用较大表空间
-    - https://blog.csdn.net/wxlbrxhb/article/details/14448777 未测试
+```bash
+# 参考：https://blog.csdn.net/wxlbrxhb/article/details/14448777
+# 对用户无感，无需重启数据库
 
+# 本视图自启动即保持并记录各回滚段统计项
+# USN：回滚段标识; XACTS：活动事务数; RSSIZE：回滚段默认大小; SHRINKS：回滚段收缩次数
+select usn, xacts, rssize/1024/1024/1024, hwmsize/1024/10244/1024, shrinks from v$rollstat order by rssize;
+# 创建新的 UNDOTBS 表空间。路径和原表空间保持一致
+create undo tablespace undotbs2 datafile '/home/oracle/data/undotbs02.dbf' size 100m autoextend on;
+# 设置系统默认 UNDOTBS 表空间为 undotbs2
+alter system set undo_tablespace=undotbs2 scope=both;
+# 等待所有的 UNDOTBS1 全部记录从 ONLINE 变成 OFFLINE
+select t.segment_name, t.tablespace_name, t.segment_id, t.status
+from dba_rollback_segs t 
+where t.status = 'ONLINE' and t.tablespace_name = 'UNDOTBS1';
+# 确保上面变成 OFFLINE 后，将 tablespace 和对应文件都会 OFFLINE
+alter tablespace undotbs1 offline normal;
+# (可稳定一段时间后再)删除表空间和对应文件
+drop tablespace undotbs1 including contents and datafiles;
+# 如果删除表空间文件后磁盘没有变化可查看是否进程还占用。如果还占用有说可杀掉相关进程，单还是建议重启数据库；如果无此问题则无需重启数据库
+lsof | grep deleted
+```
 
 ## 常见错误
 
@@ -590,10 +617,9 @@ Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Ca
     - 或者下载ODAC112030Xcopy_64bit.zip等压缩包进行安装，推荐
 - ODBC：Windows上通过配置不同数据库（SQL Server、Oracle等）的驱动进行访问数据库。找到控制面板-管理工具-数据源ODBC
 
-## 创建表空间 [^2]
+## 创建表空间
 
-oracle 和 mysql 不同，此处的创建表空间相当于 mysql 的创建数据库。创建了表空间并没有创建数据库实例
-
+- oracle 和 mysql 不同，此处的创建表空间相当于 mysql 的创建数据库。创建了表空间并没有创建数据库实例 [^2]
 - 登录：`sqlplus / as sysdba`
 - 创建表空间
   - `create tablespace aezocn datafile 'd:/tablespace/aezo' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;`
