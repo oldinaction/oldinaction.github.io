@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2021-06-12T11:49:03.239Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
+    
+    <lastmod>2021-06-12T11:06:26.759Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/05/02/web/vue-src/</loc>
+    
+    <lastmod>2021-06-12T06:49:39.023Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
+    
+    <lastmod>2021-06-11T16:35:07.379Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
     
     <lastmod>2021-06-11T03:11:48.489Z</lastmod>
@@ -19,27 +47,6 @@
     <loc>http://blog.aezo.cn/2016/07/17/extend/uml/</loc>
     
     <lastmod>2021-06-10T07:46:52.774Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
-    
-    <lastmod>2021-06-10T02:04:42.244Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
-    
-    <lastmod>2021-06-09T13:24:36.492Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    
-    <lastmod>2021-06-09T12:55:11.565Z</lastmod>
     
   </url>
   
@@ -474,13 +481,6 @@
     <loc>http://blog.aezo.cn/2020/05/11/arch/aliyun-service/</loc>
     
     <lastmod>2021-02-22T01:43:09.557Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/05/02/web/vue-src/</loc>
-    
-    <lastmod>2021-02-22T01:40:37.084Z</lastmod>
     
   </url>
   
