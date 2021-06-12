@@ -299,7 +299,62 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     - `v-dialogdrag` 作用于dialog，可进行拖拽
 - 获取ref
     - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
-- 表格组件
+
+#### 表格组件常用参数
+
+```js
+{
+    searchShow: true, // 是否默认显示查询条件区域，设置为不显示时，也可通过表格工具栏手动点击显示
+    searchMenuSpan: 6, // 查询列默认占用宽度
+    searchLabelWidth: 115, // 查询列文字描述宽度
+
+    height: 'auto', // 表格高度自适应，可和calcHeight结合使用. 如果需要高度固定可使用具体数值，如: 270
+    maxHeight: '270', // 表格最大高度，如果不使用calcHeight，则可使用此参数显示滚动条
+    calcHeight: 90, // 表格自动计算高度，可手动条件以消除滚动条
+    border: true, // 实现边框
+
+    selection: true, // 列表可勾选
+    tip: false, // 不显示勾选提示，默认了为true显示
+    filterBtn: true, // 显示工具栏过滤按钮
+    viewBtn: true,
+    addBtn: true, 
+    menu: true,
+
+    highlightCurrentRow: false, // 高亮当前行
+   
+    dialogDrag: true, // 弹框支持拖拽
+    dialogTop: '2%', // 弹框顶部高度
+    dialogWidth: '85%', // 弹框宽度
+
+    tabs: true, // 字段分组时，每个组按照TAB横向显示，false则按照折叠菜单上下显示
+    span: 6, // 表单编辑时，每列占用宽度，默认12
+    labelWidth: 115, // 表单列文字描述宽度
+    column: [
+        {
+            label: '销售订单号', // 字段中文名
+            prop: 'saleNo', // 字段名
+            type: 'input', // 字段类型：影响表单编辑
+            search: true, // 会在查询条件中显示
+            valueFormat: 'yyyy-MM-dd HH:mm:ss', // 实际值格式化成字符串，一般用在 type='datetime'
+            format: 'yyyy-MM-dd HH:mm', // 列表显示和表单显示格式化
+            formatter: () => {}, // 格式化函数
+            span: 6, // 自定义当前列表单编辑时的占用宽度
+            dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type', // 下拉时，字典资源路径，默认返回数组项为 lable/value 键值对才会自动匹配
+        },
+        {
+            labelWidth: 0, // 字段中文名宽度
+            label: '',
+            prop: 'saleOrderDetailVo',
+            span: 24, // 占一整行
+            hide: true, // 不显示在列表中
+            formslot: true, // 表单编辑自定义。此时定义slot="saleOrderDetailVoForm"即可自定义此列。可嵌套另外一个crud组件
+        }
+    ],
+    // 字段分组
+    group: [
+    ]
+}
+```
 
 #### 原理介绍
 

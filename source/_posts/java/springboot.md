@@ -788,6 +788,7 @@ spring:
   http:
     multipart:
       # Linux下会自动清除tmp目录下10天没有使用过的文件，SpringBoot启动的时候会在/tmp目录下生成一个Tomcat.*的文件目录，用于"java.io.tmpdir"文件流操作，因为放假期间无人操作，导致Linux系统自动删除了临时文件，所以导致上传报错。另一种配置方式参考下文 MultipartConfigElement
+      # spirngboot 2.1无效，有说配置 `server.tomcat.basedir=/var/tmp/tomcat`，未测试
       location: /var/tmp
   servlet:
     multipart:

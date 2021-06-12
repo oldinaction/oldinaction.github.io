@@ -86,5 +86,13 @@ tags: [template]
 
 ## 其他
 
+- 导入外部文件
+
+```html
+<!-- #parse 支持 velocity 标签. tpl为resources目录下文件夹 -->
+#parse("/tpl/layout.vm")
+<!-- #include 不支持 velocity标签 -->
+#include("/tpl/layout.vm")
+```
 - 调用静态方法，如`context.put("Math", Math.class);`：http://velocity.apache.org/engine/devel/developer-guide.html#support-for-static-classes
 

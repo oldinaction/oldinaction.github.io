@@ -24,10 +24,12 @@ dist # 源码打包后代码
 
 ## Vue原型定义及扩展
 
-<details>
-<summary>src/core/index.js</summary>
+### 原型初始化入口
 
 - https://github.com/vuejs/vue/blob/2.6/src/core/index.js
+
+<details>
+<summary>src/core/index.js</summary>
 
 ```js
 // Vue 实例化核心方法，其中定义了Vue类(vue原型)
@@ -66,6 +68,100 @@ Vue.version = '__VERSION__'
 export default Vue
 ```
 </details>
+
+### 初始化全局API
+
+- https://github.com/vuejs/vue/blob/2.6/src/core/global-api/index.js
+
+<details>
+<summary>src/core/global-api/index.js</summary>
+
+```ts
+import config from '../config'
+import { initUse } from './use'
+import { initMixin } from './mixin'
+import { initExtend } from './extend'
+import { initAssetRegisters } from './assets'
+import { set, del } from '../observer/index'
+import { ASSET_TYPES } from 'shared/constants'
+import builtInComponents from '../components/index'
+import { observe } from 'core/observer/index'
+
+import {
+  warn,
+  extend,
+  nextTick,
+  mergeOptions,
+  defineReactive
+} from '../util/index'
+
+export function initGlobalAPI (Vue: GlobalAPI) {
+  // config
+  const configDef = {}
+  configDef.get = () => config
+  if (process.env.NODE_ENV !== 'production') {
+    configDef.set = () => {
+      warn(
+        'Do not replace the Vue.config object, set individual fields instead.'
+      )
+    }
+  }
+  Object.defineProperty(Vue, 'config', configDef)
+
+  // exposed util methods.
+  // NOTE: these are not considered part of the public API - avoid relying on
+  // them unless you are aware of the risk.
+  Vue.util = {
+    warn,
+    extend,
+    mergeOptions,
+    defineReactive
+  }
+
+  Vue.set = set
+  Vue.delete = del
+  Vue.nextTick = nextTick
+
+  // 2.6 explicit observable API
+  Vue.observable = <T>(obj: T): T => {
+    observe(obj)
+    return obj
+  }
+
+  Vue.options = Object.create(null)
+  ASSET_TYPES.forEach(type => {
+    Vue.options[type + 's'] = Object.create(null)
+  })
+
+  // this is used to identify the "base" constructor to extend all plain-object
+  // components with in Weex's multi-instance scenarios.
+  Vue.options._base = Vue
+
+  extend(Vue.options.components, builtInComponents)
+
+  initUse(Vue)
+  // 初始化全局 mixin 属性
+  initMixin(Vue)
+  initExtend(Vue)
+  initAssetRegisters(Vue)
+}
+```
+</details>
+
+- 全局mixin
+
+```js
+/* @flow */
+
+import { mergeOptions } from '../util/index'
+
+export function initMixin (Vue: GlobalAPI) {
+  Vue.mixin = function (mixin: Object) {
+    this.options = mergeOptions(this.options, mixin)
+    return this
+  }
+}
+```
 
 ## Vue实例化过程
 
@@ -120,17 +216,26 @@ export default Vue
 ```
 </details>
 
-### initMixin: 处理 options 选项 [^2]
+### initMixin
+
+- 处理 options 选项 [^2]
+    -  options参数的处理：把业务逻辑以及组件的一些特性全都放到vm.$options中，后续的操作都可以从vm.$options拿到可用的信息。框架基本上都是对输入宽松，对输出严格，vue也是如此，不管使用户添加了什么代码，最后都规范的收入vm.$options中
 
 <details>
-<summary>options参数的处理：把业务逻辑以及组件的一些特性全都放到vm.$options中，后续的操作都可以从vm.$options拿到可用的信息。框架基本上都是对输入宽松，对输出严格，vue也是如此，不管使用户添加了什么代码，最后都规范的收入vm.$options中</summary>
+<summary>src/core/instance/init.js</summary>
 
 ```js
+import { extend, mergeOptions, formatComponentName } from '../util/index'
+
 let uid = 0
 
 // 对Vue混入一些功能，此处主要是对原型增加 _init()方法
 export function initMixin (Vue: Class<Component>) {
-  // 在new Vue()时会调用此方法
+  // ************************************
+  // ***** 在new Vue()时会调用此方法 *****
+  // ************************************
+  // 可设置debugger条件 `options._componentTag === 'avue-crud'` 来调试 <avue-crud/> 标签组件的创建
+  // 在渲染一个组件时，可能会多次进入此函数
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
     // a uid
@@ -155,7 +260,7 @@ export function initMixin (Vue: Class<Component>) {
     } else {
       // https://github.com/vuejs/vue/blob/2.6/src/core/util/options.js#L388。mergeOptions解析见下文
       // -- 统一props和directives格式，如将驼峰属性名转为连字符
-      // -- 如果存在 child.extends 或者 child.mixins，则递归调用mergeOptions
+      // -- 如果存在 child.extends 或者 child.mixins，则递归调用 mergeOptions
       // -- 将 child options 的属性值按照一定的策略merge到 parent options(默认策略是子属性值不为undefined则进行覆盖，否则取副属值；options属性merge策略可进行配置)
       vm.$options = mergeOptions(
         // 解析构造函数的options，https://github.com/vuejs/vue/blob/2.6/src/core/instance/init.js#L93
@@ -208,9 +313,10 @@ export function initMixin (Vue: Class<Component>) {
 ```
 </details>
 
+- https://github.com/vuejs/vue/blob/2.6/src/core/util/options.js#L388
+
 <details>
 <summary>mergeOptions</summary>
-- https://github.com/vuejs/vue/blob/2.6/src/core/util/options.js#L388
 
 ```js
 export function mergeOptions (
@@ -225,8 +331,21 @@ export function mergeOptions (
   // 统一directives的格式
   normalizeDirectives(child)
 
-  // 如果存在 child.extends 或者 child.mixins，则递归调用mergeOptions
-  // ...
+  // 如果组件存在 extends 或者 mixins属性，则递归调用mergeOptions
+  // Apply extends and mixins on the child options,
+  // but only if it is a raw options object that isn't
+  // the result of another mergeOptions call.
+  // Only merged options has the _base property.
+  if (!child._base) {
+    if (child.extends) {
+      parent = mergeOptions(parent, child.extends, vm)
+    }
+    if (child.mixins) {
+      for (let i = 0, l = child.mixins.length; i < l; i++) {
+        parent = mergeOptions(parent, child.mixins[i], vm)
+      }
+    }
+  }
 
   // 针对不同的键值，采用不同的merge策略
   const options = {}
@@ -308,8 +427,6 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 }
 ```
 </details>
-
-### initMixin: 
 
 ## 响应式数据原理(订阅-发布) [^3]
 
