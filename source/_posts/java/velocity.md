@@ -70,6 +70,13 @@ tags: [template]
 #end
 ```
 
+### 取值
+
+```html
+<!-- 根据变量从map中取值 -->
+$!{cfg.mpContext.mpTableRelateMap.get($!{relate.toEntityId})}
+```
+
 ### 循环
 
 ```html
