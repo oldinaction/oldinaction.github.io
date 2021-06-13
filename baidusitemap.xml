@@ -4,6 +4,26 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
+    <lastmod>2021-06-12T13:02:02.097Z</lastmod>
+    <data>
+        <display>
+        <title>Velocity</title>
+        <pubTime>2020-12-16T12:03:00.000Z</pubTime>
+        
+        <tag>template</tag>
+         
+         
+           
+             
+              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
     <lastmod>2021-06-12T11:49:03.239Z</lastmod>
     <data>
@@ -61,26 +81,6 @@
            
              
               <breadCrumb title="web" url="http://blog.aezo.cn/categories/web/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
-    <lastmod>2021-06-11T16:35:07.379Z</lastmod>
-    <data>
-        <display>
-        <title>Velocity</title>
-        <pubTime>2020-12-16T12:03:00.000Z</pubTime>
-        
-        <tag>template</tag>
-         
-         
-           
-             
-              <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
           
         </display>
     </data>
@@ -815,9 +815,9 @@
         <title>正则(Regex)</title>
         <pubTime>2017-12-26T02:29:00.000Z</pubTime>
         
-        <tag>java</tag>
-         
         <tag>js</tag>
+         
+        <tag>java</tag>
          
         <tag>regex</tag>
          
