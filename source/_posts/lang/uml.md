@@ -2,7 +2,7 @@
 layout: "post"
 title: "UML"
 date: "2016-07-17 11:01"
-categories: extend
+categories: lang
 tags: [UML, StarUML, PlantUML, design]
 ---
 
@@ -200,6 +200,9 @@ Bob->Alice : hello
 - [diagrams在线版](https://app.diagrams.net/)
 - 免费，开源，基于electron开发，支持桌面端
 
+## 其他画图工具
+
+- 亿图图示
 
 
 

@@ -320,7 +320,7 @@ export default {
 </script>
 ```
 
-### render 函数(iview)
+### render函数(iview)
 
 - 语法
 
@@ -1572,6 +1572,18 @@ this.$router.push({
     })
 });
 ```
+- redirect
+
+```js
+{
+    path: '/base_info/*',
+    name: '基础信息',
+    // 可以接受函数
+    redirect: to => {
+        console.log(to.path)
+    }
+},
+```
 - `$route`和`$router`区别
     - `$route`为当前路由，为vue内置
     - `$router`为路由管理器(全局的)，一般在main.js中new Vue()时挂载
@@ -1989,6 +2001,7 @@ export default user
 
 ## JSX使用
 
+- 类似的可参考[render函数](#render函数(iview))
 - vue的jsx语法是基于[babel-plugin-transform-vue-jsx](https://github.com/vuejs/babel-plugin-transform-vue-jsx)插件实现的 [^7]
 
     ![vue-jsx](/data/images/web/vue-jsx.png)
@@ -2084,7 +2097,11 @@ render() {
 // 属性
 return (
     <span {...{
-        style: { color: color }
+        style: { color: color },
+        // HTML其他属性
+        attrs: {
+            title: '鼠标悬停标题'
+        }
     }}>{ msg }</span>
 )
 ```

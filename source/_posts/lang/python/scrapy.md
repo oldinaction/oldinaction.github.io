@@ -10,6 +10,7 @@ tags: python
 
 - `Scrapy` 一款Python爬虫框架
 - 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
+- 可视化爬虫框架: [Portia](https://github.com/scrapinghub/portia)
 
 ## 安装
 

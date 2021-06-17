@@ -12,6 +12,12 @@ tags: [IDE]
 
 ## jetbrains相关编辑器破解
 
+### 2021.1
+
+- 通过无限重置30天试用达到永久使用: http://www.520xiazai.com/soft/jetbrains-eval-reset.html
+
+### 2018.1
+
 - 在 hosts 文件里面添加如下配置`0.0.0.0 account.jetbrains.com`、`0.0.0.0 www.jetbrains.com``
 - 基于激活码破解：http://idea.lanyus.com/getkey
 - 基于破解补丁进行破解
@@ -111,6 +117,7 @@ ThisCrackLicenseId-{
     - `String Manipulation` 字符串转换(包括下划线/中划线/驼峰等)。鼠标右键会有对应的选项，缺点：无快捷键
 - `CodeGlance` 显示代码地图
 - `Codota` Codota AI Autocomplete 代码示例，基于类或方法查找网上流行的使用方式。类似的如Aixcode
+    - 推荐结合`tabnine`进行代码补全
 - `Alibaba Java Coding Guidelines` 阿里巴巴代码规范
 
 ### 部分场景
