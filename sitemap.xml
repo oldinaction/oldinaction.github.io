@@ -2,6 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
+    
+    <lastmod>2021-06-17T07:00:06.056Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    
+    <lastmod>2021-06-17T06:58:28.595Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/16/lang/python/scrapy/</loc>
+    
+    <lastmod>2021-06-15T13:07:09.845Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/17/lang/uml/</loc>
+    
+    <lastmod>2021-06-15T12:45:18.963Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
+    
+    <lastmod>2021-06-15T09:04:00.857Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     
     <lastmod>2021-06-12T13:02:02.097Z</lastmod>
@@ -44,23 +79,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/17/extend/uml/</loc>
-    
-    <lastmod>2021-06-10T07:46:52.774Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/06/11/web/js-release/</loc>
     
     <lastmod>2021-06-09T11:41:15.154Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
-    
-    <lastmod>2021-06-09T11:29:04.609Z</lastmod>
     
   </url>
   
@@ -422,13 +443,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    
-    <lastmod>2021-03-10T12:25:30.559Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/12/05/extend/powerdesigner/</loc>
     
     <lastmod>2021-03-09T03:53:28.463Z</lastmod>
@@ -446,13 +460,6 @@
     <loc>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</loc>
     
     <lastmod>2021-03-05T07:44:34.355Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
-    
-    <lastmod>2021-02-27T08:21:04.860Z</lastmod>
     
   </url>
   
@@ -488,13 +495,6 @@
     <loc>http://blog.aezo.cn/2020/11/01/web/typescript/</loc>
     
     <lastmod>2021-02-22T01:37:00.116Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/16/lang/python/scrapy/</loc>
-    
-    <lastmod>2021-02-22T01:35:54.604Z</lastmod>
     
   </url>
   
