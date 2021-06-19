@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
+    
+    <lastmod>2021-06-19T09:28:54.066Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
+    
+    <lastmod>2021-06-19T02:33:28.952Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    
+    <lastmod>2021-06-18T02:38:14.416Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2021-06-17T07:00:06.056Z</lastmod>
@@ -40,13 +61,6 @@
     <loc>http://blog.aezo.cn/2020/12/16/java/velocity/</loc>
     
     <lastmod>2021-06-12T13:02:02.097Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
-    
-    <lastmod>2021-06-12T11:49:03.239Z</lastmod>
     
   </url>
   
@@ -173,13 +187,6 @@
     <loc>http://blog.aezo.cn/2018/07/27/db/sql-optimization/</loc>
     
     <lastmod>2021-06-03T04:54:18.010Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    
-    <lastmod>2021-05-27T07:41:09.192Z</lastmod>
     
   </url>
   
@@ -460,13 +467,6 @@
     <loc>http://blog.aezo.cn/2016/11/20/linux/ubuntu/</loc>
     
     <lastmod>2021-03-05T07:44:34.355Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
-    
-    <lastmod>2021-02-27T02:14:21.839Z</lastmod>
     
   </url>
   
