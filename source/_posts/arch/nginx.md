@@ -577,6 +577,40 @@ http {
 }
 ```
 
+#### 证书配置
+
+- 检查证书配置: https://www.myssl.cn/tools/check-server-cert.html
+    - 需要全部通过，一般为三项: 服务器证书、中间证书、根证书
+    - 如果提示`错误： 服务器缺少中间证书`，解决如下
+        - 使用完整的证书`fullchain.pem`
+        - 如果中间证书(ca_bundle.crt)和网站证书(test.aezo.cn.crt)分开了，则可手动将两个.crt证书合并成一个文件，并配置到nginx。如果有多个中间证书也都合并到一起
+        - apache也可尝试通过SSLCertficateChianFile来配置中间证书
+    - 如果只配置服务器证书，漏掉中间证书，浏览器一般会通过，但是微信小程序无法正常使用
+- 证书分析工具: https://www.ssllabs.com/ssltest/index.html
+
+```bash
+# 开启 HTTPS
+server {
+    # 一定需要对外开放443端口
+    listen 443 ssl;
+    
+    server_name test.shop.cn;
+    root /home/www;
+    index  index.html index.htm;
+
+    # 使用完整证书(服务器证书+中间证书合并)
+    ssl_certificate /etc/letsencrypt/live/test.aezo.cn/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/test.aezo.cn/privkey.pem;
+}
+# 将 HTTP 强制重定向到 HTTPS
+server {
+    listen 80;
+    server_name test.shop.cn;
+
+    return 301 https://$host$request_uri;
+}
+```
+
 ## 字段说明
 
 ### server_name和listen

@@ -300,13 +300,15 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 - 获取ref
     - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
 
-#### 表格组件常用参数
+#### 表格组件常用参数(option)
 
 ```js
 {
     searchShow: true, // 是否默认显示查询条件区域，设置为不显示时，也可通过表格工具栏手动点击显示
     searchMenuSpan: 6, // 查询列默认占用宽度
     searchLabelWidth: 115, // 查询列文字描述宽度
+    searchIcon: true, // 查询条件达到一定个数时，显示更多按钮进行隐藏
+    searchIndex: 3, // 和searchIcon结合使用，配置显示的个数
 
     height: 'auto', // 表格高度自适应，可和calcHeight结合使用. 如果需要高度固定可使用具体数值，如: 270
     maxHeight: '270', // 表格最大高度，如果不使用calcHeight，则可使用此参数显示滚动条
@@ -333,13 +335,76 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
         {
             label: '销售订单号', // 字段中文名
             prop: 'saleNo', // 字段名
-            type: 'input', // 字段类型：影响表单编辑
+            type: 'input', // 字段类型：影响表单编辑。input/select/radio/tree/...
+            
             search: true, // 会在查询条件中显示
-            valueFormat: 'yyyy-MM-dd HH:mm:ss', // 实际值格式化成字符串，一般用在 type='datetime'
+            searchslot: true, // 开启当前列自定义search，在dom中还需增加`<template slot-scope="{disabled, size}" slot="saleNoSearch">`(以`xxxSearch`命名)
+
+            hide: true, // 列表中隐藏
+            slot: true, // 列表显示时自定义列，在dom中还需增加`<template slot="saleNo" slot-scope="scope">`
+            align: 'left', // 列表显示时，文字位置
             format: 'yyyy-MM-dd HH:mm', // 列表显示和表单显示格式化
             formatter: () => {}, // 格式化函数
+            
+            multiple: true, // 是否可多选
+            editDisplay: true, // 编辑时显示，默认true
             span: 6, // 自定义当前列表单编辑时的占用宽度
-            dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type', // 下拉时，字典资源路径，默认返回数组项为 lable/value 键值对才会自动匹配
+            tip: '表单编辑时，鼠标放到表单元素框上的提示语',
+            rules: [
+              {
+                required: true, // 表单编辑时的校验规则，必填
+                message: '请输入字典代码',
+                trigger: 'blur',
+              },
+            ],
+            change: ({ value }) => {}, // 表单编辑时，值发生变化事件
+            valueFormat: 'yyyy-MM-dd HH:mm:ss', // 实际值(提交到后台的值)格式化成字符串，一般用在 type='datetime'
+            value: 1, // 表单编辑时的默认值
+
+            searchFilterable: true, // 是否可以前台输入搜索，默认false
+            remote: true, // 开启远程搜索，默认为false，此时dicUrl中{{key}}为用户输入的关键字
+            // 有了dictData和dicUrl，则列表显示默认也会自动进行翻译字典值，字典中无则显示实际值
+            dicData: [{
+              name: '自定义字典',
+              code: 1
+            }],
+            dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type&name={{key}}', // 下拉时(表单编辑和查询条件)，字典资源路径，默认返回数组项为 lable/value 键值对才会自动匹配
+            props: {
+                value: 'code', // 和 dicUrl 结合使用，用来指明后台返回数据结构中实际值的字段名
+              label: 'name',
+            },
+            dicMethod: 'post', // 默认请求方式为GET，此处设置为POST
+            dicQuery: {
+              a: 1 // 获取字典资源时的额外参数
+            },
+            // type=tree时
+            defaultExpandAll: false,
+            // 使用dic属性无效
+            // 使用 dicUrl 属性，但是每次会进行请求
+            // 使用 dicData属性。当直接写成 dicData: this.treeData 无法在弹框中显示树形数据；还需在获取到数据后修改此属性
+            dicData: this.treeData,
+            // 使用 lazy 和 treeLoad，即懒加载，会出现第一次无法选中
+            // lazy: true,
+            // treeLoad: (node, resolve) => {
+            //   if (node.isLeaf) {
+            //     return resolve([])
+            //   }
+            //   const parentId = (node.level === 0) ? '0' : node.data.id;
+            //   findDeptLazyTree({ parentId }).then(res => {
+            //     resolve(res.data.map(item => {
+            //       return {
+            //         ...item,
+            //         leaf: !item.hasChildren
+            //       }
+            //     }))
+            //   });
+            // },
+
+            // type=select时, 配置typeslot卡槽开启即可自定义下拉框的内容，typeformat配置回显的内容，但是你提交的值还是value并不会改变
+            typeslot: true, // 需要增加dom `<template slot="saleNoType" slot-scope="{item,value,label}">`
+            typeformat(item, label, value) {
+                return `名:${item[label]}-值:${item[value]}`
+            },
         },
         {
             labelWidth: 0, // 字段中文名宽度
