@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2018/09/23/arch/swagger/</loc>
+    
+    <lastmod>2021-06-20T08:53:07.456Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
     
     <lastmod>2021-06-19T09:28:54.066Z</lastmod>
@@ -635,13 +642,6 @@
     <loc>http://blog.aezo.cn/2018/09/24/lang/python/django/</loc>
     
     <lastmod>2020-12-18T01:41:08.888Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/09/23/arch/swagger/</loc>
-    
-    <lastmod>2020-12-17T13:43:39.911Z</lastmod>
     
   </url>
   
