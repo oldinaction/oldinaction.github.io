@@ -44,7 +44,7 @@ tags: [doc, api, springboot]
 swagger:
   title: API接口文档标题
   description: API接口文档描述
-  version: 1.0.0
+  version: 1.0
   termsOfServiceUrl: http://blog.aezo.cn
   contact:
     name: smalle
@@ -77,10 +77,12 @@ public class Swagger2Config {
     @Value("${swagger.contact.email}")
     private String email;
 
+    // 默认为default组
     @Bean
-    public Docket api() {
+    public Docket api(ApiInfo apiInfo) {
         return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo()).select()
+                .apiInfo(apiInfo).select()
+                .enable(true)
                 //扫描所有有注解的api
                 .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
                 // .apis(RequestHandlerSelectors.basePackage("cn.aezo.controller")) // 基于包名扫描
@@ -89,7 +91,24 @@ public class Swagger2Config {
                 // .pathMapping("/v2"); // 在这里可以设置请求的统一前缀
     }
 
-    private ApiInfo apiInfo() {
+    // 将API进行分组
+    @Bean
+    public Docket testApi(ApiInfo apiInfo) {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo).select()
+                .enable(true)
+                .groupName("测试模块")
+                .select()
+                //扫描所有有注解的api
+                // .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
+                .apis(RequestHandlerSelectors.basePackage("cn.aezo.test")) // 基于包名扫描
+                .paths(PathSelectors.any())
+                .build();
+                // .pathMapping("/v2"); // 在这里可以设置请求的统一前缀
+    }
+
+    @Bean
+    public ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title(title)
                 .description(description)
@@ -111,7 +130,8 @@ public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @RequestMapping(value = "/test", method = RequestMethod.GET) // 如果此处不写method = RequestMethod.GET则会生成每种类型的api文档
+    @GetMapping(value = "/test")
+    // @RequestMapping(value = "/test", method = RequestMethod.GET) // 如果此处不写method = RequestMethod.GET则会生成每种类型的api文档
     @ApiOperation(value = "最简配置文档注释（DONE）")
     public String test(String param) {
         return "hello swagger";
@@ -184,6 +204,8 @@ public class User implements Serializable {
 ```
 - 如果使用权限认证，可以开放端点
     - /swagger-resources/**
+    - /swagger-ui.html
+    - /v2/api-docs (通过此API获取所有接口列表从而在前台展示)
     - /doc.html
 - 访问 `http://ip:port/doc.html`
 
