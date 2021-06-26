@@ -278,12 +278,18 @@ export default {
         province(newValue, oldValue) {
             this.provinceChange()
     　　},
-        // 扩展：观测整个子对象的变化
+        // 监控某个子属性，在部分场景可取代 deep: true 的全监控(效率更高)
+        'customer.province.name': {
+            handler(n, o) {
+            },
+            immediate: true
+        },
+        // 扩展：观测整个对象的变化
         customer: {
             handler(newValue, oldValue) {
                 console.log(newValue)
             },
-            deep: true
+            deep: true // 包括子对象(默认只能监控一个普通值，设置deep则可监控整个对象，否则只能监测到一次对象值改变)
         },
         products: {
             immediate: true, // 代表如果在 wacth 里声明了之后，就会立即先去执行里面的handler方法。(可解决 list 变更后无法watch到变化的问题)
@@ -1873,6 +1879,43 @@ this.$router.push({
         workLevelId: 1
     }
 })
+```
+
+## 指令
+
+### 自定义指令
+
+- [文档](https://cn.vuejs.org/v2/guide/custom-directive.html)
+- 钩子函数
+    - `bind` 只调用一次，指令第一次绑定到元素时调用
+    - `inserted` 被绑定元素插入父节点时调用 (仅保证父节点存在，但不一定已被插入文档中)
+    - `update` 所在组件的 VNode 更新时调用，但是可能发生在其子 VNode 更新之前
+    - ·componentUpdated` 指令所在组件的 VNode 及其子 VNode 全部更新后调用
+    - `unbind` 只调用一次，指令与元素解绑时调用
+- 钩子函数参数
+    - `el` 指令所绑定的元素，可以用来直接操作 DOM
+    - `binding` 包含name、value、oldValue、expression、arg、modifiers
+    - `vnode`
+    - `oldVnode`
+
+### 自定义指令案例
+
+#### input输入自动转大写
+
+```js
+<Input v-uppercase v-model="form.orderNo" placeholder="编号" clearable></Input>
+
+Vue.directive("uppercase", {
+  inserted: function (el) {
+    const input = el.querySelector('input') // iview为例，找到实际的input输入框
+    input.onkeyup = function (e) {
+      input.value = input.value.toUpperCase()
+    }
+    input.onblur = function (e) {
+      input.value = input.value.toUpperCase()
+    }
+  }
+}
 ```
 
 ## Vuex

@@ -278,7 +278,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 - [官网](https://avuejs.com)
 - [内置函数(全局API，在vue组件中可直接使用this调用)](https://avuejs.com/doc/api)
     - validatenull 校验是否为空(`null/''/0/[]/{}`)
-    - findObject 从数组中查找对象，如`const parentIdProp = this.findObject(this.formColumn/this.crudOption.column, "parentId")`
+    - findObject 从数组中查找对象，如`const parentIdProp = this.findObject(this.formColumn | this.crudOption.column, 'parentId')`
     - vaildData 校验，如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
     - $Print
     - $Clipboard
@@ -318,9 +318,12 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     selection: true, // 列表可勾选
     tip: false, // 不显示勾选提示，默认了为true显示
     filterBtn: true, // 显示工具栏过滤按钮
-    viewBtn: true,
-    addBtn: true, 
     menu: true,
+    viewBtn: true, // 弹框查看当前行数据。如果使用行内编辑，则必须设置成false
+    addBtn: true, // 弹框新增一行数据。如果使用行内编辑，则必须设置成false
+    cellBtn: true, // 开启可编辑表格
+    addRowBtn: true, // 可编辑表格新增一行
+    cancelBtn: true, // 可编辑时，显示取消按钮，默认true
 
     highlightCurrentRow: false, // 高亮当前行
    
@@ -612,48 +615,51 @@ edit-config:
     @scroll="scroll"
 >
     <vxe-table-column v-if="feeItemEdit" title="操作" width="80">
-    <template v-slot="{ row }">
-        <Button
-            v-if="!row.editingMode"
-            @click="editRow(row)"
-            size="small"
-            icon="ios-create"
-            shape="circle"
-            style="margin-right:5px;"
-        ></Button>
-        <Button
-            v-if="row.editingMode"
-            @click="saveRow([row])"
-            type="primary"
-            size="small"
-            icon="md-checkmark"
-            shape="circle"
-            style="margin-right:5px;"
-        ></Button>
-        <Button v-if="!row.editingMode" @click="deleteMulti(row)" size="small" icon="ios-trash" shape="circle"></Button>
-        <Button v-if="row.editingMode" @click="cancelRow(row)" type="warning" size="small" icon="md-close" shape="circle"></Button>
-    </template>
+        <template v-slot="{ row }">
+            <div v-if="$refs.table.isActiveByRow(row)">
+                <Button
+                    v-if="row.editingMode"
+                    @click="saveRow([row])"
+                    type="primary"
+                    size="small"
+                    icon="md-checkmark"
+                    shape="circle"
+                    style="margin-right:5px;"
+                ></Button>
+                <Button @click="cancelRow(row)" type="warning" size="small" icon="md-close" shape="circle"></Button>
+            </div>
+            <div v-else>
+                <Button
+                    @click="editRow(row)"
+                    size="small"
+                    icon="ios-create"
+                    shape="circle"
+                    style="margin-right:5px;"
+                ></Button>
+                <Button @click="deleteMulti(row)" size="small" icon="ios-trash" shape="circle"></Button>
+            </div>
+        </template>
     </vxe-table-column>
 
     <vxe-table-column description="结算客户" field="bizClearingCustomerId" :title="$t('customer_name1')" width="300" :edit-render="{}">
         <template v-slot:edit="scope">
             <Select
-            :ref="'bccn' + scope.row.id"
-            v-model="scope.row.bizClearingCustomerId"
-            @on-change="
-                () => {
-                scope.row.bizClearingCustomerName = getSelectFilterableLabel(scope.row.bizClearingCustomerId, dictMap.customerList)
-                $refs.table.updateStatus(scope)
-                }
-            "
-            transfer
-            filterable
-            :remote-method="clearingCustomerRemote"
-            >
-            <Option v-for="item in dictMap.customerList" :value="item.value" :label="item.label" :key="item.value">
-                <span v-if="item.customerNo">{{ item.customerNo }}：</span>
-                {{ item.label }}
-            </Option>
+                :ref="'bccn' + scope.row.id"
+                v-model="scope.row.bizClearingCustomerId"
+                @on-change="
+                    () => {
+                        scope.row.bizClearingCustomerName = getSelectFilterableLabel(scope.row.bizClearingCustomerId, dictMap.customerList)
+                        $refs.table.updateStatus(scope)
+                    }
+                "
+                transfer
+                filterable
+                :remote-method="clearingCustomerRemote"
+                >
+                <Option v-for="item in dictMap.customerList" :value="item.value" :label="item.label" :key="item.value">
+                    <span v-if="item.customerNo">{{ item.customerNo }}：</span>
+                    {{ item.label }}
+                </Option>
             </Select>
         </template>
         <template v-slot="{ row }">{{ row.bizClearingCustomerName }}</template>
@@ -661,25 +667,36 @@ edit-config:
     <vxe-table-column field="feeCurrentRate" title="汇率" width="90" :edit-render="{ name: 'input', immediate: true }"></vxe-table-column>
 
     <!-- 自定义筛选 -->
+    <vxe-table-column field="orderType" title="订单类型" sortable :filters="orderTypeList"></vxe-table-column>
     <vxe-table-column field="orderNo" title="订单号" sortable
         :filters="[{data: ''}]" :filter-method="({ option, row }) => row.orderNo === option.data">
         <template #filter="{ $panel, column }">
             <AutoComplete
-            v-for="(option, index) in column.filters" :key="index"
-            type="type"
-            v-model="option.data"
-            :data="row._orderNoFilterList"
-            @on-search="(v) => {
-                row._orderNoFilterList = allData.filter(x => x.orderNo && x.orderNo.indexOf(v) >= 0).map(x => x.orderNo)
-            }"
-            @on-change="(value, $event) => $panel.changeOption($event, !!option.data, option)"
-            @keyup.enter.native="$panel.confirmFilter()"
+                v-for="(option, index) in column.filters" :key="index"
+                type="type"
+                v-model="option.data"
+                :data="row._orderNoFilterList"
+                @on-search="(v) => {
+                    row._orderNoFilterList = allData.filter(x => x.orderNo && x.orderNo.indexOf(v) >= 0).map(x => x.orderNo)
+                }"
+                @on-change="(value, $event) => $panel.changeOption($event, !!option.data, option)"
+                @keyup.enter.native="$panel.confirmFilter()"
             ></AutoComplete>
         </template>
-        </vxe-table-column>
+    </vxe-table-column>
 </vxe-table>
 
 <script>
+fetchData() {
+    this.$ajax({}).then(({ data }) => {
+        this.dataList = data.list
+        // 从结果集中提取筛选下拉，并设置到对应表格中
+        this.orderTypeList = XEUtils.orderBy(XEUtils.uniq(this.dataList.map(x => x.orderType))).map(y => {
+            return {label: y, value: y}
+        })
+        this.$refs.table.setFilter('orderType', this.orderTypeList)
+    })
+},
 editRow(row) {
     if (!this.checkRow()) return false
     this.$refs.table.setActiveRow(row).then(() => {
@@ -705,7 +722,6 @@ getSelectFilterableLabel(value, list, valueProp = 'value', labelField = 'label')
     const item = XEUtils.find(list, item => item[valueProp] == value)
     return item ? item[labelField] : null
 },
-
 // 滚动分页
 scroll (table, $event) {
     this.vexScrollPage(

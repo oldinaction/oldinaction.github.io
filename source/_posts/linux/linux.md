@@ -1051,6 +1051,9 @@ cat /etc/passwd | awk -F ':' '{print $1}'
 
 # 查找root开头的用户记录
 awk -F : '/^root/' /etc/passwd
+
+# 杀掉所有的java进程
+ps -ef | grep java | grep -v grep | awk '{print $2}' | xargs kill -9
 ```
 
 #### 变量

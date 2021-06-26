@@ -273,7 +273,7 @@ public class CustomerAbstractDiscoveryClientOptionalArgs extends AbstractDiscove
 
         ```java
     	@Bean
-    	@LoadBalanced // 使用ribbon实现客户端负载均衡
+    	@LoadBalanced // 使用ribbon实现客户端负载均衡。使用此注解后，此RestTemplate实例将只能调用注册中心注册过的服务
     	public RestTemplate restTemplate() {
     		return new RestTemplate();
     	}

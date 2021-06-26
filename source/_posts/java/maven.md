@@ -203,12 +203,12 @@ tags: [build]
     </plugin>
     ```
 
-### 利用github创建仓库 [^1]
+### 利用github创建仓库
 
-- github新建项目maven-repo，并下载到本地目录，如`D:/GitRepositories/maven-repo`
+- github新建项目maven-repo，并下载到本地目录，如`D:/GitRepositories/maven-repo` [^1]
 - 进入到项目pom.xml所在目录，运行命令：
-	- `mvn deploy -DaltDeploymentRepository=oldinaction-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
-	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`oldinaction-maven-repo`，`-DskipTests`跳过测试进行部署
+	- `mvn deploy -DaltDeploymentRepository=aezocn-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
+	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`aezocn-maven-repo`，`-DskipTests`跳过测试进行部署
 - 提交到github(**注意jar包不要习惯性的ignore**)
 - 配置maven远程仓库
 
@@ -216,8 +216,15 @@ tags: [build]
 	<!-- 优先读取本地库 -->
 	<repositories>
         <repository>
-            <id>oldinaction-maven-repo</id>
-            <url>https://raw.github.com/oldinaction/maven-repo/master/</url>
+			<id>aliyun-repos</id>
+			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+        <repository>
+            <id>aezocn-maven-repo</id>
+            <url>https://raw.github.com/aezocn/maven-repo/master/</url>
 			<!--或者访问本地-->
 			<!--<url>file:D:/GitRepositories/maven-repo/</url>-->
         </repository>

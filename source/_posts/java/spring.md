@@ -1115,7 +1115,7 @@ public class JobManager {
     - **一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)**，具体见下文事物传播行为
     - 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
 - **隔离级别** `@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读 [^2]
-	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是`READ_COMMITTED`；然而mysql的默认值是`REPEATABLE_READ`
+	- `DEFAULT`：这是默认值，表示使用底层数据库的默认隔离级别。**对大部分数据库而言，通常这值就是`READ_COMMITTED`；然而mysql的默认值是`REPEATABLE_READ`**
 	- `READ_UNCOMMITTED`：该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据。该级别不能防止脏读和不可重复读，因此很少使用该隔离级别
 	- `READ_COMMITTED`：该隔离级别表示一个事务只能读取另一个事务已经提交的数据。该级别可以防止脏读，这也是大多数情况下的推荐值
 	- `REPEATABLE_READ`：该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略。该级别可以防止脏读和不可重复读。
