@@ -349,6 +349,9 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
             format: 'yyyy-MM-dd HH:mm', // 列表显示和表单显示格式化
             formatter: () => {}, // 格式化函数
             
+            formslot: true, // 表单插槽，需要有`<template slot="saleNoForm" slot-scope="{type,disabled}">`, type=add/edit
+            labelslot: true, // 需要 slot="saleNoLabel" 
+            errorslot: true, // 需要 slot="saleNoError" 
             multiple: true, // 是否可多选
             editDisplay: true, // 编辑时显示，默认true
             span: 6, // 自定义当前列表单编辑时的占用宽度
@@ -364,14 +367,17 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
             valueFormat: 'yyyy-MM-dd HH:mm:ss', // 实际值(提交到后台的值)格式化成字符串，一般用在 type='datetime'
             value: 1, // 表单编辑时的默认值
 
-            searchFilterable: true, // 是否可以前台输入搜索，默认false
+            searchFilterable: true, // 表格搜索是否可前台过滤，默认false
+            filterable: true, // 表单是否可前台过滤
             remote: true, // 开启远程搜索，默认为false，此时dicUrl中{{key}}为用户输入的关键字
             // 有了dictData和dicUrl，则列表显示默认也会自动进行翻译字典值，字典中无则显示实际值
             dicData: [{
               name: '自定义字典',
               code: 1
             }],
-            dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type&name={{key}}', // 下拉时(表单编辑和查询条件)，字典资源路径，默认返回数组项为 lable/value 键值对才会自动匹配
+            // 下拉时(表单编辑和查询条件)，字典资源路径，默认返回数组项为 lable/value 键值对才会自动匹配
+            // 修改URL后需要更新字段，this.$refs.[form | crud].updateDic('saleNo')
+            dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type&name={{key}}',
             props: {
                 value: 'code', // 和 dicUrl 结合使用，用来指明后台返回数据结构中实际值的字段名
               label: 'name',
@@ -403,8 +409,9 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
             //   });
             // },
 
-            // type=select时, 配置typeslot卡槽开启即可自定义下拉框的内容，typeformat配置回显的内容，但是你提交的值还是value并不会改变
+            // type=select时, 配置typeslot卡槽开启即可自定义下拉框的内容
             typeslot: true, // 需要增加dom `<template slot="saleNoType" slot-scope="{item,value,label}">`
+            // typeformat配置回显的内容，但是你提交的值还是value并不会改变，无需插槽
             typeformat(item, label, value) {
                 return `名:${item[label]}-值:${item[value]}`
             },
