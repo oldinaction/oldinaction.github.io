@@ -354,6 +354,24 @@ select 'create or replace synonym smalle.' || object_name || ' for ' || owner ||
     */
     select sql_text,executions,disk_reads,buffer_gets,hash_value,version_count from v$sqlarea where sql_text='select count(*) from emp';
     ```
+- 表信息和字段信息
+
+```sql
+-- 查询所有数据库(需要一定权限)：由于Oralce没有库名,只有表空间,所以Oracle没有提供数据库名称查询支持，只提供了表空间名称查询。
+select * from v$tablespace;
+
+-- 查询当前数据库中所有表名
+select * from user_tables; -- 用户表
+select table_name from all_tables; -- 所有用户表
+select * from dba_tables; -- 所有用户表和系统表
+-- 获取表注释，对应还有 dba_tab_comments
+select * from user_tab_comments;
+
+-- 查询指定表中的所有字段名和字段类型，表名要全大写
+select column_name, data_type from user_tab_columns where table_name = 'table_name';
+-- 字段注释
+select * from user_col_comments;
+```
 
 ### 日志文件
 

@@ -342,6 +342,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
             
             search: true, // 会在查询条件中显示
             searchslot: true, // 开启当前列自定义search，在dom中还需增加`<template slot-scope="{disabled, size}" slot="saleNoSearch">`(以`xxxSearch`命名)
+            searchOrder: 10, // 搜索字段排序，越大越靠前
 
             hide: true, // 列表中隐藏
             slot: true, // 列表显示时自定义列，在dom中还需增加`<template slot="saleNo" slot-scope="scope">`
@@ -379,13 +380,19 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
             // 修改URL后需要更新字段，this.$refs.[form | crud].updateDic('saleNo')
             dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type&name={{key}}',
             props: {
-                value: 'code', // 和 dicUrl 结合使用，用来指明后台返回数据结构中实际值的字段名
+              value: 'code', // 和 dicUrl 结合使用，用来指明后台返回数据结构中实际值的字段名
               label: 'name',
             },
             dicMethod: 'post', // 默认请求方式为GET，此处设置为POST
             dicQuery: {
               a: 1 // 获取字典资源时的额外参数
             },
+            // 格式化ajax获取的字段数据，参考 src/core/dic.js#sendDic
+            dicFormatter(res) {
+                const list = res.data
+                return list
+            },
+
             // type=tree时
             defaultExpandAll: false,
             // 使用dic属性无效
