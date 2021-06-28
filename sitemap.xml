@@ -2,9 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    
+    <lastmod>2021-06-28T10:06:12.144Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2020/10/09/web/js-tools/</loc>
     
-    <lastmod>2021-06-27T07:57:15.329Z</lastmod>
+    <lastmod>2021-06-28T05:46:49.536Z</lastmod>
     
   </url>
   
@@ -117,13 +124,6 @@
     <loc>http://blog.aezo.cn/2020/05/02/web/vue-src/</loc>
     
     <lastmod>2021-06-12T06:49:39.023Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    
-    <lastmod>2021-06-11T03:11:48.489Z</lastmod>
     
   </url>
   
