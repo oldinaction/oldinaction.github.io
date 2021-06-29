@@ -364,8 +364,11 @@ select * from v$tablespace;
 select * from user_tables; -- 用户表
 select table_name from all_tables; -- 所有用户表
 select * from dba_tables; -- 所有用户表和系统表
--- 获取表注释，对应还有 dba_tab_comments
-select * from user_tab_comments;
+-- 获取表注释，对应还有 user_tab_comments
+select t.TABLE_NAME, s.comments from dba_tables t 
+join dba_tab_comments s on s.owner = t.OWNER and s.table_name = t.TABLE_NAME
+where t.OWNER = 'USERS'
+order by t.TABLE_NAME;
 
 -- 查询指定表中的所有字段名和字段类型，表名要全大写
 select column_name, data_type from user_tab_columns where table_name = 'table_name';
