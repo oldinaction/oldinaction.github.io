@@ -208,8 +208,9 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 - 查看数据库sql运行占用CPU时间较长的会话信息，并kill此会话
 
     ```sql
-    -- 获取每次消耗cpu > 3s的sql. cpu_time为微秒
-    select sid, serial#, sql_text, sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
+    -- 获取每次消耗cpu > 3s的sql; cpu_time为微秒; executions执行次数，peer_secondes_cpu_time每次耗时(s)
+    select sid, serial#, sql_text, sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time
+        ,round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
     where cpu_time/executions/1000000 > 3 --每次执行消耗cpu>3s的

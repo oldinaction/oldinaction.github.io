@@ -230,7 +230,7 @@ ln -s /home/bt /www
 # 安装
 yum install -y wget && wget -O install.sh http://download.bt.cn/install/install_6.0.sh && sh install.sh
 # 安装成功后会显示安全的登录入口和账号密码
-# 可通过执行命令查看登录入口和账号密码
+# ***可通过执行命令查看登录入口和账号密码***
 sudo /etc/init.d/bt default
 
 ## 卸载

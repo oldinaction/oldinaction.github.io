@@ -19,7 +19,7 @@ tags: vue
     - **vue单文件组件，每个文件里面只能含有一个script标签；如果含有多个，默认只解析最后一个**
 
 ### 文件引入
- 
+
 ```html
 <!-- css -->
 <style lang="less">
@@ -32,7 +32,7 @@ import MyModule1 from "./../common/MyModule1.vue";
 // @表示项目源码根目录(src)
 import MyModule1 from "@/common/MyModule1.vue";
 
-// (2) 封装组件库 sm-util.js 
+// (2) 封装组件库 sm-util.js
 // ==> 示例一
 export default {} // 导入：import SmUtil from './libs/sm-util.js'
 
@@ -210,7 +210,7 @@ created(): {
                 list: []
             }
         })
-        
+
         // `vm.a` 是响应的，`vm.b` 是非响应的(添加新属性)
         vm.b = 2
         vm.user.name = 'smalle' // 是响应的
@@ -250,7 +250,7 @@ created(): {
     <Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
 </Select>
 </div>
-    
+
 <script>
 export default {
     data() {
@@ -315,7 +315,7 @@ export default {
             this.$set(this.customer.customerProducts, index, product); // 从新设值强行刷新此属性. this.$set(Object/Array, string/number, any)
         },
         provinceChange() {
-            // 
+            //
             // ... 请求后台获取省份下的城市
         }
     },
@@ -491,7 +491,7 @@ render: (h, params) => {
         (function(vm) {
             return params.row.content
         }(this)),
-        
+
         // Poptip-div
 		h('div', {
 			slot: 'content'
@@ -502,7 +502,7 @@ render: (h, params) => {
 				}
 			}, '用户名：' + params.row.name)
         ]),
-        
+
         // Poptip-div
 		return h("div", [
 			h("Button", {
@@ -574,7 +574,7 @@ render: (h, params) => {
 
         ```js
         npm install compression-webpack-plugin --save-dev
-        
+
         // vue-cli为例。开发环境不进行压缩，否则页面无法显示
         chainWebpack: config => {
             if(process.env.NODE_ENV === 'production') {
@@ -632,7 +632,7 @@ render: (h, params) => {
         import Vue from 'vue'
         ```
 - 减少不必要的库依赖
-    
+
     ```js
     // 包依赖分析工具
     npm install webpack-bundle-analyzer --save-dev
@@ -757,7 +757,7 @@ Vue.component('base-checkbox', {
     // model: 允许一个自定义组件在使用 v-model 时定制 prop(组件会将v-model和此prop绑定，调用者将值传到v-model中，最终相当于传入到了此prop上) 和 event
     model: {
         prop: 'checked', // props中的key。默认取pops中的value
-        event: 'change' // 默认为input事件 
+        event: 'change' // 默认为input事件
     },
     props: {
         checked: Boolean
@@ -910,7 +910,7 @@ props: {
     <div>
         <button v-on:click="clickParent">点击</button>
         <Child ref="child" msg="hello child" @my-event="myEvent"></Child>
-        
+
         <!--使用sync修饰符，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景-->
         <Child ref="child" :show.sync="show" @my-event="myEvent"></Child>
     </div>
@@ -1047,26 +1047,26 @@ this.$root.eventBus.$off('eventName')
 - `transition-mode`过渡模式
 
 ```html
-<div id="app">  
+<div id="app">
     <button @click="toshow">点击让子组件显示</button>
-    <component v-bind:is="which_to_show" keep-alive></component>  
+    <component v-bind:is="which_to_show" keep-alive></component>
 </div>
 
 <script>
-    var vm = new Vue({  
-        el: '#app',  
-        data: {  
-            which_to_show: "first"  
-        },  
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            which_to_show: "first"
+        },
         methods: {
             toshow () {
-                //切换组件显示  
-                var arr = ["first", "second", "third", ""];  
-                var index = arr.indexOf(this.which_to_show);  
-                if (index < 3) {  
-                    this.which_to_show = arr[index + 1];  
-                } else {  
-                    this.which_to_show = arr[0];  
+                //切换组件显示
+                var arr = ["first", "second", "third", ""];
+                var index = arr.indexOf(this.which_to_show);
+                if (index < 3) {
+                    this.which_to_show = arr[index + 1];
+                } else {
+                    this.which_to_show = arr[0];
                 }
 
                 // 或者动态导入组件(更多用法参考官网)
@@ -1078,20 +1078,20 @@ this.$root.eventBus.$off('eventName')
                         error: MyDefaultComp // 加载失败可显示默认组件
                     })
                 )
-            }  
-        },  
-        components: {  
-            first: { //第一个子组件  
-                template: "<div>这里是子组件1</div>"  
-            },  
-            second: { //第二个子组件  
-                template: "<div>这里是子组件2</div>"  
-            },  
-            third: { //第三个子组件  
-                template: "<div>这里是子组件3</div>"  
-            },  
-        }  
-    });  
+            }
+        },
+        components: {
+            first: { //第一个子组件
+                template: "<div>这里是子组件1</div>"
+            },
+            second: { //第二个子组件
+                template: "<div>这里是子组件2</div>"
+            },
+            third: { //第三个子组件
+                template: "<div>这里是子组件3</div>"
+            },
+        }
+    });
 </script>
 ```
 
@@ -1188,7 +1188,7 @@ Vue.use(config)
 <template>
   <!-- b()为导入的bem函数，对组件名进行class命名 -->
   <div :class="b()">
-    
+
   </div>
 </template>
 
@@ -1401,7 +1401,7 @@ import './index.css'
 
 ```js
 npm i style-resources-loader -D // 需要提前安装依赖
-// npm i sass-resources-loader -D // sass/less 
+// npm i sass-resources-loader -D // sass/less
 
 // vue.config.js
 const path = require('path')
@@ -1410,9 +1410,9 @@ module.exports = {
   chainWebpack: config => {
     // 设置缩写
     config.resolve.alias
-      .set('@', resolve('src')) 
+      .set('@', resolve('src'))
       .set('_c', resolve('src/components'))
-    
+
     // 设置全局样式自动导入
     const types = ['vue-modules', 'vue', 'normal-modules', 'normal']
     types.forEach(type => addStyleResource(config.module.rule('stylus').oneOf(type)))
@@ -1532,7 +1532,7 @@ export default {
 - 参考：[API](https://cn.vuejs.org/v2/api/#transition)、[guide](https://cn.vuejs.org/v2/guide/transitions.html)
 
 ```html
-<!-- 
+<!--
     name：用于自动生成 CSS 过渡类名。例如：name: 'fade' 将自动拓展为.fade-enter，.fade-enter-active等class，只需要提前定义好对应的css即可
     mode：控制离开/进入的过渡时间序列。有效的模式有 "out-in" 和 "in-out"；默认同时生效
     tag：<transition> 它会以一个真实元素呈现：默认为一个 <span>，可以通过 tag 属性更换为其他元素
@@ -1937,7 +1937,7 @@ const user = {
     info: Cookies.get('info') ? JSON.parse(Cookies.get('info')) : {} // Cookies获取的是字符串，需要转换
   },
   // 更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。它会接受 state 作为第一个参数
-  // 同步调用：this.$store.commit('SET_TOKEN', 'my-token-xxx') 
+  // 同步调用：this.$store.commit('SET_TOKEN', 'my-token-xxx')
   mutations: {
     SET_TOKEN: (state, token) => {
       state.token = token
@@ -2230,7 +2230,7 @@ module.exports = {
         config.resolve.alias
             .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
             .set('_c', resolve('src/components'))
-        
+
         // 修改插件选项
         config
             .plugin('define') // 对应 DefinePlugin 插件，其简称可通过 vue inspect > output.js 生成目标配置查看。其实通过 .env 文件定义的变量会自动加到 DefinePlugin 中
@@ -2239,7 +2239,7 @@ module.exports = {
                 args[0]['process.env'].BUILD_ENV = JSON.stringify(process.env.BUILD_ENV)
                 return args
             })
-        
+
         // 修改 Loader 和新增 Loader
         config.module
             .rule('vue')
