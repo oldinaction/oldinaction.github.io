@@ -492,12 +492,12 @@ import Select from 'element-ui/lib/select'
                         if (process.env.NODE_ENV === 'development') {
                             entryArr.splice(entryArr.length - 1, 0, './mock/index.js')
                         }
-                        config.entryPoints.clear();
+                        config.entryPoints.clear()
                         let entry = config.entry('app')
                         entryArr.forEach(x => {
-                            entry.add(x);
+                            entry.add(x)
                         })
-                        entry.end();
+                        entry.end()
                         // 最终生成的app.js为：module.exports = __webpack_require__("./src/main.js");
                 */
 				__webpack_require__(/*! D:\test\node_modules\webpack\hot\dev-server.js */ "./node_modules/webpack/hot/dev-server.js");
