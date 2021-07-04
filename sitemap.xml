@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2019/05/29/web/webpack/</loc>
+    
+    <lastmod>2021-07-04T11:24:59.537Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/</loc>
     
     <lastmod>2021-07-02T08:13:00.286Z</lastmod>
@@ -411,13 +418,6 @@
     <loc>http://blog.aezo.cn/2017/10/10/web/mobile/uni-app/</loc>
     
     <lastmod>2021-03-17T14:13:07.645Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2019/05/29/web/webpack/</loc>
-    
-    <lastmod>2021-03-14T04:20:49.316Z</lastmod>
     
   </url>
   
