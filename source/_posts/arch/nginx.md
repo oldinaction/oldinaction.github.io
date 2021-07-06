@@ -84,7 +84,7 @@ cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
 #### 常见问题
 
 - 代理端口时，访问提示`Permission denied`。检查配置文件中启动用户是否为root(`user root;`)
-- 代理端口时，Header中数据丢失。nginx中默认布置带`_`的key
+- 代理端口时，**Header中数据丢失。nginx中默认不支持带`_`的key**
     - Header名不要带`_`
     - 解除nginx的限制：配置文件的http部分增加`underscores_in_headers on;`
 

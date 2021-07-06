@@ -225,6 +225,11 @@ Require-Module=com.alipay.sofa.service-provider
     - zookeeper方式
 - Ark 容器启动流程：https://www.sofastack.tech/projects/sofa-boot/sofa-ark-startup/
 
+### 通信/调用
+
+- Biz-Biz通信: 使用JVM服务通信，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/
+- Biz-Plugin通信: 使用Ark服务机制，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-service/
+
 ### 使用
 
 - 参考 https://github.com/sofastack-guides/sofa-ark-dynamic-guides
