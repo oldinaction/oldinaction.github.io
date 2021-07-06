@@ -4,6 +4,26 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
+    <lastmod>2021-07-06T03:07:01.638Z</lastmod>
+    <data>
+        <display>
+        <title>Nginx</title>
+        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
+        
+        <tag>LB, HA</tag>
+         
+         
+           
+             
+              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2019/05/29/web/webpack/</loc>
     <lastmod>2021-07-04T11:24:59.537Z</lastmod>
     <data>
@@ -280,26 +300,6 @@
         <tag>doc</tag>
          
         <tag>api</tag>
-         
-         
-           
-             
-              <breadCrumb title="arch" url="http://blog.aezo.cn/categories/arch/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
-    <lastmod>2021-06-18T02:38:14.416Z</lastmod>
-    <data>
-        <display>
-        <title>Nginx</title>
-        <pubTime>2017-01-16T08:54:00.000Z</pubTime>
-        
-        <tag>LB, HA</tag>
          
          
            
