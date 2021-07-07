@@ -433,6 +433,7 @@ tags: [build]
             </plugin>
         </plugins>
 
+        <!-- 使用了resources，则必须对所有需要编译的文件作出配置 -->
 		<resources>
 			<!--java目录下除了.java文件，其他格式的文件全部打包到jar中-->
 			<resource>

@@ -183,9 +183,22 @@ call:myFuncName
 
 ### 文件和文件夹操作
 
-- `echo 123456>0.txt` 输出123456至0.txt并覆盖原先文字
-- `echo 123456>>0.txt` 输出123456至0.txt追加至末尾
-- `del 0.txt` 删除文件
+```bash
+# 输出123456至0.txt并覆盖原先文字
+echo 123456>0.txt
+# 输出123456至0.txt追加至末尾
+echo 123456>>0.txt
+# 删除文件
+del 0.txt
+
+# 创建文件夹plugins，需要保证存在目录dist。路径必须使用\斜杠，因为/后面接的参数
+mkdir dist\plugins
+# 删除文件夹下文件
+rmdir dist /s /q
+
+# 复制文件到目录. echo d：防止提示 (F = 文件，D = 目录)?
+echo d | xcopy target\sqbiz-plugin\*-ark-biz.jar dist\plugins /s
+```
 
 ## 常用命令
 

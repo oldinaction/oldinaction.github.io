@@ -1272,6 +1272,54 @@ public class SpringU implements ApplicationContextAware {
 }
 ```
 
+## Spring-XML配置
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+        
+    <!-- scope默认singleton -->
+    <bean id="p1" class="cn.aezo.test.spring.Person" scope="singleton" lazy-init="true" init-method="init" destroy-method="over">
+        <!-- 构造方法注入 -->
+        <constructor-arg name="name" value="smalle"></constructor-arg>
+
+        <!-- set方法注入 -->
+        <property name="country" value="CN"></property>
+
+        <!-- list/set/map/properties -->
+        <property name="arrs">
+            <list><!-- 或为set -->
+                <!-- 如果集合内是简单类型，使用value子标签，如果是POJO类型，则使用bean标签 -->
+                <value>张三</value>
+                <value>李四</value>
+                <!-- <bean></bean> -->
+            </list>
+        </property>
+        <property name="map">
+            <map>
+                <entry key="name" value="test"/>
+                <entry key="age" value="18"/>
+            </map>
+        </property>
+        <property name="pro">
+            <props>
+                <prop key="uname">root</prop>
+                <prop key="pass">123</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- p空间名称注入时需要引入 xmlns:p 声明 -->
+    <bean id="address" class="cn.aezo.test.spring.Address" p:country="CN" p:city="SH"></bean>
+    <bean id="person" class="cn.aezo.test.spring.Person" p:name="smalle" p:age="18" p:address-ref="address"/>
+</beans>
+```
+
 ## SpringMVC
 
 - 关键类：**`DispatcherServlet#doDispatch`**

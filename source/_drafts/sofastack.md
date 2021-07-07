@@ -65,7 +65,7 @@ tags: [springboot, plugin, 微服务]
 
 - 使用参考: https://github.com/sofastack-guides/sofa-boot-guides
 
-### 简单使用
+### 简单使用(不使用其模块隔离功能)
 
 - 依赖和打包
 
@@ -138,7 +138,7 @@ tags: [springboot, plugin, 微服务]
     <artifactId>runtime-sofa-boot-starter</artifactId>
 </dependency>
 ```
-- 使用SOFABoot的模块化开发打包插件变更
+- 使用SOFABoot的模块化开发时，打包插件变更
 
 ```xml
 <!-- 主模块打包 -->
@@ -239,7 +239,10 @@ Require-Module=com.alipay.sofa.service-provider
 # 连接container，成功会显示命令行`sofa-ark>`
 telnet localhost 1234
 help # 查看帮助
-biz -a # 查看所有安装的biz包
+# 安装biz包
+biz -i file:///C:/Users/smalle/Desktop/sofa-ark-dynamic-guides-master/target/ark-dynamic-module-1.0.0-ark-biz.jar
+# 查看所有安装的biz包
+biz -a
 ```
 - 多Biz启动
     - 开发环境
