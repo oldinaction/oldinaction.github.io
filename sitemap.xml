@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
+    
+    <lastmod>2021-07-07T12:06:46.411Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
+    
+    <lastmod>2021-07-07T09:37:58.198Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
+    
+    <lastmod>2021-07-07T02:52:49.982Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/01/16/arch/nginx/</loc>
     
     <lastmod>2021-07-06T03:07:01.638Z</lastmod>
@@ -75,20 +96,6 @@
     <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
     
     <lastmod>2021-06-22T05:37:54.479Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
-    
-    <lastmod>2021-06-22T04:55:29.278Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/07/01/java/spring/</loc>
-    
-    <lastmod>2021-06-21T05:41:20.751Z</lastmod>
     
   </url>
   
@@ -768,13 +775,6 @@
     <loc>http://blog.aezo.cn/2018/03/13/bigdata/solr/</loc>
     
     <lastmod>2020-08-13T10:13:20.255Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
-    
-    <lastmod>2020-06-24T16:48:43.835Z</lastmod>
     
   </url>
   
