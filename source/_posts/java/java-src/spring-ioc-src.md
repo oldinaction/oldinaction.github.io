@@ -99,7 +99,7 @@ public void refresh() throws BeansException, IllegalStateException {
 
         try {
             // 【这里需要知道 BeanFactoryPostProcessor 这个知识点，Bean 如果实现了此接口，
-            // 那么在容器初始化以后，Spring 会负责调用里面的 postProcessBeanFactory 方法。】
+            // 那么在容器初始化以后，Spring 会负责调用里面的 postProcessBeanFactory 方法(主要做一些初始化)。】
 
             // 这里是提供给子类的扩展点，到这里的时候，所有的 Bean 都加载、注册完成了，但是都还没有初始化
             // 具体的子类可以在这步的时候添加一些特殊的 BeanFactoryPostProcessor 的实现类或做点什么事
@@ -127,8 +127,8 @@ public void refresh() throws BeansException, IllegalStateException {
 
             // ***************
             // 重点，重点，重点
-            // 初始化所有的 singleton beans （lazy-init 的除外）
             // 到目前为止（执行此行代码前），应该说 BeanFactory 已经创建完成，并且所有的实现了 BeanFactoryPostProcessor 接口的 Bean 都已经初始化并且其中的 postProcessBeanFactory(factory) 方法已经得到回调执行了。而且 Spring 已经“手动”注册了一些特殊的 Bean，如 environment、systemProperties 等
+            // 初始化所有的 singleton beans （lazy-init 的除外） => 创建Bean
             finishBeanFactoryInitialization(beanFactory);
 
             // 最后，广播事件，ApplicationContext 初始化完成
@@ -1207,7 +1207,7 @@ protected Object doCreateBean(final String beanName, final RootBeanDefinition mb
         if (exposedObject != null) {
             // ***************
             // 还记得 init-method 吗？还有 InitializingBean 接口？还有 BeanPostProcessor 接口？
-            // 这里就是处理 bean 初始化完成后的各种回调
+            // 这里就是处理 bean 初始化完成后的各种回调，具体参考[initializeBean处理回调](#initializeBean处理回调)
             exposedObject = initializeBean(beanName, exposedObject, mbd);
         }
     }
@@ -1785,6 +1785,16 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
     BeanDefinition getOriginatingBeanDefinition();
 }
 ```
+
+### BeanFactoryPostProcessor和BeanPostProcessor
+
+- BeanFactoryPostProcessor
+    - **在spring的bean定义文件加载之后，Bean创建之前**，添加处理逻辑，如修改bean的定义属性
+        - 也就是说，Spring允许BeanFactoryPostProcessor在容器实例化任何其它bean之前读取配置元数据，并可以根据需要进行修改，例如可以把bean的scope从singleton改为prototype，也可以把property的值给修改掉
+    - 可以同时配置多个BeanFactoryPostProcessor，并通过设置'order'属性来控制各个BeanFactoryPostProcessor的执行次序
+- BeanPostProcessor
+    - **在spring容器实例化bean之后，在执行bean的初始化方法前后**，添加处理逻辑
+
 
 ### 工厂模式生成 Bean
 

@@ -6,11 +6,12 @@ categories: java
 tags: [springboot, plugin, 微服务, src]
 ---
 
-## isle-sofa-boot
+## isle-sofa-boot模块隔离
 
 ### 初始化
 
-- 初始化SOFABoot模块
+- **初始化SOFABoot模块：主要是初始化各模块的SpringContext上下文**
+- 如基于多Ark Biz启动，一般不会包含此包，各Biz间通信基于runtime-sofa-boot包完成
 
 #### Spring启动完成后广播事件
 
@@ -148,6 +149,7 @@ protected SpringContextLoader createSpringContextLoader() {
 
 ```java
 public class DynamicSpringContextLoader implements SpringContextLoader {
+    // 加载SpringContext配置文件时会调用
     @Override
     public void loadSpringContext(DeploymentDescriptor deployment,
                                   ApplicationRuntimeModel application) throws Exception {
@@ -435,16 +437,22 @@ private void publishContextAsSofaComponent(DeploymentDescriptor deployment,
 }
 ```
 
-## runtime-sofa-boot组件
+## runtime-sofa-boot
 
 ### 初始化
 
+- 主要是管理组件(包括ReferenceComponent,ServiceComponent,SpringContextComponent)生命周期
+- 基于SofaBoot的简单模块隔离，或者基于多Ark Biz启动，一般都会用到此包
+- Spring初始化时，会调用其 postProcessBeforeInitialization 方法
+    - 如根据`@SofaReference`注解，将组件信息(此时为ReferenceComponent类)保存到ComponentManagerImpl#registry集合中，集合中的key为ComponentName类型
+        - 此时ComponentName如：`reference:com.alipay.sofa.isle.sample.SampleJvmService:#2120635923`(reference表示基于此注解解析的引用信息，会创建其代理对象)
+    - 如根据`@SofaService`注解，将组件信息(此时为ServiceComponent类)保存到registry集合中
+
 #### BeanPostProcessor注册组件入口
 
-- Spring初始化时，会调用其 postProcessBeforeInitialization 方法
-- 如根据`@SofaReference`注解，将组件信息(此时为ReferenceComponent类)保存到ComponentManagerImpl#registry集合中，集合中的key为ComponentName类型
-    - 此时ComponentName如：`reference:com.alipay.sofa.isle.sample.SampleJvmService:#2120635923`(reference表示基于此注解解析的)
-- ReferenceAnnotationBeanPostProcessor.java为例
+##### ReferenceAnnotationBeanPostProcessor为例
+
+- ReferenceAnnotationBeanPostProcessor.java
 
 ```java
 public class ReferenceAnnotationBeanPostProcessor implements BeanPostProcessor, PriorityOrdered {
@@ -480,7 +488,7 @@ public class ReferenceAnnotationBeanPostProcessor implements BeanPostProcessor, 
                     interfaceType = field.getType();
                 }
 
-                // 创建ReferenceComponent的代理对象，具体参考下文
+                // 创建ReferenceComponent的代理对象，并注册，具体参考下文
                 Object proxy = createReferenceProxy(sofaReferenceAnnotation, interfaceType);
                 ReflectionUtils.makeAccessible(field);
                 // 将代理对象设置为此属性值
@@ -534,6 +542,213 @@ public class ReferenceAnnotationBeanPostProcessor implements BeanPostProcessor, 
             }
         });
     }
+
+    // 创建ReferenceComponent的代理对象，并注册
+    private Object createReferenceProxy(SofaReference sofaReferenceAnnotation,
+                                        Class<?> interfaceType) {
+        Reference reference = new ReferenceImpl(sofaReferenceAnnotation.uniqueId(), interfaceType,
+            InterfaceMode.annotation, sofaReferenceAnnotation.jvmFirst());
+        BindingConverter bindingConverter = bindingConverterFactory
+            .getBindingConverter(new BindingType(sofaReferenceAnnotation.binding().bindingType()));
+        if (bindingConverter == null) {
+            throw new ServiceRuntimeException("Can not found binding converter for binding type "
+                                              + sofaReferenceAnnotation.binding().bindingType());
+        }
+
+        BindingConverterContext bindingConverterContext = new BindingConverterContext();
+        bindingConverterContext.setInBinding(true);
+        bindingConverterContext.setApplicationContext(applicationContext);
+        bindingConverterContext.setAppName(sofaRuntimeContext.getAppName());
+        bindingConverterContext.setAppClassLoader(sofaRuntimeContext.getAppClassLoader());
+        Binding binding = bindingConverter.convert(sofaReferenceAnnotation,
+            sofaReferenceAnnotation.binding(), bindingConverterContext);
+        reference.addBinding(binding);
+        // 注册组件
+        return ReferenceRegisterHelper.registerReference(reference, bindingAdapterFactory,
+            sofaRuntimeContext);
+    }
+}
+```
+
+- ReferenceRegisterHelper.java
+
+```java
+public class ReferenceRegisterHelper {
+    public static Object registerReference(Reference reference,
+                                           BindingAdapterFactory bindingAdapterFactory,
+                                           SofaRuntimeContext sofaRuntimeContext) {
+        Binding binding = (Binding) reference.getBindings().toArray()[0];
+
+        if (!binding.getBindingType().equals(JvmBinding.JVM_BINDING_TYPE)
+            && !SofaRuntimeProperties.isDisableJvmFirst(sofaRuntimeContext)
+            && reference.isJvmFirst()) {
+            // as rpc invocation would be serialized, so here would Not ignore serialized
+            reference.addBinding(new JvmBinding());
+        }
+
+        ComponentManager componentManager = sofaRuntimeContext.getComponentManager();
+        ReferenceComponent referenceComponent = new ReferenceComponent(reference,
+            new DefaultImplementation(), bindingAdapterFactory, sofaRuntimeContext);
+
+        if (componentManager.isRegistered(referenceComponent.getName())) {
+            return componentManager.getComponentInfo(referenceComponent.getName())
+                .getImplementation().getTarget();
+        }
+
+        // 注册组件并获取返回的组件信息，参考下文
+        ComponentInfo componentInfo = componentManager.registerAndGet(referenceComponent);
+        return componentInfo.getImplementation().getTarget();
+
+    }
+}
+```
+
+##### ServiceBeanFactoryPostProcessor为例
+
+- ServiceBeanFactoryPostProcessor.java 修改(Component)Bean的定义
+
+```java
+public class ServiceBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        Arrays.stream(beanFactory.getBeanDefinitionNames())
+            .collect(Collectors.toMap(Function.identity(), beanFactory::getBeanDefinition))
+            // 循环所有的bean定义配置，transformSofaBeanDefinition最终会调用到 generateSofaServiceDefinitionOnClass
+            .forEach((key, value) -> transformSofaBeanDefinition(key, value, beanFactory));
+    }
+
+    private void generateSofaServiceDefinitionOnClass(String beanId, Class<?> beanClass,
+                                                      BeanDefinition beanDefinition,
+                                                      ConfigurableListableBeanFactory beanFactory) {
+        // 获取有 SofaService 注解的类
+        SofaService sofaServiceAnnotation = beanClass.getAnnotation(SofaService.class);
+        generateSofaServiceDefinition(beanId, sofaServiceAnnotation, beanClass, beanDefinition,
+            beanFactory);
+    }
+
+    private void generateSofaServiceDefinition(String beanId, SofaService sofaServiceAnnotation,
+                                               Class<?> beanClass, BeanDefinition beanDefinition,
+                                               ConfigurableListableBeanFactory beanFactory) {
+        if (sofaServiceAnnotation == null) {
+            return;
+        }
+        // 生成 SofaService 定义对象
+        AnnotationWrapperBuilder<SofaService> wrapperBuilder = AnnotationWrapperBuilder.wrap(
+            sofaServiceAnnotation).withBinder(binder);
+        sofaServiceAnnotation = wrapperBuilder.build();
+
+        Class<?> interfaceType = sofaServiceAnnotation.interfaceType();
+        if (interfaceType.equals(void.class)) {
+            Class<?> interfaces[] = beanClass.getInterfaces();
+
+            if (beanClass.isInterface() || interfaces == null || interfaces.length == 0) {
+                interfaceType = beanClass;
+            } else if (interfaces.length == 1) {
+                interfaceType = interfaces[0];
+            } else {
+                throw new FatalBeanException("Bean " + beanId + " has more than one interface.");
+            }
+        }
+
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
+        String serviceId = SofaBeanNameGenerator.generateSofaServiceBeanName(interfaceType,
+            sofaServiceAnnotation.uniqueId());
+
+        // 在Bean实例化之前，修改Bean的定义
+        if (!beanFactory.containsBeanDefinition(serviceId)) {
+            builder.getRawBeanDefinition().setScope(beanDefinition.getScope());
+            builder.setLazyInit(beanDefinition.isLazyInit());
+            builder.getRawBeanDefinition().setBeanClass(ServiceFactoryBean.class);
+            builder.addPropertyValue(AbstractContractDefinitionParser.INTERFACE_CLASS_PROPERTY,
+                interfaceType);
+            builder.addPropertyValue(AbstractContractDefinitionParser.UNIQUE_ID_PROPERTY,
+                sofaServiceAnnotation.uniqueId());
+            builder.addPropertyValue(AbstractContractDefinitionParser.BINDINGS,
+                getSofaServiceBinding(sofaServiceAnnotation, sofaServiceAnnotation.bindings()));
+            builder.addPropertyReference(ServiceDefinitionParser.REF, beanId);
+            builder.addPropertyValue(ServiceDefinitionParser.BEAN_ID, beanId);
+            builder.addPropertyValue(AbstractContractDefinitionParser.DEFINITION_BUILDING_API_TYPE,
+                true);
+            builder.addDependsOn(beanId);
+            ((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(serviceId,
+                builder.getBeanDefinition());
+        } else {
+            SofaLogger.error("SofaService was already registered: {0}", serviceId);
+        }
+    }
+}
+```
+- AbstractContractFactoryBean.java 触发Component注册
+
+```java
+public abstract class AbstractContractFactoryBean implements InitializingBean, FactoryBean,
+                                                 ApplicationContextAware {
+    // org.springframework.beans.factory.InitializingBean                 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        List<Element> tempElements = new ArrayList<>();
+        if (elements != null) {
+            for (TypedStringValue element : elements) {
+                DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
+                    .newInstance();
+                documentBuilderFactory.setNamespaceAware(true);
+                InputSource inputSource = new InputSource(new ByteArrayInputStream(element
+                    .getValue().getBytes()));
+                inputSource.setEncoding(documentEncoding);
+                Element node = documentBuilderFactory.newDocumentBuilder().parse(inputSource)
+                    .getDocumentElement();
+                tempElements.add(node);
+            }
+        }
+        sofaRuntimeContext = applicationContext.getBean(
+            SofaRuntimeFrameworkConstants.SOFA_RUNTIME_CONTEXT_BEAN_ID, SofaRuntimeContext.class);
+        bindingConverterFactory = getBindingConverterFactory();
+        bindingAdapterFactory = getBindingAdapterFactory();
+        if (!apiType) {
+            this.bindings = parseBindings(tempElements, applicationContext, isInBinding());
+        }
+
+        // 执行bean创建完后的操作
+        doAfterPropertiesSet();
+    }
+}
+```
+
+- ServiceFactoryBean.java
+    - 同理还有ReferenceFactoryBean
+
+```java
+public class ServiceFactoryBean extends AbstractContractFactoryBean {
+    @Override
+    protected void doAfterPropertiesSet() {
+        if (!apiType && hasSofaServiceAnnotation()) {
+            throw new ServiceRuntimeException(
+                "Bean " + beanId + " of type " + ref.getClass()
+                        + " has already annotated by @SofaService,"
+                        + " can not be registered using xml. Please check it.");
+        }
+
+        Implementation implementation = new DefaultImplementation();
+        implementation.setTarget(ref);
+        service = buildService();
+
+        // default add jvm binding and service jvm binding should set serialize as true
+        if (bindings.size() == 0) {
+            JvmBinding jvmBinding = new JvmBinding();
+            JvmBindingParam jvmBindingParam = new JvmBindingParam().setSerialize(true);
+            bindings.add(new JvmBinding().setJvmBindingParam(jvmBindingParam));
+        }
+
+        for (Binding binding : bindings) {
+            service.addBinding(binding);
+        }
+
+        ComponentInfo componentInfo = new ServiceComponent(implementation, service,
+            bindingAdapterFactory, sofaRuntimeContext);
+        // 注册Component，参考下文 ComponentManagerImpl
+        sofaRuntimeContext.getComponentManager().register(componentInfo);
+    }
 }
 ```
 
@@ -580,6 +795,11 @@ public class ComponentManagerImpl implements ComponentManager {
     protected ConcurrentMap<ComponentType, Map<ComponentName, ComponentInfo>> resolvedRegistry;
 
     // 注册组件
+    public ComponentInfo registerAndGet(ComponentInfo componentInfo) {
+        return doRegister(componentInfo);
+    }
+
+    // 执行组件注册
     private ComponentInfo doRegister(ComponentInfo ci) {
         ComponentName name = ci.getName();
         if (isRegistered(name)) {
@@ -618,7 +838,7 @@ public class ComponentManagerImpl implements ComponentManager {
             if (ci.resolve()) { // 设置 componentStatus = ComponentStatus.RESOLVED 为已归纳
                 // 按照 ComponentType 类型进行归纳，包含：service/reference/Spring等
                 typeRegistry(ci);
-                // 执行激活组件方法，参考下文
+                // **执行激活组件方法，参考下文**
                 ci.activate();
             }
         } catch (Throwable t) {
@@ -730,6 +950,62 @@ public class ReferenceComponent extends AbstractComponent {
         }
         return proxy;
     }
+
+    // 检查当前组件的状态，在Biz启动完成后执行健康检查，Biz下所有组件检查通过则将Biz标记为actived
+    @Override
+    public HealthResult isHealthy() {
+        if (!isActivated()) {
+            return super.isHealthy();
+        }
+
+        HealthResult result = new HealthResult(componentName.getRawName());
+        List<HealthResult> bindingHealth = new ArrayList<>();
+
+        JvmBinding jvmBinding = null;
+        HealthResult jvmBindingHealthResult = null;
+        if (reference.hasBinding()) {
+            for (Binding binding : reference.getBindings()) {
+                bindingHealth.add(binding.healthCheck());
+                if (JvmBinding.JVM_BINDING_TYPE.equals(binding.getBindingType())) {
+                    jvmBinding = (JvmBinding) binding;
+                    jvmBindingHealthResult = bindingHealth.get(bindingHealth.size() - 1);
+                }
+            }
+        }
+
+        // check reference has a corresponding service
+        // 可通过 com.alipay.sofa.boot.skipJvmReferenceHealthCheck=true 设置为不检查组件的健康状态（如有些组件实现是通过ark动态安装进来的，就会出现Biz启动不成功的问题）
+        if (!SofaRuntimeProperties.isSkipJvmReferenceHealthCheck(sofaRuntimeContext)
+            && jvmBinding != null) {
+            Object serviceTarget = getServiceTarget();
+            if (serviceTarget == null && !jvmBinding.hasBackupProxy()) {
+                jvmBindingHealthResult.setHealthy(false);
+                jvmBindingHealthResult.setHealthReport("can not find corresponding jvm service");
+            }
+        }
+
+        List<HealthResult> failedBindingHealth = new ArrayList<>();
+
+        for (HealthResult healthResult : bindingHealth) {
+            if (healthResult != null && !healthResult.isHealthy()) {
+                failedBindingHealth.add(healthResult);
+            }
+        }
+
+        if (failedBindingHealth.size() == 0) {
+            result.setHealthy(true);
+        } else {
+            StringBuilder healthReport = new StringBuilder("|");
+            for (HealthResult healthResult : failedBindingHealth) {
+                healthReport.append(healthResult.getHealthName()).append("#")
+                    .append(healthResult.getHealthReport());
+            }
+            result.setHealthReport(healthReport.substring(1, healthReport.length()));
+            result.setHealthy(false);
+        }
+
+        return result;
+    }
 }
 ```
 - JvmBindingAdapter.java
@@ -766,7 +1042,7 @@ public class JvmBindingAdapter implements BindingAdapter<JvmBinding> {
 
         try {
             Thread.currentThread().setContextClassLoader(newClassLoader);
-            // 实例化 JvmServiceInvoker，通过此对象调用服务？
+            // 实例化 JvmServiceInvoker，通过此对象调用服务
             ServiceProxy handler = new JvmServiceInvoker(contract, binding, sofaRuntimeContext);
             ProxyFactory factory = new ProxyFactory();
             if (javaClass.isInterface()) {
@@ -780,6 +1056,123 @@ public class JvmBindingAdapter implements BindingAdapter<JvmBinding> {
             return factory.getProxy(newClassLoader);
         } finally {
             Thread.currentThread().setContextClassLoader(oldClassLoader);
+        }
+    }
+
+    // ***执行组件服务调用，即找到对应的 @SofaService 声明的服务***
+    static class JvmServiceInvoker extends ServiceProxy {
+        @Override
+        public Object invoke(MethodInvocation invocation) throws Throwable {
+            if (!SofaRuntimeProperties.isJvmFilterEnable()) {
+                // Jvm filtering is not enabled
+                return super.invoke(invocation);
+            }
+
+            ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
+            JvmFilterContext context = new JvmFilterContext(invocation);
+            Object rtn;
+
+            if (getTarget() == null) {
+                // 获取目标服务（实现类）
+                ServiceComponent serviceComponent = DynamicJvmServiceProxyFinder
+                    .getDynamicJvmServiceProxyFinder().findServiceComponent(
+                        sofaRuntimeContext.getAppClassLoader(), contract);
+                if (serviceComponent == null) {
+                    // Jvm service is not found in normal or Ark environment
+                    // We're actually invoking an RPC service, skip Jvm filtering
+                    return super.invoke(invocation);
+                }
+                context.setSofaRuntimeContext(serviceComponent.getContext());
+            } else {
+                context.setSofaRuntimeContext(sofaRuntimeContext);
+            }
+
+            long startTime = System.currentTimeMillis();
+            try {
+                Thread.currentThread().setContextClassLoader(serviceClassLoader);
+                // Do Jvm filter <code>before</code> invoking
+                // if some filter returns false, skip remaining filters and actual Jvm invoking
+                if (JvmFilterHolder.beforeInvoking(context)) {
+                    rtn = doInvoke(invocation);
+                    context.setInvokeResult(rtn);
+                }
+            } catch (Throwable e) {
+                // Exception occurs, set <code>e</code> in Jvm context
+                context.setException(e);
+                doCatch(invocation, e, startTime);
+                throw e;
+            } finally {
+                // Do Jvm Filter <code>after</code> invoking regardless of the fact whether exception happens or not
+                JvmFilterHolder.afterInvoking(context);
+                rtn = context.getInvokeResult();
+                doFinally(invocation, startTime);
+                Thread.currentThread().setContextClassLoader(oldClassLoader);
+            }
+            return rtn;
+        }
+
+        @Override
+        public Object doInvoke(MethodInvocation invocation) throws Throwable {
+            if (binding.isDestroyed()) {
+                throw new IllegalStateException("Can not call destroyed reference! JVM Reference["
+                                                + getInterfaceName() + "#" + getUniqueId()
+                                                + "] has already been destroyed.");
+            }
+
+            SofaLogger.debug(">> Start in JVM service invoke, the service interface is  - {}",
+                getInterfaceName());
+
+            Object retVal;
+            Object targetObj = this.getTarget();
+
+            // invoke internal dynamic-biz jvm service
+            if (targetObj == null) {
+                ServiceProxy serviceProxy = DynamicJvmServiceProxyFinder
+                    .getDynamicJvmServiceProxyFinder().findServiceProxy(
+                        sofaRuntimeContext.getAppClassLoader(), contract);
+                if (serviceProxy != null) {
+                    try {
+                        return serviceProxy.invoke(invocation);
+                    } finally {
+                        SofaLogger.debug(
+                            "<< Finish Cross App JVM service invoke, the service is  - {}]",
+                            (getInterfaceName() + "#" + getUniqueId()));
+                    }
+                }
+            }
+
+            if (targetObj == null || ((targetObj instanceof Proxy) && binding.hasBackupProxy())) {
+                targetObj = binding.getBackupProxy();
+                SofaLogger.debug("<<{}.{} backup proxy invoke.", getInterfaceName().getName(),
+                    invocation.getMethod().getName());
+            }
+
+            if (targetObj == null) {
+                throw new IllegalStateException(
+                    "JVM Reference["
+                            + getInterfaceName()
+                            + "#"
+                            + getUniqueId()
+                            + "] can not find the corresponding JVM service. "
+                            + "Please check if there is a SOFA deployment publish the corresponding JVM service. "
+                            + "If this exception occurred when the application starts up, please add Require-Module to SOFA deployment's MANIFEST.MF to indicate the startup dependency of SOFA modules.");
+            }
+
+            ClassLoader tcl = Thread.currentThread().getContextClassLoader();
+            try {
+                pushThreadContextClassLoader(sofaRuntimeContext.getAppClassLoader());
+                retVal = invocation.getMethod().invoke(targetObj, invocation.getArguments());
+            } catch (InvocationTargetException ex) {
+                throw ex.getTargetException();
+            } finally {
+                SofaLogger.debug(
+                    "<< Finish JVM service invoke, the service implementation is  - {}]",
+                    (this.target == null ? "null" : this.target.getClass().getName()));
+
+                popThreadContextClassLoader(tcl);
+            }
+
+            return retVal;
         }
     }
 }
@@ -912,6 +1305,7 @@ public class ServiceComponent extends AbstractComponent {
 
 ##### SpringContextComponent为例
 
+- sofa v3.6.0才有
 - 初始化模块的时候会调用，参考下文[并行刷新SpringContext](#并行刷新SpringContext)
 
 ```java
@@ -1060,7 +1454,7 @@ public class SofaArkBootstrap {
                 Thread launchThread = new Thread(threadGroup, launchRunner,
                     entryMethod.getMethodName());
                 launchThread.start();
-                // 等threadGroup执行完成(包含launchThread线程)，时程序启动后阻塞在此处
+                // 等threadGroup执行完成时(执行launchThread的线程)，程序启动后阻塞在此处
                 LaunchRunner.join(threadGroup);
                 threadGroup.rethrowUncaughtException();
                 System.exit(0);
@@ -1074,7 +1468,9 @@ public class SofaArkBootstrap {
     private static void remain(String[] args) throws Exception {// NOPMD
         AssertUtils.assertNotNull(entryMethod, "No Entry Method Found.");
         URL[] urls = getURLClassPath();
-        // 执行 ClasspathLauncher#launch。传入参数 ClassPathArchive 记录了(urls：classpath下依赖的jar，arkConfBaseDir: 配置conf/ark/bootstrap.properties文件路径)
+        // 执行 ClasspathLauncher#launch。传入参数 ClassPathArchive 记录了
+            // urls：classpath下依赖的jar
+            // arkConfBaseDir: 配置conf/ark/bootstrap.properties文件路径
         // 最终反射调用ArkContainer入口：ArkContainer.main 方法，见[sofa-ark-container](#sofa-ark-container)
         new ClasspathLauncher(new ClassPathArchive(entryMethod.getDeclaringClassName(), entryMethod.getMethodName(), urls))
             .launch(args, getClasspath(urls), entryMethod.getMethod());
@@ -1146,7 +1542,7 @@ public class ArkContainer {
 }
 ```
 
-#### 以DeployBizStage为例
+#### 以DeployBizStage为例(执行Biz的main方法)
 
 - DeployBizStage.java
 
@@ -1187,6 +1583,7 @@ public void deploy(String[] args) throws ArkRuntimeException {
 ```java
 @Override
 public void deploy() {
+    // 循环启动所有Biz,优先级可在maven中配置
     for (Biz biz : bizManagerService.getBizInOrder()) {
         try {
             LOGGER.info(String.format("Begin to start biz: %s", biz.getBizName()));
@@ -1214,13 +1611,19 @@ public class BizModel implements Biz {
         EventAdminService eventAdminService = ArkServiceContainerHolder.getContainer().getService(
             EventAdminService.class);
         try {
+            // 触发Biz启动前事件，可自定义进行监听
             eventAdminService.sendEvent(new BeforeBizStartupEvent(this));
             resetProperties();
+
             // 包装Biz的mian方法
             MainMethodRunner mainMethodRunner = new MainMethodRunner(mainClass, args);
             // 反射调用Biz的main方法，如SpringBootApplication.main
             mainMethodRunner.run();
-            // this can trigger health checker handler
+
+            // 触发Biz启动后事件，可自定义进行监听
+            // this can trigger health checker handler 会触发检查Biz状态事件，参考 SofaEventHandler#doHealthCheck
+            // 在Biz启动完成后执行健康检查：会获取Biz下所有组件，并依次检查各组件，参考上文[ReferenceComponent为例](#ReferenceComponent为例)
+            // 只有此Biz下全部组件通过，则将Biz标记为 ACTIVATED，否则为 BROKEN
             eventAdminService.sendEvent(new AfterBizStartupEvent(this));
         } catch (Throwable e) {
             bizState = BizState.BROKEN;
@@ -1239,8 +1642,10 @@ public class BizModel implements Biz {
 }
 ```
 
-#### 启动Biz服务
+#### 启动Biz的服务
 
+- 上文mainMethodRunner.run()会调用各Biz的SpringBootApplication.main方法，从而相当于启动一个SpringBoot项目。那么Spring项目启动则势必会调用到refresh方法，最终触发此处onRefresh(refresh - finishRefresh - onRefresh)方法，从而初始化Tomcat
+- refresh过程还会刷新SofaBoot Component(如ReferenceComponent,即@SofaReference等注解)的生命周期，参考[runtime-sofa-boot](#runtime-sofa-boot)
 - ServletWebServerApplicationContext.java
 
 ```java
@@ -1331,9 +1736,12 @@ public class ArkTomcatWebServer implements WebServer {
 
 2021-04-15 20:34:40.233  INFO 10844 --- [           main] com.alipay.sofa                          : SOFABoot Runtime Starting!
 # ...
+# -->由于当前模块中使用 @SofaReference 引用了服务 SampleJvmService, 因此扫描到此注解时，会根据注解的信息创建相应的代理对象
 2021-04-15 20:34:58.727  INFO 10844 --- [           main] com.alipay.sofa                          : Registering component: reference:com.alipay.sofa.isle.sample.SampleJvmService:#1173235289
+# 开始创建代理对象
 2021-04-15 20:34:58.731  INFO 10844 --- [           main] com.alipay.sofa                          :  >>In Binding [jvm] Begins - com.alipay.sofa.isle.sample.SampleJvmService.
 2021-04-15 20:34:58.759  INFO 10844 --- [           main] com.alipay.sofa                          :  >>In Binding [jvm] Ends - com.alipay.sofa.isle.sample.SampleJvmService.
+# <--解析完一个 @SofaReference
 2021-04-15 20:34:58.760  INFO 10844 --- [           main] com.alipay.sofa                          : Registering component: reference:com.alipay.sofa.isle.sample.SampleJvmService:annotationImpl#1173235289
 2021-04-15 20:34:58.761  INFO 10844 --- [           main] com.alipay.sofa                          :  >>In Binding [jvm] Begins - com.alipay.sofa.isle.sample.SampleJvmService:annotationImpl.
 2021-04-15 20:34:58.761  INFO 10844 --- [           main] com.alipay.sofa                          :  >>In Binding [jvm] Ends - com.alipay.sofa.isle.sample.SampleJvmService:annotationImpl.

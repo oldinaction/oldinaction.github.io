@@ -55,7 +55,7 @@ tags: [php]
         ```
 - linux + nginx + fastcgi运行php程序
     - nginx配置同上
-    - 需要安装`php-fpm`来实现fastcgi
+    - 需要安装`php-fpm`来实现fastcgi：`systemctl status php-fpm`
 
 ## PHP基本语法
 

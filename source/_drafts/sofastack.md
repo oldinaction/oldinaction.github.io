@@ -219,15 +219,28 @@ Require-Module=com.alipay.sofa.service-provider
             - 每个Biz有自己的Controller层，原本是部署在不同的JVM，因此需要通过网络交互(如RPC)；而Ark架构，支持合并部署Biz，此时使用JVM服务交互，减少网络传输层
         - Ark Biz 和 Ark Plugin 是单向类索引关系，即只允许 Ark Biz 索引 Ark Plugin 加载的类和资源，反之则不允许(只能Ark Biz调用Ark Plugin)
         - Ark Plugin 之间是双向类索引关系，即可以相互委托对方加载所需的类和资源(Ark Plugin可相互调用)
-- 动态Ark Biz包安装
-    - telnet：Ark容器默认会启动一个监听在1234端口的telnet服务
-    - API：使用`ArkClient`类
-    - zookeeper方式
+
+### 生命周期
+
+- 参考：https://www.sofastack.tech/projects/sofa-boot/sofa-ark-biz-lifecycle/
 - Ark 容器启动流程：https://www.sofastack.tech/projects/sofa-boot/sofa-ark-startup/
+- Biz生命周期
+    - unresolved: 未注册，此时 Biz 包未被运行时解析
+    - resolved: Biz 包解析完成，且已注册，此时 Biz 包还没有安装或者安装中
+    - activated: Biz 包启动完成，且处于激活状态，可以对外提供服务
+    - deactivated: Biz 包启动完成，但出于未激活状态，模块多个版本时，只有一个版本出于激活状态(注意这个状态只对 JVM 服务生效，对 RPC 等其他中间件无效)
+    - broken: Biz 包启动失败后状态
+- 安装 Biz
+    - 解析模块
+    - 注册模块
+    - 启动模块
+    - 健康检查
+    - 切换状态
 
 ### 通信/调用
 
 - Biz-Biz通信: 使用JVM服务通信，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/
+    - **目前仅sofa v3.1.4支持**，sofa v3.2.2~v3.7.0报错
 - Biz-Plugin通信: 使用Ark服务机制，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-service/
 
 ### 使用
@@ -238,21 +251,40 @@ Require-Module=com.alipay.sofa.service-provider
 ```bash
 # 连接container，成功会显示命令行`sofa-ark>`
 telnet localhost 1234
+
 help # 查看帮助
 # 安装biz包
 biz -i file:///C:/Users/smalle/Desktop/sofa-ark-dynamic-guides-master/target/ark-dynamic-module-1.0.0-ark-biz.jar
+# 卸载biz包
+biz -u ark-dynamic-module:0.0.1
 # 查看所有安装的biz包
 biz -a
 ```
-- 多Biz启动
-    - 开发环境
-        - 在启动类所有模块根目录增加`conf/ark/bootstrap.properties`
-        - 并设置master biz: `com.alipay.sofa.ark.master.biz=Startup In IDE`
-        - 然后将其他biz-jar放到某个文件夹下，并将此文件夹添加到此模块的依赖包中(ark会扫码classpath下所有jar看是否为plugin或biz)
+
+#### 动态引入Biz
+
+- 动态Ark Biz包安装方式
+    - telnet：Ark容器默认会启动一个监听在1234端口的telnet服务
+    - API：使用`ArkClient`类
+    - zookeeper方式
+- sofa v3.1.4
+    - 必须要main方法
+    - 必须要定义spring.application.name配置
+    - 不能有sofa-module.properties配置
+    - 引入依赖：runtime-sofa-boot-plugin、sofa-ark-springboot-starter、web-ark-plugin
+    - 一般可设置 com.alipay.sofa.boot.skipJvmReferenceHealthCheck=true, 即配置为不检查组件的健康状态（如有些组件实现是通过ark动态安装进来的，就会出现Biz启动不成功的问题）
+
+#### 多Biz启动
+
+- 开发环境(sofa v3.6.0, 此版本不支持Biz间服务调用)
+    - 在启动类所有模块根目录增加`conf/ark/bootstrap.properties`
+    - 并设置master biz: `com.alipay.sofa.ark.master.biz=Startup In IDE`
+    - 然后将其他biz-jar放到某个文件夹下，并将此文件夹添加到此模块的依赖包中(ark会扫码classpath下所有jar看是否为plugin或biz)
+
 
 ## 错误
 
 - IDE启动报错：`javax.management.InstanceAlreadyExistsException: org.springframework.boot:type=Admin,name=SpringApplication`
     - 参考：https://github.com/sofastack/sofa-boot/issues/327
-    - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖，如增加`spring.application.json={"spring.application.admin.enabled": false}`
+    - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖，**如增加`spring.application.json={"spring.application.admin.enabled": false}`**
 

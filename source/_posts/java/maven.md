@@ -553,6 +553,7 @@ tags: [build]
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.1.0</version>
 			</plugin>
 		</plugins>
 	</pluginManagement>

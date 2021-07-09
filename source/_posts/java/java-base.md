@@ -165,6 +165,25 @@ public Result test() {
 // 泛型方法，对应的Util类无需增加泛型标识
 public static <T> T foo() {}
 ```
+- 泛型传参
+
+```java
+List<EnvironmentPostProcessor> loadPostProcessors() {
+    // 传入泛型 T 的类
+    return SpringFactoriesLoader.loadFactories(EnvironmentPostProcessor.class, getClass().getClassLoader());
+}
+
+public static <T> List<T> loadFactories(Class<T> factoryClass, @Nullable ClassLoader classLoader) {
+    Class<?> instanceClass = ClassUtils.forName("cn.aezo.test.EnvironmentPostProcessor", classLoader);
+    // 父类.class.isAssignableFrom(子类.class) 判断是否为类继承
+    if (!factoryClass.isAssignableFrom(instanceClass)) {
+        throw new IllegalArgumentException(
+                "Class [" + instanceClassName + "] is not assignable to [" + factoryClass.getName() + "]");
+    }
+    T t = (T) ReflectionUtils.accessibleConstructor(instanceClass).newInstance();
+    // ...
+}
+```
 
 ## 集合
 

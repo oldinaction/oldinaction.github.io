@@ -620,7 +620,7 @@ public class LocalDateTimeUtils {
 
 ### spring.factories文件
 
-- `spring.factories`主要为让Spring容器扫描配置文件中定义的类，默认只会扫描SpringBoot的启动类所在根目录及子目录，此方式主要加载第三方类库
+- `spring.factories` 是spring提供的SPI机制，主要为让Spring容器扫描配置文件中定义的类。默认只会扫描SpringBoot的启动类所在根目录及子目录，此方式主要加载第三方类库
 - 案例
 
 ```bash
@@ -631,19 +631,19 @@ main
             # 启动类。启动后默认值只能扫描`cn.aezo.test1`包下的Bean
             TestApplication.java
         cn.aezo.test2
-            # @Configuration配置类，默认无法被扫描到，因此也不会被Spring容器管理
+            # @Configuration配置类，**默认无法被扫描到，因此也不会被Spring容器管理**
             Test2Config.java
     resources
         META-INF
-            # 方式一：定义额外需要扫码的类，从而让Test2Config也可以被扫描到，并加入到Spring容器
+            # 方式一：在TestApplication类上加入`@Import(value={Test2Config.class})`，从而进行导入
+            # 方式二(此方法)：定义额外需要扫码的类，从而让Test2Config也可以被扫描到，并加入到Spring容器
             # org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test2.Test2Config
-            # 方式二：在TestApplication类上加入`@Import(value={Test2Config.class})`，从而进行导入
             spring.factories
 ```
 - `spring.factories`配置说明
 
 ```ini
-# 导入第三方Bean
+# 导入第三方Bean。Test2Config类上仍需要加@Configuration等配置类
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test2.Test2Config
 # 用于加载自定义配置路径文件[参考](#EnvironmentPostProcessor加载自定义配置路径文件)
 org.springframework.boot.env.EnvironmentPostProcessor=cn.aezo.test.ConfEnvironmentPostProcessor
