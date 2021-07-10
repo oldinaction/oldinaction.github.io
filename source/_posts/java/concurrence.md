@@ -370,7 +370,7 @@ condition2.signalAll(); // 唤醒condition2队列中的线程。注意不是cond
 ```java
 CountDownLatch latch = new CountDownLatch(10); // 初始化一个计数器
 
-latch.countDown(); // 如当一个线程结束，则倒数一下(也可在一个线程countDown多次)
+latch.countDown(); // 如当一个线程结束，则倒数一下(即倒数值减1，如果值为0，则await可以放行。也可在一个线程countDown多次；也可以在await前进行倒数，则await会直接放行)
 latch.await(); // 当latch倒数到0则往下执行，否则会阻塞此处
 ```
 - 底层基于AQS实现，AQS.state此时表示计数器未完成的数量

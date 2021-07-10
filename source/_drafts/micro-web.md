@@ -43,6 +43,107 @@ tags: [vue]
     - [从qiankun看子应用加载](https://juejin.cn/post/6891888458919641096)
     - [从qiankun看沙箱隔离](https://juejin.cn/post/6896643767353212935)
 
+### 多应用部署
+
+```bash
+## 如果浏览器路径为 http://localhost/sqbiz/module/jxc 则触发activeRule路径，从而跳转到
+
+## qiankun路由配置
+registerMicroApps(
+    [{
+        name: 'sqbiz-module-jxc',
+        entry: '/sqbiz/jxc/',
+        container: '#subapp-viewport',
+        activeRule: '/sqbiz/module/jxc'
+    }, {
+        name: 'sqbiz-plugin-minions-app',
+        entry: '//localhost/sqbiz/minions/',
+        container: '#subapp-viewport',
+        activeRule: '/sqbiz/plugin/minions'
+    }],
+    callback
+);
+
+## 主应用配置
+# VUE_APP_PUBLIC_PATH=sqbiz 主应用端点
+# vue.config配置
+let publicPath = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
+module.exports = {
+  publicPath: publicPath,
+  outputDir: process.env.VUE_APP_PUBLIC_PATH || 'dist',
+}
+# 路由配置
+const prefix = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
+new VueRouter({
+    base: prefix,
+    mode: 'history',
+    routes: []
+})
+
+## 子应用配置
+# VUE_APP_PUBLIC_PATH=sqbiz/jxc 子应用端点
+# VUE_APP_QIANKUN_MAIN_BASE=/sqbiz 为主应用的端点，如果在根目录下，留空即可
+# vue.config配置
+let publicPath = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
+module.exports = {
+  publicPath: publicPath,
+  outputDir: process.env.VUE_APP_PUBLIC_PATH || 'dist',
+}
+# 路由配置，注意此处前面需要加主应用的端点
+const prefix = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
+new VueRouter({
+    base: window.__POWERED_BY_QIANKUN__ ? process.env.VUE_APP_QIANKUN_MAIN_BASE +  '/module/jxc/' : prefix,
+    mode: 'history',
+    routes: []
+})
+
+# nginx配置
+server {
+	listen       80;
+	server_name  localhost;
+	
+	gzip on;
+	gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+	
+	location /sqbiz/api/ {
+		proxy_pass http://127.0.0.1:8800/api/;
+	}
+	
+	location = /sqbiz/index.html {
+		add_header Cache-Control "no-cache, no-store";
+		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-main;
+		index  index.html index.htm;
+	}
+	
+	location = /sqbiz/jxc/index.html {
+		add_header Cache-Control "no-cache, no-store";
+		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-module/sqbiz-jxc;
+		index  index.html index.htm;
+	}
+	
+	location ^~ /sqbiz/jxc/ {
+		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-module/sqbiz-jxc;
+		try_files $uri $uri/ /sqbiz/jxc/index.html;
+		if ($request_filename ~* .*\.(?:htm|html)$) {
+			add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+		}
+	}
+	
+	location ^~ /sqbiz/ {
+		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-main;
+		try_files $uri $uri/ /sqbiz/index.html;
+		if ($request_filename ~* .*\.(?:htm|html)$) {
+			add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+		}
+	}
+	
+	location / {
+		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-main;
+		index  index.html index.htm;
+	}
+}
+```
+
 ### 沙箱隔离
 
 - 由于主应用和子应用在同一个窗口，因此不进行沙箱隔离，则主子应用访问到同一个window，可能导致数据混乱

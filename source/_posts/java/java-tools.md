@@ -347,6 +347,7 @@ Map map = (Map) Yaml.load(yamlStr);
         - 添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
         - 使用`@SuperBuilder`(v1.18.4)解决子类在链式赋值时无法设置父类的字段问题 [^1]
         - `@Builder(toBuilder = true)`表示相应对象会附带`toBuilder`方法，将其转换成功Builder对象继续进行链式赋值。默认只能通过MyClass.builder()获取链式调用入口
+        - **无法设置默认值，如实体类属性设置的值无效**
     - `@Accessors(fluent = true, chain = true, prefix = "p")`
         - 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
         - 如果作用在entity上，会导致mybatis的xml中resultMap字段无法识别

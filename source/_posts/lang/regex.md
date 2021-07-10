@@ -215,11 +215,24 @@ while (matcher.find()) {
 
 ### 常见案例
 
+- 校验
+
+```java
+str.matches("^[\u4e00-\u9fa5]{0,}$"); // 校验汉子
+```
+
 - 正则替换
+    - replace 普通字符串替换所有
+    - replaceFirst 正则替换第一个匹配的
+    - replaceAll 正则替换所有的
 
 ```java
 // 替换非字母数组为/
 "GP151971-GP151974-GP".replaceAll("[^A-Za-z0-9]", "/"); // GP151971/GP151974/GP
+
+String p = "\\{" + "\\$\\$\\$" + "\\}";
+System.out.println(a); // \{\$\$\$\}
+String s = "C{$$$}-{$$$}".replaceFirst(p, "123"); // C123-{$$$}
 ```
 - 匹配中文
 
@@ -230,6 +243,18 @@ Matcher matcher = pattern.matcher(str);
 while (matcher.find()) {
     System.out.println(matcher.group(1)); // hello world 
     System.out.println(matcher.group(2)); // 你好
+}
+```
+- 匹配括号对
+
+```java
+String dakuohao = "{a+b}={c+d}>{d}";
+Pattern compile = Pattern.compile("\\{([^}]*)\\}"); // "\\(([^}]*)\\)" 匹配小括号
+Matcher matcher = compile.matcher(dakuohao);
+// {a+b};{c+d};{d};
+while(matcher.find()) {
+    String group = matcher.group();
+    System.out.print(group+";");
 }
 ```
 
