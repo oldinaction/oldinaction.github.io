@@ -43,10 +43,21 @@ tags: [vue]
     - [从qiankun看子应用加载](https://juejin.cn/post/6891888458919641096)
     - [从qiankun看沙箱隔离](https://juejin.cn/post/6896643767353212935)
 
-### 多应用部署
+### 多应用部署及路由流程
 
 ```bash
-## 如果浏览器路径为 http://localhost/sqbiz/module/jxc 则触发activeRule路径，从而跳转到
+## 整体流程
+# 主应用端点 /sqbiz
+# 主应用点击菜单(从后台获取或从本地读取的菜单路径)，如：/sqbiz/module/jxc/xxx(需要加上主应用端点)
+# 主应用配置好如果以 /sqbiz/module/ 开头的路径，则跳转到子应用，此时可执行 history.pushState 推送路由
+# 主应用执行 router.beforeEach, to.path=/module/jxc/xxx (打印的vue-router的值会自动刨去主应用端点 /sqbiz)
+# 此时浏览器路径为 http://localhost/sqbiz/module/jxc/xxx 则触发activeRule路径，从而通过fetch(ajax)请求地址 http://localhost/sqbiz/jxc/xxx (entry路径)
+# 主应用执行 qiankun.beforeLoad
+# 此时由 nginx 访问到子应用 http://localhost/sqbiz/jxc/xxx
+# 子应用执行 main.bootstrap(qiankun)
+# 主应用执行 qiankun.beforeMount
+# 子应用执行 main.mount(qiankun)
+# 子应用执行 router.beforeEach, to.path=/xxx (打印的vue-router的值会自动刨去子应用端点 /sqbiz/module/jxc/，注意此处是基于浏览器地址来的)
 
 ## qiankun路由配置
 registerMicroApps(
@@ -70,7 +81,7 @@ registerMicroApps(
 let publicPath = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
 module.exports = {
   publicPath: publicPath,
-  outputDir: process.env.VUE_APP_PUBLIC_PATH || 'dist',
+  outputDir: process.env.VUE_APP_PUBLIC_PATH || 'dist', // 会在项目目录创建 sqbiz 产出文件夹
 }
 # 路由配置
 const prefix = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
@@ -87,7 +98,7 @@ new VueRouter({
 let publicPath = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
 module.exports = {
   publicPath: publicPath,
-  outputDir: process.env.VUE_APP_PUBLIC_PATH || 'dist',
+  outputDir: process.env.VUE_APP_PUBLIC_PATH || 'dist', // 会在项目目录创建 sqbiz/jxc 产出文件夹
 }
 # 路由配置，注意此处前面需要加主应用的端点
 const prefix = process.env.VUE_APP_PUBLIC_PATH ? ('/' + process.env.VUE_APP_PUBLIC_PATH + '/') : '/'
@@ -122,7 +133,7 @@ server {
 	}
 	
 	location ^~ /sqbiz/jxc/ {
-		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-module/sqbiz-jxc;
+		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-module/sqbiz-jxc; # 子模块 sqbiz-jxc 根目录
 		try_files $uri $uri/ /sqbiz/jxc/index.html;
 		if ($request_filename ~* .*\.(?:htm|html)$) {
 			add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
@@ -130,17 +141,17 @@ server {
 	}
 	
 	location ^~ /sqbiz/ {
-		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-main;
+		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-main; # 主模块根目录
 		try_files $uri $uri/ /sqbiz/index.html;
 		if ($request_filename ~* .*\.(?:htm|html)$) {
 			add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
 		}
 	}
-	
-	location / {
-		root   D:/gitwork/oschina/sqbiz/sqbiz-web/sqbiz-main;
-		index  index.html index.htm;
-	}
+
+    location = / {
+        # rewrite / http://192.168.1.100/sqbiz/ break;
+        rewrite / http://$server_name/sqbiz/ break;
+    }
 }
 ```
 

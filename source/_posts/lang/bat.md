@@ -212,6 +212,22 @@ echo d | xcopy target\sqbiz-plugin\*-ark-biz.jar dist\plugins /s
     - `-f` 强制结束该进程以及所有子进程
     - `/im` 指定要终止的进程的图像名，如`taskkill /F /IM notepad.exe`
 
+## 结合VBS
+
+- 参考[vbs.md](/_posts/lang/vbs.md)
+- bat优缺点
+    - 如本身没有延时函数，无法执行telnet等命令到达期望效果，此时可使用vbs
+    - 但是如移动、删除文件、复制文件夹、修改注册表等只用vbs就很容易出错，可仍然使用bat较为保险
+- bat和vbs互相调用举例
+
+```bash
+# bat文件中调用vbs
+start c:\test.vbs
+
+# vbs文件中调用bat. 
+createobject("wscript.shell").run "c:\test.bat",0,true
+```
+
 ## 常用脚本
 
 ### 零散(如java程序控制)

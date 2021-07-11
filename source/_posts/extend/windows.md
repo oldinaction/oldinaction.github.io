@@ -126,8 +126,8 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 - `Visio` 流程图。[Microsoft visio pro 2019 32位/64位](https://www.jb51.net/softs/634165.html#downintro2)
 - `DBeaver` 数据库连接工具(开源免费，支持数据库丰富)
   - 驱动JAR下载(官网提供的下载地址无法访问)
-    - 下载仓库`https://gitee.com/moshowgame/dbeaver-driver-all`中的jar
-    - 编辑连接 - 编辑驱动设置 - 添加文件夹 - 找到刚刚下载的git仓库中对应数据库文件夹
+    - 下载仓库`https://gitee.com/moshowgame/dbeaver-driver-all.git`中的jar
+    - 编辑连接 - 编辑驱动设置 - 库 - 添加文件(夹) - 找到刚刚下载的git仓库中对应数据库文件夹(如drivers-mysql-mysql8-xxx.jar)
 
 ## 软件使用
 

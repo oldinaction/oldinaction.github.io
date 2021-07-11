@@ -439,10 +439,20 @@ private void publishContextAsSofaComponent(DeploymentDescriptor deployment,
 
 ## runtime-sofa-boot
 
+- runtime-sofa-boot-starter-3.1.4.jar
+
 ### 初始化
 
-- 主要是管理组件(包括ReferenceComponent,ServiceComponent,SpringContextComponent)生命周期
-- 基于SofaBoot的简单模块隔离，或者基于多Ark Biz启动，一般都会用到此包
+- **基于SofaBoot的简单模块隔离，或者基于多Ark Biz启动，都会用到此包**
+- 主要是管理组件(Component, 本质是Bean/服务. 包括ReferenceComponent,ServiceComponent,SpringContextComponent)生命周期
+- 组件管理类ComponentManagerImpl
+    - register/registerAndGet 注册组件
+        - 服务端Biz, 其Spring初始化时调用，如：ServiceFactoryBean(通过扫描含@SofaReference注解的Bean)、ExtensionFactoryBean
+        - 服务端基于API初始化时调用：ServiceClientImpl、ExtensionClientImpl
+        - 客户端Biz初始化@SofaReference应用，ReferenceRegisterHelper
+            - ReferenceFactoryBean(InitializingBean)
+            - ReferenceAnnotationBeanPostProcessor(BeanPostProcessor)
+            - ReferenceClientImpl 客户端基于API注册引用
 - Spring初始化时，会调用其 postProcessBeforeInitialization 方法
     - 如根据`@SofaReference`注解，将组件信息(此时为ReferenceComponent类)保存到ComponentManagerImpl#registry集合中，集合中的key为ComponentName类型
         - 此时ComponentName如：`reference:com.alipay.sofa.isle.sample.SampleJvmService:#2120635923`(reference表示基于此注解解析的引用信息，会创建其代理对象)

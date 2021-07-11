@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "VBA"
+title: "Visual Basic for Applications"
 date: "2017-08-20 20:03"
 categories: [lang]
 tags: [excel, vb]
