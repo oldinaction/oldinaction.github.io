@@ -4,6 +4,90 @@
 
     
   <url>
+    <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
+    <lastmod>2021-07-11T13:00:28.155Z</lastmod>
+    <data>
+        <display>
+        <title>bat脚本</title>
+        <pubTime>2017-05-10T07:26:00.000Z</pubTime>
+        
+        <tag>windows</tag>
+         
+         
+           
+             
+              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2021/07/11/lang/vbs/</loc>
+    <lastmod>2021-07-11T12:54:58.287Z</lastmod>
+    <data>
+        <display>
+        <title>Visual Basic Script</title>
+        <pubTime>2021-07-11T12:38:00.000Z</pubTime>
+        
+        <tag>windows</tag>
+         
+        <tag>vb</tag>
+         
+         
+           
+             
+              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/08/20/lang/vba/</loc>
+    <lastmod>2021-07-11T12:45:06.308Z</lastmod>
+    <data>
+        <display>
+        <title>Visual Basic for Applications</title>
+        <pubTime>2017-08-20T12:03:00.000Z</pubTime>
+        
+        <tag>vb</tag>
+         
+        <tag>excel</tag>
+         
+         
+           
+             
+              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
+    <lastmod>2021-07-11T07:41:23.853Z</lastmod>
+    <data>
+        <display>
+        <title>Windows</title>
+        <pubTime>2017-05-10T07:26:00.000Z</pubTime>
+        
+        <tag>bat</tag>
+         
+         
+           
+             
+              <breadCrumb title="extend" url="http://blog.aezo.cn/categories/extend/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://blog.aezo.cn/2017/12/26/lang/regex/</loc>
     <lastmod>2021-07-10T10:56:02.139Z</lastmod>
     <data>
@@ -156,26 +240,6 @@
         <pubTime>2017-08-20T03:39:00.000Z</pubTime>
         
         <tag>php</tag>
-         
-         
-           
-             
-              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
-    <lastmod>2021-07-07T09:37:58.198Z</lastmod>
-    <data>
-        <display>
-        <title>bat脚本</title>
-        <pubTime>2017-05-10T07:26:00.000Z</pubTime>
-        
-        <tag>windows</tag>
          
          
            
@@ -425,26 +489,6 @@
            
              
               <breadCrumb title="java" url="http://blog.aezo.cn/categories/java/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
-    <lastmod>2021-06-22T05:37:54.479Z</lastmod>
-    <data>
-        <display>
-        <title>Windows</title>
-        <pubTime>2017-05-10T07:26:00.000Z</pubTime>
-        
-        <tag>bat</tag>
-         
-         
-           
-             
-              <breadCrumb title="extend" url="http://blog.aezo.cn/categories/extend/"/>
           
         </display>
     </data>
@@ -881,9 +925,9 @@
         
         <tag>oracle</tag>
          
-        <tag>sql</tag>
-         
         <tag>dba</tag>
+         
+        <tag>sql</tag>
          
          
            
@@ -2491,28 +2535,6 @@
     </url>
 
     
-    
-  <url>
-    <loc>http://blog.aezo.cn/2017/08/20/lang/vba/</loc>
-    <lastmod>2020-03-21T07:36:06.006Z</lastmod>
-    <data>
-        <display>
-        <title>VBA</title>
-        <pubTime>2017-08-20T12:03:00.000Z</pubTime>
-        
-        <tag>excel</tag>
-         
-        <tag>vb</tag>
-         
-         
-           
-             
-              <breadCrumb title="lang" url="http://blog.aezo.cn/categories/lang/"/>
-          
-        </display>
-    </data>
-    </url>
-
     
   <url>
     <loc>http://blog.aezo.cn/2017/12/09/java/ofbiz/ofbiz/</loc>

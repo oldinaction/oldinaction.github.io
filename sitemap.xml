@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
+    
+    <lastmod>2021-07-11T13:00:28.155Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/07/11/lang/vbs/</loc>
+    
+    <lastmod>2021-07-11T12:54:58.287Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/08/20/lang/vba/</loc>
+    
+    <lastmod>2021-07-11T12:45:06.308Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
+    
+    <lastmod>2021-07-11T07:41:23.853Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/12/26/lang/regex/</loc>
     
     <lastmod>2021-07-10T10:56:02.139Z</lastmod>
@@ -54,13 +82,6 @@
     <loc>http://blog.aezo.cn/2017/08/20/lang/php/</loc>
     
     <lastmod>2021-07-08T09:07:55.653Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
-    
-    <lastmod>2021-07-07T09:37:58.198Z</lastmod>
     
   </url>
   
@@ -138,13 +159,6 @@
     <loc>http://blog.aezo.cn/2017/08/05/java/springcloud/</loc>
     
     <lastmod>2021-06-22T07:55:45.606Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/05/10/extend/windows/</loc>
-    
-    <lastmod>2021-06-22T05:37:54.479Z</lastmod>
     
   </url>
   
@@ -817,13 +831,6 @@
     <loc>http://blog.aezo.cn/pages/index.html</loc>
     
     <lastmod>2020-04-05T15:27:55.158Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/08/20/lang/vba/</loc>
-    
-    <lastmod>2020-03-21T07:36:06.006Z</lastmod>
     
   </url>
   
