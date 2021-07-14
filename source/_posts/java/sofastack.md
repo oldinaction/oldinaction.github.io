@@ -43,7 +43,7 @@ tags: [springboot, plugin, 微服务]
     - 支持类隔离，基于 ClassLoader 隔离的模块化
     - 支持动态模块化
     - Gitblit 项目使用的就是 PF4J 进行插件管理
-- [springboot-plugin-framework](/_posts/java/springboot-plugin-framework.md)
+- [springboot-plugin-framework](/_posts/java/archive/springboot-plugin-framework.md)
     - 基于pf4j，且目标是整合springboot
     - **模块支持简单的Controller层**
 - Java9 模块化

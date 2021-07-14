@@ -21,15 +21,15 @@ tags: [windows]
 - `%[1-9]` 表示参数，`%0`表示批处理命令本身
 - `exit` 关闭窗口
 - 符号
-    - `+` COPY命令文件连接符 
-    - `* ?` 文件通配符 
-    - `""` 字符串界定符 
-    - `|` 命令管道符 
-    - `< > >>` 文件重定向符 
-    - `@` 命令行回显屏蔽符 
-    - `/` 参数开关引导符 
-    - `:` 批处理标签引导符 
-    - `%` 批处理变量引导符 
+    - `+` COPY命令文件连接符
+    - `* ?` 文件通配符
+    - `""` 字符串界定符，其中的变量可正常解析
+    - `|` 命令管道符
+    - `< > >>` 文件重定向符
+    - `@` **命令行回显屏蔽符**，如脚本中`@echo 1`会隐藏命令不显示与屏幕上
+    - `/` 参数开关引导符
+    - `:` 批处理标签引导符
+    - `%` 批处理变量引导符
     - `^` 转义字符 eg: `if 1=1 (echo hello^(你好^)) else (echo bye)`
 - `setlocal enabledelayedexpansion` 启用变量延迟模式，变量通过`!myVar!`获取 (bat是一行一行读取命令的，if的括号算做一行，所有容易出现变量赋值获取不到的情况) 。使用`!xx!`必须开启变量延迟。[^3]
 
@@ -217,15 +217,68 @@ echo d | xcopy target\sqbiz-plugin\*-ark-biz.jar dist\plugins /s
 - 参考[vbs.md](/_posts/lang/vbs.md)
 - bat优缺点
     - 如本身没有延时函数，无法执行telnet等命令到达期望效果，此时可使用vbs
-    - 但是如移动、删除文件、复制文件夹、修改注册表等只用vbs就很容易出错，可仍然使用bat较为保险
+    - 但是如移动、删除文件、复制文件夹、修改注册表等只用vbs就很容易出错，用bat却不怕出错
 - bat和vbs互相调用举例
 
 ```bash
 # bat文件中调用vbs
 start c:\test.vbs
 
-# vbs文件中调用bat. 
-createobject("wscript.shell").run "c:\test.bat",0,true
+# vbs文件中调用bat. 第一个0代表隐藏运行, 第二个true代表执行完dos命令后再执行下一条vbs代码
+set wshshell=createobject("script.shell")
+wshshell.run "cmd.exe /c echo 1",0,true
+wshshell.run "c:\test.bat",0,true
+```
+- bat传递参数到vbs
+    - bat中应该打印1、2、3、4、5，此时传入到vbs后会将3替换成test
+    - 参考：http://www.bathome.net/thread-27675-1-1.html
+
+```bat
+' 2>nul 3>nul&cls&@echo off
+'&for /f %%a in ('cscript -nologo -e:vbscript "%~fs0" 1 2 3 4 5') do echo;%%a
+'&pause&exit
+
+for i=0 to WSH.Arguments.Count-1
+    s=s&replace(WSH.Arguments(i),"3","test")&vbCrLf
+Next
+WSH.Echo s
+```
+- 执行telnet命令案例
+
+```bat
+title=install-plugins
+echo off
+%~d0
+set SQBIZ_PROJECT_HOME=%~p0
+set HOST=localhost
+set PORT=1234
+set install_jxc=biz -i file:///%SQBIZ_PROJECT_HOME%/plugins/sqbiz-sqbiz-jxc-0.0.1-ark-biz.jar
+cd %SQBIZ_PROJECT_HOME%
+echo on
+@del %SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+rem 产生临时文件 install-plugins-temp.vbs，下面都是往临时文件中写代码
+@echo on error resume next >>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo dim WshShell>>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo Set WshShell = WScript.CreateObject("WScript.Shell")>>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WshShell.run "cmd">>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+rem vbs代码：激活此窗口
+@echo WshShell.AppActivate "c:\windows\system32\cmd.exe">>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WScript.Sleep 200>>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+rem vbs代码：在当前窗口模拟键盘操作，存在中英文输入法无法切换的问题
+@echo WshShell.SendKeys "telnet %HOST% %PORT%">>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+rem vbs代码：在当前窗口模拟键盘操作，回车
+@echo WshShell.SendKeys "{ENTER}">>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WScript.Sleep 100>>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WshShell.AppActivate "telnet.exe">>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WScript.Sleep 2000>>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WshShell.SendKeys "%install_jxc%">>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WshShell.SendKeys "{ENTER}">>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+@echo WScript.Sleep 1000>>%SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+rem 执行 vbs
+@call %SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+rem 删除临时文件
+@del %SQBIZ_PROJECT_HOME%\install-plugins-temp.vbs
+echo off
 ```
 
 ## 常用脚本

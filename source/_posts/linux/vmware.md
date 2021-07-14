@@ -113,6 +113,7 @@ tags: [vmware, linux, centos]
     - 关闭防火墙
     - `vi /etc/ssh/sshd_config` 修改 `# UseDNS yes` 为 `UseDNS no`（如果是`#UseDNS no`则需要去掉#），并重启sshd
 - 虚拟机提示`请按“获取所有权(T)”`：找到虚拟机所在目录，将`.lck`文件夹删除或备份成`.lck.bak`，然后重新获取所有权即可
+- 虚拟机一直处于挂起状态，可将`node01-14d9e3e1.vmem`(VMEM文件)和`node01-14d9e3e1.vmss`(VMware已挂起虚拟机状态)文件删掉
 
 ## windows安装
 

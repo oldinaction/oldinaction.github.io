@@ -1700,6 +1700,7 @@ vm.dirty_writeback_centisecs = 500
     - `/dev` 设备文件存储目录，如声卡(eth0)、磁盘、光驱(cdrom)
     - **`/etc`** 系统配置文件所在地，一些服务器的配置文件也在此处
         - `rc.local` 文件，是`/etc/rc.d/rc.local`的symbolic link（系统启动会执行此文件）
+            - centos7以不推荐使用，如需基于此文件自动启动，则须执行`chmod +x /etc/rc.d/rc.local`
         - `/init.d` 服务启动文件目录(脚本文件书写参考此目录下network文件)。是`/etc/rc.d/init.d`的symbolic link。(ubuntu启动目录是/etc/init.d)
         - `hosts`
     - `/home` 用户家目录

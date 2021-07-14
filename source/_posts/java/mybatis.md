@@ -984,6 +984,13 @@ subscribeService.saveOrUpdateBatch(List<Subscribe>);
 QueryWrapper<User> userWrapper = new QueryWrapper<User>() // 必须加上<>泛型标识才能链式调用
     .eq("name", name)
     .and(wrapper -> wrapper.eq("pwd", pwd).or().eq("phone", phone));
+
+List<User> userList = userService.list(new LambdaQueryWrapper<User>()
+    .eq(User::getSex, 1)
+    .and(wrapper -> {
+        return wrapper.in(User::getHobby, MiscU.toList('games', 'book')).or().eq(ShipBill::getAge, 18)
+    })
+    .select(User::getUsername));
 ```
 
 #### 分页

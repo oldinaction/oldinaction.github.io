@@ -322,6 +322,16 @@ vi $HADOOP_HOME/etc/hadoop/hadoop-env.sh
         <name>hadoop.tmp.dir</name>
         <value>/var/bigdata/hadoop/tmp</value>
     </property>
+
+    <!-- 可选。使用hiveserver2服务的时候需要修改hdfs的超级用户的管理权限（其中test为Hadoop启动用户） -->
+    <property>
+        <name>hadoop.proxyuser.test.groups</name>	
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.test.hosts</name>	
+        <value>*</value>
+    </property>
 </configuration>
 ```
 - `vi $HADOOP_HOME/etc/hadoop/hdfs-site.xml` 进行如下配置。[配置项参考文档]( http://hadoop.apache.org/docs/r2.10.1/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml)
@@ -451,82 +461,10 @@ source /etc/profile
     - **`hdfs zkfc -formatZK`** 在主NN中运行
         - 在某一台NameNode上初始化Zookeeper，只需在一台机器上执行一次，之后不用执行
         - 本质是在ZK上创建一个hadoop目录(/hadoop-ha/aezocn)，之后会创建ZKFC的临时节点
-    
-#### 启动/停止/使用
-
-- **需先确保Zookeeper集群已经启动**
-- **`hadoop-daemon.sh start journalnode`** 用test用户分别在三台JN(node02-node04)节点上执行命令进行启动(**必须在NN之前启动**)
-    - 可在rc.local中增加自动启动`sudo -H -u test bash -c '/opt/bigdata/hadoop-2.10.1/sbin/hadoop-daemon.sh start journalnode'`
-- **`start-dfs.sh`** 在某一台NameNode上用test用户启动
-    - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、ZKFC, JN已提前启动)
-        - journalnode在上述启动过，此处不会重新启动
-        - 启动后，则会自动同步数据到JN，如：edits_inprogress_0000000000000000001
-        - 启动后，查看ZK(`zkCli.sh -> ls /hadoop-ha/aezocn`)会发现多出`ActiveBreadCrumb, ActiveStandbyElectorLock`两个节点(ActiveStandbyElectorLock记录了当前谁获得了锁，即那个节点是active)
-        - 需要保证数据目录`/var/bigdata/hadoop`为test用户有权读写(因为此处通过test用户启动)
-
-        ```bash
-        # 日志如下
-        Starting namenodes on [node01 node02]
-        node01: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node01.out
-        node02: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node02.out
-        node02: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node02.out
-        node03: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node03.out
-        node04: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node04.out
-        Starting journal nodes [node02 node03 node04]
-        node02: journalnode running as process 16792. Stop it first.
-        node03: journalnode running as process 15892. Stop it first.
-        node04: journalnode running as process 15820. Stop it first.
-        Starting ZK Failover Controllers on NN hosts [node01 node02]
-        node02: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.out
-        node01: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node01.out
-        ```
-    - `hadoop-daemon.sh start namenode` 在某节点运行，则单独启动一个NameNode
-    - `hadoop-daemon.sh start datanode` 在某节点运行，单独启动一个DataNode
-    - `hadoop-daemon.sh start journalnode` 在某节点运行，单独启动一个JN
-    - `hadoop-daemon.sh start zkfc` 在某节点运行，单独启动一个ZKFC
-- **`stop-dfs.sh`** 停止所有hadoop服务
-- 所有的启动日志均在`logs`目录，且Hadoop日志文件格式类似：**`hadoop-用户-角色-节点.log`**
-- 访问`http://node01:50070`和`http://node02:50070` 查看NameNode监控。会发现一个为active，一个为standby
-    - 关闭active对应的NameNode服务，可发现standby对应的服务变为active，实现了NameNode接管
-        - 如node02无法切换为active，可查看对应ZKFC的日志 `tail -f /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.log`。常见无法切换错误
-            - 提示`Unable to fence NameNode`，可检查是否可进行免密码登录
-            - 提示`ssh: bash: fuser: 未找到命令`，可在NameNode上安装 `yum -y install psmisc`
-        - 手动切换nn2为active：`hdfs haadmin -transitionToActive nn2`(在未开启自动切换模式下才可使用)
-    - 关闭active对应的ZKFC服务，可发现standby对应的服务变为active
-    - 关闭active对应节点的网络，此时会发现standby对应节点会抢到ZK锁，但是无法将自己升级为active(因为ZKFC无法与原active节点通信，因此无法确定对方节点状态)
-- 简单使用
-
-```bash
-## 查看dfs命令帮助. 客户端都可以执行，一些只要有集群配置，则可执行hdfs命令，还有一些必须要在NN上执行才可
-hdfs dfs
-
-## 进入管理界面 - Utilities - Browse the file system 查看创建的目录
-# 创建目录
-hdfs dfs -mkdir /bigdata
-# 创建test用户目录
-hdfs dfs -mkdir -p /user/test
-
-# 上传文件（不指定目录，则默认上传到当前用户目录，即运行此命令的用户对应的HDFS用户目录）。当文件正在上传时，后台界面看到的是 `hadoop-2.10.1.tar.gz._COPYING_`
-hdfs dfs -put hadoop*.tar.gz
-# 可以在管理界面查看到文件上传了node02、node03两个DN，找到一个DN查看上传文件，可以看到有`blk_xxxBlockID`的文件即为block(默认块大小为128M，此处上传会有两个block)
-# cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
-
-# 测试设置块大小为1M
-for i in `seq 100000`;do echo "hello hadoop $i" >> data.txt ;done # 文件大小为1.9M
-# 上传文件，指定块大小，上传目录为 /bigdata/data
-hdfs dfs -D dfs.blocksize=1048576 -put data.txt /bigdata/data
-# 会产生两个快，第一个的内容为`hello hadoop 1...hello hadoop 5`，第二个的内容为`5773...hello hadoop 100000`
-# cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
-
-# 下载某个文件到当前目录
-hdfs dfs -get /data/wc/output/part-r-00000 ./
-# 删除文件
-hdfs dfs -rm /bigdata/data/data.txt
-```
 
 ### YARN安装
 
-- 在node03-node04上运行ResourceManager，NodeManager运行在各个DN上，无需额外配置
+- 在node03-node04上运行ResourceManager；NodeManager运行在各个DN上，无需额外配置
 - 安装启动
 
 ```bash
@@ -541,24 +479,7 @@ vi slaves # 设置需要运行NodeManager的节点，可以不用设置，搭建
 # 分发到node02-node04
 scp mapred-site.xml yarn-site.xml node02:`pwd`
 ```
-- 启动
-
-```bash
-# node01上启动。会在所有DN上启动NM，但是不能自动启动RM，需要手动启动；由于RM不会在node01上启动，会看执行此脚本后先在node01上启动RM，之后会自动退出(正常现象)
-start-yarn.sh
-# stop-yarn.sh
-
-# 在node03-node04上分别执行，手动启动RM
-yarn-daemon.sh start resourcemanager
-# zkCli.sh进入zk命令行，结果为 [ActiveBreadCrumb, ActiveStandbyElectorLock]，ActiveStandbyElectorLock中记录了主RM
-# ls /yarn-leader-election/myyarn
-
-# 查看后台
-http://node03:8088
-# 如果node04为从节点，直接访问会返回 `This is standby RM. Redirecting to the current active RM: http://node03:8088/`，并跳转到ndoe03
-# 如果访问具体路径则不会跳转：http://node04:8088/cluster/cluster
-http://node04:8088
-```
+- 启动参考[YARN使用](#YARN使用)
 - mapred-site.xml
 
 ```xml
@@ -616,6 +537,104 @@ http://node04:8088
 </property>
 ```
 
+## 启动/停止/使用
+
+### HDFS启停
+
+- **需先确保Zookeeper集群已经启动**
+- **`hadoop-daemon.sh start journalnode`** 用test用户(hadoop所属用户)分别在三台JN(node02-node04)节点上执行命令进行启动(**必须在NN之前启动**)
+    - 自动启动：可在`/etc/rc.local`中增加代码`sudo -H -u test bash -c '/opt/bigdata/hadoop-2.10.1/sbin/hadoop-daemon.sh start journalnode'`自动启动(centos7需先`chmod +x /etc/rc.d/rc.local`激活此文件)
+- **`start-dfs.sh`** 在某一台NameNode上用test用户启动
+    - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、ZKFC, JN已提前启动)
+        - journalnode在上述启动过，此处不会重新启动
+        - 启动后，则会自动同步数据到JN，如：edits_inprogress_0000000000000000001
+        - 启动后，查看ZK(`zkCli.sh -> ls /hadoop-ha/aezocn`)会发现多出`ActiveBreadCrumb, ActiveStandbyElectorLock`两个节点(ActiveStandbyElectorLock记录了当前谁获得了锁，即那个节点是active)
+        - 需要保证数据目录`/var/bigdata/hadoop`为test用户有权读写(因为此处通过test用户启动)
+
+        ```bash
+        # 日志如下
+        Starting namenodes on [node01 node02]
+        node01: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node01.out
+        node02: starting namenode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-namenode-node02.out
+        node02: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node02.out
+        node03: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node03.out
+        node04: starting datanode, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-datanode-node04.out
+        Starting journal nodes [node02 node03 node04]
+        node02: journalnode running as process 16792. Stop it first.
+        node03: journalnode running as process 15892. Stop it first.
+        node04: journalnode running as process 15820. Stop it first.
+        Starting ZK Failover Controllers on NN hosts [node01 node02]
+        node02: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.out
+        node01: starting zkfc, logging to /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node01.out
+        ```
+    - `hadoop-daemon.sh start namenode` 在某节点运行，则单独启动一个NameNode
+    - `hadoop-daemon.sh start datanode` 在某节点运行，单独启动一个DataNode
+    - `hadoop-daemon.sh start journalnode` 在某节点运行，单独启动一个JN
+    - `hadoop-daemon.sh start zkfc` 在某节点运行，单独启动一个ZKFC
+- **访问**`http://node01:50070`和`http://node02:50070` 查看NameNode监控。会发现一个为active，一个为standby
+    - 关闭active对应的NameNode服务，可发现standby对应的服务变为active，实现了NameNode接管
+        - 如node02无法切换为active，可查看对应ZKFC的日志 `tail -f /opt/bigdata/hadoop-2.10.1/logs/hadoop-test-zkfc-node02.log`。常见无法切换错误
+            - 提示`Unable to fence NameNode`，可检查是否可进行免密码登录
+            - 提示`ssh: bash: fuser: 未找到命令`，可在NameNode上安装 `yum -y install psmisc`
+        - 手动切换nn2为active：`hdfs haadmin -transitionToActive nn2`(在未开启自动切换模式下才可使用)
+    - 关闭active对应的ZKFC服务，可发现standby对应的服务变为active
+    - 关闭active对应节点的网络，此时会发现standby对应节点会抢到ZK锁，但是无法将自己升级为active(因为ZKFC无法与原active节点通信，因此无法确定对方节点状态)
+- `stop-dfs.sh` 停止所有hadoop服务
+- 所有的启动日志均在`logs`目录，且Hadoop日志文件格式类似：**`hadoop-用户-角色-节点.log`**
+
+### YARN启停
+
+- 前确保HDFS启动完成
+- 启动NM和RM(root执行亦可)
+
+```bash
+# node01上执行，会在所有 DN 上启动 NM(NodeManager)。但是不能自动启动RM，需要手动启动；由于配置了 RM(ResourceManager) 不会在node01上启动，会看到执行此脚本后先在node01上启动RM，之后会自动退出(正常现象)
+start-yarn.sh
+# stop-yarn.sh
+# 在DN上使用jps查看可发现多出NodeManager的进程
+
+# 在node03-node04上分别执行，手动启动RM
+yarn-daemon.sh start resourcemanager
+# zkCli.sh进入zk命令行，结果为 [ActiveBreadCrumb, ActiveStandbyElectorLock]，ActiveStandbyElectorLock中记录了主RM
+# ls /yarn-leader-election/myyarn
+
+# 查看 RM 后台
+http://node03:8088
+# 如果node04为从节点，直接访问会返回 `This is standby RM. Redirecting to the current active RM: http://node03:8088/`，并跳转到ndoe03
+# 如果访问具体路径则不会跳转：http://node04:8088/cluster/cluster
+http://node04:8088
+```
+
+### HDFS简单使用
+
+```bash
+## 查看dfs命令帮助. 客户端都可以执行，一些只要有集群配置，则可执行hdfs命令，还有一些必须要在NN上执行才可
+hdfs dfs
+
+## 进入管理界面 - Utilities - Browse the file system 查看创建的目录
+# 创建目录
+hdfs dfs -mkdir /bigdata
+# 创建test用户目录
+hdfs dfs -mkdir -p /user/test
+
+# 上传文件（不指定目录，则默认上传到当前用户目录，即运行此命令的用户对应的HDFS用户目录）。当文件正在上传时，后台界面看到的是 `hadoop-2.10.1.tar.gz._COPYING_`
+hdfs dfs -put hadoop*.tar.gz
+# 可以在管理界面查看到文件上传了node02、node03两个DN，找到一个DN查看上传文件，可以看到有`blk_xxxBlockID`的文件即为block(默认块大小为128M，此处上传会有两个block)
+# cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
+
+# 测试设置块大小为1M
+for i in `seq 100000`;do echo "hello hadoop $i" >> data.txt ;done # 文件大小为1.9M
+# 上传文件，指定块大小，上传目录为 /bigdata/data
+hdfs dfs -D dfs.blocksize=1048576 -put data.txt /bigdata/data
+# 会产生两个快，第一个的内容为`hello hadoop 1...hello hadoop 5`，第二个的内容为`5773...hello hadoop 100000`
+# cd /var/bigdata/hadoop/dfs/data/current/BP-2042046744-192.168.6.131-1621791288100/current/finalized/subdir0/subdir0
+
+# 下载某个文件到当前目录
+hdfs dfs -get /data/wc/output/part-r-00000 ./
+# 删除文件
+hdfs dfs -rm /bigdata/data/data.txt
+```
+
 ## HDFS权限
 
 - hdfs是一个文件系统，类似linux有用户概念
@@ -642,7 +661,7 @@ su - root
 # 创建用户和组，并关联
 useradd smalle && groupadd aezo && usermod -a -G aezo smalle && id smalle # uid=1001(smalle) gid=1001(smalle) groups=1001(smalle),1002(aezo)
 su - smalle
-# 创建文件夹失败：因为hdfs已经启动了，不知道操作系统又创建了用户和组(解决见瞎玩)
+# 创建文件夹失败：因为hdfs已经启动了，不知道操作系统又创建了用户和组(解决见下文)
 hdfs dfs -mkdir /temp/abc # mkdir: Permission denied: user=smalle, access=EXECUTE, inode="/temp":test:aezo:drwxrwx---
 hdfs groups # smalle :
 
