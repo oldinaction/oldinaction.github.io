@@ -2,23 +2,93 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
+    
+    <lastmod>2021-07-14T14:03:02.325Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
+    
+    <lastmod>2021-07-14T13:08:07.910Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
+    
+    <lastmod>2021-07-14T11:38:15.759Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
+    
+    <lastmod>2021-07-14T06:30:25.482Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-07-13T13:29:42.591Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/05/06/java/archive/struts2/</loc>
+    
+    <lastmod>2021-07-12T11:36:33.065Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/04/06/java/archive/springboot-plugin-framework/</loc>
+    
+    <lastmod>2021-07-12T11:36:09.422Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/04/11/java/sofastack/</loc>
+    
+    <lastmod>2021-07-12T11:36:04.008Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/03/03/web/micro-web/</loc>
+    
+    <lastmod>2021-07-12T11:32:00.178Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/04/13/java/java-src/sofastack-src/</loc>
+    
+    <lastmod>2021-07-12T11:31:12.614Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/05/10/lang/bat/</loc>
     
-    <lastmod>2021-07-11T13:00:28.155Z</lastmod>
+    <lastmod>2021-07-11T14:08:48.853Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2021/07/11/lang/vbs/</loc>
     
-    <lastmod>2021-07-11T12:54:58.287Z</lastmod>
+    <lastmod>2021-07-11T14:00:33.859Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2017/08/20/lang/vba/</loc>
     
-    <lastmod>2021-07-11T12:45:06.308Z</lastmod>
+    <lastmod>2021-07-11T13:03:37.812Z</lastmod>
     
   </url>
   
@@ -142,13 +212,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-06-25T11:08:01.885Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2016/09/01/others/tech-conception/</loc>
     
     <lastmod>2021-06-25T10:21:36.286Z</lastmod>
@@ -219,13 +282,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
-    
-    <lastmod>2021-06-09T09:47:56.731Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/10/10/web/mobile/weixin/</loc>
     
     <lastmod>2021-06-09T09:20:28.615Z</lastmod>
@@ -264,20 +320,6 @@
     <loc>http://blog.aezo.cn/2019/05/28/arch/micro-service-module/</loc>
     
     <lastmod>2021-06-04T01:54:57.647Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
-    
-    <lastmod>2021-06-03T15:36:11.043Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
-    
-    <lastmod>2021-06-03T13:55:58.793Z</lastmod>
     
   </url>
   
@@ -376,13 +418,6 @@
     <loc>http://blog.aezo.cn/2018/04/11/java/java-release/</loc>
     
     <lastmod>2021-04-14T08:56:55.715Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2021/04/06/java/springboot-plugin-framework/</loc>
-    
-    <lastmod>2021-04-11T04:47:47.222Z</lastmod>
     
   </url>
   
@@ -618,13 +653,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/05/06/java/struts2/</loc>
-    
-    <lastmod>2020-12-18T01:55:17.553Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/05/21/java/hibernate/</loc>
     
     <lastmod>2020-12-18T01:52:40.426Z</lastmod>
@@ -733,13 +761,6 @@
     <loc>http://blog.aezo.cn/2019/05/26/bigdata/elk/</loc>
     
     <lastmod>2020-09-10T03:25:25.841Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/06/24/linux/vmware/</loc>
-    
-    <lastmod>2020-09-03T07:56:33.430Z</lastmod>
     
   </url>
   
