@@ -15,12 +15,17 @@ tags: [build]
 - 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签(windows/linux均可)
 
 	```xml
-    <mirror> 
-        <id>alimaven</id>  
-        <name>aliyun maven</name>  
-        <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-        <mirrorOf>central</mirrorOf>          
-    </mirror>  
+    <!--
+        <mirrorOf>*</mirrorOf> 匹配所有仓库请求，即将所有的仓库请求都转到该镜像上
+        <mirrorOf>repo1,repo2</mirrorOf> 将仓库repo1和repo2的请求转到该镜像上，使用逗号分隔多个远程仓库
+        <mirrorOf>*,!repo1</miiroOf> 匹配所有仓库请求，repo1除外，使用感叹号将仓库从匹配中排除
+    -->
+    <mirror>
+        <id>nexus-aliyun</id>
+        <name>Nexus aliyun</name>
+        <url>http://maven.aliyun.com/nexus/content/groups/public/</url> 
+        <mirrorOf>central</mirrorOf> 
+    </mirror>
 	```
 - 证书问题导致，下载jar包时只返回一个更新文件，且里面报错`unable to find valid certification path to requested target`。需按照下列方式修改jdk证书 [^4]
 

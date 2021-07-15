@@ -114,6 +114,48 @@ private static enum YellEnum implements Yell {
 }
 ```
 
+### 继承
+
+- 属性覆盖问题
+
+```java
+@Data
+public class Test {
+    public final List list = MiscU.Instance.toList("1");
+
+    public void print() {
+        // 父类中的方法，直接 . 获取属性，多态情况下也是取的父类数据
+        System.out.println("list = " + list);
+        // 父类中的方法，执行get方法获取属性时，会通过多态去读取子类的
+        System.out.println("this.getList = " + this.getList());
+    }
+
+    public static void main(String[] args) {
+        // list = [1]
+        // this.getList = [2]
+        TestChild child = new TestChild();
+        child.print();
+    }
+}
+
+@Data
+class TestChild extends Test {
+    public final List list = MiscU.Instance.toList("2");
+}
+
+class TestMain {
+    public static void main(String[] args) {
+        // list = [1]
+        // this.getList = [2]
+        // test.list = [1]
+        Test test = new TestChild();
+        // TestChild test = new TestChild(); // 则打印 // test.list = [2]
+        test.print();
+        System.out.println("test.list = " + test.list);
+    }
+}
+```
+
 ### 泛型
 
 - 获取`T.class`示例，但是前提条件时必须有继承

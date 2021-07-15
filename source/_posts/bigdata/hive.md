@@ -137,7 +137,7 @@ hive
     - 需先在修改Hadoop配置
 
         ```xml
-        <!-- 修改hdfs的超级用户的管理权限（其中test为Hadoop启动用户） -->
+        <!-- 修改hdfs的超级用户的管理权限（其中test为Hadoop启动用户），否则报错：org.apache.hadoop.security.authorize.AuthorizationException -->
         <property>
             <name>hadoop.proxyuser.test.groups</name>	
             <value>*</value>
@@ -576,6 +576,43 @@ select * from logtbl;
     - `UDF`(User-Defined-Function): 一进一出
     - `UDAF`(Aggregation): 聚合函数，多进一出，类似count/max/min
     - `UDTF`(Table-Generating): 一进多出，如explore
+- 引用依赖
+
+```xml
+<!--
+    无法下载pentaho-aggdesigner-algorithm-5.1.5-jhyde.jar，可手动下载后放到.m2相应目录
+    下载地址：https://public.nexus.pentaho.org/repository/proxy-public-3rd-party-release/org/pentaho/pentaho-aggdesigner-algorithm/5.1.5-jhyde/pentaho-aggdesigner-algorithm-5.1.5-jhyde.jar
+-->
+<dependency>
+    <groupId>org.apache.hive</groupId>
+    <artifactId>hive-exec</artifactId>
+    <version>${hive.version}</version>
+</dependency>
+```
+- 案例
+
+```java
+// org.apache.hadoop.hive.ql.exec.UDF
+// org.apache.hadoop.io.Text
+public class TuoMin extends UDF {
+    // 需要实现evaluate函数，evaluate函数支持重载
+    public Text evaluate(final Text s) {
+        if (s == null) {
+            return null;
+        }
+        String str = s.toString().substring(0, 1) + "***";
+        return new Text(str);
+    }
+}
+```
+- 使用
+    - 把程序打包成jar上传到hdfs集群的/jar目录下：`hdfs dfs -D dfs.blocksize=1048576 -put bigdata-hive-0.0.1-SNAPSHOT.jar /jar`
+    - 创建函数：hive> `create function sq_tuomin as 'cn.aezo.bigdata.hive.func.TuoMin' using jar "hdfs://aezocn/jar/bigdata-hive-0.0.1-SNAPSHOT.jar";`
+    - 查询HQL语句：`select sq_tuomin(name) from psn;` 返回`s***`
+    - 销毁临时函数：hive> `drop function sq_tuomin;`
+- 临时使用：此种方式创建的函数属于临时函数，当关闭了当前会话之后，函数会无法使用，因为jar的引用没有了
+    - hive> `add jar /home/test/bigdata-hive-0.0.1-SNAPSHOT.jar;` 在客户端执行，使用服务器本地目录(/home/test)
+    - 创建临时函数：hive> `create temporary function sq_tuomin AS 'cn.aezo.bigdata.hive.func.TuoMin';`
 
 #### 1.内置运算符
 

@@ -1185,7 +1185,7 @@ find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
 find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644
 
 find -name '*.TXT' -type f -mtime +15 -exec mv {} ./bak \; # 将15天前修改过的文件移动到备份目录
-# **将当前目录下的去年修改过的文件移动到备份目录**. (1) 需先创建好备份目录 (2) 时间精确到秒且为前闭后开区间
+# **将当前目录下的去年修改过的文件移动到备份目录(如: ./backup/backup_log_2020)**. (1) 需先创建好备份目录 (2) 时间精确到秒且为前闭后开区间
 find . -name '*.log' -newermt "$(($(date +%Y)-1))-01-01 00:00:00" ! -newermt "$(($(date +%Y)))-01-01 00:00:00" | xargs -i mv {} ./backup/backup_log_$(($(date +%Y)-1))
 
 find -type f | xargs # xargs会在一行中打印出所有值
