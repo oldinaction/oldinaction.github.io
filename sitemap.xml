@@ -2,9 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
+    
+    <lastmod>2021-07-15T06:29:53.247Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
+    
+    <lastmod>2021-07-15T03:04:48.934Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
+    
+    <lastmod>2021-07-15T01:43:46.745Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
     
-    <lastmod>2021-07-14T14:03:02.325Z</lastmod>
+    <lastmod>2021-07-14T15:04:03.667Z</lastmod>
     
   </url>
   
@@ -26,13 +47,6 @@
     <loc>http://blog.aezo.cn/2017/05/22/java/mybatis/</loc>
     
     <lastmod>2021-07-14T06:30:25.482Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/07/21/linux/linux/</loc>
-    
-    <lastmod>2021-07-13T13:29:42.591Z</lastmod>
     
   </url>
   
@@ -128,23 +142,9 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
-    
-    <lastmod>2021-07-09T04:11:18.995Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/07/23/java/springboot/</loc>
     
     <lastmod>2021-07-09T02:37:38.254Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
-    
-    <lastmod>2021-07-09T02:25:44.909Z</lastmod>
     
   </url>
   
