@@ -11,7 +11,9 @@ tags: [hadoop]
 > The Apache Hive ™ data warehouse software facilitates reading, writing, and managing large datasets residing in distributed storage using SQL. Structure can be projected onto data already in storage. A command line tool and JDBC driver are provided to connect users to Hive.
 
 - [Hive官网](https://hive.apache.org/)、[下载](https://mirrors.bfsu.edu.cn/apache/hive/)
-- Hive是基于Hadoop的一个数据仓库工具，用来进行数据提取、转化、加载，这是一种可以存储、查询和分析存储在Hadoop中的大规模数据的机制。hive数据仓库工具能将结构化的数据文件映射为一张数据库表，并提供SQL查询功能，能将SQL语句转变成MapReduce任务来执行
+- Hive是基于Hadoop的一个数据仓库工具，用来进行数据提取、转化、加载，这是一种可以存储、查询和分析存储在Hadoop中的大规模数据的机制
+    - hive数据仓库工具能将结构化的数据文件映射为一张数据库表，并提供SQL查询功能，能将SQL语句转变成MapReduce任务来执行
+    - **hive基于hdfs做存储，基于mr进行计算(将sql语句转成mr程序)**
 - Hive产生的原因
     - 方便对文件及数据的元数据进行管理，提供统一的元数据管理方式
     - 提供更加简单的方式来访问大规模的数据集，使用SQL语言进行数据分析（无需写MapReduce程序，降低数据分析门槛）
@@ -191,11 +193,82 @@ zookeeper-3.4.6.jar
 
 - 启动hdfs和yarn集群，参考[hadoop.md#启动/停止/使用](/_posts/bigdata/hadoop.md#启动/停止/使用)
 - 启动mysql (在node01上启动, 存放hive元数据)
-- `hive --service metastore` (node02上启动Thrift server，阻塞式窗口，卡住是正常现象)
-- `hive` 进入hive命令行即可执行增删改SQL(node03上使用test用户执行)
+- `hive --service metastore` 在node02上root即可启动Thrift server，阻塞式窗口，卡住是正常现象
+- `hive` 在node03上使用test用户执行，进入hive命令行即可执行增删改SQL
     - `quit;` 退出命令行
 - `hive --service hiveserver2` 在node03上执行，启动Hiveserver2，参考[使用HiveServer2组件](#使用HiveServer2组件)
 - `beeline` 连接到Hiveserver2，从而执行(查询)SQL
+
+## Hive命令使用
+
+- hive运行方式分类
+    - 命令行方式或者控制台模式
+    - 脚本运行方式（实际生产环境中用最多）
+    - JDBC方式：hiveserver2
+    - web GUI接口：hwi(hive v2.2以后已抛弃)、[hue](https://gethue.com/)等
+
+### Hive Cli
+
+```bash
+hive --service cli # 可简写为 `hive` 命令
+hive --service cli -h # 查看 hive cli 命令帮助
+# 帮助信息如下
+usage: hive
+ -d,--define <key=value>          Variable substitution to apply to Hive
+                                  commands. e.g. -d A=B or --define A=B
+    # hive -d myid=1
+    # select * from psn where id = ${myid}; # 使用上述定义的变量
+    --database <databasename>     Specify the database to use
+ -e <quoted-query-string>         SQL from command line
+    # hive -e "select * from psn; show tables;" > result.log # 可执行多个SQL，打印结果到文件(不会包含hive启动日志)，执行完后退出命令行
+ -f <filename>                    SQL from files
+    # hive -f ~/test.sql # 执行sql文件，完后会退出命令行
+    # hive> source test.sql; # 在hive命令行也可以执行本地sql文件，当前目录不能加~
+ -H,--help                        Print help information
+    --hiveconf <property=value>   Use value for given property
+    --hivevar <key=value>         Variable substitution to apply to Hive
+                                  commands. e.g. --hivevar A=B
+ -i <filename>                    Initialization SQL file
+    # hive -i ~/test.sql # 执行初始化sql文件，完后会停留在命令行
+ -S,--silent                      Silent mode in interactive shell
+    # hive -S # 静默模式，不会打印OK、Time taken等日志
+ -v,--verbose                     Verbose mode (echo executed SQL to the console)
+```
+- 执行命令
+
+```bash
+select * from psn; # 执行Hive SQL
+dfs ls / # 可以与HDFS交互
+! ls / # 可以和linux交互
+quit; # 退出hive命令行
+```
+
+### 参数操作
+
+- hive当中的参数、变量都是以命名空间开头的，详情如下表所示：
+
+| 命名空间      | 读写权限      | 含义                                                     |
+| ------------ | ------------ | ------------------------------------------------------------ |
+| hiveconf     | 可读写       | hive-site.xml当中的各配置变量例：hive --hiveconf hive.cli.print.header=true |
+| system       | 可读写       | 系统变量，包含JVM运行参数等例：system:user.name=root         |
+| env          | 只读         | 环境变量例：env：JAVA_HOME                                   |
+| hivevar      | 可读写       | 例：hive -d val=key。hive的变量可以通过`${}`方式进行引用，其中system、env下的变量必须以前缀开头 |
+
+- 设置参数
+
+```bash
+# 在启动hive cli时设置，此次会话生效。修改${HIVE_HOME}/conf/hive-site.xml则永久生效
+hive --hiveconf hive.cli.print.header=true # 打印表头
+
+# 在进入到cli之后，通过set命令设置
+set; # 查看所有参数, xxx=yyy、env:xxx=yyy、system:xxx=yyy
+set hive.cli.print.header; # 查看hive.cli.print.header的值
+set hive.cli.print.header=true; # 设值
+
+# hive参数初始化设置。当前用户每次进入hive cli的时候，都会加载.hiverc的文件，执行文件中的命令
+vi ~/.hiverc # 在其中加入如`set hive.cli.print.header=true;`的参数配置
+# cat ~/.hivehistory # 此文件中保存了hive cli中执行的所有命令
+```
 
 ## SQL操作
 
@@ -289,7 +362,9 @@ drop database test;
 CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name   -- (Note: TEMPORARY available in Hive 0.14.0 and later)
 [(col_name data_type [COMMENT col_comment], ... [constraint_specification])]
 [COMMENT table_comment]
+-- 分区
 [PARTITIONED BY (col_name data_type [COMMENT col_comment], ...)]
+-- 分桶
 [CLUSTERED BY (col_name, col_name, ...) [SORTED BY (col_name [ASC|DESC], ...)] INTO num_buckets BUCKETS]
 [SKEWED BY (col_name, col_name, ...)  -- (Note: Available in Hive 0.10.0 and later)]
 ON ((col_value, col_value, ...), (col_value, col_value, ...), ...)
@@ -385,6 +460,9 @@ collection items terminated by '-' -- 集合分隔符
 map keys terminated by ':' -- map的key:value分隔符
 location '/data/hive/psn_part'; -- 数据保存的目录
 ;
+
+-- 删除表(如果为外部表则不会删除dfs数据)
+drop table psn_part;
 ```
 
 #### 修改表结构案例
@@ -807,4 +885,144 @@ public class TuoMin extends UDF {
 | -------- | ---------------------- | ------------------------------------------------------------ |
 | 数组     | explode(array<TYPE> a) | 数组一条记录中有多个参数，将参数拆分，每个参数生成一列。     |
 |          | json_tuple             | get_json_object 语句：select a.timestamp, get_json_object(a.appevents, ‘$.eventid’), get_json_object(a.appenvets, ‘$.eventname’) from log a; json_tuple语句: select a.timestamp, b.* from log a lateral view json_tuple(a.appevent, ‘eventid’, ‘eventname’) b as f1, f2 |
+
+### Hive动态分区
+
+- hive的静态分区需要用户在插入数据的时候必须手动指定hive的分区字段值，但是这样的话会导致用户的操作复杂度提高，而且在使用的时候会导致数据只能插入到某一个指定分区，无法让数据散列分布，因此更好的方式是当数据在进行插入的时候，根据数据的某一个字段或某几个字段**值**(静态分区必须要知道所有值，而动态分区无需提前知道)动态的将数据插入到不同的目录中，此时引入动态分区
+- hive的动态分区配置
+
+```sql
+--hive设置hive动态分区开启。默认：true
+set hive.exec.dynamic.partition=true;
+--hive的动态分区模式。默认：strict（至少有一个分区列是静态分区，为了防止动态产生的分区过多）
+set hive.exec.dynamic.partition.mode=nostrict;
+
+-- 每一个执行mr节点上，允许创建的动态分区的最大数量(100)
+-- set hive.exec.max.dynamic.partitions.pernode;
+-- 所有执行mr节点上，允许创建的所有动态分区的最大数量(1000)	
+-- set hive.exec.max.dynamic.partitions;
+-- 所有的mr job允许创建的文件的最大数量(100000)	
+-- set hive.exec.max.created.files;
+```
+- 语法
+
+```sql
+--Hive extension (dynamic partition inserts):
+INSERT OVERWRITE TABLE tablename PARTITION (partcol1[=val1], partcol2[=val2] ...) select_statement FROM from_statement;
+INSERT INTO TABLE tablename PARTITION (partcol1[=val1], partcol2[=val2] ...) select_statement FROM from_statement;
+```
+- 案例
+
+```sql
+-- 创建临时数据库
+create table psn_dynamic_part_tmp(
+    id int,
+    name string,
+    age int,
+    sex int,
+    likes array<string>,
+    address map<string, string>
+)
+row format delimited
+fields terminated by ','
+collection items terminated by '-'
+map keys terminated by ':'
+;
+-- 往临时表加载数据
+load data local inpath '/home/test/data/psn_dynamic_part' into table psn_dynamic_part_tmp;
+select * from psn_dynamic_part_tmp;
+
+-- 创建分区表
+create table psn_dynamic_part(
+    id int,
+    name string,
+    likes array<string>,
+    address map<string, string>
+)
+partitioned by(age int, sex int)
+row format delimited
+fields terminated by ','
+collection items terminated by '-'
+map keys terminated by ':'
+;
+
+-- **插入数据时，此时会产生一个MR任务**
+-- 注意select字段的顺序，需要和目标表字段对应，不能select *
+insert into table psn_dynamic_part
+partition (age,sex)
+select id,name,likes,address,age,sex from psn_dynamic_part_tmp
+;
+-- 最终会动态根据值创建dfs分区目录，如：/user/hive/warehouse/psn_dynamic_part/age=18|age=.../sex=1|sex=0
+select * from psn_dynamic_part;
+```
+- 案例数据(/home/test/data/psn_dynamic_part)
+
+```bash
+1,smalle,18,1,games-music,addr1:shanghai-add2:beijing
+2,test1,20,1,book-music1,addr1:guangzhou-add2:beijing
+3,test2,18,0,book-music2,addr1:guangzhou
+4,test3,18,0,music3,addr1:guangzhou
+5,test4,54,0,music2,addr1:shanghai
+6,test5,37,1,book-music2,addr1:shanghai-add2:beijing
+7,test6,18,0,book,addr1:shanghai-add2:beijing
+8,test7,28,1,book,add1:beijing
+```
+
+### 分桶
+
+- 分桶说明
+    - Hive分桶表是对列值取hash值得方式，将不同数据放到不同文件中存储
+    - 对于hive中每一个表、分区都可以进一步进行分桶，从而降低每个文件的大小
+    - 由列的hash值除以桶的个数来决定每条数据划分在哪个桶中
+    - 一次作业产生的桶（文件数量）和reduce task个数一致
+        - mr运行时会根据bucket的个数自动分配reduce task个数（用户也可以通过mapred.reduce.tasks自己设置reduce任务个数，但分桶时不推荐使用）
+- `set hive.enforce.bucketing=true;` 开启hive分桶支持(v2.3.8可不用设置)
+- Hive分桶的抽样查询
+
+```sql
+--案例
+select * from xxx_bucket_table tablesample(bucket 1 out of 4 on xxx_columns)
+--TABLESAMPLE语法：
+tablesample(bucket x out of y on cols)
+-- x：表示从哪个bucket开始抽取数据，x=1表示从第一个开始提取，当超过bucket文件个数时会报错
+-- y：必须为该表总bucket数的倍数或因子。假设bucket文件数为4
+    -- 当y=4, 表示从第x个bucket中取4/4=1份数据(即整个x文件的数据)
+    -- 当y=8, 表示从第x个bucket中取4/8=0.5份数据(即整个文件的上半部分行数据)
+    -- 尽量不要让其除不尽，因此取其倍数或因子
+```
+- 案例
+
+```sql
+-- 创建临时数据
+create table psn_bucket_tmp(id int, name string, age int) 
+row format delimited fields terminated by ','
+;
+load data local inpath '/home/test/data/psn_bucket' into table psn_bucket_tmp;
+
+-- **创建分桶表**(可和分区表结合使用，也可单独使用)
+create table psn_bucket(id int, name string, age int)
+clustered by (age) into 4 buckets
+row format delimited fields terminated by ','
+;
+-- 插入数据，会启动一个MR任务(Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 4)
+insert into table psn_bucket select id, name, age from psn_bucket_tmp;
+-- 会产生4个文件：/user/hive/warehouse/psn_bucket/
+-- 抽样
+select id, name, age from psn_bucket tablesample(bucket 2 out of 4 on age);
+```
+- 案例测试数据(/home/test/data/psn_bucket)
+
+```bash
+1,tom,11
+2,cat,22
+3,dog,33
+4,hive,44
+5,hbase,55
+6,mr,66
+7,alice,77
+8,scala,88
+```
+
+### lateral view
+
 

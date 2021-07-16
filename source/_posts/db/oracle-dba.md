@@ -237,9 +237,9 @@ select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
 -- 批量设置表别名（同义词）
 -- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || [table_grant_user] || '.' || [v_tabname] || ' for ' || [table_owenr_user] || '.' || [v_tabname];）
 -- （2）获取添加表别名语句
-select 'create or replace synonym smalle.' || object_name || ' for ' || owner || '.' || object_name || ';'
+select 'create or replace synonym SMALLE.' || object_name || ' for ' || owner || '.' || object_name || ';'
    from dba_objects
-   where owner in ('AEZO') and object_type = 'table';
+   where owner in ('AEZO') and object_type = 'TABLE'; -- 
 ```
 
 ### sqlplus 使用技巧
@@ -708,7 +708,7 @@ Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Ca
   - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
   - `Tools - Export Tables/Import Tablse - 选择表导出` 导出数据
 - 其中 Executable 路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
-- plsql 执行 sql 文件：`@D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交）
+- plsql 执行 sql 文件：`@D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交，文件不要放在C盘）
 
 ### Oracle 表结构与 Mysql 表结构转换
 

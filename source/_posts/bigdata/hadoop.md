@@ -473,13 +473,13 @@ source /etc/profile
 cd $HADOOP_HOME/etc/hadoop
 cp mapred-site.xml.template mapred-site.xml
 vi mapred-site.xml
-vi hadoop/yarn-site.xml
+vi yarn-site.xml
 vi slaves # 设置需要运行NodeManager的节点，可以不用设置，搭建hdfs时候已经设置了DN(和NM一一对应)
 
-# 分发到node02-node04
+# **分发到node02-node04**
 scp mapred-site.xml yarn-site.xml node02:`pwd`
 ```
-- 启动参考[YARN使用](#YARN使用)
+- 启动参考[YARN启停](#YARN启停)
 - mapred-site.xml
 
 ```xml
@@ -585,18 +585,19 @@ scp mapred-site.xml yarn-site.xml node02:`pwd`
 ### YARN启停
 
 - 前确保HDFS启动完成
-- 启动NM和RM(root执行亦可)
+- 启动NM和RM
 
 ```bash
-# node01上执行，会在所有 DN 上启动 NM(NodeManager)。但是不能自动启动RM，需要手动启动；由于配置了 RM(ResourceManager) 不会在node01上启动，会看到执行此脚本后先在node01上启动RM，之后会自动退出(正常现象)
+# (root执行亦可) 在node01上执行，会在所有 DN 上启动 NM(NodeManager)。但是不能自动启动RM，需要手动启动；由于配置了 RM(ResourceManager) 不会在node01上启动，会看到执行此脚本后先在node01上启动RM，之后会自动退出(正常现象)
 start-yarn.sh
 # stop-yarn.sh
 # 在DN上使用jps查看可发现多出NodeManager的进程
 
-# 在node03-node04上分别执行，手动启动RM
+# (root执行亦可) 在node03-node04上分别执行，手动启动RM
 yarn-daemon.sh start resourcemanager
 # zkCli.sh进入zk命令行，结果为 [ActiveBreadCrumb, ActiveStandbyElectorLock]，ActiveStandbyElectorLock中记录了主RM
 # ls /yarn-leader-election/myyarn
+# yarn-daemon.sh stop resourcemanager # 停止
 
 # 查看 RM 后台
 http://node03:8088
@@ -827,7 +828,8 @@ hdfs dfs -D dfs.blocksize=1048576 -put data.txt /data/twc/input
 # 在IDEA中设置Programe arguments=/data/twc/input /data/twc/output
 # 执行main方法
 # 到YARN后台查看执行结果
-http://node03:8088/cluster/apps # 可以看到执行的任务列表，点击一个`application_xxx`进去可看到`appattempt_xxx`的执行任务尝试(其中的Node即为当前尝试时，AppMaster运行的节点)
+# 可以看到执行的任务列表，点击一个`application_xxx`进去可看到`appattempt_xxx`的执行任务尝试(其中的Node即为当前尝试时，AppMaster运行的节点)，点击Logs可查看日志(主要是syslog)
+http://node03:8088/cluster/apps
 ```
 - 将`mapred-site.xml`和`yarn-site.xml`复制到项目的resources目录
 - 算法程序如下
