@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
+    
+    <lastmod>2021-07-16T13:00:54.411Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
+    
+    <lastmod>2021-07-16T12:29:22.220Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
+    
+    <lastmod>2021-07-16T05:45:35.962Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.aezo.cn/2017/12/12/java/java-base/</loc>
     
     <lastmod>2021-07-15T06:29:53.247Z</lastmod>
@@ -19,20 +40,6 @@
     <loc>http://blog.aezo.cn/2016/12/29/java/maven/</loc>
     
     <lastmod>2021-07-15T01:43:46.745Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
-    
-    <lastmod>2021-07-14T15:04:03.667Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
-    
-    <lastmod>2021-07-14T13:08:07.910Z</lastmod>
     
   </url>
   
@@ -194,13 +201,6 @@
     <loc>http://blog.aezo.cn/2018/04/03/web/vue/</loc>
     
     <lastmod>2021-07-01T03:56:30.728Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/10/12/db/oracle-dba/</loc>
-    
-    <lastmod>2021-06-29T02:44:37.771Z</lastmod>
     
   </url>
   
