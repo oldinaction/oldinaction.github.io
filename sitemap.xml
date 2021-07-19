@@ -2,16 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
+    <loc>http://blog.aezo.cn/2021/07/18/bigdata/hbase/</loc>
     
-    <lastmod>2021-07-16T13:00:54.411Z</lastmod>
+    <lastmod>2021-07-19T15:08:07.302Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
+    
+    <lastmod>2021-07-19T09:09:56.833Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
+    
+    <lastmod>2021-07-19T06:58:31.590Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://blog.aezo.cn/2018/03/13/bigdata/hadoop/</loc>
     
-    <lastmod>2021-07-16T12:29:22.220Z</lastmod>
+    <lastmod>2021-07-18T07:19:14.403Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2021/06/01/bigdata/hive/</loc>
+    
+    <lastmod>2021-07-18T07:08:51.333Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
+    
+    <lastmod>2021-07-17T08:14:42.161Z</lastmod>
     
   </url>
   
@@ -233,13 +261,6 @@
   </url>
   
   <url>
-    <loc>http://blog.aezo.cn/2017/07/23/web/iview/</loc>
-    
-    <lastmod>2021-06-17T06:58:28.595Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://blog.aezo.cn/2017/07/16/lang/python/scrapy/</loc>
     
     <lastmod>2021-06-15T13:07:09.845Z</lastmod>
@@ -250,13 +271,6 @@
     <loc>http://blog.aezo.cn/2016/07/17/lang/uml/</loc>
     
     <lastmod>2021-06-15T12:45:18.963Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2016/09/17/extend/idea/</loc>
-    
-    <lastmod>2021-06-15T09:04:00.857Z</lastmod>
     
   </url>
   
@@ -509,13 +523,6 @@
     <loc>http://blog.aezo.cn/2020/03/20/linux/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</loc>
     
     <lastmod>2021-03-13T10:53:49.918Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://blog.aezo.cn/2017/01/10/linux/shell/</loc>
-    
-    <lastmod>2021-03-11T07:41:47.406Z</lastmod>
     
   </url>
   
