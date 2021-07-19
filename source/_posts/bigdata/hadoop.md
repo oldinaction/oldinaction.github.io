@@ -24,7 +24,6 @@ tags: [hadoop]
     - 《Bigtable: A Distributed Storage System for Structured Data》 2006年
 - 版本：2016年10月hadoop-2.6.5，2017年12月hadoop-3.0.0
 - [大数据生态CDH提供商](http://www.cloudera.com)
-- 本文基于`hadoop-2.10.1`(jdk1.8)
 
 ## HDFS
 
@@ -233,8 +232,9 @@ tags: [hadoop]
         - 而在Haddop 2.x的时候开发YARN是新的模块，从而切换功能直接在ResourceManager中
 - NodeManager：类似TaskTracker，运行在各个DN
 
-## Hadoop-HA安装
+## Hadoop安装
 
+- 本文基于`hadoop-2.10.1`(jdk1.8)
 - HA模式安装：https://hadoop.apache.org/docs/r2.10.1/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html
 - [单节点安装见下文](#单节点安装(不常用))
 
@@ -272,7 +272,7 @@ su - test # 使用普通用户登录并安装
 ssh-keygen -P '' # -P设置密码
 ## 将node01和node02(NameNode)的公钥文件内容追加到自己和其他3台机器的的认证文件中
 ## 将本机器公钥文件内容追加到认证文件中。此时可以通过命令如`ssh node01`无需密码即可登录本地机器，记得要`exit`退出会话
-ssh-copy-id -i ~/.ssh/id_rsa.pub test@node01 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node02 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node03 && ssh-copy-id -i ~/.ssh/id_rsa.pub test@node04
+ssh-copy-id -i ~/.ssh/id_rsa.pub test@node01 && ssh-copy-id -i ~/.ssh/id_rsa.pub node02 && ssh-copy-id -i ~/.ssh/id_rsa.pub node03 && ssh-copy-id -i ~/.ssh/id_rsa.pub node04 # 省略test@，则默认去当前用户
 # 测试登录
 ssh test@node03
 
@@ -282,12 +282,14 @@ ssh test@node03
 #### 在node01上进行安装hadoop
 
 ```bash
-sudo mkdir -p /opt/bigdata/hadoop
-sudo wget https://archive.apache.org/dist/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
-# 解压`hadoop-2.10.1.tar.gz`(官方提供的是32位；32位的包可以运行在64位机器上，只是有警告；反之不行)
-sudo tar -zxvf hadoop-2.10.1.tar.gz -C /opt/bigdata
+sudo mkdir /opt/bigdata
 # 生产环境一般不使用root，改成test用户，也方便后面测试权限
-chown -R test:test /opt/bigdata/hadoop-2.10.1
+sudo chown test:test /opt/bigdata
+mkdir -p /opt/bigdata/hadoop
+wget https://archive.apache.org/dist/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
+# 解压`hadoop-2.10.1.tar.gz`(官方提供的是32位；32位的包可以运行在64位机器上，只是有警告；反之不行)
+tar -zxvf hadoop-2.10.1.tar.gz -C /opt/bigdata
+# chown -R test:test /opt/bigdata/hadoop-2.10.1
 # 数据目录
 mkdir -p /var/bigdata/hadoop
 chown -R test:test /var/bigdata/hadoop
@@ -323,7 +325,10 @@ vi $HADOOP_HOME/etc/hadoop/hadoop-env.sh
         <value>/var/bigdata/hadoop/tmp</value>
     </property>
 
-    <!-- 可选。使用hiveserver2服务的时候需要修改hdfs的超级用户的管理权限（其中test为Hadoop启动用户） -->
+    <!-- 
+        可选。使用hiveserver2服务的时候需要修改hdfs的超级用户的管理权限（其中test为Hadoop启动用户）
+        代理用户：如hiveserver2可以使用多个用户访问hive，这些用户实际操作hdfs时，对于hdfs而言看到的都是test这个用户，从而跳过hdfs的验证。此处*表示所有，多个可用逗号分割，如代理主机: node03,node04
+     -->
     <property>
         <name>hadoop.proxyuser.test.groups</name>	
         <value>*</value>
@@ -593,7 +598,7 @@ start-yarn.sh
 # stop-yarn.sh
 # 在DN上使用jps查看可发现多出NodeManager的进程
 
-# (root执行亦可) 在node03-node04上分别执行，手动启动RM
+# (root执行亦可) **在node03-node04上分别执行，手动启动RM**
 yarn-daemon.sh start resourcemanager
 # zkCli.sh进入zk命令行，结果为 [ActiveBreadCrumb, ActiveStandbyElectorLock]，ActiveStandbyElectorLock中记录了主RM
 # ls /yarn-leader-election/myyarn

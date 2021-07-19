@@ -478,18 +478,47 @@ iframe {
 - 表单验证
 
     ```html
-    <!-- 注意:model必须赋值，且所有的prop都定义过，如：userDataForm: {username: ''}。如果不定义自定则使用 required: true 规则时会一直报错 -->
+    <!-- 注意:model必须赋值，且FormItem必须定义prop。userDataForm: {}即可-->
     <Form :model="userDataForm" :rules="userDataFormRule" ref="userDataForm">
         <FormItem label="Login Name" prop="username">
             <Input v-model="userDataForm.username" placeholder="Login Name"></Input>
         </FormItem>
+
+        <!-- InputNumber验证时必须定义type，否则required一直报错
+            amount: [{ required: true, type:'number', message: "金额必填", trigger: "blur" }]
+        -->
+        <FormItem label="金额" prop="amount">
+            <InputNumber v-model="editForm.amount"></InputNumber>
+            <!-- **或者增加number属性** -->
+            <Input v-model="editForm.amount" number></Input>
+        </FormItem>
     </Form>
 
-    <!-- InputNumber验证时必须定义type，否则required一直报错。amount: [{ required: true, type:'number', message: "金额必填", trigger: "blur" }]-->
-    <FormItem label="金额" prop="amount">
-        <InputNumber v-model="editForm.amount"></InputNumber>
-        <Input v-model="editForm.amount" number></Input><!-- 或者增加number属性 -->
-    </FormItem>
+    <script>
+        let billCargoRules = {
+            seqNo: [{ required: true, type: 'number', message: '序号必填', trigger: 'blur' }],
+            piece: [
+                { required: true, type: 'integer', message: '请输入大于零的整数', min: 0 }
+            ],
+            weight: [
+                { required: true, type: 'number', message: '请输入大于零的数字', min: 0 },
+                {
+                    validator: function (rule, value, callback) {
+                        if (/.*\..*/.test(value)) {
+                            if (value.toString().split('.')[1].length > 3) {
+                                // eslint-disable-next-line standard/no-callback-literal
+                                callback('小数点最多三位')
+                            } else {
+                                callback()
+                            }
+                        } else {
+                            callback()
+                        }
+                    }
+                }
+            ],
+        }
+    </script>
     ```
 - 表单排版
 

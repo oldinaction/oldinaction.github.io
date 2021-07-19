@@ -99,11 +99,11 @@ echo 'it is wolf'\''s book'
     - 位置变量(作用于脚本执行的参数)：`$1` 表示第一个参数，以次类推`$2`、`$3`
     - 特殊变量
         - **`$?`** 上一个命令的执行状态返回值(`0` 表示正确，其他为错误)
-        - `$#` 传递到脚本的参数个数
+        - **`$#`** 传递到脚本的**参数个数**
+        - **`$@`** 使用时加引号，并在引号中返回所有参数(用空格分割)
         - `$*` 传递到脚本的参数，与位置变量不同，此选项参数可超过9个
         - `$$` 脚本运行时当前进程的ID号，常用作临时变量的后缀，如 haison.$$
         - `$!` 后台运行的(&)最后一个进程的ID号
-        - `$@` 与`$#`相同，使用时加引号，并在引号中返回参数个数
         - `$-` 上一个命令的最后一个参数
         - `$0` 当前Shell程序的文件名(只在脚本文件里才有作用)
             
@@ -134,6 +134,60 @@ echo ${string/%34/df} # %以什么结尾来匹配：123.abc.2df
 ## 统计单词个数
 s='one two three four five'
 echo $s | tr ' ' '\n' | wc -l
+```
+
+### 数组
+
+- Bash Shell 只支持一维数组（不支持多维数组），初始化时不需要定义数组大小，数组元素的下标由 0 开始，元素用"空格"符号分割开
+
+```bash
+# 初始化
+name=(value1 value2 value3) # 对于 index array
+name=([key1]=value1 [key2]=value2 [key3]=value3) # 对于 associative array
+name[0]=value0 # 也可这样定义数组
+# 获取数组元素个数
+elem_count=${@name[@]}
+# 引用数组中的元素
+value=${name[$key]}
+# 数组元素赋值
+name[$key]=value
+# 输出所有的键(都可)
+keys=${!name[*]}
+keys=${!name[@]}
+# 输出所有的值
+values=${name[*]}
+values=${name[@]}
+# 删除数组元素
+unset name[$index] # 删除某个元素
+unset name # 删除整个数组
+# 获取数组的一部分，注意这个功能只有 index array 适用
+# 0是起始下标，3是元素个数。获取从下标0开始的3个元素
+# 如果起始下标超过元素个数，则什么也不会输出
+# 如果起始下标是负数，则会输出错误的字符串
+${name:0:3}
+
+# 使用 * 和 @， 只有二者被双引号包围起来的时候才会有区别
+# 可以使用 * 的时候，解释出的东西会被当成一个字符串，可以看到遍历的时候数组中所有的键被IFS的第一个字符（空格）隔开，并当成一个字符串输了出来
+# 但是使用@，每个键则会被单独解释。这个规则对于数组的值来说也是一样的
+for var in "${name[*]}" # 将所有的值用空格分开显示成一行(一个字符串)
+for var in "${name[@]}" # 将所有的值换行显示
+
+# declare 命令对变量设置属性
+# 也可以和数组配合起来使用，declare设置的变量属性会作用于数组的每一个值上
+# -a 设置index array
+# -A 设置associative array
+# -r 只读
+# -i 值必须为整数
+# -u 值里面所有的字母都必须为大写
+declare -ari name=(1 2 3)
+```
+- 案例
+
+```bash
+my_array=(A B "C" D)
+echo "第一个元素为: ${my_array[0]}"     # A
+echo "数组元素个数为: ${#my_array[*]}"  # 4
+echo "数组元素个数为: ${#my_array[@]}"  # 4
 ```
 
 ### 运算
@@ -1075,6 +1129,49 @@ echo $rnd
 exit 0
 ```
 
+### 分割字符串
+
+```bash
+# 参考：https://blog.csdn.net/u010003835/article/details/80750003
+## 1.用string来替换parameter变量中所有匹配的pattern
+# ${parameter//pattern/string} 
+string="hello,shell"  
+array=(${string//,/ }) # 将,替换成空格，从而形成数组
+for var in ${array[@]} # ${array[@]} 输出数组所有的值
+do
+   echo $var # 换行打印 hello、shell
+done
+
+## 2.使用IFS
+# Shell 脚本中有个变量叫 IFS(Internal Field Seprator) ，内部域分隔符
+# Shell 的环境变量分为 set, env 两种，其中 set 变量可以通过 export 工具导入到 env 变量中。其中，set 是显示设置shell变量，仅在本 shell 中有效；env 是显示设置用户环境变量 ，仅在当前会话中有效
+# 而 IFS 是一种 set 变量，当 shell 处理"命令替换"和"参数替换"时，shell 根据 IFS 的值，默认是 space, tab, newline 来拆解读入的变量，然后对特殊字符进行处理，最后重新组合赋值给该变量
+# 查看变量 IFS 的值(需要-b转成二进制才看的到)
+echo "$IFS" | od -b # 打印中 "040"是空格，"011"是Tab，"012"是换行符"\n"，最后一个 012 是因为 echo 默认是会换行的
+# 测试
+string="hello,shell"
+OLD_IFS="$IFS" #对IFS变量进行替换处理
+IFS=","
+array=($string) # 执行参数替换，会使用IFS
+IFS="$OLD_IFS"
+for var in ${array[@]}
+do
+   echo $var
+done
+
+## 3.利用tr指令实现字符替换
+# tr命令可以对来自标准输入的字符进行替换、压缩和删除。它可以将一组字符变成另一组字符，经常用来编写优美的单行命令
+# tr [OPTION]... SET1 [SET2]
+# SET1: 参数1，指定要转换或删除的原字符集
+# SET2: 参数2，转换时才需要，指定要转换成的目标字符集
+string="hello,shell"
+array=(`echo $string | tr ',' ' '`)
+for var in ${array[@]}
+do
+   echo $var
+done 
+```
+
 ### 使用表格显示结果
 
 ```bash
@@ -1123,11 +1220,11 @@ if [ -z "$2" ] ; then echo "(error) None-argument..." ; usage ; exit 1 ; fi
 
 function create_user() {
 	u=$1
-  # 判断字符串不以xxx开头; 双引号中的变量可以识别，单引号中的变量无法识别; `return 1` 为函数返回值
+    # 判断字符串不以xxx开头; 双引号中的变量可以识别，单引号中的变量无法识别; `return 1` 为函数返回值
 	if [[ $u != s_* ]] ; then echo "(warn) 用户名 $user 不以 s_ 开头, 不进行操作." ; return 1; fi
 	
 	pass=$(sed -n "/$u/{n;p;}" $vuser_file)
-  # -n 判断文本是否不为空; [ ] 中的变量必须加双引号，[[ ]] 中的变量可以不使用双引号
+    # -n 判断文本是否不为空; [ ] 中的变量必须加双引号，[[ ]] 中的变量可以不使用双引号
 	if [ -n "$pass" ] ; then
 		echo "(warn) 存在登录名: $u, 密码: $pass" ;
 	else
@@ -1140,7 +1237,7 @@ function create_user() {
 	fi
 	
 	touch $etc_dir/$u ;
-  # 添加多行文本到文件 `<< EOF`表示遇到 `EOF` 则停止. 此时可以识别变量 $u
+    # 添加多行文本到文件 `<< EOF`表示遇到 `EOF` 则停止. 此时可以识别变量 $u
 	cat > $etc_dir/$u << EOF
 local_root=/home/vsftp/$u
 anon_umask=022
@@ -1153,7 +1250,7 @@ EOF
 	mkdir -p $vuser_dir/$u ;
 	chown -R vsftp.vsftp $vuser_dir/$u ;
 	
-  # 打印的字符串不加单双引号亦可，且字符串连接无需任何符号
+    # 打印的字符串不加单双引号亦可，且字符串连接无需任何符号
 	echo "(info)" 登录名: $u, 密码: $pass ;
 }
 
@@ -1165,7 +1262,7 @@ while true ; do
 	case "$1" in
 		-u) 
 			user_str=$2
-      # 以 , 进行分割字符串为数组
+            # 以 , 进行分割字符串为数组
 			user_array=(${user_str//,/ })
 			shift 2 ;;
 		--) shift ; break ;;
