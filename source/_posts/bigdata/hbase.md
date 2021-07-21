@@ -172,6 +172,15 @@ stop-hbase.sh
 ## 命令
 
 ```bash
+# 进入命令行
+hbase shell
+# 查看某个HStoreFile文件
+# 下列HStoreFile，不是一般的文本格式，需要使用以下命令查看，返回结果如下
+# K: 1/cf:name/1626701620132/Put/vlen=8/seqid=4 V: zhangsan
+# Scanned kv count -> 1
+hbase hfile -p -f /hbase/data/default/psn/c6eb6d681adeb57094901c220f049784/cf/6b35a028d9ff43eb9ef9533968e01da4
+
+## hbase shell命令
 help # 查看命令帮助
 help "create" # 查看某个命令帮助，注意双引号
 
@@ -199,33 +208,20 @@ count 'psn'
 # 清空psn表
 truncate 'psn'
 
-# 
+# 必须先禁用表后，才能删除表
 disable 'psn'
 drop 'psn'
-```
-- 观察文件合并
 
-```bash
-create 'psn', 'cf'
-# 此时查看hdfs目录 /hbase/data/default/psn/c6eb6d681adeb57094901c220f049784/cf 无数据
-put 'psn', '1', 'cf:name', 'zhangsan'
-# 手动刷新缓存，再次查询上述目录，出现文件 6b35a028d9ff43eb9ef9533968e01da4，每次手动或自动flush都会产生一个HStoreFile
-flush 'psn'
-# 上述HStoreFile，不是一般的文本格式，需要使用以下命令查看，返回结果如下
-# K: 1/cf:name/1626701620132/Put/vlen=8/seqid=4 V: zhangsan
-# Scanned kv count -> 1
-hbase hfile -p -f /hbase/data/default/psn/c6eb6d681adeb57094901c220f049784/cf/6b35a028d9ff43eb9ef9533968e01da4
-
-put 'psn', '2', 'cf:name', 'lisi'
-flush 'psn'
-put 'psn', '3', 'cf:name', 'wangwu'
-flush 'psn'
-put 'psn', '4', 'cf:name', 'xiaohong'
-flush 'psn'
-put 'psn', '5', 'cf:name', 'xiaomin'
+# 手动刷新缓存，每次手动或自动flush都会产生一个HStoreFile(达到一定条件则会进行合并)
 flush 'psn'
 ```
 
+## 客户端API操作(java)
+
+- HBase支持多种语言的API操作，参考：http://hbase.apache.org/2.3/book.html#external_apis
+- 基于Java操作时，对于对象的序列化可使用`ProtoBuf`
+    - 从而将相同rowKey的列操作进行合并成对象提交，从而减少了rowKey的重复次数，到达节省空间的目的
+    - 由于序列化后，查看hfile时无法直接人眼识别，需要反序列化才可
 
 
 
@@ -233,10 +229,7 @@ flush 'psn'
 
 ---
 
-phoenix -> sql分析hbase
-
-
-java client
-hbase-client
-
-
+hbase api前缀过滤器
+mr <-> hbase
+hbase表设计原则: 用户角色设计，协处理器(触发器删除修改)、设计原则
+lsm

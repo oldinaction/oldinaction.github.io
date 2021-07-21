@@ -548,7 +548,7 @@ handleChange (value) {
     - vxe-grid 支持一切动态场景
         - grid 继承 table 100%的功能，vxe-grid 的性能也比 vxe-table 快一倍
         - vue 多数情况还是推荐使用语义化标签的形式；而对于动态场景用 grid 就更加灵活，可以实现远程配置化一体化
-- 表格显示/隐藏后样式丢失问题
+- **表格显示/隐藏后样式丢失问题，弹框表格列宽问题**
   - `auto-resize`或`sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
 - 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
 
@@ -609,7 +609,7 @@ edit-config:
     manual 手动触发+监听cell-dblclick双击事件
     showStatus 展示修改状态，左上角红色小角标
     mode 修改时，默认整行转成可编辑状态
-    autoClear 自动保存(关闭修改) => input类型的需要配合 immediate: true
+    autoClear 自动保存(关闭修改) => **input类型的需要配合 immediate: true**
  -->
 <vxe-table
     ref="table"
@@ -848,6 +848,12 @@ nodeToString ( node ) {
 - 包含基础组件、**图表**、**地图**、关系图、**大屏**等功能
     - 内置了百度、高德
     - 支持与ECharts结合实现散点、飞行迁徙等基于地理位置的图表
+
+### Quasar
+
+- `Quasar`：基于Vue的UI框架，可以整合`Cordova`开发移动App，也可以整合`Electron`开发桌面程序
+- 常用习惯
+    - `Ripple` 可以使按钮展示出波纹，不使用此波纹则需要去掉`quasar.conf.js` - `directives` 中的 `Ripple` 项
 
 ## 底层硬件库
 
