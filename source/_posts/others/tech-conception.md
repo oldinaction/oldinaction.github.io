@@ -47,6 +47,10 @@ tags: [java, conception]
 - `JAX-RS` 全称为Java API for RESTful Web Services，核心概念是resource，即面向资源
 - `ESB` 全称为Enterprise Service Bus，一般指企业服务总线，是SOA架构思想的一种实现思路。指的是传统中间件技术与XML、Web服务等技术结合的产物。其实现如`ServiceMix`框架
 - [WSO2](https://wso2.com/) 是一个领先的开源SOA解决方案提供者，提供了SOA相关的各种基础设施、技术框架和相关工具等等，并且都是Apache 2.0开源协议的
+- `DSL` 即Domain Specific Language，中文一般译为领域特定语言
+    - 内部 DSL：基于某一宿主语言，如 jQuery 就可以认为是针对 DOM 操作的一种内部 DSL，如`(2).weeks().ago()`
+    - 外部 DSL：是一种独立的编程语言，需要从解析器开始实现自己的编译工具，实现成本较高，如`2 weeks ago`
+    - 参考：https://zhuanlan.zhihu.com/p/107947462
 
 ## 网络
 
