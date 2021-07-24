@@ -999,6 +999,11 @@ node04 | 192.168.6.134 | DataNode
 
 
 
+--- 
+flume
+ETL: kettle
+sqoop、batex？
+埋点：初中高
 
 
 
