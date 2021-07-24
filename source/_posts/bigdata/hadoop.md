@@ -774,9 +774,9 @@ public class TestHDFS {
     - 将my-mr.jar上传到集群中的某一个节点，再执行类似`hadoop jar my-mr.jar input output`的命令提交任务到YARN
     - 嵌入集群方式，在linux/windows上开发程序并直接提交任务到YARN(计算发生在集群)。参考下文案例
     - local单机执行(计算发生在本机)
-        - 在win的系统中部署我们的hadoop，并设置HADOOP_HOME
+        - 在windows的系统中部署hadoop，并设置HADOOP_HOME
         - 设置`mapreduce.framework.name=local`和`mapreduce.app-submission.cross-platform=true`
-        - 额外下载相应版本的`hadoop.dll`、`winutils.exe`(参考：https://github.com/cdarlint/winutils)，分办放到C:\windwos\system32\和%HADOOP_HOME%/bin目录
+        - 额外下载相应版本的`hadoop.dll`、`winutils.exe`(参考：https://github.com/cdarlint/winutils)，分别放到C:\windwos\system32\和%HADOOP_HOME%/bin目录
 
 #### 测试hadoop提供的单词统计案例
 
@@ -905,6 +905,7 @@ public class TestMapper extends Mapper<Object, Text, Text, IntWritable> { // imp
         StringTokenizer itr = new StringTokenizer(value.toString());
         while (itr.hasMoreTokens()) {
             // 将k,v定义为成员变量的原因: 由于大量数据处理时，会重复调用此map方法很多次，如果频繁new对象，则会频繁触发GC，从而计算效率变慢
+            // 每次进入map方法, k 中存的数据都会被刷走
             k.set(itr.nextToken());
             context.write(k, v);
         }
