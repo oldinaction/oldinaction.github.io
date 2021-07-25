@@ -776,7 +776,7 @@ public class TestHDFS {
     - local单机执行(计算发生在本机)
         - 在windows的系统中部署hadoop，并设置HADOOP_HOME
         - 设置`mapreduce.framework.name=local`和`mapreduce.app-submission.cross-platform=true`
-        - 额外下载相应版本的`hadoop.dll`、`winutils.exe`(参考：https://github.com/cdarlint/winutils)，分别放到C:\windwos\system32\和%HADOOP_HOME%/bin目录
+        - 额外下载相应版本的`hadoop.dll`、`winutils.exe`(参考：https://github.com/cdarlint/winutils)，分别放到C:\Windows\System32和%HADOOP_HOME%/bin目录
 
 #### 测试hadoop提供的单词统计案例
 

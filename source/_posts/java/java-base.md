@@ -412,6 +412,96 @@ public Result doPost(@PathVariable("serviceName") String serviceName, @PathVaria
 }
 ```
 
+## JDBC
+
+- Mysql连接JDBC为例
+- 先在Mysql官网下载驱动JDBC(Mysql Drivers提供了很多语言的驱动)：mysql-connector-java-5.0.8
+- 导包：在项目上右键->Build Path->Add External archives->mysql-connector-java-5.0.8-bin.jar
+- 示例如下
+
+```java
+package cn.aezo.mysql;
+
+import java.sql.*;
+
+public class ConnectionMySQL {
+    public static final String URL = "jdbc:mysql://127.0.0.1:3306/test";//或者jdbc:mysql://127.0.0.1:3306/test?user=用户名&password=密码
+    public static final String USERNAME = "root";
+    public static final String PASSWORD = "root";
+    
+    public static void main(String[] args) throws SQLException {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            // 实例化驱动，注册驱动(实例化时自动向DriverManager注册，不需显示调用DriverManager.registerDriver方法)
+            Class.forName("com.mysql.jdbc.Driver");//或者new com.mysql.jdbc.Driver();
+            // 获取数据库的连接
+            conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);  
+            
+            // ====== Statement方式
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("select * from user where id = 1");
+            while(rs.next()) {
+                System.out.println(rs.getInt("id"));  
+                System.out.println(rs.getString("username"));  
+                System.out.println(rs.getString("password"));  
+            }
+
+            // ====== PreparedStatement方式
+            String sql = "INSERT INTO user(name) VALUES (?)";
+            // 返回插入后生成的主键
+            // PreparedStatement preparedStatement = conn.prepareStatement(sql, {"id"}); // oracle(也适用于mysql)
+            PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS); // 常用，如mysql
+            ps.setString(1, "smalle");
+            ps.executeUpdate();
+            ResultSet generatedKeys = ps.getGeneratedKeys();
+            while (generatedKeys.next()) {
+                long generateKey = generatedKeys.getLong(1); // 返回的主键
+            }
+
+            // ====== PreparedStatement批量执行sql
+            conn.setAutoCommit(false); // 关闭自动提交
+			ps = conn.prepareStatement("insert into user(name,passwd) values(?,?)");
+
+            ps.setString(1, "zhangsan");
+            ps.setString(2, "123");
+            ps.addBatch();
+
+            ps.setString(1, "lisi");
+            ps.setString(2, "456");
+            ps.addBatch();
+
+            ps.executeBatch(); // 批量执行sql
+            ps.commit(); // 手动提交
+        } catch (ClassNotFoundException e) {
+            System.out.println("驱动类没有找到！");
+            e.printStackTrace();  
+        } catch (SQLException e) {  
+            e.printStackTrace();  
+        } finally {
+            // 释放资源
+            try {
+                if(rs != null) {
+                    rs.close();
+                    rs = null;
+                }
+                if(stmt != null) {
+                    stmt.close();
+                    stmt = null;
+                }
+                if(conn != null) {
+                    conn.close();
+                    conn = null;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }	
+        } 
+    }  
+}
+```
+
 ## 易错点
 
 - null
