@@ -26,11 +26,11 @@ for (Orders order : list) {
 }
 ```
 
-## SpringBoot整合mybatis [^1]
+## SpringBoot整合mybatis
 
 ### 基本配置
 
-- 引入依赖(mybatis-spring-boot-starter为mybatis提供的自动配置插件)
+- 引入依赖(mybatis-spring-boot-starter为mybatis提供的自动配置插件) [^1]
 
 	```xml
 	<!-- 自动配置 https://github.com/mybatis/spring-boot-starter -->
@@ -597,18 +597,14 @@ for (Orders order : list) {
 
 ### 批量执行语句
 
-- mybatis foreach
-
-    ```xml
-    <!-- mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） -->
-    <insert id="insertbatch">
-        insert into t_user(id, name) values
-        <foreach collection ="list" item="user" separator =",">
-            (#{user.id}, #{user.name})
-        </foreach >
-    </insert>
-    ```
-- mybatis batch
+- 性能比较，同个表插入一万条数据时间近似值
+  - JDBC BATCH 1.1秒左右 > Mybatis BATCH 2.2秒左右 > Mybatis foreach 4.5秒左右
+  - 有测试说 Mybatis foreach > Mybatis BATCH
+- **jdbc batch**
+    - 参考[java-base.md#JDBC](/_posts/java/java-base.md#JDBC)
+    - 采用PreparedStatement.addBatch()方式实现
+    - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
+- **mybatis batch**
     - Mybatis内置的ExecutorType有3种，默认的是simple，该模式下它为每个语句的执行创建一个新的预处理语句，单条提交sql；而batch模式重复使用已经预处理的语句，并且批量执行所有更新语句
     - 使用batch模式需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
     - 案例
@@ -631,13 +627,18 @@ for (Orders order : list) {
             sqlSession.commit();
         }
         ```
-- mybatis-plus 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)/saveOrUpdateBatch(新增或基于ID修改)访问，见下文。基于mybatis的`openSession(ExecutorType.BATCH)`，默认每1000条提交一次
-- jdbc batch
-    - 采用PreparedStatement.addBatch()方式实现
-    - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
-- 性能比较，同个表插入一万条数据时间近似值
-  - JDBC BATCH 1.1秒左右 > Mybatis BATCH 2.2秒左右 > Mybatis foreach 4.5秒左右
-  - 有测试说 Mybatis foreach > Mybatis BATCH
+- **mybatis-plus** 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)/saveOrUpdateBatch(新增或基于ID修改)访问，见下文。基于mybatis的`openSession(ExecutorType.BATCH)`，默认每1000条提交一次
+- mybatis foreach
+
+    ```xml
+    <!-- mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） -->
+    <insert id="insertbatch">
+        insert into t_user(id, name) values
+        <foreach collection ="list" item="user" separator =",">
+            (#{user.id}, #{user.name})
+        </foreach >
+    </insert>
+    ```
 
 ### MyBatis/Java/Oracle/MySql数据类型对应关系
 
@@ -1132,11 +1133,11 @@ public OracleKeyGenerator oracleKeyGenerator() {
 
 #### 常见问题
 
-- entity不建议继承
+- entity继承注意项
 
     ```java
     public class Foo extend Bar {}
-    // 当执行下列语句时，生成的sql会包含 Bar 的字段，导致执行报错
+    // 当执行下列语句时，生成的sql会包含 Bar 的字段；因此Bar中的字段必须是foo表中的字段，否则执行报错
     fooMappler.selectOne(id);
     ```
 

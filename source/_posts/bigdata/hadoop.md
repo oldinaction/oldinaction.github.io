@@ -550,6 +550,7 @@ scp mapred-site.xml yarn-site.xml node02:`pwd`
 - **`hadoop-daemon.sh start journalnode`** 用test用户(hadoop所属用户)分别在三台JN(node02-node04)节点上执行命令进行启动(**必须在NN之前启动**)
     - 自动启动：可在`/etc/rc.local`中增加代码`sudo -H -u test bash -c '/opt/bigdata/hadoop-2.10.1/sbin/hadoop-daemon.sh start journalnode'`自动启动(centos7需先`chmod +x /etc/rc.d/rc.local`激活此文件)
 - **`start-dfs.sh`** 在某一台NameNode上用test用户启动
+    - **`start-all.sh`** 包含了 start-dfs.sh 和 start-yarn.sh
     - 此时node01会通过免密码登录启动其他机器上的hadoop服务(NN、DN、ZKFC, JN已提前启动)
         - journalnode在上述启动过，此处不会重新启动
         - 启动后，则会自动同步数据到JN，如：edits_inprogress_0000000000000000001
@@ -1002,10 +1003,24 @@ node04 | 192.168.6.134 | DataNode
 --- 
 flume
 ETL: kettle
-sqoop、batex？
+sqoop、datax
 埋点：初中高
+oozie、azkanman
 
 
+- 集群大小
+    - 说成30-50条，100台以上慎重
+    - 三一6套集群：最新12台机器，最大68台，都是基于128G来说的
+    - 北京某交通分析，38台集群
+    - spark(充分利用内存)、redis、hbase这种内存消耗较大的一般不混合部署
+    - zk、hadoop这种可以混合部署
+- 按天算的
+    - 条数
+        - 千万级别-亿级别
+    - 大小
+        - 几百个G，PB/T慎重
+    - 条数 * 每条大小(1KB) = 大小
+    - 可根据站长工具PV等估算
 
 
 

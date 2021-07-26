@@ -196,13 +196,15 @@ test("123", (from) -> Integer.valueOf(from)); // 123
 - 常用API
     - `Intermediate`(中间操作)
         - 一个流可以后面跟随零个或多个 intermediate 操作 
-        - map (mapToInt, flatMap 等)、 filter、 distinct、 sorted、 peek、 limit、 skip、 parallel、 sequential、 unordered
+        - **`filter`**(子句需返回true|false)、**`map`**(字句返回值作为后续条目)、**`peek`**(全部循环，无需返回值，可用于打印和修改条目)、distinct、sorted、limit、skip、parallel、sequential unordered
+        - mapToInt、flatMap 等
     - `Terminal`(最终遍历)
         - 一个流只能有一个 terminal 操作，当这个操作执行后，流就被使用"光"了，无法再被操作(**此时进行遍历**)
-        - forEach、 forEachOrdered、 toArray、 reduce、 collect、 min、 max、 count、 anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 iterator
+        - collect、forEach、anyMatch(循环判断每一条目，只有有一个符合就整体返回true)、allMatch、findFirst
+        - toArray、forEachOrdered、noneMatch、findAny、iterator、reduce、min、max、count
     - `Short-circuiting`(分流/过滤)
         - 对于一个无限大的Stream时，需要获取返回一个有限的新Stream或快速计算出值时需要进行过滤
-        - anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 limit
+        - anyMatch、allMatch、noneMatch、findFirst、findAny、limit
 - 简单示例
 
 ```java
