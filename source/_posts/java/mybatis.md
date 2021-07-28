@@ -525,6 +525,28 @@ for (Orders order : list) {
 		</collection>
     </resultMap>
 	```
+- @MapKey使用
+
+    ```java
+    // 如果name唯一则正常；如果同一name可能存在多个，则不会报错，该name对应的值为最后一条记录
+    @MapKey("NAME") // 由于返回类型是Map，此处为Oracle的情况下返回字段类型为大写，所有为NAME；如果返回对象为实体则可以为name
+    Map<String, Map<String, Object>> findUserMap();
+
+    // 正常返回，和没有@MapKey一样
+    @MapKey("NAME")
+    List<Map<String, Object>> findUserMap();
+
+    // 假设name不唯一，原意图是想返回所有name的值放到List中，但实际返回的对象类型为Map<String, Map<String, Object>>，相同name只会取最后一个
+    @MapKey("NAME")
+    Map<String, List<Map<String, Object>>> findUserMap();
+    ```
+    - xml
+    
+    ```xml
+    <select id="findUserMap" resultType="java.util.Map">
+        select u.id, u.name from user u
+    </select>
+    ```
 
 ### mybatis常见问题
 
@@ -536,6 +558,7 @@ for (Orders order : list) {
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
 	- 使用**CDATA** `<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
 - 双引号转义：`<if test='help.title != null and type = \"MY_TYPE\"'>`
+- select等xml语句后不要加`;`
 - mybatis类型转换问题
 	- mybatis会对Integer转换成字符串时，如果Integer类型值为0，则转换为空字符串。(js也是这样转换的)
 
