@@ -20,7 +20,11 @@ categories: [java]
 class Outer {
     String data = "外部类別";
 
-    // 必须先实例化外部类，才能实例化内部类
+    // 必须先实例化外部类，才能实例化内部类。否则报错 is not an enclosing class
+    /*
+        Outer outer = new Outer();
+        Outer.Inner inner = outer.new Inner();
+    */
     public class Inner {
         String data = "內部类別";
         public String getOuterData() {
@@ -350,8 +354,10 @@ new File(System.getProperty("user.dir") + "/src/main/data.json")
 // 使用System.out.println来输出一个时间的时候，他会调用Date类的toString方法，而该方法会读取操作系统的默认时区来进行时间的转换
 // TimeZone.setDefault(TimeZone.getTimeZone("GMT")); // 先运行此行，再打印new Date(0)，则是 `Thu Jan 01 00:00:00 CST 1970`
 System.out.println(new Date(0)); // Thu Jan 01 08:00:00 CST 1970
+
 // (此代码上文没有执行TimeZone.setDefault)此方法无法获取美国洛杉矶时间。getInstance并没有将系统默认时区设置成传入的时区
 System.out.println(Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles")).getTime()); // Wed Nov 06 16:47:23 CST 2019
+
 // 获取美国洛杉矶时间
 TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles")); // 设置系统默认时区(不会真正修改操作系统默认时区)
 System.out.println(new Date()); // Wed Nov 06 00:00:00 PST 2000 (上海时间为 2000-11-6 16:00:00)
@@ -504,12 +510,26 @@ public class ConnectionMySQL {
 
 ## 易错点
 
-- null
+- Null问题
 
 ```java
 Boolean a = null;
 if(a) { // NullPointerException
     System.out.println("hello");
+}
+```
+- 引用问题
+
+```java
+public static void main(String[] args) {
+    Map<String, Object> map = new HashMap<>();
+    List<String> list = new ArrayList<>();
+    list.add("abc");
+    map.put("list", list);
+    System.out.println("map = " + map); // map = {list=[abc]}
+    list.clear();
+    // 注意此处map中存的还是list引用值
+    System.out.println("map = " + map); // map = {list=[]}
 }
 ```
 - final

@@ -777,6 +777,16 @@ public String addUser(@RequestBody Map<String, Object> map) {}
 @RequestMapping(value = "/addUser", method = RequestMethod.POST)
 public String addUser(@RequestBody String param) {} // 此时param拿到的值为 name=smalle&pass=123
 ```
+- 参数映射
+
+```java
+// 1.如果user对象中有字段如 uFullName (驼峰，首字母只有一个字符的情况)
+// 如果接受参数为普通对象，则前台需要传入字段为 ufullName；如果接受参数为 Map，则前台需要传入字段为 uFullName
+public String addUser(@RequestBody User user) {}
+public String addUser(@RequestBody Map<String, Object> map) {
+    // BeanUtil.copyProperties
+}
+```
 
 ### 文件上传下载
 
