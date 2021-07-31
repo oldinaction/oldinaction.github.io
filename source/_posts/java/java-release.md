@@ -200,8 +200,8 @@ test("123", (from) -> Integer.valueOf(from)); // 123
         - mapToInt、flatMap 等
     - `Terminal`(最终遍历)
         - 一个流只能有一个 terminal 操作，当这个操作执行后，流就被使用"光"了，无法再被操作(**此时进行遍历**)
-        - collect、forEach、anyMatch(循环判断每一条目，只有有一个符合就整体返回true)、allMatch、findFirst
-        - toArray、forEachOrdered、noneMatch、findAny、iterator、reduce、min、max、count
+        - collect、forEach、reduce、anyMatch(循环判断每一条目，只有有一个符合就整体返回true)、allMatch、findFirst
+        - toArray、forEachOrdered、noneMatch、findAny、iterator、min、max、count
     - `Short-circuiting`(分流/过滤)
         - 对于一个无限大的Stream时，需要获取返回一个有限的新Stream或快速计算出值时需要进行过滤
         - anyMatch、allMatch、noneMatch、findFirst、findAny、limit

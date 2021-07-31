@@ -496,7 +496,7 @@ public class ELConfig {
     private Resource testUrl;
 
     @Autowired
-    private Environment environment;
+    private Environment environment; // org.springframework.core.env.Environment
 
     public void outputResource() {
         System.out.println("normal = " + normal);
@@ -504,7 +504,8 @@ public class ELConfig {
         System.out.println("randomNumber = " + randomNumber);
         System.out.println("siteUrl = " + siteUrl);
         System.out.println("fromAnother = " + fromAnother);
-        System.out.println("environment = " + environment.getProperty("site.url")); // 配置文件中的值默认全部赋值到了环境变量中了
+        // 配置文件中的值默认全部赋值到了环境变量中了。也支持多环境配置
+        System.out.println("environment = " + environment.getProperty("site.url"));
 
         try {
             System.out.println("testFile = " + IOUtils.toString(testFile.getInputStream(), "UTF-8"));
