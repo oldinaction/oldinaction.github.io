@@ -986,8 +986,9 @@ List<Map<String, Object>> list = templateItemMapper.selectMaps(
                     .ne(TemplateItem::getTemplateId, 1) // != 1
                     .apply(StrUtil.isNotBlank(startDate),
                         "date_format (optime,'%Y-%m-%d') >= date_format('" + startDate + "','%Y-%m-%d')")
+                    // {index} 为占位参数
                     .apply(StrUtil.isNotBlank(endDate),
-                        "date_format (optime,'%Y-%m-%d') <= date_format('" + endDate + "','%Y-%m-%d')")
+                        "date_format (optime,'%Y-%m-%d') <= date_format({0},'%Y-%m-%d')", endDate)
                     .select(TemplateItem::getTemplateId, TemplateItem::getTemplateName) // 仅获取部分字段
                     // .select(TemplateItem.class, x -> selectProps.contains(x.getProperty())))
                     ;
@@ -1059,6 +1060,21 @@ IPage<Users> findList(Page<?> page, @Param("ctx") Map<String, Object> context);
         and u.username = #{ctx.username}
     </if>
 </select>
+```
+- 取前100条
+
+```java
+// mysql
+new LambdaQueryWrapper<Subscribe>()
+.eq(Subscribe::getFlowStatus, flowStatus)
+.last("limit 100");
+
+// oracle
+new LambdaQueryWrapper<Subscribe>()
+.eq(Subscribe::getFlowStatus, flowStatus)
+.apply("rownum < {0}", 100);
+
+// sqlserver手动写sql
 ```
 
 #### NULL空值处理

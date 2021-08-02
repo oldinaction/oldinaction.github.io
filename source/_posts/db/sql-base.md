@@ -328,16 +328,16 @@ exec p(0, 0);
 
 #### 复制表
 
-- **复制表结构及数据到新表** `create table 新表 as select * from 旧表`
-    - oracle不会复制到表结构的备注和默认值；mysql可以复制备注，但是主键会丢失
-    - 根据备份表还原数据的时候需要delete掉原表的数据，不能drop**
+- 复制表结构及数据到新表 **`create table 新表 as select * from 旧表`**
+    - **oracle不会复制到表结构的备注和默认值；mysql可以复制备注，但是主键会丢失**
+    - 根据备份表还原数据的时候需要delete掉原表的数据，不能drop
     - `200w`的数据`3s`复制完成
-- 只复制表结构到新表 `create table 新表 as select * from 旧表 where 1=2`
+- 只复制表结构到新表 **`create table 新表 as select * from 旧表 where 1=2`**
     - `create table t2 like t1` like创建出来的新表包含源表的完整表结构和索引信息(mysql适用)。oracle支持as，也是只有表结构没有索引；oracle不支持like
 - 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
-- **复制旧表的数据到新表(假设两个表结构一样)** `insert into 新表 select * from 旧表`
+- 复制旧表的数据到新表(假设两个表结构一样) **`insert into 新表 select * from 旧表`**
 - 复制旧表的数据到新表(假设两个表结构不一样) `insert into 新表(字段1,字段2,.......) select 字段1,字段2,...... from 旧表`
-- 创建临时表并复制数据 `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
+- 创建临时表并复制数据(oracle) `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
 
 ### 修改表结构
 
