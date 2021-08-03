@@ -1095,6 +1095,17 @@ find /home/smalle/jvmlogs/ -type f -mtime +3 -exec rm -rfv {} \; >> $LOG_FILE
 echo "===============END $(date +'%y/%m/%d %H:%M:%S')==================" >> $LOG_FILE
 ```
 
+### 压缩历史日志
+
+```bash
+# 备份2019开头的文件或文件夹到his-2019.tar.gz文件中，并删除原文件
+HIS_YEAR=2019
+for dir in test1/log test2/log ; do 
+  tar -zcvf /home/smalle/demo/$dir/his-$HIS_YEAR.tar.gz /home/smalle/demo/$dir/$HIS_YEAR*
+  # rm -rf /home/smalle/demo/$dir/$HIS_YEAR*
+done
+```
+
 ### 生成随机数和字符串
 
 ```bash

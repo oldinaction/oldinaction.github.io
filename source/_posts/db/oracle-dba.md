@@ -172,6 +172,7 @@ alter index index_in_out_regist_id rebuild online;
 - 修改用户密码：`alter user scott identified by tiger;`
 - 修改用户表空间：`alter user aezo default tablespace aezocn;`
 - 解锁用户(无需重启 oracle 服务)
+
   ```sql
   alter user scott account unlock; -- 新建数据库scott默认未解锁
   commit;
@@ -673,14 +674,14 @@ Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Ca
     - 导出其他用户的表：`exp system/manager file=d:/exp.dmp tables=scott.emp, scott.dept` 导出 scott 的 emp、dept 表，用户 system 需要相关权限
     - **导出部分表数据**：`exp scott/tiger file=d:/exp.dmp tables=emp query=\" where ename like '%AR%'\"`
     - 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
-  - 导出全部：`exp system/manager file=d:/exp.dmp full=y`
+  - 导出全部：`exp system/manager file=/home/oracle/exp.dmp full=y buffer=10241024 log=/home/oracle/exp.log`
     - 用户 system/manager 必须具有相关权限
     - 导出的是整个数据库，包括所有的表空间
 - 导入
   - **用户模式**：`imp system/manager file=d:/exp.dmp fromuser=scott touser=aezo ignore=y`
     - `ignore=y`忽略创建错误
     - 不少情况下要先将表彻底删除，然后导入
-  - 表模式：`imp system/manager file=d:/exp.dmp fromuser=scott tables=emp, dept touser=aezo ignore=y`
+  - 表模式：`imp system/manager file=d:/exp.dmp fromuser=scott tables=emp,dept touser=aezo ignore=y`
     - 将 scott 的表 emp、dept 导入到用户 aezo
     - 此处 file/fromuser/touser 都可以指定多个
   - 导入全部：`imp system/manager file=d:/exp.dmp full=y ignore=y`
