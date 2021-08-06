@@ -82,7 +82,7 @@ startup
 
 #### 执行脚本
 
-- plsql 打开命令行窗口，执行 sql 文件：`start D:\sql\my.sql` 或 `@ D:/sql/my.sql`（部分语句需要执行`commit`提交，建议 start）
+- plsql 打开命令行窗口，执行 sql 文件：**`start D:\sql\my.sql`** 或 `@ D:/sql/my.sql`（部分语句需要执行`commit`提交，建议 start）
 - bat 脚本(data.bat)：`sqlplus user/password@serverip/database @"%cd%\data.sql"` (data.sql 和 data.bat 同级，此处只能用@)
 - 后台运行脚本 `nohup bash run.sh > run.log 2>&1 &`
 
@@ -110,7 +110,27 @@ call p_customer_exists_sync();
 
 #### 表空间
 
-- 表空间不足/扩容参考下文常见错误
+- [表空间不足/扩容参考下文](#表空间不足)
+- oracle 和 mysql 不同，创建表空间相当于 mysql 的创建数据库。创建了表空间并没有创建数据库实例 [^2]
+- oracle自带表空间：SYSTEM、SYSAUX、TEMP、UNDO、USERS
+
+```sql
+sqlplus / as sysdba
+
+-- 创建表空间，要先创建好`/u01/app/oracle/oradata/orcl`目录，最终会产生一个aezocn_file文件(Windows上位大写)，表空间之后可以修改
+-- 此处是创建一个初始大小为 500m 的表空间，当空间不足时每次自动扩展 10m，无限扩展(oracle 有限制，最大扩展到 32G，仍然不足则需要添加表空间数据文件)
+create tablespace aezocn datafile '/u01/app/oracle/oradata/orcl/aezocn_file' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;
+
+-- 删除表空间(包含数据和数据文件)
+-- drop tablespace aezocn;
+drop tablespace aezocn including contents and datafiles;
+
+-- 扩展：创建用户并赋权(新创建项目时一般新建表空间和用户)
+create user smalle identified by smalle default tablespace aezocn;
+grant create session to aezo;
+grant unlimited tablespace to aezo;
+grant dba to aezo; -- 导入导出时，只有 dba 权限的账户才能导入由 dba 账户导出的数据，因此不建议直接设置用户为 dba
+```
 
 #### 锁表
 
@@ -122,9 +142,9 @@ select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, g
 alter system kill session '某个sid, 某个serial#';
 ```
 
-#### 索引 [^4]
+#### 索引
 
-- 索引在逻辑上和物理上都与相关的表和数据无关，当创建或者删除一个索引时，不会影响基本的表
+- 索引在逻辑上和物理上都与相关的表和数据无关，当创建或者删除一个索引时，不会影响基本的表 [^4]
 - 进行索引操作建议在无其他链接的情况下，或无响应写操作的情况下，数据量越大创建索引越耗时
 - Oracle 在创建时会做相应操作，因此创建后就会看到效果，无需重启服务
 - 索引是全局唯一的
@@ -166,35 +186,57 @@ alter index index_in_out_regist_id rebuild online;
 
 ### 用户相关
 
-- 创建用户：`create user aezo identified by aezo;` 用户名不区分大小写，密码区分
-  - 默认使用的表空间是`USERS`，使用`create user aezo identified by aezo default tablespace aezocn;`可设定默认表空间
-  - 删除用户：`drop user aezo cascade;`
-- 修改用户密码：`alter user scott identified by tiger;`
-- 修改用户表空间：`alter user aezo default tablespace aezocn;`
-- 解锁用户(无需重启 oracle 服务)
+#### 用户基本操作
 
-  ```sql
-  alter user scott account unlock; -- 新建数据库scott默认未解锁
-  commit;
-  ```
+- 基本操作
+
+```sql
+-- 创建用户，默认使用的表空间是`USERS`(用户名不区分大小写，密码区分)
+create user smalle identified by smalle;
+-- 创建用户并指定默认表空间
+create user smalle identified by smalle default tablespace aezocn;
+
+-- 删除用户
+drop user smalle cascade;
+
+-- 修改用户密码
+alter user scott identified by tiger;
+-- 修改用户表空间
+alter user smalle default tablespace aezocn;
+```
+- 授权
+
+```sql
+-- 授予 samlle 用户创建 session 的权限，即登陆权限
+grant create session to samlle;
+-- 授予 samlle 用户使用表空间的权限
+grant unlimited tablespace to samlle;
+-- 授予管理权限(有 dba 角色就有建表等权限)
+grant dba to samlle;
+-- 赋予 smalle 用户查询 TEST 用户的 ZIP_SALES_TAX_LOOKUP 表权限
+grant select on TEST.ZIP_SALES_TAX_LOOKUP to smalle;
+
+-- 赋予创建别名权限
+grant create synonym to smalle;
+-- 添加别名，否则 smalle 用户查询 test 用户的表必须加`test.`，添加别名后省略`test.`
+create or replace SYNONYM SMALLE.ZIP_SALES_TAX_LOOKUP FOR TEST.ZIP_SALES_TAX_LOOKUP;
+```
+- 创建 dba 账户
+
+```sql
+create user smalle identified by smalle default tablespace aezocn;
+grant create session to smalle; -- 授予smalle用户创建session的权限，即登陆权限
+grant unlimited tablespace to smalle; -- 授予smalle用户使用表空间的权限
+grant dba to smalle; -- 授予管理权限(有dba角色就有建表等权限)
+```
 - 密码过期(ORA-28001)
     - 重新设置密码即可 `alter user aezo identified by aezo;`
     - 设置永久不过期 `alter profile default limit password_life_time unlimited;`
-- 授权
-  - `grant create session to aezo;` 授予 aezo 用户创建 session 的权限，即登陆权限
-  - `grant unlimited tablespace to aezo;` 授予 aezo 用户使用表空间的权限
-  - `grant dba to aezo;` 授予管理权限(有 dba 角色就有建表等权限)
-  - `grant select on AEZO.ZIP_SALES_TAX_LOOKUP to test;` 赋予 test 用户查询 AEZO 用户的 ZIP_SALES_TAX_LOOKUP 表权限
-  - `grant create synonym to smalle;` 赋予创建别名权限
-    - `create or replace SYNONYM smalle.ZIP_SALES_TAX_LOOKUP FOR AEZO.ZIP_SALES_TAX_LOOKUP;` 添加别名，否则 smalle 用户查询 aezo 用户的表必须加`aezo.`，添加别名后省略`aezo.`
-
-#### 创建 dba 账户
+- 解锁用户(无需重启 oracle 服务)
 
 ```sql
-create user aezo identified by aezo default tablespace aezocn;
-grant create session to aezo; -- 授予aezo用户创建session的权限，即登陆权限
-grant unlimited tablespace to aezo; -- 授予aezo用户使用表空间的权限
-grant dba to aezo; -- 授予管理权限(有dba角色就有建表等权限)
+alter user scott account unlock; -- 新建数据库scott默认未解锁
+commit;
 ```
 
 #### 新建用户并赋予表查询权限
@@ -261,7 +303,16 @@ select 'create or replace synonym SMALLE.' || object_name || ' for ' || owner ||
     - 如果能够 ping 通，则说明客户端能解析 listener 的机器名，而且 lister 也已经启动，但是并不能说明数据库已经打开，而且 tsnping 的过程与真正客户端连接的过程也不一致。但是如果不能用 tnsping 通，则肯定连接不到数据库
     - **实例 tnsping 突然高达 1w 多毫秒**，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
   - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
-  - 查询数据库字符集 `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
+  - 查询数据库字符集 
+    - 查看服务器语言和字符集 `select userenv('language') from dual;` 如：`AMERICAN_AMERICA.AL32UTF8`
+        - 格式为`language_territory.charset`：Language 指定服务器消息的语言，territory 指定服务器的日期和数字格式，charset 指定字符集
+        - `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
+    - 查询oracle client端的字符集
+        - 在windows平台下，就是注册表里面`HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\HOME0\NLS_LANG`，PL/SQL则看环境变量`NLS_LANG`
+    - 查询dmp文件的字符集
+        - 用oracle的exp工具导出的dmp文件也包含了字符集信息，dmp文件的第2和第3个字节记录了dmp文件的字符集。如果dmp文件不大，比如只有几M或几十M，可以用UltraEdit打开(16进制方式)，看第2第3个字节的内容，如0354，然后用以下SQL查出它对应的字符集
+        - `select nls_charset_name(to_number('0354','xxxx')) from dual;` 结果是ZHS16GBK
+    - 参考(修改字符集)：http://blog.itpub.net/29863023/viewspace-1331078/
 - 用户相关查询
   - **查看当前用户默认表空间**：`select username, default_tablespace from user_users;`(以 dba 登录则结果为 SYS 和 SYSTEM)。**user_users 换成 dba_users 则是查询所有用户默认表空间**
   - 查看当前用户角色：`select * from user_role_privs;`
@@ -479,6 +530,7 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
     ```
 - delete删除的表数据减少了，但是表空间占用量不会变。可使用move移动数据所在表空间
 - `UNDOTBS1`占用较大表空间
+
 ```bash
 # 参考：https://blog.csdn.net/wxlbrxhb/article/details/14448777
 # 对用户无感，无需重启数据库
@@ -501,6 +553,90 @@ drop tablespace undotbs1 including contents and datafiles;
 # 如果删除表空间文件后磁盘没有变化可查看是否进程还占用。如果还占用有说可杀掉相关进程，单还是建议重启数据库；如果无此问题则无需重启数据库
 lsof | grep deleted
 ```
+
+### 导入导出
+
+- `.dmp`适合大数据导出，`.sql`适合小数据导出(表中含有 CLOB 类型字段则不能导出)
+
+#### dmp格式导出导入
+
+- 输入 `imp/exp 用户名/密码` 可根据提示导入导出。**直接 cmd 运行** [^4]
+    - 成功提示 `Export terminated successfully [with/without warnings]`
+    - 失败提示 `Export terminated unsuccessfully [with/without warnings]`
+- 导入导出均分为全量模式、用户模式、表模式
+    - 参考：https://www.cnblogs.com/songdavid/articles/2435439.html
+- 导入导出一定要注意服务器、客户端字符集`NSL_LANG`，否则可能出现数据、字段备注、存储过程等乱码
+    - **在导入DMP文件前，在客户端导入与服务器一致的环境变量，例如：`set NLS_LANG=AMERICAN_AMERICA.AL32UTF8`**，或者在/etc/profile、oracle用户的`.bash_profile`文件中导出NLS_LANG
+- 导出
+
+```bash
+# 可将导出的dmp文件再tar压缩后通过scp传输到另外一台服务器上
+# 设置字符集，防止乱码
+set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+
+## 用户模式：导出 scott 用户的所有对象，前提是 system 用户有相关权限
+# system/manager@remote_orcl：使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/manager@192.168.1.1:1521/orcl)
+# compress=y：压缩数据
+# rows=n：不导出数据行，只导出结构
+# buffer=10241024：缓冲区，数据量大时可使用
+exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log compress=y owner=scott
+
+## 表模式：导出 scott 的 emp,dept 表（导出其他用户表时，smalle用户需要有相关权限）
+# 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
+exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables=scott.emp,scott.dept
+# exp scott/tiger file=/home/oracle/exp.dmp tables=emp
+# 导出表部分数据
+exp scott/tiger file=/home/oracle/exp.dmp tables=emp query=\" where ename like '%AR%'\"
+
+## 全量模式：导出的是整个数据库，包括所有的表空间、用户/密码
+exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log compress=y full=y buffer=10241024
+```
+- 导入
+
+```bash
+set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+
+## 用户模式：一般需要先将用户对象全部删掉，如可删除用户对应的表空间重新创建
+# ignore=y：忽略错误，继续导入
+imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott touser=smalle
+
+## 表模式：将 scott 的表 emp、dept 导入到用户 aezo
+# 此处 file/fromuser/touser 都可以指定多个
+imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott tables=emp,dept touser=smalle
+
+## 全量模式：导入的是整个数据库，包括所有的表空间
+# 一般需要设置ignore=y，导入过程中会报一些错误需忽略，如导入系统相关数据时，由于目标数据库已经存在相关对象，从而报错
+imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y ignore=y
+```
+
+#### pl/sql
+
+- pl/sql 提供 dmp、sql(不支持 CLOB 类型字段)、pde(pl/sql 提供)格式的数据导入导出
+- 导出
+    - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
+    - `Tools - Export Tables/Import Tablse - 选择表导出` 导出数据
+    - 其中 Executable 路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
+    - 当`View`按钮可点击时，即表示导出完成
+- 导入(plsql 执行 sql 文件)
+    - `start D:/sql/my.sql` 或 `@D:/sql/my.sql`（部分语句需要执行`commit`提交，文件不要放在C盘）
+
+#### sql导出导入(sqlplus)
+
+- 导出查询结果
+
+```sql
+set echo off;
+set heading off;
+set feedback off;
+spool /home/myout.sql
+select text from user_source;-- 查询所有的存储过程(运行时去掉此备注)
+spool off;
+```
+- 导入：`@/home/my.sql`，或者命令行运行`sqlplus root/root@127.0.0.1:1521/orcl @my.sql`
+
+#### Oracle表结构与Mysql表结构转换
+
+- 参考 [mysql-dba.md:Oracle 表结构与 Mysql 表结构转换](/_posts/db/mysql-dba.md#其他)
 
 ## 常见错误
 
@@ -571,39 +707,38 @@ select value from v$parameter where name = 'processes';
 ### 其他
 
 - 表空间数据文件丢失时，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
-  - oracle 数据文件(datafile)被误删除后，只能把该数据文件 offline 后 drop 掉
-  - `sqlplus / as sysdba`
-  - `shutdown abort` 强制关闭 oracle
-  - `startup mount` 启动挂载
-  - `alter database datafile '/home/oracle/xxx' offline drop;` 从数据库删除该表空间的数据文件
-    - `select file_name, tablespace_name from dba_data_files;` 查看表空间数据文件位置
-  - `alter database open;`
-  - `drop tablespace 表空间名`
+    - oracle 数据文件(datafile)被误删除后，只能把该数据文件 offline 后 drop 掉
+    - `sqlplus / as sysdba`
+    - `shutdown abort` 强制关闭 oracle
+    - `startup mount` 启动挂载
+    - `alter database datafile '/home/oracle/xxx' offline drop;` 从数据库删除该表空间的数据文件
+        - `select file_name, tablespace_name from dba_data_files;` 查看表空间数据文件位置
+    - `alter database open;`
+    - `drop tablespace 表空间名`
 
 ## oracle 安装
 
 - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
 - oracle 静默安装, 关闭客户端后再次以 oracle 用户登录无法运行 sql 命名, 需要执行`source ~/.bash_profile`
 - oracle目录
-  - Oracle基目录为`D:/java/oracle`，基目录只是把不同版本的oracle放在一起
-  - ORACLE_HOME 为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入 imp.exe、导出 exp.exe）
+    - Oracle基目录为`D:/java/oracle`，基目录只是把不同版本的oracle放在一起
+    - ORACLE_HOME 为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入 imp.exe、导出 exp.exe）
 
 ## pl/sql 安装和使用
 
 ### pl/sql 安装
 
-Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Call Interface)来连接，安装包可以去 oracle 官网下载 Instant Client。
-
+- Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Call Interface)来连接，安装包可以去 oracle 官网下载 Instant Client
 - 安装`pl/sql developer`
 - 将`instantclient_10_2`(oracle 的客户端)，复制到 oracle 安装目录(D:\java\oracle\product，其他目录也可以)
 - 配置`pl/sql developer`首选项中连接项。设置 oracle_home 为 instantclient_10_2 的路径，oci 为 instantclient_10_2 下的 oci.dll
 - 环境变量配置(必须)
-  - ORACLE_HOME
-    - 安装 oracle 则需要配置 oracle 目录(`ORACLE_HOME=D:\java\oracle\product\11.2.0\dbhome_1`)
-    - 不安装 oracle 也可使用 pl/sql. 需要配置环境变量指向客户端目录(`ORACLE_HOME=D:\java\oracle\product\instantclient_10_2`)
-  - `TNS_ADMIN=D:\java\oracle\product\instantclient_10_2`(`tnsnames.ora`的上级目录)，并在 path 末尾加入`%TNS_ADMIN%;`(否则容易报`TNS-12541`)
+    - ORACLE_HOME
+        - 安装 oracle 则需要配置 oracle 目录(`ORACLE_HOME=D:\java\oracle\product\11.2.0\dbhome_1`)
+        - 不安装 oracle 也可使用 pl/sql. 需要配置环境变量指向客户端目录(`ORACLE_HOME=D:\java\oracle\product\instantclient_10_2`)
+    - `TNS_ADMIN=D:\java\oracle\product\instantclient_10_2`(`tnsnames.ora`的上级目录)，并在 path 末尾加入`%TNS_ADMIN%;`(否则容易报`TNS-12541`)
 - 其他配置(可忽略)
-  - 环境变量设置`NLS_LANG=AMERICAN_AMERICA.AL32UTF8`、`nls_timestamp_format=yyyy/mm/dd hh24:mi:ssxff`(PLSQL 查询中可直接使用时间字符串，代码中最好通过 to_date 转换)
+    - 环境变量设置`NLS_LANG=AMERICAN_AMERICA.AL32UTF8`、`nls_timestamp_format=yyyy/mm/dd hh24:mi:ssxff`(PLSQL 查询中可直接使用时间字符串，代码中最好通过 to_date 转换)
 
 #### 相关错误
 
@@ -638,82 +773,6 @@ Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Ca
 	- 如果提示“服务OracleMTSRecoveryService已经存在” - 忽略
     - 或者下载ODAC112030Xcopy_64bit.zip等压缩包进行安装，推荐
 - ODBC：Windows上通过配置不同数据库（SQL Server、Oracle等）的驱动进行访问数据库。找到控制面板-管理工具-数据源ODBC
-
-## 创建表空间
-
-- oracle 和 mysql 不同，此处的创建表空间相当于 mysql 的创建数据库。创建了表空间并没有创建数据库实例 [^2]
-- 登录：`sqlplus / as sysdba`
-- 创建表空间
-  - `create tablespace aezocn datafile 'd:/tablespace/aezo' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;`
-  - 要先建好路径 d:/tablespace ，最终会在该目录下建一个 AEZO 的文件(表空间之后可以修改)
-  - 此处是创建一个初始大小为 500m 的表空间，当空间不足时每次自动扩展 10m，无限扩展(oracle 有限制，最大扩展到 32G，仍然不足则需要添加表空间数据文件)
-- 删除表空间 `drop tablespace aezocn including contents and datafiles;`
-- 创建用户 `create user aezo identified by aezo default tablespace aezocn;`
-- 授权
-  - `grant create session to aezo;`
-  - `grant unlimited tablespace to aezo;`
-  - `grant dba to aezo;` 导入导出时，只有 dba 权限的账户才能导入由 dba 账户导出的数据，因此不建议直接设置用户为 dba
-
-## 导入导出
-
-`.dmp`适合大数据导出，`.sql`适合小数据导出(表中含有 CLOB 类型字段则不能导出)
-
-### 命令行 [^4]
-
-> - 输入 `imp/exp 用户名/密码` 可根据提示导入导出。**直接 cmd 运行**。
-> - 成功提示 `Export terminated successfully [with/without warnings]`；失败提示 `Export terminated unsuccessfully [with/without warnings]`
-
-#### dmp 格式导出导入(cmd)
-
-- 导出
-  - **用户模式**：`exp system/manager file=d:/exp.dmp owner=scott` 导出 scott 用户的所有对象，前提是 system 有相关权限
-    - **远程导出**：此时 system/manager 默认连接的是本地数据库。如果使用`exp system/manager@remote_orcl file=d:/exp.dmp owner=scott`(remote_orcl 为在本地建立的远程数据库网络服务名. 即 tnsnames.ora 里面的配置项名称)则可导出远程数据库的相关数据，下同。或者 system/manager@192.168.1.1:1521/orcl
-    - 加上 `compress=y` 表示压缩数据
-    - 加上 `rows=n` 表示不导出数据行，只导出结构
-  - 表模式：`exp scott/tiger file=d:/exp.dmp tables=emp` 导出 scott 的 emp 表
-    - 导出其他用户的表：`exp system/manager file=d:/exp.dmp tables=scott.emp, scott.dept` 导出 scott 的 emp、dept 表，用户 system 需要相关权限
-    - **导出部分表数据**：`exp scott/tiger file=d:/exp.dmp tables=emp query=\" where ename like '%AR%'\"`
-    - 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
-  - 导出全部：`exp system/manager file=/home/oracle/exp.dmp full=y buffer=10241024 log=/home/oracle/exp.log`
-    - 用户 system/manager 必须具有相关权限
-    - 导出的是整个数据库，包括所有的表空间
-- 导入
-  - **用户模式**：`imp system/manager file=d:/exp.dmp fromuser=scott touser=aezo ignore=y`
-    - `ignore=y`忽略创建错误
-    - 不少情况下要先将表彻底删除，然后导入
-  - 表模式：`imp system/manager file=d:/exp.dmp fromuser=scott tables=emp,dept touser=aezo ignore=y`
-    - 将 scott 的表 emp、dept 导入到用户 aezo
-    - 此处 file/fromuser/touser 都可以指定多个
-  - 导入全部：`imp system/manager file=d:/exp.dmp full=y ignore=y`
-    - 用户 system/manager 必须具有相关权限
-    - 导入的是整个数据库，包括所有的表空间
-
-#### sql 导出导入(sqlplus)
-
-- 导出查询结果
-
-  ```sql
-  set echo off;
-  set heading off;
-  set feedback off;
-  spool /home/myout.sql
-  select text from user_source;-- 查询所有的存储过程(运行时去掉此备注)
-  spool off;
-  ```
-- 导入：`@/home/my.sql`，或者命令行运行`sqlplus root/root@127.0.0.1:1521/orcl @my.sql`
-
-### pl/sql
-
-- pl/sql 提供 dmp、sql(不支持 CLOB 类型字段)、pde(pl/sql 提供)格式的数据导入导出
-- 方法
-  - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
-  - `Tools - Export Tables/Import Tablse - 选择表导出` 导出数据
-- 其中 Executable 路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
-- plsql 执行 sql 文件：`@D:/sql/my.sql` 或 `start D:/sql/my.sql`（部分语句需要执行`commit`提交，文件不要放在C盘）
-
-### Oracle 表结构与 Mysql 表结构转换
-
-参考 [mysql-dba.md#Oracle 表结构与 Mysql 表结构转换](/_posts/db/mysql-dba.md#其他)
 
 ## 日常维护
 

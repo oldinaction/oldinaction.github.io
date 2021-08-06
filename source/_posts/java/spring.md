@@ -1069,6 +1069,7 @@ public class JobManager {
     - 申明式事务管理：基于Spring AOP实现。常用
 - Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的
     - **事物生命周期是从AOP调用的目标方法开始的，到该方法执行完成事物环境即消失**
+        - 不一定非要有接口实现，普通Bean只要通过AOP调用即可
     - **`@Transactional`注解只能被应用到 public 可见度的方法上或注解到类上**，注解到类上则该类的所有public方法再进行AOP调用时都存在事物
     - **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
         - `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(声明上throws出来的)捕获异常Exception时也回滚
