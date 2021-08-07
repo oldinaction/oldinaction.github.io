@@ -317,7 +317,9 @@ http {
     include mime.types; #文件扩展名与文件类型映射表(对应当前目录下文件mime.types)
     default_type application/octet-stream; #默认文件类型
     
-    # 定义日志格式，log_forma上下文只能为http。main为默认日志格式名称(可定义多个)。$remote_addr等都是nginx内置变量，值为空时默认用`-`代替
+    # 定义日志格式，log_forma上下文只能为http。main为默认日志格式名称(可定义多个)。$remote_addr等都是nginx内置变量，值为空时默认用`-`代替。可以定义多个log_format
+    # 参考：http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_log_module.html
+    # 内置变量参考：http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_core_module.html#variables
     # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
     #                   '$status $body_bytes_sent "$http_referer" '
     #                   '"$http_user_agent" "$http_x_forwarded_for"';

@@ -369,8 +369,23 @@ System.out.println(LocalDateTime.now(ZoneId.of("America/Los_Angeles"))); // 2000
 // 1.UTC格式时间转java.util.Date
 // 当前时间 2000-01-01 10:00:00
 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())); // 2000-01-01 10:00:00
-// 其中 T代表后面跟着时间，Z代表UTC时区
+// 其中 T代表后面跟着时间，Z(+0800)/z(CST)/X(+08)代表UTC时区
 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())); // 2000-01-01T10:00:00+0800
+
+// SimpleDateFormat说明
+SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+// 打印结果分别为: 设置为GMT,不设置为GMT
+dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+try {
+    Date dateTmp = dateFormat.parse("1970-01-01 00:00:00");
+    // Thu Jan 01 08:00:00 CST 1970,Thu Jan 01 00:00:00 CST 1970
+    System.out.println(dateTmp);
+} catch (ParseException e) {
+    e.printStackTrace();
+}
+// 1970-01-01 00:00:00,1970-01-01 08:00:00
+String dateStrTmp = dateFormat.format(new Date(0));
+System.out.println(dateStrTmp);
 ```
 - 时间相关方法
 

@@ -87,10 +87,11 @@ ThisCrackLicenseId-{
     - `Application Server`: 本地tomcat路径
     - `VM`：添加`-Dfile.encoding=UTF-8`防止出现乱码
     - `JRE`填写jdk路径
-    - `Deployment`中将刚刚的war配置进入
+    - `Deployment`中将刚刚的war配置进入，可修改某个war包的根路径
     - 在`Before launch`中加入Build这个war包
 - 打包：Build - Build Artifacts - xxx:war - build (在上述Output directory中可看到war包)
 - idea报错：Error：java不支持发行版本5的解决方法：https://www.cnblogs.com/wqy0314/p/11726107.html
+    - File-Setting-Java Compiler
 
 ### 其他
 
