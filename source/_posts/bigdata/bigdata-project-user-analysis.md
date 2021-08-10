@@ -8,6 +8,7 @@ tags: [project]
 
 ## 简介
 
+- 本项目源码参考[smjava/bigdata-hadoop-project](https://github.com/oldinaction/smjava)
 - 可通过站长工具查看某网站的每日PV值(只有通过百度等外链进入网站的才会统计，直接输入网址无法被此类工具统计到)，从而估算一下网站每日产生的数据量
 - 集群大小
     - 中小型30-50台，100台以上可认为是较大集群了
@@ -173,3 +174,69 @@ http {
     }
 }
 ```
+
+## Flume传输日志
+
+- Flume参考[bigdata-tools.md#Flume](/_posts/bigdata/bigdata-tools.md#Flume)
+- 项目Flume配置文件`user-analysis.conf`，此处选择直接写入到HDFS，还可以写入Hive/Hbase
+
+```bash
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+
+# 监听本地nginx日志文件access.log
+# -F：等同于 –follow=name --retry，根据文件名进行追踪，并保持重试，即该文件被删除或改名后，如果再次创建相同的文件名，会继续追踪
+a1.sources.r1.type = exec
+a1.sources.r1.command = tail -F /opt/data/access.log
+
+# 将数据保存到HDFS，需要配置 HADOOP_HOME 环境变量，即需在HDFS节点上启动Agent
+# 参考 https://flume.liyifeng.org/#hdfs-sink
+a1.sinks.k1.type = hdfs
+a1.sinks.k1.hdfs.path = /project/%Y%m%d
+a1.sinks.k1.hdfs.filePrefix = log-
+a1.sinks.k1.hdfs.rollInterval = 0
+a1.sinks.k1.hdfs.rollSize = 10240
+a1.sinks.k1.hdfs.rollCount = 0
+a1.sinks.k1.hdfs.idleTimeout = 30
+a1.sinks.k1.hdfs.fileType = DataStream
+a1.sinks.k1.hdfs.callTimeout = 60000
+a1.sinks.k1.hdfs.useLocalTimeStamp = true
+
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+```
+- 启动`flume-ng agent --conf-file ~/flume/user-analysis.conf --name a1 -Dflume.root.logger=INFO,console`
+- 在日志收集系统触发日志生成，会产生如 /project/20210808/log-.1628394865013 的数据文件
+    - 启动`hadoop_project_log_source`模块，参考smjava代码
+    - 访问`http://localhost:8080/hadoop_project_log_source/`进入页面进行事件触发
+
+## ETL-MR数据清洗
+
+- `ETL`(Extract-Transform-Load，抽取-转换-存储）即在数据抽取过程中进行数据的加工转换，然后加载到存储中。常见的如Informatics和开源工具Kettle，当然也可直接使用MapReduce进行清洗。此案例为巩固理解MR原理，因此选用MR进行清洗
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

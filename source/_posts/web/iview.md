@@ -49,7 +49,7 @@ tags: [vue, UI]
 ### Select
 
 - Select 搜索可搜索问题：检索数据项的多个属性时远程搜索无效 [^1]
-- Select 远程搜索问题：remote-method必须是顶级方法，否则数据无法刷新
+- Select 远程搜索问题：remote-method必须是顶级方法，否则数据无法刷新；**iview远程搜索及其不好用**，对于现实值和实际值一致的还可勉强使用，如果显示值和实际值不一样无法解决编辑界面回显问题(要么无法触发远程方法，要么触发多次)。建议替换为其他组件，如仅导入element-ui的远程搜索
 
 ```html
 <i-select
@@ -70,17 +70,19 @@ tags: [vue, UI]
 <!-- 
     1.remoteMethod 必须是当前组件的顶级属性，即 this.remoteMethod，不能是 this.map.remoteMethod，否则 list 更新无效
     2.loading 可不要，保留时需要自己手动在 remoteMethod 中进行控制其值
-    3.远程组件编辑时回显问题：remoteMethod(query, init)接受两个参数，当获取到表单数据时，手动调用remoteMethod(this.model.selectVal, true)进行初始化，当获取到下拉列表后再通过this.model.selectVal = query进行赋值
+    3.远程组件编辑时回显问题：自定义remoteMethod(query, init)接受两个参数，当获取到表单数据时，手动调用remoteMethod(this.model.selectVal, true)进行初始化，然后再获取到下拉列表的回调中再通过this.model.selectVal = query进行赋值(尽管此处model.selectVal的值就是query，也需要执行)
 -->
 <Select
-    v-model="model13"
+    ref="selectVal"
+    v-model="model.selectVal"
     filterable
     :remote-method="remoteMethod"
     :loading="loading">
     <!-- 
-        格式化插件导致 Option 标签换行，从而显示时下拉框中有空白，解决：Option 标签体中显示数据外，可额外定义 label 属性，但是label属性值会作为搜索值
+        格式化插件导致 Option 标签换行，从而显示时下拉框中有空白，解决：Option 标签体中显示数据外，可额外定义 label 属性。
+        但是label属性值会作为搜索值，如果label属性变了，会自动调用remote-method
     -->
-    <Option v-for="(item, index) in list" :value="item.value" :key="index">{{option.label}}</Option>
+    <Option v-for="(item, index) in list" :value="item.value" :label="item.value" :key="index">{{option.value}}：{{option.label}}</Option>
 </Select>
 
 <script>
@@ -109,6 +111,24 @@ export default {
         },
         onChange(value) {
 
+        },
+        getData() {
+            this.$ajax().then(data => {
+                // 禁止自动触发调用远程方法
+                this.$refs.selectVal.preventRemoteCall = true
+                this.model = data.data
+                this.remoteMethod(this.model.selectVal, true)
+            })
+        },
+        remoteMethod(query, init) {
+            this.$ajax().then(data => {
+                // ...
+                if(init) {
+                    // 仅支持显示值和实际值一致的业务场景
+                    // 就是要这么曲线救国
+                    this.model.selectVal = query
+                }
+            })
         }
     }
 }

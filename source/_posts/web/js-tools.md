@@ -1498,6 +1498,15 @@ module.exports = {
 # 不进行校验的的文件或文件夹
 src/components
 ```
+- 代码中不进行校验
+
+```js
+/* eslint-disable */
+// ESLint 在校验的时候就会跳过后面的代码
+
+/* eslint-disable no-new */
+// ESLint 在校验的时候就会跳过 no-new 规则校验
+```
 
 ### .editorconfig/.prettierrc/.jsbeautifyrc格式化
 

@@ -578,7 +578,6 @@ echo "zabbix test mail" | mail -s "zabbix" test@163.com
 ### 时间同步
 
 - 校验时区：如`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，其中北京时间的时区为`CST`
-    - `cp /etc/localtime /etc/localtime.bak`
     - `ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime` 修改成功后之前的日志是无法同步修改的
     - `date` 获取当前时间(精确到秒)
 
@@ -602,8 +601,8 @@ echo "zabbix test mail" | mail -s "zabbix" test@163.com
 sudo yum install -y ntp ntpdate ntp-doc
 
 ## 立即与国家授时中心同步
-# systemctl stop ntpd 同步时可关闭ntpd(防止被慢慢同步成错误时间)
-sudo ntpdate 0.cn.pool.ntp.org
+systemctl stop ntpd # 先关闭ntpd(防止被慢慢同步成错误时间)
+sudo ntpdate 0.cn.pool.ntp.org # 再执行同步
 
 ## 开启ntpd服务之后自动同步
 cat > /etc/ntp.conf << 'EOF'
@@ -623,10 +622,10 @@ restrict -6 ::1
 
 # 设定NTP主机来源(上层的internet ntp服务器). 其中prefer表示优先主机(如局域网NTP服务器)
 # server 192.168.6.131 prefer
-server cn.pool.ntp.org prefer
-server 0.asia.pool.ntp.org
-server 3.asia.pool.ntp.org
-server 0.centos.pool.ntp.org iburst
+server 0.cn.pool.ntp.org prefer
+server 1.cn.pool.ntp.org
+server 2.cn.pool.ntp.org
+server 3.cn.pool.ntp.org iburst
 
 # 如果无法与上层ntp server通信以本地时间为标准时间
 server   127.127.1.0    # local clock

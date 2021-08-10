@@ -224,7 +224,9 @@ tags: [linux, shell]
     - `tac` 从文末开始显示文件内容(cat反正写)
     - `head -3` 显示文件头部的3行
     - `tail -3` 显示文件末尾的3行
-        - `tail -f /var/log/messages` -f 表示它将会以一定的时间实时追踪该档的所有更新（查看服务启动日志）
+        - `tail -f /var/log/messages` 
+        - `-f` 表示它将会以一定的时间实时追踪该档的所有更新（查看服务启动日志）
+        - `-F` 等同于 –follow=name --retry，根据文件名进行追踪，并保持重试，即该文件被删除或改名后，如果再次创建相同的文件名，会继续追踪
     - `cat -n <fileName>` **输出文件内容，并显示行号**
     - `cat > fileName` 创建文件并书写内容，此时会进入书写模式，Ctrl+C保存书写内容
 - `whereis <binName>` 查询可执行文件位置
