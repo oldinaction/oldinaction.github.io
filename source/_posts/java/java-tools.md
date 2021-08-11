@@ -354,6 +354,70 @@ Map map = (Map) Yaml.load(yamlStr);
     - `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
         - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
 
+## JEXL执行字符串JAVA代码
+
+- Java Expression Language (JEXL)：是一个表达式语音解析引擎
+    - 旨在促进在用Java编写的应用程序和框架中，实现动态和脚本功能
+    - JEXL实现了 JSTL 中 EL 的延伸版本，不过也采用了一些 Velocity 的概念
+    - 支持shell脚本或ECMAScript(js)中的大多数构造
+- [commons-jexl官网](https://commons.apache.org/proper/commons-jexl/)
+- [语法文档](https://commons.apache.org/proper/commons-jexl/reference/syntax.html)
+- [案例](https://commons.apache.org/proper/commons-jexl/apidocs/org/apache/commons/jexl3/package-summary.html#usage)
+- 依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-jexl3 -->
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-jexl3</artifactId>
+    <version>3.2.1</version>
+</dependency>
+```
+- 简单案例
+
+```java
+//创建或者取回一个引擎。线程安全，虽然每次create的对象不一样(但是内部创建对象时会进行copy)
+JexlEngine jexl = new JexlBuilder().create();
+
+// 创建一个表达式。必须 innerFoo 和 bar 必须是可被访问到的(public)的才能得出结果，否则返回null
+String jexlExp = "foo.innerFoo.bar()";
+JexlExpression e = jexl.createExpression(jexlExp);
+
+//创建上下文并添加数据
+JexlContext jc = new MapContext();
+jc.set("foo", new Foo());
+
+//现在评估表达式，得到结果，结果为最后一个表达式的运算值
+Object o = e.evaluate(jc);
+```
+- 其他案例
+
+```java
+// ==> Jexl引擎能够创建两种解析器：脚本和表达式，其中JexlExpression不能使用 if、for、while 语句块。
+JexlScript jexlScript = jexlEngine.createScript("if(age>=25){good=1;}else{good=0;}"); // 正确
+JexlExpression jexlExpression = jexlEngine.createExpression("if(age>=25){good=1;}else{good=0;}"); // 错误
+
+// ==> 可以从字符串、文件或 URL 中读取脚本
+// ==> 函数定义：var fun = function(x, y) { x + y } 还支持以下语法 var fun = (x, y) -> { x + y } 如果函数只有一个参数，则可以省略括号 var fun = x -> { x * x }
+String exp = "var t = 2; var s = function(x, y) {x + y + t}; t = 3; s(1, 1)"; 
+JexlScript script = jexl.createScript("var t = 2; var s = function(x, y) {x + y + t}; t = 3; s(1, 1)");
+Object evaluate = script.execute(null); // 4
+
+// JxltEngine 中的 Expression 类似 JSP-EL 的基本模板功能。如果多行也可使用 JxltEngine.Template
+JexlEngine jexl = new JexlBuilder().create();
+JxltEngine jxlt = jexl.createJxltEngine();
+JxltEngine.Expression expr = jxlt.createExpression("Hello ${user}");
+String hello = expr.evaluate(context).toString();
+
+// ==> 上下文命名空间
+Map<String, Object> funcNamespace = new HashMap<>();
+funcNamespace.put("math", Math.class);
+JexlEngine jexl = new JexlBuilder().namespaces(funcNamespace).create();
+JexlExpression je = jexl.createExpression("math:max(1, 2)");
+Object evaluate = je.evaluate(null); // 此处没有传入任何上下文，但是可以使用math引用
+System.out.println("evaluate = " + evaluate); // evaluate = 2
+```
+
 ## 字节码操作
 
 - https://blog.csdn.net/luanlouis/article/details/24589193
