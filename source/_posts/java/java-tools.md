@@ -72,14 +72,18 @@ Map<Long, Person> feeRuleMap = CollUtil.fieldValueMap(personList, "id");
 ### 类型转化
 
 ```java
-// ## List转成数组
+// ==> List转成数组
 List<String> oldCodes = new ArrayList<>();
 Object[] objArr = oldCodes.toArray;
 String[] strArr = Convert.toStrArray(list.toArray); // 将list转成 String[]
 
-// List中元素类型转换
+// ==> List中元素类型转换
 Long id = Convert.toLong(params.get("id"));
 List<Long> ids = Convert.toList(Long.class, params.get("ids")); // 痛点：controller中通过map接受参数时(@RequestBody Map<String, Object> params)，小值数据会被转成Integer，而ID一般设置成了Long
+
+// ==> 转Int
+Integer.valueOf("2.0"); // NumberFormatException
+NumberUtil.parseInt("2.0"); // 会自动去掉小数点及之后字符
 ```
 
 ### 验证
@@ -360,6 +364,7 @@ Map map = (Map) Yaml.load(yamlStr);
     - 旨在促进在用Java编写的应用程序和框架中，实现动态和脚本功能
     - JEXL实现了 JSTL 中 EL 的延伸版本，不过也采用了一些 Velocity 的概念
     - 支持shell脚本或ECMAScript(js)中的大多数构造
+- 更推荐使用ScriptEngineManager进行java-js的交互，参考[javax.script](/_posts/java/java-release.md#javax.script)
 - [commons-jexl官网](https://commons.apache.org/proper/commons-jexl/)
 - [语法文档](https://commons.apache.org/proper/commons-jexl/reference/syntax.html)
 - [案例](https://commons.apache.org/proper/commons-jexl/apidocs/org/apache/commons/jexl3/package-summary.html#usage)

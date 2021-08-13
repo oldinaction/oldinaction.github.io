@@ -657,7 +657,7 @@ for (Orders order : list) {
     <!-- mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） -->
     <insert id="insertbatch">
         insert into t_user(id, name) values
-        <foreach collection ="list" item="user" separator =",">
+        <foreach collection="list" item="user" separator=",">
             (#{user.id}, #{user.name})
         </foreach >
     </insert>

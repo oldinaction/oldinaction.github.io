@@ -170,7 +170,7 @@ pip install -r requirements.txt
 ```
 - 访问`http://192.168.6.10:8000/`，输入用户名密码进入系统后显示Connections无连接
 
-- 创建supervisor配置文件(非必须)。参考[Supervisor](/_posts/linux/CentOS服务器使用说明.md#Supervisor%20进程管理)
+- 创建supervisor配置文件(非必须)。参考[monitor-tools.md#Supervisor进程管理](/_posts/devops/monitor-tools.md#Supervisor进程管理)
 
 ```bash
 cd /data/www/webvirtmgr/

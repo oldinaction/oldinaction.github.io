@@ -368,6 +368,55 @@ clazzMap.computeIfAbsent(clazz, Reflector::new); // public Reflector(Class<?> cl
 
 ## 未知
 
+### javax.script
+
+- Java和Js之间相互调用，无需安装依赖，相似的如[JEXL执行字符串JAVA代码](/_posts/java/java-tools.md#JEXL执行字符串JAVA代码)
+
+```java
+@SneakyThrows
+@Test
+public void test() {
+    // ==> 使用hutool工具简单执行
+    ScriptUtil.eval("print('Script test!');"); // Script test!
+
+    // ==> invokeFunction
+    ScriptEngineManager manager = new ScriptEngineManager();
+    ScriptEngine engine = manager.getEngineByName("javascript");
+    // engine.eval(new java.io.FileReader(new File("/home/test/test.js")));
+    engine.eval("function add(a,b) { return a+b; }");
+    Invocable in = (Invocable) engine;
+    System.out.println(in.invokeFunction("add",1, 1)); // 2.0
+
+    // ==> invokeMethod
+    String script = "var obj = new Object();"  + "obj.hello = function(name) {print('hello, '+name);}";
+    engine.eval(script);
+    Object obj = engine.get("obj");
+    System.out.println("obj1 = " + obj); // obj1 = [object Object]
+    Invocable inv = (Invocable) engine;
+    obj = inv.invokeMethod(obj, "hello", "Script Method !!" ); // hello, Script Method !!
+    System.out.println("obj2 = " + obj); // obj2 = null
+
+    // ==> 脚本变量，和脚本引擎的多个scope
+    engine.put("x", "hello word!!"); // 将变量放入到默认上下文
+    // 新的上下文
+    ScriptContext context = new SimpleScriptContext();
+    Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+    bindings.put("x", new File("/home/test/test.js"));
+    obj = engine.eval("print(x.getName());", bindings); // test.js
+    System.out.println("obj3 = " + obj); // obj3 = null
+    obj = engine.eval("print(x);"); // hello word!!
+    System.out.println("obj4 = " + obj); // obj4 = null
+
+    // ==> 使用Script实现java接口
+    script = "function run() { print('run called'); }";
+    engine.eval(script);
+    Invocable invocable = (Invocable) engine;
+    Runnable runnable = invocable.getInterface(Runnable.class);
+    Thread thread = new Thread(runnable);
+    thread.start(); // run called
+}
+```
+
 ### package-info.java
 
 - 是一个Java文件，可以放到任意Java源码包执行。不过里面的内容有特定的要求，其主要目的是为了提供包级别相关的操作，比如包级别的注解、注释及公共变量

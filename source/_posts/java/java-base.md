@@ -151,11 +151,10 @@ class TestMain {
     public static void main(String[] args) {
         // list = [1]
         // this.getList = [2]
-        // test.list = [1]
         Test test = new TestChild();
         // TestChild test = new TestChild(); // 则打印 // test.list = [2]
         test.print();
-        System.out.println("test.list = " + test.list);
+        System.out.println("test.list = " + test.list); // test.list = [1]
     }
 }
 ```
@@ -525,13 +524,18 @@ public class ConnectionMySQL {
 
 ## 易错点
 
-- Null问题
+- 基础语法
 
 ```java
+// ==> Null问题
 Boolean a = null;
 if(a) { // NullPointerException
     System.out.println("hello");
 }
+
+// ==> Int转换
+Integer.valueOf("2.0"); // NumberFormatException
+NumberUtil.parseInt("2.0"); // 使用hutool工具转换会自动去掉小数点及之后字符
 ```
 - 引用问题
 

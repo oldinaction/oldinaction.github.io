@@ -402,7 +402,7 @@ docker run -d -p 3000:3000 --name grafana grafana/grafana
         # 查看metrics信息
         curl http://localhost:9100/metrics
         ```
-    - 自动重启，参考[Supervisor](/_posts/linux/CentOS服务器使用说明.md#Supervisor%20进程管理)
+    - 自动重启，参考[monitor-tools.md#Supervisor进程管理](/_posts/devops/monitor-tools.md#Supervisor进程管理)
     - 在prometheus中添加此Exporter的爬取配置
 - 如果Node Exporter处于防火墙中，则server无法爬取。此时只能push推送到PushGateway，临时解决方案如
     - 通过 cronjob 每分钟(类似server拉取频率)执行脚本 `curl -s http://localhost:9100/metrics | curl --data-binary @- http://pushgateway.example.org/metrics/job/some_job/instance/some_instance` [^5]
