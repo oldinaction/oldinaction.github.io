@@ -549,7 +549,8 @@ handleChange (value) {
         - grid 继承 table 100%的功能，vxe-grid 的性能也比 vxe-table 快一倍
         - vue 多数情况还是推荐使用语义化标签的形式；而对于动态场景用 grid 就更加灵活，可以实现远程配置化一体化
 - **表格显示/隐藏后样式丢失问题，弹框表格列宽问题**
-  - `auto-resize`或`sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
+    - `auto-resize`或`sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
+- 和iview等组件结合使用时，modal等z-index存在冲突(如表格列过长提示)，建议弹框和弹框中涉及z-index的元素使用同一组件，如全部使用vxe-table
 - 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
 
 ```js
