@@ -654,12 +654,25 @@ for (Orders order : list) {
 - mybatis foreach
 
     ```xml
-    <!-- mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） -->
+    <!-- 
+        mysql版本试用
+        1.mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） 
+        2.如果报错，需要在jdbc url上增加 allowMultiQueries=true
+    -->
     <insert id="insertbatch">
         insert into t_user(id, name) values
         <foreach collection="list" item="user" separator=",">
             (#{user.id}, #{user.name})
         </foreach >
+    </insert>
+
+    <!-- oracle版本适用 -->
+    <insert id="insertbatch">
+        insert into t_user(id, name) (
+            <foreach collection="list" item="user" index= "index" separator ="UNION ALL">
+                select #{user.id} as id, #{user.name} as name from dual
+            </foreach >
+        )
     </insert>
     ```
 

@@ -9,6 +9,8 @@ tags: [IDE]
 ## 说明
 
 - IDEA使用久了比较占磁盘，可把`C:\Users\smalle\.IntelliJIdea2018.1\system\index`目录下的索引文件全部删掉释放磁盘空间；如果做了C盘搬家，也可删除目标存储目录，如`D:\FileHistory\smalle\AEZO-E480\Data\C\Users\smalle\.IntelliJIdea2018.1\system\index`
+- 配置同步：在File菜单中设置setting的repository为git@xxx仓库，设置.ssh认证即可同步仓库
+- 插件同步：复制idea配置目录(USER/AppData/Roaming/jetbrains)下的config/plugins目录到新的环境下
 
 ## jetbrains相关编辑器破解
 

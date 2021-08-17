@@ -422,10 +422,14 @@ join dba_tab_comments s on s.owner = t.OWNER and s.table_name = t.TABLE_NAME
 where t.OWNER = 'USERS'
 order by t.TABLE_NAME;
 
--- 查询指定表中的所有字段名和字段类型，表名要全大写
-select column_name, data_type from user_tab_columns where table_name = 'table_name';
--- 字段注释
-select * from user_col_comments;
+-- 查询指定表中的所有字段名和字段类型，表名要全大写。对应的还有 user_tab_columns 表
+select t.table_name, s.comments, tc.column_name, tc.data_type, cc.comments 
+from dba_tables t 
+join dba_tab_comments s on s.owner = t.owner and s.table_name = t.table_name
+left join dba_tab_columns tc on tc.owner = 'USERS' and tc.table_name = t.table_name
+left join dba_col_comments cc on cc.owner = 'USERS' and cc.table_name = t.table_name and cc.column_name = tc.column_name
+where t.owner = 'USERS' and table_name = 'T_TEST';
+order by t.table_name, tc.column_name;
 ```
 
 ### 日志文件
