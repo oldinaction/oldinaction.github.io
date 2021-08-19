@@ -542,8 +542,7 @@ NumberUtil.parseInt("2.0"); // 使用hutool工具转换会自动去掉小数点�
 ```java
 public static void main(String[] args) {
     Map<String, Object> map = new HashMap<>();
-    List<String> list = new ArrayList<>();
-    list.add("abc");
+    List<String> list = MiscU.toList("abc")
     map.put("list", list);
     System.out.println("map = " + map); // map = {list=[abc]}
     list.clear();
