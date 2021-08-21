@@ -15,6 +15,7 @@ tags: [oracle, mysql, procedure]
 - PL/SQL 语句结束一定要加分号`;`，如果没加运行会提示下一行出错
 - oracle转义字符为 `'` ，如 `''` 转义后就是 `'`
 - sqlplus查看存储过程 `select text from all_source where name = 'my_procedure';`
+- **通过select执行函数**`select my_func(select id from user where username='test') mf from dual;`可以到函数返回值
 
 ### 控制语句
 
@@ -22,7 +23,6 @@ tags: [oracle, mysql, procedure]
 if ... end if;
 if ... else ... end if;
 if ... elsif ... end if; -- 注意是 elsif
-
 ```
 
 ### Oracle存储过程示例

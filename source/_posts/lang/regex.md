@@ -227,8 +227,11 @@ str.matches("^[\u4e00-\u9fa5]{0,}$"); // 校验汉子
     - replaceAll 正则替换所有的
 
 ```java
-// 替换非字母数组为/
-"GP151971-GP151974-GP".replaceAll("[^A-Za-z0-9]", "/"); // GP151971/GP151974/GP
+// 去掉非字母数字
+"GP151971-GP151974-GP".replaceAll("[^A-Za-z0-9]", ""); // GP151971GP151974GP
+
+// 去掉非ASCII。下例中notepad++中显示STX(start of text character)，https://en.wikipedia.org/wiki/Control_character
+"UT25PHW(I1)".replaceAll("[^\\x0A\\x0D\\x20-\\x7E]", ""); // UT25PHW(I1)
 
 String p = "\\{" + "\\$\\$\\$" + "\\}";
 System.out.println(a); // \{\$\$\$\}

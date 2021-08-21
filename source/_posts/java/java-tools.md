@@ -52,7 +52,7 @@ Long v2 = dict.getLong("key2");
 - 交/并/差等
 
 ```java
-// ## 做减法，如：[1, 2] - [2, 3] = [1]
+// ## 做减法，如：[1, 2] - [2, 3] = [1]。不建议使用 CollUtil.subtract(偶尔会报Null)
 List<String> oldCodes = new ArrayList<>();
 List<String> newCodes = new ArrayList<>(Arrays.asList(menuIds)); // 类型为 ArrayList。如果 List<String> newCodes = Arrays.asList(menuIds); // 类型为 Array$ArrayList
 List<String> codes = CollUtil.subtractToList(newCodes, oldCodes); // 返回新对象。此时两个对象类型必须一致，如其中一个为Array$ArrayList，则会报错

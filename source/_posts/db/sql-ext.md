@@ -595,7 +595,7 @@ select *
     [ OVER ( [query_partition_clause] ) ]
     ```
     - 最前是聚合函数，可以是min、max、avg、sum
-    - dense_rank first，dense_rank last为keep函数的保留属性。表示分组、排序结果集(dense_rank的值)中第一个(dense_rank值排第一的，可能有几行数据排序值一样)、最后一个
+    - **`dense_rank first`，`dense_rank last`**为keep函数的保留属性。表示分组、排序结果集(dense_rank的值)中第一个(dense_rank值排第一的，可能有几行数据排序值一样)、最后一个
 - Keep测试一(基于主表group by)：参考上述【over使用误区】
 - Keep测试二(基于over的partition by)。测试代码和分析如下
 
