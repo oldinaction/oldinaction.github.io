@@ -354,6 +354,92 @@ function getAuthHeaders(){
 }
 ```
 
+#### 微信公众号开发
+
+```php
+<?php
+//定义 TOKEN(要与开发者中心配置的TOKEN一致)
+define("TOKEN", "smallelife");
+//实例化对象
+$wechatObj = new wechatCallbackapiTest();
+//调用函数
+if (isset($_GET['echostr'])) {
+	$wechatObj->valid();
+}else{
+	$wechatObj->responseMsg();
+}
+ 
+class wechatCallbackapiTest {
+	public function valid(){
+		$echoStr = $_GET["echostr"];
+		
+		if($this->checkSignature()) {
+			echo $echoStr;
+			exit;
+		}
+	}
+ 
+	public function responseMsg() {
+ 
+		// $postStr = $GLOBALS["HTTP_RAW_POST_DATA"]; // 虚拟机可能禁止register_globals导致无法获取body数据
+		$postStr = file_get_contents("php://input");
+ 
+		if (!empty($postStr)){
+				libxml_disable_entity_loader(true);//安全防护
+				$postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+				$fromUsername = $postObj->FromUserName;
+				$toUsername = $postObj->ToUserName;
+				$keyword = trim($postObj->Content);
+				$time = time();
+				$textTpl = "<xml>
+							<ToUserName><![CDATA[%s]]></ToUserName>
+							<FromUserName><![CDATA[%s]]></FromUserName>
+							<CreateTime>%s</CreateTime>
+							<MsgType><![CDATA[%s]]></MsgType>
+							<Content><![CDATA[%s]]></Content>
+							<FuncFlag>0</FuncFlag>
+							</xml>";             
+				if(!empty( $keyword )) {
+					$msgType = "text";
+					//用户给公众号发消息后，公众号被动(自动)回复的消息内容
+					$contentStr = "欢迎来到微信公众平台开发世界!";
+					$resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+					echo $resultStr;
+				}else{
+					echo "Input something...";
+				}
+ 
+		}else {
+			echo "";
+			exit;
+		}
+	}
+		
+	private function checkSignature() {
+		if (!defined("TOKEN")) {
+			throw new Exception('TOKEN is not defined!');
+		}
+		
+		$signature = $_GET["signature"];
+		$timestamp = $_GET["timestamp"];
+		$nonce = $_GET["nonce"];
+		$token = TOKEN;
+		$tmpArr = array($token, $timestamp, $nonce);
+		sort($tmpArr, SORT_STRING);
+		$tmpStr = implode( $tmpArr );
+		$tmpStr = sha1( $tmpStr );
+		
+		if( $tmpStr == $signature ){
+			return true;
+		}else{
+			return false;
+		}
+	}
+}
+ 
+?>
+```
+
 ## xampp + PhpStorm
 
 - xampp是将php、perl、apache、mysql、tomcat、FileZila等软件打包打一起
