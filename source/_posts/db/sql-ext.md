@@ -458,7 +458,7 @@ where t.valid_status = 1; -- 将递归获取到的数据再次过滤
 
 ##### over
 
-- 分析函数和聚合函数的不同之处是什么：普通的聚合函数用group by分组，**每个分组返回一个统计值**，而分析函数采用partition by分组，并且 **每组每行都可以返回一个统计值** [^1]
+- 分析函数和聚合函数的不同之处是什么：普通的聚合函数用**group by分组，每个分组返回一个统计值**，而分析函数采用**partition by分组，并且每组每行都可以返回一个统计值** [^1]
 - 开窗函数`over()`，跟在分析函数之后，包含三个分析子句。形式如：`over(partition by xxx order by yyy rows between aaa and bbb)` [^2] 
     - 子句类型
         - 分组(partition by)
@@ -501,13 +501,14 @@ where t.valid_status = 1; -- 将递归获取到的数据再次过滤
 ```sql
 -- 查询有移动任务的场存，并获取每个场存需要移动的次数和最早一次移动计划的id
 select *
-  from (select ys.id
-               ,count(yvmp.venue_move_plan_id) over(partition by ys.id) as total
-               ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm ASC rows between unbounded preceding and unbounded following) as first_id
-          from ycross_storage ys -- 场存表
-          left join yyard_venue_move_plan yvmp -- 移动表
-            on yvmp.storage_id = ys.id
-           and yvmp.yes_status = 0) t
+  from (
+    select ys.id
+        ,count(yvmp.venue_move_plan_id) over(partition by ys.id) as total
+        ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm ASC rows between unbounded preceding and unbounded following) as first_id
+    from ycross_storage ys -- 场存表
+    left join yyard_venue_move_plan yvmp -- 移动表
+        on yvmp.storage_id = ys.id and yvmp.yes_status = 0
+  ) t
  group by t.id, t.total, t.first_id
 ```
 
@@ -563,27 +564,12 @@ select *
         -- 可再次group by；或者使用row_number()再加子查询rn=1获取最大最小值
 
         -- =============== 使用 Keep ===============
-        -- *****Keep测试一(基于主表group by)*****：如查分组中最新的数据(非分组字段通过keep获取，如果同最近的ID再次管理表则效率低一些)
-        select
-        v.customer_id, v.visit_type
-        ,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id -- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2. 因为存在两个拜访时间2018/9/21一样，因此排序值都为1，当遇到不同排序值+1)，并取第一排序集(1-1的两条记录)中v.id最大的
-        ,max(v.visit_tm) keep(dense_rank first order by v.visit_tm desc) as visit_tm
-        ,max(v.comments) keep(dense_rank first order by v.visit_tm desc) as comments
-        ,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id -- 排序值为 1-2-3
-        from t_visit v
-        where v.valid_status = 1 and v.result is not null 
-        and v.customer_id = 358330
-        group by v.customer_id, v.visit_type; -- 先分成了两组(最终只有两组的统计值，两行数据)
-        -- 结果(注意第一行数据)
-        #
-        1	358330	BS	93165	2018/9/21	BS-2	2018/9/20
-        2	358330	IS	93252	2018/10/8	IS-2	2018/10/8
-
-        -- Keep测试二(基于over的partition by)。参考下文【Keep】
+        -- Keep测试一(基于主表group by)。参考下文[keep](#keep)
+        -- Keep测试二(基于over的partition by)。参考下文[keep](#keep)
         ```
 ##### keep [^6]
 
-- keep的用法不同于通过over关键字指定的分析函数，可以用于这样一种场合下：取同一个分组下以某个字段排序后，对指定字段取最小或最大的那个值。从这个前提出发，我们可以看到其实这个目标通过一般的row_number分析函数也可以实现，即指定rn=1。但是，该函数无法实现同时获取最大和最小值。或者说用first_value和last_value，结合row_number实现，但是该种方式需要多次使用分析函数，而且还需要套一层SQL。于是出现了keep
+- keep的用法不同于通过over关键字指定的分析函数，可以用于这样一种场合下：**取同一个分组下以某个字段排序后，对指定字段取最小或最大的那个值。**从这个前提出发，我们可以看到其实这个目标通过一般的row_number分析函数也可以实现，即指定rn=1。但是，该函数无法实现同时获取最大和最小值。或者说用first_value和last_value，结合row_number实现，但是该种方式需要多次使用分析函数，而且还需要套一层SQL。于是出现了keep
 - 语法 [^5]
 
     ```sql
@@ -595,9 +581,29 @@ select *
     [ OVER ( [query_partition_clause] ) ]
     ```
     - 最前是聚合函数，可以是min、max、avg、sum
-    - **`dense_rank first`，`dense_rank last`**为keep函数的保留属性。表示分组、排序结果集(dense_rank的值)中第一个(dense_rank值排第一的，可能有几行数据排序值一样)、最后一个
-- Keep测试一(基于主表group by)：参考上述【over使用误区】
-- Keep测试二(基于over的partition by)。测试代码和分析如下
+    - **`dense_rank first`，`dense_rank last`**为keep函数的保留属性
+        - dense_rank first 表示取分组-排序结果集中第一个(dense_rank值排第一的。可能有几行数据排序值一样，此时再可配合min/max等聚合函数取值)
+        - dense_rank last 同理，为最后一个
+- Keep测试一(基于主表group by)，场景参考上文[over使用误区](#over使用误区)
+
+```sql
+-- *****Keep测试一(基于主表group by)*****：如查分组中最新的数据(非分组字段通过keep获取，如果同最近的ID再次管理表则效率低一些)
+select
+v.customer_id, v.visit_type
+,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id -- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2. 因为存在两个拜访时间2018/9/21一样，因此排序值都为1，当遇到不同排序值+1)，并取第一排序集(1-1的两条记录)中v.id最大的
+,max(v.visit_tm) keep(dense_rank first order by v.visit_tm desc) as visit_tm
+,max(v.comments) keep(dense_rank first order by v.visit_tm desc) as comments
+,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id -- 排序值为 1-2-3
+from t_visit v
+where v.valid_status = 1 and v.result is not null 
+and v.customer_id = 358330
+group by v.customer_id, v.visit_type; -- 先分成了两组(最终只有两组的统计值，两行数据)
+-- 结果(注意第一行数据)
+#
+1	358330	BS	93165	2018/9/21	BS-2	2018/9/20
+2	358330	IS	93252	2018/10/8	IS-2	2018/10/8
+```
+- Keep测试二(基于over的partition by)，场景参考上文[over使用误区](#over使用误区)
 
   ```sql
   -- 查询每个客户的默认地址：t_customer数据条数 28.9w, t_customer_address数据条数 36.8w。(注：此测试实际场景为两张表除了主键，无其他外键和索引)
