@@ -602,6 +602,21 @@ group by v.customer_id, v.visit_type; -- 先分成了两组(最终只有两组�
 #
 1	358330	BS	93165	2018/9/21	BS-2	2018/9/20
 2	358330	IS	93252	2018/10/8	IS-2	2018/10/8
+
+-- 案例：查询每个提单CN1101的发送情况：可在max和keep语句中使用case when进行分组后数据过滤
+select sb.bill_no
+    -- max中不能省略case when过滤：否则可能其他提单也会显示成了最大的一个eh.id对应的值，因为每一组bill_no都对应了所有的子表数据，此时加case when可进行过滤
+    ,max(case when eh.edi_code = 'CN1101' and ell.bill_nbr is not null then eh.send_method else -1 end)
+    -- keep中不能省略case when过滤：否则取到的第一组永远是最大的一个eh.id，可能是其他提单发送的
+    keep(dense_rank first order by case when eh.edi_code = 'CN1101' and ell.bill_nbr is not null then eh.id else -1 end desc) as edi_send_method
+FROM ship_bill sb
+    -- 一个提单可能存在CN1101、IFCTST两种EDI，且此时是基于船号进行关联，从而可能会关联到其他提单的发送记录
+    -- 此处不能使用join，否则业务上可能漏掉了提单
+LEFT JOIN s_edi_head eh ON eh.business_no = sb.ship_no and eh.valid_status = 1 and eh.edi_code in ('CN1101', 'IFCTST')
+    -- 一个报文中包含的提单
+LEFT JOIN edi_log_bill ell ON ell.edi_id = eh.id and sb.bill_nbr = ell.bill_nbr
+WHERE sb.ship_no = 55265 
+group by sb.bill_no
 ```
 - Keep测试二(基于over的partition by)，场景参考上文[over使用误区](#over使用误区)
 
