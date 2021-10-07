@@ -110,12 +110,14 @@ tags: [tag1, tag2, tag3]
   $ hexo clean # 有时候修改了静态文件需要先clean一下
   $ git add .
   $ git commit -am "update blog"
-  $ git push origin master:source
+  # git push origin master:source # 如果本地master为源码分支，远程source为源码分支(远程master为发布分支)
+  $ git push # git push origin source:source
   $ hexo g && gulp && hexo d
   ```
 - 其中gulp仅仅是压缩代码，提高访问速度
     - `npm install --global gulp-cli`
     - `npm install gulp-htmlclean gulp-htmlmin gulp-minify-css gulp-uglify gulp-imagemin --save`
+    - mac在安装gulp-imagemin时，需要依赖gifsicle，可能会安装报错，提示`/bin/sh: autoreconf: command not found`，此时可通过`brew install autoconf automake libtool`先手动安装autoreconf，并将`PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"`添加到`~/.zshrc`
 
 ### 博客源码管理和博客更新
 

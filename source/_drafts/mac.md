@@ -107,6 +107,8 @@ nvm install 16.8.0
 rm -rf ~/.nvm
 ```
 - 安装vue-cli，使用root账号安装`npm install -g @vue/cli`
+- 常见问题
+    - 在npm install进行包依赖安装是，部分包需要依赖autoreconf命令，从而提示`/bin/sh: autoreconf: command not found`。此时可通过`brew install autoconf automake libtool`先手动安装autoreconf，并将`PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"`添加到`~/.zshrc`
 
 ### 终端管理(Item2)
 
