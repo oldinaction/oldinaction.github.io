@@ -227,7 +227,7 @@ p {
 ```css
 ::-webkit-scrollbar {
     width: 6px; /* 针对纵向滚动条 */
-    height: 10px; /* 针对横向滚动条 */
+    height: 8px; /* 针对横向滚动条 */
 }
 ::-webkit-scrollbar-thumb {
     border-radius: 10px;
