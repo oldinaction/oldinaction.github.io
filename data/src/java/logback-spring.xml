@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- logback整合日志-->
+<!--
+说明：
+    1. 文件的命名和加载顺序有关：logback.xml早于application.yml加载，logback-spring.xml晚于application.yml加载；如果logback配置需要使用application.yml中的属性，需要命名为logback-spring.xml
+    2. logback使用application.yml中的属性：必须通过springProperty才可引入application.yml中的值，可以设置默认值
+-->
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <!--引入外部配置-->
+    <!--<include resource="org/springframework/boot/logging/logback/base.xml"/>--><!-- 会额外产生一个 spring.log 的日志文件，默认达到10M进行分割 -->
+
+    <!-- 颜色转换(下文控制台打印时用到) -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径。yml中配置的 logging.path > LOG_PATH环境变量 > 此处默认值(必须要有-)-->
+    <springProperty scope="context" name="springApplicationName" source="spring.application.name"/>
+    <springProperty scope="context" name="loggingFilePath" source="logging.file.path"/>
+    <springProperty scope="context" name="loggingPath" source="logging.path"/>
+    <property name="LOG_PATH" value="${loggingFilePath:-${loggingPath:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp/app/log}}}}}" />
+    <!--
+      1.如：%clr(%replace(%-35.35caller{1}){'\t|Caller.{1}0|\r\n', ''}){magenta} 显示日志行号和行链接
+      2.解析
+        %clr(...){magenta} 对括号中数据增加 magenta 颜色
+        %replace(...){...} 去掉换行
+        %-35.35caller{1} 获取调用栈最后两个，并格式化宽度为 35
+        其他参数参考：https://www.iteye.com/blog/aub-1103685
+        %d 日期
+        %t 线程
+        %m 日志内容
+        %n 换行
+        %L 行号
+    -->
+    <property name="STDOUT_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr([%15.15t]){faint} %clr(%-40.40logger{39} %-5.5L){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <!-- 如果日志统一收集，可以适当减少此处日志保留天数 -->
+    <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-30}"/>
+    <property name="LOG_FILE_MAX_SIZE" value="${LOG_FILE_MAX_SIZE:-10MB}"/>
+    <property name="LOG_TOTAL_SIZE_CAP" value="${LOG_TOTAL_SIZE_CAP:-10GB}"/>
+    <property name="LOG_HTML_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-3}"/>
+
+    <!-- 控制台输出日志 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${STDOUT_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ERROR级别日志 -->
+    <!-- 滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件 RollingFileAppender-->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 过滤器，只记录WARN级别的日志 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <!--
+          最常用的滚动策略，它根据时间来制定滚动策略，同时也负责触发滚动
+         -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- each file should be at most 10MB, keep 30 days worth of history, but at most 10GB -->
+            <!-- 滚动后的文件名，也包括了滚动时间的选择，可相对和绝对路径 -->
+            <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/error-%i.log</fileNamePattern>
+            <!-- 限定单个日志文件的大小 -->
+            <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
+            <!-- 保留的存档文件的数量(默认无穷大)，与上一个fileNamePattern有关
+                假设定义为30，当fileNamePattern以天为单位时，即保存30天的日志；当以月为单位时，即保存30个月的日志
+                旧的日志以异步的方式删除。注意，删除旧文件时，那些为了归档而创建的目录也会被删除 -->
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <!-- 所有的归档日志的大小(默认无穷大)。当超过限制时，会删掉旧的归档日志 -->
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+
+        <!--
+        <!- 按照固定窗口模式生成日志文件 ->
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}/.log.zip</fileNamePattern>
+            <!- 窗口大小是1到3，当保存了3个归档文件后，将覆盖最早的日志 ->
+            <minIndex>1</minIndex>
+            <maxIndex>3</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <!- 触发滚动的条件是单个文件达到5M ->
+            <maxFileSize>5MB</maxFileSize>
+        </triggeringPolicy>
+        -->
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger %line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- WARN级别日志 appender -->
+    <appender name="WARN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/warn-%i.log</fileNamePattern>
+            <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger %line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- INFO级别日志 appender -->
+    <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/info-%i.log</fileNamePattern>
+            <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger %line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- DEBUG级别日志 appender。如果root中不使用此appender则可将其注释掉 -->
+    <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/debug-%i.log</fileNamePattern>
+            <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger %line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- TRACE级别日志 appender -->
+    <appender name="TRACE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/%d{yyyyMMdd}/trace-%i.log</fileNamePattern>
+            <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger %line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 每天生成一个html格式的日志开始。也可通过WS实时显示在页面：https://blog.csdn.net/weixin_30791095/article/details/96556980 -->
+    <appender name="HTML_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 过滤器，只记录WARN级别的日志
+          <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>info</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+          </filter>
+        -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/log-html/%d{yyyyMMdd}/index-%i.html</fileNamePattern>
+            <maxFileSize>1MB</maxFileSize>
+            <maxHistory>${LOG_HTML_MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.html.HTMLLayout">
+                <pattern>%p%d%msg%M%F{32}%L</pattern>
+            </layout>
+        </encoder>
+    </appender>
+
+    <!--输出到mysql数据库的appender配置. 需要pom中引入mysql的jar包，并创建数据库 logback_data，并需要先创建数据库表-->
+    <!--
+    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            <driverClass>com.mysql.jdbc.Driver</driverClass>
+            <url>jdbc:mysql://localhost:3306/logback_data?characterEncoding=utf8</url>
+            <user>root</user>
+            <password>root</password>
+        </connectionSource>
+    </appender>
+    -->
+
+    <logger name="org.apache.catalina.startup.DigesterFactory" level="ERROR"/>
+    <logger name="org.apache.catalina.util.LifecycleBase" level="ERROR"/>
+    <logger name="org.apache.coyote.http11.Http11NioProtocol" level="WARN"/>
+    <logger name="org.apache.sshd.common.util.SecurityUtils" level="WARN"/>
+    <logger name="org.apache.tomcat.util.net.NioSelectorPool" level="WARN"/>
+    <logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="ERROR"/>
+    <logger name="org.hibernate.validator.internal.util.Version" level="WARN"/>
+
+    <!--<logger name="org.hibernate" level="ERROR"/>-->
+    <!--<logger name="org.springframework" level="ERROR"/>-->
+    <!--<logger name="org.apache.zookeeper" level="ERROR"/>-->
+    <!--<logger name="com.netflix" level="ERROR"/>-->
+
+    <!-- hibernate日志输入 -->
+    <!-- <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicExtractor" level="TRACE" />
+    <logger name="org.hibernate.SQL" level="INFO" />
+    <logger name="org.hibernate.engine.QueryParameters" level="INFO" />
+    <logger name="org.hibernate.engine.query.HQLQueryPlan" level="INFO" /> -->
+
+    <!--mybatis打印日志，此时是debug级别，则会生成到debug-%i.log的文件中-->
+    <!-- <logger name="cn.aezo.video.dao" level="DEBUG"/> -->
+
+    <!--
+        1.默认日志级别，可以单独在上面设置每个包的日志级别
+        2.root将级别为INFO及大于INFO的日志信息交给已经配置好的名为STDOUT、ERROR_FILE的appender处理，STDOUT的appender将信息打印到控制台，ERROR_FILE的则打印到error-%i.log文件中
+        3.level用来设置打印级别，大小写无关。TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，还有一个特殊值INHERITED或者同义词NULL，代表强制执行上级的级别。如果未设置此属性，那么当前loger将会继承上级的级别
+        4.yml配置文件单个包的打印级别 > logger-level标签级别 > root-level默认级别 (因此此处可以打开文件的所有级别类型，默认不会打印debug等日志；如果需要查看debug日志，只需要增加yml配置文件即可)
+        5.将mybatis的DEBUG日志记录在文件的前提是(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
+    -->
+    <root level="INFO">
+        <!-- 输出到控制台(包括生产环境启动的命令行) -->
+        <appender-ref ref="STDOUT" />
+
+        <!-- 输出到文件。注意：
+          1.*****如果使用文件输出，则下面的打开级别的才会记录*****
+          2.即如果不打开TRACE_FILE，就算上文logger或yml中配置了某个类的打印基本为TRACE，也不会记录到TRACE_FILE相应的appender(trace-%i.log日志文件)
+        -->
+        <appender-ref ref="ERROR_FILE" />
+        <appender-ref ref="WARN_FILE" />
+        <appender-ref ref="INFO_FILE" />
+        <appender-ref ref="DEBUG_FILE" />
+        <appender-ref ref="TRACE_FILE" />
+
+        <appender-ref ref="HTML_FILE" />
+
+        <!--输出到数据库-->
+        <!--<appender-ref ref="DB"/>-->
+    </root>
+</configuration>

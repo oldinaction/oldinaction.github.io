@@ -1,0 +1,316 @@
+<!doctype html><html class="theme-next mist use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css"><meta name="keywords" content=".NET,C#,"><link rel="alternate" href="/atom.xml" title="Smalle's Blog | AEZOCN" type="application/atom+xml"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1"><meta name="description" content="简介 .NET Microsoft Docs、.NET Docs .NET Download .NET、C#、ASP.NET ^1 微软在2002年推出了Visual Studio .NET 1.0版本的开发者平台。微软还在2002年宣布推出一个特性强大并且与.NET平台无缝集成的编程语言，即C# 1.0正式版 C#(C sharp)就是为宣传.NET而创立的，它直接集成于Visual Studi"><meta name="keywords" content=".NET,C#"><meta property="og:type" content="article"><meta property="og:title" content="C#"><meta property="og:url" content="http://blog.aezo.cn/2018/11/19/lang/C#/index.html"><meta property="og:site_name" content="Smalle&#39;s Blog | AEZOCN"><meta property="og:description" content="简介 .NET Microsoft Docs、.NET Docs .NET Download .NET、C#、ASP.NET ^1 微软在2002年推出了Visual Studio .NET 1.0版本的开发者平台。微软还在2002年宣布推出一个特性强大并且与.NET平台无缝集成的编程语言，即C# 1.0正式版 C#(C sharp)就是为宣传.NET而创立的，它直接集成于Visual Studi"><meta property="og:locale" content="zh-Hans"><meta property="og:image" content="http://blog.aezo.cn/data/images/lang/net-hello-world.png"><meta property="og:updated_time" content="2021-08-31T06:07:20.360Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="C#"><meta name="twitter:description" content="简介 .NET Microsoft Docs、.NET Docs .NET Download .NET、C#、ASP.NET ^1 微软在2002年推出了Visual Studio .NET 1.0版本的开发者平台。微软还在2002年宣布推出一个特性强大并且与.NET平台无缝集成的编程语言，即C# 1.0正式版 C#(C sharp)就是为宣传.NET而创立的，它直接集成于Visual Studi"><meta name="twitter:image" content="http://blog.aezo.cn/data/images/lang/net-hello-world.png"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Mist",sidebar:{position:"right",display:"post",offset:12,offset_float:0,b2t:!1,scrollpercent:!1},fancybox:!0,motion:!0,duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"BWD6R9FA4K",apiKey:"3330f3cbaa099dfc30395de5f5b20151",indexName:"blog",hits:{per_page:10},labels:{input_placeholder:"请输入关键字",hits_empty:"我们没有找到任何搜索结果: ${query}",hits_stats:"找到约${hits}条结果（用时${time}ms）"}}}</script><link rel="canonical" href="http://blog.aezo.cn/2018/11/19/lang/C#/"><title>C# | Smalle's Blog | AEZOCN</title><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?d82223039d601f2f819f8fe140a63468";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script><div style="display:none"><script src="//s95.cnzz.com/z_stat.php?id=cnzz_stat_icon_1276691827&web_id=cnzz_stat_icon_1276691827" language="JavaScript"></script></div></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-right page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">Smalle's Blog | AEZOCN</span><span class="logo-line-after"><i></i></span></a></div><h1 class="site-subtitle" itemprop="description">Better Code, Better Life</h1></div><div class="site-nav-toggle"> <button><span class="btn-bar"></span><span class="btn-bar"></span><span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br> 首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br> 分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br> 关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br> 归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br> 标签</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br> 站点地图</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br> 搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i></span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"> <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2018/11/19/lang/C#/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="smalle"><meta itemprop="description" content=""><meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="Smalle's Blog | AEZOCN"></span><header class="post-header"><h2 class="post-title" itemprop="name headline">C#</h2><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i></span> <span class="post-meta-item-text">发表于</span> <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-19T17:23:00+08:00">2018-11-19</time></span> <span class="post-category"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i></span> <span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/lang/" itemprop="url" rel="index"><span itemprop="name">lang</span></a></span></span></div></header><div class="post-body" itemprop="articleBody"><div></div><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><ul><li><a href="https://dotnet.microsoft.com/" target="_blank" rel="noopener">.NET</a></li><li><a href="https://docs.microsoft.com/zh-cn" target="_blank" rel="noopener">Microsoft Docs</a>、<a href="https://docs.microsoft.com/zh-cn/dotnet/" target="_blank" rel="noopener">.NET Docs</a></li><li><a href="https://dotnet.microsoft.com/download" target="_blank" rel="noopener">.NET Download</a></li><li>.NET、C#、ASP.NET <a href="https://www.cnblogs.com/yy1234/p/9258805.html" target="_blank" rel="noopener">^1</a><ul><li>微软在2002年推出了<code>Visual Studio .NET</code> 1.0版本的开发者平台。微软还在2002年宣布推出一个特性强大并且与.NET平台无缝集成的编程语言，即<code>C#</code> 1.0正式版<ul><li><code>C#</code>(C sharp)就是为宣传<code>.NET</code>而创立的，它直接集成于<code>Visual Studio .NET</code>中，<code>VB</code>也在.NET 1.0发布后对其进行支持。只要是.NET支持的编程语言，开发者就可以通过.NET平台提供的工具服务和框架支持便捷的开发应用程序</li><li>跨语言：即只要是面向<code>.NET</code>平台的编程语言(C#、Visual Basic、C++/CLI、Eiffel、F#、IronPython、IronRuby、PowerBuilder、Visual COBOL 以及 Windows PowerShell)，用其中一种语言编写的类型可以无缝地用在另一种语言编写的应用程序中的互操作性</li></ul></li><li><code>.NET</code> 实现包括 <code>.NET Framework</code>、<code>.NET Core</code> 和 <code>Mono</code>。 .NET 的所有实现都有一个名为 <code>.NET Standard</code> 的通用 API 规范。<a href="https://docs.microsoft.com/zh-cn/dotnet/standard/net-standard" target="_blank" rel="noopener">版本对应</a><ul><li><strong><code>.NET Core</code> 是 .NET 的跨平台实现</strong>，可在 Windows、macOS 和 Linux 上运行。JAVA和.NET不同的一点是java是跨平台的，不跨语言的</li><li><code>.NET Framework</code> 是自 2002 年起就已存在的原始 .NET 实现，<strong>因此经常将 <code>.NET Framework</code> 简称为 <code>.NET</code></strong>。当前 .NET 开发人员经常使用的 .NET Framework。<strong>.NET Framework 4.5 版以及更高版本实现 .NET Standard</strong></li><li><code>Mono</code> 是主要在需要小型运行时使用的 .NET 实现。 它是在 Android、Mac、iOS、tvOS 和 watchOS 上驱动 Xamarin 应用程序的运行时，且主要针对小内存占用。 Mono 还支持使用 Unity 引擎生成的游戏</li><li><code>UWP</code> 是用于为物联网 (IoT) 生成新式触控 Windows 应用程序和软件的 .NET 实现</li></ul></li><li>.NET框架的组成分为两部分<ul><li><code>CLR</code>(Common Language Runtime)：公共语言运行时，提供内在管理，代码安全性检测等功能。包含<ul><li><code>CLS</code>：公共语言规范，获取各种语言转换成统一的语法规范</li><li><code>CTS</code>：通用类型系统，将各种语言中的数据类型转换成统一的类型</li><li><code>JIT</code>：实时编译器，用于将转换之后的语言编译为二进制语言，交给CPU执行</li></ul></li><li><code>FLC</code>(.NET Framework Class Library)：.NET框架类库，提供大量应用类库</li></ul></li><li>运行机制<ul><li><code>.NET</code>：各种语言(c#、F#、j#等对应的源程序) —&gt; 经过CLS、CTS第一次编译 —&gt; 统一规范语言(中间语言)MSIL(.EXE,.DLL) —&gt; JIT第二次编译 —&gt; 二进制语言 —&gt; 运行在CPU中</li><li><code>Java</code>：Java —&gt; 编译 —&gt; 字节码文件(.CLASS) —&gt; jvm解释(jvm虚拟机) —&gt; 二进制语言 —&gt; 运行在CPU中</li></ul></li><li><code>ASP.NET</code> 是一种用来快速创建动态Web网站的技术，是.NET框架中的一个应用模型，不是语言。可以用C#或VB.NET来开发，编译后形成CLR，通过服务器的IIS+.NET FrameWork再次编译来运行</li><li>.NET 分成两个方面：<code>WinForm</code>和<code>WebForm</code>，ASP.NET就是属于WebForm，也就是平时说的B/S模式的开发；而WinForm就是属于C/S模式</li></ul></li><li>相关术语<ul><li>CLR：公共语言运行时</li><li>程序集(assembly)：.dll/.exe 文件，其中包含一组可由应用程序或其他程序集调用的 API。程序集可以包括接口、类、结构、枚举和委托等类型</li></ul></li><li>常用开发工具<code>Microsoft Visual Studio</code></li></ul><h3 id="概念说明"><a href="#概念说明" class="headerlink" title="概念说明"></a>概念说明</h3><ul><li>VS解决方案A文件夹：A下的*.sln =&gt; eclipse的.project；A下的packages类似jar包；A下的项目文件夹(如：A)</li><li>添加引用 =&gt; 导入jar包；导入命名空间(using System) =&gt; 代码中的<code>import java.lang.System</code></li><li><code>.sln</code>和<code>.csproj</code>区别：<code>.csproj</code>为一个c#项目/模块，里面配置有此项目/模块的引用路径；<code>.sln</code>则是对多个<code>.csproj</code>的描述</li></ul><h2 id="Web"><a href="#Web" class="headerlink" title="Web"></a>Web</h2><h3 id="VS创建Web应用程序-Hello-World"><a href="#VS创建Web应用程序-Hello-World" class="headerlink" title="VS创建Web应用程序(Hello World)"></a>VS创建Web应用程序(Hello World)</h3><h4 id="NET-Framework"><a href="#NET-Framework" class="headerlink" title=".NET Framework"></a>.NET Framework</h4><ul><li>VS - 文件 - 新建 - 项目 - Visual C# - Web - ASP.NET Web应用程序(.NET Framework)。创建的项目目录说明<ul><li>App_Data 操作数据库文件夹(存放数据库连接.mdf文件)</li><li>Controllers 控制类文件夹</li><li>Models 实体类文件夹</li><li>Views 前端页面文件夹</li><li>Web.config 项目配置文件</li></ul></li><li><p>VS中启动<code>IIS Express</code>(会调用系统iis程序启动单独进程)，会自动打开浏览器，稍等片刻会自动打开浏览器，如下图</p><p> <img src="/data/images/lang/net-hello-world.png" alt="net-hello-world"></p></li><li>VS添加引用，类似添加jar包(需要停止项目)<ul><li>下载<code>dll</code>引用文件，如存放在<code>D:/work/dll</code></li><li>VS - 解决方案管理器 - 当前项目 - 引用 - 右键添加引用 - 浏览 - 选择上述dll文件 - 确定 - 重新生成项目并启动</li><li>之后此dll文件不能删除，删除后就会丢失引用</li></ul></li><li>启动项目<ul><li>选中项目模块 - 右键 - 设为启动项目</li><li>选中项目模块 - 右键 - 属性 - Web - 服务器 - 项目URL（如<a href="http://localhost:8080/）" target="_blank" rel="noopener">http://localhost:8080/）</a> - 创建虚拟目录 - 去掉覆盖引用程序根URL</li><li>然后修改项目目录下<code>.vs/MyModule/config/applicationhost.config</code>文件，配置<code>system.applicationHost#sites#site#bindingInformation=&quot;*:8080:localhost&quot;</code>或<code>bindingInformation=&quot;*:8080:192.168.1.100&quot;</code>对外访问</li></ul></li></ul><h4 id="NET-Core"><a href="#NET-Core" class="headerlink" title=".NET Core"></a>.NET Core</h4><ul><li><a href="https://docs.microsoft.com/zh-cn/aspnet/" target="_blank" rel="noopener">文档</a></li><li>基于上文<code>.NET Framework</code>流程，亦可创建<code>ASP.NET Core Web应用程序</code>(ASP.NET Core 3.0)则可跨平台运行。可基于不同模板创建，如<code>Web应用程序(模型视图控制器，ASP.NET MVC)</code>或者<code>React.js</code></li><li>打包发布<ul><li>生成 - 发布<code>WebApplication1</code> - 发布目标选择文件夹 - 创建文件夹 - 发布</li><li>可在<code>D:\work\net\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish</code>项目发布目录看到生成的文件，其中<code>WebApplication1.exe</code>双击默认会开启一个cmd窗口</li><li>然后可访问<code>http://localhost:5000</code>查看页面</li></ul></li><li>部署到IIS<ul><li>IIS默认不支持ASP.NET Core，需要安装<code>AspNetCoreModuleV2</code>模块，否则报500。在<a href="https://dotnet.microsoft.com/download/dotnet-core/3.0" target="_blank" rel="noopener">官网下载中心</a>进行<a href="https://download.visualstudio.microsoft.com/download/pr/bf608208-38aa-4a40-9b71-ae3b251e110a/bc1cecb14f75cc83dcd4bbc3309f7086/dotnet-hosting-3.0.0-win.exe" target="_blank" rel="noopener">下载ASP.NET Core/.NET Core: Runtime &amp; Hosting Bundle</a>。此时下载的是</li><li>下载后直接安装，在IIS-模块中可看到</li><li>IIS - 网站 - 添加网站。网站名称如<code>WebApplication1</code>，物理路径如<code>D:\work\net\WebApplication1\WebApplication1\bin\Release\netcoreapp3.0\publish</code>，输入端口9081</li><li>然后可访问<code>http://localhost:9081</code>查看页面</li></ul></li></ul><h5 id="在Centos7上运行"><a href="#在Centos7上运行" class="headerlink" title="在Centos7上运行"></a>在Centos7上运行</h5><blockquote><p>参考：<a href="https://dotnet.microsoft.com/learn/aspnet/hello-world-tutorial/intro" target="_blank" rel="noopener">https://dotnet.microsoft.com/learn/aspnet/hello-world-tutorial/intro</a></p></blockquote><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装</span></span><br><span class="line">sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm</span><br><span class="line">sudo yum install -y dotnet-sdk-3.0 <span class="comment"># 安装sdk(包含开发工具包)</span></span><br><span class="line"><span class="comment"># sudo yum install -y aspnetcore-runtime-3.0 # 安装运行时环境，可用于正式环境安装</span></span><br><span class="line">dotnet --info</span><br><span class="line"></span><br><span class="line"><span class="comment">## 创建项目并运行</span></span><br><span class="line">dotnet new webApp -o myWebApp --no-https</span><br><span class="line"><span class="built_in">cd</span> myWebApp</span><br><span class="line">dotnet run <span class="comment"># 在项目目录运行</span></span><br><span class="line"><span class="comment"># dotnet bin/Debug/netcoreapp3.0/myWebApp.dll # 或者直接指定dll文件进行运行(正式环境可操作)</span></span><br><span class="line"><span class="comment"># 默认监听在 http://localhost:5000</span></span><br></pre></td></tr></table></figure><h3 id="IIS"><a href="#IIS" class="headerlink" title="IIS"></a>IIS</h3><ul><li>开启windows的IIS：控制面板 - 程序和功能 - 打开或关闭Windows功能 - Internet信息服务(Internet Information Services) - 此时在开始菜单中会出现<code>Internet Information Services (IIS)管理器</code></li><li>修改端口：网站 - 选择站点 - 绑定 - 修改端口</li><li>IIS默认会占用80端口，如果nginx也需要使用80端口，则无法启动(如果nginx的server均没有80端口则可正常运行)<ul><li><code>netstat -ano | find &quot;80&quot;</code> 查看占用80端口的进程。如果是普通进程可直接kill，如果是System进程(PID=4)，可参看下述流程</li><li>需要将IIS(程序中搜”Internet Information Services”)的所有和80端口绑定的应用修改成其他端口</li><li>再检查是否安装Sqlserver，其Reporting Service也会占用80端口(参考：<a href="https://www.jianshu.com/p/4b07e23414c2" target="_blank" rel="noopener">https://www.jianshu.com/p/4b07e23414c2</a>)<ul><li>可直接关闭服务 SQL Server Reporting Services (MSSQLSERVER)，并设置成手动启动</li><li>或者停止服务实例：程序中搜索”Reporting Services 配置管理器” - 连接(相应实例) - 停止</li><li>或者修改其绑定端口：连接进服务实例 - 报表管理器Url - 高级 - 编辑端口 - 确定后会自动重启报表Web服务</li></ul></li><li>最后可考虑是否重启IIS<ul><li>在管理员命令行运行<code>iisreset/stop</code>可停止IIS，开启使用<code>iisreset/start</code></li><li>服务里重启<code>World Wide Web Publishing Service</code></li></ul></li></ul></li><li>右键某个网站-管理网站-高级设置-物理路径：可查看项目部署目录</li></ul><h3 id="使用Oracle"><a href="#使用Oracle" class="headerlink" title="使用Oracle"></a>使用Oracle</h3><ul><li><p>项目的<code>Web.config</code>增加配置</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- data source为TNS Name名称 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">connectionStrings</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">add</span> <span class="attr">name</span>=<span class="string">"MyConnectionName1"</span> <span class="attr">connectionString</span>=<span class="string">"data source=local;user id=root;password=root;"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">add</span> <span class="attr">name</span>=<span class="string">"MyConnectionName2"</span> <span class="attr">connectionString</span>=<span class="string">"data source=local;user id=root;password=root;"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">connectionStrings</span>&gt;</span></span><br></pre></td></tr></table></figure></li><li><p>需要启动TNS服务，并在tnsnames.ora中配置上述数据源</p></li><li>如果报错<code>The provider is not compatible with the version of Oracle client</code>需要确认<code>Oracle.DataAccess.dll</code>的版本是否和ODAC版本一致。右键<code>Oracle.DataAccess.dll</code>可查看其版本，如11.02.3，则需要<code>ODAC112030</code>版本（ODAC 4 112.3），参考<a href="/_posts/db/oracle-dba.md#ODAC和ODBC">oracle-dba.md#ODAC和ODBC</a></li></ul><h2 id="窗体应用-Winform"><a href="#窗体应用-Winform" class="headerlink" title="窗体应用(Winform)"></a>窗体应用(Winform)</h2><ul><li>开发窗体应用(<code>Winform</code>)：文件 - 新建 - windows 窗体应用</li></ul><h2 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h2><h3 id="Hello-world"><a href="#Hello-world" class="headerlink" title="Hello world"></a>Hello world</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">static void Main(string[] args)</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    Console.WriteLine (&quot;&#123;0&#125; command line arguments were specified&quot;, args.Length);</span><br><span class="line">    foreach (string arg in args)</span><br><span class="line">    &#123;</span><br><span class="line">        Console.WriteLine(arg);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Console.ReadLine();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h3 id="使用oracle数据库"><a href="#使用oracle数据库" class="headerlink" title="使用oracle数据库"></a>使用oracle数据库</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">static void Main(string[] args)</span><br><span class="line">&#123;</span><br><span class="line">    try</span><br><span class="line">    &#123;</span><br><span class="line">        string connString = &quot;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orcl)));Persist Security Info=True;User ID=root;Password=root;&quot;;</span><br><span class="line">        OracleConnection con = new OracleConnection(connString);</span><br><span class="line">        con.Open();</span><br><span class="line"></span><br><span class="line">        string cmdQuery = &quot;select name, password from user where id = 1&quot;;</span><br><span class="line"></span><br><span class="line">        // Create the OracleCommand</span><br><span class="line">        OracleCommand cmd = new OracleCommand(cmdQuery);</span><br><span class="line">        cmd.Connection = con;</span><br><span class="line">        // cmd.CommandType = CommandType.Text;</span><br><span class="line">        // Execute command, create OracleDataReader object</span><br><span class="line">        OracleDataReader reader = cmd.ExecuteReader();</span><br><span class="line"></span><br><span class="line">        while (reader.Read())</span><br><span class="line">        &#123;</span><br><span class="line">            Console.WriteLine(&quot;Name : &quot; + reader.GetString(0));</span><br><span class="line">            Console.WriteLine(&quot;Password : &quot; + reader.GetString(1));</span><br><span class="line">        &#125;</span><br><span class="line">        Console.ReadKey();</span><br><span class="line"></span><br><span class="line">        // Clean up</span><br><span class="line">        reader.Dispose();</span><br><span class="line">        cmd.Dispose();</span><br><span class="line">        con.Dispose();</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Exception ex)</span><br><span class="line">    &#123;</span><br><span class="line">        Console.WriteLine(&quot;出错!&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><hr><p>参考文章</p></div><div></div><div></div><div><ul class="post-copyright"><li class="post-copyright-author"> <strong>本文作者：</strong> smalle</li><li class="post-copyright-link"> <strong>本文链接：</strong> <a href="http://blog.aezo.cn/2018/11/19/lang/C#/" title="C#">http://blog.aezo.cn/2018/11/19/lang/C#/</a></li><li class="post-copyright-license"> <strong>版权声明：</strong> 本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！</li></ul></div><footer class="post-footer"><div class="post-tags"> <a href="/tags/NET/" rel="tag"># .NET</a> <a href="/tags/C/" rel="tag"># C#</a></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/2018/11/18/web/nwjs/" rel="next" title="nwjs"><i class="fa fa-chevron-left"></i> nwjs</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"> <a href="/2018/11/20/db/access/" rel="prev" title="access">access<i class="fa fa-chevron-right"></i></a></div></div></footer></article><div class="post-spread"></div></div></div><div class="comments" id="comments"></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span><span class="sidebar-toggle-line sidebar-toggle-line-middle"></span><span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap"> 文章目录</li><li class="sidebar-nav-overview" data-target="site-overview"> 站点概览</li></ul><section class="site-overview sidebar-panel"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"> <img class="site-author-image" itemprop="image" src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400" alt="smalle"><p class="site-author-name" itemprop="name">smalle</p><p class="site-description motion-element" itemprop="description"></p></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"> <a href="/archives/"><span class="site-state-item-count">155</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"> <a href="/categories/index.html"><span class="site-state-item-count">13</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"> <a href="/tags/index.html"><span class="site-state-item-count">140</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="feed-link motion-element"><a href="/atom.xml" rel="alternate"><i class="fa fa-rss"></i> RSS</a></div><div class="links-of-author motion-element"></div></section><section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概念说明"><span class="nav-number">1.1.</span> <span class="nav-text">概念说明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Web"><span class="nav-number">2.</span> <span class="nav-text">Web</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VS创建Web应用程序-Hello-World"><span class="nav-number">2.1.</span> <span class="nav-text">VS创建Web应用程序(Hello World)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NET-Framework"><span class="nav-number">2.1.1.</span> <span class="nav-text">.NET Framework</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NET-Core"><span class="nav-number">2.1.2.</span> <span class="nav-text">.NET Core</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#在Centos7上运行"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">在Centos7上运行</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IIS"><span class="nav-number">2.2.</span> <span class="nav-text">IIS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Oracle"><span class="nav-number">2.3.</span> <span class="nav-text">使用Oracle</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#窗体应用-Winform"><span class="nav-number">3.</span> <span class="nav-text">窗体应用(Winform)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#案例"><span class="nav-number">4.</span> <span class="nav-text">案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hello-world"><span class="nav-number">4.1.</span> <span class="nav-text">Hello world</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用oracle数据库"><span class="nav-number">4.2.</span> <span class="nav-text">使用oracle数据库</span></a></li></ol></li></ol></div></div></section></div></aside></div></main><footer id="footer" class="footer"><div class="footer-inner"><div class="copyright"> &copy; 2016 - <span itemprop="copyrightYear">2021</span><span class="with-love"><i class="fa fa-heart"></i></span> <span class="author" itemprop="copyrightHolder">smalle</span>&nbsp;&nbsp;&nbsp;&nbsp;<div class="powered-by"> 由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div><div class="powered-by"> 主题 - <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div><div class="theme-info cnzz" style="margin:0 0 -5px 10px"><script type="text/javascript">var cnzz_protocol="https:"==document.location.protocol?"https://":"http://";document.write(unescape("%3Cspan id='cnzz_stat_icon_1276691827'%3E%3C/span%3E%3Cscript src='"+cnzz_protocol+"s23.cnzz.com/z_stat.php%3Fid%3D1276691827%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"))</script></div></div><div class="ad"> <span style="font-weight:700">AD&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="theme-info"> <a target="_blank" href="https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=oby5nolb">阿里云大礼包</a></div></div><div class="aezocn"> <span style="font-weight:700">@AEZO.CN&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="theme-info"> <a target="_blank" href="http://shop.aezo.cn/">杂货铺</a></div></div><script>"use strict";!function(){var n=window.driftt=window.drift=window.driftt||[];if(!n.init){if(n.invoked)return window.console&&console.error&&console.error("Drift snippet included twice.");n.invoked=!0,n.methods=["identify","config","track","reset","debug","show","ping","page","hide","off","on"],n.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);return t.unshift(e),n.push(t),n}},n.methods.forEach(function(t){n[t]=n.factory(t)}),n.load=function(t){var e=3e5*Math.ceil(new Date/3e5),n=document.createElement("script");n.type="text/javascript",n.async=!0,n.crossorigin="anonymous",n.src="https://js.driftt.com/include/"+e+"/"+t+".js";var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(n,r)}}}(),drift.SNIPPET_VERSION="0.3.1",drift.load("e4wbzuxev4zt")</script><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?d82223039d601f2f819f8fe140a63468";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i></div></div><script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script><script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script><script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script><script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script><script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script><script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script><script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.1"></script></body></html>

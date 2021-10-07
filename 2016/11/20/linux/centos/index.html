@@ -1,0 +1,316 @@
+<!doctype html><html class="theme-next mist use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css"><meta name="keywords" content="system,"><link rel="alternate" href="/atom.xml" title="Smalle's Blog | AEZOCN" type="application/atom+xml"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1"><meta name="description" content="Centos7安装 参考ubuntu.md  Centos7安装 centos7镜像下载地址：https://mirrors.aliyun.com/centos/7/isos/x86_64/ CentOS-7-x86_64-DVD-1810.iso    标准安装版，一般下载这个就可以了(桌面推荐) 如果无桌面版，可进行安装图形界面，yum -y groupinstall &amp;quot;GNOME"><meta name="keywords" content="system"><meta property="og:type" content="article"><meta property="og:title" content="CentOS"><meta property="og:url" content="http://blog.aezo.cn/2016/11/20/linux/centos/index.html"><meta property="og:site_name" content="Smalle&#39;s Blog | AEZOCN"><meta property="og:description" content="Centos7安装 参考ubuntu.md  Centos7安装 centos7镜像下载地址：https://mirrors.aliyun.com/centos/7/isos/x86_64/ CentOS-7-x86_64-DVD-1810.iso    标准安装版，一般下载这个就可以了(桌面推荐) 如果无桌面版，可进行安装图形界面，yum -y groupinstall &amp;quot;GNOME"><meta property="og:locale" content="zh-Hans"><meta property="og:image" content="http://blog.aezo.cn/data/images/linux/linux-boot.png"><meta property="og:updated_time" content="2021-08-31T06:07:20.363Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="CentOS"><meta name="twitter:description" content="Centos7安装 参考ubuntu.md  Centos7安装 centos7镜像下载地址：https://mirrors.aliyun.com/centos/7/isos/x86_64/ CentOS-7-x86_64-DVD-1810.iso    标准安装版，一般下载这个就可以了(桌面推荐) 如果无桌面版，可进行安装图形界面，yum -y groupinstall &amp;quot;GNOME"><meta name="twitter:image" content="http://blog.aezo.cn/data/images/linux/linux-boot.png"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Mist",sidebar:{position:"right",display:"post",offset:12,offset_float:0,b2t:!1,scrollpercent:!1},fancybox:!0,motion:!0,duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"BWD6R9FA4K",apiKey:"3330f3cbaa099dfc30395de5f5b20151",indexName:"blog",hits:{per_page:10},labels:{input_placeholder:"请输入关键字",hits_empty:"我们没有找到任何搜索结果: ${query}",hits_stats:"找到约${hits}条结果（用时${time}ms）"}}}</script><link rel="canonical" href="http://blog.aezo.cn/2016/11/20/linux/centos/"><title>CentOS | Smalle's Blog | AEZOCN</title><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?d82223039d601f2f819f8fe140a63468";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script><div style="display:none"><script src="//s95.cnzz.com/z_stat.php?id=cnzz_stat_icon_1276691827&web_id=cnzz_stat_icon_1276691827" language="JavaScript"></script></div></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-right page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">Smalle's Blog | AEZOCN</span><span class="logo-line-after"><i></i></span></a></div><h1 class="site-subtitle" itemprop="description">Better Code, Better Life</h1></div><div class="site-nav-toggle"> <button><span class="btn-bar"></span><span class="btn-bar"></span><span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br> 首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br> 分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br> 关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br> 归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br> 标签</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br> 站点地图</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br> 搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i></span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"> <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2016/11/20/linux/centos/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="smalle"><meta itemprop="description" content=""><meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="Smalle's Blog | AEZOCN"></span><header class="post-header"><h2 class="post-title" itemprop="name headline">CentOS</h2><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i></span> <span class="post-meta-item-text">发表于</span> <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-20T13:16:00+08:00">2016-11-20</time></span> <span class="post-category"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i></span> <span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/linux/" itemprop="url" rel="index"><span itemprop="name">linux</span></a></span></span></div></header><div class="post-body" itemprop="articleBody"><div></div><h2 id="Centos7安装"><a href="#Centos7安装" class="headerlink" title="Centos7安装"></a>Centos7安装</h2><ul><li>参考<a href="/_posts/linux/ubuntu.md">ubuntu.md</a></li></ul><h3 id="Centos7安装-1"><a href="#Centos7安装-1" class="headerlink" title="Centos7安装"></a>Centos7安装</h3><ul><li>centos7镜像下载地址：<a href="https://mirrors.aliyun.com/centos/7/isos/x86_64/" target="_blank" rel="noopener">https://mirrors.aliyun.com/centos/7/isos/x86_64/</a><ul><li>CentOS-7-x86_64-DVD-1810.iso 标准安装版，一般下载这个就可以了(桌面推荐)<ul><li>如果无桌面版，可进行安装图形界面，<code>yum -y groupinstall &quot;GNOME Desktop&quot; &quot;Graphical Administration Tools&quot;</code></li><li><code>systemctl set-default graphical.target</code> 将默认模式修改为图形界面模式</li><li><code>systemctl set-default multi-user.target</code> 将默认模式修改为命令行模式</li></ul></li><li>CentOS-7-x86_64-Minimal-1810.iso 精简版(服务器推荐)</li><li>CentOS-7-x86_64-NetInstall-1810.iso 网络安装镜像（从网络安装或者救援系统）</li><li>CentOS-7-x86_64-Everything-1810.iso 对完整版安装盘的软件进行补充，集成所有软件</li><li>CentOS-7-x86_64-LiveGNOME-1810.iso GNOME桌面版</li><li>CentOS-7-x86_64-LiveKDE-1810.iso KDE桌面版</li></ul></li><li>使用<code>UltraISO</code>刻录到光盘</li><li>BIOS启动进入安装命令行进行安装，一般选择第一个命令进行安装<ul><li>正常会很快一路显示<code>[OK]</code>，如果突然卡死后提示<code>dracut-initqueue : Warning: dracut-initqueue timeout - starting timeout scripts</code>解决办法 <a href="https://www.jianshu.com/p/e5db74f04859" target="_blank" rel="noopener">^1</a><ul><li>等待执行完进入<code>dracut</code>命令行，<code>ls /dev | grep sd</code> 查看U盘对应的盘符，如测试时机器本身包含centos系统且含有两块硬盘，根据U盘大小大致可以猜测为<code>sdcx</code>的盘符名(如：<code>sdc4</code>，如果是CD/DVD安装则可能是<code>/dev/cdrom</code>)</li><li>reboot重新启动，并重新安装，此时修改执行的安装命令</li><li>在安装命令行主界面，按<code>e</code>/<code>Tab</code>进入到命令修改状态</li><li>修改<code>vmlinuz initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64.check quiet</code> 为 <code>vmlinuz initrd=initrd.img inst.stage2=hd:/dev/sdc4 quiet</code> (/dev/sdc4为U盘所在位置)</li><li>然后<code>Ctrl+x</code>执行安装</li><li>方式二：修改<code>U盘/isolinux/isolinux.cfg</code>里<code>hd:LABEL=U盘名称</code></li></ul></li></ul></li><li>进入到CentOS图形化安装界面<ul><li>修改时区<code>Date &amp; Time</code></li><li><code>INSTALLATION DESTINATION</code>进行磁盘分区 - <code>i will configure partitioning</code>手动进行分区 - 选择<code>LVM</code>(会产生/dev/mapper/centos-root的镜像文件)标准分区 - 可通过<code>+-</code>添加新分区或删除历史分区(老系统分区) - 点击+新增分区，其他使用默认值(默认文件系统xfs，也可改成ext4)，分区推荐<ul><li>(省略)<code>/boot/efi</code> 500M</li><li><code>/boot</code> 1G</li><li><code>/swap</code> 4G(8G/16G内存可分配4G，再按内存适当调高，如32G分6G)。最终显示如<code>tmpfs</code></li><li><code>/</code> 80G</li><li><code>/home</code> 剩余</li></ul></li></ul></li></ul><h3 id="Centos7使用"><a href="#Centos7使用" class="headerlink" title="Centos7使用"></a>Centos7使用</h3><ul><li>设置家目录为因为，保留系统语音为中文<ul><li>设置 - 区域语言 - 选择English - 重启 - 注销账户重新登录 - 登录后提示会修改家目录(为英文) - 点击更新成新名称</li><li>设置 - 区域语言 - 选择中文 - 重启 - 注销账户重新登录 - 登录后提示会修改家目录(为中文) - 勾选不用再提示 - 点击保持原名称</li></ul></li><li><p>CentOS7设置笔记本合盖后程序仍可以运转</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># https://blog.csdn.net/m0_49400972/article/details/108861639</span></span><br><span class="line">vi /etc/systemd/logind.conf</span><br><span class="line"><span class="comment"># 修改 HandleLidSwitch 盒盖行为</span></span><br><span class="line">HandleLidSwitch=lock</span><br><span class="line"><span class="comment"># 重启配置</span></span><br><span class="line">systemctl restart systemd-logind</span><br></pre></td></tr></table></figure></li><li><p>wifi无法连接</p></li></ul><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ip addr</span><br><span class="line"><span class="comment"># 开启wifi对应网卡</span></span><br><span class="line">sudo ip link <span class="built_in">set</span> wlp5s0 up</span><br><span class="line"><span class="comment"># 扫码wifi网络</span></span><br><span class="line">sudo iw wlp5s0 scan | grep SSID</span><br></pre></td></tr></table></figure><h2 id="启动原理及设置"><a href="#启动原理及设置" class="headerlink" title="启动原理及设置"></a>启动原理及设置</h2><ul><li>开机启动在/var/log/messages中会打印<code>kernel: Initializing cgroup subsys cpuset</code>的日志，可通过<code>dmesg</code>查看</li></ul><h3 id="系统启动顺序boot-sequence"><a href="#系统启动顺序boot-sequence" class="headerlink" title="系统启动顺序boot sequence"></a>系统启动顺序boot sequence</h3><p><img src="/data/images/linux/linux-boot.png" alt="linux-boot.png"></p><ul><li><strong>BOIS加电自检</strong>：加电后检查，载入UEFi或BIOS的硬件信息，然后按照CMOS设置的启动顺序搜索处于活动状态并可以引导的设备(BIOS页面设置的启动盘先后顺序)。<strong>相当于BIOS页面启动完成</strong> <a href="https://blog.51cto.com/lianwei123ok/750627" title="linux的启动原理" target="_blank" rel="noopener">^2</a></li><li><p><strong>加载主引导程序（MBR）</strong>：读取第一个引导设备(一般为硬盘)的MBR(master boot record)中保存的引导加载程序(Redhat默认的引导程序是GRUB/GRUB2)</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示MBR内容。dd命令可以读取MBR的内容，然后将读取到的内容写入mbr.dmp文件中。然后以ASCII和十六进制显示文件的内容</span></span><br><span class="line">dd <span class="keyword">if</span>=/dev/sda of=mbr.dmp bs=512 count=1</span><br><span class="line">od -xa mbr.dmp</span><br><span class="line"><span class="comment"># 结果如</span></span><br><span class="line">0000000 48eb 1090 d08e 00bc b8b0 0000 d88e c08e</span><br><span class="line">k   H dle dle so   P   &lt; nul   0   8 nul nul so   X so   @</span><br><span class="line">...</span><br></pre></td></tr></table></figure></li><li><p><strong>加载次引导程序（GRUB）</strong>：加载此引导程序完成后，<strong>会进入内核程序选择页面</strong></p><ul><li>按上下可选择需要启动的内核，不选择的话，默认过5秒会进入到grub.conf中设置的系统，GRUB确定启动的系统后，他就会定位相应的内核映像所在的/boot/目录</li><li>内核映像文件的格式：/boot/vmlinuz-&lt;内核版本&gt;。例如centOS5.5的内核映像文件就是：/boot/vmlinuz-2.6.18-194.el5</li><li>接着GRUB会把内核的映像加载到内存中去，内核映像不是一个可以执行的内核，而是一个压缩的内核映像，GRUB会把这个内核的映像解压，加载到内存中并执行，至此GRUB的任务完成了</li><li><p><code>cat /boot/grub2/grub.cfg</code>(centos6使用grub，centos7使用grub2) 查看文件</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 此文件为自动生成的文件，如需修改配置，需要修改 /etc/default/grub</span></span><br><span class="line"><span class="comment"># DO NOT EDIT THIS FILE</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># It is automatically generated by grub2-mkconfig using templates</span></span><br><span class="line"><span class="comment"># from /etc/grub.d and settings from /etc/default/grub</span></span><br><span class="line">...</span><br><span class="line">terminal_output console</span><br><span class="line"><span class="keyword">if</span> [ x<span class="variable">$feature_timeout_style</span> = xy ] ; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">set</span> timeout_style=menu</span><br><span class="line">    <span class="built_in">set</span> timeout=5 <span class="comment"># timeout设置超时时间，超过5秒后自动启动default设置的系统</span></span><br><span class="line">    <span class="comment"># Fallback normal timeout code in case the timeout_style feature is</span></span><br><span class="line">    <span class="comment"># unavailable.</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">set</span> timeout=5</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="comment">### END /etc/grub.d/00_header ###</span></span><br><span class="line">...</span><br><span class="line"><span class="comment">### BEGIN /etc/grub.d/10_linux ###</span></span><br><span class="line"><span class="comment"># 第0个操作系统(默认启动系统)</span></span><br><span class="line">menuentry <span class="string">'CentOS Linux (3.10.0-957.el7.x86_64) 7 (Core)'</span> --class centos --class gnu-linux --class gnu --class os --unrestricted <span class="variable">$menuentry_id_option</span> <span class="string">'gnulinux-3.10.0-957.el7.x86_64-advanced-1c209100-7448-47e9-9c52-81100bf323e4'</span> &#123;</span><br><span class="line">        load_video</span><br><span class="line">        <span class="built_in">set</span> gfxpayload=keep</span><br><span class="line">        insmod gzio</span><br><span class="line">        insmod part_msdos</span><br><span class="line">        insmod xfs</span><br><span class="line">        <span class="comment"># (hd0,0) 或 hd0,msdos1 表示的就是第一块硬盘的第一个主分区</span></span><br><span class="line">        <span class="built_in">set</span> root=<span class="string">'hd0,msdos1'</span></span><br><span class="line">        <span class="keyword">if</span> [ x<span class="variable">$feature_platform_search_hint</span> = xy ]; <span class="keyword">then</span></span><br><span class="line">        search --no-floppy --fs-uuid --<span class="built_in">set</span>=root --hint-bios=hd0,msdos1 --hint-efi=hd0,msdos1 --hint-baremetal=ahci0,msdos1 --hint=<span class="string">'hd0,msdos1'</span>  921591b3-9fbe-4b53-915c-002f93be36c3</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        search --no-floppy --fs-uuid --<span class="built_in">set</span>=root 921591b3-9fbe-4b53-915c-002f93be36c3</span><br><span class="line">        <span class="keyword">fi</span></span><br><span class="line">        linux16 /vmlinuz-3.10.0-957.el7.x86_64 root=/dev/mapper/centos-root ro crashkernel=auto rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet LANG=en_US.UTF-8</span><br><span class="line">        initrd16 /initramfs-3.10.0-957.el7.x86_64.img</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment"># 第1个操作系统</span></span><br><span class="line">menuentry <span class="string">'CentOS Linux (0-rescue-9fb4cc8b7e504b66bf1e6d2117ade7be) 7 (Core)'</span> --class centos ...</span><br><span class="line">...</span><br></pre></td></tr></table></figure></li><li><p><code>/etc/default/grub</code> 配置说明</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 修改启动内核顺序 </span></span><br><span class="line"><span class="comment">## cat /etc/default/grub</span></span><br><span class="line"><span class="comment">#开机时 grub 默认5秒后启动内核</span></span><br><span class="line">GRUB_TIMEOUT=5</span><br><span class="line">GRUB_DISTRIBUTOR=<span class="string">"<span class="variable">$(sed 's, release .*$,,g' /etc/system-release)</span>"</span></span><br><span class="line"><span class="comment"># 可修改为0/1..., 这里0代表第一个内核，1代表第2个内核</span></span><br><span class="line">GRUB_DEFAULT=saved</span><br><span class="line">GRUB_DISABLE_SUBMENU=<span class="literal">true</span></span><br><span class="line">GRUB_TERMINAL_OUTPUT=<span class="string">"console"</span></span><br><span class="line">GRUB_CMDLINE_LINUX=<span class="string">"crashkernel=auto rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet"</span></span><br><span class="line">GRUB_DISABLE_RECOVERY=<span class="string">"true"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 修改完成后，并没有立即生效，使用此命令来生成grub.cfg文件，我们在下次启动的时候就会默认选择新的默认内核</span></span><br><span class="line">grub2-mkconfig -o /boot/grub2/grub.cfg</span><br><span class="line"></span><br><span class="line"><span class="comment">### 加密grub防止通过单用户系统破解root密码</span></span><br></pre></td></tr></table></figure></li></ul></li><li><p><strong>加载linux内核镜像</strong>：GRUB把内核映像加入到内存中后，解压Kernel，并把控制权交给linux内核后，尝试驱动硬件</p></li><li><strong>加载init进程</strong>：Kernel执行init程序，进程号永远是1，并获得run-level信息(如3或5)。<strong>centos7使用systemd代替init</strong>，相关命令参考<a href="/_posts/linux/linux.md#服务相关命令">linux.md#服务相关命令</a></li><li>常规后续启动流程<ul><li><em>execute /etc/rc.d/sysinit</em>：rc.d 为 runlevel control directory</li><li><em>start other modulers(/etc/modules.conf)</em>：启动内核外挂模块</li><li><em>execute the run level scripts</em><ul><li>执行某级别下的脚本如 <code>/etc/rc0.d</code>=&gt;<code>/etc/rc.d/rc0.d</code>、<code>/etc/rc1.d</code> (创建的chkconfig会生成文件到对应级别)</li><li>运行级别：启动只能配置成某一个级别，查看<code>systemctl get-default</code>，配置目录<code>cat /etc/inittab</code><ul><li>0 停机(千万不要把initdefault 设置为0)</li><li>1 单用户模式</li><li>2 多用户，但是没有 NFS</li><li><strong>3</strong> 完全多用户模式(服务器常用，一般centos7即默认此级别)</li><li>4 系统保留的</li><li><strong>5</strong> X11(x window 桌面版)</li><li>6 重新启动(千万不要把initdefault 设置为6)</li></ul></li><li>修改默认运行级别<ul><li><code>systemctl set-default graphical.target</code> 将默认模式修改为图形界面模式</li><li><code>systemctl set-default multi-user.target</code> 将默认模式修改为命令行模式</li></ul></li><li>对无图像界面的服务器安装图像界面相关软件 <code>yum -y groupinstall &quot;GNOME Desktop&quot; &quot;Graphical Administration Tools&quot;</code></li></ul></li><li><em>execute <code>/etc/rc.d/rc.local</code></em>：执行<code>rc.local</code>脚本。可基于此文件配置(或者<code>/etc/rc.local</code>)，直接在里面添加某些启动命令。centos7以不推荐使用</li><li><em>execute /bin/login</em></li><li><em>shell started…</em></li></ul></li><li><p>centos7后续启动流程</p><ul><li>执行initrd.target所有单元，包括挂载/etc/fstab</li><li>从initramfs根文件系统切换到磁盘根目录</li><li>systemd执行默认target配置，配置文件/etc/systemd/system/default.target</li><li>systemd执行sysinit.target初始化系统及basic.target准备操作系统</li><li>systemd启动multi-user.target下的本机与服务器服务</li><li><p>systemd执行multi-user.target下的<code>/etc/rc.d/rc.local</code>。<strong>centos7以不推荐使用，如需使用必须执行<code>chmod +x /etc/rc.d/rc.local</code></strong></p><ul><li><p>此时<code>$PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin</code>，profile中尚未生效，命令路径一般需绝对路径</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加此文件是为了兼容性</span></span><br><span class="line">THIS FILE IS ADDED FOR COMPATIBILITY PURPOSES</span><br><span class="line"><span class="comment">#创建自己的systemd服务或udev规则是非常明智的</span></span><br><span class="line">It is highly advisable to create own systemd services or udev rules</span><br><span class="line"><span class="comment">#在引导过程中运行脚本，而不是使用这个文件。</span></span><br><span class="line">to run scripts during boot instead of using this file.</span><br><span class="line"><span class="comment">#与以前的版本相比，由于在引导过程中并行执行</span></span><br><span class="line">In contrast to previous versions due to parallel execution during boot</span><br><span class="line"><span class="comment">#此脚本将不会在所有其他服务之后运行。</span></span><br><span class="line">this script will NOT be run after all other services.</span><br><span class="line"><span class="comment">#请注意，您必须运行'chmod +x /etc/rc.d/rc.local'</span></span><br><span class="line">Please note that you must run <span class="string">'chmod +x /etc/rc.d/rc.local'</span> to ensure</span><br><span class="line"><span class="comment">#该脚本将在引导期间执行。*</span></span><br><span class="line">that this script will be executed during boot.*</span><br></pre></td></tr></table></figure></li></ul></li><li><p>Systemd执行multi-user.target下的getty.target及登录服务</p></li><li>systemd执行graphical需要的服务</li></ul></li></ul><h3 id="启动设置"><a href="#启动设置" class="headerlink" title="启动设置"></a>启动设置</h3><ul><li>设置服务自启动，如 <code>systemctl enable nginx</code> 或 <code>chkconfig nginx on</code></li><li>操作 <code>/etc/rc.d/sysinit</code> 或 <code>/etc/rc.d/rc.local</code> 或 <code>~/.bashrc</code></li><li>设置加载模块。如设置 <code>br_netfilter</code> 模块开机自启动</li></ul><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建文件</span></span><br><span class="line">cat &gt; /etc/rc.d/sysinit &lt;&lt;EOF </span><br><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> /etc/sysconfig/modules/*.modules ; <span class="keyword">do</span></span><br><span class="line">[ -x <span class="variable">$file</span> ] &amp;&amp; <span class="variable">$file</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line">EOF</span><br><span class="line"><span class="comment"># 创建文件</span></span><br><span class="line">cat &gt; /etc/sysconfig/modules/br_netfilter.modules &lt;&lt;EOF</span><br><span class="line">modprobe br_netfilter</span><br><span class="line">EOF</span><br><span class="line"><span class="comment"># 增加权限</span></span><br><span class="line">chmod 755 /etc/sysconfig/modules/br_netfilter.modules</span><br><span class="line"><span class="comment"># 重启后查看模块是否启动</span></span><br><span class="line">lsmod |grep br_netfilter</span><br></pre></td></tr></table></figure><h2 id="系统启动故障排查"><a href="#系统启动故障排查" class="headerlink" title="系统启动故障排查"></a>系统启动故障排查</h2><ul><li><a href="https://blog.51cto.com/14228129/2382310" target="_blank" rel="noopener">Centos启动各种故障情况分析</a></li><li><strong>单用户模式和救援模式(系统启动失败时可使用此模式进入系统进行调试)</strong><ul><li><a href="https://www.xujun.org/note-8736.html" target="_blank" rel="noopener">https://www.xujun.org/note-8736.html</a></li><li>单用户模式<ul><li>进入内核选择列表，光标选择一个内核，按e编辑启动命令，把启动命令linuxefi行中的 “ro” 改成 “rw init=/sysroot/bin/sh”，完成之后按Ctrl+x继续启动</li><li>进入系统后，其实只是进入了一个安全模式下的内存系统，并不是原本的系统<ul><li>此时<code>/sysroot/</code>目录下才是原系统的文件(/home/目录可能没有数据，因为磁盘没有挂载等原因)。有时间配置错误了，可直接修改/sysroot/etc/目录下文件</li><li><code>chroot /sysroot/</code> 切换到正常系统中去</li></ul></li></ul></li><li>救援模式<ul><li>插入并启动U盘系统，安装系统界面会有一个<code>Troubleshooting</code>表示故障排查，然后选择<code>Rescue a CentOS Linux system</code>救援系统</li><li>同单用户模式，此系统不是原本系统。<code>/mnt/sysimage/</code>目录下才是原系统数据</li></ul></li></ul></li><li><p><code>/etc/fstab</code>磁盘挂载配置出错，重启后启动失败</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/fstab</span><br><span class="line"><span class="comment"># 历史挂载配置，其中/dev/vdb1后来被创建成了/dev/home/main的LVM卷（解决办法：进入安全模式修改此文件，删除历史配置即可）</span></span><br><span class="line">/dev/vdb1 /home xfs defaults 0 0</span><br><span class="line"><span class="comment"># 新挂载配置</span></span><br><span class="line">/dev/home/main /home xfs defaults 0 0</span><br><span class="line"></span><br><span class="line"><span class="comment">## 一般完整的fstab目录如下，丢失/etc/fstab时可安装以下初始化</span></span><br><span class="line"><span class="comment">#UUID=baaf0b5a-7e09-4a52-a409-56b1ddaaafa5 /boot xfs defaults 0 0 # UUID对应的即启动盘，如/dev/vda1的磁盘编号</span></span><br><span class="line">/dev/vda1               /boot   xfs     defaults 0 0</span><br><span class="line">/dev/mapper/centos-root /       xfs     defaults 0 0</span><br><span class="line">/dev/mapper/centos-swap swap    swap    defaults 0 0</span><br><span class="line">/dev/home/main          /home   xfs     defaults 0 0</span><br></pre></td></tr></table></figure><ul><li>如提示<code>A start job is running for dev-home-main.device</code>或者<code>Timed out waiting for device dev-home-main.device</code>。表示磁盘dev-home-main.device挂载失败，检查<code>/etc/fstab</code>是否书写正确</li></ul></li><li>centos7忘记root用户密码找回<ul><li>进入<code>sysroot</code>单用户模式，可在启动时设置进入<code>sysroot/bin/sh</code>进行修改，参考：<a href="https://blog.51cto.com/scorpions/2059912" target="_blank" rel="noopener">https://blog.51cto.com/scorpions/2059912</a></li></ul></li></ul><hr><p>参考文章</p></div><div></div><div></div><div><ul class="post-copyright"><li class="post-copyright-author"> <strong>本文作者：</strong> smalle</li><li class="post-copyright-link"> <strong>本文链接：</strong> <a href="http://blog.aezo.cn/2016/11/20/linux/centos/" title="CentOS">http://blog.aezo.cn/2016/11/20/linux/centos/</a></li><li class="post-copyright-license"> <strong>版权声明：</strong> 本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！</li></ul></div><footer class="post-footer"><div class="post-tags"> <a href="/tags/system/" rel="tag"># system</a></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/2016/11/20/linux/ubuntu/" rel="next" title="Ubuntu"><i class="fa fa-chevron-left"></i> Ubuntu</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"> <a href="/2016/12/11/db/derby/" rel="prev" title="derby">derby<i class="fa fa-chevron-right"></i></a></div></div></footer></article><div class="post-spread"></div></div></div><div class="comments" id="comments"></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span><span class="sidebar-toggle-line sidebar-toggle-line-middle"></span><span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap"> 文章目录</li><li class="sidebar-nav-overview" data-target="site-overview"> 站点概览</li></ul><section class="site-overview sidebar-panel"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"> <img class="site-author-image" itemprop="image" src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400" alt="smalle"><p class="site-author-name" itemprop="name">smalle</p><p class="site-description motion-element" itemprop="description"></p></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"> <a href="/archives/"><span class="site-state-item-count">155</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"> <a href="/categories/index.html"><span class="site-state-item-count">13</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"> <a href="/tags/index.html"><span class="site-state-item-count">140</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="feed-link motion-element"><a href="/atom.xml" rel="alternate"><i class="fa fa-rss"></i> RSS</a></div><div class="links-of-author motion-element"></div></section><section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Centos7安装"><span class="nav-number">1.</span> <span class="nav-text">Centos7安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Centos7安装-1"><span class="nav-number">1.1.</span> <span class="nav-text">Centos7安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Centos7使用"><span class="nav-number">1.2.</span> <span class="nav-text">Centos7使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动原理及设置"><span class="nav-number">2.</span> <span class="nav-text">启动原理及设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#系统启动顺序boot-sequence"><span class="nav-number">2.1.</span> <span class="nav-text">系统启动顺序boot sequence</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动设置"><span class="nav-number">2.2.</span> <span class="nav-text">启动设置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#系统启动故障排查"><span class="nav-number">3.</span> <span class="nav-text">系统启动故障排查</span></a></li></ol></div></div></section></div></aside></div></main><footer id="footer" class="footer"><div class="footer-inner"><div class="copyright"> &copy; 2016 - <span itemprop="copyrightYear">2021</span><span class="with-love"><i class="fa fa-heart"></i></span> <span class="author" itemprop="copyrightHolder">smalle</span>&nbsp;&nbsp;&nbsp;&nbsp;<div class="powered-by"> 由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div><div class="powered-by"> 主题 - <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div><div class="theme-info cnzz" style="margin:0 0 -5px 10px"><script type="text/javascript">var cnzz_protocol="https:"==document.location.protocol?"https://":"http://";document.write(unescape("%3Cspan id='cnzz_stat_icon_1276691827'%3E%3C/span%3E%3Cscript src='"+cnzz_protocol+"s23.cnzz.com/z_stat.php%3Fid%3D1276691827%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"))</script></div></div><div class="ad"> <span style="font-weight:700">AD&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="theme-info"> <a target="_blank" href="https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=oby5nolb">阿里云大礼包</a></div></div><div class="aezocn"> <span style="font-weight:700">@AEZO.CN&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="theme-info"> <a target="_blank" href="http://shop.aezo.cn/">杂货铺</a></div></div><script>"use strict";!function(){var n=window.driftt=window.drift=window.driftt||[];if(!n.init){if(n.invoked)return window.console&&console.error&&console.error("Drift snippet included twice.");n.invoked=!0,n.methods=["identify","config","track","reset","debug","show","ping","page","hide","off","on"],n.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);return t.unshift(e),n.push(t),n}},n.methods.forEach(function(t){n[t]=n.factory(t)}),n.load=function(t){var e=3e5*Math.ceil(new Date/3e5),n=document.createElement("script");n.type="text/javascript",n.async=!0,n.crossorigin="anonymous",n.src="https://js.driftt.com/include/"+e+"/"+t+".js";var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(n,r)}}}(),drift.SNIPPET_VERSION="0.3.1",drift.load("e4wbzuxev4zt")</script><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?d82223039d601f2f819f8fe140a63468";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i></div></div><script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script><script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script><script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script><script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script><script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script><script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script><script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.1"></script></body></html>
