@@ -59,7 +59,7 @@ tags: [H5, App, 小程序, mobile]
 - 小程序和web-view通信
     - 可通过小程序web-view标签的url将小程序参数传递给H5页面，从而进行用户验证等操作
     - H5传递消息给小程序需要使用 postMessage。不能直接调用windows.postMessage，而是需要使用微信JS-SDK提供的postMessage函数；如果是uni-app开发，可引入uni.webview库在中间做桥接，从而调用微信的postMessage函数
-    - 示例(小程序和H5都是基于uni-app开发). 参考：https://uniapp.dcloud.io/component/web-view?id=web-view
+    - 示例(小程序和H5都是基于uni-app开发). 参考：https://uniapp.dcloud.io/component/web-view
 
         ```html
         <!-- 小程序 -->
@@ -114,6 +114,11 @@ tags: [H5, App, 小程序, mobile]
             uniWebview.redirectTo(...)
         </script>
         ```
+
+#### web-view限制
+
+- 小程序下方导航可使用h5导航(相当于全部嵌入H5)
+- 小程序全部嵌入H5，首页不能直接跳转第三方小程序。如果首页是小程序写的，则可直接跳转到第三方
 
 ## 微信H5开发
 

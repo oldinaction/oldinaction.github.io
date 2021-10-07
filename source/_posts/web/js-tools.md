@@ -8,51 +8,6 @@ tags: [js, tools]
 
 ## 开发库
 
-### mockjs模拟数据
-
-- 语法`Mock.mock(rurl, rtype, function(options))`
-    - rurl：拦截的请求地址，支持正则。不使用正则是为完全不配，如`/user/getMenu`无法匹配`http://localhost/user/getMenu`，也无法匹配参数`/user/getMenu?type=0`
-    - rtype：请求类型，get/post等
-    - 回调函数，需要返回最终结果(相当于模拟后台请求返回)。options(url: 包括请求传参数、type: GET/POST等、body: body体参数)
-- 示例
-
-```js
-import Mock from 'mockjs'
-
-// 定义模拟数据
-const menu = [
-    [{
-        label: "首页",
-        path: "/index",
-        icon: 'el-icon-document',
-        meta: {
-            i18n: 'dashboard',
-        },
-        parentId: 0
-    }]
-]
-
-// 定义模拟拦截
-Mock.mock(RegExp(process.env.VUE_APP_BASE_URL + '/user/getMenu.*'), 'get', (options) => {
-    const type = getUrlParam('type', options.url)
-    return {
-        data: menu[type] || []
-    }
-})
-
-const getUrlParam = (paramName, params) => {
-  var reg = new RegExp('(^|&)' + paramName + '=([^&]*)(&|$)')
-  if(!params) {
-    params = window.location.search.substr(1)
-  } else if(params.indexOf('http://') === 0 || params.indexOf('https://') === 0) {
-    params = params.indexOf('?') < 0 ? '' : params.split('?')[1]
-  }
-  var r = params.match(reg)
-  if (r != null) return unescape(r[2])
-  return null
-}
-```
-
 ### babel
 
 - [babeljs中文网](https://www.babeljs.cn)
@@ -1565,6 +1520,51 @@ indent_style = tab
 ```
 
 ## 其他
+
+### mockjs模拟数据
+
+- 语法`Mock.mock(rurl, rtype, function(options))`
+    - rurl：拦截的请求地址，支持正则。不使用正则是为完全不配，如`/user/getMenu`无法匹配`http://localhost/user/getMenu`，也无法匹配参数`/user/getMenu?type=0`
+    - rtype：请求类型，get/post等
+    - 回调函数，需要返回最终结果(相当于模拟后台请求返回)。options(url: 包括请求传参数、type: GET/POST等、body: body体参数)
+- 示例
+
+```js
+import Mock from 'mockjs'
+
+// 定义模拟数据
+const menu = [
+    [{
+        label: "首页",
+        path: "/index",
+        icon: 'el-icon-document',
+        meta: {
+            i18n: 'dashboard',
+        },
+        parentId: 0
+    }]
+]
+
+// 定义模拟拦截
+Mock.mock(RegExp(process.env.VUE_APP_BASE_URL + '/user/getMenu.*'), 'get', (options) => {
+    const type = getUrlParam('type', options.url)
+    return {
+        data: menu[type] || []
+    }
+})
+
+const getUrlParam = (paramName, params) => {
+  var reg = new RegExp('(^|&)' + paramName + '=([^&]*)(&|$)')
+  if(!params) {
+    params = window.location.search.substr(1)
+  } else if(params.indexOf('http://') === 0 || params.indexOf('https://') === 0) {
+    params = params.indexOf('?') < 0 ? '' : params.split('?')[1]
+  }
+  var r = params.match(reg)
+  if (r != null) return unescape(r[2])
+  return null
+}
+```
 
 ### docz项目文档生成
 

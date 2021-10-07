@@ -11,6 +11,8 @@ tags: [doc, api, springboot]
 - `Swagger` 是一个前后端api统一文档和测试框架。不仅是一个api文档，还可以测试API(可直接访问UI界面)
 - `YApi` YApi 是一个可本地部署的、打通前后端及 QA 的、可视化的接口管理平台。提供 Swagger 接口导入功能，输入 Swagger api地址，即可将所有接口导入，达到美化Swagger UI的目的
 - `Knife4j` Swagger 生成 Api 文档的增强解决方案，前身是 `swagger-bootstrap-ui`. [官方文档](https://xiaoym.gitee.io/knife4j/documentation/)
+- **TODO**: Swagger2Markup它主要是用来将Swagger自动生成的文档转换成几种流行的格式以便离线使用，格式：AsciiDoc、HTML、Markdown、Confluence。参考：https://blog.csdn.net/zhangpan1244/article/details/102968113
+- Swagger文档转Word 文档，参考：https://www.cnblogs.com/jmcui/p/8298823.html
 
 ## springboot中使用
 

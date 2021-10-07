@@ -166,11 +166,15 @@ unset name # 删除整个数组
 # 如果起始下标是负数，则会输出错误的字符串
 ${name:0:3}
 
-# 使用 * 和 @， 只有二者被双引号包围起来的时候才会有区别
+# 使用 * 和 @，只有二者被双引号包围起来的时候才会有区别
 # 可以使用 * 的时候，解释出的东西会被当成一个字符串，可以看到遍历的时候数组中所有的键被IFS的第一个字符（空格）隔开，并当成一个字符串输了出来
 # 但是使用@，每个键则会被单独解释。这个规则对于数组的值来说也是一样的
-for var in "${name[*]}" # 将所有的值用空格分开显示成一行(一个字符串)
-for var in "${name[@]}" # 将所有的值换行显示
+# **将所有的值换行显示**
+for item in "${name[@]}" ; do
+  echo $item
+done
+# 将所有的值用空格分开显示成一行(一个字符串)
+for item in "${name[*]}"
 
 # declare 命令对变量设置属性
 # 也可以和数组配合起来使用，declare设置的变量属性会作用于数组的每一个值上
@@ -847,9 +851,10 @@ EOF
 
 ## 示例
 
-### jar包运行/停止示例 [^1]
+### jar包运行/停止示例
 
-- 自启动脚本可参考`/etc/init.d`目录下的文件如`network`，加下下列脚本文件名为`my_script`
+- OFBiz自动启动脚本参考[ofbiz进阶.md#自定义启动脚本](/_posts/java/ofbiz/ofbiz进阶.md#自定义启动脚本)
+- 自启动脚本可参考`/etc/init.d`目录下的文件如`network`，假设下列脚本文件名为`my_script` [^1]
 - 将脚本加入到开机启动`chkconfig --add my_script`
 
 ```shell
@@ -1011,6 +1016,59 @@ case "$1" in
 		exit 1
 esac
 exit $?
+```
+
+### 备份Mysql
+
+脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份(mysqldump))
+
+### 备份Oracle
+
+- 配置定时任务参考[linux.md#corn定时任务](/_posts/linux/linux.md#corn定时任务)
+- /home/oracle/script/backup-oracle.sh
+
+```bash
+#!/bin/bash
+
+# export ORACLE_BASE=/u01/app/oracle
+# export ORACLE_HOME=$ORACLE_BASE/product/11.2.0/orcl
+# export ORACLE_SID=orcl
+# export TNS_ADMIN=$ORACLE_HOME/network/admin
+# export PATH=$PATH:/usr/local/bin:/usr/bin:$ORACLE_HOME/bin
+
+# Oracle数据库服务器IP、端口、SID
+db_sid=`192.168.1.100:1521/orcl`
+# 执行备份的账号、密码，必须要有备份操作的权限
+db_user=scott
+db_pass=111111
+# 备份下列用户下面的数据
+db_bak_users=(scott test)
+# 备份文件路径，需要提前创建好
+bakdir=/home/oracle/backup
+# 设置删除3天之前的备份文件
+days=3
+
+date=`date +%Y_%m_%d`
+echo "Starting bakup..."
+for user in "${db_bak_users[@]}"; do
+  bakdata=$user"_"$date.dmp
+  baklog=$user"_"$date.log
+  bakfile=$user"_"$date.tar.gz
+  mkdir -p $bakdir/$user
+  echo "Bakup file path $bakdir/$user/$bakdata"
+  # 执行备份命令
+  exp $db_user/$db_pass@$db_sid grants=y owner=$user file=$bakdir/$user/$bakdata log=$bakdir/$user/$baklog
+  echo "Bakup completed, file: $bakdir/$user/$bakdata"
+  tar -zcvf $bakdir/$user/$bakfile $bakdir/$user/$bakdata $bakdir/$user/$baklog
+  # 删除备份文件和日志文件
+  find $bakdir/$user -type f -name "*.log" -exec rm {} \;
+  find $bakdir/$user -type f -name "*.dmp" -exec rm {} \;
+  # 删除n天前的备份
+  echo "Delete $bakdir/$user bakup before $days days..."
+  find $bakdir/$user -type f -name "*.tar.gz" -mtime +$days -exec rm -rf {} \;
+  echo "Backup completed $user"
+done
+echo "Bakup completed all !!!"
 ```
 
 ### 实现交互
@@ -1308,6 +1366,27 @@ date_echo "Starting ..." # 输出：2019-12-05 11:46:43 Starting ...
 ## 创建日期目录
 mkdir "$(date +"%Y-%m-%d")" # 目录为 2000-01-01
 mkdir -p "$(date +"%Y/%m/%d")" # 为2020/01/01的多级目录，可多次执行
+```
+
+### 执行telnet命令
+
+```bash
+#!/bin/sh
+
+addr="localhost 1234"
+biz_a="biz -a"
+
+biz_i_magic_api="biz -i file:///home/sq/project/sqbiz-api/plugins/sqbiz-plugin-demo-0.0.1-ark-biz.jar"
+
+(sleep 3;
+  echo $biz_a;
+  sleep 1;
+  echo $biz_i_magic_api;
+  sleep 10;
+  echo $biz_a;
+  sleep 1;
+  echo "quit"
+)|telnet $addr
 ```
 
 ## C 源码脚本

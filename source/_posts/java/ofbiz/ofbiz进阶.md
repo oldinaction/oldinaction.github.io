@@ -170,3 +170,131 @@ public void exec() throws InvalidJobException {
 ### tomcat 压缩大致 jvm 异常退出
 
 - 具体参考[Java 应用 CPU 和内存异常分析.md#JVM 致命错误日志(hs_err_xxx-pid.log)](</_posts/java/Java应用CPU和内存异常分析.md#JVM致命错误日志(hs_err_xxx-pid.log)>)
+
+### 自定义启动脚本
+
+```bash
+###################################
+# description: Java程序启动脚本
+# processname: my_script_name
+# config: 如果需要的话，可以配置
+###################################
+
+export JAVA_HOME=/opt/jdk1.7.0_80
+GIT_HOME="$( cd -P "$( dirname "$0" )" && pwd )/demo"
+APP_HOME="$GIT_HOME/api"
+APP_GREP_STR="ofbiz.jar"
+RUNNING_USER=root
+
+psid=0
+
+checkpid() {
+    ps_pid=`ps -ef | grep $APP_GREP_STR | grep -v grep`
+
+    if [ -n "$ps_pid" ]; then
+        psid=`echo $ps_pid | awk '{print $2}'`
+    else
+        psid=0
+    fi
+}
+
+start() {
+    checkpid
+
+    if [ $psid -ne 0 ]; then
+        echo "[warn] App already started! (pid=$psid)"
+    else
+        echo -n "[info] Starting ..."
+        # 不能通过 `su -root -c "$(...)"` 执行, 会丢失环境变量：https://www.jb51.net/article/159101.htm
+        # 不能使用source执行, 否则复杂目录时, startofbiz.sh中拿到的目录时错的
+        cd $APP_HOME && nohup sh tools/startofbiz.sh > /dev/null 2>&1 &
+        sleep 5
+        checkpid
+        if [ $psid -ne 0 ]; then
+            echo "[info] OK (pid=$psid)"
+        else
+            echo "[warn] Failed"
+        fi
+    fi
+}
+
+stop() {
+    checkpid
+
+    if [ $psid -ne 0 ]; then
+        echo -n "[info] Stopping ...(pid=$psid) "
+        su - $RUNNING_USER -c "kill -s 9 $psid"
+        if [ $? -eq 0 ]; then
+            echo "[info] OK"
+        else
+            echo "[warn] Failed"
+        fi
+
+        checkpid
+        if [ $psid -ne 0 ]; then
+            stop
+        fi
+    else
+        echo "[warn] App is not running"
+    fi
+}
+
+status() {
+    checkpid
+
+    if [ $psid -ne 0 ];  then
+        echo "[info] App is running! (pid=$psid)"
+    else
+        echo "[warn] App is not running"
+    fi
+}
+
+info() {
+    echo "System Information:"
+    echo "****************************"
+    echo `head -n 1 /etc/issue`
+    echo `uname -a`
+    echo
+    echo "JAVA_HOME=$JAVA_HOME"
+    echo `$JAVA -version`
+    echo
+    echo "APP_HOME=$APP_HOME"
+    echo "****************************"
+}
+
+
+case "$1" in
+    'pull')
+                cd $GIT_HOME && git pull
+                ;;
+    'ant') 
+                cd $APP_HOME && sh ant
+                ;;
+    'ant-restart')
+                stop
+                cd $APP_HOME
+                sh ant
+                start
+                ;;
+    'start')
+                start
+                ;;
+    'stop')
+                stop
+                ;;
+    'restart')
+                stop
+                start
+                ;;
+    'status')
+                status
+                ;;
+    'info')
+                info
+                ;;
+        *)
+                echo "[info] Usage: $0 {pull|ant|ant-restart|start|stop|restart|status|info}"
+                exit 1
+esac
+exit $?
+```

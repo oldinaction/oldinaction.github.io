@@ -178,6 +178,29 @@ while (matcher.find()) { // 可能会匹配到多次
 }
 ```
 
+### 正反前瞻后瞻
+
+- https://blog.csdn.net/xys_777/article/details/8642566
+    https://www.iteye.com/blog/xixian-1323630
+    https://www.iteye.com/blog/xixian-721147
+    https://blog.csdn.net/iterzebra/article/details/6795857
+
+- 正向前瞻 `string(?=pattern)`
+    - 在任何匹配 pattern 的字符串开始处匹配查找字符串。这是一个非获取匹配，也就是说，该匹配不需要获取供以后使用
+    - 例如 'Windows (?=95|98|NT|2000)' 能匹配 "Windows 2000" 中的 "Windows" ，但不能匹配 "Windows 3.1" 中的 "Windows"
+- 反向前瞻 `string(?!pattern)`
+    - 例如 'Windows (?!95|98|NT|2000)' 能匹配 "Windows 3.1" 中的 "Windows"，但不能匹配 "Windows 2000" 中的 "Windows"
+- 正向后瞻 `(?<=pattern)string`
+- 反向后瞻 `(?<!pattern)string`
+- 案例
+
+```java
+// 匹配非某字符开头的，匹配非CN开头的字符串
+^(?!CN).*
+// 匹配CN开头的字符串，且不以CNSHA和CNKUS开头的字符串
+^CN(?!SHA|KUS).* // pass=["CN", "CNABC"] nopass=["CNSHA", "CNKUS", "ABC"]
+```
+
 ### Matcher
 
 - matches() 是全部匹配

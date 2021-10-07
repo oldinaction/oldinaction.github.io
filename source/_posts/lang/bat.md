@@ -243,7 +243,8 @@ for i=0 to WSH.Arguments.Count-1
 Next
 WSH.Echo s
 ```
-- 执行telnet命令案例
+
+## 执行telnet命令案例
 
 ```bat
 title=install-plugins

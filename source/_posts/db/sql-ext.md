@@ -703,8 +703,11 @@ select regexp_instr('17,20,23', ',', 1, 3) from dual; -- 返回0
 select substr('17,20,23', 1, regexp_instr('17,20,23', ',') - 1) from dual;
 select substr('17,20,23', regexp_instr('17,20,23', ',') + 1, regexp_instr('17,20,23', ',', 1, 2) - regexp_instr('17,20,23', ',') - 1) from dual;
 select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20,23') - regexp_instr('17,20,23', ',')) from dual;
+
+-- 正则替换中文、\、`为空格，并取256位长度
+SELECT SUBSTR(REGEXP_REPLACE('中文A\B`C', '[' || unistr('\4e00') || '-' || unistr('\9fa5') || '\\`]', ' '), 0, 256)
+AS RX_REPLACE FROM dual
 ```
-- 
 
 #### 案例
 

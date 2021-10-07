@@ -82,8 +82,10 @@ bash <(curl -L https://sourcegraph.com/github.com/oldinaction/scripts@master/-/r
 
 ## 常用软件安装
 
+- 软件镜像
+    - 清华：https://mirrors.tuna.tsinghua.edu.cn/
 - 自定义服务参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)
-- 常用表安装
+- 常用安装
 
 ```bash
 yum -y install net-tools # netstat、ifconfig命令
@@ -248,13 +250,14 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
 
 > 默认登录时候在 root 目录，直接下载和解压，软件包和解压目录都默认在 root 目录，可以切换到 hoom 目录进行下载
 
-- 通过ftp上传jdk对应tar压缩包到对应目录并进行解压
+- 通过ftp上传jdk对应tar压缩包到对应目录并进行解压. **JDK镜像地址**：https://repo.huaweicloud.com/java/jdk/
 - 下载tar格式（推荐）
-    - 下载tar文件并上传到服务器
-    - 解压tar **`tar -zxvf jdk-8u161-linux-x64.tar.gz -C /opt/soft`** （需要先创建好/opt/soft目录）
+    - 下载tar文件并上传到服务器，`wget https://repo.huaweicloud.com/java/jdk/8u202-b08/jdk-8u202-linux-x64.tar.gz`
+        - JDK1.7 `https://repo.huaweicloud.com/java/jdk/7u80-b15/jdk-7u80-linux-x64.tar.gz`
+    - 解压tar **`tar -zxvf jdk-8u202-linux-x64.tar.gz -C /opt`** （需要先创建好/opt目录）
 - 下载rpm格式
-    - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 8 -> Java SE Development Kit 8u161 -> Accept License Agreement -> jdk-8u161-linux-x64.rpm
-    - `rmp -ivh jdk-8u161-linux-x64.rpm` 安装rpm文件，可执行文件保存在`/usr/java/jdk1.8.0_161-amd64/jre/bin/java`
+    - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 8 -> Java SE Development Kit 8u202 -> Accept License Agreement -> jdk-8u202-linux-x64.rpm
+    - `rmp -ivh jdk-8u202-linux-x64.rpm` 安装rpm文件，可执行文件保存在`/usr/java/jdk1.8.0_202-amd64/jre/bin/java`
     - 设置环境变量。可设置`JAVA_HOME=/usr/java/default`
 
 #### 配置环境变量
@@ -263,7 +266,7 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
 - 在末尾输入并保存（注意JAVA_HOME需要按照实际路径）
 
 ```bash
-export JAVA_HOME=/opt/soft/jdk1.8.0_161
+export JAVA_HOME=/opt/jdk1.8.0_202
 export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ```
@@ -278,69 +281,85 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 
 - tar安装(推荐) [^5]
 
-    ```bash
-    ## **使用root用户安装即可**
-    # 安装mysql之前需要确保系统中有libaio依赖
-    yum search libaio
-    # yum install libaio
+```bash
+## 5.7、8.0均可正常安装
 
-    # 下载tar并上传到服务器：http://ftp.ntu.edu.tw/MySQL/Downloads/MySQL-5.7/mysql-5.7.25-el7-x86_64.tar.gz
-    tar -zxvf mysql-5.7.25-el7-x86_64.tar.gz -C /opt/soft
-    mv mysql-5.7.25-el7-x86_64 mysql57
-    
-    # 添加用户组
-    groupadd mysql
-    # 添加用户mysql，并加入到mysql用户组(使用-r参数表示mysql用户是一个系统用户，不能登录)
-    useradd -r -g mysql mysql
-    id mysql # 查看mysql用户信息
+## **使用root用户安装即可**
+# 安装mysql之前需要确保系统中有libaio依赖
+yum search libaio
+# yum install libaio
 
-    # 创建数据文件存储目录(一般放在数据盘，此时为root用户创建)
-    mkdir -p /home/data/mysql
-    # 修改mysql安装根目录权限
-    chown -R mysql:mysql /opt/soft/mysql57
+# 下载tar并上传到服务器(镜像中可能老版本已经被移除了，需要换成最新版本链接)
+# http://ftp.ntu.edu.tw/MySQL/Downloads/MySQL-8.0/mysql-8.0.25-el7-x86_64.tar.gz
+wget http://ftp.ntu.edu.tw/MySQL/Downloads/MySQL-5.7/mysql-5.7.35-el7-x86_64.tar.gz
+tar -zxvf mysql-5.7.35-el7-x86_64.tar.gz -C /opt
+mv /opt/mysql-5.7.35-el7-x86_64 /opt/mysql57
 
-    # 修改配置文件。可安装下文修改(设置basedir和datadir等)
-    vi /etc/my.cnf
+# 添加用户组
+groupadd mysql
+# 添加用户mysql，并加入到mysql用户组(使用-r参数表示mysql用户是一个系统用户，不能登录)
+useradd -r -g mysql mysql
+id mysql # 查看mysql用户信息
 
-    # 初始化mysql. mysqld --initialize-insecure初始化后的mysql是没有密码的
-    /opt/soft/mysql57/bin/mysqld --initialize-insecure --user=mysql --basedir=/opt/soft/mysql57 --datadir=/home/data/mysql
+# 创建数据文件存储目录(一般放在数据盘，此时为root用户创建)
+mkdir -p /home/data/mysql
+# 修改mysql安装根目录权限
+chown -R mysql:mysql /opt/mysql57
 
-    # 重新修改下各个目录的权限
-    chown -R root:root /opt/soft/mysql57 # 把安装目录的目录的权限所有者改为root
-    chown -R mysql:mysql /home/data/mysql # 把data目录的权限所有者改为mysql(/home/data权限可以不是mysql)
-    
-    # 启动mysql(此时可能会卡在启动命令行。可以再起一个命令行进行密码修改，注册成服务后可以关闭)
-    /opt/soft/mysql57/bin/mysqld_safe --user=mysql &
+# 修改配置文件。可按照下文修改(设置basedir和datadir等)
+vi /etc/my.cnf
 
-    ## 修改root密码（第一次无需输入密码，直接回车即可进入进行root密码修改）
-    /opt/soft/mysql57/bin/mysql -u root -p
-    # mysql命令
-    use mysql;
-    update user set authentication_string=password('Hello1234!') where user='root'; # mysql5.7及以后密码必须包含字母、数字、特殊字符
-    grant all privileges on *.* to 'smalle'@'localhost' identified by 'Hello1234!' with grant option; # 创建用户
-    flush privileges;
-    exit;
-    # 测试登录略
+# 初始化mysql. mysqld --initialize-insecure初始化后的mysql是没有密码的
+/opt/mysql57/bin/mysqld --initialize-insecure --user=mysql --basedir=/opt/mysql57 --datadir=/home/data/mysql
 
-    ## copy启动脚本并将其添加到服务且设置为开机启动
-    cp /opt/soft/mysql57/support-files/mysql.server /etc/init.d/mysqld # **此脚本中定义的是基于mysql用户启动，且会通过mysqld_safe启动mysqld**
-    vi /etc/init.d/mysqld # 修改其中的`/usr/local/mysql`和`/usr/local/mysql/data`为对应的basedir和datadir。具体如下文
-    chkconfig --add mysqld # 加入服务(之后systemctl可操作的服务名)
-    chkconfig --level 345 mysqld on # 设置开机启动
-    systemctl status mysqld # 查看状态(root用户只需服务启动，最终还是通过mysql用户启动的)。`active (running)`表示启动正常。也可查看`ps -ef | grep mysqld`，会出现`mysqld_safe`(守护进程)和`mysqld`(服务进程)两个进程
-    # 此时如果需要重新启动需要Ctrl+c关掉上面开启的mysqld_safe程序
-    systemctl restart mysqld # 安装成功检查重启程序是否正常（或者 /etc/init.d/mysqld restart）
+# 重新修改下各个目录的权限
+chown -R root:root /opt/mysql57 # 把安装目录的目录的权限所有者改为root
+chown -R mysql:mysql /home/data/mysql # 把data目录的权限所有者改为mysql(/home/data权限可以不是mysql)
 
-    # 创建mysql软链接到bin目录
-    ln -s /opt/soft/mysql57/bin/mysql /usr/bin
-    ln -s /opt/soft/mysql57/bin/mysqldump /usr/bin
-    ```
-    - **修改`/etc/init.d/mysqld`文件**
-    
-    ```bash
-    # 修改
-    if test -z "$basedir"
-    then
+# 启动mysql(此时可能会卡在启动命令行。可以再起一个命令行进行密码修改，注册成服务后可以关闭)
+/opt/mysql57/bin/mysqld_safe --user=mysql &
+
+## 修改root密码（第一次无需输入密码，直接回车即可进入进行root密码修改）
+/opt/mysql57/bin/mysql -u root -p
+# mysql命令
+use mysql;
+# mysql5.7及以后密码必须包含字母、数字、特殊字符
+update user set authentication_string=password('Hello1234!') where user='root';
+# 设置其他外部网络机器可连接
+update user set host='%' where user='root';
+# mysql8.0
+# alter user 'root'@'localhost' identified with mysql_native_password by 'Hello1234!';
+# 可选，创建用户
+grant all privileges on *.* to 'smalle'@'localhost' identified by 'Hello1234!' with grant option;
+# 刷新缓存
+flush privileges;
+exit;
+# 测试登录略
+
+## copy启动脚本并将其添加到服务且设置为开机启动
+# **此脚本中定义的是基于mysql用户启动，且会通过mysqld_safe启动mysqld**
+cp /opt/mysql57/support-files/mysql.server /etc/init.d/mysqld
+# **具体如下文**，修改其中的`/usr/local/mysql`和`/usr/local/mysql/data`为对应的basedir和datadir
+vi /etc/init.d/mysqld
+# 加入服务(之后systemctl可操作的服务名)
+chkconfig --add mysqld
+# 设置开机启动
+chkconfig --level 345 mysqld on
+# 查看状态(root用户只需服务启动，最终还是通过mysql用户启动的)。`active (running)`表示启动正常。也可查看`ps -ef | grep mysqld`，会出现`mysqld_safe`(守护进程)和`mysqld`(服务进程)两个进程
+systemctl status mysqld
+# 此时如果需要重新启动需要Ctrl+c关掉上面开启的mysqld_safe程序。重启后mysqld状态为`active (running)`
+systemctl restart mysqld # 安装成功检查重启程序是否正常（或者 /etc/init.d/mysqld restart）
+
+# 创建mysql软链接到bin目录
+ln -s /opt/mysql57/bin/mysql /usr/bin
+ln -s /opt/mysql57/bin/mysqldump /usr/bin
+```
+- **修改`/etc/init.d/mysqld`文件**
+
+```bash
+# 修改
+if test -z "$basedir"
+then
     basedir=/usr/local/mysql
     bindir=/usr/local/mysql/bin
     if test -z "$datadir"
@@ -349,101 +368,101 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
     fi
     sbindir=/usr/local/mysql/bin
     libexecdir=/usr/local/mysql/bin
-    else
+else
 
-    # 为
-    if test -z "$basedir"
-    then
-    basedir=/opt/soft/mysql57
-    bindir=/opt/soft/mysql57/bin
+# 为
+if test -z "$basedir"
+then
+    basedir=/opt/mysql57
+    bindir=/opt/mysql57/bin
     if test -z "$datadir"
     then
         datadir=/home/data/mysql
     fi
-    sbindir=/opt/soft/mysql57/bin
-    libexecdir=/opt/soft/mysql57/bin
-    else
-    ```
+    sbindir=/opt/mysql57/bin
+    libexecdir=/opt/mysql57/bin
+else
+```
 
 - yum安装(安装时无法自定义文件存储路径，但是安装完成后可手动移动数据文件到新目录)
 
-    ```bash
-    # 下载mysql源安装包
-    wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
-    # 安装mysql源
-    rpm -ivh mysql57-community-release-el7-8.noarch.rpm
-    # 检查mysql源是否安装成功
-    yum repolist enabled | grep "mysql.*-community.*"
-    # 安装mysql服务端和客户端(速度较慢)。`yum install mysql`仅仅安装了客户端
-    yum -y install mysql-server
-    # 设置开机启动，并启动
-    systemctl enable mysqld && systemctl start mysqld
-    # 查看临时密码
-    grep 'temporary password' /var/log/mysqld.log
-    # 登录
-    mysql -uroot -p
-    # 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)。必须修改密码才能执行sql语句
-    alter user 'root'@'localhost' identified by 'Hello1234!';
-    # 添加 'root'@'%' 用户，并赋权，且允许远程登录
-    grant all privileges on *.* to 'root'@'%' identified by 'Hello1234!' with grant option;
-    flush privileges;
-    quit # 退出使用新密码重新登录
-    ```
+```bash
+# 下载mysql源安装包
+wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
+# 安装mysql源
+rpm -ivh mysql57-community-release-el7-8.noarch.rpm
+# 检查mysql源是否安装成功
+yum repolist enabled | grep "mysql.*-community.*"
+# 安装mysql服务端和客户端(速度较慢)。`yum install mysql`仅仅安装了客户端
+yum -y install mysql-server
+# 设置开机启动，并启动
+systemctl enable mysqld && systemctl start mysqld
+# 查看临时密码
+grep 'temporary password' /var/log/mysqld.log
+# 登录
+mysql -uroot -p
+# 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)。必须修改密码才能执行sql语句
+alter user 'root'@'localhost' identified by 'Hello1234!';
+# 添加 'root'@'%' 用户，并赋权，且允许远程登录
+grant all privileges on *.* to 'root'@'%' identified by 'Hello1234!' with grant option;
+flush privileges;
+quit # 退出使用新密码重新登录
+```
 - 配置文件默认路径 `/etc/my.cnf`(修改配置后需要重启服务)
 
-    ```ini
-    [client] # 客户端连接时的默认配置(可省略)
-    port=13306
-    socket=/home/data/mysql/mysql.sock
-    default-character-set=utf8mb4
+```ini
+[client] # 客户端连接时的默认配置(可省略)
+port=13306
+socket=/home/data/mysql/mysql.sock
+default-character-set=utf8mb4
 
-    [mysqld] # 服务端配置
-    # skip-grant-tables # skip-grant-tables作为启动参数的作用，MYSQL服务器不加载权限判断，任何用户都能访问数据库，忘记密码时可使用
-    port=13306
-    # 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)
-    lower_case_table_names=1
-    character-set-server=utf8mb4
-    collation-server=utf8mb4_bin
-    init-connect='SET NAMES utf8mb4'
-    # 防止导入数据时数据太大报错
-    max_allowed_packet=512M
+[mysqld] # 服务端配置
+# skip-grant-tables # skip-grant-tables作为启动参数的作用，MYSQL服务器不加载权限判断，任何用户都能访问数据库，忘记密码时可使用
+port=13306
+# 表名大小写：0是大小写敏感，1是大小写不敏感. linux默认是0，windows默认是1(建议设置成1)
+lower_case_table_names=1
+character-set-server=utf8mb4
+collation-server=utf8mb4_bin
+init-connect='SET NAMES utf8mb4'
+# 防止导入数据时数据太大报错
+max_allowed_packet=512M
 
-    ## 手动安装时设置
-    # 手动安装时填写mysql根目录
-    basedir=/opt/soft/mysql57
-    # 手动安装时填写mysql数据目录。默认目录为/var/lib/mysql
-    datadir=/home/data/mysql
-    socket=/home/data/mysql/mysql.sock
-    #pid-file = /home/data/mysql/mysql.pid # pid文件，默认为 %datadir%/aezocn-1.pid
-    #log_error=/home/data/mysql/mysqld_error.log # 服务错误日志文件，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
-    slow_query_log_file=/home/data/mysql/slow.log
+## 手动安装时设置
+# 手动安装时填写mysql根目录
+basedir=/opt/mysql57
+# 手动安装时填写mysql数据目录。默认目录为/var/lib/mysql
+datadir=/home/data/mysql
+socket=/home/data/mysql/mysql.sock
+#pid-file = /home/data/mysql/mysql.pid # pid文件，默认为 %datadir%/aezocn-1.pid
+#log_error=/home/data/mysql/mysqld_error.log # 服务错误日志文件，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
+slow_query_log_file=/home/data/mysql/slow.log
 
-    # Disabling symbolic-links is recommended to prevent assorted security risks
-    symbolic-links=0
-    ```
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+```
 - 卸载
 
-    ```bash
-    yum remove mysql # 卸载
+```bash
+yum remove mysql # 卸载
 
-    rpm -qa | grep -i mysql # 查看mysql的依赖
-    yum remove mysql-xxx # 依次卸载
+rpm -qa | grep -i mysql # 查看mysql的依赖
+yum remove mysql-xxx # 依次卸载
 
-    find / -name mysql # 查看和mysql相关文件/文件夹
-    # 删除
-    rm -rf /var/lib/mysql
-    rm -rf /var/lib/mysql/mysql
-    rm -rf /etc/logrotate.d/mysql
-    rm -rf /usr/share/mysql
-    rm -rf /usr/bin/mysql
-    rm -rf /usr/lib64/mysql
+find / -name mysql # 查看和mysql相关文件/文件夹
+# 删除
+rm -rf /var/lib/mysql
+rm -rf /var/lib/mysql/mysql
+rm -rf /etc/logrotate.d/mysql
+rm -rf /usr/share/mysql
+rm -rf /usr/bin/mysql
+rm -rf /usr/lib64/mysql
 
-    rpm -qa | grep -i mysql # 如果没有显式则表示卸载完成
+rpm -qa | grep -i mysql # 如果没有显式则表示卸载完成
 
-    # 删除mysql相关用户和组
-    userdel -rf mysql # 包括删除家目录
-    groupdel mysql
-    ```
+# 删除mysql相关用户和组
+userdel -rf mysql # 包括删除家目录
+groupdel mysql
+```
 - 其他
     - `show variables like '%dir%';` sql命令查看mysql相关文件(数据/日志)存放位置
         - 数据文件默认位置：`/var/lib/mysql`
@@ -475,7 +494,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ### tomcat安装
 
 - `tar -zxvf apache-tomcat-7.0.61.tar.gz` 解压
-- `./opt/soft/apache-tomcat-7.0.61/bin/startup.sh` 运行(需要先安装好JDK)
+- `./opt/apache-tomcat-7.0.61/bin/startup.sh` 运行(需要先安装好JDK)
 - 访问http://192.168.6.133:8080/
 
 ### nginx安装
@@ -698,7 +717,7 @@ systemctl enable nfs --now && systemctl status nfs
 
 # 创建两个目录(v1,v2)并设置为任何人可读写
 mkdir /data/volumes/v{1,2} -pv && chmod 777 /data/volumes/v{1,2}
-# 编辑暴露配置
+# 编辑暴露配置. 如仅仅用来存放文件，可使用rw,all_squash
 cat >> /etc/exports << EOF
 /data/volumes/v1 192.168.6.0/24(rw,sync,no_subtree_check,no_root_squash)
 /data/volumes/v2 192.168.6.0/24(rw,all_squash)
@@ -711,6 +730,11 @@ showmount -e
 ## 在其他机器测试挂载nfs存储卷
 # mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
 # mount -t nfs 192.168.6.10:/data/volumes/v1/subpath /mnt # 挂载子路径，需要提前创建好子路径
+
+## 使客户端永久生效
+# 法一：加入到/etc/fstab
+# 法二：在 /etc/rc.local 最后加入
+/bin/mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
 ```
 - 配置说明
     - `ro`：只读权限

@@ -178,7 +178,7 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 
 - apt-cyg是Cygwin环境下的软件安装工具，相当于Ubuntu下的apt-get命令 [^2]
 - [github主页](https://github.com/transcode-open/apt-cyg)
-- 安装：从github上下载`apt-cyg`脚本文件，并将其放到`%CYGWIN_HOME%/bin`目录下
+- 安装：从github上下载`apt-cyg`脚本文件，并将其放到`%CYGWIN_HOME%/bin`目录下，注意文件的换行符为Linux格式
 - 启动Cygwin，运行`apt-cyg`检查是否安装成功
 - `apt-cyg install openssh` 安装sshd服务
 

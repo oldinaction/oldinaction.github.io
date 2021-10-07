@@ -255,8 +255,8 @@ export default {
 
 ### 环境问题
 
-- 可使用HBuilder创建项目或vue-cli创建项目，[参考文档](https://uniapp.dcloud.net.cn/quickstart)
-    - 发布app必须通过HBuilder，vue-cli可以发布h5/小程序。基于vue-cli创建项目时默认安装了cross-env插件，基于此插件在启动命令前增加了NODE_ENV等参数的配置
+- 可使用HBuilder创建项目或[vue-cli](https://uniapp.dcloud.net.cn/quickstart-cli)创建项目
+    - **发布app必须通过HBuilder，vue-cli可以发布h5/小程序。**基于vue-cli创建项目时默认安装了cross-env插件，基于此插件在启动命令前增加了NODE_ENV等参数的配置
     - HBuilder创建的项目默认无package.json，可手动创建或npm init创建，之后可通过npm安装插件
     - HBuilder创建的项目代码对应vue-cli创建项目的src代码
     - vue-cli创建的项目还需手动安装less相关依赖(`cnpm install less less-loader -D`)或sass(`cnpm install sass-loader node-sass -D`)
@@ -274,8 +274,8 @@ export default {
     - 所有的路由都是基于page.json中的路径，注意如果路径中无.vue后缀，则路由时的路径也不能有.vue后缀
 - navigator标签问题：当登录后，通过uni.switchTab进入到首页，首页此时如果是使用`<navigator url="../hello">`，会导致第一次进入时无法路由。解决方法使用绝对路径`<navigator url="/pages/hello">`，且不能带.vue后缀
 - 路由挂载：需要跳转的页面必须在page.json中注册过。如需采用 Vue Router 方式管理路由，可在uni-app插件市场找Vue-Router相关插件
-- uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需虚拟化成字符串)
-- uni.showToastr 无Error图片(微信也没有)
+- uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需序列化成字符串)
+- [uni.showToast](https://uniapp.dcloud.io/api/ui/prompt?id=showtoast) 无Error图片(微信也没有)
 - 需使用web-view组件代替iframe，嵌套页才会在微信小程序中显示
     - 且web-view会撑满全屏，即无视非web-view中的元素
     - uni-app本身可使用iframe，可在h5下显示，但是微信小程序中不会显示
@@ -285,7 +285,7 @@ export default {
 - 扫码功能参考[uni.scanCode](https://uniapp.dcloud.net.cn/api/system/barcode?id=scancode)、[js-tools.md#扫码/条码生成](/_posts/web/js-tools.md#扫码/条码生成)
 - 路径问题
     - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
-- H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#文件)
+- H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#项目文件)
 - `web-view`使用参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
 - `rich-text`可以通过vue的v-html进行渲染，但是传入的字符串不能包含body、html等节点(如果使用了不受信任的HTML节点，该节点及其所有子节点将会被移除)
 - css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa

@@ -107,45 +107,47 @@ ThisCrackLicenseId-{
 ### 实用
 
 - `jrebel` java热部署(会自动热部署新代码。如果不使用jrebel，springboot-devtools可修改代码后使用`Ctrl+Shif+F9`进行热部署)
-    - jrebel破解参考：http://www.cicoding.cn/other/jrebel-activation/
+    - **jrebel破解参考**：http://www.cicoding.cn/other/jrebel-activation/
     - 无法热部署场景
         - 修改了Entity，涉及到mybatis的操作无法生效(mybatis缓存了数据类型?)
         - 修改了mybatis mapper和对应文件一般无法生效
         - 修改了方法声明
-- `Lombox` 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)。写法参考[java-tools.md#Lombox](/_posts/java/java-tools.md#Lombox)
 - `MybatisX` [mybatis-plus提供](https://mybatis.plus/guide/mybatisx-idea-plugin.html)，可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI(未测试成功)，JPA方法命名提示(未测试成功)。Ctrl+Alt可实现相应跳转
     - 类似插件：`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
 - `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
+    - 新版收费，**破解版地址**：https://github.com/Link-Kou/intellij-mybaitslog
 - `CamelCase` 使用`Alt + Shift + U`将字符串在下划线/中划线/大小驼峰中切换，可重复按快捷键进行切换
     - `String Manipulation` 字符串转换(包括下划线/中划线/驼峰等)。鼠标右键会有对应的选项，缺点：无快捷键
 - `CodeGlance` 显示代码地图
-- `Codota` Codota AI Autocomplete 代码示例，基于类或方法查找网上流行的使用方式。类似的如Aixcode
-    - 推荐结合`tabnine`进行代码补全
 - `Alibaba Java Coding Guidelines` 阿里巴巴代码规范
-
-### 部分场景
-
-- `RestfulToolkit` 使用`Ctrl + Alt + N`基于路径搜索controller对应的位置
+- `Translation` 翻译插件(https://github.com/YiiGuxing/TranslationPlugin)
 - `Maven Helper` 可显示冲突的maven依赖
     - 此插件依赖`Maven Intergration`，在安装后也要启用
     - 点击pom.xml文件，右下角会出现`Dependency Analyzer`
     - `Dependency Analyzer` - `Conflicts`中显示的即为冲突的依赖
         - 点击其中任何一个依赖，会在右侧显示重复引用的来源(基于版本降序) 
         - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
+
+### 部分场景
+
 - `PlantUML integration` 基于PlantUML语法画UML图
 - `SequenceDiagram` 根据源码生成时序图
 - `jclasslib Bytecode viewer` 查看java class字节代码。安装后在View - Show Bytecode With jclasslib(打开一个类可进行查看)
+- `RestfulToolkit` 使用`Ctrl + Alt + N`基于路径搜索controller对应的位置
+- `leetcode` 算法刷题，参考：https://github.com/shuzijun/leetcode-editor/blob/master/doc/CustomCode_ZH.md
 
 ### 其他
 
 - `JMH plugin` Java基准测插件
 - `JMeter plugin`
-- `leetcode` 算法刷题，参考：https://github.com/shuzijun/leetcode-editor/blob/master/doc/CustomCode_ZH.md
-- `Jindent-Source Code Formatter` 自定义javadoc注释(收费，无法破解)
+- `Jindent-Source Code Formatter` (收费，无法破解) 自定义javadoc注释
 - `Key Promoter X` 快捷键提示和统计快捷使用频率
-- `Translation` 翻译插件(可使用系统有道词典代替)
 - `Rainbow Brackets` 彩虹圆/尖括号颜色，会把代码中所有括号变色，有点花里胡哨
-- `HighlightBracketPair` 彩虹大括号，选中高亮，有点花里胡哨
+- `HighlightBracketPair` (Idea v2021 不支持) 彩虹大括号，选中高亮，有点花里胡哨
+- `Codota` Codota AI Autocomplete 代码示例，基于类或方法查找网上流行的使用方式。类似的如Aixcode
+    - 推荐结合`tabnine`进行代码补全
+- `Lombox` (新版IDEA已内置) 简化代码工具(maven项目中需要加入对应的依赖) [https://projectlombok.org/](https://projectlombok.org/)。写法参考[java-tools.md#Lombox](/_posts/java/java-tools.md#Lombox)
+
 
 ### 未使用
 

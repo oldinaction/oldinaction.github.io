@@ -208,6 +208,7 @@ Require-Module=com.alipay.sofa.service-provider
     - `Ark Plugin`
         - Ark 插件，满足特定目录格式要求的 Fat Jar，可以将一个或多个普通的 Java jar 打包成一个标准格式的 Ark Plugin。使用官方提供的 Maven 插件 `sofa-ark-plugin-maven-plugin`打包
         - 运行时由独立的 PluginClassLoader 加载，根据打包时配置的导出导入资源、类，构建运行时类加载模型。一般是Service包，不包含Controller层
+        - 需要在pom中设置依赖关系
     - Ark Biz
         - Ark 应用(配置、源码、依赖)被打包成 Biz 包组织在一起，但是特殊的依赖（Ark Plugin 和其他应用 Biz 包）不会被打入 Biz 包中，**`Ark Biz` 包是不可执行的 Fat Jar**。使用官方提供的 Maven 插件 `sofa-ark-maven-plugin`打包成上述Fat Jar
         - Ark Biz 是工程应用以及其依赖包的组织单元，包含应用启动所需的所有依赖和配置；一个 Ark 包中可以包含多个 Ark Biz 包，按优先级依次启动，Biz 之间通过 JVM 服务交互
@@ -239,9 +240,9 @@ Require-Module=com.alipay.sofa.service-provider
 
 ### 通信/调用
 
-- Biz-Biz通信: 使用JVM服务通信，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/
+- Biz-Biz通信: 使用JVM服务通信(@SofaService/@SofaReference)，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/
     - **目前仅sofa v3.1.4支持**，sofa v3.2.2~v3.7.0报错
-- Biz-Plugin通信: 使用Ark服务机制，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-service/
+- Biz-Plugin通信: 使用Ark服务机制(PluginActivator/@ArkInject)，参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-service/
 
 ### 使用
 

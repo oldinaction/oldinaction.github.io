@@ -75,6 +75,7 @@ tags: spring
 
 ## 配置文件(properties/yml)
 
+- 参考：https://docs.spring.io/spring-boot/docs/2.0.5.RELEASE/reference/htmlsingle/#boot-features-external-config
 - 参考`ConfigFileApplicationListener`类实现
 - profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`) [^3]
 - SpringBoot项目属性配置加载顺序
@@ -105,6 +106,13 @@ tags: spring
     - spring.profiles.include=common,dev
     - spring.profiles.active=dev
     - 此时只有写在dev里面的才能覆盖commm, 写在application中的无法覆盖
+- 自定义默认配置文件application.yml
+    - 使用`spring.config.location`指定默认配置文件或配置文件路径，如`java -jar myproject.jar --spring.config.location=classpath:/config/,classpath:/config/test/`，此时会从上述路径读取(后面路径的文件会覆盖前面路径的文件)配置，并可结合profile，但是文件名必须是`application-${profile}.yml`格式
+    - 使用`spring.config.additional-location`可覆盖默认配置文件的路径(默认配置文件application.yml任然会加重)
+    - 说明
+        - spring.config.location 和 spring.config.additional-location 不能同时生效，spring.config.location 的优先级高
+        - spring.config.location 值为文件，则不支持profile机制，值为文件夹时才支持profile机制
+        - spring.config.additional-location 不支持profile机制
 - 使用`@PropertySource("classpath:hello.properties")`结合@ConfigurationProperties可设置读取某个配置文件注入到JavaBean
 - 配置示例
 

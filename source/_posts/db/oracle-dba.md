@@ -137,7 +137,7 @@ grant dba to aezo; -- 导入导出时，只有 dba 权限的账户才能导入�
 ```sql
 -- 查询被锁表的信息（多刷新几次，应用可能会临时锁表）
 select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s
-    where l.object_id　= o.object_id and l.session_id = s.sid;
+    where l.object_id = o.object_id and l.session_id = s.sid;
 -- 关闭锁表的连接：alter system kill session '200, 50791';
 alter system kill session '某个sid, 某个serial#';
 ```
@@ -282,7 +282,7 @@ select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
 -- （2）获取添加表别名语句
 select 'create or replace synonym SMALLE.' || object_name || ' for ' || owner || '.' || object_name || ';'
    from dba_objects
-   where owner in ('AEZO') and object_type = 'TABLE'; -- 
+   where owner in ('AEZO') and object_type = 'TABLE';
 ```
 
 ### sqlplus 使用技巧
@@ -423,12 +423,12 @@ where t.OWNER = 'USERS'
 order by t.TABLE_NAME;
 
 -- 查询指定表中的所有字段名和字段类型，表名要全大写。对应的还有 user_tab_columns 表
-select t.table_name, s.comments, tc.column_name, tc.data_type, cc.comments 
+select t.table_name, s.comments, tc.column_name, tc.data_type, cc.comments as col_comments
 from dba_tables t 
 join dba_tab_comments s on s.owner = t.owner and s.table_name = t.table_name
-left join dba_tab_columns tc on tc.owner = 'USERS' and tc.table_name = t.table_name
-left join dba_col_comments cc on cc.owner = 'USERS' and cc.table_name = t.table_name and cc.column_name = tc.column_name
-where t.owner = 'USERS' and table_name = 'T_TEST';
+left join dba_tab_columns tc on tc.owner = 'TEST' and tc.table_name = t.table_name
+left join dba_col_comments cc on cc.owner = 'TEST' and cc.table_name = t.table_name and cc.column_name = tc.column_name
+where t.owner = 'TEST' and t.table_name = 'T_TEST'
 order by t.table_name, tc.column_name;
 ```
 
@@ -615,13 +615,20 @@ imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y
 
 #### pl/sql
 
-- pl/sql 提供 dmp、sql(不支持 CLOB 类型字段)、pde(pl/sql 提供)格式的数据导入导出
-- 导出
-    - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
-    - `Tools - Export Tables/Import Tablse - 选择表导出` 导出数据
-    - 其中 Executable 路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
+- pl/sql 提供 dmp、sql(SQL Inserts, 不支持 CLOB 类型字段)、pde(pl/sql 提供)格式的数据导入导出
+    - dmp格式导入导出
+        - 其中 Executable 路径为 `%ORACLE_HOME%/BIN/exp.exe` 和 `%ORACLE_HOME%/BIN/imp.exe` 如：`D:/java/oracle/product/11.2.0/dbhome_1/BIN/exp.exe`
+    - sql格式导入导出
+        - 导入时SQL*Plus Executable选择`%ORACLE_HOME%/BIN/sqlplus.exe`文件，或者勾选基于命令行导入
+    - pde格式导入导出，**慎用**
+        - 使用PL/SQL绿色版导出pde，直接会将被导出的表数据删掉
     - 当`View`按钮可点击时，即表示导出完成
-- 导入(plsql 执行 sql 文件)
+- 导出导入对象结构
+    - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
+- 导出导入表数据
+    - `Tools - Export Tables - 选择表导出` 导出数据
+    - `Tools - Import Tablse - 选择导入文件` 导入数据
+- 命令窗口执行SQL文件(plsql 执行 sql 文件)
     - `start D:/sql/my.sql` 或 `@D:/sql/my.sql`（部分语句需要执行`commit`提交，文件不要放在C盘）
 
 #### sql导出导入(sqlplus)
@@ -729,6 +736,10 @@ select value from v$parameter where name = 'processes';
     - ORACLE_HOME 为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入 imp.exe、导出 exp.exe）
 
 ## pl/sql 安装和使用
+
+- PL/SQL绿色版安装，修改配置项
+    - 配置 - User Interface - Fonts - Browser/Grid/Main Font(Segoe UI,常规,小五); Editor(Courier New,常规,10)
+    - 配置 - User Interface - Appearance - Language(选择英文), Switch to Menu(菜单以下拉菜单方式显示)
 
 ### pl/sql 安装
 

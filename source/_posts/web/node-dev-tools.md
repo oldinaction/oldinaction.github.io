@@ -6,6 +6,17 @@ categories: [web]
 tags: [node, tools]
 ---
 
+## 简介
+
+- 推荐操作
+
+```bash
+# 设置镜像
+npm config set registry https://registry.npm.taobao.org/
+# electron-mirror、node-sass等组件需要单独设置镜像
+npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+```
+
 ## npm 包管理工具
 
 ### npm安装及镜像
@@ -209,7 +220,9 @@ yarn run dev
 ## nvm Node版本管理工具
 
 - nvm全名node.js version management，顾名思义是一个nodejs的版本管理工具，通过它可以安装和切换不同版本的nodejs
-- [windows下载](https://github.com/coreybutler/nvm-windows/releases)，安装之前可能需要先卸载之前安装的Node
+- 下载安装
+    - [windows下载](https://github.com/coreybutler/nvm-windows/releases)，安装之前可能需要先卸载之前安装的Node
+    - Unix: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash` (Mac M1 11.4安装成功，但是安装node v10.x失败，v12.x成功)
 - 使用
 
 ```bash
@@ -223,6 +236,7 @@ nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版�
 - 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
 
 ```bash
+# 可选安装，只是为了快捷创建项目，或管理项目插件. mac需要root账号安装
 npm install -g @vue/cli
 vue --version # @vue/cli 4.3.0
 ```

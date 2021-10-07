@@ -1,5 +1,5 @@
 # node v8.17.0
-cd D:/gitwork/coding/blog
+cd /Users/smalle/gitwork/github/blog
 hexo clean
 git add .
 git commit -am "update blog"

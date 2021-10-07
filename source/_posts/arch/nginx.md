@@ -142,9 +142,13 @@ server {
         }
     }
 
-    # 当直接访问www.aezo.cn时, 重定向到http://www.aezo.cn/hello(地址栏url会发生改变)。内部重定向使用proxy_pass
+    # 当直接访问www.aezo.cn时, 重定向到 http://www.aezo.cn/hello (地址栏url会发生改变)。内部重定向使用proxy_pass
     location = / {
         rewrite / http://$server_name/hello break;
+    }
+    location = /proxy {
+        # 返回 http://$server_name/hello 的数据
+        proxy_pass http://$server_name/hello break;
     }
     location / {
         # 跨域支持
@@ -190,7 +194,7 @@ server {
     # 测试地址
     location = /ping {
         add_header Content-Type text/plain;
-        return 200 "Hello world!";
+        return 200 "Hello world!";  
     }
 
     # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin
@@ -579,7 +583,7 @@ http {
 }
 ```
 
-#### 证书配置
+#### HTTPS证书配置
 
 - 检查证书配置: https://www.myssl.cn/tools/check-server-cert.html
     - 需要全部通过，一般为三项: 服务器证书、中间证书、根证书
@@ -588,7 +592,7 @@ http {
         - 如果中间证书(ca_bundle.crt)和网站证书(test.aezo.cn.crt)分开了，则可手动将两个.crt证书合并成一个文件，并配置到nginx。如果有多个中间证书也都合并到一起
         - apache也可尝试通过SSLCertficateChianFile来配置中间证书
     - 如果只配置服务器证书，漏掉中间证书，浏览器一般会通过，但是微信小程序无法正常使用
-- 证书分析工具: https://www.ssllabs.com/ssltest/index.html
+- 证书分析工具(测试连接): https://www.ssllabs.com/ssltest/index.html
 
 ```bash
 # 开启 HTTPS
@@ -601,8 +605,14 @@ server {
     index  index.html index.htm;
 
     # 使用完整证书(服务器证书+中间证书合并)
-    ssl_certificate /etc/letsencrypt/live/test.aezo.cn/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/test.aezo.cn/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/test.aezo.cn/fullchain.pem; # 对应阿里证书*.pem(CERTIFICATE)
+    ssl_certificate_key /etc/letsencrypt/live/test.aezo.cn/privkey.pem; # 对应阿里证书*.key(PRIVATE KEY)
+    # 可选
+    # 设置支持的TLS协议，默认支持TSLv1.2以上
+    # ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+    # 设置加密格式(TLSv1.0需要)
+    ssl_ciphers
+    ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4:!DH:!DHE;
 }
 # 将 HTTP 强制重定向到 HTTPS
 server {
