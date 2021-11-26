@@ -300,6 +300,10 @@ select count(*) from `t_test_vote`;
 
 ## 其他
 
+```sql
+SET foreign_key_checks = 0; -- 0(增删改数据时)关闭外建校验，1开启校验
+```
+
 ### 命令行执行 sql 
   
 -  Mysql 通过上下左右按键修改语句

@@ -466,6 +466,9 @@ methods: {
       if (!row.id) return
       this.$download("/reportConfiguration/runExport/" + row.id, this.searchForm)
         .then((resp) => {
+          this.downFile2(resp)
+          
+          // 方式二
           let res = resp.data
           // 如果是普通文本文件则不需要设置type
           const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
@@ -482,6 +485,30 @@ methods: {
         link.click()
         window.URL.revokeObjectURL(link.href)
       }
+    }, 
+    downFile2 (res) {
+        if (!res.headers['content-disposition']) {
+          var reader = new FileReader()
+          reader.onload = event => {
+            var content = reader.result
+            this.$Message.error(JSON.parse(content).metaMessage)
+            this.exportDocumentsLoading = false
+          }
+          reader.readAsText(res.data)
+        } else {
+          const fileName = res.headers['content-disposition'].split('=')[1]
+          const data = res.data
+          // 视情况
+          const url = window.URL.createObjectURL(new Blob([data], { type: 'application/zip' }))
+          const link = document.createElement('a')
+          link.style.display = 'none'
+          link.href = url
+          link.setAttribute('download', fileName)
+          document.body.appendChild(link)
+          link.click()
+          URL.revokeObjectURL(link.href)
+          document.body.removeChild(link)
+        }
     }
 }
 ```

@@ -148,7 +148,8 @@ server {
     }
     location = /proxy {
         # 返回 http://$server_name/hello 的数据
-        proxy_pass http://$server_name/hello break;
+        proxy_pass http://$server_name/hello;
+        break;
     }
     location / {
         # 跨域支持

@@ -926,7 +926,7 @@ rar a aezocn.rar *.jpg
     # -R/-r 递归查询子目录
     # -i 忽略大小写的不同，所以大小写视为相同
     # -l 显示文件名
-    # -E 以 egrep 模式匹配
+    # -E 以 egrep 模式匹配，开启扩展（Extend）的正则表达式。egerp更加规范，`egrep -o "oldboy|hello" h.txt` 仅仅输出 oldboy 和 hello
     # -P 应用正则表达式
     # -n 顺便输出行号
     # -c 计算找到 '搜寻字符串' 的次数
@@ -935,6 +935,38 @@ rar a aezocn.rar *.jpg
     # -A <n> 打印匹配行的后几行
     # -B <n> 打印匹配行的前几行
     ```
+- grep的规则表达式（正则一定要转义）
+
+    ```bash
+    \    # 转义符
+    ^    #锚定行的开始 如：'^grep'匹配所有以grep开头的行。    
+    $    #锚定行的结束 如：'grep$'匹配所有以grep结尾的行。 
+    .    #匹配一个非换行符的字符 如：'gr.p'匹配gr后接一个任意字符，然后是p。
+    *    #匹配零个或多个先前字符 如：'*grep'匹配所有一个或多个空格后紧跟grep的行。  
+    .*   #一起用代表任意字符。   
+    []   #匹配一个指定范围内的字符，如'[Gg]rep'匹配Grep和grep。    
+    [^]  #匹配一个不在指定范围内的字符
+    \(..\)  #标记匹配字符，如'\(love\)'，love被标记为1。    
+    \<      #锚定单词的开始，如:'\<grep'匹配包含以grep开头的单词的行。    
+    \>      #锚定单词的结束，如'grep\>'匹配包含以grep结尾的单词的行。    
+    x\{m\}  #重复字符x，m次，如：'0\{5\}'匹配包含5个o的行。    
+    x\{m,\} #重复字符x,至少m次，如：'o\{5,\}'匹配至少有5个o的行。    
+    x\{m,n\}#重复字符x，至少m次，不多于n次，如：'o\{5,10\}'匹配5--10个o的行。   
+    \w    #匹配文字和数字字符，也就是[A-Za-z0-9]，
+    \W    #\w的反置形式，匹配一个或多个非单词字符，如点号句号等。   
+    \b    #单词锁定符，如: '\bgrep\b'只匹配grep。 
+
+    # 字符类
+    [[:digit:]] #数字
+    [[:lower:]] #小写字母
+    [[:upper:]] #大写字母
+    [[:alpha:]] #字母
+    [[:alnum:]] #字母数字
+    [[:blank:]] #空字符: 空格键符 和 制表符
+    [[:space:]] #空格字符: 制表符、换行符、垂直制表符、换页符、回车符和空格键符
+    ```
+- 说明
+    - grep命令的模式(即搜寻字符串)，可以是字符串、变量，还可以是正则表达式。如果模式中包含空格则需要单双引号包裹
 - [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
 - 常见用法
 
@@ -948,14 +980,26 @@ rar a aezocn.rar *.jpg
     grep -A 5 'parttern' filename # 打印匹配行的后5行
     grep -B 5 'parttern' filename # 打印匹配行的前5行
 
+    # 匹配或、且、非
     grep -E 'A|B|C.*' filename # 打印匹配 A 或 B 或 C* 的数据
-    echo office365 | grep -P '\d+' -o # 返回 365
+    egrep 'word1|word2' 文件名
+    grep 'word1/|word2' 文件名 # /转义
     grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
     grep -v 'A' filename # 打印不包含 A 的数据
 
+    # -P正则
+    echo office365 | grep -P '\d+' -o # 返回 365
+
+    # 转义和字符类
+    grep '192\.168\.1\.254' /etc/hosts # 三个点字符都需要转义
+    egrep '[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}' 文件名 # 只能匹配出 IP 地址
+    grep "[[:digit:]]\{2\}[ -]\?[[:digit:]]\{10\}" 文件名 # 会匹配 91-1234567890、91 1234567890、911234567890这种格式的手机号
+
+    # 匹配如：`...51:1:CMAU0245097:H4832357:22G1:8:22:4629:2190:21:::::::1'...`
+    egrep -r "51:.*:1'" /data/BTC_RECV/RecvCN1101/21/*
+
     # 根据日志查询最近执行命令时间(结合tail -1)
     grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
-
     # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
     ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
     ```

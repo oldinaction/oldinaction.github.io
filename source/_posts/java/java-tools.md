@@ -15,6 +15,11 @@ tags: tools
 - Bean/Map/JSON相互转化
 
 ```java
+// 注意：Hutool在处理JSON时对Null做了处理
+JSONNull jsonNull = new JSONNull(); // null会包装成JSONNull
+System.out.println(jsonNull == null); // false
+System.out.println(jsonNull.equals(null)); // true
+
 // ### Bean/Map <==> JSON; 深度拷贝
 String str = JSONUtil.toJsonStr(person); // Bean => JSON字符串
 Person person = JSONUtil.toBean(str, Person.class); // JSON字符串 => Bean
@@ -348,7 +353,7 @@ Map map = (Map) Yaml.load(yamlStr);
     - idea需要安装Lombox插件，从而编译时生成相应代码，不会报错
 - 使用
     - 使用Builder构造器模式
-        - 添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可。否则子类继承报错"无法将类中的构造器应用到给定类型"
+        - **添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可**。否则子类继承报错"无法将类中的构造器应用到给定类型"
         - 使用`@SuperBuilder`(v1.18.4)解决子类在链式赋值时无法设置父类的字段问题 [^1]
         - `@Builder(toBuilder = true)`表示相应对象会附带`toBuilder`方法，将其转换成功Builder对象继续进行链式赋值。默认只能通过MyClass.builder()获取链式调用入口
         - **无法设置默认值，如实体类属性设置的值无效**
@@ -364,7 +369,7 @@ Map map = (Map) Yaml.load(yamlStr);
     - 旨在促进在用Java编写的应用程序和框架中，实现动态和脚本功能
     - JEXL实现了 JSTL 中 EL 的延伸版本，不过也采用了一些 Velocity 的概念
     - 支持shell脚本或ECMAScript(js)中的大多数构造
-- 更推荐使用ScriptEngineManager进行java-js的交互，参考[javax.script](/_posts/java/java-release.md#javax.script)
+- **更推荐使用ScriptEngineManager进行java-js的交互**，参考[javax.script](/_posts/java/java-release.md#javax.script)
 - [commons-jexl官网](https://commons.apache.org/proper/commons-jexl/)
 - [语法文档](https://commons.apache.org/proper/commons-jexl/reference/syntax.html)
 - [案例](https://commons.apache.org/proper/commons-jexl/apidocs/org/apache/commons/jexl3/package-summary.html#usage)

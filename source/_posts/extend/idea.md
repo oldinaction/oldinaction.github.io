@@ -108,6 +108,8 @@ ThisCrackLicenseId-{
 
 - `jrebel` java热部署(会自动热部署新代码。如果不使用jrebel，springboot-devtools可修改代码后使用`Ctrl+Shif+F9`进行热部署)
     - **jrebel破解参考**：http://www.cicoding.cn/other/jrebel-activation/
+        - 访问`http://jrebel.cicoding.cn/guid` 生成GUID
+        - 监听配置格式`http://jrebel.cicoding.cn/MY_GUID`，邮箱随便填写
     - 无法热部署场景
         - 修改了Entity，涉及到mybatis的操作无法生效(mybatis缓存了数据类型?)
         - 修改了mybatis mapper和对应文件一般无法生效

@@ -437,7 +437,7 @@ for (Orders order : list) {
 			</update>
             <update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
 				update user_info set
-                <!-- set 在更新操作的时候，在包含的语句前输出一个set  -->
+                <!-- set 在更新操作的时候，在包含的语句前输出一个set。注意后面的单引号  -->
                 <set>
 				    <if test="nickName != null">nick_name = #{nickName},</if>
 				    <if test="hobby != null">hobby = #{hobby},</if>

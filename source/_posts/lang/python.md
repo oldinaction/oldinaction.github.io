@@ -9,6 +9,10 @@ tags: [python]
 ## python简介
 
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
+
+## Python安装
+
+- [Python下载镜像地址](http://npm.taobao.org/mirrors/python)
 - Linux下默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](/_posts/linux/CentOS服务器使用说明.md)
 - [python3-cookbook中文文档](https://python3-cookbook.readthedocs.io/zh_CN/latest/index.html)
 - 一般服务会自带pip，没有可进行安装
@@ -17,6 +21,7 @@ tags: [python]
 sudo yum -y install epel-release
 sudo yum -y install python-pip
 ```
+- windows环境变量设置(可选): 设置`PYTHON_HOME=D:/software/python3`，并设置`Path=.;%PYTHON_HOME%;%PYTHON_HOME%\Scripts`
 
 ## python2和python3的语法区别
 
@@ -847,6 +852,32 @@ python3 /opt/myproject/main.py
 source /home/smalle/ENV/bin/activate
 nohup python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:10000 > console.log 2>&1 &
 ```
+
+## 工具
+
+### Jupyter
+
+- Jupyter notebook
+    - Jupyter notebook（此前被称为 IPython notebook）是一个基于web的交互式笔记本、编辑器及运行平台，支持运行 40 多种编程语言，已成为科研探索类工作的主要编程和分享工具
+    - 启动 Jupyter notebook，只需要在 cmd 中，进入自己希望的工作目录后，键入 `Jupyter notebook` 命令即可。然后访问`http://127.0.0.1:8888/tree`即可
+- `JupyterLab`
+    - 作为一种基于web的集成开发环境，可以使用它编写notebook、操作终端、编辑markdown文本、打开交互模式、查看csv文件及图片等功能。JupyterLab是Jupyter主打的最新数据科学生产工具
+    - JupyterLab包含了Jupyter Notebook所有功能
+- 安装
+
+```bash
+pip install jupyterlab
+# 运行后访问`http://127.0.0.1:8888/lab/tree`
+jupyter-lab
+```
+
+### IPython
+
+- https://blog.csdn.net/qq_39362996/article/details/82892671
+- 案例
+    - `%matplotlib inline` 这一句是IPython的魔法函数，可以在IPython编译器里直接使用，作用是内嵌画图，省略掉`plt.show()`这一步，直接显示图像。如果不加这一句的话，我们在画图结束之后需要加上plt.show()才可以显示图像
+
+
 
 
 ---

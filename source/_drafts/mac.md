@@ -27,6 +27,10 @@ home: fn＋左
 end: fn＋右
 ```
 
+## 命令
+
+- `open /root` 在Finder中打开某个目录(默认有些目录时不会显示在Finder中的)
+
 ## 个性化配置
 
 - 终端文件夹颜色：基于别名完成，在`~/.zshrc`中加入
@@ -73,6 +77,20 @@ source ~/.zprofile
 brew version
 brew install wget
 brew uninstall wget
+# brew services(第一次运行会自动安装)
+brew services list  # 查看使用brew安装的服务列表
+brew services run nginx|--all  # 启动服务（仅启动不注册）
+brew services start nginx|--all  # 启动服务，并注册
+brew services stop nginx|--all   # 停止服务，并取消注册
+brew services restart nginx|--all  # 重启服务，并注册
+brew services cleanup  # 清除已卸载应用的无用的配置
+```
+### brew安装常用软件
+
+```bash
+# 按照目录：/opt/homebrew/opt/nginx
+# 配置文件目录：/opt/homebrew/etc/nginx/nginx.conf
+brew install nginx
 ```
 
 ### VPN(PPTP)
@@ -242,12 +260,13 @@ jenv global 1.8
 ### CrossOver
 
 - CrossOver 20.0.4支持OSX 11.x上运行Windows应用，但是收费
+- Wineskin 类似CrossOver，且免费
 
 ### wine
 
 - `wine` 已经不支持 OSX 11.x(由于OSX不再支持32bit程序)
     - 有说可使用`https://hub.fastgit.org/Gcenx/WineskinServer`解决(没成功)
-    - 可使用CrossOver代替
+    - **可使用CrossOver代替**
 - wine依赖`XQuartz`，就是俗称的X11，是苹果电脑为Mac OS X上X Window系统的实作
 
 ```bash

@@ -280,16 +280,36 @@ select ...
 
 ### 常用函数
 
-- `sysdate`
-	- `update t_test t set t.update_tm = sysdate() where id = 1` 其中`sysdate()`可获取当前时间
-- `instr`
-    - `select * from t_test where instr(username, char(13)) > 0 or instr(username, char(10)) > 0` 查找表中某字段含有`\r\n`的数据
-    	- linux/unix下的行结尾符号是`\n`，windows中的行结尾符号是`\r\n`，Mac系统下的行结尾符号是`\r`
-    	- 回车符：\r=0x0d (13) (carriage return)
-    	- 换行符：\n=0x0a (10) (newline)
-- `find_in_set` 字段值通过`,`分割存放，可精确匹配分割后的某个值
-  - `select * from article where find_in_set('2', type);` 找出所有热点的文章
-    - type字段表示：1头条、2推荐、3热点。现在有一篇文章即是头条又是热点，即type=1,2
+- concat/concat_ws/group_concat
+
+```sql
+-- 将多个字符串连接成一个字符串。任何一个值为null则整体为null
+concat(str1, str2,...)
+-- 将多个字符串连接成一个字符串，但是可以一次性指定分隔符concat_ws就是concat with separator）
+concat_ws(separator, str1, str2, ...)
+-- 将group by产生的同一个分组中的值连接起来，返回一个字符串结果。类似oracle的wm_concat
+group_concat( [distinct] 要连接的字段 [order by 排序字段 asc/desc ] [separator '分隔符(默认为,)'] )
+select userId, group_concat(orderId order by orderId desc separator ';') as orderList from t_orders group by userId;
+```
+- 字符串
+
+```sql
+-- instr
+    -- linux/unix下的行结尾符号是`\n`，windows中的行结尾符号是`\r\n`，Mac系统下的行结尾符号是`\r`
+    -- 回车符：\r=0x0d (13) (carriage return)
+    -- 换行符：\n=0x0a (10) (newline)
+select * from t_test where instr(username, char(13)) > 0 or instr(username, char(10)) > 0; -- 查找表中某字段含有`\r\n`的数据
+
+-- find_in_set
+    -- type字段表示：1头条、2推荐、3热点。现在有一篇文章即是头条又是热点，即type=1,2
+select * from article where find_in_set('2', type); -- 找出所有热点的文章
+```
+- 日期
+
+```sql
+-- sysdate
+update t_test t set t.update_tm = sysdate() where id = 1; -- 其中`sysdate()`可获取当前时间
+```
 
 ### 自定义变量
 
@@ -824,8 +844,9 @@ select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
 - **`update set from where`** 将一张表的数据同步到另外一张表
     
     ```sql
-    -- Oracle：如果a表和b表的字段相同，最好给两张表加别名
-    update a set (a1, a2, a3) = (select b1, b2, b3 from b where a.id = b.id) where exists (select 1 from b where a.id = b.id);
+    -- Oracle：如果a表和b表的字段相同，最好给两张表加别名. 注意where条件
+    update a set (a1, a2, a3) = (select b1, b2, b3 from b where a.id = b.id) 
+    where exists (select 1 from b where a.id = b.id);
     -- Mysql：update的表不能加别名，oracle可以加别名。当字段相同时直接使用表名做前缀
     update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id;
     update a left join b on a0 = b0 set a1 = b1, a2 = b2, a3 = b3 where a.valid_status = 1;
@@ -959,6 +980,17 @@ end;
     - 每季度的第一天凌晨1点执行 `interval => trunc(add_months(sysdate, 3), 'q') + 1/24`
     - 每半年定时执行(7.1和1.1) `interval => add_months(trunc(sysdate, 'yyyy'),6)+1/24`
     - 每年定时执行 `interval => add_months(trunc(sysdate, 'yyyy'), 12)+1/24`
+
+### 其他
+
+```sql
+-- 去除换行chr(10), 去掉回车chr(13), 去掉空格。idea从excel复制数据新增时可能会出现换行
+update t_test t set t.name=trim(replace(replace(t.name,chr(10),''),chr(13),''));
+--四舍五入
+select round(0.44775454545454544,2) from dual;
+--直接保留两位小数
+select trunc(4.757545489, 2) from dual;
+```
 
 ## SqlServer
 

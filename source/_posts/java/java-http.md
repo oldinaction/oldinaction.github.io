@@ -36,12 +36,19 @@ video = responseEntity.getBody();
 
 // 4.postForObject
 Map retInfo = restTemplate.postForObject("http://localhost/test", params, Map.class); // params 为 Map 类型请求参数，目标服务需要通过 @RequestBody 接收
-// 定义Header
+
+// 5.定义Header
 HttpHeaders headers = new HttpHeaders(); // org.springframework.http.HttpHeaders impl MultiValueMap
 headers.add("X-Auth-Token", "123456789");
 Map<String, Object> postParameters = MiscU.toMap("username", "smalle", "age", "18");
 HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(postParameters, headers);
 Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity, Map.class);
+
+// 6.MultiValue
+MultiValueMap<String, Object> postData = new LinkedMultiValueMap<String, Object>();
+postData.add("name", "123");
+HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(postData);
+HttpEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 ```
 
 ### 上传下载

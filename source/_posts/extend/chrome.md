@@ -77,7 +77,22 @@ tags: [plugins, debug]
 
 ## chrome命令
 
-> 参考：[chrome命令](https://peter.sh/experiments/chromium-command-line-switches/)
+- [chrome命令参数](https://peter.sh/experiments/chromium-command-line-switches/)
+- chrome://浏览器命令
+    - chrome://about 查看所有列表，常见如下
+    - chrome://version 显示当前版本
+    - chrome://flags 实验项目，加“#项目名称”锚点可以直接定位到项目
+    - chrome://settings 设置，下图是设置定位
+    - chrome://extensions 查看扩展程序，“chrome://extensions/程序名称”可快速打开
+    - chrome://net-internals 显示网络事件信息
+    - chrome://components 查看组件信息
+    - chrome://memory-redirect 浏览器内存使用的统计信息，也可以这样进入：工具\任务管理器\详细统计信息
+    - chrome://downloads 直接访问 Chrome 浏览器网页下载的文件
+    - chrome://history 直接访问 Chrome 浏览器访问的历史记录
+    - chrome://apps 访问 Chrome 浏览器中安装的应用的界面，可以对应用进行删除管理
+    - chrome://bookmarks 直接访问 Chrome 浏览器中我们收藏的标签
+    - chrome://dns 显示浏览器预抓取的主机名列表，让用户随时了解 DNS 状态
+    - chrome://devices 查看连接电脑的设备，比如传统打印机中，可设置添加打印机到 Google 云打印的入口
 
 ## chrome插件开发
 

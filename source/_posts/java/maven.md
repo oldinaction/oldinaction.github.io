@@ -804,6 +804,15 @@ services:
     - org.apache.maven.archetypes:maven-archetype-site
     - org.apache.maven.archetypes:maven-archetype-webapp
 
+## 多模块思考
+
+- 模块组织方式如下
+    - 门面
+        - 配置类/常量等类有可能其他扩展需要使用，放到门面还是简单实现模块？
+    - 简单实现
+    - 其他扩展
+
+
 ---
 
 参考文章

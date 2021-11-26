@@ -45,34 +45,34 @@ tags: [spring, mvc]
 
 ### 往容器中注册Bean(组件)
 
-#### 包扫描+组件注解
+#### 组件注解+包扫描
 
-##### @ComponetScan("cn.aezo")
-
-- 定义需要扫描的包名，并将里面的`@Component`、`@Service`、`@Repository`、`@Controller`注解的类注册为Bean
+- 组件注解(下面几个注解效果一样)
+    - `@Component` 没有明确的角色，或@Component("sq")定义别名
+    - `@Service` 在业务逻辑层(cn.aezo.spring.aop_spel.service)使用
+    - `@Repository` 在数据访问层(cn.aezo.spring.aop_spel.dao)使用
+    - `@Controller` 在展现层使用
+- 包扫描`@ComponetScan("cn.aezo")`
+    - @ComponentScan(basePackages = {"cn.aezo.sqbiz", "cn.aezo.utils"})
+    - 定义需要扫描的包名，并将里面的`@Component`、`@Service`、`@Repository`、`@Controller`注解的类注册为Bean
 
 ```java
 // java8 @Repeatable表示可重复注解 excludeFilters不扫描过滤，includeFilters扫描过滤(需设置useDefaultFilters=false)
 @ComponentScan(value = "cn.aezo.demo", excludeFilters = {
-            @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {Controller.class}) // 基于注解
-            @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {cn.aezo.demo.MyTest}) // 基于类全名
-            @ComponentScan.Filter(type = FilterType.CUSTOM, classes = {MyFilterType.class})}) // 基于自定义规则(实现FilterType接口)
+    // 基于注解
+    @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {Controller.class})
+    // 基于类全名
+    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {cn.aezo.demo.MyTest})
+    // 基于自定义规则(实现FilterType接口)
+    @ComponentScan.Filter(type = FilterType.CUSTOM, classes = {MyFilterType.class})
+})
 @ComponentScan(value = "cn.aezo.demo", includeFilters = {
-            @ComponentScan.Filter(type = FilterType.REGEX, pattern = "cn\\.aezo\\.test.*")}, useDefaultFilters = false)
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = "cn\\.aezo\\.test.*")
+}, useDefaultFilters = false)
 
 // java8之前可使用@ComponentScans
 @ComponentScans({@ComponentScan()})
 ```
-
-- 注解类表示此类是一个配置类，里面有0个或者多个`@Bean`
-
-##### 组件注解
-
-- `@Component` 没有明确的角色，或@Component("sq")定义别名
-- `@Service` 在业务逻辑层(cn.aezo.spring.aop_spel.service)使用
-- `@Repository` 在数据访问层(cn.aezo.spring.aop_spel.dao)使用
-- `@Controller` 在展现层使用
-- 上面几个注解效果一样
 
 #### @Bean导入第三方包里面的组件
 
@@ -104,6 +104,7 @@ public class MyImportSelector implements ImportSelector {
 
 // ### 使用
 @Import({MyImportSelector.class})
+@SpringBootApplication
 public class AppImport {
     public static void main( String[] args ) {
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(AppImport.class);
@@ -140,6 +141,22 @@ public class SmImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegi
 // ### 使用
 @Import(SmImportBeanDefinitionRegistrar.class)
 public class AppConfig {}
+```
+- 可对Import进一步封装
+
+```java
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@Import({MyImportSelector.class})
+public@interface EnableMyImportSelector {
+}
+
+// 使用
+@EnableMyImportSelector
+@SpringBootApplication
+public class Application {}
 ```
 
 #### 使用Spring提供的FactoryBean(工厂Bean)
@@ -185,6 +202,18 @@ public class App {
 }
 ```
 
+#### 基于Springboot的EnableAutoConfiguration
+
+- 第三方类(不在ComponentScan的扫描范围)
+
+```java
+@Component
+public class ThdClass {}
+
+// 在 META-INF/spring.factories 增加自动配置类
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test.thd.ThdClass
+```
+
 ### 自动装配(取出Bean赋值给当前类属性)
 
 - `@Autowired` Spring提供
@@ -209,44 +238,9 @@ public void test() {
 	Mytest mytest = applicationContext.getBean(Mytest.class);
 }
 ```
-- 实现`ApplicationContextAware`接口
+- 实现`ApplicationContextAware`接口，参考下文[ApplicationContext:SpringU](#ApplicationContext)
     - 下列工具相当于把`ApplicationContext`存储在属性中，其他类对象可通过此对象属性获取ApplicationContext
-    - 上述其他类对象，如自行new的对象中需要注入其他Bean，此时当前类没有被Spring托管，则可通过SpringContextU中间缓存获取
-
-```java
-@Component("springContextU")
-public class SpringContextU implements ApplicationContextAware {
-
-	private static ApplicationContext applicationContext;
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		if(SpringContextU.applicationContext == null) {
-			SpringContextU.applicationContext = applicationContext;
-		}
-	}
-
-	// 获取applicationContext
-	public static ApplicationContext getApplicationContext() {
-		return applicationContext;
-	}
-
-	// 通过name获取 Bean
-	public static Object getBean(String name){
-		return getApplicationContext().getBean(name);
-	}
-
-	// 通过class获取Bean
-	public static <T> T getBean(Class<T> clazz){
-		return getApplicationContext().getBean(clazz);
-	}
-
-	// 通过name以及Clazz返回指定的Bean
-	public static <T> T getBean(String name,Class<T> clazz){
-		return getApplicationContext().getBean(name, clazz);
-	}
-}
-```
+    - 上述其他类对象，如自行new的对象中需要注入其他Bean，此时当前类没有被Spring托管，则可通过SpringU中间缓存获取
 
 #### @Autowired注入给静态属性示例
 
@@ -265,18 +259,6 @@ public class BaseController {
 	}
 }
 ```
-
-### @Scope
-
-- `@Scope("prototype")` 注解类(配置Bean的作用域，可和`@Bean`联合使用)
-    - `singleton` 整个容器共享一个实例(默认配置). IOC容器启动(`new AnnotationConfigApplicationContext()`)，就会创建所有的Bean(`@Lazy`懒加载，仅用于单例模式，只有在第一次获取Bean时才创建此Bean)
-    - `prototype` 每次调用新建一个实例. IOC容器启动，不会创建Bean，只有在获取的时候创建Bean
-        - **此对象`@Autowired`注入几次就会产生几个对象，和调用此对象方法无关**
-        - 如果此类型Bean含有有状态字段，则也容易产生并发问题，prototype并不能解决
-    - `request` Web项目中，每一个HttpRequest新建一个实例
-    - `session` Web项目中，同一个session创建一个实例
-    - `globalSession` 用于portal应用
-- SpringBoot的作用域如：`@RequestScope`、`@SessionScope`、`@ApplicationScope`(`@Component`等默认是`singleton`)
 
 ### 条件注解@Conditional
 
@@ -366,83 +348,6 @@ public class MyWindowsCondition implements Condition {
 }
 ```
 
-### Bean生命周期
-
-- 初始化和销毁方法实现方式
-    - 指定@Bean初始化和销毁方法属性：`initMethod`, `destroyMethod`
-    - 实现`InitializingBean`, `DisposableBean`(org.springframework.beans.factory.DisposableBean) 
-    - 使用JSR250：`@PostConstruct` Bean创建完成并完成属性赋值后调用, `@PreDestroy`(javax.annotation.PreDestroy) 销毁Bean前调用
-- **后置处理器`BeanPostProcessor`** (org.springframework.beans.factory.config.BeanPostProcessor)
-    - postProcessBeforeInitialization 在Bean创建完成并完成属性赋值后，且在初始化方法调用之前调用
-    - postProcessAfterInitialization 在初始化之后调用
-    - `@Autowired`是基于BeanPostProcessor实现的
-
-```java
-public class App {
-    public static void main( String[] args ) {
-        /*
-        constructor MyBean2...
-        postProcessBeforeInitialization...
-        init MyBean2...(afterPropertiesSet...)
-        postProcessAfterInitialization...
-        创建IOC完成...
-        destroy MyBean2...
-        */
-        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(App.class);
-        System.out.println("创建IOC完成...");
-
-        ctx.close(); // 容器关闭调用destroyMethod
-    }
-
-    @Bean(initMethod = "init", destroyMethod = "destroy")
-    public MyBean2 myBean2() {
-        return new MyBean2();
-    }
-
-    @Bean
-    public MyBean3 myBean3() {
-        return new MyBean3();
-    }
-
-    // MyBeanPostProcessor需要实现BeanPostProcessor后置处理器
-    @Bean
-    public MyBeanPostProcessor myBeanPostProcessor() {
-        return new MyBeanPostProcessor();
-    }
-}
-
-// ###
-public class MyBean2 {
-    public MyBean2() {
-        System.out.println("constructor MyBean2...");
-    }
-
-    // @PostConstruct // Bean创建完成并完成属性赋值后调用（使用JSR250方式需要的代码）
-    public void init() {
-        System.out.println("init MyBean2...");
-    }
-
-    // @PreDestroy
-    public void destroy() {
-        System.out.println("destroy MyBean2...");
-    }
-}
-
-// ### 基于接口实现
-public class MyBean3 implements InitializingBean, DisposableBean {
-    // Bean创建完成，且属性赋值完成后调用
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        System.out.println("InitializingBean afterPropertiesSet MyBean3...");
-    }
-
-    @Override
-    public void destroy() throws Exception {
-        System.out.println("DisposableBean destroy MyBean3...");
-    }
-}
-```
-
 ### 属性赋值(@Value)
 
 #### Spring中使用属性赋值
@@ -497,6 +402,14 @@ public class ELConfig {
 
     @Autowired
     private Environment environment; // org.springframework.core.env.Environment
+
+    // 静态熟悉赋值
+    public static String staticKey;
+
+    @Value("${site.staticKey}")
+    public void setStaticKey(String staticKey) {
+        ELConfig.staticKey = staticKey;
+    }
 
     public void outputResource() {
         System.out.println("normal = " + normal);
@@ -581,6 +494,13 @@ private MyValue myValue;
 @PropertySource(name="minions.yml", value = "classpath:minions-${spring.profiles.active:}.yml", factory = SqPropertySourceFactory.class)
 public class MinionsProp {
     private String projectCode;
+
+    private DataProp data = new DataProp();
+
+    @Data
+    public class DataProp {
+        private String rootPath;
+    }
 }
 
 public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
@@ -657,7 +577,107 @@ public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
 
 ### 其他注解
 
-- `@Lazy` 当两个Bean发生循环依赖时，可将其中一个Bean的注入设置成懒加载
+## Bean
+
+### 作用域@Scope
+
+- `@Scope("prototype")` 注解类(配置Bean的作用域，可和`@Bean`联合使用)
+    - `singleton` 整个容器共享一个实例(默认配置). IOC容器启动(`new AnnotationConfigApplicationContext()`)，就会创建所有的Bean(`@Lazy`懒加载，仅用于单例模式，只有在第一次获取Bean时才创建此Bean)
+    - `prototype` 每次调用新建一个实例. IOC容器启动，不会创建Bean，只有在获取的时候创建Bean
+        - **此对象`@Autowired`注入几次就会产生几个对象，和调用此对象方法无关**
+        - 如果此类型Bean含有有状态字段，则也容易产生并发问题，prototype并不能解决
+    - `request` Web项目中，每一个HttpRequest新建一个实例
+    - `session` Web项目中，同一个session创建一个实例
+    - `globalSession` 用于portal应用
+- SpringBoot的作用域如：`@RequestScope`、`@SessionScope`、`@ApplicationScope`(`@Component`等默认是`singleton`)
+
+### Bean生命周期
+
+- 初始化和销毁方法实现方式
+    - 指定@Bean初始化和销毁方法属性：`initMethod`, `destroyMethod`
+    - 实现`InitializingBean`, `DisposableBean`(org.springframework.beans.factory.DisposableBean) 
+    - 使用JSR250：`@PostConstruct` Bean创建完成并完成属性赋值后调用, `@PreDestroy`(javax.annotation.PreDestroy) 销毁Bean前调用
+- **后置处理器`BeanPostProcessor`** (org.springframework.beans.factory.config.BeanPostProcessor)
+    - postProcessBeforeInitialization 在Bean创建完成并完成属性赋值后，且在初始化方法调用之前调用
+    - postProcessAfterInitialization 在初始化之后调用
+    - `@Autowired`是基于BeanPostProcessor实现的
+
+```java
+public class App {
+    public static void main( String[] args ) {
+        /*
+        constructor MyBean2...
+        postProcessBeforeInitialization...
+        init MyBean2...(afterPropertiesSet...)
+        postProcessAfterInitialization...
+        创建IOC完成...
+        destroy MyBean2...
+        */
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(App.class);
+        System.out.println("创建IOC完成...");
+
+        ctx.close(); // 容器关闭调用destroyMethod
+    }
+
+    @Bean(initMethod = "init", destroyMethod = "destroy")
+    public MyBean2 myBean2() {
+        return new MyBean2();
+    }
+
+    @Bean
+    public MyBean3 myBean3() {
+        return new MyBean3();
+    }
+
+    // MyBeanPostProcessor需要实现BeanPostProcessor后置处理器
+    @Bean
+    public MyBeanPostProcessor myBeanPostProcessor() {
+        return new MyBeanPostProcessor();
+    }
+}
+
+// ###
+public class MyBean2 {
+    public MyBean2() {
+        System.out.println("constructor MyBean2...");
+    }
+
+    // @PostConstruct // Bean创建完成并完成属性赋值后调用（使用JSR250方式需要的代码）
+    public void init() {
+        System.out.println("init MyBean2...");
+    }
+
+    // @PreDestroy
+    public void destroy() {
+        System.out.println("destroy MyBean2...");
+    }
+}
+
+// ### 基于接口实现
+public class MyBean3 implements InitializingBean, DisposableBean {
+    // Bean创建完成，且属性赋值完成后调用
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("InitializingBean afterPropertiesSet MyBean3...");
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("DisposableBean destroy MyBean3...");
+    }
+}
+```
+
+### 加载优先级
+
+- 同一个类中加载顺序
+    - Constructor > @Autowired > @PostConstruct > @Bean
+- @DependsOn控制顺序
+    - `@DepondensOn("springU")` 如在@PostConstuct方法中使用SpringU等工具类会报空指针。因为@PostConstuct修饰的方法在Spring容器启动时会先于该工具类的setApplicationContext()方法运行
+    - 控制 bean 之间的实例顺序，需要注意的是 bean 的初始化方法调用顺序无法保证
+- BeanPostProcessor 扩展，参考[ApplicationContext:SpringU](#ApplicationContext)
+- `@Lazy` 和@Autowired结合使用，当两个Bean发生循环依赖时，可将其中一个Bean的注入设置成懒加载
+
 
 ## AOP
 
@@ -865,34 +885,91 @@ public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
     - `ResourceLoaderAware` 获得资源加载器，可以获取外部资源
 - 实例
 
-    ```java
-    @Component
-    public class AwareService implements BeanNameAware, ResourceLoaderAware {
-        private String beanName;
-        private ResourceLoader loader;
+```java
+@Component
+public class AwareService implements BeanNameAware, ResourceLoaderAware {
+    private String beanName;
+    private ResourceLoader loader;
 
-        @Override
-        public void setBeanName(String s) {
-            this.beanName = s;
-        }
+    @Override
+    public void setBeanName(String s) {
+        this.beanName = s;
+    }
 
-        @Override
-        public void setResourceLoader(ResourceLoader resourceLoader) {
-            this.loader = resourceLoader;
-        }
+    @Override
+    public void setResourceLoader(ResourceLoader resourceLoader) {
+        this.loader = resourceLoader;
+    }
 
-        public void outputResult() {
-            System.out.println("beanName = " + beanName);
-            Resource resource = loader.getResource("classpath:cn/aezo/spring/base/annotation/springaware/test.txt");
-            try {
-                String test = IOUtils.toString(resource.getInputStream(), "UTF-8");
-                System.out.println("test = " + test);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public void outputResult() {
+        System.out.println("beanName = " + beanName);
+        Resource resource = loader.getResource("classpath:cn/aezo/spring/base/annotation/springaware/test.txt");
+        try {
+            String test = IOUtils.toString(resource.getInputStream(), "UTF-8");
+            System.out.println("test = " + test);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
-    ```
+}
+```
+
+## ApplicationContext
+
+```java
+@Component
+public class SpringU implements ApplicationContextAware {
+
+    private static ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        if(SpringU.applicationContext == null) {
+            SpringU.applicationContext = applicationContext;
+        }
+    }
+
+    public static Object getBean(String name){
+        return getApplicationContext().getBean(name);
+    }
+
+    // 向 ApplicationContext 注册一个 Bean
+    public static void registerBean(String beanName, Object singletonObject) {
+        GenericApplicationContext genericApplicationContext = (GenericApplicationContext) applicationContext;
+        DefaultListableBeanFactory defaultListableBeanFactory = genericApplicationContext.getDefaultListableBeanFactory();
+        defaultListableBeanFactory.registerSingleton(beanName, singletonObject);
+    }
+}
+
+public class SpringUBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter implements BeanFactoryAware {
+    private ConfigurableListableBeanFactory beanFactory;
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        if (!(beanFactory instanceof ConfigurableListableBeanFactory)) {
+            throw new IllegalArgumentException(
+                    "AutowiredAnnotationBeanPostProcessor requires a ConfigurableListableBeanFactory: " + beanFactory);
+        }
+        this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+        // 实现InstantiationAwareBeanPostProcessor接口的类会优先于 Bean 被实例
+        // 手动触发 bean 的实例
+        beanFactory.getBean(SpringU.class);
+    }
+}
+
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@Import({SpringUBeanPostProcessor.class})
+public @interface EnableSpringU {
+}
+
+// 在启动类上增加此配置
+@EnableSpringU
+@SpringBootApplication
+public class Application {}
+```
 
 ## 多线程@EnableAsync
 
@@ -987,7 +1064,7 @@ public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
 
         ```bash
         "0/10 * * * * ?" 每10秒触发(程序启动后/任务添加后，第一次触发为0/10/20/30/40/50秒中离当前时间最近的时刻。下同) 
-        "0 0/5 * * * ?" **每5分钟执行一次(注意第一个为0)**("* 0/5 * * * ?" 每5分钟连续执行60秒，这60秒期间每秒执行一次；"0 5 * * * ?" 表示每个小时的第5分钟执行)
+        "0 0/5 * * * ?" **每5分钟执行一次(注意第一个为0)** ("* 0/5 * * * ?" 每5分钟连续执行60秒，这60秒期间每秒执行一次；"0 5 * * * ?" 表示每个小时的第5分钟执行)
         "0 0 12 * * ?" 每天中午12点触发
         "0 15 10 ? * *" 每天上午10:15触发 
         "0 15 10 * * ?" 每天上午10:15触发 
@@ -1310,34 +1387,6 @@ Class ServiceB {
     - 将嵌套事物开启成新事物，如editById注解成@Transactional(propagation = Propagation.REQUIRES_NEW)
     - 如果希望内层事务回滚，但不影响外层事务提交，需要将内层事务的传播方式指定为PROPAGATION_NESTED
         - 注：PROPAGATION_NESTED基于数据库savepoint实现的嵌套事务，外层事务的提交和回滚能够控制嵌内层事务，而内层事务报错时，可以返回原始savepoint，外层事务可以继续提交
-
-## ApplicationContext
-
-```java
-@Component
-public class SpringU implements ApplicationContextAware {
-
-    private static ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        if(SpringU.applicationContext == null) {
-            SpringU.applicationContext = applicationContext;
-        }
-    }
-
-    public static Object getBean(String name){
-        return getApplicationContext().getBean(name);
-    }
-
-    // 向 ApplicationContext 注册一个 Bean
-    public static void registerBean(String beanName, Object singletonObject) {
-        GenericApplicationContext genericApplicationContext = (GenericApplicationContext) applicationContext;
-        DefaultListableBeanFactory defaultListableBeanFactory = genericApplicationContext.getDefaultListableBeanFactory();
-        defaultListableBeanFactory.registerSingleton(beanName, singletonObject);
-    }
-}
-```
 
 ## Spring-XML配置
 
