@@ -1642,6 +1642,7 @@ const routers = [{
 - 路由懒加载(当打包构建应用时，Javascript 包会变得非常大，影响页面加载速度)
     - https://router.vuejs.org/zh/guide/advanced/lazy-loading.html
     - https://panjiachen.github.io/vue-element-admin-site/zh/guide/advanced/lazy-loading.html
+- `router.addRoute` 动态添加路由，如果该路由规则有 name，并且已经存在一个与之相同的名字，则会覆盖它
 
 ### 路由变化页面数据不刷新
 

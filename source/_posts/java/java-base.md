@@ -432,6 +432,13 @@ public Result doPost(@PathVariable("serviceName") String serviceName, @PathVaria
 }
 ```
 
+## 类加载器
+
+- 获取资源
+    - 获取class资源
+        - Enumeration<URL> paths = ClassLoader.getSystemResources("org/slf4j/impl/StaticLoggerBinder.class");
+        - Enumeration<URL> paths = classLoader.getResources("org/slf4j/impl/StaticLoggerBinder.class");
+
 ## JDBC
 
 - Mysql连接JDBC为例

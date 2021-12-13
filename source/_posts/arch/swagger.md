@@ -210,7 +210,13 @@ public class User implements Serializable {
     - /v2/api-docs (通过此API获取所有接口列表从而在前台展示)
     - /doc.html
 - 访问 `http://ip:port/doc.html`
+- 当未添加跨域配置时，可以正常访问，当添加跨域配置后访问发现找不到doc.html的映射，所以需要加addResourceHandlers来指定访问地址的本地映射目录，才能正常访问
 
+```java
+// https://blog.csdn.net/u013078871/article/details/115973710
+registry.addResourceHandler("doc.html").addResourceLocations("classpath:/META-INF/resources/");
+registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+```
 
 
 

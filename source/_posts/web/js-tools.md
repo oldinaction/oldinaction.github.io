@@ -1570,6 +1570,42 @@ const getUrlParam = (paramName, params) => {
 
 - https://github.com/doczjs/docz/
 
+### codemirror代码编辑
+
+- [codemirror](https://codemirror.net/)
+- vue使用，安装`npm install vue-codemirror --save`
+
+```html
+<codemirror
+ref="cm"
+v-model="dataForm.code"
+:options="cmOptions"
+></codemirror>
+
+<script>
+// 单组件引用
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/lib/codemirror.css'
+// require('codemirror/mode/javascript/javascript') // mode: 'text/javascript'
+// require('codemirror/mode/sql/sql') // mode: 'sql'
+
+export default {
+    data () {
+        return {
+            cmOptions: {
+                // text方式进行代码高亮，如果是其他语言可能需要引入对应的样式
+                mode: 'text',
+                // 显示行号
+                lineNumbers: true,
+                // 一行超长时自动换行
+                lineWrapping: true,
+                tabSize: 2
+            }
+        }
+    }
+}
+</script>
+```
 
 
 

@@ -1536,6 +1536,7 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
     - `netstat -tnl` 查看开放的端口
     - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
     - **`yum install net-tools`** 安装net-tools即可使用netstat、ifconfig等命令
+    - mac使用`lsof -i -P`
 - `ss -lnt` 查看端口
 
 ### 查看进程信息

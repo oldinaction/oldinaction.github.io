@@ -8,6 +8,9 @@ tags: [build]
 
 ## maven简介
 
+- [maven教程](https://www.runoob.com/maven/maven-tutorial.html)
+- FatJar：将应用程序及其依赖jar一起打包到一个独立的jar中，就叫fat jar，它也叫uberJar，如springboot应用
+
 ## maven实战
 
 ### maven镜像修改
@@ -283,6 +286,7 @@ tags: [build]
 		- 有些install时则运行单元测试时候会报错，导致安装/打包失败。可尝试跳过测试进行安装(`mvn install -DskipTests`)。如：阿里云SMS服务aliyun-java-sdk-core:3.2.3就是如此
 - 在idea中使用`Terminal`进行项目打包(`mvn package`)需要注意环境变量的java版本. 版本过低容易报错如：`maven Unsupported major.minor version 52.0`. 修改版本后可进行重启idea. (修改idea配置中的maven编译版本不能影响命令行)
 - mvn编译是根据pom.xml配置来的. 而idea的编译/语法校验等, 是根据Libraries中的jar包来的. **idea默认会根据pom.xml中的依赖找到对应的jar(.m2路径下)并应用到Libraries中(只会加本地maven库中的).** 如果手动加入了一些jar包, 有可能出现本地可正常编译, maven却编译打包失败, 具体参考上述"maven项目依赖本地jar包".
+- mvn打包优先以本地依赖为准：IDEA>Setting>Build,Execution,Deployment>Build Tools>Maven>Runner>设置VM Options为`-DarchetypeCatalog=internal`
 
 ## maven语法
 
@@ -435,6 +439,22 @@ tags: [build]
                     <target>1.8</target>
 					<encoding>UTF-8</encoding>
                 </configuration>
+                <!--在构建生命周期中执行一组目标的配置。每个目标可能有不同的配置。-->
+                <executions>
+                    <!--execution元素包含了插件执行需要的信息--> 
+                    <execution>
+                        <!--执行目标的标识符，用于标识构建过程中的目标，或者匹配继承过程中需要合并的执行目标-->    
+                        <id/>
+                        <!--绑定了目标的构建生命周期阶段，如果省略，目标会被绑定到源数据里配置的默认阶段。如果是绑定到相同阶段则按照plugin先后顺序进行执行 -->
+                        <phase/>
+                        <!--配置的执行目标-->
+                        <goals/>
+                        <!--配置是否被传播到子POM-->
+                        <inherited/>
+                        <!--作为DOM对象的配置-->
+                        <configuration/>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 

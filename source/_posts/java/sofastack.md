@@ -8,7 +8,7 @@ tags: [springboot, plugin, 微服务]
 
 ## 简介
 
-- [官网](https://www.sofastack.tech/)
+- [官网](https://www.sofastack.tech/)、[蚂蚁产品说明](https://tech.antfin.com/products/SOFA)
 - SOFAStack技术栈
     - 包含SOFABoot、SOFAArk、SOFARPC等子项目
     - 其中SOFABoot是基于Springboot开发，可和SOFAArk结合使用
@@ -57,11 +57,12 @@ tags: [springboot, plugin, 微服务]
 
 - `isle-sofa-boot-starter` SOFABoot模块隔离
 - `sofa-ark-springboot-starter` SOFAArk类隔离
-- `runtime-sofa-boot-plugin` 用于提供 SOFA JVM 服务通信能力，参考[Ark 服务通信(Biz 之间的通信问题)](https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/)
-- `web-ark-plugin` 用于提供多 web 应用合并部署能力等
 - `sofa-ark-container` Ark容器
 - `healthcheck-sofa-boot-starter` SOFABoot监控检测
 - `runtime-sofa-boot-starter` SOFABoot 在 v2.6.0 开始提供异步初始化 Spring Bean 能力
+- 插件
+    - `runtime-sofa-boot-plugin` 用于提供 SOFA JVM 服务通信能力，参考[Ark 服务通信(Biz 之间的通信问题)](https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/)
+    - `web-ark-plugin` 用于提供多 web 应用合并部署能力等
 
 ## 通信/调用
 
@@ -214,33 +215,38 @@ Require-Module=com.alipay.sofa.service-provider
 ### 说明
 
 - [SOFAArk 介绍](https://www.sofastack.tech/projects/sofa-boot/sofa-ark-readme/)
+- SOFAArk 类隔离框架设计实现主要基于 OSGi 规范及蚂蚁金服的 CloudEngine 容器；同时也参考了 Spring Boot 及阿里的 PandoraBoot
+- **相关框架解读**
+    - https://blog.csdn.net/maoyeqiu/article/details/108994304
+    - https://blog.hufeifei.cn/2020/05/Alibaba/Pandora/
 - 架构图
     
     ![sofaark-arch.png](/data/images/java/sofaark-arch.png)
     - 如果 Ark 包只打包了一个 Biz，则该 Biz 默认成为宿主应用；如果 Ark 包打包了多个 Biz 包，需要配置指定宿主应用
     - 宿主应用不允许被卸载，一般而言，宿主应用会作为流量入口的中台系统，具体的服务实现会放在不同的动态 Biz 中，供宿主应用调用
     - 宿主应用可以使用 SOFAArk 提供的客户端 API 实现动态应用的部署和卸载
-- **`Ark 包`是可执行 Fat Jar**，一般由 Ark Container、Ark Plugin(0个或多个)、Ark Biz(至少一个)
+- **`Ark 包`**是可执行 Fat Jar，一般由 Ark Container、Ark Plugin(0个或多个)、Ark Biz(至少一个)
     - `Ark Container`
         - SOFAArk 容器(由sofa-ark-container模块提供)，负责 Ark 包启动运行时的管理；Ark Plugin 和 Ark Biz 运行在 SOFAArk 容器之上；容器具备管理插件和应用的功能
-        - 容器启动成功后，会自动解析 classpath 包含的 Ark Plugin 和 Ark Biz 依赖，完成隔离加载并按优先级依次启动之
+        - 运行 Ark 包，Ark Container 优先启动，容器自动解析 Ark 包中含有的 Ark Plugin 和 Ark Biz，并读取他们的配置信息，构建类和资源的加载索引表
+        - 然后使用独立的 ClassLoader 加载并按优先级配置依次启动
     - `Ark Plugin`
-        - Ark 插件，满足特定目录格式要求的 Fat Jar，可以将一个或多个普通的 Java jar 打包成一个标准格式的 Ark Plugin。使用官方提供的 Maven 插件 `sofa-ark-plugin-maven-plugin`打包
-        - **运行时由独立的 PluginClassLoader 加载**，根据打包时配置的导出导入资源、类，构建运行时类加载模型。一般是Service包，不包含Controller层
+        - Ark 插件，满足特定目录格式要求的 Fat Jar，可以将一个或多个普通的 Java jar 打包成一个标准格式的 Ark Plugin。使用官方提供的 Maven 插件 `sofa-ark-plugin-maven-plugin`打包。[参考文档](https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-plugin/)
+        - 运行时由独立的 PluginClassLoader 加载，根据打包时配置的导出导入资源、类，构建运行时类加载模型。一般是Service包，不包含Controller层
         - **需要在pom中设置依赖关系**
-        - **更多的用处是类隔离**：假设项目依赖A、B两个jar包，而A、B又分别依赖C1和C2，从而可能导致包依赖冲突，而假设A、B是打包出来的Ark Plugin则不会存在问题，可同时引用到项目中，其他用法同普通jar包引用。参考：https://juejin.cn/post/6844903653828984845
+        - **更多的用处是类隔离**：假设项目依赖A、B两个jar包，而A、B又分别依赖C1和C2，从而可能导致包依赖冲突，而假设A、B是打包出来的Ark Plugin(只暴露服务类，C相关的内可不用导出)则不会存在问题，可同时引用到项目中，其他用法同普通jar包引用。参考：https://juejin.cn/post/6844903653828984845
         - **还可抽离依赖**：将相同的依赖打成插件包到基座中，从而其他Biz包只需要引入相关包或类即可，减少Biz包的体积
     - Ark Biz
-        - Ark 应用(配置、源码、依赖)被打包成 Biz 包组织在一起，但是特殊的依赖（Ark Plugin 和其他应用 Biz 包）不会被打入 Biz 包中，**`Ark Biz` 包是不可执行的 Fat Jar**。使用官方提供的 Maven 插件 `sofa-ark-maven-plugin`打包成上述Fat Jar
+        - Ark 应用(配置、源码、依赖)被打包成 Biz 包组织在一起，但是特殊的依赖（Ark Plugin 和其他应用 Biz 包）不会被打入 Biz 包中，**`Ark Biz` 包是不可执行的 Fat Jar**。使用官方提供的 Maven 插件 `sofa-ark-maven-plugin`打包成上述Fat Jar。[参考文档同Ark包](https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jar/)
         - Ark Biz 是工程应用以及其依赖包的组织单元，包含应用启动所需的所有依赖和配置；一个 Ark 包中可以包含多个 Ark Biz 包，按优先级依次启动，Biz 之间通过 JVM 服务交互
         - 可以包含Controller层(引入web依赖即可)
         - [Ark Biz 生命周期](https://www.sofastack.tech/projects/sofa-boot/sofa-ark-biz-lifecycle/)
     - 启动顺序：Ark Container > Ark Plugin > Ark Biz
-    - 类索引关系说明
+    - **类索引关系说明**
         - Ark Biz 之间通过 JVM 服务(Ark概念)交互，即使用@SofaService/@SofaReference进行交互
             - 每个Biz有自己的Controller层，原本是部署在不同的JVM，因此需要通过网络交互(如RPC)；而Ark架构，支持合并部署Biz，此时使用JVM服务交互，减少网络传输层
-        - Ark Biz 和 Ark Plugin 是单向类索引关系，即只允许 Ark Biz 索引 Ark Plugin 加载的类和资源，反之则不允许(只能Ark Biz调用Ark Plugin)
-        - Ark Plugin 之间是双向类索引关系，即可以相互委托对方加载所需的类和资源(Ark Plugin可相互调用)
+        - Ark Biz 和 Ark Plugin 是单向类索引关系，即只允许 Ark Biz 索引 Ark Plugin 加载的类和资源，反之则不允许(只能Ark Biz调用Ark Plugin)。Ark Biz无需打包Ark Plugin，会自动优先查找Ark Plugin，也可定义禁止优先查找Ark Plugin的类(加入Plugin封装了第三方jar，Biz对第三方jar的依赖可维持不变，仅在打包时配置剔除此第三方jar从而减小打包体积)
+        - Ark Plugin 之间是双向类索引关系，即可以相互委托对方加载所需的类和资源(Ark Plugin可相互调用)。Ark Plugin只会优先从其他Ark Plugin中查找导入的类，未导入的则从当前Ark Plugin查找
 
 ### 生命周期
 
@@ -265,16 +271,22 @@ Require-Module=com.alipay.sofa.service-provider
 - 命令
 
 ```bash
-# 连接container，成功会显示命令行`sofa-ark>`
+## 连接container，成功会显示命令行`sofa-ark>`
 telnet localhost 1234
 
-help # 查看帮助
+## 查看帮助
+help
+## biz
 # 安装biz包
 biz -i file:///C:/Users/smalle/Desktop/sofa-ark-dynamic-guides-master/target/ark-dynamic-module-1.0.0-ark-biz.jar
 # 卸载biz包
 biz -u ark-dynamic-module:0.0.1
 # 查看所有安装的biz包
 biz -a
+
+# plugin
+# 查看所有plugin列表
+plugin -a
 ```
 
 #### 动态引入Biz
@@ -293,13 +305,20 @@ biz -a
 #### 多Biz启动
 
 - 开发环境(sofa v3.6.0, 此版本不支持Biz间服务调用)
-    - 在启动类所有模块根目录增加`conf/ark/bootstrap.properties`
+    - 在启动类所在模块根目录增加`conf/ark/bootstrap.properties`
     - 并设置master biz: `com.alipay.sofa.ark.master.biz=Startup In IDE`
     - 然后将其他biz-jar放到某个文件夹下，并将此文件夹添加到此模块的依赖包中(ark会扫码classpath下所有jar看是否为plugin或biz)
 
+### 插件
+
+- com.alipay.sofa.runtime.spi.log.SofaLogger 日志
+    - `SofaLogger.info("SofaRuntime is activating.", new Object[0]);`
+
 ### 记录
 
-- 引入sofa-ark-plugin-maven-plugin后，说明此模块为plugin模块，最终打包出来的是ark-plugin，当其他Biz包引入此模块时，不会将此包打包到最终产物中(因为可通过导入plugin的类来进行插件类加载)
+- 引入sofa-ark-plugin-maven后，说明此模块为Biz模块，可以为Ark包(包含主Ark Biz + ArK Container + Plugins)或Ark Biz(普通Biz)
+- 引入sofa-ark-plugin-maven-plugin后，说明此模块为plugin模块，最终打包出来的是ark plugin
+    - 一般是引入到主Biz中打包到Ark包中，其他Biz包只需依赖scope=provided引入，最终Biz包也不会包含此插件jar
 - sofa ark shade
 
 ```xml

@@ -33,7 +33,7 @@ end: fn＋右
 
 ## 个性化配置
 
-- 终端文件夹颜色：基于别名完成，在`~/.zshrc`中加入
+- 终端文件夹颜色：基于别名完成，在`~/.bash_profile`中加入，然后设置`echo 'source ~/.bash_profile' >> ~/.zshrc`让每次打开终端都生效
 
 ```bash
 #alias cls='tput reset'
@@ -58,8 +58,8 @@ alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-ti
 bash -c "$(curl -fsSL https://sourcegraph.com/github.com/Homebrew/install@master/-/raw/install.sh)"
 # 安装完后会生成如下两条命令
 # 加入到用户配置文件，每次用户登录，使/opt/homebrew/bin生效
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-source ~/.zprofile
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.bash_profile
+source ~/.bash_profile
 # eval "$(/opt/homebrew/bin/brew shellenv)" # 直接时/opt/homebrew/bin在当前命令行生效
 
 # 更换镜像，参考：https://www.cnblogs.com/trotl/p/11862796.html
@@ -67,11 +67,11 @@ cd "$(brew --repo)"
 git remote set-url origin https://mirrors.aliyun.com/homebrew/brew.git
 cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
 git remote set-url origin https://mirrors.aliyun.com/homebrew/homebrew-core.git
-echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles' >> ~/.zshrc
-source ~/.zshrc
+echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles' >> ~/.bash_profile
+source ~/.bash_profile
 # 解决brew安装包一直卡在Updating Homebrew
-echo 'export HOMEBREW_NO_AUTO_UPDATE=true' >> ~/.zprofile
-source ~/.zprofile
+echo 'export HOMEBREW_NO_AUTO_UPDATE=true' >> ~/.bash_profile
+source ~/.bash_profile
 
 # brew 使用
 brew version
@@ -103,6 +103,7 @@ brew install nginx
 
 - 到Oracle官网下载dmg格式文件进行安装，可安装多个版本
 - `/usr/libexec/java_home -V` 查看可用的JDK版本
+    - 切换版本参考下文jenv，也可修改`~/.zshrc`中配置中的JAVA_HOME
 - 安装完后删除`/Library/Internet Plug-Ins/JavaAppletPlugin.plugin`目录
     - 如`sudo mv /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin.bak`
     - 否则mvn命令执行时报错，参考：https://blog.csdn.net/w605283073/article/details/111770386
@@ -241,8 +242,8 @@ alias unproxy="unset ALL_PROXY"
 
 ```bash
 brew install jenv
-echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.zshrc
-echo 'eval "$(jenv init -)"' >> ~/.zshrc
+echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.bash_profile
+echo 'eval "$(jenv init -)"' >> ~/.bash_profile
 # 查看可用的JDK路径（需提前手动安装，jenv只能切换版本，不能进行安装），安装JDK参考上文[JAVA](#JAVA)
 /usr/libexec/java_home -V
 # 将可用的JDK加入到jenv中管理

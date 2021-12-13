@@ -1039,6 +1039,19 @@ for(int i=0; i<100; i++) {
     - `springboot`：可直接加在java命令后面，如`java -Xms256 -jar xxx.jar`
     - `idea`：Run/Debug Configruations中修改VM Options(单独运行tomcat或者springboot项目都如此)
     - `eclipse`：修改eclipse中tomcat的配置
+- 远程调试
+    - 远程调试(Attach. 必须先启动应用，再启动idea debug)
+        - 应用端启动增加参数`-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005`
+    - 远程调试(Listen. 必须先启动idea debug，再启动应用)
+        - 应用端启动增加参数`-Xdebug -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=127.0.0.1:5005`
+    - 两种模式区别在与`server=y/n`
+- 扩展classpath
+    - `-Xbootclasspath`: 完全取代基本核心的Java class 搜索路径。不常用，否则要重新写所有Java核心class
+    - `-Xbootclasspath/a`: 后缀在核心class搜索路径后面，常用
+    - `-Xbootclasspath/p`: 前缀在核心class搜索路径前面，不常用，避免引起不必要的冲突
+    - 分隔符与classpath参数类似，unix使用`:`号，windows使用`;`号
+        - `java -Xbootclasspath/a:/home/test/thirdlib/module.jar -jar demo.jar` 基于jar配置测试成功
+        - `java -Xbootclasspath/a:/home/test/thirdlib/ -jar demo.jar`
 - 自定义JVM参数
 
 ```java
@@ -1075,7 +1088,7 @@ RMIIF="-Djava.rmi.server.hostname=$IPADDR"
 #-Dcom.sun.management.jmxremote.access.file=/usr/java/default/jre/lib/management/jmxremote.access
 JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 
-DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091"
+DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
 
 # VMARGS="$MEMIF $GC_LOG $OOME $RMIIF $JMX $DEBUG"
 VMARGS="$GC_LOG $OOME"

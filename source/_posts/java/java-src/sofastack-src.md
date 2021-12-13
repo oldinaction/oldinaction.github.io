@@ -1729,9 +1729,9 @@ public class ArkTomcatWebServer implements WebServer {
 }
 ```
 
-## sofa-ark-maven-plugin插件
+## sofa-ark-maven-plugin打包Biz插件
 
-- 插件打包流程参考：https://zhuanlan.zhihu.com/p/114647271
+- 打包流程参考：https://zhuanlan.zhihu.com/p/114647271
 
 ## 启动日志示例
 

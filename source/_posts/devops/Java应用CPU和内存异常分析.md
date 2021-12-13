@@ -193,8 +193,8 @@ https://blog.csdn.net/Aviciie/article/details/79281080
             };
             ```
         - `$JAVA_HOME/bin/jstatd -J-Djava.security.policy=jstatd.all.policy` 运行jstatd
-    - 运行项目时添加JMX参数，如：`java -Djava.rmi.server.hostname=101.1.1.1 -Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=8091 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -jar video-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod`
-    - 添加JMX连接 - 输入`101.1.1.1:8091`即可
+    - 运行项目时添加JMX参数，如：`java -Djava.rmi.server.hostname=101.1.1.1 -Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=5005 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -jar video-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod`
+    - 添加JMX连接 - 输入`101.1.1.1:5005`即可
 
 ## 数据库服务器故障
 
