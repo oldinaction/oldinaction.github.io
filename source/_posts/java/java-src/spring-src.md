@@ -64,7 +64,7 @@ protected Object invokeWithinTransaction(Method method, Class<?> targetClass, fi
         commitTransactionAfterReturning(txInfo);
         return retVal;
     }
-　  // 编程式事务：（回调偏向）
+    // 编程式事务：（回调偏向）
     else {
         final ThrowableHolder throwableHolder = new ThrowableHolder();
 

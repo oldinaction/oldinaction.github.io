@@ -19,10 +19,24 @@ tags: [oracle, mysql, procedure]
 
 ### 控制语句
 
+- if-else
+
 ```sql
 if ... end if;
 if ... else ... end if;
 if ... elsif ... end if; -- 注意是 elsif
+```
+- goto
+    - `<<xxx>>`的标记符号，常用来跳出循环，使用goto可以跳到标记的位置
+
+```sql
+for i in 1..100 loop
+if i > 10 then
+goto end_loop;
+end if;
+end loop;
+<<outer>>
+dbms_output.put_line('loop 循环了10次提前结束了！');
 ```
 
 ### Oracle存储过程示例

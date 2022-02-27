@@ -213,7 +213,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
         ,round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
-    where cpu_time/executions/1000000 > 3 --每次执行消耗cpu>3s的
+    where executions > 0 and cpu_time/executions/1000000 > 3 --每次执行消耗cpu>3s的
     order by peer_secondes_cpu_time desc;
 
     -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
@@ -224,7 +224,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
     select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000000, 2) peer_secondes, sql_text, sql_fulltext
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
-    where cpu_time > 20
+    where executions > 0 and cpu_time > 20
     order by round(cpu_time/executions/1000000, 2) desc;
     ```
 - 查看服务器CPU占用高较高的进程运行的sql语句(v$sqltext中的sql语句是被分割存储)，运行下列sql后输入进程pid

@@ -1332,6 +1332,54 @@ public class SpringContextComponent extends AbstractComponent {
 }
 ```
 
+### 扩展点初始化
+
+- 入口
+
+```java
+// AbstractExtFactoryBean => CommonContextBean -> InitializingBean
+public class ExtensionPointFactoryBean extends AbstractExtFactoryBean {
+
+    // Spring会调用
+    public void afterPropertiesSet() throws Exception {
+        // ...
+
+        // targetBeanName: 扩展点所作用在的 bean 的名字
+        // determine serviceClass (can still be null if using a FactoryBean
+        // which doesn't declare its product type)
+        Class<?> extensionPointClass = (target != null ? target.getClass() : beanFactory
+            .getType(targetBeanName));
+
+        // ...
+
+        try {
+            // 1.发布扩展点
+            publishAsNuxeoExtensionPoint(extensionPointClass);
+        } catch (Exception e) {
+            SofaLogger.error(e, "Failed to publish extension point.");
+            throw e;
+        }
+    }
+
+    // 1.
+    private void publishAsNuxeoExtensionPoint(Class<?> beanClass) throws Exception {
+        Assert.notNull(beanClass, "Service must be implement!");
+
+        ExtensionPointBuilder extensionPointBuilder = ExtensionPointBuilder.genericExtensionPoint(
+            this.name, applicationContext.getClassLoader());
+
+        // ...
+
+        Implementation implementation = new SpringImplementationImpl(targetBeanName,
+            applicationContext);
+        ComponentInfo extensionPointComponent = new ExtensionPointComponent(
+            extensionPointBuilder.getExtensionPoint(), sofaRuntimeContext, implementation);
+        // 2.注册扩展到，参考 ComponentManagerImpl (类似SofaReference等注册)
+        sofaRuntimeContext.getComponentManager().register(extensionPointComponent);
+    }
+}
+```
+
 ## sofa-boot-autoconfigure
 
 - spring.factories
@@ -1405,6 +1453,7 @@ public class SofaModuleAutoConfiguration {
 - 流程图
 
     ![sofa-ark.png](/data/images/java/sofa-ark.png)
+- SofaArk相关常量参考`com.alipay.sofa.ark.spi.constant.Constants`
 
 ### sofa-ark-support-starter
 
@@ -1725,6 +1774,80 @@ public class ArkTomcatWebServer implements WebServer {
         synchronized (this.monitor) {
             // ...
         }
+    }
+}
+```
+
+## Biz类加载流程(BizClassLoader)
+
+- Biz类加载流程参考`BizClassLoader`
+    - Plugin类加载流程参考`PluginClassLoader`
+
+```java
+public class BizClassLoader extends AbstractClasspathClassLoader {
+
+    @Override
+    protected Class<?> loadClassInternal(String name, boolean resolve) throws ArkLoaderException {
+        Class<?> clazz = null;
+
+        // 0. sun reflect related class throw exception directly
+        if (classloaderService.isSunReflectClass(name)) {
+            throw new ArkLoaderException(
+                String
+                    .format(
+                        "[ArkBiz Loader] %s : can not load class: %s, this class can only be loaded by sun.reflect.DelegatingClassLoader",
+                        bizIdentity, name));
+        }
+
+        // 1. findLoadedClass
+        if (clazz == null) {
+            clazz = findLoadedClass(name);
+        }
+
+        // 2. JDK related class
+        if (clazz == null) {
+            clazz = resolveJDKClass(name);
+        }
+
+        // 3. Ark Spi class
+        if (clazz == null) {
+            clazz = resolveArkClass(name);
+        }
+
+        // 4. pre find class
+        if (clazz == null) {
+            clazz = preLoadClass(name);
+        }
+
+        // 5. Plugin Export class
+        if (clazz == null) {
+            clazz = resolveExportClass(name);
+        }
+
+        // 6. Biz classpath class
+        if (clazz == null) {
+            clazz = resolveLocalClass(name);
+        }
+
+        // 7. Java Agent ClassLoader for agent problem
+        if (clazz == null) {
+            clazz = resolveJavaAgentClass(name);
+        }
+
+        // 8. post find class
+        if (clazz == null) {
+            clazz = postLoadClass(name);
+        }
+
+        if (clazz != null) {
+            if (resolve) {
+                super.resolveClass(clazz);
+            }
+            return clazz;
+        }
+
+        throw new ArkLoaderException(String.format("[ArkBiz Loader] %s : can not load class: %s",
+            bizIdentity, name));
     }
 }
 ```

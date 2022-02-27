@@ -29,6 +29,7 @@ tags: [linux, shell]
     - `SUSE Linux`
         - [openSUSE](https://www.opensuse.org/) 开源
     - [Arch Linux](https://www.archlinux.org/) 开源
+    - `Alibaba Cloud Linux 3` 是阿里云官方Linux操作系统的第三代发行版，选择Linux kernel 5.10 LTS作为内核，选择阿里云提供的GCC 10.2、binutils 2.35、glibc 2.32的编译器，完全兼容CentOS 8、RHEL 8软件生态
 
 ### 基础操作
 
@@ -145,20 +146,7 @@ tags: [linux, shell]
 
 ### 文本处理
 
-- 文本处理命令：`cut`、`sort`、`join`、`sed`、`awk`
-- `cut` 文本剪切(必须基于文件进行操作)，如查看用户数：`wc -l /etc/passwd | cut -d' ' -f1`
-    - `-d` 指定字段分隔符，默认是空格
-    - `-f` 指定要显示的字段(`-f 1,3`、`-f 1-3`)
-- `sort` 文本排序
-    - `-n` 数值排序
-    - `-r` 降序
-    - `-t` 字段分隔符
-    - `-k` 以哪个字段为关键字进行排序
-    - `-u` 排序后相同的行只显示一次
-    - `-f` 排序时忽略字符大小写	
-- `wc` 文本统计
-    - 统计指定文本文件的行数(`-l`)、字数(-w)、字节数(-c)
-    - `sudo docker ps | wc -l`
+- 文本处理命令：`cut`、`sort`、`join`、`sed`、`awk`，参考下文
 
 ## 文件系统
 
@@ -908,560 +896,6 @@ rar a aezocn.rar *.jpg
     - `,` 表示附加一个可能值
     - `/` 符号前表示开始时间，符号后表示每次递增的值
 
-## linux命令
-
-- [man-pages](https://man7.org/linux/man-pages/dir_all_alphabetic.html)、[Linux命令大全](https://man.linuxde.net/)
-- linux三剑客grep、sed、awk语法
-
-### grep过滤器
-
-- 语法
-
-    ```bash
-    grep [-acinv] [--color=auto] '搜寻字符串' filename
-    # filename不能缺失
-
-    # 选项与参数：
-    # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
-    # -R/-r 递归查询子目录
-    # -i 忽略大小写的不同，所以大小写视为相同
-    # -l 显示文件名
-    # -E 以 egrep 模式匹配，开启扩展（Extend）的正则表达式。egerp更加规范，`egrep -o "oldboy|hello" h.txt` 仅仅输出 oldboy 和 hello
-    # -P 应用正则表达式
-    # -n 顺便输出行号
-    # -c 计算找到 '搜寻字符串' 的次数
-    # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
-    # -a 将 binary 文件以 text 文件的方式搜寻数据
-    # -A <n> 打印匹配行的后几行
-    # -B <n> 打印匹配行的前几行
-    ```
-- grep的规则表达式（正则一定要转义）
-
-    ```bash
-    \    # 转义符
-    ^    #锚定行的开始 如：'^grep'匹配所有以grep开头的行。    
-    $    #锚定行的结束 如：'grep$'匹配所有以grep结尾的行。 
-    .    #匹配一个非换行符的字符 如：'gr.p'匹配gr后接一个任意字符，然后是p。
-    *    #匹配零个或多个先前字符 如：'*grep'匹配所有一个或多个空格后紧跟grep的行。  
-    .*   #一起用代表任意字符。   
-    []   #匹配一个指定范围内的字符，如'[Gg]rep'匹配Grep和grep。    
-    [^]  #匹配一个不在指定范围内的字符
-    \(..\)  #标记匹配字符，如'\(love\)'，love被标记为1。    
-    \<      #锚定单词的开始，如:'\<grep'匹配包含以grep开头的单词的行。    
-    \>      #锚定单词的结束，如'grep\>'匹配包含以grep结尾的单词的行。    
-    x\{m\}  #重复字符x，m次，如：'0\{5\}'匹配包含5个o的行。    
-    x\{m,\} #重复字符x,至少m次，如：'o\{5,\}'匹配至少有5个o的行。    
-    x\{m,n\}#重复字符x，至少m次，不多于n次，如：'o\{5,10\}'匹配5--10个o的行。   
-    \w    #匹配文字和数字字符，也就是[A-Za-z0-9]，
-    \W    #\w的反置形式，匹配一个或多个非单词字符，如点号句号等。   
-    \b    #单词锁定符，如: '\bgrep\b'只匹配grep。 
-
-    # 字符类
-    [[:digit:]] #数字
-    [[:lower:]] #小写字母
-    [[:upper:]] #大写字母
-    [[:alpha:]] #字母
-    [[:alnum:]] #字母数字
-    [[:blank:]] #空字符: 空格键符 和 制表符
-    [[:space:]] #空格字符: 制表符、换行符、垂直制表符、换页符、回车符和空格键符
-    ```
-- 说明
-    - grep命令的模式(即搜寻字符串)，可以是字符串、变量，还可以是正则表达式。如果模式中包含空格则需要单双引号包裹
-- [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
-- 常见用法
-
-    ```bash
-    grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
-    grep 'search content' *.sql # 查找已`.sql`结尾的文件
-    grep -R 'test' /data/* # 在/data目录及子目录查询
-    grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
-
-    grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
-    grep -A 5 'parttern' filename # 打印匹配行的后5行
-    grep -B 5 'parttern' filename # 打印匹配行的前5行
-
-    # 匹配或、且、非
-    grep -E 'A|B|C.*' filename # 打印匹配 A 或 B 或 C* 的数据
-    egrep 'word1|word2' 文件名
-    grep 'word1/|word2' 文件名 # /转义
-    grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
-    grep -v 'A' filename # 打印不包含 A 的数据
-
-    # -P正则
-    echo office365 | grep -P '\d+' -o # 返回 365
-
-    # 转义和字符类
-    grep '192\.168\.1\.254' /etc/hosts # 三个点字符都需要转义
-    egrep '[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}' 文件名 # 只能匹配出 IP 地址
-    grep "[[:digit:]]\{2\}[ -]\?[[:digit:]]\{10\}" 文件名 # 会匹配 91-1234567890、91 1234567890、911234567890这种格式的手机号
-
-    # 匹配如：`...51:1:CMAU0245097:H4832357:22G1:8:22:4629:2190:21:::::::1'...`
-    egrep -r "51:.*:1'" /data/BTC_RECV/RecvCN1101/21/*
-
-    # 根据日志查询最近执行命令时间(结合tail -1)
-    grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
-    # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
-    ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
-    ```
-- grep结果单独处理
-
-    ```bash
-    # 方式一
-    ps -ewo pid,etime,cmd | grep ofbiz.jar | grep -v grep | while read -r pid etime cmd ; do echo "===>$pid $cmd $etime"; done;
-
-    # 方式二
-    while read -r proc; do
-        echo '====>' $proc
-    done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
-    ```
-
-### sed行编辑器
-
-- 文本处理，默认不编辑原文件，仅对模式空间中的数据做处理；而后处理结束后将模式空间打印至屏幕
-- 语法 `sed [options] '内部命令表达式' file ...`
-- 参数
-    - `-n` 静默模式，不再默认显示模式空间中的内容
-	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
-	- `-e script -e script` 可以同时执行多个脚本
-	- `-f` 如`sed -f /path/to/scripts file`
-	- `-r` 表示使用扩展正则表达式
-- 内部命令
-    - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
-    - 前缀修饰符
-        - `s` 查找并替换，**`s/pattern/string/修饰符`**
-            - 默认只替换每行中第一次被模式匹配到的字符串；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
-            - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
-            - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
-    - 后缀修饰符
-        - `g` 全局查找
-        - `i` 忽略字符大小写
-        - `p` 显示符合条件的行
-        - `d` 删除符合条件的行
-    - `a \string`: 在指定的行后面追加新行，内容为string
-		- `\n` 可以用于换行
-	- `i \string`: 在指定的行前面添加新行，内容为string
-	- `r <file>` 将指定的文件的内容添加至符合条件的行处
-	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
-	- `&` 引用模式匹配整个串
-- 示例
-
-    ```bash
-    # （未加-i参数不会真正修改数据）修改当前目录极其子目录下所有文件，将zhangsan改成lisi。grep -rl 递归显示文件名
-    sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
-    # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
-    sed -i -e '/^$/d' /home/smalle/test.txt
-    # 删除/etc/grub.conf文件中行首的空白符
-    sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
-    # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
-    sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
-    # 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
-    sed '/^$/d' /etc/inittab
-    
-    # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
-    echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
-
-    # 查找一段时间的日志（此处查询2020-12-03 02到2020-12-03 04的日志，此处使用*表示模糊查询）。注意：开始时间和结束时间必须要是日志里面有的，否则查询不到结果
-    cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
-    ```
-    - [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
-
-### awk文本分析工具
-
-- 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格/tab为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
-- 语法
-
-    ```bash
-    awk '[BEGIN {}] {pattern + action} [END {}]' {filenames}
-    # pattern 表示AWK在文件中查找的内容。pattern就是要表示的正则表达式，用斜杠(`'/xxx/'`)括起来
-    # action 是在找到匹配内容时所执行的一系列命令(awk主命令)
-    # 花括号(`{}`)不需要在程序中始终出现，但它们用于根据特定的模式对一系列指令进行分组
-
-    ## awk --help
-    Usage: awk [POSIX or GNU style options] -f progfile [--] file ...
-    Usage: awk [POSIX or GNU style options] [--] 'program' file ...
-    POSIX options:		GNU long options: (standard)
-    -f progfile		--file=progfile         # 指定程序文件
-    -F fs			--field-separator=fs    # 指定域分割符(可使用正则，如 `-F '[\t \\\\]'`)
-    -v var=val		--assign=var=val
-    # ...
-    ```
-- awk中同时提供了`print`和`printf`两种打印输出的函数
-    - `print` 参数可以是变量、数值或者字符串。**字符串必须用双引号引用，参数用逗号分隔。**如果没有逗号，参数就串联在一起而无法区分。
-    - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时
-- 案例
-
-```bash
-# 显示最近登录的5个帐号。读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
-last -n 5 | awk '{print $1}'
-last -n 5 | awk '{print $1,$2}' # print多个变量用逗号分割，显示默认带有空格
-
-# 只是显示/etc/passwd中的账户。`-F`指定域分隔符为`:`，默认是空格/tab
-cat /etc/passwd | awk -F ':' '{print $1}'
-
-# 查找root开头的用户记录
-awk -F : '/^root/' /etc/passwd
-
-# 杀掉所有的java进程
-ps -ef | grep java | grep -v grep | awk '{print $2}' | xargs kill -9
-```
-
-#### 变量
-
-- `$0`变量是指整条记录，`$1`表示当前行的第一个域，`$2`表示当前行的第二个域，以此类推
-- awk内置变量：awk有许多内置变量用来设置环境信息，这些变量可以被改变，下面给出了最常用的一些变量
-    - `ARGC` 命令行参数个数
-    - `ARGV` 命令行参数排列
-    - `ENVIRON` 支持队列中系统环境变量的使用
-    - `FILENAME` awk浏览的文件名
-    - `FNR` 浏览文件的记录数
-    - `FS` 设置输入域分隔符，等价于命令行-F选项
-    - `NF` 浏览记录的域的个数
-    - `NR` 已读的记录数
-    - `OFS` 输出域分隔符
-    - `ORS` 输出记录分隔符(`\n`)
-    - `RS` 控制记录分隔符
-- 自定义变量
-    - 下面统计/etc/passwd的账户人数
-
-        ```bash
-        awk '{count++;print $0;} END {print "user count is ", count}' /etc/passwd
-        # 打印如下
-        # root:x:0:0:root:/root:/bin/bash
-        # ......
-        # user count is 40
-        ```
-        - count是自定义变量。之前的action{}里都是只有一个print，其实print只是一个语句，而action{}可以有多个语句，以;号隔开。这里没有初始化count，虽然默认是0，但是妥当的做法还是初始化为0
-- awk与shell之间的变量传递方法
-    - awk中使用shell中的变量
-
-        ```bash
-        # 获取普通变量(第一个双引号为了转义单引号，第二个双引号为了转义变量中的空格)
-        var="hello world" && awk 'BEGIN{print "'"$var"'"}'
-        # 把系统变量var传递给了awk变量awk_var
-        var="hello world" && awk -v awk_var="$var" 'BEGIN {print awk_var}'
-
-        # 获取环境变量(ENVIRON)
-        var="hello world" && export var && awk 'BEGIN{print ENVIRON["var"]}'
-        ```
-    - awk向shell变量传递值
-
-        ```bash
-        eval $(awk 'BEGIN{print "var1='"'str 1'"';var2='"'str 2'"'"}') && echo "var1=$var1 ----- var2=$var2" # var1=str1 ----- var2=str2
-        # 读取temp_file中数据设置到变量中(temp_file中输入`hello world:test`，如果文件中有多行，则最后一行会覆盖原来的赋值)
-        eval $(awk '{printf("var3=%s; var4=%s;",$1,$2)}' temp_file) && echo "var3=$var3 ----- var4=$var4" # var3=hello ----- var4=world:test
-        ```
-
-#### BEGIN/END
-
-- 提供`BEGIN/END`语句(必须大写)
-    - BEGIN和END，这两者都可用于pattern中，**提供BEGIN的作用是扫描输入之前赋予程序初始状态，END是扫描输入结束且在程序结束之后执行一些扫尾工作**。任何在BEGIN之后列出的操作(紧接BEGIN后的{}内)将在awk开始扫描输入之前执行，而END之后列出的操作将在扫描完全部的输入之后执行。通常使用BEGIN来显示变量和预置(初始化)变量，使用END来输出最终结果。
-    - 统计某个文件夹下的文件占用的字节数，过滤4096大小的文件(一般都是文件夹):
-
-        ```bash
-        ls -l | awk 'BEGIN {size=0;print "[start]size is", size} {if($5!=4096){size=size+$5;}} END {print "[end]size is", size/1024/1024, "M"}'
-        # 打印如下
-        # [start]size is 0
-        # [end]size is 30038.8 M
-        ```
-- 支持if判断、循环等语句
-
-### date
-
-```bash
-date -d 'yesterday' # 获取昨天。或 date -d 'last day' 
-date -d 'tomorrow' # 获取明天。或 date -d 'next day' 
-date -d 'last month' # 获取上个月 
-date -d 'next month' # 获取下个月 
-date -d 'last year' # 获取上一年 
-date -d 'next year' # 获取下一年 
-date -d '1 minute ago' # 获取1分钟前
-date -d '3 year ago' # 三年前 
-date -d '-5 year ago' # 五年后 
-date -d '-2 day ago' # 两天后 
-date -d '1 month ago' # 一个月前 
-
-time=$(date "+%Y-%m-%d %H:%M:%S")
-```
-
-### find
-
-- 语法
-
-```bash
-# default path is the current directory; default expression is -print
-# expression由options、tests、actions组成
-find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...] [expression]
-
-## expression#options
--mindepth n # 目录进入最小深度
-    # eg: -mindepth 1 # 意味着处理所有的文件，除了命令行参数指定的目录中的文件
--maxdepth n # 目录进入最大深度
-    # eg: -maxdepth 0 # 只处理当前目录的文件(.)
-
-## expression#tests
--name <patten> # 基本的文件名与shell模式pattern相匹配。**正则建议使用""或''包裹**
-    # eg: -name "*.log" # `.log`开头的文件。如果不用双引号包裹，*可能展开为当前目录下所有的文件；或者使用\转义
--type <c> # 文件类型，c取值
-    f # 普通文件(regular file)
-    d # 目录(directory)
-    s # socket
-
--atime <n> # 针对文件的访问时间，判断 "其访问时间" < "当前时间-(n*24小时)" 是否为真。对应stat命令获取的 Access 时间，读取文件或者执行文件时更改的
--mtime <n> # 针对文件的修改时间(天)。对应stat命令获取的 Modify 时间，是在写入文件时随文件内容的更改而更改的
-    # eg: -mtime +30 # 30天之前的修改过的文件
-    # eg：-mtime -30 # 过去30天之内修改过的文件
--ctime <n> # 针对文件的改变时间(天)。对应stat命令获取的 Change 时间，是在写入文件，更改所有者，权限或链接设置是随inode(存放文件基本信息)内容的更改而更改的
--amin <n> # 类似-atime，只不过此参数是基于分钟计算
--mmin <n>
--cmin <n>
--newerXY <reference> # 比较文件的时间戳，其中XY的取值为：a(访问时间)、c(改变时间,移动目录时间也会变)、m(修改时间)、t(绝对时间)、B(文件引用的出现时间)；参数值时间必须精确到天或者秒，且为前闭后开区间
-    # find . -type f -newermt '2020-01-17 13:40' ! -newermt '2020-01-17 13:45' -exec cp {} ./bak \; # 将当前目录下 [2020-01-17 13:40,2020-01-17 13:45) 时间段内修改或生成的文件拷贝到bak目录下。同理：-newerat、-newerct
-
-## expression#actions
--exec command # 执行命令。命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\`来escape，或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
-    # eg: -exec cp {} {}.bak \; # 复制查询到的文件
-```
-- 示例
-
-```bash
-sudo find / -name nginx.conf # 全局查询文件位置(查看`nginx.conf`文件所在位置)
-find /home/smalle/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/smalle/s_*/in/* -type f
-find path_A -name '*AAA*' -exec mv -t path_B {} + # 批量移动，下同
-find path_A -name "*AAA*" -print0 | xargs -0 -I {} mv {} path_B
-find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数
-
-find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
-find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644
-
-find -name '*.TXT' -type f -mtime +15 -exec mv {} ./bak \; # 将15天前修改过的文件移动到备份目录
-# **将当前目录下的去年修改过的文件移动到备份目录(如: ./backup/backup_log_2020)**. (1) 需先创建好备份目录 (2) 时间精确到秒且为前闭后开区间
-find . -name '*.log' -newermt "$(($(date +%Y)-1))-01-01 00:00:00" ! -newermt "$(($(date +%Y)))-01-01 00:00:00" | xargs -i mv {} ./backup/backup_log_$(($(date +%Y)-1))
-
-find -type f | xargs # xargs会在一行中打印出所有值
-for item in $(find -type f | xargs) ; do # 循环打印每个文件
-    file $item
-done
-```
-
-### sh
-
-```bash
-sh [options] [file] # 同 bash，从标准输入中读取命令，命令在子shell中执行
-    -c # 命令从-c后的字符串读取
-    -s # 后面跟的参数，从第一个非 - 开头的参数，就被赋值为子shell的$1,$2,$3....
-        # echo 'ls $2' | sh -s '' '-l' # 类似 ls -l
-```
-
-### xrags
-
-- xargs 可以将管道或标准输入(stdin)数据转换成命令行参数，也能够从文件的输出中读取数据。它能够捕获一个命令的输出，然后传递给另外一个命令
-- xargs 默认的命令是 echo
-- xargs 也可以将单行或多行文本输入转换为其他格式，例如多行变单行，单行变多行
-- 示例
-
-```bash
--n<num> # 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。eg：`cat test.txt | xargs` 多行转单行
--i/-I # 这得看linux支持了，将xargs的每项名称，一般是一行一行赋值给 {}
--d delim # 分隔符，默认的xargs分隔符是回车，argument的分隔符是空格，这里修改的是xargs的分隔符
-
-## 示例
-cat test.txt | xargs # 多行转单行
-cat test.txt | xargs -n3 # 多行输出，每此使用3个参数
-echo "nameXnameXnameXname" | xargs -dX # 定义分割符：name name name name
-ls *.jpg | xargs -n1 -I {} cp {} /data/images # 复制所有图片文件到 /data/images 目录下
-
-# 配合自定义函数使用
-echo 'echo $*' > my.sh
-cat > arg.txt << EOF
-aaa
-bbb
-EOF
-cat arg.txt | xargs -I {} ./my.sh {} ...
-# 打印
-aaa ...
-bbb ...
-```
-
-### logger
-
-- `rsyslog`是一个C/S架构的服务，可监听于某套接字，帮其它主机记录日志信息。rsyslog是CentOS 6以后的系统使用的日志系统，之前为syslog
-- `logger` 是用于往系统中写入日志，他提供一个shell命令接口到rsyslog系统模块。默认记录到系统日志文件`/var/log/messages`
-- Linux系统日志信息分为两个部分内核信息和设备信息。共用配置文件`/etc/rsyslog.conf`(CentOS 6之前为`/etc/syslog.conf`)
-    - 内核信息 -> klogd -> syslogd -> /var/log/messages等文件
-    - 设备信息 -> syslogd -> /var/log/dmesg、/var/log/messages等文件
-        - 设备可以使用自定义的设备local0-local7，使用自定义的设备照样可以将设备信息(日志)发送给rsyslog
-- 查看linux相关日志
-    - `/var/log/messages` 查看系统日志
-    - `dmesg` 查看设备日志，如引导时的日志
-    - `last` 查看登录成功记录
-    - `lastb -10` 查看最近10条登录失败记录
-    - `history` 执行命令历史
-- CentOS 7 修改日志时间戳格式 [^8]
-
-```bash
-# Jul 14 13:30:01 localhost systemd: Starting Session 38 of user root.
-# 2018-07-14 13:32:57 desktop0 systemd: Starting System Logging Service...
-
-## 修改 /etc/rsyslog.conf 
-# Use default timestamp format
-#$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat # 这行是原来的将它注释，添加下面两行
-$template CustomFormat,"%$NOW% %TIMESTAMP:8:15% %HOSTNAME% %syslogtag% %msg%\n"
-$ActionFileDefaultTemplate CustomFormat
-
-## 重启
-systemctl restart rsyslog.service
-```
-- logger使用案例 [^6]
-
-```bash
-## 简单使用
-# 默认记录到系统日志文件 /var/log/messages
-logger hello world  # 记录如 `Dec  5 15:34:58 localhost root: hello world`
-# -i 记录进程id
-logger -i test1...  # `Dec  5 15:34:58 localhost root[23162]: test1`
-# -s 输出标准错误(命令行会显示此错误)，并且将信息打印到系统日志中
-logger -i -s test2  # `Dec  5 15:34:58 localhost root[23162]: test2`
-# -t 日志标记，默认是root
-logger -i -t test test3 # `Dec  5 15:34:58 localhost test[23162]: test2`
-# -p 指定输入消息日志级别，优先级可以是数字或者指定为 "facility(设施、信道).level(优先级)" 的格式(默认级别为 "user.notice")，日志会根据配置文件/etc/rsyslog.conf将日志输出到对应日志文件，默认为/var/log/messages
-# 固定的 facility 和 level 的类型参考：https://www.cnblogs.com/xingmuxin/p/8656498.html
-logger -it test -p syslog.info "test4..." # `Dec  5 15:34:58 localhost test[23162]: test4...`
-
-## 基于日志级别自定义日志输出文件
-# 修改日志配置文件。增加配置`local1.info /var/log/local1-info.log`
-vi /etc/rsyslog.conf
-systemctl restart rsyslog # 重启使配置文件生效
-logger -it test -p local1.info "test5..." # 此时在 /var/log/local1-info.log 中可看到 `Dec  5 15:34:58 localhost test[23162]: test5...`
-```
-- `/etc/rsyslog.conf` 配置说明
-    - 会自动根据日志文件大小切割日志，生成 xxx-YYYYMMDD 的日志历史
-    - 修改日志文件后需要重启服务 `systemctl restart rsyslog` (重启后新配置生效会有一点延迟)
-
-```bash
-#### RULES ####
-# 如果日志级别为 local1.info，则将日志输出到文件 /var/log/local1-info.log
-local1.info /var/log/local1-info.log
-
-# ### begin forwarding rule ###
-# 可配置同步日志到远程机器
-```
-
-#### 记录命令执行历史到日志文件
-
-```bash
-# 注：此脚本无法记录清除日志的的命令`history -c`
-# root用户执行
-su - root
-source <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/conf-recode-cmd-history.sh)
-# 查看日志
-tail -f /var/log/local1-info.log
-
-# 日志格式如下
-2019-01-01 07:55:42 localhost [pybiz_monitor][1594]: [pybiz_monitor.run_script][success]程序启动成功 # python监控脚本日志
-2019-01-01 15:17:20 localhost cmd-hostory[root][14479]: [/root]  3001  2020-12-15 15:17:20 10.10.10.10 root cd /home # 执行命令日志
-```
-
-### dd 磁盘读写测试
-
-- 磁盘性能
-    - 固态硬盘，在SATA 2.0接口上平均读取速度在`225MB/S`，平均写入速度在`71MB/S`。在SATA 3.0接口上，平均读取速度骤然提升至`311MB/S`
-
-- 用于复制文件并对原文件的内容进行转换和格式化处理
-    
-```bash
-## 参数说明
-if      # 代表输入文件。如果不指定if，默认就会从stdin中读取输入
-of      # 代表输出文件。如果不指定of，默认就会将stdout作为默认输出
-bs      # 代表字节为单位的块大小，如64k
-count   # 代表被复制的块数，如4k/4000
-# 大多数文件系统的默认I/O操作都是缓存I/O，数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。dd命令不指定oflag或conv参数时默认使用缓存I/O
-oflag=direct    # 指定采用直接I/O操作。直接I/O的优点是通过减少操作系统内核缓冲区和应用程序地址空间的数据拷贝次数，降低了对文件读取和写入时所带来的CPU的使用以及内存带宽的占用
-oflag=dsync     # dd在执行时每次都会进行同步写入操作，可能是最慢的一种方式了，因为基本上没有用到写缓存(write cache)。每次读取64k后就要先把这64k写入磁盘(每次都同步)，然后再读取下面这64k，一共重复4k次(4000)。可能听到磁盘啪啪的响，比较伤磁盘
-oflag=syns      # 与上者dsyns类似，但同时也对元数据（描述一个文件特征的系统数据，如访问权限、文件拥有者及文件数据块的分布信息等。）生效，dd在执行时每次都会进行数据和元数据的同步写入操作
-conv=fdatasync  # dd命令执行到最后会执行一次"同步(sync)"操作，这时候得到的速度是读取这286M数据到内存并写入到磁盘上所需的时间
-conv=fsync      # 与上者fdatasync类似，但同时元数据也一同写入
-
-/dev/null # 伪设备，回收站，写该文件不会产生IO
-/dev/zero # 伪设备，会产生空字符流，但不会产生IO
-```
-- `dd if=/dev/zero of=test bs=64k count=4k oflag=dsync` 在当前目录创建文件test，并每次以64k的大小往文件中读写数据，总共执行4000次，最终产生test文件大小为268M。以此测试磁盘操作速度
-- 测试案例
-
-```bash
-# dd if=/dev/zero of=test bs=64k count=4k oflag=dsync # 测试结果如下
-268435456 bytes (268 MB) copied, 26.3299 s, 10.2 MB/s               # 本地 SSD 磁盘直接操作
-268435456 bytes (268 MB) copied, 261.475 s, 1.0 MB/s                # 本地 HDD 磁盘直接操作
-268435456 bytes (268 MB) copied, 14.8903 s, 18.0 MB/s               # 阿里云 SSD 磁盘直接操作
-268435456 bytes (268 MB, 256 MiB) copied, 1637.61 s, 164 kB/s       # 本地ceph集群(1 ssd + 2 hdd)
-268435456 bytes (268 MB, 256 MiB) copied, 90.0906 s, 3.0 MB/s       # 本地ceph集群(3 ssd)
-```
-
-### sgdisk 磁盘操作工具
-
-```bash
-# 安装
-yum install -y gdisk
-
-# 查看所有GPT分区
-sgdisk -p /dev/sdb
-# 查看第一个分区
-sgdisk -i 1 /dev/sdb
-# 创建了一个不指定大小、不指定分区号的分区
-sgdisk -n 0:0:0 /dev/sdb # -n 分区号:起始地址:结束地址
-# 创建分区1，从默认起始地址开始的10G的分区
-sgdisk -n 1:0:+10G /dev/sdb
-# 将分区方案写入文件进行备份
-sgdisk --backup=/root/sdb.partitiontable /dev/sdb
-# 删除第一分区
-sgdisk -d 1 /dev/sdb
-# 删除所有分区(提示：GPT data structures destroyed!)
-sgdisk --zap-all --clear --mbrtogpt /dev/sdb
-```
-
-### 其他命令
-
-- 帮助
-    - `ls --help` 查看ls的命令说明
-    - `curl -h` 查看curl命令帮助
-    - `help ulimit` 查看ulimit命令帮助
-    - `info ls`
-    - `man ls` 查看ls的详细命令说明
-        - `yum install -y man man-pages`
-        - 安装中文man手册
-            
-            ```bash
-            wget https://src.fedoraproject.org/repo/pkgs/man-pages-zh-CN/manpages-zh-1.5.2.tar.bz2/cab232c7bb49b214c2f7ee44f7f35900/manpages-zh-1.5.2.tar.bz2
-            
-            yum install bzip2
-            tar jxvf  manpages-zh-1.5.2.tar.bz2
-
-            cd manpages-zh-1.5.2
-            sudo ./configure --disable-zhtw #默认安装 
-            sudo make && sudo make install
-
-            vi ~/.bash_profile
-            alias cman='man -M /usr/local/share/man/zh_CN' # 为了不抵消man，创建cman命令
-            source ~/.bash_profile
-            ```
-- 系统
-    - `date` 显示当前时间; `cal` 显示日历
-    - `history` 查看历史执行命令
-        - 默认记录1000条命令，编号越大表示越近执行。用户所键入的命令都会记录在用户家目录下的`.bash_history`文件中
-            - `!n` 再次执行此命令(n 是命令编号)
-            - `!$` 它用于指代上次键入的参数
-            - `!!` 可以指代上次键入的命令
-        - `history -c` 清除历史。其他人登录也将看不到，历史中不会显示清除的命令
-    - `last` 查看最近登录用户
-    - `w` 查看计算机运行时间，当前登录用户信息
-    - `wall <msg>` 通知所有人登录人一些信息 
-- 程序
-    - `sudo -H -u www bash -c 'nohup /home/web/start /home/web/conf.json &'` 调用www用户运行指定命令(其他用户或系统自动执行此命令)
-- 技巧
-    - `clear` 清屏
-    - `yes y` 一直输出字符串y
-        - `yes y | cp -i new old` `cp` 用文件覆盖就文件(`-i`存在old文件需进行提示，否则无需提示；`-f`始终不进行提示)，而此时前面会一致输出`y`，相当于自动输入了y进行确认cp操作
-    - `\` 回车后可将命令分多行运行(后面不能带空格)
-
 ## 运维&工具
 
 ### 系统信息查询
@@ -1531,12 +965,12 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
 - `wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
     - `wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com` wget爬取网站
 - `netstat -lnp` 查看端口占用情况(端口、PID)
-    - `ss -ant` CentOS 7 查看所有监听端口
-    - root运行：`sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
+    - `yum install net-tools` 安装net-tools即可使用netstat、ifconfig等命令
+    - `sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
     - `netstat -tnl` 查看开放的端口
     - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
-    - **`yum install net-tools`** 安装net-tools即可使用netstat、ifconfig等命令
-    - mac使用`lsof -i -P`
+    - `lsof -i -P | grep 8800` mac查看端口和pid方法
+    - `ss -ant` CentOS 7 查看所有监听端口
 - `ss -lnt` 查看端口
 
 ### 查看进程信息
@@ -1804,6 +1238,624 @@ vm.dirty_writeback_centisecs = 500
 - 数字小键盘输入，如果不设置的话，会显示乱码：连接配置 - 终端 - VT模式 - 设置为普通
 - 复制屏幕内容到记事本：鼠标右键 - 选择"To Notepad"(记事本)
 - 快速切换打开的Tab：快捷键：Alt+1~9 或者Shift+Tab
+
+## linux命令
+
+- [man-pages](https://man7.org/linux/man-pages/dir_all_alphabetic.html)、[Linux命令大全](https://man.linuxde.net/)
+- linux三剑客grep、sed、awk语法
+
+### grep 过滤器
+
+- 语法
+
+    ```bash
+    grep [-acinv] [--color=auto] '搜寻字符串' filename
+    # filename不能缺失
+
+    # 选项与参数：
+    # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
+    # -R/-r 递归查询子目录
+    # -i 忽略大小写的不同，所以大小写视为相同
+    # -l 显示文件名
+    # -E 以 egrep 模式匹配，开启扩展（Extend）的正则表达式。egerp更加规范，`egrep -o "oldboy|hello" h.txt` 仅仅输出 oldboy 和 hello
+    # -P 应用正则表达式
+    # -n 顺便输出行号
+    # -c 计算找到 '搜寻字符串' 的次数
+    # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
+    # -a 将 binary 文件以 text 文件的方式搜寻数据
+    # -A <n> 打印匹配行的后几行
+    # -B <n> 打印匹配行的前几行
+    ```
+- grep的规则表达式（正则一定要转义）
+
+    ```bash
+    \    # 转义符
+    ^    #锚定行的开始 如：'^grep'匹配所有以grep开头的行。    
+    $    #锚定行的结束 如：'grep$'匹配所有以grep结尾的行。 
+    .    #匹配一个非换行符的字符 如：'gr.p'匹配gr后接一个任意字符，然后是p。
+    *    #匹配零个或多个先前字符 如：'*grep'匹配所有一个或多个空格后紧跟grep的行。  
+    .*   #一起用代表任意字符。   
+    []   #匹配一个指定范围内的字符，如'[Gg]rep'匹配Grep和grep。    
+    [^]  #匹配一个不在指定范围内的字符
+    \(..\)  #标记匹配字符，如'\(love\)'，love被标记为1。    
+    \<      #锚定单词的开始，如:'\<grep'匹配包含以grep开头的单词的行。    
+    \>      #锚定单词的结束，如'grep\>'匹配包含以grep结尾的单词的行。    
+    x\{m\}  #重复字符x，m次，如：'0\{5\}'匹配包含5个o的行。    
+    x\{m,\} #重复字符x,至少m次，如：'o\{5,\}'匹配至少有5个o的行。    
+    x\{m,n\}#重复字符x，至少m次，不多于n次，如：'o\{5,10\}'匹配5--10个o的行。   
+    \w    #匹配文字和数字字符，也就是[A-Za-z0-9]，
+    \W    #\w的反置形式，匹配一个或多个非单词字符，如点号句号等。   
+    \b    #单词锁定符，如: '\bgrep\b'只匹配grep。 
+
+    # 字符类
+    [[:digit:]] #数字
+    [[:lower:]] #小写字母
+    [[:upper:]] #大写字母
+    [[:alpha:]] #字母
+    [[:alnum:]] #字母数字
+    [[:blank:]] #空字符: 空格键符 和 制表符
+    [[:space:]] #空格字符: 制表符、换行符、垂直制表符、换页符、回车符和空格键符
+    ```
+- 说明
+    - grep命令的模式(即搜寻字符串)，可以是字符串、变量，还可以是正则表达式。如果模式中包含空格则需要单双引号包裹
+- [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
+- 常见用法
+
+    ```bash
+    grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
+    grep 'search content' *.sql # 查找已`.sql`结尾的文件
+    grep -R 'test' /data/* # 在/data目录及子目录查询
+    grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
+
+    grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
+    grep -A 5 'parttern' filename # 打印匹配行的后5行
+    grep -B 5 'parttern' filename # 打印匹配行的前5行
+
+    # 匹配或、且、非
+    grep -E 'A|B|C.*' filename # 打印匹配 A 或 B 或 C* 的数据
+    egrep 'word1|word2' 文件名
+    grep 'word1/|word2' 文件名 # /转义
+    grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
+    grep -v 'A' filename # 打印不包含 A 的数据
+
+    # -P正则
+    echo office365 | grep -P '\d+' -o # 返回 365
+
+    # 转义和字符类
+    grep '192\.168\.1\.254' /etc/hosts # 三个点字符都需要转义
+    egrep '[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}' 文件名 # 只能匹配出 IP 地址
+    grep "[[:digit:]]\{2\}[ -]\?[[:digit:]]\{10\}" 文件名 # 会匹配 91-1234567890、91 1234567890、911234567890这种格式的手机号
+
+    # 匹配如：`...51:1:CMAU0245097:H4832357:22G1:8:22:4629:2190:21:::::::1'...`
+    egrep -r "51:.*:1'" /data/BTC_RECV/RecvCN1101/21/*
+
+    # 根据日志查询最近执行命令时间(结合tail -1)
+    grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
+    # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
+    ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
+    ```
+- grep结果单独处理
+
+    ```bash
+    # 方式一
+    ps -ewo pid,etime,cmd | grep ofbiz.jar | grep -v grep | while read -r pid etime cmd ; do echo "===>$pid $cmd $etime"; done;
+
+    # 方式二
+    while read -r proc; do
+        echo '====>' $proc
+    done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
+    ```
+
+### sed 行编辑器
+
+- `sed` 行编辑器，默认不编辑原文件，仅对模式空间中的数据做处理；而后处理结束后将模式空间打印至屏幕
+- 语法 **`sed [options] '内部命令表达式' file ...`**
+    - "sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`" 修改(未加-i参数不会真正修改数据)当前目录极其子目录下所有文件，将zhangsan改成lisi。grep -rl 递归显示文件名
+- 参数
+    - `-n` 静默模式，不再默认显示模式空间中的内容
+	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
+	- `-e script -e script` 可以同时执行多个脚本
+	- `-f` 如`sed -f /path/to/scripts file`
+	- `-r` 表示使用扩展正则表达式
+- 内部命令
+    - 内部命令表达式如果含有变量可以使用双引号，单引号无法解析变量
+    - 前缀修饰符
+        - `s` 查找并替换，**`s/pattern/string/修饰符`**
+            - 默认只替换每行中第一次被模式匹配到的字符串；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
+            - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
+            - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
+    - 后缀修饰符
+        - `g` 全局查找
+        - `i` 忽略字符大小写
+        - `p` 显示符合条件的行
+        - `d` 删除符合条件的行
+    - `a \string`: 在指定的行后面追加新行，内容为string
+		- `\n` 可以用于换行
+	- `i \string`: 在指定的行前面添加新行，内容为string
+	- `r <file>` 将指定的文件的内容添加至符合条件的行处
+	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
+	- `&` 引用模式匹配整个串
+- 示例
+
+```bash
+# 修改(未加-i参数不会真正修改数据)当前目录极其子目录下所有文件，将zhangsan改成lisi。grep -rl 递归显示文件名
+sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
+# 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
+sed -i -e '/^$/d' /home/smalle/test.txt
+# 删除/etc/grub.conf文件中行首的空白符
+sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
+# 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
+sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
+# 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
+sed '/^$/d' /etc/inittab
+
+# s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
+echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365
+
+# 查找一段时间的日志（此处查询2020-12-03 02到2020-12-03 04的日志，此处使用*表示模糊查询）。注意：开始时间和结束时间必须要是日志里面有的，否则查询不到结果
+cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
+```
+- [其他示例](https://github.com/lutaoact/script/blob/master/sed%E5%8D%95%E8%A1%8C%E8%84%9A%E6%9C%AC.txt)
+
+### awk 文本分析工具
+
+- 相对于grep的查找，sed的编辑，awk在其对数据分析并生成报告时，显得尤为强大。**简单来说awk就是把文件逐行的读入，以空格/tab为默认分隔符将每行切片，切开的部分再进行各种分析处理(每一行都会执行一次awk主命令)**
+- 简单案例
+
+```bash
+# 显示最近登录的5个帐号。读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
+last -n 5 | awk '{print $1}'
+last -n 5 | awk '{print $1,$2}' # print多个变量用逗号分割，显示默认带有空格
+
+# 只是显示/etc/passwd中的账户。`-F`指定域分隔符为`:`，默认是空格/tab
+cat /etc/passwd | awk -F ':' '{print $1}'
+
+# 查找root开头的用户记录
+awk -F : '/^root/' /etc/passwd
+
+# 杀掉所有的java进程
+ps -ef | grep java | grep -v grep | awk '{print $2}' | xargs kill -9
+```
+- 语法
+
+    ```bash
+    awk '[BEGIN {}] {pattern + action} [END {}]' {filenames}
+    # pattern 表示AWK在文件中查找的内容。pattern就是要表示的正则表达式，用斜杠(`'/xxx/'`)括起来
+    # action 是在找到匹配内容时所执行的一系列命令(awk主命令)
+    # 花括号(`{}`)不需要在程序中始终出现，但它们用于根据特定的模式对一系列指令进行分组
+
+    ## awk --help
+    Usage: awk [POSIX or GNU style options] -f progfile [--] file ...
+    Usage: awk [POSIX or GNU style options] [--] 'program' file ...
+    POSIX options:		GNU long options: (standard)
+    -f progfile		--file=progfile         # 指定程序文件
+    -F fs			--field-separator=fs    # 指定域分割符(可使用正则，如 `-F '[\t \\\\]'`)
+    -v var=val		--assign=var=val
+    # ...
+    ```
+- awk中同时提供了`print`和`printf`两种打印输出的函数
+    - `print` 参数可以是变量、数值或者字符串。**字符串必须用双引号引用，参数用逗号分隔。**如果没有逗号，参数就串联在一起而无法区分。
+    - `printf` 其用法和c语言中printf基本相似，可以格式化字符串，输出复杂时
+- awk相关变量
+    - `$0`变量是指整条记录，`$1`表示当前行的第一个域，`$2`表示当前行的第二个域，以此类推
+    - awk内置变量：awk有许多内置变量用来设置环境信息，这些变量可以被改变，下面给出了最常用的一些变量
+        - `ARGC` 命令行参数个数
+        - `ARGV` 命令行参数排列
+        - `ENVIRON` 支持队列中系统环境变量的使用
+        - `FILENAME` awk浏览的文件名
+        - `FNR` 浏览文件的记录数
+        - `FS` 设置输入域分隔符，等价于命令行-F选项
+        - `NF` 浏览记录的域的个数
+        - `NR` 已读的记录数
+        - `OFS` 输出域分隔符
+        - `ORS` 输出记录分隔符(`\n`)
+        - `RS` 控制记录分隔符
+    - 自定义变量
+        - 下面统计/etc/passwd的账户人数
+
+            ```bash
+            awk '{count++;print $0;} END {print "user count is ", count}' /etc/passwd
+            # 打印如下
+            # root:x:0:0:root:/root:/bin/bash
+            # ......
+            # user count is 40
+            ```
+            - count是自定义变量。之前的action{}里都是只有一个print，其实print只是一个语句，而action{}可以有多个语句，以;号隔开。这里没有初始化count，虽然默认是0，但是妥当的做法还是初始化为0
+    - awk与shell之间的变量传递方法
+        - awk中使用shell中的变量
+
+            ```bash
+            # 获取普通变量(第一个双引号为了转义单引号，第二个双引号为了转义变量中的空格)
+            var="hello world" && awk 'BEGIN{print "'"$var"'"}'
+            # 把系统变量var传递给了awk变量awk_var
+            var="hello world" && awk -v awk_var="$var" 'BEGIN {print awk_var}'
+
+            # 获取环境变量(ENVIRON)
+            var="hello world" && export var && awk 'BEGIN{print ENVIRON["var"]}'
+            ```
+        - awk向shell变量传递值
+
+            ```bash
+            eval $(awk 'BEGIN{print "var1='"'str 1'"';var2='"'str 2'"'"}') && echo "var1=$var1 ----- var2=$var2" # var1=str1 ----- var2=str2
+            # 读取temp_file中数据设置到变量中(temp_file中输入`hello world:test`，如果文件中有多行，则最后一行会覆盖原来的赋值)
+            eval $(awk '{printf("var3=%s; var4=%s;",$1,$2)}' temp_file) && echo "var3=$var3 ----- var4=$var4" # var3=hello ----- var4=world:test
+            ```
+- 支持`BEGIN/END`语句(必须大写)
+    - BEGIN和END，这两者都可用于pattern中，**提供BEGIN的作用是扫描输入之前赋予程序初始状态，END是扫描输入结束且在程序结束之后执行一些扫尾工作**。任何在BEGIN之后列出的操作(紧接BEGIN后的{}内)将在awk开始扫描输入之前执行，而END之后列出的操作将在扫描完全部的输入之后执行。通常使用BEGIN来显示变量和预置(初始化)变量，使用END来输出最终结果。
+    - 统计某个文件夹下的文件占用的字节数，过滤4096大小的文件(一般都是文件夹):
+
+        ```bash
+        ls -l | awk 'BEGIN {size=0;print "[start]size is", size} {if($5!=4096){size=size+$5;}} END {print "[end]size is", size/1024/1024, "M"}'
+        # 打印如下
+        # [start]size is 0
+        # [end]size is 30038.8 M
+        ```
+- 支持if判断、循环等语句
+
+### cut 文本剪切
+
+- 参数说明
+
+```bash
+# 如果不指定 File 参数，cut 命令将读取标准输入。必须指定 -b、-c 或 -f 标志之一
+usage: cut -b list [-n] [file ...]
+       cut -c list [file ...]
+       cut -f list [-s] [-d delim] [file ...]
+-b #以字节为单位进行分割。这些字节位置将忽略多字节字符边界，除非也指定了 -n 标志
+-n #取消分割多字节字符。仅和 -b 标志一起使用。如果字符的最后一个字节落在由 -b 标志的 List 参数指示的范围之内，该字符将被写出；否则，该字符将被排除
+-c #以字符为单位进行分割
+-d #自定义分隔符，默认(不加-d参数时)为制表符. 如：-d ' ' 分割符为空格
+-f #与-d一起使用，指定要显示的字段. 如：-f1(显示第1个字段)、-f 1,3(显示第1至3个字段)、-f 1-3
+```
+- 案例
+
+```bash
+# 显示第3个字符(此时-b也是一样的)
+who | cut -c 3
+# 显示第1个字符，和第3个字符及之后的数据
+who | cut -c 1,3- # salle   console  Dec 21 21:39
+# 如查看用户数
+wc -l /etc/passwd | cut -d ' ' -f1
+# 查看ip
+ifconfig lo0 | grep "inet " | cut -d ' ' -f 2 # 127.0.0.1
+```
+
+### sort 文本排序
+
+- 语法：**`sort [-bcdfimMnr][-o<输出文件>][-t<分隔字符>][+<起始栏位>-<结束栏位>][--help][--verison][文件][-k field1[,field2]]`**
+    - `ll | sort -n --key=5` 以第5列的字段(文件大小)进行排序
+- 参数说明
+
+```bash
+-b #忽略每行前面开始出的空格字符
+-c #检查文件是否已经按照顺序排序
+-d #排序时，处理英文字母、数字及空格字符外，忽略其他的字符
+-f #排序时忽略字符大小写
+-i #排序时，除了040至176之间的ASCII字符外，忽略其他的字符
+-m #将几个排序好的文件进行合并
+-M #将前面3个字母依照月份的缩写进行排序
+-n #数值排序
+-r #降序
+-u #排序后相同的行只显示一次
+-o<输出文件> #将排序后的结果存入指定的文件
+-t<分隔字符> #指定排序时所用的栏位分隔字符
++<起始栏位>-<结束栏位> #以指定的栏位来排序，范围由起始栏位到结束栏位的前一栏位
+--help #显示帮助
+--version #显示版本信息
+[-k field1[,field2]] #按指定的列进行排序
+```
+
+### wc 文本统计
+
+- `wc` 文本统计
+    - 统计指定文本文件的行数(`-l`)、字数(-w)、字节数(-c)
+    - `sudo docker ps | wc -l`
+
+### date
+
+```bash
+date -d 'yesterday' # 获取昨天。或 date -d 'last day' 
+date -d 'tomorrow' # 获取明天。或 date -d 'next day' 
+date -d 'last month' # 获取上个月 
+date -d 'next month' # 获取下个月 
+date -d 'last year' # 获取上一年 
+date -d 'next year' # 获取下一年 
+date -d '1 minute ago' # 获取1分钟前
+date -d '3 year ago' # 三年前 
+date -d '-5 year ago' # 五年后 
+date -d '-2 day ago' # 两天后 
+date -d '1 month ago' # 一个月前 
+
+time=$(date "+%Y-%m-%d %H:%M:%S")
+```
+
+### find
+
+- 语法
+
+```bash
+# default path is the current directory; default expression is -print
+# expression由options、tests、actions组成
+find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...] [expression]
+
+## expression#options
+-mindepth n # 目录进入最小深度
+    # eg: -mindepth 1 # 意味着处理所有的文件，除了命令行参数指定的目录中的文件
+-maxdepth n # 目录进入最大深度
+    # eg: -maxdepth 0 # 只处理当前目录的文件(.)，且目录必须为/xxx/*的格式，具体案例参考下文
+
+## expression#tests
+-path/-prune/-o
+    # "-path 过滤的文件或目录 -prune -o" 如果-prune之前的语句为真，即当前文件/目录为-path指定的文件/目录，就不再执行后面-o跟的语句了，如果没有找到则执行后面的语句。其中的"-o" 是 "-or" 的意思
+-name <patten> # 基本的文件名与shell模式pattern相匹配。**正则建议使用""或''包裹**
+    # eg: -name "*.log" # `.log`开头的文件。如果不用双引号包裹，*可能展开为当前目录下所有的文件；或者使用\转义
+-type <c> # 文件类型，c取值
+    f # 普通文件(regular file)
+    d # 目录(directory)
+    s # socket
+
+-atime <n> # 针对文件的访问时间，判断 "其访问时间" < "当前时间-(n*24小时)" 是否为真。对应stat命令获取的 Access 时间，读取文件或者执行文件时更改的
+-mtime <n> # 针对文件的修改时间(天)。对应stat命令获取的 Modify 时间，是在写入文件时随文件内容的更改而更改的
+    # eg: -mtime +30 # 30天之前的修改过的文件
+    # eg：-mtime -30 # 过去30天之内修改过的文件
+-ctime <n> # 针对文件的改变时间(天)。对应stat命令获取的 Change 时间，是在写入文件，更改所有者，权限或链接设置是随inode(存放文件基本信息)内容的更改而更改的
+-amin <n> # 类似-atime，只不过此参数是基于分钟计算
+-mmin <n>
+-cmin <n>
+-newerXY <reference> # 比较文件的时间戳，其中XY的取值为：a(访问时间)、c(改变时间,移动目录时间也会变)、m(修改时间)、t(绝对时间)、B(文件引用的出现时间)；参数值时间必须精确到天或者秒，且为前闭后开区间
+    # find . -type f -newermt '2020-01-17 13:40:00' ! -newermt '2020-01-17 13:45:00' -exec cp {} ./bak \; # 将当前目录下 [2020-01-17 13:40:00,2020-01-17 13:45:00) 时间段内修改或生成的文件拷贝到bak目录下。同理：-newerat、-newerct
+
+## expression#actions
+-exec command # 执行命令。命令的参数中，字符串`{}`将以正在处理的文件名替换；这些参数可能需要用 `\`来escape，或者用括号括住，防止它们被shell展开；其余的命令行参数将作为提供给此命令的参数，直到遇到一个由`;`组成的参数为止
+    # eg: -exec cp {} {}.bak \; # 复制查询到的文件
+```
+- 示例
+
+```bash
+sudo find / -name nginx.conf # 全局查询文件位置(查看`nginx.conf`文件所在位置)
+find /home/smalle/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/smalle/s_*/in/* -type f
+find path_A -name '*AAA*' -exec mv -t path_B {} + # 批量移动，下同
+find path_A -name "*AAA*" -print0 | xargs -0 -I {} mv {} path_B
+find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数
+
+find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
+find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644
+
+find -name '*.TXT' -type f -mtime +15 -exec mv {} ./bak \; # 将15天前修改过的文件移动到备份目录
+# **将当前目录下的去年修改过的文件移动到备份目录(如: ./backup/backup_log_2020)**. (1) 需先创建好备份目录 (2) 时间精确到秒且为前闭后开区间
+find . -name '*.log' -newermt "$(($(date +%Y)-1))-01-01 00:00:00" ! -newermt "$(($(date +%Y)))-01-01 00:00:00" | xargs -i mv {} ./backup/backup_log_$(($(date +%Y)-1))
+
+find -type f | xargs # xargs会在一行中打印出所有值
+for item in $(find -type f | xargs) ; do # 循环打印每个文件
+    file $item
+done
+
+# maxdepth注意
+find /home/test/* -maxdepth 0 -name '*.txt' # 只查询当前目录下文件(不会考虑子目录)
+find /home/test/ -maxdepth 0 -name '*.txt' # 由于目录没有*，此时获取不到文件，需设置成`-maxdepth 1`才会只查询当前目录下文件(不会考虑子目录)
+
+# 查找/data路径下除tmp目录之外的目录，并统计目录大小，以G位单位进行排序（默认为降序），并统计前10个大小的目录
+find /data/* -path /data/tmp -prune -o -maxdepth 0 -type d -exec /usr/bin/du -sh {} \;|grep '[0-9]G'|sort -rh|head -10
+```
+
+### sh
+
+```bash
+sh [options] [file] # 同 bash，从标准输入中读取命令，命令在子shell中执行
+    -c # 命令从-c后的字符串读取
+    -s # 后面跟的参数，从第一个非 - 开头的参数，就被赋值为子shell的$1,$2,$3....
+        # echo 'ls $2' | sh -s '' '-l' # 类似 ls -l
+```
+
+### xrags
+
+- xargs 可以将管道或标准输入(stdin)数据转换成命令行参数，也能够从文件的输出中读取数据。它能够捕获一个命令的输出，然后传递给另外一个命令
+- xargs 默认的命令是 echo
+- xargs 也可以将单行或多行文本输入转换为其他格式，例如多行变单行，单行变多行
+- 示例
+
+```bash
+-n<num> # 后面加次数，表示命令在执行的时候一次用的argument的个数，默认是用所有的。eg：`cat test.txt | xargs` 多行转单行
+-i/-I # 这得看linux支持了，将xargs的每项名称，一般是一行一行赋值给 {}
+-d delim # 分隔符，默认的xargs分隔符是回车，argument的分隔符是空格，这里修改的是xargs的分隔符
+
+## 示例
+cat test.txt | xargs # 多行转单行
+cat test.txt | xargs -n3 # 多行输出，每此使用3个参数
+echo "nameXnameXnameXname" | xargs -dX # 定义分割符：name name name name
+ls *.jpg | xargs -n1 -I {} cp {} /data/images # 复制所有图片文件到 /data/images 目录下(第一个{}可以省略)
+
+# 配合自定义函数使用
+echo 'echo $*' > my.sh
+cat > arg.txt << EOF
+aaa
+bbb
+EOF
+cat arg.txt | xargs -I {} ./my.sh {} ...
+# 打印
+aaa ...
+bbb ...
+```
+
+### logger
+
+- `rsyslog`是一个C/S架构的服务，可监听于某套接字，帮其它主机记录日志信息。rsyslog是CentOS 6以后的系统使用的日志系统，之前为syslog
+- `logger` 是用于往系统中写入日志，他提供一个shell命令接口到rsyslog系统模块。默认记录到系统日志文件`/var/log/messages`
+- Linux系统日志信息分为两个部分内核信息和设备信息。共用配置文件`/etc/rsyslog.conf`(CentOS 6之前为`/etc/syslog.conf`)
+    - 内核信息 -> klogd -> syslogd -> /var/log/messages等文件
+    - 设备信息 -> syslogd -> /var/log/dmesg、/var/log/messages等文件
+        - 设备可以使用自定义的设备local0-local7，使用自定义的设备照样可以将设备信息(日志)发送给rsyslog
+- 查看linux相关日志
+    - `/var/log/messages` 查看系统日志
+    - `dmesg` 查看设备日志，如引导时的日志
+    - `last` 查看登录成功记录
+    - `lastb -10` 查看最近10条登录失败记录
+    - `history` 执行命令历史
+- CentOS 7 修改日志时间戳格式 [^8]
+
+```bash
+# Jul 14 13:30:01 localhost systemd: Starting Session 38 of user root.
+# 2018-07-14 13:32:57 desktop0 systemd: Starting System Logging Service...
+
+## 修改 /etc/rsyslog.conf 
+# Use default timestamp format
+#$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat # 这行是原来的将它注释，添加下面两行
+$template CustomFormat,"%$NOW% %TIMESTAMP:8:15% %HOSTNAME% %syslogtag% %msg%\n"
+$ActionFileDefaultTemplate CustomFormat
+
+## 重启
+systemctl restart rsyslog.service
+```
+- logger使用案例 [^6]
+
+```bash
+## 简单使用
+# 默认记录到系统日志文件 /var/log/messages
+logger hello world  # 记录如 `Dec  5 15:34:58 localhost root: hello world`
+# -i 记录进程id
+logger -i test1...  # `Dec  5 15:34:58 localhost root[23162]: test1`
+# -s 输出标准错误(命令行会显示此错误)，并且将信息打印到系统日志中
+logger -i -s test2  # `Dec  5 15:34:58 localhost root[23162]: test2`
+# -t 日志标记，默认是root
+logger -i -t test test3 # `Dec  5 15:34:58 localhost test[23162]: test2`
+# -p 指定输入消息日志级别，优先级可以是数字或者指定为 "facility(设施、信道).level(优先级)" 的格式(默认级别为 "user.notice")，日志会根据配置文件/etc/rsyslog.conf将日志输出到对应日志文件，默认为/var/log/messages
+# 固定的 facility 和 level 的类型参考：https://www.cnblogs.com/xingmuxin/p/8656498.html
+logger -it test -p syslog.info "test4..." # `Dec  5 15:34:58 localhost test[23162]: test4...`
+
+## 基于日志级别自定义日志输出文件
+# 修改日志配置文件。增加配置`local1.info /var/log/local1-info.log`
+vi /etc/rsyslog.conf
+systemctl restart rsyslog # 重启使配置文件生效
+logger -it test -p local1.info "test5..." # 此时在 /var/log/local1-info.log 中可看到 `Dec  5 15:34:58 localhost test[23162]: test5...`
+```
+- `/etc/rsyslog.conf` 配置说明
+    - 会自动根据日志文件大小切割日志，生成 xxx-YYYYMMDD 的日志历史
+    - 修改日志文件后需要重启服务 `systemctl restart rsyslog` (重启后新配置生效会有一点延迟)
+
+```bash
+#### RULES ####
+# 如果日志级别为 local1.info，则将日志输出到文件 /var/log/local1-info.log
+local1.info /var/log/local1-info.log
+
+# ### begin forwarding rule ###
+# 可配置同步日志到远程机器
+```
+
+- 记录命令执行历史到日志文件
+
+```bash
+# 注：此脚本无法记录清除日志的的命令`history -c`
+# root用户执行
+su - root
+source <(curl -L https://raw.githubusercontent.com/oldinaction/scripts/master/shell/prod/conf-recode-cmd-history.sh)
+# 查看日志
+tail -f /var/log/local1-info.log
+
+# 日志格式如下
+2019-01-01 07:55:42 localhost [pybiz_monitor][1594]: [pybiz_monitor.run_script][success]程序启动成功 # python监控脚本日志
+2019-01-01 15:17:20 localhost cmd-hostory[root][14479]: [/root]  3001  2020-12-15 15:17:20 10.10.10.10 root cd /home # 执行命令日志
+```
+
+### dd 磁盘读写测试
+
+- 磁盘性能
+    - 固态硬盘，在SATA 2.0接口上平均读取速度在`225MB/S`，平均写入速度在`71MB/S`。在SATA 3.0接口上，平均读取速度骤然提升至`311MB/S`
+
+- 用于复制文件并对原文件的内容进行转换和格式化处理
+    
+```bash
+## 参数说明
+if      # 代表输入文件。如果不指定if，默认就会从stdin中读取输入
+of      # 代表输出文件。如果不指定of，默认就会将stdout作为默认输出
+bs      # 代表字节为单位的块大小，如64k
+count   # 代表被复制的块数，如4k/4000
+# 大多数文件系统的默认I/O操作都是缓存I/O，数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。dd命令不指定oflag或conv参数时默认使用缓存I/O
+oflag=direct    # 指定采用直接I/O操作。直接I/O的优点是通过减少操作系统内核缓冲区和应用程序地址空间的数据拷贝次数，降低了对文件读取和写入时所带来的CPU的使用以及内存带宽的占用
+oflag=dsync     # dd在执行时每次都会进行同步写入操作，可能是最慢的一种方式了，因为基本上没有用到写缓存(write cache)。每次读取64k后就要先把这64k写入磁盘(每次都同步)，然后再读取下面这64k，一共重复4k次(4000)。可能听到磁盘啪啪的响，比较伤磁盘
+oflag=syns      # 与上者dsyns类似，但同时也对元数据（描述一个文件特征的系统数据，如访问权限、文件拥有者及文件数据块的分布信息等。）生效，dd在执行时每次都会进行数据和元数据的同步写入操作
+conv=fdatasync  # dd命令执行到最后会执行一次"同步(sync)"操作，这时候得到的速度是读取这286M数据到内存并写入到磁盘上所需的时间
+conv=fsync      # 与上者fdatasync类似，但同时元数据也一同写入
+
+/dev/null # 伪设备，回收站，写该文件不会产生IO
+/dev/zero # 伪设备，会产生空字符流，但不会产生IO
+```
+- `dd if=/dev/zero of=test bs=64k count=4k oflag=dsync` 在当前目录创建文件test，并每次以64k的大小往文件中读写数据，总共执行4000次，最终产生test文件大小为268M。以此测试磁盘操作速度
+- 测试案例
+
+```bash
+# dd if=/dev/zero of=test bs=64k count=4k oflag=dsync # 测试结果如下
+268435456 bytes (268 MB) copied, 26.3299 s, 10.2 MB/s               # 本地 SSD 磁盘直接操作
+268435456 bytes (268 MB) copied, 261.475 s, 1.0 MB/s                # 本地 HDD 磁盘直接操作
+268435456 bytes (268 MB) copied, 14.8903 s, 18.0 MB/s               # 阿里云 SSD 磁盘直接操作
+268435456 bytes (268 MB, 256 MiB) copied, 1637.61 s, 164 kB/s       # 本地ceph集群(1 ssd + 2 hdd)
+268435456 bytes (268 MB, 256 MiB) copied, 90.0906 s, 3.0 MB/s       # 本地ceph集群(3 ssd)
+```
+
+### sgdisk 磁盘操作工具
+
+```bash
+# 安装
+yum install -y gdisk
+
+# 查看所有GPT分区
+sgdisk -p /dev/sdb
+# 查看第一个分区
+sgdisk -i 1 /dev/sdb
+# 创建了一个不指定大小、不指定分区号的分区
+sgdisk -n 0:0:0 /dev/sdb # -n 分区号:起始地址:结束地址
+# 创建分区1，从默认起始地址开始的10G的分区
+sgdisk -n 1:0:+10G /dev/sdb
+# 将分区方案写入文件进行备份
+sgdisk --backup=/root/sdb.partitiontable /dev/sdb
+# 删除第一分区
+sgdisk -d 1 /dev/sdb
+# 删除所有分区(提示：GPT data structures destroyed!)
+sgdisk --zap-all --clear --mbrtogpt /dev/sdb
+```
+
+### 其他命令
+
+- 帮助
+    - `ls --help` 查看ls的命令说明
+    - `curl -h` 查看curl命令帮助
+    - `help ulimit` 查看ulimit命令帮助
+    - `info ls`
+    - `man ls` 查看ls的详细命令说明
+        - `yum install -y man man-pages`
+        - 安装中文man手册
+            
+            ```bash
+            wget https://src.fedoraproject.org/repo/pkgs/man-pages-zh-CN/manpages-zh-1.5.2.tar.bz2/cab232c7bb49b214c2f7ee44f7f35900/manpages-zh-1.5.2.tar.bz2
+            
+            yum install bzip2
+            tar jxvf  manpages-zh-1.5.2.tar.bz2
+
+            cd manpages-zh-1.5.2
+            sudo ./configure --disable-zhtw #默认安装 
+            sudo make && sudo make install
+
+            vi ~/.bash_profile
+            alias cman='man -M /usr/local/share/man/zh_CN' # 为了不抵消man，创建cman命令
+            source ~/.bash_profile
+            ```
+- 系统
+    - `date` 显示当前时间; `cal` 显示日历
+    - `history` 查看历史执行命令
+        - 默认记录1000条命令，编号越大表示越近执行。用户所键入的命令都会记录在用户家目录下的`.bash_history`文件中
+            - `!n` 再次执行此命令(n 是命令编号)
+            - `!$` 它用于指代上次键入的参数
+            - `!!` 可以指代上次键入的命令
+        - `history -c` 清除历史。其他人登录也将看不到，历史中不会显示清除的命令
+    - `last` 查看最近登录用户
+    - `w` 查看计算机运行时间，当前登录用户信息
+    - `wall <msg>` 通知所有人登录人一些信息 
+- 程序
+    - `sudo -H -u www bash -c 'nohup /home/web/start /home/web/conf.json &'` 调用www用户运行指定命令(其他用户或系统自动执行此命令)
+- 技巧
+    - `clear` 清屏
+    - `yes y` 一直输出字符串y
+        - `yes y | cp -i new old` `cp` 用文件覆盖就文件(`-i`存在old文件需进行提示，否则无需提示；`-f`始终不进行提示)，而此时前面会一致输出`y`，相当于自动输入了y进行确认cp操作
+    - `\` 回车后可将命令分多行运行(后面不能带空格)
 
 
 ---

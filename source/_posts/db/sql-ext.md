@@ -102,11 +102,13 @@ select name as "username" from user where name = "smalle";
 
 ```sql
 order by my_field [asc|desc] nulls [first|last] -- oracle
-order by IF(ISNULL(my_field),1,0), my_field [asc|desc] -- mysql默认将null值放在下面
-order by IF(ISNULL(my_field),0,1), my_field [asc|desc] -- mysql默认将null值放在上面
+order by if(isnull(my_field),1,0), my_field [asc|desc] -- mysql默认将null值放在下面
+order by if(isnull(my_field),0,1), my_field [asc|desc] -- mysql默认将null值放在上面
 ```
 
 ## 复杂查询
+
+- count是统计该字段不为空的行数，可结合distinct使用，如`count(distinct case when u.sex = '1' then u.city else null end )`
 
 ### 基于用户属性表统计每个公司不同用户属性的用户数
 
@@ -116,7 +118,7 @@ select
 	c.id,
 	c.name,-- 公司名称
 	count( distinct u.id ) count_user,-- 该公司的用户数
-	count( case when ua.key = 'JobTitle' and ua.value = 'employee' then c.id end ) count_employee,-- 该公司的普通员工数
+	count( case when ua.key = 'JobTitle' and ua.value = 'employee' then c.id end ) count_employee,-- 该公司的普通员工数。也可加上`else null`(因为count是统计该字段不为空的行数)
 	count( case when ua.key = 'JobTitle' and ua.value = 'manager' then c.id end ) count_manager,-- 该公司的经理数
 	count( case when ua.key = 'Sex' and ua.value = 'boy' then c.id end ) count_boy -- 该公司男性用户数
 from
@@ -554,9 +556,10 @@ select *
         5	27094	IS	358330	IS-1	2017/11/9
 
         -- ========= 统计语句
-        -- 错误sql一。(和group by混淆)
+        -- *********错误sql一*********。(和group by混淆)
         select
         row_number() over(partition by v.customer_id, v.visit_type order by v.id desc) as rn
+        -- *********错误sql一*********
         ,first_value(v.id) over(partition by v.customer_id, v.visit_type order by v.id desc) as id -- 只取一个ID也是重复的
         ,first_value(v.customer_id) over(partition by v.customer_id, v.visit_type order by v.id desc) as customer_id
         ,first_value(v.visit_type) over(partition by v.customer_id, v.visit_type order by v.id desc) as visit_type
@@ -573,9 +576,10 @@ select *
         4	1	93252	358330	IS	IS-2	2018/10/8
         5	2	93252	358330	IS	IS-2	2018/10/8
         
-        -- 错误sql二。此时报max(v.id)中的id不是group by字句（使用keep的话也会有这个错）
+        -- *********错误sql二*********。此时报max(v.id)中的id不是group by字句（使用keep的话也会有这个错）
         select
         max(v.id) over(partition by v.customer_id, v.visit_type order by v.id desc) as id -- max(v.id)：ORA-00979 not a group by expression
+        -- *********错误sql一*********
         from t_visit v
         where v.valid_status = 1 and v.result is not null 
         and v.customer_id = 358330

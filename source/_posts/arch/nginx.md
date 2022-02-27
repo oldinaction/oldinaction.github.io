@@ -223,19 +223,23 @@ server {
     # 第一种代理到URL：http://127.0.0.1/test.html
     location /api/ {
         proxy_pass http://127.0.0.1/;
+        break;
     }
     # 第二种代理到URL：http://127.0.0.1/api/test.html
     location /api/ {
         # 后台api和前台暴露到同一域下常用方式
         proxy_pass http://127.0.0.1;
+        break;
     }
     # 第三种代理到URL：http://127.0.0.1/pre/test.html
     location /api/ {
         proxy_pass http://127.0.0.1/pre/;
+        break;
     }
     # 第四种代理到URL：http://127.0.0.1/pretest.html
     location /api/ {
         proxy_pass http://127.0.0.1/pre;
+        break;
     }
 }
 ```

@@ -95,7 +95,7 @@ tags: [ide, web]
             }
         }
         ```
-- `Beautify` 文件格式化，加下列配置格式化vue文件
+- `Beautify` 文件格式化，加下列配置格式化vue文件(推荐使用Prettier)
 
 	```json
 	"beautify.language": {

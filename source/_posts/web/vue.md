@@ -218,6 +218,8 @@ created(): {
 
         vm.list = [{name: 'hello'}] // 响应的
         vm.list[0].name = 'smalle' // 响应的
+
+        // 假设有一个按钮需要动态添加loading，可写成<Button :loading="myLoading[i]"></Button>，然后created之后对myLoading[i]赋初始值并重新设置myLoading(两次JSON转换)，之后myLoading[i]就可以动态监听了
         ```
     - Vue.set和Vue.delete的作用
     - Vue3.X新版本开始将采用ES6的Proxy来进行双向绑定。可解决上述问题(可以直接监听对象而非属性，可以直接监听数组下标的变化)
@@ -851,8 +853,8 @@ Vue.component('base-checkbox', {
 - **全量绑定props参数**
 
 ```html
-<!-- 假设子组件接受参数：name, age, sex -->
-<child-component v-bind="dataBind"></child-component>
+<!-- 假设子组件接受参数：name, age, sex; dataBind/eventBind中指定的优先级高于dom上指定的属性 -->
+<child-component v-bind="dataBind" v-on="eventBind"></child-component>
 
 <script>
     // 此时子组件参数全部使用默认值
@@ -866,6 +868,9 @@ Vue.component('base-checkbox', {
     }
     // 或者通过 $props 将父组件的 props 一起传给子组件
     dataBind = this.$props;
+    eventBind = {
+        test: () => {}
+    }
 </script>
 ```
 
@@ -2207,7 +2212,7 @@ new DefinePlugin(
 NODE_ENV = test-sq
 # 以 VUE_APP_ 开头的变量才会被 webpack.DefinePlugin 静态嵌入到客户端侧的包中
 VUE_APP_VUE_ROUTER_BASE = /my-app/
-# 可识别为json字符串，暂未找到字符串换行写法
+# 可识别为json字符串(不支持字符串换行，暂未找到换行写法)
 VUE_APP_JSON = {"a": 1, "b": "abc"}
 ```
 

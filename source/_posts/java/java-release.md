@@ -269,6 +269,7 @@ int sum = Arrays.stream(numbers).reduce(0, Integer::sum);
 
 // Map & Reduce
 BigDecimal sum = invoices.stream()
+                // 如果是普通对应，不是数值类型，需要先转成数值再进入reduce环节
                 .map(x -> x.getNum().multiply(x.getPrice()))    // map，对集合中的元素进行操作
                 // .reduce((i, j) -> i + j)                     // reduce表达式(i + j)执行完后仍然需要返回相同类型的结果
                 .reduce(BigDecimal.ZERO, BigDecimal::add)       // reduce，将上一步得到的结果进行合并得到最终的结果
@@ -365,10 +366,9 @@ clazzMap.computeIfAbsent(clazz, Reflector::new); // public Reflector(Class<?> cl
 
 ### try-with-resources
 
+## JDK6
 
-## 未知
-
-### javax.script
+### javax.script(js-java)
 
 - Java和Js之间相互调用，无需安装依赖，相似的如[JEXL执行字符串JAVA代码](/_posts/java/java-tools.md#JEXL执行字符串JAVA代码)
 
@@ -417,6 +417,8 @@ public void test() {
 }
 ```
 
+## 未知
+
 ### package-info.java
 
 - 是一个Java文件，可以放到任意Java源码包执行。不过里面的内容有特定的要求，其主要目的是为了提供包级别相关的操作，比如包级别的注解、注释及公共变量
@@ -463,8 +465,8 @@ class PACKAGE_CONST{
 - 核心类`java.util.ServiceLoader`
 - 使用
     - 主项目中定义接口/抽象类`cn.aezo.test.IService`
-    - 插件开发者，在插件项目resources目录下新建`META-INF/services`目录，然后在这个目录下新建`cn.aezo.test.IService`文件，并在这个文件中写入实现的类名`cn.aezo.test.IServiceImpl`(多个可换行写入)
-    - 将插件jar放到主项目的classpath目录，主项目通过`ServiceLoader<IService> service = ServiceLoader.load(IService.class);`就可以加载实现类了
+    - 插件开发者，在插件项目resources目录下新建`META-INF/services`目录，然后在这个目录下新建`cn.aezo.test.IService`文件(此文件最终以jar包等形式放到classpath下)，并在这个文件中写入实现的类名`cn.aezo.test.IServiceImpl`(多个可换行写入)
+    - 将插件jar放到主项目的classpath目录，**主项目通过`ServiceLoader<IService> service = ServiceLoader.load(IService.class);`**就可以加载实现类了
 - dubbo作为一个高度可扩展的rpc框架，也依赖于java的SPI，并且dubbo对java原生的spi机制作出了一定的扩展，使得其功能更加强大
 - Pf4j插件框架也是基于java的SPI实现
 

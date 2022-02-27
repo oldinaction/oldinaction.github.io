@@ -8,7 +8,49 @@ tags:
 
 ## 相关工具说明
 
-- `ETL`(Extract-Transform-Load，抽取-转换-存储）即在数据抽取过程中进行数据的加工转换，然后加载到存储中。常见的如Informatics和开源工具Kettle
+- 数据抽取层
+    - sqoop(结构化关系型数据抽取)、flume(非结构化日志接入)
+- 数据存储层
+    - hadoop-hdfs、kafka(流式总线)
+- 计算调度层
+    - 离线计算：hive、spark、MR、tez
+    - 实时计算：storm、spark、近年来flink也较多
+    - 数据调度：Airflow Azkaban Oozie等、Dolphin-scheduler
+- 查询引擎层：ROLAP、MOLAP以及二者混搭
+    - Hbase
+    - ES
+    - Apache Kylin
+    - [Apache Druid](https://druid.apache.org/)
+        - https://www.cnblogs.com/tree1123/p/12866898.html
+        - https://blog.csdn.net/qq_38704184/article/details/106507062
+    - TiDB
+    - Impala
+    - ClickHouse
+    - Presto
+    - http://www.360doc.com/content/20/0815/19/22849536_930520678.shtml
+        - Hawq
+        - Spark SQL
+        - Greenplum
+        - HANA
+- 数据可视化层
+    - 基础框架：ECharts、D3、Three.js
+    - 商业：Tableau、DataV、FineReport、FineBI、PowerBI(微软)
+    - 开源：Bokeh、Matplotlib、Metabase、Superset
+    - [Superset](#Superset)：SQL语句、图表、Dashbord、权限
+    - Redash: 基于python
+        - https://zhuanlan.zhihu.com/p/31292944
+    - Metabase：基于java、有收费版。https://zhuanlan.zhihu.com/p/52085283 (缺点较多)
+    - Saiku
+        - https://www.cnblogs.com/DFX339/p/10316309.html
+
+## 相关架构图
+
+- https://img-blog.csdnimg.cn/img_convert/a82b7d72897ab899cdb8f9c21f354c45.png
+- https://img-blog.csdnimg.cn/img_convert/2abe208f7e8fdd26db42f0e5155746fb.png
+
+## 相关文档
+
+- 数据中台的核心组成以及一些技术选型参考 https://blog.51cto.com/u_14410880/2546005
 
 ## Flume
 
@@ -149,9 +191,24 @@ flume-ng agent --conf-file ~/flume/test2.conf --name a1 -Dflume.root.logger=INFO
 telnet node02 44444
 ```
 
-
-
-
 ## sqoop
+
+## 可视化框架
+
+### Superset
+
+- [官网](https://superset.apache.org/)
+    - 由Airbnb开源的、目前由Apache孵化的，基于Flask-appbuilder搭建，基于python实现
+- 功能
+    - 自带SQLite数据库并支持连接Hive、Impala、MySql、Oracle等几乎所有主流的数据源
+    - 支持和弦图、事件流图、热力图、视图表等及其它常规的可视化展示图表
+    - 支持可控的数据展示，能自定义展示字段、数据源等
+    - 支持权限控制
+    - 内含SQL查询面板模块
+    - 创建和分享dashboard
+- 参考文章
+    - https://baijiahao.baidu.com/s?id=1703444220257145031
+
+
 
 

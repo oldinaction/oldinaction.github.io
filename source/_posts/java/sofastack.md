@@ -53,7 +53,7 @@ tags: [springboot, plugin, 微服务]
     - 不允许运行时动态发布模块服务
     - 没有解决同一个类多版本的问题
 
-## 模块简介
+## SOFA技术栈模块简介
 
 - `isle-sofa-boot-starter` SOFABoot模块隔离
 - `sofa-ark-springboot-starter` SOFAArk类隔离
@@ -66,13 +66,29 @@ tags: [springboot, plugin, 微服务]
 
 ## 通信/调用
 
-- SofaBoot中各模块相互调用：使用JVM服务通信，支持一下方式
-    - XML 方式
-    - Annotation 方式：可使用@SofaService/@SofaReference进行注入
-    - 编程 API 方式：基于 ServiceClient 和 ReferenceClient进行调用和声明
-        - 方式1：实现 ClientFactoryAware 接口
-        - 方式2：基于 @SofaClientFactory 注解获取编程 API。参考：SqBiz下的`SqSofaServiceHelper.java`
-    - 说明：JVM服务通信，所有传入参数都会被序列化(被调用中修改参数对象并不会反映到调用者传入的参数上)，被调用函数的全部结果需要通过返回值进行反映。参考：SqBiz下的`SofaAuthProviderDelegate.java`
+- SofaBoot中各模块相互调用
+    - 使用JVM服务通信
+        - 支持以下实现方式
+            - XML 方式
+            - Annotation 方式：可使用@SofaService/@SofaReference进行注入
+            - 编程 API 方式：基于 ServiceClient 和 ReferenceClient进行调用和声明
+                - 方式1：实现 ClientFactoryAware 接口
+                - 方式2：基于 @SofaClientFactory 注解获取编程 API。参考：SqBiz下的`SqSofaServiceHelper.java`
+                - JVM服务通信说明参考下文
+                - 不同ArkBiz/Plugin下调用说明参考下文
+        - **JVM服务通信注意点**
+            - 整个通信在同一线程下，会找到加载对应服务/模块的ClassLoader(如ArkBiz的方式)，进行当前线程的ClassLoader切换(参考ServiceProxy)。由于切换了ClassLoader，尽管类名相同，对应的class对象可能是不同的(同一class的前提是由同一个类加载)，从而静态成员的数据也不能共享，如ThreadLocal无法在两个模块见共享的问题，解决方案如下
+                - 可将相关类封装成Plugin，这样不同Biz直接的使用同一个类时，都是由同一Plugin类加载器加载的，因此静态成员数据即可共享
+                - 通过Root Application Context中转(未测试)
+                - 通过SOFABoot扩展点(未测试)
+            - 传入参数和返回结果会被序列化
+                - 数据传输都会被序列化(被调用中修改参数对象并不会反映到调用者传入的参数上)，被调用函数的全部结果需要通过返回值进行反映。参考：SqBiz下的`SofaAuthProviderDelegate.java`
+        - **不同ArkBiz/Plugin下调用**
+            - 所有的@SofaService/@SofaReference/Extension等都是基于ComponentManager(实现类ComponentManagerImpl)在初始化时进行注册，且都是缓存在ComponentManagerImpl#registry集合中供调用时使用
+            - 由于ArkBiz/Plugin的类加载器不同，所以ComponentManagerImpl在各类加载器中对应不同类，从而ComponentManagerImpl#registry保存的数据也不是共享的，从而导致无法跨Ark调用
+            - 解决：参考：SqBiz下的`SqSofaServiceHelper.java`(跨模块可以通过uniqueId+ISqSofaService接口获取到对应服务，再通过SpringU反射调用服务)
+    - 基于RPC进行调用
+        - RPC基于TCP协议时(gRPC是基于HTTP2进行通信的)是建立的长链接，不需要像HTTP一样每次请求(HTTP为无状态)都进行TCP的三次握手，减少了网络开销
 - (SofaArk)Biz-Biz通信: 同 SofaBoot使用JVM服务通信
     - 参考 https://www.sofastack.tech/projects/sofa-boot/sofa-ark-ark-jvm/
     - **目前仅sofa v3.1.4支持**，sofa v3.2.2~v3.7.0报错
@@ -210,6 +226,28 @@ Module-Name=com.alipay.sofa.service-consumer
 Require-Module=com.alipay.sofa.service-provider
 ```
 
+### 扩展点
+
+- SOFABoot 支持模块化隔离，在实际的使用场景中，一个模块中的 bean 有时候需要开放一些入口，供另外一个模块扩展
+- SOFABoot 借鉴和使用了 Nuxeo Runtime 项目 以及 [nuxeo](https://github.com/nuxeo) 项目(较早的一款企业模块化项目)，并在上面扩展，与 Spring 融合，提供扩展点的能力
+- 案例：https://github.com/glmapper/glmapper-sofa-extension
+    - 说明文档：https://blog.csdn.net/weixin_33810006/article/details/89534212
+- 使用流程
+    - 定义一个需要被扩展的 bean 接口
+    - 实现上述 bean 接口，并增加函数registerExtension用来接受扩展传递过来的扩展值(普通扩展值/扩展bean名)，通过接受此扩展值来覆盖当前实现类的属性值
+    - 定义扩展点(可以理解为上述bean的哪个属性)
+    - 注册扩展点
+    - 实现扩展(实现上述bean接口)
+    - 定义扩展值(如果基于客户端进行注册时，需要单独写到xml文件中)
+    - 注册扩展
+- 缺陷：不支持  跨Ark Biz进行扩展
+- **SqBiz扩展(支持跨Ark Biz的扩展)**
+    - 背景：由于SOFABoot拓展点跨Ark则无法使用(扩展点和扩展注册时均保存在ComponentManagerImpl#registry中，而此类并未暴露成Ark Plugin，从而类属性数据不共享)；且SOFAArk自定义扩展点只适用于 Ark Plugin 之间
+    - 原理：跨模块可以通过uniqueId+ISqSofaService接口获取到对应服务，再通过SpringU反射调用服务
+    - 使用
+        - (1) 注册扩展：`SqSofaExtensionHelper.register(TaokeConst.SofaUniqueId, UserInfoExtension.class, "createUserInfoEnd");` (注意主类需加@EnableSqU)
+        - (2) 调用扩展：`SqSofaExtensionHelper.invoke(UserInfoExtension.class, "createUserInfoEnd", "123456");`
+
 ## SOFAArk
 
 ### 说明
@@ -247,6 +285,7 @@ Require-Module=com.alipay.sofa.service-provider
             - 每个Biz有自己的Controller层，原本是部署在不同的JVM，因此需要通过网络交互(如RPC)；而Ark架构，支持合并部署Biz，此时使用JVM服务交互，减少网络传输层
         - Ark Biz 和 Ark Plugin 是单向类索引关系，即只允许 Ark Biz 索引 Ark Plugin 加载的类和资源，反之则不允许(只能Ark Biz调用Ark Plugin)。Ark Biz无需打包Ark Plugin，会自动优先查找Ark Plugin，也可定义禁止优先查找Ark Plugin的类(加入Plugin封装了第三方jar，Biz对第三方jar的依赖可维持不变，仅在打包时配置剔除此第三方jar从而减小打包体积)
         - Ark Plugin 之间是双向类索引关系，即可以相互委托对方加载所需的类和资源(Ark Plugin可相互调用)。Ark Plugin只会优先从其他Ark Plugin中查找导入的类，未导入的则从当前Ark Plugin查找
+- SofaArk相关常量参考`com.alipay.sofa.ark.spi.constant.Constants`
 
 ### 生命周期
 
@@ -264,6 +303,11 @@ Require-Module=com.alipay.sofa.service-provider
     - 启动模块
     - 健康检查
     - 切换状态
+
+### 事件
+
+- 官方文档目前是v1.0的(但是升级v1.0存在其他问题)
+- v0.6暂不知道如果发送事件，通过`ArkServiceContainerHolder.getContainer().getService(EventAdminService.class).sendEvent(...)`会报空指针，因为ArkServiceContainerHolder.getContainer()只有在container所在Ark才有值，连主Biz也无法获取到(和Ark container使用得是不同的类加载器)
 
 ### 使用
 

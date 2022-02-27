@@ -224,6 +224,18 @@ writer.write(userList, true);
 writer.close();
 ```
 
+### HTTP操作
+
+```java
+String apiResult = HttpRequest.post("http://api.test.com/hello")
+                .header("token", "123456")
+                .body(bodyStr, "application/json;charset=UTF-8")
+                // Hutool默认没有设置超时时间，需要手动设置一下，否则容易出现卡死(如Tomcat卡死，或定时线程卡死)
+                .timeout(30000)
+                .execute()
+                .body();
+```
+
 ### FTP操作
 
 ```java
@@ -308,6 +320,53 @@ sheet.shiftRows(int startRow, int endRow, int n, boolean copyRowHeight, boolean 
 - 说明
     - 常量在Excel中为`'常量值'`，由于可能存在转义，所有需要设置成`''常量值'`
 
+## Ureport报表
+
+- [ureport](https://github.com/youseries/ureport)、[ureport文档](https://www.w3cschool.cn/ureport/ureport-jaod2h8k.html)
+- 参考文档
+    - ureport2整合springboot参考：https://www.pianshen.com/article/72751541487/
+    - https://www.cnblogs.com/niceyoo/p/14311257.html
+- 存在问题
+  - UReport2部分功能不可用，包括导出及多条件表达式SQL查询(错误信息会直接暴露)
+  - ureport2支持打印报表，不过存在bug，数据会显示不全，导出为Word文档同样存在问题，数据不全且当有合并单元格时数据会混乱展示
+  - 不支持邮件发送
+  - 本身不支持权限控制
+- 路径
+  - 访问路径 `http://localhost:8800/api/v1/module/ureport/ureport/designer`
+  - 预览路径 `http://localhost:8800/api/v1/module/ureport/ureport/preview?_u=file:test.ureport.xml`
+    - 注意需要带上`file:`，且文件名不要出现`#[]`等特殊字符串(`.`是可以的)
+- 数据源和数据集
+    - 配置数据源和数据集
+        - 每个报表需要配置各自的数据源和数据集
+        - 内置数据源只需要在创建报表的时候添加到当前报表即可使用
+    - 带动态参数的SQL
+        - `${}`会作为表单时解析，但是不能和纯SQL语句联合使用(如下文案例中相同部分SQL不能写到`${}`外部)
+        - 字符串拼接SQL时注意空格
+        - 参数不支持动态默认值；日期区间需要定义两个参数，且必须通过`param("tk_create_time_start")`方式取值(字符串中有单引号时必须转义)
+
+    ```js
+    ${
+        " select ttu.user_id, ttu.tbk_nickname, tto.*"+
+        " from tk_taoke_order tto"+
+        " left join tk_taoke_user ttu on ttu.tbk_special_id = tto.special_id"+
+        " where 1=1" +
+        (param("user_id") != null && param("user_id") != '' ? " and ttu.user_id=:user_id" : "")+
+        (param("tk_create_time_start") != null && param("tk_create_time_start") != '' ? " and tto.tk_create_time >= str_to_date(\'"+ param("tk_create_time_start") +" 00:00:00.000\', \'%Y-%m-%d %H:%i:%s.%f\')" : "") +
+        (param("tk_create_time_end") != null && param("tk_create_time_end") != '' ? " and tto.tk_create_time <= str_to_date(\'"+ param("tk_create_time_end") +" 23:59:59.999\', \'%Y-%m-%d %H:%i:%s.%f\')" : "") +
+        " order by tto.tk_create_time desc"
+    }
+    ```
+- 列属性
+    - 链接配置
+        - 支持表达式，如`${'https:' + order.select(item_img)}`(order为数据集，item_img为字段)
+    - 单元格类型为图片
+    - 图片来源为路径时支持`http(s)://`的网络图片
+    - 图片来源为表达式支持从数据集中读取后再获取图片数据
+        - 如`'https:' + order.select(item_img)`(order为数据集，item_img为字段，返回格式为`//example.com/demo.png`)
+        - 注意：此时显示获取图片路径字符串，然后通过服务器获取图片数据转成base64到前台显示(此时图片流量全部会经过服务器)
+- 过滤条件：符合条件时，当前列才显示，否则当前列显示空白
+
+
 ## Yaml解析(基于jyaml)
 
 - json-yaml互转工具：https://www.bejson.com/json/json2yaml
@@ -373,7 +432,7 @@ Map map = (Map) Yaml.load(yamlStr);
     - 旨在促进在用Java编写的应用程序和框架中，实现动态和脚本功能
     - JEXL实现了 JSTL 中 EL 的延伸版本，不过也采用了一些 Velocity 的概念
     - 支持shell脚本或ECMAScript(js)中的大多数构造
-- **更推荐使用ScriptEngineManager进行java-js的交互**，参考[javax.script](/_posts/java/java-release.md#javax.script)
+- **更推荐使用ScriptEngineManager进行java-js的交互**，参考[javax.script](/_posts/java/java-release.md#javax.script(js-java))
 - [commons-jexl官网](https://commons.apache.org/proper/commons-jexl/)
 - [语法文档](https://commons.apache.org/proper/commons-jexl/reference/syntax.html)
 - [案例](https://commons.apache.org/proper/commons-jexl/apidocs/org/apache/commons/jexl3/package-summary.html#usage)
@@ -440,290 +499,16 @@ System.out.println("evaluate = " + evaluate); // evaluate = 2
 - https://www.cnblogs.com/rickiyang/p/11336268.html
 - https://blog.csdn.net/chosen0ne/article/details/50790372
 
-## 日志框架
+## 开发工具
 
-- 日志框架一般分为编程API和日志打印实现。编程API为应用程序基于此API进行编程，如slf4j；打印实现为实现了上述API的模块进行日志打印到控制台或文件，如logback-classic
-- slf4j、jcl、jul、log4j1、log4j2、logback大总结：https://my.oschina.net/pingpangkuangmo/blog/410224
-- logging: jdk自带logging
-- log4j1(log4j)
-    - log4j: log4j1的全部内容(org.apache.log4j.*)
-- log4j2(org.apache.logging.log4j)
-    - log4j-api: log4j2定义的API
-    - log4j-core: log4j2上述API的实现
-    - log4j-1.2-api: log4j到log4j2的桥接包。具体说明参考log4j
-- logback
-    - logback-core: logback的核心包
-    - logback-classic: logback实现了slf4j的API
-- commons-logging 为了实现日志统一
-    - commons-logging: commons-logging的原生全部内容
-    - log4j-jcl: commons-logging到log4j2的桥梁
-    - jcl-over-slf4j: commons-logging到slf4j的桥梁
-- slf4j 为了实现日志统一
-    - slf4j-api: 为日志接口，简称slf4j
-    - slf4j转向某个实际的日志框架：如使用slf4j的API进行编程，底层想使用log4j1来进行实际的日志输出，可使用slf4j-log4j12进行桥接
-        - logback-classic: slf4j到logback的桥梁
-        - log4j-slf4j-impl: slf4j到log4j2的桥梁(此时只需要log4j-api)
-        - slf4j-jdk14: slf4j到jdk-logging的桥梁
-        - slf4j-jcl: slf4j到commons-logging的桥梁
-        - slf4j-log4j12: slf4j到log4j1的桥梁
-    - 某个实际的日志框架转向slf4j(主要用来进行实际的日志框架之间的切换, slf4j为中间API)：如使用log4j1的API进行编程，但是想最终通过logback来进行输出，所以就需要先将log4j1的日志输出转交给slf4j来输出，slf4j再交给logback来输出。将log4j1的输出转给slf4j，这就是log4j-over-slf4j做的事
-        - log4j-to-slf4j: log4j2到slf4j的桥梁
-        - jul-to-slf4j: jdk-logging到slf4j的桥梁
-        - jcl-over-slf4j: commons-logging到slf4j的桥梁
-        - log4j-over-slf4j: log4j1到slf4j的桥梁
+### sdkman
 
-### jdk-logging
+- [官网](https://sdkman.io/)
+- sdkman 包管理工具
+    - sdkman可以更方便的按照、更改sdk(如jdk)版本
 
-- 原理分析参考：https://blog.csdn.net/qingkangxu/article/details/7514770
-- 案例(/smjava/logging/log4j1-jdklog)
 
-```java
-/**
-* 打印日志如下，且IDEA显示为红色
-* 十二月 10, 2021 9:13:04 下午 cn.aezo.logging.log4j1.App main
-* 信息: jdk logging info...
-* 十二月 10, 2021 9:13:04 下午 cn.aezo.logging.log4j1.App main
-* 警告: jdk logging warning...
-* 十二月 10, 2021 9:13:04 下午 cn.aezo.logging.log4j1.App main
-* 严重: jdk logging severe...
-*/
-// java.util.logging.Logger
-private static final Logger logger = Logger.getLogger(App.class.getName());
-public static void main(String[] args) {
-    logger.info("jdk logging info...");
-    logger.warning("jdk logging warning...");
-    logger.severe("jdk logging severe...");
-}
-```
 
-### log4j
-
-- [log4j1.x](https://logging.apache.org/log4j/1.2/) 采用同步的方式打印log，当项目中打印log的地方很多的时候，频繁的加锁拆锁会导致性能的明显下降
-    - 主要类
-        - LogManager: 它的类加载会创建logger仓库Hierarchy，并尝试寻找类路径下的配置文件，如果有则解析
-        - Hierarchy: 包含三个重要属性
-            - LoggerFactory logger的创建工厂
-            - Hashtable 用于存放上述工厂创建的logger
-            - Logger root logger 用于承载解析文件的结果，设置级别，同时存放appender
-        - PropertyConfigurator: 用于解析log4j.properties文件
-        - Logger: 我们用来输出日志的对象
-    - log4j.properties配置参考：https://blog.csdn.net/niuch1029291561/article/details/80938095
-- [log4j2.x](https://logging.apache.org/log4j/2.x/) 则为异步打印
-    - log4j2与log4j1发生了很大的变化，不兼容。log4j1仅仅作为一个实际的日志框架，slf4j、commons-logging作为门面，统一各种日志框架的混乱格局，现在log4j2也想跳出来充当门面了，也想统一大家了
-    - log4j2包含
-        - log4j-api: 作为日志接口层，用于统一底层日志系统
-        - log4j-core: 作为上述日志接口的实现，是一个实际的日志框架
-    - 主要类说明
-        - LogManager: 它的类加载会去寻找LoggerContextFactory接口的底层实现，会从jar包中的配置文件中寻找
-        - LoggerContextFactory: 用于创建LoggerContext，不同的日志实现系统会有不同的实现，如log4j-core中的实现为Log4jContextFactory
-        - PropertyConfigurator: 用于解析log4j.properties文件
-        - LoggerContext: 它包含了配置信息，并能创建log4j-api定义的Logger接口实例，并缓存这些实例
-        - ConfigurationFactory: 上述LoggerContext解析配置文件，需要用到ConfigurationFactory，目前有三个- YamlConfigurationFactory、JsonConfigurationFactory、XmlConfigurationFactory，分别解析yuml json xml形式的配置文件
-    - log4j2.xml配置参考：https://www.jianshu.com/p/bfc182ee33db
-    - 调试log4j2，增加jvm参数`-Dlog4j2.debug=true`
-- log4j1升级到log4j2
-    - 删除原来log4j1依赖`log4j:log4j`
-    - 增加新的log4j2依赖`org.apache.logging.log4j:log4j-api`和`org.apache.logging.log4j:log4j-core`
-    - 增加`org.apache.logging.log4j:log4j-1.2-api`的桥接包，为官方推出的平稳的过度包。此时编程任然是基于log4j1进行编程
-        - 桥接包的原理就是复写了log4j-1.2.17相关的类，再输出日志的时候调用的是log4j2中的方法
-        - 如：log4j1中使用Logger.getLogger(Test.class)获取日志对象，log4j2的Logger没有此方法，所以升级的时候可能出现需要更改代码。如果引入此包，可以实现不更改代码升级
-    - 配置文件还是必须为log4j2.xml，而不能是log4j.properties或log4j.xml
-- log4j 2.x < 2.15.0-rc2 漏洞：https://help.aliyun.com/noticelist/articleid/1060971232.html
-- log4j1案例(/smjava/logging/log4j1-jdklog)
-    - 引入依赖`log4j:log4j:1.2.17`
-
-```java
-/**
-* 无 log4j.properties 文件时打印如下：
-* log4j:WARN No appenders could be found for logger (cn.aezo.logging.log4j1.Log4j1App).
-* log4j:WARN Please initialize the log4j system properly.
-* log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
-* 
-* 有 log4j.properties 文件之后打印如下：
-* 2021-12-10 21:34:01 log4j debug message
-* 2021-12-10 21:34:01 log4j info message
-*/
-// org.apache.log4j.Logger
-private static final Logger logger = Logger.getLogger(Log4j1App.class);
-public static void main(String[] args){
-    if(logger.isTraceEnabled()){
-        logger.debug("log4j trace message");
-    }
-    if(logger.isDebugEnabled()){
-        logger.debug("log4j debug message");
-    }
-    if(logger.isInfoEnabled()){
-        logger.debug("log4j info message");
-    }
-}
-
-// log4j.properties(也支持log4j.xml)。配置参考：https://blog.csdn.net/niuch1029291561/article/details/80938095
-log4j.rootLogger = debug, console
-log4j.appender.console = org.apache.log4j.ConsoleAppender
-log4j.appender.console.layout = org.apache.log4j.PatternLayout
-log4j.appender.console.layout.ConversionPattern = %-d{yyyy-MM-dd HH:mm:ss} %m%n
-```
-
-- log4j2案例(/smjava/logging/log4j2)
-    - 引入依赖`org.apache.logging.log4j:log4j-api:2.15.0`和`org.apache.logging.log4j:log4j-core:2.15.0`
-
-```java
-/**
-* 无 log4j2.xml 文件时无任何信息打印
-* 有 log4j2.xml 文件之后打印如下：
-* 21:52:05.789 [main] DEBUG cn.aezo.logging.log4j2.Log4j2App - log4j debug message
-* 21:52:05.794 [main] DEBUG cn.aezo.logging.log4j2.Log4j2App - log4j info message
-*/
-// org.apache.logging.log4j.Logger org.apache.logging.log4j.LogManager
-// 和log4j1是不同的，此时Logger是log4j-api中定义的接口，而log4j1中的Logger则是类
-private static final Logger logger = LogManager.getLogger(Log4j2App.class);
-public static void main(String[] args){
-    if(logger.isTraceEnabled()){
-        logger.debug("log4j trace message");
-    }
-    if(logger.isDebugEnabled()){
-        logger.debug("log4j debug message");
-    }
-    if(logger.isInfoEnabled()){
-        logger.debug("log4j info message");
-    }
-}
-```
-
-### slf4j
-
-- [slf4j](http://www.slf4j.org/)是门面模式的典型应用(门面模式：外部与一个子系统的通信必须通过一个统一的外观对象进行，使得子系统更易于使用)
-- slf4j(slf4j-api)、commons-logging均为日志接口，不提供日志的具体实现
-- slf4j-simple、logback都是slf4j的具体实现；log4j并不直接实现slf4j，但是有专门的一层桥接slf4j-log4j12来实现slf4j
-- 案例
-    - 引入`org.slf4j:slf4j-api:1.7.25`
-    - 使用
-
-    ```java
-    // 通过门面方法获取具体得实现，核心逻辑也是从此处开始的(从classpath下去找org/slf4j/impl/StaticLoggerBinder.class)
-    Logger logger = LoggerFactory.getLogger(Object.class);
-    ```
-- 如果不引入日志实现则会提示
-
-```bash
-SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
-SLF4J: Defaulting to no-operation (NOP) logger implementation
-SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
-```
-- 如果引入多个日志实现则会提示
-
-```bash
-SLF4J: Class path contains multiple SLF4J bindings.
-SLF4J: Found binding in [jar:file:/Users/smalle/.m2/repository/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar!/org/slf4j/impl/StaticLoggerBinder.class]
-SLF4J: Found binding in [jar:file:/Users/smalle/.m2/repository/org/apache/logging/log4j/log4j-slf4j-impl/2.10.0/log4j-slf4j-impl-2.10.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]
-SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
-SLF4J: Actual binding is of type [ch.qos.logback.classic.util.ContextSelectorStaticBinder]
-```
-
-### commons-logging
-
-- [commons-logging](https://commons.apache.org/proper/commons-logging/): Jakarta Commons-logging（JCL）是apache最早提供的日志的门面接口。提供简单的日志实现以及日志解耦功能
-- JCL能够选择使用Log4j（或其他如slf4j等）还是JDK Logging，但是他不依赖Log4j，JDK Logging的API。如果项目的classpath中包含了log4j的类库，就会使用log4j，否则就使用JDK Logging
-- 配置文件`commons-logging.properties`，包`org.apache.commons.logging.*`
-- 最后更新为2014年的v1.2
-- 使用如
-
-```xml
-<dependency>
-	<groupId>commons-logging</groupId>
-	<artifactId>commons-logging</artifactId>
-	<version>1.2</version>
-</dependency>
-<dependency>
-	<groupId>log4j</groupId>
-	<artifactId>log4j</artifactId>
-	<version>1.2.17</version>
-</dependency>
-```
-
-### spring-log
-
-- spring-core
-    - **`org.springframework:spring-jcl`**
-        - `org.apache.logging.log4j:log4j-api[optional]`
-        - `org.slf4j:slf4j-api[optional]`
-- spring-boot-starter-logging(可看出springboot使用slf4j+logback进行日志输出)
-    - `ch.qos.logback:logback-classic`
-    - `org.apache.logging.log4j:log4j-to-slf4j` log4j2到slf4j的桥梁
-        - log4j-api
-        - slf4j-api
-    - `org.slf4j:jul-to-slf4j` jdk-logging到slf4j的桥梁
-- spring-jcl
-    - 包`org.apache.commons.logging.*`，和commons-logging包一样，是因为spring直接将commons-logging拷贝过来进行维护
-- 入口
-
-```java
-// 实际调用 LogAdapter.createLog
-private static final Log logger = LogFactory.getLog(App.class);
-
-final class LogAdapter {
-    // 默认使用java.util.logging日志框架
-    private static LogApi logApi = LogApi.JUL;
-
-    // 根据classpath下拥有的类名来判断具体使用的日志框架
-	static {
-		ClassLoader cl = LogAdapter.class.getClassLoader();
-		try {
-			// Try Log4j 2.x API
-			Class.forName("org.apache.logging.log4j.spi.ExtendedLogger", false, cl);
-			logApi = LogApi.LOG4J;
-		}
-		catch (ClassNotFoundException ex1) {
-			try {
-				// Try SLF4J 1.7 SPI
-				Class.forName("org.slf4j.spi.LocationAwareLogger", false, cl);
-				logApi = LogApi.SLF4J_LAL;
-			}
-			catch (ClassNotFoundException ex2) {
-				try {
-					// Try SLF4J 1.7 API
-					Class.forName("org.slf4j.Logger", false, cl);
-					logApi = LogApi.SLF4J;
-				}
-				catch (ClassNotFoundException ex3) {
-					// Keep java.util.logging as default
-				}
-			}
-		}
-	}
-    
-    public static Log createLog(String name) {
-        switch (logApi) {
-            case LOG4J:
-                return Log4jAdapter.createLog(name);
-            case SLF4J_LAL:
-                return Slf4jAdapter.createLocationAwareLog(name);
-            case SLF4J:
-                return Slf4jAdapter.createLog(name);
-            default:
-                // Defensively use lazy-initializing adapter class here as well since the
-                // java.logging module is not present by default on JDK 9. We are requiring
-                // its presence if neither Log4j nor SLF4J is available; however, in the
-                // case of Log4j or SLF4J, we are trying to prevent early initialization
-                // of the JavaUtilLog adapter - e.g. by a JVM in debug mode - when eagerly
-                // trying to parse the bytecode for all the cases of this switch clause.
-                return JavaUtilAdapter.createLog(name);
-        }
-    }
-
-    private enum LogApi {LOG4J, SLF4J_LAL, SLF4J, JUL}
-}
-```
-- springboot
-
-```java
-import org.apache.commons.logging.LogFactory;
-
-public class SpringApplication {
-    // 实例化SpringApplication时，便会实例化Log
-    private static final Log logger = LogFactory.getLog(SpringApplication.class);
-}
-```
 
 
 ---

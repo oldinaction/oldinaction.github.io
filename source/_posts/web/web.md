@@ -52,7 +52,7 @@ tags: [pdf, speech]
         - 定义模块 `define(function(require, exports, module) {})`
     - AMD是提前执行（RequireJS2.0开始支持延迟执行，不过只是支持写法，实际上还是会提前执行），CMD是延迟执行
 - `UMD` 叫做通用模块定义规范（Universal Module Definition）
-    - 它可以通过运行时或者编译时让同一个代码模块在使用 CommonJs、CMD 甚至是 AMD 的项目中运行。导出umd格式，可以支持inport、require和script引入
+    - 它可以通过运行时或者编译时让同一个代码模块在使用 CommonJs、CMD 甚至是 AMD 的项目中运行。导出umd格式，可以支持import、require和script引入
     - UMD实现方式
 
         ```js

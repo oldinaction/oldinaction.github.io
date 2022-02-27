@@ -398,6 +398,50 @@ git branch -d develop/test
 
 https://help.github.com/en/articles/configuring-git-to-handle-line-endings
 
+#### 大文件删除及管理
+
+- 参考：https://blog.csdn.net/dddd6666qq/article/details/107404658
+- 查看大文件
+
+```bash
+git rev-list --objects --all \
+| git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
+| sed -n 's/^blob //p' \
+# 已第2个字段(文件大小)进行排序
+| sort --numeric-sort --key=2 \
+# (可省略)显示hash的前12个字符
+# | cut -c 1-12,41- \
+# 排除HEAD分支中存在的文件
+| grep -vF --file=<(git ls-tree -r HEAD | awk '{print $3}') \
+# 过滤文件大于1M=2^20B的
+| awk '$2 >= 2^20' \
+# (可省略)显示的文件大小更易读，K/M为单位。mac无numfmt命令，需要安装`brew install coreutils`(核心工具命令)
+| $(command -v gnumfmt || echo numfmt) --field=2 --to=iec-i --suffix=B --padding=7 --round=nearest
+
+# 显示如
+7e692fbf52d41f0df8420a269fc5688feddc773b  4.3MiB sqbiz-plugin/sqbiz-druid-plugin/target/sqbiz-druid-plugin.ark.plugin
+```
+- 基于bfg.jar清理
+
+```bash
+## bfg清理
+# 下载bfg.jar到`/Users/smalle/software/git-bfg`
+# bfg默认会保护当前版本(HEAD所指的版本)不去清理
+# 删除超过1M的文件. demo为仓库根目录，执行完后会生成一个日志文件夹
+java -jar /Users/smalle/software/git-bfg/bfg.jar --strip-blobs-bigger-than 1M demo
+# 删除文件
+java -jar /Users/smalle/software/git-bfg/bfg.jar --delete-files test.txt demo
+# 删除指定目录
+java -jar /Users/smalle/software/git-bfg/bfg.jar --delete-folders testdir demo
+
+## git gc 
+# 在完成上面的指令后，实际上这些数据/文件并没有被直接删除，这时候需要使用git gc指令来清除
+git reflog expire --expire=now --all && git gc --prune=now --aggressive
+
+## 推送。gitee的话还需去后台点下git gc按钮
+git push
+``` 
+
 ## gitflow工作流 [^5]
 
 ![git-workflow](/data/images/arch/git-workflow.png)

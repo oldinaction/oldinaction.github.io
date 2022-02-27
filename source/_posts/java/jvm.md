@@ -236,6 +236,7 @@ tags: [os]
     - 基于jvm agent完成：在将class加载到内存是，会先执行指定的agent，此时可拦截class进行操作(如获取大小)。参考[ObjectSizeAgent.java.bak](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c03_object_size/ObjectSizeAgent.java.bak)
     - 开启ClassLoader压缩：8(markword) + 4(ClassPointer指针) + 0(无实例数据/属性) + 4(Padding对齐) = 16字节
     - 未开ClassLoader压缩：8(markword) + 8(ClassPointer指针) + 0(无实例数据/属性) + 0(Padding对齐) = 16字节
+- 比较两个类是否相等，只有它们是由同一个类加载器加载时，才有意义。对于同一个类，如果由不同类加载器加载，则他们也必然不相等。(相等包括Class对象的equals方法、isAssignableFrom()方法、isInstance()方法返回的结果,也包括用instanceof关键词判断的情况)
 
 ### Runtime Data Area运行时数据区
 

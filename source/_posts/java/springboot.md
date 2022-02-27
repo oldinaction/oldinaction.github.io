@@ -81,6 +81,8 @@ tags: spring
 - SpringBoot项目属性配置加载顺序
     - 使用命令行方式启动时，在命令行中传入的参数
         - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖，如增加`spring.application.json={"spring.application.admin.enabled": false}`
+        - 如果参数值有特殊字符和使用双引号包裹一下，如`--spring.datasource.url="jdbc:xxx"`
+        - 传入数组，如`--sqbiz.arr=test1,test2`，java需要使用对象的数组属性接受
     - SPRING_APPLICATION_JSON中的属性。SPRING_APPLICATION_JSON是以JSON的格式配置在系统环境变量中的内容，或`--spring.application.json='{"foo":"bar"}'`参数
     - java:comp/env中的JNDI属性
     - Java的系统属性，可以通过System.getProperties()获得的内容
@@ -95,7 +97,7 @@ tags: spring
 - 使用配置文件(优先级从高到低)
 	- 外置，`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
     - 外置，应用程序运行目录的/congfig子目录里
-    - 外置，在应用程序运行的目录里
+    - 外置，在应用程序运行的目录里(如外置目录application-prod.yml优先级高于jar包中的该文件)
 	- 内置，`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
     - **内置，src/main/resources/config包内**
         - 可写成到通用包中作为通用配置，后面可以进行补充，但是不能覆盖
@@ -730,7 +732,7 @@ server.context-path=/myapp
 | post           | `application/x-www-form-urlencoded` | x-www-form-urlencoded | (String name, User user, @RequestBody body)                                                      | `String name`可以接受 url 中的参数，postmant 的 x-www-form-urlencoded 中的参数会和 url 中参数合并后注入到 springboot 的参数中；`@RequestBody`会接受 url 整体的数据，(由于 Content-Type)此时不会转换，body 接受的参数如`name=hello&name=test&pass=1234`。**对于 application/x-www-form-urlencoded 类型的数据，可无需 @RequestBody 接受参数**                                                                                                            |
 | post           | `multipart/form-data`               | form-data             | (HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello) | 参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括 axios 等插件)需要使用 new FormData()进行数据传输；此时参数映射到 User 对象，如果字段为 null 则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是 Map 则无法映射**；表单数据都保存在 http 的正文部分，各个表单项之间用 boundary 隔开，用 request.getParameter 是取不到数据的，这时需要通过 request.getInputStream 来取数据 |
 | get            | -                                   | -                     | (User user, Page page)                                                                           | 前台传输参数为{username: 'smalle', pageSize: 10}时，可正确分别映射到两个对象；如果此时为 post 请求则无法映射；get 请求时，请求参数会拼接到 url 上，Google 浏览器 URL 最大长度限制为 8182 个字符，中文是以 urlencode 后的编码形式进行传递，如果浏览器的编码为 UTF8 的话，一个汉字最终编码后的字符长度为 9 个字符(中=%E4%B8%AD)。如果用 Map 接受，则数字类型的值也会映射成字符串                                                                      |
-| get            | `application/x-www-form-urlencoded` | -                     | (Map<String, Object> param)                                                                           | 前台传输参数为?age=&count=10000时，得到的字段数据类型均为字符串                                                                      |
+| get            | `application/x-www-form-urlencoded` | -                     | (Map<String, Object> param)                                                                           | 前台传输参数为?age=&count=10000时，得到的字段数据类型均为字符串。SqBiz必须加@RequestParam注解才能获取到Map                                                                      |
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放在body中，且数据格式为json
@@ -2221,8 +2223,7 @@ mailSender.send(mimeMessage);
 
 ### 整合ureport可视化报表
 
-- [ureport](https://github.com/youseries/ureport)、[ureport文档](https://www.w3cschool.cn/ureport/ureport-5j7b2h8l.html)
-- 参考：https://www.pianshen.com/article/72751541487/
+- 参考[Ureport报表](/_posts/java/java-tools.md#Ureport报表)
 
 ## 其他
 

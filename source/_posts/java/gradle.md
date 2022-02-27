@@ -12,7 +12,14 @@ tags: [build]
 - Gradle 是一个通用的构建工具，它能构建任何基于你的构建脚本的东西。如果构建Java项目，引入构建java的插件(添加 task 到 project，如编译、打包、生成javadoc等)即可
 - 在 Gradle 中两个顶级概念：project 项目和 task 任务 [^1]
 
-## 安装命令
+## 安装和命令
+
+### 安装
+
+```bash
+# mac
+brew install gradle
+```
 
 ### 镜像
 

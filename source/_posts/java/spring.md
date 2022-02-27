@@ -253,16 +253,18 @@ public class BaseController {
 
 	public BaseController() {}
 
-	@Autowired // 类加载时调用此构造方法并赋值给静态属性
-	public BaseController(CustomObjectMapper customObjectMapper) {
-		BaseController.customObjectMapper = customObjectMapper;
-	}
+
+    @Autowired // 类加载时调用此构造方法并赋值给静态属性
+    public BaseController(CustomObjectMapper customObjectMapper) {
+        BaseController.customObjectMapper = customObjectMapper;
+    }
 }
 ```
 
 ### 条件注解@Conditional
 
 - 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
+- 类似的如`@Profile("dev")`标识仅在开发环境才会注入此Bean
 - 内置条件
     - `@ConditionalOnProperty` 要求配置属性匹配条件
         - `havingValue` 表示对应参数值。注解中如果省略此属性，则此参数为false时，条件结果才为false
@@ -671,11 +673,11 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 ### 加载优先级
 
 - 同一个类中加载顺序
-    - Constructor > @Autowired > @PostConstruct > @Bean
+    - Constructor > @Autowired > @PostConstruct > @Bean/@Component/setApplicationContext等
 - @DependsOn控制顺序
-    - `@DepondensOn("springU")` 如在@PostConstuct方法中使用SpringU等工具类会报空指针。因为@PostConstuct修饰的方法在Spring容器启动时会先于该工具类的setApplicationContext()方法运行
+    - `@DepondensOn("springU")` 如在@PostConstuct方法中使用SpringU等工具类会报空指针。因为@PostConstuct修饰的方法在Spring容器启动时会先于该工具类的setApplicationContext()方法运行。解决方法参考下文 BeanPostProcessor
     - 控制 bean 之间的实例顺序，需要注意的是 bean 的初始化方法调用顺序无法保证
-- BeanPostProcessor 扩展，参考[ApplicationContext:SpringU](#ApplicationContext)
+- BeanPostProcessor 扩展优先于其他Bean，参考[ApplicationContext:SpringU](#ApplicationContext)
 - `@Lazy` 和@Autowired结合使用，当两个Bean发生循环依赖时，可将其中一个Bean的注入设置成懒加载
 
 
@@ -1064,7 +1066,9 @@ public class Application {}
 
         ```bash
         "0/10 * * * * ?" 每10秒触发(程序启动后/任务添加后，第一次触发为0/10/20/30/40/50秒中离当前时间最近的时刻。下同) 
-        "0 0/5 * * * ?" **每5分钟执行一次(注意第一个为0)** ("* 0/5 * * * ?" 每5分钟连续执行60秒，这60秒期间每秒执行一次；"0 5 * * * ?" 表示每个小时的第5分钟执行)
+        "0 0/5 * * * ?" **每5分钟执行一次(注意第一个为0)**
+            "* 0/5 * * * ?" 每5分钟连续执行60秒，这60秒期间每秒执行一次
+            "0 5 * * * ?" 表示每个小时的第5分钟执行
         "0 0 12 * * ?" 每天中午12点触发
         "0 15 10 ? * *" 每天上午10:15触发 
         "0 15 10 * * ?" 每天上午10:15触发 
@@ -1197,7 +1201,7 @@ TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savePoin
 	- `NOT_SUPPORTED`：以非事务方式运行，如果当前存在事务，则把当前事务挂起
 	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
 	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常
-	- `NESTED`：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED
+	- `NESTED`：(适合总分总结构) 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED
 - REQUIRES_NEW 和 NESTED的区别
     - REQUIRES_NEW执行到B时，A事物被挂起，B会新开了一个事务进行执行。B发生异常后，B中的修改都会回滚，然后外部事物继续执行；B正常执行提交后，则数据已经持久化了，可能产生脏读，且A如果之后失败回滚时，B是不会回滚的
     - NESTED执行到B时，会创建一个savePoint，如果B中执行失败，会将数据回滚到这个savePoint，A可以继续提交；如果B正常执行，此时B中的修改并不会立即提交，而是在A提交时一并提交，如果A失败，则A和B都会回滚
@@ -1257,7 +1261,7 @@ public Result addTest() {
 }
 @Transactional
 public Result addTestTransactional() {
-    // 此时有事物环境(由于是直接调用)
+    // 此时没有事物环境(由于是直接调用)
     User user1 = new User();
     user1.setId("2");
     user1.setUsername("user1");
@@ -1268,7 +1272,7 @@ public Result addTestTransactional() {
         Long.valueOf("abc");
     } catch (Exception e) {
         e.printStackTrace();
-        // 此时手动回滚不会生效，并且会报：org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope。*****Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用****
+        // 因为没有事物环境，此时手动回滚不会生效，并且会报：org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope。*****Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用****
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
     }
 
@@ -1312,6 +1316,39 @@ public Result addTestTransactional() {
     Long.valueOf("abc");
     return null;
 }
+
+// ## 5.NESTED
+bean.run(); // 开启事物
+
+@Transactional(rollbackFor = Exception.class)
+@Override
+public Result run() {
+    // ======>A
+    Long a = Long.valueOf("1");
+    // Long a = Long.valueOf("a"); // 此处报错则直接回滚
+
+    // ======>B
+    for (Map<String, Object> item : list) {
+        MyBean bean = SpirngU.getBean(MyBean.class);
+        // 开启内部事物
+        // bean.runItem(item); // 当前item回滚，B之前的数据也会回滚(由于此处异常直接往外抛出了)
+        try {
+            bean.runItem(item); // 当前item回滚，B之前的数据不会回滚
+        } catch(Exception e) {
+            log.error("", e);
+        }
+    }
+
+    // ======>C
+    Long c = Long.valueOf("1");
+    // Long c = Long.valueOf("c"); // 此处报错则会全部回滚(A、B、C)
+}
+
+@Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+@Override
+public Result runItem(Map<String, Object> item) {
+    throw new RuntimeException();
+}
 ```
 
 ### 自调用导致@Transactional失效问题
@@ -1336,6 +1373,7 @@ public class UserServiceImpl implements UserService {
                 UserService userService = (UserService) AopContext.currentProxy();
                 userService.updateByMap(params); // 可实现事物
             } catch (Exception e) {
+                // 此处catch无所谓的
                 System.out.println("error...");
             }
         }
@@ -1387,6 +1425,52 @@ Class ServiceB {
     - 将嵌套事物开启成新事物，如editById注解成@Transactional(propagation = Propagation.REQUIRES_NEW)
     - 如果希望内层事务回滚，但不影响外层事务提交，需要将内层事务的传播方式指定为PROPAGATION_NESTED
         - 注：PROPAGATION_NESTED基于数据库savepoint实现的嵌套事务，外层事务的提交和回滚能够控制嵌内层事务，而内层事务报错时，可以返回原始savepoint，外层事务可以继续提交
+
+### 在事物中提前关闭了连接
+
+```java
+@Transactional(rollbackFor = Exception.class)
+@Override
+public void test() {
+    this.runSql(...);
+    jdbcTemplate.update(...); // 此处会报错：SQL state [null]; error code [0];
+}
+
+public List<Map<String, Object>> runSql(String sql, Map<String, Object> parameters) {
+    SqlSession sqlSession = sqlSessionFactory.openSession(); // org.apache.ibatis.session.SqlSession
+    Connection connection = sqlSession.getConnection();
+    ResultSet rs = null;
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        setParameters(ps, boundSql, parameters, configuration);
+        rs = ps.executeQuery();
+        return resultSetToList(rs);
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    } finally {
+        // rs可以关闭
+        if(rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //不能直接关闭连接，如果存在事物则有问题，如进口运费付款核销
+        //try {
+        //    connection.close();
+        //} catch (SQLException e) {
+        //    e.printStackTrace();
+        //}
+        DataSource dataSource = SpringUtil.getBean(DataSource.class);
+        DataSourceUtils.releaseConnection(connection, dataSource);
+
+        // sqlSession也可以关闭
+        sqlSession.close();
+    }
+}
+```
 
 ## Spring-XML配置
 
@@ -1726,6 +1810,13 @@ public class CustomerWebMvcConfig implements WebMvcConfigurer {
     }
 }
 ```
+
+### 异常处理
+
+- 处理方式，参考：https://www.freesion.com/article/86641357119/
+    - @Controller + @ExceptionHandler
+    - @ControllerAdvice + @ExceptionHandler
+    - 实现HandlerExceptionResolver接口
 
 ## Spring相关类/接口说明
 

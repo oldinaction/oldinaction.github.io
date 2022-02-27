@@ -241,6 +241,144 @@ npm install -g @vue/cli
 vue --version # @vue/cli 4.3.0
 ```
 
+## 格式规范化
+
+### eslint格式化
+
+- vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
+- 直接安装
+- 基于vue-cli安装，参考：https://eslint.vuejs.org/
+    - `vue add eslint` 基于vue安装插件，选择Standard、Lint on save
+    - 安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)
+    - 安装后会在package.json中增加如下配置，安装对应的包到项目目录，并增加文件`.eslintrc.js`和`.editorconfig`
+
+        ```json
+        "scripts": {                                            
+            "lint": "vue-cli-service lint",
+        },
+        "devDependencies": {
+            "@vue/cli-plugin-eslint": "~4.5.0",
+            "@vue/eslint-config-standard": "^5.1.2",
+            "eslint": "^6.7.2",
+            "eslint-plugin-import": "^2.20.2",
+            "eslint-plugin-node": "^11.1.0",
+            "eslint-plugin-promise": "^4.2.1",
+            "eslint-plugin-standard": "^4.0.0",
+            "eslint-plugin-vue": "^6.2.2"
+        }
+        ```
+- 支持多种配置文件格式：.eslintrc.js、.eslintrc.yaml、.eslintrc.json、.eslintrc(弃用)、在package.json增加eslintConfig属性。且采用就近原则
+- `.eslintrc.js` 放在vue项目根目录，详细参考：https://cn.eslint.org/ [^10]
+
+```js
+module.exports = {
+  root: true,
+  'extends': [
+    'plugin:vue/essential',
+    '@vue/standard'
+  ],
+  rules: {
+    // allow async-await
+    'generator-star-spacing': 'off',
+    // allow debugger during development
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'vue/no-parsing-error': [2, {
+      'x-invalid-end-tag': false
+    }],
+    'no-undef': 'off',
+    'camelcase': 'off',
+    // function函数名和()见增加空格
+    "space-before-function-paren": ["error", {
+        "anonymous": "always",
+        "named": "always",
+        "asyncArrow": "always"
+    }],
+    // 不强制使用 ===
+    "eqeqeq": ["error", "smart"],
+    // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
+    "operator-linebreak": ["error", "before"],
+  },
+  parserOptions: {
+    parser: 'babel-eslint'
+  }
+}
+```
+- `.eslintignore` 放在vue项目根目录
+
+```bash
+# 不进行校验的的文件或文件夹
+src/components
+```
+- 代码中不进行校验
+
+```js
+/* eslint-disable */
+// ESLint 在校验的时候就会跳过后面的代码
+
+/* eslint-disable no-new */
+// ESLint 在校验的时候就会跳过 no-new 规则校验
+```
+
+### .prettierrc/.jsbeautifyrc/.editorconfig格式化
+
+- Eslint、.editorconfig等区别
+    - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒
+    - .editorconfig 更偏向于简单代码风格，如缩进等
+        - .prettierrc 更偏向于代码美化
+    - 二者并不冲突，同时配合使用可以使代码风格更加优雅
+- Prettier插件
+    - 文件需要配合插件使用，如vscode的[Prettier插件](https://prettier.io/)(推荐)
+    - 相应的配置文件
+        - `.prettierrc` 项目根目录配置文件，常用配置参考下文
+        - `prettier.config.js`
+        - `package.json`中的`prettier`属性
+- `.jsbeautifyrc` 代码格式化
+    - 文件需要配合插件使用，如vscode的`Beautify`插件
+- **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**
+    - 该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的
+    - **此插件配置的格式优先于vscode配置的，如缩进**，常用配置参考下文
+- .prettierrc 常用配置
+
+```js
+{
+  /* 使用单引号包含字符串 */
+  "singleQuote": true,
+  /* 不添加行尾分号 */
+  "semi": false,
+  /* 在对象属性添加空格 */
+  "bracketSpacing": true,
+  /* 优化html闭合标签不换行的问题 */
+  "htmlWhitespaceSensitivity": "ignore",
+  /* 每行最大长度默认80(适配1366屏幕，1920可设置成140) */
+  "printWidth": 140
+}
+```
+- `.editorconfig` 放在vue项目根目录
+
+```ini
+# http://editorconfig.org
+root = true
+
+[*]
+#缩进风格：空格
+indent_style = space
+#缩进大小2
+indent_size = 2
+#换行符lf
+end_of_line = lf
+#字符集utf-8
+charset = utf-8
+#是否删除行尾的空格
+trim_trailing_whitespace = true
+#是否在文件的最后插入一个空行
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+```
 
 
 

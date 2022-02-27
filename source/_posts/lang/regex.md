@@ -83,6 +83,38 @@ str.match(/<.+?>/); // <div style="font-color:red;">
 // JAVA和JS字符串每4个字符添加空格
 // https://www.cnblogs.com/eternityz/p/13686419.html
 ```
+- 提取数据
+
+```js
+// 提取百度网盘数据
+var content="链接：https://pan.baidu.com/s/14Ohd4jLuMWLRtqIt6eUNKg\n提取码：5dlw\n复制这段内容后打开百度网盘手机App，操作更方便哦";
+var reg = /链接：(.*)/;
+console.log(reg.exec(content)[1].trim()); // https://pan.baidu.com/s/14Ohd4jLuMWLRtqIt6eUNKg
+var reg1 = /提取码：(.*)/;
+console.log(reg1.exec(content)[1].trim()); // 5dlw
+
+// 提取工资
+var str = "张三：1000，李四：5000，王五：8000。";
+var array = str.match(/\d+/g);
+console.log(array); // ['1000', '5000', '8000']
+
+// 提取email地址
+var str = "123123@xx.com,abc@test.cn 123@qq.com 2、test@test.test.com 456@qq.com...";
+var array = str.match(/\w+@\w+\.\w+(\.\w+)?/g);
+console.log(array); // ['123123@xx.com', 'abc@test.cn', '123@qq.com', 'test@test.test.com', '456@qq.com']
+
+// 分组提取  
+// 提取日期中的年部分  2015-5-10
+var dateStr = '2016-1-5';
+// 正则表达式中的()作为分组来使用，获取分组匹配到的结果用Regex.$1 $2 $3....来获取
+var reg = /(\d{4})-\d{1,2}-\d{1,2}/;
+if (reg.test(dateStr)) {
+  console.log(RegExp.$1); // 2016
+}
+
+// 匹配变量
+"@a@@1abc@@@ccc$12_a@".match(/@[_\\$a-zA-Z]+[_\\$a-zA-Z0-9]*?@/g); // ['@a@', '@ccc$12_a@']
+```
 
 ## java
 
@@ -170,7 +202,7 @@ System.out.println(str.replaceAll(pattern, "$1$3")); // Hello, World.
 // (2) 使用反向引用
 String str = "img.jpg";
 Pattern pattern = Pattern.compile("(jpg|png)"); // 分组且创建反向引用
-// Pattern pattern = Pattern.compile("(?:jpg|png)"); // 仅分组，但不创建反向引用。此时下面 matcher.group(1) 会报错 IndexOutOfBoundsException
+// Pattern pattern = Pattern.compile("(?:jpg|png)"); // 有?:表示仅分组，但不创建反向引用。此时下面 matcher.group(1) 会报错 IndexOutOfBoundsException
 Matcher matcher = pattern.matcher(str);
 while (matcher.find()) { // 可能会匹配到多次
     System.out.println(matcher.group()); // jpg
@@ -241,6 +273,7 @@ while (matcher.find()) {
 - 校验
 
 ```java
+str.matches(String.format("^[-]{0,1}\\d{1,%d}$", 3)) // 正在表达式变量拼接
 str.matches("^[\u4e00-\u9fa5]{0,}$"); // 校验汉子
 ```
 

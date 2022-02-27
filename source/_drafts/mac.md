@@ -91,6 +91,8 @@ brew services cleanup  # 清除已卸载应用的无用的配置
 # 按照目录：/opt/homebrew/opt/nginx
 # 配置文件目录：/opt/homebrew/etc/nginx/nginx.conf
 brew install nginx
+# 核心工具命令，如：numfmt
+brew install coreutils
 ```
 
 ### VPN(PPTP)
@@ -158,7 +160,7 @@ rm -rf ~/.nvm
     - Profiles - 双击对应Profile即可登录服务器
 - 快捷键
     - 更多参考：https://www.jianshu.com/p/a0249778872e
-    - 在 Finder 中打开当前目录 `open .`
+    - **在 Finder 中打开当前目录 `open .`**
     - 按住 ⌘ 键
         - 可以拖拽选中的字符串
         - 点击 url：调用默认浏览器访问该网址
@@ -204,6 +206,8 @@ sudo chmod +x it2dl && sudo mv it2dl /usr/local/bin
 # 编辑好文件后，重新打开item2 Tab，执行setproxy开启代理。可使用`curl cip.cc`测试当前IP地址
 alias proxy="export ALL_PROXY=socks5://127.0.0.1:1088"
 alias unproxy="unset ALL_PROXY"
+
+# 快速启动此脚本后，网络设置里面设置网线(USB)对应适配器的SOCKS代理即可
 ```
 - 配色方案：https://iterm2colorschemes.com/
 - 防止长时间不用断线问题：在`~/.ssh/config`(可能需要新建)中加入`ServerAliveInterval 60`

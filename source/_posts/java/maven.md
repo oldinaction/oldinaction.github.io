@@ -9,6 +9,7 @@ tags: [build]
 ## maven简介
 
 - [maven教程](https://www.runoob.com/maven/maven-tutorial.html)
+- [《Maven官方文档》目录指南](http://ifeve.com/maven-index-2/)
 - FatJar：将应用程序及其依赖jar一起打包到一个独立的jar中，就叫fat jar，它也叫uberJar，如springboot应用
 
 ## maven实战
@@ -81,6 +82,7 @@ tags: [build]
 	<description>smtools</description>
 
 	<modules>
+        <!-- 子模块的groupId可以和当前父模块groupId不一致；此处定义的子模块在父模块打包时会一同打包 -->
 		<module>utils</module>
 		<module>demo</module>
 	</modules>
@@ -137,21 +139,6 @@ tags: [build]
 
 ### maven项目依赖本地jar包
 
-- 安装jar包(test-1.0.0.jar)到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
-	- 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
-- 再按照常规的方式应用
-	
-	```xml
-	<!-- 依赖本项目其他模块时，需要先install被依赖的模块，才能打包此模块 -->
-	<dependency>
-    	<groupId>cn.aezo</groupId>
-    	<artifactId>test</artifactId>
-    	<version>1.0.0</version>
-    </dependency>
-	```
-
-> 以下两种方法不推荐：这样添加之后，编译是可以通过的，但是打包还会会从本地maven库里取相应的jar（如果你本地maven库里没有，则不会打包到工程里），而不是把你配置的jar文件打包进去，所以需要打包完成后将对应的jar添加到项目jar的lib目录中
-
 - 法一：依赖写法(只能一个jar一个jar的添加)
 
     ```xml
@@ -165,6 +152,7 @@ tags: [build]
     	<systemPath>${basedir}/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar</systemPath>
     </dependency>
 
+    <!-- 这部分也需要，否则只能开发环境通过，编译的springboot jar中无此依赖 -->
 	<build>
 		<plugins>
 			<!-- springboot专用. spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
@@ -178,8 +166,8 @@ tags: [build]
 			</plugin>
 		</plugins>
 
-		<!-- 使用includeSystemScope失败时可以使用resource的形式(会直接把jar包复制到 BOOT-INF/lib/ 目录) -->
-		<resources>
+		<!-- 使用includeSystemScope失败时可以使用resource的形式(会直接把jar包复制到 BOOT-INF/lib/ 目录) => 会导致开发环境有问题 -->
+		<!-- <resources>
 			<resource>
 				<directory>src/main/resources/lib</directory>
 				<targetPath>BOOT-INF/lib/</targetPath>
@@ -191,9 +179,23 @@ tags: [build]
 				<directory>src/main/resources</directory>
 				<targetPath>BOOT-INF/classes/</targetPath>
 			</resource>
-		</resources>
+		</resources> -->
 	</build>
     ```
+
+- 法二：
+    - 安装jar包(test-1.0.0.jar)到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
+        - 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
+    - 再按照常规的方式应用
+        
+        ```xml
+        <!-- 依赖本项目其他模块时，需要先install被依赖的模块，才能打包此模块 -->
+        <dependency>
+            <groupId>cn.aezo</groupId>
+            <artifactId>test</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        ```
 
 - 法二：在`build-plugins`节点加以下插件(可获取到目录下所有jar)(未测试通过)
 
@@ -741,6 +743,119 @@ tags: [build]
 - license-maven-plugin 为项目源文件顶部添加许可证
     - https://www.pingfangushi.com/posts/57675/
 
+## maven自定义插件
+
+- pom.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cn.aezo.sqbiz.maven.plugin</groupId>
+    <artifactId>sqbiz-sofa-maven-plugin</artifactId>
+    <name>sqbiz-sofa-maven-plugin</name>
+    <version>0.0.1</version>
+    <!-- 打包方式 -->
+    <packaging>maven-plugin</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.6.2</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>3.5.2</version>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
+- Mojo入口
+
+```java
+package cn.aezo.sqbiz.maven.plugin.sofa;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+
+@Mojo(name = "biz")
+public class BizMojo extends AbstractMojo {
+
+    /**
+     * 自定义参数<br/>
+     *
+     * maven提供三个隐式变量，用来访问系统环境变量、POM信息和maven的setting<br/>
+     * ${basedir} 项目根目录<br/>
+     * ${project.build.directory} 构建目录，缺省为target<br/>
+     * ${project.build.outputDirectory} 构建过程输出目录，缺省为target/classes<br/>
+     * ${project.build.finalName} 产出物名称，缺省为 ${project.artifactId}- ${project.version}<br/>
+     * ${project.packaging} 打包类型，缺省为jar<br/>
+     * ${project.xxx} 当前pom文件的任意节点的内容<br/>
+     *
+     * @author smalle
+     * @since 2022/2/19
+     */
+    @Parameter(property = "name", defaultValue = "sqbiz")
+    private String name;
+
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        System.out.println("hello world..." + name);
+    }
+}
+```
+- 在需要的项目中引入此插件
+
+```xml
+<plugin>
+  <groupId>cn.aezo.sqbiz.maven.plugin</groupId>
+  <artifactId>sqbiz-sofa-maven-plugin</artifactId>
+  <version>0.0.1</version>
+  <executions>
+    <execution>
+      <phase>compile</phase>
+      <goals>
+        <goal>biz</goal>
+      </goals>
+    </execution>
+  </executions>
+  <!--
+    可以自定义配置，此处只能通过idea的maven工具进行编译才会生效
+    也可以通过命令行传入参数`mvn cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz -Dname=test`
+  -->
+  <configuration>
+    <name>smalle</name>
+  </configuration>
+</plugin>
+```
+- 执行goal
+  - 格式`mvn groupId:artifactId:version:goal`，即`mvn cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz -Dname=test`
+
 ## maven私服搭建(nexus)
 
 - **也可使用阿里云私服**：https://packages.aliyun.com/maven
@@ -810,6 +925,81 @@ services:
     <id>releases</id><!-- nexus中的repository ID -->
     <url>http://192.168.1.10:8081/nexus/content/repositories/releases</url>
 </repository>
+```
+
+## 其他
+
+### eclipse-aether解析下载依赖
+
+- [eclipse-aether](http://wiki.eclipse.org/Aether)
+    - 可通过提供的groupId和artifactId以及version到指定maven库中解析依赖，并下载jar
+- 使用参考
+    - https://www.cnblogs.com/xiaosiyuan/articles/5887642.html
+    - https://wusandi.github.io/2018/10/29/equinox-aether-usage/
+- 案例参考(smjava/maven/eclipse-aether)
+
+### maven-invoker通过API方式执行Maven命令
+
+- pom
+
+```xml
+<dependency>
+    <groupId>org.apache.maven.shared</groupId>
+    <artifactId>maven-invoker</artifactId>
+    <version>2.2</version>
+</dependency>
+```
+- 解析pom.xml获取对应依赖案例(smjava/maven/maven-invoker)
+
+```java
+/**
+ * dependencies.txt 内容为
+ *
+ * The following files have been resolved:
+ *    org.codehaus.plexus:plexus-utils:jar:3.0.20:compile:/Users/smalle/.m2/repository/org/codehaus/plexus/plexus-utils/3.0.20/plexus-utils-3.0.20.jar
+ *    org.codehaus.plexus:plexus-component-annotations:jar:1.6:compile:/Users/smalle/.m2/repository/org/codehaus/plexus/plexus-component-annotations/1.6/plexus-component-annotations-1.6.jar
+ *    org.apache.maven.shared:maven-invoker:jar:2.2:compile:/Users/smalle/.m2/repository/org/apache/maven/shared/maven-invoker/2.2/maven-invoker-2.2.jar
+ */
+public static void main(String[] args) throws Exception {
+    String destFile = "/Users/smalle/gitwork/github/smjava/maven/maven-invoker/dependencies.txt";
+    InvocationRequest request = new DefaultInvocationRequest();
+    request.setPomFile(new File("/Users/smalle/gitwork/github/smjava/maven/maven-invoker/pom.xml"));
+    request.setGoals(Arrays.asList("dependency:list"));
+    Properties properties = new Properties();
+    properties.setProperty("outputFile", destFile); // 将输出重定向到此文件(如果只写成dependencies.txt，则会创建到pom文件所在目录)
+    properties.setProperty("outputAbsoluteArtifactFilename", "true"); // 输出包含jar包路径
+    properties.setProperty("includeScope", "runtime"); // only runtime (scope compile + runtime)
+    // if only interested in scope runtime, you may replace with excludeScope = compile
+    request.setProperties(properties);
+
+    Invoker invoker = new DefaultInvoker();
+    // the Maven home can be omitted if the "maven.home" system property is set
+    invoker.setMavenHome(new File("/Users/smalle/software/apache-maven-3.8.4"));
+    //invoker.setOutputHandler(null); // not interested in Maven output itself
+    invoker.setOutputHandler(s -> System.out.println(s)); // 打印编译过程(重定向到此文件中的内容不会打印)
+    InvocationResult result = invoker.execute(request);
+    if (result.getExitCode() != 0) {
+        throw new IllegalStateException("Build failed.");
+    }
+
+    // 读取上述文件打印依赖
+    Pattern pattern = Pattern.compile("(?:compile|runtime):(.*)");
+    try (BufferedReader reader = Files.newBufferedReader(Paths.get(destFile))) {
+        System.out.println("read file...");
+        // 文件写入可能有间隔，在此处等待
+        while (!"The following files have been resolved:".equals(reader.readLine()));
+        String line;
+        while ((line = reader.readLine()) != null && !line.isEmpty()) {
+            Matcher matcher = pattern.matcher(line);
+            if (matcher.find()) {
+                // group 1 contains the path to the file
+                // /Users/smalle/.m2/repository/org/codehaus/plexus/plexus-utils/3.0.20/plexus-utils-3.0.20.jar
+                // ...
+                System.out.println(matcher.group(1));
+            }
+        }
+    }
+}
 ```
 
 ## 常见问题

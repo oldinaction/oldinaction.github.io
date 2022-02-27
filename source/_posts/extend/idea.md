@@ -137,6 +137,15 @@ ThisCrackLicenseId-{
 - `jclasslib Bytecode viewer` 查看java class字节代码。安装后在View - Show Bytecode With jclasslib(打开一个类可进行查看)
 - `RestfulToolkit` 使用`Ctrl + Alt + N`基于路径搜索controller对应的位置
 - `leetcode` 算法刷题，参考：https://github.com/shuzijun/leetcode-editor/blob/master/doc/CustomCode_ZH.md
+- `Adapter for Eclipse Code Formatter` 代码格式化
+    - Setting - Other Settings - Adapter for Eclipse Code Formatter - 勾选Use Eclipse's Code Formatter - 设置Eclipse workspace/project folder or config file。如：`https://github.com/sofastack/sofa-boot/blob/master/tools/Formatter.xml`
+    - 执行代码格式化快捷键 Ctrl+Alt+Shift+L
+- `CheckStyle-IDEA` 检查代码格式
+    - Setting - Tools - CheckStyle - Configuration File - 新增一个本地的样式校验规则配置
+    - 参考：https://blog.csdn.net/u011943534/article/details/83037496
+- `PMDPlugin` 主要用于检查java源文件中的潜在问题，如未使用的变量等
+    - Setting - Other Settings - PMD - RuleSets - 新增PMD校验规则配置。如：https://github.com/sofastack/sofa-boot/blob/master/tools/pmd-ruleset.xml
+- `SpotBugs` 类似findbugs，主要检查.class文件中的潜在问题，如空指针等
 
 ### 其他
 

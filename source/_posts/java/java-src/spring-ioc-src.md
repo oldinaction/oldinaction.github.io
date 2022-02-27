@@ -77,6 +77,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 ### refresh方法概览
 
 ```java
+// AbstractApplicationContext.java
 @Override
 public void refresh() throws BeansException, IllegalStateException {
     // 来个锁，不然 refresh() 还没结束，你又来个启动或销毁容器的操作，那不就乱套了嘛
@@ -88,8 +89,8 @@ public void refresh() throws BeansException, IllegalStateException {
         // ***************
         // [创建 Bean 容器，加载并注册 Bean](#创建%20Bean%20容器，加载并注册%20Bean)
         // 这步比较关键，这步完成后，配置文件就会解析成一个个 Bean 定义，注册到 BeanFactory 中，
-        // 当然，这里说的 Bean 还没有初始化，只是配置信息都提取出来了，
-        // 注册也只是将这些信息都保存到了注册中心(***说到底核心是一个 beanName-> beanDefinition 的 map***)
+        // 当然，这里说的 Bean 还没有初始化，只是配置信息都提取出来了，注册也只是将这些信息都保存到了注册中心(***说到底核心是一个 beanName-> beanDefinition 的 map***)
+        // 资源(bean)读取基于XmlBeanDefinitionReader；如果是基于注解进行初始化spring的，则是基于ClassPathMapperScanner 进行类扫描和注册的
         ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
         // [Bean 容器实例化完成后](#Bean%20容器实例化完成后)
@@ -98,11 +99,10 @@ public void refresh() throws BeansException, IllegalStateException {
         prepareBeanFactory(beanFactory);
 
         try {
-            // 【这里需要知道 BeanFactoryPostProcessor 这个知识点，Bean 如果实现了此接口，
-            // 那么在容器初始化以后，Spring 会负责调用里面的 postProcessBeanFactory 方法(主要做一些初始化)。】
+            // 这里需要知道 BeanFactoryPostProcessor 这个知识点，Bean 如果实现了此接口，那么在容器初始化以后，Spring 会负责调用里面的 postProcessBeanFactory 方法(主要做一些初始化)
 
-            // 这里是提供给子类的扩展点，到这里的时候，所有的 Bean 都加载、注册完成了，但是都还没有初始化
-            // 具体的子类可以在这步的时候添加一些特殊的 BeanFactoryPostProcessor 的实现类或做点什么事
+            // 到这里的时候，所有的 Bean 都加载、注册完成了，**但是都还没有初始化**
+            // 这里是提供给子类的扩展点，具体的子类可以在这步的时候添加一些特殊的 BeanFactoryPostProcessor 的实现类或做点什么事
             postProcessBeanFactory(beanFactory);
             // 调用 BeanFactoryPostProcessor 各个实现类的 postProcessBeanFactory(factory) 方法
             invokeBeanFactoryPostProcessors(beanFactory);
@@ -653,7 +653,8 @@ public void registerBeanDefinition(String beanName, BeanDefinition beanDefinitio
     if (oldBeanDefinition != null) {
         if (!isAllowBeanDefinitionOverriding()) {
             // 如果不允许覆盖的话，抛异常
-            throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription()...
+            throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription())
+            // ...
         }
         else if (oldBeanDefinition.getRole() < beanDefinition.getRole()) {
             // log...用框架定义的 Bean 覆盖用户自定义的 Bean 
@@ -1553,7 +1554,7 @@ public AnnotationConfigApplicationContext() {
     this.scanner = new ClassPathBeanDefinitionScanner(this);
 }
 
-// 3.注册(AbstractApplicationContext#refresh)
+// 3.注册(AbstractApplicationContext#refresh)，参考上文[refresh方法概览](#refresh方法概览)
 @Override
 public void refresh() throws BeansException, IllegalStateException {
     synchronized (this.startupShutdownMonitor) {
@@ -1567,11 +1568,13 @@ public void refresh() throws BeansException, IllegalStateException {
         prepareBeanFactory(beanFactory);
 
         try {
+            // 3.2
             // Allows post-processing of the bean factory in context subclasses.
-            postProcessBeanFactory(beanFactory); // 3.2
+            postProcessBeanFactory(beanFactory);
 
+            // 3.3 调用工厂处理器注册bean(此处并没有实例化)到上下文中
             // Invoke factory processors registered as beans in the context.
-            invokeBeanFactoryPostProcessors(beanFactory); // 3.3 调用工厂处理器注册bean到上下文中
+            invokeBeanFactoryPostProcessors(beanFactory);
 
             // Register bean processors that intercept bean creation.
             registerBeanPostProcessors(beanFactory);
@@ -1624,7 +1627,8 @@ public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
     // ...
     Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates); // configCandidates为配置类，如上文传入的App.class
     // ...
-    parser.parse(candidates); // 3.3.1 使用 ConfigurationClassParser 解析配置类(实际是进行扫描包)
+    // 3.3.1 使用 ConfigurationClassParser 解析配置类(实际是进行扫描包)
+    parser.parse(candidates);
     // ...
 }
 
@@ -1644,7 +1648,8 @@ public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final
     }
     // ...
 
-    return scanner.doScan(StringUtils.toStringArray(basePackages)); // 3.3.1.1 基于 basePackages 扫描bean
+    // 3.3.1.1 基于 basePackages 扫描bean
+    return scanner.doScan(StringUtils.toStringArray(basePackages));
 }
 
 // 3.3.1.1 基于 basePackages 扫描bean
@@ -1652,7 +1657,8 @@ protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
     Assert.notEmpty(basePackages, "At least one base package must be specified");
     Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
     for (String basePackage : basePackages) {
-        Set<BeanDefinition> candidates = findCandidateComponents(basePackage); // 获取包下的所有Bean
+        // 获取包下的所有Bean
+        Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
         for (BeanDefinition candidate : candidates) {
             ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
             candidate.setScope(scopeMetadata.getScopeName());
@@ -1661,14 +1667,17 @@ protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
                 postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
             }
             if (candidate instanceof AnnotatedBeanDefinition) {
+                // 处理bean修饰符，如注解@Lazy/@Primary，将对应状态设置到BeanDefinition中
                 AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
             }
+            // 验证bean是否能符合后面实例化的要求，如没有和其他bean冲突
             if (checkCandidate(beanName, candidate)) {
                 BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
                 definitionHolder =
                         AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
                 beanDefinitions.add(definitionHolder);
-                registerBeanDefinition(definitionHolder, this.registry); // 注册到registry中，调用 BeanDefinitionReaderUtils.registerBeanDefinition
+                // **注册到registry中**，调用 BeanDefinitionReaderUtils.registerBeanDefinition
+                registerBeanDefinition(definitionHolder, this.registry);
             }
         }
     }
@@ -1908,6 +1917,12 @@ public class StringToDateConverter implements Converter<String, Date> {
 - 但是，如果是 singleton 依赖 prototype 呢？这个时候不能用属性依赖，因为如果用属性依赖的话，我们每次其实拿到的还是第一次初始化时候的 bean
     - 一种常用的解决方案就是不要用属性依赖，每次获取依赖的 bean 的时候从 BeanFactory 中取
     - 另一种解决方案就是这里要介绍的通过使用 Lookup method
+
+## 执行顺序
+
+- @PostConstruct
+- ApplicationContextAware#setApplicationContext
+
 
 
 

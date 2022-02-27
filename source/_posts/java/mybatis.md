@@ -55,14 +55,17 @@ for (Orders order : list) {
 
     <!-- 方式三：使用mybatis-plus(推荐) -->
 	```
-- 启动类中加：**`@MapperScan({"cn.aezo.springboot.mybatis.mapper", "cn.aezo.springboot.mybatis.mapperxml", "cn.aezo.springboot.module.*.mapper"})`**
-    - 声明需要扫描mapper接口的路径；此处可以使用一层通配符(多层未测试成功)和mybatis.mapper-locations通配符配合使用进行多模块管理
-    - mybatis-plus注解方式也是使用此类
-- 配置
+- 扫描配置(二者缺一不可)
+    - 启动类中加 **`@MapperScan({"cn.aezo.springboot.mybatis.mapperxml", "cn.aezo.springboot.module.*.mapper"})`** 进行接口扫描
+        - 此处一层包通配符为`.*.`，多次包为`.**.`，和mybatis.mapper-locations通配符配合使用进行多模块管理
+        - mybatis-plus注解方式也是使用此类
+    - 还需要加mybatis.mapper-locations的配置，进行xml映射文件扫描
+        - mybatis-plus复写了此配置，对应`mybatis-plus.mapper-locations`，其默认值为`classpath*:/mapper/**/*.xml`，因此一般可不用配置此参数
+- Springboot配置
 
 	```bash
 	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml(无法扫描其子目录),classpath:mapper2/*.xml"
-    # classpath只会扫描当前moduler的class, 而改为classpath*则会扫描所有jar
+    # classpath只会扫描当前module的class, 而改为classpath*则会扫描所有jar
 	mybatis.mapper-locations=classpath:mapper/*.xml,classpath:mapper/**/*.xml
 	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置
 	mybatis.config-location=classpath:mybatis-config.xml
@@ -313,7 +316,9 @@ for (Orders order : list) {
 
 			int delete(Long id);
 
-            // mybatis-plus：带有分页查询的mapper，再传入Map参数，如果直接通过 #{param.xxx} 取值会报错，需要加 @Param 注解。https://github.com/baomidou/mybatis-plus/issues/894
+            // mybatis-plus：带有分页查询的mapper
+            // 再传入Map参数，如果直接通过 #{param.xxx} 取值会报错，需要加 @Param 注解。https://github.com/baomidou/mybatis-plus/issues/894
+            // 如果为其他引用类，则可直接使用参数名
             IPage<Map> queryByProjectId(Page page, @Param("param") Map<String,Object> param);
 		}
 		```
@@ -577,7 +582,9 @@ for (Orders order : list) {
 		<if test="validStatus == 'Y'.toString()">and validStatus = 1</if>
 		```
     - **查询结果返回 1 和 0 的数值时可自动注入到`private Boolean hasChildren;`的属性中**
--  dao中可以使用`submitTm[0]`获取值; xml中不行，其处理数组(如时间段)的方式如下
+- 处理数组
+    - dao中可以使用`submitTm[0]`获取值; xml中不行，其处理数组(如时间段)的方式如下
+    - xml参数中可使用`${list.size}`获取长度，不能使用#(否则报错UnsupportOperationException)
 
 	```xml
     <!-- （1）xml方式 -->
@@ -666,11 +673,11 @@ for (Orders order : list) {
         </foreach >
     </insert>
 
-    <!-- oracle版本适用 -->
+    <!-- **oracle版本适用**，或者使用 INSERT ALL INTO, 参考：https://www.cnblogs.com/nemowang1996/p/12519018.html -->
     <insert id="insertbatch">
         insert into t_user(id, name) (
             <foreach collection="list" item="user" index= "index" separator ="UNION ALL">
-                select #{user.id} as id, #{user.name} as name from dual
+                select #{user.id}, #{user.name} from dual
             </foreach >
         )
     </insert>
@@ -964,7 +971,7 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 ```yml
 # mybatis-plus 配置
 mybatis-plus:
-  # mapper-locations: classpath:mapper/*.xml
+  # mapper-locations: classpath*:/mapper/**/*.xml # 默认为此值，因此一般可以不用配置
   # typeAliasesPackage: cn.aezo.demo.entity
   global-config:
     # 逻辑删除配置(无需其他配置)

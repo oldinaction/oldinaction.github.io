@@ -236,6 +236,7 @@ grant dba to smalle; -- 授予管理权限(有dba角色就有建表等权限)
 
 ```sql
 alter user scott account unlock; -- 新建数据库scott默认未解锁
+-- alter profile default limit failed_login_attempts unlimited; -- 有时候解锁失败，是因为登录失败此处还没重置，可先设置为不限制失败登录次数
 commit;
 ```
 
@@ -304,15 +305,33 @@ select 'create or replace synonym SMALLE.' || object_name || ' for ' || owner ||
     - **实例 tnsping 突然高达 1w 多毫秒**，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
   - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
   - 查询数据库字符集 
-    - 查看服务器语言和字符集 `select userenv('language') from dual;` 如：`AMERICAN_AMERICA.AL32UTF8`
-        - 格式为`language_territory.charset`：Language 指定服务器消息的语言，territory 指定服务器的日期和数字格式，charset 指定字符集
+    - 查看oracle服务端编码：select * from sys.nls_database_parameters;
+        - 查看服务器语言和字符集 `select userenv('language') from dual;` 如：`AMERICAN_AMERICA.AL32UTF8`、`SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
+            - 格式为`language_territory.charset`：Language 指定服务器消息的语言，territory 指定服务器的日期和数字格式，charset 指定字符集
         - `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
-    - 查询oracle client端的字符集
-        - 在windows平台下，就是注册表里面`HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\HOME0\NLS_LANG`，PL/SQL则看环境变量`NLS_LANG`
+    - 查看client编码：select * from sys.nls_session_parameters;
+        - 在windows平台下，就是注册表里面`HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\HOME0\NLS_LANG`
+        - PL/SQL则看环境变量`NLS_LANG`
     - 查询dmp文件的字符集
         - 用oracle的exp工具导出的dmp文件也包含了字符集信息，dmp文件的第2和第3个字节记录了dmp文件的字符集。如果dmp文件不大，比如只有几M或几十M，可以用UltraEdit打开(16进制方式)，看第2第3个字节的内容，如0354，然后用以下SQL查出它对应的字符集
         - `select nls_charset_name(to_number('0354','xxxx')) from dual;` 结果是ZHS16GBK
     - 参考(修改字符集)：http://blog.itpub.net/29863023/viewspace-1331078/
+        - 修改数据库编码(在oracle 11g上通过测试)
+
+            ```bash
+            SQL> sqlplus / as sysdba;
+            SQL> shutdown immediate;
+            SQL> startup mount;
+            SQL> alter system enable restricted session;
+            SQL> alter system set job_queue_processes=0;
+            SQL> alter database open;
+            SQL> alter database character set internal_use ZHS16GBK; # 这里为你所要转换成的字符集，跳过超子集检测
+            SQL> shutdown immediate;
+            SQL> startup
+            ```
+        - 修改客户端编码
+            - 运行regedit命令，在注册表中找到这个下的键HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\HOME0\NLS_LANG，将其值改为上述服务器端你所修改的字符编码值
+            - 点击我的电脑右键》属性》高级》环境变量》新建一个用户变量：NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK
 - 用户相关查询
   - **查看当前用户默认表空间**：`select username, default_tablespace from user_users;`(以 dba 登录则结果为 SYS 和 SYSTEM)。**user_users 换成 dba_users 则是查询所有用户默认表空间**
   - 查看当前用户角色：`select * from user_role_privs;`
@@ -441,7 +460,7 @@ order by t.table_name, tc.column_name;
   - `trace日志`：**追踪文件**，记录各种 sql 操作及所消耗的时间等，根据 trace 文件就可以了解哪些 sql 导致了系统的性能瓶颈，进而采取恰当的方式调优
     - 10g 对应系统初始化参数文件参数`show parameter user_dump_dest`
     - 11g 同 alert 日志可通过`select * from v$diag_info;`查看日志文件位置(ADR Home)
-    - 日志会一致保留，不会自动删除
+    - 日志会一直保留，不会自动删除
   - `audit日志`：审计的信息
     - 10g 对应系统初始化参数文件参数`audit_file_dest`
   - `redo日志`：存放数据库的更改信息
@@ -453,7 +472,7 @@ order by t.table_name, tc.column_name;
   > `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.
 
   ```bash
-  # alert_orcl.log为警告日志；*.trc为日志追踪文件；*.trm为追踪文件映射信息；cdmp_20191212101335为备份？
+  # alert_orcl.log为警告日志(一般只有一个)；*.trc为日志追踪文件；*.trm为追踪文件映射信息；cdmp_20191212101335为备份？
   select * from v$diag_info; # 查看日志目录(ADR Home)
   ll -rt *.trc | grep ' 23 ' # 列举23号日期的trc文件。如`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
   ll -hrt *.trc | grep ' 23 ' | awk '{print $9}' | xargs grep 'ORA-' # 查看23号的oracle trc日志，并找出日志中出现ORA-的情况
@@ -570,6 +589,7 @@ lsof | grep deleted
 - 导入导出均分为全量模式、用户模式、表模式
     - 参考：https://www.cnblogs.com/songdavid/articles/2435439.html
 - 导入导出一定要注意服务器、客户端字符集`NSL_LANG`，否则可能出现数据、字段备注、存储过程等乱码
+    - 查询字符集参考本文[查询相关(查询数据库字符集)](#查询相关)
     - **在导入DMP文件前，在客户端导入与服务器一致的环境变量，例如：`set NLS_LANG=AMERICAN_AMERICA.AL32UTF8`**，或者在/etc/profile、oracle用户的`.bash_profile`文件中导出NLS_LANG
 - 导出
 
@@ -648,6 +668,65 @@ spool off;
 #### Oracle表结构与Mysql表结构转换
 
 - 参考 [mysql-dba.md:Oracle 表结构与 Mysql 表结构转换](/_posts/db/mysql-dba.md#其他)
+
+### 密码策略修改
+
+```sql
+-- 查询user是否锁定、及时间
+SELECT USERNAME,ACCOUNT_STATUS,LOCK_DATE,CREATED,PROFILE FROM DBA_USERS WHERE USERNAME = 'TEST_USER';
+-- 修改密码
+alter user TEST_USER account unlock identified by Hello1234!;
+
+-- 查询用户默认profile
+select profile from dba_users where username = 'TEST_USER';
+-- 修改用户默认profile
+alter user TEST_USER profile default;
+
+-- (sqlplus)查看用户密码策略profile
+-- 也可以直接 select * from dba_profiles where profile='DEFAULT' and resource_type='PASSWORD';
+set linesize 350            -- 设置整行长度，linesize 说明 https://blog.csdn.net/u012127798/article/details/34146143
+col profile for a20         -- 设置profile这个字段的列宽为20个字符
+col resource_name for a25
+col resource for a15
+col limit for a20
+select * from dba_profiles where profile='DEFAULT' and resource_type='PASSWORD';
+-- FAILED_LOGIN_ATTEMPTS 密码出错次数（超过次数后账号将锁定）
+-- PASSWORD_LIFE_TIME 密码有效期
+-- PASSWORD_REUSE_TIME 密码不能重新用的天数
+-- PASSWORD_REUSE_MAX 密码重用之前修改的最少次数
+-- PASSWORD_VERIFY_FUNCTION 密码复杂度校验函数(一般要自己定义)
+-- PASSWORD_LOCK_TIME 默认超过了1天后，帐号自动解锁
+-- PASSWORD_GRACE_TIME 默认密码到期提前7天提醒
+
+-- 密码出错次数（超过次数后账号将锁定）
+alter profile default limit FAILED_LOGIN_ATTEMPTS 5;
+alter profile default limit FAILED_LOGIN_ATTEMPTS UNLIMITED;
+
+-- 密码有效期
+alter profile default limit PASSWORD_LIFE_TIME 180; -- 密码有效期(天）
+alter profile default limit PASSWORD_LIFE_TIME UNLIMITED; -- 密码有效期不限制
+
+-- sqlplus执行密码策略语句(里面有一个默认的密码策略，参考：https://blog.csdn.net/xqf222/article/details/50263181)
+-- 会创建一个默认的密码策略验证函数 VERIFY_FUNCTION_11G，并修改默认的密码profile
+@ $ORACLE_HOME/rdbms/admin/utlpwdmg.sql
+
+-- 修改资源限制状态(默认未开启)。用户所有拥有的PROFILE中有关资源的限制与resource_limit参数的设置有关，当为TRUE时生效；当为FALSE时（默认值）设置任何值都无效
+-- Oracle 11g启动参数resource_limit无论设置为false还是true，上述策略都是生效的
+show parameter resource_limit;
+alter system set resource_limit=true; -- 开启resource_limit=true
+```
+
+### 数据恢复
+
+- 基于`of timestamp`恢复，用于少量数据被误删除
+
+```sql
+-- 查询某个时间点my_table表的所有数据
+select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS');
+-- 查询某个时间点my_table表的数据
+select id, name, '' from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS') where sex = 1;
+
+```
 
 ## 常见错误
 

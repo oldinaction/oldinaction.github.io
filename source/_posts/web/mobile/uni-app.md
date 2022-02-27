@@ -21,7 +21,7 @@ tags: [H5, 小程序, App, mobile]
 - `manifest.json` 文件是应用的配置文件，用于指定应用的名称、图标、权限(如定位)等
 
     ```json
-    // h5模式相关配置
+    // h5模式相关配置(非必须)
     "h5" : {
         // 项目发布在/test-demo1/端点下，只支持发行的时候(开发时运行无效)
         "publicPath" : "/test-demo1/",
@@ -68,7 +68,7 @@ tags: [H5, 小程序, App, mobile]
             "h5-prod": "D: && cd D:/software/HBuilderX/plugins/uniapp-cli && cross-env UNI_INPUT_DIR=$INIT_CWD/ UNI_OUTPUT_DIR=$INIT_CWD/unpackage/dist/build/h5 UNI_PLATFORM=h5 NODE_ENV=production VUE_APP_NODE_ENV=production node bin/uniapp-cli.js"
         },
         // 方式二(实测无效)
-        "uni-app": {  
+        "uni-app": {
             "scripts": { 
                 // 自定义脚本(启动方式)，对于内置启动方式可修改 manifest.json
                 "build-h5-api1": {
@@ -130,27 +130,13 @@ tags: [H5, 小程序, App, mobile]
     - `onLoad` 触发一次
     - `onShow` 每次展示时触发
 
-## 兼容问题
-
-### API兼容问题
-
-- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
-    - Vue特性支持表
-
-### 其他兼容问题
-
-- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
-- IOS 和 Android 对时间的解析有区别 [^1]
-    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
-    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
-
 ## onLaunch等同步写法
 
 - Promise/async/await使用参考：[js-release.md#Promise/async/await](/_posts/web/js-release.md#Promise/async/await)
 - 基本使用
 
 ```js
-// async onLaunch: function() {} // 这种写法不能在onLaunch前面使用async
+// onLaunch: function() {} // 这种写法不能在onLaunch前面使用async, 需写成 onLaunch: async function() {}
 async onLaunch() {
     await this.initData();
 },
@@ -193,13 +179,13 @@ export const login = () => {
 	})
 }
 ```
-- onLaunch的执行和所有页面的onShow(App.vue和其他任何页面)执行没有先后顺序，有可能onLaunch没执行完，onShow就执行了。需要达到 onLaunch 中进行同步执行后，再执行 onShow 的需求
+- onLaunch的执行和所有页面的onShow/onLoad(App.vue和其他任何页面)执行没有先后顺序，有可能onLaunch没执行完，页面级别的onShow/onLoad就执行了。需要达到 onLaunch 中进行同步执行后，再执行 onShow/onLoad 的需求
 
 ```js
 // 参考：https://www.lervor.com/archives/128/
 // main.js
 Vue.prototype.$onLaunched = new Promise(resolve => {
-    Vue.prototype.$emitResolve = resolve
+    Vue.prototype.$emitResolveLaunched = resolve
 })
 
 // App.vue
@@ -217,10 +203,10 @@ export default {
                 // await this.h5Login() // 错误写法. 由于 h5Login 并没有返回 Promise 对象，且内部 login 方法并没有同步执行
                 // this.h5Login2() // 错误写法. 此时 h5Login2 内部 login 方法是同步执行了，但是 async h5Login2 表示 h5Login2 为一个异步函数，返回 Promise，导致当前行和之后代码并没有同步执行
                 await this.h5Login2() // 正确写法
-                this.$emitResolve() // 释放
+                this.$emitResolveLaunched() // 释放
             })
         } else {
-            this.$emitResolve() // else的情况一定也要释放，否则页面可能会卡在await
+            this.$emitResolveLaunched() // else的情况一定也要释放，否则页面可能会卡在await
         }
         // #endif
     },
@@ -247,9 +233,23 @@ export default {
 }
 ```
 
-### web-view开发
+## web-view开发
 
 - 参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
+
+## 兼容问题
+
+### API兼容问题
+
+- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
+    - Vue特性支持表
+
+### 其他兼容问题
+
+- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
+- IOS 和 Android 对时间的解析有区别 [^1]
+    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
+    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
 
 ## 小技巧
 
@@ -260,6 +260,11 @@ export default {
     - HBuilder创建的项目默认无package.json，可手动创建或npm init创建，之后可通过npm安装插件
     - HBuilder创建的项目代码对应vue-cli创建项目的src代码
     - vue-cli创建的项目还需手动安装less相关依赖(`cnpm install less less-loader -D`)或sass(`cnpm install sass-loader node-sass -D`)
+- 使用vscode进行开发
+    - `vue create -p dcloudio/uni-preset-vue my-project` 创建临时项目(迁移原HBuilder项目也建议先创建一个临时项目进行操作)
+    - 选择 Hello uni-app
+    - 生成后删除/src下的文件，复制原先项目的文件到/src下
+    - 其他参考：https://ask.dcloud.net.cn/article/36286
 - **多环境编译问题**
     - 使用XBuilder开发(一些依赖安装在HBuilder中)
         - 点击运行获取到的`process.env.NODE_ENV = 'development'`，点击发行获取到的是production

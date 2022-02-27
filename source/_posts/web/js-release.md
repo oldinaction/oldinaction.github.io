@@ -70,6 +70,17 @@ console.log('one')
 // one
 // two
 // three
+
+// ajax
+async fetch () {
+    await postRequest().then(res => {
+        console.log(222)
+    })
+    console.log(333)
+}
+// 调用
+fetch()
+console.log(111)
 ```
 - [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
     - 说明
@@ -77,6 +88,7 @@ console.log('one')
         - `await`：只能在异步函数（async修饰）里面才起作用。**必须和async联用**
         - **在forEach/map/reduce等函数中不能直接使用await调用其他函数(for和for...of中可以)，尽管在回调函数的参数上加async也不行**，见下列
             - 原理应该是foreach内部封装了while，循环并行执行，而且并行执行数组的所有callback函数，不会等待里面的callback的返回
+            - forEach回调函数是异步(并行)执行的，但是必须等所有的回调执行完才会执行forEach后面的代码
     - async简单使用
 
         ```js
@@ -420,13 +432,19 @@ let runtimeError = {
 
 #### 流程语句
 
-- `if`、`switch`、`while`、`for`
-- 增强for循环（拿到的是下标）
+- `if`、`switch`、`while`、`for-in`、`for-of`
+- 增强for循环
 
 ```js
+// for-in 拿到的是下标
 var arr = ['a', 'b', 'c'];
 for(var i in arr) { // i 是下标
     console.log(i + "==>" + arr[i]); // 0==>a ...
+}
+
+// for-of 拿到的是值、
+for (let item of arr) {
+    console.log(item)
 }
 ```
 

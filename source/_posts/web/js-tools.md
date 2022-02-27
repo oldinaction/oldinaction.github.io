@@ -69,6 +69,9 @@ npm install --save @babel/polyfill
 ### lodash工具类
 
 - [lodash](https://lodash.com/)
+- Math 数学计算，类似[mathjs](#mathjs数学计算)
+    - `add`、`subtract`、`multiply`、`divide` 两个数的加减乘除
+        - `_.add(0.1, 0.2)` // 0.30000000000000004
 
 ### cross-env启动时增加环境变量
 
@@ -81,11 +84,13 @@ npm install --save @babel/polyfill
 ```js
 import dayjs from 'dayjs'
 
+dayjs().format('YYYY-MM-DD HH:mm:ss'); // 2020-01-02
 dayjs('2020-01-01').add(1, 'day').format('YYYY-MM-DD'); // 2020-01-02
 ```
 
 ### mathjs数学计算
 
+- js精度问题: https://www.cnblogs.com/xjnotxj/p/12639408.html
 - mathjs
 
 ```js
@@ -93,8 +98,11 @@ npm install mathjs -S
 
 import * as math from 'mathjs'
 
-math.add(0.1, 0.2)     //  0.30000000000000004
+0.1 + 0.2 // 0.30000000000000004
+_.add(0.1, 0.2) // 0.30000000000000004 loadsh
+math.add(0.1, 0.2) // 0.30000000000000004
 math.number(math.add(math.bignumber(0.1), math.bignumber(0.2))) // 0.3 math.number转换BigNumber类型为number类型
+// math.add(math.bignumber(0.1), math.bignumber(0.2)).toNumber()
 math.number(math.chain(math.bignumber(0.1)).add(math.bignumber(0.2)).add(math.bignumber(0.3)).done()) // 0.6
 ```
 
@@ -275,7 +283,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     filterBtn: true, // 显示工具栏过滤按钮
     menu: true,
     viewBtn: true, // 弹框查看当前行数据。如果使用行内编辑，则必须设置成false
-    addBtn: true, // 弹框新增一行数据。如果使用行内编辑，则必须设置成false
+    addBtn: true, // 弹框新增一行数据。**如果使用行内编辑，则必须设置成false**
     cellBtn: true, // 开启可编辑表格
     addRowBtn: true, // 可编辑表格新增一行
     cancelBtn: true, // 可编辑时，显示取消按钮，默认true
@@ -304,6 +312,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
             align: 'left', // 列表显示时，文字位置
             format: 'yyyy-MM-dd HH:mm', // 列表显示和表单显示格式化
             formatter: () => {}, // 格式化函数
+            width: 200, // 列宽度，如果需要出现横向滚动条则必须定义宽度的列宽度之和大于父box宽度
             
             formslot: true, // 表单插槽，需要有`<template slot="saleNoForm" slot-scope="{type,disabled}">`, type=add/edit
             labelslot: true, // 需要 slot="saleNoLabel" 
@@ -319,7 +328,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
                 trigger: 'blur',
               },
             ],
-            change: ({ value }) => {}, // 表单编辑时，值发生变化事件
+            change: ({ column, index, row, value }) => {}, // 表单编辑时，值发生变化事件
             valueFormat: 'yyyy-MM-dd HH:mm:ss', // 实际值(提交到后台的值)格式化成字符串，一般用在 type='datetime'
             value: 1, // 表单编辑时的默认值
 
@@ -391,6 +400,29 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
     group: [
     ]
 }
+```
+
+#### 常见问题
+
+- 可编辑表格点击新增后还是弹框显示
+    - 可编辑表格需要设置`cellBtn=true`，需要编辑的字段需要设置`cell=true`，并且需要设置`addBtn=false`(这是普通表格的新增)和`addRowBtn=true`(可编辑表格的新增)
+- change事件进入两遍(Bug v2.8.26)，解决如下
+
+```js
+column: [
+  {
+    label: '商品',
+    prop: 'goodsId',
+    type: 'select',
+    change: ({ value, row }) => {
+        // avue change 时间会进入两次
+        if (value && value !== row.$goodsId) {
+            row.$goodsId = value
+            // ...
+        }
+    }
+  }
+]
 ```
 
 #### 原理介绍
@@ -541,7 +573,7 @@ this.$refs.tableRef.loadData(this.allData);
 // <vxe-table @checkbox-change="checkboxChange">
 checkboxChange(table, event) {
     // table对应key如下
-    // "row"(当前选中或取消选中行), "checked"(操作完当前行后的选中状态), "items"(所有行数据), "data"(所有行数据), "records"(目前选中的所有行数据), "selection"(目前选中的所有行数据)
+    // "row"(当前选中或取消选中行), "checked"(操作完当前行后的选中状态), "items"(可视化区域所有行数据，表格的所有数据只能通过getData获取), "data"(可视化区域所有行数据), "records"(目前选中的所有行数据), "selection"(目前选中的所有行数据)
     // "$table", "$grid", "$event", "reserves", "indeterminates", "$seq", "seq", "rowid", "rowIndex", "$rowIndex", "column", "columnIndex", "$columnIndex", "_columnIndex", "fixed", "type", "isHidden", "level", "visibleData", "cell"
 }
 ```
@@ -1051,7 +1083,7 @@ export default {
     ![a4-size.png](/data/images/web/a4-size.png)
 - web打印问题(分页问题等)
     - 可使用 **`page-break-after`** 等css参数解决，如`<div style="page-break-after: auto | always"></div>`。参考：https://www.w3school.com.cn/cssref/index.asp#print
-    - 修改默认打印边距 **`@page {margin: 24px 18px 0 18px;}`**，或者再chrome打印预览时通过自带界面修改
+    - 修改默认打印边距 **`@page {margin: 24px 18px 0 18px;}`**，或者在chrome打印预览时通过自带界面修改
     - 修改纸张方向 **`@page {size: portrait | landscape;}`**，其中portrait纵向、landscape横向，设置后则无法在预览页面修改。谷歌支持，火狐85.0还不支持
     - 至于mm和px换算
         - 公制长度单位与屏幕分辨率进行换算时，必须用到一个DPI(Dot Per Inch, 像素/英寸)指标。网页打印中，默认采用的是96dpi(像素/英寸)，而非72dpi
@@ -1068,8 +1100,8 @@ export default {
         - 当有多个小table时，需要自动判断一页显示的table个数。如vue，先渲染出页面，再计算每个table的高度，当超过一定高度，则增加一个`<div style="page-break-after: always"></div>`使其自动分页
 - 基于[lodop](http://www.lodop.net/index.html)打印控件
 - 基于[hiprint](http://hiprint.io/)插件
-    - 特点：基于Jquery；可视化配置模板，自动分页打印；可免费使用
-    - 缺点：源代码没开源，没有抽离 npm 包
+    - 特点：基于Jquery；可视化配置模板(数据基于字段名自动填充)，自动分页打印；可免费使用
+    - 缺点：源代码没开源，没有抽离 npm 包。[github打包代码](https://github.com/hinnncom/hiprint)
     - 基于vue使用参考：https://blog.csdn.net/byc233518/article/details/107705278
 - 基于[print-js](https://printjs.crabbly.com/)
 - 使用[vxe-table](#vxe-table)等插件自带打印功能
@@ -1385,139 +1417,6 @@ npm install file-saver -S
     - `<div style="position: absolute; opacity: 0.0;">`
     - Failed to execute 'createPattern' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0. 
     - 参考 https://stackoverflow.com/questions/20605269/screenshot-of-hidden-div-using-html2canvas
-
-## 格式规范化
-
-### eslint格式化
-
-- vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
-- 直接安装
-- 基于vue-cli安装，参考：https://eslint.vuejs.org/
-    - `vue add eslint` 基于vue安装插件，选择Standard、Lint on save
-    - 安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)
-    - 安装后会在package.json中增加如下配置，安装对应的包到项目目录，并增加文件`.eslintrc.js`和`.editorconfig`
-
-        ```json
-        "scripts": {                                            
-            "lint": "vue-cli-service lint",
-        },
-        "devDependencies": {
-            "@vue/cli-plugin-eslint": "~4.5.0",
-            "@vue/eslint-config-standard": "^5.1.2",
-            "eslint": "^6.7.2",
-            "eslint-plugin-import": "^2.20.2",
-            "eslint-plugin-node": "^11.1.0",
-            "eslint-plugin-promise": "^4.2.1",
-            "eslint-plugin-standard": "^4.0.0",
-            "eslint-plugin-vue": "^6.2.2"
-        }
-        ```
-- 支持多种配置文件格式：.eslintrc.js、.eslintrc.yaml、.eslintrc.json、.eslintrc(弃用)、在package.json增加eslintConfig属性。且采用就近原则
-- `.eslintrc.js` 放在vue项目根目录，详细参考：https://cn.eslint.org/ [^10]
-
-```js
-module.exports = {
-  root: true,
-  'extends': [
-    'plugin:vue/essential',
-    '@vue/standard'
-  ],
-  rules: {
-    // allow async-await
-    'generator-star-spacing': 'off',
-    // allow debugger during development
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'vue/no-parsing-error': [2, {
-      'x-invalid-end-tag': false
-    }],
-    'no-undef': 'off',
-    'camelcase': 'off',
-    // function函数名和()见增加空格
-    "space-before-function-paren": ["error", {
-        "anonymous": "always",
-        "named": "always",
-        "asyncArrow": "always"
-    }],
-    // 不强制使用 ===
-    "eqeqeq": ["error", "smart"],
-    // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
-    "operator-linebreak": ["error", "before"],
-  },
-  parserOptions: {
-    parser: 'babel-eslint'
-  }
-}
-```
-- `.eslintignore` 放在vue项目根目录
-
-```bash
-# 不进行校验的的文件或文件夹
-src/components
-```
-- 代码中不进行校验
-
-```js
-/* eslint-disable */
-// ESLint 在校验的时候就会跳过后面的代码
-
-/* eslint-disable no-new */
-// ESLint 在校验的时候就会跳过 no-new 规则校验
-```
-
-### .editorconfig/.prettierrc/.jsbeautifyrc格式化
-
-- **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**
-    - 该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的
-    - **此插件配置的格式优先于vscode配置的，如缩进**
-- `.prettierrc` 文件需要配合插件使用，如vscode的`Prettier`插件。参考：https://prettier.io/
-- `.jsbeautifyrc` 文件需要配合插件使用，如vscode的`Beautify`插件
-- Eslint、.editorconfig等区别
-    - Eslint 更偏向于对语法的提示，如定义了一个变量但是没有使用时应该给予提醒
-    - .editorconfig 更偏向于简单代码风格，如缩进等
-        - .prettierrc 更偏向于代码美化
-    - 二者并不冲突，同时配合使用可以使代码风格更加优雅
-- `.editorconfig` 放在vue项目根目录
-
-```ini
-# http://editorconfig.org
-root = true
-
-[*]
-#缩进风格：空格
-indent_style = space
-#缩进大小2
-indent_size = 2
-#换行符lf
-end_of_line = lf
-#字符集utf-8
-charset = utf-8
-#是否删除行尾的空格
-trim_trailing_whitespace = true
-#是否在文件的最后插入一个空行
-insert_final_newline = true
-
-[*.md]
-trim_trailing_whitespace = false
-
-[Makefile]
-indent_style = tab
-```
-- .prettierrc 常用配置
-
-```js
-{
-  /* 使用单引号包含字符串 */
-  "singleQuote": true,
-  /* 不添加行尾分号 */
-  "semi": false,
-  /* 在对象属性添加空格 */
-  "bracketSpacing": true,
-  /* 优化html闭合标签不换行的问题 */
-  "htmlWhitespaceSensitivity": "ignore",
-  /* 每行最大长度默认80(适配1366屏幕，1920可设置成140) */
-  "printWidth": 140
-}
-```
 
 ## 其他
 
