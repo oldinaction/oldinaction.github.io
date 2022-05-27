@@ -6,7 +6,151 @@ categories: [web]
 tags: js
 ---
 
-## ES6 (ES2015)
+## 《前端小课》
+
+- `《前端小课》` (2018-07)
+
+<embed width="1000" height="800" src="/data/pdf/前端小课2018.pdf" internalinstanceid="7">
+
+## ES6(ES2015)
+
+### CommonJS/AMD/CMD/UMD/ESModule区别
+
+- [JavaScript模块化说明](https://www.jianshu.com/p/da2ac9ad2960) [^8]
+- `CommonJS`
+    - 定义的模块分为：module模块标识、exports模块定义、require模块引用。**Node里面的模块系统遵循的是CommonJS规范**
+        - `exports` 返回的是模块函数，`module.exports` 返回的是模块对象本身，返回的是一个类。**注意不是export**
+        - 在一个node执行一个文件时，会给这个文件内生成一个 exports和module对象，而module又有一个exports属性。他们之间的关系如下图，都指向一块{}内存区域。`exports = module.exports = {};`
+        - **多次引用同一个js不会导致重复引用，且优先执行最深层js文件中的代码**
+    - 案例
+
+        ```js
+        // test1.js
+        var app = {
+            name: 'app',
+            version: '1.0.0',
+            sayName: function(name) {
+                console.log(this.name)
+            }
+        }
+        module.exports = app
+        // test2.js
+        var func = function() {
+            console.log("func")
+        }
+        exports.func = func // exports = module.exports = {} => module.exports.func = func => {func: func}
+
+        // 使用
+        var test1 = require("./test1")
+        test1.sayName('smalle') // smalle
+        var test2 = require("./test2")
+        test2.func() // func
+        ```
+- `AMD/CMD`
+    - **AMD/CMD是CommonJS在浏览器端的解决方案。**CommonJS是同步加载（代码在本地，加载时间基本等于硬盘读取时间）。AMD/CMD是异步加载（浏览器必须这么干，代码在服务端）
+    - `AMD` 是 RequireJS 在推广过程中对模块定义的规范化产出。使用AMD，需要在html中引入RequireJS库
+        - 定义模块 `define(id?, dependencies?, factory)`
+        - 加载模块 `require([module], factory)`
+    - `CMD` 是 SeaJS 在推广过程中对模块定义的规范化产出
+        - 定义模块 `define(function(require, exports, module) {})`
+    - AMD是提前执行（RequireJS2.0开始支持延迟执行，不过只是支持写法，实际上还是会提前执行），CMD是延迟执行
+- `UMD` 叫做通用模块定义规范（Universal Module Definition）
+    - 它可以通过运行时或者编译时让同一个代码模块在使用 CommonJs、CMD 甚至是 AMD 的项目中运行。导出umd格式，可以支持import、require和script引入
+    - UMD实现方式
+
+        ```js
+        ((root, factory) => {
+            if (typeof define === 'function' && define.amd) {
+                // AMD
+                define(['jquery'], factory);
+            } else if (typeof exports === 'object' && typeof module === 'object') {
+                // CommonJS
+                var $ = requie('jquery');
+                module.exports = factory($);
+            } else if (typeof exports === 'object') {
+                var $ = requie('jquery');
+                exports["jquery"] = factory($);
+            } else {
+                // window
+                root.testModule = factory(root.jQuery);
+            }
+        })(this, ($) => {
+            'use strict';
+            //todo
+        });
+        ```
+- ES Module [^6]
+    - export 和 export default
+        - export与export default均可用于导出常量、函数、文件、模块等
+        - 在一个文件或模块中，export、import可以有多个，export default仅有一个
+        - 通过export方式导出，在导入时要加{ }，export default则不需要
+        - export能直接导出变量表达式，export default不行
+    - 案例
+
+        ```js
+        // es6模块 导出
+        export default { age: 1, a: 'hello', foo:function(){} }
+
+        // es6模块 导入
+        import foo from './foo'
+        ```
+
+#### import/export 
+
+- ES6特性，[参考文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/import)
+- 案例
+
+    ```js
+    // myexp.js
+    // 命名导出
+    export { myFunc1, myFunc2 }
+    export const foo = Math.sqrt(2) // 导出只能是const对象
+
+    // 默认导出，一个文件只能有一个默认导出
+    export default {}
+    export default function() {}
+    export default class {}
+
+    import defaultMod, * as allMod from 'myexp.js' // defaultMod可随便取值，对应文件中的默认模块
+    import { myFunc1 as func, myFunc2 } from 'myexp'
+    import 'myexp.js' // 这将运行模块中的全局代码，但实际上不导入任何值
+    var promise = import("module-name");
+    ```
+- **多次引用同一个js不会导致重复引用，且优先执行最深层js文件中的代码** [^7]
+
+    ```js
+    // t1.js
+    console.log("test1");
+    // t2.js
+    console.log("test2.0");
+    import t from "./t1.js"
+    console.log("test2.1");
+    // t3.js
+    console.log("test3.0");
+    import t2_1 from "./t2.js"
+    import t1 from "./t1.js"
+    import t2_2 from "./t2.js"
+    console.log("test3.1");
+
+    // 执行t3.js的结果 ==> 多次引用同一个js不会导致重复引用，且优先执行最深层js文件中的代码
+    test1
+    test2.0
+    test2.1
+    test3.0
+    test3.1
+    ```
+- export命令规定的是对外的接口，必须与模块内部的变量建立一一对应关系
+
+    ```js
+    // 这两种写法导出的全部是1，1只是一个值，不是接口
+    export 1;
+    var m = 1; export m;
+
+    // 正确的三种写法
+    export var m = 1;
+    var m = 1; export {m};
+    var n = 1; export {n as m};
+    ```
 
 ### Promise/async/await
 
@@ -43,6 +187,7 @@ new Promise(function (resolve, reject) {
 }).catch(reason => {
     log('Failed: ' + reason);
 });
+// .catch(() => {}) // 不要有空catch, 否则报错了控制台不会打印, 难以跟踪问题
 
 // ==============================基本用法2
 Promise.resolve('foo') // 等价于 new Promise(resolve => resolve('foo'))
@@ -451,6 +596,7 @@ for (let item of arr) {
 ### Object
 
 - https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object
+- 类数组对象，参考下文[伪数组](#伪数组)
 
 #### 相关方法
 
@@ -474,6 +620,7 @@ for (let item of arr) {
 - `Object.create(proto[, propertiesObject])` 使用某对象作为原型__proto__来创建新对象
     - proto 新创建对象的原型对象
 - `Object.freeze(obj)` 冻结对象。不能修改对象属性，但是可重新赋值。vue项目对data属性使用此特性可提示性能
+- getter、setter、`__defineGetter__`、`__defineSetter__`方法参考下文案例
 
 #### 示例
 
@@ -482,15 +629,29 @@ var arr = ["a", "b", "c"];
 console.log(Object.getOwnPropertyNames(arr).sort()); // ["0", "1", "2", "length"]
 
 var obj = {
-    0: "a",
-    1: "b",
-    "getName": function() {
-        return "smalle"
+    0: "1",
+    username: "init name",
+    "hello": function() {
+        return "hello"
+    },
+    // 在对象初始化时，自定义对象定义getter和setter方法
+    // 在对象定义后通过Object的__defineGetter__、__defineSetter__方法来追加定义
+    // Date.prototype.__defineSetter__('year', function(y) {this.setFullYear(y)}); 
+    get name() {
+        // 使用obj.name=test会报错
+        return this.username
+    },
+    set changeName(name) {
+        // 使用console.log(obj.changeName)会报错
+        this.username = name
     }
 };
-obj.name = 'hello'
-console.log(Object.getOwnPropertyNames(obj).sort()); // ["0", "1", "getName", "name"]
-console.log(obj["1"]); // b，通过obj.1会报错
+obj.age = 18;
+console.log(Object.getOwnPropertyNames(obj).sort()); // ['0', 'age', 'changeName', 'hello', 'name', 'username']
+console.log(obj["0"]); // 1 // 通过obj.0会报错
+console.log(obj.name); // get name
+obj.changeName = 'change name'
+console.log(obj.name); // change name
 ```
 
 ### Array
@@ -581,14 +742,18 @@ arr.splice(1) // [2, 3], arr=[1]. 从下标为1开始，移除所有元素。并
 arr.splice(-1) // [3], arr=[1, 2]. 从倒数第一位开始，移除所有元素(相当于移除最后一个元素)
 arr.splice(0, 1, 'fir'); // [1], arr=['fir', 2, 3]. 替换第一个元素。并返回移除的元素
 arr.splice(1, 0, 'sec'); // [], arr=[1, 'sec', 2, 3]. 在数组的第二个元素位置插入元素'sec'(原来的第二个元素还在)
+
+// 数组去重
+Array.from(new Set(['1', '2', '1'])); // ['1', '2']
 ```
 
 #### 伪数组
 
-- 特点
+- 特点 [^2]
     - 具有length属性
     - 按索引方式存储数据
     - 不具有数组的push()、pop()等方法
+- js函数的arguments参数属性即为类数组对象，不是真正的Array，所以无法使用 Array 的方法
 - 将伪数组转换成真正的数组
     
     ```js
@@ -652,12 +817,16 @@ function 函数名(参数列表) {
     var foo = {
         get: function(count) {
             return this.name + '-' + count; 
+        },
+        get2: () => {
+            return this.name + '-' + count;
         }
     }
     
     console.log(foo.get.call(obj, 1));      // smalle-1
     console.log(foo.get.apply(obj, [2]));   // smalle-2
     console.log(foo.get.bind(obj, 3)());    // smalle-3
+    console.log(foo.get2.call(obj, 4));     // 报错，由于ES6箭头函数不会创建新的上下文，所以this指的是父语境(只能是foo)
 
     // 2.自定义console.log方法
     function log() {
@@ -709,6 +878,13 @@ console.log(test.name); // smalle
 
 - `localStorage` 没有时间限制的持久的数据存储，只要你不主动删除可以想存多久存多久。
 - `sessionStorage` 针对一个 session 的数据存储，这些数据只有在同一个会话中的页面才能访问，当会话结束后数据也随之销毁（例如你在网页上存储一些数据后关闭网页再重新打开，存储的数据就没有了）
+
+### Windows对象
+
+- 获取子窗口的window对象
+    - `window.frames['子窗口内联框架id值'].contentWindow`
+    - `window.frames['子窗口内联框架name值']`
+    - `window.frames[子窗口内联框架索引]`
 
 ### 执行环境与作用域
 
@@ -807,38 +983,6 @@ object.test(); // true
 
 ### 零散知识
 
-#### import/export 
-
-- 案例 [^1]
-
-```js
-// myexp.js
-// 命名导出
-export { myFunc1, myFunc2 }
-export const foo = Math.sqrt(2) // 导出只能是const对象
-
-// 默认导出，一个文件只能有一个默认导出
-export default {}
-export default function() {}
-export default class {}
-
-import func from 'myexp.js' // 或'myexp'，导出默认对象赋值到func
-import myFunc1 as func from 'myexp'
-import { myFunc1, myFunc2 } from 'myexp'
-```
-- export命令规定的是对外的接口，必须与模块内部的变量建立一一对应关系
-
-```js
-// 这两种写法导出的全部是1，1只是一个值，不是接口
-export 1;
-var m = 1; export m;
-
-// 正确的三种写法
-export var m = 1;
-var m = 1; export {m};
-var n = 1; export {n as m};
-```
-
 #### eval和Function
 
 - [eval函数](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/eval)
@@ -915,6 +1059,12 @@ if({}) console.log(1) // 1 (true)
 if(0 == null) console.log(1) // 无输出 (false)
 if(undefined == null) console.log(1) // 1 (true)
 if(undefined === null) console.log(1) // 无输出 (false)
+
+// JSON
+JSON.stringify(true) // 'true'
+JSON.stringify(1) // '1'
+JSON.parse('true') // true
+JSON.parse('1.0') // 1
 ```
 
 ## DOM
@@ -973,4 +1123,6 @@ else window.onload = createIframe;
 [^3]: https://blog.csdn.net/yelangshisan/article/details/78936220
 [^4]: https://juejin.cn/post/6844903584891420679
 [^5]: https://juejin.cn/post/6844904065776910344
-
+[^6]: https://blog.csdn.net/qq_31967569/article/details/82461499
+[^7]: https://blog.csdn.net/snans/article/details/123808010
+[^8]: https://blog.csdn.net/freeking101/article/details/116761828

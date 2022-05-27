@@ -42,12 +42,18 @@ select CONVERT(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:
 ```sql
 -- mysql
 date_sub(now(), interval 7 day) -- 当前时间-7天
+
 -- oracle
 sysdate + interval '1' year -- 当前日期加1年，还可使用：month、day、hour、minute、second
 sysdate + interval '1 1:1' day to minute -- 当前日期 + 1日1时1分
 sysdate + 1 -- 加1天
 sysdate - 1/24/60/60 -- 减1秒
 select sysdate, add_months(sysdate, -12) from dual; -- 减1年
+select TRUNC(SYSDATE) FROM dual; -- 取得当天0时0分0秒
+SELECT TRUNC(SYSDATE)+1-1/86400 FROM dual; -- 取得当天23时59分59秒(在当天0时0分0秒的基础上加1天后再减1秒)
+select to_char(sysdate,'yyyy-mm')||'-01' firstday, 
+       to_char(last_day(sysdate),'yyyy-mm-dd') lastday from dual; -- 在oracle中如何得到当天月份的第一天和最后一天
+
 -- sqlserver
 select 
     GETDATE(), -- 获取当前时间(带时间) 2000-01-01 08:11:12.000
@@ -118,7 +124,7 @@ select
 	c.id,
 	c.name,-- 公司名称
 	count( distinct u.id ) count_user,-- 该公司的用户数
-	count( case when ua.key = 'JobTitle' and ua.value = 'employee' then c.id end ) count_employee,-- 该公司的普通员工数。也可加上`else null`(因为count是统计该字段不为空的行数)
+	count( case when ua.key = 'JobTitle' and ua.value = 'employee' then c.id end ) count_employee,-- 该公司的普通员工数。也可加上`else null`(因为count是统计该字段不为空的行数); 还可以加上 distinct 进行去重
 	count( case when ua.key = 'JobTitle' and ua.value = 'manager' then c.id end ) count_manager,-- 该公司的经理数
 	count( case when ua.key = 'Sex' and ua.value = 'boy' then c.id end ) count_boy -- 该公司男性用户数
 from
@@ -703,34 +709,51 @@ https://www.cnblogs.com/mumulin99/p/9837522.html
 
 #### 正则表达式
 
+- 参考：https://www.cnblogs.com/qmfsun/p/4467904.html
 - 正则函数
-	- `regexp_like()` 返回满足条件的字段
-	- `regexp_instr()` 返回满足条件的字符或字符串的位置
-	- `regexp_replace()` 返回替换后的字符串
-	- `regexp_substr()` 返回满足条件的字符或字符串
-- `regexp_substr(str, pattern[,start[,occurrence[match_option]]])` 参数说明
-	- str 待匹配的字符串
-	- pattern 正则表达式元字符构成的匹配模式
-	- start 开始匹配位置，如果不指定默认为1(第一个字符串)
-	- occurrence 匹配的次数，如果不指定，默认为1
-	- match_option 意义同regexp_like的一样
+	- `regexp_like` (匹配)比较一个字符串是否与正则表达式匹配
+        - `(srcstr, pattern [, match_option])`
+	- `regexp_instr` (包含)在字符串中查找正则表达式，并且返回匹配的位置
+        - `(srcstr, pattern [, position [, occurrence [, return_option [, match_option]]]])`
+	- `regexp_substr` (提取) 返回与正则表达式匹配的子字符串
+        - `(srcstr, pattern [, position [, occurrence [, match_option]]])`
+    - `regexp_replace` (替换)搜索并且替换匹配的正则表达式
+        - `(srcstr, pattern [, replacestr [, position [, occurrence [, match_option]]]])`
+            - srcstr: 被查找的字符数据  
+            - pattern: 正则表达式
+            - position: 搜索在字符串中的开始位置。如果省略，则默认为1，这是字符串中的第一个位置
+            - occurrence: 它是模式字符串中的第n个匹配位置。如果省略，默认为1
+            - return_option: 默认值为0，返回该模式的起始位置；值为1则返回符合匹配条件的下一个字符的起始位置 
+            - replacestr: 用来替换匹配模式的字符串 
+            - match_option: 匹配方式选项。缺省为c  
+                - c：case sensitive  
+                - I：case insensitive  
+                - n：(.)匹配任何字符(包括newline)  
+                - m：字符串存在换行的时候被作为多行处理
 
 ```sql
 -- 分割函数：基于,分割，返回3行数据
 select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
   connect by level <= length('17,20,23') - length(regexp_replace('17,20,23', ',', '')) + 1;
 
--- 返回
-select regexp_instr('17,20,23', ',') from dual; -- 返回3
-select regexp_instr('17,20,23', ',', 1, 2) from dual; -- 返回6
-select regexp_instr('17,20,23', ',', 1, 3) from dual; -- 返回0
-select substr('17,20,23', 1, regexp_instr('17,20,23', ',') - 1) from dual;
-select substr('17,20,23', regexp_instr('17,20,23', ',') + 1, regexp_instr('17,20,23', ',', 1, 2) - regexp_instr('17,20,23', ',') - 1) from dual;
-select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20,23') - regexp_instr('17,20,23', ',')) from dual;
-
 -- 正则替换中文、\、`为空格，并取256位长度
-SELECT SUBSTR(REGEXP_REPLACE('中文A\B`C', '[' || unistr('\4e00') || '-' || unistr('\9fa5') || '\\`]', ' '), 0, 256)
-AS RX_REPLACE FROM dual
+select substr(regexp_replace('中文A\B`C', '[' || unistr('\4e00') || '-' || unistr('\9fa5') || '\\`]', ' '), 0, 256)
+as rx_replace from dual
+
+-- 匹配纯数字
+regexp_like(income,'^(\d*)$')
+-- 匹配金额
+regexp_like(income,'^-?([[:digit:]]*.[[:digit:]]*)$')
+regexp_like(income,'^-?(\d*.\d*)$')
+regexp_like(income,'^-?([0-9]*.[0-9]*)$')
+
+-- 分别返回17 20 23
+-- select regexp_instr('17,20,23', ',') from dual; -- 返回3
+-- select regexp_instr('17,20,23', ',', 1, 2) from dual; -- 返回6
+-- select regexp_instr('17,20,23', ',', 1, 3) from dual; -- 返回0
+select substr('17,20,23', 1, regexp_instr('17,20,23', ',') - 1) from dual; -- 返回17
+select substr('17,20,23', regexp_instr('17,20,23', ',') + 1, regexp_instr('17,20,23', ',', 1, 2) - regexp_instr('17,20,23', ',') - 1) from dual; -- 返回20
+select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20,23') - regexp_instr('17,20,23', ',')) from dual; -- 返回23
 ```
 
 #### 案例
@@ -848,9 +871,10 @@ select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
 - **`update set from where`** 将一张表的数据同步到另外一张表
     
     ```sql
-    -- Oracle：如果a表和b表的字段相同，最好给两张表加别名. 注意where条件
-    update a set (a1, a2, a3) = (select b1, b2, b3 from b where a.id = b.id) 
-    where exists (select 1 from b where a.id = b.id);
+    -- Oracle：如果a表和b表的字段相同，最好给两张表加别名. **注意where条件**
+    update test a set (a.a1, a.a2, a.a3) = (select b.b1, b.b2, b.b3 from test2 b where a.id = b.id) 
+    where exists (select 1 from test2 b where a.id = b.id);
+    
     -- Mysql：update的表不能加别名，oracle可以加别名。当字段相同时直接使用表名做前缀
     update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id;
     update a left join b on a0 = b0 set a1 = b1, a2 = b2, a3 = b3 where a.valid_status = 1;

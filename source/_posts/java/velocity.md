@@ -8,7 +8,7 @@ tags: [template]
 
 ## 简介
 
-- [官网](http://velocity.apache.org/)、[Doc-1](http://velocity.apache.org/engine/devel/user-guide.html)、[Doc-2](http://velocity.apache.org/engine/devel/developer-guide.html)
+- [官网](http://velocity.apache.org/)、[Doc-user](http://velocity.apache.org/engine/devel/user-guide.html)、[Doc-developer](http://velocity.apache.org/engine/devel/developer-guide.html)
 - 依赖
 
 ```xml
@@ -25,7 +25,40 @@ tags: [template]
 
 ```
 
+## 变量取值
+
+```html
+<!-- 根据变量从map中取值 -->
+$!{myMap.key}
+$!{myMap['key']}
+$!{myMap.get($!{relate.toEntityId})}
+
+<!-- 默认值 -->
+${name|'John Doe'}
+```
+
 ## 控制语句
+
+### 循环
+
+```html
+## 循环map
+#foreach($item in $!softTypeMap.entrySet())
+<option value="$!{item.key}">$!{item.value}</option>
+#end
+
+## 判断循环最后一个。如果不是最后一个元素，则添加逗号
+#foreach($column in $columns)
+    ${column.columnName}#if($foreach.hasNext),#end
+
+    $foreach.index //下标
+    $foreach.count //数组长度
+    $foreach.first 
+    $foreach.last
+    $foreach.hasNext //是否是最后一个
+    $velocityCount // 用作循环计数，初始值是1。这个变量的名字和初始值是在velocity.properties文件里配置的。最新版本已作废
+#end
+```
 
 ### 举例
 
@@ -70,27 +103,6 @@ tags: [template]
 #end
 ```
 
-### 取值
-
-```html
-<!-- 根据变量从map中取值 -->
-$!{cfg.mpContext.mpTableRelateMap.get($!{relate.toEntityId})}
-```
-
-### 循环
-
-```html
-## 循环map
-#foreach($item in $!softTypeMap.entrySet())
-<option value="$!{item.key}">$!{item.value}</option>
-#end
-
-## 判断循环最后一个。如果不是最后一个元素，则添加逗号
-#foreach($column in $columns)
-    ${column.columnName}#if($foreach.hasNext),#end
-#end
-```
-
 ## 其他
 
 - 导入外部文件
@@ -102,4 +114,79 @@ $!{cfg.mpContext.mpTableRelateMap.get($!{relate.toEntityId})}
 #include("/tpl/layout.vm")
 ```
 - 调用静态方法，如`context.put("Math", Math.class);`：http://velocity.apache.org/engine/devel/developer-guide.html#support-for-static-classes
+
+## 案例
+
+### 邮件模板
+
+```html
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>$!{subject}</title>
+  <style>
+    html {
+      font-family: sans-serif;
+      -ms-text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      padding: 20px;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    table {
+      border-top: 1px solid #000000;
+      border-left: 1px solid #000000;
+      border-collapse: collapse;
+      /* table-layout: fixed;
+      word-wrap: break-word; */
+      /*列表会自动撑开，超过此宽度则会缩小字体从而完全显示(实际邮件中一般可点击放大查看)*/
+      width: 1000px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #000000;
+      border-right: 1px solid #000000;
+    }
+
+    table tr:nth-child(odd) {
+      background: #F4F4F4;
+    }
+
+    table tr:hover{
+      background:#abdcff;
+    }
+  </style>
+</head>
+
+<body>
+
+此邮件为系统自动发出，请勿直接回复！
+
+<h4>$!{subject}（数据抓取时间：$!{date}）</h4>
+#if("$!{dataList}" != "")
+<table>
+  <tr style="background-color: #666; color: white;">
+    #foreach($col in $!{tableCols})
+      <th>$!{col}</th>
+    #end
+  </tr>
+  #foreach($item in $!{dataList})
+    <tr>
+      #foreach($col in $!{tableCols})
+        <td>$!{item.get($!{col})}</td>
+      #end
+    </tr>
+  #end
+</table>
+#end
+</body>
+</html>
+```
 

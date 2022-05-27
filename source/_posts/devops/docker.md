@@ -557,6 +557,7 @@ services:
       - 80:80
       - 1443:443
     volumes: # 数据卷映射(本地路径:容器路径。windows的本地路径为运行docker的虚拟机路径。不要把 docker 当做数据容器来使用，数据一定要用 volumes 放在容器外面。如日志文件需要进行映射)
+      # 官方nginx镜像为 /usr/share/nginx/html
       - /home/smalle/data/nginx/:/bitnami/nginx/
       # 共享主机时区和时间
       - /etc/timezone:/etc/timezone:ro # echo 'Asia/Shanghai' > /etc/timezone

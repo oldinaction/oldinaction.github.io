@@ -156,8 +156,8 @@ if (reg.test(dateStr)) {
 
 - 在正则的开头指定
     - `(?i)` 使正则忽略大小写
-    - `(?s)` 表示单行模式（"single line mode"）使正则的 `.` 匹配所有字符，包括换行符
-    - `(?m)` 表示多行模式（"multi-line mode"），使正则的 `^` 和 `$` 匹配字符串中每行的开始和结束
+    - `(?s)` **表示单行模式**（"single line mode"）使正则的 `.` 匹配所有字符，包括换行符
+    - `(?m)` 默认为多行模式。表示多行模式（"multi-line mode"），使正则的 `^` 和 `$` 匹配字符串中每行的开始和结束
 - 案例
 
 ```java
@@ -197,7 +197,8 @@ String pattern = "(\\w)(\\s+)([.,])";
 // $1 匹配 `(\w)` 结果为 `o` 和 `d`
 // $2 匹配 `(\s+)` 结果为 ` ` 和 ` `
 // $3 匹配 `([.,])` 结果为 `,` 和 `.`
-System.out.println(str.replaceAll(pattern, "$1$3")); // Hello, World.
+str.replaceAll(pattern, "$1$3"); // Hello, World.
+"abbc11abcc".replaceAll("(\\w)\\1+", "|"); // a|c|ab|
 
 // (2) 使用反向引用
 String str = "img.jpg";
@@ -274,7 +275,8 @@ while (matcher.find()) {
 
 ```java
 str.matches(String.format("^[-]{0,1}\\d{1,%d}$", 3)) // 正在表达式变量拼接
-str.matches("^[\u4e00-\u9fa5]{0,}$"); // 校验汉子
+str.matches("^[\u4e00-\u9fa5]{0,}$"); // 校验汉字
+str.matches("^\\w+$"); // 匹配变量
 ```
 
 - 正则替换
@@ -292,6 +294,23 @@ str.matches("^[\u4e00-\u9fa5]{0,}$"); // 校验汉子
 String p = "\\{" + "\\$\\$\\$" + "\\}";
 System.out.println(a); // \{\$\$\$\}
 String s = "C{$$$}-{$$$}".replaceFirst(p, "123"); // C123-{$$$}
+
+// 正则替换结合反向引用
+"left-right".replaceAll("(.*)-(.*)", "$2-$1"); // right-left
+"You want million dollar?!?".replaceAll("(\\w*) dollar", "US\\$ $1"); // You want US$ million?!?
+// 将重叠的字符换成|
+"abbc11abccc".replaceAll("(\\w)\\1+", "|"); // a|c|ab|
+
+// 将02后面的?'替换成'
+String str = "01:START'\n02:AA?'\n03:11'\n02:BB?'\n03:22'\n04:EDN'";
+// matches是否匹配判断时需要完全匹配文本，正则表达式需要把正文本填上
+str.matches("(?s)(02:.*?)(\\?')([\r\n]*?03:)"); // false
+if(str.matches("(?s).*?(02:.*?)(\\?')([\r\n]*?03:).*")) {
+    // 只能替换第一个02
+    // str.replaceAll("(?s)(.*?02:.*?)(\\?')([\r\n]*?03:.*)", "$1'$3");
+    // 可全部替换. 替换只需将目标子串的正则写出来
+    str.replaceAll("(?s)(02:.*?)(\\?')([\r\n]*?03:)", "$1'$3");
+}
 ```
 - 匹配中文
 

@@ -129,6 +129,9 @@ ThisCrackLicenseId-{
     - `Dependency Analyzer` - `Conflicts`中显示的即为冲突的依赖
         - 点击其中任何一个依赖，会在右侧显示重复引用的来源(基于版本降序) 
         - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
+- `Grep Console` 日志过滤
+    - 高亮: 如表达式`Expression=.*Demo.*`则表示显示有Demo字样的那些行
+    - 日志窗口 - 右键 - Grep: 基于当前日志进行过滤(只显示符合条件的日志，如输入Demo则只匹配有Demo字样的行)
 
 ### 部分场景
 
@@ -296,6 +299,12 @@ ThisCrackLicenseId-{
     </set>
 </option>
 ```
+
+### Git
+
+- 暂存功能(Shelve搁置)。类似[git stash](/_posts/arch/git.md#暂存工作区)
+    - Local Changes - 右键 - Shelve Changes - 命名一下此搁置 ==> 此变更会被暂存(暂存不会产生commit记录，主分支会被还原成未修改的状态)
+    - Shelf - 右键 - UnShelve ==> 还原此暂存到主分支
 
 ## IDEA开发PHP程序
 

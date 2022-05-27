@@ -115,7 +115,12 @@ public static void main(String[] args) {
         - 桥接包的原理就是复写了log4j-1.2.17相关的类，再输出日志的时候调用的是log4j2中的方法
         - 如：log4j1中使用Logger.getLogger(Test.class)获取日志对象，log4j2的Logger没有此方法，所以升级的时候可能出现需要更改代码。如果引入此包，可以实现不更改代码升级
     - 配置文件还是必须为log4j2.xml，而不能是log4j.properties或log4j.xml
-- log4j 2.x < 2.15.0-rc2 漏洞：https://help.aliyun.com/noticelist/articleid/1060971232.html
+- log4j漏洞
+    - 发生版本 log4j 2.x < 2.15.0-rc2
+    - 详情：https://help.aliyun.com/noticelist/articleid/1060971232.html
+    - 解决方案
+        - 简单方案：`-DLog4j22.formatMsgNoLookups=true`
+    - 检测工具：https://github.com/webraybtl/Log4j
 - log4j1案例(/smjava/logging/log4j1-jdklog)
     - 引入依赖`log4j:log4j:1.2.17`
 

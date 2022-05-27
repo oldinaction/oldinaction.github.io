@@ -6,40 +6,146 @@ categories: [lang]
 tags: [php]
 ---
 
-## php简介
+## PHP简介
 
 - [官网](http://www.php.net/)、[官方文档](http://php.net/manual/zh/)
 
 ### 安装
 
-- 可下载`xampp`集成包(包含apache/mysql/php等服务)
+- 可下载`xampp`或`lnmp`集成包(包含apache/mysql/php等服务)
 - php安装
     - windows：http://php.net/downloads.php
     - linux：`yum install -y php`
+- 或者直接按照php-fpm(集合nginx使用，会自动装php)
+
+```bash
+# 需要安装epel-release
+rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
+
+# 安装 php7.1 fpm(无需单独安装php)
+# 同理其他版本为 yum -y install php70w-fpm
+# 其他php模块同理，如redis模块 yum -y install php71w-pecl-redis
+# php71w-mysql
+yum -y install php71w-fpm
+# 配置文件目录
+# /etc/php-fpm.conf         # php-fpm主配置
+# /etc/php-fpm.d/www.conf   # web服务配置
+# /etc/php.ini              # php配置
+
+# 启动
+systemctl enable php-fpm
+systemctl restart php-fpm
+systemctl status php-fpm
+```
+
+### PHP环境组合
+
+- 一般包含LAMP(Linux Apache Mysql PHP)和LNMP(Linux Nginx Mysql PHP)
+- 相关文件
+    - `.htaccess` 是lamp文件，是伪静态环境配置文件
+    - `.user.ini` 是lnmp文件，里面放的是网站的文件夹路径地址，目的是防止跨目录访问和文件跨目录读取。一般内容为`open_basedir=/项目路径/:/tmp/:/proc/`
 
 ### 配合nginx使用 
 
-- windows + nginx + fastcgi运行php程序(php5.3版本之后已经有了`php-cgi.exe`的可执行程序，经测试本地开发就很容易挂)
-    - nginx配置
+- nginx配置
 
-        ```bash
-        # php文件转给fastcgi处理。linux安装了php后需要额外安装如`php-fpm`来解析(windows安装了php，里面自带php-cgi.exe)
-        # 如果访问 http://127.0.0.1:8080/myphp/index.php 此时会到 /project/phphome/myphp 目录寻找/访问 index.php 文件
-        location ~ \.php$ {
-            # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
-            try_files      $uri = 404;
-            root           /project/phphome/myphp;
-            fastcgi_pass   127.0.0.1:19000;
-            fastcgi_index  index.php;
-            # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
-            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
-            include        fastcgi_params;
-        }
-        # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
-        location ~ /myphp/ {
-            root /project/phphome/myphp;
-        }
-        ```
+```bash
+server {
+	listen 80;
+	listen 443 ssl http2;
+	listen [::]:443 ssl http2;
+	listen [::]:80;
+	server_name shengqitech.aezo.cn;
+	index index.php index.html;
+	root /wwwroot/www/shengqitech.aezo.cn;
+	
+	ssl_certificate         /wwwroot/data/ssl/shengqitech.aezo.cn.pem;
+	ssl_certificate_key     /wwwroot/data/ssl/shengqitech.aezo.cn.key;
+	
+	access_log  /wwwroot/log/nginx/shengqitech.aezo.cn.log;
+	error_log   /wwwroot/log/nginx/shengqitech.aezo.cn.error.log;
+	
+    gzip on;
+    gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
+    gzip_static on;
+
+	location / {
+		try_files $uri $uri/ /index.php?$args;
+	}
+	rewrite /wp-admin$ $scheme://$host$uri/ permanent;
+	
+	
+    ## php-fpm常用配置
+    # php文件转给fastcgi处理。linux安装了php后需要额外安装如`php-fpm`来解析(windows安装了php，里面自带php-cgi.exe)
+    # 如果访问 http://127.0.0.1/test/index.php?name=abc 此时会到 /wwwroot/www/shengqitech.aezo.cn 目录寻找 test/index.php 文件（location的正则仅匹配路径，不考虑url中的参数）
+    set $project_root "/wwwroot/www/shengqitech.aezo.cn"; # 自定义变量，可选
+    location ~ \.php$ {
+        # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题(如nginx,php-fpm用户读取文件权限问题)
+        try_files      $uri = 404;
+        root           $project_root;
+        fastcgi_pass   127.0.0.1:19000;
+        # fastcgi_pass unix:/var/run/php-fpm/php-fpm.sock; # 需修改 /etc/php-fpm.d/www.conf 配置，参考下文
+        fastcgi_index  index.php;
+        # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+    # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
+    location ~ ^/my-php-static/ {
+        root $project_root;
+    }
+	
+	#禁止访问的文件或目录
+	location ~ ^/(\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md) {
+		return 404;
+	}
+	# 缓存
+	location ~ .*\.(js|css)?$ {
+		expires      12h;
+		error_log /dev/null;
+		access_log off;
+	}
+	location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$ {
+		expires      30d;
+		error_log /dev/null;
+		access_log off;
+	}
+}
+
+## lnmp thinkphp nginx不支持pathinfo解决方法
+# http://127.0.0.1:8080/myphp1/index.php、http://127.0.0.1:8080/myphp2/index.php 都可进入相应目录
+location ~ \.php($|/) {
+    # 配置PHP支持PATH_INFO进行URL重写
+    set $script $uri;
+    set $path_info "";
+    if ($uri ~ "^(.+?\.php)(/.+)$") {
+        set $script $1;
+        set $path_info $2;
+    }
+    try_files $uri =404;
+    root           /project/phphome;
+    fastcgi_pass 127.0.0.1:9000;
+    fastcgi_index index.php;
+    include fastcgi.conf;
+    fastcgi_param script_FILENAME $document_root$script;
+    fastcgi_param script_NAME $script;
+    fastcgi_param PATH_INFO $path_info;
+}
+location / {
+    # ThinkPHP Rewrite
+    if (!-e $request_filename){
+        rewrite ^/(.*)$ /index.php/$1 last;
+    }
+}
+```
+- linux + nginx + fastcgi运行php程序
+    - nginx配置同上
+    - nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，如果是php请求，则发给php解释器处理，并把结果返回给客户端。nginx一般是把请求发fastcgi管理进程处理，fascgi管理进程选择cgi子进程处理结果并返回被nginx。而使用php-fpm则可以使nginx支持PHP
+    - 需要安装`php-fpm`来实现fastcgi，按照参考上文
+    - `systemctl start php-fpm` 默认监听`9000`端口
+        - 编辑`/etc/php-fpm.d/www.conf`中的`listen = 127.0.0.1:9000`可修改监听端口；也可将此listen改为 `listen = unix:/var/run/php-fpm/php-fpm.sock`，从而nginx配置改为`fastcgi_pass unix:/var/run/php-fpm/php-fpm.sock;`来进行转发
+- windows + nginx + fastcgi运行php程序(php5.3版本之后已经有了`php-cgi.exe`的可执行程序，经测试本地开发就很容易挂)
     - 快捷操作脚本(需提前启动，监听在19000端口上)
 
         ```bat
@@ -53,9 +159,13 @@ tags: [php]
         echo Stopping nginx...
         taskkill /F /IM nginx.exe > nul
         ```
-- linux + nginx + fastcgi运行php程序
-    - nginx配置同上
-    - 需要安装`php-fpm`来实现fastcgi：`systemctl status php-fpm`
+- 常见问题
+    - 浏览器访问返回`File not found.` 此为php-fpm返回的错误，一般为nginx,php-fpm用户读取文件权限问题，具体如下
+        - nginx.conf中一般设置`user www www;`(此时www用户必须要有权限读取到对应项目目录，项目父目录无所谓)
+        - /etc/php-fpm.d/www.conf中一般设置`user = www`和`group = www`(此处www用户同nginx需要有权限访问到对应项目目录，一般设置成和nginx一样的用户)
+    - 浏览器返回`Access denied.` 此为php-fpm返回的错误
+        - 首先需要确保上述权限设置正确
+        - 然后检查项目目录下`.user.ini`，里面放的是网站的文件夹路径地址，目的是防止跨目录访问和文件跨目录读取。一般配置为`open_basedir=/项目路径/:/tmp/:/proc/`有时候迁移项目时路径变化了则需要修改此项目路径
 
 ## PHP基本语法
 
@@ -222,6 +332,14 @@ if(isset($json -> username)) {
 // 移动文件
 $res = is_dir(dirname($dst)) || mkdir(dirname($dst), 0644, true); // 先用mkdir()函数确保 $dst 文件相关的目录存在
 return $res && rename($src, $dst); // 然后移动
+```
+
+## php.ini配置
+
+```ini
+[MySQLi]
+# mysql.sock默认路径为以下，如果不一样则需要修改，否则mysql会连接不上
+mysqli.default_socket = /var/lib/mysql/mysql.sock
 ```
 
 ## ThinkPHP
@@ -440,9 +558,10 @@ class wechatCallbackapiTest {
 ?>
 ```
 
-## xampp + PhpStorm
+## xampp+PhpStorm
 
-- xampp是将php、perl、apache、mysql、tomcat、FileZila等软件打包打一起
+- 支持Windows、Linux、Mac，类似软件如`WampServer`、`lamp`、`lnmp`
+- xampp是将 Apache + MariaDB + PHP + Perl、tomcat、FileZila等软件打包打一起
     - 安装[xampp](https://jaist.dl.sourceforge.net/project/xampp/XAMPP%20Windows/7.3.10/xampp-windows-x64-7.3.10-1-VC15-installer.exe)
     - 也支持linux
     - 修改 xampp Apache 端口(此时访问`http://localhost:8110/`访问的是目录`D:\software\xampp\htdocs`)
@@ -490,8 +609,9 @@ class wechatCallbackapiTest {
     - PHPStorm使用Xdebug进行调试时，没打断点也一直进入到代码第一行：去掉勾选Run - Break at first line in PHP Scripts
     - PHPStorm需要启动Debug监听：`Run - Start Listening for PHP Debug Connection`
 
-## lnmp 类似xampp，专注于linux环境
+## lnmp
 
+- 类似xampp，专注于linux环境
 - https://lnmp.org/
 
 ## 其他

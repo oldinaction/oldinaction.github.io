@@ -9,6 +9,12 @@ tags: [system]
 ## 简介
 
 - 版本：Mac M1 11.4
+- Mac软件下载
+    - https://www.macwk.com/
+        - 应用闪退问题
+            - https://www.macwk.com/article/apple-silicon-m1-application-crash-repair
+            - https://www.macwk.com/article/macos-beta-damage
+    - https://www.macapp.so/
 
 ## 快捷键
 
@@ -30,6 +36,7 @@ end: fn＋右
 ## 命令
 
 - `open /root` 在Finder中打开某个目录(默认有些目录时不会显示在Finder中的)
+- `lsof -i -P | grep 21` 查看端口占用情况，或`lsof -i :21`
 
 ## 个性化配置
 
@@ -77,6 +84,10 @@ source ~/.bash_profile
 brew version
 brew install wget
 brew uninstall wget
+# 安装指定版本
+brew search gcc
+brew install gcc@7
+
 # brew services(第一次运行会自动安装)
 brew services list  # 查看使用brew安装的服务列表
 brew services run nginx|--all  # 启动服务（仅启动不注册）
@@ -84,13 +95,19 @@ brew services start nginx|--all  # 启动服务，并注册
 brew services stop nginx|--all   # 停止服务，并取消注册
 brew services restart nginx|--all  # 重启服务，并注册
 brew services cleanup  # 清除已卸载应用的无用的配置
+
+# 查看nginx服务信息(包括启动脚本、配置文件)
+brew info nginx
 ```
+
 ### brew安装常用软件
 
 ```bash
-# 按照目录：/opt/homebrew/opt/nginx
+# brew安装nginx仅稳定版，如果需要安装其他版本可基于docker运行
+# 安装目录：/opt/homebrew/opt/nginx
 # 配置文件目录：/opt/homebrew/etc/nginx/nginx.conf
 brew install nginx
+
 # 核心工具命令，如：numfmt
 brew install coreutils
 ```
@@ -101,39 +118,32 @@ brew install coreutils
 
 ## 开发软件安装
 
-### JAVA
+### Royal TSX
 
-- 到Oracle官网下载dmg格式文件进行安装，可安装多个版本
-- `/usr/libexec/java_home -V` 查看可用的JDK版本
-    - 切换版本参考下文jenv，也可修改`~/.zshrc`中配置中的JAVA_HOME
-- 安装完后删除`/Library/Internet Plug-Ins/JavaAppletPlugin.plugin`目录
-    - 如`sudo mv /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin.bak`
-    - 否则mvn命令执行时报错，参考：https://blog.csdn.net/w605283073/article/details/111770386
+- 支持多SSH/FTP/SFTP/RemoteDesktop终端管理
+- 快捷键
+    - Cmd+0 切换左侧导航显示
+    - Cmd+i 显示当前连接配置
+- New - Terminal 新建连接
+    - Terminal
+        - 只有通过SSH连接才能开启Tunnal，如果通过Customer Terminal + expect脚本则不行(且不能直接连接SFTP)
+    - Credentials
+        - ssh基于秘钥连接时: Credentials - Credential中用户名密码只需要配置用户名；Private Key File填秘钥路径
+    - Custom Properties
+        - 配置Key-Value键值对后: 可在连接配置 - 右键 - Copy to Clipboard - 可复制配置的键值对
+    - Tunnels
+        - Dynamic 只能绑定到本地(无法开放给局域网访问)，如果基于局域网可以通过快捷命令完成
+- New - Secure Gateway 新建加密网关
+    - 如访问生产环境一般需要跳板机，此处的加密网关就是配置登录跳板机，如果是基于秘钥的登录则需要先设置全局密码
+- Application - Credentials 设置全局密码(可用于加密网关)
+    - 如果是基于秘钥的可同时设置账号(不用设置密码) + 秘钥文件
+- Application - Tasks 全局命令(命令只能调用本地Terminal, 不能发送到Royal Terminal)
+    - 命令中可使用很多变量，如`$URI$`表示当前连接的ip地址
 
-### IDEA
-
-- 插件目录 `/Users/smalle/Library/Application\ Support/JetBrains/IntelliJIdea2021.2/plugins`
-
-### NVM/Node
-
-- 安装Node(基于nvm)
-
-```bash
-# 安装nvm
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash
-# 但是安装node v10.x失败，v12.x成功；**但是从node官网下载node v10.24.1安装成功**
-nvm install 16.8.0
-
-# 卸载nvm，并删除.bash_profile文件中得$NVM_HOME配置
-rm -rf ~/.nvm
-```
-- 安装vue-cli，使用root账号安装`npm install -g @vue/cli`
-- 常见问题
-    - 在npm install进行包依赖安装是，部分包需要依赖autoreconf命令，从而提示`/bin/sh: autoreconf: command not found`。此时可通过`brew install autoconf automake libtool`先手动安装autoreconf，并将`PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"`添加到`~/.zshrc`
-
-### 终端管理(Item2)
+### Item2
 
 - 终端管理相关软件
+    - Royal TSX比较好用(收费)
     - 目前发现 Item2 还算比较理想
     - mac不支持xshell
     - FinalShell、Termius 不太好用
@@ -234,6 +244,52 @@ alias unproxy="unset ALL_PROXY"
 
         iterm2.run_until_complete(main)
         ```
+- 基于lrzsz进行文件上传和下载
+
+```bash
+# 参考：https://mikuac.com/archives/882/
+# 1.mac安装lrzsz
+brew install lrzsz
+# 查询lrzsz位置并设置软连接
+brew list lrzsz
+ln -s /opt/homebrew/Cellar/lrzsz/0.12.20_1/bin/lrz /usr/local/bin/rz
+ln -s /opt/homebrew/Cellar/lrzsz/0.12.20_1/bin/lsz /usr/local/bin/sz
+
+# 参考：https://blog.csdn.net/weixin_42948074/article/details/120494608
+# 2.增加iterm2-zmodem脚本，并chmod +x设置可执行
+# 3.配置item2触发器
+```
+
+### JAVA
+
+- 到Oracle官网下载dmg格式文件进行安装，可安装多个版本
+- `/usr/libexec/java_home -V` 查看可用的JDK版本
+    - 切换版本参考下文jenv，也可修改`~/.zshrc`中配置中的JAVA_HOME
+- 安装完后删除`/Library/Internet Plug-Ins/JavaAppletPlugin.plugin`目录
+    - 如`sudo mv /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin.bak`
+    - 否则mvn命令执行时报错，参考：https://blog.csdn.net/w605283073/article/details/111770386
+
+### IDEA
+
+- 插件目录 `/Users/smalle/Library/Application\ Support/JetBrains/IntelliJIdea2021.2/plugins`
+
+### NVM/Node
+
+- 安装Node(基于nvm)
+
+```bash
+# 安装nvm
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash
+# 但是安装node v10.x失败，v12.x成功；**但是从node官网下载node v10.24.1安装成功**
+nvm install 16.8.0
+
+# 卸载nvm，并删除.bash_profile文件中得$NVM_HOME配置
+rm -rf ~/.nvm
+```
+- 安装vue-cli，使用root账号安装`npm install -g @vue/cli`
+    - 部分使用sudo仍然安装失败，可使用如`sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npm.taobao.org`
+- 常见问题
+    - 在npm install进行包依赖安装是，部分包需要依赖autoreconf命令，从而提示`/bin/sh: autoreconf: command not found`。此时可通过`brew install autoconf automake libtool`先手动安装autoreconf，并将`PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"`添加到`~/.zshrc`
 
 ### Jad-GUI
 

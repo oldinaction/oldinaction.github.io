@@ -128,6 +128,8 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
   - 驱动JAR下载(官网提供的下载地址无法访问)
     - 下载仓库`https://gitee.com/moshowgame/dbeaver-driver-all.git`中的jar
     - 编辑连接 - 编辑驱动设置 - 库 - 添加文件(夹) - 找到刚刚下载的git仓库中对应数据库文件夹(如drivers-mysql-mysql8-xxx.jar)
+  - 连接Oracle
+    - 基于SID连接(ORCL)，mac配置时客户端下拉可留空
 
 ## 软件使用
 

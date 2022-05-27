@@ -11,6 +11,7 @@ tags: spring
 [+] Lombok使用 https://www.cnblogs.com/qnight/p/8997493.html
 [+] 分布式限流 http://blog.battcn.com/2018/08/08/springboot/v2-cache-redislimter/
 [+] Quartz实现动态配置定时任务 https://yq.aliyun.com/articles/626199
+    - [xxl-job](https://www.xuxueli.com/xxl-job/) 开源分布式调度
 
 ## 简介
 
@@ -29,6 +30,7 @@ tags: spring
 - 引入依赖
 
 	```xml
+    <!-- 方式一：继承父pom方式 -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -53,6 +55,38 @@ tags: spring
 			</plugin>
 		</plugins>
 	</build>
+
+
+    <!-- 方式二：也可通过import导入方式，需要增加额外的打包配置 -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.3.1.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.3.1.RELEASE</version>
+                <executions>
+                    <execution>
+                        <!--打包时，重新打包指定spring boot的启动类 -->
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 	```
 - 启动类 `SpringbootApplication.java`
 
@@ -110,11 +144,12 @@ tags: spring
     - 此时只有写在dev里面的才能覆盖commm, 写在application中的无法覆盖
 - 自定义默认配置文件application.yml
     - 使用`spring.config.location`指定默认配置文件或配置文件路径，如`java -jar myproject.jar --spring.config.location=classpath:/config/,classpath:/config/test/`，此时会从上述路径读取(后面路径的文件会覆盖前面路径的文件)配置，并可结合profile，但是文件名必须是`application-${profile}.yml`格式
-    - 使用`spring.config.additional-location`可覆盖默认配置文件的路径(默认配置文件application.yml任然会加重)
+    - 使用`spring.config.additional-location`可覆盖默认配置文件的路径(默认配置文件application.yml仍然会加重)
     - 说明
         - spring.config.location 和 spring.config.additional-location 不能同时生效，spring.config.location 的优先级高
         - spring.config.location 值为文件，则不支持profile机制，值为文件夹时才支持profile机制
         - spring.config.additional-location 不支持profile机制
+- `-Xbootclasspath/a` 加入外部扩展class，用法参考[JVM参数使用](/_posts/java/jvm.md#JVM参数使用)
 - 使用`@PropertySource("classpath:hello.properties")`结合@ConfigurationProperties可设置读取某个配置文件注入到JavaBean
 - 配置示例
 
@@ -1004,13 +1039,13 @@ public class TestServlet extends HttpServlet{
 
 	// 1.查询一行数据并返回int型结果
 	jdbcTemplate.queryForInt("select count(*) from test");
-	// 2.查询一行数据并将该行数据转换为Map返回(key大小写按照select的字段名大小写)。**如果不存在会返回null**
-	jdbcTemplate.queryForMap("select * from test where id=1");
-	// 3.查询一行任何类型的数据，最后一个参数指定返回结果类型
     try {
+        // 2.查询一行数据并将该行数据转换为Map返回(key大小写按照select的字段名大小写)
+        jdbcTemplate.queryForMap("select * from test where id=1");
+        // 3.查询一行任何类型的数据，最后一个参数指定返回结果类型
 	    jdbcTemplate.queryForObject("select valid_status from test where id = 1", Integer.class); 
     } catch(EmptyResultDataAccessException e) {
-        // 为空会报错
+        // 上面两种方式为空会报错
     }
 	try {
 		String username = jdbcTemplate.queryForObject("select t.username from t_test t where t.id=?", String.class, 10000L);

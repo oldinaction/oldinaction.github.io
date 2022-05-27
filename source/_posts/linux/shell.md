@@ -849,6 +849,33 @@ EOF
     python3 -c "import sys, json; print(json.load(sys.stdin)['subjects'][0]['genres'][0])"
     ```
 
+### expect
+
+- expect 工具是一个根据脚本与其他交互式程序进行交互
+- 登录案例(login.exp)
+    - `./login.exp 22 root 192.168.1.100 mypass` 即可自动登录服务器
+
+    ```bash
+    #!/usr/bin/expect
+    # expect的解析器，与shell中的#!/bin/bash类似
+
+    # 设置超时时间n秒
+    set timeout 30
+    # 执行命令，$argv为参数
+    spawn ssh -p [lindex $argv 0] [lindex $argv 1]@[lindex $argv 2]
+    # 接受执行命令返回的信息
+    expect {
+        # 匹配到不同返回，执行不同命令；发送 yes 并 \n 回车执行，exp_continue表示继续循环匹配
+        "(yes/no)?" {send "yes\n"; exp_continue}
+        # expect脚本可以接受bash的外部传参，可以使用[ lindex $argv n ]n为0表示第一个传参
+        "password:" {send "[lindex $argv 3]\n"}
+    }
+    # 执行完代码后保持交互状态，将控制权交给用户
+    interact
+    # 退出expect脚本
+    # exit
+    ```
+
 ## 示例
 
 ### jar包运行/停止示例
@@ -902,7 +929,7 @@ OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$JVM_LOG_PATH"
 #RMIIF="-Djava.rmi.server.hostname=$IPADDR"
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 #DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
-VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG -Dfile.encoding=UTF-8"
+VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG -Dfile.encoding=UTF-8 -DLog4j22.formatMsgNoLookups=true"
 
 JAR_ARGS="$SPRING_PROFILES"
 
@@ -1056,7 +1083,7 @@ for user in "${db_bak_users[@]}"; do
   bakfile=$user"_"$date.tar.gz
   mkdir -p $bakdir/$user
   echo "Bakup file path $bakdir/$user/$bakdata"
-  # 执行备份命令
+  # 执行备份命令(用户模式)
   exp $db_user/$db_pass@$db_sid grants=y owner=$user file=$bakdir/$user/$bakdata log=$bakdir/$user/$baklog
   echo "Bakup completed, file: $bakdir/$user/$bakdata"
   tar -zcvf $bakdir/$user/$bakfile $bakdir/$user/$bakdata $bakdir/$user/$baklog

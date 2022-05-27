@@ -238,12 +238,20 @@ git config --global color.ui true
 
 #### 暂存工作区
 
-- `git stash` 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）
-- `git stash pop` 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容。由于可能存在多个Stash的内容，所以用栈来管理，pop会从最近的一个stash中读取内容并恢复
-- `git stash list` 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
-- `git stash clear` 清空Git栈
-
-https://blog.csdn.net/kuangdacaikuang/article/details/82804051
+```bash
+# 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）
+git stash
+git stash save '本次暂存的标识名字'
+# 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容
+# pop恢复后，暂存区域会删除当前暂存记录；apply恢复后不会删除暂存区记录
+git stash pop
+git stash pop stash@{index} # index为暂存的索引(可通过git stash list查看索引)，需要保留{}
+git stash apply stash@{index}
+# 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
+git stash list
+# 清空Git暂存栈
+git stash clear
+```
 
 #### commit对象
 
@@ -393,6 +401,8 @@ git branch -d develop/test
 - 已经提交的文件(git已经管理了此文件，仓库已经存在此文件)无法忽略解决办法
 	- 先删除对应文件，提交版本，再将此文件加到.gitignore中，再次提交则不会出现
 	- 如果是未提交的文件，此时不管.gitignore文件是否提交，.gitignore文件都是生效的
+- 删除.DS_Store文件，然后加入忽略
+    `sudo find /project/demo -name ".DS_Store" -depth -exec rm {} \;`
 
 #### 处理Linux/Unix/MacOS文件格式的EOL
 
@@ -448,6 +458,9 @@ git push
 
 ## Github使用
 
+- 镜像站
+    - https://hub.連接.台灣
+    - https://hub.fastgit.org/
 - 更新fork项目/提交请求(`pull request`，简称 `PR`)
     - Github线上提交 `New pull request` - 选择`base repository` - 选择`head repository` - 如果看不到仓库名可点击`compare across forks` - 点击`Create pull request`填写提交说明并确认
         - 表示将head提交到base。如果为更新fork项目，则base选择自己fork的仓库，head选择源仓库(此时可能需要点击`compare across forks`才能看到仓库名)；如果是提交代码到源仓库，则base选择源仓库

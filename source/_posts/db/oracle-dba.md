@@ -119,10 +119,10 @@ sqlplus / as sysdba
 
 -- 创建表空间，要先创建好`/u01/app/oracle/oradata/orcl`目录，最终会产生一个aezocn_file文件(Windows上位大写)，表空间之后可以修改
 -- 此处是创建一个初始大小为 500m 的表空间，当空间不足时每次自动扩展 10m，无限扩展(oracle 有限制，最大扩展到 32G，仍然不足则需要添加表空间数据文件)
-create tablespace aezocn datafile '/u01/app/oracle/oradata/orcl/aezocn_file' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;
+create tablespace aezocn datafile '/u01/app/oracle/oradata/orcl/AEZOCN01.DBF' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;
 
 -- 删除表空间(包含数据和数据文件)
--- drop tablespace aezocn;
+-- drop tablespace aezocn; -- 只删除表空间引用，数据文件还在
 drop tablespace aezocn including contents and datafiles;
 
 -- 扩展：创建用户并赋权(新创建项目时一般新建表空间和用户)
@@ -196,7 +196,7 @@ create user smalle identified by smalle;
 -- 创建用户并指定默认表空间
 create user smalle identified by smalle default tablespace aezocn;
 
--- 删除用户
+-- 删除用户(cascade连带用户数据)
 drop user smalle cascade;
 
 -- 修改用户密码
@@ -278,19 +278,26 @@ select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
  where owner in ('AEZO')
    and object_type = 'TABLE';
 
--- 批量设置表别名（同义词）
+-- 批量设置表别名（同义词） => **将 AEZO 的表赋给 SMALLE(需要通过SMALLE账号执行)**
 -- （1）通过存储过程，参考上述代码（取消注释：sqlstr := 'create or replace SYNONYM ' || [table_grant_user] || '.' || [v_tabname] || ' for ' || [table_owenr_user] || '.' || [v_tabname];）
 -- （2）获取添加表别名语句
 select 'create or replace synonym SMALLE.' || object_name || ' for ' || owner || '.' || object_name || ';'
    from dba_objects
-   where owner in ('AEZO') and object_type = 'TABLE';
+   where owner in ('AEZO') and object_type in ('TABLE', 'SEQUENCE', 'VIEW', 'FUNCTION', 'PROCEDURE');
 ```
+
+#### 权限其他
+
+- 同一DB，USER1使用USER2的表创建视图，容易报无权限（尽管将USER1设置成功了DBA，且将相关表设置了别名）
+    - 解决办法：通过USER2执行`GRANT SELECT ANY TABLE TO USER1;`之后再创建视图
 
 ### sqlplus 使用技巧
 
 - sqlplus 执行 PL/SQL 语句，再输入完语句后回车一行输入`/`
-- `set line 1000;` 可适当调整没行显示的宽度
+- `set line 1000;` **可适当调整没行显示的宽度(适当美化)**
   - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
+  - `set linesize 10000;` -- 设置整行长度，linesize 说明 https://blog.csdn.net/u012127798/article/details/34146143
+  - `col username for a20` -- 设置username这个字段的列宽为20个字符
 - `set serverout on;` 开启输出
   - 否则执行`begin dbms_output.put_line('hello world!'); end;` 无法输出
 - `set autotrace on` 后面运行的 sql 会自动进跟踪统计
@@ -310,13 +317,13 @@ select 'create or replace synonym SMALLE.' || object_name || ' for ' || owner ||
             - 格式为`language_territory.charset`：Language 指定服务器消息的语言，territory 指定服务器的日期和数字格式，charset 指定字符集
         - `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
     - 查看client编码：select * from sys.nls_session_parameters;
-        - 在windows平台下，就是注册表里面`HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\HOME0\NLS_LANG`
+        - 在windows平台下，就是注册表里面`HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\KEY_OraDb11g_home1\NLS_LANG`
         - PL/SQL则看环境变量`NLS_LANG`
     - 查询dmp文件的字符集
         - 用oracle的exp工具导出的dmp文件也包含了字符集信息，dmp文件的第2和第3个字节记录了dmp文件的字符集。如果dmp文件不大，比如只有几M或几十M，可以用UltraEdit打开(16进制方式)，看第2第3个字节的内容，如0354，然后用以下SQL查出它对应的字符集
         - `select nls_charset_name(to_number('0354','xxxx')) from dual;` 结果是ZHS16GBK
     - 参考(修改字符集)：http://blog.itpub.net/29863023/viewspace-1331078/
-        - 修改数据库编码(在oracle 11g上通过测试)
+        - 修改服务端编码(在oracle 11g上通过测试)
 
             ```bash
             SQL> sqlplus / as sysdba;
@@ -526,17 +533,18 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
 
 ### 清理存储空间
 
-- `truncate table emp;` oracle清空无用表数据，适用于表中含有大量数据
+- `truncate table emp;` oracle清空无用表数据，适用于表中含有大量数据，且全部无用
     - truncate与drop是DDL语句，执行后无法回滚（无法通过binlog回滚）；delete是DML语句，可回滚
     - truncate不会激活与表有关的删除触发器；delete可以
     - truncate后会使表和索引所占用的空间会恢复到初始大小；delete操作不会减少表或索引所占用的空间，drop语句将表所占用的空间全释放掉
     - truncate不能对有外键约束引用的表使用
     - 执行truncate需要drop权限
+- lob对象占用空间可以使用alert、move、truncate直接释放。使用delete、update不直接释放，所占用空间会被后续lob对象使用
 - 使用move移动数据所在表空间
     - 可以起到清理存储碎片的功能。类似的有`shrink space`，但是清理效果没move好
     - move一个表到另外一个表空间时，索引不会跟着一起move，而且会失效(一般需要重建索引)
         - move过的普通表，在不用到失效的索引的操作语句中，语句执行正常，但如果操作的语句用到了索引（主键当做唯一索引），则此时报告用到的索引失效，语句执行失败，其他如外键，非空约束，缺省值等不会失效
-    - LONG类型不能通过MOVE来传输特别提示，尽量不要用LONG类型
+    - LONG类型不能通过MOVE来传输，尽量不要用LONG类型
     - LOB类型在建立含有lob字段的表时，oracle会自动为lob字段建立两个单独的segment,一个用来存放数据（segment_type=LOBSEGMENT），另一个用来存放索引（segment_type=LOBINDEX），默认它们会存储在和表一起的表空间。我们对表MOVE时，LOG类型字段和该字段的索引不会跟着MOVE，必须要单独来进行MOVE
 
     ```sql
@@ -544,10 +552,11 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
     alter table emp move;
     -- 移动表到users表空间
     alter table emp move tablespace users;
-    -- 移动LOB类型(CLOB/BLOB)字段en到另外一个表空间(未测试)
+    -- 移动LOB类型(CLOB/BLOB)字段en到另外一个表空间，将表的LOB字段移动到users表空间。(测试执行完之后plsql卡主，但是最终是成功移动了的，表空间也释放了)
+    -- 如果已经delete对应表，但是lob字段对应的表空间还没释放，此时可先将此字段移动到临时空间(如TMP，由于数据已经删除了，TMP临时保存此块信息不会耗费太多空间)，再移动回USERS空间
     alter table emp move lob(en) store as (tablespace users);
     
-    -- 重建索引
+    -- 重建索引(仅移动LOB字段也需要重建索引，索引太多可通过查询生成sql语句)
     alter index index_name rebuild;
     alter index pk_name rebuild;
     ```
@@ -579,6 +588,7 @@ lsof | grep deleted
 
 ### 导入导出
 
+- 导出表结构：使用pl/sql的导出用户对象(不要使用导出表)
 - `.dmp`适合大数据导出，`.sql`适合小数据导出(表中含有 CLOB 类型字段则不能导出)
 
 #### dmp格式导出导入
@@ -588,26 +598,41 @@ lsof | grep deleted
     - 失败提示 `Export terminated unsuccessfully [with/without warnings]`
 - 导入导出均分为全量模式、用户模式、表模式
     - 参考：https://www.cnblogs.com/songdavid/articles/2435439.html
-- 导入导出一定要注意服务器、客户端字符集`NSL_LANG`，否则可能出现数据、字段备注、存储过程等乱码
-    - 查询字符集参考本文[查询相关(查询数据库字符集)](#查询相关)
-    - **在导入DMP文件前，在客户端导入与服务器一致的环境变量，例如：`set NLS_LANG=AMERICAN_AMERICA.AL32UTF8`**，或者在/etc/profile、oracle用户的`.bash_profile`文件中导出NLS_LANG
+- 注意事项
+    一定要注意服务器、客户端字符集`NSL_LANG`，否则可能出现数据、字段备注、存储过程等乱码
+        - 查询字符集参考本文[查询相关(查询数据库字符集)](#查询相关)
+        - **在导入DMP文件前，在客户端导入与服务器一致的环境变量，例如：`set NLS_LANG=AMERICAN_AMERICA.AL32UTF8`**，或者在/etc/profile、oracle用户的`.bash_profile`文件中导出NLS_LANG
+    - 如果是基于用户模式进行导入，需要先创建用户和该用户默认表空间，且要保证表空间容量足够
+        - 如果容量不够，导入数据会卡主，报错ORA-1659
+        - 此时不关闭导入窗口，新增数据空间文件后，程序会自动继续导入，但是可能会出现索引创建失败而丢失
+    - 导出时会漏表
+        - 参考：https://www.cnblogs.com/abclife/p/10006815.html
+        - 在11gR2之前，oracle实在表被创建时就分配空间；
+        - 从11gR2(11.2.0.1)中引入了一个新特性：deferred segment creation。11gR2之后，参数deferred_segment_creation默认是true，表示表中插入第一条数据才会分配磁盘空间。空表还没有在磁盘上分配空间，不能被exp导出
+        - 解决方法
+            - 最简单的解决方案是使用expdp代替exp(expdp的参数和exp稍有不同，导入需要使用impdp)
+            - `select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';` 生成语句并执行(手动分配空间)
 - 导出
 
 ```bash
 # 可将导出的dmp文件再tar压缩后通过scp传输到另外一台服务器上
-# 设置字符集，防止乱码
+# 设置字符集，防止乱码. 其他如 SIMPLIFIED CHINESE_CHINA.ZHS16GBK
 set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+
+# ******防止漏表. 生成语句并执行(手动分配空间)******
+# select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';
 
 ## 用户模式：导出 scott 用户的所有对象，前提是 system 用户有相关权限
 # system/manager@remote_orcl：使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/manager@192.168.1.1:1521/orcl)
 # compress=y：压缩数据
 # rows=n：不导出数据行，只导出结构
 # buffer=10241024：缓冲区，数据量大时可使用
-exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log compress=y owner=scott
+# grants=y：A用户中有表 test，并且把这个表的查询权限给了用户B，那么当导出A用户的数据时候，GRANTS=Y就是把用户B对test表的查询权限导出；如果将这个数据导入到C用户时(GRANTS=Y)就是说导入到C用户的test表的查询权限也会被赋给用户B
+exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log compress=y owner=scott grants=y
 
 ## 表模式：导出 scott 的 emp,dept 表（导出其他用户表时，smalle用户需要有相关权限）
 # 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
-exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables=scott.emp,scott.dept
+exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables=scott.emp,scott.dept grants=y
 # exp scott/tiger file=/home/oracle/exp.dmp tables=emp
 # 导出表部分数据
 exp scott/tiger file=/home/oracle/exp.dmp tables=emp query=\" where ename like '%AR%'\"
@@ -618,17 +643,19 @@ exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log compre
 - 导入
 
 ```bash
+# 其他如 SIMPLIFIED CHINESE_CHINA.ZHS16GBK
 set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 
-## 用户模式：一般需要先将用户对象全部删掉，如可删除用户对应的表空间重新创建
+## 用户模式：一般需要先将用户对象全部删掉，如可删除用户对应的表空间重新创建。**[必须要先有对应的用户和表空间](#表空间)**
 # ignore=y：忽略错误，继续导入
-imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott touser=smalle
+# grants=y：包含权限
+imp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott touser=smalle grants=y
 
 ## 表模式：将 scott 的表 emp、dept 导入到用户 aezo
 # 此处 file/fromuser/touser 都可以指定多个
-imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott tables=emp,dept touser=smalle
+imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott tables=emp,dept touser=smalle grants=y
 
-## 全量模式：导入的是整个数据库，包括所有的表空间
+## 全量模式：导入的是整个数据库，包括所有的表空间(要求导出dmp也是全量的)
 # 一般需要设置ignore=y，导入过程中会报一些错误需忽略，如导入系统相关数据时，由于目标数据库已经存在相关对象，从而报错
 imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y ignore=y
 ```
@@ -643,7 +670,7 @@ imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y
     - pde格式导入导出，**慎用**
         - 使用PL/SQL绿色版导出pde，直接会将被导出的表数据删掉
     - 当`View`按钮可点击时，即表示导出完成
-- 导出导入对象结构
+- **导出导入对象结构**
     - `Tools - Export User Objects - 选择表/序列/存储过程等` 导出结构
 - 导出导入表数据
     - `Tools - Export Tables - 选择表导出` 导出数据
@@ -674,7 +701,7 @@ spool off;
 ```sql
 -- 查询user是否锁定、及时间
 SELECT USERNAME,ACCOUNT_STATUS,LOCK_DATE,CREATED,PROFILE FROM DBA_USERS WHERE USERNAME = 'TEST_USER';
--- 修改密码
+-- 修改密码（oracle可以修改为原密码）
 alter user TEST_USER account unlock identified by Hello1234!;
 
 -- 查询用户默认profile
@@ -725,7 +752,39 @@ alter system set resource_limit=true; -- 开启resource_limit=true
 select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS');
 -- 查询某个时间点my_table表的数据
 select id, name, '' from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS') where sex = 1;
+```
 
+### 创建数据库实例
+
+- 一般新建数据库实例名为orcl，此时需要再创建一个实例orcl2(这样可以创建和orcl一样的表空间)
+    - windows参考：https://blog.csdn.net/qq_43222869/article/details/107067357
+    - `Database Configuration Assistant` - 创建数据库 - 设置数据库名称和SID(两者最好保持一致，并且一定要记住) - 其他步骤保持不变。如果需要使用sqlplus登录，还需配置
+    - `lsnrctl status` 可查看到listener.ora监听配置文件位置，需将新实例配置到SID_LIST_LISTENER中
+
+        ```ini
+        SID_LIST_LISTENER =
+        (SID_LIST =
+            (SID_DESC =
+            (SID_NAME = orcl)
+            (ORACLE_HOME = G:\app\Administrator\product\11.2.0\dbhome_1)
+            (ENVS = "EXTPROC_DLLS=ONLY:G:\app\Administrator\product\11.2.0\dbhome_1\bin\oraclr11.dll")
+            )
+            (SID_DESC =
+            (SID_NAME = orcl2)
+            (ORACLE_HOME = G:\app\Administrator\product\11.2.0\dbhome_1)
+            (ENVS = "EXTPROC_DLLS=ONLY:G:\app\Administrator\product\11.2.0\dbhome_1\bin\oraclr11.dll")
+            )
+        )
+        ```
+    - 由于sqlplus指定实例时使用的是listener.ora同级目录下的tnsnames.ora文件，需要将orcl2的配置加上才能使用
+    - 创建完之后，原来的数据库实例会正常运行。新实例会在服务中创建OracleServiceORCL2(TNS Listener是共用的，不会创建新的)
+    - 指定实例登录`sqlplus system/root@orcl2 as sysdba`
+
+### 审计
+
+```sql
+-- 查看有效账号(account_status='OPEN')和账号(NAME)最近密码修改日期(PTIME)
+select USER#, NAME, PTIME from user$ where NAME in (select username from dba_users t where t.account_status = 'OPEN');
 ```
 
 ## 常见错误
@@ -739,8 +798,9 @@ select id, name, '' from my_table as of timestamp to_timestamp('2000-01-01 00:00
 - 报错`ORA-01653: unable to extend table` [^7]
     - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
     - 开启表空间自动扩展，每次递增 50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
-    - 为 USERS 表空间新增 1G 的数据文件 `alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`
+    - 为 USERS 表空间新增 1G 的数据文件 **`alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`**
         - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
+            - **`alter database datafile '/home/oracle/data/users02.dbf' autoextend on next 50m;`**
         - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
         - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
     - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
@@ -775,6 +835,8 @@ select id, name, '' from my_table as of timestamp to_timestamp('2000-01-01 00:00
     select segment_name, sum(bytes)/1024/1024/1024 as "GB" from user_extents group by segment_name order by sum(bytes) desc;
     -- 上面结果返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过下面语句查看属于哪张表
     select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';
+    -- 查看所有LOB块信息
+    select * from dba_lobs where segment_name in (select segment_name from user_extents group by segment_name having segment_name like 'SYS_LOB%');
 
     -- 列出数据库里每张表的记录条数
     select t.table_name,t.num_rows from user_tables t order by num_rows desc;
@@ -816,7 +878,7 @@ select value from v$parameter where name = 'processes';
 
 ## pl/sql 安装和使用
 
-- PL/SQL绿色版安装，修改配置项
+- **PL/SQL绿色版安装，修改配置项**
     - 配置 - User Interface - Fonts - Browser/Grid/Main Font(Segoe UI,常规,小五); Editor(Courier New,常规,10)
     - 配置 - User Interface - Appearance - Language(选择英文), Switch to Menu(菜单以下拉菜单方式显示)
 

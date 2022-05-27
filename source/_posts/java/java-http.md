@@ -116,6 +116,9 @@ public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) 
     // 4.处理中文乱码
     restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
 
+    // 处理 application/octet-stream 格式返回结果
+    // https://blog.csdn.net/k_young1997/article/details/122858104
+
 	return restTemplate;
 }
 
@@ -133,6 +136,19 @@ public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) 
 @Bean
 public RestTemplate restTemplate() {
 	return new RestTemplate();
+}
+
+// 超时机制写法二
+@Bean
+public RestTemplate restTemplate(ClientHttpRequestFactory factory){
+    return new RestTemplate(factory);
+}
+@Bean
+public ClientHttpRequestFactory simpleClientHttpRequestFactory(){
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(15000);
+    factory.setReadTimeout(15000);
+    return factory;
 }
 ```
 

@@ -1053,6 +1053,7 @@ for(int i=0; i<100; i++) {
     - 分隔符与classpath参数类似，unix使用`:`号，windows使用`;`号
         - `java -Xbootclasspath/a:/home/test/thirdlib/module.jar -jar demo.jar` 基于jar配置测试成功
         - `java -Xbootclasspath/a:/home/test/thirdlib/ -jar demo.jar`
+    - 参考：https://www.cnblogs.com/duanxz/archive/2013/12/19/3482311.html
 - 自定义JVM参数
 
 ```java

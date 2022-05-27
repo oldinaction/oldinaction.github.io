@@ -146,7 +146,7 @@ tags: [linux, shell]
 
 ### 文本处理
 
-- 文本处理命令：`cut`、`sort`、`join`、`sed`、`awk`，参考下文
+- 文本处理命令：`cut`、`sort`、`join`、`sed`、`awk` 参考下文
 
 ## 文件系统
 
@@ -205,10 +205,10 @@ tags: [linux, shell]
         - `rm -f /home/my_link_soft/` **删除软链接下的文件**(源目录的文件全部被删除；软链接仍然存在)
     - 修改原文件，硬链接对应的文件也会改变；删除原文件，硬链接对应的文件不会删除，软连接对应的文件会被删除
     - 目录无法创建硬链接，可以创建软链接
-- `cat <fileName>` 输出文件内容
+- `cat/more/less/head/tail/tac/nl` 输出文件内容
     - `more` 分页显示文件内容(按空格分页)
         - 向后翻一屏：`SPACE`；向前翻一屏：`b`；向后翻一行：`ENTER`；向前翻一行：`k`
-    - `less` 查看文件前几行(一行行的显示)
+    - `less` 查看文件前几行(一行行的显示)，类似more但功能更多
     - `tac` 从文末开始显示文件内容(cat反正写)
     - `head -3` 显示文件头部的3行
     - `tail -3` 显示文件末尾的3行
@@ -217,6 +217,7 @@ tags: [linux, shell]
         - `-F` 等同于 –follow=name --retry，根据文件名进行追踪，并保持重试，即该文件被删除或改名后，如果再次创建相同的文件名，会继续追踪
     - `cat -n <fileName>` **输出文件内容，并显示行号**
     - `cat > fileName` 创建文件并书写内容，此时会进入书写模式，Ctrl+C保存书写内容
+    - `nl <fileName>` 显示文件行号(类似cat -n)
 - `whereis <binName>` 查询可执行文件位置
     - `which <exeName>` 查询可执行文件位置 (在PATH路径中寻找)
     - `echo $PATH` 打印环境变量
@@ -270,7 +271,8 @@ tags: [linux, shell]
     > - 接下来的字符中,以三个为一组,且均为『rwx』 的三个参数的组合< [ r ]代表可读(read)、[ w ]代表可写(write)、[ x ]代表可执行(execute) 要注意的是,这三个权限的位置不会改变,如果没有权限,就会出现减号[ - ]而已>
     >   - 第一组为『文件拥有者的权限』、第二组为『同群组的权限』、第三组为『其他非本群组的权限』
     >   - 当 s 标志出现在文件拥有者的 x 权限上时即为特殊权限。特殊权限如 SUID, SGID, SBIT
-- `sudo find / -name nginx.conf` 全局查询文件位置(查看`nginx.conf`文件所在位置)
+- `find`
+    - `sudo find / -name nginx.conf` 全局查询文件位置(查看`nginx.conf`文件所在位置)
     - `find ./ -mtime +30 -name "*.gz" | xargs ls -lh` 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
     - `find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf` 删除30天之前的gz压缩文件
 - lrzsz上传下载文件，小型文件可通过此工具完成。需要安装`yum install lrzsz`
@@ -615,7 +617,7 @@ rar a aezocn.rar *.jpg
 - `useradd test` 新建test用户(默认在/home目录新建test对应的家目录test)
     - `useradd -d /home/aezo -m aezo` 添加用户(和设置宿主目录)
     - `usermod -d /home/home_dir -U aezo` 修改用户宿主目录
-    - `useradd -r -g mysql mysql` 添加用户mysql，并加入到mysql用户组
+    - `useradd -r -g mysql mysql` **添加用户mysql，并加入到mysql用户组**
         - `-r` 表示mysql用户是一个系统用户，不能登录
     - 修改用户名
 
@@ -670,13 +672,13 @@ rar a aezocn.rar *.jpg
 - `userdel -rf aezo` 删除用户(会删除对应的家目录)
 - 用户组(一个用户可以属于多个组，但是只能有一个默认组)
     - `cat /etc/group` 查看组
-    - `groupadd aezocn` 新建组
+    - `groupadd aezocn` **新建组**
     - `groupdel aezocn` 删除组
     - `groups` 查看当前登录用户所属组
         - `groups smalle` 查看smalle用户所属组，如返回`smalle : test root`表示smalle属于test和root组，默认组为test
     - `usermod -g test smalle` 修改用户smalle的默认组为test
     - `usermod -G wheel smalle` 将用户smalle加入到组wheel，并去除之前的非默认组
-    - `usermod -a -G wheel smalle` 保留之前的非默认组
+    - `usermod -a -G wheel smalle` **保留之前的非默认组**
     - `gpasswd -d smalle test` 将smalle从test组移除
 - 查看用户
     - `cat /etc/passwd` 查看用户
@@ -969,7 +971,7 @@ rar a aezocn.rar *.jpg
     - `sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
     - `netstat -tnl` 查看开放的端口
     - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
-    - `lsof -i -P | grep 8800` mac查看端口和pid方法
+    - `lsof -i -P | grep 21` mac查看端口和pid方法，或`lsof -i :21`
     - `ss -ant` CentOS 7 查看所有监听端口
 - `ss -lnt` 查看端口
 
@@ -1287,7 +1289,7 @@ vm.dirty_writeback_centisecs = 500
     \W    #\w的反置形式，匹配一个或多个非单词字符，如点号句号等。   
     \b    #单词锁定符，如: '\bgrep\b'只匹配grep。 
 
-    # 字符类
+    # 字符类(类似oracle正则的字符簇)
     [[:digit:]] #数字
     [[:lower:]] #小写字母
     [[:upper:]] #大写字母
@@ -1321,13 +1323,20 @@ vm.dirty_writeback_centisecs = 500
     # -P正则
     echo office365 | grep -P '\d+' -o # 返回 365
 
+    # 匹配2022-05-12 17:19这个分钟的某线程日志
+    grep '2022-05-12 17:19.* |-0.0.0.0-7100-exec-9' *-2022-05-12-*.log
+    # 匹配如：`...51:1:CMAU0245097:H4832357:22G1:8:22:4629:2190:21:::::::1'...`
+    egrep -r "51:.*:1'" /data/BTC_RECV/RecvCN1101/21/*
+
+    # 截取10分钟内容(包含12:09:59的数据，但是分钟不能写成12:[05-15])
+    grep "2000-01-01 12:0[0-9]" out.log > log.txt
+    # sed截取则更方便
+    sed -n '/2000-01-01 12:00:00/,/2000-01-01 12:01:30/p' out.log > log.txt
+
     # 转义和字符类
     grep '192\.168\.1\.254' /etc/hosts # 三个点字符都需要转义
     egrep '[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}' 文件名 # 只能匹配出 IP 地址
     grep "[[:digit:]]\{2\}[ -]\?[[:digit:]]\{10\}" 文件名 # 会匹配 91-1234567890、91 1234567890、911234567890这种格式的手机号
-
-    # 匹配如：`...51:1:CMAU0245097:H4832357:22G1:8:22:4629:2190:21:::::::1'...`
-    egrep -r "51:.*:1'" /data/BTC_RECV/RecvCN1101/21/*
 
     # 根据日志查询最近执行命令时间(结合tail -1)
     grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'

@@ -42,6 +42,7 @@ tags: [vue]
     - ["巨石应用"的诞生](https://juejin.cn/post/6889956096501350408)
     - [从qiankun看子应用加载](https://juejin.cn/post/6891888458919641096)
     - [从qiankun看沙箱隔离](https://juejin.cn/post/6896643767353212935)
+    - [微前端架构qiankun常见问题及解决方案](https://www.cnblogs.com/goloving/p/14881461.html)
 
 ### 多应用部署及路由流程
 

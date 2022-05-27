@@ -408,6 +408,11 @@ mail.smtp.port=25 # 端口
         <!-- 多租户配置库(一般也存放再主数据库中)：里面存放的是每个tenant的数据库配置、默认的模块等信息 -->
         <group-map group-name="org.ofbiz.tenant" datasource-name="localoracletenant"/>
     </delegator>
+
+    <!-- 将default下相关的几个datasource的check-on-start属性设置成false，可在启动时不对数据库表结构进行检查，从而加快启动速度 -->
+    <datasource name="localmysqlolap" check-on-start="false">
+        ...
+    </datasource>
     ```
 - 配置tenant数据库连接等信息
 
@@ -545,6 +550,23 @@ mail.smtp.port=25 # 端口
         }
     }
     ```
+
+### 数据库相关
+
+- 清理数据库日志数据
+
+```sql
+-- mysql
+TRUNCATE server_hit_bin;
+truncate server_hit;
+-- 禁止检查外键
+SET foreign_key_checks=0;
+truncate visitor;
+truncate visit;
+-- 开启检查外键
+SET foreign_key_checks=1;
+TRUNCATE user_login_history;
+```
 
 ## 服务
 

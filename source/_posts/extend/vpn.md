@@ -140,7 +140,11 @@ tags: [vpn, linux, network]
     sudo ssh -i /home/smalle/.ssh/warehouse.pem -oConnectTimeout=60 -oServerAliveInterval=120 -o 'GatewayPorts yes' -D 0.0.0.0:3386 ec2-user@52.56.100.100 "vmstat 30"
     ```
     - SSH建立的SOCKS服务器使用的是SOCKS5协议
-    - 配置SOCKS：IE/Chrome/Firefox/xshell等都可配置SOCKS5；某些程序如windows的远程桌面程序无法配置，此时可以使用`SocksCap`(SocksCap配置好SOCKS，然后通过SocksCap启动目标程序)
+    - 配置SOCKS：IE/Chrome/Firefox/xshell等都可配置SOCKS5
+    - 某些程序如windows的远程桌面程序无法配置，此时可以使用`SocksCap`(SocksCap配置好SOCKS，然后通过SocksCap启动目标程序, 免费)
+    - Mac可以使用`Proxifier`代替SocksCap，比SocksCap更强大，也支持Windows(收费)
+        - 先设置Proxies，即设置Socks代理，如127.0.0.1:1080
+        - 再设置Rules，可基于应用程序/或目标ip进行代理；规则从上往下执行
 - 远程登录 [^6]
     - 使用花生壳创建二级域名将本地网络映射到公网
     - 跨网络连接远程，可使用蒲公英VPN
@@ -283,7 +287,12 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
 - ios的app store境内无法下载问题
     - 解决：下载对应ipa文件，然后通过`爱思助手`通过电脑`导入安装`ipa类型程序到手机，免费，相对安全。如：[Shadowrocket v2.1.12](https://files.flyzy2005.cn/%E5%AE%A2%E6%88%B7%E7%AB%AF/%E4%B8%8D%E5%8F%AF%E6%8F%8F%E8%BF%B0%E7%9A%84%E5%AE%A2%E6%88%B7%E7%AB%AF/IOS_Shadowrocket_2.1.12%28%E6%97%A0%E9%9C%80%E9%AA%8C%E8%AF%81appleId%29.ipa)
     - [ios神秘商店，收取小额费用](https://aneeo.com/ios)
-
+- v2ray客户端配置
+    - Pac模式下增加代理的域名
+        - Pac设置 - 填写手动规则 - 规则参考https://adblockplus.org/en/filter-cheatsheet
+            - 如`||cdn.jsdelivr.net`标识开启对此域名的代理
+            - 配置好后浏览Pac文件会发现上面的配置已经更新
+            - 如果不生效，可重启一下客户端
 
 
 ---

@@ -31,6 +31,23 @@ tags: [CentOS, linux]
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#磁盘)
 - 校验系统时间，参考[时间同步](#时间同步)，或使用下文配置脚本
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#权限系统)
+
+```bash
+# 创建常用用户和目录
+groupadd www
+useradd -r -g www www
+usermod -a -G www sq # 将用户sq加入到www组(方便sq进行资源文件上传)
+
+# chmod -R 755 /wwwroot
+# chown -R www:www /wwwroot
+/wwwroot                755 root
+    /www                775 root (一般是755，此处775方便sq用户进行文件上传)
+        /www.aezo.cn    755 www
+    /backend            775 root
+    /log                750 www (一般是700)
+    /backup             750 root (一般是600)
+    /data               750 root (一般是600)
+```
 - 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#文件权限)
 - 证书登录、禁用root(内部集群一般不建议，因为经常需要ssh远程登录)及密码登录、修改ssh的22端口：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#ssh)
 - 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
@@ -111,14 +128,14 @@ cd /etc/yum.repos.d
 mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
 # 基础源，下载阿里云镜像
 curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-# 安装EPEL源(新增镜像源)
+# **安装EPEL源(新增镜像源)**
 curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
 # 生成缓存
 yum makecache
 ```
 - 安装`EPEL`(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
     - 方式一：使用上述阿里云镜像
-    - 方式二：
+    - 方式二：`rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm`
         - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
         - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
 - 手动新增镜像源
@@ -303,6 +320,7 @@ id mysql # 查看mysql用户信息
 
 # 创建数据文件存储目录(一般放在数据盘，此时为root用户创建)
 mkdir -p /home/data/mysql
+mkdir -p /var/lib/mysql
 # 修改mysql安装根目录权限
 chown -R mysql:mysql /opt/mysql57
 
@@ -315,6 +333,7 @@ vi /etc/my.cnf
 # 重新修改下各个目录的权限
 chown -R root:root /opt/mysql57 # 把安装目录的目录的权限所有者改为root
 chown -R mysql:mysql /home/data/mysql # 把data目录的权限所有者改为mysql(/home/data权限可以不是mysql)
+chown -R mysql:mysql /var/lib/mysql
 
 # 启动mysql(此时可能会卡在启动命令行。可以再起一个命令行进行密码修改，注册成服务后可以关闭)
 /opt/mysql57/bin/mysqld_safe --user=mysql &
@@ -413,7 +432,7 @@ quit # 退出使用新密码重新登录
 ```ini
 [client] # 客户端连接时的默认配置(可省略)
 port=13306
-socket=/home/data/mysql/mysql.sock
+socket=/var/lib/mysql/mysql.sock
 default-character-set=utf8mb4
 
 [mysqld] # 服务端配置
@@ -432,7 +451,9 @@ max_allowed_packet=512M
 basedir=/opt/mysql57
 # 手动安装时填写mysql数据目录。默认目录为/var/lib/mysql
 datadir=/home/data/mysql
-socket=/home/data/mysql/mysql.sock
+# 使用默认sock路径/var/lib/mysql/mysql.sock，如php.ini中就默认连接词sock
+# socket=/home/data/mysql/mysql.sock
+socket=/var/lib/mysql/mysql.sock
 #pid-file = /home/data/mysql/mysql.pid # pid文件，默认为 %datadir%/aezocn-1.pid
 #log_error=/home/data/mysql/mysqld_error.log # 服务错误日志文件，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
 slow_query_log_file=/home/data/mysql/slow.log
@@ -531,29 +552,7 @@ groupdel mysql
 
 ### php安装
 
-- `yum install -y php`
-
-#### php-fpm
-
-nginx本身不能处理PHP，它只是个web服务器，当接收到请求后，如果是php请求，则发给php解释器处理，并把结果返回给客户端。nginx一般是把请求发fastcgi管理进程处理，fascgi管理进程选择cgi子进程处理结果并返回被nginx。而使用php-fpm则可以使nginx支持PHP
-
-- `yum install -y php-fpm`
-- `systemctl start php-fpm` 默认监听`9000`端口
-    - 编辑`/etc/php-fpm.d/www.conf`中的`listen = 127.0.0.1:9000`可修改监听端口
-- nginx配置
-
-    ```bash
-    location ~ \.php$ {
-        # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
-        try_files      $uri = 404;
-        root           html;
-        fastcgi_pass   127.0.0.1:9000;
-        fastcgi_index  index.php;
-        # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
-        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
-        include        fastcgi_params;
-    }
-    ```
+- 参考[php.md#安装](/_posts/lang/php.md#安装)
 
 ### htop安装
 

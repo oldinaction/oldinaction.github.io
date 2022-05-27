@@ -241,14 +241,45 @@ server {
         proxy_pass http://127.0.0.1/pre;
         break;
     }
+
+    # 宝塔配置案例
+    #PROXY-START/
+    location ^~ /
+    {
+        proxy_pass http://www.baidu.com/; # 目标URL
+        proxy_set_header Host www.baidu.com; # 发送域名
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header REMOTE-HOST $remote_addr;
+        
+        add_header X-Cache $upstream_cache_status;
+        
+        #Set Nginx Cache
+        
+        
+        if ( $uri ~* "\.(gif|png|jpg|css|js|woff|woff2)$" )
+        {
+            expires 12h;
+        }
+        proxy_ignore_headers Set-Cookie Cache-Control expires;
+        # proxy_cache cache_one;
+        # proxy_cache_key $host$uri$is_args$args;
+        # proxy_cache_valid 200 304 301 302 1m;
+    }
+    #PROXY-END/
 }
 ```
 
 #### 配置详细说明
 
 ```bash
-# ***.定义Nginx运行的用户和用户组。如果出现403 forbidden (13: Permission denied)错误可将此处设置成启动用户，如root
-user root; # 默认是user nginx;
+# ***.定义Nginx访问资源的用户和用户组.
+# 一般是定义成www，然后nginx通过root用户启动(保存的日志都是root权限的)
+# 此处定义的www用户只是表示nging去访问server.root项目中的代码文件时是通过www这个用户去读取
+# 因此www用户必须要有权限读取到对应项目目录，项目父目录无所谓
+user www www; # 默认是nginx用户
+# 如果一直出现403 forbidden (13: Permission denied)错误可将此处设置成root来进行测试
+# user root;
 
 #Nginx进程数，建议设置为等于CPU总核心数。
 worker_processes 8; #（*）
@@ -539,51 +570,7 @@ http {
             }
         }
         
-        ## php配置
-        # php文件转给fastcgi处理。linux安装了php后需要额外安装如`php-fpm`来解析(windows安装了php，里面自带php-cgi.exe)
-        # 如果访问 http://127.0.0.1:8080/myphp/test/index.php?name=abc 此时会到 /project/phphome/myphp 目录寻找 test/index.php 文件（location的正则仅匹配路径，不考虑url中的参数）
-        set $project_root "/project/phphome/myphp"; # 自定义变量
-        location ~ \.php$ {
-            # include        fastcgi.conf;
-            # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题
-            # try_files      $uri = /404.html;
-            root           $project_root;
-            fastcgi_pass   127.0.0.1:9000; # 需提前启动fastcgi服务，参考[php.md#配合nginx使用](/_posts/lang/php.md#配合nginx使用)
-            fastcgi_index  index.php;
-            # 此处要使用`$document_root`否则报错File not found.`/`no input file specified`
-            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
-            include        fastcgi_params;
-        }
-        # 如果上述index.php中含有一个静态文件，此时需要加上对应静态文件的解析
-        location ~ ^/php_public/ {
-            root $project_root;
-        }
-
-        # lnmp thinkphp nginx不支持pathinfo解决方法
-        # http://127.0.0.1:8080/myphp1/index.php、http://127.0.0.1:8080/myphp2/index.php 都可进入相应目录
-        location ~ \.php($|/) {
-			# 配置PHP支持PATH_INFO进行URL重写
-			set $script $uri;
-			set $path_info "";
-			if ($uri ~ "^(.+?\.php)(/.+)$") {
-				set $script $1;
-				set $path_info $2;
-			}
-			try_files $uri =404;
-			root           /project/phphome;
-			fastcgi_pass 127.0.0.1:9000;
-			fastcgi_index index.php;
-			include fastcgi.conf;
-			fastcgi_param script_FILENAME $document_root$script;
-			fastcgi_param script_NAME $script;
-			fastcgi_param PATH_INFO $path_info;
-		}
-		location / {
-			# ThinkPHP Rewrite
-			if (!-e $request_filename){
-				rewrite ^/(.*)$ /index.php/$1 last;
-			}
-		}
+        ## php配置参考[php.md#安装](/_posts/lang/php.md#安装)
     }
 }
 ```

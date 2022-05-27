@@ -5,6 +5,16 @@ date: "2017-12-12 10:07"
 categories: [java]
 ---
 
+## 安装/命令
+
+- 打包jar
+
+```bash
+# 将当前目录下所有目录/文件及子目录打包成jar
+jar cvf demo.jar *
+jar cvf demo.war *
+```
+
 ## 运算/控制语句
 
 - `<<` 左移，乘以2^x。如：3 << 4 = 3 * 2^4 = 48
@@ -469,7 +479,11 @@ public class ConnectionMySQL {
     
     public static void main(String[] args) throws SQLException {
         Connection conn = null;
+        // 执行conn.createStatement()和conn.prepareStatement()的时候，实际上都是相当与在数据库中打开了一个cursor
+        // 如果createStatement和prepareStatement是在一个循环里面的话，就会非常容易出现ORA-01000: 超出打开游标的最大数。因为游标一直在不停的打开，而且没有关闭
+        // createStatement和prepareStatement都应该要放在循环外面，而且使用了这些Statment后，及时关闭。最好是在执行了一次executeQuery、executeUpdate等之后，如果不需要使用结果集（ResultSet）的数据，就马上将Statment关闭，调用close()方法
         Statement stmt = null;
+        PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             // 实例化驱动，注册驱动(实例化时自动向DriverManager注册，不需显示调用DriverManager.registerDriver方法)
@@ -489,8 +503,8 @@ public class ConnectionMySQL {
             // ====== PreparedStatement方式
             String sql = "INSERT INTO user(name) VALUES (?)";
             // 返回插入后生成的主键
-            // PreparedStatement preparedStatement = conn.prepareStatement(sql, {"id"}); // oracle(也适用于mysql)
-            PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS); // 常用，如mysql
+            // ps = conn.prepareStatement(sql, {"id"}); // oracle(也适用于mysql)
+            ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS); // 常用，如mysql
             ps.setString(1, "smalle");
             ps.executeUpdate();
             ResultSet generatedKeys = ps.getGeneratedKeys();
@@ -527,6 +541,10 @@ public class ConnectionMySQL {
                 if(stmt != null) {
                     stmt.close();
                     stmt = null;
+                }
+                if(ps != null) {
+                    ps.close();
+                    ps = null;
                 }
                 if(conn != null) {
                     conn.close();
@@ -567,6 +585,12 @@ public static void main(String[] args) {
     // 注意此处map中存的还是list引用值
     System.out.println("map = " + map); // map = {list=[]}
 }
+```
+- split
+
+```java
+"1,2,,".split(","); // ["1", "2"]
+"1,2,,".split(",", -1); // ["1", "2", "", ""]
 ```
 - final
 

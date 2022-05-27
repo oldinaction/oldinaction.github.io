@@ -317,6 +317,10 @@ Require-Module=com.alipay.sofa.service-provider
 ```bash
 ## 连接container，成功会显示命令行`sofa-ark>`
 telnet localhost 1234
+## 退出
+Ctrl+] # 退出到telnet命令行
+quit # 退出到命令行
+
 
 ## 查看帮助
 help

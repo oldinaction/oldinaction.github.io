@@ -49,8 +49,11 @@ node -v
 ```json
 {
     // peerDependencies 类似maven的provider。目的是提示宿主环境去安装满足插件peerDependencies所指定依赖的包，然后在插件import或者require所依赖的包的时候，永远都是引用宿主环境统一安装的npm包，最终解决插件与所依赖包不一致的问题
+    // 当一个依赖项 c 被列在某个包 b 的 peerDependency 中时，它就不会被自动安装。取而代之的是，包含了 b 包的代码库 a 则必须将对应的依赖项 c 包含为其依赖
+    // 如a不将c作为依赖项，则安装时会警告(运行时会报醋)，且a要按照符合对应版本的c；在开发b的时候可以将c添加到devDependencies中
+    // 一般加入引用方一定会依赖的包，如果不常用的包加到此处，则引用方安装较麻烦(全部写到dependencies只是安装时可能和其他模块重复安装，导致效率差点)
     "peerDependencies": {
-        "react": ">=16.0.0"
+        "vue": "^2.6.12"
     }
 }
 ```

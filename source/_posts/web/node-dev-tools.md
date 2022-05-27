@@ -15,6 +15,8 @@ tags: [node, tools]
 npm config set registry https://registry.npm.taobao.org/
 # electron-mirror、node-sass等组件需要单独设置镜像
 npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+# mac下安装报无权限解决方法
+# sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npm.taobao.org
 ```
 
 ## npm 包管理工具
@@ -34,24 +36,28 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
     npm config list # 查看配置
     ```
 - 或者安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
-    - `cnpm install <module-name>` 安装模块
+    - `cnpm install <pkg>` 安装模块
 
 ### 基本命令
 
 ```bash
 ## 安装xxx(在当前项目安装)，**更新模块也是此命令**
-npm install <module-name>
-npm install <module-name>@<version>
-# npm i <module-name> # 简写方式
+npm install <pkg>
+npm install [<@scope>/]<pkg>@<version>
+# npm i <pkg> # 简写方式
 # -g 全局安装。如果以Windows管理员运行的命令行，则会安装在nodejs安装目录的node_modules目录下；如果以普通用户运行的命令行，则会安装在用户的 AppData/Roaming/npm/node_modules 的目录下。建议以管理员运行
-npm install <module-name> -g
+npm install <pkg> -g
 # --save (简写`-S`) 自动将依赖更新到package.json文件的dependencies(依赖)中
 # --save-dev(简写`-D`) 自动将依赖更新到package.json文件的devDependencies(运行时依赖)中
-npm install <module-name> -S
-npm install <module-name> -D
+npm install <pkg> -S
+npm install <pkg> -D
+# 按照本地项目(最终会已相对路径保存到package.json中, 只适合独自开发)。功能类似npm link
+npm install <folder>
+# 基于git仓库进行安装，参考下文
+npm install <git://url>
 
 ## 移除(全局依赖)
-npm uninstall -g <module-name>
+npm uninstall -g <pkg>
 
 ## 对于某个node项目
 # 初始化项目，生成`package.json`
@@ -111,6 +117,40 @@ npm version 1.0.0-alpha.1 # 1.0.0-alpha.1 # 直接指定版本
 npm version minor # v4.0.0 # 如果有预发布版本，则将预发布版本去掉。且如果下级位置为0，则不升级中号；如果下级位置不为0，则升级中号，并将下级位置清空。major同理
 # version = v4.0.1-1
 npm version minor # v4.1.0
+```
+
+### 基于git仓库进行安装
+
+- 参考：https://blog.csdn.net/xiaolinlife/article/details/119760310
+- 创建私有包package.json
+
+```json
+{
+    // import ReportTable from 'report-table' 的入口文件
+    "main": "./lib/report-table.umd.min.js",
+    "scripts": {},
+    // 项目包含的文件或目录. (通过git)安装时，只会将此处指定的文件下载到本地
+    "files": [
+        "src",
+        "lib"
+    ],
+    // 一般公司的非开源项目，都会设置 private 属性的值为 true，这是因为 npm 拒绝发布私有模块，通过设置该字段可以防止私有模块被无意间发布出去
+    "private": true
+}
+```
+- 打包项目到lib包中，并将项目上传到git仓库
+- 应用项目安装此模块
+
+```bash
+# 如果是公开项目则可省略用户名密码(私有项目不填则在安装是需要输入仓库密码)
+# 其中 #1.0.0 可省略，则默认是 master 分支. # 后面可使用 branch/tag
+npm install git+https://myusername:mypassword@gitlab.com/test/demo.git#1.0.0
+
+# 如果默认是master等, 当包更新后, 重新npm install不会更新, 解决如下 https://cn.horecapolis.info/716438-make-npm-fetch-latest-package-LILLEF
+# 法一: 删除后重新安装
+rm -rf node_modules/mymod npm install
+# 法二: 通过 package.json 脚本重新安装
+"scripts": { "update:mymod": 'npm install git+ssh://git@GIT_URL_HERE#master' } 
 ```
 
 ## nrm 镜像管理工具
@@ -241,15 +281,75 @@ npm install -g @vue/cli
 vue --version # @vue/cli 4.3.0
 ```
 
+## 开发库
+
+### babel
+
+- [babeljs中文网](https://www.babeljs.cn)
+- `babel`(@babel/core) 是一个转码器，可以将es6，es7转为es5代码
+    - Babel默认只转换新的JavaScript句法（syntax），而不转换新的API，比如Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如Object.assign）都不会转码
+    - 所以为了使用完整的 ES6 的API，我们需要另外安装：babel-polyfill 或者 babel-runtime [^2]
+        - `@babel/polyfill` 会把全局对象统统覆盖一遍，不管你是否用得到。缺点：包会比较大100k左右。如果是移动端应用，要衡量一下。一般保存在dependencies中
+        - `babel-runtime` 可以按照需求引入。缺点：覆盖不全。一般在写库的时候使用。建议不要直接使用babel-runtime，因为transform-runtime依赖babel-runtime，大部分情况下都可以用`transform-runtime`预设来达成目的
+- [core-js](https://github.com/zloirock/core-js) 是 babel-polyfill、babel-runtime 的核心包，他们都只是对 core-js 和 regenerator 进行的封装。core-js 通过各种奇技淫巧，用 ES3 实现了大部分的 ES2017 原生标准库，同时还要严格遵循规范。支持IE6+
+    - core-js 组织结构非常清晰，高度的模块化。比如 `core-js/es6` 里包含了 es6 里所有的特性。而如果只想实现 promise 可以单独引入 `core-js/features/promise`
+- babel配置文件可为 `.babelrc` 或 `babel.config.js`(v7.8.0)。已`babel.config.js`为例
+
+    ```js
+    module.exports = {
+        presets: ['@vue/cli-plugin-babel/preset'],
+        plugins: [
+            // 一般在写库的时候使用，包含了 babel-runtime
+            // 配置了 transform-runtime 插件，就不用再手动单独引入某个 `core-js/*` 特性，如 core-js/features/promise，因为转换时会自动加上而且是根据需要只抽离代码里需要的部分
+            "transform-runtime",
+            
+            // 基于vue的预设
+            // "@vue/app",
+        ]
+    }
+    ```
+- `@babel/cli` 在命令行中使用babel命令对js文件进行转换。如`babel entry.js --out-file out.js`进行语法转换
+- 插件
+    - 基于Babel的插件参考：https://www.babeljs.cn/docs/plugins
+- 预设(Presets, 一批插件的组合)
+    - 需要基于某个环境进行开发，如typescript，则需手动安装一堆 Babel 插件，此时可以使用 Presets(包含了一批插件的组合)。可以设置到presets或plugins节点
+    - 官方 Preset 已经针对常用环境编写了一些 preset。其他社区定义的预设可在[npm](https://www.npmjs.com/search?q=babel-preset)上获取
+        - `@babel/preset-env` 对浏览器环境的通用支持(es6转es5)
+        - `@babel/preset-react` 对 React 的支持
+        - `@babel/preset-typescript` 对 Typescript 支持，参考[typescript.md#Webpack转译Typescript现有方案](/_posts/web/typescript.md#Webpack转译Typescript现有方案)
+        - `@babel/preset-flow` 如果使用了 [Flow](https://flow.org/en/)，则建议您使用此预设（preset），Flow 是一个针对 JavaScript 代码的静态类型检查器
+        - `@vue/app` 对 Vue 的支持
+- 常见安装
+
+```bash
+# 语法转换
+npm install --save-dev @babel/core @babel/cli @babel/preset-env
+# 通过 Polyfill 方式在目标环境中添加缺失的特性
+npm install --save @babel/polyfill
+```
+
+### npm-run-all
+
+- `npm install npm-run-all --save-dev` 安装
+- `npm-run-all` 提供了多种运行多个命令的方式，常用的有以下几个
+    - `--serial`: 多个命令按排列顺序执行，例如：`npm-run-all --serial clean build:**` 先执行当前package.json中 npm run clean 命令, 再执行当前package.json中所有的`build:`开头的scripts
+    - `--parallel`: 并行运行多个命令，例如：npm-run-all --parallel lint build
+    - `--continue-on-error`: 是否忽略错误，添加此参数 npm-run-all 会自动退出出错的命令，继续运行正常的
+    - `--race`: 添加此参数之后，只要有一个命令运行出错，那么 npm-run-all 就会结束掉全部的命令
+
+### rollup.js
+
+- Rollup 是一个 JavaScript 模块打包器，可以将小块代码编译成大块复杂的代码，例如 library 或应用程序
+
 ## 格式规范化
 
 ### eslint格式化
 
 - vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
-- 直接安装
+- 项目直接安装
 - 基于vue-cli安装，参考：https://eslint.vuejs.org/
     - `vue add eslint` 基于vue安装插件，选择Standard、Lint on save
-    - 安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)
+    - **安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)**，实际执行命令为 `eslint --fix --ext .js,.vue src`
     - 安装后会在package.json中增加如下配置，安装对应的包到项目目录，并增加文件`.eslintrc.js`和`.editorconfig`
 
         ```json
@@ -271,12 +371,13 @@ vue --version # @vue/cli 4.3.0
 - `.eslintrc.js` 放在vue项目根目录，详细参考：https://cn.eslint.org/ [^10]
 
 ```js
+// 不填任何规则，相当于禁用了eslint(对于vscode安装了插件，但是项目又不想启动校验的情况)
+module.exports = {}
+
+// 规则说明
 module.exports = {
   root: true,
-  'extends': [
-    'plugin:vue/essential',
-    '@vue/standard'
-  ],
+  extends: ['plugin:vue/essential', '@vue/standard'],
   rules: {
     // allow async-await
     'generator-star-spacing': 'off',
@@ -285,18 +386,22 @@ module.exports = {
     'vue/no-parsing-error': [2, {
       'x-invalid-end-tag': false
     }],
+    // v-if和v-for可一起使用
+    'vue/no-use-v-if-with-v-for': 'off',
     'no-undef': 'off',
     'camelcase': 'off',
     // function函数名和()见增加空格
-    "space-before-function-paren": ["error", {
-        "anonymous": "always",
-        "named": "always",
-        "asyncArrow": "always"
-    }],
+    // 'space-before-function-paren': ['error', {
+    //     'anonymous': 'always',
+    //     'named': 'always',
+    //     'asyncArrow': 'always'
+    // }],
+    // 如果function函数名和()见增加空格会和Prettier冲突
+    'space-before-function-paren': 0,
     // 不强制使用 ===
-    "eqeqeq": ["error", "smart"],
+    'eqeqeq': ['error', 'smart'],
     // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
-    "operator-linebreak": ["error", "before"],
+    'operator-linebreak': ['error', 'before'],
   },
   parserOptions: {
     parser: 'babel-eslint'
@@ -390,3 +495,4 @@ indent_style = tab
 参考文章
 
 [^1]: http://www.ruanyifeng.com/blog/2019/02/npx.html
+[^2]: https://www.dazhuanlan.com/2019/12/31/5e0b08829f823/

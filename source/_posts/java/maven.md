@@ -215,7 +215,12 @@ tags: [build]
 
 ### 利用github创建仓库
 
-- github新建项目maven-repo，并下载到本地目录，如`D:/GitRepositories/maven-repo` [^1]
+- 基于gitee搭建maven仓库
+    - 
+- 基于gitlab搭建私有maven仓库
+    - https://zhuanlan.zhihu.com/p/145941547
+    - https://www.bookstack.cn/read/gitlab-doc-zh/docs-280.md#aqpu74
+- github新建项目[maven-repo](https://github.com/aezocn/maven-repo)，并下载到本地目录，如`D:/GitRepositories/maven-repo` [^1]
 - 进入到项目pom.xml所在目录，运行命令：
 	- `mvn deploy -DaltDeploymentRepository=aezocn-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
 	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`aezocn-maven-repo`，`-DskipTests`跳过测试进行部署

@@ -365,10 +365,17 @@ for (Orders order : list) {
 				where 1=1
                 <!-- 注意：如误写成了 `test='name = "smalle"'` 则会把smalle赋值给name字段，可能会覆盖原始参数；常见的为 `test='name == "smalle"'` -->
 				<if test='name != null and name != ""'>
-					<!-- bind 元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变 -->
+					<!-- 
+                        1.bind 相当于自定义变量。元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变
+                        2.案例(还可以同foreach等一起使用)
+                        <bind name="index" value="1+1" />
+                        <bind name="index" value="index+2" />
+                        select ${index} "结果index=4" from dual;
+                    -->
 					<!-- _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name') -->
 					<bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
-                    <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> <!-- 定义了参数名 @Param("userInfo") -->
+                    <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> 
+                    <!-- 定义了参数名 @Param("userInfo") -->
 					and upper(name) like #{nameUpper} <!-- 不能写成 #{nameUpper.toUpperCase()} -->
 				</if>
                 and hobby in
@@ -418,13 +425,16 @@ for (Orders order : list) {
 			1.定义方式
 				方式一：基于JDBC(Mysql/SqlServer都适用，Oracle不适用)
 					keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)。
-				方式二：基于方言，每个数据库提供的内部函数
+				方式二：基于方言，每个数据库提供的内部函数(order表示执行selectKey和insert的先后顺序，默认AFTER)
 					1.Mysql: <selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>
 					2.SqlServer: <selectKey resultType="java.lang.Long" order="AFTER" keyProperty="id">SELECT IDENT_CURRENT('my_table')</selectKey>
 					3.Oracle: <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval as id from dual</selectKey> 需要先创建好序列SEQ_MY_TABLE
 			2.获取方式：userMapper.insert(userInfo); userInfo.getUserId();
 			 -->
 			<insert id="insert" parameterType="cn.aezo.springboot.mybatis.model.UserInfo" keyProperty="userId" useGeneratedKeys="true">
+                <!-- 
+                    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval as id from dual</selectKey>
+                -->
 				insert into user_info
                 <!-- trim 可以在自己包含的内容前加上某些前缀，也可以在其后加上某些后缀 -->
                 <trim prefix="(" suffix=")">
@@ -441,7 +451,7 @@ for (Orders order : list) {
 				where id = #{id}
 			</update>
             <update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
-				update user_info set
+				update user_info
                 <!-- set 在更新操作的时候，在包含的语句前输出一个set。注意后面的单引号  -->
                 <set>
 				    <if test="nickName != null">nick_name = #{nickName},</if>
@@ -633,10 +643,10 @@ for (Orders order : list) {
 - **jdbc batch**
     - 参考[java-base.md#JDBC](/_posts/java/java-base.md#JDBC)
     - 采用PreparedStatement.addBatch()方式实现
-    - 需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
+    - 需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用
 - **mybatis batch**
     - Mybatis内置的ExecutorType有3种，默认的是simple，该模式下它为每个语句的执行创建一个新的预处理语句，单条提交sql；而batch模式重复使用已经预处理的语句，并且批量执行所有更新语句
-    - 使用batch模式需要在jdbc连接url上追加rewriteBatchedStatements=true，否则不起作用
+    - 使用batch模式需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用
     - 案例
 
         ```java
@@ -674,11 +684,14 @@ for (Orders order : list) {
     </insert>
 
     <!-- **oracle版本适用**，或者使用 INSERT ALL INTO, 参考：https://www.cnblogs.com/nemowang1996/p/12519018.html -->
+    <!-- 序列不能直接和select union一起使用，如果把seq_user.nextval写到foreach循环里面会报错 -->
     <insert id="insertbatch">
         insert into t_user(id, name) (
-            <foreach collection="list" item="user" index= "index" separator ="UNION ALL">
-                select #{user.id}, #{user.name} from dual
-            </foreach >
+            select seq_user.nextval, a.name, a.sex from (
+                <foreach collection="list" item="user" separator ="UNION ALL">
+                    select #{user.name} name, #{user.sex} sex from dual
+                </foreach >
+            ) a
         )
     </insert>
     ```
@@ -966,7 +979,7 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 </dependency>
 ```
 - 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(类)
-- application.yaml配置
+- application.yaml配置(可省略)
 
 ```yml
 # mybatis-plus 配置

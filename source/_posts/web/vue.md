@@ -279,7 +279,7 @@ export default {
         // 利用computed观测子对象具体属性的变化
         province(newValue, oldValue) {
             this.provinceChange()
-    　　},
+        },
         // 监控某个子属性，在部分场景可取代 deep: true 的全监控(效率更高)
         'customer.province.name': {
             handler(n, o) {
@@ -328,9 +328,29 @@ export default {
 </script>
 ```
 
-### render函数(iview)
+### render函数
 
-- 语法
+- [参考vue render属性](https://cn.vuejs.org/v2/guide/render-function.html)
+
+```js
+Vue.component('anchored-heading', {
+  // render 可代替 template 的 dom 节点
+  // template: '#div',
+  render: function (createElement) {
+    return createElement(
+      'h' + this.level,   // 标签名称
+      this.$slots.default // 子节点数组
+    )
+  },
+  props: {
+    level: {
+      type: Number,
+      required: true
+    }
+  }
+})
+```
+- render 语法(iview案例)
 
 ```js
 // 语法
@@ -422,8 +442,7 @@ render: (h, params) => {
   nativeOn: {
     click: this.nativeClickHandler
   },
-  // 自定义指令。注意事项：不能对绑定的旧值设值
-  // Vue 会为您持续追踪
+  // 自定义指令。注意事项：必须是全局指令；不能对绑定的旧值设值
   directives: [
     {
       // 如果在标签上使用是 v-permission，此时需要省略 v-
@@ -606,18 +625,23 @@ render: (h, params) => {
         <body>
             <div id="app"></div>
             <!-- built files will be auto injected -->
-            <!-- 引入相应版本的库文件 -->
+            <!-- 方式一：引入相应版本的库文件 -->
             <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
             <script src="https://cdn.bootcss.com/vue-router/3.0.7/vue-router.min.js"></script>
             <script src="https://cdn.bootcss.com/vuex/3.1.1/vuex.min.js"></script>
             <script src="https://cdn.bootcss.com/axios/0.19.0/axios.min.js"></script>
             <script src="https://cdn.bootcss.com/element-ui/2.10.1/index.js"></script>
+
+            <!-- 方式二： -->
+            <% for (var i in htmlWebpackPlugin.options.cdn && htmlWebpackPlugin.options.cdn.js) { %>
+            <script src="<%= htmlWebpackPlugin.options.cdn.js[i] %>" defer></script>
+            <% } %>
         </body>
         ```
     - 配置
 
         ```js
-        // 然后在 webpack(vue-cli为例) 中配置额外依赖
+        // 然后在 webpack(vue-cli为例) 中配置额外依赖(两种方式都需要)
         configureWebpack: {
             externals: {
                 'vue': 'Vue',
@@ -626,6 +650,17 @@ render: (h, params) => {
                 'element-ui': 'elementUI',
                 'axios': 'axios',
             }
+        },
+        // 方式二：注入cdn参数到htmlWebpackPlugin
+        chainWebpack: config => {
+            let cdn = {
+                js: ['https://cdn.bootcss.com/vue/2.6.10/vue.min.js']
+            }
+            cdn = process.env.NODE_ENV === 'production' ? cdn : {css:[],js:[]};
+            config.plugin('html').tap(args => {
+                args[0].cdn = cdn
+                return args
+            })
         }
 
         // 删除 package.json 的 dependencies 中此插件的依赖
@@ -636,9 +671,9 @@ render: (h, params) => {
 - 减少不必要的库依赖
 
     ```js
+    // 方式一(不推荐)：手动增加webpack-bundle-analyzer分析插件(vue-cli自带无需安装，参考方式二)
     // 包依赖分析工具
     npm install webpack-bundle-analyzer --save-dev
-
     // vue-cli为例。执行 npm run build 后会自动打开 http://127.0.0.1:8888/ 显示包依赖信息。**使用完之后可注释此行代码，否则命令行一直不会退出，给人一种没打包完成的错觉**
     chainWebpack: config => {
         if(process.env.NODE_ENV === 'production') {
@@ -646,11 +681,19 @@ render: (h, params) => {
             config.plugin('bundleAnalyzerPlugin').use(new BundleAnalyzerPlugin({}))
         }
     }
+
+    // 方式二(推荐)：vue-cli 自带分析插件
+    "scripts": {
+    	"report": "vue-cli-service build --report --mode pord"
+ 	}
+    // 打包之后在dist文件夹里面会生成report.html文件
+    npm run report
     ```
 - 去掉 .map 文件：vue-cli设置`productionSourceMap: false`，参考下文[vue-cli](#vue-cli)
 - 使用 UglifyJsPlugin 丑化js，去掉debugger/console等信息
 - 使用`cnpm i -save-dev image-webpack-loader`对图片进行压缩
-- 测试环境和生产环境出来的包不一致问题：测试环境 js 文件在 dist 根目录下，且存在很大的 main.js 和 app.js；build 打包之后 js 文件在 dist/js 目录下，main和app也被分割成几个小文件了
+- 测试环境和生产环境出来的包不一致问题
+    - 测试环境 js 文件在 dist 根目录下，且存在很大的 main.js 和 app.js；build 打包之后 js 文件在 dist/js 目录下，main和app也被分割成几个小文件了
     - `NODE_ENV` 为webpack内置参数，可通过`process.env.NODE_ENV`获取，当其值是`production`(固定值)时，会进行压缩混淆等操作。所以测试环境和生产环境打包都应该设置`NODE_ENV=production`，然后通过`.env.test`和`.env.prod`环境变量文件(vue-cli功能)区分不同环境的API地址，如created
 
         ```js
@@ -662,6 +705,7 @@ render: (h, params) => {
         NODE_ENV = production
         VUE_APP_ENV = production
         ```
+- 公共代码抽离
 
 #### 指令等语法优化
 
@@ -744,6 +788,8 @@ new Vue({
 - [预渲染插件prerender-spa-plugin](https://github.com/chrisvfritz/prerender-spa-plugin)
 
 ## 组件
+
+- [组件原理](http://www.yanfadi.com/vue/#%E5%8D%81-%E7%BB%84%E4%BB%B6%E5%8E%9F%E7%90%86)
 
 ### v-model使用
 
@@ -1044,25 +1090,56 @@ this.$root.eventBus.$off('eventName')
 </comp>
 ```
 
-### 动态组件 [^1]
+### 动态组件/异步组件
 
-- `v-bind:is="组件名"`：就是几个组件放在一个挂载点下，然后根据父组件的某个变量来决定显示哪个，或者都不显示
-- `keep-alive`：默认被切换掉（非当前显示）的组件，是直接被移除了。假如需要子组件在切换后，依然需要他保留在内存中，避免下次出现的时候重新渲染，那么就应该在component标签中添加`keep-alive`属性
-- `activate`：钩子，延迟加载
-- `transition-mode`过渡模式
+- 基本说明 [^1]
+    - `v-bind:is="组件名"`：就是几个组件放在一个挂载点下，然后根据父组件的某个变量来决定显示哪个，或者都不显示
+    - `keep-alive`：默认被切换掉（非当前显示）的组件，是直接被移除了。假如需要子组件在切换后，依然需要他保留在内存中，避免下次出现的时候重新渲染，那么就应该在component标签中添加`keep-alive`属性
+    - `activate`：钩子，延迟加载
+    - `transition-mode`过渡模式
+- 动态加载外部组件
+    - [组件库中使用动态组件 - 参考下文Vue组件库开发](#Vue组件库开发)
+    - [httpVueLoader - 从URL加载vue文件](https://blog.csdn.net/cbaili/article/details/122726149)
+    - [运行时渲染 - 可以做组件在线编辑器](https://github.com/merfais/vue-demo/blob/main/doc)
+    - [动态组件 - 广告弹框案例](https://juejin.cn/post/6992483283187531789)
+- 简单案例
 
 ```html
 <div id="app">
     <button @click="toshow">点击让子组件显示</button>
     <component v-bind:is="which_to_show" keep-alive></component>
+    <MyComp ref="comp" v-if="show"></MyComp>
 </div>
 
 <script>
     var vm = new Vue({
         el: '#app',
-        data: {
-            which_to_show: "first"
+        components: {
+            first: { //第一个子组件
+                template: "<div>这里是子组件1</div>"
+            },
+            second: { //第二个子组件
+                template: "<div>这里是子组件2</div>"
+            },
+            third: { //第三个子组件
+                template: "<div>这里是子组件3</div>"
+            },
+            // 异步导入组件，router中一般使用此方式导入
+            // 假设 MainComp 和 MyComp 相互依赖，则其中一个需要是异步组件
+            MyComp: () => import('./MyComp.vue').then(comp => {
+                console.log(comp, this) // comp.default为当前组件，this此时为undefined
+            })
         },
+        data: {
+            which_to_show: "first",
+            show: false
+        },
+        mounted () {
+            this.show = true
+            this.$nextTick(() => {
+                console.log(this.$refs.comp) // 可能为undefined，因为组件可能还没加载进来
+            })
+        }
         methods: {
             toshow () {
                 //切换组件显示
@@ -1076,55 +1153,23 @@ this.$root.eventBus.$off('eventName')
 
                 // 或者动态导入组件(更多用法参考官网)
                 Vue.component('first', () => import('./first.vue'))
-                let second = './second'
+                let second = 'second.vue'
                 Vue.component('first',
                     () => ({
-                        component: import(second + ''), // 此处必须在变量后加单引号才可引入组件成功
+                        // 参考: https://jishuin.proginn.com/p/763bfbd56d1b
+                        // 1.require + component实现: 实现了动态加载功能，并未实现按需加载。require是CommonJS规范，在同路径下的vue文件，都会被打包进去
+                        // component: require('./component/demo.vue').default
+                        // 2.import + component实现：该方法不同于import A from B，这种属于纯静态编译；import()方法，该方法属于动态编译，webpack在打包时，碰到import()方法，会单独生存一个独立文件，用于按需加载。但不能实现完全动态，例如下面编译时会编译所有@/components下的模块，运行时才会加载second的值从而实现懒加载
+                        // 3.require + Vue.extend实现
+                        // *** 组件库中使用动态组件 - 参考下文Vue组件库开发
+                        component: import(`@/components/${second}`),
                         error: MyDefaultComp // 加载失败可显示默认组件
                     })
                 )
             }
-        },
-        components: {
-            first: { //第一个子组件
-                template: "<div>这里是子组件1</div>"
-            },
-            second: { //第二个子组件
-                template: "<div>这里是子组件2</div>"
-            },
-            third: { //第三个子组件
-                template: "<div>这里是子组件3</div>"
-            },
         }
     });
 </script>
-```
-
-### Vue.use
-
-```js
-// config.js
-import Vue from 'vue'
-let config = {
-    name: 'hello world'
-}
-export default {
-    install(Vue) {
-        // 之后在组件中可使用this.$config
-		Vue.prototype.$config = config
-	}
-}
-/*
-// 等同于
-const install = Vue => {
-    Vue.prototype.$config = config
-}
-export default { install }
-*/
-
-// main.js
-import config from './config/index.js'
-Vue.use(config)
 ```
 
 ### keep-alive [^5]
@@ -1183,100 +1228,6 @@ Vue.use(config)
         - 只能匹配当前被包裹的组件，不能匹配更下面嵌套的子组件(比如用在路由上，只能匹配路由组件的name选项，不能匹配路由组件里面的嵌套组件的name选项)
         - `<keep-alive>`不会在函数式组件中正常工作，因为它们没有缓存实例
         - exclude的优先级大于include
-
-### mixins和组件扩展
-
-- 案例
-
-```html
-<!-- 被导入通用功能组件 -->
-<template>
-  <!-- b()为导入的bem函数，对组件名进行class命名 -->
-  <div :class="b()">
-
-  </div>
-</template>
-
-<script>
-import create from "core/create";
-import locale from "./locale";
-import hello from './hello'
-
-export default create({
-  name: "upload",
-  mixins: [hello(), locale],
-  data () {
-    return {
-      name: 'smalle',
-    };
-  },
-  // 打印结果为: 111-333-222-444
-  mounted: function () {
-    console.log(333)
-    this.$nextTick(function () {
-      console.log(444)
-    })
-  },
-});
-</script>
-```
-- 通用代码
-
-```js
-// create.js
-import bem from 'utils/bem'; // 对css进行bem命名，参考 https://gitee.com/smallweigit/avue/blob/v2.7.6/src/utils/bem.js
-import { KEY_COMPONENT_NAME } from 'global/variable';
-export default function(sfc) {
-  // 再次封装，sfc为原始组件
-  sfc.name = KEY_COMPONENT_NAME + (sfc.name || ''); // 给组件名加上统一前缀
-  sfc.mixins = sfc.mixins || [];
-  sfc.mixins.push(bem); // 在原混入基础上加入bem功能
-  return sfc;
-}
-
-// hello.js
-export default function () {
-  return {
-    data () {
-      return {
-        hello: null,
-        safe: this,
-        // 所有的对象，只有组件定义了，则全部按照组件定义的为准。**组件的属性不会和mixins的属性进行合并**
-        map: {
-         num: 1
-        }
-      }
-    },
-    computed: {
-      helloName () {
-        // this.safe.name => undefined; this['name'] => smalle; this.name => smalle; // ts使用this.name编辑器报红
-        return this['name'] + ' smalle' // this 指当前函数对象，被混入后，也可获取到功能组件(导入此混入的组件)属性
-      }
-    },
-    mounted: function () {
-      console.log(111)
-      this.$nextTick(function () {
-        console.log(222)
-      })
-    },
-    methods: {
-      hello () {
-        console.log('mixins methods')
-      }
-    }
-  }
-}
-
-// locale.js
-import { t } from 'locale'
-export default {
-  methods: {
-    t(...args) {
-      return t.apply(this, args);
-    }
-  }
-};
-```
 
 ## 事件
 
@@ -1388,7 +1339,7 @@ import './index.css'
 }
 
 /* scoped穿透问题：需要在局部组件中修改第三方组件库(如 iview)的样式，而又不想去除scoped属性造成组件之间的样式覆盖，这时可以通过特殊的方式穿透scoped */
-/* less/sass格式如：`外层 /deep/ 第三方组件 {样式}`(外层也可省略)，stylus则是将 /deep/ 换成 >>> */
+/* less/sass格式如：`外层 ::v-deep 或 /deep/ 第三方组件 {样式}`(外层也可省略)，stylus则是将 /deep/ 换成 >>> */
 .wrapper /deep/ .ivu-table th {
     background-color: #eef8ff;
 }
@@ -1564,7 +1515,360 @@ export default {
 ```
 - 结合[Velocity.js](https://github.com/julianshapiro/velocity)，Velocity 和 jQuery.animate 的工作方式类似，也是用来实现 JavaScript 动画
 
-## 路由
+## mixins混入
+
+- mixins
+    - 值为对象的选项，例如 data()、methods、components 和 directives，将被合并为同一个对象。两个对象键名冲突时，取组件对象的键值对
+    - created 等方法，会先执行混入created方法，再执行组件created方法
+- 全局混入
+    - `Vue.mixin({...})`
+- 案例
+
+```html
+<!-- 被导入通用功能组件 -->
+<template>
+  <!-- b()为导入的bem函数，在create()函数中混入，对组件名进行class命名 -->
+  <div :class="b()"></div>
+</template>
+
+<script>
+import create from "core/create";
+import locale from "./locale";
+import hello from './hello'
+
+export default create({
+  name: "upload",
+  mixins: [hello(), locale],
+  data () {
+    return {
+      name: 'smalle',
+    };
+  },
+  // 打印结果为: 111-333-222-444
+  mounted: function () {
+    console.log(333)
+    this.$nextTick(function () {
+      console.log(444)
+    })
+  },
+});
+</script>
+```
+- 通用代码
+
+```js
+// create.js
+import bem from 'utils/bem'; // 对css进行bem命名，参考 https://gitee.com/smallweigit/avue/blob/v2.7.6/src/utils/bem.js
+import { KEY_COMPONENT_NAME } from 'global/variable';
+export default function(options) {
+  // 再次封装，options为原始组件配置
+  options.name = KEY_COMPONENT_NAME + (options.name || ''); // 给组件名加上统一前缀
+  options.mixins = options.mixins || [];
+  options.mixins.push(bem); // 在原混入基础上加入bem功能
+  return options;
+}
+
+// hello.js
+export default function () {
+  return {
+    data () {
+      return {
+        hello: null,
+        safe: this,
+        // 所有的对象，只有组件定义了，则全部按照组件定义的为准。**组件的属性不会和mixins的属性进行合并**
+        map: {
+         num: 1
+        }
+      }
+    },
+    computed: {
+      helloName () {
+        // this.safe.name => undefined; this['name'] => smalle; this.name => smalle; // ts使用this.name编辑器报红
+        return this['name'] + ' smalle' // this 指当前函数对象，被混入后，也可获取到功能组件(导入此混入的组件)属性
+      }
+    },
+    mounted: function () {
+      console.log(111)
+      this.$nextTick(function () {
+        console.log(222)
+      })
+    },
+    methods: {
+      hello () {
+        console.log('mixins methods')
+      }
+    }
+  }
+}
+
+// locale.js
+import { t } from 'locale'
+export default {
+  methods: {
+    t(...args) {
+      return t.apply(this, args);
+    }
+  }
+};
+```
+
+## 指令
+
+### 自定义指令
+
+- [文档](https://cn.vuejs.org/v2/guide/custom-directive.html)
+- 钩子函数
+    - `bind` 只调用一次，指令第一次绑定到元素时调用
+    - `inserted` 被绑定元素插入父节点时调用 (仅保证父节点存在，但不一定已被插入文档中)
+    - `update` 所在组件的 VNode 更新时调用，但是可能发生在其子 VNode 更新之前
+    - ·componentUpdated` 指令所在组件的 VNode 及其子 VNode 全部更新后调用
+    - `unbind` 只调用一次，指令与元素解绑时调用
+- 钩子函数参数
+    - `el` 指令所绑定的元素，可以用来直接操作 DOM
+    - `binding` 包含name、value、oldValue、expression、arg、modifiers
+    - `vnode`
+    - `oldVnode`
+
+### 自定义指令案例
+
+#### input输入自动转大写
+
+```js
+<Input v-uppercase v-model="form.orderNo" placeholder="编号" clearable></Input>
+
+Vue.directive("uppercase", {
+  inserted: function (el) {
+    const input = el.querySelector('input') // iview为例，找到实际的input输入框
+    input.onkeyup = function (e) {
+      input.value = input.value.toUpperCase()
+    }
+    input.onblur = function (e) {
+      input.value = input.value.toUpperCase()
+    }
+  }
+}
+```
+
+## API说明
+
+- `Vue.use(demo, opts)` 实际是调用了demo的install(Vue, opts)方法，相当于传入了Vue对象到demo中
+
+    ```js
+    // config.js
+    import Vue from 'vue'
+    let config = {
+        name: 'hello world'
+    }
+    export default {
+        install(Vue) {
+            // 之后在组件中可使用this.$config
+            Vue.prototype.$config = config
+        }
+    }
+    /*
+    // 等同于
+    const install = Vue => {
+        Vue.prototype.$config = config
+    }
+    export default { install }
+    */
+
+    // main.js
+    import config from './config/index.js'
+    Vue.use(config)
+    ```
+- `Vue.component(name, component)` 通过js手动注册全局组件，此时无需在components属性中定义。如果在main.js执行了此函数，则全局.vue文件均可使用此主键。使用是可使用name或其下划线形式名称
+    - Vue.component注册全局组件时，内部会调用Vue.extend方法，将定义挂载到Vue.options.components上
+
+    ```js
+    // {string} id
+    // {Function | Object} [definition]
+    Vue.component('demo', {
+        // render: function (createElement) {},
+        template: `
+            <div class="demo">
+                hello world
+            </div>
+        `
+    })
+
+    // 基于函数(动态组件)
+    Vue.component('demo', 
+        () => ({
+            component: import('@/view/components/demo.vue'),
+            error: MyErrorComp
+        })
+    )
+    ```
+- `Vue.mixin({...})` 全局混入
+- `Vue.directive`
+
+    ```js
+    // 注册
+    Vue.directive('my-directive', {
+        bind: function () {},
+        inserted: function () {},
+        update: function () {},
+        componentUpdated: function () {},
+        unbind: function () {}
+    })
+    // 或指令函数
+    Vue.directive('my-directive', function () {
+        // 这里将会被 `bind` 和 `update` 调用
+    })
+    ```
+
+## Vue组件库开发
+
+- 说明
+    - 当基于element-ui等进行二次开发时，在组件库模板中可以使用element-ui的标签，组件库无需在入口js中导入element-ui进行use(前提是主应用全局安装了element-ui)；如果在js中引入了element-ui，则不管包依赖是在dependences还是devDependences，都会将element-ui打包到组件库的输出文件中
+
+### 打包与导入
+
+- 打包方式
+    - 通过vue-cli打包
+        - 参考: https://blog.csdn.net/qq_41887214/article/details/120619211
+
+        ```json
+        {
+            // 导入模块时的入口函数(如果需要调试可去掉min，这样主应用导入后可直接在浏览器打端点。修改package.json后需要重启主应用)
+            "main": "./lib/report-table.umd.min.js",
+            "files": [
+                "src",
+                "lib",
+                "dist",
+                "types"
+            ],
+            "typings": "types/index.d.ts",
+            "scripts": {
+                // 实时监控打包(修改代码编译较快，可实时反映到主应用，且调试时显示的是源码)，配合 npm link(通过本地路径直接安装模块即可) 就可以做本地调试了
+                // 注意：打包的lib中不会出现.css文件(样式和图片等资源无法实时监控)，因为css样式已经内联了，可通过在 vue.config.js 中设置 css: { extract: true } 取消内联
+                "dev": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js --watch",
+                // 打包命令：打出来的包在一个文件中(lib/report-table.umd.js、lib/report-table.umd.min.js等)
+                "build": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js",
+                "lint": "vue-cli-service lint",
+                // 分析的是以 vue.config.js 中的 pages.index.entry 为入口
+                "report": "vue-cli-service build --report --mode prod"
+            }
+        }
+        ```
+    - 通过rolljs打包
+        - 参考https://segmentfault.com/a/1190000038827540，[demo](https://github.com/Zack921/zui-demo)
+    - 通过webpack打包
+        - 参考https://www.cnblogs.com/zdf-xue/articles/13062357.html
+- 主应用导入本地环境组件库
+    - 参考：https://qastack.cn/programming/8088795/installing-a-local-module-using-npm
+    - `npm install /path/to/component/project/dir`此时会在package.json中创建对应的依赖，值为`file:..`的相对路径
+        - 模块更新不会直接热部署到应用，必须重新build
+    - `npm link`
+        - 在模块目录执行`npm link`会将当前模块链接到全局模块中
+        - 在应用目录执行`npm link package-name`引用该模块
+        - 也可直接使用相对/绝对路径，相当于上面两步
+        - 此方式不会在package.json中增加依赖
+        - 模块更新不会直接热部署到应用，必须重新build
+- 主应用导入远程环境组件库(均需先上传包)
+    - 通过github安装，参考[基于git仓库进行安装](/_posts/web/node-dev-tools.md#基于git仓库进行安装)
+    - 通过npm镜像安装
+
+### 组件库中使用动态组件
+
+- 把主应用的组件通过在组件库中import/require动态引入，会出现找不到组件文件；且通过Vue.component注册时并没有注册到主应用Vue对象中，而是注册到组件的Vue对象中
+- 解决方法：在通过Vue.use组件库的时候，将主应用的Vue构造函数传递到组件库中，并且把需要动态引入主应用组件添加到Vue原型中(当然也可以注册成全局Vue组件)
+- 组件库主要代码
+
+```js
+// 组件库入口函数
+import GlobalConfig from './config'
+import helper, { install as HelperInstall } from './common/helper.js'
+const install = function (Vue, options = {}) {
+  _.merge(GlobalConfig, options)
+  
+  // 此Vue为主应用传入的Vue构造函数(_base)，缓存起来用于动态注册组件
+  Vue.use(HelperInstall, options)
+
+  Vue.prototype.$sqrt = helper
+  // ...
+}
+
+// common/helper.js
+import GlobalConfig from './config'
+const Helper = {
+  // 主应用 Vue 构造函数，用于组件库中动态注册组件
+  Vue: null,
+  // 主应用 vm 对象(可省略)
+  get main() {
+    return GlobalConfig.main || GlobalConfig.refreshMain()
+  },
+  get exportComp () {
+    return Helper.Vue.prototype[GlobalConfig.exportCompKey] || {}
+  }
+}
+const install = function (Vue, options = {}) {
+  Helper.Vue = Vue
+}
+export default Helper
+
+// ./config.js
+const GlobalConfig = {
+  exportCompKey: 'exportComp',
+  // 主应用 vm
+  main: null,
+  refreshMain: () => {},
+}
+export default GlobalConfig
+
+// 动态导入组件
+<component :is="mainComp" />
+this.mainComp = 'mainComp'
+// 必须使用主应用的Vue构造函数注册主应用的组件
+// this.$sqrt.Vue.component(this.mainComp, this.$sqrt.Vue.options.components['mainComp']) // 从注册到Vue全局组件中获取
+this.$sqrt.Vue.component(this.mainComp, this.exportComp['mainComp']) // 从Vue原型中获取
+/*
+// 此方式存在问题：组件库中通过from vue导入的Vue对象，最终都是组件库的webpack加载vue.js中的Vue对象(vue__WEBPACK_IMPORTED_MODULE_13___default.a)到当前组件库上下文，因此后面通过Vue.component注册的组件是注册到组件库的Vue对象中了，并没有添加到主应用的Vue对象中
+
+// 会打包出下面的代码
+// vue__WEBPACK_IMPORTED_MODULE_13___default.a.component(mainComp, (function() {
+//     return {
+//         component: __webpack_require__("0f13")("./" + mainComp + ".vue")
+//     }
+// }
+
+// import('@/components/'...) 会转成 __webpack_require__("0f13"), 相当于再当前组件库webpack上下文查找组件源文件(业务上实际需要把主应用的组件通过在组件库中import/require动态引入)
+
+import Vue from 'vue'
+Vue.component(mainComp, () => {
+  component: import('@/components/' + x.extMap.component + '.vue')
+})
+*/
+```
+- 主应用主要代码
+
+```js
+// main.js
+// 注册需要动态导入的组件
+import Packages from './packages'
+Vue.use(Packages)
+
+let vm
+Vue.use(ReportTable, {
+  refreshMain: () => vm
+})
+
+vm = new Vue({
+  el: '#app',
+  render: h => h(App)
+})
+
+// packages.js
+import mainComp from './components/mainComp.vue'
+const install = function (Vue) {
+  // Vue.component(mainComp.name, mainComp) // 注册成Vue全局组件
+  Vue.prototype.exportComp = { mainComp } // 添加到Vue原型上
+}
+export default install
+```
+
+## VueRouter路由
 
 > https://yuchengkai.cn/blog/2018-07-27.html 源码解析
 
@@ -1785,12 +2089,13 @@ refresh () {
 ### 打开新页面
 
 ```js
+// 可结合下文vue-contextmenujs插件实现右键打开新标签
 open() {
-   let route = this.$router.resolve({
-     path: "/open",
-     query: {id: 96}
-   })
-   window.open(route.href, '_blank')
+    let route = this.$router.resolve({
+        path: "/open", // 也可使用name或传入整个route
+        query: {id: 96}
+    })
+    window.open(route.href, '_blank')
 }
 ```
 
@@ -1885,43 +2190,6 @@ this.$router.push({
         workLevelId: 1
     }
 })
-```
-
-## 指令
-
-### 自定义指令
-
-- [文档](https://cn.vuejs.org/v2/guide/custom-directive.html)
-- 钩子函数
-    - `bind` 只调用一次，指令第一次绑定到元素时调用
-    - `inserted` 被绑定元素插入父节点时调用 (仅保证父节点存在，但不一定已被插入文档中)
-    - `update` 所在组件的 VNode 更新时调用，但是可能发生在其子 VNode 更新之前
-    - ·componentUpdated` 指令所在组件的 VNode 及其子 VNode 全部更新后调用
-    - `unbind` 只调用一次，指令与元素解绑时调用
-- 钩子函数参数
-    - `el` 指令所绑定的元素，可以用来直接操作 DOM
-    - `binding` 包含name、value、oldValue、expression、arg、modifiers
-    - `vnode`
-    - `oldVnode`
-
-### 自定义指令案例
-
-#### input输入自动转大写
-
-```js
-<Input v-uppercase v-model="form.orderNo" placeholder="编号" clearable></Input>
-
-Vue.directive("uppercase", {
-  inserted: function (el) {
-    const input = el.querySelector('input') // iview为例，找到实际的input输入框
-    input.onkeyup = function (e) {
-      input.value = input.value.toUpperCase()
-    }
-    input.onblur = function (e) {
-      input.value = input.value.toUpperCase()
-    }
-  }
-}
 ```
 
 ## Vuex
@@ -2165,8 +2433,10 @@ return (
 - 安装
 
 ```bash
-npm install -g @vue/cli
+npm install -g @vue/cli # 指定版本 @vue/cli@4.3.0
 vue --version # @vue/cli 4.3.0
+
+vue create demo # 创建一个demo项目
 
 # [审查项目的-webpack-配置](https://cli.vuejs.org/zh/guide/webpack.html#%E5%AE%A1%E6%9F%A5%E9%A1%B9%E7%9B%AE%E7%9A%84-webpack-%E9%85%8D%E7%BD%AE)
 # 将 vue-cli 中（vue.config.js）对 webpack 的配置信息导出到 output.js 文件
@@ -2195,7 +2465,9 @@ new DefinePlugin(
         // 在vue-cli2中打包时可以修改 "build" 和 "config" 中的文件来区分不同的线上环境。而vue-cli3号称0配置，无法直接修改打包文件进行环境区分，具体见下文
         "build": "vue-cli-service build", // 一般为生成环境打包(此时process.env.NODE_ENV='production')
         // 区分环境进行打包，此时在 vue.config.js 文件的同级目录(根目录)创建文件 .env.test-sq，其中可添加变量如 `NODE_ENV = test-sq` (一行一个变量，最终都会挂载到 process.env 下)
-        "build-test-sq": "vue-cli-service build --mode test-sq"
+        "build-test-sq": "vue-cli-service build --mode test-sq",
+        // 生成分析报告到dist/report.html(vue-cli自带分析插件)
+        "report": "vue-cli-service build --report --mode pord"
     },
 }
 ```
@@ -2221,11 +2493,18 @@ VUE_APP_JSON = {"a": 1, "b": "abc"}
 - vue.config.js 常用配置。多项目配置参考[多项目配置](/_posts/arch/springboot-vue.md#多项目配置)
 
 ```js
+// process.env 可以获取node下所有的环境变量
 const port = process.env.port || process.env.npm_config_port || 9528
+const publicPath = process.env.NODE_ENV === 'production' ? '/' : '/'
+
+// process.argv 可以获取node命令行全参数
+// node vue-cli-service serve --mode dev
+const args = process.argv.slice(2) // ['serve', '--mode', 'dev']
+const hasMode = args.indexOf('--mode') >= 0
 
 module.exports = {
     // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)
-    publicPath: '/', // 对应vue-cli2 或者 webpack中的 assetsPublicPath 参数
+    publicPath: publicPath, // 对应vue-cli2 或者 webpack中的 assetsPublicPath 参数
     outputDir: 'dist', // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到www目录
     lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验。如果校验不通过则开发时页面无法显示
     // 打包时不生成.map文件
@@ -2243,6 +2522,17 @@ module.exports = {
         }
     },
     chainWebpack: config => {
+        // 忽略的打包文件，使用CDN文件。安装和导入以模块的方式，index.html中引入对应cnd路径文件，开发/打包则使用此文件
+        // 如果是使用CND
+        config.externals({
+            'vue': 'Vue',
+            'vue-router': 'VueRouter',
+            'vuex': 'Vuex',
+            'axios': 'axios',
+            'element-ui': 'ELEMENT',
+            'lodash': '_',
+        })
+
         config.resolve.alias
             .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
             .set('_c', resolve('src/components'))
@@ -2303,9 +2593,31 @@ module.exports = {
                 }
             }
         }
-    }
+    },
+    // 一般开发组件库时用到. build打包时，--watch时默认为css内联样式，此处设置成非内联模式(样式生成到单独的css文件中)；非 --watch 默认就是true
+    // css: {
+    //     extract: true
+    // }
 }
 ```
+
+## 文档框架vuepress
+
+- [vuepress](https://vuepress.vuejs.org/zh/) 官方推出的文档框架
+- 可结合[vuese](https://github.com/vuese/vuese)先对vue组件进行解析成markdown
+- 其他框架
+    - Docsify/Docute
+        - 这两个项目同样都是基于 Vue，然而它们都是完全的运行时驱动，因此对 SEO 不够友好
+    - Hexo
+        - Vue 的文档一直使用此框架，Hexo 最大的问题在于他的主题系统太过于静态以及过度地依赖纯字符串，二vuepress可以使用vue来处理布局和交互
+    - GitBook
+        - GitBook 最大的问题在于当文件很多时，每次编辑后的重新加载时间长得令人无法忍受
+    - ​docz​
+
+## 插件收集
+
+- [vue-contextmenujs](https://github.com/GitHub-Laziji/menujs) 自定义右键菜单，包大小130K
+    - 可以在指定元素上开启自定义右键菜单
 
 
 

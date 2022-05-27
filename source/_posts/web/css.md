@@ -393,6 +393,27 @@ border-radius: 50%;
 }
 ```
 
+### body背景图片平铺
+
+```css
+body{
+    /*设置背景图片*/
+    background-image: url("../images/background/back.jpg") ;
+    background-size: 100% 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;  /*关键*/
+    background-position: center;
+    top:0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 1600px;
+    z-index: -10;
+    zoom:1;
+}
+```
+
 ## 常见问题
 
 ### height: 100%; 无效 [^2]
@@ -413,6 +434,20 @@ border-radius: 50%;
 - 一个子孙元素，由负边距值引起的部分内容在盒子外部
 - text-indent属性引起的行内元素在盒子的左右边界外
 - 一个绝对定位的子孙元素，部分内容在盒子外，但超出的部分不会被剪裁(overflow: hidden;)
+
+### 子元素使用float导致父元素没有高度
+
+```css
+/* 参考 https://www.jianshu.com/p/a1724eeb07a6 */
+.container:after {
+    clear: both;
+    content:" ";
+    display: block;
+    width:0;
+    height: 0;
+    visibility: hidden;
+}
+```
 
 ## 性能优化
 

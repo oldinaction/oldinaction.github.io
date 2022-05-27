@@ -8,6 +8,9 @@ tags: [vue, src]
 
 ## 说明
 
+- 参考文章
+    - [注释源码](https://github.com/oldinaction/vue2-src)
+    - [源码解析](http://www.yanfadi.com/vue/)
 - 源码基于Vue v2.6进行说明。[github](https://github.com/vuejs/vue/tree/2.6)仓库目录结构
 
 ```bash

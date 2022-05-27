@@ -155,7 +155,7 @@ export default 123;
   }
 
   // 调用上述定义 __webpack_require__ 函数，这个函数就是 require 或者是 import 的替代。这里会传入一个 moduleId，这个例子中是0，也就是我们的入口模块 a.js 的内容
-  return __webpack_require__(0); // 时间返回的是 module.exports
+  return __webpack_require__(0); // 实际返回的是 module.exports
 })/* <==入口文件函数体.参数==> */([
   // 编译 a.js
   (function (module, __webpack_exports__, __webpack_require__) {
@@ -247,9 +247,9 @@ import Select from 'element-ui/lib/select'
         // window
         root["my-app"] = factory(root["Vue"], root["axios"], root["Vuex"], root["VueRouter"], root["ELEMENT"]);
 })/* <==入口文件函数体.参数==> */(
-    // 参数1
+    // 参数1: root
 	(typeof self !== 'undefined' ? self : this), 
-    // 参数2
+    // 参数2: factory
 	function (__WEBPACK_EXTERNAL_MODULE_vue__, 
 		__WEBPACK_EXTERNAL_MODULE_axios__, __WEBPACK_EXTERNAL_MODULE_vuex__, 
 		__WEBPACK_EXTERNAL_MODULE_vue_router__, __WEBPACK_EXTERNAL_MODULE_element_ui__) 
@@ -269,6 +269,7 @@ import Select from 'element-ui/lib/select'
 			// ... 省略, 如热部署相关代码
 			/******/// The require function
 			/******/
+            // __webpack_require__ 约等于import能力，可以加载某模块
 			function __webpack_require__(moduleId) {
 				/******/
 				/******/// Check if module is in cache
@@ -532,9 +533,60 @@ import Select from 'element-ui/lib/select'
 ```
 </details>
 
+### __webpack_require__各属性
+
+- `__webpack_require__()`，约等于import能力，可以加载某模块
+
+```js
+// 入口模块的ID
+__webpack_require__.s = the module id of the entry point
+ 
+// 模块缓存对象 {} id:{ exports /id/loaded}
+__webpack_require__.c = the module cache
+ 
+// 所有构建生成的模块 []
+__webpack_require__.m = the module functions
+ 
+// 公共路径，为所有资源指定一个基础路径
+__webpack_require__.p = the bundle public path
+// 
+__webpack_require__.i = the identity function used for harmony imports
+ 
+// 异步模块加载函数，如果没有再缓存模块中 则用 jsonscriptsrc 加载  
+__webpack_require__.e = the chunk ensure function
+ 
+// 提供Getter给导出的方法、变量，辅助函数而已
+__webpack_require__.d = the exported property define getter function
+ 
+// 辅助函数而已 Object.prototype.hasOwnProperty.call
+__webpack_require__.o = Object.prototype.hasOwnProperty.call
+ 
+// 给exports设定attr __esModule，标识该模块为es模块
+__webpack_require__.r = define compatibility on export
+ 
+// 用于取值，伪造namespace
+__webpack_require__.t = create a fake namespace object
+ 
+// 用于兼容性取值（esmodule 取default， 非esmodule 直接返回module)
+__webpack_require__.n = compatibility get default export
+ 
+// hash
+__webpack_require__.h = the webpack hash
+ 
+// 
+__webpack_require__.w = an object containing all installed WebAssembly.Instance export objects keyed by module id
+ 
+// 异步加载失败处理函数 辅助函数而已
+__webpack_require__.oe = the uncaught error handler for the webpack runtime
+ 
+// 表明脚本需要安全加载 CSP策略
+__webpack_require__.nc = the script nonce
+
+```
+
 ## Webpack转译Typescript现有方案
 
-- 参考[web.md#Webpack转译Typescript现有方案](/_posts/web/web.md#Webpack转译Typescript现有方案)
+- 参考[typescript.md#Webpack转译Typescript现有方案](/_posts/web/typescript.md#Webpack转译Typescript现有方案)
 
 
 

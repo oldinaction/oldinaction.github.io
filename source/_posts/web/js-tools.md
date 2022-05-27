@@ -6,72 +6,68 @@ categories: web
 tags: [js, tools]
 ---
 
-## 开发库
+## Tag一下
 
-### babel
-
-- [babeljs中文网](https://www.babeljs.cn)
-- `babel`(@babel/core) 是一个转码器，可以将es6，es7转为es5代码
-    - Babel默认只转换新的JavaScript句法（syntax），而不转换新的API，比如Iterator、Generator、Set、Maps、Proxy、Reflect、Symbol、Promise等全局对象，以及一些定义在全局对象上的方法（比如Object.assign）都不会转码
-    - 所以为了使用完整的 ES6 的API，我们需要另外安装：babel-polyfill 或者 babel-runtime [^1]
-        - `@babel/polyfill` 会把全局对象统统覆盖一遍，不管你是否用得到。缺点：包会比较大100k左右。如果是移动端应用，要衡量一下。一般保存在dependencies中
-        - `babel-runtime` 可以按照需求引入。缺点：覆盖不全。一般在写库的时候使用。建议不要直接使用babel-runtime，因为transform-runtime依赖babel-runtime，大部分情况下都可以用`transform-runtime`预设来达成目的
-- [core-js](https://github.com/zloirock/core-js) 是 babel-polyfill、babel-runtime 的核心包，他们都只是对 core-js 和 regenerator 进行的封装。core-js 通过各种奇技淫巧，用 ES3 实现了大部分的 ES2017 原生标准库，同时还要严格遵循规范。支持IE6+
-    - core-js 组织结构非常清晰，高度的模块化。比如 `core-js/es6` 里包含了 es6 里所有的特性。而如果只想实现 promise 可以单独引入 `core-js/features/promise`
-- babel配置文件可为 `.babelrc` 或 `babel.config.js`(v7.8.0)。已`babel.config.js`为例
-
-    ```js
-    module.exports = {
-        presets: ['@vue/cli-plugin-babel/preset'],
-        plugins: [
-            // 一般在写库的时候使用，包含了 babel-runtime
-            // 配置了 transform-runtime 插件，就不用再手动单独引入某个 `core-js/*` 特性，如 core-js/features/promise，因为转换时会自动加上而且是根据需要只抽离代码里需要的部分
-            "transform-runtime",
-            
-            // 基于vue的预设
-            // "@vue/app",
-        ]
-    }
-    ```
-- `@babel/cli` 在命令行中使用babel命令对js文件进行转换。如`babel entry.js --out-file out.js`进行语法转换
-- 插件和预设（Presets）
-    - 基于Babel的插件参考：https://www.babeljs.cn/docs/plugins
-    - 需要基于某个环境进行开发，如typescript，则需手动安装一堆 Babel 插件，此时可以使用 Presets(包含了一批插件的组合)
-    - 官方 Preset 已经针对常用环境编写了一些 preset。其他社区定义的预设可在[npm](https://www.npmjs.com/search?q=babel-preset)上获取
-        - `@babel/preset-env` 对浏览器环境的通用支持
-        - `@babel/preset-react` 对 React 的支持
-        - `@babel/preset-typescript` 对 Typescript 支持，参考[typescript.md#Webpack转译Typescript现有方案](/_posts/web/typescript.md#Webpack转译Typescript现有方案)
-        - `@babel/preset-flow` 如果使用了 [Flow](https://flow.org/en/)，则建议您使用此预设（preset），Flow 是一个针对 JavaScript 代码的静态类型检查器
-- 常见安装
-
-```bash
-# 语法转换
-npm install --save-dev @babel/core @babel/cli @babel/preset-env
-# 通过 Polyfill 方式在目标环境中添加缺失的特性
-npm install --save @babel/polyfill
-```
-
-### npm-run-all
-
-- `npm install npm-run-all --save-dev` 安装
-- `npm-run-all` 提供了多种运行多个命令的方式，常用的有以下几个
-    - `--serial`: 多个命令按排列顺序执行，例如：`npm-run-all --serial clean build:**` 先执行当前package.json中 npm run clean 命令, 再执行当前package.json中所有的`build:`开头的scripts
-    - `--parallel`: 并行运行多个命令，例如：npm-run-all --parallel lint build
-    - `--continue-on-error`: 是否忽略错误，添加此参数 npm-run-all 会自动退出出错的命令，继续运行正常的
-    - `--race`: 添加此参数之后，只要有一个命令运行出错，那么 npm-run-all 就会结束掉全部的命令
-
-### rollup.js
-
-- Rollup 是一个 JavaScript 模块打包器，可以将小块代码编译成大块复杂的代码，例如 library 或应用程序
+- [Alibaba Fusion Design](https://zhuanlan.zhihu.com/p/54751219)
+    - 基于 React技术栈实现设计师与工程师的协作平台
 
 ## 基础库
 
 ### lodash工具类
 
-- [lodash](https://lodash.com/)
+- [lodash](https://lodash.com/)、[lodash中文网](https://www.lodashjs.com/)
 - Math 数学计算，类似[mathjs](#mathjs数学计算)
     - `add`、`subtract`、`multiply`、`divide` 两个数的加减乘除
         - `_.add(0.1, 0.2)` // 0.30000000000000004
+- merge 可进行深度覆盖
+
+```js
+const a = {a: 1, b: {b1: 2}, c: [{c1: 3}]};
+_.merge(a, {b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]});
+// {a: 1, b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]}
+console.log(a);
+```
+- groupBy
+
+```js
+// 多字段分组案例
+// 案例参考：https://segmentfault.com/q/1010000040036335
+import _ from "lodash"
+
+const arr = [
+    { status: 1, opp: 2, ad: "11" },
+    { status: 1, opp: 2, ad: "22" },
+    { status: 1, opp: 3, ad: "33" },
+    { status: 2, opp: 4, ad: "44" },
+    { status: 3, opp: 5, ad: "55" }
+]
+
+const r = _(arr) // 转成lodash表达式
+    .groupBy("status") // lodash表达式序列化后 {"1":[{"status":1,"opp":2,"ad":"11"},{"status":1,"opp":2,"ad":"22"},{"status":1,"opp":3,"ad":"33"}],"2":[{"status":2,"opp":4,"ad":"44"}],"3":[{"status":3,"opp":5,"ad":"55"}]}
+    .values() // lodash表达式序列化后 [[{"status":1,"opp":2,"ad":"11"},{"status":1,"opp":2,"ad":"22"},{"status":1,"opp":3,"ad":"33"}],[{"status":2,"opp":4,"ad":"44"}],[{"status":3,"opp":5,"ad":"55"}]]
+    .map(it => _(it)
+        .groupBy("opp")
+        .values()
+        .map(list => ({
+            status: list[0].status,
+            opp: list[0].opp,
+            add: list.map(v => v.ad) // 如业务逻辑为求和，可修改此处
+        }))
+        .value() // 取lodash表达式值
+    )
+    .value()
+/* 结果如下
+[
+    [
+        {"status":1,"opp":2,"add":["11","22"]},
+        {"status":1,"opp":3,"add":["33"]}
+    ],
+    [{"status":2,"opp":4,"add":["44"]}],
+    [{"status":3,"opp":5,"add":["55"]}]
+]
+*/
+console.log(JSON.stringify(r))
+```
 
 ### cross-env启动时增加环境变量
 
@@ -88,9 +84,33 @@ dayjs().format('YYYY-MM-DD HH:mm:ss'); // 2020-01-02
 dayjs('2020-01-01').add(1, 'day').format('YYYY-MM-DD'); // 2020-01-02
 ```
 
-### mathjs数学计算
+### 数学计算
 
 - js精度问题: https://www.cnblogs.com/xjnotxj/p/12639408.html
+    - `0.1 + 0.2 => 0.30000000000000004`
+    - **使用 toFixed() 函数(推荐)**: `parseFloat((0.1 + 0.2).toFixed(1)) => 0.3`
+        - 存在问题：toFixed必须设置精度(默认是整数)
+    - 使用第三方库解决
+        - [decimal.js](http://mikemcl.github.io/decimal.js/) 文件大小132K
+        - Math.js 文件大小1.74M
+        - big.js
+        - bignumber.js
+    - 银行家不使用四舍五入(存在1.05这个数会让银行亏钱)，而是使用`四舍六入五取偶`。toFixed不能完全满足此近似算法，可使用第三方包`bankers-rounding`
+        - 规则：四舍六入五考虑，五后非空就进一，五后为空看奇偶，五前为偶应舍去，五前为奇要进一
+
+        ```js
+        9.8249=9.82
+        9.82671=9.83
+        9.8350=9.84
+        9.8351 =9.84
+        9.8250=9.82
+        9.82501=9.83
+        ```
+- decimal.js
+
+```js
+Decimal.add(0.1, 0.2).toNumber() // 0.3
+```
 - mathjs
 
 ```js
@@ -98,11 +118,14 @@ npm install mathjs -S
 
 import * as math from 'mathjs'
 
+// 错误结果
 0.1 + 0.2 // 0.30000000000000004
 _.add(0.1, 0.2) // 0.30000000000000004 loadsh
 math.add(0.1, 0.2) // 0.30000000000000004
-math.number(math.add(math.bignumber(0.1), math.bignumber(0.2))) // 0.3 math.number转换BigNumber类型为number类型
+
+// 0.3 math.number转换BigNumber类型为number类型
 // math.add(math.bignumber(0.1), math.bignumber(0.2)).toNumber()
+math.number(math.add(math.bignumber(0.1), math.bignumber(0.2)))
 math.number(math.chain(math.bignumber(0.1)).add(math.bignumber(0.2)).add(math.bignumber(0.3)).done()) // 0.6
 ```
 
@@ -218,9 +241,40 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 ### Element-UI
 
-- el-drawer
+- 表单同步验证
 
-- 防止整个页面被遮住。modal-append-to-body的使用：遮罩层是否插入至 body 元素上，若为 false，则遮罩层会插入至 Drawer 的父元素上
+```js
+let pass = true
+await this.$refs.form.validate((valid) => {
+    pass = valid
+})
+console.log(pass)
+```
+- 远程搜索数据回显
+
+```html
+<span v-if="!shipBill.payerCodShow">{{ shipBill.payerNam }} <Icon type="ios-create" @click="() => shipBill.payerCodShow = true"/></span>
+<!-- 
+    编辑时shipBill和payerCodList的值是分开异步获取的当获取到shipBill后
+    手动调用一次payerCodRemoteMethod大部分时候可进行回显，但是有时候会出现下拉不出来等问题
+    因此建议增加上面的span标签，默认以文本展示，在后面加一个编辑图标，点击后展示出下面的el-select即可
+-->
+<el-select v-if="shipBill.payerCodShow"
+    v-model="shipBill.payerCod"
+    filterable
+    remote
+    placeholder="请输入关键词"
+    size="mini"
+    style="display:block;"
+    :remote-method="payerCodRemoteMethod"
+>
+    <el-option v-for="item in payerCodList" :key="item.value" :label="item.label" :value="item.value">
+        {{ item.value }}：{{ item.label }}
+    </el-option>
+</el-select>
+```
+- el-drawer
+    - 防止整个页面被遮住。modal-append-to-body的使用：遮罩层是否插入至 body 元素上，若为 false，则遮罩层会插入至 Drawer 的父元素上
 
 ```html
 <template>
@@ -240,28 +294,31 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 - [官网](https://avuejs.com)
 - [内置函数(全局API，在vue组件中可直接使用this调用)](https://avuejs.com/doc/api)
-    - validatenull 校验是否为空(`null/''/0/[]/{}`)
-    - findObject 从数组中查找对象，如`const parentIdProp = this.findObject(this.formColumn | this.crudOption.column, 'parentId')`
-    - vaildData 校验，如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
-    - $Print
-    - $Clipboard
-    - $Log
-    - $NProgress
-    - $Screenshot
-    - deepClone
-    - dataURLtoFile
-    - isJson
-    - setPx
-    - sortArrys
-    - findArray
-    - downFile
-    - loadScript
-    - watermark
-    - asyncValidator
+    - `validatenull` 校验是否为空(`null/''/0/[]/{}`)
+    - `findObject` 从数组中查找对象
+        - 如 `const saleNoObj = this.findObject(this.crudOptionData.column | this.formColumn, 'saleNo'); saleNoObj.disabled = true;` 找到对象属性配置后，并修改(动态修改属性需要有默认值，即此时必须提前设置disabled=null属性，否则vue无法动态监测新增的属性进行双向绑定)
+    - `vaildData` 验证表达式/属性
+        - 如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
+    - `$Print`
+    - `$Clipboard`
+    - `$Log` 控制台彩色日志
+    - `$NProgress`
+    - `$Screenshot`
+    - `deepClone` 对象/数组深拷贝
+    - `dataURLtoFile`
+    - `isJson`
+    - `setPx` 设置css像素
+    - `sortArrys`
+    - `findArray`
+    - `downFile`
+    - `loadScript` 加载js/css文件
+    - `watermark`
+    - `asyncValidator`
 - 内置指令
     - `v-dialogdrag` 作用于dialog，可进行拖拽
 - 获取ref
     - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
+    - 获取crud弹框表单中的element form引用：`this.$refs.crud.$refs.dialogForm.$refs.tableForm.$refs.form`
 
 #### 表格组件常用参数(option)
 
@@ -1103,8 +1160,269 @@ export default {
     - 特点：基于Jquery；可视化配置模板(数据基于字段名自动填充)，自动分页打印；可免费使用
     - 缺点：源代码没开源，没有抽离 npm 包。[github打包代码](https://github.com/hinnncom/hiprint)
     - 基于vue使用参考：https://blog.csdn.net/byc233518/article/details/107705278
+    - 打印后关闭页面(监听事件)
+
+    ```js
+    // 方法一：只有在引入socket.io.js才生效
+    hiprintTemplate.on('printSuccess', () => {})
+    hiprintTemplate.on('printError', () => {})
+
+    // 方法二 (vue案例)
+    this.printTemplate(this.printData)
+    this.addPrintEvent(() => {
+        window.close()
+    })
+    // 定义
+    addPrintEvent(afterPrintEvent, beforePrintEvent) {
+      // setTimeout 等待hiwprint_iframe加入到body中
+      setTimeout(() => {
+        // hiprintTemplate.print 最终是基于 jquery.hiwprint.js 虚拟出一个 iframe 进行打印的
+        let contentWindow = window.frames['hiwprint_iframe'].contentWindow
+        let beforePrint = () => {
+          beforePrintEvent && beforePrintEvent()
+        }
+        let afterPrint = () => {
+          afterPrintEvent && afterPrintEvent()
+        }
+        if (contentWindow.matchMedia) {
+          var mediaQueryList = contentWindow.matchMedia('print')
+          mediaQueryList.addListener(function (mql) {
+            if (mql.matches) {
+              beforePrint()
+            } else {
+              afterPrint()
+            }
+          })
+        }
+        contentWindow.onbeforeprint = beforePrint
+        contentWindow.onafterprint = afterPrint
+      }, 0)
+    }
+    ```
 - 基于[print-js](https://printjs.crabbly.com/)
 - 使用[vxe-table](#vxe-table)等插件自带打印功能
+- 自定义js参考
+
+```js
+/*
+使用
+import Print form 'util/print.js'
+Vue.use(Print)
+
+this.$print(this.$refs.table, {
+    title: '自定义文件名(可用于导出PDF文件), 默认为当前网页标题'
+})
+*/
+/* eslint-disable */
+const Print = function(dom, options) {
+  if (!(this instanceof Print)) return new Print(dom, options);
+
+  this.options = this.extend(
+    {
+      noPrint: ".no-print"
+    },
+    options
+  );
+
+  if (typeof dom === "string") {
+    this.dom = document.querySelector(dom);
+  } else {
+    this.isDOM(dom);
+    this.dom = this.isDOM(dom) ? dom : dom.$el;
+  }
+
+  this.init();
+};
+Print.prototype = {
+  init: function() {
+    var content = this.getStyle() + this.getHtml();
+    this.writeIframe(content);
+  },
+  extend: function(obj, obj2) {
+    for (var k in obj2) {
+      obj[k] = obj2[k];
+    }
+    return obj;
+  },
+
+  getStyle: function() {
+    var str = "",
+      styles = document.querySelectorAll("style,link");
+    for (var i = 0; i < styles.length; i++) {
+      str += styles[i].outerHTML;
+    }
+    str +=
+      "<style>" +
+      (this.options.noPrint ? this.options.noPrint : ".no-print") +
+      "{display:none;}</style>";
+    str += "<style>html,body,div{height:auto!important;}</style>";
+
+    return str;
+  },
+
+  getHtml: function() {
+    var inputs = document.querySelectorAll("input");
+    var textareas = document.querySelectorAll("textarea");
+    var selects = document.querySelectorAll("select");
+
+    for (var k = 0; k < inputs.length; k++) {
+      if (inputs[k].type == "checkbox" || inputs[k].type == "radio") {
+        if (inputs[k].checked == true) {
+          inputs[k].setAttribute("checked", "checked");
+        } else {
+          inputs[k].removeAttribute("checked");
+        }
+      } else if (inputs[k].type == "text") {
+        inputs[k].setAttribute("value", inputs[k].value);
+      } else {
+        inputs[k].setAttribute("value", inputs[k].value);
+      }
+    }
+
+    for (var k2 = 0; k2 < textareas.length; k2++) {
+      if (textareas[k2].type == "textarea") {
+        textareas[k2].innerHTML = textareas[k2].value;
+      }
+    }
+
+    for (var k3 = 0; k3 < selects.length; k3++) {
+      if (selects[k3].type == "select-one") {
+        var child = selects[k3].children;
+        for (var i in child) {
+          if (child[i].tagName == "OPTION") {
+            if (child[i].selected == true) {
+              child[i].setAttribute("selected", "selected");
+            } else {
+              child[i].removeAttribute("selected");
+            }
+          }
+        }
+      }
+    }
+    // 包裹要打印的元素
+    // fix: https://github.com/xyl66/vuePlugs_printjs/issues/36
+    let outerHTML = this.wrapperRefDom(this.dom).outerHTML;
+    return outerHTML;
+  },
+  // 向父级元素循环，包裹当前需要打印的元素
+  // 防止根级别开头的 css 选择器不生效
+  wrapperRefDom: function(refDom) {
+    let prevDom = null;
+    let currDom = refDom;
+    // 判断当前元素是否在 body 中，不在文档中则直接返回该节点
+    if (!this.isInBody(currDom)) return currDom;
+
+    while (currDom) {
+      if (prevDom) {
+        let element = currDom.cloneNode(false);
+        element.appendChild(prevDom);
+        prevDom = element;
+      } else {
+        prevDom = currDom.cloneNode(true);
+      }
+
+      currDom = currDom.parentElement;
+    }
+
+    return prevDom;
+  },
+
+  writeIframe: function(content) {
+    var w,
+      doc,
+      iframe = document.createElement("iframe"),
+      f = document.body.appendChild(iframe);
+    iframe.id = "myIframe";
+    //iframe.style = "position:absolute;width:0;height:0;top:-10px;left:-10px;";
+    iframe.setAttribute(
+      "style",
+      "position:absolute;width:0;height:0;top:-10px;left:-10px;"
+    );
+    w = f.contentWindow || f.contentDocument;
+    doc = f.contentDocument || f.contentWindow.document;
+    doc.open();
+    doc.write(content);
+    doc.close();
+    var _this = this;
+    iframe.onload = function() {
+      _this.toPrint(w);
+      setTimeout(function() {
+        document.body.removeChild(iframe);
+      }, 100);
+    };
+  },
+
+  toPrint: function(frameWindow) {
+    try {
+      let that = this
+      setTimeout(function() {
+        frameWindow.focus();
+        let title  = window.document.title
+        if (that.options.title) {
+          window.document.title = that.options.title
+        }
+        try {
+          // execCommand("print") 类似 window.print()
+          if (!frameWindow.document.execCommand("print", false, null)) {
+            frameWindow.print();
+          }
+        } catch (e) {
+          frameWindow.print();
+        }
+        window.document.title = title
+        frameWindow.close();
+      }, 10);
+    } catch (err) {
+      console.log("err", err);
+    }
+  },
+  // 检查一个元素是否是 body 元素的后代元素且非 body 元素本身
+  isInBody: function(node) {
+    return node === document.body ? false : document.body.contains(node);
+  },
+  isDOM:
+    typeof HTMLElement === "object"
+      ? function(obj) {
+          return obj instanceof HTMLElement;
+        }
+      : function(obj) {
+          return (
+            obj &&
+            typeof obj === "object" &&
+            obj.nodeType === 1 &&
+            typeof obj.nodeName === "string"
+          );
+        }
+};
+const MyPlugin = {};
+MyPlugin.install = function(Vue, options) {
+  Vue.prototype.$print = Print;
+};
+export default MyPlugin;
+
+```
+- 监听打印前后事件
+
+```js
+var beforePrint = function() {
+    console.log('Functionality to run before printing.');
+};
+var afterPrint = function() {
+    console.log('Functionality to run after printing');
+};
+if (window.matchMedia) {
+    var mediaQueryList = window.matchMedia('print');
+    mediaQueryList.addListener(function(mql) {
+        if (mql.matches) {
+            beforePrint();
+        } else {
+            afterPrint();
+        }
+    });
+}
+window.onbeforeprint = beforePrint;
+window.onafterprint = afterPrint;
+```
 - vue和electron打印问题
 
 ```js
@@ -1506,12 +1824,83 @@ export default {
 </script>
 ```
 
+## 工具函数
+
+### 防抖和节流
+
+- 基于lodash
+    - 其提供的throttle和debounce仍会出现重复点击按钮，还是会多次执行，只不过多次执行有几秒的间隔
+    - **下文自定义的throttle方法无此问题，在2s内重复点击只执行一次**
+
+```js
+import _ from 'lodash'
+
+// vue中使用
+methods: {
+    // 延迟2s，并立即执行(leading=true)
+    doPost: _.throttle(function(data) {
+        // doPost定义成属性，并且往throttle中传入普通函数(而非箭头函数)，此时即可拿到this
+        this.$ajax...
+    }, 2000, { leading: true }),
+    doGet: _.debounce(function(data) {
+        this.$ajax...
+    }, 2000, { leading: true })
+}
+```
+- 手动实现参考：https://www.jb51.net/article/212746.htm
+
+```js
+// 防抖
+export const debounce = function (f, t = 2000, im = false) {
+  let timer
+  let flag = true
+  return function () {
+    var args = arguments
+    var that = this
+    // 需要立即执行的情况
+    if (im) {
+      if (flag) {
+        f.apply(that, args)
+        flag = false
+      } else {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          f.apply(that, args)
+          flag = true
+        }, t)
+      }
+    } else {
+      // 非立即执行的情况
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        f.apply(that, args)
+      }, t)
+    }
+  }
+}
+
+// 节流
+export const throttle = function (f, t = 2000, im = false) {
+  let flag = true
+  return function () {
+    var args = arguments
+    var that = this
+    if (flag) {
+      flag = false
+      im && f.apply(that, args)
+      setTimeout(() => {
+        !im && f.apply(that, args)
+        flag = true
+      }, t)
+    }
+  }
+}
+```
 
 
 ---
 
 参考文章
 
-[^1]: https://www.dazhuanlan.com/2019/12/31/5e0b08829f823/
 [^2]: https://segmentfault.com/a/1190000013312233 (springBoot与axios表单提交)
 [^3]: http://www.a4size.net/

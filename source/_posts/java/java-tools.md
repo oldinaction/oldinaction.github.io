@@ -203,6 +203,7 @@ ResourceUtil.getResource("templates"); // 返回 URL
 
 // 如果路径不存在则创建路径
 if (!FileUtil.exist(path)) {
+    // 会自动创建多级路径，也可不用上面的判断
     FileUtil.mkdir(path);
 }
 ```
@@ -320,6 +321,110 @@ sheet.shiftRows(int startRow, int endRow, int n, boolean copyRowHeight, boolean 
 - 说明
     - 常量在Excel中为`'常量值'`，由于可能存在转义，所有需要设置成`''常量值'`
 
+### Excel转PDF
+
+- [Aspose](https://www.aspose.com/) 需要收费，有水印文字。破解参考下文[Aspose](#Aspose)
+    - 转换后字体、样式、打印边距都可以达到和Excel基本一致
+- [spire](https://www.e-iceblue.cn/) 需要收费(国产)，使用 Free Spire 对应的依赖 class文件也加密了
+- jacob: 需要jacob.jar以及jacob.dll(未测试)
+    - 需要jacob.jar来调用activex控件，本机需安装Office/WPS/pdfcreator(wps有linux版，office到现在为止还没有linux版)
+- poi+itext 效果可能不太好
+    - https://www.cxybb.com/article/littlebrain4solving/40430653
+
+### Aspose
+
+- 组件介绍
+    - Aspose.Cells 操作Excel
+        - 如果需要将Excel转成PDF也只需要引入Cells，无需引入Aspose.PDF
+    - Aspose.Words 操作Word
+    - Aspose.PDF 操作PDF
+    - Aspose.Slides
+- 中文字体问题
+    - 在mac下转换excel到pdf会出现部分中文会丢失一些笔画，而Windows正常，网上较多关于设置字体路径的，mac下没有细究
+
+#### Excel转成PDF案例
+
+- 配置
+
+```xml
+<dependency>
+    <groupId>com.aspose</groupId>
+    <artifactId>aspose-cells</artifactId>
+    <version>21.11</version>
+</dependency>
+
+<repository>
+    <id>AsposeJavaAPI</id>
+    <name>Aspose Java API</name>
+    <url>https://repository.aspose.com/repo/</url>
+</repository>
+
+<!-- aspose-license.xml 此为过期的license -->
+<License>
+    <Data>
+        <Products>
+            <Product>Aspose.Total for Java</Product>
+            <Product>Aspose.Words for Java</Product>
+        </Products>
+        <EditionType>Enterprise</EditionType>
+        <SubscriptionExpiry>20991231</SubscriptionExpiry>
+        <LicenseExpiry>20991231</LicenseExpiry>
+        <SerialNumber>8bfe198c-7f0c-4ef8-8ff0-acc3237bf0d7</SerialNumber>
+    </Data>
+    <Signature>
+        sNLLKGMUdF0r8O1kKilWAGdgfs2BvJb/2Xp8p5iuDVfZXmhppo+d0Ran1P9TKdjV4ABwAgKXxJ3jcQTqE/2IRfqwnPf8itN8aFZlV3TJPYeD3yWE7IT55Gz6EijUpC7aKeoohTb4w2fpox58wWoF3SNp6sK6jDfiAUGEHYJ9pjU=
+    </Signature>
+</License>
+
+```
+- 使用
+
+```java
+import com.aspose.cells.License;
+import com.aspose.cells.SaveFormat;
+import com.aspose.cells.Workbook;
+
+public class AsposeU {
+
+    static {
+        License license = new License();
+        license.setLicense(AsposeU.class.getClassLoader().getResourceAsStream("/license/aspose-license.xml"));
+    }
+
+    public static void excelToPdf(InputStream stream, String pdfPath) {
+        FileOutputStream fileOS = null;
+        try {
+            // 读入Excel文件流
+            Workbook wb = new Workbook(stream);
+            // 转换成的pdf文件保存路径
+            fileOS = new FileOutputStream(pdfPath);
+            wb.save(fileOS, SaveFormat.PDF);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(fileOS != null) {
+                try {
+                    fileOS.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
+
+#### 破解(仅供学习)
+
+- 网上较多结合org.apache.pdfbox去除水印，但是测试下来效果不好
+- 直接破解源码参考
+    - https://juejin.cn/post/7034405665376321567 (测试通过)
+    - https://gitee.com/evilrule/crack-aspose
+- 原理
+    - 使用 javassist 修改 aspose-cells-21.11.jar 源码
+    - License#setLicense 最终会进入 `this.a` 方法，而此方法大部分都是校验逻辑，如果通过都会进入`zblc.a`方法，因此修改`this.a` 方法即可
+- 破解之后还是正常导入License，只是破解之后就不会校验License正确性，从而不会生成水印
+
 ## Ureport报表
 
 - [ureport](https://github.com/youseries/ureport)、[ureport文档](https://www.w3cschool.cn/ureport/ureport-jaod2h8k.html)
@@ -335,6 +440,7 @@ sheet.shiftRows(int startRow, int endRow, int n, boolean copyRowHeight, boolean 
   - 访问路径 `http://localhost:8800/api/v1/module/ureport/ureport/designer`
   - 预览路径 `http://localhost:8800/api/v1/module/ureport/ureport/preview?_u=file:test.ureport.xml`
     - 注意需要带上`file:`，且文件名不要出现`#[]`等特殊字符串(`.`是可以的)
+    - 加参数`_i=1`表示分页预览第一页
 - 数据源和数据集
     - 配置数据源和数据集
         - 每个报表需要配置各自的数据源和数据集
@@ -507,6 +613,10 @@ System.out.println("evaluate = " + evaluate); // evaluate = 2
 - sdkman 包管理工具
     - sdkman可以更方便的按照、更改sdk(如jdk)版本
 
+### ProGuard
+
+- 源码优化、混淆器
+- [源码](https://github.com/Guardsquare/proguard)、[ProGuard官网手册](https://www.guardsquare.com/manual/home)
 
 
 
