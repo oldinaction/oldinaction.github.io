@@ -222,12 +222,15 @@ created(): {
         // 假设有一个按钮需要动态添加loading，可写成<Button :loading="myLoading[i]"></Button>，然后created之后对myLoading[i]赋初始值并重新设置myLoading(两次JSON转换)，之后myLoading[i]就可以动态监听了
         ```
     - Vue.set和Vue.delete的作用
+        - `Vue.set` 向响应式对象中添加一个 property，并可确保这个新 property 同样是响应式的. eg: Vue.set(this.dictMap, key, list)
     - Vue3.X新版本开始将采用ES6的Proxy来进行双向绑定。可解决上述问题(可以直接监听对象而非属性，可以直接监听数组下标的变化)
 - **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
     - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)
     - **对于v-for，最好定义key值(且不能使用index作为key)**，否则容易出现无法选择/无法修改该select的值
         - 如结合select的option循环时，只需要当前select的option的key值唯一，无需整个页面的key值保证唯一性
         - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
+- provide和inject无法实时响应解决办法
+    - https://www.jianshu.com/p/2f210939cc4e
 - 扩展说明
 
 ```html
@@ -901,6 +904,10 @@ Vue.component('base-checkbox', {
 ```html
 <!-- 假设子组件接受参数：name, age, sex; dataBind/eventBind中指定的优先级高于dom上指定的属性 -->
 <child-component v-bind="dataBind" v-on="eventBind"></child-component>
+<!-- 重新包装el-pagination成组件，在使用此组件时将参数全部绑定到el-pagination中 -->
+ <el-pagination
+    v-bind="$attrs"
+/>
 
 <script>
     // 此时子组件参数全部使用默认值
@@ -1098,7 +1105,7 @@ this.$root.eventBus.$off('eventName')
     - `activate`：钩子，延迟加载
     - `transition-mode`过渡模式
 - 动态加载外部组件
-    - [组件库中使用动态组件 - 参考下文Vue组件库开发](#Vue组件库开发)
+    - [组件库中使用动态组件 - 参考下文开发组件库](#开发组件库)
     - [httpVueLoader - 从URL加载vue文件](https://blog.csdn.net/cbaili/article/details/122726149)
     - [运行时渲染 - 可以做组件在线编辑器](https://github.com/merfais/vue-demo/blob/main/doc)
     - [动态组件 - 广告弹框案例](https://juejin.cn/post/6992483283187531789)
@@ -1161,7 +1168,7 @@ this.$root.eventBus.$off('eventName')
                         // component: require('./component/demo.vue').default
                         // 2.import + component实现：该方法不同于import A from B，这种属于纯静态编译；import()方法，该方法属于动态编译，webpack在打包时，碰到import()方法，会单独生存一个独立文件，用于按需加载。但不能实现完全动态，例如下面编译时会编译所有@/components下的模块，运行时才会加载second的值从而实现懒加载
                         // 3.require + Vue.extend实现
-                        // *** 组件库中使用动态组件 - 参考下文Vue组件库开发
+                        // *** 组件库中使用动态组件 - 参考下文开发组件库
                         component: import(`@/components/${second}`),
                         error: MyDefaultComp // 加载失败可显示默认组件
                     })
@@ -1625,7 +1632,12 @@ export default {
     - `unbind` 只调用一次，指令与元素解绑时调用
 - 钩子函数参数
     - `el` 指令所绑定的元素，可以用来直接操作 DOM
-    - `binding` 包含name、value、oldValue、expression、arg、modifiers
+    - `binding` 包含name, value, expression, arg, modifiers. 案例`v-demo:foo.a.b="message"`(message=hello!)
+        - name: demo
+        - value: hello! (如果指令需要多个值，可以传入一个 JavaScript 对象字面量, `v-demo="{ color: 'white', text: 'hello!'}"`)
+        - expression: message
+        - arg: foo (也支持变量 `v-pin:[direction]="200"`)
+        - modifiers: {"a": true, "b": true}
     - `vnode`
     - `oldVnode`
 
@@ -1718,7 +1730,7 @@ Vue.directive("uppercase", {
     })
     ```
 
-## Vue组件库开发
+## 开发组件库
 
 - 说明
     - 当基于element-ui等进行二次开发时，在组件库模板中可以使用element-ui的标签，组件库无需在入口js中导入element-ui进行use(前提是主应用全局安装了element-ui)；如果在js中引入了element-ui，则不管包依赖是在dependences还是devDependences，都会将element-ui打包到组件库的输出文件中
@@ -1741,8 +1753,9 @@ Vue.directive("uppercase", {
             ],
             "typings": "types/index.d.ts",
             "scripts": {
-                // 实时监控打包(修改代码编译较快，可实时反映到主应用，且调试时显示的是源码)，配合 npm link(通过本地路径直接安装模块即可) 就可以做本地调试了
-                // 注意：打包的lib中不会出现.css文件(样式和图片等资源无法实时监控)，因为css样式已经内联了，可通过在 vue.config.js 中设置 css: { extract: true } 取消内联
+                // 实时监控打包(修改代码编译较快，可实时反映到主应用，且调试时显示的是源码；可增加如`lib/*.hot-update.*`让git忽略热更新产生的文件)
+                // 配合 npm link(通过本地路径直接安装模块即可，偶尔还是需要npm link) 就可以做本地调试了。(1)现在模块目录执行<sudo> npm link将当前模块关联到全局 (2) 在到项目目录执行`npm link my-module`关联模块到项目中(执行后会将本地开发包关联到node_modules中；如果项目目录中配置的是远程包，当重新npm i就会重新下载远程包，即npm link失效)
+                // 注意：--watch模式下，打包的lib中不会出现.css文件(样式和图片等资源无法实时监控)，因为css样式已经内联了，可通过在 vue.config.js 中设置 css: { extract: true } 取消内联
                 "dev": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js --watch",
                 // 打包命令：打出来的包在一个文件中(lib/report-table.umd.js、lib/report-table.umd.min.js等)
                 "build": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js",
@@ -2335,6 +2348,7 @@ npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-
         - onXXX的均被认为是事件，nativeOnXXX是原生事件，domPropsXXX是Dom属性，class、staticClass、style、key、ref、refInFor、slot、scopedSlots这些被认为是顶级属性，至于组件声明的props，以及html属性attrs，不需要加前缀，插件会将其统一分类到attrs属性下，然后在运行阶段根据是否在props声明来决定属性归属
         - 不建议声明onXXX的属性
     - 对于原生指令，只有v-show是支持的。v-if可用(&& 或 ?:)代替；v-for可用array.map代替；v-model使用事件触发；自定义指令使用...解构
+        - `<el-input value={this.value} onInput={$event => this.value = $event}></el-input>`
     - 对于事件
         - 使用 `on-[eventName]` 格式, 比如 on-on-change, on-click, on-camelCaseEvent
         - 使用 `on[eventName]` 格式，比如 onClick, onCamelCaseEvent。click-two 需要这样写 onClick-two，onClickTwo 是不对的
@@ -2604,7 +2618,8 @@ module.exports = {
 ## 文档框架vuepress
 
 - [vuepress](https://vuepress.vuejs.org/zh/) 官方推出的文档框架
-- 可结合[vuese](https://github.com/vuese/vuese)先对vue组件进行解析成markdown
+    - [demo](https://gitee.com/changhaojun/vuepress-demo)
+- 可结合[vuese](https://github.com/vuese/vuese) 先对vue组件进行解析成markdown
 - 其他框架
     - Docsify/Docute
         - 这两个项目同样都是基于 Vue，然而它们都是完全的运行时驱动，因此对 SEO 不够友好
@@ -2613,6 +2628,7 @@ module.exports = {
     - GitBook
         - GitBook 最大的问题在于当文件很多时，每次编辑后的重新加载时间长得令人无法忍受
     - ​docz​
+    - [docsite](https://github.com/txd-team/docsite) 阿里开源(React), 对SEO友好
 
 ## 插件收集
 

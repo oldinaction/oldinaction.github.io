@@ -37,9 +37,9 @@ $(function () {
 
 ## HTML实用标签
 
-1. 缩略语`<abbr title="attribute">attr</abbr>` <abbr title="省略的话">...</abbr>
-2. 缩进 `&emsp;`全角缩进；`&ensp;`半角缩进
-3. 引用标记 `<blockquote></blockquote>`
+1. 缩略语: `<abbr title="attribute">attr</abbr>` <abbr title="省略的话">...</abbr>
+2. 缩进: `&emsp;`全角缩进；`&ensp;`半角缩进
+3. 引用标记: `<blockquote></blockquote>`
 
 <blockquote>这是引用标记的示例</blockquote>
 
@@ -69,6 +69,20 @@ $(function () {
 
 <code>&lt;code...&gt;</code>
 <pre>&lt;pre...&gt;</pre>
+
+7.title属性换行
+
+```html
+<!-- 排版不好看 -->
+<span title="第一行
+第二行">内容</span>
+
+<!-- vue -->
+<span :title="`第一行\n第二行`">内容</span> 
+
+<!-- 使用 &#10; 或 &#13;, 测试无效 -->
+<span title="第一行&#10;第二行">内容</span> 
+```
 
 ## HTML模板
 

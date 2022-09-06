@@ -205,7 +205,8 @@ server {
         proxy_set_header X-Real-IP  $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_redirect off;
-        if (!-f $request_filename) { # proxy_pass http://127.0.0.1:8080/xxx; 会报错。proxy_pass在以下情况下，指令中不能有URI：正则表达式location、if块、命名的地点
+        # proxy_pass http://127.0.0.1:8080/xxx; 会报错。proxy_pass在以下情况下，指令中不能有URI：正则表达式location、if块、命名的地点
+        if (!-f $request_filename) {
             proxy_pass http://127.0.0.1:8080;
             break;
         }

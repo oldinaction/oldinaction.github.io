@@ -110,6 +110,9 @@ brew install nginx
 
 # 核心工具命令，如：numfmt
 brew install coreutils
+
+# c++ qt框架
+brew install qt
 ```
 
 ### VPN(PPTP)

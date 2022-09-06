@@ -3,7 +3,7 @@ layout: "post"
 title: "C#"
 date: "2018-11-19 17:23"
 categories: lang
-tags: [.NET, C#]
+tags: [.NET, C#, C, C++]
 ---
 
 ## 简介
@@ -31,6 +31,15 @@ tags: [.NET, C#]
         - `Java`：Java —> 编译 —> 字节码文件(.CLASS) —> jvm解释(jvm虚拟机) —> 二进制语言 —> 运行在CPU中
     - `ASP.NET` 是一种用来快速创建动态Web网站的技术，是.NET框架中的一个应用模型，不是语言。可以用C#或VB.NET来开发，编译后形成CLR，通过服务器的IIS+.NET FrameWork再次编译来运行
     - .NET 分成两个方面：`WinForm`和`WebForm`，ASP.NET就是属于WebForm，也就是平时说的B/S模式的开发；而WinForm就是属于C/S模式
+- C#、C++
+    - C＃
+        - 代码首先会被编译为CLR（公共语言运行库），然后由.NET框架解析，它是在虚拟机上执行，会自动进行内存管理，不支持使用指针
+        - 主要用于Windows环境
+        - 涉及基于Web的桌面和移动应用程序
+    - C++
+        - 将会直接被编译为机器代码，允许使用指针，需要手动组织管理内存
+        - 是为基于Unix的系统设计的，但现在可以用于任何平台
+        - 主要用于创建独立的控制台应用程序
 - 相关术语
     - CLR：公共语言运行时
     - 程序集(assembly)：.dll/.exe 文件，其中包含一组可由应用程序或其他程序集调用的 API。程序集可以包括接口、类、结构、枚举和委托等类型
@@ -131,6 +140,9 @@ dotnet run # 在项目目录运行
 
 ## 窗体应用(Winform)
 
+- WinForm、WebForm、MFC
+    - WinForm是C#中针对桌面应用程序提供的UI类库，针对web的有WebForm
+    - MFC是微软提供的一个C++ UI类库
 - 开发窗体应用(`Winform`)：文件 - 新建 - windows 窗体应用
 
 ## 案例

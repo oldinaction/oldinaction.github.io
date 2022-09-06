@@ -116,7 +116,7 @@ tags: [oracle, dba, sql]
         -   index：该联接类型与 ALL 相同，除了只有索引树被扫描。这通常比 ALL 快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作
         -   ALL：最慢的一种方式，即全表扫描
     -   possible_keys：指出 MySQL 能使用哪个索引在该表中找到行
-    -   **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 FORCE INDEX、USE INDEX 或者 IGNORE INDEX
+    -   **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 FORCE INDEX、USE INDEX 或者 IGNORE INDEX. 如: `select * from user use index(idx_name_sex) where id > 10000`
     -   key_len：显示 MySQL 决定使用的键长度。如果键是 NULL，则长度为 NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
     -   ref：显示使用哪个列或常数与 key 一起从表中选择行
     -   rows：显示 MySQL 认为它执行查询时必须检查的行数。注意这是一个预估值

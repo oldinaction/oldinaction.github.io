@@ -955,6 +955,7 @@ start() {
         echo "[warn] $APP_JAR already started! (pid=$psid)"
     else
         echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
+        # nohup java -jar /home/test-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod > test-$(date +%Y_%m_%d).log 2>&1 &
         JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
         su - $RUNNING_USER -c "$JAVA_CMD"
         checkpid

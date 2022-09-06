@@ -57,7 +57,7 @@ create user username identified by 'password'; -- 默认创建一个'username'@'
 -- 给此'username'@'%'用户授所有数据库所有表权限。但是不包含grant权限
 grant all privileges on *.* to 'username'@'%';
 grant all privileges on *.* to 'username'@'localhost' identified by 'password'; -- 对'username'@'localhost'操作(无此用户则创建，有则修改密码)，并授本地登录时所有权限（localhost/127.0.0.1则只能本地登录；'username'@'192.168.1.%'表示只能这个网段的机器可以访问；'username'@'%'则可以在任何机器上登录）
-grant all privileges on wordpress.* to 'username'@'localhost' identified by 'password'; -- 授予wordpress数据库下所有权限（相当于Navicat上面管理用户：服务器权限Tab不勾选；权限Tab中数据填wordpress，权限类型都勾选）
+grant all privileges on `wordpress`.* to `username`@`localhost` identified by 'password'; -- 授予wordpress数据库下所有权限（相当于Navicat上面管理用户：服务器权限Tab不勾选；权限Tab中数据填wordpress，权限类型都勾选）
 -- 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限
 grant select,insert,update,delete on mydb.* to my_admin@localhost identified by "aezocn";
 -- test可以查询 testdb 中的表
@@ -75,6 +75,7 @@ select user, host from user; -- 查询用户可登录host
 
 ## 数据备份/恢复
 
+- 参考[MySQL的数据备份与恢复](https://cloud.tencent.com/developer/article/1894635)
 - `mysqldump` 是一款 mysql **逻辑备份**的工具(备份文件为SQL文件，CLOB字段需要设置参数转为二进制)，它将数据库里面的对象(表)导出作为 SQL 脚本文件
     - 对于导出几个 G 的数据库，还是不错的；一旦数据量达到几十上百 G，无论是对原库的压力还是导出的性能都存在问题 [^2]
     - 支持基于innodb的热备份(加参数`--single-transaction`)；对myisam存储引擎的表，需加`--lock-all-tables`锁，防止数据写入
@@ -93,7 +94,6 @@ select user, host from user; -- 查询用户可登录host
 - 其中最主要的命令是 innobackupex 和 xtrabackup
     - 前者是一个 perl 脚本，后者是 C/C++ 编译的二进制。Percona 在2.3 版本用C重写了 innobackupex，innobackupex 功能全部集成到 xtrabackup 里面，只有一个 binary，另外为了使用上的兼容考虑，innobackupex 作为 xtrabackup 的一个软链接
     - 更多参考：https://www.cnblogs.com/piperck/p/9757068.html
-
 
 ### 导出导入
 
@@ -321,6 +321,7 @@ SET foreign_key_checks = 0; -- 0(增删改数据时)关闭外建校验，1开启
 - 使用 navicat 转换 - 点击`工具 -> 数据传输 - 左边选择源数据库 - 右边选择文件 - 去勾选与原服务器相同`
     - 其他选项：去勾选创建记录，去勾选创建前删除表(如果目标库中无次表则会报错)，勾选转换对象名为大写/小写(创建oracle表时不会自动将小写转大写，mysql也不会自动转小写)
     - 存在问题：小数点精度丢失(如手动替换 `Number` 为 `Number(10,2)`)、默认值丢失
+- [Oracle迁移MySQL注意事项](https://z.itpub.net/article/detail/981AEFD121E9C508F063228A878ED6E0)
 
 ## 常见问题
 

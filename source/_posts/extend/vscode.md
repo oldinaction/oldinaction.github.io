@@ -6,6 +6,16 @@ categories: [extend]
 tags: [ide, web]
 ---
 
+## 简介
+
+### 下载安装
+
+```bash
+https://az764295.vo.msecnd.net/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCodeUserSetup-ia32-1.68.0.exe
+# 将az764295.vo.msecnd.net替换为vscode.cdn.azure.cn，镜像下载快的飞起
+https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCodeUserSetup-ia32-1.68.0.exe
+```
+
 ## 快捷键
 
 - 基于`IntelliJ IDEA Keybindings`插件模式，参考[idea.md#快捷键](/_posts/extend/idea.md#快捷键)
@@ -109,15 +119,25 @@ tags: [ide, web]
 - `Bracket Pair Colorizer 2` 代码括号对应颜色标识
 - `Git Graph` git图片提交历史图形界面
 - `GitLens` 显示每一行的提交人(会卡顿)
+- `c/c++` 高亮及提示c/c++代码(运行还需安装MinGW/gcc编译器)
+- `code-runner` 运行代码, 如c(还需按照c/c++插件)
+
+    ```json
+    {
+        // 防止c语言运行乱码
+        "code-runner.runInTerminal": true,
+        "code-runner.executorMap": {
+            // 其他语言的运行命令覆盖可在插件设置中修改executorMap
+            "c": "chcp 65001 && cd $dir && gcc $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt"
+        }
+    }
+    ```
 - `Flutter` Flutter开发插件
-
-### php debug
-
-- php安装扩展xdebug
-- vscode安装扩展php-debug(xdebug的adapter)
-
-https://www.cnblogs.com/studyskill/p/6873588.html
-https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-php-5-x-7-x/
+- `php debug`
+    - php安装扩展xdebug
+    - vscode安装扩展php-debug(xdebug的adapter)
+    - https://www.cnblogs.com/studyskill/p/6873588.html
+    - https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-php-5-x-7-x/
 
 ## 用户配置
 

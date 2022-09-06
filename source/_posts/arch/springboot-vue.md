@@ -130,7 +130,7 @@ server {
 - **`CORS`需要浏览器和服务器同时支持。**目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
 - **浏览器会自动完成CORS通信过程，开发只需配置服务器同源限制**
 - **如果CORS通信过程中，响应的头信息没有包含`Access-Control-Allow-Origin`字段，浏览器则认为无法请求**，便会抛出异常被XHR的onerror捕获
-- `Spring`对CORS的支持[https://spring.io/blog/2015/06/08/cors-support-in-spring-framework](https://spring.io/blog/2015/06/08/cors-support-in-spring-framework)
+- `Spring`对CORS的支持[cors-support-in-spring-framework](https://spring.io/blog/2015/06/08/cors-support-in-spring-framework)
     - 可在方法级别进行控制，使用注解`@CrossOrigin`
     - 全局CORS配置，声明一个`WebMvcConfigurer`的bean
     - 基于`Filter`，声明一个`CorsFilter`的bean
@@ -144,47 +144,58 @@ server {
 ```java
 // 法一
 @Bean
-CorsConfigurationSource corsConfigurationSource() {
+public FilterRegistrationBean<?> filterRegistrationBean() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(Arrays.asList("*"));
     configuration.setAllowedMethods(Arrays.asList("*"));
     configuration.setAllowedHeaders(Arrays.asList("*"));
-    // axios.defaults.withCredentials = true; // 当前端设置了携带cookie，则需要后端配合加入下列代码
-    configuration.setAllowCredentials(true); // 接受cookie
+    // 接受cookie. 当前端设置了携带cookie，则需要后端配合加入下列代码(前端代码如: axios.defaults.withCredentials = true;)
+    configuration.setAllowCredentials(true); 
     // 设置可被客户端缓存时间(s)，可不设置
     configuration.setMaxAge(3600L);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
 
-// 法二
-@Bean
-public WebMvcConfigurer corsConfigurer() {
-	return new WebMvcConfigurerAdapter() {
-		@Override
-		public void addCorsMappings(CorsRegistry registry) {
-			registry.addMapping("/**")
-					.allowedHeaders("*")
-					.allowedMethods("*")
-					.allowedOrigins("*")
-					.allowCredentials(true);
-		}
-	};
+    FilterRegistrationBean<?> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+    // 利用FilterRegistrationBean，将拦截器注册靠前，避免被其它拦截器首先执行
+    bean.setOrder(0);
+    return bean;
 }
+// 也可直接返回CorsConfigurationSource(但是容易出现被其他拦截器提前拦截的问题)
+// public CorsConfigurationSource corsConfigurationSource() {
+//     return new UrlBasedCorsConfigurationSource;
+// }
 
-// 法三：基于 CorsFilter。**如果加了此配置仍然提示跨域，可检查是否有其他Filter已经返回了此请求**
+// 法二：基于 CorsFilter(控制过滤器的级别最高, 防止其他Filter已经返回了此请求)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @Bean
 public Filter corsFilter() {
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();  // org.springframework.web.cors
+    // org.springframework.web.cors
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
     config.addAllowedOrigin("*");
     config.addAllowedHeader("*");
     config.addAllowedMethod("*");
     config.setAllowCredentials(true);
     source.registerCorsConfiguration("/**", config);
-    return new CorsFilter(source); // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
+    // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
+    return new CorsFilter(source);
+}
+
+// 法三: 可能会被shiro等框架拦截
+@Bean
+public WebMvcConfigurer corsConfigurer() {
+    return new WebMvcConfigurerAdapter() {
+        @Override
+        public void addCorsMappings(CorsRegistry registry) {
+            registry.addMapping("/**")
+                    .allowedHeaders("*")
+                    .allowedMethods("*")
+                    .allowedOrigins("*")
+                    .allowCredentials(true);
+        }
+    };
 }
 
 // 法四：在@GetMapping处再增加下面注解
@@ -590,6 +601,25 @@ public static Map<String, Object> getData(HttpServletRequest request, HttpServle
 }
 ```
 
+### 模拟Form提交下载文件
+
+```js
+submitForm (row) {
+    let form = document.createElement('form')
+    form.action = 'http://localhost:8080/test/download'
+    form.method = 'post'
+    let inputOne = document.createElement('input')
+    inputOne.type = 'hidden'
+    inputOne.name = 'id'
+    inputOne.value = row.id
+    // 多个参数可继续添加
+    form.appendChild(inputOne)
+    document.body.appendChild(form)
+    // 后台response设置ContentType,Header(Content-Disposition)将文件直接以流写出；此时提交后会自动下载文件
+    form.submit()
+}
+```
+
 ## 性能优化
 
 ### 用户浏览器缓存问题 [^5]
@@ -693,7 +723,18 @@ server {
 ```
 - Vue首页加载慢问题，一般为`main.js`打包出来的体积太大，可以考虑减少main.js中的import包
 
-## 其他
+## 后端其他
+
+### Bean名称冲突
+
+- 解决方法
+    - `@RestController("myBeanName")`、`@Services("myBeanName")`等方式
+        - 默认是类名称首字母小写
+        - `@RequestMapping`映射的URL路径也不能冲突
+    - Mapper对应Bean是mybatis自动生成的(类无需注解@Repository)
+        - 修改类名称，注入的变量也需要修改(默认bean名称为类名称首字母小写)
+
+## 前端其他
 
 - 使用nginx导致部分地址直接浏览器访问报404(如基于`quasar`的项目)。可修改nginx配置如下
 
@@ -821,7 +862,27 @@ vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
 
 ## 思维
 
-- 由于某些原因，需对学生信息，复制出一条数据出来，并打上新数据的标记(在学生表中，同一学生，会有两条数据，除了ID和此标记，其他字段要求一致)。增删查改时，如何修改其中一条数据时，也同步另外一条数据？解决：查询时根据学号将两个ID同时返回到前台，然后基于ID修改
+- 由于某些原因，需对学生信息，复制出一条数据出来，并打上新数据的标记(在学生表中，同一学生，会有两条数据，除了ID和此标记，其他字段要求一致)。增删查改时，如何修改其中一条数据时，也同步另外一条数据
+    - 解决：查询时根据学号将两个ID同时返回到前台，然后基于ID修改
+
+### 接口设计原则
+
+- 假设A系统调用B系统
+- 全部是查询接口则很简单
+- 如果存在增删改数据，则一般需要有撤销接口/修改后结果查询
+- 解决执行超时/网络超时
+    - 请求增加请求流水号参数
+        - B系统(单机)
+            - 进入方法，先判断内存中是否存在此流水号，存在则返回正在执行中
+            - 不存在，则将流水号记录到内存
+            - 再判断表中是否存在，存在则报错(不允许重复请求)，不存在则正常执行
+            - 执行完成后finally将流水号移除
+            - 此执行最好设置成超时线程，一定时间没执行成功则报错，防止AB系统无限制调用
+        - A系统
+            - 请求设置超时时间，如果超时则用同一流水号继续请求，直到返回结果(成功 | 重复请求)
+            - 如果返回正在执行，可考虑重复请求，或者调用查询接口是否请求操作成功
+        - 此模式需要一直调用直到有结果，如何探知B系统是否还在继续执行，或者打断其执行
+            - B系统设置执行超时机制
 
 
 ---

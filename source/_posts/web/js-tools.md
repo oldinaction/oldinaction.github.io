@@ -900,6 +900,31 @@ nodeToString ( node ) {
 - 常用习惯
     - `Ripple` 可以使按钮展示出波纹，不使用此波纹则需要去掉`quasar.conf.js` - `directives` 中的 `Ripple` 项
 
+### Select下拉
+
+- 常用功能
+    - 自定义前台搜索
+    - 远程搜索
+    - 自定义选项模板(value和label字段可自定义)
+    - 选中返回item对象
+    - 可多选
+    - 可清除
+    - 可transfer到body
+- [Vue-multiselect](https://vue-multiselect.js.org/)
+    - 缺点
+        - 单选不能清除
+- [multiple-select](https://github.com/wenzhixin/multiple-select)
+    - 支持选项横向排列
+    - 缺点
+        - 网站速度慢，没细测试
+- [Vue Treeselect](https://github.com/riophae/vue-treeselect)
+    - 支持大数据量
+    - 缺点
+        - value和label字段无法自定义，必须后台返回字段名为id来代表value
+- [vue-tree](https://github.com/halower/vue-tree)
+- [Vue multi select](https://github.com/IneoO/vue-multi-select)
+    - 支持选项tab分页功能
+
 ## 底层硬件库
 
 ### Clipboard 复制内容到剪贴板

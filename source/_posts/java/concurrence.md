@@ -789,11 +789,14 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 - 完整示例
 
 ```java
+// 可参考 hutool的 ExecutorBuilder 和 ThreadUtil 类
+// 可参考 ThreadPoolTaskExecutor 类(支持优雅停机)
 @Bean
 public ExecutorService myExecutorService() {
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("my-pool-%d").build();
-    return new ThreadPoolExecutor(5, 200, 0, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
+    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNamePrefix("my-pool-").build();
+    // 最大线程为10个，当超过阻塞队列1024时(容量为空，则默认为Integer.MAX_VALUE，相当于无界队列)，新的任务创建新的线程，知道达到最大线程，如果还有则报错
+    return new ThreadPoolExecutor(5, 10, 60, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
 }
 ```
 - ThreadPoolExecutor源码解析

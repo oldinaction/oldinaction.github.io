@@ -67,7 +67,7 @@ for (Orders order : list) {
 	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml(无法扫描其子目录),classpath:mapper2/*.xml"
     # classpath只会扫描当前module的class, 而改为classpath*则会扫描所有jar
 	mybatis.mapper-locations=classpath:mapper/*.xml,classpath:mapper/**/*.xml
-	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置
+	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置，可用于自定义插件
 	mybatis.config-location=classpath:mybatis-config.xml
 
     ## 不设置mybatis配置文件时
@@ -310,6 +310,7 @@ for (Orders order : list) {
 
 			UserInfo getOne(Long id);
 
+            // 如果此处加了@Param别名，则xml中不能直接使用对象属性，而要使用别名.属性
 			int insert(UserInfo user); // 成功返回1
 
 			int update(UserInfo user); // jdbc url参数中需要加 &useAffectedRows=true
@@ -388,18 +389,26 @@ for (Orders order : list) {
                 </if>
 			</select>
 
-			<!-- property参数使用. 此时#{username}可以拿到selectMain的上下文 -->
+			<!-- property参数使用 -->
 			<sql id="sometable">
 				${prefix}Table where 1=1
-				<if test="username != null and username != ''">username=#{username}</if>
+                <!-- 此时 #{username} 可以拿到selectMain的上下文 -->
+				<if test='username != null and username != ""'>
+                    and username = #{username}
+                </if>
+                <!-- 此时 #{${field}} 可以拿到selectMain上下文中nickName的值 -->
+                <if test='${field} != null and ${field} != ""'>
+                    and remark = #{${field}}
+                 </if>
 			</sql>
 			<sql id="someinclude">from <include refid="${include_target}"/></sql>
             <!-- 返回 List<Map> 对象 -->
 			<select id="selectMain" resultType="map">
 				select *
 				<include refid="someinclude">
-					<property name="prefix" value="Some"/>
 					<property name="include_target" value="sometable"/>
+					<property name="prefix" value="Some"/>
+                    <property name="field" value="nickName"/>
 				</include>
 			</select>
 
@@ -643,10 +652,11 @@ for (Orders order : list) {
 - **jdbc batch**
     - 参考[java-base.md#JDBC](/_posts/java/java-base.md#JDBC)
     - 采用PreparedStatement.addBatch()方式实现
-    - 需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用
+    - Mysql需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用；**Oracle无需**
+- **[jdbcTemplate.batchUpdate](/_posts/java/springboot.md#JdbcTemplate访问数据)**
 - **mybatis batch**
     - Mybatis内置的ExecutorType有3种，默认的是simple，该模式下它为每个语句的执行创建一个新的预处理语句，单条提交sql；而batch模式重复使用已经预处理的语句，并且批量执行所有更新语句
-    - 使用batch模式需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用
+    - Mysql使用batch模式需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用；**Oracle无需**
     - 案例
 
         ```java
@@ -654,17 +664,33 @@ for (Orders order : list) {
         SqlSessionTemplate sqlSessionTemplate; // 或者注入SqlSessionFactory
 
         @Test
-        public void testInsertBatch2() throws Exception {
+        public void testInsertBatch2() {
             User user;
             SqlSession sqlSession = sqlSessionTemplate.getSqlSessionFactory().openSession(ExecutorType.BATCH, false);
-            UserDao mapper = sqlSession.getMapper(UserDao.class);
-            for (int i = 0; i < 500; i++) {
-                user = new User();
-                user.setId(i+1);
-                user.setName("name" + i);
-                mapper.insert(user);
+            try {
+                UserDao mapper = sqlSession.getMapper(UserDao.class);
+                
+                int count = 0;
+                int total = 500;
+                for (int i = 0; i < total; i++) {
+                    user = new User();
+                    user.setId(i+1);
+                    user.setName("name" + i);
+                    mapper.insert(user);
+
+                    count++;
+                    if (count % 100 == 0 || count == total) {
+                        sqlSession.commit();
+                        sqlSession.clearCache();
+                        count = 0;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                sqlSession.rollback();
+            } finally {
+                sqlSession.close();
             }
-            sqlSession.commit();
         }
         ```
 - **mybatis-plus** 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)/saveOrUpdateBatch(新增或基于ID修改)访问，见下文。基于mybatis的`openSession(ExecutorType.BATCH)`，默认每1000条提交一次
@@ -978,26 +1004,36 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
     <version>3.0.6</version>
 </dependency>
 ```
-- 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(类)
+- 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(Java类)
 - application.yaml配置(可省略)
 
 ```yml
 # mybatis-plus 配置
 mybatis-plus:
-  # mapper-locations: classpath*:/mapper/**/*.xml # 默认为此值，因此一般可以不用配置
-  # typeAliasesPackage: cn.aezo.demo.entity
+  # 默认为classpath*:/mapper/**/*.xml, 一般可以不用配置, 但是如果要扫描mapper文件根目录下的文件则需要修改如下(classpath*主要针对多模块, 可加载多个jar下的xml)
+  mapper-locations: classpath*:/mapper/*.xml,classpath*:/mapper/**/*.xml
+
+  # 配置别名扫描的包，如果查询结果resultType值填全类名，则可不需要配置. 别名如(cn.aezo.demo.party.entity.User类对应别名则可直接写类名User)
+  # typeAliasesPackage: cn.aezo.demo.**.entity
+
   global-config:
     # 逻辑删除配置(无需其他配置)
     db-config:
       logic-delete-field: valid_status # 逻辑删除字段，可省略定义 `@TableLogic`. IService#remove则是修改逻辑字段(原本为硬删除)，IService的方法则全部加valid_status=1，但是手写的Mapper则需要手动加此条件
       logic-delete-value: 0 # 逻辑已删除值
       logic-not-delete-value: 1 # 逻辑未删除值
-  # 原生配置
-  # configuration:
-  #   map-underscore-to-camel-case: true  # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
-  #   cache-enabled: false
-  #   call-setters-on-nulls: true
-  #   jdbc-type-for-null: 'null'
+  
+  # [原生配置](https://baomidou.com/pages/56bac0/#configuration-2)
+  configuration:
+    # 默认是true, 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
+    # map-underscore-to-camel-case: true
+    cache-enabled: false
+    # 如果查询语句中某些字段值是null的，则这个字段就无法返回
+    call-setters-on-nulls: true
+    # mybatis-plus + oracle 不配置则会报错: 无效的列类型: 1111
+    jdbc-type-for-null: 'null'
+    # 声明打印日志到控制台。如果打印到日志需要到logback.xml中增加配置，或者配置logging.level.cn.aezo.mapper=DEBUG
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ```
 
 #### 使用
@@ -1013,18 +1049,19 @@ mybatis-plus:
 ```java
 // ======== 基于 Mapper 进行访问
 // 返回 List<Map<String, Object>>，此时LambdaQueryWrapper基于TemplateItem实体生成sql语句(sql语句驼峰会转成下划线，返回的Map中的key全为大写下划线)
-List<Map<String, Object>> list = templateItemMapper.selectMaps(
-                new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
-                    .eq(TemplateItem::getTemplateId, templateId)
-                    .ne(TemplateItem::getTemplateId, 1) // != 1
-                    .apply(StrUtil.isNotBlank(startDate),
-                        "date_format (optime,'%Y-%m-%d') >= date_format('" + startDate + "','%Y-%m-%d')")
-                    // {index} 为占位参数
-                    .apply(StrUtil.isNotBlank(endDate),
-                        "date_format (optime,'%Y-%m-%d') <= date_format({0},'%Y-%m-%d')", endDate)
-                    .select(TemplateItem::getTemplateId, TemplateItem::getTemplateName) // 仅获取部分字段
-                    // .select(TemplateItem.class, x -> selectProps.contains(x.getProperty())))
-                    ;
+List<Map<String, Object>> list = 
+    templateItemMapper.selectMaps(
+        new LambdaQueryWrapper<TemplateItem>() // 此处一定要加入泛型
+            .eq(TemplateItem::getTemplateId, templateId)
+            .ne(TemplateItem::getTemplateId, 1) // != 1
+            .apply(StrUtil.isNotBlank(startDate),
+                "date_format (optime,'%Y-%m-%d') >= date_format('" + startDate + "','%Y-%m-%d')")
+            // {index} 为占位参数
+            .apply(StrUtil.isNotBlank(endDate),
+                "date_format (optime,'%Y-%m-%d') <= date_format({0},'%Y-%m-%d')", endDate)
+            .select(TemplateItem::getTemplateId, TemplateItem::getTemplateName) // 仅获取部分字段
+            // .select(TemplateItem.class, x -> selectProps.contains(x.getProperty()))
+    );
 List<Template> list2 = templateItemMapper.selectByMap(map); // 参数 map 中的字段即为数据库的字段(如：user_id)，且不能有非数据库字段
 
 // ======== 基于 Service 进行访问
@@ -1187,7 +1224,7 @@ public LogicSqlInjector logicSqlInjector () {
 @KeySequence(value = "SEQ_ORACLE_LONG_KEY", clazz = Long.class) // 默认是Long类型
 public class YourEntity {
     @TableId(value = "ID_LONG", type = IdType.INPUT) // 如果使用序列必须是 IdType.INPUT
-    private String idLong;
+    private Long idLong;
 }
 
 @KeySequence(value = "SEQ_ORACLE_STRING_KEY", clazz = String.class)
@@ -1216,9 +1253,41 @@ public OracleKeyGenerator oracleKeyGenerator() {
 ## 拦截器(插件)
 
 - mybatis-plus 的 `InnerInterceptor` 机制是基于 mybatis 的 `Interceptor` 实现的，具体参考 mybatis-plus 类 `MybatisPlusInterceptor`
-- Interceptor 结合 ThreadLocal 参考：https://blog.csdn.net/iteye_19045/article/details/100024506
+- mybatis 拦截器 Interceptor
+    - 实现`Interceptor`接口
+    - `@Intercepts`注解用于配置需要拦截的对象和方法
+    - 结合 ThreadLocal 参考：https://blog.csdn.net/iteye_19045/article/details/100024506
+- 案例
+    - https://juejin.cn/post/6965441270277734430 基于查询
+    - https://www.zhihu.com/question/375124631/answer/2357163072 基于修改
+- 主要代码
 
+```java
+@Intercepts({@Signature(type = Executor. class, method = "query",
+    args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})})
+public class TestInterceptor implements Interceptor {
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        Object target = invocation. getTarget(); //被代理对象
+        Method method = invocation. getMethod(); //代理方法
+        Object[] args = invocation. getArgs(); // 方法参数[MappedStatement, Object(parameter), RowBounds, ResultHandler]
+        // do something . . . . . .  方法拦截前执行代码块
+        Object result = invocation. proceed();
+        // do something . . . . . . . 方法拦截后执行代码块
+        return result;
+    }
 
+    @Override
+    public Object plugin(Object target) {
+        return Plugin. wrap(target, this);
+    }
+
+    // 插件初始化的时候调用，也只调用一次，插件配置的属性从这里设置进来
+    @Override
+    public void setProperties(Properties properties) {
+    }
+}
+```
 
 
 

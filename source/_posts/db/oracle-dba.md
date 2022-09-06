@@ -284,6 +284,12 @@ select 'grant select on ' || owner || '.' || object_name || ' to smalle;'
 select 'create or replace synonym SMALLE.' || object_name || ' for ' || owner || '.' || object_name || ';'
    from dba_objects
    where owner in ('AEZO') and object_type in ('TABLE', 'SEQUENCE', 'VIEW', 'FUNCTION', 'PROCEDURE');
+
+-- 存储过程中无法使用同义词,提示无权限解决办法
+-- 批量查询出授权语句到PUBLIC: 如果需要对同义词对象新增修改等操作则select all, 如果只需要查询可grant all
+-- 可在SMALLE用户中执行，将AEZO.TEST赋给PUBLIC(前提是SMALLE之前已经得到过同义词授权)，之后可以在SMALLE存储过程中使用AEZO的表
+select 'grant all on ' || TABLE_OWNER || '.' || TABLE_NAME || ' to PUBLIC;' from dba_synonyms WHERE OWNER='SMALLE';
+-- select 'grant select on '||SYNONYM_NAME || ' to PUBLIC; ' from dba_synonyms WHERE OWNER='TEST'
 ```
 
 #### 权限其他
@@ -607,11 +613,12 @@ lsof | grep deleted
         - 此时不关闭导入窗口，新增数据空间文件后，程序会自动继续导入，但是可能会出现索引创建失败而丢失
     - 导出时会漏表
         - 参考：https://www.cnblogs.com/abclife/p/10006815.html
-        - 在11gR2之前，oracle实在表被创建时就分配空间；
-        - 从11gR2(11.2.0.1)中引入了一个新特性：deferred segment creation。11gR2之后，参数deferred_segment_creation默认是true，表示表中插入第一条数据才会分配磁盘空间。空表还没有在磁盘上分配空间，不能被exp导出
+        - 在11gR2之前，oracle数据表被创建时就分配空间；
+        - 从11gR2(11.2.0.1)中引入了一个新特性：deferred segment creation。11gR2之后，参数deferred_segment_creation默认是true，表示表中插入第一条数据才会分配磁盘空间。**空表还没有在磁盘上分配空间，不能被exp导出**
         - 解决方法
             - 最简单的解决方案是使用expdp代替exp(expdp的参数和exp稍有不同，导入需要使用impdp)
-            - `select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';` 生成语句并执行(手动分配空间)
+            - 或者 `select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';` 生成语句并执行(手动分配空间)
+                - `select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'SMALLE';`
 - 导出
 
 ```bash
@@ -619,8 +626,9 @@ lsof | grep deleted
 # 设置字符集，防止乱码. 其他如 SIMPLIFIED CHINESE_CHINA.ZHS16GBK
 set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 
-# ******防止漏表. 生成语句并执行(手动分配空间)******
+# ******防止漏表. 生成语句并执行(手动分配空间)；如堆场SaaS模式一定要执行******
 # select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';
+# select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'SMALLE';
 
 ## 用户模式：导出 scott 用户的所有对象，前提是 system 用户有相关权限
 # system/manager@remote_orcl：使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/manager@192.168.1.1:1521/orcl)
@@ -702,7 +710,7 @@ spool off;
 -- 查询user是否锁定、及时间
 SELECT USERNAME,ACCOUNT_STATUS,LOCK_DATE,CREATED,PROFILE FROM DBA_USERS WHERE USERNAME = 'TEST_USER';
 -- 修改密码（oracle可以修改为原密码）
-alter user TEST_USER account unlock identified by Hello1234!;
+alter user TEST_USER account unlock identified by "Hello1234!";
 
 -- 查询用户默认profile
 select profile from dba_users where username = 'TEST_USER';
@@ -833,6 +841,7 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
 
     -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
     select segment_name, sum(bytes)/1024/1024/1024 as "GB" from user_extents group by segment_name order by sum(bytes) desc;
+    select segment_name, sum(bytes)/1024/1024/1024 as "GB" from dba_extents where owner = 'SMALLE' group by segment_name order by sum(bytes) desc;
     -- 上面结果返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过下面语句查看属于哪张表
     select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';
     -- 查看所有LOB块信息

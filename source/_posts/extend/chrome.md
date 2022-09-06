@@ -18,21 +18,26 @@ tags: [plugins, debug]
 
 ## chrome插件收集
 
-- `谷歌访问助手`
-- `AdBlock` 广告拦截
-- `Infinity新标签页` 标签管理
-- `有道词典Chrome划词插件`
-- `Evernote Web Clipper` 印象笔记·剪藏
-- `新浪微博图床`
-- `Tampermonkey` 油猴脚本。相关脚本：https://greasyfork.org/zh-CN/scripts
-- `IDM Integration Module` IDM下载
-- `Secure Shell` ssh客户端
-- `Postman` Http请求客户端
-- `JSONView` 将Http请求获取的json字符串格式化(可收缩)
-- `Selenium IDE` 自动化测试录制
-- `Axure RP Extension for Chrome` Axure设计
-- `Vue.js devtools` Vue.js调试工具
-- `Set Character Encoding` 解决chrome查看源码乱码问题
+- 插件网站
+    - https://www.crxsoso.com/
+- 必备
+    - `谷歌访问助手`
+    - `AdBlock` 广告拦截
+    - `Tampermonkey` 油猴脚本。相关脚本：https://greasyfork.org/zh-CN/scripts
+    - `IDM Integration Module` IDM下载
+    - `OneTab`
+    - `Infinity新标签页` 标签管理
+    - `有道词典Chrome划词插件`
+    - `JSONView` 将Http请求获取的json字符串格式化(可收缩)
+    - `Vue.js devtools` Vue.js调试工具
+- 其他
+    - `Evernote Web Clipper` 印象笔记·剪藏
+    - `新浪微博图床`
+    - `Secure Shell` ssh客户端
+    - `Postman` Http请求客户端
+    - `Selenium IDE` 自动化测试录制
+    - `Axure RP Extension for Chrome` Axure设计
+    - `Set Character Encoding` 解决chrome查看源码乱码问题
 - Github相关
     - `SourceGraph` 基于目录显示文件，类之间的跳转，代码搜索等功能
     - `Octotree` 展现源码目录
@@ -88,7 +93,7 @@ tags: [plugins, debug]
     - chrome://version 显示当前版本
     - chrome://flags 实验项目，加“#项目名称”锚点可以直接定位到项目
     - chrome://settings 设置，下图是设置定位
-    - chrome://extensions 查看扩展程序，“chrome://extensions/程序名称”可快速打开
+    - chrome://extensions 查看扩展程序
     - chrome://net-internals 显示网络事件信息
     - chrome://components 查看组件信息
     - chrome://memory-redirect 浏览器内存使用的统计信息，也可以这样进入：工具\任务管理器\详细统计信息

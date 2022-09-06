@@ -452,8 +452,8 @@ src/components
   "semi": false,
   /* 在对象属性添加空格 */
   "bracketSpacing": true,
-  /* 优化html闭合标签不换行的问题 */
-  "htmlWhitespaceSensitivity": "ignore",
+  /* 优化html闭合标签不换行的问题. ignore: 存在span等标签格式化后出现换行空格. 参考: https://juejin.cn/post/6844904194059534350 */
+  "htmlWhitespaceSensitivity": "strict",
   /* 每行最大长度默认80(适配1366屏幕，1920可设置成140) */
   "printWidth": 140
 }
@@ -485,7 +485,9 @@ trim_trailing_whitespace = false
 indent_style = tab
 ```
 
+## 在线工具
 
+- [StackBlitz](https://stackblitz.com/) 是一款在线 IDE(可直接运行项目)，主要面向 Web 开发者，移植了很多 VS Code 的特性与功能
 
 
 

@@ -1342,6 +1342,9 @@ vm.dirty_writeback_centisecs = 500
     grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
     # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
     ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
+
+    # 网站访问量相关统计
+    # https://mp.weixin.qq.com/s/vUvYdeo5eAXR1vdOpSN0WQ
     ```
 - grep结果单独处理
 

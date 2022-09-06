@@ -1268,7 +1268,7 @@ helm del --purge logstash-monitoring
 
 > https://hub.kubeapps.com/charts/sonatype/nexus-repository-manager
 
-- 参考[maven私服搭建(nexus)](/_posts/arch/maven.md#maven私服搭建(nexus))
+- 参考[maven私服搭建(nexus)](/_posts/java/maven.md#maven私服搭建(nexus))
 
 ```bash
 helm repo add sonatype https://sonatype.github.io/helm3-charts/

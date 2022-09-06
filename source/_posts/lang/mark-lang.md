@@ -17,14 +17,16 @@ tags: [yaml, json]
 ## 直接使用\n来换行
 string: "Hello,\n\
          World."
+
+# 配置按段落，显示不需要按段落
+string: 'Hello,
+         World.'
+
 ## 使用｜(文中自动换行 + 文末新增一空行。测试可行)、｜+(文中自动换行 + 文末新增两个空行)、|-(文中自动换行 + 文末不新增空行)
 string: |
   Hello,
   World.
 
-# 配置按段落，显示不需要按段落
-string: 'Hello,
-         World.'
 # 使用>(文中不自动换行 + 文末新增一空行)、>+、>-
 string: >
   Hello,
@@ -33,7 +35,7 @@ string: >
 # Java配置文件可以映射为 Map
 map:
   key: val
-map2: {}
+map2: '{"name": "test"}'
 ```
 
 ## json
@@ -72,6 +74,22 @@ map2: {}
 ### jsonpath
 
 - 类似xpath获取json值
+- 基于java工具类hutool取值和设值: `JSONUtil.getByPath`, `JSONUtil.putByPath`
+
+    ```java
+    Map<String, Object> map = new HashMap<>();
+    map.put("a", "aa");
+    map.put("b", MiscU.Instance.toList(
+            MiscU.Instance.toMap("b1", "b11"),
+            MiscU.Instance.toMap("b1", "b21", "b2", "b22")));
+    map.put("c", MiscU.Instance.toMap("c1", "c11"));
+
+    System.out.println(JSONUtil.getByPath(new JSONObject(map), "a")); // aa
+    System.out.println(JSONUtil.getByPath(new JSONObject(map), "b[1]")); // {"b1":"b21","b2":"b22"}
+    // System.out.println(JSONUtil.getByPath(new JSONObject(map), "b[].b1")); // 不支持
+    System.out.println(JSONUtil.getByPath(new JSONObject(map), "c.c1")); // c11
+    System.out.println(JSONUtil.getByPath(new JSONObject(map), "c.c2")); // null
+    ```
 - [jmespath](https://jmespath.org/)
     - 提供Javascript、Java、Python、PHP相关类库：https://jmespath.org/libraries.html
     - [js版本的jmespath](https://github.com/jmespath/jmespath.js)

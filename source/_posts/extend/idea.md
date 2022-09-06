@@ -16,7 +16,7 @@ tags: [IDE]
 
 ### 2021.1
 
-- 通过无限重置30天试用达到永久使用: http://www.520xiazai.com/soft/jetbrains-eval-reset.html
+- 通过无限重置30天试用达到永久使用: https://plugins.zhile.io/files/ide-eval-resetter-2.1.6.zip
 
 ### 2018.1
 
@@ -216,6 +216,9 @@ ThisCrackLicenseId-{
     - `Ctrl + Shift + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
     - `Ctrl + Shift + Backspace` 回到上次编辑位置
     - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
+- Mac
+    - `Cmd + Shift + U` 大小写转换
+    - `Alt + Shift + U` 驼峰下划线转换(基于插件)
 - 快捷键图片
 
 ![idea-keys](/data/images/2016/09/idea-keys.png)
@@ -266,6 +269,7 @@ ThisCrackLicenseId-{
 
 - 回退断点：删除掉某个Frame即可，Frame显示的是执行过的和当前执行的帧，如果删除了，则会从上一帧重新调用 [^3]
 - 中断Debug/强制返回：右键帧 - Force Return - 填写返回值
+- 远程Debug，参考[JVM参数使用](/_posts/java/jvm.md#JVM参数使用)
 
 ### 查看并搜索/调试/编辑jar包源码
 
@@ -305,6 +309,11 @@ ThisCrackLicenseId-{
 - 暂存功能(Shelve搁置)。类似[git stash](/_posts/arch/git.md#暂存工作区)
     - Local Changes - 右键 - Shelve Changes - 命名一下此搁置 ==> 此变更会被暂存(暂存不会产生commit记录，主分支会被还原成未修改的状态)
     - Shelf - 右键 - UnShelve ==> 还原此暂存到主分支
+
+### 常见问题
+
+- 移除maven模块
+    - 在项目目录中选中模块 - 右键 - Remove Module；然后再Maven依赖窗口中 - 右键 - Unlink Maven Projects
 
 ## IDEA开发PHP程序
 

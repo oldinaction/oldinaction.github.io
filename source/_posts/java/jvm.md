@@ -1040,7 +1040,7 @@ for(int i=0; i<100; i++) {
     - `springboot`：可直接加在java命令后面，如`java -Xms256 -jar xxx.jar`
     - `idea`：Run/Debug Configruations中修改VM Options(单独运行tomcat或者springboot项目都如此)
     - `eclipse`：修改eclipse中tomcat的配置
-- 远程调试
+- 远程Debug
     - 远程调试(Attach. 必须先启动应用，再启动idea debug)
         - 应用端启动增加参数`-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005`
     - 远程调试(Listen. 必须先启动idea debug，再启动应用)

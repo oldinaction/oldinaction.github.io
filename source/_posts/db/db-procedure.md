@@ -31,9 +31,9 @@ if ... elsif ... end if; -- 注意是 elsif
 
 ```sql
 for i in 1..100 loop
-if i > 10 then
-goto end_loop;
-end if;
+    if i > 10 then
+        goto end_loop;
+    end if;
 end loop;
 <<outer>>
 dbms_output.put_line('loop 循环了10次提前结束了！');
@@ -115,7 +115,6 @@ begin
 	
 		--使用连接符拼接成一条完整SQL. oracle转义字符为 ' ，如 '' 转义后就是 '
 		v_sql := 'select * from ycross_storage t where t.yes_storage = 1 and t.location_id = ' || loc.location_id;
-		-- 字符串分割案例。v_sql := 'select * from table (cast (sm_split (''' || myStr || ''', ''/'') as sm_type_arr_str))';
 
 		--打开游标
 		open v_cur_storage for v_sql; -- open v_cur_storage for 'select 1 from dual';
@@ -177,6 +176,7 @@ end;
 	- `too_many_rows` 数据返回行数太多(select...into...语句可以捕获)
 	- `value_error` 值异常(转换异常、字段大小异常)
 	- `others` 所有未捕获的异常(也可捕获自定义异常)
+- 防止select into无数据报错情况，可使用`select max(name) into str from ...`
 - 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来。捕获子异常也需要`begin...end`包起来
 
 	```sql
@@ -208,6 +208,258 @@ end;
 ### forall与bulk collect语句提高效率
 
 参考：[http://blog.aezo.cn/2018/07/27/db/sql-optimize/](/_posts/db/sql-optimize.md#批量更新优化)
+
+### 常用类型
+
+```sql
+-- 用于 sq_split 函数function
+create or replace type sq_type_split as table of varchar2(4000);
+
+drop type sq_type_big_table;
+drop type sq_type_big_table_row;
+
+-- 定义动态大表: 如用于sql_pivot_dynamic_col动态行转列
+-- 定义行类型
+create or replace type sq_type_big_table_row as object (
+	c1 VARCHAR2(255), c2 VARCHAR2(255), c3 VARCHAR2(255), c4 VARCHAR2(255), c5 VARCHAR2(255), c6 VARCHAR2(255), c7 VARCHAR2(255), c8 VARCHAR2(255), c9 VARCHAR2(255), c10 VARCHAR2(255),
+	c11 VARCHAR2(255), c12 VARCHAR2(255), c13 VARCHAR2(255), c14 VARCHAR2(255), c15 VARCHAR2(255), c16 VARCHAR2(255), c17 VARCHAR2(255), c18 VARCHAR2(255), c19 VARCHAR2(255), c20 VARCHAR2(255),
+	c21 VARCHAR2(255), c22 VARCHAR2(255), c23 VARCHAR2(255), c24 VARCHAR2(255), c25 VARCHAR2(255), c26 VARCHAR2(255), c27 VARCHAR2(255), c28 VARCHAR2(255), c29 VARCHAR2(255), c30 VARCHAR2(255),
+	c31 VARCHAR2(255), c32 VARCHAR2(255), c33 VARCHAR2(255), c34 VARCHAR2(255), c35 VARCHAR2(255), c36 VARCHAR2(255), c37 VARCHAR2(255), c38 VARCHAR2(255), c39 VARCHAR2(255), c40 VARCHAR2(255),
+	c41 VARCHAR2(255), c42 VARCHAR2(255), c43 VARCHAR2(255), c44 VARCHAR2(255), c45 VARCHAR2(255), c46 VARCHAR2(255), c47 VARCHAR2(255), c48 VARCHAR2(255), c49 VARCHAR2(255), c50 VARCHAR2(255)
+);
+-- 定义表类型
+create or replace type sq_type_big_table is table of sq_type_big_table_row;
+-- 删除时, 需要先删除sq_type_big_table
+drop type sq_type_big_table;
+drop type sq_type_big_table_row;
+```
+
+### 常用函数
+
+#### sq_split字符串分割
+
+```sql
+-- 创建类型
+create or replace type sq_type_split as table of varchar2(4000);
+
+-- 创建函数(使用pipelined)
+create or replace function sq_split(p_list varchar2, p_sep varchar2 := ',')
+  return sq_type_split
+  pipelined is
+  l_idx  pls_integer;
+  v_list varchar2(50) := p_list;
+begin
+  loop
+    l_idx := instr(v_list, p_sep);
+    if l_idx > 0 then
+      pipe row(substr(v_list, 1, l_idx - 1));
+      v_list := substr(v_list, l_idx + length(p_sep));
+    else
+      pipe row(v_list);
+      exit;
+    end if;
+  end loop;
+  return;
+end sq_split;
+
+-- 使用: 返回3行数据(COLUMN_VALUE)
+select * from table(sq_split('A,BC,D',','));
+```
+
+#### sql_pivot_dynamic_col动态行转列
+
+- 前提
+    - 创建sq_type_big_table_row、sq_type_big_table类型(参考上文)
+    - 调用自定义函数sq_split(参考上文)
+
+```sql
+/**
+ * 动态行转列
+ * 
+ * sql_pivot_col 动态列字段(内部会进行去重): select <sql_pivot_col> from <sql_table> <sql_where> <sql_pivot_tail>
+ * sql_table 查询的表(用于获取动态列字段 + 最终的行转列查询)
+ * sql_where 查询条件(用于获取动态列字段 + 最终的行转列查询)
+ * sql_pivot_tail 获取动态列时的尾部SQL, 如基于字段排序(可控制列的顺序)
+ * sql_select_other_col 最终的行转列查询时, 除了查询动态列外的其他列(会拼接到动态列前面), 如果未非字符串(数字等)需要使用to_char转成字符串
+ * sql_pivot 最终的行转列查询时的pivot语句, 其in子句中的内容需要使用@pivot_col_in@占位符代替
+ * run_type 运行方式: 1获取列名行, 2获取值行, 3获取列名行+值行
+ * sql_select_other_col_alias 查询额外列时对应列的别名
+ * 
+ * eg:
+ * select * from table(sql_pivot_dynamic_col('bill_fee_cod', 'bill_fee', 'where PORT_ID = ''1'' and TRUST_COD = ''CUL''', 'order by bill_fee_cod'
+	,'to_char(ship_no), bill_nbr', 'pivot (SUM(MONEY_NUM) for bill_fee_cod in(@pivot_col_in@))', 3, '船号,提单号'));
+ */
+CREATE OR REPLACE function sql_pivot_dynamic_col(sql_pivot_col varchar2, sql_table varchar2, sql_where varchar2, sql_pivot_tail varchar2, 
+	sql_select_other_col in varchar2, sql_pivot in varchar2, run_type IN NUMBER, sql_select_other_col_alias in varchar2 := '')
+return sq_type_big_table pipelined as v_row sq_type_big_table_row;
+       -- 需要和sq_type_big_table_row对应列数相同
+       sq_type_big_table_col_count NUMBER(10) := 50;
+       sqlstr varchar2(4000);
+       pivot_col_select varchar2(1000);
+       pivot_col_in varchar2(1000);
+       pivot_col_in_tmp varchar2(1000);
+       pivot_col_select_count NUMBER(10);
+       col_other_total NUMBER(10);
+       col_total NUMBER(10);
+       col_alias varchar2(100);
+       -- 列名, 需要有sq_type_big_table_col_count个列名
+       c1 varchar2(255);
+       c2 varchar2(255);
+       c3 varchar2(255);
+       c4 varchar2(255);
+       c5 varchar2(255);
+       c6 varchar2(255);
+       c7 varchar2(255);
+       c8 varchar2(255);
+       c9 varchar2(255);
+       c10 varchar2(255);
+       c11 varchar2(255);
+       c12 varchar2(255);
+       c13 varchar2(255);
+       c14 varchar2(255);
+       c15 varchar2(255);
+       c16 varchar2(255);
+       c17 varchar2(255);
+       c18 varchar2(255);
+       c19 varchar2(255);
+       c20 varchar2(255);
+       c21 varchar2(255);
+       c22 varchar2(255);
+       c23 varchar2(255);
+       c24 varchar2(255);
+       c25 varchar2(255);
+       c26 varchar2(255);
+       c27 varchar2(255);
+       c28 varchar2(255);
+       c29 varchar2(255);
+       c30 varchar2(255);
+       c31 varchar2(255);
+       c32 varchar2(255);
+       c33 varchar2(255);
+       c34 varchar2(255);
+       c35 varchar2(255);
+       c36 varchar2(255);
+       c37 varchar2(255);
+       c38 varchar2(255);
+       c39 varchar2(255);
+       c40 varchar2(255);
+       c41 varchar2(255);
+       c42 varchar2(255);
+       c43 varchar2(255);
+       c44 varchar2(255);
+       c45 varchar2(255);
+       c46 varchar2(255);
+       c47 varchar2(255);
+       c48 varchar2(255);
+       c49 varchar2(255);
+       c50 varchar2(255);
+       type cursor_type is ref cursor;
+       my_cursor cursor_type;
+BEGIN
+  -- 获取动态列个数和对应动态列SQL片段
+  -- select wm_concat(distinct 'to_char("' || bill_fee_cod || '")'), wm_concat(distinct '''' || bill_fee_cod || '''' || ' "' || bill_fee_cod || '"'), count(distinct bill_fee_cod) from bill_fee where port_id = '1' and MONEY_NUM != 0 order by BILL_FEE_COD;
+  -- (1) 查询列 to_char("DOF"), to_char("LESS") (2) pivot in列 'DOF' "DOF", 'LESS' "LESS" (3) 列个数 2
+  sqlstr := 
+  	'select 
+		wm_concat(distinct ''to_char("'' || ' || sql_pivot_col || ' || ''")'') pivot_col_select
+		,wm_concat(distinct '''''''' || ' || sql_pivot_col || ' || '''''''' || '' "'' || ' || sql_pivot_col || ' || ''"'') pivot_col_in
+		,count(distinct ' || sql_pivot_col || ') pivot_col_select_count
+	from ' || sql_table || ' ' || sql_where || ' ' || sql_pivot_tail;
+  
+  open my_cursor for sqlstr;
+  loop
+    fetch my_cursor into pivot_col_select, pivot_col_in, pivot_col_select_count;
+    exit when my_cursor%notfound;
+    SELECT count(1) INTO col_other_total FROM table(sq_split(sql_select_other_col));
+    col_total := col_other_total + pivot_col_select_count;
+    IF col_total > sq_type_big_table_col_count THEN
+      raise_application_error(-20000, '动态列个数超长');
+    END IF;
+    IF col_total < sq_type_big_table_col_count THEN
+      for i in (col_total + 1)..sq_type_big_table_col_count loop
+        pivot_col_select := pivot_col_select || ' ,'''' C' || i || ' ';
+      end loop;
+    END IF;
+    IF sql_select_other_col IS NOT NULL THEN
+    	pivot_col_select := ',' || pivot_col_select;
+    END IF;
+  end loop;
+  close my_cursor;
+
+  -- 拼接基于pivot的查询sql
+  select 'select ' || sql_select_other_col || pivot_col_select 
+  	 	|| ' from ' || sql_table || ' ' || replace(sql_pivot, '@pivot_col_in@', pivot_col_in)
+  	    || ' ' || sql_where into sqlstr from dual;
+  -- 如果需要返回列名行，需要将不足的列进行拼接
+  IF run_type = 1 OR run_type = 3 THEN
+  	IF col_other_total > 0 THEN
+  		FOR i IN 1..col_other_total LOOP
+	  	  IF sql_select_other_col_alias IS NOT NULL THEN
+	  	  	SELECT t.COLUMN_VALUE INTO col_alias FROM (SELECT rownum rn, a.* FROM table(sq_split(sql_select_other_col_alias)) a) t WHERE rn = i;
+	  	  END IF;
+	  	  IF col_alias IS NULL THEN
+	  	  	col_alias := '';
+	  	  END IF;
+  		  pivot_col_in_tmp := pivot_col_in_tmp || '''' || col_alias || ''' C' || i || ',';
+  		end LOOP;
+  		pivot_col_in := pivot_col_in_tmp || pivot_col_in;
+  	END IF;
+  	IF col_total < sq_type_big_table_col_count THEN
+	  for i in (col_total + 1)..sq_type_big_table_col_count loop
+	    pivot_col_in := pivot_col_in || ' ,'''' C' || i || ' ';
+	  end loop;
+	END IF;
+  END IF;
+  IF run_type = 1 THEN
+    -- 返回列名行
+  	select 'select ' || pivot_col_in || ' from dual' into sqlstr from dual;
+  ELSE 
+  	IF run_type = 2 THEN
+  	  -- 返回值行
+  	  sqlstr := sqlstr;
+	ELSE
+	  -- 返回列名行和值行
+  	  select 'select ' || pivot_col_in || ' from dual union all ' || sqlstr into sqlstr from dual;
+	END IF;
+  END IF;
+  -- dbms_output.put_line(sqlstr);
+
+  open my_cursor for sqlstr;
+  loop
+    fetch my_cursor into 
+    	c1, c2, c3, c4, c5, c6, c7, c8, c9, c10,
+    	c11, c12, c13, c14, c15, c16, c17, c18, c19, c20,
+    	c21, c22, c23, c24, c25, c26, c27, c28, c29, c30,
+    	c31, c32, c33, c34, c35, c36, c37, c38, c39, c40,
+    	c41, c42, c43, c44, c45, c46, c47, c48, c49, c50;
+    exit when my_cursor%notfound;
+    v_row := sq_type_big_table_row(
+   		c1, c2, c3, c4, c5, c6, c7, c8, c9, c10,
+    	c11, c12, c13, c14, c15, c16, c17, c18, c19, c20,
+    	c21, c22, c23, c24, c25, c26, c27, c28, c29, c30,
+    	c31, c32, c33, c34, c35, c36, c37, c38, c39, c40,
+    	c41, c42, c43, c44, c45, c46, c47, c48, c49, c50
+   	);
+    -- 返回行数据到sq_type_big_table表中
+    pipe row(v_row);
+  end loop;
+  close my_cursor;
+  return;
+end sql_pivot_dynamic_col;
+```
+- 使用
+
+```sql
+-- 获取每个提单对应的费目和金额(将费目行转列)
+select * from table(sql_pivot_dynamic_col('bill_fee_cod', 'bill_fee', 'where PORT_ID = ''1'' and TRUST_COD = ''CUL''', 'order by bill_fee_cod'
+,'to_char(ship_no), bill_nbr', 'pivot (SUM(MONEY_NUM) for bill_fee_cod in(@pivot_col_in@))', 3, '船号,提单号'));
+-- 结果如(run_type=3)
+列      C1      C2              C3      C4      C5      ...
+值      船号     提单号           DOF     AOF     LESS
+值      56143	CSI0135291              20
+值      56143	CSI0135292      10      30      40
+值      56144	CSI0135293              20      40
+```
 
 ## Mysql存储过程示例
 
@@ -821,7 +1073,8 @@ select * from emp2_log;
 
 -- 24.触发器解决外键约束后不能执行更新操作（一般很少使用）当执行update dept set deptno = 99 where deptno = 10;时会报错，因为dept中的deptno被emp中的deptno参考。使用触发器解决此问题：
 create or replace trigger t
-	after update on dept for each row
+    -- 当修改dept.dname字段时触发
+	after update of dname on dept for each row
 begin
 	update emp set deptno = :NEW.deptno where deptno = :OLD.deptno;
 end;

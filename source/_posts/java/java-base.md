@@ -5,7 +5,15 @@ date: "2017-12-12 10:07"
 categories: [java]
 ---
 
-## 安装/命令
+## 安装
+
+```bash
+# JDK 下载镜像网站
+https://repo.huaweicloud.com/java/jdk/
+http://www.codebaoku.com/jdk/jdk-index.html
+```
+
+## 命令
 
 - 打包jar
 
@@ -29,6 +37,12 @@ breakFor : for (int i = 0; i < 100; i++) {
         }
     }
 }
+```
+
+## 字符串
+
+```java
+MessageFormat.format("hello {0}, date {1}", "bob", new Date());
 ```
 
 ## 类
@@ -248,6 +262,18 @@ public static <T> List<T> loadFactories(Class<T> factoryClass, @Nullable ClassLo
     }
     T t = (T) ReflectionUtils.accessibleConstructor(instanceClass).newInstance();
     // ...
+}
+```
+
+### 注解
+
+```java
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface SysLog {
+    String type() default "";
+    String[] paramPath() default {};
 }
 ```
 
@@ -558,6 +584,18 @@ public class ConnectionMySQL {
 }
 ```
 
+## JNI和JNA
+
+- JNI: Java Native Interface
+- JNA: Java Native Access, 提供一组Java工具类用于在运行期间动态访问系统本地库（native library：如Window的dll）而不需要编写任何Native/JNI代码
+- 参考文章
+    - 基于JNI
+        - https://blog.csdn.net/u011720560/article/details/77689168
+        - IntelliJ IDEA 平台下 JNI 编程: https://juejin.cn/post/6844903458844213262
+    - 基于JNA
+        - https://www.mdnice.com/writing/9a66c7f4a37548a79aece51e0ffb50ba
+- 说明JDK的版本和DLL的版本要对应(和操作系统版本没有关系，主机只需要能运行JDK即可)，如JDK 64位只能调用64位的DLL
+
 ## 易错点
 
 - 基础语法
@@ -590,6 +628,7 @@ public static void main(String[] args) {
 
 ```java
 "1,2,,".split(","); // ["1", "2"]
+",1,2".split(","); // ["", "1", "2"]
 "1,2,,".split(",", -1); // ["1", "2", "", ""]
 ```
 - final

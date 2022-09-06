@@ -85,8 +85,10 @@ public void download(@PathVariable("id") Integer id, @PathVariable("fileName") S
 public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) {
 	// 1.服务器内存溢出，还未宕机时，是可以请求服务，但是一直获取不到返回。需要超时机制
     RestTemplate restTemplate = restTemplateBuilder
-			.setConnectTimeout(3000) // 连接主机的超时时间（单位：毫秒），3s
-			.setReadTimeout(3000) // 从主机读取数据的超时时间（单位：毫秒），3s
+            // 连接主机的超时时间（单位：毫秒）
+			.setConnectTimeout(5000)
+            // 从主机读取数据的超时时间（单位：毫秒）
+			.setReadTimeout(5000)
 			.build();
     
     // 2.自定义拦截器restTrackInterceptor(implements org.springframework.http.client.ClientHttpRequestInterceptor)。必须通过此拦截器才可以修改如Header中的值，AOP无法修改
@@ -95,7 +97,9 @@ public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) 
     // 3.忽略证书
     try {
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+                // org.apache.http.ssl.TrustStrategy
                 .loadTrustMaterial(null, new TrustStrategy() {
+                    // java.security.cert.X509Certificate
                     @Override
                     public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
                         return true;

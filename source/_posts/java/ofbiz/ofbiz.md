@@ -332,6 +332,10 @@ mail.smtp.port=25 # 端口
 - Tanant数据源默认是在第一次查询时(`delegator = DelegatorFactory.getDelegator(delegatorName);`)进行初始化(会看到控制台检查Tanant数据源表结构日志)，此时需要较长时间
     - 可考虑在项目重启时初始化所有的Tenant数据源
 - 开启`TenantUserLogin`，可限制某个用户可使用的数据源
+- 相关表
+    - Tenant 租户ID
+    - TenantDataSource 租户ID数据源
+    - TenantUserLogin 用户对应租户ID(主库只存此对应关系，使用用户和密码是存在租户库的UserLogin中，主库没有存)
 - 获取默认Delegator `Delegator baseDelegator = DelegatorFactory.getDelegator(delegator.getDelegatorBaseName());`
 - 流程
 
@@ -409,6 +413,57 @@ mail.smtp.port=25 # 端口
         <group-map group-name="org.ofbiz.tenant" datasource-name="localoracletenant"/>
     </delegator>
 
+    <!-- 主数据源去掉了schema参数，schema-name="YARDSAAS" -->
+    <datasource name="localoracle"
+            helper-class="org.ofbiz.entity.datasource.GenericHelperDAO"
+            field-type-name="oracle"
+            check-on-start="true"
+            add-missing-on-start="true"
+            alias-view-columns="false"
+            join-style="ansi"
+            use-order-by-nulls="true">
+        <read-data reader-name="tenant"/>
+        <read-data reader-name="seed"/>
+        <read-data reader-name="seed-initial"/>
+        <read-data reader-name="demo"/>
+        <read-data reader-name="ext"/>
+        <read-data reader-name="ext-test"/>
+        <read-data reader-name="ext-demo"/>
+        <inline-jdbc
+                jdbc-driver="oracle.jdbc.driver.OracleDriver"
+                jdbc-uri="jdbc:oracle:thin:@192.168.1.1:1521:orcl"
+                jdbc-username="YARDSAAS"
+                jdbc-password="YARDSAAS"
+                pool-minsize="2"
+                pool-maxsize="250"
+                time-between-eviction-runs-millis="600000"/>
+    </datasource>
+    <datasource name="localoracletenant"
+                helper-class="org.ofbiz.entity.datasource.GenericHelperDAO"
+                field-type-name="oracle"
+                schema-name="YARDSAAS"
+                check-on-start="true"
+                add-missing-on-start="true"
+                alias-view-columns="false"
+                join-style="ansi"
+                use-order-by-nulls="true">
+        <read-data reader-name="tenant"/>
+        <read-data reader-name="seed"/>
+        <read-data reader-name="seed-initial"/>
+        <read-data reader-name="demo"/>
+        <read-data reader-name="ext"/>
+        <read-data reader-name="ext-test"/>
+        <read-data reader-name="ext-demo"/>
+        <inline-jdbc
+                jdbc-driver="oracle.jdbc.driver.OracleDriver"
+                jdbc-uri="jdbc:oracle:thin:@192.168.1.1:1521:orcl"
+                jdbc-username="YARDSAAS"
+                jdbc-password="YARDSAAS"
+                pool-minsize="2"
+                pool-maxsize="250"
+                time-between-eviction-runs-millis="600000"/>
+    </datasource>
+
     <!-- 将default下相关的几个datasource的check-on-start属性设置成false，可在启动时不对数据库表结构进行检查，从而加快启动速度 -->
     <datasource name="localmysqlolap" check-on-start="false">
         ...
@@ -446,11 +501,11 @@ mail.smtp.port=25 # 端口
         ```java
         // 正确做法(delegator中包含Tenant信息，因此获取GenericHelperInfo也包含Tenant信息)
         GenericHelperInfo helperInfo = delegator.getGroupHelperInfo("org.ofbiz");
-        Connection connection = ConnectionFactory.getConnection(groupHelperName);
+        Connection connection = ConnectionFactory.getConnection(helperInfo);
 
         // 错误做法(此时无法获取到Tenant数据源)
         String groupHelperName = delegator.getGroupHelperName("org.ofbiz");
-		Connection connection = ConnectionFactory.getConnection(helperInfo);
+		Connection connection = ConnectionFactory.getConnection(groupHelperName);
         ```
     - delegator基于entity查询数据时，实体引擎生成的表结构默认带有主数据源的schame
         - 如果Oracle使用的是一个数据库，并使用的是不同表空间来完成Tenant，就会导致查询确实连接的是Tenant数据库，但是sql语句包含schame(select * from a.my_table)
@@ -566,6 +621,35 @@ truncate visit;
 -- 开启检查外键
 SET foreign_key_checks=1;
 TRUNCATE user_login_history;
+
+-- oracle
+truncate table SERVER_HIT;
+truncate table SERVER_HIT_BIN;
+alter table VISIT disable primary key cascade; -- 禁用主键
+truncate table VISIT; -- 必须先禁用主键，直接清空会报错
+alter table VISIT enable primary key; -- 恢复启用主键
+truncate table SERVER_HIT_TMP;
+alter index PK_SERVER_HIT rebuild online;
+alter index SERVER_HIT_USER rebuild online;
+alter index SERVER_HIT_SHTYP rebuild online;
+alter index SERVER_HIT_VISIT rebuild online;
+alter index SERVER_HIT_PARTY rebuild online;
+alter index SERVER_HIT_TXSTMP rebuild online;
+alter index SERVER_HIT_TXCRTS rebuild online;
+```
+
+- 创建账号
+
+```sql
+select * from YARDSAAS1.PARTY ORDER BY PARTY_ID DESC; -- 13000
+select * from YARDSAAS1.PERSON t WHERE T.PARTY_ID = '12140';
+select * from YARDSAAS1.USER_LOGIN t where t.USER_LOGIN_ID = 'saas1';
+select * from YARDSAAS1.USER_LOGIN_SECURITY_GROUP t where t.USER_LOGIN_ID = 'saas1'
+select * from YARDSAAS1.User_Party_Role t WHERE T.USER_LOGIN_ID = 'saas1';
+select * from YARDSAAS.TENANT_USER_LOGIN; -- 如果是saas环境还有在主库中关联数据源
+-- 堆场权限
+insert into YARDSAAS1.User_Party_Role(user_login_id, party_id, type)
+select 'zjtmp1', party_id, type from YARDSAAS1.User_Party_Role t WHERE T.USER_LOGIN_ID = 'saas1';
 ```
 
 ## 服务

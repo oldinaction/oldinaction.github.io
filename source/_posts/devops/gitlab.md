@@ -8,7 +8,10 @@ tags: [git]
 
 ## gitlab介绍
 
-[gitlab官方文档](https://docs.gitlab.com/omnibus/README.html)。如[centos7安装](https://about.gitlab.com/downloads/#centos7)
+- [Gitlab 官方文档](https://docs.gitlab.com/omnibus/README.html)
+    - 如[centos7安装](https://about.gitlab.com/downloads/#centos7)
+- [Gitlab 中文文档](https://www.bookstack.cn/read/gitlab-doc-zh/README.md)
+- GitLab 可充当 Maven、Npm、Pypi、Docker 等存储库
 
 ### 常用命令
 

@@ -43,4 +43,10 @@ $.ajax({
 });
 ```
 
+## 常见问题
+
+### 防止重复点击
+
+- https://www.csdn.net/tags/Ntzakg5sMzEwMy1ibG9n.html
+- https://www.yisu.com/zixun/476111.html
 

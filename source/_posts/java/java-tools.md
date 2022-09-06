@@ -175,6 +175,13 @@ NumberUtil.div(12, 2, 3); // 6.0
 
 ```java
 DateUtil.isIn(thisDate, DateUtil.offsetDay(new Date(), -10), new Date()); // 判断 thisDate 是否为最近10天的时间
+
+// 获取当前小时
+int nowHour = DateUtil.thisHour(true);
+// 获取天级别的开始时间，即当天的0点
+DateUtil.beginOfDay(new Date());
+// 获取秒级别的开始时间，即将当前时间的毫秒设置成0(秒还是当前时间)
+DateUtil.beginOfSecond(new Date());
 ```
 
 ### 加解密
@@ -276,12 +283,14 @@ client.rename("/tmp/" + file.getName(), "/dest/" + file.getName());
 
 ```java
 // 此处从classpath查找模板渲染（也可通过字符串模板、本地文件等方式渲染内容）
-TemplateConfig templateConfig = new TemplateConfig("/templates/email", TemplateConfig.ResourceMode.CLASSPATH);
+// 此处有可设置路径如templates,但是只能是一级目录，且engine.getTemplate必须直接是文件，不能为文件夹
+// 如果设置成空，engine.getTemplate写全路径即可
+TemplateConfig templateConfig = new TemplateConfig("", TemplateConfig.ResourceMode.CLASSPATH);
 if(customEngine != null) {
     templateConfig.setCustomEngine(customEngine); // 默认为第一个可用的引擎，即导入对应引擎包即可；此处可进行自定义引擎类，如 VelocityEngine.class
 }
 TemplateEngine engine = TemplateUtil.createEngine(templateConfig);
-Template template = engine.getTemplate("velocity_test.vtl"); // 会在模板前面拼上 /templates/email 路径
+Template template = engine.getTemplate("templates/email/velocity_test.vtl");
 String result = template.render(Dict.create().set("name", "Hutool"));
 ```
 
@@ -306,20 +315,39 @@ sheet.getRow(1).getCell(0).setCellValue('合并单元格设值，只需要针对
 sheet.shiftRows(int startRow, int endRow, int n, boolean copyRowHeight, boolean resetOriginalRowHeight)
 ```
 
-### Easypoi(不推荐)
+### Easypoi
 
 - [Easypoi](https://gitee.com/lemur/easypoi)、[文档](http://doc.wupaas.com/docs/easypoi)
 - 优点
-    - 基础变量模板导出
+    - **基于变量模板导出**
     - excel和html互转。html转excel需要导入org.jsoup#jsoup包，支持将多个table生成到多个sheet中，每个table标签设置一个sheetName属性
 - 缺点
-    - **BUG较多**
+    - BUG较多
     - pdf导出文档不详
     - 测试demo运行不完整
     - excel转html不灵活，无法设置转出的页面样式，如宽度
     - html转excel不完善，仅支持table转换，其他html标签不支持，且有些样式会丢失
 - 说明
     - 常量在Excel中为`'常量值'`，由于可能存在转义，所有需要设置成`''常量值'`
+    - 解决EasyPoi通过`]]`换行报错的问题，[参考](https://gitee.com/lemur/easypoi/issues/I1FQRM)
+        - 修改源码`ExcelExportOfTemplateUtil.java`的setForeachRowCellValue方法
+
+            ```java
+            // 修改前
+            row = row.getSheet().getRow(row.getRowNum() - rowspan + 1);
+            
+            // 修改后
+            Row tmpRow = row;
+            row = row.getSheet().getRow(row.getRowNum() - rowspan + 1);
+            if(row == null || row.getRowNum() < tmpRow.getRowNum()) {
+                row = tmpRow;
+            }
+
+            // 使用如
+            // 第一列                    // 第二列
+            {{$fe: list t.username      ]]
+            t.password	                }}
+            ```
 
 ### Excel转PDF
 
@@ -532,7 +560,138 @@ Map map = (Map) Yaml.load(yamlStr);
     - `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
         - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
 
-## JEXL执行字符串JAVA代码
+## 字节码操作
+
+- ASM、Javassist、Byte-buddy以及JavaAgent
+- javassist
+- https://blog.csdn.net/luanlouis/article/details/24589193
+- https://www.cnblogs.com/rickiyang/p/11336268.html
+- https://blog.csdn.net/chosen0ne/article/details/50790372
+
+## jackson
+
+- Jackson 的 1.x 版本的包名是 org.codehaus.jackson ，当升级到 2.x 版本时，包名变为 com.fasterxml.jackson
+- 依赖(jackson-databind 依赖 jackson-core 和 jackson-annotations)
+
+```xml
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.9.1</version>
+</dependency>
+```
+- 示例
+
+```java
+// 使用
+ObjectMapper objectMapper = new ObjectMapper();
+String str = objectMapper.writeValueAsString(obj); // 序列化
+Map<String, Object> map = objectMapper.readValue(jsonStr, Map.class); // 反序列化
+Class obj = objectMapper.readValue(jsonStr, clazz); // 反序列化
+
+// 扩展配置-序列化
+// 配置参数参考：com.fasterxml.jackson.databind.SerializationFeature
+            // 忽略空对象
+objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            // 遇到空对象是否失败(默认true)
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+// INDENT_OUTPUT 是否缩放排列输出，默认false，有些场合为了便于排版阅读则需要对输出做缩放排列
+
+// 扩展配置-反序列化
+// 反序列化时忽略对象中不存在的json字段, 防止报错
+objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+// 模块
+// 定制化 Schema 序列化方式
+public class UserSerializer extends JsonSerializer<Schema> {
+    @Override
+    public void serialize(User value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+        jgen.writeString(value.getFullName()); //直接输出当前 User 对象的全限类名
+    }
+}
+// 给 ObjectMapper 加上定制的序列化器
+SimpleModule simpleModule = new SimpleModule("SimpleModule", Version.unknownVersion());
+simpleModule.addSerializer(User.class, new UserSerializer());
+objectMapper.registerModule(simpleModule);
+
+// 过滤器
+// 忽略某些参数名
+FilterProvider filterProvider = new SimpleFilterProvider()
+    .addFilter("fieldFilter", SimpleBeanPropertyFilter.serializeAllExcept("name"));
+objectMapper.setFilters(filterProvider);
+
+// Mixin（混入）: 可将model类动态混入一些其他注解，相当于把Model类需要过滤的属性配置在其他类或接口上
+// https://yanbin.blog/jackson-ignore-specified-field-type/
+// 1.定义混入类
+@JsonIgnoreType // 可以混入类的注解
+@JsonFilter("userFilter")
+public @interface UserMixIn {
+    @JsonIgnore long id; // 也可以混入字段注解
+}
+// 配合上文 @JsonFilter("userFilter")
+FilterProvider nameFilterProvider = new SimpleFilterProvider()
+    .addFilter("userFilter", SimpleBeanPropertyFilter.filterOutAllExcept(new String[]{"name"}));
+objectMapper.setFilters(nameFilterProvider);
+// 2.将混入类关联到目标对象上
+objectMapper.addMixIn(User.class, UserMixIn.class);
+// 或者
+objectMapper.getSerializationConfig().addMixInAnnotations(User.class, UserMixIn.class);
+
+// 构建objectMapper
+objectMapper = new Jackson2ObjectMapperBuilder()
+                .createXmlMapper(false)
+                .serializerByType(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+```
+
+## fastjson
+
+- [官网](https://github.com/alibaba/fastjson)
+- [文档](https://github.com/alibaba/fastjson/wiki/Quick-Start-CN)
+    - [fastjson最佳实践](http://i.kimmking.cn/2017/06/06/json-best-practice/)
+- 自定义序列化之过滤器，参考上述文档，案例参考下文
+    - 可以在每次JSON.toJSONString的时候单独传入过滤器
+- 全局配置(序列化/反序列化)案例
+
+```java
+@Configuration
+public class CustomFastjsonConfig {
+
+    @PostConstruct
+    public void init() {
+        // 序列化拦截器(自定义序列化)：解决部分对象在反射时会附加DefaultListableBeanFactory(无法序列化)，全局去除
+        PropertyPreFilter filter = (jsonSerializer, source, name) -> false;
+        SerializeConfig.getGlobalInstance().addFilter(DefaultListableBeanFactory.class, filter);
+
+        // 自定义反序列化：解决将""解析成List报错问题，增加此配置后返回null
+        ObjectDeserializer deserializer = new CollectionCodec() {
+            @Override
+            public <T> T deserialze(DefaultJSONParser parser, Type type, Object fieldName) {
+                String val = parser.getInput();
+                if (val == null || "".equals(val)) {
+                    return null;
+                }
+                return super.deserialze(parser, type, fieldName);
+            }
+
+            @Override
+            public int getFastMatchToken() {
+                return JSONToken.LBRACE;
+            }
+        };
+        ParserConfig.getGlobalInstance().putDeserializer(List.class, deserializer);
+    }
+}
+```
+
+## liquibase数据库版本管理
+
+- 数据库版本管理 https://www.liquibase.org/
+
+## 其他
+
+### JEXL执行字符串JAVA代码
 
 - Java Expression Language (JEXL)：是一个表达式语音解析引擎
     - 旨在促进在用Java编写的应用程序和框架中，实现动态和脚本功能
@@ -596,14 +755,6 @@ JexlExpression je = jexl.createExpression("math:max(1, 2)");
 Object evaluate = je.evaluate(null); // 此处没有传入任何上下文，但是可以使用math引用
 System.out.println("evaluate = " + evaluate); // evaluate = 2
 ```
-
-## 字节码操作
-
-- ASM、Javassist、Byte-buddy以及JavaAgent
-- javassist
-- https://blog.csdn.net/luanlouis/article/details/24589193
-- https://www.cnblogs.com/rickiyang/p/11336268.html
-- https://blog.csdn.net/chosen0ne/article/details/50790372
 
 ## 开发工具
 

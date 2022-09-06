@@ -217,13 +217,14 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test.thd.
 ### 自动装配(取出Bean赋值给当前类属性)
 
 - `@Autowired` Spring提供
-    - 默认按类型by type(根据类)
+    - 默认按类型by type(根据类)，再按照变量名称
     - 如果想用by name，则联合使用`@Qualifier("my-bean-name")`。Bean定时如`@Bean(name="my-bean-name")，`对于默认的Bean可通过添加`@Primary`(使用时则按照单数据源注入)
     - `@Autowired List<Monitor> monitors;` 也可以注入集合
         - 注意：如果当前类实现了Monitor接口，则注入到集合中会排除当前类（即要注入的类不能是类本身，会触发无限递归注入）
         - 如果元素增加`@Order`注解，在注入时会自动进行排序。也可使用 `list.sort(AnnotationAwareOrderComparator.INSTANCE)` 手动排序list(用于非注入的场景，元素也需要增加 @Order 注解)
     - `@Autowired Map<String, Monitor> monitorMap;` 注入到Map中，此时将 Bean 的 name 作为 key
 - `@Resource` JSR-250提供(常用)
+    - 先根据变量名称再根据类型
 - `@Inject` JSR-330提供
 
 #### 获取Bean
@@ -270,7 +271,8 @@ public class BaseController {
         - `havingValue` 表示对应参数值。注解中如果省略此属性，则此参数为false时，条件结果才为false
         - `matchIfMissing` 表示缺少该配置属性时是否可以加载。如果为true，即表示没有该配置属性时也会正常加载；反之则不会生效
         - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)
-    - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在beanFactory中不存在时返回true，各类型间是or的关系
+    - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在beanFactory中不存在时返回true，各类型间是or的关系(不填参数则表示没有@Bean返回的对象类型时生效)
+        - **只能对@Bean生效，如直接注解在@Bean的方法上，或注解在含有@Bean方法的类上**
 
         ```java
         // eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
@@ -282,9 +284,9 @@ public class BaseController {
         //使用了@Conditional注解，条件类是OnBeanCondition(逻辑实现)
         @Conditional({OnBeanCondition.class})
         public @interface ConditionalOnMissingBean {
-            // 需要检查的 bean 的 class 类型。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配。
+            // 需要检查的 bean 的 class 类型。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配
             Class<?>[] value() default {}; 
-            // 需要检查的 bean 的 class 类型名称。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配。
+            // 需要检查的 bean 的 class 类型名称。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配
             String[] type() default {};
             // 识别匹配 bean 时，可以被忽略的 bean 的 class 类型
             Class<?>[] ignored() default {};
@@ -372,7 +374,7 @@ public class ELConfig {
     @Value("#{${site.time}}") // site.time=24*7，此处进行了计算
     private Long siteTime;
 
-    @Value("${site.tags}")
+    @Value("${site.tags:${site.tags2:}}") // @Value注入的默认值只能通过:指定，不等直接给属性赋值
     private String[] tags; // 获取数组，yml中可定义site.tags=a,b,c # 默认会基于`,`分割。(yml中使用`-`则需要定义配置类实体)
 
     @Value("#{'${test.array}'.split(',')}") // test.array=1,2,3
@@ -384,7 +386,7 @@ public class ELConfig {
     @Value("#{'${test.set}'.split(',')}")   // test.set=1,2,3
     private Set<String> testSet;
 
-    @Value("#{${test.map}}")                // test.map={name:"张三", age:18}
+    @Value("#{${test.map:{}}}")             // test.map={name:"张三", age:18}，注意是#取值，yml中只定义成字符串(可以用''包裹换行)，且map的值不能包含数组
     private Map<String, Object> testMap;
 
     @Value("#{systemProperties['os.name']}") // 获取系统名称. SpEL: @Value("#{20-2}") => 18
@@ -694,7 +696,9 @@ public class MyBean3 implements InitializingBean, DisposableBean {
     - `@DeclareParents` 引介增强
 - 切点表达式
     - args()、this()、target()
-    - @annotation() 、args()、@args()、target()、@within()、@target()、this() 
+    - @annotation() 、args()、@args()、target()、@within()、@target()、this()
+- 案例
+    - 基于注解切面判断用户权限
 - maven依赖
 
     ```xml
@@ -714,7 +718,7 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 - 编写切面(基于xml的参考源码)
 
     ```java
-    // 示例一
+    // 示例一(直接使用execution指定切面)
     @Aspect // 声明一个切面
     @Component
     public class LogAspect {
@@ -744,12 +748,16 @@ public class MyBean3 implements InitializingBean, DisposableBean {
         }
     }
 
-    // 示例二
+    // 示例二(使用@Pointcut指定切面)
     @Aspect
     @Component
     public class LogIntercept {
         @Pointcut("execution(public * cn.aezo.spring.base.annotation.aop..*.*(..))")
-        public void pointcut(){}
+        public void pointcut() {}
+
+        // @annotation(sysLog) 中的 sysLog 指下面函数参数变量名
+        @Pointcut("@annotation(sysLog)")
+        public void pointcut2(SysLog sysLog) {}
 
         @Before("pointcut()")
         public void before(JoinPoint joinPoint) {
@@ -765,6 +773,11 @@ public class MyBean3 implements InitializingBean, DisposableBean {
             this.printLog("execution方法执行后");
 
             return retObj;
+        }
+
+        @Around(value = "pointCut2(sysLog)", argNames = "pjp,sysLog")
+        public Object around2(ProceedingJoinPoint pjp, SysLog sysLog) throws Throwable {
+
         }
 
         @After("recordLog()")
@@ -964,11 +977,12 @@ public class SpringUBeanPostProcessor extends InstantiationAwareBeanPostProcesso
 @Documented
 @Inherited
 @Import({SpringUBeanPostProcessor.class})
-public @interface EnableSpringU {
+public @interface EnableSqU {
 }
 
 // 在启动类上增加此配置
-@EnableSpringU
+@EnableSqU
+@ComponentScan({"cn.aezo.demo", "cn.aezo.utils.ext.spring"})
 @SpringBootApplication
 public class Application {}
 ```
@@ -1054,14 +1068,20 @@ public class Application {}
     ```
 - cron配置说明 [^1]
     - `{秒} {分} {时} {日} {月} {周} {年(可选)}`
-        - Seconds可出现`, -  *  /`四个字符，有效范围为0-59的整数    
-        - Minutes可出现`, -  *  /`四个字符，有效范围为0-59的整数    
-        - Hours可出现`, -  *  /`四个字符，有效范围为0-23的整数
-            - **`*` 代表所有值**，每隔1秒/分/时触发
-            - **`?` 表示不指定值**。如：要在每月的10号触发一个操作，但不关心是周几，所以需要周位置的那个字段设置为"?"，具体设置为 0 0 0 10 * ?
-            - **`/` 代表触发步进(step)**，"/"前面的值代表初始值("\*"等同"0")，后面的值代表偏移量。比如"0/25"或者"\*/25"代表从0秒/分/时开始，每隔25秒/分/时触发1次
-            - `,` 代表在指定的秒/分/时触发，比如"10,20,40"代表10秒/分/时、20秒/分/时和40秒/分/时时触发任务
-            - `-` 代表在指定的范围内触发，比如"5-30"代表从5秒/分/时开始触发到30秒/分/时结束触 发，每隔1秒/分/时触发
+        - Seconds/Minutes 有效范围为0-59的整数    
+        - Hours 有效范围为0-23的整数
+    - 符号说明
+        - `*` 代表所有值，每隔1秒/分/时触发
+        - `?` 表示不指定值
+            - 如：要在每月的10号触发一个操作，但不关心是周几，所以需要周位置的那个字段设置为"?"，具体设置为`0 0 0 10 * ?`
+            - 如：每周一执行，此时一般不关心"日"，案例如`0 0 9 ? * 2`
+        - `/` 代表触发步进(step)
+            - "/"前面的值代表初始值("\*"等同"0")，后面的值代表偏移量。比如"0/25"或者"\*/25"代表从0秒/分/时开始，每隔25秒/分/时触发1次
+        - `,` 代表在指定的秒/分/时触发
+            - 比如"10,20,40"代表10秒/分/时、20秒/分/时和40秒/分/时时触发任务
+        - `-` 代表在指定的范围内触发
+            - 比如"5-30"代表从5秒/分/时开始触发到30秒/分/时结束触 发，每隔1秒/分/时触发
+    - [cron在线生成](https://qqe2.com/cron)
     - 常用定时配置
 
         ```bash
@@ -1070,13 +1090,16 @@ public class Application {}
             "* 0/5 * * * ?" 每5分钟连续执行60秒，这60秒期间每秒执行一次
             "0 5 * * * ?" 表示每个小时的第5分钟执行
         "0 0 12 * * ?" 每天中午12点触发
-        "0 15 10 ? * *" 每天上午10:15触发 
-        "0 15 10 * * ?" 每天上午10:15触发 
-        "0 15 10 * * ? *" 每天上午10:15触发 
-        "0 0 10,14,16 * * ?" 每天上午10点，下午2点，4点 
+            "0 0 0/12 * * ?" 每12个小时触发一次
+            "0 15 10 ? * *" 每天上午10:15触发 
+            "0 15 10 * * ?" 每天上午10:15触发 
+            "0 15 10 * * ? *" 每天上午10:15触发 
+            "0 0 10,14,16 * * ?" 每天上午10点，下午2点，4点 
         "0 0/30 9-17 * * ?" 朝九晚五工作时间内每半小时 
-        "0 0 12 ? * WED" 表示每个星期三中午12点 
-        "0 15 10 * * ? 2005" 2005年的每天上午10:15触发 
+        "0 0 9 ? * 2" 表示每个星期一上午9点(1表示这周的第一天，即周日；2则表示周一)
+            "0 0 9 ? * MON"
+        "0 15 10 * * ? 2005" 2005年的每天上午10:15触发
+        
         "0 * 14 * * ?" 在每天下午2点到下午2:59期间的每1分钟触发 
         "0 0/5 14 * * ?" 在每天下午2点到下午2:55期间的每5分钟触发 
         "0 0/5 14,18 * * ?" 在每天下午2点到2:55期间和下午6点到6:55期间的每5分钟触发 
@@ -1093,50 +1116,81 @@ public class Application {}
 
 ```java
 // ## Job接口
-public interface Job extends Runnable {
-    String getName();
-
-    String getCron();
-
-    String setCron();
+@Data
+public class Job {
+    private String jobCode;
+    private String jobName;
+    private String cron;
+    private boolean enable;
+    @JsonIgnore
+    private Runnable runnable;
+    @JsonIgnore
+    private ScheduledFuture<?> future;
 }
 
 // ## Job管理器
 @Component
 public class JobManager {
+    @Lazy
+    @Qualifier("jobManagerThreadPoolTaskScheduler")
     @Autowired
-    private ThreadPoolTaskScheduler threadPoolTaskScheduler;
+    private ThreadPoolTaskScheduler jobManagerThreadPoolTaskScheduler;
 
-    @Bean
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+    @Bean(name = "jobManagerThreadPoolTaskScheduler")
+    public ThreadPoolTaskScheduler jobManagerThreadPoolTaskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(20);
+        scheduler.setThreadNamePrefix("job-manager-");
+        scheduler.setPoolSize(5);
         return scheduler;
     }
 
-    private Map<String, ScheduledFuture<?>> jobMap = new ConcurrentHashMap<>();
+    @Getter
+    private Map<String, Job> jobMap = new ConcurrentHashMap<>();
 
     /**
      * 初始化定时任务
      * @param job
-     * @param runImmediately 是否立即运行任务
+     * @param start 是否立即启动任务
      */
-    public void startJob(Job job, boolean runImmediately) {
-        if(runImmediately) job.run();
-        ScheduledFuture<?> future = threadPoolTaskScheduler.schedule(job, new CronTrigger(job.getCron()));
-        jobMap.put(job.getName(), future);
+    public void addJob(Job job, boolean start) {
+        job.setEnable(false);
+        jobMap.put(job.getJobCode(), job);
+        if(start) {
+            startJob(job.getJobCode());
+        }
     }
 
-    /**
-     * 停止定时任务
-     */
-    public void stopJob(String jobName) {
-        Assert.notNull(jobName, "JobName can not be null");
-
-        ScheduledFuture<?> future = jobMap.get(jobName);
-        if(future != null) {
-            future.cancel(true);
+    public void startJob(String jobCode) {
+        Assert.notNull(jobCode, "jobCode can not be null");
+        Job job = jobMap.get(jobCode);
+        if(job == null) {
+            throw new RuntimeException("job not found");
         }
+        job.setEnable(true);
+        ScheduledFuture<?> future = jobManagerThreadPoolTaskScheduler.schedule(job.getRunnable(), new CronTrigger(job.getCron()));
+        job.setFuture(future);
+    }
+
+    public void stopJob(String jobCode) {
+        Assert.notNull(jobCode, "jobCode can not be null");
+        Job job = jobMap.get(jobCode);
+        if(job == null) {
+            throw new RuntimeException("job not found");
+        }
+        if(job.getFuture() == null) {
+            throw new RuntimeException("job not start");
+        }
+        job.getFuture().cancel(true);
+        job.setEnable(false);
+    }
+
+    public void removeJob(String jobCode) {
+        Assert.notNull(jobCode, "jobCode can not be null");
+        Job job = jobMap.get(jobCode);
+        if(job != null && job.getFuture() != null) {
+            stopJob(jobCode);
+        }
+        jobMap.remove(jobCode);
     }
 }
 ```
@@ -1234,11 +1288,14 @@ TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savePoin
 
     ```java
     /*
-    (1)对于NESTED：B、C为A的子事务，可以读取A未提交的数据。但是REQUIRES_NEW却不行，除非B、C的隔离级别是Read Uncommitted
-    (2) 如果A事务在B/C执行完后，还有更改数据库的操作，如果更改失败，那么B/C是要回滚的，但是REQUIRES_NEW则B/C不会回滚，B/C事务已提交
-    (3) A与B/C方法中，可以修改同一条数据。但是对于REQUIRES_NEW会造成死锁
-    (4) 对于REQUIRES_NEW，B/C作为内部事务，提交后可以被修改，这会造成A的脏读(A读取了金额为100, 然后java代码中+10, 之后B把金额改成0并提交, A最后把计算的金额110进行保存, 从而脏读. 按照顺序此时A应该重新读取B提交的数据则为0, 再进行加10操作)
+    NESTED
+        (1) B、C为A的子事务，可以读取A未提交的数据。但是REQUIRES_NEW却不行，除非B、C的隔离级别是Read Uncommitted
+        (2) 如果A事务在B/C执行完后，还有更改数据库的操作，如果更改失败，那么B/C是要回滚的，但是REQUIRES_NEW则B/C不会回滚，B/C事务已提交
+        (3) A与B/C方法中，可以修改同一条数据。但是对于REQUIRES_NEW会造成死锁
+    REQUIRES_NEW
+        (1) B/C作为内部事务，提交后可以被修改，这会造成A的脏读(A读取了金额为100, 然后java代码中+10, 之后B把金额改成0并提交, A最后把计算的金额110进行保存, 从而脏读. 按照顺序此时A应该重新读取B提交的数据则为0, 再进行加10操作)
     */
+    @Transactional
     A.service() {
         insert();
         try {
@@ -1503,7 +1560,7 @@ public List<Map<String, Object>> runSql(String sql, Map<String, Object> paramete
             }
         }
 
-        //不能直接关闭连接，如果存在事物则有问题，如进口运费付款核销
+        //不能直接关闭连接，如果存在事物则有问题。此处只释放连接
         //try {
         //    connection.close();
         //} catch (SQLException e) {
@@ -1565,6 +1622,19 @@ public List<Map<String, Object>> runSql(String sql, Map<String, Object> paramete
     <bean id="person" class="cn.aezo.test.spring.Person" p:name="smalle" p:age="18" p:address-ref="address"/>
 </beans>
 ```
+
+## SPEL
+
+- 参考[属性赋值(@Value)](#属性赋值(@Value))
+
+### 自定义注解结合EL表达式
+
+- 自定义简单的SPEL解析工具类，参考`@Value`
+    - https://juejin.cn/post/6921491842865299469#heading-14
+    - https://www.codeleading.com/article/84985969416/
+    - https://www.cnblogs.com/itplay/p/12322315.html
+    - http://www.yanzuoguang.com/article/1022.html
+- 参考项目 `report-table-backend` 下的 `@HasPermission`
 
 ## SpringMVC
 

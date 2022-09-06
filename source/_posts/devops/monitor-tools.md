@@ -16,9 +16,16 @@ tags: [monitor]
 
 ## Monit
 
-- Monit与Supervisor对比 https://www.jianshu.com/p/4180374e1a34
-- Monit使用 https://github.com/freeaquar/notebook/blob/master/%E8%BF%90%E7%BB%B4%E7%9B%B8%E5%85%B3/Monit-%E7%AC%94%E8%AE%B0.md
-- https://blog.csdn.net/qin_weilong/article/details/90639769
+- 相关文章
+    - Monit与Supervisor对比 https://www.jianshu.com/p/4180374e1a34
+    - Monit使用 https://github.com/freeaquar/notebook/blob/master/%E8%BF%90%E7%BB%B4%E7%9B%B8%E5%85%B3/Monit-%E7%AC%94%E8%AE%B0.md
+    - https://blog.csdn.net/qin_weilong/article/details/90639769
+- 命令
+
+```bash
+# 查看监控状态
+monit status
+```
 
 ## Supervisor进程管理
 

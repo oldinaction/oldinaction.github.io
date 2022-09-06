@@ -270,6 +270,14 @@ public StatementHandler newStatementHandler(Executor executor, MappedStatement m
 }
 ```
 
+### 相关类
+
+- MappedStatement 映射对象
+- 枚举
+    - SqlCommandType: INSERT/UPDATE/DELETE/SELECT...
+    - StatementType: STATEMENT/PREPARED/CALLABLE
+    - ResultSetType: DEFAULT/FORWARD_ONLY/SCROLL_INSENSITIVE/SCROLL_SENSITIVE
+
 ## mybatis-plus
 
 ### mybatis-plus初始化

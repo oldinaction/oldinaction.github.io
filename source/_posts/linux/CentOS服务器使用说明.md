@@ -19,7 +19,7 @@ tags: [CentOS, linux]
     - `systemctl stop firewalld && systemctl disable firewalld`
     - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
     - Centos 7使用`firewalld`代替了原来的`iptables`
-        - 查看状态：`systemctl status firewalld`
+        - 查看状态：`systemctl status firewalld` (iptables查看策略`iptables -L -n`)
         - 开放端口：`firewall-cmd --zone=public --add-port=80/tcp --permanent`（--permanent永久生效，没有此参数重启后失效）
         - 重新载入：`firewall-cmd --reload`
         - 查看端口：`firewall-cmd --zone= public --query-port=80/tcp`

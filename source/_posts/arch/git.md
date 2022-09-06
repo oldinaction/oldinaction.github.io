@@ -150,6 +150,24 @@ git config --global color.ui true
 - 重命名分支：`git branch -m old-branch-name new-branch-name`
 	- 在git中重命名远程分支，其实就是先删除远程分支，然后重命名本地分支，再重新提交一个远程分支
 
+### tag标签
+
+```bash
+# 列举所有tag
+git tag
+# 把当前版本添加标签v1.0.0
+git tag v1.0.0
+# 推送标签到远程
+git push origin v1.0.0
+# 推送所有标签
+git push --tags
+# 检出标签对应版本
+git checkout v1.0.0
+# 删除本地和远程标签
+git tag -d v1.0.0
+git push origin v1.0.0
+```
+
 ### 添加、提交文件
 
 - 利用`git add <file>` / `git add .`将 working 中此文件或者所有文件添加到 staging 区（**&lt;file&gt;** 为必输的文件名）
@@ -168,6 +186,10 @@ git config --global color.ui true
     - `git reset --hard HASH` 返回到某个节点，不保留修改。如：`git reset --hard HEAD`，`git reset --hard 8a222ba`
     - `git reset --soft HASH` 返回到某个节点，保留修改
 - `git stash` 把所有没有提交的修改暂存到stash里面。可用git stash pop恢复
+- 撤销已提交的
+    - https://www.csdn.net/tags/MtTaQgwsNjc5NTQtYmxvZwO0O0OO0O0O.html
+        - `git checkout --orphan new_branch` 相当于创建一个临时分支，创建后将无需的提交删掉即可
+        - 存在问题: 此次提交会把所有文件重新提交一遍(相当于初始化)
 
 ### 删除文件
 
@@ -191,6 +213,11 @@ git config --global color.ui true
 	- `git pull origin develop` 获取远程develop分支(使用 `git branch -a` 查看时显示为remotes/origin/develop)
 	- `git pull origin master:test` 取回远程的master分支到本地test分支
 - `git push 远程仓库地址` 将本地仓库内容同步到远程仓库，回车后输入用户名和密码即可
+
+#### 同步两个远程仓库
+
+- 参考 https://zhuanlan.zhihu.com/p/391712989
+- 通过 `git remote add upstream-demo https://github.com/ORIGINAL_OWNER/ORIGINAL_REPOSITORY.git` 指定当前 fork 将要同步的上游远程仓库地址(upstream-demo只是一个别名)，然后`git fetch upstream-demo`拉取上游代码，然后将上游代码分支upstream-demo/master合并到本地master分支
 
 ### 查看git状态和文件差别
 

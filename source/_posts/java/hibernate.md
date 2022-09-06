@@ -68,17 +68,23 @@ tags: [db]
 	```
 - 数据库添加配置
 
-	```bash
-	## spring.jpa.database=MYSQL
-	# 自动执行ddl语句(create/create-drop/update，基于Model注解执行表结构创建)
-	spring.jpa.hibernate.ddl-auto=update
-	# 打印sql执行语句, 查询和建表
-	spring.jpa.show-sql=true
-	# 格式化打印语句
-	spring.jpa.properties.hibernate.format_sql=true
-	# 懒加载配置
-	spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
-	```
+```yml
+spring:
+  jpa:
+    # 打印sql执行语句, 查询和建表
+    show-sql: true
+    hibernate:
+      # 自动执行ddl语句(create/create-drop/update，基于Model注解执行表结构创建)
+      ddl-auto: update
+    properties:
+      hibernate:
+        # 格式化打印语句
+        format_sql: true
+        # 懒加载配置
+        enable_lazy_load_no_trans: true
+        # 增加此配置即可通过@Autowired获取到SessionFactory
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+```
 - `User.java`实体
 
 	```java
@@ -88,7 +94,7 @@ tags: [db]
 		@GeneratedValue
 		private Long userId;
 
-		@Column(nullable=false) // 不能为空
+		@Column(nullable = false, updatable = false) // 不能为空，不进行更新
 		private Long username;
 
 		private String password;
@@ -96,7 +102,7 @@ tags: [db]
 		private Long groupId;
 
 		@Generated(GenerationTime.INSERT)
-		@Column(columnDefinition=" BIT default 1 ") // 默认插入1(就算new User的时候设置成0最终保存的仍然是1)
+		@Column(columnDefinition=" BIT default 1 ") // 默认插入1(就算new User的时候设置成0最终保存的仍然是1)。注意：必须是Boolean的包装类型才可以
 		private Boolean yesValid;
 
 		@Generated(GenerationTime.INSERT)
@@ -381,14 +387,33 @@ tags: [db]
 
         > 如 `cn.aezo.hibernate.hello.Teacher`
 
-        - `@EmbeddedlD`/`@ Embeddable`也可以定义联合主键
-    - `@SequenceGenerator(name = "teacherSeq", sequenceName = "teacherSeq_db")` Id生成策略使用能够sequence
-        - 在主键上加注解 `@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "teacherSeq")`
+        - `@EmbeddedId`/`@ Embeddable`也可以定义联合主键
+    - ID生成策略
         - 常用ID生成策略有native identity sequence uuid(xml配置)
-    - `@TableGenerator` 用一张表存储所有表主键的当前值(id生成策略)
+            - `@SequenceGenerator` Id生成策略使用sequence
+            - `@TableGenerator` 用一张表存储所有表主键的当前值
+        - 如果没有ID生成策略则所有的表使用同一个主键自增序列(HIBERNATE_SEQUENCE)
+        - 案例
+
+            ```java
+            // ID生成策略(可以定义在全局、表、字段上)
+            // allocationSize 此时表示步长
+            @SequenceGenerator(name = "seq_test", sequenceName = "seq_test", allocationSize = 1)
+            // allocationSize表示内存中缓存数(每次启动应用会重新缓存此大小的主键)
+            @TableGenerator(name = "tg", table = "sequence_value", pkColumnName = "name",
+                        valueColumnName = "value", allocationSize = 10)
+
+            // 关联ID生成策略
+            @Id
+            // 会自动创建sequence_value, 且将表名做为name存储到此表，value为当前序列值
+            @GeneratedValue(strategy = GenerationType.TABLE, generator = "tg")
+            @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_test")
+            private long id;
+            ```
     - `@BatchSize(size=5)` 发出sql语句时一次性取出5条数据
 - 字段/方法级别
-    - **`@Id`** 主键; `@Basic` 其他属性,可省略
+    - **`@Id`** 主键
+    - `@Basic` 其他属性,可省略
     - **`@GeneratedValue`** 批注后主键会自动生成值，默认使用id生成策略是AUTO。@GeneratedValue(strategy=GenerationType.AUTO)，其中(strategy=GenerationType.AUTO)可以省略，会自动根据mysql/oracle转换，相当于xml方式中的native
     - **`@Column(name="_title")`** 当实际的字段名和类的属性名不一致时才需批注,此时表示对应的表中的字段实际名为_title。最好一致
         - `@Column(columnDefinition=" BIT default 1 ")` 设置默认值(BIT对应Boolean，其中的空格不能少)
@@ -397,7 +422,7 @@ tags: [db]
             - `CLOB`/`BLOB`以二进制存储，前台参数无法直接映射成类
     - `@JoinColumn`、`@OneToMany`等见下文关系映射
     - `@OrderBy("name ASC")` 排序
-    - `@Transient` 透明的.表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可
+    - `@Transient` 透明的. 表示此字段在更新时不保存到数据库中,即不参加持久化.这是annotation的写法,在xml中则不写此属性即可
     - `@Temporal(value=TemporalType.DATE)` 表示相应日期类型只记录日期,最终表的字段类型是DATE。不写的话默认是记录日期和时间,字段类型是TIMESTAMP。此处可以省略"value="。不常用
     - `@Enumerated(EnumType.STRING)` 声明枚举类型。EnumType.STRING表示在表中生成的字段类型是varchar;EnumType.ORDINAL表示表中生成的字段类型是int，并且拿枚举的下表存储
 
@@ -899,6 +924,86 @@ tags: [db]
                 - 法二：使用另一种load方法：`load(xxx.class, i, LockMode.Upgrade)` i=1/2/4/8
             - Hibernate(JPA)乐观锁定(ReadCommitted)
                 - 实体类中增加version属性(数据库也会对应生成该字段,初始值为0)，并在其get方法前加`@Version`注解，则在操作过程中没更新一次该行数据则version值加1，即可在事务提交前判断该数据是否被其他事务修改过
+
+## 其他问题
+
+### JPA字段为null时不进行保存
+
+- https://blog.csdn.net/perfect_red/article/details/102692990
+
+### 获取SessionFactory和Session
+
+```yml
+# 增加此配置即可通过@Autowired获取到SessionFactory
+spring:
+  jpa:
+    properties:
+      hibernate:
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+```
+- 获取Session
+    - session 与 connection 是多对一的关系，每个 session 都有一个与之对应的connection，一个 connection 不同时刻可以供多个 session 使用
+    - 获取session方法
+        - openSession 和 getCurrentSession
+        - openSession() 是可以直接使用的；而 getCurrentSession() 需要在 hibernate.hbm.xml 文件中进行配置，然后才可以使用
+        - openSession 需要手动的关闭 session ，如果使用 openSession 而没有手动关闭 session ，多次之后就会导致连接池的溢出；而 getCurrentSession 获得的 session 在事务提交或者回滚之后就会自动的关闭
+        - openSession 每次得到的都是新的 session 对象；而 getCurrenSession 方法得到的 session 是单例的，也就是每次得到的 session 对象是同一个对象
+        - openSession 中在获得了 session 之后就可以通过 session.doWork() 方法获得 connection 对象;getCurrentSession 中需要先打开事务，才能通过 session.doWork() 方法获得 connection 对象
+
+```java
+Session session = sessionFactory.getCurrentSession();
+Session session = sessionFactory.openSession();
+```
+
+### 直接运行SQL
+
+- 还需要增加`@EnableTransactionManagement`注解
+
+```java
+public static List<Map<String, Object>> querySql(String sql) {
+    Seesion session = sessionFactory.openSession();
+    try {
+        NativeQuery<Map<String, Object>> query = session.createSQLQuery(sql);
+        query.setResultTransformer( Transformers.ALIAS_TO_ENTITY_MAP );
+        return query.list();
+    } finally {
+        session.close();
+    }
+}
+
+public static <R> List<R> querySql(String sql, Class<R> clazz) {
+    Seesion session = sessionFactory.openSession();
+    try {
+        NativeQuery<R> query = session
+            .createSQLQuery(sql)
+            .addEntity(clazz);
+        return query.list();
+    } finally {
+        session.close();
+    }
+}
+
+public static <R> List<R> querySql(String sql, Class<R> clazz, int startIndex, int size) {
+    Seesion session = sessionFactory.openSession();
+    try {
+        NativeQuery<R> query = session.createSQLQuery(sql);
+        query.addEntity(clazz);
+        query.setFirstResult(startIndex);
+        query.setMaxResults(size);
+        return query.list();
+    } finally {
+        session.close();
+    }
+}
+```
+
+### Hibernate自动生成的表字段顺序乱了
+
+- 参考 https://blog.csdn.net/weixin_34321753/article/details/92363155
+    - 复制`org.hibernate.cfg.PropertyContainer`源码到项目中(在本项目中创建一个和源码类一样的包结构和一样名字的类)
+    - 替换所有的TreeMap为LinkedHashMap
+
+
 
 ---
 

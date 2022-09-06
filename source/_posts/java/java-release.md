@@ -273,9 +273,27 @@ BigDecimal sum = invoices.stream()
                 .map(x -> x.getNum().multiply(x.getPrice()))    // map，对集合中的元素进行操作
                 // .reduce((i, j) -> i + j)                     // reduce表达式(i + j)执行完后仍然需要返回相同类型的结果
                 .reduce(BigDecimal.ZERO, BigDecimal::add)       // reduce，将上一步得到的结果进行合并得到最终的结果
-                .setScale(2, BigDecimal.HALF_UP);         // 四舍五入，保留2位小数
+                .setScale(2, RoundingMode.HALF_UP);         // 四舍五入，保留2位小数
 
-invoices.stream().reduce(BigDecimal.ZERO, BigDecimal::add)   
+// 结合 Collectors.groupingBy (相当于MiscU.groupBy)、Collectors.reducing、Collectors.summingInt等
+Product prod1 = new Product(1L, 3, "面包", "零食");
+Product prod2 = new Product(2L, 4, "饼干", "零食");
+Product prod3 = new Product(3L, 8, "青岛啤酒", "啤酒");
+// 按照类目分组(伪代码): {"零食": [prod1, prod2], "啤酒": [prod3]}
+Map<String, List<Product>> prodMap= prodList.stream().collect(Collectors.groupingBy(Product::getCategory));
+// 按照多个属性分组: {"零食_面包": [prod1], "零食_饼干": [prod2], "啤酒_青岛啤酒": [prod3]}
+// 也可Collectors.groupingBy嵌套使用生成多级分组(Map<String, Map<String, List<Product>>>)
+Map<String, List<Product>> prodMap = prodList.stream().collect(Collectors.groupingBy(item -> item.getCategory() + "_" + item.getName()));
+// 求和: {"零食": 7, "啤酒": 8}
+Map<String, Integer> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingInt(Product::getNum)));
+
+// ifPresent判断是否存在
+Optional<User> firstOpt= list.stream().filter(a -> "admin".equals(a.getUserName())).findFirst();
+if (firstOpt.isPresent()) {
+    User admin = firstOpt.get();
+} else {
+    // 没有查到的逻辑，如果直接get()会得到空
+}
 ```
 - parallelStream
     - https://blog.csdn.net/u011001723/article/details/52794455

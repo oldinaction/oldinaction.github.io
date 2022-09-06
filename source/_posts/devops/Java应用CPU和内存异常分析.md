@@ -209,16 +209,20 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 
     ```sql
     -- 获取每次消耗cpu > 3s的sql; cpu_time为微秒; executions执行次数，peer_secondes_cpu_time每次耗时(s)
-    select sid, serial#, sql_text, sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time
+    select sid, serial#, sql_text, to_char(sql_fulltext) sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time
         ,round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
-    where executions > 0 and cpu_time/executions/1000000 > 3 --每次执行消耗cpu>3s的
+    where executions > 0 and cpu_time/executions/1000000 > 3 /* 每次执行消耗cpu>3s的 */
     order by peer_secondes_cpu_time desc;
 
     -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
     -- 从根源上解决问题需要对对应的sql_fulltext进行sql优化
     alter system kill session 'sid, serial#';
+    -- 如果kill不掉可直接杀掉系统线程
+    select spid, osuser, s.program from v$session s,v$process p where s.paddr=p.addr and s.sid=429;
+    kill -9 <spid>
+    -- orakill <sid> <thread> -- windows命令, 如: orakill orcl 12345 (sid为服务名)
 
     -- 获取cpu总消耗时间过长的sql(大于20s)
     select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000000, 2) peer_secondes, sql_text, sql_fulltext

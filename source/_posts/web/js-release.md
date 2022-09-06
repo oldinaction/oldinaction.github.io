@@ -577,17 +577,39 @@ let runtimeError = {
 
 #### 流程语句
 
-- `if`、`switch`、`while`、`for-in`、`for-of`
-- 增强for循环
+- `if`、`switch`、`while`、`for in`、`for of`、`forEach`
+- 遍历对象(https://www.cnblogs.com/yuer20180726/p/11377897.html)
 
 ```js
-// for-in 拿到的是下标
-var arr = ['a', 'b', 'c'];
+// for in
+var map = {a: 1, b: 2}
+for (let key in map) {}
+
+// Object.keys: 返回一个数组,包括对象自身的(不含继承的)所有可枚举属性(不含Symbol属性)
+// Object.values(map)
+Object.keys(map).forEach(key => {})
+
+// Object.getOwnPropertyNames: 返回一个数组,包含对象自身的所有属性(不含Symbol属性,但是包括不可枚举属性)
+// Vue可能会给对象附加一个__ob__属性，从而会出现此key
+Object.getOwnPropertyNames(map).forEach(key => {})
+
+// Reflect.ownKeys: 返回一个数组,包含对象自身的所有属性,不管属性名是Symbol或字符串,也不管是否可枚举
+Object.ownKeys(map).forEach(key => {})
+```
+- 遍历数组
+
+```js
+var arr = ['a', 'b', 'c']
+// forEach
+arr.forEach((val, index) => {})
+
+// for in 拿到的是下标
 for(var i in arr) { // i 是下标
-    console.log(i + "==>" + arr[i]); // 0==>a ...
+    console.log(i + "==>" + arr[i]) // 0==>a ...
 }
 
-// for-of 拿到的是值、
+// for of 拿到的是值
+// 可以遍历数组、Map(不能是{}字面量类型)
 for (let item of arr) {
     console.log(item)
 }
@@ -596,6 +618,11 @@ for (let item of arr) {
 ### Object
 
 - https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object
+- 案例
+
+```js
+Object.keys({name: 'test'}) // ['name']
+```
 - 类数组对象，参考下文[伪数组](#伪数组)
 
 #### 相关方法
@@ -747,39 +774,6 @@ arr.splice(1, 0, 'sec'); // [], arr=[1, 'sec', 2, 3]. 在数组的第二个元�
 Array.from(new Set(['1', '2', '1'])); // ['1', '2']
 ```
 
-#### 伪数组
-
-- 特点 [^2]
-    - 具有length属性
-    - 按索引方式存储数据
-    - 不具有数组的push()、pop()等方法
-- js函数的arguments参数属性即为类数组对象，不是真正的Array，所以无法使用 Array 的方法
-- 将伪数组转换成真正的数组
-    
-    ```js
-    // 此处仅列举两种方法
-    arr = [].slice.call(objs)
-    arr = Array.prototype.slice.call(objs)
-    ```
-- 示例
-
-    ```js
-    // 得到一个伪数组，原型为 HTMLCollection
-    var tables = document.getElementsByTagName('table')
-    // 将伪数组转换成真正的数组
-    var tableArr = Array.prototype.slice.call(tables)
-
-    // 构造一个伪数组
-    var obj = {
-        "0": "abc",
-        "1": 123,
-        "length": 2,
-        "push": Array.prototype.push,
-        "splice": Array.prototype.splice
-    }
-    obj.push('hello') // 3
-    ```
-
 ### Function
 
 #### 基本
@@ -852,6 +846,47 @@ let int = setInterval(() => {
 }, 50)
 ```
 
+### 伪数组
+
+- 又称类数组对象，特点 [^2]
+    - 伪数组是一个 Object，而真实的数组是一个 Array
+    - 具有length属性
+    - 按索引方式存储数据
+    - 不是真正的Array，所以无法使用 Array 的方法。如不具有数组的push()、pop()等方法
+- 场景的伪数组
+    - 函数内部的 arguments
+    - DOM 对象列表，比如通过 document.getElementsByTagName 等得到的列表
+    - jQuery 对象，比如 $("div") 
+- 将伪数组转换成真正的数组
+    
+    ```js
+    // 此处仅列举两种方法
+    arr = [].slice.call(objs)
+    arr = Array.prototype.slice.call(objs)
+    ```
+- 示例
+
+    ```js
+    // 得到一个伪数组，原型为 HTMLCollection
+    var tables = document.getElementsByTagName('table')
+    // 将伪数组转换成真正的数组
+    var tableArr = Array.prototype.slice.call(tables)
+
+    // 构造一个伪数组
+    var obj = {
+        "0": "abc",
+        1: 123,
+        "length": 2,
+        "push": Array.prototype.push,
+        "splice": Array.prototype.splice
+    }
+    // 这不是伪数组，无length属性
+    var not = {
+        "name": "test"
+    }
+    obj.push('hello') // 3
+    ```
+
 ### Proxy
 
 - 参考: https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy
@@ -876,8 +911,9 @@ console.log(test.name); // smalle
 
 ### Storage/Cookies
 
-- `localStorage` 没有时间限制的持久的数据存储，只要你不主动删除可以想存多久存多久。
+- `localStorage` 没有时间限制的持久的数据存储，只要你不主动删除可以想存多久存多久，最大存储5M数据
 - `sessionStorage` 针对一个 session 的数据存储，这些数据只有在同一个会话中的页面才能访问，当会话结束后数据也随之销毁（例如你在网页上存储一些数据后关闭网页再重新打开，存储的数据就没有了）
+- `cookie` 只有4kb容量
 
 ### Windows对象
 

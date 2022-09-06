@@ -11,6 +11,7 @@ tags: [excel, vb]
 - `VBA`：Visual Basic for Applications是Visual Basic的一种宏语言
 - [官方VBA文档](https://msdn.microsoft.com/zh-cn/library/ee861528.aspx)、[官方Excel帮助](https://support.office.com/zh-cn/excel)、[官方VB文档](https://docs.microsoft.com/zh-cn/dotnet/visual-basic/index)
 - [基础语法](http://www.yiibai.com/vba/vba_for_loop.html)、[51自学视频(后面几章收费)](http://www.51zxw.net/list.aspx?cid=539)
+- 案例: https://www.lanrenexcel.com/excel-vba-tutorial/
 
 ## 语法
 

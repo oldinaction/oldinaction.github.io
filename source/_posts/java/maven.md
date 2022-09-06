@@ -12,251 +12,6 @@ tags: [build]
 - [《Maven官方文档》目录指南](http://ifeve.com/maven-index-2/)
 - FatJar：将应用程序及其依赖jar一起打包到一个独立的jar中，就叫fat jar，它也叫uberJar，如springboot应用
 
-## maven实战
-
-### maven镜像修改
-
-- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签(windows/linux均可)
-
-	```xml
-    <!--
-        <mirrorOf>*</mirrorOf> 匹配所有仓库请求，即将所有的仓库请求都转到该镜像上
-        <mirrorOf>repo1,repo2</mirrorOf> 将仓库repo1和repo2的请求转到该镜像上，使用逗号分隔多个远程仓库
-        <mirrorOf>*,!repo1</miiroOf> 匹配所有仓库请求，repo1除外，使用感叹号将仓库从匹配中排除
-    -->
-    <mirror>
-        <id>nexus-aliyun</id>
-        <name>Nexus aliyun</name>
-        <url>http://maven.aliyun.com/nexus/content/groups/public/</url> 
-        <mirrorOf>central</mirrorOf> 
-    </mirror>
-	```
-- 证书问题导致，下载jar包时只返回一个更新文件，且里面报错`unable to find valid certification path to requested target`。需按照下列方式修改jdk证书 [^4]
-
-    ```bash
-    # 浏览器访问 https://maven.aliyun.com/nexus/content/groups/public/，查看证书 - 下载证书(复制到文件，Base64) - 如d:D://aliyun.cer
-    # 进入jdk目录 jdk1.8.0_111\jre\lib\security 执行命令
-    keytool -import -alias aliyun -keystore cacerts -file D://aliyun.cer
-    # 输入密码 changeit
-    # 输入信任证书 Y
-    # 导入成功后可查看证书，密码为 changeit
-    keytool -list -keystore cacerts -alias aliyun
-    # 稍后重新下载jar包
-    ```
-- pom.xml指定远程仓库
-
-```xml
-<repositories>
-    <repository>
-        <id>aliyun-repos</id>
-        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-        <snapshots>
-            <enabled>false</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-
-<pluginRepositories>
-    <pluginRepository>
-        <id>aliyun-plugin</id>
-        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-        <snapshots>
-            <enabled>false</enabled>
-        </snapshots>
-    </pluginRepository>
-</pluginRepositories>
-```
-
-### maven父子项目
-
-- parents主要配置如下：`pom.xml`
-
-	```xml
-	<groupId>cn.aezo</groupId>
-	<artifactId>smtools</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<!-- 打包类型必须为pom -->
-	<packaging>pom</packaging>
-
-	<name>smtools</name>
-	<description>smtools</description>
-
-	<modules>
-        <!-- 子模块的groupId可以和当前父模块groupId不一致；此处定义的子模块在父模块打包时会一同打包 -->
-		<module>utils</module>
-		<module>demo</module>
-	</modules>
-
-	<properties></properties>
-	<!-- 
-		1.父项目的依赖会被子项目自动继承
-		2.maven父子项目，在被依赖的时候需要使用子项目的groupId、artifactId、version，不能通过引入父项目而引入所有的子项目
-	-->
-	<dependencies></dependencies>
-
-	<!--
-		依赖管理：
-		1.该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用
-		2.好处是子项目可以不用写版本号
-	-->
-	<dependencyManagement>
-		<dependencies></dependencies>
-	<dependencyManagement>
-	```
-
-- child
-
-	```xml
-	<!--声明父项目坐标。maven的parent是单继承，如果需要依赖多个父项目可以在dependencyManagement中添加依赖的scope为import。eg:springcloud应用 -->
-	<parent>
-		<groupId>cn.aezo</groupId>
-		<artifactId>smtools</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-		<!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。 -->
-		<!-- <relativePath/>的默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom -->
-		<!-- 建议写上，否则仅打包子项目的时候会出错 -->
-		<relativePath>../pom.xml</relativePath>
-	</parent>
-
-    <artifactId>demo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
-
-	<properties></properties>
-	<!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号-->
-	<dependencies>
-		<!--依赖于此项目的其他模块:此时idea的Dependencies可看到相应的依赖关系-->
-		<dependency>
-			<groupId>cn.aezo</groupId>
-			<artifactId>utils</artifactId>
-			<!--project.version表示当前项目(此pom文件所在的模块/项目)的版本-->
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
-	```
-
-- 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
-
-### maven项目依赖本地jar包
-
-- 法一：依赖写法(只能一个jar一个jar的添加)
-
-    ```xml
-    <!--groupId等是从jar包的META-INF中获得; 其中scope必须加; ${basedir}为maven内置参数，标识项目根目录-->
-    <dependency>
-		<!-- 外部jar包，此处groupId、artifactId、version可随便填写 -->
-    	<groupId>cn.aezo</groupId>
-    	<artifactId>utils</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-        <scope>system</scope>
-    	<systemPath>${basedir}/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar</systemPath>
-    </dependency>
-
-    <!-- 这部分也需要，否则只能开发环境通过，编译的springboot jar中无此依赖 -->
-	<build>
-		<plugins>
-			<!-- springboot专用. spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<!--(直接给springboot的打包插件引入此行-)同时把本地jar包也引入进去(生成到 BOOT-INF/lib/ 目录), 生成的jar包名称为依赖中定义的`artifactId-version`-->
-					<includeSystemScope>true</includeSystemScope>
-				</configuration>
-			</plugin>
-		</plugins>
-
-		<!-- 使用includeSystemScope失败时可以使用resource的形式(会直接把jar包复制到 BOOT-INF/lib/ 目录) => 会导致开发环境有问题 -->
-		<!-- <resources>
-			<resource>
-				<directory>src/main/resources/lib</directory>
-				<targetPath>BOOT-INF/lib/</targetPath>
-				<includes>
-					<include>**/*.jar</include>
-				</includes>
-			</resource>
-			<resource>
-				<directory>src/main/resources</directory>
-				<targetPath>BOOT-INF/classes/</targetPath>
-			</resource>
-		</resources> -->
-	</build>
-    ```
-
-- 法二：
-    - 安装jar包(test-1.0.0.jar)到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
-        - 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
-    - 再按照常规的方式应用
-        
-        ```xml
-        <!-- 依赖本项目其他模块时，需要先install被依赖的模块，才能打包此模块 -->
-        <dependency>
-            <groupId>cn.aezo</groupId>
-            <artifactId>test</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        ```
-
-- 法二：在`build-plugins`节点加以下插件(可获取到目录下所有jar)(未测试通过)
-
-    ```xml
-    <plugin>
-    	<artifactId>maven-compiler-plugin</artifactId>
-    	<configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-            <encoding>UTF-8</encoding>
-    		<compilerArguments>
-    			<extdirs>src/main/resources/lib</extdirs>
-    		</compilerArguments>
-    	</configuration>
-    </plugin>
-    ```
-
-### 利用github创建仓库
-
-- 基于gitee搭建maven仓库
-    - 
-- 基于gitlab搭建私有maven仓库
-    - https://zhuanlan.zhihu.com/p/145941547
-    - https://www.bookstack.cn/read/gitlab-doc-zh/docs-280.md#aqpu74
-- github新建项目[maven-repo](https://github.com/aezocn/maven-repo)，并下载到本地目录，如`D:/GitRepositories/maven-repo` [^1]
-- 进入到项目pom.xml所在目录，运行命令：
-	- `mvn deploy -DaltDeploymentRepository=aezocn-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
-	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`aezocn-maven-repo`，`-DskipTests`跳过测试进行部署
-- 提交到github(**注意jar包不要习惯性的ignore**)
-- 配置maven远程仓库
-
-	```xml
-	<!-- 优先读取本地库 -->
-	<repositories>
-        <repository>
-			<id>aliyun-repos</id>
-			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-        <repository>
-            <id>aezocn-maven-repo</id>
-            <url>https://raw.github.com/aezocn/maven-repo/master/</url>
-			<!--或者访问本地-->
-			<!--<url>file:D:/GitRepositories/maven-repo/</url>-->
-        </repository>
-    </repositories>
-	```
-	- maven的repository并没有优先级的配置，也不能单独为某些依赖配置repository。所以如果项目配置了多个repository，在首次编绎时会依次尝试下载依赖，如果没有找到，尝试下一个
-	- 其中`<url>https://raw.github.com/{github-username}/{github-repository}/{github-branch}/</url>`，https://raw.github.com 是github的raw站点，浏览器不能访问目录只能访问单个文件
-- 配置依赖(会自动将仓库中的数据再下载到本地仓库`.m2`目录)
-
-	```xml
-	<dependency>
-		<groupId>cn.aezo</groupId>
-		<artifactId>utils</artifactId>
-		<version>sm-minions-1.0</version>
-	</dependency>
-	```
-
 ## 打包和安装
 
 - 生命周期：clean、resources、compile、testResources、testCompile、test、jar、install、deploy
@@ -295,6 +50,35 @@ tags: [build]
 - mvn编译是根据pom.xml配置来的. 而idea的编译/语法校验等, 是根据Libraries中的jar包来的. **idea默认会根据pom.xml中的依赖找到对应的jar(.m2路径下)并应用到Libraries中(只会加本地maven库中的).** 如果手动加入了一些jar包, 有可能出现本地可正常编译, maven却编译打包失败, 具体参考上述"maven项目依赖本地jar包".
 - mvn打包优先以本地依赖为准：IDEA>Setting>Build,Execution,Deployment>Build Tools>Maven>Runner>设置VM Options为`-DarchetypeCatalog=internal`
 
+### maven命令
+
+```bash
+# 安装
+mvn install:install-file -Dfile=test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar
+# 推送到远程
+mvn deploy:deploy-file -Dmaven.test.skip=true -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar -DrepositoryId=my-server-id -Durl=http://192.168.0.1:8080/nexus/content/repositories/releases
+```
+
+### mvnw
+
+- mvnw是Maven Wrapper的缩写。Maven Wrapper就是给一个项目提供一个独立的，指定版本的Maven
+- 使用
+
+```bash
+# 会自动使用最新版本的Maven
+mvn wrapper:wrapper
+# 指定使用的Maven版本
+mvn wrapper:wrapper -Dmaven=3.6.3
+
+# 项目/模块根目录会有一个mvnw和mvnw.cmd的文件
+# 执行mvnw命令时，会自动下载对应版本maven到./m2/wrapper中(第一次由于下载可能会卡一下)
+./mvnw compile
+```
+- `.mvn/wrapper/maven-wrapper.properties`
+    - distributionUrl 下载对应版本maven的地址
+    - wrapperUrl 指定maven-wrapper.jar的下载地址
+- 使用idea - maven - reimport功能时，需要设置idea的maven home path为Use Maven wrapper
+
 ## maven语法
 
 ### maven项目基本结构
@@ -310,7 +94,7 @@ tags: [build]
 		<groupId>cn.aezo</groupId>
 		<artifactId>minions</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<!-- 打包类型可以是jar、war、pom等 -->
+		<!-- 打包类型可以是jar(默认)、war、pom等 -->
 		<packaging>jar</packaging>
 
 		<name>minions</name>
@@ -510,11 +294,249 @@ tags: [build]
 	</build>
 	```
 
-## 结合springboot
+## maven实战
 
-### 多环境编译 [^2]
+### maven镜像修改
 
-- 添加多环境配置(会在idea的maven project菜单中显示)
+- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签(windows/linux均可)
+
+	```xml
+    <!--
+        <mirrorOf>*</mirrorOf> 匹配所有仓库请求，即将所有的仓库请求都转到该镜像上
+        <mirrorOf>repo1,repo2</mirrorOf> 将仓库repo1和repo2的请求转到该镜像上，使用逗号分隔多个远程仓库
+        <mirrorOf>*,!repo1</miiroOf> 匹配所有仓库请求，repo1除外，使用感叹号将仓库从匹配中排除
+    -->
+    <mirror>
+        <id>nexus-aliyun</id>
+        <name>Nexus aliyun</name>
+        <url>http://maven.aliyun.com/nexus/content/groups/public/</url> 
+        <mirrorOf>central</mirrorOf> 
+    </mirror>
+	```
+- 证书问题导致，下载jar包时只返回一个更新文件，且里面报错`unable to find valid certification path to requested target`。需按照下列方式修改jdk证书 [^4]
+
+    ```bash
+    # 浏览器访问 https://maven.aliyun.com/nexus/content/groups/public/，查看证书 - 下载证书(复制到文件，Base64) - 如d:D://aliyun.cer
+    # 进入jdk目录 jdk1.8.0_111\jre\lib\security 执行命令
+    keytool -import -alias aliyun -keystore cacerts -file D://aliyun.cer
+    # 输入密码 changeit
+    # 输入信任证书 Y
+    # 导入成功后可查看证书，密码为 changeit
+    keytool -list -keystore cacerts -alias aliyun
+    # 稍后重新下载jar包
+    ```
+- pom.xml指定远程仓库
+
+```xml
+<repositories>
+    <repository>
+        <id>aliyun-repos</id>
+        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+
+<pluginRepositories>
+    <pluginRepository>
+        <id>aliyun-plugin</id>
+        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
+```
+
+### 父子项目
+
+- parents主要配置如下：`pom.xml`
+
+	```xml
+	<groupId>cn.aezo</groupId>
+	<artifactId>smtools</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<!-- 打包类型必须为pom -->
+	<packaging>pom</packaging>
+
+	<name>smtools</name>
+	<description>smtools</description>
+
+	<modules>
+        <!-- 子模块的groupId可以和当前父模块groupId不一致；此处定义的子模块在父模块打包时会一同打包 -->
+		<module>utils</module>
+		<module>demo</module>
+	</modules>
+
+	<properties></properties>
+	<!-- 
+		1.父项目的依赖会被子项目自动继承
+		2.maven父子项目，在被依赖的时候需要使用子项目的groupId、artifactId、version，不能通过引入父项目而引入所有的子项目
+	-->
+	<dependencies></dependencies>
+
+	<!--
+		依赖管理：
+		1.该节点下的依赖关系只是为了统一版本号，不会被子项目自动继承，除非子项目主动引用
+		2.好处是子项目可以不用写版本号
+	-->
+	<dependencyManagement>
+		<dependencies></dependencies>
+	<dependencyManagement>
+	```
+
+- child
+
+	```xml
+	<!--声明父项目坐标。maven的parent是单继承，如果需要依赖多个父项目可以在dependencyManagement中添加依赖的scope为import。eg:springcloud应用 -->
+	<parent>
+		<groupId>cn.aezo</groupId>
+		<artifactId>smtools</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<!-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。 -->
+		<!-- <relativePath/>的默认值是../pom.xml。Maven首先在构建当前项目的地方寻找父项目的pom，其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom -->
+		<!-- 建议写上，否则仅打包子项目的时候会出错 -->
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+    <artifactId>demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<properties></properties>
+	<!--如果父项目使用了dependencyManagement, 如果此处添加的因子在其中则不用写版本号-->
+	<dependencies>
+		<!--依赖于此项目的其他模块:此时idea的Dependencies可看到相应的依赖关系-->
+		<dependency>
+			<groupId>cn.aezo</groupId>
+			<artifactId>utils</artifactId>
+			<!--project.version表示当前项目(此pom文件所在的模块/项目)的版本-->
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+	```
+
+- 子项目打包：进入到子项目目录，运行`mvn package`(注意要指明`relativePath`)
+
+### 依赖本地jar包
+
+- 法一(**推荐下文优化写法**)：依赖写法(只能一个jar一个jar的添加)
+
+    ```xml
+    <!--groupId等是从jar包的META-INF中获得; 其中scope必须加; ${basedir}为maven内置参数，标识项目根目录-->
+    <dependency>
+		<!-- 外部jar包，此处groupId、artifactId、version可随便填写 -->
+    	<groupId>cn.aezo</groupId>
+    	<artifactId>utils</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+        <scope>system</scope>
+    	<systemPath>${basedir}/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar</systemPath>
+    </dependency>
+
+    <!-- 这部分也需要，否则只能开发环境通过，编译的springboot jar中无此依赖 -->
+	<build>
+		<plugins>
+			<!-- springboot专用. spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!--(直接给springboot的打包插件引入此行-)同时把本地jar包也引入进去(生成到 BOOT-INF/lib/ 目录), 生成的jar包名称为依赖中定义的`artifactId-version`-->
+					<includeSystemScope>true</includeSystemScope>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<!-- 使用includeSystemScope失败时可以使用resource的形式(会直接把jar包复制到 BOOT-INF/lib/ 目录) => 会导致开发环境有问题 -->
+		<!-- <resources>
+			<resource>
+				<directory>src/main/resources/lib</directory>
+				<targetPath>BOOT-INF/lib/</targetPath>
+				<includes>
+					<include>**/*.jar</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>BOOT-INF/classes/</targetPath>
+			</resource>
+		</resources> -->
+	</build>
+    ```
+- 法一优化写法
+    - 法一存在问题：且A->B->C的项目依赖关系中，在A项目中编译提示B存在上述问题，从而导致C无法导入
+
+```xml
+<dependency>
+    <groupId>cn.aezo</groupId>
+    <artifactId>utils</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-install-plugin</artifactId>
+            <version>2.5.2</version>
+            <executions>
+                <!-- 在mvn clean阶段安装本地jar包到本地maven仓库，从而可正常引入 -->
+                <execution>
+                    <id>install-aspose-cells</id>
+                    <phase>clean</phase>
+                    <configuration>
+                        <file>${basedir}/../docs/lib/aspose-cells-21.11-crack.jar</file>
+                        <repositoryLayout>default</repositoryLayout>
+                        <groupId>com.aspose</groupId>
+                        <artifactId>aspose-cells</artifactId>
+                        <version>21.11-crack</version>
+                        <packaging>jar</packaging>
+                        <generatePom>true</generatePom>
+                    </configuration>
+                    <goals>
+                        <goal>install-file</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+- 法二：
+    - 安装jar包(test-1.0.0.jar)到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
+        - 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
+    - 再按照常规的方式应用
+        
+        ```xml
+        <!-- 依赖本项目其他模块时，需要先install被依赖的模块，才能打包此模块 -->
+        <dependency>
+            <groupId>cn.aezo</groupId>
+            <artifactId>test</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        ```
+
+- 法二：在`build-plugins`节点加以下插件(可获取到目录下所有jar)(未测试通过)
+
+    ```xml
+    <plugin>
+    	<artifactId>maven-compiler-plugin</artifactId>
+    	<configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <encoding>UTF-8</encoding>
+    		<compilerArguments>
+    			<extdirs>src/main/resources/lib</extdirs>
+    		</compilerArguments>
+    	</configuration>
+    </plugin>
+    ```
+
+### 多环境编译
+
+- 添加多环境配置(会在idea的maven project菜单中显示) [^2]
 
 ```xml
 <project>
@@ -570,7 +592,7 @@ tags: [build]
 - springboot配置文件`application.properties`添加`spring.profiles.active=@profiles.active@`(参数名profiles.active为上述profiles中定义)
 - maven打包：`mvn clean package -Pdev` 其中`-P`后面即为参数值，后面可有空格。`@profiles.active@`定义之后则只能通过maven打包，不能再idea中直接main方法运行
 
-### 多模块打包
+### 多模块打包(结合springboot)
 
 - spring-boot工程打包编译时，可生成两种jar包，一种是普通的jar，另一种是可执行jar。默认情况下，这两种jar的名称相同，在不做配置的情况下，普通的jar先生成，可执行jar后生成。
 - **多模块打包时容易出现"找不到符号"、"程序包不存在"，需要注意可执行的模块不能依赖另外一个可执行的模块**
@@ -628,11 +650,88 @@ tags: [build]
 </build>
 ```
 
+### 利用github创建仓库
+
+- 其他
+    - 介于github搭建私有maven仓库
+        - https://www.cnblogs.com/liufarui/p/14019206.html
+    - 基于gitee搭建maven仓库
+    - 基于gitlab搭建maven仓库(仓库可私有)
+        - https://www.bookstack.cn/read/gitlab-doc-zh/docs-280.md#aqpu74
+- 基于github搭建maven仓库方法如下
+- github新建项目[maven-repo](https://github.com/aezocn/maven-repo)，并下载到本地目录，如`D:/GitRepositories/maven-repo` [^1]
+- 进入到项目pom.xml所在目录，运行命令：
+	- `mvn deploy -DaltDeploymentRepository=aezocn-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
+	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`aezocn-maven-repo`，`-DskipTests`跳过测试进行部署
+- 提交到github(**注意jar包不要习惯性的ignore**)
+- 配置maven远程仓库
+
+	```xml
+	<!-- 优先读取本地库 -->
+	<repositories>
+        <repository>
+			<id>aliyun-repos</id>
+			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+        <repository>
+            <id>aezocn-maven-repo</id>
+            <url>https://raw.github.com/aezocn/maven-repo/master/</url>
+			<!--或者访问本地-->
+			<!--<url>file:D:/GitRepositories/maven-repo/</url>-->
+        </repository>
+    </repositories>
+	```
+	- maven的repository并没有优先级的配置，也不能单独为某些依赖配置repository。所以如果项目配置了多个repository，在首次编绎时会依次尝试下载依赖，如果没有找到，尝试下一个
+	- 其中`<url>https://raw.github.com/{github-username}/{github-repository}/{github-branch}/</url>`，https://raw.github.com 是github的raw站点，浏览器不能访问目录只能访问单个文件
+- 配置依赖(会自动将仓库中的数据再下载到本地仓库`.m2`目录)
+
+	```xml
+	<dependency>
+		<groupId>cn.aezo</groupId>
+		<artifactId>utils</artifactId>
+		<version>sm-minions-1.0</version>
+	</dependency>
+	```
+
 ## maven插件
 
 - `maven-compiler-plugin` 编译插件
-- `maven-jar-plugin` 默认的打包插件，用来打普通的**Project jar**包(不包含依赖)
-- `maven-shade-plugin` 用来打**Fat jar**包(包含依赖)，一般为可执行jar包
+- `maven-jar-plugin` 默认的打包插件，用来打**普通的Project jar包(不包含依赖)**
+
+    ```xml
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+    </plugin>
+    ```
+- `maven-shade-plugin` 用来打**Fat jar包(包含依赖，一般为可执行jar包)**
+
+    ```xml
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.4</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>org.example.App</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+    </plugin>
+    ```
 - `maven-assembly-plugin` 支持自定义的打包结构，也可以定制依赖项，设置MANIFEST.MF文件等 [^5]
 
     ```xml
@@ -737,7 +836,7 @@ tags: [build]
 - `spring-boot-maven-plugin` 打包SpringBoot项目
 - `org.codehaus.mojo#exec-maven-plugin`
     - 可执行shell命令、构建docker镜像、用npm打包等。特别是结合phase使用
-- maven-dependency-plugin 操作项目依赖文件，如将依赖jar全部复制到lib目录 
+- `maven-dependency-plugin` 操作项目依赖文件，如将依赖jar全部复制到lib目录 
     - https://blog.csdn.net/u011781521/article/details/79055605
     - https://my.oschina.net/LucasZhu/blog/1539468
 - `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
@@ -745,10 +844,13 @@ tags: [build]
         - `requireMavenVersion` 校验maven版本
         - `requireJavaVersion` 校验java版本
         - `bannedDependencies` 校验依赖关系，检查是否存在或不存在某依赖
-- license-maven-plugin 为项目源文件顶部添加许可证
+- `license-maven-plugin` 为项目源文件顶部添加许可证
     - https://www.pingfangushi.com/posts/57675/
+- `maven-site-plugin` 基于src/site目录下的配置生成静态站点
+    - https://blog.csdn.net/taiyangdao/article/details/53933168
+    - 参考项目：https://github.com/wvengen/proguard-maven-plugin
 
-## maven自定义插件
+## 自定义插件
 
 - pom.xml
 
@@ -820,6 +922,7 @@ public class BizMojo extends AbstractMojo {
      * ${project.build.outputDirectory} 构建过程输出目录，缺省为target/classes<br/>
      * ${project.build.finalName} 产出物名称，缺省为 ${project.artifactId}- ${project.version}<br/>
      * ${project.packaging} 打包类型，缺省为jar<br/>
+     * ${project.parent.version}
      * ${project.xxx} 当前pom文件的任意节点的内容<br/>
      *
      * @author smalle
@@ -845,13 +948,13 @@ public class BizMojo extends AbstractMojo {
     <execution>
       <phase>compile</phase>
       <goals>
-        <goal>biz</goal>
+        <goal>biz-dep</goal>
       </goals>
     </execution>
   </executions>
   <!--
     可以自定义配置，此处只能通过idea的maven工具进行编译才会生效
-    也可以通过命令行传入参数`mvn cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz -Dname=test`
+    也可以通过命令行传入参数`mvn cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz-dep -Dname=test`
   -->
   <configuration>
     <name>smalle</name>
@@ -859,7 +962,11 @@ public class BizMojo extends AbstractMojo {
 </plugin>
 ```
 - 执行goal
-  - 格式`mvn groupId:artifactId:version:goal`，即`mvn cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz -Dname=test`
+  - 命令行执行格式`mvn groupId:artifactId:version:goal`，即`mvn cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz-dep -Dname=test`
+  - Idea Run Maven配置可省略groupId和`-maven-plugin`和版本号，如`sqbiz-sofa:biz-dep -Dname=test`
+- debug执行
+  - 先在主应用项目中运行`mvnDebug cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz-dep -Dname=test`会在本地监听一个端口，如8000. 此时命令会阻塞住等待attach
+  - 然后再maven插件中添加remote debug配置attach到对应端口，启动后主应用打包程序继续执行，并进入到maven插件项目端点中
 
 ## maven私服搭建(nexus)
 
@@ -893,8 +1000,12 @@ services:
     - Releases 发布版本内容（即自己公司发行的jar的正式版本）
     - Snapshots 发布版本内容（即自己公司发行的jar的快照版本）
     - Public 以上三个仓库的小组
-- 设置maven-central代理位置(默认为maven官网仓库)：Repositories - Central - Configuration - Remote Storage Location填写阿里云镜像 http://maven.aliyun.com/nexus/content/groups/public/
-- 允许Releases仓库重复提交：Repositories - Releases - Configuration - Deployment Policy 选择 Allow Redeploy (理论上每次发布都会修改版本，因此应该设置禁止重复推送)
+- 设置maven-central代理位置
+    - Repositories - Central - Configuration - Remote Storage Location填写阿里云镜像 http://maven.aliyun.com/nexus/content/groups/public/ (默认为maven官网仓库https://repo1.maven.org/maven2/)
+- 允许Releases仓库重复提交
+    - Repositories - Releases - Configuration - Deployment Policy 选择 Allow Redeploy (理论上每次发布都会修改版本，因此应该设置禁止重复推送)
+- 禁止匿名用户访问
+    - Security - Users - anonymous - Status设置成Disabled
 
 ### 上传jar包到nexus
 
@@ -912,8 +1023,10 @@ services:
 ```xml
 <distributionManagement>
     <repository>
-        <id>mvn-releases</id><!-- 上述server id -->
-        <url>http://192.168.1.10:8081/nexus/content/repositories/releases</url><!-- nexus仓库地址 -->
+        <!-- 上述server id -->
+        <id>mvn-releases</id>
+        <!-- nexus仓库地址 -->
+        <url>http://192.168.1.10:8081/nexus/content/repositories/releases</url>
     </repository>
 </distributionManagement>
 ```
@@ -926,11 +1039,18 @@ services:
 ### 从nexus下载jar
 
 ```xml
-<repository>
-    <id>releases</id><!-- nexus中的repository ID -->
-    <url>http://192.168.1.10:8081/nexus/content/repositories/releases</url>
-</repository>
+<repositories>
+    <repository>
+        <!-- nexus中的repository ID -->
+        <id>releases</id>
+        <name>my releases</name>
+        <url>http://192.168.1.10:8081/nexus/content/repositories/releases</url>
+    </repository>
+</repositories>
 ```
+- 常见错误
+    - `maven-default-http-blocker (http://0.0.0.0/): Blocked mirror for repositories`
+        - 最新版本的maven block掉了所有HTTP协议的repositories，仅支持https。使用https或使用3.6.3及以下maven(使用mvnw)
 
 ## 其他
 
@@ -1018,6 +1138,8 @@ public static void main(String[] args) throws Exception {
     - org.apache.maven.archetypes:maven-archetype-quickstart
     - org.apache.maven.archetypes:maven-archetype-site
     - org.apache.maven.archetypes:maven-archetype-webapp
+- 警告`The POM for <name> is invalid, transitive dependencies (if any) will not be available`，且A->B->C的项目依赖关系中，在A项目中编译提示B存在上述问题，从而导致C无法导入
+    - 一般是B项目中存在问题：(1)如B模块使用父pom管理version，但是父pom模块没有安装从而出错 (2)B模块中使用了systemPath本地文件夹依赖包(解决方法参考上文[maven项目依赖本地jar包](#maven项目依赖本地jar包))
 
 ## 多模块思考
 

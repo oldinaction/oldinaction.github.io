@@ -13,6 +13,8 @@ tags: [sql, oracle, mysql]
 
 ## 不同数据库差异
 
+- [Oracle迁移MySQL注意事项](https://z.itpub.net/article/detail/981AEFD121E9C508F063228A878ED6E0)
+
 ### 数据类型转换
 
 - mysql：`cast()`和 `convert()` 可将一个类型转成另外一个类型
@@ -29,9 +31,10 @@ select date_format(now(), '%Y-%m-%d %H:%i:%s');
 select str_to_date('2016-01-02 10:00:00.000','%Y-%m-%d %H:%i:%s.%f');
 select to_days(now()); -- 727666 从0年开始到当前的天数
 select to_days('2016-01-02');
--- oracel
+-- oracel(oracle也支持cast)
 select to_char(sysdate, 'yyyy-MM-dd HH24:mi:ss') from dual;
 select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
+select cast(100 as varchar2(10)) from dual;
 --sqlserver
 select CONVERT(VARCHAR(10), GETDATE(), 120); -- 格式化日期(120为一种格式) 2000-01-01
 select CONVERT(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:00:00.000
@@ -53,6 +56,7 @@ select TRUNC(SYSDATE) FROM dual; -- 取得当天0时0分0秒
 SELECT TRUNC(SYSDATE)+1-1/86400 FROM dual; -- 取得当天23时59分59秒(在当天0时0分0秒的基础上加1天后再减1秒)
 select to_char(sysdate,'yyyy-mm')||'-01' firstday, 
        to_char(last_day(sysdate),'yyyy-mm-dd') lastday from dual; -- 在oracle中如何得到当天月份的第一天和最后一天
+select to_date('1970', 'yyyy') from dual;
 
 -- sqlserver
 select 
@@ -101,6 +105,12 @@ select name from user where name = 'smalle';
 select name as username from user where name = "smalle";
 select name as "username" from user where name = "smalle";
 ```
+- 多字段查询
+
+```sql
+-- oracle
+select * from user t where (t.name, t.sex) in (('张三', 1)); -- 此处用=也得在外面多加一层括号
+```
 
 ### 排序
 
@@ -110,6 +120,13 @@ select name as "username" from user where name = "smalle";
 order by my_field [asc|desc] nulls [first|last] -- oracle
 order by if(isnull(my_field),1,0), my_field [asc|desc] -- mysql默认将null值放在下面
 order by if(isnull(my_field),0,1), my_field [asc|desc] -- mysql默认将null值放在上面
+```
+
+### 数值比较
+
+```sql
+-- 假设两个字段一个是number(10, 2)的, 一个是FLOAT的则比较可能会有问题，可进行cast/round转换再比较
+select 1 from test where num1 > cast(num2 as number(10, 2));
 ```
 
 ## 复杂查询
@@ -175,8 +192,45 @@ stu_no  yuewen  shuxue  yingyu
 
 #### oracle
 
-- 参考[listagg within group行转列](#listagg%20within%20group行转列)
-- 参考[wm_concat行转列](#wm_concat行转列)
+- 使⽤ decode 与聚合函数实现
+
+    ```sql
+    select t.name,
+        sum(decode(t.course,'chinese', score, null)) as CHINESE,
+        sum(decode(t.course,'math', score, null)) as MATH,
+        sum(decode(t.course,'english', score, null)) as ENGLISH
+    from students t
+    group by t.name
+    order by t.name
+    ```
+- 使⽤ case when 与聚合函数实现，类似decode
+- 使⽤ pivot 函数
+
+    ```sql
+    select * from
+        select name, chhinese, math, english from students
+        pivot(
+            max(score) -- max ⾥是要转的列的值
+            for course -- 需要转的列名称
+            in('chinese' chhinese, 'math' math, 'english' english)
+        )
+    order by name;
+
+    -- 扩展说明: pivot的xml字句
+    -- bill_fee_cod_xml为xmltype格式(mybatis无法解析), getstringval为转成XML字符串(但是最大长度时4000), getclobval为转成clob格式(内容还是xml)
+    select ship_no, bill_nbr, bill_fee_cod_xml, (bill_fee_cod_xml).getstringval(), (bill_fee_cod_xml).getclobval() 
+        from bill_fee
+        -- 以 XML 格式显示 pivot 操作的输出，在plsql中显示成了xmltype；此时对应字段为bill_fee_cod的后面加上_xml
+        pivot xml (sum(MONEY_NUM) for bill_fee_cod in(select BILL_FEE_COD from bill_fee where port_id = '1' and trust_cod = 'CUL'))
+    where port_id = '1' and trust_cod = 'CUL'
+    ```
+- 动态行转列(列名不固定)
+    - 基于存储过程动态拼接SQL，参考[db-procedure.md#sql_pivot_dynamic_col动态行转列](/_posts/db/db-procedure.md#sql_pivot_dynamic_col动态行转列)
+    - 基于存储过程动态拼接SQL和视图 https://blog.csdn.net/Huay_Li/article/details/82924443
+        - 查询每次新增临时查询ID和时间，再定时删掉老的数据；第一次查询创建几百个字段的视图(无实际意义的字段名)，并把列头以一行值的形式显示到结果中(第一行值充当列头)
+- 合并到一个字段
+    - 参考[wm_concat行转列](#wm_concat行转列)
+    - 参考[listagg within group行转列, 类似wm_concat](#listagg%20within%20group行转列)
 
 #### mysql
 
@@ -270,36 +324,23 @@ select t.stu_no, t.course_name, t.course_score from
 
 ### 关键字
 
-#### WITH AS 用法
-
-- 可认为在真正进行查询之前预先构造了一个临时表，之后便可多次使用它做进一步的分析和处理。一次分析，多次使用
-- 语法
-
-```sql
-with tempName as (select ....)
-select ...
-
--- 针对多个别名
-with
-   tmp as (select * from tb_name),
-   tmp2 as (select * from tb_name2)
-select ...
-```
-
 ### 常用函数
 
-- concat/concat_ws/group_concat
+#### concat/concat_ws/group_concat
 
 ```sql
 -- 将多个字符串连接成一个字符串。任何一个值为null则整体为null
 concat(str1, str2,...)
+
 -- 将多个字符串连接成一个字符串，但是可以一次性指定分隔符concat_ws就是concat with separator）
 concat_ws(separator, str1, str2, ...)
+
 -- 将group by产生的同一个分组中的值连接起来，返回一个字符串结果。类似oracle的wm_concat
-group_concat( [distinct] 要连接的字段 [order by 排序字段 asc/desc ] [separator '分隔符(默认为,)'] )
+-- 语法：group_concat( [distinct] 要连接的字段 [order by 排序字段 asc/desc ] [separator '分隔符(默认为,)'] )
 select userId, group_concat(orderId order by orderId desc separator ';') as orderList from t_orders group by userId;
 ```
-- 字符串
+
+#### instr/find_in_set
 
 ```sql
 -- instr
@@ -312,12 +353,17 @@ select * from t_test where instr(username, char(13)) > 0 or instr(username, char
     -- type字段表示：1头条、2推荐、3热点。现在有一篇文章即是头条又是热点，即type=1,2
 select * from article where find_in_set('2', type); -- 找出所有热点的文章
 ```
-- 日期
+
+#### 日期
 
 ```sql
 -- sysdate
 update t_test t set t.update_tm = sysdate() where id = 1; -- 其中`sysdate()`可获取当前时间
 ```
+
+#### with as
+
+- 参考下文[with as 用法](#with%20as%20用法)
 
 ### 自定义变量
 
@@ -431,6 +477,50 @@ select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using 
 select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天和今天（2018-01-01, 2018-01-02）
 ```
 
+#### trim
+
+```sql
+-- 语法 select trim(leading | trailing | both string1 from string2) from dual;
+select trim(' a b ') from dual; -- "a b"
+select trim(leading 'a' from 'aa ab ') from dual; -- " ab "
+-- 同理ltrim去除左侧空格；ltrim/rtrim 还支持第二个参数
+select rtrim(' a b ') from dual; -- " a b"
+```
+
+#### with as 用法
+
+- 特点
+    - 特别是从多张表中取数据时，而且每张表的数据量又很大时，使用with写法可以先筛选出来一张数据量较少的表，避免全表join
+    - 可认为在真正进行查询之前预先构造了一个临时表，之后便可多次使用它做进一步的分析和处理。一次分析，多次使用
+- mysql版本在8.0之前不能使用with的写法；8.0之后写法同oracle
+- 语法(oracle/mysql均支持)
+    - 前面的with子句定义的查询在后面的with子句中可以使用，但是一个with子句内部不能嵌套with子句
+    - from后面必须直接紧跟使用with as出来的表，否则需要使用join将with as出来的表关联进来；在子查询中也是这样
+    - with必须开头，不能出现`select 1 from dual union all with ...`
+
+```sql
+-- 针对多个别名，e,d为“别名表”
+with
+     e as (select * from scott.emp),
+     d as (select * from scott.dept)
+select * from e, d where e.deptno = d.deptno;
+
+-- from后面必须直接紧跟使用with as出来的表，否则需要使用join将with as出来的表关联进来
+with temp as (select t.create_tm from user t where t.id = 1)
+select temp.*
+from dual -- from其他表时，必需要使用join将with as出来的表关联进来
+full join temp on 1=1
+where temp.create_tm > sysdate-7;
+
+WITH
+ASSIGN(ID, ASSIGN_AMT) AS (
+                SELECT 1, 25150 FROM DUAL 
+    UNION ALL SELECT 2, 19800 FROM DUAL
+    UNION ALL SELECT 3, 27511 FROM DUAL
+)
+select * from ASSIGN;
+```
+
 #### 聚合函数(aggregate_function)
 
 - `min`、 `max`、`sum`、`avg`、`count`、`variance`、`stddev` 
@@ -440,15 +530,30 @@ select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天�
 
 - 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
 - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
+    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 `xmlagg` 函数代替。参考：https://www.cxybb.com/article/qq_28356739/88626952
+        - druid使用内置SQL解析工具类时，无法解析此函数，参考：https://github.com/alibaba/druid/issues/4259
+    - clob直接返回到前台会报错
+        - 可通过`clob.getSubString(1, (int) clob.length())`解决
+        - 或者使用jackson转换器，参考：https://oomake.com/question/13622930、https://segmentfault.com/a/1190000040484998
 - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符
 
+##### xmlagg行转列
+
+```sql
+select
+xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval() "my_col"
+from test
+```
+
 ##### listagg within group行转列
+
+- mysql可使用group_concat
 
 ```sql
 -- 查询部门为20的员工列表
 select
 	t.deptno,
-    -- listagg 可理解为wm_concat；而 within group 表示对没一组的元素进行操作，此时是基于 t.ename 进行排序(即排序后再调用listagg)
+    -- listagg 可理解为wm_concat；而 within group 表示对每一组的元素进行操作，此时是基于 t.ename 进行排序(即排序后再调用listagg)
 	listagg(t.ename, ',') within group (order by t.ename) names -- 返回 ADAMS,FORD,JONES 即将多行显示在一列中
 from scott.emp t
 where t.deptno = '20'
@@ -611,19 +716,21 @@ select *
     [ OVER ( [query_partition_clause] ) ]
     ```
     - 最前是聚合函数，可以是min、max、avg、sum
-    - **`dense_rank first`，`dense_rank last`**为keep函数的保留属性
+    - `dense_rank first`，`dense_rank last`为keep函数的保留属性
         - dense_rank first 表示取分组-排序结果集中第一个(dense_rank值排第一的。可能有几行数据排序值一样，此时再可配合min/max等聚合函数取值)
         - dense_rank last 同理，为最后一个
-- Keep测试一(基于主表group by)，场景参考上文[over使用误区](#over使用误区)
+- **Keep测试一(基于主表group by，如取最大最小值)**，场景参考上文[over使用误区](#over使用误区)
 
 ```sql
 -- *****Keep测试一(基于主表group by)*****：如查分组中最新的数据(非分组字段通过keep获取，如果同最近的ID再次管理表则效率低一些)
 select
 v.customer_id, v.visit_type
-,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id -- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2. 因为存在两个拜访时间2018/9/21一样，因此排序值都为1，当遇到不同排序值+1)，并取第一排序集(1-1的两条记录)中v.id最大的
+-- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2. 因为存在两个拜访时间2018/9/21一样，因此排序值都为1，当遇到不同排序值+1)，并取第一排序集(1-1的两条记录)中v.id最大的
+,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id
 ,max(v.visit_tm) keep(dense_rank first order by v.visit_tm desc) as visit_tm
 ,max(v.comments) keep(dense_rank first order by v.visit_tm desc) as comments
-,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id -- 排序值为 1-2-3
+-- 排序值为 1-2-3
+,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id
 from t_visit v
 where v.valid_status = 1 and v.result is not null 
 and v.customer_id = 358330
@@ -653,7 +760,7 @@ group by sb.bill_no
   ```sql
   -- 查询每个客户的默认地址：t_customer数据条数 28.9w, t_customer_address数据条数 36.8w。(注：此测试实际场景为两张表除了主键，无其他外键和索引)
   select tmp_page.*, rownum row_id from ( -- 分页
-    select t.* from ( -- 写法 2
+    select t.* from ( -- 写法 2(推荐)
       select c.customer_name_cn
         --,ca.address -- 写法 1
         ,max(ca.address) keep(dense_rank first order by decode(ca.address_type, 'Default', 1, 2)) over(partition by c.id) as address -- 写法 2

@@ -51,6 +51,67 @@ tags: [job]
     - `@PersistJobDataAfterExecution` 加在Job类上，是否持久化JobDataMap数据
         - 如果加了此注解，在执行任务时修改了JobDataMap的数据，则会将最终的数据持久化到数据库。下次执行任务则获取的新数据
 
+## 配置
+
+- 调度(scheduleJob)或恢复调度(resumeTrigger,resumeJob)后不同的misfire对应的处理规则. [参考](https://www.cnblogs.com/skyLogin/p/6927629.html)
+    - 参考`MisfireHandler.class`对应线程
+    - CronTrigger
+        
+        withMisfireHandlingInstructionDoNothing
+        ——不触发立即执行
+        ——等待下次Cron触发频率到达时刻开始按照Cron频率依次执行
+
+        withMisfireHandlingInstructionIgnoreMisfires
+        ——以错过的第一个频率时间立刻开始执行
+        ——重做错过的所有频率周期后
+        ——当下一次触发频率发生时间大于当前时间后，再按照正常的Cron频率依次执行
+
+        withMisfireHandlingInstructionFireAndProceed
+        ——以当前时间为触发频率立刻触发一次执行
+        ——然后按照Cron频率依次执行
+    - SimpleTrigger
+        
+        withMisfireHandlingInstructionFireNow
+        ——以当前时间为触发频率立即触发执行
+        ——执行至FinalTIme的剩余周期次数
+        ——以调度或恢复调度的时刻为基准的周期频率，FinalTime根据剩余次数和当前时间计算得到
+        ——调整后的FinalTime会略大于根据starttime计算的到的FinalTime值
+
+        withMisfireHandlingInstructionIgnoreMisfires
+        ——以错过的第一个频率时间立刻开始执行
+        ——重做错过的所有频率周期
+        ——当下一次触发频率发生时间大于当前时间以后，按照Interval的依次执行剩下的频率
+        ——共执行RepeatCount+1次
+
+        withMisfireHandlingInstructionNextWithExistingCount
+        ——不触发立即执行
+        ——等待下次触发频率周期时刻，执行至FinalTime的剩余周期次数
+        ——以startTime为基准计算周期频率，并得到FinalTime
+        ——即使中间出现pause，resume以后保持FinalTime时间不变
+
+        withMisfireHandlingInstructionNowWithExistingCount
+        ——以当前时间为触发频率立即触发执行
+        ——执行至FinalTIme的剩余周期次数
+        ——以调度或恢复调度的时刻为基准的周期频率，FinalTime根据剩余次数和当前时间计算得到
+        ——调整后的FinalTime会略大于根据starttime计算的到的FinalTime值
+
+        withMisfireHandlingInstructionNextWithRemainingCount
+        ——不触发立即执行
+        ——等待下次触发频率周期时刻，执行至FinalTime的剩余周期次数
+        ——以startTime为基准计算周期频率，并得到FinalTime
+        ——即使中间出现pause，resume以后保持FinalTime时间不变
+
+        withMisfireHandlingInstructionNowWithRemainingCount
+        ——以当前时间为触发频率立即触发执行
+        ——执行至FinalTIme的剩余周期次数
+        ——以调度或恢复调度的时刻为基准的周期频率，FinalTime根据剩余次数和当前时间计算得到
+        ——调整后的FinalTime会略大于根据starttime计算的到的FinalTime值
+
+        MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_REMAINING_REPEAT_COUNT
+        ——此指令导致trigger忘记原始设置的starttime和repeat-count
+        ——触发器的repeat-count将被设置为剩余的次数
+        ——这样会导致后面无法获得原始设定的starttime和repeat-count值
+
 ## 基于springboot简单使用
 
 - 下列方式不会将任务持久化(即无需创建Quartz相关任务持久化表)
@@ -103,8 +164,33 @@ public class QuartzConfig {
 
 - 参考: https://blog.csdn.net/qq_34397273/article/details/116853291
     - 源码: https://github.com/liululee/spring-boot-learning
-- mysql表结构: https://blog.csdn.net/qq_30285985/article/details/112171744 (含字段说明)
-- oracle表结构: https://blog.csdn.net/qq_34397273/article/details/116853291
+- 参考源码目录: org.quartz.impl.jdbcjobstore
+    - mysql表结构: https://blog.csdn.net/qq_30285985/article/details/112171744 (含字段说明)
+    - oracle表结构: https://blog.csdn.net/qq_34397273/article/details/116853291
+- 查看任务列表
+
+```sql
+-- 基于CRON_TRIGGERS
+SELECT
+    QRTZ_JOB_DETAILS.SCHED_NAME AS "调度器",
+    QRTZ_JOB_DETAILS.JOB_GROUP AS "任务组",
+    QRTZ_JOB_DETAILS.JOB_NAME AS "任务代码",
+    QRTZ_JOB_DETAILS.DESCRIPTION AS "任务描述",
+    QRTZ_CRON_TRIGGERS.CRON_EXPRESSION AS "cron表达式",
+    QRTZ_TRIGGERS.TRIGGER_STATE AS "任务状态",
+    case when QRTZ_TRIGGERS.PREV_FIRE_TIME > 0 then (to_date('1970-01-01 08:00:00','yyyy-mm-dd hh24:mi:ss') + QRTZ_TRIGGERS.PREV_FIRE_TIME/1000/24/60/60) end "上次时间",
+    case when QRTZ_TRIGGERS.NEXT_FIRE_TIME > 0 then (to_date('1970-01-01 08:00:00','yyyy-mm-dd hh24:mi:ss') + QRTZ_TRIGGERS.NEXT_FIRE_TIME/1000/24/60/60) end "下次时间",
+    case when QRTZ_TRIGGERS.START_TIME > 0 then (to_date('1970-01-01 08:00:00','yyyy-mm-dd hh24:mi:ss') + QRTZ_TRIGGERS.START_TIME/1000/24/60/60) end "开始时间",
+    case when QRTZ_TRIGGERS.END_TIME > 0 then (to_date('1970-01-01 08:00:00','yyyy-mm-dd hh24:mi:ss') + QRTZ_TRIGGERS.END_TIME/1000/24/60/60) end "结束时间",
+    QRTZ_JOB_DETAILS.JOB_CLASS_NAME AS "任务执行类"
+FROM QRTZ_JOB_DETAILS
+left JOIN QRTZ_TRIGGERS ON QRTZ_JOB_DETAILS.SCHED_NAME = QRTZ_TRIGGERS.SCHED_NAME
+    and QRTZ_JOB_DETAILS.JOB_NAME = QRTZ_TRIGGERS.JOB_NAME and QRTZ_JOB_DETAILS.JOB_GROUP = QRTZ_TRIGGERS.JOB_GROUP
+left JOIN QRTZ_CRON_TRIGGERS ON QRTZ_TRIGGERS.SCHED_NAME = QRTZ_CRON_TRIGGERS.SCHED_NAME
+    AND QRTZ_TRIGGERS.TRIGGER_NAME = QRTZ_CRON_TRIGGERS.TRIGGER_NAME
+    AND QRTZ_TRIGGERS.TRIGGER_GROUP = QRTZ_CRON_TRIGGERS.TRIGGER_GROUP
+where 1=1
+```
 
 ## 常见问题
 
@@ -118,12 +204,24 @@ public class QuartzConfig {
 ### quartz设置新增任务默认暂停
 
 - 参考：https://blog.51cto.com/abcd/2478761
-- qrtz_paused_trigger_grps(sched_name, trigger_group)触发器组暂停表有两个字段，在通过`scheduler.scheduleJob`创建或更新任务时都会读取此表，如果任务符合则不管原来状态为什么都会改成暂停。而业务需要新增时暂停，之后修改不改变任务的状态(如任务时运行中，修改后任务仍然为运行中)
-    - 可通过手动操作此表完成：新增时默认创建qrtz_paused_trigger_grps；修改时读取Tigger状态，如果是暂停则不操作，如果是运行则先删除qrtz_paused_trigger_grps之后，再修改Tigger，最后重新创建qrtz_paused_trigger_grps
+- qrtz_paused_trigger_grps(sched_name, trigger_group)触发器组暂停表有两个字段
+    - 在通过`scheduler.scheduleJob`创建或更新任务时都会读取此表，如果任务符合则不管原来状态为什么都会改成暂停。而业务需要新增时暂停，之后修改不改变任务的状态(如任务时运行中，修改后任务仍然为运行中)
+    - 可通过手动操作此表完成
+        - 新增时默认创建qrtz_paused_trigger_grps，创建完之后再删除
+        - 修改时读取Tigger状态，如果是暂停则不操作，如果是运行则先删除qrtz_paused_trigger_grps之后，再修改Tigger，最后重新创建qrtz_paused_trigger_grps
+        - quartz需要和此处操作数据库使用同一数据源(即将quartz使用应用数据源；否则执行scheduleJob时，quartz读取不到创建的临时暂停组)
+    - 注意 qrtz_paused_trigger_grps此表示也是`MisfireHandler`线程检查到漏任务后判断是否需要暂停当前任务的依据
 
+### 会自动暂停任务
 
-
-
+- 如果上一次job 执行未完成，下一次就不会执行了
+    - 解决方法: 如job里面不能抛出异常
+- 如应用停止时间过长，导致任务有一次没有执行，那么应用重新启动时就回自动暂停
+    - 原因时有一个`MisfireHandler.class`线程，会定时检查任务是否漏执行，如果漏执行了，再判断是否存在对应的暂停组，如果存在则会将此任务暂停
+    - 解决: 去掉无用的暂停组
+- 如果一个job执行很耗时，超过了定时间隔（如每1小时执行一次，但是每次执行超过了1小时），则有可能自动暂停
+    - [未遇到，参考摘录](https://blog.51cto.com/u_15082395/4356459)；简单测试下来结果为：如果阻塞在执行任务时，当阻塞完成后，之前漏掉的执行次数会立刻执行
+    - 在耗时较长的任务调整为异步执行，job中只是组织数据，放入缓存，由另外一条线程从缓存中获取数据进行处理，如果另外一条线程还未处理完上一批次的数据，则下次job任务执行时不再向缓存中添加数据
 
 
 ---

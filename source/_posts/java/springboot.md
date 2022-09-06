@@ -223,8 +223,9 @@ mybatis:
     ```
 - `System.getproperty("java.io.tmpdir")`可获取操作系统缓存的临时目录。不同操作系统的缓存临时目录不一样，Linux：`/tmp`，Windows如：`C:\Users\smalle\AppData\Local\Temp\`
 
-### 随应用启动而运行(实现`CommandLineRunner`接口)
+### 随应用启动而运行
 
+- 实现`CommandLineRunner`接口
 - 读取resources目录下配置文件
 
 	```java
@@ -312,8 +313,9 @@ mybatis:
 
 ### 全局错误处理
 
-- 继承BasicErrorControllers是处理进入control层之前发生的异常(且需要有对应handler)，需要重写error、errorHtml两个方法
-- @ControllerAdvice/@RestControllerAdvice和@ExceptionHandler联用进行control层错误处理
+- 法一: @ControllerAdvice/@RestControllerAdvice和@ExceptionHandler联用进行control层错误处理
+    - 可以有多个@RestControllerAdvice对象
+- 法二: 继承BasicErrorControllers是处理进入control层之前发生的异常(且需要有对应handler)，需要重写error、errorHtml两个方法
 - Interceptor层异常
 	- 方法@ExceptionHandler会处理所有Controller层抛出的Exception及其子类的异常，Controller层就不需要单独处理异常了。但如上代码只能处理 Controller 层的异常，对于未进入Controller的异常，如Interceptor（拦截器）层的异常，Spring 框架层的异常无效，还是会将错误直接返回给用户
 	- SpringMVC是可以通过增加/error的handler来处理异常的，而REST却不行。因为在Spring REST中，当用户访问了一个不存在的链接时，Spring 默认会将页面重定向到`/error` 上，而不会抛出异常(error对应的视图就是常见的Whitelabel Error Page)
@@ -740,6 +742,8 @@ str2: >
 str3: "hello wor\
   ld"
 ```
+- 统一时区(UTC/GMT+8)
+    - https://www.jianshu.com/p/504c17b35e17
 
 ## 请求及响应
 
@@ -1095,13 +1099,15 @@ public class TestServlet extends HttpServlet{
     namedJdbcTemplate.update("update t_user set sex = :sex where id in (:idList) ", params);
     ```
 - jdbc批量执行sql语句
+    - 在服务上增加`@Transactional`，那么批量执行也支持事物
 
 	```java
-	// Message message = new Message(...);
-
+    // insert、update、delete同理
+    List<User> users = ...;
+	Message message = new Message(...);
 	final String sql = "insert into th_message(user_id, message_type, content, is_read, is_valid, create_time) values(?, ?, ?, ?, ?, ?)";
-
-	jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+    // 方式一
+	int[] ret = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 		@Override
 		public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
 			User user = users.get(i);
@@ -1118,6 +1124,27 @@ public class TestServlet extends HttpServlet{
 			return users.size();
 		}
 	});
+
+    // 方式二: 定义每次提交的个数
+    public int[][] batchRun(List<User> users, int batchSize) {
+        int[][] updateCounts = jdbcTemplate.batchUpdate(
+                sql,
+                users,
+                batchSize,
+                new ParameterizedPreparedStatementSetter<User>() {
+                    public void setValues(PreparedStatement ps, User argument)
+                        throws SQLException {
+                        ps.setLong(1, argument.getUserId());
+                        ps.setObject(2, message.getMessageType());
+                        ps.setString(3, message.getContent());
+                        ps.setObject(4, 0);
+                        ps.setObject(5, 1);
+                        ps.setObject(6, DateU.nowTimestamp());
+                    }
+                });
+        // 如果执行成功返回 updateCounts 第一维表示执行了多少个batchSize；第二维长度表示当前批提交的个数，值如[-2, -2, -2, ...]，-2表示执行成功(oracle)，并不代表影响行数；如果SQL基本错误(如字段超长)则会报错，不会有返回值
+        return updateCounts;
+   }
 	```
 
 ### 数据库连接池(Druid)
@@ -2346,20 +2373,18 @@ public class DynamicAddTests {
 
 ### 替换项目运行时springboot的logo
 
-- 在`resources`添加`banner.txt`文件. 内容自定义(文字转字符：http://patorjk.com/software/taag/)，如（font=Doom）：
+- 在`resources`添加`banner.txt`文件. 内容自定义(文字转字符：http://patorjk.com/software/taag/)，如（font=Graffiti）
 
-	```html
-    ${AnsiColor.BRIGHT_CYAN} _____               _                 ${AnsiColor.YELLOW} _____        ______  _
-    ${AnsiColor.BRIGHT_CYAN}/  ___|             (_)                ${AnsiColor.YELLOW}/  ___|       | ___ \(_)
-    ${AnsiColor.BRIGHT_CYAN}\ `--.  _ __   _ __  _  _ __    __ _   ${AnsiColor.YELLOW}\ `--.   __ _ | |_/ / _  ____
-    ${AnsiColor.BRIGHT_CYAN} `--. \| '_ \ | '__|| || '_ \  / _` |  ${AnsiColor.YELLOW} `--. \ / _` || ___ \| ||_  /
-    ${AnsiColor.BRIGHT_CYAN}/\__/ /| |_) || |   | || | | || (_| |  ${AnsiColor.YELLOW}/\__/ /| (_| || |_/ /| | / /
-    ${AnsiColor.BRIGHT_CYAN}\____/ | .__/ |_|   |_||_| |_| \__, |  ${AnsiColor.YELLOW}\____/  \__, |\____/ |_|/___|
-    ${AnsiColor.BRIGHT_CYAN}       | |                      __/ |  ${AnsiColor.YELLOW}           | |
-    ${AnsiColor.BRIGHT_CYAN}       |_|                     |___/   ${AnsiColor.YELLOW}           |_|
+```html
+${AnsiColor.BRIGHT_CYAN}                     .__                 ${AnsiColor.YELLOW}             ___.   .__
+${AnsiColor.BRIGHT_CYAN}  ___________________|__| ____    ____   ${AnsiColor.YELLOW}  ___________\_ |__ |__|_______
+${AnsiColor.BRIGHT_CYAN} /  ___/\____ \_  __ \  |/    \  / ___\  ${AnsiColor.YELLOW} /  ___/ ____/| __ \|  \___   /
+${AnsiColor.BRIGHT_CYAN} \___ \ |  |_> >  | \/  |   |  \/ /_/  > ${AnsiColor.YELLOW} \___ < <_|  || \_\ \  |/    /
+${AnsiColor.BRIGHT_CYAN}/____  >|   __/|__|  |__|___|  /\___  /  ${AnsiColor.YELLOW}/____  >__   ||___  /__/_____ \
+${AnsiColor.BRIGHT_CYAN}     \/ |__|                 \//_____/   ${AnsiColor.YELLOW}     \/   |__|    \/         \/
 
-    ${AnsiColor.BLUE}:: SqBiz :: ${spring.application.name:sqbiz}:${AnsiColor.RED}${spring.profiles.active}${AnsiColor.BLUE} :: Running SpringBoot ${spring-boot.version} :: ${AnsiColor.BRIGHT_BLACK}
-	```
+${AnsiColor.BLUE}:: SqBiz :: ${spring.application.name:sqbiz}:${AnsiColor.RED}${spring.profiles.active}${AnsiColor.BLUE} :: Running SpringBoot ${spring-boot.version} :: ${AnsiColor.BRIGHT_BLACK}
+```
 
 ### 打包成exe
 

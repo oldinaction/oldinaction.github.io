@@ -274,9 +274,12 @@ while (matcher.find()) {
 - 校验
 
 ```java
-str.matches(String.format("^[-]{0,1}\\d{1,%d}$", 3)) // 正在表达式变量拼接
-str.matches("^[\u4e00-\u9fa5]{0,}$"); // 校验汉字
-str.matches("^\\w+$"); // 匹配变量
+// 正在表达式变量拼接
+str.matches(String.format("^[-]{0,1}\\d{1,%d}$", 3)); // [-][0-999]
+// 校验汉字
+str.matches("^[\u4e00-\u9fa5]{0,}$");
+// 匹配变量名
+str.matches("^[_$a-zA-Z][\\w$]*$");
 ```
 
 - 正则替换

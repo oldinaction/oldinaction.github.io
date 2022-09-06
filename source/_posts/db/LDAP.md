@@ -18,6 +18,16 @@ tags: [auth]
     - Host：192.168.1.100:389；Base：dc=demo,dc=com；Username：填写dn，如：cn=admin,dc=demo,dc=com；Password：填写用户属性userPassword
     - LDAPAdmin使用参考：https://cloud.tencent.com/developer/article/1380076
 - LDAP web客户端：`ldap-account-management`、`phpLDAPadmin`
+- 加密LDAP
+    - LDAP over SSL（即ldaps）
+        - ldap默认不加密情况下走389端口
+        - 当使用ldaps的时候走636端口
+        - ldaps已经淘汰了（不然也不会有LDAP over TLS出来）
+    - LDAP over TLS（即ldap + TLS）
+        - LDAP over TLS可以简单理解为ldaps的升级
+        - 它默认走389端口，但是会通讯的时候加密
+        - 客户端连接LDAP时，需要指明通讯类型为TLS
+
 
 ## LDAP的基本模型
 
@@ -67,6 +77,43 @@ tags: [auth]
 - `OLC`(on-line configuration) 运行时配置，通过配置 DIT 条目 cn=config 达到运行时配置(无需停止服务器)
 
 ## OpenLDAP安装及配置(服务端)
+
+### 基于docker-compose安装
+
+- `docker-compose up -d` 启动
+- 启动后访问http://192.168.40.193:30004/ 登录名：`cn=admin,dc=test,dc=com` 密码：`123456`
+- docker-compose.yml配置文件如下
+
+```yml
+# docker-compose.yml
+version: "3"
+services:
+  openldap:
+    container_name: openldap
+    image: osixia/openldap:latest
+    restart: always
+    environment:
+      LDAP_ORGANISATION: "test openldap"
+      LDAP_DOMAIN: "test.com"
+      LDAP_ADMIN_PASSWORD: "123456"
+      LDAP_CONFIG_PASSWORD: "123456"
+    volumes:
+      - /data/openldap/data:/var/lib/ldap
+      - /data/openldap/config:/etc/ldap/slapd.d
+    ports:
+      - '389:389'
+  phpldapadmin:
+    container_name: phpldapadmin
+    image: osixia/phpldapadmin:latest
+    restart: always
+    environment:
+      PHPLDAPADMIN_HTTPS: "false"
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+    ports:
+      - '30004:80'
+    depends_on:
+      - openldap
+```
 
 ### 基于k8s安装
 
