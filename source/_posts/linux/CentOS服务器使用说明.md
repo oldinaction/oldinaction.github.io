@@ -12,6 +12,7 @@ tags: [CentOS, linux]
 - **如果服务器磁盘未挂载，最好先挂载后再进行软件安装**
 - 软件安装和项目代码最好不要放到home的用户目录，项目迁移时可能出现目录不一致问题
 - [CentOS7安装：http://blog.aezo.cn/2016/11/20/linux/ubuntu/](/_posts/linux/ubuntu.md#CentOS7安装)
+- [阿里云常用镜像](https://mirrors.aliyun.com)
 
 ### 新服务器初始化
 
@@ -454,8 +455,11 @@ datadir=/home/data/mysql
 # 使用默认sock路径/var/lib/mysql/mysql.sock，如php.ini中就默认连接词sock
 # socket=/home/data/mysql/mysql.sock
 socket=/var/lib/mysql/mysql.sock
-#pid-file = /home/data/mysql/mysql.pid # pid文件，默认为 %datadir%/aezocn-1.pid
-#log_error=/home/data/mysql/mysqld_error.log # 服务错误日志文件，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
+# pid文件，默认为 %datadir%/aezocn-1.pid
+#pid-file = /home/data/mysql/mysql.pid
+# 服务错误日志文件，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
+log_error=/home/data/mysql/mysqld_error.log
+# 慢SQL日志
 slow_query_log_file=/home/data/mysql/slow.log
 
 # Disabling symbolic-links is recommended to prevent assorted security risks

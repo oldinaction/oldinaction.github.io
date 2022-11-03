@@ -38,6 +38,7 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
 	- `Ctrl+Shift+P` 打开命令数据框
 	- 输入 `Server mode in browser`(再本地浏览器中打开)、`Server mode in side panel`(再vscode右边打开窗口)
 - `Live Server` 启动静态服务器，并可实时刷新
+    - Cmd+Shift+P -> Live Server: Change Live Server Workspace -> 修改当前工作空间(根目录)
 - `PlantUML` PlantUML语法支持。支持markdown文件编写文本生成uml(可预览)，也可以支持单独 `*.wsd`/`*.plantuml` 文件编写代码生成uml
 	- `Mermaid Preview` 基于Mermaid语法编写代码生成UML(可预览)
 - `Vetur` Vue工具包(高亮等)

@@ -32,6 +32,14 @@ Map map = JSONUtil.toBean(str, Map.class);
 
 // ### Bean <==> Map。具体参考[类型转换](#类型转换)
 BeanUtil.copyProperties(map, person); // Map => Bean(会过滤掉map中多余的参数。从而可将controller接受参数设为@RequestBody Map<String, Object> params，保存时再进行转换)
+
+// 基于json路径获取json节点只
+// order=true时, 如果 respMap 为有序(LinkedHashMap)，则取出来的值也有序，否则有序会变成无序
+JSONObject json = JSONUtil.createObj(JSONConfig.create().setOrder(true));
+json.putAll(respMap);
+JSONUtil.getByPath(json, "data.user");
+// 有可使用BeanUtil.getProperty进行获取(基于BeanPath)bean、map等
+BeanUtil.getProperty()
 ```
 
 - 复制Bean
@@ -224,11 +232,15 @@ List<List<Object>> readAll = reader.read(); // 读取所有数据
 List<Object> row = readAll.get(0); // 获取一行数据。合并单元格的会复制合并组的第一列数据
 List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String.class, this.row))); // 去重、去空字符串
 
-// 写出Excel. 此时基于Bean/Map写出，还可以基于数组写出
+// 写出Excel.
 ExcelWriter writer = ExcelUtil.getWriter("D:/temp/test.xls");
+// 基于数组写出 List<List<Object>>
+writer.write(userArr, true);
+// 此时基于Bean/Map写出
 writer.addHeaderAlias("no", "编号"); // 设置字段顺序
 writer.addHeaderAlias("name", "姓名");
 writer.write(userList, true);
+// 写出数据，关闭资源(此步骤才会写入文件，会自动创建文件)
 writer.close();
 ```
 
@@ -548,17 +560,47 @@ Map map = (Map) Yaml.load(yamlStr);
 - 引入
     - maven项目中需要加入对应的依赖，从而打包时生成相应代码
     - idea需要安装Lombox插件，从而编译时生成相应代码，不会报错
-- 使用
-    - 使用Builder构造器模式
-        - **添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可**。否则子类继承报错"无法将类中的构造器应用到给定类型"
-        - 使用`@SuperBuilder`(v1.18.4)解决子类在链式赋值时无法设置父类的字段问题 [^1]
-        - `@Builder(toBuilder = true)`表示相应对象会附带`toBuilder`方法，将其转换成功Builder对象继续进行链式赋值。默认只能通过MyClass.builder()获取链式调用入口
-        - **无法设置默认值，如实体类属性设置的值无效**
-    - `@Accessors(fluent = true, chain = true, prefix = "p")`
-        - 此时fluent表示生产getId/setId方法均省略前缀，最终为方法名为id；chain表示setter方法返回当前对象；prefix表示生成的get/set方法会忽略前缀，即pId，会生成为getId
-        - 如果作用在entity上，会导致mybatis的xml中resultMap字段无法识别
-    - `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
-        - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
+
+### 使用
+
+- `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
+    - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
+- `@NoArgsConstructor`、`@AllArgsConstructor`、`@RequiredArgsConstructor` 结合Spring注入
+    - @AllArgsConstructor 会将所有的成员放到构造函数中，Spring会自动注入所有的字段(部分场景会出现无法注入，此时可通过@RequiredArgsConstructor完成)
+    - @RequiredArgsConstructor 生成该类下被final修饰或者non-null修饰(@NonNull)字段生成一个构造方法
+
+        ```java
+        @Component
+        @RequiredArgsConstructor
+        public class ConstructorDemo {
+            // Spring 会自动注入(final修饰)
+            private final BeanTest1 beanTest1;
+
+            // Spring 会自动注入(non-null修饰)；@NonNull 生成的代码会判空，为空则报空指针异常
+            @NonNull
+            private BeanTest2 beanTest2;
+
+            // Spring 不会自动注入(没有final或者no-null修饰)
+            private BeanTest3 beanTest3;
+
+            // Spring 不会自动注入(如果用 @AllArgsConstructor 则会报错找不到这个类型的bean)
+            private Integer sex = 1;
+
+            // Spring 不会自动注入(如果用 @AllArgsConstructor 则会报错找不到这个类型的bean)
+            @Value("${constructor.name:hello}")
+            private String name;
+        }
+        ```
+- 使用Builder构造器模式
+    - **添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可**。否则子类继承报错"无法将类中的构造器应用到给定类型"
+    - 在父类和子类中同时使用`@SuperBuilder`(v1.18.4)解决子类在链式赋值时无法设置父类的字段问题 [^1]
+    - `@Builder(toBuilder = true)`表示相应对象会附带`toBuilder`方法，将其转换成功Builder对象继续进行链式赋值。默认只能通过MyClass.builder()获取链式调用入口
+    - **无法设置默认值，如实体类属性设置的值无效**
+- `@Accessors(fluent = true, chain = true, prefix = "p")`
+    - fluent属性表示生成getId/setId方法均省略前缀(get/set)，最终的方法名为id
+    - chain属性表示setter方法返回当前对象
+    - prefix属性表示生成的get/set方法会忽略前缀。即字段名为pId时，会生成为getId的方法
+    - 如果作用在entity上，会导致mybatis的xml中resultMap字段无法识别
 
 ## 字节码操作
 
@@ -586,7 +628,7 @@ Map map = (Map) Yaml.load(yamlStr);
 // 使用
 ObjectMapper objectMapper = new ObjectMapper();
 String str = objectMapper.writeValueAsString(obj); // 序列化
-Map<String, Object> map = objectMapper.readValue(jsonStr, Map.class); // 反序列化
+Map<String, Object> map = objectMapper.readValue(jsonStr, Map.class); // 反序列化，得到的Map为LinkedHashMap(有序)
 Class obj = objectMapper.readValue(jsonStr, clazz); // 反序列化
 
 // 扩展配置-序列化

@@ -8,11 +8,19 @@ tags: [git]
 
 ## git简介
 
-- 官网：[https://git-scm.com/](https://git-scm.com/)
+- [官网](https://git-scm.com/)
+- [git命令学习地址](https://learngitbranching.js.org/?locale=zh_CN)
 - 安装
 	- windows：官网下载对应安装包
 	- Centos: `yum -y install git`
 	- Ubuntu：`sudo apt-get install git`
+- 镜像
+
+    ```bash
+    # 单文件下载
+    # 原文件下载地址 https://raw.githubusercontent.com/teddysun/across/master/l2tp.sh
+    # 使用sourcegraph下载地址 https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
+    ```
 
 ## git入门 [^1]
 
@@ -217,7 +225,13 @@ git push origin v1.0.0
 #### 同步两个远程仓库
 
 - 参考 https://zhuanlan.zhihu.com/p/391712989
-- 通过 `git remote add upstream-demo https://github.com/ORIGINAL_OWNER/ORIGINAL_REPOSITORY.git` 指定当前 fork 将要同步的上游远程仓库地址(upstream-demo只是一个别名)，然后`git fetch upstream-demo`拉取上游代码，然后将上游代码分支upstream-demo/master合并到本地master分支
+
+```bash
+# 指定当前 fork 将要同步的上游远程仓库地址(upstream只是一个别名，可使用其他代替)
+git remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPOSITORY.git
+# 拉取上游代码，然后将上游代码分支upstream/master合并到本地master分支
+git fetch upstream
+```
 
 ### 查看git状态和文件差别
 

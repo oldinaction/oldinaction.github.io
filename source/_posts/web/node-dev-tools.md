@@ -38,9 +38,36 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
 - 或者安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
     - `cnpm install <pkg>` 安装模块
 
-### 基本命令
+### 查看包/安装包/启动项目
+
+- NPM包分析工具
+    - CND访问
+        - 国内的CND一般从https://cdnjs.com/上同步的，但是CNDJS上的NPM包不全
+        - 国内支持所有NPM的(类似unpkg)
+            - 饿了么: npm.elemecdn.com、github.elemecdn.com
+        - 基于国外 `https://unpkg.com/<package>@<version>/<file>`
+            - 如: https://unpkg.com/@sqbiz/wplugin-form-generator-render@1.0.5-biz-minions.0/render.js
+        - 基于国外 `https://cdn.jsdelivr.net/npm/<package>@<version>/<file>`
+    - [查看包源码](https://uiwjs.github.io/npm-unpkg/)
+    - [分析 npm 软件包的体积和加载性能](https://bundlephobia.com/)
 
 ```bash
+npm -h
+npm help install
+
+
+# 查看模块信息
+npm view vue
+# 查看模块历史版本
+npm view vue versions
+# 查看对应版本信息
+npm view vue@2.7.13
+# 查看对应版本对node版本的最低限制
+npm view vue@2.7.13 engines
+# 查看对应版本的依赖
+npm view vue@2.7.13 dependencies
+
+
 ## 安装xxx(在当前项目安装)，**更新模块也是此命令**
 npm install <pkg>
 npm install [<@scope>/]<pkg>@<version>
@@ -56,45 +83,56 @@ npm install <folder>
 # 基于git仓库进行安装，参考下文
 npm install <git://url>
 
+
 ## 移除(全局依赖)
 npm uninstall -g <pkg>
+
 
 ## 对于某个node项目
 # 初始化项目，生成`package.json`
 npm init
 # 基于`package.json`安装依赖
-# npm install
+npm install
 # npm install --registry=https://registry.npm.taobao.org
-cnpm install
+# cnpm install
+
 # 运行 package.json 中的 scripts 属性
 npm run <xxx>
 npm run dev # 常见的启动项目命令(具体run的命令名称根据package.json来)
 npm run build # 常见的打包项目命令(具体run的命令名称根据package.json来)
-
-## npm link用来在本地项目和本地npm模块之间建立连接，可以在本地进行模块测试
-npm link...
-npm unlink...
 ```
 
-### npm版本管理
+### 发布包
 
-- package.json版本
+- NPM包分析工具
 
-```json
-{
-  "name": "test",
-  // 此项目版本
-  "version": "1.0.0",
-  // 依赖和对应版本
-  "dependencies": {
-      // 波浪符号（~）：固定大、中版本，只升级小版本到最新版本
-      "vue": "~2.5.13",
-      // 插入符号（^）：固定大版本，升级中、小版本到最新版本。当前npm安装包默认符号
-      "iview": "^2.8.0",
-  }
-}
+```bash
+## 发布包: https://blog.csdn.net/imqdcn/article/details/126569123
+# 发布包时，源必须要是npm的，如果为taobao等镜像则会出现重定向问题，可使用nrm来回切换镜像
+nrm use npm
+# 查看源
+npm get registry
+# 登录. 输入用户名/密码, 如果提示需要输入one-time password则打开命令行中的验证链接，会进入浏览器，点击登录，进行Mac指纹验证，此时会显示随机码，输入即可
+npm login
+# 该指令只有登录状态才能显示当前登录名
+npm whoam i
+# 发布. 或者基于lerna publish发布
+# 如果package.json#name以`@xxx/`开头(npm scope特性)，则默认会按照私有包发布，可以增加参数`--access public`，或在package.json中增加`publishConfig: {"access": "public"}`(适用于lerna)。此时会推送到npm对应xxx组织下
+npm publish
+# 切回taobao源
+nrm use taobao
+# 删除某个包. 删除这个版本后，不能再发布同版本的包，必须要大于这个版本号的包才行；且仅在包发布后的24小时内可删除；命令执行成功后，展示列表会有延迟，过一会在刷新才能看到移删除结果
+npm unpublish xxx@x.x.x
+# 废弃某个包. 废弃的包除了安装时会有警示，并不影响使用
+npm deprecate xxx@x.x.x '不在更新了'
 ```
 
+### 自动递增版本
+
+- npm 允许在package.json文件里面，使用scripts字段定义脚本命令
+    - 比较特别的是，npm run新建的这个 Shell，会将当前目录的node_modules/.bin子目录加入PATH变量，执行结束后，再将PATH变量恢复原样
+    - 这意味着，当前目录的node_modules/.bin子目录里面的所有脚本，都可以直接用脚本名调用，而不必加上路径
+- [package.json参考](/_posts/web/nodejs.md#packagejson)
 - 命令行修改版本号(执行命令会读取并修改package.json中的版本)
 
 ```bash
@@ -118,6 +156,59 @@ npm version minor # v4.0.0 # 如果有预发布版本，则将预发布版本去
 # version = v4.0.1-1
 npm version minor # v4.1.0
 ```
+
+### 其他特性
+
+- npm link 本地库文件关联
+
+```bash
+# 将当前包关联到本地全局路径
+npm link
+# npm list -g --depth 0 # 查看全局安装的包
+
+# npm link用来在本地项目和本地npm模块之间建立连接，可以在本地进行模块测试
+# npm link xxx之后eslint报错，可在主项目中增加`.eslintignore`文件，并加入`**/xxx`
+# 有时候失败了，可以尝试用yarn link xxx；反之同理
+npm link xxx
+npm unlink xxx
+```
+- 传参和通配符
+    - 向 npm 脚本传入参数，要使用--标识。对于脚本`"lint": "jshint **.js"`，执行`npm run lint`命令传入参数，必须写成`npm run lint --  --reporter checkstyle > checkstyle.xml`
+    - 上面代码中，*表示任意文件名，**表示任意一层子目录；如果要将通配符传入原始命令，防止被 Shell 转义，要将星号转义，如`"test": "tap test/\*.js"`
+- 变量
+
+    ```json
+    "script": {
+        // 通过`npm_package_`前缀，npm 脚本可以拿到package.json里面的字段。如: npm_package_scripts_prebuild 可以拿到上文属性值
+        // 通过`npm_config_`前缀，拿到 npm 的配置变量，即`npm config get xxx`命令返回的值。注意，package.json里面的config对象，可以被环境变量覆盖
+        "view": "echo $npm_config_tag",
+        // `env`命令可以列出所有环境变量
+        // 只要执行 vue-cli-service build 则 process.env.NODE_ENV='production'
+        "lib": "vue-cli-service build --target lib --dest lib --name WpluginVariantForm install.js"
+    }
+    ```
+    - `process.env.npm_config_argv`
+        - 如执行`npm run lib` 则上述参数为字符串`'{"remain":[],"cooked":["run","lib"],"original":["run", "lib"]}'`，可通过`JSON.parse(process.env.npm_config_argv).original`拿到原始命令参数。但是如果是cnpm执行则获取的参数顺序可能不一样
+    - `process.argv`
+        - 如执行`npm run build --target lib` 则上述参数为数组`['/usr/local/bin/node', '/Users/smalle/demo/node_modules/.bin/vue-cli-service', 'build', '--target', 'lib', '--dest', 'lib', '--name', 'WpluginVariantForm', 'install.js']`
+- 执行顺序
+    - `npm run script1.js & npm run script2.js` 并行执行
+    - `npm run script1.js && npm run script2.js` 顺序执行
+- 钩子
+
+    ```json
+    "script": {
+        // 钩子: npm 脚本有pre和post两个钩子
+        // 用户执行npm run build的时候, 相当于执行 npm run prebuild && npm run build && npm run postbuild
+        // process.env.npm_lifecycle_event 可获取当前运行的脚本名称
+        "prebuild": "echo I run before the build script",
+        "build": "cross-env NODE_ENV=production webpack",
+        "postbuild": "echo I run after the build script",
+    }
+    ```
+- 默认值
+    - `npm run start`的默认值是node server.js，前提是项目根目录下有server.js这个脚本
+    - `npm run install`的默认值是node-gyp rebuild，前提是项目根目录下有binding.gyp文件
 
 ### 基于git仓库进行安装
 
@@ -151,63 +242,6 @@ npm install git+https://myusername:mypassword@gitlab.com/test/demo.git#1.0.0
 rm -rf node_modules/mymod npm install
 # 法二: 通过 package.json 脚本重新安装
 "scripts": { "update:mymod": 'npm install git+ssh://git@GIT_URL_HERE#master' } 
-```
-
-## nrm 镜像管理工具
-
-- nrm 是一个 npm 源管理器，允许你快速地在 npm源间切换
-- 设置npm镜像为taobao镜像
-
-    ```bash
-    npm set registry https://registry.npm.taobao.org/
-    npm config ls # 查看配置
-    ```
-- nrm使用
-
-```bash
-# 安装
-npm install -g nrm
-
-nrm ls # 查看可选源（带*号即为当前使用源）
-nrm use taobao # 切换为taobao源
-nrm add myrepo http://192.168.6.130/repository/npm-public/ # 添加源
-nrm del myrepo # 删除源
-nrm test npm # 测试源
-```
-
-## mirror-config-china
-
-- 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载，此插件将常用组件的镜像地址全部加入到了上述文件夹
-
-```bash
-# https://www.npmjs.com/package/mirror-config-china
-# 安装
-npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
-# 检查是否安装成功。会往用户配置文件(~/.npmrc)中写入electron-mirror、node-sass等组件的镜像源为淘宝镜像
-npm config list
-# 之后使用 npm install 安装即可
-```
-
-## npx Node包执行工具
-
-- npm 从5.2版开始，增加了 npx 命令，用来执行Node包命令
-  - npm内置此工具，或手动安装`npm install -g npx`
-- 使用 [^1]
-
-```bash
-## 调用项目安装的模块（会到node_modules/.bin路径和环境变量$PATH里面去检查命令）
-# 假设项目安装了mocha，之前需要执行 node-modules/.bin/mocha --version
-npx mocha --version
-
-## 避免全局安装模块。除了调用项目内部模块，npx 还能避免全局安装的模块
-# 如，此时create-react-app这个模块是全局可访问的，npx 可以随处运行它，但不用进行全局安装。代码运行时，npx 将create-react-app下载到一个临时目录，使用以后再删除。所以，以后再次执行上面的命令，会重新下载create-react-app
-npx create-react-app my-react-app # 运行临时下载的命令
-npx uglify-js@3.1.0 main.js -o ./dist/main.js # 指定版本
-npx --no-install http-server # --no-install：让 npx 强制使用本地模块，不下载远程模块。如果本地不存在该模块，就会报错
-npx --ignore-existing create-react-app my-react-app # --ignore-existing：忽略本地的同名模块，强制安装使用远程模块
-npx node@0.12.8 -v # 使用不同版本的Node。原理是从 npm 下载这个版本的 node，使用后再删掉。某些场景下，这个方法用来切换 Node 版本，要比 nvm 那样的版本管理器方便一些
-npx -p node@0.12.8 node -v # -p参数用于指定 npx 所要安装的模块。因此为先指定安装node，再执行node -v
-npx -p lolcatjs -p cowsay -c 'cowsay hello | lolcatjs' # 如果 npx 安装多个模块，默认情况下，所执行的命令之中，只有第一个可执行项会使用 npx 安装的模块，后面的可执行项还是会交给 Shell 解释。此时使用 -c 表示两个命令均由npx解释
 ```
 
 ## yarn 包管理工具
@@ -255,6 +289,66 @@ yarn 或 yarn install
 
 # 运行package.json里面的脚本
 yarn run dev
+
+# link
+yarn link [xxx]
+```
+
+## nrm 镜像管理工具
+
+- nrm 是一个 npm 源管理器，允许你快速地在 npm源间切换
+- 设置npm镜像为taobao镜像
+
+    ```bash
+    npm set registry https://registry.npm.taobao.org/
+    npm config ls # 查看配置
+    ```
+- nrm使用
+
+```bash
+# 安装
+npm install -g nrm
+
+nrm ls # 查看可选源（带*号即为当前使用源）. 默认包含npm、yarn、cnpm、taobao等
+nrm use taobao # 切换为taobao源
+nrm add myrepo http://192.168.6.130/repository/npm-public/ # 添加源
+nrm del myrepo # 删除源
+nrm test npm # 测试源
+```
+
+## mirror-config-china
+
+- 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载，此插件将常用组件的镜像地址全部加入到了上述文件夹
+
+```bash
+# https://www.npmjs.com/package/mirror-config-china
+# 安装
+npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+# 检查是否安装成功。会往用户配置文件(~/.npmrc)中写入electron-mirror、node-sass等组件的镜像源为淘宝镜像
+npm config list
+# 之后使用 npm install 安装即可
+```
+
+## npx Node包执行工具
+
+- npm 从5.2版开始，增加了 npx 命令，用来执行Node包命令
+  - npm内置此工具，或手动安装`npm install -g npx`
+- 使用 [^1]
+
+```bash
+## 调用项目安装的模块（会到node_modules/.bin路径和环境变量$PATH里面去检查命令）
+# 假设项目安装了mocha，之前需要执行 node-modules/.bin/mocha --version
+npx mocha --version
+
+## 避免全局安装模块。除了调用项目内部模块，npx 还能避免全局安装的模块
+# 如，此时create-react-app这个模块是全局可访问的，npx 可以随处运行它，但不用进行全局安装。代码运行时，npx 将create-react-app下载到一个临时目录，使用以后再删除。所以，以后再次执行上面的命令，会重新下载create-react-app
+npx create-react-app my-react-app # 运行临时下载的命令
+npx uglify-js@3.1.0 main.js -o ./dist/main.js # 指定版本
+npx --no-install http-server # --no-install：让 npx 强制使用本地模块，不下载远程模块。如果本地不存在该模块，就会报错
+npx --ignore-existing create-react-app my-react-app # --ignore-existing：忽略本地的同名模块，强制安装使用远程模块
+npx node@0.12.8 -v # 使用不同版本的Node。原理是从 npm 下载这个版本的 node，使用后再删掉。某些场景下，这个方法用来切换 Node 版本，要比 nvm 那样的版本管理器方便一些
+npx -p node@0.12.8 node -v # -p参数用于指定 npx 所要安装的模块。因此为先指定安装node，再执行node -v
+npx -p lolcatjs -p cowsay -c 'cowsay hello | lolcatjs' # 如果 npx 安装多个模块，默认情况下，所执行的命令之中，只有第一个可执行项会使用 npx 安装的模块，后面的可执行项还是会交给 Shell 解释。此时使用 -c 表示两个命令均由npx解释
 ```
 
 ## nvm Node版本管理工具
@@ -262,10 +356,17 @@ yarn run dev
 - nvm全名node.js version management，顾名思义是一个nodejs的版本管理工具，通过它可以安装和切换不同版本的nodejs
 - 下载安装
     - [windows下载](https://github.com/coreybutler/nvm-windows/releases)，安装之前可能需要先卸载之前安装的Node
-    - Unix: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash` (Mac M1 11.4安装成功，但是安装node v10.x失败，v12.x成功)
+    - Unix: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash`
+        - Mac M1 安装v11.4安装成功，但是安装node v10.x失败，v12.x成功
+        - Mac M1 安装v14.20.1失败
+            - 报错`libtool: unrecognized option -static'`，解决方案: https://stackoverflow.com/questions/38301930/libtool-unrecognized-option-static (前提是通过`xcode-select --install`安装了CommandLineTools, 即有次文件夹)
+            - 报错`'stdio.h' file not found`，解决方案: https://blog.51cto.com/u_15639793/5297367 (3个步骤都要执行)
+            - 报错`clang: error: linker command failed`，**暂未解决**
+                - https://stackoverflow.com/questions/65251887/clang-7-error-linker-command-failed-with-exit-code-1-for-macos-big-sur
 - 使用
 
 ```bash
+nvm ls-remote --lts # 查看可用LTS node版本
 nvm install 12.16.3 # 安装指定版本Node：nvm install <version> [arch]
 nvm ls # 查看本地安装的Node版本，*号代表当前使用版本
 nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
@@ -279,6 +380,35 @@ nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版�
 # 可选安装，只是为了快捷创建项目，或管理项目插件. mac需要root账号安装
 npm install -g @vue/cli
 vue --version # @vue/cli 4.3.0
+```
+
+## lerna多包管理器
+
+- [lerna](https://github.com/lerna/lerna)
+- [在一个工程下管理多个npm包](https://blog.csdn.net/yexudengzhidao/article/details/117706386)
+
+```bash
+# 目前最新版本为6.0.1, v5.6.2 要求node v14.15; v3.22.1 要求node v6.9.0
+npm install lerna@3.22.1 -g
+lerna -v
+
+# 在项目下初始化lerna配置 => 创建 lerna.json 文件
+# --independent: 可选。独立模式允许具体维护每个包的版本，包的版本由每个包的package.json的version字段维护；或者将lerna.json中的version设置为independent(如果为具体版本值，则所有的包都使用一套版本递增)
+# independent模式下执行 lerna publish 会需要选择每个包的版本，否则只需要选择一次统一的版本
+lerna init --independent
+# 查看lerna.json#packages配置的目录下的package.json文件定义的包
+lerna list
+
+# 发布包: https://zhuanlan.zhihu.com/p/372889162
+# 需要提交所有代码，且需要确保npm已登录和切回成官方镜像
+# nrm use npm # 之后可切回来 nrm use taobao
+# 默认每次会把所有的包都发布一遍(包含没有修改的)，优化方案可参考[Lerna独立模式下如何优雅的发包](https://juejin.cn/post/7012622147726082055)
+lerna publish
+# 如果发布失败，可重新推送
+# 会把当前标签中涉及的NPM包再发布一次，PS：不会再更新package.json，只是执行npm publish
+lerna publish from-git
+# 会自动比较本地package.json和远端的该文件；如果没修改代码的也不会推送，如果修改了代码但是没有修改package.json中的版本号则会发布失败: Cannot publish over previously published version
+lerna publish from-package
 ```
 
 ## 开发库
@@ -336,6 +466,16 @@ npm install --save @babel/polyfill
     - `--parallel`: 并行运行多个命令，例如：npm-run-all --parallel lint build
     - `--continue-on-error`: 是否忽略错误，添加此参数 npm-run-all 会自动退出出错的命令，继续运行正常的
     - `--race`: 添加此参数之后，只要有一个命令运行出错，那么 npm-run-all 就会结束掉全部的命令
+- 案例
+
+```js
+"scripts": {
+    "dev-all": "npm-run-all --parallel dev:*",
+    "dev:demo1": "cd example/demo1 && npm run dev",
+    "dev:demo2": "cd example/demo2 && npm run dev",
+}
+```
+- 也可使用[基于`node run.js`的模式启动文件](/_posts/web/electron.md#使用案例)
 
 ### rollup.js
 
@@ -348,6 +488,7 @@ npm install --save @babel/polyfill
 - vscode等编辑安装eslint插件，相关配置参考[vscode.md#插件推荐](/_posts/extend/vscode.md#插件推荐)
 - 项目直接安装
 - 基于vue-cli安装，参考：https://eslint.vuejs.org/
+    - @vue/cli eslint插件使用参考: https://www.cnblogs.com/qq3279338858/p/16492830.html
     - `vue add eslint` 基于vue安装插件，选择Standard、Lint on save
     - **安装完成默认会自动执行`vue-cli-service lint`，即对所有文件进行格式修复(只会修复部分，剩下的仍然需要人工修复)**，实际执行命令为 `eslint --fix --ext .js,.vue src`
     - 安装后会在package.json中增加如下配置，安装对应的包到项目目录，并增加文件`.eslintrc.js`和`.editorconfig`

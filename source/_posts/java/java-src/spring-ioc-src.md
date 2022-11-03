@@ -82,18 +82,18 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 public void refresh() throws BeansException, IllegalStateException {
     // 来个锁，不然 refresh() 还没结束，你又来个启动或销毁容器的操作，那不就乱套了嘛
     synchronized (this.startupShutdownMonitor) {
-        // [创建 Bean 容器前的准备工作](#创建%20Bean%20容器前的准备工作)
+        // [创建Bean容器前的准备工作](#创建Bean容器前的准备工作)
         // 准备工作，记录下容器的启动时间、标记“已启动”状态、处理配置文件中的占位符
         prepareRefresh();
 
         // ***************
-        // [创建 Bean 容器，加载并注册 Bean](#创建%20Bean%20容器，加载并注册%20Bean)
+        // [创建Bean容器，加载并注册Bean](#创建Bean容器，加载并注册Bean)
         // 这步比较关键，这步完成后，配置文件就会解析成一个个 Bean 定义，注册到 BeanFactory 中，
         // 当然，这里说的 Bean 还没有初始化，只是配置信息都提取出来了，注册也只是将这些信息都保存到了注册中心(***说到底核心是一个 beanName-> beanDefinition 的 map***)
         // 资源(bean)读取基于XmlBeanDefinitionReader；如果是基于注解进行初始化spring的，则是基于ClassPathMapperScanner 进行类扫描和注册的
         ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-        // [Bean 容器实例化完成后](#Bean%20容器实例化完成后)
+        // [Bean容器实例化完成后](#Bean容器实例化完成后)
         // 设置 BeanFactory 的类加载器，添加几个 BeanPostProcessor，手动注册几个特殊的 bean
         // 这块待会会展开说
         prepareBeanFactory(beanFactory);
@@ -101,9 +101,10 @@ public void refresh() throws BeansException, IllegalStateException {
         try {
             // 这里需要知道 BeanFactoryPostProcessor 这个知识点，Bean 如果实现了此接口，那么在容器初始化以后，Spring 会负责调用里面的 postProcessBeanFactory 方法(主要做一些初始化)
 
-            // 到这里的时候，所有的 Bean 都加载、注册完成了，**但是都还没有初始化**
             // 这里是提供给子类的扩展点，具体的子类可以在这步的时候添加一些特殊的 BeanFactoryPostProcessor 的实现类或做点什么事
             postProcessBeanFactory(beanFactory);
+            // *****执行完下面一行，则所有的 Bean 都加载、注册完成了，但是都还没有初始化*****
+            // 但是 @MapperScan 注解配置的Mapper还未注册
             // 调用 BeanFactoryPostProcessor 各个实现类的 postProcessBeanFactory(factory) 方法
             invokeBeanFactoryPostProcessors(beanFactory);
 
@@ -187,7 +188,7 @@ protected void prepareRefresh() {
 }
 ```
 
-### 创建 Bean 容器，加载并注册 Bean
+### 创建Bean容器，加载并注册Bean
 
 - obtainFreshBeanFactory 创建 Bean 容器，加载并注册 Bean
     - customizeBeanFactory 配置是否允许 BeanDefinition 覆盖、循环引用
@@ -1561,6 +1562,7 @@ public void refresh() throws BeansException, IllegalStateException {
         // Prepare this context for refreshing.
         prepareRefresh();
 
+        // 如果是SpringBoot运行此行之后只会注册主类DemoApplication和几个内置Bean的BeanDefinition
         // Tell the subclass to refresh the internal bean factory.
         ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory(); // 3.1
 
@@ -1572,7 +1574,7 @@ public void refresh() throws BeansException, IllegalStateException {
             // Allows post-processing of the bean factory in context subclasses.
             postProcessBeanFactory(beanFactory);
 
-            // 3.3 调用工厂处理器注册bean(此处并没有实例化)到上下文中
+            // 3.3 调用工厂处理器，注册bean到上下文中，会把所有配置类和其依赖的bean注册进beanFactory，但是此处并没有实例化。见下文
             // Invoke factory processors registered as beans in the context.
             invokeBeanFactoryPostProcessors(beanFactory);
 
@@ -1622,7 +1624,10 @@ public void refresh() throws BeansException, IllegalStateException {
     }
 }
 
-// 3.3 ConfigurationClassPostProcessor#processConfigBeanDefinitions
+// 3.3
+// invokeBeanFactoryPostProcessors() -> invokeBeanDefinitionRegistryPostProcessors()
+//  -> ConfigurationClassPostProcessor#postProcessBeanDefinitionRegistry()
+//  -> ConfigurationClassPostProcessor#processConfigBeanDefinitions()
 public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
     // ...
     Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates); // configCandidates为配置类，如上文传入的App.class
@@ -1652,7 +1657,7 @@ public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final
     return scanner.doScan(StringUtils.toStringArray(basePackages));
 }
 
-// 3.3.1.1 基于 basePackages 扫描bean
+// 3.3.1.1 基于 basePackages 扫描bean. ClassPathBeanDefinitionScanner#doScan
 protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
     Assert.notEmpty(basePackages, "At least one base package must be specified");
     Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();

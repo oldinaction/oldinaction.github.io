@@ -21,9 +21,11 @@ tags: [system]
 ```bash
 cmd+c # 复制
 cmd+v # 粘贴
+cmd+opt+c # 复制文件夹绝对路径
 cmd+opt+v # 剪贴(相当于剪切文件，需先复制)
 
-cmd+opt+c # 复制文件夹绝对路径
+cmd+shift+. # 在 Finder 中显示隐藏文件
+cmd+shift+g # 在 Finder 中前往目标目录
 
 # 组合按键
 delete: cmd+删除键
@@ -212,7 +214,7 @@ sudo chmod +x it2ul && sudo mv it2ul /usr/local/bin
 curl "https://iterm2.com/utilities/it2dl" > it2dl
 sudo chmod +x it2dl && sudo mv it2dl /usr/local/bin
 ```
-- 设置代理，加速访问github等
+- **设置代理，加速访问github等**
 
 ```bash
 # vi ~/.zshrc
@@ -232,7 +234,8 @@ alias unproxy="unset ALL_PROXY"
         - Open Python REPL(打开python命令行)
         - Reveal Scripts in Finder(在Finder中显示脚本文件)
         - Console 脚本执行日志控制台
-    - 简单使用, API参考：https://iterm2.com/python-api/index.html
+    - API参考：https://iterm2.com/python-api/index.html
+    - 脚本案例: 启动代理(配合Proxifier可实现软件网络代理)
 
         ```py
         #!/usr/bin/env python3.7
@@ -275,6 +278,10 @@ ln -s /opt/homebrew/Cellar/lrzsz/0.12.20_1/bin/lsz /usr/local/bin/sz
 ### IDEA
 
 - 插件目录 `/Users/smalle/Library/Application\ Support/JetBrains/IntelliJIdea2021.2/plugins`
+
+### Notepad Next
+
+- https://github.com/dail8859/NotepadNext
 
 ### NVM/Node
 
@@ -319,6 +326,26 @@ jenv versions
 # local 用于设置当前目录下使用的 JDK 版本
 # global 用于设置全局使用的 JDK 版本
 jenv global 1.8
+```
+
+### 安卓模拟器
+
+```bash
+# 参考: https://ov-vo.cn/573.html
+# 安装ADB
+brew install android-platform-tools
+# 测试是否正常安装
+adb devices
+# 查看安装的位置
+brew info android-sdk
+# 安装Android-Emulator并打开
+https://github.com/google/android-emulator-m1-preview/releases/tag/0.3
+# 配置ADB
+打开设置窗口 - Settings- 取消勾选Use detected ADB location
+点击后面的文件夹图标找到ADB文件路径 /opt/homebrew/Caskroom/android-platform-tools/33.0.1.../platform-tools/adb
+# 修改虚拟机基本设置(可选)
+编辑/applications/android \ emulator.app/cottents/macos/Pixel_5_API_31/config.ini 配置文件
+默认分配 4CPU 4GBRAM 5GB用户空间 分辨率2340*1080 DPI400，可按需修改
 ```
 
 ### CrossOver

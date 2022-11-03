@@ -217,15 +217,30 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test.thd.
 ### 自动装配(取出Bean赋值给当前类属性)
 
 - `@Autowired` Spring提供
-    - 默认按类型by type(根据类)，再按照变量名称
-    - 如果想用by name，则联合使用`@Qualifier("my-bean-name")`。Bean定时如`@Bean(name="my-bean-name")，`对于默认的Bean可通过添加`@Primary`(使用时则按照单数据源注入)
-    - `@Autowired List<Monitor> monitors;` 也可以注入集合
-        - 注意：如果当前类实现了Monitor接口，则注入到集合中会排除当前类（即要注入的类不能是类本身，会触发无限递归注入）
-        - 如果元素增加`@Order`注解，在注入时会自动进行排序。也可使用 `list.sort(AnnotationAwareOrderComparator.INSTANCE)` 手动排序list(用于非注入的场景，元素也需要增加 @Order 注解)
-    - `@Autowired Map<String, Monitor> monitorMap;` 注入到Map中，此时将 Bean 的 name 作为 key
+    - **默认按ByType(根据类型)，找不到再按照ByName(变量名称)注入**
+        - 如果想用by name，Bean定义时如`@Bean(name="my-bean-name")，再联合使用`@Qualifier("my-bean-name")`。`对于默认的Bean可通过添加`@Primary`(使用时则按照单数据源注入)
+    - 可以对**方法、字段、构造器、参数**使用
+    - 注入集合方式
+        - `@Autowired List<Monitor> monitors;` 也可以注入集合
+            - 注意：如果当前类实现了Monitor接口，则注入到集合中会排除当前类（即要注入的类不能是类本身，会触发无限递归注入）
+            - 如果元素增加`@Order`注解，在注入时会自动进行排序。也可使用 `list.sort(AnnotationAwareOrderComparator.INSTANCE)` 手动排序list(用于非注入的场景，元素也需要增加 @Order 注解)。**值越小越优先，可以为负值**
+        - `@Autowired Map<String, Monitor> monitorMap;` 注入到Map中，此时将 Bean 的 name 作为 key
 - `@Resource` JSR-250提供(常用)
-    - 先根据变量名称再根据类型
+    - 先按ByName，再按ByType判断
+    - 只能对**方法、字段**使用
 - `@Inject` JSR-330提供
+- **各种DI方式的优缺点**
+    - 构造器注入：强依赖性 （即必须使用此依赖），不变性（各依赖不会经常变动）
+    - Setter注入：可选（没有此依赖也可以工作），可变（依赖会经常变动）
+    - Field注入：大多数情况下尽量少使用字段注入，一定要使用的话，@Resource相对@Autowired 对IoC容器的耦合更低
+        - Field注入的优点
+            - 使用方便(优先敏捷度再考虑松耦合)
+        - Field注入的缺点
+            - 不能像构造器那样注入不可变的对象
+            - 依赖对外部不可见 ，外界可以看到构造器和setter，但无法看到私有字段，自然无法了解所需依赖
+            - 会导致组件与IoC容器紧耦合 （这是最重要的原因，离开了IoC容器去使用组件，在注入依赖时就会十分困难）
+            - 导致单元测试也必须使用IoC容器 ，原因同上
+            - 依赖过多时不够明显 ，比如我需要10个依赖，用构造器注入就会显得庞大，这时候应该考虑一下此组件是不是违反了单一职责原则
 
 #### 获取Bean
 
@@ -1271,6 +1286,8 @@ TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savePoin
 - 数据真正入库
     - 入库事务有spring事务，数据库事务，只有当这两个事务都结束，才代表数据真正可查
 
+- 
+
 ### 传播行为
 
 - **传播行为** `@Transactional(propagation = Propagation.REQUIRED)`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
@@ -1696,7 +1713,7 @@ public AuthUserInfoHandlerMapping mySimpleUrlHandlerMapping(AuthManager authMana
     ![Filter-Interceptor.png](/data/images/java/Filter-Interceptor.png)
 - 实现方式
     - 实现 Filter 或继承 OncePerRequestFilter，并增加注解@Component
-    - 往 FilterRegistrationBean 中注册Filter，可指定拦截某路径
+    - 往 FilterRegistrationBean 中注册Filter，可指定拦截某路径。可以创建多个FilterRegistrationBean对象，优先级按照Order属性值来(小的优先)
     - 实现 WebMvcConfigurer，并加入自定义的HandlerInterceptor，可指定拦截路径和设定Order顺序
 
 #### 基于Filter进行拦截
@@ -1709,12 +1726,13 @@ public class AuthFilter implements Filter {} // javax.servlet.Filter
 @Component
 public class AuthFilter2 extends OncePerRequestFilter {}
 
-// 往FilterRegistrationBean中注册（可指定拦截路径）
+// 往FilterRegistrationBean中注册，可以创建多个FilterRegistrationBean对象（可指定拦截路径）
 @Bean
-public FilterRegistrationBean indexFilterRegistration() {
-    FilterRegistrationBean<> registrationBean = new FilterRegistrationBean<>();
+public FilterRegistrationBean<AuthFilter> indexFilterRegistration() {
+    FilterRegistrationBean<AuthFilter> registrationBean = new FilterRegistrationBean<>();
+    // 一个registrationBean只能设置一个Filter
     registrationBean.setFilter(new AuthFilter()); // 此时Filter无需增加@Component
-    registrationBean.setUrlPatterns("/*");
+    registrationBean.setUrlPatterns("/*"); // 过滤所有路径(只有一个*)
     // Filter的init方法中可获取到此参数值：exclusions = filterConfig.getInitParameter("exclusions");
     registrationBean.addInitParameter("exclusions", "*.js,*.gif,*.jpg,*.png,*.css,*.ico");
     registrationBean.setOrder(1);

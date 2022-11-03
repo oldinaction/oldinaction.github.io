@@ -1,7 +1,7 @@
 ---
 layout: "post"
 title: "区块链"
-date: "2021-02‎-26‎ ‏‎18:34"
+date: "2021-02-26 18:34"
 categories: [arch]
 ---
 
@@ -87,7 +87,7 @@ categories: [arch]
 - [Bitcoinj](https://github.com/bitcoinj/bitcoinj)
     - Bitcoinj是最流行的比特币协议的Java实现
 
-## 架构
+## 区块链架构
 
 ![blockchain-arch.png](/data/images/arch/blockchain-arch.png)
 
@@ -141,7 +141,22 @@ categories: [arch]
     - Centos下CPU加入MinerGate矿池教程 https://www.bobobk.com/973.html
         - centos7上编译CPUMiner-Multi并在minergate矿池中挖矿，不过由于是cpu，效率较低，1核的速度只有大约20 H/s的速度
 
-## 入侵案例
+## Web3.0
+
+![web3.0与web2.0应用对比](/data/images/arch/web3.0-web2.0.png)
+
+### 分布式文件存储IPFS
+
+- https://ipfs.tech
+- https://blog.csdn.net/inthat/article/details/106206591
+
+- IPFS属于Web3.0的应用范畴，相当于Web2.0中的dropbox
+- IPFS是一个点对点的分布式文件系统（比特币是一种点对点的电子现金系统），目标是为了补充（甚至是取代）目前统治互联网的超文本传输协议（HTTP），将所有具有相同文件系统的计算设备连接在一起。原理用基于内容的地址替代基于域名的地址，也就是用户寻找的不是某个地址而是储存在某个地方的内容，不需要验证发送者的身份，而只需要验证内容的哈希，通过这样可以让网页的速度更快、更安全、更健壮、更持久
+- 互联网是建立在HTTP协议上的，HTTP协议的中心化造成效率非常低，并且成本还很高
+    - 一旦使用HTTP协议每次需要从中心化的服务器下载完整的文件(网页,视频,图片等),速度慢,效率低。如果改用P2P的方式下载,可以节省近60%的带宽. P2P将文件分割为小的块,从多个服务器同时下载,速度非常快.
+    - 还有一种就是web文件经常被删除。我们可能在上网的过程中会遇到，收藏某个网页，在使用的时候浏览器网页会显示404。IPFS提供了文件的历史版本回溯功能(就像git版本控制工具一样),可以很容易的查看文件的历史版本,数据可以得到永久保存
+
+## 挖坑程序入侵案例
 
 ### 基于apache-php-linux环境的ShowDoc应用
 

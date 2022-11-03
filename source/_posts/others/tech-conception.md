@@ -179,13 +179,14 @@ tags: [java, conception]
 
 - `UAT` 用户验收测试(User Acceptance Test)
 - `RFC` 意见征集/请求评论(Request For Comments)
-- 版本命名规范
+- 版本命名规范/版本规范
     - [语义化版本](https://semver.org/lang/zh-CN/)：`主版本号.次版本号.修订号-先行版本号+编译元数据`，如：`1.0.0-alpha+001`、`0.1.0`(内部开发版)
         - 版本号：做了不兼容的 API(公共API) 修改时递增
         - 次版本号：做了向下兼容的功能新增时递增
         - 修订号：做了向下兼容的问题修正时递增
     - 软件版本号由四部分组成，第一个为主版本号(模块/架构)，第二个为子版本号(功能)，第三个为阶段版本号(Bug/优化)，第四部分为日期版本号加希腊字母版本号，希腊字母版本号共有5种，分别为：`base`、`alpha`(内部开发)、`beta`(内测)、`RC`(预发布版)、`release`。例如：`1.1.1.051021_beta`
     - `LTS` 长期支持(Long Term Support)，一般为软件的重要版本
+    - [NPM版本规范](http://t.zoukankan.com/skylor-p-9675646.html)
 - 开源协议/许可证 [1^] [^4]
     ![开源协议](/data/images/others/许可证.png)
 

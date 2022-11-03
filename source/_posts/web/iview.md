@@ -582,6 +582,24 @@ iframe {
         </Row>
     </FormItem>
 </Form>
+
+<!-- Form结合Tabs -->
+<span style="position: absolute; ...">
+    <Button type="primary">提交</Button>
+</span>
+<Form ref="form" :model="searchModel" label-position="right" :label-width="100">
+    <Tabs value="name1">
+        <TabPane label="标签一" name="name1">
+            <FormItem label="项目名称">
+                <Select v-model="searchModel.projectId">
+                <Option v-for="item in projectList" :value="item.id" :key="item.id">{{ item.projectName }}</Option>
+                </Select>
+            </FormItem>
+        </TabPane>
+        <TabPane label="标签二" name="name2">标签二的内容</TabPane>
+        <TabPane label="标签三" name="name3">标签三的内容</TabPane>
+    </Tabs>
+</Form>
 ```
 
 ## 样式

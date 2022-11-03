@@ -188,8 +188,14 @@ tcpdump -i eth1 'tcp[13] = 2'
     ![报文流向](/data/images/linux/报文流向.png)
 
     - 流入本机：PREROUTING --> INPUT--> 用户空间进程(本地套接字)
-    - 转发：PREROUTING --> FORWARD --> POSTROUTING
+    - 转发(本机程序间)：PREROUTING --> FORWARD --> POSTROUTING
     - 流出本机（通常为响应报文）：用户空间进程 --> OUTPUT--> POSTROUTING
+
+    ![iptables-route](/data/images/linux/iptables-route.png)
+
+    - 整个chain是从prerouting入，到postrouting出
+    - input和output都是针对运行中的监听进程而言，不是网卡，也不是主机
+    - 数据包到路由，路由通过路由表判断数据包的目的地。如果目的地是本机，就把数据包转给intput。如果目的地不是本机，则把数据包转给forward处理，通过forward处理后，再转给postrouting处理
 - 表：把具有相同功能的规则的集合叫做"表"，不同功能的规则可以放置在不同的表中进行管理。当他们处于同一条"链"时，执行的优先级为：**raw > mangle > nat > filter**
     - `raw`表：关闭nat表上启用的连接追踪机制；iptable_raw。可能被PREROUTING，OUTPUT使用
     - `mangle`表：拆解报文，做出修改，并重新封装的功能；iptable_mangle。可能被PREROUTING，INPUT，FORWARD，OUTPUT，POSTROUTING使用
@@ -223,7 +229,7 @@ iptables [-t tables] [-L] [-nv]
     # -x ：显示详细数据，不进行单位换算
     # -L ：列出目前的 table 的规则
 
-# 列出 filter table 相关链的规则明细，包含数据包大小等
+# 列出 **filter表(若nat表加参数`-t nat`)** 相关链的规则明细，包含数据包大小等
 iptables -nvxL
     # pkts        对应规则匹配到的报文的个数
     # bytes       对应匹配到的报文包的大小总和

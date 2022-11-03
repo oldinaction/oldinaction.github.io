@@ -14,6 +14,8 @@ tags: [IDE]
 
 ## jetbrains相关编辑器破解
 
+- `2021.3` 使用 https://zhile.io/2021/11/29/ja-netfilter-javaagent-lib.html
+
 ### 2021.1
 
 - 通过无限重置30天试用达到永久使用: https://plugins.zhile.io/files/ide-eval-resetter-2.1.6.zip
@@ -101,6 +103,8 @@ ThisCrackLicenseId-{
     - File - Settings Repository - 输入远程地址，如保存到github(输入ssh验证的项目地址) - Overwrite Remote同步到远程
 - 自动收缩空包文件夹
     - Project浏览Tab - 设置 - Hide Empty Middle Packages
+- 管理书签
+    - Cmd + F3即可调整书签排序(自动排序只能基于助记符+文件+行排序，或者手动排序)
 
 ## 插件使用
 
@@ -114,10 +118,6 @@ ThisCrackLicenseId-{
         - 修改了Entity，涉及到mybatis的操作无法生效(mybatis缓存了数据类型?)
         - 修改了mybatis mapper和对应文件一般无法生效
         - 修改了方法声明
-- `MybatisX` [mybatis-plus提供](https://mybatis.plus/guide/mybatisx-idea-plugin.html)，可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI(未测试成功)，JPA方法命名提示(未测试成功)。Ctrl+Alt可实现相应跳转
-    - 类似插件：`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
-- `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板
-    - 新版收费，**破解版地址**：https://github.com/Link-Kou/intellij-mybaitslog
 - `CamelCase` 使用`Alt + Shift + U`将字符串在下划线/中划线/大小驼峰中切换，可重复按快捷键进行切换
     - `String Manipulation` 字符串转换(包括下划线/中划线/驼峰等)。鼠标右键会有对应的选项，缺点：无快捷键
 - `CodeGlance` 显示代码地图
@@ -129,6 +129,15 @@ ThisCrackLicenseId-{
     - `Dependency Analyzer` - `Conflicts`中显示的即为冲突的依赖
         - 点击其中任何一个依赖，会在右侧显示重复引用的来源(基于版本降序) 
         - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
+- `MyBatisCodeHelperPro (Marketplace Edition)` 实体/表双向生成(支持实体生成建表语句)
+    - 破解: https://cnblogs.com/equals/p/15391453.html
+    - [使用说明](https://gejun123456.github.io/MyBatisCodeHelper-Pro/)
+    - 支持实体生成建表语句
+    - 支持基于表生成实体/Mapper/服务等
+        - 类似插件: `MybatisX`、`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
+    - 支持生成Mybatis执行日志(自动拼接参数)
+        - 类似插件: `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板。破解版地址: https://github.com/Link-Kou/intellij-mybaitslog
+    - 支持预执行SQL(基于Mapper XML执行，弹框输入参数执行)
 - `Grep Console` 日志过滤
     - 高亮: 如表达式`Expression=.*Demo.*`则表示显示有Demo字样的那些行
     - 日志窗口 - 右键 - Grep: 基于当前日志进行过滤(只显示符合条件的日志，如输入Demo则只匹配有Demo字样的行)
@@ -309,11 +318,17 @@ ThisCrackLicenseId-{
 - 暂存功能(Shelve搁置)。类似[git stash](/_posts/arch/git.md#暂存工作区)
     - Local Changes - 右键 - Shelve Changes - 命名一下此搁置 ==> 此变更会被暂存(暂存不会产生commit记录，主分支会被还原成未修改的状态)
     - Shelf - 右键 - UnShelve ==> 还原此暂存到主分支
+- 在一个项目中管理多个git
+    - setting - Version Control - 编辑Directory
 
-### 常见问题
+### Maven
 
 - 移除maven模块
     - 在项目目录中选中模块 - 右键 - Remove Module；然后再Maven依赖窗口中 - 右键 - Unlink Maven Projects
+- maven模块是否按分组展示
+    - maven窗口 - setting - Group Modules 分组展示(默认为展开模式进行展示)
+
+### 常见问题
 
 ## IDEA开发PHP程序
 

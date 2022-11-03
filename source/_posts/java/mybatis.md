@@ -26,9 +26,7 @@ for (Orders order : list) {
 }
 ```
 
-## SpringBoot整合mybatis
-
-### 基本配置
+## 整合mybatis(SpringBoot)
 
 - 引入依赖(mybatis-spring-boot-starter为mybatis提供的自动配置插件) [^1]
 
@@ -108,11 +106,17 @@ for (Orders order : list) {
 				<!--<property name="pageSizeZero" value="true"/>-->
 			</plugin>
 		</plugins>
+
+        <!-- 基于databaseId实现数据库兼容 -->
+        <databaseIdProvider type="DB_VENDOR">
+            <property name="MySQL" value="mysql"/>        
+            <property name="Oracle" value="oracle" />
+        </databaseIdProvider>
 	</configuration>
 	```
 - Model：**UserInfo/ClassInfo等无需任何注解.**(其中HobbyEnum是一个枚举类)
 
-### annotation版本(适合简单业务)
+## annotation版本(适合简单业务)
 
 - `annotation版本(适合简单业务)`
 	- Dao层：UserMapper.java
@@ -299,7 +303,7 @@ for (Orders order : list) {
         }
         ```
 
-### xml版本(适合复杂操作)
+## xml版本(适合复杂操作)
 
 - `xml版本(适合复杂操作)`
 	- Dao层：UserMapperXml.java
@@ -361,7 +365,9 @@ for (Orders order : list) {
 				select
 				<!-- 如果引用在同一命名空间则可省略命名空间。但是 findAll 如果被其他命名空间引用则容易找到不 UserInfoColumns。因此建议一直加上命名空间 -->
 				<include refid="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml.UserInfoColumns"/>,
-				<include refid="userColumns"><property name="alias" value="t1"/></include>
+				<include refid="userColumns">
+                    <property name="alias" value="t1"/>
+                </include>
 				from user_info
 				where 1=1
                 <!-- 注意：如误写成了 `test='name = "smalle"'` 则会把smalle赋值给name字段，可能会覆盖原始参数；常见的为 `test='name == "smalle"'` -->
@@ -393,13 +399,18 @@ for (Orders order : list) {
 			<sql id="sometable">
 				${prefix}Table where 1=1
                 <!-- 此时 #{username} 可以拿到selectMain的上下文 -->
-				<if test='username != null and username != ""'>
+                <if test='username != null and username != ""'>
                     and username = #{username}
                 </if>
                 <!-- 此时 #{${field}} 可以拿到selectMain上下文中nickName的值 -->
                 <if test='${field} != null and ${field} != ""'>
                     and remark = #{${field}}
-                 </if>
+                </if>
+                
+                <!-- 零散片段. 此处在test语句中使用OGNL表达式`params.${item}`会报错，只能通过get方法动态获取属性值 -->
+                <if test="params.get(item) != null">
+                    and ${item} = #{params.${item}}
+                </if>
 			</sql>
 			<sql id="someinclude">from <include refid="${include_target}"/></sql>
             <!-- 返回 List<Map> 对象 -->
@@ -572,7 +583,7 @@ for (Orders order : list) {
     </select>
     ```
 
-### mybatis常见问题
+## mybatis常见问题
 
 - `#` 和 `$` 区别
     - `#` 创建的是一个prepared statement语句, `$` 符创建的是一个inlined statement语句
@@ -636,15 +647,28 @@ for (Orders order : list) {
 - xml文件修改无需重新部署，立即生效?
 - `Cause: java.sql.SQLException: 无法转换为内部表示` 可能是由于类型转换导致，如强制将数据库中字符串类型字段映射某个对象的Long类型属性上
 - mybatis中用Map接收oracle的结果集，返回的数据key为大写。解决：sql可写成`select name as "name" from user`
+- xml中传入常量
+    - 格式`${@path$subClass@Attr.getValueMethod}`，[ognl表达式参考](https://commons.apache.org/proper/commons-ognl/language-guide.html)
+    - 如 `AND type = ${@cn.aezo.test.Const@Type}` 或者 `AND type = ${@cn.aezo.test.Const$TypeEnum@Test.getValue()}`(枚举)
 
-### 控制主键自增和获取自增主键值
+## 主键问题
 
+- 控制主键自增
+    - mybatis使用
+        - mysql使用useGeneratedKeys属性
+        - oracle使用selectKey标签
+    - mybatis-plus使用
+        - mysql基于数据自增`@TableId(type = IdType.AUTO)`
+        - oracle基于序列，`@KeySequence`结合内置自增策略
+    - mybatis-plus时，主键如何兼容mysql和oracle生成策略
+        - 使用 id 雪花生成算法(长度为19位，**因此为了方便之后兼容，不建议将主键设置成Integer**)
+        - 基于spring 提供 DataFieldMaxValueIncrementer 接口实现主键生成: https://blog.csdn.net/huang007guo/article/details/104641660
 - 获取自增主键(mysql为例，需要数据库设置主键自增) [^3]
 	- 方式一：keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)
 	- 方式二：`<selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>`
 	- 获取方式：`userMapper.insert(userInfo); userInfo.getUserId();`
 
-### 批量执行语句
+## 批量执行语句
 
 - 性能比较，同个表插入一万条数据时间近似值
   - JDBC BATCH 1.1秒左右 > Mybatis BATCH 2.2秒左右 > Mybatis foreach 4.5秒左右
@@ -722,7 +746,74 @@ for (Orders order : list) {
     </insert>
     ```
 
-### MyBatis/Java/Oracle/MySql数据类型对应关系
+## 基于databaseId实现数据库兼容
+
+- mybatis
+    - mybatis-config.xml增加上文所述配置
+- mybatis-plus
+
+```java
+@Bean
+public DatabaseIdProvider databaseIdProvider() {
+    VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
+    Properties properties = new Properties();
+    properties.put("Oracle", "oracle");
+    properties.put("MySQL", "mysql");
+    databaseIdProvider.setProperties(properties);
+    return databaseIdProvider;
+}
+```
+- 使用(会根据数据源自动判断使用那种类型的sql)
+
+```xml
+<select id="getNextSeqDemo" resultType="java.lang.Object" databaseId="mysql">
+    select next_no+1 from t_seq_no where table_name = 't_demo'
+</select>
+<select id="getNextSeqDemo" resultType="java.lang.Object" databaseId="oracle">
+    select seq_demo.nextval from dual
+</select>
+```
+
+## 拦截器(插件)
+
+- mybatis 拦截器 Interceptor
+    - 实现`Interceptor`接口
+    - `@Intercepts`注解用于配置需要拦截的对象和方法
+    - 结合 ThreadLocal 参考：https://blog.csdn.net/iteye_19045/article/details/100024506
+- mybatis-plus 的 `InnerInterceptor` 机制是基于 mybatis 的 `Interceptor` 实现的，具体参考 mybatis-plus 类 `MybatisPlusInterceptor`
+- 案例
+    - https://juejin.cn/post/6965441270277734430 基于查询
+    - https://www.zhihu.com/question/375124631/answer/2357163072 基于修改
+- 主要代码
+
+```java
+@Intercepts({@Signature(type = Executor. class, method = "query",
+    args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})})
+public class TestInterceptor implements Interceptor {
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        Object target = invocation. getTarget(); //被代理对象
+        Method method = invocation. getMethod(); //代理方法
+        Object[] args = invocation. getArgs(); // 方法参数[MappedStatement, Object(parameter), RowBounds, ResultHandler]
+        // do something . . . . . .  方法拦截前执行代码块
+        Object result = invocation. proceed();
+        // do something . . . . . . . 方法拦截后执行代码块
+        return result;
+    }
+
+    @Override
+    public Object plugin(Object target) {
+        return Plugin. wrap(target, this);
+    }
+
+    // 插件初始化的时候调用，也只调用一次，插件配置的属性从这里设置进来
+    @Override
+    public void setProperties(Properties properties) {
+    }
+}
+```
+
+## 数据类型对应关系
 
 - JDBC数据类型转换
 
@@ -1004,7 +1095,7 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
     <version>3.0.6</version>
 </dependency>
 ```
-- 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(Java类)
+- 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(Java类)，**可能还需配置`mapper-locations`指定xml文件位置**
 - application.yaml配置(可省略)
 
 ```yml
@@ -1019,7 +1110,7 @@ mybatis-plus:
   global-config:
     # 逻辑删除配置(无需其他配置)
     db-config:
-      logic-delete-field: valid_status # 逻辑删除字段，可省略定义 `@TableLogic`. IService#remove则是修改逻辑字段(原本为硬删除)，IService的方法则全部加valid_status=1，但是手写的Mapper则需要手动加此条件
+      logic-delete-field: valid_status # 逻辑删除字段，since 3.3.0可省略定义 `@TableLogic`(测试下来还是需要增加此注解). IService#remove则是修改逻辑字段(原本为硬删除)，IService的方法则全部加valid_status=1，但是手写的Mapper则需要手动加此条件
       logic-delete-value: 0 # 逻辑已删除值
       logic-not-delete-value: 1 # 逻辑未删除值
   
@@ -1147,6 +1238,29 @@ new LambdaQueryWrapper<Subscribe>()
 // sqlserver手动写sql
 ```
 
+#### Oracle序列
+
+```java
+// Entity增加注解
+@KeySequence(value = "SEQ_ORACLE_LONG_KEY", clazz = Long.class) // 默认是Long类型
+public class YourEntity {
+    @TableId(value = "ID_LONG", type = IdType.INPUT) // 如果使用序列必须是 IdType.INPUT
+    private Long idLong;
+}
+
+@KeySequence(value = "SEQ_ORACLE_STRING_KEY", clazz = String.class)
+public class YourEntity {
+    @TableId(value = "ID_STR", type = IdType.INPUT)
+    private String idStr;
+}
+
+// 注入生成器
+@Bean
+public OracleKeyGenerator oracleKeyGenerator() {
+    return new OracleKeyGenerator();
+}
+```
+
 #### NULL空值处理
 
 - mybatis-plus默认策略为`NOT_NULL`：在执行updateById(user)，如果user对象的属性为NULL，则不会更新(空字符串会更新)；也可以修改策略
@@ -1217,29 +1331,6 @@ public LogicSqlInjector logicSqlInjector () {
 }
 ```
 
-#### Oracle序列
-
-```java
-// Entity增加注解
-@KeySequence(value = "SEQ_ORACLE_LONG_KEY", clazz = Long.class) // 默认是Long类型
-public class YourEntity {
-    @TableId(value = "ID_LONG", type = IdType.INPUT) // 如果使用序列必须是 IdType.INPUT
-    private Long idLong;
-}
-
-@KeySequence(value = "SEQ_ORACLE_STRING_KEY", clazz = String.class)
-public class YourEntity {
-    @TableId(value = "ID_STR", type = IdType.INPUT)
-    private String idStr;
-}
-
-// 注入生成器
-@Bean
-public OracleKeyGenerator oracleKeyGenerator() {
-    return new OracleKeyGenerator();
-}
-```
-
 #### 常见问题
 
 - entity继承注意项
@@ -1249,45 +1340,17 @@ public OracleKeyGenerator oracleKeyGenerator() {
     // 当执行下列语句时，生成的sql会包含 Bar 的字段；因此Bar中的字段必须是foo表中的字段，否则执行报错
     fooMappler.selectOne(id);
     ```
-
-## 拦截器(插件)
-
-- mybatis-plus 的 `InnerInterceptor` 机制是基于 mybatis 的 `Interceptor` 实现的，具体参考 mybatis-plus 类 `MybatisPlusInterceptor`
-- mybatis 拦截器 Interceptor
-    - 实现`Interceptor`接口
-    - `@Intercepts`注解用于配置需要拦截的对象和方法
-    - 结合 ThreadLocal 参考：https://blog.csdn.net/iteye_19045/article/details/100024506
-- 案例
-    - https://juejin.cn/post/6965441270277734430 基于查询
-    - https://www.zhihu.com/question/375124631/answer/2357163072 基于修改
-- 主要代码
-
-```java
-@Intercepts({@Signature(type = Executor. class, method = "query",
-    args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})})
-public class TestInterceptor implements Interceptor {
-    @Override
-    public Object intercept(Invocation invocation) throws Throwable {
-        Object target = invocation. getTarget(); //被代理对象
-        Method method = invocation. getMethod(); //代理方法
-        Object[] args = invocation. getArgs(); // 方法参数[MappedStatement, Object(parameter), RowBounds, ResultHandler]
-        // do something . . . . . .  方法拦截前执行代码块
-        Object result = invocation. proceed();
-        // do something . . . . . . . 方法拦截后执行代码块
-        return result;
-    }
-
-    @Override
-    public Object plugin(Object target) {
-        return Plugin. wrap(target, this);
-    }
-
-    // 插件初始化的时候调用，也只调用一次，插件配置的属性从这里设置进来
-    @Override
-    public void setProperties(Properties properties) {
-    }
-}
-```
+- 数据库兼容
+    - https://www.i4k.xyz/article/woyyazj/105111463
+    - 自定义sql语句兼容: 基于 databaseId (mybatis功能): https://blog.csdn.net/zhaizhisheng/article/details/105834300
+    - 主键如何兼容mysql和oracle生成策略: 参考上文[主键问题](#主键问题)
+        - **建议主键为字符串雪花ID**
+    - 字段为关键字的处理
+        - 通过拦截器动态修改生成sql中字段名
+        - **建议字段名不能为关键字**
+    - Mybatis-Plus整合多数据源: https://juejin.cn/post/7020066406012026893
+- 字段为mysql关键字处理
+    - 如字段value在mysql中是关键字，不能直接使用，可在字段上加注解`@TableField(value = "`value`")`
 
 
 

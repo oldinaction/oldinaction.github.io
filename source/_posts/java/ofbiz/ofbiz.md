@@ -219,7 +219,7 @@ tags: [ofbiz]
     - entityengine.xml文件的datasource的character-set和collate的属性设置一致。
     - character-set="utf8"
     - collate="utf8_general_ci"
-    - 在链接数据库时，链接数据格式应该为 `jdbc-uri="jdbc:mysql://127.0.0.1/ofbizolap?autoReconnect=true&amp;characterEncoding=UTF-8"`
+    - 在链接数据库时，链接数据格式应该为 `jdbc-uri="jdbc:mysql://127.0.0.1/ofbizolap?autoReconnect=true&amp;characterEncoding=UTF-8"` (注意连接符就是写成`&amp;`)
 - 还有就是虚拟机的启动参数加上 `-Dfile.encoding=UTF-8`
 - Build.xml中的修改如下
 
@@ -612,30 +612,28 @@ mail.smtp.port=25 # 端口
 
 ```sql
 -- mysql
-TRUNCATE server_hit_bin;
+truncate server_hit_bin;
 truncate server_hit;
--- 禁止检查外键
-SET foreign_key_checks=0;
+set foreign_key_checks=0; -- 禁止检查外键
 truncate visitor;
 truncate visit;
--- 开启检查外键
-SET foreign_key_checks=1;
-TRUNCATE user_login_history;
+set foreign_key_checks=1; -- 开启检查外键
+truncate user_login_history;
 
 -- oracle
-truncate table SERVER_HIT;
-truncate table SERVER_HIT_BIN;
-alter table VISIT disable primary key cascade; -- 禁用主键
-truncate table VISIT; -- 必须先禁用主键，直接清空会报错
-alter table VISIT enable primary key; -- 恢复启用主键
-truncate table SERVER_HIT_TMP;
-alter index PK_SERVER_HIT rebuild online;
-alter index SERVER_HIT_USER rebuild online;
-alter index SERVER_HIT_SHTYP rebuild online;
-alter index SERVER_HIT_VISIT rebuild online;
-alter index SERVER_HIT_PARTY rebuild online;
-alter index SERVER_HIT_TXSTMP rebuild online;
-alter index SERVER_HIT_TXCRTS rebuild online;
+truncate table server_hit;
+truncate table server_hit_bin;
+alter table visit disable primary key cascade; -- 禁用主键
+truncate table visit; -- 必须先禁用主键，直接清空会报错
+alter table visit enable primary key; -- 恢复启用主键
+truncate table server_hit_tmp;
+alter index pk_server_hit rebuild online;
+alter index server_hit_user rebuild online;
+alter index server_hit_shtyp rebuild online;
+alter index server_hit_visit rebuild online;
+alter index server_hit_party rebuild online;
+alter index server_hit_txstmp rebuild online;
+alter index server_hit_txcrts rebuild online;
 ```
 
 - 创建账号

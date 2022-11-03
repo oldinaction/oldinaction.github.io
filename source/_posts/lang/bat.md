@@ -31,15 +31,25 @@ tags: [windows]
     - `:` 批处理标签引导符
     - `%` 批处理变量引导符
     - `^` 转义字符 eg: `if 1=1 (echo hello^(你好^)) else (echo bye)`
-- `setlocal enabledelayedexpansion` 启用变量延迟模式，变量通过`!myVar!`获取 (bat是一行一行读取命令的，if的括号算做一行，所有容易出现变量赋值获取不到的情况) 。使用`!xx!`必须开启变量延迟。[^3]
+- `setlocal enabledelayedexpansion` 启用变量延迟模式，变量通过`!myVar!`获取，使用`!xx!`必须开启变量延迟 [^3]
+    - 批处理读取命令时是按行读取的（另外例如for命令等，其后用一对圆括号闭合的所有语句也当作一行），在处理之前要完成必要的预处理工作，这其中就包括对该行命令中的变量赋值
+        - 如下文案例，批处理在运行到这句“set a=5&echo %a%”之前，先把这一句整句读取并做了预处理——对变量a赋了值，那么%a%当然就是4了
+    - 而为了能够感知环境变量的动态变化，批处理设计了变量延迟。简单来说，在读取了一条完整的语句之后，不立即对该行的变量赋值，而会在某个单条语句执行之前再进行赋值，也就是说“延迟”了对变量的赋值
+
+    ```bat
+    :: 不开启变量延迟，结果为4，开启之后结果为5
+    :: setlocal enabledelayedexpansion
+    set a=4 
+    set a=5&echo %a%
+    ```
 
 ### 变量 [^2]
 
-设置变量：`set 变量名=变量值`
-取消变量：`set 变量名=`
-展示变量：`set 变量名`
-列出所有可用的变量：`set`
-计算器：`set /a 表达式`，如`set /a 1+2*3`输出7
+- 设置变量：`set 变量名=变量值`
+- 取消变量：`set 变量名=`
+- 展示变量：`set 变量名`
+- 列出所有可用的变量：`set`
+- 计算器：`set /a 表达式`，如`set /a 1+2*3`输出7
 
 ### 控制语句
 
@@ -61,8 +71,7 @@ tags: [windows]
 - `if defined variable` 判断变量是否存在
 
 ```bat
-rem 示例1
-
+rem ======================= 示例1 =======================
 @echo off
 if 1==1 goto myEnd
 
@@ -87,8 +96,7 @@ if %var% LEQ  4 (echo 我小于等于4) else echo 我不小于等于4
 pause
 
 
-rem 示例2
-
+rem ======================= 示例2 =======================
 @echo off
 copy C:\abc.bat E:\
 if %ERRORLEVEl% == 0 (
@@ -108,11 +116,11 @@ if NOT %ERRORLEVEL% == 0 (
 )
 pause
 
-rem 示例3
 
+rem ======================= 示例3 =======================
 @echo off
 set file="C:\abc.bat"
-if exist %file% (　　　　　　　　
+if exist %file% (　　　　　　
 　　echo file is exists
 ) else if exist b.txt (
     echo b.txt is exists
@@ -121,8 +129,8 @@ if exist %file% (　　　　　　　　
 )
 pause
 
-rem 示例4
 
+rem ======================= 示例4 =======================
 :: 开启延迟变量
 setlocal enabledelayedexpansion
 set var=before
@@ -181,6 +189,23 @@ goto:eof
 call:myFuncName
 ```
 
+### 字符串操作
+
+```bash
+# 拼接
+echo %a%%b%
+
+# 替换(:=)，可用于去除空格
+set str=ab c
+echo 替换后为(abc): %str: =%
+
+# 截取(:~,)
+set str=123456789
+echo 头两个字符为(12): %str:~0,2%
+echo 第4个及其之后的3个字符为(4567): %str:~3,4%
+echo 去掉最后一个字符后的字符串为(12345678): %str:~0,-1%
+```
+
 ### 文件和文件夹操作
 
 ```bash
@@ -188,8 +213,11 @@ call:myFuncName
 echo 123456>0.txt
 # 输出123456至0.txt追加至末尾
 echo 123456>>0.txt
+
 # 删除文件
 del 0.txt
+# /F 强制删除. **注意如果带参数，必须是右斜杠，左斜杠会找到不文件**
+del /F D:\test\test.txt
 
 # 创建文件夹plugins，需要保证存在目录dist。路径必须使用\斜杠，因为/后面接的参数
 mkdir dist\plugins
@@ -202,6 +230,8 @@ echo d | xcopy target\sqbiz-plugin\*-ark-biz.jar dist\plugins /s
 
 ## 常用命令
 
+- 命令参数使用`/`标注，如`help /?`
+    - **如果命令参数后是路径，则必须是是右斜杠**(使用左斜杠会找不到路径)，和参数标识符区分
 - `help` 查看帮助
 - `help /?` 查看help命令的帮助
 - `tasklist` 列举进程(进程名太长则可能显示不全)
@@ -290,14 +320,13 @@ echo off
 
     ```bat
     title=cmd窗口的标题
-    echo off
+    @echo off
     rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录
     %~d0
     set MY_PROJECT_HOME=%~p0
     cd %MY_PROJECT_HOME%
-    echo on
-    "%JAVA_HOME%\bin\java" -jar my.jar
-    echo off
+    "%JAVA_HOME%\bin\java" -DLog4j22.formatMsgNoLookups=true -jar my.jar
+    @pause
     ```
 
     - 此时配置文件应和jar包位于同一目录
@@ -381,11 +410,15 @@ echo off
     ````
 - 获取当前时间
 
-    ```bat
-    set YYYYmmdd=%date:~0,4%%date:~5,2%%date:~8,2%
-    set hhmiss=%time:~0,2%%time:~3,2%%time:~6,2%
-    set "filename=bak_%YYYYmmdd%_%hhmiss%.zip"
-    :: bak_20181016_170530.zip
+    ```bash
+    # :: %date% => 2022/09/25 周日 %time% => 10:05:55.19
+    # set YYYYMMDD=%date:~0,4%%date:~5,2%%date:~8,2%
+    # :: 如果小于10点，小时是一个空格+点数，后面通过字符串替换掉空格
+    # set hhmmss=%time:~0,2%%time:~3,2%%time:~6,2%
+    set DATETIME=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%
+    set DATETIME=%DATETIME: =0%
+    set "filename=bak_%DATETIME%.zip"
+    # :: bak_20181016170530.zip
     echo %filename%
     ```
 - 脚本示例
@@ -561,7 +594,6 @@ goto:eof
 call:connectInfo
 goto:eof
 
-
 :: 退出
 :menuCode_0
 if exist %tmpFile% (del %tmpFile%)
@@ -571,6 +603,72 @@ if exist %tmpFile% (del %tmpFile%)
 @cmd /k
 ::pause
 ```
+
+### mysql数据库备份
+
+- 设置定时任务参考[windows.md#任务计划(定时任务)](/_posts/extend/windows.md#任务计划定时任务)
+
+```bat
+@echo off
+set db_user=root
+set db_passwd=root
+set db_name=db_test
+set db_host=127.0.0.1
+set db_port=3306
+set backup_dir=D:\backup\mysql
+
+:: set BACKUPDATE=%date:~0,4%%date:~5,2%%date:~8,2%0%time:~1,1%%time:~3,2%%time:~6,2%
+set BACKUPDATE=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%
+set BACKUPDATE=%BACKUPDATE: =0%
+
+:: 执行备份(mysqldump命令路径有空格，必须加双引号)
+"C:/Program Files/MySQL/MySQL Server 5.7/bin/mysqldump" -h %db_host% -P %db_port% -u%db_user% -p%db_passwd% %db_name% > %backup_dir%/backup_%db_name%_%BACKUPDATE%.sql
+:: 压缩
+"C:/software/7-Zip/7z.exe" a "%backup_dir%/backup_%db_name%_%BACKUPDATE%.sql.zip" "%backup_dir%/backup_%db_name%_%BACKUPDATE%.sql"
+:: 删除当前备份临时文件
+del /F "%backup_dir%\backup_%db_name%_%BACKUPDATE%.sql"
+:: 删除最后将7天前的文件
+forfiles /p %backup_dir% /s /m *.zip /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\mysql_delete_backup_%date:~0,4%.log
+@echo on
+```
+
+### oracle数据库备份
+
+- 设置定时任务参考[windows.md#任务计划(定时任务)](/_posts/extend/windows.md#任务计划定时任务)
+
+```bat
+@echo off
+set USER=admin
+set PASSWORD=admin123
+set BACK_USER=test
+set BACK_USER2=demo
+set DATABASE=localhost:1521/orcl
+set BACKUP_DIR=D:\backup\oracle
+
+set BACKUPDATE=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%
+set BACKUPDATE=%BACKUPDATE: =0%
+if not exist %BACKUP_DIR% mkdir %BACKUP_DIR%
+
+:: 备份
+exp %USER%/%PASSWORD%@%DATABASE% file=%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.dmp owner=(%BACK_USER%) log=%backup_dir%/backup_%BACK_USER%_%BACKUPDATE%.log compress=y grants=y
+"C:/software/7-Zip/7z.exe" a "%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.dmp.zip" "%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.dmp"
+del /F "%BACKUP_DIR%\backup_%BACK_USER%_%BACKUPDATE%.dmp"
+
+exp %USER%/%PASSWORD%@%DATABASE% file=%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.dmp owner=(%BACK_USER2%) log=%backup_dir%/backup_%BACK_USER2%_%BACKUPDATE%.log compress=y grants=y
+"C:/software/7-Zip/7z.exe" a "%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.dmp.zip" "%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.dmp"
+del /F "%BACKUP_DIR%\backup_%BACK_USER2%_%BACKUPDATE%.dmp"
+
+:: 删除超过7天的备份文件
+forfiles /p "%BACKUP_DIR%" /s /m *.dmp.zip /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\oracle_delete_backup_%date:~0,4%.log
+forfiles /p "%BACKUP_DIR%" /s /m backup_*.log /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\oracle_delete_backup_%date:~0,4%.log
+@echo on
+```
+
+
+
+
+
+
 
 ---
 

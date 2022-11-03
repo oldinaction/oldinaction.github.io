@@ -13,6 +13,16 @@ tags: [js, tools]
 
 ## 基础库
 
+### sass/less
+
+- sass相关变种说明: https://www.cnblogs.com/yyh1/p/15954139.html
+    - 目前sass官方主推的是 dart-sass
+    - sass 是由 ts调用 dart-sass实现的工具类，来编译 sass（以前是由单纯的 ts实现的）
+        - 只支持 `::v-deep`
+    - dart-sass 是由 dart 实现的，通过 dart vm 运行 dart 是编译 sass（在 npm 可以看到该包已不被开放下载了）
+    - node-sass 是由 node 调用 底层 c++ 实现的 libsass 来编译 sass
+        - 支持`/deep/`和`::v-deep`
+
 ### lodash工具类
 
 - [lodash](https://lodash.com/)、[lodash中文网](https://www.lodashjs.com/)
@@ -70,6 +80,16 @@ console.log(JSON.stringify(r))
 ```
 
 ### cross-env启动时增加环境变量
+
+```js
+// 安装
+npm install --save-dev cross-env
+
+// 使用
+"scripts": {
+    "build": "cross-env NODE_ENV=production MY_KEY=value webpack --config build/webpack.config.js"
+}
+```
 
 ### dayjs时间操作
 
@@ -285,6 +305,8 @@ console.log(pass)
   </div>
 </template>
 ```
+- z-index
+    - 如果没有初始化，也没在use时给定z-index，则默认2000
 
 ### iview
 

@@ -114,7 +114,7 @@ tags: spring
 - profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`) [^3]
 - SpringBoot项目属性配置加载顺序
     - 使用命令行方式启动时，在命令行中传入的参数
-        - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖，如增加`spring.application.json={"spring.application.admin.enabled": false}`
+        - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖(Override parameters)，如增加`spring.application.json={"spring.application.admin.enabled": false}`
         - 如果参数值有特殊字符和使用双引号包裹一下，如`--spring.datasource.url="jdbc:xxx"`
         - 传入数组，如`--sqbiz.arr=test1,test2`，java需要使用对象的数组属性接受
     - SPRING_APPLICATION_JSON中的属性。SPRING_APPLICATION_JSON是以JSON的格式配置在系统环境变量中的内容，或`--spring.application.json='{"foo":"bar"}'`参数
@@ -1085,7 +1085,7 @@ public class TestServlet extends HttpServlet{
 	});
 
     // 9.插入/更新
-    int count = jdbcTemplate.update("insert into t_user(username, password) values('smalle', '123456')");  
+    int count = jdbcTemplate.update("insert into t_user(username, password) values('smalle', ?)", "123456");  
     int count = jdbcTemplate.update("update t_user set username = 'smalle' where username = 'hello'");  
 	```
 
@@ -2232,6 +2232,13 @@ public interface ISubscribeService extends IService<Subscribe> {
 
 ### 邮件操作
 
+- 说明
+    - [什么是POP3、SMTP和IMAP?](http://help.163.com/09/1223/14/5R7P6CJ600753VB8.html)
+        - SMTP: 发送邮件
+        - IMAP: 操作邮箱邮件，如标记阅读、删除等，操作后会和服务器双向同步
+    - [IMAP和POP3有什么区别?](http://help.163.com/10/0203/13/5UJONJ4I00753VB8.html)
+    - 如果收件箱有两个邮箱，其中一个邮箱是无效的邮箱，可正常发送邮件到有效的邮箱；此时163邮箱会发送一封系统退信说明邮箱地址不存在
+    - 但是如果重复发送几次，如通过163发送错误的qq邮箱，有时候会没有退信回来，163的发件箱显示成功到达对方服务器(可能有拦截的原因)
 - 依赖
 
 ```xml
@@ -2247,7 +2254,7 @@ public interface ISubscribeService extends IService<Subscribe> {
 spring:
   mail:
     host: smtp.exmail.qq.com # qq企业邮箱
-    port: 465 # 使用SSL协议需要
+    port: 465 # 使用SSL协议需要465, 非SSL需要25
     username: test@qq.com
     password: 4ZfWRqjXzhdxxyhW
     properties: # map格式

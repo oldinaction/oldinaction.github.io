@@ -226,6 +226,7 @@ exec p(0, 0);
 
 ### 数据库基本
 
+- Mysql注释使用`/**/`，Oracle注释使用`/**/`或`--`
 - 与JDBC数据类型映射关系参考[mybatis.md#MyBatis/Java/Oracle/MySql数据类型对应关系](/_posts/java/mybatis.md#MyBatis/Java/Oracle/MySql数据类型对应关系)
 - Mysql数据类型，参考[sql-optimization.md#数据类型的优化](/_posts/db/sql-optimization.md#数据类型的优化)
     - `tinyint`     **超短整型**，存储长度1个字节(带符号存储区间：-127 ~ 127，不带符号存储区间：0-255)；java可使用Boolean那映射，数据库存储为1/0
@@ -239,7 +240,7 @@ exec p(0, 0);
     - `char`		定长字符串(String)，同Oracle的char
     - `varchar` 	变长字符串(String)，最大255字节，相当于Oracle里的的varchar2
     - `datetime`	日期(DateTime/LocalDateTime)，相当于Oracle里的date
-    - `tinytext`    短文本型(String)。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式
+    - `tinytext`    短文本型(String)。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式(varchar也可存储换行)
     - `text`		文本型(String)。最大长度为65535个字节(2^31-1)，其他同tinytext
     - `longtext`	长文本型(String)。最大4G，相当于Oracle里的long，其他同tinytext
     - `tinyblob/blob/longblob` 二进制数据(byte[])
@@ -251,7 +252,10 @@ exec p(0, 0);
     - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
     - `date`		日期(插入时，sysdate即表示系统当前时间；select时默认展示年月日，要想展示时分秒则需要to_char转换)
     - ...还有很多，如用来存字节，可以把一张图片存在数据库（但是实际只是存图片存在硬盘，数据库中存图片路径）
-- Mysql注释使用`/**/`，Oracle注释使用`/**/`或`--`
+- VARCHAR(100)与VARCHAR(200)的区别(Oracle中的VARCHAR2原理是一样的)
+    - 虽然他们用来存储90个字符的数据，其存储空间相同，但是对于内存的消耗是不同的
+    - 硬盘上的存储空间虽然都是根据实际字符长度来分配存储空间的，但是内存是使用固定大小的内存块(即设置的200个字符大小)来保存值，这对于排序或者临时表(这些内容都需要通过内存来实现)作业会产生比较大的不利影响
+    - MySql创建临时表（SORT，ORDER等）时，VARCHAR会转换为CHAR，转换后的CHAR的长度就是varchar的长度，在内存中的空间就变大了
 
 ### 创建、删除、复制表、更新
 
@@ -328,16 +332,7 @@ exec p(0, 0);
 
 #### 复制表
 
-- 复制表结构及数据到新表 **`create table 新表 as select * from 旧表`**
-    - **oracle不会复制到表结构的备注和默认值；mysql可以复制备注，但是主键会丢失**
-    - 根据备份表还原数据的时候需要delete掉原表的数据，不能drop
-    - `200w`的数据`3s`复制完成
-- 只复制表结构到新表 **`create table 新表 as select * from 旧表 where 1=2`**
-    - `create table t2 like t1` like创建出来的新表包含源表的完整表结构和索引信息(mysql适用)。oracle支持as，也是只有表结构没有索引；oracle不支持like
-- 复制部分字段 `create table b as select row_id, name, age from a where 1<>1`
-- 复制旧表的数据到新表(假设两个表结构一样) **`insert into 新表 select * from 旧表`**
-- 复制旧表的数据到新表(假设两个表结构不一样) **`insert into 新表(字段1,字段2,.......) select 字段1,字段2,...... from 旧表`**
-- 创建临时表并复制数据(oracle) `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;` 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
+- [复制表结构参考](/_posts/db/mysql/mysql-backup-recover.md#Mysql相关语法)
 
 ### 修改表结构
 
@@ -352,26 +347,47 @@ exec p(0, 0);
 ### 索引
 
 - Mysql索引
+    - 在没有外键约束的情况下，MySql的不同表的索引可以重名，索引文件一表一个，不会出现冲突
 
-    ```sql
-    -- ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引
-    alter table d_user add index idx_name (name)
-    alter table d_user add unique (card_no)
-    alter table d_user add primary key (id)
+```sql
+-- ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引
+alter table d_user add index idx_name (name)
+alter table d_user add unique (card_no)
+alter table d_user add primary key (id)
 
-    -- CREATE INDEX可对表增加普通索引或UNIQUE索引
-    create index idx_name_age on d_user (name, age)
-    create unique index idx_card_no on d_user (card_no)
+-- CREATE INDEX可对表增加普通索引或UNIQUE索引
+create index idx_name_age on d_user (name, age)
+create unique index idx_card_no on d_user (card_no)
 
-    -- 删除索引
-    drop index d_user on talbe_name
-    alter table d_user drop index index_name
-    alter table table_name drop primary key -- 删除主键索引，一个表只能有一个主键，因此无需指定主键索引名
+-- 删除索引
+drop index d_user on talbe_name
+alter table d_user drop index index_name
+alter table table_name drop primary key -- 删除主键索引，一个表只能有一个主键，因此无需指定主键索引名
 
-    -- 查看索引
-    show index from d_user;
-    show keys from d_user;
-    ```
+-- 查看索引
+show index from d_user;
+show keys from d_user;
+
+-- force index、use index 或者 ignore index
+-- 指定索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引
+select * from user use index(idx_name_sex) where id > 10000;
+-- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
+select *
+from t_user u force index(idx_create_time)
+join t_class c on c.id = u.cid
+where u.create_time > '2000-01-01';
+
+-- 重建索引
+-- 方式一: alter table 其实等价于rebuild(重建)表(表的创建时间会变化)，所以索引也等价于重新创建了（数据不会编号）
+alter table t_test engine=innodb;
+-- 方式二: optimize table
+-- OPTIMIZE TABLE操作使用Online DDL模式修改Innodb普通表和分区表，
+-- 该方式会在prepare阶段和commit阶段持有表级锁：在prepare阶段修改表的元数据并且创建一个中间表，在commit阶段提交元数据的修改
+-- 由于prepare阶段和commit阶段在整个事务中的时间比例非常小，可以认为该OPTIMIZE TABLE的过程中不影响表的其他并发操作
+optimize table t_test;
+-- 方式三 (只支持MyISAM, ARCHIVE, CSV)
+-- repair table t_test quick;
+```
 - Oracle索引
     - 当给表加主键或者唯一约束时，Oracle会自动将此字段建立索引；给字段建立索引后，查询快读取慢
     - `create index idx_stu_email on stu(email);` 建立索引idx_stu_email
@@ -403,6 +419,12 @@ exec p(0, 0);
 - Mysql创建视图的select语句不能包含from子句中的子查询，可以创建两次视图。而Oracle可以包含子查询
 - 视图就相当于一个子查询，建立视图可以简化查询、保护数据，但是增加维护难度
 - 可以更新视图里面的数据，但是更新的是实际中的表的数据，故一般不这么做
+
+### 临时表
+
+- 创建临时表并复制数据(oracle)
+    - `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;`
+        - 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
 
 ### Oracle数据字典
 

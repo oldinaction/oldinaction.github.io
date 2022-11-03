@@ -16,8 +16,15 @@ tags: [plugins, debug]
     - 火狐 `Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0`
     - IE `Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; rv:11.0) like Gecko`
 
+
 ## chrome插件收集
 
+- 插件导入导出
+    - 插件安装位置
+        - Mac: `cd ~/Library/Application\ Support/Google/Chrome/Default/Extensions/`
+        - Windows: `C:\Users\用户名\AppData\Local\Google\Chrome\User Data\Default\Extensions`
+    - 导出: 开发者模式下点击打包扩展程序，选择某插件(根据插件ID到安装位置查找)的对应版本。打包成功后，会将生成的文件放到与版本号一致的同级目录
+    - 导入: 导入之前打包的插件
 - 插件网站
     - https://www.crxsoso.com/
 - 必备
@@ -30,7 +37,8 @@ tags: [plugins, debug]
     - `有道词典Chrome划词插件`
     - `JSONView` 将Http请求获取的json字符串格式化(可收缩)
     - `Vue.js devtools` Vue.js调试工具
-- 其他
+    - `Console Importer` 在调试模式中快速导入js库到当前页面
+- 推荐
     - `Evernote Web Clipper` 印象笔记·剪藏
     - `新浪微博图床`
     - `Secure Shell` ssh客户端
@@ -38,6 +46,8 @@ tags: [plugins, debug]
     - `Selenium IDE` 自动化测试录制
     - `Axure RP Extension for Chrome` Axure设计
     - `Set Character Encoding` 解决chrome查看源码乱码问题
+    - `OCR - Image Reader` 图片识别
+    - `Downloads Overwrite Already Existing Files` 重名文件下载提示是否覆盖(默认是创建一个带序号的文件)
 - Github相关
     - `SourceGraph` 基于目录显示文件，类之间的跳转，代码搜索等功能
     - `Octotree` 展现源码目录
@@ -48,6 +58,9 @@ tags: [plugins, debug]
     - `OctoLinker` 实现类名点击跳转
     - `GitHub Hovercard` 鼠标停留在 GitHub 网站的用户头像或者仓库链接地址上时，会自动弹出一个悬浮框，带你提前预览基本信息
     - `Remu` 收藏项目管理，项目备注/标签管理
+- 其他
+    - `Super Dark Mode` 网页暗黑模式切换(部分网页不是完全兼容)
+    - `Talend API Tester` POST测试工具
 
 ## 调试技巧
 

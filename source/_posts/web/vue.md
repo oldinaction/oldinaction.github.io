@@ -870,7 +870,7 @@ Vue.component('base-checkbox', {
             },
             change() {
                 // 此处保证了子组件发送的数据会被父组件的v-model="myValue"接受，再被value="myValue"传回
-                // 如果上面没有定义model.event="change"，则此处的事件必须是'input'
+                // 如果上面没有定义model.event="change"，则此处的事件必须是'input' (this.$emit('input', this.model))
                 // el-select中也有change事件，但是该事件传回的值只能到此组件的v-model中，无法再往外面传输，因此此处必须触发新的事件(本组件中定义的事件)
                 // *** 自定义组件中也可以不用有类似的input表单元素，自定义一个model字段名，并指定其model.event，并在此处emit即可修改model ***
                 this.$emit('change', this.model) // 不能直接修改this.value的值，需要通过修改此处的model属性然后传递到外部组件
@@ -1350,7 +1350,14 @@ import './index.css'
 .wrapper /deep/ .ivu-table th {
     background-color: #eef8ff;
 }
+
+.box {
+    /* 解决直接使用 height: calc(100% - 60px); 不生效的问题 */ 
+    height: calc(~"96vh - 100px"); 
+    height: e("calc(100% - 60px)");
+}
 </style>
+
 <!-- 也可在组件中额外定义全局样式 -->
 <style>
 </style>
@@ -1663,7 +1670,10 @@ Vue.directive("uppercase", {
 
 ## API说明
 
-- `Vue.use(demo, opts)` 实际是调用了demo的install(Vue, opts)方法，相当于传入了Vue对象到demo中
+- `Vue.use(demo, opts)` **注册插件**
+    - 自定义插件参考[开发组件库](#开发组件库)
+    - 如果插件是一个对象，必须提供 install 方法。如果插件是一个函数，它会被作为 install 方法。install 方法调用时，会将 Vue 作为参数传入
+    - 实际是调用了demo的install(Vue, opts)方法，相当于传入了Vue对象到demo中
 
     ```js
     // config.js
@@ -1689,8 +1699,10 @@ Vue.directive("uppercase", {
     import config from './config/index.js'
     Vue.use(config)
     ```
-- `Vue.component(name, component)` 通过js手动注册全局组件，此时无需在components属性中定义。如果在main.js执行了此函数，则全局.vue文件均可使用此主键。使用是可使用name或其下划线形式名称
-    - Vue.component注册全局组件时，内部会调用Vue.extend方法，将定义挂载到Vue.options.components上
+- `Vue.extend(options)` 使用基础 Vue 构造器，创建一个子类. Vue.component 是基于此函数的
+- `Vue.component(name, component)` 通过js手动**注册全局组件**，此时无需在components属性中定义。如果在main.js执行了此函数，则全局.vue文件均可使用此主键。使用是可使用name或其下划线形式名称
+    - Vue.component注册全局组件时，内部会调用`Vue.extend`方法，将定义挂载到Vue.options.components上
+    - `components: { Demo }` components属性是用于注册局部组件
 
     ```js
     // {string} id
@@ -1711,6 +1723,12 @@ Vue.directive("uppercase", {
             error: MyErrorComp
         })
     )
+
+    // 全局异步组件
+    Vue.component('demo', resolve => {
+        // require会告诉webpack将构建的代码分割成多个包，这些包通过Ajax请求
+        require(['./Demo'], resolve)
+    })
     ```
 - `Vue.mixin({...})` 全局混入
 - `Vue.directive`
@@ -1733,7 +1751,40 @@ Vue.directive("uppercase", {
 ## 开发组件库
 
 - 说明
-    - 当基于element-ui等进行二次开发时，在组件库模板中可以使用element-ui的标签，组件库无需在入口js中导入element-ui进行use(前提是主应用全局安装了element-ui)；如果在js中引入了element-ui，则不管包依赖是在dependences还是devDependences，都会将element-ui打包到组件库的输出文件中
+    - 当基于element-ui等进行二次开发时
+        - 在案例入口文件中可以引入element-ui(案例不打包到库文件中)，可将element-ui加到dependences和externals(对应public/index.html需引入element-ui的CDN文件)中，这样打包案例时体积会减少
+        - **在组件库模板中可以使用element-ui的标签，组件库无需在入口js中导入element-ui进行use**(前提是主应用全局use安装了element-ui插件)
+        - **如果在库入口js文件及引申文件中引入了vue/element-ui，则不管包依赖是在dependences还是devDependences，都会将element-ui打包到组件库的输出文件中(如果只是使用element-ui的标签则不会)**
+            - 在产物中搜索`ElInput`或`el-input`如果有则说明插件库中包含了element-ui包
+            - 如果此时将vue/element-ui设置成了externals，则将此插件在另外一个vue项目中引用时会出现插件模块缺少Vue对象。可动态判断是否需要设置成externals
+
+                ```js
+                const IS_PROD = process.env.NODE_ENV === 'production'
+                // script中增加`"lib": "vue-cli-service build --target lib ......"`
+                // 此时通过 npm run lib 进行打包库文件，则 process.env.npm_config_argv(original) 的值为['run', 'lib']
+                const IS_BUILD = JSON.parse(process.env.npm_config_argv).original.filter(x => x === 'build').length > 0
+
+                module.exports = {
+                    configureWebpack(config) {
+                        if (IS_PROD && IS_BUILD) {
+                            config.externals = {
+                                vue: 'Vue',
+                                'vue-router': 'VueRouter',
+                                'element-ui': 'ELEMENT'
+                            }
+                        }
+                    },
+                }
+                ```
+        - 如果一定需要使用vue/element-ui的方法，可在插件的install方法(Vue插件安装的入口方法)中接收外部应用(主应用)传入进来的vue/element-ui对象并缓存到全局属性中(**如在插件内部调用Vue.component动态注册组件，此时必须使用同一个Vue对象，因此必须接收外部传入进来的**，参考下文[组件库中使用动态组件](#组件库中使用动态组件))
+- 异步加载插件
+    - 使用 externals
+    - [vue2异步加载插件/组件/指令等](https://github.com/jiangshanmeta/vue-async-assets) vue2自带异步加载组件
+    - vue3支持异步加载插件
+- 案例
+    - https://gitee.com/sqbiz/wplugin-variant-form 基于vue-cli打包
+    - https://github.com/sscfaith/avue-form-design 基于vue-cli打包(packages文件为实际包, src为案例)
+    - https://gitee.com/smallweigit/avue-plugin-ueditor 无需打包(直接将packages目录下文件暴露成包)
 
 ### 打包与导入
 
@@ -1743,22 +1794,28 @@ Vue.directive("uppercase", {
 
         ```json
         {
-            // 导入模块时的入口函数(如果需要调试可去掉min，这样主应用导入后可直接在浏览器打端点。修改package.json后需要重启主应用)
+            // 导入模块时的入口函数(如果需要调试可去掉min，这样主应用导入后可直接在浏览器打断点。修改package.json后需要重启主应用)
+            // 如果导出了多个模块，可以在引入的时候写全路径，如`import ReportTable from 'report-table'`引入默认模块，而通过类似`import ReportTableDemo from 'report-table/lib-demo/report-table-demo.umd.min.js`引入另外一个模块
             "main": "./lib/report-table.umd.min.js",
+            // 如果是scope类型模块(name以@xxx/开头)，则npm默认为发布私有包，如果需要发布成公开则需要定义下面配置
+            "publishConfig": {
+                "access": "public"
+            },
+            // 上传到npm仓库的文件夹
             "files": [
-                "src",
                 "lib",
-                "dist",
                 "types"
             ],
             "typings": "types/index.d.ts",
             "scripts": {
+                // 参考: https://gitee.com/gitee-frontend/
                 // 实时监控打包(修改代码编译较快，可实时反映到主应用，且调试时显示的是源码；可增加如`lib/*.hot-update.*`让git忽略热更新产生的文件)
                 // 配合 npm link(通过本地路径直接安装模块即可，偶尔还是需要npm link) 就可以做本地调试了。(1)现在模块目录执行<sudo> npm link将当前模块关联到全局 (2) 在到项目目录执行`npm link my-module`关联模块到项目中(执行后会将本地开发包关联到node_modules中；如果项目目录中配置的是远程包，当重新npm i就会重新下载远程包，即npm link失效)
                 // 注意：--watch模式下，打包的lib中不会出现.css文件(样式和图片等资源无法实时监控)，因为css样式已经内联了，可通过在 vue.config.js 中设置 css: { extract: true } 取消内联
-                "dev": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js --watch",
-                // 打包命令：打出来的包在一个文件中(lib/report-table.umd.js、lib/report-table.umd.min.js等)
-                "build": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js",
+                "start": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js --watch",
+                // 打包命令，打出来的包在lib文件夹中
+                // --formats umd-min # 产物包类型，默认包含common.js、.umd.js、.umd.min.js，此时表示只打包umd.min
+                "lib": "vue-cli-service build --target lib --name report-table --dest lib --formats umd-min ./src/index.js",
                 "lint": "vue-cli-service lint",
                 // 分析的是以 vue.config.js 中的 pages.index.entry 为入口
                 "report": "vue-cli-service build --report --mode prod"
@@ -1773,7 +1830,7 @@ Vue.directive("uppercase", {
     - 参考：https://qastack.cn/programming/8088795/installing-a-local-module-using-npm
     - `npm install /path/to/component/project/dir`此时会在package.json中创建对应的依赖，值为`file:..`的相对路径
         - 模块更新不会直接热部署到应用，必须重新build
-    - `npm link`
+    - `npm link`(或对应的`yarn link`同理使用)
         - 在模块目录执行`npm link`会将当前模块链接到全局模块中
         - 在应用目录执行`npm link package-name`引用该模块
         - 也可直接使用相对/绝对路径，相当于上面两步
@@ -1880,6 +1937,21 @@ const install = function (Vue) {
 }
 export default install
 ```
+
+### 相关问题
+
+- 部分插件引用的模块用到了PostCSS，当`npm link`后，在主项目中启动后报错`Error: No PostCSS Config found`
+    - 在当前项目根目录下创建`postcss.config.js`，并加入配置
+
+    ```js
+    module.exports = {
+        plugins: {
+            autoprefixer: {
+                browsers: 'last 5 version'
+            }
+        }
+    }
+    ```
 
 ## VueRouter路由
 
@@ -2205,6 +2277,13 @@ this.$router.push({
 })
 ```
 
+### 数据库动态路由
+
+- 数据库以路由格式存储json
+- 前端初始化时，默认路由设置成空，或者添加几个静态路由(如403/404等页面)
+- 用户登录后，通过`addRoutes`动态将路由项添加到路由对象中，并存储路由数组到Vuex防止重复添加
+- 用户退出登录后，重置路由对象(重新new一个路由对象)
+
 ## Vuex
 
 - [Vuex](https://vuex.vuejs.org/zh/)
@@ -2469,6 +2548,26 @@ new DefinePlugin(
 )
 '''
 ```
+
+### vue-cli-service
+
+- 命令说明
+
+```bash
+# 查看帮助
+npx vue-cli-service -h
+
+vue-cli-service
+    build
+        --mode test-sq # 指定环境变量配置文件为.env-test-sq
+        --report # 生成分析报告到dist/report.html(vue-cli自带分析插件)
+        --target lib # 生成lib包(用于npm安装或浏览器引用的js)
+        --name report-table # lib包名称
+        --dest lib 
+        --formats umd-min # 产物包类型，默认包含common.js、.umd.js、.umd.min.js，此时表示只打包umd.min
+        <./src/index.js> # 打包时的目标目录为lib，入口文件为./src/index.js
+        --watch # 实时观测打包文件
+```
 - package.json 常用配置
 
 ```json
@@ -2504,7 +2603,9 @@ VUE_APP_JSON = {"a": 1, "b": "abc"}
 
 ### vue.config.js
 
-- vue.config.js 常用配置。多项目配置参考[多项目配置](/_posts/arch/springboot-vue.md#多项目配置)
+- [官方文档](https://cli.vuejs.org/zh/config/)
+- [多项目配置参考](/_posts/arch/springboot-vue.md#多项目配置)
+- vue.config.js 常用配置    
 
 ```js
 // process.env 可以获取node下所有的环境变量
@@ -2522,7 +2623,9 @@ module.exports = {
     outputDir: 'dist', // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到www目录
     lintOnSave: false, // 保存文件时进行eslint校验，false表示保存时不校验。如果校验不通过则开发时页面无法显示
     // 打包时不生成.map文件
-    productionSourceMap: false, // 项目打包后，代码都是经过压缩加密的，如果运行时报错，输出的错误信息无法准确得知是哪里的代码报错。有了map就可以像未加密的代码一样，准确的输出是哪一行哪一列有错。但是在生产环境中我们就不需要了
+    // 项目打包后，代码都是经过压缩加密的，如果运行时报错，输出的错误信息无法准确得知是哪里的代码报错。有了map就可以像未加密的代码一样，准确的输出是哪一行哪一列有错。但是在生产环境中我们就不需要了
+    productionSourceMap: false,
+
     configureWebpack: config => {
         let plugins = []
         // if (process.env.NODE_ENV === 'production') {
@@ -2532,12 +2635,19 @@ module.exports = {
         // }
         return {
             devtool: 'source-map', // 生成source-map, 否则debugger容易定位不准确
-            plugins: plugins
+            plugins: plugins,
+            // 和下文 chainWebpack 中的配置效果一样
+            externals: {
+                vue: 'Vue',
+                'vue-router': 'VueRouter',
+                'element-ui': 'ELEMENT'
+            }
         }
     },
+
+    // 对上文 configureWebpack 属性再次设置
     chainWebpack: config => {
         // 忽略的打包文件，使用CDN文件。安装和导入以模块的方式，index.html中引入对应cnd路径文件，开发/打包则使用此文件
-        // 如果是使用CND
         config.externals({
             'vue': 'Vue',
             'vue-router': 'VueRouter',
@@ -2574,18 +2684,40 @@ module.exports = {
             .end()
 
         // 入口文件修改
-        config.entry('app').add('./src/mock.js') // 会在默认的源文件(src/main.js)后加入mock.js一起打包成app.js的入口文件
-        // config.entryPoints.clear().end() // vue-cli默认生成的入口文件为app.js(chunk文件)，clear方法会把vue-cli默认的.entry('app')清空
+        // 会在默认的源文件(src/main.js)后加入mock.js一起打包成app.js的入口文件
+        config.entry('app').add('./src/mock.js')
+        // vue-cli默认生成的入口文件为app.js(chunk文件)，clear方法会把vue-cli默认的.entry('app')清空
+        // config.entryPoints.clear().end()
         //     .entry('main').add('./src/main.js').end() // main chunk. 可以在同一个chunk，add多个模块
         //     .entry('routes').add('./src/app-routes.js');
 
     },
+
     pluginOptions: {
         'style-resources-loader': {
             preProcessor: 'less',
             patterns: [path.resolve(__dirname, 'src/styles/theme/index.less')]
         }
     },
+
+    // 多页面配置，可为每个页面定义入口文件
+    pages: {
+        index: {
+            entry: 'src/views/index/main.js',
+            template: 'public/index.html',
+            // 在 dist/index.html 的输出
+            filename: 'index.html',
+            // 提取出来的通用 chunk 和 vendor chunk
+            chunks: ['chunk-vendors', 'chunk-common', 'index']
+        },
+        preview: {
+            entry: 'src/views/preview/main.js',
+            template: 'public/preview.html',
+            filename: 'preview.html',
+            chunks: ['chunk-vendors', 'chunk-common', 'preview']
+        }
+    },
+
     devServer: {
         // host: 'localhost', // target host
         port: port,
@@ -2608,6 +2740,7 @@ module.exports = {
             }
         }
     },
+
     // 一般开发组件库时用到. build打包时，--watch时默认为css内联样式，此处设置成非内联模式(样式生成到单独的css文件中)；非 --watch 默认就是true
     // css: {
     //     extract: true
@@ -2632,8 +2765,13 @@ module.exports = {
 
 ## 插件收集
 
-- [vue-contextmenujs](https://github.com/GitHub-Laziji/menujs) 自定义右键菜单，包大小130K
+- 自定义右键菜单 [vue-contextmenujs](https://github.com/GitHub-Laziji/menujs) 包大小130K
     - 可以在指定元素上开启自定义右键菜单
+- 栅格布局 [Vue Grid Layout](https://jbaysolutions.github.io/vue-grid-layout/zh/)
+    - 如可用于首页自定义栅格
+
+
+
 
 
 

@@ -9,7 +9,7 @@ tags: [mysql, dba]
 ## 基本
 
 - mysql 安装
-    - 软件下载：[服务器安装包 mysql-installer-community-5.7.32.0.msi](https://downloads.mysql.com/archives/installer/)、[Community Server压缩包 mysql-5.7.32-winx64.zip](https://downloads.mysql.com/archives/community/)。installer安装备注如下
+    - 软件下载：[服务器安装包 mysql-installer-community-5.7.32.0.msi (或云盘)](https://downloads.mysql.com/archives/installer/)、[Community Server压缩包 mysql-5.7.32-winx64.zip](https://downloads.mysql.com/archives/community/)。installer安装备注如下
         - installer默认安装在`C:\Program Files (x86)\MySQL\MySQL Installer for Windows`目录，打开上述msi则会自动安装在此目录，之后可进行配置Server的安装，安装完server之后，仍然可打开此Installer重新安装、增加安装或卸载，尽管下载的是5.7的Installer，但是包含了5.7、8个版本的安装配置
         - 启动安装，选择Setup Type：Developer Default默认安装了Server和一些连接器和文档，且安装在C盘，如需定义安装目录，需选择Custom
         - 自定义安装时，选择Mysql Servers - Mysql Server 5.7 x64 - 添加到安装列表，其他的连接器和文档(包括示例数据库)可在安装完Server之后进行增加安装
@@ -17,6 +17,10 @@ tags: [mysql, dba]
     - CentOS-mysql安装：[http://blog.aezo.cn/2017/01/10/linux/CentOS%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/](/_posts/linux/CentOS服务器使用说明.md#mysql安装)
     - windows 安装 mysql，千万不要用通过记事本编辑`my.ini`，容易让文件变成 BOM 格式导致服务无法启动.
 - 查看系统版本：命令行登录后欢迎信息中有版本信息，或者登录仅命令行执行`status`查看
+
+### 记录
+
+- pt-osc(Online Schema Change) 对于大表进行DDL操作工具
 
 ### 登录
 
@@ -65,99 +69,27 @@ grant select on testdb.* to test@localhost;
 -- 作用在单个数据表上
 grant select, insert, update, delete on testdb.orders to test@localhost;
 
-revoke all privileges on *.* from 'username'@'localhost'; -- 撤销用户授权
+-- 撤销用户授权
+revoke all privileges on *.* from 'username'@'localhost';
 revoke select on testdb.* from 'username'@'%';
 
-flush privileges; -- 刷新权限(grant之后必须执行)
+-- 刷新权限(grant之后必须执行)
+flush privileges;
 
-select user, host from user; -- 查询用户可登录host
+-- 查询用户可登录host
+select user, host from user;
+update user set host = '%' where user = 'root';
 ```
-
-## 数据备份/恢复
-
-- 参考[MySQL的数据备份与恢复](https://cloud.tencent.com/developer/article/1894635)
-- `mysqldump` 是一款 mysql **逻辑备份**的工具(备份文件为SQL文件，CLOB字段需要设置参数转为二进制)，它将数据库里面的对象(表)导出作为 SQL 脚本文件
-    - 对于导出几个 G 的数据库，还是不错的；一旦数据量达到几十上百 G，无论是对原库的压力还是导出的性能都存在问题 [^2]
-    - 支持基于innodb的热备份(加参数`--single-transaction`)；对myisam存储引擎的表，需加`--lock-all-tables`锁，防止数据写入
-    - Mysqldump完全备份+二进制日志可以实现基于时间点的恢复。恢复的时候可关闭二进制日志，缩短恢复时间
-- `XtraBackup` 是由 [percona](https://www.percona.com/) 开源的免费数据库热备份软件，它能对 InnoDB 数据库和 XtraDB 存储引擎的数据库非阻塞地备份。对于较大数据的数据库可以选择`Percona-XtraBackup`备份工具，可进行全量、增量、单表备份和还原，percona早起提供的工具是 innobackupex
-    - xtrabackup：支持innodb存储引擎表，xtradb存储引擎表。支持innodb的物理热备份，支持完全备份，增量备份，而且速度非常快
-    - innobackupex：支持innodb存储引擎表、xtradb存储引擎表、myisam存储引擎表
-- `mariadb10.3.x`及以上的版本用 Percona XtraBackup 工具会有问题，此时可以使用`mariabackup`，它是 MariaDB 提供的一个开源工具
-
-### XtraBackup
-
-- XtraBackup(PXB) 工具是 Percona 公司用 perl 语言开发的一个用于 MySQL 数据库物理热备的备份工具，支持 MySQl（Oracle）、Percona Server 和 MariaDB，并且全部开源
-    - 阿里的 RDS MySQL 物理备份就是基于这个工具做的
-    - 由于是采取物理拷贝的方式来做的备份，所以速度非常快，**几十G数据几分钟就搞定了**
-    - 而它巧妙的利用了mysql 特性做到了**在线热备份**，不用像以前做物理备份那样必须关闭数据库才行，直接在线就能完成整库或者是部分库的全量备份和增量备份
-- 其中最主要的命令是 innobackupex 和 xtrabackup
-    - 前者是一个 perl 脚本，后者是 C/C++ 编译的二进制。Percona 在2.3 版本用C重写了 innobackupex，innobackupex 功能全部集成到 xtrabackup 里面，只有一个 binary，另外为了使用上的兼容考虑，innobackupex 作为 xtrabackup 的一个软链接
-    - 更多参考：https://www.cnblogs.com/piperck/p/9757068.html
-
-### 导出导入
-
-- 参数说明：https://www.cnblogs.com/qq78292959/p/3637135.html
-- 使用`mysqldump/source`方法进行导出导入
-    - 15 分钟导出 1.6 亿条记录，导出的文件中平均 7070 条记录拼成一个 insert 语句
-    - 通过 source 进行批量插入，导入 1.6 亿条数据耗时将近 5 小时，平均速度 3200W 条/h（网测）
-- **导出整个数据库**
-    - `%MYSQL_HOME%/bin/mysqldump -h 192.168.1.1 -P 3306 -uroot -p my_db_name > d:/exp.sql` (回车后输入密码)
-    - 默认导出表结构和数据，text 格式数据也能被导出。测试样例：36M 数据导出耗时 15s
-    - 只导出数据库表结构 `mysqldump -h localhost -P 3306 -uroot -p -d --add-drop-table my_db_name > d:/exp.sql` (-d 没有数据 --add-drop-table 在每个 create 语句之前增加一个 drop table)
-    - 导出一张表 `mysqldump -h localhost -P 3306 -uroot -p my_db_name my_table_name > d:/exp.sql` - 压缩备份 `mysqldump -h localhost -P 3306 -uroot -p my_db_name | gzip > d:/mysql_bak.$(date +%F).sql.gz` - 参数 - `-h`默认为本地 - `-P`默认为 3306
-- 导入数据 - `mysql -h localhost -P 3306 -uroot -p my_db_name < d:/exp.sql` 直接 CMD 命令行导入 - source 方式. Navicat 命令行使用 source 报错，且通过界面 UI 界面导入数据也容易出错。建议到 mysql 服务器命令行导入 - 命令行登陆用户 `mysql -uroot -p` - 选择数据库 `use my_db_name` - 执行导入 `source d:/exp.sql`
-
-### linux脚本备份(mysqldump)
-
-- 备份 mysql 和删除备份文件脚本`backup-mysql.sh`(加可执行权限先进行测试)
-
-```bash
-db_user="root"
-db_passwd="root"
-db_name="db_test"
-db_host="127.0.0.1"
-db_port="3306"
-# the directory for story your backup file.you shall change this dir
-backup_dir="/home/data/backup/mysqlbackup"
-# date format for backup file (eg: 20190407214357)
-time="$(date +"%Y%m%d%H%M%S")"
-# 需要确保当前linux用户有执行mysqldump权限
-/opt/mysql57/bin/mysqldump -h $db_host -P $db_port -u$db_user -p$db_passwd $db_name | gzip > "$backup_dir/$db_name"_"$time.sql.gz"
-
-# 删除3天之前的备份
-find $backup_dir -name $db_name"*.sql.gz" -type f -mtime +3 -exec rm -rf {} \; > /dev/null 2>&1
-```
-- 说明
-    - 删除一分钟之前的备份 `find $backup_dir -name $db_name"*.sql.gz" -type f -mmin +1 -exec rm -rf {} \; > /dev/null 2>&1`
-    - `-type f` 表示查找普通类型的文件，f 表示普通文件，可不写
-    - `-mtime +7` 按照文件的更改时间来查找文件，+7表示文件更改时间距现在7天以前;如果是-mmin +7表示文件更改时间距现在7分钟以前
-    - `-exec rm {} ;` 表示执行一段shell命令，exec选项后面跟随着所要执行的命令或脚本，然后是一对{ }，一个空格和一个\，最后是一个分号;
-- 将上述脚本加入到`crond`定时任务中
-    - `sudo crontab -e` 编辑定时任务，加入`00 02 * * * /home/smalle/script/backup-mysql.sh`
-    - `systemctl restart crond` 重启 crond 服务
-
-### 主从同步
-
-- 从库
-
-change master to master_host='127.0.0.1', master_port=3306, master_user='rep', master_password='Hello1234!', master_log_file='shipbill-log-bin.000001', master_log_pos=154;
-
-show slave status \G;
-stop slave;
-start slave;
-
-### flashback闪回
-
-- binlog2sq：https://github.com/danfengcao/binlog2sql
-- 参考 https://www.cnblogs.com/waynechou/p/mysql_flashback_intro.html
 
 ## 管理员
 
 ### 配置
 
 - mysql 在 windows 系统下安装好后，默认是对表名大小写不敏感的。但是在 linux 下，一些系统需要手动设置：打开并修改`/etc/my.cnf`在`[mysqld]`节点下，加入一行： `lower_case_table_names=1`(表名大小写：0 是大小写敏感，1 是大小写不敏感)。重启 mysql 服务`systemctl restart mysqld`
-- mysql 服务器编码问题 - 保存到数据库编码错误：1.编辑器编码(复制的代码要注意原始代码格式) 2.数据库/表/字段编码 3.服务器编码 - 查看服务器编码`show variables like '%char%';`，如果`character_set_server=latin1`就说明有问题(曾经因为这个问题遇到这么个场景：此数据库下大部分表可以正常插入中文，但是有一张表的一个字段死活插入乱码，当尝试修改 java 代码中此 sql 语句的另外几个传入参数并连续插入两次可以正常插入，不产生乱码。此情景简直可以怀疑人生，最终修改 character_set_server 后一切正常) - 修改 character_set_server 编码：linux 修改`/etc/my.cnf`，在`[mysqld]`节点下加入一行`character-set-server=utf8`，重启 mysqld 服务
+- mysql 服务器编码问题
+    - 保存到数据库编码错误：1.编辑器编码(复制的代码要注意原始代码格式) 2.数据库/表/字段编码 3.服务器编码
+    - 查看服务器编码`show variables like '%char%';`，如果`character_set_server=latin1`就说明有问题(曾经因为这个问题遇到这么个场景：此数据库下大部分表可以正常插入中文，但是有一张表的一个字段死活插入乱码，当尝试修改 java 代码中此 sql 语句的另外几个传入参数并连续插入两次可以正常插入，不产生乱码。此情景简直可以怀疑人生，最终修改 character_set_server 后一切正常)
+    - 修改 character_set_server 编码：linux 修改`/etc/my.cnf`，在`[mysqld]`节点下加入一行`character-set-server=utf8`，重启 mysqld 服务
 
 ### 查询
 
@@ -219,6 +151,51 @@ order by data_length desc, index_length desc;
 
 参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/devops/Java应用CPU和内存异常分析.md#Mysql)
 
+## 其他
+
+```sql
+SET foreign_key_checks = 0; -- 0(增删改数据时)可考虑关闭外建校验，1开启校验
+```
+
+### 命令行执行 sql 
+  
+-  Mysql 通过上下左右按键修改语句
+    - 或者新建一个文本文件 h:/demo/test.sql，将 sql 语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号
+- Oracle 输入 ed 则打开记事本可进行修改修改 DOS 中的数据
+
+### 导出表结构
+
+- MySQL-Front：可导出 html 格式(样式和字段比较人性化)，直接复制到 word 中
+- SQLyong(数据库-在创建数据库架构 HTML)：可导出很完整的字段结构(太过完整，无法自定义)
+- DBExportDoc V1.0 For MySQL：基于提供的 word 模板(包含宏命令)和 ODBC 导出结构到模板 word 中(表格无线框)
+
+### Oracle 表结构与 Mysql 表结构转换
+
+- 使用 navicat 转换
+    - 点击`工具 -> 数据传输 - 左边选择源数据库 - 右边选择文件 - 去勾选与原服务器相同`
+    - 其他选项
+        - 去勾选创建记录
+        - 去勾选创建前删除表(如果目标库中无次表则会报错)
+        - 勾选转换对象名为大写/小写(创建oracle表时不会自动将小写转大写，mysql也不会自动转小写)
+    - 存在问题：小数点精度丢失(如手动替换 `Number` 为 `Number(10,2)`)、默认值丢失
+- [Oracle迁移MySQL注意事项](https://z.itpub.net/article/detail/981AEFD121E9C508F063228A878ED6E0)
+
+## 执行耗时案例
+
+```sql
+-- 复制1000w条数据用时205秒，大概3分钟25秒，粗略估算，5000万数据如果通过此种方式将全表数据备份，也只需要18分钟左右
+insert into test_new select * from test where id <= 10000000;
+
+-- 200w 的数据 3s 复制完成
+create table test_new as select * from test;
+
+-- Navicat导出 5000w 的数据，耗时 1h 22min，导出SQL语句磁盘空间占用 38.5G
+```
+
+- 使用`mysqldump/source`方法进行导出导入
+    - 15 分钟导出 1.6 亿条记录，导出的文件中平均 7070 条记录拼成一个 insert 语句
+    - 通过 source 进行批量插入，导入 1.6 亿条数据耗时将近 5 小时，平均速度 3200W 条/h（网测）
+    
 ## 测试
 
 ### 快速创建数据
@@ -298,31 +275,6 @@ insert into t_test_vote select * from `t_test_vote_memory`;
 select count(*) from `t_test_vote`;
 ```
 
-## 其他
-
-```sql
-SET foreign_key_checks = 0; -- 0(增删改数据时)关闭外建校验，1开启校验
-```
-
-### 命令行执行 sql 
-  
--  Mysql 通过上下左右按键修改语句
-    - 或者新建一个文本文件 h:/demo/test.sql，将 sql 语句放在文件中，再在命令行输入`\. h:/demo/test.sql` 其中`\.`相当于`source`，末尾不要分号
-- Oracle 输入 ed 则打开记事本可进行修改修改 DOS 中的数据
-
-### 导出表结构
-
-- MySQL-Front：可导出 html 格式(样式和字段比较人性化)，直接复制到 word 中
-- SQLyong(数据库-在创建数据库架构 HTML)：可导出很完整的字段结构(太过完整，无法自定义)
-- DBExportDoc V1.0 For MySQL：基于提供的 word 模板(包含宏命令)和 ODBC 导出结构到模板 word 中(表格无线框)
-
-### Oracle 表结构与 Mysql 表结构转换
-
-- 使用 navicat 转换 - 点击`工具 -> 数据传输 - 左边选择源数据库 - 右边选择文件 - 去勾选与原服务器相同`
-    - 其他选项：去勾选创建记录，去勾选创建前删除表(如果目标库中无次表则会报错)，勾选转换对象名为大写/小写(创建oracle表时不会自动将小写转大写，mysql也不会自动转小写)
-    - 存在问题：小数点精度丢失(如手动替换 `Number` 为 `Number(10,2)`)、默认值丢失
-- [Oracle迁移MySQL注意事项](https://z.itpub.net/article/detail/981AEFD121E9C508F063228A878ED6E0)
-
 ## 常见问题
 
 ### 锁相关
@@ -365,7 +317,6 @@ SET foreign_key_checks = 0; -- 0(增删改数据时)关闭外建校验，1开启
 参考文章
 
 [^1]: https://www.cnblogs.com/digdeep/p/4892953.html
-[^2]: https://segmentfault.com/a/1190000019305858#item-2-5
 [^3]: https://juejin.im/post/6844904078749728782
 
 

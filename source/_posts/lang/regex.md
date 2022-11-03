@@ -180,6 +180,14 @@ Pattern.compile("(?s)^[ \t\n\r]*select[ \t\n\r]+.*", Pattern.CASE_INSENSITIVE).m
 Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v1/auth/login"); // true
 Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/auth/login"); // true
 Pattern.matches("/api/(.*?)/auth/(.*?)", "/api/ds/v2/xxx/login"); // false
+
+// 对比
+str="123-456A888A"
+str.replaceAll("^[0-9\\-]*", ""); // A888A
+str.replaceAll("^[0-9\\-].", ""); // 3-456A888A
+str.replaceAll("^[0-9\\-].*", ""); // 
+str.replaceAll("^[0-9\\-].*?", ""); // 23-456A888A
+str.replaceAll("^[0-9\\-]?", ""); // 23-456A888A
 ```
 
 ### 分组和反向引用
@@ -243,7 +251,7 @@ while (matcher.find()) { // 可能会匹配到多次
     - group() 返回匹配到的子字符串
 
 ```java
-Pattern pattern = Pattern .compile ("\\d{4,6}");
+Pattern pattern = Pattern.compile ("\\d{4,6}");
 Matcher matcher = pattern.matcher("1234-56789-11");
 System.out.println(matcher.find()); // true. 搜索至第一个"-"
 System.out.println(matcher.find()); // true. 如果前一个匹配成功，则从上一次匹配的字符串的下一个字符开始搜索。此时从第一个"-"开始匹配，匹配失败，接着直接匹配5，然后56789就匹配成功
@@ -267,6 +275,12 @@ while (matcher.find()) {
 "hi, hello world".matches("(.*)hello(.*)"); // true
 "hi, hello world".matches("hello"); // false, ***特别注意此时无法匹配***
 "hi, hello world".matches("(hi(.*))"); // true
+
+// 易错点
+"ABCTEL ".matches("(TEL|MOBILE)([\\s:：])*$"); // false
+Matcher matcher = Pattern.compile("(TEL|MOBILE)([\\s:：])*$").matcher("ABCTEL ");
+matcher.matches(); // false
+matcher.find(); // true 通过 matcher.group() 可获取匹配结果
 ```
 
 ### 常见案例

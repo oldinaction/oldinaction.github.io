@@ -8,7 +8,9 @@ tags: [设计模式, java, design]
 
 ## 简介
 
-- [Java设计模式](http://c.biancheng.net/design_pattern/)、[设计模式](https://www.runoob.com/design-pattern/design-pattern-tutorial.html)
+- 文档
+    - [Java设计模式](https://www.weixueyuan.net/java/shejimoshi/)
+    - [设计模式](https://www.runoob.com/design-pattern/design-pattern-tutorial.html)
 - `OOA` Object-Oriented Analysis(面向对象分析方法)
 - `OOD` Object-Oriented Design(面向对象设计)
 - [UML中的类图及类图之间的关系](http://c.biancheng.net/view/1319.html)，参考：[uml.md#关系](/_posts/design/uml.md#关系)
@@ -1374,6 +1376,20 @@ public class TerminalExpression implements Expression {
 }
 ```
 </details>
+
+## 结合Spring案例
+
+### 工厂模式、模板模式和策略模式的混合使用
+
+- 在实际开发的过程当中，最常用的还是设计模式还是 工厂+模板+策略模式，通过模板抽象出业务流程的通用逻辑固化下来，再使用简单工厂模式生成对应的策略逻辑
+- 参考
+    - https://www.cnblogs.com/EthanWong/p/16045901.html
+    - https://zhuanlan.zhihu.com/p/536830120
+- 实例化方式
+    - 结合Spring可使用继承`InitializingBean`将Bean实例化后自动注册到工厂中，但是这样存在问题服务中不能使用自定义属性
+    - 通过工厂if-else进行实例化，每个请求都调用工厂实例化方法，在子类中使用Spring Bean时使用SpringU进行获取
+        - 优化方案: 在工厂初始化时，基于org.reflections#reflections包自动获取接口的实现类，进行一次类信息注册(不足: 需要反射一次调用注册方法)；之后调用每次获取此类进行反射实例化
+
 
 
 

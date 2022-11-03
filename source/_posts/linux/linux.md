@@ -788,6 +788,9 @@ rar a aezocn.rar *.jpg
 - 其他说明
     - 如何客户端登录失败，可在服务器查看访问日志`cat /var/log/secure`
         - 客户端登录提示`Permission denied (publickey,gssapi-keyex,gssapi-with-mic).`。说明秘钥验证失败，检查服务端是否有公钥，客户端是否有正确秘钥
+    - 密钥格式
+        - 目前主流的密钥（或者说私钥）格式有两种：OpenSSH格式的密钥(.pem或者无id_ras的后缀文件) 和 PuTTY格式的密钥（.ppk）
+        - id_ras、pem、ppk直接的转换参考下文
     - **阿里云服务器使用**
         - 方式一：如上文所述方式，此时无需重启阿里云服务器
         - 方式二
@@ -795,14 +798,20 @@ rar a aezocn.rar *.jpg
             - 关联阿里云服务器秘钥后，需要到阿里云管理后进行服务器重启(不能在终端重启)。*重启后会自动禁用密码登录*
     - **AWS服务器(EC2)使用**
         - 使用PuTTY连接时：PuTTY 本身不支持 Amazon EC2 生成的私有密钥格式 (.pem)，PuTTY 有一个名为 PuTTYgen 的工具，可将密钥转换成所需的 PuTTY 格式 (.ppk)
-- Putty/WinSCP 和 xshell/xftp
+- ssh-keygen、Putty/WinSCP、xshell/xftp
+    - 文件格式区分
+        - `ssh-keygen` 生成的为`id_rsa`(秘钥)和`id_rsa.pub`
     - Putty是一个Telnet、SSH、rlogin、纯TCP以及串行接口连接软件。它包含Puttygen等工具，Puttygen可用于生成公钥和密钥（还可以将如AWS亚马逊云的密钥文件.pem转换为.ppk的通用密钥文件）
         - 在知道密钥文件时，可以通过Putty连接到服务器(命令行)，通过WinSCP连接到服务器的文件系统(FTP形式显示)
         - Puttygen使用：`类型选择RSA，大小2048` - `点击生成` - `鼠标在空白处滑动` - `保存公钥和密钥`
         - Putty使用：`Session的Host Name输入username@ip，端口22` - `Connection-SSH-Auth选择密钥文件` - `回到Session，在save session输入一个会话名称` - `点击保存会话` - `点击open登录服务器` - `下次可直接点击会话名称登录`
     - 通过PuttyGen将id_rsa转为.ppk(PuTTY format private key file)，将.ppk转成.pem(OpenSSH) [^13]
-      - 将id_rsa转为.ppk：PuttyGen - Conversions - Import key - Save private Key
-      - 将.ppk转成.pem：PuttyGen - Load - Conversions - Export OpenSSH Key - 保存为.pem文件
+      - 将id_rsa(或.pem)转为.ppk
+        - windows操作: PuttyGen - Conversions - Import key - Save private Key
+        - linux操作: `puttygen id_rsa.pem -o id_rsa.ppk`
+      - 将.ppk转成.pem
+        - windows操作: PuttyGen - Load - Conversions - Export OpenSSH Key - 保存为.pem文件
+        - linux操作: `puttygen id_rsa.ppk -o id_rsa.pem -O private-openssh`
     - xshell/xftp是一个连接ssh的客户端
         - 使用xshell生成的秘钥进行连接：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览生成(需要将生成的公钥保存到对应用户的.ssh目录`cat /home/aezo/.ssh/id_rsa.pub >> /home/aezo/.ssh/authorized_keys`)。(必须使用自己生成的公钥和密钥，如果AWS亚马逊云转换后的ppk文件无法直接登录)
         - 使用服务器生成的秘钥文件连接：连接 - 用户身份验证 - 方法选择"public key"公钥 - 用户名填入需要登录的用户 - 用户密钥可点击浏览导入(**导入服务器生成的秘钥文件id_rsa，不是公钥文件**)
@@ -943,6 +952,7 @@ rar a aezocn.rar *.jpg
 - `ifconfig`命令(centos7无法使用可安装工具`yum install net-tools`)
     - `ifconfig ens33:1 192.168.6.10` 给网络接口ens33绑定一个虚拟ip
     - `ifconfig ens33:1 down` 删除此虚拟ip
+    - `ifconfig br-9118c1fdedb8 up|down` 启用|关闭br-9118c1fdedb8网卡(网桥等接口)
     - 添加虚拟ip方式二
         - 编辑类似文件`vi /etc/sysconfig/network-scripts/ifcfg-ens33`
         - 加入代码`IPADDR=192.168.6.130`(本机ip)和`IPADDR1=192.168.6.135`(添加的虚拟ip，可添加多个。删除虚拟ip则去掉IPADDR1)，可永久生效

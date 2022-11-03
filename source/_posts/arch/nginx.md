@@ -12,7 +12,8 @@ tags: LB, HA
 - 轻量级，同样起web服务，比`apache`占用更少的内存及资源，抗并发，nginx 处理请求是异步非阻塞的，而apache则是阻塞型的。最核心的区别在于apache是同步多进程模型，一个连接对应一个进程；nginx是异步的，多个连接（万级别）可以对应一个进程(nginx是多进程的)
 - 作用：作为前端服务器拥有响应静态页面功能；作为集群构建者拥有反向代理功能
 - 单个tomcat支持最高并发，测试结果：150人响应时间1s、**250人响应1.8s(理想情况下最大并发数)**、280人出现连接丢失、600人系统异常
-- `Tengine`是nginx的加强版，封装版，淘宝开源。
+- [Nginx中文文档](https://www.weixueyuan.net/nginx/)
+- `Tengine`是nginx的加强版，封装版，淘宝开源
     - [官网](http://tengine.taobao.org/)
     - [中文文档](http://tengine.taobao.org/nginx_docs/cn/docs/)
     - [Nginx开发从入门到精通](http://tengine.taobao.org/book/)
@@ -192,6 +193,12 @@ server {
         access_log off; # 关闭访问日志
     }
 
+    # 阿里云证书申请时服务器认证: http://exmaple.com/.well-known/pki-validation/fileauth.txt 可能需要重启nginx
+    location /.well-known/pki-validation/ {
+        root C:/software/nginx/cert/exmaple.com/;
+        # alias C:/software/nginx/cert/exmaple.com/.well-known/pki-validation/;
+    }
+
     # 测试地址
     location = /ping {
         add_header Content-Type text/plain;
@@ -333,7 +340,7 @@ stream {
         # 也支持socket
         # proxy_pass unix:/var/lib/mysql/mysql.socket;
 
-        # 加密
+        # 对公网传输的数据进行加密(未测试成功). [内部证书生成参考](/_posts/linux/加密解密.md#证书生成示例)
         # proxy_ssl  on;
         # proxy_ssl_certificate     /etc/ssl/certs/backend.crt;
         # proxy_ssl_certificate_key /etc/ssl/certs/backend.key;
@@ -591,11 +598,9 @@ http {
 # 开启 HTTPS
 server {
     # 一定需要对外开放443端口
+    # listen 80;
     listen 443 ssl;
-    
-    server_name test.shop.cn;
-    root /home/www;
-    index  index.html index.htm;
+    server_name test.aezo.cn;
 
     # 使用完整证书(服务器证书+中间证书合并)
     ssl_certificate /etc/letsencrypt/live/test.aezo.cn/fullchain.pem; # 对应阿里证书*.pem(CERTIFICATE)
@@ -604,17 +609,23 @@ server {
     # 设置支持的TLS协议，默认支持TSLv1.2以上
     # ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
     # 设置加密格式(TLSv1.0需要)
-    ssl_ciphers
-    ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4:!DH:!DHE;
+    # ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4:!DH:!DHE;
+
+    root /home/www;
+    index  index.html index.htm;
 }
 # 将 HTTP 强制重定向到 HTTPS
 server {
     listen 80;
-    server_name test.shop.cn;
+    server_name test.aezo.cn;
 
     return 301 https://$host$request_uri;
 }
 ```
+
+#### Nginx访问日志过大自动清理
+
+- https://www.chinastor.com/nginx/11143LK2017.html
 
 ## 字段说明
 

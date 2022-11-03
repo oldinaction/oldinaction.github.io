@@ -83,7 +83,7 @@ document.getElementById("os").innerText = '项目运行环境：' + os.platform(
 
 - package.json
 
-```
+```json
 {
   "name": "helloworld",
   "version": "0.1.0",
@@ -134,7 +134,7 @@ var connection;
 
 function conn() {
   var path = document.getElementById("path").value;
-  // path = "‪D:/vscodework/nwjs-demo/demo3-accessdb/node-adodb.accdb"; // 这一行字符串看着和下一行一样，但是编码有问题，无法正常连接
+  // path = "D:/vscodework/nwjs-demo/demo3-accessdb/node-adodb.accdb"; // 这一行字符串看着和下一行一样，但是编码有问题，无法正常连接
   // path = "D:/vscodework/nwjs-demo/demo3-accessdb/node-adodb.accdb"; // node-adodb.mdb
   // connection = ADODB.open('Provider=Microsoft.Jet.OLEDB.4.0;Data Source='+ path +';');
   connection = ADODB.open('Provider=Microsoft.ACE.OLEDB.16.0;Data Source='+ path +';Persist Security Info=False;');

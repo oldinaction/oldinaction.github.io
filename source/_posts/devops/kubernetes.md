@@ -297,6 +297,7 @@ kubeadm join 192.168.6.131:6443 --token rxqii4.ov3v99x5bk2qi4ia \
 kubeadm reset
 rm -rf /var/lib/etcd 
 rm -rf /var/lib/cni/
+# 关闭cni0网卡
 ifconfig cni0 down
 ip link delete cni0
 ifconfig flannel.1 down

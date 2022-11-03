@@ -45,8 +45,8 @@ wget ftp://ip --ftp-user=user --ftp-password=passwd
 
 ## FTP服务器
 
-- 主动模式(`PORT`)和被动模式(`PASV`)
-    - 被动模式(**服务器需要开放21、大于1024的一批端口**，客户端无需开放端口。对客户端友好)
+- 被动模式(`PASV`)和主动模式(`PORT`)
+    - 被动模式(**服务器需要开放21、大于1024的一批端口(可设置一个区间)**，客户端无需开放端口。对客户端友好)
         - 命令连接：客户端 >1024 端口 → 服务器 21 端口
         - 数据连接：客户端 >1024 端口 → 服务器 >1024 端口(服务器开放端口，告诉客户端主动来连接FTP服务器的某个端口，相对服务器是被动。此时每个连接服务器需要开放一个端口)
     - 主动模式(**服务器只需要开放21、20端口，需要客户端允许>1024的端口被访问。**服务器管理方便，对客户端不友好，客户端必须放开相应防火墙)
@@ -114,12 +114,14 @@ wget ftp://ip --ftp-user=user --ftp-password=passwd
     userlist_deny=YES
     userlist_file=/etc/vsftpd/user_list
 
+    # ***.监听端口21(默认)，需要开放对应端口防火墙
+    listen_port=21
+
     # ***.开启pasv模式，否则有些客户端登录会有问题，同时在防火墙中必须开启设定的端口，防火墙要开放30000-30999的端口
     pasv_enable=YES
     # ***.vsftpd服务器的外网IP（否则卡死在`227 Entering Passive Mode`，但是可以通过主动模式连接）
     pasv_address=192.168.1.1
-    # ***.监听端口21，需要开放对应端口防火墙
-    #listen_port=21
+    # 被动模式下需要开放连接的端口，需要开放30000-30999端口的防火墙
     pasv_min_port=30000
     pasv_max_port=30999
     # ***.NO表示关闭ftp-data端口，相当于不使用主动模式. 如果是主动模式则需要开启，且防火墙需要开放20端口
@@ -317,6 +319,17 @@ spec:
           value: "test"
       hostNetwork: true
 ```
+
+### FileZilla
+
+- [官网](https://filezilla-project.org/index.php)
+- 配置
+    - 被动模式设置相应端口: Protocols Setting - passive mode - Use custom port rang - 设置端口范围(被开放对应端口防火墙)
+    - 配置用户: Rights management - Users - 添加用户 - User is enable勾选，设置密码(之后查看密码会显示成空白)，Mount points增加跟路径(/映射到D:/ftproot/test)，Permission去掉Writeable directory struct(禁止修改目录结构)
+- 说明
+    - 如果注册了服务，可以关闭窗口，或最小化
+
+
 
 ---
 

@@ -1044,7 +1044,7 @@ for(int i=0; i<100; i++) {
     - 远程调试(Attach. 必须先启动应用，再启动idea debug)
         - 应用端启动增加参数`-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005`
     - 远程调试(Listen. 必须先启动idea debug，再启动应用)
-        - 应用端启动增加参数`-Xdebug -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=127.0.0.1:5005`
+        - 应用端启动增加参数`-Xdebug -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=5005`
     - 两种模式区别在与`server=y/n`
 - 扩展classpath
     - `-Xbootclasspath`: 完全取代基本核心的Java class 搜索路径。不常用，否则要重新写所有Java核心class

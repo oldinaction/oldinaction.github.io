@@ -53,7 +53,30 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 ### 开机启动Java等程序
 
 - 自启动的程序可在任务管理器-启动列查看
-- 基于创建服务也可实现。如使用[Windows Service Wrapper](https://github.com/kohsuke/winsw)工具注册服务，此处以nginx注册成服务为例
+- 基于创建bat脚本
+    - 法一：参考下文`任务计划`(**成功**)
+    - 法二：**将bat脚本的快捷方式放到启动目录**
+        - 用户启动目录(需要用户登录进去才开始自动重启)
+            - Win+R - `shell:startup` 打开对应目录
+            - 或手动打开 `C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
+        - 全局启动目录
+            - 对应目录 `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`(.../「开始」菜单/程序/启动)
+    - 法三：基于bat和vb
+
+        ```bash
+        # 1.创建 start_my_app.bat
+        java -jar my_app.jar
+        # 2.创建 start_my_app.vb
+        Set ws = CreateObject("Wscript.Shell")
+        ws.run "cmd /c D:\test\start_my_app.bat",vbhide
+        # 3.将start_my_app.vb文件放到 C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup 目录
+        ```
+- 基于组策略编辑器(**成功**)
+    - Windows+R运行，输入`gpedit.msc`进入组策略编辑器 - 选中windows设置 - 双击脚本(启动/关机) - 添加 - 浏览 - 选择脚本 - 确定
+- 基于注册表(**成功**，可解决策略编辑器、任务计划不成功的情况)
+    - `regedit`打开注册表 - 搜索`Hkey_local_machine\software\wow6432node\microsoft\windows\currentversion\run` - 右键新建字符串值 - 名称可自定义，类型REG_SZ，值如`"C:\Program Files (x86)\Tencent\DeskGo\2.9.1051.127\DesktopMgr.exe" --cmd=autorun`
+- 基于创建服务也可实现
+    - 如使用[Windows Service Wrapper](https://github.com/kohsuke/winsw)工具注册服务，此处以nginx注册成服务为例
     - 下载`WinSW.NET4.exe`，放到nginx安装目录，并重命名为`nginx-service.exe`
     - 在nginx安装目录新建WinSW配置文件`nginx-service.xml`(需要和nginx-service.exe保持一致)，如下
 
@@ -71,35 +94,18 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
         ```
     - 管理员模式执行 `nginx-service.exe install` 进行nginx服务注册
     - `nginx-service.exe uninstall` 卸载nginx服务
-- 基于组策略编辑器(**成功**)
-    - Windows+R运行，输入`gpedit.msc`进入组策略编辑器 - 选中windows设置 - 双击脚本(启动/关机) - 添加 - 浏览 - 选择脚本 - 确定
-- 基于创建bat脚本
-    - 法一：参考下文`任务计划`(**成功**)
-    - 法二：将bat脚本的快捷方式放到启动目录
-        - 用户启动目录：cmd - `shell:startup` 或手动 `C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
-        - 全局启动目录：`C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`(.../「开始」菜单/程序/启动)
-    - 法三：基于bat和vb
 
-        ```bash
-        # 1.创建 start_my_app.bat
-        java -jar my_app.jar
-        # 2.创建 start_my_app.vb
-        Set ws = CreateObject("Wscript.Shell")
-        ws.run "cmd /c D:\test\start_my_app.bat",vbhide
-        # 3.将start_my_app.vb文件放到 C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup 目录
-        ```
-- 基于注册表(**成功**，可解决策略编辑器、任务计划不成功的情况)
-    - `regedit`打开注册表 - 搜索`Hkey_local_machine\software\wow6432node\microsoft\windows\currentversion\run` - 右键新建字符串值 - 名称可自定义，类型REG_SZ，值如`"C:\Program Files (x86)\Tencent\DeskGo\2.9.1051.127\DesktopMgr.exe" --cmd=autorun`
+### 任务计划(定时任务)
 
-### 任务计划
-
-- 运行栏输入`taskschd.msc`打开`计划任务工具`
+- 运行栏输入`taskschd.msc`打开`计划任务工具/程序`
 - 如创建开机启动任务
     - 任务计划程序库 - 选择用户 - 创建任务
         - 常规：任务名称`start-outlook`，描述`开机启动outlook`
         - 触发器：新建 - 开始任务"启动时" - 确定
         - 操作：新建 - 启动程序 - 选择程序或脚本(如果安装了bash.exe，也可以执行sh脚本)
     - 运行exe程序的最好写成bat脚本运行。如nginx.exe写到bat脚本中去运行，然后任务中运行此脚本
+- 创建定时任务
+    - 打开任务计划程序程序后 - 创建基本任务 - 设置运行频率和脚本即可
 
 ## bat脚本
 
@@ -220,6 +226,25 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 
 - SpaceSniffer v1.1.2 空间占用检查
 - [spacedesk](https://spacedesk.net/) 分屏软件(Windows和ipad分屏)
+
+## 服务器相关
+
+- 添加可登录用户
+    - 控制面板 - 用户账户 - 管理其他账户 - 添加账户(标准用户)
+    - 设置标准用户可进行远程登录(默认只能管理员远程登录)
+        - 控制面板 - 系统和安全 - 允许远程访问 - 选择用户 - 添加 - 输入对象名称后点击检查 - 确定即可
+- 设置服务器可同时有多个远程桌面连接
+    - https://blog.csdn.net/zhang0000dehai/article/details/124748863
+    - 切换会话: 退出重新连接；或者任务管理器 - 用户 - 右键连接(可能需要输入密码)
+    - 开启多个会话开机时，如果是一个用户，启动文件夹下的脚步会重复启动一次(像java这种会报端口冲突，问题不大，关掉窗口即可，下次连接不会产生)
+- 设置文件管理器显示边框: https://jingyan.baidu.com/article/19192ad835356ea43f570712.html
+
+### 软件安装
+
+- [Mysql镜像](https://mirrors.aliyun.com/mysql/MySQLInstaller/)
+    - [mysql-installer-community-5.7.38.0.msi](http://mirrors.aliyun.com/mysql/MySQLInstaller/mysql-installer-community-5.7.38.0.msi)
+    - [mysql-installer-community-8.0.29.0.msi](http://mirrors.aliyun.com/mysql/MySQLInstaller/mysql-installer-community-8.0.29.0.msi)
+
 
 
 ---

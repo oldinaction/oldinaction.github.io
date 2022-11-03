@@ -240,7 +240,7 @@ alter user scott account unlock; -- 新建数据库scott默认未解锁
 commit;
 ```
 
-#### 新建用户并赋予表查询权限
+#### 创建只读用户
 
 ```sql
 create user smalle identified by smalle default tablespace aezo; -- 创建用户
@@ -619,20 +619,24 @@ lsof | grep deleted
             - 最简单的解决方案是使用expdp代替exp(expdp的参数和exp稍有不同，导入需要使用impdp)
             - 或者 `select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';` 生成语句并执行(手动分配空间)
                 - `select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'SMALLE';`
+    - dmp文件压缩与传输
+        - dmp导出时使用了压缩模式，之后仍然可以打包成zip压缩包，体积会小很多
+        - dmp文件直接传输到服务器，可能会被拦截，可打成压缩包
+        - dmp文件过大时(1G以上)，直接传输服务器中途容易断掉；可通过FTP进行端点续传
 - 导出
 
 ```bash
 # 可将导出的dmp文件再tar压缩后通过scp传输到另外一台服务器上
-# 设置字符集，防止乱码. 其他如 SIMPLIFIED CHINESE_CHINA.ZHS16GBK
+# 设置字符集，防止乱码. 其他如 `set NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
 set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 
-# ******防止漏表. 生成语句并执行(手动分配空间)；如堆场SaaS模式一定要执行******
+******防止漏表. 生成语句并执行(手动分配空间)；如堆场SaaS模式一定要执行******
 # select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';
 # select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'SMALLE';
 
-## 用户模式：导出 scott 用户的所有对象，前提是 system 用户有相关权限
+## 用户模式：导出 scott 用户的所有对象(表、序列、函数、存储过程、索引等；包括各对应对应的表空间名，如果原对象不是用户默认的表空间，在导入时也是导入到其他表空间下)，前提是 system 用户有相关权限
 # system/manager@remote_orcl：使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/manager@192.168.1.1:1521/orcl)
-# compress=y：压缩数据
+# compress=y：压缩数据。尽管使用压缩模式，但是导出的数据仍然可以进行zip压缩，体积只有原来的1/10；打成zip压缩包传输也安全，否则容易被防火墙拦截
 # rows=n：不导出数据行，只导出结构
 # buffer=10241024：缓冲区，数据量大时可使用
 # grants=y：A用户中有表 test，并且把这个表的查询权限给了用户B，那么当导出A用户的数据时候，GRANTS=Y就是把用户B对test表的查询权限导出；如果将这个数据导入到C用户时(GRANTS=Y)就是说导入到C用户的test表的查询权限也会被赋给用户B
@@ -651,10 +655,12 @@ exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log compre
 - 导入
 
 ```bash
-# 其他如 SIMPLIFIED CHINESE_CHINA.ZHS16GBK
+# 其他如 `set NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
 set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 
-## 用户模式：一般需要先将用户对象全部删掉，如可删除用户对应的表空间重新创建。**[必须要先有对应的用户和表空间](#表空间)**
+## **用户模式**：一般需要先将用户对象全部删掉，如可删除用户对应的表空间重新创建。**[必须要先有对应的用户和表空间](#表空间)**
+# SEQUENCE/SYNONYM 如果存在不会覆盖(索引重复导入时注意清理序列)，不存在会新增；FUNCTION/PRODUCE会覆盖
+# 导入成功一般会提示`成功终止导入, 但出现警告。`，期间可以看到表空间文件大小一直在增长
 # ignore=y：忽略错误，继续导入
 # grants=y：包含权限
 imp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott touser=smalle grants=y
@@ -754,12 +760,12 @@ alter system set resource_limit=true; -- 开启resource_limit=true
 ### 数据恢复
 
 - 基于`of timestamp`恢复，用于少量数据被误删除
+    - 如果报错`ORA-01555: 快照过旧: 回退段号...过小`(说明快照数据已经被Oracle清理了，差不多可以保留1个小时的快照)
 
 ```sql
--- 查询某个时间点my_table表的所有数据
-select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS');
 -- 查询某个时间点my_table表的数据
-select id, name, '' from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS') where sex = 1;
+select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS') where sex = 1;
+-- 手动恢复
 ```
 
 ### 创建数据库实例
@@ -788,12 +794,37 @@ select id, name, '' from my_table as of timestamp to_timestamp('2000-01-01 00:00
     - 创建完之后，原来的数据库实例会正常运行。新实例会在服务中创建OracleServiceORCL2(TNS Listener是共用的，不会创建新的)
     - 指定实例登录`sqlplus system/root@orcl2 as sysdba`
 
+### 定时清理数据库日志表
+
+
+
+
 ### 审计
 
 ```sql
 -- 查看有效账号(account_status='OPEN')和账号(NAME)最近密码修改日期(PTIME)
 select USER#, NAME, PTIME from user$ where NAME in (select username from dba_users t where t.account_status = 'OPEN');
 ```
+
+## 备份
+
+### exp/imp方式
+
+- exp/imp全量备份方式参考[shell.md#备份oracle](/_posts/linux/shell.md#备份oracle)、[bat.md#oracle数据库备份](/_posts/lang/bat.md#oracle数据库备份)
+- 时间参考
+    - 表空间30G，导出dmp文件大小20G(导出时已经使用过压缩模式，可再压缩成zip包为2G)，导出耗时30min，导入耗时1h
+
+### 增量备份
+
+- https://blog.csdn.net/Hello_World_QWP/article/details/79134211
+- https://www.topunix.com/post-937.html
+
+## 日常维护
+
+- 检查`listener.log`是否过大
+    - 可能产生异常场景：实例 tnsping 突然高达 1w 多毫秒，发现listener.log达到4G
+    - 解决：日志文件过大，可重新创建一个此日志文件
+    - 查看文件位置`show parameter dump;`得到如`user_dump_dest => g:\app\administrator\diag\rdbms\orcl\orcl\trace`，得知日志目录为：`g:\app\administrator\diag`，然后在此目录查找`tnslsnr/主机名/listener/trace/listener.log`文件
 
 ## 常见错误
 
@@ -938,13 +969,6 @@ select value from v$parameter where name = 'processes';
 	- 如果提示“服务OracleMTSRecoveryService已经存在” - 忽略
     - 或者下载ODAC112030Xcopy_64bit.zip等压缩包进行安装，推荐
 - ODBC：Windows上通过配置不同数据库（SQL Server、Oracle等）的驱动进行访问数据库。找到控制面板-管理工具-数据源ODBC
-
-## 日常维护
-
-- 检查`listener.log`是否过大
-    - 可能产生异常场景：实例 tnsping 突然高达 1w 多毫秒，发现listener.log达到4G
-    - 解决：日志文件过大，可重新创建一个此日志文件
-    - 查看文件位置`show parameter dump;`得到如`user_dump_dest => g:\app\administrator\diag\rdbms\orcl\orcl\trace`，得知日志目录为：`g:\app\administrator\diag`，然后在此目录查找`tnslsnr/主机名/listener/trace/listener.log`文件
 
 
 

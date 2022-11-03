@@ -38,6 +38,12 @@ public class Example {
 }
 ```
 
+### springboot使用
+
+- 测试环境使用单独的配置文件
+    - 可使用`@ActiveProfiles("test")`激活application-test.yml的配置文件
+    - 如果在`src/test/resources`目录下增加application-test.yml，运行时会覆盖`src/main/resources`下的该文件
+
 
 
 

@@ -97,11 +97,9 @@ public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) 
     // 3.忽略证书
     try {
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                // org.apache.http.ssl.TrustStrategy
-                .loadTrustMaterial(null, new TrustStrategy() {
-                    // java.security.cert.X509Certificate
+                .loadTrustMaterial(null, new org.apache.http.ssl.TrustStrategy() {
                     @Override
-                    public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                    public boolean isTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
                         return true;
                     }
                 })

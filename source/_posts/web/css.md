@@ -198,7 +198,7 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 }
 ```
 
-### 文字省略
+### 文字省略/换行/缩放
 
 ```css
 /* 单行缩略（部分浏览器需要设置宽度） */
@@ -217,6 +217,17 @@ p {
     display: -webkit-box;
     -webkit-line-clamp: 2; /* 对2行文字进行省略 */
     -webkit-box-orient: vertical;
+}
+
+/* 自动换行 */
+span {
+    word-wrap: break-word;
+}
+
+/* 缩放 */
+span {
+    font-size: 12px; /* 谷歌浏览器最小字体 */
+    transform: scale(0.75); /*缩小字体*/
 }
 ```
 

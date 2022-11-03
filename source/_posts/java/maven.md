@@ -97,6 +97,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 		<!-- 打包类型可以是jar(默认)、war、pom等 -->
 		<packaging>jar</packaging>
 
+        <!-- 会显示到idea maven窗口中 -->
 		<name>minions</name>
 		<description>Delegated the code to all minions</description>
 
@@ -992,6 +993,24 @@ services:
 ```
 - 访问`http://192.168.1.100:2082/nexus/`可进入nexus页面，默认账号为`admin/admin123`
 - 上传的jar保存在`/sonatype-work/storage/releases`目录(类似`.m2`目录)
+- 其他配置
+    - 使用nginx代理
+
+    ```bash
+    # 且需要在 nexus 中设置 Base URL 和 Force Base URL
+    server {
+        listen 2082;
+        # 防止出现 413 Request Entity Too Large
+        client_max_body_size 1G;
+        # proxy_max_temp_file_size 1G;
+        location / {
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_pass http://localhost:8081;
+        }
+    }
+    ```
 
 ### nexus界面管理
 
@@ -1005,7 +1024,7 @@ services:
 - 允许Releases仓库重复提交
     - Repositories - Releases - Configuration - Deployment Policy 选择 Allow Redeploy (理论上每次发布都会修改版本，因此应该设置禁止重复推送)
 - 禁止匿名用户访问
-    - Security - Users - anonymous - Status设置成Disabled
+    - Security - Users - anonymous - Status设置成Disabled；或者将移除仓库的读权限
 
 ### 上传jar包到nexus
 

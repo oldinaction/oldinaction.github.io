@@ -955,8 +955,12 @@ start() {
         echo "[warn] $APP_JAR already started! (pid=$psid)"
     else
         echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
-        # nohup java -jar /home/test-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod > test-$(date +%Y_%m_%d).log 2>&1 &
-        JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
+        if [ $1 -eq 1 ]; then
+          # nohup java -jar /home/test-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod > test-$(date +%Y_%m_%d).log 2>&1 &
+          JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
+        else
+          JAVA_CMD="( cd $APP_HOME && $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS )"
+        fi
         su - $RUNNING_USER -c "$JAVA_CMD"
         checkpid
         if [ $psid -ne 0 ]; then
@@ -1021,10 +1025,13 @@ info() {
     echo "****************************"
 }
 
-#读取脚本的第一个参数($1)，进行判断. 参数取值范围：{start|stop|restart|status|info}. 如参数不在指定范围之内，则打印帮助信息
+#读取脚本的第一个参数($1)，进行判断. 参数取值范围：{run|start|stop|restart|status|info}. 如参数不在指定范围之内，则打印帮助信息
 case "$1" in
+    'run')
+		start 0
+		;;
     'start')
-		start
+		start 1
 		;;
     'stop')
 		stop
@@ -1040,7 +1047,7 @@ case "$1" in
 		info
 		;;
   	*)
-		echo "[info] Usage: $0 {start|stop|restart|status|info}"
+		echo "[info] Usage: $0 {run|start|stop|restart|status|info}"
 		exit 1
 esac
 exit $?

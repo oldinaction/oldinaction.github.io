@@ -14,6 +14,7 @@ tags: [sql, oracle, mysql]
 ## 不同数据库差异
 
 - [Oracle迁移MySQL注意事项](https://z.itpub.net/article/detail/981AEFD121E9C508F063228A878ED6E0)
+- Oracle 11g表名最大长度为30，Mysql最大长度为64
 
 ### 数据类型转换
 
@@ -42,9 +43,13 @@ select CONVERT(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:
 
 ### 日期
 
+- [数据类型转换参考](#数据类型转换)
+
 ```sql
 -- mysql
-date_sub(now(), interval 7 day) -- 当前时间-7天
+-- quarter:季，week:周，day:天，hour:小时，minute:分钟，second:秒，microsecond:毫秒
+date_sub(now(), interval 7 day); -- 当前时间-7天. 不能直接 `now()-7`
+date_add('1970-01-01', interval -1 week); -- 该时间-1周
 
 -- oracle
 sysdate + interval '1' year -- 当前日期加1年，还可使用：month、day、hour、minute、second
@@ -57,20 +62,30 @@ SELECT TRUNC(SYSDATE)+1-1/86400 FROM dual; -- 取得当天23时59分59秒(在当
 select to_char(sysdate,'yyyy-mm')||'-01' firstday, 
        to_char(last_day(sysdate),'yyyy-mm-dd') lastday from dual; -- 在oracle中如何得到当天月份的第一天和最后一天
 select to_date('1970', 'yyyy') from dual;
+select to_date('2022-03-12 10:10', 'yyyy-mm-dd hh24:mi:ss') from dual; -- 2022-03-12 10:10:00
 
 -- sqlserver
 select 
     GETDATE(), -- 获取当前时间(带时间) 2000-01-01 08:11:12.000
     GETUTCDATE(), -- 当前UTC时间 2000-01-01 00:11:12.000
     DATEDIFF(hour, GETUTCDATE(), GETDATE()), -- 获取当前时间-当前UTC时间的相差小时 8
+    dateadd(DD,-10,getdate()), -- 当前时间减10天
     DATEADD(hour, DATEDIFF(hour, GETUTCDATE(), GETDATE()), GETUTCDATE()); -- 对UTC时间增加时区差 2000-01-01 08:11:12.000
 select DATEADD(DAY, 0, DATEDIFF(DAY, 0, GETDATE())); -- 2000-01-01 00:00:00.000
 select CAST(CAST(GETDATE() as date) as varchar(10)) + ' 00:00:00'; -- 2000-01-01 00:00:00.000
 ```
 - 日期数据类型转换见上文
 
-### 查询
+### 其他
 
+- 查询空白表
+
+```sql
+-- mysql
+select 1;
+-- oracle
+select 1 from dual;
+```
 - 关键字转义
 
 ```sql
@@ -91,6 +106,13 @@ ifnull(counts, 0)
 -- sqlserver
 isnull(counts, 0)
 ```
+- 空值排序
+
+```sql
+order by my_field [asc|desc] nulls [first|last] -- oracle
+order by if(isnull(my_field),1,0), my_field [asc|desc] -- mysql默认将null值放在下面
+order by if(isnull(my_field),0,1), my_field [asc|desc] -- mysql默认将null值放在上面
+```
 - 字符串类型值
 
 ```sql
@@ -98,7 +120,7 @@ isnull(counts, 0)
 select name from user where name = "smalle";
 select name from user where name = 'smalle';
 ```
-- as
+- as用法
 
 ```sql
 -- Mysql/Oracle两种写均支持。只不过mybatis操作oracle返回map时，第一种写法的key全部为大写，第二种写法的key为小写
@@ -111,23 +133,161 @@ select name as "username" from user where name = "smalle";
 -- oracle
 select * from user t where (t.name, t.sex) in (('张三', 1)); -- 此处用=也得在外面多加一层括号
 ```
-
-### 排序
-
-- 控制排序
-
-```sql
-order by my_field [asc|desc] nulls [first|last] -- oracle
-order by if(isnull(my_field),1,0), my_field [asc|desc] -- mysql默认将null值放在下面
-order by if(isnull(my_field),0,1), my_field [asc|desc] -- mysql默认将null值放在上面
-```
-
-### 数值比较
+- 数值比较
 
 ```sql
 -- 假设两个字段一个是number(10, 2)的, 一个是FLOAT的则比较可能会有问题，可进行cast/round转换再比较
 select 1 from test where num1 > cast(num2 as number(10, 2));
 ```
+- (oracle)decode替代
+
+```sql
+-- oracle
+select decode(t.sex, 1, '男', 0, '女', '未知') from t_user;
+-- mysql
+select if(t.sex = 1, '男', if(t.sex = 0, '女', '未知')) from t_user; -- if函数只支持3个参数
+select case when ... end from t_user;
+
+```
+
+### 复制表数据
+
+- [复制表结构参考](/_posts/db/mysql/mysql-backup-recover.md#Mysql相关语法)
+
+### 关联表进行数据更新
+
+- **`update set from where`** 将一张表的数据同步到另外一张表
+    
+```sql
+-- Oracle：如果a表和b表的字段相同，最好给两张表加别名. **注意where条件**
+update test a set (a.a1, a.a2, a.a3) = (select b.b1, b.b2, b.b3 from test2 b where a.id = b.id) 
+where exists (select 1 from test2 b where a.id = b.id);
+
+-- Mysql：update的表不能加别名，oracle可以加别名。当字段相同时直接使用表名做前缀
+update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id;
+update a left join b on a0 = b0 set a1 = b1, a2 = b2, a3 = b3 where a.valid_status = 1;
+```
+
+- 实例
+
+```sql
+-- (1)
+update ycross_storage ys
+set (ys.location_id, ys.ycross_x, ys.ycross_y, ys.box_type_id) =
+    (select yls.location_id,
+            sc.ycrossx,
+            sc.ycrossy,
+            (select ybts.id from yyard_box_type_set ybts where ybts.box_type = sc.relclcd) boxtypeid --也可以不取别名
+        from yyard_location_set yls, sql_ctninfo sc -- sql_ctninfo为临时表
+        where 1 = 1
+        and yls.region_num = sc.regionnum
+        and yls.set_num = sc.setnum
+        and (select ypc.company_num
+                from ybase_party_company ypc
+                where ypc.party_id = yls.yard_party_id) = ('dw' || trim(sc.yardin))
+        and yls.yes_status = 1
+        and sc.isinvalid = 1
+        and ys.box_number = sc.ctnno
+        and ys.yes_storage = 1) -- 可以拿到update的表ycross_storage(再套一层子查询则无法拿到)，且不能关联进去，否则容易出现一对多错误
+where -- where只能拿到update的表(不能拿到form的)
+-- 除了set(里面)限制了需要更新的范围，where(外面)也需要限制
+exists (select 1 from sql_ctninfo sc where ys.box_number = sc.ctnno);
+
+-- (2)将重庆的数据重新设置其绑定IS为最新的一条拜访的IS
+update t_customer t
+    set t.update_user_id = 3,
+        t.update_tm = sysdate,
+        t.lock_status = 1,
+        (t.bind_is_user_id) =
+        -- 通过子查询获取时 (select a.visit_user_id from (select v.visit_user_id from t_visit v where t.id = v.customer_id and v.valid_status = 1 order by v.visit_tm) a where rownum = 1) 拿不到t_customer的字段
+        (select a.first_id
+            from (select c.id,
+                        first_value(v.visit_user_id) over(partition by v.customer_id order by v.visit_tm desc rows between unbounded preceding and unbounded following) as first_id
+                    from t_customer c
+                    left join t_visit v
+                    on c.id = v.customer_id
+                    and v.valid_status = 1) a
+        where a.id = t.id
+            and rownum = 1)
+where t.customer_region = '500000'
+    and t.valid_status = 1
+    and t.info_sure_status = 1
+    -- 此处加exists ?
+    and exists (select 1
+            from t_visit v
+        where v.customer_id = t.id
+            and v.valid_status = 1)
+```
+
+### 不查询某个字段(获取列信息)
+
+```sql
+-- mysql
+select GROUP_CONCAT(COLUMN_NAME) cols 
+from information_schema.COLUMNS
+where table_schema = '数据库' AND table_name = '表名'
+AND COLUMN_NAME NOT IN ('id','name');
+-- select '上面的查询结果' from test;
+
+
+-- oracle 用户表
+select listagg( t.column_name,',') within group ( order by t.column_name ) cols
+from user_tab_columns t 
+where t.table_name = '表名' and t.column_name not in ('id');
+-- oracle 同义词表
+select listagg( atc.column_name,',') within group ( order by atc.column_name ) cols
+from all_tab_columns atc
+left join all_synonyms s on (atc.owner = s.table_owner and atc.table_name = s.table_name)
+where s.owner = 'SAMIS45_SHSD_WEB' and atc.table_name = 'BILL_CNTR'
+and atc.column_name not in ('BILL_NO');
+
+
+-- sqlserver
+-- sys.objects 表说明 https://learn.microsoft.com/zh-cn/sql/relational-databases/system-catalog-views/sys-objects-transact-sql?view=sql-server-2017
+-- 查看表信息
+SELECT schemas.name AS schema_name,
+	objects.name AS table_name,
+	objects.OBJECT_ID AS object_id,
+	objects.type AS object_type,
+	properties.value AS remarks 
+FROM sys.objects AS objects
+INNER JOIN sys.schemas AS schemas ON objects.SCHEMA_ID = schemas.SCHEMA_ID AND ( objects.type= 'U' OR objects.type= 'V' ) 
+LEFT JOIN sys.extended_properties AS properties ON objects.OBJECT_ID = properties.major_id AND properties.minor_id= 0
+where cast(properties.value as varchar(100)) like '%用户表%';
+
+-- 查看字段信息
+SELECT schemas.name as schema_name,
+	objects.name as table_name,
+	objects.object_id as object_id,
+	columns.name as column_name,
+	columns.column_id as column_id,
+	columns.max_length as max_length,
+	columns.precision as precision,
+	columns.scale as scale,
+	columns.system_type_id as system_type_id,
+	types.name as type_name,
+	properties.value as remarks
+FROM sys.objects AS objects
+INNER JOIN sys.schemas AS schemas ON objects.SCHEMA_ID = schemas.SCHEMA_ID AND ( objects.type= 'U' OR objects.type= 'V' ) 
+inner join sys.columns columns on columns.object_id=objects.object_id
+left join sys.extended_properties AS properties ON objects.OBJECT_ID = properties.major_id and properties.minor_id = columns.column_id
+left JOIN sys.types as types on columns.user_type_id=types.user_type_id
+where 1=1
+and schemas.name='dbo' -- 指定schema
+-- and objects.name='指定表/视图'
+and cast(properties.value as varchar(100)) like '%发票抬头%';
+
+-- 查看表最后更新时间(不是很准确，貌似是DDL的最后更新时间)
+SELECT * FROM sys.objects A 
+WHERE (A.[type]='S' OR A.[type]='IT' OR A.[type]='U')
+AND A.modify_date >= dateadd(DD,-10,getdate()) -- 最近10天更新的
+ORDER BY A.modify_date DESC;
+```
+
+### 环境变量和自定义变量
+
+- oracle: https://blog.csdn.net/db_murphy/article/details/115186884
+- mysql: https://blog.csdn.net/qq_36528734/article/details/81187863
 
 ## 复杂查询
 
@@ -168,6 +328,29 @@ from notice_relation nr
 where nr.user_id in (1, 2, 3)
 group by nr.notice_id
 having count(1) = 3
+```
+
+### 基于主子孙表求和统计
+
+```sql
+select count(1) "艘次", sum(a.net_ton) "总净吨", sum(a.gweight_ton) "代理货物总量（万吨）",sum(a.bc_count) "代理集装箱量"
+from
+(
+    select s.ship_no, sd.net_ton, round(sum(sb.gweight_ton)/10000,0) gweight_ton, a.bc_count bc_count
+    from ship s
+    left join c_ship_data sd on sd.e_ship_nam = s.e_ship_nam
+    left join ship_bill sb on s.ship_no = sb.ship_no
+    left join (
+        select sb.ship_no,sum(decode(bc.cntr_size_cod , '20','1','2')) bc_count
+        from ship s -- 主表
+        join ship_bill sb on s.ship_no = sb.ship_no -- 子表
+        join bill_cntr bc on sb.bill_no = bc.bill_no -- 孙表
+        where s.leav_port_tim > sysdate-30 and sb.port_id in ('0','1')
+        group by sb.ship_no
+    ) a on a.ship_no = s.ship_no
+    where s.leav_port_tim > sysdate-30 and sb.port_id in ('0','1')
+    group by s.ship_no, sd.net_ton, a.bc_count
+) a
 ```
 
 ### 行转列/列转行
@@ -343,7 +526,7 @@ select userId, group_concat(orderId order by orderId desc separator ';') as orde
 #### instr/find_in_set
 
 ```sql
--- instr
+-- instr (oracle也支持)
     -- linux/unix下的行结尾符号是`\n`，windows中的行结尾符号是`\r\n`，Mac系统下的行结尾符号是`\r`
     -- 回车符：\r=0x0d (13) (carriage return)
     -- 换行符：\n=0x0a (10) (newline)
@@ -477,14 +660,22 @@ select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using 
 select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天和今天（2018-01-01, 2018-01-02）
 ```
 
-#### trim
+#### 字符串处理
 
 ```sql
+-- trim 去除空格
 -- 语法 select trim(leading | trailing | both string1 from string2) from dual;
 select trim(' a b ') from dual; -- "a b"
 select trim(leading 'a' from 'aa ab ') from dual; -- " ab "
 -- 同理ltrim去除左侧空格；ltrim/rtrim 还支持第二个参数
 select rtrim(' a b ') from dual; -- " a b"
+
+-- replace 字符串替换
+select replace('#ID#', '#') from dual; -- ID
+select replace('#ID#', '#', '*') from dual; -- *ID*
+
+-- instr 查找字符位置(mysql也支持)
+select instr('##ID##', '#'), instr('##ID##', '#', 3) from dual; -- 1, 5
 ```
 
 #### with as 用法
@@ -541,7 +732,7 @@ select * from ASSIGN;
 
 ```sql
 select
-xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval() "my_col"
+    to_char(xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval()) "my_col"
 from test
 ```
 
@@ -680,7 +871,7 @@ select *
         where v.valid_status = 1 and v.result is not null 
         and v.customer_id = 358330;
         -- 结果
-        #   
+        #   RN
         1	1	93179	358330	BS	BS-3	2018/9/20
         2	2	93179	358330	BS	BS-3	2018/9/20
         3	3	93179	358330	BS	BS-3	2018/9/20
@@ -972,71 +1163,6 @@ select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
             from table(cast(sq_split(t.name, ',') as sq_type_arr_str)) arr
             where trim(arr.column_value) = 'aa')
   ```
-
-### 关联表进行数据更新
-
-- **`update set from where`** 将一张表的数据同步到另外一张表
-    
-    ```sql
-    -- Oracle：如果a表和b表的字段相同，最好给两张表加别名. **注意where条件**
-    update test a set (a.a1, a.a2, a.a3) = (select b.b1, b.b2, b.b3 from test2 b where a.id = b.id) 
-    where exists (select 1 from test2 b where a.id = b.id);
-    
-    -- Mysql：update的表不能加别名，oracle可以加别名。当字段相同时直接使用表名做前缀
-    update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id;
-    update a left join b on a0 = b0 set a1 = b1, a2 = b2, a3 = b3 where a.valid_status = 1;
-    ```
-
-    - 实例
-
-    ```sql
-    -- (1)
-    update ycross_storage ys
-    set (ys.location_id, ys.ycross_x, ys.ycross_y, ys.box_type_id) =
-        (select yls.location_id,
-                sc.ycrossx,
-                sc.ycrossy,
-                (select ybts.id from yyard_box_type_set ybts where ybts.box_type = sc.relclcd) boxtypeid --也可以不取别名
-            from yyard_location_set yls, sql_ctninfo sc -- sql_ctninfo为临时表
-            where 1 = 1
-            and yls.region_num = sc.regionnum
-            and yls.set_num = sc.setnum
-            and (select ypc.company_num
-                    from ybase_party_company ypc
-                    where ypc.party_id = yls.yard_party_id) = ('dw' || trim(sc.yardin))
-            and yls.yes_status = 1
-            and sc.isinvalid = 1
-            and ys.box_number = sc.ctnno
-            and ys.yes_storage = 1) -- 可以拿到update的表ycross_storage(再套一层子查询则无法拿到)，且不能关联进去，否则容易出现一对多错误
-    where -- where只能拿到update的表(不能拿到form的)
-    -- 除了set(里面)限制了需要更新的范围，where(外面)也需要限制
-    exists (select 1 from sql_ctninfo sc where ys.box_number = sc.ctnno);
-
-    -- (2)将重庆的数据重新设置其绑定IS为最新的一条拜访的IS
-    update t_customer t
-      set t.update_user_id = 3,
-          t.update_tm = sysdate,
-          t.lock_status = 1,
-          (t.bind_is_user_id) =
-          -- 通过子查询获取时 (select a.visit_user_id from (select v.visit_user_id from t_visit v where t.id = v.customer_id and v.valid_status = 1 order by v.visit_tm) a where rownum = 1) 拿不到t_customer的字段
-          (select a.first_id
-              from (select c.id,
-                          first_value(v.visit_user_id) over(partition by v.customer_id order by v.visit_tm desc rows between unbounded preceding and unbounded following) as first_id
-                      from t_customer c
-                      left join t_visit v
-                        on c.id = v.customer_id
-                      and v.valid_status = 1) a
-            where a.id = t.id
-              and rownum = 1)
-    where t.customer_region = '500000'
-      and t.valid_status = 1
-      and t.info_sure_status = 1
-      -- 此处加exists ?
-      and exists (select 1
-              from t_visit v
-            where v.customer_id = t.id
-              and v.valid_status = 1)
-    ```
 
 ### Oracle中DBlink实现跨实例查询
 

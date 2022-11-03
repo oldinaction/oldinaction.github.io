@@ -20,7 +20,7 @@ tags: js
 - `CommonJS`
     - 定义的模块分为：module模块标识、exports模块定义、require模块引用。**Node里面的模块系统遵循的是CommonJS规范**
         - `exports` 返回的是模块函数，`module.exports` 返回的是模块对象本身，返回的是一个类。**注意不是export**
-        - 在一个node执行一个文件时，会给这个文件内生成一个 exports和module对象，而module又有一个exports属性。他们之间的关系如下图，都指向一块{}内存区域。`exports = module.exports = {};`
+        - 在一个node执行一个文件时，会给这个文件内生成一个exports和module对象，而module又有一个exports属性。他们之间的关系如下图，都指向一块{}内存区域。`exports = module.exports = {};`
         - **多次引用同一个js不会导致重复引用，且优先执行最深层js文件中的代码**
     - 案例
 
@@ -55,18 +55,18 @@ tags: js
         - 定义模块 `define(function(require, exports, module) {})`
     - AMD是提前执行（RequireJS2.0开始支持延迟执行，不过只是支持写法，实际上还是会提前执行），CMD是延迟执行
 - `UMD` 叫做通用模块定义规范（Universal Module Definition）
-    - 它可以通过运行时或者编译时让同一个代码模块在使用 CommonJs、CMD 甚至是 AMD 的项目中运行。导出umd格式，可以支持import、require和script引入
+    - 它可以通过运行时或者编译时让同一个代码模块在使用 CommonJs、AMD、全局(window/global) 的项目中运行。导出umd格式，可以支持import、require和script引入
     - UMD实现方式
 
         ```js
         ((root, factory) => {
-            if (typeof define === 'function' && define.amd) {
-                // AMD
-                define(['jquery'], factory);
-            } else if (typeof exports === 'object' && typeof module === 'object') {
-                // CommonJS
+            if (typeof exports === 'object' && typeof module === 'object') {
+                // CommonJS(Node)
                 var $ = requie('jquery');
                 module.exports = factory($);
+            } else if (typeof define === 'function' && define.amd) {
+                // AMD
+                define(['jquery'], factory);
             } else if (typeof exports === 'object') {
                 var $ = requie('jquery');
                 exports["jquery"] = factory($);
@@ -574,6 +574,7 @@ let runtimeError = {
 - 赋值运算：`= += -+ *= /= %=` **不建议使用连等赋值**
 - 三目运算符：`? :`
 - [ES2020、ES2021新加??/?./,/_ 等运算符](https://my.oschina.net/u/3704591/blog/4913157)
+    - node v14 才支持`?.`可选链符合
 
 #### 流程语句
 
@@ -636,6 +637,7 @@ Object.keys({name: 'test'}) // ['name']
             - 时间类型会变成字符串类型
             - 如果对象中存在循环引用的情况也无法正确实现深拷贝
             - JSON.stringify()只能序列化对象的可枚举的自有属性，如obj中的对象是有构造函数生成的，拷贝后会丢失constructor
+            - 会去掉 undefined 的key (值为 null 的key会保留). JSON.stringify阶段，可以使用`JSON.stringify(testArr, (k, v) => new_value)`解决
             - 其他参考：https://blog.csdn.net/u013565133/article/details/102819929
         - 使用一些深拷贝函数
 - `Object.defineProperty(obj, prop, descriptor)` 增加或修改对象属性。vue 2.x基于此特性实现响应式
@@ -733,6 +735,7 @@ var arr2 = new Array(1, 'a', true); // 创建3个元素
         - **`reduce((返回对象, 当前对象) => { retrun 返回对象 }, 返回对象默认值)`** 可将`List<Map>`转`Map`
 - 其他方法
     - `some` 测试数组中是否至少有一个元素满足条件(传入的测试函数)
+        - `[3, 4, 1].some(x => x > 2)` 返回true
 
 #### 示例
 
@@ -1144,7 +1147,18 @@ else window.onload = createIframe;
     - 判断滚动条是否见底：scrollHeight === clientHeight + scrollTop
 
 
-### 常见问题
+## 常用函数
+
+```js
+// dc91b3f3-cb2c-401a-85a6-7da3a2faf36f
+function uuid () {
+    return ('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (t) {
+        let e = 16 * Math.random() | 0
+        return (t === 'x' ? e : 3 & e | 8).toString(16)
+    }))
+    // .replaceAll('-', '')
+}
+```
 
 
 

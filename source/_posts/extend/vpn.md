@@ -1,12 +1,12 @@
 ---
 layout: "post"
-title: "VPN搭建"
+title: "虚拟办公网络搭建"
 date: "2018-04-04 10:34"
 categories: extend
-tags: [vpn, linux, network]
+tags: [linux, network]
 ---
 
-## centos7安装vpn
+## centos7安装虚拟办公网络
 
 ### PPTP
 
@@ -39,7 +39,7 @@ tags: [vpn, linux, network]
 - `sudo systemctl start pptpd` 启动pptpd服务
 - 配置iptables防火墙放行和转发规则
     - **`sudo iptables -L -n -t nat`** 查看 iptables 配置规则
-    - 清空防火墙配置
+    - 清空防火墙配置(慎操作)
         
         ```bash
         sudo iptables -P INPUT ACCEPT        # 改成 ACCEPT 标示接收一切请求
@@ -47,16 +47,20 @@ tags: [vpn, linux, network]
         sudo iptables -X                     # 清空自定义所有规则
         sudo iptables -Z                     # 计数器置0
         ```
-    - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100` (eth0为网卡。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.100)
-    - 配置规则(可省略)
+    - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，**因此下面的配置只需要运行** `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100` (eth0为网卡。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.100)
+    - 配置规则(视情况决定)
 
         ```bash
+        # 允许 GRE(Generic Route Encapsulation) 协议，PPTP 使用 GRE 协议封装 PPP 数据包，然后封装成 IP 报文
         sudo iptables -A INPUT -p gre -j ACCEPT
-        # 放行 PPTP 服务的1723 端口 (服务器后台安全组策略需要开发1723的入站规则)
+        # 放行 PPTP 服务的1723 端口 (服务器后台安全组策略需要开放1723的入站规则)
         sudo iptables -A INPUT -p tcp -m tcp --dport 1723 -j ACCEPT
+        # 放行状态为RELATED,ESTABLISHED的入站数据包
         sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-        # 阿里云是双网卡，内网eth0 + 外网eth1，所以此出为eth1
+        # 阿里云是双网卡，内网eth0 + 外网eth1，所以此处为eth1
+        # 放行服务端 192.168.0.0/24 网段经网卡 eth1 转出的数据包
         sudo iptables -A FORWARD -s 192.168.0.0/24 -o eth1 -j ACCEPT
+        # 放行客户端 192.168.0.0/24 网段经网卡 eth1 转入的数据包
         sudo iptables -A FORWARD -d 192.168.0.0/24 -i eth1 -j ACCEPT
         sudo iptables -I FORWARD -p tcp --syn -i ppp+ -j TCPMSS --set-mss 1356
         # nat规则，如果没有外网网卡，可设置外网IP。如：iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100
@@ -68,20 +72,38 @@ tags: [vpn, linux, network]
     - 启动iptables
         
         ```bash
+        # 保存iptables规则配置到 /etc/sysconfig/iptables 文件，可通过 iptables-restore 进行恢复
         sudo service iptables save
         sudo systemctl start iptables
         ```
 - 设置随系统启动(`chkconfig --level 3 pptpd on`)
     - `sudo systemctl enable pptpd`
     - `sudo systemctl enable iptables`
-- windows连接VPN
-    - VPN类型 `PPTP`
+- windows连接"虚拟办公网络"
+    - "虚拟办公网络"类型 `PPTP`
     - 勾选允许使用 `Microsoft CHAP 版本 2 （MS-CHAP v2）（M）`
 
 ### IPSec/L2TP
 
-- https://teddysun.com/448.html [^4]
-- https://github.com/kitten/setup-strong-strongswan
+- 参考 https://teddysun.com/448.html
+
+```bash
+# 安装(centos7测试成功)
+curl -L -O https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
+chmod +x l2tp.sh
+# ***脚本会改写 iptables 或 firewalld 的规则***; 会加入开机自启动
+# 安装: 主要需要设置共享秘钥(PSK)、用户名(Username)、用户密码(password)
+sudo ./l2tp.sh
+
+# 列出帮助信息
+l2tp -h
+# 查看状态
+systemctl status xl2tpd
+# IPSec 运行状态
+ipsec status
+# IPSec 检查结果
+ipsec verify
+```
 
 ## SSH隧道(Tunnel)技术及SOCKET代理
 
@@ -129,9 +151,9 @@ tags: [vpn, linux, network]
     # 不静默运行，且定时执行命令，防止程序退出
     ssh -D 0.0.0.0:1080 root@8.12.12.149 "vmstat 30"
     
-    # 常用此方式将C作为跳板机访问生成安全网络：在C(网段1)上挂VPN则可访问生产网络(网段2)，此时又在C上启动SOCKS代理，则其他机器配置此SOCKS代理即可访同C一样访问生产网络(直接访问网段2的地址即可)
+    # 常用此方式将C作为跳板机访问生成安全网络：在C(网段1)上挂"虚拟办公网络"则可访问生产网络(网段2)，此时又在C上启动SOCKS代理，则其他机器配置此SOCKS代理即可访同C一样访问生产网络(直接访问网段2的地址即可)
     # 直接在中间机C上运行此命令，使用中间机器test用户登录自身ssh(中间机器需要开启sshd服务)开启隧道
-    # 则A机器上SOCKS可配置使用对应中间机器IP和端口(也可映射成外网)，假设中间机器已连接VPN，则A也可访问此VPN网
+    # 则A机器上SOCKS可配置使用对应中间机器IP和端口(也可映射成外网)，假设中间机器已连接"虚拟办公网络"，则A也可访问此"虚拟办公网络"网
     # 端口绑定0.0.0.0则映射外网后，所有网络可连接词SOCKS，如果绑定内网，则只有内网机器可连接，如果为127.0.0.1，则只有本机可使用
     ssh -Nf -D 0.0.0.0:1080 test@192.167.1.27
 
@@ -147,7 +169,7 @@ tags: [vpn, linux, network]
         - 再设置Rules，可基于应用程序/或目标ip进行代理；规则从上往下执行
 - 远程登录 [^6]
     - 使用花生壳创建二级域名将本地网络映射到公网
-    - 跨网络连接远程，可使用蒲公英VPN
+    - 跨网络连接远程，可使用蒲公英"虚拟办公网络"
     - 图形界面登录可使用RealVNC，各大操作系统都支持，使用 VNC 协议，并且对键盘处理很好用，还可以传文件和共享剪贴板。其他如Teamview、Anydesk等
     - 远程SSH登录：Linux一般自带SSH server，window可使用cygwin(可配合apt-cyg使用)
 - 常见问题
