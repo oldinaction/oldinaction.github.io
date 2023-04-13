@@ -723,7 +723,7 @@ turbine:
 
 #### git仓库密码加密 [^5]
 
-- [下载jce扩展jar包](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)：将`local_policy.jar`、`US_export_policy.jar`放入`$JAVA_HOME/jre/lib/security`(覆盖之前文件)
+- [下载jce扩展jar包(JDK1.8)](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)：将`local_policy.jar`、`US_export_policy.jar`放入`$JAVA_HOME/jre/lib/security`(覆盖之前文件)
 - 生成秘钥对
     - 命令行运行`keytool -genkeypair -alias config-server -keyalg RSA -keypass aezocn -keystore config-server.jks -storepass aezocn`(一路回车，最后一个输入Y)，会在命令的当前目录生成一个`config-server.jks`的文件
     - 将`config-server.jks`文件放在项目`resources`目录

@@ -194,10 +194,18 @@ git push origin v1.0.0
     - `git reset --hard HASH` 返回到某个节点，不保留修改。如：`git reset --hard HEAD`，`git reset --hard 8a222ba`
     - `git reset --soft HASH` 返回到某个节点，保留修改
 - `git stash` 把所有没有提交的修改暂存到stash里面。可用git stash pop恢复
-- 撤销已提交的
-    - https://www.csdn.net/tags/MtTaQgwsNjc5NTQtYmxvZwO0O0OO0O0O.html
-        - `git checkout --orphan new_branch` 相当于创建一个临时分支，创建后将无需的提交删掉即可
-        - 存在问题: 此次提交会把所有文件重新提交一遍(相当于初始化)
+- 撤销所有的提交(相当于初始化项目)
+
+```bash
+# 参考: https://blog.csdn.net/icansoicrazy/article/details/128342811
+# git checkout --orphan 类似git init的状态创建新的非父分支，也就是创建一个无提交记录的分支; 之后删除master分支再重命名当前分支为master分支
+git checkout --orphan latest_branch
+git add -A
+git commit -am 'init'
+git branch -D master
+git branch -m master
+git push -f origin master
+```
 
 ### 删除文件
 
@@ -247,6 +255,7 @@ git fetch upstream
 		- `D_`表示 staging 中此文件被删除了
 		- `R_`表示 staging 中此文件进行了重命名
 		- `??`表示此文件没有被 git 进行版本控制
+    - `git status --untracked-files` 以文件的形式展示(默认以文件夹)
 - 利用`git diff`查看文件差别，`git diff --stat`是对文件差别的扼要描述
 	- `-红色字体`表示删除的
 	- `+绿色字体`表示增加的
@@ -493,9 +502,38 @@ git reflog expire --expire=now --all && git gc --prune=now --aggressive
 git push
 ``` 
 
-## gitflow工作流 [^5]
+## gitflow工作流
+
+- 参考 [^5]
 
 ![git-workflow](/data/images/arch/git-workflow.png)
+
+## git提交规范
+
+```bash
+1. 提交格式
+git commit -m <type>[optional scope]: <description>
+	
+2. 常用的type类别
+type ：用于表明我们这次提交的改动类型，是新增了功能？还是修改了测试代码？又或者是更新了文档？总结以下 11 种类型：
+• build：主要目的是修改项目构建系统(例如 glup，webpack，rollup 的配置等)的提交
+• ci：主要目的是修改项目继续集成流程(例如 Travis，Jenkins，GitLab CI，Circle等)的提交
+• docs：文档更新
+• feat：新增功能
+• fix：bug 修复
+• perf：性能优化
+• refactor：重构代码(既没有新增功能，也没有修复 bug)
+• style：不影响程序逻辑的代码修改(修改空白字符，补全缺失的分号等)
+• test：新增测试用例或是更新现有测试
+• revert：回滚某个更早之前的提交
+• chore：不属于以上类型的其他类型(日常事务)
+optional scope：一个可选的修改范围。用于标识此次提交主要涉及到代码中哪个模块。
+description：一句话描述此次提交的主要内容，做到言简意赅。
+
+例如：
+git commit -m 'feat: 增加 xxx 功能'
+git commit -m 'bug: 修复 xxx 功能'
+```
 
 ## Github使用
 
@@ -519,6 +557,9 @@ git push
         # 推送到远程(fork的项目远程)
         git push
         ```
+- gitee下fork项目同步
+    - 基于命令行模式 https://blog.csdn.net/weixin_53385000/article/details/117780266
+    - 基于界面 https://blog.csdn.net/luoyeyilin/article/details/108994031 (前提: 自己重新定义一个分支当成最新分支)
 
 ## svn扩展
 

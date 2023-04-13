@@ -651,54 +651,9 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 </build>
 ```
 
-### 利用github创建仓库
-
-- 其他
-    - 介于github搭建私有maven仓库
-        - https://www.cnblogs.com/liufarui/p/14019206.html
-    - 基于gitee搭建maven仓库
-    - 基于gitlab搭建maven仓库(仓库可私有)
-        - https://www.bookstack.cn/read/gitlab-doc-zh/docs-280.md#aqpu74
-- 基于github搭建maven仓库方法如下
-- github新建项目[maven-repo](https://github.com/aezocn/maven-repo)，并下载到本地目录，如`D:/GitRepositories/maven-repo` [^1]
-- 进入到项目pom.xml所在目录，运行命令：
-	- `mvn deploy -DaltDeploymentRepository=aezocn-maven-repo::default::file:D:/GitRepositories/maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
-	- 将项目部署到`D:/GitRepositories/maven-repo`目录，项目id为`aezocn-maven-repo`，`-DskipTests`跳过测试进行部署
-- 提交到github(**注意jar包不要习惯性的ignore**)
-- 配置maven远程仓库
-
-	```xml
-	<!-- 优先读取本地库 -->
-	<repositories>
-        <repository>
-			<id>aliyun-repos</id>
-			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-        <repository>
-            <id>aezocn-maven-repo</id>
-            <url>https://raw.github.com/aezocn/maven-repo/master/</url>
-			<!--或者访问本地-->
-			<!--<url>file:D:/GitRepositories/maven-repo/</url>-->
-        </repository>
-    </repositories>
-	```
-	- maven的repository并没有优先级的配置，也不能单独为某些依赖配置repository。所以如果项目配置了多个repository，在首次编绎时会依次尝试下载依赖，如果没有找到，尝试下一个
-	- 其中`<url>https://raw.github.com/{github-username}/{github-repository}/{github-branch}/</url>`，https://raw.github.com 是github的raw站点，浏览器不能访问目录只能访问单个文件
-- 配置依赖(会自动将仓库中的数据再下载到本地仓库`.m2`目录)
-
-	```xml
-	<dependency>
-		<groupId>cn.aezo</groupId>
-		<artifactId>utils</artifactId>
-		<version>sm-minions-1.0</version>
-	</dependency>
-	```
-
 ## maven插件
 
+- **Maven官方插件文档地址**: https://maven.apache.org/plugins/
 - `maven-compiler-plugin` 编译插件
 - `maven-jar-plugin` 默认的打包插件，用来打**普通的Project jar包(不包含依赖)**
 
@@ -834,10 +789,46 @@ mvn wrapper:wrapper -Dmaven=3.6.3
         -->
     </assembly>
     ```
+- [maven-install-plugin](https://maven.apache.org/plugins/maven-install-plugin/index.html) 将jar安装到本地仓库，配置类似maven-deploy-plugin
+- [maven-deploy-plugin](https://maven.apache.org/plugins/maven-deploy-plugin/index.html) 发布jar到远程仓库
+    ```xml
+    <!-- 如用于proguard打包时，生成了原始包和classifier混淆包，此时只需classifier混淆包 -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <executions>
+            <!-- 阻止默认的部署 -->
+            <execution>
+                <id>default-deploy</id>
+                <phase>none</phase>
+            </execution>
+            <!-- 自定义部署 -->
+            <execution>
+                <id>deploy-essential</id>
+                <phase>deploy</phase>
+                <goals>
+                    <goal>deploy-file</goal>
+                </goals>
+                <configuration>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>${project.artifactId}</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>pg</classifier>
+                    <packaging>jar</packaging>
+                    <!-- 使用固定的pom文件安装到本地仓库，否则会自动生成(可能会丢失依赖从而导致依赖传递失败) -->
+                    <pomFile>${basedir}/pom.xml</pomFile>
+                    <file>${basedir}/target/${project.name}-${project.version}-pg.jar</file>
+                    <repositoryId>aezocn-maven-repo</repositoryId>
+                    <url>file:///Users/smalle/gitwork/github/aezo-maven-repo</url>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
+    ```
 - `spring-boot-maven-plugin` 打包SpringBoot项目
 - `org.codehaus.mojo#exec-maven-plugin`
     - 可执行shell命令、构建docker镜像、用npm打包等。特别是结合phase使用
-- `maven-dependency-plugin` 操作项目依赖文件，如将依赖jar全部复制到lib目录 
+- `maven-dependency-plugin` 操作项目依赖文件，如将依赖jar全部复制到lib目录
     - https://blog.csdn.net/u011781521/article/details/79055605
     - https://my.oschina.net/LucasZhu/blog/1539468
 - `Maven Enforcer Plugin` 可以在项目validate时，对项目环境进行检查。[使用参考](https://www.cnblogs.com/qyf404/p/4829327.html)
@@ -850,6 +841,8 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 - `maven-site-plugin` 基于src/site目录下的配置生成静态站点
     - https://blog.csdn.net/taiyangdao/article/details/53933168
     - 参考项目：https://github.com/wvengen/proguard-maven-plugin
+- `maven-dbdeploy-plugin` 记录数据库开发修改历史
+    - https://blog.csdn.net/weixin_42289842/article/details/126033190
 
 ## 自定义插件
 
@@ -969,9 +962,82 @@ public class BizMojo extends AbstractMojo {
   - 先在主应用项目中运行`mvnDebug cn.aezo.sqbiz.maven.plugin:sqbiz-sofa-maven-plugin:0.0.1:biz-dep -Dname=test`会在本地监听一个端口，如8000. 此时命令会阻塞住等待attach
   - 然后再maven插件中添加remote debug配置attach到对应端口，启动后主应用打包程序继续执行，并进入到maven插件项目端点中
 
-## maven私服搭建(nexus)
+## maven私服搭建
 
 - **也可使用阿里云私服**：https://packages.aliyun.com/maven
+    - 支持maven, npm
+    - 免费不限容量，只支持自己可见和企业内可见
+
+### 利用github创建仓库
+
+- 私有maven建议使用阿里云私有仓库，参考下文[maven私服搭建(nexus)](#maven私服搭建(nexus))
+- 其他
+    - 基于github搭建私有maven仓库
+        - https://www.cnblogs.com/liufarui/p/14019206.html
+    - 基于gitee搭建maven仓库
+        - https://blog.csdn.net/lidelin10/article/details/105787168
+    - 基于gitlab搭建maven仓库(仓库可私有)
+        - https://www.bookstack.cn/read/gitlab-doc-zh/docs-280.md#aqpu74
+- github新建项目[maven-repo](https://github.com/aezocn/maven-repo)，并下载到本地目录，如`/Users/smalle/gitwork/github/aezo-maven-repo` [^1]
+- 进入到项目pom.xml所在目录，运行命令
+	- `mvn deploy -DaltDeploymentRepository=aezocn-maven-repo::default::file:/Users/smalle/gitwork/github/aezo-maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
+	    - 将项目部署到`/Users/smalle/gitwork/github/aezo-maven-repo`目录，项目id为`aezocn-maven-repo`，`-DskipTests`跳过测试进行部署
+    - 也可配置成然后在idea中执行deploy命令
+    
+    ```xml
+    <distributionManagement>
+        <repository>
+            <id>aezocn-maven-repo</id>
+            <url>file:/Users/smalle/gitwork/github/aezo-maven-repo</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- settings.xml中需要增加server配置 -->
+    <server>
+		<id>aezocn-maven-repo</id>
+        <!-- <username>可基于访问命令或者基于账号密码</username> -->
+		<password>ghp_your_token_xxxx</password>
+	</server>
+    ```
+- 提交到github(**注意jar包不要习惯性的ignore**)
+- 使用时配置maven远程仓库
+
+	```xml
+	<!-- 优先读取本地库 -->
+	<repositories>
+        <repository>
+			<id>aliyun-repos</id>
+			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+        <repository>
+            <id>aezocn-maven-repo</id>
+            <url>https://raw.github.com/aezocn/maven-repo/master/</url>
+
+            <!--或者将仓库同步到gitee后，使用gitee链接(需要仓库为public, 私有仓库看是否可以通过设置server密码实现) -->
+            <url>https://gitee.com/aezocn/maven-repo/raw/master/</url>
+
+			<!--或者访问本地-->
+			<url>file:/Users/smalle/gitwork/github/aezo-maven-repo/</url>
+        </repository>
+    </repositories>
+	```
+	- maven的repository并没有优先级的配置，也不能单独为某些依赖配置repository。所以如果项目配置了多个repository，在首次编绎时会依次尝试下载依赖，如果没有找到，尝试下一个
+	- 其中`<url>https://raw.github.com/{github-username}/{github-repository}/{github-branch}/</url>`，https://raw.github.com 是github的raw站点，浏览器不能访问目录只能访问单个文件
+- 使用时配置项目依赖(会自动将仓库中的数据再下载到本地仓库`.m2`目录)
+
+	```xml
+	<dependency>
+		<groupId>cn.aezo</groupId>
+		<artifactId>utils</artifactId>
+		<version>sm-minions-1.0</version>
+	</dependency>
+	```
+
+### 基于nexus搭建私服
+
 - nexus可对maven、docker等私服进行管理
 - 基于docker安装nexus：`docker-compose.yml`
 
@@ -1069,7 +1135,8 @@ services:
 ```
 - 常见错误
     - `maven-default-http-blocker (http://0.0.0.0/): Blocked mirror for repositories`
-        - 最新版本的maven block掉了所有HTTP协议的repositories，仅支持https。使用https或使用3.6.3及以下maven(使用mvnw)
+        - 在3.8.1后面的版本中block掉了所有HTTP协议的repositories，仅支持https
+        - 可以通过设置setting.xml的mirror中mirrorOf和blocked属性的值为false来解决，更推荐把maven版本降低到了3.6.3及以下maven(可使用mvnw)；IDEA 2021最新版本内置的maven是3.6.3，可以支持http
 
 ## 其他
 

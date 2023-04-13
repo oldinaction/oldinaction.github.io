@@ -9,41 +9,78 @@ tags: [python]
 ## python简介
 
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
+- [python3-cookbook中文文档](https://python3-cookbook.readthedocs.io/zh_CN/latest/index.html)
 
 ## Python安装
 
 - [Python下载镜像地址](http://npm.taobao.org/mirrors/python)
-- Linux下默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](/_posts/linux/CentOS服务器使用说明.md)
-- [python3-cookbook中文文档](https://python3-cookbook.readthedocs.io/zh_CN/latest/index.html)
-- 一般服务会自带pip，没有可进行安装
+- Linux
+    - 默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](/_posts/linux/CentOS服务器使用说明.md#python3安装)
+- Windows
+    - 直接下载安装包
+    - 环境变量设置(可选): 设置`PYTHON_HOME=D:/software/python3`，并设置`Path=.;%PYTHON_HOME%;%PYTHON_HOME%\Scripts`
+    - python多环境: 安装[pyenv-win](https://github.com/pyenv-win/pyenv-win)
+- Mac
+    - python多环境: 安装pyenv
+    - M1安装的pyenv，此时安装python v3.6会有问题。可先安装x86的brew然后按照pyenv，参考[brew](/_posts/extend/mac.md#brew)。安装参考: https://notemi.cn/installing-python-on-mac-m1-pyenv.html
+        - **安装python3.6和python3.7仍然失败**
+    
+    ```bash
+    xbrew install pyenv pyenv-virtualenv
+    xbrew install gcc bzip2 libffi libxml2 libxmlsec1 openssl readline sqlite xz zlib
+    # 增加配置`alias xpyenv='arch -x86_64 /usr/local/bin/pyenv'`
+    vi ~/.bash_profile
+
+    ## 按照上文使用x86后，pyenv命令换成xpyenv命令执行
+    # 查看pyenv版本
+    pyenv -v
+    # 查看可安装的python版本
+    pyenv install --list
+    # 安装python
+    pyenv install 3.6.8
+    # 查看当前安装的python所有版本
+    pyenv versions
+    # 设置当前目录及其目录切换
+    pyenv local 3.6.8
+    # 设置全局版本
+    pyenv global 3.6.8
+    # 查看python版本
+    python -V
+    ```
+- pip安装: 一般服务会自带pip，没有可进行安装
 
 ```bash
 sudo yum -y install epel-release
 sudo yum -y install python-pip
 ```
-- windows环境变量设置(可选): 设置`PYTHON_HOME=D:/software/python3`，并设置`Path=.;%PYTHON_HOME%;%PYTHON_HOME%\Scripts`
 
 ## python2和python3的语法区别
 
 ```python
 ## print打印
-print name # 2
 print(name) # 3
-print("%s: %s " % x,y) # 2
+print name # 2
 print("%s: %s " % (x,y)) # 3
+print("%s: %s " % x,y) # 2
 
 ## 捕获异常
-# 2
-try
-    # ...
-except Exception, e:
-    # ...
 # 3
 try
     # ...
 except Exception as e:
     # ...
 
+# 2
+try:
+    # ...
+except IndexError:
+    pass
+except (IndexError, ValueError):
+    pass
+except ValueError as data: # 获取异常信息存入data
+    print(data)
+except Exception, e:
+    # ...
 ```
 
 ## python基础(易混淆/常用)
@@ -576,6 +613,8 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ## 模块
 
+- 引入其他文件变量`from api.config import API_KEY` (映入api包下config.py文件中的API_KEY变量)
+
 ### 内置模块
 
 #### os
@@ -808,6 +847,16 @@ exit # 退出交互界面
 process.close(force=True)
 ```
 
+#### flask提供web服务
+
+- 发布简单rest接口: https://blog.csdn.net/Alex_81D/article/details/116260049
+
+#### 其他扩展
+
+- pytorch (AI相关)
+    - 1.13.1安装失败，参考 https://blog.csdn.net/qq_46037444/article/details/125991109
+    - 下载whl进行安装：https://download.pytorch.org/whl/torch_stable.html，windows下载 cpu/torch-1.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+
 ## 项目创建和发布
 
 ### 项目创建
@@ -873,6 +922,7 @@ jupyter-lab
 
 ### IPython
 
+- `ipython` 是一个python的交互式shell，比默认的python shell好用得多，支持变量自动补全，自动缩进，支持bash shell命令，内置了许多很有用的功能和函数
 - https://blog.csdn.net/qq_39362996/article/details/82892671
 - 案例
     - `%matplotlib inline` 这一句是IPython的魔法函数，可以在IPython编译器里直接使用，作用是内嵌画图，省略掉`plt.show()`这一步，直接显示图像。如果不加这一句的话，我们在画图结束之后需要加上plt.show()才可以显示图像

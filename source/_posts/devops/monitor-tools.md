@@ -23,8 +23,102 @@ tags: [monitor]
 - 命令
 
 ```bash
-# 查看监控状态
-monit status
+monit -V # 查看版本
+monit # 启动monit
+monit status # 查看所有监控状态
+monit status nginx # 查看nginx服务状态
+monit stop all # 停止所有服务
+monit stop nginx # 停止nginx服务
+monit start all # 启动所有服务
+monit start nginx # 启动nginx服务
+monit reload # 重载配置文件
+monit -t # 配置命令检测
+
+/etc/monitrc # 主配置文件
+/etc/monit.d/ # 单独配置各项服务
+```
+- `/etc/monit.d/yard` 案例
+
+```bash
+check host yardbackup with address yardbackup.eptrade.cn
+if failed
+port 80
+protocol http
+request /monit-check
+and status = 200
+for 3 cycles
+then exec "/root/script/monit-yard.sh yard restart"
+repeat every 20 cycles
+alert admin@example.com
+```
+- `/root/script/monit-yard.sh`
+
+```bash
+#!/bin/bash
+
+TMP_FILE=/root/script/tmp-monit-yard-$1
+psid=0
+
+checkpid() {
+  echo 0 > $TMP_FILE
+  jps | grep -v Jps | while read -r pid name
+  do
+    dir=$(pwdx $pid)
+    reg="/home/$1$"
+    if [[ "$dir" =~ $reg ]]; then
+      echo $pid > $TMP_FILE
+    fi
+  done
+  read psid < $TMP_FILE
+}
+
+start() {
+    checkpid $1
+    if [ $psid -eq 0 ]; then
+      nohup bash /home/$1/tools/startofbiz.sh > /dev/null 2>&1 &
+    fi
+
+    rm -f $TMP_FILE
+}
+
+stop() {
+    checkpid $1
+
+    if [ $psid -ne 0 ]; then
+        bash /home/$1/tools/stopofbiz.sh
+        sleep 5
+
+        if [ $psid -ne 0 ]; then
+          kill -s 9 $psid
+          sleep 1
+        fi
+
+        checkpid $1
+        if [ $psid -ne 0 ]; then
+            stop $1
+        fi
+    fi
+
+    rm -f $TMP_FILE
+}
+
+case "$2" in
+    'start')
+                start $1
+                ;;
+    'stop')
+                stop $1
+                ;;
+    'restart')
+                stop $1
+                start $1
+                ;;
+        *)
+                echo "[info] Usage: $0 <app-name> {start|stop|restart}"
+                exit 1
+esac
+
+exit $?
 ```
 
 ## Supervisor进程管理

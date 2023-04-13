@@ -171,7 +171,7 @@ toc:
 
   # If true, all words will placed on next lines if header width longer then sidebar width.
   wrap: false
-  
+
 
 # Creative Commons 4.0 International License.
 # http://creativecommons.org/
@@ -300,7 +300,7 @@ han: false
 #swiftype_key: Td6w-_hJUT5Gz3sfLzHs
 
 # Baidu Analytics ID
-baidu_analytics: d82223039d601f2f819f8fe140a63468
+baidu_analytics: 085f9cd91ef2ad985f791c677472f0d1
 
 # Duoshuo ShortName
 #duoshuo_shortname:
@@ -403,11 +403,11 @@ vkontakte_api:
 
 # Star rating support to each article.
 # To get your ID visit https://widgetpack.com
-rating: 
+rating:
   enable: false
   id:     #<app_id>
   color:  fc6423
-  
+
 
 # Show number of visitors to each article.
 # You can visit https://leancloud.cn get AppID and AppKey.

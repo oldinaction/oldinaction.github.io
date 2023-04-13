@@ -16,6 +16,7 @@ tags: [springboot, vue]
 
 - 表单操作的dto应该基于业务模式进行解耦，不要耦合到一个dto中
     - 出错场景：使用dto(数据传输对象)接受前端数据后，并`BeanUtils.copyProperties`将dto复制到po(持久化对象)中，且前端有清除数据库部分字段的需求(此时dto中该字段传入的值为null，并使用mybatis生成的`updateByPrimaryKey`进行更新)。但是内部字段(一般不会让用户直接修改的)初始化后不应该置空。后来在修改某些需求时(如基于客户直接创建拜访)，不小心简单将内部字段(创建拜访时会从客户中查询到CRM_ID并创建拜访记录)加入到dto中加入了部分其他字段导致，此时普通修改时前端并没有传入CRM_ID，导致将内部字段置空
+- [记录数据变动日志](/_posts/db/oracle-dba.md#记录数据变动日志)
 
 ## Mybatis
 
@@ -183,7 +184,7 @@ public Filter corsFilter() {
     return new CorsFilter(source);
 }
 
-// 法三: 可能会被shiro等框架拦截
+// 法三(不推荐): 可能会被shiro等框架拦截；如果还实现了WebMvcConfigurer.addInterceptors方法，则也可能会失效
 @Bean
 public WebMvcConfigurer corsConfigurer() {
     return new WebMvcConfigurerAdapter() {
@@ -230,10 +231,23 @@ public WebMvcConfigurer corsConfigurer() {
     ```
     - `CSRF` 跨站请求伪造(Cross-Site Request Forgery). [csrf](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html)
 
-### iframe页面获取父页面地址
+### iframe相关问题
 
-- 如果iframe与父页面遵循同源策略(属于同一个域名)，可通过`parent.location`或`top.location`获取父页面url；如果不遵循同源策略，则无法获取
-- 不同源可使用`document.referrer`获取
+- 父页面和iframe页面https关系
+    
+    ```txt
+    page - iframe - status
+    
+    http - http - allowed
+    http - https - allowed
+    https- http - not allowed https嵌套http不支持
+    https- https - allowed
+    https - https - insecure scripts - not allowed
+    https - https - inscure images - allowed but the browser will warn
+    ```
+- iframe页面获取父页面地址
+    - 如果iframe与父页面遵循同源策略(属于同一个域名)，可通过`parent.location`或`top.location`获取父页面url；如果不遵循同源策略，则无法获取
+    - 不同源可使用`document.referrer`获取
 
 ```js
 function getParentUrl() {
@@ -247,6 +261,15 @@ function getParentUrl() {
     return url;
 }
 ```
+- localStorage和sessionStorage
+    - A项目通过iframe嵌入B项目，并将token拼接在url上。此时不管是否跨域，B项目可以获取到url中的参数，也可在B项目中操作localStorage保存数据到B项目所在域
+    - 同一浏览器的非跨域(相同域名和端口)的不同页面间可以共享相同localStorage，但是不同页面间无法共享sessionStorage的信息；跨域则不能共享localStorage，跨域共享localStorage方案
+        - postMessage和iframe相结合的方法，参考上文
+            - 由于safari浏览器的默认限制，父页面无法向iframe里的跨域页面传递信息，此时可使用url传参
+        - 用url传值的方法来实现跨域存储功能
+            -  url的长度极限是由两方面决定的，一个是浏览器本身的限制，另一个就是服务器的限制。safari浏览器可以支持超过64k个字符的长度，一般服务器默认支持2~3万个字符长度的url不成问题
+- cookie
+    - A项目通过iframe嵌入B项目，并将token拼接在url上。此时如果跨域，B项目可以获取到url中的参数，但是在B项目无法操作cookie保存数据到B项目所在域
 
 ## Http请求及响应
 
@@ -398,6 +421,7 @@ export default {
 @RequestMapping("/order")
 public class OrderController {
     // 以下参数全部可以获取到值。由于请求类型为 multipart/form-data(是基于@RequestParam的方式接受参数), ***因此无法通过 Map 来接受参数***
+    // 不能接收 List<Order>, 如果需要可将List<Order>包装到OrderWrapper等对象中. (会报错: `No primary or default constructor found for interface java.util.List`)
     @RequestMapping("/upload")
     public Result upload(MultipartFile myFile, MultipartFile[] myFiles, List<MultipartFile> myFileList, Order order) {
         return Result.success();
@@ -438,6 +462,7 @@ public class OrderController {
     }
 }
 
+// 必须要实现 Serializable 接口
 @Data
 public class Order implements Serializable {
     private Long id;
@@ -773,7 +798,7 @@ module.exports = {
     // 表示index.html中引入的静态文件地址。如生成 `/my-app/js/app.28dc7003.js`
     publicPath: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_BASE_URL = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
     // 打包后的文件生成在此项目的my-app根文件夹。一般是把此文件夹下的文件(index.html和一些静态文件)放到服务器 www 目录，此时多项目需要放到 /www/my-app 目录下
-    outputDir: 'my-app', // 也可以是其他命名，但是最终要把index.html放在服务器的 /www/my-app 目录下
+    outputDir: 'my-app-dist', // 也可以是其他命名，但是最终要把index.html放在服务器的 /www/my-app-dist 目录下
     // ...
 }
 ```
@@ -792,9 +817,16 @@ new Router({
 ```bash
 # 此处的两个my-app需要和上文的base、publicPath保持一致
 location ^~ /my-app/ {
-    root /www; # 在/www目录放项目文件夹my-app(index.html在此文件夹根目录)
+    # 在/www目录放项目文件夹my-app(index.html在此文件夹根目录)。只能用于 outputDir 和 publicPath 一致的情况
+    # root /www;
+
+    # 如果 outputDir 和 publicPath 不一致，则此处需使用alias；如果一直也可使用root
+    alias /www/my-app-dist/;
+
     try_files $uri $uri/ /my-app/index.html;
+
     # index  index.html index.htm; # hash模式
+
     # 禁止缓存index.html文件
     if ($request_filename ~* .*\.(?:htm|html)$) {
         add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";

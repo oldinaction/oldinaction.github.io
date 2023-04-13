@@ -396,6 +396,8 @@ public static List<Map<String, Object>> recursion(List<Map<String, Object>> list
 
 ### Modal
 
+- 说明
+    - 通过`this.$Modal.confirm`提示，里面content支持html标签，换行可使用`<br/>`
 - 通过路由进入详细页面，保存完数据再回到主页面，之前查询条件丢失。此时可通过子路由+弹框完成，弹框包裹住子路由，回到主页面数据不会丢失
 - 点击确定(on-ok事件)按钮不关闭弹框
 
@@ -498,7 +500,7 @@ iframe {
 - 表单验证
 
     ```html
-    <!-- 注意:model必须赋值，且FormItem必须定义prop。userDataForm: {}即可-->
+    <!-- 注意: model必须赋值，且FormItem必须定义prop，userDataForm: {}即可；影藏的字段也会校验 -->
     <Form :model="userDataForm" :rules="userDataFormRule" ref="userDataForm">
         <FormItem label="Login Name" prop="username">
             <Input v-model="userDataForm.username" placeholder="Login Name"></Input>

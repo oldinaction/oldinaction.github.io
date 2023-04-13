@@ -109,7 +109,11 @@ server {
 
     access_log /var/log/nginx/test.access.log main;
 
-    # VUE类型应用，防止缓存index.html。此处的路径不一定要是index.html，只要某路径A返回的是index.html文件，则此处匹配A路径即可。且index.html中应用的js、css编译的文件名是hash过的，因此也不会缓存
+    # VUE类型应用
+    # vue history简单配置，只需要root+index，无需location /
+    root   /home/aezocn/www;
+    index index.html;
+    # 防止缓存index.html。此处的路径不一定要是index.html，只要某路径A返回的是index.html文件，则此处匹配A路径即可。且index.html中应用的js、css编译的文件名是hash过的，因此也不会缓存
         # index.html里面加meta标签是为了不缓存index.html里面的css/js；另外vue-cli等打包插件支持对css/js的名字加哈希值(如：main.0926594267d262000533.js)，因此不加meta标签页不会缓存
         #<meta http-equiv="pragram" content="no-cache">
         #<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
@@ -126,10 +130,11 @@ server {
 		add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
 		access_log on;
 	}
-    # 如vue子项目index.html缓存设置
+    # 如vue子项目index.html缓存设置. 更多参考 [springboot-vue.md#多项目配置](/_posts/arch/springboot-vue.md#多项目配置)
     location ^~ /demo1/ {
         root   /home/www/demo1;
-        # index  index.html index.htm
+        # index  index.html index.htm;
+        # 当请求 http://localhost/demo1/test 时，$uri 为 /demo1/test
         try_files $uri $uri/ /demo1/index.html;
         
         if ($request_filename ~* .*\.(?:htm|html)$) {
@@ -252,8 +257,7 @@ server {
 
     # 宝塔配置案例
     #PROXY-START/
-    location ^~ /
-    {
+    location ^~ / {
         proxy_pass http://www.baidu.com/; # 目标URL
         proxy_set_header Host www.baidu.com; # 发送域名
         proxy_set_header X-Real-IP $remote_addr;
@@ -263,10 +267,7 @@ server {
         add_header X-Cache $upstream_cache_status;
         
         #Set Nginx Cache
-        
-        
-        if ( $uri ~* "\.(gif|png|jpg|css|js|woff|woff2)$" )
-        {
+        if ( $uri ~* "\.(gif|png|jpg|css|js|woff|woff2)$" ) {
             expires 12h;
         }
         proxy_ignore_headers Set-Cookie Cache-Control expires;
@@ -388,7 +389,7 @@ http {
     
     #charset utf-8; #默认编码
     #server_names_hash_bucket_size 128; #服务器名字的hash表大小
-    #client_header_buffer_size 32k; #上传文件大小限制
+    client_header_buffer_size 10m; #上传文件大小限制（必须设置在http模块）
     #large_client_header_buffers 4 64k; #设定请求头大小
     #client_max_body_size 8m; #允许客户端请求的最大单文件字节数
     # 开启高效文件传输模式，sendfile指令指定nginx是否调用sendfile函数来输出文件，对于普通应用设为 on，如果用来进行下载等应用磁盘IO重负载应用，可设置为off，以平衡磁盘与网络I/O处理速度，降低系统的负载。注意：如果图片显示不正常把这个改 成off。
@@ -613,6 +614,17 @@ server {
 
     root /home/www;
     index  index.html index.htm;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        # 如果需要支持WSS协议则需加上，还需定义下面两个变量map，参考下文
+        # proxy_set_header Upgrade $http_upgrade;
+        # proxy_set_header Connection $connection_upgrade;
+	}
 }
 # 将 HTTP 强制重定向到 HTTPS
 server {
@@ -620,6 +632,32 @@ server {
     server_name test.aezo.cn;
 
     return 301 https://$host$request_uri;
+}
+```
+
+#### WSS协议配置(加密WebSocket)
+
+- WS/WSS测试工具：http://wstool.js.org/
+
+```bash
+# WSS配置
+map $http_upgrade $connection_upgrade { 
+	default upgrade; 
+	'' close; 
+}
+
+server {
+    location / {
+        # HTTPS配置（WSS配置是基于WS+HTTPS实现的）
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        # WSS配置
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+	}
 }
 ```
 

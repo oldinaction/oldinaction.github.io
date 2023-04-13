@@ -135,6 +135,8 @@ declare namespace PersonLog.Options {
     "importHelpers": true,
     "listFiles": true,
     "suppressImplicitAnyIndexErrors": true,
+    // 不检查node_modules中的文件
+    "skipLibCheck": true,
     "types": [
       // 打包项目时，报错`573:15 Interface 'NodeJS.Module' incorrectly extends interface '__WebpackModuleApi.Module'.`。尝试解决：增加"webpack-env"，或者增加 compilerOptions.skipLibCheck=true
       "webpack-env"
@@ -181,9 +183,26 @@ declare namespace PersonLog.Options {
         * 告诉 TypeScript *.vue 后缀的文件可以交给 vue 模块来处理
         * 而在代码中导入 *.vue 文件的时候，需要写上 .vue 后缀。原因还是因为 TypeScript 默认只识别 *.ts 文件，不识别 *.vue 文件
         */
-        declare module "*.vue" {
+        declare module '*.vue' {
             import Vue from 'vue'
             export default Vue
+        }
+        ```
+    - (可选)加入`shims-tsx.d.ts`让vue来处理jsx语法
+
+        ```ts
+        import Vue, { VNode } from 'vue'
+
+        declare global {
+            namespace JSX {
+                // tslint:disable no-empty-interface
+                interface Element extends VNode {}
+                // tslint:disable no-empty-interface
+                interface ElementClass extends Vue {}
+                interface IntrinsicElements {
+                    [elem: string]: any
+                }
+            }
         }
         ```
     - 修改`main.js`为`main.ts`
@@ -302,7 +321,7 @@ import * as math from 'mathjs' // 与js引入方式存在差异，不能使用re
     - 如果在使用 babel-loader + @babel/preset-typescript 这种方案时，也想要类型检查
         - 再开一个 npm 脚本自动检查类型：`"type-check": "tsc --watch"`，tsconfig.json中配置compilerOptions.noEmit=true
     - 使用 @babel/preset-typescript 需要注意有四种语法在 babel 中是无法编译的
-        - namespace（已过世）
+        - namespace（已过时）
         - 类型断言：`let p1 = {age: 18} as Person;`
         - 常量枚举：`const enum Sex {man, woman}`
         - 历史遗留风格的 import/export 语法：`import xxx= require(…) 和 export = xxx`

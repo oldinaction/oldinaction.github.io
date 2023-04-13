@@ -329,6 +329,11 @@ fi
 if [ -n "$STRING" ]; then
     echo "STRING is not empty"
 fi
+
+# 判断目录不存在则创建
+if [ ! -d "/myfolder" ]; then
+  mkdir /myfolder
+fi
 ```
 
 #### 循环
@@ -904,12 +909,14 @@ EOF
 APP_JAR="app-0.0.1-SNAPSHOT.jar"
 # springboot参数
 SPRING_PROFILES="--spring.profiles.active=test"
-# 查找到此APP的grep字符串(基于APP_JAR的基础上继续查找，可用于多实例启动)
-APP_GREP_STR=$APP_JAR
+# SpringBoot分离Lib时需要，未分包则直接注释即可
+DLOADER_PATH="-Dloader.path=./lib"
+#执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号; 如果不是root账号，则下面的执行命令都需要加上sudo，否则执行命令的时候会提示输入密码
+RUNNING_USER=root
 # 内存溢出后dump文件存放位置，需要先创建此文件夹
 JVM_LOG_PATH="/home/"
-#执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号
-RUNNING_USER=root
+# 查找到此APP的grep字符串(基于APP_JAR的基础上继续查找，可用于多实例启动)
+APP_GREP_STR=$APP_JAR
 
 #JDK所在路径(需要配置好$JAVA_HOME环境变量)，$JAVA_HOME=也可不使用系统jdk
 #JAVA_HOME=
@@ -929,12 +936,13 @@ OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$JVM_LOG_PATH"
 #RMIIF="-Djava.rmi.server.hostname=$IPADDR"
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 #DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
-VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG -Dfile.encoding=UTF-8 -DLog4j22.formatMsgNoLookups=true"
+VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG $DLOADER_PATH -Dfile.encoding=UTF-8 -DLog4j22.formatMsgNoLookups=true"
 
 JAR_ARGS="$SPRING_PROFILES"
 
 #初始化psid变量（全局）
 psid=0
+
 
 #(函数)判断程序是否已启动
 checkpid() {
@@ -1038,7 +1046,7 @@ case "$1" in
 		;;
     'restart')
 		stop
-		start
+		start 1
 		;;
     'status')
 		status

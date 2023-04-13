@@ -33,6 +33,10 @@ $!{myMap.key}
 $!{myMap['key']}
 $!{myMap.get($!{relate.toEntityId})}
 
+<!-- 根据变量从list中取值和获取数组大小 -->
+$!{myList.get(0)}
+$!{myList.size()}
+
 <!-- 默认值 -->
 ${name|'John Doe'}
 ```

@@ -35,6 +35,7 @@ select to_days('2016-01-02');
 -- oracel(oracle也支持cast)
 select to_char(sysdate, 'yyyy-MM-dd HH24:mi:ss') from dual;
 select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
+select to_number('0') from dual;
 select cast(100 as varchar2(10)) from dual;
 --sqlserver
 select CONVERT(VARCHAR(10), GETDATE(), 120); -- 格式化日期(120为一种格式) 2000-01-01
@@ -50,6 +51,8 @@ select CONVERT(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:
 -- quarter:季，week:周，day:天，hour:小时，minute:分钟，second:秒，microsecond:毫秒
 date_sub(now(), interval 7 day); -- 当前时间-7天. 不能直接 `now()-7`
 date_add('1970-01-01', interval -1 week); -- 该时间-1周
+-- 2000-01-01、2000-01-01 00:00:00、2000-01-01 23:59:59
+select CURDATE(), DATE_FORMAT(CURDATE(),'%Y-%m-%d %H:%i:%s'), DATE_SUB( DATE_ADD(CURDATE(), INTERVAL 1 DAY),INTERVAL 1 SECOND);
 
 -- oracle
 sysdate + interval '1' year -- 当前日期加1年，还可使用：month、day、hour、minute、second
@@ -63,6 +66,10 @@ select to_char(sysdate,'yyyy-mm')||'-01' firstday,
        to_char(last_day(sysdate),'yyyy-mm-dd') lastday from dual; -- 在oracle中如何得到当天月份的第一天和最后一天
 select to_date('1970', 'yyyy') from dual;
 select to_date('2022-03-12 10:10', 'yyyy-mm-dd hh24:mi:ss') from dual; -- 2022-03-12 10:10:00
+-- 产生随机时间
+select to_date(to_char(sysdate + trunc(dbms_random.value(1,3)), 'yyyy-mm-dd')
+  || ' ' || to_char(trunc(dbms_random.value(8,17)), 'fm00') || ':' || to_char(trunc(dbms_random.value(0,59)), 'fm00') || ':' || to_char(trunc(dbms_random.value(0,59)), 'fm00'), 'yyyy-mm-dd hh24:mi:ss')
+from dual;
 
 -- sqlserver
 select 
@@ -159,7 +166,7 @@ select case when ... end from t_user;
 - **`update set from where`** 将一张表的数据同步到另外一张表
     
 ```sql
--- Oracle：如果a表和b表的字段相同，最好给两张表加别名. **注意where条件**
+-- Oracle：如果a表和b表的字段相同，最好给两张表加别名. **注意where条件**，idea可能出警告
 update test a set (a.a1, a.a2, a.a3) = (select b.b1, b.b2, b.b3 from test2 b where a.id = b.id) 
 where exists (select 1 from test2 b where a.id = b.id);
 
@@ -217,6 +224,28 @@ where t.customer_region = '500000'
             from t_visit v
         where v.customer_id = t.id
             and v.valid_status = 1)
+```
+
+### 更新前几行数据
+
+```sql
+-- oracle: 优先更新某个字段完全匹配的数据，没有完全匹配则更新该字段为空的数据
+UPDATE t_users a
+SET a.age = a.age + 1
+WHERE a.name = 'test'
+and a.sex || '_NULL_' = (
+    -- 防止sex为空
+    select sex || '_NULL_' from (
+        SELECT a.*
+        FROM t_users a
+        WHERE a.name = 'test'
+        and (a.sex is null or a.sex = 'Boy')
+        order by case when a.sex = 'Boy' then 0 else 1 end
+    ) where ROWNUM <= 1
+);
+
+-- mysql: 未测试
+update test_table test set test.aaa = 'xxx' where test.aaa = 'XXX' order by test.xxx desc limit 1;
 ```
 
 ### 不查询某个字段(获取列信息)
@@ -286,6 +315,7 @@ ORDER BY A.modify_date DESC;
 
 ### 环境变量和自定义变量
 
+- oracle案例: [记录数据变动日志](/_posts/db/oracle-dba.md#记录数据变动日志)
 - oracle: https://blog.csdn.net/db_murphy/article/details/115186884
 - mysql: https://blog.csdn.net/qq_36528734/article/details/81187863
 
@@ -408,7 +438,7 @@ stu_no  yuewen  shuxue  yingyu
     where port_id = '1' and trust_cod = 'CUL'
     ```
 - 动态行转列(列名不固定)
-    - 基于存储过程动态拼接SQL，参考[db-procedure.md#sql_pivot_dynamic_col动态行转列](/_posts/db/db-procedure.md#sql_pivot_dynamic_col动态行转列)
+    - 基于存储过程动态拼接SQL，参考[sql-procedure.md#sql_pivot_dynamic_col动态行转列](/_posts/db/sql-procedure.md#sql_pivot_dynamic_col动态行转列)
     - 基于存储过程动态拼接SQL和视图 https://blog.csdn.net/Huay_Li/article/details/82924443
         - 查询每次新增临时查询ID和时间，再定时删掉老的数据；第一次查询创建几百个字段的视图(无实际意义的字段名)，并把列头以一行值的形式显示到结果中(第一行值充当列头)
 - 合并到一个字段
@@ -663,6 +693,9 @@ select trunc(sysdate-1, 'dd'), trunc(sysdate, 'dd') from dual; -- 返回昨天�
 #### 字符串处理
 
 ```sql
+-- length 获取字符长度; lengthb 基于字符获取长度
+select length('你'), lengthb('你'), lengthb('你123Abc'), substr('你123', 1, 3), substrb('你123', 1, 3) from dual; -- 1 3 9 你12 你
+
 -- trim 去除空格
 -- 语法 select trim(leading | trailing | both string1 from string2) from dual;
 select trim(' a b ') from dual; -- "a b"
@@ -676,6 +709,12 @@ select replace('#ID#', '#', '*') from dual; -- *ID*
 
 -- instr 查找字符位置(mysql也支持)
 select instr('##ID##', '#'), instr('##ID##', '#', 3) from dual; -- 1, 5
+
+-- substr 截取字符串; 对应基于字符的则是 substrb
+select substr('hello sql!', 2) from dual; --从第2个字符开始，截取到末尾。返回 'ello sql!'
+select substr('hello sql!', 3, 6) from dual; --从第3个字符开始，截取6个字符。返回 'llo sq'
+select substr('hello sql!', -4, 3) from dual; --从倒数第4个字符开始，截取3个字符。返回 'sql'
+select substr('hello sql!', 1, length('hello sql!') - 1) from dual; -- 返回 'hello sql'
 ```
 
 #### with as 用法
@@ -705,7 +744,7 @@ where temp.create_tm > sysdate-7;
 
 WITH
 ASSIGN(ID, ASSIGN_AMT) AS (
-                SELECT 1, 25150 FROM DUAL 
+    SELECT 1, 25150 FROM DUAL 
     UNION ALL SELECT 2, 19800 FROM DUAL
     UNION ALL SELECT 3, 27511 FROM DUAL
 )
@@ -721,7 +760,7 @@ select * from ASSIGN;
 
 - 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
 - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
-    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 `xmlagg` 函数代替。参考：https://www.cxybb.com/article/qq_28356739/88626952
+    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替。参考：https://www.cxybb.com/article/qq_28356739/88626952
         - druid使用内置SQL解析工具类时，无法解析此函数，参考：https://github.com/alibaba/druid/issues/4259
     - clob直接返回到前台会报错
         - 可通过`clob.getSubString(1, (int) clob.length())`解决
@@ -730,14 +769,23 @@ select * from ASSIGN;
 
 ##### xmlagg行转列
 
+- 最大容量为4G，但是不支持去重
+
 ```sql
+-- 解决缓冲区问题：不使用to_char函数，在Java中需要用java.sql.Clob类，进行数据的接收与转换
 select
+    xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval() "my_col"
+from test;
+
+select
+    -- to_char有4000个字符缓存区限制（如果超过4000个字符则转成to_char失败）
     to_char(xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval()) "my_col"
-from test
+from test;
 ```
 
 ##### listagg within group行转列
 
+- listagg最大容量为4000
 - mysql可使用group_concat
 
 ```sql
@@ -1190,13 +1238,120 @@ select * from tbl_ost_notebook@my_dblink;
 
 ### Oracle定时任务Job
 
+- 说明
+    - jobs是oracle数据库的对象，dbms_jobs是jobs对象的一个实例，类比emp表是tables的实例
+    - 创建方式有差异，Job是通过调用dbms_scheduler.create_job包创建的，dbms_job则是通过调用dbms_job.submit包创建的
+    - oracle10g以后就推荐采用dbms_scheduler包来取代dbms_job来创建定时任务
+    - 任务可手动运行，无法自动运行任务
+        - 确保有可用的任务队列 `select value from v$parameter where name like '%job_queue_processes%'`，如果任务队列太小或为0可通过此语句设置`alter system set job_queue_processes =100;`
+        - 排查参考: https://www.modb.pro/db/394410
+- [dbms_scheduler使用](https://docs.oracle.com/cd/E11882_01/appdev.112/e40758/d_sched.htm#ARPLS72236)
+
+```sql
+-- 创建任务
+begin
+    dbms_scheduler.create_job(
+        job_name => 'my_job_test',
+        job_type => 'stored_procedure', -- 固定值
+        job_action => 'my_proc_name', --存储过程(还支持脚本,参数)
+        start_date => sysdate, -- job的开始时间(写成希望第一次执行的实际，如果写成sysdate可能会在启用时立即执行一次)
+        repeat_interval => 'FREQ=MINUTELY;INTERVAL=5', -- job的运行频率。即每5分钟执行1次
+        comments => '描述',
+        -- end_date => SYSDATE + 5 / 1440, -- 可设置结束时间
+        -- job_class => 'DBMS_JOB$', -- 使用内置任务类DBMS_JOB$，从而到达运行时不记录运行日志
+        enabled => true -- 启用(默认为false)
+    );
+end;
+
+-- 查询任务
+select t.owner, t.job_name, t.JOB_ACTION, t.REPEAT_INTERVAL, t.comments, t.ENABLED
+    ,to_char(t.start_date, 'yyyy-MM-dd hh24:mi:ss') start_date, to_char(t.next_run_date, 'yyyy-MM-dd hh24:mi:ss') next_run_date, to_char(t.last_start_date, 'yyyy-MM-dd hh24:mi:ss') last_start_date, t.run_count
+    ,t.*
+from dba_scheduler_jobs t; -- user_scheduler_jobs
+-- 查看任务执行日志
+select * from dba_scheduler_job_log t where t.JOB_NAME = 'MY_JOB_TEST';
+SELECT * from dba_scheduler_job_run_details t WHERE t.JOB_NAME = 'MY_JOB_TEST';
+
+begin
+    -- 运行job
+    dbms_scheduler.run_job(jobName);
+    -- 停止任务, force=true强制停止
+    dbms_scheduler.stop_job(jobName, force);
+    -- 启用/禁用
+    dbms_scheduler.enable(jobName);
+    dbms_scheduler.disable(jobName, force);
+    -- 删除任务
+    dbms_scheduler.drop_job(jobName);
+end;
+```
+- dbms_scheduler执行频率repeat_interval支持两种格式
+
+```sql
+-- repeat_interval 支持两种格式
+1. 常规日期格式   
+   (1) 每天：sysdate + 1   
+
+2. 日历表达式（'FREQ': 频率，'INTERVAL'：范围 1-999，可选：BY...）
+   FREQ=DAILY; INTERVAL=1 										 每天执行一次 
+   FREQ=WEEKLY; INTERVAL=1; BYDAY=MON							 每周一执行一次
+   FREQ=WEEKLY; INTERVAL=1; BYDAY=MON,FRI						 每周一，周五执行一次
+   FREQ=WEEKLY; INTERVAL=1; BYDAY=MON; BYHOUR=8					 每周一早上8点执行一次
+   FREQ=MONTHLY; INTERVAL=1; BYMONTHDAY=1; BYHOUR=8; BYMINUTE=30 每月第一天早上8点30分执行一次
+   
+   (1) FREQ
+	   YEARLY   年  
+	   MONTHLY  月 
+   	   WEEKLY   周 
+       DAILY    天		  
+       HOURLY   时  
+       MINUTELY 分  
+       SECONDLY 秒
+       
+   (2) INTERVAL
+       1 ~ 999
+
+   (3) BYMONTH
+       JAN 一月    -- January
+	   FEB 二月    -- February
+	   MAR 三月    -- March
+	   APR 四月    -- April
+	   MAY 五月    -- May
+	   JUN 六月    -- June
+	   JUL 七月    -- July
+	   AUG 八月    -- August
+	   SEP 九月    -- September
+	   OCT 十月    -- October
+	   NOV 十一月  -- February
+	   DEC 十二月  -- December
+       
+   (4) BYDAY
+	   MON  周一  -- Monday
+	   TUE  周二  -- Tuesday
+	   WED  周三  -- Wednesday
+	   THU  周四  -- Thursday
+	   FRI  周五  -- Friday
+	   SAT  周六  -- Saturday
+	   SUN  周天  -- Sunday  
+	    
+   (5) BYHOUR
+   (6) BYMINUTE
+   (7) BYSECOND
+
+-- 常用
+`REPEAT_INTERVAL => 'FREQ=DAILY; BYHOUR=16,17,18'` 每天下午4、5、6点时运行
+`REPEAT_INTERVAL => 'FREQ=DAILY; BYDAY=FRI'` 每周5的时候运行
+`REPEAT_INTERVAL => 'FREQ=MONTHLY; BYMONTHDAY=-1'` 每月最后一天运行
+`REPEAT_INTERVAL => 'FREQ=YEARLY; BYHOUR=6; BYMINUTE=30; BYSECOND=0; BYDAY=-1FRI` 每年的最后一个周5的6点30分运行
+```
+- dbms_job使用
+
 ```sql
 -- 查询
 select * from dba_jobs; -- 还有all_jobs/user_jobs
--- 真正运行的job
+-- 正在运行的job
 select * from dba_jobs_running;
 
--- 操作job(创建、手动执行、删除)
+-- 其他操作
 declare
     job_id number;
 begin
@@ -1204,10 +1359,10 @@ begin
     -- sys用户下dbms_job包中的submit过程(方法)，sys可以省略
     -- 在dbms_job这个package中还有其他的过程：broken、change、interval、isubmit、next_date、remove(移除一个job)、run(立即运行一个job)、submit、user_export、what；
     sys.dbms_job.submit(
-        job => :job_id, -- OUT，返回job_id（不能省略）
+        job => job_id, -- OUT，返回job_id（不能省略）
         what => 'my_proc_name;', -- 执行的存储过程名称，后面要带分号
-        next_date => to_date('2018-06-15 10:00:00', 'yyyy-mm-dd hh24:mi:ss'), -- job的开始时间. 如果写成sysdate则提交后便会执行一次
-        interval => 'sysdate+1/86400' -- job的运行频率。每天86400秒钟，即一秒钟运行my_proc_name过程一次
+        next_date => to_date('2000-01-01 00:00:00', 'yyyy-mm-dd hh24:mi:ss'), -- job的开始时间(写成希望第一次执行的实际，如果写成sysdate可能会立即执行一次)
+        interval => 'trunc(sysdate, ''mi'') + 10/(24*60)' -- job的运行频率。即10分钟运行my_proc_name过程一次
     );
     commit;
 
@@ -1221,26 +1376,25 @@ begin
 
 	-- （3）修改
 	dbms_job.what('my_proc_name;'); -- 修改要执行的存储过程名
-	dbms_job.next_date(888, to_date('2018-06-15 10:00:00', 'yyyy-mm-dd hh24:mi:ss')); -- 修改 job 的间隔时间
+	dbms_job.next_date(888, to_date('2000-01-02 00:00:00', 'yyyy-mm-dd hh24:mi:ss')); -- 修改 job 的起始时间
 	dbms_job.interval(888, 'trunc(sysdate)+1'); -- 修改 job 的间隔时间
 end;
 ```
-
-- 执行频率举例
-    - 每天午夜12点 `interval => trunc(sysdate + 1)`
-    - 每天早上8点30分 `interval => trunc(sysdate + 1) + (8*60+30)/(24*60)`
-    - 每星期二中午12点 `interval => next_day(trunc(sysdate), 'tuesday') + 12/24`
-    - 每个月第一天的午夜12点 `interval => trunc(last_day(sysdate) + 1)`
-    - 每个季度最后一天的晚上11点 `interval => trunc(add_months(sysdate + 2/24, 3), 'q') -1/24`
-    - 每星期六和日早上6点10分 `interval => trunc(least(next_day(sysdate, 'saturday'), next_day(sysdate, 'sunday'))) + (6×60+10)/(24×60)`
-    - 每30秒执行次 `interval => sysdate + 30/(24 * 60 * 60)`
-    - 每10分钟执行 `interval => trunc(sysdate, 'mi') + 10/(24*60)`
-    - 每天的凌晨1点执行 `interval => trunc(sysdate) + 1 + 1/(24)`
-    - 每周一凌晨1点执行 `interval => trunc(next_day(sysdate, '星期一'))+1/24`
-    - 每月1日凌晨1点执行 `interval => trunc(last_day(sysdate))+1+1/24`
-    - 每季度的第一天凌晨1点执行 `interval => trunc(add_months(sysdate, 3), 'q') + 1/24`
-    - 每半年定时执行(7.1和1.1) `interval => add_months(trunc(sysdate, 'yyyy'),6)+1/24`
-    - 每年定时执行 `interval => add_months(trunc(sysdate, 'yyyy'), 12)+1/24`
+- dbms_job执行频率举例
+    - 每天午夜12点 `interval => 'trunc(sysdate + 1)'`
+    - 每天早上8点30分 `interval => 'trunc(sysdate + 1) + (8*60+30)/(24*60)'`
+    - 每星期二中午12点 `interval => 'next_day(trunc(sysdate), ''tuesday'') + 12/24'`
+    - 每个月第一天的午夜12点 `interval => 'trunc(last_day(sysdate) + 1)'`
+    - 每个季度最后一天的晚上11点 `interval => 'trunc(add_months(sysdate + 2/24, 3), ''q'') -1/24'`
+    - 每星期六和日早上6点10分 `interval => 'trunc(least(next_day(sysdate, ''saturday''), next_day(sysdate, ''sunday''))) + (6×60+10)/(24×60)'`
+    - 每30秒执行次 `interval => 'sysdate + 30/(24 * 60 * 60)'`
+    - 每10分钟执行 `interval => 'trunc(sysdate, ''mi'') + 10/(24*60)'`
+    - 每天的凌晨1点执行 `interval => 'trunc(sysdate) + 1 + 1/(24)'`
+    - 每周一凌晨1点执行 `interval => 'trunc(next_day(sysdate, ''星期一''))+1/24'`
+    - 每月1日凌晨1点执行 `interval => 'trunc(last_day(sysdate))+1+1/24'`
+    - 每季度的第一天凌晨1点执行 `interval => 'trunc(add_months(sysdate, 3), ''q'') + 1/24'`
+    - 每半年定时执行(7.1和1.1) `interval => 'add_months(trunc(sysdate, ''yyyy''),6)+1/24'`
+    - 每年定时执行 `interval => 'add_months(trunc(sysdate, ''yyyy''), 12)+1/24'`
 
 ### 其他
 
@@ -1255,7 +1409,7 @@ select trunc(4.757545489, 2) from dual;
 
 ## SqlServer
 
--CET和表变量
+- CET和表变量
 
 ```sql
 -- 方式一

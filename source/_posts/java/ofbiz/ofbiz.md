@@ -274,6 +274,103 @@ Thread shutdownThread = new Thread() {
 Runtime.getRuntime().addShutdownHook(shutdownThread);
 ```
 
+### 多环境配置文件
+
+- 工具类
+
+```java
+public class DictName {
+
+	private static Map<String, Properties> profilesProperties = new HashMap<>();
+
+	/**
+	 * 根据环境类型获取配置，会覆盖通用配置
+	 * @param propertyFileName
+	 * @param key
+	 * @return
+	 */
+	public static String getPropertyValueByProfiles(String propertyFileName, String key) {
+		if(UtilValidate.isEmpty(propertyFileName) || UtilValidate.isEmpty(key)) return null;
+		String profiles = System.getProperty("ofbiz.profiles"); // -Dofbiz.profiles
+		if(UtilValidate.isNotEmpty(profiles)) {
+			profiles = "_" + profiles;
+		} else {
+			profiles = "";
+		}
+
+		// 多环境配置文件名
+		String [] arr = propertyFileName.split("\\.");
+		if(arr.length < 2) return null;
+		String suffix = arr[arr.length - 1];
+		arr = Arrays.copyOf(arr, arr.length - 1);
+		String fileName = "";
+		for (String s : arr) {
+			fileName += s + ".";
+		}
+		fileName = fileName.substring(0, fileName.length() -1);
+		String propertyProfilesName = fileName + profiles + "." + suffix;
+
+		String value = null;
+		Properties propertiesProfiles = getProperties(propertyProfilesName);
+		if(UtilValidate.isNotEmpty(propertiesProfiles)) {
+			value = propertiesProfiles.getProperty(key);
+			if(value != null) value = value.trim();
+		}
+		if(UtilValidate.isEmpty(value)) {
+			Properties properties = getProperties(propertyFileName);
+			if(UtilValidate.isNotEmpty(properties)) {
+				value = properties.getProperty(key);
+				if(value != null) value = value.trim();
+			}
+		}
+
+		return value;
+	}
+	private synchronized static Properties getProperties(String propertyFileName) {
+		Properties properties = profilesProperties.get(propertyFileName);
+		if(UtilValidate.isEmpty(properties)) {
+			properties = UtilProperties.getProperties(propertyFileName);
+			if(properties != null) {
+				profilesProperties.put(propertyFileName, properties);
+			}
+		}
+		return properties;
+	}
+}
+```
+- 开发环境启动时, build.xml
+
+```xml
+<target name="_start-debug"
+        description="Start OFBiz in debugging mode. It uses the 8091 port by default. Use -Dportoffset=portNumber to shift all ports with the portNumber value.">
+    <java jar="ofbiz.jar" fork="true">
+        <jvmarg value="${memory.initial.param}"/>
+        <jvmarg value="${memory.max.param}"/>
+        <jvmarg value="${memory.maxpermsize.param}"/>
+        <jvmarg value="${memory.encoding.param}"/>
+        <jvmarg value="-Xnoagent"/>
+        <jvmarg value="-Djava.compiler=NONE"/>
+        <jvmarg value="-Xdebug"/>
+        <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8092"/>
+        <jvmarg value="-Dfile.encoding=UTF-8"/>
+        <!-- 主要在此处设置环境类型 -->
+        <jvmarg value="-Dofbiz.profiles=dev"/>
+        <arg value="start-debug"/>
+        <arg value="-portoffset=${portoffset}"/>
+    </java>
+</target>
+```
+- 生产环境启动时, startofbiz.bat
+
+```bat
+"%JAVA_HOME%\bin\java" -Xms128M -Xmx512M -Dfile.encoding=UTF-8 -Dofbiz.profiles=prod -jar ofbiz.jar
+```
+- 配置文件格式
+    - base.properties
+    - base_dev.properties
+    - base_prod.properties
+- 调用 `String key = DictName.getPropertyValueByProfiles("base.properties", "myAttr")`
+
 ### 邮件配置
 
 - 参考 http://lamadong.blog.163.com/blog/static/207085720093226432980/

@@ -15,7 +15,7 @@ tags: [plugins, debug]
     - 谷歌 `Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.10 Safari/537.36`
     - 火狐 `Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0`
     - IE `Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; rv:11.0) like Gecko`
-
+- 谷歌已于2016年4月15日停止支持WindowsXP、WindowsVista，对应最后版本`v49.0.2623.112`
 
 ## chrome插件收集
 

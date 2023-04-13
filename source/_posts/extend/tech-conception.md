@@ -2,7 +2,7 @@
 layout: "post"
 title: "技术概念(名词)汇总"
 date: "2016-09-01 09:19"
-categories: others
+categories: extend
 tags: [java, conception]
 ---
 

@@ -696,7 +696,11 @@ public class MyBean3 implements InitializingBean, DisposableBean {
     - 控制 bean 之间的实例顺序，需要注意的是 bean 的初始化方法调用顺序无法保证
 - BeanPostProcessor 扩展优先于其他Bean，参考[ApplicationContext:SpringU](#ApplicationContext)
 - `@Lazy` 和@Autowired结合使用，当两个Bean发生循环依赖时，可将其中一个Bean的注入设置成懒加载
-
+- SpringBoot下可使用`@AutoConfigureAfter`、`@AutoConfigureBefore`、`@AutoConfigureOrder` 控制自动配置类加载优先级
+    - `自定义配置类`: 使用@Configuration等注解的类
+    - `自动配置类`: META-INF下/spring.factories文件中定义的配置类; 此文件一般用于第三方包，也可用于主项目
+    - SpringBoot会优先加载自定义配置类，再加载自动配置类
+    - 上述3个注解只有在自动配置类下才会生效；如果一个配置类是通过@Configuration扫描加载，那么上述3个注解将无效
 
 ## AOP
 
@@ -1239,7 +1243,7 @@ public class JobManager {
         - **`TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();`** 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)。**Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用**
         - 或者手动抛出RuntimeException
         - 或者基于自定义注解统一回滚
-- 手动回滚方式
+- 手动回滚方式(前提是当前有事物)
 
 ```java
 // 回滚整个方法
@@ -1250,6 +1254,22 @@ TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 Object savePoint = TransactionAspectSupport.currentTransactionStatus().createSavepoint();
 // 回滚到回滚点
 TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savePoint);
+```
+- 完全手动管理事物
+
+```java
+@Autowired
+private PlatformTransactionManager transactionManager;
+
+// 新发起一个事务
+DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+// 获得事务状态
+TransactionStatus transactionStatus = transactionManager.getTransaction(def);
+// 手动提交事务
+transactionManager.commit(transactionStatus);
+// 手动回滚事物
+transactionManager.rollback(transactionStatus);
 ```
 - 原理参考
     - https://www.jianshu.com/p/acf84a4ed3a3
@@ -1285,8 +1305,6 @@ TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savePoin
     - 如：事务A首先根据条件索引得到10条数据，然后事务B改变了数据库一条数据，导致也符合事务A当时的搜索条件，这样事务A再次搜索发现有9条(B删除了一条)或11条数据(B新增了一条)，就产生了幻读
 - 数据真正入库
     - 入库事务有spring事务，数据库事务，只有当这两个事务都结束，才代表数据真正可查
-
-- 
 
 ### 传播行为
 

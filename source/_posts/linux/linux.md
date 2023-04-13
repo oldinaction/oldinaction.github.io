@@ -1109,6 +1109,53 @@ rar a aezocn.rar *.jpg
 
 - `pt-ioprofile` **不建议在生产环境使用**
 
+### 数据恢复
+
+- 建议使用`safe-rm`等工具进行删除操作，减少误删除几率
+
+```bash
+# 参考: https://blog.csdn.net/weixin_43143310/article/details/121343821
+
+## 恢复正在被进程使用的文件
+lsof | grep delete.txt
+cd /proc/{pid}/fd
+# 类似显示 3 -> /root/delete.txt (deleted)
+ll -l
+# 基于句柄将对应文件恢复到指定目录
+cp 3 /opt/recover/delete.txt.tmp
+
+## 恢复未被进程使用的文件。基于 extundelete，参考: https://www.e-learn.cn/topic/3928412
+# 1.extundelete是支持ext3/ext4双格式分区恢复，基于整个磁盘的恢复功能较为强大,基于目录和文件的恢复还不够强大
+# 2.在实际线上恢复过程中，切勿将extundelete安装到你误删的文件所在硬盘，即尽量不要操作被删除数据的磁盘
+# 3.extundelete执行完毕后在当前目录生产一个RECOVERED_FILES目录，里面即是恢复出来的文件，还包括文件夹
+# 4.(***)任何的文件恢复工具，在使用前，均要将要恢复的分区卸载或挂载为只读，防止数据被覆盖使用。被重新使用后会出现 Space has been reallocated 将无法恢复
+umount /dev/your_del_partition
+mount -o remount,ro /dev/your_del_partition
+
+# 基于整个磁盘的恢复功能较为强大,基于目录和文件的恢复还不够强大
+# 安装
+# yum install e2fsprogs* e2fslibs* -y
+wget https://nchc.dl.sourceforge.net/project/extundelete/extundelete/0.2.4/extundelete-0.2.4.tar.bz2
+tar jxvf extundelete-0.2.4.tar.bz2
+cd extundelete-0.4.0
+./configure
+make && make install
+
+# 打印区块信息
+extundelete /dev/vda1
+
+# 恢复指定时间戳的文件
+date -d "Jul 26 14:30" +%s # 获取当前秒数
+extundelete /dev/sdb1 --after 1234567890 --restore-all
+
+# 恢复指定文件
+extundelete /dev/vda1 --restore-file /root/delete.txt
+# 恢复目录
+extundelete /dev/vda1 --restore-directory /root/test
+# 恢复整个分区
+extundelete /dev/vda1 --restore-all
+```
+
 ### 其他
 
 - https://linuxtools-rst.readthedocs.io/zh_CN/latest/tool/index.html
@@ -1426,7 +1473,7 @@ cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
 
 ```bash
 # 显示最近登录的5个帐号。读入有'\n'换行符分割的一条记录，然后将记录按指定的域分隔符划分域(填充域)。**$0则表示所有域, $1表示第一个域**，$n表示第n个域。默认域分隔符是空格/tab，所以$1表示登录用户，$3表示登录用户ip，以此类推
-last -n 5 | awk '{print $1}'
+last -n 5 | awk '{print $1 $2}' #此时打印的两个变量中间不带空格
 last -n 5 | awk '{print $1,$2}' # print多个变量用逗号分割，显示默认带有空格
 
 # 只是显示/etc/passwd中的账户。`-F`指定域分隔符为`:`，默认是空格/tab

@@ -12,6 +12,7 @@ tags: spring
 [+] 分布式限流 http://blog.battcn.com/2018/08/08/springboot/v2-cache-redislimter/
 [+] Quartz实现动态配置定时任务 https://yq.aliyun.com/articles/626199
     - [xxl-job](https://www.xuxueli.com/xxl-job/) 开源分布式调度
+- Liquibase-数据库脚本版本管理控制 https://www.cnblogs.com/ludangxin/p/16676701.html
 
 ## 简介
 
@@ -769,7 +770,7 @@ server.context-path=/myapp
 | post           | `application/json`                  | row-json              | (String userIdUrlParam, @RequestBody User user)                                                  | `String userIdUrlParam`可以接受 url 中的参数，使用了`@RequestBody`可以接受 body 中的参数(最终转成 User/Map/List 对象，**如`@RequestBody List<Map<String, Object>> items`**，此时 body 中的数据不能直接通过 String 等接受)，而 idea 的 http 文件中 url 参数拼在地址上无法获取(请求机制不同)                                                                                                                                                             |
 | (x)post        | `application/json`                  | row-json              | (@RequestParam username)                                                                         | 如果前台为 application/json + {username: smale}或者 application/json + username=smalle 均报 400；此时需要 application/x-www-form-urlencoded + username=smalle 才可请求成功                                                                                                                                                                                                                                                                             |
 | post           | `application/x-www-form-urlencoded` | x-www-form-urlencoded | (String name, User user, @RequestBody body)                                                      | `String name`可以接受 url 中的参数，postmant 的 x-www-form-urlencoded 中的参数会和 url 中参数合并后注入到 springboot 的参数中；`@RequestBody`会接受 url 整体的数据，(由于 Content-Type)此时不会转换，body 接受的参数如`name=hello&name=test&pass=1234`。**对于 application/x-www-form-urlencoded 类型的数据，可无需 @RequestBody 接受参数**                                                                                                            |
-| post           | `multipart/form-data`               | form-data             | (HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello) | 参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括 axios 等插件)需要使用 new FormData()进行数据传输；此时参数映射到 User 对象，如果字段为 null 则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是 Map 则无法映射**；表单数据都保存在 http 的正文部分，各个表单项之间用 boundary 隔开，用 request.getParameter 是取不到数据的，这时需要通过 request.getInputStream 来取数据 |
+| post           | `multipart/form-data`               | form-data             | (HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello) | 参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括 axios 等插件)需要使用 new FormData()进行数据传输；此时参数映射到 User 对象，如果字段为 null 则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是 Map 则无法映射，可通过传入JSON字符串再反序列化**；表单数据都保存在 http 的正文部分，各个表单项之间用 boundary 隔开，用 request.getParameter 是取不到数据的，这时需要通过 request.getInputStream 来取数据 |
 | get            | -                                   | -                     | (User user, Page page)                                                                           | 前台传输参数为{username: 'smalle', pageSize: 10}时，可正确分别映射到两个对象；如果此时为 post 请求则无法映射；get 请求时，请求参数会拼接到 url 上，Google 浏览器 URL 最大长度限制为 8182 个字符，中文是以 urlencode 后的编码形式进行传递，如果浏览器的编码为 UTF8 的话，一个汉字最终编码后的字符长度为 9 个字符(中=%E4%B8%AD)。如果用 Map 接受，则数字类型的值也会映射成字符串                                                                      |
 | get            | `application/x-www-form-urlencoded` | -                     | (Map<String, Object> param)                                                                           | 前台传输参数为?age=&count=10000时，得到的字段数据类型均为字符串。SqBiz必须加@RequestParam注解才能获取到Map                                                                      |
 
@@ -1095,7 +1096,7 @@ public class TestServlet extends HttpServlet{
     NamedParameterJdbcTemplate namedJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate.getDataSource());
     Map<String, Object> params = new HashMap<>();
     params.put("sex", 1);
-    params.put("idList", MiscU.toList(1, 2, 3));
+    params.put("idList", MiscU.toList(1, 2, 3)); // 必须是集合，不能是数组
     namedJdbcTemplate.update("update t_user set sex = :sex where id in (:idList) ", params);
     ```
 - jdbc批量执行sql语句
@@ -1664,140 +1665,7 @@ public static String sha1(String str) throws NoSuchAlgorithmException, Unsupport
 
 ### WebSocket
 
-- 引入依赖 [^11]
-
-    ```xml
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-websocket</artifactId>
-    </dependency>
-    ```
-- 后端代码
-
-```java
-// 1.WebSocketConfig.java 配置文件
-@Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/user"); // 表示客户端订阅地址的前缀信息，也就是客户端接收服务端消息的地址的前缀信息
-        config.setApplicationDestinationPrefixes("/app"); // 定义websocket前缀，指服务端接收地址的前缀，意思就是说客户端给服务端发消息的地址的前缀
-        config.setUserDestinationPrefix("/user"); // 定义一对一(点对点)推送前缀，默认是`/user`，可省略此配置
-    }
-
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws/aezo") // 定义stomp端点，供客户端使用
-                .setAllowedOrigins("*")
-                .withSockJS(); // 开启SockJS支持
-    }
-}
-
-// 2.@Controller
-@Autowired
-private SimpMessagingTemplate simpMessagingTemplate; // Spring-WebSocket内置的一个消息发送工具，可以将消息发送到指定的客户端或所有客户端
-
-@GetMapping("/")
-public String index() {
-    return "index";
-}
-
-// 功能类似@RequestMapping，定义消息的基本请求(客户端发送消息)。拼上定义的客户端请求的前缀/app，最终客户端请求为/app/send
-@MessageMapping("/send")
-// @SendTo发送消息给所有人，@SendToUser只能推送给请求消息的那个人
-@SendTo("/topic/send")
-public Message send(Message message) throws Exception { // Message为一个VO(不写getter/setter也行)
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    message.date = df.format(new Date());
-    if(message.toUser != null && !"".equals(message.toUser)) {
-        // 给某个人发送消息，此时@SendTo被忽略
-        // convertAndSend(destination, payload); //将消息广播到特定订阅路径中，类似@SendTo
-        // convertAndSendToUser(user, destination, payload); //将消息推送到固定的用户订阅路径中，类似@SendToUser
-        simpMessagingTemplate.convertAndSendToUser(message.toUser, "/private", message); // 发送到/user/${message.toUser}/private通道
-        return null;
-    } else {
-        return message;
-    }
-}
-
-// 定时1秒执行执行一次，向/topic/callback通道发送信息
-@Scheduled(fixedRate = 1000) // 加@EnableScheduling开启定时
-@SendTo("/topic/callback")
-public Object callback() throws Exception {
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    simpMessagingTemplate.convertAndSend("/topic/callback", df.format(new Date()));
-    return "callback"; // 此处返回什么不重要
-}
-```
-- 前端代码(基于angular.js)
-
-```html
-<!-- 基于angular.js -->
-<script src="//cdn.bootcss.com/angular.js/1.5.6/angular.min.js"></script>
-
-<!-- websocket所需js库 -->
-<script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
-<script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
-<script type="text/javascript">
-var stompClient = null;
-var app = angular.module('app', []);
-app.controller('MainController', function($rootScope, $scope, $http) {
-	$scope.data = {
-		username: '', // 用户名
-		toUser: '',
-		connected : false, //连接状态
-		message : '', //消息
-		rows : [] // 消息历史
-	};
-
-	//连接
-	$scope.connect = function() {
-		var socket = new SockJS('/ws/aezo'); // websocket后台定义的stomp端点
-		stompClient = Stomp.over(socket);
-		stompClient.connect({}, function(frame) {
-			// 注册发送消息
-			stompClient.subscribe('/topic/send', function(msg) {
-				$scope.data.rows.push(JSON.parse(msg.body));
-				$scope.data.connected = true;
-				$scope.$apply();
-			});
-			// 注册推送时间回调
-			stompClient.subscribe('/topic/callback', function(r) {
-				$scope.data.time = '当前服务器时间：' + r.body;
-				$scope.data.connected = true;
-				$scope.$apply();
-			});
-			// 注册接受私信
-			stompClient.subscribe('/user/'+ $scope.data.username +'/private', function(msg) {
-				$scope.data.rows.push(JSON.parse(msg.body));
-				$scope.data.connected = true;
-				$scope.$apply();
-			});
-
-			$scope.data.connected = true;
-			$scope.$apply();
-		});
-	};
-
-	// 断开连接
-	$scope.disconnect = function() {
-		if (stompClient != null) {
-			stompClient.disconnect();
-		}
-		$scope.data.connected = false;
-	}
-
-	// 发送消息
-	$scope.send = function() {
-		stompClient.send("/app/send", {}, JSON.stringify({
-			'toUser': $scope.data.toUser,
-			'message': $scope.data.message
-		}));
-	}
-});
-</script>
-```
+参考[SpringBoot整合WebSocket](/_posts/linux/websocket.md#整合SpringBoot)
 
 ### 多数据源/动态数据源/运行时增加数据源
 
@@ -2256,10 +2124,20 @@ spring:
     host: smtp.exmail.qq.com # qq企业邮箱
     port: 465 # 使用SSL协议需要465, 非SSL需要25
     username: test@qq.com
-    password: 4ZfWRqjXzhdxxyhW
+    password: ACXXqjXzhdxxyhW
     properties: # map格式
       from: 自定义昵称<${spring.mail.username}> # 发件人显示名
       mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory # 使用SSL协议需要
+
+# QQ企业邮箱 smtp.exmail.qq.com SSL:465
+    # 企业邮箱如果未开启安全登录，直接填写登录密码即可；如果开启了安全登录，则需要授权码
+# 阿里企业邮箱 smtp.mxhichina.com SSL:587 使用密码
+# 163企业邮箱 smtp.qiye.163.com SSL:465(详见https://qiye.163.com/help/client-profile.html)
+    # 密码需使用授权码，申请IMAP协议的授权码即可
+    # 还必须加上以下配置
+    properties.mail.smtp.ssl.enable: true
+    properties.mail.smtp.ssl.required: true
+    properties.mail.smtp.port: 465
 ```
 - 发送
 
@@ -2298,85 +2176,44 @@ mailSender.send(mimeMessage);
 
 ### 测试
 
-- 普通测试
+- 参考[junit.md#Springboot测试](/_posts/java/junit.md#Springboot测试)
+- 参考[junit.md#多线程测试](/_posts/java/junit.md#多线程测试)
 
-```java
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureMockMvc // 可以自动的注册所有添加@Controller或者@RestController的路由的MockMvc了
-public class DynamicAddTests {
-    @Autowired
-    private MockMvc mockMvc;
+### 分离lib包
 
-    @Test
-    public void login(){
-        try {
-			MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/test3?dsKey=mysql-two-dynamic"))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
-                    .andReturn();
-            String content = mvcResult.getResponse().getContentAsString();
-            Assert.assertEquals("success", "hello world!", content);
+- https://blog.csdn.net/weixin_44588243/article/details/112132855
+- 先打一个完整的包，解压复制出lib目录
+- 修改maven配置重新打包(没有lib目录)
 
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/login/auth")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"name\": \"smalle\"}")
-            ).andExpect(MockMvcResultMatchers.status().isOk())
-                    .andDo(MockMvcResultHandlers.print()); // 打印请求过程
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
+```xml
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+
+    <!--start-->
+    <configuration>
+        <!--这里对应项目的主入口-->
+        <mainClass>cn.aezo.demo.SpringbootApplication</mainClass>
+        <layout>ZIP</layout>
+        <!-- 可将需要打包的依赖添加进去，之后每次会把此依赖打包到jar中；必须要此节点，否则默认会包含全部 -->
+        <includes>
+            <include>
+                <groupId>nothing</groupId>
+                <artifactId>nothing</artifactId>
+            </include>
+        </includes>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <goal>repackage</goal>
+            </goals>
+        </execution>
+    </executions>
+    <!--end-->
+</plugin>
 ```
-
-- 多线程测试(基于Junit+[GroboUtils](http://groboutils.sourceforge.net/))
-	- 安装依赖
-
-		```xml
-		<!-- 第三方库 -->
-		<repositories>
-			<repository>
-				<id>opensymphony-releases</id>
-				<name>Repository Opensymphony Releases</name>
-				<url>https://oss.sonatype.org/content/repositories/opensymphony-releases</url>
-			</repository> 
-		</repositories>
-		
-		<dependency> 
-			<groupId>net.sourceforge.groboutils</groupId> 
-			<artifactId>groboutils-core</artifactId> 
-			<version>5</version> 
-		</dependency>
-		```
-	- 使用
-
-		```java
-		@Test
-		public void multiRequestsTest() {
-			int runnerCount = 100; // 并发数
-			// 构造一个Runner
-			TestRunnable runner = new TestRunnable() {
-				@Override
-				public void runTest() throws Throwable {
-					// TODO 测试内容
-					// Thread.sleep(1000); // 结合sleep表示业务处理过程，测试效果更加明显
-					System.out.println("===>" + Thread.currentThread().getId());
-				}
-			};
-
-			TestRunnable[] arrTestRunner = new TestRunnable[runnerCount];
-			for (int i = 0; i < runnerCount; i++) {
-				arrTestRunner[i] = runner; 
-			}
-			MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(arrTestRunner);
-			try {
-				mttr.runTestRunnables();
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
-		}
-		```
-
+- 将第一次打包提取出来的lib文件夹和第二次打的jar包放在同一个目录下，执行以下命令，启动项目: `java -jar -Dloader.path=./lib springboot-demo-0.0.1-SNAPSHOT.jar`
 
 ### 替换项目运行时springboot的logo
 

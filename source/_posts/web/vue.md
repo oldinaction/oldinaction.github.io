@@ -10,6 +10,7 @@ tags: vue
 
 - 参考文章
     - https://juejin.cn/post/6844903476661583880
+- vue异常代码开发环境正常报错，编译之后不报错且页面卡死问题。参考: https://github.com/PanJiaChen/vue-element-admin/issues/2212
 
 ### 约定俗成
 
@@ -87,6 +88,7 @@ export default {
 - 生命周期钩子
     - 根组件实例：8个 (beforeCreate、created、beforeMount、mounted、beforeUpdate、updated、beforeDestroy、destroyed)
     - 组件实例：8个 (beforeCreate、created、beforeMount、mounted、beforeUpdate、updated、beforeDestroy、destroyed)
+        - 先执行created同步代码, 执行mounted同步代码, 无法控制created中的异步代码执行完后再执行mounted
     - 全局路由钩子：2个 (beforeEach、afterEach)
     - 组件路由钩子：3个 (beforeRouteEnter、beforeRouteUpdate、beforeRouteLeave)
     - 指令的周期： 5个 (bind、inserted、update、componentUpdated、unbind)
@@ -105,11 +107,11 @@ export default {
     - beforeRouteEnter的next的回调
     - nextTick
 - 销毁顺序
-    - mixinx (beforeDestroy)
+    - mixins (beforeDestroy)
     - 父组件 (beforeDestroy)
     - 组件 (beforeDestroy)
     - 组件 (destroyed)
-    - mixinx (destroyed)
+    - mixins (destroyed)
     - 父组件 (destroyed)
 - 浏览器地址栏刷新/回车/F5
     - 所有页面组件重新创建，重头调用`beforeCreate`；且在某页面刷新时，该页面的`beforeDestroy`等钩子不会被执行
@@ -223,6 +225,7 @@ created(): {
         ```
     - Vue.set和Vue.delete的作用
         - `Vue.set` 向响应式对象中添加一个 property，并可确保这个新 property 同样是响应式的. eg: Vue.set(this.dictMap, key, list)
+        - **也可使用如`this.$set(row, '_editLoading', true)`，常用于表格单行按钮loading效果**
     - Vue3.X新版本开始将采用ES6的Proxy来进行双向绑定。可解决上述问题(可以直接监听对象而非属性，可以直接监听数组下标的变化)
 - **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
     - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)
@@ -799,6 +802,41 @@ new Vue({
 - [官方说明](https://cn.vuejs.org/v2/guide/components-custom-events.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E7%9A%84-v-model)
 - 双向数据绑定主要需要解决表单元素值改变后对应的变量值同时变化(变量值变化表单元素的值变化是肯定的)
 - 在原生表单元素中 `<input v-model="inputValue">` 相当于 `<input v-bind:value="inputValue" v-on:input="inputValue = $event.target.value">`
+- 简单弹框案例
+
+```js
+<script>
+	export default {
+		props: {
+			value: {
+				type: Boolean,
+				default: false
+			}
+		},
+		data() {
+			return {
+				show: this.value
+			};
+		},
+		watch: {
+			value (n, o) {
+				this.show = this.value
+			}
+		},
+		methods: {
+			open() {
+				this.show = true;
+				this.$emit('input', this.show)
+			},
+			close() {
+				this.show = false;
+				this.$emit('input', this.show)
+			}
+		}
+	};
+</script>
+```
+- 扩展案例说明
 
 ```html
 <!-- 示例一 -->
@@ -870,7 +908,7 @@ Vue.component('base-checkbox', {
             },
             change() {
                 // 此处保证了子组件发送的数据会被父组件的v-model="myValue"接受，再被value="myValue"传回
-                // 如果上面没有定义model.event="change"，则此处的事件必须是'input' (this.$emit('input', this.model))
+                // 如果上面没有定义model.event="change"，则此处的事件必须是'input' (this.$emit('input', this.model))，this.model可为实际值
                 // el-select中也有change事件，但是该事件传回的值只能到此组件的v-model中，无法再往外面传输，因此此处必须触发新的事件(本组件中定义的事件)
                 // *** 自定义组件中也可以不用有类似的input表单元素，自定义一个model字段名，并指定其model.event，并在此处emit即可修改model ***
                 this.$emit('change', this.model) // 不能直接修改this.value的值，需要通过修改此处的model属性然后传递到外部组件
@@ -1087,13 +1125,17 @@ this.$root.eventBus.$off('eventName')
 <comp>
     <!--插槽实际内容
         1.content为上述插槽名称，如果组件只有一个默认插槽，则此处可将:content换成:default或省略；v2.6开始，具名插槽可缩写为 <template #content="{ item }">
-        2.使用了解构获取item；还可使用v-slot:content="slotProps"获取作用域，并通过slotProps.item获取值；v2.6之前，是使用<template slot="content" slot-scope="slotProps">
+        2.使用了解构获取item；还可使用v-slot:content="props"获取作用域，并通过props.item获取值>
     -->
-    <!-- <template v-slot:content="{ item }"> --><!-- 带上指令名 -->
-    <!-- <template slot="content" slot-scope="slotProps"> --><!-- v2.6之前 -->
-    <template #content="{ item }"><!-- v2.6后 -->
+    <!-- v2.6后：带上指令名，或者缩写成#content，如果是默认的则为#default；需要使用template来渲染 -->
+    <!-- <template v-slot:content="{ item }"> -->
+    <template #content="{ item }">
         {{ item }}
     </template>
+
+    <!-- v2.6之前(兼容) -->
+    <!-- <template slot="content" slot-scope="slotProps"> -->
+    <div slot="content"></div>
 </comp>
 ```
 
@@ -1116,9 +1158,13 @@ this.$root.eventBus.$off('eventName')
     <button @click="toshow">点击让子组件显示</button>
     <component v-bind:is="which_to_show" keep-alive></component>
     <MyComp ref="comp" v-if="show"></MyComp>
+    <Tinymce v-model="fieldModel"></Tinymce>
 </div>
 
 <script>
+    import { LoadAssets } from '@sqbiz/sqbiz-vue'
+    import { NPM_CDN_URL, MODULE_VERSION } from '@/utils/config'
+
     var vm = new Vue({
         el: '#app',
         components: {
@@ -1135,11 +1181,23 @@ this.$root.eventBus.$off('eventName')
             // 假设 MainComp 和 MyComp 相互依赖，则其中一个需要是异步组件
             MyComp: () => import('./MyComp.vue').then(comp => {
                 console.log(comp, this) // comp.default为当前组件，this此时为undefined
-            })
+            }),
+            // 异步基于CDN加载组件. NPM_CDN_URL=https://npm.elemecdn.com MODULE_VERSION=1.0.2-biz-minions
+            Tinymce: (resolve) => {
+                LoadAssets.loadScript(
+                    `${NPM_CDN_URL}/@sqbiz/wplugin-tinymce-vue@${MODULE_VERSION['@sqbiz/wplugin-tinymce-vue']}/lib/WpluginTinymceVue.umd.min.js`,
+                    'WpluginTinymceVue'
+                ).then(() => {
+                    resolve(window.WpluginTinymceVue)
+                })
+            },
         },
         data: {
             which_to_show: "first",
             show: false
+        },
+        created() {
+            LoadAssets.loadCss(`${NPM_CDN_URL}/@sqbiz/wplugin-tinymce-vue@${MODULE_VERSION['@sqbiz/wplugin-tinymce-vue']}/lib/WpluginTinymceVue.css`, 'WpluginTinymceVue')
         },
         mounted () {
             this.show = true
@@ -1201,9 +1259,12 @@ this.$root.eventBus.$off('eventName')
         <router-view></router-view>
     </keep-alive>
     ```
-- 生命周期钩子：在被keep-alive包含的组件/路由中，会多出两个生命周期的钩子 `activated` 与 `deactivated`(写在匹配到的组件中)
-    - activated：在第一次渲染时和之后激活都会被调用
-    - deactivated：组件被停用(离开路由)时调用，使用了keep-alive就不会调用beforeDestroy(组件销毁前钩子)和destroyed(组件销毁)，因为组件没被销毁，被缓存起来了
+- 生命周期钩子
+    - 在被keep-alive包含的组件/路由中，会多出两个生命周期的钩子 `activated` 与 `deactivated`(写在匹配到的组件中)
+    - 不使用keep-alive: beforeRouteEnter -> created -> mounted -> destroyed
+    - 使用keep-alive
+        - 初次进入页面: beforeRouteEnter -> created -> mounted -> activated -> deactivated
+        - 再次进入缓存的页面: beforeRouteEnter -> activated -> deactivated (created和mounted不会再执行)
 - `include` 和 `exclude`(Vue2.1.0新增，之前版本可通过其他方式代替)
 
     ```html
@@ -1235,6 +1296,65 @@ this.$root.eventBus.$off('eventName')
         - 只能匹配当前被包裹的组件，不能匹配更下面嵌套的子组件(比如用在路由上，只能匹配路由组件的name选项，不能匹配路由组件里面的嵌套组件的name选项)
         - `<keep-alive>`不会在函数式组件中正常工作，因为它们没有缓存实例
         - exclude的优先级大于include
+- 路由和keep-alive
+    - 如果发现未缓存，可看看是否有子孙路由也用到了router-view，此时要将最近的router-view进行缓存
+    - https://www.lmlphp.com/user/16603/article/item/552232/
+    - 案例
+
+        ```html
+        <template>
+            <div>
+                <keep-alive :include="includedComponents">
+                    <router-view v-if="keepAlive" :key="key" />
+                </keep-alive>
+                <router-view v-if="!keepAlive" />
+            </div>
+        </template>
+
+        <script>
+        import Vue from 'vue'
+        
+        const CACHE_INCLUDED_ROUTES = 'cache_included_routes'
+
+        export default {
+            name: 'ParentView',
+            data() {
+                return {}
+            },
+            computed: {
+                key() {
+                    return this.$route.path
+                },
+                includedComponents() {
+                    const includedRouters = Vue.ls.get(CACHE_INCLUDED_ROUTES)
+
+                    if (this.$route.name && !(this.$route.meta && this.$route.meta.notCache)) {
+                        let cacheRouterArray = Vue.ls.get(CACHE_INCLUDED_ROUTES) || []
+                        if (!cacheRouterArray.includes(this.$route.name)) {
+                            cacheRouterArray.push(this.$route.name)
+                            Vue.ls.set(CACHE_INCLUDED_ROUTES, cacheRouterArray)
+                            return cacheRouterArray
+                        }
+                    }
+                    return includedRouters
+                },
+                keepAlive() {
+                    return !(this.$route.meta && this.$route.meta.notCache)
+                },
+            },
+        }
+        </script>
+
+        <!-- 删除标签时清除缓存 -->
+        <script>
+            handleCloseTag(remailTag) {
+                // 关闭缓存
+                const CACHE_INCLUDED_ROUTES = 'cache_included_routes'
+                const cacheRouterArray = remailTag.map(x => x.name)
+                Vue.ls.set(CACHE_INCLUDED_ROUTES, cacheRouterArray)
+            }
+        </script>
+        ```
 
 ## 事件
 
@@ -1322,6 +1442,18 @@ insertStr() {
     this.editForm = JSON.parse(JSON.stringify(this.editForm))
 }
 </script>
+```
+
+### 自动转大写
+
+```html
+<Input size="small" placeholder="编号" v-model="form.orderNo" clearable
+    @keyup.native="$upper(form, 'orderNo')"></Input>
+
+Vue.prototype.$upper = function (map, key) {
+  if (!map || !key || !map[key]) return
+  map[key] = map[key].toUpperCase()
+}
 ```
 
 ## 样式
@@ -1433,6 +1565,8 @@ module.exports = {
 - 使用案例
 
 ```less
+// 通过~导入node_module目录下模块样式(也可写成相对路径), 从而可进行变量覆盖
+@import '~view-design/src/styles/index.less';
 // src/assets/theme/default/index.less
 @import "main.less";
 
@@ -1641,10 +1775,10 @@ export default {
     - `el` 指令所绑定的元素，可以用来直接操作 DOM
     - `binding` 包含name, value, expression, arg, modifiers. 案例`v-demo:foo.a.b="message"`(message=hello!)
         - name: demo
-        - value: hello! (如果指令需要多个值，可以传入一个 JavaScript 对象字面量, `v-demo="{ color: 'white', text: 'hello!'}"`)
-        - expression: message
         - arg: foo (也支持变量 `v-pin:[direction]="200"`)
         - modifiers: {"a": true, "b": true}
+        - expression: message
+        - value: hello! (如果指令需要多个值，可以传入一个 JavaScript 对象字面量, `v-demo="{ color: 'white', text: 'hello!'}"`)
     - `vnode`
     - `oldVnode`
 
@@ -1663,6 +1797,41 @@ Vue.directive("uppercase", {
     }
     input.onblur = function (e) {
       input.value = input.value.toUpperCase()
+    }
+  }
+}
+```
+
+#### 多环境配置用户权限
+
+- permission.js
+
+```js
+// v-permission="['admin','editor']"
+// v-permission:[`Prod`, `Test`]="['admin','editor']"
+import store from '@/store'
+
+export default {
+  inserted (el, binding, vnode) {
+    const { value, arg } = binding
+    const roles = store.getters && store.getters.roles
+
+    if (arg && arg.split(',').indexOf(process.env.VUE_APP_SAAS_USER) < 0) {
+      return
+    }
+
+    if (value && value instanceof Array && value.length > 0) {
+      const permissionRoles = value
+
+      const hasPermission = roles.some(role => {
+        return permissionRoles.includes(role)
+      })
+
+      if (!hasPermission) {
+        el.parentNode && el.parentNode.removeChild(el)
+      }
+    } else {
+      throw new Error(`need roles! Like v-permission="['admin','editor']"`)
     }
   }
 }
@@ -1810,8 +1979,9 @@ Vue.directive("uppercase", {
             "scripts": {
                 // 参考: https://gitee.com/gitee-frontend/
                 // 实时监控打包(修改代码编译较快，可实时反映到主应用，且调试时显示的是源码；可增加如`lib/*.hot-update.*`让git忽略热更新产生的文件)
+                // 其他如npm link引用本地模块的方法参考：https://blog.csdn.net/zhangxin09/article/details/119344515
                 // 配合 npm link(通过本地路径直接安装模块即可，偶尔还是需要npm link) 就可以做本地调试了。(1)现在模块目录执行<sudo> npm link将当前模块关联到全局 (2) 在到项目目录执行`npm link my-module`关联模块到项目中(执行后会将本地开发包关联到node_modules中；如果项目目录中配置的是远程包，当重新npm i就会重新下载远程包，即npm link失效)
-                // 注意：--watch模式下，打包的lib中不会出现.css文件(样式和图片等资源无法实时监控)，因为css样式已经内联了，可通过在 vue.config.js 中设置 css: { extract: true } 取消内联
+                // 注意：--watch模式下，打包的lib中不会出现.css文件(样式和图片等资源无法实时监控)，因为css样式已经内联了，可通过在模块的 vue.config.js 中设置 css: { extract: true } 取消内联
                 "start": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js --watch",
                 // 打包命令，打出来的包在lib文件夹中
                 // --formats umd-min # 产物包类型，默认包含common.js、.umd.js、.umd.min.js，此时表示只打包umd.min
@@ -1836,6 +2006,8 @@ Vue.directive("uppercase", {
         - 也可直接使用相对/绝对路径，相当于上面两步
         - 此方式不会在package.json中增加依赖
         - 模块更新不会直接热部署到应用，必须重新build
+    - 解决使用 npm link 时, eslint 提示对应包存在错误的问题
+        - 在vue.coonfig.js的configureWebpack属性中加 `resolve: { symlinks: false }`，参考: https://stackoverflow.com/questions/48410203/webpack-gives-eslint-errors-while-using-npm-link
 - 主应用导入远程环境组件库(均需先上传包)
     - 通过github安装，参考[基于git仓库进行安装](/_posts/web/node-dev-tools.md#基于git仓库进行安装)
     - 通过npm镜像安装
@@ -1847,9 +2019,16 @@ Vue.directive("uppercase", {
 - 组件库主要代码
 
 ```js
-// 组件库入口函数
+// =============> 组件库入口函数
 import GlobalConfig from './config'
 import helper, { install as HelperInstall } from './common/helper.js'
+// 如Vue组件
+import Demo from './packages/demo/index.js'
+// 如果需要使用src下面的js必须在此文件导出
+// 主引用中不能使用`import tools from 'my-comp/src/utils/tools'`导入对象，必须使用 import { tools } from 'my-comp'导入
+// 但是主应用可以使用`@import '~my-comp/src/styles/theme-default.less'`导入样式文件到`index.less`(模块打包后默认将组件中css生成到一个css文件中，main.js中也只能引入css样式)
+import * as tools from './utils/tools' // 此文件中导出了很多小函数
+
 const install = function (Vue, options = {}) {
   _.merge(GlobalConfig, options)
   
@@ -1860,6 +2039,22 @@ const install = function (Vue, options = {}) {
   // ...
 }
 
+// 这样导出后，可使用 import MyComp from 'my-comp' 导入全部对象
+const MyComp = {
+  install,
+  Demo,
+  tools
+}
+export default ReportTable
+
+// 这样导出后，可使用 import { Demo } from 'my-comp' 导入部分对象
+export {
+  install,
+  Demo,
+  tools
+}
+
+// =============> 组件其他文件
 // common/helper.js
 import GlobalConfig from './config'
 const Helper = {
@@ -1952,6 +2147,118 @@ export default install
         }
     }
     ```
+
+## JSX使用
+
+- 类似的可参考[render函数](#render函数(iview))
+- vue的jsx语法是基于[babel-plugin-transform-vue-jsx](https://github.com/vuejs/babel-plugin-transform-vue-jsx)插件实现的 [^7]
+
+    ![vue-jsx](/data/images/web/vue-jsx.png)
+- **使用vue-cli3则不需要手动安装下述babel插件即可使用**(如果重复安装会报错Duplicate declaration "h")。其他方式需要手动安装
+
+```bash
+# 非vue-cli3需要手动安装
+npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-vue-jsx-merge-props babel-preset-env --save-dev
+# .babelrc文件中增加配置
+"plugins": ["transform-vue-jsx"]
+```
+- 使用 [^6] [^7]
+    - babel插件会通过正则匹配的方式在编译阶段将书写在组件上属性进行分类
+        - onXXX的均被认为是事件，nativeOnXXX是原生事件，domPropsXXX是Dom属性，class、staticClass、style、key、ref、refInFor、slot、scopedSlots这些被认为是顶级属性，至于组件声明的props，以及html属性attrs，不需要加前缀，插件会将其统一分类到attrs属性下，然后在运行阶段根据是否在props声明来决定属性归属
+        - 不建议声明onXXX的属性
+    - 对于原生指令，只有v-show是支持的。v-if可用(&& 或 ?:)代替；v-for可用array.map代替；v-model使用事件触发；自定义指令使用...解构
+        - `<el-input value={this.value} onInput={$event => this.value = $event} {...{ directives }}></el-input>` (其中`let directives = [{ name: 'rt-permission', value: ['manager'] }]`)
+    - 对于事件
+        - 使用 `on-[eventName]` 格式, 比如 on-on-change, on-click, on-camelCaseEvent
+        - 使用 `on[eventName]` 格式，比如 onClick, onCamelCaseEvent。click-two 需要这样写 onClick-two，onClickTwo 是不对的
+        - 使用 spread 语法，即 `{...{on: {event: handlerFunction}}}`
+    - 对于样式
+        - 如果组件中使用了scoped，则对该组件的JSX标签中的css类进行样式编写时必须添加`/deep/`等作用于穿透标识
+- 示例
+
+```js
+// v-if使用 && 代替，v-if 和 v-else 使用 ?: 代替
+render() {
+    return (
+        <div class='wrapper'>
+        {
+            this.hello && (<div class='content'>hello</div>)
+        }
+        </div>
+    )
+}
+
+// iview 列
+columns: [{
+    title: '处理人',
+    key: 'workerName',
+    width: 95,
+    // render (h, params) {
+    //     此作用域的this和param类似
+    // },
+    render: (h, params) => {
+        // 此组件可以拿到vue组件 this
+        return (
+            <FieldEdit type="select" value={params.row.worker} dataList={this.projectUserList} dataKey="uid" dataLabel="uname"
+            on-on-change={v => this.editWork('worker', v, params.row)} />
+        )
+    }
+}]
+
+// v-for使用 array.map 代替
+render() {
+    return (
+      <div class='wrapper'>
+        <ul>
+          {
+            this.items.map(item => (
+              <li>{ item.name }</li>
+            ))
+          }
+        </ul>
+      </div>
+    )
+}
+
+// v-model
+render() {
+    return (
+        <component
+            // 保证value会随着this.test进行变化
+            value={ this.test }
+            // 保证组件的值可以传递给this.test
+            onInput={ val => { this.test = val } }
+        >
+        </component>
+    )
+}
+
+// iview的部分组件，此时只能使用下划线，如：Button需要是i-button，Tag=>tag。更多见官网
+{
+    title: '计划日期',
+    key: 'planTm',
+    render: (h, params) => {
+        return (
+            <date-picker type="date" value={ params.row.planTm } on-on-change={ v => { this.planTm = v } } />
+        )
+    }
+}
+
+// 属性
+return (
+    <span {...{
+        style: { color: color },
+        // HTML其他属性
+        attrs: {
+            title: '鼠标悬停标题'
+        }
+    }}>{ msg }</span>
+)
+```
+
+## Vue对Typescript的支持
+
+- 参考[typescript.md#Vue结合Typescript](/_posts/web/typescript.md#Vue结合Typescript)
 
 ## VueRouter路由
 
@@ -2181,6 +2488,27 @@ open() {
         query: {id: 96}
     })
     window.open(route.href, '_blank')
+},
+// 通过提示框渲染一个链接处理打开新标签页
+getInfo() {
+    this.$Modal.info({
+        title: '提示',
+        render: (h) => {
+            return h('a', {
+                on: {
+                    click: () => {
+                        let route = this.$router.resolve({
+                        path: '/test/new',
+                            query: {
+                                name: 'test'
+                            }
+                        })
+                        window.open(route.href, '_blank')
+                    }
+                }
+            }, '打开新标签页')
+        }
+    })
 }
 ```
 
@@ -2302,6 +2630,12 @@ const user = {
     name: '', // 刷新浏览器数据会丢失
     info: Cookies.get('info') ? JSON.parse(Cookies.get('info')) : {} // Cookies获取的是字符串，需要转换
   },
+  // this.$store.getters.username 即可访问
+  getters: {
+    username: state => {
+      return state.info.username
+    }
+  },
   // 更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。它会接受 state 作为第一个参数
   // 同步调用：this.$store.commit('SET_TOKEN', 'my-token-xxx')
   mutations: {
@@ -2408,128 +2742,37 @@ export default user
     }
     ```
 
-## JSX使用
-
-- 类似的可参考[render函数](#render函数(iview))
-- vue的jsx语法是基于[babel-plugin-transform-vue-jsx](https://github.com/vuejs/babel-plugin-transform-vue-jsx)插件实现的 [^7]
-
-    ![vue-jsx](/data/images/web/vue-jsx.png)
-- **使用vue-cli3则不需要手动安装下述babel插件即可使用**(如果重复安装会报错Duplicate declaration "h")。其他方式需要手动安装
-
-```bash
-# 非vue-cli3需要手动安装
-npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-vue-jsx-merge-props babel-preset-env --save-dev
-# .babelrc文件中增加配置
-"plugins": ["transform-vue-jsx"]
-```
-- 使用 [^6] [^7]
-    - babel插件会通过正则匹配的方式在编译阶段将书写在组件上属性进行分类
-        - onXXX的均被认为是事件，nativeOnXXX是原生事件，domPropsXXX是Dom属性，class、staticClass、style、key、ref、refInFor、slot、scopedSlots这些被认为是顶级属性，至于组件声明的props，以及html属性attrs，不需要加前缀，插件会将其统一分类到attrs属性下，然后在运行阶段根据是否在props声明来决定属性归属
-        - 不建议声明onXXX的属性
-    - 对于原生指令，只有v-show是支持的。v-if可用(&& 或 ?:)代替；v-for可用array.map代替；v-model使用事件触发；自定义指令使用...解构
-        - `<el-input value={this.value} onInput={$event => this.value = $event}></el-input>`
-    - 对于事件
-        - 使用 `on-[eventName]` 格式, 比如 on-on-change, on-click, on-camelCaseEvent
-        - 使用 `on[eventName]` 格式，比如 onClick, onCamelCaseEvent。click-two 需要这样写 onClick-two，onClickTwo 是不对的
-        - 使用 spread 语法，即 `{...{on: {event: handlerFunction}}}`
-    - 对于样式
-        - 如果组件中使用了scoped，则对该组件的JSX标签中的css类进行样式编写时必须添加`/deep/`等作用于穿透标识
-- 示例
-
-```js
-// v-if使用 && 代替，v-if 和 v-else 使用 ?: 代替
-render() {
-    return (
-        <div class='wrapper'>
-        {
-            this.hello && (<div class='content'>hello</div>)
-        }
-        </div>
-    )
-}
-
-// iview 列
-columns: [{
-    title: '处理人',
-    key: 'workerName',
-    width: 95,
-    // render (h, params) {
-    //     此作用域的this和param类似
-    // },
-    render: (h, params) => {
-        // 此组件可以拿到vue组件 this
-        return (
-            <FieldEdit type="select" value={params.row.worker} dataList={this.projectUserList} dataKey="uid" dataLabel="uname"
-            on-on-change={v => this.editWork('worker', v, params.row)} />
-        )
-    }
-}]
-
-// v-for使用 array.map 代替
-render() {
-    return (
-      <div class='wrapper'>
-        <ul>
-          {
-            this.items.map(item => (
-              <li>{ item.name }</li>
-            ))
-          }
-        </ul>
-      </div>
-    )
-}
-
-// v-model
-render() {
-    return (
-        <component
-            // 保证value会随着this.test进行变化
-            value={ this.test }
-            // 保证组件的值可以传递给this.test
-            onInput={ val => { this.test = val } }
-        >
-        </component>
-    )
-}
-
-// iview的部分组件，此时只能使用下划线，如：Button需要是i-button，Tag=>tag。更多见官网
-{
-    title: '计划日期',
-    key: 'planTm',
-    render: (h, params) => {
-        return (
-            <date-picker type="date" value={ params.row.planTm } on-on-change={ v => { this.planTm = v } } />
-        )
-    }
-}
-
-// 属性
-return (
-    <span {...{
-        style: { color: color },
-        // HTML其他属性
-        attrs: {
-            title: '鼠标悬停标题'
-        }
-    }}>{ msg }</span>
-)
-```
-
-## Vue对Typescript的支持
-
-- 参考[typescript.md#Vue结合Typescript](/_posts/web/typescript.md#Vue结合Typescript)
-
 ## vue-cli
 
 - [官网](https://cli.vuejs.org/zh/)
 - 安装
 
 ```bash
-npm install -g @vue/cli # 指定版本 @vue/cli@4.3.0
-vue --version # @vue/cli 4.3.0
+# Vue CLI 4.x 需要 Node.js v8.9 或更高版本 (推荐 v10 以上)
+# Vue CLI 5.x 需要 Node.js v12 以上
+npm install -g @vue/cli # 指定版本 @vue/cli@4.5.19
+vue --version # @vue/cli 4.5.19
 
-vue create demo # 创建一个demo项目
+# 创建一个demo项目
+vue create demo
+'''json
+"devDependencies": {
+    // 默认创建的
+    "@vue/cli-plugin-babel": "~4.5.19",
+    "@vue/cli-plugin-eslint": "~4.5.19",
+    "@vue/cli-service": "~4.5.19",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "vue-template-compiler": "^2.6.11",
+    // 手动添加
+    "@types/lodash": "^4.14.168",
+    "node-sass": "^4.9.0",
+    "sass-loader": "^7.0.1",
+    "prettier": "^2.2.1",
+    "webpack-bundle-analyzer": "^3.0.3"
+}
+'''
 
 # [审查项目的-webpack-配置](https://cli.vuejs.org/zh/guide/webpack.html#%E5%AE%A1%E6%9F%A5%E9%A1%B9%E7%9B%AE%E7%9A%84-webpack-%E9%85%8D%E7%BD%AE)
 # 将 vue-cli 中（vue.config.js）对 webpack 的配置信息导出到 output.js 文件
@@ -2618,6 +2861,7 @@ const args = process.argv.slice(2) // ['serve', '--mode', 'dev']
 const hasMode = args.indexOf('--mode') >= 0
 
 module.exports = {
+    // 多项目参考 [springboot-vue.md#多项目配置](/_posts/arch/springboot-vue.md#多项目配置)
     // index.html中引入的静态文件路径，如：/js/app.28dc7003.js(如果publicPath为 /demo1/，则生成的路径为 /demo1/js/app.28dc7003.js)
     publicPath: publicPath, // 对应vue-cli2 或者 webpack中的 assetsPublicPath 参数
     outputDir: 'dist', // 打包后的文件生成在此项目的dist根文件夹，一般是把此文件夹下的文件(index.html和一些静态文件)放到www目录
@@ -2656,9 +2900,11 @@ module.exports = {
             'element-ui': 'ELEMENT',
             'lodash': '_',
         })
-
+        
+        // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
+        // 设置了别名之后会导致通过快捷键无法快速定位到文件。此时可在项目根目录添加一个tsconfig.json(无需在devDependencies中引入额外依赖)，将其中的 paths 属性的值也加入此别名定义，从而可解决(不支持子文件夹项目)
         config.resolve.alias
-            .set('@', resolve('src')) // key,value自行定义。在src的vue文件中可通过此别名引入文件，如 import A from '@/test/index'，相当于引入 scr/test/index.js
+            .set('@', resolve('src'))
             .set('_c', resolve('src/components'))
 
         // 修改插件选项
@@ -2722,6 +2968,8 @@ module.exports = {
         // host: 'localhost', // target host
         port: port,
         open: true,
+        // 解决使用花生壳内网穿透进行调试时，打开网页显示：invalid host header（需要重启项目, 好像修改代码之后仍然需要重启项目）
+        disableHostCheck: true,
         overlay: {
             warnings: false,
             errors: true

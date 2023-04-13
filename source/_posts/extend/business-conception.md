@@ -2,7 +2,7 @@
 layout: "post"
 title: "行业概念"
 date: "2017-10-12 11:22"
-categories: [others]
+categories: [extend]
 tags: [business, conception]
 ---
 

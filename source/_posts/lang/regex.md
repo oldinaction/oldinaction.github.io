@@ -9,10 +9,12 @@ tags: [regex, js, java]
 ## 简介
 
 - [regexr](https://regexr.com/)
+- [JS正则表达式测试](https://c.runoob.com/front-end/854)
+- [Java正则表达式测试](https://www.lddgo.net/string/regex)
 
 ## javascript正则
 
-- **在线测试**：https://c.runoob.com/front-end/854
+- [JS正则表达式测试](https://c.runoob.com/front-end/854)
 - 参考文章：https://juejin.cn/post/6844903487155732494
 
 ### 语法说明
@@ -80,6 +82,9 @@ str.match(/<.+?>/); // <div style="font-color:red;">
 // 用户名（4-16位）
 /^[a-zA-Z0-9_-]{4,16}$/
 
+// 如果匹配到全部为字母(含大小写)和数字则返回true, 否则返回false
+/^[\da-z]+$/i.test(str)
+
 // JAVA和JS字符串每4个字符添加空格
 // https://www.cnblogs.com/eternityz/p/13686419.html
 ```
@@ -115,9 +120,19 @@ if (reg.test(dateStr)) {
 // 匹配变量
 "@a@@1abc@@@ccc$12_a@".match(/@[_\\$a-zA-Z]+[_\\$a-zA-Z0-9]*?@/g); // ['@a@', '@ccc$12_a@']
 ```
+- vscode正则替换
+
+```js
+// 可以将如"title: 'abc'"换成"title: '{{ abc }}'"
+// 查找
+title: '([a-zA-Z0-9-_]*?)'
+// 替换为
+title: '{{ $1 }}}'
+```
 
 ## java
 
+- [Java正则表达式测试](https://www.lddgo.net/string/regex)
 - 参考文章
     - https://segmentfault.com/a/1190000009162306
 
@@ -128,7 +143,7 @@ if (reg.test(dateStr)) {
 [jpg|png] # 代表匹配 j 或 p 或 g 或 p 或 n 或 g 中的任意一个字符
 (jpg|png) # 代表匹配 jpg 或 png
 
-## 反斜杠
+## 反斜杠 \
 # 在匹配 . 或 { 或 [ 或 ( 或 ? 或 $ 或 ^ 或 * 这些特殊字符时，需要在前面加上 \\，比如匹配 . 时，Java 中要写为 \\.，但对于正则表达式来说就是 \.
 # 在匹配 \ 时，Java 中要写为 \\\\，但对于正则表达式来说就是 \\
 
@@ -141,6 +156,7 @@ if (reg.test(dateStr)) {
 \W	# 匹配一个非单词字符（除了大小写字母、数字、下划线之外的字符），等同于 [^\w]
 
 ### 限定符
+.       # ***** 匹配除换行符（\n、\r）之外的任何单个字符，相等于 [^\n\r]；使用 \s\S 相当于所有字符
 *	    # 匹配 >=0 个，是 {0,} 的简写
 +	    # 匹配 >=1 个，是 {1,} 的简写
 ?	    # 匹配 1 个或 0 个，是 {0,1} 的简写
@@ -188,6 +204,9 @@ str.replaceAll("^[0-9\\-].", ""); // 3-456A888A
 str.replaceAll("^[0-9\\-].*", ""); // 
 str.replaceAll("^[0-9\\-].*?", ""); // 23-456A888A
 str.replaceAll("^[0-9\\-]?", ""); // 23-456A888A
+
+// 去掉注释，不能使用 .*? (.不包含换行符)
+"/* 多行注释 */select 1 from dual".replaceFirst("/\\*[\\s\\S]*?\\*/", "");
 ```
 
 ### 分组和反向引用
@@ -278,7 +297,7 @@ while (matcher.find()) {
 
 // 易错点
 "ABCTEL ".matches("(TEL|MOBILE)([\\s:：])*$"); // false
-Matcher matcher = Pattern.compile("(TEL|MOBILE)([\\s:：])*$").matcher("ABCTEL ");
+Matcher matcher = Pattern.compile("(TEL|MOBILE)([\\s:：])*$")   ;
 matcher.matches(); // false
 matcher.find(); // true 通过 matcher.group() 可获取匹配结果
 ```

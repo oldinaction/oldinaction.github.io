@@ -56,11 +56,11 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 - 基于创建bat脚本
     - 法一：参考下文`任务计划`(**成功**)
     - 法二：**将bat脚本的快捷方式放到启动目录**
-        - 用户启动目录(需要用户登录进去才开始自动重启)
-            - Win+R - `shell:startup` 打开对应目录
-            - 或手动打开 `C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
         - 全局启动目录
             - 对应目录 `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`(.../「开始」菜单/程序/启动)
+        - 用户启动目录(**需要用户登录进去才开始自动重启**)
+            - Win+R - `shell:startup` 打开对应目录
+            - 或手动打开 `C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
     - 法三：基于bat和vb
 
         ```bash

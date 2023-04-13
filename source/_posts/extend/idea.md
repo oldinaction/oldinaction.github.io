@@ -225,6 +225,8 @@ ThisCrackLicenseId-{
     - `Ctrl + Shift + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
     - `Ctrl + Shift + Backspace` 回到上次编辑位置
     - `Ctrl + Alt + 左右` 回退(退到上次浏览位置)/前进
+    - `Alt + Enter` 提示
+        - 复制是去除字符串连接符: `Copy string concatenation text to the clipboard` (注意: 选中字符串后鼠标不要点击到字符串中间)
 - Mac
     - `Cmd + Shift + U` 大小写转换
     - `Alt + Shift + U` 驼峰下划线转换(基于插件)
@@ -328,7 +330,11 @@ ThisCrackLicenseId-{
 - maven模块是否按分组展示
     - maven窗口 - setting - Group Modules 分组展示(默认为展开模式进行展示)
 
-### 常见问题
+## 常见问题
+
+- 项目之前正常，突然有一天打开通过maven可以正常编译，但是项目中的类在idea中引入失败(报红，像找不到这个类一样)
+    - 多清理缓存重启几次
+    - https://cloud.tencent.com/developer/article/1706964
 
 ## IDEA开发PHP程序
 

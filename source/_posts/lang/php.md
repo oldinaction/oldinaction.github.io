@@ -12,11 +12,41 @@ tags: [php]
 
 ### 安装
 
-- 可下载`xampp`或`lnmp`集成包(包含apache/mysql/php等服务)
-- php安装
-    - windows：http://php.net/downloads.php
-    - linux：`yum install -y php`
-- 或者直接按照php-fpm(集合nginx使用，会自动装php)
+- windows安装php：http://php.net/downloads.php
+    - 可下载`xampp`或`lnmp`集成包(包含apache/mysql/php等服务)
+- mac安装参考[mac.md#php](/_posts/extend/mac.md#php)
+- **linux安装php(和php-fpm等模块)**
+
+```bash
+# 参考 https://www.cnblogs.com/laterzh2022/p/16272581.html
+
+# yum install epel-release
+yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+yum -y install yum-utils
+# yum search php74
+yum repolist all | grep php
+
+# 安装PHP相关模块
+# 等同于 yum install -y php74-php-gd php74-php-pdo php74-php-mbstring php74-php-cli php74-php-fpm php74-php-mysqlnd php74-php-xml
+yum-config-manager --enable remi-php74
+yum install -y php php-cli php-fpm php-mysqlnd php-zip php-devel php-gd php-mcrypt php-mbstring php-curl php-xml php-pear php-bcmath php-json php-redis
+
+# 等同于 php74 -v
+php -v
+systemctl enable php-fpm && systemctl start php-fpm && systemctl status php-fpm
+
+# 查看php.ini文件位置
+php -i | grep php.ini
+# 查看启用的模块
+php --modules
+
+# 卸载
+yum remove php*
+# @remi-*组下的一般都是相关的
+yum list installed | grep php
+```
+
+- (弃用)或者直接按照php-fpm(结合nginx使用，内置php)
 
 ```bash
 # 需要安装epel-release
@@ -37,6 +67,32 @@ yum -y install php71w-fpm
 systemctl enable php-fpm
 systemctl restart php-fpm
 systemctl status php-fpm
+
+# 卸载
+yum list installed | grep php
+# 卸载mysql相关包，其他模块同理
+yum remove php71w-mysql.x86_64
+```
+
+#### php-zip模块安装
+
+```bash
+# 如下载到 /opt/php-lib 目录
+wget http://pecl.php.net/get/zip-1.13.5.tgz
+tar -zvxf zip-1.13.5.tgz
+cd zip-1.13.5
+# 执行php相关命令,类似解压缩. whereis phpize
+/usr/bin/phpize
+# whereis php-config
+./configure --with-php-config=/usr/bin/php-config
+# php 安装 zip 扩展 报pcre错误，参考：https://blog.csdn.net/lu4506527/article/details/109537116
+make && make install
+# 修改配置，重启 php-fpm
+vi /etc/php.ini
+'''
+zlib.output_compression = On
+extension=/usr/lib64/php/modules/zip.so
+'''
 ```
 
 ### PHP环境组合
@@ -70,6 +126,7 @@ server {
     gzip_types text/plain application/x-javascript application/javascript text/javascript text/css application/xml text/xml;
     gzip_static on;
 
+    # worldpress
 	location / {
 		try_files $uri $uri/ /index.php?$args;
 	}
@@ -79,6 +136,7 @@ server {
     ## php-fpm常用配置
     # php文件转给fastcgi处理。linux安装了php后需要额外安装如`php-fpm`来解析(windows安装了php，里面自带php-cgi.exe)
     # 如果访问 http://127.0.0.1/test/index.php?name=abc 此时会到 /wwwroot/www/shengqitech.aezo.cn 目录寻找 test/index.php 文件（location的正则仅匹配路径，不考虑url中的参数）
+    # 在根目录创建`index.php`，加入`<?php echo phpinfo(); ?>`可打印php版本信息
     set $project_root "/wwwroot/www/shengqitech.aezo.cn"; # 自定义变量，可选
     location ~ \.php$ {
         # 不存在访问资源是返回404，如果存在还是返回`File not found.`则说明配置有问题(如nginx,php-fpm用户读取文件权限问题)
@@ -326,6 +384,22 @@ if(isset($json -> username)) {
     - 包含Header参数。注意：header的key会自动转为大写，且key只能包含字母、数字、中划线(-)。且中划线(-)被自动转为下划线(_)。设置一个header的key为`user-name`，通过`$_SERVER['HTTP_USER_NAME']`来获取
     - `$_SERVER['REQUEST_URI']` 获取请求路径
 
+### 流程控制
+
+- for循环
+    - 支持break 和 continue，包括 while、do while、for 和 foreach 循环
+
+```php
+for ($i=0; $i < 10; $i++) {
+    if($i == 3) {
+        break;
+    } else {
+        continue;
+    }
+    echo $i;
+}
+```
+
 ### 文件
 
 ```php
@@ -336,7 +410,24 @@ return $res && rename($src, $dst); // 然后移动
 
 ## php.ini配置
 
+- 查看php配置
+
+```php
+<!-- index.php -->
+<?php
+phpinfo();
+```
+
+- 配置
+
 ```ini
+[PHP]
+# 允许上传的文件大小, 可设置如1G
+upload_max_filesize = 2M
+# 允许post提交的数据大小(一般此参数也会影响文件上传的大小)
+post_max_size = 8M
+
+
 [MySQLi]
 # mysql.sock默认路径为以下，如果不一样则需要修改，否则mysql会连接不上
 mysqli.default_socket = /var/lib/mysql/mysql.sock

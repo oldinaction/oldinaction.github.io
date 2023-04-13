@@ -446,39 +446,49 @@ spring:
 
 - 配置队列、生产者、消费者
 
-  ```java
-  // 配置队列 hello
-  @Bean
-  public Queue helloQueue() {
-      return new Queue("hello");
-  }
+```java
+// 配置队列 hello
+@Bean
+public Queue helloQueue() {
+    return new Queue("hello");
+}
 
-  // 生产者
-  @Component
-  public class Provider {
+// 生产者
+@Component
+public class Provider {
 
-      @Autowired
-      private AmqpTemplate rabbitTemplate;
+    @Autowired
+    private AmqpTemplate rabbitTemplate;
 
-      // 发送消息
-      public void send() {
-          String context = "hello " + new Date();
-          System.out.println("Provider: " + context);
-          rabbitTemplate.convertAndSend("hello", context);
-      }
-  }
+    // 发送消息
+    public void send() {
+        String context = "hello " + new Date();
+        System.out.println("Provider: " + context);
+        // 会创建一个"hello"的队列
+        rabbitTemplate.convertAndSend("hello", context);
+    }
 
-  // 消费者
-  @Component
-  @RabbitListener(queues = "hello")
-  public class Consumer {
+    // 发送TTL类型的消息: 过期则会自动丢弃(只会检测队头消息，如果整个队列进行检测需要设置队列全局TTL，参考: https://www.cnblogs.com/yuluoxingkong/p/13965204.html)
+    public void testTTL() {
+        MessageProperties messageProperties = new MessageProperties();
+        messageProperties.setExpiration("20000"); // 设置过期时间，单位：毫秒
+        byte[] msgBytes = "测试消息自动过期".getBytes();
+        Message message = new Message(msgBytes, messageProperties);
+        rabbitTemplate.convertAndSend("TTL_EXCHANGE", "TTL", message);
+    }
+}
 
-      @RabbitHandler
-      public void process(String msg) {
-          System.out.println("Consumer: " + msg);
-      }
-  }
-  ```
+// 消费者
+@Component
+@RabbitListener(queues = "hello")
+public class Consumer {
+
+    @RabbitHandler
+    public void process(String msg) {
+        System.out.println("Consumer: " + msg);
+    }
+}
+```
 
 ## (镜像)集群搭建
 
@@ -567,6 +577,7 @@ my-msg
 
 ## 后台管理
 
+- [参考](https://juejin.cn/post/6844903923329794055)
 - 激活 Rabbit MQ's Management Plugin(可激活管理插件)
   - CMD 进入 RabbitMQ 安装目录，进入到 rabbitmq_server-3.8.7/sbin 目录
   - 运行 `rabbitmq-plugins enable rabbitmq_management`
@@ -574,10 +585,28 @@ my-msg
   - `http://localhost:15672` 使用`guest/guest`登录(需要激活 rabbitmq_management)
   - 如果需要通过内网访问，可设置配置 loopback_users.guest=false，具体参考上文安装
 - Overview 概览页面
+    - `Queued messages last minute` 最后一分钟所有队列中的消息
+        - Ready **没有投递给消费者的消息(大于0则表示有消息堆积)**
+        - Unacked 投递给消费者但是还没有收到ACK应答的(由于界面是数据是5s中刷新一次，如果消息较多此处可能有一定量的消息是此状态)
+    - `Message rates last minute` 最后一分钟所有队列的消费情况
+        - Publish：**producter pub消息的速率**
+        - Publisher confirm：broker确认pub消息的速率
+        - Deliver(manual ack)：customer手动确认的速率
+        - Deliver(auto ack)：customer自动确认的速率
+        - Consumer ack：**customer正在确认的速率**
+        - Redelivered：正在传递'redelivered'标志集的消息的速率
+        - Get (manual ack)：响应basic.get而要求确认的消息的传输速率
+        - Get (auto ack)：响应于basic.get而发送不需要确认的消息的速率
+        - Return：将basic.return发送给producter的速率
+        - Disk read：queue从磁盘读取消息的速率
+        - Disk write：queue从磁盘写入消息的速率
 - Connections 连接客户端查看页
-- Channels 客户端会话查看页(在客户端的每个连接里，可建立多个 channel，每个 channel 代表一个会话任务)
+- Channels 客户端会话查看页
+    - 在客户端的每个连接里，可建立多个 channel，每个 channel 代表一个会话任务
+    - Springboot一个消费者可能会自动创建多个会话
 - Exchanges 交换机管理页
 - Queues 队列管理页面
+    - Purge - Purge Messages 清空队列(将队列里的消息全部丢弃掉)，或者执行`rabbitmqctl purge_queue xxx_queue`
 - Admin 管理员操作页面
   - Users 用户管理
     - Add a user 添加用户

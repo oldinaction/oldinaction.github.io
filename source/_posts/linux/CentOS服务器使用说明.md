@@ -127,7 +127,7 @@ yum -y install gcc # 编译c
 cd /etc/yum.repos.d
 # 备份
 mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-# 基础源，下载阿里云镜像
+# 基础源，下载阿里云镜像.
 curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
 # **安装EPEL源(新增镜像源)**
 curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
@@ -237,6 +237,80 @@ yum search vsftpd
     # 编译安装
     make && make install
     ```
+
+### 防止误删除
+
+```bash
+## 参考: https://codeantenna.com/a/F53w2MhbG6
+## 防止误删
+wget https://launchpad.net/safe-rm/trunk/0.13/+download/safe-rm-0.13.tar.gz
+tar axf safe-rm-0.13.tar.gz
+cp /opt/safe-rm-0.13/safe-rm /usr/local/bin/
+ln -s /usr/local/bin/safe-rm /usr/local/bin/rm
+# 添加配置
+vi /etc/profile
+'''
+export PATH=/usr/local/bin:/bin:/usr/bin:$PATH
+'''
+source /etc/profile
+
+# 写入下文禁止删除目录(对应子目录还是可以删除的). `rm /*` 这个暂时没法解决，只能屏蔽`rm /`
+cat > /etc/safe-rm.conf << EOF
+/
+/*
+/bin
+/boot
+/dev
+/etc
+/home
+/initrd
+/lib
+/proc
+/root
+/sbin
+/sys
+/usr
+/usr/bin
+/usr/include
+/usr/lib
+/usr/local
+/usr/local/bin
+/usr/local/include
+/usr/local/sbin
+/usr/local/share
+/usr/sbin
+/usr/share
+/usr/src
+/var
+EOF
+
+## 建立回收站机制
+# pip3 install trash-cli
+pip install trash-cli
+# 删除文件. 被删除的文件在`~/.local/share/Trash/`目录(files为原始文件，info为删除信息)
+# **缺陷** 如果文件所属的用户没有家目录或家目录不存在，则该文件或文件夹会被直接删除？
+trash-put test.txt
+# 列出(当前用户)回收站文件
+trash-list
+# 还原回收站中的某个文件
+trash-restore /root/test.txt
+# 删除回首站中的单个文件
+trash-rm
+# 清空回收站中 7 天前被回收的文件. `trash-empty`表示清空整个回收站
+trash-empty 7
+
+## 替换safe-rm中执行的rm命令
+vi /usr/local/bin/rm
+# 替换下面代码. 该变量在 safe-rm 0.13 版本中定义于 109 行附近
+my $real_rm = '/bin/rm';
+# 替换为(注意结尾的分号)
+my $real_rm = '/usr/bin/trash-put';
+
+## 设置crontab，定期清理(当前用户)回收站
+# 加入 0 0 * * * trash-empty 7
+crontab -u root -e
+systemctl reload crond
+```
 
 ### 宝塔面板
 

@@ -2,7 +2,7 @@
 layout: "post"
 title: "Java开发规范"
 date: "2016-07-06 08:39"
-categories: others
+categories: extend
 tags: [java, rule]
 ---
 

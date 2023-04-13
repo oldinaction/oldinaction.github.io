@@ -15,6 +15,18 @@ tags: [nodejs]
 - centos
 
 ```bash
+# 更多版本参考: https://nodejs.org/dist
+# v16安装参考: https://www.jianshu.com/p/959ca0e5495a
+wget https://nodejs.org/dist/v16.19.1/node-v16.19.1-linux-x64.tar.xz
+xz -d node-v16.19.1-linux-x64.tar.xz
+tar xvf node-v16.19.1-linux-x64.tar
+mv node-v16.19.1-linux-x64 /usr/local/nodejs
+# 加入 export PATH=$PATH:'/usr/local/nodejs/bin'
+vi /etc/profile
+source /etc/profile
+node -v
+
+# 安装v10
 wget https://npm.taobao.org/mirrors/node/v10.23.0/node-v10.23.0-linux-x64.tar.gz
 tar -zxvf node-v10.23.0-linux-x64.tar.gz -C /opt
 ln -s /opt/node-v10.23.0-linux-x64/bin/node /usr/local/bin/
@@ -22,7 +34,6 @@ ln -s /opt/node-v10.23.0-linux-x64/bin/npm /usr/local/bin/
 ln -s /opt/node-v10.23.0-linux-x64/bin/npx /usr/local/bin/
 chown -R root:root /opt/node-v10.23.0-linux-x64 # 文件夹权限默认是500:500
 node -v
-
 # 提供node、npm可通过sudo执行
 sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node /usr/bin/node
 sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node /usr/lib/node
@@ -43,19 +54,23 @@ sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node-waf /usr/bin/node-waf
     // 如果导出了多个模块，可以在引入的时候写全路径，如`import ReportTable from 'report-table'`引入默认模块，而通过类似`import ReportTableDemo from 'report-table/lib-demo/report-table-demo.umd.min.js`引入另外一个模块
     "main": "./lib/report-table.umd.min.js",
 
-    // 依赖和对应版本
+    // 依赖和对应版本, 对于源码中引用到的包且定义在dependencies中的就会编译到最终产物
     "dependencies": {
-        // 波浪符号（~）：固定大、中版本，只升级小版本到最新版本
-        "vue": "~2.5.13",
         // 插入符号（^）：固定大版本，升级中、小版本到最新版本。当前npm安装包默认符号
         "iview": "^2.8.0",
     },
+
     // 开发环境依赖, 不会编译到最终产物
-    "devDependencies": {},
-    // peerDependencies 类似maven的provider。目的是提示宿主环境去安装满足插件peerDependencies所指定依赖的包，然后在插件import或者require所依赖的包的时候，永远都是引用宿主环境统一安装的npm包，最终解决插件与所依赖包不一致的问题
+    "devDependencies": {
+        // 波浪符号（~）：固定大、中版本，只升级小版本到最新版本
+        "vue": "~2.5.13"
+    },
+
+    // peerDependencies, 只是一个声明, 如果开发环境用到仍然需要写到 dependencies 中, 因此 peerDependencies 中的代码不会编译到最终产物
+    // peerDependencies 类似maven的provider。目的是提示宿主环境去安装满足插件 peerDependencies 所指定依赖的包，然后在插件import或者require所依赖的包的时候，永远都是引用宿主环境统一安装的npm包，最终解决插件与所依赖包不一致的问题
     // A 依赖 B 包，当 B 的 peerDependency 中包含 C 时，C就不会被自动安装
-    // 此时 A 必须将对应的依赖项 C 包含为其依赖；否则安装时会警告(运行时会报醋)，且 A 要安装符合对应版本的 C；在开发 B 的时候可以将 C 添加到 devDependencies 中，之后 A 将 C 设置成依赖即可
-    // 一般加入引用方一定会依赖的包，如果不常用的包加到此处，则引用方安装较麻烦(全部写到dependencies只是安装时可能和其他模块重复安装，导致效率差点)
+    // 此时 A 必须将对应的依赖项 C 包含为其依赖；否则安装时会警告(运行时会报醋)，且 A 要安装符合对应版本的 C；在开发 B 的时候可以将 C 添加到 peerDependencies 中，之后 A 将 C 设置成依赖即可
+    // 一般加入引用方一定会依赖的包，如果不常用的包加到此处，则引用方安装较麻烦(全部写到dependencies，只是安装时可能和其他模块重复安装，导致效率差点)
     "peerDependencies": {
         "vue": "^2.6.12"
     },
@@ -101,6 +116,97 @@ sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node-waf /usr/bin/node-waf
 ```
 
 ## 常用依赖包
+
+### Dotenv环境变量
+
+- 参考: https://cloud.tencent.com/developer/article/1921535
+
+```bash
+npm install dotenv -S
+
+# 根目录下创建 .env 文件，写入配置
+HOST=localhost
+
+# 根目录下 app.js(类似main.js) 下引入 dotenv 并使用
+require('dotenv').config({ path: '.env' })
+
+# 使用(所有js文件均可使用)
+console.log(process.env.HOST)
+```
+
+### mysql
+
+- 连接报错`ER_NOT_SUPPORTED_AUTH_MODE`
+    - 对于mysql v8.0需要执行 `ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root'` 重置下密码
+
+### qiniu
+
+- 客户端(前端)
+
+```js
+// 请求服务端获取上传token
+axios.post("api/upload").then(function (response) {
+    if (response.data.code == 200) {
+        console.log("response", response.data);
+        // 七牛云token
+        const qnToken = response.data.message;
+        const file = e.file;
+        const putExtra = {};
+        const config = {};
+
+        const observable = qiniu.upload(
+            file,
+            file.filename,
+            qnToken,
+            putExtra,
+            config
+        );
+        const observer = {
+            next(res) {
+                console.log(res);
+            },
+            error(err) {
+                console.error(err);
+                alert("上传失败");
+            },
+            complete(res) {
+                const fileList = {
+                    uid: res.key,
+                    name: res.key,
+                    status: "done",
+                    url: "https://cdn.aezo.cn/" + res.key,
+                };
+                that.fileList.push(fileList);
+            },
+        };
+        observable.subscribe(observer);
+    }
+    return;
+});
+```
+- 服务端
+
+```js
+// 路由省略
+const qiniu = require('qiniu');
+
+const upload = (token) => {
+  // https://developer.qiniu.com/kodo/1289/nodejs
+  let mac = new qiniu.auth.digest.Mac(process.env.QN_ACCESS_KEY, process.env.QN_SECRET_KEY);
+  // https://developer.qiniu.com/kodo/1206/put-policy
+  let options = {
+    // cn-aezo-one
+    scope: process.env.QN_BUCKET,
+    // saveKey资源名(路径不能以/开头)
+    // https://developer.qiniu.com/kodo/1235/vars#magicvar
+    saveKey: 'tmp/qdpz/$(year)/$(etag)$(ext)'
+  };
+  let putPolicy = new qiniu.rs.PutPolicy(options);
+  // fHpQASRf_r90YIjd3Rbu8ILtWjDtN1cx5AYAknAQ:VeIlyzjNh1Vwc7ltVgmtmULMVO0=:eyJzY29wZSI6ImNuLWFlem8tb25lIiwiZGVhZGxpbmUiOjE2ODA2MjQxNTF9
+  let uploadToken = putPolicy.uploadToken(mac);
+  return Promise.resolve(uploadToken);
+}
+```
 
 ### PM2
 

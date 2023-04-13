@@ -6,11 +6,9 @@ categories: [web]
 tags: js
 ---
 
-## 《前端小课》
+## 简介
 
-- `《前端小课》` (2018-07)
-
-<embed width="1000" height="800" src="/data/pdf/前端小课2018.pdf" internalinstanceid="7">
+- [MDN-JS文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects)
 
 ## ES6(ES2015)
 
@@ -45,6 +43,14 @@ tags: js
         test1.sayName('smalle') // smalle
         var test2 = require("./test2")
         test2.func() // func
+
+        // 接受参数写法
+        // 定义模块
+        module.exports = (vm) => {
+            // 如接受Vue的vm参数
+        }
+        // 使用模块. 此处传入参数vm可以为 `const vm = new Vue({})` 返回的
+        require('./util/mod.js')(vm)
         ```
 - `AMD/CMD`
     - **AMD/CMD是CommonJS在浏览器端的解决方案。**CommonJS是同步加载（代码在本地，加载时间基本等于硬盘读取时间）。AMD/CMD是异步加载（浏览器必须这么干，代码在服务端）
@@ -90,9 +96,18 @@ tags: js
         ```js
         // es6模块 导出
         export default { age: 1, a: 'hello', foo:function(){} }
-
-        // es6模块 导入
+        // 导入成功
         import foo from './foo'
+        // 导入失败
+        import { age } from './foo'
+
+
+        // es6模块 导出
+        export { age: 1, a: 'hello', foo:function(){} }
+        // 导入失败
+        import foo from './foo'
+        // 导入成功
+        import { age } from './foo'
         ```
 
 #### import/export 
@@ -102,19 +117,28 @@ tags: js
 
     ```js
     // myexp.js
-    // 命名导出
+    // 命名导出(不能写成 export {a: 1})
     export { myFunc1, myFunc2 }
-    export const foo = Math.sqrt(2) // 导出只能是const对象
+    // 导出只能是const对象
+    export const foo = Math.sqrt(2)
 
     // 默认导出，一个文件只能有一个默认导出
-    export default {}
+    export default {a: 1}
     export default function() {}
     export default class {}
 
-    import defaultMod, * as allMod from 'myexp.js' // defaultMod可随便取值，对应文件中的默认模块
-    import { myFunc1 as func, myFunc2 } from 'myexp'
-    import 'myexp.js' // 这将运行模块中的全局代码，但实际上不导入任何值
-    var promise = import("module-name");
+    // defaultMod可随便取值，对应文件中的默认模块
+    import defaultMod, * as allMod from 'myext.js'
+    import { myFunc1 as func, myFunc2 } from 'myext'
+    // 导出上文foo函数
+    import { foo } from 'myext'
+    // 导出默认对象的部分属性 a
+    import myext from 'myext'
+    const { a } = myext
+    // 这将运行模块中的全局代码，但实际上不导入任何值
+    import 'myext.js'
+    var promise = import("module-name")
+
     ```
 - **多次引用同一个js不会导致重复引用，且优先执行最深层js文件中的代码** [^7]
 
@@ -219,6 +243,9 @@ console.log('one')
 // ajax
 async fetch () {
     await postRequest().then(res => {
+        console.log(221)
+        return res
+    }).then(res => {
         console.log(222)
     })
     console.log(333)
@@ -493,6 +520,15 @@ let runtimeError = {
 - 字符串必须用单双引号包裹，语句有无分号效果一样
 - `//`单行注释，`/*  */`多行注释（注释也占网页流量，生产环境最好去掉）
 - `console.log();` 可在控制台打印相关信息，对程序无影响（`alert();`弹框打印）
+
+    ```js
+    // 打印LOGO
+    console.info(`%cSqBizPlugin %cV1.0.0 %chttps://www.baidu.com/`,
+          "color:#409EFF;font-size: 22px;font-weight:bolder",
+          "color:#999;font-size: 12px",
+          "color:#333"
+    )
+    ```
 - 利用`debugger;`调试，或者找到相应的源码再打断点
 - `var input = prompt("请输入数据");` 用于收集用户输入数据的对话框（类似alert弹框）
 - `<script>`脚本中的错误，仅影响当前脚本块中出错位置之后的代码(之前的代码照常执行)；function中的错误，只有调用方法时才触发
@@ -573,8 +609,22 @@ let runtimeError = {
 - 位移：右移`>>` 左移`<<` （eg: 64>>3 实际是 64/(2*2*2)=8; 2<<2 实际是 2*(2*2)=8）
 - 赋值运算：`= += -+ *= /= %=` **不建议使用连等赋值**
 - 三目运算符：`? :`
+- 扩展运算符：`...`
+    - 参考[扩展运算符](#扩展运算符(...))，需要ES7或Babel转码
+- 非空断言操作符：`!`
+    - TypeScript定义的操作符，[参考](http://www.semlinker.com/ts-non-null-assertion-operator/)
+    - 可以用于断言操作对象是非 null 和非undefined 类型，具体而言，x! 将从 x 值域中排除 null 和 undefined。使用后可防止编辑器告警
+    - 使用如`node.next!.data = value`
 - [ES2020、ES2021新加??/?./,/_ 等运算符](https://my.oschina.net/u/3704591/blog/4913157)
-    - node v14 才支持`?.`可选链符合
+    - 可选链操作符：`?.`
+        - node v14 才支持，TypeScript 3.7才支持
+    - 空值合并运算符：`??`
+        - 是一个逻辑操作符，当左侧的操作数为 null 或者 undefined 时，返回右侧操作数，否则返回左侧操作数
+        - TypeScript 3.7才支持
+    - 逗号运算符：`,`
+        - 逗号操作符对它的每个操作数求值（从左到右），并返回最后一个操作数的值。如`expr1, expr2, expr3`会返回expr3的结果
+    - 数值分割符：`_`
+        - 如`console.log(100_0000_0000_0000) // 输出 100000000000000`
 
 #### 流程语句
 
@@ -700,6 +750,9 @@ arr.length // 获取的是数组的大小（元素的个数）
 // 数组的其他创建方式（一般不用，因为不能创建只含有一个数值的数组，而 var arr = [3]; 可以）
 var arr1 = new Array(3); // 创建一个数组，其中含有3个元素，其值为undefined，打印时是一个空字符
 var arr2 = new Array(1, 'a', true); // 创建3个元素
+
+// 数组去重并排序
+let list = Array.from(new Set(['A', 'C', 'B', 'A'])).sort()
 ```
 - **用`[]`标识的都是数组**
 - js中的数组有两个不限制
@@ -770,6 +823,7 @@ console.log([1, 2, 3, 4, 5].some((element) => element % 2 === 0)); // true
 let arr = [1, 2, 3]
 arr.splice(1) // [2, 3], arr=[1]. 从下标为1开始，移除所有元素。并返回删除的元素
 arr.splice(-1) // [3], arr=[1, 2]. 从倒数第一位开始，移除所有元素(相当于移除最后一个元素)
+arr.splice(0, 1) // 删除第一个元素
 arr.splice(0, 1, 'fir'); // [1], arr=['fir', 2, 3]. 替换第一个元素。并返回移除的元素
 arr.splice(1, 0, 'sec'); // [], arr=[1, 'sec', 2, 3]. 在数组的第二个元素位置插入元素'sec'(原来的第二个元素还在)
 
@@ -1137,15 +1191,35 @@ else window.onload = createIframe;
     - onMouseUp：在松开鼠标的时候触发，只要弹起的时候在你所要执行的区域上，就会触发。
     - 即onClick的作用=onMouseDown（按下触发）+onMouseUp（弹起触发）
 
-
 ### clientHeight、offsetHeight、scrollHeight区别
 
-- 参考：https://blog.csdn.net/shibazijiang/article/details/103894498
-    - scrollHeight 元素内容的高度
-    - clientHeight 元素像素高度(如div高度，即可视高度)
-    - scrollTop 元素顶部到内容顶部
+- 整个窗口大小
+    - window.innerHeight 是DOM视口的大小，包括滚动条
+        - 如果页面被嵌入到iframe中，则拿到的高度是0
+    - window.outerHeight 是整个浏览器窗口的大小，包括窗口标题、工具栏、状态栏等
+- innerHeight问题
+    - 在不支持window.innerHeight的浏览器中，可以读取documentElement和body的高度，它们的大小和window.innerHeight大小非常接近
+    - 如果页面被嵌入到iframe中，上面的都拿不到高度，可使用`window.screen.heigh`拿到高度
+    - `var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || window.screen.heigh;`
+- [滚动高度](https://blog.csdn.net/shibazijiang/article/details/103894498)
+    - clientHeight 内部可视区域大小，不含滚动条的高度
+    - offsetHeight 整个可视区域大小，包括border和scrollbar在内
+    - scrollHeight 元素内容的高度，包括溢出部分
+    - scrollTop 元素内容向上滚动了多少像素，如果没有滚动则为0
+    - 对应的横向属性为：clientWidth, offsetWidth, scrollWidth, scrollLeft
     - 判断滚动条是否见底：scrollHeight === clientHeight + scrollTop
+- https://www.jianshu.com/p/e874ae203a60
 
+## 兼容性
+
+- `replaceAll` Chrome v85才支持
+    
+    ```js
+    // 替换方案
+    'abab'.replace(/[a]/g, '')   //bb
+    'xaabbyaabbz'.replace(/(aabb)/g, '') //xyz
+    '   aaa bbb'.replace(/\s/g, '') //aaabbb
+    ```
 
 ## 常用函数
 
@@ -1159,6 +1233,12 @@ function uuid () {
     // .replaceAll('-', '')
 }
 ```
+
+## 《前端小课》
+
+- `《前端小课》` (2018-07)
+
+<embed width="1000" height="800" src="/data/pdf/前端小课2018.pdf" internalinstanceid="7">
 
 
 

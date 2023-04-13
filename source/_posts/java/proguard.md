@@ -46,12 +46,46 @@ categories: java
                 </execution>
             </executions>
             <configuration>
-                <!-- JDK8及以下需要添加外部依赖的jar包, 否则部分场景容易报错: java.lang.VerifyError: Bad type on operand stack -->
+                <!-- 额外的jar包，通常是项目编译所需要的jar。JDK8及以下需要添加外部依赖的jar包, 否则部分场景容易报错: java.lang.VerifyError: Bad type on operand stack -->
                 <libs>
                     <lib>${java.home}/lib/rt.jar</lib>
                     <lib>${java.home}/lib/jce.jar</lib>
                     <lib>${java.home}/lib/jsse.jar</lib>
                 </libs>
+                <!-- 防止window的cmd有长度限制而报错 -->
+                <putLibraryJarsInTempDir>true</putLibraryJarsInTempDir>
+
+                <!-- 其他配置 -->
+                <!-- 就是输入Jar的名称，我们要知道，代码混淆其实是将一个原始的jar，生成一个混淆后的jar，那么就会有输入输出。 -->
+                <injar>${project.build.finalName}.jar</injar>
+                <!-- 输出jar名称，输入输出jar同名的时候就是覆盖，也是比较常用的配置。 -->
+                <outjar>${project.build.finalName}.jar</outjar>
+                <!-- 是否混淆 默认是true -->
+                <obfuscate>true</obfuscate>
+                <!-- 指定该模块是否是项目的一部分，是否将生成的PG文件安装部署；对于多模块可能需要，否则会出现编译失败问题 -->
+                <attach>true</attach>
+                <attachArtifactClassifier>pg</attachArtifactClassifier>
+                <!-- 对于多模块打包时，可将依赖包通过assembly方式进行打包，参考下文常见问题 -->
+                <assembly>
+                    <inclusions>
+                        <inclusion>
+                            <groupId>cn.aezo.share.reporttable</groupId>
+                            <artifactId>report-table-common</artifactId>
+                        </inclusion>
+                    </inclusions>
+                </assembly>
+                <!-- 配置一个文件，通常叫做proguard.conf,该文件主要是配置options选项，也就是说使用proguard.conf那么options下的所有内容都可以移到proguard.conf中 -->
+                <proguardInclude>${project.basedir}/proguard.conf</proguardInclude>
+                <!-- 这是输出路径配置，但是要注意这个路径必须要包括injar标签填写的jar -->
+                <outputDirectory>${project.basedir}/target</outputDirectory>
+                <!-- 对输入jar进行过滤，如下配置就是对META-INFO文件不处理 -->
+                <inLibsFilter>!META-INF/**</inLibsFilter>
+                <!-- 在META-INFO中显示pom.xml文件，默认为false，用处不大 -->
+                <addMavenDescriptor>true</addMavenDescriptor>
+                <!--这里特别重要，此处主要是配置混淆的一些细节选项，比如哪些类不需要混淆，哪些需要混淆-->
+                <options>
+                    <!-- 可以在此处写option标签配置，不过我上面使用了proguardInclude，故而我更喜欢在proguard.conf中配置 -->
+                </options>
             </configuration>
         </plugin>
         <plugin>
@@ -152,8 +186,9 @@ public class Application {
 -renamesourcefileattribute SourceFile
 
 # 保留参数名
+# spring参数绑定有些是根据controller的方法参数名称绑定的
 -keepparameternames
-# 为了支持通过Resource获取jarb包中的文件; 主应用中使用@ComponentScan扫描当前模块bean即基于Resource
+# 为了支持通过Resource获取jar包中的文件; 主应用中使用@ComponentScan扫描当前模块bean即基于Resource
 -keepdirectories
 
 # 保留包名不变(不含类名本身)
@@ -186,9 +221,15 @@ public class Application {
     @org.springframework.beans.factory.annotation.Autowired <fields>;
     @javax.annotation.Resource <fields>;
     @javax.inject.Inject <fields>;
+    # 保留@Pointcut注解的方法，否则@Before等注解引用pointcut就会找不到
+    @org.aspectj.lang.annotation.Pointcut public <methods>;
 }
 # 保留配置类属性，需要保持和配置文件中的属性对应
 -keepclassmembers @org.springframework.boot.context.properties.ConfigurationProperties class * {
+    *;
+}
+
+-keepclassmembers public class cn.aezo.**.SpringU {
     *;
 }
 
@@ -585,7 +626,8 @@ public @class *
 # 不混淆所有包名(类名还是会被混淆)，本人测试混淆后WEB项目问题实在太多，毕竟Spring配置中有大量固定写法的包名
 -keeppackagenames
 # 不混淆所有特殊的类
--keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,LocalVariable*Table,*Annotation*,Synthetic,EnclosingMethod
+# 如果使用 LocalVariable*Table 则成员变量不会被混淆，从而使用 !LocalVariableTable,!LocalVariableTypeTable
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,*Annotation*,Synthetic,EnclosingMethod,!LocalVariableTable,!LocalVariableTypeTable
 # 不混淆所有的set/get方法，毕竟项目中使用的部分第三方框架（例如Shiro）会用到大量的set/get映射
 -keepclassmembers public class * {void set*(***);*** get*();}
 
@@ -641,7 +683,101 @@ public @class *
 
 ## 常见问题
 
-- 方法局部变量
-    - 被混淆的类(没有排除该类)，则此类的方法不管有没有被排除，方法内部的局部变量会自动重命名；没被混淆的类则不会
+- 方法局部变量混淆问题
+    - 参考上文需要配置`-keepattributes !LocalVariableTable,!LocalVariableTypeTable`
+    - 此时局部变量都会被混淆，一般混淆为类名小写驼峰
+- 多模块混淆问题
+    - 可将依赖包通过assembly方式进行打包 https://www.jianshu.com/p/ab0f57855ce9
 
+    ```xml
+    <!-- report-table-core模块 -->
+    <build>
+        <plugins>
+            <!-- proguard混淆插件. spring-boot-maven-plugin需要放到此插件的后面 -->
+            <!-- 之后打包后，会生成 proguard_map.txt 的映射文件(源码名称和混淆后名称的映射) -->
+            <plugin>
+                <groupId>com.github.wvengen</groupId>
+                <artifactId>proguard-maven-plugin</artifactId>
+                <version>2.5.1</version>
+                <executions>
+                    <execution>
+                        <id>run-proguard</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>proguard</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- JDK8及以下需要添加外部依赖的jar包, 否则部分场景容易报错: java.lang.VerifyError: Bad type on operand stack -->
+                    <libs>
+                        <lib>${java.home}/lib/rt.jar</lib>
+                        <lib>${java.home}/lib/jce.jar</lib>
+                        <lib>${java.home}/lib/jsse.jar</lib>
+                    </libs>
+                    <proguardInclude>${project.parent.basedir}/proguard.conf</proguardInclude>
+                    <attach>true</attach>
+                    <attachArtifactClassifier>pg</attachArtifactClassifier>
+                    <!-- 依赖模块 -->
+                    <assembly>
+                        <inclusions>
+                            <inclusion>
+                                <groupId>cn.aezo.share.reporttable</groupId>
+                                <artifactId>report-table-common</artifactId>
+                            </inclusion>
+                        </inclusions>
+                    </assembly>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <executions>
+                    <!-- 阻止默认的部署 -->
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>none</phase>
+                    </execution>
+                    <!-- 自定义部署 -->
+                    <execution>
+                        <id>deploy-essential</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <classifier>pg</classifier>
+                            <packaging>jar</packaging>
+                            <!-- 使用固定的pom文件安装到本地仓库，否则会自动生成(可能会丢失依赖从而导致依赖传递失败) -->
+                            <pomFile>${basedir}/pom.xml</pomFile>
+                            <file>${basedir}/target/${project.name}-${project.version}-pg.jar</file>
+                            <repositoryId>aezocn-maven-repo</repositoryId>
+                            <url>file:///Users/smalle/gitwork/github/aezo-maven-repo</url>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- 主项目中使用 -->
+    <dependency>
+        <groupId>cn.aezo.share.reporttable</groupId>
+        <artifactId>report-table-core</artifactId>
+        <version>${report-table.version}</version>
+        <classifier>pg</classifier>
+        <exclusions>
+            <exclusion>
+                <groupId>cn.aezo.share.reporttable</groupId>
+                <artifactId>report-table-common</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    ```
+    - 或者以maven-assembly-plugin -> proguard-maven-plugin -> spring-boot-maven-plugin顺序进行打包，参考https://huaweicloud.csdn.net/638764d9dacf622b8df8b1c5.html
+- springboot proguard 代码混淆相关问题 https://huaweicloud.csdn.net/638764d9dacf622b8df8b1c5.html 
 

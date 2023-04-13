@@ -9,8 +9,19 @@ tags: [css]
 ## 简介
 
 - [MDN CSS 参考](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference)
+- TODO
+    - [12 个好用的 CSS 的开源项目](https://wuyaogexing.com/70/829272.html)
+    - Tailwind CSS 是一个功能类优先的 CSS 框架，它集成了诸如 flex, pt-4, text-center 和 rotate-90 这样的的类
 
 ## CSS 知识点
+
+### CSS3说明
+
+- CSS3使用时一般带有私有前缀，对应关系如下
+    - `-webkit-` 对应 `Safari and Chrome`
+    - `-moz-` 对应 `Firefox`
+    - `-o-` 对应 `Opera`
+    - `-ms-` 对应 `Internet Explorer`
 
 ### BFC
 
@@ -25,18 +36,13 @@ table tbody tr td:first-child {border: none;}
 table tbody tr td:first-child+td+td {border: none;}
 ```
 
-## CSS3 知识点
+## 响应式
 
-- CSS3使用时一般带有私有前缀，对应关系如下
-    - `-webkit-` 对应 `Safari and Chrome`
-    - `-moz-` 对应 `Firefox`
-    - `-o-` 对应 `Opera`
-    - `-ms-` 对应 `Internet Explorer`
-
-### display: box; 弹性盒子模型(Flexible Box Model)
+### 弹性盒子模型(Flexible Box Model)
 
 > http://www.zhangxinxu.com/wordpress/?p=1338
 
+- `display: box;`
 - 作用于父元素上
     - `display: box;` 只有父元素声明了使用box模型，子元素才能使用box-flex属性
     - `box-orient` 用来确定子元素的方向，是横着排还是竖着排。horizontal | inline-axis | inherit：横排；vertical | block-axis：竖排
@@ -71,12 +77,12 @@ table tbody tr td:first-child+td+td {border: none;}
 }
 ```
 
-### display: flex; Flex布局
+### Flex布局
 
 https://www.zhangxinxu.com/wordpress/?p=8063
 https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 
-
+- `display: flex;`
 - 作用在flex容器上
     - flex-direction
     - flex-wrap
@@ -123,8 +129,6 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
     height: calc(100vh - 120px); /* 高度用可视高度，而不能用 100% */
 }
 ```
-
-## 响应式
 
 ### vm/rpx/rem
 
@@ -236,16 +240,24 @@ span {
 - 样例参考：http://www.xuanfengge.com/demo/201311/scroll/css3-scroll.html [^1]
 
 ```css
+.box::-webkit-scrollbar {
+    /* 单独修改此div的滚动条 */
+}
+
+/* 如果只定义::-webkit-scrollbar-thumb和::-webkit-scrollbar-track，而不定义::-webkit-scrollbar则会无效 */
 ::-webkit-scrollbar {
     width: 6px; /* 针对纵向滚动条 */
     height: 8px; /* 针对横向滚动条 */
 }
+/* 滚动条 */
 ::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background-color: tint(#adb0b8, 50%); /* 滚动条颜色，50%为半透明，100%为完全透明 */
 }
+/* 滚动槽 */
 ::-webkit-scrollbar-track {
     border-radius: 10px;
+    background-color: red;
 }
 ::-webkit-scrollbar-thumb:hover {
     background: tint(#adb0b8, 20%);
@@ -425,6 +437,14 @@ body{
 }
 ```
 
+### 通过HTML转义字符完成部分简单图标
+
+- https://www.cnblogs.com/zfc2201/archive/2012/12/18/2824112.html
+
+### CSS实现文字横向滚动
+
+- https://juejin.cn/post/6844904165446156302
+
 ## 常见问题
 
 ### height: 100%; 无效 [^2]
@@ -459,6 +479,22 @@ body{
     visibility: hidden;
 }
 ```
+
+### z-index 失效
+
+- 使用
+    - z-index元素的position属性要是relative，absolute或是fixed
+    - z-index值越大就越是在上层
+- z-index在一定的情况下会失效
+    - 父元素position为relative时，子元素的z-index失效
+        - 将父元素position改为absolute或static
+    - 该标签在设置z-index的同时还设置了float浮动
+        - float去除，改为display：inline-block
+
+### 父元素的高度无缘无故增加
+
+- 在父元素上使用 flex 布局可解决：`display: flex;`
+    - https://blog.csdn.net/qq_43886365/article/details/127230526
 
 ## 性能优化
 

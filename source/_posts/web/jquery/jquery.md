@@ -33,6 +33,7 @@ $(function() {
 $.ajax({
     type: "POST", // GET(默认)、POST
     url: "/api/getWeather",
+    timeout: 1000*60,
     // async: false, // 是否异步调用，默认true
     data: {
         zipcode: 97201
@@ -43,10 +44,13 @@ $.ajax({
 });
 ```
 
-## 常见问题
+## 常见案例
 
 ### 防止重复点击
 
-- https://www.csdn.net/tags/Ntzakg5sMzEwMy1ibG9n.html
 - https://www.yisu.com/zixun/476111.html
 
+### 简单loading效果
+
+- https://blog.csdn.net/m0_57217156/article/details/123916128
+    - loading图片可直接下载文章中的

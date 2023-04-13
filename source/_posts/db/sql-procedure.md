@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "db-procedure"
+title: "SQL Procedure"
 date: "2017-08-24 20:33"
 categories: [db]
 tags: [oracle, mysql, procedure]
@@ -16,6 +16,7 @@ tags: [oracle, mysql, procedure]
 - oracle转义字符为 `'` ，如 `''` 转义后就是 `'`
 - sqlplus查看存储过程 `select text from all_source where name = 'my_procedure';`
 - **通过select执行函数**`select my_func(select id from user where username='test') mf from dual;`可以到函数返回值
+- [Oracle内置包/方法](https://docs.oracle.com/cd/E11882_01/appdev.112/e40758/toc.htm)
 
 ### 控制语句
 
@@ -51,6 +52,7 @@ create or replace procedure p_up_user_role is
 	china_id number;
 begin
 	begin
+        -- 在使用into给查询语句赋值时，是一次性into，例：select a,b,c into d,e,f from...而不是分别进行into，例： select a into d, b into e from...
 		select t.id into china_id from t_structure t where t.structure_type_status = 1 and t.node_level = 6 and t.node_name = '中国'; --可能出现运行时异常：ORA-01403 no data found
 	exception
 		when no_data_found then china_id := -1;
@@ -207,7 +209,12 @@ end;
 
 ### forall与bulk collect语句提高效率
 
-参考：[http://blog.aezo.cn/2018/07/27/db/sql-optimize/](/_posts/db/sql-optimize.md#批量更新优化)
+参考：[http://blog.aezo.cn/2018/07/27/db/sql-optimize/](/_posts/db/sql-optimization.md#批量更新优化)
+
+### 自治事务
+
+- 使用`PRAGMA AUTONOMOUS_TRANSACTION`
+- 参考: https://www.cnblogs.com/it-note/archive/2013/06/14/3136134.html
 
 ### 常用类型
 

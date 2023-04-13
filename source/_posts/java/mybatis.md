@@ -379,7 +379,10 @@ for (Orders order : list) {
                         <bind name="index" value="index+2" />
                         select ${index} "结果index=4" from dual;
                     -->
-					<!-- _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name') -->
+					<!-- 
+                        _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name')
+                        _parameter 为 DynamicContext 中的属性，类似的还有_databaseId=oracle|mysql
+                    -->
 					<bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
                     <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> 
                     <!-- 定义了参数名 @Param("userInfo") -->
@@ -412,6 +415,7 @@ for (Orders order : list) {
                     and ${item} = #{params.${item}}
                 </if>
 			</sql>
+            <!-- 只支持property参数值(不支持外部传入参数)，且property的value属性值不支持EL表达式 -->
 			<sql id="someinclude">from <include refid="${include_target}"/></sql>
             <!-- 返回 List<Map> 对象 -->
 			<select id="selectMain" resultType="map">
@@ -650,6 +654,8 @@ for (Orders order : list) {
 - xml中传入常量
     - 格式`${@path$subClass@Attr.getValueMethod}`，[ognl表达式参考](https://commons.apache.org/proper/commons-ognl/language-guide.html)
     - 如 `AND type = ${@cn.aezo.test.Const@Type}` 或者 `AND type = ${@cn.aezo.test.Const$TypeEnum@Test.getValue()}`(枚举)
+- 注入全局变量/动态解析全局变量: https://blog.csdn.net/mashangzhifu/article/details/122845644
+    - 参考下文[拦截器(插件)](#拦截器(插件))
 
 ## 主键问题
 
@@ -746,6 +752,39 @@ for (Orders order : list) {
     </insert>
     ```
 
+## Mybatis缓存
+
+- [聊聊MyBatis缓存机制](https://tech.meituan.com/2018/01/19/mybatis-cache.html)
+- 一级缓存
+    - 配置`<setting name="localCacheScope" value="SESSION"/>`
+        - 共有两个选项，SESSION或者STATEMENT，默认是SESSION级别，即在一个MyBatis会话(同一个sqlSession对象)中执行的所有语句，都会共享这一个缓存。一种是STATEMENT级别，可以理解为缓存只对当前执行的这一个Statement有效(相当于关闭一级缓存)
+    - 现象
+        - 同一个sqlSession对象，执行多次查询，只有第一次会查询数据库，后续则返回缓存数据(不考虑缓存过期的情况)
+        - 在修改操作后执行的相同查询，一级缓存失效
+        - 一级缓存只在数据库会话内部共享。如果会话1先读取一次数据，然后会话2修改了该数据(只会让会话2的查询缓存失效)，会话1重新读取此数据获取的任然是修改前数据
+    - 总结
+        - MyBatis一级缓存的生命周期和SqlSession一致
+        - MyBatis一级缓存内部设计简单，只是一个没有容量限定的HashMap，在缓存的功能性上有所欠缺
+        - MyBatis的一级缓存最大范围是SqlSession内部，有多个SqlSession（简单的Spring项目一般只有一个此对象）或者分布式的环境下，数据库写操作会引起脏数据，建议设定缓存级别为Statement
+- 二级缓存
+    - mybatis-plus默认开启了二级缓存，关闭可设置`mybatis-plus.configuration.cacheEnabled=false`
+    - 配置
+        - 在MyBatis的配置文件中开启二级缓存`<setting name="cacheEnabled" value="true"/>`
+        - 然后在MyBatis的映射XML中配置`<cache />`或者`<cache-ref namespace="mapper.DemoMapper"/>`；其中cache标签支持属性
+            - type：cache使用的类型，默认是PerpetualCache，这在一级缓存中提到过。
+            - eviction： 定义回收的策略，常见的有FIFO，LRU。
+            - flushInterval： 配置一定时间自动刷新缓存，单位是毫秒。
+            - size： 最多缓存对象的个数。
+            - readOnly： 是否只读，若配置可读写，则需要对应的实体类能够序列化。
+            - blocking： 若缓存中找不到对应的key，是否会一直blocking，直到有对应的数据进入缓存
+    - 现象
+        - 当开启缓存后，数据的查询执行的流程就是 二级缓存 -> 一级缓存 -> 数据库
+        - 执行更新等语句后，缓存失效
+    - 总结
+        - MyBatis的二级缓存相对于一级缓存来说，实现了SqlSession之间缓存数据的共享，同时粒度更加的细，能够到namespace级别，通过Cache接口实现类不同的组合，对Cache的可控性也更强
+        - MyBatis在多表查询时，极大可能会出现脏数据，有设计上的缺陷，安全使用二级缓存的条件比较苛刻(可使用cache-ref让两个namespace使用同一个缓存)
+        - 在分布式环境下，由于默认的MyBatis Cache实现都是基于本地的，分布式环境下必然会出现读取到脏数据，需要使用集中式缓存将MyBatis的Cache接口实现，有一定的开发成本，直接使用Redis、Memcached等分布式缓存可能成本更低，安全性也更高
+
 ## 基于databaseId实现数据库兼容
 
 - mybatis
@@ -776,19 +815,35 @@ public DatabaseIdProvider databaseIdProvider() {
 
 ## 拦截器(插件)
 
-- mybatis 拦截器 Interceptor
-    - 实现`Interceptor`接口
-    - `@Intercepts`注解用于配置需要拦截的对象和方法
-    - 结合 ThreadLocal 参考：https://blog.csdn.net/iteye_19045/article/details/100024506
-- mybatis-plus 的 `InnerInterceptor` 机制是基于 mybatis 的 `Interceptor` 实现的，具体参考 mybatis-plus 类 `MybatisPlusInterceptor`
+- mybatis 拦截器 Interceptor 可拦截的目标对象有四个（前面是可被拦截的对象，后面括号中是对象中可被拦截的方法）
+    - Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+    - ParameterHandler (getParameterObject, setParameters)
+    - StatementHandler (prepare, parameterize, batch, update, query)
+    - ResultSetHandler (handleResultSets, handleOutputParameters)
+- 拦截器执行顺序
+    - 不同拦截对象执行顺序，如下：`Executor` -> `StatementHandler` -> `ParameterHandler` -> `ResultSetHandler
+    - 拦截相同对象执行顺序，取决于 mybatis-config.xml 中 plugin 配置顺序，越靠后，优先级越高
+- mybatis 拦截器使用
+    - 实现`Interceptor`接口；`@Intercepts`注解用于配置需要拦截的对象和方法
+    - 配置mybatis拦截器: 基于xml或者注解成Bean
+- mybatis-plus 拦截器
+    - v3.4.0及以上: 其 `InnerInterceptor` 机制是基于 mybatis 的 `Interceptor` 实现的，具体参考 mybatis-plus 类 `MybatisPlusInterceptor`(v3.4.0)
+    - v3.4.0以下同 mybatis 拦截器使用，只需注册配置成Bean即可
 - 案例
-    - https://juejin.cn/post/6965441270277734430 基于查询
-    - https://www.zhihu.com/question/375124631/answer/2357163072 基于修改
+    - Mybatis拦截器失效(引入了分页插件导致)，参考下文案例：https://blog.csdn.net/weixin_44032384/article/details/116381837
+        - http://xtong.tech/2018/08/01/MyBatis%E6%8B%A6%E6%88%AA%E5%99%A8%E5%9B%A0pagehelper%E8%80%8C%E5%A4%B1%E6%95%88%E7%9A%84%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3/
+        - https://blog.csdn.net/weixin_37672801/article/details/125055660
+    - 结合 ThreadLocal 参考：https://blog.csdn.net/iteye_19045/article/details/100024506
+    - 基于查询：https://juejin.cn/post/6965441270277734430
+    - 基于修改：https://www.zhihu.com/question/375124631/answer/2357163072
 - 主要代码
 
 ```java
-@Intercepts({@Signature(type = Executor. class, method = "query",
-    args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})})
+// 可只拦截某个方法类型
+@Intercepts({
+    @Signature(method = "update", args = { MappedStatement.class, Object.class }, type = Executor.class),
+    @Signature(method = "query", args = { MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class }, type = Executor.class),
+})
 public class TestInterceptor implements Interceptor {
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -811,6 +866,133 @@ public class TestInterceptor implements Interceptor {
     public void setProperties(Properties properties) {
     }
 }
+
+// mybatis模式注册插件；mybatis-plus v3.4.0以下直接注册成Bean即可，v3.4.0以上基于MybatisPlusInterceptor注册
+@Configuration
+public class PluginsConfig {
+
+    @Autowired
+    private List<SqlSessionFactory> sqlSessionFactoryList;
+
+    @PostConstruct
+    public void addPageInterceptor() {
+        DefaultInterceptor interceptor = new TestInterceptor();
+        // 此处往 SqlSessionFactory 中添加
+        for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryList) {
+            sqlSessionFactory.getConfiguration().addInterceptor(interceptor);
+        }
+    }
+}
+```
+- 注入全局动态参数(引入pagehelper插件的情况下)
+    - 参考[spring.md#加载优先级](/_posts/java/spring.md#加载优先级)
+
+```java
+// 插件逻辑(全局动态参数)
+@Slf4j
+@Intercepts({
+    @Signature(method = "update", args = { MappedStatement.class, Object.class }, type = Executor.class),
+    @Signature(method = "query", args = { MappedStatement.class, Object.class, RowBounds.class,
+            ResultHandler.class }, type = Executor.class),
+    // 如果使用pagehelper分页插件可能需要同时拦截此方法
+    @Signature(method = "query", args = { MappedStatement.class, Object.class, RowBounds.class,
+            ResultHandler.class, CacheKey.class, BoundSql.class}, type = Executor.class)
+})
+public class GlobalParametersInterceptor implements Interceptor {
+    private Set<Integer> sourceStorage = new HashSet<Integer>();
+
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        Object[] args = invocation.getArgs();
+        MappedStatement mappedStatement = (MappedStatement) args[0];
+        SqlSource sqlSource = mappedStatement.getSqlSource();
+        // 只拦截动态sql
+        if (sqlSource instanceof DynamicSqlSource) {
+            Field field = DynamicSqlSource.class.getDeclaredField("rootSqlNode");
+            field.setAccessible(true);
+            SqlNode sqlnode = (SqlNode) field.get(sqlSource);
+            if (!sourceStorage.contains(sqlSource.hashCode())) {
+                // 获取动态代理对象
+                SqlNode proxyNode = proxyNode(sqlnode);
+                field.set(sqlSource, proxyNode);
+                sourceStorage.add(sqlSource.hashCode());
+            }
+        }
+        return invocation.proceed();
+    }
+
+    private SqlNode proxyNode(SqlNode sqlnode) {
+        SqlNode proxyNode = (SqlNode) Proxy.newProxyInstance(sqlnode.getClass().getClassLoader(),
+                new Class[]{SqlNode.class}, new SqlNodeInvocationHandler(sqlnode));
+        return proxyNode;
+    }
+
+    @Override
+    public Object plugin(Object target) {
+        return Plugin.wrap(target, this);
+    }
+
+    @Override
+    public void setProperties(Properties properties) {
+    }
+
+    private class SqlNodeInvocationHandler implements InvocationHandler {
+        private final SqlNode target;
+        public SqlNodeInvocationHandler(SqlNode target) {
+            super();
+            this.target = target;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            DynamicContext context = (DynamicContext) args[0];
+            // 手动添加全局动态参数
+            context.getBindings().put("_gvUsername", ShiroUtils.getUsername());
+            return method.invoke(target, args);
+        }
+
+    }
+}
+
+// 自动配置类(必须让动态注入的全局参数在PageHelperAutoConfiguration之后实例化bean，使用@AutoConfigureAfter到达目的)；注意不能加@Configurable等类，否则@AutoConfigureAfter会失效
+@AutoConfigureAfter({PageHelperAutoConfiguration.class})
+public class GlobalParametersConfig {
+    @Autowired
+    private SqlSessionFactory sqlSessionFactory;
+
+    @PostConstruct
+    public void addPageInterceptor() {
+        GlobalParametersInterceptor interceptor = new GlobalParametersInterceptor();
+        this.sqlSessionFactory.getConfiguration().addInterceptor(interceptor);
+    }
+}
+
+// 必须此配置，从而@AutoConfigureAfter注解才会生效
+// META-INFO/spring.factories
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+cn.aezo.test.mybatis.GlobalParametersConfig
+
+// (可选)全局静态动态(项目启动就回替换)
+// application.yml
+mybatis-plus:
+  configuration:
+    variables:
+      _gvFuncTest: true
+
+// xml文件写法
+<select id="getTestList" resultType="map">
+    select t.id, t.saas_code 
+    from t_test t where 1=1
+    <include refid="existsTest">
+        <property name="prefix" value="t"/>
+    </include>
+</select>
+<sql id="existsTest">
+    <if test='${_gvFuncTest} != null and ${_gvFuncTest} and _gvUsername != null and _gvUsername != ""'>
+        and exists(select 1 from t_user u
+        where u.username = #{_gvUsername} and (u.saas_code is null or u.saas_code = ${prefix}.saas_code))
+    </if>
+</sql>
 ```
 
 ## 数据类型对应关系

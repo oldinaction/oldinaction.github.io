@@ -26,7 +26,7 @@ tags: [js, tools]
 ### lodash工具类
 
 - [lodash](https://lodash.com/)、[lodash中文网](https://www.lodashjs.com/)
-- Math 数学计算，类似[mathjs](#mathjs数学计算)
+- Math 数学计算，类似[mathjs](#数学计算)
     - `add`、`subtract`、`multiply`、`divide` 两个数的加减乘除
         - `_.add(0.1, 0.2)` // 0.30000000000000004
 - merge 可进行深度覆盖
@@ -108,8 +108,17 @@ dayjs('2020-01-01').add(1, 'day').format('YYYY-MM-DD'); // 2020-01-02
 
 - js精度问题: https://www.cnblogs.com/xjnotxj/p/12639408.html
     - `0.1 + 0.2 => 0.30000000000000004`
-    - **使用 toFixed() 函数(推荐)**: `parseFloat((0.1 + 0.2).toFixed(1)) => 0.3`
-        - 存在问题：toFixed必须设置精度(默认是整数)
+    - 使用 toFixed() 函数
+        - 四舍五入存在精度问题，存在问题toFixed必须设置精度(默认是整数)
+
+        ```js
+        parseFloat((0.10 + 0.25).toFixed(1)); // 0.3
+        parseFloat((0.10 + 0.25).toFixed(1)); // 0.4
+
+        // 另外像 round()、floor()、ceil() 等都不能真正的四舍五入，有精度问题
+
+        Math.round(number * 100) / 100)
+        ```
     - 使用第三方库解决
         - [decimal.js](http://mikemcl.github.io/decimal.js/) 文件大小132K
         - Math.js 文件大小1.74M
@@ -147,6 +156,10 @@ math.add(0.1, 0.2) // 0.30000000000000004
 // math.add(math.bignumber(0.1), math.bignumber(0.2)).toNumber()
 math.number(math.add(math.bignumber(0.1), math.bignumber(0.2)))
 math.number(math.chain(math.bignumber(0.1)).add(math.bignumber(0.2)).add(math.bignumber(0.3)).done()) // 0.6
+
+// 四舍五入
+math.round(0.35, 1) // 0.4
+math.round(0.345, 1) // 0.3
 ```
 
 ### 省市区级联
@@ -257,10 +270,25 @@ var userInfo = {
 console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 ```
 
+## UI库
+
+### 富文本编辑器
+
+#### Tinymce
+
+- [官网](https://www.tiny.cloud/)、[中文参考](http://tinymce.ax-z.cn)
+- [tinymce源码](https://github.com/tinymce/tinymce)
+- [支持vue的插件tinymce-vue](https://github.com/tinymce/tinymce-vue)
+- [基于vue异步加载tinymce](https://gitee.com/sqbiz/wplugin-tinymce-vue)
+- 文档
+    - [支持的事件](https://www.tiny.cloud/docs/tinymce/6/events/#supported-browser-native-events)
+
 ## Vue相关UI库
 
 ### Element-UI
 
+- 主题/配色
+    - https://elementui.github.io/theme-preview/
 - 表单同步验证
 
 ```js
@@ -1207,6 +1235,15 @@ export default {
     - 特点：基于Jquery；可视化配置模板(数据基于字段名自动填充)，自动分页打印；可免费使用
     - 缺点：源代码没开源，没有抽离 npm 包。[github打包代码](https://github.com/hinnncom/hiprint)
     - 基于vue使用参考：https://blog.csdn.net/byc233518/article/details/107705278
+
+    ```js
+    // 修改源码
+    var hiprint = function (t) {
+    export const hiprint = function (t) {
+
+    if (this._android && this._android <= 2.1) {
+    if (this && this._android && this._android <= 2.1) {
+    ```
     - 打印后关闭页面(监听事件)
 
     ```js
@@ -1782,6 +1819,29 @@ npm install file-saver -S
     - `<div style="position: absolute; opacity: 0.0;">`
     - Failed to execute 'createPattern' on 'CanvasRenderingContext2D': The image argument is a canvas element with a width or height of 0. 
     - 参考 https://stackoverflow.com/questions/20605269/screenshot-of-hidden-div-using-html2canvas
+
+### 录屏
+
+- 参考: https://www.cnblogs.com/houxianzhou/p/15554622.html
+    - https://blog.csdn.net/m0_55588706/article/details/126149705
+- 参考: https://zhuanlan.zhihu.com/p/584484268
+- 可在控制台进行测试(支持js调用chrome录屏功能)
+
+```js
+const body = document.body;
+async function record() {
+const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+const mime = MediaRecorder.isTypeSupported("video/webm; codecs=vp9") ? "video/webm; codecs=vp9" : "video/webm";
+const mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+const chunks = [];mediaRecorder.addEventListener('dataavailable', function (e) { chunks.push(e.data) });//录制   
+mediaRecorder.addEventListener('stop', function () {
+    const blob = new Blob(chunks, { type: chunks[0].type }); const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = 'video.webm'; a.click();
+})//停止  
+mediaRecorder.start(); body.removeEventListener("click", record);//手动启动 && 移除事件
+}
+body.addEventListener("click", record);
+```
 
 ## 其他
 

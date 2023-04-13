@@ -35,6 +35,12 @@ $(function () {
 </script>
 ```
 
+### 发送邮件/拨打电话
+
+- 发送邮件(含抄送密送主题内容) `<a href="mailto:xxx@xxx.com?cc=xxx@xxx.com&bcc=mmm@mm.com&subject=主题&body=邮件内容">点击我发送邮件</a>`
+    - 增加附件暂时未发现如何使用: https://www.imooc.com/wenda/detail/584256
+
+
 ## HTML实用标签
 
 1. 缩略语: `<abbr title="attribute">attr</abbr>` <abbr title="省略的话">...</abbr>

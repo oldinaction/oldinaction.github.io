@@ -8,6 +8,8 @@ tags: [linux, network]
 
 ## centos7安装虚拟办公网络
 
+- 梯子推荐: https://9.234456.xyz/abc.html
+
 ### PPTP
 
 - `sudo modprobe ppp-compress-18 && echo MPPE is ok` 验证内核是否加载了MPPE模块
@@ -255,6 +257,8 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
             - 开启代理 - v2ray状态栏的图标点右键 - 勾选启用http代理 - 在http代理模式中选择PAC模式
             - 保存后会自动启动，控制台显示`started`。且在界面底部会显示`SOCKS5/HTTP/PAC`代理对应的地址，且会自动将PAC加入到windows的系统代理中(每次重启PAC地址会改变)。默认的代理ip为127.0.0.1只需本地使用，可在 **`参数设置-v2rayN设置-运行来自局域网的连接`**，重启后局域网都可以使用此代理正常上文
             - **访问外网测试**。通过`IE`、`IE Edge`、`Opera`浏览器可直接访问(默认使用了系统代理)；`Google`需要关闭所有代理插件；`Firefox`需要使用上述代理地址进行配置
+        - **v2ray在PAC模式下增加白名单(自定义走代理的域名)**
+            - PAC设置 - 填写手动规则 - 如`||cdn.jsdelivr.net`，配置规则参考: https://adblockplus.org/en/filter-cheatsheet
     - 使用ws(websocket)模式（v2ray服务端设置）
 
         ```json

@@ -248,6 +248,8 @@ exec p(0, 0);
 - Oracle数据结构
     - `char`		定长字符串；存取时效率高，空间可能会浪费
     - `varchar2`	变长字符串，大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
+        - `varchar2(10)` 代表可以保存 10个字节 data_length:10, char_length:10, char_used:B 代表 byte字节
+        - `varchar2(10 char)` 代表可以保存 10个字符 data_length:40, char_length:10, char_used:C 代表char 字符
     - `long`		变长字符串，大小可达到2G
     - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
     - `date`		日期(插入时，sysdate即表示系统当前时间；select时默认展示年月日，要想展示时分秒则需要to_char转换)
@@ -425,6 +427,29 @@ optimize table t_test;
 - 创建临时表并复制数据(oracle)
     - `create global temporary table ybase_tmptable_storage on commit delete rows as select * from ycross_storage where 1=2;`
         - 其中`on commit delete rows`表示此临时表每次在事物提交的时候清空数据
+
+### 触发器
+
+```sql
+-- sqlplus dba 登录时需要设置用户名
+CREATE OR REPLACE TRIGGER smalle.tib_users
+BEFORE INSERT ON smalle.users
+BEGIN
+    -- :NEW
+END;           
+/
+
+-- 查看表下的触发器
+select trigger_name from all_triggers where table_name='USERS';
+-- 查看触发器内容
+select text from all_source where type='TRIGGER' AND name='TIB_USERS';
+-- 编译触发器(有时候报错 ORA-04098: trigger is invalid and failed re-validation 时可重新编译查看错误)
+ALTER TRIGGER smalle.tib_users COMPILE; -- 此时可能只会提示`Warning: Trigger altered with compilation errors.`，不会显示详细错误
+-- plsql下查看错误
+show errors;
+-- 或者查看错误信息表(或user_errors)
+select * from dba_errors t where owner = 'SMALLE';
+```
 
 ### Oracle数据字典
 

@@ -16,6 +16,39 @@ tags: [system]
             - https://www.macwk.com/article/macos-beta-damage
     - https://www.macapp.so/
 
+## M1模拟x86环境
+
+- Mac M1(默认只能执行arm结构)执行x86(Intel)程序，可基于Rosetta，参考下文安装多版本brew
+- 参考: https://notemi.cn/installing-python-on-mac-m1-pyenv.html
+- 参考上文安装完后设置命令别名(brew和pyenv可选)
+
+```bash
+vi ~/.zshrc
+
+## ===arm(m1) or x86(intel) ===
+# switch arch zsh: mzsh 和 xzsh，输入别名及切换环境，而不需要切换终端
+alias mzsh="arch -arm64 zsh"
+alias xzsh="arch -x86_64 zsh"
+if [ "$(uname -p)" = "i386" ]; then
+  echo "zsh Running in i386(x86) mode (Rosetta). use 'mzsh' switch to ARM(M1)"
+  eval "$(/usr/local/bin/brew shellenv)"
+  alias brew='arch -x86_64 /usr/local/bin/brew'
+  alias pyenv='arch -x86_64 /usr/local/bin/pyenv'
+else
+  echo "zsh Running in ARM mode (M1). use 'xzsh' switch to i386(x86)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+  alias brew='/opt/homebrew/bin/brew'
+  alias pyenv='$HOME/.pyenv/bin/pyenv'
+fi
+# x86版本
+alias xpyenv='arch -x86_64 /usr/local/bin/pyenv'
+alias xbrew="/usr/local/bin/brew"
+# arm版本
+alias mpyenv='$HOME/.pyenv/bin/pyenv'
+alias mbrew="/opt/homebrew/bin/brew"
+## ===arm(m1) or x86(intel) ===
+```
+
 ## 快捷键
 
 ```bash
@@ -63,15 +96,29 @@ alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-ti
 - 安装[brew](https://brew.sh/)包管理工具
 
 ```bash
-# 安装(FQ下载速度会快些)
+## arm(M1)安装. (需要命令行设置代理FQ下载速度会快些，可能需要多试几次). 安装位置/opt/homebrew
 bash -c "$(curl -fsSL https://sourcegraph.com/github.com/Homebrew/install@master/-/raw/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 # 安装完后会生成如下两条命令
 # 加入到用户配置文件，每次用户登录，使/opt/homebrew/bin生效
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.bash_profile
 source ~/.bash_profile
 # eval "$(/opt/homebrew/bin/brew shellenv)" # 直接时/opt/homebrew/bin在当前命令行生效
 
-# 更换镜像，参考：https://www.cnblogs.com/trotl/p/11862796.html
+## x86(Inter)安装. 安装位置/usr/local/Homebrew
+# 前期准备工作参考: https://towardsdatascience.com/how-to-use-manage-multiple-python-versions-on-an-apple-silicon-m1-mac-d69ee6ed0250
+# 安装Rosetta: https://www.bilibili.com/read/cv14826978
+softwareupdate --install-rosetta
+# 然后复制一个item2出来并重命名为item2 Rosetta，打开简介，勾选使用Rosetta打开；之后使用item2 Rosetta执行的命令就是模拟x86环境，或者使用普通item2在执行命令前加`arch -x86_64`，如`arch -x86_64 bash -c ...`
+# 打开item2 Rosetta并执行安装
+bash -c "$(curl -fsSL https://sourcegraph.com/github.com/Homebrew/install@master/-/raw/install.sh)"
+# 为 x86 的 Homebrew 设定 alias
+# vi ~/.bash_profile 增加下列代码
+alias xbrew='arch -x86_64 /usr/local/bin/brew'
+# 生效
+source ~/.bash_profile
+
+## 更换镜像，参考：https://www.cnblogs.com/trotl/p/11862796.html
 cd "$(brew --repo)"
 git remote set-url origin https://mirrors.aliyun.com/homebrew/brew.git
 cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
@@ -82,8 +129,9 @@ source ~/.bash_profile
 echo 'export HOMEBREW_NO_AUTO_UPDATE=true' >> ~/.bash_profile
 source ~/.bash_profile
 
-# brew 使用
-brew version
+
+## brew 使用
+brew -v
 brew install wget
 brew uninstall wget
 # 安装指定版本
@@ -218,11 +266,14 @@ sudo chmod +x it2dl && sudo mv it2dl /usr/local/bin
 
 ```bash
 # vi ~/.zshrc
-# 编辑好文件后，重新打开item2 Tab，执行setproxy开启代理。可使用`curl cip.cc`测试当前IP地址
+# 编辑好文件后，重新打开item2 Tab，执行proxy开启代理。可使用`curl cip.cc`测试当前IP地址
 alias proxy="export ALL_PROXY=socks5://127.0.0.1:1088"
 alias unproxy="unset ALL_PROXY"
 
-# 快速启动此脚本后，网络设置里面设置网线(USB)对应适配器的SOCKS代理即可
+## 使用
+# 参考下文，使用item2快速脚本启动代理
+# 网络设置里面设置网线(USB)/Wifi对应适配器的SOCKS代理即可
+# 命令行执行proxy/unproxy启用/关闭当前命令行代理 (使用v2ray全局代理对应命令行无效)
 ```
 - 配色方案：https://iterm2colorschemes.com/
 - 防止长时间不用断线问题：在`~/.ssh/config`(可能需要新建)中加入`ServerAliveInterval 60`
@@ -274,6 +325,27 @@ ln -s /opt/homebrew/Cellar/lrzsz/0.12.20_1/bin/lsz /usr/local/bin/sz
 - 安装完后删除`/Library/Internet Plug-Ins/JavaAppletPlugin.plugin`目录
     - 如`sudo mv /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin.bak`
     - 否则mvn命令执行时报错，参考：https://blog.csdn.net/w605283073/article/details/111770386
+
+### PHP
+
+- mac系统自带的php在目录/usr/bin/php，php-fpm在目录/user/sbin/php-fpm
+- 重新安装php
+
+```bash
+# 安装最新版本php(对应路径为/opt/homebrew/opt/php)
+# brew install php
+# 安装某个版本php
+brew install php@7.4
+# 查看安装好的php路径
+brew --prefix php@7.4
+
+# 启动php-fpm
+brew services start php@7.4
+
+# 切换版本: 先取消原关联版本, 再切换到其他版本
+brew unlink php@7.4
+brew link php
+```
 
 ### IDEA
 

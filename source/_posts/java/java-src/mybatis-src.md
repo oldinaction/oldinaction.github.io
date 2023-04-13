@@ -6,7 +6,13 @@ categories: [java]
 tags: [mybatis, src]
 ---
 
+## 简介
+
+- [深入剖析 MyBatis 核心原理](https://learn.lianglianglee.com/%E4%B8%93%E6%A0%8F/%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%20MyBatis%20%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86-%E5%AE%8C)
+
 ## 类
+
+![mybatis-class.webp](/data/images/java/mybatis-class.webp)
 
 - org.apache.ibatis.session
     - `Configuration` 全局配置类
@@ -267,6 +273,89 @@ public StatementHandler newStatementHandler(Executor executor, MappedStatement m
     // 依次组装插件：反射获取插件类，通过 Plugin#wrap 组装代理对象
     statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
     return statementHandler;
+}
+```
+
+### 插件机制
+
+- MyBatis 将插件单独分离出一个模块，位于 org.apache.ibatis.plugin 包中，在该模块中主要使用了两种设计模式：代理模式和责任链模式
+- MyBatis 插件模块中最核心的接口就是 Interceptor 接口
+
+```java
+public interface Interceptor {
+
+  // 插件实现类中需要实现的拦截逻辑
+  Object intercept(Invocation invocation) throws Throwable;
+
+  // 在该方法中会决定是否触发intercept()方法，如果有对应插件则创建代理对象，否则返回target本身
+  default Object plugin(Object target) {
+    return Plugin.wrap(target, this);
+  }
+
+  default void setProperties(Properties properties) {
+    // 在整个MyBatis初始化过程中用来初始化该插件的方法
+  }
+}
+```
+- 代理对象
+
+```java
+public class Plugin implements InvocationHandler {
+  // 判断是否需要创建代理对象(即是否需要拦截)
+  public static Object wrap(Object target, Interceptor interceptor) {
+    // 获取自定义Interceptor实现类上的@Signature注解信息，
+    // 这里的getSignatureMap()方法会解析@Signature注解，得到要拦截的类以及要拦截的方法集合
+    Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
+    Class<?> type = target.getClass();
+    // 检查当前传入的target对象是否为@Signature注解要拦截的类型，如果是的话，就
+    // 使用JDK动态代理的方式创建代理对象
+    Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
+    if (interfaces.length > 0) {
+      // 创建JDK动态代理
+      return Proxy.newProxyInstance(
+          type.getClassLoader(),
+          interfaces,
+          // target原始对象或者已经经过前面拦截器包装之后的对象，interceptor为当前插件对象
+          new Plugin(target, interceptor, signatureMap));
+    }
+    return target;
+  }
+
+  // 执行调用
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    try {
+      Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+      // 如果当前方法需要被代理，则执行intercept()方法进行拦截处理
+      if (methods != null && methods.contains(method)) {
+        return interceptor.intercept(new Invocation(target, method, args));
+      }
+      // 如果当前方法不需要被代理，则调用target对象的相应方法
+      return method.invoke(target, args);
+    } catch (Exception e) {
+      throw ExceptionUtil.unwrapThrowable(e);
+    }
+  }
+  // ...
+}
+```
+- 组装责任链
+
+```java
+// 在Configuration对象中实例化
+public class InterceptorChain {
+
+  // 后加入进去的先执行
+  private final List<Interceptor> interceptors = new ArrayList<>();
+
+  // 组装责任链
+  public Object pluginAll(Object target) {
+    for (Interceptor interceptor : interceptors) {
+      target = interceptor.plugin(target);
+    }
+    return target;
+  }
+  // ...
 }
 ```
 

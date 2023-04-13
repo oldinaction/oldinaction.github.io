@@ -151,6 +151,10 @@ order by data_length desc, index_length desc;
 
 参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/devops/Java应用CPU和内存异常分析.md#Mysql)
 
+## 数据备份/恢复
+
+- 参考[mysql-backup-recover.md](/_posts/db/mysql/mysql-backup-recover.md)
+
 ## 其他
 
 ```sql

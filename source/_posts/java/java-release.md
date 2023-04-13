@@ -167,6 +167,7 @@ interface Formula {
 
 ### 函数式接口(方法回调)
 
+- **可以是内部类**
 - 每一个lambda表达式都对应一个类型，通常是接口类型。而“函数式接口”是指仅仅只包含一个抽象方法的接口，每一个该类型的lambda表达式都会被匹配到这个抽象方法。默认方法不算抽象方法，所以可以给函数式接口添加默认方法
 - 增加`@FunctionalInterface`注解是为了告诉编译器此接口只能有一个抽象方法
 
@@ -285,7 +286,8 @@ Map<String, List<Product>> prodMap= prodList.stream().collect(Collectors.groupin
 // 也可Collectors.groupingBy嵌套使用生成多级分组(Map<String, Map<String, List<Product>>>)
 Map<String, List<Product>> prodMap = prodList.stream().collect(Collectors.groupingBy(item -> item.getCategory() + "_" + item.getName()));
 // 求和: {"零食": 7, "啤酒": 8}
-Map<String, Integer> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingInt(Product::getNum)));
+// IntSummaryStatistics{count, sum, min, max}为某个分类的统计信息; 其他如Collectors.summarizingDouble(如果统计金额还需再进行手动取整)
+Map<String, IntSummaryStatistics> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingInt(Product::getNum)));
 
 // ifPresent判断是否存在
 Optional<User> firstOpt= list.stream().filter(a -> "admin".equals(a.getUserName())).findFirst();

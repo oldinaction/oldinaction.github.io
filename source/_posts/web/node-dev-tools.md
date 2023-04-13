@@ -19,6 +19,28 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
 # sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npm.taobao.org
 ```
 
+## nvm Node版本管理工具
+
+- nvm全名node.js version management，顾名思义是一个nodejs的版本管理工具，通过它可以安装和切换不同版本的nodejs
+- 下载安装
+    - [windows下载](https://github.com/coreybutler/nvm-windows/releases)，安装之前可能需要先卸载之前安装的Node
+    - Unix: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash`
+        - Mac M1 安装v11.4安装成功，但是安装node v10.x失败，v12.x成功
+        - Mac M1 安装v14.20.1失败：需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/extend/mac.md#M1模拟x86环境)
+            - 报错`libtool: unrecognized option -static'`，解决方案: https://stackoverflow.com/questions/38301930/libtool-unrecognized-option-static (前提是通过`xcode-select --install`安装了CommandLineTools, 即有次文件夹)
+            - 报错`'stdio.h' file not found`，解决方案: https://blog.51cto.com/u_15639793/5297367 (3个步骤都要执行)
+            - 报错`clang: error: linker command failed`，**暂未解决**
+                - https://stackoverflow.com/questions/65251887/clang-7-error-linker-command-failed-with-exit-code-1-for-macos-big-sur
+- 使用
+
+```bash
+nvm ls-remote --lts # 查看可用LTS node版本
+nvm install 12.16.3 # 安装指定版本Node：nvm install <version> [arch]
+nvm ls # 查看本地安装的Node版本，*号代表当前使用版本
+# MAC M1 安装失败，需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/extend/mac.md#M1模拟x86环境)
+nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
+```
+
 ## npm 包管理工具
 
 ### npm安装及镜像
@@ -34,6 +56,9 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
     npm config set registry https://registry.npm.taobao.org/ # 设置为淘宝镜像
     npm config set registry https://registry.npmjs.org/ # 设置为官方镜像
     npm config list # 查看配置
+
+    # 查看全局npm包未知
+    npm root -g
     ```
 - 或者安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
     - `cnpm install <pkg>` 安装模块
@@ -43,10 +68,11 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
 - NPM包分析工具
     - CND访问
         - 国内的CND一般从https://cdnjs.com/上同步的，但是CNDJS上的NPM包不全
-        - 国内支持所有NPM的(类似unpkg)
+        - **国内支持所有NPM的(类似unpkg)**
             - 饿了么: npm.elemecdn.com、github.elemecdn.com
+                - https://npm.elemecdn.com/@sqbiz/wplugin-tinymce-vue@1.0.0-biz-minions/lib/WpluginTinymceVue.umd.min.js
         - 基于国外 `https://unpkg.com/<package>@<version>/<file>`
-            - 如: https://unpkg.com/@sqbiz/wplugin-form-generator-render@1.0.5-biz-minions.0/render.js
+            - 如: https://unpkg.com/@sqbiz/wplugin-tinymce-vue@1.0.0-biz-minions/lib/WpluginTinymceVue.umd.min.js
         - 基于国外 `https://cdn.jsdelivr.net/npm/<package>@<version>/<file>`
     - [查看包源码](https://uiwjs.github.io/npm-unpkg/)
     - [分析 npm 软件包的体积和加载性能](https://bundlephobia.com/)
@@ -108,7 +134,7 @@ npm run build # 常见的打包项目命令(具体run的命令名称根据packag
 
 ```bash
 ## 发布包: https://blog.csdn.net/imqdcn/article/details/126569123
-# 发布包时，源必须要是npm的，如果为taobao等镜像则会出现重定向问题，可使用nrm来回切换镜像
+# 发布包时，**源必须要是npm的，如果为taobao等镜像则会出现重定向问题，可使用nrm来回切换镜像**
 nrm use npm
 # 查看源
 npm get registry
@@ -116,7 +142,10 @@ npm get registry
 npm login
 # 该指令只有登录状态才能显示当前登录名
 npm whoam i
+# 先打包好
+npm run build
 # 发布. 或者基于lerna publish发布
+# npm不支持发布私有包，即需要设置`"private": false`
 # 如果package.json#name以`@xxx/`开头(npm scope特性)，则默认会按照私有包发布，可以增加参数`--access public`，或在package.json中增加`publishConfig: {"access": "public"}`(适用于lerna)。此时会推送到npm对应xxx组织下
 npm publish
 # 切回taobao源
@@ -160,6 +189,7 @@ npm version minor # v4.1.0
 ### 其他特性
 
 - npm link 本地库文件关联
+    - 其他如npm link引用本地模块的方法参考：https://blog.csdn.net/zhangxin09/article/details/119344515
 
 ```bash
 # 将当前包关联到本地全局路径
@@ -294,6 +324,23 @@ yarn run dev
 yarn link [xxx]
 ```
 
+## pnpm 包管理工具
+
+- performant npm，意味"高性能的 npm"，pnpm由npm/yarn衍生而来
+- 速度快、节约磁盘空间、支持monorepo、安全性高
+
+```bash
+# 安装
+npm i pnpm -g
+pnpm -v
+# 查看源
+pnpm config get registry
+# 切换淘宝源
+pnpm config set registry https://registry.npmmirror.com
+pnpm install
+pnpm run dev
+```
+
 ## nrm 镜像管理工具
 
 - nrm 是一个 npm 源管理器，允许你快速地在 npm源间切换
@@ -349,27 +396,6 @@ npx --ignore-existing create-react-app my-react-app # --ignore-existing：忽略
 npx node@0.12.8 -v # 使用不同版本的Node。原理是从 npm 下载这个版本的 node，使用后再删掉。某些场景下，这个方法用来切换 Node 版本，要比 nvm 那样的版本管理器方便一些
 npx -p node@0.12.8 node -v # -p参数用于指定 npx 所要安装的模块。因此为先指定安装node，再执行node -v
 npx -p lolcatjs -p cowsay -c 'cowsay hello | lolcatjs' # 如果 npx 安装多个模块，默认情况下，所执行的命令之中，只有第一个可执行项会使用 npx 安装的模块，后面的可执行项还是会交给 Shell 解释。此时使用 -c 表示两个命令均由npx解释
-```
-
-## nvm Node版本管理工具
-
-- nvm全名node.js version management，顾名思义是一个nodejs的版本管理工具，通过它可以安装和切换不同版本的nodejs
-- 下载安装
-    - [windows下载](https://github.com/coreybutler/nvm-windows/releases)，安装之前可能需要先卸载之前安装的Node
-    - Unix: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash`
-        - Mac M1 安装v11.4安装成功，但是安装node v10.x失败，v12.x成功
-        - Mac M1 安装v14.20.1失败
-            - 报错`libtool: unrecognized option -static'`，解决方案: https://stackoverflow.com/questions/38301930/libtool-unrecognized-option-static (前提是通过`xcode-select --install`安装了CommandLineTools, 即有次文件夹)
-            - 报错`'stdio.h' file not found`，解决方案: https://blog.51cto.com/u_15639793/5297367 (3个步骤都要执行)
-            - 报错`clang: error: linker command failed`，**暂未解决**
-                - https://stackoverflow.com/questions/65251887/clang-7-error-linker-command-failed-with-exit-code-1-for-macos-big-sur
-- 使用
-
-```bash
-nvm ls-remote --lts # 查看可用LTS node版本
-nvm install 12.16.3 # 安装指定版本Node：nvm install <version> [arch]
-nvm ls # 查看本地安装的Node版本，*号代表当前使用版本
-nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
 ```
 
 ## vue 命令行工具(vue-cli)
@@ -578,6 +604,7 @@ src/components
         - `.prettierrc` 项目根目录配置文件，常用配置参考下文
         - `prettier.config.js`
         - `package.json`中的`prettier`属性
+    - 可增加脚本进行批量格式化代码 `"prettier": "prettier --write '**/*.{js,css,scss,less,ts,vue,html}'"` (安装 eslint-plugin-prettier 和 eslint-config-prettier 模块)
 - `.jsbeautifyrc` 代码格式化
     - 文件需要配合插件使用，如vscode的`Beautify`插件
 - **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**
@@ -596,7 +623,9 @@ src/components
   /* 优化html闭合标签不换行的问题. ignore: 存在span等标签格式化后出现换行空格. 参考: https://juejin.cn/post/6844904194059534350 */
   "htmlWhitespaceSensitivity": "strict",
   /* 每行最大长度默认80(适配1366屏幕，1920可设置成140) */
-  "printWidth": 140
+  "printWidth": 140,
+  /* 会忽略vetur的tabSize配置而使用此配置 */
+  "tabWidth": 2
 }
 ```
 - `.editorconfig` 放在vue项目根目录

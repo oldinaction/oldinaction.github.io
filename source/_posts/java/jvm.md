@@ -910,8 +910,12 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
             - 设定-XX:+HeapDumpOnOutOfMemoryError参数，当OOM的时候会自动产生堆转储文件(**线上也不是很好的方案**)
             - 在线定位(一般小点儿公司用不到)
         - 使用jhat/jvisualvm/MAT进行dump文件分析。[jhat使用](https://www.cnblogs.com/baihuitestsoftware/articles/6406271.html)
-            - `jhat -J-mx512M /home/dump.hprof` 使用512M内存进行dump文件分析，分析时间可能较长。分析完后会在本地启动一个7000端口来展示结果信息，可以在线使用OQL语句进行查找特定对象
+            - `jhat -J-mx512M /home/dump.hprof` 使用512M内存进行dump文件分析，分析时间可能较长(占用CPU会较多)
+                - 分析完后会在本地启动一个7000端口来展示结果信息，可以在线使用OQL语句进行查找特定对象
+                - 目录在主页的末尾: 有Show heap histogram查看堆栈对象、执行OQL语句、Show instance counts for all classes (excluding platform)会展示不包含平台的所有类的信息
+                - 无法看到出错的线程栈
             - `jvisualvm` 文件 - 装入dump文件，也可使用OQL语句进行查找
+                - 可以看到出错的线程栈
     - 找到代码的问题
 
 ### 一些案例

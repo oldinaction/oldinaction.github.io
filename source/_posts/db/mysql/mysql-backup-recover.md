@@ -92,6 +92,54 @@ rename table user to user_old, user_bak to user;
 - 其中最主要的命令是 innobackupex 和 xtrabackup
     - 前者是一个 perl 脚本，后者是 C/C++ 编译的二进制。Percona 在2.3 版本用C重写了 innobackupex，innobackupex 功能全部集成到 xtrabackup 里面，只有一个 binary，另外为了使用上的兼容考虑，innobackupex 作为 xtrabackup 的一个软链接
     - 更多参考：https://www.cnblogs.com/piperck/p/9757068.html
+- 数据迁移案例
+
+```bash
+## 安装(新老服务器均需安装)
+yum -y install perl perl-devel libaio libaio-devel perl-Time-HiRes perl-DBD-MySQL perl-Digest-MD5
+wget http://mirror.centos.org/centos/7/extras/x86_64/Packages/libev-4.15-7.el7.x86_64.rpm # https://pkgs.org/download/libev(x86-64)
+rpm -ivh libev-4.15-7.el7.x86_64.rpm
+wget https://www.percona.com/downloads/XtraBackup/Percona-XtraBackup-2.4.24/binary/redhat/7/x86_64/percona-xtrabackup-24-2.4.24-1.el7.x86_64.rpm
+rpm -ivh percona-xtrabackup-24-2.4.24-1.el7.x86_64.rpm
+xtrabackup -version # xtrabackup version 2.4.24 based on MySQL server 5.7.35 Linux (x86_64) (revision id: b4ee263)
+# https://www.percona.com/doc/percona-xtrabackup/2.4/manual.html
+
+## 备份(原服务器上进行)
+# 先全量备份(热备，物理备)，提示 completed OK! 则成功
+mkdir –p /home/xtrabackup/
+# 40G 2.5min 将mysql-data目录下文件全部进行全量备份
+# --compress 表数据会进行压缩(压缩后为原来25%大小)，文件以.qp结尾，对应文件如`my_table.ibd.qp`
+# --decompress 解压缩时，系统必须提前安装qpress . 数据库必须运行中
+innobackupex --defaults-file=/etc/my.cnf --user=root --password=root --use-memory=2G --kill-long-queries-timeout=10 --ftwrl-wait-timeout=20 --compress --compress-threads=4 /home/xtrabackup/`date +%F`
+
+# 再进行增量备份(热备，物理备)，提示 completed OK! 则成功
+# 一般可停服增备份，防止数据写入
+# 40G+ 晚上 2.5min 将datadir目录下文件全部进行增量备份，表的物理文件大小只有增加的数据大小
+innobackupex --defaults-file=/etc/my.cnf --user=root --password=root --incremental /home/xtrabackup/2021-09-22/ --incremental-basedir=/home/xtrabackup/2021-09-22/2021-09-22_22-19-32/
+
+## 执行恢复
+# --decompress 解压缩，系统必须提前安装qpress。提示 completed OK!
+# 解压出来后，原压缩文件还存在？
+innobackupex --decompress /home/xtrabackup/2021-09-22/2021-09-22_22-19-32
+# 准备恢复：所谓准备恢复，就是要为恢复做准备。就是说备份集没办法直接拿来用，因为这中间可能存在未提交或未回滚的事务，数据文件不一致，所以需要一个队备份集的准备过程
+# completed OK!
+innobackupex --defaults-file=/etc/my.cnf --apply-log --redo-only /home/xtrabackup/2021-09-22/2021-09-22_22-19-32
+
+# 合并全量和增量备份 completed OK!
+innobackupex --defaults-file=/etc/my.cnf --apply-log --redo-only --incremental /home/xtrabackup/2021-09-22/2021-09-22_22-19-32/ --incremental-dir=/home/xtrabackup/2021-09-22/2021-09-23_08-50-05
+
+## 恢复数据(在新服务器上执行)
+# 迁移数据库时，拷贝数据到另外一台服务器
+systemctl stop mysqld
+mv /home/data/mysql /home/data/mysql_bak
+mkdir -p /home/data/mysql
+# 将原服务器备份的数据拷贝到新服务器。rsync命令参考: http://www.ruanyifeng.com/blog/2020/08/rsync.html
+rsync -av root@192.168.1.100:/home/xtrabackup/2021-09-22/2021-09-22_22-19-32/ /home/data/mysql_2021-09-22
+# 进行恢复
+innobackupex --defaults-file=/etc/my.cnf --copy-back /home/data/mysql_2021-09-22
+chown -R mysql:mysql /home/data/mysql
+systemctl start mysqld
+```
 
 ## 导出导入
 

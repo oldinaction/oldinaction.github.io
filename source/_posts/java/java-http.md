@@ -43,6 +43,17 @@ headers.add("X-Auth-Token", "123456789");
 Map<String, Object> postParameters = MiscU.toMap("username", "smalle", "age", "18");
 HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(postParameters, headers);
 Map retInfo = restTemplate.postForObject("http://localhost/test", requestEntity, Map.class);
+// GET请求带Header
+if(ValidU.isNotEmpty(params)) {
+    UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+    for (Map.Entry<String, Object> e : params.entrySet()) {
+        builder.queryParam(e.getKey(), e.getValue());
+    }
+    url = builder.build().toString();
+}
+HttpEntity<Map<String, Object>> getHttpEntity = new HttpEntity<>(null, headers);
+ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, getHttpEntity, String.class, params); // 此处params无用仅作为占位符，参数需要通过上文url拼接
+String response = exchange.getBody();
 
 // 6.MultiValue
 MultiValueMap<String, Object> postData = new LinkedMultiValueMap<String, Object>();

@@ -119,24 +119,24 @@ sqlplus / as sysdba
 
 -- 创建表空间，要先创建好`/u01/app/oracle/oradata/orcl`目录，最终会产生一个aezocn_file文件(Windows上位大写)，表空间之后可以修改
 -- 此处是创建一个初始大小为 500m 的表空间，当空间不足时每次自动扩展 10m，无限扩展(oracle 有限制，最大扩展到 32G，仍然不足则需要添加表空间数据文件)
-create tablespace aezocn datafile '/u01/app/oracle/oradata/orcl/AEZOCN01.DBF' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;
+create tablespace aezocn datafile '/u01/app/oracle/oradata/orcl/AEZOCN01' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;
 
 -- 删除表空间(包含数据和数据文件)
 -- drop tablespace aezocn; -- 只删除表空间引用，数据文件还在
 drop tablespace aezocn including contents and datafiles;
 
 -- 扩展：创建用户并赋权(新创建项目时一般新建表空间和用户)
-create user smalle identified by smalle default tablespace aezocn;
-grant create session to aezo;
-grant unlimited tablespace to aezo;
-grant dba to aezo; -- 导入导出时，只有 dba 权限的账户才能导入由 dba 账户导出的数据，因此不建议直接设置用户为 dba
+create user smalle identified by smalle_pass default tablespace aezocn;
+grant create session to smalle;
+grant unlimited tablespace to smalle;
+grant dba to smalle; -- 导入导出时，只有 dba 权限的账户才能导入由 dba 账户导出的数据，因此不建议直接设置用户为 dba
 ```
 
 #### 锁表
 
 ```sql
 -- 查询被锁表的信息（多刷新几次，应用可能会临时锁表）
-select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s
+select s.sid, s.serial#, o.woner, o.object_name, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s
     where l.object_id = o.object_id and l.session_id = s.sid;
 -- 关闭锁表的连接：alter system kill session '200, 50791';
 alter system kill session '某个sid, 某个serial#';
@@ -794,10 +794,139 @@ select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-
     - 创建完之后，原来的数据库实例会正常运行。新实例会在服务中创建OracleServiceORCL2(TNS Listener是共用的，不会创建新的)
     - 指定实例登录`sqlplus system/root@orcl2 as sysdba`
 
+### 记录数据变动日志
+
+- 基于数据库触发器+sys_context实现用户信息通过数据库会话传递
+    - client_identifier使用: https://juejin.cn/post/7126934623023530015
+    - V$SESSION的CLIENT_INFO列和CLIENT_IDENTIFIER列往往为空，所以需要写登录触发器，然后在触发器中使用如下的存储过程记录这2列的值
+    - sys_context使用: https://blog.csdn.net/db_murphy/article/details/115186884
+    - DBMS_SESSION包详解: https://www.cnblogs.com/shujk/p/13983202.html
+    - 核心代码
+        - 还有一思路是通过AOP监听getConnection()方法的执行，进行注入参数(测试了下AOP进不去)
+
+        ```java
+        @Bean
+        public DataSource dataSource(DataSourceProperties properties) {
+            return new IdentifierDataSource(properties.initializeDataSourceBuilder().build());
+        }
+
+        public static String SET_IDENTIFIER_SQL = "{ call DBMS_SESSION.SET_IDENTIFIER(?) }";
+
+        public static class IdentifierDataSource extends DelegatingDataSource {
+            public IdentifierDataSource(DataSource delegate) {
+                super(delegate);
+            }
+
+            @Override
+            public Connection getConnection() throws SQLException {
+                Connection connection = super.getConnection();
+                try {
+                    CallableStatement cs = connection.prepareCall(SET_IDENTIFIER_SQL);
+                    cs.setString(1, ShiroUtils.getOperNam() == null ? "" : ShiroUtils.getOperNam());
+                    cs.execute();
+                    cs.close();
+                } catch (Exception e) {
+                    log.error("设置用户会话信息出错", e);
+                }
+                return connection;
+            }
+        }
+        ```
+        - 触发器
+
+        ```sql
+        CREATE OR REPLACE TRIGGER SAMIS45_SHSD.tub_ship_log
+            BEFORE UPDATE OF ETA_TIM,REMARK_TXT
+            ON ship
+            FOR EACH ROW
+            DECLARE
+            up_str           VARCHAR2(1000);
+        begin
+            -- 获取应用登录用户信息
+            select sys_context('userenv','client_identifier') from dual;
+        END;
+        ```
+- SpringBoot+Mybatis-Plus+ThreadLocal利用AOP+mybatis插件实现数据操作记录及更新对比: https://www.cnblogs.com/top-sky-hua/p/13321754.html
+
 ### 定时清理数据库日志表
 
+```sql
+-- 创建存储过程
+create or replace procedure p_ops_edi_body is
+    type ref_cursor_type is ref cursor;
+
+    -- 待修改:保留数据的天数
+    v_ops_remain_days number := 365;
+    v_ops_point_date varchar2(100);
+    v_ops_begin_date varchar2(100);
+    v_ops_begin_date_opt number;
+    v_ops_remain_date varchar2(100);
+    v_ops_end_date varchar2(100);
+    v_cur_data ref_cursor_type;
+    v_sql varchar2(4000);
+    -- 待修改:业务表
+    type tb_ops_table is table of S_EDI_HEAD%rowtype;
+    rd_row tb_ops_table;
+    v_count number := 0;
+    time_before binary_integer;
+    time_after binary_integer;
+begin
+    time_before := DBMS_UTILITY.GET_TIME;
+		
+    select to_char(sysdate-v_ops_remain_days, 'yyyyMMdd') into v_ops_remain_date from dual;
+    -- 待修改:获取日志记录表信息. 案例中NODE_NOTES存放时间，格式如 20200101,3(从2020-01-01开始清理3天的数据)
+    select t.NODE_NOTES into v_ops_point_date from S_BASIC_MAINTENANCE t
+        where t.PARENT_CODE = 'PrivateSystemState' and t.NODE_CODE = 'OpsEdiBody' and t.VALID_STATUS = 1;
+    select substr(v_ops_point_date, 1, 8), case when substr(v_ops_point_date, 1, 8) >= v_ops_remain_date then 0 else 1 end  into v_ops_begin_date, v_ops_begin_date_opt from dual;
+    select to_char(to_date(substr(v_ops_point_date, 1, 8), 'yyyyMMdd') + (select substr(v_ops_point_date, 10) - 1 from dual), 'yyyyMMdd') into v_ops_end_date from dual;
+    if v_ops_begin_date_opt = 1 then
+        -- 待修改:业务表任务查询(此处建议使用t.*)
+        v_sql := 'select t.* from S_EDI_HEAD t where t.CREATE_TM < sysdate-' || v_ops_remain_days || ' and t.CREATE_TM between to_date(''' || v_ops_begin_date || '000000' || ''', ''yyyyMMddhh24miss'') and to_date(''' || v_ops_end_date || '235959' || ''', ''yyyyMMddhh24miss'')';
+        open v_cur_data for v_sql;
+        loop
+                fetch v_cur_data bulk collect into rd_row limit 500;
+                exit when rd_row.count = 0;
+                forall i in 1..rd_row.count
+                    -- 待修改:执行清理逻辑
+                    delete from S_EDI_BODY where id = rd_row(i).id;
+                v_count := v_count + rd_row.count;
+                commit;
+        end loop;
+        close v_cur_data;
+        
+        time_after := DBMS_UTILITY.GET_TIME;
+        -- 待修改:更新日志表
+        update S_BASIC_MAINTENANCE t set
+                t.NODE_NOTES = (select to_char(to_date(v_ops_end_date, 'yyyyMMdd') + 1, 'yyyyMMdd') from dual) || ',' || substr(v_ops_point_date, 10)
+                ,t.remarks = substr((select to_char(sysdate, 'yyyy-MM-dd hh24:mi:ss') || ' 清理 ' || v_count || ' 条, 耗时 ' || (time_after - time_before) / 100 || ' 秒;' || chr(10) || t.remarks from dual) , 1, 255)
+                where t.PARENT_CODE = 'PrivateSystemState' and t.NODE_CODE = 'OpsEdiBody' and t.VALID_STATUS = 1;
+        commit;
+    else
+        update S_BASIC_MAINTENANCE t set
+                t.NODE_NOTES = v_ops_remain_date || ',1'
+                ,t.remarks = substr((select to_char(sysdate, 'yyyy-MM-dd hh24:mi:ss') || ' 无需清理;' || chr(10) || t.remarks from dual) , 1, 255)
+                where t.PARENT_CODE = 'PrivateSystemState' and t.NODE_CODE = 'OpsEdiBody' and t.VALID_STATUS = 1;
+        commit;
+    end if;
+end;
 
 
+-- 创建任务: 更多参考[sql-ext.md#Oracle定时任务Job](/_posts/db/sql-ext.md#Oracle定时任务Job)
+begin
+    dbms_scheduler.create_job(
+        job_name => 'job_ops_edi_body',
+        job_type => 'stored_procedure', -- 固定值
+        job_action => 'p_ops_edi_body', --存储过程
+        start_date => sysdate,
+        repeat_interval => 'FREQ=DAILY; BYHOUR=3', -- 每天早上3点运行
+        comments => '清理S_EDI_BODY数据',
+        job_class => 'DBMS_JOB$',
+        enabled => true
+    );
+end;
+-- 查看任务
+select * from dba_scheduler_jobs;
+```
 
 ### 审计
 

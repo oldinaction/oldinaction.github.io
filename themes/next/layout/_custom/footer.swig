@@ -7,22 +7,19 @@
   </span>
   <span class="author" itemprop="copyrightHolder">{{ config.author }}</span>&nbsp;&nbsp;&nbsp;&nbsp;
 
+  <!-- powered-by样式有后分割线，theme-info后面无分割线 -->
   {% if theme.copyright %}
   <div class="powered-by">
     {{ __('footer.powered', '<a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a>') }}
   </div>
 
-  <div class="powered-by">
+  <div class="theme-info">
     {{ __('footer.theme') }} -
     <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">
       NexT.{{ theme.scheme }}
     </a>
   </div>
   {% endif %}
-
-  <div class="theme-info cnzz" style="margin: 0 0 -5px 10px;">
-    <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1276691827'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1276691827%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script>
-  </div>
 </div>
 
 <div class="ad">
@@ -33,9 +30,15 @@
 </div>
 
 <div class="aezocn">
-  <span style="font-weight: bold">@AEZO.CN&nbsp;&nbsp;&nbsp;&nbsp;</span>
+  <span style="font-weight: bold">&copy;AEZO.CN&nbsp;&nbsp;&nbsp;&nbsp;</span>
+  <div class="powered-by">
+    <a target="_blank" href="https://shengqitech.aezo.cn/">圣骑科技</a>
+  </div>
+  <div class="powered-by">
+    <a target="_blank" href="https://cdn7.aezo.cn/common/qrcode/one_qrcode.jpg">【One能抽屉】小程序</a>
+  </div>
   <div class="theme-info">
-    <a target="_blank" href="http://shop.aezo.cn/">杂货铺</a>
+    <a target="_blank" href="http://shop.aezo.cn/">杂货铺(省钱小助手)</a>
   </div>
 </div>
 

@@ -25,7 +25,7 @@ System.out.println(jsonNull == null); // false
 System.out.println(jsonNull.equals(null)); // true
 
 // ### Bean/Map <==> JSON; 深度拷贝
-String str = JSONUtil.toJsonStr(person); // Bean => JSON字符串
+String str = JSONUtil.toJsonStr(person); // Bean => JSON字符串. 生成的字符串字段无顺序(尽管格式化LinkHashMap这种有顺序的对象)，有些加密场景可能不适用
 Person person = JSONUtil.toBean(str, Person.class); // JSON字符串 => Bean
 Person newPerson = JSONUtil.toBean(JSONUtil.toJsonStr(person), Person.class); // 实现深度拷贝。使用 BeanUtil.copyProperties 为浅拷贝
 Map map = JSONUtil.toBean(str, Map.class);
@@ -82,7 +82,7 @@ List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String
     - **暂未找到基于字段值分组成数组的方法，可参考MiscU.groupByMapKey和MiscU.groupByBeanKey**
 
 ```java
-// 基于id字段进行分组成Map。但是被分组的集合只能是对象集合，不能是Map集合，可使用 MiscU.fieldValueMap 代替
+// 但是被分组的集合只能是对象集合，不能是Map集合，可使用 MiscU.fieldValueMap 代替
 Map<Long, Person> feeRuleMap = CollUtil.fieldValueMap(personList, "id");
 ```
 
