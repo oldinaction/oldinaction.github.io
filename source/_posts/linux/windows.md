@@ -2,7 +2,7 @@
 layout: "post"
 title: "Windows"
 date: "2017-05-10 15:26"
-categories: [extend]
+categories: [linux]
 tags: [bat]
 ---
 
@@ -10,7 +10,6 @@ tags: [bat]
 
 Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不影响)：https://blog.csdn.net/chan_1030261721/article/details/80852121
 通过代理使用远程桌面(Mstcs)：https://blog.csdn.net/stephenxu111/article/details/5685982
-
 
 ## 介绍
 
@@ -26,12 +25,35 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
     Windows Server 2012	    6.2
     Windows 8	            6.2
     ```
-- win10激活(新建bat文件并运行)
 
-    ```bash
-    slmgr /skms kms.03k.org
-    slmgr /ato
-    ```
+### 激活
+
+- 基础知识
+    - 镜像常见来源
+        - MSDN: 主要是提供开发人员订阅测试的版本，并不是正式版本。(未内置GVLK秘钥，可通过命令安装秘钥)
+        - VLSC: 拥有产品账号的客户可以从VLSC中心下载镜像。(如果是从VLSC下载VL版本已经内置GVLK秘钥，VL版本的镜像文件名是SW_DVD开头)
+        - 微软官网提供的无需账号，开放下载的零售版镜像
+    - 可是密钥分为好多种，KMS密钥、OEM密钥、GVLK密钥等
+        - GVLK英文全称Generic Volume License Key，表示批量授权许可密钥。凡是使用KMS激活的windows系统还是Office，使用的都是GVLK密钥，密钥是由微软提供，KMS激活期限是180天期限
+        - OEM密钥一般是oem厂商预装系统使用，OEM密钥是永久
+    - 通用许可秘钥GVLK
+        - [Windows通用许可秘钥GVLK](https://learn.microsoft.com/zh-cn/windows-server/get-started/kms-client-activation-keys)
+        - [Office通用许可秘钥GVLK](https://learn.microsoft.com/zh-cn/DeployOffice/vlactivation/gvlks?redirectedfrom=MSDN)
+    - KMS: Key Management Server密钥管理服务。这些是公司用来使用自己的激活服务器激活其批量许可软件的产品密钥。通过 KMS 激活不是永久性的。电脑必须定期(7天一次)访问公司的 KMS 服务器刷新激活，否则激活会过期(180天访问不到则过期)
+    - KMS38: 支持离线。并不是属于微软的正常渠道的激活方式，最大激活到2038年(至于为什么是2038年？因为在有符号32位整数时间戳里面2038是最大值)
+- [WIN10多种激活密钥让你傻傻分不清 一文看懂OEM、GVLK、KMS等密钥区别](https://www.cnblogs.com/hahajava/p/13609195.html)
+- [KMS激活Windows/Office口袋指南](https://blog.03k.org/post/kms.html)
+- 激活工具
+    - [HEU KMS Activator](https://www.hezibuluo.com/7942.html)
+- `slmgr` 软件授权管理工具
+
+```bash
+## win10激活(新建bat文件并运行)
+# 设置KMS服务器地址 kms.03k.org可换成其他KMS服务器地址
+slmgr /skms kms.03k.org
+# 激活
+slmgr /ato
+```
 
 ## 常用命令
 
@@ -129,6 +151,9 @@ Windows 新增远程桌面会话连接数(可多人同时远程桌面，互不�
 ## 软件下载推荐
 
 - `Navicat` Navicat 15破解教程：https://www.cnblogs.com/poloyy/p/12231357.html
+    - 使用手册: https://www.navicat.com.cn/support/online-manual
+    - 快捷键: https://www.navicat.com.cn/manual/online_manual/cn/navicat_16/mac_manual/#/hot_keys
+        - `Ctrl + D` 从数据视图进入设计视图
 - `Visio` 流程图。[Microsoft visio pro 2019 32位/64位](https://www.jb51.net/softs/634165.html#downintro2)
 - `DBeaver` 数据库连接工具(开源免费，支持数据库丰富)
   - 驱动JAR下载(官网提供的下载地址无法访问)

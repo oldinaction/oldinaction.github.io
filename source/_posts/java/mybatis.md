@@ -44,14 +44,16 @@ for (Orders order : list) {
 		<version>5.0.4</version>
 	</dependency>
 
-	<!-- 方式二：会包含mybatis依赖，并且无需再mybatis配置文件中配置此插件。如果使用mybatis-plus插件则不需要此分页插件 -->
+	<!-- 方式二：会包含mybatis依赖，并且无需再mybatis配置文件中配置此插件。如果使用mybatis-plus插件则不需要此分页插件
+        自动装配时，会获取初始化后的SqlSessionFactory，然后获取其Configuration，再将插件添加进去(而非在SqlSessionFactory初始化前进行配置的)
+    -->
 	<dependency>
 		<groupId>com.github.pagehelper</groupId>
 		<artifactId>pagehelper-spring-boot-starter</artifactId>
 		<version>1.0.0</version>
 	</dependency>
 
-    <!-- 方式三：使用mybatis-plus(推荐) -->
+    <!-- 方式三：使用mybatis-plus(推荐)，使用内置自定义的分页插件 -->
 	```
 - 扫描配置(二者缺一不可)
     - 启动类中加 **`@MapperScan({"cn.aezo.springboot.mybatis.mapperxml", "cn.aezo.springboot.module.*.mapper"})`** 进行接口扫描
@@ -61,18 +63,18 @@ for (Orders order : list) {
         - mybatis-plus复写了此配置，对应`mybatis-plus.mapper-locations`，其默认值为`classpath*:/mapper/**/*.xml`，因此一般可不用配置此参数
 - Springboot配置
 
-	```bash
-	# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml(无法扫描其子目录),classpath:mapper2/*.xml"
-    # classpath只会扫描当前module的class, 而改为classpath*则会扫描所有jar
-	mybatis.mapper-locations=classpath:mapper/*.xml,classpath:mapper/**/*.xml
-	# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置，可用于自定义插件
-	mybatis.config-location=classpath:mybatis-config.xml
+```bash
+# 基于xml配置时需指明映射文件扫描位置；设置多个路径可用","分割，如："classpath:mapper/*.xml(无法扫描其子目录),classpath:mapper2/*.xml"
+# classpath只会扫描当前module的class, 而改为classpath*则会扫描所有jar
+mybatis.mapper-locations=classpath:mapper/*.xml,classpath:mapper/**/*.xml
+# mybatis配置文件位置(mybatis.config-location和mybatis.configuration...不能同时使用), 由于自动配置对插件支持不够暂时使用xml配置，可用于自定义插件
+mybatis.config-location=classpath:mybatis-config.xml
 
-    ## 不设置mybatis配置文件时
-	# mybatis.configuration.map-underscore-to-camel-case=true # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
-	# mybatis.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl # 声明打印日志到控制台。如果打印到日志需要到logback.xml中增加配置，或者配置logging.level.cn.aezo.mapper=DEBUG
-	# mybatis.type-aliases-package=cn.aezo.springboot.mybatis.model # 类型别名定义扫描的包(可结合@Alias使用, 默认是类名首字母小写)
-	```
+## 不设置mybatis配置文件时
+# mybatis.configuration.map-underscore-to-camel-case=true # 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
+# mybatis.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl # 声明打印日志到控制台。如果打印到日志需要到logback.xml中增加配置，或者配置logging.level.cn.aezo.mapper=DEBUG
+# mybatis.type-aliases-package=cn.aezo.springboot.mybatis.model # 类型别名定义扫描的包(可结合@Alias使用, 默认是类名首字母小写)
+```
 - mybatis配置文件: `mybatis-config.xml`
 
 	```xml
@@ -107,7 +109,7 @@ for (Orders order : list) {
 			</plugin>
 		</plugins>
 
-        <!-- 基于databaseId实现数据库兼容 -->
+        <!-- 基于databaseId实现数据库兼容. DB_VENDOR为mybatis内置别名，对应VendorDatabaseIdProvider -->
         <databaseIdProvider type="DB_VENDOR">
             <property name="MySQL" value="mysql"/>        
             <property name="Oracle" value="oracle" />
@@ -1277,7 +1279,8 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
     <version>3.0.6</version>
 </dependency>
 ```
-- 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(Java类)，**可能还需配置`mapper-locations`指定xml文件位置**
+- 配置类增加`@MapperScan({"cn.aezo.**.mapper"})`扫描Mapper(Java类)
+    - 可能还需配置`mapper-locations`指定xml文件位置(默认值为classpath/mapper下的xml文件，如果在其子目录或其他目录则需配置)
 - application.yaml配置(可省略)
 
 ```yml
@@ -1285,9 +1288,6 @@ MyBatisGenerator->>MyBatisGenerator: 3.writeFiles[写出文件]
 mybatis-plus:
   # 默认为classpath*:/mapper/**/*.xml, 一般可以不用配置, 但是如果要扫描mapper文件根目录下的文件则需要修改如下(classpath*主要针对多模块, 可加载多个jar下的xml)
   mapper-locations: classpath*:/mapper/*.xml,classpath*:/mapper/**/*.xml
-
-  # 配置别名扫描的包，如果查询结果resultType值填全类名，则可不需要配置. 别名如(cn.aezo.demo.party.entity.User类对应别名则可直接写类名User)
-  # typeAliasesPackage: cn.aezo.demo.**.entity
 
   global-config:
     # 逻辑删除配置(无需其他配置)
@@ -1297,6 +1297,8 @@ mybatis-plus:
       logic-not-delete-value: 1 # 逻辑未删除值
   
   # [原生配置](https://baomidou.com/pages/56bac0/#configuration-2)
+  # 可通过xml文件或yml的形式配置
+  # configLocation: classpath:mybatis-config.xml
   configuration:
     # 默认是true, 字段格式对应关系：数据库字段为下划线, model字段为驼峰标识(不设定则需要通过resultMap进行转换)
     # map-underscore-to-camel-case: true
@@ -1307,6 +1309,9 @@ mybatis-plus:
     jdbc-type-for-null: 'null'
     # 声明打印日志到控制台。如果打印到日志需要到logback.xml中增加配置，或者配置logging.level.cn.aezo.mapper=DEBUG
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+   # 配置别名扫描的包，如果查询结果resultType值填全类名，则可不需要配置. 别名如(cn.aezo.demo.party.entity.User类对应别名则可直接写类名User)
+   # typeAliasesPackage: cn.aezo.demo.**.entity
 ```
 
 #### 使用
@@ -1342,6 +1347,7 @@ List<Subscribe> subscribes = subscribeService.list(new LambdaQueryWrapper<Subscr
 subscribeService.listByMap(map); // 参数 map 中的字段即为数据库的字段(如：user_id)，且不能有非数据库字段
 
 // ======== 批量新增/更新/删除
+// 假设提交3条数据，如果第二条报错了，此时第1条已经记录到缓存中。如果之后不回滚则第1条会正常保存，第2、3条不会保存；如果再次提交第1条，此时相当于保存了2次(如果主键不是自动生成的则可能报错唯一冲突，但是第一次任然正常提交)
 subscribeService.saveBatch(List<Subscribe>);
 subscribeService.updateBatchById(List<Subscribe>);
 subscribeService.removeByIds(List<Subscribe>);

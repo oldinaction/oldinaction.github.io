@@ -6,6 +6,12 @@ categories: extend
 tags: [java, conception]
 ---
 
+## 语言
+
+- [各语言执行用时和内存消耗比较](https://leetcode.cn/problems/find-the-town-judge/solution/python-by-yhm138_-yezp/)
+    - Go 主要用来创建可扩展的在线 APIs 和小型服务
+    - Rust 主要用来处理 CPU 密集型任务，如算法和大数据处理
+
 ## 架构
 
 - `SOA`
@@ -205,6 +211,7 @@ tags: [java, conception]
         - GPL的约束生效的前提是"发布"软件，发布至软件通过互联网或光盘release软件
         - 由于现在网络服务公司兴起（如：google）产生了一定的漏洞，比如使用GPL的自由软件，但是并不发布与网络之中。如使用GPL组件编写一个Web后端系统，不发布这个系统，但是用这个系统在线提供服务，同时不开源系统代码。AGPL则增加了对此做法的约束
 - `Git`提交说明规范参考：http://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html
+- [软件著作权登录](https://www.ccopyright.com.cn/)，参考：https://zhuanlan.zhihu.com/p/337166672
 
 ## 硬件
 

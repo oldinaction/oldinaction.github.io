@@ -2,7 +2,7 @@
 layout: "post"
 title: "Mac"
 date: "2021-08-30 16:11"
-categories: extend
+categories: linux
 tags: [system]
 ---
 
@@ -30,12 +30,12 @@ vi ~/.zshrc
 alias mzsh="arch -arm64 zsh"
 alias xzsh="arch -x86_64 zsh"
 if [ "$(uname -p)" = "i386" ]; then
-  echo "zsh Running in i386(x86) mode (Rosetta). use 'mzsh' switch to ARM(M1)"
+  echo "zsh Running in i386(x86) mode (Rosetta). use 'xzsh' switch to i386(x86), use 'mzsh' switch to ARM(M1)"
   eval "$(/usr/local/bin/brew shellenv)"
   alias brew='arch -x86_64 /usr/local/bin/brew'
   alias pyenv='arch -x86_64 /usr/local/bin/pyenv'
 else
-  echo "zsh Running in ARM mode (M1). use 'xzsh' switch to i386(x86)"
+  echo "zsh Running in ARM mode (M1). use 'xzsh' switch to i386(x86), use 'mzsh' switch to ARM(M1)"
   eval "$(/opt/homebrew/bin/brew shellenv)"
   alias brew='/opt/homebrew/bin/brew'
   alias pyenv='$HOME/.pyenv/bin/pyenv'
@@ -71,7 +71,7 @@ end: fn＋右
 ## 命令
 
 - `open /root` 在Finder中打开某个目录(默认有些目录时不会显示在Finder中的)
-- `lsof -i -P | grep 21` 查看端口占用情况，或`lsof -i :21`
+- `lsof -i -P | grep 21` 查看端口占用情况，或`lsof -i :21`(类似netstat查找端口功能)
 
 ## 个性化配置
 
@@ -93,10 +93,34 @@ alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-ti
 
 ### brew
 
+#### brew安装
+
 - 安装[brew](https://brew.sh/)包管理工具
+- 更换镜像
 
 ```bash
-## arm(M1)安装. (需要命令行设置代理FQ下载速度会快些，可能需要多试几次). 安装位置/opt/homebrew
+## 更换镜像(arm和x86模式需要分别设置)，参考：https://www.cnblogs.com/trotl/p/11862796.html
+cd "$(brew --repo)"
+git remote set-url origin https://mirrors.aliyun.com/homebrew/brew.git
+cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
+git remote set-url origin https://mirrors.aliyun.com/homebrew/homebrew-core.git
+cd "$(brew --repo)"/Library/Taps/homebrew/homebrew-cask
+git remote set-url origin https://mirrors.ustc.edu.cn/homebrew-cask.git
+
+# 替换homebrew-bottles
+# echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles' >> ~/.bash_profile
+# source ~/.bash_profile
+
+# 解决brew安装包一直卡在Updating Homebrew
+echo 'export HOMEBREW_NO_AUTO_UPDATE=true' >> ~/.bash_profile
+source ~/.bash_profile
+```
+- arm和x86模式安装
+
+```bash
+## arm(M1)安装v3.2.11
+# 安装位置 /opt/homebrew, 安装的包位置 /opt/homebrew/opt, 配置文件位置 /etc
+# (需要命令行设置代理FQ下载速度会快些，可能需要多试几次)
 bash -c "$(curl -fsSL https://sourcegraph.com/github.com/Homebrew/install@master/-/raw/install.sh)"
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 # 安装完后会生成如下两条命令
@@ -105,7 +129,9 @@ echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.bash_profile
 source ~/.bash_profile
 # eval "$(/opt/homebrew/bin/brew shellenv)" # 直接时/opt/homebrew/bin在当前命令行生效
 
-## x86(Inter)安装. 安装位置/usr/local/Homebrew
+
+## x86(Inter)安装v3.6.21
+# 安装位置 /usr/local/Homebrew, 安装的包位置 /usr/local/Cellar, 配置文件位置 /usr/local/etc
 # 前期准备工作参考: https://towardsdatascience.com/how-to-use-manage-multiple-python-versions-on-an-apple-silicon-m1-mac-d69ee6ed0250
 # 安装Rosetta: https://www.bilibili.com/read/cv14826978
 softwareupdate --install-rosetta
@@ -117,21 +143,15 @@ bash -c "$(curl -fsSL https://sourcegraph.com/github.com/Homebrew/install@master
 alias xbrew='arch -x86_64 /usr/local/bin/brew'
 # 生效
 source ~/.bash_profile
+```
 
-## 更换镜像，参考：https://www.cnblogs.com/trotl/p/11862796.html
-cd "$(brew --repo)"
-git remote set-url origin https://mirrors.aliyun.com/homebrew/brew.git
-cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
-git remote set-url origin https://mirrors.aliyun.com/homebrew/homebrew-core.git
-echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles' >> ~/.bash_profile
-source ~/.bash_profile
-# 解决brew安装包一直卡在Updating Homebrew
-echo 'export HOMEBREW_NO_AUTO_UPDATE=true' >> ~/.bash_profile
-source ~/.bash_profile
+#### brew使用
 
-
+```bash
 ## brew 使用
 brew -v
+brew update  # 升级brew
+brew upgrade # 升级所有包(也可单独指定)
 brew install wget
 brew uninstall wget
 # 安装指定版本
@@ -150,7 +170,7 @@ brew services cleanup  # 清除已卸载应用的无用的配置
 brew info nginx
 ```
 
-### brew安装常用软件
+#### brew安装常用软件
 
 ```bash
 # brew安装nginx仅稳定版，如果需要安装其他版本可基于docker运行
@@ -163,6 +183,14 @@ brew install coreutils
 
 # c++ qt框架
 brew install qt
+
+# 生成目录树命令(windows可直接使用)
+brew install tree
+# -L打印层级；mac上tree命令不支持忽略多个文件夹，多个需配合grep使用；默认不会打印影藏的文件和目录
+tree -L 3 -I "node_modules" | grep -v -e "dist"
+
+# 配置文件路径如`/opt/homebrew/etc/redis.conf`
+brew install redis
 ```
 
 ### VPN(PPTP)
@@ -272,7 +300,7 @@ alias unproxy="unset ALL_PROXY"
 
 ## 使用
 # 参考下文，使用item2快速脚本启动代理
-# 网络设置里面设置网线(USB)/Wifi对应适配器的SOCKS代理即可
+# 网络设置里面设置网线(USB)/Wifi对应适配器的SOCKS代理即可, 如 127.0.0.1 1088
 # 命令行执行proxy/unproxy启用/关闭当前命令行代理 (使用v2ray全局代理对应命令行无效)
 ```
 - 配色方案：https://iterm2colorschemes.com/
@@ -329,12 +357,16 @@ ln -s /opt/homebrew/Cellar/lrzsz/0.12.20_1/bin/lsz /usr/local/bin/sz
 ### PHP
 
 - mac系统自带的php在目录/usr/bin/php，php-fpm在目录/user/sbin/php-fpm
-- 重新安装php
+- 重新安装php(基于arm安装，x86安装参考下文)
 
 ```bash
+# arm(M1)安装的brew为v3.2.11. 安装位置 /opt/homebrew, 安装的包位置 /opt/homebrew/opt
+# x86(Inter)安装的brew为v3.6.21. 安装位置 /usr/local/Homebrew, 安装的包位置 /usr/local/Cellar
 # 安装最新版本php(对应路径为/opt/homebrew/opt/php)
-# brew install php
+brew install php
 # 安装某个版本php
+# 有可能安装php@7.4提示：Error: php@7.4 has been disabled because it is a versioned formula!
+# 解决办法参考：https://stackoverflow.com/questions/70417377/error-php7-3-has-been-disabled-because-it-is-a-versioned-formula (`brew tap shivammathur/php`, `brew install shivammathur/php/php@7.4`)
 brew install php@7.4
 # 查看安装好的php路径
 brew --prefix php@7.4
@@ -343,8 +375,23 @@ brew --prefix php@7.4
 brew services start php@7.4
 
 # 切换版本: 先取消原关联版本, 再切换到其他版本
-brew unlink php@7.4
-brew link php
+# 可通过 brew list 查看按照的包名称
+brew unlink php@7.3
+brew link php@7.4
+```
+- 基于x86模式安装
+
+```bash
+# 命令行切换成x86模式
+# php7.3、php7.4尚未安装成功
+/usr/local/Homebrew/bin/brew install php@8.0
+/usr/local/Cellar/php@8.0/8.0.27_1/bin/php -v
+brew services start php@8.0
+
+# 安装composer
+curl -sS https://getcomposer.org/installer | /usr/local/Cellar/php@8.0/8.0.27_1/bin/php
+# 查看composer
+/usr/local/Cellar/php@8.0/8.0.27_1/composer.phar
 ```
 
 ### IDEA
@@ -372,6 +419,12 @@ rm -rf ~/.nvm
     - 部分使用sudo仍然安装失败，可使用如`sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npm.taobao.org`
 - 常见问题
     - 在npm install进行包依赖安装是，部分包需要依赖autoreconf命令，从而提示`/bin/sh: autoreconf: command not found`。此时可通过`brew install autoconf automake libtool`先手动安装autoreconf，并将`PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"`添加到`~/.zshrc`
+
+### FTP/SFTP
+
+- MAC开启SFTP服务
+    - 偏好设置 - 共享 - 勾选远程登录 - 添加允许登录用户
+    - 执行`sftp localhost`即可
 
 ### Jad-GUI
 

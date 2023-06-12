@@ -30,16 +30,32 @@ tags: [CentOS, linux]
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
     - 快速修改命令 **`sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`**，并重启
 - 查看磁盘分区和挂载，项目建议放到数据盘(阿里云单独购买的数据盘需要格式化才可使用)。[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#磁盘)
-- 校验系统时间，参考[时间同步](#时间同步)，或使用下文配置脚本
+- [Swap交换分区](/_posts/linux/linux.md#Swap交换分区)
+- 校验系统时间，参考[时间同步](#时间同步)，或使用下文配置脚本. `ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime`设置亚洲时区
+- 设置服务器编码
+
+```bash
+# 增加设置成 `export LANG=en_US.UTF-8` 而不是 `export LANG=zh_CN.UTF-8`(容易中文乱码)
+vi /etc/profile
+# 刷新文件
+source /etc/profile
+# 查看编码(都是en_US.UTF-8)
+locale
+# vi/vim乱码，可创建.virc或.vimrc文件，加入
+:set encoding=utf-8
+```
 - 添加用户、修改密码、设置sudo权限、su免密码：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#权限系统)
 
 ```bash
-# 创建常用用户和目录
+## 创建常用用户，如www/nginx/mysql
+# 创建组
 groupadd www
+# -r表www示用户是一个系统用户，不能登录; 添加到组
 useradd -r -g www www
-usermod -a -G www sq # 将用户sq加入到www组(方便sq进行资源文件上传)
+# 将用户sq加入到www组(方便sq进行资源文件上传)
+usermod -a -G www sq
 
-# chmod -R 755 /wwwroot
+# chmod -R 755 /wwwroot # drwxr-xr-x
 # chown -R www:www /wwwroot
 /wwwroot                755 root
     /www                775 root (一般是755，此处775方便sq用户进行文件上传)
@@ -58,9 +74,14 @@ usermod -a -G www sq # 将用户sq加入到www组(方便sq进行资源文件上�
     - `yum upgrade` 只更新软件版本，不更新内核版本
 - [常用软件安装](#常用软件安装)
 
-### 内核升级 [^7]
+### 低配置服务器优化
 
-- **Centos7 默认使用内核版本为`3.10`**，目前内核长期支持版为`4.4`，主线稳定版为`5.2`
+- [增加Swap交换分区](/_posts/linux/linux.md#Swap交换分区)
+- [MySQL内存参数优化](/_posts/db/mysql-dba.md#内存参数优化适用小内存vps)
+
+### 内核升级
+
+- **Centos7 默认使用内核版本为`3.10`**，目前内核长期支持版为`4.4`，主线稳定版为`5.2` [^7]
 - 内核版本的定义
     - 版本性质：主分支ml(mainline)，稳定版(stable)，长期维护版lt(longterm)
     - 版本命名格式为 "A.B.C"
@@ -127,18 +148,29 @@ yum -y install gcc # 编译c
 cd /etc/yum.repos.d
 # 备份
 mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-# 基础源，下载阿里云镜像.
+# 基础源，下载阿里云镜像
+# CentOS7
 curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+# CentOS8. 报错`Error: Cannot find a valid baseurl for repo: appstream`可将yum.repos.d目录备份并删除下面的所有文件，然后重新执行此命令
+curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-vault-8.5.2111.repo
 # **安装EPEL源(新增镜像源)**
+# CentOS7
 curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+# CentOS8
+yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 # 生成缓存
 yum makecache
+
+
+# 还原Centos7为官方源
+rpm -Uvh --force http://mirror.centos.org/centos-7/7.9.2009/os/x86_64/Packages/centos-release-7-9.2009.0.el7.centos.x86_64.rpm
 ```
 - 安装`EPEL`(Extra Packages for Enterprise Linux)。epel它是RHEL 的 Fedora 软件仓库，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。如nginx可通过epel安装
     - 方式一：使用上述阿里云镜像
     - 方式二：`rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm`
         - 下载epel源 `wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm` (http://fedoraproject.org/wiki/EPEL)
         - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
+    - Centos8: `yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm`
 - 手动新增镜像源
 
 ```bash
@@ -487,18 +519,24 @@ wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
 rpm -ivh mysql57-community-release-el7-8.noarch.rpm
 # 检查mysql源是否安装成功
 yum repolist enabled | grep "mysql.*-community.*"
-# 安装mysql服务端和客户端(速度较慢)。`yum install mysql`仅仅安装了客户端
+# 默认为按照mysql 8.0；安装mysql服务端和客户端(速度较慢)。`yum install mysql`仅仅安装了客户端
 yum -y install mysql-server
+# 修改配置文件
+vi /etc/my.ini
 # 设置开机启动，并启动
-systemctl enable mysqld && systemctl start mysqld
-# 查看临时密码
+systemctl start mysqld && systemctl enable mysqld
+# 查看临时密码(查不到可能是空密码)。也有可能为 /var/log/mysql/mysqld.log
 grep 'temporary password' /var/log/mysqld.log
 # 登录
 mysql -uroot -p
 # 修改密码(mysql5.7密码必须包含大小写字母、数字和特殊符号，并且长度不能少于8位)。必须修改密码才能执行sql语句
 alter user 'root'@'localhost' identified by 'Hello1234!';
-# 添加 'root'@'%' 用户，并赋权，且允许远程登录
+# mysql5.7添加 'root'@'%' 用户，并赋权，且允许远程登录
 grant all privileges on *.* to 'root'@'%' identified by 'Hello1234!' with grant option;
+# mysql 8.0需要这样添加用户并赋权
+create user 'root'@'%' identified by 'Hello1234!';
+grant all privileges on *.* to 'root'@'%' with grant option;
+# 刷新权限
 flush privileges;
 quit # 退出使用新密码重新登录
 ```
@@ -535,6 +573,7 @@ socket=/var/lib/mysql/mysql.sock
 log_error=/home/data/mysql/mysqld_error.log
 # 慢SQL日志
 slow_query_log_file=/home/data/mysql/slow.log
+## 手动安装时设置
 
 # Disabling symbolic-links is recommended to prevent assorted security risks
 symbolic-links=0
@@ -674,7 +713,7 @@ echo "zabbix test mail" | mail -s "zabbix" test@163.com
 ### 时间同步
 
 - 校验时区：如`Tue Jul  2 21:26:09 CST 2019`和`Tue Jul  2 21:26:09 EDT 2019`，其中北京时间的时区为`CST`
-    - `ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime` 修改成功后之前的日志是无法同步修改的
+    - `ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime` 修改成功后之前的日志是无法同步修改的
     - `date` 获取当前时间(精确到秒)
 
         ```bash

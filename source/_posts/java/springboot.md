@@ -112,16 +112,21 @@ tags: spring
 
 - 参考：https://docs.spring.io/spring-boot/docs/2.0.5.RELEASE/reference/htmlsingle/#boot-features-external-config
 - 参考`ConfigFileApplicationListener`类实现
-- profile配置：可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`) [^3]
-- SpringBoot项目属性配置加载顺序
-    - 使用命令行方式启动时，在命令行中传入的参数
+- profile配置
+    - 可新建`application.properties`(默认)、`application-dev.properties`(会继承默认中的配置)、`application-prod.properties`、`application-test.properties`来针对不同的运行环境(`application-{profile}.properties`) [^3]
+- 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
+    - spring.profiles.active=dev
+    - spring.profiles.include=common,dev 如无application-dev.yml对应配置文件也不会报错
+    - 此时只有写在dev里面的才能覆盖commm, 写在application中的无法覆盖
+- SpringBoot项目**配置属性(优先级从高到低)**
+    - 使用命令行方式启动时，在命令行中传入的参数(**VM参数**)
         - IDEA启动时会自动增加一些参数，如`-Dcom.sun.management.jmxremote ... -Dspring.application.admin.enabled=true`等。此时可通过设置IDEA启动配置的参数覆盖(Override parameters)，如增加`spring.application.json={"spring.application.admin.enabled": false}`
         - 如果参数值有特殊字符和使用双引号包裹一下，如`--spring.datasource.url="jdbc:xxx"`
-        - 传入数组，如`--sqbiz.arr=test1,test2`，java需要使用对象的数组属性接受
+        - 传入数组，如`--sqbiz.arr=test1,test2`，java需要使用对象的数组属性接收
     - SPRING_APPLICATION_JSON中的属性。SPRING_APPLICATION_JSON是以JSON的格式配置在系统环境变量中的内容，或`--spring.application.json='{"foo":"bar"}'`参数
     - java:comp/env中的JNDI属性
     - Java的系统属性，可以通过System.getProperties()获得的内容
-    - 操作系统的环境变量，即Path等
+    - **操作系统的环境变量，即Path等**
     - 通过random.*配置的随机属性
     - 位于当前应用jar包之外，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或YAML格式定义的配置文件，如application-dev.properties
     - 位于当前应用jar包之内，针对不同{profile}环境的配置文件内容，例如application-{profile}.properties或是YAML定义的配置文件
@@ -129,28 +134,32 @@ tags: spring
     - 位于当前应用jar包之内的 application.properties 和YAML配置内容
     - 在@Configuration注解修改的类中，通过@PropertySource注解定义的属性
     - 应用默认属性，使用SpringApplication.setDefaultProperties定义的内容
-- 使用配置文件(优先级从高到低)
+- 使用**配置文件(优先级从高到低)**
 	- 外置，`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
     - 外置，应用程序运行目录的/congfig子目录里
-    - 外置，在应用程序运行的目录里(如外置目录application-prod.yml优先级高于jar包中的该文件)
+    - **外置，在应用程序运行的目录里**(如外置目录application-prod.yml优先级高于jar包中的该文件)
 	- 内置，`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
     - **内置，src/main/resources/config包内**
         - 可写成到通用包中作为通用配置，后面可以进行补充，但是不能覆盖
     - **内置，src/main/resources包内**
     - application.yml > application.properties
     - bootstrap.yml 其优先级高于 application.yml
-- 可以idea中修改默认profiles或者某些配置达到运行多个实例的目的
-    - spring.profiles.include=common,dev
-    - spring.profiles.active=dev
-    - 此时只有写在dev里面的才能覆盖commm, 写在application中的无法覆盖
-- 自定义默认配置文件application.yml
-    - 使用`spring.config.location`指定默认配置文件或配置文件路径，如`java -jar myproject.jar --spring.config.location=classpath:/config/,classpath:/config/test/`，此时会从上述路径读取(后面路径的文件会覆盖前面路径的文件)配置，并可结合profile，但是文件名必须是`application-${profile}.yml`格式
-    - 使用`spring.config.additional-location`可覆盖默认配置文件的路径(默认配置文件application.yml仍然会加重)
+- 自定义默认配置文件application.yml的位置和名称
+    - SpringBoot默认配置文件为`private static final String DEFAULT_SEARCH_LOCATIONS = "classpath:/,classpath:/config/,file:./,file:./config/*/,file:./config/";`指定目录下的`application.yml|properties`(后面路径的文件会覆盖前面路径的文件，只有包装)
+    - 使用 **`spring.config.location`** 指定默认配置文件或文件路径
+        - 此配置不能写在配置文件中，可通过命令行参数指定或通过SpringApplicationBuilder#properties()代码指定
+        - 原默认配置文件不会加载，需要保证spring.config.location定义的一个或多个文件夹中所有的配置文件可以组成一整套application profile配置文件
+        - 如`java -jar myproject.jar --spring.config.location=classpath:/config/,classpath:/config/test/,D:/data/demo/`，此时会从上述路径读取(后面路径的文件会覆盖前面路径的文件)配置，并可结合profile，但是文件名必须是`application-${profile}.yml`格式
+    - 使用 **`spring.config.name`** 来指定配置文件名称，默认名称为`application`，支持profile机制
+    - 使用 **`spring.config.additional-location`** 基于默认配置文件路径，增加指定配置文件路径
+        - 默认配置文件application.yml等仍然会加载
+        - 增加路径下的配置文件会覆盖默认配置文件，是文件覆盖而非属性覆盖
+        - 可用来做开源程序的升级版，将关键配置进行外置(如增加spring.profiles.include=dev-local, 并将application-dev-local.yml外置, 打包后不会包含此文件, 无此文件运行也不会报错)，防止打包时配置文件泄露
     - 说明
         - spring.config.location 和 spring.config.additional-location 不能同时生效，spring.config.location 的优先级高
         - spring.config.location 值为文件，则不支持profile机制，值为文件夹时才支持profile机制
         - spring.config.additional-location 不支持profile机制
-- `-Xbootclasspath/a` 加入外部扩展class，用法参考[JVM参数使用](/_posts/java/jvm.md#JVM参数使用)
+- **`-Xbootclasspath/a`** 加入外部扩展class，用法参考[JVM参数使用](/_posts/java/jvm.md#JVM参数使用)
 - 使用`@PropertySource("classpath:hello.properties")`结合@ConfigurationProperties可设置读取某个配置文件注入到JavaBean
 - 配置示例
 
@@ -462,7 +471,7 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 ### 请求参数字段映射
 
 - 注意点
-    - 原理参考：[spring-src.md#MVC请求参数解析](/_posts/java/spring-src.md#MVC请求参数解析)
+    - 原理参考：[spring-mvc-src.md#MVC请求参数解析](/_posts/java/spring-mvc-src.md#MVC请求参数解析)
     - **LocalDateTime 等类型日期时间格式转换** [^19] [^20]
         - Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`。不适合参数通过 @RequestBody 修饰
         - Bean字段增加注解`@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。适用于 @RequestBody 接收(如 application/json 请求类型)；且适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)
@@ -748,242 +757,11 @@ str3: "hello wor\
 
 ## 请求及响应
 
-- 相关配置
-
-```bash
-# 端口
-server.port=9090
-# context-path路径
-server.context-path=/myapp
-```
-
-### 请求协议
-
-- 参考文章
-    - 原理参考：[spring-src.md#MVC请求参数解析](/_posts/java/spring-src.md#MVC请求参数解析)
-    - https://www.hangge.com/blog/cache/detail_2485.html (POST请求示例)
-    - https://www.hangge.com/blog/cache/detail_2484.html  (GET请求示例)
-- 常见请求方式
-
-| request-method | Content-Type                        | postman               | springboot                                                                                       | 说明                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| -------------- | ----------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| post           | `application/json`                  | row-json              | (String userIdUrlParam, @RequestBody User user)                                                  | `String userIdUrlParam`可以接受 url 中的参数，使用了`@RequestBody`可以接受 body 中的参数(最终转成 User/Map/List 对象，**如`@RequestBody List<Map<String, Object>> items`**，此时 body 中的数据不能直接通过 String 等接受)，而 idea 的 http 文件中 url 参数拼在地址上无法获取(请求机制不同)                                                                                                                                                             |
-| (x)post        | `application/json`                  | row-json              | (@RequestParam username)                                                                         | 如果前台为 application/json + {username: smale}或者 application/json + username=smalle 均报 400；此时需要 application/x-www-form-urlencoded + username=smalle 才可请求成功                                                                                                                                                                                                                                                                             |
-| post           | `application/x-www-form-urlencoded` | x-www-form-urlencoded | (String name, User user, @RequestBody body)                                                      | `String name`可以接受 url 中的参数，postmant 的 x-www-form-urlencoded 中的参数会和 url 中参数合并后注入到 springboot 的参数中；`@RequestBody`会接受 url 整体的数据，(由于 Content-Type)此时不会转换，body 接受的参数如`name=hello&name=test&pass=1234`。**对于 application/x-www-form-urlencoded 类型的数据，可无需 @RequestBody 接受参数**                                                                                                            |
-| post           | `multipart/form-data`               | form-data             | (HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello) | 参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括 axios 等插件)需要使用 new FormData()进行数据传输；此时参数映射到 User 对象，如果字段为 null 则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是 Map 则无法映射，可通过传入JSON字符串再反序列化**；表单数据都保存在 http 的正文部分，各个表单项之间用 boundary 隔开，用 request.getParameter 是取不到数据的，这时需要通过 request.getInputStream 来取数据 |
-| get            | -                                   | -                     | (User user, Page page)                                                                           | 前台传输参数为{username: 'smalle', pageSize: 10}时，可正确分别映射到两个对象；如果此时为 post 请求则无法映射；get 请求时，请求参数会拼接到 url 上，Google 浏览器 URL 最大长度限制为 8182 个字符，中文是以 urlencode 后的编码形式进行传递，如果浏览器的编码为 UTF8 的话，一个汉字最终编码后的字符长度为 9 个字符(中=%E4%B8%AD)。如果用 Map 接受，则数字类型的值也会映射成字符串                                                                      |
-| get            | `application/x-www-form-urlencoded` | -                     | (Map<String, Object> param)                                                                           | 前台传输参数为?age=&count=10000时，得到的字段数据类型均为字符串。SqBiz必须加@RequestParam注解才能获取到Map                                                                      |
-
-- content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
-	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放在body中，且数据格式为json
-	- 服务器response设置content-type标明返回的数据类型。接口开发时，设置请求参数是无法改变服务器数据返回类型的。部分工具提供专门的设置，通过工具内部转换的方式实现设定返回数据类型
-
-### 请求参数
-
-- 如果所在类加注解`@RequestMapping("/user")`，则请求url全部要拼上`/user`，如`/user/hello`
-
-```java
-@RequestMapping(value = "/hello") // 前台post请求也可以请求的到
-public String hello() {
-	return "hello world";
-}
-```
-
-- GET请求
-
-```java
-// 前台GET请求 Body/Url 中含参数 userId和username（Spring可以自动注入java基础数据类型和对应的数组，Map/List无法注入）
-// 只能自动注入userId=1&username=smalle格式的数据，如果请求体中是json数据则无法解析(如果参数为json数据，一般可定义请求头为`'Content-Type': 'application/x-www-form-urlencoded'`，从而让qs等插件自动转成url格式参数请求后台)
-@RequestMapping(value="/getUserByUserIdOrUsername")
-public Result getUserByUserIdOrUsername(Long userId, String username, HttpServletRequest request) {
-	// ...
-	return Result.success(); // 自己封装的Result对象(前台可接受到此object对象)
-}
-// 前台请求 Body/Url 中含参数 username
-@RequestMapping(value="/getUserByName")
-public String getUserByName(@RequestParam("username") String name) {}
-@RequestMapping(value = "/getUser")
-public String getUser(User user) {} // 此时User对象必须声明getter/setter方法
-// @PathVariable 获取 url 中的参数
-@RequestMapping(value="/hello/{id}")
-public String user(@PathVariable("id") Long id) {} // 100可转成Long
-```
-
-- POST请求
-
-```java
-// 请求头为application/x-www-form-urlencoded(不能是application/json，否则无法注入)
-@RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public String hello(User user) {}
-public String hello(Map<String, Object> map) {}
-
-// 如请求头为`application/json`，此body中为一个json对象(请求时无需加 data={} 等key，直接为 {} 对象)。
-// 直接通过 `@RequestBody User user` 获取body中的参数(springboot会自动映射)，或者`@RequestBody String body`接收了之后再转换，但是不能同时使用两个。如果body可以成功转成Map/List，此处也可以用 `@RequestBody Map<String, Object>`接受
-@RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public String addUser(@RequestBody List<User> user) {} // body数据可以成功转成Map/List时
-public String addUser(@RequestBody Map<String, Object> map) {}
-
-// 请求数据http://localhost/?name=smalle&pass=123
-@RequestMapping(value = "/addUser", method = RequestMethod.POST)
-public String addUser(@RequestBody String param) {} // 此时param拿到的值为 name=smalle&pass=123
-```
-- 参数映射
-
-```java
-// 1.如果user对象中有字段如 uFullName (驼峰，首字母只有一个字符的情况)
-// 如果接受参数为普通对象，则前台需要传入字段为 ufullName；如果接受参数为 Map，则前台需要传入字段为 uFullName
-public String addUser(@RequestBody User user) {}
-public String addUser(@RequestBody Map<String, Object> map) {
-    // BeanUtil.copyProperties
-}
-```
-
-### 文件上传下载
-
-- 案例参考[springboot-vue.md#文件上传案例](/_posts/arch/springboot-vue.md#文件上传案例)
-- 常用配置
-
-```yml
-spring:
-  http:
-    multipart:
-      # Linux下会自动清除tmp目录下10天没有使用过的文件，SpringBoot启动的时候会在/tmp目录下生成一个Tomcat.*的文件目录，用于"java.io.tmpdir"文件流操作，因为放假期间无人操作，导致Linux系统自动删除了临时文件，所以导致上传报错。另一种配置方式参考下文 MultipartConfigElement
-      # spirngboot 2.1无效，有说配置 `server.tomcat.basedir=/var/tmp/tomcat`，未测试
-      location: /var/tmp
-  servlet:
-    multipart:
-      # 允许的最大文件大小
-      max-file-size: 50MB
-      max-request-size: 50MB
-  mvc:
-    # 静态资源映射，通过后台访问文件的路径(一般需要排除对此路径的权限验证)。相当于一个映射，映射的本地路径为 spring.resources.static-locations
-    # 实际访问还需要增加servlet.context路径(/api)，如访问 /api/static/test/test.js -> test/test.js(此时test目录会自动识别属于哪个目录)
-    static-path-pattern: /static/** # 此路径尽量不要和classpath目录下文件夹重名
-  resources:
-    # 默认为：classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
-    # 后台可访问的本地文件路径. **最终的URL路径不需要携带此前缀，即应该保存各目录下的顶级子目录不会重复。如果重复了，static-locations值中排在前面的优先**
-    static-locations: classpath:/META-INF/resources/,classpath:/resources/,file:/data/app
-```
-- 使用JavaBean进行静态文件映射
-
-```java
-@Configuration
-public class InterceptorConfig implements WebMvcConfigurer {
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 可添加多条，优先级先添加的高于后添加的
-        // 通过此方式添加的映射优先级高于上文static-path-pattern配置的
-        registry.addResourceHandler("/image/**").addResourceLocations("file:D:/image/"); // file:/D:/image/ 亦可. 实际访问还需要增加servlet.context路径
-    }
-}
-```
-- 上传文件临时目录问题
-	- 项目启动默认会产生一个tomcat上传文件临时目录，如：`/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT`
-	- 而linux会定期清除tmp目录下文件，尽管项目仍然处于启动状态。从而会导致错误`Caused by: java.io.IOException: The temporary upload location [/tmp/tomcat.4234211497561321585.8080/work/Tomcat/localhost/ROOT] is not valid`
-
-```java
-// 自定义上传文件临时目录
-@Bean 
-public MultipartConfigElement multipartConfigElement() {
-	MultipartConfigFactory factory = new MultipartConfigFactory();  
-	factory.setLocation("/app/tmp");
-	return factory.createMultipartConfig();
-}
-```
-- 后台会报错：no multipart boundary was found。此问题本身不是后台的原因，解决方法如下 [^21]
-    - 通过`axios.create`重新定义一个axios实例，并挂载到Vue原型上。此处重新定义是防止使用项目中默认的axios实例(一般会通过axios.interceptors.request.use进行处理，而处理后的实例在上传时后台会报错)。具体见上文案例
-    - 不严谨的处理
-
-        ```js
-        // $axios为上文提到的被处理过的axios实例
-        this.$axios.post('http://localhost:8080/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data;boundary = ' + new Date().getTime()
-            }
-        }).then(response => {})
-        ```
-
-### 响应
-
-- `@ResponseBody`
-	- 表示以json返回数据
-	- 定义在类名上，表示所有的方法都是`@ResponseBody`的，也可单独定义在方法上
-- `@RestController`中包含`@ResponseBody`
-- 重定向
-
-```java
-@SneakyThrows
-@RequestMapping("/download/{id}/{fileName}")
-public void download(@PathVariable("id") Integer id, HttpServletRequest request, HttpServletResponse response) {
-    EdiHead info = ediHeadService.info(id);
-    String ediPath = info.getEdiPath();
-    // 内部重定向，/files不以/开头，则会加上原始请求路径
-    request.getRequestDispatcher("/files" + ediPath).forward(request, response);
-
-    // 重定向
-    // response.sendRedirect("/files");
-}
-```
+- 具体参考[SpringBoot请求及响应](/_posts/java/java-http.md#SpringBoot请求及响应)
 
 ### RestTemplate
 
 - 具体参考[RestTemplate](/_posts/java/java-http.md#RestTemplate)
-
-### 前端数组/对象处理
-
-- json字符串传输方式一(不推荐)
-    - 前端通过`JSON.stringify`转成json字符串，然后后台JSONObject等转成Bean/Map等
-- Spring的Bean自动注入
-    - 请求类型 `POST`、`Content-Type: application/json`，后端方法为`public Result edit(@RequestBody CustomerInfo customerInfo)`接受，chrome开发者模式看到的为json对象
-    - 请求类型 `POST`、`Content-Type: multipart/form-data`、使用FormData传输参数，后端可使用`public Result edit(Multipart myFile, CustomerInfo customerInfo)`接受，chrome开发者模式看到的同上文FormData。传输文件必须格式
-	- 请求类型 `POST`、`Content-Type: application/x-www-form-urlencoded`
-	    - chrome开发模式看到的`FormData`(格式化后的。实际请求是将每一项通过`URL encoded`进行转义之后再已`&`连接组装成url参数，此时POST参数是没有长度限制的)如：
-        - 后端写好对应的Bean，且后端方法如`public Result edit(CustomerInfo customerInfo)`
-            - 后端代码`public Result edit(Map<String, Object> params)`报错
-            - 后端代码`public Result edit(String customerNameCn, List customerLines)`报错
-
-		```js
-		id: 766706
-        customerNameCn: 客户名称
-        // CustomerInfo中的updateTm属性可以是Date(会自动转换)
-        updateTm: 2018/08/17 13:02:36
-        // CustomerInfo中的属性customerLines(属性名/setter方法必须和前端参数名保持一致)可以是List<String>或者String[]
-		customerLines[0]: AustraliaLine
-		customerLines[1]: MediterraneanLine
-        customerLines[2]: SoutheastAsianLine
-        // CustomerInfo中包含CustomerRisk和List<CustomerContacts>
-		customerRisk.id: 9906
-		customerRisk.customerId: 766706
-		customerRisk.note: 客户风险备注
-		customerContacts[0].id: 767001
-		customerContacts[0].customerId: 766706
-		customerContacts[0].lastName: 客户联系人1
-		```
-
-#### 拦截request的body数据/拦截response的数据
-
-参考[spring.md#拦截response的数据](/_posts/java/spring.md#拦截response的数据)
-
-#### SpringBoot中使用Servlet
-
-- 使用方法
-
-```java
-// 方式一: 访问 http://localhost:8080/api/test/* 都可以进入到此servlet
-@Bean
-public ServletRegistrationBean testServlet() {
-    return new ServletRegistrationBean(new TestServlet(), "/test/*");
-}
-
-// 方式二：启动类加 @ServletComponentScan + @WebServlet(urlPatterns = "/test/*")
-// @WebServlet(urlPatterns = "/test/*") // 方式二需要
-public class TestServlet extends HttpServlet{
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.getWriter().append("TestServlet");
-    }
-}
-```
 
 ## 数据访问
 
@@ -1166,6 +944,8 @@ public class TestServlet extends HttpServlet{
     - supprot 为扩展包
         - `http.ResourceServlet` 抽象类包含了对登录、主页显示等请求的处理
         - `http.StatViewServlet` 为`ResourceServlet` 的子类，通过`DruidStatViewServletConfiguration`(druid-spring-boot-starter)注入到Spring容器，并设置Servlet的init-parameter，如设置loginUsername等
+- druid内置SQL解析工具类
+    - 遇到xmlparse函数会解析出错，如`xmlparse(content t.name || ';' wellformed)`，参考(此方法测试无效)：https://github.com/alibaba/druid/issues/4259
 
 ### 数据库相关配置
 
@@ -2195,7 +1975,7 @@ mailSender.send(mimeMessage);
         <!--这里对应项目的主入口-->
         <mainClass>cn.aezo.demo.SpringbootApplication</mainClass>
         <layout>ZIP</layout>
-        <!-- 可将需要打包的依赖添加进去，之后每次会把此依赖打包到jar中；必须要此节点，否则默认会包含全部 -->
+        <!-- 可将需要打包的依赖添加进去，之后每次会把此依赖打包到jar中(如果无需则指定nothing即可)；必须要此节点，否则默认会包含全部-->
         <includes>
             <include>
                 <groupId>nothing</groupId>

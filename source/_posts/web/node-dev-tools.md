@@ -26,7 +26,7 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
     - [windows下载](https://github.com/coreybutler/nvm-windows/releases)，安装之前可能需要先卸载之前安装的Node
     - Unix: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash`
         - Mac M1 安装v11.4安装成功，但是安装node v10.x失败，v12.x成功
-        - Mac M1 安装v14.20.1失败：需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/extend/mac.md#M1模拟x86环境)
+        - Mac M1 安装v14.20.1失败：需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/linux/mac.md#M1模拟x86环境)
             - 报错`libtool: unrecognized option -static'`，解决方案: https://stackoverflow.com/questions/38301930/libtool-unrecognized-option-static (前提是通过`xcode-select --install`安装了CommandLineTools, 即有次文件夹)
             - 报错`'stdio.h' file not found`，解决方案: https://blog.51cto.com/u_15639793/5297367 (3个步骤都要执行)
             - 报错`clang: error: linker command failed`，**暂未解决**
@@ -37,7 +37,7 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
 nvm ls-remote --lts # 查看可用LTS node版本
 nvm install 12.16.3 # 安装指定版本Node：nvm install <version> [arch]
 nvm ls # 查看本地安装的Node版本，*号代表当前使用版本
-# MAC M1 安装失败，需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/extend/mac.md#M1模拟x86环境)
+# MAC M1 安装失败，需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/linux/mac.md#M1模拟x86环境)
 nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
 ```
 
@@ -49,25 +49,57 @@ nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版�
     - `npm install npm@latest -g` 更新npm
     - `npm -v` 查看npm版本
 - 设置镜像
-    
-    ```bash
-    # 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载。具体[参考下文mirror-config-china](#mirror-config-china)
-    npm get registry # 查看镜像
-    npm config set registry https://registry.npm.taobao.org/ # 设置为淘宝镜像
-    npm config set registry https://registry.npmjs.org/ # 设置为官方镜像
-    npm config list # 查看配置
 
-    # 查看全局npm包未知
-    npm root -g
-    ```
+```bash
+# 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载。具体[参考下文mirror-config-china](#mirror-config-china)
+npm get registry # 查看镜像
+npm config set registry https://registry.npm.taobao.org/ # 设置为淘宝镜像
+npm config set registry https://registry.npmjs.org/ # 设置为官方镜像
+npm config list # 查看配置
+
+# 查看全局npm包未知
+npm root -g
+```
 - 或者安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
     - `cnpm install <pkg>` 安装模块
+
+### .npmrc文件
+
+- `.npmrc` 可以理解成npm running cnfiguration，即npm运行时配置文件
+- .npmrc 配置文件的优先级
+    - 临时配置(如`npm --registry=https://registry.npm.taobao.org [npm命令]`)
+    - 项目配置文件: /project/.npmrc
+    - 用户配置文件: ~/.npmrc (可通过`npm config get userconfig`获取)
+    - 全局配置文件: $PREFIX/etc/npmrc (可通过`npm config get prefix`获取全局文件路径)
+    - npm安装包默认的路径: /path/to/npm/npmrc
+- 配置(以key=value的形式存储)
+
+```bash
+# 以@test 开头的包从 registry=https://npm.xx.com 这里下载，其余全去淘宝镜像下载
+registry=https://registry.npm.taobao.org
+@test:registry=https://npm.xx.com
+
+# 可以使用环境变量; 对于一些私有仓库(如Nexus)则必须设置always-auth才能进行拉取和推送; _auth为私有仓库秘钥(可通过`echo -n 'username:password' | openssl base64`获取)
+registry=${CORP_NEXUS_NPM}
+always-auth=true
+_auth=${CORP_NEXUS_NPM_PASSWORD}
+```
+- 配置用户和全局配置文件
+
+```bash
+# 增加或删除某个配置
+npm config set registry https://registry.npm.taobao.org
+npm config delete registry
+
+# 设置全局配置文件
+npm config set registry https://registry.npm.taobao.org -g
+```
 
 ### 查看包/安装包/启动项目
 
 - NPM包分析工具
     - CND访问
-        - 国内的CND一般从https://cdnjs.com/上同步的，但是CNDJS上的NPM包不全
+        - 国内的CND一般从 https://cdnjs.com/ 上同步的，但是CNDJS上的NPM包不全
         - **国内支持所有NPM的(类似unpkg)**
             - 饿了么: npm.elemecdn.com、github.elemecdn.com
                 - https://npm.elemecdn.com/@sqbiz/wplugin-tinymce-vue@1.0.0-biz-minions/lib/WpluginTinymceVue.umd.min.js
@@ -126,6 +158,13 @@ npm install
 npm run <xxx>
 npm run dev # 常见的启动项目命令(具体run的命令名称根据package.json来)
 npm run build # 常见的打包项目命令(具体run的命令名称根据package.json来)
+
+
+## 移除npm缓存
+# 如果发现本地包的sha和远程仓库不一样，且重新安装无效，需要先清除缓存
+# 然后删除`package-lock.json`(每次重新安装会校验此文件中的integrity sha512值和远程仓库中的integrity，不一致会报错，所以要先清除)，再重新安装
+# 清除所有缓存，yarn可以基于某个模块单独清理
+npm cache clean -f
 ```
 
 ### 发布包
@@ -150,8 +189,11 @@ npm run build
 npm publish
 # 切回taobao源
 nrm use taobao
-# 删除某个包. 删除这个版本后，不能再发布同版本的包，必须要大于这个版本号的包才行；且仅在包发布后的24小时内可删除；命令执行成功后，展示列表会有延迟，过一会在刷新才能看到移删除结果
-npm unpublish xxx@x.x.x
+
+# 删除某个包. **删除这个版本后，不能再发布同版本的包，必须要大于这个版本号的包才行**
+# 命令执行成功后，展示列表会有延迟，过一会在刷新才能看到移删除结果
+npm unpublish xxx@x.x.x --force
+
 # 废弃某个包. 废弃的包除了安装时会有警示，并不影响使用
 npm deprecate xxx@x.x.x '不在更新了'
 ```
@@ -239,6 +281,10 @@ npm unlink xxx
 - 默认值
     - `npm run start`的默认值是node server.js，前提是项目根目录下有server.js这个脚本
     - `npm run install`的默认值是node-gyp rebuild，前提是项目根目录下有binding.gyp文件
+
+### 基于Nexus搭建私有仓库
+
+- 参考[基于nexus实现npm私有仓库](/_posts/java/maven.md#基于nexus实现npm私有仓库)
 
 ### 基于git仓库进行安装
 

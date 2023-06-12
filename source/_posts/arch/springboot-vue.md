@@ -860,6 +860,12 @@ location ^~ /my-app/ {
 
 - 基于发布订阅+后台统一管理弹框显隐逻辑 https://github.com/accforgit/blog-data/tree/master/%E8%B7%9F%E6%B7%B7%E4%B9%B1%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%BC%B9%E7%AA%97%E8%AF%B4%E5%86%8D%E8%A7%81
 
+### 项目打包后动态修改配置文件
+
+- 抽取单独的config.js: https://blog.csdn.net/mygoes/article/details/105691399
+- 提供运维人员脚本生成config.js: https://blog.csdn.net/samberina/article/details/122110027
+- 后端为node时，将前端设置为服务端渲染：https://blog.csdn.net/samberina/article/details/122110253
+
 ## 常用插件
 
 - 参考[js-tools.md](/_posts/web/js-tools.md)
@@ -880,6 +886,50 @@ vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
 .editorconfig       // 跨编辑器和IDE，保持一致的简单代码风格，就近原则（源码文件参考最近的此文件配置）。参考[js-tools.md#.editorconfig格式化](/_posts/web/node-dev-tools.md#.prettierrc/.jsbeautifyrc/.editorconfig格式化)，下同
 .prettierrc         // 代码格式化，同上
 .jsbeautifyrc       // 代码格式化，同上
+```
+
+## 常用脚本
+
+- 通过脚本部署项目(deploy.sh)
+
+```bash
+#!/bin/bash
+
+# 设置源服务器信息
+host=$CORP_AL_JAVA_HOST
+username=$CORP_AL_JAVA_USERNAME
+ssh_file=$CORP_AL_JAVA_SSH_FILE
+dir=$CORP_AL_JAVA_RT_DIR
+now=`date +%Y%m%d%H%M%S`
+
+# 打包
+echo "=====> build docs..."
+npm run build:docs
+
+# 备份目录
+echo "=====> backup file..."
+expect<<-EOF
+  spawn ssh -i $ssh_file ${username}@${host}
+  expect "]$ "
+  send "cp -r $dir/dist $dir/dist.$now\r"
+  expect "]$ "
+  send "rm -rf $dir/dist\r"
+  expect "]$ "
+  send "exit\r"
+  expect eof
+  # 将命令行交还给用户
+  # interact
+EOF
+
+# 上传文件
+echo "=====> upload file..."
+scp -i $ssh_file -r docs/.vuepress/dist $username@$host:$dir
+
+echo "=====> deploy end..."
+
+:<<COMMENTBLOCK
+  echo '注释代码块，不会打印'
+COMMENTBLOCK
 ```
 
 ## 浏览器

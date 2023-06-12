@@ -230,7 +230,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         - 命令行`reboot`不会导致ip/密码等修改。删除vps重新创建不足1小时按1小时计费，重装系统正常计费(不同于删除vps)
     - 搬瓦工
 - **v2ray单独使用**(可不使用CDN，比直接使用SS等安全。测试Youtube的Connection Speed=7000左右，看1080P妥妥的)
-    - v2ray服务端(vps端)
+    - v2ray服务端(vps端): 基于[x-ui管理面板](https://github.com/vaxilu/x-ui)
 
         ```bash
         ### 安装

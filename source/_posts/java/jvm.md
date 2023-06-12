@@ -8,9 +8,10 @@ tags: [os]
 
 ## 简介
 
+- 本文无特殊说明，默认基于JDK1.8
 - [Java Language Specification](https://docs.oracle.com/javase/specs/jls/se14/html/index.html)
 - [Java Virtual Machine Specification](https://docs.oracle.com/javase/specs/jvms/se14/html/index.html)
-- 本文无特殊说明，默认基于JDK1.8
+- [JVM底层原理总结](https://github.com/doocs/jvm)
 - Java执行
     - `javac` x.java -> x.class
     - 将x.class加载到ClassLoader，并将一些java类库加载进来
@@ -19,6 +20,10 @@ tags: [os]
 - 只要是能编译成class文件的便可以在JVM上执行，如java、groovy、scale等100多种；而不同的操作系统Unix/Linux/Windows/Android会有不同的JVM实现
 - JVM是一种规范，有不同的实现，如HostSpot(oracle官方)、OpenJDK(HostSpot的开源版本)、JcrocKit(被Oracle收购，合并到hostspot)、J9(IBM)、Microsoft VM、TaobaoVM、[azul zing](www.azul.com)
 - `javassist`：处理 Java 字节码的类库，它可以在一个已经编译好的类中添加新的方法，或者是修改已有的方法
+- JVM三种编译器
+    - 前端编译器: Javac、ECJ
+    - JIT编译器: HotSpot C1/C2
+    - AOT编译器: GCJ、JET，常用于云原生
 
 ## Class File Format
 
@@ -880,13 +885,22 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
     - `jstat -gc` 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
         - `arthas`/`jvisualvm`/`jconsole`/`Jprofiler`(最好用，收费)
             - [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(**阿尔萨斯**)，常用命令如下
+                
+                ```bash
+                # https://arthas.aliyun.com/
+                
+                curl -O https://arthas.aliyun.com/arthas-boot.jar
+                java -jar arthas-boot.jar
+                # 如果有多个线程可输入序号仅选择，然后回车
+                ```
                 - 为什么需要在线排查
                     - 在生产上我们经常会碰到一些不好排查的问题，例如线程安全问题，用最简单的threaddump或者heapdump不好查到问题原因
                     - 为了排查这些问题，有时我们会临时加一些日志，比如在一些关键的函数里打印出入参，然后重新打包发布，如果打了日志还是没找到问题，继续加日志，重新打包发布
                     - 对于上线流程复杂而且审核比较严的公司，从改代码到上线需要层层的流转，会大大影响问题排查的进度
                 - `jvm` 观察jvm信息，类似jinfo
-                - `thread` 定位线程问题，类似jstack
-                - `dashboard` 观察系统情况
+                - **`thread`** 定位线程问题，类似jstack
+                    - `thread -n 3` 展示当前最忙的N各线程
+                - **`dashboard`** 观察系统情况
                 - `heapdump` 相当于使用jmap导出堆信息，也会影响线上程序
                 - `jad` 反编译。主要用于：动态代理生成类的问题定位、第三方的类、版本问题(确定自己最新提交的版本是不是被使用)
                 - `redefine` 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
@@ -1052,8 +1066,8 @@ for(int i=0; i<100; i++) {
     - 两种模式区别在与`server=y/n`
 - 扩展classpath
     - `-Xbootclasspath`: 完全取代基本核心的Java class 搜索路径。不常用，否则要重新写所有Java核心class
-    - `-Xbootclasspath/a`: 后缀在核心class搜索路径后面，常用
-    - `-Xbootclasspath/p`: 前缀在核心class搜索路径前面，不常用，避免引起不必要的冲突
+    - **`-Xbootclasspath/a`**: 后缀，在核心class搜索路径后面，常用
+    - `-Xbootclasspath/p`: 前缀，在核心class搜索路径前面，不常用，避免引起不必要的冲突
     - 分隔符与classpath参数类似，unix使用`:`号，windows使用`;`号
         - `java -Xbootclasspath/a:/home/test/thirdlib/module.jar -jar demo.jar` 基于jar配置测试成功
         - `java -Xbootclasspath/a:/home/test/thirdlib/ -jar demo.jar`

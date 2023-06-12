@@ -297,6 +297,7 @@ public @interface SysLog {
 
     - `BufferedReader#readLine`
         - `new BufferedReader(new InputStreamReader(new FileInputStream("c:/test.text"))).readLine()` InputStreamReader起到把字节流转换成字符流
+- java之从命令行获取数据的三种方式: https://www.cnblogs.com/myhomepages/p/16513807.html
 
 ## 文件
 

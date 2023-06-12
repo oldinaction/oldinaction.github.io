@@ -229,11 +229,16 @@ exec p(0, 0);
 - Mysql注释使用`/**/`，Oracle注释使用`/**/`或`--`
 - 与JDBC数据类型映射关系参考[mybatis.md#MyBatis/Java/Oracle/MySql数据类型对应关系](/_posts/java/mybatis.md#MyBatis/Java/Oracle/MySql数据类型对应关系)
 - Mysql数据类型，参考[sql-optimization.md#数据类型的优化](/_posts/db/sql-optimization.md#数据类型的优化)
-    - `tinyint`     **超短整型**，存储长度1个字节(带符号存储区间：-127 ~ 127，不带符号存储区间：0-255)；java可使用Boolean那映射，数据库存储为1/0
-    - `smallint`    短整型，存储长度为2个字节；java可使用Boolean那映射，数据库存储为1/0
-    - `mediumint`   中整型，存储长度为3个字节
-    - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，有符号signed区间：-2147483647 ~ 2147483647，无符号unsigned区间：0 ~ 4294967295)。最大显示11个字节，int(1)也会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的。类似于Oracle里的的number(X)
-    - `bigint`      长正型(Long)，**存储长度为8个字节**。类似于Oracle里的的number(X)
+    - `tinyint`     **超短整型**，存储长度1个字节(即8位，2^8-1，带符号存储区间：-128~127，不带符号存储区间：0~255)
+        - tinyint(x) 中的 x 指定的是此列在数据库中的显示宽度，而不是代表它可以存储的最大值的位数
+        - 当 x 的值大于3时，在 SELECT 语句中将显示到该列的完整宽度。这意味着，即使你定义了 tinyint(4) 或 tinyint(10)，它仍然只能存储-128到127之间的数字。虽然 tinyint(4) 比 tinyint(3) 更常见，但是它表示的范围是相同的
+        - java可使用Boolean那映射，数据库存储为1/0；此时存储0代表false，存储1-9代表true
+        - 也可以使用Java中int类型来接收，这样可以代表实际值
+    - `smallint`    短整型，存储长度为2个字节(2^16-1，-32768〜32767，0〜65535)；java可使用Boolean那映射，数据库存储为1/0
+    - `mediumint`   中整型，存储长度为3个字节(2^24-1，-8388608〜8388607，0〜16777215)
+    - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，-2147483647~2147483647，0~4294967295)
+        - 最大显示11个字节，int(1)和int(4)一样会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的
+    - `bigint`      长正型(Long)，**存储长度为8个字节**
         - oracle中: Long不能使用insert into...select...等带select的模式；且不能通过MOVE来传输。尽量不要用LONG类型
     - `double`		浮点型(Float)，相当于Oracle里的的 number(X, Y)
     - `decimal`     金额(Bigdecimal)，相当于Oracle里的的 decimal(X, Y)。decimal(2,1) 表示总数据长度不能超过2位，且小数要占1位，因此最大为9.9
@@ -348,48 +353,7 @@ exec p(0, 0);
 
 ### 索引
 
-- Mysql索引
-    - 在没有外键约束的情况下，MySql的不同表的索引可以重名，索引文件一表一个，不会出现冲突
-
-```sql
--- ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引
-alter table d_user add index idx_name (name)
-alter table d_user add unique (card_no)
-alter table d_user add primary key (id)
-
--- CREATE INDEX可对表增加普通索引或UNIQUE索引
-create index idx_name_age on d_user (name, age)
-create unique index idx_card_no on d_user (card_no)
-
--- 删除索引
-drop index d_user on talbe_name
-alter table d_user drop index index_name
-alter table table_name drop primary key -- 删除主键索引，一个表只能有一个主键，因此无需指定主键索引名
-
--- 查看索引
-show index from d_user;
-show keys from d_user;
-
--- force index、use index 或者 ignore index
--- 指定索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引
-select * from user use index(idx_name_sex) where id > 10000;
--- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
-select *
-from t_user u force index(idx_create_time)
-join t_class c on c.id = u.cid
-where u.create_time > '2000-01-01';
-
--- 重建索引
--- 方式一: alter table 其实等价于rebuild(重建)表(表的创建时间会变化)，所以索引也等价于重新创建了（数据不会编号）
-alter table t_test engine=innodb;
--- 方式二: optimize table
--- OPTIMIZE TABLE操作使用Online DDL模式修改Innodb普通表和分区表，
--- 该方式会在prepare阶段和commit阶段持有表级锁：在prepare阶段修改表的元数据并且创建一个中间表，在commit阶段提交元数据的修改
--- 由于prepare阶段和commit阶段在整个事务中的时间比例非常小，可以认为该OPTIMIZE TABLE的过程中不影响表的其他并发操作
-optimize table t_test;
--- 方式三 (只支持MyISAM, ARCHIVE, CSV)
--- repair table t_test quick;
-```
+- [Mysql索引](/_posts/db/mysql-dba.md#索引维护)
 - Oracle索引
     - 当给表加主键或者唯一约束时，Oracle会自动将此字段建立索引；给字段建立索引后，查询快读取慢
     - `create index idx_stu_email on stu(email);` 建立索引idx_stu_email

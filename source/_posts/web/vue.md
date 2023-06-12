@@ -940,8 +940,12 @@ Vue.component('base-checkbox', {
 - **全量绑定props参数**
 
 ```html
-<!-- 假设子组件接受参数：name, age, sex; dataBind/eventBind中指定的优先级高于dom上指定的属性 -->
-<child-component v-bind="dataBind" v-on="eventBind"></child-component>
+<!-- 
+    1.假设子组件接受参数：name, age, sex; dataBind/eventBind中指定的优先级高于dom上指定的属性
+    2.此时v-bind和:name同时传参，此时会优先:name，除非:name的值为null，才会读取v-bind
+    3.此时v-on和@test同时监听事件，都会生效(貌似会先触发@test)
+-->
+<child-component v-bind="dataBind" :name="smalle2" v-on="eventBind" @test="myTest"></child-component>
 <!-- 重新包装el-pagination成组件，在使用此组件时将参数全部绑定到el-pagination中 -->
  <el-pagination
     v-bind="$attrs"
@@ -1217,7 +1221,7 @@ this.$root.eventBus.$off('eventName')
                 }
 
                 // 或者动态导入组件(更多用法参考官网)
-                Vue.component('first', () => import('./first.vue'))
+                Vue.component('first', () => import('./first.vue')) // 动态注册全局组件
                 let second = 'second.vue'
                 Vue.component('first',
                     () => ({
@@ -1225,7 +1229,7 @@ this.$root.eventBus.$off('eventName')
                         // 1.require + component实现: 实现了动态加载功能，并未实现按需加载。require是CommonJS规范，在同路径下的vue文件，都会被打包进去
                         // component: require('./component/demo.vue').default
                         // 2.import + component实现：该方法不同于import A from B，这种属于纯静态编译；import()方法，该方法属于动态编译，webpack在打包时，碰到import()方法，会单独生存一个独立文件，用于按需加载。但不能实现完全动态，例如下面编译时会编译所有@/components下的模块，运行时才会加载second的值从而实现懒加载
-                        // 3.require + Vue.extend实现
+                        // 3.require + Vue.extend实现 (Vue.extend可不用挂载到comment直接使用，参考：https://juejin.cn/post/6890072682864476168)
                         // *** 组件库中使用动态组件 - 参考下文开发组件库
                         component: import(`@/components/${second}`),
                         error: MyDefaultComp // 加载失败可显示默认组件
@@ -1869,6 +1873,8 @@ export default {
     Vue.use(config)
     ```
 - `Vue.extend(options)` 使用基础 Vue 构造器，创建一个子类. Vue.component 是基于此函数的
+    - 创建异步组件可参考：https://juejin.cn/post/6890072682864476168
+    - 参考report-table#report-modal
 - `Vue.component(name, component)` 通过js手动**注册全局组件**，此时无需在components属性中定义。如果在main.js执行了此函数，则全局.vue文件均可使用此主键。使用是可使用name或其下划线形式名称
     - Vue.component注册全局组件时，内部会调用`Vue.extend`方法，将定义挂载到Vue.options.components上
     - `components: { Demo }` components属性是用于注册局部组件
@@ -2996,9 +3002,9 @@ module.exports = {
 }
 ```
 
-## 文档框架vuepress
+## Vuepress文档框架
 
-- [vuepress](https://vuepress.vuejs.org/zh/) 官方推出的文档框架
+- [Vuepress](https://vuepress.vuejs.org/zh/) 官方推出的文档框架
     - [demo](https://gitee.com/changhaojun/vuepress-demo)
 - 可结合[vuese](https://github.com/vuese/vuese) 先对vue组件进行解析成markdown
 - 其他框架
@@ -3010,6 +3016,12 @@ module.exports = {
         - GitBook 最大的问题在于当文件很多时，每次编辑后的重新加载时间长得令人无法忍受
     - ​docz​
     - [docsite](https://github.com/txd-team/docsite) 阿里开源(React), 对SEO友好
+- 静态站点
+    - [GatsbyJS](https://www.gatsbyjs.com/): 基于React
+    - Next.js: 基于React的
+    - [Nuxt.js](https://nuxt.com.cn/): 基于Vue.js, 相比Vuepress更偏Web应用
+    - Gridsome: 基于Vue.js, 支持GraphQL
+
 
 ## 插件收集
 

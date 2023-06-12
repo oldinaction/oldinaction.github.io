@@ -30,6 +30,7 @@ tags: [linux, shell]
         - [openSUSE](https://www.opensuse.org/) 开源
     - [Arch Linux](https://www.archlinux.org/) 开源
     - `Alibaba Cloud Linux 3` 是阿里云官方Linux操作系统的第三代发行版，选择Linux kernel 5.10 LTS作为内核，选择阿里云提供的GCC 10.2、binutils 2.35、glibc 2.32的编译器，完全兼容CentOS 8、RHEL 8软件生态
+- [阿里云Linux体验馆](https://developer.aliyun.com/adc/expo/linux)
 
 ### 基础操作
 
@@ -107,6 +108,7 @@ tags: [linux, shell]
     - `chkconfig nginx on` 设置nginx服务开机自启动（对于 on 和 off 开关，系统默认只对运行级345有效，但是 reset 可以对所有运行级有效）
     - 设置开机自启动
         - 在`/etc/init.d`目录创建脚本文件，并设置成可执行`chmod +x my_script`
+
             ```bash
             # 自启动脚本的注释中必须有chkconfig、description两行注释(chkconfig会查看所有注释行)
             # chkconfig参数一表示在运行级别2345时默认代开(一般服务器的运行级别为3多用户启动)，使用`-`表示默认关闭(不自动启动)；参数2表示启动顺序(越小越优先)；参数3表示停止顺序(停止并不会重新执行脚本，而是停止此进程)
@@ -190,6 +192,7 @@ tags: [linux, shell]
 - `scp` 跨机器文件传输
     - scp免密登录需要将客户端的公钥放到服务器
     - `-r` 递归复制整个目录
+    - `-i` 指定登录目标服务器的秘钥文件，如`scp -i /private_file test.txt root@node02:/home/dir`
     - 复制文件/文件夹(需加-r属性)到远程服务器
         - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(本地和远程目录要么都以/结尾，要么都不要/)。**需要提前创建目标目录的父目录**
     - 从远程服务器传输文件到本地
@@ -199,11 +202,14 @@ tags: [linux, shell]
 - `mv a.txt /home` 移动a.txt到/home目录
     - `mv a.txt b.txt` 将a.txt重命名为b.txt
     - `mv a.txt /home/b.txt` 移动并重名名
-- `ln my.txt my_link` 创建硬链接(在当前目录为my.txt创建一个my_link的文件并将这两个文件关联起来)
-    - `ln -s /home/dir /home/my_link_soft` 对某一目录所有文件创建软链接(相当于快捷方式)，无需提前创建目录`/home/my_link_soft`(如果/home/dir存则则软连接显示绿色，如果不存在，软连接显示红色)
+- `ln /home/my.txt /tmp/my_link` 创建硬链接(在当前目录为my.txt创建一个my_link的文件并将这两个文件关联起来)
+    - `ln -s /home/dir_or_file /home/my_link_soft` 对某一目录/文件创建软链接(相当于快捷方式，**且建议写成全路径**)，无需提前创建目录`/home/my_link_soft`(如果/home/dir存则则软连接显示绿色，如果不存在，软连接显示红色)
         - `rm -f /home/my_link_soft` **删除软链接**(源目录的文件不会被删除)
-        - `rm -f /home/my_link_soft/` **删除软链接下的文件**(源目录的文件全部被删除；软链接仍然存在)
-    - 修改原文件，硬链接对应的文件也会改变；删除原文件，硬链接对应的文件不会删除，软连接对应的文件会被删除
+        - `rm -f /home/my_link_soft/` 删除软链接下的文件(**源目录的文件全部被删除**；软链接仍然存在)
+    - **软链接类似快捷方式；硬链接类似git的下游分支**
+        - 修改原文件，硬链接对应的文件也会改变
+        - 删除原文件，硬链接对应的文件不会删除，软连接对应的文件会被删除
+        - 修改和删除硬链接不会影响原文件
     - 目录无法创建硬链接，可以创建软链接
 - `cat/more/less/head/tail/tac/nl` 输出文件内容
     - `more` 分页显示文件内容(按空格分页)
@@ -222,7 +228,7 @@ tags: [linux, shell]
     - `which <exeName>` 查询可执行文件位置 (在PATH路径中寻找)
     - `echo $PATH` 打印环境变量
 - `stat <file>` **查看文件的详细信息**
-- `file <fileName>` 查看文件属性
+- `file <fileName>` 查看文件属性，如文件编码
 - `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
 - `wc <file>` 统计指定文本文件的行数、字数、字节数 
     - `wc -l <file>` 查看行数
@@ -439,6 +445,55 @@ df -h
     ```
 - 删除lvm磁盘挂载，直接删除/etc/fstab中对应条目，lvm相关配置会自动去掉
 
+### Swap交换分区
+
+- Swap space是从磁盘中划分出来作为内存使用的一个磁盘分区。当系统的物理内存不足时，系统将会将内存中一些很久没使用的数据转移到swap space中
+    - Swap空间的使用，优点在于扩展了内存空间，缺点在于用磁盘做内存，使得读写效率降低
+- Swap空间不足所导致的问题
+    - 如果Swap空间已满，那么当内存中的数据继续增多时，内存的数据将无法转移，从而导致内存溢出
+    - 严重时会导致整个系统卡顿，甚至无法远程登录系统或无法访问服务，此时只有重启系统才能解决问题，这种情况在IO操作频繁的应用中所见比较多
+    - 所以当Swap空间已满，而内存还未满时，可以根据业务情况考虑是否释放Swap空间或者释放内存
+- Linux调整swap空间使用的优先级(CentOS默认30): https://www.ngui.cc/el/2947349.html
+- 内存配置文件`/proc/sys/vm/drop_caches`存储了缓存释放的配置参数，drop_caches的值可以是0-3之间的数字，代表不同的含义
+    - 0：不释放（系统默认值）
+    - 1：释放页缓存
+    - 2：释放dentries和inodes
+    - 3：释放所有缓存
+- 对于内存使用过多的应用，手动释放内存并不是合适的选择，应该限制请求的qps或者扩容。如果临时手动释放，最好先释放物理内存再释放swap，因为swap释放会使得swap中的缓存转移到物理内存中去，可能导致宕机
+
+```bash
+## 使用文件创建swap分区
+# 创建一个1G大小的文件用来作为swap
+dd if=/dev/zero of=/tmp/swap bs=1M count=1024
+chmod 0600 /tmp/swap
+# 将文件/tmp/swap格式化为swap文件格式
+mkswap /tmp/swap
+# 手动启动作为交换空间(此时/tmp/swap文件已近可以作为内存使用)
+swapon /tmp/swap
+# 查看swap空间
+swapon -s
+# 持久化
+echo "/tmp/swap   swap  swap    defaults     0  0" >> /etc/fstab
+# 手动关闭交换空间(Swap空间释放)
+# **需要注意**，Swap空间释放的缓存会被转移到内存中，所以释放Swap空间时，确保系统物理内存大于Swap空间使用量，否则导致宕机
+# swapoff /tmp/swap
+
+# 参考: https://zhuanlan.zhihu.com/p/596531301
+free -h # 查看内存和Swap空间
+## 内存释放(不建议手动释放)
+# 释放所有的缓存
+echo 3 > /proc/sys/vm/drop_caches
+# 释放完内存后再修改drop_caches让系统自动分配内存
+echo 0 > /proc/sys/vm/drop_caches
+
+## Swap空间释放(不建议手动释放)
+# Swap空间释放需要注意，Swap空间释放的缓存会被转移到内存中，所以释放Swap空间时，确保系统物理内存大于Swap空间使用量，否则导致宕机
+# Swap空间释放只需要重新挂载一下Swap分区即可
+swapon -s # 查看swap状态
+swapoff /tmp/swap # 卸载swap分区(释放)
+swapon /tmp/swap # 重新挂载swap分区
+```
+
 ### 压缩包(推荐tar) [^1]
 
 #### tar
@@ -532,44 +587,39 @@ rar a aezocn.rar *.jpg
 
 ## vi/vim编辑器
 
-- 设置：vi/vim对应启动脚本`vi ~/.vimrc`或`vi ~/.exrc`(`sudo vi xxx`，需要设置root家目录的此配置文件)
-
-    ```bash
-    set tabstop=4 # 设置tab键为4个空格
-    set nu # 显示行号(复制时容易复制到行号)
-    set nonu # 不显示行号
-    ```
-    - vim粘贴带注释的数据格式混乱，使用vi无此问题
 - `vi/vim my.txt` 打开编辑界面(总共两种模式，默认是命令模式；无此文件最终保存后会自动新建此文件)
-    - `insert` 进入编辑模式
+    - `insert` 进入编辑模式(或者`i`)
     - `esc` 退出编辑模式(进入命令模式)
     - `shift+:` 命令模式下开启命令输入
 - 打开文件
     - `vi +5 <file>` 打开文件，并定位于第5行 
     - `vi + <file>` 打开文件，定位至最后一行
     - `vi +/<pattern> <file>` 打开文件，定位至第一次被pattern匹配到的行的行，按字母`n`查找下一个
+- 设置：vi/vim对应启动脚本`vi ~/.vimrc`或`vi ~/.exrc`(`sudo vi xxx`，需要设置root家目录的此配置文件)
+
+```bash
+:set encoding=utf-8 # 设置编码格式(乱码时可设置)
+set tabstop=4 # 设置tab键为4个空格
+set nu # 显示行号(复制时容易复制到行号)
+set nonu # 不显示行号
+```
+- vi/vim乱码，可创建.virc或.vimrc文件，加入
+
+```bash
+:set encoding=utf-8
+```
 
 ### vi命令
-    
+
+- **开启编辑** `i`
+- **新加一行** `o`
+- **跟shell交互**：`:! COMMAND` 在命令模式下执行外部命令，如mkdir
 - 关闭文件
     - `:wq`/`:x` 保存并退出
     - `:q!` **不保存退出（可用于readonly文件的关闭）**，`:q` 普通退出
     - `:x!` **强制保存退出**
     - `:w !sudo tee %` **对一个没有权限的文件强制修改保存的命令**
     - 编辑模式下输入大写`ZZ`保存退出
-- 光标移动
-    - `j` 下
-    - `k` 上
-    - `h` 左
-    - `l` 右
-    - `w` 移至下一个单词的词
-- 行内跳转
-    - `:0` 绝对行首(`:10` 跳转至第10行)
-    - `:$` 绝对行尾
-    - `shift+g/G` 最后一行
-- 翻屏
-    - `Ctrl+f` 向下翻一屏
-    - `Ctrl+b` 向上翻一屏
 - 删除命令 `d`
     - `dd` **删除光标所在行**
     - `ndd` **删除光标以下#行(含光标行)**，如`2dd`删除2行(光标行和光标下一行)
@@ -580,13 +630,18 @@ rar a aezocn.rar *.jpg
         - `:.,$s/#//` 将当期行到最后一行的#替换为空
     - `x` 删除光标所在处的单个字符
     - `nx` 删除光标所在处及向后的共n个字符
-- **新加一行** `o`
 - 复制命令 `y`命令，用法同`d`命令。**和粘贴命令`p`组合使用**
     - `yy` 复制一行：把光标移动到要复制的行上 - yy - 把光标移动到要复制的位置 - p
     - `nyy` 复制n行
 - 粘贴命令 `p`/`P`
-    - `p`：粘贴到下、后。如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面；
-    - `P`：粘贴到上、前。
+    - `p` 粘贴到下、后。如果删除或复制为整行内容，则粘贴至光标所在行的下方，如果复制或删除的内容为非整行，则粘贴至光标所在字符的后面
+    - `P` 粘贴到上、前
+- 批量注释
+    - `Ctrl+v` 进入列编辑模式，在需要注释处移动光标选中需要注释的行
+    - `Shift+i`
+    - 再插入注释符，比如按`#`或者`//`
+    - 按`Esc`即可全部注释
+- 批量删除注释：`ctrl+v`进入列编辑模式，横向选中列的个数(如"//"注释符号需要选中两列)，然后按`d`就会删除注释符号
 - 查找
     - `/<pattern>` 查找pattern匹配表达式
     - `n` 基于以上表达式向下查询
@@ -598,17 +653,23 @@ rar a aezocn.rar *.jpg
     - `u` **撤销上一步操作**
     - `Ctrl+r` **恢复上一步被撤销的操作**
     - `Ctrl+v` 进入列编辑模式
+- **行内跳转**(直接命令模式时，按此按键，不用输入`:`)
+    - `0` 绝对行首(`:10` 跳转至第10行)
+    - `$` 绝对行尾
+    - `shift+g/G` 最后一行
+- 光标移动
+    - `w` 移至下一个单词的词
+    - `j` 下
+    - `k` 上
+    - `h` 左
+    - `l` 右
+- 翻屏
+    - `Ctrl+f` 向下翻一屏
+    - `Ctrl+b` 向上翻一屏
 - 行号
     - `set number`/`set nu` 显示行号(命令模式执行该命令)
     - `set nonu` 不显示行号
     - 永久显示行号：在`/etc/virc`或`/etc/vimrc`中加入一行`set nu`
-- 批量注释
-    - `Ctrl+v` 进入列编辑模式，在需要注释处移动光标选中需要注释的行
-    - `Shift+i`
-    - 再插入注释符，比如按`#`或者`//`
-    - 按`Esc`即可全部注释
-- 批量删除注释：`ctrl+v`进入列编辑模式，横向选中列的个数(如"//"注释符号需要选中两列)，然后按`d`就会删除注释符号
-- **跟shell交互**：`:! COMMAND` 在命令模式下执行外部命令，如mkdir
 
 ## 权限系统
 
@@ -617,8 +678,11 @@ rar a aezocn.rar *.jpg
 - `useradd test` 新建test用户(默认在/home目录新建test对应的家目录test)
     - `useradd -d /home/aezo -m aezo` 添加用户(和设置宿主目录)
     - `usermod -d /home/home_dir -U aezo` 修改用户宿主目录
-    - `useradd -r -g mysql mysql` **添加用户mysql，并加入到mysql用户组**
+    - `useradd -r -g mysql mysql`
+        - **添加用户mysql，并加入到mysql用户组**
+        - 需先执行`groupadd www`
         - `-r` 表示mysql用户是一个系统用户，不能登录
+        - 同理还可以创建如nginx、www等
     - 修改用户名
 
         ```bash
@@ -754,6 +818,7 @@ rar a aezocn.rar *.jpg
     - `exit` 退出登录
 - 使用账号登录对方主机aezocn用户
     - `ssh aezocn@192.168.1.1`
+    - `ssh -i my_private_file_path root@10.10.10.10`
 
 ### SSH客户端连接服务器（秘钥认证）
 
@@ -1450,7 +1515,7 @@ vm.dirty_writeback_centisecs = 500
 # 修改(未加-i参数不会真正修改数据)当前目录极其子目录下所有文件，将zhangsan改成lisi。grep -rl 递归显示文件名
 sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
 # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
-sed -i -e '/^$/d' /home/smalle/test.txt
+sed -i '/^$/d' /home/smalle/test.txt
 # 删除/etc/grub.conf文件中行首的空白符
 sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
 # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5

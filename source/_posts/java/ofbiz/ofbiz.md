@@ -386,9 +386,26 @@ mail.smtp.port=25 # 端口
 ```
 - 调用framework/common/servicedef/services_email.xml中的sendMail服务(此文件中的其他服务也可以调用)
 
-## 实体
+## 实体引擎
 
-### 基本说明
+### JavaAPI
+
+```java
+EntityCondition condition = EntityCondition.makeCondition(UtilMisc.toMap("userLoginId", userLoginId, "groupId", "BUSINESS_ADMIN"));
+List<GenericValue> userLoginSecurityGroupList = delegator.findList("UserLoginSecurityGroup", condition,
+						null, null, null, false);
+if(UtilValidate.isEmpty(userLoginSecurityGroupList)) {
+    GenericValue userLoginSecurityGroup = delegator.makeValue("UserLoginSecurityGroup");
+    // genericValue.set("id", delegator.getNextSeqId("MyTable")); // 有些表有自增主键的
+    userLoginSecurityGroup.set("userLoginId", userLoginId);
+    userLoginSecurityGroup.set("groupId", "BUSINESS_ADMIN");
+    userLoginSecurityGroup.set("fromDate", UtilDateTime.nowTimestamp());
+    userLoginSecurityGroup.create(); // 创建
+    // userLoginSecurityGroup.store(); // 修改
+}
+```
+
+### 实体配置
 
 - 实体与数据组(逻辑数据库)的关联
     - entity-group一般被定义在模块`entitydef\entitygroupXXX.xml`中，对实体进行分组，使不同的实体分属不同的entity-group。不是所有的entity都进行了entity-group分组，如果没有被分组，系统启动的时候会将实体默认归类到`org.ofbiz`中
@@ -747,7 +764,7 @@ insert into YARDSAAS1.User_Party_Role(user_login_id, party_id, type)
 select 'zjtmp1', party_id, type from YARDSAAS1.User_Party_Role t WHERE T.USER_LOGIN_ID = 'saas1';
 ```
 
-## 服务
+## 服务引擎
 
 ### OFBiz定时服务（Job）
 

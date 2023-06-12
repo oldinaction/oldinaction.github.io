@@ -15,8 +15,11 @@ tags: redis
     - 单实例，单进程、单线程(epoll)，占用资源少(单实例只使用1M内存)
 - [常见的缓存memcached、redis比较参考](/_posts/arch/分布式架构原理及选型方案.md#缓存)
 - redis windows客户端(64x，官网不提供window安装包)：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
-- redis客户端连接管理软件：`RedisDesktopManager`
-- `jedis`：java操作redis(jar)，[jedis Github](https://github.com/xetorthio/jedis)
+- redis客户端连接管理软件
+    - (推荐)[AnotherRedisDesktopManager](https://github.com/qishibo/AnotherRedisDesktopManager/releases/tag/v1.5.9)
+    - [RedisDesktopManager](https://github.com/RedisInsight/RedisDesktopManager/releases/tag/0.9.3)
+- java操作redis(客户端jar)
+    - [jedis](https://github.com/xetorthio/jedis)
 - bio-nio-select-epoll，参考[网络IO](/_posts/linux/计算机底层知识.md#网络IO)
 
 ![bio-nio-select-epoll](/data/images/linux/bio-nio-select-epoll.png)
@@ -24,50 +27,60 @@ tags: redis
 ## 安装Redis服务
 
 - Windows
-    - 下载redis windows客户端（3.2.100）
+    - 下载redis windows客户端（3.2.100）：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
     - 直接启动解压目录下的：`redis-server.exe`服务程序；`redis-cli.exe`客户端程序，即可在客户端使用命令行进行新增和查看数据（默认没有设置密码）
-    - 设置密码
-        - 修改`redis.windows.conf`，将`# requirepass foobared` 改成 `requirepass yourpassword`(行前不能有空格)
+    - **设置密码**
+        - 修改`redis.windows.conf`，将`# requirepass foobared` 改成 `requirepass your_password`(行前不能有空格)
         - cmd进入到redis解压目录，运行`redis-server redis.windows.conf`，之后登录则需要密码
 - Linux
-    
-    ```bash
-    ## 下载源码(或手动下载后上传)
-    wget http://download.redis.io/releases/redis-5.0.8.tar.gz
-    tar -zxvf redis-5.0.8.tar.gz
-    cd redis-5.0.8
-    # 可查看README.md进行安装
 
-    ## 编译及安装
-    # 编译测试(可能会提示：Redis need tcl 8.5 or newer。解决办法：yum install tcl。其他问题参考：http://blog.csdn.net/for_tech/article/details/51880647)
-    # 编译测试不通过也可正常运行
-    make test # 可选，make需要有gcc(yum -y install gcc)
-    make install # 在源码目录安装(建议如下文安装到特定目录)
-    # make distclean # 安装失败可进行清除
-    # 编译成功后，可直接在源码目录运行命令(一般为临时测试)：启动 `src/redis-server`，客户端连接 `src/redis-cli`
+```bash
+## 简单的可直接安装
+yum install redis -y
+# 配置文件 /etc/redis.conf，如果需要密码，需先修改配置文件后启动
+systemctl restart redis && systemctl enable redis && systemctl status redis
 
-    ## 安装到特定目录
-    make PREFIX=/opt/soft/reds5 install
-    vi /etc/profile
-    # 增加以下两行
-    #export REDIS_HOME=/opt/soft/redis5
-    #export PATH=$PATH:$REDIS_HOME/bin
-    source /etc/profile
-    redis-server # 即可启动服务
-    
-    ## 安装成服务
-    # 一个物理机中可以有多个redis实例(进程)，通过port区分
-    # 可执行程序就一份在目录，但是内存中未来的多个实例需要各自的配置文件，持久化目录等资源
-    ./utils/install_server.sh # 默认即可。多次运行安装多节点时可输入不同的端口
-    # 安装成功后会自动启动(自启动脚本在/etc/init.d目录)并设置为开机启动，查看服务状态。像创建Redis Cluster仍然需要源码中的脚本
-    service redis_6379 status
+## 下载源码(或手动下载后上传)
+wget http://download.redis.io/releases/redis-5.0.8.tar.gz
+tar -zxvf redis-5.0.8.tar.gz
+cd redis-5.0.8
+# 可查看README.md进行安装
 
-    ## 测试
-    redis-cli # 启动客户端
-    127.0.0.1:6379> ping # PONG
-    127.0.0.1:6379> set foo bar # 设置
-    127.0.0.1:6379> get foo # bar, 取值
-    ```
+## 编译及安装
+# 编译测试(可能会提示：Redis need tcl 8.5 or newer。解决办法：yum install tcl。其他问题参考：http://blog.csdn.net/for_tech/article/details/51880647)
+# 编译测试不通过也可正常运行
+make test # 可选，make需要有gcc(yum -y install gcc)
+make install # 在源码目录安装(建议如下文安装到特定目录)
+# make distclean # 安装失败可进行清除
+# 编译成功后，可直接在源码目录运行命令(一般为临时测试)：启动 `src/redis-server`，客户端连接 `src/redis-cli`
+
+## 安装到特定目录
+make PREFIX=/opt/soft/reds5 install
+vi /etc/profile
+# 增加以下两行
+#export REDIS_HOME=/opt/soft/redis5
+#export PATH=$PATH:$REDIS_HOME/bin
+source /etc/profile
+redis-server # 即可启动服务
+
+## 安装成服务
+# 一个物理机中可以有多个redis实例(进程)，通过port区分
+# 可执行程序就一份在目录，但是内存中未来的多个实例需要各自的配置文件，持久化目录等资源
+./utils/install_server.sh # 默认即可。多次运行安装多节点时可输入不同的端口
+# 安装成功后会自动启动(自启动脚本在/etc/init.d目录)并设置为开机启动，查看服务状态。像创建Redis Cluster仍然需要源码中的脚本
+service redis_6379 status
+
+## 测试
+redis-cli # 启动客户端
+127.0.0.1:6379> ping # PONG
+127.0.0.1:6379> set foo bar # 设置
+127.0.0.1:6379> get foo # bar, 取值
+```
+- Mac
+    - 安装 `brew install redis`
+    - 启动 `brew services start redis`
+    - 配置文件路径如`/opt/homebrew/etc/redis.conf`
+- 解决服务器Redis无法连接问题(内网)：https://blog.csdn.net/qq_57408330/article/details/129681386
 
 ## 命令使用
 
@@ -91,7 +104,7 @@ tags: redis
 ```bash
 redis-cli # 启动客户端
 redis-cli -h # 进入命令行，也可输入help+Tab获取帮助，如`help set`
-redis-cli -p 6379 -n 1 # 连接6379的第一个数据库(默认从0开始，总共有16个库)
+redis-cli -p 6379 -n 1 -a <password> # 连接6379的第一个数据库(默认从0开始，总共有16个库)
 redis-cli --raw # redis是二进制安全的。如果客户端以不同的编码(如GBK/UTF-8)连接；当GBK连接时存储"中"，则占用2个字节，如果UTF-8连接时，则占用3个字节；实际存储是按照二进制存储的，如果不加--raw默认以16进制显示(只能显示ASCII码)，加了--raw会按照此时的客户端连接编码进行解码显示出"中"
 redis-cli --pipe
 

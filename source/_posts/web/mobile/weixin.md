@@ -12,6 +12,8 @@ tags: [H5, App, 小程序, mobile]
 
 ## 小程序开发
 
+- [申请小程序测试号](https://mp.weixin.qq.com/wxamp/sandbox)
+
 ### 小程序限制
 
 #### 认证/审核/权限
@@ -34,7 +36,7 @@ tags: [H5, App, 小程序, mobile]
 
 #### 域名限制
 
-- API地址：**必须是https域名(可以是非443端口)**，且需在微信后台配置(可配置API、ws、文件上传下载、打开网页域名等)
+- API地址：**必须是https域名(可以是非443端口)**，且需在微信后台 - 开发管理 - 开发设置 - 服务器域名配置中设置(可配置API、ws、文件上传下载、打开网页域名等)
     - **开发环境**可在微信编辑器中设置成不校验此限制(可为ip地址)，体验版则需打开调试模式(在胶囊中设置)
 - iframe(web-view)地址
     - 必须https域名，且需要在微信后台配置业务域名。开发环境同上
@@ -45,7 +47,8 @@ tags: [H5, App, 小程序, mobile]
 
 - 调试体验版或者正式版：体验版调试直接打开小程序调试模式；正式版调试需要先打开体验版调试模式，再访问正式版
 - 图片
-    - 使用background-image属性时，本地小图片(如图标，测试30K左右可以正常显示)可以显示，图片太大则需转base64或使用网络地址(http/https，无需绑定域名)，否则不显示(仅开发版显示)
+    - **使用background-image属性时**，不支持url设置本地路径图片，需转成base64或使用网络地址(http/https，无需绑定域名)，否则演示和生产版不显示(仅开发版显示，开发版真机调试也不显示)
+    - 使用`<image src="/static/robot.png">`(或相对路径) 则无此问题，会自动转成base64
     - 使用image图片比background-image快
 - **小程序不支持多环境编译**，对于API地址完全取决于上传到微信平台时代码中的地址(只能为一个，无法获取环境)。因此通过uni-app开发时，需要点击发行才会对应到生产环境API，参考[uni-app.md#XBuilder](/_posts/web/uni-app.md#XBuilder)
 - [web-view限制参考下文](#web-view开发)
@@ -130,6 +133,7 @@ tags: [H5, App, 小程序, mobile]
 
 ## 微信H5开发
 
+- [微信公众号开发测试平台地址](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)
 - 微信网页开发
     - 通过微信浏览器打开网页时的场景。此时可调用[JS-SDK](#JS-SDK)获取一些硬件能力
     - 通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力，为微信用户提供更优质的网页体验
@@ -183,6 +187,7 @@ tags: [H5, App, 小程序, mobile]
 - [微信浏览器中获取用户信息](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html)。如微信公众号点击菜单H5连接进入网页时获取用户信息
     - 前提
         - **绑定网页授权域名**(和授权回调地址一致。微信公众号 - 开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息)
+            - 230522: 无需绑定网页授权域名，**且限制了只有认证账号才能获取此权限**
             - **无需绑定微信公众号服务器配置**(该配置是用来管理微信公众号的)
             - **一定要是域名，不要加http://等协议头，也不要加子路径**
                 - 假设网页运行在/abc目录，此时也要加example.com，而不能是example.com/abc，因此必须是http://example.com/MP_verify_cm2fJ4wmTLQpvkZr.txt来进行验证

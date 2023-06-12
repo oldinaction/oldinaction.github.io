@@ -64,6 +64,8 @@ tags: [plugins, debug]
 
 ## 调试技巧
 
+### F12开发者工具
+
 - `ctrl + shift + i`/`F12` 打开开发者工具
 - 主面板介绍
     - `Elements` html文件显示，Css样式调试
@@ -88,6 +90,17 @@ tags: [plugins, debug]
 - 打开新标签自动debug
     - Setting - DevTools - Auto-open DevTools for popups
 - 每次重新打开无痕模式，缓存会清空
+- Setting
+    - Preferences
+        - Enable JavaScript source maps 开启源代码跟踪
+            - 对于只有xxx.min.js的没有源代码map的，可以去掉勾选，从而更方便的调试xxx.min.js
+
+### console
+
+```js
+// 分组打印
+console.group("站点信息");console.log("Name: Hello World");console.log("Author: smalle");console.groupEnd();
+```
 
 ## 性能分析(Devtool Performance)
 

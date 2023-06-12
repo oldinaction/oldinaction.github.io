@@ -287,7 +287,7 @@ public class BaseController {
         - `matchIfMissing` 表示缺少该配置属性时是否可以加载。如果为true，即表示没有该配置属性时也会正常加载；反之则不会生效
         - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)
     - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在beanFactory中不存在时返回true，各类型间是or的关系(不填参数则表示没有@Bean返回的对象类型时生效)
-        - **只能对@Bean生效，如直接注解在@Bean的方法上，或注解在含有@Bean方法的类上**
+        - **只能对@Bean生效，如直接注解在@Bean的方法上，或注解在含有@Bean方法的类上；对@Service等类不生效，需要设置成@Bean模式**
 
         ```java
         // eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
@@ -299,17 +299,17 @@ public class BaseController {
         //使用了@Conditional注解，条件类是OnBeanCondition(逻辑实现)
         @Conditional({OnBeanCondition.class})
         public @interface ConditionalOnMissingBean {
-            // 需要检查的 bean 的 class 类型。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配
+            // 需要检查的 bean 的 class 类型。如: @ConditionalOnMissingBean(value = MyService.class)
             Class<?>[] value() default {}; 
-            // 需要检查的 bean 的 class 类型名称。当 ApplicationContext 不包含每一个被指定的 class 时条件匹配
+            // 需要检查的 bean 的 class 类型名称。默认。@ConditionalOnMissingBean(type = "MyService") == @ConditionalOnMissingBean
             String[] type() default {};
             // 识别匹配 bean 时，可以被忽略的 bean 的 class 类型
             Class<?>[] ignored() default {};
             // 识别匹配 bean 时，可以被忽略的 bean 的 class 类型名称
             String[] ignoredType() default {};
-            // 当 ApplicationContext 不包含带有这些注解的 bean 时条件匹配。
+            // 当 ApplicationContext 不包含带有这些注解的 bean 时条件匹配。如：@ConditionalOnMissingBean(annotation = MyServiceAnno.class)
             Class<? extends Annotation>[] annotation() default {};
-            // 需要检查的 bean 的 name。当 ApplicationContext 不包含任意指定的每一个的 class 时条件匹配。
+            // 需要检查的 bean 的 name。如: @ConditionalOnMissingBean(name = "myService")
             String[] name() default {};
             // 搜索容器层级:当前容器/父容器/所有(默认)
             SearchStrategy search() default SearchStrategy.ALL;
@@ -389,7 +389,7 @@ public class ELConfig {
     @Value("#{${site.time}}") // site.time=24*7，此处进行了计算
     private Long siteTime;
 
-    @Value("${site.tags:${site.tags2:}}") // @Value注入的默认值只能通过:指定，不等直接给属性赋值
+    @Value("${site.tags:${site.tags2:}}") // @Value注入的默认值只能通过:指定，不能直接给属性赋值
     private String[] tags; // 获取数组，yml中可定义site.tags=a,b,c # 默认会基于`,`分割。(yml中使用`-`则需要定义配置类实体)
 
     @Value("#{'${test.array}'.split(',')}") // test.array=1,2,3

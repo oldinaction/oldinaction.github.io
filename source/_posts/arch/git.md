@@ -12,8 +12,9 @@ tags: [git]
 - [git命令学习地址](https://learngitbranching.js.org/?locale=zh_CN)
 - 安装
 	- windows：官网下载对应安装包
-	- Centos: `yum -y install git`
+	- Centos：`yum -y install git`
 	- Ubuntu：`sudo apt-get install git`
+    - 客户端界面：[SmartGit V21.2.4](https://www.syntevo.com/smartgit/download/archive/) 
 - 镜像
 
     ```bash
@@ -184,27 +185,87 @@ git push origin v1.0.0
 
 ![git运行流程图](/data/images/2016/04/git流程图.png)
 
-### 撤销
+### 丢弃/暂存/撤销/重置
 
-- `git checkout -- <file>` 撤销对文件的 add 操作，他会从 staging 区中将此文件取出并还原到 working 区
-    - `git checkout test.txt` **丢弃修改**
-    - `git checkout .` 本地所有修改的。没有的提交的，都返回到原来的状态（删除不了请参考下方的`git clean`用法）
-    - `git checkout HEAD <file>` 撤销对文件的 add 操作，他会从 history 区中将此文件取出并还原到 working 区（其中文件名为相对.git文件夹的路径名）
-- `git reset <file>` 撤销对此文件的 commit 操作，他会从 history 区中将此文件取出并还原到 staging 区
-    - `git reset --hard HASH` 返回到某个节点，不保留修改。如：`git reset --hard HEAD`，`git reset --hard 8a222ba`
-    - `git reset --soft HASH` 返回到某个节点，保留修改
-- `git stash` 把所有没有提交的修改暂存到stash里面。可用git stash pop恢复
+- 丢弃
+
+```bash
+# 丢弃本地修改：他会将文件从 working 区删掉(等同于没有修改)
+git checkout <file1> <file2>
+# 丢弃本地所有修改
+git checkout .
+# 撤销对文件的 add 操作：他会从 staging 区中将此文件取出并还原到 working 区（其中文件名为相对.git文件夹的路径名）
+git checkout -- <file>
+# 撤销对文件的 add 操作：他会从 history 区中将此文件取出并还原到 working 区
+git checkout HEAD <file>
+```
+- 暂存和恢复暂存
+
+```bash
+# 把所有没有提交的修改暂存到stash里面
+git stash
+# 恢复暂存的修改到本地空间
+git stash pop
+```
+- 撤销和重置
+    - `revert` 是放弃指定提交的修改，但是会生成一次新的提交，需要填写提交注释，以前的历史记录都在
+    - `reset` 是指将HEAD指针指到指定提交，历史记录中不会出现放弃的提交记录
+
+```bash
+# 参考：https://blog.csdn.net/QQxiaoqiang1573/article/details/68074847
+# 假设修改 README.md 文件存在以下提交记录. `git log`显示的提交历史是按照时间降序排列的(最近的提交在上面)
+# 3: commit 3
+# 2: commit 2
+# 1: commit 1
+
+## 撤销和重置最近一次提交
+# 撤销最近一次提交(命名为3)，执行后需要输入提交备注，输入备注保存后此撤销提交就回被记录，之后推送到远程也会有此撤销提交记录(命名为4)
+git revert HEAD
+# 推送到远程(此时无需-f强制，因为当前版本要超前于远程版本)
+git push origin master
+# 1.=>重置最近一次提交(上文的4，重置后代码版本相当于恢复到3，而且从日志中完全看不到之前有做过revet动作，即4这此提交会被删除)，此时不需要输入任何备注
+# 注意：--hard执行重置后，提交的代码会直接丢弃(提交日志也没有了，容易丢代码)。--soft参考下文
+git reset --hard HEAD^
+# 推送到远程。-f 参数是强制提交，因为reset之后本地库落后于远程库一个版本，因此需要强制提交
+git push origin master -f
+# 2.=>撤销本次提交
+# --soft重置只撤销commit，且对应修改会回到 staging 区
+git reset --soft HEAD^
+# --cache 保留文件到 working 区(之后可直接删除文件进行丢弃)，如果只留 -f 参数则是直接丢弃文件
+git rm <file> -f --cache # 等同于 git reset HEAD <file>
+
+## 重置到某次提交
+# "commit-id"替换为想要删除的提交ID(如要删除commit 2这次提交ID: 839e358d6b22f8e0b3591a889e149ba4d561325f)，需要注意最后的^号，意思是commit id的前一次提交(如此时commit-id对应commit 2这次提交，即：git rebase -i "839e358d6b22f8e0b3591a889e149ba4d561325f"^)
+git rebase -i "<commit-id>"^
+# 执行上述条命令后会打开一个编辑框，内容中列出了包含上文commit-id在内之后的所有提交(即commit 2和commit 3对应的commit-id前7位id，内容中下面有一个#行为提示信息)
+# 然后在编辑框中删除你想要删除的提交所在行(如`pick 839e358 commit 2`)
+# 然后保存退出；如果有冲突，保存后会提示`CONFLICT`，假设 README.md 文件冲突
+    # `vi README.md` 解决冲突
+    # `git add .`
+    # `git commit -am 'resolve conflict'` 提交解决的冲突文件
+    # `git rebase --continue` 继续进行rebase操作 (中途也可 `git rebase --abort` 放弃整个操作; 注意`git rebase --skip`会将冲突的提交全部丢弃掉然后继续进行rebase操作)
+# 最后再推送到远程即可
+git push origin master -f
+
+## 修改历史某次提交(未测试)
+# 这种情况的解决方法类似于第二种情况，只需要在第二条打开编辑框之后，将你想要修改的提交所在行的pick替换成edit然后保存退出，这个时候rebase会停在你要修改的提交，然后做你需要的修改，修改完毕之后，执行以下命令：
+git add .
+git commit --amend
+git rebase --continue
+# 如果你在之前的编辑框修改了n行，也就是说要对n次提交做修改，则需要重复执行以上步骤n次
+```
 - 撤销所有的提交(相当于初始化项目)
 
 ```bash
 # 参考: https://blog.csdn.net/icansoicrazy/article/details/128342811
 # git checkout --orphan 类似git init的状态创建新的非父分支，也就是创建一个无提交记录的分支; 之后删除master分支再重命名当前分支为master分支
+# 重建Maven仓库(清除原来所有的git提交历史)
 git checkout --orphan latest_branch
 git add -A
 git commit -am 'init'
 git branch -D master
 git branch -m master
-git push -f origin master
+git push -f --set-upstream origin master
 ```
 
 ### 删除文件
@@ -540,6 +601,27 @@ git commit -m 'bug: 修复 xxx 功能'
 - 镜像站
     - https://hub.連接.台灣
     - https://hub.fastgit.org/
+- emoji语法: https://gist.github.com/rxaviers/7360908
+- 对于私有项目，通过https访问时不能通过密码验证，可通过[github-cli](https://cli.github.com/manual/)验证
+
+```bash
+# cli 使用手册: https://cli.github.com/manual/
+# Centos安装
+dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+dnf install gh
+gh -v
+
+# 登录
+gh auth login
+# 之后需要任意浏览器访问: https://github.com/login/device
+# 并输入命令行显示的秘钥，如 889E-F742
+
+# 下载
+gh repo clone https://xxxx
+
+# 认证之后可直接使用git命令
+git pull
+```
 - 更新fork项目/提交请求(`pull request`，简称 `PR`)
     - Github线上提交 `New pull request` - 选择`base repository` - 选择`head repository` - 如果看不到仓库名可点击`compare across forks` - 点击`Create pull request`填写提交说明并确认
         - 表示将head提交到base。如果为更新fork项目，则base选择自己fork的仓库，head选择源仓库(此时可能需要点击`compare across forks`才能看到仓库名)；如果是提交代码到源仓库，则base选择源仓库

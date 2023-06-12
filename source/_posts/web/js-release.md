@@ -261,6 +261,7 @@ console.log(111)
         - **在forEach/map/reduce等函数中不能直接使用await调用其他函数(for和for...of中可以)，尽管在回调函数的参数上加async也不行**，见下列
             - 原理应该是foreach内部封装了while，循环并行执行，而且并行执行数组的所有callback函数，不会等待里面的callback的返回
             - forEach回调函数是异步(并行)执行的，但是必须等所有的回调执行完才会执行forEach后面的代码
+        - `return new Promise((resolve, reject) => {...})` 返回一个异步对象，此时await此对象时，不管内部是否为同步，只有当执行resolve函数后，await后面的代码才会执行。且resolve执行完成之后，此对象的函数体仍然会继续往后执行
     - async简单使用
 
         ```js
@@ -684,12 +685,14 @@ Object.keys({name: 'test'}) // ['name']
     - **深拷贝解决方法**
         - `let obj2 = JSON.parse(JSON.stringify(obj1))` **存在如下弊端**
             - 对象原型会改变，拷贝后原型都会变成Object
+            - 属性值为函数会丢失
             - 时间类型会变成字符串类型
             - 如果对象中存在循环引用的情况也无法正确实现深拷贝
-            - JSON.stringify()只能序列化对象的可枚举的自有属性，如obj中的对象是有构造函数生成的，拷贝后会丢失constructor
+            - JSON.stringify()只能序列化对象的可枚举的自有属性，如obj中的对象是有构造函数生成的，拷贝后会丢失constructor，如函数会丢失
             - 会去掉 undefined 的key (值为 null 的key会保留). JSON.stringify阶段，可以使用`JSON.stringify(testArr, (k, v) => new_value)`解决
             - 其他参考：https://blog.csdn.net/u013565133/article/details/102819929
         - 使用一些深拷贝函数
+            - [XEUtils.clone](https://vxetable.cn/xe-utils)：如`target = XEUtils.clone(source, true)` 支持函数复制
 - `Object.defineProperty(obj, prop, descriptor)` 增加或修改对象属性。vue 2.x基于此特性实现响应式
 - `Object.keys(obj)` 返回对象的所有可枚举属性的字符串数组(属性名)
     - 返回属性的顺序与手动遍历该对象属性时的一致
@@ -823,7 +826,7 @@ console.log([1, 2, 3, 4, 5].some((element) => element % 2 === 0)); // true
 let arr = [1, 2, 3]
 arr.splice(1) // [2, 3], arr=[1]. 从下标为1开始，移除所有元素。并返回删除的元素
 arr.splice(-1) // [3], arr=[1, 2]. 从倒数第一位开始，移除所有元素(相当于移除最后一个元素)
-arr.splice(0, 1) // 删除第一个元素
+arr.splice(1, 2) // 从第2个元素开始，移除两个元素(2和3)
 arr.splice(0, 1, 'fir'); // [1], arr=['fir', 2, 3]. 替换第一个元素。并返回移除的元素
 arr.splice(1, 0, 'sec'); // [], arr=[1, 'sec', 2, 3]. 在数组的第二个元素位置插入元素'sec'(原来的第二个元素还在)
 
@@ -866,20 +869,21 @@ function 函数名(参数列表) {
     var obj = {name: 'smalle'}
 
     var foo = {
+        name: 'foo',
         get: function(count) {
             return this.name + '-' + count; 
         },
-        get2: () => {
+        get2: count => {
             return this.name + '-' + count;
         }
     }
     
     console.log(foo.get.call(obj, 1));      // smalle-1
     console.log(foo.get.apply(obj, [2]));   // smalle-2
-    console.log(foo.get.bind(obj, 3)());    // smalle-3
-    console.log(foo.get2.call(obj, 4));     // 报错，由于ES6箭头函数不会创建新的上下文，所以this指的是父语境(只能是foo)
+    console.log(foo.get.bind(obj, 3)());    // smalle-3 也可写成 let func = foo.get.bind(obj); console.log(func(3));
+    console.log(foo.get2.call(obj, 4));     // -4 由于ES6箭头函数不会创建新的上下文，所以this指的是父语境(此时是Window，不是foo?)
 
-    // 2.自定义console.log方法
+    // 2.自定义console.log方法. 一般不能写成 `log: () => {}`
     function log() {
         // arguments参数是个伪数组，通过 Array.prototype.slice.call 转化为标准数组(才可以使用unshift等方法)
         var args = Array.prototype.slice.call(arguments)
@@ -1094,6 +1098,7 @@ object.test(); // true
         var x = 2, y = 4;
         console.log(eval('debugger; x + y')); // 直接调用，使用本地作用域，结果是 6
         
+        // 如果值为函数则必须在外面加括号，如 (function x() {console.log(this)})，否则返回undefined
         var geval = eval; // 通过引用间接调用，等价于在全局作用域调用
         console.log(geval('x + y')); // 间接调用，使用全局作用域，throws ReferenceError 因为`x`未定义
         console.log(window.eval('x + y')) // 间接调用
@@ -1224,6 +1229,65 @@ else window.onload = createIframe;
 ## 常用函数
 
 ```js
+/**
+ * 日期格式化
+ * 
+ * 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符，
+ * 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
+ * 例子：
+ * (new Date()).Format("yyyy-MM-dd h:m:s.S") ==> 2006-07-02 8:9:4.423
+ * (new Date()).Format("yyyy-M-d hh:mm:ss") ==> 2006-7-2 08:09:04.18
+ * (new Date()).Format("yyyy年MM月dd日 hh:mm") ==> 2006年7月2日 08:09
+ * (new Date()).Format("hh:mm") ==> 08:09
+ */
+export const dateFormat = (date, fmt) => {
+	let o = {
+		"M+": date.getMonth() + 1, // 月份
+		"d+": date.getDate(), // 日
+		"h+": date.getHours(), // 小时
+		"m+": date.getMinutes(), // 分
+		"s+": date.getSeconds(), // 秒
+		"q+": Math.floor((date.getMonth() + 3) / 3), // 季度
+		"S": date.getMilliseconds() // 毫秒
+	};
+	if (/(y+)/.test(fmt))
+		fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+	for (let k in o)
+		if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : ((
+			"00" + o[k]).substr(("" + o[k]).length)));
+	return fmt;
+}
+
+/**
+ * 获取url参数. uni-app可参考squni.js中的 getCurQuery
+ */
+export const getUrlQuery = (name, href) => {
+	// return (
+	// 	decodeURIComponent(
+	// 		(new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(href) || [, ''])[1].replace(
+	// 			/\+/g, '%20')
+	// 	) || null
+	// )
+	href = href || window.location.href
+	let urlStr = href.split('?')[1]
+	const urlSearchParams = new URLSearchParams(urlStr)
+	const params = Object.fromEntries(urlSearchParams.entries())
+	Object.keys(params).forEach(key => params[key] = decodeURIComponent(params[key]))
+	return name ? params[name] : params
+}
+
+/**
+ * Map转成url参数: k1=v1&k2=v2
+ */
+export const objToUrlQuery = (obj, ignoreFields) => {
+	if (!ignoreFields) {
+		ignoreFields = []
+	}
+    return Object.keys(obj)
+        .filter(key => obj[key] != null && ignoreFields.indexOf(key) === -1)
+        .map(key => key + '=' + encodeURIComponent(obj[key])).join('&')
+}
+
 // dc91b3f3-cb2c-401a-85a6-7da3a2faf36f
 function uuid () {
     return ('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (t) {
@@ -1233,6 +1297,14 @@ function uuid () {
     // .replaceAll('-', '')
 }
 ```
+
+## 常见业务
+
+- js实现简单验证码
+    - https://www.cnblogs.com/xielong/p/8191957.html
+    - https://www.cnblogs.com/zxwDont/p/11276858.html
+- js验证密码复杂度
+    - https://www.cnblogs.com/goding/p/10224084.html
 
 ## 《前端小课》
 

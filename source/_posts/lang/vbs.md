@@ -111,3 +111,19 @@ MyProc argument
     # cmd.exe 识别成：echo一个 ' 到 空设备，也就是什么都不显示。& 的意思是同时执行，那么同时执行了 start "" wscript //e:vbscript "%~f0" %*，也就是启动WSH，用VBS语法解析自身
     echo '>nul & start "" wscript //e:vbscript "%~f0" %*
     ```
+
+## 案例
+
+### 傻瓜式执行命令
+
+- 将此vbs文件和`demo.exe`放到同一目录，用户只需双击vbs，会显示一个输入框，然后从其他地方复制代码到输入框进行执行
+- `傻瓜式运行点击我.vbs`
+
+```vb
+n=inputbox("登录网站后台的查看完整的启动命令，点击确定后键入回车","测试客户端","demo.exe -server=xxx -key=xxx")
+If n= "" Then
+Else
+Set ws = CreateObject("WScript.Shell")
+ws.Run "cmd.exe /k color 0A && "+n
+End If
+```

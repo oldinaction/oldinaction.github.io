@@ -8,7 +8,7 @@ tags: [others]
 
 <p>我的第一篇文章</p>
 
-## MD 语法
+## Markdown语法
 
 - md文件中可以使用html标签
 - `---`代表分割线
@@ -31,7 +31,6 @@ tags: [others]
 <summary>详细隐藏/展示的标题</summary>
 
 <p>详细内容......</p>
-
 </details>
 ```
 
@@ -262,6 +261,13 @@ Bob->Alice : hello
 - 自定义代码在`/themes/next/layout/_custom/`目录下
 - footer代码修改 `/themes/next/layout/_partials/footer.swig`
 - 部分图片禁用fancybox，可在img上加`class="nofancybox"`。需要修改主题中的js文件，详细修改方法参考https://blog.csdn.net/cddchina/article/details/79764432
+
+## 语雀使用
+
+- 可将一个知识库进行互联网密码分享
+    - 分享后，新建的文章默认使用相同的密码进行查看
+    - 可单独关闭某篇文章的共享功能(需在网页进行设置)，此时通过密码访问到知识库的用户可在目录中查看到该文章标题，但是无法查看内容
+
 
 
 ---

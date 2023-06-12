@@ -13,11 +13,15 @@
     {{ __('footer.powered', '<a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a>') }}
   </div>
 
-  <div class="theme-info">
+  <div class="powered-by">
     {{ __('footer.theme') }} -
     <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">
       NexT.{{ theme.scheme }}
     </a>
+  </div>
+
+  <div class="theme-info">
+    <a class="theme-link" target="_blank" href="https://tongji.baidu.com/main/overview/10000542408/overview/index?siteId=18991897">站长统计</a>
   </div>
   {% endif %}
 </div>

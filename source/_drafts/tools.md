@@ -67,9 +67,21 @@ https://blog.csdn.net/runningtortoises/article/details/51425299
 - 代替xshell、xftp客户端，用作web服务器、ssh服务器
 - 保持ssh连接：settings - ssh - 勾选ssh keepalive
 
+## 奇技淫巧
 
+### alist加速百度下载
 
-
+- go语言编写，其实是一个聚合网盘程序，但是内置功能可以实现百度网盘下载加速功能
+- [alist](https://alist.nn.ci/zh/)
+- [github](https://github.com/alist-org/alist)
+- 使用
+    - 安装参考：https://alist.nn.ci/zh/guide/install/script.html
+    - `./alist server && ./alist admin` 运行程序并获取管理员信息(会在当前目录创建data数据文件夹，里面config有服务地址和端口，如: http://localhost:5244)
+    - 登录管理后台 - 存储 - 添加百度网盘
+        - 开启Web代理
+        - 启用签名
+        - 刷新令牌、客户端ID、客户端密钥，参考：https://alist.nn.ci/zh/guide/drivers/baidu.html 获取
+    - 再进入首页可查看到当前百度网盘登录账号下所有文件，直接下载，速度飞快
 
 
 

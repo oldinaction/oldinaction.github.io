@@ -134,7 +134,7 @@ server {
     location ^~ /demo1/ {
         root   /home/www/demo1;
         # index  index.html index.htm;
-        # 当请求 http://localhost/demo1/test 时，$uri 为 /demo1/test
+        # 当请求 http://localhost/demo1/test 时，$uri 为 /demo1/test，注意/路径
         try_files $uri $uri/ /demo1/index.html;
         
         if ($request_filename ~* .*\.(?:htm|html)$) {
@@ -285,7 +285,7 @@ server {
 # ***.定义Nginx访问资源的用户和用户组.
 # 一般是定义成www，然后nginx通过root用户启动(保存的日志都是root权限的)
 # 此处定义的www用户只是表示nging去访问server.root项目中的代码文件时是通过www这个用户去读取
-# 因此www用户必须要有权限读取到对应项目目录，项目父目录无所谓
+# 因此www用户必须要有权限读取到对应项目目录，项目父目录无所谓。如设置为`chown -R www:www my_project`
 user www www; # 默认是nginx用户
 # 如果一直出现403 forbidden (13: Permission denied)错误可将此处设置成root来进行测试
 # user root;
@@ -467,6 +467,24 @@ http {
         server 192.168.80.123:80 weight=3;
     }
 
+    # 强制跳转HTTPS, 参考: https://www.cnblogs.com/willLin/p/11928382.html. 此时80端口和443端口分开监听
+    server {
+        listen 80;
+        #填写绑定证书的域名
+        server_name www.xxx.com;
+
+        #（第一种）把http的域名请求转成https
+        return 301 https://$host$request_uri;
+        #（第二种）强制将http的URL重写成https
+        rewrite ^(.*) https://$server_name$1 permanent;
+
+        # 如果在一个server中同时监听了两个端口，则需要判断
+        listen 443;
+        if ( $scheme = http ){
+            return 301 https://$server_name$request_uri;
+        }
+    }
+
     # 开启多个站点监听(花生壳指向 127.0.0.1:80 根据域名转发)
     server {
         listen 80;
@@ -577,6 +595,12 @@ http {
             if ($invalid_referer) {
                 rewrite ^/ http://$host/logo.png;
             }
+        }
+
+        # 自定义变量. 不能用于server_name及root等属性值
+        location /myvar {
+            set $foo hello;
+            echo "foo: $foo";
         }
         
         ## php配置参考[php.md#安装](/_posts/lang/php.md#安装)

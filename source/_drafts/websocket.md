@@ -19,6 +19,7 @@ tags: WebSocket
 
 ## 基于WebSocket类封装JS客户端
 
+- [node + vue](https://blog.csdn.net/weixin_46758988/article/details/127646256)
 - https://blog.csdn.net/nbaqq2010/article/details/108992288
 
 ## 整合SpringBoot

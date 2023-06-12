@@ -11,7 +11,6 @@ tags: [css]
 - [MDN CSS 参考](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference)
 - TODO
     - [12 个好用的 CSS 的开源项目](https://wuyaogexing.com/70/829272.html)
-    - Tailwind CSS 是一个功能类优先的 CSS 框架，它集成了诸如 flex, pt-4, text-center 和 rotate-90 这样的的类
 
 ## CSS 知识点
 
@@ -26,6 +25,10 @@ tags: [css]
 ### BFC
 
 - https://www.cnblogs.com/heimanba/p/3774086.html
+
+### 字体
+
+- 导出Excel使用`Arial Unicode MS`字体，打印出来较美观
 
 ### table样式
 
@@ -79,12 +82,12 @@ table tbody tr td:first-child+td+td {border: none;}
 
 ### Flex布局
 
-https://www.zhangxinxu.com/wordpress/?p=8063
-https://www.cnblogs.com/qingchunshiguang/p/8011103.html
-
-- `display: flex;`
+- 参考
+    - https://www.zhangxinxu.com/wordpress/?p=8063
+    - https://www.cnblogs.com/qingchunshiguang/p/8011103.html
+- `display: flex;` 开启flex布局
 - 作用在flex容器上
-    - flex-direction
+    - flex-direction: row(默认从左到右)/column(默认从上到下)/row-reverse/column-reverse
     - flex-wrap
     - flex-flow
     - `justify-content` 决定了水平方向子项的对齐和分布方式
@@ -94,11 +97,11 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
         - 取值：`stretch`(类似于flex-start) | `flex-start`(顶部对齐) | `flex-end`(底部对齐) | `center` | `baseline`(类似于flex-end)
     - align-content
 - 作用在flex子项上
-    - order
-    - flex-grow
-    - flex-shrink
-    - flex-basis
-    - flex
+    - order 改变某一个flex子项的排序位置
+    - flex-grow 扩展比例：默认值是0，表示不占用剩余的空白间隙；0-1表示占据的百分比(大于等于1表示全部占据)；如果多个子元素设置了此属性则其和表示占据空隙的比例，然后按照各自的比例进行分配占据的空隙
+    - flex-shrink 收缩比例：主要处理当flex容器空间不足时候，单个元素的收缩比例；类似grow，0-1表示收缩比例(大于等于1表示收缩完全，正好填满flex容器)
+    - flex-basis 定义了在分配剩余空间之前元素的默认大小，默认是auto，其值可以是像素或百分比
+    - flex: flex-grow flex-shrink flex-basis 的组合；`flex: 1;`等价于`flex: 1 1 0%;`
     - align-self
 
 ### @media
@@ -167,11 +170,7 @@ https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 </svg>
 ```
 
-## 字体
-
-- 导出Excel使用`Arial Unicode MS`字体，打印出来较美观
-
-## 常用css
+## 常用CSS
 
 - 响应式布局，head中加`<meta name="viewport" content="width=device-width,initialscale=1.0,maximum-scale=1.0,user-scalable=0">`
 - 解决iPhone中 overflow:scroll; 滑动速度慢或者卡的问题：`-webkit-overflow-scrolling : touch;`
@@ -495,6 +494,74 @@ body{
 
 - 在父元素上使用 flex 布局可解决：`display: flex;`
     - https://blog.csdn.net/qq_43886365/article/details/127230526
+
+### 绝对定位水平对齐
+
+```css
+div {
+    position: absolute;
+    top: 90px; /* 高度一般不会伸缩 */
+    transform: translate(50%, 0); /* 水平对齐 */
+}
+```
+
+### 最后一个元素撑满当前行
+
+```css
+.parent {
+    display: flex;
+    .last-box {
+
+    }
+}
+```
+
+## CSS框架
+
+### 30-seconds-of-css
+
+- https://github.com/30-seconds/30-seconds-of-css
+- **CSS 片段集合**
+    - 包含 CSS3 的实用程序和交互式示例
+    - 它包括用于创建常用布局、样式和动画元素的现代技术，以及用于处理用户交互的片段
+
+### TailwindCSS
+
+- [Github 69.2k](https://tailwindcss.com/)
+- [中文站](https://www.tailwindcss.cn/)
+- 原子风格：所有样式都基于 class，只需为 HTML 元素指定class，样式立刻生效
+- 它集成了诸如 flex, pt-4, text-center 和 rotate-90 这样的的类
+
+### bulma
+
+- [Github 47.2k](https://github.com/jgthms/bulma)
+- 原子风格
+
+### daisyui
+
+- [Github 21.9k](https://daisyui.com/)
+- 原子风格
+- 内涵21种主题配色
+
+### animate.css
+
+- https://github.com/animate-css/animate.css
+- 跨平台的CSS3动画库
+
+### postcss
+
+- https://github.com/postcss/postcss
+- 用 JavaScript 工具和插件转换 CSS 代码的工具
+
+### emotion
+
+- https://github.com/emotion-js/emotion
+- 用 JavaScript 编写 css 样式的库，CSS-in-JS
+
+### styled-components
+
+- https://github.com/styled-components/styled-components
+- 贯彻 React 的 everything in JS 理念，降低 js 对 css 文件的依赖
 
 ## 性能优化
 

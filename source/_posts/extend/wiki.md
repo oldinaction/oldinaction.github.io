@@ -6,7 +6,7 @@ categories: [extend]
 tags: [wiki, book]
 ---
 
-> 原文地址：[https://github.com/vhf/free-programming-books/blob/master/free-programming-books-zh.md](https://github.com/vhf/free-programming-books/blob/master/free-programming-books-zh.md) **branch:** `2e467c3`
+> 原文地址：[free-programming-books](https://github.com/EbookFoundation/free-programming-books/blob/main/books/free-programming-books-zh.md) **branch:** `2e467c3`
 
 ## 目录
 
@@ -54,6 +54,8 @@ tags: [wiki, book]
   * [HTTP](#http)
   * [iOS](#ios)
   * [Java](#java)
+    - [涵盖高并发、分布式、高可用、微服务、海量数据处理等领域知识](https://github.com/doocs/advanced-java)
+    - [JVM 底层原理总结](https://github.com/doocs/jvm)
   * [JavaScript](#javascript)
   * [LaTeX](#latex)
   * [LISP](#lisp)

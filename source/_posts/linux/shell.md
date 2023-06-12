@@ -857,29 +857,102 @@ EOF
 ### expect
 
 - expect 工具是一个根据脚本与其他交互式程序进行交互
-- 登录案例(login.exp)
+- 相关命令
+    - spawn: 启动进程，并跟踪后续交互信息
+    - expect: expect的一个内部命令，判断上次输出结果里是否包含指定的字符串，**如果有则立即返回，否则就等待超时时间后返回**(无法控制不执行后面的语句)。只能捕捉由spawn启动的进程的输出expect
+    - send: 向进程发送字符串，用于模拟用户的输入，该命令不能自动回车换行，一般要加`\r`（回车）
+    - interact: 执行完成后保存交互状态，把控制权交给控制台
+        - 单位是：秒；timeout -1 为永不超时；默认情况下，timeout是10秒
+    - set timeout 30: 设置超时时间为30秒(默认的超时时间是 10 秒，通过 set 命令可以设置会话超时时间, 若不限制超时时间则应设置为-1)
+    - exp_continue: 允许expect继续向下执行指令meout：指定超时时间，过期则继续执行后续指令
+    - send_user: 回显命令，相当于echo
+    - $argv 参数数组: Expect脚本可以接受从bash传递的参数，可以使用 [lindex $argv n] 获得，n从0开始，分别表示第一个$1，第二个$2，第三个$3……参数 ($argvn没有空格则表示脚本名称；$argv n有空格则代表下标)
+- 一般流程: spawn 启动追踪 —> expect 匹配捕捉关键字 ——> 捕捉到将触发send代替人为输入指令(一般是一个spawn登录命令行，之后全部为send模拟执行命令) —> interact / expect eof
+    - Expect脚本必须以interact或expect eof 结束，执行自动化任务通常expect eof就够了
+        - expect eof 是在等待结束标志。由spawn启动的命令在结束时会产生一个eof标记，expect eof 即在等待这个标记
+- Expect语法
+
+```bash
+# 单一分支语法
+expect "password:" {send "mypassword\r";}
+
+# 多分支模式语法
+expect "aaa" {send "AAA\r"}
+expect "bbb" {send "BBB\r"}
+# 或
+expect {
+    "aaa" {send "AAA\r"}
+    "bbb" {send "BBB\r"}
+}
+# 或
+exoect {
+    "aaa" {send "AAA\r";exp_continue}
+    "bbb" {send "BBB\r"}
+}
+```
+- 直接执行案例：登录(login.exp)
     - `./login.exp 22 root 192.168.1.100 mypass` 即可自动登录服务器
 
-    ```bash
-    #!/usr/bin/expect
-    # expect的解析器，与shell中的#!/bin/bash类似
+```bash
+#!/usr/bin/expect
+# expect的解析器，与shell中的#!/bin/bash类似
 
-    # 设置超时时间n秒
-    set timeout 30
-    # 执行命令，$argv为参数
-    spawn ssh -p [lindex $argv 0] [lindex $argv 1]@[lindex $argv 2]
-    # 接受执行命令返回的信息
-    expect {
-        # 匹配到不同返回，执行不同命令；发送 yes 并 \n 回车执行，exp_continue表示继续循环匹配
-        "(yes/no)?" {send "yes\n"; exp_continue}
-        # expect脚本可以接受bash的外部传参，可以使用[ lindex $argv n ]n为0表示第一个传参
-        "password:" {send "[lindex $argv 3]\n"}
-    }
-    # 执行完代码后保持交互状态，将控制权交给用户
-    interact
-    # 退出expect脚本
-    # exit
-    ```
+# 设置超时时间n秒
+set timeout 30
+# 执行命令，$argv为参数
+spawn ssh -p [lindex $argv 0] [lindex $argv 1]@[lindex $argv 2]
+# 接受执行命令返回的信息
+expect {
+    # 匹配到不同返回，执行不同命令；发送 yes 并 \n 回车执行，exp_continue表示继续循环匹配
+    "(yes/no)?" {send "yes\n"; exp_continue}
+    # expect脚本可以接受bash的外部传参，可以使用[ lindex $argv n ]n为0表示第一个传参
+    "password:" {send "[lindex $argv 3]\n"}
+}
+# 执行完代码后保持交互状态，将控制权交给用户
+interact
+# 退出expect脚本
+# exit
+```
+- 嵌入执行案例：登录(login.sh)
+    - `./login.sh 192.168.1.1 root`
+
+```bash
+#!/bin/bash
+hostname=$1
+password=$2
+
+# 加载expect文件路径
+/usr/bin/expect<<-EOF
+set timeout 60
+spawn ssh root@$hostname
+expect {
+"(yes/no)" {send "yes\r";exp_continue}
+"*password" {send "$password\r"}
+}
+# *表示任意字符，也可以省略
+expect "*]# "
+send "exit\r"
+expect eof
+EOF
+# expect结束标志，EOF前后不能有空格
+```
+- FTP登录案例
+    - `./ftp.sh 192.168.1.1` 本机要开启ftp，对方也要开启
+
+```bash
+#!/bin/bash
+hostname=$1
+expect<<-EOF
+spawn ftp $hostname
+expect {
+"Name" {send "ftp\r";exp_continue}
+"Password" {send "\r"}
+}
+expect eof
+EOF
+```
+- 其他案例参考
+    - [常用脚本(通过脚本部署项目)](/_posts/arch/springboot-vue.md#常用脚本)
 
 ## 示例
 

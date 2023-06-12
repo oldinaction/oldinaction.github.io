@@ -225,6 +225,7 @@ String pattern = "(\\w)(\\s+)([.,])";
 // $2 匹配 `(\s+)` 结果为 ` ` 和 ` `
 // $3 匹配 `([.,])` 结果为 `,` 和 `.`
 str.replaceAll(pattern, "$1$3"); // Hello, World.
+// 将一个以上的字母数字替换成|
 "abbc11abcc".replaceAll("(\\w)\\1+", "|"); // a|c|ab|
 
 // (2) 使用反向引用
@@ -232,9 +233,17 @@ String str = "img.jpg";
 Pattern pattern = Pattern.compile("(jpg|png)"); // 分组且创建反向引用
 // Pattern pattern = Pattern.compile("(?:jpg|png)"); // 有?:表示仅分组，但不创建反向引用。此时下面 matcher.group(1) 会报错 IndexOutOfBoundsException
 Matcher matcher = pattern.matcher(str);
-while (matcher.find()) { // 可能会匹配到多次
+// 可能会匹配到多次; 如果只需要匹配第一个，也需要执行一次 matcher.find()
+while (matcher.find()) {
     System.out.println(matcher.group()); // jpg
     System.out.println(matcher.group(1)); // jpg 取第一个括号的值
+}
+
+// 匹配html中 <input type="hidden" name="__value" id="__value" value="123" /> 的value值
+Pattern pattern = Pattern.compile("<input\\s+type=\"hidden\"\\s+name=\"__value\"\\s+id=\"__value\"\\s+value=\"([^\"]+)\"\\s*/>");
+Matcher matcher = pattern.matcher(body);
+if(matcher.find()) {
+    System.out.println(matcher.group(1)); // 123
 }
 ```
 

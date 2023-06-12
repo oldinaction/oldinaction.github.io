@@ -8,7 +8,7 @@ tags: tools
 
 ## 在线工具
 
-- https://nowjava.com/jar/ 更具jar包名称，查看jar包中文件名信息，如查看druid-1.1.17.jar
+- https://nowjava.com/jar/ 根据jar包名称，查看jar包中文件名信息，如查看druid-1.1.17.jar
 
 ## Hutool
 
@@ -318,6 +318,7 @@ String result = template.render(Dict.create().set("name", "Hutool"));
 sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 1));
 sheet.getRow(1).getCell(0).setCellValue('合并单元格设值，只需要针对左上角的单元格设值');
 
+
 // 移动行
 // startRow 要移动的开始行
 // endRow 要移动的结束行, 必须 >= startRow
@@ -325,6 +326,20 @@ sheet.getRow(1).getCell(0).setCellValue('合并单元格设值，只需要针对
 // copyRowHeight 是否复制行高
 // resetOriginalRowHeight 是否重置行高
 sheet.shiftRows(int startRow, int endRow, int n, boolean copyRowHeight, boolean resetOriginalRowHeight)
+
+
+// 设置单元格背景颜色: 灰色
+headStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+headStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+// 设置单元格边框: 黑色细框
+headStyle.setBorderTop(BorderStyle.THIN);
+headStyle.setBorderBottom(BorderStyle.THIN);
+headStyle.setBorderLeft(BorderStyle.THIN);
+headStyle.setBorderRight(BorderStyle.THIN);
+headStyle.setTopBorderColor(IndexedColors.BLACK.index);
+headStyle.setBottomBorderColor(IndexedColors.BLACK.index);
+headStyle.setLeftBorderColor(IndexedColors.BLACK.index);
+headStyle.setRightBorderColor(IndexedColors.BLACK.index);
 ```
 
 ### Easypoi
@@ -465,55 +480,21 @@ public class AsposeU {
     - License#setLicense 最终会进入 `this.a` 方法，而此方法大部分都是校验逻辑，如果通过都会进入`zblc.a`方法，因此修改`this.a` 方法即可
 - 破解之后还是正常导入License，只是破解之后就不会校验License正确性，从而不会生成水印
 
-## Ureport报表
 
-- [ureport](https://github.com/youseries/ureport)、[ureport文档](https://www.w3cschool.cn/ureport/ureport-jaod2h8k.html)
-- 参考文档
-    - ureport2整合springboot参考：https://www.pianshen.com/article/72751541487/
-    - https://www.cnblogs.com/niceyoo/p/14311257.html
-- 存在问题
-  - UReport2部分功能不可用，包括导出及多条件表达式SQL查询(错误信息会直接暴露)
-  - ureport2支持打印报表，不过存在bug，数据会显示不全，导出为Word文档同样存在问题，数据不全且当有合并单元格时数据会混乱展示
-  - 不支持邮件发送
-  - 本身不支持权限控制
-- 路径
-  - 访问路径 `http://localhost:8800/api/v1/module/ureport/ureport/designer`
-  - 预览路径 `http://localhost:8800/api/v1/module/ureport/ureport/preview?_u=file:test.ureport.xml`
-    - 注意需要带上`file:`，且文件名不要出现`#[]`等特殊字符串(`.`是可以的)
-    - 加参数`_i=1`表示分页预览第一页
-- 数据源和数据集
-    - 配置数据源和数据集
-        - 每个报表需要配置各自的数据源和数据集
-        - 内置数据源只需要在创建报表的时候添加到当前报表即可使用
-    - 带动态参数的SQL
-        - `${}`会作为表单时解析，但是不能和纯SQL语句联合使用(如下文案例中相同部分SQL不能写到`${}`外部)
-        - 字符串拼接SQL时注意空格
-        - 参数不支持动态默认值；日期区间需要定义两个参数，且必须通过`param("tk_create_time_start")`方式取值(字符串中有单引号时必须转义)
+## 数据库
 
-    ```js
-    ${
-        " select ttu.user_id, ttu.tbk_nickname, tto.*"+
-        " from tk_taoke_order tto"+
-        " left join tk_taoke_user ttu on ttu.tbk_special_id = tto.special_id"+
-        " where 1=1" +
-        (param("user_id") != null && param("user_id") != '' ? " and ttu.user_id=:user_id" : "")+
-        (param("tk_create_time_start") != null && param("tk_create_time_start") != '' ? " and tto.tk_create_time >= str_to_date(\'"+ param("tk_create_time_start") +" 00:00:00.000\', \'%Y-%m-%d %H:%i:%s.%f\')" : "") +
-        (param("tk_create_time_end") != null && param("tk_create_time_end") != '' ? " and tto.tk_create_time <= str_to_date(\'"+ param("tk_create_time_end") +" 23:59:59.999\', \'%Y-%m-%d %H:%i:%s.%f\')" : "") +
-        " order by tto.tk_create_time desc"
-    }
-    ```
-- 列属性
-    - 链接配置
-        - 支持表达式，如`${'https:' + order.select(item_img)}`(order为数据集，item_img为字段)
-    - 单元格类型为图片
-    - 图片来源为路径时支持`http(s)://`的网络图片
-    - 图片来源为表达式支持从数据集中读取后再获取图片数据
-        - 如`'https:' + order.select(item_img)`(order为数据集，item_img为字段，返回格式为`//example.com/demo.png`)
-        - 注意：此时显示获取图片路径字符串，然后通过服务器获取图片数据转成base64到前台显示(此时图片流量全部会经过服务器)
-- 过滤条件：符合条件时，当前列才显示，否则当前列显示空白
+### liquibase数据库版本管理
 
+- 数据库版本管理 https://www.liquibase.org/
 
-## Yaml解析(基于jyaml)
+### jsqlparser
+
+- 官网: https://jsqlparser.sourceforge.net/
+- SQL解析: net.sf.jsqlparser.parser
+
+## 语言
+
+### Yaml解析(基于jyaml)
 
 - json-yaml互转工具：https://www.bejson.com/json/json2yaml
 - 依赖
@@ -554,63 +535,7 @@ Person person = (Person) Yaml.loadType(dataFile, Person.class);
 Map map = (Map) Yaml.load(yamlStr);
 ```
 
-## Lombok
-
-- [Lombox](https://projectlombok.org/) 简化代码工具
-- 引入
-    - maven项目中需要加入对应的依赖，从而打包时生成相应代码
-    - idea需要安装Lombox插件，从而编译时生成相应代码，不会报错
-
-### 使用
-
-- `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
-    - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
-- `@NoArgsConstructor`、`@AllArgsConstructor`、`@RequiredArgsConstructor` 结合Spring注入
-    - @AllArgsConstructor 会将所有的成员放到构造函数中，Spring会自动注入所有的字段(部分场景会出现无法注入，此时可通过@RequiredArgsConstructor完成)
-    - @RequiredArgsConstructor 生成该类下被final修饰或者non-null修饰(@NonNull)字段生成一个构造方法
-
-        ```java
-        @Component
-        @RequiredArgsConstructor
-        public class ConstructorDemo {
-            // Spring 会自动注入(final修饰)
-            private final BeanTest1 beanTest1;
-
-            // Spring 会自动注入(non-null修饰)；@NonNull 生成的代码会判空，为空则报空指针异常
-            @NonNull
-            private BeanTest2 beanTest2;
-
-            // Spring 不会自动注入(没有final或者no-null修饰)
-            private BeanTest3 beanTest3;
-
-            // Spring 不会自动注入(如果用 @AllArgsConstructor 则会报错找不到这个类型的bean)
-            private Integer sex = 1;
-
-            // Spring 不会自动注入(如果用 @AllArgsConstructor 则会报错找不到这个类型的bean)
-            @Value("${constructor.name:hello}")
-            private String name;
-        }
-        ```
-- 使用Builder构造器模式
-    - **添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可**。否则子类继承报错"无法将类中的构造器应用到给定类型"
-    - 在父类和子类中同时使用`@SuperBuilder`(v1.18.4)解决子类在链式赋值时无法设置父类的字段问题 [^1]
-    - `@Builder(toBuilder = true)`表示相应对象会附带`toBuilder`方法，将其转换成功Builder对象继续进行链式赋值。默认只能通过MyClass.builder()获取链式调用入口
-    - **无法设置默认值，如实体类属性设置的值无效**
-- `@Accessors(fluent = true, chain = true, prefix = "p")`
-    - fluent属性表示生成getId/setId方法均省略前缀(get/set)，最终的方法名为id
-    - chain属性表示setter方法返回当前对象
-    - prefix属性表示生成的get/set方法会忽略前缀。即字段名为pId时，会生成为getId的方法
-    - 如果作用在entity上，会导致mybatis的xml中resultMap字段无法识别
-
-## 字节码操作
-
-- ASM、Javassist、Byte-buddy以及JavaAgent
-- javassist
-- https://blog.csdn.net/luanlouis/article/details/24589193
-- https://www.cnblogs.com/rickiyang/p/11336268.html
-- https://blog.csdn.net/chosen0ne/article/details/50790372
-
-## jackson
+### jackson
 
 - Jackson 的 1.x 版本的包名是 org.codehaus.jackson ，当升级到 2.x 版本时，包名变为 com.fasterxml.jackson
 - 依赖(jackson-databind 依赖 jackson-core 和 jackson-annotations)
@@ -687,7 +612,7 @@ objectMapper = new Jackson2ObjectMapperBuilder()
                 .build();
 ```
 
-## fastjson
+### fastjson
 
 - [官网](https://github.com/alibaba/fastjson)
 - [文档](https://github.com/alibaba/fastjson/wiki/Quick-Start-CN)
@@ -727,11 +652,14 @@ public class CustomFastjsonConfig {
 }
 ```
 
-## liquibase数据库版本管理
-
-- 数据库版本管理 https://www.liquibase.org/
-
 ## 其他
+
+### 字节码操作
+
+- ASM、Javassist、Byte-buddy以及JavaAgent
+- https://blog.csdn.net/luanlouis/article/details/24589193
+- https://www.cnblogs.com/rickiyang/p/11336268.html
+- https://blog.csdn.net/chosen0ne/article/details/50790372
 
 ### JEXL执行字符串JAVA代码
 
@@ -798,7 +726,101 @@ Object evaluate = je.evaluate(null); // 此处没有传入任何上下文，但�
 System.out.println("evaluate = " + evaluate); // evaluate = 2
 ```
 
+### Ureport报表
+
+- [ureport](https://github.com/youseries/ureport)、[ureport文档](https://www.w3cschool.cn/ureport/ureport-jaod2h8k.html)
+- 参考文档
+    - ureport2整合springboot参考：https://www.pianshen.com/article/72751541487/
+    - https://www.cnblogs.com/niceyoo/p/14311257.html
+- 存在问题
+  - UReport2部分功能不可用，包括导出及多条件表达式SQL查询(错误信息会直接暴露)
+  - ureport2支持打印报表，不过存在bug，数据会显示不全，导出为Word文档同样存在问题，数据不全且当有合并单元格时数据会混乱展示
+  - 不支持邮件发送
+  - 本身不支持权限控制
+- 路径
+  - 访问路径 `http://localhost:8800/api/v1/module/ureport/ureport/designer`
+  - 预览路径 `http://localhost:8800/api/v1/module/ureport/ureport/preview?_u=file:test.ureport.xml`
+    - 注意需要带上`file:`，且文件名不要出现`#[]`等特殊字符串(`.`是可以的)
+    - 加参数`_i=1`表示分页预览第一页
+- 数据源和数据集
+    - 配置数据源和数据集
+        - 每个报表需要配置各自的数据源和数据集
+        - 内置数据源只需要在创建报表的时候添加到当前报表即可使用
+    - 带动态参数的SQL
+        - `${}`会作为表单时解析，但是不能和纯SQL语句联合使用(如下文案例中相同部分SQL不能写到`${}`外部)
+        - 字符串拼接SQL时注意空格
+        - 参数不支持动态默认值；日期区间需要定义两个参数，且必须通过`param("tk_create_time_start")`方式取值(字符串中有单引号时必须转义)
+
+    ```js
+    ${
+        " select ttu.user_id, ttu.tbk_nickname, tto.*"+
+        " from tk_taoke_order tto"+
+        " left join tk_taoke_user ttu on ttu.tbk_special_id = tto.special_id"+
+        " where 1=1" +
+        (param("user_id") != null && param("user_id") != '' ? " and ttu.user_id=:user_id" : "")+
+        (param("tk_create_time_start") != null && param("tk_create_time_start") != '' ? " and tto.tk_create_time >= str_to_date(\'"+ param("tk_create_time_start") +" 00:00:00.000\', \'%Y-%m-%d %H:%i:%s.%f\')" : "") +
+        (param("tk_create_time_end") != null && param("tk_create_time_end") != '' ? " and tto.tk_create_time <= str_to_date(\'"+ param("tk_create_time_end") +" 23:59:59.999\', \'%Y-%m-%d %H:%i:%s.%f\')" : "") +
+        " order by tto.tk_create_time desc"
+    }
+    ```
+- 列属性
+    - 链接配置
+        - 支持表达式，如`${'https:' + order.select(item_img)}`(order为数据集，item_img为字段)
+    - 单元格类型为图片
+    - 图片来源为路径时支持`http(s)://`的网络图片
+    - 图片来源为表达式支持从数据集中读取后再获取图片数据
+        - 如`'https:' + order.select(item_img)`(order为数据集，item_img为字段，返回格式为`//example.com/demo.png`)
+        - 注意：此时显示获取图片路径字符串，然后通过服务器获取图片数据转成base64到前台显示(此时图片流量全部会经过服务器)
+- 过滤条件：符合条件时，当前列才显示，否则当前列显示空白
+
+
 ## 开发工具
+
+### Lombok
+
+- [Lombox](https://projectlombok.org/) 简化代码工具
+- 引入
+    - maven项目中需要加入对应的依赖，从而打包时生成相应代码
+    - idea需要安装Lombox插件，从而编译时生成相应代码，不会报错
+
+- `@SneakyThrows` 修饰方法，捕获方法中的Throwable异常，并抛出一个RuntimeException
+    - @SneakyThrows(UnsupportedEncodingException.class) 捕获方法中的UnsupportedEncodingException异常，并抛出RuntimeException
+- `@NoArgsConstructor`、`@AllArgsConstructor`、`@RequiredArgsConstructor` 结合Spring注入
+    - @AllArgsConstructor 会将所有的成员放到构造函数中，Spring会自动注入所有的字段(部分场景会出现无法注入，此时可通过@RequiredArgsConstructor完成)
+    - @RequiredArgsConstructor 生成该类下被final修饰或者non-null修饰(@NonNull)字段生成一个构造方法
+
+        ```java
+        @Component
+        @RequiredArgsConstructor
+        public class ConstructorDemo {
+            // Spring 会自动注入(final修饰)
+            private final BeanTest1 beanTest1;
+
+            // Spring 会自动注入(non-null修饰)；@NonNull 生成的代码会判空，为空则报空指针异常
+            @NonNull
+            private BeanTest2 beanTest2;
+
+            // Spring 不会自动注入(没有final或者no-null修饰)
+            private BeanTest3 beanTest3;
+
+            // Spring 不会自动注入(如果用 @AllArgsConstructor 则会报错找不到这个类型的bean)
+            private Integer sex = 1;
+
+            // Spring 不会自动注入(如果用 @AllArgsConstructor 则会报错找不到这个类型的bean)
+            @Value("${constructor.name:hello}")
+            private String name;
+        }
+        ```
+- 使用Builder构造器模式
+    - **添加`@Builder`，需要额外添加以下注解`@NoArgsConstructor`、`@AllArgsConstructor`，缺一不可**。否则子类继承报错"无法将类中的构造器应用到给定类型"
+    - 在父类和子类中同时使用`@SuperBuilder`(v1.18.4)解决子类在链式赋值时无法设置父类的字段问题 [^1]
+    - `@Builder(toBuilder = true)`表示相应对象会附带`toBuilder`方法，将其转换成功Builder对象继续进行链式赋值。默认只能通过MyClass.builder()获取链式调用入口
+    - **无法设置默认值，如实体类属性设置的值无效**
+- `@Accessors(fluent = true, chain = true, prefix = "p")`
+    - fluent属性表示生成getId/setId方法均省略前缀(get/set)，最终的方法名为id
+    - chain属性表示setter方法返回当前对象
+    - prefix属性表示生成的get/set方法会忽略前缀。即字段名为pId时，会生成为getId的方法
+    - 如果作用在entity上，会导致mybatis的xml中resultMap字段无法识别
 
 ### sdkman
 

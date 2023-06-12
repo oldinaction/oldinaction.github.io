@@ -46,9 +46,10 @@ public class Example {
 - 普通测试
 
 ```java
+@AutoConfigureMockMvc // 可以自动的注册所有添加@Controller或者@RestController的路由的MockMvc了
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureMockMvc // 可以自动的注册所有添加@Controller或者@RestController的路由的MockMvc了
+// @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) // websocket环境需要，否则报错：javax.websocket.server.ServerContainer not available
 public class DynamicAddTests {
     @Autowired
     private MockMvc mockMvc;

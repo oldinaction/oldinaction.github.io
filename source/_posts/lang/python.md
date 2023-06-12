@@ -10,48 +10,79 @@ tags: [python]
 
 - python有两个版本python2(最新的为python2.7)和python3，两个大版本同时在维护
 - [python3-cookbook中文文档](https://python3-cookbook.readthedocs.io/zh_CN/latest/index.html)
+- [Python3菜鸟教程](https://www.runoob.com/python3)
 
 ## Python安装
 
-- [Python下载镜像地址](http://npm.taobao.org/mirrors/python)
+- [Python下载镜像地址](https://registry.npmmirror.com/binary.html)
 - Linux
     - 默认有python2环境，python3安装参考[《CentOS服务器使用说明#python3安装》](/_posts/linux/CentOS服务器使用说明.md#python3安装)
 - Windows
     - 直接下载安装包
     - 环境变量设置(可选): 设置`PYTHON_HOME=D:/software/python3`，并设置`Path=.;%PYTHON_HOME%;%PYTHON_HOME%\Scripts`
     - python多环境: 安装[pyenv-win](https://github.com/pyenv-win/pyenv-win)
-- Mac
-    - python多环境: 安装pyenv
-    - M1安装的pyenv，此时安装python v3.6会有问题。可先安装x86的brew然后按照pyenv，参考[brew](/_posts/extend/mac.md#brew)。安装参考: https://notemi.cn/installing-python-on-mac-m1-pyenv.html
+- Mac(**M1很多包都不支持，可切换x86环境**)
+    - python多环境(python多版本): 安装pyenv
+    - M1安装的pyenv，此时安装python v3.6会有问题。可先安装x86的brew然后安装pyenv，参考[brew](/_posts/linux/mac.md#brew)。安装参考: https://notemi.cn/installing-python-on-mac-m1-pyenv.html
         - **安装python3.6和python3.7仍然失败**
     
-    ```bash
-    xbrew install pyenv pyenv-virtualenv
-    xbrew install gcc bzip2 libffi libxml2 libxmlsec1 openssl readline sqlite xz zlib
-    # 增加配置`alias xpyenv='arch -x86_64 /usr/local/bin/pyenv'`
-    vi ~/.bash_profile
+```bash
+## 安装pyenv
+xbrew install pyenv pyenv-virtualenv
+xbrew install gcc bzip2 libffi libxml2 libxmlsec1 openssl readline sqlite xz zlib
+# 增加配置`alias xpyenv='arch -x86_64 /usr/local/bin/pyenv'`
+vi ~/.bash_profile
 
-    ## 按照上文使用x86后，pyenv命令换成xpyenv命令执行
-    # 查看pyenv版本
-    pyenv -v
-    # 查看可安装的python版本
-    pyenv install --list
-    # 安装python
-    pyenv install 3.6.8
-    # 查看当前安装的python所有版本
-    pyenv versions
-    # 设置当前目录及其目录切换
-    pyenv local 3.6.8
-    # 设置全局版本
-    pyenv global 3.6.8
-    # 查看python版本
-    python -V
-    ```
+## 按照上文使用x86后，pyenv命令换成xpyenv命令执行; M1则是mpyenv
+# M1(系统版本3.8.2命令, 默认在 /usr/bin/python3, 包目录 /Library/Python/3.8)
+# M1(基于brew版本3.9.7命令, 位置如 /opt/homebrew/opt/python@3.9/bin/python3)
+# x86(基于brew命令3.8.16, 位置如 /usr/local/Cellar/python@3.8/3.8.16/bin/python3.8, 包目录 /usr/local/lib/python3.8). 设置镜像参考: https://wxnacy.com/2020/09/30/pyenv-install-use-mirrors/
+# 查看pyenv版本
+pyenv -v
+# 查看可安装的python版本
+pyenv install --list
+# 安装python
+pyenv install 3.6.8
+# 查看当前安装的python所有版本
+pyenv versions
+# 设置当前目录及子目录切换版本
+pyenv local 3.6.8
+# 设置全局版本
+pyenv global 3.6.8
+# 查看python版本
+python -V
+```
 - pip安装: 一般服务会自带pip，没有可进行安装
 
 ```bash
 sudo yum -y install epel-release
 sudo yum -y install python-pip
+```
+
+### pyenv用于多python版本环境
+
+- 参考上文
+
+### virtualenv和pipenv虚拟环境工具
+
+- https://blog.csdn.net/weixin_43865008/article/details/119898756
+- virtualenv: 参考[项目发布](#项目发布)
+- pipenv(推荐)
+
+```bash
+# 基于Mac模拟x86环境
+xzsh # 命令别名，mac切换x86
+pip3.9 install pipenv
+pipenv -h
+
+# 指定使用(基于x86)brew目录下安装的python创建虚拟环境
+# 会自动基于当前安装包(或requirements.txt)创建虚拟环境和 Pipfile 文件记录依赖
+# 虚拟环境目录为 ~/.local/share/virtualenvs/your-project-xxxx/ (依赖包安装位置)
+pipenv --python /usr/local/Cellar/python@3.8/3.8.16/bin/python3.8
+# 进入虚拟环境
+pipenv shell
+# 基于 Pipfile 依赖文件(或requirements.txt)按照依赖，并创建 Pipfile.lock 文件
+pipenv install
 ```
 
 ## python2和python3的语法区别
@@ -68,7 +99,13 @@ print("%s: %s " % x,y) # 2
 try
     # ...
 except Exception as e:
+    print('存在异常')
     # ...
+else:
+    print('无异常')
+    raise Exception('手动触发一个异常')
+finally:
+    print('这句话，无论异常是否发生都会执行。')
 
 # 2
 try:
@@ -164,7 +201,9 @@ bool('') # False
 #### 字符串
 
 ```py
-print('变量值为：{}'.format(my_var))
+print('变量值为：{}, value={value}'.format(my_var, value=123))
+print('变量值为：{1}, {0}'.format(123, 456))
+print(f'code: {code} value: {value}')
 
 # 字符串与变量连接
 search_url = f'https://www.baidu.com?wd={my_search_str}'
@@ -322,6 +361,9 @@ def is_json(json_str):
     except ValueError as e:
         return False
     return True
+
+## 格式化打印json
+print(json.dumps(data, ensure_ascii=False, indent=4, separators=(',', ':')))
 ```
 
 ### 流程控制
@@ -351,6 +393,17 @@ else:
 # for循环
 for i in range(10): # range返回一个列表: [0, 1, ..., 9]; range(0, 10, 2)返回0-10(不包含是10)，且步长为2的数据：[0, 2, 4, 6, 8]
     print i
+
+for key in map:
+    print(key, map[key])
+
+for item in list:
+    print(item)
+
+# for循环带下标(基于enumerate)
+numbers = [10, 29, 30, 41]
+for index, value in enumerate(numbers):
+    print(index, value)
 ```
 
 #### lambda
@@ -856,6 +909,8 @@ process.close(force=True)
 - pytorch (AI相关)
     - 1.13.1安装失败，参考 https://blog.csdn.net/qq_46037444/article/details/125991109
     - 下载whl进行安装：https://download.pytorch.org/whl/torch_stable.html，windows下载 cpu/torch-1.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+- lxml 解析xml等格式
+    - mac M1安装失败，需要以x86安装python的包。参考：https://til.simonwillison.net/python/lxml-m1-mac
 
 ## 项目创建和发布
 
@@ -871,23 +926,29 @@ process.close(force=True)
 - 在有`venv`的Terminal创建安装类库则不会对系统产生干扰
 - 启动django项目添加参数：如执行 `python manage.py runserver --insecure` 中的 `--insecure` 可在 `Configuration` - `Additional options`中配置
 
-### 发布
+### 项目发布
 
-- **记录客户端依赖(基于venv环境)**：`pip freeze > requirements.txt` venv环境运行后会生成一个此项目依赖的类库列表文件(安装上述方法创建项目默认不包含Python官方库)
+- virtualenv使用参考下文(更建议使用pipenv)
+- **记录客户端依赖(基于venv环境)**
+
+```bash
+# venv环境运行后会生成一个此项目依赖的类库列表文件(安装上述方法创建项目默认不包含Python官方库)
+pip freeze > requirements.txt
+```
 - 服务器
 
 ```bash
 # python3 的 pip3
 pip3 install virtualenv
-# 在当前目录创建虚拟环境目录ENV(可自定义名称)
-# 如果已经python2也安装了virtualenv，则需要指明python执行程序，如 `virtualenv -p python3 ENV`
-virtualenv ENV
-# 启用此环境，后续命令行前面出现（ENV）代表此时环境已切换。之后执行命令全部属于此环境
-# 退出虚拟环境命令 `deactivate`(无需加ENV/bin/)
-source ENV/bin/activate
+# 在当前目录创建虚拟环境目录venv(可自定义名称)
+# 如果已经python2也安装了virtualenv，则需要指明python执行程序，如 `virtualenv -p python3 venv`
+virtualenv venv
+# 启用此环境，后续命令行前面出现（venv）代表此时环境已切换。之后执行命令全部属于此环境
+# 退出虚拟环境命令 `deactivate`(无需加venv/bin/)
+source venv/bin/activate
 # 复制项目代码到项目目录(不用包含原来的虚拟环境目录)
 # 之后执行pip3/python3 等指令，相当于是在此环境中执行。如果当前环境是python3，则pip默认指向pip3
-# 或者直接通过`/ENV/bin/python3`执行程序
+# 或者直接通过`/venv/bin/python3`执行程序
 pip3 install -r /opt/myproject/requirements.txt
 # 此时看到依赖已安装
 pip3 list
@@ -897,8 +958,8 @@ python3 /opt/myproject/main.py
 - 运行程序脚本如
 
 ```bash
-# 或者 nohup /home/smalle/ENV/bin/python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:10000 > console.log 2>&1 &
-source /home/smalle/ENV/bin/activate
+# 或者 nohup /home/smalle/venv/bin/python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:10000 > console.log 2>&1 &
+source /home/smalle/venv/bin/activate
 nohup python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:10000 > console.log 2>&1 &
 ```
 

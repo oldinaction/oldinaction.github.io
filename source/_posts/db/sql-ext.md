@@ -13,6 +13,7 @@ tags: [sql, oracle, mysql]
 
 ## 不同数据库差异
 
+- 可使用ETL工具[kettle](https://www.oschina.net/p/kettle)对不同数据库中的数据做迁移和同步
 - [Oracle迁移MySQL注意事项](https://z.itpub.net/article/detail/981AEFD121E9C508F063228A878ED6E0)
 - Oracle 11g表名最大长度为30，Mysql最大长度为64
 
@@ -28,7 +29,7 @@ select cast(ID as char) from user limit 1;
 
 -- 日期时间转换
 -- mysql
-select date_format(now(), '%Y-%m-%d %H:%i:%s');
+select now(), date_format(now(), '%Y-%m-%d %H:%i:%s'), date_format(now(),'%Y-%m-%d');
 select str_to_date('2016-01-02 10:00:00.000','%Y-%m-%d %H:%i:%s.%f');
 select to_days(now()); -- 727666 从0年开始到当前的天数
 select to_days('2016-01-02');
@@ -38,8 +39,8 @@ select to_date('2016-01-02 10:00:00', 'yyyy-MM-dd HH24:mi:ss') from dual;
 select to_number('0') from dual;
 select cast(100 as varchar2(10)) from dual;
 --sqlserver
-select CONVERT(VARCHAR(10), GETDATE(), 120); -- 格式化日期(120为一种格式) 2000-01-01
-select CONVERT(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:00:00.000
+select convert(varchar(10), getdate(), 120); -- 格式化日期(120为一种格式) 2000-01-01
+select convert(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:00:00.000
 ```
 
 ### 日期
@@ -52,7 +53,9 @@ select CONVERT(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:
 date_sub(now(), interval 7 day); -- 当前时间-7天. 不能直接 `now()-7`
 date_add('1970-01-01', interval -1 week); -- 该时间-1周
 -- 2000-01-01、2000-01-01 00:00:00、2000-01-01 23:59:59
-select CURDATE(), DATE_FORMAT(CURDATE(),'%Y-%m-%d %H:%i:%s'), DATE_SUB( DATE_ADD(CURDATE(), INTERVAL 1 DAY),INTERVAL 1 SECOND);
+select CURDATE(), DATE_FORMAT(CURDATE(),'%Y-%m-%d %H:%i:%s'), DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 1 DAY),INTERVAL 1 SECOND);
+-- 更多参考
+-- https://blog.csdn.net/weixin_36419499/article/details/113464438
 
 -- oracle
 sysdate + interval '1' year -- 当前日期加1年，还可使用：month、day、hour、minute、second
@@ -60,8 +63,8 @@ sysdate + interval '1 1:1' day to minute -- 当前日期 + 1日1时1分
 sysdate + 1 -- 加1天
 sysdate - 1/24/60/60 -- 减1秒
 select sysdate, add_months(sysdate, -12) from dual; -- 减1年
-select TRUNC(SYSDATE) FROM dual; -- 取得当天0时0分0秒
-SELECT TRUNC(SYSDATE)+1-1/86400 FROM dual; -- 取得当天23时59分59秒(在当天0时0分0秒的基础上加1天后再减1秒)
+select trunc(sysdate) from dual; -- 取得当天0时0分0秒
+select trunc(sysdate)+1-1/86400 from dual; -- 取得当天23时59分59秒(在当天0时0分0秒的基础上加1天后再减1秒)
 select to_char(sysdate,'yyyy-mm')||'-01' firstday, 
        to_char(last_day(sysdate),'yyyy-mm-dd') lastday from dual; -- 在oracle中如何得到当天月份的第一天和最后一天
 select to_date('1970', 'yyyy') from dual;
@@ -160,6 +163,8 @@ select case when ... end from t_user;
 ### 复制表数据
 
 - [复制表结构参考](/_posts/db/mysql/mysql-backup-recover.md#Mysql相关语法)
+    - create table ... as select
+    - insert into ... select
 
 ### 关联表进行数据更新
 
@@ -167,7 +172,8 @@ select case when ... end from t_user;
     
 ```sql
 -- Oracle：如果a表和b表的字段相同，最好给两张表加别名. **注意where条件**，idea可能出警告
-update test a set (a.a1, a.a2, a.a3) = (select b.b1, b.b2, b.b3 from test2 b where a.id = b.id) 
+-- 如果b表关联了c表则关联条件中不能使用a表字段，只能在where条件中使用a表字段
+update test a set (a.a1, a.a2, a.a3) = (select b.b1, b.b2, b.b3 from test2 b where a.id = b.id);
 where exists (select 1 from test2 b where a.id = b.id);
 
 -- Mysql：update的表不能加别名，oracle可以加别名。当字段相同时直接使用表名做前缀
@@ -326,14 +332,13 @@ ORDER BY A.modify_date DESC;
 ### 基于用户属性表统计每个公司不同用户属性的用户数
 
 ```sql
--- 1个公司对于多个用户，1个用户对应多个属性
+-- 1个公司对应多个用户，1个用户对应多个属性
 select
 	c.id,
 	c.name,-- 公司名称
 	count( distinct u.id ) count_user,-- 该公司的用户数
-	count( case when ua.key = 'JobTitle' and ua.value = 'employee' then c.id end ) count_employee,-- 该公司的普通员工数。也可加上`else null`(因为count是统计该字段不为空的行数); 还可以加上 distinct 进行去重
-	count( case when ua.key = 'JobTitle' and ua.value = 'manager' then c.id end ) count_manager,-- 该公司的经理数
-	count( case when ua.key = 'Sex' and ua.value = 'boy' then c.id end ) count_boy -- 该公司男性用户数
+	count( distinct case when ua.key = 'JobTitle' and ua.value = 'employee' then u.id end ) count_employee, -- 该公司的普通员工数。也可加上`else null`(因为count是统计该字段不为空的行数)
+	count( case when ua.key = 'JobTitle' and ua.value = 'manager' then c.id end ) count_manager -- 该公司的经理数(c.id本身就group by了, 冗余的就是用户数)
 from
 	company c
 	left join users u on c.id = u.company_id
@@ -363,7 +368,7 @@ having count(1) = 3
 ### 基于主子孙表求和统计
 
 ```sql
-select count(1) "艘次", sum(a.net_ton) "总净吨", sum(a.gweight_ton) "代理货物总量（万吨）",sum(a.bc_count) "代理集装箱量"
+select count(1) "艘次", sum(a.net_ton) "总净吨", sum(a.gweight_ton) "代理货物总量（万吨）", sum(a.bc_count) "代理集装箱量"
 from
 (
     select s.ship_no, sd.net_ton, round(sum(sb.gweight_ton)/10000,0) gweight_ton, a.bc_count bc_count
@@ -371,7 +376,7 @@ from
     left join c_ship_data sd on sd.e_ship_nam = s.e_ship_nam
     left join ship_bill sb on s.ship_no = sb.ship_no
     left join (
-        select sb.ship_no,sum(decode(bc.cntr_size_cod , '20','1','2')) bc_count
+        select sb.ship_no,sum(decode(bc.cntr_size_cod, '20', 1, 2)) bc_count -- 存在拼箱问题
         from ship s -- 主表
         join ship_bill sb on s.ship_no = sb.ship_no -- 子表
         join bill_cntr bc on sb.bill_no = bc.bill_no -- 孙表
@@ -666,6 +671,103 @@ select json_unquote(json_extract('[1, 2, 3]', '$[0]')); -- 1
 select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using utf8mb4); -- 张三
 ```
 
+### 定时任务(事件)
+
+- 可基于Navicat或者手动执行SQL创建任务
+    - 参考：https://www.cnblogs.com/JamelAr/p/16612820.html
+
+```sql
+-- 创建数据全局(mysql)定时任务日志表(可选)
+create table `mysql`.`t_event_history` (
+  `db_name` varchar(128) not null default '',
+  `event_name` varchar(128) not null default '',
+  `start_time` datetime not null default current_timestamp,
+  `end_time` datetime default null,
+  `is_success` int(11) default null,
+  `duration` int(11) default null, -- 执行秒数
+  `error_message` varchar(512) default null,
+  `rand_no` int(11) default null,
+  `data` varchar(512) default null,
+  primary key (`db_name`,`event_name`,`start_time`),
+  key `ix_end_time` (`end_time`),
+  key `ix_starttime_randno` (`start_time`,`rand_no`)
+) engine=innodb default charset=utf8;
+
+
+-- 创建定时任务
+-- Navicat事件新增时，除了输入定义、还需输入计划(如: Every 1 HOUR, START 2100-01-01 00:00:00), interval 表示延迟多长时间后开始执行/结束
+delimiter $$
+create event `e_sum_test_month`
+    on schedule 
+    every 30 minute starts '2023-05-10 23:30:00' ends '2023-05-11 12:00:00'
+    on completion preserve -- on completion [not] preserve: 当event到期了,event会被disable,但是该event还是会存在,否则event会自动删除掉
+    enable -- [enable | disable | disable on slave(表示事件在从机中是关闭)]
+    comment '这是注释'
+    do
+-- Navicat事件新增界面-定义 START
+begin
+    declare v_start_date varchar(100);
+    declare v_count int(11);
+
+    -- 记录日志相关变量
+	declare r_code char(5) default '00000';
+	declare r_msg text;
+	declare v_error integer;
+	declare v_start_time datetime default now();
+	declare v_rand_no integer default floor(rand()*100001);
+	
+	insert into mysql.t_event_history (db_name,event_name,start_time,rand_no) values(database(),'e_sum_test_month', v_start_time,v_rand_no);
+	
+    begin
+        -- 异常处理段
+        declare continue handler for sqlexception  
+        begin
+            set v_error = 1;
+            get diagnostics condition 1 r_code = returned_sqlstate , r_msg = message_text;
+        end;
+        
+        -- 此处为实际调用的用户程序过程 START
+        -- 以[基于月份进行循环处理](/_posts/db/sql-procedure.md#基于月份进行循环处理)为例
+        select t.note into v_start_date from t_dict t where t.`code` = 'p_sum_test_month' and t.status = 0; -- 获取当前过程的起始日期
+        if v_start_date is not null then
+            update t_dict set `status` = 1, input_tm = now() where `code` = 'p_sum_test_month'; -- 当前过程正在执行中
+            
+            select datediff(last_day(v_start_date), v_start_date) + 1 into v_count; -- 当月天数
+            
+            update mysql.t_event_history set data = concat('v_start_date=', v_start_date, ', v_count=', v_count) where start_time=v_start_time and rand_no=v_rand_no; -- 记录执行数据
+            
+            call p_sum_test_month(str_to_date(concat(v_start_date, ' 00:00:00'), '%y-%m-%d %h:%i:%s'), 1, v_count); -- 调用存储过程
+            
+            update t_dict set status = 0, note = date_format(date_add(str_to_date(v_start_date, '%y-%m-%d')-day(str_to_date(v_start_date, '%y-%m-%d'))+1,interval 1 month),'%y-%m-%d'), update_tm = now() where `code` = 'p_sum_test_month'; -- 记录下一次执行的起始时间
+        else
+            set v_error = 2;
+            set r_msg = '前一次仍在执行，本次忽略';
+        end if;
+        -- 此处为实际调用的用户程序过程 END
+    END;
+	
+	update mysql.t_event_history set end_time=now(),is_success=isnull(v_error),duration=timestampdiff(second,start_time,now()), error_message=concat('error=',r_code,', message=',r_msg),rand_no=null
+    where start_time=v_start_time and rand_no=v_rand_no;
+end
+-- Navicat事件新增界面-定义 END
+$$
+delimiter ;
+
+
+-- 查看所有事件. 如果 last_executed 字段有更新说明事件是执行了的, 如果事件中存在错误代码(报错)是不能直接查看到日志的
+select * from mysql.event;
+
+-- 启用/禁用当前定时任务
+alter event e_sum_test_month on completion preserve enable;
+alter event e_sum_test_month on completion preserve disable;
+
+-- 查看/开启/关闭事件配置(mysql默认是关闭的，需先开启，定时任务才会自动执行)
+-- 防止mysql重启失效，需将 `event_scheduler=1` 配置到 my.ini
+select @@event_scheduler; -- 或 show variables like 'event%';
+set global event_scheduler = on;
+set global event_scheduler = off;
+```
+
 ## Oracle
 
 ### 常用函数
@@ -761,7 +863,7 @@ select * from ASSIGN;
 - 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
 - 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
     - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替。参考：https://www.cxybb.com/article/qq_28356739/88626952
-        - druid使用内置SQL解析工具类时，无法解析此函数，参考：https://github.com/alibaba/druid/issues/4259
+        - druid使用内置SQL解析工具类时，无法解析此函数，参考(测试无效)：https://github.com/alibaba/druid/issues/4259
     - clob直接返回到前台会报错
         - 可通过`clob.getSubString(1, (int) clob.length())`解决
         - 或者使用jackson转换器，参考：https://oomake.com/question/13622930、https://segmentfault.com/a/1190000040484998
@@ -820,12 +922,34 @@ group by t.deptno
 - `start with connect by prior` 递归查询(如树形结构)
 
 ```sql
-select * from my_table t 
+select t.id, t.pid
+connect_by_root(t.id) root_id, -- 显示根节点列. 写成 `connect_by_root t.id root_id` PL/SQL也是可以的，但是Durid解析的时候可能会报错
+connect_by_root(t.name) root_name -- 显示根节点名称 
+from my_table t 
 start with t.pid = 1 -- 基于此条件进行向下查询(省略则表示基于全表为根节点向下查询，可能会有重复数据)
-connect by nocycle -- 递归条件(递归查询不支持环形。此处nocycle表示忽略环，如果确认结构中无环形则可省略。有环形则必须加，否则报错)
+-- connect by nocycle -- 递归条件(递归查询不支持环形。此处nocycle表示忽略环，如果确认结构中无环形则可省略。有环形则必须加，否则报错); connect_by_iscycle 在有循环结构的查询中使用。
 prior t.id = t.pid -- 增加递归条件，或者 add prior。也可自递归，如 t.id = t.id
-add prior level <= regexp_count(t.names, '[^,]+') -- level为当前递归层级(顶层为1)，此条件无实际意义，仅为了展示其语法功能
-where t.valid_status = 1; -- 将递归获取到的数据再次过滤
+-- add prior level <= regexp_count(t.names, '[^,]+') -- level为当前递归层级(顶层为1)，此条件无实际意义，仅为了展示其语法功能
+where t.valid_status = 1 -- 将递归获取到的数据再次过滤
+-- order siblings by id desc -- siblings 保留树状结构，对兄弟节点进行排序
+
+-- 三级权限
+select
+connect_by_root (t.id) "一级权限id"
+,case when level = 1 then connect_by_root (t.permission_name) end "一级权限名称"
+,case when level = 2 then t.id when level = 3 then prior t.id end "二级权限id"
+,case when level = 2 then t.permission_name end "二级权限名称"
+,case when level = 3 then t.id end "三级权限id"
+,case when level = 3 then t.permission_name end "三级权限名称"
+,level "层次"
+,sys_connect_by_path(id, '->') "层次结构"
+,decode(connect_by_isleaf, 1, '是', '否') "是否子孙节点"
+,opm.OPERATOR_ID "用户拥有此权限"
+from s_operator_permission t
+left join s_operator_permission_mapper opm on opm.permission_id = t.id and opm.operator_id = 1 -- 用户ID=1的权限映射
+start with t.parent_id = 0
+connect by nocycle
+prior t.id = t.parent_id
 ```
 
 ##### over

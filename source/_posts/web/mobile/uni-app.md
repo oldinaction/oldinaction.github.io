@@ -9,10 +9,8 @@ tags: [H5, 小程序, App, mobile]
 ## 简介
 
 - [官网](https://uniapp.dcloud.io/)
-- 组件插件
-    - [uviewui](https://www.uviewui.com/)
 
-### 项目初始化
+### 项目初始化运行及发布
 
 - 可使用HBuilder创建项目或[vue-cli](https://uniapp.dcloud.net.cn/quickstart-cli)创建项目
     - **发布app必须通过HBuilder，vue-cli可以发布h5/小程序。**基于vue-cli创建项目时默认安装了cross-env插件，基于此插件在启动命令前增加了NODE_ENV等参数的配置
@@ -24,13 +22,26 @@ tags: [H5, 小程序, App, mobile]
     - 选择 Hello uni-app
     - 生成后删除/src下的文件，复制原先项目的文件到/src下
     - 其他参考：https://ask.dcloud.net.cn/article/36286
-- **多环境编译问题**
-    - 使用XBuilder开发(一些依赖安装在HBuilder中)
-        - 点击运行获取到的`process.env.NODE_ENV = 'development'`，点击发行获取到的是production
-            - HBuilder中点击运行或发行便会把此环境对应的API地址编译成微信小程序代码，之后小程序上传的便是此时编译的地址(微信小程序中无法获取process.env.NODE_ENV)。因此发布线上小程序需要点击XBuilder发行
-        - 增加编译时的环境变量或使用cross-env定义script，参考上文[文件-package.json](#文件)
-    - 使用vscode等开发(vue-cli创建项目，依赖全部安装在项目中)
-        - 使用cross-env定义script
+- 发布
+    - 小程序
+        - 发行 - 发行到微信小程序(此时process.env.NODE_ENV才等于production)
+        - 配置小程序ID
+    - H5
+        - 发行 - 网站PC/手机H5
+        - 可在manifest.json - Web配置中对路由模式和运行基础路径进行配置(一般留空或者配置成`./`)
+        - 打包后可在`unpackage/dist/build/h5`找到打包产物
+        - 配置nginx
+
+        ```bash
+        # 默认路由模式为history. ** 注意: 此时路由会带#，不能去掉 **
+        server {
+            listen   80;
+            server_name www.aezo.cn;
+            # 无需配置 location / 和 try_files
+            root   /home/aezocn/h5;
+            index index.html;
+        }
+        ```
 
 ### 文件结构
 
@@ -139,7 +150,13 @@ tags: [H5, 小程序, App, mobile]
     </script>
     ```
 
-## 生命周期
+## 知识点
+
+### 条件编译
+
+- [条件编译](https://uniapp.dcloud.net.cn/tutorial/platform.html)
+
+### 生命周期
 
 - 应用生命周期: https://uniapp.dcloud.io/collocation/frame/lifecycle
     - `onLaunch` 当uni-app 初始化完成时触发（全局只触发一次）
@@ -151,7 +168,7 @@ tags: [H5, 小程序, App, mobile]
     - `onBackPress` 可以监听到H5返回，无法监听到微信小程序返回
 - 组件生命周期同Vue: https://uniapp.dcloud.net.cn/tutorial/page.html#componentlifecycle
 
-### onLaunch等同步写法
+#### onLaunch等同步写法
 
 - Promise/async/await使用参考：[js-release.md#Promise/async/await](/_posts/web/js-release.md#Promise/async/await)
 - 基本使用
@@ -165,12 +182,13 @@ async onShow() {
     await this.initData();
 },
 methods: {
+    // onLaunch onShow 同时调用，会执行多次
     async initData() {
         await login()
     }
 }
 
-// 改写 uni.getProvider 等异步函数。uni.getProvider 为异步函数(接收回调，但返回对象不是Promise，无法使用await等特性)
+// 改写 uni.getProvider 等回调函数。uni.getProvider 为回调函数(接收回调，但返回对象不是Promise，无法使用await等特性)
 export const login = () => {
     // 返回 Promise 对象，从而外部可使用 await login()
 	return new Promise(resolve => {
@@ -259,9 +277,75 @@ export default {
 }
 ```
 
-## web-view开发
+#### 路由相关
+
+- 路由相关: https://uniapp.dcloud.net.cn/tutorial/page.html#%E8%B7%AF%E7%94%B1
+    - 页面跳转
+        - uni.navigateTo 不关闭之前页面(之前页面代码还会继续执行)
+        - uni.redirectTo 关闭之前页面
+        - uni.switchTab 关闭之前页面并显示Tab主页
+        - uni.reLaunch 关闭之前页面并打开某个页面
+        - uni.navigateBack 关闭当前页面，返回上一页面或多级页面
+    - 路径问题    
+        - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
+        - 所有的路由都是基于page.json中的路径，注意如果路径中无.vue后缀，则路由时的路径也不能有.vue后缀
+    - navigator标签问题
+        - 当登录后，通过uni.switchTab进入到首页，首页此时如果是使用`<navigator url="../hello">`，会导致第一次进入时无法路由
+        - 解决方法使用绝对路径`<navigator url="/pages/hello">`，且不能带.vue后缀
+    - 路由挂载：需要跳转的页面必须在page.json中注册过。如需采用 Vue Router 方式管理路由，可在uni-app插件市场找Vue-Router相关插件
+- 跳转小程序：https://uniapp.dcloud.net.cn/api/other/open-miniprogram.html#navigatetominiprogram
+
+```js
+// 跳转小程序
+uni.navigateToMiniProgram({
+  appId: '',
+  path: 'pages/index/index?id=123',
+  extraData: {
+    'data1': 'test'
+  },
+  success(res) {
+    // 打开成功
+  }
+}
+
+// 跳转会上一个小程序: 只有当另一个小程序跳转到当前小程序时才会能调用成功
+uni.navigateBackMiniProgram()
+
+// 跳转半屏小程序. 不支持跳转到个人小程序，且绑定的目标小程序最多10个，绑定时需要目标小程序审核
+// 官方文档说还需将目标appId配置到 manifest.json -> mp-weixin -> embeddedAppIdList 数组中(跳转兔小巢时没配置也可以)
+uni.openEmbeddedMiniProgram({
+    appId: '',
+    path: 'pages/main/index'
+})
+```
+
+### easycom组件规范
+
+- [easycom](https://uniapp.dcloud.net.cn/collocation/pages.html#easycom)
+- [uni_modules](https://uniapp.dcloud.net.cn/plugin/uni_modules.html)
+
+### scroll-view组件
+
+- https://uniapp.dcloud.net.cn/component/scroll-view.html
+- 实现横向滚动条(横向导航)点击后元素居中：https://blog.csdn.net/wangongchao/article/details/123353627
+
+### web-view开发
 
 - 参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
+
+### 样式
+
+- uni.showToast 被遮盖：全局增加样式`uni-toast {z-index: 999999;}`
+- 图片显示
+
+```html
+<view class="cu-avatar round"
+    style="background-image:url('/static/logo.png');">
+</view>
+```
+- 引入iconfont
+    - 参考 https://www.jianshu.com/p/7969e4fb2d4e
+    - Symbol模式需要引入js才能显示彩色，建议下载成png图片
 
 ## 与Vue写法异同
 
@@ -334,14 +418,44 @@ export default {
 
 ## 常见业务
 
-- 多环境编译问题：参考[项目初始化](#项目初始化)
+### 多环境编译问题
+
+- 使用XBuilder开发(一些依赖安装在HBuilder中)
+    - 点击运行获取到的`process.env.NODE_ENV = 'development'`，点击发行获取到的是production
+        - HBuilder中点击运行或发行便会把此环境对应的API地址编译成微信小程序代码，之后小程序上传的便是此时编译的地址(微信小程序中无法获取process.env.NODE_ENV)。因此发布线上小程序需要点击XBuilder发行
+    - 增加编译时的环境变量或使用cross-env定义script，参考上文[文件-package.json](#文件)
+- 使用vscode等开发(vue-cli创建项目，依赖全部安装在项目中)
+    - 使用cross-env定义script
+
+### 微信小程序联系客服
+
+- 使用button属性: https://uniapp.dcloud.net.cn/component/button.html#button
+- `<button open-type="contact">联系客服</button>`
+    - 必须使用button组件，样式比较丑，可参考
+
+    ```html
+    <button class="cu-btn cuIcon sm" open-type="contact">
+        <view class="cuIcon-service text-green button-icon"></view>
+        <text>联系客服</text>
+    </button>
+
+    <style>
+    .cu-btn {
+        display: inline-block;
+        background: transparent;
+        height: 164upx;
+        margin-top: 0;
+        border-radius: 0;
+        .button-icon {
+            margin-top: 42upx;
+        }
+    }
+    </style>
+    ```
+- 然后在公众平台->功能->客服绑定对应客户人员微信
 
 ### 其他
 
-- uni.navigateTo 不关闭之前页面，uni.redirectTo 关闭之前页面，uni.switchTab 关闭之前页面并显示Tab主页
-    - 所有的路由都是基于page.json中的路径，注意如果路径中无.vue后缀，则路由时的路径也不能有.vue后缀
-- navigator标签问题：当登录后，通过uni.switchTab进入到首页，首页此时如果是使用`<navigator url="../hello">`，会导致第一次进入时无法路由。解决方法使用绝对路径`<navigator url="/pages/hello">`，且不能带.vue后缀
-- 路由挂载：需要跳转的页面必须在page.json中注册过。如需采用 Vue Router 方式管理路由，可在uni-app插件市场找Vue-Router相关插件
 - uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需序列化成字符串)
 - [uni.showToast](https://uniapp.dcloud.io/api/ui/prompt?id=showtoast) 无Error图片(微信也没有)
 
@@ -364,8 +478,6 @@ export default {
     - 编译期判断，使用`// #ifdef H5`，`// #endif`
     - 运行期判断，`uni.getSystemInfoSync().platform = android|ios|devtools` 判断客户端环境是 Android、iOS 还是小程序开发工具
 - 扫码功能参考[uni.scanCode](https://uniapp.dcloud.net.cn/api/system/barcode?id=scancode)、[js-tools.md#扫码/条码生成](/_posts/web/js-tools.md#扫码/条码生成)
-- 路径问题
-    - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
 - H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#项目文件)
 - `web-view`使用参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
 - `rich-text`可以通过vue的v-html进行渲染，但是传入的字符串不能包含body、html等节点(如果使用了不受信任的HTML节点，该节点及其所有子节点将会被移除)
@@ -394,12 +506,47 @@ export default {
         - 如果使用ColorUI，需修改`cu-custom`导航组件的返回事件
 - 敏感词检测：https://zhuanlan.zhihu.com/p/363463142?utm_id=0
 
-### 样式
+## 自定义插件
 
-- uni.showToast 被遮盖：全局增加样式`uni-toast {z-index: 999999;}`
+- [记一次uniapp插件：zero-markdown-view优化过程](https://juejin.cn/post/7160995270476431373)
+
+## ColorUI插件
+
+- 主要是一个样式文件，通过一些CSS类来实现UI效果
+- 按钮
+
+```html
+<button class="cu-btn round shadow block cuIcon sm line-red lines-red bg-red bg-gradual-red" loading>
+    图标: <text class="cuIcon-upload"></text>
+    加载: <text class="cuIcon-loading2 cuIconfont-spin"></text>
+    默认: cu-btn 
+    圆角: round
+    阴影: shadow
+    无效状态: block
+    图标按钮: cuIcon(配合图标)
+    尺寸: sm/默认/lg
+    镂空边框: line-red | lines-red(线条更粗)
+    背景: bg-red | bg-gradual-red(渐变色)
+    原生加载: loading
+</button>
+```
+- 常用布局
+    - flex 水平浮动排列
+    - flex flex-direction 垂直浮动排列
+    - justify- 左右两边浮动
+    - align- 中线对齐
+
+```html
+<!-- 垂直对齐 -->
+<span class="flex flex-direction align-center">
+    <div>显示在上面</div>
+    <span>显示在下面</span>
+</span>
+```
 
 ## uView插件
 
+ - [uView](https://www.uviewui.com/)
 - u-cell-item使用slot时标题无法增加空格(使用padding解决)
 
 ```html
@@ -411,7 +558,23 @@ export default {
 </u-cell-group>
 ```
 
-## 兼容问题
+## 零散插件
+
+### 富文本/markdown解析
+
+- [uParse](https://ext.dcloud.net.cn/plugin?id=183) DCloud前端团队
+    - 渲染markdown需额外安装`marked`
+- [zero-markdown-view](https://ext.dcloud.net.cn/plugin?id=9437)
+    - 基于mp-html，手动编译可减小包体积到1.6M
+    - [记一次uniapp插件：zero-markdown-view优化过程](https://juejin.cn/post/7160995270476431373)
+
+## 常见问题
+
+- 小程序图片不显示问题，参考[weixin.md](/_posts/web/mobile/weixin.md#其他)
+- 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
+    - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
+- 真机调试
+    - IOS需要开放微信访问本地网络
 
 ### API兼容问题
 
@@ -424,14 +587,6 @@ export default {
 - IOS 和 Android 对时间的解析有区别 [^1]
     - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
     - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
-
-## 常见问题
-
-- 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
-    - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
-- 真机调试
-    - IOS需要开放微信访问本地网络
-
 
 
 

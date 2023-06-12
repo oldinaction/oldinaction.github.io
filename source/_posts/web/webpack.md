@@ -120,6 +120,14 @@ module.exports = {
 <% } %>
 ```
 
+## 插件
+
+### loaders
+
+- [script-loader](https://v4.webpack.js.org/loaders/script-loader/)
+    - 全局上下文中执行一次 JS 脚本
+    - 异步按顺序引入 JS 文件到全局
+
 ## Webpack模块打包原理
 
 - [github扩展案例](https://github.com/oldinaction/smweb/blob/master/webpack/README.md)

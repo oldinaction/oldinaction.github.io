@@ -721,6 +721,7 @@ public @class *
                     <!-- 依赖模块 -->
                     <assembly>
                         <inclusions>
+                            <!-- 此时此模块中的依赖无法传递，需要手动引入 -->
                             <inclusion>
                                 <groupId>cn.aezo.share.reporttable</groupId>
                                 <artifactId>report-table-common</artifactId>

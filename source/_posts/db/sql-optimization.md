@@ -112,14 +112,15 @@ tags: [oracle, dba, sql]
         - index_merger：该联接类型表示使用了`索引合并`优化方法。在这种情况下，key 列包含了使用的索引的清单，key_len 包含了使用的索引的最长的关键元素
         - unique_subquery：该类型替换了下面形式的 IN 子查询的 ref，是一个索引查找函数，可以完全替换子查询，效率更高
         - index_subquery：该联接类型类似于 unique_subquery
-        - range：只检索给定范围的行，使用一个索引来选择行。key 列显示使用了哪个索引。key_len 包含所使用索引的最长关键元素。在该类型中 ref 列为 NULL。当使用`=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN、IN` 操作符，用常量比较关键字列时，可以使用 range **(BILL_NO < 10)**
+        - range：只检索给定范围的行，使用一个索引来选择行。key 列显示使用了哪个索引。key_len 包含所使用索引的最长关键元素。当使用`=、<>、>、>=、<、<=、IS NULL、<=>、BETWEEN、IN` 操作符，用常量比较关键字列时，可以使用 range **(BILL_NO < 10)**
+            - 有时候通过主键id=1得到的是range(ref=const,Extra=Using where)，有时候是const
         - index：该联接类型与 ALL 相同，除了只有索引树被扫描。这通常比 ALL 快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作 **(order by BILL_NO)**
         - ALL：最慢的一种方式，即全表扫描
     - possible_keys：指出 MySQL 能使用哪个索引在该表中找到行
     - **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 force index、use index 或者 ignore index. 如下
 
         ```sql
-        -- 指定索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引
+        -- 指定索引/强制索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引
         select * from user use index(idx_name_sex) where id > 10000;
         -- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
         select *
@@ -506,6 +507,7 @@ tags: [oracle, dba, sql]
 
         ```sql
         select film_id,description from film order by title limit 10000,10;
+        
         -- 优化后(数据量大时才有效果)
         select a.film_id,a.description 
         from film a 
@@ -1136,11 +1138,11 @@ create table test_user (
 -- 创建随机字符串函数，便于创建名称
 drop function if exists test_rand_string;
 create function test_rand_string(n int)
-	returns varchar(255) # 返回字符串，注意：此处关键字是returns 而不是return
+	returns varchar(255) -- 返回字符串，注意：此处关键字是returns 而不是return
 begin
-    #定义一个临时变量，给变量赋值'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz'
+    -- 定义一个临时变量，给变量赋值'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz'
     declare chars_str varchar(100) default 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz';
-    # 定义返回结果字符串
+    -- 定义返回结果字符串
     declare return_str varchar(255) default '';
     declare i int default 0;
     while i < n do
@@ -1165,9 +1167,7 @@ drop procedure if exists test_insert_data;
 create procedure test_insert_data(in start_no int(10), in max_num int(10))
 begin
 	declare i int default 0;
-	# 设置自动提交为false
-	set autocommit = 0;
-	# 开启循环
+	set autocommit = 0; -- 设置自动提交为false
 	repeat
 		set i = i+1;
 

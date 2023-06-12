@@ -53,8 +53,28 @@ tags: [build]
 ### maven命令
 
 ```bash
-# 安装
+# 会创建一个名为myapp的Maven项目，并自动添加必要的文件和文件夹
+mvn archetype:generate -DgroupId=com.example -DartifactId=myapp -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+
+# 下载依赖
+# mvn -f pom.xml dependency:resolve
+mvn dependency:resolve
+# 将依赖的jar复制到target/dependency目录
+mvn dependency:copy-dependencies
+# -U强制更新所有 SNAPSHOT 依赖项，package|install同理
+mvn dependency:resolve -U
+mvn clean package|install -U
+# 清除本地依赖，或手动删除
+mvn dependency:purge-local-repository
+mvn dependency:purge-local-repository -Dinclude:cn.aezo.test
+
+# 下载依赖到本地仓库(不会自动加入到pom.xml). remoteRepositories可省略
+mvn dependency:get -DremoteRepositories=https://mvnrepository.com/artifact/commons-logging/commons-logging -DgroupId=commons-logging -DartifactId=commons-logging -Dversion=1.1.1
+
+# 安装依赖(安装jar包到本地)
 mvn install:install-file -Dfile=test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar
+# -DlocalRepositoryPath=/Users/smalle/gitwork/github/aezo-maven-repo/ # 可增加参数指定安装位置
+
 # 推送到远程
 mvn deploy:deploy-file -Dmaven.test.skip=true -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar -DrepositoryId=my-server-id -Durl=http://192.168.0.1:8080/nexus/content/repositories/releases
 ```
@@ -69,14 +89,16 @@ mvn deploy:deploy-file -Dmaven.test.skip=true -Dfile=D:/test-1.0.0.jar -DgroupId
 mvn wrapper:wrapper
 # 指定使用的Maven版本
 mvn wrapper:wrapper -Dmaven=3.6.3
+# 查看版本
+./mvnw -version
 
 # 项目/模块根目录会有一个mvnw和mvnw.cmd的文件
 # 执行mvnw命令时，会自动下载对应版本maven到./m2/wrapper中(第一次由于下载可能会卡一下)
 ./mvnw compile
 ```
 - `.mvn/wrapper/maven-wrapper.properties`
-    - distributionUrl 下载对应版本maven的地址
-    - wrapperUrl 指定maven-wrapper.jar的下载地址
+    - distributionUrl 下载对应版本maven的地址(一般为中央仓库: repo.maven.apache.org，如需使用镜像可进行修改)
+    - wrapperUrl 指定maven-wrapper.jar的下载地址(一般为中央仓库: repo.maven.apache.org)
 - 使用idea - maven - reimport功能时，需要设置idea的maven home path为Use Maven wrapper
 
 ## maven语法
@@ -435,7 +457,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
     	<systemPath>${basedir}/src/main/resources/lib/smtools-utils-0.0.1-SNAPSHOT.jar</systemPath>
     </dependency>
 
-    <!-- 这部分也需要，否则只能开发环境通过，编译的springboot jar中无此依赖 -->
+    <!-- 这部分也需要，否则只能开发环境通过，编译的springboot jar中则无此依赖 -->
 	<build>
 		<plugins>
 			<!-- springboot专用. spring-boot-maven-plugin主要是为了打包出可执行的jar，common模块(无需启动服务)则无需此插件 -->
@@ -470,9 +492,9 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 
 ```xml
 <dependency>
-    <groupId>cn.aezo</groupId>
-    <artifactId>utils</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <groupId>com.aspose</groupId>
+    <artifactId>aspose-cells</artifactId>
+    <version>21.11-crack</version>
 </dependency>
 
 <build>
@@ -505,7 +527,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 </build>
 ```
 
-- 法二：
+- 法二
     - 安装jar包(test-1.0.0.jar)到本地：`mvn install:install-file -Dfile=D:/test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar`
         - 如果jar包包含pom信息则可直接安装`mvn install:install-file -Dfile=D:/test-1.0.0.jar`
     - 再按照常规的方式应用
@@ -519,7 +541,11 @@ mvn wrapper:wrapper -Dmaven=3.6.3
         </dependency>
         ```
 
-- 法二：在`build-plugins`节点加以下插件(可获取到目录下所有jar)(未测试通过)
+- 法三
+    - 在`build/plugins`节点加以下插件(可获取到目录下所有jar)，此方法会将lib目录下的包全部打包到classes目录的lib目录下
+    - 本地开发需要将lib目录添加到idea的Libaray中，则开发编译走idea配置，maven打包编译时走此插件配置
+    - springboot项目时，此插件放在`spring-boot-maven-plugin`插件上面
+    - 由于springboot的classes和lib是平级，所以运行生产环境时，还需将此lib包作为外置包进行运行，参考[分离lib包](/_posts/java/springboot.md#分离lib包)
 
     ```xml
     <plugin>
@@ -632,7 +658,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
                     META-INF
                     org.springframework.boot.loader
                 2.上述情况可增加下列扩展命令，最终打包出两个jar：一个为demo-1.0.0.jar(普通jar包结构，即上文classes目录下文件)，另外一个为demo-1.0.0-exec.jar(结构为同上文jar)
-             -->
+            -->
             <!--
             <executions>
                 <execution>
@@ -653,7 +679,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 
 ## maven插件
 
-- **Maven官方插件文档地址**: https://maven.apache.org/plugins/
+- **Maven官方插件文档地址**: https://maven.apache.org/plugins/ (后面加插件名称)
 - `maven-compiler-plugin` 编译插件
 - `maven-jar-plugin` 默认的打包插件，用来打**普通的Project jar包(不包含依赖)**
 
@@ -790,12 +816,23 @@ mvn wrapper:wrapper -Dmaven=3.6.3
     </assembly>
     ```
 - [maven-install-plugin](https://maven.apache.org/plugins/maven-install-plugin/index.html) 将jar安装到本地仓库，配置类似maven-deploy-plugin
+
+```bash
+# 安装依赖(安装jar包到本地)
+mvn install:install-file -Dfile=test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar
+# -DlocalRepositoryPath=/Users/smalle/gitwork/github/aezo-maven-repo/ # 可增加参数指定安装位置
+```
+
 - [maven-deploy-plugin](https://maven.apache.org/plugins/maven-deploy-plugin/index.html) 发布jar到远程仓库
     ```xml
     <!-- 如用于proguard打包时，生成了原始包和classifier混淆包，此时只需classifier混淆包 -->
     <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+            <!-- 表示当前模块不发布仓库 -->
+            <!-- <skip>true</skip> -->
+        </configuration>
         <executions>
             <!-- 阻止默认的部署 -->
             <execution>
@@ -1003,8 +1040,9 @@ public class BizMojo extends AbstractMojo {
 - 使用时配置maven远程仓库
 
 	```xml
-	<!-- 优先读取本地库 -->
+	<!-- 优先级：读取本地库 > 按照项目中repositories依次下载 > 最后按照本地maven配置文件中设置的镜像源进行下载 -->
 	<repositories>
+        <!-- 如果使用github仓库，可在前面加一个阿里云仓库；否则所有的包会先检查一下github仓库，没有再走本地镜像 -->
         <repository>
 			<id>aliyun-repos</id>
 			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
@@ -1037,6 +1075,8 @@ public class BizMojo extends AbstractMojo {
 	```
 
 ### 基于nexus搭建私服
+
+#### 安装nexus
 
 - nexus可对maven、docker等私服进行管理
 - 基于docker安装nexus：`docker-compose.yml`
@@ -1078,7 +1118,7 @@ services:
     }
     ```
 
-### nexus界面管理
+#### nexus界面管理
 
 - 默认情况下，nexus是提供了四个仓储(如果内部代码可单独创建内部仓库存放)
     - Central 代理中央仓库，从公网下载jar
@@ -1092,7 +1132,7 @@ services:
 - 禁止匿名用户访问
     - Security - Users - anonymous - Status设置成Disabled；或者将移除仓库的读权限
 
-### 上传jar包到nexus
+#### 上传jar包到nexus
 
 - 在`~/.m2/settings.xml`中设置maven私服(nexus)用户名和密码
 
@@ -1121,7 +1161,7 @@ services:
     - 401：认证出错
     - 403：无权推送
 
-### 从nexus下载jar
+#### 从nexus下载jar
 
 ```xml
 <repositories>
@@ -1137,6 +1177,22 @@ services:
     - `maven-default-http-blocker (http://0.0.0.0/): Blocked mirror for repositories`
         - 在3.8.1后面的版本中block掉了所有HTTP协议的repositories，仅支持https
         - 可以通过设置setting.xml的mirror中mirrorOf和blocked属性的值为false来解决，更推荐把maven版本降低到了3.6.3及以下maven(可使用mvnw)；IDEA 2021最新版本内置的maven是3.6.3，可以支持http
+
+#### 基于nexus实现npm私有仓库
+
+- [官方文档](https://help.sonatype.com/repomanager2/node-packaged-modules-and-npm-registries)
+- 参考: https://blog.csdn.net/weixin_39999684/article/details/106763560
+    - 需要创建一个npm组、一个npm代理仓库(用于代理其他公共包到淘宝等镜像)、一个npm hosted仓库(实际上传包的仓库，也只能下载本仓库存在的包)
+    - 上传包需要上传到npm hosted仓库(tarballs数据以tgz格式存储，然后记录版本等元信息)
+    - 下载包需要从npm组对应仓库下载
+    - 必须在项目的.npmrc或用户目录的.npmrc中增加`always-auth=true`和`_auth="用户名:密码"的base64编码`(echo -n 'admin:admin123' | openssl base64)
+- 一方面，nexus2版本不支持unpublish包，另一方面，npm官网并不建议unpublish包。所以除非特殊情况，不建议对已上传的包进行撤销，可以版本迭代。包要删除，可直接在nexus上手动删除(如删除`/data/nexus/storage/npm-release`目录下对应包文件，只能删除tgz包，打包的元信息貌似删除不掉)
+    - 参考: https://stackoverflow.com/questions/26358449/how-to-unpublish-npm-packages-in-nexus-oss
+    - nexus2不支持unpublish和deprecate，nexus3支持deprecate
+    - 手动删除包
+        - cd `.../nexus/storage/<your_npm_repo>/<your_package>/-/`进行删除 (注意不要到your_package目录后执行`cd -`，此时-是特殊字符)
+        - 然后手动对npm hosted仓库执行nexus的schedules: `Delete npm metadata`(会删除所有npm元数据)和`Rebuild hosted npm metadata`(根据tarballs获取元数据并重建)
+        - 此时如果重新推送同样的版本，本地再安装可能存在缓存，需要先清除缓存(`npm cache clean -f`清除所有缓存，yarn可以基于某个模块单独清理)，然后删除`package-lock.json`(每次重新安装会校验此文件中的integrity sha512值和远程仓库中的integrity，不一致会报错，所以要先清除)，再重新安装
 
 ## 其他
 

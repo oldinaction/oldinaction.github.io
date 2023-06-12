@@ -468,9 +468,96 @@ select * from table(sql_pivot_dynamic_col('bill_fee_cod', 'bill_fee', 'where POR
 值      56144	CSI0135293              20      40
 ```
 
-## Mysql存储过程示例
+### 常用存储过程
 
-- 示例1(简单)
+#### 定时清理数据库日志表
+
+```sql
+-- 创建存储过程
+create or replace procedure p_ops_edi_body is
+    type ref_cursor_type is ref cursor;
+
+    -- 待修改:保留数据的天数
+    v_ops_remain_days number := 365;
+    v_ops_point_date varchar2(100);
+    v_ops_begin_date varchar2(100);
+    v_ops_begin_date_opt number;
+    v_ops_remain_date varchar2(100);
+    v_ops_end_date varchar2(100);
+    v_cur_data ref_cursor_type;
+    v_sql varchar2(4000);
+    -- 待修改:业务表
+    type tb_ops_table is table of S_EDI_HEAD%rowtype;
+    rd_row tb_ops_table;
+    v_count number := 0;
+    time_before binary_integer;
+    time_after binary_integer;
+begin
+    time_before := DBMS_UTILITY.GET_TIME;
+		
+    select to_char(sysdate-v_ops_remain_days, 'yyyyMMdd') into v_ops_remain_date from dual;
+    -- 待修改:获取日志记录表信息. 案例中NODE_NOTES存放时间，格式如 20200101,3(从2020-01-01开始清理3天的数据)
+    select t.NODE_NOTES into v_ops_point_date from S_BASIC_MAINTENANCE t
+        where t.PARENT_CODE = 'PrivateSystemState' and t.NODE_CODE = 'OpsEdiBody' and t.VALID_STATUS = 1;
+    select substr(v_ops_point_date, 1, 8), case when substr(v_ops_point_date, 1, 8) >= v_ops_remain_date then 0 else 1 end  into v_ops_begin_date, v_ops_begin_date_opt from dual;
+    select to_char(to_date(substr(v_ops_point_date, 1, 8), 'yyyyMMdd') + (select substr(v_ops_point_date, 10) - 1 from dual), 'yyyyMMdd') into v_ops_end_date from dual;
+    if v_ops_begin_date_opt = 1 then
+        -- 待修改:业务表任务查询(此处建议使用t.*)
+        v_sql := 'select t.* from S_EDI_HEAD t where t.CREATE_TM < sysdate-' || v_ops_remain_days || ' and t.CREATE_TM between to_date(''' || v_ops_begin_date || '000000' || ''', ''yyyyMMddhh24miss'') and to_date(''' || v_ops_end_date || '235959' || ''', ''yyyyMMddhh24miss'')';
+        open v_cur_data for v_sql;
+        loop
+            fetch v_cur_data bulk collect into rd_row limit 500;
+            exit when rd_row.count = 0;
+            forall i in 1..rd_row.count
+                -- 待修改:执行清理逻辑
+                delete from S_EDI_BODY where id = rd_row(i).id;
+            v_count := v_count + rd_row.count;
+            commit;
+        end loop;
+        close v_cur_data;
+        
+        time_after := DBMS_UTILITY.GET_TIME;
+        -- 待修改:更新日志表
+        update S_BASIC_MAINTENANCE t set
+                t.NODE_NOTES = (select to_char(to_date(v_ops_end_date, 'yyyyMMdd') + 1, 'yyyyMMdd') from dual) || ',' || substr(v_ops_point_date, 10)
+                ,t.remarks = substr((select to_char(sysdate, 'yyyy-MM-dd hh24:mi:ss') || ' 清理 ' || v_count || ' 条, 耗时 ' || (time_after - time_before) / 100 || ' 秒;' || chr(10) || t.remarks from dual) , 1, 255)
+                where t.PARENT_CODE = 'PrivateSystemState' and t.NODE_CODE = 'OpsEdiBody' and t.VALID_STATUS = 1;
+        commit;
+    else
+        update S_BASIC_MAINTENANCE t set
+                t.NODE_NOTES = v_ops_remain_date || ',1'
+                ,t.remarks = substr((select to_char(sysdate, 'yyyy-MM-dd hh24:mi:ss') || ' 无需清理;' || chr(10) || t.remarks from dual) , 1, 255)
+                where t.PARENT_CODE = 'PrivateSystemState' and t.NODE_CODE = 'OpsEdiBody' and t.VALID_STATUS = 1;
+        commit;
+    end if;
+end;
+
+
+-- 创建任务: 更多参考[sql-ext.md#Oracle定时任务Job](/_posts/db/sql-ext.md#Oracle定时任务Job)
+begin
+    dbms_scheduler.create_job(
+        job_name => 'job_ops_edi_body',
+        job_type => 'stored_procedure', -- 固定值
+        job_action => 'p_ops_edi_body', --存储过程
+        start_date => sysdate,
+        repeat_interval => 'FREQ=DAILY; BYHOUR=3', -- 每天早上3点运行
+        comments => '清理S_EDI_BODY数据',
+        job_class => 'DBMS_JOB$',
+        enabled => true
+    );
+end;
+-- 查看任务
+select * from dba_scheduler_jobs;
+```
+
+## Mysql
+
+- 打印日志: `select 1`
+    - https://www.861ppt.com/news/5504.html
+
+### 存储过程示例
+
+#### 示例(简单)
 
 ```sql
 /*delimiter指分割符，Mysql默认的分割符是分号';'，如果没有声明分割符，那么编译器会把存储过程当成SQL语句来处理，容易报错，声明之后则把';'当成过程中的代码*/
@@ -504,7 +591,7 @@ select @v_c, @v_temp;
 +------+---------+
 ```
 
-- 示例2(高级)
+#### 示例(高级)
 
 ```sql
 -- 从用户表中提取某省份的区县字典表（已存在省份城市表）
@@ -549,7 +636,7 @@ begin
             -- condition_value 可以是一个 MySQL 错误码，或者一个 SQLSTATE 值，然后 condition_name 就可以代表 condition_value 来使用了
         -- 存储过程中的错误被错误处理器捕获了之后，如果还想用类似 mysql 命令行那样的格式返回对应的错误，可以声明一个辅助函数，具体见下文
     
-	-- 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)
+	-- 循环终止的标志，游标中如果没有数据就设置done为true(停止遍历)；如果其他的select into语句没有数据也会导致此状态变更
 	declare continue handler for not found set done = true;
 	-- 错误处理：发生对应错误时返回select结果。参考：https://segmentfault.com/a/1190000006834132
 	declare exit handler for 1062 select 'duplicate keys error encountered'; -- 发生了主键重复的错误(MySQL的错误码为1062)
@@ -656,6 +743,82 @@ delimiter ;
 call test_county(1, 1);
 ```
 
+#### 示例(执行SQL语句)
+
+```sql
+create procedure my_proc(in id int, in name varchar(50), in age int)
+begin
+  declare sql_statement varchar(200);
+  -- 使用prepare语句生成动态sql语句，并存储到sql_statement变量中
+  set sql_statement = 'select * from my_table where id = ? and name = ? and age = ?';
+  prepare stmt from sql_statement;
+  -- 指定参数值，并执行prepare语句生成的sql语句
+  set @id = id;
+  set @name = name;
+  set @age = age;
+  execute stmt using @id, @name, @age;
+  drop prepare stmt;
+end;
+```
+
+#### 示例(动态游标)
+
+- 基于视图或临时表的方式 https://www.cnblogs.com/nick-huang/p/4614284.html
+
+```sql
+-- 基于视图方式
+create procedure p_dynamic_cursor(in i_username varchar(20))
+begin
+    declare v_id int(11);
+    declare v_username varchar(20);
+
+    declare done int default 0;
+    declare cur cursor for (select username from v_tmp_user); -- v_tmp_user为视图，下文会动态创建
+    declare continue handler for not found set done = 1;
+
+    drop view if exists v_tmp_user;
+
+    -- @类型变量无需declare
+    set @sql = "create view v_tmp_user as ";
+    set @sql = concat(@sql, "select id,username from `user` where username like '", i_username, "%'");
+
+    prepare stmt from @sql;
+    execute stmt;
+    deallocate prepare stmt;
+
+    open cur;
+    fetch cur into v_id, v_username;
+    while (not done) do
+        select v_id, v_username;
+
+        fetch cur into v_id, v_username;
+    end while;
+    close cur;
+
+    drop view if exists v_tmp_user;
+end;
+```
+
+#### 示例(使用map数据结构)
+
+- MySQL存储过程并不直接支持map数据结构，但可以通过以下方法使用
+- 基于json实现
+
+```sql
+-- 声明一个变量用来存储JSON格式的数据
+DECLARE jsonData VARCHAR(1000);
+
+-- 存储map数据结构
+SET jsonData = '{"key1":"value1","key2":"value2"}';
+
+-- 解析JSON格式的字符串，获取map中的值
+SELECT JSON_EXTRACT(jsonData, '$.key1') AS key1_value;
+
+-- 输出结果为：key1_value
+```
+- 基于表/临时表/视图实现(视图可以支持变量的方式)
+    - 将map中的键作为表的主键（Primary Key），将值存储在对应的列中
+
 ### 自定义函数
 
 - handler错误处理时的辅助函数
@@ -684,6 +847,107 @@ delimiter ;
 ### 存储过程调试
 
 - Mysql存储过程调试工具：`dbForge Studio for MySQL`
+
+### 异常
+
+- `select into`无数据不会报错，而是返回NULL，如果数据条数大于1则会报错
+
+### 常用存储过程
+
+#### 基于天数进行循环处理
+
+```sql
+create procedure p_sum_test_sync(
+	in start_date datetime, -- 起始天
+	in days int) -- 统计的天数
+begin
+	-- 说明: 同步提单主要信息及箱量统计
+    -- call p_sum_test_sync(DATE_FORMAT('2023-04-01 00:00:00', '%Y-%m-%d %H:%i:%s'), 30);
+	-- drop procedure if exists p_sum_test_sync;
+	
+	declare start_date_tmp datetime;
+	declare end_date_tmp datetime;
+	declare i int default 0;
+	
+	-- alter table sum_test disable keys;
+	set autocommit = 0;
+	repeat
+        select date_add(start_date, interval i day) into start_date_tmp;
+        select date_sub( date_add(start_date, interval i+1 day),interval 1 second) into end_date_tmp;
+        
+        -- 业务逻辑开始
+        select i, start_date_tmp, end_date_tmp;
+        -- 业务逻辑结束
+        
+		if i % 5 = 0 then
+			commit;
+		end if;
+		
+		set i = i + 1;
+		until i >= days 
+	end repeat;
+	commit;
+    set autocommit = 1;
+	-- alter table sum_test enable keys; -- 应该等定时执行完之后，手动重建索引
+end
+```
+
+#### 基于月份进行循环处理
+
+- 结合mysql事件(定时任务)参考：[定时任务(事件)](/_posts/db/sql-ext.md#定时任务(事件))为例
+
+```sql
+create procedure p_sum_test_month (
+	in start_date datetime, -- 必须从某个月的1号0点开始
+	in months int, -- 需要统计几个月
+	in days int) -- 数据查询的最大天数跨度(防止查询慢)，会自动将当前月份按照此天数进行拆分查询
+begin
+	-- 说明: 基于月份进行循环处理
+    -- call p_sum_test_month('2023-04-01 00:00:00', 1, 5);
+	-- drop procedure if exists p_sum_test_month;
+
+	declare start_date_tmp datetime;
+	declare end_date_tmp datetime;
+	declare start_date_mth datetime;
+	declare end_date_mth datetime;
+	declare i int default 0;
+	declare j int default 0;
+	
+    -- alter table sum_test disable keys;
+	set autocommit = 0;
+	repeat
+        select date_add(start_date, interval j month) into start_date_mth;
+        select date_sub(date_add(last_day(start_date_mth), interval 1 day),interval 1 second) into end_date_mth;
+        
+        select date_add(start_date_mth, interval i day) into start_date_tmp;
+        if month(start_date_tmp) > month(start_date_mth) || year(start_date_tmp) > year(start_date_mth) then
+            set j = j + 1;
+            set i = 0;
+            select date_add(start_date, interval j month) into start_date_mth;
+            select date_add(date_sub(date_add(start_date, interval 1 day),interval 1 second), interval j month) into end_date_mth;
+            set start_date_tmp = start_date_mth;
+        end if;
+        
+        select date_sub(date_add(start_date_tmp, interval days day),interval 1 second) into end_date_tmp;
+        if month(end_date_tmp) > month(end_date_mth) || year(end_date_tmp) > year(end_date_mth) then
+            set end_date_tmp = end_date_mth;
+        end if;
+        
+        if j < months then
+            -- 业务逻辑开始
+            select j, start_date_tmp, end_date_tmp;
+            -- 业务逻辑结束
+        end if;
+		commit;
+		
+		set i = i + days;
+		until j >= months
+	end repeat;
+	commit;
+	set autocommit = 1;
+    -- alter table sum_test enable keys; -- 应该等定时执行完之后，手动重建索引
+end;
+```
 
 ## SQLServer
 

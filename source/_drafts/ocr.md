@@ -1,7 +1,7 @@
 ---
 layout: "post"
 title: "OCR智能识别"
-date: "2021-02‎-26‎ ‏‎18:34"
+date: "2021-02-26 18:34"
 categories: [arch]
 ---
 

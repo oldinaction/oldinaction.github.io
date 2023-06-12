@@ -15,7 +15,7 @@ tags: [mybatis, src]
 ![mybatis-class.webp](/data/images/java/mybatis-class.webp)
 
 - org.apache.ibatis.session
-    - `Configuration` 全局配置类
+    - `Configuration` **全局配置类**
     - `SqlSession` 数据库连接Session接口
         - `DefaultSqlSession` 包含部分方法如下
             - insert 基于update实现
@@ -50,139 +50,26 @@ SqlSession sqlSession = sqlSessionFactory.openSession();
 List list = sqlSession.selectList("cn.aezo.TestMapper.select");
 ```
 
-## mybatis-spring
-
-- mybatis可以脱离spring运行，如果整合spring则需要增加`mybatis-spring`依赖。原本入口可如上文手动定义，接入spring之后，通过定义`@MapperScan`即可自动扫描mapper注册成bean
-- `@MapperScan`
-    - 使用：一般在springboot主类(或任何配置类)上注解`@MapperScan({"cn.aezo.**.mapper"})`表明需要扫码的包
-    - 原理参考下文源码截取
-        - 主要由于@MapperScan注解上有一行`@Import({MapperScannerRegistrar.class})`，从而以`MapperScannerRegistrar`为入口对mybatis进行初始化
-        - 而MapperScannerRegistrar实现了`ImportBeanDefinitionRegistrar`接口从而通过registerBeanDefinitions方法注册Bean。参考[spring.md#@Import给容器导入一个组件](/_posts/java/spring.md#@Import给容器导入一个组件)
-- `SqlSessionFactoryBean` 实现接口
-    - `InitializingBean` 作用是spring初始化的时候会执行(实现了InitializingBean接口的afterPropertiesSet方法)
-    - `ApplicationListener` 作用是在spring容器执行的各个阶段进行监听，为了容器刷新的时候，更新sqlSessionFactory，可参考onApplicationEvent方法实现
-    - `FactoryBean` 表示这个类是一个工厂bean，通常是为了给返回的类进行加工处理的，而且获取类返回的是通过getObj返回的
-
-### mybatis-spring源码
-
-```java
-// 1.MapperScan注解中通过 @Import({MapperScannerRegistrar.class}) 进行bean注册
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-@Documented
-@Import({MapperScannerRegistrar.class})
-@Repeatable(MapperScans.class)
-public @interface MapperScan {
-    String[] value() default {};
-
-    String[] basePackages() default {};
-
-    // ...
-}
-
-public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
-
-    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-        // 获取注解的属性，如 value="cn.aezo.**.mapper"、basePackages 等
-        AnnotationAttributes mapperScanAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(MapperScan.class.getName()));
-        if (mapperScanAttrs != null) {
-            this.registerBeanDefinitions(importingClassMetadata, mapperScanAttrs, registry, generateBaseBeanName(importingClassMetadata, 0));
-        }
-    }
-
-    void registerBeanDefinitions(AnnotationMetadata annoMeta, AnnotationAttributes annoAttrs, BeanDefinitionRegistry registry, String beanName) {
-        // 定义的bean类为 MapperScannerConfigurer
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MapperScannerConfigurer.class);
-        // ...设置各种bean属性
-        basePackages.addAll((Collection)Arrays.stream(annoAttrs.getStringArray("value")).filter(StringUtils::hasText).collect(Collectors.toList()));
-        basePackages.addAll((Collection)Arrays.stream(annoAttrs.getStringArray("basePackages")).filter(StringUtils::hasText).collect(Collectors.toList()));
-        basePackages.addAll((Collection)Arrays.stream(annoAttrs.getClassArray("basePackageClasses")).map(ClassUtils::getPackageName).collect(Collectors.toList()));
-        // ...
-        // 2.注册 MapperScannerConfigurer 此bean(并没有实例化)，此bean会监听spring的初始化过程，见下文
-        // beanName=cn.aezo.sqbiz.core.common.entity.mp.MybatisPlusConfig#MapperScannerRegistrar#0
-        registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
-    }
-}
-
-public class MapperScannerConfigurer
-    implements BeanDefinitionRegistryPostProcessor, InitializingBean, ApplicationContextAware, BeanNameAware {
-    // ...
-
-    // 最终覆写 BeanFactoryPostProcessor 的此方法
-    @Override
-    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
-        if (this.processPropertyPlaceHolders) {
-            processPropertyPlaceHolders();
-        }
-
-        ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
-        scanner.setAddToConfig(this.addToConfig);
-        scanner.setAnnotationClass(this.annotationClass);
-        scanner.setMarkerInterface(this.markerInterface);
-        scanner.setSqlSessionFactory(this.sqlSessionFactory);
-        scanner.setSqlSessionTemplate(this.sqlSessionTemplate);
-        scanner.setSqlSessionFactoryBeanName(this.sqlSessionFactoryBeanName);
-        scanner.setSqlSessionTemplateBeanName(this.sqlSessionTemplateBeanName);
-        scanner.setResourceLoader(this.applicationContext);
-        scanner.setBeanNameGenerator(this.nameGenerator);
-        scanner.setMapperFactoryBeanClass(this.mapperFactoryBeanClass);
-        if (StringUtils.hasText(lazyInitialization)) {
-            scanner.setLazyInitialization(Boolean.valueOf(lazyInitialization));
-        }
-        scanner.registerFilters();
-        // 扫描包配置下的符合条件的Mapper类，进行bean注册(并没有实例化)
-        // 扫描过程参考: [基于AnnotationConfigApplicationContext执行流程](/_posts/java/java-src/spring-ioc-src.md#基于AnnotationConfigApplicationContext执行流程)
-        scanner.scan(
-            // 如包配置 cn.aezo.**.mapper
-            StringUtils.tokenizeToStringArray(this.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));
-    }
-}
-```
-
-- SqlSessionTemplate
-
-```java
-public class SqlSessionTemplate implements SqlSession, DisposableBean {
-
-    // select 返回list 的情况
-    @Override
-    public <E> List<E> selectList(String statement, Object parameter) {
-        // sqlSessionProxy 为 SqlSessionInterceptor 对象，见下文
-        return this.sqlSessionProxy.selectList(statement, parameter);
-    }
-
-    private class SqlSessionInterceptor implements InvocationHandler {
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        SqlSession sqlSession = getSqlSession(SqlSessionTemplate.this.sqlSessionFactory,
-            SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
-        try {
-            // 最终进入 DefaultSqlSession 类中进行处理，参考下文[SQL语句执行流程](#SQL语句执行流程)
-            Object result = method.invoke(sqlSession, args);
-            if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
-                // force commit even on non-dirty sessions because some databases require
-                // a commit/rollback before calling close()
-                sqlSession.commit(true);
-            }
-            return result;
-        } catch (Throwable t) {
-            Throwable unwrapped = unwrapThrowable(t);
-            // ...
-            throw unwrapped;
-        } finally {
-            if (sqlSession != null) {
-                closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
-            }
-        }
-    }
-  }
-}
-```
+- 关于SqlSessionFactory的初始化(会读取配置文件)
+    - 手动实现
+        - 通过 mybatis 原生API创建 **SqlSessionFactory**: `new SqlSessionFactoryBuilder().build()` (配置文件中需要配置数据源)
+        - 基于 mybatis-spring 提供的 SqlSessionFactory 创建bean (数据源由spring提供)
+            - 通过@Bean定义返回`new org.mybatis.spring.SqlSessionFactoryBean();` 在执行getObject()返回对象时，会执行其buildSqlSessionFactory方法进行构建
+            - 此时需要自己设置 Interceptor、DatabaseIdProvider 等属性
+            - 还需定义一个 SqlSessionTemplate 的bean
+    - 通过 mybatis-spring-boot-starter 的自动装配
+        - 在 **MybatisAutoConfiguration**#sqlSessionFactory 中定义的 **SqlSessionFactoryBean**
+        - 且包含了@ConditionalOnMissingBean注解，即优先使用自定义的
+    - 基于mybatis-plus的自动装配(mybatis-plus-boot-starter)
+        - 在 **MybatisPlusAutoConfiguration**#sqlSessionFactory 中定义的 **MybatisSqlSessionFactoryBean**
+        - 且包含了@ConditionalOnMissingBean，即优先使用自定义的
+        - 如果使用mybatis-plus, 则无需引入mybatis-spring-boot-starter; 如果引入两个，得看new SqlSessionFactory是谁的，从而决定执行MapperProxy还是MybatisMapperProxy代理对象
 
 ## mybatis
 
 ### sql-xml文件解析
 
+- mybatis + mybatis-spring-boot-starter 类似 mybatis-plus 的初始化
 - mybatis-plus会在初始化自身时进行sql xml文件扫描并解析，参考[mybatis-plus初始化](#mybatis-plus初始化)
 
 ```java
@@ -195,13 +82,35 @@ public class XMLMapperBuilder extends BaseBuilder {
             // 获取 <mapper namespace="cn.aezo.test.TestMapper"></mapper> 节点
             configurationElement(parser.evalNode("/mapper"));
             configuration.addLoadedResource(resource);
-            // 会调用 MybatisConfiguration.addMappedStatement 方法
+            // 绑定 Namespace，即绑定mapper接口
             bindMapperForNamespace();
         }
 
         parsePendingResultMaps();
         parsePendingCacheRefs();
         parsePendingStatements();
+    }
+
+    private void bindMapperForNamespace() {
+        String namespace = builderAssistant.getCurrentNamespace();
+        if (namespace != null) {
+            Class<?> boundType = null;
+            try {
+                boundType = Resources.classForName(namespace);
+            } catch (ClassNotFoundException e) {
+                // ignore, bound type is not required
+            }
+            if (boundType != null && !configuration.hasMapper(boundType)) {
+                // Spring may not know the real resource name so we set a flag
+                // to prevent loading again this resource from the mapper interface
+                // look at MapperAnnotationBuilder#loadXmlResource
+                configuration.addLoadedResource("namespace:" + namespace);
+                // 将mapper接口通过 MapperProxy 包装并注册到 MapperRegistry 中
+                // 在执行 testMapper.selectById("1") 时，实际是调用 MapperProxy 代理对象
+                // ***如果使用 mybatis-plus，则此configuration为plus自定义的MybatisConfiguration，此时是包装一个 MybatisMapperProxy 代理对象，并注册到MybatisMapperRegistry中，从而最终调用的是 MybatisMapperProxy
+                configuration.addMapper(boundType);
+            }
+        }
     }
 }
 ```
@@ -367,11 +276,161 @@ public class InterceptorChain {
     - StatementType: STATEMENT/PREPARED/CALLABLE
     - ResultSetType: DEFAULT/FORWARD_ONLY/SCROLL_INSENSITIVE/SCROLL_SENSITIVE
 
+## mybatis-spring-boot-autoconfigure(mybatis-spring-boot-starter)
+
+```java
+// ...
+public class MybatisAutoConfiguration implements InitializingBean {
+    @Bean
+    @ConditionalOnMissingBean
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+        // ...
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
+
+    }
+}
+```
+
+## mybatis-spring
+
+- mybatis可以脱离spring运行，如果整合spring则需要增加`mybatis-spring`依赖。原本入口可如上文手动定义，接入spring之后，通过定义`@MapperScan`即可自动扫描mapper注册成bean
+- `@MapperScan`
+    - 使用：一般在springboot主类(或任何配置类)上注解`@MapperScan({"cn.aezo.**.mapper"})`表明需要扫码的包
+    - 原理参考下文源码截取
+        - 主要由于@MapperScan注解上有一行`@Import({MapperScannerRegistrar.class})`，从而以`MapperScannerRegistrar`为入口对mybatis进行初始化
+        - 而MapperScannerRegistrar实现了`ImportBeanDefinitionRegistrar`接口从而通过registerBeanDefinitions方法注册Bean。参考[spring.md#@Import给容器导入一个组件](/_posts/java/spring.md#@Import给容器导入一个组件)
+- `SqlSessionFactoryBean` 实现接口
+    - `InitializingBean` 作用是spring初始化的时候会执行(实现了InitializingBean接口的afterPropertiesSet方法)
+    - `ApplicationListener` 作用是在spring容器执行的各个阶段进行监听，为了容器刷新的时候，更新sqlSessionFactory，可参考onApplicationEvent方法实现
+    - `FactoryBean` 表示这个类是一个工厂bean，通常是为了给返回的类进行加工处理的，而且获取类返回的是通过getObj返回的
+
+### mybatis-spring源码
+
+```java
+// 1.MapperScan注解中通过 @Import({MapperScannerRegistrar.class}) 进行bean注册
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+@Documented
+@Import({MapperScannerRegistrar.class})
+@Repeatable(MapperScans.class)
+public @interface MapperScan {
+    String[] value() default {};
+
+    String[] basePackages() default {};
+
+    // ...
+}
+
+public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
+
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        // 获取注解的属性，如 value="cn.aezo.**.mapper"、basePackages 等
+        AnnotationAttributes mapperScanAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(MapperScan.class.getName()));
+        if (mapperScanAttrs != null) {
+            this.registerBeanDefinitions(importingClassMetadata, mapperScanAttrs, registry, generateBaseBeanName(importingClassMetadata, 0));
+        }
+    }
+
+    void registerBeanDefinitions(AnnotationMetadata annoMeta, AnnotationAttributes annoAttrs, BeanDefinitionRegistry registry, String beanName) {
+        // 定义的bean类为 MapperScannerConfigurer
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MapperScannerConfigurer.class);
+        // ...设置各种bean属性
+        basePackages.addAll((Collection)Arrays.stream(annoAttrs.getStringArray("value")).filter(StringUtils::hasText).collect(Collectors.toList()));
+        basePackages.addAll((Collection)Arrays.stream(annoAttrs.getStringArray("basePackages")).filter(StringUtils::hasText).collect(Collectors.toList()));
+        basePackages.addAll((Collection)Arrays.stream(annoAttrs.getClassArray("basePackageClasses")).map(ClassUtils::getPackageName).collect(Collectors.toList()));
+        // ...
+        // 2.注册 MapperScannerConfigurer 此bean(并没有实例化)，此bean会监听spring的初始化过程，见下文
+        // beanName=cn.aezo.sqbiz.core.common.entity.mp.MybatisPlusConfig#MapperScannerRegistrar#0
+        registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
+    }
+}
+
+public class MapperScannerConfigurer
+    implements BeanDefinitionRegistryPostProcessor, InitializingBean, ApplicationContextAware, BeanNameAware {
+    // ...
+
+    // 最终覆写 BeanFactoryPostProcessor 的此方法，从而进行mapper接口对应的bean的注册(上文MapperScannerRegistrar已经将没有主键的mapper接口扫描到并定义成了bean)
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+        if (this.processPropertyPlaceHolders) {
+            processPropertyPlaceHolders();
+        }
+
+        ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
+        scanner.setAddToConfig(this.addToConfig);
+        scanner.setAnnotationClass(this.annotationClass);
+        scanner.setMarkerInterface(this.markerInterface);
+        scanner.setSqlSessionFactory(this.sqlSessionFactory);
+        scanner.setSqlSessionTemplate(this.sqlSessionTemplate);
+        scanner.setSqlSessionFactoryBeanName(this.sqlSessionFactoryBeanName);
+        scanner.setSqlSessionTemplateBeanName(this.sqlSessionTemplateBeanName);
+        scanner.setResourceLoader(this.applicationContext);
+        scanner.setBeanNameGenerator(this.nameGenerator);
+        scanner.setMapperFactoryBeanClass(this.mapperFactoryBeanClass);
+        if (StringUtils.hasText(lazyInitialization)) {
+            scanner.setLazyInitialization(Boolean.valueOf(lazyInitialization));
+        }
+        scanner.registerFilters();
+        // 扫描包配置下的符合条件的Mapper类，进行bean注册(并没有实例化)
+        // 扫描过程参考: [基于AnnotationConfigApplicationContext执行流程](/_posts/java/java-src/spring-ioc-src.md#基于AnnotationConfigApplicationContext执行流程)
+        scanner.scan(
+            // 如包配置 cn.aezo.**.mapper
+            StringUtils.tokenizeToStringArray(this.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));
+    }
+}
+```
+
+- SqlSessionTemplate
+
+```java
+public class SqlSessionTemplate implements SqlSession, DisposableBean {
+
+    // select 返回list 的情况
+    @Override
+    public <E> List<E> selectList(String statement, Object parameter) {
+        // sqlSessionProxy 为 SqlSessionInterceptor 对象，见下文
+        return this.sqlSessionProxy.selectList(statement, parameter);
+    }
+
+    private class SqlSessionInterceptor implements InvocationHandler {
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        SqlSession sqlSession = getSqlSession(SqlSessionTemplate.this.sqlSessionFactory,
+            SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
+        try {
+            // 最终进入 DefaultSqlSession 类中进行处理，参考下文[SQL语句执行流程](#SQL语句执行流程)
+            Object result = method.invoke(sqlSession, args);
+            if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
+                // force commit even on non-dirty sessions because some databases require
+                // a commit/rollback before calling close()
+                sqlSession.commit(true);
+            }
+            return result;
+        } catch (Throwable t) {
+            Throwable unwrapped = unwrapThrowable(t);
+            // ...
+            throw unwrapped;
+        } finally {
+            if (sqlSession != null) {
+                closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
+            }
+        }
+    }
+  }
+}
+```
+
 ## mybatis-plus
 
 ### mybatis-plus初始化
 
-- `spring.factories`
+#### mybatis-plus-boot-starter
+
+- `mybatis-plus-boot-starter`模块下的`spring.factories`
 
 ```java
 # Auto Configure
@@ -382,7 +441,9 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration
 ```
 
-- MybatisPlusAutoConfiguration.java (springboot自动初始化此类)
+#### MybatisPlusAutoConfiguration.java
+
+- springboot自动初始化此类
 
 ```java
 @Configuration
@@ -392,14 +453,45 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 @AutoConfigureAfter({DataSourceAutoConfiguration.class, MybatisPlusLanguageDriverAutoConfiguration.class})
 public class MybatisPlusAutoConfiguration implements InitializingBean {
 
-    // 1.初始化SqlSessionFactory(会进行xml文件检索)
+    public MybatisPlusAutoConfiguration(MybatisPlusProperties properties,
+        ObjectProvider<Interceptor[]> interceptorsProvider, 
+        ObjectProvider<TypeHandler[]> typeHandlersProvider,
+        ObjectProvider<LanguageDriver[]> languageDriversProvider, 
+        ResourceLoader resourceLoader,
+        ObjectProvider<DatabaseIdProvider> databaseIdProvider, 
+        ObjectProvider<List<ConfigurationCustomizer>> configurationCustomizersProvider, 
+        ObjectProvider<List<MybatisPlusPropertiesCustomizer>> mybatisPlusPropertiesCustomizerProvider, 
+        ApplicationContext applicationContext) {
+        // ...自动注入参数
+    }
+
+    // 1.初始化 SqlSessionFactory (会进行xml文件检索)；类似 mybatis-spring-boot-starter#MybatisAutoConfiguration 初始化 SqlSessionFactory
     @Bean
     @ConditionalOnMissingBean
     public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
         // 为 FactoryBean, 通过 getObject 获取 bean
+        // com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean 类似 org.mybatis.spring.SqlSessionFactoryBean
         MybatisSqlSessionFactoryBean factory = new MybatisSqlSessionFactoryBean();
+        
         // 2.设置各种参数
         factory.setDataSource(dataSource);
+        // 设置 mybatis 相关配置
+        if (StringUtils.hasText(this.properties.getConfigLocation())) {
+            factory.setConfigLocation(this.resourceLoader.getResource(this.properties.getConfigLocation()));
+        }
+        // 见下文，给factory设置configuration(无则初始化)
+        this.applyConfiguration(factory);
+        if (this.properties.getConfigurationProperties() != null) {
+            factory.setConfigurationProperties(this.properties.getConfigurationProperties());
+        }
+        // 设置插件
+        if (!ObjectUtils.isEmpty(this.interceptors)) {
+            factory.setPlugins(this.interceptors);
+        }
+        // 设置 databaseIdProvider
+        if (this.databaseIdProvider != null) {
+            factory.setDatabaseIdProvider(this.databaseIdProvider);
+        }
         // ...
 
         // ****
@@ -410,11 +502,27 @@ public class MybatisPlusAutoConfiguration implements InitializingBean {
         }
 
         factory.setGlobalConfig(globalConfig);
-        // 3.见下文返回实际bean
+        // 3.见下文返回实际bean；会在初始化时构建factory，包含了解析初始化mapper xml等步骤
         return factory.getObject();
+    }
+
+    private void applyConfiguration(MybatisSqlSessionFactoryBean factory) {
+        // TODO 使用 MybatisConfiguration
+        MybatisConfiguration configuration = this.properties.getConfiguration();
+        if (configuration == null && !StringUtils.hasText(this.properties.getConfigLocation())) {
+            configuration = new MybatisConfiguration();
+        }
+        if (configuration != null && !CollectionUtils.isEmpty(this.configurationCustomizers)) {
+            for (ConfigurationCustomizer customizer : this.configurationCustomizers) {
+                customizer.customize(configuration);
+            }
+        }
+        factory.setConfiguration(configuration);
     }
 }
 ```
+
+#### MybatisSqlSessionFactoryBean
 
 - MybatisSqlSessionFactoryBean (构建SqlSessionFactory)
 
@@ -450,12 +558,28 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
         final Configuration targetConfiguration;
 
         // ...
+        // 当定义了 configLocation 属性，才会初始化 xmlConfigBuilder 进行 mybatis-config.xml 配置文件解析
         if (xmlConfigBuilder != null) {
             // 解析mybatis-config.xml的配置文件
             xmlConfigBuilder.parse();
         }
 
-        // 3.3 sql xml的配置文件位置
+        // 根据配置文件初始化所以配置, 如databaseIdProvider、mapperLocations(解析mapper)
+
+        if (xmlConfigBuilder != null) {
+            // 非主要分支: 使用mybatis-plus 一般很少设置 mybatis-config.xml
+            try {
+                // 会解析 mybatis-config.xml > configuration > mappers > 存在一个分支(如果mapperClass存在，则调用configuration.addMapper(mapperInterface)将mapper接口通过MybatisMapperProxy包装并注册到MybatisMapperRegistry中)
+                xmlConfigBuilder.parse();
+                LOGGER.debug(() -> "Parsed configuration file: '" + this.configLocation + "'");
+            } catch (Exception ex) {
+                throw new NestedIOException("Failed to parse config resource: " + this.configLocation, ex);
+            } finally {
+                ErrorContext.instance().reset();
+            }
+        }
+
+        // 3.3 sql xml的配置文件位置，解析mapper xml
         if (this.mapperLocations != null) {
             if (this.mapperLocations.length == 0) {
                 LOGGER.warn(() -> "Property 'mapperLocations' was specified but matching resources are not found.");
@@ -465,10 +589,10 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
                         continue;
                     }
                     try {
+                        // org.apache.ibatis.builder.xml.XMLMapperBuilder
                         XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(mapperLocation.getInputStream(),
                             targetConfiguration, mapperLocation.toString(), targetConfiguration.getSqlFragments());
-                        // 3.4 解析sql xml文件，见[sql-xml文件解析](#sql-xml文件解析)
-                        // 解析完sql xml，将其添加到 MybatisConfiguration#mappedStatements，见下文
+                        // 3.4 解析sql xml文件。见上文[sql-xml文件解析](#sql-xml文件解析)
                         xmlMapperBuilder.parse();
                     } catch (Exception e) {
                         throw new NestedIOException("Failed to parse mapping resource: '" + mapperLocation + "'", e);
@@ -487,6 +611,7 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
         // SqlRunner
         SqlHelper.FACTORY = sqlSessionFactory;
 
+        // 所有配置文件初始化完成，包含了xml解析完成
         // 打印骚东西 Banner
         if (globalConfig.isBanner()) {
             System.out.println(" _ _   |_  _ _|_. ___ _ |    _ ");
@@ -500,10 +625,71 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
 }
 ```
 
-- MybatisConfiguration
+#### XMLMapperBuilder
+
+- org.apache.ibatis.builder.xml.XMLMapperBuilder
+- 解析mapper xml，并将mapper接口通过MybatisMapperProxy包装并注册到MybatisMapperRegistry中
+- 见上文[sql-xml文件解析](#sql-xml文件解析)
+
+#### MybatisMapperRegistry
+
+```java
+// com.baomidou.mybatisplus.core
+public class MybatisMapperRegistry extends MapperRegistry {
+    private final Map<Class<?>, MybatisMapperProxyFactory<?>> knownMappers = new HashMap<>();
+
+    @Override
+    public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+        // TODO 这里换成 MybatisMapperProxyFactory 而不是 MapperProxyFactory
+        final MybatisMapperProxyFactory<T> mapperProxyFactory = (MybatisMapperProxyFactory<T>) knownMappers.get(type);
+        if (mapperProxyFactory == null) {
+            throw new BindingException("Type " + type + " is not known to the MybatisPlusMapperRegistry.");
+        }
+        try {
+            // 实例化代理对象(当然每次调用的时候会先判断是否有缓存此对象)
+            return mapperProxyFactory.newInstance(sqlSession);
+        } catch (Exception e) {
+            throw new BindingException("Error getting mapper instance. Cause: " + e, e);
+        }
+    }
+
+    @Override
+    public <T> void addMapper(Class<T> type) {
+        if (type.isInterface()) {
+            if (hasMapper(type)) {
+                // TODO 如果之前注入 直接返回
+                return;
+                // TODO 这里就不抛异常了
+//                throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
+            }
+            boolean loadCompleted = false;
+            try {
+                // TODO 这里也换成 MybatisMapperProxyFactory 而不是 MapperProxyFactory
+                knownMappers.put(type, new MybatisMapperProxyFactory<>(type));
+                // It's important that the type is added before the parser is run
+                // otherwise the binding may automatically be attempted by the
+                // mapper parser. If the type is already known, it won't try.
+                // TODO 这里也换成 MybatisMapperAnnotationBuilder 而不是 MapperAnnotationBuilder
+                MybatisMapperAnnotationBuilder parser = new MybatisMapperAnnotationBuilder(config, type);
+                parser.parse();
+                loadCompleted = true;
+            } finally {
+                if (!loadCompleted) {
+                    knownMappers.remove(type);
+                }
+            }
+        }
+    }
+}
+```
+
+#### MybatisConfiguration
 
 ```java
 public class MybatisConfiguration extends Configuration {
+
+    // Mapper注册器，通过addMapper进行添加(会自动将添加的mapper增加一层代理MybatisMapperProxyFactory)
+    protected final MybatisMapperRegistry mybatisMapperRegistry = new MybatisMapperRegistry(this);
 
     protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
         .conflictMessageProducer((savedValue, targetValue) ->
@@ -531,6 +717,11 @@ public class MybatisConfiguration extends Configuration {
         }
         mappedStatements.put(ms.getId(), ms);
     }
+
+    @Override
+    public <T> void addMapper(Class<T> type) {
+        mybatisMapperRegistry.addMapper(type);
+    }
 }
 ```
 
@@ -538,10 +729,13 @@ public class MybatisConfiguration extends Configuration {
 
 ```java
 // testMapper基于mybatis-plus定义，**在spring-ioc实例化时注入的是 MybatisMapperProxy 代理对象**
+// 仅mybatis环境，则最终调用 MapperProxy 代理对象
 // 1.入口
 testMapper.selectById("1");
 
 // 2.从 org.apache.ibatis.binding.MapperProxy 复制到mybatis-plus中的类
+// mybatis-plus 3.0.6 是基于 PageMapperMethod 实现
+// mybatis-plus 3.4.2 是基于 MybatisMapperMethod 实现
 public class MybatisMapperProxy<T> implements InvocationHandler, Serializable {
     // ...
 
@@ -614,6 +808,8 @@ public class MybatisMapperProxy<T> implements InvocationHandler, Serializable {
     // ...
 }
 
+// mybatis-plus 3.0.6 是基于 PageMapperMethod 实现
+// mybatis-plus 3.4.2 是基于 MybatisMapperMethod 实现
 public class MybatisMapperMethod {
     public Object execute(SqlSession sqlSession, Object[] args) {
         Object result;

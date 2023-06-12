@@ -645,11 +645,25 @@ handleChange (value) {
 - **表格显示/隐藏后样式丢失问题，弹框表格列宽问题**
     - `auto-resize`或`sync-resize` 绑定指定的变量来触发重新计算表格。参考：https://xuliangzhan_admin.gitee.io/vxe-table/#/table/advanced/tabs
 - 和iview等组件结合使用时，modal等z-index存在冲突(如表格列过长提示)，建议弹框和弹框中涉及z-index的元素使用同一组件，如全部使用vxe-table
+- table对应属性
+
+```js
+"row"(当前选中或取消选中行), "checked"(操作完当前行后的选中状态), "items"(可视化区域所有行数据，表格的所有数据只能通过getData获取), "data"(可视化区域所有行数据), "records"(目前选中的所有行数据), "selection"(目前选中的所有行数据)
+["$table", "$grid", "$event", "reserves", "indeterminates", "$seq", "seq", "rowid", "rowIndex", "$rowIndex", "column", "columnIndex", "$columnIndex", "_columnIndex", "fixed", "type", "isHidden", "level", "visibleData", "cell"]
+```
+- column对应属性
+
+```js
+['type', 'property'(字段代码), 'field'(字段代码), 'title'(列显示), 'width', 'minWidth', 'maxWidth', 'resizable', 'fixed', 'align', 'headerAlign', 'footerAlign', 'showOverflow', 'showHeaderOverflow', 'showFooterOverflow', 'className', 'headerClassName', 'footerClassName', 'formatter', 'sortable', 'sortBy', 'sortType', 'sortMethod', 'remoteSort', 'filters', 'filterMultiple', 'filterMethod', 'filterResetMethod', 'filterRecoverMethod', 'filterRender', 'treeNode', 'cellType', 'cellRender', 'editRender', 'contentRender', 'exportMethod', 'footerExportMethod', 'titleHelp', 'titlePrefix', 'params', 'id', 'parentId', 'visible', 'halfVisible', 'defaultVisible', 'checked', 'halfChecked', 'disabled', 'level', 'rowSpan', 'colSpan', 'order', 'sortTime', 'renderWidth', 'renderHeight', 'resizeWidth', 'renderLeft', 'renderArgs', 'model', 'renderHeader', 'renderCell', 'renderFooter', 'renderData', 'slots']
+```
 - 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
 
 ```js
-// 获取行记录
-let checkboxRow = this.tableRef.getCheckboxRecords();
+// 获取当前表格的数据（完整的全量表体数据、处理条件之后的全量表体数据、当前渲染中的表体数据、当前渲染中的表尾数据）
+let { fullData, visibleData, tableData, footerData } = this.$refs.tableRef.getTableData()
+
+// 获取勾选行记录
+let checkboxRow = this.$refs.tableRef.getCheckboxRecords();
 const selectRecords = checkboxRow.map((item) => item.id); // 如果返回数据中没有id字段，则在渲染时会自动生成一个row_xxx的唯一id
 if (!selectRecords || selectRecords.length === 0) {
     alert("请先选择记录");
@@ -679,9 +693,7 @@ this.$refs.tableRef.loadData(this.allData);
 ```js
 // <vxe-table @checkbox-change="checkboxChange">
 checkboxChange(table, event) {
-    // table对应key如下
-    // "row"(当前选中或取消选中行), "checked"(操作完当前行后的选中状态), "items"(可视化区域所有行数据，表格的所有数据只能通过getData获取), "data"(可视化区域所有行数据), "records"(目前选中的所有行数据), "selection"(目前选中的所有行数据)
-    // "$table", "$grid", "$event", "reserves", "indeterminates", "$seq", "seq", "rowid", "rowIndex", "$rowIndex", "column", "columnIndex", "$columnIndex", "_columnIndex", "fixed", "type", "isHidden", "level", "visibleData", "cell"
+    // table对应key参考上文
 }
 ```
 - 表格筛选
@@ -1897,38 +1909,225 @@ const getUrlParam = (paramName, params) => {
 ### codemirror代码编辑
 
 - [codemirror](https://codemirror.net/)
-- vue使用，安装`npm install vue-codemirror --save`
+- 参考
+    - https://blog.gavinzh.com/2020/12/13/codemirror-getting-started/
+- vue使用，安装`npm install vue-codemirror --save`(会自动安装codemirror)
 
 ```html
-<codemirror
-ref="cm"
-v-model="dataForm.code"
-:options="cmOptions"
-></codemirror>
+<div>
+    <div class="code-toolbar">
+        <i class="vxe-icon-zoom-out" @click="enterDivFullScreen('cm')" title="全屏"></i>
+        <i class="vxe-icon-zoom-in" @click="exitDivFullScreen('cm')" title="退出全屏"></i>
+        <i class="vxe-icon-square-minus" @click="foldFirstLevelCode(extMapCodemirror, 'fold')" title="收缩代码"></i>
+        <i class="vxe-icon-square-plus" @click="foldFirstLevelCode(extMapCodemirror, 'unfold')" title="伸展代码"></i>
+        <i class="vxe-icon-radio-unchecked" @click="checkJsonValue" title="校验JSON格式"></i>
+    </div>
+    <codemirror
+        id="cm"
+        ref="cm"
+        v-model="code"
+        :options="cmOptions"
+    ></codemirror>
+</div>
 
 <script>
-// 单组件引用
+// (必须)单组件引用
 import { codemirror } from 'vue-codemirror'
+// (必须)引入css文件
 import 'codemirror/lib/codemirror.css'
-// require('codemirror/mode/javascript/javascript') // mode: 'text/javascript'
-// require('codemirror/mode/sql/sql') // mode: 'sql'
+
+// (可选)引入主题 可以从 codemirror/theme/ 下引入多个
+import 'codemirror/theme/idea.css'
+
+// mode: 代码类型(高亮)，按需要高亮的代码类型进行引入
+import 'codemirror/mode/javascript/javascript' // mode: 'text/javascript'
+import 'codemirror/mode/sql/sql' // mode: 'sql'
+
+// 插件
+// ==>括号高亮匹配插件
+import 'codemirror/addon/edit/matchbrackets'
+// ==>鼠标所在行高亮插件
+import 'codemirror/addon/selection/active-line'
+// ==>折叠代码插件
+import 'codemirror/addon/fold/foldgutter.css'
+import 'codemirror/addon/fold/foldgutter'
+import 'codemirror/addon/fold/brace-fold'
+// ==>搜索替换插件
+// find：Ctrl-F (PC), Cmd-F (Mac)
+// findNext：Ctrl-G (PC), Cmd-G (Mac)
+// findPrev：Shift-Ctrl-G (PC), Shift-Cmd-G (Mac)
+// replace：Shift-Ctrl-F (PC), Cmd-Alt-F (Mac)
+// replaceAll：Shift-Ctrl-R (PC), Shift-Cmd-Alt-F (Mac)
+import 'codemirror/addon/dialog/dialog.css'
+import 'codemirror/addon/dialog/dialog'
+import 'codemirror/addon/search/searchcursor'
+import 'codemirror/addon/search/search'
+import 'codemirror/addon/search/jump-to-line'
+import 'codemirror/addon/search/matchesonscrollbar'
+import 'codemirror/addon/search/match-highlighter'
+// ==>代码校验插件(json): 配置里的lint=true, gutters: ['CodeMirror-lint-markers'], 输入后会自动触发校验，如果错误行号会显示错误图标
+// 需要安装 npm install --save jsonlint 和 npm install --save-dev script-loader
+import 'codemirror/addon/lint/lint.css'
+import 'codemirror/addon/lint/lint'
+import 'codemirror/addon/lint/json-lint'
+// eslint-disable-next-line import/no-webpack-loader-syntax
+require('script-loader!jsonlint')
 
 export default {
     data () {
         return {
+            code: '{}',
             cmOptions: {
                 // text方式进行代码高亮，如果是其他语言可能需要引入对应的样式
                 mode: 'text',
+                // 使用主题
+                theme: 'idea',
                 // 显示行号
                 lineNumbers: true,
-                // 一行超长时自动换行
+                // 自动换行
                 lineWrapping: true,
-                tabSize: 2
+                // 按tab时缩进4个空格
+                tabSize: 4,
+                // 启用括号高亮匹配插件
+                matchBrackets: true,
+                // 启用鼠标所在行高亮插件
+                styleActiveLine: true,
+                // 启用代码折叠插件
+                foldGutter: true,
+                // 启用校验插件
+                lint: true,
+                gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
+                // 快捷键
+                extraKeys: {
+                    'Ctrl-Q': function(cm) {
+                        // 折叠当前行代码
+                        cm.foldCode(cm.getCursor())
+                    }
+                }
             }
         }
+    },
+    created() {
+        this.code = JSON.stringify(JSON.parse('{"name": "one"}'), null, 4) // 按照4个空格缩进进行格式化
+    },
+    methods: {
+        // json代码时，进行折叠和展开第一级(最里面的一级)
+        // cm: 如this.$refs.cm.codemirror; type: fold折叠/unfold展开
+        foldFirstLevelCode (cm, type) {
+            const firstLine = cm.firstLine()
+            const lastLine = cm.lastLine()
+            for (let i = firstLine; i <= lastLine; i++) {
+                const line = cm.getLine(i)
+                    if (/^\s*(".*?"|\S+)?\s*:\s*([[{])/.test(line)) {
+                    cm.foldCode({ line: i, ch: line.length - 1 }, null, type)
+                }
+            }
+        },
+        // 进入/退出网页全屏. codemirror也提供全屏插件，但是效果不理想
+        enterDivFullScreen(idOrEl) {
+            const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl
+            if (el) {
+                this.fullScreenOriginStyle = {
+                    width: el.style.width,
+                    height: el.style.height,
+                    top: el.style.top,
+                    left: el.style.left,
+                    position: el.style.position,
+                    zIndex: el.style.zIndex
+                }
+                el.style.position = 'fixed'
+                el.style.top = '0'
+                el.style.left = '0'
+                el.style.width = '100%'
+                el.style.height = '100%'
+                el.style.zIndex = '9999'
+                el.classList.add('fullscreen-div')
+            }
+        },
+        exitDivFullScreen(idOrEl) {
+            const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl
+            if (el) {
+                for (const key in this.fullScreenOriginStyle) {
+                    if (this.fullScreenOriginStyle.hasOwnProperty(key)) {
+                        el.style[key] = this.fullScreenOriginStyle[key]
+                    }
+                }
+                el.classList.remove('fullscreen-div')
+            }
+        },
+        // 进入/退出屏幕全屏(Esc可退出)
+        enterFullScreen(idOrEl) {
+            const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl
+            const rfs
+                = el.requestFullScreen
+                || el.webkitRequestFullScreen
+                || el.mozRequestFullScreen
+                || el.msRequestFullScreen
+            if (typeof rfs != 'undefined' && rfs) {
+                rfs.call(el)
+            }
+        },
+        exitFullScreen(idOrEl) {
+            const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl
+            const efs
+                = el.exitFullscreen
+                || el.webkitCancelFullScreen
+                || el.mozCancelFullScreen
+                || el.msExitFullscreen
+            if (typeof efs != 'undefined' && efs) {
+                efs.call(el)
+            }
+        },
+        checkJsonValue () {
+            const cm = this.$refs.cm.codemirror
+            try {
+                jsonlint.parse(cm.getValue())
+                alter('校验通过')
+            } catch (e) {
+                console.error(e)
+                alter(e.message)
+            }
+        },
     }
 }
 </script>
+<style lang="less" scoped>
+/*
+/deep/ .CodeMirror-line {
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial,
+    sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol !important;
+}
+*/
+/deep/ .vue-codemirror .CodeMirror {
+  height: 460px;
+}
+.code-toolbar {
+  font-size: 18px;
+  margin-left: 36px;
+  i {
+    display: inline-block;
+    cursor: pointer;
+    margin-right: 10px;
+    &:hover {
+      color: #409eff;
+      font-weight: bold;
+    }
+  }
+}
+.fullscreen-div {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  overflow: auto;
+  z-index: 9999;
+  .vue-codemirror /deep/ .CodeMirror {
+    height: 100%;
+  }
+}
+</style>
 ```
 
 ## 工具函数
