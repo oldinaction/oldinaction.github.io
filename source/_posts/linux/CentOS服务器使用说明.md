@@ -19,13 +19,13 @@ tags: [CentOS, linux]
 - 关闭防火墙
     - `systemctl stop firewalld && systemctl disable firewalld`
     - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
-    - Centos 7使用`firewalld`代替了原来的`iptables`
+        - 云服务器一般有进站出站规则，端口开放除了系统的防火墙也要考虑进出站规则
+    - Centos 7使用`firewalld`代替了原来的`iptables`。更多参考[network.md](/_posts/linux/network.md#firewalld)
         - 查看状态：`systemctl status firewalld` (iptables查看策略`iptables -L -n`)
         - 开放端口：`firewall-cmd --zone=public --add-port=80/tcp --permanent`（--permanent永久生效，没有此参数重启后失效）
         - 重新载入：`firewall-cmd --reload`
-        - 查看端口：`firewall-cmd --zone= public --query-port=80/tcp`
-        - 删除端口：`firewall-cmd --zone= public --remove-port=80/tcp --permanent`
-    - 云服务器一般有进站出站规则，端口开发除了系统的防火墙也要考虑进出站规则
+        - 查看端口：`firewall-cmd --zone=public --query-port=80/tcp`
+        - 删除端口：`firewall-cmd --zone=public --remove-port=80/tcp --permanent`
 - 永久关闭`SELinux`
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
     - 快速修改命令 **`sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`**，并重启
@@ -346,14 +346,14 @@ systemctl reload crond
 
 ### 宝塔面板
 
-- [宝塔](https://www.bt.cn/)Linux面板是提升运维效率的服务器管理软件，支持一键LAMP/LNMP/集群/监控/网站/FTP/数据库/JAVA等100多项服务器管理功能
+- [宝塔](https://www.bt.cn/)Linux面板是提升运维效率的服务器管理软件，支持一键LAMP/LNMP/集群/监控/网站/FTP/数据库/JAVA等100多项服务器管理功能。启动约占60M内存
 
 ```bash
 ## 安装. 确保是干净的操作系统，没有安装过其它环境带的Apache/Nginx/php/MySQL/pgsql/gitlab/java（已有环境不可安装）
 # 默认只能安装在 /www 目录，因此可提前创建好软连接
 mkdir /home/bt
 ln -s /home/bt /www
-# 安装
+# 安装(国外服务器会自动找速度快的节点下载安装)
 yum install -y wget && wget -O install.sh http://download.bt.cn/install/install_6.0.sh && sh install.sh
 # 安装成功后会显示安全的登录入口和账号密码
 # ***可通过执行命令查看登录入口和账号密码***
@@ -367,6 +367,19 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
         - data 数据目录(mysql)
     - 备份目录 /www/backup
     - 网站根目录 /www/wwwroot
+- 使用说明
+    - 面板设置
+        - 设置面板别名如`SH-01`，设置登录用户名如`sh01`
+        - 面板安全告警，微信公众号
+    - 软件商店
+        - 进程守护管理器：可启动守护进程
+        - 七牛云存储：可配置数据库和网站到七牛云；在七牛云个人信息找到授权Key，存储空间aezo，加速域名cdn70.aezo.cn，设置为私有空间
+        - Mysql8安装需要至少3700M内存(正常4G的内存机器可能无法安装)
+    - 计划任务
+        - 备份网站和数据到七牛云并本地保存；续签Let's Encrypt证书为自动加的
+    - 网站
+        - 域名管理: 会自动开放对应端口
+        - SSL: Let's Encrypt证书 - 服务器文件验证(无需手动操作) - 会自动续签，会自动设置到nginx中并开放对应端口
 
 ### 安装jdk
 
@@ -375,11 +388,23 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
 > 默认登录时候在 root 目录，直接下载和解压，软件包和解压目录都默认在 root 目录，可以切换到 hoom 目录进行下载
 
 - 通过ftp上传jdk对应tar压缩包到对应目录并进行解压. **JDK镜像地址**：https://repo.huaweicloud.com/java/jdk/
-- 下载tar格式（推荐）
-    - 下载tar文件并上传到服务器，`wget https://repo.huaweicloud.com/java/jdk/8u202-b08/jdk-8u202-linux-x64.tar.gz`
-        - JDK1.7 `https://repo.huaweicloud.com/java/jdk/7u80-b15/jdk-7u80-linux-x64.tar.gz`
-    - 解压tar **`tar -zxvf jdk-8u202-linux-x64.tar.gz -C /opt`** （需要先创建好/opt目录）
-- 下载rpm格式
+- 基于tar格式安装（推荐）
+
+```bash
+# JDK7: https://repo.huaweicloud.com/java/jdk/7u80-b15/jdk-7u80-linux-x64.tar.gz
+wget https://repo.huaweicloud.com/java/jdk/8u202-b08/jdk-8u202-linux-x64.tar.gz
+# 需要先创建好/opt目录
+tar -zxvf jdk-8u202-linux-x64.tar.gz -C /opt
+# 创建环境变量
+cat >> /etc/profile << EOF
+export JAVA_HOME=/opt/jdk1.8.0_202
+export CLASSPATH=.:\$JAVA_HOME/lib:\$JAVA_HOME/jre/lib
+export PATH=\$JAVA_HOME/bin:\$JAVA_HOME/jre/bin:\$PATH
+EOF
+source /etc/profile
+java -version
+```
+- 基于rpm格式安装
     - 获取rpm链接（下载到本地后上传到服务器）： oracle -> Downloads -> Java SE -> Java Archive -> Java SE 8 -> Java SE Development Kit 8u202 -> Accept License Agreement -> jdk-8u202-linux-x64.rpm
     - `rmp -ivh jdk-8u202-linux-x64.rpm` 安装rpm文件，可执行文件保存在`/usr/java/jdk1.8.0_202-amd64/jre/bin/java`
     - 设置环境变量。可设置`JAVA_HOME=/usr/java/default`
@@ -396,6 +421,8 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ```
 - 运行命令 `. /etc/profile` 使profile立即生效(注意 . 和 / 之间有空格)
 - `java -version` 打印版本号
+
+### 安装maven
 
 ### ftp服务器安装
 

@@ -869,11 +869,11 @@ EOF
     - $argv 参数数组: Expect脚本可以接受从bash传递的参数，可以使用 [lindex $argv n] 获得，n从0开始，分别表示第一个$1，第二个$2，第三个$3……参数 ($argvn没有空格则表示脚本名称；$argv n有空格则代表下标)
 - 一般流程: spawn 启动追踪 —> expect 匹配捕捉关键字 ——> 捕捉到将触发send代替人为输入指令(一般是一个spawn登录命令行，之后全部为send模拟执行命令) —> interact / expect eof
     - Expect脚本必须以interact或expect eof 结束，执行自动化任务通常expect eof就够了
-        - expect eof 是在等待结束标志。由spawn启动的命令在结束时会产生一个eof标记，expect eof 即在等待这个标记
+        - **`expect eof` 是在等待结束标志。**由spawn启动的命令在结束时会产生一个eof标记，expect eof 即在等待这个标记
 - Expect语法
 
 ```bash
-# 单一分支语法
+# 单一分支语法("password: "后面包含空格也可以匹配到)
 expect "password:" {send "mypassword\r";}
 
 # 多分支模式语法

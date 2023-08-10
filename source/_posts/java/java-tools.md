@@ -402,6 +402,7 @@ headStyle.setRightBorderColor(IndexedColors.BLACK.index);
 - 配置
 
 ```xml
+<!-- 操作Excel -->
 <dependency>
     <groupId>com.aspose</groupId>
     <artifactId>aspose-cells</artifactId>
@@ -472,7 +473,7 @@ public class AsposeU {
 #### 破解(仅供学习)
 
 - 网上较多结合org.apache.pdfbox去除水印，但是测试下来效果不好
-- 直接破解源码参考
+- 直接破解源码参考(Word/Excel/Pdf)
     - https://juejin.cn/post/7034405665376321567 (测试通过)
     - https://gitee.com/evilrule/crack-aspose
 - 原理

@@ -12,7 +12,7 @@ tags: [H5, App, 小程序, mobile]
 
 ## 小程序开发
 
-- [申请小程序测试号](https://mp.weixin.qq.com/wxamp/sandbox)
+- [申请小程序测试号](https://mp.weixin.qq.com/wxamp/sandbox) 测试账号只能本地开发，不能发布到演示版
 
 ### 小程序限制
 
@@ -56,11 +56,15 @@ tags: [H5, App, 小程序, mobile]
 
 ### web-view开发
 
-- 个人类型的小程序暂不支持使用
+- 限制
+    - **个人类型的小程序暂不支持设置业务域名**
+    - **打开的域名需要在小程序管理后台设置业务域名**
+    - 打开的页面 302(临时重定向) 过去的地址也必须设置过业务域名，web-view嵌入的页面可以包含 iframe，但是 iframe 的地址必须为业务域名，且都需要是https
+    - 如果是跳转的公众号文章地址，则此公众号和小程序必须绑定过的(不需要同一主体)
+    - 如果是未绑定的公众号文章，这种情况需要跳转可考虑通过绑定的域名进行nginx转发
 - **web-view**组件(类似iframe，小程序本身是不能使用iframe标签的)，如出现"此网页由xxx提供"均为web-view
     - web-view 不支持推送服务通知(即模板消息)
         - 类似下单等页面需要发送通知则需改写成小程序页面
-    - **打开的域名需要在小程序管理后台设置业务域名**，打开的页面 302 过去的地址也必须设置过业务域名，web-view嵌入的页面可以包含 iframe，但是 iframe 的地址必须为业务域名，且都需要是https。个人小程序不支持业务域名设置
     - 小程序内嵌 web-view 跟微信内置浏览器是一套环境，即h5中引入JS-SDK即可使用wx对象，且测试发现Storage等仍然不共享
 - 小程序和web-view通信
     - 可通过小程序web-view标签的url将小程序参数传递给H5页面，从而进行用户验证等操作
@@ -130,6 +134,18 @@ tags: [H5, App, 小程序, mobile]
     - 小程序起始页，直接嵌入整个H5页面，此时点击H5页面的跳转至第三方小程序，不会自动提示确认(无法跳转？)
         - 此时可让H5点击跳转一个中间页，在中间页上显示按钮，让用户手动点击跳转，点击后才会跳出提示确认框
     - 对于在界面识别二维码跳转到第三方，因为识别二维码图片后，会从底部弹出一个确认框(对图片操作，还是跳转而二维码对于的小程序)，此时用户点击确认框后不会再出现"即将跳转至xxx小程序"的确认框
+
+### 开放能力
+
+- 获取手机号(企业号才能)
+    - 参考：https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getPhoneNumber.html
+    - `<button @tap="loginByPhone" :open-type="agree ? 'getPhoneNumber' : ''" @getphonenumber="getPhoneNumber" class="cu-btn bg-main lg">微信快捷登录</button>`
+    - 在getPhoneNumber方法中可获取到 detail{code,encryptedData,errMsg,iv}字段，传到后台再调用微信接口获取用户手机号; 成功时 errMsg='getPhoneNumber:ok' (如errMsg='getPhoneNumber:fail user deny'表示用户拒绝了手机号获取)
+
+### 个人小程序限制
+
+- 不支持web-view(企业)
+- 无法获取用户手机号(企业认证)
 
 ## 微信H5开发
 
@@ -242,8 +258,28 @@ tags: [H5, App, 小程序, mobile]
 	    - 开发配置: 配置白名单域名
 	    - AppID账户管理
             - 需要绑定微信服务号、小程序来获取AppID
-- 开发
-    - 提示`v3请求构造异常！`，参考 https://gitee.com/egzosn/pay-java-parent/issues/I4EXXY，JDK老版本需要修改两个jar包，参考 https://blog.csdn.net/dafeige8/article/details/76019911
+
+### 开发
+
+#### 普通商户所需材料
+
+- 进入微信支付商户平台管理后台，根据菜单找到相关参数
+- 账户中心 - 商户信息
+    - 微信支付商户号：如1642097457
+    - 商户类型：如特约商户
+- 账户中心 - API安全
+    - API证书: 生成时需要管理员手机验证，生成的压缩包(如: 1642097457_20230701_cert.zip)
+    - 证书序列号：点击申请API证书 - 管理证书 - 找到证书序列号(如: 5D5A5DF0CAEA798FDACB0728FB9EB12912AB5B43)
+    - APIv2密钥
+    - APIv3密钥
+
+#### 相关问题
+
+- 提示`v3请求构造异常！`，参考 https://gitee.com/egzosn/pay-java-parent/issues/I4EXXY，JDK老版本需要修改两个jar包，参考 https://blog.csdn.net/dafeige8/article/details/76019911
+
+## 微信云托管
+
+- https://cloud.weixin.qq.com/cloudrun
 
 
 

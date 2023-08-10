@@ -18,13 +18,27 @@ tags: [ai]
 
 ## 软件
 
-- ChatGPT: 问答模式
-- [Midjourney](https://www.midjourney.com/): ai绘图（新用户有25次的免费使用额度）
+- 
+    - ChatGPT: 问答模式
+    - [claude](https://claude.ai)
+        - 支持附件
+- AI绘图
+    - [Midjourney](https://www.midjourney.com/): ai绘图（新用户有25次的免费使用额度）
+        - Discord使用地址: https://discord.com/invite/midjourney
     - dalle2、stable diffusion 也是ai绘图工具
     - [prompthero.com](https://prompthero.com) 搜集的都是ai生成的图片，可查看图片关键词
     - https://replicate.com/pharmapsychotic/clip-interrogator 可分析图片的关键字
+- AI虚拟人
+    - https://www.cutout.pro/zh-CN/photo-animer-gif-emoji/upload 图片生成动图(素人无法生成)
+    - https://www.d-id.com/pricing/ 可以生成五官动
+    - https://convert.leiapix.com/ 只能身体很奇怪的晃动
+- AI配音
+    - https://ttsmaker.com/zh-cn 文字转语音，多种语言和角色，api接口商业免费
 - Clipchamp: 视频剪辑工具，可自动根据文字生成旁边语音和字幕
 - aiva.ai 自动生成背景音乐
+
+## 基础设施
+
 - [Hugging Face](http://www.huggingface.co): 目前已经共享了超100,000个预训练模型，10,000个数据集，变成了机器学习界的github
     - https://zhuanlan.zhihu.com/p/535100411
 

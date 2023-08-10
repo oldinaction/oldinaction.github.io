@@ -110,7 +110,7 @@ select * from users where last_name is null;
 select * from users where last_name is not null;
 nvl(counts, 0)
 -- mysql null不包含空字符串('' != null)
-select * from users where last_name is null or last_name = '';
+select * from users where (last_name is null or last_name = '');
 select * from users where last_name is not null and last_name != '';
 ifnull(counts, 0)
 -- sqlserver
@@ -122,6 +122,12 @@ isnull(counts, 0)
 order by my_field [asc|desc] nulls [first|last] -- oracle
 order by if(isnull(my_field),1,0), my_field [asc|desc] -- mysql默认将null值放在下面
 order by if(isnull(my_field),0,1), my_field [asc|desc] -- mysql默认将null值放在上面
+```
+- 中文排序
+
+```sql
+-- mysql
+select * from tags order by convert(name USING gbk) COLLATE gbk_chinese_ci asc;
 ```
 - 字符串类型值
 
@@ -164,6 +170,7 @@ select case when ... end from t_user;
 
 - [复制表结构参考](/_posts/db/mysql/mysql-backup-recover.md#Mysql相关语法)
     - create table ... as select
+- 复制表数据
     - insert into ... select
 
 ### 关联表进行数据更新
@@ -583,6 +590,37 @@ update t_test t set t.update_tm = sysdate() where id = 1; -- 其中`sysdate()`�
 
 - 参考下文[with as 用法](#with%20as%20用法)
 
+#### RECURSIVE CTE递归
+
+- Mysql 8.0才支持此语法
+
+```sql
+SELECT t.* FROM (
+    WITH RECURSIVE cte (`id`, `parent_id`, `depth`, `path`) AS (
+        SELECT `id`, `parent_id`, 1 AS `depth`, CONCAT(' ' , `name`) AS `path`
+        FROM `pt_permission`
+        WHERE `parent_id` = 0
+        UNION ALL
+				SELECT t.`id`, t.`parent_id`, `depth` + 1, CONCAT(cte.`path`, ' > ', ' ' , t.`name`)
+        FROM `pt_permission` t
+        INNER JOIN cte ON cte.`id` = t.`parent_id`
+    )
+    SELECT * FROM cte
+) t
+ORDER BY t.`path` ASC;
+
+-- 显示效果
+id                  parent_id           depth   path
+1676821713360293890	0	                1	    一级权限1
+1676823255891087361	0	                1	    一级权限2
+1676823326061793281	1676823255891087361	2	    一级权限2 >  二级权限21
+1676836467395039233	1676823326061793281	3	    一级权限2 >  二级权限21 >  三级权限211
+1676823380998787073	1676823255891087361	2	    一级权限2 >  二级权限22
+1676832879327350785	1676823255891087361	2	    一级权限2 >  二级权限23
+1676823277630164993	0	                1	    一级权限3
+1676833272383967233	1676823277630164993	2	    一级权限3 >  二级权限31
+```
+
 ### 自定义变量
 
 - 自定义变量的限制
@@ -621,6 +659,13 @@ update t_test t set t.update_tm = sysdate() where id = 1; -- 其中`sysdate()`�
 ### JSON数据类型
 
 - 参考官网：https://dev.mysql.com/doc/refman/5.7/en/json.html、https://dev.mysql.com/doc/refman/5.7/en/json-functions.html
+    - json_unquote 去掉了引号和转义符(和`->`结合使用等同于`->>`)
+    - json_extract 基于path提取json字段值(类似`->`)
+    - json_contains
+    - json_object 字符串转json对象
+    - json_array 字符串转json数组
+    - json_table json转成临时表
+    - json_set 修改json
 
 ```sql
 -- 创建数据类型为json的字段val（如果字段类型为字符串也是可以使用相关函数的，只不过存在隐式转换；且如果类型是json，则在插入数据时会进行格式校验）
@@ -654,9 +699,9 @@ insert into test(val) values('{"name": "smalle", "hello": "Hi, \\"AEZO\\"", "hob
 select val from test; -- {"attr": {"t1": "v1", "t2": [1, true, false]}, "name": "smalle", "hello": "Hi, \"aezo\"", "hobby": [{"item": {"name": "book", "weight": 5}}, "game"]}
 -- 可以使用column-path运算符 ->
 select val->"$.hello" from test; -- "hi, \"aezo\""
--- 或内联路径运算符 ->> (去掉了引号和转义符)。可能由于服务器no_backslash_escapes的配置导致无法使用 ->>，可如下使用json_unquote()
+-- (常用)或内联路径运算符 ->> (去掉了引号和转义符)。可能由于服务器no_backslash_escapes的配置导致无法使用 ->>，可如下使用json_unquote()
 select val->>"$.hello" from test; -- hi, "aezo"
-select json_unquote(val->"$.hello") from test; -- hi, "aezo"
+select json_unquote(val->"$.hello"), json_unquote(val->"$.hobby[0]") from test; -- hi, "aezo"
 
 -- 搜索
 select json_unquote(json_extract(val, '$.*')) from test; -- 将所有一级key对应的值放入到数组中：[{"t1": "v1", "t2": [1, true, false]}, "smalle", "Hi, \"AEZO\"", [{"item": {"name": "book", "weight": 5}}, "game"]]
@@ -669,6 +714,31 @@ select json_unquote(json_extract('[1, 2, 3]', '$[0]')); -- 1
 
 -- 如果存放json的字段类型为字符串，取出数据时可进行转换编码
 select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using utf8mb4); -- 张三
+
+
+-- json转成临时表
+select * from
+json_table ('[{"a": 1, "b": [11,111]}, {"a": 2, "b": [22,222]}, {"a":3}]',
+    -- $[*]表示对JSON数组每一项进行处理
+    '$[*]' columns (
+        id for ordinality, -- 自增ID
+        a int path '$.a',
+        nested path '$.b[*]' columns (b int path '$') 
+    )
+) t where b is not null;
+-- 结果
++------+------+
+|   a  |   b  |
++------+------+
+|    1 |   11 |
+|    1 |  111 |
+|    2 |   22 |
+|    2 |  222 |
++------+------+
+
+
+-- 修改json
+select json_set('{"name":{"en":"约翰"},"age": 25}', '$.name.en', (select translation from translations where text='john' and language='en')) as translated_json;
 ```
 
 ### 定时任务(事件)
@@ -919,6 +989,7 @@ group by t.deptno
 
 ##### connect by 递归关联
 
+- mysql参考: [RECURSIVE递归](#RECURSIVE递归)
 - `start with connect by prior` 递归查询(如树形结构)
 
 ```sql

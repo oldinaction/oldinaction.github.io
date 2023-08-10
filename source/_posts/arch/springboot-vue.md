@@ -28,7 +28,11 @@ tags: [springboot, vue]
         - `updateByPrimaryKey`(根据对象查询出来后全部按照传入对象更新，如果传入对象的值为空则会将数据库该字段置空)、`updateByPrimaryKeySelective`(如果出入对象值为空则不修改数据库该字段值)
 - 接口中使用`@Select`定义实现中，使用`<if>`代替`<when>`
 
-## 跨域和session/token
+## Token相关
+
+- 前端实现token无感刷新的几种方式: https://blog.csdn.net/u010952787/article/details/121655780
+
+## 跨域和session
 
 ### http/https
 
@@ -278,6 +282,9 @@ function getParentUrl() {
 
 ### 文件上传案例
 
+- 用户上传文件后，没有上传表单数据，造成无效文件堆积问题
+    - 可将文件上传到服务器，并记录文件表，状态未生效，当表单提交后修改状态；之后定时根据状态清理服务器垃圾文件
+    - 参考: https://blog.csdn.net/cocogogogo/article/details/124360240
 - **请求类型必须是`multipart/form-data`，因此数据是在body体中，当通过拦截器拦截body时，不要拦截此类型的请求，否则后面controller将获取不到数据。**参考[spring.md#拦截response的数据](/_posts/java/spring.md#拦截response的数据)
 - 手动上传，和其他Bean字段一起提交
 - 前台代码(vue + iview)
@@ -770,7 +777,7 @@ location / {
 }
 ```
 
-### 去掉#号
+### Vue去掉#号
 
 - 路由使用history模式。参考[hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
 
@@ -788,13 +795,14 @@ location / {
 }
 ```
 
-### 多项目配置
+### Vue多项目配置
 
 - **路由使用hash模式和history模式均可**，参考 [hash和history路由模式](/_posts/web/vue.md#hash和history路由模式)
 - vue.config.js，参考[vue-cli v3](/_posts/web/vue.md#vue-cli%20v3) [^7]
 
 ```js
 module.exports = {
+    baseUrl: process.env.NODE_ENV === 'production' ? '/' : '/',
     // 表示index.html中引入的静态文件地址。如生成 `/my-app/js/app.28dc7003.js`
     publicPath: '/my-app/', // 多环境配置时可自定义变量(VUE_APP_BASE_URL = /my-app/)到 .env.xxx 文件中，如：publicPath: process.env.VUE_APP_VUE_ROUTER_BASE
     // 打包后的文件生成在此项目的my-app根文件夹。一般是把此文件夹下的文件(index.html和一些静态文件)放到服务器 www 目录，此时多项目需要放到 /www/my-app 目录下
@@ -816,11 +824,14 @@ new Router({
 
 ```bash
 # 此处的两个my-app需要和上文的base、publicPath保持一致
+location = /my-app {
+    rewrite . http://$server_name/my-app/ break;
+}
 location ^~ /my-app/ {
     # 在/www目录放项目文件夹my-app(index.html在此文件夹根目录)。只能用于 outputDir 和 publicPath 一致的情况
     # root /www;
 
-    # 如果 outputDir 和 publicPath 不一致，则此处需使用alias；如果一直也可使用root
+    # 如果 outputDir 和 publicPath 不一致，则此处需使用alias；如果一致也可使用root
     alias /www/my-app-dist/;
 
     try_files $uri $uri/ /my-app/index.html;

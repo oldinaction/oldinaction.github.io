@@ -12,14 +12,36 @@ tags: [oracle, dba]
 - 安装oracle 11.2g参考印象笔记(测试通过)
     - **需要注意数据文件目录(/u01/app/oracle/oradata)挂载的磁盘，建议将`/u01`目录挂载到单独的数据盘上**
 
-### oracle 相关名词和原理
+### Oracle相关名词和原理
 
 - 数据库名(db_name)、实例名(instance_name)、以及操作系统环境变量(oracle_sid) [^1]
-  - `db_name`: 在每一个运行的 oracle 数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
-  - `instance_name`: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库 server 连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
-  - `oracle_sid`: 有时候简称为 SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用 ORACLE_SID 参数。这两个都是数据库实例名。instance_name 参数是 ORACLE 数据库的参数，此参数可以在参数文件中查询到，而 ORACLE_SID 参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用 ORACLE_SID。此参数与 ORACLE_BASE、`ORACLE_HOME`等用法相同。在数据库安装之后，ORACLE_SID 被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。
-- `service_name`：是网络服务名(如：local_orcl)，可以随意设置，相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称(如：`local_orcl=(...)`)，也是登录 pl/sql 是填写的 Database
-- `schema` schema 为数据库对象的集合，为了区分各个集合，需要给这个集合起个名字，这些名字就是我们看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个 schema。schema 里面包含了各种对象如 tables, views, sequences, stored procedures, synonyms, indexes, clusters, and database links。一个用户一般对应一个 schema，该用户的 schema 名等于用户名，并作为该用户缺省 schema
+    - `db_name`: 在每一个运行的 oracle 数据库中都有一个数据库名(如: orcl)，如果一个服务器程序中创建了两个数据库，则有两个数据库名。
+    - `instance_name`: 数据库实例名则用于和操作系统之间的联系，用于对外部连接时使用。在操作系统中要取得与数据库之间的交互，必须使用数据库实例名(如: orcl)。与数据库名不同，在数据安装或创建数据库之后，实例名可以被修改。例如，要和某一个数据库 server 连接，就必须知道其数据库实例名，只知道数据库名是没有用的。用户和实例相连接。
+    - `oracle_sid`: 有时候简称为 SID。在实际中，对于数据库实例名的描述有时使用实例名(instance_name)参数，有时使用 ORACLE_SID 参数。这两个都是数据库实例名。instance_name 参数是 ORACLE 数据库的参数，此参数可以在参数文件中查询到，而 ORACLE_SID 参数则是操作系统环境变量，用于和操作系统交互，也就是说在操作系统中要想得到实例名就必须使用 ORACLE_SID。此参数与 ORACLE_BASE、`ORACLE_HOME`等用法相同。在数据库安装之后，ORACLE_SID 被用于定义数据库参数文件的名称。如：$ORACLE_BASE/admin/DB_NAME/pfile/init$ORACLE_SID.ora。
+- `service_name`
+    - 是网络服务名(如：local_orcl)，可以随意设置，相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称(如：`local_orcl=(...)`)，也是登录 pl/sql 是填写的 Database
+- `schema`
+    - schema 为数据库对象的集合，为了区分各个集合，需要给这个集合起个名字，这些名字就是我们看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个 schema。schema 里面包含了各种对象如 tables, views, sequences, stored procedures, synonyms, indexes, clusters, and database links。一个用户一般对应一个 schema，该用户的 schema 名等于用户名，并作为该用户缺省 schema
+- `pfile`和`spfile`参数文件
+    - 参考：https://www.cnblogs.com/xqzt/p/4832597.html
+    - pfile：初始化参数文件（Initialization Parameters Files）
+        - 默认路径为：/u01/app/oracle/product/11.2.0/dbs/<init+例程名.ora>
+        - ASCII文本文件，可vi修改
+    - spfile：服务器参数文件（Server Parameter Files）
+        - 默认路径为：/u01/app/oracle/product/11.2.0/dbs/<spfile+例程名.ora>
+        - 二进制文件，只能连接数据库后通过命令修改
+        - 查看spfile未知`show parameter spfile`
+    - startup 启动次序 spfile优先于pfile。查找文件的顺序是 spfileSID.ora-〉spfile.ora-〉initSID.ora-〉init.ora（spfile优先于pfile）
+        - 判断实例是pfile还是spfile启动`select decode(count(*),1,'spfile','pfile') from v$spparameter where rownum=1 and isspecified ='TRUE';`
+        - 以pfile启动如 `startup pfile='/u01/app/oracle/product/11.2.0/dbs/initorcl.ora'` (一般位于 $ORACLE_HOME/dbs/init{SID}.ora)
+            - 安装数据库时的初始化模板文件 `/u01/app/oracle/admin/orcl/pfile/init.ora.2172017164927`
+    - pfile和spfile的互相创建
+        - create spfile[='xxxxx'] from pfile[='xxxx'];
+        - create pfile[='xxxxx'] from spfile[='xxxx'];
+    - spfile参数的三种scope
+        - scope=spfile: 对参数的修改记录在服务器初始化参数文件中，修改后的参数在下次启动DB时生效。适用于动态和静态初始化参数
+        - scope=memory: 对参数的修改记录在內存中，对于动态初始化参数的修改立即生效。在重启DB后会丟失
+        - scope=both: 对参数的修改会同时记录在服务器参数文件和內存中，对于动态参数立即生效，对静态参数不能用这个选项
 
 ## 启动/停止
 
@@ -38,11 +60,16 @@ lsnrctl status
 ## 重启服务
 # su - oracle && source ~/.bash_profile
 # 以nolog、sysdba身份登录，进入sql命令行
-sqlplus / as sysdba # sqlplus /nolog
+# sqlplus /nolog
+sqlplus / as sysdba
+
+# `shutdown;` 则是有用户连接就不关闭，直到所有用户断开连接
 # 大多数情况下使用。迫使每个用户执行完当前SQL语句后断开连接 (sql下运行，可无需分号)
 shutdown immediate;
-# `shutdown;` 则是有用户连接就不关闭，直到所有用户断开连接
-# 正常启动（sql下运行；1启动实例，2打开控制文件，3打开数据文件）。提示`Database opened.`则表示数据库启动成功
+# 当数据库出现故障时，可能以上方式都无法正常关闭数据库，则使用这种方法。强制结束当前正在执行的SQL语句，任何未递交的事务都不被回退！这种方法基本上不会对控制文件或者参数文件造成破坏，这比强制关机要好一点，启动时自动进行实例恢复
+# shutdown abort;
+
+# 正常启动，其他启动方式参考下文（sql下运行；1启动实例，2打开控制文件，3打开数据文件）。提示`Database opened.`则表示数据库启动成功
 startup
 # 查看示例状态为OPEN
 select status from v$instance;
@@ -59,11 +86,14 @@ ps -ef | grep ora_ | grep -v grep
 -- 非安装启动，这种方式启动下可执行：重建控制文件、重建数据库。读取init.ora文件，启动instance，即启动SGA和后台进程，这种启动只需要init.ora文件
 startup nomount
 -- 安装启动，这种方式启动下可执行：数据库日志归档、数据库介质恢复、使数据文件联机或脱机、重新定位数据文件、重做日志文件。执行"nomount"，然后打开控制文件，确认数据文件和联机日志文件的位置，但此时不对数据文件和日志文件进行校验检查
-startup mount dbname
+startup mount
 -- 先执行"nomount"，然后执行"mount"，再打开包括Redo log文件在内的所有数据库文件，这种方式下才可访问数据库中的数据
-startup open dbname
+startup open
 -- 等于三个命令：startup nomount、alter database mount、alter database open
 startup
+
+-- 以FILENAME为初始化文件启动数据库，不是采用默认初始化文件
+startup pfile=<FILENAME>
 ```
 
 ## 常用操作
@@ -482,17 +512,30 @@ order by t.table_name, tc.column_name;
     - `select * from v$parameter where name like 'log_archive_dest%';`
 - 日志分析
 
-  > `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.
+> `*.trc`：Sql Trace Collection file，`*.trm`：Trace map (.trm) file.Trace files(.trc) are sometimes accompanied by corresponding trace map (.trm) files, which contain structural information about trace files and are used for searching and navigation.
 
-  ```bash
-  # alert_orcl.log为警告日志(一般只有一个)；*.trc为日志追踪文件；*.trm为追踪文件映射信息；cdmp_20191212101335为备份？
-  select * from v$diag_info; # 查看日志目录(ADR Home)
-  ll -rt *.trc | grep ' 23 ' # 列举23号日期的trc文件。如`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
-  ll -hrt *.trc | grep ' 23 ' | awk '{print $9}' | xargs grep 'ORA-' # 查看23号的oracle trc日志，并找出日志中出现ORA-的情况
-  # 使用oracle自带工具tkprof(/u01/app/oracle/product/11.2.0/bin)分析trc文件。参考：http://www.51testing.com/html/34/60434-225024.html
-  tkprof /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_dbrm_18576.trc orcl_dbrm_18576.txt sys=no sort=prsela,exeela,fchela
-  cat orcl_dbrm_18576.txt # 查看分析结果
-  ```
+```bash
+## 如ADR Home日志文件目录为=/u01/app/oracle/diag/rdbms/orcl/orcl, 下面再分子目录
+# alert 警告日志，如报错ORA-04030，详细日志会记录在trace目录
+# trace(日志主要看这个目录)
+    # alert_orcl.log 为警告日志(一般只有一个)
+    # *.trc 为日志追踪文件. 如 orcl_ora_18723.trc 当前的Trace文件(Default Trace File)
+    # *.trm 为追踪文件映射信息
+    # cdmp_20191212101335 当一个进程崩溃或遇到异常时，ADR 会自动创建cdmp_<date-time>目录保存诊断跟踪日志和核心转储文件
+# incident 每当发生错误时，oracle会分配一个INCIDENT_ID号，并创建incdir_<INCIDENT_ID>目录(好像是从trace目录dump过来的日志)。清理参考(也可直接删除目录下文件)：https://blog.csdn.net/royzhang7/article/details/78957817
+# cdump
+# hm
+# 清理7天前日志脚本如: find ./ -mtime +7 -name "*.trc" | xargs rm -rf
+select * from v$diag_info; # 查看日志目录(ADR Home)
+
+# 列举23号日期的trc文件。如`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
+ll -rt *.trc | grep ' 23 '
+# 查看23号的oracle trc日志，并找出日志中出现ORA-的情况
+ll -hrt *.trc | grep ' 23 ' | awk '{print $9}' | xargs grep 'ORA-'
+# 使用oracle自带工具tkprof(/u01/app/oracle/product/11.2.0/bin)分析trc文件。参考：http://www.51testing.com/html/34/60434-225024.html
+tkprof /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_dbrm_18576.trc orcl_dbrm_18576.txt sys=no sort=prsela,exeela,fchela
+cat orcl_dbrm_18576.txt # 查看分析结果
+```
 
 #### 宕机分析
 
@@ -502,22 +545,33 @@ order by t.table_name, tc.column_name;
         - https://blog.csdn.net/turk/article/details/53373510
     - 操作过程
 
-    ```bash
-    # 进入日志文件目录，方式参考上文
-    # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
-    ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
-    # 结果如下(出现多次)
-    orcl_gen0_16692.trc:ORA-27157: OS post/wait facility removed
-    orcl_gen0_16692.trc:ORA-27300: OS system dependent operation:semop failed with status: 43
-    orcl_gen0_16692.trc:ORA-27301: OS failure message: Identifier removed
-    orcl_gen0_16692.trc:ORA-27302: failure occurred at: sskgpwwait1
-    ...
-    # 后来查找操作历史(history)，发现有国外IP登录操作服务器，还清除了操作历史，幸好之前增加了[记录命令执行历史到日志文件](/_posts/linux/linux.md#记录命令执行历史到日志文件)功能才发现
-    
-    # 解决办法：事先已重新重启过服务器，事后增加安全措施
-    ```
+```bash
+# 进入日志文件目录，方式参考上文
+# 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
+ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
+# 结果如下(出现多次)
+orcl_gen0_16692.trc:ORA-27157: OS post/wait facility removed
+orcl_gen0_16692.trc:ORA-27300: OS system dependent operation:semop failed with status: 43
+orcl_gen0_16692.trc:ORA-27301: OS failure message: Identifier removed
+orcl_gen0_16692.trc:ORA-27302: failure occurred at: sskgpwwait1
+...
+# 后来查找操作历史(history)，发现有国外IP登录操作服务器，还清除了操作历史，幸好之前增加了[记录命令执行历史到日志文件](/_posts/linux/linux.md#记录命令执行历史到日志文件)功能才发现
+
+# 解决办法：事先已重新重启过服务器，事后增加安全措施
+```
 
 ## 业务场景
+
+### 数据恢复
+
+- 基于`of timestamp`恢复，用于少量数据被误删除
+    - 如果报错`ORA-01555: 快照过旧: 回退段号...过小`(说明快照数据已经被Oracle清理了，差不多可以保留1个小时的快照)
+
+```sql
+-- 查询某个时间点my_table表的数据
+select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS') where sex = 1;
+-- 手动恢复
+```
 
 ### 表空间数据文件位置迁移
 
@@ -710,62 +764,116 @@ spool off;
 
 - 参考 [mysql-dba.md:Oracle 表结构与 Mysql 表结构转换](/_posts/db/mysql-dba.md#其他)
 
-### 密码策略修改
+### 数据库内存调整
 
 ```sql
--- 查询user是否锁定、及时间
-SELECT USERNAME,ACCOUNT_STATUS,LOCK_DATE,CREATED,PROFILE FROM DBA_USERS WHERE USERNAME = 'TEST_USER';
--- 修改密码（oracle可以修改为原密码）
-alter user TEST_USER account unlock identified by "Hello1234!";
+-- 模拟操作系统内存从2G增加为8G, 一般设置shmmax不超过物理内存的75%(8*0.75*1024*1024*1024=6442450944)
+-- MAX(SGA+PGA)<= memory_target, 且 sga_max_size 不能超过 shmmax
 
--- 查询用户默认profile
-select profile from dba_users where username = 'TEST_USER';
--- 修改用户默认profile
-alter user TEST_USER profile default;
+-- 查看内存和sga. mem=sga+pga
+sqlplus / as sysdba
+show parameter sga;
+show parameter pga;
+show parameter mem;
+-- 查看系统shm设置
+cat /etc/sysctl.conf | grep shmmax
+-- 内存对应到tmpfs, /dev/shm
+df -ThP
 
--- (sqlplus)查看用户密码策略profile
--- 也可以直接 select * from dba_profiles where profile='DEFAULT' and resource_type='PASSWORD';
-set linesize 350            -- 设置整行长度，linesize 说明 https://blog.csdn.net/u012127798/article/details/34146143
-col profile for a20         -- 设置profile这个字段的列宽为20个字符
-col resource_name for a25
-col resource for a15
-col limit for a20
-select * from dba_profiles where profile='DEFAULT' and resource_type='PASSWORD';
--- FAILED_LOGIN_ATTEMPTS 密码出错次数（超过次数后账号将锁定）
--- PASSWORD_LIFE_TIME 密码有效期
--- PASSWORD_REUSE_TIME 密码不能重新用的天数
--- PASSWORD_REUSE_MAX 密码重用之前修改的最少次数
--- PASSWORD_VERIFY_FUNCTION 密码复杂度校验函数(一般要自己定义)
--- PASSWORD_LOCK_TIME 默认超过了1天后，帐号自动解锁
--- PASSWORD_GRACE_TIME 默认密码到期提前7天提醒
+-- 停止数据库，关机后增加物理内存
 
--- 密码出错次数（超过次数后账号将锁定）
-alter profile default limit FAILED_LOGIN_ATTEMPTS 5;
-alter profile default limit FAILED_LOGIN_ATTEMPTS UNLIMITED;
+-- 此处将kernel.shmmax设置为物理内存的75% (也有直接设置成物理内存的)
+-- 将memory_target设置为物理内存的70%
+-- 将sga_max_size设置为memory_target的75%
+echo "kernel.shmmax = 6442450944" >> /etc/sysctl.conf
+sysctl -p
+-- 需要设置大小: tmpfs /dev/shm tmpfs  defaults,size=6G      0 0
+cat /etc/fstab
+mount -o remount tmpfs
+-- /dev/shm 增加了则说明是对的
+df -ThP
 
--- 密码有效期
-alter profile default limit PASSWORD_LIFE_TIME 180; -- 密码有效期(天）
-alter profile default limit PASSWORD_LIFE_TIME UNLIMITED; -- 密码有效期不限制
-
--- sqlplus执行密码策略语句(里面有一个默认的密码策略，参考：https://blog.csdn.net/xqf222/article/details/50263181)
--- 会创建一个默认的密码策略验证函数 VERIFY_FUNCTION_11G，并修改默认的密码profile
-@ $ORACLE_HOME/rdbms/admin/utlpwdmg.sql
-
--- 修改资源限制状态(默认未开启)。用户所有拥有的PROFILE中有关资源的限制与resource_limit参数的设置有关，当为TRUE时生效；当为FALSE时（默认值）设置任何值都无效
--- Oracle 11g启动参数resource_limit无论设置为false还是true，上述策略都是生效的
-show parameter resource_limit;
-alter system set resource_limit=true; -- 开启resource_limit=true
+-- 修改数据库配置 (memory不能大于kernel.shmmax)；注意不能只改max，且sga_max_size要比memory_target小(不要设置成等于)
+alter system set memory_max_target=5734M scope=spfile;
+alter system set memory_target=5734M scope=spfile;
+alter system set sga_max_size=4300M scope=spfile;
+alter system set sga_target=4300M scope=spfile;
+-- 重启
+shutdown immediate
+startup
+-- 登录后重新查询数据库相关内存
+show parameter sga
 ```
-
-### 数据恢复
-
-- 基于`of timestamp`恢复，用于少量数据被误删除
-    - 如果报错`ORA-01555: 快照过旧: 回退段号...过小`(说明快照数据已经被Oracle清理了，差不多可以保留1个小时的快照)
+- 遇到的问题
 
 ```sql
--- 查询某个时间点my_table表的数据
-select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS') where sex = 1;
--- 手动恢复
+-- 实践中遇到一下问题
+-- 由于在设置sga的时候只设置了memory_max_target和sga_max_size，且设置的相等；然后重启数据库的时候后失败，报错
+ORA-00844: Parameter not taking MEMORY_TARGET into account
+ORA-00851: SGA_MAX_SIZE 20669530112 cannot be set to more than MEMORY_TARGET 13958643712.
+
+-- 此时由于spfile已经发生了修改(且存在错误)，如果直接 startup 启动，默认会读取 spfile 配置进行启动数据库，从而会启动失败(pfile和spfile参考上文Oracle相关名词和原理)
+-- 因此尝试通过pfile启动，可指定系统默认的pfile，或者使用安装数据库时产生的pfile(此处使用)
+startup pfile='/u01/app/oracle/admin/orcl/pfile/init.ora.2172017164927'
+-- 执行后，仍然报错
+ORA-01092: ORACLE instance terminated. Disconnection forced
+ORA-30012: undo tablespace 'UNDOTBS1' does not exist or of wrong type
+
+-- 报错说undo表空间(用于数据回滚的系统表空间)存在问题，导致系统无法启动
+-- 遂百度此错误解决方法。网上大部分说法需要通过`startup mount`先只挂载数据库，然后通过重新创建undo表空间等方式来解决
+-- 此时由于我spfile文件配置错误，如果直接`startup mount`仍然会报ORA-00851的错误，此处可以指定pfile挂载
+startup mount pfile='/u01/app/oracle/admin/orcl/pfile/init.ora.2172017164927'
+-- 执行后，仍然报错
+Receiving Error 'ORA-01041: internal error. hostdef extension doesn't exist. on re-establishing
+
+-- Fuck. 
+-- 继续百度. 找到如下文章: https://support.quest.com/zh-cn/erwin-data-modeler/kb/4284269/receiving-error-ora-01041-internal-error-hostdef-extension-doesn-t-exist-on-re-establishing
+-- 表示可以临时设置sqlnet.ora文件增加如下配置(这个文件默认是空的，此时相当于设置成空，即不进行校验)，文件目录: /u01/app/oracle/product/11.2.0/network/admin/sqlnet.ora
+SQLNET.AUTHENTICATION_SERVICES=
+
+-- 然后重复. 发现竟然挂载成功了
+startup mount pfile='/u01/app/oracle/admin/orcl/pfile/init.ora.2172017164927'
+-- 进去之后我执行了一下，结果发现确实没有 UNDOTBS1 这个表空间，而是存在一个 UNDOTBS2 的表空间(原来是因为之前由于UNDOTBS1过大，做过清理，参考上文清理存储空间)
+select * from v$tablespace;
+-- 此时修改init.ora.2172017164927中的配置为
+undo_tablespace=UNDOTBS2
+
+-- 然后重新启动. 发现竟然又成功了
+startup pfile='/u01/app/oracle/admin/orcl/pfile/init.ora.2172017164927'
+
+-- 然后重启监听，发现报错：TNS-12560 TNS-00583
+-- 百度发现可能是由于listener.ora tnsnames.ora sqlnet.ora三个文件或其中的一个文件内容配置错误导致的. 恍然大悟
+-- 恢复 sqlnet.ora 原来的配置
+-- 再次重启监听. 成功!
+lsnrctl start
+
+-- 此方式为临时指定pfile启动，还需将sga等参数设置正确，并修复spfile，并已spfile方式启动
+-- 参考: https://blog.csdn.net/z924139546/article/details/87888643
+startup pfile='/u01/app/oracle/admin/orcl/pfile/init.ora.2172017164927'
+-- 备份原来的pfile和spfile
+cp /u01/app/oracle/product/11.2.0/dbs/initorcl.ora /u01/app/oracle/product/11.2.0/dbs/initorcl.ora.bak
+cp /u01/app/oracle/product/11.2.0/dbs/spfileorcl.ora /u01/app/oracle/product/11.2.0/dbs/spfileorcl.ora.bak
+-- 重新创建pfile，此时会重新生成initorcl.ora
+create pfile from spfile;
+-- 修改pfile
+vi initorcl.ora
+/*
+orcl.__sga_target=4508876800
+*.memory_target=6012534784
+*.memory_max_target=6012534784
+*.sga_max_size=4508876800
+*/
+-- 重新创建spfile
+create spfile from pfile;
+shutdown immediate;
+startup
+-- 启动仍然报错
+ORA-00214: control file '/u01/app/oracle/oradata/orcl/control01.ctl' version
+2147285 inconsistent with file '/home/oracle/data/control03.ctl' version
+2147135
+
+-- ...
+-- 参考，无尝试: https://logic.edchen.org/how-to-resolve-ora-00214-control-file/
 ```
 
 ### 创建数据库实例
@@ -848,6 +956,53 @@ select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-
         ```
 - SpringBoot+Mybatis-Plus+ThreadLocal利用AOP+mybatis插件实现数据操作记录及更新对比: https://www.cnblogs.com/top-sky-hua/p/13321754.html
 
+### 密码策略修改
+
+```sql
+-- 查询user是否锁定、及时间
+SELECT USERNAME,ACCOUNT_STATUS,LOCK_DATE,CREATED,PROFILE FROM DBA_USERS WHERE USERNAME = 'TEST_USER';
+-- 修改密码（oracle可以修改为原密码）
+alter user TEST_USER account unlock identified by "Hello1234!";
+
+-- 查询用户默认profile
+select profile from dba_users where username = 'TEST_USER';
+-- 修改用户默认profile
+alter user TEST_USER profile default;
+
+-- (sqlplus)查看用户密码策略profile
+-- 也可以直接 select * from dba_profiles where profile='DEFAULT' and resource_type='PASSWORD';
+set linesize 350            -- 设置整行长度，linesize 说明 https://blog.csdn.net/u012127798/article/details/34146143
+col profile for a20         -- 设置profile这个字段的列宽为20个字符
+col resource_name for a25
+col resource for a15
+col limit for a20
+select * from dba_profiles where profile='DEFAULT' and resource_type='PASSWORD';
+-- FAILED_LOGIN_ATTEMPTS 密码出错次数（超过次数后账号将锁定）
+-- PASSWORD_LIFE_TIME 密码有效期
+-- PASSWORD_REUSE_TIME 密码不能重新用的天数
+-- PASSWORD_REUSE_MAX 密码重用之前修改的最少次数
+-- PASSWORD_VERIFY_FUNCTION 密码复杂度校验函数(一般要自己定义)
+-- PASSWORD_LOCK_TIME 默认超过了1天后，帐号自动解锁
+-- PASSWORD_GRACE_TIME 默认密码到期提前7天提醒
+
+-- 密码出错次数（超过次数后账号将锁定）
+alter profile default limit FAILED_LOGIN_ATTEMPTS 5;
+alter profile default limit FAILED_LOGIN_ATTEMPTS UNLIMITED;
+
+-- 密码有效期
+alter profile default limit PASSWORD_LIFE_TIME 180; -- 密码有效期(天）
+alter profile default limit PASSWORD_LIFE_TIME UNLIMITED; -- 密码有效期不限制
+
+-- sqlplus执行密码策略语句(里面有一个默认的密码策略，参考：https://blog.csdn.net/xqf222/article/details/50263181)
+-- 会创建一个默认的密码策略验证函数 VERIFY_FUNCTION_11G，并修改默认的密码profile
+@ $ORACLE_HOME/rdbms/admin/utlpwdmg.sql
+
+-- 修改资源限制状态(默认未开启)。用户所有拥有的PROFILE中有关资源的限制与resource_limit参数的设置有关，当为TRUE时生效；当为FALSE时（默认值）设置任何值都无效
+-- Oracle 11g启动参数resource_limit无论设置为false还是true，上述策略都是生效的
+show parameter resource_limit;
+alter system set resource_limit=true; -- 开启resource_limit=true
+```
+
 ### 审计
 
 ```sql
@@ -877,7 +1032,7 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
 
 ## 常见错误
 
-### 数据库服务器 CPU 飙高
+### 数据库服务器CPU飙高
 
 - 参考[数据库服务器故障](/_posts/devops/Java应用CPU和内存异常分析.md#数据库服务器故障)
 
@@ -938,11 +1093,71 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
 
 ### 数据库无法连接
 
+- 查看数据库连接设置
+
 ```sql
 -- 查看当前数据库建立的会话情况
 select sid,serial#,username,program,machine,status from v$session;
 -- 查询数据库允许的最大连接数，一般如300
 select value from v$parameter where name = 'processes';
+```
+- 查看应用连接池设置的大小
+
+### No more data to read from socket
+
+- 方向
+    - 是否连接不足，参考[数据库无法连接](#数据库无法连接)
+    - 是否连接失效
+        - 一般由数据库连接池管理，问题不大；但是如果重启了数据库，应用的连接池创建的连接就回失效
+        - 分布式数据库中间件，比如 cobar 会定时的将空闲链接异常关闭，客户端会出现半开的空闲链接
+    - 是否为内存不足导致
+    - 是否为网络原因，路由交换机重启等
+- 查询数据库发现报错`ORA-03137`
+    - 参考文章
+        - [oracle 11.2.0.1告警日志报错ORA-03137与绑定变量窥探BUG](https://developer.aliyun.com/article/314732)
+        - [一次关闭绑定变量窥探_optim_peek_user_binds导致的存储过程缓慢故障](https://blog.csdn.net/su377486/article/details/106784943)
+        - http://www.oracleops-support.com/2017/12/troubleshooting-ora-3137.html
+        - http://blog.chinaunix.net/uid-116213-id-81735.html
+    - 临时解决
+        - 客户端报错`No more data to read from socket`，数据库发现报错`ORA-03137`，且在产生大量incident日志文件；但是此问题是最近才偶尔出现此问题，一般不会是客户端连接池问题，初步诊断为数据库问题，暂时不好升级Oracle和关闭_optim_peek_user_binds参数
+        - 选择先升级ojdbc.jar驱动程序为11.2.0.2，并优化此SQL语句
+            - JDBC 下载地址: https://www.oracle.com/database/technologies/appdev/jdbc-drivers-archive.html
+            - JDBC 11.2下载地址: https://www.oracle.com/jp/technical-resources/articles/features/jdbc/jdbc.html
+
+```bash
+Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_20306.trc
+ORA-03137: TTC protocol internal error : [12333] [23] [115] [101] [] [] [] []
+
+========= Dump for incident 136947 (ORA 3137 [12333]) ========
+
+*** 2023-06-25 10:05:00.301
+dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
+----- Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
+SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
+
+
+
+Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_888.trc
+ORA-03137: TTC protocol internal error : [12333] [23] [115] [101] [] [] [] []
+
+========= Dump for incident 137083 (ORA 3137 [12333]) ========
+
+*** 2023-06-25 10:02:00.541
+dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
+----- Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
+SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
+
+
+
+Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_26687.trc
+ORA-03137: TTC protocol internal error : [3120] [] [] [] [] [] [] []
+
+========= Dump for incident 137131 (ORA 3137 [3120]) ========
+
+*** 2023-06-25 10:06:27.571
+dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
+----- Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
+SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
 ```
 
 ### 其他

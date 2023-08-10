@@ -191,6 +191,12 @@ tree -L 3 -I "node_modules" | grep -v -e "dist"
 
 # 配置文件路径如`/opt/homebrew/etc/redis.conf`
 brew install redis
+
+# rabbitmq
+brew install rabbitmq
+brew services restart rabbitmq # 后台启动
+CONF_ENV_FILE="/opt/homebrew/etc/rabbitmq/rabbitmq-env.conf" /opt/homebrew/opt/rabbitmq/sbin/rabbitmq-server # 命令行启动
+# 管理端 http://localhost:15672 guest/guest
 ```
 
 ### VPN(PPTP)
@@ -302,6 +308,8 @@ alias unproxy="unset ALL_PROXY"
 # 参考下文，使用item2快速脚本启动代理
 # 网络设置里面设置网线(USB)/Wifi对应适配器的SOCKS代理即可, 如 127.0.0.1 1088
 # 命令行执行proxy/unproxy启用/关闭当前命令行代理 (使用v2ray全局代理对应命令行无效)
+
+## 命令行加速也可以使用Item2+Proxifier方式，参考下文
 ```
 - 配色方案：https://iterm2colorschemes.com/
 - 防止长时间不用断线问题：在`~/.ssh/config`(可能需要新建)中加入`ServerAliveInterval 60`
@@ -329,6 +337,10 @@ alias unproxy="unset ALL_PROXY"
 
         iterm2.run_until_complete(main)
         ```
+        - 使用
+            - 启动此脚本
+            - 设置Proxifier Rules
+            - 访问目标网址，如: https://cip.cc
 - 基于lrzsz进行文件上传和下载
 
 ```bash

@@ -120,7 +120,7 @@ tags: [oracle, dba, sql]
     - **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 force index、use index 或者 ignore index. 如下
 
         ```sql
-        -- 指定索引/强制索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引
+        -- 指定索引/强制索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引; 使用Hint提示
         select * from user use index(idx_name_sex) where id > 10000;
         -- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
         select *

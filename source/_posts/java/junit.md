@@ -50,6 +50,7 @@ public class Example {
 @RunWith(SpringRunner.class)
 @SpringBootTest
 // @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) // websocket环境需要，否则报错：javax.websocket.server.ServerContainer not available
+//@ActiveProfiles(value = {"dev", "dev-local"}) // 可设置配置文件（如果文件在外部可在测试类配置中增加环境变量，如spring.config.additional-location=/Users/smalle/data/project/aezo-chat-gpt/）
 public class DynamicAddTests {
     @Autowired
     private MockMvc mockMvc;

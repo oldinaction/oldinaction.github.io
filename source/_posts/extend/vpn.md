@@ -243,7 +243,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
         systemctl enable v2ray && systemctl start v2ray && systemctl status v2ray
 
-        ## 基于x-ui安装(web控制面板)。支持多用户多协议，支持账号流量统计。[github](https://github.com/vaxilu/x-ui)
+        ## **基于x-ui安装**(web控制面板 v1.4.2)。支持多用户多协议，支持账号流量统计。[github](https://github.com/vaxilu/x-ui)
         # 更新安装都是此命令，升级不会造成数据丢失
         bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
         v2-ui # 查看命令

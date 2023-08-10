@@ -489,27 +489,39 @@ vi /etc/redis/6379.conf
     - 丢失数据相对多一些，两次持久化之间的数据容易丢失
 - rdb配置
 
-    ```bash
-    ################################ SNAPSHOTTING  ################################
-    # save "" # 关闭写磁盘
+```bash
+################################ SNAPSHOTTING  ################################
+# save "" # 关闭写磁盘
 
-    # 以下条件将会被触发自动保存 => 创建子进程进行数据持久化
-    save 900 1 # 当900s(15m)后有1个及以上key发生了改变则会触发save
-    save 300 10 # 当300s(5m)后有10个及以上key发生了改变则会触发save
-    save 60 10000 # 当60s(1m)...
-    # 如900后有1个key发送改变时的日志如下
-    # 7447:S 11 Jul 2020 15:49:17.306 * 1 changes in 900 seconds. Saving...
-    # 7447:S 11 Jul 2020 15:49:17.307 * Background saving started by pid 7582           # 开启（fork）新进程保存数据到磁盘
-    # 7582:C 11 Jul 2020 15:49:17.514 * DB saved on disk                                # 数据已经保存到磁盘上
-    # 7582:C 11 Jul 2020 15:49:17.515 * RDB: 4 MB of memory used by copy-on-write       # 4M 内存数据使用copy-on-write的方式被使用
-    # 7447:S 11 Jul 2020 15:49:17.551 * Background saving terminated with success       # 保存成功, 进程中断
+# 以下条件将会被触发自动保存 => 创建子进程进行数据持久化
+save 900 1 # 当900s(15m)后有1个及以上key发生了改变则会触发save
+save 300 10 # 当300s(5m)后有10个及以上key发生了改变则会触发save
+save 60 10000 # 当60s(1m)...
+# 如900后有1个key发送改变时的日志如下
+# 7447:S 11 Jul 2020 15:49:17.306 * 1 changes in 900 seconds. Saving...
+# 7447:S 11 Jul 2020 15:49:17.307 * Background saving started by pid 7582           # 开启（fork）新进程保存数据到磁盘
+# 7582:C 11 Jul 2020 15:49:17.514 * DB saved on disk                                # 数据已经保存到磁盘上
+# 7582:C 11 Jul 2020 15:49:17.515 * RDB: 4 MB of memory used by copy-on-write       # 4M 内存数据使用copy-on-write的方式被使用
+# 7447:S 11 Jul 2020 15:49:17.551 * Background saving terminated with success       # 保存成功, 进程中断
 
-    # 数据持久化的文件名
-    dbfilename dump.rdb
-    # 数据保存的文件目录
-    dir /var/lib/redis/6379
-    ```
-- redis命令行执行`save`(会占用主进程)或`bgsave`(后台运行)生成dump文件
+# 数据持久化的文件名
+dbfilename dump.rdb
+# 数据保存的文件目录
+dir /var/lib/redis/6379
+```
+- 执行备份导出及导入
+
+```bash
+## 连接待导出的redis成功后. 查看目录，如: /var/lib/redis
+config get dir
+# redis命令行执行`save`(会占用主进程)或`bgsave`(后台运行)生成dump文件
+bgsave
+# 备份完成后，进入到对应目录下载文件 /var/lib/redis/dump.rdb
+
+## 连接待导入的redis成功后. 查看配置目录，备份当前redis的dump.rdb，并停止redis
+# 覆盖导出的dump.rdb到当前redis目录
+# 重启redis即可
+```
 
 #### AOF方式持久化
 

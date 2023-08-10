@@ -686,6 +686,33 @@ mybatis.config-location=classpath:mybatis-config.xml
     - 采用PreparedStatement.addBatch()方式实现
     - Mysql需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用；**Oracle无需**
 - **[jdbcTemplate.batchUpdate](/_posts/java/springboot.md#JdbcTemplate访问数据)**
+- **mybatis foreach**
+
+    ```xml
+    <!-- 
+        mysql版本试用
+        1.mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） 
+        2.如果报错，需要在jdbc url上增加 allowMultiQueries=true
+    -->
+    <insert id="insertbatch">
+        insert into t_user(id, name) values
+        <foreach collection="list" item="user" separator=",">
+            (#{user.id}, #{user.name})
+        </foreach >
+    </insert>
+
+    <!-- **oracle版本适用**，或者使用 INSERT ALL INTO, 参考：https://www.cnblogs.com/nemowang1996/p/12519018.html -->
+    <!-- 序列不能直接和select union一起使用，如果把seq_user.nextval写到foreach循环里面会报错 -->
+    <insert id="insertbatch">
+        insert into t_user(id, name) (
+            select seq_user.nextval, a.name, a.sex from (
+                <foreach collection="list" item="user" separator ="UNION ALL">
+                    select #{user.name} name, #{user.sex} sex from dual
+                </foreach >
+            ) a
+        )
+    </insert>
+    ```
 - **mybatis batch**
     - Mybatis内置的ExecutorType有3种，默认的是simple，该模式下它为每个语句的执行创建一个新的预处理语句，单条提交sql；而batch模式重复使用已经预处理的语句，并且批量执行所有更新语句
     - Mysql使用batch模式需要在jdbc连接url上追加 **`rewriteBatchedStatements=true`**，否则不起作用；**Oracle无需**
@@ -726,33 +753,6 @@ mybatis.config-location=classpath:mybatis-config.xml
         }
         ```
 - **mybatis-plus** 服务中的saveBatch(新增)/updateBatchById(更新)/removeByIds(删除)/saveOrUpdateBatch(新增或基于ID修改)访问，见下文。基于mybatis的`openSession(ExecutorType.BATCH)`，默认每1000条提交一次
-- mybatis foreach
-
-    ```xml
-    <!-- 
-        mysql版本试用
-        1.mysql默认接受sql的大小是1048576(1M)，即第三种方式若数据量超过1M会报`com.mysql.jdbc.PacketTooBigException: Packet for query is too large`异常：（可通过调整MySQL安装目录下的my.ini文件中[mysqld]段的"max_allowed_packet = 1M"） 
-        2.如果报错，需要在jdbc url上增加 allowMultiQueries=true
-    -->
-    <insert id="insertbatch">
-        insert into t_user(id, name) values
-        <foreach collection="list" item="user" separator=",">
-            (#{user.id}, #{user.name})
-        </foreach >
-    </insert>
-
-    <!-- **oracle版本适用**，或者使用 INSERT ALL INTO, 参考：https://www.cnblogs.com/nemowang1996/p/12519018.html -->
-    <!-- 序列不能直接和select union一起使用，如果把seq_user.nextval写到foreach循环里面会报错 -->
-    <insert id="insertbatch">
-        insert into t_user(id, name) (
-            select seq_user.nextval, a.name, a.sex from (
-                <foreach collection="list" item="user" separator ="UNION ALL">
-                    select #{user.name} name, #{user.sex} sex from dual
-                </foreach >
-            ) a
-        )
-    </insert>
-    ```
 
 ## Mybatis缓存
 
@@ -1393,7 +1393,9 @@ LambdaQueryWrapper lambdaQueryWrapper = new LambdaQueryWrapper<Subscribe>()
 		.eq(Subscribe::getFlowStatus, flowStatus)
 		.eq(Subscribe::getValidStatus, 1)
 		.and(date != null, obj -> obj.gt(Subscribe::getUpdateTm, date)) // **基于某个条件判断是否添加查询此查询条件**
-		.orderByAsc(date != null, Subscribe::getClawCount); // 基于某个条件添加排序
+		.orderByAsc(date != null, Subscribe::getClawCount)
+        .orderBy(true, false, Subscribe::getClawCount, Subscribe::getClawDate) // orderBy(true, true, "id", "age"); // 是否组装条件，是否升序，对应字段...
+        .last("limit 10"); // 基于某个条件添加排序
 subscribePage = (Page<Subscribe>) subscribeService.page(subscribePage, lambdaQueryWrapper);
 List<Subscribe> subscribes =  subscribePage.getRecords();
 

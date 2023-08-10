@@ -5,7 +5,7 @@
     - 在插件项目的 build.json 下面新增 "inject": true，则默认通过官方demo进行调试，设置成false则是本地调试
 - 物料: 指可以拖拽的组件元素
 
-```
+```bash
 # 报错: ERESOLVE unable to resolve dependency tree
 npm install --legacy-peer-deps
 ```

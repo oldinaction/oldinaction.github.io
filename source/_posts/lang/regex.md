@@ -150,7 +150,7 @@ title: '{{ $1 }}}'
 ### 元字符
 \d	# 匹配一个数字，是 [0-9] 的简写
 \D	# 匹配一个非数字，是 [^0-9] 的简写
-\s	# 匹配一个空格，是 [ \t\n\x0b\r\f] 的简写
+\s	# 匹配一个空格，是 [ \t\n\x0b\r\f] 的简写。java字符串中一般要写成\\s
 \S	# 匹配一个非空格
 \w	# 匹配一个单词字符（大小写字母、数字、下划线），是 [a-zA-Z_0-9] 的简写
 \W	# 匹配一个非单词字符（除了大小写字母、数字、下划线之外的字符），等同于 [^\w]
@@ -205,8 +205,24 @@ str.replaceAll("^[0-9\\-].*", ""); //
 str.replaceAll("^[0-9\\-].*?", ""); // 23-456A888A
 str.replaceAll("^[0-9\\-]?", ""); // 23-456A888A
 
+
 // 去掉注释，不能使用 .*? (.不包含换行符)
 "/* 多行注释 */select 1 from dual".replaceFirst("/\\*[\\s\\S]*?\\*/", "");
+
+
+// 提取注释文本，如
+1
+/* RT_START REPLACE(select 1 where 1=1) */
+2
+/* RT_END */
+3
+// https://www.lddgo.net/string/regex 上面测试的正则表达式为 (?i)/\*\s*?RT_START\s+(.*?)\s\*/[\s\S]*?/\*\s*?RT_END\s*?\*/
+Pattern RTPattern = Pattern.compile("(?i)/\\*\\s*?RT_START\\s+(.*?)\\s\\*/[\\s\\S]*?/\\*\\s*?RT_END\\s*?\\*/");
+Matcher matcher = RTPattern.matcher(sql);
+while (matcher.find()) {
+    System.out.println(matcher.group()); // /* RT_START ... 2 ... /* RT_END */
+    System.out.println(matcher.group(1)); // REPLACE(select 2 where 1=1)
+}
 ```
 
 ### 分组和反向引用

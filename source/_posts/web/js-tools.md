@@ -33,9 +33,12 @@ tags: [js, tools]
 
 ```js
 const a = {a: 1, b: {b1: 2}, c: [{c1: 3}]};
-_.merge(a, {b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]});
-// {a: 1, b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]}
-console.log(a);
+const b = {b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]}
+const c = _.merge({}, a, b);
+// a => {"a":1,"b":{"b1":2},"c":[{"c1":3}]} // a对象没有变更说明为深度拷贝(像assign无法递归merge，而xe-utils只能进行浅拷贝的merge)
+// b => {"b":{"b1":22,"b2":23},"c":[{"c1":33,"c2":34},{"c1":35}]}
+// c = {a: 1, b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]}
+console.log(a, b, c);
 ```
 - groupBy
 
@@ -77,6 +80,21 @@ const r = _(arr) // 转成lodash表达式
 ]
 */
 console.log(JSON.stringify(r))
+```
+
+### xe-utils
+
+- [xe-utils](https://x-extends.github.io/xe-utils)
+- merge
+
+```js
+const a = {a: 1, b: {b1: 2}, c: [{c1: 3}]};
+const b = {b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]}
+const c = XEUtils.merge({}, a, b);
+// a => {"a":1,"b":{"b1":22,"b2":23},"c":[{"c1":33,"c2":34},{"c1":35}]} // a对象发送了改变，说明只能进行浅拷贝merge(像assign无法递归merge，而loadsh可进行深拷贝的merge)
+// b => {"b":{"b1":22,"b2":23},"c":[{"c1":33,"c2":34},{"c1":35}]}
+// c = {a: 1, b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]}
+console.log(a, b, c);
 ```
 
 ### cross-env启动时增加环境变量
@@ -659,8 +677,8 @@ handleChange (value) {
 - 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
 
 ```js
-// 获取当前表格的数据（完整的全量表体数据、处理条件之后的全量表体数据、当前渲染中的表体数据、当前渲染中的表尾数据）
-let { fullData, visibleData, tableData, footerData } = this.$refs.tableRef.getTableData()
+// 获取当前表格的数据：完整的全量表体数据(树型不含子结构)、处理条件之后的全量表体数据、当前渲染中的表体数据、当前渲染中的表尾数据
+let { fullData, visibleData, tableData, footerData } = this.$refs.tableRef.getTableData() // 各种 rows
 
 // 获取勾选行记录
 let checkboxRow = this.$refs.tableRef.getCheckboxRecords();
@@ -1952,12 +1970,12 @@ import 'codemirror/addon/selection/active-line'
 import 'codemirror/addon/fold/foldgutter.css'
 import 'codemirror/addon/fold/foldgutter'
 import 'codemirror/addon/fold/brace-fold'
-// ==>搜索替换插件
-// find：Ctrl-F (PC), Cmd-F (Mac)
-// findNext：Ctrl-G (PC), Cmd-G (Mac)
-// findPrev：Shift-Ctrl-G (PC), Shift-Cmd-G (Mac)
-// replace：Shift-Ctrl-F (PC), Cmd-Alt-F (Mac)
-// replaceAll：Shift-Ctrl-R (PC), Shift-Cmd-Alt-F (Mac)
+// ==>搜索替换插件（默认快捷键如下，可通过extraKeys修改快捷键）
+// find(findPersistent): Ctrl-F (PC), Cmd-F (Mac)
+// findNext: Ctrl-G (PC), Cmd-G (Mac)
+// findPrev: Shift-Ctrl-G (PC), Shift-Cmd-G (Mac)
+// replace: Shift-Ctrl-F (PC), Cmd-Alt-F (Mac)
+// replaceAll: Shift-Ctrl-R (PC), Shift-Cmd-Alt-F (Mac)
 import 'codemirror/addon/dialog/dialog.css'
 import 'codemirror/addon/dialog/dialog'
 import 'codemirror/addon/search/searchcursor'
@@ -1986,6 +2004,8 @@ export default {
                 lineNumbers: true,
                 // 自动换行
                 lineWrapping: true,
+                // 换行缩进时按照4个空格来
+                indentUnit: 4,
                 // 按tab时缩进4个空格
                 tabSize: 4,
                 // 启用括号高亮匹配插件
@@ -1999,6 +2019,11 @@ export default {
                 gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
                 // 快捷键
                 extraKeys: {
+                    'Ctrl-F': 'find', // 重定义查找快捷键(对Mac和Windows同时生效)
+                    'Ctrl-N': 'findNext',
+                    'Ctrl-P': 'findPrev',
+                    'Ctrl-R': 'replace',
+                    'Shift-Ctrl-R': 'replaceAll', // Shift需要写在Ctrl前
                     'Ctrl-Q': function(cm) {
                         // 折叠当前行代码
                         cm.foldCode(cm.getCursor())

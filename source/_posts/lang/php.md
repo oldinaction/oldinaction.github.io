@@ -377,6 +377,12 @@ server {
 trait MyTrait {}
 # use关键字在一个类中引入Trait类后，相当于require或include了一段代码进来，不同之处在于use的Trait类与当前类是可以看做同一个类的，**即当前类可以用$this关键字调用Trait类的方法**。(此处的"当前类"指引入trait类的类)
 use
+
+## 打印日志到页面
+echo $str;
+print_r($arr);
+var_dump($arr);
+Log::info($arr . 'Laravel打印到日志文件');
 ```
 
 ### interface/abstract/trait
@@ -441,7 +447,7 @@ trait MyTrait
 }
 ```
 
-- 反射相关
+#### 反射相关
 
 ```php
 $ref = new \ReflectionClass($classname);
@@ -476,9 +482,15 @@ $ref->getTraits()['sq\controller\CurdControllerTrait']; // 返回ReflectionClass
 #### 字符串
 
 ```php
+// 分割字符串
+$arr = explode(',', 'first,second,third');
 
-// 判断字符串开头
+// strpos 判断字符串开头，查找第一次遇到到的下标
+// stripos 查找时忽略大小写，strrpos 查找最后一次(right)遇到的下标，strripos 最后一次忽略大小写
 strpos('Hello World', 'Hello') === 0 // true
+// 取前缀/后缀
+substr('666-888', strpos('666-888', '-') + 1); // 888
+substr('666-888', 0, strpos('666-888', '-')); // 666
 ```
 
 #### array/map
@@ -529,25 +541,74 @@ in_array("hello", $a); // false. 判断包含
 is_array($a); // true. 判断变量是否是数组
 
 ## 相关函数
-array_push(array,value1,value2...); // 向数组的尾部添加元素
-array_filter($arr, function($v, $k) { return $k == 'b'; }); // 数组过滤
+// 向数组的尾部添加元素
+array_push(array,value1,value2...);
+// 合并两个数组/对象
+$merge = array_merge($arr1, $arr2);
+// 过滤数组，去掉值为空的数据. PHP7.4支持箭头函数
+$newObj = array_filter($obj, function($value, $key) {
+    return ($value !== '' && $value !== null);
+}, ARRAY_FILTER_USE_BOTH); // 0:默认,传递值 | 1:ARRAY_FILTER_USE_BOTH | 2:ARRAY_FILTER_USE_KEY
+$newObj = array_filter($obj, fn($value, $key) => ($value !== '' && $value !== null));
+// 按照key对原对象进行排序
+ksort($array);
 ```
 
 #### json
 
-```php
-// http://www.ruanyifeng.com/blog/2011/01/json_in_php.html
-// 数组转json字符串
-$json_str = json_ecnode($arr, true);
+- 参考: https://www.runoob.com/php/php-json.html
 
-// json字符串转对象
-$json = json_decode($json_str); // 格式化json字符串为对象。返回的是stdClass
+```php
+// 数组转json字符串 => 默认将索引数组转成js数组，将关联数组转成js对象
+$json_str = json_encode($arr);
+$json_str = json_encode($arr, JSON_UNESCAPED_UNICODE); // 防止中文被编码
+
+// json字符串转对象/数组
+// true表示返回的是array，通过属性取值；如果属性不存在也会报错，可使用 empty($json['key']) 先判断一下
+$json = json_decode($json_str, true);
+// 返回的是stdClass, 通过->取值; 如果字符串不是json格式不会报错，而是返回null，如果取值的属性不存在会报错
+$json = json_decode($json_str);
 if(isset($json -> username)) {
-    // 判断 $json 对象中是否有username属性. ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
+    // 判断 $json 对象中是否有username属性. 不判断直接使用，如果不存在此属性时会报错
+    // ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
+}
+
+// 防止返回null，仍然需要判断属性是否为空
+public function getJsonSafe(string $str) {
+    if(empty($str)) {
+        return json_decode('{}', true);
+    }
+    $json = json_decode($str, true);
+    return empty($json) ? json_decode('{}', true) : $json;
 }
 ```
 
 #### 数据类型转换
+
+```php
+// 拷贝对象
+$newMap = array_merge([], $oldMapOrArray);
+```
+#### 空值判断
+    
+```php
+// 判断stdClass是否有某个属性，具体参考数组
+$json = json_decode($json_str); // 格式化json字符串为对象。返回的是stdClass
+if(isset($json -> username)) {
+    // 判断 $json 对象中是否有username属性.
+    // ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
+}
+
+// 判断数组是否有某个索引
+if(isset($_POST['id'])) {}
+
+// empty判断空
+empty(null | '' | 0); // true
+
+// 此时传入空，调用方法就报错；需要加?才能传空
+public function setOrder(Order $order) {}
+public function setOrder(?Order $order) {}
+```
 
 ### 流程控制
 
@@ -563,6 +624,16 @@ for ($i=0; $i < 10; $i++) {
     }
     echo $i;
 }
+
+foreach ($keys as $key) {}
+foreach($obj as $key => $value) {}
+```
+
+### 面向对象
+
+```php
+// 判断对象类型
+if ($dog instanceof \Animal\MyAnimal && $dog instanceof MyDog) {}
 ```
 
 ### 文件
@@ -610,19 +681,6 @@ mysqli.default_socket = /var/lib/mysql/mysql.sock
     - Coentent-Type仅在取值为`application/x-www-data-urlencoded`和`multipart/form-data`两种情况下，PHP才会将http请求数据包中相应的数据填入全局变量`$_POST`。(jquery会默认转换请求头)
     - Coentent-Type为`application/json`时，可以使用`$input = file_get_contents('php://input')`接受数据，再通过`json_decode($input, TRUE)`转换成json对象
     - 微信小程序wx.request的header设置成`application/x-www-data-urlencoded`时`$_POST`也接受失败(基础库版本1.5.0，仅供个人参考)，使用file_get_contents('php://input')可以获取成功
-- 空值判断
-    
-    ```php
-    // 判断stdClass是否有某个属性
-    $json = json_decode($json_str); // 格式化json字符串为对象。返回的是stdClass
-    if(isset($json -> username)) {
-        // 判断 $json 对象中是否有username属性.
-        // ($json -> username == null)、(is_null(($json -> username))) 都会报错。特别当$json可能为空时
-    }
-
-    // 判断数组是否有某个索引
-    if(isset($_POST['id'])) {}
-    ```
 
 ## 案例
 

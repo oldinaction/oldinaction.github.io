@@ -157,14 +157,15 @@ tags: [linux, shell]
 - `df -h` 查看磁盘使用情况、分区、挂载点(**只会显示成功挂载的分区，新磁盘需要进行分区和挂载**)
     - `df -h /home/smalle` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `df -Th` 查询文件系统格式
-- `du -ahm --max-depth=1 | sort -nr | head -10` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**(查看大目录)
+- `du -sh /home/smalle` **查看某个目录的每个子目录的文件大小**
     - `du` 它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
     - 参数说明
         - `-a` 所有文件，包括目录和普通文件，默认只统计目录
         - `-h` 显示人类可读的文件大小
         - `-m` 已MB大小为单位
+    - `du -ahm --max-depth=1 | sort -nr | head -10` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**(查看大目录)
     - `du -hsx * | sort -rh | head -10` 查看最大的10个文件
-    - `du -sh /home/smalle | sort -h` 查看某个目录
+    - `du -sh * | sort -h` 查看当前目录每个子目录的大小
     - `find . -type f -size +500M  -print0 | xargs -0 du -hm | sort -nr` 查看大于500M的前10个文件(查看大文件)
 - `lsblk` **树形显示磁盘即分区**
     - `fdisk -l` 查看磁盘设备
@@ -172,7 +173,6 @@ tags: [linux, shell]
 - `findmnt` 查看所有挂载的目录
 - `dmesg -T | grep CD` 显示光盘信息，`-T`时间格式化。**其中dmesg为显示硬件信息，可用于硬件故障诊断**
 - `alias ll='ls -latr'` 定义一个命令别名(仅当前会话生效)，也可将别名保存在`~/.bashrc`(所有会话)
-
 
 ### 文件
 
@@ -481,9 +481,9 @@ echo "/tmp/swap   swap  swap    defaults     0  0" >> /etc/fstab
 # 参考: https://zhuanlan.zhihu.com/p/596531301
 free -h # 查看内存和Swap空间
 ## 内存释放(不建议手动释放)
-# 释放所有的缓存
+# --释放所有的缓存
 echo 3 > /proc/sys/vm/drop_caches
-# 释放完内存后再修改drop_caches让系统自动分配内存
+# --释放完内存后再修改drop_caches让系统自动分配内存
 echo 0 > /proc/sys/vm/drop_caches
 
 ## Swap空间释放(不建议手动释放)
@@ -1372,113 +1372,113 @@ vm.dirty_writeback_centisecs = 500
 
 - 语法
 
-    ```bash
-    grep [-acinv] [--color=auto] '搜寻字符串' filename
-    # filename不能缺失
+```bash
+grep [-acinv] [--color=auto] '搜寻字符串' filename
+# filename不能缺失
 
-    # 选项与参数：
-    # -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
-    # -R/-r 递归查询子目录
-    # -i 忽略大小写的不同，所以大小写视为相同
-    # -l 显示文件名
-    # -E 以 egrep 模式匹配，开启扩展（Extend）的正则表达式。egerp更加规范，`egrep -o "oldboy|hello" h.txt` 仅仅输出 oldboy 和 hello
-    # -P 应用正则表达式
-    # -n 顺便输出行号
-    # -c 计算找到 '搜寻字符串' 的次数
-    # --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
-    # -a 将 binary 文件以 text 文件的方式搜寻数据
-    # -A <n> 打印匹配行的后几行
-    # -B <n> 打印匹配行的前几行
-    ```
+# 选项与参数：
+# -v **反向选择**，亦即显示出没有 '搜寻字符串' 内容的那一行
+# -R/-r 递归查询子目录
+# -i 忽略大小写的不同，所以大小写视为相同
+# -l 显示文件名
+# -E 以 egrep 模式匹配，开启扩展（Extend）的正则表达式。egerp更加规范，`egrep -o "oldboy|hello" h.txt` 仅仅输出 oldboy 和 hello
+# -P 应用正则表达式
+# -n 顺便输出行号
+# -c 计算找到 '搜寻字符串' 的次数
+# --color=auto 可以将找到的关键词部分加上颜色的显示喔；--color=none去掉颜色显示
+# -a 将 binary 文件以 text 文件的方式搜寻数据
+# -A <n> 打印匹配行的后几行
+# -B <n> 打印匹配行的前几行
+```
 - grep的规则表达式（正则一定要转义）
 
-    ```bash
-    \    # 转义符
-    ^    #锚定行的开始 如：'^grep'匹配所有以grep开头的行。    
-    $    #锚定行的结束 如：'grep$'匹配所有以grep结尾的行。 
-    .    #匹配一个非换行符的字符 如：'gr.p'匹配gr后接一个任意字符，然后是p。
-    *    #匹配零个或多个先前字符 如：'*grep'匹配所有一个或多个空格后紧跟grep的行。  
-    .*   #一起用代表任意字符。   
-    []   #匹配一个指定范围内的字符，如'[Gg]rep'匹配Grep和grep。    
-    [^]  #匹配一个不在指定范围内的字符
-    \(..\)  #标记匹配字符，如'\(love\)'，love被标记为1。    
-    \<      #锚定单词的开始，如:'\<grep'匹配包含以grep开头的单词的行。    
-    \>      #锚定单词的结束，如'grep\>'匹配包含以grep结尾的单词的行。    
-    x\{m\}  #重复字符x，m次，如：'0\{5\}'匹配包含5个o的行。    
-    x\{m,\} #重复字符x,至少m次，如：'o\{5,\}'匹配至少有5个o的行。    
-    x\{m,n\}#重复字符x，至少m次，不多于n次，如：'o\{5,10\}'匹配5--10个o的行。   
-    \w    #匹配文字和数字字符，也就是[A-Za-z0-9]，
-    \W    #\w的反置形式，匹配一个或多个非单词字符，如点号句号等。   
-    \b    #单词锁定符，如: '\bgrep\b'只匹配grep。 
+```bash
+\    # 转义符
+^    #锚定行的开始 如：'^grep'匹配所有以grep开头的行。    
+$    #锚定行的结束 如：'grep$'匹配所有以grep结尾的行。 
+.    #匹配一个非换行符的字符 如：'gr.p'匹配gr后接一个任意字符，然后是p。
+*    #匹配零个或多个先前字符 如：'*grep'匹配所有一个或多个空格后紧跟grep的行。  
+.*   #一起用代表任意字符。   
+[]   #匹配一个指定范围内的字符，如'[Gg]rep'匹配Grep和grep。    
+[^]  #匹配一个不在指定范围内的字符
+\(..\)  #标记匹配字符，如'\(love\)'，love被标记为1。    
+\<      #锚定单词的开始，如:'\<grep'匹配包含以grep开头的单词的行。    
+\>      #锚定单词的结束，如'grep\>'匹配包含以grep结尾的单词的行。    
+x\{m\}  #重复字符x，m次，如：'0\{5\}'匹配包含5个o的行。    
+x\{m,\} #重复字符x,至少m次，如：'o\{5,\}'匹配至少有5个o的行。    
+x\{m,n\}#重复字符x，至少m次，不多于n次，如：'o\{5,10\}'匹配5--10个o的行。   
+\w    #匹配文字和数字字符，也就是[A-Za-z0-9]，
+\W    #\w的反置形式，匹配一个或多个非单词字符，如点号句号等。   
+\b    #单词锁定符，如: '\bgrep\b'只匹配grep。 
 
-    # 字符类(类似oracle正则的字符簇)
-    [[:digit:]] #数字
-    [[:lower:]] #小写字母
-    [[:upper:]] #大写字母
-    [[:alpha:]] #字母
-    [[:alnum:]] #字母数字
-    [[:blank:]] #空字符: 空格键符 和 制表符
-    [[:space:]] #空格字符: 制表符、换行符、垂直制表符、换页符、回车符和空格键符
-    ```
+# 字符类(类似oracle正则的字符簇)
+[[:digit:]] #数字
+[[:lower:]] #小写字母
+[[:upper:]] #大写字母
+[[:alpha:]] #字母
+[[:alnum:]] #字母数字
+[[:blank:]] #空字符: 空格键符 和 制表符
+[[:space:]] #空格字符: 制表符、换行符、垂直制表符、换页符、回车符和空格键符
+```
 - 说明
     - grep命令的模式(即搜寻字符串)，可以是字符串、变量，还可以是正则表达式。如果模式中包含空格则需要单双引号包裹
 - [grep正则表达式](https://www.cnblogs.com/terryjin/p/5167789.html)
 - 常见用法
 
-    ```bash
-    grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
-    grep 'search content' *.sql # 查找已`.sql`结尾的文件
-    grep -R 'test' /data/* # 在/data目录及子目录查询
-    grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
+```bash
+grep "search content" filename1 filename2.... filenamen # 在多个文件中查找数据(查询文件内容)
+grep 'search content' *.sql # 查找已`.sql`结尾的文件
+grep -R 'test' /data/* # 在/data目录及子目录查询
+grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
 
-    grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
-    grep -A 5 'parttern' filename # 打印匹配行的后5行
-    grep -B 5 'parttern' filename # 打印匹配行的前5行
+grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
+grep -A 5 'parttern' filename # 打印匹配行的后5行
+grep -B 5 'parttern' filename # 打印匹配行的前5行
 
-    # 匹配或、且、非
-    grep -E 'A|B|C.*' filename # 打印匹配 A 或 B 或 C* 的数据
-    egrep 'word1|word2' 文件名
-    grep 'word1/|word2' 文件名 # /转义
-    grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
-    grep -v 'A' filename # 打印不包含 A 的数据
+# 匹配或、且、非
+grep -E 'A|B|C.*' filename # 打印匹配 A 或 B 或 C* 的数据
+egrep 'word1|word2' 文件名
+grep 'word1/|word2' 文件名 # /转义
+grep 'A' filename | grep 'B' # 打印匹配 A 且 B 的数据
+grep -v 'A' filename # 打印不包含 A 的数据
 
-    # -P正则
-    echo office365 | grep -P '\d+' -o # 返回 365
+# -P正则
+echo office365 | grep -P '\d+' -o # 返回 365
 
-    # 匹配2022-05-12 17:19这个分钟的某线程日志
-    grep '2022-05-12 17:19.* |-0.0.0.0-7100-exec-9' *-2022-05-12-*.log
-    # 匹配如：`...51:1:CMAU0245097:H4832357:22G1:8:22:4629:2190:21:::::::1'...`
-    egrep -r "51:.*:1'" /data/BTC_RECV/RecvCN1101/21/*
+# 匹配2022-05-12 17:19这个分钟的某线程日志
+grep '2022-05-12 17:19.* |-0.0.0.0-7100-exec-9' *-2022-05-12-*.log
+# 匹配如：`...51:1:CMAU0245097:H4832357:22G1:8:22:4629:2190:21:::::::1'...`
+egrep -r "51:.*:1'" /data/BTC_RECV/RecvCN1101/21/*
 
-    # 截取10分钟内容(包含12:09:59的数据，但是分钟不能写成12:[05-15])
-    grep "2000-01-01 12:0[0-9]" out.log > log.txt
-    # sed截取则更方便
-    sed -n '/2000-01-01 12:00:00/,/2000-01-01 12:01:30/p' out.log > log.txt
+# 截取10分钟内容(包含12:09:59的数据，但是分钟不能写成12:[05-15])
+grep "2000-01-01 12:0[0-9]" out.log > log.txt
+# sed截取则更方便
+sed -n '/2000-01-01 12:00:00/,/2000-01-01 12:01:30/p' out.log > log.txt
 
-    # 转义和字符类
-    grep '192\.168\.1\.254' /etc/hosts # 三个点字符都需要转义
-    egrep '[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}' 文件名 # 只能匹配出 IP 地址
-    grep "[[:digit:]]\{2\}[ -]\?[[:digit:]]\{10\}" 文件名 # 会匹配 91-1234567890、91 1234567890、911234567890这种格式的手机号
+# 转义和字符类
+grep '192\.168\.1\.254' /etc/hosts # 三个点字符都需要转义
+egrep '[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}' 文件名 # 只能匹配出 IP 地址
+grep "[[:digit:]]\{2\}[ -]\?[[:digit:]]\{10\}" 文件名 # 会匹配 91-1234567890、91 1234567890、911234567890这种格式的手机号
 
-    # 根据日志查询最近执行命令时间(结合tail -1)
-    grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
-    # 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
-    ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
+# 根据日志查询最近执行命令时间(结合tail -1)
+grep 'cmd-hostory' /var/log/local1-info.log | tail -1 | awk '{print $1,$2}'
+# 查看20号的oracle trc日志，并找出日志中出现ORA-的情况
+ll -hrt *.trc | grep ' 20 ' | awk '{print $9}' | xargs grep 'ORA-'
 
-    # 网站访问量相关统计
-    # https://mp.weixin.qq.com/s/vUvYdeo5eAXR1vdOpSN0WQ
-    ```
+# 网站访问量相关统计
+# https://mp.weixin.qq.com/s/vUvYdeo5eAXR1vdOpSN0WQ
+```
 - grep结果单独处理
 
-    ```bash
-    # 方式一
-    ps -ewo pid,etime,cmd | grep ofbiz.jar | grep -v grep | while read -r pid etime cmd ; do echo "===>$pid $cmd $etime"; done;
+```bash
+# 方式一
+ps -ewo pid,etime,cmd | grep ofbiz.jar | grep -v grep | while read -r pid etime cmd ; do echo "===>$pid $cmd $etime"; done;
 
-    # 方式二
-    while read -r proc; do
-        echo '====>' $proc
-    done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
-    ```
+# 方式二
+while read -r proc; do
+    echo '====>' $proc
+done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
+```
 
 ### sed 行编辑器
 

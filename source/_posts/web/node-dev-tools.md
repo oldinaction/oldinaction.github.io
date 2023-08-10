@@ -22,6 +22,8 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
 ## nvm Node版本管理工具
 
 - nvm全名node.js version management，顾名思义是一个nodejs的版本管理工具，通过它可以安装和切换不同版本的nodejs
+    - 相似的如`n`
+    - 参考下文基于目录自动切换node版本
 - 下载安装
     - [windows下载](https://github.com/coreybutler/nvm-windows/releases)，安装之前可能需要先卸载之前安装的Node
     - Unix: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.38.0/install.sh | bash`
@@ -34,12 +36,28 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
 - 使用
 
 ```bash
-nvm ls-remote --lts # 查看可用LTS node版本
-nvm install 12.16.3 # 安装指定版本Node：nvm install <version> [arch]
-nvm ls # 查看本地安装的Node版本，*号代表当前使用版本
+# 查看可用LTS node版本
+nvm ls-remote --lts
+# 安装指定版本Node：nvm install <version> [arch]
+nvm install 16.20.0
+# 查看本地安装的Node版本，*号代表当前使用版本
 # MAC M1 安装失败，需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/linux/mac.md#M1模拟x86环境)
-nvm use 12.16.3 # 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
+nvm ls
+# 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
+nvm use v16.20.0
+# 设置系统默认版本
+nvm alias default v16.20.0
+
+## 常用版本
+# vue2使用 lts/dubnium -> v10.24.1 (npm v6.14.12)
+# vue3使用 lts/gallium -> v16.20.0 (npm v8.19.4)
 ```
+- 基于目录自动切换node版本
+    - 使用avn工具: https://segmentfault.com/a/1190000040908989
+    - 使用自定义脚本: https://stackoverflow.com/questions/23556330/run-nvm-use-automatically-every-time-theres-a-nvmrc-file-on-the-directory
+        - 在`.zshrc`或`.bashrc`目录创建脚本
+        - 在需要切换node版本的目录创建`.nvmrc`文件，并写入对应版本如`v16.19.0`
+        - 此时打开此目录命令行就会自动执行命令进行node切换
 
 ## npm 包管理工具
 
@@ -75,7 +93,7 @@ npm root -g
 - 配置(以key=value的形式存储)
 
 ```bash
-# 以@test 开头的包从 registry=https://npm.xx.com 这里下载，其余全去淘宝镜像下载
+# 以@test开头的包从 registry=https://npm.xx.com 这里下载，其余全去淘宝镜像下载
 registry=https://registry.npm.taobao.org
 @test:registry=https://npm.xx.com
 
@@ -152,6 +170,7 @@ npm init
 # 基于`package.json`安装依赖
 npm install
 # npm install --registry=https://registry.npm.taobao.org
+# npm --registry=https://registry.npmjs.org install @aezocn/report-table@1.0.5-release.1 -S
 # cnpm install
 
 # 运行 package.json 中的 scripts 属性
@@ -281,6 +300,52 @@ npm unlink xxx
 - 默认值
     - `npm run start`的默认值是node server.js，前提是项目根目录下有server.js这个脚本
     - `npm run install`的默认值是node-gyp rebuild，前提是项目根目录下有binding.gyp文件
+
+### 基于GitHub-Packages创建npm私有库
+
+- 参考: https://www.jianshu.com/p/9b7c2d9b30b3
+- 模块package.json中增加如
+
+```json
+{
+    "name": "@aezocn/report-table",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/aezocn/npm-repo.git"
+    },
+    "publishConfig": {
+        "access": "public"
+        // 不要定义此registry配置，否则--registry命令行参数都无法覆盖
+        // ,"registry": "https://npm.pkg.github.com/aezocn"
+    }
+}
+```
+- 创建脚本`github-npm-publish.sh` (脚本中的github密码使用token代替，可在github个人中心中创建token)
+
+```bash
+
+#!/bin/bash
+# 登录
+/usr/bin/expect<<-EOF
+set timeout 60
+spawn npm login --registry=https://npm.pkg.github.com
+expect "Username: " {send "oldinaction\r"}
+expect "Password: " {send "$SQ_GITHUB_NPM_PASSWORD\r"}
+expect "Email:" {send "oldinaction@qq.com\r"}
+expect eof
+EOF
+# 发布
+npm run build
+npm publish --registry https://npm.pkg.github.com/aezocn
+```
+- 发布完成在aezocn的主页-Packages中会显示
+- 使用
+    - 在应用项目中创建`.npmrc`，并设置镜像(此处单独设置aezocn开头的包此使用此镜像进行拉取)
+    - 然后`npm i`即可
+
+```bash
+@aezocn:registry=https://npm.pkg.github.com/aezocn
+```
 
 ### 基于Nexus搭建私有仓库
 

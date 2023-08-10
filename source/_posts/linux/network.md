@@ -358,6 +358,34 @@ iptables -t raw -A PREROUTING -p icmp -j TRACE
     - `iptables-save > /etc/sysconfig/iptables` 暂存所有规则到文件中
     - `iptables-restore < /etc/sysconfig/iptables` 将文件中暂存的规则恢复到规则表中
 
+#### firewalld
+
+- 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
+    - 云服务器一般有进站出站规则，端口开放除了系统的防火墙也要考虑进出站规则
+- Centos 7使用`firewalld`代替了原来的`iptables`
+
+```bash
+# 查看状态
+systemctl status firewalld
+# 关闭防火墙
+systemctl stop firewalld && systemctl disable firewalld
+
+# iptables查看策略`iptables -L -n`
+# 查看端口
+firewall-cmd --zone=public --query-port=80/tcp
+firewall-cmd --list-ports # 查看所有端口
+# 开放端口(必须重新载入才会生效)。--permanent永久生效，没有此参数重启后失效；协议如: tcp(http/ws), udp, sctp or dccp
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+# 删除端口(必须重新载入才会生效)
+firewall-cmd --zone=public --remove-port=80/tcp --permanent
+# 重新载入(修改后必须重新载入才会生效)
+firewall-cmd --reload
+
+# firewall-cmd命令
+man firewall-cmd
+firewall-cmd -h
+```
+
 ### ebtables
 
 - [ebtables](https://ebtables.netfilter.org)、[man-docs](https://ebtables.netfilter.org/misc/ebtables-man.html)

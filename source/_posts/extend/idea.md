@@ -155,11 +155,13 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
     - `Dependency Analyzer` - `Conflicts`中显示的即为冲突的依赖
         - 点击其中任何一个依赖，会在右侧显示重复引用的来源(基于版本降序) 
         - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
+- `MybatisX`
+    - 支持生成mybatis-plus代码
 - `MyBatisCodeHelperPro (Marketplace Edition)` 实体/表双向生成(支持实体生成建表语句)
     - 破解: https://cnblogs.com/equals/p/15391453.html
     - [使用说明](https://gejun123456.github.io/MyBatisCodeHelper-Pro/)
     - 支持实体生成建表语句
-    - 支持基于表生成实体/Mapper/服务等
+    - (只支持mybatis)支持基于表生成实体/Mapper/服务等
         - 类似插件: `MybatisX`、`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
     - 支持生成Mybatis执行日志(自动拼接参数)
         - 类似插件: `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板。破解版地址: https://github.com/Link-Kou/intellij-mybaitslog
@@ -340,6 +342,11 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
     </set>
 </option>
 ```
+
+### 使用.http文件的快捷请求脚本
+
+- https://www.cnblogs.com/crazymakercircle/p/14317222.html
+- 支持环境变量，如创建`http-client.env.json`
 
 ### Git
 

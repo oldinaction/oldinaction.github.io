@@ -1102,14 +1102,16 @@ public class MyEvent {
 ### 其他多线程相关类
 
 - `FileLock` 使用FileLock可以给文件加锁，在多线程和多进程(多个JVM)的情况下均有效 [^12]
+- `AtomicInteger` 原子计数
 
 ## 并发指标
 
-- http://www.kegel.com/c10k.html
-- https://tallate.github.io/9d02e43e.html
-- https://github.com/xiaojiaqi/10billionhongbaos/wiki/%E6%89%9B%E4%BD%8F100%E4%BA%BF%E6%AC%A1%E8%AF%B7%E6%B1%82%EF%BC%9F%E6%88%91%E4%BB%AC%E6%9D%A5%E8%AF%95%E4%B8%80%E8%AF%95
-- http://www.ideawu.net/blog/archives/740.html
-
+- 文章
+    - http://www.kegel.com/c10k.html
+    - https://tallate.github.io/9d02e43e.html
+    - https://github.com/xiaojiaqi/10billionhongbaos/wiki/%E6%89%9B%E4%BD%8F100%E4%BA%BF%E6%AC%A1%E8%AF%B7%E6%B1%82%EF%BC%9F%E6%88%91%E4%BB%AC%E6%9D%A5%E8%AF%95%E4%B8%80%E8%AF%95
+    - http://www.ideawu.net/blog/archives/740.html
+- QPS 每秒完成查询次数
 - 1h = 3600s, 1s = 1000ms, 1d = 86400s
 - 观点一：https://my.oschina.net/u/1000241/blog/3065185
   - 比如微博每天1亿多pv的系统一般也就 1500 QPS，5000 QPS峰值
@@ -1122,11 +1124,11 @@ public class MyEvent {
 - mysql单机TPS 1w+
 - nginx单机QPS 10W+
 
-- 按二八定律来看，如果每天 80% 的访问集中在 20% 的时间里，这 20% 时间就叫做峰值时间
-  - 公式：( 总PV数 * 80% ) / ( 每天秒数 * 20% ) = 峰值时间每秒请求数(QPS)
+- 按二八定律来看，如果每天 80% 的访问集中在 20% 的时间里，这 20% 时间就叫做峰值时间 (也有按照80%的请求发生在一天的40%的时间内进行计算)
+  - 公式：( 总PV数 * 80% ) / ( 每天秒数 * 20% = 17280 ) = 峰值时间每秒请求数(QPS)
   - 机器：峰值时间每秒QPS / 单台机器的QPS = 需要的机器
-  - 每天300w PV 的在单台机器上，这台机器需要多少QPS？ ( 3000000 * 0.8 ) / (86400 * 0.2 ) = 139 (QPS)
-  - 如果一台机器的QPS是58，需要几台机器来支持？ 139 / 58 = 3
+  - 每天100w PV 的在单台机器上，这台机器需要多少QPS？ ( 1000000 * 0.8 ) / (86400 * 0.2) = 58 (QPS)
+  - 如果一台机器的QPS是20，需要几台机器来支持？ 58 / 20 ~= 3
 - RT（Response-time），响应时间
     - 单线程QPS公式：QPS = 1000ms/RT = 1s/RT
     - 对同一个系统而言，支持的线程数越多，QPS越高。假设一个RT是80ms,则可以很容易的计算出QPS,QPS = 1000/80 = 12.5
@@ -1324,7 +1326,82 @@ public class Simple {
 
 - 参考[junit.md#多线程测试](/_posts/java/junit.md#多线程测试)
 
+## 常用案例
 
+### 批量调用接口
+
+```java
+private ExecutorService executorService = Executors.newFixedThreadPool(3);
+
+public Result genShotUrl(Map<String, Object> params) {
+    List<Map<String, Object>> dictList = jdbcTemplate.queryForList(
+        "select code prop_code, prop_value " +
+        " from sys_dict where valid_status = 1 and parent_code = 'cfg.youlacloud'");
+    Map<String, Object> propCodeMap = MiscU.fieldValueAsMap(dictList, "prop_code", "prop_value");
+    if(ValidU.isEmpty(propCodeMap.get("apiId"))
+        || ValidU.isEmpty(propCodeMap.get("num")) || ValidU.isEmpty(propCodeMap.get("hour"))) {
+        log.warn("请检查配置: cfg.youlacloud");
+        return Result.failure("缺少必须参数");
+    }
+
+    DateTime startDate = DateUtil.offset(new Date(), DateField.HOUR, 0 - (Integer.valueOf(propCodeMap.get("hour").toString())));
+    List<BizCompanyIc> list = bizCompanyIcService.list(new LambdaQueryWrapper<BizCompanyIc>()
+            .eq(BizCompanyIc::getValidStatus, 1)
+            .isNull(BizCompanyIc::getShortUrl)
+            .gt(BizCompanyIc::getCreateTime, startDate)
+            .last("limit " + propCodeMap.get("num"))
+            .select(BizCompanyIc::getId));
+    if(ValidU.isEmpty(list)) {
+        return Result.success();
+    }
+
+    SqThirdAppProp.Config config = SqThirdAppConfig.thirdAppConfigMap.get("sqt-annual-report");
+    CopyOnWriteArrayList<BizCompanyIc> upList = new CopyOnWriteArrayList<>();
+    CountDownLatch countDownLatch = new CountDownLatch(list.size());
+    AtomicInteger errorCount = new AtomicInteger(0);
+
+    for (BizCompanyIc bizCompanyIc : list) {
+        executorService.execute(() -> {
+            try {
+                String body = HttpRequest.post(maUrl)
+                        .form("apiId", propCodeMap.get("apiId"))
+                        .form("url", "pages/reportPage/reportPage?companyId=" + bizCompanyIc.getId())
+                        .form("appId", config.getAppid())
+                        .form("secret", config.getSecret())
+                        .form("domain", propCodeMap.get("domain"))
+                        .execute()
+                        .body();
+                JSONObject jsonObject = JSONUtil.parseObj(body);
+                if (!"1".equals(jsonObject.get("code") + "")) {
+                    log.warn("生成 {} 的短连接失败, {}", bizCompanyIc.getId(), body);
+                    errorCount.addAndGet(1);
+                    if(errorCount.get() > 3) {
+                        executorService.shutdownNow();
+                    }
+                } else {
+                    bizCompanyIc.setShortUrl((String) jsonObject.get("shortUrl"));
+                }
+                bizCompanyIc.setShortUrlTime(new Date());
+                upList.add(bizCompanyIc);
+            } catch (Exception e) {
+                log.error("执行出错", e);
+            } finally {
+                countDownLatch.countDown();
+            }
+        });
+    }
+    try {
+        countDownLatch.await(15, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+        log.error("等待执行结果出错", e);
+        executorService.shutdownNow();
+    }
+    if(ValidU.isNotEmpty(upList)) {
+        bizCompanyIcService.updateBatchById(upList);
+    }
+    return Result.success();
+}
+```
 
 
 

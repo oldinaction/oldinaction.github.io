@@ -13,7 +13,7 @@ tags: [mysql, dba]
 ## Mysql安装与配置
 
 ### Mysql安装
-    
+
 - 软件下载：[服务器安装包 mysql-installer-community-5.7.32.0.msi (或云盘)](https://downloads.mysql.com/archives/installer/)、[Community Server压缩包 mysql-5.7.32-winx64.zip](https://downloads.mysql.com/archives/community/)。installer安装备注如下
     - installer默认安装在`C:\Program Files (x86)\MySQL\MySQL Installer for Windows`目录，打开上述msi则会自动安装在此目录，之后可进行配置Server的安装，安装完server之后，仍然可打开此Installer重新安装、增加安装或卸载，尽管下载的是5.7的Installer，但是包含了5.7、8个版本的安装配置
     - 启动安装，选择Setup Type：Developer Default默认安装了Server和一些连接器和文档，且安装在C盘，如需定义安装目录，需选择Custom
@@ -46,19 +46,21 @@ tags: [mysql, dba]
     - 修改`mysql.user`中该用户的密码
     - 去掉启动参数重新启动
 
-### 创建删除用户
+### 创建/删除用户
 
 ```sql
--- 创建用户基本操作（对于项目级别用户可对每个数据库进行控制，并去掉Grant权限，即去掉查看当前数据库用户列表权限）
-grant all privileges on *.* to 'admin'@'localhost' identified by 'pass' with grant option; -- 创建了一个admin/pass只能本地连接的超级用户
+-- 创建超级用户（对于项目级别用户可对每个数据库进行控制，并去掉Grant权限，即去掉查看当前数据库用户列表权限）
+grant all privileges on *.* to 'root'@'%' identified by 'fC9(oD4=dP2>' with grant option; -- 创建了一个admin/pass只能本地连接的超级用户
 
+-- 更新用户信息
 use mysql
-update user set user='smalle' where user='root';
-set password for 'root'@'localhost' = password('root'); -- 5.6版本更新用户
-update user set authentication_string = password("root") where user='root'; -- 5.7版本更新用户
--- 或者 alter user user() identified by "123456";
-update user set host='%' where user='root';
-delete from user where user = '用户名'; -- 删除用户。删除系统mysql表中的记录
+-- update user set user='smalle' where user='root'; -- 更改用户名
+-- set password for 'root'@'localhost' = password('root'); -- 5.6版本更新用户
+alter user 'root'@'localhost' identified by 'fC9(oD4=dP2>'; -- 5.7版本更新用户密码
+-- update user set authentication_string = password("root") where user='root'; -- 5.7版本更新用户密码
+update user set host='%' where user='root'; -- 更新host
+-- delete from user where user = '用户名'; -- 删除用户。删除系统mysql表中的记录
+
 -- 刷新数据
 flush privileges;
 
@@ -69,12 +71,12 @@ create database my_test; -- 创建数据库
 
 ```sql
 -- 创建用户并授权
-create user username identified by 'password'; -- 默认创建一个'username'@'%'的用户
+create user smalle identified by 'fC9(oD4=dP2>'; -- 默认创建一个'smalle'@'%'的用户
 
--- 给此'username'@'%'用户授所有数据库所有表权限。但是不包含grant权限
-grant all privileges on *.* to 'username'@'%';
-grant all privileges on *.* to 'username'@'localhost' identified by 'password'; -- 对'username'@'localhost'操作(无此用户则创建，有则修改密码)，并授本地登录时所有权限（localhost/127.0.0.1则只能本地登录；'username'@'192.168.1.%'表示只能这个网段的机器可以访问；'username'@'%'则可以在任何机器上登录）
-grant all privileges on `wordpress`.* to `username`@`localhost` identified by 'password'; -- 授予wordpress数据库下所有权限（相当于Navicat上面管理用户：服务器权限Tab不勾选；权限Tab中数据填wordpress，权限类型都勾选）
+-- 给此'smalle'@'%'用户授所有数据库所有表权限。但是不包含grant权限
+grant all privileges on *.* to 'smalle'@'%';
+grant all privileges on *.* to 'smalle'@'localhost' identified by 'password'; -- 对'smalle'@'localhost'操作(无此用户则创建，有则修改密码)，并授本地登录时所有权限（localhost/127.0.0.1则只能本地登录；'smalle'@'192.168.1.%'表示只能这个网段的机器可以访问；'smalle'@'%'则可以在任何机器上登录）
+grant all privileges on `wordpress`.* to `smalle`@`localhost` identified by 'password'; -- 授予wordpress数据库下所有权限（相当于Navicat上面管理用户：服务器权限Tab不勾选；权限Tab中数据填wordpress，权限类型都勾选）
 -- 创建一个用户my_admin/aezocn，让他只可以在localhost上登录，并对数据库mydb有查询、插入、修改、删除的权限
 grant select,insert,update,delete on mydb.* to my_admin@localhost identified by "aezocn";
 -- test可以查询 testdb 中的表

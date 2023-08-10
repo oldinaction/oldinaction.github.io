@@ -122,7 +122,7 @@ tags: [H5, 小程序, App, mobile]
         onLaunch: function() {
 			console.log('App Launch. 当uni-app 初始化完成时触发，全局只触发一次');
 		},
-		onShow: function() {
+		onShow () {
 			console.log('App Show. 当 uni-app 启动，或从后台进入前台显示')
 
 			// #ifdef MP-WEIXIN
@@ -277,7 +277,7 @@ export default {
 }
 ```
 
-#### 路由相关
+### 路由相关
 
 - 路由相关: https://uniapp.dcloud.net.cn/tutorial/page.html#%E8%B7%AF%E7%94%B1
     - 页面跳转
@@ -286,7 +286,8 @@ export default {
         - uni.switchTab 关闭之前页面并显示Tab主页
         - uni.reLaunch 关闭之前页面并打开某个页面
         - uni.navigateBack 关闭当前页面，返回上一页面或多级页面
-    - 路径问题    
+            - H5模式下，浏览器刷新后无法通过uni.navigateBack返回上一页；可使用history对象解决，参考squni.js
+    - 路径问题
         - uni.navigateTo可以使用相对路径或绝对路径，就算最终访问路径增加了publicPath等前缀也可使用/pages/xxx的绝对路径
         - 所有的路由都是基于page.json中的路径，注意如果路径中无.vue后缀，则路由时的路径也不能有.vue后缀
     - navigator标签问题
@@ -323,6 +324,7 @@ uni.openEmbeddedMiniProgram({
 
 - [easycom](https://uniapp.dcloud.net.cn/collocation/pages.html#easycom)
 - [uni_modules](https://uniapp.dcloud.net.cn/plugin/uni_modules.html)
+- 只要组件安装在项目根目录或uni_modules的components目录下，并符合components/组件名称/组件名称.vue或uni_modules/插件ID/components/组件名称/组件名称.vue目录结构。就可以不用引用(import)、注册，直接在页面中使用
 
 ### scroll-view组件
 
@@ -331,25 +333,23 @@ uni.openEmbeddedMiniProgram({
 
 ### web-view开发
 
-- 参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
+- 参考[weixin.md#web-view开发](/_posts/mobile/weixin.md#web-view开发)
 
 ### 样式
 
-- uni.showToast 被遮盖：全局增加样式`uni-toast {z-index: 999999;}`
-- 图片显示
-
-```html
-<view class="cu-avatar round"
-    style="background-image:url('/static/logo.png');">
-</view>
-```
 - 引入iconfont
     - 参考 https://www.jianshu.com/p/7969e4fb2d4e
     - Symbol模式需要引入js才能显示彩色，建议下载成png图片
 
-## 与Vue写法异同
+## 兼容性问题
 
-- 页面上不能直接使用$store，需要通过computed属性映射一次，如果数据比较多可以使用mapState和mapGetters。参考: https://uniapp.dcloud.net.cn/tutorial/vue-vuex.html
+### Vue相关语法问题
+
+- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
+    - Vue特性支持表
+- **小程序模板中不能直接使用$store和$config等自定义全局属性**
+    - $store需要通过computed属性映射一次，如果数据比较多可以使用mapState和mapGetters。参考: https://uniapp.dcloud.net.cn/tutorial/vue-vuex.html
+    - $config可重新定义到data/computed/methods中进行获取
 
     ```js
     computed: {
@@ -364,7 +364,7 @@ uni.openEmbeddedMiniProgram({
     ```
 - 监控路由属性及参数获取
     - uni-app不能watch $route属性，只能通过onShow函数来控制每次显示页面时的动作
-    - this.$route.query只能在H5模式下获取到参数，微信小程序无法获取
+    - this.$route.query只能在H5模式下获取到参数，微信小程序无法获取(从onLoad(options)中获取)。**兼容性获取方法参考squni.js**
 
     ```js
     /**
@@ -393,28 +393,83 @@ uni.openEmbeddedMiniProgram({
         )
     }
     ```
+
+### 其他兼容问题
+
+- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
+- IOS 和 Android 对时间的解析有区别 [^1]
+    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
+    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
+- **input等表单元素的v-model/@input(e.target.value和e.detail.value)都取不到值**
+    - 小程序中有时候会出现不开调试模式，或者调试模式开启失败(只有性能按钮，没有vConsole按钮)
+    - 有时候开启成功也会遇到，生产环境暂未遇到
+
+### 样式问题
+
+- 图片显示
+    - 参考：https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E8%83%8C%E6%99%AF%E5%9B%BE%E7%89%87
+
+```html
+<!-- 支持 -->
+<image class="cu-avatar round" src="/static/logo.png">
+
+<!-- 此方式仅开发环境有效，如果写成js导入的方式小程序真机是可以的 -->
+<view class="cu-avatar round" style="background-image:url('/static/logo.png');"></view>
+```
+- css变量单位
+    - css绑定变量：https://blog.csdn.net/zz00008888/article/details/126222530
+    - css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa
+
+```html
+ios：pt
+android：dp
+web：px、rem、em
+微信小程序：rpx
+uniapp：upx
+
+单位换算（正常情况下）
+1pt = 1dp = 2px
+2rpx = 2upx = 1px
+
+<!-- 此处padding为30rpx，在小程序开发工具里面会变成15px(单数从而导致两张图片中间有间隙)，此处改成28rpx就可以了 -->
+<view style="padding: 0rpx 30rpx 30rpx 30rpx; width: 100%;">
+    <image style="width: 100%;display: block;" mode="widthFix" src="https://ossweb-img.qq.com/images/lol/web201310/skin/big10006.jpg"></image>
+    <image style="width: 100%;display: block;" mode="widthFix" src="https://ossweb-img.qq.com/images/lol/web201310/skin/big10006.jpg"></image>
+</view>
+```
+- uni.showToast 被遮盖：全局增加样式`uni-toast {z-index: 999999;}`
 - 不支持`<br/>`换行
 
-    ```html
-    <!-- 使用\n的时候，一定是在<text>标签内，如果在<view>标签中，\n并没有折行左右，只是显示一个空格 -->
-    <text>欢迎\n使用</text>
-    <!-- 会按照当前看到的排版 -->
-    <text>
-        欢迎
+```html
+<!-- 使用\n的时候，一定是在<text>标签内，如果在<view>标签中，\n并没有折行左右，只是显示一个空格 -->
+<text>欢迎\n使用</text>
+<!-- 会按照当前看到的排版 -->
+<text>
+    欢迎
 
-        使用
-    </text>
-    ```
+    使用
+</text>
+```
 - 空格问题: https://uniapp.dcloud.net.cn/component/text.html
 
-    ```html
-    <!-- 不能直接写成 {{ '&ensp;' }} -->
-    <text decode>{{ blank }}</text>
+```html
+<!-- 不能直接写成 {{ '&ensp;' }} -->
+<text decode>{{ blank }}</text>
 
-    {
-        blank: '&ensp;'
-    }
-    ```
+{
+    blank: '&ensp;'
+}
+```
+- 电脑版文字点击问题
+
+```html
+<!-- 最外层的view如果改成text则会导致电脑端小程序无法触发点击事件(手机版是可以的) -->
+<view class="inline">
+    我已阅读并同意
+    <text class="text-main" style="cursor: pointer;" @tap="navToDetail('用户协议')">用户协议</text>
+    <text class="text-main" style="cursor: pointer;" @tap="navToDetail('隐私政策')">《隐私政策》</text>
+</view>
+```
 
 ## 常见业务
 
@@ -479,22 +534,8 @@ uni.openEmbeddedMiniProgram({
     - 运行期判断，`uni.getSystemInfoSync().platform = android|ios|devtools` 判断客户端环境是 Android、iOS 还是小程序开发工具
 - 扫码功能参考[uni.scanCode](https://uniapp.dcloud.net.cn/api/system/barcode?id=scancode)、[js-tools.md#扫码/条码生成](/_posts/web/js-tools.md#扫码/条码生成)
 - H5多项目编译(路径前缀)：定义manifest.json中的`publicPath`和`router.base`，参考[manifest.json](#项目文件)
-- `web-view`使用参考[weixin.md#web-view开发](/_posts/web/mobile/weixin.md#web-view开发)
+- `web-view`使用参考[weixin.md#web-view开发](/_posts/mobile/weixin.md#web-view开发)
 - `rich-text`可以通过vue的v-html进行渲染，但是传入的字符串不能包含body、html等节点(如果使用了不受信任的HTML节点，该节点及其所有子节点将会被移除)
-- css绑定变量：https://blog.csdn.net/zz00008888/article/details/126222530
-- css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa
-
-    ```bash
-    ios：pt
-    android：dp
-    web：px、rem、em
-    微信小程序：rpx
-    uniapp：upx
-
-    单位换算（正常情况下）
-    1pt = 1dp = 2px
-    2rpx = 2upx = 1px
-    ```
 - 小程序保存图片到相册：https://blog.csdn.net/weixin_64493170/article/details/127408730
 - uniapp中websocket的使用
     - 官方API：https://uniapp.dcloud.net.cn/api/request/websocket.html
@@ -519,7 +560,7 @@ uni.openEmbeddedMiniProgram({
 <button class="cu-btn round shadow block cuIcon sm line-red lines-red bg-red bg-gradual-red" loading>
     图标: <text class="cuIcon-upload"></text>
     加载: <text class="cuIcon-loading2 cuIconfont-spin"></text>
-    默认: cu-btn 
+    默认: cu-btn
     圆角: round
     阴影: shadow
     无效状态: block
@@ -527,7 +568,7 @@ uni.openEmbeddedMiniProgram({
     尺寸: sm/默认/lg
     镂空边框: line-red | lines-red(线条更粗)
     背景: bg-red | bg-gradual-red(渐变色)
-    原生加载: loading
+    原生加载: loading | 图标(如果要防止重复点击需要结合disabled属性). 或者使用uni.showLoading函数
 </button>
 ```
 - 常用布局
@@ -537,6 +578,20 @@ uni.openEmbeddedMiniProgram({
     - align- 中线对齐
 
 ```html
+<!-- 水平居中 -->
+<span class="flex justify-center">
+    <div>
+        <span>文字1</span>
+        <span>文字2</span>
+    </div>
+</span>
+
+<!-- 左右两边浮动，并中线对齐 -->
+<span class="flex justify-between align-center">
+    <div>显示在左边</div>
+    <span>显示在右边</span>
+</span>
+
 <!-- 垂直对齐 -->
 <span class="flex flex-direction align-center">
     <div>显示在上面</div>
@@ -570,23 +625,12 @@ uni.openEmbeddedMiniProgram({
 
 ## 常见问题
 
-- 小程序图片不显示问题，参考[weixin.md](/_posts/web/mobile/weixin.md#其他)
+- 小程序图片不显示问题，参考[weixin.md](/_posts/mobile/weixin.md#其他)
 - 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
     - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
 - 真机调试
     - IOS需要开放微信访问本地网络
 
-### API兼容问题
-
-- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
-    - Vue特性支持表
-
-### 其他兼容问题
-
-- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
-- IOS 和 Android 对时间的解析有区别 [^1]
-    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
-    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
 
 
 

@@ -36,6 +36,8 @@ ${(appVersion)!}
 
 - `??` 等同于 `exists`
 - `!` 等同于 `?if_exists`。也可接默认值，如：`${(name)!'smalle'}`
+- `||` 或
+- `&&` 且
 - 示例
 
 ```html
@@ -136,6 +138,8 @@ ${userMap["1"]}
 > https://freemarker.apache.org/docs/ref_builtins.html
 
 ```html
+<#if 'Hello, world!'?index_of("world") != -1>包含子字符串</#if>
+
 <!-- 判断变量类型（is_...函数）：https://freemarker.apache.org/docs/ref_builtins_expert.html -->
 <#if arr?is_enumerable>arr为集合或序列，可被#list变量</#if><!-- 判断是否为集合或序列 -->
 

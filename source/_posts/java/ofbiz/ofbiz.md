@@ -388,7 +388,7 @@ mail.smtp.port=25 # 端口
 
 ## 实体引擎
 
-### JavaAPI
+### JavaAPIz
 
 ```java
 EntityCondition condition = EntityCondition.makeCondition(UtilMisc.toMap("userLoginId", userLoginId, "groupId", "BUSINESS_ADMIN"));
@@ -436,6 +436,50 @@ if(UtilValidate.isEmpty(userLoginSecurityGroupList)) {
         <description>The Name of the Entity Delegator to use, defined in entityengine.xml</description> 
     </context-param>
     ```
+
+### 执行SQL工具类型
+
+```java
+// Delegator delegator = (Delegator)request.getAttribute("delegator");
+public static List runSql(Delegator delegator, String sql) {
+    List retList = FastList.newInstance();
+
+    String groupHelperName = delegator.getGroupHelperName("org.ofbiz");
+    Connection connection = null;
+    PreparedStatement pstmt = null;
+    ResultSet resultSet = null;
+    try {
+        connection = ConnectionFactory.getConnection(groupHelperName);
+        pstmt = connection.prepareStatement(sql);
+        resultSet = pstmt.executeQuery();
+
+        retList = JdbcU.resultSetToList(resultSet);
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        JdbcU.close(resultSet, pstmt, connection);
+    }
+
+    return retList;
+}
+
+public static int execSql(Delegator delegator, String sql) {
+    String groupHelperName = delegator.getGroupHelperName("org.ofbiz");
+    Connection connection = null;
+    Statement stmt = null;
+    ResultSet resultSet = null;
+    try {
+        connection = ConnectionFactory.getConnection(groupHelperName);
+        stmt = connection.createStatement();
+        return stmt.executeUpdate(sql);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return -1;
+    } finally {
+        JdbcU.close(resultSet, stmt, connection);
+    }
+}
+```
 
 ### Tenant多租户(SaaS)
 

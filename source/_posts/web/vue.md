@@ -334,236 +334,6 @@ export default {
 </script>
 ```
 
-### render函数
-
-- [参考vue render属性](https://cn.vuejs.org/v2/guide/render-function.html)
-
-```js
-Vue.component('anchored-heading', {
-  // render 可代替 template 的 dom 节点
-  // template: '#div',
-  render: function (createElement) {
-    return createElement(
-      'h' + this.level,   // 标签名称
-      this.$slots.default // 子节点数组
-    )
-  },
-  props: {
-    level: {
-      type: Number,
-      required: true
-    }
-  }
-})
-```
-- render 语法(iview案例)
-
-```js
-// 语法
-render: (h, {params | param}) => {
-	// 此时params中包含row、column和index; param就是row
-	return h("定义元素标签/Vue对象标签", { 元素性质 }, "元素内容"/[元素内容])
-
-    // 2个参数的情况
-    return h("定义的元素", { 元素性质 })
-	return h("定义的元素", "元素的内容"/[元素的内容])
-}
-
-// 示例
-render: (h, params) => {
-	// 如果在表格的列中使用，此时params中包含row、column和index，分别指当前单元格数据，当前列数据，当前是第几行。
-	return h('div', {
-		style:{width:'100px', height:'100px', background:'#ccc'}
-	}, '用户名：smalle')
-}
-
-// 写法优化1
-{
-	title:'操作',
-	align: 'center',
-	render: (h, params) => {
-        let row = params.row
-        let that = this
-
-        let editButtonAttr = {
-            on: {
-                click: () => {
-                    that.edit(row)
-                }
-            }
-        }
-        let editButton = h('Button', editButtonAttr, '编辑')
-
-        return h('div', [editButton])
-    }
-}
-// 写法优化2
-{
-	title:'操作',
-	align: 'center',
-    render: (h, params) =>{
-        let that = this
-        return h('div', that.getEditButton(h, params.row)) // getEditButton定义省略
-    }
-}
-```
-- vue的data对象对应属性
-
-```json
-{
-  // 其他特殊顶层属性
-  key: 'myKey',
-  ref: 'myRef',
-  // 和`v-bind:class`一样的 API
-  // class: 'class-name'
-  'class': {
-    foo: true,
-    bar: false
-  },
-  // 和`v-bind:style`一样的 API
-  style: {
-    color: 'red',
-    fontSize: '14px',
-    paddingRight: '10px'
-  },
-  // 正常的 HTML 特性
-  attrs: {
-    id: 'foo'
-  },
-  // 组件 props
-  props: {
-    myProp: 'bar'
-  },
-  // DOM 属性
-  domProps: {
-    innerHTML: 'baz'
-  },
-  // 事件监听器基于 `on`
-  // 所以不再支持如 `v-on:keyup.enter` 修饰器
-  // 需要手动匹配 keyCode。
-  on: {
-    click: this.clickHandler
-  },
-  // 仅对于组件，用于监听原生事件，而不是组件内部使用 `vm.$emit` 触发的事件。
-  nativeOn: {
-    click: this.nativeClickHandler
-  },
-  // 自定义指令。注意事项：必须是全局指令；不能对绑定的旧值设值
-  directives: [
-    {
-      // 如果在标签上使用是 v-permission，此时需要省略 v-
-      name: 'permission',
-      value: ['Button_Report_Manage']
-    },
-    {
-      name: 'my-custom-directive',
-      value: '2',
-      expression: '1 + 1',
-      arg: 'foo',
-      modifiers: {
-        bar: true
-      }
-    }
-  ],
-  // Scoped slots in the form of
-  // { name: props => VNode | Array<VNode> }
-  scopedSlots: {
-    default: props => createElement('span', props.text)
-  },
-  // 如果组件是其他组件的子组件，需为插槽指定名称
-  slot: 'name-of-slot'
-}
-```
-- iview示例：此时Poptip和Tag都是Vue对象，因此要设置参数props
-
-```js
-// 调用组件并监听事件
-<MyComponent @my-event="myEvent"/>
-
-// 组件内部渲染
-render: (h, params) => {
-    // 也 render 一个自定义的组件
-	return h('Poptip', {
-		props: {
-			trigger: 'hover',
-			title: params.row.name + '的信息',
-			placement: 'bottom',
-            transfer: true
-            // confirm: true
-        },
-        // on: {
-        //     'on-ok': () => {
-        //         this.confirm()
-        //     }
-        // }
-	}, [
-        // Poptip-Tag
-		h('Tag', {
-			// 此处必须写在props里面，不能直接将组件属性放在元素性质里面
-			props: function() {
-				const color = params.index == 1 ? 'red' : params.index == 3 ? 'green' : '';
-				const props = {
-					type: "dot",
-					color: color
-				}
-				return color == '' ? {} : props
-			}()
-		}, function(vm) {
-			// 此时this为函数作用域类，拿不到vue对象，通过vm传递
-			console.log(vm)
-			return params.row.CorporateName + '...'
-        }(this)),
-
-        // Poptip-xxx
-        (function(vm) {
-            return params.row.content
-        }(this)),
-
-        // Poptip-div
-		h('div', {
-			slot: 'content'
-		}, [
-			h('p', {
-				style: {
-					padding: '4px'
-				}
-			}, '用户名：' + params.row.name)
-        ]),
-
-        // Poptip-div
-		return h("div", [
-			h("Button", {
-				props: {
-					type: "info",
-					size: "small"
-                },
-                class: 'class-name'
-				style: {
-                    marginRight: "8px",
-                    // 控制此按钮是否可见
-                    display: params.row.statsu == 'Y' ? 'inline-block' : 'none'
-				},
-				attrs: {
-					// button 标签的其他属性
-				},
-				on: {
-					click: ok => {
-						// 触发事件
-						this.$emit("my-event", params);
-					}
-				}
-			},
-			"重登")
-		])
-	])
-}
-```
-
-#### 报错 You may have an infinite update loop in a component render function
-
-- 参考：https://www.itread01.com/content/1541599683.html
-- `render method is triggered whenever any state changes` vue组件中任何属性改变致使render函数重新执行。如果在模板中直接修改vue属性或调用的方法中修改了属性(如双括号中，而@click等事件中是可以修改vue属性的)，就会导致重新render。从而产生**render - 属性改变 - render**无限循环
-
 ### 页面渲染优化(性能优化)
 
 - 参考文章 [^9] [^12]
@@ -943,13 +713,24 @@ Vue.component('base-checkbox', {
 <!-- 
     1.假设子组件接受参数：name, age, sex; dataBind/eventBind中指定的优先级高于dom上指定的属性
     2.此时v-bind和:name同时传参，此时会优先:name，除非:name的值为null，才会读取v-bind
-    3.此时v-on和@test同时监听事件，都会生效(貌似会先触发@test)
+    3.v-on="eventBind"表示使用对象来处理所有事件
+    4.v-bind="$listeners" 是上述的一个特例，表示监听child-component的事件，并将其$emit到外部，即透传child-component的事件到父组件
+    5.此时v-on和@test同时监听事件，都会生效(貌似会先触发@test)
 -->
-<child-component v-bind="dataBind" :name="smalle2" v-on="eventBind" @test="myTest"></child-component>
-<!-- 重新包装el-pagination成组件，在使用此组件时将参数全部绑定到el-pagination中 -->
- <el-pagination
-    v-bind="$attrs"
-/>
+<div>
+    <!-- 两个v-on仅做演示 -->
+    <child-component :name="smalle2"
+        v-bind="dataBind"
+        v-on="eventBind"
+        v-on="$listeners"
+        @test="myTest"
+    ></child-component>
+    
+    <!-- 重新包装el-pagination成组件，在使用此组件时将参数全部绑定到el-pagination中 -->
+    <el-pagination
+        v-bind="$attrs"
+    />
+</div>
 
 <script>
     // 此时子组件参数全部使用默认值
@@ -1119,10 +900,11 @@ this.$root.eventBus.$off('eventName')
 ```html
 <!-- 组件comp.vue -->
 <div>
-    <div v-for="item in list">
+    <div v-if="$slots.content">
         <!-- name为插槽名称，如果只有一个可省略(即为默认插槽)；v-bind:item="item"将item传递到子组件(此处两个item必须一致) -->
         <slot name="content" v-bind:item="item"></slot>
     </div>
+    <div v-else>默认内容</div>
 </div>
 
 <!-- 组件调用者 -->
@@ -1635,6 +1417,39 @@ export default {
 </style>
 ```
 
+### 接受外部参数动态修改样式
+
+```html
+<!-- Vue2支持 -->
+<template>
+	<div class="box" :style="{'--heightline': heightLine + 'px'}">
+        <!-- 变量名必须以--开头，且不要使用驼峰变量(uniapp会不起作用)，此处背景图的url必须写到上面 -->
+        <div class="login-bg" :style="{'--maloginbg': 'url(' + maLoginBg + ')'}"></div>
+    </div>
+</template>
+<script>
+export default {
+  data() {
+    return {
+    	height: 42,
+        maLoginBg: 'https://example.com/bg.png'
+    };
+  }
+};
+</script>
+<style lang="less" scoped>
+.box{
+	height: var(--heightline); 
+}
+.login-bg::after {
+	content: '';
+	background-image: var(--maloginbg);
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+</style>
+```
+
 ### transition 动画
 
 - 参考：[API](https://cn.vuejs.org/v2/api/#transition)、[guide](https://cn.vuejs.org/v2/guide/transitions.html)
@@ -1988,6 +1803,7 @@ export default {
                 // 其他如npm link引用本地模块的方法参考：https://blog.csdn.net/zhangxin09/article/details/119344515
                 // 配合 npm link(通过本地路径直接安装模块即可，偶尔还是需要npm link) 就可以做本地调试了。(1)现在模块目录执行<sudo> npm link将当前模块关联到全局 (2) 在到项目目录执行`npm link my-module`关联模块到项目中(执行后会将本地开发包关联到node_modules中；如果项目目录中配置的是远程包，当重新npm i就会重新下载远程包，即npm link失效)
                 // 注意：--watch模式下，打包的lib中不会出现.css文件(样式和图片等资源无法实时监控)，因为css样式已经内联了，可通过在模块的 vue.config.js 中设置 css: { extract: true } 取消内联
+                // vue-cli-service build只会将组件中的样式进行打包到单独的文件或放在js内联中；无法将额外的less等样式进行打包，如需要可在主入口引入一下(如果时间开发需要额外的less，可将style目录放到打包产物中，主应用直接应用less文件也可以)
                 "start": "vue-cli-service build --target lib --name report-table --dest lib ./src/index.js --watch",
                 // 打包命令，打出来的包在lib文件夹中
                 // --formats umd-min # 产物包类型，默认包含common.js、.umd.js、.umd.min.js，此时表示只打包umd.min
@@ -2187,9 +2003,23 @@ npm install babel-plugin-syntax-jsx babel-plugin-transform-vue-jsx babel-helper-
 render() {
     return (
         <div class='wrapper'>
-        {
-            this.hello && (<div class='content'>hello</div>)
-        }
+            <span>123</span>
+            {
+                this.hello && (<div class='content'>hello</div>)
+            }
+            {
+                this.hello2 && (<div class='content'>{ this.hello2 }</div>)
+            }
+        </div>
+    )
+}
+
+// v-html的两种写法
+render() {
+    return (
+        <div>
+            <div domPropsInnerHTML={ htmlVal } />
+            <div domProps={ { innerHTML: htmlVal } } />
         </div>
     )
 }
@@ -2261,6 +2091,236 @@ return (
     }}>{ msg }</span>
 )
 ```
+
+### render函数
+
+- [参考vue render属性](https://cn.vuejs.org/v2/guide/render-function.html)
+
+```js
+Vue.component('anchored-heading', {
+  // render 可代替 template 的 dom 节点
+  // template: '#div',
+  render: function (createElement) {
+    return createElement(
+      'h' + this.level,   // 标签名称
+      this.$slots.default // 子节点数组
+    )
+  },
+  props: {
+    level: {
+      type: Number,
+      required: true
+    }
+  }
+})
+```
+- render 语法(iview案例)
+
+```js
+// 语法
+render: (h, {params | param}) => {
+	// 此时params中包含row、column和index; param就是row
+    // 如果是非文本元素，如需要继续渲染子元素的，第三个参数需要使用数组接收
+	return h("定义元素标签/Vue对象标签", { 元素性质 }, "元素内容"/[元素内容])
+
+    // 2个参数的情况
+    return h("定义的元素", { 元素性质 })
+	return h("定义的元素", "元素的内容"/[元素的内容])
+}
+
+// 示例
+render: (h, params) => {
+	// 如果在表格的列中使用，此时params中包含row、column和index，分别指当前单元格数据，当前列数据，当前是第几行。
+	return h('div', {
+		style:{width:'100px', height:'100px', background:'#ccc'}
+	}, '用户名：smalle')
+}
+
+// 写法优化1
+{
+	title:'操作',
+	align: 'center',
+	render: (h, params) => {
+        let row = params.row
+        let that = this
+
+        let editButtonAttr = {
+            on: {
+                click: () => {
+                    that.edit(row)
+                }
+            }
+        }
+        let editButton = h('Button', editButtonAttr, '编辑')
+
+        return h('div', [editButton])
+    }
+}
+// 写法优化2
+{
+	title:'操作',
+	align: 'center',
+    render: (h, params) =>{
+        let that = this
+        return h('div', that.getEditButton(h, params.row)) // getEditButton定义省略
+    }
+}
+```
+- vue的data对象对应属性
+
+```json
+{
+  // 其他特殊顶层属性
+  key: 'myKey',
+  ref: 'myRef',
+  // 和`v-bind:class`一样的 API
+  // class: 'class-name'
+  'class': {
+    foo: true,
+    bar: false
+  },
+  // 和`v-bind:style`一样的 API
+  style: {
+    color: 'red',
+    fontSize: '14px',
+    paddingRight: '10px'
+  },
+  // 正常的 HTML 特性
+  attrs: {
+    id: 'foo'
+  },
+  // 组件 props
+  props: {
+    myProp: 'bar'
+  },
+  // DOM 属性
+  domProps: {
+    innerHTML: 'baz'
+  },
+  // 事件监听器基于 `on`
+  // 所以不再支持如 `v-on:keyup.enter` 修饰器
+  // 需要手动匹配 keyCode。
+  on: {
+    click: this.clickHandler
+  },
+  // 仅对于组件，用于监听原生事件，而不是组件内部使用 `vm.$emit` 触发的事件。
+  nativeOn: {
+    click: this.nativeClickHandler
+  },
+  // 自定义指令。注意事项：必须是全局指令；不能对绑定的旧值设值
+  directives: [
+    {
+      // 如果在标签上使用是 v-permission，此时需要省略 v-
+      name: 'permission',
+      value: ['Button_Report_Manage']
+    },
+    {
+      name: 'my-custom-directive',
+      value: '2',
+      expression: '1 + 1',
+      arg: 'foo',
+      modifiers: {
+        bar: true
+      }
+    }
+  ],
+  // Scoped slots in the form of
+  // { name: props => VNode | Array<VNode> }
+  scopedSlots: {
+    default: props => createElement('span', props.text)
+  },
+  // 如果组件是其他组件的子组件，需为插槽指定名称
+  slot: 'name-of-slot'
+}
+```
+- iview示例：此时Poptip和Tag都是Vue对象，因此要设置参数props
+
+```js
+// 调用组件并监听事件
+<MyComponent @my-event="myEvent"/>
+
+// 组件内部渲染
+render: (h, params) => {
+    // 也 render 一个自定义的组件
+	return h('Poptip', {
+		props: {
+			trigger: 'hover',
+			title: params.row.name + '的信息',
+			placement: 'bottom',
+            transfer: true
+            // confirm: true
+        },
+        // on: {
+        //     'on-ok': () => {
+        //         this.confirm()
+        //     }
+        // }
+	}, [
+        // Poptip-Tag
+		h('Tag', {
+			// 此处必须写在props里面，不能直接将组件属性放在元素性质里面
+			props: function() {
+				const color = params.index == 1 ? 'red' : params.index == 3 ? 'green' : '';
+				const props = {
+					type: "dot",
+					color: color
+				}
+				return color == '' ? {} : props
+			}()
+		}, function(vm) {
+			// 此时this为函数作用域类，拿不到vue对象，通过vm传递
+			console.log(vm)
+			return params.row.CorporateName + '...'
+        }(this)),
+
+        // Poptip-xxx
+        (function(vm) {
+            return params.row.content
+        }(this)),
+
+        // Poptip-div
+		h('div', {
+			slot: 'content'
+		}, [
+			h('p', {
+				style: {
+					padding: '4px'
+				}
+			}, '用户名：' + params.row.name)
+        ]),
+
+        // Poptip-div
+		return h("div", [
+			h("Button", {
+				props: {
+					type: "info",
+					size: "small"
+                },
+                class: 'class-name'
+				style: {
+                    marginRight: "8px",
+                    // 控制此按钮是否可见
+                    display: params.row.statsu == 'Y' ? 'inline-block' : 'none'
+				},
+				attrs: {
+					// button 标签的其他属性
+				},
+				on: {
+					click: ok => {
+						// 触发事件
+						this.$emit("my-event", params);
+					}
+				}
+			},
+			"重登")
+		])
+	])
+}
+```
+- 报错 You may have an infinite update loop in a component render function
+    - 参考：https://www.itread01.com/content/1541599683.html
+    - `render method is triggered whenever any state changes` vue组件中任何属性改变致使render函数重新执行。如果在模板中直接修改vue属性或调用的方法中修改了属性(如双括号中，而@click等事件中是可以修改vue属性的)，就会导致重新render。从而产生**render - 属性改变 - render**无限循环
+
 
 ## Vue对Typescript的支持
 
@@ -2342,7 +2402,9 @@ const routers = [{
     meta: {
       title: "拜访编辑"
     },
-    component: () => import("@/views/mobile/visit_info.vue")
+    component: () => import("@/views/mobile/visit_info.vue"),
+    // props: true, // 将参数(info_id)传递到组件的prop
+    props: route => ({ id: route.query.info_id }) // 传递参数给组件
   }]
 }]
 ```
@@ -3021,6 +3083,9 @@ module.exports = {
     - Next.js: 基于React的
     - [Nuxt.js](https://nuxt.com.cn/): 基于Vue.js, 相比Vuepress更偏Web应用
     - Gridsome: 基于Vue.js, 支持GraphQL
+    - [docusaurus](https://docusaurus.io/)
+        - **技术类官网(基于react)**，如果lowcode-engine，官网有很多模板可供选择
+        - 以Markdown/MDX内容驱动. [MDX](https://mdxjs.com/)、[MDX中文](https://www.mdxjs.cn/)
 
 
 ## 插件收集

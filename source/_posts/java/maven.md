@@ -11,6 +11,13 @@ tags: [build]
 - [maven教程](https://www.runoob.com/maven/maven-tutorial.html)
 - [《Maven官方文档》目录指南](http://ifeve.com/maven-index-2/)
 - FatJar：将应用程序及其依赖jar一起打包到一个独立的jar中，就叫fat jar，它也叫uberJar，如springboot应用
+- 安装
+
+```bash
+# 3.8.8 要求JDK1.7及以上
+wget https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz
+tar -zxvf apache-maven-3.8.8-bin.tar.gz -C /opt
+```
 
 ## 打包和安装
 
@@ -56,7 +63,7 @@ tags: [build]
 # 会创建一个名为myapp的Maven项目，并自动添加必要的文件和文件夹
 mvn archetype:generate -DgroupId=com.example -DartifactId=myapp -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 
-# 下载依赖
+# 下载依赖（有时候通过idea刷新依赖失败，可使用此命令下载试试）
 # mvn -f pom.xml dependency:resolve
 mvn dependency:resolve
 # 将依赖的jar复制到target/dependency目录
@@ -160,10 +167,10 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 
 	依赖范围(Scope)|	编译classpath|	测试classpath|	运行时classpath| 打包文件是否包含此依赖|	传递性|	说明
 	--|---|---|---|---|---|---
-	compile	|	Y|	Y|	Y|	Y|	N|	默认，compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时，仅打包无|
+	compile	|	Y|	Y|	Y|	Y|	N|	默认，compile范围内的依赖项在所有情况下都是有效的，包括运行、测试和编译时，仅打包无；可通过反射调用此级别的依赖，防止打包后未映入相关依赖而报错|
 	runtime	|	-|	Y|	Y|	Y|	N|	运行和test的类路径下可以访问| 如编译时只需要JDBC API的jar，而只有运行时才需要JDBC驱动实现
 	test	|	-|	Y|	-|	-|	N|	只对测试时有用，包括测试代码的编译和运行|
-	provided|	Y|	Y|	-|	-|	N|	该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK或者运行容器提供|
+	provided|	Y|	Y|	-|	-|	N|	该依赖项将由JDK或者运行容器在运行时提供，也就是说由Maven提供的该依赖项我们只有在编译和测试时才会用到，而在运行时将由JDK、运行容器、或主应用提供|
 	system	|	Y|	Y|	-|	Y|	Y|	该依赖项由本地文件系统提供，不需要Maven到仓库里面去找。指定scope为system需要与另一个属性元素systemPath一起使用，它表示该依赖项在当前系统的位置，使用的是绝对路径|
 	import	|	|	|	|	|	-|	maven的`<parent>`只支持单继承，如果还需要继承其他模块的配置，可以如此使用(eg: springboot项目引入springcloud)|
 
@@ -317,15 +324,34 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 	</build>
 	```
 
+### 仓库的优先级
+
+- 依赖优先级关系由近(本地仓库)及远(中央仓库)
+    - 仓库类型
+        - 本地仓库(.m2)
+        - 自定义第三方仓库
+            - 项目profile仓库，通过 pom.xml 中的 project.profiles.profile.repositories.repository 配置
+            - 全局-用户profile仓库，通过 settings.xml 中的 settings.repositories.repository 配置
+            - 项目仓库，通过 pom.xml 中的 project.repositories.repository 配置
+        - 中央仓库，这是默认的仓库(仓库ID=central)
+    - 仓库和镜像
+        - jar都是从仓库下载的，如果对应仓库ID设置了镜像，则会从镜像获取(相当于走了代理，但是如果此镜像代理地址没有代理此仓库就会导致包拉取不下来)
+            - 如设置`<mirrorOf>central</mirrorOf>`表示代理中央仓库
+            - 如设置`<mirrorOf>*</mirrorOf>`表示代理所有的仓库，包括自己设置的第三方仓库
+            - 阿里云可代理的仓库ID类型：https://developer.aliyun.com/mvn/guide
+        - 仓库级别按照repository顺序依次判断是否存在此依赖
+        - 用户-全局镜像仓库，通过 sttings.xml 中的 settings.mirrors.mirror 配置
+
 ## maven实战
 
 ### maven镜像修改
 
-- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到<mirrors>标签，添加如下子标签(windows/linux均可)
+- 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到`<mirrors>`标签，添加如下子标签(windows/linux均可)
+    - 参考：https://zhuanlan.zhihu.com/p/71998219
 
 	```xml
     <!--
-        <mirrorOf>*</mirrorOf> 匹配所有仓库请求，即将所有的仓库请求都转到该镜像上
+        <mirrorOf>*</mirrorOf> 匹配所有仓库请求，即将所有的仓库请求都转到该镜像上(包括项目中设置的第三方仓库)
         <mirrorOf>repo1,repo2</mirrorOf> 将仓库repo1和repo2的请求转到该镜像上，使用逗号分隔多个远程仓库
         <mirrorOf>*,!repo1</miiroOf> 匹配所有仓库请求，repo1除外，使用感叹号将仓库从匹配中排除
     -->
@@ -338,16 +364,16 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 	```
 - 证书问题导致，下载jar包时只返回一个更新文件，且里面报错`unable to find valid certification path to requested target`。需按照下列方式修改jdk证书 [^4]
 
-    ```bash
-    # 浏览器访问 https://maven.aliyun.com/nexus/content/groups/public/，查看证书 - 下载证书(复制到文件，Base64) - 如d:D://aliyun.cer
-    # 进入jdk目录 jdk1.8.0_111\jre\lib\security 执行命令
-    keytool -import -alias aliyun -keystore cacerts -file D://aliyun.cer
-    # 输入密码 changeit
-    # 输入信任证书 Y
-    # 导入成功后可查看证书，密码为 changeit
-    keytool -list -keystore cacerts -alias aliyun
-    # 稍后重新下载jar包
-    ```
+```bash
+# 浏览器访问 https://maven.aliyun.com/nexus/content/groups/public/，查看证书 - 下载证书(复制到文件，Base64) - 如d:D://aliyun.cer
+# 进入jdk目录 jdk1.8.0_111\jre\lib\security 执行命令
+keytool -import -alias aliyun -keystore cacerts -file D://aliyun.cer
+# 输入密码 changeit
+# 输入信任证书 Y
+# 导入成功后可查看证书，密码为 changeit
+keytool -list -keystore cacerts -alias aliyun
+# 稍后重新下载jar包
+```
 - pom.xml指定远程仓库
 
 ```xml
@@ -494,7 +520,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 <dependency>
     <groupId>com.aspose</groupId>
     <artifactId>aspose-cells</artifactId>
-    <version>21.11-crack</version>
+    <version>21.11-fix</version>
 </dependency>
 
 <build>
@@ -504,18 +530,20 @@ mvn wrapper:wrapper -Dmaven=3.6.3
             <artifactId>maven-install-plugin</artifactId>
             <version>2.5.2</version>
             <executions>
-                <!-- 在mvn clean阶段安装本地jar包到本地maven仓库，从而可正常引入 -->
+                <!-- 在mvn clean阶段安装本地jar包到本地maven仓库，从而可正常引入；也可通过命令直接按钮，参考下文maven-install-plugin插件 -->
                 <execution>
                     <id>install-aspose-cells</id>
                     <phase>clean</phase>
                     <configuration>
-                        <file>${basedir}/../docs/lib/aspose-cells-21.11-crack.jar</file>
+                        <file>${basedir}/../docs/lib/aspose-cells-21.11-fix.jar</file>
                         <repositoryLayout>default</repositoryLayout>
                         <groupId>com.aspose</groupId>
                         <artifactId>aspose-cells</artifactId>
-                        <version>21.11-crack</version>
+                        <version>21.11-fix</version>
                         <packaging>jar</packaging>
                         <generatePom>true</generatePom>
+                        <!-- 可指定本地仓库位置 -->
+                        <!-- <localRepositoryPath>/Users/smalle/gitwork/github/aezo-maven-repo/</localRepositoryPath> -->
                     </configuration>
                     <goals>
                         <goal>install-file</goal>
@@ -818,7 +846,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 - [maven-install-plugin](https://maven.apache.org/plugins/maven-install-plugin/index.html) 将jar安装到本地仓库，配置类似maven-deploy-plugin
 
 ```bash
-# 安装依赖(安装jar包到本地)
+# 安装依赖(安装jar包到本地仓库，可指定仓库位置)
 mvn install:install-file -Dfile=test-1.0.0.jar -DgroupId=cn.aezo -DartifactId=test -Dversion=1.0.0 -Dpackaging=jar
 # -DlocalRepositoryPath=/Users/smalle/gitwork/github/aezo-maven-repo/ # 可增加参数指定安装位置
 ```
@@ -1001,9 +1029,22 @@ public class BizMojo extends AbstractMojo {
 
 ## maven私服搭建
 
+### GitHub Packages私有仓库
+
+- 参考：https://www.liaoxuefeng.com/wiki/1252599548343744/1347981037010977
+
+### 阿里云私服
+
 - **也可使用阿里云私服**：https://packages.aliyun.com/maven
     - 支持maven, npm
     - 免费不限容量，只支持自己可见和企业内可见
+    - 可开一个上传账号和一个下载只读账号
+
+### 使用Jitpack发布开源Java库
+
+- 官网：https://jitpack.io/
+- 参考：https://www.cnblogs.com/stars-one/p/15871077.html
+- 需要开放源代码，Jitpack会基于源代码中的pom.xml等文件进行编译打包
 
 ### 利用github创建仓库
 
@@ -1013,13 +1054,14 @@ public class BizMojo extends AbstractMojo {
         - https://www.cnblogs.com/liufarui/p/14019206.html
     - 基于gitee搭建maven仓库
         - https://blog.csdn.net/lidelin10/article/details/105787168
+        - 使用gitee链接(需要仓库为public, 私有仓库看是否可以通过设置server密码实现)
     - 基于gitlab搭建maven仓库(仓库可私有)
         - https://www.bookstack.cn/read/gitlab-doc-zh/docs-280.md#aqpu74
 - github新建项目[maven-repo](https://github.com/aezocn/maven-repo)，并下载到本地目录，如`/Users/smalle/gitwork/github/aezo-maven-repo` [^1]
 - 进入到项目pom.xml所在目录，运行命令
 	- `mvn deploy -DaltDeploymentRepository=aezocn-maven-repo::default::file:/Users/smalle/gitwork/github/aezo-maven-repo -DskipTests`(此仓库永远是master分支即可，其他项目以不同的分支和版本往此目录提交)
 	    - 将项目部署到`/Users/smalle/gitwork/github/aezo-maven-repo`目录，项目id为`aezocn-maven-repo`，`-DskipTests`跳过测试进行部署
-    - 也可配置成然后在idea中执行deploy命令
+    - 也可配置成如下，然后在idea中执行deploy命令
     
     ```xml
     <distributionManagement>
@@ -1050,15 +1092,20 @@ public class BizMojo extends AbstractMojo {
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-        <repository>
-            <id>aezocn-maven-repo</id>
-            <url>https://raw.github.com/aezocn/maven-repo/master/</url>
 
-            <!--或者将仓库同步到gitee后，使用gitee链接(需要仓库为public, 私有仓库看是否可以通过设置server密码实现) -->
+        <!--
+            如果包拉取失败：请检查~/.m2/settings.xml中配置的maven镜像是否是否设置了<mirrorOf>*</mirrorOf>，如果是需要改成<mirrorOf>central</mirrorOf> (*表示代理所有的仓库，包括此处设置本仓库；出现过本地仓库存在此包，但是设置了*导致提示此包不存在)
+        -->
+        <repository>
+            <!-- 如果相关包拉取失败，可切换以下地址试试，并重新刷新maven -->
+            <!-- 如果仍然失败，进入到当前pom.xml所在目录，并打开命令行，执行命令`mvn dependency:resolve`，如果提示"BUILD SUCCESS"说明成功，直接启动项目即可 -->
+            <!-- 如果仍然失败删除.m2目录对应文件，重复以上步骤，多试几次 -->
+            <id>aezocn-maven-repo</id>
             <url>https://gitee.com/aezocn/maven-repo/raw/master/</url>
+            <!-- <url>https://raw.github.com/aezocn/maven-repo/master/</url> -->
 
 			<!--或者访问本地-->
-			<url>file:/Users/smalle/gitwork/github/aezo-maven-repo/</url>
+			<!-- <url>file:/Users/smalle/gitwork/github/aezo-maven-repo/</url> -->
         </repository>
     </repositories>
 	```

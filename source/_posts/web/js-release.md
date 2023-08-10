@@ -138,8 +138,20 @@ tags: js
     // 这将运行模块中的全局代码，但实际上不导入任何值
     import 'myext.js'
     var promise = import("module-name")
-
     ```
+- 动态引入案例
+
+```js
+/* eslint-disable import/first */
+const defaultComponents = 'ivew'
+if (defaultComponents === 'ivew') {
+  const ViewUI = require('view-design')
+  import('view-design/dist/styles/iview.css')
+  Vue.use(ViewUI, {
+    size: 'small'
+  })
+}
+```
 - **多次引用同一个js不会导致重复引用，且优先执行最深层js文件中的代码** [^7]
 
     ```js
@@ -178,7 +190,7 @@ tags: js
 
 ### Promise/async/await
 
-- uni-app使用场景参考：[uni-app.md#onLaunch等同步写法](/_posts/web/mobile/uni-app.md#onLaunch等同步写法)
+- uni-app使用场景参考：[uni-app.md#onLaunch等同步写法](/_posts/mobile/uni-app.md#onLaunch等同步写法)
 - Promise基本用法
 
 ```js
@@ -861,7 +873,8 @@ function 函数名(参数列表) {
     - 三者第一个参数都是this要指向的对象，也就是想指定的上下
     - 三者都可以利用后续参数传参，call从第二个参数开始对应被调用函数参数，apply是通过数组传递被调用函数参数
 - call、apply、bind 调用方式
-    - call、apply 是立即调用；bind 是返回对应函数，便于稍后调用
+    - call、apply 是立即调用
+    - bind 是返回对应函数，便于稍后调用
 - 示例
 
     ```js
@@ -870,18 +883,23 @@ function 函数名(参数列表) {
 
     var foo = {
         name: 'foo',
-        get: function(count) {
-            return this.name + '-' + count; 
+        get: function(count, count2) {
+            return this.name + '-' + count + '-' + count2; 
         },
+        // 由于ES6箭头函数不会创建新的上下文，所以this指的是父语境(此时是Window，不是foo?)
         get2: count => {
             return this.name + '-' + count;
+        },
+        get3: function(count) {
+            return this.name + '-' + count + '-' + foo.name + '-' + foo.get.call(this, 0, 1);
         }
     }
     
-    console.log(foo.get.call(obj, 1));      // smalle-1
+    console.log(foo.get.call(obj, 1, 2));   // smalle-1-2
     console.log(foo.get.apply(obj, [2]));   // smalle-2
     console.log(foo.get.bind(obj, 3)());    // smalle-3 也可写成 let func = foo.get.bind(obj); console.log(func(3));
     console.log(foo.get2.call(obj, 4));     // -4 由于ES6箭头函数不会创建新的上下文，所以this指的是父语境(此时是Window，不是foo?)
+    console.log(foo.get3.call(obj, 5));     // smalle-4-foo-smalle-0-1
 
     // 2.自定义console.log方法. 一般不能写成 `log: () => {}`
     function log() {
@@ -1166,6 +1184,30 @@ JSON.parse('1.0') // 1
 ```
 
 ## DOM
+
+### 操作样式
+
+- 修改样式的方法
+
+```js
+// 单独修改
+var divObj = document.getElementById("divTest");
+divObj.style.backgroundColor = "blue";
+divObj.style.border = "solid 1px red";
+
+// 批量修改(会合并到原样式)
+document.getElementById("app").style.cssText = 'font-size:18px;color:blue;'
+
+// 使用style标签
+const style = document.createElement('style')
+style.innerText = cssText
+// style.id = 'my-style'
+document.head.appendChild(style)
+// 移除
+style.remove()
+// 或使用ID移除
+document.getElementById('my-style').remove()
+```
 
 ### 动态创建iframe(异步加载，加快主站相应速度)
 

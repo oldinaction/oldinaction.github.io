@@ -439,6 +439,10 @@ public class ELConfig {
         // 配置文件中的值默认全部赋值到了环境变量中了。也支持多环境配置
         System.out.println("environment = " + environment.getProperty("site.url"));
 
+        // 解析yml的map, 未测试
+        Map<String, String> map = environment.getProperty("my-map", Map.class);
+        Map<String, Integer> map2 = environment.getProperty("my-map2", Map.class, Integer.class);
+
         try {
             System.out.println("testFile = " + IOUtils.toString(testFile.getInputStream(), "UTF-8"));
             System.out.println("testUrl = " + IOUtils.toString(testUrl.getInputStream(), "UTF-8"));
@@ -577,7 +581,7 @@ public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
 }
 ```
 
-### 组合注解、元注解
+### 组合注解和元注解
 
 - 元注解是指可以注解到其他注解上的注解，被元注解注解之后的注解称之为组合注解
 - 如`@Configuration`是包含`@Component`的组合注解，`@Component`为元注解
@@ -596,6 +600,17 @@ public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
 
 ### 其他注解
 
+- Http相关
+    - @Controller 注解在类上
+    - @RestController 注解在类上
+    - @GetMapping
+    - @PostMapping
+    - @RequestMapping 同时支持GET/POST
+    - @PathVariable 读取URL路径参数(/api/user/{id})
+    - @RequestParam 读取URL地址参数，默认为必传，可配置可选
+    - @PathParam 类似@RequestParam，默认不必填
+    - @RequestBody 读取POST数据体
+
 ## Bean
 
 ### 作用域@Scope
@@ -604,6 +619,7 @@ public class SqPropertySourceFactory extends DefaultPropertySourceFactory {
     - `singleton` 整个容器共享一个实例(默认配置). IOC容器启动(`new AnnotationConfigApplicationContext()`)，就会创建所有的Bean(`@Lazy`懒加载，仅用于单例模式，只有在第一次获取Bean时才创建此Bean)
     - `prototype` 每次调用新建一个实例. IOC容器启动，不会创建Bean，只有在获取的时候创建Bean
         - **此对象`@Autowired`注入几次就会产生几个对象，和调用此对象方法无关**
+        - beanFactory.getBeansOfType 等API获取Bean也会创建
         - 如果此类型Bean含有有状态字段，则也容易产生并发问题，prototype并不能解决
     - `request` Web项目中，每一个HttpRequest新建一个实例
     - `session` Web项目中，同一个session创建一个实例

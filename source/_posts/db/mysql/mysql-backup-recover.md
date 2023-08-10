@@ -45,6 +45,16 @@ insert into test_new select * from test;
 -- 复制旧表的数据到新表(假设两个表结构不一样)
 insert into test_new(字段1,字段2,.......) select 字段1,字段2,...... from test;
 
+-- mysql骚操作代替oracle dual
+insert into test_new(a, b)
+select t.a, t.b from (
+	select 10 a, 20 b
+	UNION ALL
+	select 11 a, 21 b
+	UNION ALL
+	select 12 a, 22 b
+) t where not exists(select 1 from test_new where a=11 and b=21);
+
 -- 优化一: 批量插入大量数据，临时关闭索引加快复制速度
 alter table test_new disable keys; -- 临时关闭索引
 insert into test_new select * from test; -- 复制数据 (由于没有索引，速度有很大提升)

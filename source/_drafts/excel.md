@@ -29,5 +29,12 @@ tags: [vb]
     - 近似匹配TRUE/1, 精确匹配FALSE/0
 - 案例：`=VLOOKUP(A7, A2:B5, 2, 0)`
 
+### 读取XML/调用网页(如翻译)
 
+- `_xlfn.FILTERXML` 读取XML内容
+- `_xlfn.WEBSERVICE` 调用网页内容
+- 如`=_xlfn.FILTERXML(_xlfn.WEBSERVICE("http://fanyi.youdao.com/translate?&i="&I15&"&doctype=xml&version"),"//translation")`
+    - 将`I15`列的内容进行翻译
+    - 如有道翻译: `http://fanyi.youdao.com/translate?&i="hello world, my name is smalle"&doctype=xml&version`
+        - doctype=json也支持
 

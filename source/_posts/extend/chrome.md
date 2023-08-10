@@ -47,7 +47,7 @@ tags: [plugins, debug]
     - `Axure RP Extension for Chrome` Axure设计
     - `Set Character Encoding` 解决chrome查看源码乱码问题
     - `OCR - Image Reader` 图片识别
-    - `Downloads Overwrite Already Existing Files` 重名文件下载提示是否覆盖(默认是创建一个带序号的文件)
+    - `Downloads Overwrite Already Existing Files` 重名文件下载提示是否覆盖(默认是创建一个带序号的文件)，文件另存为
 - Github相关
     - `SourceGraph` 基于目录显示文件，类之间的跳转，代码搜索等功能
     - `Octotree` 展现源码目录
@@ -98,7 +98,17 @@ tags: [plugins, debug]
 ### console
 
 ```js
-// 分组打印
+// 打印颜色
+const name = 'smalle';
+console.log(
+    `%c before load %c ${name} %c`, // %c分别对应后面几个样式
+    'background: #66b1ff; padding: 1px; border-radius: 3px 0 0 3px; color: #fff',
+    'background: #444df7; padding: 1px; border-radius: 0 3px 3px 0; color: #fff',
+    'background: transparent',
+    'hello world......'
+);
+
+// 分组打印(不能换行)
 console.group("站点信息");console.log("Name: Hello World");console.log("Author: smalle");console.groupEnd();
 ```
 

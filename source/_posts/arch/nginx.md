@@ -35,6 +35,9 @@ tags: LB, HA
             - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
             - 再下载 `yum install nginx`
     - 程序包解压安装
+    - 卸载
+        - `yum remove nginx`
+        - 手动删除/etc/nginx、/var/log/nginx、/usr/share/nginx
 - 启动
     - `systemctl start nginx` 启动
     - 进入到`nginx`执行文件目录，运行`sudo ./nginx`
@@ -92,6 +95,12 @@ cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
 #### 配置示例
 
 ```bash
+# 备案专用(直接映射nginx即可通过备案)
+server {
+    listen   80;
+    server_name www.aezo.cn;
+}
+
 # http {} 模块下
 server {
     # 监听的端口，注意要在服务器后台开启80端口外网访问权限。[Windows上80端口占用问题解决](/_posts/lang/C%23.md#IIS)
@@ -131,6 +140,9 @@ server {
 		access_log on;
 	}
     # 如vue子项目index.html缓存设置. 更多参考 [springboot-vue.md#多项目配置](/_posts/arch/springboot-vue.md#多项目配置)
+    location = /demo1 {
+        rewrite . http://$server_name/demo1/ break;
+    }
     location ^~ /demo1/ {
         root   /home/www/demo1;
         # index  index.html index.htm;
@@ -587,6 +599,10 @@ http {
             # 重定向：第一个参数路径匹配成功后跳转到第二个参数路径
             # 第3个参数为. last: 继续向下匹配规则; break: 停止向下匹配; redirect: 返回302临时重定向; permanent: 返回301永久重定向
             rewrite ^(.*)/post(\d+)\.html$ $1/index.php?p=$2 last;
+        }
+        # 临时将网站地址全部重定向二维码图片连接地址(重定向后地址栏路径会改变)
+        location / {
+            rewrite .* https://example.com/qrcode.jpg redirect;
         }
 
         # 防盗链

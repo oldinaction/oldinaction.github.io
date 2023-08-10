@@ -479,6 +479,7 @@ public Result doPost(@PathVariable("serviceName") String serviceName, @PathVaria
     return (Result) ReflectUtil.invoke(object, methodName, args);
 }
 ```
+- 可通过反射获取运行时对象，减少依赖；如java库依赖的包为编译级别，由用户决定是否引入此依赖，此时在java库中可通过反射调用此依赖对应方法(或抽象成接口，此时只要客户引入了就不会报错找不到方法)
 
 ## 类加载器
 

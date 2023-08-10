@@ -17,11 +17,11 @@ tags: [git]
     - 客户端界面：[SmartGit V21.2.4](https://www.syntevo.com/smartgit/download/archive/) 
 - 镜像
 
-    ```bash
-    # 单文件下载
-    # 原文件下载地址 https://raw.githubusercontent.com/teddysun/across/master/l2tp.sh
-    # 使用sourcegraph下载地址 https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
-    ```
+```bash
+# 单文件下载
+# 原文件下载地址 https://raw.githubusercontent.com/teddysun/across/master/l2tp.sh
+# 使用sourcegraph下载地址 https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
+```
 
 ## git入门 [^1]
 
@@ -90,6 +90,11 @@ git config --global color.ui true
     email = smalle@163.com
 ```
 - `git config core.ignorecase false` 配置项目大小写敏感
+
+#### Git通过命令行使用多个账户登录GitHub
+
+- 使用~/.ssh/config文件解决
+    - https://zhuanlan.zhihu.com/p/521768041 无需设置ssh-agent
 
 ### repository
 

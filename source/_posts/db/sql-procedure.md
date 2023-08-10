@@ -216,6 +216,91 @@ end;
 - 使用`PRAGMA AUTONOMOUS_TRANSACTION`
 - 参考: https://www.cnblogs.com/it-note/archive/2013/06/14/3136134.html
 
+### 自定义包
+
+- 参考: https://www.cnblogs.com/chanshuyi/p/3834140.html
+- 定义包申明
+
+```sql
+create or replace package IntegrityPackage AS
+    procedure InitNestLevel;
+    function GetNestLevel return number;
+    procedure NextNestLevel;
+    procedure PreviousNestLevel;
+end IntegrityPackage;
+```
+- 定义包内容
+
+```sql
+-- 当使用存储过程/触发器进行嵌套时，可通过此层级判断是否为内嵌执行存储过程稿
+CREATE OR REPLACE PACKAGE BODY IntegrityPackage AS
+    NestLevel number;
+
+    -- Procedure to initialize the trigger nest level
+    procedure InitNestLevel is
+    begin
+        NestLevel := 0;
+    end;
+
+    -- Function to return the trigger nest level
+    function GetNestLevel return number is
+    begin
+        if NestLevel is null then
+            NestLevel := 0;
+        end if;
+        return(NestLevel);
+    end;
+
+    -- Procedure to increase the trigger nest level
+    procedure NextNestLevel is
+        begin
+        if NestLevel is null then
+            NestLevel := 0;
+        end if;
+        NestLevel := NestLevel + 1;
+    end;
+
+    -- Procedure to decrease the trigger nest level
+    procedure PreviousNestLevel is
+    begin
+        NestLevel := NestLevel - 1;
+    end;
+end IntegrityPackage;
+```
+- 查看自定义包内容
+
+```sql
+-- 查看自定义包 IntegrityPackage 的内容
+select TEXT from user_source where TYPE = 'PACKAGE BODY' and name = upper('IntegrityPackage');
+```
+- 使用包内存储过程或函数
+
+```sql
+CREATE OR REPLACE TRIGGER TUA_PORTCODE after update
+    of PORT_COD
+    on C_PORT for each row
+declare
+    integrity_error  exception;
+    seq               NUMBER;
+begin
+    IntegrityPackage.NextNestLevel;
+
+    seq := IntegrityPackage.GetNestLevel;
+    IF seq = 0 THEN
+        -- ...
+    END IF;
+
+    IntegrityPackage.PreviousNestLevel;
+--  Errors handling
+exception
+    when integrity_error then
+       begin
+       IntegrityPackage.InitNestLevel;
+       raise_application_error(errno, errmsg);
+       end;
+end;
+```
+
 ### 常用类型
 
 ```sql

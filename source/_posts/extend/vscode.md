@@ -118,8 +118,7 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
     },
 	```
 - `Bracket Pair Colorizer 2` 代码括号对应颜色标识
-- `Git Graph` git图片提交历史图形界面
-- `GitLens` 显示每一行的提交人(会卡顿)
+- `GitLens` Git管理面板
 - `c/c++` 高亮及提示c/c++代码(运行还需安装MinGW/gcc编译器)
 - `code-runner` 运行代码, 如c(还需按照c/c++插件)
 

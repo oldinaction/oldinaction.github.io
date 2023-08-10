@@ -87,22 +87,24 @@ table tbody tr td:first-child+td+td {border: none;}
     - https://www.cnblogs.com/qingchunshiguang/p/8011103.html
 - `display: flex;` 开启flex布局
 - 作用在flex容器上
-    - flex-direction: row(默认从左到右)/column(默认从上到下)/row-reverse/column-reverse
-    - flex-wrap
-    - flex-flow
+    - `flex-direction` 用来控制子项整体布局方向
+        - row(默认从左到右) | column(默认从上到下) | row-reverse | column-reverse
+    - `flex-wrap` 用来控制子项整体单行显示还是换行显示，如果换行，则下面一行是否反方向显示
+        - nowrap | wrap(宽度不足换行显示) | wrap-reverse(宽度不足换行显示，但是是从下往上开始，也就是原本换行在下面的子项现在跑到上面)
+    - `flex-flow` 是flex-direction和flex-wrap的缩写，如: flex-flow: row-reverse wrap-reverse;
     - `justify-content` 决定了水平方向子项的对齐和分布方式
-        - 取值：`flex-start` | `flex-end` | `center` | `space-between`(两端对齐) | `space-around` | `space-evenly`
+        - flex-start | flex-end | center(水平居中) | space-between(两端对齐) | space-around | space-evenly
         - CSS的text-align有个属性值为justify，可实现两端对齐，可联合记忆
-    - `align-items` 决定了垂直方向子项的对齐和分布方式
-        - 取值：`stretch`(类似于flex-start) | `flex-start`(顶部对齐) | `flex-end`(底部对齐) | `center` | `baseline`(类似于flex-end)
-    - align-content
+    - `align-items` 决定了垂直方向子项的对齐和分布方式，指的就是flex子项们相对于flex容器在垂直方向上的对齐方式
+        - stretch(类似于flex-start) | flex-start(顶部对齐) | flex-end(底部对齐) | center | baseline(类似于flex-end)
+    - `align-content` (只适用多行的flex容器)垂直方向每一行flex元素的对齐和分布方式，可以看成和justify-content是相似且对立的属性。和align-items区别参考：https://blog.csdn.net/cc18868876837/article/details/88138057
 - 作用在flex子项上
-    - order 改变某一个flex子项的排序位置
-    - flex-grow 扩展比例：默认值是0，表示不占用剩余的空白间隙；0-1表示占据的百分比(大于等于1表示全部占据)；如果多个子元素设置了此属性则其和表示占据空隙的比例，然后按照各自的比例进行分配占据的空隙
-    - flex-shrink 收缩比例：主要处理当flex容器空间不足时候，单个元素的收缩比例；类似grow，0-1表示收缩比例(大于等于1表示收缩完全，正好填满flex容器)
-    - flex-basis 定义了在分配剩余空间之前元素的默认大小，默认是auto，其值可以是像素或百分比
-    - flex: flex-grow flex-shrink flex-basis 的组合；`flex: 1;`等价于`flex: 1 1 0%;`
-    - align-self
+    - `order` 改变某一个flex子项的排序位置
+    - `flex-grow` 扩展比例：默认值是0，表示不占用剩余的空白间隙；0-1表示占据的百分比(大于等于1表示全部占据)；如果多个子元素设置了此属性则其和表示占据空隙的比例，然后按照各自的比例进行分配占据的空隙
+    - `flex-shrink` 收缩比例：主要处理当flex容器空间不足时候，单个元素的收缩比例；类似grow，0-1表示收缩比例(大于等于1表示收缩完全，正好填满flex容器)
+    - `flex-basis` 定义了在分配剩余空间之前元素的默认大小，默认是auto，其值可以是像素或百分比
+    - `flex` flex-grow flex-shrink flex-basis 的组合；`flex: 1;`等价于`flex: 1 1 0%;`
+    - `align-self`
 
 ### @media
 
@@ -444,15 +446,29 @@ body{
 
 - https://juejin.cn/post/6844904165446156302
 
+### 子元素高度撑满剩余高度
+
+```css
+/* 一: 需要设置所有父元素高度 */
+.full-height { height: 100%; }
+/* 二: 只要父容器的高度大于等于屏幕高度即可 */
+.full-height { min-height: 100% }
+/* 三: 使用flexbox布局 */
+.container {
+  display: flex;
+  flex-direction: column;
+}
+.full-height {
+  flex: 1;
+}
+```
+
 ## 常见问题
 
 ### height: 100%; 无效 [^2]
 
-**width和height属性，基于%设定宽高时，实际是根据父元素的宽高来的**(父元素要设置数值或者%高度，对祖父元素设置是无效的)
-
-- 当你让一个元素的高度设定为百分比高度时，是相对于父元素的高度根据百分比来计算高度。当没有给父元素设置高度（height）时或设置的高度值百分比不生效时，浏览器会根据其子元素来确定父元素的高度，所以当无法根据获取父元素的高度，也就无法计算自己高度
-- 要想使%高度有效，我们需要设置父元素的height(数值或者%)
-    - 要特别注意的一点是，在`<body>`之中的元素的父元素并不仅仅只是`<body>`，还包括了`<html>`。所以要同时设置这两者的height，只设置其中一个是不行的
+- **width和height属性，基于%设定宽高时，实际是根据父元素的宽高来的**
+- 如果父元素没有设置高度，那么这个方法就无效。所以，一般需要将所有父元素的高度都设置为100% `html, body, .box {height: 100%;}`
 
 ### overflow: auto; 无效
 
