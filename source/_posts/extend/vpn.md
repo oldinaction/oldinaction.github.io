@@ -39,19 +39,20 @@ tags: [linux, network]
     ```
 - `sudo vi /etc/sysctl.conf` 改为`net.ipv4.ip_forward = 1`，并执行`sudo sysctl -p` 使sysctl配置生效
 - `sudo systemctl start pptpd` 启动pptpd服务
+    - **服务器后台安全组策略需要开放1723端口的入站规则**
 - 配置iptables防火墙放行和转发规则
     - **`sudo iptables -L -n -t nat`** 查看 iptables 配置规则
     - 清空防火墙配置(慎操作)
-        
+    
         ```bash
         sudo iptables -P INPUT ACCEPT        # 改成 ACCEPT 标示接收一切请求
         sudo iptables -F                     # 清空默认所有规则
         sudo iptables -X                     # 清空自定义所有规则
         sudo iptables -Z                     # 计数器置0
         ```
-    - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，**因此下面的配置只需要运行** `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100` (eth0为网卡。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.100)
-    - 配置规则(视情况决定)
-
+    - 配置规则(视情况决定是否执行)
+        - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100` (eth0为网卡，阿里云可能为eth1。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.100)
+    
         ```bash
         # 允许 GRE(Generic Route Encapsulation) 协议，PPTP 使用 GRE 协议封装 PPP 数据包，然后封装成 IP 报文
         sudo iptables -A INPUT -p gre -j ACCEPT
@@ -65,14 +66,16 @@ tags: [linux, network]
         # 放行客户端 192.168.0.0/24 网段经网卡 eth1 转入的数据包
         sudo iptables -A FORWARD -d 192.168.0.0/24 -i eth1 -j ACCEPT
         sudo iptables -I FORWARD -p tcp --syn -i ppp+ -j TCPMSS --set-mss 1356
-        # nat规则，如果没有外网网卡，可设置外网IP。如：iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100
+        # nat规则，如果没有外网网卡，可设置外网IP
+        # 如：iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100
         sudo iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -o eth0 -j MASQUERADE
-        # 开启几个常用端口，其他端口同理
+
+        # 对于开启防火墙的情况：开启几个常用端口，其他端口同理
         sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
         sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
         ```
     - 启动iptables
-        
+    
         ```bash
         # 保存iptables规则配置到 /etc/sysconfig/iptables 文件，可通过 iptables-restore 进行恢复
         sudo service iptables save
@@ -93,7 +96,7 @@ tags: [linux, network]
 # 安装(centos7测试成功)
 curl -L -O https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
 chmod +x l2tp.sh
-# ***脚本会改写 iptables 或 firewalld 的规则***; 会加入开机自启动
+# ***脚本会改写 iptables 规则，并启动firewalld服务***; 会加入开机自启动
 # 安装: 主要需要设置共享秘钥(PSK)、用户名(Username)、用户密码(password)
 sudo ./l2tp.sh
 
@@ -119,50 +122,50 @@ ipsec verify
         ![firewall-ssh-d](/data/images/extend/firewall-ssh-d.png)
 - 建立本地SSH隧道：可从内部绕过防火访问外部资源(适合单个端口转发)
 
-    ```bash
-    # 在C上运行ssh命令
-    ssh -Nf -L 2121:2.2.2.2:21 3.3.3.3
-        # -N 告诉SSH客户端，这个连接不需要执行任何命令，仅仅做端口转发
-        # -f 告诉SSH客户端在后台运行
-        # -L 做本地映射端口，被冒号分割的三个部分含义分别是：A端口号、需要访问的目标机器B的IP地址、需要访问的目标机器B的某端口；最后一个参数是用来建立隧道的中间机器C的IP地址
-        # -R X:Y:Z 就是把内部的Y机器的Z端口映射到远程机器的X端口上(Y机器和中间机C处于同一内网，此处填写Y对应的内网)
-        # -D SSH隧道(Dynamic)
-        # -b 0.0.0.0 为绑定IP
-        # -i 使用私钥登录
+```bash
+# 在C上运行ssh命令
+ssh -Nf -L 2121:2.2.2.2:21 3.3.3.3
+    # -N 告诉SSH客户端，这个连接不需要执行任何命令，仅仅做端口转发
+    # -f 告诉SSH客户端在后台运行
+    # -L 做本地映射端口，被冒号分割的三个部分含义分别是：A端口号、需要访问的目标机器B的IP地址、需要访问的目标机器B的某端口；最后一个参数是用来建立隧道的中间机器C的IP地址
+    # -R X:Y:Z 就是把内部的Y机器的Z端口映射到远程机器的X端口上(Y机器和中间机C处于同一内网，此处填写Y对应的内网)
+    # -D SSH隧道(Dynamic)
+    # -b 0.0.0.0 为绑定IP
+    # -i 使用私钥登录
 
-    # 访问本地机器A的2121端口，就能连接目标机B的21端口了。此时需要把本地端口2121映射到外网2.2.2.2
-    ftp localhost:2121
-    ```
+# 访问本地机器A的2121端口，就能连接目标机B的21端口了。此时需要把本地端口2121映射到外网2.2.2.2
+ftp localhost:2121
+```
 - 建立远程SSH隧道：可从外网访问到内网资源(远程办公)
     
-    ```bash
-    # 在C上运行ssh命令，把和C处于统一网络的B(192.168.1.200)映射出去，也可以为C自身
-    # -R：远程机器A使用的端口（2222）、需要映射的内部机器B的IP地址、需要映射的内部机器B的端口(22)
-    ssh -Nf -R 2222:192.168.1.200:22 3.3.3.3
-    
-    # 访问本地机器A的2222端口，就能连接目标机B的22端口了
-    ssh -p 2222 localhost
+```bash
+# 在C上运行ssh命令，把和C处于统一网络的B(192.168.1.200)映射出去，也可以为C自身
+# -R：远程机器A使用的端口（2222）、需要映射的内部机器B的IP地址、需要映射的内部机器B的端口(22)
+ssh -Nf -R 2222:192.168.1.200:22 3.3.3.3
 
-    # vmstat 30会定期打印数据，防止某些路由器把长时间没有通信的连接断开；-b 0.0.0.0为绑定本机的2222端口，此时提供本机A所有局域网的其他机器访问A:2222端口
-    ssh -b 0.0.0.0 -R 2222:192.168.1.200:22 3.3.3.3 "vmstat 30"
-    ```
+# 访问本地机器A的2222端口，就能连接目标机B的22端口了
+ssh -p 2222 localhost
+
+# vmstat 30会定期打印数据，防止某些路由器把长时间没有通信的连接断开；-b 0.0.0.0为绑定本机的2222端口，此时提供本机A所有局域网的其他机器访问A:2222端口
+ssh -b 0.0.0.0 -R 2222:192.168.1.200:22 3.3.3.3 "vmstat 30"
+```
 - 通过SSH隧道建立SOCKS服务器(一台中间机映射一次即可访问指定网络所有服务器的资源。**建议**)
 
-    ```bash
-    # 在本机A(linux)上运行，连接中间机器C(可FQ)。则本机浏览网页时，只需要在浏览器中设置SOCKS代理(或者通过SocksCap启动目标程序)则可FQ
-    # 不静默运行，且定时执行命令，防止程序退出
-    ssh -D 0.0.0.0:1080 root@8.12.12.149 "vmstat 30"
-    
-    # 常用此方式将C作为跳板机访问生成安全网络：在C(网段1)上挂"虚拟办公网络"则可访问生产网络(网段2)，此时又在C上启动SOCKS代理，则其他机器配置此SOCKS代理即可访同C一样访问生产网络(直接访问网段2的地址即可)
-    # 直接在中间机C上运行此命令，使用中间机器test用户登录自身ssh(中间机器需要开启sshd服务)开启隧道
-    # 则A机器上SOCKS可配置使用对应中间机器IP和端口(也可映射成外网)，假设中间机器已连接"虚拟办公网络"，则A也可访问此"虚拟办公网络"网
-    # 端口绑定0.0.0.0则映射外网后，所有网络可连接词SOCKS，如果绑定内网，则只有内网机器可连接，如果为127.0.0.1，则只有本机可使用
-    ssh -Nf -D 0.0.0.0:1080 test@192.167.1.27
+```bash
+# 在本机A(linux)上运行，连接中间机器C(可FQ)。则本机浏览网页时，只需要在浏览器中设置SOCKS代理(或者通过SocksCap启动目标程序)则可FQ
+# 不静默运行，且定时执行命令，防止程序退出
+ssh -D 0.0.0.0:1080 root@8.12.12.149 "vmstat 30"
 
-    # -i 使用私钥登录，起到加密作用
-    # 在请求发起60秒钟后未收到响应则超时，120秒内无数据通过则发送一个请求避免断开，-o添加ssh参数(覆盖sshd_conf)
-    sudo ssh -i /home/smalle/.ssh/warehouse.pem -oConnectTimeout=60 -oServerAliveInterval=120 -o 'GatewayPorts yes' -D 0.0.0.0:3386 ec2-user@52.56.100.100 "vmstat 30"
-    ```
+# 常用此方式将C(192.167.1.27)作为跳板机访问生成安全网络：在C(网段1)上挂"虚拟办公网络"则可访问生产网络(网段2)，此时又在C上启动SOCKS代理，则其他机器配置此SOCKS代理即可访同C一样访问生产网络(直接访问网段2的地址即可)
+# 直接在中间机C上运行此命令，**使用中间机器test用户登录自身ssh**(中间机器需要开启sshd服务)开启隧道
+# 则A机器上SOCKS可配置使用对应中间机器IP和端口(也可映射成外网)，假设中间机器已连接"虚拟办公网络"，则A也可访问此"虚拟办公网络"网
+# 端口绑定0.0.0.0则映射外网后，所有网络可连接此SOCKS，如果绑定内网，则只有内网机器可连接，如果为127.0.0.1，则只有本机可使用
+ssh -Nf -D 0.0.0.0:1080 test@192.167.1.27
+
+# -i 使用私钥登录，起到加密作用
+# 在请求发起60秒钟后未收到响应则超时，120秒内无数据通过则发送一个请求避免断开，-o添加ssh参数(覆盖sshd_conf)
+sudo ssh -i /home/smalle/.ssh/warehouse.pem -oConnectTimeout=60 -oServerAliveInterval=120 -o 'GatewayPorts yes' -D 0.0.0.0:3386 ec2-user@52.56.100.100 "vmstat 30"
+```
     - SSH建立的SOCKS服务器使用的是SOCKS5协议
     - 配置SOCKS：IE/Chrome/Firefox/xshell等都可配置SOCKS5
     - 某些程序如windows的远程桌面程序无法配置，此时可以使用`SocksCap`(SocksCap配置好SOCKS，然后通过SocksCap启动目标程序, 免费)
@@ -231,7 +234,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
     - 搬瓦工
 - **v2ray单独使用**(可不使用CDN，比直接使用SS等安全。测试Youtube的Connection Speed=7000左右，看1080P妥妥的)
     - v2ray服务端(vps端): 基于[x-ui管理面板](https://github.com/vaxilu/x-ui)
-
+    
         ```bash
         ### 安装
         sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config
@@ -246,7 +249,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         ## **基于x-ui安装**(web控制面板 v1.4.2)。支持多用户多协议，支持账号流量统计。[github](https://github.com/vaxilu/x-ui)
         # 更新安装都是此命令，升级不会造成数据丢失
         bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
-        v2-ui # 查看命令
+        x-ui # 查看命令
         systemctl daemon-reload && systemctl enable x-ui && systemctl restart x-ui
         # http://<服务器IP>:54321 默认用户名密码 admin/admin
         ```

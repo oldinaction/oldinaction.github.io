@@ -397,6 +397,14 @@ while(matcher.find()) {
 }
 ```
 
+### IDEA正则
+
+- 正则表达式替换 https://blog.csdn.net/u011615002/article/details/117621582
+- IDEA正则表达式 https://blog.csdn.net/qq_41296917/article/details/111530450
+- 如wm_concat增加to_char语句包裹
+    - 搜索`wm_concat\((.*?)\)`替换为`to_char(wm_concat($1))`
+    - 上述方法只能解决部分简单SQL，对于一些复杂的SQL反括号位置可能会有问题
+
 ## php
 
 ```php

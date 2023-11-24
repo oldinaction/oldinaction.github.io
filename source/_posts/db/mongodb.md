@@ -11,6 +11,9 @@ tags: [db, mongodb]
 - MongoDB 是一个基于分布式文件存储的数据库。由 C++ 语言编写。旨在为 WEB 应用提供可扩展的高性能数据存储解决方案。MongoDB 是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的 [^1]
 - 官网：[https://www.mongodb.com](https://www.mongodb.com)
 - MongoDB 存储的是 BSON 结构，类似的文档型数据库 `RethinkDB` 是一个主要用来存储 JSON 结构的
+- 客户端工具
+    - Navicate
+    - Robo 3T(后来要收费)：下载地址 `https://robomongo.org/download` (`Download portable version for Windows 64-bit`为免安装版)
 
 ## mongodb安装运行
 
@@ -39,6 +42,15 @@ sudo ./mongo                                                                    
 
 ## 启动web服务
 # sudo ./mongod --dbpath=/data/db --rest                                        # 访问 http://localhost:28017 可进入web界面
+```
+
+### mac
+
+```bash
+# 安装目录 /opt/homebrew/opt/mongodb-community@4.4
+brew tap mongodb/brew
+brew install mongodb-community@4.4
+brew services start mongodb-community@4.4
 ```
 
 ### 运行mongodb
@@ -137,12 +149,6 @@ db.mydoc.find() # 会打印集合mydoc的所有数据
 
 ## 复杂查询
 
-
-
-
-## 客户端管理工具Robo 3T
-
-- 下载地址 `https://robomongo.org/download` (`Download portable version for Windows 64-bit`为免安装版)
 
 
 

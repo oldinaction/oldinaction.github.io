@@ -130,12 +130,71 @@ dayjs('2020-01-01').add(1, 'day').format('YYYY-MM-DD'); // 2020-01-02
         - 四舍五入存在精度问题，存在问题toFixed必须设置精度(默认是整数)
 
         ```js
+        // 像 round()、floor()、ceil() 等都不能真正的四舍五入，有精度问题
         parseFloat((0.10 + 0.25).toFixed(1)); // 0.3
-        parseFloat((0.10 + 0.25).toFixed(1)); // 0.4
+        Math.ceil(12.34); // 13 向上取整
+        Math.floor(12.34); // 12 向下取整
+        Math.round(12.34); // 12 四舍五入取整
+        Math.round(12.54); // 13 四舍五入取整
+        100.456001.toFixed(2); // 100.46
+        100.456001.toFixed(3); // 100.456
+        ```
+        - toFixed优化方法(未进行全面测试)。参考：https://juejin.cn/post/7222475192932007992
 
-        // 另外像 round()、floor()、ceil() 等都不能真正的四舍五入，有精度问题
+        ```js
+        export const toFixed = (num, digits = 0) => {
+            let zeroStrNum = num.toString();
 
-        Math.round(number * 100) / 100)
+            // 处理科学计算情况
+            if (zeroStrNum.includes('e')) {
+                const matchList = zeroStrNum.match(/\d(?:\.(\d*))?e([+-]\d+)/);
+                zeroStrNum = num.toFixed(Math.max(0, (matchList[1] || '').length) - Number(matchList[2]));
+            }
+
+            let isNegativeNum = false;
+            // 判断是否为负数
+            if (zeroStrNum.startsWith('-')) {
+                isNegativeNum = true;
+                zeroStrNum = zeroStrNum.slice(1);
+            }
+            // 获取小数点位置
+            const dotIndex = zeroStrNum.indexOf('.');
+            // 如果是整数/保留小数位数等于超过当前小数长度，则直接用toFixed返回
+            if (dotIndex === -1 || zeroStrNum.length - (dotIndex + 1) <= digits) {
+                return num.toFixed(digits);
+            }
+
+            // 找到需要进行四舍五入的部分
+            const numArr = (zeroStrNum.match(/\d/g) || []).slice(0, dotIndex + digits + 1);
+
+            // 核心处理逻辑
+            if (parseInt(numArr[numArr.length - 1], 10) > 4) {
+                // 如果最后一位大于4，则往前遍历+1
+                for (let i = numArr.length - 2; i >= 0; i -= 1) {
+                numArr[i] = String(parseInt(numArr[i], 10) + 1);
+                // 判断这位数字 +1 后会不会是 10
+                if (numArr[i] === '10') {
+                    // 10的话处理一下变成 0，再次for循环，相当于给前面一个 +1
+                    numArr[i] = '0';
+                } else {
+                    // 小于10的话，就打断循环，进位成功
+                    break;
+                }
+                }
+            }
+            // 将小数点加入数据
+            numArr.splice(dotIndex, 0, '.');
+
+            // 处理多余位数
+            numArr.pop();
+
+            // 如果事负数，添加负号
+            if (isNegativeNum) {
+                numArr.unshift('-');
+            }
+
+            return Number(numArr.join('')).toFixed(digits);
+        }
         ```
     - 使用第三方库解决
         - [decimal.js](http://mikemcl.github.io/decimal.js/) 文件大小132K
@@ -182,6 +241,45 @@ math.round(0.345, 1) // 0.3
 
 ### 省市区级联
 
+- 省市区数据
+    - [“省份、城市、区县” 三级联动数据 pca-code.json](https://gitee.com/shadowy/china-city)
+    - 支付宝小程序提供Excel(名称不带省市两个字): https://opendocs.alipay.com/isv/10327
+    - 2020年7月中华人民共和国县以上行政区划代码: http://www.mca.gov.cn/article/sj/xzqh/2020/2020/20200908007001.html
+    - 腾讯地图提供接口和Excel简易版: https://lbs.qq.com/service/webService/webServiceGuide/webServiceDistrict
+        - Excel存在问题：如海南省-儋州市-xxx镇不会显示，海南省-省直辖县级行政区划-五指山市等不会显示
+        - 接口如访问(需要从上述lbs.qq.com网页进行点击访问)：https://apis.map.qq.com/ws/district/v1/list?key=OB4BZ-D4W3U-B7VVO-4PJWW-6TKDJ-WPB77 只能通过城市代码区分父子关系，带经纬度
+        - 基于简易版Excel进行处理
+
+        ```sql
+        -- 1.创建表sys_city_code
+        CREATE TABLE `sys_city_code` (
+            `id` int NOT NULL,
+            `province_name` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '',
+            `province_code` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+            `city_name` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '',
+            `city_code` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+            `area_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '',
+            `area_code` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+            `type` smallint DEFAULT NULL,
+            PRIMARY KEY (`id`)
+        );
+        -- 2.通过Navicat导入Excel创建临时表sys_city_code_tmp
+        -- 3.插入数据
+        insert into sys_city_code
+        select
+            (@i:=@i+1) id
+            ,if(substring_index(t.name, ',', 1) != '', substring_index(t.name, ',', 1), replace(substring_index(t.name, ',', 2), ',', '')) province_name
+            ,concat(substring(t.adcode, 1, 2), '0000') province_code
+            ,substring_index(substring_index(t.name, ',', 2), ',', -1) city_name
+            ,concat(substring(t.adcode, 1, 4), '00') city_code
+            ,substring_index(t.name, ',', -1) area_name
+            ,t.adcode area_code
+            ,case when concat(substring(t.adcode, 1, 2), '0000') = t.adcode then 1 when concat(substring(t.adcode, 1, 4), '00') = t.adcode then 2 else 3 end type
+        from (select adcode, replace(name,'中国,','') name from sys_city_code_tmp) t
+        ,(select @i:=0) j;
+        --4.作废临时表
+        drop table sys_city_code_tmp;
+        ```
 - [vue-area-linkage](https://github.com/dwqs/vue-area-linkage) 省市区选择器(需结合省市区数据)
 - [area-puppeteer](https://github.com/dwqs/area-puppeteer) 省市区数据
 
@@ -1245,6 +1343,7 @@ export default {
     ![a4-size.png](/data/images/web/a4-size.png)
 - web打印问题(分页问题等)
     - 可使用 **`page-break-after`** 等css参数解决，如`<div style="page-break-after: auto | always"></div>`。参考：https://www.w3school.com.cn/cssref/index.asp#print
+        - 如果分页无效可考虑将div的高度直接设置成一页纸的高度，如`div {height: 297mm}`
     - 修改默认打印边距 **`@page {margin: 24px 18px 0 18px;}`**，或者在chrome打印预览时通过自带界面修改
     - 修改纸张方向 **`@page {size: portrait | landscape;}`**，其中portrait纵向、landscape横向，设置后则无法在预览页面修改。谷歌支持，火狐85.0还不支持
     - 至于mm和px换算
@@ -2154,6 +2253,11 @@ export default {
 }
 </style>
 ```
+
+### JS直接基于HTML导出CSV和EXCEL
+
+- 使用JS将Table数据导出到Excel里(第二种)：https://blog.csdn.net/qq_35340913/article/details/102590714
+- js将表格html-table导出为CSV文件并下载(存在逗号转义问题)：https://blog.csdn.net/djk8888/article/details/120848912
 
 ## 工具函数
 

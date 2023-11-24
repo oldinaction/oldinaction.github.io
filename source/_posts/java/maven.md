@@ -281,7 +281,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 
         <!-- 使用了resources，则必须对所有需要编译的文件作出配置 -->
 		<resources>
-			<!--java目录下除了.java文件，其他格式的文件全部打包到jar中-->
+			<!--案例：java目录下除了.java文件，其他格式的文件全部打包到jar中-->
 			<resource>
 				<directory>src/main/java</directory>
 				<includes>
@@ -293,6 +293,7 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 			</resource>
 			
 			<!--
+                案例
 				1.filtering表示是否进行属性替换(默认替换占位符为${myVar.name}的变量)，可通过`mvn clean compile -DmyVar.name=smalle`或properties中加`<myVar.name>`标签进行定义属性值
 				2.使用profiles时，过滤resources目录中的占位符号，maven默认占位符是${...}, springboot也是此占位符，因此可再properties标签中加<resource.delimiter>@</resource.delimiter>重写成了@...@。即读取profiles中的properties参数进行填充
 			-->
@@ -319,6 +320,18 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 					<include>**/*.woff</include>
 					<include>**/*.ttf</include>
 				</includes>
+			</resource>
+
+            <!-- 案例：Mapper对应的XML写到src目录了，需要使之生效且打包到jar中 -->
+            <resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+                <!-- 定义了src/main/java；则还需定义此目录，否则此目录下文件不会被编译和打包 -->
+				<directory>src/main/resources</directory>
 			</resource>
 		</resources>
 	</build>
@@ -535,7 +548,7 @@ keytool -list -keystore cacerts -alias aliyun
                     <id>install-aspose-cells</id>
                     <phase>clean</phase>
                     <configuration>
-                        <file>${basedir}/../docs/lib/aspose-cells-21.11-fix.jar</file>
+                        <file>${project.parent.basedir}/docs/lib/aspose-cells-21.11-fix.jar</file>
                         <repositoryLayout>default</repositoryLayout>
                         <groupId>com.aspose</groupId>
                         <artifactId>aspose-cells</artifactId>
@@ -1094,7 +1107,9 @@ public class BizMojo extends AbstractMojo {
 		</repository>
 
         <!--
-            如果包拉取失败：请检查~/.m2/settings.xml中配置的maven镜像是否是否设置了<mirrorOf>*</mirrorOf>，如果是需要改成<mirrorOf>central</mirrorOf> (*表示代理所有的仓库，包括此处设置本仓库；出现过本地仓库存在此包，但是设置了*导致提示此包不存在)
+            如果包拉取失败：请检查~/.m2/settings.xml中配置的maven镜像是否是否设置了<mirrorOf>*</mirrorOf>
+            如果是则需要改成<mirrorOf>central</mirrorOf>
+            (*表示代理所有的仓库，包括此处设置本仓库；出现过本地仓库存在此包，但是设置了*导致提示此包不存在)
         -->
         <repository>
             <!-- 如果相关包拉取失败，可切换以下地址试试，并重新刷新maven -->
@@ -1329,6 +1344,11 @@ public static void main(String[] args) throws Exception {
     - org.apache.maven.archetypes:maven-archetype-webapp
 - 警告`The POM for <name> is invalid, transitive dependencies (if any) will not be available`，且A->B->C的项目依赖关系中，在A项目中编译提示B存在上述问题，从而导致C无法导入
     - 一般是B项目中存在问题：(1)如B模块使用父pom管理version，但是父pom模块没有安装从而出错 (2)B模块中使用了systemPath本地文件夹依赖包(解决方法参考上文[maven项目依赖本地jar包](#maven项目依赖本地jar包))
+- Fatal error compiling: 无效的目标发行版
+    - 检查`mvn -v`出来的JDK版本是否符合当前项目版本，如果版本不符合可进行设置JAVA_HOME
+    - 设置JAVA_HOME
+    - 或在`~/.mavenrc`中设置JAVA_HOME
+    - 或在%MAVA_HOME%/bin/mvm.cmd中设置JAVA_HOME，参考：https://blog.csdn.net/weixin_42976232/article/details/103246822
 
 ## 多模块思考
 

@@ -306,6 +306,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 
 ### Mysql
 
+- 参考：https://juejin.cn/post/6945726594702901261
 - `show full processlist;` 查看进程(**Time的单位是秒**)
 	- `show processlist;` 查看进程快照
 	- 查看进程详细

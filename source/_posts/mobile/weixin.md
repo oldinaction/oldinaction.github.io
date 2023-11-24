@@ -13,6 +13,7 @@ tags: [H5, App, 小程序, mobile]
 ## 小程序开发
 
 - [申请小程序测试号](https://mp.weixin.qq.com/wxamp/sandbox) 测试账号只能本地开发，不能发布到演示版
+- [小程序类目及相关资质](https://developers.weixin.qq.com/miniprogram/product/material/)
 
 ### 小程序限制
 
@@ -42,6 +43,13 @@ tags: [H5, App, 小程序, mobile]
     - 必须https域名，且需要在微信后台配置业务域名。开发环境同上
     - 个人小程序不支持业务域名设置
 - 图片网络地址：必须是https域名，且需要在微信后台配置业务域名。开发环境同上
+
+#### 视频播放限制
+
+- 小程序中如果嵌入了视频播放则小程序必须添加文娱-其他视频相关类目，此类目需要资质文件(对应资质交贵)。参考: https://developers.weixin.qq.com/community/develop/doc/0002e84ce84dd81a6dfc92bdc5b400
+- 可通过使用视频插件解决
+    - [腾讯视频插件](https://developers.weixin.qq.com/community/develop/doc/000ece3c044210190ef61a4a954c09) 必须将视频上传到腾讯，且有广告(可付费去除)，此插件需要审核貌似很难审核通过
+    - 其他收费类视频插件(可不上传视频)
 
 #### 其他
 
@@ -141,6 +149,18 @@ tags: [H5, App, 小程序, mobile]
     - 参考：https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getPhoneNumber.html
     - `<button @tap="loginByPhone" :open-type="agree ? 'getPhoneNumber' : ''" @getphonenumber="getPhoneNumber" class="cu-btn bg-main lg">微信快捷登录</button>`
     - 在getPhoneNumber方法中可获取到 detail{code,encryptedData,errMsg,iv}字段，传到后台再调用微信接口获取用户手机号; 成功时 errMsg='getPhoneNumber:ok' (如errMsg='getPhoneNumber:fail user deny'表示用户拒绝了手机号获取)
+- 小程序消息
+    - 小程序模板消息：支持一次性订阅和通知(用户点击订阅一次就通知一次)、多次通知(特殊类型政府结构才有)
+    - 如果需要多次通知用户，可使用微信公众号模板消息(2311: 但是此权限微信有意收回，正在内测公众号订阅消息，类似小程序)
+    - 参考文章
+        - https://blog.csdn.net/weixin_43879445/article/details/124244344
+        - https://blog.csdn.net/weixin_43879445/article/details/124196833
+        - https://blog.csdn.net/q457201373/article/details/114127844
+        - https://juejin.cn/post/7105313104258400269
+- 蓝牙
+    - 小程序用户隐私协议中设置蓝牙部分
+    - 部分手机需要打开定位功能，且确认微信有权限访问蓝牙和定位
+    - 小程序蓝牙授权需要确认允许
 
 ### 个人小程序限制
 
@@ -160,6 +180,13 @@ tags: [H5, App, 小程序, mobile]
     - 申请：开发者工具 - 公众平台测试帐号
     - 测试帐号接口权限基本都有；一个微信账号对应一个测试号，和登录的公众号无关
     - 设置登录验证时的重定向地址：体验接口权限表 - 网页授权获取用户基本信息 - 修改(只需填域名)
+- 设置与开发 - 公众号设置 - 功能设置(每个月每个域名可改5次)
+    - 业务域名：设置业务域名后，在微信内访问该域名下页面时，不会被重新排版。用户在该域名上进行输入时，不出现下图所示的安全提示。可填写3个域名或路径
+    - JS安全域名：设置JS接口安全域名后，公众号开发者可在该域名下调用微信开放的JS接口。可填写5个域名或路径
+    - 网页授权域名：用户在网页授权页同意授权给公众号后，微信会将授权数据传给一个回调页面，回调页面需在此域名下，以确保安全可靠。可填写2个域名或路径
+- 微信内置浏览器清缓存最新方法
+    - 以前的debugx5.qq.com不能用了
+    - 微信 - 我 - 设置 - 通用 - 存储空间 - 缓存 - 取消全选 - 勾选其他 - 清理
 
 ### JS-SDK
 
@@ -184,10 +211,14 @@ tags: [H5, App, 小程序, mobile]
 
 ### 内网穿透
 
+- 由于微信H5一般涉及到到用户授权信息获取，而此接口需要配置绑定域名用于授权后重定向到此域名上，因此开发环境地址必须是外网备案的域名地址(微信会对域名做可访问性验证)
 - http://service.oray.com/question/5570.html
 
 ## 公众号开发
 
+- 用户权限
+    - 添加运营者(需管理员扫码)：设置与开发 - 人员设置 - 运营者管理 - 邀请人员 - 管理员扫码 - 被邀请人微信中进行同意
+    - 添加普通开发(无需管理员扫码): 设置与开发 - 开发者工具 - web开发者工具 - 邀请人员(此人需关注"公众平台安全助手"，且消息免打扰必须处于关闭状态，接受文章推送必须处于打开状态) - 被邀请人微信中进行同意(无需管理员扫码)
 - 菜单管理、用户管理、文章管理均通过自定义服务操作，此时需要配置服务器。配置了服务器之后则不能使用微信公众号后台的菜单管理等功能
     - 微信浏览器网页授权(登录)无需绑定此配置(参考下文微信登录)，此配置只是用来管理微信公众号
 - 配置服务器地址
@@ -195,6 +226,9 @@ tags: [H5, App, 小程序, mobile]
     - EncodingAESKey随机生成一个即可
     - 绑定时会调用后台服务进行验证域名有效性，Java的参考：https://www.cnblogs.com/zhouwen2017/p/10451427.html
     - 验证时提示 **"参数错误，请重新填写"**，可能由于域名被微信屏蔽了。可直接在微信上访问测试，如果屏蔽了会提示"已停止访问该网页"
+- 微信公众号开发需要内网穿透
+    - 花生壳等
+    - https://juejin.cn/post/6922714815567773710
 
 ## 微信登录
 
@@ -203,7 +237,7 @@ tags: [H5, App, 小程序, mobile]
 - [微信浏览器中获取用户信息](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html)。如微信公众号点击菜单H5连接进入网页时获取用户信息
     - 前提
         - **绑定网页授权域名**(和授权回调地址一致。微信公众号 - 开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息)
-            - 230522: 无需绑定网页授权域名，**且限制了只有认证账号才能获取此权限**
+            - 230522: 必须绑定网页授权域名(因此开发环境地址必须是外网备案的域名地址，微信会对域名做可访问性验证，花生壳域名是备案了的)，**且限制了只有认证账号才能获取此权限**
             - **无需绑定微信公众号服务器配置**(该配置是用来管理微信公众号的)
             - **一定要是域名，不要加http://等协议头，也不要加子路径**
                 - 假设网页运行在/abc目录，此时也要加example.com，而不能是example.com/abc，因此必须是http://example.com/MP_verify_cm2fJ4wmTLQpvkZr.txt来进行验证
@@ -280,8 +314,6 @@ tags: [H5, App, 小程序, mobile]
 ## 微信云托管
 
 - https://cloud.weixin.qq.com/cloudrun
-
-
 
 
 

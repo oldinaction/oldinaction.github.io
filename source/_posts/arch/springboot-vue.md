@@ -278,6 +278,7 @@ function getParentUrl() {
 ## Http请求及响应
 
 - spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
+- 重定向问题：`server.tomcat.use-relative-redirects=true` 对于复杂的网络环境，如前置网关可能会导致前端重定向到内网地址，此时设置此参数，从而sendRedirect重定向时写入的Header Location响应头为相对路径
 - axios和qs使用参考[js-tools.md#axios](/_posts/web/js-tools.md#axios)
 
 ### 文件上传案例
@@ -876,6 +877,12 @@ location ^~ /my-app/ {
 - 抽取单独的config.js: https://blog.csdn.net/mygoes/article/details/105691399
 - 提供运维人员脚本生成config.js: https://blog.csdn.net/samberina/article/details/122110027
 - 后端为node时，将前端设置为服务端渲染：https://blog.csdn.net/samberina/article/details/122110253
+
+## 移动端其他
+
+### 常用图片尺寸
+
+- 微信小程序分享图: 750*1334 (9:16)
 
 ## 常用插件
 

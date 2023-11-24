@@ -386,6 +386,112 @@ mail.smtp.port=25 # 端口
 ```
 - 调用framework/common/servicedef/services_email.xml中的sendMail服务(此文件中的其他服务也可以调用)
 
+### 禁用Tomcat的OPTIONS等方法
+
+- 修改`framework/catalina/src/org/ofbiz/catalina/container/CatalinaContainer.java`的configureContext方法
+
+```java
+// 在方法末尾增加，参考：https://blog.csdn.net/angyuhh07719/article/details/102429412
+SecurityConstraint securityConstraint = new SecurityConstraint();
+securityConstraint.setUserConstraint("CONFIDENTIAL");
+SecurityCollection collection = new SecurityCollection();
+collection.addPattern("/*");
+collection.addMethod("HEAD");
+collection.addMethod("PUT");
+collection.addMethod("DELETE");
+collection.addMethod("OPTIONS");
+collection.addMethod("TRACE");
+collection.addMethod("COPY");
+collection.addMethod("SEARCH");
+collection.addMethod("PROPFIND");
+securityConstraint.addCollection(collection);
+context.addConstraint(securityConstraint);
+```
+
+### 相关安全漏洞(v13.07)
+
+- CVE-2018-8033
+    - 修复补丁
+        - https://github.com/apache/ofbiz-framework/commit/d46a33a6271f5d6d45e78bf563e6145930dc85c0
+        - https://github.com/apache/ofbiz-framework/commit/a93c963f548d724955f9b612f486304b5ea75046
+- CVE-2020-9496
+    - 漏洞复现 https://blog.csdn.net/Shadow_DAI_990101/article/details/126490894
+- CVE-2021-26295 (高危)
+    - 漏洞复现 https://blog.csdn.net/qin9800/article/details/115866288
+        - 下载https://github.com/yumusb/CVE-2021-26295
+        - 执行`python exp.py`输入OFBiz根地址`http://localhost:8080`后会进入到命令行
+        - 输入命令`touch abc`会发现OFBiz项目根目录文件创建成功(仅Unix测试成功)
+    - 漏洞修复 https://github.com/apache/ofbiz-framework/commit/af9ed4e/
+        - 修改`UtilObject.getObjectException`为
+
+        ```java
+        // 增加类 SafeObjectInputStream.java (参考github)
+        // 修改 "org.apache.ofbiz..*" 和增加 "javolution.util..*"
+        /*
+            如`com.sun.syndication.feed.impl.ObjectBean`类就不能加入到此白名单中，此类属于[remo](https://mvnrepository.com/artifact/rome/rome/1.0)库中的类；
+            上文漏洞复现中使用ysoserial进行反序列化，即是基于remo实现(https://github.com/frohoff/ysoserial/blob/master/src/main/java/ysoserial/payloads/ROME.java#L35)
+         */
+        private static final String[] DEFAULT_WHITELIST_PATTERN = {
+            "byte\\[\\]", "foo", "SerializationInjector",
+            "\\[Z", "\\[B", "\\[S", "\\[I", "\\[J", "\\[F", "\\[D", "\\[C",
+            "java..*", "sun.util.calendar..*", "org.ofbiz..*",
+            "org.codehaus.groovy.runtime.GStringImpl", "groovy.lang.GString",
+            "javolution.util..*"};
+        // 修改SafeObjectInputStream构造方法，将JDK8写法转成JDK7
+        public SafeObjectInputStream(InputStream in) throws IOException {
+            super(in);
+            String safeObjectsProp = UtilProperties.getPropertyValue("SafeObjectInputStream", "ListOfSafeObjectsForInputStream", "");
+            String[] whitelist = safeObjectsProp.isEmpty() ? DEFAULT_WHITELIST_PATTERN : safeObjectsProp.split(",");
+            StringBuilder sb = new StringBuilder();
+            for (String str : whitelist) {
+                String trimmed = str.trim();
+                if (!trimmed.isEmpty()) {
+                    if (sb.length() > 0) {
+                        sb.append("|");
+                    }
+                    sb.append(trimmed);
+                }
+            }
+            String patternString = "(" + sb + ")";
+            whitelistPattern = Pattern.compile(patternString);
+        }
+
+        // 修改 UtilObject#getObjectException 方法，方法体直接改成
+        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+        try {
+            SafeObjectInputStream wois = new SafeObjectInputStream(bis);
+            try {
+                return wois.readObject();
+            } finally {
+                wois.close();
+            }
+        } finally {
+            bis.close();
+        }
+        ```    
+- CVE-2021-44228
+    - 参考[网络安全.md](/_posts/linux/网络安全.md)
+    - 日志框架说明
+        
+        ```bash
+        # 代码风格log4j
+        log4j-api-2.3.jar
+        log4j-1.2-api-2.3.jar
+
+        # log4j2实现
+        log4j-core-2.3.jar
+        log4j-nosql-2.3.jar
+
+        # 也可使用slf4j代码风格
+        slf4j-api-1.6.4.jar
+        log4j-slf4j-impl-2.3.jar
+        ```
+    - 漏洞修复：替换framework/base/lib目录下4个log4j的jar包版本为2.12.2及以上版本，此处使用以下版本(log4j-nosql-2.3.jar可不用更换)
+        - log4j-1.2-api-2.12.4.jar
+        - log4j-api-2.12.4.jar
+        - log4j-core-2.12.4.jar
+        - log4j-slf4j-impl-2.12.4.jar
+
 ## 实体引擎
 
 ### JavaAPIz
@@ -810,7 +916,7 @@ select 'zjtmp1', party_id, type from YARDSAAS1.User_Party_Role t WHERE T.USER_LO
 
 ## 服务引擎
 
-### OFBiz定时服务（Job）
+### OFBiz定时服务(Job)
 
 > 不推荐使用
 
@@ -862,18 +968,18 @@ select 'zjtmp1', party_id, type from YARDSAAS1.User_Party_Role t WHERE T.USER_LO
             </service>
             ```
         - hot-deploy/aezo/script/MyJobService.xml配置
-
+        
             ```xml
             <?xml version="1.0" encoding="UTF-8" ?>
             <simple-methods xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/simple-methods-v2.xsd">
-            <simple-method method-name="createSmPerson" short-description="产生一条SmPerson记录">  
-            <make-value entity-name="SmPerson" value-field="newEntity"/><!-- 创建一个SmPerson实体对象 -->
-                                <sequenced-id sequence-name="SmPerson" field="newEntity.id"/><!-- 递增的主键 -->
-                                <set field="newEntity.username" value="smalle"/><!-- 设置实体相应字段的值 -->
-                                <set field="newEntity.password" value="123456"/>
-                                <create-value value-field="newEntity"/><!-- 往数据库新增一条记录 -->
-                            </simple-method>
+                <simple-method method-name="createSmPerson" short-description="产生一条SmPerson记录">  
+                    <make-value entity-name="SmPerson" value-field="newEntity"/><!-- 创建一个SmPerson实体对象 -->
+                    <sequenced-id sequence-name="SmPerson" field="newEntity.id"/><!-- 递增的主键 -->
+                    <set field="newEntity.username" value="smalle"/><!-- 设置实体相应字段的值 -->
+                    <set field="newEntity.password" value="123456"/>
+                    <create-value value-field="newEntity"/><!-- 往数据库新增一条记录 -->
+                </simple-method>
             </simple-methods>
             ```
 
@@ -929,8 +1035,94 @@ select 'zjtmp1', party_id, type from YARDSAAS1.User_Party_Role t WHERE T.USER_LO
             - 法二：登录到webtools：web管理工具 - 实体XML工具 – XML数据导入，在”完成xml文档”的” <entity-engine-xml></entity-engine-xml>”节点内部插入ScheduledJobs.xml中配置的定时信息 – 导入文本。
 - 关闭定时
     - 登录webtools：web管理工具 - 服务引擎工具 – 任务列表 – 找到需要关闭的定时任务 – 将等待中的任务取消掉即可
-- 说明：只要定时任务没有完成，计时系统重新启动了，也会继续运行(因为数据库中JobSandbox存有该任务的信息)。但是如果将某个为完成的任务取消掉后，下次重启则不会再运行。
+- 说明：只要定时任务没有完成，即使系统重新启动了，也会继续运行(因为数据库中JobSandbox存有该任务的信息)。但是如果将某个为完成的任务取消掉后，下次重启则不会再运行。
 如果运行失败（找不到服务，但是确实又存在），可能是多个开发，有未及时更新代码导致的
+- 修改定时任务池(framework/service/config/serviceengine.xml)，如果启动多个节点可使用
+
+```xml
+<!-- 默认池为pool，修改send-to-pool和run-from-pool -->
+<thread-pool send-to-pool="pool"
+                purge-job-days="4"
+                failed-retry-min="3"
+                ttl="120000"
+                jobs="100"
+                min-threads="2"
+                max-threads="5"
+                poll-enabled="true"
+                poll-db-millis="30000">
+    <run-from-pool name="pool"/>
+</thread-pool>
+```
+
+### webservice
+
+- 定义服务(实现省略)
+
+```xml
+<!-- 
+    export="true"表示暴露成webservice
+    访问 http://localhost:8080/webtools/control/SOAPService/testWeb?wsdl 查看方法描述
+-->
+<service name="testWeb" engine="java"
+    invoke="testWeb" location="cn.aezo.test.OfbizDemo" auth="false" export="true">
+    <description>测试</description>
+</service>
+```
+- java调用，参考[webservice.md](/_posts/java/webservice.md)
+- postman调用
+    - POST http://localhost:8080/webtools/control/SOAPService
+    - 请求体数据类型 raw xml
+    - 请求体数据
+
+    ```xml
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+        <soapenv:Body>
+            <testWeb xmlns="http://ofbiz.apache.org/service/">
+                <map-Map>
+                    <!-- 由于服务无参数，此处不传 -->
+                    <!-- <map-Entry>
+                        <map-Key>
+                            <std-String value="name"/>
+                        </map-Key>
+                        <map-Value>
+                            <std-String value="test"/>
+                        </map-Value>
+                    </map-Entry> -->
+                </map-Map>
+            </testWeb>
+        </soapenv:Body>
+    </soapenv:Envelope>
+    ```
+    - 得到的响应头如
+
+    ```xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+        <soapenv:Body>
+            <checkEdiUploadStatusResponse xmlns="http://ofbiz.apache.org/service/">
+                <map-Map>
+                    <map-Entry>
+                        <map-Key>
+                            <std-String value="responseMessage"></std-String>
+                        </map-Key>
+                        <map-Value>
+                            <std-String value="success"></std-String>
+                        </map-Value>
+                    </map-Entry>
+                    <map-Entry>
+                        <map-Key>
+                            <std-String value="successMessage"></std-String>
+                        </map-Key>
+                        <map-Value>
+                            <std-String value="调用成功..."></std-String>
+                        </map-Value>
+                    </map-Entry>
+                </map-Map>
+            </checkEdiUploadStatusResponse>
+        </soapenv:Body>
+    </soapenv:Envelope>
+    ```
+
 
 ## 权限
 
@@ -1206,6 +1398,18 @@ Screens
 					......
 ```
 
+### FTL说明
+
+```html
+<!--
+    Static: 调用静态方法
+    requestParameters/requestAttributes/delegator 均为内置对象
+-->
+<#if "${(requestParameters.checkBoxId)!}" != "">
+	<#assign checkBoxGv = delegator.findOne("MyDemo", {"id": Static["java.lang.Long"].valueOf(requestParameters.checkBoxId)}, false)?if_exists>
+</#if>
+```
+
 ## 其他
 
 ### 零散
@@ -1288,6 +1492,8 @@ Screens
     - 普通日志每天最多生成10个文件，每个文件大小为1M（超过文件数量会覆盖当天较早的日志）
     - 错误日志每天最多生成3个文件，每个文件大小为1M
 - 日志生成策略配置：`framework/base/config/log4j2.xml`
+    - 可修改fileName属性从而更改日志生成路径
+    - `framework/catalina/ofbiz-component.xml` 可修改access_log日志路径
 - 日志生成级别配置：`framework/base/config/debug.properties`
 
 ### 常见问题
@@ -1354,8 +1560,8 @@ start() {
         echo "[warn] App already started! (pid=$psid)"
     else
         echo -n "[info] Starting ..."
-        # 不能通过 `su -root -c "$(...)"` 执行, 会丢失环境变量：https://www.jb51.net/article/159101.htm
-        # 不能使用source执行, 否则复杂目录时, startofbiz.sh中拿到的目录时错的
+        # 不能通过 `su - root -c "$(...)"` 执行, 会丢失环境变量：https://www.jb51.net/article/159101.htm
+        # 不能使用source执行, 否则复杂目录时, startofbiz.sh中拿到的目录是错的
         cd $APP_HOME && nohup sh tools/startofbiz.sh > /dev/null 2>&1 &
         sleep 5
         checkpid
@@ -1426,6 +1632,7 @@ case "$1" in
                 start
                 ;;
     'start')
+                # ant
                 start
                 ;;
     'stop')

@@ -109,10 +109,12 @@ select * from [Order]; -- sqlserver
 select * from users where last_name is null;
 select * from users where last_name is not null;
 nvl(counts, 0)
+
 -- mysql null不包含空字符串('' != null)
 select * from users where (last_name is null or last_name = '');
 select * from users where last_name is not null and last_name != '';
-ifnull(counts, 0)
+select ifnull(null, 1), ifnull('', 1), if(''='', 1, 0); -- 1 '' 1
+
 -- sqlserver
 isnull(counts, 0)
 ```
@@ -662,10 +664,11 @@ id                  parent_id           depth   path
     - json_unquote 去掉了引号和转义符(和`->`结合使用等同于`->>`)
     - json_extract 基于path提取json字段值(类似`->`)
     - json_contains
-    - json_object 字符串转json对象
+    - json_object 字符串转json对象 `select json_object('a', 1, 'b', 'b1'); -- {"a": 1, "b": "b1"}`
     - json_array 字符串转json数组
     - json_table json转成临时表
     - json_set 修改json
+- 参考：https://www.cnblogs.com/zhusf/p/15704599.html
 
 ```sql
 -- 创建数据类型为json的字段val（如果字段类型为字符串也是可以使用相关函数的，只不过存在隐式转换；且如果类型是json，则在插入数据时会进行格式校验）
@@ -702,6 +705,7 @@ select val->"$.hello" from test; -- "hi, \"aezo\""
 -- (常用)或内联路径运算符 ->> (去掉了引号和转义符)。可能由于服务器no_backslash_escapes的配置导致无法使用 ->>，可如下使用json_unquote()
 select val->>"$.hello" from test; -- hi, "aezo"
 select json_unquote(val->"$.hello"), json_unquote(val->"$.hobby[0]") from test; -- hi, "aezo"
+select json_length('[1,2,{"a":3}]'); -- 3 获取数组长度，不计算嵌套的长度
 
 -- 搜索
 select json_unquote(json_extract(val, '$.*')) from test; -- 将所有一级key对应的值放入到数组中：[{"t1": "v1", "t2": [1, true, false]}, "smalle", "Hi, \"AEZO\"", [{"item": {"name": "book", "weight": 5}}, "game"]]
@@ -711,6 +715,10 @@ select json_unquote(json_extract(val, '$**.name')) from test; -- 返回所有最
 select json_unquote(json_extract(val, '$.hobby[*].item.*')) from test; -- ["book", 5]
 select json_unquote(json_extract(val->'$.hobby', '$[0].item.name')) from test; -- book
 select json_unquote(json_extract('[1, 2, 3]', '$[0]')); -- 1
+
+-- 数组处理
+select json_array_insert('["a",["b","c"],"d"]','$[1][1]',3), json_array_append('["a",["b","c"],"d"]','$[1][0]',3); -- ["a", ["b", 3, "c"], "d"]     ["a", [["b", 3], "c"], "d"]
+select json_replace('[1,2]', '$[1]', json_object('a', 1)); -- [1, {"a": 1}]
 
 -- 如果存放json的字段类型为字符串，取出数据时可进行转换编码
 select convert(json_unquote(json_extract('["张三", "李四"]', '$[0]')) using utf8mb4); -- 张三
@@ -739,6 +747,16 @@ json_table ('[{"a": 1, "b": [11,111]}, {"a": 2, "b": [22,222]}, {"a":3}]',
 
 -- 修改json
 select json_set('{"name":{"en":"约翰"},"age": 25}', '$.name.en', (select translation from translations where text='john' and language='en')) as translated_json;
+
+-- 数组案例: 记录位置信息(保留最近12次)
+update user_info set location_up_time = now()
+,location_up_json = (
+	case when location_up_json is null then concat('[{"la": ', #{latitude},', "lo": ', #{longitude},', "s": ', #{speed},', "t": "', now(),'"}]')
+        when json_length(location_up_json) &lt; 12 then json_array_insert(location_up_json, concat('$[', json_length(location_up_json), ']'), json_object('la', #{latitude}, 'lo', #{longitude}, 's', #{speed}, 't', concat(now(), '')))
+        else json_array_insert(json_remove(location_up_json, '$[0]'), concat('$[', json_length(location_up_json) - 1, ']'), json_object('la', #{latitude}, 'lo', #{longitude}, 's', #{speed}, 't', concat(now(), '')))
+    end
+)
+where id = 1
 ```
 
 ### 定时任务(事件)
@@ -852,9 +870,40 @@ set global event_scheduler = off;
 	- `case when t.name = 'admin' then 'admin' when t.name like 'admin%' then 'admin_user' else decode(t.role, 'admin', 'admin', 'admin_user') end`
 	- `sum(case when yior.plan_classification_code = 'Empty_Temporary_Fall_Into_Play' and yardparty.company_num = 'DW1' then 1 end) as count_dw1` sum写在case里面则需要对相关字段(plan_classification_code)进行group by，而sum写外面则不需要对此字段group by. **主要用于分组之后根据条件分列显示**
 
-#### grouping rollup
+#### rollup
 
-- http://blog.csdn.net/damenggege123/article/details/38794351
+- `group by rollup` 分组统计
+- `grouping(col)` 判断某列是否为分组列，是则返回1否则返回0
+- `group_id()` 相同分组出现的次数，可以用于过滤重复数据
+- `grouping_id(col1, col2, ...)` 如grouping_id(a, b)小计返回1，总计返回3，其他返回0
+
+```sql
+select
+    decode(grouping(a)+grouping(b),1,'小计',2,'总计',a) a
+    ,decode(grouping(b),1,count(*)||'条',b) b
+    ,c, d, sum(n)
+    ,group_id() gid
+    ,grouping_id(a, b, c) ing
+from (
+    select 1 as a, 2 as b, 'C1' as c, 'D1' as d, 5 as n from dual
+    union all
+    select 2 as a, 1 as b, 'C2' as c, 'D2' as d, 1 as n from dual
+)
+-- group by rollup(a, b, c, d) -- 会在结果集中添加(A,B,C,D)、(A,B,C)、(A,B)、(A)、(null) 5种统计数据(单不是增加5行)
+group by rollup(a, b, (c, d)) -- 会在结果集中添加 (A,B,C,D)、(A,B)、(A)、(null) 4种统计数据
+-- group by rollup((a, b, c, d)) -- 会在结果集中添加 (A,B,C,D)、(null) 2种统计数据
+```
+- 结果
+
+| A    | B    | C    | D    | SUM\(N\) | GID | ING |
+| :--- | :--- | :--- | :--- | :------- | :-- | :-- |
+| 1    | 2    | C1   | D1   | 5        | 0   | 0   |
+| 1    | 2    | NULL | NULL | 5        | 0   | 1   |
+| 小计  | 1 条 | NULL | NULL | 5        | 0   | 3   |
+| 2    | 1    | C2   | D2   | 1        | 0   | 0   |
+| 2    | 1    | NULL | NULL | 1        | 0   | 1   |
+| 小计  | 1 条 | NULL | NULL | 1        | 0   | 3   |
+| 总计  | 2 条 | NULL | NULL | 6        | 0   | 7   |
 
 #### trunc时间处理
 
@@ -930,14 +979,36 @@ select * from ASSIGN;
 
 ##### wm_concat行转列
 
+- 为oracle内部函数，12之后已经去掉了此函数
 - 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
-- 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是clob字段，需要通过to_char转换成varchar类型 [^8]
-    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替。参考：https://www.cxybb.com/article/qq_28356739/88626952
-        - druid使用内置SQL解析工具类时，无法解析此函数，参考(测试无效)：https://github.com/alibaba/druid/issues/4259
-    - clob直接返回到前台会报错
+- 案例
+    - `wm_concat(t.hobby)`
+    - `wm_concat(distinct t.hobby)` 支持去重
+    - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符(默认为英文逗号)
+- 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是LOB(CLOB)字段导致部分查询需要进行修改。参考：https://www.cnblogs.com/wsxdev/p/15416946.html
+    - 可使用to_char转换成varchar类型
+        - 虽然在wm_concat()函数外层包了一层to_char()函数，避免使用了LOB类型；但是由于wm_concat()函数的返回值类型LOB类型是不能进行group by、distinct以及union共存的，因此会偶发ORA-22922:错误。这里需要注意的是，是偶发，不是必然
+    - 也可在应用中处理clob直接返回到前台报错问题
         - 可通过`clob.getSubString(1, (int) clob.length())`解决
+
+            ```java
+            // JDBC
+            Object object = resultSet.getObject(i);
+            if(object != null) {
+                if(object instanceof java.sql.Clob) {
+                    java.sql.Clob clob = (java.sql.Clob) object;
+                    object = clob.getSubString(1, (int) clob.length());
+                }
+            }
+
+            // Mybatis处理
+            // https://juejin.cn/s/mybatis%20clob%20to%20string
+            // https://blog.csdn.net/lizhengyu891231/article/details/132434605
+            ```
         - 或者使用jackson转换器，参考：https://oomake.com/question/13622930、https://segmentfault.com/a/1190000040484998
-- `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符
+    - 也可使用[listagg within group行转列](#listagg-within-group行转列)解决返回值为LOB的问题(但是长度最大为4000)
+    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替(单不支持去重)。参考：https://www.cxybb.com/article/qq_28356739/88626952
+        - druid使用内置SQL解析工具类时，无法解析xmlagg函数，参考(测试无效)：https://github.com/alibaba/druid/issues/4259
 
 ##### xmlagg行转列
 
@@ -955,7 +1026,7 @@ select
 from test;
 ```
 
-##### listagg within group行转列
+##### listagg-within-group行转列
 
 - listagg最大容量为4000
 - mysql可使用group_concat
@@ -975,7 +1046,7 @@ group by t.deptno
 
 ##### 常见分析函数 [^3]
 
-- `min`、 `max`、`sum`、`avg` **一般和over/keep函数联合使用**
+- `min`、`max`、`sum`、`avg` **一般和over/keep函数联合使用**
 - `first_value(字段名)`、`last_value(字段名)` **和over函数联合使用**
 - `row_number()`、`dense_rank()`、`rank()`：为每条记录产生一个从1开始至n的自然数，n的值可能小于等于记录的总数(基于相应order by字段的值来判断)。这3个函数的唯一区别在于当碰到相同数据时的排名策略。**和over函数联合使用**
     - `row_number` 当碰到相同数据时，排名按照记录集中记录的顺序依次递增(如：1-2-3-4-5-6)
@@ -1649,5 +1720,4 @@ select * from Customer where Id in (select * from ca);
 [^5]: https://docs.oracle.com/cd/E11882_01/server.112/e41084/functions065.htm#SQLRF00641 (oracle doc: keep)
 [^6]: https://lanjingling.github.io/2015/10/09/oracle-fenxihanshu-3/
 [^7]: https://www.cnblogs.com/seven7seven/p/3662451.html
-[^8]: https://www.smwenku.com/a/5b8dd9d82b71771883410ce1/ 
 [^9]: https://blog.csdn.net/qq_42440234/article/details/84101412

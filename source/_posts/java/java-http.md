@@ -251,7 +251,7 @@ public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) 
     // 2.自定义拦截器restTrackInterceptor(implements org.springframework.http.client.ClientHttpRequestInterceptor)。必须通过此拦截器才可以修改如Header中的值，AOP无法修改
     restTemplate.setInterceptors(Collections.singletonList(restTrackInterceptor));
 
-    // 3.忽略证书
+    // 3.忽略证书(绕过证书)
     try {
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
                 .loadTrustMaterial(null, new org.apache.http.ssl.TrustStrategy() {

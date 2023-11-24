@@ -29,6 +29,7 @@ tags: [spring, 安全]
 
 - spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
 - `axios`实现`x-www-form-urlencoded`请求：参数应该写到`param`中。如果写在`data`中则不行，加`headers: {'Content-Type': 'application/x-www-form-urlencoded'}`也不行
+- `server.tomcat.use-relative-redirects=true` 对于复杂的网络环境，如前置网关可能会导致前端重定向到内网地址，此时设置此参数，从而sendRedirect重定向时写入的Header Location响应头为相对路径
 
 ## springboot整合
 

@@ -375,15 +375,15 @@ mybatis.config-location=classpath:mybatis-config.xml
                 <!-- 注意：如误写成了 `test='name = "smalle"'` 则会把smalle赋值给name字段，可能会覆盖原始参数；常见的为 `test='name == "smalle"'` -->
 				<if test='name != null and name != ""'>
 					<!-- 
-                        1.bind 相当于自定义变量。元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变
+                        1.bind 相当于自定义变量。元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变(但是可能存在sql注入问题)
                         2.案例(还可以同foreach等一起使用)
                         <bind name="index" value="1+1" />
                         <bind name="index" value="index+2" />
                         select ${index} "结果index=4" from dual;
                     -->
 					<!-- 
-                        _parameter为传入的User对象。如果传入参数为Map，则为_parameter.get('name')
-                        _parameter 为 DynamicContext 中的属性，类似的还有_databaseId=oracle|mysql
+                        _parameter 为传入的User对象。如果传入参数为Map，则为 _parameter.get('name')
+                        _parameter 为 DynamicContext 中的属性，类似的还有 _databaseId=oracle|mysql
                     -->
 					<bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
                     <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> 
@@ -399,6 +399,12 @@ mybatis.config-location=classpath:mybatis-config.xml
                     <![CDATA[ and DATE_FORMAT(birthdate, '%Y/%m/%d') >= DATE_FORMAT(#{birthdate}, '%Y/%m/%d') ]]>
                 </if>
 			</select>
+
+            <update id="update">
+                <!-- 不使用bind直接把变量写到where里面mysql执行报错 -->
+                <bind name="id" value="check_item_sql.get(0).id" />
+                update sys_user_behavior set total = total + 1, create_time = now() where id = #{id}
+            </update>
 
 			<!-- property参数使用 -->
 			<sql id="sometable">
@@ -446,6 +452,17 @@ mybatis.config-location=classpath:mybatis-config.xml
             <select id="findList">
 				select name from user_info order by ${orderBy}
 			</select>
+
+            <select id="collectionSplit">
+                <!-- foreach collection支持执行函数 -->
+                <foreach collection="listStr.trim().split('\n')" item="item">
+                    <bind name="listVal" value="item.trim().split('@')" />
+                    <!-- 此处直接使用#{listVal[0]}、#{listVal[1]}的方式取值会导致上面的foreach无效，每次都是取的最后一条记录的值，改成foreach则不会存在此问题 -->
+                    <foreach collection="listVal" item="val">
+                        #{val}
+                    </foreach>
+                </foreach>
+            </select>
 
 			<!-- insert/update返回主键(默认返回修改的数据执行状态/影响行数)
 			1.定义方式
@@ -654,7 +671,7 @@ mybatis.config-location=classpath:mybatis-config.xml
 - `Cause: java.sql.SQLException: 无法转换为内部表示` 可能是由于类型转换导致，如强制将数据库中字符串类型字段映射某个对象的Long类型属性上
 - mybatis中用Map接收oracle的结果集，返回的数据key为大写。解决：sql可写成`select name as "name" from user`
 - xml中传入常量
-    - 格式`${@path$subClass@Attr.getValueMethod}`，[ognl表达式参考](https://commons.apache.org/proper/commons-ognl/language-guide.html)
+    - 格式`${@path$subClass@Attr.getValueMethod()}`，[ognl表达式参考](https://commons.apache.org/proper/commons-ognl/language-guide.html)
     - 如 `AND type = ${@cn.aezo.test.Const@Type}` 或者 `AND type = ${@cn.aezo.test.Const$TypeEnum@Test.getValue()}`(枚举)
 - 注入全局变量/动态解析全局变量: https://blog.csdn.net/mashangzhifu/article/details/122845644
     - 参考下文[拦截器(插件)](#拦截器(插件))
@@ -762,7 +779,7 @@ mybatis.config-location=classpath:mybatis-config.xml
         - 共有两个选项，SESSION或者STATEMENT，默认是SESSION级别，即在一个MyBatis会话(同一个sqlSession对象)中执行的所有语句，都会共享这一个缓存。一种是STATEMENT级别，可以理解为缓存只对当前执行的这一个Statement有效(相当于关闭一级缓存)
     - 现象
         - 同一个sqlSession对象，执行多次查询，只有第一次会查询数据库，后续则返回缓存数据(不考虑缓存过期的情况)
-        - 在修改操作后执行的相同查询，一级缓存失效
+        - 在修改操作后执行的相同查询，一级缓存失效(如果只修改bean对象，没有提交sql则缓存仍然存在，返回的是被修改的bean)
         - 一级缓存只在数据库会话内部共享。如果会话1先读取一次数据，然后会话2修改了该数据(只会让会话2的查询缓存失效)，会话1重新读取此数据获取的任然是修改前数据
     - 总结
         - MyBatis一级缓存的生命周期和SqlSession一致
@@ -886,7 +903,7 @@ public class PluginsConfig {
     }
 }
 ```
-- 注入全局动态参数(引入pagehelper插件的情况下)
+- 注入全局动态参数
     - 参考[spring.md#加载优先级](/_posts/java/spring.md#加载优先级)
 
 ```java
@@ -974,7 +991,7 @@ public class GlobalParametersConfig {
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 cn.aezo.test.mybatis.GlobalParametersConfig
 
-// (可选)全局静态动态(项目启动就回替换)
+// (可选)全局静态动态，必须使用$，且如果是字符串则需要加引号(项目启动就会替换)
 // application.yml
 mybatis-plus:
   configuration:
@@ -990,6 +1007,7 @@ mybatis-plus:
     </include>
 </select>
 <sql id="existsTest">
+    <!-- _gvFuncTest为全局静态动态，_gvUsername为全局动态变量 -->
     <if test='${_gvFuncTest} != null and ${_gvFuncTest} and _gvUsername != null and _gvUsername != ""'>
         and exists(select 1 from t_user u
         where u.username = #{_gvUsername} and (u.saas_code is null or u.saas_code = ${prefix}.saas_code))

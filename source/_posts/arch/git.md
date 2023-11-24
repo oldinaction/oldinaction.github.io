@@ -464,56 +464,64 @@ git branch -d develop/test
 - 通过ssh获取代码时，在命令行可以正常获取，在idea界面中无法拉取代码(idea的命令行可以)
     - 设置idea中Git配置项的SSH executable=Native
 
-#### 忽略控制文件
+#### gitignore
 
 - `.gitignore` 文件创建和设置
 	- git根目录运行命令：`touch .gitignore`
 	- 使用 vi 编辑器进行文件配置
 - 配置语法 [^6]
-	
-	```bash
-	#               表示此为注释,将被Git忽略
-	*.a             #表示忽略所有 .a 结尾的文件
-	!lib.a          #表示但lib.a除外
-	/TODO           #表示仅仅忽略项目根目录下的 TODO 文件，不包括 subdir/TODO
-	build/          #表示忽略 build/目录下的所有文件，过滤整个build文件夹；
-	doc/*.txt       #表示会忽略doc/notes.txt但不包括 doc/server/arch.txt
-	
-	bin/:           #表示忽略当前路径下的bin文件夹，该文件夹下的所有内容都会被忽略，不忽略 bin 文件
-	/bin:           #表示忽略根目录下的bin文件
-	/*.c:           #表示忽略cat.c，不忽略 build/cat.c
-	debug/*.obj:    #表示忽略debug/io.obj，不忽略 debug/common/io.obj和tools/debug/io.obj
-	**/foo:         #表示忽略/foo,a/foo,a/b/foo等
-	a/**/b:         #表示忽略a/b, a/x/b,a/x/y/b等
-	!/bin/run.sh    #表示不忽略bin目录下的run.sh文件
-	*.log:          #表示忽略所有 .log 文件
-	config.php:     #表示忽略当前路径的 config.php 文件
-	
-	/mtk/           #表示过滤整个文件夹
-	*.zip           #表示过滤所有.zip文件
-	/mtk/do.c       #表示过滤某个具体文件
 
-	# 	----------------------------------------------------------------------------------
-	#想象一个场景：假如我们只需要管理/mtk/目录中的one.txt文件，这个目录中的其他文件都不需要管理，那么.gitignore规则应写为：
-	#注意/mtk/*不能写为/mtk/，否则父目录被前面的规则排除掉了，one.txt文件虽然加了!过滤规则，也不会生效！
-	/mtk/*
-	!/mtk/one.txt
+```bash
+#               表示此为注释,将被Git忽略
+*.a             #表示忽略所有 .a 结尾的文件
+!lib.a          #表示但lib.a除外
+/TODO           #表示仅仅忽略项目根目录下的 TODO 文件，不包括 subdir/TODO
+build/          #表示忽略 build/目录下的所有文件，过滤整个build文件夹；
+doc/*.txt       #表示会忽略doc/notes.txt但不包括 doc/server/arch.txt
 
-	#说明：忽略目录 fd1 下的全部内容，但不包含one.txt；注意，不管是根目录下的 /fd1/ 目录，还是某个子目录 /child/fd1/ 目录，都会被忽略；
-	*/fd1/*
-	!*/fd1/one.txt
-	
-	#说明：忽略根目录下的 /fd1/ 目录的全部内容；
-	/fd1/*
-	
-	#说明：忽略全部内容，但是不忽略 .gitignore 文件、根目录下的 /fw/bin/ 和 /fw/sf/ 目录；注意要先对bin/的父目录使用!规则，使其不被排除。
-	/*
-	!.gitignore
-	!/fw/ 
-	/fw/*
-	!/fw/bin/
-	!/fw/sf/
-	```
+bin/:           #表示忽略当前路径下的bin文件夹，该文件夹下的所有内容都会被忽略，不忽略 bin 文件
+/bin:           #表示忽略根目录下的bin文件
+/*.c:           #表示忽略cat.c，不忽略 build/cat.c
+debug/*.obj:    #表示忽略debug/io.obj，不忽略 debug/common/io.obj和tools/debug/io.obj
+**/foo:         #表示忽略/foo,a/foo,a/b/foo等
+a/**/b:         #表示忽略a/b, a/x/b,a/x/y/b等
+!/bin/run.sh    #表示不忽略bin目录下的run.sh文件
+*.log:          #表示忽略所有 .log 文件
+config.php:     #表示忽略当前路径的 config.php 文件
+
+/mtk/           #表示过滤整个文件夹
+*.zip           #表示过滤所有.zip文件
+/mtk/do.c       #表示过滤某个具体文件
+
+# 	----------------------------------------------------------------------------------
+#想象一个场景：假如我们只需要管理/mtk/目录中的one.txt文件，这个目录中的其他文件都不需要管理，那么.gitignore规则应写为：
+#注意/mtk/*不能写为/mtk/，否则父目录被前面的规则排除掉了，one.txt文件虽然加了!过滤规则，也不会生效！
+/mtk/*
+!/mtk/one.txt
+
+#说明：忽略目录 fd1 下的全部内容，但不包含one.txt；注意，不管是根目录下的 /fd1/ 目录，还是某个子目录 /child/fd1/ 目录，都会被忽略；
+*/fd1/*
+!*/fd1/one.txt
+
+#说明：忽略根目录下的 /fd1/ 目录的全部内容；
+/fd1/*
+
+#说明：忽略全部内容，但是不忽略 .gitignore 文件、根目录下的 /fw/bin/ 和 /fw/sf/ 目录；注意要先对bin/的父目录即/fw/使用!规则，使其不被排除。
+/*
+!.gitignore
+!/fw/ 
+/fw/*
+!/fw/bin/
+!/fw/sf/
+
+# 再如去掉build下的classes目录和lib目录的jar，但是保留lib目录(通过在里面放一个blank文件)
+*/build/* # 此处必须加*
+!*/build/lib/ # 此处不能加*
+*/build/lib/*
+!*/build/lib/blank
+
+# 如果父子目录都有.gitignore文件，则某个文件必须同时符合两个规则
+```
 - 已经提交的文件(git已经管理了此文件，仓库已经存在此文件)无法忽略解决办法
 	- 先删除对应文件，提交版本，再将此文件加到.gitignore中，再次提交则不会出现
 	- 如果是未提交的文件，此时不管.gitignore文件是否提交，.gitignore文件都是生效的
@@ -579,7 +587,7 @@ git push
 ```bash
 1. 提交格式
 git commit -m <type>[optional scope]: <description>
-	
+
 2. 常用的type类别
 type ：用于表明我们这次提交的改动类型，是新增了功能？还是修改了测试代码？又或者是更新了文档？总结以下 11 种类型：
 • build：主要目的是修改项目构建系统(例如 glup，webpack，rollup 的配置等)的提交
@@ -593,6 +601,7 @@ type ：用于表明我们这次提交的改动类型，是新增了功能？还
 • test：新增测试用例或是更新现有测试
 • revert：回滚某个更早之前的提交
 • chore：不属于以上类型的其他类型(日常事务)
+• cve：CVE漏洞修复
 optional scope：一个可选的修改范围。用于标识此次提交主要涉及到代码中哪个模块。
 description：一句话描述此次提交的主要内容，做到言简意赅。
 

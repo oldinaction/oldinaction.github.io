@@ -325,7 +325,7 @@ echo off
     %~d0
     set MY_PROJECT_HOME=%~p0
     cd %MY_PROJECT_HOME%
-    "%JAVA_HOME%\bin\java" -DLog4j22.formatMsgNoLookups=true -jar my.jar
+    "%JAVA_HOME%\bin\java" -DLog4j2.formatMsgNoLookups=true -jar my.jar
     @pause
     ```
 

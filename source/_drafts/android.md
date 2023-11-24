@@ -8,7 +8,8 @@ tags: [android]
 
 ## 简介
 
-- 安卓模拟器：`Genymotion`
+- [安卓模拟器](https://blog.csdn.net/csdnxia/article/details/120656206)
+    - [网易MUMU](https://mumu.163.com/)
 
 ## 安装
 

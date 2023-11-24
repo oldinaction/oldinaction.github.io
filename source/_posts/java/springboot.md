@@ -203,7 +203,14 @@ tags: spring
 - application.yml配置
 
 ```yml
-# 最简单的日志打印只需再resource目录加入logback.xml/logback-spring.xml即可，无需下列logging节点配置。其他说明：
+## 默认情况下，SpringBoot日志只记录到控制台，不写日志文件。当定义了 logging.file.name 参数才会写入日志
+logging:
+  # 有的是 logging.file.name
+  # 非滚动日志方便进ELK
+  file: D:/temp/logs/spring.log
+
+## 另一种简单的日志打印只需再resource目录加入logback.xml/logback-spring.xml即可，无需下列logging节点配置。
+# 其他说明：
 # 1. 文件的命名和加载顺序有关：logback.xml早于application.yml加载，logback-spring.xml晚于application.yml加载；如果logback配置需要使用application.yml中的属性，需要命名为logback-spring.xml
 # 2. logback使用application.yml中的属性：必须通过springProperty才可引入application.yml中的值，可以设置默认值
 logging:
@@ -212,14 +219,14 @@ logging:
 	# 基于xml文件可以将日志级别不同的生成到不同的文件中。如果日志配置文件为：resource/logback.xml；resource/logback-spring.xml；也可以自动识别环境，如logback-dev.xml，则无需此配置
     config: classpath:logback-test.xml
 
-# 将mybatis的DEBUG日志记录在文件的前提是：(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
+## 将mybatis的DEBUG日志记录在文件的前提是：(1)有对应的文件appender-ref (2)对应mapper设置的级别高于此处的默认级别
 # 打印mybatis的sql语句，会覆盖logback.xml中的配置。logging.level 不支持通配符
 logging.level.cn.aezo.test.mapper: DEBUG
 logging:
     level:
         cn.aezo.test.mapper: DEBUG
 
-# 打印mybatis的sql语句时需要，或者加在mybatis-config.xml中
+## 打印mybatis的sql语句时需要，或者加在mybatis-config.xml中
 mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
@@ -817,6 +824,7 @@ str3: "hello wor\
 - 示例
 
 	```java
+    // 返回的Map类型为org.springframework.util.LinkedCaseInsensitiveMap, 对应Key忽略大小写
 	@Autowired
 	private JdbcTemplate jdbcTemplate; // 单数据源时，springboot默认会注入JdbcTemplate的Bean
 
@@ -936,10 +944,25 @@ str3: "hello wor\
     <dependency>
         <groupId>com.alibaba</groupId>
         <artifactId>druid-spring-boot-starter</artifactId>
+        <!-- 1.1.x的可能出现活跃的连接数远超过最大连接数问题 -->
         <version>1.2.3</version>
     </dependency>
     ```
 - 配置：https://github.com/alibaba/druid/tree/master/druid-spring-boot-starter
+
+```bash
+# 默认前缀，也可以配置数据源的时候自定义注入参数，或多数据源的情况设置多个前缀
+# spring.datasource.druid.xxx
+
+spring.datasource.druid.initial-size=5 # 初始化连接数
+spring.datasource.druid.min-idle=5 # 最小连接数
+spring.datasource.druid.max-active=20 # 最大有效连接数
+
+# 用于校验连接情况，防止出现Connection reset异常
+spring.datasource.druid.validation-query=SELECT 1 # oracle: SELECT 1 FROM DUAL
+# 执行SQL超时时间，默认10s: https://github.com/alibaba/druid/issues/5039
+spring.datasource.druid.socket-timeout=10000
+```
 - 源码
     - supprot 为扩展包
         - `http.ResourceServlet` 抽象类包含了对登录、主页显示等请求的处理

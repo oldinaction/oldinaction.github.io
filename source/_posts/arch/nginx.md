@@ -35,9 +35,15 @@ tags: LB, HA
             - 安装epel `rpm -ivh epel-release-latest-7.noarch.rpm`
             - 再下载 `yum install nginx`
     - 程序包解压安装
+        - 安装多个版本的nginx(未测试): https://www.cnblogs.com/weibanggang/p/11487339.html
     - 卸载
-        - `yum remove nginx`
-        - 手动删除/etc/nginx、/var/log/nginx、/usr/share/nginx
+
+        ```bash
+        yum remove nginx
+        rm -rf /etc/nginx
+        rm -rf /var/log/nginx
+        rm -rf /usr/share/nginx
+        ```
 - 启动
     - `systemctl start nginx` 启动
     - 进入到`nginx`执行文件目录，运行`sudo ./nginx`
@@ -91,6 +97,13 @@ cat access.log | sed -n '/03\/Dec\/2020:02*/,/03\/Dec\/2020:04*/p' | more
 - 代理端口时，**Header中数据丢失。nginx中默认不支持带`_`的key**
     - Header名不要带`_`
     - 解除nginx的限制：配置文件的http部分增加`underscores_in_headers on;`
+- 参数调试
+
+```bash
+# 增加类似自定义响应头，通过观察响应信息进行调试
+add_header X-debug-message "A static file was served" always;
+add_header X-uri "$request_uri";
+```
 
 #### 配置示例
 
@@ -123,14 +136,8 @@ server {
     root   /home/aezocn/www;
     index index.html;
     # 防止缓存index.html。此处的路径不一定要是index.html，只要某路径A返回的是index.html文件，则此处匹配A路径即可。且index.html中应用的js、css编译的文件名是hash过的，因此也不会缓存
-        # index.html里面加meta标签是为了不缓存index.html里面的css/js；另外vue-cli等打包插件支持对css/js的名字加哈希值(如：main.0926594267d262000533.js)，因此不加meta标签页不会缓存
-        #<meta http-equiv="pragram" content="no-cache">
-        #<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     location = /index.html {
         root   /home/aezocn/www;
-        #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
-        #   - time控制Cache-Control：负数表示no-cache，正数或零表示max-age=time
-        #   - epoch指定Expires的值为`1 January,1970,00:00:01 GMT`
         expires -1s; # 对于不支持http1.1的浏览器，还是需要expires来控制
         add_header Cache-Control "no-cache, no-store"; # 会加在 response headers
     }
@@ -225,12 +232,16 @@ server {
     # 当直接访问www.aezo.cn下的任何地址时，都会转发到http://127.0.0.1:8080下对应的地址(内部重定向，地址栏url不改变)。如http://www.aezo.cn/admin等，会转发到http://127.0.0.1:8080/admin
     # location后的地址可正则，如 `location ^~ /api/ {...}` 表示访问 http://www.aezo.cn/api/xxx 会转到 http://127.0.0.1:8080/api/xxx 上
     location / {
-        proxy_set_header Host $http_host;
+        # 还有如果存在302重定向的情况，反向代理需要增加Host头，否则客户浏览器地址会被重定向到被代理地址(此地址可能是内网导致访问失败)，参考下文proxy_redirect
+        proxy_set_header Host $host;
         proxy_set_header X-Real-IP  $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_redirect off;
-        # proxy_pass http://127.0.0.1:8080/xxx; 会报错。proxy_pass在以下情况下，指令中不能有URI：正则表达式location、if块、命名的地点
+
+        # proxy_redirect 该指令用来修改被代理服务器返回的响应头中的Location头域和“refresh”头域. 参考：https://blog.csdn.net/u011066470/article/details/118901373
+        # proxy_redirect off;
+
         if (!-f $request_filename) {
+            # proxy_pass http://127.0.0.1:8080/xxx; 会报错。proxy_pass在以下情况下，指令中不能有URI：正则表达式location、if块、命名的地点
             proxy_pass http://127.0.0.1:8080;
             break;
         }
@@ -239,6 +250,9 @@ server {
             proxy_pass http://127.0.0.1:8080/xxx$request_uri;
             break;
         }
+
+        #proxy_pass http://127.0.0.1/;
+        #break;
     }
 
     ## proxy_pass详解
@@ -392,7 +406,7 @@ http {
 
     # 默认配置。使用main格式进行输出访问日志
     # access_log  /var/log/nginx/access.log  main;
-    # 按照天对access.log进行分割(否则时间长了日志文件会很大)
+    # ***按照天对access.log进行分割***(否则时间长了日志文件会很大)
     map $time_iso8601 $logdate {
 		'~^(?<ymd>\d{4}-\d{2}-\d{2})' $ymd;
 		default                       'date-not-found';
@@ -543,10 +557,13 @@ http {
         location / {
             proxy_pass http://127.0.0.1:88;
             proxy_redirect off;
+            
+            # 有些服务设置了Host检查；还有如果存在302重定向的情况，反向代理需要增加Host头，否则客户浏览器地址会被重定向到被代理地址(此地址可能是内网导致访问失败)
             proxy_set_header Host $host;
             #后端的Web服务器可以通过X-Real-IP获取用户真实IP
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
             # 后端服务器超时时间(默认60s)
             proxy_connect_timeout 180; #nginx跟后端服务器连接超时时间(代理连接超时)
             proxy_send_timeout 180; #后端服务器数据回传时间(代理发送超时)
@@ -646,11 +663,10 @@ server {
     # 使用完整证书(服务器证书+中间证书合并)
     ssl_certificate /etc/letsencrypt/live/test.aezo.cn/fullchain.pem; # 对应阿里证书*.pem(CERTIFICATE)
     ssl_certificate_key /etc/letsencrypt/live/test.aezo.cn/privkey.pem; # 对应阿里证书*.key(PRIVATE KEY)
-    # 可选
-    # 设置支持的TLS协议，默认支持TSLv1.2以上
+    # 可选。参考：https://www.cnblogs.com/linuxshare/p/16521904.html
+    # 设置支持的TLS协议，默认(建议只)支持TSLv1.2以上
     # ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
-    # 设置加密格式(TLSv1.0需要)
-    # ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4:!DH:!DHE;
+    # ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4:!DH:!DHE:!3DES;
 
     root /home/www;
     index  index.html index.htm;
@@ -703,7 +719,99 @@ server {
 
 #### Nginx访问日志过大自动清理
 
-- https://www.chinastor.com/nginx/11143LK2017.html
+- 参考上文自动分割方案
+- 自动清理方案https://www.chinastor.com/nginx/11143LK2017.html
+
+#### 更安全的配置
+
+```bash
+http {
+    # http响应头不显示nginx版本，单还是会显示“nginx”(去掉此文字相对麻烦)
+    server_tokens  off;
+
+    # cve: Http头Hostname攻击
+    server {
+        listen 443 ssl http2 default_server; # default_server 对于没有找到server_name的请求默认进入到此server
+        server_name _; # _ 也可写成 __ 等，相当于localhost
+        ssl on;
+        ssl_certificate "/etc/nginx/my_nginx.cer";
+        ssl_certificate_key "/etc/nginx/my_nginx.pem";
+        ssl_session_cache shared:SSL:1m;
+        ssl_session_timeout 10m;
+        ssl_ciphers HIGH:!aNULL:!MD5:!3DES;
+        ssl_protocols TLSv1.2;
+        ssl_prefer_server_ciphers on;
+
+        location / {
+            return 403;
+        }
+    }
+
+    # 开启 HTTPS
+    server {
+        listen 443 ssl;
+        server_name test.aezo.cn;
+
+        # 参考：https://www.cnblogs.com/linuxshare/p/16521904.html
+        # 使用完整证书(服务器证书+中间证书合并)
+        ssl_certificate /etc/letsencrypt/live/test.aezo.cn/fullchain.pem; # 对应阿里证书*.pem(CERTIFICATE)
+        ssl_certificate_key /etc/letsencrypt/live/test.aezo.cn/privkey.pem; # 对应阿里证书*.key(PRIVATE KEY)
+        # 支持开启TLSv1.2协议
+        ssl_protocols TLSv1.2;
+        # 禁用3DES等脆弱算法. cve: SSL/TLS协议信息泄露漏洞CVE-2016-2183
+        ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4:!3DES;
+        ssl_session_timeout 10m;
+        ssl_session_cache shared:SSL:1m;
+        ssl_prefer_server_ciphers on;
+
+        root /home/www;
+        index  index.html index.htm;
+
+        add_header Access-Control-Allow-Methods POST,GET,HEAD;
+        add_header X-Frame-Options "SAMEORIGIN";
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        # 内容安全策略 (CSP) 是一个额外的安全层，用于检测并削弱某些特定类型的攻击，包括跨站脚本 (XSS (en-US)) 和数据注入攻击等
+        add_header Content-Security-Policy "script-src * 'unsafe-inline' 'unsafe-eval'";
+        #（通常简称为 HSTS）响应标头用来通知浏览器应该只通过 HTTPS 访问该站点，并且以后使用 HTTP 访问该站点的所有尝试都应自动转换为 HTTPS
+        # max-age=<expire-time>: 设置在浏览器收到这个请求后的<expire-time>秒的时间内凡是访问这个域名下的请求都使用 HTTPS 请求。
+        # includeSubDomains: 如果这个可选的参数被指定，那么说明此规则也适用于该网站的所有子域名
+        # preload: 查看 预加载 HSTS 获得详情。不是标准的一部分
+        add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+        # 用于指定IE 8以上版本的用户不打开文件而直接保存文件
+        add_header X-Download-Options noopen;
+        add_header X-Permitted-Cross-Domain-Policies none;
+        add_header Permissions-Policy "geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(),magnetometer=(),gyroscope=(),fullscreen=(self),payment= ()";
+        # 是否发送 Referrer 信息. https://blog.csdn.net/m0_54434140/article/details/125517407
+        add_header Referrer-Policy "origin";
+
+        # 只开启部分协议
+        if ($request_method !~* GET|POST|HEAD) {
+            return 403;
+        }
+
+        # cve: 静止访问文件后缀
+        location ~ \.(txt|md|git|svn|env|ini|htaccess|conf|project)$ {
+            deny all;
+        }
+
+        location / {
+            proxy_pass http://127.0.0.1:8080;
+            # 用于传递用户真实IP
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+    # 将 HTTP 强制重定向到 HTTPS
+    server {
+        listen 80;
+        server_name test.aezo.cn;
+
+        return 301 https://$host$request_uri;
+    }
+}
+```
 
 ## 字段说明
 
@@ -752,6 +860,8 @@ server {
 
 ### 全局变量
 
+- Nginx 获取自定义请求header头和URL参数：https://blog.csdn.net/JineD/article/details/125434338
+    - 如使用`$http_x_test`获取Header的X-Test值
 - 可以用作if判断的全局变量
 
 ```bash
@@ -825,8 +935,97 @@ location / {
 
 ### nginx缓存
 
-#### proxy缓存功能(`ngx_http_proxy_module`)
+- 参考文章
+    - https://juejin.cn/post/7079601613135937550
+- nginx可配置的缓存有2种
+    - 客户端的缓存(一般指浏览器的缓存)
+    - 服务端的缓存(使用proxy-cache实现的)
 
+#### 结合浏览器缓存
+
+- HTTP缓存：https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching
+- 缓存机制：当前缓存的文件是否过期，服务器中文件是否有改动
+    - 文件变动后文件的Etag值会发生更改；客户端先问服务器Etag值是否发生更改；然后决定是否更新当前文件
+- 相关参数
+    - Pragma(Http1.0) 它用来向后兼容只支持 HTTP/1.0 协议的缓存服务器，那时候 HTTP/1.1 协议中的 Cache-Control 还没有出来
+    - Expires(Http1.1) 相应头过期时间；Cache-control中设置max-age，则该属性会被忽略
+    - Cache-control(Http1.1) 该字段的优先级要比Expires优先级高
+        - `no-store` **不使用缓存(无此参数就标识可以使用缓存，但是部分其他数据可能对缓存有限制)**。禁止将响应存储在任何缓存中(但不会删除相同 URL 的任何已存储响应，已经缓存的仍然能使用)
+        - `no-cache` **强制重新验证**。每次请求都会验证本地缓存和服务器是否一致(更新时间Last-Modified和文件内容Hash值ETag)，一致则返回304并使用本地缓存(不下载服务器资源)
+        - `max-age` 缓存的内容将在多少秒后失效，相对于请求时间来说的
+            - max-age=0便是无论服务端如何设置，在重新获取资源之前，先检验ETag/Last-Modified。在设置max-age=no-cache或0后，在资源无更新的情况下访问都会返回304
+            - 只设置`expires 7d;`会转换成`Cache-control max-age=604800`设置到返回头中
+        - `private` 客户端可以缓存
+        - `public` 客户端和代理服务器都可缓存
+        - `must-revalidate` 告诉浏览器/缓存服务器；在本地文件过期之前可以使用本地文件；本地文件一旦过期需要去源服务器进行有效性校验；如果有缓存服务器且该资源未过有效期则命中缓存服务器并返回200；如果过期且源服务器未发生更改；则校验后返回304
+- 判断请求是否使用了浏览器缓存：F12 - Network - 观察Size和Status列
+    - Size为(memory cache)和(disk cache)，此时Status为200：表示使用了浏览器缓存或磁盘缓存(当关闭浏览器后重新打开，那默认会到本地磁盘上获取此数据)
+    - Size有值，Status为304：表示通过max-age判断文件已经超过了设置的缓存时间，但是服务端返回此文件未被更新，则返回304，数据仍然从本地缓存读取
+- Chrome浏览器本身控制缓存机制。参考：https://blog.csdn.net/andy_csdn007/article/details/115210818
+    - `ctrl+shift+delete` 弹出删除缓存和Cookie的确认框
+    - `ctrl+shift+R`/`ctrl+f5` 强制刷新不走缓存
+    - F12 - Network - Disable cache 关闭缓存
+    - F12 - Setting - Network - Disable cache(当打开F12时关闭缓存)
+    - 浏览器启动命令增加相关参数
+- HTML设置相关参数
+
+```html
+<!-- 不缓存此HTML文件中的JS/CSS等资源 -->
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Cache-control" content="no-cache,max-age=0,must-revalidate,no-store">
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Cache" content="no-cache">
+```
+- Nginx相关配置
+
+```bash
+server {
+    # 防止缓存index.html。且index.html中应用的js、css编译的文件名是hash过的，因此也不会缓存
+        # index.html里面加meta标签是为了不缓存index.html里面的css/js；另外vue-cli等打包插件支持对css/js的名字加哈希值(如：main.0926594267d262000533.js)，因此不加meta标签页不会缓存
+        #<meta http-equiv="Pragma" content="no-cache">
+        #<meta http-equiv="Cache-control" content="no-cache,max-age=0,must-revalidate,no-store">
+    location = /index.html {
+        root   /home/aezocn/www;
+        #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
+        #   - time控制Cache-Control：负数表示no-cache，正数或零表示max-age=time
+        #   - epoch指定Expires的值为`1 January,1970,00:00:01 GMT`
+        expires -1s; # 对于不支持http1.1的浏览器，还是需要expires来控制
+        add_header Cache-Control "no-cache, no-store"; # 会加在 response headers
+    }
+    # 所有*.html的文件均不缓存，但是其优先级低于 ^~ 的匹配方式
+    location ~ .*.(htm|html)?$ {
+		add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+		access_log on;
+	}
+
+    # 相当于只缓存 /static/assets/ 路径下的文件
+    add_header Cache-Control "no-cache, no-store"; # 先声明整个server不要缓存(包含了一些如JSP页面)；location中再申明可缓存对应静态文件，但是每次需校验ETag/Last-Modified值
+    location /static/assets/ {
+        add_header  Cache-Control max-age=no-cache;
+        proxy_pass http://127.0.0.1:8080/static/assets/;
+        break;
+    }
+
+    location / {
+        if ($request_filename ~* .*\.(?:htm|html)$) {
+            add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+        }
+        if ($request_filename ~* .*\.(?:js|css)$) {
+            expires      7d; # 会转换成`Cache-control max-age=604800`设置到返回头中
+        }
+        if ($request_filename ~* .*\.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm)$) {
+            expires      7d;
+        }
+        # ...
+    }
+}
+```
+
+#### proxy缓存功能
+
+- 参考
+    - https://blog.csdn.net/shark_chili3007/article/details/104009742
+- 对应模块`ngx_http_proxy_module`
 - 反向代理时先从nginx缓存中寻找资源，如果缓存中没有则向tomcat请求
 
 ```bash
@@ -865,8 +1064,9 @@ server {
 }
 ```
 
-#### 清除指定url缓存(`ngx_cache_purge`)
+#### 清除指定url缓存
 
+- 对应模块`ngx_cache_purge`
 - 添加安装清除缓存模块(基于下文【基于编译安装tengine】安装状态进行说明)
     - 下载ngx_cache_purge模块 `http://labs.frickle.com/files/ngx_cache_purge-2.3.tar.gz`
     - 将ngx_cache_purge-2.3.tar.gz解压到tengine源码目录

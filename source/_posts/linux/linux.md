@@ -59,8 +59,26 @@ tags: [linux, shell]
         - `2>&1` 表示将错误输出重定向到标准输出
             - `0`：标准输入；`1`：标准输出；`2`：错误输出
         - `./myscript.sh 2>&1 | tee mylog.log` **tee实时重定向日志(同时也会在控制台打印，并且可进行交互)**
+    - 前后台进程切换
+
+        ```bash
+        ## 将前台任务转到后台运行
+        # 将该前台任务挂起
+        ctrl + z
+        # 查看挂起的任务
+        jobs
+        # 将对应序号的任务从前台转到后台
+        bg %1
+        # 需要执行此命令后才能关闭命令行，否则程序虽然转到后台，但是如果关闭命令行仍然会停止
+        disown
+
+        ## 将nohup后台任务转到前台
+        # 查看后台任务
+        jobs
+        # 转到前台
+        fg %1
+        ```
     - `Ctrl+c` 关闭程序，回到终端
-    - `Ctrl+z` 后台运行程序，回到终端
     - 也可使用`screen/tmux`等命令实现脱机运行
         - 会话的一个重要特点是，窗口与其中启动的进程是连在一起的。打开窗口，会话开始；关闭窗口，会话结束，会话内部的进程也会随之终止，不管有没有运行完，一个典型的例子就是，SSH 登录远程计算机。screen/tmux可使会话与窗口"解绑"
 
@@ -73,6 +91,8 @@ tags: [linux, shell]
         Ctrl+A+D # 保持会话并退出
         exit # 完全退出
         ```
+    - [su/runuser/sudo执行命令比较](http://blog.useasp.net/archive/2015/07/29/run-command-as-different-user-on-linux.aspx)
+        - `runuser -l testuser -c "nohup bash $APP_HOME/start.sh > /dev/null 2>&1 &"` 以testuser用户执行命令
 - 设置环境变量
     - `/etc/profile` 记录系统环境变量，在此文件末尾加入`export JAVA_HOME=/usr/java/jdk1.8` 将`JAVA_HOME`设置成所有用户可访问
     - `/home/smalle/.bash_profile` 每个用户登录的环境变量(/home/smalle为用户家目录)
@@ -176,6 +196,7 @@ tags: [linux, shell]
 
 ### 文件
 
+- [find](#find)
 - `touch <fileName>` 新建文件(linux下文件后缀名无实际意义)
 - `vi <fileName>` 编辑文件
     - `vim <fileName>` 编辑文件，有的可能默认没有安装vim
@@ -185,7 +206,7 @@ tags: [linux, shell]
     - 提示 `rm: remove regular file 'test'?` 时，在后面输入 `yes或y` 回车
     - `rm -f *2019-04*` 正则删除，可删除如access-2019-04-01.log、error-2019-04-02.log
 - `cp xxx.txt /usr/local/xxx` 复制文件(将xxx.txt移动到/usr/local/xxx)
-    - `cp -r /dir1 /dir2` 将dir1的数据复制到dir2中（`-r`递归复制，如果dir1下还有目录则需要）
+    - `cp -r /tmp/dir1 /tmp/dir2` 将dir1目录复制到dir2目录（`-r`递归复制，如果dir1下还有目录则需要，dir2目录会自动创建）
     - `/bin/cp -f /dir1/test /dir2` **强制覆盖文件**
         - 此处使用`cp -f`可能失效，由于cp命令被系统默认设置了别名`alias cp=cp -i`(-i, --interactive表示需要交互进行确认，同样的如mv)
         - `alias` 查看被重写的命令，`unalias cp`取消cp的别名(不建议取消)
@@ -277,10 +298,6 @@ tags: [linux, shell]
     > - 接下来的字符中,以三个为一组,且均为『rwx』 的三个参数的组合< [ r ]代表可读(read)、[ w ]代表可写(write)、[ x ]代表可执行(execute) 要注意的是,这三个权限的位置不会改变,如果没有权限,就会出现减号[ - ]而已>
     >   - 第一组为『文件拥有者的权限』、第二组为『同群组的权限』、第三组为『其他非本群组的权限』
     >   - 当 s 标志出现在文件拥有者的 x 权限上时即为特殊权限。特殊权限如 SUID, SGID, SBIT
-- `find`
-    - `sudo find / -name nginx.conf` 全局查询文件位置(查看`nginx.conf`文件所在位置)
-    - `find ./ -mtime +30 -name "*.gz" | xargs ls -lh` 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
-    - `find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf` 删除30天之前的gz压缩文件
 - lrzsz上传下载文件，小型文件可通过此工具完成。需要安装`yum install lrzsz`
     - `rz` 跳出窗口进行上传
     - `sz 文件名` 下载文件
@@ -463,7 +480,7 @@ df -h
 
 ```bash
 ## 使用文件创建swap分区
-# 创建一个1G大小的文件用来作为swap
+# 创建一个1G大小的文件用来作为swap。设置大小参考：https://blog.csdn.net/sirchenhua/article/details/87861709
 dd if=/dev/zero of=/tmp/swap bs=1M count=1024
 chmod 0600 /tmp/swap
 # 将文件/tmp/swap格式化为swap文件格式
@@ -914,23 +931,23 @@ set nonu # 不显示行号
 - `systemctl restart crond` 重启crond(**添加配置后需要重启**)
 - 使用
 
-    ```bash
-    ## root用户定时执行脚本
-    # 1.编辑脚本
-    crontab -u root -e
+```bash
+## root用户定时执行脚本
+# 1.编辑脚本
+crontab -u root -e
 
-    # 2.加入每分钟执行脚本配置(对应用户必须有执行此脚本权限，且此脚本文件有+x可执行属性)
-    # 01 * * * * /home/smalle/script/test.sh
+# 2.加入每分钟执行脚本配置(对应用户必须有执行此脚本权限，且此脚本文件有+x可执行属性)
+# 01 * * * * /home/smalle/script/test.sh
 
-    # 3.重新加载
-    systemctl reload crond
-    
-    # 4.查看日志
-    tail -f /var/log/cron
+# 3.重新加载
+systemctl reload crond
 
-    # 如果执行的任务脚本中有echo输出，则会给对应用户发系统邮件
-    cat /var/spool/mail/root
-    ```
+# 4.查看日志
+tail -f /var/log/cron
+
+# 如果执行的任务脚本中有echo输出，则会给对应用户发系统邮件(系统邮件显示在如的/var/spool/mail/root文件中)
+cat /var/spool/mail/root
+```
 
 ### cron配置
 
@@ -1747,10 +1764,16 @@ find [-H] [-L] [-P] [-Olevel] [-D help|tree|search|stat|rates|opt|exec] [path...
 
 ```bash
 sudo find / -name nginx.conf # 全局查询文件位置(查看`nginx.conf`文件所在位置)
+find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数
+find ./ -mtime +10 -a -mtime -20 -type f # 搜索出最近10到20天内修改过的文件
+find ./ -mtime +30 -name "*.gz" | xargs ls -lh # 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
+find . -type f -size +500M  -print0 | xargs -0 du -hm | sort -nr # 查看大于500M的前10个文件(查看大文件)
 find /home/smalle/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/smalle/s_*/in/* -type f
+
+find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf # 删除30天之前的gz压缩文件
+
 find path_A -name '*AAA*' -exec mv -t path_B {} + # 批量移动，下同
 find path_A -name "*AAA*" -print0 | xargs -0 -I {} mv {} path_B
-find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数
 
 find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
 find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644
@@ -1980,16 +2003,48 @@ sgdisk --zap-all --clear --mbrtogpt /dev/sdb
             - `!$` 它用于指代上次键入的参数
             - `!!` 可以指代上次键入的命令
         - `history -c` 清除历史。其他人登录也将看不到，历史中不会显示清除的命令
+        - `set +o history` 只针对你的工作关闭历史记录(对应的解除命令`set -o history`)
     - `last` 查看最近登录用户
     - `w` 查看计算机运行时间，当前登录用户信息
     - `wall <msg>` 通知所有人登录人一些信息 
 - 程序
     - `sudo -H -u www bash -c 'nohup /home/web/start /home/web/conf.json &'` 调用www用户运行指定命令(其他用户或系统自动执行此命令)
+- linux发送邮件：参考https://linux.cn/article-11663-1.html
+    - 发件服务器
+        - 基于postfix `systemctl start postfix` 一般会进垃圾箱或被中转服务器拦截(属于localhost域的)
+        - 基于sendmail
+        - 基于smtp服务。参考：https://blog.csdn.net/lxx309707872/article/details/123002206
+            
+            ```bash
+            vi /etc/mail.rc
+            # 在底部添加：
+            set from="xxx@163.com"
+            set smtp=smtp.163.com
+            set smtp-auth-user=xxx@163.com
+            set smtp-auth-password=自己填写的授权码
+            set smtp-auth=login
+
+            # 使用mail命令发送即可
+            ```
+    - 基于mail命令调用(一般自带此命令，`sudo yum install mailx`)
+        - 发送邮件 `echo "This is the mail body" | mail -s "Subject" admin@example.com`
+    - `tail -50 /var/log/maillog` 查看邮件日志
+    - `cat /var/spool/mail/root` 查看系统root用户邮件
 - 技巧
     - `clear` 清屏
     - `yes y` 一直输出字符串y
-        - `yes y | cp -i new old` `cp` 用文件覆盖就文件(`-i`存在old文件需进行提示，否则无需提示；`-f`始终不进行提示)，而此时前面会一致输出`y`，相当于自动输入了y进行确认cp操作
+        - `yes y | cp -i new old` `cp` 用新文件覆盖旧文件(`-i`存在old文件需进行提示，否则无需提示；`-f`始终不进行提示)，而此时前面会一致输出`y`，相当于自动输入了y进行确认cp操作
     - `\` 回车后可将命令分多行运行(后面不能带空格)
+
+## linux相关软件
+
+- `jq` 处理json文件
+
+```bash
+yum install jq
+# 读取json字段属性值
+jq -r '.version' package.json
+```
 
 
 ---

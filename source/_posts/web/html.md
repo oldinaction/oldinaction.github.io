@@ -90,7 +90,16 @@ $(function () {
 <span title="第一行&#10;第二行">内容</span> 
 ```
 
-## HTML模板
+## 官网模板
+
+- [vue实现的通用企业官网模板，整合了jquery，bootstarp，iview](https://gitee.com/Wjhsmart/vue-compnay-template)
+    - [预览](https://github.com/aezocn/assets-images/blob/main/vue/2310-vue-compnay-template.jpg?raw=true)
+- [vue实现简单移动端官网](https://github.com/wx1993/node-vue-fabaocn)
+- [使用vue.js模仿小米官网](https://github.com/taomas/mi-by-vue)
+
+## 案例
+
+### HTML单页模板
 
 ```html
 <!doctype html>
@@ -115,8 +124,6 @@ $(function () {
 </body>
 </html>
 ```
-
-## 案例
 
 ### 横向文字公告效果
 

@@ -1093,6 +1093,7 @@ APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
 ## 2.基于bash的VM参数
 APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
 
+# -Dfile.encoding=UTF-8防止命令行乱码。如果是Windows设置了此参数仍然乱码，可先在命令行执行`CHCP 65001`
 MEMIF="-Xms1G -Xmx1G -Dfile.encoding=UTF-8"
 
 GC_LOG="-Xloggc:/var/log/app-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause"

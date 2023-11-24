@@ -311,7 +311,7 @@ String result = template.render(Dict.create().set("name", "Hutool"));
 ### poi
 
 - 其他基本都是基于此衍生而来
-- 基本使用
+- Excel基本使用
 
 ```java
 // 合并单元格：将第2行的第1-2列合并
@@ -341,6 +341,27 @@ headStyle.setBottomBorderColor(IndexedColors.BLACK.index);
 headStyle.setLeftBorderColor(IndexedColors.BLACK.index);
 headStyle.setRightBorderColor(IndexedColors.BLACK.index);
 ```
+- Word基本使用(poi 5.2.2)
+
+```java
+// 表格操作 org.apache.poi.xwpf.usermodel.XWPFTable
+XWPFTableRow curRow = table.insertNewTableRow(1); // 在表格的第二行创建 
+XWPFTableCell cell = curRow.getCell(0); // 获取第一个单元格
+XWPFParagraph paragraph = cell.getParagraphs().get(0); // 获取第一个单元格的段落(第一段)
+paragraph.setAlignment(ParagraphAlignment.LEFT); // 设置段落左对齐
+XWPFRun xwpfRun = paragraph.getRuns().get(0); // 获取段落文本
+xwpfRun.setFontSize(9); // 设置文本字体大小和颜色
+xwpfRun.setColor("ed4014"); // hex值
+```
+
+### poi-tl
+
+- [github](https://github.com/Sayi/poi-tl)、[文档](http://deepoove.com/poi-tl/)
+- 基于模板操作Word
+- 技巧
+    - 区块支持内嵌子区块(原代码貌似会有问题，修复一下NumberingContinue.java即可)
+    - 对于图片引用，WPS无法修改文字，可将图片文件名改成对于模板变量在拖到WPS，如`{{itemImage}}.png`
+    - 对于部分排版场景可考虑无边框表格，循环渲染更方便
 
 ### Easypoi
 
@@ -423,8 +444,8 @@ headStyle.setRightBorderColor(IndexedColors.BLACK.index);
             <Product>Aspose.Words for Java</Product>
         </Products>
         <EditionType>Enterprise</EditionType>
-        <SubscriptionExpiry>20991231</SubscriptionExpiry>
-        <LicenseExpiry>20991231</LicenseExpiry>
+        <SubscriptionExpiry>29991231</SubscriptionExpiry>
+        <LicenseExpiry>29991231</LicenseExpiry>
         <SerialNumber>8bfe198c-7f0c-4ef8-8ff0-acc3237bf0d7</SerialNumber>
     </Data>
     <Signature>
@@ -470,6 +491,16 @@ public class AsposeU {
 }
 ```
 
+#### Word转PDF案例
+
+```java
+// 参考Excel转成PDF案例
+FileOutputStream os = new FileOutputStream(targetFile);
+com.aspose.words.Document doc = new com.aspose.words.Document(sourceFile);
+doc.save(os, com.aspose.words.SaveFormat.PDF);
+os.close();
+```
+
 #### 破解(仅供学习)
 
 - 网上较多结合org.apache.pdfbox去除水印，但是测试下来效果不好
@@ -480,7 +511,6 @@ public class AsposeU {
     - 使用 javassist 修改 aspose-cells-21.11.jar 源码
     - License#setLicense 最终会进入 `this.a` 方法，而此方法大部分都是校验逻辑，如果通过都会进入`zblc.a`方法，因此修改`this.a` 方法即可
 - 破解之后还是正常导入License，只是破解之后就不会校验License正确性，从而不会生成水印
-
 
 ## 数据库
 
@@ -664,7 +694,7 @@ public class CustomFastjsonConfig {
 
 ### JEXL执行字符串JAVA代码
 
-- Java Expression Language (JEXL)：是一个表达式语音解析引擎
+- Java Expression Language (JEXL)：是一个表达式语法解析引擎
     - 旨在促进在用Java编写的应用程序和框架中，实现动态和脚本功能
     - JEXL实现了 JSTL 中 EL 的延伸版本，不过也采用了一些 Velocity 的概念
     - 支持shell脚本或ECMAScript(js)中的大多数构造

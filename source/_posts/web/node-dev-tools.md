@@ -124,6 +124,7 @@ npm config set registry https://registry.npm.taobao.org -g
         - 基于国外 `https://unpkg.com/<package>@<version>/<file>`
             - 如: https://unpkg.com/@sqbiz/wplugin-tinymce-vue@1.0.0-biz-minions/lib/WpluginTinymceVue.umd.min.js
         - 基于国外 `https://cdn.jsdelivr.net/npm/<package>@<version>/<file>`
+            - 如查找https://www.jsdelivr.com/package/npm/@tarojs/taro
     - [查看包源码](https://uiwjs.github.io/npm-unpkg/)
     - [分析 npm 软件包的体积和加载性能](https://bundlephobia.com/)
 
@@ -437,6 +438,7 @@ yarn link [xxx]
 
 ## pnpm 包管理工具
 
+- [pnpm](https://pnpm.io/)
 - performant npm，意味"高性能的 npm"，pnpm由npm/yarn衍生而来
 - 速度快、节约磁盘空间、支持monorepo、安全性高
 
@@ -450,6 +452,12 @@ pnpm config get registry
 pnpm config set registry https://registry.npmmirror.com
 pnpm install
 pnpm run dev
+
+# --filter 过滤包名. 在如 pnpm-workspace.yaml 指定的工作空间中查找package.json中的包名，此时相当于同时执行这两个包的dev命令
+pnpm --filter "runtime-vue3" --filter "tmagic-playground" dev
+
+# pnpm默认包含所有子目录，指定此文件进行指定和排除目录(但是根目录下的package目录也总是被包含)
+pnpm-workspace.yaml
 ```
 
 ## nrm 镜像管理工具
@@ -617,6 +625,9 @@ npm install --save @babel/polyfill
 ### rollup.js
 
 - Rollup 是一个 JavaScript 模块打包器，可以将小块代码编译成大块复杂的代码，例如 library 或应用程序
+- [rollupjs](https://cn.rollupjs.org/)
+
+### Vite
 
 ## 格式规范化
 

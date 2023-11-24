@@ -353,6 +353,20 @@ iptables -t mangle -A PREROUTING -i eth0 -j TTL --ttl-inc 3
 # 跟踪记录日志，保存在 /var/log/syslog
 iptables -t raw -A OUTPUT -p icmp -j TRACE
 iptables -t raw -A PREROUTING -p icmp -j TRACE
+
+# 开放防火墙指定端口
+iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
+# 允许ip访问
+iptables -A INPUT -p tcp -s 192.168.xx.x -j ACCEPT
+# 禁止ip访问
+iptables -A INPUT -p tcp -s 192.168.xx.x -j DROP
+# 允许访问3306
+iptables -A INPUT -s 192.168.xx.x -p tcp -m tcp --dport 3306 -j ACCEPT
+# 禁止访问3306
+iptables -A OUTPUT -s 192.168.xx.x -p tcp -m tcp --sport 3306 -j DROP
 ```
 - 暂存和恢复iptables规则
     - `iptables-save > /etc/sysconfig/iptables` 暂存所有规则到文件中

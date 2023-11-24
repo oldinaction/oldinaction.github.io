@@ -9,13 +9,14 @@ tags: js
 ## 简介
 
 - [MDN-JS文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects)
+- [rollup的在线repl查看各种模块写法](https://rollupjs.org/repl/)
 
 ## ES6(ES2015)
 
 ### CommonJS/AMD/CMD/UMD/ESModule区别
 
 - [JavaScript模块化说明](https://www.jianshu.com/p/da2ac9ad2960) [^8]
-- `CommonJS`
+- **`CommonJS`**
     - 定义的模块分为：module模块标识、exports模块定义、require模块引用。**Node里面的模块系统遵循的是CommonJS规范**
         - `exports` 返回的是模块函数，`module.exports` 返回的是模块对象本身，返回的是一个类。**注意不是export**
         - 在一个node执行一个文件时，会给这个文件内生成一个exports和module对象，而module又有一个exports属性。他们之间的关系如下图，都指向一块{}内存区域。`exports = module.exports = {};`
@@ -53,14 +54,14 @@ tags: js
         require('./util/mod.js')(vm)
         ```
 - `AMD/CMD`
-    - **AMD/CMD是CommonJS在浏览器端的解决方案。**CommonJS是同步加载（代码在本地，加载时间基本等于硬盘读取时间）。AMD/CMD是异步加载（浏览器必须这么干，代码在服务端）
+    - AMD/CMD是CommonJS在浏览器端的解决方案。CommonJS是同步加载（代码在本地，加载时间基本等于硬盘读取时间）。AMD/CMD是异步加载（浏览器必须这么干，代码在服务端）
     - `AMD` 是 RequireJS 在推广过程中对模块定义的规范化产出。使用AMD，需要在html中引入RequireJS库
         - 定义模块 `define(id?, dependencies?, factory)`
         - 加载模块 `require([module], factory)`
     - `CMD` 是 SeaJS 在推广过程中对模块定义的规范化产出
         - 定义模块 `define(function(require, exports, module) {})`
     - AMD是提前执行（RequireJS2.0开始支持延迟执行，不过只是支持写法，实际上还是会提前执行），CMD是延迟执行
-- `UMD` 叫做通用模块定义规范（Universal Module Definition）
+- **`UMD`** 叫做通用模块定义规范（Universal Module Definition）
     - 它可以通过运行时或者编译时让同一个代码模块在使用 CommonJs、AMD、全局(window/global) 的项目中运行。导出umd格式，可以支持import、require和script引入
     - UMD实现方式
 
@@ -85,7 +86,7 @@ tags: js
             //todo
         });
         ```
-- ES Module [^6]
+- **`ES Module`** [^6]
     - export 和 export default
         - export与export default均可用于导出常量、函数、文件、模块等
         - 在一个文件或模块中，export、import可以有多个，export default仅有一个
@@ -713,7 +714,7 @@ Object.keys({name: 'test'}) // ['name']
     - 如类数组对象可通过此方法进行遍历
 - `Object.create(proto[, propertiesObject])` 使用某对象作为原型__proto__来创建新对象
     - proto 新创建对象的原型对象
-- `Object.freeze(obj)` 冻结对象。不能修改对象属性，但是可重新赋值。vue项目对data属性使用此特性可提示性能
+- `Object.freeze(obj)` 冻结对象。不能修改对象属性，但是可重新赋值。vue项目对data属性使用此特性可提高性能
 - getter、setter、`__defineGetter__`、`__defineSetter__`方法参考下文案例
 
 #### 示例

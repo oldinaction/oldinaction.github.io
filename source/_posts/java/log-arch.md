@@ -10,35 +10,39 @@ tags: [arch, log]
 
 - 日志框架一般分为编程API和日志打印实现。编程API为应用程序基于此API进行编程，如slf4j；打印实现为实现了上述API的模块进行日志打印到控制台或文件，如logback-classic
 - slf4j、jcl、jul、log4j1、log4j2、logback大总结：https://my.oschina.net/pingpangkuangmo/blog/410224
-- logging: jdk自带logging
-- log4j1(log4j)
-    - log4j: log4j1的全部内容(org.apache.log4j.*)
-- log4j2(org.apache.logging.log4j)
-    - log4j-api: log4j2定义的API
+- `logging`: jdk自带logging
+- `log4j1`(包org.apache.log4j)
+    - log4j: log4j1的全部内容(org.apache.log4j.*)。获取对象如 **`Logger.getLogger(Demo.class)`**
+- `log4j2`(包org.apache.logging.log4j)
+    - log4j-api: log4j2定义的API。获取对象如 **`LogManager.getLogger(Demo.class)`**
+        - log4j-1.2-api: log4j到log4j2的桥接包。具体说明参考log4j
     - log4j-core: log4j2上述API的实现
-    - log4j-1.2-api: log4j到log4j2的桥接包。具体说明参考log4j
-- logback
+    - log4j-nosql: 可选,将log4j2输出到mongodb等数据库
+- `logback`
     - logback-core: logback的核心包
     - logback-classic: logback实现了slf4j的API
-- commons-logging 为了实现日志统一
+- `commons-logging` 为了实现日志统一
     - commons-logging: commons-logging的原生全部内容
     - log4j-jcl: commons-logging到log4j2的桥梁
     - jcl-over-slf4j: commons-logging到slf4j的桥梁
-- slf4j 为了实现日志统一
-    - slf4j-api: 为日志接口，简称slf4j
+- `slf4j` 为了实现日志统一
+    - slf4j-api: 为日志接口，简称slf4j。获取对象如 **`LoggerFactory.getLogger(Demo.class)`**
     - slf4j转向某个实际的日志框架：如使用slf4j的API进行编程，底层想使用log4j1来进行实际的日志输出，可使用slf4j-log4j12进行桥接
         - logback-classic: slf4j到logback的桥梁
-        - log4j-slf4j-impl: slf4j到log4j2的桥梁(此时只需要log4j-api)
+        - log4j-slf4j-impl: slf4j到log4j2的桥梁
         - slf4j-jdk14: slf4j到jdk-logging的桥梁
         - slf4j-jcl: slf4j到commons-logging的桥梁
         - slf4j-log4j12: slf4j到log4j1的桥梁
     - 某个实际的日志框架转向slf4j(主要用来进行实际的日志框架之间的切换, slf4j为中间API)：如使用log4j1的API进行编程，但是想最终通过logback来进行输出，所以就需要先将log4j1的日志输出转交给slf4j来输出，slf4j再交给logback来输出。将log4j1的输出转给slf4j，这就是log4j-over-slf4j做的事
-        - log4j-to-slf4j: log4j2到slf4j的桥梁
+        - log4j-to-slf4j: log4j2到slf4j的桥梁。如springboot
+            - springboot包含jar: log4j-api、log4j-to-slf4j、logback-classic、logback-core
+            - 此时log4j-api和log4j-to-slf4j等同于slf4j的api
+            - 相当于基于log4j2进行编程，最终输出由slf4j实现(即logback实现)
         - jul-to-slf4j: jdk-logging到slf4j的桥梁
         - jcl-over-slf4j: commons-logging到slf4j的桥梁
         - log4j-over-slf4j: log4j1到slf4j的桥梁
 
-## jdk logging
+## jdk-logging
 
 - 原理分析参考：https://blog.csdn.net/qingkangxu/article/details/7514770
 - 案例(/smjava/logging/log4j1-jdklog)
@@ -222,7 +226,7 @@ SLF4J: Actual binding is of type [ch.qos.logback.classic.util.ContextSelectorSta
     - 但是存在一个问题，控制台打印时info、error等不同级别显示的颜色是一致的，仅仅是%thread和%d这中日志字段的颜色不一致。可使用自定义日志颜色解决：https://blog.csdn.net/qq_31226223/article/details/82559355
         - 如果是springboot项目，springboot提供了其自定义的日志颜色转换类，可以直接使用
 
-## spring log
+## spring-log
 
 - spring-core
     - **`org.springframework:spring-jcl`**

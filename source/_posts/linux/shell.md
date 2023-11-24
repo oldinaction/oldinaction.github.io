@@ -253,20 +253,23 @@ echo ret_code is $?
 
 - 控制语句也可在命令行中需要使用
 
-    ```bash
-    # if
-    [[ "2005 03.01" > "2004 05.23.00" ]] && echo gt || echo lt
-    if [ 1 = 2 ]; then echo true; else echo false; fi
+```bash
+# if
+[[ "2005 03.01" > "2004 05.23.00" ]] && echo gt || echo lt
+if [ 1 = 2 ]; then echo true; else echo false; fi
 
-    # for
-    for file in a.yaml b.yaml ; do wget http://xxx/$file; done
-    ```
+# for
+for file in a.yaml b.yaml ; do wget http://xxx/$file; done
+```
 
 #### 条件判断
 
+- 参考
+    - https://www.cnblogs.com/liudianer/p/12071476.html
 - 条件表达式 `[ expression ]` **注意其中的空格**
-    - `[ -z "$pid" ]` 单对中括号变量必须要加双引号，`[[ -z $pid ]]` 双对括号，变量不用加双引号
+    - `[[`，是关键字；`[`是一条命令，与`test`等价，大多数shell都支持；推荐使用`[[]]`
     - `[[ ]]`内是不能使用 -a 或者 -o 进行比较，`[ ]`内可以
+    - 使用`[]`和`[[]]`的时候不要吝啬空格，每一项两边都要有空格，`[[ 1 == 2 ]]`的结果为“假”，但`[[ 1==2 ]]`的结果为“真”！
 - 条件表达式的逻辑关系
     - **在linux中命令执行状态：0 为真，其他为假**
     - `&&`(第一个表达式为true才会运行第二个)、`||`、`!`
@@ -312,9 +315,9 @@ echo ret_code is $?
 
 ```shell
 ## 控制结构
-if 条件表达式 ; then
+if [ 条件表达式 ] ; then
     语句
-elif 条件表达式 ; then
+elif [ 条件表达式 ] ; then
     语句
 else
     语句
@@ -340,33 +343,33 @@ fi
 
 - 控制结构
 
-    ```shell
-    ## for
-    for 变量 in 列表 ; do
-        语句
-    done
-    ## 多行时，do后面需要加分号
-    for file in a.yaml b.yaml c.yaml  ; do wget https://github.com/test/test/raw/test/$file; done
+```shell
+## for
+for 变量 in 列表 ; do
+    语句
+done
+## 多行时，do后面需要加分号
+for file in a.yaml b.yaml c.yaml  ; do wget https://github.com/test/test/raw/test/$file; done
 
-    ## 计次循环
-    for ((i=1; i<=100; i++))
-    # for i in {1..100}
-    do
-        echo $i
-    done
+## 计次循环
+for ((i=1; i<=100; i++))
+# for i in {1..100}
+do
+    echo $i
+done
 
-    ## while(注意此处和下列的 ; 对比)
-    while 条件 ; do
-        语句
-        [break|continue]
-    done
+## while(注意此处和下列的 ; 对比)
+while 条件 ; do
+    语句
+    [break|continue]
+done
 
-    # while死循环(true可以替换为[ 0 ]或[ 1 ])
-    while true
-    do
-        语句
-    done
-    ```
+# while死循环(true可以替换为[ 0 ]或[ 1 ])
+while true
+do
+    语句
+done
+```
 - 如何生成列表
 	- `{1..100}`
 	- `seq [起始数] [跨度数] 结束数` 如：`seq 10`、`seq 1 2 10`
@@ -961,6 +964,11 @@ EOF
 - OFBiz自动启动脚本参考[ofbiz进阶.md#自定义启动脚本](/_posts/java/ofbiz/ofbiz进阶.md#自定义启动脚本)
 - 自启动脚本可参考`/etc/init.d`目录下的文件如`network`，假设下列脚本文件名为`my_script` [^1]
 - 将脚本加入到开机启动`chkconfig --add my_script`
+- 以非root用户启动java程序
+    - `useradd app` 创建用户
+    - JDK不能安装在/root目录(此目录其他用户无执行权限)，可安装在`/opt`等目录
+    - `chown app:app -R /www/app/` 设置目录所属权限
+    - `su - app`切换到用户进行启动，或者通过root执行`runuser -l app -c "nohup bash /www/app/start.sh > /dev/null 2>&1 &"`进行启动
 
 ```shell
 #!/bin/bash
@@ -1009,7 +1017,7 @@ OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$JVM_LOG_PATH"
 #RMIIF="-Djava.rmi.server.hostname=$IPADDR"
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 #DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
-VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG $DLOADER_PATH -Dfile.encoding=UTF-8 -DLog4j22.formatMsgNoLookups=true"
+VM_ARGS="$MEMIF $OOME $RMIIF $JMX $DEBUG $DLOADER_PATH -Dfile.encoding=UTF-8 -DLog4j2.formatMsgNoLookups=true"
 
 JAR_ARGS="$SPRING_PROFILES"
 

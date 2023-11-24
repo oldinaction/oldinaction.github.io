@@ -9,8 +9,6 @@ tags: [css]
 ## 简介
 
 - [MDN CSS 参考](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference)
-- TODO
-    - [12 个好用的 CSS 的开源项目](https://wuyaogexing.com/70/829272.html)
 
 ## CSS 知识点
 
@@ -546,12 +544,14 @@ div {
 - [Github 69.2k](https://tailwindcss.com/)
 - [中文站](https://www.tailwindcss.cn/)
 - 原子风格：所有样式都基于 class，只需为 HTML 元素指定class，样式立刻生效
+    - 比bulma更原子化
 - 它集成了诸如 flex, pt-4, text-center 和 rotate-90 这样的的类
 
 ### bulma
 
 - [Github 47.2k](https://github.com/jgthms/bulma)
 - 原子风格
+- 没有默认的js效果
 
 ### daisyui
 

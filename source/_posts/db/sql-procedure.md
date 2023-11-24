@@ -171,13 +171,35 @@ end;
 	- `DBMS_UTILITY.FORMAT_ERROR_BACKTRACE` 报错行号等信息. 如：`ORA-06512: at "CRMADM.P_UP_CUSTOMER_LOCK", line 39`
 - 抛出异常 `raise_application_error` 该函数是将应用程序专有的错误从服务器端转达到客户端应用程序(其他机器上的sqlplus或者前台开发语言)
 	- `raise_application_error(error_number_in in number, error_msg_in in varchar2);` 如 **raise_application_error(-20500, '执行出错');**
-	- `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。
+	- `error_number_in`: 自定义的错误码，容许从 -20000 到 -20999 之间，这样就不会与 oracle 的任何错误代码发生冲突。报错对应`ORA-20000`至`ORA-20099`
 	- `error_msg_in`: 长度不能超过 2k，否则截取 2k
 - 捕获异常类型参考官方文档：https://docs.oracle.com/cd/B19306_01/appdev.102/b14261/errors.htm
 	- `no_data_found` 无数据(select...into...语句需要捕获。`select count(1) into v_count from ...`无需捕获，无数据则为0)
 	- `too_many_rows` 数据返回行数太多(select...into...语句可以捕获)
 	- `value_error` 值异常(转换异常、字段大小异常)
 	- `others` 所有未捕获的异常(也可捕获自定义异常)
+    - 结合springboot捕获异常
+
+    ```java
+    @ExceptionHandler(UncategorizedSQLException.class)
+	public Result handleUncategorizedSQLException(UncategorizedSQLException e){
+		Throwable cause = e.getCause();
+		String errKey = "ORA-20010";
+		if(cause.getMessage().contains(errKey)) {
+			String errMsg = Arrays.stream(cause.getMessage().split("\n"))
+					.filter(x -> x.contains(errKey)).findFirst()
+					.orElse("")
+					.replace(errKey + ": ", "");
+			if(ValidU.isEmpty(errMsg)) {
+				throw e;
+			}
+			logger.error(e.getMessage(), e);
+			return Result.failure(errMsg);
+		} else {
+			throw e;
+		}
+	}    
+    ```
 - 防止select into无数据报错情况，可使用`select max(name) into str from ...`
 - 在`[for...in...]loop...end loop`循环中捕捉异常，必须用`begin...end`包起来。捕获子异常也需要`begin...end`包起来
 
@@ -562,7 +584,7 @@ select * from table(sql_pivot_dynamic_col('bill_fee_cod', 'bill_fee', 'where POR
 create or replace procedure p_ops_edi_body is
     type ref_cursor_type is ref cursor;
 
-    -- 待修改:保留数据的天数
+    -- 需修改:保留数据的天数
     v_ops_remain_days number := 365;
     v_ops_point_date varchar2(100);
     v_ops_begin_date varchar2(100);
@@ -571,7 +593,7 @@ create or replace procedure p_ops_edi_body is
     v_ops_end_date varchar2(100);
     v_cur_data ref_cursor_type;
     v_sql varchar2(4000);
-    -- 待修改:业务表
+    -- 需修改:业务表
     type tb_ops_table is table of S_EDI_HEAD%rowtype;
     rd_row tb_ops_table;
     v_count number := 0;
@@ -581,13 +603,13 @@ begin
     time_before := DBMS_UTILITY.GET_TIME;
 		
     select to_char(sysdate-v_ops_remain_days, 'yyyyMMdd') into v_ops_remain_date from dual;
-    -- 待修改:获取日志记录表信息. 案例中NODE_NOTES存放时间，格式如 20200101,3(从2020-01-01开始清理3天的数据)
+    -- 需修改:获取日志记录表信息. 案例中NODE_NOTES存放时间，格式如 20200101,3(从2020-01-01开始清理3天的数据)
     select t.NODE_NOTES into v_ops_point_date from S_BASIC_MAINTENANCE t
         where t.PARENT_CODE = 'PrivateSystemState' and t.NODE_CODE = 'OpsEdiBody' and t.VALID_STATUS = 1;
-    select substr(v_ops_point_date, 1, 8), case when substr(v_ops_point_date, 1, 8) >= v_ops_remain_date then 0 else 1 end  into v_ops_begin_date, v_ops_begin_date_opt from dual;
+    select substr(v_ops_point_date, 1, 8), case when substr(v_ops_point_date, 1, 8) >= v_ops_remain_date then 0 else 1 end into v_ops_begin_date, v_ops_begin_date_opt from dual;
     select to_char(to_date(substr(v_ops_point_date, 1, 8), 'yyyyMMdd') + (select substr(v_ops_point_date, 10) - 1 from dual), 'yyyyMMdd') into v_ops_end_date from dual;
     if v_ops_begin_date_opt = 1 then
-        -- 待修改:业务表任务查询(此处建议使用t.*)
+        -- 需修改:业务表任务查询(此处建议使用t.*)
         v_sql := 'select t.* from S_EDI_HEAD t where t.CREATE_TM < sysdate-' || v_ops_remain_days || ' and t.CREATE_TM between to_date(''' || v_ops_begin_date || '000000' || ''', ''yyyyMMddhh24miss'') and to_date(''' || v_ops_end_date || '235959' || ''', ''yyyyMMddhh24miss'')';
         open v_cur_data for v_sql;
         loop
@@ -602,7 +624,7 @@ begin
         close v_cur_data;
         
         time_after := DBMS_UTILITY.GET_TIME;
-        -- 待修改:更新日志表
+        -- 需修改:更新日志表
         update S_BASIC_MAINTENANCE t set
                 t.NODE_NOTES = (select to_char(to_date(v_ops_end_date, 'yyyyMMdd') + 1, 'yyyyMMdd') from dual) || ',' || substr(v_ops_point_date, 10)
                 ,t.remarks = substr((select to_char(sysdate, 'yyyy-MM-dd hh24:mi:ss') || ' 清理 ' || v_count || ' 条, 耗时 ' || (time_after - time_before) / 100 || ' 秒;' || chr(10) || t.remarks from dual) , 1, 255)

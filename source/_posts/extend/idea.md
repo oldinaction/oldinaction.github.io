@@ -46,7 +46,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 ```
 - 2021.2.2及以下
     - 下载插件ide-eval-resetter后本地安装: https://plugins.zhile.io/files/ide-eval-resetter-2.1.6.zip
-    - 通过无限重置30天试用达到永久使用
+    - 通过无限重置30天试用达到永久使用（如果过期没来得及重置，可以先进入然后马上在Tools菜单中进行重置）
 - 2018.1
     - 在 hosts 文件里面添加如下配置`0.0.0.0 account.jetbrains.com`、`0.0.0.0 www.jetbrains.com``
     - 基于激活码破解：http://idea.lanyus.com/getkey
@@ -157,6 +157,10 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
         - 点击右侧某个引用来源，右键可查看引用源码，也可以将低版本从pom中exclude掉来解决冲突
 - `MybatisX`
     - 支持生成mybatis-plus代码
+        - 选择表 - Mybatis-X Generator
+        - base package=cn.aezo.share.rtadmin.app - 下一步
+        - annotation=Mybatis-Plus3, options=Lombox,Model, template=mybatis-plus3
+        - 修改entity代码，增加id配置:`@TableId(value = "id", type = IdType.ASSIGN_ID)`
 - `MyBatisCodeHelperPro (Marketplace Edition)` 实体/表双向生成(支持实体生成建表语句)
     - 破解: https://cnblogs.com/equals/p/15391453.html
     - [使用说明](https://gejun123456.github.io/MyBatisCodeHelper-Pro/)
@@ -367,6 +371,29 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - 项目之前正常，突然有一天打开通过maven可以正常编译，但是项目中的类在idea中引入失败(报红，像找不到这个类一样)
     - 多清理缓存重启几次
     - https://cloud.tencent.com/developer/article/1706964
+
+### JDK及Maven版本
+
+- jdk版本
+    - 点击IDEA启动按钮：读取的是项目的project sdk
+    - 点击maven窗口的compile等命令：优先读取此命令的reconfiguration配置；其次读取项目project sdk
+- maven版本
+    - 点击IDEA启动按钮：读取的是setting - build - maven中的配置
+    - 点击maven窗口的compile等命令：优先读取此命令的reconfiguration - general - 是否勾选use project settings；其次读取idea的maven配置
+- Language level版本
+    - 主要是IDEA语法校验的版本
+- 编译的字节码版本
+    - idea为setting - build - compiler - java compiler - target bytecode version
+    - maven为java.version/maven.compiler.source/maven.compiler.target等参数
+- 编译
+    - IDEA启动前编译
+        - 会先判断此类是否已经完成编译(存在class文件)
+        - 如果已完成编译则跳过此类的编译(如可能提前通过maven命令完成了编译或打包产生了对应的class文件)
+        - 未编译则走IDEA编译(Build)，此时会使用项目的project sdk版本执行编译，但是将java源码编译成目标版本的class文件是按照setting - build - compiler - java compiler - target bytecode version来的(project bytecode version只是当前项目的缺省值)，java的启动版本和class目标版本可以不一致(一般设置成一致)
+    - Maven编译(Maven打包前编译)
+        - 执行mvn命令的jdk版本参考上文说明
+        - 对应bytecode版本读取: java.version/maven.compiler.source/maven.compiler.target等参数
+        - maven项目会读取build节点配置(如build.resources配置)
 
 ## IDEA开发PHP程序
 

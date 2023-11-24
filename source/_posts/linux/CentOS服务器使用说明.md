@@ -358,6 +358,8 @@ yum install -y wget && wget -O install.sh http://download.bt.cn/install/install_
 # 安装成功后会显示安全的登录入口和账号密码
 # ***可通过执行命令查看登录入口和账号密码***
 sudo /etc/init.d/bt default
+# 可显示bt快捷命令帮助，如关闭SSL
+bt
 
 ## 卸载
 wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
@@ -371,6 +373,7 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
     - 面板设置
         - 设置面板别名如`SH-01`，设置登录用户名如`sh01`
         - 面板安全告警，微信公众号
+        - 绑定域名，绑定后只能通过域名访问
     - 软件商店
         - 进程守护管理器：可启动守护进程
         - 七牛云存储：可配置数据库和网站到七牛云；在七牛云个人信息找到授权Key，存储空间aezo，加速域名cdn70.aezo.cn，设置为私有空间
@@ -380,6 +383,44 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
     - 网站
         - 域名管理: 会自动开放对应端口
         - SSL: Let's Encrypt证书 - 服务器文件验证(无需手动操作) - 会自动续签，会自动设置到nginx中并开放对应端口
+- 面板SSL证书过期导致无法登录
+    - `rm -f /www/server/panel/data/domain.conf` 删除绑定域名
+    - 用ip和端口访问(端口可通过/www/server/panel/vhost/nginx/proxy中的配置文件查看)
+- Let's Encrypt证书无法自动更新问题(主要针对springboot项目)
+
+```py
+# 点击springboot项目配置 - 配置文件（修改nginx配置）
+location /.well-known/ {
+    # .well-known文件夹存储于此目录，用于验证服务器所属性
+    # 默认一键创建证书会自动将.well-known目录放在 /www/wwwroot/java_node_ssl 中，从而证书无法自动更新
+    root /www/wwwroot/rtadmin;
+}
+
+# vi /www/server/panel/class/acme_v2.py
+def renew_cert_other(self):
+    # ...
+    # panelSite可在此文件同级目录找到 panelSite.py, 可查看对应方法
+    import panelSite
+    siteObj = panelSite.panelSite()
+    # ...
+    
+    # 增加的代码start
+    # 注意vi的时候不能使用TAB，要用空格. 此处判断如果为springboot项目则路径取project_config.jar_path(/www/wwwroot/rtadmin)，默认取的path(/www/wwwroot/rtadmin/rtadmin-api-1.0.0.jar, 明显不是一个文件夹)
+    # 可通过`write_log(siteInfo)`打印查看数据
+    if siteInfo['project_type'] == 'Java':
+        project_config = json.loads(siteInfo['project_config'])
+        if project_config['java_type'] == 'springboot':
+           path = project_config['jar_path']
+    # 增加的代码end
+
+    self.renew_cert_to(cert_init['dns'],'http',path.replace('//','/'))
+    # ...
+
+# 修改代码后如果执行运行脚本不生效，可先备份清除临时配置
+rm /www/server/panel/config/letsencrypt.json
+# 再手动执行或在计划任务菜单进行执行证书更新
+/www/server/panel/pyenv/bin/python3 -u /www/server/panel/class/acme_v2.py --renew=1
+```
 
 ### 安装jdk
 
@@ -392,6 +433,7 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
 
 ```bash
 # JDK7: https://repo.huaweicloud.com/java/jdk/7u80-b15/jdk-7u80-linux-x64.tar.gz
+# JDK8
 wget https://repo.huaweicloud.com/java/jdk/8u202-b08/jdk-8u202-linux-x64.tar.gz
 # 需要先创建好/opt目录
 tar -zxvf jdk-8u202-linux-x64.tar.gz -C /opt

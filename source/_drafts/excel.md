@@ -38,3 +38,12 @@ tags: [vb]
     - 如有道翻译: `http://fanyi.youdao.com/translate?&i="hello world, my name is smalle"&doctype=xml&version`
         - doctype=json也支持
 
+## 业务场景
+
+### 横向纵向值字典转成数据库行结构
+
+- https://www.seotcs.com/excel/3595.html
+    - 打开“数据透视表和数据透视图向导”对话框
+    - 选择“多重合并计算数据区域”
+    - 生成透视表之后，右击数据透视表行总计和列总计交叉的单元格，选择“显示详细信息”
+

@@ -8,11 +8,12 @@ tags: [webpack, node]
 
 ## 简介
 
+- [webpack中文网](https://www.webpackjs.com/)
 - [webpack](https://webpack.js.org/)
 - `Chunk`：webpack打包的过程种，生成的JS文件，每一个JS文件我们都把它叫做Chunk。如main.js的chunk Name是main
     - chunks默认值是async，异步代码才进行分割；如果我们想同步和异步的都进行代码分割，需要改为all
 
-## 设置
+## 配置
 
 ### webpack.config.js
 
@@ -23,6 +24,7 @@ module.exports = {
     mode: 'development',
     // JavaScript 执行入口文件
     entry: './src/main.js',
+    // webpack打包后的输出配置
     output: {
         // 把所有依赖的模块合并输出到一个 bundle.js 文件
         filename: 'bundle.js',
@@ -32,6 +34,7 @@ module.exports = {
         // 默认webpack打包出来的js无法被其他模块引用。设置此参数后，入口模块返回的 module.exports 设置到环境中
         // (1) 默认暴露给全局 var myDemo = returned_module_exports (2) commonjs: exports['myDemo'] = returned_module_exports (3) commonjs2: module.exports = returned_module_exports。element-ui 的构建方式采用 commonjs2
         libraryTarget: 'umd', // 把微应用打包成 umd 库格式。常见打包后包名：`js`(es module)、`cjs`(CommonJS)、`umd`(UMD)
+        // 保留到全局的变量名称(如window.myDemo)
         library: `myDemo`,
         // libraryExport: 'default',
         // umdNamedDefine: true,
@@ -40,6 +43,54 @@ module.exports = {
     }
 }
 ```
+
+### module配置
+
+- 将代码分解成chunk，并称之为模块。在解析模块的过程中涉及到对不同的语言(es6/ts/commonjs/css/less等)进行解析，以下为解析规则的相关配置
+- [module配置文档](https://www.webpackjs.com/configuration/module/)
+- [webpack-chain](http://npm.taobao.org/package/webpack-chain) 链式配置
+
+```js
+module.exports = {
+  module: {
+    rules: [
+      {
+        // => 规则条件：resource(属性 test, include, exclude 和 resource) 或 issuer
+        // 一个loader的配置，一般一个test就够了，多的话也就一个test加上include或者exclude
+        // 如果exclude、include、test三个在同一个loader的配置中时，优先级：exclude > include > test
+        test: /\.css$/, // 第二次(一个文件可处理多次，这是第二次对css文件的处理)
+        // => 规则结果(符合条件时的处理方法)：应用的loader(loader, options, use, query, loaders, enforce属性) 或 parser选项
+        // loader 从右到左（或从下到上）地取值(evaluate)/执行(execute)
+        // sass-loader -> css-loader -> style-loader
+        use: [
+          { loader: 'style-loader' },
+          {
+            loader: 'css-loader',
+            options: {
+              // 开启css模块化
+              // modules: true
+              modules: {
+                // 默认是hash:base64
+                localIdentName: "[path][name]__[local]--[hash:base64:5]",
+              }
+            }
+          },
+          { loader: 'sass-loader' }
+        ]
+      },
+      {
+        test: /\.css$/, // 第一次处理css文件
+        use: ["style-loader", "css-loader"],
+        include: [
+          // src/components/目录下的css是模块化的，其之外的css是全局的
+          path.resolve(__dirname, 'src/components')
+        ]
+      },
+    ]
+  }
+};
+```
+
 
 ### 外网访问
 
@@ -103,6 +154,7 @@ module.exports = {
 ### index.html
 
 - 变量替换
+    - 依赖html-webpack-plugin模块
 
 ```html
 <link rel="icon" href="<%= BASE_URL %>favicon.ico">
@@ -128,9 +180,16 @@ module.exports = {
     - 全局上下文中执行一次 JS 脚本
     - 异步按顺序引入 JS 文件到全局
 
+## 生态
+
+- [webpack-chain](http://npm.taobao.org/package/webpack-chain) 链式配置
+    - https://www.jianshu.com/p/2dd631158344
+    - `console.log(config.toString())` 打印配置
+    - 如果修改需要merge可使用`npm install --save-dev webpack-merge`，然后`const { merge } = require('webpack-merge');`
+
 ## Webpack模块打包原理
 
-- [github扩展案例](https://github.com/oldinaction/smweb/blob/master/webpack/README.md)
+- [扩展案例Demo](https://github.com/oldinaction/smweb/blob/master/webpack/README.md)
 
 ### Chrome调试说明
 

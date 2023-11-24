@@ -499,6 +499,8 @@ export default {
 - computed 和 watch 区分使用场景
     - 需要进行数值计算，并且依赖于其它数据时，应该使用 computed，因为可以利用 computed 的缓存特性，避免每次获取值时，都要重新计算
     - 需要在数据变化时执行异步或开销较大的操作时，应该使用 watch，使用 watch 选项允许我们执行异步操作(访问一个 API)，限制我们执行该操作的频率
+    - 动态增加Watch和Compute：https://juejin.cn/post/6911647306659938317
+    - 在v-for中使用计算属性：https://qastack.cn/programming/40322404/vuejs-how-can-i-use-computed-property-with-v-for
 
 #### Vuex使用及优化
 
@@ -966,7 +968,9 @@ this.$root.eventBus.$off('eventName')
             // 异步导入组件，router中一般使用此方式导入
             // 假设 MainComp 和 MyComp 相互依赖，则其中一个需要是异步组件
             MyComp: () => import('./MyComp.vue').then(comp => {
-                console.log(comp, this) // comp.default为当前组件，this此时为undefined
+                // comp.default为当前组件，this此时为undefined\
+                // 如果需要监听异步组件的挂载事件，可通过在异步组件内部emit事件出来，主组件进行监听
+                console.log(comp, this)
             }),
             // 异步基于CDN加载组件. NPM_CDN_URL=https://npm.elemecdn.com MODULE_VERSION=1.0.2-biz-minions
             Tinymce: (resolve) => {
@@ -988,7 +992,9 @@ this.$root.eventBus.$off('eventName')
         mounted () {
             this.show = true
             this.$nextTick(() => {
-                console.log(this.$refs.comp) // 可能为undefined，因为组件可能还没加载进来
+                // 由于是异步组件，可能为undefined，因为组件可能还没加载进来
+                // ***如果需要监听异步组件的挂载事件，可通过在异步组件内部emit事件出来，主组件进行监听***
+                console.log(this.$refs.comp)
             })
         }
         methods: {
@@ -1232,6 +1238,8 @@ insertStr() {
 
 ### 自动转大写
 
+- 有时候会出现看着转大写了，但是传输到后台的最后一个字母还是小写
+
 ```html
 <Input size="small" placeholder="编号" v-model="form.orderNo" clearable
     @keyup.native="$upper(form, 'orderNo')"></Input>
@@ -1264,7 +1272,7 @@ import './index.css'
 }
 
 /* scoped穿透问题：需要在局部组件中修改第三方组件库(如 iview)的样式，而又不想去除scoped属性造成组件之间的样式覆盖，这时可以通过特殊的方式穿透scoped */
-/* less/sass格式如：`外层 ::v-deep 或 /deep/ 第三方组件 {样式}`(外层也可省略)，stylus则是将 /deep/ 换成 >>> */
+/* less/sass格式如：`外层 /deep/ 或 ::v-deep 第三方组件 {样式}`(外层也可省略)，stylus则是将 /deep/ 换成 >>> */
 .wrapper /deep/ .ivu-table th {
     background-color: #eef8ff;
 }
@@ -2134,7 +2142,14 @@ render: (h, params) => {
 	return h('div', {
 		style:{width:'100px', height:'100px', background:'#ccc'}
 	}, '用户名：smalle')
+
+    // 案例2
+    return h("div", [
+        h("Button", {}, "重登")
+    ])
 }
+
+
 
 // 写法优化1
 {
@@ -2705,7 +2720,7 @@ const user = {
     }
   },
   // 更改 Vuex 的 store 中的状态的唯一方法是提交 mutation。它会接受 state 作为第一个参数
-  // 同步调用：this.$store.commit('SET_TOKEN', 'my-token-xxx')
+  // **同步调用**：this.$store.commit('SET_TOKEN', 'my-token-xxx')
   mutations: {
     SET_TOKEN: (state, token) => {
       state.token = token
@@ -2717,9 +2732,9 @@ const user = {
     }
   },
   // Action 类似于 mutation，不同在于：Action 提交的是 mutation，而不是直接变更状态；Action 可以包含任意异步操作
-  // 异步调用：this.$store.dispatch('Login')
+  // **异步调用**：this.$store.dispatch('Login')
   actions: {
-    // actions只能接受一个参数
+    // actions只能接受一个参数，如此处的userInfo
     Login({ commit }, userInfo) {
       const username = userInfo.username.trim()
       return new Promise((resolve, reject) => {
@@ -3034,6 +3049,8 @@ module.exports = {
 
     devServer: {
         // host: 'localhost', // target host
+        // 启动本项目的默认端口，可通过命令行参数--port覆盖
+        // 在mac os中，非root用户是无法使用小于1024的常用端口的。如果小于1024端口，会从1024开始。解决: sudo npm run dev (貌似没效果)
         port: port,
         open: true,
         // 解决使用花生壳内网穿透进行调试时，打开网页显示：invalid host header（需要重启项目, 好像修改代码之后仍然需要重启项目）
@@ -3068,6 +3085,36 @@ module.exports = {
 
 - [Vuepress](https://vuepress.vuejs.org/zh/) 官方推出的文档框架
     - [demo](https://gitee.com/changhaojun/vuepress-demo)
+    - 多版本部署
+
+        ```js
+        // # .vuepress/config.js
+        var json = require('../../package.json')
+
+        module.exports = {
+            // base: '/',
+            base: '/dist.' + json.version + '/'
+        }
+        ```
+        - nginx
+        
+        ```bash
+        server {
+            listen       5200;
+            server_name  localhost;
+            index  index.html index.htm;
+
+            # http://localhost:5200/
+            location = / {
+                rewrite . http://$server_name/dist.0.5.2-beta.2/ break;
+            }
+            
+            # http://localhost:5200/dist.0.5.2-beta.2/
+            location ~ ^/dist(.+?)/ {
+                root /www/demo/;
+            }
+        }
+        ```
 - 可结合[vuese](https://github.com/vuese/vuese) 先对vue组件进行解析成markdown
 - 其他框架
     - Docsify/Docute

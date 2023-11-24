@@ -55,7 +55,7 @@ tags: [H5, 小程序, App, mobile]
     // h5模式相关配置(非必须)
     "h5" : {
         // 项目发布在/test-demo1/端点下，只支持发行的时候(开发时运行无效)
-        "publicPath" : "/test-demo1/",
+        "publicPath" : "/test-demo1/", // 可不用设置
         "router" : {
             "base" : "/test-demo1/"
         },
@@ -158,12 +158,12 @@ tags: [H5, 小程序, App, mobile]
 
 ### 生命周期
 
-- 应用生命周期: https://uniapp.dcloud.io/collocation/frame/lifecycle
+- 应用生命周期(仅在App.vue页面生效): https://uniapp.dcloud.io/collocation/frame/lifecycle
     - `onLaunch` 当uni-app 初始化完成时触发（全局只触发一次）
     - `onShow` 当 uni-app 启动，或从后台进入前台显示
 - 页面生命周期中: https://uniapp.dcloud.net.cn/tutorial/page.html#lifecycle
     - `onLoad` 触发一次
-    - `onShow` 每次展示时触发
+    - `onShow` 每次展示时触发(后退也会触发)
     - `onHide` 无法监听到页面返回(H5和微信小程序都不可以)
     - `onBackPress` 可以监听到H5返回，无法监听到微信小程序返回
 - 组件生命周期同Vue: https://uniapp.dcloud.net.cn/tutorial/page.html#componentlifecycle
@@ -218,7 +218,7 @@ export const login = () => {
 	})
 }
 ```
-- onLaunch的执行和所有页面的onShow/onLoad(App.vue和其他任何页面)执行没有先后顺序，有可能onLaunch没执行完，页面级别的onShow/onLoad就执行了。需要达到 onLaunch 中进行同步执行后，再执行 onShow/onLoad 的需求
+- onLaunch的执行和所有页面的onLoad/onShow(App.vue和其他任何页面)执行没有先后顺序，有可能onLaunch没执行完，页面级别的onShow/onLoad就执行了。需要达到 onLaunch 中进行同步执行后，再执行 onShow/onLoad 的需求
 
 ```js
 // 参考：https://www.lervor.com/archives/128/
@@ -266,7 +266,9 @@ export default {
 // Index.vue
 export default {
     // onLoad 和 onShow需要分别设置
-    async onLoad() {
+    async onLoad(options) {
+        // options.jsonStr 可获取url中的参数jsonStr(JSON字符串传递时需要encodeURIComponent，此处读取后需要decodeURIComponent再解析成JSON对象)
+        // switchTab时，options无法获取url中的参数，解决参考：https://segmentfault.com/a/1190000038993623
         await this.$ready // 等待释放
         // do somthing
     },
@@ -326,14 +328,29 @@ uni.openEmbeddedMiniProgram({
 - [uni_modules](https://uniapp.dcloud.net.cn/plugin/uni_modules.html)
 - 只要组件安装在项目根目录或uni_modules的components目录下，并符合components/组件名称/组件名称.vue或uni_modules/插件ID/components/组件名称/组件名称.vue目录结构。就可以不用引用(import)、注册，直接在页面中使用
 
+### vue和nvue文件
+
+- uni-app **App 端**内置了一个基于 weex 改进的原生渲染引擎，提供了原生渲染能力
+- 在 App 端，如果使用 vue 页面，则使用 webview 渲染；如果使用 nvue 页面(native vue 的缩写)，则使用原生渲染
+- 虽然 nvue 也可以多端编译，输出 H5 和小程序，但 nvue 的 css 写法受限，所以如果你不开发 App，那么不需要使用 nvue
+- [nvue](https://uniapp.dcloud.net.cn/tutorial/nvue-outline.html)
+
 ### scroll-view组件
 
 - https://uniapp.dcloud.net.cn/component/scroll-view.html
 - 实现横向滚动条(横向导航)点击后元素居中：https://blog.csdn.net/wangongchao/article/details/123353627
+- 使用scroll-view可解决滑动页面底部出现默认的背景颜色
+- 使用scroll-view，则uniapp自带的onReachBottom上拉加载方法不会进入，只能通过监听scroll-view的@scrolltolower事件来加载下一页
 
 ### web-view开发
 
 - 参考[weixin.md#web-view开发](/_posts/mobile/weixin.md#web-view开发)
+
+### 位置
+
+- 使用uni.chooseLocation()打开地图选择位置(无需操作dom)
+    - 参考：https://blog.csdn.net/Handsome_gir/article/details/129159563
+    - 需手动修改manifest.json源码，设置requiredPrivateInfos字段；并删除之前的编译文件重新编译
 
 ### 样式
 
@@ -352,14 +369,21 @@ uni.openEmbeddedMiniProgram({
     - $config可重新定义到data/computed/methods中进行获取
 
     ```js
+    import { mapGetters } from 'vuex'
+
     computed: {
         ...mapState({
             text: state => state.moduleA.text,
             timestamp: state => state.moduleB.timestamp
         }),
+        // 使用 this.timeString
         ...mapGetters([
             'timeString'
-        ])
+        ]),
+        // 数组不支持重命名，只能使用map模式重命名. 使用this.len
+        mapGetters({
+            len: 'childListLen'
+       }),
     }
     ```
 - 监控路由属性及参数获取
@@ -396,10 +420,15 @@ uni.openEmbeddedMiniProgram({
 
 ### 其他兼容问题
 
-- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
 - IOS 和 Android 对时间的解析有区别 [^1]
     - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
     - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
+- IOS 和 Android 对PDF文件预览的区别
+    - IOS可直接通过webview渲染；而Android此方式一直加载页面空白，可downloadfile+opendocument方式解决
+        - **注意`uni.openDocument`需要增加`fileType: 'pdf'`参数**
+    - 参考：https://developers.weixin.qq.com/community/develop/doc/0000eac06448c8fccc693fa8c51000
+    - https://blog.csdn.net/weixin_49521721/article/details/114064682
+- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
 - **input等表单元素的v-model/@input(e.target.value和e.detail.value)都取不到值**
     - 小程序中有时候会出现不开调试模式，或者调试模式开启失败(只有性能按钮，没有vConsole按钮)
     - 有时候开启成功也会遇到，生产环境暂未遇到
@@ -408,6 +437,7 @@ uni.openEmbeddedMiniProgram({
 
 - 图片显示
     - 参考：https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E8%83%8C%E6%99%AF%E5%9B%BE%E7%89%87
+    - 如果图片不定义高度，当网络慢的时候加载完后会闪跳
 
 ```html
 <!-- 支持 -->
@@ -631,6 +661,301 @@ uniapp：upx
 - 真机调试
     - IOS需要开放微信访问本地网络
 
+## 源码解析
+
+### Vue3-H5案例解析
+
+- 先基于cli创建项目
+
+#### 如何解析pages.json文件
+
+- 根据此流程找到相关原理
+    - 如何解析pages.json文件
+    - 如何解析manifest.json文件
+    - 为啥uniapp cli模板项目中main.ts没有出现`app.mount('#app');`也可以正常挂载
+- `npm run dev:h5` 本质执行的是`uni`命令(可改成`uni --debug`查看debug日志)
+    - uni为基于vite封装的命令行打包插件，源码位置：https://github.com/dcloudio/uni-app/tree/next/packages/vite-plugin-uni
+    - 从`vite.config.ts`可看出只有一个插件`uni()`
+- `vite-plugin-uni/src/index.ts`
+
+```ts
+export default function uniPlugin(
+  rawOptions: VitePluginUniOptions = {}
+): Plugin[] {
+  // 初始化环境变量，如：process.env.UNI_INPUT_DIR
+  initEnv('unknown', { platform: process.env.UNI_PLATFORM || 'h5' })
+
+  const options: VitePluginUniResolvedOptions = {
+    ...rawOptions,
+    base: '/',
+    assetsDir: 'assets',
+    inputDir: '',
+    outputDir: '',
+    command: 'serve',
+    platform: 'h5',
+  }
+  // ...
+
+  // 在vscode中启动h5，因此走 createPlugins(options)
+  return process.env.UNI_APP_X === 'true' && process.env.UNI_PLATFORM === 'app'
+  ? createUVuePlugins(options)
+  : createPlugins(options)
+}
+
+function createPlugins(options: VitePluginUniResolvedOptions) {
+  const plugins: Plugin[] = []
+
+  // 增加处理 uni-module 目录插件
+  const injects = parseUniExtApis(
+    true,
+    process.env.UNI_UTS_PLATFORM,
+    'javascript'
+  )
+  if (Object.keys(injects).length) {
+    plugins.push(
+      uniViteInjectPlugin('uni:ext-api-inject', injects as InjectOptions)
+    )
+  }
+
+  // 检索uni相关扩展插件，参考: vite-plugin-uni/src/util/plugin.ts#initExtraPlugins
+  const uniPlugins = initExtraPlugins(
+    process.env.UNI_CLI_CONTEXT || process.cwd(),
+    (process.env.UNI_PLATFORM as UniApp.PLATFORM) || 'h5',
+    options
+  )
+  // 打印debug日志. debugUni日志以 uni:plugin 开头
+  debugUni(uniPlugins)
+
+  // 继续包装插件，处理vueJsxPlugin等
+  // ...
+  return plugins
+}
+```
+- `vite-plugin-uni/src/util/plugin.ts`
+
+```ts
+export function initExtraPlugins(
+  cliRoot: string,
+  platform: UniApp.PLATFORM,
+  options: VitePluginUniResolvedOptions
+) {
+  // initPlugins 根据检索到的每个插件信息一次调用 initPlugin 方法
+  return initPlugins(
+    cliRoot,
+    // 根据项目package.json的dependencies和devDependencies找到相关依赖列表
+    // 检索每个依赖的自身的package.json配置，读取package.json中的uni-app节点信息
+    // 如: 主项目依赖 @dcloudio/uni-h5，而 node_modules/@dcloudio/uni-h5/package.json中存在uni-app节点信息
+    /*
+    "uni-app": {
+        "name": "uni-h5",
+        "apply": [
+            "h5"
+        ],
+        "main": "dist/uni.compiler.js"
+    }
+    */
+    resolvePlugins(cliRoot, platform, options.uvue),
+    options
+  )
+}
+
+function initPlugin(
+  cliRoot: string,
+  { id, config: { main } }: PluginConfig,
+  options: VitePluginUniResolvedOptions
+): Plugin | void {
+  // 导入插件，如对应文件为 node_modules/@dcloudio/uni-h5/dist/uni.compiler.js
+  // 而此文件引入 @dcloudio/uni-h5-vite 模块
+  let plugin = require(require.resolve(
+    path.join(id, main || '/lib/uni.plugin.js'),
+    { paths: [cliRoot] }
+  ))
+  plugin = plugin.default || plugin
+  if (isFunction(plugin)) {
+    plugin = plugin(options)
+  }
+  return plugin
+}
+```
+- `uni-h5-vite/src/index.ts`，源码位置: https://github.com/dcloudio/uni-app/tree/next/packages/uni-h5-vite
+
+```ts
+// ...
+import { uniMainJsPlugin } from './plugins/mainJs'
+import { uniManifestJsonPlugin } from './plugins/manifestJson'
+import { uniPagesJsonPlugin } from './plugins/pagesJson'
+// ...
+
+export default [
+  // ...
+  uniMainJsPlugin(),
+  uniManifestJsonPlugin(),
+  uniPagesJsonPlugin(),
+  // ...
+]
+```
+- `uni-h5-vite/src/plugins/mainJs.ts`
+
+```ts
+import {
+  defineUniMainJsPlugin,
+  isSsr,
+  PAGES_JSON_JS, // 定义了pages.json的处理器文件 pages-json-js
+} from '@dcloudio/uni-cli-shared' // 另外一个包，一些通用方法
+import { isSSR, isSsrManifest } from '../utils'
+
+export function uniMainJsPlugin() {
+  // 返回插件定义
+  return defineUniMainJsPlugin((opts) => {
+    let runSSR = false
+    return {
+      name: 'uni:h5-main-js', // 插件名称
+      enforce: 'pre',
+      configResolved(config) {
+        runSSR =
+          isSsr(config.command, config) || isSsrManifest(config.command, config)
+      },
+      transform(code, id, options) {
+        // 如解析到 <script type="module" src="./main.ts"></script> 此时id就是 index.html所在目录+main.ts
+        // 而opts中判断的是 id == 项目目录/src/main.js | main.ts | main.uts
+        if (opts.filter(id)) {
+          if (!runSSR) {
+            code = code.includes('createSSRApp')
+              // 如默认模板的main.ts中包含`import { createSSRApp } from "vue";`，因此走的此此方法
+              ? createApp(code)
+              // 如果自定义成 `import { createApp } from "vue";` 则走此方法
+              : createLegacyApp(code)
+          } else {
+            code = isSSR(options)
+              ? createSSRServerApp(code)
+              : createSSRClientApp(code)
+          }
+          // 导入pages.json文件的执行语句
+          code = `import './${PAGES_JSON_JS}';${code}`
+          return {
+            code,
+            map: this.getCombinedSourcemap(),
+          }
+        }
+      },
+    }
+  })
+}
+
+function createApp(code: string) {
+  // uniapp cli模板项目中main.ts中就是通过createSSRApp进行创建示例的
+  // 此处可以看出来本质还是调用的 createVueApp
+  // 并通过 createApp 来进行挂载实例
+  return `import { plugin as __plugin } from '@dcloudio/uni-h5';${code.replace(
+    'createSSRApp',
+    'createVueApp as createSSRApp'
+  )};createApp().app.use(__plugin).mount("#app");`
+}
+```
+
+- `uni-h5-vite/src/plugins/pagesJson.ts`
+
+```ts
+import {
+  API_DEPS_CSS,
+  FEATURE_DEFINES,
+  H5_FRAMEWORK_STYLE_PATH,
+  BASE_COMPONENTS_STYLE_PATH,
+  normalizeIdentifier,
+  normalizePagesJson,
+  defineUniPagesJsonPlugin, // 里面根据 jsonPath = normalizePath(path.join(process.env.UNI_INPUT_DIR, 'pages.json')) 获取文件
+  normalizePagesRoute,
+  normalizePagePath,
+  isEnableTreeShaking,
+  parseManifestJsonOnce,
+  MANIFEST_JSON_JS,
+} from '@dcloudio/uni-cli-shared'
+
+export function uniPagesJsonPlugin(): Plugin {
+  return defineUniPagesJsonPlugin((opts) => {
+    return {
+      name: 'uni:h5-pages-json',
+      enforce: 'pre',
+      transform(code, id, opt) {
+        if (opts.filter(id)) {
+          const { resolvedConfig } = opts
+          const ssr = isSSR(opt)
+          return {
+            code:
+              registerGlobalCode(resolvedConfig, ssr) +
+              // 根据pages.json生成代码，此处code即为对应文件json字符串
+              generatePagesJsonCode(ssr, code, resolvedConfig),
+            map: { mappings: '' },
+          }
+        }
+      },
+    }
+  })
+}
+
+// 根据pages.json拼接代码
+function generatePagesJsonCode(
+  ssr: boolean | undefined,
+  jsonStr: string,
+  config: ResolvedConfig
+) {
+  const globalName = getGlobal(ssr)
+  const pagesJson = normalizePagesJson(jsonStr, process.env.UNI_PLATFORM)
+  const { importLayoutComponentsCode, defineLayoutComponentsCode } =
+    generateLayoutComponentsCode(globalName, pagesJson)
+  const definePagesCode = generatePagesDefineCode(pagesJson, config)
+  const uniRoutesCode = generateRoutes(globalName, pagesJson, config)
+  const uniConfigCode = generateConfig(globalName, pagesJson, config)
+  const cssCode = generateCssCode(config)
+
+  return `
+import { defineAsyncComponent, resolveComponent, createVNode, withCtx, openBlock, createBlock } from 'vue'
+import { PageComponent, useI18n, setupWindow, setupPage } from '@dcloudio/uni-h5'
+import { appId, appName, appVersion, appVersionCode, debug, networkTimeout, router, async, sdkConfigs, qqMapKey, googleMapKey, aMapKey, aMapSecurityJsCode, aMapServiceHost, nvue, locale, fallbackLocale, darkmode, themeConfig } from './${MANIFEST_JSON_JS}'
+const locales = import.meta.globEager('./locale/*.json')
+${importLayoutComponentsCode}
+const extend = Object.assign
+${cssCode}
+${uniConfigCode}
+${defineLayoutComponentsCode}
+${definePagesCode}
+${uniRoutesCode}
+${config.command === 'serve' ? hmrCode : ''}
+export {}
+`
+}
+
+// 设置window.__uniConfig
+function generateConfig(globalName, pagesJson, config) {
+    delete pagesJson.pages;
+    delete pagesJson.subPackages;
+    delete pagesJson.subpackages;
+    pagesJson.compilerVersion = process.env.UNI_COMPILER_VERSION;
+    return `${globalName}.__uniConfig=extend(${JSON.stringify(pagesJson)},{
+  appId,
+  appName,
+  appVersion,
+  appVersionCode,
+  async,
+  debug,
+  networkTimeout,
+  sdkConfigs,
+  qqMapKey,
+  googleMapKey,
+  aMapKey,
+  aMapSecurityJsCode,
+  aMapServiceHost,
+  nvue,
+  locale,
+  fallbackLocale,
+  locales:Object.keys(locales).reduce((res,name)=>{const locale=name.replace(/\\.\\/locale\\/(uni-app.)?(.*).json/,'$2');extend(res[locale]||(res[locale]={}),locales[name].default);return res},{}),
+  router,
+  darkmode,
+  themeConfig,
+})
+`;
+}
+```
 
 
 

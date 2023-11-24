@@ -154,3 +154,7 @@ cn.aezo.springboot.webservice.cxf.client.cxf.UserService port = ss.getUserServic
 String username = port.getName("1");
 System.out.println("====================>username = " + username); // id-1
 ```
+
+## OFBiz使用webservice
+
+- 参考[ofbiz.md#webservice](/_posts/java/ofbiz/ofbiz.md#webservice)

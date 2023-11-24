@@ -264,6 +264,16 @@ set global innodb_lock_wait_timeout=100; # 设置超时时间（global的修改�
 
 ## 业务场景
 
+### CPU过高或慢SQL问题
+
+- [Java应用CPU和内存异常分析.md#mysql](/_posts/devops/Java应用CPU和内存异常分析.md#mysql)
+- 参考：https://juejin.cn/post/6945726594702901261
+
+### 数据恢复
+
+https://zhuanlan.zhihu.com/p/189443387
+https://www.cnblogs.com/geoffreyone/p/14247914.html 
+
 ### 数据备份/恢复
 
 - 参考[mysql-backup-recover.md](/_posts/db/mysql/mysql-backup-recover.md)

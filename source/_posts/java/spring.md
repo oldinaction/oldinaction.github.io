@@ -407,7 +407,7 @@ public class ELConfig {
     @Value("#{systemProperties['os.name']}") // 获取系统名称. SpEL: @Value("#{20-2}") => 18
     private String osName;
 
-    @Value("#{T(java.lang.Math).random() * 100.0}")
+    @Value("#{T(java.lang.Math).random() * 100.0}") // 支持调用静态方法，不支持调用对象方法(会当成map取对象属性)
     private String randomNumber;
 
     @Value("#{demoService.another}") // 读取其他类属性的@Value注解值

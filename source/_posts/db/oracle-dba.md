@@ -221,6 +221,9 @@ alter index index_in_out_regist_id rebuild online;
 - 基本操作
 
 ```sql
+-- 查看所有用户
+select username from dba_users;
+
 -- 创建用户，默认使用的表空间是`USERS`(用户名不区分大小写，密码区分)
 create user smalle identified by smalle;
 -- 创建用户并指定默认表空间
@@ -258,6 +261,11 @@ create user smalle identified by smalle default tablespace aezocn;
 grant create session to smalle; -- 授予smalle用户创建session的权限，即登陆权限
 grant unlimited tablespace to smalle; -- 授予smalle用户使用表空间的权限
 grant dba to smalle; -- 授予管理权限(有dba角色就有建表等权限)
+
+-- dba权限
+select * from dba_role_privs where granted_role='DBA'; -- 查看具有dba权限的用户
+grant dba to samlle; -- 授予dba权限
+revoke dba from samlle; -- 取消dba权限
 ```
 - 密码过期(ORA-28001)
     - 重新设置密码即可 `alter user aezo identified by aezo;`
@@ -337,7 +345,9 @@ select 'grant all on ' || TABLE_OWNER || '.' || TABLE_NAME || ' to PUBLIC;' from
 - `set serverout on;` 开启输出
   - 否则执行`begin dbms_output.put_line('hello world!'); end;` 无法输出
 - `set autotrace on` 后面运行的 sql 会自动进跟踪统计
-- 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`
+- 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`，或者按住Shift进行删除   
+- `show errors;` 查看编译错误
+- 导入sql文件等，创建存储过程需要输入`/`进行执行；如果文件中有多个存储过程应该在文件的每个存储过程结束后增加`/`
 
 ### 查询相关
 
@@ -349,9 +359,10 @@ select 'grant all on ' || TABLE_OWNER || '.' || TABLE_NAME || ' to PUBLIC;' from
   - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
   - 查询数据库字符集 
     - 查看oracle服务端编码：select * from sys.nls_database_parameters;
+        - `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
         - 查看服务器语言和字符集 `select userenv('language') from dual;` 如：`AMERICAN_AMERICA.AL32UTF8`、`SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
             - 格式为`language_territory.charset`：Language 指定服务器消息的语言，territory 指定服务器的日期和数字格式，charset 指定字符集
-        - `select * from nls_database_parameters where parameter='NLS_CHARACTERSET';`(如`AL32UTF8`)
+            - 出现过linux运行是AMERICAN_AMERICA.AL32UTF8，windows运行是SIMPLIFIED CHINESE_CHINA.AL32UTF8
     - 查看client编码：select * from sys.nls_session_parameters;
         - 在windows平台下，就是注册表里面`HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\KEY_OraDb11g_home1\NLS_LANG`
         - PL/SQL则看环境变量`NLS_LANG`
@@ -525,7 +536,7 @@ order by t.table_name, tc.column_name;
 # incident 每当发生错误时，oracle会分配一个INCIDENT_ID号，并创建incdir_<INCIDENT_ID>目录(好像是从trace目录dump过来的日志)。清理参考(也可直接删除目录下文件)：https://blog.csdn.net/royzhang7/article/details/78957817
 # cdump
 # hm
-# 清理7天前日志脚本如: find ./ -mtime +7 -name "*.trc" | xargs rm -rf
+# 清理7天前日志脚本如: find ./ -mtime +3 -name "*.trc" | xargs rm -rf (.trm文件同理)
 select * from v$diag_info; # 查看日志目录(ADR Home)
 
 # 列举23号日期的trc文件。如`dbcloud_cjq0_22515.trc` dbcloud为实例名，cjq0_22515为自动生成的索引
@@ -593,35 +604,154 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
 
 ### 清理存储空间
 
-- `truncate table emp;` oracle清空无用表数据，适用于表中含有大量数据，且全部无用
+- [定时清理数据库日志表](/_posts/db/sql-procedure.md#定时清理数据库日志表)
+- 清理说明
+    - delete
+        - 删除的表数据减少了，但是表空间占用量不会变。可使用move/shrink进行清理
+    - move和shrink的区别：https://www.modb.pro/db/26483
+    - lob对象
+        - 占用空间可以使用alert、move、truncate直接释放。使用delete、update不直接释放，所占用空间会被后续lob对象使用
+- 查看表占用的空间情况SQL参考[表空间不足](#表空间不足)
+
+#### 备份历史数据
+
+- 参考：https://blog.csdn.net/Hehuyi_In/article/details/107775528
+- 方法
+    - `create table as` 备份老数据
+    - `delete` 函数/存储过程/JOB分批提交
+    - `shrink` 收缩表空间
+- 案例
+
+```sql
+-- 将2000年前的数据移到备份表(此处额外创建了一个备份用户方便数据归档：之后只需要备份demo用户下的数据)
+-- 此处需要确保create_time为真实时间，防止出现复制数据但是create_time没有变的情况导致删除了最近新复制出来的数据
+create table demobak.t_table_bak as select * from demo.t_table t where t.create_time < to_date('2000-01-01', 'yyyy-mm-dd');
+
+-- 时间案例：总记录900w 待删除记录600w 耗时20m(备份耗时6s)
+-- 时间案例：总记录100w 待删除记录70w 耗时50s
+declare
+     cursor del_cur is
+        -- t_table需改成被备份表, 及备份条件需修改
+        select t.rowid row_id from t_table t
+        where t.create_time < to_date('2021-01-01', 'yyyy-mm-dd')
+        order by t.rowid;
+begin
+     for v_cusor in del_cur loop
+        -- t_table需改成被备份表
+        delete from t_table where rowid = v_cusor.row_id;
+        if mod(del_cur%rowcount,5000)=0 then
+            commit;
+        end if;
+     end loop;
+     commit;
+end;
+-- 如果误删除，可以通过备份快速恢复
+-- insert into t_table select * from demobak.t_table_bak;
+
+-- 重建索引(包括主键索引)
+alter index IDX_NAME1 rebuild online;
+
+-- 可考虑是否收缩降低水位
+```
+
+#### truncate清理
+
+- `truncate table emp;` oracle清空无用表数据，适用于表中含有大量数据，且全部无用(或者将有用的先备份，然后truncate，最后将数据移动回来)
     - truncate与drop是DDL语句，执行后无法回滚（无法通过binlog回滚）；delete是DML语句，可回滚
     - truncate不会激活与表有关的删除触发器；delete可以
-    - truncate后会使表和索引所占用的空间会恢复到初始大小；delete操作不会减少表或索引所占用的空间，drop语句将表所占用的空间全释放掉
+    - **truncate后会使表和索引所占用的空间会恢复到初始大小**；delete操作不会减少表或索引所占用的空间，drop语句将表所占用的空间全释放掉
     - truncate不能对有外键约束引用的表使用
     - 执行truncate需要drop权限
-- lob对象占用空间可以使用alert、move、truncate直接释放。使用delete、update不直接释放，所占用空间会被后续lob对象使用
-- 使用move移动数据所在表空间
-    - 可以起到清理存储碎片的功能。类似的有`shrink space`，但是清理效果没move好
-    - move一个表到另外一个表空间时，索引不会跟着一起move，而且会失效(一般需要重建索引)
-        - move过的普通表，在不用到失效的索引的操作语句中，语句执行正常，但如果操作的语句用到了索引（主键当做唯一索引），则此时报告用到的索引失效，语句执行失败，其他如外键，非空约束，缺省值等不会失效
-    - LONG类型不能通过MOVE来传输，尽量不要用LONG类型
-    - LOB类型在建立含有lob字段的表时，oracle会自动为lob字段建立两个单独的segment,一个用来存放数据（segment_type=LOBSEGMENT），另一个用来存放索引（segment_type=LOBINDEX），默认它们会存储在和表一起的表空间。我们对表MOVE时，LOG类型字段和该字段的索引不会跟着MOVE，必须要单独来进行MOVE
+    - 清除后统计user_extents可能暂时没有变化，但是expdp导出数据量明显减少
+- 外键约束导致无法清理
 
-    ```sql
-    -- 移动表到当前空间，即重建此表数据(清理存储碎片功能)：可解决delete删除的表数据减少了，但是表空间占用量不会变
-    alter table emp move;
-    -- 移动表到users表空间
-    alter table emp move tablespace users;
-    -- 移动LOB类型(CLOB/BLOB)字段en到另外一个表空间，将表的LOB字段移动到users表空间。(测试执行完之后plsql卡主，但是最终是成功移动了的，表空间也释放了)
-    -- 如果已经delete对应表，但是lob字段对应的表空间还没释放，此时可先将此字段移动到临时空间(如TMP，由于数据已经删除了，TMP临时保存此块信息不会耗费太多空间)，再移动回USERS空间
-    alter table emp move lob(en) store as (tablespace users);
-    
-    -- 重建索引(仅移动LOB字段也需要重建索引，索引太多可通过查询生成sql语句)
-    alter index index_name rebuild;
-    alter index pk_name rebuild;
-    ```
-- delete删除的表数据减少了，但是表空间占用量不会变。可使用move移动数据所在表空间
-- `UNDOTBS1`占用较大表空间
+```sql
+-- 查看使用某个表作为外键的表信息
+select t1.table_name,
+       t2.table_name as "table_name(r)",
+       t1.constraint_name,
+       t1.r_constraint_name as "constraint_name(r)",
+       a1.column_name,
+       a2.column_name as "column_name(r)"
+from user_constraints t1
+join user_constraints t2 on t1.r_constraint_name = t2.constraint_name
+join user_cons_columns a1 on t1.constraint_name = a1.constraint_name
+join user_cons_columns a2 on t1.r_constraint_name = a2.constraint_name
+where t2.table_name = 'my_main_table_xxx';
+
+-- 禁用约束。存在问题，如这个表已经有数据使用了此外键，则清空主表后，启用约束会失败
+alter table my_sub_table_xxx disable constraint fk_id;
+-- 清空数据
+truncate table my_main_table_xxx;
+-- 启用约束
+alter table my_sub_table_xxx enable constraint fk_id;
+```
+
+#### shrink清理
+
+- 特点
+    - 可以起到清理存储碎片的功能，类似的如move
+    - **只有在HWM调整(cascade)阶段会锁表(只能查询)**，数据重组(compact)阶段可正常增删改
+    - 实质上构造一个新表(在内部表现为一系列的DML操作,即将副本插入新位置，删除原来位置的记录)，**因此会产生大量的REDO日志**(`select log_mode from v$database;` 归档模式下一定要注意磁盘空间，非归档模式则无需考虑)
+    - 索引不会损坏，会随着一起收缩
+    - lob字段不会级联shrink，需要单独处理
+- 压缩分两个阶段
+    - 数据重组(compact)：这个过程是通过一系列的insert delete操作，将数据尽量排在列的前面进行重新组合；**执行时对相关行持有行锁，对业务影响较小**
+    - HWM调整(cascade)：这个过程是对HWM的调整，释放空闲数据库；**表上会持有X锁，阻塞DML增删改操作，对业务影响较大，需要在业务空闲时再执行（实际测试过程虽然有锁，但仍然可插入数据）**
+- 参考：https://www.cnblogs.com/klb561/p/10995016.html
+- **时间记录**
+    - 某表540w条记录，HWM高水位线为19.5G，浪费空间18.5G(实际使用空间只有1G，由于表中一个CLOB字段存储了接口请求日志，后期将此字段置空，从而导致空间浪费)。耗时记录：compact阶段耗时105min，cascade阶段耗时10min
+- 案例
+
+```sql
+-- 基本语法
+alter table table_name_xxx shrink space [ <null> | cascade | compact  ];
+
+-- shrink必须开启对象的row movement功能（shrink index 不需要）
+-- 但是要注意，该语句会造成引用table_name的对象（如存储过程、包、试图等）变为无效，~执行完最好由utlrp.sql来编译无效对象~
+alter table table_name_xxx enable row movement;
+
+-- cascade会产生X锁(阻塞DML，对业务影响较大)；建议可分compact+cascade两步进行，cascade在业务不繁忙的时候进行
+alter table table_name_xxx shrink space compact; -- 只收缩表，HWM保持不变；此阶段可正常增删改数据
+alter table table_name_xxx shrink space cascade; -- 收缩表并且相关索引也会被收缩，HWM会降低；实际测试过程虽然有锁但仍然可插入数据；包含执行了 alter index index_name_xxx shrink space; -- 收缩索引
+-- alter table table_name_xxx shrink space; -- 上述两个命令之和：收缩表，并降低HWM(High Water Mark)
+-- (可选)收缩LOB
+alter table index_name_xxx modify lob(lob_column_xxx) (shrink space);
+
+-- 迁移完后关闭行移动
+alter table table_name_xxx disable row movement;
+```
+
+#### move清理
+
+- 特点
+    - 可以起到清理存储碎片的功能，类似的如shrink。可解决delete删除数据后占用的表空间不会释放
+    - **会锁表(只能查询)，大表谨慎在线操作**
+    - **需要保证有足够大的空闲表空间**，迁移5G数据，需要额外空闲5G的表空间来用于存储
+    - move一个表到另外一个表空间时，**索引不会跟着一起move，而且会失效(一般需要重建索引)**
+        - move过的普通表，在不用到失效的索引的操作语句中，语句执行正常；但如果操作的语句用到了索引（主键当做唯一索引），则此时报告用到的索引失效，语句执行失败；其他如外键，非空约束，缺省值等不会失效
+    - **LONG类型不能通过move来传输，尽量不要用LONG类型**
+    - LOB类型在建立含有lob字段的表时，oracle会自动为lob字段建立两个单独的segment，一个用来存放数据（segment_type=LOBSEGMENT），另一个用来存放索引（segment_type=LOBINDEX），默认它们会存储在和表一起的表空间。**我们对表move时，LOG类型字段和该字段的索引不会跟着move，必须要单独来进行move**
+- 案例
+
+```sql
+-- 移动表到当前空间(需要当前表空间有足够的空闲空间来存储当前的数据)，即重建此表数据(清理存储碎片功能)：可解决delete删除的表数据减少了，但是表空间占用量不会变
+alter table my_table_xx move;
+-- 移动表到users表空间
+alter table my_table_xx move tablespace users;
+-- 移动LOB类型(CLOB/BLOB)字段my_lob_xx到另外一个表空间(users表空间)。(测试执行完之后plsql卡主，但是最终是成功移动了的，表空间也释放了)
+-- 如果已经delete对应表，但是lob字段对应的表空间还没释放，此时可先将此字段移动到临时空间(如TMP，由于数据已经删除了，TMP临时保存此块信息不会耗费太多空间)，再移动回USERS空间
+alter table my_table_xx move lob(my_lob_xx) store as (tablespace users);
+
+-- 重建索引(仅移动LOB字段也需要重建索引，索引太多可通过查询生成sql语句)
+-- 查询表所具有的索引，可以使用user_indexes视图（索引和主键都在这个视图里可找到）
+alter index index_name rebuild online;
+alter index pk_name rebuild online;
+```
+
+#### UNDOTBS1占用较大表空间
+
+- 主要暂时存储DML操作的数据，主要作用有回滚、恢复实例、读一致性，闪回。
 
 ```bash
 # 参考：https://blog.csdn.net/wxlbrxhb/article/details/14448777
@@ -630,8 +760,9 @@ rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
 # 本视图自启动即保持并记录各回滚段统计项
 # USN：回滚段标识; XACTS：活动事务数; RSSIZE：回滚段默认大小; SHRINKS：回滚段收缩次数
 select usn, xacts, rssize/1024/1024/1024, hwmsize/1024/10244/1024, shrinks from v$rollstat order by rssize;
-# 创建新的 UNDOTBS 表空间。路径和原表空间保持一致
+# 创建新的 UNDOTBS 表空间并设置自动递增。路径和原表空间保持一致
 create undo tablespace undotbs2 datafile '/home/oracle/data/undotbs02.dbf' size 100m autoextend on;
+alter database datafile '/home/oracle/data/undotbs02.dbf' autoextend on next 5m;
 # 设置系统默认 UNDOTBS 表空间为 undotbs2
 alter system set undo_tablespace=undotbs2 scope=both;
 # 等待所有的 UNDOTBS1 全部记录从 ONLINE 变成 OFFLINE
@@ -642,22 +773,38 @@ where t.status = 'ONLINE' and t.tablespace_name = 'UNDOTBS1';
 alter tablespace undotbs1 offline normal;
 # (可稳定一段时间后再)删除表空间和对应文件
 drop tablespace undotbs1 including contents and datafiles;
-# 如果删除表空间文件后磁盘没有变化可查看是否进程还占用。如果还占用有说可杀掉相关进程，单还是建议重启数据库；如果无此问题则无需重启数据库
+# 如果删除表空间文件后磁盘没有变化可查看是否进程还占用。如果还占用有说可杀掉相关进程，但还是建议重启数据库；如果无此问题则无需重启数据库
 lsof | grep deleted
 ```
 
 ### 导入导出
 
 - 导出表结构：使用pl/sql的导出用户对象(不要使用导出表)
-- `.dmp`适合大数据导出，`.sql`适合小数据导出(表中含有 CLOB 类型字段则不能导出)
+- `.dmp`适合大数据导出；`.sql`适合小数据导出(表中含有 CLOB 类型字段则不能导出)
 
 #### dmp格式导出导入
 
-- 输入 `imp/exp 用户名/密码` 可根据提示导入导出。**直接 cmd 运行** [^4]
-    - 成功提示 `Export terminated successfully [with/without warnings]`
-    - 失败提示 `Export terminated unsuccessfully [with/without warnings]`
-- 导入导出均分为全量模式、用户模式、表模式
+- **时间参考**
+    - 优化exp/imp导入导出速度 https://www.cnblogs.com/keanuyaoo/p/3275766.html
+```bash
+# exp/imp：表空间30G，导出dmp文件大小20G(导出时已经使用过压缩模式，可再压缩成zip包为2G)，导出耗时30min；导入耗时1h
+
+# 耗时22min导出16G tar压缩后只有2.5G耗时几分钟
+exp sys/manager@orcl file=exp_test_2023101001.dmp log=exp_test_2023101001.log owner=test grants=y direct=y recordlength=65535
+# 耗时40min导出16G (加不加compress=y是一样的)
+exp sys/manager@orcl file=exp_test_2023101002.dmp log=exp_test_2023101002.log owner=test grants=y buffer=409600000
+```
+
+##### exp/imp导出
+  
+- exp/imp备份
     - 参考：https://www.cnblogs.com/songdavid/articles/2435439.html
+    - 全量备份脚本参考[shell.md#备份oracle](/_posts/linux/shell.md#备份oracle)、[bat.md#oracle数据库备份](/_posts/lang/bat.md#oracle数据库备份)
+    - 输入 `imp/exp 用户名/密码` 可根据提示导入导出。**直接 cmd 运行** [^4]
+        - 成功提示 `Export terminated successfully [with/without warnings]`
+        - 失败提示 `Export terminated unsuccessfully [with/without warnings]`
+    - 导入导出均分为全量模式、用户模式、表模式
+    - 支持增量备份，但是增量备份的最小单位是表，只要表一条数据发生变化，就会对全表进行备份(用处不大)
 - 注意事项
     一定要注意服务器、客户端字符集`NSL_LANG`，否则可能出现数据、字段备注、存储过程等乱码
         - 查询字符集参考本文[查询相关(查询数据库字符集)](#查询相关)
@@ -674,27 +821,34 @@ lsof | grep deleted
             - 或者 `select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';` 生成语句并执行(手动分配空间)
                 - `select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'SMALLE';`
     - dmp文件压缩与传输
-        - dmp导出时使用了压缩模式，之后仍然可以打包成zip压缩包，体积会小很多
+        - dmp导出时使用了压缩模式，之后仍然可以打包成zip/tar压缩包，体积会小很多
         - dmp文件直接传输到服务器，可能会被拦截，可打成压缩包
-        - dmp文件过大时(1G以上)，直接传输服务器中途容易断掉；可通过FTP进行端点续传
-- 导出
+        - dmp文件过大时(1G以上)，直接传输服务器中途容易断掉；**可通过FTP进行断点续传**
+- **导出**
 
 ```bash
 # 可将导出的dmp文件再tar压缩后通过scp传输到另外一台服务器上
-# 设置字符集，防止乱码. 其他如 `set NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
-set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+# bash命令行设置字符集，防止乱码. 否则可能报错如`EXP-00091: Exporting questionable statistics`
+# 其他如 `export NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
+export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+# set NLS_LANG=AMERICAN_AMERICA.AL32UTF8 # windows
 
-******防止漏表. 生成语句并执行(手动分配空间)；如堆场SaaS模式一定要执行******
+******防止漏表. 生成语句并执行(为空表手动分配空间，类似初始化，解决空表不导出问题，只需执行一次即可)；参考上文：导出时会漏表 ******
 # select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';
 # select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'SMALLE';
 
 ## 用户模式：导出 scott 用户的所有对象(表、序列、函数、存储过程、索引等；包括各对应对应的表空间名，如果原对象不是用户默认的表空间，在导入时也是导入到其他表空间下)，前提是 system 用户有相关权限
-# system/manager@remote_orcl：使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/manager@192.168.1.1:1521/orcl)
-# compress=y：压缩数据。尽管使用压缩模式，但是导出的数据仍然可以进行zip压缩，体积只有原来的1/10；打成zip压缩包传输也安全，否则容易被防火墙拦截
-# rows=n：不导出数据行，只导出结构
-# buffer=10241024：缓冲区，数据量大时可使用
-# grants=y：A用户中有表 test，并且把这个表的查询权限给了用户B，那么当导出A用户的数据时候，GRANTS=Y就是把用户B对test表的查询权限导出；如果将这个数据导入到C用户时(GRANTS=Y)就是说导入到C用户的test表的查询权限也会被赋给用户B
-exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log compress=y owner=scott grants=y
+# system/"manager"@remote_orcl: 使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/"manager"@192.168.1.1:1521/orcl)。密码可以用双引号转义
+# rows=n: 不导出数据行，只导出结构
+# grants=y: A用户中有表 test，并且把这个表的查询权限给了用户B，那么当导出A用户的数据时候，GRANTS=Y就是把用户B对test表的查询权限导出；如果将这个数据导入到C用户时(GRANTS=Y)就是说导入到C用户的test表的查询权限也会被赋给用户B
+# compress=y: 压缩数据(默认y)。尽管使用压缩模式，但是导出的数据仍然可以进行zip压缩，体积只有原来的1/10；打成zip压缩包传输也安全，否则容易被防火墙拦截
+# buffer=10240000: 缓冲区(单位字节，只对常规路径有效)；或者如数据库60G，设置更大为 409600000
+# direct=y: 使用直接路径(默认是n传统路径)，可提供2-3倍的导出速度。限制：(1)不支持QUERY查询方式 (2)不支持表空间传输模式(即TRANSPORT_TABLESPACES=Y参数不被支持)，支持的是FULL,OWNER,TABLES导出方式 (3) 如果exp版本小于8.1.5，不能使用exp导入有lob字段的表，本案例为11.2
+# recordlength=65535: 最大为64K(direct=y才能使用)
+exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000
+# exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y direct=y recordlength=65535 # 使用直接路径导出
+# nohup exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000 > /dev/null 2>&1 & # 后台执行导出
+tar -zcvf exp.tar.gz exp.*
 
 ## 表模式：导出 scott 的 emp,dept 表（导出其他用户表时，smalle用户需要有相关权限）
 # 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
@@ -704,31 +858,81 @@ exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables
 exp scott/tiger file=/home/oracle/exp.dmp tables=emp query=\" where ename like '%AR%'\"
 
 ## 全量模式：导出的是整个数据库，包括所有的表空间、用户/密码
-exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log compress=y full=y buffer=10241024
+exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log full=y buffer=10240000
 ```
-- 导入
+- **导入**
 
 ```bash
 # 其他如 `set NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
 set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+# tar -zxvf exp.tar.gz
 
 ## **用户模式**：一般需要先将用户对象全部删掉，如可删除用户对应的表空间重新创建。**[必须要先有对应的用户和表空间](#表空间)**
 # SEQUENCE/SYNONYM 如果存在不会覆盖(索引重复导入时注意清理序列)，不存在会新增；FUNCTION/PRODUCE会覆盖
 # 导入成功一般会提示`成功终止导入, 但出现警告。`，期间可以看到表空间文件大小一直在增长
 # ignore=y：忽略错误，继续导入
 # grants=y：包含权限
-imp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott touser=smalle grants=y
+# indexes=n：不导入索引，之后可找到所有索引进行手动创建
+# buffer=40960000 一秒至少应该是10w记录
+# recordlength=65535: 最大为64K(如果是direct=y模式导出时可加上)
+imp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/imp.log fromuser=scott touser=smalle ignore=y grants=y 
+# 导入后查看对象数是否一致
+# select OBJECT_TYPE,STATUS,count(1) from dba_objects where owner = 'OFBIZ' group by OBJECT_TYPE,STATUS order by 1 desc,2;
 
 ## 表模式：将 scott 的表 emp、dept 导入到用户 aezo
 # 此处 file/fromuser/touser 都可以指定多个
-imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log ignore=y fromuser=scott tables=emp,dept touser=smalle grants=y
+imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log fromuser=scott tables=emp,dept touser=smalle ignore=y grants=y 
 
 ## 全量模式：导入的是整个数据库，包括所有的表空间(要求导出dmp也是全量的)
 # 一般需要设置ignore=y，导入过程中会报一些错误需忽略，如导入系统相关数据时，由于目标数据库已经存在相关对象，从而报错
 imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y ignore=y
 ```
+- 常见错误
+    - 导出报错`EXP-00008 ORA-01455`
+        - 查看该用户下是否有物化视图日志，如果不需要可删除。参考：http://bbs.cqsztech.com/forum.php?mod=viewthread&tid=1678
+            - `DROP MATERIALIZED VIEW LOG ON AEZOCN.TEST` 参考：https://www.modb.pro/db/224544
+        - 也有说需要为空表手动分配段(测试无效)，参考：https://www.jianshu.com/p/08a338bfc3f6
 
-#### pl/sql
+##### expdp/impdp导出
+
+- expdp/impdp成对使用(不支持增量导出)
+- 使用参考：https://www.cnblogs.com/Jingkunliu/p/13705626.html
+    - compression压缩说明(可不使用此参数，导出后再通过tar压缩)：https://blog.csdn.net/yifeng0504/article/details/77748719
+
+```bash
+## sql: 创建目录并赋权
+sqlplus / as sysdba
+create or replace directory dmp as '/tmp/dmp';
+grant read,write on directory dmp to demouser;
+
+## bash命令导出
+# parallel为3个线程，会产生3个dmp文件，无需压缩参数(手动压缩)
+# 导出测试案例：显示67G，导出只有28G，导出耗时47min，压缩后只有4.3G(压缩时间未计)
+expdp demouser/demo123@orcl DIRECTORY=dmp parallel=3 FILESIZE=20G dumpfile=expdp_aezo_20200101_%u.dmp LOGFILE=expdp_aezo_20200101.log schemas=AEZO
+tar -zcvf expdp_aezo_20200101.tar.gz expdp_aezo_20200101*
+
+## bash命令导入
+# 参考上文同样创建dmp目录，并将dmp文件放到改dmp目录下
+impdp \'\/ as sysdba\' parallel=3 cluster=no directory=dmp dumpfile=expdp_aezo_20200101_%u.dmp logfile=impdp_aezo_20200101.log
+# 可选. 导入时查看导入情况
+select * from dba_datapump_jobs; # 查询所有的任务
+impdp \'\/ as sysdba\' attach=SYS_IMPORT_FULL_01 # attach到当前任务，如SYS_IMPORT_FULL_01
+# 如果导入时一直卡主不动，查看的导入情况数据也没变，可查看trace下的alter日志
+```
+
+##### 增量备份参考
+
+- Oracle数据库有三种标准的备份方法，它们分别是导出／导入（EXP/IMP、EXPDP/IMPDP）、热备份和冷备份。导出备件是一种逻辑备份，冷备份和热备份是物理备份
+    - exp增量备份的最小单位是表，只要表一条数据发生变化，就会对全表进行备份
+    - expdp/impdp不支持增量备份
+    - RMAN备份为物理备份，需要保证导出和导入的数据库版本和相关配置一致
+- 基于exp/imp的增量备份参考
+    - https://www.cnblogs.com/gongyu/p/4276962.html
+    - https://blog.csdn.net/zcb_data/article/details/80280892
+- 基于RMAN增量备份
+    - https://www.topunix.com/post-937.html
+
+#### pl/sql方式
 
 - pl/sql 提供 dmp、sql(SQL Inserts, 不支持 CLOB 类型字段)、pde(pl/sql 提供)格式的数据导入导出
     - dmp格式导入导出
@@ -1010,19 +1214,6 @@ alter system set resource_limit=true; -- 开启resource_limit=true
 select USER#, NAME, PTIME from user$ where NAME in (select username from dba_users t where t.account_status = 'OPEN');
 ```
 
-## 备份
-
-### exp/imp方式
-
-- exp/imp全量备份方式参考[shell.md#备份oracle](/_posts/linux/shell.md#备份oracle)、[bat.md#oracle数据库备份](/_posts/lang/bat.md#oracle数据库备份)
-- 时间参考
-    - 表空间30G，导出dmp文件大小20G(导出时已经使用过压缩模式，可再压缩成zip包为2G)，导出耗时30min，导入耗时1h
-
-### 增量备份
-
-- https://blog.csdn.net/Hello_World_QWP/article/details/79134211
-- https://www.topunix.com/post-937.html
-
 ## 日常维护
 
 - 检查`listener.log`是否过大
@@ -1043,7 +1234,7 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
     - 开启表空间自动扩展，每次递增 50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
     - 为 USERS 表空间新增 1G 的数据文件 **`alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`**
         - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
-            - **`alter database datafile '/home/oracle/data/users02.dbf' autoextend on next 50m;`**
+            - **`alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`**
         - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
         - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
     - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
@@ -1075,8 +1266,10 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
     group by tablespace_name, file_name, autoextensible, increment_by;
 
     -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
-    select segment_name, sum(bytes)/1024/1024/1024 as "GB" from user_extents group by segment_name order by sum(bytes) desc;
-    select segment_name, sum(bytes)/1024/1024/1024 as "GB" from dba_extents where owner = 'SMALLE' group by segment_name order by sum(bytes) desc;
+    select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB" 
+        from user_extents group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
+    select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB"
+        from dba_extents where owner = 'SMALLE' group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
     -- 上面结果返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过下面语句查看属于哪张表
     select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';
     -- 查看所有LOB块信息
@@ -1084,6 +1277,18 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
 
     -- 列出数据库里每张表的记录条数
     select t.table_name,t.num_rows from user_tables t order by num_rows desc;
+
+    -- 查看表占用的空间情况(浪费的空间可通过shrink或move等方式清理)
+    -- 如果对表做了数据清理，需要先重新统计下表信息
+    exec dbms_stats.gather_table_stats(ownname=>'SCOTT',tabname=> 'MY_TABLE_XX');
+    -- 再查看数据
+    select table_name,
+        round(((blocks) * 8 / 1024), 2) "高水位空间m",
+        round((num_rows * avg_row_len / 1024 /1024), 2) "真实使用空间m",
+        round((blocks * 10 / 100) *8 /1024, 2) "预留空间(etfree)m",
+        round((blocks) * 8 / 1024 - (num_rows * avg_row_len / 1024 /1024), 2) "浪费空间m"
+    from user_tables u
+    where u.table_name = 'MY_TABLE_XX';
     ```
 - 报错`ORA-01654:unable to extend index`，解决步骤 [^8]
   - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经 32G(表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)

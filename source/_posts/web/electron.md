@@ -65,8 +65,10 @@ electron-builder
 # 之前已经基于vue-cli的项目，如基于iview-admin实现的。现在基于Electron官方demo进行集成
 
 # 1.添加依赖
-npm i -g mirror-config-china --registry=https://registry.npm.taobao.org # 安装相关镜像。包含了 npm config set ELECTRON_MIRROR https://npm.taobao.org/mirrors/electron/ # 打包时会下载electron压缩包，此时设置镜像进行加速
-npm install electron -S
+# 安装相关镜像
+# 包含了 npm config set ELECTRON_MIRROR https://npmmirror.com/mirrors/electron/ # 打包时会下载electron压缩包，此时设置镜像进行加速
+npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+npm install electron@23.3.9 -S
 npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
 
 # 参考上文简单使用下载electron-quick-start项目

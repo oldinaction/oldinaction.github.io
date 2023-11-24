@@ -93,6 +93,8 @@ ${(appVersion)!}
 <#nt> <!-- 取消上面的效果 -->
 ```
 
+- 调用Java静态方法: https://www.cnblogs.com/chansblogs/p/9400014.html
+
 ### 数据类型
 
 - 在模板处理时，会将Java类型包装为对应的TemplateModel实现。比如将一个String包装为`SimpleScalar`(对应接口`TemplateScalarModel`)来存储同样的值。对于每个Java类型，具体选择什么TemplateModel实现去包装，取决于对象包装器（ObjectWrapper）的实现策略

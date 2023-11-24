@@ -391,6 +391,19 @@ clazzMap.computeIfAbsent(clazz, Reflector::new); // public Reflector(Class<?> cl
 ### javax.script(js-java)
 
 - Java和Js之间相互调用，无需安装依赖，相似的如[JEXL执行字符串JAVA代码](/_posts/java/java-tools.md#JEXL执行字符串JAVA代码)
+- 参考文章
+    - Java 8 Nashorn 指南：https://zhuanlan.zhihu.com/p/33257346
+- 从 JDK 1.8 开始，**Nashorn**取代Rhino(JDK 1.6, JDK1.7) 成为 Java 的嵌入式 JavaScript 引擎。Nashorn 完全支持 ECMAScript 5.1 规范以及一些扩展
+- Nashorn JavaScript Engine 在 Java 11 标记为forRemoval，在 Java 15 已经不可用了(manager.getEngineByName("javascript")返回值为null)。**可同引入依赖解决**
+
+```xml
+<dependency>
+    <groupId>org.openjdk.nashorn</groupId>
+    <artifactId>nashorn-core</artifactId>
+    <version>15.3</version>
+</dependency>
+```
+- 案例
 
 ```java
 @SneakyThrows
@@ -435,6 +448,25 @@ public void test() {
     Thread thread = new Thread(runnable);
     thread.start(); // run called
 }
+```
+- Nashorn案例
+
+```java
+// 进行Debug(js必须是文件才能在idea中进行调试): https://www.cnblogs.com/shirui/p/9430804.html
+
+// JavaScript 中调用 Java 类参考：https://www.runoob.com/java/java8-nashorn-javascript.html
+// 调用Java方法也支持事物
+// JS代码
+var BigDecimal = Java.type('java.math.BigDecimal');
+function calculate(amount, percentage) {
+    // 如果返回的是一个新的类对象，不用声明，直接使用其方法即可
+    var result = new BigDecimal(amount).multiply(
+    new BigDecimal(percentage)).divide(new BigDecimal("100"), 2, BigDecimal.ROUND_HALF_EVEN);
+    return result.toPlainString();
+}
+function test() {}
+var result = calculate(568000000000000000023,13.9);
+print(result);
 ```
 
 ## 未知

@@ -454,6 +454,7 @@ echo 'eval "$(jenv init -)"' >> ~/.bash_profile
 # 查看可用的JDK路径（需提前手动安装，jenv只能切换版本，不能进行安装），安装JDK参考上文[JAVA](#JAVA)
 /usr/libexec/java_home -V
 # 将可用的JDK加入到jenv中管理
+jenv add /Library/Java/JavaVirtualMachines/jdk-11.0.2.jdk/Contents/Home
 jenv add /Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home
 jenv add /Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home
 # 查看jenv管理的jdk版本

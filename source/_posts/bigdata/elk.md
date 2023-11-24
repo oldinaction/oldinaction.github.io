@@ -717,6 +717,7 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 ## Kibana
 
 - [文档](https://www.elastic.co/guide/en/kibana/7.8/index.html)
+- kibana搜索简易指南: https://www.jianshu.com/p/61b53815122b
 - 面板介绍
     - Discover：日志管理视图(主要进行搜索和查询)
     - Visualize：统计视图(构建可视化的图表)
@@ -733,7 +734,16 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 
 - 需要先创建索引表达式，参考 Management - Kibana设置 - Index Patterns
 - New新增查询、Save保存当前查询、Open打开查询、Share分享查询、Inspect
+- 左侧可用字段点击"+"会自动显示到右边的(默认显示的是整个文档)
 
+#### 搜索
+
+- [KQL语法](https://www.elastic.co/guide/en/kibana/7.17/kuery-query.html)
+
+```bash
+# 精确查找此字符
+"abc"
+```
 
 ### Management
 
