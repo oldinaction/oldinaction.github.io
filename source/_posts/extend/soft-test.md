@@ -220,8 +220,13 @@ Percentage of the requests served within a certain time (ms)
   - [github](https://github.com/openstf/stf)
   - [官网](https://openstf.io/) 停止维护
     - 第三方维护版: https://github.com/DeviceFarmer/stf
+  - 类似
+    - https://sonic-cloud.cn/
   - Smartphone Test Farm（简称STF）是一个web应用程序，主要用于从指定的浏览器中远程调试智能手机、智能手表等，可远程调试超过160多台设备
-  - 百度MTC的远程真机调试、Testin的云真机、腾讯WeTest的云真机、阿里MQC的远程真机租用都是基于STF进行改进的 [^1]
+  - [百度MTC的远程真机调试](https://mtc.baidu.com/)、Testin的云真机、腾讯WeTest的云真机、[阿里MQC的远程真机租用](https://emas.console.aliyun.com/entrance)都是基于STF进行改进的 [^1]
+  - 免费真机云测
+    - 华为云调试：部分机型每天会赠送一定的优惠时长(300min)
+      - 支持本地上传APK应用
   - 缺点：存在Android部分设备易掉线、IOS高版本不兼容、操作卡顿等现象
 - 原理
   - 通过adb连接Android设备
@@ -229,34 +234,34 @@ Percentage of the requests served within a certain time (ms)
   - STF将touch动作同步给移动设备：基于minitouch（STF开源）组件
 - 安装 [^2]
 
-    ```bash
-    ## 安装（最好顺序启动）。此案例是在Windows-Docker中按照
-    # 启动数据库（RethinkDB为文档型数据库），启动后可访问查看：http://192.168.99.101:8090/
-    docker run -d --name rethinkdb -v /d/temp/docker/rethinkdb:/data --net host rethinkdb:latest rethinkdb --bind all --cache-size 8192 --http-port 8090
-    # 启动adb服务
-    docker run -d --name adbd --privileged -v /d/temp/docker/usb:/dev/bus/usb --net host sorccu/adb:latest
-    # 启动sft。`stf local ...` 启动一个完整的本地开发环境（会调用stf provider）
-    # --public-ip 为容器宿主机IP，即开启外部网络访问；--allow-remote 允许远程设备（Android机连接PC-B，然后PC-B与此STF通信，从而控制移动设备；由于网络等原因实际操作中不建议开启）
-    docker run -d --name stf --net host openstf/stf:latest stf local --public-ip 192.168.99.101 --allow-remote
+```bash
+## 安装（最好顺序启动）。此案例是在Windows-Docker中按照
+# 启动数据库（RethinkDB为文档型数据库），启动后可访问查看：http://192.168.99.101:8090/
+docker run -d --name rethinkdb -v /d/temp/docker/rethinkdb:/data --net host rethinkdb:latest rethinkdb --bind all --cache-size 8192 --http-port 8090
+# 启动adb服务
+docker run -d --name adbd --privileged -v /d/temp/docker/usb:/dev/bus/usb --net host sorccu/adb:latest
+# 启动sft。`stf local ...` 启动一个完整的本地开发环境（会调用stf provider）
+# --public-ip 为容器宿主机IP，即开启外部网络访问；--allow-remote 允许远程设备（Android机连接PC-B，然后PC-B与此STF通信，从而控制移动设备；由于网络等原因实际操作中不建议开启）
+docker run -d --name stf --net host openstf/stf:latest stf local --public-ip 192.168.99.101 --allow-remote
 
-    ## 进入stf容器进行设置（`ps -ef`查看已启动的进程）
-    docker exec -it stf bash
-    # `stf provider ...` 启动provider单元
-    # --name机器名称（即docker宿主机-虚拟机名称default，也可通过docker logs stf查看日志得知） 
-    # --connect-sub 和 --connect-push 均为基于 ZeroMQ（嵌入式库） 进行通信的。且地址就用127.0.0.1，不要输入内网地址，否则容易出现`Providing all 0 of 1 device(s); ignoring "127.0.0.1:62001"`导致设备连接不上（如果PC-A、PC-B均安装了stf和adb来部署集群，如果在PC-B上运行这个命令可考虑使用内网地址）
-    stf provider --name default --min-port 7400 --max-port 7700 --connect-sub tcp://127.0.0.1:7114 --connect-push tcp://127.0.0.1:7116 --group-timeout 20000 --public-ip 192.168.99.101 --storage-url http://localhost:7100/ --adb-host 192.168.99.1 --adb-port 5037 --vnc-initial-size 600x800 --allow-remote # 测试时，每次启动stf都需要执行此命令
+## 进入stf容器进行设置（`ps -ef`查看已启动的进程）
+docker exec -it stf bash
+# `stf provider ...` 启动provider单元
+# --name机器名称（即docker宿主机-虚拟机名称default，也可通过docker logs stf查看日志得知） 
+# --connect-sub 和 --connect-push 均为基于 ZeroMQ（嵌入式库） 进行通信的。且地址就用127.0.0.1，不要输入内网地址，否则容易出现`Providing all 0 of 1 device(s); ignoring "127.0.0.1:62001"`导致设备连接不上（如果PC-A、PC-B均安装了stf和adb来部署集群，如果在PC-B上运行这个命令可考虑使用内网地址）
+stf provider --name default --min-port 7400 --max-port 7700 --connect-sub tcp://127.0.0.1:7114 --connect-push tcp://127.0.0.1:7116 --group-timeout 20000 --public-ip 192.168.99.101 --storage-url http://localhost:7100/ --adb-host 192.168.99.1 --adb-port 5037 --vnc-initial-size 600x800 --allow-remote # 测试时，每次启动stf都需要执行此命令
 
-    ## 启动adb
-    # 由于本案例使用的是在windows+Docker+模拟器搭建的，因此需要对 adb server 并对外暴露 5037 端口（如果普通启动则是仅在127.0.0.1上监听设备连接，此时需要暴露到内网；如果是linux等基于docker安装stf，移动设备连接linux即可，无需对外暴露端口；如果是linux-A安装了stf，linux-B安装了adb，则linux-B上的设备要被stf连接，则linux-B也要对外暴露5037端口）
-    adb nodaemon server -a -P 5037 # adb 1.0.32以上的，启动后命令行不要关闭。如果启动失败，可以`adb kill-server`停止进程后重新运行
-    # adb -a -P 5037 fork-server server # adb 1.0.32以上的
-    
-    ## 启动模拟器，或者手机连接上STF机器才可查看到设备：需要在开发者中心，开启USB调试，某些手机还需要启动 USB安装、USB点击
-    # 测试时，使用夜神模拟器显示的页面未黑屏，但是可以点击；使用android studio中的模拟器可以正常显示画面和点击
+## 启动adb
+# 由于本案例使用的是在windows+Docker+模拟器搭建的，因此需要对 adb server 并对外暴露 5037 端口（如果普通启动则是仅在127.0.0.1上监听设备连接，此时需要暴露到内网；如果是linux等基于docker安装stf，移动设备连接linux即可，无需对外暴露端口；如果是linux-A安装了stf，linux-B安装了adb，则linux-B上的设备要被stf连接，则linux-B也要对外暴露5037端口）
+adb nodaemon server -a -P 5037 # adb 1.0.32以上的，启动后命令行不要关闭。如果启动失败，可以`adb kill-server`停止进程后重新运行
+# adb -a -P 5037 fork-server server # adb 1.0.32以上的
 
-    ## 访问，管理员账号：administrator/administrator@fakedomain.com (随便输入一个用户名也能登录，但是是普通账号)
-    http://192.168.99.101:7100
-    ```
+## 启动模拟器，或者手机连接上STF机器才可查看到设备：需要在开发者中心，开启USB调试，某些手机还需要启动 USB安装、USB点击
+# 测试时，使用夜神模拟器显示的页面未黑屏，但是可以点击；使用android studio中的模拟器可以正常显示画面和点击
+
+## 访问，管理员账号：administrator/administrator@fakedomain.com (随便输入一个用户名也能登录，但是是普通账号)
+http://192.168.99.101:7100
+```
 
 ## SikuliX桌面自动化方案
 
@@ -276,7 +281,7 @@ Percentage of the requests served within a certain time (ms)
 
 - 块存储和文件存储的测试重点也不一样
     - 块存储测试：fio/iozone是两个典型的测试工具，重点测试IOPS，延迟和带宽
-
+    
         ```bash
         # fio -filename=/dev/sdc -iodepth=${iodepth} -direct=1 -bs=${bs} -size=100% --rw=${iotype} -thread -time_based -runtime=600 -ioengine=${ioengine} -group_reporting -name=fioTest
         # 测试IOPS：iodepth=32/64/128，bs=4k/8k，rw=randread/randwrite，ioengine=libaio
@@ -284,7 +289,7 @@ Percentage of the requests served within a certain time (ms)
         # 测试带宽：iodepth=32/64/128，bs=512k/1m，rw=read/write，ioengine=libaio
         ```
     - fio/vdbench/mdtest是测试文件系统常用的工具。fio/vdbench用来评估IOPS，延迟和带宽；mdtest评估文件系统元数据性能，主要测试指标是creation和stat，需要采用mpirun并发测试
-
+    
         ```bash
         # fio -filename=/mnt/yrfs/fio.test -iodepth=1 -direct=1 -bs=${bs} -size=500G --rw=${iotype} -numjobs=${numjobs} -time_based -runtime=600 -ioengine=sync -group_reporting -name=fioTest
         # 与块存储的测试参数有一个很大区别，就是ioengine都是用的sync，用numjobs替换iodepth

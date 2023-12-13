@@ -24,6 +24,20 @@ $(function() {
             window.open(href, '_blank');
         }
     })
+
+    // 表单提交
+    $('#submitBtn').click(function(e) {
+        let data = {};
+        let value = $('#form').serializeArray();
+        $.each(value, function (index, item) {
+            data[item.name] = item.value;
+        });
+
+        let json = $('#form').serialize(); // 输出：name=asd&type=1
+
+        // 组装原生表单提交
+        return false;
+    });
 })
 ```
 

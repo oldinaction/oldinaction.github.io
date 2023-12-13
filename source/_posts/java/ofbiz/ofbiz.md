@@ -1720,6 +1720,49 @@ mv /app/framework/entity/config/entityengine.${PROFILES_NAME}.xml /app/framework
 </target>
 ```
 
+### 集群配置Session共享(基于redis)
+
+- 参考：https://www.wyl.im/archives/61
+    - 测试使用4.0：https://github.com/ran-jit/tomcat-cluster-redis-session-manager/releases/tag/4.0
+    - 需要commons-pool2-2.6.2.jar，总共4个jar
+    - CatalinaContainer
+
+    ```java
+    String redisEnable = UtilProperties.getPropertyValue("general", "redis.cluster.enabled", "false");
+
+    Manager sessionMgr = null;
+    if (clusterProp != null && contextIsDistributable) {
+        String mgrClassName = ContainerConfig.getPropertyValue(clusterProp, "manager-class", "org.apache.catalina.ha.session.DeltaManager");
+        try {
+            sessionMgr = (Manager)Class.forName(mgrClassName).newInstance();
+        } catch (Exception exc) {
+            throw new ContainerException("Cluster configuration requires a valid manager-class property: " + exc.getMessage());
+        }
+    } else if("true".equals(redisEnable)) {
+        Debug.log("Session策略:redis", Debug.noModuleModule);
+        try {
+            sessionMgr = (Manager)Class.forName("tomcat.request.session.redis.SessionManager").newInstance();
+        } catch (Exception exc) {
+            throw new ContainerException("Cluster session error:" + exc.getMessage());
+        }
+    } else {
+        Debug.log("Session策略:local", Debug.noModuleModule);
+        sessionMgr = new StandardManager();
+    }
+
+    StandardContext context = new StandardContext();
+
+    if("true".equals(redisEnable)) {
+        try {
+            Valve v = ((Valve)Class.forName("tomcat.request.session.redis.SessionHandlerValve").newInstance());
+            context.addValve(v);
+        } catch (Exception exc) {
+            throw new ContainerException("Cluster value error:" + exc.getMessage());
+        }
+    }
+    ```
+
+
 
 --- 
 

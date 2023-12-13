@@ -75,6 +75,9 @@ tags: [H5, App, 小程序, mobile]
         - 类似下单等页面需要发送通知则需改写成小程序页面
     - 小程序内嵌 web-view 跟微信内置浏览器是一套环境，即h5中引入JS-SDK即可使用wx对象，且测试发现Storage等仍然不共享
 - 小程序和web-view通信
+    - 参考：
+        - https://uniapp.dcloud.net.cn/component/web-view.html#postmessage
+        - https://juejin.cn/post/6844903919710109703
     - 可通过小程序web-view标签的url将小程序参数传递给H5页面，从而进行用户验证等操作
     - H5传递消息给小程序需要使用 postMessage。不能直接调用windows.postMessage，而是需要使用微信JS-SDK提供的postMessage函数；如果是uni-app开发，可引入uni.webview库在中间做桥接，从而调用微信的postMessage函数
     - 示例(小程序和H5都是基于uni-app开发). 参考：https://uniapp.dcloud.io/component/web-view

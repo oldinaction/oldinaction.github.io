@@ -121,12 +121,16 @@ npm config set registry https://registry.npm.taobao.org -g
         - **国内支持所有NPM的(类似unpkg)**
             - 饿了么: npm.elemecdn.com、github.elemecdn.com
                 - https://npm.elemecdn.com/@sqbiz/wplugin-tinymce-vue@1.0.0-biz-minions/lib/WpluginTinymceVue.umd.min.js
+            - 知乎: unpkg.zhimg.com
         - 基于国外 `https://unpkg.com/<package>@<version>/<file>`
             - 如: https://unpkg.com/@sqbiz/wplugin-tinymce-vue@1.0.0-biz-minions/lib/WpluginTinymceVue.umd.min.js
         - 基于国外 `https://cdn.jsdelivr.net/npm/<package>@<version>/<file>`
             - 如查找https://www.jsdelivr.com/package/npm/@tarojs/taro
-    - [查看包源码](https://uiwjs.github.io/npm-unpkg/)
-    - [分析 npm 软件包的体积和加载性能](https://bundlephobia.com/)
+    - [npm包源码在线查看工具](https://uiwjs.github.io/npm-unpkg/)
+    - [npm软件包的体积和加载性能在线分析工具](https://bundlephobia.com/)
+    - [npm依赖在线分析工具(显示有点乱)](http://npm.anvaka.com/)
+        - 本地可使用`npm ls > tree.log`查看，参考下文
+        - 参考：https://www.cnblogs.com/shengulong/p/9463435.html
 
 ```bash
 npm -h
@@ -143,6 +147,18 @@ npm view vue@2.7.13
 npm view vue@2.7.13 engines
 # 查看对应版本的依赖
 npm view vue@2.7.13 dependencies
+
+
+## 列出所有依赖
+npm ls # 列出依赖树，默认是顶级
+npm ls --depth=10 # 列出依赖树深度
+npm ls webpack # 查看依赖此包的列表
+npm ls > tree.log # 记录到文件
+npm ls -g # 查看全局依赖
+npm ll # 列出依赖和介绍
+# 使用插件，查看npmjs网站上的包的依赖(无需下载安装项目，但是速度极慢)
+# npm install -g npm-remote-ls
+# npm-remote-ls webpack
 
 
 ## 安装xxx(在当前项目安装)，**更新模块也是此命令**
@@ -200,7 +216,7 @@ npm get registry
 # 登录. 输入用户名/密码, 如果提示需要输入one-time password则打开命令行中的验证链接，会进入浏览器，点击登录，进行Mac指纹验证，此时会显示随机码，输入即可
 npm login
 # 该指令只有登录状态才能显示当前登录名
-npm whoam i
+npm whoami
 # 先打包好
 npm run build
 # 发布. 或者基于lerna publish发布
@@ -305,14 +321,17 @@ npm unlink xxx
 ### 基于GitHub-Packages创建npm私有库
 
 - 参考: https://www.jianshu.com/p/9b7c2d9b30b3
+- 此方法产生的npm包，不会出现在npm官网上。且只支持私有库
 - 模块package.json中增加如
 
 ```json
 {
+    // 必须以@<github用户名>/开头，后为该package名称
     "name": "@aezocn/report-table",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/aezocn/npm-repo.git"
+        //,"directory": "packages/my-name"
     },
     "publishConfig": {
         "access": "public"
@@ -330,9 +349,9 @@ npm unlink xxx
 /usr/bin/expect<<-EOF
 set timeout 60
 spawn npm login --registry=https://npm.pkg.github.com
-expect "Username: " {send "oldinaction\r"}
+expect "Username: " {send "$SQ_GITHUB_NPM_USERNAME\r"}
 expect "Password: " {send "$SQ_GITHUB_NPM_PASSWORD\r"}
-expect "Email:" {send "oldinaction@qq.com\r"}
+expect "Email:" {send "$SQ_GITHUB_NPM_EMAIL\r"}
 expect eof
 EOF
 # 发布

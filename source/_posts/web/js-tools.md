@@ -2263,6 +2263,8 @@ export default {
 
 ### 防抖和节流
 
+- 防抖debounce：先等待一段时间，直到没人调用了，才真正执行。如用于键入提示
+- 节流throttle：一开始执行一次，然后每到固定的时间才执行一次
 - 基于lodash
     - 其提供的throttle和debounce仍会出现重复点击按钮，还是会多次执行，只不过多次执行有几秒的间隔
     - **下文自定义的throttle方法无此问题，在2s内重复点击只执行一次**
@@ -2282,7 +2284,54 @@ methods: {
     }, 2000, { leading: true })
 }
 ```
-- 手动实现参考：https://www.jb51.net/article/212746.htm
+- 手动实现参考(异步)
+
+```js
+// 防抖：一个等待时间周期里面的多次调用都会被忽略
+export const debounce = function(fn, wait = 500) {
+  let timer
+  let promise
+
+  return function(...args) {
+    if (timer) {
+      clearTimeout(timer)
+      Promise.reject(new Error('操作过于频繁'))
+    }
+
+    promise = new Promise(resolve => {
+      timer = setTimeout(() => {
+        resolve(fn.apply(this, args))
+        timer = null
+      }, wait)
+    })
+
+    return promise
+  }
+}
+
+// 节流：一个等待时间周期里面的多次调用，只有其中一个会被执行(周期结束后的第一个)
+export const throttle = function(func, delay, immediate = false) {
+  let timer
+
+  return function(...args) {
+    return new Promise(resolve => {
+      if (immediate && !timer) {
+        timer = setTimeout(() => {
+          timer = null
+        }, delay)
+        resolve(func.apply(this, args))
+        return
+      }
+
+      timer = setTimeout(() => {
+        timer = null
+        resolve(Promise.reject(new Error('操作过于频繁')))
+      }, delay)
+    })
+  }
+}
+```
+- 手动实现参考(同步)：https://www.jb51.net/article/212746.htm
 
 ```js
 // 防抖
@@ -2331,6 +2380,11 @@ export const throttle = function (f, t = 2000, im = false) {
   }
 }
 ```
+
+## 移动端
+
+- [vConsole](https://gitee.com/Tencent/vConsole) 腾讯开源网页调试工具(即小程序调试工具)
+
 
 
 ---

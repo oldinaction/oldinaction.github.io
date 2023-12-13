@@ -1101,8 +1101,12 @@ location / {
 - 负载均衡`upstream`([ngx_http_upstream_module](http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_upstream_module.html))
 
 ```bash
+# 参考：https://www.cnblogs.com/kevingrace/p/8185218.html
 # upstream和server平级配置，backend为定义的服务器集群名称
 upstream backend {
+    # 负载均衡方式: rr(默认，轮询模式)、ip_hash、fair(按后端服务器的响应时间来分配请求，响应时间短的优先分配)、url_hash(和ip_hash算法类似，是对每个请求按url的hash结果分配，比较适用于后端为缓存服务器)
+    # ip_hash;
+
     # weight标识转发给此server的权重，默认是1
     server backend1.example.com       weight=5;
     server backend2.example.com:8080;
@@ -1125,6 +1129,11 @@ server {
     }
 }
 ```
+- nginx自带健康检查的缺陷
+    - Nginx只有当有访问时，才发起对后端节点请求
+    - 如果本次请求中，节点正好出现故障，Nginx依然将请求转交给故障的节点，然后再转交给健康的节点处理(之后每次都有可能出现部分静态文件先请求到错误节点)。所以不会影响到这次请求的正常进行，但是会影响效率，因为多了一次转发
+    - 自带模块无法做到预警，属于被动健康检查
+    - 解决：使用第三方模块[nginx_upstream_check_module](https://github.com/yaoweibin/nginx_upstream_check_module/tree/master/)，为tengine模块，可用于nginx，参考：https://juejin.cn/post/7121879473158373406
 - tengine主动健康检查([ngx_http_upstream_check_module](http://tengine.taobao.org/document_cn/http_upstream_check_cn.html))
     - tengine特有。如果集群中有某个服务器挂掉则检查面板中会标记成红色
 
@@ -1148,6 +1157,24 @@ server {
 }
 ```
 - session一致性问题解决方案：`memcached`或`redis`等缓存数据库保存所有的session(以tomcat-7.0.61为例)
+    - tengine的会话保持功能：同一个客户端会话有效期间永远访问的是同一个服务器([ngx_http_upstream_session_sticky_module](http://tengine.taobao.org/document_cn/http_upstream_session_sticky_cn.html))
+        - 基于cookies实现
+        - 在`upstream`中加入`session_sticky;`
+    - redis方式
+        - 安装redis缓存数据库(参考《redis》)
+        - 修改配置文件`vi /etc/redis.conf`将bind的127.0.0.1修改为本机地址，否则只能本机访问了
+        - 将web服务器连接redis的jar包拷贝到tomcat的lib[针对tomcat-7.0.61相关jar下载地址](http://download.csdn.net/download/oldinaction/10267668)
+        - 配置tomcat的`conf/context.xml`
+
+            ```xml
+            <Valve className="com.orangefunction.tomcat.redissessions.RedisSessionHandlerValve" />
+            <Manager className="com.orangefunction.tomcat.redissessions.RedisSessionManager"
+                host="192.168.1.1"
+                port="6379"
+                database="0"
+                maxInactiveInterval="60" />
+            ```
+    - redis方式也可使用[tomcat-cluster-redis-session-manager](https://github.com/ran-jit/tomcat-cluster-redis-session-manager)插件，参考[集群配置Session共享(基于redis)](/_posts/java/ofbiz/ofbiz.md#集群配置Session共享(基于redis))
     - memcached方式（安装查看：《memcached缓存数据库》）
         - 将web服务器连接memcached的jar包拷贝到tomcat的lib[针对tomcat-7.0.61相关jar下载地址](http://download.csdn.net/download/oldinaction/10267668)
         - 配置tomcat的`conf/context.xml` 配置memcachedNodes属性，配置memcached数据库的ip和端口(默认11211)，多个的话用空格隔开。主要是让tomcat服务器从memcached缓存里面拿session或者是放session
@@ -1173,23 +1200,6 @@ server {
             </html>
             ```
         - memcached集群需要多台服务器时间一致(30s以内)
-    - redis方式
-        - 安装redis缓存数据库(参考《redis》)
-        - 修改配置文件`vi /etc/redis.conf`将bind的127.0.0.1修改为本机地址，否则只能本机访问了
-        - 将web服务器连接redis的jar包拷贝到tomcat的lib[针对tomcat-7.0.61相关jar下载地址](http://download.csdn.net/download/oldinaction/10267668)
-        - 配置tomcat的`conf/context.xml`
-
-            ```xml
-            <Valve className="com.orangefunction.tomcat.redissessions.RedisSessionHandlerValve" />
-            <Manager className="com.orangefunction.tomcat.redissessions.RedisSessionManager"
-                host="192.168.1.1"
-                port="6379"
-                database="0"
-                maxInactiveInterval="60" />
-            ```
-    - tengine的会话保持功能：同一个客户端会话有效期间永远访问的是同一个服务器([ngx_http_upstream_session_sticky_module](http://tengine.taobao.org/document_cn/http_upstream_session_sticky_cn.html))
-        - 基于cookies实现
-        - 在`upstream`中加入`session_sticky;`
 
 ### ngx-http-map-module(变量转换)
 

@@ -489,7 +489,7 @@ select * from v$tablespace;
 select * from user_tables; -- 用户表
 select table_name from all_tables; -- 所有用户表
 select * from dba_tables; -- 所有用户表和系统表
--- 获取表注释，对应还有 user_tab_comments
+-- 获取表注释/备注，对应还有 user_tab_comments
 select t.TABLE_NAME, s.comments from dba_tables t 
 join dba_tab_comments s on s.owner = t.OWNER and s.table_name = t.TABLE_NAME
 where t.OWNER = 'USERS'
@@ -776,6 +776,10 @@ drop tablespace undotbs1 including contents and datafiles;
 # 如果删除表空间文件后磁盘没有变化可查看是否进程还占用。如果还占用有说可杀掉相关进程，但还是建议重启数据库；如果无此问题则无需重启数据库
 lsof | grep deleted
 ```
+
+### 定时清理数据库日志表
+
+- 参考[定时清理数据库日志表](/_posts/db/sql-procedure.md#定时清理数据库日志表)
 
 ### 导入导出
 
@@ -1279,7 +1283,7 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
     select t.table_name,t.num_rows from user_tables t order by num_rows desc;
 
     -- 查看表占用的空间情况(浪费的空间可通过shrink或move等方式清理)
-    -- 如果对表做了数据清理，需要先重新统计下表信息
+    -- 如果对表做了数据清理，需要先重新统计下表信息。或者通过存储过程批量更新：https://deepinout.com/oracle/oracle-questions/321_oracle_oracle_manually_update_statistics_on_all_tables.html
     exec dbms_stats.gather_table_stats(ownname=>'SCOTT',tabname=> 'MY_TABLE_XX');
     -- 再查看数据
     select table_name,

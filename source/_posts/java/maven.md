@@ -1247,7 +1247,8 @@ services:
     - 需要创建一个npm组、一个npm代理仓库(用于代理其他公共包到淘宝等镜像)、一个npm hosted仓库(实际上传包的仓库，也只能下载本仓库存在的包)
     - 上传包需要上传到npm hosted仓库(tarballs数据以tgz格式存储，然后记录版本等元信息)
     - 下载包需要从npm组对应仓库下载
-    - 必须在项目的.npmrc或用户目录的.npmrc中增加`always-auth=true`和`_auth="用户名:密码"的base64编码`(echo -n 'admin:admin123' | openssl base64)
+    - 必须在项目的.npmrc或用户目录的.npmrc中增加`always-auth=true`和`_auth="用户名:密码"的base64编码`(echo -n 'admin:admin123' | openssl base64)，或者使用npm token进行认证
+        - E401 E500参考：https://blog.csdn.net/lqh4188/article/details/107384465
 - 一方面，nexus2版本不支持unpublish包，另一方面，npm官网并不建议unpublish包。所以除非特殊情况，不建议对已上传的包进行撤销，可以版本迭代。包要删除，可直接在nexus上手动删除(如删除`/data/nexus/storage/npm-release`目录下对应包文件，只能删除tgz包，打包的元信息貌似删除不掉)
     - 参考: https://stackoverflow.com/questions/26358449/how-to-unpublish-npm-packages-in-nexus-oss
     - nexus2不支持unpublish和deprecate，nexus3支持deprecate

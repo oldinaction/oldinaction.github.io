@@ -306,6 +306,14 @@ Template template = engine.getTemplate("templates/email/velocity_test.vtl");
 String result = template.render(Dict.create().set("name", "Hutool"));
 ```
 
+## Spring工具类
+
+```java
+// 处理url字符串(必须完整路径)：提取参数
+UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(url).build();
+uriComponents.getQueryParams().get("name"); // 返回List
+```
+
 ## Excel/Word/Pdf操作
 
 ### poi
@@ -410,13 +418,16 @@ xwpfRun.setColor("ed4014"); // hex值
 ### Aspose
 
 - 组件介绍
-    - Aspose.Cells 操作Excel
+    - [Aspose.Cells](https://reference.aspose.com/cells/zh/) 操作Excel
         - 如果需要将Excel转成PDF也只需要引入Cells，无需引入Aspose.PDF
-    - Aspose.Words 操作Word
-    - Aspose.PDF 操作PDF
+    - [Aspose.Words](https://reference.aspose.com/words/zh/) 操作Word
+        - 如果需要将Word转成PDF也只需要引入Words，无需引入Aspose.PDF
+    - [Aspose.PDF](https://reference.aspose.com/pdf/zh/) 操作PDF
     - Aspose.Slides
-- 中文字体问题
-    - 在mac下转换excel到pdf会出现部分中文会丢失一些笔画，而Windows正常，网上较多关于设置字体路径的，mac下没有细究
+    - ...
+- Linux上默认没有微软雅黑等中文字体，可将Windows中的字体复制过去然后进行安装
+    - Windows字体目录：C:\Windows\Fonts，simsun.ttc(宋体)，msyf.ttc(微软雅黑)
+    - 安装参考 https://zhuanlan.zhihu.com/p/360014306
 
 #### Excel转成PDF案例
 
@@ -493,12 +504,53 @@ public class AsposeU {
 
 #### Word转PDF案例
 
+- Linux上默认没有微软雅黑等中文字体，可将Windows中的字体复制过去然后进行安装
+    - Windows字体目录：C:\Windows\Fonts，simsun.ttc(宋体)，msyf.ttc(微软雅黑)
+    - 安装参考 https://zhuanlan.zhihu.com/p/360014306
+
 ```java
 // 参考Excel转成PDF案例
-FileOutputStream os = new FileOutputStream(targetFile);
-com.aspose.words.Document doc = new com.aspose.words.Document(sourceFile);
-doc.save(os, com.aspose.words.SaveFormat.PDF);
-os.close();
+public class AsposeU {
+    private static final boolean LicenseReady;
+
+    static {
+        License license = new License();
+        try {
+            license.setLicense(ResourceUtil.getStream("license/aspose-license.xml"));
+            LicenseReady = true;
+        } catch (Exception e) {
+            throw new RuntimeException("初始化aspose-license出错", e);
+        }
+    }
+
+    public static void wordToPdf(InputStream inputStream, String pdfPath) {
+        if(!LicenseReady) {
+            throw new IllegalStateException("转换文件失败");
+        }
+
+        //if (SystemUtil.getOsInfo().isMac()) {
+        //    FontSettings.getDefaultInstance().setFontsFolder("/System/Library/Fonts", true);
+        //}
+        FileOutputStream fileOS = null;
+        try {
+            fileOS = new FileOutputStream(pdfPath);
+            Document document = new Document(inputStream);
+            // 全面支持DOC, DOCX, OOXML, RTF HTML, OpenDocument, PDF, EPUB, XPS, SWF 相互转换
+            //document.save(fileOS, SaveFormat.PDF);
+
+            // https://reference.aspose.com/words/zh/java/com.aspose.words/pdfsaveoptions/
+            PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
+            pdfSaveOptions.setImageCompression(PdfImageCompression.JPEG); // 图片全部转成JPG，不支持透明PNG
+            pdfSaveOptions.setJpegQuality(60);
+            pdfSaveOptions.setOptimizeOutput(true);
+            document.save(fileOS, pdfSaveOptions);
+        } catch (Exception e) {
+            throw new RuntimeException("转换文件出错", e);
+        } finally {
+            IoUtil.close(fileOS);
+        }
+    }
+}
 ```
 
 #### 破解(仅供学习)

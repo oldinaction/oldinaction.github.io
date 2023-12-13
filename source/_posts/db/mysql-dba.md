@@ -276,7 +276,7 @@ https://www.cnblogs.com/geoffreyone/p/14247914.html
 
 ### 数据备份/恢复
 
-- 参考[mysql-backup-recover.md](/_posts/db/mysql/mysql-backup-recover.md)
+- **参考**[mysql-backup-recover.md](/_posts/db/mysql/mysql-backup-recover.md)
 
 ### 导出表结构
 

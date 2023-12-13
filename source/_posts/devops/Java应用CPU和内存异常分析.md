@@ -319,6 +319,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 		select id, user, host, db, command, time, state, info
 		from information_schema.processlist
 		where command != 'Sleep'
+        and time > 30
 		order by time desc;
 		```
 	- 查询执行时间超过2分钟的线程，然后拼接成 kill 语句。复制出来手动运行

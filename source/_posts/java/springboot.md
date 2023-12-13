@@ -667,7 +667,7 @@ public class LocalDateTimeUtils {
 
 ### 文件上传下载配置
 
-- 参考下文[文件上传下载](#文件上传下载)
+- 参考[文件上传下载案例](/_posts/arch/springboot-vue.md#文件上传案例)
 
 ### AOP
 

@@ -155,6 +155,7 @@ tags: [H5, 小程序, App, mobile]
 ### 条件编译
 
 - [条件编译](https://uniapp.dcloud.net.cn/tutorial/platform.html)
+- APP-PLUS基于HTML5+的JS引擎渲染的，APP-NVUE为App nvue 页面，APP-ANDROID为UTS原生编译方式，APP指所有App平台
 
 ### 生命周期
 
@@ -265,12 +266,15 @@ export default {
 
 // Index.vue
 export default {
-    // onLoad 和 onShow需要分别设置
+    // onLoad 和 onShow需要分别设置，会调用完onLoad就调用onShow(此处的调用完并不等于onLoad要执行完成)
     async onLoad(options) {
         // options.jsonStr 可获取url中的参数jsonStr(JSON字符串传递时需要encodeURIComponent，此处读取后需要decodeURIComponent再解析成JSON对象)
         // switchTab时，options无法获取url中的参数，解决参考：https://segmentfault.com/a/1190000038993623
         await this.$ready // 等待释放
         // do somthing
+
+        // 可使用此方式让onShow中的代码优先执行
+        // setTimeout(() => {}, 0) // 或者设置成100毫秒
     },
     async onShow() {
         await this.$ready // 等待释放
@@ -335,22 +339,60 @@ uni.openEmbeddedMiniProgram({
 - 虽然 nvue 也可以多端编译，输出 H5 和小程序，但 nvue 的 css 写法受限，所以如果你不开发 App，那么不需要使用 nvue
 - [nvue](https://uniapp.dcloud.net.cn/tutorial/nvue-outline.html)
 
-### scroll-view组件
+### APP
+
+- [HTML5+或plus](https://uniapp.dcloud.net.cn/tutorial/use-html5plus.html)、[HTML5+](https://www.html5plus.org/doc/h5p.html)
+    - plus不能在浏览器环境下使用，它必须在手机APP上才能使用，因为以安卓为例，他是操纵webview的API
+    - WebView是android中一个非常重要的控件，它的作用是用来展示一个web页面，4.4版本之后，直接使用chrome作为内置网页浏览器
+    - HTML5+是中国HTML5产业联盟的扩展规范，基于HTML5扩展了大量调用设备的能力，使得web语言可以像原生语言一样强大
+- 文件结构
+    - `/内部存储/Android/data/uni.UNI55836E9`
+        - `/apps/__UNI__55836E9`
+            - `/doc`
+                - `/uniapp_temp` 每次启动应用会清空
+                - `/uniapp_temp_1701010313392` 每次启动应用会清空
+                    - `/camera` 拍照临时目录
+        - `/files`
+- 苹果账号类型
+    - 个人开发者账号：App可提交到AppStore，688/年
+    - 公司开发者账号：App可提交到AppStore，688/年
+    - 企业开发者账号：App不能提交到AppStore，1988/年
+        - 使用企业开发帐号，我们可以发布一个 ipa 放到网上，所有人（包括越狱及非越狱设备）都可以直接通过链接下载安装，而不需要通过 AppStore 下载，也不需要安装任何证书
+        - 当然，使用企业帐号发布的 iOS 应用是不能提交到 AppStore 上的。而且企业级开发账号也比个人帐号更贵些（299刀/年）
+        - 既然叫企业帐号，就说明是用来开发企业自己的内部应用，给自己的员工使用的。所以不要用企业号做大规模应用分发的一个渠道，否则有可能会被苹果封账号
+- IOS应用分发方式
+    - 使用个人开发者账号或公司开发者账号提交到AppStore进行分发（测试阶段通过添加测试设备uuid）
+    - 使用签名方式通过ipa分发(不上架AppStore)
+        - 苹果签名是苹果公司提供给第三方开发者在内测阶段用于分发测试的一种机制，通过企业开发者账号生成的p12文件实现签名分发
+    - 企业签名
+        - 无安装数量限制
+        - 第三方签名不稳定，容易掉签
+        - 需要信任操作，且信任入口较深
+    - TestFlight(TF)
+        - 仍需开发者账号
+        - 限制安装数量10000个(貌似可实现不限量)
+        - TF的有效期是90天，App更新会刷新此时间
+        - 用户需先下载TestFlight，再从TestFlight里面下载内测APP
+    - 保存书签至桌面
+        - 无需签名及开发者账号
+        - 只支持H5网页链接，不支持原生内容及推送
+        - 仍需信任操作
+    - 超级签名
+        - 不易掉签
+        - 无安装数量限制
+        - 价格昂贵，安装一台设备10元起
+    - 自签名
+        - 如TrollStroe
+        - 需要用户自己进行签名操作
+
+### 组件
+
+#### scroll-view组件
 
 - https://uniapp.dcloud.net.cn/component/scroll-view.html
 - 实现横向滚动条(横向导航)点击后元素居中：https://blog.csdn.net/wangongchao/article/details/123353627
 - 使用scroll-view可解决滑动页面底部出现默认的背景颜色
 - 使用scroll-view，则uniapp自带的onReachBottom上拉加载方法不会进入，只能通过监听scroll-view的@scrolltolower事件来加载下一页
-
-### web-view开发
-
-- 参考[weixin.md#web-view开发](/_posts/mobile/weixin.md#web-view开发)
-
-### 位置
-
-- 使用uni.chooseLocation()打开地图选择位置(无需操作dom)
-    - 参考：https://blog.csdn.net/Handsome_gir/article/details/129159563
-    - 需手动修改manifest.json源码，设置requiredPrivateInfos字段；并删除之前的编译文件重新编译
 
 ### 样式
 
@@ -418,7 +460,7 @@ uni.openEmbeddedMiniProgram({
     }
     ```
 
-### 其他兼容问题
+### 机型兼容问题
 
 - IOS 和 Android 对时间的解析有区别 [^1]
     - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
@@ -428,6 +470,10 @@ uni.openEmbeddedMiniProgram({
         - **注意`uni.openDocument`需要增加`fileType: 'pdf'`参数**
     - 参考：https://developers.weixin.qq.com/community/develop/doc/0000eac06448c8fccc693fa8c51000
     - https://blog.csdn.net/weixin_49521721/article/details/114064682
+- `uni.setStorageSync` 部分(安卓)机型不能同步生效
+    - 当设置后返回到上一个页面onShow中读取此数据拿到的仍然是之前的数据，可设置timeout延迟跳转页面
+    - 参考：https://ask.dcloud.net.cn/question/88497
+    - 也可试下同步存储异步获取
 - 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
 - **input等表单元素的v-model/@input(e.target.value和e.detail.value)都取不到值**
     - 小程序中有时候会出现不开调试模式，或者调试模式开启失败(只有性能按钮，没有vConsole按钮)
@@ -503,6 +549,43 @@ uniapp：upx
 
 ## 常见业务
 
+### web-view开发
+
+- 参考[weixin.md#web-view开发](/_posts/mobile/weixin.md#web-view开发)
+
+### 位置
+
+- 使用uni.chooseLocation()打开地图选择位置(无需操作dom)
+    - 参考：https://blog.csdn.net/Handsome_gir/article/details/129159563
+    - 需手动修改manifest.json源码，设置requiredPrivateInfos字段；并删除之前的编译文件重新编译
+
+### 多媒体处理
+
+- base64和图片互转: https://blog.csdn.net/qq_43299315/article/details/106657815
+- 图片路径转base64: https://blog.csdn.net/qq_39410252/article/details/130249332
+- 图片上传`uni.uploadFile`
+    - uni.uploadFile提交到后台需要使用路径模式(微信小程序为http://tmp/..., App如_doc/...)
+    - 不能使用base64或App本地路径file:///storage/emulated/0/...
+- 拍照与照片选择
+    - APP照片选择返回路径如：file:///storage/emulated/0/Android/data/io.dcloud.HBuilder/apps/HBuilder/doc/uniapp_temp/compressed/1701010324957_1701007865482.png
+    - APP拍照返回路径如：_doc/uniapp_temp_1701010313392/camera/1701010368878.jpg
+    - 如果将以上路径传到hybrid(APP嵌入的手机本地H5项目)中，则拍照的这种路径无法读取到图片，可使用plus接口获取绝对路径`url = plus.io.convertLocalFileSystemURL('_doc/') + url.substring(4)`
+- 图片涂鸦
+    - 参考thd-photo-edit：基于H5实现图片编辑，并web-view嵌入到app中
+        - APP拍照需进行路径转换，参考上文
+        - 如果嵌入到微信小程序中，问题时小程序拍照后图片路径为本地临时路径，不能传递到H5实现编辑
+        - 可考虑先将图片传到服务器，或者使用微信JS-SDK实现H5拍照并编辑：https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#17
+- 录像
+    - 视频认证(未测试)：https://blog.csdn.net/weixin_43123014/article/details/119136876
+    - 基于H5(未测试)：https://blog.csdn.net/just_you_java/article/details/122533089
+- 自定义相机
+    - 小程序比较好实现，插件较多，App比较难实现(原生或livepush)
+    - App基于livepush，插件如(可行)：https://ext.dcloud.net.cn/plugin?id=4892
+- 分享文件到微信(uniapp自带的分享只能分享文字、图片、视频等，不支持文件)
+    - 参考原生插件：https://ext.dcloud.net.cn/plugin?id=2307
+    - 下载原生插件 - 放到项目的`nativeplugins`目录 - 本地调试需要先用HbuilderX生成一个自定义基座(包含了该原生插件)，也可直接使用云打包出APK
+    - 原生插件使用参考：https://nativesupport.dcloud.net.cn/NativePlugin/
+
 ### 多环境编译问题
 
 - 使用XBuilder开发(一些依赖安装在HBuilder中)
@@ -535,13 +618,24 @@ uniapp：upx
             margin-top: 42upx;
         }
     }
+
+    button.feedback {
+        height: 100rpx;
+        font-size: 26rpx;
+        width: 50%;
+        line-height: 100rpx;
+        /* 除去边框 */
+        &::after {
+            border: none;
+        }
+    }
     </style>
     ```
 - 然后在公众平台->功能->客服绑定对应客户人员微信
 
 ### 其他
 
-- uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需序列化成字符串)
+- uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需序列化成字符串)，但是修改后的对象需要重新持久化才能保存
 - [uni.showToast](https://uniapp.dcloud.io/api/ui/prompt?id=showtoast) 无Error图片(微信也没有)
 
     ```js
@@ -576,6 +670,9 @@ uniapp：upx
     - 无法返回问题: https://www.crmeb.com/ask/thread/11593.html
         - 如果使用ColorUI，需修改`cu-custom`导航组件的返回事件
 - 敏感词检测：https://zhuanlan.zhihu.com/p/363463142?utm_id=0
+- App本地日志记录
+    - 基于Java自定义类 https://blog.csdn.net/nicepainkiller/article/details/106315343
+    - 基于插件 https://blog.csdn.net/Linxi_001/article/details/130265639
 
 ## 自定义插件
 

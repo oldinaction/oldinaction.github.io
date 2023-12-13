@@ -287,6 +287,19 @@ function getParentUrl() {
     - 可将文件上传到服务器，并记录文件表，状态未生效，当表单提交后修改状态；之后定时根据状态清理服务器垃圾文件
     - 参考: https://blog.csdn.net/cocogogogo/article/details/124360240
 - **请求类型必须是`multipart/form-data`，因此数据是在body体中，当通过拦截器拦截body时，不要拦截此类型的请求，否则后面controller将获取不到数据。**参考[spring.md#拦截response的数据](/_posts/java/spring.md#拦截response的数据)
+- 相关配置
+
+```yml
+spring:
+  servlet: # http
+    # 也可以利用Bean实现
+    multipart:
+      #enabled: true           # 启用http上传
+      max-file-size: 10MB     # 设置支持的单个上传文件的大小限制，默认1M
+      max-request-size: 20MB  # 设置最大的请求的文件大小，设置总体大小请求(多文件上传)，默认10M
+      #file-size-threshold: 512KB   # 当上传文件达到指定配置量的时候会将文件内容写入磁盘
+      #location: /             # 设置上传的临时目录
+```
 - 手动上传，和其他Bean字段一起提交
 - 前台代码(vue + iview)
 
@@ -884,11 +897,11 @@ location ^~ /my-app/ {
 
 - 微信小程序分享图: 750*1334 (9:16)
 
-## 常用插件
+## 前端常用插件
 
 - 参考[js-tools.md](/_posts/web/js-tools.md)
 
-## 常见文件
+## 前端常见文件
 
 ```json
 babel.config.js     // 参考[js-tools.md#babel](/_posts/web/js-tools.md#babel)
@@ -959,6 +972,10 @@ COMMENTBLOCK
 - Chrome 84默认启用了SameSite=Lax属性 [^11] [^12]
     - SameSite 可取值：Strict（所有情况都不发送Cookies给第三方）、Lax（少部分情况发送）、None（发送，但是需要为HTTPS访问）
     - 如果A网页嵌入B网页时，用户打开A网页。如A与B属于同一域名，则B网站可在（前后端）对Cookies进行操作，也可传递Cookies给B；如果不是，则认为B网站为第三方页面，只对其开发部分情况（如a标签跳转、get类型的form提交）的Cookies传递
+
+## 设计
+
+- 免费商用中文字体：https://zhuanlan.zhihu.com/p/640840656
 
 ## 思维
 

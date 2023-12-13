@@ -162,7 +162,7 @@ public int doUpdate(MappedStatement ms, Object parameter) throws SQLException {
         Configuration configuration = ms.getConfiguration();
         // 1.1 实例化 StatementHandler (获取sql语句模板)
         StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, RowBounds.DEFAULT, null, null);
-        // 获取数据连接，进行数据预设
+        // 获取数据连接，进行数据预设. 参数设值参考：DefaultParameterHandler 和 MybatisParameterHandler(mybatis-plus)
         stmt = prepareStatement(handler, ms.getStatementLog());
         // 执行
         return handler.update(stmt);

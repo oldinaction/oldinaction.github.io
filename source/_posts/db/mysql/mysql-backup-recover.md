@@ -45,6 +45,10 @@ insert into test_new select * from test;
 -- 复制旧表的数据到新表(假设两个表结构不一样)
 insert into test_new(字段1,字段2,.......) select 字段1,字段2,...... from test;
 
+-- 复制1000w条数据用时205秒，大概3分钟25秒，粗略估算，5000万数据如果通过此种方式将全表数据备份，也只需要18分钟左右
+insert into test_new select * from test where id <= 10000000;
+-- Navicat导出 5000w 的数据，耗时 1h 22min，导出SQL语句磁盘空间占用 38.5G
+
 -- mysql骚操作代替oracle dual
 insert into test_new(a, b)
 select t.a, t.b from (
@@ -249,6 +253,8 @@ insert into ship_bill_charge_2022 select * from ship_bill_charge force index(idx
 
 -- 数据表切换(原子性, 执行速度非常快)
 rename table ship_bill_charge to ship_bill_charge_2021, ship_bill_charge_2022 to ship_bill_charge;
+
+-- 可选：删除ship_bill_charge_2021中部分2022年的数据
 ```
 
 
