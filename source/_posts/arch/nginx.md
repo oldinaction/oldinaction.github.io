@@ -281,6 +281,14 @@ server {
         break;
     }
 
+    # http://s.aezo.cn 此固定短链接解析到小程序页面
+    location = / {
+        # aezo.cn的主页则走其他逻辑
+        if ($host = 's.aezo.cn') {
+            return 302 http://$server_name/api/mini;
+        }
+    }
+
     # 宝塔配置案例
     #PROXY-START/
     location ^~ / {
@@ -292,11 +300,11 @@ server {
         
         add_header X-Cache $upstream_cache_status;
         
-        #Set Nginx Cache
-        if ( $uri ~* "\.(gif|png|jpg|css|js|woff|woff2)$" ) {
-            expires 12h;
-        }
-        proxy_ignore_headers Set-Cookie Cache-Control expires;
+        # # Set Nginx Cache
+        # if ( $uri ~* "\.(gif|png|jpg|css|js|woff|woff2)$" ) {
+        #     expires 12h;
+        # }
+        # proxy_ignore_headers Set-Cookie Cache-Control expires;
         # proxy_cache cache_one;
         # proxy_cache_key $host$uri$is_args$args;
         # proxy_cache_valid 200 304 301 302 1m;
@@ -518,6 +526,10 @@ http {
         
         # Load configuration files for the default server block.
         include /etc/nginx/default.d/*.conf;
+
+        # 打印日志
+        add_header X-debug-message "hello world" always;
+        add_header X-debug-uri "$request_uri";
 
         # location = / {...} 和 location / {...} 联合使用，可以达到访问 hello.aezo.cn/xxx/ 转到 /pc/xxx/。而访问 test.aezo.cn/xxx/ 可同理转到如 /test/xxx/
         location = / {
@@ -772,6 +784,7 @@ http {
         add_header X-Content-Type-Options nosniff;
         add_header X-XSS-Protection "1; mode=block";
         # 内容安全策略 (CSP) 是一个额外的安全层，用于检测并削弱某些特定类型的攻击，包括跨站脚本 (XSS (en-US)) 和数据注入攻击等
+        # 类似可以在html的头中加 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 此时就算页面的请求路径为http,静态资源也会改成https发起请求
         add_header Content-Security-Policy "script-src * 'unsafe-inline' 'unsafe-eval'";
         #（通常简称为 HSTS）响应标头用来通知浏览器应该只通过 HTTPS 访问该站点，并且以后使用 HTTP 访问该站点的所有尝试都应自动转换为 HTTPS
         # max-age=<expire-time>: 设置在浏览器收到这个请求后的<expire-time>秒的时间内凡是访问这个域名下的请求都使用 HTTPS 请求。
@@ -944,26 +957,36 @@ location / {
 #### 结合浏览器缓存
 
 - HTTP缓存：https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching
-- 缓存机制：当前缓存的文件是否过期，服务器中文件是否有改动
-    - 文件变动后文件的Etag值会发生更改；客户端先问服务器Etag值是否发生更改；然后决定是否更新当前文件
-- 相关参数
-    - Pragma(Http1.0) 它用来向后兼容只支持 HTTP/1.0 协议的缓存服务器，那时候 HTTP/1.1 协议中的 Cache-Control 还没有出来
-    - Expires(Http1.1) 相应头过期时间；Cache-control中设置max-age，则该属性会被忽略
+- 参考：https://blog.csdn.net/qq_43271330/article/details/108335974
+- 缓存机制
+    - 强缓存：直接从浏览器缓存中取，但会判断浏览器缓存的文件是否过期
+    - 协商缓存：先发送请求到服务器判断文件是否改动，服务器返回未改动状态，则从浏览器中取
+        - 即第一次请求的响应头带上某个字段（ETag或Last-Modified），则后续请求会带上对应的请求字段(If-None-Match或If-Modified-Since)；若响应头没有 ETag或Last-Modified字段，则请求头也不会有对应的字段
+        - 这两组字段都是成对出现的，Last-Modified与ETag可以一起使用，服务器会优先验证ETag，一致的情况下才会比对Last-Modifed
+- 强缓存相关参数
+    - Expires(Http1.0) 响应头过期时间
+        - 如果cache-control与expires同时存在的话，cache-control的优先级高于expires
     - Cache-control(Http1.1) 该字段的优先级要比Expires优先级高
-        - `no-store` **不使用缓存(无此参数就标识可以使用缓存，但是部分其他数据可能对缓存有限制)**。禁止将响应存储在任何缓存中(但不会删除相同 URL 的任何已存储响应，已经缓存的仍然能使用)
-        - `no-cache` **强制重新验证**。每次请求都会验证本地缓存和服务器是否一致(更新时间Last-Modified和文件内容Hash值ETag)，一致则返回304并使用本地缓存(不下载服务器资源)
+        - `no-store` **不使用缓存(无此参数就表示可以使用缓存，此时需要看其他参数是否对缓存有限制)**。禁止将响应存储在任何缓存中(但不会删除相同 URL 的任何已存储响应，已经缓存的仍然能使用)
+        - `no-cache` **强制重新验证(也可用max-age=0代替)**，一般不和max-age同时使用。每次请求都会验证本地缓存和服务器是否一致(更新时间Last-Modified和文件内容Hash值ETag)，一致则返回304并使用本地缓存(不下载服务器资源)
         - `max-age` 缓存的内容将在多少秒后失效，相对于请求时间来说的
             - max-age=0便是无论服务端如何设置，在重新获取资源之前，先检验ETag/Last-Modified。在设置max-age=no-cache或0后，在资源无更新的情况下访问都会返回304
             - 只设置`expires 7d;`会转换成`Cache-control max-age=604800`设置到返回头中
+            - 设置对jsp等页面设置了如`Cache-control max-age=36000`，则浏览器地址栏回车/F5刷新/路径增加了参数都会重新获取数据，只有在通过`<a>`标签进行跳转到此页面时才会出现被缓存的问题(js/css等静态文件一般都是页面引用的，不会出现刷新情况，所有此参数会进行缓存静态资源)
         - `private` 客户端可以缓存
         - `public` 客户端和代理服务器都可缓存
         - `must-revalidate` 告诉浏览器/缓存服务器；在本地文件过期之前可以使用本地文件；本地文件一旦过期需要去源服务器进行有效性校验；如果有缓存服务器且该资源未过有效期则命中缓存服务器并返回200；如果过期且源服务器未发生更改；则校验后返回304
+- 协商缓存相关参数
+    - Etag/If-None-Match
+    - Last-Modified/If-Modified-Since
+- 其他参数
+    - Pragma(Http1.0) 它用来向后兼容只支持 HTTP/1.0 协议的缓存服务器，那时候 HTTP/1.1 协议中的 Cache-Control 还没有出来
 - 判断请求是否使用了浏览器缓存：F12 - Network - 观察Size和Status列
     - Size为(memory cache)和(disk cache)，此时Status为200：表示使用了浏览器缓存或磁盘缓存(当关闭浏览器后重新打开，那默认会到本地磁盘上获取此数据)
     - Size有值，Status为304：表示通过max-age判断文件已经超过了设置的缓存时间，但是服务端返回此文件未被更新，则返回304，数据仍然从本地缓存读取
 - Chrome浏览器本身控制缓存机制。参考：https://blog.csdn.net/andy_csdn007/article/details/115210818
-    - `ctrl+shift+delete` 弹出删除缓存和Cookie的确认框
-    - `ctrl+shift+R`/`ctrl+f5` 强制刷新不走缓存
+    - `Ctrl + Shift + R` / `Ctrl + F5` 强制刷新不走缓存
+    - `Ctrl + Shift + Delete` 弹出删除缓存和Cookie的确认框
     - F12 - Network - Disable cache 关闭缓存
     - F12 - Setting - Network - Disable cache(当打开F12时关闭缓存)
     - 浏览器启动命令增加相关参数
@@ -1037,7 +1060,7 @@ http {
     proxy_temp_path /var/temp/nginx/proxy;
     # 代理缓存目录(/var/temp/nginx/proxy_cache)，和proxy_temp_path必须在同一个分区
     # levels指定该缓存空间有两层hash目录，第一层目录名是1个字母或数字长度，第二层目录名为2个字母或数字长度
-    # keys_zone=cache_one:50m缓存区名称为cache_one，在内存中的空间是50M，inactive=1d表示1天未被访问的数据将从缓存中删除，max_size指定磁盘空间大小为500M
+    # keys_zone=cache_one:50m, 缓存区名称为cache_one，在内存中的空间是50M，inactive=1d表示1天未被访问的数据将从缓存中删除，max_size指定磁盘空间大小为500M
     proxy_cache_path /var/temp/nginx/proxy_cache levels=1:2 keys_zone=cache_one:50m inactive=1d max_size=500m;
 }
 
@@ -1053,7 +1076,7 @@ server {
         # 代理访问后端tomcat(此处如果类似 http://backend$1 则缓存失败)
         proxy_pass http://backend; # backend为upstream服务器集群名
 
-        #指定缓存区域名称，这里的proxy_cache一定是上面的keys_zone（*）
+        #指定缓存区域名称，这里的proxy_cache的值一定是上面的 keys_zone (*)
         proxy_cache cache_one;
         #以域名、URI、参数组合成Web缓存的Key值，Nginx根据Key值哈希
         proxy_cache_key $host$uri$is_args$args;
@@ -1129,7 +1152,7 @@ server {
     }
 }
 ```
-- nginx自带健康检查的缺陷
+- **nginx自带健康检查的缺陷**
     - Nginx只有当有访问时，才发起对后端节点请求
     - 如果本次请求中，节点正好出现故障，Nginx依然将请求转交给故障的节点，然后再转交给健康的节点处理(之后每次都有可能出现部分静态文件先请求到错误节点)。所以不会影响到这次请求的正常进行，但是会影响效率，因为多了一次转发
     - 自带模块无法做到预警，属于被动健康检查
@@ -1366,7 +1389,9 @@ fi
 
 ## 基于编译安装tengine
 
-- 好处：更方便的插拔模块(yum安装只能使用源默认的模块，nginx同理安装)
+- tengine功能特点
+    - 主动健康检查。nginx则需使用第三方模块(nginx_upstream_check_module)，参考上文[反向代理和负载均衡](#反向代理和负载均衡)
+- 编译安装好处：更方便的插拔模块(yum安装只能使用源默认的模块，nginx同理安装)
 - 安装依赖 **`yum install gcc openssl-devel pcre-devel zlib-devel`**(否则configure时报错)
 - 创建用户和用户组，为了方便nginx运行而不影响linux安全(也可省略)
     - `groupadd -r nginx` 创建组
@@ -1410,7 +1435,7 @@ fi
 - 方法一 [^3]
     - nginx安装一般会自动注册到服务中取，有些手动安装可能需要自己注册，以nginx手动注册成服务为例
     - 方法：在 **`/usr/lib/systemd/system`**(或`/etc/systemd/system`) 路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
-
+    
         ```bash
         ## 服务的说明
         [Unit]

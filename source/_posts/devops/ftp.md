@@ -22,7 +22,7 @@ tags: [server]
 ## 安装ftp客户端
 yum install ftp
 ftp -h # 查看帮助 
-## 连接(默认是被动模式)
+## 连接(默认是被动模式)，回车后输入用户名、密码
 ftp localhost
 ftp -A localhost 21 # 主动模式连接
 ## 连接后相关命令

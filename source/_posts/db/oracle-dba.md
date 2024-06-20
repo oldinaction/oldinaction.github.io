@@ -22,6 +22,8 @@ tags: [oracle, dba]
     - 是网络服务名(如：local_orcl)，可以随意设置，相当于某个数据库实例的别名方便记忆和访问。`tnsnames.ora`文件中设置的名称(如：`local_orcl=(...)`)，也是登录 pl/sql 是填写的 Database
 - `schema`
     - schema 为数据库对象的集合，为了区分各个集合，需要给这个集合起个名字，这些名字就是我们看到的许多类似用户名的节点，这些类似用户名的节点其实就是一个 schema。schema 里面包含了各种对象如 tables, views, sequences, stored procedures, synonyms, indexes, clusters, and database links。一个用户一般对应一个 schema，该用户的 schema 名等于用户名，并作为该用户缺省 schema
+- `listener.ora` 服务端监听实例列表和端口(1521)配置
+- `tnsnames.ora` 连接监听的别名test_orcl(127.0.0.1 1521 orcl)
 - `pfile`和`spfile`参数文件
     - 参考：https://www.cnblogs.com/xqzt/p/4832597.html
     - pfile：初始化参数文件（Initialization Parameters Files）
@@ -129,14 +131,23 @@ call p_customer_exists_sync();
 
 ### 数据库相关
 
-#### 连接
+#### 连接/进程数
 
-- 查询数据库当前连接数 `select count(*) from v$session;`
-  - 查询当前数据库不同用户的连接数：`select username,count(username) from v$session where username is not null group by username;`
-- 查询数据库最大连接数 `select value from v$parameter where name = 'processes'`、`show parameter processes`
-  - 修改数据库最大连接数：`alter system set processes = 500 scope = spfile;` 需要重启数据库
-- 查询连接信息 `select * from v$session a,v$process b where a.PADDR=b.ADDR`
-  - sid 为 session, spid 为此会话对应的系统进程 id
+
+```sql
+-- 查询数据库当前连接数
+select count(*) from v$session;
+-- 查询当前数据库不同用户的连接数 (username为空的一般为系统进程，有20个ACTIVE左右)
+-- select username,count(username) from v$session where username is not null group by username;
+
+-- 查询数据库最大连接数(默认150, 如果java客户端比较多应该设置大一些)
+select value from v$parameter where name = 'processes'; -- show parameter processes
+alter system set processes = 500 scope = spfile; -- 修改后需要重启数据库
+
+-- 查询连接信息(sid 为 session, spid 为此会话对应的系统进程 id)
+-- java客户端连接的一般 TERMINAL=unknown, PROGRAM=JDBC Thin Client (PLSQL一般为plsqldev.exe)
+select * from v$session a,v$process b where a.PADDR=b.ADDR and a.USERNAME = 'SCOTT';
+```
 
 #### 表空间
 
@@ -147,19 +158,23 @@ call p_customer_exists_sync();
 ```sql
 sqlplus / as sysdba
 
--- 创建表空间，要先创建好`/u01/app/oracle/oradata/orcl`目录，最终会产生一个aezocn_file文件(Windows上位大写)，表空间之后可以修改
+-- 创建表空间，要先创建好`/u01/app/oracle/oradata/orcl`目录，最终会产生一个DEMO01文件(Windows上位大写)，表空间之后可以修改
 -- 此处是创建一个初始大小为 500m 的表空间，当空间不足时每次自动扩展 10m，无限扩展(oracle 有限制，最大扩展到 32G，仍然不足则需要添加表空间数据文件)
-create tablespace aezocn datafile '/u01/app/oracle/oradata/orcl/AEZOCN01' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;
+create tablespace demo datafile '/u01/app/oracle/oradata/orcl/DEMO01' size 500m autoextend on next 10m maxsize unlimited extent management local autoallocate segment space management auto;
 
--- 删除表空间(包含数据和数据文件)
--- drop tablespace aezocn; -- 只删除表空间引用，数据文件还在
-drop tablespace aezocn including contents and datafiles;
+-- 删除表空间(包含数据和数据文件，可先删除用户)
+-- drop tablespace demo; -- 只删除表空间引用，数据文件还在
+drop tablespace demo including contents and datafiles;
 
 -- 扩展：创建用户并赋权(新创建项目时一般新建表空间和用户)
-create user smalle identified by smalle_pass default tablespace aezocn;
-grant create session to smalle;
-grant unlimited tablespace to smalle;
-grant dba to smalle; -- 导入导出时，只有 dba 权限的账户才能导入由 dba 账户导出的数据，因此不建议直接设置用户为 dba
+-- 12c开始，在CDB容器中创建用户，用户名需要以`c##`前缀开头
+create user test identified by test_pass default tablespace demo;
+grant create session to test;
+grant unlimited tablespace to test;
+grant dba to test; -- 导入导出时，只有 dba 权限的账户才能导入由 dba 账户导出的数据，因此不建议直接设置用户为 dba
+
+-- 删除用户
+drop user test cascade;
 ```
 
 #### 锁表
@@ -281,6 +296,7 @@ commit;
 #### 创建只读用户
 
 ```sql
+-- 12c开始，在CDB容器中创建用户，用户名需要以`c##`前缀开头
 create user smalle identified by smalle default tablespace aezo; -- 创建用户
 grant create session to smalle; -- 赋予登录权限
 grant select on AEZO.ZIP_SALES_TAX_LOOKUP to smalle; -- 赋予smalle查询AEZO用户的ZIP_SALES_TAX_LOOKUP表权限（可使用下列批量赋权语句）
@@ -584,7 +600,9 @@ select * from my_table as of timestamp to_timestamp('2000-01-01 00:00:00','YYYY-
 -- 手动恢复
 ```
 
-### 表空间数据文件位置迁移
+### 表空间相关
+
+#### 表空间数据文件物理位置迁移
 
 - 可以移动任何表空间的数据文件，包括 system 表空间(windows oracle 11g 测试通过)
 
@@ -600,6 +618,76 @@ alter database open; -- 运行后即可正常访问数据库数据
 shutdown immediate;
 startup
 rm c:/oracle/oradata/orcl/test.dbf -- 可正常使用后，删除历史文件
+```
+
+#### 对象所在表空间迁移
+
+- 查询表空间使用对象信息，及对象迁移(在进行表或索引移动时，可能会导致一些性能下降或锁定表)
+
+```sql
+-- 查询表空间使用对象信息
+select owner, tablespace_name, segment_type, segment_name, sum(bytes)/1024/1024  as "对象大小(M)"
+from dba_segments
+where tablespace_name = 'users'
+group by owner, tablespace_name, segment_type, segment_name
+order by sum(bytes) desc;
+
+-- 修改表所在表空间
+alter table user1.tb_test move tablespace new_tablespace_xxx;
+-- select 'alter table user1.'|| table_name ||' move tablespace new_tablespace_xxx;' from user_tables;
+
+-- 修改索引所在表空间
+alter index user1.idx_test rebuild tablespace new_tablespace_xxx;
+-- select 'alter index user1.'|| index_name ||' rebuild tablespace new_tablespace_xxx;' from user_indexes;
+-- (可选)迁移后有可能索引对象状态异常，可进行再次重建
+-- select 'alter index user1.'|| INDEX_NAME ||' rebuild;' from dba_indexes where owner = 'user1' and status = 'UNUSABLE';
+alter index user1.idx_test rebuild;
+
+-- 修改LOB对象所在表空间
+-- lob括号内填写字段名，而不是LOB名(SYS_LOB0000083064C00016$$等)
+-- 且会同时迁移对应索引，即包含: LOBSEGMENT/LOBINDEX
+alter table user1.tb_test move lob(col_xxx) store as (tablespace new_tablespace_xxx);
+-- 基于查询dba_lobs获取所有LOB对象信息
+select 'alter table user1.'|| table_name ||' move lob('|| column_name ||') store as (tablespace new_tablespace_xxx);'
+from dba_lobs 
+where segment_name in
+    (select segment_name from dba_extents
+    where dba_lobs.owner = 'user1'
+    group by segment_name having segment_name like 'SYS_LOB%');
+```
+
+#### 删除表空间的某个文件
+
+```sql
+-- 未验证数据是否会丢失
+-- 操作前需确保删除文件后剩下的文件足够存储原本数据，直接删除某个数据文件(也会在磁盘级别删除)
+alter tablespace tablespace_xxx drop datafile '/home/oracle/xxx02.dbf';
+
+-- 扩展(忽略)
+-- 将该数据文件从逻辑上下线和删除(此时文件仍然可以查到，且为recover状态)
+alter database datafile '/home/oracle/xxx02.dbf' offline drop;
+-- 逆操作: 恢复 file#=25 的文件并上线
+select file_id, file_name, status, online_status, tablespace_name from dba_data_files;
+recover datafile 25;
+alter database datafile '/home/oracle/xxx02.dbf' online;
+```
+
+#### 删除表空间
+
+- 表空间数据文件丢失时，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
+
+```sql
+-- 慎用
+-- oracle 数据文件(datafile)被误删除后，只能把该数据文件 offline 后 drop 掉
+
+sqlplus / as sysdba
+shutdown abort -- 强制关闭 oracle
+startup mount -- 启动挂载
+-- 从数据库删除该表空间的数据文件
+    -- select file_id, file_name, tablespace_name, status, online_status from dba_data_files; -- 查看表空间数据文件位置及状态
+alter database datafile '/home/oracle/xxx.dbf' offline drop;
+alter database open;
+drop tablespace tablespace_xxx;
 ```
 
 ### 清理存储空间
@@ -662,7 +750,7 @@ alter index IDX_NAME1 rebuild online;
     - **truncate后会使表和索引所占用的空间会恢复到初始大小**；delete操作不会减少表或索引所占用的空间，drop语句将表所占用的空间全释放掉
     - truncate不能对有外键约束引用的表使用
     - 执行truncate需要drop权限
-    - 清除后统计user_extents可能暂时没有变化，但是expdp导出数据量明显减少
+    - 清除后统计user_extents可能暂时没有变化，但是expdp导出数据量明显减少。可手动释放，参考下文
 - 外键约束导致无法清理
 
 ```sql
@@ -685,6 +773,33 @@ alter table my_sub_table_xxx disable constraint fk_id;
 truncate table my_main_table_xxx;
 -- 启用约束
 alter table my_sub_table_xxx enable constraint fk_id;
+
+
+-- truncate后还需释放extent，从而统计dba_extents的数值才会正常
+alter table server_hit deallocate unused keep 1k;
+alter index pk_server_hit deallocate unused keep 1k;
+-- 也可生成语句(不会影响表的数据，只是优化存储空间，不过保险起见进行备份数据或只更新truncate相关对象)
+select owner, decode(partition_name,
+                     null,
+                     segment_name,
+                     segment_name || ':' || partition_name) objectname ,
+       'alter ' || segment_type || ' C##YSS.' ||
+       decode(partition_name,
+              null,
+              segment_name,
+              segment_name || ':' || partition_name) ||
+       ' deallocate unused keep 1k;  ' scripts,
+       segment_type objecttype,
+       nvl(bytes, 0) "SIZE",
+       nvl(initial_extent, 0) INITIALEXT,
+       nvl(next_extent, 0) NEXTEXT,
+       nvl(extents, 0) NUMEXTENTS,
+       nvl(max_extents, 0) "MAXEXTENTS"
+from dba_segments s
+where tablespace_name  in ('YSS')
+  and owner = 'C##YSS'
+  and s.segment_type in ('TABLE','INDEX')
+order by nvl(bytes, 0) desc;
 ```
 
 #### shrink清理
@@ -695,6 +810,7 @@ alter table my_sub_table_xxx enable constraint fk_id;
     - 实质上构造一个新表(在内部表现为一系列的DML操作,即将副本插入新位置，删除原来位置的记录)，**因此会产生大量的REDO日志**(`select log_mode from v$database;` 归档模式下一定要注意磁盘空间，非归档模式则无需考虑)
     - 索引不会损坏，会随着一起收缩
     - lob字段不会级联shrink，需要单独处理
+    - **可降低dba_extents表占用空间、dba_tables表水位线、dba_data_files表空间占用统计值**
 - 压缩分两个阶段
     - 数据重组(compact)：这个过程是通过一系列的insert delete操作，将数据尽量排在列的前面进行重新组合；**执行时对相关行持有行锁，对业务影响较小**
     - HWM调整(cascade)：这个过程是对HWM的调整，释放空闲数据库；**表上会持有X锁，阻塞DML增删改操作，对业务影响较大，需要在业务空闲时再执行（实际测试过程虽然有锁，但仍然可插入数据）**
@@ -720,6 +836,9 @@ alter table index_name_xxx modify lob(lob_column_xxx) (shrink space);
 
 -- 迁移完后关闭行移动
 alter table table_name_xxx disable row movement;
+
+-- (可选)需先执行重新统计后，再查看dba_extents表占用空间、dba_tables表水位线、dba_data_files表空间占用才会准确
+exec dbms_stats.gather_table_stats(ownname=>'owner_xxx',tabname=> 'table_name_xxx'); -- command窗口执行(会卡一会)
 ```
 
 #### move清理
@@ -777,14 +896,33 @@ drop tablespace undotbs1 including contents and datafiles;
 lsof | grep deleted
 ```
 
-### 定时清理数据库日志表
+### 清理数据库日志表
 
-- 参考[定时清理数据库日志表](/_posts/db/sql-procedure.md#定时清理数据库日志表)
+- 清理listener.log日志，参考[日常维护](#日常维护)
+- 清理trace日志，参考[日志文件](#日志文件)
+- 清理redo日志
+
+```sql
+-- 删除非活动状态的 redo logfile (STATUS=INACTIVE)
+select * from v$logfile;
+-- 这只是在数据库中删除了redo logfile，还需手动将磁盘中将redo logfile删除，即彻底删除
+alter database drop logfile member 'redo logfile路径名';
+
+-- 删除redo log
+select group#, sequence#, members, bytes, status, archived from v$log;
+-- 在redo log处于不活跃的状态时(archived=INACTIVE)使用下面命令删除
+alter database drop logfile group 1; -- 删除(系统最终至少保留两个文件)
+```
+
+### 定时清理数据库业务日志表
+
+- 参考[定时清理数据库业务日志表](/_posts/db/sql-procedure.md#定时清理数据库日志表)
 
 ### 导入导出
 
 - 导出表结构：使用pl/sql的导出用户对象(不要使用导出表)
 - `.dmp`适合大数据导出；`.sql`适合小数据导出(表中含有 CLOB 类型字段则不能导出)
+- expdp速度比exp快很多，但是不支持增量备份，适用于全量数据导出导入的场景
 
 #### dmp格式导出导入
 
@@ -810,7 +948,7 @@ exp sys/manager@orcl file=exp_test_2023101002.dmp log=exp_test_2023101002.log ow
     - 导入导出均分为全量模式、用户模式、表模式
     - 支持增量备份，但是增量备份的最小单位是表，只要表一条数据发生变化，就会对全表进行备份(用处不大)
 - 注意事项
-    一定要注意服务器、客户端字符集`NSL_LANG`，否则可能出现数据、字段备注、存储过程等乱码
+    - 一定要注意服务器、客户端字符集`NSL_LANG`，否则可能出现数据、字段备注、存储过程等乱码
         - 查询字符集参考本文[查询相关(查询数据库字符集)](#查询相关)
         - **在导入DMP文件前，在客户端导入与服务器一致的环境变量，例如：`set NLS_LANG=AMERICAN_AMERICA.AL32UTF8`**，或者在/etc/profile、oracle用户的`.bash_profile`文件中导出NLS_LANG
     - 如果是基于用户模式进行导入，需要先创建用户和该用户默认表空间，且要保证表空间容量足够
@@ -832,43 +970,50 @@ exp sys/manager@orcl file=exp_test_2023101002.dmp log=exp_test_2023101002.log ow
 
 ```bash
 # 可将导出的dmp文件再tar压缩后通过scp传输到另外一台服务器上
+
 # bash命令行设置字符集，防止乱码. 否则可能报错如`EXP-00091: Exporting questionable statistics`
-# 其他如 `export NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
+select userenv('language') from dual; # 查看oracle服务端编码(导出导入的服务器应该保持一样的编码)
+echo $NLS_LANG # 查看客户端编码
 export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+# export NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK # ZHS16GBK字符集
 # set NLS_LANG=AMERICAN_AMERICA.AL32UTF8 # windows
 
 ******防止漏表. 生成语句并执行(为空表手动分配空间，类似初始化，解决空表不导出问题，只需执行一次即可)；参考上文：导出时会漏表 ******
 # select 'alter table '||table_name||' allocate extent;' from user_tables where segment_created = 'NO';
-# select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'SMALLE';
+# select 'alter table '||table_name||' allocate extent;' from dba_tables where segment_created = 'NO' AND owner = 'USER1';
 
-## 用户模式：导出 scott 用户的所有对象(表、序列、函数、存储过程、索引等；包括各对应对应的表空间名，如果原对象不是用户默认的表空间，在导入时也是导入到其他表空间下)，前提是 system 用户有相关权限
-# system/"manager"@remote_orcl: 使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/"manager"@192.168.1.1:1521/orcl)。密码可以用双引号转义
-# rows=n: 不导出数据行，只导出结构
-# grants=y: A用户中有表 test，并且把这个表的查询权限给了用户B，那么当导出A用户的数据时候，GRANTS=Y就是把用户B对test表的查询权限导出；如果将这个数据导入到C用户时(GRANTS=Y)就是说导入到C用户的test表的查询权限也会被赋给用户B
-# compress=y: 压缩数据(默认y)。尽管使用压缩模式，但是导出的数据仍然可以进行zip压缩，体积只有原来的1/10；打成zip压缩包传输也安全，否则容易被防火墙拦截
-# buffer=10240000: 缓冲区(单位字节，只对常规路径有效)；或者如数据库60G，设置更大为 409600000
-# direct=y: 使用直接路径(默认是n传统路径)，可提供2-3倍的导出速度。限制：(1)不支持QUERY查询方式 (2)不支持表空间传输模式(即TRANSPORT_TABLESPACES=Y参数不被支持)，支持的是FULL,OWNER,TABLES导出方式 (3) 如果exp版本小于8.1.5，不能使用exp导入有lob字段的表，本案例为11.2
-# recordlength=65535: 最大为64K(direct=y才能使用)
-exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000
-# exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y direct=y recordlength=65535 # 使用直接路径导出
-# nohup exp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000 > /dev/null 2>&1 & # 后台执行导出
+## **用户模式**：导出 scott 用户的所有对象(表、序列、函数、存储过程、索引等；包括各对应对应的表空间名，如果原对象不是用户默认的表空间，在导入时也是导入到其他表空间下)，前提是 system 用户有相关权限
+    # system/"manager"@remote_orcl: 使用远程模式(remote_orcl 为在本地建立的远程数据库网络服务名，即 tnsnames.ora 里面的配置项名称。或者 system/"manager"@192.168.1.1:1521/orcl)。密码可以用双引号转义
+    # rows=n: 不导出数据行，只导出结构
+    # grants=y: A用户中有表 test，并且把这个表的查询权限给了用户B，那么当导出A用户的数据时候，GRANTS=Y就是把用户B对test表的查询权限导出；如果将这个数据导入到C用户时(GRANTS=Y)就是说导入到C用户的test表的查询权限也会被赋给用户B
+    # compress=y: 压缩数据(默认y)。尽管使用压缩模式，但是导出的数据仍然可以进行zip压缩，体积只有原来的1/10；打成zip压缩包传输也安全，否则容易被防火墙拦截
+    # buffer=10240000: 缓冲区(单位字节，只对常规路径有效)；或者如数据库60G，设置更大为 409600000
+    # direct=y: 使用直接路径(默认是n传统路径)，可提供2-3倍的导出速度。限制：(1)不支持QUERY查询方式 (2)不支持表空间传输模式(即TRANSPORT_TABLESPACES=Y参数不被支持)，支持的是FULL,OWNER,TABLES导出方式 (3) 如果exp版本小于8.1.5，不能使用exp导入有lob字段的表，本案例为11.2
+    # recordlength=65535: 最大为64K(direct=y才能使用)
+    # tablespaces 如果用户有多个表空间，指定导出某个表空间的数据
+exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000
+# exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y direct=y recordlength=65535 # 使用直接路径导出
+# nohup exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000 > /dev/null 2>&1 & # 后台执行导出
+md5sum exp.dmp
 tar -zcvf exp.tar.gz exp.*
 
-## 表模式：导出 scott 的 emp,dept 表（导出其他用户表时，smalle用户需要有相关权限）
+## 表模式：导出 scott 的 emp,dept 表（导出其他用户表时，demo用户需要有相关权限）
 # 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
-exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables=scott.emp,scott.dept grants=y
+exp demo/demo_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables=scott.emp,scott.dept grants=y
 # exp scott/tiger file=/home/oracle/exp.dmp tables=emp
 # 导出表部分数据
 exp scott/tiger file=/home/oracle/exp.dmp tables=emp query=\" where ename like '%AR%'\"
 
 ## 全量模式：导出的是整个数据库，包括所有的表空间、用户/密码
-exp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log full=y buffer=10240000
+exp demo/demo_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log full=y buffer=10240000
 ```
 - **导入**
 
 ```bash
-# 其他如 `set NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK`
-set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+echo $NLS_LANG # 查看客户端编码
+export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+# set NLS_LANG=SIMPLIFIED CHINESE_CHINA.ZHS16GBK # ZHS16GB格式
+# set NLS_LANG=AMERICAN_AMERICA.AL32UTF8 # windows
 # tar -zxvf exp.tar.gz
 
 ## **用户模式**：一般需要先将用户对象全部删掉，如可删除用户对应的表空间重新创建。**[必须要先有对应的用户和表空间](#表空间)**
@@ -879,17 +1024,17 @@ set NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 # indexes=n：不导入索引，之后可找到所有索引进行手动创建
 # buffer=40960000 一秒至少应该是10w记录
 # recordlength=65535: 最大为64K(如果是direct=y模式导出时可加上)
-imp smalle/smalle_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/imp.log fromuser=scott touser=smalle ignore=y grants=y 
+imp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/imp.log fromuser=scott touser=user2 tablespaces=ts2 ignore=y grants=y 
 # 导入后查看对象数是否一致
 # select OBJECT_TYPE,STATUS,count(1) from dba_objects where owner = 'OFBIZ' group by OBJECT_TYPE,STATUS order by 1 desc,2;
 
-## 表模式：将 scott 的表 emp、dept 导入到用户 aezo
+## 表模式：将 scott 的表 emp、dept 导入到用户 user2
 # 此处 file/fromuser/touser 都可以指定多个
-imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log fromuser=scott tables=emp,dept touser=smalle ignore=y grants=y 
+imp demo/demo_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log fromuser=scott tables=emp,dept touser=user2 tablespaces=ts2 ignore=y grants=y 
 
 ## 全量模式：导入的是整个数据库，包括所有的表空间(要求导出dmp也是全量的)
 # 一般需要设置ignore=y，导入过程中会报一些错误需忽略，如导入系统相关数据时，由于目标数据库已经存在相关对象，从而报错
-imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y ignore=y
+imp demo/demo_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y ignore=y
 ```
 - 常见错误
     - 导出报错`EXP-00008 ORA-01455`
@@ -899,25 +1044,28 @@ imp smalle/smalle_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y
 
 ##### expdp/impdp导出
 
-- expdp/impdp成对使用(不支持增量导出)
+- expdp/impdp成对使用(不支持增量导出)。支持11.2/19c
 - 使用参考：https://www.cnblogs.com/Jingkunliu/p/13705626.html
     - compression压缩说明(可不使用此参数，导出后再通过tar压缩)：https://blog.csdn.net/yifeng0504/article/details/77748719
 
 ```bash
 ## sql: 创建目录并赋权
 sqlplus / as sysdba
-create or replace directory dmp as '/tmp/dmp';
-grant read,write on directory dmp to demouser;
+create or replace directory dmp as '/tmp/dmp'; # 需提前创建好目录
+grant read,write on directory dmp to demo_user;
 
 ## bash命令导出
-# parallel为3个线程，会产生3个dmp文件，无需压缩参数(手动压缩)
+# parallel为3个线程，最少产生3个dmp文件，无需压缩参数(建议手动压缩)
+# filesize为单个文件不要超过5G，如果数据量较大则会以5G分割成多个文件
+# schemas为(用户名)
 # 导出测试案例：显示67G，导出只有28G，导出耗时47min，压缩后只有4.3G(压缩时间未计)
-expdp demouser/demo123@orcl DIRECTORY=dmp parallel=3 FILESIZE=20G dumpfile=expdp_aezo_20200101_%u.dmp LOGFILE=expdp_aezo_20200101.log schemas=AEZO
+expdp demo_user/demo123@orcl directory=dmp parallel=3 filesize=5G dumpfile=expdp_aezo_20200101_%u.dmp logfile=expdp_aezo_20200101.log schemas=test_user1
 tar -zcvf expdp_aezo_20200101.tar.gz expdp_aezo_20200101*
 
 ## bash命令导入
 # 参考上文同样创建dmp目录，并将dmp文件放到改dmp目录下
-impdp \'\/ as sysdba\' parallel=3 cluster=no directory=dmp dumpfile=expdp_aezo_20200101_%u.dmp logfile=impdp_aezo_20200101.log
+# remap_schema为(原用户名:新用户名)，remap_tablespace为(原表空间名:新表空间名)
+impdp demo_user/demo123@orcl parallel=3 cluster=no directory=dmp dumpfile=expdp_aezo_20200101_%u.dmp logfile=impdp_aezo_20200101.log remap_schema=test_user1:test_user2 remap_tablespace=tablespace01:tablespace02 
 # 可选. 导入时查看导入情况
 select * from dba_datapump_jobs; # 查询所有的任务
 impdp \'\/ as sysdba\' attach=SYS_IMPORT_FULL_01 # attach到当前任务，如SYS_IMPORT_FULL_01
@@ -1091,20 +1239,20 @@ ORA-00214: control file '/u01/app/oracle/oradata/orcl/control01.ctl' version
     - `Database Configuration Assistant` - 创建数据库 - 设置数据库名称和SID(两者最好保持一致，并且一定要记住) - 其他步骤保持不变。如果需要使用sqlplus登录，还需配置
     - `lsnrctl status` 可查看到listener.ora监听配置文件位置，需将新实例配置到SID_LIST_LISTENER中
 
-        ```ini
+        ```bash
         SID_LIST_LISTENER =
-        (SID_LIST =
-            (SID_DESC =
-            (SID_NAME = orcl)
-            (ORACLE_HOME = G:\app\Administrator\product\11.2.0\dbhome_1)
-            (ENVS = "EXTPROC_DLLS=ONLY:G:\app\Administrator\product\11.2.0\dbhome_1\bin\oraclr11.dll")
+            (SID_LIST =
+                (SID_DESC =
+                    (SID_NAME = orcl)
+                    (ORACLE_HOME = G:\app\Administrator\product\11.2.0\dbhome_1)
+                    (ENVS = "EXTPROC_DLLS=ONLY:G:\app\Administrator\product\11.2.0\dbhome_1\bin\oraclr11.dll")
+                )
+                (SID_DESC =
+                    (SID_NAME = orcl2)
+                    (ORACLE_HOME = G:\app\Administrator\product\11.2.0\dbhome_1)
+                    (ENVS = "EXTPROC_DLLS=ONLY:G:\app\Administrator\product\11.2.0\dbhome_1\bin\oraclr11.dll")
+                )
             )
-            (SID_DESC =
-            (SID_NAME = orcl2)
-            (ORACLE_HOME = G:\app\Administrator\product\11.2.0\dbhome_1)
-            (ENVS = "EXTPROC_DLLS=ONLY:G:\app\Administrator\product\11.2.0\dbhome_1\bin\oraclr11.dll")
-            )
-        )
         ```
     - 由于sqlplus指定实例时使用的是listener.ora同级目录下的tnsnames.ora文件，需要将orcl2的配置加上才能使用
     - 创建完之后，原来的数据库实例会正常运行。新实例会在服务中创建OracleServiceORCL2(TNS Listener是共用的，不会创建新的)
@@ -1222,8 +1370,11 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
 
 - 检查`listener.log`是否过大
     - 可能产生异常场景：实例 tnsping 突然高达 1w 多毫秒，发现listener.log达到4G
-    - 解决：日志文件过大，可重新创建一个此日志文件
-    - 查看文件位置`show parameter dump;`得到如`user_dump_dest => g:\app\administrator\diag\rdbms\orcl\orcl\trace`，得知日志目录为：`g:\app\administrator\diag`，然后在此目录查找`tnslsnr/主机名/listener/trace/listener.log`文件
+    - 解决：日志文件过大，可重新创建一个此日志文件（或者直接删掉，重启TNS会自动创建此文件）
+    - listener.log目录如`g:\app\administrator\diag\tnslsnr\主机名\listener\trace\listener.log`
+        - 查看文件位置`show parameter dump;`得到如`user_dump_dest => g:\app\administrator\diag\rdbms\orcl\orcl\trace`
+        - 从而得知日志目录为：`g:\app\administrator\diag`
+        - 然后在此目录查找`tnslsnr/主机名/listener/trace/listener.log`文件
 
 ## 常见错误
 
@@ -1238,7 +1389,7 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
     - 开启表空间自动扩展，每次递增 50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
     - 为 USERS 表空间新增 1G 的数据文件 **`alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`**
         - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
-            - **`alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`**
+            - **`alter database datafile '/home/oracle/data/users0.dbf' autoextend on next 50m;`**
         - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
         - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
     - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
@@ -1271,34 +1422,42 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
 
     -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
     select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB" 
-        from user_extents group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
+        from user_extents 
+        group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
+    -- dba
     select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB"
-        from dba_extents where owner = 'SMALLE' group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
+        from dba_extents where owner = 'SMALLE' 
+        group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
     -- 上面结果返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过下面语句查看属于哪张表
     select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';
     -- 查看所有LOB块信息
-    select * from dba_lobs where segment_name in (select segment_name from user_extents group by segment_name having segment_name like 'SYS_LOB%');
+    select * from dba_lobs where segment_name in 
+        (select segment_name from user_extents group by segment_name having segment_name like 'SYS_LOB%');
 
     -- 列出数据库里每张表的记录条数
     select t.table_name,t.num_rows from user_tables t order by num_rows desc;
 
-    -- 查看表占用的空间情况(浪费的空间可通过shrink或move等方式清理)
-    -- 如果对表做了数据清理，需要先重新统计下表信息。或者通过存储过程批量更新：https://deepinout.com/oracle/oracle-questions/321_oracle_oracle_manually_update_statistics_on_all_tables.html
-    exec dbms_stats.gather_table_stats(ownname=>'SCOTT',tabname=> 'MY_TABLE_XX');
-    -- 再查看数据
+    -- 查看表占用的空间情况(浪费的空间可通过shrink或move等方式清理，清理后表空间统计值会变小)
+    -- 如果对表做了数据清理，需要先重新统计下表信息，再查看表占用空间。或者通过存储过程批量更新：https://deepinout.com/oracle/oracle-questions/321_oracle_oracle_manually_update_statistics_on_all_tables.html
+    exec dbms_stats.gather_table_stats(ownname=>'SCOTT', tabname=> 'MY_TABLE_XX'); -- command窗口执行(会卡一会)
+    -- select table_name,last_analyzed from dba_tables where owner = 'SCOTT'; -- 查看上次一次统计时间
+    -- 查看表占用的空间情况(查看高水位线)
     select table_name,
-        round(((blocks) * 8 / 1024), 2) "高水位空间m",
-        round((num_rows * avg_row_len / 1024 /1024), 2) "真实使用空间m",
-        round((blocks * 10 / 100) *8 /1024, 2) "预留空间(etfree)m",
-        round((blocks) * 8 / 1024 - (num_rows * avg_row_len / 1024 /1024), 2) "浪费空间m"
-    from user_tables u
-    where u.table_name = 'MY_TABLE_XX';
+        round(((blocks) * 8 / 1024), 2) "高水位空间M",
+        round((num_rows * avg_row_len / 1024 /1024), 2) "真实使用空间M",
+        round((blocks * 10 / 100) *8 /1024, 2) "预留空间(pctfree)M",
+        round((blocks) * 8 / 1024 - (num_rows * avg_row_len / 1024 / 1024) - blocks * 8 * 10 / 100 / 1024, 2) "浪费空间M"
+    from dba_tables -- user_tables
+    where temporary = 'N'
+    and owner = 'MY_OWNER_XXX'
+    -- and table_name = 'MY_TABLE_XXX'
+    order by 5 desc; -- 按照第5个字段排序
     ```
 - 报错`ORA-01654:unable to extend index`，解决步骤 [^8]
   - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经 32G(表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
     - 解决方案：通过上述方法增加数据文件解决
   - 情况二表空间未满：查询的表空间剩余 400M，且该索引的 next_extent=700MB，即给该索引分配空间时不足
-    - 解决方案：重建该索引`alter index index_name rebuild tablespace indexes storage(initial 256K next 256K pctincrease 0)`(还未测试)
+    - 解决方案：重建该索引`alter index index_name_xxx rebuild tablespace tablespace_name_xxx storage(initial 256K next 256K pctincrease 0)`(还未测试)
 
 ### 数据库无法连接
 
@@ -1369,19 +1528,7 @@ dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
 SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
 ```
 
-### 其他
-
-- 表空间数据文件丢失时，删除表空间报错`ORA-02449`、`ORA-01115` [^6]
-    - oracle 数据文件(datafile)被误删除后，只能把该数据文件 offline 后 drop 掉
-    - `sqlplus / as sysdba`
-    - `shutdown abort` 强制关闭 oracle
-    - `startup mount` 启动挂载
-    - `alter database datafile '/home/oracle/xxx' offline drop;` 从数据库删除该表空间的数据文件
-        - `select file_name, tablespace_name from dba_data_files;` 查看表空间数据文件位置
-    - `alter database open;`
-    - `drop tablespace 表空间名`
-
-## oracle 安装
+## Oracle安装
 
 - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
 - oracle 静默安装, 关闭客户端后再次以 oracle 用户登录无法运行 sql 命名, 需要执行`source ~/.bash_profile`
@@ -1389,13 +1536,15 @@ SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE,
     - Oracle基目录为`D:/java/oracle`，基目录只是把不同版本的oracle放在一起
     - ORACLE_HOME 为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入 imp.exe、导出 exp.exe）
 
-## pl/sql 安装和使用
+## PL/SQL安装和使用
 
-- **PL/SQL绿色版安装，修改配置项**
-    - 配置 - User Interface - Fonts - Browser/Grid/Main Font(Segoe UI,常规,小五); Editor(Courier New,常规,10)
-    - 配置 - User Interface - Appearance - Language(选择英文), Switch to Menu(菜单以下拉菜单方式显示)
+- **PL/SQL绿色版安装**
+    - 直接解压，修改Oracle64/tnsnames.ora文件，然后点击qidong.bat即可。无需配置任何环境变量或oci.dll路径
+    - 修改配置项
+        - 配置 - User Interface - Fonts - Browser/Grid/Main Font(Segoe UI,常规,小五); Editor(Courier New,常规,10)
+        - 配置 - User Interface - Appearance - Language(选择英文), Switch to Menu(菜单以下拉菜单方式显示)
 
-### pl/sql 安装
+### PL/SQL完整版安装
 
 - Oracle 需要装 client 才能让第三方工具(如 pl/sql)通过 OCI(Oracle Call Interface)来连接，安装包可以去 oracle 官网下载 Instant Client
 - 安装`pl/sql developer`
@@ -1417,22 +1566,28 @@ SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE,
 ### 网络配置
 
 - Net Manager 的使用(`$ORACLE_HOME/BIN/launch.exe`)
-  - `本地-监听程序-LISTENER`中的主机要为计算机全名(如：ST-008)，对应文件`$ORACLE_HOME/NETWORK/ADMIN/listener.ora`
+  - 打开网络配置文件时，则打开`$ORACLE_HOME/NETWORK/ADMIN`目录
+  - `本地-监听程序-LISTENER`中的主机要为计算机全名(如：ST-008)，对应文件 **`$ORACLE_HOME/NETWORK/ADMIN/listener.ora`**
     - 使用 pl/sql 也需要配置，且第一个 ADDRESS 需要类似配置为`TCP/IP，ST-008，1521`
   - `本地-服务命名`下的都为`网络服务名`，对应文件`tnsnames.ora`
   - 有的需参考 https://blog.csdn.net/pengpengpeng85/article/details/78757484 创建监听程序配置和本地网络服务名配置
 - 文本操作
-
   - 使用 sqlplus 登录时，可直接修改`$ORACLE_HOME/NETWORK/ADMIN/tnsnames.ora`
   - 安装了 pl/sql，可能需要修改 tnsnames.ora 的文件路径类似与`D:\java\oracle\product\instantclient_10_2\tnsnames.ora`。此时 oracle 自带的 tnsnames.ora 将会失效
-  - 配置实例：HOST/PORT 分别为远程 ip 地址和端口，SERVICE_NAME 为远程服务名，aezocn 为远程服务名别名(本地服务名)
+  - 配置实例：HOST/PORT 分别为远程 ip 地址(或127.0.0.1)和端口，SERVICE_NAME 为远程服务名，aezocn 为远程服务名别名(本地服务名)
 
-    ```html
-    aezocn = (DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST =
-    192.168.1.1)(PORT = 1521)) ) (CONNECT_DATA = (SERVER = DEDICATED)
-    (SERVICE_NAME = orcl) ) )
+    ```bash
+    aezocn = 
+        (DESCRIPTION = 
+            (ADDRESS_LIST =
+                (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.1.1)(PORT = 1521))
+            )
+            (CONNECT_DATA = 
+                (SERVER = DEDICATED)
+                (SERVICE_NAME = orcl)
+            )
+        )
     ```
-
 - 如果 oracle 服务在远程机器上，本地通过 plsql 连接，则不需要在本地启动任何和 oracle 相关的服务。如果本地机器作为 oracle 服务器，则需要启动 OracleServiceORCL，此时只能在命令行连接数据库，如果需要通过 plsql 连接则需要启动类似"OracleOraDb11g_home1TNSListener"的 TNS 远程监听服务
 
 ## ODAC和ODBC
@@ -1442,6 +1597,16 @@ SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE,
 	- 如果提示“服务OracleMTSRecoveryService已经存在” - 忽略
     - 或者下载ODAC112030Xcopy_64bit.zip等压缩包进行安装，推荐
 - ODBC：Windows上通过配置不同数据库（SQL Server、Oracle等）的驱动进行访问数据库。找到控制面板-管理工具-数据源ODBC
+
+## Oracle-19c
+
+### 常见问题
+
+- 启动项目报错`Caused by: java.nio.file.InvalidPathException: Illegal char <:> at index 59: D:\software\oracle\product\11.2.0\dbhome_1\NETWORK\ADMI;C:\Program Files\Java\jdk1.8.0_31\ojdbc.properties`
+    - 背景：项目使用oracle 19c，引入ojdbc8，服务器部署了oracle 11g服务，之前使用ojdbc6的项目能正常启动，使用ojdbc8则报错
+    - 解决：在项目启动脚本前增加`set TNS_ADMIN=`去掉服务器原来的TNS_ADMIN环境变量
+    - 原因：ojdbc8中会优先取读取`oracle.net.tns_admin`属性（对应的是TNS_ADMIN环境变量）
+
 
 
 

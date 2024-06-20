@@ -749,7 +749,9 @@ handleChange (value) {
 ### vxe-table
 
 - 一款基于Vue的表格插件，支持大量数据渲染，编辑表格等功能
-- [github](https://github.com/x-extends/vxe-table)、[doc](https://xuliangzhan_admin.gitee.io/vxe-table/#/table/start/install)
+- [github](https://github.com/x-extends/vxe-table)
+- [doc](https://vxetable.cn/)
+    - [历史文档](https://github.com/x-extends/vxe-table-docs) 根据vxe-table版本发布日期查找提交记录，然后查看对应时间区间的文档源码
 - 优点
     - 大数据表格
     - 自带打印功能：区域、分页、模板、样式等打印功能
@@ -2151,6 +2153,9 @@ export default {
         enterDivFullScreen(idOrEl) {
             const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl
             if (el) {
+                if (el.classList.toString().indexOf('fullscreen-div') >= 0) {
+                    return
+                }
                 this.fullScreenOriginStyle = {
                     width: el.style.width,
                     height: el.style.height,
@@ -2308,6 +2313,10 @@ export const debounce = function(fn, wait = 500) {
     return promise
   }
 }
+
+// 使用
+async saveTemp(goBack) {}, // 可改成下面进行防抖
+saveTemp: debounce(async function(goBack) {}), // 如果原来是同步也会变成异步方法
 
 // 节流：一个等待时间周期里面的多次调用，只有其中一个会被执行(周期结束后的第一个)
 export const throttle = function(func, delay, immediate = false) {

@@ -127,16 +127,18 @@ git config --global color.ui true
 	- `git pull origin master` 拉取相应分支
 - 多个远程仓库(同一代码提交到oschina和github)
 
-    ```bash
-    git remote add origin git@github.com:test1/test1.git # 推送到github
-    git remote add osc git@git.oschina.net:test2/test2.git # 推送到oschina
+```bash
+git remote add origin git@github.com:test1/test1.git # 推送到github
+git remote add osc git@git.oschina.net:test2/test2.git # 推送到oschina
 
-    git add .
-    git commit -m 'First commit'
+git add .
+git commit -m 'First commit'
 
-    git push origin master # 推送到github。默认远程，可简写为 git push
-    git push osc master # 推送到oschina
-    ```
+git push origin master # 推送到github。默认远程，可简写为 git push
+git push osc master # 推送到oschina
+# 将本地的 v-1/func-1 分支推送到 osc 远程的 v-1/func-1 分支
+git push osc v-1/func-1:v-1/func-1 --set-upstream
+```
 
 ### 分支
 

@@ -33,11 +33,12 @@ tags: [plugins, debug]
     - `Tampermonkey` 油猴脚本。相关脚本：https://greasyfork.org/zh-CN/scripts
     - `IDM Integration Module` IDM下载
     - `OneTab`
-    - `Infinity新标签页` 标签管理
+    - `WeTab` 标签管理
     - `有道词典Chrome划词插件`
     - `JSONView` 将Http请求获取的json字符串格式化(可收缩)
     - `Vue.js devtools` Vue.js调试工具
     - `Console Importer` 在调试模式中快速导入js库到当前页面
+    - `ModHeader` 网页资源代理插件，如将网页中的js资源代理成本地的某个js，可用于js库开发调试(如lowcode-engine)
 - 推荐
     - `Evernote Web Clipper` 印象笔记·剪藏
     - `新浪微博图床`
@@ -112,9 +113,64 @@ console.log(
 console.group("站点信息");console.log("Name: Hello World");console.log("Author: smalle");console.groupEnd();
 ```
 
-## 性能分析(Devtool Performance)
+### chrome://inspect调试总入口
 
-- 参考：https://zhuanlan.zhihu.com/p/29879682
+- `chrome://inspect/`可进入调试总入口
+    - Devices 设备调试，如uniapp调试App页面
+
+## 性能分析(CPU飙升)
+
+- 谷歌浏览器的Devtool Performance
+    - 参考：https://zhuanlan.zhihu.com/p/29879682
+- 基于火狐浏览器排查CPU飙升问题
+    - 访问地址发现当前页面导致CPU飙升问题，且页面无法正常渲染完成
+    - 打开火狐浏览器：功能 - 更多工具 - 进程管理器，选择对应页面项，点击左侧的仪表盘图标(分析此进程所有线程5s)，会产生一个分析结果，并自动打开 https://profiler.firefox.com 地址进行显示，如下图
+    
+    ![火狐profiler](../../data/images/2024/chrome/火狐profiler.png)
+    - 从上图调用树的样本数可看出，大部分样本为调用addErrorLog
+
+    ![火狐profiler-addErrorLog](../../data/images/2024/chrome/火狐profiler-addErrorLog.png)
+    - 在源码中搜索此代码发现此为当前Vue项目自定义的错误收集插件中的函数，如下图
+        - 从图中也印证了此调用关系，进而发现项目中原来addErrorLog的实现有问题（把后台的调用函数给注释掉了，导致函数名无效），从而当Vue触发错误进入addErrorLog方法，而addErrorLog方法也只需出错，从而导致死循环
+
+    ```js
+    import store from '@/store'
+    export default {
+        install (Vue, options) {
+            if (options.developmentOff && process.env.NODE_ENV === 'development') return
+
+            // 此处定义了errorHandler，当Vue发生错误，则调用此函数，从而调用addErrorLog
+            Vue.config.errorHandler = (error, vm, mes) => {
+                let info = {
+                    type: 'script',
+                    code: 0,
+                    mes: error.message,
+                    url: window.location.href
+                }
+                Vue.nextTick(() => {
+                    store.dispatch('addErrorLog', info)
+                })
+            }
+        }
+    }
+    ```
+    - 解决办法：修复addErrorLog函数，此处选择注释此插件（当Vue出错后，会打印在控制台）
+    - 寻找问题源：重新打开页面可正常渲染，而且控制台报错`DOMException: Permission denied to access property "$el" on cross-origin object`
+    - 猜测：本项目嵌入了一个iframe页面，iframe页面基于Vue完成，上述报错就是来自此iframe页面，而且主子页面不同源，从cross-origin可知子项目可能去获取了父项目的DOM元素，从而导致报错
+    - Debug此错误，发现报错页面，查看报错页面源码，搜索`$el`发现
+
+    ```js
+    getFormAutoColNum() {
+      let ele = this.$parent
+      if (ele.$refs && ele.$refs.modalBox) {
+        ele = ele.$refs.modalBox
+      } else {
+        // 报错根源，从上下文可知，此处应该使用 ele.$el，由于写成了 parent.$el，而 parent 代表父页面，从而此处在子页面中去获取了父页面的 $el 属性导致报错
+        ele = parent.$el
+      }
+      // ...
+    }
+    ```
 
 ## 生成桌面系统
 

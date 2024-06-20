@@ -19,6 +19,25 @@ tags: [build]
 ```bash
 # mac
 brew install gradle
+
+# 或者进行手动安装(下载xxx.bin.zip)
+# 和JDK版本的适配关系(否则只能使用gradle-wrapper) https://blog.csdn.net/Qhx20040819/article/details/131911031
+https://mirrors.cloud.tencent.com/gradle # https://gradle.org/releases/
+```
+
+### gradle-wrapper
+
+- 类似maven wrapper，idea需要配置使用wrapper的gradle版本(不能设置成使用本地gradle版本)
+- 项目目录下，配置`gradle/wrapper/gradle-wrapper.properties`
+    - distributionUrl下载慢可使用腾讯镜像，参考：https://blog.csdn.net/youngwah292/article/details/110734407
+
+```bash
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+# JDK1.8支持(gradle-6.5本地模式不支持JDK8)
+distributionUrl=https://mirrors.cloud.tencent.com/gradle/gradle-6.5-all.zip
 ```
 
 ### 镜像

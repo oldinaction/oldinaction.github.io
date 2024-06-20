@@ -9,6 +9,10 @@ tags: [H5, 小程序, App, mobile]
 ## 简介
 
 - [官网](https://uniapp.dcloud.io/)
+- [uni-app-x](https://doc.dcloud.net.cn/uni-app-x/)
+    - uni-app x，是下一代 uni-app。他没有使用js和webview，它基于 uts 语言。在App端，uts在iOS编译为swift、在Android编译为kotlin、web/小程序平台编译为JavaScript
+    - uts替代的是js，而uvue替代的就是html和css。可以理解为uts类似dart，而uvue类似flutter
+    - uts和ts很相似，但为了跨端，uts进行了一些约束和特定平台的增补；uvue是一套基于uts的、兼容vue语法的、跨iOS和Android的、原生渲染引擎
 
 ### 项目初始化运行及发布
 
@@ -155,6 +159,7 @@ tags: [H5, 小程序, App, mobile]
 ### 条件编译
 
 - [条件编译](https://uniapp.dcloud.net.cn/tutorial/platform.html)
+- MP为小程序，MP-WEIXIN、MP-ALIPAY
 - APP-PLUS基于HTML5+的JS引擎渲染的，APP-NVUE为App nvue 页面，APP-ANDROID为UTS原生编译方式，APP指所有App平台
 
 ### 生命周期
@@ -165,7 +170,8 @@ tags: [H5, 小程序, App, mobile]
 - 页面生命周期中: https://uniapp.dcloud.net.cn/tutorial/page.html#lifecycle
     - `onLoad` 触发一次
     - `onShow` 每次展示时触发(后退也会触发)
-    - `onHide` 无法监听到页面返回(H5和微信小程序都不可以)
+    - `onHide` 页面影藏时触发，如navigateTo；无法监听到页面返回(H5和微信小程序都不可以)
+    - `onUnload` 页面卸载时触发，如redirectTo
     - `onBackPress` 可以监听到H5返回，无法监听到微信小程序返回
 - 组件生命周期同Vue: https://uniapp.dcloud.net.cn/tutorial/page.html#componentlifecycle
 
@@ -332,20 +338,30 @@ uni.openEmbeddedMiniProgram({
 - [uni_modules](https://uniapp.dcloud.net.cn/plugin/uni_modules.html)
 - 只要组件安装在项目根目录或uni_modules的components目录下，并符合components/组件名称/组件名称.vue或uni_modules/插件ID/components/组件名称/组件名称.vue目录结构。就可以不用引用(import)、注册，直接在页面中使用
 
-### vue和nvue文件
+### vue/nvue/uvue文件
 
 - uni-app **App 端**内置了一个基于 weex 改进的原生渲染引擎，提供了原生渲染能力
-- 在 App 端，如果使用 vue 页面，则使用 webview 渲染；如果使用 nvue 页面(native vue 的缩写)，则使用原生渲染
-- 虽然 nvue 也可以多端编译，输出 H5 和小程序，但 nvue 的 css 写法受限，所以如果你不开发 App，那么不需要使用 nvue
-- [nvue](https://uniapp.dcloud.net.cn/tutorial/nvue-outline.html)
+    - 在 App 端，如果使用 vue 页面，则使用 webview 渲染；如果使用 `nvue` 页面(native vue 的缩写)，则使用原生渲染
+    - 虽然 nvue 也可以多端编译，输出 H5 和小程序，但 nvue 的 css 写法受限，所以如果你不开发 App，那么不需要使用 nvue
+    - [nvue](https://uniapp.dcloud.net.cn/tutorial/nvue-outline.html)
+- `uvue`为uni-app-x的渲染引擎，结合uts可实现原生App的编译，类似Flutter，参考：https://doc.dcloud.net.cn/uni-app-x/
 
 ### APP
 
+- 官网原生开发支持文档：https://nativesupport.dcloud.net.cn/
+    - uni小程序 SDK：支持在原生App上扩展宿主App的小程序能力，或者用小程序替换原生App的部分功能模块
+    - App离线sdk：使用场景是你没有原生App，用DCloud的工具来开发App，又不想使用云打包，则可以使用App离线sdk打包发布为原生App，App离线sdk支持5+ App、uni-app
+    - 原生插件开发
+- 打包App的方式
+    - 将uni-app(一般只没使用5+的特性，当然如果最终打包成APP也可使用5+特性)或5+项目通过HBuilderX云端打包
+    - 将uni-app或5+项目或者离线打包，此时将uni-app项目打包出H5资源再嵌入到安卓项目的资源中去进行AS本地打包
 - [HTML5+或plus](https://uniapp.dcloud.net.cn/tutorial/use-html5plus.html)、[HTML5+](https://www.html5plus.org/doc/h5p.html)
     - plus不能在浏览器环境下使用，它必须在手机APP上才能使用，因为以安卓为例，他是操纵webview的API
     - WebView是android中一个非常重要的控件，它的作用是用来展示一个web页面，4.4版本之后，直接使用chrome作为内置网页浏览器
     - HTML5+是中国HTML5产业联盟的扩展规范，基于HTML5扩展了大量调用设备的能力，使得web语言可以像原生语言一样强大
-- 文件结构
+- 调试模拟器网页
+    - `chrome://inspect/devices`可进入设备调试页面，找到对应页面点击inspect进行调试
+- App文件结构
     - `/内部存储/Android/data/uni.UNI55836E9`
         - `/apps/__UNI__55836E9`
             - `/doc`
@@ -353,37 +369,18 @@ uni.openEmbeddedMiniProgram({
                 - `/uniapp_temp_1701010313392` 每次启动应用会清空
                     - `/camera` 拍照临时目录
         - `/files`
-- 苹果账号类型
-    - 个人开发者账号：App可提交到AppStore，688/年
-    - 公司开发者账号：App可提交到AppStore，688/年
-    - 企业开发者账号：App不能提交到AppStore，1988/年
-        - 使用企业开发帐号，我们可以发布一个 ipa 放到网上，所有人（包括越狱及非越狱设备）都可以直接通过链接下载安装，而不需要通过 AppStore 下载，也不需要安装任何证书
-        - 当然，使用企业帐号发布的 iOS 应用是不能提交到 AppStore 上的。而且企业级开发账号也比个人帐号更贵些（299刀/年）
-        - 既然叫企业帐号，就说明是用来开发企业自己的内部应用，给自己的员工使用的。所以不要用企业号做大规模应用分发的一个渠道，否则有可能会被苹果封账号
-- IOS应用分发方式
-    - 使用个人开发者账号或公司开发者账号提交到AppStore进行分发（测试阶段通过添加测试设备uuid）
-    - 使用签名方式通过ipa分发(不上架AppStore)
-        - 苹果签名是苹果公司提供给第三方开发者在内测阶段用于分发测试的一种机制，通过企业开发者账号生成的p12文件实现签名分发
-    - 企业签名
-        - 无安装数量限制
-        - 第三方签名不稳定，容易掉签
-        - 需要信任操作，且信任入口较深
-    - TestFlight(TF)
-        - 仍需开发者账号
-        - 限制安装数量10000个(貌似可实现不限量)
-        - TF的有效期是90天，App更新会刷新此时间
-        - 用户需先下载TestFlight，再从TestFlight里面下载内测APP
-    - 保存书签至桌面
-        - 无需签名及开发者账号
-        - 只支持H5网页链接，不支持原生内容及推送
-        - 仍需信任操作
-    - 超级签名
-        - 不易掉签
-        - 无安装数量限制
-        - 价格昂贵，安装一台设备10元起
-    - 自签名
-        - 如TrollStroe
-        - 需要用户自己进行签名操作
+
+#### App离线sdk模式
+
+- 官网文档：https://nativesupport.dcloud.net.cn/AppDocs/
+    - 支持uni-app、5+ App等项目发行为原生App
+    - 提供扩展原生能力
+        - uni-app项目扩展原生能力需开发uni原生插件，支持云端打包，有完善的开发者生态插件市场
+        - 5+ App项目扩展原生能力需开发5+原生插件，仅支持本地离线打包
+        - 5+ 原生插件已不再继续维护，建议开发者升级应用为uni-app项目并使用uni原生插件
+    - 官网SDK中的Demo包含了一个集成了uni-app的原生项目(将uni-app打包成h5的模式放到原生项目资源中进行互相调用)
+- 可执行自定义的applicaiton与activity
+    - 参考：https://blog.csdn.net/weixin_41996632/article/details/106215566
 
 ### 组件
 
@@ -408,11 +405,16 @@ uni.openEmbeddedMiniProgram({
     - Vue特性支持表
 - **小程序模板中不能直接使用$store和$config等自定义全局属性**
     - $store需要通过computed属性映射一次，如果数据比较多可以使用mapState和mapGetters。参考: https://uniapp.dcloud.net.cn/tutorial/vue-vuex.html
-    - $config可重新定义到data/computed/methods中进行获取
+    - $config可重新定义到data，从而模板中可进行使用(可放到mixin中)
 
     ```js
     import { mapGetters } from 'vuex'
 
+    data() {
+        return {
+            $config: this.$config,
+        }
+    },
     computed: {
         ...mapState({
             text: state => state.moduleA.text,
@@ -459,12 +461,15 @@ uni.openEmbeddedMiniProgram({
         )
     }
     ```
+- uniapp编译的微信支持$slots.default的匿名插槽；编译的支付宝不支持，必须定义插槽名称
 
 ### 机型兼容问题
 
 - IOS 和 Android 对时间的解析有区别 [^1]
     - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
-    - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
+        - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
+    - uniapp日期选择器在手机上不能选择日期问题（需要设置 start 和 end的属性值）
+        - 参考：https://blog.csdn.net/spring_007_999/article/details/131814741
 - IOS 和 Android 对PDF文件预览的区别
     - IOS可直接通过webview渲染；而Android此方式一直加载页面空白，可downloadfile+opendocument方式解决
         - **注意`uni.openDocument`需要增加`fileType: 'pdf'`参数**
@@ -475,18 +480,65 @@ uni.openEmbeddedMiniProgram({
     - 参考：https://ask.dcloud.net.cn/question/88497
     - 也可试下同步存储异步获取
 - 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
-- **input等表单元素的v-model/@input(e.target.value和e.detail.value)都取不到值**
+- **input等表单元素的v-model/@input(e.target.value和e.detail.value)都取不到值的问题**
     - 小程序中有时候会出现不开调试模式，或者调试模式开启失败(只有性能按钮，没有vConsole按钮)
     - 有时候开启成功也会遇到，生产环境暂未遇到
 
-### 样式问题
+### 支付宝和微信小程序兼容问题
+
+- VUE语法
+    - uniapp编译的微信支持$slots.default的匿名插槽；编译的支付宝不支持，必须定义插槽名称
+- 样式问题
+    - css单位使用`rpx/upx` (rem不兼容)
+    - 支付宝在 input 组件设置 disabled:true 后组件会被禁用组件颜色会变灰。解决：可使用view代替
+    - 支付宝使用伪元素好像有问题(如colorui的picker样式，但是colorui的图片伪元素正常)。解决：通过其他css样式解决
+    - 支付宝不支持css的attr方法(如colorui的cu-steps类)
+- colorui插件样式问题
+    - 支付宝中picker缺少右侧箭头样式。解决如下
+
+    ```html
+    <view class="cu-form-group">
+        <view class="title">主体名称</view>
+        <!-- 在外层套一个flex -->
+        <view class="flex justify-end">
+            <picker @change="companyChange" :value="companyIndex" :range="companyList" :range-key="'name'">
+                <view class="picker">
+                    {{companyIndex > -1 ? companyList[companyIndex].name : '请选择主体名称'}}
+                </view>
+            </picker>
+            <!-- #ifdef MP-ALIPAY -->
+            <view class="cuIcon-right"></view>
+            <!-- #endif -->
+        </view>
+    </view>
+    ```
+    - cu-steps类无效。解决如下
+
+    ```html
+    <view class="cu-steps">
+        <view class="cu-item" v-for="(item,index) in stepList" :key="index">
+            <text class="num" :class="['num-' + (index + 1)]" :data-index="index + 1"></text> {{item.name}}
+        </view>
+    </view>
+
+    <style>
+    /* 增加样式如 */
+    .cu-steps .cu-item .num.num-1::before,
+    .cu-steps .cu-item .num.num-1::after {
+        content: "1";
+    }
+    </style>
+    ```
+    
+
+### 样式常见问题
 
 - 图片显示
     - 参考：https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E8%83%8C%E6%99%AF%E5%9B%BE%E7%89%87
     - 如果图片不定义高度，当网络慢的时候加载完后会闪跳
 
 ```html
-<!-- 支持 -->
+<!-- 支持小尺寸图片 -->
 <image class="cu-avatar round" src="/static/logo.png">
 
 <!-- 此方式仅开发环境有效，如果写成js导入的方式小程序真机是可以的 -->
@@ -495,18 +547,30 @@ uni.openEmbeddedMiniProgram({
 - css变量单位
     - css绑定变量：https://blog.csdn.net/zz00008888/article/details/126222530
     - css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa
+- 单位换算说明
+    - https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E5%B0%BA%E5%AF%B8%E5%8D%95%E4%BD%8D
+    - `em` 表示相对尺寸，**其相对于当前对象内 (父级元素) 文本的字体尺寸** font-size（如当前对行内文本的字体尺寸未被设置，则相对于浏览器的默认字体尺寸。 任意浏览器的默认字体高都是16px。所有未经调整的浏览器都符合：1em = 16px），如果设置默认尺寸为12px，则1em = 12px
+    - `rem` 为css3新增的一个相对单位，使用rem为元素设定字体大小时，仍然是相对大小，但是rem只**相对于HTML根元素的font-size**，因此只需要确定这一个font-size
+    - 说明
+        - rem: 微信小程序和支付宝小程序不兼容
+        - 设计稿使用设备宽度750px比较容易计算750px的话1rpx=1px, 这样的话,设计图上量出来的尺寸是多少px就是多少rpx, 至于在不同的设备上实际上要换算成多少个rem就交给小程序自己换算
+        - 为了简化font-size的换算，我们通常将rem与em的换算基准设置为 font-size : 62.5%; ，则此时1rem=1em = 16px * 62.5% = 10px， 这样10px = 1em=1rem，方便于我们使用
 
-```html
-ios：pt
-android：dp
-web：px、rem、em
-微信小程序：rpx
-uniapp：upx
+```js
+ios: pt
+android: dp
+web: px、rem、em
+H5: rpx (建议)
+uniapp: upx (动态绑定的 style 不支持直接使用 upx)
 
 单位换算（正常情况下）
 1pt = 1dp = 2px
 2rpx = 2upx = 1px
+1rem = (750/20)rpx = 37.5rpx = 37.5upx 可适当微调
+```
+- 单位换算案例
 
+```html
 <!-- 此处padding为30rpx，在小程序开发工具里面会变成15px(单数从而导致两张图片中间有间隙)，此处改成28rpx就可以了 -->
 <view style="padding: 0rpx 30rpx 30rpx 30rpx; width: 100%;">
     <image style="width: 100%;display: block;" mode="widthFix" src="https://ossweb-img.qq.com/images/lol/web201310/skin/big10006.jpg"></image>
@@ -680,6 +744,8 @@ uniapp：upx
 
 ## ColorUI插件
 
+- [github仓库](https://github.com/weilanwl/coloruicss)
+- [V2使用文档](https://miren.lovemi.ren/colorui-document/pages/base/)
 - 主要是一个样式文件，通过一些CSS类来实现UI效果
 - 按钮
 
@@ -708,15 +774,13 @@ uniapp：upx
 <!-- 水平居中 -->
 <span class="flex justify-center">
     <div>
-        <span>文字1</span>
-        <span>文字2</span>
+        <span>文字1</span><span>文字2</span>
     </div>
 </span>
 
 <!-- 左右两边浮动，并中线对齐 -->
 <span class="flex justify-between align-center">
-    <div>显示在左边</div>
-    <span>显示在右边</span>
+    <div>显示在左边</div>   <span>显示在右边</span>
 </span>
 
 <!-- 垂直对齐 -->

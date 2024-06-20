@@ -75,6 +75,14 @@ sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node-waf /usr/bin/node-waf
         "vue": "^2.6.12"
     },
 
+    // 统一包版本：https://developer.aliyun.com/article/1050105
+    // 假如一个模块A依赖了模块B的 v1.0 版本，而主项目中依赖了模块B的 v1.1 版本，此时会出现两者的包都会被打进项目之中，导致包体积变大
+    // 当依赖版本可以灵活调整时，比如依赖的版本号是 ^ 开头的，可解决此问题，但是一些模块都是定死包版本的则无效，此时可使用resolutions指定同一一个版本的包
+    // 貌似lerna的多模块项目中，此参数只对最外层的package.json有效，内部模块无效
+    "resolutions": {
+        "vue": "2.6.12"
+    },
+
     // Vue相关参考[vue.md#vue-cli-service](/_posts/web/vue.md#vue-cli-service)
     // 打包Vue插件相关参考[vue.md#开发组件库](/_posts/web/vue.md#开发组件库)
     "script": {

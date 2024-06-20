@@ -54,6 +54,8 @@ date_sub(now(), interval 7 day); -- 当前时间-7天. 不能直接 `now()-7`
 date_add('1970-01-01', interval -1 week); -- 该时间-1周
 -- 2000-01-01、2000-01-01 00:00:00、2000-01-01 23:59:59
 select CURDATE(), DATE_FORMAT(CURDATE(),'%Y-%m-%d %H:%i:%s'), DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 1 DAY),INTERVAL 1 SECOND);
+-- 本月第一天, 本月最后一天
+select date_add(curdate(), interval - day(curdate()) + 1 day), last_day(curdate());
 -- 更多参考
 -- https://blog.csdn.net/weixin_36419499/article/details/113464438
 
@@ -564,6 +566,7 @@ concat_ws(separator, str1, str2, ...)
 
 -- 将group by产生的同一个分组中的值连接起来，返回一个字符串结果。类似oracle的wm_concat
 -- 语法：group_concat( [distinct] 要连接的字段 [order by 排序字段 asc/desc ] [separator '分隔符(默认为,)'] )
+-- group_concat默认限制长度为1024，可进行修改配置：https://blog.csdn.net/guo_qiangqiang/article/details/126528901
 select userId, group_concat(orderId order by orderId desc separator ';') as orderList from t_orders group by userId;
 ```
 
@@ -579,6 +582,11 @@ select * from t_test where instr(username, char(13)) > 0 or instr(username, char
 -- find_in_set
     -- type字段表示：1头条、2推荐、3热点。现在有一篇文章即是头条又是热点，即type=1,2
 select * from article where find_in_set('2', type); -- 找出所有热点的文章
+
+SELECT
+    t.id, t.company_type -- customer,provider
+    ,(select GROUP_CONCAT(d.name) from sys_dict d where d.parent_code = 'company_type' and FIND_IN_SET(d.code, t.company_type)) "企业类型" -- 客户,供应商
+FROM rt_company t
 ```
 
 #### 日期
@@ -590,7 +598,7 @@ update t_test t set t.update_tm = sysdate() where id = 1; -- 其中`sysdate()`�
 
 #### with as
 
-- 参考下文[with as 用法](#with%20as%20用法)
+- 参考下文[with-as用法](#with-as用法)
 
 #### RECURSIVE CTE递归
 
@@ -603,7 +611,7 @@ SELECT t.* FROM (
         FROM `pt_permission`
         WHERE `parent_id` = 0
         UNION ALL
-				SELECT t.`id`, t.`parent_id`, `depth` + 1, CONCAT(cte.`path`, ' > ', ' ' , t.`name`)
+        SELECT t.`id`, t.`parent_id`, `depth` + 1, CONCAT(cte.`path`, ' > ', ' ' , t.`name`)
         FROM `pt_permission` t
         INNER JOIN cte ON cte.`id` = t.`parent_id`
     )
@@ -938,7 +946,7 @@ select substr('hello sql!', -4, 3) from dual; --从倒数第4个字符开始，�
 select substr('hello sql!', 1, length('hello sql!') - 1) from dual; -- 返回 'hello sql'
 ```
 
-#### with as 用法
+#### with-as用法
 
 - 特点
     - 特别是从多张表中取数据时，而且每张表的数据量又很大时，使用with写法可以先筛选出来一张数据量较少的表，避免全表join
@@ -979,7 +987,7 @@ select * from ASSIGN;
 
 ##### wm_concat行转列
 
-- 为oracle内部函数，12之后已经去掉了此函数
+- 为oracle内部函数，**12之后已经去掉了此函数**
 - 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
 - 案例
     - `wm_concat(t.hobby)`
@@ -1348,12 +1356,17 @@ https://www.cnblogs.com/mumulin99/p/9837522.html
 select regexp_substr('17,20,23', '[^,]+', 1, level, 'i') as str from dual
   connect by level <= length('17,20,23') - length(regexp_replace('17,20,23', ',', '')) + 1;
 
+-- 正则替换只保留数字
+select regexp_replace('1-2 ', '[^0-9]+', '') as str from dual; -- 12
+
 -- 正则替换中文、\、`为空格，并取256位长度
 select substr(regexp_replace('中文A\B`C', '[' || unistr('\4e00') || '-' || unistr('\9fa5') || '\\`]', ' '), 0, 256)
-as rx_replace from dual
+as rx_replace from dual;
 
 -- 匹配纯数字
 regexp_like(income,'^(\d*)$')
+not regexp_like(income,'^(\d*)$') -- 匹配非纯数字
+regexp_like(data,'^[0-9]{3}$') -- 3位纯数字
 -- 匹配金额
 regexp_like(income,'^-?([[:digit:]]*.[[:digit:]]*)$')
 regexp_like(income,'^-?(\d*.\d*)$')
@@ -1667,10 +1680,17 @@ end;
 ```sql
 -- 去除换行chr(10), 去掉回车chr(13), 去掉空格。idea从excel复制数据新增时可能会出现换行
 update t_test t set t.name=trim(replace(replace(t.name,chr(10),''),chr(13),''));
+-- 正则替换只保留数字. 更多参考上文
+select regexp_replace('1-2 ', '[^0-9]+', '') as str from dual; -- 12
+-- translate 与replace类似是替换函数，但translate是一次替换多个单个的字符
+select translate('1234567','123' ,'abc') from dual ; --1替换为a,2替换为b,3替换为c
 --四舍五入
-select round(0.44775454545454544,2) from dual;
+select round(0.44775454545454544, 2) from dual; -- 0.45
+-- 一个数A，先除以B，再乘以B，最终得到的不一定是A
+select round(10.3 / 2, 1) from dual; -- 5.2
+select round(5.2 * 2, 1) from dual; -- 10.4
 --直接保留两位小数
-select trunc(4.757545489, 2) from dual;
+select trunc(4.757545489, 2) from dual; -- 4.74
 ```
 
 ## SqlServer

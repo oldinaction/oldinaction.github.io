@@ -501,9 +501,48 @@ turbine:
 
 ### Turbine Stream
 
-## Zuul (API GateWay：网关)
+## GateWay网关
 
-- 简介
+### SpringCloud Gateway
+
+```yml
+spring:
+  cloud:
+    gateway:
+      routes:
+      # 规则名
+      - id: url-proxy-1
+        # 目标地址
+        uri: http://192.168.1.133:8080
+        order: 0
+        # 基于条件匹配，匹配成功则跳转到目标地址
+        predicates:
+        # 基于请求路径匹配。以/test开头的请求都匹配
+        - Path=/test
+        # 支持模版变量，会保存在`ServerWebExchange.getAttributes()`的 ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE中。可匹配/foot/1或foor/2
+        - Path=/foo/{segment}
+        # 基于查询参数匹配。如：curl localhost:8080?name=123
+        - Query=name
+        # 只要当请求中包含 keep 参数，并且参数值是以 pu 开头的长度为三位的字符串才会进行匹配和路由
+        - Query=keep, pu.
+        # 匹配请求头，且X-Request-Id的值为数字才进行匹配和路由。如：curl http://localhost:8080 -H "X-Request-Id:88"
+        - Header=X-Request-Id, \d+
+        # 基于请求头Host匹配。如：curl http://localhost:8080 -H "Host: md.baidu.com"
+        - Host=**.baidu.com,**.test.org
+        - Cookie=token, test.
+        - Method=GET
+        - RemoteAddr=192.168.1.1/24
+        # 匹配在什么时间之后的
+        - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+        # 匹配在什么时间之前的
+        - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
+        # 匹配在某段时间的
+        - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+```
+
+### Zuul
+
+- 推荐使用[SpringCloud Gateway](#SpringCloud%20Gateway)
 - 基本使用
     - 引入依赖
 
@@ -618,7 +657,7 @@ turbine:
                 Object accessToken = request.getParameter("accessToken");
                 if(accessToken == null) {
                     logger.warn("access token is empty, add parameter like: accessToken=smalle");
-                    ctx.setSendZuulResponse(false); // 令zuul过滤此请求，不进行路由(zuul本地方法无法过滤)
+                    ctx.setSendZuulResponse(false); // 令zuul忽略此请求，不进行路由(zuul本地方法无法过滤)
                     ctx.setResponseStatusCode(401);
                     ctx.setResponseBody("zuul filter");
                     return null;
@@ -653,7 +692,7 @@ turbine:
         }
     }
     ```
-- 动态路由：请见分布式配置中心(Config)部分
+- 动态路由(动态刷新配置)：请见分布式配置中心(Config)部分
 - 基于spring security oauth2进行认证，参考[http://blog.aezo.cn/2017/10/22/java/springsecurity/](/_posts/java/springsecurity.md)。源码参考[https://github.com/oldinaction/springcloud/tree/master/demo11-oauth2]
 
 ## Config 分布式配置中心(Spring Cloud Config)

@@ -217,7 +217,7 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test.thd.
 ### 自动装配(取出Bean赋值给当前类属性)
 
 - `@Autowired` Spring提供
-    - **默认按ByType(根据类型)，找不到再按照ByName(变量名称)注入**
+    - **默认按ByType(根据类型)，如果根据类型找到多个再按照ByName(变量名称)注入(如果此时名称不存在则报错)**
         - 如果想用by name，Bean定义时如`@Bean(name="my-bean-name")，再联合使用`@Qualifier("my-bean-name")`。`对于默认的Bean可通过添加`@Primary`(使用时则按照单数据源注入)
     - 可以对**方法、字段、构造器、参数**使用
     - 注入集合方式
@@ -226,9 +226,13 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test.thd.
             - 如果元素增加`@Order`注解，在注入时会自动进行排序。也可使用 `list.sort(AnnotationAwareOrderComparator.INSTANCE)` 手动排序list(用于非注入的场景，元素也需要增加 @Order 注解)。**值越小越优先，可以为负值**
         - `@Autowired Map<String, Monitor> monitorMap;` 注入到Map中，此时将 Bean 的 name 作为 key
 - `@Resource` JSR-250提供(常用)
-    - 先按ByName，再按ByType判断
+    - **先按ByName名称查找(当然类型也必须匹配)，如果找不到再按ByType类型查找(如果根据类型找到多个则报错)**
     - 只能对**方法、字段**使用
-- `@Inject` JSR-330提供
+- `@Inject` JSR-330提供，类似@Autowired
+- @Autowired和@Resource推荐用法
+    - 根据使用场景：@Resource倾向于确定性的单一资源，@Autowired为类型去匹配符合此类型所有资源
+    - 使用@Autowired时，推荐使用构造函数注入和set方法注入
+    - 参考：https://zhuanlan.zhihu.com/p/615487137
 - **各种DI方式的优缺点**
     - 构造器注入：强依赖性 （即必须使用此依赖），不变性（各依赖不会经常变动）
     - Setter注入：可选（没有此依赖也可以工作），可变（依赖会经常变动）
@@ -494,7 +498,9 @@ public void setHello(String h) {
 @ConfigurationProperties(prefix = "myValue")
 public class MyValue {
 	// ...Model：所有的属性、get、set方法
-    private String val;
+    // myField, my-field, my_field等都能识别绑定到myField上
+    // 可以给字段设定默认值
+    private String val = "default";
 
     private String hello;
 
@@ -1693,6 +1699,8 @@ public List<Map<String, Object>> runSql(String sql, Map<String, Object> paramete
 - SpringMVC 的整个请求流程
 
 ![springmvc-flow](/data/images/java/springmvc-flow.png)
+
+- 前端控制器 - 处理映射器 - 处理适配器 - 处理器 - 视图解析器 - 视图渲染
 
 ### 映射处理器HandlerMapping
 

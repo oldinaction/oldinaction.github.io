@@ -224,7 +224,10 @@ p {
 
 /* 自动换行 */
 span {
-    word-wrap: break-word;
+    word-wrap: break-word; /* 如果无效可试试下面 */
+    /* overflow-wrap: anywhere; */
+    /* white-space: normal; */
+    /* word-break: break-all; */
 }
 
 /* 缩放 */

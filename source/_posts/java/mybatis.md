@@ -422,6 +422,10 @@ mybatis.config-location=classpath:mybatis-config.xml
                 <if test="params.get(item) != null">
                     and ${item} = #{params.${item}}
                 </if>
+
+                <if test='strList != null and strList.size() > 0 and strList.contains("ban")'>
+                    AND 'ban' = 'ban'
+                </if>
 			</sql>
             <!-- 只支持property参数值(不支持外部传入参数)，且property的value属性值不支持EL表达式 -->
 			<sql id="someinclude">from <include refid="${include_target}"/></sql>
@@ -485,6 +489,15 @@ mybatis.config-location=classpath:mybatis-config.xml
                 </trim> 
                 values (#{nickName}, #{groupId}, #{hobby})
 			</insert>
+
+            <!-- 
+                Mybatis一次执行多条sql，一个标签多个Insert、update、delete操作
+                还需要在数据库连接配置中加入 allowMultiQueries=true
+             -->
+            <insert id="addPurchase" parameterType="com.zhao.vo.PurchaseVoOne">
+                insert into t_goods (goods_name) values (#{goodsName});
+                insert into t_supplier (supplier_name) values (#{supplierName});
+            </insert>
 
 			<update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
 				update user_info set

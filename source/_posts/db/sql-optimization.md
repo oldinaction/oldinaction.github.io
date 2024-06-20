@@ -47,9 +47,9 @@ tags: [oracle, dba, sql]
 
         ```sql
         --语句事件记录表，这些表记录了语句事件信息
-        --当前语句事件表events_statements_current(_current表中每个线程只保留一条记录，一旦线程完成工作，该表中不会再记录该线程的事件信息)
-        --历史语句事件表events_statements_history(_history表中记录每个线程应该执行完成的事件信息，但每个线程的事件信息只会记录10条，且总记录数量是10000，超过就会被覆盖掉)
-        --长语句历史事件表events_statements_history_long
+        --当前语句事件表 events_statements_current(_current表中每个线程只保留一条记录，一旦线程完成工作，该表中不会再记录该线程的事件信息)
+        --历史语句事件表 events_statements_history(_history表中记录每个线程应该执行完成的事件信息，但每个线程的事件信息只会记录10条，且总记录数量是10000，超过就会被覆盖掉)
+        --长语句历史事件表 events_statements_history_long
         --以及聚合后的摘要表summary，其中，summary表还可以根据帐号(account)，主机(host)，程序(program)，线程(thread)，用户(user)和全局(global)再进行细分
         show tables like '%statement%';
 
@@ -95,9 +95,10 @@ tags: [oracle, dba, sql]
     - select_type 有下列常见几种
         - SIMPLE：最简单的 SELECT 查询，没有使用 UNION 或子查询
         - PRIMARY：在嵌套的查询中是最外层的 SELECT 语句，在 UNION 查询中是最前面的 SELECT 语句
-        - DERIVED：派生表 SELECT 查询，如 FROM 子句中的子查询。如：`select name fromm user u, (select id from user_class where id=1) t where t.id = u.class_id`
+        - DERIVED：派生表 SELECT 查询，如 FROM 子句中的子查询。如：`select name from user u, (select id from user_class where id=1) t where t.id = u.class_id`
         - SUBQUERY：子查询中第一个 SELECT 语句
         - DEPENDENT SUBQUERY：子查询中的第一个 SELECT，取决于外面的查询（外面查询的记录会逐一带入到子查询中进行查询）。**此类型出现建议优化**
+            - 如in一个子查询(可改成join)，参考：https://blog.csdn.net/kk185800961/article/details/49340589
         - UNION：UNION 中第二个以及后面的 SELECT 语句
         - UNION RESULT：一个 UNION 查询的结果
         - DEPENDENT UNION：首先需要满足 UNION 的条件，及 UNION 中第二个以及后面的 SELECT 语句，**同时该语句依赖外部的查询**
@@ -120,7 +121,8 @@ tags: [oracle, dba, sql]
     - **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 force index、use index 或者 ignore index. 如下
 
         ```sql
-        -- 指定索引/强制索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引; 使用Hint提示
+        -- 指定索引/强制索引
+        -- 如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引; 使用Hint提示
         select * from user use index(idx_name_sex) where id > 10000;
         -- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
         select *
@@ -133,7 +135,7 @@ tags: [oracle, dba, sql]
     - rows：显示 MySQL 认为它执行查询时必须检查的行数。注意这是一个预估值
     - filtered：表示存储引擎返回的数据在 server 层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数
     - **Extra**：显示 MySQL 在查询过程中的一些详细信息
-        - Using filesort：MySQL 有两种方式可以生成有序的结果，通过排序操作或者使用索引，当 Extra 中出现了 Using filesort 说明 MySQL 使用了后者，但注意虽然叫 filesort 但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，**所以一般这时也要考虑优化查询了**
+        - Using filesort：MySQL 有两种方式可以生成有序的结果，通过使用索引或者排序操作，当 Extra 中出现了 Using filesort 说明 MySQL 使用了后者，但注意虽然叫 filesort 但并不是说明就是用了文件来进行排序，只要可能排序都是在内存里完成的。大部分情况下利用索引排序更快，**所以一般这时也要考虑优化查询了**
         - Using temporary：说明使用了临时表，一般看到它说明查询需要优化了，就算避免不了临时表的使用也要尽量避免硬盘临时表的使用。
         - Not exists：MYSQL 优化了 LEFT JOIN，一旦它找到了匹配 LEFT JOIN 标准的行，就不再搜索了。
         - Using index：说明查询是覆盖索引，并且 where 筛选条件是索引的是前导列
@@ -229,7 +231,7 @@ tags: [oracle, dba, sql]
     - 查找特定索引列的 min 或 max 值
     - 如果排序或分组时在可用索引的最左前缀上完成的，则对表进行排序和分组
     - 在某些情况下，可以优化查询以检索值而无需查询数据行
-- 索引的分类：主键索引、唯一索引(和主键索引的区别是可以有空值, UNIQUE)、普通索引(NORMAL)、全文索引(innodb 5.6 才支持, FULLTEXT)、组合索引(多个字段组成的索引)；其他如：空间索引(SPATIAL)
+- 索引的分类：主键索引、唯一索引(和主键索引的区别是可以有空值, UNIQUE)、普通索引(NORMAL)、组合索引(多个字段组成的索引)、全文索引(innodb 5.6 才支持, FULLTEXT)；其他如：空间索引(SPATIAL)
 - [索引采用的数据结构](一#108#1:26:06)
 
     - mysql 数据文件
@@ -252,7 +254,7 @@ tags: [oracle, dba, sql]
             - AVL 树(AVL 为三个作者的名称简写)
 
                 - 需要保证最长子树和最短子树的高度差不能超过 1，否则需要进行旋转(需要旋转 1+N 次)
-                - 旋转包括左旋(逆时针旋转)和右旋(顺时针旋转)。左旋是把 Y 节点原来的左孩子当成 X 的右孩子，右旋是把 X 原来的右孩子当成 Y 的左孩子
+                - 旋转包括左旋(逆时针旋转)和右旋(顺时针旋转)。左旋是把 Y 节点原来的左孩子当成 X 的右孩子，右旋(下图从右到左)是把 X 原来的右孩子当成 Y 的左孩子
 
                     ![二叉树左旋.png](/data/images/db/二叉树左旋.png)
 
@@ -268,7 +270,7 @@ tags: [oracle, dba, sql]
 
             - B 树：根据 key 值(索引列值)对磁盘块进行分割，如`p1,10,p2,20,p3`(p1 为 key<10 的子树，10 和 20 可直接获取保存的 data 数据，p2 为 `10<=key<20` 的子树，p3 为 `key>=20` 的子树；如果读取 key=5 的 data 数据，则需要再根据 p1 获取子树进行判断)。由于 data 数据(表中的一条记录数据)占用空间较大，而 B 树的分支节点也会存储数据，导致能存储的 key 较少，从而树深度增加，因此 mysql 最终选择 B+树
             - **B+树**
-                - 根节点和分支节点只存储指针和键值，而将数据全部存在叶子节点(如果索引是主键则数据存放整好数据，如果索引是其他字段则数据存放的是主键)。B+树的叶子节点互相通过指针进行连接
+                - **根节点和分支节点只存储指针和键值(B树还会存储数据)，而将数据全部存在叶子节点(如果索引是主键则数据存放整行数据，如果索引是其他字段则数据存放的是主键)。** B+树的叶子节点互相通过指针进行连接
                 - 基本 3 层树结构，即 3 次 io 可支持千万级别的索引存储
                 - innodb 的由于数据文件和索引文件在一个文件，索引 data 存储的是每一行记录的所有数据，而 myisam 的 data 存储的则是行记录数据的地址，需要通过数据地址到.MYD 文件中再进行 io 查询出实际数据
             - B\*树：在 B+树的基础上，分支节点也会通过指针进行连接
@@ -324,7 +326,7 @@ tags: [oracle, dba, sql]
         -- 不会使用索引合并
         select * from test where key1_col2=2 and key2=2; -- 使用单一索引key2
         select * from test where key1_col2=2 or key2=2; -- 第一个索引不符合最左前缀，因此不会索引合并；且是or，因此整个语句不会使用索引
-        -- 显然我们是可以在这三个字段上建立一个组合索引来进行优化的，这样就只需要扫描一个索引一次，而不是对三个所以分别扫描一次
+        -- 显然我们是可以在这三个字段上建立一个组合索引来进行优化的，这样就只需要扫描一个索引一次，而不是对三个索引分别扫描一次
         select * from test where key1=1 and key2=2 and key3=3;
         ```
 
@@ -371,11 +373,11 @@ tags: [oracle, dba, sql]
         - 使用覆盖索引扫描的查询可以直接使用页节点中的主键值
     - **缺点**
         - 插入速度严重依赖于插入顺序，按照主键的顺序插入是最快的方式
-        - 更新聚簇索引列的代价很高，因为会强制将每个被更新的行移动到新的位置。如果批量导入数据时可以先将索引自动更新暂停，等导入成功后再开启索引自动更新，这样导入速度快
-        - 基于聚簇索引的表在插入新行，或者主键被更新导致需要移动行的时候，可能面临页分裂的问题
+        - 更新聚簇索引列的代价很高，因为会强制将每个被更新的行移动到新的位置。**如果批量导入数据时可以先将索引自动更新暂停，等导入成功后再开启索引自动更新，这样导入速度快**
+        - 基于聚簇索引的表在插入新行，或者主键被更新导致需要移动行的时候，**可能面临页分裂的问题**
         - 聚簇索引可能导致全表扫描变慢，尤其是行比较稀疏，或者由于页分裂导致数据存储不连续的时候
         - 聚簇数据最大限度地提高了 IO 密集型应用的性能，如果数据全部在内存，那么聚簇索引就没有什么优势
-- 非聚簇索引：**数据文件跟索引文件分开存放。**基于索引的查询过程是先找到索引对应的值，即数据的地址，再根据数据的地址到数据文件中查询实际数据。**如 MyISAM**
+- 非聚簇索引：**数据文件跟索引文件分开存放。** 基于索引的查询过程是先找到索引对应的值，即数据的地址，再根据数据的地址到数据文件中查询实际数据。**如 MyISAM**
 
 #### 优化小细节
 
@@ -408,20 +410,26 @@ tags: [oracle, dba, sql]
     - mysql 有两种方式可以生成有序的结果：通过排序操作或者按索引顺序扫描。如果 explain 出来的 type=index，则说明 mysql 使用了索引扫描来做排序
     - 扫描索引本身是很快的，因为只需要从一条索引记录移动到紧接着的下一条记录。但如果索引不能覆盖查询所需的全部列，那么就不得不每扫描一条索引记录就得回表查询一次对应的行，这基本都是随机 IO，因此按索引顺序读取数据的速度通常要比顺序地全表扫描慢
     - mysql 可以使用同一个索引即满足排序，又用于查找行，如果可能的话，设计索引时应该尽可能地同时满足这两种任务
-    - **只有当索引的列顺序和 order by 子句的顺序完全一致，并且所有列的排序方式都一样(都为 asc 或都为 desc)时，mysql 才能够使用索引来对结果进行排序。如果查询需要关联多张表，则只有当 order by 子句引用的字段全部为第一张表时，才能使用索引做排序。order by 子句和查找型查询的限制是一样的，需要满足索引的最左前缀的要求(where 字句和 order by 字句组合达到最左前缀也可)。**否则，mysql 都需要执行顺序操作，而无法利用索引排序。(group by 和 order by 类似)
+    - **只有当索引的列顺序和 order by 子句的顺序完全一致，并且所有列的排序方式都一样(都为 asc 或都为 desc)时，mysql 才能够使用索引来对结果进行排序。如果查询需要关联多张表，则只有当 order by 子句引用的字段全部为第一张表时，才能使用索引做排序。order by 子句和查找型查询的限制是一样的，需要满足索引的最左前缀的要求(where 字句和 order by 字句组合达到最左前缀也可)。** 否则，mysql 都需要执行顺序操作，而无法利用索引排序。(group by 和 order by 类似)
     - 案例
 
         ```sql
         -- sakila数据库中rental表在rental_date,inventory_id,customer_id上有索引
-        explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id,customer_id; -- type=ref,Extra=Using index condition. 此时order by子句不满足索引的最左前缀的要求，也可以用于查询排序，这是因为索引的第一列在where字句中被指定为一个常数(如果第一列是范围查询则无法触发索引排序)
-        explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id desc; -- type=ref,Extra=Using where. 该查询为索引的第一列提供了常量条件，而使用第二列进行排序，将两个列组合在一起，就形成了索引的最左前缀
-        explain select rental_id,staff_id from rental where rental_date > '2005-05-25' order by rental_date,inventory_id; -- -- type=ALL,Extra=Using where; Using filesort. 不会利用索引，该查询索引第一列是区间查询。**有说如果读取的数据少于30%时，此处也会使用索引排序**
-        explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id desc,customer_id asc; -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询使用了两中不同的排序方向，索引都是正序排的(如果索引列全部降序也可以使用索引排序)
-        explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id,staff_id; -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询引用了一个不在索引中的列
+        -- type=ref,Extra=Using index condition. 此时order by子句虽然不满足索引的最左前缀的要求，也可以用于查询排序
+        -- 这是因为索引的第一列在where字句中被指定为一个常数(如果第一列是范围查询则无法触发索引排序)
+        explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id,customer_id;
+        -- type=ref,Extra=Using where. 该查询为索引的第一列提供了常量条件，而使用第二列进行排序，将两个列组合在一起，就形成了索引的最左前缀
+        explain select rental_id,staff_id from rental where rental_date='2005-05-25' order by inventory_id desc;
+        -- type=ALL,Extra=Using where; Using filesort. 不会利用索引，该查询索引第一列是区间查询。**有说如果读取的数据少于30%时，此处也会使用索引排序**
+        explain select rental_id,staff_id from rental where rental_date > '2005-05-25' order by rental_date,inventory_id;
+        -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询使用了两中不同的排序方向，索引都是正序排的(如果索引列全部降序也可以使用索引排序)
+        explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id desc,customer_id asc;
+        -- type=ALL,Extra=Using where; Using filesort. 不会使用索引，该查询引用了一个不在索引中的列
+        explain select rental_id,staff_id from rental where rental_date = '2005-05-25' order by inventory_id,staff_id;
         ```
 
 - union all、in、or 都能够使用索引，但是推荐使用 in。union all 最少会执行两条语句，or 会循环比对
-- 优化 union 查询：除非确实需要服务器消除重复的行，否则一定要使用`union all`，因此没有 all 关键字，mysql 会在查询的时候给临时表加上 distinct 的关键字，这个操作的代价很高，需要注意 union all 可能导致数据重复
+- 优化 union 查询：除非确实需要服务器消除重复的行，否则一定要使用`union all`，因为没有 all 关键字，mysql 会在查询的时候给临时表加上 distinct 的关键字，这个操作的代价很高，需要注意 union all 可能导致数据重复
 - 范围列可以用到索引
     - 范围条件是：`<、<=、>、>=、between、like(列前缀)`
     - 范围列后面的列无法用到索引，索引最多用于一个范围列
@@ -434,7 +442,7 @@ tags: [oracle, dba, sql]
 - 创建索引的列最好不允许为 null
 - 当需要进行表连接的时候，最好不要超过三张表
     - **mysql 的 join 算法**：Simple Nested-Loop Join(简单嵌套循环连接)、Index Nested-Loop Join(索引嵌套循环连接)、Block Nested-Loop Join(缓存块嵌套循环连接) [^7]
-        - `Simple Nested-Loop Join` 匹配次数=外层表行数 \* 内层表行数
+        - `Simple Nested-Loop Join` 匹配次数=外层表行数(驱动表) \* 内层表行数(被join的表)
         - `Index Nested-Loop Join` 就是通过外层表匹配条件直接与内层表索引进行匹配，避免和内层表的每条记录去进行比较，这样极大的减少了对内层表的匹配次数，此时匹配次数变成了外层表的行数 \* 内层表索引的高度，极大的提升了 join 的性能
         - `Block Nested-Loop Join` 其优化思路是减少外层表的循环次数(io 次数)，通过一次性缓存多条数据，把参与查询的列(select 出来的)缓存到 join buffer 里，然后拿 join buffer 里的数据批量与内层表的数据进行匹配，从而减少了外层循环的次数，当不使用 Index Nested-Loop Join 的时候，默认使用的是 Block Nested-Loop Join(`Show variables like 'optimizer_switc%';`)。**其中 join buffer 的大小默认是 256kb(262144 byte)，可进行设置(64 位最大可使用 4G 的 Join Buffer 空间，查询如`Show variables like 'join_buffer_size%';`)**
     - 表连接查询的优化思路
@@ -493,7 +501,9 @@ tags: [oracle, dba, sql]
             - 关联查询优化：参考上文 mysql 的 join 算法
             - **排序优化**
                 - 推荐使用利用索引进行排序，但是当不能使用索引的时候，mysql 就需要自己进行排序，如果数据量小则再内存中进行，如果数据量大就需要使用磁盘，mysql 中称之为 filesort。如果需要排序的数据量小于排序缓冲区(`show variables like '%sort_buffer_size%';`)，mysql 使用内存进行快速排序操作，如果内存不够排序，那么 mysql 就会先将数据分块，对每个独立的块使用快速排序进行排序，并将各个块的排序结果存放再磁盘上，然后将各个排好序的块进行合并，最后返回排序结果
-                - 排序的算法 - 单次传输排序：先读取查询所需要的所有列，然后再根据给定列进行排序，最后直接返回排序结果，此方式只需要一次顺序 IO 读取所有的数据，而无须任何的随机 IO，问题在于查询的列特别多的时候，会占用大量的存储空间，无法存储大量的数据 - 两次传输排序：第一次数据读取是将需要排序的字段读取出来，然后进行排序，第二次是将排好序的结果按照需要去读取数据行。这种方式效率比较低，原因是第二次读取数据的时候因为已经排好序，需要去读取所有记录而此时更多的是随机 IO，读取数据成本会比较高。两次传输的优势，在排序的时候存储尽可能少的数据，让排序缓冲区可以尽可能多的容纳行数来进行排序操作 - 当需要排序的列的总大小超过`max_length_for_sort_data`定义的字节，mysql 会选择两次排序，反之使用单次排序，当然，用户可以设置此参数的值来选择排序的方式
+                - 排序的算法
+                    - 单次传输排序：先读取查询所需要的所有列，然后再根据给定列进行排序，最后直接返回排序结果，此方式只需要一次顺序 IO 读取所有的数据，而无须任何的随机 IO，问题在于查询的列特别多的时候，会占用大量的存储空间，无法存储大量的数据
+                    - 两次传输排序：第一次数据读取是将需要排序的字段读取出来，然后进行排序，第二次是将排好序的结果按照需要去读取数据行。这种方式效率比较低，原因是第二次读取数据的时候因为已经排好序，需要去读取所有记录而此时更多的是随机 IO，读取数据成本会比较高。两次传输的优势，在排序的时候存储尽可能少的数据，让排序缓冲区可以尽可能多的容纳行数来进行排序操作 - 当需要排序的列的总大小超过`max_length_for_sort_data`定义的字节，mysql 会选择两次排序，反之使用单次排序，当然，用户可以设置此参数的值来选择排序的方式
     - **优化特定类型的查询**
         - 优化 count()查询 - count()、count(id)、count(1)执行效率一样
         - myisam 的 count 函数比较快，这是有前提条件的：只有没有任何 where 条件的 count()才是比较快的
@@ -503,7 +513,7 @@ tags: [oracle, dba, sql]
             - 确保 on 或者 using 子句中的列上有索引，在创建索引的时候就要考虑到关联的顺序。当表 A 和表 B 使用列 C 关联的时候，如果优化器的关联顺序是 B、A，那么就不需要再 B 表的对应列上建上索引，没有用到的索引只会带来额外的负担，一般情况下来说，只需要在关联顺序中的第二个表的相应列上创建索引
             - 确保任何的 group by 和 order by 中的表达式只涉及到一个表中的列，这样 mysql 才有可能使用索引来优化这个过程 - 优化子查询：子查询的优化最重要的优化建议是尽可能使用关联查询代替
         - **减少强制类型转换**。如日期格式的列，传入日期字符串参数则会有效率问题(可能产生现象：PL/SQL使用日期字符串效率不会影响，但是同样的SQL在Mybatis下执行就很慢，当参数全部传入日期时效率得到提升)
-    - 优化 limit 分页：优化此类查询的最简单的办法就是尽可能地使用覆盖索引，而不是查询所有的列
+    - **优化 limit 分页：** 优化此类查询的最简单的办法就是尽可能地使用覆盖索引，而不是查询所有的列
 
         ```sql
         select film_id,description from film order by title limit 10000,10;
@@ -558,6 +568,7 @@ tags: [oracle, dba, sql]
     - 子分区
         - 在分区的基础之上，再进行分区后存储
     - 案例
+        - 修改、删除、合并分区参考：https://developer.aliyun.com/article/1245297
 
         ```sql
         -- 范围分区

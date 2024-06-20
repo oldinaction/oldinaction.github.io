@@ -92,7 +92,7 @@ tags: [os]
             - `-Xcomp` 使用编译执行模式，启动相对较慢，执行快
     - `Linking`
         - `Verification` 验证格式
-        - **`Preparation`** 依次给静态变量赋默认值(如0/false)
+        - **`Preparation`** 依次给**静态变量**赋默认值(如0/false)
             - 类加载：赋默认值 -> 赋初始值. [示例](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c02_classloader/T08_ClassLoadingProcedure.java)
             - new对象(类似类加载)：申请内存 -> 赋默认值 -> 赋初始值
         - `Resolution` 解析(将符号引用转换为直接引用)
@@ -112,7 +112,7 @@ tags: [os]
         - Bootstrap classLoader：底层由C++编写，已嵌入到了JVM内核当中，当JVM启动后，Bootstrap ClassLoader也随着启动，负责加载完核心类库后，并构造Extension ClassLoader和App ClassLoader类加载器
         - URLClassLoader：支持从jar文件和文件夹中获取class
         - ExtClassLoader：扩展类加载器，继承自URLClassLoader，加载位于$JAVA_HOME/jre/lib/ext目录下的扩展jar，查看源代码可知System.getProperty("java.ext.dirs")
-        AppClassLoader：应用类加载器，继承自URLClassLoader，也叫系统类加载器，ClassLoader.getSystemClassLoader()可得到它，它负载加载应用的classpath下的类，查找范围System.getProperty("java.class.path")，通过-cp或-classpath指定的类都会被其加载
+        - AppClassLoader：应用类加载器，继承自URLClassLoader，也叫系统类加载器，ClassLoader.getSystemClassLoader()可得到它，它负载加载应用的classpath下的类，查找范围System.getProperty("java.class.path")，通过-cp或-classpath指定的类都会被其加载
     - 作用
         - 防止重复加载同一个.class
         - 保证核心.class不能被篡改，为了安全考虑。假设自己定义一个java.lang.String进行自定义加载，用了双亲委派，则自定义加载器没有还需要到上层加载器询问，此时官方有定义这个类，则上层加载器会加载，自定义的String类则无效
@@ -179,7 +179,7 @@ tags: [os]
         }
     } else {
         return null;
-    }    
+    }
     ```
 
 ## JMM(Java内存模型)
@@ -238,10 +238,10 @@ tags: [os]
     - 不同的JVM实现可能不同，HotSpot使用的直接指针(寻找对象快，GC相对慢)
 - 对象怎么分配，见下文垃圾回收器
 - Object o = new Object()在内存中占用多少字节(64位系统)
-    - 基于jvm agent完成：在将class加载到内存是，会先执行指定的agent，此时可拦截class进行操作(如获取大小)。参考[ObjectSizeAgent.java.bak](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c03_object_size/ObjectSizeAgent.java.bak)
-    - 开启ClassLoader压缩：8(markword) + 4(ClassPointer指针) + 0(无实例数据/属性) + 4(Padding对齐) = 16字节
-    - 未开ClassLoader压缩：8(markword) + 8(ClassPointer指针) + 0(无实例数据/属性) + 0(Padding对齐) = 16字节
-- 比较两个类是否相等，只有它们是由同一个类加载器加载时，才有意义。对于同一个类，如果由不同类加载器加载，则他们也必然不相等。(相等包括Class对象的equals方法、isAssignableFrom()方法、isInstance()方法返回的结果,也包括用instanceof关键词判断的情况)
+    - 基于jvm agent完成：在将class加载到内存时，会先执行指定的agent，此时可拦截class进行操作(如获取大小)。参考[ObjectSizeAgent.java.bak](https://github.com/oldinaction/smjava/blob/master/jvm/src/main/java/cn/aezo/jvm/c03_object_size/ObjectSizeAgent.java.bak)
+    - 开启ClassPointer压缩：8(markword) + 4(ClassPointer指针) + 0(无实例数据/属性) + 4(Padding对齐) = 16字节
+    - 未开ClassPointer压缩：8(markword) + 8(ClassPointer指针) + 0(无实例数据/属性) + 0(Padding对齐) = 16字节
+- 比较两个对象是否相等，只有它们是由同一个类加载器加载时，才有意义。对于同一个类，如果由不同类加载器加载，则他们也必然不相等。(相等包括Class对象的equals方法、isAssignableFrom()方法、isInstance()方法返回的结果,也包括用instanceof关键词判断的情况)
 
 ### Runtime Data Area运行时数据区
 
@@ -255,7 +255,7 @@ tags: [os]
         - Frame栈帧组成
             - 局部变量表(`Local Variables`)
             - 操作数栈(`Opreand Stack`) 或表达式栈
-            - 动态链接 (`Dynamic Linking`) 或指向运行时常量的方法引用
+            - 动态链接 (`Dynamic Linking`) 或指向运行时常量池的方法引用
                 - 在Java源文件被编译到字节码文件中时，所有的变量和方法引用都作为符号引用(Symbolic Reference )保存在class文件的常量池里。比如，描述一个方法调用其他方法时，就是通过常量池中指向方法的符号引用来表示的，那么动态链接的作用就是为了将这些符号引用转换为调用方法的直接引用
                 - 加载类的Resolution阶段就是将符号应用转换为直接引用
             - 返回地址(Return Address) 或方法退出的引用的定义(a方法调用b方法，b方法返回的值保存的位置)
@@ -279,9 +279,9 @@ tags: [os]
     - load 从本地变量表中取值并放到栈顶(压栈)
         - `iload_<n>` 从第n个本地变量表中的int型值取出并放到栈顶。如果是short等则会转换为int
         - `lload_<n>` 从第n个本地变量表中的long型值取出并放到栈顶
-        - `fstore_<n>` float型
-        - `dstore_<n>` double型
-        - `astore_<n>` 引用型
+        - `fload_<n>` float型
+        - `dload_<n>` double型
+        - `aload_<n>` 引用型
     - const 将常量值放到栈顶(压栈)
         - `iconst_<i>` 将int型常量值i放到栈顶。其他数据类型同load
     - store 存表
@@ -404,7 +404,7 @@ public class T01_IntAddAdd {
 ![jvm-对象存放位置变化过程](/data/images/java/jvm-对象存放位置变化过程.png)
 
 - 对象存放位置变化过程
-    - 一个对象产生时，首先尝试在栈上分配，如果符合条件分配在栈了；当方法结束时，栈弹出，对象就终结了
+    - 一个对象产生时，首先尝试在栈上分配，如果符合条件分配在栈了，当方法结束时，栈弹出，对象就终结了
     - 如果没在栈上分配，就判断对象大小，如果特别大直接进入Old区，否则的话就分配至Eden区(TLAB也属于Eden区)
     - 如果进入Eden区：经过一次YGC后，存活对象在S1和S2交替，每换个区对象的年龄+1
     - 多次垃圾回收后，对象的年龄到了，就进入Old区(当然还有动态年龄、分配担保、大对象可进入Old区，见下文)
@@ -413,7 +413,7 @@ public class T01_IntAddAdd {
         - 条件
             - 线程私有小对象
             - 没有逃逸(只在某个方法中使用)
-            - 支持标量替换(这个对象可以用几个简单的变量替换，如成员变量都是基于类型或String)
+            - 支持标量替换(这个对象可以用几个简单的变量替换，如成员变量都是基础类型或String)
         - 多线程没有竞争；方法结束，栈弹出，对象消失，不用GC回收
         - 一般无需调整
     - 线程本地分配TLAB(Thread Local Allocation Buffer)
@@ -450,17 +450,11 @@ public class T01_IntAddAdd {
 ### 垃圾回收器相关概念
 
 - 垃圾查找算法
-    - `reference count` 引用计数，当计数为0时则认为是那就。不能解决循环引用
+    - `reference count` 引用计数，当计数为0时则认为是垃圾。不能解决循环引用
     - `root searching` **根可达算法**，从根对象开始找到都是有用的对象
         - 根对象：线程栈变量、静态变量、常量池、JNI指针
 - **垃圾清除算法**
-  - `Mark-Sweep` 标记清除
-    - 算法相对简单，存活对象比较多的情况下效率高
-    - 两遍扫描(标记+清除)，效率较低。标记算法如：三色标记
-    - 容易产生碎片
-
-    ![jvm-Mark-Sweep](/data/images/java/jvm-Mark-Sweep.png)
-  - `Copying` 拷贝（标记-拷贝）
+  - `Copying` 拷贝（标记拷贝）
     - 适用于存活对象较少的情况
     - 一遍扫描
     - 移动复制对象，需要调整对象引用
@@ -468,7 +462,13 @@ public class T01_IntAddAdd {
     - 产生内存减半，空间浪费
 
     ![jvm-Copying](/data/images/java/jvm-Copying.png)
-  - `Mark-Compact` 标记压缩
+  - `Mark-Sweep` 标记-清除
+    - 算法相对简单，存活对象比较多的情况下效率高
+    - 两遍扫描(标记+清除)，效率较低。标记算法如：三色标记
+    - 容易产生碎片
+
+    ![jvm-Mark-Sweep](/data/images/java/jvm-Mark-Sweep.png)
+  - `Mark-Compact` 标记-压缩
     - 扫描两次
     - 移动复制对象，需要调整对象引用
     - 不会产生碎片，方便对象分配
@@ -483,20 +483,23 @@ public class T01_IntAddAdd {
     - 存在问题
       - 会产生浮动垃圾：黑色A断开了灰色B的引用，此时B对象的属性则可能是垃圾
       - 漏标出现的情况(清除了正常的对象)
-        - 上图中黑色对象A指向了白色对象D，且原来灰色对象B指向D的引用消失(B不在指向D)
-        - 此时白色D只有一个黑色对象指向，因此会漏标(黑色不会再扫描属性)。而白色D此时是存活对象，漏标导致D被回收
+        - 上图中黑色对象A指向了白色对象D，且原来灰色对象B指向D的引用消失(B不再指向D)
+        - 此时白色D只有一个黑色对象指向，因此会漏标(黑色不会再扫描属性)。而白色D此时是存活对象，漏标导致D被回收(假设A是垃圾对象)
     - 解决漏标的算法
-      - `Incremental Update`：增量更新，关注引用的增加(即A指向D)；把黑色重新下标记为灰色，下次重新扫描属性
-      - `SATB`(snapshot at the beginning) 关注引用的删除(B不在指向D)，当引用消失时，把此引用推倒GC的堆栈
+      - `Incremental Update`：增量更新，关注引用的增加(即A指向D)；把黑色重新标记为灰色，下次重新扫描属性
+      - `SATB`(snapshot at the beginning) 关注引用的删除(B不再指向D)，当引用消失时，把此引用推到GC的堆栈用于下次扫描
     - 在引用增加和删除时，结合读写屏障（不同于内存屏障，可理解为AOP，在读写前增加一些额外操作），从而记录变化的引用
+    - 各垃圾回收器回收机制
+        - CMS算法：三色标记 + Incremental Update + 写屏障
+        - G1使用算法：三色标记 + SATB + 写屏障
+        - ZGC算法：颜色指针 + 读屏障
     - 为什么G1使用SATB
       - SATB结合`RSet`（参考下文）效率很高。SATB监控到的消失引用，会放到GC堆栈，下次扫描时根据此堆栈的对象引用，到RSet去查找
       - 增量更新则需要重新把标记过的对象重新检查其属性
-    - CMS算法：三色标记 + Incremental Update + 写屏障；G1使用算法：三色标记 + SATB + 写屏障；ZGC算法：颜色指针 + 读屏障
 - `颜色指针`（Color Pointer，ZGC使用）
     - 指在对象引用（指针）上会有一个color pointer标识此对象引用是否改变过，参考下文[ZGC](#ZGC)
 - `Card Table`
-    - 由于做YGC时，需要判断这个对象是否被其他对象引用，有可能这个对象已经在old区了，但是扫描整个old区，效率非常低，所以JVM设计了CardTable
+    - 由于做YGC时，需要判断这个对象是否被其他对象引用，有可能引用的对象已经在old区了，但是扫描整个old区，效率非常低，所以JVM设计了CardTable
     - 首先将old区分为多个CardTable，将对象放在CardTable中。**当某个CardTable有对象指向Yong区，就将它设为Dirty状态**，下次扫描时，只需要扫描Dirty CardTable的对象
     - CardTable用BitMap(010101标识每个CardTable是否为Dirty)来实现
 - `RSet`(RemembeeredSet) 记录了其他Region中的对象到本Region的引用，占用堆10%左右
@@ -832,105 +835,70 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
         - 分析 (jhat、jvisualvm、mat、jprofiler ... )
     - 如何监控JVM
         - jstat、jvisualvm、jprofiler、arthas、top...
-- 解决JVM运行中的问题
-    - `java -Xms200M -Xmx200M -XX:+PrintGC HelloWorld` 启动问题程序
-    - **`top`** 命令观察到问题：内存不断增长 CPU占用率居高不下，且某个进程占CPU较高
-        - **`top -Hp <pid>`** 观察进程中的线程，哪个线程CPU和内存占比高
-    - `jps` 定位具体java进程
-    - **`jstack <pid>`** 定位线程状况，重点关注：`WAITING`、`BLOCKED`。举例
-        - `waiting on <0x0000000088ca3310>` (a java.lang.Object) 假如有一个进程中100个线程，很多线程都在waiting on(等待0x0000000088ca3310这把锁/地址编号)，一定要找到是哪个线程持有这把锁
-        - 怎么找？执行`jstack <pid> | grep 0x0000000088ca3310`看哪个线程持有这把锁(该线程可能处于RUNNABLE)
-            - 如果是死锁的话，当前线程就会出现`locked <0x0000000088ca3310>`
-            - 为什么阿里规范里规定，线程的名称（尤其是线程池）都要写有意义的名称，就是为了容易定位线程的功能
-        - 如果一个事物中，修改数据后，方法一直未执行完(如调用restTemplate卡住)，可能会报`Lock wait timeout exceeded; try restarting transaction`
-        - 遇到下面死锁情况，但是程序可以正常运行，原因未知
 
+### 解决JVM运行中的问题
+
+- `java -Xms200M -Xmx200M -XX:+PrintGC HelloWorld` 启动问题程序
+- `jps` 定位具体java进程
+- **`top`** 命令观察到问题：内存不断增长 CPU占用率居高不下，且某个进程占CPU较高
+    - **`top -Hp <pid>`** 观察进程中的线程，哪个线程CPU和内存占比高
+- **`jstack <pid>`** 定位线程状况，重点关注：`WAITING`、`BLOCKED`。举例
+    - `waiting on <0x0000000088ca3310>` (a java.lang.Object) 假如有一个进程中100个线程，很多线程都在waiting on(等待0x0000000088ca3310这把锁/地址编号)，一定要找到是哪个线程持有这把锁
+    - 怎么找？执行`jstack <pid> | grep 0x0000000088ca3310`看哪个线程持有这把锁(该线程可能处于RUNNABLE)
+        - 如果是死锁的话，当前线程就会出现`locked <0x0000000088ca3310>`
+        - 为什么阿里规范里规定，线程的名称（尤其是线程池）都要写有意义的名称，就是为了容易定位线程的功能
+    - 如果一个事物中，修改数据后，方法一直未执行完(如调用restTemplate卡住)，可能会报`Lock wait timeout exceeded; try restarting transaction`
+- `jinfo <pid>` 列举JVM的一些信息
+- `jstat -gc` 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
+    - `arthas`/`jvisualvm`/`jconsole`/`Jprofiler`(最好用，收费)
+        - [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(**阿尔萨斯**)，常用命令如下
+            
             ```bash
-            # 正常应该不会出现这种情况，实际遇到了这种情况，但是程序可以正常运行
-            # waiting和locked在同一个线程中
-            "Abandoned connection cleanup thread" daemon prio=10 tid=0x00007f504cca8800 nid=0x191a in Object.wait() [0x00007f504047a000]
-            java.lang.Thread.State: TIMED_WAITING (on object monitor)
-                at java.lang.Object.wait(Native Method)
-                - waiting on <0x0000000786c1f928> (a java.lang.ref.ReferenceQueue$Lock)
-                at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
-                - locked <0x0000000786c1f928> (a java.lang.ref.ReferenceQueue$Lock)
-                at com.mysql.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:43)
-
-            "Tomcat JDBC Pool Cleaner[1863944551:1617781592472]" daemon prio=10 tid=0x00007f504ec31800 nid=0x1919 in Object.wait() [0x00007f504057b000]
-            java.lang.Thread.State: TIMED_WAITING (on object monitor)
-                at java.lang.Object.wait(Native Method)
-                - waiting on <0x00000007868eec38> (a java.util.TaskQueue)
-                at java.util.TimerThread.mainLoop(Timer.java:552)
-                - locked <0x00000007868eec38> (a java.util.TaskQueue)
-                at java.util.TimerThread.run(Timer.java:505)
-
-            "Finalizer" daemon prio=10 tid=0x00007f504c136000 nid=0x1900 in Object.wait() [0x00007f5042ea2000]
-            java.lang.Thread.State: WAITING (on object monitor)
-                at java.lang.Object.wait(Native Method)
-                - waiting on <0x0000000785e470f8> (a java.lang.ref.ReferenceQueue$Lock)
-                at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
-                - locked <0x0000000785e470f8> (a java.lang.ref.ReferenceQueue$Lock)
-                at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:151)
-                at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)
-
-            "Reference Handler" daemon prio=10 tid=0x00007f504c134000 nid=0x18ff in Object.wait() [0x00007f5042fa3000]
-            java.lang.Thread.State: WAITING (on object monitor)
-                at java.lang.Object.wait(Native Method)
-                - waiting on <0x0000000785e42d08> (a java.lang.ref.Reference$Lock)
-                at java.lang.Object.wait(Object.java:503)
-                at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
-                - locked <0x0000000785e42d08> (a java.lang.ref.Reference$Lock)
+            # https://arthas.aliyun.com/
+            
+            curl -O https://arthas.aliyun.com/arthas-boot.jar
+            java -jar arthas-boot.jar
+            # 如果有多个线程可输入序号仅选择，然后回车
             ```
-    - `jinfo <pid>` 列举JVM的一些信息
-    - `jstat -gc` 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
-        - `arthas`/`jvisualvm`/`jconsole`/`Jprofiler`(最好用，收费)
-            - [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(**阿尔萨斯**)，常用命令如下
-                
-                ```bash
-                # https://arthas.aliyun.com/
-                
-                curl -O https://arthas.aliyun.com/arthas-boot.jar
-                java -jar arthas-boot.jar
-                # 如果有多个线程可输入序号仅选择，然后回车
-                ```
-                - 为什么需要在线排查
-                    - 在生产上我们经常会碰到一些不好排查的问题，例如线程安全问题，用最简单的threaddump或者heapdump不好查到问题原因
-                    - 为了排查这些问题，有时我们会临时加一些日志，比如在一些关键的函数里打印出入参，然后重新打包发布，如果打了日志还是没找到问题，继续加日志，重新打包发布
-                    - 对于上线流程复杂而且审核比较严的公司，从改代码到上线需要层层的流转，会大大影响问题排查的进度
-                - `jvm` 观察jvm信息，类似jinfo
-                - **`thread`** 定位线程问题，类似jstack
-                    - `thread -n 3` 展示当前最忙的N各线程
-                - **`dashboard`** 观察系统情况
-                - `heapdump` 相当于使用jmap导出堆信息，也会影响线上程序
-                - `jad` 反编译。主要用于：动态代理生成类的问题定位、第三方的类、版本问题(确定自己最新提交的版本是不是被使用)
-                - `redefine` 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
-                - `sc` search class
-                - `watch` watch method
-                - 没有包含的功能：`jmap -histo`
-            - jvisualvm远程连接：https://www.cnblogs.com/liugh/p/7620336.html
-            - jconsole远程连接
-                - `java -Djava.rmi.server.hostname=192.168.6.134 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=11111 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false HelloWorld` 增加JMX相关参数
-                - 如果遭遇 Local host name unknown：XXX的错误，修改/etc/hosts文件，把XXX加入进去
-                - 关闭linux防火墙（并且应该打开对应端口远程访问）
-                - windows上打开 jconsole远程连接 192.168.6.134:11111
-            - 如果面试官问你是怎么定位OOM问题的？如果你回答用图形界面（错误）
-                - 已经上线的系统不应该启用JMX进程影响生产环境，而应该使用cmd命令、arthas
-                - 图形界面主要用在测试的时候进行监控（压测观察）
-        - `jstat -gc <pid> 500`：每个500个毫秒打印GC的情况
-    - **`jmap -histo <pid> | head -20*`** 查找有多少对象产生(线上执行影响相对较小)
-    - **`jmap -dump:format=b,file=/home/dump.hprof <pid>`** 导出堆转储文件
-        - **线上系统，内存特别大，jmap执行期间会对进程产生很大影响，甚至卡顿**(可在重启前下载dump文件)
-            - 很多服务器备份(高可用)，停掉这台服务器对其他服务器不影响(**此方案比较通用**)
-            - 设定-XX:+HeapDumpOnOutOfMemoryError参数，当OOM的时候会自动产生堆转储文件(**线上也不是很好的方案**)
-            - 在线定位(一般小点儿公司用不到)
-        - 使用jhat/jvisualvm/MAT进行dump文件分析。[jhat使用](https://www.cnblogs.com/baihuitestsoftware/articles/6406271.html)
-            - `jhat -J-mx512M /home/dump.hprof` 使用512M内存进行dump文件分析，分析时间可能较长(占用CPU会较多)
-                - 分析完后会在本地启动一个7000端口来展示结果信息，可以在线使用OQL语句进行查找特定对象
-                - 目录在主页的末尾: 有Show heap histogram查看堆栈对象、执行OQL语句、Show instance counts for all classes (excluding platform)会展示不包含平台的所有类的信息
-                - 无法看到出错的线程栈
-            - `jvisualvm` 文件 - 装入dump文件，也可使用OQL语句进行查找
-                - 可以看到出错的线程栈
-    - 找到代码的问题
+            - 为什么需要在线排查
+                - 在生产上我们经常会碰到一些不好排查的问题，例如线程安全问题，用最简单的threaddump或者heapdump不好查到问题原因
+                - 为了排查这些问题，有时我们会临时加一些日志，比如在一些关键的函数里打印出入参，然后重新打包发布，如果打了日志还是没找到问题，继续加日志，重新打包发布
+                - 对于上线流程复杂而且审核比较严的公司，从改代码到上线需要层层的流转，会大大影响问题排查的进度
+            - `jvm` 观察jvm信息，类似jinfo
+            - **`thread`** 定位线程问题，类似jstack
+                - `thread -n 3` 展示当前最忙的N各线程
+            - **`dashboard`** 观察系统情况
+            - `heapdump` 相当于使用jmap导出堆信息，也会影响线上程序
+            - `jad` 反编译。主要用于：动态代理生成类的问题定位、第三方的类、版本问题(确定自己最新提交的版本是不是被使用)
+            - `redefine` 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
+            - `sc` search class
+            - `watch` watch method
+            - 没有包含的功能：`jmap -histo`
+        - 如果面试官问你是怎么定位OOM问题的？如果你回答用图形界面（错误）
+            - 已经上线的系统不应该启用JMX进程影响生产环境，而应该使用cmd命令、arthas
+            - 图形界面主要用在测试的时候进行监控（压测观察）
+    - `jstat -gc <pid> 500`：每个500个毫秒打印GC的情况
+- **`jmap -histo <pid> | head -20*`** 查找有多少对象产生(线上执行影响相对较小)
+- **`jmap -dump:format=b,file=/home/dump.hprof <pid>`** 导出堆转储文件
+    - **线上系统，内存特别大，jmap执行期间会对进程产生很大影响，甚至卡顿**(可在重启前下载dump文件)
+        - 很多服务器备份(高可用)，停掉这台服务器对其他服务器不影响(**此方案比较通用**)
+        - 设定-XX:+HeapDumpOnOutOfMemoryError参数，当OOM的时候会自动产生堆转储文件(**线上也不是很好的方案**)
+        - 在线定位(一般小点儿公司用不到)
+    - 使用jhat/jvisualvm/MAT进行dump文件分析。[jhat使用](https://www.cnblogs.com/baihuitestsoftware/articles/6406271.html)
+        - `jhat -J-mx512M /home/dump.hprof` 使用512M内存进行dump文件分析，分析时间可能较长(占用CPU会较多)
+            - 分析完后会在本地启动一个7000端口来展示结果信息，可以在线使用OQL语句进行查找特定对象
+            - 目录在主页的末尾: 有Show heap histogram查看堆栈对象、执行OQL语句、Show instance counts for all classes (excluding platform)会展示不包含平台的所有类的信息
+            - 无法看到出错的线程栈
+        - `jvisualvm` 文件 - 装入dump文件，也可使用OQL语句进行查找
+            - 可以看到出错的线程栈
+- jvisualvm远程连接：https://www.cnblogs.com/liugh/p/7620336.html
+    - 线程 - 线程dump(查看所有线程快照，不影响线上运行)
+- jconsole远程连接
+    - `java -Djava.rmi.server.hostname=192.168.6.134 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=11111 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false HelloWorld` 增加JMX相关参数
+    - 如果遭遇 Local host name unknown：XXX的错误，修改/etc/hosts文件，把XXX加入进去
+    - 关闭linux防火墙（并且应该打开对应端口远程访问）
+    - windows上打开 jconsole远程连接 192.168.6.134:11111
+- 找到代码的问题
 
 ### 一些案例
 
@@ -968,6 +936,44 @@ for(int i=0; i<100; i++) {
     Object o = new Object();
 }
 ```
+- 遇到下面死锁情况，但是程序可以正常运行，原因未知
+
+    ```bash
+    # 正常应该不会出现这种情况，实际遇到了这种情况，但是程序可以正常运行
+    # waiting和locked在同一个线程中
+    "Abandoned connection cleanup thread" daemon prio=10 tid=0x00007f504cca8800 nid=0x191a in Object.wait() [0x00007f504047a000]
+    java.lang.Thread.State: TIMED_WAITING (on object monitor)
+        at java.lang.Object.wait(Native Method)
+        - waiting on <0x0000000786c1f928> (a java.lang.ref.ReferenceQueue$Lock)
+        at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
+        - locked <0x0000000786c1f928> (a java.lang.ref.ReferenceQueue$Lock)
+        at com.mysql.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:43)
+
+    "Tomcat JDBC Pool Cleaner[1863944551:1617781592472]" daemon prio=10 tid=0x00007f504ec31800 nid=0x1919 in Object.wait() [0x00007f504057b000]
+    java.lang.Thread.State: TIMED_WAITING (on object monitor)
+        at java.lang.Object.wait(Native Method)
+        - waiting on <0x00000007868eec38> (a java.util.TaskQueue)
+        at java.util.TimerThread.mainLoop(Timer.java:552)
+        - locked <0x00000007868eec38> (a java.util.TaskQueue)
+        at java.util.TimerThread.run(Timer.java:505)
+
+    "Finalizer" daemon prio=10 tid=0x00007f504c136000 nid=0x1900 in Object.wait() [0x00007f5042ea2000]
+    java.lang.Thread.State: WAITING (on object monitor)
+        at java.lang.Object.wait(Native Method)
+        - waiting on <0x0000000785e470f8> (a java.lang.ref.ReferenceQueue$Lock)
+        at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
+        - locked <0x0000000785e470f8> (a java.lang.ref.ReferenceQueue$Lock)
+        at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:151)
+        at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)
+
+    "Reference Handler" daemon prio=10 tid=0x00007f504c134000 nid=0x18ff in Object.wait() [0x00007f5042fa3000]
+    java.lang.Thread.State: WAITING (on object monitor)
+        at java.lang.Object.wait(Native Method)
+        - waiting on <0x0000000785e42d08> (a java.lang.ref.Reference$Lock)
+        at java.lang.Object.wait(Object.java:503)
+        at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
+        - locked <0x0000000785e42d08> (a java.lang.ref.Reference$Lock)
+    ```
 
 ## JVM常用配置
 

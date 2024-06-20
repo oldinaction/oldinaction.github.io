@@ -577,7 +577,7 @@ select * from table(sql_pivot_dynamic_col('bill_fee_cod', 'bill_fee', 'where POR
 
 ### 常用存储过程
 
-#### 定时清理数据库日志表
+#### 定时清理数据库业务日志表
 
 ```sql
 -- 创建存储过程

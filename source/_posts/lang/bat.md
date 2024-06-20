@@ -325,6 +325,7 @@ echo off
     %~d0
     set MY_PROJECT_HOME=%~p0
     cd %MY_PROJECT_HOME%
+    rem set JAVA_HOME=D:/software/jdk8
     "%JAVA_HOME%\bin\java" -DLog4j2.formatMsgNoLookups=true -jar my.jar
     @pause
     ```
@@ -363,6 +364,7 @@ echo off
         java -jar my.jar
         ```
     - 使用`RunHiddenConsole.exe`。需要将其加入到PATH或放在bat的同级目录，如下示例。[RunHiddenConsole下载地址](http://redmine.lighttpd.net/attachments/download/660/RunHiddenConsole.zip)
+        
         ```bat
         :: 启动脚本 start_php_cgi.bat(直接执行php-cgi.exe默认监听端口是9000)
         @echo off

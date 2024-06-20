@@ -43,6 +43,7 @@ tags: [H5, App, 小程序, mobile]
     - 必须https域名，且需要在微信后台配置业务域名。开发环境同上
     - 个人小程序不支持业务域名设置
 - 图片网络地址：必须是https域名，且需要在微信后台配置业务域名。开发环境同上
+- downloadFile合法域名: 必须https，不验证域名所属权（支持跨域显示）
 
 #### 视频播放限制
 
@@ -55,6 +56,7 @@ tags: [H5, App, 小程序, mobile]
 
 - 调试体验版或者正式版：体验版调试直接打开小程序调试模式；正式版调试需要先打开体验版调试模式，再访问正式版
 - 图片
+    - (uniapp)需要增加 **`:show-menu-by-longpress="true"`** 此属性才能进行长按二维码图片识别(如是公众号/小程序/联系人二维码均可识别打开，**个人小程序也支持**)
     - **使用background-image属性时**，不支持url设置本地路径图片，需转成base64或使用网络地址(http/https，无需绑定域名)，否则演示和生产版不显示(仅开发版显示，开发版真机调试也不显示)
     - 使用`<image src="/static/robot.png">`(或相对路径) 则无此问题，会自动转成base64
     - 使用image图片比background-image快
@@ -148,10 +150,31 @@ tags: [H5, App, 小程序, mobile]
 
 ### 开放能力
 
-- 获取手机号(企业号才能)
+- 获取手机号(个人号也可以，注册赠送1000额度，之后收费)
     - 参考：https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getPhoneNumber.html
     - `<button @tap="loginByPhone" :open-type="agree ? 'getPhoneNumber' : ''" @getphonenumber="getPhoneNumber" class="cu-btn bg-main lg">微信快捷登录</button>`
     - 在getPhoneNumber方法中可获取到 detail{code,encryptedData,errMsg,iv}字段，传到后台再调用微信接口获取用户手机号; 成功时 errMsg='getPhoneNumber:ok' (如errMsg='getPhoneNumber:fail user deny'表示用户拒绝了手机号获取)
+- 获取手机号(实时验证，企业号才能；注册赠送1000额度，之后收费)
+    - 参考：https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getRealtimePhoneNumber.html
+    
+```html
+<!-- 
+    用户点击按钮 - 小程序底部弹框显示获取手机号确认框(类似普通手机号获取) - 用户点击手机号(或管理号码添加手机号，用户点击后就会进行调用扣费)
+    -> (如果选择的是微信绑定手机号) - 则直接进入getrealtimephonenumber回调获取到数据(此时并不会收到验证码)
+    -> (如果选择的是其他手机号) - 则底部弹框显示成验证码输入界面 - 输入收到的验证码 - 进入getrealtimephonenumber回调获取到数据
+    - 将获取到的动态令牌调用后台 - 然后调用phonenumber.getPhoneNumber接口获取实际手机号
+-->
+<button class="bg-cyan shadow margin-top-lg" open-type="getRealtimePhoneNumber"
+	    @getrealtimephonenumber="getrealtimephonenumber">获取手机验证码</button>
+
+<script>
+    getrealtimephonenumber(e) {
+        console.log(e.detail.code)  // 动态令牌: 1c8e44a371484004da181bada6d0b86deddc962e91c6783aacfd5663583c5123
+        console.log(e.detail.errMsg) // 回调信息（成功失败都会返回）: getPhoneNumber:ok
+        console.log(e.detail.errno)  // 错误码（失败时返回）
+    }
+</script>
+```
 - 小程序消息
     - 小程序模板消息：支持一次性订阅和通知(用户点击订阅一次就通知一次)、多次通知(特殊类型政府结构才有)
     - 如果需要多次通知用户，可使用微信公众号模板消息(2311: 但是此权限微信有意收回，正在内测公众号订阅消息，类似小程序)
@@ -165,14 +188,40 @@ tags: [H5, App, 小程序, mobile]
     - 部分手机需要打开定位功能，且确认微信有权限访问蓝牙和定位
     - 小程序蓝牙授权需要确认允许
 
+### 微信小程序短链接生成
+
+- 参考[小程序链接](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/url-scheme.html)
+- 基于URL Link
+  - (可选) 生成普通短链接，访问此短链接的时候，解析出长链接及相关参数
+  - 再调用 `https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/qrcode-link/url-link/generateUrlLink.html` 接口生成URL Link微信短链接。参考：`weixin-java-miniapp#WxMaLinkServiceImpl.generateUrlLink`
+  - 并将用户重定向到此URL Link微信短链接
+  - 此时会显示微信官方H5引导页面，点击按钮后，用户会跳转到小程序相应页面
+  - 扩展
+    - URL Link短链接：如 `https://wxaurl.cn/JlwDztaumga` 如果是非微信环境访问此链接会自动提示打开微信，打开后会自动跳转到小程序；如果是微信环境(微信浏览器)需要人工点击打开小程序按钮，然后弹框提示后点击允许即可跳转到小程序
+    - Schema短链接：可将短链接改成 `weixin://dl/business/?t=JlwDztaumga` (参数保持不变)，此时微信环境打开可省略第一步点击按钮，会自动跳出弹框确认，点击允许即可跳转；但是不支持非微信环境打开
+- 基于自定义H5静态页面跳转
+  - 参考：https://developers.weixin.qq.com/miniprogram/dev/wxcloud/guide/staticstorage/jump-miniprogram.html
+
 ### 个人小程序限制
 
 - 不支持web-view(企业)
 - 无法获取用户手机号(企业认证)
 
+### 3D模型嵌入
+
+- [platformize框架](https://github.com/deepkolos/platformize)
+    - [集合three.js在小程序中展示3D模型](https://gitcode.com/mirrors/deepkolos/three-platformize)
+- [uniapp微信小程序引入threeJs并导入模型](https://blog.csdn.net/hzqzzz/article/details/126428029)
+- [原生微信小程序使用three.js 实现外部obj,fbx,gltf模型导入以及模型点击交互弹框](https://juejin.cn/post/7169425712267722766)
+
+### 关于审核
+
+- 审核时可以自动扫描到pages.json里面所有的页面
+
 ## 微信H5开发
 
 - [微信公众号开发测试平台地址](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)
+- [接口权限说明](https://developers.weixin.qq.com/doc/offiaccount/Getting_Started/Explanation_of_interface_privileges.html)
 - 微信网页开发
     - 通过微信浏览器打开网页时的场景。此时可调用[JS-SDK](#JS-SDK)获取一些硬件能力
     - 通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力，为微信用户提供更优质的网页体验
@@ -186,7 +235,8 @@ tags: [H5, App, 小程序, mobile]
 - 设置与开发 - 公众号设置 - 功能设置(每个月每个域名可改5次)
     - 业务域名：设置业务域名后，在微信内访问该域名下页面时，不会被重新排版。用户在该域名上进行输入时，不出现下图所示的安全提示。可填写3个域名或路径
     - JS安全域名：设置JS接口安全域名后，公众号开发者可在该域名下调用微信开放的JS接口。可填写5个域名或路径
-    - 网页授权域名：用户在网页授权页同意授权给公众号后，微信会将授权数据传给一个回调页面，回调页面需在此域名下，以确保安全可靠。可填写2个域名或路径
+    - 网页授权域名(用户获取用户openid)：用户在网页授权页同意授权给公众号后，微信会将授权数据传给一个回调页面，回调页面需在此域名下，以确保安全可靠。可填写2个域名或路径
+        - **订阅号无法开通此接口，服务号必须通过微信认证**
 - 微信内置浏览器清缓存最新方法
     - 以前的debugx5.qq.com不能用了
     - 微信 - 我 - 设置 - 通用 - 存储空间 - 缓存 - 取消全选 - 勾选其他 - 清理
@@ -233,6 +283,8 @@ tags: [H5, App, 小程序, mobile]
     - 花生壳等
     - https://juejin.cn/post/6922714815567773710
 
+## 企业微信开发
+
 ## 微信登录
 
 ### 微信浏览器中获取用户信息
@@ -268,6 +320,13 @@ tags: [H5, App, 小程序, mobile]
 
 ## 微信支付
 
+- 支付场景
+    - 线下场所
+    - 公众号
+    - 小程序
+    - App
+    - PC网站: 需要ICP证书(一个公司只有一个，可以绑定多个域名)
+    - 企业微信
 - 支付流程
     - Native(网站段扫描二维码支付)
         - 基础参数: 商户号、AppID、秘钥、证书、证书序列化
@@ -295,6 +354,9 @@ tags: [H5, App, 小程序, mobile]
 	    - 开发配置: 配置白名单域名
 	    - AppID账户管理
             - 需要绑定微信服务号、小程序来获取AppID
+- 关于支付宝支付
+    - 微信小程序内不允许有支付宝支付（包括不允许通过复制链接到默认浏览器中进行支付）
+    - 公众号内嵌H5可引导用户到默认浏览器进行支付宝支付：https://opendocs.alipay.com/support/01rfu4
 
 ### 开发
 
@@ -303,16 +365,17 @@ tags: [H5, App, 小程序, mobile]
 - 进入微信支付商户平台管理后台，根据菜单找到相关参数
 - 账户中心 - 商户信息
     - 微信支付商户号：如1642097457
-    - 商户类型：如特约商户
+    - 商户类型：如普通商户(常用)、特约商户
 - 账户中心 - API安全
     - API证书: 生成时需要管理员手机验证，生成的压缩包(如: 1642097457_20230701_cert.zip)
-    - 证书序列号：点击申请API证书 - 管理证书 - 找到证书序列号(如: 5D5A5DF0CAEA798FDACB0728FB9EB12912AB5B43)
+    - 证书序列号：点击申请API证书 - 管理证书 - 找到证书序列号(如: 5D5A5DF0CAEA798FDACB0728FB9EB12912AB5B43)。或者通过证书文件读取(建议)
     - APIv2密钥
     - APIv3密钥
 
 #### 相关问题
 
 - 提示`v3请求构造异常！`，参考 https://gitee.com/egzosn/pay-java-parent/issues/I4EXXY，JDK老版本需要修改两个jar包，参考 https://blog.csdn.net/dafeige8/article/details/76019911
+- 提示`商户证书序列号有误。`，可通过证书文件获取序列号`openssl x509 -in apiclient_cert.pem -noout -serial`
 
 ## 微信云托管
 

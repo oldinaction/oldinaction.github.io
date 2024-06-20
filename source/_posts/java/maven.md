@@ -1253,9 +1253,9 @@ services:
     - 参考: https://stackoverflow.com/questions/26358449/how-to-unpublish-npm-packages-in-nexus-oss
     - nexus2不支持unpublish和deprecate，nexus3支持deprecate
     - 手动删除包
-        - cd `.../nexus/storage/<your_npm_repo>/<your_package>/-/`进行删除 (注意不要到your_package目录后执行`cd -`，此时-是特殊字符)
+        - cd `.../nexus/storage/<your_npm_repo>/<your_package>/-/`进行删除 (注意不要到your_package目录后执行`cd ./-`，此时-是特殊字符)
         - 然后手动对npm hosted仓库执行nexus的schedules: `Delete npm metadata`(会删除所有npm元数据)和`Rebuild hosted npm metadata`(根据tarballs获取元数据并重建)
-        - 此时如果重新推送同样的版本，本地再安装可能存在缓存，需要先清除缓存(`npm cache clean -f`清除所有缓存，yarn可以基于某个模块单独清理)，然后删除`package-lock.json`(每次重新安装会校验此文件中的integrity sha512值和远程仓库中的integrity，不一致会报错，所以要先清除)，再重新安装
+        - 此时如果重新推送同样的版本，本地再安装可能存在缓存，需要先清除缓存(**`npm cache clean -f`**清除所有缓存，yarn可以基于某个模块单独清理)，然后删除`package-lock.json`(每次重新安装会校验此文件中的integrity sha512值和远程仓库中的integrity，不一致会报错，所以要先清除)，再重新安装
 
 ## 其他
 

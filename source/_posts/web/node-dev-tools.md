@@ -96,6 +96,8 @@ npm root -g
 # 以@test开头的包从 registry=https://npm.xx.com 这里下载，其余全去淘宝镜像下载
 registry=https://registry.npm.taobao.org
 @test:registry=https://npm.xx.com
+# 设置 SASS 镜像源，效果与 SASS_BINARY_SITE=https://registry.npmmirror.com/-/binary/node-sass npm install node-sass 相同
+sass_binary_site=https://registry.npmmirror.com/-/binary/node-sass
 
 # 可以使用环境变量; 对于一些私有仓库(如Nexus)则必须设置always-auth才能进行拉取和推送; _auth为私有仓库秘钥(可通过`echo -n 'username:password' | openssl base64`获取)
 registry=${CORP_NEXUS_NPM}
@@ -126,7 +128,7 @@ npm config set registry https://registry.npm.taobao.org -g
             - 如: https://unpkg.com/@sqbiz/wplugin-tinymce-vue@1.0.0-biz-minions/lib/WpluginTinymceVue.umd.min.js
         - 基于国外 `https://cdn.jsdelivr.net/npm/<package>@<version>/<file>`
             - 如查找https://www.jsdelivr.com/package/npm/@tarojs/taro
-    - [npm包源码在线查看工具](https://uiwjs.github.io/npm-unpkg/)
+    - [npm包源码在线查看工具](https://uiwjs.github.io/npm-unpkg/), npm官网也提供源码查看功能
     - [npm软件包的体积和加载性能在线分析工具](https://bundlephobia.com/)
     - [npm依赖在线分析工具(显示有点乱)](http://npm.anvaka.com/)
         - 本地可使用`npm ls > tree.log`查看，参考下文
@@ -556,14 +558,35 @@ vue --version # @vue/cli 4.3.0
 npm install lerna@3.22.1 -g
 lerna -v
 
-# 在项目下初始化lerna配置 => 创建 lerna.json 文件
+## 初始化
+# 在项目下初始化lerna配置 => 创建 lerna.json 文件，参考下文
+lerna init # --packages="packages/*"
 # --independent: 可选。独立模式允许具体维护每个包的版本，包的版本由每个包的package.json的version字段维护；或者将lerna.json中的version设置为independent(如果为具体版本值，则所有的包都使用一套版本递增)
 # independent模式下执行 lerna publish 会需要选择每个包的版本，否则只需要选择一次统一的版本
-lerna init --independent
+lerna init --independent # 简写 lerna init -i
+# 添加一个package包
+lerna create core
 # 查看lerna.json#packages配置的目录下的package.json文件定义的包
 lerna list
 
-# 发布包: https://zhuanlan.zhihu.com/p/372889162
+## 包管理(v7不在支持，可使用npm代替：https://lerna.js.org/docs/legacy-package-management#replacing-your-usage-of-lerna-bootstraplerna-link)
+# 给所有模块添加第三方模块
+lerna add lodash
+# 单独给某个模块添加第三方模块
+lerna add jquery --scope=core
+# 并不会将 pkg1 安装到 pkg2 的 node_modules 里，而是通过 symlink 的形式进行关联
+# npm install pkg1 -w pkg2 # v7可使用，在项目根目录运行
+lerna add pkg1 --scope=pkg2
+# 会重新安装所有依赖
+lerna bootstrap
+# 删除所有包中的node_modules
+# lerna clean
+
+## 多模块本地调试(v7不在支持，内部包会自动link)
+# 需要将依赖包写入到主模块中
+lerna link
+
+## 发布包: https://zhuanlan.zhihu.com/p/372889162
 # 需要提交所有代码，且需要确保npm已登录和切回成官方镜像
 # nrm use npm # 之后可切回来 nrm use taobao
 # 默认每次会把所有的包都发布一遍(包含没有修改的)，优化方案可参考[Lerna独立模式下如何优雅的发包](https://juejin.cn/post/7012622147726082055)
@@ -573,6 +596,37 @@ lerna publish
 lerna publish from-git
 # 会自动比较本地package.json和远端的该文件；如果没修改代码的也不会推送，如果修改了代码但是没有修改package.json中的版本号则会发布失败: Cannot publish over previously published version
 lerna publish from-package
+
+# 执行命令，在每个包下都会执行
+lerna run <script> -- [..args]
+lerna exec -- <command> [..args]
+```
+- lerna.json 说明
+
+```js
+{
+    "useWorkspaces": true, // 使用 workspaces 配置。此项为 true 的话，将使用 package.json 的 "workspaces"，下面的 "packages" 字段将不生效
+    "version": "0.1.0", // 所有包版本号，独立模式-"independent"
+    "npmClient": "yarn", // npm client，可设置为 cnpm、yarn 等
+    "packages": [ // 包所在目录，可指定多个
+        "packages/*"
+    ],
+    "command": { // lerna 命令相关配置
+        "publish": { // 发布相关
+            "ignoreChanges": [ // 指定文件或目录的变更，不触发 publish
+                ".gitignore",
+                "*.log",
+                "*.md"
+            ]
+        },
+        "bootstrap": { // bootstrap 相关
+            "ignore": "npm-*",  // 不受 bootstrap 影响的包
+            "npmClientArgs": [ // bootstr 执行参数
+                "--no-package-lock"
+            ]
+        }
+    }
+}
 ```
 
 ## 开发库
@@ -647,6 +701,27 @@ npm install --save @babel/polyfill
 - [rollupjs](https://cn.rollupjs.org/)
 
 ### Vite
+
+### patch-package手动npm包打补丁
+
+- 参考：https://juejin.cn/post/6962554654643191815
+
+### postcss
+
+- https://github.com/postcss/postcss
+- 用 JavaScript 工具和插件转换 CSS 代码的工具
+- postcss插件编写
+    - PostCSS 是利用 JS 对CSS 代码进行转换处理。借助各种 PostCSS 插件可以用来为CSS 属性进行增删改查等操作(如: 添加浏览器兼容前缀、px转rem...), PostCSS 底层已经将 CSS 转义成 AST, 而我们开发一个 PostCSS 插件其实就是通过 JS 操作这个 AST 即可。参考：https://juejin.cn/post/7126455957508325407
+    - [在线 CSS to AST](https://astexplorer.net/#/2uBU1BLuJ1)
+    - PostCSS 8 插件不兼容 PostCSS 7 版本
+    - 事件(钩子)参考：https://postcss.org/api/#plugin
+        - Root: CSS 语法树, 代表 css 文件
+        - AtRule: 以@开头的内容(如: @media(screen){})
+        - Rule: 已声明的选择器(如: input, button{})
+        - Declaration: 属性名-属性值(如: color: red)
+        - Comment: 注释
+    - 案例参考(不用打包，提交npm安装即可)：https://github.com/postcss/postcss-focus
+    - 初始化一个插件`npx postcss-plugin-boilerplate --npm postcss-mytest`
 
 ## 格式规范化
 

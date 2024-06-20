@@ -306,6 +306,11 @@ Template template = engine.getTemplate("templates/email/velocity_test.vtl");
 String result = template.render(Dict.create().set("name", "Hutool"));
 ```
 
+## Sa-Token
+
+- 官网：https://sa-token.cc/
+- 默认将数据保存在内存中，分布式环境可设置成保存到Redis；和JWT集成支持Stateless无状态模式
+
 ## Spring工具类
 
 ```java
@@ -365,11 +370,55 @@ xwpfRun.setColor("ed4014"); // hex值
 ### poi-tl
 
 - [github](https://github.com/Sayi/poi-tl)、[文档](http://deepoove.com/poi-tl/)
-- 基于模板操作Word
+- **基于模板操作Word**
 - 技巧
     - 区块支持内嵌子区块(原代码貌似会有问题，修复一下NumberingContinue.java即可)
     - 对于图片引用，WPS无法修改文字，可将图片文件名改成对于模板变量在拖到WPS，如`{{itemImage}}.png`
     - 对于部分排版场景可考虑无边框表格，循环渲染更方便
+    - 貌似如果`builder.useSpringEL();`开启SpringEL，则都必须使用这种模式，则不支持自带的表格`{{#table}}`等写法
+- 表格行循环和表格列循环
+
+```java
+LoopRowTableRenderPolicy rowPolicy = new LoopRowTableRenderPolicy();
+LoopColumnTableRenderPolicy colPolicy = new LoopColumnTableRenderPolicy();
+
+Configure config = Configure.builder()
+        .bind("table3", rowPolicy)
+        .bind("table4", colPolicy)
+        .build();
+
+data.put("table3", table3);
+data.put("table4", table4);
+```
+
+![表格行循环和表格列循环模板](../../data/images/2024/java-tools/image.png)
+![表格行循环和表格列循环效果图](../../data/images/2024/java-tools/image-1.png)
+
+- 动态增加换页符(参考上文案例图)
+
+```java
+// 参考：https://blog.csdn.net/wzw114/article/details/127545483
+Configure config = Configure.builder()
+        .bind("isPageBreak", new AbstractRenderPolicy<Boolean>() {
+            @Override
+            public void doRender(RenderContext<Boolean> context) throws Exception {
+                XWPFRun where = context.getWhere();
+                boolean thing = context.getThing();
+                where.setText("", 0);
+                if (thing) {
+                    where.addBreak(BreakType.PAGE);
+                }
+            }
+        })
+        .build();
+
+// 模板中使用 {{isPageBreak}}
+XWPFTemplate template = XWPFTemplate.compile("src/test/resources/poitl/tpl/template3.docx", config);
+
+data.put("isPageBreak", true);
+template.render(data);
+```
+
 
 ### Easypoi
 
@@ -620,6 +669,8 @@ Map map = (Map) Yaml.load(yamlStr);
 
 ### jackson
 
+- 其他说明
+    - 像fastjson、jackson等工具类，将对象转成json字符串时，如果继承了Map即可，则默认会忽略其他属性，仅会序列化Map的值，貌似可以显示指定
 - Jackson 的 1.x 版本的包名是 org.codehaus.jackson ，当升级到 2.x 版本时，包名变为 com.fasterxml.jackson
 - 依赖(jackson-databind 依赖 jackson-core 和 jackson-annotations)
 
@@ -702,6 +753,8 @@ objectMapper = new Jackson2ObjectMapperBuilder()
     - [fastjson最佳实践](http://i.kimmking.cn/2017/06/06/json-best-practice/)
 - 自定义序列化之过滤器，参考上述文档，案例参考下文
     - 可以在每次JSON.toJSONString的时候单独传入过滤器
+- 其他说明
+    - 像fastjson、jackson等工具类，将对象转成json字符串时，如果继承了Map即可，则默认会忽略其他属性，仅会序列化Map的值，貌似可以显示指定
 - 全局配置(序列化/反序列化)案例
 
 ```java
@@ -915,6 +968,7 @@ System.out.println("evaluate = " + evaluate); // evaluate = 2
 
 - 源码优化、混淆器
 - [源码](https://github.com/Guardsquare/proguard)、[ProGuard官网手册](https://www.guardsquare.com/manual/home)
+
 
 
 

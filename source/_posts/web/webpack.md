@@ -91,12 +91,21 @@ module.exports = {
 };
 ```
 
-
 ### 外网访问
 
-```json
+```js
+// vue3 vue.config.js
+module.exports = {
+    // 跳过检查host
+    allowedHosts: ['www.test.cn', '.vicp.fun'],
+    // 跳过检查host 好像没效？
+    devServer: {
+        disableHostCheck: true
+    }
+}
+
 // --host 0.0.0.0 指定开发的ip
-// --disableHostCheck true 指定不检查Host，否则容易出现`Invalid Host header`(也可以使用--public)解决
+// --disableHostCheck true 指定不检查Host(好像没效？)，否则容易出现`Invalid Host header`(也可以使用--public)解决
 "scripts": {
     "dev": "webpack-dev-server --content-base ./ --open --inline --hot --compress --config build/webpack.dev.config.js --disableHostCheck true --host 0.0.0.0 --port 7710",
 },
@@ -104,28 +113,36 @@ module.exports = {
 
 ### 环境变量
 
-- 基于cross-env进行操作：`npm i cross-env -D` 安装cross-env插件
-- package.json
-
-```json
-"scripts": {
-    "cross-env": "cross-env API_URL=http://192.168.17.50:8050/ffs-crm/crm",
-    "dev": "webpack-dev-server --content-base ./ --open --inline --hot --compress --config build/webpack.dev.config.js --port 7710",
-},
-```
+- [EnvironmentPlugin/DefinePlugin/DotenvPlugin](https://webpack.js.org/plugins/environment-plugin/)
+    - 定义环境变量，其他js文件中使用`process.env.API_URL`即可，也可直接使用`API_URL`，环境变量运行时或者打包都会被替换成真实值(如果没定义环境变量，则打包时报错，如果直接引用node_modules里面的由于不会有打包过程，所以就会变成浏览器js报错)
 - webpack.dev.config.js
 
 ```js
-plugins: [  
+plugins: [
+    // 用于定义环境变量
     new webpack.DefinePlugin({
         'process.env': {
             API_URL: JSON.stringify(process.env.API_URL)
-        }
-    })
+        },
+        DEBUG: JSON.stringify(false)
+    }),
+    // EnvironmentPlugin用于定义默认值，可使用process.env.NODE_ENV进行覆盖
+    new webpack.EnvironmentPlugin({
+        NODE_ENV: 'development', // use 'development' unless process.env.NODE_ENV is defined
+        DEBUG: false,
+    }),
 ]
 ```
-- 其他js文件中使用`process.env.API_URL`即可
-- 启动时可以覆盖此参数`npm run cross-env API_URL=http://localhost:8050/ffs-crm/crm npm run dev`
+- 也可基于cross-env进行操作：`npm i cross-env -D` 安装cross-env插件
+    - package.json
+
+    ```json
+    "scripts": {
+        "cross-env": "cross-env API_URL=http://192.168.17.50:8050/ffs-crm/crm",
+        "dev": "webpack-dev-server --content-base ./ --open --inline --hot --compress --config build/webpack.dev.config.js --port 7710",
+    },
+    ```
+    - 启动时可以覆盖此参数`npm run cross-env API_URL=http://localhost:8050/ffs-crm/crm npm run dev`
 
 ### 配置API代理解决跨域问题
 
@@ -172,9 +189,7 @@ module.exports = {
 <% } %>
 ```
 
-## 插件
-
-### loaders
+## Loaders
 
 - [script-loader](https://v4.webpack.js.org/loaders/script-loader/)
     - 全局上下文中执行一次 JS 脚本

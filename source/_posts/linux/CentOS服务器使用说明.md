@@ -232,7 +232,7 @@ rpm -Fvh nginx # 如果装有老版本则升级，否则退出
 
 ```bash
 # 基于包管理工具安装，可以更好的解决包依赖关系。-y 安装时回答全部问题为是
-yum install -y nginx
+yum install -y nginx # 部分安装nginx需要提前装 yum install -y epel-release
 # 卸载
 yum remove nginx
 # 查看版本。`yum install -y ceph-common-14.2.4-0.el7.x86_64` 安装指定版本
@@ -349,6 +349,9 @@ systemctl reload crond
 - [宝塔](https://www.bt.cn/)Linux面板是提升运维效率的服务器管理软件，支持一键LAMP/LNMP/集群/监控/网站/FTP/数据库/JAVA等100多项服务器管理功能。启动约占60M内存
 
 ```bash
+## 直接使用官网脚本安装。会自动选择国内国外最快下载节点
+https://www.bt.cn/new/download.html
+
 ## 安装. 确保是干净的操作系统，没有安装过其它环境带的Apache/Nginx/php/MySQL/pgsql/gitlab/java（已有环境不可安装）
 # 默认只能安装在 /www 目录，因此可提前创建好软连接
 mkdir /home/bt
@@ -373,6 +376,7 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
     - 面板设置
         - 设置面板别名如`SH-01`，设置登录用户名如`sh01`
         - 面板安全告警，微信公众号
+        - 面板SSL - 开启 - 自签名。常见问题参考下文
         - 绑定域名，绑定后只能通过域名访问
     - 软件商店
         - 进程守护管理器：可启动守护进程
@@ -386,6 +390,12 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
 - 面板SSL证书过期导致无法登录
     - `rm -f /www/server/panel/data/domain.conf` 删除绑定域名
     - 用ip和端口访问(端口可通过/www/server/panel/vhost/nginx/proxy中的配置文件查看)
+- 自签名面板SSL证书问题参考：https://www.bt.cn/bbs/thread-105443-1-1.html
+    - MAC下载根证书后，双击安装，输入密码提示密码错误
+        - `openssl pkcs12 -in /Users/test/Downloads/baota_root.pfx -clcerts -nokeys -out certificate.crt` 并输入密码(一般为www.bt.cn，会提示MAC verified OK)
+        - 然后将certificate.crt文件拖拽到钥匙串访问程序中 - 右键显示简介 - 信任 - 始终信任
+    - 下载根证书处界面，不显示证书密码
+        - 参考上文，在使用openssl pkcs12命令后，密码不用输入直接回车即可
 - Let's Encrypt证书无法自动更新问题(主要针对springboot项目)
 
 ```py

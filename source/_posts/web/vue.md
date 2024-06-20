@@ -1,16 +1,89 @@
 ---
 layout: "post"
-title: "vue"
+title: "Vue"
 date: "2018-04-03 17:14"
 categories: [web]
 tags: vue
 ---
 
-## 基本
+## 简介
 
 - 参考文章
     - https://juejin.cn/post/6844903476661583880
 - vue异常代码开发环境正常报错，编译之后不报错且页面卡死问题。参考: https://github.com/PanJiaChen/vue-element-admin/issues/2212
+
+## Vue3
+
+- 选项式和组合式：选项时为类似Vue2的JSON模式，组合式为类似React的函数式模式(使我们可以使用函数而不是声明选项的方式书写 Vue 组件)
+- Vue3中没有了`$parent`和`$children`
+    - 可通过`getCurrentInstance()`获取当前组件，`findComponentUpward()`向上查找父组件，和`findComponentsDownward()`向下查找子组件。参考：https://juejin.cn/post/7117808675716071460
+- 文章
+    - Vue3结合JSX
+        - [babel-plugin-jsx](https://github.com/vuejs/babel-plugin-jsx)
+        - 插槽和v-model使用：https://blog.csdn.net/cookcyq__/article/details/131440253
+    - [Vue2 与 Vue3 如何创建响应式数据](https://zhuanlan.zhihu.com/p/357434039)
+
+### 语法
+
+- [v-model](https://cn.vuejs.org/guide/components/v-model.html)
+    - 单个属性建议使用`modelValue`(固定props值)，此时直接`v-model="data"`即可
+    - 多个属性可定时如`myModel`(取值props.myModel)，此时需使用`v-model:myModel="data"`(只有modelValue才能进行省略)
+- watch
+    - [Vue3中watch的最佳实践](https://juejin.cn/post/6980987158710452231)
+
+    ```js
+    <script setup>
+    import { watch, ref, reactive } from 'vue'
+    // ==> 侦听一个 getter
+    const person = reactive({name: '小松菜奈'})
+    watch(
+        () => person.name, 
+        (n, o) => {
+            console.log(n, o)
+        },
+        {immediate:true}
+    )
+    person.name = '有村架纯'
+
+    // ==> 直接侦听ref，及停止侦听
+    const ageRef = ref(16)
+    const stopAgeWatcher = watch(ageRef, (n, o) => {
+        console.log(n, o)
+        if (value > 18) {
+            stopAgeWatcher() // 当ageRef大于18，停止侦听
+        }
+    })
+
+    const changeAge = () => {
+        ageRef.value += 1
+    }
+
+    // ==> 监听多个数据源
+    // 如果你在同一个函数里同时改变这些被侦听的来源，侦听器只会执行一次
+    // 如果用 nextTick 将两次修改隔开，侦听器会执行两次
+    const name = ref('小松菜奈')
+    const age = ref(25)
+
+    watch([name, age], ([name, age], [prevName, prevAge]) => {
+        console.log('newName', name, 'oldName', prevName)
+        console.log('newAge', age, 'oldAge', prevAge)
+    })
+
+    // ==> 侦听引用对象（数组Array或对象Object）
+    const arrayRef = ref([1, 2, 3, 4])
+    const objReactive = reactive({name: 'test'})
+
+    // ref deep, getter形式，新旧值不一样
+    const arrayRefDeepGetterWatch = watch(() => [...arrayRef.value], (n, o) => {
+        console.log(n, o)
+    }, {deep: true})
+
+    // reactive，deep，(修改name)新旧值不一样
+    const arrayReactiveGetterWatch = watch(() => objReactive, (n, o) => {
+        console.log(n, o)
+    }, {deep: true})
+    </script>
+    ```
 
 ### 约定俗成
 
@@ -1087,7 +1160,7 @@ this.$root.eventBus.$off('eventName')
         - 匿名组件，不可匹配(比如路由组件没有name选项时，并且没有注册的组件名)
         - 只能匹配当前被包裹的组件，不能匹配更下面嵌套的子组件(比如用在路由上，只能匹配路由组件的name选项，不能匹配路由组件里面的嵌套组件的name选项)
         - `<keep-alive>`不会在函数式组件中正常工作，因为它们没有缓存实例
-        - exclude的优先级大于include
+        - include和exclude可同时使用，exclude的优先级大于include
 - 路由和keep-alive
     - 如果发现未缓存，可看看是否有子孙路由也用到了router-view，此时要将最近的router-view进行缓存
     - https://www.lmlphp.com/user/16603/article/item/552232/
@@ -1147,6 +1220,10 @@ this.$root.eventBus.$off('eventName')
             }
         </script>
         ```
+- 不同路由指向同一组件，需要全部缓存
+    - 方案一：避免路由直接指向同一组件，可将在外面报告一层页面，参考：https://blog.csdn.net/yanxiaomu/article/details/100753335
+    - 方案二：更改keep-alive源码使自定义key为path(默认为组件name)，参考：https://blog.csdn.net/qq_44170108/article/details/133313641
+    - 参考路由页签组件：https://github.com/bhuh12/vue-router-tab
 
 ## 事件
 
@@ -2150,7 +2227,6 @@ render: (h, params) => {
 }
 
 
-
 // 写法优化1
 {
 	title:'操作',
@@ -2160,11 +2236,15 @@ render: (h, params) => {
         let that = this
 
         let editButtonAttr = {
+            // vue3使用onClick
             on: {
                 click: () => {
                     that.edit(row)
                 }
             }
+            // vue3使用修饰符
+            // import { withModifiers } from 'vue'
+            onClick: withModifiers(() => {}, ['stop', 'prevent'])
         }
         let editButton = h('Button', editButtonAttr, '编辑')
 

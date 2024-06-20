@@ -18,7 +18,7 @@ tags: [ai]
 
 ## 软件
 
-- 
+- 聊天
     - ChatGPT: 问答模式
     - [claude](https://claude.ai)
         - 支持附件
@@ -41,6 +41,7 @@ tags: [ai]
 
 - [Hugging Face](http://www.huggingface.co): 目前已经共享了超100,000个预训练模型，10,000个数据集，变成了机器学习界的github
     - https://zhuanlan.zhihu.com/p/535100411
+- [Gitpod](https://www.gitpod.io/): Gitpod是一个基于云的集成开发环境（IDE），它为开发人员提供了一个完全在线的编码环境
 
 ## 案例
 

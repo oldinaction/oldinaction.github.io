@@ -371,6 +371,22 @@ public class DictName {
     - base_prod.properties
 - 调用 `String key = DictName.getPropertyValueByProfiles("base.properties", "myAttr")`
 
+### 子路径入口
+
+```xml
+<!--
+    1.可配置mount-point前缀路径/demo1来达到增加全局子路径的效果 
+    2.如果是跨模块调用，可定义前缀路径，并全局替换之前的路径，如 '/mod1/control/main' 为 Main.contextUrl + '/mod1/control/main'
+    3.对应ftl中引入的样式文件则进行全局替换，或定义配置，FTL取值
+-->
+<webapp name="systemmgr"
+        title="SystemMgr"
+        server="default-server"
+        location="webapp/systemmgr"
+        base-permission="OFBTOOLS,SYSTEMMGR"
+        mount-point="/demo1/systemmgr"/>
+```
+
 ### 邮件配置
 
 - 参考 http://lamadong.blog.163.com/blog/static/207085720093226432980/
@@ -599,7 +615,9 @@ public static int execSql(Delegator delegator, String sql) {
 - 相关表
     - Tenant 租户ID
     - TenantDataSource 租户ID数据源
-    - TenantUserLogin 用户对应租户ID(主库只存此对应关系，使用用户和密码是存在租户库的UserLogin中，主库没有存)
+    - TenantUserLogin 用户对应租户ID(主库只存此对应关系，实际用户和密码是存在租户库的UserLogin中，主库没有存)
+    - TenantKeyEncryptingKey
+    - TenantComponent
 - 获取默认Delegator `Delegator baseDelegator = DelegatorFactory.getDelegator(delegator.getDelegatorBaseName());`
 - 流程
 
@@ -627,7 +645,7 @@ public static int execSql(Delegator delegator, String sql) {
         // ...
     }
 
-    // 2.XXXFilter.java 可拦截登录进行数据分流，并写入session
+    // 2.XXXFilter.java 可拦截登录进行数据分流，根据请求特征值获取对应Tenant，并将delegatorName写入session
 
     // 3.org/ofbiz/webapp/control/ControlServlet.java 基于用户session进行数据分流
     String delegatorName = (String) session.getAttribute("delegatorName");
@@ -639,6 +657,17 @@ public static int execSql(Delegator delegator, String sql) {
     }
     request.setAttribute("delegator", delegator);
     session.setAttribute("delegatorName", delegator.getDelegatorName());
+
+    // session使用redis存储，dispatcher无法序列化也就不会存储到session中
+    // 因此需要先根据delegatorName创建，否则创建的是默认的dispatcher
+    // Security同理，可使用 security = SecurityFactory.getInstance(delegator); 手动创建
+    LocalDispatcher dispatcher = (LocalDispatcher) session.getAttribute("dispatcher");
+    if (dispatcher == null && UtilValidate.isNotEmpty(delegatorName) && delegator != null) {
+        dispatcher = ContextFilter.makeWebappDispatcher(getServletContext(), delegator);
+    }
+    if (dispatcher == null) {
+        dispatcher = (LocalDispatcher) getServletContext().getAttribute("dispatcher");
+    }
     
     // 4.org/ofbiz/webapp/control/LoginWorker.java 登录成功，将数据分流信息存入session
     public static String login(HttpServletRequest request, HttpServletResponse response) {
@@ -657,7 +686,8 @@ public static int execSql(Delegator delegator, String sql) {
         request.setAttribute("dispatcher", dispatcher);
         request.setAttribute("security", security);
 
-        session.setAttribute("delegatorName", delegator.getDelegatorName());
+        session.setAttribute("delegatorName", delegator.getDelegatorName()); // 对于开启Tenant非常重要
+        // 如果是session保存在redis中则下面两个可以不用设置(delegator无法序列化)
         session.setAttribute("delegator", delegator);
         session.setAttribute("dispatcher", dispatcher);
     }
@@ -673,11 +703,11 @@ public static int execSql(Delegator delegator, String sql) {
         <!-- 主数据库 -->
         <group-map group-name="org.ofbiz" datasource-name="localoracle"/>
         <group-map group-name="org.ofbiz.olap" datasource-name="localoracle"/>
-        <!-- 多租户配置库(一般也存放再主数据库中)：里面存放的是每个tenant的数据库配置、默认的模块等信息 -->
+        <!-- 多租户配置库(一般也存放在主数据库中)：里面存放的是每个tenant的数据库配置、默认的模块等信息 -->
         <group-map group-name="org.ofbiz.tenant" datasource-name="localoracletenant"/>
     </delegator>
 
-    <!-- 主数据源去掉了schema参数，schema-name="YARDSAAS" -->
+    <!-- 主数据源去掉了schema参数，schema-name="SAAS" -->
     <datasource name="localoracle"
             helper-class="org.ofbiz.entity.datasource.GenericHelperDAO"
             field-type-name="oracle"
@@ -696,8 +726,8 @@ public static int execSql(Delegator delegator, String sql) {
         <inline-jdbc
                 jdbc-driver="oracle.jdbc.driver.OracleDriver"
                 jdbc-uri="jdbc:oracle:thin:@192.168.1.1:1521:orcl"
-                jdbc-username="YARDSAAS"
-                jdbc-password="YARDSAAS"
+                jdbc-username="SAAS"
+                jdbc-password="SAAS"
                 pool-minsize="2"
                 pool-maxsize="250"
                 time-between-eviction-runs-millis="600000"/>
@@ -705,7 +735,7 @@ public static int execSql(Delegator delegator, String sql) {
     <datasource name="localoracletenant"
                 helper-class="org.ofbiz.entity.datasource.GenericHelperDAO"
                 field-type-name="oracle"
-                schema-name="YARDSAAS"
+                schema-name="SAAS"
                 check-on-start="true"
                 add-missing-on-start="true"
                 alias-view-columns="false"
@@ -721,8 +751,8 @@ public static int execSql(Delegator delegator, String sql) {
         <inline-jdbc
                 jdbc-driver="oracle.jdbc.driver.OracleDriver"
                 jdbc-uri="jdbc:oracle:thin:@192.168.1.1:1521:orcl"
-                jdbc-username="YARDSAAS"
-                jdbc-password="YARDSAAS"
+                jdbc-username="SAAS"
+                jdbc-password="SAAS"
                 pool-minsize="2"
                 pool-maxsize="250"
                 time-between-eviction-runs-millis="600000"/>
@@ -872,6 +902,20 @@ public static int execSql(Delegator delegator, String sql) {
 
 ### 数据库相关
 
+- 创建账号
+
+```sql
+select * from SAAS1.PARTY ORDER BY PARTY_ID DESC; -- 13000
+select * from SAAS1.PERSON t WHERE T.PARTY_ID = '12140';
+select * from SAAS1.USER_LOGIN t where t.USER_LOGIN_ID = 'saas1';
+select * from SAAS1.USER_LOGIN_SECURITY_GROUP t where t.USER_LOGIN_ID = 'saas1'
+select * from SAAS1.User_Party_Role t WHERE T.USER_LOGIN_ID = 'saas1';
+select * from SAAS.TENANT_USER_LOGIN; -- 如果是saas环境还有在主库中关联数据源
+-- 堆场权限
+insert into SAAS1.User_Party_Role(user_login_id, party_id, type)
+select 'zjtmp1', party_id, type from SAAS1.User_Party_Role t WHERE T.USER_LOGIN_ID = 'saas1';
+```
+
 - 清理数据库日志数据
 
 ```sql
@@ -898,20 +942,54 @@ alter index server_hit_visit rebuild online;
 alter index server_hit_party rebuild online;
 alter index server_hit_txstmp rebuild online;
 alter index server_hit_txcrts rebuild online;
+-- 还需释放extent，从而统计dba_extents的数值才会正常
+alter table server_hit deallocate unused keep 1k;
+alter index pk_server_hit deallocate unused keep 1k;
+
+-- oracle
+-- 生成禁用SQL
+select 'alter table TEST.'|| table_name ||' disable constraint '|| constraint_name ||';' 
+    from dba_constraints where owner = 'TEST' and table_name = 'T_USER' and constraint_type='R';
+alter table xxx_table_name disable constraint xxx_constraint_name; -- 禁用外键
+alter table xxx_table_name enable novalidate constraint xxx_constraint_name; -- 启用外键(novalidate仅校验新增的数据，历史数据不校验，否则可能因为禁用外键删除数据后再启用外键会报错找不到约束数据)
 ```
 
-- 创建账号
+- 清理账号信息
 
 ```sql
-select * from YARDSAAS1.PARTY ORDER BY PARTY_ID DESC; -- 13000
-select * from YARDSAAS1.PERSON t WHERE T.PARTY_ID = '12140';
-select * from YARDSAAS1.USER_LOGIN t where t.USER_LOGIN_ID = 'saas1';
-select * from YARDSAAS1.USER_LOGIN_SECURITY_GROUP t where t.USER_LOGIN_ID = 'saas1'
-select * from YARDSAAS1.User_Party_Role t WHERE T.USER_LOGIN_ID = 'saas1';
-select * from YARDSAAS.TENANT_USER_LOGIN; -- 如果是saas环境还有在主库中关联数据源
--- 堆场权限
-insert into YARDSAAS1.User_Party_Role(user_login_id, party_id, type)
-select 'zjtmp1', party_id, type from YARDSAAS1.User_Party_Role t WHERE T.USER_LOGIN_ID = 'saas1';
+-- 暂存需要删除的的用户信息
+-- truncate table C##YSS.temp_del_user_login;
+insert into C##YSS.temp_del_user_login(USER_LOGIN_ID, PARTY_ID)
+    select t.USER_LOGIN_ID, t.PARTY_ID from C##YSS.USER_LOGIN t where t.CREATED_STAMP > to_date('2016-03-22', 'yyyy-MM-dd') and t.USER_LOGIN_ID not in ('my_admin');
+select * from C##YSS.temp_del_user_login;
+-- truncate table C##YSS.temp_del_user_login;
+
+-- 先禁用其他表的外键，然后删除USER_LOGIN，再启用外键
+-- alter table C##YSS.PARTY disable constraint PARTY_CUL;
+-- alter table C##YSS.PARTY enable novalidate constraint PARTY_CUL;
+select 'alter table C##YSS.'|| table_name ||' disable constraint '|| constraint_name ||';'
+    from dba_constraints where owner = 'C##YSS' and R_CONSTRAINT_NAME = 'PK_USER_LOGIN' and constraint_type='R';
+delete from C##YSS.USER_LOGIN t where t.USER_LOGIN_ID in (select a.USER_LOGIN_ID from C##YSS.temp_del_user_login a);
+-- 启用(enable novalidate) 外键
+select 'alter table C##YSS.'|| table_name ||' enable novalidate constraint '|| constraint_name ||';'
+    from dba_constraints where owner = 'C##YSS' and R_CONSTRAINT_NAME = 'PK_USER_LOGIN' and constraint_type='R';
+
+-- 先禁用其他表的外键，然后删除PARTY_ROLE，再启用外键
+select 'alter table C##YSS.'|| table_name ||' disable constraint '|| constraint_name ||';'
+    from dba_constraints where owner = 'C##YSS' and R_CONSTRAINT_NAME = 'PK_PARTY_ROLE' and constraint_type='R';
+delete from PARTY_ROLE t where t.PARTY_ID in (select a.PARTY_ID from C##YSS.temp_del_user_login a);
+-- 启用(enable novalidate) 外键
+
+delete from PARTY_STATUS t where t.PARTY_ID in (select a.PARTY_ID from C##YSS.temp_del_user_login a);
+delete from C##YSSDWYN.PERSON t where t.CREATED_STAMP > to_date('2016-03-22', 'yyyy-MM-dd') and t.PARTY_ID not in ('10000');
+-- 先禁用其他表的外键，然后删除PARTY，再启用外键
+select 'alter table C##YSS.'|| table_name ||' disable constraint '|| constraint_name ||';'
+    from dba_constraints where owner = 'C##YSS' and R_CONSTRAINT_NAME = 'PK_PARTY' and constraint_type='R';
+delete from C##YSS.PARTY t where t.PARTY_ID in (select a.PARTY_ID from C##YSS.temp_del_user_login a);
+-- 启用(enable novalidate) 外键
+
+delete from C##YSS.USER_LOGIN_SECURITY_GROUP t where t.USER_LOGIN_ID in (select a.USER_LOGIN_ID from C##YSS.temp_del_user_login a);
+-- delete from C##YSS.USER_PARTY_ROLE t where t.USER_LOGIN_ID in (select a.BOX_NUSER_LOGIN_IDUMBER from C##YSS.temp_del_user_login a);
 ```
 
 ## 服务引擎
@@ -1520,6 +1598,16 @@ Screens
 
 ### 自定义启动脚本
 
+- Windows
+
+```bat
+title=ofbiz-test
+D:
+cd D:\ofbiz_test
+set JAVA_HOME=D:\software\jdk1.8.0_31
+call D:\ofbiz_test\ant.bat
+call D:\ofbiz_test\tools\startofbiz.bat
+```
 - 一台服务器有多个OFBiz项目启动还存在问题，会全部重启
 
 ```bash
@@ -1725,42 +1813,170 @@ mv /app/framework/entity/config/entityengine.${PROFILES_NAME}.xml /app/framework
 - 参考：https://www.wyl.im/archives/61
     - 测试使用4.0：https://github.com/ran-jit/tomcat-cluster-redis-session-manager/releases/tag/4.0
     - 需要commons-pool2-2.6.2.jar，总共4个jar
-    - CatalinaContainer
+- CatalinaContainer
 
-    ```java
-    String redisEnable = UtilProperties.getPropertyValue("general", "redis.cluster.enabled", "false");
+```java
+String redisEnable = UtilProperties.getPropertyValue("general", "redis.session.enabled", "false");
 
-    Manager sessionMgr = null;
-    if (clusterProp != null && contextIsDistributable) {
-        String mgrClassName = ContainerConfig.getPropertyValue(clusterProp, "manager-class", "org.apache.catalina.ha.session.DeltaManager");
-        try {
-            sessionMgr = (Manager)Class.forName(mgrClassName).newInstance();
-        } catch (Exception exc) {
-            throw new ContainerException("Cluster configuration requires a valid manager-class property: " + exc.getMessage());
+Manager sessionMgr = null;
+if (clusterProp != null && contextIsDistributable) {
+    String mgrClassName = ContainerConfig.getPropertyValue(clusterProp, "manager-class", "org.apache.catalina.ha.session.DeltaManager");
+    try {
+        sessionMgr = (Manager)Class.forName(mgrClassName).newInstance();
+    } catch (Exception exc) {
+        throw new ContainerException("Cluster configuration requires a valid manager-class property: " + exc.getMessage());
+    }
+} else if("true".equals(redisEnable)) {
+    Debug.log("Session策略:redis", Debug.noModuleModule);
+    try {
+        sessionMgr = (Manager)Class.forName("tomcat.request.session.redis.SessionManager").newInstance();
+    } catch (Exception exc) {
+        throw new ContainerException("Cluster session error:" + exc.getMessage());
+    }
+} else {
+    Debug.log("Session策略:local", Debug.noModuleModule);
+    sessionMgr = new StandardManager();
+}
+
+StandardContext context = new StandardContext();
+
+if("true".equals(redisEnable)) {
+    try {
+        Valve v = ((Valve)Class.forName("tomcat.request.session.redis.SessionHandlerValve").newInstance());
+        context.addValve(v);
+    } catch (Exception exc) {
+        throw new ContainerException("Cluster value error:" + exc.getMessage());
+    }
+}
+```
+- LoginWorker
+
+```java
+// 退出登录
+private static void setWebContextObjects(HttpServletRequest request, HttpServletResponse response, Delegator delegator, LocalDispatcher dispatcher) {
+    // ...
+    try {
+        session.setAttribute("delegator", delegator);
+        session.setAttribute("dispatcher", dispatcher);
+        session.setAttribute("security", security);
+    } catch (Exception e) {
+        // redis不支持非序列化对象
+        if(!e.getMessage().contains("Non-serializable")) {
+            throw e;
         }
-    } else if("true".equals(redisEnable)) {
-        Debug.log("Session策略:redis", Debug.noModuleModule);
-        try {
-            sessionMgr = (Manager)Class.forName("tomcat.request.session.redis.SessionManager").newInstance();
-        } catch (Exception exc) {
-            throw new ContainerException("Cluster session error:" + exc.getMessage());
-        }
-    } else {
-        Debug.log("Session策略:local", Debug.noModuleModule);
-        sessionMgr = new StandardManager();
+    }
+    // ...
+}
+```
+- 设置redis命名空间(修改源码后重新编译然后将jar放到framework/catalina/lib目录)
+
+```java
+// tomcat.request.session.data.cache.impl.redis.RedisCache
+public class RedisCache implements DataCache {
+
+    private static final String prefix = "ofbiz:main:";
+
+    @Override
+    public byte[] set(String key, byte[] value) {
+        return this.dataCache.set(prefix + key, value);
     }
 
-    StandardContext context = new StandardContext();
+    @Override
+    public byte[] get(String key) {
+        return this.dataCache.get(prefix + key);
+    }
 
-    if("true".equals(redisEnable)) {
-        try {
-            Valve v = ((Valve)Class.forName("tomcat.request.session.redis.SessionHandlerValve").newInstance());
-            context.addValve(v);
-        } catch (Exception exc) {
-            throw new ContainerException("Cluster value error:" + exc.getMessage());
+    // ....
+}
+```
+- 解决externalLoginKeys问题(还需将LoginWorker类中相关代码替换掉)
+
+```java
+public class ExternalLoginKeyRedisManager {
+    public static final String EXTERNAL_LOGIN_KEY_REDIS_KEY = "ofbiz:elk:";
+    public static Map<String, GenericValue> externalLoginKeys = new ConcurrentHashMap<>();
+
+    public static GenericValue put(String key, GenericValue value, HttpSession session) {
+        JedisCluster jedis = JedisClusterUtil.getJedis();
+        if(jedis != null) {
+            //JSON.toJSONString会导致GenericValue父类的delegatorName属性值丢失(开启Tenant时此属性非常重要)，此处直接保存(可序列化的)java对象
+            //jedis.set(EXTERNAL_LOGIN_KEY_REDIS_KEY + key, JSON.toJSONString(value));
+            try {
+                // 此处key.getBytes()不会影响正常保存，实际保存进去的还是字符串
+                jedis.set((EXTERNAL_LOGIN_KEY_REDIS_KEY + key).getBytes(StandardCharsets.UTF_8), serialize(value));
+            } catch (Exception e) {
+                Debug.logError(e,"Error serializing object to Redis", module);
+                throw new RuntimeException(e);
+            }
+            jedis.expire(EXTERNAL_LOGIN_KEY_REDIS_KEY + key, getSessionTimeout(session));
+        } else {
+            externalLoginKeys.put(key, value);
+        }
+        return value;
+    }
+
+    public static GenericValue get(String key, Delegator delegator, HttpSession session) {
+        JedisCluster jedis = JedisClusterUtil.getJedis();
+        if(jedis != null) {
+            byte[] bytes = jedis.get((EXTERNAL_LOGIN_KEY_REDIS_KEY + key).getBytes(StandardCharsets.UTF_8));
+            GenericValue userLogin = null;
+            try {
+                userLogin = (GenericValue) deserialize(bytes);
+            } catch (Exception e) {
+                Debug.logError(e,"Error deserialize object from Redis", module);
+                throw new RuntimeException(e);
+            }
+
+            // 刷新过期时间，ajax等场景使用externalLoginKey作为token进行请求
+            if(session != null) {
+                jedis.expire(EXTERNAL_LOGIN_KEY_REDIS_KEY + key, getSessionTimeout(session));
+            }
+            return userLogin;
+        } else {
+            return externalLoginKeys.get(key);
         }
     }
-    ```
+
+    public static void remove(String key) {
+        JedisCluster jedis = JedisClusterUtil.getJedis();
+        if(jedis != null) {
+            jedis.del(EXTERNAL_LOGIN_KEY_REDIS_KEY + key);
+        } else {
+            externalLoginKeys.remove(key);
+        }
+    }
+
+    public static boolean containsKey(String key) {
+        JedisCluster jedis = JedisClusterUtil.getJedis();
+        if(jedis != null) {
+            String value = jedis.get(EXTERNAL_LOGIN_KEY_REDIS_KEY + key);
+            return value != null;
+        } else {
+            return externalLoginKeys.containsKey(key);
+        }
+    }
+
+    private static int getSessionTimeout(HttpSession session) {
+        int sessionTimeout = (session == null) ? 0 : session.getMaxInactiveInterval();
+        return Math.max(sessionTimeout, 3600);
+    }
+
+    // 序列化对象
+    public static byte[] serialize(Object obj) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(obj);
+        return baos.toByteArray();
+    }
+
+    // 反序列化对象
+    public static Object deserialize(byte[] bytes) throws Exception {
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        return ois.readObject();
+    }
+}
+```
 
 
 

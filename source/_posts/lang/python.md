@@ -63,26 +63,79 @@ sudo yum -y install python-pip
 
 - 参考上文
 
-### virtualenv和pipenv虚拟环境工具
+### pipenv和virtualenv虚拟环境工具
 
 - https://blog.csdn.net/weixin_43865008/article/details/119898756
-- virtualenv: 参考[项目发布](#项目发布)
 - pipenv(推荐)
 
 ```bash
-# 基于Mac模拟x86环境
-xzsh # 命令别名，mac切换x86
-pip3.9 install pipenv
+# xzsh # 命令别名，基于Mac模拟x86环境
+pip3 install pipenv
 pipenv -h
 
-# 指定使用(基于x86)brew目录下安装的python创建虚拟环境
+# (可选)指定使用(基于x86)brew目录下安装的python创建虚拟环境
 # 会自动基于当前安装包(或requirements.txt)创建虚拟环境和 Pipfile 文件记录依赖
-# 虚拟环境目录为 ~/.local/share/virtualenvs/your-project-xxxx/ (依赖包安装位置)
+# 虚拟环境目录为 ~/.local/share/virtualenvs/your-project-xxxx/ (依赖包安装位置)，windows对应: 用户名目录/.virtualenvs
 pipenv --python /usr/local/Cellar/python@3.8/3.8.16/bin/python3.8
+# pipenv --python D:/software/Python38/python.exe # windows
+
 # 进入虚拟环境
 pipenv shell
 # 基于 Pipfile 依赖文件(或requirements.txt)按照依赖，并创建 Pipfile.lock 文件
 pipenv install
+# 此时安装的包会添加到 Pipfile
+pipenv install mysqlclient
+# 查看当前环境安装的包
+pipenv graph
+# 生成requirements.txt文件
+pipenv requirements > requirements.txt
+```
+
+### pip镜像及模块安装
+
+- pip镜像
+
+```bash
+# 镜像地址
+# 清华 https://pypi.tuna.tsinghua.edu.cn/simple
+# 官方 https://pypi.python.org/simple
+# 阿里云 https://mirrors.aliyun.com/pypi/simple
+# 豆瓣 http://pypi.douban.com/simple
+
+# Linux下，修改 ~/.pip/pip.conf (没有就创建一个)， 修改 index-url至tuna，内容如下：
+[global]
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+
+# windows下，直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下:
+[global]
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+```
+- [pip](https://pypi.org/) 可用于安装管理python其他模块
+    - 安装（windows默认已经安装）
+        - 将`https://bootstrap.pypa.io/get-pip.py`中的内容保存到本地`get-pip.py`文件中
+        - 上传`get-pip.py`至服务器，并设置为可执行
+        - `python get-pip.py` 安装
+        - 检查是否安装成功：`pip list` 可查看已经被管理的模块
+    - 更新：`pip3 install --user --upgrade pip` 如果idea+virtualenv更新失败，可进入虚拟环境目录通过管理员更新
+    - 常见问题
+        - 安装成功后，使用`pip list`仍然报错。windows执行`where pip`查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
+- 模块安装
+
+```py
+pip install xxx
+pip install xxx.whl # [whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
+pip install muggle-ocr-1.0.3.tar.gz # 或者解压后，进入目录执行`pip install -e .`
+pip3 install xxx # python3使用
+
+# 安装指定版本
+pip install Django==2.0.6
+# 指定镜像源
+pip install xxx -i http://pypi.douban.com/simple/
+
+# 列举安装的模块：可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
+pip list
+# 卸载
+pip uninstall xxx
 ```
 
 ## python2和python3的语法区别
@@ -143,6 +196,9 @@ except Exception, e:
 - `id(a), id(b), id(c)` 查看a、b、c三个变量的内存地址(0-255的数字python会做优化：`a=1、b=a、c=1`此时内存地址一致)
 
 #### 运算
+
+- 不支持`++`运算符
+- 不支持三元运算符，代替方式: `max = a if a>b else b`
 
 ```py
 # 幂：为2的32次方
@@ -220,11 +276,51 @@ sub in mystr
 mystr.find(sub) >= 0 # True/False
 # 使用string模块的find()/rfind()方法。import string
 string.find(mystr, sub) != -1
+# 判断字符串开头和结尾
+str.startswith(substr)
+str.endswith(substr, beg=0,end=len(string))
 
 ## 字符串分割
 # 分割符：默认为所有的空字符，包括空格、换行(\n)、制表符(\t)等
 # 分割次数：默认为 -1, 即分隔所有
 str.split(str=" ", 1)  # 以空格为分隔符，分隔成两个
+
+## 转换
+'aBc'.upper()
+'aBc'.lower()
+'aBc'.capitalize() # 将首字母都转换成大写，其余小写
+'aBc de'.title() # 将每个单词的首字母都转换成大写，其余小写
+```
+- 下划线驼峰转换
+
+```py
+import re
+
+
+def _name_convert_to_camel(name: str) -> str:
+    """下划线转驼峰(小驼峰)"""
+    return re.sub(r'(_[a-z])', lambda x: x.group(1)[1].upper(), name.lower())
+
+def _name_convert_to_snake(name: str) -> str:
+    """驼峰转下划线"""
+    if '_' not in name:
+        name = re.sub(r'([a-z])([A-Z])', r'\1_\2', name)
+    else:
+        raise ValueError(f'{name}字符中包含下划线，无法转换')
+    return name.lower()
+
+def name_convert(name: str) -> str:
+    """驼峰式命名和下划线式命名互转"""
+    is_camel_name = True  # 是否为驼峰式命名
+    if '_' in name and re.match(r'[a-zA-Z_]+$', name):
+        is_camel_name = False
+    elif re.match(r'[a-zA-Z]+$', name) is None:
+        raise ValueError(f'Value of "name" is invalid: {name}')
+    return _name_convert_to_snake(name) if is_camel_name else _name_convert_to_camel(name)
+
+if __name__ == '__main__':
+    print(name_convert('HelloWorldWorld'))  # -> hello_world_world
+    print(name_convert('hello_world_world'))  # -> helloWorldWorld
 ```
 
 #### 列表
@@ -422,6 +518,9 @@ for index, value in enumerate(numbers):
 g = lambda x : x ** 2
 g = lambda x, y, z : (x + y) ** z
 
+# 过滤list并返回一个新list
+list(filter(lambda n: n.valid == 'true', [{valid: 'true'}, {}]))
+
 # 由于lambda只是一个表达式，所以它可以直接作为list和dict的成员
 list = [lambda a: a**3, lambda b: b**3]
 g = list[0]
@@ -485,7 +584,7 @@ for n in range(10):
 - `*args` 和 `**kwargs`：主要将不定数量的参数传递给一个函数。两者都是python中的可变参数
     - `*args`表示任何多个无名参数，它本质是一个tuple
     - `**kwargs`表示关键字参数，它本质上是一个dict
-    - 如果同时使用`*args`和*`*kwargs`时，必须`*args`参数列要在`**kwargs`前。调用如`MyObj(**{name: 'smalle'})`为kwargs的传入
+    - 如果同时使用`*args`和*`*kwargs`时，必须`*args`参数列要在`**kwargs`前。调用如`MyObj(**{'name': 'smalle'})`为kwargs的传入
     - 其实并不是必须写成`*args`和`**kwargs`，**`*`和`**`才是必须的**。也可以写成`*ar`和`**k`。而写成`*args`和`**kwargs`只是一个通俗的命名约定
 - 访问级别(python中无public、protected、private等关键字)
     - `public` 方法和属性命名不以下划线开头
@@ -533,10 +632,10 @@ if __name__ == "__main__":
     t.prt()  # 调用对象方法
 ```
 
-### 流/文件 [^3]
+### 流/文件
 
 ```py
-## 获取控制台输入
+## 获取控制台输入 [^3]
 # raw_input获取控制台输入，最终返回字符串，参数为提示内容
 name = raw_input("please input name:") # 获取输入源（获取数据默认都是字符串）
 print 'name:', name # 打印 "name: smalle"
@@ -557,7 +656,7 @@ i = input('请确认是否继续操作？[y/n]:')
     - `b` 二进制模式
     - `x` 模式在文件写入时，如果文件存在就报错。多个模式可使用如 `wb` 或 `w+b`
 - 创建临时文件和文件夹相关库[tempfile](#tempfile)
-- 读写文件
+- 增删改查文件
 
 ```py
 ## 读取文件
@@ -582,11 +681,28 @@ if not os.path.exists('somefile'):
         f.write('Hello\n')
     else:
         print('File already exists!')
+
+
+## 创建多级文件夹
+os.makedirs(path) # 创建多级文件夹
+os.mkdir(path) # 创建一级文件夹
+
+# 重命名文件（目录）
+os.rename("oldname","newname")
+# 移动文件（目录）,需提前创建目录
+shutil.move(src_file_path, dest_file_path) # import shutil # 内置模块
+# 复制文件. oldfile只能是文件夹，newfile可以是文件，也可以是目标目录
+os.copy("old_file_dir", "new_file")
 ```
 - 文件路径处理、文件是否存在判断(os.path)
 
 ```py
 import os
+import sys
+
+
+# 获取项目目录
+PROJECT_DIR = os.path.dirname(sys.argv[0])
 
 ## 路径处理
 path = '/home/smalle/temp/dir/test.txt'
@@ -611,15 +727,16 @@ os.path.getmtime('/etc/passwd')  # 1272478234.0 获取文件修改时间
 # import time
 # time.ctime(os.path.getmtime('/etc/passwd')) # 'Wed Apr 28 13:10:34 2010'
 
-## 获取目录下文件
+
+## 获取目录下文件名
 names = os.listdir('somedir')  # 返回目录中所有文件列表，包括所有文件，子目录，符号链接等等
-# Get all regular files
+# 获取所有的普通文件的文件名
 names = [name for name in os.listdir('somedir')
         if os.path.isfile(os.path.join('somedir', name))]
-# Get all dirs
+# 获取所有目录
 dirnames = [name for name in os.listdir('somedir')
         if os.path.isdir(os.path.join('somedir', name))]
-# startswith() 和 endswith() 过滤
+# startswith() 和 endswith() 过滤文件
 pyfiles = [name for name in os.listdir('somedir')
         if name.endswith('.py')]
 # 对于文件名的匹配，可使用 glob 或 fnmatch 模块
@@ -629,6 +746,89 @@ pyfiles = glob.glob('somedir/*.py')
 from fnmatch import fnmatch
 pyfiles = [name for name in os.listdir('somedir')
         if fnmatch(name, '*.py')]
+```
+
+### 网络请求requests
+
+```py
+# data: 会放到url参数中，java中使用`@RequestParam String curNode`接收
+# json: 第三个参数json会放到body中
+resp = requests.post('http://localhost:7102/clawAdapter/getJob', data={'curNode': '1'})
+json.loads(resp.text) # {"status": "success", "data": []}
+```
+
+### 日志logging
+
+- https://blog.csdn.net/Runner1st/article/details/96481954
+- 简单案例
+
+```py
+import logging
+from logging import handlers
+
+# 这样直接就可以在控制台输出日志信息了
+logging.debug('debug级别，一般用来打印一些调试信息，级别最低')
+logging.info('info级别，一般用来打印一些正常的操作信息')
+logging.warning('waring级别，一般用来打印警告信息')
+logging.error('error级别，一般用来打印一些错误信息')
+logging.critical('critical级别，一般用来打印一些致命的错误信息，等级最高')
+
+# 此处可设置logging打印等级为DEBUG(默认WARNING)
+# logging.basicConfig(level=logging.DEBUG)
+# 还可设置打印格式，并输出到日志文件
+logging.basicConfig(format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
+                    level=logging.DEBUG,
+                    filename='test.log',
+                    filemode='a')
+```
+- logging模块化：`common/logging.py`(为了防止日志重复打印应该创建此文件)
+
+```py
+import logging
+import os
+from logging import handlers
+
+
+# logging.basicConfig(level=logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(threadName)s[%(thread)d] - %(filename)s[%(funcName)s][line:%(lineno)d] - %(levelname)s: %(message)s')
+
+# 常见4种handler
+# logging.StreamHandler -> 控制台输出
+# logging.FileHandler -> 文件输出
+# logging.handlers.RotatingFileHandler -> 按照大小自动分割日志文件，一旦达到指定的大小重新生成文件
+# logging.handlers.TimedRotatingFileHandler -> 按照时间自动分割日志文件
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+stream_handler.setLevel(logging.DEBUG)
+
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
+time_rotating_file_handler = handlers.TimedRotatingFileHandler(filename='./logs/main.log', when='D', encoding='utf-8')
+time_rotating_file_handler.setFormatter(formatter)
+time_rotating_file_handler.setLevel(logging.DEBUG)
+
+# 创建日志模块，并增加handler
+logger = logging.getLogger('main')
+logger.addHandler(stream_handler)
+logger.addHandler(time_rotating_file_handler)
+logger.setLevel(logging.DEBUG)
+
+'''
+# 使用
+from common.logging import logger
+
+def test_log():
+    logger.debug('debug级别，一般用来打印一些调试信息，级别最低')
+    logger.info('info级别，一般用来打印一些正常的操作信息')
+    logger.warning('waring级别，一般用来打印警告信息')
+    logger.error('error级别，一般用来打印一些错误信息')
+    logger.critical('critical级别，一般用来打印一些致命的错误信息，等级最高')
+    
+    # 打印堆栈信息
+    logger.error(e, exc_info=True, stack_info=True)
+    logger.error(f"执行出错:{str(e)}", exc_info=True, stack_info=True)
+'''
 ```
 
 ### 反射
@@ -647,6 +847,15 @@ class StudentsView(object):
 # 案例2：设值 user_obj._user_perm_cache=(monitor.add_script, monitor.change_script)
 # perms为Django的QuerySet对象：<QuerySet [('monitor', 'add_script'), ('monitor', 'change_script')]>
 setattr(user_obj, '_user_perm_cache', {"%s.%s" % (ct, name) for ct, name in perms})
+```
+
+### 常见错误
+
+```py
+map['key'] # 如果字典中不含这个key则会报错 KeyError
+map.get('name') # 此时不存在key会返回None，不会报错
+map.key # 字典必须通过下标来访问，不能通过属性来访问
+obj['key'] # 对象只能通过属性来访问，不能通过下标访问
 ```
 
 ### 其他
@@ -772,87 +981,238 @@ class MyTests(unittest.TestCase):
 
 ### 模块扩展
 
-#### pip镜像及模块安装
-
-- pip镜像
-
-```bash
-# 镜像地址
-# 清华 https://pypi.tuna.tsinghua.edu.cn/simple
-# 官方 https://pypi.python.org/simple
-# 阿里云 https://mirrors.aliyun.com/pypi/simple
-# 豆瓣 http://pypi.douban.com/simple
-
-# Linux下，修改 ~/.pip/pip.conf (没有就创建一个)， 修改 index-url至tuna，内容如下：
-[global]
-index-url = https://pypi.tuna.tsinghua.edu.cn/simple
-
-# windows下，直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下:
-[global]
-index-url = https://pypi.tuna.tsinghua.edu.cn/simple
-```
-- `pip` 可用于安装管理python其他模块
-    - 安装（windows默认已经安装）
-        - 将`https://bootstrap.pypa.io/get-pip.py`中的内容保存到本地`get-pip.py`文件中
-        - 上传`get-pip.py`至服务器，并设置为可执行
-        - `python get-pip.py` 安装
-        - 检查是否安装成功：`pip list` 可查看已经被管理的模块
-    - 更新：`pip3 install --user --upgrade pip` 如果idea+virtualenv更新失败，可进入虚拟环境目录通过管理员更新
-    - 常见问题
-        - 安装成功后，使用`pip list`仍然报错。windows执行`where pip`查看那些目录有pip程序，如strawberry(perl语言相关)目录也存在pip.exe，一种方法是将strawberry卸载
-- 模块安装
-    - `pip install xxx` [pip](https://pypi.org/)
-        - python3也可以使用`pip3 install xxx`
-        - `pip install Django==2.0.6` 安装指定版本
-        - `pip install xxx -i http://pypi.douban.com/simple/` 指定数据源
-    - `pip install xxx.whl` [whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
-    - `pip list` 列举安装的模块
-        - 可在`/Scripts`和`/Lib/site-packages`中查看可执行文件和模块源码
-    - `pip uninstall xxx` 卸载
-
-#### virtualenv
-
-- python虚拟环境
-
-```bash
-pip3 install virtualenv
-# 在项目目录执行，创建虚拟环境demo_env
-virtualenv demo_env
-# 每次进入项目时，激活虚拟环境
-demo_env/Scripts/activate.bat # 或 source demo_env/bin/activate
-# 查看当前环境的依赖
-pip3 list
-
-## 记录客户端依赖
-pip freeze > requirements.txt
-```
-
-#### ConfigParser 配置文件读取
+#### ConfigParser配置文件读取
 
 - 该模块ConfigParser在Python3中，已更名为configparser
 - `pip install ConfigParser`
 - 介绍：http://www.cnblogs.com/snifferhu/p/4368904.html
+- 配置文件样例: `ini.cfg`
 
-#### mysql操作库
+```ini
+; 注释
+[mysql]
+host=192.168.1.100
+port=3306
+```
 
-- `pip install MySQL-python`(MySQLdb只支持2.7)
-    > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装 [MySQL_python‑1.2.5‑cp27‑none‑win_amd64.whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python) 或 `MySQL-python-1.2.5.win32-py2.7.exe`（就相当于pip安装）
-    - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
+```py
+from configparser import ConfigParser # python3
+# from ConfigParser import ConfigParser # python2
+
+class ConfigUtils(object):
+    def __init__(self, file_name):
+        super(ConfigUtils, self).__init__()
+        try:
+            self.config = ConfigParser(allow_no_value=True)
+            self.config.read(file_name, encoding='utf-8')
+        except IOError as e:
+            print(e)
+
+cu = ConfigUtils('ini.cfg')
+
+# 获取值
+cu.config.get('mysql', 'host')
+cu.config.getint('mysql', 'port')
+cu.config.getfloat('mysql', 'xx')
+cu.config.getboolean('mysql', 'xx')
+# 判断节点
+cu.config.has_section('mysql')
+
+#打印所有的section  
+cu.config.sections()
+>>>['mysql']
+
+#打印对应section的所有items键值对
+cu.config.items('mysql')
+>>>[('port', '3306'), ('host', '192.168.1.100')]
+
+#写配置文件  
+#增加新的section
+cu.config.add_section('mysql2')  
+#写入指定section增加新option和值
+cu.config.set("mysql2", "port", "new_value")
+#写回配置文件(否则是内存生效)
+cu.config.write(open("test.cfg", "w"))
+
+#删除指定section  
+cu.config.remove_section('mysql')
+>>>True
+cu.config.remove_option('mysql', 'xx')
+
+```
+
+#### Mysql操作库
+
+- `pip install mysqlclient`
+    - **推荐**，Fork自MySQLdb，使用相同：`import MySQLdb`
+    - 或通过`pip install mysqlclient-1.3.13-cp36-cp36m-win_amd64.whl`安装
+    - 使用
+        - 参考：https://www.cnblogs.com/fireblackman/p/16018919.html
+
+    ```py
+    import MySQLdb
+    # 注意 这里需要额外导入, 不然会报module 'MySQLdb' has no attribute 'cursors'的错误
+    import MySQLdb.cursors as cors
+    
+    # 打开数据库连接 
+    db = MySQLdb.connect("localhost", "testuser", "test123", "TESTDB", charset='utf8',
+                        cursorclass=cors.DictCursor) 
+    # 使用cursor()方法获取操作游标
+    cursor = db.cursor() 
+    # SQL 插入语句
+    sql="insert into EMPLOYEE values(%s,%s,%s,%s)" 
+    try: 
+        # 执行sql语句 
+        cursor.executemany(sql,[('Smith','Tom',15,'M',1500),('Mac', 'Mohan', 20, 'M', 2000)]) 
+        # 提交到数据库执行 
+        db.commit()
+    except:
+        # Rollback in case there is any error 
+        db.rollback() 
+    # 关闭数据库连接 
+    db.close()
+    ```
 - `pip install pymysql`(3.6)
     - 工具类：https://www.cnblogs.com/bincoding/p/6789456.html
-- `pip install mysqlclient-1.3.13-cp36-cp36m-win_amd64.whl` **推荐**
+- `pip install MySQL-python`(又称MySQLdb，只支持2.7)
+    > 报错`win8下 pip安装mysql报错_mysql.c(42) : fatal error C1083: Cannot open include file: ‘config-win.h’: No such file or director`。解决办法：安装 [MySQL_python‑1.2.5‑cp27‑none‑win_amd64.whl](https://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python) 或 `MySQL-python-1.2.5.win32-py2.7.exe`（就相当于pip安装）
+    - 工具类：http://www.cnblogs.com/snifferhu/p/4369184.html
 
-#### pymongo MongoDB操作库 [^2]
+#### Flask提供web服务
 
-- `pip install pymongo`             
+- 发布简单rest接口: https://blog.csdn.net/Alex_81D/article/details/116260049      
 
-#### scrapy 爬虫框架
+#### 定时调度库
+
+- schedule：Python job scheduling for humans. 轻量级，无需配置的作业调度库
+    - `pip install schedule`
+
+```py
+import schedule
+import time
+from schedule import every, repeat
+
+# 定义你要周期运行的函数
+def job():
+    print("I'm running on thread %s" % threading.current_thread())
+
+def greet(name):
+    print('Hello {}'.format(name))
+    if name == 'Test':
+        # 基于标签取消任务
+        schedule.clear('second-tasks')
+        print('cancel second-tasks')
+
+# 使用单独线程执行
+schedule.every(10).seconds.do(run_threaded, job) # 每隔 10 秒执行一次，并且使用一个单独线程执行
+# 使用主线程执行
+schedule.every(10).minutes.do(job)               # 每隔 10 分钟运行一次 job 函数（使用主线程执行，下同）
+schedule.every().hour.do(job)                    # 每隔 1 小时运行一次 job 函数
+schedule.every().day.at("10:30").do(job)         # 每天在 10:30 时间点运行 job 函数
+schedule.every().monday.do(job)                  # 每周一 运行一次 job 函数
+schedule.every().wednesday.at("13:15").do(job)   # 每周三 13：15 时间点运行 job 函数
+schedule.every().minute.at(":17").do(job)        # 每分钟的 17 秒时间点运行 job 函数
+# 运行任务到某时间
+schedule.every().second.until('23:59').do(job)  # 今天23:59停止
+schedule.every().second.until('2030-01-01 18:30').do(job)  # 2030-01-01 18:30停止
+schedule.every().second.until(timedelta(hours=8)).do(job)  # 8小时后停止
+schedule.every().second.until(time(23, 59, 59)).do(job)  # 今天23:59:59停止
+schedule.every().second.until(datetime(2030, 1, 1, 18, 30, 0)).do(job)  # 2030-01-01 18:30停止
+# 传递参数并设置标签
+schedule.every().second.do(greet, 'Test').tag('second-tasks', 'friend')
+# 根据标签检索任务
+friends = schedule.get_jobs('friend')
+
+# 使用单独线程执行(每次会重新打开一个线程执行，因此有可能存在多个线程在执行此任务)
+def run_threaded(job_func):
+    job_thread = threading.Thread(target=job_func)
+    job_thread.start()
+
+# 或者使用装饰器
+@repeat(every(3).seconds)
+def task(val):
+    print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+
+# 传递参数
+@repeat(every(3).seconds, 'val1')
+def task(val):
+    pass
+
+
+while True:
+    # 运行所有可以运行的任务
+    schedule.run_pending()
+    time.sleep(1)
+```
+- 使用threading
+
+```py
+import threading
+
+def run_push_data():
+    print('run...')
+    # 重新启动一次，从而实现定时循环执行
+    push_data_tt = threading.Timer(interval=5, function=push_data_job)
+    push_data_tt.name = 'PushThread'
+    push_data_tt.start()
+
+# 5s种后执行1次
+push_data_tt = threading.Timer(interval=5, function=run_push_data)
+push_data_tt.name = 'PushThread' # 定义线程名称
+push_data_tt.start()
+
+# 取消执行
+push_data_tt.cancel()
+```
+- python-crontab：针对系统 Cron 操作 crontab 文件的作业调度库
+- Apscheduler：一个高级的 Python 任务调度库
+- Celery：是一个简单，灵活，可靠的分布式系统，用于处理大量消息，同时为操作提供维护此类系统所需的工具, 也可用于任务调度
+
+#### MongoDB操作库
+
+- `pip install pymongo` [^2]    
+
+#### Scrapy爬虫框架
 
 - 主要用在python爬虫。可以css的形式方便的获取html的节点数据
 - `pip install scrapy` 安装
 - 文档：[0.24-Zh](http://scrapy-chs.readthedocs.io/zh_CN/0.24/index.html)、[latest-En](https://doc.scrapy.org/en/latest/index.html)
 
-#### paramiko/fabric/pexpect 自动化运维
+#### OCR图像识别
+
+- `muggle_ocr` 验证码识别
+    - 离线安装包(官方已经删除了这个包，无法通过pip安装): https://github.com/simonliu009/muggle-ocr
+        - 下载后离线安装`pip install muggle-ocr-1.0.3.tar.gz`
+    - 源代码参考: https://github.com/litongjava/muggle_ocr
+    - 文章参考: https://www.cnblogs.com/kerlomz/p/13033262.html
+
+```py
+import time
+import muggle_ocr
+import os
+
+
+# 且必须定义到方法中进行执行，否则直接运行文件会报错
+def parse():
+    # 可切换 muggle_ocr.ModelType.Captcha 和 muggle_ocr.ModelType.OCR 比较效果
+    sdk = muggle_ocr.SDK(model_type=muggle_ocr.ModelType.Captcha)
+    # 验证码图片文件放到此目录
+    root_dir = r"./images"
+    for i in os.listdir(root_dir):
+        n = os.path.join(root_dir, i)
+        with open(n, "rb") as f:
+            b = f.read()
+        st = time.time()
+        text = sdk.predict(image_bytes=b)
+        print(i, text, time.time() - st)
+
+
+# Mac M1运行出错，可使用Windows运行
+if __name__ == '__main__':
+    parse()
+```
+
+#### paramiko/fabric/pexpect自动化运维
 
 - `paramiko` 模块是基于Python实现的SSH远程安全连接，用于SSH远程执行命令、文件传输等功能
 - `fabric` 模块是在`paramiko`基础上又做了一层封装，操作起来更方便。主要用于多台主机批量执行任务
@@ -899,10 +1259,6 @@ exit # 退出交互界面
 # 退出pexpect登录
 process.close(force=True)
 ```
-
-#### flask提供web服务
-
-- 发布简单rest接口: https://blog.csdn.net/Alex_81D/article/details/116260049
 
 #### 其他扩展
 

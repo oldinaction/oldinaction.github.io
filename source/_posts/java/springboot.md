@@ -136,8 +136,8 @@ tags: spring
     - 应用默认属性，使用SpringApplication.setDefaultProperties定义的内容
 - 使用**配置文件(优先级从高到低)**
 	- 外置，`java -jar aezocn.jar --spring.profiles.active=prod` (profile 也可以激活多个)
-    - 外置，应用程序运行目录的/congfig子目录里
-    - **外置，在应用程序运行的目录里**(如外置目录application-prod.yml优先级高于jar包中的该文件)
+    - 外置，应用程序运行目录的/congfig子目录里。**如果-jar使用绝对路径则不会读取外置配置文件，需要配置spring.config.additional-location等参数指定路径**
+    - **外置，在应用程序运行的目录里**(如外置目录application-prod.yml优先级高于jar包中的该文件)。绝对路径时存在上述相同问题
 	- 内置，`spring.profiles.active=dev` 代表使用application-dev.properties的配置文件(在application.properties中添加此配置)
     - **内置，src/main/resources/config包内**
         - 可写成到通用包中作为通用配置，后面可以进行补充，但是不能覆盖
@@ -155,6 +155,7 @@ tags: spring
         - 默认配置文件application.yml等仍然会加载
         - 增加路径下的配置文件会覆盖默认配置文件，是文件覆盖而非属性覆盖
         - 可用来做开源程序的升级版，将关键配置进行外置(如增加spring.profiles.include=dev-local, 并将application-dev-local.yml外置, 打包后不会包含此文件, 无此文件运行也不会报错)，防止打包时配置文件泄露
+        - 支持相对和绝对路径，支持目录和文件路径
     - 说明
         - spring.config.location 和 spring.config.additional-location 不能同时生效，spring.config.location 的优先级高
         - spring.config.location 值为文件，则不支持profile机制，值为文件夹时才支持profile机制

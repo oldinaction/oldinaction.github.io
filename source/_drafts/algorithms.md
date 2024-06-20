@@ -6,6 +6,16 @@ categories: [linux]
 tags: [arch]
 ---
 
+## 说明
+
+- [力扣](https://leetcode.cn/)
+- [代码随想录](https://programmercarl.com/)
+- `n/2`等同于`n>>1`
+- 1到n的和 `Sn = (n/2) * (n + 1)`
+- 整数的数字处理
+    - 获取每一位: `char[] charArray = String.valueOf(num).toCharArray();`
+    - 比较大小: `Math.max(a, b)`
+
 ## 预备知识
 
 - 数据结构与算法

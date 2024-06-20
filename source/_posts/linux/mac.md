@@ -10,11 +10,17 @@ tags: [system]
 
 - 版本：Mac M1 11.4
 - Mac软件下载
-    - https://www.macwk.com/
-        - 应用闪退问题
-            - https://www.macwk.com/article/apple-silicon-m1-application-crash-repair
-            - https://www.macwk.com/article/macos-beta-damage
-    - https://www.macapp.so/
+    - https://macwk.cn/
+    - https://www.macapp.so/ 收费
+    - https://xclient.info/
+    - https://www.mfpud.com/
+    - https://iosmacapps.com/ 老外
+    - https://appstorrent.ru/ 俄罗斯
+    - https://foxirj.com/
+    - https://www.macbl.com/
+    - ~~ https://www.macwk.com/ ~~ 应用闪退问题解决如下
+        - https://www.macwk.com/article/apple-silicon-m1-application-crash-repair
+        - https://www.macwk.com/article/macos-beta-damage
 
 ## M1模拟x86环境
 
@@ -58,7 +64,7 @@ cmd+opt+c # 复制文件夹绝对路径
 cmd+opt+v # 剪贴(相当于剪切文件，需先复制)
 
 cmd+shift+. # 在 Finder 中显示隐藏文件
-cmd+shift+g # 在 Finder 中前往目标目录
+cmd+shift+g # 在 Finder 中前往目标目录，打开后不能Cmd+v粘贴，需要右键粘贴
 
 # 组合按键
 delete: cmd+删除键
@@ -90,6 +96,16 @@ alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-ti
 ```
 
 ## 常用软件安装
+
+- Keka 压缩/解压工具
+- Easy New File 快捷创建新的文件和文件夹
+- OmniPlayer Pro 视频播放器
+- NeatDownloadManager 下载管理器，类似IDM
+- Royal TSX 类似xshell/xftp，类似参考下文
+- JD-GUI Java反编译工具
+- Proxifier 代理工具(类似windows SocksCap小红帽)
+
+## 开发软件安装
 
 ### brew
 
@@ -203,8 +219,6 @@ CONF_ENV_FILE="/opt/homebrew/etc/rabbitmq/rabbitmq-env.conf" /opt/homebrew/opt/r
 
 - https://vladtalks.tech/vpn/setup-pptp-vpn-on-mac
 
-## 开发软件安装
-
 ### Royal TSX
 
 - 支持多SSH/FTP/SFTP/RemoteDesktop终端管理
@@ -230,7 +244,7 @@ CONF_ENV_FILE="/opt/homebrew/etc/rabbitmq/rabbitmq-env.conf" /opt/homebrew/opt/r
 ### Item2
 
 - 终端管理相关软件
-    - Royal TSX比较好用(收费)
+    - Royal TSX比较好用(收费,可破解)
     - 目前发现 Item2 还算比较理想
     - mac不支持xshell
     - FinalShell、Termius 不太好用
@@ -480,10 +494,11 @@ brew info android-sdk
 https://github.com/google/android-emulator-m1-preview/releases/tag/0.3
 # 配置ADB
 打开设置窗口 - Settings- 取消勾选Use detected ADB location
-点击后面的文件夹图标找到ADB文件路径 /opt/homebrew/Caskroom/android-platform-tools/33.0.1.../platform-tools/adb
+点击后面的文件夹图标找到ADB文件路径(Cmd+Shift+G前往opt目录) /opt/homebrew/Caskroom/android-platform-tools/33.0.1.../platform-tools/adb
 # 修改虚拟机基本设置(可选)
 编辑/applications/android \ emulator.app/cottents/macos/Pixel_5_API_31/config.ini 配置文件
 默认分配 4CPU 4GBRAM 5GB用户空间 分辨率2340*1080 DPI400，可按需修改
+# 可直接将豌豆荚下载好拖拽到模拟器进行安装
 ```
 
 ### CrossOver
@@ -504,7 +519,23 @@ https://github.com/google/android-emulator-m1-preview/releases/tag/0.3
 # 下载winehq pkg包：https://dl.winehq.org/wine-builds/macosx/download.html
 ```
 
+## 相关技巧
+
+### 微信双开
+
+- 参考: https://github.com/CLOUDUH/dual-wechat
+    - 运行`nohup /Applications/WeChat.app/Contents/MacOS/WeChat > /dev/null 2>&1 &`即可(只支持双开)
+    - 或者将上面的命令封装成自动脚本
+        - 自动操作 - (新建)应用程序 - (搜索)运行Shell脚本 - 再脚本中填入上述命令 - 保存自动操作文稿(app到应用程序目录)
+        - 可修改自动操作图标: 右键自动操作程序 - 简介 - 将icns图片复制粘贴到左上角的图标处（但是双击脚本启动的双开微信应用图标还是原来的）
+
 ## 相关限制
 
 - 不支持修改`/etc/profile`等配置，可修改`~/.zprofile`或`~/.bash_profile`代替。类似的文件`.zshrc`
 - 不支持向`/usr/bin`目录添加文件，可向`/usr/local/bin`目录添加来实现直接运行程序目的
+
+## 常见问题
+
+- Mac压缩文件，里面会包含`_MACOSX`等影藏文件夹
+    - 参考：https://www.zhihu.com/question/475167014
+

@@ -24,9 +24,47 @@ tags: [ofbiz, uml, src]
 
 <embed width="1000" height="800" src="/data/pdf/OFBiz-Service-Job.pdf" internalinstanceid="7">
 
-## 服务、任务机制
+## 服务
 
-### 源码分析
+### 服务调用
+
+- ServiceDispatcher
+    - `getInstance(Delegator)` 基于Delegator组装ServiceDispatcher实例(传入Delegator是需要考虑Tenant机制)
+    - `runSync(String localName, ModelService service, Map<String, ? extends Object> context)` 调用服务方法
+        - `invokeResult = engine.runSync(localName, modelService, context);` 基于engine实例调用服务，如StandardJavaEngine
+            - StandardJavaEngine#serviceInvoker: `result = m.invoke(null, dctx, context);` dctx为服务DispatchContext对象, context为Map参数
+    - ServiceDispatcher的创建
+        - ServiceContainer#getLocalDispatcher(String dispatcherName, Delegator delegator)
+            - GenericDispatcherFactory#createLocalDispatcher
+                - new GenericDispatcher: `ServiceDispatcher.getInstance(delegator)`
+        - 其中dispatcherName只是一个标识符(用于缓存)
+            - ContextFilter.makeWebappDispatcher 中取的是web.xml中的localDispatcherName参数
+            - JobManager#getDispatcher 中取的是delegator.getDelegatorName(), 如default#SAAS1
+
+        ```java
+        public static LocalDispatcher getLocalDispatcher(String dispatcherName, Delegator delegator) {
+            if (dispatcherName == null) {
+                // 类似JobManager#getDispatcher
+                dispatcherName = delegator.getDelegatorName();
+                Debug.logWarning("ServiceContainer.getLocalDispatcher method called with a null dispatcherName, defaulting to delegator name.", module);
+            }
+            if (UtilValidate.isNotEmpty(delegator.getDelegatorTenantId())) {
+                // 考虑了Tenant，如 demo#SAAS1
+                dispatcherName = dispatcherName.concat("#").concat(delegator.getDelegatorTenantId());
+            }
+            // 先读取本地缓存
+            LocalDispatcher dispatcher = dispatcherCache.get(dispatcherName);
+            if (dispatcher == null) {
+                dispatcher = dispatcherFactory.createLocalDispatcher(dispatcherName, delegator);
+                dispatcherCache.putIfAbsent(dispatcherName, dispatcher);
+                dispatcher = dispatcherCache.get(dispatcherName);
+                if (Debug.infoOn()) Debug.logInfo("Created new dispatcher [" + dispatcherName + "] (" + Thread.currentThread().getName() + ")", module);
+            }
+            return dispatcher;
+        }
+        ```
+
+### 任务机制源码分析
 
 - `org.ofbiz.service.job.JobPoller` 加载时会启动一个自动拉取任务的线程(从数据拉取任务放到执行器池中)
 

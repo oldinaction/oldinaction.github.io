@@ -42,6 +42,10 @@ tags: [设计模式, java, design]
 
 ### GoF的23种设计模式分类
 
+- 顺口溜
+    - 抽工 建 单原【抽工建单元(原)】
+    - 代桥外 享适 组装【在(代)桥外想试组装】
+    - 迭解 策观 状命中，责备 模访【蝶姐侧观撞(到了)命中(钟),责备(其)模仿】
 - 创建型模式（5种）
     - **单例**（Singleton）模式：某个类只能生成一个实例，且提供一个方法供外部获取该实例
     - 原型（Prototype）模式：将一个对象作为原型，通过对其进行复制而克隆出多个和原型类似的新实例
@@ -302,6 +306,7 @@ public class PersonBuilder {
 - 代理模式定义
     - **为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性**
     - **个人理解，对象适配器和装饰器模式类似代理模式：实现目标接口；代理对象/适配器/装饰器构造时传入目标对象(可嵌套)**，当然也可不传入目标对象，而是传入一些配置，从而动态获取目标对象
+    - 适配器模式主要解决接口转换的问题，代理模式主要解决对象无法直接访问的问题，装饰者模式主要用来增强功能
 - 代理分为静态代理和动态代理，其中动态代理主要有JDK动态代理和Cglib动态代理，最终都是基于[ASM](https://asm.ow2.io/)操纵字节码
     - JDK动态代理和静态代理类似，代理类和被代理需要实现相同的接口
     - Cglib动态代理是生成被代理类的子类，因此被代理类不能被final修饰
@@ -394,7 +399,7 @@ public class MovableTimeProxy implements Movable {
 <summary>动态代理示例代码</summary>
 
 ```java
-// 1.JDK动态代理。还需Dog 和 Movable，同上文
+// 1.JDK动态代理。还是Dog 和 Movable，同上文
 public static void main(String[] args) {
     Dog dog = new Dog();
     Movable movable = (Movable) Proxy.newProxyInstance(Dog.class.getClassLoader(), new Class[]{Movable.class}, new InvocationHandler() {

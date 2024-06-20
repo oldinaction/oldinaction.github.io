@@ -37,6 +37,7 @@ tags: [springboot, plugin, 微服务]
     - **模块不支持Controller层**
         - SOFABoot 模块一般用于封装对外发布服务接口的具体实现，属于业务层，Controller 属于展现层内容，官方不建议也不支持在 SOFABoot 模块中定义 Controller 组件，Controller 组件相关定义建议直接放在 Root Application Context
     - **可使用SOFAArk达到类隔离的目的，且SOFAArk支持运行时动态发布模块服务(Ark Biz)**
+    - 阿里还有一套Pandora、Pandora Boot的类隔离中间件
 - OSGI
     - 支持类隔离
     - 支持动态模块化

@@ -94,7 +94,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
     - `Project` 项目级别
         - 主要是project compiler output的位置(src的编译位置)：如`D:/myproject/classes`(使用默认即可)，为对应WEB-INF下的classes目录
     - `Modules` 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
-        - `Sources` 将src目录标记成Sources目录**（如果是maven项目则标记java、test目录，即包名的上级目录）**
+        - `Sources` 将src目录标记成Sources目录 **（如果是maven项目则标记java、test目录，即包名的上级目录）**
         - `Paths` 使用modules compiler output path，设置路径为`D:/myproject/mymodule/target/classes`。主要解决idea自身编译(使用默认的即可)
         - `Dependencies` 加入jdk、tomcat、其他依赖jar(如`/WEB-INF/lib`中的jar，如果是maven依赖则不需要加入)。主要解决idea自身编译(语法检查)
     - `Libraries` 如将`/WEB-INF/lib`中的所有jar定义一个目录，直接加入到`Dependencies`中
@@ -173,6 +173,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - `Grep Console` 日志过滤
     - 高亮: 如表达式`Expression=.*Demo.*`则表示显示有Demo字样的那些行
     - 日志窗口 - 右键 - Grep: 基于当前日志进行过滤(只显示符合条件的日志，如输入Demo则只匹配有Demo字样的行)
+- `Java Bytecode Decompiler` 查看class反编译代码
 
 ### 部分场景
 
@@ -313,6 +314,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - 回退断点：删除掉某个Frame即可，Frame显示的是执行过的和当前执行的帧，如果删除了，则会从上一帧重新调用 [^3]
 - 中断Debug/强制返回：右键帧 - Force Return - 填写返回值
 - 远程Debug，参考[JVM参数使用](/_posts/java/jvm.md#JVM参数使用)
+- 如果一个对象集成了Map接口，则在IDEA中debugger的时候只会显示Map中的属性，如果需要类的其他属性，可右键对象 - View as - Object(此处默认选中的是Map)
 
 ### 查看并搜索/调试/编辑jar包源码
 

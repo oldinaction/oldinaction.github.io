@@ -93,7 +93,8 @@ tags: [concurrence]
     - 非可重入锁：反之
 - 分段锁(一种锁的设计模式)
     - 容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率
-    - 对于ConcurrentHashMap(之前使用的是分段锁，后面直接使用synchronize锁定数组的第一个元素)而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
+    - 对于ConcurrentHashMap之前使用的是分段锁，后面直接使用synchronize锁定数组的第一个元素
+        - 之前其并发的实现就是通过分段锁的形式来实现高效的并发操作。首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问
 - 锁粗化：锁的获取与释放会消耗一定的资源，因此尽量把多次锁的请求合并成一个请求，以降低短时间内大量锁请求、同步、释放带来的性能损耗
 - 锁消除
   - 指即时编译器(JIT)在运行时，对一些代码上要求同步，但是被检测到不可能存在共享数据竞争的锁进行削除
@@ -114,7 +115,7 @@ tags: [concurrence]
 - **加锁方式**
     - 锁定对象(把任意一个非NULL的对象当作锁，不能使用String常量、Integer、Long等包装数据类型)
         - public synchronized void test() {...} **(只会锁定当前this对象，如果存在多个对象则调用此方法可能会出现并发问题)**
-        - ... synchronized(this) {} ...
+        - ... synchronized(this) {} ...，此时多个线程需要使用同一个对象this
         - ... synchronized(o) {} ...，其中o可以为private Object o = new Object();
     - 锁定类
         - public synchronized static void test() {...}
@@ -137,16 +138,16 @@ tags: [concurrence]
 - 底层实现
     - **synchronized锁升级流程：无锁 - 偏向锁 - 轻量级锁 - 重量级**(锁是没法降级的)
         - 偏向锁：Biased Locking，是Java6引入的一项多线程优化
-            - 顾名思义，它会偏向于第一个访问锁的线程，如果在运行过程中，同步锁只有一个线程访问，不存在多线程争用的情况，则线程是不需要触发同步的，这种情况下，就会给线程加一个偏向锁。如果在运行过程中，遇到了其他线程抢占锁，则持有偏向锁的线程会被挂起，JVM会消除它身上的偏向锁，将锁恢复到标准的轻量级锁
+            - 顾名思义，它会偏向于第一个访问锁的线程，如果在运行过程中，**同步锁只有一个线程访问，**不存在多线程争用的情况，则线程是不需要触发同步的，这种情况下，**就会给线程加一个偏向锁。**如果在运行过程中，遇到了其他线程抢占锁，则持有偏向锁的线程会被挂起，JVM会消除它身上的偏向锁，将锁恢复到标准的轻量级锁
             - 偏向锁获取流程
                 - 1.访问Mark Word中偏向锁的标识是否设置成1，锁标志位是否为01，确认为可偏向状态
-                - 2.如果为可偏向状态，则测试线程ID是否指向当前线程，如果是，进入步骤5，否则进入步骤3
+                - 2.如果为可偏向状态，则判断线程ID是否指向当前线程，如果是，进入步骤5，否则进入步骤3
                 - 3.如果线程ID并未指向当前线程，则通过CAS操作竞争锁。如果竞争成功，则将Mark Word中线程ID设置为当前线程ID，然后执行5；如果竞争失败，执行4
                 - 4.如果CAS获取偏向锁失败，则表示有竞争。当到达全局安全点（safepoint，会导致stop the word，时间很短）时获得偏向锁的线程被挂起，偏向锁升级为轻量级锁，然后被阻塞在安全点的线程继续往下执行同步代码。（撤销偏向锁的时候会导致stop the word）
                 - 5.执行同步代码
             - 偏向锁的释放：偏向锁只有遇到其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁，线程不会主动去释放偏向锁
         - 轻量级锁：如果线程争用，则升级为轻量级锁
-            - 拷贝Mark Word到锁记录栈帧：在代码进入同步块的时候，如果同步对象锁状态为无锁状态（锁标志位为“01”，为偏向锁标志位为“0”），虚拟机首先将在当前线程的栈帧中建立一个名为锁记录（Lock Record）的空间，然后拷贝对象头中的Mark Word到锁记录中
+            - 拷贝Mark Word到锁记录栈帧：在代码进入同步块的时候，如果同步对象锁状态为无锁状态（锁标志位为“01”，偏向锁标志位为“0”），虚拟机首先将在当前线程的栈帧中建立一个名为锁记录（Lock Record）的空间，然后拷贝对象头中的Mark Word到锁记录中
             - 设置Mark Word和锁记录的Owner：拷贝成功后，虚拟机将使用CAS操作尝试将对象的Mark Word（前30位）更新为指向Lock Record的指针，并将Lock Record里的owner指针指向对象的Mark Word
             - 设置轻量级锁状态：如果这个更新动作成功了，那么这个线程就拥有了该对象的锁，并且对象Mark Word的锁标志位设置为“00”，表示此对象处于轻量级锁定状态
             - 如果轻量级锁的更新操作失败了，虚拟机首先会检查对象的Mark Word是否指向当前线程的栈帧，如果是就说明当前线程已经拥有了这个对象的锁，那就可以直接进入同步块继续执行，否则说明多个线程竞争锁
@@ -265,22 +266,22 @@ public class T02_DLC_Singleton {
 - AQS数据结构
 
     ![aqs-structure](/data/images/java/aqs-structure.png)
-    - **AQS使用一个 volatile int state 的成员变量来表示同步状态，通过内置的FIFO队列来完成资源获取的排队工作，通过CAS完成对state值的修改**
+    - **AQS使用一个 volatile int state 的成员变量来表示同步状态，通过内置的虚拟双向队列来完成资源获取的排队工作，通过CAS完成对state值的修改**
     - CLH(Craig、Landin and Hagersten，人名)队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列(FIFO)，AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配
 - 以 ReentrantLock 为例说明AQS执行过程 [^9]
 
     ![aqs-reentrantlock-uml](/data/images/java/aqs-reentrantlock-uml.jpg)
     - **加入队列里是cas操作tail(尾部节点)；获取锁时先判断前一个元素是否是head(头部节点，即当前节点是第二个节点)，是则尝试获取锁，不是则等待**
-    - setExclusiveOwnerThread 主要是为了记录当前获取锁的线程，对于可重入锁可以此进行判断
+    - setExclusiveOwnerThread 主要是为了记录当前获取锁的线程，用于可重入锁判断
     - Node#waitStatus
-        - 0：新结点入队时的默认状态
-        - CANCELLED(1)：表示当前结点已取消调度。当timeout或被中断（响应中断的情况下），会触发变更为此状态，进入该状态后的结点将不会再变化
+        - 0：新节点入队时的默认状态
+        - CANCELLED(1)：表示当前节点已取消调度。当timeout或被中断（响应中断的情况下），会触发变更为此状态，进入该状态后的结点将不会再变化
         - SIGNAL(-1)：表示后继结点在等待当前结点唤醒。后继结点入队时，会将前继结点的状态更新为SIGNAL
         - CONDITION(-2)：表示结点等待在Condition上，当其他线程调用了Condition的signal()方法后，CONDITION状态的结点将从等待队列转移到同步队列中，等待获取同步锁
         - PROPAGATE(-3)：共享模式下，前继结点不仅会唤醒其后继结点，同时也可能会唤醒后继的后继结点
         - 注意：负值表示结点处于有效等待状态，而正值表示结点已被取消。所以源码中很多地方用>0、<0来判断结点的状态是否正常
 - 为什么 AQS 需要一个虚拟 head 节点
-    - Node 类的 waitStatus 变量用于表名当前节点状态。其中SIGNAL表示当当前节点释放锁的时候，需要唤醒下一个节点，所有每个节点在休眠前，都需要将前置节点的 waitStatus 设置成 SIGNAL，否则自己永远无法被唤醒
+    - Node 类的 waitStatus 变量用于表明当前节点状态。其中SIGNAL表示在当前节点释放锁的时候，需要唤醒下一个节点，所以每个节点在休眠前，都需要将前置节点的 waitStatus 设置成 SIGNAL，否则自己永远无法被唤醒
     - AbstractQueuedSynchronizer.enq中可查看代码
 - `VarHandle`类 (JDK9才有) 指向引用的变量(引用句柄)，一般开发中不会用到
     - 可对普通属性进行原子性操作
@@ -342,7 +343,7 @@ public class T1_VarHandle {
 
 ```java
 Lock lock = new ReentrantLock();
-lock.lock();
+lock.lock(); // 获得锁后当前线程继续往下执行，其他线程在执行到lock.lock()的时候会被阻塞知道获得锁
 lock.unlock(); // 当前线程释放锁资源。如果当前线程没有加锁，执行会报错
 lock.tryLock(5, TimeUnit.SECONDS); // 进行尝试锁定
 lock.lockInterruptibly(); // 指定此锁为可被打断锁
@@ -359,7 +360,7 @@ condition2.signalAll(); // 唤醒condition2队列中的线程。注意不是cond
 ##### Atomic相关类
 
 - AtomicXXX相关类底层都是基于[CAS](#CAS)实现
-- 当线程很大的时候(如10000个)，数递增效率：`LongAdder` > `AtomicLong` > `Synchronized`
+- 当线程很大的时候(如10000个)，效率：`LongAdder` > `AtomicLong` > `Synchronized`
     - LongAdder使用了分段锁，AtomicLong使用了CAS操作，而Synchronized可能会申请重量级锁
 
 ##### CountDownLatch倒数门栓
@@ -412,12 +413,15 @@ barrier.await(); // 某个线程在等待，计数器+1；当计数器满后则�
 
 ```java
 Phaser phaser = new Phaser(); // 也可继承Phaser，重写其onAdvance方法(所有人到达栅栏时会自动调用此方法)
+
 ...
 phaser.register(); // 加入一个选手
 phaser.bulkRegister(10); // 批量加入选手
 ...
-phaser.arriveAndAwaitAdvance(); // 到达此阶段，并等待其他参与者(线程)到达后进入下一个阶段
-phaser.arriveAndDeregister(); // 到达此阶段并退出Phaser
+phaser.arriveAndAwaitAdvance(); // 某个选手已到达此阶段，并等待其他参与者(线程)到达后进入下一个阶段
+phaser.arriveAndDeregister(); // 某个选手已到达此阶段，并退出Phaser，不参与后续阶段
+
+// ...无法阻塞主线程运行
 ```
 - 结构上，主要属性有：state、evenQ、oddQ、parent、root [^8]
     - state：volatile long修饰的状态变量，long型变量总占8个字节(共有64位)。高32位存储当前阶段phase，中间16位存储参与者的数量，低16位存储未完成参与者的数量
@@ -444,7 +448,7 @@ readLock.lock(); // 当前线程获取读锁。如果读的时候不加锁，其
 
 ##### Semaphore信号量
 
-- Semaphore获取到信号灯(同时信号灯数量-1)的线程才可运行，释放信号灯(同时信号灯数量+1)了之后可供其他行程使用。如用在限流上
+- Semaphore获取到信号灯的线程才可运行(获得后信号灯数量-1)，释放信号灯了之后可供其他行程使用(释放后信号灯数量+1)。如用在限流上
 - 基于AQS实现，原理类似ReadWriteLock的共享锁
 
 ```java
@@ -456,6 +460,8 @@ Semaphore s = new Semaphore(10, true); // true表示公平锁，默认是非公�
 ```
 
 ##### Exchanger交换器
+
+- 基于CAS + volitail
 
 ```java
 Exchanger<String> exchanger = new Exchanger<>();
@@ -492,7 +498,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 #### ThreadLocal
 
 - Java引用类型：**强软弱虚**(一#62#1:15:34)
-    - 强引用：又称普通引用，当每有强引用指向该对象时，该对象才会被垃圾回收。即Object o = new Object();为强引用，当 o = null 时，上述对象才会(此对象没有其他引用)被GC回收
+    - 强引用：又称普通引用，当没有强引用指向该对象时，该对象才会被垃圾回收。即Object o = new Object();为强引用，当 o = null 时，上述对象才会(此对象没有其他引用)被GC回收
     - 软引用(SoftReference)：一个对象如果只被软引用对象指向时，当内存不足时(可指定IDEA的VM参数如-Xms20M -Xmx20M)才会回收该对象(且没有其他强引用)，否则不会回收。主要用在缓存
     - **弱引用**(WeakReference)
         - 只要遭遇到GC就会被回收（没有其他强引用）
@@ -541,15 +547,15 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     ![threadlocal-weakreference](/data/images/java/threadlocal-weakreference.png)
     - 当线程创建后，此Thread对象则会包含一个属性threadLocals(ThreadLocal.ThreadLocalMap)，则会在线程栈中创建此引用变量
     - 创建ThreadLocal对象时，会有一个强引用tl1指向此对象
-    - 执行tl1.set时，会将数据对象保存到obj1，且value1指向此对象。**由于ThreadLocal.ThreadLocalMap的Entry对象继承了WeakReference，且将Key保存在此需引用对象中，因此会有一个虚引用key1也指向此ThreadLocal**(上文源码中`map.set(this, value);`)
-    - 如果key1为强引用，当tl1 = null时，则仍然由一个强引用key1指向该ThreadLocal对象，从而导致ThreadLocal无法被回收；如果此线程结束，则threadLocals执行的Map被回收，此时ThreadLocal也被回收；但是有一些线程是守护线程，或者执行时间很长的线程，则很难回收ThreadLocal对象，从而导致内存泄露(指有块内存永远无法被回收；不同于OOM内存溢出，OOM指内存不足)；**因此key1需要使用虚引用**
+    - 执行tl1.set时，会将数据对象保存到obj1，且value1指向此对象。**由于ThreadLocal.ThreadLocalMap的Entry对象继承了WeakReference，且将Key保存在此虚引用对象中，因此会有一个虚引用key1也指向此ThreadLocal**(上文源码中`map.set(this, value);`)
+    - 如果key1为强引用，当tl1 = null时，则仍然有一个强引用key1指向该ThreadLocal对象，从而导致ThreadLocal无法被回收；如果此线程结束，则threadLocals指向的Map被回收，此时ThreadLocal也被回收；但是有一些线程是守护线程，或者执行时间很长的线程，则很难回收ThreadLocal对象，从而导致内存泄露(指有块内存永远无法被回收；不同于OOM内存溢出，OOM指内存不足)；**因此key1需要使用虚引用**
     - 当key1为虚引用时，tl1 = null，从而ThreadLocal对象被回收，此时key1也会变为null，那么value1指向的对象将无法被访问到，从而产生内存泄露（非内存溢出）。**因此使用完ThreadLocal需要执行tl1.remove()清理**；另外，ThreadLocal中expungeStaleEntry(threadLocal调用get/set/remove触发)方法会自动将key为null的value也设置为null，且将该Entry设置为null，方便下次GC，一定程度解决了内存泄漏的问题
 
 ### 容器
 
 - 发展历史
     - 最早的容器(1.0)：Vector，Hashtable
-        - 其中Vector实现了List接口，Hashtable实现了Map接口，他们的缺点是所有的方法都加了synchronized了(有些场景不需要加锁，所有此场景效率低)
+        - 其中Vector实现了List接口，Hashtable实现了Map接口，他们的缺点是所有的方法都加了synchronized了(有些场景不需要加锁，所以此场景效率低)
         - 现在基本不用
     - 后来增加了HashMap，此类的方法全部无锁。Map map = Collections.synchronizedMap(new HashMap()); 返回一个加锁的HashMap(仍然基于synchronized实现)，通过此方式使HashMap可以适用加锁和无锁的场景
     - 直到现在的ConcurrentHashMap、Queue等
@@ -602,7 +608,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
                 - `transfer` 方法相比put的区别是，**放入元素后，直到被取走，否则一直阻塞等待**
                 - LinkedTransferQueue **无锁(cas)**
             - SynchronousQueue 同步Queue(类)
-                - 当调用put放入元素后，如果没有被取走(take)，则put后会一致等待直到take拿走元素
+                - 当调用put放入元素后，如果没有被取走(take)，则put后会一直等待直到take拿走元素
                 - 底层基于TransferQueue实现，类似于Exchanger可作线程间数据交换
                 - 队列的容量为0，不能往里面直接add元素，会报错
         - **ConcurrentLinkedQueue** 类，**无锁(cas)**，线程安全，无界队列。JDK中没有ConcurrentArrayQueue
@@ -641,7 +647,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
 
 - 查询：ArrayList可直接通过下标查找数据(并且数据组对处理的缓存机制较友好，缓存行每次会读取相邻数据以撑满)，而LinkedList的链表需要遍历每个元素直到找到为止，因此查询时ArrayList性能高
 - 插入：ArrayList是单向链表，底层是数组存储形式，如果在List中添加完元素之后，导致超过底层数组的长度，就会垃圾回收原来的数组，并且用System.copyArray赋值到新的数组当中，这开销就会变大(复制和实例化新数组)。而LikedList在插入时候，明显高于ArrayList，因为LinkedList是双向链表，只需要修改指针即可完成添加和删除元素
-- 删除：ArrayList 整体的会向前移动一格，然后再要删除的index位置置空操作，ArrayList的remove要比add的时候更快，因为不用再复制到新的数组当中了。LikedList 的remove操作相对于ArrayList remove更快
+- 删除：ArrayList 整体的会向前移动一格，然后在要删除的index位置置空操作，ArrayList的remove要比add的时候更快，因为不用再复制到新的数组当中了。LikedList 的remove操作相对于ArrayList remove更快
 - 使用与场景：如果查询较多可以使用ArrayList；但是如果是经常进行插入，删除操作可使用LinkedList
 
 #### HashMap和HashTable
@@ -655,7 +661,7 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 如果属于插入(之前不存此key)，则插入完成后判断元素个数是否超过集合阈值，超过则进行扩容
 - HashMap 容量起始值为16，负载因子为0.75，扩容时增加2n个元素
 - 为什么哈希表的容量一定要是2的整数次幂 [^11]
-    - 首先，length为2的整数次幂的话，**`h&(length-1)`就相当于对length取模**(前提是length=2^n)，这样便保证了散列的均匀，同时也提升了效率
+    - 首先，length为2的整数次幂的话，**与操作`h&(length-1)`就相当于对length取模`h%length`**(前提是length=2^n)，这样便保证了散列的均匀，同时也提升了效率
     - 其次，length为2的整数次幂的话，为偶数，这样length-1为奇数，奇数的最后一位是1，**这样便保证了h&(length-1)的最后一位可能为0，也可能为1（这取决于h的值）**，即与后的结果可能为偶数，也可能为奇数，这样便可以保证散列的均匀性。*而如果length为奇数的话，很明显length-1为偶数，它的最后一位是0，这样 h&(length-1) 的最后一位肯定为0，即只能为偶数，这样任何hash值都只会被散列到数组的偶数下标位置上，这便浪费了近一半的空间。*因此，length取2的整数次幂，是为了使不同hash值发生碰撞的概率较小，这样就能使元素在哈希表中均匀地散列
 - HashMap源码（JDK1.8）
 
@@ -774,14 +780,14 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
             - DiscardOldest 丢弃排队时间最久的
             - CallerRuns 调用者(调用execute方法的线程)处理任务
 - 线程池调度过程
-    - 线程池实例化后创建核心线程
+    - 如果当前运行的线程数小于核心线程数，则创建新线程来执行任务(尽管还存在空闲的线程)
     - 核心线程使用完后，新线程则放入到任务队列(此时是放到队列而不是启动新线程)
-    - 如果还有新线程，则启动新线程来处理
-    - 如果还有新线程，线程数也达到指定的最大值，且线程队列满了，则执行拒绝策略
+    - 当线程队列满了，如果还有新任务，则启动新线程来处理
+    - 当线程队列满了，如果还有新任务，线程数也达到指定的最大值，则执行拒绝策略
     - 线程不使用了则归还线程数，最终保留核心线程数
 - Executors可调用以下方法获得ExecutorService对象
     - newSingleThreadExecutor 只有一个线程(核心和最大线程数都为1)的线程池，**其队列为LinkedBlockingQueue无界队列**(容易内存溢出)
-    - newFixedThreadPool 固定线程数的线程池(核心和最大线程数都为指定值)，且队列为LinkedBlockingQueue无界队列，如用于线程数比较平稳的常见
+    - newFixedThreadPool 固定线程数的线程池(核心和最大线程数都为指定值)，且队列为LinkedBlockingQueue无界队列，如用于线程数比较平稳的场景
     - newCachedTreadPoll 核心线程数为0，**最大线程数为Integer.MAX_VALUE**，线程队列为SynchronousQueue(只有元素被取走了才能继续放元素)，如用于线程数波动比较大的场景
     - newScheduledThreadPool 用于执行定时任务的线程池，实际用定时任务中间件较多。最大线程数为Integer.MAX_VALUE，线程队列为 DelayedWorkQueue
     - newWorkStealingPool 创建一个具有抢占式操作的线程池，JDK1.8新增，基于ForkJoinPool实现。适合使用在很耗时的操作
@@ -794,7 +800,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 @Bean
 public ExecutorService myExecutorService() {
     ThreadFactory threadFactory = new ThreadFactoryBuilder().setNamePrefix("my-pool-").build();
-    // 最大线程为10个，当超过阻塞队列1024时(容量为空，则默认为Integer.MAX_VALUE，相当于无界队列)，新的任务创建新的线程，知道达到最大线程，如果还有则报错
+    // 最大线程为10个，当超过阻塞队列1024时(容量为空，则默认为Integer.MAX_VALUE，相当于无界队列)，新的任务创建新的线程，直到达到最大线程，如果还有则报错
     return new ThreadPoolExecutor(5, 10, 60, TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
 }

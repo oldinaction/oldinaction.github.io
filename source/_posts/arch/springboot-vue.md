@@ -31,6 +31,7 @@ tags: [springboot, vue]
 ## Token相关
 
 - 前端实现token无感刷新的几种方式: https://blog.csdn.net/u010952787/article/details/121655780
+- **token过期后刷新token并重新发起请求**：https://blog.csdn.net/weixin_44886911/article/details/124992704
 
 ## 跨域和session
 
@@ -134,6 +135,9 @@ server {
 
 - **`CORS`需要浏览器和服务器同时支持。**目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
 - **浏览器会自动完成CORS通信过程，开发只需配置服务器同源限制**
+    - 开发只需要将`Access-Control-Allow-Origin`字段添加到响应的头部中即可(如果响应头中无此参数，则说明存在跨域: 允许A访问则有此响应头，不允许B访问则访问后无此响应头)
+    - 客户端 - nginx1 - nginx2 - java，此时2个nginx或者java任意一个写出响应头头即可(如果每级都写出则会重复，此时客户端也会报错)
+    - **JS测试`let xhr = new XMLHttpRequest(); xhr.open('GET', 'https://www.baidu.com/sugrec'); xhr.send();`**
 - **如果CORS通信过程中，响应的头信息没有包含`Access-Control-Allow-Origin`字段，浏览器则认为无法请求**，便会抛出异常被XHR的onerror捕获
 - `Spring`对CORS的支持[cors-support-in-spring-framework](https://spring.io/blog/2015/06/08/cors-support-in-spring-framework)
     - 可在方法级别进行控制，使用注解`@CrossOrigin`
@@ -142,7 +146,7 @@ server {
 
 #### springboot解决跨域
 
-- **使用了下列方法仍然出现跨域时**
+- **使用了下列方法如果仍然出现跨域时**
     - 如果是使用Filter解决跨域，检查是否在进入此跨域Filter之前，请求已经返回，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
     - 如果请求参数出现错误(如GET请求URL中包含`[]`等特殊字符)，状态码返回400等情况(如果出现跨域，OPTIONS请求返回的应该是403)，此时都还进入到Cros处理环节，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
 
@@ -152,7 +156,7 @@ server {
 public FilterRegistrationBean<?> filterRegistrationBean() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("*"));
+    configuration.setAllowedMethods(Arrays.asList("*")); // GET, POST, HEAD, OPTIONS
     configuration.setAllowedHeaders(Arrays.asList("*"));
     // 接受cookie. 当前端设置了携带cookie，则需要后端配合加入下列代码(前端代码如: axios.defaults.withCredentials = true;)
     configuration.setAllowCredentials(true); 

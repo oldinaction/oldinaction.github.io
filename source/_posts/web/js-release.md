@@ -109,7 +109,9 @@ tags: js
         import foo from './foo'
         // 导入成功
         import { age } from './foo'
+        import * as foo from './foo' // foo.age
         ```
+- NodeJS 中 CommonJS 和 ESModule 混用说明：https://zhuanlan.zhihu.com/p/494658959
 
 #### import/export 
 
@@ -196,33 +198,66 @@ if (defaultComponents === 'ivew') {
 
 ```js
 // ==============================基本用法1
-new Promise(function (resolve, reject) {
-    log('start new Promise...');
+/*
+start new Promise...
+set timeout to: 0.47801792947767785 seconds.
+call resolve()...
+还会继续执行...
+1: OK
+2: OK
+31: OK
+32: OK
+4: OKK undefined
+5: OK
+------情况2
+start new Promise...
+set timeout to: 1.8082853973258812 seconds.
+call resolve()...
+Failed: timeout in 1.8082853973258812 seconds.
+*/
+let promiseRet = new Promise(function (resolve, reject) {
+    console.log('start new Promise...');
     var timeOut = Math.random() * 2;
-    log('set timeout to: ' + timeOut + ' seconds.');
+    console.log('set timeout to: ' + timeOut + ' seconds.');
     setTimeout(function () {
         if (timeOut < 1) {
-            log('call resolve()...');
-            resolve('200 OK'); // 相当于调用 then 传入函数
-            log('还会继续执行...')
-            // return resolve('200 OK');
+            console.log('call resolve()...');
+            resolve('OK'); // 相当于调用 then 传入函数
+            console.log('还会继续执行...')
+            // return resolve('OK');
         } else {
-            log('call reject()...');
+            console.log('call reject()...');
             reject('timeout in ' + timeOut + ' seconds.'); // 相当于调用catch传入函数
         }
     }, timeOut * 1000);
+});
+promiseRet.then(data => {
+    console.log('1:', data);
+    return data
+}).then(async data => { // 此处加async不会影响后面的then
+    await new Promise((resolve, reject) => {
+         setTimeout(function () {
+            console.log('2:', data);
+            resolve()
+        }, 1000)
+    });
+    return data
 }).then(function (r0) {
     // 此处不返回 Promise, 后面也可继续 then, 只是拿不到数据
-    // 如果此处为`return "00";`，则后面再 then(r1 => console.log(r1)) 打印的为 undefined
+    console.log('31:', r0);
     return new Promise((resolve, reject) => {
-        resolve(r0 + "0", 'r2') // 假设 r0 为 "0"，则后面 r1 为 "00", r2 为 "r2"
+        setTimeout(function () {
+            console.log('32:', r0);
+            resolve(r0 + "K") // resolve只能接收一个参数
+        }, 1000)
     });
 }).then(function (r1, r2) {
-    log(r1, r2);
+    console.log('4:', r1, r2); // OKK undefined
+    return promiseRet
 }).then(data => {
-    log(data); // undefined
-}).catch(reason => {
-    log('Failed: ' + reason);
+    console.log('5:', data); // OK
+}).catch(err => {
+    console.log('Failed: ' + err);
 });
 // .catch(() => {}) // 不要有空catch, 否则报错了控制台不会打印, 难以跟踪问题
 
@@ -230,6 +265,12 @@ new Promise(function (resolve, reject) {
 Promise.resolve('foo') // 等价于 new Promise(resolve => resolve('foo'))
 Promise.resolve() // 不带参数返回
 Promise.reject('error')
+
+// 如何判断一个对象是否为Promise？其实无需判断，全部用Promise.resolve包装一层。参考：https://juejin.cn/post/7103880642605088781
+// 可在 Promise.resolve 的前面增加 await 来实现 then 优先执行完，再执行后面的代码
+Promise.resolve(valueOrPromiseItDoesntMatter).then((value) => {
+    console.log(value)
+})
 
 // 如果参数是 Promise 实例，那么Promise.resolve将不做任何修改、原封不动地返回这个实例
 // 参数是一个thenable对象()，Promise.resolve方法会将这个对象转为 Promise 对象，然后就立即执行thenable对象的then方法
@@ -905,6 +946,7 @@ function 函数名(参数列表) {
     // 2.自定义console.log方法. 一般不能写成 `log: () => {}`
     function log() {
         // arguments参数是个伪数组，通过 Array.prototype.slice.call 转化为标准数组(才可以使用unshift等方法)
+        // ...([].slice.call(arguments, 2)) 传递给另外一个函数
         var args = Array.prototype.slice.call(arguments)
         args.unshift('[aezo] ')
         
@@ -912,6 +954,42 @@ function 函数名(参数列表) {
     }
     log("hello world") // [aezo] hello world
     ```
+
+#### 函数当做类使用
+
+- `vue/src/core/instance/index.js`
+
+```js
+function Vue (options) {
+  if (process.env.NODE_ENV !== 'production' &&
+    !(this instanceof Vue)
+  ) {
+    warn('Vue is a constructor and should be called with the `new` keyword')
+  }
+  // initMixin中将_init方法附加到Vue原型上的
+  this._init(options)
+}
+
+// 也可写成
+/*
+Vue.prototype._init = function (options) {
+    let vm = this
+    // ...
+}
+*/
+initMixin(Vue)
+stateMixin(Vue)
+eventsMixin(Vue)
+lifecycleMixin(Vue)
+renderMixin(Vue)
+
+export default Vue
+```
+- 使用
+
+```js
+new Vue({})
+```
 
 #### 内置函数
 

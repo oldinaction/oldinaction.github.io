@@ -51,6 +51,72 @@ driver.find_element_by_id("su").click()
 driver.quit()
 ```
 
+## XPath语法说明
+
+```bash
+## 绝对路径选择：从根节点开始的，到某个节点，每层都依次写下来，每层之间用 / 分隔的表达式，就是某元素的绝对路径
+/html/body/div # 对应CSS的 `html>body>div`
+
+## 相对路径选择：选择所有div元素里面的子节点p
+//div//p # 可同时支持CSS的 `div>p` 和 `div p`
+
+## 通配符*：选择所有div节点的所有直接子节点
+//div/* # 对应CSS的 `div>*`
+
+## 根据属性选择：选择所有class为a的b元素
+//b[@class='a'] # 对应CSS的 `.a`
+//*[@style='color'] # [style='color']
+//*[contains(@class,'box')] # [class*='box'] 选择class属性包含box的所有元素
+//*[starts-with(@a,'b')] # [a^='b'] 选择a属性开头为b的所有元素
+//*[ends-with(@a,'b')] # [a$='b'] 选择a属性结尾为b的所有元素(xpath2.0语法，浏览器不支持)
+
+## 按次序选择元素
+//div/p[2] # `div p:nth-child(2)` 选择父元素为div中的p类型第2个子元素
+//div/*[2] # `div :nth-child(2)` 选择父元素为div的第2个子元素
+//p[last()-1] # `p:nth-last-child(2)` 选取p类型倒数第2个子元素
+
+## 按范围选择元素
+//option[position()<=2] # 选取option类型第1到2个子元素
+//*[@class='a']/*[position()<=3] # 选择class属性为a的前3个子元素
+//*[@class='a']/*[position()>=last()-2] # 选择class属性为a的后3个子元素
+
+## 组选择
+//*[@class='a'] | //*[@id='b'] # `.a , #b` 选所有class为a的元素，和所有id为b的元素
+
+## 根据子节点选择父节点
+//a/../.. # 查找后2代元素包含a元素的节点
+
+## 兄弟节点选择
+//*[@class='a']/following-sibling::* # `.a ~ *` 选择 class 为 a 的元素的所有后续兄弟节点
+//*[@class='a']/preceding-sibling::* # 选择 class 为 a 的元素的所有前置兄弟节点
+```
+
+## 元素操作
+
+- 查找元素
+
+```python
+# 查找一个元素，如果有多个取第一个
+ele = self.driver.find_element(By.XPATH, '//*[@id="login"]')
+self.driver.find_element(By.XPATH, '//*[contains(@class, "class1")]//*[contains(@class, "class1-2-1")]') # 类似CSS的 ".class1 .class1-2-1"
+# 查找元素集合
+trs = self.driver.find_elements(By.XPATH, '//*[contains(@class, ".tr")]')
+# 串联查找，根据父元素查找子元素
+trs[0].find_elements(By.XPATH, 'td')
+```
+- 给元素赋值
+
+```python
+# input输入框
+ele.send_keys('ABC123') # 输入值
+ele.clear() # 清空输入框
+```
+- 其他
+
+```python
+ele.click() # 点击元素
+```
+
 ## 扩展功能
 
 ### 控制当前已经打开的chrome浏览器窗口
@@ -80,6 +146,8 @@ if __name__ == '__main__':
     input('输入空格继续程序...')
 	
     options = Options()
+    # 此方法必须先通过命令行参数启动浏览器(启动前先关闭之前打开的浏览器，开发时不能开两个浏览器窗口)
+    # 通过debuggerAddress进行附着进程，否则会重新启动一个浏览器实例
     options.add_experimental_option("debuggerAddress", "127.0.0.1:9528")
     browser = webdriver.Chrome(options=options)
 
@@ -96,8 +164,7 @@ import json
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver import ChromeOptions
-
-DRIVER_PATH = '/Users/smalle/data/chromedriver/112.0.5615.49/chromedriver'
+from webdriver_manager.chrome import ChromeDriverManager # pip install webdriver-manager
 
 if __name__ == '__main__':
     caps = {
@@ -105,6 +172,8 @@ if __name__ == '__main__':
         'goog:loggingPrefs': {'performance': 'ALL'}  # 开启日志性能监听
     }
     options = ChromeOptions()
+    # 自动根据安装的浏览器获取其对应的chromedriver版本
+    DRIVER_PATH = ChromeDriverManager().install()
     browser = webdriver.Chrome(executable_path=DRIVER_PATH, desired_capabilities=caps, options=options)  # 启动浏览器
     browser.get('https://blog.csdn.net')
 
@@ -126,9 +195,20 @@ if __name__ == '__main__':
 
 ### 伪装请求端标识
 
-- [python selenium 淘宝授权 绕过检测机制](https://www.cnblogs.com/Denny_Yang/p/14764326.html)
-- [Selenium 最强反反爬方案来了](https://blog.csdn.net/wuShiJingZuo/article/details/115987011)
-- [在Pyppeteer中正确隐藏window.navigator.webdriver](https://blog.51cto.com/u_15023263/2559145)
+- 使用[undetected_chromedriver](https://github.com/ultrafunkamsterdam/undetected-chromedriver)
+
+```py
+import undetected_chromedriver as uc
+from webdriver_manager.chrome import ChromeDriverManager
+
+options = ChromeOptions()
+options.set_capability('goog:loggingPrefs', {'performance': 'ALL'}) # (可选)记录performance日志
+self.driver = uc.Chrome(executable_path=ChromeDriverManager().install(), options=options)
+self.hb56_performance = Hb56Performance(self.driver)
+self.driver.get("https://www.baidu.com/")
+```
+- 使用stealth.min.js文件防止selenium被检测
+    - [Selenium 最强反反爬方案来了](https://blog.csdn.net/wuShiJingZuo/article/details/115987011)
 
 ### 动态字体及字体加密
 

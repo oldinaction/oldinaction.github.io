@@ -8,7 +8,10 @@ tags: [mysql, dba]
 
 ## 简介
 
+- [mycat](http://www.mycat.org.cn/)：不仅仅可以用作读写分离、以及分表分库、容灾备份，而且可以用于多租户应用开发、云平台基础设施
+    - https://blog.csdn.net/liuerchong/article/details/107887804
 - pt-osc(Online Schema Change) 对于大表进行DDL操作工具
+- MySQL 中间件汇总比较：https://zhuanlan.zhihu.com/p/490261031
 
 ## Mysql安装与配置
 
@@ -225,6 +228,7 @@ optimize table t_test;
     - 长事物（如期间进行了HTTP请求且等待时间太长），阻塞DDL，继而阻塞所有同表的后续操作
     - 表索引设计不当，导致数据库出现死锁
 - 更新数据时报错 `Lock wait timeout exceeded; try restarting transaction` 数据结构ddl操作的锁的等待时间 [^3]
+- 参考：https://www.cnblogs.com/better-farther-world2099/articles/14721482.html
     
 ```bash
 # 事物等待锁超时，如：一个事物还没有提交（对某些表加锁了还没释放），另外一个线程需要获取锁，从而等待超时
@@ -234,7 +238,10 @@ show variables like 'autocommit'; # 查看事物是否为自动提交，ON 为�
 
 show processlist; # 查看是否有执行慢的sql
 # 相关的表：innodb_locks 当前出现的锁，innodb_lock_waits 锁等待的对应关系
-# 字段：trx_mysql_thread_id 事务线程 ID；trx_tables_locked 当前执行 SQL 的行锁数量
+# 字段如下：
+# trx_mysql_thread_id 事务线程 ID
+# trx_tables_locked 当前执行 SQL 的行锁数量
+# trx_rows_modified 已经影响的行数
 select * from information_schema.innodb_trx; # 查看当前运行的所有事务，应该会发现有一个事物开始时间很早，但是一直存在此表中（因为还未提交）
 kill <trx_mysql_thread_id> # 可临时杀掉卡死的这个事物线程，从而释放锁
 
@@ -283,6 +290,18 @@ https://www.cnblogs.com/geoffreyone/p/14247914.html
 - MySQL-Front：可导出 html 格式(样式和字段比较人性化)，直接复制到 word 中
 - SQLyong(数据库-在创建数据库架构 HTML)：可导出很完整的字段结构(太过完整，无法自定义)
 - DBExportDoc V1.0 For MySQL：基于提供的 word 模板(包含宏命令)和 ODBC 导出结构到模板 word 中(表格无线框)
+
+### ibtmp1临时表空间文件过大
+
+- 参考：https://cloud.tencent.com/developer/article/1491411
+- ibtmp1文件位于数据目录下，为临时表空间文件，用于存储临时数据，如排序、临时表等
+- 默认是12M且会无限增长，当关闭数据库或重启时此临时表空间会清空
+    - 用到临时表空间的一般为慢SQL，可进行优化。从而也可以设置临时表空间的上限，当超过此上限后，执行SQL用到临时表空间就会报错
+- 什么情况会用到临时表空间？可通过explain查看，如果Extra列出现Using temporary则表示使用了临时表空间
+    - 可GROUP BY 无索引字段或GROUP BY + ORDER BY 的子句字段不一样时
+    - ORDER BY 与distinct 共用，其中distinct与ORDER BY里的字段不一致（主键字段除外）
+    - UNION查询（MySQL5.7后union all已不使用临时表）
+    - insert into select ...from ...
 
 ### Oracle表结构与Mysql表结构转换
 

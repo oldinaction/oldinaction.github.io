@@ -19,7 +19,7 @@ tags: [HA, 分布式锁]
 	- 最终一致性：为客户端展示同一个视图
 	- 实时性：系统的客户视图保证在特定时间范围内是最新的。zookeeper不能保证两个客户端能同时得到刚更新的数据，如果需要最新数据，应该在读数据之前调用sync()接口
 	- 顺序性：客户端的更新将按发送顺序应用
-	- 统一视图：无论服务器连接到哪个服务器，客户端都将看到相同的服务视图(临时节点数据也可见)
+	- 统一视图：无论客户端连接到哪个服务器，客户端都将看到相同的服务视图(临时节点数据也可见)
 	- 可靠性：如果消息被一台服务器接受，那么它将被所有的服务器接受（且被持久化）
 	- 原子性：更新只能成功或者失败，没有中间状态
 	- 独立性：各个Client之间互不干预
@@ -35,7 +35,7 @@ tags: [HA, 分布式锁]
   - 是一个目录树结构 => 分组管理
   - 每个节点可以存放1MB数据 => 统一配置
   - 节点分为：持久节点、临时节点(session)、序列节点
-    - sequential => 统一命名
+    - sequential（序列节点） => 统一命名
     - ephemeral（读音：/ɪˈfemərəl/，临时节点） => 分布式锁
 
 ## ZooKeeper安装和使用
@@ -176,7 +176,7 @@ Command not found: Command not found help
 - 客户端watch一个目录后，当该目录发生改变后，会触发事件通知到客户端
 
     ![zookeeper-watch](/data/images/arch/zookeeper-watch.png)
-- zookeeper是有session的概念，因此客户端使用时不能使用线程池
+- **zookeeper是有session的概念，因此客户端使用时不能使用线程池**
 
 ### Zab协议
 
@@ -209,10 +209,13 @@ Command not found: Command not found help
 ### 一致性
 
 - CAP理论
-- 一致性分类
-- 对于zookeeper来说，它实现了A可用性、P分区容错性、C中的写入强一致性，丧失的是C中的读取一致性
-
-https://blog.csdn.net/nawenqiang/article/details/85236952
+    - C一致性。一致性分类：https://blog.csdn.net/nawenqiang/article/details/85236952
+    - A可用性
+    - P分区容错性
+- 用作注册中心时，Eureka、Zookeeper、Nacos的CAP区别
+    - Eureka实现了AP，保证了可用性，实现最终一致性。Eureka各个节点都是平等的，几个节点挂掉不会影响正常节点的工作，剩余的节点依然可以提供注册和查询服务
+    - Zookeeper实现了CP，在选举leader时，会停止服务，直到选举成功之后才会再次对外提供服务，这个时候就说明了服务不可用。C中的写入强一致性，丧失的是C中的读取一致性
+    - Nacos既支持既支持AP，也支持CP
 
 ## Java中使用
 
@@ -275,6 +278,7 @@ public class HelloWorld {
         CountDownLatch countDownLatch = new CountDownLatch(1);
 
         // 此处设置session超时时间为3s(即表示断开连接，如此线程执行完毕，等待3s之后，session消失，对应的临时节点也会消失)。由于session的存在，因此zookeeper连接时不存在线程池的概念
+        // 也可为："192.168.6.131:2181,192.168.6.132:2181,192.168.6.133:2181/test"，需提前创建好test目录，且之后使用时根目录为/test
         ZooKeeper zk = new ZooKeeper("192.168.6.131:2181,192.168.6.132:2181,192.168.6.133:2181", 3000, new Watcher() {
             // ZooKeeper连接服务的监听
             @Override
@@ -354,6 +358,8 @@ public class HelloWorld {
 
         // 创建节点
         String s = zk.create("/aezo", "v1".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        // 由于是临时序列节点，最终目录为/lock000000000
+        // zk.create("/lock", nodeData.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL, this, "hello");
         System.out.println("s = " + s);
 
         // 获取数据

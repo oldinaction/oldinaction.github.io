@@ -6,6 +6,10 @@ categories: [java]
 tags: [jdk]
 ---
 
+## 简介
+
+- [Java SE Specifications各版本规范](https://docs.oracle.com/javase/specs/index.html)
+
 ## JDK9新特性 [^3]
 
 ### 模块系统(Jigsaw)
@@ -390,11 +394,11 @@ clazzMap.computeIfAbsent(clazz, Reflector::new); // public Reflector(Class<?> cl
 
 ### javax.script(js-java)
 
-- Java和Js之间相互调用，无需安装依赖，相似的如[JEXL执行字符串JAVA代码](/_posts/java/java-tools.md#JEXL执行字符串JAVA代码)
-- 参考文章
-    - Java 8 Nashorn 指南：https://zhuanlan.zhihu.com/p/33257346
 - 从 JDK 1.8 开始，**Nashorn**取代Rhino(JDK 1.6, JDK1.7) 成为 Java 的嵌入式 JavaScript 引擎。Nashorn 完全支持 ECMAScript 5.1 规范以及一些扩展
 - Nashorn JavaScript Engine 在 Java 11 标记为forRemoval，在 Java 15 已经不可用了(manager.getEngineByName("javascript")返回值为null)。**可同引入依赖解决**
+- 参考文章
+    - Java 8 Nashorn 指南：https://zhuanlan.zhihu.com/p/33257346
+    - Java和Js之间相互调用，无需安装依赖，相似的如[JEXL执行字符串JAVA代码](/_posts/java/java-tools.md#JEXL执行字符串JAVA代码)
 
 ```xml
 <dependency>

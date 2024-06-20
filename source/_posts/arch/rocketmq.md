@@ -34,12 +34,13 @@ tags: [mq, alibaba]
 - ProducerGroupName需要由应用来保证唯一。ProducerGroup这个概念发送普通的消息时，作用不大，但是发送分布式事务消息时，比较关键，因为服务器会回查这个Group下的任意一个Producer
 - Producer对象在使用之前必须要调用start初始化，初始化一次即可。可伴随应用启动而启动。切记不可以在每次发送消息时，都调用start方法
 - 代码如下：
-  ```java
-  DefaultMQProducer producer = new DefaultMQProducer("UniqueProducerGroupName"); // 保证UniqueProducerGroupName唯一
-  producer.setNamesrvAddr("127.0.0.1:9876"); // 设置NameServer地址
-  producer.setInstanceName("Producer"); // 客户端实例名称
-  producer.start();
-	```
+
+```java
+DefaultMQProducer producer = new DefaultMQProducer("UniqueProducerGroupName"); // 保证UniqueProducerGroupName唯一
+producer.setNamesrvAddr("127.0.0.1:9876"); // 设置NameServer地址
+producer.setInstanceName("Producer"); // 客户端实例名称
+producer.start();
+```
 
 ### Producer发送消息
 
@@ -73,16 +74,16 @@ DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("UniqueConsumerGroupN
 consumer.setNamesrvAddr("127.0.0.1:9876");
 consumer.setInstanceName("Consumber");
 consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET); // 设置Consumer第一次启动是从队列头部开始消费还是队列尾部开始消费，如果非第一次启动，那么按照上次消费的位置继续消费
-  consumer.subscribe("TopicTest1", "TagA"); // 订阅指定topic为TopicTest1下TagA类型的消息。一个consumer可订阅多个主题
-  consumer.registerMessageListener(new MessageListenerConcurrently() {
-      @Override
-      public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,
-              ConsumeConcurrentlyContext context) {
-          // 开始消费
-          System.out.println(Thread.currentThread().getName() + " Receive New Messages: " + msgs);
-          String orderId = msg.getUserProperty("orderId"); // 获取参数值
-          return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-      }
-  });
-  consumer.start();
+consumer.subscribe("TopicTest1", "TagA"); // 订阅指定topic为TopicTest1下TagA类型的消息。一个consumer可订阅多个主题
+consumer.registerMessageListener(new MessageListenerConcurrently() {
+    @Override
+    public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,
+            ConsumeConcurrentlyContext context) {
+        // 开始消费
+        System.out.println(Thread.currentThread().getName() + " Receive New Messages: " + msgs);
+        String orderId = msg.getUserProperty("orderId"); // 获取参数值
+        return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+    }
+});
+consumer.start();
 ```

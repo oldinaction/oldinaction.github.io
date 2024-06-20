@@ -19,13 +19,21 @@ tags: [monitor]
 - 官网：https://mmonit.com/monit
 - 文档：https://mmonit.com/monit/documentation/monit.html
 - [Monit](https://mmonit.com/monit/)是一个开源工具(单机)，[M/Monit](https://mmonit.com/download/)(集中管理)是基于其的收费企业版
+    - `yum install monit`
+    - mac端可下载安装包，安装在`/usr/local/monit`，可访问`http://localhost:2812/`查看可视化监控页面(admin/monit)
 - 相关文章
     - Monit与Supervisor对比 https://www.jianshu.com/p/4180374e1a34
-    - Monit使用 https://github.com/freeaquar/notebook/blob/master/%E8%BF%90%E7%BB%B4%E7%9B%B8%E5%85%B3/Monit-%E7%AC%94%E8%AE%B0.md
-    - https://blog.csdn.net/qin_weilong/article/details/90639769
+    - Monit使用
+        - https://github.com/freeaquar/notebook/blob/master/%E8%BF%90%E7%BB%B4%E7%9B%B8%E5%85%B3/Monit-%E7%AC%94%E8%AE%B0.md
+        - https://blog.csdn.net/qin_weilong/article/details/90639769
 - 命令
 
 ```bash
+# 重启
+systemctl restart monit
+# 日志
+cat /var/log/monit.log
+
 monit -V # 查看版本
 monit # 启动monit
 monit status # 查看所有监控状态
@@ -37,29 +45,36 @@ monit start nginx # 启动nginx服务
 monit reload # 重载配置文件
 monit -t # 配置命令检测
 
-/etc/monitrc # 主配置文件
-/etc/monit.d/ # 单独配置各项服务
+# 主配置文件
+/etc/monitrc
+# 配置文件说明 START
+set daemon 120 # 默认是每120秒检查一下被监视的程序状态
+include /etc/monit.d/* # 去掉包含子配置的注释
+# 配置文件说明 EDN
+
+# 单独配置各项服务
+/etc/monit.d/
 ```
-- `/etc/monit.d/yard` 案例
+- `/etc/monit.d/ofbiz` 案例
 
 ```bash
-check host yardbackup with address yardbackup.eptrade.cn
+check host mydemo with address localhost
 if failed
-port 80
-protocol http
-request /monit-check
-and status = 200
-for 3 cycles
-then exec "/root/script/monit-yard.sh yard restart"
-repeat every 20 cycles
+   port 80
+   protocol http
+   request /test/control/monit-check
+   and status = 200 # 默认超时时间5s(NETWORKTIMEOUT)
+   for 3 cycles # 连续3个周期符合条件
+then exec "/root/script/monit-ofbiz.sh yard restart"
+repeat every 20 cycles # 每20个周期循环1次
 alert admin@example.com
 ```
-- `/root/script/monit-yard.sh`
+- `/root/script/monit-ofbiz.sh`
 
 ```bash
 #!/bin/bash
 
-TMP_FILE=/root/script/tmp-monit-yard-$1
+TMP_FILE=/root/script/tmp-monit-ofbiz-$1
 psid=0
 
 checkpid() {

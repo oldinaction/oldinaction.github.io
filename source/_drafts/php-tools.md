@@ -97,6 +97,10 @@ try {
 }
 ```
 
+## swoole高并发扩展
+
+- https://www.swoole.com/
+
 ## xunruicms
 
 - 安装

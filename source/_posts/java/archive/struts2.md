@@ -6,6 +6,10 @@ categories: [java]
 tags: [mvc]
 ---
 
+## Servlet
+
+- 参考：https://blog.csdn.net/oldinaction/article/details/40624239
+
 ## 介绍
 
 1. struts2是 struts1和WebWork的结合

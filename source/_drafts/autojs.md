@@ -13,10 +13,12 @@ tags: [android,js]
     - 通过在安卓手机上安装对应APP，即可使用脚本通过安卓手机的无障碍API进行自动化控制
 - [github](https://github.com/hyb1996/Auto.js)，安卓商店叫AutoJsPro(部分功能收费)
 - [Autox.js](https://github.com/kkevsekk1/AutoX) Auto.js v4.1之后闭源，此版本为基于4.1之后的第三方开源版
+    - [AutoX文档](http://doc.autoxjs.com/#/)
 - [autojs案例](https://blog.csdn.net/snailuncle2/article/details/115278704)
     - [autojs各种签到脚本](https://github.com/bjc5233/autojs)
 - 相关文章
     - [autojs常用代码介绍](https://www.jianshu.com/p/3b24656b22c9)
+    - [自动化脚本工具:autojs/easyclick](https://juejin.cn/post/7286787235360931852)
 
 ## 工程化使用
 
@@ -26,14 +28,14 @@ tags: [android,js]
 ```bash
 # 安装vscode插件Auto.js-Autox.js-VSCodeExt v1.109.0
 # Cmd+Shift+P启动插件服务(会放出一个端口，手机通过此端口和电脑连接)
-# 手机连接到电脑(有时候会自动断，需要手动重新连接下)
+# 手机连接到电脑(基于内网连接，有时候会自动断，需要手动重新连接下)
 
 # 编译(由于是编译后的js项目，可直接通过vscode的按钮运行到手机)
 npm run build
 # 再运行项目，之后脚本运行后可实时修改编译运行到手机(由于是node项目，不能直接通过vscode的按钮运行到手机)
 npm run start
 # 然后右键 dist/xxx 保存项目到设备
-# 在手机上面执行脚本
+# 在手机上面执行脚本. 此时console.log等输出可以在vscode的输出中查看；如果修改了代码，需要重新build保存到手机
 # 如果手机上的脚本关闭后，需要重新build保存到手机
 ```
 
@@ -131,15 +133,43 @@ dateArr.filter(x => x.findOne(textMatches('/.*(26|28).*/')))
 className('android.widget.TextView').depth(14).drawingOrder(1).indexInParent(0).id('tv_left_main_text').findOnce()
 ```
 
+### 事件
+
+- 监听系统消息：如复制验证码
+
+```js
+const SMSCodeRegex = /.*验证码[\s:：是]*(\d{4,6}).*/;
+
+events.observeNotification(); // 启动通知监测
+
+events.onNotification((n) => {
+  const message = n.getText();
+  if (!message || !message.includes('验证码')) {
+    return;
+  }
+
+  const match = SMSCodeRegex.exec(message);
+  if (!match) {
+    console.log(`无法匹配验证码，消息内容：${message}`);
+    return;
+  }
+
+  // the match result is array, so index 1 to fetch code.
+  const code = match[1];
+
+  setClip(code); // 设置到剪贴板命令
+  toast(`验证码已发送至剪切板`);
+});
+```
 
 ## 技巧
 
 - 可打印对象，然后根据对象的boundsInScreen参数和通过autojs工具拾取的元素bounds参数进行比对来确定当前是否为选中对象
 - 关于点击无效
-    - 使用click()
-    - 使用坐标click(x, y)
-    - 使用longClick(x, y)
-    - 使用press(x, y, duration)
+    - 使用`UiObject.click()` 支持控件`clickable: true`的情况
+    - 使用坐标`click(x, y)`
+    - 使用`longClick(x, y)`
+    - 使用`press(x, y, duration)` 如闲鱼点击"等待卖家发货"文案，如果`clickable: true`的情况可能点击无效(如闲鱼我的 - 我卖出的 - 代发货点击无效，需要使用clikc函数)
     - click前使用sleep防止点击过快
     - 使用点击区块 click(left, top, bottom, right) 如大麦立即购票按钮
     - 使用自定义函数 common.swipeRandom 进行曲线滑动

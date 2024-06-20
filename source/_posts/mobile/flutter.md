@@ -24,6 +24,7 @@ tags: [App, dart, mobile]
     - 基于AOT的发布包：Flutter在发布时可以通过AOT生成高效的ARM代码以保证应用性能
     - 类型安全：由于Dart是类型安全的语言，支持静态类型检测
 - `Dart`的设计目标应该是同时借鉴了Java和JavaScript。Dart在静态语法方面和Java非常相似，如类型定义、函数声明、泛型等，而在动态特性方面又和JavaScript很像，如函数式特性、异步支持等
+- 其他如 React-Native、Weex和uni-app
 
 ## 安装及运行
 

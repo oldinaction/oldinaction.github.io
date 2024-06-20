@@ -13,6 +13,25 @@ tags: [others]
 - md文件中可以使用html标签
 - `---`代表分割线
 
+### 图片调整
+
+- 参考: https://blog.csdn.net/tugepaopaoo/article/details/130196496
+- 调整方式
+
+```md
+> 调整尺寸大小
+![固定宽高(=前有一个空格)](https://example.com/test.png =600x600)
+![固定宽度](https://example.com/test.png =600x)
+![固定高度](https://example.com/test.png =x600)
+
+> 调整对齐方式
+![居中](https://example.com/test.png#pic_center =600x600)
+![靠左对齐](https://example.com/test.png#pic_left =600x600)
+![靠右对齐](https://example.com/test.png#pic_right =600x600)
+
+> 或者使用img标签
+```
+
 ### 代码块
 
 ```diff
@@ -267,6 +286,10 @@ Bob->Alice : hello
 - 可将一个知识库进行互联网密码分享
     - 分享后，新建的文章默认使用相同的密码进行查看
     - 可单独关闭某篇文章的共享功能(需在网页进行设置)，此时通过密码访问到知识库的用户可在目录中查看到该文章标题，但是无法查看内容
+
+## CSDN
+
+- 图片大小调整，参考[图片调整](#图片调整)
 
 
 

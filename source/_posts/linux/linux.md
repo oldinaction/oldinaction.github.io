@@ -23,6 +23,7 @@ tags: [linux, shell]
         - `RHEL` (Redhat Enterprise Linux)
         - `Fedora Core` (由原来的Redhat桌面版本发展而来，免费版本)
         - [CentOS](https://www.centos.org/) (RHEL的社区克隆版本，免费)
+        - [Rocky Linux](https://rockylinux.org/) CentOS替代方案，开源免费，兼容RHEL
     - `Debian系列` 使用`apt-get / dpkg`包管理方式
         - [Debian](https://www.debian.org/)、[Man Docs](https://manpages.debian.org/)
         - [Ubuntu](https://cn.ubuntu.com/)
@@ -106,9 +107,14 @@ tags: [linux, shell]
 - `journalctl` 查看所有日志，默认显示本次启动的所有(服务)日志
     - `-f` 持续监控日志输出
     - `-u` 基于服务筛选(`journalctl -f -u kubelet` 持续监控kubelet日志)
-    - `-n` 显示最近n行日志 `journalctl -n20`
-    - `-k` 查看内容日志
-    - `--since`/`--until` 查询某段时间的日志
+    - `-n` 显示最近n行日志 `journalctl -n 20`
+    - `-k` 查看内核日志
+    - `journalctl --since 2022-10-03 01:00:00 --until 2022-10-04 14:30:00` 查询某段时间的日志
+    - `journalctl --list-boots` 查看最近15次启动记录
+    - `journalctl -b -1` 查看上一次启动日志
+    - `journalctl -p 3` 查看某个级别的日志(0: emergency 1: alert 2: critical 3: error 4: warning 5: notice 6: info 7: debug)
+    - `journalctl --disk-usage` 查看日志文件消耗的磁盘空间
+    - `journalctl -o json` 获取json格式日志
 - **自定义服务参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#基于编译安装tengine)**
 - `systemctl`：主要负责控制systemd系统和服务管理器，是`chkconfig`和`service`的合并(systemctl管理的脚本文件目录为`/usr/lib/systemd/system` 或 `/etc/systemd/system`)
     - `systemctl start|status|restart|stop nginx.service` 启动|状态|重启|停止服务，此处`.service`可省略，status状态说明
@@ -255,31 +261,31 @@ tags: [linux, shell]
     - `wc -l <file>` 查看行数
 - [lsof](https://www.netadmintools.com/html/lsof.man.html) 列出打开文件(lists openfiles), linux一切皆文件
 
-    ```bash
-    lsof -h
-        # -a: 结果进行“与”运算（而不是“或”）
-        # -t: 仅获取进程ID
+```bash
+lsof -h
+# -a: 结果进行“与”运算（而不是“或”）
+# -t: 仅获取进程ID
 
-    # 显示与指定目录或文件交互的所有一切
-    lsof /var/log/messages/
-    lsof /var/log/messages/my.log
+# 显示与指定目录或文件交互的所有一切
+lsof /var/log/messages/
+lsof /var/log/messages/my.log
 
-    # 显示指定用户打开的文件
-    lsof -u root
-    # 杀死指定用户开启的所有进程
-    kill -9 `lsof -t -u apache`
+# 显示指定用户打开的文件
+lsof -u root
+# 杀死指定用户开启的所有进程
+kill -9 `lsof -t -u apache`
 
-    # 列举删除的文件仍然占用空间的文件(从而导致du/df统计的值不一致)
-    lsof | grep deleted
+# 列举删除的文件仍然占用空间的文件(从而导致du/df统计的值不一致)
+lsof | grep deleted
 
-    # 查看当前进程的文件描述符
-    lsof -op $$
+# 查看当前进程的文件描述符
+lsof -op $$
 
-    # lsof -i[46] [protocol][@hostname|hostaddr][:service|port]
-    # 显示所有IPv4连接
-    lsof -i
-    lsof -i :22
-    ```
+# lsof -i[46] [protocol][@hostname|hostaddr][:service|port]
+# 显示所有IPv4连接
+lsof -i
+lsof -i :22
+```
 - `ls` 列举文件 [^3]
     - `ll` 列举文件详细
         - **`ll test*`**/`ls *.txt` 模糊查询文件
@@ -375,91 +381,96 @@ df -h
 - centos安装时如果使用分区类型为LVM则会出现时/dev/mapper/centos-root等
 - LVM使用参考 https://blog.51cto.com/13438667/2084924
 
-    ![lvm](/data/images/lang/lvm.png)
-    
-    ```bash
-    # **先 fdisk 创建分区 /dev/vdb1 和 /dev/vdb2，无需格式化(略)**
-    # pvcreate命令在新建的分区上创建PV
-    pvcreate /dev/vdb1 /dev/vdb2
-    # 查看pv详细信息
-    pvs/pvdisplay
-    # vgcreate命令创建一个VG组，并将创建的两个PV加入VG组
-    vgcreate vg1 /dev/vdb1 /dev/vdb2 # 组名vg1
-    # 查看卷组信息
-    vgs/vgdisplay
-    # 在vg1卷组下创建一个逻辑卷lv1，对应路径为/dev/vg1/lv1
-    # 此时lv1可能会同时使用/dev/vdb1 /dev/vdb2这两个PV，这也是LVM一个PV损毁会导致整个卷组数据损毁
-    # **可通过VG来分区(如取home、data两个卷组分别挂载到/home、/data；初始化时可初始化名为/dev/home/main的LV)，之后对该分区扩容只需往相应VG中加PV即可**
-    lvcreate -L 199G -n lv1 vg1 # 如果200G的卷组，此时无法正好创建出一个200G的LV，需稍微少一点。最终显示成 /dev/vg1/lv1
-    # 查看逻辑卷详细
-    lvs/lvsdisplay
-    # 格式化卷组
-    mkfs.xfs /dev/vg1/lv1
-    # 挂载
-    mount /dev/vg1/lv1 /home/data # df -h显示/dev/mapper/vg1-lv1
-    # 写入fstab
-    echo /dev/vg1/lv1 /home/data xfs defaults 0 0 >> /etc/fstab
-    ```
+![lvm](/data/images/lang/lvm.png)
+
+```bash
+# **先 fdisk 创建分区 /dev/vdb1 和 /dev/vdb2，无需格式化(略)**
+# pvcreate命令在新建的分区上创建PV
+pvcreate /dev/vdb1 /dev/vdb2
+# 查看pv详细信息
+pvs/pvdisplay
+# vgcreate命令创建一个VG组，并将创建的两个PV加入VG组
+vgcreate vg1 /dev/vdb1 /dev/vdb2 # 组名vg1
+# 查看卷组信息
+vgs/vgdisplay
+# 在vg1卷组下创建一个逻辑卷lv1，对应路径为/dev/vg1/lv1
+# 此时lv1可能会同时使用/dev/vdb1 /dev/vdb2这两个PV，这也是LVM一个PV损毁会导致整个卷组数据损毁
+# **可通过VG来分区(如取home、data两个卷组分别挂载到/home、/data；初始化时可初始化名为/dev/home/main的LV)，之后对该分区扩容只需往相应VG中加PV即可**
+lvcreate -L 199G -n lv1 vg1 # 如果200G的卷组，此时无法正好创建出一个200G的LV，需稍微少一点。最终显示成 /dev/vg1/lv1
+# 查看逻辑卷详细
+lvs/lvsdisplay
+# 格式化卷组
+mkfs.xfs /dev/vg1/lv1
+# 挂载
+mount /dev/vg1/lv1 /home/data # df -h显示/dev/mapper/vg1-lv1
+# 写入fstab
+echo /dev/vg1/lv1 /home/data xfs defaults 0 0 >> /etc/fstab
+```
 - 调整同VG下不同LV的大小，如调整home和root容量大小如下
 
-    ```bash
-    # 如果centos卷组有额外的空间，如加入了物理卷，则无需减少home分区容量
-    cp -r /home/ homebak/ # 备份/home(建议打成tar)
-    umount /home # 卸载​ /home
-    # 删除某LVM分区(需要先备份数据，并取消挂载)
-    lvremove /dev/mapper/centos-home
+```bash
+# 如果centos卷组有额外的空间，如加入了物理卷，则无需减少home分区容量
+cp -r /home/ homebak/ # 备份/home(建议打成tar)
+umount /home # 卸载​ /home
+# 删除某LVM分区(需要先备份数据，并取消挂载)
+lvremove /dev/mapper/centos-home
 
-    ### =========扩展分区
-    # 只要/dev/mapper/centos-root(LV)对应的卷组(VG)有额外的空间即可扩展
-    lvextend -L +20G /dev/mapper/centos-root # 扩展/root所在的lv
-    # resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
-    xfs_growfs /dev/mapper/centos-root # 激活修改的配置
-    ### =========扩展分区
+### =========扩展分区
+# 只要/dev/mapper/centos-root(LV)对应的卷组(VG)有额外的空间即可扩展
+lvextend -L +20G /dev/mapper/centos-root # 扩展/root所在的lv
+# resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
+xfs_growfs /dev/mapper/centos-root # 激活修改的配置
+### =========扩展分区
+### =========缩小分区
+# 有时候可能报错: CouLdn‘t create temporary archive name，说明没有空间，只需要清理出100M左右空间即可
+lvreduce -L -10G /dev/mapper/centos-home # 缩小lv 10G
+xfs_growfs /dev/mapper/centos-home
+### =========缩小分区
 
-    # 恢复原来的home分区
-    vgdisplay # 其中的Free PE表示LVM分区剩余的可用磁盘
-    lvcreate -L 100G -n home centos # 重新创建home lv 分区的大小
-    mkfs.xfs /dev/centos/home # 创建文件系统
-    mount /dev/centos/home /home # 挂载 home
-    # 使永久有效，写入 etc/fstab 见上文
-    ```
+# 恢复原来的home分区
+vgdisplay # 其中的Free PE表示LVM分区剩余的可用磁盘
+lvcreate -L 100G -n home centos # 重新创建home lv 分区的大小
+mkfs.xfs /dev/centos/home # 创建文件系统
+mount /dev/centos/home /home # 挂载 home
+# 使永久有效，写入 etc/fstab 见上文
+```
 - 调整磁盘大小(慎用)
 
-    ```bash
-    ### vg
-    ## 扩展vg
-    pvcreate /dev/sdc1 # 将新的磁盘分区创建为pv
-    vgextend centos /dev/sdc1 # 将pv添加大vg组
-    ## 缩小vg
-    vgreduce centos /dev/sdc1 # 将一个PV从指定卷组中移除
-    pvremove /dev/sdc1 # 移除对应pv
+```bash
+### vg
+## 扩展vg
+pvcreate /dev/sdc1 # 将新的磁盘分区创建为pv
+vgextend centos /dev/sdc1 # 将pv添加大vg组
+## 缩小vg
+vgreduce centos /dev/sdc1 # 将一个PV从指定卷组中移除
+pvremove /dev/sdc1 # 移除对应pv
 
-    ### pv
-    ## 重设物理分区为120g。调整PV大小(进而缩小了VG的大小)
-    pvresize --setphysicalvolumesize 120g /dev/sdb1
+### pv
+## 重设物理分区为120g。调整PV大小(进而缩小了VG的大小)
+pvresize --setphysicalvolumesize 120g /dev/sdb1
 
-    ### lv (xfs分区是不支持减小操作的)
-    ## 直接调整大小
-    lvresize -L 500M -r /dev/mapper/centos-home # -r 相当于 resize2fs
-    ## 缩小lv大小到10g
-    umount /dev/mapper/centos-home
-    # e2fsck -f /dev/mapper/centos-home
-    resize2fs /dev/mapper/centos-home 10G # 缩小文件系统
-    lvreduce -L -10G /dev/mapper/centos-home # 缩小lv
-    ## 扩展lv
-    lvextend -L +2G /dev/mapper/centos-home
-    # resize2fs /dev/mapper/centos-home # 更新文件系统。resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
-    xfs_growfs /dev/mapper/centos-home
-    ```
+### lv (xfs分区是不支持减小操作的)
+## 直接调整大小
+lvresize -L 500M -r /dev/mapper/centos-home # -r 相当于 resize2fs
+## 缩小lv大小到10g
+umount /dev/mapper/centos-home
+# e2fsck -f /dev/mapper/centos-home
+resize2fs /dev/mapper/centos-home 10G # 缩小文件系统
+lvreduce -L -10G /dev/mapper/centos-home # 缩小lv
+## 扩展lv
+lvextend -L +2G /dev/mapper/centos-home
+# resize2fs /dev/mapper/centos-home # 更新文件系统。resize2fs 针对的是ext2、ext3、ext4文件系统；xfs_growfs 针对的是xfs文件系统
+xfs_growfs /dev/mapper/centos-home
+```
 - 重命名VG、LV(无需umount和备份，数据也不会丢失)
     
-    ```bash
-    # 查看并记录基本信息。需要将/dev/hdd/hdd1改成/dev/vdisk/main
-    vgs/lvs
-    vgrename hdd vdisk
-    lvrename /dev/vdisk/hdd1 main # 修改lv，注意此时vg为新的
-    vi /etc/fstab # 修改之前的挂载信息
-    ```
+```bash
+# 查看并记录基本信息。需要将/dev/hdd/hdd1改成/dev/vdisk/main
+vgs/lvs
+vgrename hdd vdisk
+lvrename /dev/vdisk/hdd1 main # 修改lv，注意此时vg为新的
+vi /etc/fstab # 修改之前的挂载信息
+```
 - 删除lvm磁盘挂载，直接删除/etc/fstab中对应条目，lvm相关配置会自动去掉
 
 ### Swap交换分区
@@ -541,9 +552,19 @@ swapon /tmp/swap # 重新挂载swap分区
         - `-p` 使用原文件的原来属性（属性不会依据使用者而变）
         - `-O`：将文件解开到标准输出    
 
-#### gz
+#### gz/gzip
 
 - `zcat test.sql.gz > test.sql` 解压。如果不输出到文件，则直接打印
+
+```bash
+# 进行压缩，–c 保留原文件
+gzip –c filename > filename.gz
+# 同时压缩多个文件(如file1.txt.gz和file2.txt.gz)，无-c则会删掉原文件
+gzip file1.txt file2.txt
+
+# 解压缩，-c 保留原文件
+gunzip –c filename.gz > filename
+```
 
 #### unzip
 
@@ -1040,6 +1061,7 @@ cat /var/spool/mail/root
         - 加入代码`IPADDR=192.168.6.130`(本机ip)和`IPADDR1=192.168.6.135`(添加的虚拟ip，可添加多个。删除虚拟ip则去掉IPADDR1)，可永久生效
         - 重启网卡`systemctl restart network`
         - 修改ip即修改上述`IPADDR`
+    - 可访问`https://ifconfig.me/ip` 获取本机IP(我的IP)
 - `ping 192.168.1.1`(或者`ping www.baidu.com`) 检查网络连接
 - `telnet 192.168.1.1 8080` 检查端口(`yum -y install telnet`)
 - `curl http://www.baidu.com` 获取网页内容。参考：http://www.ruanyifeng.com/blog/2019/09/curl-reference.html
@@ -1058,11 +1080,11 @@ cat /var/spool/mail/root
     ```
 - `wget http://www.baidu.com` 检查是否可以上网，成功会显示或下载一个对应的网页
     - `wget -o /tmp/wget.log -P /home/data --no-parent --no-verbose -m -D www.qq.com -N --convert-links --random-wait -A html,HTML http://www.qq.com` wget爬取网站
-- `netstat -lnp` 查看端口占用情况(端口、PID)
+- `netstat -nlp` 查看端口占用情况(端口、PID)
     - `yum install net-tools` 安装net-tools即可使用netstat、ifconfig等命令
-    - `sudo netstat -lnp` 可查看使用root权限运行的进程PID(否则PID隐藏)
+    - `sudo netstat -nlp` 可查看使用root权限运行的进程PID(否则PID隐藏)
     - `netstat -tnl` 查看开放的端口
-    - `netstat -lnp | grep tomcat` 查看含有tomcat相关的进程
+    - `netstat -nlp | grep tomcat` 查看含有tomcat相关的进程
     - `lsof -i -P | grep 21` mac查看端口和pid方法，或`lsof -i :21`
     - `ss -ant` CentOS 7 查看所有监听端口
 - `ss -lnt` 查看端口
@@ -1531,6 +1553,8 @@ done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
 ```bash
 # 修改(未加-i参数不会真正修改数据)当前目录极其子目录下所有文件，将zhangsan改成lisi。grep -rl 递归显示文件名
 sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
+# 此时使用#避免对/的转义(将cdn路径staticfile替换成bootcdn)
+sed "s#https://cdn.staticfile.org/#https://cdn.bootcdn.net/ajax/libs/#g" `grep 'https://cdn.staticfile.org/' -rl *`
 # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
 sed -i '/^$/d' /home/smalle/test.txt
 # 删除/etc/grub.conf文件中行首的空白符

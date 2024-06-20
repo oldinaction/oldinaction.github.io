@@ -18,7 +18,9 @@ tags: [mysql, oracle, sql]
 - 三范式
     - 第一范式：要有主键，列不可分。(如：如果要分别获取姓、名，则应该设计两个字段，而不应该设置为姓名一个字段当查询出来后再进行分割)
     - 第二范式：不能存在部分依赖。即当一张表中有多个字段作为主键时，非主键的字段不能依赖于部分主键
+        - A,B->C, B->D 此时A,B如果为侯选建，则D不完全依赖A,B(仅依赖B)
     - 第三范式：不能存在传递依赖。如：雇员表中描述雇员需要描述他所在部门，因此只需记录其部门编号即可，如果把部门相关的信息(部门名称、部门位置)加入到雇员表则存在传递依赖
+        - A->B->C, 此时不能把这个3个字段放到一张表，否则存在传递依赖
 - 三范式强调的是表不存在冗余数据(同样的数据不存第二遍)
 - 符合了三范式后会增加查询难度，要做表连接
 
@@ -235,7 +237,7 @@ exec p(0, 0);
         - java可使用Boolean那映射，数据库存储为1/0；此时存储0代表false，存储1-9代表true
         - 也可以使用Java中int类型来接收，这样可以代表实际值
     - `smallint`    短整型，存储长度为2个字节(2^16-1，-32768〜32767，0〜65535)；java默认使用Integer接收；也可使用Boolean映射，数据库存储为1/0
-        - Navicat设置smallint(2)，默认不勾选无符合(保存后重新修改这个2会不显示)，则可写入数据-32768〜32767(如写入32768就报错)，java可使用Boolean或Integer接收
+        - Navicat设置smallint(2)，默认不勾选无符号(保存后重新修改这个2会不显示)，则可写入数据-32768〜32767(如写入32768就报错)，java可使用Boolean或Integer接收
     - `mediumint`   中整型，存储长度为3个字节(2^24-1，-8388608〜8388607，0〜16777215)
     - `int`		    整型(Integer)，**存储长度4个字节**(2^32-1，-2147483647~2147483647，0~4294967295)
         - 最大显示11个字节，int(1)和int(4)一样会占用4个字节，只是最大显示长度为1，insert超过1个长度的数字还是可以成功的
@@ -244,7 +246,8 @@ exec p(0, 0);
     - `double`		浮点型(Float)，相当于Oracle里的的 number(X, Y)
     - `decimal`     金额(Bigdecimal)，相当于Oracle里的的 decimal(X, Y)。decimal(2,1) 表示总数据长度不能超过2位，且小数要占1位，因此最大为9.9
     - `char`		定长字符串(String)，同Oracle的char
-    - `varchar` 	变长字符串(String)，最大255字节，相当于Oracle里的的varchar2
+    - `varchar` 	变长字符串(String)，最大65535个字节(n代表字符，最大可存放字符数还和编码有关)，相当于Oracle里的的varchar2
+        - varchar(n)长度设置问题：https://www.jianshu.com/p/08eff7720c6f
     - `datetime`	日期(DateTime/LocalDateTime)，相当于Oracle里的date
     - `tinytext`    短文本型(String)。最大长度255个字节(2^8-1)，存储可变长度的非Unicode数据，可存储textarea中的换行格式(varchar也可存储换行)
     - `text`		文本型(String)。最大长度为65535个字节(2^31-1)，其他同tinytext
@@ -260,8 +263,8 @@ exec p(0, 0);
     - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
     - `date`		日期(插入时，sysdate即表示系统当前时间；select时默认展示年月日，要想展示时分秒则需要to_char转换)
     - ...还有很多，如用来存字节，可以把一张图片存在数据库（但是实际只是存图片存在硬盘，数据库中存图片路径）
-- VARCHAR(100)与VARCHAR(200)的区别(Oracle中的VARCHAR2原理是一样的)
-    - 虽然他们用来存储90个字符的数据，其存储空间相同，但是对于内存的消耗是不同的
+- VARCHAR(20)与VARCHAR(200)的区别(Oracle中的VARCHAR2原理是一样的)
+    - 虽然他们用来存储10个字符的数据，其存储空间相同，但是对于内存的消耗是不同的
     - 硬盘上的存储空间虽然都是根据实际字符长度来分配存储空间的，但是内存是使用固定大小的内存块(即设置的200个字符大小)来保存值，这对于排序或者临时表(这些内容都需要通过内存来实现)作业会产生比较大的不利影响
     - MySql创建临时表（SORT，ORDER等）时，VARCHAR会转换为CHAR，转换后的CHAR的长度就是varchar的长度，在内存中的空间就变大了
 
@@ -606,6 +609,7 @@ mysql>select count(num) 	/*注释：组函数(group by时，select中的字段�
     - 出现在select列表中的字段，如果没有出现在组函数里面则必须出现在group by子句里面，**或者group by中有主表的id**
         - 如：`select deptno, max(sal) from emp group by deptno;` 求每个部门的最高工资。此时是根据部门分组，所有每个部门都只有一条输出
         - 如：`select w.work_no from d_work w left join d_work_tag wt on wt.work_id = w.id group by w.id`
+    - 部分情况下，Group By跟上唯一主键或者唯一索引，可省略其他字段的group by。参考：https://blog.csdn.net/weixin_42919267/article/details/105770776
 - having对group by 分组后的结果进行限制
     - `select deptno, avg(sal) from emp group by deptno having avg(sal) > 2000;` 求部门平均工资大于2000的部门
 
@@ -820,9 +824,9 @@ set session transaction isolation level read uncommitted;
 - 隔离级别
     - 产生数据不一致的情况：脏读、不可重复读、幻读
         - 脏读：读到了其他事物未提交的数据
-        - 不可重复读：第一次读取记录后，其他事物修改了该记录，再次读取此记录发现数据变化了
+        - 不可重复读：第一次读取记录后，其他事物修改了此记录，再次读取此记录发现数据变化了
         - 幻读：第一次读取记录发现没有id=10的行，但是在插入id=10时提示已存在此行，尽管再次读取还是没有id=10
-            - mysql 的幻读并非指读取两次返回结果集不同，而是事务在插入事先检测不存在的记录时(mysql插入时会隐式读取一次)，惊奇的发现这些数据已经存在了，之前的检测读获取到的数据如同鬼影一般。**不可重复读侧重表达`读-读`，幻读则是说`读-写`，用写来证实读的是鬼影**
+            - mysql 的幻读并非指读取两次返回结果集不同；而是事务在插入前会先检测记录是否存在(mysql插入时会隐式读取一次)，惊奇的发现这些数据已经存在了，之前的"检测读"获取到的数据如同鬼影一般。**不可重复读侧重表达`读-读`，幻读则是说`读-写`，用写来证实读的是鬼影**
     - 从上往下，隔离级别越来越高，意味着数据越来越安全
         - `read uncommitted` 读未提交。会出现脏读、不可重复读、幻读
         - `read commited` 读已提交(oracle默认级别)。会出现不可重复读、幻读
@@ -847,6 +851,7 @@ set session transaction isolation level read uncommitted;
     - redo log是**物理日志**，数据页中为真实二级制数据，恢复速度快
     - innodb存储引擎数据的单位是页，redo log也是基于页进行存储，一个默认16K大小的页中存了很多512Byte的log block，log block的存储格式如[log block header 12Byte，log block body 492 Bytes，log block tailer 8 Bytes]
     - 用途是重做数据页。有了redo log之后，innodb就可以保证即使数据库发生异常重启，之前的记录也不会丢失，系统会自动恢复之前记录，叫做crash-safe(不包含误删数据的恢复)
+    - 参考：https://zhuanlan.zhihu.com/p/587553430
 - 既然要避免io，为什么写redo log的时候不会造成io的问题？
 
     ![mysql-redo-log.png](/data/images/db/mysql-redo-log.png)
@@ -854,11 +859,12 @@ set session transaction isolation level read uncommitted;
     - 内部是基于缓存实现，可先将数据写到log buffer。为了确保每次日志都能写入到事务日志文件中，之后操作系统定期调用fsync(等待写磁盘操作结束，然后返回)写入到磁盘
     - 图二中
         - 控制commit动作是否刷新log buffer到磁盘，可通过变量 `innodb_flush_log_at_trx_commit` 的值来决定。该变量有3种值：0、1、2，默认为1
-            - 0：事务提交时仅写到log buffer，然后每秒写入os buffer并调用fsync()写入到log file on disk中。也就是说设置为0时是(大约)每秒刷新写入到磁盘中的，当系统崩溃，会丢失1秒钟的数据
-            - 1：事务每次提交都会将log buffer中的日志写入os buffer，并调用fsync()刷到log file on disk中。这种方式即使系统崩溃也不会丢失任何数据，但是因为每次提交都写入磁盘，IO的性能较差
-            - 2：直接写入到os buffer，然后每秒调用一次fsync()刷到磁盘
-        - 安全性：1 > 0/2
-        - 效率：2 > 0 > 1
+            - 0：事务提交时仅写到log buffer，然后每秒写入os buffer并调用fsync()写入到log file on disk中。也就是说设置为0时是(大约)每秒刷新写入到磁盘中的，**因此实例crash将最多丢失1秒钟内的事务**
+            - 1：**默认值**。事务每次提交都会将log buffer中的日志写入os buffer，并调用fsync()刷到log file on disk中。**这种方式即使宕机也不会丢失任何数据**，但是因为每次提交都写入磁盘，IO的性能较差
+            - 2：直接写入到os buffer(page cache)，由os自己决定什么时候同步到磁盘文件。**因此实例crash不会丢失事务，但宕机则可能丢失事务**
+        - 另外，InnoDB存储引擎有一个后台线程，每隔1秒，就会把 Redo Log Buffer 中的内容写到文件系统缓存( page cache)，然后调用刷盘操作
+        - 安全性：1 > 2 > 0
+        - 效率：0 > 2 > 1
 - Undo Log是为了实现事务的原子性，在MySQL数据库InnoDB存储引擎中，还用Undo Log来实现多版本并发控制(简称MVCC)
     - 在操作任何数据之前，首先将数据备份到一个地方（这个存储数据备份的地方称为Undo Log），然后进行数据的修改。如果出现了错误或者用户执行了ROLLBACK语句，系统可以利用Undo Log中的备份将数据恢复到事务开始之前的状态
     - Undo log是**逻辑日志**，可以理解为
@@ -876,7 +882,7 @@ set session transaction isolation level read uncommitted;
 - sync_binlog 参数来控制数据库的binlog刷到磁盘上去方式。参考[服务器参数设置](/_posts/db/sql-optimization.md#服务器参数设置)
 - 有两份日志的历史原因
     - 一开始并没有InnoDB，采用的是MyISAM，但MyISAM没有crash-safe的能力，binlog日志只能用于归档
-    - InnoDB是以插件的形式引入MySQL的，为了实现crash-safe，InnoDB采用了redolog的方案
+    - InnoDB是以插件的形式引入到MySQL的，为了实现crash-safe，InnoDB采用了redolog的方案
 - binlog一开始的设计就是不支持崩溃恢复(原库)的，如果不考虑搭建从库等操作，binlog是可以关闭的(`show variables like '%sql_log_bin%';`)
     - redolog主要用于crash-safe(原库恢复)，binlog主要用于恢复成临时库(从库)
     - 数据从 A-B-C 后，可根据binlog选择恢复的位置

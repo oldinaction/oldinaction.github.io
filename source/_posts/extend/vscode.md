@@ -313,3 +313,18 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
 	}
 }
 ```
+
+## 其他功能
+
+### markdown粘贴图片
+
+- 搜索设置`markdown.copyFiles.destination`
+    - 增加项目如`"_posts/**": "../../data/images/2024/"`表示在`_posts/java/xx.md`等级别路径编辑文件时，文件会保存到`data/images/2024/`
+        - 但是如果在`_posts/java/src/xx.md`多一层路径编辑时，文件会保存到`_posts/data/images/2024`中
+        - **推荐写法**`"_posts/**": "${documentWorkspaceFolder}/data/images/2024/${documentBaseName}/"`
+    - 增加项目如`"_drafts/**": "${documentWorkspaceFolder}/data/images/2024/"`表示在`_drafts/java/xx.md`等级别路径编辑文件时，文件会保存到`/data/images/2024/`
+        - `documentWorkspaceFolder`为当前vscode项目打开的根目录，还支持`documentBaseName`文件名等变量
+        - 如果通过vscode打开某个项目的文件夹层级不一致，则可能会有问题(如打开blog目录和blog/source目录)
+- 复制或剪切的图片直接粘贴即可，会自动把文件放到对应目录，并生成图片链接(链接为相对路径)
+- 如果文件名重复，默认不会覆盖，而是修改图片名词后缀并进行自增，如`image-1.png`
+- 或者使用插件`Markdown Paste`(未测试成功)

@@ -162,9 +162,9 @@ sudo iw wlp5s0 scan | grep SSID
             - 0 停机(千万不要把initdefault 设置为0)
             - 1 单用户模式
             - 2 多用户，但是没有 NFS
-            - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)
+            - **3** 完全多用户模式(服务器常用，一般centos7即默认此级别)，multi-user.target
             - 4 系统保留的
-            - **5** X11(x window 桌面版)
+            - **5** X11(x window 桌面版)，graphical.target
             - 6 重新启动(千万不要把initdefault 设置为6)
         - 修改默认运行级别
             - `systemctl set-default graphical.target`  将默认模式修改为图形界面模式
@@ -181,7 +181,7 @@ sudo iw wlp5s0 scan | grep SSID
     - systemd启动multi-user.target下的本机与服务器服务
     - systemd执行multi-user.target下的`/etc/rc.d/rc.local`。**centos7以不推荐使用，如需使用必须执行`chmod +x /etc/rc.d/rc.local`**
         - 此时`$PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin`，profile中尚未生效，命令路径一般需绝对路径
-
+    
         ```bash
         # 添加此文件是为了兼容性
         THIS FILE IS ADDED FOR COMPATIBILITY PURPOSES

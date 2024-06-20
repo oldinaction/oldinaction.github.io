@@ -8,11 +8,14 @@ tags: [mq]
 
 ## RabbitMQ 简介
 
-- rabbitMQ 是一个在 AMQP 协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循 Mozilla Public License 开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。
 - RabbitMQ 的官方站：http://www.rabbitmq.com/
+- 相关文章
+    - https://blog.csdn.net/qq_39944028/category_10966875.html
+    - https://cloud.tencent.com/developer/article/1816305
+- rabbitMQ 是一个在 AMQP 协议(高级消息队列协议)标准基础上完整的，可服用的企业消息系统。他遵循 Mozilla Public License 开源协议。采用 Erlang 实现的工业级的消息队列(MQ)服务器。
 - 相关概念
   - `Broker` 消息队列服务器实体
-  - `VirtualHost` 在 RabbitMQ 中可以虚拟消息服务器 VirtualHost，每个 VirtualHost 相当月一个相对独立的 RabbitMQ 服务器，每个 VirtualHost 之间是相互隔离的，一个 broker 里可以开设多个 vhost，用作不同用户的权限分离。exchange、queue、message 不能互通。VirtualName 一般以/开头
+  - `VirtualHost` 在 RabbitMQ 中可以虚拟消息服务器 VirtualHost，每个 VirtualHost 相当于一个相对独立的 RabbitMQ 服务器，每个 VirtualHost 之间是相互隔离的，一个 broker 里可以开设多个 vhost，用作不同用户的权限分离。exchange、queue、message 不能互通。VirtualName 一般以/开头
   - `Exchange` 消息交换机，它指定消息按什么规则，路由到哪个队列
   - `Queue` 消息队列载体，每个消息都会被投入到一个或多个队列
   - `Binding` 绑定，它的作用就是把 exchange 和 queue 按照路由规则绑定起来
@@ -30,18 +33,38 @@ tags: [mq]
 - 7 种消息模型：https://www.rabbitmq.com/getstarted.html
   ![消息模型](/data/images/arch/rabbitmq-message-model.png)
   - 常用
-    - 点对点
-    - work（point和work模式配置相同，当多个消费者监听该队列时则任务是work模式，point只有一个消费者）
+    - 点对点、工作队列（point和work模式配置相同，当多个消费者监听该队列时则任务是work模式，point只有一个消费者）
     - 订阅类模式（包括：fanout 广播、direct 直连、topic 主题）
         - 广播：同一消息，所有的消费者都可以接收到
         - Direct 直连（RoutingKey 固定），只能接受固定类型的消息
         - Topic 基于通配符（RoutingKey 包含通配符：\*匹配一个单词，#匹配多个单词），只能接受主题相匹配的消息
   - Publisher Confirms（发送确认模式）：用来实现消息的可靠投递。当在某个通道(channel)上开启发布确认后，客户端发布的消息会被MQ服务器(broker)异步的确认 [^2]
-- 常用测试配置
-    - 创建虚拟机(可省略，即使用默认的/)：Admin-VirtualHost. 如需要多环境测试可创建虚拟机（因为队列必须一致，最简单的就是改变服务器/虚拟机配置）
-    - 创建项目用户：Admin-Users
-    - 创建项目队列(也可通过程序自动创建)
-    - 创建交换机(当使用订阅类模式时需要)
+
+### 相关原理
+
+- RabbitMQ如何保证消息不丢失？
+    - 生产者发送消息不丢失
+        - 对于单个数据，生产者将消息发送到RabbitMQ，RabbitMQ将消息持久化到磁盘，并返回一个确认给生产者(支持同步确认和异步确认)
+        - 如果发送批量消息，可使用手动事务的方式保证消息正确发送：channel.txSelect() 开启事务；channel.txCommit()
+        提交事务；channel.txRollback() 回滚事务
+    - RabbitMQ消息存盘不丢消息
+        - 对于Classic经典队列，直接将队列声明成为持久化队列即可；Quorum队列和Stream队列都是默认持久化队列
+    - RabbitMQ主从消息同步时不丢消息
+        - 使用镜像模式集群，数据会主动在集群各个节点当中同步；另外，也可启用Federation联邦机制，给包含重要消息的队列建立一个远端备份
+    - RabbitMQ消费者不丢失消息
+        - RabbitMQ在消费消息时可以指定是自动应答，还是手动应答
+        - 如果是自动应答模式，消费者会在完成业务处理后自动进行应答，而如果消费者的业务逻辑抛出异常，RabbitMQ会将消息进行重试，这样是不会丢失消息的，但是有可能会造成消息一直重复消费(消费时考虑幂等即可)
+        - 在SpringBoot集成案例中，也可以在配置文件中通过属性`spring.rabbitmq.listener.simple.acknowledge-mode`进行指定。可以设定为 AUTO 自动应答； MANUAL手动应答；NONE 不应答
+- 如何保证消息幂等？
+    - 在SpringBoot集成案例中，可通过设置`spring.rabbitmq.listener.simple.retry`开头的一系列属性，来制定重试策略，如重试此次等(未获取到应答时，RabbitMQ重复推送消息)
+    - 在业务上需要给每个消息一个唯一的标识，从而再消费时进行判断
+- 如何保证消息的顺序？
+    - 可使用单队列+单消息推送，但是这种吞吐量会降低。目前RabbitMQ还没有比较好的解决方案，应该尽量避免
+- RabbitMQ的数据堆积问题
+    - 新推出的Quorum队列以及Stream队列，目的就在于解决这个核心问题，但其生态不够完善，大部分企业还是基于Classic经典队列构建应用
+    - 应该尽量让消息的消费速度和生产速度保持一致，避免堆积产生
+    - `spring.rabbitmq.listener.simple.concurrency=5` 设置消费者的消费线程数量，`spring.rabbitmq.listener.simple.prefetch=1` 单次推送消息数量
+    - 当确实遇到紧急状况，来不及调整消费者端时，可以紧急上线一个消费者组，专门用来将消息快速转录。保存到数据库或者Redis，然后再慢慢进行处理
 
 ## RabbitMQ 安装
 
@@ -490,7 +513,21 @@ public class Consumer {
 }
 ```
 
-## (镜像)集群搭建
+## 集群搭建
+
+- 两种集群模式
+    - 普通集群模式
+        - 集群的各个节点之间只会有相同的元数据，即队列结构，而消息不会进行冗余，只存在一个节点中
+        - 消费时，如果消费的不是存有数据的节点， RabbitMQ会临时在节点之间进行数据传输，将消息从存有数据的节点传输到消费的节点
+        - 这种集群模式的消息可靠性不是很高
+    - **镜像集群搭建**
+        - 是在普通集群模式基础上的一种增强方案，这也就是RabbitMQ的官方HA高可用方案，是基于普通集群增加镜像策略实现
+        - 其本质区别在于，这种模式会在镜像节点中间主动进行消息同步备份，而不是在客户端拉取消息时临时同步
+        - 并且在集群内部有一个算法会选举产生master和slave，当一个master挂了后，也会自动选出一个来
+- 高可用方案
+    - 使用Federation联邦插件给关键的RabbitMQ服务搭建一个备份服务
+    - 镜像集群+Haproxy+Keepalived
+- 集群搭建(普通+镜像)
 
 ```bash
 ## 在 test1、test2、test3 三台机器上搭建rabbit服务
@@ -520,16 +557,16 @@ rabbitmqctl list_policy # 查看策略
 
 - 常见错误：`Authentication failed (rejected by the remote node), please check the Erlang cookie`
 
-  ```bash
-  # 还有如下输出，此时 Erlang cookie hash 是.erlang.cookie文件内容经过hash得到，且.erlang.cookie文件处于/root目录。出现此问题可能是：
-  # 1.几个节点的.erlang.cookie内容不一致
-  # 2.Erlang VM没有启动
-  # 3.rabbitmq app没有关闭（需执行rabbitmqctl stop_app）
-  Current node details:
-  * node name: 'rabbitmqcli79@LAPTOP-SDG10LIN'
-  * effective user's home directory: /root
-  * Erlang cookie hash: Jx59lsGpH45Mhu5eAkFMGQ==
-  ```
+```bash
+# 还有如下输出，此时 Erlang cookie hash 是.erlang.cookie文件内容经过hash得到，且.erlang.cookie文件处于/root目录。出现此问题可能是：
+# 1.几个节点的.erlang.cookie内容不一致
+# 2.Erlang VM没有启动
+# 3.rabbitmq app没有关闭（需执行rabbitmqctl stop_app）
+Current node details:
+* node name: 'rabbitmqcli79@LAPTOP-SDG10LIN'
+* effective user's home directory: /root
+* Erlang cookie hash: Jx59lsGpH45Mhu5eAkFMGQ==
+```
 
 ## 插件
 
@@ -578,6 +615,11 @@ my-msg
 ## 后台管理
 
 - [参考](https://juejin.cn/post/6844903923329794055)
+- 常用测试配置
+    - 创建虚拟机(可省略，即使用默认的/)：Admin-VirtualHost. 如需要多环境测试可创建虚拟机（因为队列必须一致，最简单的就是改变服务器/虚拟机配置）
+    - 创建项目用户：Admin-Users
+    - 创建项目队列(也可通过程序自动创建)
+    - 创建交换机(当使用订阅类模式时需要)
 - 激活 Rabbit MQ's Management Plugin(可激活管理插件)
   - CMD 进入 RabbitMQ 安装目录，进入到 rabbitmq_server-3.8.7/sbin 目录
   - 运行 `rabbitmq-plugins enable rabbitmq_management`

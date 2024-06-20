@@ -2,19 +2,17 @@
 layout: "post"
 title: "Android应用开发"
 date: "2019-11-25 13:23"
-categories: [lang]
-tags: [android]
+categories: [mobile]
+tags: [android, app]
 ---
 
 ## 简介
-
-- [安卓模拟器](https://blog.csdn.net/csdnxia/article/details/120656206)
-    - [网易MUMU](https://mumu.163.com/)
 
 ## 安装
 
 - 安装Android SDK(任意一种)
     - 直接安装Android Studio可内置安装Android SDK和Android模拟器(Tools菜单)
+        - 参考：https://blog.csdn.net/adminstate/article/details/130542368
     - 基于SDK Tools安装（参考https://zhuanlan.zhihu.com/p/37974829)）
         - 国内在 https://www.androiddevtools.cn/ 下载 SDK Tools 进行 Android SDK 安装
             - 国外zip包下载地址：https://dl.google.com/android/android-sdk_r24.4.1-windows.zip?utm_source=androiddevtools&utm_medium=website
@@ -24,58 +22,9 @@ tags: [android]
         - 把`%ANDROID_HOME%\platform-tools;%ANDROID_HOME%\tools`添加到Path环境变量中
         - 命令行输入`adb`测试是否安装成功
 - AVD(模拟器)
-
-## 命令
-
-### adb
-
-> https://developer.android.google.cn/studio/command-line/adb
-
-- ADB (Android Debug Birdge 调试桥) 是一种功能多样的命令行工具，可让您与设备进行通信 [^1]
-  - ADB 分为三部分：PC上的`adb client`、`adb server` 和 Android设备上的`adb daemon`(adbd)
-  - `ADB client`：Client本质上就是Shell，用来发送命令给Server。发送命令时，首先检测PC上有没有启动Server，如果没有Server，则自动启动一个Server，然后将命令发送到Server，并不关心命令发送过去以后会怎样
-  - `ADB server`：运行在PC上的后台程序，目的是检测USB接口何时连接或者移除设备
-    - ADB Server对本地的TCP 5037端口进行监听，等待ADB Client的命令尝试连接5037端口
-    - ADB Server维护着一个已连接的设备的链表，并且为每一个设备标记了一个状态：offline，bootloader，recovery或者online
-    - Server一直在做一些循环和等待，以协调client和Server还有daemon之间的通信
-  - `ADB Daemon`：运行在Android设备上的一个进程，作用是连接到adb server（通过usb或tcp-ip）。并且为client提供一些服务
-- 命令（位于`android_sdk/platform-tools/`）
-
-```bash
-# 打开开发者模式：USB线连接手机和电脑，并且在开发者选项当中，开启USB调试
-# 列举设备(会显示设备编号如：emulator-5555)
-adb devices
-
-# 进入设备 emulator-5555 系统命令行(linux命令行)
-adb -s emulator-5555 shell
-```
-- 无线连接Android设备
-
-```bash
-adb tcpip 5555
-adb kill-server
-adb connect 192.168.1.12:5555 # 手机的IP地址
-adb disconnect 192.168.1.12:5555 # 断开设备连接
-
-# 切换到USB模式 
-adb usb
-# 切换到WIFI无线调试
-adb tcpip 5555
-```
-
-### sdkmanager
-
-> https://developer.android.google.cn/studio/command-line/sdkmanager.html
-
-- 位于`android_sdk/tools/bin/`
-- 命令
-
-```bash
-# 查看版本列表
-sdkmanager --list
-# 安装最新的平台工具（包括 adb 和 fastboot）以及适用于 API 级别 30 的 SDK 工具
-sdkmanager "platform-tools" "platforms;android-30"
-```
+- Mac建议使用AS自带模拟器(字体看不清)；通过braw安装模拟器字体很清晰，但是可能部分应用无法安装，参考[mac.md#安卓模拟器](/_posts/linux/mac.md#安卓模拟器)
+- [安卓模拟器](https://blog.csdn.net/csdnxia/article/details/120656206)
+    - [网易MUMU](https://mumu.163.com/)
 
 ## Android Studio项目示例
 
@@ -87,21 +36,28 @@ sdkmanager "platform-tools" "platforms;android-30"
 
 ```bash
 project
-    gen # 自动生成代码
-        cn.aezo.android
-            R.java
-    res # 资源文件
-        layout # 界面布局(视图XML配置)
-            page_login.xml
-            page_index.xml
-        values
-            colors.xml
-            strings.xml # 常量字符串
+    lib
+        - xxx.jar, xxx.aar
     src
-        cn.aezo.android
-            activity # 视图层
-                LoginActivity.java
-            dao # 可以使用 android.database.sqlite.SQLiteDatabase 操作轻量级数据库，如保存一些配置信息
+        main
+            assets
+            java
+                cn.aezo.android
+                    activity # 视图层: 控制界面布局
+                        LoginActivity.java
+                    dao # 可以使用 android.database.sqlite.SQLiteDatabase 操作轻量级数据库，如保存一些配置信息
+            java(generated) # 自动生成代码
+                cn.aezo.android
+                    R.java
+            res # 资源文件
+                layout # 界面布局(视图XML配置)
+                    page_login.xml
+                    page_index.xml
+                values
+                    colors.xml
+                    strings.xml # 常量字符串
+            AndroidManifest.xml
+    build.gradle
 ```
 - `build.gradle`举例
 
@@ -168,9 +124,58 @@ allprojects {
 
 ### 代码举例
 
+- AndroidManifest.xml 清单文件，每个模块有一个固定此名称的清单文件
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="cn.aezo.android"><!--项目包名-->
+
+    <!-- 需要申请的权限 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- 应用配置 -->
+    <!--
+        android:name: 为主入口 cn.aezo.android.DemoApplication
+        icon: 图标
+        label: 名称
+        theme: 主题
+    -->
+    <application
+        android:name=".DemoApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+
+        <!-- 对应一个视图 -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+        </activity>
+        <!-- 主视图 -->
+        <activity android:name=".ui.LauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service android:name=".DemoService" />
+    </application>
+</manifest>
+```
+
 - page_login.xml 视图元素配置(Android Studio中可查看代码模式和设计模式，设计模式类似VB拖拽修改元素)
 
 ```xml
+<!-- 使用线型布局 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -323,6 +328,58 @@ public class LoginActivity extends extends Activity {
         }
     }
 }
+```
+
+## 命令
+
+### adb
+
+> https://developer.android.google.cn/studio/command-line/adb
+
+- ADB (Android Debug Birdge 调试桥) 是一种功能多样的命令行工具，可让您与设备进行通信 [^1]
+  - ADB 分为三部分：PC上的`adb client`、`adb server` 和 Android设备上的`adb daemon`(adbd)
+  - `ADB client`：Client本质上就是Shell，用来发送命令给Server。发送命令时，首先检测PC上有没有启动Server，如果没有Server，则自动启动一个Server，然后将命令发送到Server，并不关心命令发送过去以后会怎样
+  - `ADB server`：运行在PC上的后台程序，目的是检测USB接口何时连接或者移除设备
+    - ADB Server对本地的TCP 5037端口进行监听，等待ADB Client的命令尝试连接5037端口
+    - ADB Server维护着一个已连接的设备的链表，并且为每一个设备标记了一个状态：offline，bootloader，recovery或者online
+    - Server一直在做一些循环和等待，以协调client和Server还有daemon之间的通信
+  - `ADB Daemon`：运行在Android设备上的一个进程，作用是连接到adb server（通过usb或tcp-ip）。并且为client提供一些服务
+- 命令（位于`android_sdk/platform-tools/`）
+
+```bash
+# 打开开发者模式：USB线连接手机和电脑，并且在开发者选项当中，开启USB调试
+# 列举设备(会显示设备编号如：emulator-5555)
+adb devices
+
+# 进入设备 emulator-5555 系统命令行(linux命令行)
+adb -s emulator-5555 shell
+```
+- 无线连接Android设备
+
+```bash
+adb tcpip 5555
+adb kill-server
+adb connect 192.168.1.12:5555 # 手机的IP地址
+adb disconnect 192.168.1.12:5555 # 断开设备连接
+
+# 切换到USB模式 
+adb usb
+# 切换到WIFI无线调试
+adb tcpip 5555
+```
+
+### sdkmanager
+
+> https://developer.android.google.cn/studio/command-line/sdkmanager.html
+
+- 位于`android_sdk/tools/bin/`
+- 命令
+
+```bash
+# 查看版本列表
+sdkmanager --list
+# 安装最新的平台工具（包括 adb 和 fastboot）以及适用于 API 级别 30 的 SDK 工具
+sdkmanager "platform-tools" "platforms;android-30"
 ```
 
 

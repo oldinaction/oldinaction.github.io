@@ -208,6 +208,7 @@ str.replaceAll("^[0-9\\-]?", ""); // 23-456A888A
 
 // 去掉注释，不能使用 .*? (.不包含换行符)
 "/* 多行注释 */select 1 from dual".replaceFirst("/\\*[\\s\\S]*?\\*/", "");
+sql = sql.replaceFirst("^--(.*)?[\n\r]", "");
 
 
 // 提取注释文本，如
@@ -404,6 +405,13 @@ while(matcher.find()) {
 - 如wm_concat增加to_char语句包裹
     - 搜索`wm_concat\((.*?)\)`替换为`to_char(wm_concat($1))`
     - 上述方法只能解决部分简单SQL，对于一些复杂的SQL反括号位置可能会有问题
+
+## python
+
+```python
+# 提取()中的字符串. eg: hello, (test) ni (hao)!
+arr = re.findall(r'\((.*?)\)', text)
+```
 
 ## php
 

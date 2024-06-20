@@ -717,7 +717,6 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 ## Kibana
 
 - [文档](https://www.elastic.co/guide/en/kibana/7.8/index.html)
-- kibana搜索简易指南: https://www.jianshu.com/p/61b53815122b
 - 面板介绍
     - Discover：日志管理视图(主要进行搜索和查询)
     - Visualize：统计视图(构建可视化的图表)
@@ -739,10 +738,13 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 #### 搜索
 
 - [KQL语法](https://www.elastic.co/guide/en/kibana/7.17/kuery-query.html)
+- kibana搜索简易指南: https://www.jianshu.com/p/61b53815122b
 
 ```bash
-# 精确查找此字符
-"abc"
+abc # 精确查找此单词(前后有空格隔开，不能匹配abcd)
+abc* # 通配符：? 匹配单个字符，* 匹配0到多个字符
+ab bc # 会匹配ab或者bc
+"ab bc" # 精确匹配这个字符串，支持转义字符
 ```
 
 ### Management

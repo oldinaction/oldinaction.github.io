@@ -18,6 +18,7 @@ tags: [template]
 ### 变量
 
 - 参考：https://blog.csdn.net/J080624/article/details/78648786
+- `#assign` 指令定义在类 `freemarker.core.Assignment` 中
 
 ```html
 <!-- 定义变量、ftl提供调用类的静态方法。加?if_exists防止null时报错 -->

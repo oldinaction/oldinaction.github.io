@@ -25,6 +25,20 @@ jar cvf demo.war *
 
 ## 运算/控制语句
 
+- 常用
+
+```java
+// 取余
+int c = 10 % 3; // 1
+// 取整
+int c = 10 / 3; // 3
+// 精度
+double c = 10 / 3; // 3.0
+double c = (double) 10 / 3; // 3.3333333333333335
+// 向上取整
+int c = (int) Math.ceil((double) 10 / 3); // 4
+int c = NumberUtil.ceilDiv(10, 3); // 4  cn.hutool.core.util.NumberUtil
+```
 - `<<` 左移，乘以2^x。如：3 << 4 = 3 * 2^4 = 48
 - `>>` 右移，除以2^x，被除数比除数小则为0。如：32 >> 3 = 32 / 2^3 = 4; 4 >> 3 = 4 / 2^3 = 0
 - goto写法
@@ -63,7 +77,7 @@ class Outer {
     public class Inner {
         String data = "內部类別";
         public String getOuterData() {
-            // 有时会看到Class.this的使用，这个用法多用于在nested class(内部类)中，当inner class(内部类)必顺使用到outer class(外部类)的this instance(实例)时
+            // 有时会看到ClassXXX.this的使用，这个用法多用于在nested class(内部类)中，当inner class(内部类)必顺使用到outer class(外部类)的this instance(实例)时
             return Outer.this.data;
         }
     }
@@ -114,6 +128,7 @@ enum FlowStatus {
         this.name = name;
         this.status = status;
     }
+
     // 覆盖toString方法，可省略
     @Override
     public String toString() {
@@ -277,6 +292,91 @@ public @interface SysLog {
 }
 ```
 
+### 序列化
+
+```java
+import java.io.*;
+
+public class SerializationExample {
+    public static void main(String[] args) {
+        // 创建一个对象并设置值
+        Person person = new Person("John", 30);
+
+        // 将对象序列化到文件
+        try {
+            FileOutputStream fileOut = new FileOutputStream("person.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(person);
+            out.close();
+            fileOut.close();
+            System.out.println("对象已序列化到person.ser文件");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // 将文件中的对象反序列化
+        try {
+            FileInputStream fileIn = new FileInputStream("person.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            Person serializedPerson = (Person) in.readObject();
+            in.close();
+            fileIn.close();
+
+            System.out.println("反序列化得到的对象：");
+            System.out.println("姓名：" + serializedPerson.getName());
+            System.out.println("年龄：" + serializedPerson.getAge());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// 条件1：只要实现了 Serializable 接口的类才能被序列化
+class Person implements Serializable {
+    // 条件2：该类的所有属性必须是可序列化的。如果有一个属性不需要可序列化的，则该属性必须注明是瞬态的，使用transient 关键字修饰，使用static关键字修饰的属性同样不可被序列化，因为序列化保存的是对象的状态而不是类的状态
+    private String name;
+    private int age;
+    private transient cardNo; // 不会被序列化
+
+    // Serializable 接口给需要序列化的类，提供了一个序列版本号
+    // serialVersionUID 该版本号的目的在于验证序列化的对象和对应类是否版本匹配
+    // 如果没有定义 serialVersionUID，编译器会自动声明一个，这样有当增删对象属性就会出现不一样的情况导致原来序列化的数据无法被反序列化
+    private static final Long serialVersionUID = 1L;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+}
+
+// 序列化对象
+public static byte[] serialize(Object obj) throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(baos);
+    oos.writeObject(obj);
+    return baos.toByteArray();
+}
+
+// 反序列化对象
+public static Object deserialize(byte[] bytes) throws Exception {
+    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+    ObjectInputStream ois = new ObjectInputStream(bais);
+    return ois.readObject();
+}
+```
+- 其他说明
+    - 对象只要实现Serializable接口，即可被序列化，包含可序列化父类的属性（尽管父类实现了Map即可也能序列化父类的其他属性）
+    - 像fastjson、jackson等工具类，将对象转成json字符串时，如果继承了Map即可，则默认会忽略其他属性，仅会序列化Map的值，貌似可以显示指定
+    - 如果一个对象集成了Map接口，则在IDEA中debugger的时候只会显示Map中的属性，如果需要类的其他属性，可右键对象 - View as - Object(此处默认选中的是Map)
+
 ## 集合
 
 - 参考[容器](/_posts/java/concurrence.md#容器)
@@ -382,7 +482,7 @@ new File(System.getProperty("user.dir") + "/src/main/data.json")
 - GMT、**UTC**、CST [^1]
     - `GMT`：格林尼治平时(Greenwich Mean Time，GMT)是指位于英国伦敦郊区的皇家格林尼治天文台的标准时间。由于地球自转导致存在误差，因此格林尼治时间已经不再被作为标准时间使用。现在的标准时间，是由原子钟报时的协调世界时间(UTC)
         - 当 Timestamp 为 0，就表示时间(GMT)1970年1月1日0时0分0秒。中国使用北京时间，处于东 8 区，相应就是早上 8 点
-    - `UTC`：协调世界时，又称世界标准时间或世界协调时间，简称`UTC(Universal Time Coordinated)`。是最主要的世界时间标准，其以原子时秒长为基础，在时刻上尽量接近于格林尼治标准时间
+    - `UTC`：协调世界时间，又称世界标准时间或世界协调时间，简称`UTC(Universal Time Coordinated)`。是最主要的世界时间标准，其以原子时秒长为基础，在时刻上尽量接近于格林尼治标准时间
     - `CST` China Standard Time 中国标准时间(北京时间)。在时区划分上，属东八区，比协调世界时早8小时，记为`UTC+8`(`CST=GMT+8`)
         - 但是CST的缩写还是其他几个时间的缩写：`Central Standard Time (USA) UT-6:00`、`Central Standard Time (Australia) UT+9:30`、`China Standard Time UT+8:00、Cuba Standard Time UT-4:00`
 - 时间字符串
