@@ -375,7 +375,7 @@ xwpfRun.setColor("ed4014"); // hex值
     - 区块支持内嵌子区块(原代码貌似会有问题，修复一下NumberingContinue.java即可)
     - 对于图片引用，WPS无法修改文字，可将图片文件名改成对于模板变量在拖到WPS，如`{{itemImage}}.png`
     - 对于部分排版场景可考虑无边框表格，循环渲染更方便
-    - 貌似如果`builder.useSpringEL();`开启SpringEL，则都必须使用这种模式，则不支持自带的表格`{{#table}}`等写法
+    - 貌似如果`builder.useSpringEL();`开启SpringEL，则都必须使用这种模式，则不支持自带的表格`{{井号table}}`(实际是#table，由于hexo编译会报错，改成"井号table")等写法
 - 表格行循环和表格列循环
 
 ```java
