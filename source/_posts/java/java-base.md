@@ -401,7 +401,7 @@ public static Object deserialize(byte[] bytes) throws Exception {
 
 ## 文件
 
-- 获取src和classpath下文件路径 [^3]
+- 获取src和classpath下文件路径(包含springboot jar文件) [^3]
 
 ```java
 /**
@@ -417,6 +417,7 @@ public static String getFileContentByClasspath(String srcXpath) {
     }
 
     String content;
+    // InputStream im = cn.hutool.core.io.resource.ResourceUtil.getStream("spring/config.xml"); // 也能获取springboot resources目录下文件流
     InputStream inputStream = FileU.class.getResourceAsStream(srcXpath);
     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "utf-8"));
     StringBuilder builder = new StringBuilder();

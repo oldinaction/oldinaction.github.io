@@ -2109,7 +2109,7 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 ### 设置开机启动
 
 - linux设置到chkconfg
-- windows参考 [开机启动java等程序](/_posts/extend/windows.md#开机启动java等程序)
+- windows参考 [开机启动java等程序](/_posts/linux/windows.md#开机启动java等程序)
 
 ## 常见错误
 

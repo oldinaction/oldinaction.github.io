@@ -64,6 +64,7 @@ tags: [im]
     - 运行`jar cvf HelloWorldDataAdapter.jar -C tmp_classes .`
     - 将生成的HelloWorldDataAdapter.jar复制到adapters/HelloWorld/lib目录
   - 在adapters.xml写入
+  
     ```xml
     <?xml version="1.0"?>
     <adapters_conf id="HELLOWORLD">

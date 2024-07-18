@@ -376,7 +376,8 @@ iptables -A OUTPUT -s 192.168.xx.x -p tcp -m tcp --sport 3306 -j DROP
 
 - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
     - 云服务器一般有进站出站规则，端口开放除了系统的防火墙也要考虑进出站规则
-- Centos 7使用`firewalld`代替了原来的`iptables`
+- Centos7默认防火墙为`firewalld`，代替了原来的`iptables`
+    - 防火墙路由规则使用firewall-cmd命令进行维护(也可使用iptables添加)；如果需要使用原来的iptables服务，则需要安装iptables-services才能使用(此时可使用`systemctl start iptables`启动)，但是两个服务只需要启动一个
 
 ```bash
 # 查看状态
@@ -384,20 +385,38 @@ systemctl status firewalld
 # 关闭防火墙
 systemctl stop firewalld && systemctl disable firewalld
 
-# iptables查看策略`iptables -L -n`
-# 查看端口
-firewall-cmd --zone=public --query-port=80/tcp
+# iptables查看filter表策略`iptables -nvxL`
+# --zone 为区域(默认为public)
+firewall-cmd --zone=public --query-port=80/tcp # 查看端口
 firewall-cmd --list-ports # 查看所有端口
-# 开放端口(必须重新载入才会生效)。--permanent永久生效，没有此参数重启后失效；协议如: tcp(http/ws), udp, sctp or dccp
-firewall-cmd --zone=public --add-port=80/tcp --permanent
-# 删除端口(必须重新载入才会生效)
-firewall-cmd --zone=public --remove-port=80/tcp --permanent
-# 重新载入(修改后必须重新载入才会生效)
+firewall-cmd --list-all # 列举所有配置
+
+# 开放端口(必须重新载入配置或重启服务才会生效)；--permanent永久生效，没有此参数重启后失效；协议如: tcp(http/ws), udp, sctp or dccp；也可使用iptables添加
+# 在每次修改端口和服务后 /etc/firewalld/zones/public.xml 文件(参考下文)就会被修改，所以也可以在文件中之间修改（**建议直接修改文件**）
+# 使用命令实际也是在修改文件，需要重新加载（firewall-cmd --reload）才能生效
+firewall-cmd --permanent --add-port=22/tcp
+firewall-cmd --permanent --add-port=80/tcp
+# 重新载入(需要将所有的修改都执行后再运行reload，修改后必须重新载入才会生效)
 firewall-cmd --reload
+
+# 删除端口(必须重新载入才会生效)
+firewall-cmd --permanent --remove-port=80/tcp
+# 可基于服务名称添加，需要结合/etc/firewalld/services目录下的xml配置文件 (也需要reload)
+firewall-cmd --permanent --add-service=xl2tpd
 
 # firewall-cmd命令
 man firewall-cmd
 firewall-cmd -h
+```
+- /etc/firewalld/zones/public.xml
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <service name="xl2tpd"/>
+  <port protocol="tcp" port="22"/>
+  <port protocol="tcp" port="80"/>
+</zone>
 ```
 
 ### ebtables

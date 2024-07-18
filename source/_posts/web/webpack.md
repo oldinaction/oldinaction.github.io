@@ -175,6 +175,10 @@ module.exports = {
 
 ```html
 <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+<!-- 也可直接使用png图片代替ico格式图片
+<link rel="icon" href="<%= BASE_URL %>logo-ico.png" type="image/x-icon">
+<link rel="shortcut icon" href="<%= BASE_URL %>logo-ico.png" type="image/x-icon"> 
+-->
 
 <% if(VUE_APP_DEBUG_AVUE_URL) { %>
     <script src="<%= BASE_URL %>avue.js" charset="utf-8"></script>

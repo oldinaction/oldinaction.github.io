@@ -134,7 +134,7 @@ tags: [linux, shell]
     - `chkconfig nginx on` 设置nginx服务开机自启动（对于 on 和 off 开关，系统默认只对运行级345有效，但是 reset 可以对所有运行级有效）
     - 设置开机自启动
         - 在`/etc/init.d`目录创建脚本文件，并设置成可执行`chmod +x my_script`
-
+        
             ```bash
             # 自启动脚本的注释中必须有chkconfig、description两行注释(chkconfig会查看所有注释行)
             # chkconfig参数一表示在运行级别2345时默认代开(一般服务器的运行级别为3多用户启动)，使用`-`表示默认关闭(不自动启动)；参数2表示启动顺序(越小越优先)；参数3表示停止顺序(停止并不会重新执行脚本，而是停止此进程)
@@ -1105,6 +1105,7 @@ cat /var/spool/mail/root
 #### top命令
 
 - 自带程序`top`查看，推荐安装功能更强大的`htop`
+    - `ps aux --sort=-%mem | head -n 11` 查看占用内存排行
 - 面板介绍 [^11]
     - `Load Average`: 负载均值。对应的三个数分别代表不同时间段的系统平均负载（一分钟、五 分钟、以及十五分钟），它们的数字当然是越小越好；数字越高说明服务器的负载越大。如果是单核，load=1表示CPU所有的资源都在处理请求，一般维持0.7以下，如果长期在1左右建议进行监测，维持在2左右则说明负载很高。多核情况，**即负载最好要小于`CPU个数 * 核数 * 0.7`**
 
@@ -1469,6 +1470,7 @@ grep "search content" filename1 filename2.... filenamen # 在多个文件中查�
 grep 'search content' *.sql # 查找已`.sql`结尾的文件
 grep -R 'test' /data/* # 在/data目录及子目录查询
 grep hello -rl * # 查询当前目录极其子目录文件(-r)，并只输出文件名(-l)
+grep hello -rl * | wc -l # 统计个数
 
 grep -5 'parttern' filename # 打印匹配行的前后5行。或 `grep -C 5 'parttern' filename`
 grep -A 5 'parttern' filename # 打印匹配行的后5行

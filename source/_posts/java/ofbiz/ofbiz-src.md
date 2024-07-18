@@ -1,6 +1,6 @@
 ---
 layout: "post"
-title: "OFBiz进阶"
+title: "OFBiz源码"
 date: "2017-12-09 10:17"
 categories: java
 tags: [ofbiz, uml, src]
@@ -38,8 +38,8 @@ tags: [ofbiz, uml, src]
             - GenericDispatcherFactory#createLocalDispatcher
                 - new GenericDispatcher: `ServiceDispatcher.getInstance(delegator)`
         - 其中dispatcherName只是一个标识符(用于缓存)
-            - ContextFilter.makeWebappDispatcher 中取的是web.xml中的localDispatcherName参数
-            - JobManager#getDispatcher 中取的是delegator.getDelegatorName(), 如default#SAAS1
+            - HTTP场景: `ContextFilter.makeWebappDispatcher` 中取的是web.xml中的localDispatcherName参数
+            - 任务场景: `JobManager#getDispatcher` 中取的是delegator.getDelegatorName(), 如default#SAAS1
 
         ```java
         public static LocalDispatcher getLocalDispatcher(String dispatcherName, Delegator delegator) {

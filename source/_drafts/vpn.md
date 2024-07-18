@@ -12,46 +12,48 @@ tags: [linux, network]
 
 ### PPTP
 
+- 建议使用[L2TP/IPSec](#L2TP-IPSec)
 - `sudo modprobe ppp-compress-18 && echo MPPE is ok` 验证内核是否加载了MPPE模块
 - `sudo yum -y install ppp pptpd iptables-services` 安装ppp、pptpd、iptables(安装前确保添加了epel源)
     - `iptables`主要用来NAT规则
 - `sudo vi /etc/ppp/options.pptpd` 配置PPP和PPTP的配置文件。查找`ms-dns`，添加两行
 
-    ```bash
-    # Google DNS
-    ms-dns 8.8.8.8
-    ms-dns 8.8.4.4
-    # 或者使用 Aliyun DNS
-    # ms-dns 223.5.5.5
-    # ms-dns 223.6.6.6
-    ```
+```bash
+# Google DNS
+ms-dns 8.8.8.8
+ms-dns 8.8.4.4
+# 或者使用 Aliyun DNS
+# ms-dns 223.5.5.5
+# ms-dns 223.6.6.6
+```
 - `sudo vi /etc/ppp/chap-secrets` 配置登录用户/协议/密码/ip地址段
 
-    ```bash
-    username1    pptpd    passwd1    *
-    test    pptpd    ok123456    *
-    ```
+```bash
+username1    pptpd    passwd1    *
+test    pptpd    ok123456    *
+```
 - `sudo vi /etc/pptpd.conf` 配置pptpd。localip是服务端的虚拟地址, remoteip是客户端的虚拟地址。只要不和本机IP不冲突即可(在末尾添加)
 
-    ```bash
-    localip 192.168.0.2-20
-    remoteip 192.168.0.200-250
-    ```
+```bash
+localip 192.168.0.2-20
+remoteip 192.168.0.200-250
+```
 - `sudo vi /etc/sysctl.conf` 改为`net.ipv4.ip_forward = 1`，并执行`sudo sysctl -p` 使sysctl配置生效
 - `sudo systemctl start pptpd` 启动pptpd服务
     - **服务器后台安全组策略需要开放1723端口的入站规则**
 - 配置iptables防火墙放行和转发规则
     - **`sudo iptables -L -n -t nat`** 查看 iptables 配置规则
-    - 清空防火墙配置(慎操作)
-    
+    - 清空防火墙配置(**慎操作**)
+
         ```bash
         sudo iptables -P INPUT ACCEPT        # 改成 ACCEPT 标示接收一切请求
-        sudo iptables -F                     # 清空默认所有规则
+        sudo iptables -F                     # 清空默认(filter)所有规则
+        sudo iptables -t nat -F              # 清空nat所有规则
         sudo iptables -X                     # 清空自定义所有规则
         sudo iptables -Z                     # 计数器置0
         ```
     - 配置规则(视情况决定是否执行)
-        - 可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100` (eth0为网卡，阿里云可能为eth1。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.100)
+        - **可以不用开启防火墙的端口拦截，其主要用iptables来进行nat网关配置**，因此下面的配置只需要运行 `sudo iptables -t nat -A POSTROUTING -o eth1 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100` (**eth1为阿里云外网网卡，其他可能为eth0**。表示在postrouting链上，将源地址为192.168.0.0/24网段的数据包的源地址都转换为114.55.1.100)
     
         ```bash
         # 允许 GRE(Generic Route Encapsulation) 协议，PPTP 使用 GRE 协议封装 PPP 数据包，然后封装成 IP 报文
@@ -67,17 +69,18 @@ tags: [linux, network]
         sudo iptables -A FORWARD -d 192.168.0.0/24 -i eth1 -j ACCEPT
         sudo iptables -I FORWARD -p tcp --syn -i ppp+ -j TCPMSS --set-mss 1356
         # nat规则，如果没有外网网卡，可设置外网IP
-        # 如：iptables -t nat -A POSTROUTING -o eth0 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100
-        sudo iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -o eth0 -j MASQUERADE
+        # 如：iptables -t nat -A POSTROUTING -o eth1 -s 192.168.0.0/24 -j SNAT --to 114.55.1.100
+        sudo iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -o eth1 -j MASQUERADE
 
         # 对于开启防火墙的情况：开启几个常用端口，其他端口同理
+        # iptables -nvxL 列出filter表配置
         sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
         sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
         ```
     - 启动iptables
     
         ```bash
-        # 保存iptables规则配置到 /etc/sysconfig/iptables 文件，可通过 iptables-restore 进行恢复
+        # 保存iptables规则配置到 /etc/sysconfig/iptables 文件，之后可通过 iptables-restore < /etc/sysconfig/iptables 进行恢复
         sudo service iptables save
         sudo systemctl start iptables
         ```
@@ -88,7 +91,7 @@ tags: [linux, network]
     - "虚拟办公网络"类型 `PPTP`
     - 勾选允许使用 `Microsoft CHAP 版本 2 （MS-CHAP v2）（M）`
 
-### IPSec/L2TP
+### L2TP-IPSec
 
 - 参考 https://teddysun.com/448.html
 
@@ -96,9 +99,12 @@ tags: [linux, network]
 # 安装(centos7测试成功)
 curl -L -O https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
 chmod +x l2tp.sh
-# ***脚本会改写 iptables 规则，并启动firewalld服务***; 会加入开机自启动
+# ***脚本会改写 iptables 或 firewalld 服务***; 会加入开机自启动
 # 安装: 主要需要设置共享秘钥(PSK)、用户名(Username)、用户密码(password)
+# 会将账号保存到 /etc/ppp/chap-secrets 文件（覆盖原来的文件）
 sudo ./l2tp.sh
+# 注意，会开启本地防火墙，启动后需要将其他端口加入到白名单，之后需要同时保证服务器端口和阿里云后台端口添加了白名单
+# **添加白名单**可以在 /etc/firewalld/zones/public.xml 中加入端口，更多参考[network.md](/_posts/linux/network.md#firewalld)
 
 # 列出帮助信息
 l2tp -h
@@ -233,7 +239,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         - 命令行`reboot`不会导致ip/密码等修改。删除vps重新创建不足1小时按1小时计费，重装系统正常计费(不同于删除vps)
     - 搬瓦工
 - **v2ray单独使用**(可不使用CDN，比直接使用SS等安全。测试Youtube的Connection Speed=7000左右，看1080P妥妥的)
-    - v2ray服务端(vps端): 基于[x-ui管理面板](https://github.com/vaxilu/x-ui)
+    - v2ray服务端(vps端): **推荐**基于[x-ui管理面板](https://github.com/vaxilu/x-ui)
     
         ```bash
         ### 安装

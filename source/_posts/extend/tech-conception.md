@@ -14,6 +14,10 @@ tags: [java, conception]
 
 ## 架构
 
+- MVC三层架构
+    - 表示层 / 表现层 / (用户)界面层（`UI`：User Interface layer）
+    - 业务逻辑层 / 应用程序层 / 领域层（`BLL`：Business Logic Layer）
+    - 数据访问层 / 数据层 / 持久层（`DAL`：Data access layer）
 - `SOA`
     - 面向服务的架构，主要流行于零几年，基于XML的Webservice进行不同服务间调用
     - 主要针对业务层面进行服务拆分。而微服务则是粒度更细的服务拆分，更倾向于功能级别

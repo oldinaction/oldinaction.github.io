@@ -20,12 +20,7 @@ tags: [CentOS, linux]
     - `systemctl stop firewalld && systemctl disable firewalld`
     - 决定能否访问到服务器，或服务器能否访问其他服务，取决于`服务器防火墙`和`云服务器后台管理的安全组`
         - 云服务器一般有进站出站规则，端口开放除了系统的防火墙也要考虑进出站规则
-    - Centos 7使用`firewalld`代替了原来的`iptables`。更多参考[network.md](/_posts/linux/network.md#firewalld)
-        - 查看状态：`systemctl status firewalld` (iptables查看策略`iptables -L -n`)
-        - 开放端口：`firewall-cmd --zone=public --add-port=80/tcp --permanent`（--permanent永久生效，没有此参数重启后失效）
-        - 重新载入：`firewall-cmd --reload`
-        - 查看端口：`firewall-cmd --zone=public --query-port=80/tcp`
-        - 删除端口：`firewall-cmd --zone=public --remove-port=80/tcp --permanent`
+    - Centos7默认防火墙为`firewalld`，代替了原来的`iptables`。更多参考[network.md](/_posts/linux/network.md#firewalld)
 - 永久关闭`SELinux`
     - `sudo vi /etc/selinux/config` 将`SELINUX=enforcing`改为`SELINUX=disabled`后reboot重启（如：yum安装keepalived通过systemctl启动无法绑定虚拟ip，但是直接脚本启动可以绑定。关闭可systemctl启动正常绑定）
     - 快速修改命令 **`sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config`**，并重启

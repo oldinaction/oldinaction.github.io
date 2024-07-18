@@ -172,7 +172,7 @@ tags: [H5, 小程序, App, mobile]
     - `onShow` 每次展示时触发(后退也会触发)
     - `onHide` 页面影藏时触发，如navigateTo；无法监听到页面返回(H5和微信小程序都不可以)
     - `onUnload` 页面卸载时触发，如redirectTo
-    - `onBackPress` 可以监听到H5返回，无法监听到微信小程序返回
+    - `onBackPress` 适用于app、H5、支付宝小程序，无法监听到微信小程序返回
 - 组件生命周期同Vue: https://uniapp.dcloud.net.cn/tutorial/page.html#componentlifecycle
 
 #### onLaunch等同步写法
@@ -306,7 +306,8 @@ export default {
         - 当登录后，通过uni.switchTab进入到首页，首页此时如果是使用`<navigator url="../hello">`，会导致第一次进入时无法路由
         - 解决方法使用绝对路径`<navigator url="/pages/hello">`，且不能带.vue后缀
     - 路由挂载：需要跳转的页面必须在page.json中注册过。如需采用 Vue Router 方式管理路由，可在uni-app插件市场找Vue-Router相关插件
-- 跳转小程序：https://uniapp.dcloud.net.cn/api/other/open-miniprogram.html#navigatetominiprogram
+- 跳转小程序(第三方小程序)：https://uniapp.dcloud.net.cn/api/other/open-miniprogram.html#navigatetominiprogram
+    - 参考：https://blog.csdn.net/m0_47791238/article/details/130643962
 
 ```js
 // 跳转小程序
@@ -397,220 +398,6 @@ uni.openEmbeddedMiniProgram({
     - 参考 https://www.jianshu.com/p/7969e4fb2d4e
     - Symbol模式需要引入js才能显示彩色，建议下载成png图片
 
-## 兼容性问题
-
-### Vue相关语法问题
-
-- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
-    - Vue特性支持表
-- **小程序模板中不能直接使用$store和$config等自定义全局属性**
-    - $store需要通过computed属性映射一次，如果数据比较多可以使用mapState和mapGetters。参考: https://uniapp.dcloud.net.cn/tutorial/vue-vuex.html
-    - $config可重新定义到data，从而模板中可进行使用(可放到mixin中)
-
-    ```js
-    import { mapGetters } from 'vuex'
-
-    data() {
-        return {
-            $config: this.$config,
-        }
-    },
-    computed: {
-        ...mapState({
-            text: state => state.moduleA.text,
-            timestamp: state => state.moduleB.timestamp
-        }),
-        // 使用 this.timeString
-        ...mapGetters([
-            'timeString'
-        ]),
-        // 数组不支持重命名，只能使用map模式重命名. 使用this.len
-        mapGetters({
-            len: 'childListLen'
-       }),
-    }
-    ```
-- 监控路由属性及参数获取
-    - uni-app不能watch $route属性，只能通过onShow函数来控制每次显示页面时的动作
-    - this.$route.query只能在H5模式下获取到参数，微信小程序无法获取(从onLoad(options)中获取)。**兼容性获取方法参考squni.js**
-
-    ```js
-    /**
-     * 获取当前页面请求路径
-    */
-    export const getCurPage = () => {
-        // uni-app内置函数
-        const pages = getCurrentPages()
-        return (pages && pages.length > 0) ? pages[pages.length - 1] : {}
-    }
-    /**
-    * 获取当前页面请求路径所有参数
-    */
-    export const getCurQueryAll = () => {
-        const curPage = getCurPage()
-        // 在微信小程序或是app中，通过curPage.options；如果是H5，则需要curPage.$route.query
-        return curPage.options || (curPage.$route && curPage.$route.query)
-    }
-
-    export const getUrQuery = (name) => {
-        return (
-            decodeURIComponent(
-                (new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.href) || [, ''])[1].replace(
-                    /\+/g, '%20')
-            ) || null
-        )
-    }
-    ```
-- uniapp编译的微信支持$slots.default的匿名插槽；编译的支付宝不支持，必须定义插槽名称
-
-### 机型兼容问题
-
-- IOS 和 Android 对时间的解析有区别 [^1]
-    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
-        - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
-    - uniapp日期选择器在手机上不能选择日期问题（需要设置 start 和 end的属性值）
-        - 参考：https://blog.csdn.net/spring_007_999/article/details/131814741
-- IOS 和 Android 对PDF文件预览的区别
-    - IOS可直接通过webview渲染；而Android此方式一直加载页面空白，可downloadfile+opendocument方式解决
-        - **注意`uni.openDocument`需要增加`fileType: 'pdf'`参数**
-    - 参考：https://developers.weixin.qq.com/community/develop/doc/0000eac06448c8fccc693fa8c51000
-    - https://blog.csdn.net/weixin_49521721/article/details/114064682
-- `uni.setStorageSync` 部分(安卓)机型不能同步生效
-    - 当设置后返回到上一个页面onShow中读取此数据拿到的仍然是之前的数据，可设置timeout延迟跳转页面
-    - 参考：https://ask.dcloud.net.cn/question/88497
-    - 也可试下同步存储异步获取
-- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
-- **input等表单元素的v-model/@input(e.target.value和e.detail.value)都取不到值的问题**
-    - 小程序中有时候会出现不开调试模式，或者调试模式开启失败(只有性能按钮，没有vConsole按钮)
-    - 有时候开启成功也会遇到，生产环境暂未遇到
-
-### 支付宝和微信小程序兼容问题
-
-- VUE语法
-    - uniapp编译的微信支持$slots.default的匿名插槽；编译的支付宝不支持，必须定义插槽名称
-- 样式问题
-    - css单位使用`rpx/upx` (rem不兼容)
-    - 支付宝在 input 组件设置 disabled:true 后组件会被禁用组件颜色会变灰。解决：可使用view代替
-    - 支付宝使用伪元素好像有问题(如colorui的picker样式，但是colorui的图片伪元素正常)。解决：通过其他css样式解决
-    - 支付宝不支持css的attr方法(如colorui的cu-steps类)
-- colorui插件样式问题
-    - 支付宝中picker缺少右侧箭头样式。解决如下
-
-    ```html
-    <view class="cu-form-group">
-        <view class="title">主体名称</view>
-        <!-- 在外层套一个flex -->
-        <view class="flex justify-end">
-            <picker @change="companyChange" :value="companyIndex" :range="companyList" :range-key="'name'">
-                <view class="picker">
-                    {{companyIndex > -1 ? companyList[companyIndex].name : '请选择主体名称'}}
-                </view>
-            </picker>
-            <!-- #ifdef MP-ALIPAY -->
-            <view class="cuIcon-right"></view>
-            <!-- #endif -->
-        </view>
-    </view>
-    ```
-    - cu-steps类无效。解决如下
-
-    ```html
-    <view class="cu-steps">
-        <view class="cu-item" v-for="(item,index) in stepList" :key="index">
-            <text class="num" :class="['num-' + (index + 1)]" :data-index="index + 1"></text> {{item.name}}
-        </view>
-    </view>
-
-    <style>
-    /* 增加样式如 */
-    .cu-steps .cu-item .num.num-1::before,
-    .cu-steps .cu-item .num.num-1::after {
-        content: "1";
-    }
-    </style>
-    ```
-    
-
-### 样式常见问题
-
-- 图片显示
-    - 参考：https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E8%83%8C%E6%99%AF%E5%9B%BE%E7%89%87
-    - 如果图片不定义高度，当网络慢的时候加载完后会闪跳
-
-```html
-<!-- 支持小尺寸图片 -->
-<image class="cu-avatar round" src="/static/logo.png">
-
-<!-- 此方式仅开发环境有效，如果写成js导入的方式小程序真机是可以的 -->
-<view class="cu-avatar round" style="background-image:url('/static/logo.png');"></view>
-```
-- css变量单位
-    - css绑定变量：https://blog.csdn.net/zz00008888/article/details/126222530
-    - css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa
-- 单位换算说明
-    - https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E5%B0%BA%E5%AF%B8%E5%8D%95%E4%BD%8D
-    - `em` 表示相对尺寸，**其相对于当前对象内 (父级元素) 文本的字体尺寸** font-size（如当前对行内文本的字体尺寸未被设置，则相对于浏览器的默认字体尺寸。 任意浏览器的默认字体高都是16px。所有未经调整的浏览器都符合：1em = 16px），如果设置默认尺寸为12px，则1em = 12px
-    - `rem` 为css3新增的一个相对单位，使用rem为元素设定字体大小时，仍然是相对大小，但是rem只**相对于HTML根元素的font-size**，因此只需要确定这一个font-size
-    - 说明
-        - rem: 微信小程序和支付宝小程序不兼容
-        - 设计稿使用设备宽度750px比较容易计算750px的话1rpx=1px, 这样的话,设计图上量出来的尺寸是多少px就是多少rpx, 至于在不同的设备上实际上要换算成多少个rem就交给小程序自己换算
-        - 为了简化font-size的换算，我们通常将rem与em的换算基准设置为 font-size : 62.5%; ，则此时1rem=1em = 16px * 62.5% = 10px， 这样10px = 1em=1rem，方便于我们使用
-
-```js
-ios: pt
-android: dp
-web: px、rem、em
-H5: rpx (建议)
-uniapp: upx (动态绑定的 style 不支持直接使用 upx)
-
-单位换算（正常情况下）
-1pt = 1dp = 2px
-2rpx = 2upx = 1px
-1rem = (750/20)rpx = 37.5rpx = 37.5upx 可适当微调
-```
-- 单位换算案例
-
-```html
-<!-- 此处padding为30rpx，在小程序开发工具里面会变成15px(单数从而导致两张图片中间有间隙)，此处改成28rpx就可以了 -->
-<view style="padding: 0rpx 30rpx 30rpx 30rpx; width: 100%;">
-    <image style="width: 100%;display: block;" mode="widthFix" src="https://ossweb-img.qq.com/images/lol/web201310/skin/big10006.jpg"></image>
-    <image style="width: 100%;display: block;" mode="widthFix" src="https://ossweb-img.qq.com/images/lol/web201310/skin/big10006.jpg"></image>
-</view>
-```
-- uni.showToast 被遮盖：全局增加样式`uni-toast {z-index: 999999;}`
-- 不支持`<br/>`换行
-
-```html
-<!-- 使用\n的时候，一定是在<text>标签内，如果在<view>标签中，\n并没有折行左右，只是显示一个空格 -->
-<text>欢迎\n使用</text>
-<!-- 会按照当前看到的排版 -->
-<text>
-    欢迎
-
-    使用
-</text>
-```
-- 空格问题: https://uniapp.dcloud.net.cn/component/text.html
-
-```html
-<!-- 不能直接写成 {{ '&ensp;' }} -->
-<text decode>{{ blank }}</text>
-
-{
-    blank: '&ensp;'
-}
-```
-- 电脑版文字点击问题
-
-```html
-<!-- 最外层的view如果改成text则会导致电脑端小程序无法触发点击事件(手机版是可以的) -->
-<view class="inline">
-    我已阅读并同意
-    <text class="text-main" style="cursor: pointer;" @tap="navToDetail('用户协议')">用户协议</text>
-    <text class="text-main" style="cursor: pointer;" @tap="navToDetail('隐私政策')">《隐私政策》</text>
-</view>
-```
-
 ## 常见业务
 
 ### web-view开发
@@ -697,6 +484,35 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
     ```
 - 然后在公众平台->功能->客服绑定对应客户人员微信
 
+### 引入微信小程序插件
+
+- 参考：https://uniapp.dcloud.net.cn/tutorial/mp-weixin-plugin.html
+- 案例: 添加快递100小程序进行物流详情查看(插件免费接入，只能显示最新物流信息，详细信息会跳转到快递100小程序)，[参考文档](https://fuwu.weixin.qq.com/service/detail/00008caeab84c07c17dcdabf55b815)
+    - 需要先在小程序后台添加插件: 第三方设置 - 插件管理 - 添加插件，搜索插件`wx6885acbedba59c14`添加即可（开发者也可操作添加）
+    - `manifest.json` 增加声明，可能需要重启小程序才能生效
+    
+    ```json
+    "mp-weixin": {
+        "plugins": {
+            "kd100Plugin": {
+                "version": "1.0.0",
+                "provider": "wx6885acbedba59c14"
+            }
+        }
+    }
+    ```
+    - 调用实例
+
+    ```js
+    uni.navigateTo({
+      url: "plugin://kd100Plugin/index?num=SF12345678&appName=测试小程序",
+    })
+
+    <!-- 组件调用 -->
+    <navigator url="plugin://kd100Plugin/index?num=xxx&appName=xxx"></navigator>
+    ```
+- 案例: [在小程序中加入企业微信群聊](/_posts/mobile/weixin.md#客户联系)
+
 ### 其他
 
 - uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需序列化成字符串)，但是修改后的对象需要重新持久化才能保存
@@ -738,14 +554,245 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
     - 基于Java自定义类 https://blog.csdn.net/nicepainkiller/article/details/106315343
     - 基于插件 https://blog.csdn.net/Linxi_001/article/details/130265639
 
-## 自定义插件
+## 常见问题
+
+### 兼容性问题
+
+#### Vue相关语法问题
+
+- [使用Vue.js注意事项](https://uniapp.dcloud.io/use)
+    - Vue特性支持表
+- **小程序模板中不能直接使用$store和$config等自定义全局属性**
+    - $store需要通过computed属性映射一次，如果数据比较多可以使用mapState和mapGetters。参考: https://uniapp.dcloud.net.cn/tutorial/vue-vuex.html
+    - $config可重新定义到data，从而模板中可进行使用(可放到mixin中)
+
+    ```js
+    import { mapGetters } from 'vuex'
+
+    data() {
+        return {
+            $config: this.$config,
+        }
+    },
+    computed: {
+        ...mapState({
+            text: state => state.moduleA.text,
+            timestamp: state => state.moduleB.timestamp
+        }),
+        // 使用 this.timeString
+        ...mapGetters([
+            'timeString'
+        ]),
+        // 数组不支持重命名，只能使用map模式重命名. 使用this.len
+        mapGetters({
+            len: 'childListLen'
+       }),
+    }
+    ```
+- 监控路由属性及参数获取
+    - uni-app不能watch $route属性，只能通过onShow函数来控制每次显示页面时的动作
+    - this.$route.query只能在H5模式下获取到参数，微信小程序无法获取(从onLoad(options)中获取)。**兼容性获取方法参考squni.js**
+
+    ```js
+    /**
+     * 获取当前页面请求路径
+    */
+    export const getCurPage = () => {
+        // uni-app内置函数
+        const pages = getCurrentPages()
+        return (pages && pages.length > 0) ? pages[pages.length - 1] : {}
+    }
+    /**
+    * 获取当前页面请求路径所有参数
+    */
+    export const getCurQueryAll = () => {
+        const curPage = getCurPage()
+        // 在微信小程序或是app中，通过curPage.options；如果是H5，则需要curPage.$route.query
+        return curPage.options || (curPage.$route && curPage.$route.query)
+    }
+
+    export const getUrQuery = (name) => {
+        return (
+            decodeURIComponent(
+                (new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.href) || [, ''])[1].replace(
+                    /\+/g, '%20')
+            ) || null
+        )
+    }
+    ```
+- uniapp编译的微信支持$slots.default的匿名插槽；编译的支付宝不支持，必须定义插槽名称
+
+#### 机型兼容问题
+
+- IOS 和 Android 对时间的解析有区别 [^1]
+    - `new Date('2018-03-30 12:00:00')` IOS 中对于中划线无法解析，Android 可正常解析
+        - 解决方案：`Date.parse(new Date('2018/03/30 12:00:00')) || Date.parse(new Date('2018-03-30 12:00:00'))`
+    - uniapp日期选择器在手机上不能选择日期问题（需要设置 start 和 end的属性值）
+        - 参考：https://blog.csdn.net/spring_007_999/article/details/131814741
+- IOS 和 Android 对PDF文件预览的区别
+    - IOS可直接通过webview渲染；而Android此方式一直加载页面空白，可downloadfile+opendocument方式解决
+        - **注意`uni.openDocument`需要增加`fileType: 'pdf'`参数**
+    - 参考：https://developers.weixin.qq.com/community/develop/doc/0000eac06448c8fccc693fa8c51000
+    - https://blog.csdn.net/weixin_49521721/article/details/114064682
+- `uni.setStorageSync` 部分(安卓)机型不能同步生效
+    - 当设置后返回到上一个页面onShow中读取此数据拿到的仍然是之前的数据，可设置timeout延迟跳转页面
+    - 参考：https://ask.dcloud.net.cn/question/88497
+    - 也可试下同步存储异步获取
+- 华为输入法输入英文时可能带下划线，导致输入abc结果传到后台只有a
+- **input等表单元素的v-model/@input(e.target.value和e.detail.value)都取不到值的问题**
+    - 小程序中有时候会出现不开调试模式，或者调试模式开启失败(只有性能按钮，没有vConsole按钮)
+    - 有时候开启成功也会遇到，生产环境暂未遇到
+
+#### 支付宝和微信小程序兼容问题
+
+- VUE语法
+    - uniapp编译的微信支持$slots.default的匿名插槽；编译的支付宝不支持，必须定义插槽名称
+- 样式问题
+    - css单位使用`rpx/upx` (rem不兼容)
+    - 支付宝在 input 组件设置 disabled:true 后组件会被禁用组件颜色会变灰。解决：可使用view代替
+    - 支付宝使用伪元素好像有问题(如colorui的picker样式，但是colorui的图片伪元素正常)。解决：通过其他css样式解决
+    - 支付宝不支持css的attr方法(如colorui的cu-steps类)
+- colorui插件样式问题
+    - 支付宝中picker缺少右侧箭头样式。解决如下
+
+    ```html
+    <view class="cu-form-group">
+        <view class="title">主体名称</view>
+        <!-- 在外层套一个flex -->
+        <view class="flex justify-end">
+            <picker @change="companyChange" :value="companyIndex" :range="companyList" :range-key="'name'">
+                <view class="picker">
+                    {{companyIndex > -1 ? companyList[companyIndex].name : '请选择主体名称'}}
+                </view>
+            </picker>
+            <!-- #ifdef MP-ALIPAY -->
+            <view class="cuIcon-right"></view>
+            <!-- #endif -->
+        </view>
+    </view>
+    ```
+    - cu-steps类无效。解决如下
+
+    ```html
+    <view class="cu-steps">
+        <view class="cu-item" v-for="(item,index) in stepList" :key="index">
+            <text class="num" :class="['num-' + (index + 1)]" :data-index="index + 1"></text> {{item.name}}
+        </view>
+    </view>
+
+    <style>
+    /* 增加样式如 */
+    .cu-steps .cu-item .num.num-1::before,
+    .cu-steps .cu-item .num.num-1::after {
+        content: "1";
+    }
+    </style>
+    ```
+    
+
+#### 样式常见问题
+
+- 图片显示
+    - 参考：https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E8%83%8C%E6%99%AF%E5%9B%BE%E7%89%87
+    - 如果图片不定义高度，当网络慢的时候加载完后会闪跳
+
+```html
+<!-- 支持小尺寸图片 -->
+<image class="cu-avatar round" src="/static/logo.png">
+
+<!-- 此方式仅开发环境有效，如果写成js导入的方式小程序真机是可以的 -->
+<view class="cu-avatar round" style="background-image:url('/static/logo.png');"></view>
+```
+- css变量单位
+    - css绑定变量：https://blog.csdn.net/zz00008888/article/details/126222530
+    - css单位问题：https://www.jianshu.com/p/ff88a9d2a1aa
+- 单位换算说明
+    - https://uniapp.dcloud.net.cn/tutorial/syntax-css.html#%E5%B0%BA%E5%AF%B8%E5%8D%95%E4%BD%8D
+    - `em` 表示相对尺寸，**其相对于当前对象内 (父级元素) 文本的字体尺寸** font-size（如当前对行内文本的字体尺寸未被设置，则相对于浏览器的默认字体尺寸。 任意浏览器的默认字体高都是16px。所有未经调整的浏览器都符合：1em = 16px），如果设置默认尺寸为12px，则1em = 12px
+    - `rem` 为css3新增的一个相对单位，使用rem为元素设定字体大小时，仍然是相对大小，但是rem只**相对于HTML根元素的font-size**，因此只需要确定这一个font-size
+    - 说明
+        - rem: 微信小程序和支付宝小程序不兼容
+        - 设计稿使用设备宽度750px比较容易计算750px的话1rpx=1px, 这样的话,设计图上量出来的尺寸是多少px就是多少rpx, 至于在不同的设备上实际上要换算成多少个rem就交给小程序自己换算
+        - 为了简化font-size的换算，我们通常将rem与em的换算基准设置为 font-size : 62.5%; ，则此时1rem=1em = 16px * 62.5% = 10px， 这样10px = 1em=1rem，方便于我们使用
+
+```js
+ios: pt
+android: dp
+web: px、rem、em
+H5: rpx (建议)
+uniapp: upx (动态绑定的 style 不支持直接使用 upx)
+
+单位换算（正常情况下）
+1pt = 1dp = 2px
+2rpx = 2upx = 1px
+1rem = (750/20)rpx = 37.5rpx = 37.5upx 可适当微调
+```
+- 单位换算案例
+
+```html
+<!-- 此处padding为30rpx，在小程序开发工具里面会变成15px(单数从而导致两张图片中间有间隙)，此处改成28rpx就可以了 -->
+<view style="padding: 0rpx 30rpx 30rpx 30rpx; width: 100%;">
+    <image style="width: 100%;display: block;" mode="widthFix" src="https://ossweb-img.qq.com/images/lol/web201310/skin/big10006.jpg"></image>
+    <image style="width: 100%;display: block;" mode="widthFix" src="https://ossweb-img.qq.com/images/lol/web201310/skin/big10006.jpg"></image>
+</view>
+```
+- uni.showToast 被遮盖：全局增加样式`uni-toast {z-index: 999999;}`
+- 不支持`<br/>`换行
+
+```html
+<!-- 使用\n的时候，一定是在<text>标签内，如果在<view>标签中，\n并没有折行左右，只是显示一个空格 -->
+<text>欢迎\n使用</text>
+<!-- 会按照当前看到的排版 -->
+<text>
+    欢迎
+
+    使用
+</text>
+```
+- 空格问题: https://uniapp.dcloud.net.cn/component/text.html
+
+```html
+<!-- 不能直接写成 {{ '&ensp;' }} -->
+<text decode>{{ blank }}</text>
+
+{
+    blank: '&ensp;'
+}
+```
+- 电脑版文字点击问题
+
+```html
+<!-- 最外层的view如果改成text则会导致电脑端小程序无法触发点击事件(手机版是可以的) -->
+<view class="inline">
+    我已阅读并同意
+    <text class="text-main" style="cursor: pointer;" @tap="navToDetail('用户协议')">用户协议</text>
+    <text class="text-main" style="cursor: pointer;" @tap="navToDetail('隐私政策')">《隐私政策》</text>
+</view>
+```
+
+### 小程序审核相关问题
+
+- 支付宝小程序不允许出现授权死循环，即用户拒绝授权时应该允许手动退出授权页面(登录页面)或返回到首页继续使用其他功能
+    - 可在用户取消授权后提示用户是否需要返回首页
+
+### 其他
+
+- 小程序图片不显示问题，参考[weixin.md](/_posts/mobile/weixin.md#其他)
+- 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
+    - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
+- 真机调试
+    - IOS需要开放微信访问本地网络
+
+## 插件
+
+### 自定义插件
 
 - [记一次uniapp插件：zero-markdown-view优化过程](https://juejin.cn/post/7160995270476431373)
 
-## ColorUI插件
+### ColorUI插件
 
 - [github仓库](https://github.com/weilanwl/coloruicss)
-- [V2使用文档](https://miren.lovemi.ren/colorui-document/pages/base/)
+- [V2使用文档](https://miren.lovemi.ren/colorui-document/pages/base/)、[V2 H5演示版](https://miren.lovemi.ren/colorui-h5/h5/#/)
 - 主要是一个样式文件，通过一些CSS类来实现UI效果
 - 按钮
 
@@ -790,7 +837,7 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
 </span>
 ```
 
-## uView插件
+### uView插件
 
  - [uView](https://www.uviewui.com/)
 - u-cell-item使用slot时标题无法增加空格(使用padding解决)
@@ -804,9 +851,9 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
 </u-cell-group>
 ```
 
-## 零散插件
+### 零散插件
 
-### 富文本/markdown解析
+#### 富文本/markdown解析
 
 - [uParse](https://ext.dcloud.net.cn/plugin?id=183) DCloud前端团队
     - 渲染markdown需额外安装`marked`
@@ -814,13 +861,15 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
     - 基于mp-html，手动编译可减小包体积到1.6M
     - [记一次uniapp插件：zero-markdown-view优化过程](https://juejin.cn/post/7160995270476431373)
 
-## 常见问题
+### 微信小程序包反编译
 
-- 小程序图片不显示问题，参考[weixin.md](/_posts/mobile/weixin.md#其他)
-- 访问出现Invalid Host header问题(使用反向代理时出现，如使用花生壳)
-    - 修改uni-app的manifest.json文件 - 源码视图，增加`"devServer": {"disableHostCheck" : true}`
-- 真机调试
-    - IOS需要开放微信访问本地网络
+```bash
+## 参考：https://blog.csdn.net/huagangwang/article/details/135013405
+# 先使用windows微信打开小程序，然后通过小程序ID进行解码。提示解密成功，得到 dec.wxapkg
+pc_wxapkg_decrypt.exe -wxid wxa04daf3912b3d61e -in "C:\Users\test\Documents\WeChat Files\Applet\wxa04daf3912b3d61e\1\__APP__.wxapkg"
+# 反编译
+node wuWxapkg.js ../decrypt/dec.wxapkg
+```
 
 ## 源码解析
 

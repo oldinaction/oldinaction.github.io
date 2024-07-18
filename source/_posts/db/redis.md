@@ -1166,15 +1166,16 @@ jedis.close();
 - 使用连接池连接redis集群(jedis v3)
 
 ```java
+// 参考: https://blog.51cto.com/u_14402/9184932
 public class JedisClusterUtil {
 
     private static JedisCluster jedis = null;
 
-    //可用连接实例的最大数目，默认为8；
+    //可用连接实例的最大数目，默认为8；特别多的并发的情况也可以设置的高，如500或更高 (服务器集群默认最大允许10000个连接)
     //如果赋值为-1，则表示不限制，如果pool已经分配了maxActive个jedis实例，则此时pool的状态为exhausted(耗尽)
-    private static Integer MAX_TOTAL = 1024;
-    //控制一个pool最多有多少个状态为idle(空闲)的jedis实例，默认值是8
-    private static Integer MAX_IDLE = 200;
+    private static Integer MAX_TOTAL = 10;
+    //控制一个pool最多有多少个状态为idle(空闲)的jedis实例，默认值是8；其他如20
+    private static Integer MAX_IDLE = 5;
     //等待可用连接的最大时间，单位是毫秒，默认值为-1，表示永不超时。
     //如果超过等待时间，则直接抛出JedisConnectionException
     private static Integer MAX_WAIT_MILLIS = 10000;
@@ -1216,7 +1217,7 @@ public class JedisClusterUtil {
             jedisClusterNode.add(new HostAndPort("192.168.0.35", 6380));
             jedisClusterNode.add(new HostAndPort("192.168.0.36", 6380));
 
-            jedis = new JedisCluster(jedisClusterNode,1000,1000,5,AUTH,config);
+            jedis = new JedisCluster(jedisClusterNode,2000,2000,5,AUTH,config);
         } catch (Exception e) {
             e.printStackTrace();
         }

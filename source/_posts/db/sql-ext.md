@@ -115,6 +115,7 @@ nvl(counts, 0)
 -- mysql null不包含空字符串('' != null)
 select * from users where (last_name is null or last_name = '');
 select * from users where last_name is not null and last_name != '';
+-- 终极判断: (case when #{name} is null then #{default} else if(#{name}='', #{default}, #{name}) end)
 select ifnull(null, 1), ifnull('', 1), if(''='', 1, 0); -- 1 '' 1
 
 -- sqlserver
@@ -754,7 +755,11 @@ json_table ('[{"a": 1, "b": [11,111]}, {"a": 2, "b": [22,222]}, {"a":3}]',
 
 
 -- 修改json
-select json_set('{"name":{"en":"约翰"},"age": 25}', '$.name.en', (select translation from translations where text='john' and language='en')) as translated_json;
+select json_set(
+    '{"name":{"en":"约翰"},"age": 25}',
+    '$.name.en', (select translation from translations where text='john' and language='en'),
+    '$.age', 18
+) as translated_json;
 
 -- 数组案例: 记录位置信息(保留最近12次)
 update user_info set location_up_time = now()

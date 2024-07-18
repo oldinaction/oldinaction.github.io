@@ -1010,10 +1010,11 @@ mybatis-plus:
   configuration:
     variables:
       _gvFuncTest: true
+      _gvName: "测试"
 
 // xml文件写法
 <select id="getTestList" resultType="map">
-    select t.id, t.saas_code 
+    select t.id, t.saas_code, '${_gvName}' name
     from t_test t where 1=1
     <include refid="existsTest">
         <property name="prefix" value="t"/>

@@ -21,4 +21,5 @@ git commit -am "update blog"
 git push origin source:source # git push
 hexo g && gulp && hexo d
 ```
+- 如果启动或发布报错，可调试查看具体哪个md文件渲染出错，使用vscode启动调试
 

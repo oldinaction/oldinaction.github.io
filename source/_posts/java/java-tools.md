@@ -205,7 +205,7 @@ SymmetricCrypto sc = SecureUtil
     .decryptStr(HexUtil.decodeHex("ec251f39e74c3fa672edd6208c74efa7".toCharArray()));
 ```
 
-### FileUtil文件操作
+### 文件工具类-FileUtil
 
 ```java
 // 获取类同级目录下文件
@@ -223,7 +223,7 @@ if (!FileUtil.exist(path)) {
 }
 ```
 
-### Excel操作
+### Excel工具-ExcelUtil
 
 ```java
 // 读取Excel
@@ -244,7 +244,7 @@ writer.write(userList, true);
 writer.close();
 ```
 
-### HTTP操作
+### Http请求-HttpRequest
 
 ```java
 String apiResult = HttpRequest.post("http://api.test.com/hello")
@@ -256,7 +256,7 @@ String apiResult = HttpRequest.post("http://api.test.com/hello")
                 .body();
 ```
 
-### FTP操作
+### FTP客户端封装-Ftp
 
 ```java
 // 一次定时操作：创建新的FTP客户端 - 获取文件 - 关闭客户端
@@ -287,7 +287,31 @@ FTPClient client = ftp.getClient();
 client.rename("/tmp/" + file.getName(), "/dest/" + file.getName());
 ```
 
-### TemplateUtil模板引擎
+### 线程工具
+
+- 线程工具-ThreadUtil
+    - Hutool使用`GlobalThreadPool`持有一个全局的线程池，默认所有异步方法在这个线程池中执行
+    - 基于`SynchronousQueue`实现: 这是一个没有容量的阻塞队列。每个插入操作都必须等待另一个线程的对应移除操作，因此此队列维持着零元素
+
+```java
+// 使用GlobalThreadPool执行(无队列概念), 无返回值
+ThreadUtil.execute
+// 使用GlobalThreadPool异步执行(无队列概念), 有返回对象
+ThreadUtil.execAsync
+// 获得一个新的线程池(也是基于SynchronousQueue，只不过和GlobalThreadPool区分开)
+ThreadUtil.newExecutor()
+```
+- 自定义线程池-ExecutorBuilder
+
+```java
+ExecutorService executor = ExecutorBuilder.create()
+    .setCorePoolSize(5)
+    .setMaxPoolSize(10)
+    .setWorkQueue(new LinkedBlockingQueue<>(100))
+    .build();
+```
+
+### 模板引擎封装-TemplateUtil
 
 - 可以操作Beetl、Enjoy、Rythm、FreeMarker、Velocity、Thymeleaf，只需引入相应的jar包
 - 模板规则参考[Velocity](/_posts/java/velocity.md)、[FreeMarker](/_posts/java/freemarker.md)、[Thymeleaf](/_posts/java/thymeleaf.md)
@@ -367,7 +391,7 @@ xwpfRun.setFontSize(9); // 设置文本字体大小和颜色
 xwpfRun.setColor("ed4014"); // hex值
 ```
 
-### poi-tl
+### poi-tl基于模板生成Word
 
 - [github](https://github.com/Sayi/poi-tl)、[文档](http://deepoove.com/poi-tl/)
 - **基于模板操作Word**
@@ -420,9 +444,9 @@ template.render(data);
 ```
 
 
-### Easypoi
+### Easypoi基于模板生成Excel
 
-- [Easypoi](https://gitee.com/lemur/easypoi)、[文档](http://doc.wupaas.com/docs/easypoi)
+- [Easypoi](https://gitee.com/wupaas/easypoi)、[文档(已关闭)](http://www.wupaas.com/open/easypoi.html)
 - 优点
     - **基于变量模板导出**
     - excel和html互转。html转excel需要导入org.jsoup#jsoup包，支持将多个table生成到多个sheet中，每个table标签设置一个sheetName属性
@@ -432,6 +456,25 @@ template.render(data);
     - 测试demo运行不完整
     - excel转html不灵活，无法设置转出的页面样式，如宽度
     - html转excel不完善，仅支持table转换，其他html标签不支持，且有些样式会丢失
+- 使用
+
+```java
+// 简答的列表循环
+// 列表模板格式如: {{$fe:dataList t.no t.name}}
+// 单独取值格式如: {{othDataMap.hello}}
+TemplateExportParams exportParams = new TemplateExportParams(tplPath, false);
+Map<String, Object> dataMap = new HashMap<>();
+dataMap.put("dataList", dataList);
+dataMap.put("othDataMap", othDataMap);
+Workbook workbook = ExcelExportUtil.exportExcel(exportParams, dataMap);
+ByteArrayOutputStream baos = new ByteArrayOutputStream();
+try {
+    workbook.write(baos);
+} finally {
+    workbook.close();
+    baos.close();
+}
+```
 - 说明
     - 常量在Excel中为`'常量值'`，由于可能存在转义，所有需要设置成`''常量值'`
     - 解决EasyPoi通过`]]`换行报错的问题，[参考](https://gitee.com/lemur/easypoi/issues/I1FQRM)

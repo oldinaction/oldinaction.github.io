@@ -38,7 +38,8 @@ tags: [plugins, debug]
     - `JSONView` 将Http请求获取的json字符串格式化(可收缩)
     - `Vue.js devtools` Vue.js调试工具
     - `Console Importer` 在调试模式中快速导入js库到当前页面
-    - `ModHeader` 网页资源代理插件，如将网页中的js资源代理成本地的某个js，可用于js库开发调试(如lowcode-engine)
+    - `URLRedirector` 网页资源代理插件。如将网页中的js资源代理成本地的某个js，可用于js库开发调试(如lowcode-engine)，支持路径通配符
+    - `ModHeader` 修改请求响应头；也有Redirect Urls功能，但是没URLRedirector好用
 - 推荐
     - `Evernote Web Clipper` 印象笔记·剪藏
     - `新浪微博图床`

@@ -844,6 +844,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
     - **`top -Hp <pid>`** 观察进程中的线程，哪个线程CPU和内存占比高
 - **`jstack <pid>`** 定位线程状况，重点关注：`WAITING`、`BLOCKED`。举例
     - `waiting on <0x0000000088ca3310>` (a java.lang.Object) 假如有一个进程中100个线程，很多线程都在waiting on(等待0x0000000088ca3310这把锁/地址编号)，一定要找到是哪个线程持有这把锁
+    - `RUNNABLE` 表示运行中(随时可能被CPU调度)
     - 怎么找？执行`jstack <pid> | grep 0x0000000088ca3310`看哪个线程持有这把锁(该线程可能处于RUNNABLE)
         - 如果是死锁的话，当前线程就会出现`locked <0x0000000088ca3310>`
         - 为什么阿里规范里规定，线程的名称（尤其是线程池）都要写有意义的名称，就是为了容易定位线程的功能

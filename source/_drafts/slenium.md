@@ -14,6 +14,7 @@ tags: test
     - 录制工具(可将录制转换成基础脚本，也可直接编写脚本)：selenium ide(官方插件，可到chrome插件中下载)、katalon recorder
     - Selenium Grid：能并行的运行测试，也就是说，不同的测试可以同时跑在不同的远程机器上
 - [官方Doc](https://docs.seleniumhq.org/docs/)、[github](https://github.com/SeleniumHQ/selenium)
+- [Chrome DevTools Protocol (CDP)文档](https://chromedevtools.github.io/devtools-protocol/)
 - 本文基于python3 + selenium 4.9.0
 
 ## 安装
@@ -58,7 +59,7 @@ driver.quit()
 /html/body/div # 对应CSS的 `html>body>div`
 
 ## 相对路径选择：选择所有div元素里面的子节点p
-//div//p # 可同时支持CSS的 `div>p` 和 `div p`
+//div//p # 可同时支持CSS的 `div p` 和 `div>p`
 
 ## 通配符*：选择所有div节点的所有直接子节点
 //div/* # 对应CSS的 `div>*`
@@ -95,25 +96,39 @@ driver.quit()
 
 - 查找元素
 
-```python
+```py
 # 查找一个元素，如果有多个取第一个
 ele = self.driver.find_element(By.XPATH, '//*[@id="login"]')
 self.driver.find_element(By.XPATH, '//*[contains(@class, "class1")]//*[contains(@class, "class1-2-1")]') # 类似CSS的 ".class1 .class1-2-1"
+# 查找当前元素后面的一个元素
+tr.find_next()
+
 # 查找元素集合
 trs = self.driver.find_elements(By.XPATH, '//*[contains(@class, ".tr")]')
+# 查找当前元素的所有td子元素
+tr.find_all('td')
+
 # 串联查找，根据父元素查找子元素
 trs[0].find_elements(By.XPATH, 'td')
 ```
+- 取元素值
+
+```py
+# 去文本, 一般写成 ele.text.strip() 较好
+ele.text
+# 获取属性值
+ele.get_attribute('href')
+```
 - 给元素赋值
 
-```python
+```py
 # input输入框
 ele.send_keys('ABC123') # 输入值
 ele.clear() # 清空输入框
 ```
 - 其他
 
-```python
+```py
 ele.click() # 点击元素
 ```
 
@@ -157,6 +172,8 @@ if __name__ == '__main__':
 ### Selenium获取Network数据
 
 - 参考：https://blog.csdn.net/weixin_45081575/article/details/126551260
+- [Chrome DevTools Protocol (CDP)文档](https://chromedevtools.github.io/devtools-protocol/)
+- [Selenium CDP API](https://www.selenium.dev/zh-cn/documentation/webdriver/bidirectional/chrome_devtools/)
 - 代码
 
 ```py

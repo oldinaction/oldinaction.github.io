@@ -17,7 +17,7 @@ tags: [windows]
 - `echo [message]` 表示显示此命令后的字符
 - `echo on/off` 表示在此语句后所有运行的命令都是否显示命令行本身(`@echo off`关闭命令显示)
 - `pause` 运行此句会暂停批处理的执行并在屏幕上显示Press any key to continue...的提示，等待用户按任意键后继续
-- `call [drive:][path]filename [batch-parameters]` 调用另一个批处理文件（如果不用call而直接调用别的批处理文件，那么执行完那个批处理文件后将无法返回当前文件并执行当前文件的后续命令）
+- `call [drive:][path]filename [batch-parameters]` **调用另一个批处理文件（如果不用call而直接调用别的批处理文件，那么执行完那个批处理文件后将无法返回当前文件并执行当前文件的后续命令）**
 - `%[1-9]` 表示参数，`%0`表示批处理命令本身
 - `exit` 关闭窗口
 - 符号
@@ -43,9 +43,11 @@ tags: [windows]
     set a=5&echo %a%
     ```
 
-### 变量 [^2]
+### 变量
 
+- 参考 [^2]
 - 设置变量：`set 变量名=变量值`
+    - `set NAME=%NAME_TMP%` 基于变量赋值时不用添加双引号，否则变量字符串会携带双引号
 - 取消变量：`set 变量名=`
 - 展示变量：`set 变量名`
 - 列出所有可用的变量：`set`
@@ -151,9 +153,9 @@ if !str!@ == @ (set str=我是默认值) else (set str=!str!)
 echo !str!
 ```
 
-#### for语句 [^4]
+#### for语句
 
-- `FOR %variable IN (set) DO command [command-parameters]` **在cmd窗口中，for之后的形式变量 i 必须使用单百分号引用，即 %i**；而在批处理文件中，引用形式变量i必须使用双百分号，即 %%i
+- `FOR %variable IN (set) DO command [command-parameters]` **在cmd窗口中，for之后的形式变量 i 必须使用单百分号引用，即 %i**；而在批处理文件中，引用形式变量i必须使用双百分号，即 %%i [^4]
 - for /f (delims、tokens、skip、eol、userbackq、变量延迟)
     - tokens 提取列 
 - for /r (递归遍历)
@@ -178,6 +180,9 @@ for /l %%a in (1,1,5) do md %%a
 - 调用：`call:函数名 [参数1,参数2,…]`
 
 ```bat
+call:myFuncName
+
+:: 建议将函数定义放在调用的下面
 :myFuncName
 echo ...
 
@@ -185,25 +190,34 @@ SETLOCAL
 set a="这是局部变量作用域(SETLOCAL-ENDLOCAL)"
 ENDLOCAL
 goto:eof
-
-call:myFuncName
 ```
 
 ### 字符串操作
 
-```bash
-# 拼接
+```bat
+:: 拼接
 echo %a%%b%
 
-# 替换(:=)，可用于去除空格
+:: 替换(:=)，可用于去除空格
 set str=ab c
 echo 替换后为(abc): %str: =%
 
-# 截取(:~,)
+:: 截取(:~,)
 set str=123456789
 echo 头两个字符为(12): %str:~0,2%
 echo 第4个及其之后的3个字符为(4567): %str:~3,4%
 echo 去掉最后一个字符后的字符串为(12345678): %str:~0,-1%
+
+:: 获取日期 20240704130524
+set daystr=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%
+:: 20240704130524
+set daystr=%daystr: =0%
+:: 04
+set daystr=%daystr:~6,2%
+:: 字符串转数字
+set /a num=%daystr%
+:: 取余
+set /a num = num %% 3
 ```
 
 ### 文件和文件夹操作
@@ -224,8 +238,26 @@ mkdir dist\plugins
 # 删除文件夹下文件
 rmdir dist /s /q
 
-# 复制文件到目录. echo d：防止提示 (F = 文件，D = 目录)?
+# 复制文件到目录(注意分割符要使用\). "echo d"：防止提示 (F = 文件，D = 目录)?
 echo d | xcopy target\sqbiz-plugin\*-ark-biz.jar dist\plugins /s
+# 复制source文件到destination目录，存在则直接覆盖
+xcopy "%source%" "%destination%" /y
+# 还有一些参数
+xcopy /e/I/d/h/r/y "%source%" "%destination%"
+```
+- 获取脚本目录，获取上级目录
+
+```bat
+:: 获取脚本目录
+set scriptDir=%~dp0
+
+:: 进入脚本目录
+cd /d "%~dp0"
+cd ..
+:: 获取脚本的上级目录
+set scriptRootDir=%cd%
+:: 恢复之前的目录，这是一种良好的实践，以防止改变了当前目录后影响其他命令
+popd
 ```
 
 ## 常用命令
@@ -317,41 +349,41 @@ echo off
 ### 零散(如java程序控制)
 
 - 运行java
-
-    ```bat
-    title=cmd窗口的标题
-    @echo off
-    rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录
-    %~d0
-    set MY_PROJECT_HOME=%~p0
-    cd %MY_PROJECT_HOME%
-    rem set JAVA_HOME=D:/software/jdk8
-    "%JAVA_HOME%\bin\java" -DLog4j2.formatMsgNoLookups=true -jar my.jar
-    @pause
-    ```
-
     - 此时配置文件应和jar包位于同一目录
     - 如果`set MY_PROJECT_HOME=%~p0..\`则表示设置bat文件所在目录的的上级目录为项目根目录
     - 如果不是系统默认jdk，可将`%JAVA_HOME%`换成对应的路径
+
+```bat
+chcp 65001
+title=cmd窗口的标题
+@echo off
+rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录
+%~d0
+set MY_PROJECT_HOME=%~p0
+cd %MY_PROJECT_HOME%
+rem set JAVA_HOME=D:/software/jdk8
+"%JAVA_HOME%\bin\java" -DLog4j2.formatMsgNoLookups=true -jar my.jar
+@pause
+```
 - 停止进程(此脚本停止java等进程不是很友好，netstat查询出的端口可能很多)
 
-    ```bat
-    @echo off
-    ::chcp 65001
-    set port=8080
-    for /f "tokens=5" %%i in ('netstat -aon ^| findstr ":%port%"') do (set n=%%i)
-    if "%n%" neq "" (
-        taskkill /pid %n% -F
-    ) else (echo proc not running...)
-    ```
+```bat
+chcp 65001
+@echo off
+set port=8080
+for /f "tokens=5" %%i in ('netstat -aon ^| findstr ":%port%"') do (set n=%%i)
+if "%n%" neq "" (
+    taskkill /pid %n% -F
+) else (echo proc not running...)
+```
 - 停止java进程
 
-    ```bat
-    REM 复制一个java.exe到项目jar包目录，并重名为java-test.exe，每个启动的jar必须拥有唯一的名称
-    REM 启动jar则使用 java-test.exe -jar test.jar
-    REM 停止进程
-    taskkill /f /im java-test.exe
-    ```
+```bat
+REM 复制一个java.exe到项目jar包目录，并重名为java-test.exe，每个启动的jar必须拥有唯一的名称
+REM 启动jar则使用 java-test.exe -jar test.jar
+REM 停止进程
+taskkill /f /im java-test.exe
+```
 - 后台运行bat文件
     - bat语法运行。缺点：执行`start xxx.exe`后，bat脚本窗口关闭了，但是exe执行程序弹框无法关闭（可使用RunHiddenConsole.exe）
         
@@ -412,15 +444,15 @@ echo off
     ````
 - 获取当前时间
 
-    ```bash
-    # :: %date% => 2022/09/25 周日 %time% => 10:05:55.19
-    # set YYYYMMDD=%date:~0,4%%date:~5,2%%date:~8,2%
-    # :: 如果小于10点，小时是一个空格+点数，后面通过字符串替换掉空格
-    # set hhmmss=%time:~0,2%%time:~3,2%%time:~6,2%
+    ```bat
+    :: %date% => 2022/09/25 周日 %time% => 10:05:55.19
+    :: set YYYYMMDD=%date:~0,4%%date:~5,2%%date:~8,2%
+    :: 如果小于10点，小时是一个空格+点数，后面通过字符串替换掉空格
+    :: set hhmmss=%time:~0,2%%time:~3,2%%time:~6,2%
     set DATETIME=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%
     set DATETIME=%DATETIME: =0%
     set "filename=bak_%DATETIME%.zip"
-    # :: bak_20181016170530.zip
+    :: bak_20181016170530.zip
     echo %filename%
     ```
 - 脚本示例
@@ -608,7 +640,7 @@ if exist %tmpFile% (del %tmpFile%)
 
 ### mysql数据库备份
 
-- 设置定时任务参考[windows.md#任务计划(定时任务)](/_posts/extend/windows.md#任务计划定时任务)
+- 设置定时任务参考[windows.md#任务计划(定时任务)](/_posts/linux/windows.md#任务计划定时任务)
 
 ```bat
 @echo off
@@ -630,13 +662,13 @@ set BACKUPDATE=%BACKUPDATE: =0%
 :: 删除当前备份临时文件
 del /F "%backup_dir%\backup_%db_name%_%BACKUPDATE%.sql"
 :: 删除最后将7天前的文件
-forfiles /p %backup_dir% /s /m *.zip /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\mysql_delete_backup_%date:~0,4%.log
+forfiles /p %backup_dir% /s /m *.zip /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" >> %backup_dir%\mysql_delete_backup_%date:~0,4%.log
 @echo on
 ```
 
 ### oracle数据库备份
 
-- 设置定时任务参考[windows.md#任务计划(定时任务)](/_posts/extend/windows.md#任务计划定时任务)
+- 设置定时任务参考[windows.md#任务计划(定时任务)](/_posts/linux/windows.md#任务计划定时任务)
 
 ```bat
 @echo off
@@ -663,6 +695,18 @@ del /F "%BACKUP_DIR%\backup_%BACK_USER2%_%BACKUPDATE%.dmp"
 :: 删除超过7天的备份文件
 forfiles /p "%BACKUP_DIR%" /s /m *.dmp.zip /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\oracle_delete_backup_%date:~0,4%.log
 forfiles /p "%BACKUP_DIR%" /s /m backup_*.log /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\oracle_delete_backup_%date:~0,4%.log
+
+:: 备份到远程。需要提前将在远程 192.168.1.100 下将backup文件夹设置成共享(设置后如果在其他机器查询不到可先通过运行打开 \\192.168.1.100 进行刷新一下)
+set daystr=%BACKUPDATE:~6,2%
+set /a num=%daystr%
+set /a num = num %% 3
+:: 注意分割符要使用\, echo f防止出现文件和目录的提示, /y存在文件则覆盖
+echo f | xcopy "%BACKUP_DIR%\backup_%BACK_USER%_%BACKUPDATE%.dmp.zip" "\\192.168.1.100\backup\oracle\backup_%BACK_USER%_%num%.dmp.zip" /s/y
+echo f | xcopy "%backup_dir%\backup_%BACK_USER%_%BACKUPDATE%.log" "\\192.168.1.100\backup\oracle\backup_%BACK_USER%_%num%.log" /s/y
+:: 通过账号密码连接远程共享文件夹进行传输
+:: net use \\192.168.1.100\backup "MyPassword123" /user:"Administrator"
+:: echo f | xcopy "D:\backup\oracle\*.dmp.zip" "\\192.168.1.100\backup" /s/y
+
 @echo on
 ```
 

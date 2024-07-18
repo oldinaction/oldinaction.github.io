@@ -285,6 +285,97 @@ tags: [H5, App, 小程序, mobile]
 
 ## 企业微信开发
 
+> https://developer.work.weixin.qq.com/document/path/90556
+
+### 客户联系
+
+- 加客户方式
+    - 使用`联系我`功能：客户通过扫描二维码、工卡或点击小程序上的按钮，即可获取成员联系方式，主动联系到成员。参考：https://developer.work.weixin.qq.com/document/path/93582
+    - 使用`加入群聊`功能：客户通过扫描群二维码、立牌或点击小程序上的按钮，即可获取入群方式，进入企业的客户群。参考下文
+    - 企业未认证仅可免费添加100位客户，认证后可免费添加2000位，超过则需要付费购买添加用户额度(如5000位¥500套餐)
+
+**在小程序中加入企业微信群聊**(基于微信小程序插件, 基于uniapp说明)
+
+- 参考: https://developer.work.weixin.qq.com/document/path/93884
+- 生成企业微信群链接: 客户与上下游 - 加客户 - 加入群聊(设置)  - 新建加入群聊 - 在小程序中加入群聊
+    - 此时企业微信主体和使用的小程序主体无需一致也可使用
+    - 还可生成二维码、(二维码)立牌等方式加入群聊，此时生成的二维码永不过期(其他方式生成的二维码7天过期)
+- 小程序后台添加插件: 第三方设置 - 插件管理 - 添加插件，搜索`wx4d2deeab3aed6e5a`添加即可（开发者也可操作添加）
+- `manifest.json`
+
+```json
+// 参考：https://uniapp.dcloud.net.cn/tutorial/mp-weixin-plugin.html
+"mp-weixin" : {
+    "appid" : "wxa6c12712346f3222",
+    "plugins": {
+        // 申明插件名称(可自定义): 企业专属服务(如添加企业微信群)
+        // 参考: https://developer.work.weixin.qq.com/document/path/93884
+        "qywxServicePlugin": {
+            "version": "1.0.5",
+            "provider": "wx4d2deeab3aed6e5a"
+        }
+    }
+}
+```
+- `pages.json`在需要使用的页面引入
+
+```json
+{
+    "path": "pages/index/index",
+    "style": {
+        "mp-weixin": {
+            "usingComponents": {
+                // qywxServicePlugin和manifest.json对应，cell为插件内置的组件名称
+                // qywx-service-plugin为声明的插件别名，可在页面中使用
+                "qywx-service-plugin": "plugin://qywxServicePlugin/cell"
+            }
+        }
+    }
+}
+```
+- `index.vue`页面调用
+
+```html
+<!-- 样式较丑 -->
+<!-- <qywx-service-plugin
+    @startmessage="() => $squni.log('start')"
+    @completemessage="data => $squni.log(data)"
+    url='https://work.weixin.qq.com/gm/b40ad4301241053ad45722555988eg1b'
+    iconUrl="https://example.com/static/weixin.png"
+    contactText="添加品牌内购群"
+    :contactTextBlod="false"/> -->
+<!-- 美化样式 -->
+<view class="plugin-container">
+    <qywx-service-plugin class="plugin-box" :url='qywxqUrl'/>
+    <view>
+        <view>
+            添加品牌内购群<text class='cuIcon-weixin text-green padding-left-xs'></text>
+        </view>
+        <view class="text-sm text-gray">
+            进群咨询
+        </view>
+    </view>
+</view>
+
+<style>
+.plugin-container {
+	position: relative;
+}
+.plugin-box {
+	position: absolute;
+	opacity: 0;
+	width: 100%;
+	height: 100%;
+}
+</style>
+```
+- 使用步骤
+    - 默认的按钮样式比较丑，右侧是使用透明层自定义的样式
+    - 点击按钮后 - 会先显示授权微信身份界面(此时还不会调用startmessage事件) - 然后显示第二个加入群聊界面 - 最后再展示一张群聊二维码 - 用户识别后加入
+    - 点击按钮后会自动显示加载中的loading状态，有时候可能会加载失败，此时微信会收到一条服务通知:邀请你加好友(邀请加群)
+
+![加入企业微信群](../../data/images/2024/weixin/加入企业微信群.jpg)
+
 ## 微信登录
 
 ### 微信浏览器中获取用户信息

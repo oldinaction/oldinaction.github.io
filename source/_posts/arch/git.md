@@ -43,9 +43,9 @@ git config user.name "username"
 git config user.email "email"
 
 ## 设置回车和换行
-# Git 可以在你提交时自动地把回车CR和换行LF转换成换行LF，而在检出代码时把换行LF转换成回车CR和换行LF。Windows 系统上，把它设置成 true(但是需要和vscode的格式化保持一致)
+# Git 可以在你提交时自动地把CRLF回车换行转换成换行LF换行，而在检出代码时把换行LF转换成CRLF回车换行。Windows 系统上，把它设置成 true(但是需要和vscode的格式化保持一致)
 git config --global core.autocrlf true
-# 如果使用以换行（LF）作为行结束符的 Linux 或 Mac，你不需要 Git 在检出文件时进行自动的转换。然而当一个以回车（CR）和换行（LF）作为行结束符的文件不小心被引入时，你肯定想让 Git 修正
+# 如果使用以换行（LF）作为行结束符的 Linux 或 Mac，你不需要 Git 在检出文件时进行自动的转换。然而当一个以（CRLF）回车换行作为行结束符的文件不小心被引入时，你肯定想让 Git 修正
 # git config --global core.autocrlf input
 # 如果你是 Windows 程序员，且正在开发仅运行在 Windows 上的项目，可以设置 false 取消此功能
 # git config --global core.autocrlf false

@@ -997,7 +997,7 @@ pipeline {
 ##### Publish over SSH(执行远程命令)
 
 - [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
-- 利用此插件可以连接远程 Linux 服务器，进行文件的上传或是命令的提交；也可以连接提供 SSH 服务的 windows 服务器，windows 提供 ssh 服务参考[windows.md#ssh 服务器#PowerShell Server](/_posts/extend/windows.md#ssh服务器)
+- 利用此插件可以连接远程 Linux 服务器，进行文件的上传或是命令的提交；也可以连接提供 SSH 服务的 windows 服务器，windows 提供 ssh 服务参考[windows.md#ssh 服务器#PowerShell Server](/_posts/linux/windows.md#ssh服务器)
 - BapSshHostConfiguration#createClient 进行服务器连接
 - 此插件 1.20.1 界面`Test Configuration`测试代理连接存在 bug，实际是支持代理连接的
 - Pipeline 使用

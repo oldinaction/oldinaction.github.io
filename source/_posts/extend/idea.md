@@ -125,6 +125,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 
 ### 其他
 
+- 打开新项目默认的项目名称为目录名称，可修改项目名称(关闭项目后生效)，只会修改.iml文件
 - 配置同步到远程
     - File - Settings Repository - 输入远程地址，如保存到github(输入ssh验证的项目地址) - Overwrite Remote同步到远程
 - 自动收缩空包文件夹
@@ -158,8 +159,9 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - `MybatisX`
     - 支持生成mybatis-plus代码
         - 选择表 - Mybatis-X Generator
-        - base package=cn.aezo.share.rtadmin.app - 下一步
-        - annotation=Mybatis-Plus3, options=Lombox,Model, template=mybatis-plus3
+        - module path=maven多模块的时候选择一个模块目录
+        - base package=cn.aezo.share.rtadmin.app
+        - annotation=Mybatis-Plus3, options=Comment,Lombox,Model, template=mybatis-plus3
         - 修改entity代码，增加id配置:`@TableId(value = "id", type = IdType.ASSIGN_ID)`
 - `MyBatisCodeHelperPro (Marketplace Edition)` 实体/表双向生成(支持实体生成建表语句)
     - 破解: https://cnblogs.com/equals/p/15391453.html

@@ -452,9 +452,25 @@ rm -rf ~/.nvm
     - 偏好设置 - 共享 - 勾选远程登录 - 添加允许登录用户
     - 执行`sftp localhost`即可
 
-### Jad-GUI
+### JD-GUI
 
-- jad-gui打开报错需要按照jdk 1.8+，解决办法参考：https://blog.csdn.net/lei182/article/details/111914142
+- JAD官网: https://github.com/java-decompiler/jd-gui
+- JD-GUI打开报错需要按照jdk 1.8+，解决办法参考：https://blog.csdn.net/lei182/article/details/111914142
+- 修改Springboot jar中的某个class文件
+
+```bash
+# 解压jar包，或者通过其他工具解压
+jar xf demo.jar
+
+# 找到对应class文件使用JAD打开，选中文件后使用command/control + s保存文件成.java文件
+# 使用JAD解压后，部分地方可能不正确：(1)如有些类名可能重复，此时他会全部创建import语句 (2)使用Lombox抛出的异常需要改写成throw new RuntimeException(e)
+
+# 修改java原文件之后，指定classpath进行重新编译
+# javac -cp .;./lib/*.jar Test.java
+# javac确实classpath容易失败，建议将源文件放到原项目IDEA中进行单独编译(Build - Recompile 'Test.java')，然后将得到的class文件替换jar包中的class文件(BOOT-INF/classes/cn/test/Test.class)
+# 使用jar命令将jar包中的.class文件替换成指定的class文件
+jar -uf demo.jar BOOT-INF/classes/cn/test/Test.class
+```
 
 ### Jenv(Java多版本管理工具)
 

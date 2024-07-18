@@ -128,7 +128,6 @@ server {
     # Nginx的动态压缩是对每个请求先压缩再输出，这样造成虚拟机浪费了很多cpu，解决这个问题可以利用nginx模块Gzip Precompression，这个模块的作用是对于需要压缩的文件，直接读取已经压缩好的文件(文件名为加.gz)，而不是动态压缩，对于不支持gzip的请求则读取原文件（无 .gz 静态文件则在服务器动态压缩）。其优先级高于动态的gzip。可通过webapck插件 compression-webpack-plugin 提前将dist文件打包成 .gz 格式，从而减少服务器压缩
     gzip_static on;
 
-
     access_log /var/log/nginx/test.access.log main;
 
     # VUE类型应用
@@ -966,13 +965,13 @@ location / {
 - 强缓存相关参数
     - Expires(Http1.0) 响应头过期时间
         - 如果cache-control与expires同时存在的话，cache-control的优先级高于expires
-    - Cache-control(Http1.1) 该字段的优先级要比Expires优先级高
+    - Cache-Control(Http1.1) 该字段的优先级要比Expires优先级高
         - `no-store` **不使用缓存(无此参数就表示可以使用缓存，此时需要看其他参数是否对缓存有限制)**。禁止将响应存储在任何缓存中(但不会删除相同 URL 的任何已存储响应，已经缓存的仍然能使用)
         - `no-cache` **强制重新验证(也可用max-age=0代替)**，一般不和max-age同时使用。每次请求都会验证本地缓存和服务器是否一致(更新时间Last-Modified和文件内容Hash值ETag)，一致则返回304并使用本地缓存(不下载服务器资源)
         - `max-age` 缓存的内容将在多少秒后失效，相对于请求时间来说的
             - max-age=0便是无论服务端如何设置，在重新获取资源之前，先检验ETag/Last-Modified。在设置max-age=no-cache或0后，在资源无更新的情况下访问都会返回304
-            - 只设置`expires 7d;`会转换成`Cache-control max-age=604800`设置到返回头中
-            - 设置对jsp等页面设置了如`Cache-control max-age=36000`，则浏览器地址栏回车/F5刷新/路径增加了参数都会重新获取数据，只有在通过`<a>`标签进行跳转到此页面时才会出现被缓存的问题(js/css等静态文件一般都是页面引用的，不会出现刷新情况，所有此参数会进行缓存静态资源)
+            - 只设置`expires 7d;`会转换成`Cache-Control max-age=604800`设置到返回头中
+            - 设置对jsp等页面设置了如`Cache-Control max-age=36000`，则浏览器地址栏回车/F5刷新/路径增加了参数都会重新获取数据，只有在通过`<a>`标签进行跳转到此页面时才会出现被缓存的问题(js/css等静态文件一般都是页面引用的，不会出现刷新情况，所有此参数会进行缓存静态资源)
         - `private` 客户端可以缓存
         - `public` 客户端和代理服务器都可缓存
         - `must-revalidate` 告诉浏览器/缓存服务器；在本地文件过期之前可以使用本地文件；本地文件一旦过期需要去源服务器进行有效性校验；如果有缓存服务器且该资源未过有效期则命中缓存服务器并返回200；如果过期且源服务器未发生更改；则校验后返回304
@@ -995,7 +994,7 @@ location / {
 ```html
 <!-- 不缓存此HTML文件中的JS/CSS等资源 -->
 <meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Cache-control" content="no-cache,max-age=0,must-revalidate,no-store">
+<meta http-equiv="Cache-Control" content="no-cache,max-age=0,must-revalidate,no-store">
 <meta http-equiv="Expires" content="0" />
 <meta http-equiv="Cache" content="no-cache">
 ```
@@ -1006,7 +1005,7 @@ server {
     # 防止缓存index.html。且index.html中应用的js、css编译的文件名是hash过的，因此也不会缓存
         # index.html里面加meta标签是为了不缓存index.html里面的css/js；另外vue-cli等打包插件支持对css/js的名字加哈希值(如：main.0926594267d262000533.js)，因此不加meta标签页不会缓存
         #<meta http-equiv="Pragma" content="no-cache">
-        #<meta http-equiv="Cache-control" content="no-cache,max-age=0,must-revalidate,no-store">
+        #<meta http-equiv="Cache-Control" content="no-cache,max-age=0,must-revalidate,no-store">
     location = /index.html {
         root   /home/aezocn/www;
         #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
@@ -1034,7 +1033,7 @@ server {
             add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
         }
         if ($request_filename ~* .*\.(?:js|css)$) {
-            expires      7d; # 会转换成`Cache-control max-age=604800`设置到返回头中
+            expires      7d; # 会转换成`Cache-Control max-age=604800`设置到返回头中
         }
         if ($request_filename ~* .*\.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm)$) {
             expires      7d;

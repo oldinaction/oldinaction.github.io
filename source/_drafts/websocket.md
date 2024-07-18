@@ -2,12 +2,13 @@
 layout: "post"
 title: "WebSocket"
 date: "2023-03-25 07:42"
-categories: [linux]
+categories: [arch]
 tags: WebSocket
 ---
 
 ## 简介
 
+- 与SSE的区别参考[SSE](/_posts/arch/sse.md)
 - [测试工具(本地也支持)](http://wstool.js.org/)
     - 如连接`ws://127.0.0.1:8080/api/1`
 - `WS`（WebSocket ）是不安全的 ，容易被窃听，因为任何人只要知道你的ip和端口，任何人都可以去连接通讯

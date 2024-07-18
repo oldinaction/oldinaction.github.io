@@ -94,7 +94,7 @@ mvn deploy:deploy-file -Dmaven.test.skip=true -Dfile=D:/test-1.0.0.jar -DgroupId
 ```bash
 # 会自动使用最新版本的Maven
 mvn wrapper:wrapper
-# 指定使用的Maven版本
+# 指定使用的Maven版本: https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip
 mvn wrapper:wrapper -Dmaven=3.6.3
 # 查看版本
 ./mvnw -version

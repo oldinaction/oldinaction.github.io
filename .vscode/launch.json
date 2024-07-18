@@ -11,15 +11,6 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "cwd": "${workspaceFolder}",
-      // 相当于执行 /usr/local/bin/hexo s -p 5000
-      // "runtimeExecutable": "hexo",
-      // "runtimeArgs": [
-      //   "s",
-      //   "-p",
-      //   "5000"
-      // ],
-
       "runtimeExecutable": "npx",
       "runtimeArgs": [
         "hexo",
@@ -27,6 +18,7 @@
         "-p",
         "5000"
       ],
+      "console": "integratedTerminal",
     }
   ]
 }

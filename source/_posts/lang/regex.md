@@ -411,6 +411,14 @@ while(matcher.find()) {
 ```python
 # 提取()中的字符串. eg: hello, (test) ni (hao)!
 arr = re.findall(r'\((.*?)\)', text)
+
+# 获取HTML标签内文本，只能去除最外层的括号
+result = re.findall(r'<.*?>(.*?)</.*?>', '<p>Hello, <strong>world</strong>!</p>')
+for match in result:
+    print(match) # Hello, <strong>world</strong>!
+
+# 去除所有的XML标签
+re.sub(r'<.*?>', '', '<p>Hello, <strong>world</strong>!</p>') # Hello, world!
 ```
 
 ## php

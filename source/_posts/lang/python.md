@@ -278,7 +278,7 @@ mystr.find(sub) >= 0 # True/False
 string.find(mystr, sub) != -1
 # 判断字符串开头和结尾
 str.startswith(substr)
-str.endswith(substr, beg=0,end=len(string))
+str.endswith(substr, beg=0, end=len(str))
 
 ## 字符串分割
 # 分割符：默认为所有的空字符，包括空格、换行(\n)、制表符(\t)等
@@ -786,8 +786,12 @@ logging.basicConfig(format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(leve
 ```py
 import logging
 import os
+import re
 from logging import handlers
 
+
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
 
 # logging.basicConfig(level=logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(threadName)s[%(thread)d] - %(filename)s[%(funcName)s][line:%(lineno)d] - %(levelname)s: %(message)s')
@@ -797,26 +801,43 @@ formatter = logging.Formatter('%(asctime)s - %(threadName)s[%(thread)d] - %(file
 # logging.FileHandler -> 文件输出
 # logging.handlers.RotatingFileHandler -> 按照大小自动分割日志文件，一旦达到指定的大小重新生成文件
 # logging.handlers.TimedRotatingFileHandler -> 按照时间自动分割日志文件
-
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 stream_handler.setLevel(logging.DEBUG)
 
-if not os.path.exists('./logs'):
-    os.makedirs('./logs')
-time_rotating_file_handler = handlers.TimedRotatingFileHandler(filename='./logs/main.log', when='D', encoding='utf-8')
-time_rotating_file_handler.setFormatter(formatter)
-time_rotating_file_handler.setLevel(logging.DEBUG)
 
-# 创建日志模块，并增加handler
-logger = logging.getLogger('main')
-logger.addHandler(stream_handler)
-logger.addHandler(time_rotating_file_handler)
-logger.setLevel(logging.DEBUG)
+def get_time_rotating_file_handler(file_name='main.log'):
+    # when：日志轮转的时间间隔(只有程序在切割点处于运行中才会切割)，可选值为 ‘S’、‘M’、‘H’、‘D’、‘W’ 和 ‘midnight’，分别表示秒、分、时、天、周和每天的午夜；默认值为 ‘midnight’，即每天的午夜轮转，值不区分大小写
+    # interval：时间间隔的数量，默认为 1；例如，当 when='D' 且 interval=7 时，表示每周轮转一次
+    # backupCount：备份文件数目；当生成的日志文件数量超过该数目时，会自动删除旧的备份日志文件
+    time_rotating_file_handler = handlers.TimedRotatingFileHandler(filename='./logs/' + file_name, when='D',
+                                                                   backupCount=30, encoding='utf-8')
+    # 默认是main.log.2020-01-01, 改成main.log.20200101.log
+    time_rotating_file_handler.suffix = "%Y%m%d"+".log"
+    # 重新定义了删除旧备份文件使用的正则表达式
+    ext_match = r"^\d{4}\d{2}\d{2}(\.\w+)?$"
+    time_rotating_file_handler.extMatch = re.compile(ext_match, re.ASCII)
+    time_rotating_file_handler.setFormatter(formatter)
+    time_rotating_file_handler.setLevel(logging.DEBUG)
+    return time_rotating_file_handler
+
+
+def getLogger(name='main', stream_handler_enable=True):
+    logger = logging.getLogger(name)
+    if stream_handler_enable:
+        logger.addHandler(stream_handler)
+    time_rotating_file_handler = get_time_rotating_file_handler(name + '.log')
+    logger.addHandler(time_rotating_file_handler)
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+
+logger = getLogger()
+
 
 '''
 # 使用
-from common.logging import logger
+from common.logging import logger, getLogger
 
 def test_log():
     logger.debug('debug级别，一般用来打印一些调试信息，级别最低')

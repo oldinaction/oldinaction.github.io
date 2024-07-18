@@ -235,6 +235,39 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
 },
 ```
 
+## 调试(launch.json)
+
+- 基于`.vscode/launch.json`实现，参考[官方文档](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations)
+- 配置参数参考：https://juejin.cn/post/6844904198702645262
+- 案例：hexo博客调试
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "启动程序",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      // 设置运行时可执行文件路径，默认是node 可以是其他的执行程序，如npm、npx (此处也可直接写成hexo)
+      "runtimeExecutable": "npx",
+      // 传递给运行时可执行文件的参数
+      "runtimeArgs": [
+        "hexo",
+        "s",
+        "-p",
+        "5000"
+      ],
+      // 配置终端可以是外部终端或者内部集成终端，默认值internalConsole
+      "console": "integratedTerminal", // 此时可以正常打印运行是日志
+    }
+  ]
+}
+```
+
 ## 用户代码片段
 
 - `javascript.json` 
