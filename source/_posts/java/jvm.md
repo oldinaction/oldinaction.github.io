@@ -619,7 +619,7 @@ public class T01_IntAddAdd {
 
 - 区分概念
     - 内存泄漏memory leak：指有某块内存永远不会被回收，内存泄漏不一定会产生内存溢出(比如内存足够大)
-    - 内存溢出out of memory：内存不够了
+    - 内存溢出out of memory：内存不够了。报错如：`java.lang.OutOfMemoryError: GC overhead limit exceeded`
 
 ### 简单测试及GC日志
 
@@ -838,6 +838,54 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 
 ### 解决JVM运行中的问题
 
+#### arthas工具
+
+- [官网/DOC](https://arthas.aliyun.com/)
+- [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(**阿尔萨斯**)
+- 为什么需要在线排查
+    - 在生产上我们经常会碰到一些不好排查的问题，例如线程安全问题，用最简单的threaddump或者heapdump不好查到问题原因
+    - 为了排查这些问题，有时我们会临时加一些日志，比如在一些关键的函数里打印出入参，然后重新打包发布，如果打了日志还是没找到问题，继续加日志，重新打包发布
+    - 对于上线流程复杂而且审核比较严的公司，从改代码到上线需要层层的流转，会大大影响问题排查的进度
+- 安装与使用
+
+```bash
+## 下载
+# v4.0.0 之后只支持JDK8，支持 JDK 17/21/23
+# v3.7.2 https://github.com/alibaba/arthas/releases/tag/arthas-all-3.7.2
+curl -O https://arthas.aliyun.com/arthas-boot.jar
+
+## 启动
+# 如果有多个线程可输入序号仅选择，然后回车
+java -jar arthas-boot.jar
+
+## 常用命令如下
+# 打开帮助
+help
+# 观察jvm信息，类似jinfo
+jvm
+# **定位线程问题，类似jstack**
+thread
+thread -n 3 # 展示当前最忙的N各线程
+# **观察系统情况**，会定时刷新ID/Memory/Runtime几个分类属性
+dashboard
+# (慎用)相当于使用jmap导出堆信息，**也会影响线上程序**
+heapdump
+# 查找class
+sc
+# [观测方法](https://arthas.aliyun.com/doc/watch.html)
+# 能观察到的范围为：返回值、抛出异常、入参，通过编写 OGNL 表达式进行对应变量的查看
+watch
+# 反编译。主要用于：动态代理生成类的问题定位、第三方的类、版本问题(确定自己最新提交的版本是不是被使用)
+jad
+# 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
+redefine
+
+# 没有包含的功能
+# jmap -histo
+```
+
+#### jstack等其他命令
+
 - `java -Xms200M -Xmx200M -XX:+PrintGC HelloWorld` 启动问题程序
 - `jps` 定位具体java进程
 - **`top`** 命令观察到问题：内存不断增长 CPU占用率居高不下，且某个进程占CPU较高
@@ -850,36 +898,13 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
         - 为什么阿里规范里规定，线程的名称（尤其是线程池）都要写有意义的名称，就是为了容易定位线程的功能
     - 如果一个事物中，修改数据后，方法一直未执行完(如调用restTemplate卡住)，可能会报`Lock wait timeout exceeded; try restarting transaction`
 - `jinfo <pid>` 列举JVM的一些信息
-- `jstat -gc` 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
+- **`jstat -gc <pid>`** 动态观察gc情况/阅读GC日志，观察是否出现频繁GC
     - `arthas`/`jvisualvm`/`jconsole`/`Jprofiler`(最好用，收费)
-        - [arthas](https://alibaba.github.io/arthas/) 阿里在线排查工具(**阿尔萨斯**)，常用命令如下
-            
-            ```bash
-            # https://arthas.aliyun.com/
-            
-            curl -O https://arthas.aliyun.com/arthas-boot.jar
-            java -jar arthas-boot.jar
-            # 如果有多个线程可输入序号仅选择，然后回车
-            ```
-            - 为什么需要在线排查
-                - 在生产上我们经常会碰到一些不好排查的问题，例如线程安全问题，用最简单的threaddump或者heapdump不好查到问题原因
-                - 为了排查这些问题，有时我们会临时加一些日志，比如在一些关键的函数里打印出入参，然后重新打包发布，如果打了日志还是没找到问题，继续加日志，重新打包发布
-                - 对于上线流程复杂而且审核比较严的公司，从改代码到上线需要层层的流转，会大大影响问题排查的进度
-            - `jvm` 观察jvm信息，类似jinfo
-            - **`thread`** 定位线程问题，类似jstack
-                - `thread -n 3` 展示当前最忙的N各线程
-            - **`dashboard`** 观察系统情况
-            - `heapdump` 相当于使用jmap导出堆信息，也会影响线上程序
-            - `jad` 反编译。主要用于：动态代理生成类的问题定位、第三方的类、版本问题(确定自己最新提交的版本是不是被使用)
-            - `redefine` 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
-            - `sc` search class
-            - `watch` watch method
-            - 没有包含的功能：`jmap -histo`
         - 如果面试官问你是怎么定位OOM问题的？如果你回答用图形界面（错误）
             - 已经上线的系统不应该启用JMX进程影响生产环境，而应该使用cmd命令、arthas
             - 图形界面主要用在测试的时候进行监控（压测观察）
     - `jstat -gc <pid> 500`：每个500个毫秒打印GC的情况
-- **`jmap -histo <pid> | head -20*`** 查找有多少对象产生(线上执行影响相对较小)
+- **`jmap -histo <pid> | head -20`** 查找有多少对象产生(线上执行影响相对较小)
 - **`jmap -dump:format=b,file=/home/dump.hprof <pid>`** 导出堆转储文件
     - **线上系统，内存特别大，jmap执行期间会对进程产生很大影响，甚至卡顿**(可在重启前下载dump文件)
         - 很多服务器备份(高可用)，停掉这台服务器对其他服务器不影响(**此方案比较通用**)
@@ -998,16 +1023,18 @@ for(int i=0; i<100; i++) {
     - 每个线程堆栈大小为 1M，一般来说如果栈不是很深的话， 1M 是绝对够用了的
     - `-XX:MetaspaceSize=128m` 需JDK1.8+，元空间最大大小(类似`-XX:MaxPermSize`)
     - `-XX:MaxPermSize=512m` 需JDK1.7及以下，设置永久代/方法区最大值(默认64M)，太小容易出现`java.lang.OutOfMemoryError: PermGen space`
-- `-XX:+PrintGC`
-- `-XX:+PrintGCDetails` **打印GC详细信息**
-- `-XX:+PrintGCTimeStamps`
-- `-XX:+PrintHeapAtGC` 每次GC打印堆信息
-- `-XX:+PrintFlagsFinal` `-XX:+PrintFlagsInitial` **打印最终参数和初始参数**
-- `-XX:+PrintVMOptions`
-- `-verbose:class` 类加载详细过程
 - `-XX:+HeapDumpOnOutOfMemoryError` **让虚拟机在发生内存溢出时 Dump 出当前的内存堆转储快照，以便分析用**
 - `-XX:HeapDumpPath=/home/jvmlogs` **生成堆文件的文件夹（需要先手动创建/home/jvmlogs文件夹）**
-- `-XX:ErrorFile` 设置jvm致命错误日志文件生成位置(默认生成在工作目录下)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`
+- `-XX:+CrashOnOutOfMemoryError` **当jvm发生oom时自动退出程序** 当SpringBoot应用遇到OOM异常时，由于默认异常处理，应用并不会自动退出。添加此参数后，内存溢出时JVM将强制退出，并生成包含详细错误信息的日志文件(hs_err_pid)
+- `-XX:ErrorFile` 设置jvm致命错误日志文件生成位置(**默认生成在工作目录下**)，如：`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log` 日志解析参考[JVM致命错误日志](/_posts/devops/Java应用CPU和内存异常分析.md#JVM致命错误日志)
+- `-XX:+PrintGC`
+- `-XX:+PrintGCDetails` **打印GC详细信息**
+- `-XX:+PrintGCTimeStamps` 或 `-XX:+PrintGCDateStamps` 打印GC发生时的时间戳
+- `-XX:+PrintGCCause` 打印GC产生原因
+- `-XX:+PrintHeapAtGC` 每次GC打印堆信息
+- `-XX:+PrintFlagsFinal` 和 `-XX:+PrintFlagsInitial` 打印最终参数和初始参数
+- `-XX:+PrintVMOptions`
+- `-verbose:class` 类加载详细过程
 - `-Xloggc:/opt/log/gc.log` 具体参考上文循环记录日志
 - `-XX:NewRatio` 老年代与新生代的比例，如 –XX:NewRatio=2，则新生代占整个堆空间的1/3，老年代占2/3
 - `-XX:MaxTenuringThreshold` 升代年龄，最大值15
@@ -1071,22 +1098,7 @@ for(int i=0; i<100; i++) {
     - 远程调试(Listen. 必须先启动idea debug，再启动应用)
         - 应用端启动增加参数`-Xdebug -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=5005`
     - 两种模式区别在与`server=y/n`
-- 扩展classpath
-    - `-Xbootclasspath`: 完全取代基本核心的Java class 搜索路径。不常用，否则要重新写所有Java核心class
-    - **`-Xbootclasspath/a`**: 后缀，在核心class搜索路径后面，常用
-    - `-Xbootclasspath/p`: 前缀，在核心class搜索路径前面，不常用，避免引起不必要的冲突
-    - 分隔符与classpath参数类似，unix使用`:`号，windows使用`;`号
-        - `java -Xbootclasspath/a:/home/test/thirdlib/module.jar -jar demo.jar` 基于jar配置测试成功
-        - `java -Xbootclasspath/a:/home/test/thirdlib/ -jar demo.jar`
-    - 参考：https://www.cnblogs.com/duanxz/archive/2013/12/19/3482311.html
-- 自定义JVM参数
-
-```java
-// 自定义JVM参数格式 -D<name>=<value>
-// 示例
-java -Dtest.name=aezocn -jar app.jar // 启动添加参数。值如果有空格可以使用""
-System.getProperty("test.name") // 程序中取值，无此参数则为null
-```
+- 扩展classpath、自定义JVM参数：参考[JAR/JVM](/_posts/java/java-base.md#JAR/JVM)
 
 ### 常用配置推荐
 
@@ -1104,7 +1116,7 @@ APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
 MEMIF="-Xms1G -Xmx1G -Dfile.encoding=UTF-8"
 
 GC_LOG="-Xloggc:/var/log/app-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause"
-OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/"
+OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/ -XX:+CrashOnOutOfMemoryError"
 
 # automatic IP address for linux（内网地址）
 IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`

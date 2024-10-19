@@ -168,9 +168,9 @@ tags: [H5, 小程序, App, mobile]
     - `onLaunch` 当uni-app 初始化完成时触发（全局只触发一次）
     - `onShow` 当 uni-app 启动，或从后台进入前台显示
 - 页面生命周期中: https://uniapp.dcloud.net.cn/tutorial/page.html#lifecycle
-    - `onLoad` 触发一次
-    - `onShow` 每次展示时触发(后退也会触发)
-    - `onHide` 页面影藏时触发，如navigateTo；无法监听到页面返回(H5和微信小程序都不可以)
+    - `onLoad` 页面加载触发一次(如果是vue文件是以组件的形式加载，则不会触发此方法，而会触发created方法)
+    - `onShow` 每次展示时触发(后退过来的也会触发)
+    - `onHide` 页面影藏时触发，如navigateTo；无法监听到页面返回/后退(H5和微信小程序都不可以)
     - `onUnload` 页面卸载时触发，如redirectTo
     - `onBackPress` 适用于app、H5、支付宝小程序，无法监听到微信小程序返回
 - 组件生命周期同Vue: https://uniapp.dcloud.net.cn/tutorial/page.html#componentlifecycle
@@ -293,8 +293,8 @@ export default {
 
 - 路由相关: https://uniapp.dcloud.net.cn/tutorial/page.html#%E8%B7%AF%E7%94%B1
     - 页面跳转
-        - uni.navigateTo 不关闭之前页面(之前页面代码还会继续执行)
-        - uni.redirectTo 关闭之前页面
+        - uni.navigateTo 不关闭之前页面(之前页面代码还会继续执行，导航条显示返回按钮)
+        - uni.redirectTo 关闭之前页面，打开新页面(**未自定义导航条的情况下，此时首页左上角会显示返回首页按钮，可通过API进行影藏此按钮；没有通过js控制显示返回首页按钮的API**)
         - uni.switchTab 关闭之前页面并显示Tab主页
         - uni.reLaunch 关闭之前页面并打开某个页面
         - uni.navigateBack 关闭当前页面，返回上一页面或多级页面
@@ -436,6 +436,103 @@ uni.openEmbeddedMiniProgram({
     - 参考原生插件：https://ext.dcloud.net.cn/plugin?id=2307
     - 下载原生插件 - 放到项目的`nativeplugins`目录 - 本地调试需要先用HbuilderX生成一个自定义基座(包含了该原生插件)，也可直接使用云打包出APK
     - 原生插件使用参考：https://nativesupport.dcloud.net.cn/NativePlugin/
+
+#### 语音处理
+
+**语音录制**
+
+- 案例参考: `aezo-chat-gpt(sqt-qingxingyigou)/index.vue`
+- 可结合后端调用如[ai-soft.md#阿里-语音识别](/_posts/arch/ai-soft.md#语音识别)
+
+```js
+async sendAudioMsg() {
+    let flag = await this.checkRecordAuth()
+    if (!flag) return
+    this.recorderManager = wx.getRecorderManager()
+    this.recorderManager.start({
+        duration: 60000,
+        sampleRate: 16000,
+        numberOfChannels: 1,
+        format: 'wav'
+    })
+    this.recorderManager.onStop((res) => {
+        // 超时或手动停止都会进入此方法
+        console.log('recorder stop', res)
+        // 上传 tempFilePath 文件到后台. 后端接收文件即可
+        const { tempFilePath } = res
+    })
+},
+checkRecordAuth() {
+    let that = this
+    return new Promise((resolve, reject) => {
+        uni.getSetting({
+            success(res) {
+                if (!res.authSetting['scope.record']) {
+                uni.authorize({
+                    scope: 'scope.record',
+                    success() {
+                        that.$squni.toast('授权成功，请重新录音', 'success')
+                        resolve(false)
+                    },
+                    fail(err) {
+                        // authorize:fail auth deny
+                        // 用户拒绝授权后，一段时间是不会跳授权弹框的
+                        console.log(err)
+                        uni.openSetting({
+                            success(res2) {
+                                console.log(res2)
+                                resolve(false)
+                            },
+                            fail(err2) {
+                                // openSetting:fail can only be invoked by user TAP gesture.
+                                console.log(err2)
+                                that.$squni.toast('请在小程序右上角胶囊(···)的设置中开启麦克风权限')
+                            }
+                        })
+                    }
+                })
+                } else if (res.authSetting['scope.record'] == true) {
+                    resolve(true)
+                }
+            }
+        })
+    })
+},
+```
+
+**语音(合成)播放**
+
+- 案例参考: `aezo-chat-gpt(sqt-qingxingyigou)/index.vue`
+- 由于小程序无法实现流式播放，可将后端多个ByteBuffer合成为几个大的ByteBuffer传到小程序端，从而小程序端进行多个ByteBuffer依次播放来实现
+
+```js
+// 语音处理上下文(如果需要播放多个语音，可一个语音一个上下文)
+const webAudioContext = wx.createWebAudioContext()
+webAudioContext.suspend() // 暂停上下文(暂停播放)
+webAudioContext.resume().then(() => {}) // 开始播放
+// (页面关闭前)关闭上下文
+webAudioContext.close()
+
+// 此处 msg 即为后端返回的ByteBuffer(多个小的合并后的)
+const audioBufferArr = []
+webAudioContext.decodeAudioData(msg, buffer => {
+    audioBufferArr.push(buffer)
+}, err => {
+    console.error('decodeAudioData fail', err)
+})
+
+// 创建 AudioBufferSourceNode 节点, 可连接到播放节点(播放器)
+const audioBufferSource = webAudioContext.createBufferSource()
+audioBufferSource.buffer = audioBufferArr[0]
+audioBufferSource.onended = (res) => {
+    // 当前 audioBufferSource 播放结束后执行
+    // 但是暂停重新播放后，特别是多个音频切换播放的时候，小程序真机onended函数会自动被置空(小程序开发工具正常)
+    // 解决方案: 记录audioBufferSource播放的位置，下次重新创建audioBufferSource，并结合start offset还原到原播放位置 (由于需要手动计时, 可能会有一点误差)
+    // 并且在 webAudioContext.suspend() 的时候需要将原 audioBufferSource 清除(disconnect、stop、buffer = null、onended = null), 否则 webAudioContext.resume 的时候可能会出现语音重叠播放的情况
+}
+audioBufferSource.connect(webAudioContext.destination)
+audioBufferSource.start() // 支持设置播放位置offset(如小音频文件3s, 可设置从1s处开始播放)
+```
 
 ### 多环境编译问题
 
@@ -770,10 +867,15 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
 </view>
 ```
 
-### 小程序审核相关问题
+### 微信小程序包反编译
 
-- 支付宝小程序不允许出现授权死循环，即用户拒绝授权时应该允许手动退出授权页面(登录页面)或返回到首页继续使用其他功能
-    - 可在用户取消授权后提示用户是否需要返回首页
+```bash
+## 参考：https://blog.csdn.net/huagangwang/article/details/135013405
+# 先使用windows微信打开小程序，然后通过小程序ID进行解码。提示解密成功，得到 dec.wxapkg
+pc_wxapkg_decrypt.exe -wxid wxa04daf3912b3d61e -in "C:\Users\test\Documents\WeChat Files\Applet\wxa04daf3912b3d61e\1\__APP__.wxapkg"
+# 反编译
+node wuWxapkg.js ../decrypt/dec.wxapkg
+```
 
 ### 其他
 
@@ -783,11 +885,7 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
 - 真机调试
     - IOS需要开放微信访问本地网络
 
-## 插件
-
-### 自定义插件
-
-- [记一次uniapp插件：zero-markdown-view优化过程](https://juejin.cn/post/7160995270476431373)
+## UI框架
 
 ### ColorUI插件
 
@@ -851,25 +949,19 @@ uniapp: upx (动态绑定的 style 不支持直接使用 upx)
 </u-cell-group>
 ```
 
-### 零散插件
+## 插件
 
-#### 富文本/markdown解析
+### 自定义插件
+
+- [记一次uniapp插件：zero-markdown-view优化过程](https://juejin.cn/post/7160995270476431373)
+
+### 富文本/markdown解析
 
 - [uParse](https://ext.dcloud.net.cn/plugin?id=183) DCloud前端团队
     - 渲染markdown需额外安装`marked`
 - [zero-markdown-view](https://ext.dcloud.net.cn/plugin?id=9437)
     - 基于mp-html，手动编译可减小包体积到1.6M
     - [记一次uniapp插件：zero-markdown-view优化过程](https://juejin.cn/post/7160995270476431373)
-
-### 微信小程序包反编译
-
-```bash
-## 参考：https://blog.csdn.net/huagangwang/article/details/135013405
-# 先使用windows微信打开小程序，然后通过小程序ID进行解码。提示解密成功，得到 dec.wxapkg
-pc_wxapkg_decrypt.exe -wxid wxa04daf3912b3d61e -in "C:\Users\test\Documents\WeChat Files\Applet\wxa04daf3912b3d61e\1\__APP__.wxapkg"
-# 反编译
-node wuWxapkg.js ../decrypt/dec.wxapkg
-```
 
 ## 源码解析
 

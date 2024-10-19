@@ -893,6 +893,32 @@ exoect {
     "bbb" {send "BBB\r"}
 }
 ```
+- 零散案例
+    - 参考: https://zhuanlan.zhihu.com/p/338770413
+
+```bash
+#!/usr/bin/expect
+
+# 判断传入参数
+if { $argc < 2 } {
+  send_user "usage: $argv0 file user1 user2 ... "
+  exit
+}
+
+set nofile 0
+# get filename via the Tcl lindex function
+set filename [lindex $argv 0]
+# 如果脚本的第一个参数是小写的"test"，那么变量nofile被设置为1
+if { $filename == "test" } {
+  set nofile 1
+} else {
+  # 通过调用Tcl的函数isfile来验证参数指定的文件存在
+  if { [ file isfile $filename ] != 1 } {
+    send_user "$argv0: file $file not found. "
+    exit
+  }
+}
+```
 - 直接执行案例：登录(login.exp)
     - `./login.exp 22 root 192.168.1.100 mypass` 即可自动登录服务器
 
@@ -902,7 +928,7 @@ exoect {
 
 # 设置超时时间n秒
 set timeout 30
-# 执行命令，$argv为参数
+# 执行命令. 获得脚本的执行参数(其保存在数组$argv中，从0号开始是参数)
 spawn ssh -p [lindex $argv 0] [lindex $argv 1]@[lindex $argv 2]
 # 接受执行命令返回的信息
 expect {
@@ -929,8 +955,12 @@ password=$2
 set timeout 60
 spawn ssh root@$hostname
 expect {
-"(yes/no)" {send "yes\r";exp_continue}
-"*password" {send "$password\r"}
+  "(yes/no)" {
+    send "yes\r";exp_continue
+  }
+  "*password" {
+    send "$password\r"
+  }
 }
 # *表示任意字符，也可以省略
 expect "*]# "
@@ -1012,7 +1042,7 @@ APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"
 
 #java虚拟机启动参数
 #MEMIF="-Xms3g -Xmx3g -Xmn1g -XX:MaxPermSize=512m"
-OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$JVM_LOG_PATH"
+OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$JVM_LOG_PATH -XX:+CrashOnOutOfMemoryError"
 #IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'` # automatic IP address for linux（内网地址）
 #RMIIF="-Djava.rmi.server.hostname=$IPADDR"
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"

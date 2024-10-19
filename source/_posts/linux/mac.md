@@ -9,6 +9,7 @@ tags: [system]
 ## 简介
 
 - 版本：Mac M1 11.4
+- M1是苹果基于arm架构设计的芯片
 - Mac软件下载
     - https://macwk.cn/
     - https://www.macapp.so/ 收费
@@ -424,9 +425,10 @@ curl -sS https://getcomposer.org/installer | /usr/local/Cellar/php@8.0/8.0.27_1/
 
 - 插件目录 `/Users/smalle/Library/Application\ Support/JetBrains/IntelliJIdea2021.2/plugins`
 
-### Notepad Next
+### Notepad代替版
 
-- https://github.com/dail8859/NotepadNext
+- [Notepad--](https://gitee.com/cxasm/notepad--) 只支持macos 12.x版本
+- [Notepad Next](https://github.com/dail8859/NotepadNext)
 
 ### NVM/Node
 
@@ -475,7 +477,7 @@ jar -uf demo.jar BOOT-INF/classes/cn/test/Test.class
 ### Jenv(Java多版本管理工具)
 
 - 参考：https://blog.csdn.net/aigestudio/article/details/99641818
-- 使用
+- 使用(**推荐**)
 
 ```bash
 brew install jenv
@@ -537,13 +539,18 @@ https://github.com/google/android-emulator-m1-preview/releases/tag/0.3
 
 ## 相关技巧
 
+### 更换App图标
+
+- App图标为icns格式，可将[png转icns图片](https://www.aconvert.com/cn/image/png-to-icns)；如: 大小300x300px, 边框留24px透明空白背景
+- 右键App程序 - 简介 - 将icns图片复制粘贴到左上角的图标处
+
 ### 微信双开
 
 - 参考: https://github.com/CLOUDUH/dual-wechat
     - 运行`nohup /Applications/WeChat.app/Contents/MacOS/WeChat > /dev/null 2>&1 &`即可(只支持双开)
     - 或者将上面的命令封装成自动脚本
         - 自动操作 - (新建)应用程序 - (搜索)运行Shell脚本 - 再脚本中填入上述命令 - 保存自动操作文稿(app到应用程序目录)
-        - 可修改自动操作图标: 右键自动操作程序 - 简介 - 将icns图片复制粘贴到左上角的图标处（但是双击脚本启动的双开微信应用图标还是原来的）
+        - 可修改自动操作图标: 参考上更换App图标（但是双击脚本启动的双开微信应用图标还是原来的）
 
 ## 相关限制
 
@@ -554,4 +561,5 @@ https://github.com/google/android-emulator-m1-preview/releases/tag/0.3
 
 - Mac压缩文件，里面会包含`_MACOSX`等影藏文件夹
     - 参考：https://www.zhihu.com/question/475167014
+    - 右键 - 服务 - 使用Kaka压缩
 

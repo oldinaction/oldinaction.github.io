@@ -307,6 +307,8 @@ created(): {
         - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
 - provide和inject无法实时响应解决办法
     - https://www.jianshu.com/p/2f210939cc4e
+    - provide 和 inject 绑定并不是可响应的，这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的属性还是可响应的
+    - `provide: {obj, name}` name如果是字符串类型(或者通过computed返回的字符串类型)，则无法进行响应传递，可考虑放到obj对象中
 - 扩展说明
 
 ```html
@@ -462,8 +464,9 @@ export default {
         ```
 - 将依赖库挂到 CDN 上。可以提高首屏响应速度
     - 常用CDN服务商
-        - [bootcdn](https://www.bootcdn.cn/)
-        - [七牛云](http://staticfile.org/)
+        - [字节跳动CDN](https://cdn.bytedance.com/)
+        - [bootcdn](https://www.bootcdn.cn/) 2409出现过异常
+        - [七牛云](http://staticfile.org/) 2401出现过异常
         - [又拍云](http://jscdn.upai.com/)
         - [unpkg](https://unpkg.com/)
         - [jsdelivr](https://www.jsdelivr.com/)
@@ -782,7 +785,7 @@ Vue.component('base-checkbox', {
     - `$refs`只有`mounted`了之后才能获取到数据
 - 在子组件中可以通过`$parent`调用父组件属性和方法，**修改父组件的属性也不会报错**。注意：像被iview的TabPane包裹的组件，其父组件就是TabPane
 - 在父组件中使用`sync`修饰符修饰props属性，则实现了父子组件中hello的双向绑定，但是违反了单项数据流，只适合特定业务场景
-- **全量绑定props参数**
+- **全量绑定props参数(v-bind/v-on)**
 
 ```html
 <!-- 
@@ -790,7 +793,7 @@ Vue.component('base-checkbox', {
     2.此时v-bind和:name同时传参，此时会优先:name，除非:name的值为null，才会读取v-bind
     3.v-on="eventBind"表示使用对象来处理所有事件
     4.v-bind="$listeners" 是上述的一个特例，表示监听child-component的事件，并将其$emit到外部，即透传child-component的事件到父组件
-    5.此时v-on和@test同时监听事件，都会生效(貌似会先触发@test)
+    5.此时v-on和@test同时监听事件，都会生效(貌似会先触发@test)；可考虑创建一个新的对象如eventBindNew这样就只会触发一次test事件
 -->
 <div>
     <!-- 两个v-on仅做演示 -->
@@ -798,6 +801,7 @@ Vue.component('base-checkbox', {
         v-bind="dataBind"
         v-on="eventBind"
         v-on="$listeners"
+        v-on="eventBindNew"
         @test="myTest"
     ></child-component>
     
@@ -808,20 +812,30 @@ Vue.component('base-checkbox', {
 </div>
 
 <script>
-    // 此时子组件参数全部使用默认值
-    dataBind = null;
-    // 指定部分参数
-    dataBind = {
-        name: 'smalle',
-        // age: 18, // 不传递age则使用默认值
-        sex: true,
-        xxx: '不接受此参数，传递也不报错'
+// 此时子组件参数全部使用默认值
+dataBind = null;
+// 指定部分参数
+dataBind = {
+    name: 'smalle',
+    // age: 18, // 不传递age则使用默认值
+    sex: true,
+    xxx: '不接受此参数，传递也不报错'
+}
+// 或者通过 $props 将父组件的 props 一起传给子组件
+dataBind = this.$props;
+eventBind = {
+    test: () => {}
+}
+// 
+computed: {
+    eventBindNew() {
+        let event = {
+            ...this.$listeners
+        }
+        delete event['test']
+        return event
     }
-    // 或者通过 $props 将父组件的 props 一起传给子组件
-    dataBind = this.$props;
-    eventBind = {
-        test: () => {}
-    }
+}
 </script>
 ```
 
@@ -926,7 +940,7 @@ props: {
             },
             showView (val) {
                 if (this.show != val) {
-                    this.$emit('update:show', val) // 必须触发 update:xxx 才能实现子组件中修改props(双向绑定)
+                    this.$emit('update:show', val) // 必须触发 update:xxx 才能实现子组件中修改props(双向绑定), 必须使用.sync修饰的属性
                 }
                 if (val) {
                     this.childMethod()
@@ -973,7 +987,7 @@ this.$root.eventBus.$off('eventName')
 ### slot插槽
 
 ```html
-<!-- 组件comp.vue -->
+<!-- (定义slot)组件comp.vue -->
 <div>
     <div v-if="$slots.content">
         <!-- name为插槽名称，如果只有一个可省略(即为默认插槽)；v-bind:item="item"将item传递到子组件(此处两个item必须一致) -->
@@ -982,7 +996,7 @@ this.$root.eventBus.$off('eventName')
     <div v-else>默认内容</div>
 </div>
 
-<!-- 组件调用者 -->
+<!-- (使用slot)组件调用者 -->
 <comp>
     <!--插槽实际内容
         1.content为上述插槽名称，如果组件只有一个默认插槽，则此处可将:content换成:default或省略；v2.6开始，具名插槽可缩写为 <template #content="{ item }">
@@ -1102,9 +1116,9 @@ this.$root.eventBus.$off('eventName')
 </script>
 ```
 
-### keep-alive [^5]
+### keep-alive
 
-- 默认被切换掉（非当前显示）的组件，是直接被移除了。假如需要子组件在切换后，依然需要他保留在内存中，避免下次出现的时候重新渲染，可使用`keep-alive`
+- 默认被切换掉（非当前显示）的组件，是直接被移除了。假如需要子组件在切换后，依然需要他保留在内存中，避免下次出现的时候重新渲染，可使用`keep-alive` [^5]
 - 用法
 
     ```html

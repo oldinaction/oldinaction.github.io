@@ -1329,7 +1329,7 @@ docker pull 192.168.17.196:10010/sq-eureka/sq-eureka:0.0.1-SNAPSHOT
 
         sleep 15 # 按照先后顺序进行适当睡眠
         # 此处不能通过 nohup 命令执行。nohup执行完成后会退出命令，此时容器会自动关闭掉
-        java -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/jvmlogs/ -Xmx512m -jar /app/app.jar
+        java -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/jvmlogs/ -XX:+CrashOnOutOfMemoryError -Xmx512m -jar /app/app.jar
         ```
         - 必须在src/main目录，如果在项目源码目录之外则基于Dockerfile的ADD等命令会出错(Dockerfile中ADD命令写相对路径，会出现找不到文件)
         - **sh等文件需要是linux格式，否则容易报类似错误：`: No such file or directory: bash`**

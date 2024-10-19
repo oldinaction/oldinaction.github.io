@@ -84,7 +84,8 @@ usermod -a -G www sq
         - B 是内核主版本号：奇数为开发版，偶数为稳定版
         - C 是内核次版本号
 - 查看内核版本
-    - `uname -a` 查看当前内核版本
+    - `uname -a` 查看当前内核版本、指令集
+        - 如果输出是 x86_64，那么你的系统是 64 位的 x86 架构（通常我们称之为 x64）。如果输出是 armv7l 或者以 arm 开头的其他值，那么你的系统是 ARM 架构
     - `rpm -qa | grep kernel` 查看安装的内核版本（或者查看启动器：`awk -F\' '$1=="menuentry " {print i++ " : " $2}' /etc/grub2.cfg`）
     - `yum remove 3.10.0-1062.1.2.el7.x86_64` 删除内核版本
 - Centos7升级内核
@@ -351,20 +352,23 @@ https://www.bt.cn/new/download.html
 # 默认只能安装在 /www 目录，因此可提前创建好软连接
 mkdir /home/bt
 ln -s /home/bt /www
-# 安装(国外服务器会自动找速度快的节点下载安装)
-yum install -y wget && wget -O install.sh http://download.bt.cn/install/install_6.0.sh && sh install.sh
+# 安装, 建议使用官方最新安装命令(国外服务器会自动找速度快的节点下载安装)
+# 需要使用root账号或sudo权限安装
+yum install -y wget && wget -O install.sh http://download.bt.cn/install/install_6.0.sh && sudo bash install.sh
 # 安装成功后会显示安全的登录入口和账号密码
 # ***可通过执行命令查看登录入口和账号密码***
 sudo /etc/init.d/bt default
 # 可显示bt快捷命令帮助，如关闭SSL
 bt
 
-## 卸载
+## 卸载(支持卸载面板和运行环境)
 wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
 ```
 - 目录说明
     - 软件安装目录 /www/server
         - data 数据目录(mysql)
+        - nginx/conf nginx主配置文件
+        - panel/vhost/nginx 项目的nginx配置目录
     - 备份目录 /www/backup
     - 网站根目录 /www/wwwroot
 - 使用说明
@@ -489,9 +493,9 @@ yum search libaio
 
 # 下载tar并上传到服务器(镜像中可能老版本已经被移除了，需要换成最新版本链接)
 # http://ftp.ntu.edu.tw/MySQL/Downloads/MySQL-8.0/mysql-8.0.25-el7-x86_64.tar.gz
-wget http://ftp.ntu.edu.tw/MySQL/Downloads/MySQL-5.7/mysql-5.7.35-el7-x86_64.tar.gz
-tar -zxvf mysql-5.7.35-el7-x86_64.tar.gz -C /opt
-mv /opt/mysql-5.7.35-el7-x86_64 /opt/mysql57
+wget http://ftp.ntu.edu.tw/MySQL/Downloads/MySQL-5.7/mysql-5.7.38-el7-x86_64.tar.gz
+tar -zxvf mysql-5.7.38-el7-x86_64.tar.gz -C /opt
+mv /opt/mysql-5.7.38-el7-x86_64 /opt/mysql57
 
 # 添加用户组
 groupadd mysql
@@ -617,6 +621,8 @@ quit # 退出使用新密码重新登录
 - 配置文件默认路径 `/etc/my.cnf`(修改配置后需要重启服务)
 
 ```ini
+# !includedir /etc/my.cnf.d # 导入目录配置
+
 [client] # 客户端连接时的默认配置(可省略)
 port=13306
 socket=/var/lib/mysql/mysql.sock
@@ -920,6 +926,9 @@ showmount -e
 ## 在其他机器测试挂载nfs存储卷
 # mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
 # mount -t nfs 192.168.6.10:/data/volumes/v1/subpath /mnt # 挂载子路径，需要提前创建好子路径
+# 挂载windows共享文件夹
+# mount -t cifs -o username=administrator,password=mypass //192.168.1.100/sharedir /sd100 # 临时挂载(需要先创建/sd100目录)
+# //192.168.1.100/sharedir /sd100 cifs username=administrator,password=mypass 0 0 # 加入到 /etc/fstab 并 mount -a 进行永久生效
 
 ## 使客户端永久生效
 # 法一：加入到/etc/fstab

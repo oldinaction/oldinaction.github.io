@@ -741,10 +741,36 @@ curl -X POST 'http://192.168.99.100:5000' -H 'Content-Type: application/json' -d
 - kibana搜索简易指南: https://www.jianshu.com/p/61b53815122b
 
 ```bash
-abc # 精确查找此单词(前后有空格隔开，不能匹配abcd)
-abc* # 通配符：? 匹配单个字符，* 匹配0到多个字符
+# 精确查找此单词(单词前后有空格隔开)
+abc # 只能匹配 "... abc ...", 不能匹配 "abcd"
 ab bc # 会匹配ab或者bc
-"ab bc" # 精确匹配这个字符串，支持转义字符
+
+# 通配符说明: ? 匹配单个字符, * 匹配0到多个字符
+*abc* # 通配符
+abc* # 只能匹配 " abc...", 不能匹配 "...abc..."
+
+# 转义字符. 特殊字符: + - = && || > < ! ( ) { } [ ] ^ " ~ * ? : \ /
+\(1\+1\)\=2 # 用来查询(1+1)=2
+
+# 模糊匹配(可以搜到一些拼写错误的单词)
+first~ # 这种也能匹配到 frist
+
+# 短语匹配
+"ab bc" # 精确匹配这个字符串, 支持转义字符; 只支持匹配 "... ab bc ...", 不支持匹配 "...ab bc..."(双引号不支持通配符, 如"*ab bc*"也无法匹配到此字符串)
+"where select"~5 # 表示 select 和 where 中间可以隔着5个单词(不考虑顺序)
+
+# 逻辑操作(+ - AND OR)与分组(括号)
+·+apache -jakarta test aaa bbb # 结果中必须存在apache, 不能有jakarta, 剩余部分尽量都匹配到
+(jakarta OR apache) AND test # 结果中必须包含test, 并且包含jakarta或apache
+
+# 字段搜索 
+not status:502 # 查找status字段不为502的日志
+host:(baidu OR qq OR google) AND host:(com OR cn) # 字段分组
+
+# 范围搜索
+count:[10 TO *] # count为字段, *表示一端不限制范围
+date:{"now-6h" TO "now"}
+age:(>=10 AND <20)
 ```
 
 ### Management

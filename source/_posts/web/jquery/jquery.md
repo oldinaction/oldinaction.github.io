@@ -49,11 +49,24 @@ $.ajax({
     url: "/api/getWeather",
     timeout: 1000*60,
     // async: false, // 是否异步调用，默认true
+    // 默认数据格式为 application/x-www-form-urlencoded
     data: {
         zipcode: 97201
     },
     success: function( result ) {
         $( "#weather-temp" ).html( "<strong>" + result + "</strong> degrees" );
+    }
+});
+
+// 以 application/json 传递数据
+jQuery.ajax({
+    url: "http://localhost:8080/api/test",
+    type: "post",
+    async: false,
+    contentType: 'application/json',
+    data: JSON.stringify({"pageCurrent":1, "pageSize":100}),
+    success: function(data) {
+        console.log(data);
     }
 });
 ```

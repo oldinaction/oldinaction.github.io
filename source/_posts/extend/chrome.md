@@ -71,6 +71,7 @@ tags: [plugins, debug]
 - `ctrl + shift + i`/`F12` 打开开发者工具
 - 主面板介绍
     - `Elements` html文件显示，Css样式调试
+        - 调试动态元素：找到对应DOM元素，右键点击，选择 `Break on - attributions modification` (此时当属性发生改变会进入到js端点)，或者Break on (subtree modification 或 node removal)
     - `Console` js代码打印面板
     - `Sources` 静态文件(html、css、js、images等)
         -  `{}`/`Pretty Print`可对压缩文件进行格式化

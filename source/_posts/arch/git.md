@@ -14,8 +14,10 @@ tags: [git]
 	- windows：官网下载对应安装包
 	- Centos：`yum -y install git`
 	- Ubuntu：`sudo apt-get install git`
-    - 客户端界面：[SmartGit V21.2.4](https://www.syntevo.com/smartgit/download/archive/) 
-- 镜像
+    - 客户端界面
+        - []()
+        - [SmartGit V21.2.4](https://www.syntevo.com/smartgit/download/archive/) 
+- github镜像
 
 ```bash
 # 单文件下载
@@ -23,7 +25,7 @@ tags: [git]
 # 使用sourcegraph下载地址 https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
 ```
 
-## git入门 [^1]
+## git入门
 
 ### git配置
 
@@ -36,8 +38,8 @@ tags: [git]
 git config --list
 
 ## 设置全局用户名和邮箱
-git config --global user.name smalle
-git config --global user.email admin@qq.com
+git config --global user.name test
+git config --global user.email test@qq.com
 # 为单一仓库设置，下同
 git config user.name "username"
 git config user.email "email"
@@ -86,23 +88,18 @@ git config --global color.ui true
 	merge = refs/heads/develop
 # 提交的用户信息
 [user]
-    name = smalle
-    email = smalle@163.com
+    name = test
+    email = test@163.com
 ```
 - `git config core.ignorecase false` 配置项目大小写敏感
-
-#### Git通过命令行使用多个账户登录GitHub
-
-- 使用~/.ssh/config文件解决
-    - https://zhuanlan.zhihu.com/p/521768041 无需设置ssh-agent
 
 ### repository
 
 - 创建repository(并关联远程仓库)
 	- `cd d:/git/demo/`进入到项目文件夹（可使用`mkdir 文件夹名`在当前目录创建文件夹或者手动创建）
 
-		> - 此时git bash上显示`smalle@ST-008 MINGW64 /d/git/demo`（直接在demo目录`右键-Git Bash Here`也是这个显示）
-		> - 如果直接点击桌面上的git图标进入命令行显示的是`smalle@ST-008 MINGW64 ~`
+		> - 此时git bash上显示`test@ST-008 MINGW64 /d/git/demo`（直接在demo目录`右键-Git Bash Here`也是这个显示）
+		> - 如果直接点击桌面上的git图标进入命令行显示的是`test@ST-008 MINGW64 ~`
 		> - 创建之后，d:/git/demo/目录就是后面提到到 working 区（其实就是本地磁盘）
 
 	- `git init` 初始化项目，提示 Initialized empty Git repository in D:/git/demo/.git/
@@ -184,13 +181,40 @@ git tag -d v1.0.0
 git push origin v1.0.0
 ```
 
-### 添加、提交文件
-
-- 利用`git add <file>` / `git add .`将 working 中此文件或者所有文件添加到 staging 区（**&lt;file&gt;** 为必输的文件名）
-- 利用`git commit -m '提交时的备注'` 将 staging 区中的此文件提交到 history 区（如果不加`-m`则命令行会打开一个vi编辑器供用户填写提交时的备注）
-- 利用`git commit -a` 将 working 中此文件直接提交到文件到history 区（此时一般加上参数`-m`，即`git commit -am '提交时的备注'`）
+### 跟踪/提交/合并
 
 ![git运行流程图](/data/images/2016/04/git流程图.png)
+
+- 跟踪/提交
+
+```bash
+# 将 working 中此文件或者所有文件添加到 staging 区
+# git add <file>
+git add .
+
+# -m 将 staging 区中的此文件提交到 history 区（如果不加`-m`则命令行会打开一个vi编辑器供用户填写提交时的备注）
+# -a 将 working 中此文件直接提交到文件到history 区（此时一般加上参数`-m`，即`git commit -am '提交时的备注'`）
+git commit -am
+```
+- 合并
+
+```bash
+## merge
+# 此时在feature上git自动会产生一个新的commit(merge commit)
+# 将feat合并到develop：先切换到develop - 拉取最新develop - 合并feat到develop - 推送develop到远程
+git checkout feat
+git pull origin develop
+git merge feat # 合并feat到当前分支(develop)
+git push origin develop
+
+## rebase 变基(找公共祖先). 优点去掉了merge commit
+git checkout feat
+git pull origin feat
+git rebase develop # 不要在公共分支(develop)上使用rebase
+# 解决冲突后
+git rebase --continue # 或 git rebase --skip
+git push origin feat --force
+```
 
 ### 丢弃/暂存/撤销/重置
 
@@ -333,140 +357,7 @@ git fetch upstream
 - 注意事项
 	- git不监控文件权限属性变化
 
-### 其他
-
-#### 查看日志和帮助
-
-- `git help` 查看帮助。`[]`为可选，`<>`为必输
-
-- `git log`查看提交日志，`Ctrl+Z` 退出查看
-    - `git log -1` 查看最近一条提交
-	- `git log --oneline` 可以显示更加短小的提交ID
-	- `git log --graph` 显示何时出现了分支和合并等信息
-	- `git log --pretty=raw` 显示所有提交对象的parent属性
-	- `git reflog` 查看每个提交版本信息(排在上面的为最新版本)
-
-- `git cat-file -p 哈希码(或简写)或者对象名` 展示此对象的详细信息
-- `git cat-file -t 哈希码(或简写)` 查看Git对象的类型，主要的git对象包括tree，commit，parent，和blob等
-	- 如：`git cat-file -t HEAD`的结果是commit表示此HEAD指向一个commit 对象
-
-- `cat .git/HEAD` 查看HEAD指向(当前分支)。如打印 `.git/refs/heads/master`
-- `cat .git/refs/heads/master` 查看HEAD的哈希码(简写取前7位)
-- `git rev-parse HEAD` 获取 HEAD 对象的哈希码
-
-#### 暂存工作区
-
-```bash
-# 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）
-git stash
-git stash save '本次暂存的标识名字'
-# 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容
-# pop恢复后，暂存区域会删除当前暂存记录；apply恢复后不会删除暂存区记录
-git stash pop
-git stash pop stash@{index} # index为暂存的索引(可通过git stash list查看索引)，需要保留{}
-git stash apply stash@{index}
-# 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
-git stash list
-# 清空Git暂存栈
-git stash clear
-```
-
-#### commit对象
-
-- commit 对象中 parent 属性指向前一个 commit，tree 属性指向一个 tree 对象（此 tree 对象可以指向文件或者文件夹）
-- HEAD 指向 master（只有一个分支的情况下），master 指向最新的 commit；HEAD~（或master~）表示前一个 commit；HEAD~2（或master~2）表示上上一个 commit，以此类推；- HEAD~2^ 表示 HEAD~2 的父提交（此时和HEAD~3是同一个对象）
-- HEAD 的哈希码存放在 `.git/refs/heads/xxx` 文件中(当前处于xxx分支)
-
-#### 解决冲突
-
-- 如下，`<<<<<<< HEAD` 和 `=======` 中间的是自己的代码，`=======` 和 `>>>>>>>` 中间的是其他人修改的代码
-
-```bash
-$ cat .eslintignore
-build/*.js
-<<<<<<< HEAD
-config/*.js
-src
-=======
-src/assets
-public
-dist
->>>>>>> develop/test
-```
-- 查看
-
-```bash
-# 查看操作状态
-git status
-# 解决某文件的冲突：修改文件
-vi .eslintignore
-# 暂存并提交
-git add .eslintignore
-git commit -m "conflict fixed"
-# 查看合并后分支情况
-git log --graph --pretty=oneline --abbrev-commit
-# 删除已合并分支
-git branch -d develop/test
-```
-
-#### git凭证存储
-
-- [官网凭证存储说明](https://git-scm.com/book/zh/v2/ch00/r_credential_caching)
-- `git config --list`中`credential.helper`即为凭证存储模式
-- `git config --global credential.helper store` 设置凭证存储为store模式
-- 凭证存储模式
-	- manage 使用windows凭证管理(控制面板 - 用户管理 - 凭证管理，Git-2.15.1.2-64-bit默认)
-	- cache 凭证保存在内存中，默认15分钟有效，过期运行git命令则需要重新登录
-	- store 以明文形式保存在home目录磁盘。/home/xxx/.gitconfig(清除或修改)
-	- osxkeychain mac系统专属，加密后存放在磁盘
-- 常见问题`remote: Repository not found`，重新安装`credential-manager`
-	- `git credential-manager uninstall`
-	- `git credential-manager install`
-
-#### git免密码登录
-
-- 法一：使用manage保存凭证(不适合同一台机器上使用多个git账号，就windows而言，这个凭据放在windows的凭据管理器中)
-	- `git config credential.helper manager`
-- 法二：使用SSH方式
-	- `ssh-keygen -C 'smalle-pc'` git客户端执行生成秘钥，会在用户家目录下的.ssh文件夹中生成2个名为id_rsa和id_rsa.pub的文件
-	- 以github为例：Github - Setting - SSH and GPG keys - New SSH key - Name可随便标识，把id_rsa.pub公钥文件内容保存在Key中 **(客户端一定要将私钥文件id_rsa保存到.ssh目录，普通的ssh登录客户端貌似无需私钥文件？)**
-	- `git config --global  user.name "git服务器用户名"`
-	- `git config --global user.email "邮箱"`
-	- `git remote set-url origin git@github.com:USERNAME/REPOSITORY.git`
-	- `ssh -T git@github.com` 测试是否可以正常登录，`ssh -vT git@github.com` 显示登录信息
-		- 常见问题：`Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password)`，参考文章：https://blog.51cto.com/11975865/2308044，https://www.cnblogs.com/sloong/p/6132892.html。实际操作gitlab遇到的是另外一个问题，具体如下
-		
-		```bash
-		# 1.一直提示以下内容
-		debug1: Next authentication method: gssapi-with-mic # 表示使用gssapi-with-mic进行验证
-		debug1: Unspecified GSS failure.  Minor code may provide more information
-		No Kerberos credentials available (default cache: KEYRING:persistent:0)
-
-		debug1: Unspecified GSS failure.  Minor code may provide more information
-		No Kerberos credentials available (default cache: KEYRING:persistent:0)
-
-		debug1: Next authentication method: publickey # 使用publickey进行验证
-		debug1: Offering RSA public key: /root/.ssh/id_rsa
-		debug1: Server accepts key: pkalg ssh-rsa blen 279
-		debug1: Trying private key: /root/.ssh/id_dsa
-		debug1: Trying private key: /root/.ssh/id_ecdsa
-		debug1: Trying private key: /root/.ssh/id_ed25519
-		debug1: No more authentication methods to try.
-		Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
-
-		# 2.git客户端登录的是root用户，原本只存在文件/root/.ssh/id_rsa.pub，发现上面使用的是id_rsa，则仅仅将id_rsa.pub改成id_rsa文件(仍然是公钥文件)
-		Enter passphrase for key # 要求输入密码，但是生成秘钥对的时候并没有密码
-
-		# 3.直接使用原始生成的id_rsa秘钥文件，则将之前生成的秘钥文件也加入到此目录
-		Permissions 0644 for '/root/.ssh/id_rsa' are too open.
-		It is required that your private key files are NOT accessible by others.
-
-		# 4.提示上面文件开放权限太大，在git客户端设置`chmod 600 /root/.ssh/id_rsa`，可正常使用
-		```
-- 通过ssh获取代码时，在命令行可以正常获取，在idea界面中无法拉取代码(idea的命令行可以)
-    - 设置idea中Git配置项的SSH executable=Native
-
-#### gitignore
+### gitignore
 
 - `.gitignore` 文件创建和设置
 	- git根目录运行命令：`touch .gitignore`
@@ -530,11 +421,146 @@ config.php:     #表示忽略当前路径的 config.php 文件
 - 删除.DS_Store文件，然后加入忽略
     `sudo find /project/demo -name ".DS_Store" -depth -exec rm {} \;`
 
-#### 处理Linux/Unix/MacOS文件格式的EOL
+### 其他
+
+#### 查看日志和帮助
+
+- `git help` 查看帮助。`[]`为可选，`<>`为必输
+
+- `git log`查看提交日志，`Ctrl+Z` 退出查看
+    - `git log -1` 查看最近一条提交
+	- `git log --oneline` 可以显示更加短小的提交ID
+	- `git log --graph` 显示何时出现了分支和合并等信息
+	- `git log --pretty=raw` 显示所有提交对象的parent属性
+	- `git reflog` 查看每个提交版本信息(排在上面的为最新版本)
+
+- `git cat-file -p 哈希码(或简写)或者对象名` 展示此对象的详细信息
+- `git cat-file -t 哈希码(或简写)` 查看Git对象的类型，主要的git对象包括tree，commit，parent，和blob等
+	- 如：`git cat-file -t HEAD`的结果是commit表示此HEAD指向一个commit 对象
+
+- `cat .git/HEAD` 查看HEAD指向(当前分支)。如打印 `.git/refs/heads/master`
+- `cat .git/refs/heads/master` 查看HEAD的哈希码(简写取前7位)
+- `git rev-parse HEAD` 获取 HEAD 对象的哈希码
+
+#### commit对象
+
+- commit 对象中 parent 属性指向前一个 commit，tree 属性指向一个 tree 对象（此 tree 对象可以指向文件或者文件夹）
+- HEAD 指向 master（只有一个分支的情况下），master 指向最新的 commit；HEAD~（或master~）表示前一个 commit；HEAD~2（或master~2）表示上上一个 commit，以此类推；- HEAD~2^ 表示 HEAD~2 的父提交（此时和HEAD~3是同一个对象）
+- HEAD 的哈希码存放在 `.git/refs/heads/xxx` 文件中(当前处于xxx分支)
+
+#### git凭证存储
+
+- [官网凭证存储说明](https://git-scm.com/book/zh/v2/ch00/r_credential_caching)
+- `git config --list`中`credential.helper`即为凭证存储模式
+- `git config --global credential.helper store` 设置凭证存储为store模式
+- 凭证存储模式
+	- manage 使用windows凭证管理(控制面板 - 用户管理 - 凭证管理，Git-2.15.1.2-64-bit默认)
+	- cache 凭证保存在内存中，默认15分钟有效，过期运行git命令则需要重新登录
+	- store 以明文形式保存在home目录磁盘。/home/xxx/.gitconfig(清除或修改)
+	- osxkeychain mac系统专属，加密后存放在磁盘
+- 常见问题`remote: Repository not found`，重新安装`credential-manager`
+	- `git credential-manager uninstall`
+	- `git credential-manager install`
+
+#### git免密码登录
+
+- 法一：使用manage保存凭证(不适合同一台机器上使用多个git账号，就windows而言，这个凭据放在windows的凭据管理器中)
+	- `git config credential.helper manager`
+- 法二：使用SSH方式
+	- `ssh-keygen -C 'test-pc'` git客户端执行生成秘钥，会在用户家目录下的.ssh文件夹中生成2个名为id_rsa和id_rsa.pub的文件
+	- 以github为例：Github - Setting - SSH and GPG keys - New SSH key - Name可随便标识，把id_rsa.pub公钥文件内容保存在Key中 **(客户端一定要将私钥文件id_rsa保存到.ssh目录，普通的ssh登录客户端貌似无需私钥文件？)**
+	- `git config --global  user.name "git服务器用户名"`
+	- `git config --global user.email "邮箱"`
+	- `git remote set-url origin git@github.com:USERNAME/REPOSITORY.git`
+	- `ssh -T git@github.com` 测试是否可以正常登录，`ssh -vT git@github.com` 显示登录信息
+		- 常见问题：`Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password)`，参考文章：https://blog.51cto.com/11975865/2308044，https://www.cnblogs.com/sloong/p/6132892.html。实际操作gitlab遇到的是另外一个问题，具体如下
+		
+		```bash
+		# 1.一直提示以下内容
+		debug1: Next authentication method: gssapi-with-mic # 表示使用gssapi-with-mic进行验证
+		debug1: Unspecified GSS failure.  Minor code may provide more information
+		No Kerberos credentials available (default cache: KEYRING:persistent:0)
+
+		debug1: Unspecified GSS failure.  Minor code may provide more information
+		No Kerberos credentials available (default cache: KEYRING:persistent:0)
+
+		debug1: Next authentication method: publickey # 使用publickey进行验证
+		debug1: Offering RSA public key: /root/.ssh/id_rsa
+		debug1: Server accepts key: pkalg ssh-rsa blen 279
+		debug1: Trying private key: /root/.ssh/id_dsa
+		debug1: Trying private key: /root/.ssh/id_ecdsa
+		debug1: Trying private key: /root/.ssh/id_ed25519
+		debug1: No more authentication methods to try.
+		Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+
+		# 2.git客户端登录的是root用户，原本只存在文件/root/.ssh/id_rsa.pub，发现上面使用的是id_rsa，则仅仅将id_rsa.pub改成id_rsa文件(仍然是公钥文件)
+		Enter passphrase for key # 要求输入密码，但是生成秘钥对的时候并没有密码
+
+		# 3.直接使用原始生成的id_rsa秘钥文件，则将之前生成的秘钥文件也加入到此目录
+		Permissions 0644 for '/root/.ssh/id_rsa' are too open.
+		It is required that your private key files are NOT accessible by others.
+
+		# 4.提示上面文件开放权限太大，在git客户端设置`chmod 600 /root/.ssh/id_rsa`，可正常使用
+		```
+- 通过ssh获取代码时，在命令行可以正常获取，在idea界面中无法拉取代码(idea的命令行可以)
+    - 设置idea中Git配置项的SSH executable=Native
+
+## 常见业务场景
+
+### 解决冲突
+
+- 如下，`<<<<<<< HEAD` 和 `=======` 中间的是自己的代码，`=======` 和 `>>>>>>>` 中间的是其他人修改的代码
+
+```bash
+$ cat .eslintignore
+build/*.js
+<<<<<<< HEAD
+config/*.js
+src
+=======
+src/assets
+public
+dist
+>>>>>>> develop/test
+```
+- 查看
+
+```bash
+# 查看操作状态
+git status
+# 解决某文件的冲突：修改文件
+vi .eslintignore
+# 暂存并提交
+git add .eslintignore
+git commit -m "conflict fixed"
+# 查看合并后分支情况
+git log --graph --pretty=oneline --abbrev-commit
+# 删除已合并分支
+git branch -d develop/test
+```
+
+### 暂存工作区
+
+```bash
+# 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）
+git stash
+git stash save '本次暂存的标识名字'
+# 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容
+# pop恢复后，暂存区域会删除当前暂存记录；apply恢复后不会删除暂存区记录
+git stash pop
+git stash pop stash@{index} # index为暂存的索引(可通过git stash list查看索引)，需要保留{}
+git stash apply stash@{index}
+# 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
+git stash list
+# 清空Git暂存栈
+git stash clear
+```
+
+### 处理Linux/Unix/MacOS文件格式的EOL
 
 https://help.github.com/en/articles/configuring-git-to-handle-line-endings
 
-#### 大文件删除及管理
+### 大文件删除及管理
 
 - 参考：https://blog.csdn.net/dddd6666qq/article/details/107404658
 - 查看大文件
@@ -561,14 +587,14 @@ git rev-list --objects --all \
 
 ```bash
 ## bfg清理
-# 下载bfg.jar到`/Users/smalle/software/git-bfg`
+# 下载bfg.jar到`/Users/test/software/git-bfg`
 # bfg默认会保护当前版本(HEAD所指的版本)不去清理
 # 删除超过1M的文件. demo为仓库根目录，执行完后会生成一个日志文件夹
-java -jar /Users/smalle/software/git-bfg/bfg.jar --strip-blobs-bigger-than 1M demo
+java -jar /Users/test/software/git-bfg/bfg.jar --strip-blobs-bigger-than 1M demo
 # 删除文件
-java -jar /Users/smalle/software/git-bfg/bfg.jar --delete-files test.txt demo
+java -jar /Users/test/software/git-bfg/bfg.jar --delete-files test.txt demo
 # 删除指定目录
-java -jar /Users/smalle/software/git-bfg/bfg.jar --delete-folders testdir demo
+java -jar /Users/test/software/git-bfg/bfg.jar --delete-folders testdir demo
 
 ## git gc 
 # 在完成上面的指令后，实际上这些数据/文件并没有被直接删除，这时候需要使用git gc指令来清除
@@ -577,6 +603,47 @@ git reflog expire --expire=now --all && git gc --prune=now --aggressive
 ## 推送。gitee的话还需去后台点下git gc按钮
 git push
 ``` 
+
+### 批量修改已提交记录的用户名和邮箱
+
+- 建议先备份仓库, 且对应分支没有被保护
+- 步骤如下
+
+```bash
+git config user.name "new name"
+git config user.email "new email"
+
+# 修改下面的old email为需要修改的旧邮箱地址, 及new name和new email信息
+git filter-branch --env-filter '
+OLD_EMAIL="old email"
+CORRECT_NAME="new name"
+CORRECT_EMAIL="new email"
+if [ "$GIT_COMMITTER_EMAIL" = "$OLD_EMAIL" ]
+then
+    export GIT_COMMITTER_NAME="$CORRECT_NAME"
+    export GIT_COMMITTER_EMAIL="$CORRECT_EMAIL"
+fi
+if [ "$GIT_AUTHOR_EMAIL" = "$OLD_EMAIL" ]
+then
+    export GIT_AUTHOR_NAME="$CORRECT_NAME"
+    export GIT_AUTHOR_EMAIL="$CORRECT_EMAIL"
+fi
+' --tag-name-filter cat -- --branches --tags
+
+# 强制推送到远程仓库(修改完成后, 可通过git log命令确认本地是否修改成功)
+git push -f
+# 执行完后建议按照下面提前清理备份
+# 如果有其他分支基于了该提交，则需要把对应分支删掉才会完全删除
+
+# 如果之前执行过, 可能会报错: A previous backup already exists in refs/original/
+# 解决: 此处是基于master分支进行备份修改, 那么删掉对应的master备份即可
+git update-ref -d refs/original/refs/heads/master
+```
+
+### Git通过命令行使用多个账户登录GitHub
+
+- 使用~/.ssh/config文件解决
+    - https://zhuanlan.zhihu.com/p/521768041 无需设置ssh-agent
 
 ## gitflow工作流
 
@@ -587,29 +654,28 @@ git push
 ## git提交规范
 
 ```bash
-1. 提交格式
+## 提交格式
+# optional scope：一个可选的修改范围。用于标识此次提交主要涉及到代码中哪个模块。
+# description：一句话描述此次提交的主要内容，做到言简意赅。
 git commit -m <type>[optional scope]: <description>
 
-2. 常用的type类别
-type ：用于表明我们这次提交的改动类型，是新增了功能？还是修改了测试代码？又或者是更新了文档？总结以下 11 种类型：
-• build：主要目的是修改项目构建系统(例如 glup，webpack，rollup 的配置等)的提交
-• ci：主要目的是修改项目继续集成流程(例如 Travis，Jenkins，GitLab CI，Circle等)的提交
-• docs：文档更新
-• feat：新增功能
-• fix：bug 修复
-• perf：性能优化
-• refactor：重构代码(既没有新增功能，也没有修复 bug)
-• style：不影响程序逻辑的代码修改(修改空白字符，补全缺失的分号等)
-• test：新增测试用例或是更新现有测试
-• revert：回滚某个更早之前的提交
-• chore：不属于以上类型的其他类型(日常事务)
-• cve：CVE漏洞修复
-optional scope：一个可选的修改范围。用于标识此次提交主要涉及到代码中哪个模块。
-description：一句话描述此次提交的主要内容，做到言简意赅。
+## 常用的type类别. type用于表明我们这次提交的改动类型，是新增了功能？还是修改了测试代码？又或者是更新了文档？总结以下 11 种类型：
+• feat: 新增功能
+• fix: bug 修复
+• docs: 文档更新
+• refactor: 重构代码(既没有新增功能，也没有修复 bug)
+• style: 不影响程序逻辑的代码修改(修改空白字符，补全缺失的分号等)
+• test: 新增测试用例或是更新现有测试
+• revert: 回滚某个更早之前的提交
+• chore: 不属于以上类型的其他类型(日常事务)
+• perf: 性能优化
+• build: 主要目的是修改项目构建系统(例如 glup，webpack，rollup 的配置等)的提交
+• ci: 主要目的是修改项目继续集成流程(例如 Travis，Jenkins，GitLab CI，Circle等)的提交
+• cve: CVE漏洞修复
 
-例如：
+# 例如
 git commit -m 'feat: 增加 xxx 功能'
-git commit -m 'bug: 修复 xxx 功能'
+git commit -m 'fix: 修复 xxx 功能'
 ```
 
 ## Github使用

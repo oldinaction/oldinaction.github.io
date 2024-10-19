@@ -641,7 +641,7 @@ lerna exec -- <command> [..args]
         - `babel-runtime` 可以按照需求引入。缺点：覆盖不全。一般在写库的时候使用。建议不要直接使用babel-runtime，因为transform-runtime依赖babel-runtime，大部分情况下都可以用`transform-runtime`预设来达成目的
 - [core-js](https://github.com/zloirock/core-js) 是 babel-polyfill、babel-runtime 的核心包，他们都只是对 core-js 和 regenerator 进行的封装。core-js 通过各种奇技淫巧，用 ES3 实现了大部分的 ES2017 原生标准库，同时还要严格遵循规范。支持IE6+
     - core-js 组织结构非常清晰，高度的模块化。比如 `core-js/es6` 里包含了 es6 里所有的特性。而如果只想实现 promise 可以单独引入 `core-js/features/promise`
-- babel配置文件可为 `.babelrc` 或 `babel.config.js`(v7.8.0)。已`babel.config.js`为例
+- babel配置文件可为 `.babelrc` 或 `babel.config.js`(v7.8.0)。以`babel.config.js`为例
 
     ```js
     module.exports = {
@@ -795,6 +795,14 @@ module.exports = {
 
 ```bash
 # 不进行校验的的文件或文件夹
+/build/
+/config/
+/dist/
+/*.js
+/test/unit/coverage/
+/node_modules/*
+/dist*
+
 src/components
 ```
 - 代码中不进行校验
@@ -814,34 +822,41 @@ src/components
     - .editorconfig 更偏向于简单代码风格，如缩进等
         - .prettierrc 更偏向于代码美化
     - 二者并不冲突，同时配合使用可以使代码风格更加优雅
-- Prettier插件
+- **Prettier插件**
     - 文件需要配合插件使用，如vscode的[Prettier插件](https://prettier.io/)(推荐)
-    - 相应的配置文件
-        - `.prettierrc` 项目根目录配置文件，常用配置参考下文
-        - `prettier.config.js`
+    - 相应的配置文件(选一个即可)
+        - `.prettierrc`
+        - `prettier.config.js` 项目根目录配置文件，常用配置参考下文
         - `package.json`中的`prettier`属性
     - 可增加脚本进行批量格式化代码 `"prettier": "prettier --write '**/*.{js,css,scss,less,ts,vue,html}'"` (安装 eslint-plugin-prettier 和 eslint-config-prettier 模块)
 - `.jsbeautifyrc` 代码格式化
     - 文件需要配合插件使用，如vscode的`Beautify`插件
-- **`.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件**
+- `.editorconfig`文件需要配合插件使用，如vscode的`Editorconfig`插件
     - 该插件的作用是告诉开发工具自动去读取项目根目录下的 .editorconfig 配置文件，如果没有安装这个插件，光有一个配置文件是无法生效的
-    - **此插件配置的格式优先于vscode配置的，如缩进**，常用配置参考下文
-- .prettierrc 常用配置
+    - 此插件配置的格式优先于vscode配置的，如缩进；常用配置参考下文
+- prettier.config.js 常用配置
 
 ```js
-{
-  /* 使用单引号包含字符串 */
-  "singleQuote": true,
-  /* 不添加行尾分号 */
-  "semi": false,
-  /* 在对象属性添加空格 */
-  "bracketSpacing": true,
-  /* 优化html闭合标签不换行的问题. ignore: 存在span等标签格式化后出现换行空格. 参考: https://juejin.cn/post/6844904194059534350 */
-  "htmlWhitespaceSensitivity": "strict",
-  /* 每行最大长度默认80(适配1366屏幕，1920可设置成140) */
-  "printWidth": 140,
-  /* 会忽略vetur的tabSize配置而使用此配置 */
-  "tabWidth": 2
+module.exports = {
+  printWidth: 140, // 每行代码长度（默认80, 适配1366屏幕; 1920可设置成140)
+  tabWidth: 2, // 每个tab相当于多少个空格（默认2）ab进行缩进（默认false）
+  useTabs: false, // 是否使用tab
+  semi: false, // 声明结尾是否使用分号(默认true)
+  vueIndentScriptAndStyle: false,
+  singleQuote: true, // 使用单引号（默认false）
+  quoteProps: 'as-needed',
+  bracketSpacing: true, // 对象字面量的大括号间使用空格（默认true）
+  trailingComma: 'none', // 多行使用拖尾逗号（默认none）
+  jsxSingleQuote: false,
+  // 箭头函数参数括号 默认avoid 可选: avoid(能省略括号的时候就省略 例如x => x) | always(总是有括号)
+  arrowParens: 'always',
+  insertPragma: false,
+  requirePragma: false,
+  proseWrap: 'never',
+  // 优化html闭合标签不换行的问题. ignore: 存在span等标签格式化后出现换行空格. 参考: https://juejin.cn/post/6844904194059534350
+  htmlWhitespaceSensitivity: 'strict',
+  endOfLine: 'auto',
+  rangeStart: 0
 }
 ```
 - `.editorconfig` 放在vue项目根目录

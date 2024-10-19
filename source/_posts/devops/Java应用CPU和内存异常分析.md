@@ -63,7 +63,8 @@ jmap -F -dump:live,format=b,file=/home/dump.hprof <pid>
 
 ## 5.项目启动添加jvm参数获取(不能实时获取)
 -XX:+HeapDumpOnOutOfMemoryError # 出现 OOME 时生成堆 dump
--XX:HeapDumpPath=/home/jvmlogs # 生成堆文件的文件夹（需要先手动创建此文件夹）
+-XX:HeapDumpPath=/home/jvmlogs # 生成堆文件的文件夹(需要先手动创建此文件夹)
+-XX:+CrashOnOutOfMemoryError # 出现 OOME 时让虚拟机进程终止
 ```
 
 #### java检测相关命令工具
@@ -208,12 +209,18 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 - 查看数据库sql运行占用CPU时间较长的会话信息，并kill此会话
 
     ```sql
-    -- 获取每次消耗cpu > 3s的sql; cpu_time为微秒; executions执行次数，peer_secondes_cpu_time每次耗时(s)
-    select sid, serial#, sql_text, to_char(sql_fulltext) sql_fulltext, executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time
-        ,round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
+    -- 获取每次消耗cpu > 3s的sql; cpu_time为微秒; executions执行次数，peer_secondes_cpu_time每次耗时(s); client_identifier为客户端id(java可全局动态更新成当前用户)
+    select sid, serial#, 'alter system kill session '''|| sid ||', '|| serial# ||''';' kill_sql, client_identifier
+        ,v$sql.sql_id sql_id, sql_text, to_char(sql_fulltext) sql_fulltext
+        ,to_char(xmlagg(xmlparse(content (name || '=' || value_string || '(' || position || ',' || datatype_string || ')') || ' # ' wellformed) order by position).getclobval()) sql_params
+        ,executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time
+		,round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
     from v$sql
     join v$session on v$sql.sql_id = v$session.sql_id
+    left join v$sql_bind_capture on v$sql.sql_id = v$sql_bind_capture.sql_id
     where executions > 0 and cpu_time/executions/1000000 > 3 /* 每次执行消耗cpu>3s的 */
+    group by sid, serial#, client_identifier, v$sql.sql_id, sql_text, to_char(sql_fulltext)
+        ,executions, cpu_time, elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
     order by peer_secondes_cpu_time desc;
 
     -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
@@ -392,7 +399,7 @@ kill <pid>
 
 - 参考[jvm.md#调优实践](/_posts/java/jvm.md#调优实践)
 
-## JVM致命错误日志(hs_err_xxx-pid.log)
+## JVM致命错误日志
 
 - 当JVM发生致命错误导致崩溃时，会生成一个hs_err_pid_xxx.log这样的文件，该文件包含了导致 JVM crash 的重要信息
 - 该文件默认生成在工作目录下的，可通过JVM参数指定`-XX:ErrorFile=/var/log/hs_err_pid<pid>.log`

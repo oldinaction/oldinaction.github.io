@@ -14,6 +14,13 @@ tags: [H5, App, 小程序, mobile]
 
 - [申请小程序测试号](https://mp.weixin.qq.com/wxamp/sandbox) 测试账号只能本地开发，不能发布到演示版
 - [小程序类目及相关资质](https://developers.weixin.qq.com/miniprogram/product/material/)
+    - [商家自营](https://developers.weixin.qq.com/miniprogram/product/material/#%E5%95%86%E5%AE%B6%E8%87%AA%E8%90%A5)
+    - [电商平台](https://developers.weixin.qq.com/miniprogram/product/material/#%E7%94%B5%E5%95%86%E5%B9%B3%E5%8F%B0)
+    - [餐饮服务](https://developers.weixin.qq.com/miniprogram/product/material/#%E9%A4%90%E9%A5%AE%E6%9C%8D%E5%8A%A1)
+    - [深度合成](https://developers.weixin.qq.com/miniprogram/product/material/#%E6%B7%B1%E5%BA%A6%E5%90%88%E6%88%90)
+        - AI问答: 可到微信服务市场 - 接口和插件 - 购买深度合成相关API从而进行类目绑定(使用深度合成服务)
+        - AI绘画: 同理
+        - 小程序深度合成服务在用证明获取指引: https://developers.weixin.qq.com/community/minihome/article/doc/0000ec3fbdc988931cd0d46d66b413
 
 ### 小程序限制
 
@@ -52,6 +59,11 @@ tags: [H5, App, 小程序, mobile]
     - [腾讯视频插件](https://developers.weixin.qq.com/community/develop/doc/000ece3c044210190ef61a4a954c09) 必须将视频上传到腾讯，且有广告(可付费去除)，此插件需要审核貌似很难审核通过
     - 其他收费类视频插件(可不上传视频)
 
+#### 个人小程序限制
+
+- 不支持web-view(企业)
+- 无法获取用户手机号(企业认证)
+
 #### 其他
 
 - 调试体验版或者正式版：体验版调试直接打开小程序调试模式；正式版调试需要先打开体验版调试模式，再访问正式版
@@ -64,18 +76,45 @@ tags: [H5, App, 小程序, mobile]
 - [web-view限制参考下文](#web-view开发)
 - 开发版真机调试需手机wifi和API地址处于同一网络
 
+### 审核与运营相关问题
+
+- 运营规范：https://developers.weixin.qq.com/miniprogram/product/
+    - 类目不符问题、多级分销经营行为、虚拟支付行为、用户产生内容规范
+    - 交易类小程序运营规范：实物电商类小程序运营规范
+        - 提供实物商品的在线销售及配送(含同城配送，应该也含用户自提)相关服务的小程序，均需接入平台[订单发货管理功能](https://developers.weixin.qq.com/miniprogram/product/jiaoyilei/fahuoguanligongneng.html)，从而
+- 小程序审核时可以自动扫描到pages.json里面所有的页面
+- 支付宝小程序
+    - 不允许出现授权死循环，即用户拒绝授权时应该允许手动退出授权页面(登录页面)或返回到首页继续使用其他功能。可在用户取消授权后提示用户是否需要返回首页
+
 ### web-view开发
 
+- [web-view](https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html)组件(类似iframe，小程序本身是不能使用iframe标签的)
+
+#### web-view限制
+
 - 限制
-    - **个人类型的小程序暂不支持设置业务域名**
-    - **打开的域名需要在小程序管理后台设置业务域名**
-    - 打开的页面 302(临时重定向) 过去的地址也必须设置过业务域名，web-view嵌入的页面可以包含 iframe，但是 iframe 的地址必须为业务域名，且都需要是https
-    - 如果是跳转的公众号文章地址，则此公众号和小程序必须绑定过的(不需要同一主体)
-    - 如果是未绑定的公众号文章，这种情况需要跳转可考虑通过绑定的域名进行nginx转发
-- **web-view**组件(类似iframe，小程序本身是不能使用iframe标签的)，如出现"此网页由xxx提供"均为web-view
-    - web-view 不支持推送服务通知(即模板消息)
-        - 类似下单等页面需要发送通知则需改写成小程序页面
-    - 小程序内嵌 web-view 跟微信内置浏览器是一套环境，即h5中引入JS-SDK即可使用wx对象，且测试发现Storage等仍然不共享
+    - 域名限制
+        - **个人类型的小程序暂不支持设置业务域名(即无法使用web-view)**
+        - **打开的域名需要在小程序管理后台设置业务域名**
+        - 打开的页面 302(临时重定向) 过去的地址也必须设置过业务域名，web-view嵌入的页面可以包含 iframe，但是 iframe 的地址必须为业务域名，且都需要是https
+        - 如果是跳转的公众号文章地址，则此公众号和小程序必须绑定过的(不需要同一主体)；如果是未绑定的公众号文章，这种情况需要跳转可考虑通过绑定的域名进行nginx转发？
+    - **web-view 中支持图像、音频、位置等JSSDK接口，但是不支持JSSDK的公众号支付接口**（相当于web-view中支付只能返回到小程序页面进行支付）
+    - web-view 不支持推送服务通知(即小程序模板消息)，类似下单等页面需要发送通知则需改写成小程序页面
+    - 小程序内嵌 web-view 跟微信内置浏览器是一套环境，即h5中引入JS-SDK即可使用wx对象，且Storage等也不共享
+    - 规范：开发者通过微信小程序内嵌网页所提供的服务，必须与微信小程序填写的类目和标签一致
+- 样式
+    - web-view页面，用户下拉会出现"此网页由xxx提供"(如此说明均为web-view)；可通过css控制减少出现的情况
+    - **会自动铺满整个小程序页面**(去除顶部导航栏，导航栏标题会自动变化；底部Tabbar也会覆盖)，**可通过redirectTo到web-view页从而实现操作闭环**（此时小程序导航栏会显示返回主页按钮）
+    - navigationStyle: custom 对 web-view 组件无效 (客户端 6.7.2 版本开始)
+- 当前小程序跳转第三方小程序，微信会做非生物识别
+    - 小程序起始页(非web-view页)，点击按钮进入第三方小程序，会自动(提示框自动跳出来)提示"即将跳转至xxx小程序"需要用户确定(所有按钮点击的小程序跳转均有此确认)
+        - 小程序起始页先点击按钮进入web-view(H5)页面，然后在web-view页面通过API直接跳转至第三方小程序，也会自动提示用户进行确认
+    - 此时可让H5点击跳转一个中间页，在中间页上显示按钮，让用户手动点击跳转，点击后才会跳出提示确认框
+        - 小程序起始页，直接嵌入整个H5页面，此时点击H5页面的按钮无法成功跳转第三方小程序？(也不会自动提示确认)
+    - 对于在界面识别二维码跳转到第三方，因为识别二维码图片后，会从底部弹出一个确认框(对图片执行保存操作，还是跳转此二维码对应的小程序)，此时用户点击确认框后不会再出现"即将跳转至xxx小程序"的确认框
+
+#### web-view使用
+
 - 小程序和web-view通信
     - 参考：
         - https://uniapp.dcloud.net.cn/component/web-view.html#postmessage
@@ -118,7 +157,7 @@ tags: [H5, App, 小程序, mobile]
         <script>
             // 注意:
             // 1.调试H5需要打开小程序编辑器，进入H5页面后右键，编辑器上方会出现一个调试按钮，点击后进入小程序(H5页面会再次刷新)
-            // 2.向小程序传递参数后，小程序端不会立即收到消息，需要在点击返回(到小程序页面)、分享、重定向(原页面被销毁)等情况才会真正发送给小程序；当点击返回小程序原页面，或通过navigateTo跳转到小程序原始页面(可经过多次点击跳转亦可)，或redirectTo跳转到小程序页面(原页面销毁)也会受到消息
+            // 2.***向小程序传递参数后，小程序端不会立即收到消息，需要在点击返回(到小程序页面)、分享、重定向(原页面被销毁)等情况才会真正发送给小程序***；当点击返回小程序原页面，或通过navigateTo跳转到小程序原始页面(可经过多次点击跳转亦可)，或redirectTo跳转到小程序页面(原页面销毁)也会收到消息
             // uniWebview.postMessag(uniWebview为上文修改过的uni.webview.js)最终是通过调用jweixin#miniProgram.postMessage，最终jweixin库通过调用WeixinJSBridge(由容器提供，如小程序编辑器或微信客户端)实现通信
 
             // 向小程序传递参数(uniWebview为上文修改过的uni.webview.js)
@@ -137,16 +176,6 @@ tags: [H5, App, 小程序, mobile]
             uniWebview.redirectTo(...)
         </script>
         ```
-
-#### web-view限制
-
-- 小程序下方导航可使用h5导航(相当于全部嵌入H5)
-- 小程序跳转第三方小程序，微信会做非生物识别
-    - 小程序起始页，点击按钮进入第三方小程序，会自动(提示框自动跳出来)提示"即将跳转至xxx小程序"需要用户确定(所有按钮点击的小程序跳转均有此确认)
-    - 小程序起始页中的按钮点击后进入整个H5页面，在H5页面的跳转至第三方小程序，也会自动提示确认
-    - 小程序起始页，直接嵌入整个H5页面，此时点击H5页面的跳转至第三方小程序，不会自动提示确认(无法跳转？)
-        - 此时可让H5点击跳转一个中间页，在中间页上显示按钮，让用户手动点击跳转，点击后才会跳出提示确认框
-    - 对于在界面识别二维码跳转到第三方，因为识别二维码图片后，会从底部弹出一个确认框(对图片操作，还是跳转而二维码对于的小程序)，此时用户点击确认框后不会再出现"即将跳转至xxx小程序"的确认框
 
 ### 开放能力
 
@@ -202,21 +231,12 @@ tags: [H5, App, 小程序, mobile]
 - 基于自定义H5静态页面跳转
   - 参考：https://developers.weixin.qq.com/miniprogram/dev/wxcloud/guide/staticstorage/jump-miniprogram.html
 
-### 个人小程序限制
-
-- 不支持web-view(企业)
-- 无法获取用户手机号(企业认证)
-
 ### 3D模型嵌入
 
 - [platformize框架](https://github.com/deepkolos/platformize)
     - [集合three.js在小程序中展示3D模型](https://gitcode.com/mirrors/deepkolos/three-platformize)
 - [uniapp微信小程序引入threeJs并导入模型](https://blog.csdn.net/hzqzzz/article/details/126428029)
 - [原生微信小程序使用three.js 实现外部obj,fbx,gltf模型导入以及模型点击交互弹框](https://juejin.cn/post/7169425712267722766)
-
-### 关于审核
-
-- 审核时可以自动扫描到pages.json里面所有的页面
 
 ## 微信H5开发
 
@@ -428,10 +448,17 @@ tags: [H5, App, 小程序, mobile]
 - 微信支付费率和结算周期明细：https://kf.qq.com/faq/140225MveaUz1501077rEfqI.html
     - 一般费率为0.60%(千6)，结算周期T+1
     - 费率根据行业不同，在0.20%至1.00%之间。比如物流公司费率为0.30%，但是注册是需要提交一个"物流《道路运输许可证》"
-- 普通商户、微信服务商、特约商户区别: https://jingyan.baidu.com/article/f3ad7d0ff7541d48c3345bdf.html
-    - **普通商户**支持所有形式收款，如果需要线上付款需要这种商户
+- 普通商户、微信服务商、特约商户区别
+    - **普通商户**支持所有形式收款，如果有开发能力建议使用这种商户
     - 服务商可提取特约商户的流水佣金，但是无收款功能
-    - 特约商户为服务商的下级商户，仅支持付款码收款，收款能力受限于服务商提供的服务。费率一般低于0.6%(如0.54%)
+        - 服务商不能给自己（同主体）申请特约商户
+        - 服务商只能新建特约商户，而不能绑定已存在的普通商户号或特约商户
+    - 特约商户为服务商的下级商户，通过服务商支付费率一般低于0.6%(如0.2%, 0.54%)
+        - 特殊商户也能调用普通商户接口(如果直接调用则服务商无法获取佣金): https://developers.weixin.qq.com/community/develop/doc/000ce8ae934a800a071dfa3bb50800
+        - 特约商户最多绑定5个AppId
+    - 参考
+        - https://developers.weixin.qq.com/community/pay/doc/0004c29a09c71068e75a5728d5b800
+        - https://developers.weixin.qq.com/community/pay/doc/000a806b86c4c8a7b08af45455bc00?fromCreate=1
 - 注册
     - 参考 http://help.nicebox.cn/doc.php?IDDoc=1352
     - 企业注册资料
@@ -459,14 +486,19 @@ tags: [H5, App, 小程序, mobile]
     - 商户类型：如普通商户(常用)、特约商户
 - 账户中心 - API安全
     - API证书: 生成时需要管理员手机验证，生成的压缩包(如: 1642097457_20230701_cert.zip)
-    - 证书序列号：点击申请API证书 - 管理证书 - 找到证书序列号(如: 5D5A5DF0CAEA798FDACB0728FB9EB12912AB5B43)。或者通过证书文件读取(建议)
+    - 证书序列号：点击申请API证书 - 管理证书 - 找到证书序列号(如: 5D5A5DF0CAEA798FDACB0728FB9EB12912AB5B43)。或者通过证书文件读取(建议, 参考下文)
     - APIv2密钥
     - APIv3密钥
 
 #### 相关问题
 
-- 提示`v3请求构造异常！`，参考 https://gitee.com/egzosn/pay-java-parent/issues/I4EXXY，JDK老版本需要修改两个jar包，参考 https://blog.csdn.net/dafeige8/article/details/76019911
-- 提示`商户证书序列号有误。`，可通过证书文件获取序列号`openssl x509 -in apiclient_cert.pem -noout -serial`
+- 提示`v3请求构造异常！`
+    - JDK老版本(v1.8.0_161以前)需要修改两个jar包, 参考 https://gitee.com/egzosn/pay-java-parent/issues/I4EXXY 修改Jar参考 https://blog.csdn.net/dafeige8/article/details/76019911
+    - ApiV3秘钥错误
+- 提示`商户证书序列号有误。`
+    - 可通过证书文件获取序列号`openssl x509 -in apiclient_cert.pem -noout -serial`
+- 提示`签名错误`
+    - 如小程序ID/商户号/证书文件不匹配等
 
 ## 微信云托管
 

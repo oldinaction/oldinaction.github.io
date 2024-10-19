@@ -538,6 +538,17 @@ spring:
         - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
         # 匹配在某段时间的
         - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+        # 参考: https://blog.csdn.net/m0_59751050/article/details/142259605
+        filters:
+        # 增加请求头和请求参数(默认添加到url后面)
+        - AddRequestHeader=name,test
+        - AddRequestParameter=age,18
+        - AddResponseHeader=hello,test
+        # 添加断路器，需添加依赖: spring-cloud-starter-circuitbreaker-reactor-resilience4j
+        - name: CircuitBreaker
+          args: 
+            name: myCircuitbreaker
+            fallbackUri: forward:/fallback
 ```
 
 ### Zuul

@@ -611,7 +611,7 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
 	List<RoleVo> selectRolePage(IPage page, RoleVo role);
     ```
 
-### CSRF、CORS
+### CSRF/CORS
 
 - `CSRF` 跨站请求伪造(Cross-Site Request Forgery). [csrf](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/csrf.html)
 - `CORS` 跨站资源共享(Cross Origin Resourse-Sharing).
@@ -638,9 +638,9 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     }
     ```
 
-## spring security oauth2 [^2]
+## spring-security-oauth2
 
-- [理解Oauth 2.0-阮一峰](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
+- [理解Oauth 2.0-阮一峰](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html) [^2]
 - Oauth与SSO
     - **OAuth是为解决不同公司的不同产品实现登陆的一种简便授权方案**。通常这些授权服务都是由大公司提供的，如QQ，新浪微博，人人网等。使用OAuth授权的好处是，在为用户提供某些服务时，可减少或避免因用户懒于注册而导致的用户流失问题
     - **SSO通常处理的是一个公司的不同应用间的访问登陆问题**。如企业应用有很多业务子系统，只需登陆一个系统，就可以实现不同子系统间的跳转，而避免了登陆操作
@@ -650,7 +650,7 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     - SSO相关文章
         - https://www.cnblogs.com/wxj-106/p/8097880.html
         - https://www.cnblogs.com/ywlaker/p/6113927.html#!comments
-- oauth2根据使用场景不同，分成了4种模式
+- Oauth2根据使用场景不同，分成了4种模式
     - 授权码模式(authorization code)：授权码模式使用到了回调地址，是最为复杂的方式，通常网站中经常出现的微博，qq第三方登录，都会采用这个形式
         - 用户访问客户端，后者将前者导向认证服务器
         - 用户选择是否给予客户端授权
@@ -846,7 +846,6 @@ public class OAuth2ServerConfig {
             // 允许表单认证
             oauthServer.allowFormAuthenticationForClients();
         }
-
     }
 }
 ```
@@ -867,11 +866,11 @@ public class OAuth2ServerConfig {
 
 ### 授权码模式
 
-#### 授权服务器 [^6]
+#### 授权服务器
 
 > 源码参考 spring-security-oauth2 -> oauth2-authorization-code -> oauth2-authorization-code-qq
 
-- 依赖
+- 依赖 [^6]
 
 ```xml
 <dependency>
@@ -996,7 +995,7 @@ public String getToken(@RequestParam String code){
 }
 ```
 
-#### 访问资源
+#### 访问资源流程
 
 - 访问授权服务器：`http://localhost:8080/oauth/authorize?client_id=aiqiyi&response_type=code&redirect_uri=http://localhost:9090/jump`
 - 浏览器跳转到授权服务器登录页面：`http://localhost:8080/login`
@@ -1157,9 +1156,9 @@ public String read(Authentication authentication) {
 }
 ```
 
-#### 访问资源服务器 [^3]
+#### 访问资源服务器
 
-- 依赖同client1模式
+- 依赖同client1模式 [^3]
 - 配置
 
 ```yml

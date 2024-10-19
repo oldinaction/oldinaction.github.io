@@ -685,6 +685,7 @@ public class MyBean2 {
 
     // @PostConstruct // Bean创建完成并完成属性赋值后调用（使用JSR250方式需要的代码）
     public void init() {
+        // 此时 Environment 还没初始化，不能使用SpringU
         System.out.println("init MyBean2...");
     }
 
@@ -712,7 +713,7 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 ### 加载优先级
 
 - 同一个类中加载顺序
-    - Constructor > @Autowired > @PostConstruct > @Bean/@Component/setApplicationContext等
+    - Constructor > @Autowired/@Value > @PostConstruct > @Bean/@Component/setApplicationContext等
 - @DependsOn控制顺序
     - `@DepondensOn("springU")` 如在@PostConstuct方法中使用SpringU等工具类会报空指针。因为@PostConstuct修饰的方法在Spring容器启动时会先于该工具类的setApplicationContext()方法运行。解决方法参考下文 BeanPostProcessor
     - 控制 bean 之间的实例顺序，需要注意的是 bean 的初始化方法调用顺序无法保证

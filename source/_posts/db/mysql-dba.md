@@ -26,6 +26,13 @@ tags: [mysql, dba]
 - windows 安装 mysql，千万不要用通过记事本编辑`my.ini`，容易让文件变成 BOM 格式导致服务无法启动
 - 查看系统版本：命令行登录后欢迎信息中有版本信息，或者登录仅命令行执行`status`查看
 
+#### Mysql其他分支
+
+- MariaDB
+    - MariaDB 5.5 对应 Mysql 5.5，5.5以下的版本都是上述对应关系
+    - MariaDB 10.0 对应 Mysql 5.6
+    - MariaDB 10.1 对应 Mysql 5.7
+
 ### 相关配置
 
 - 大小写敏感问题

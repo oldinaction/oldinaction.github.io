@@ -93,6 +93,7 @@ remoteip 192.168.0.200-250
 
 ### L2TP-IPSec
 
+- 可参考(可能会存在下载问题)：https://github.com/hwdsl2/setup-ipsec-vpn
 - 参考 https://teddysun.com/448.html
 
 ```bash
@@ -260,7 +261,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         # http://<服务器IP>:54321 默认用户名密码 admin/admin
         ```
     - v2ray客户端
-        - 以windows为例，[如v2.41下载地址](https://github.com/2dust/v2rayN/releases/download/2.41/v2rayN-Core.zip)。其他参考下文
+        - 以windows为例，[如v2rayN v2.41下载地址](https://github.com/2dust/v2rayN/releases/download/2.41/v2rayN-Core.zip)。其他参考下文
         - v2ray客户端直接使用tcp/ip配置v2ray(默认tcp，容易被Ban)
             - 安装成功 - 管理员启动 - 服务器 - 添加VMess服务器(地址为VPS地址，端口和用户ID填v2ray服务器的，额外ID默认64，加密方式chacha20-poly1305，传输协议tcp)
             - 开启代理 - v2ray状态栏的图标点右键 - 勾选启用http代理 - 在http代理模式中选择PAC模式
@@ -328,6 +329,15 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
             - 如`||cdn.jsdelivr.net`标识开启对此域名的代理
             - 配置好后浏览Pac文件会发现上面的配置已经更新
             - 如果不生效，可重启一下客户端
+
+## OpenClash
+
+- Clash 和 V2Ray 都是网络代理工具
+    - Clash 支持多种代理协议，如 Shadowsocks、Vmess、Trojan 等；Clash 的配置可能会相对复杂一些
+    - V2Ray 专注于 Vmess 协议
+- 使用教程
+    - https://github.com/Aethersailor/Custom_OpenClash_Rules
+    - https://blog.forecho.com/use-openclash.html
 
 
 ---

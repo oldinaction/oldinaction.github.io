@@ -16,8 +16,11 @@ tags: tools
 破解版下载：http://www.xdowns.com/soft/1/118/2017/Soft_224671.html
 https://blog.csdn.net/runningtortoises/article/details/51425299
 
-#### notepad++
+#### Notepad
 
+- notepad++作者政治不正确，对应代替版本如下
+    - [Notepad--](https://gitee.com/cxasm/notepad--) 只支持macos 12.x版本
+    - [Notepad Next](https://github.com/dail8859/NotepadNext)
 - 插件推荐
     - `XML Tools` 格式化xml文件
         - 格式化xml文件：点击plugin，选择ML Tools，点击`pretty print xml(only-with line breaks)`即可

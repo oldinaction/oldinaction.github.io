@@ -40,6 +40,12 @@ map2: '{"name": "test"}'
 
 ## json
 
+### json5
+
+- [JSON5](https://json5.org/)是JSON的扩展，Node支持
+- [Npm库](https://github.com/json5/json5)
+- 支持注释、多行字符串等
+
 ### json格式
 
 - json格式校验工具：https://qqe2.com/
@@ -203,6 +209,7 @@ map2: '{"name": "test"}'
 - JsonPath
     - 提供Javascript、Java、Python、PHP相关类库；js库没找到
     - [java版本的json-path](https://github.com/json-path/JsonPath)
+
 
 ## xpath
 

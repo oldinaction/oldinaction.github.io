@@ -20,7 +20,7 @@ tags: [ofbiz, uml, src]
 
 <embed width="1000" height="800" src="/data/pdf/OFBiz-UML.pdf" internalinstanceid="7">
 
-### 服务、任务机制模型图
+### 服务/任务机制模型图
 
 <embed width="1000" height="800" src="/data/pdf/OFBiz-Service-Job.pdf" internalinstanceid="7">
 
@@ -205,7 +205,7 @@ public void exec() throws InvalidJobException {
 
 ## 实战经验
 
-### tomcat 压缩大致 jvm 异常退出
+### tomcat压缩大致jvm异常退出
 
 - 具体参考[Java 应用 CPU 和内存异常分析.md#JVM 致命错误日志(hs_err_xxx-pid.log)](</_posts/java/Java应用CPU和内存异常分析.md#JVM致命错误日志(hs_err_xxx-pid.log)>)
 

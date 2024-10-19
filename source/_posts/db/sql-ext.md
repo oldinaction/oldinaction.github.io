@@ -26,6 +26,7 @@ tags: [sql, oracle, mysql]
 -- mysql、h2。可用类型：二进制 BINARY、字符型，可带参数 CHAR()、日期 DATE、TIME、DATETIME、浮点数 DECIMAL、整数 SIGNED、无符号整数 UNSIGNED
 -- 可将LONG/CLOB等转成字符串
 select cast(ID as char) from user limit 1;
+select cast('123.45' as decimal(10, 2));
 
 -- 日期时间转换
 -- mysql
@@ -45,13 +46,13 @@ select convert(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:
 
 ### 日期
 
-- [数据类型转换参考](#数据类型转换)
+- 日期数据类型转换见上文: [数据类型转换参考](#数据类型转换)
 
 ```sql
 -- mysql
 -- quarter:季，week:周，day:天，hour:小时，minute:分钟，second:秒，microsecond:毫秒
-date_sub(now(), interval 7 day); -- 当前时间-7天. 不能直接 `now()-7`
-date_add('1970-01-01', interval -1 week); -- 该时间-1周
+date_add('1970-01-01', interval -7 day ); -- 对应时间-7天. 不能直接 `now()-7`
+date_sub(now(), interval 1 week); -- 该时间-1周 
 -- 2000-01-01、2000-01-01 00:00:00、2000-01-01 23:59:59
 select CURDATE(), DATE_FORMAT(CURDATE(),'%Y-%m-%d %H:%i:%s'), DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 1 DAY),INTERVAL 1 SECOND);
 -- 本月第一天, 本月最后一天
@@ -86,7 +87,55 @@ select
 select DATEADD(DAY, 0, DATEDIFF(DAY, 0, GETDATE())); -- 2000-01-01 00:00:00.000
 select CAST(CAST(GETDATE() as date) as varchar(10)) + ' 00:00:00'; -- 2000-01-01 00:00:00.000
 ```
-- 日期数据类型转换见上文
+
+#### 时区相关
+
+- 参考: https://www.cnblogs.com/scoopr/p/5592339.html
+- Oracle和MySQL中的timestamp的作用是不同的
+    - Oracle中，TIMESTAMP是对date的更高精度的一种存储，是作为datetime的延展，但它不存储时区信息（Date不含微妙级时间）
+    - Oracle中，TIMESTAMP WITH TIME ZONE存储时区信息
+    - Oracle中，TIMESTAMP WITH LOCAL TIME ZONE不会存储时区信息，会将传入时间数据转换为数据库时区的时间数据进行存储，但不存储时区信息；客户端检索时，oracle会将数据库中存储的时间数据转换为客户端session时区的时间数据后返回给客户端
+    - MYSQL中，TIMESTAMP是为了更少的存储单元（DATETIME为4字节，TIMESTAMP为1个字节）但是范围为1970的某时的开始到2037年，而且会根据客户端的时区判断返回值，MYSQL的TIMESTAMP时区敏感这点和ORACLE的TIMESTAMP WITH LOCAL TIME ZONE一致
+- ORACLE和MYSQL的函数返回不一样
+    - oracle读取的时区信息是以client端为准，CURRENT_TIMESTAMP都受到客户端SESSION TIMEZONE影响，而SYSDATE,SYSTIMESTAP不受影响
+    - mysql读取的时区信息是以server端为准，NOW(),SYSDATE(),CURRENT_TIMESTAMP 均不受到客户端连接时区影响
+- Oracle的DBTIMEZONE只和TIMESTAMP WITH LOCAL TIME ZONE有关。MySQL中的time_zone直接影响所有的timestamp取值
+- 为了返回一致的数据MYSQL设置TIME_ZONE参数即可，因为他是每个连接都会用到的；但是ORACLE最好使用SYSDATE或者SYSTIMESTAMP来直接取DB SERVER端时间
+- MySQL修改时区信息，只要CLIENT端的时区信息不变，此无影响
+- Oracle修改时区信息，同理，TIMESTAMP WITH LOCAL TIME ZONE不受影响，TIMESTAMP和TIMESTAMP WITH TIME ZONE会发生变化
+- 如果在client中不指定时区信息，oracle以client端的时区信息为准，要进行转换，mysql以server端的时区信息为准
+
+```sql
+-- oracle
+-- 设置数据库的时区(只会影响CURRENT_TIMESTAMP等函数，对时间插入和查询的数值不会影响)
+ALTER DATABASE SET TIME_ZONE = 'Asia/Shanghai';
+ALTER SESSION SET TIME_ZONE = 'Asia/Shanghai';
+-- 代码处理(当前session时区为Asia/Shanghai)
+SELECT CURRENT_TIMESTAMP -- 2020-07-26 12:43:53.576491 +08:00
+    ,CAST(CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AS TIMESTAMP) utc_time -- 2020-07-26 04:43:53.576491 +08:00
+    ,CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok' AS magu_time -- 2020-07-26 11:43:53.576491 +07:00
+    ,to_timestamp_tz('2023-07-24 18:00:00', 'yyyy-mm-dd hh24:mi:ss') -- 2023-07-24 18:00:00.000000 +08:00
+FROM DUAL;
+
+-- 案例2
+-- (当前session时区为Asia/Shanghai) 2020-07-26 11:38:50.314000,2020-07-26 10:38:50.314000 +07:00,2020-07-26 10:38:50.314000,2020-07-26 11:38:50.314000,2020-07-26 10:38:50.314000 +07:00
+-- (当前session时区为Asia/Bangkok) 2020-07-26 11:38:50.314000,2020-07-26 10:38:50.314000 +07:00,2020-07-26 11:38:50.314000,2020-07-26 12:38:50.314000,2020-07-26 12:38:50.314000 +07:00
+SELECT
+    t.INPUT_TM a -- INPUT_TM为TIMESTAMP类型(无时区信息)
+    -- **FROM_TZ相当于标记了INPUT_TM对应时区为Asia/Shanghai，然后将其转换成Asia/Bangkok，因此session时区不影响最终输出**
+    ,FROM_TZ(CAST(t.INPUT_TM AS TIMESTAMP), 'Asia/Shanghai') AT TIME ZONE 'Asia/Bangkok' AS b
+    ,CAST(t.INPUT_TM AT TIME ZONE 'Asia/Bangkok' AS TIMESTAMP) c -- 将INPUT_TM转成Asia/Bangkok的时区，再转成TIMESTAMP格式；当session时区为Asia/Shanghai时(会先将INPUT_TM标记为Asia/Shanghai时区)，转换后最终结果会少1个小时；当session时区为Asia/Bangkok时，最终结果不变
+    ,CAST(t.INPUT_TM AT TIME ZONE 'Asia/Shanghai' AS TIMESTAMP) d
+    ,CAST(t.INPUT_TM AT TIME ZONE 'Asia/Shanghai' AS TIMESTAMP) AT TIME ZONE 'Asia/Bangkok' AS e
+FROM t_test t where t.id = 1;
+-- 2024-07-26 11:38:50.314000,2024-07-26 10:38:50.314000 +07:00,2024-07-26 10:38:50.314000,2024-07-26 10:38:50
+SELECT
+    t.INPUT_TM a
+    ,FROM_TZ(CAST(t.INPUT_TM AS TIMESTAMP), 'Asia/Shanghai') AT TIME ZONE 'Asia/Bangkok' AS b
+    ,cast(FROM_TZ(CAST(t.INPUT_TM AS TIMESTAMP), 'Asia/Shanghai') AT TIME ZONE 'Asia/Bangkok' as timestamp) c
+    ,to_char(FROM_TZ(CAST(t.INPUT_TM AS TIMESTAMP), 'Asia/Shanghai') AT TIME ZONE 'Asia/Bangkok', 'yyyy-mm-dd hh24:mi:ss') d
+FROM t_test t where t.id = 1;
+```
 
 ### 其他
 
@@ -534,9 +583,9 @@ select t.stu_no, t.course_name, t.course_score from
 	- 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
 	- 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
 	- 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
-- 字段值不区分大小写问题(**oracle默认区分大小写，sqlserver也不区分大小写**)
+- **字段值不区分大小写问题(oracle默认区分大小写，sqlserver也不区分大小写)**
 	- 如果字段为`utf8_general_ci`存储时，可以在字段前加`binary`强行要求此字段进行二进制查询，即区分大小写。如`select * from `t_test` where binary username = 'aezocn'`
-	- 设置字段排序规则为`utf8_bin`(`utf8_general_ci`中`ci`表示case insensitive，即不区分大小写)。设置成`utf8_bin`只是说字段值中每一个字符用二进制数据存储，区分大小写，显示和查询并不是二进制
+	- **设置字段排序规则为`utf8_bin`/`utf8mb4_bin`**(`utf8_general_ci`中`ci`表示case insensitive，即不区分大小写)。设置成`utf8_bin`只是说字段值中每一个字符用二进制数据存储，区分大小写，显示和查询并不是二进制。设置成bin之后`select * from user t where name = 'Test';`区分大小写
 - `null`判断问题
 	- 判空需要使用`is null`或者`is not null`
 	- `select * from t_test where username = 'smalle' and create_tm > '2000-01-01'` 直接使用 =、> 等字符比较，包含了此字段不为空的含义 
@@ -588,6 +637,7 @@ SELECT
     t.id, t.company_type -- customer,provider
     ,(select GROUP_CONCAT(d.name) from sys_dict d where d.parent_code = 'company_type' and FIND_IN_SET(d.code, t.company_type)) "企业类型" -- 客户,供应商
 FROM rt_company t
+group by t.id
 ```
 
 #### 日期
@@ -710,13 +760,13 @@ insert into test(val) values('{"name": "smalle", "hello": "Hi, \\"AEZO\\"", "hob
 -- 查询
 select val from test; -- {"attr": {"t1": "v1", "t2": [1, true, false]}, "name": "smalle", "hello": "Hi, \"aezo\"", "hobby": [{"item": {"name": "book", "weight": 5}}, "game"]}
 -- 可以使用column-path运算符 ->
-select val->"$.hello" from test; -- "hi, \"aezo\""
--- (常用)或内联路径运算符 ->> (去掉了引号和转义符)。可能由于服务器no_backslash_escapes的配置导致无法使用 ->>，可如下使用json_unquote()
-select val->>"$.hello" from test; -- hi, "aezo"
-select json_unquote(val->"$.hello"), json_unquote(val->"$.hobby[0]") from test; -- hi, "aezo"
+select val->"$.hello" from test; -- "Hi, \"aezo\""
+-- 或内联路径运算符 ->> (去掉了引号和转义符)。可能由于服务器no_backslash_escapes的配置导致无法使用 ->>，可如下使用 json_unquote + json_extract
+select val->>"$.hello" from test; -- Hi, "aezo"
+select json_unquote(val->"$.hello"), json_unquote(val->"$.hobby[0]") from test; -- Hi, "aezo"
 select json_length('[1,2,{"a":3}]'); -- 3 获取数组长度，不计算嵌套的长度
 
--- 搜索
+-- (推荐)搜索. json_extract类似->
 select json_unquote(json_extract(val, '$.*')) from test; -- 将所有一级key对应的值放入到数组中：[{"t1": "v1", "t2": [1, true, false]}, "smalle", "Hi, \"AEZO\"", [{"item": {"name": "book", "weight": 5}}, "game"]]
 select json_unquote(json_extract(val, '$.name')) from test; -- smalle
 select json_unquote(json_extract(val, '$.hobby[0].item')) from test; -- {"name": "book", "weight": 5}
@@ -760,6 +810,7 @@ select json_set(
     '$.name.en', (select translation from translations where text='john' and language='en'),
     '$.age', 18
 ) as translated_json;
+update t_user set json_info = json_set(ifnull(json_info, '{}'), '$.age', 18) where id = 1;
 
 -- 数组案例: 记录位置信息(保留最近12次)
 update user_info set location_up_time = now()
@@ -871,6 +922,8 @@ set global event_scheduler = off;
 
 ## Oracle
 
+- [在线演示环境](https://livesql.oracle.com/)
+
 ### 常用函数
 
 #### decode和case when
@@ -941,8 +994,8 @@ select rtrim(' a b ') from dual; -- " a b"
 select replace('#ID#', '#') from dual; -- ID
 select replace('#ID#', '#', '*') from dual; -- *ID*
 
--- instr 查找字符位置(mysql也支持)
-select instr('##ID##', '#'), instr('##ID##', '#', 3) from dual; -- 1, 5
+-- instr 查找字符位置(mysql也支持) / 查找子字符串 / 判断字符串包含
+select instr('#ID#', '@'), instr('#ID#', '#'), instr('#ID#', '#', 2) from dual; -- 0, 1, 4
 
 -- substr 截取字符串; 对应基于字符的则是 substrb
 select substr('hello sql!', 2) from dual; --从第2个字符开始，截取到末尾。返回 'ello sql!'
@@ -1020,7 +1073,7 @@ select * from ASSIGN;
             ```
         - 或者使用jackson转换器，参考：https://oomake.com/question/13622930、https://segmentfault.com/a/1190000040484998
     - 也可使用[listagg within group行转列](#listagg-within-group行转列)解决返回值为LOB的问题(但是长度最大为4000)
-    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替(单不支持去重)。参考：https://www.cxybb.com/article/qq_28356739/88626952
+    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替(但不支持去重)。参考：https://www.cxybb.com/article/qq_28356739/88626952
         - druid使用内置SQL解析工具类时，无法解析xmlagg函数，参考(测试无效)：https://github.com/alibaba/druid/issues/4259
 
 ##### xmlagg行转列
@@ -1057,9 +1110,9 @@ group by t.deptno
 
 #### 分析函数
 
-##### 常见分析函数 [^3]
+##### 常见分析函数
 
-- `min`、`max`、`sum`、`avg` **一般和over/keep函数联合使用**
+- `min`、`max`、`sum`、`avg` **一般和over/keep函数联合使用** [^3]
 - `first_value(字段名)`、`last_value(字段名)` **和over函数联合使用**
 - `row_number()`、`dense_rank()`、`rank()`：为每条记录产生一个从1开始至n的自然数，n的值可能小于等于记录的总数(基于相应order by字段的值来判断)。这3个函数的唯一区别在于当碰到相同数据时的排名策略。**和over函数联合使用**
     - `row_number` 当碰到相同数据时，排名按照记录集中记录的顺序依次递增(如：1-2-3-4-5-6)
@@ -1109,12 +1162,13 @@ prior t.id = t.parent_id
 
 ##### over
 
+- **Mysql也支持**
 - 分析函数和聚合函数的不同之处是什么：普通的聚合函数用**group by分组，每个分组返回一个统计值**，而分析函数采用**partition by分组，并且每组每行都可以返回一个统计值** [^1]
 - 开窗函数`over()`，跟在分析函数之后，包含三个分析子句。形式如：`over(partition by xxx order by yyy rows between aaa and bbb)` [^2] 
     - 子句类型
-        - 分组(partition by)
-        - 排序(order by)
-        - 窗口(rows)：窗口子句包含rows、range和滑动窗口
+        - 分组子句(partition by)
+        - 排序子句(order by)
+        - 窗口子句(rows)：窗口子句包含rows、range和滑动窗口
             - 窗口子句不能单独出现，必须有`order by`子句时才能出现
             - 取值说明
                 - `unbounded preceding` 第一行
@@ -1124,16 +1178,23 @@ prior t.id = t.parent_id
         - 如果此时存在`order by`，则窗口默认(省略窗口时)为当前组的第一行到当前行(unbounded preceding and current row)
         - 如果此时不存在`order by`，则窗口默认为整个组(unbounded preceding and unbounded following)
     - 省略窗口字句
-        - 出现`order by`子句的时候，不一定要有窗口子句(窗口子句不能单独出现，必须有`order by`子句时才能出现)
-        - 如果此时存在`order by`，则窗口默认是当前组的第一行到当前行
-        - 如果此时不存在`order by`，则窗口默认是整个组
+        - 如果此时**存在**`order by`，**则窗口默认是当前组的第一行到当前行**(不是整个组,是全量数据)
+            - 出现`order by`子句的时候，不一定要有窗口子句(窗口子句不能单独出现，必须有`order by`子句时才能出现)
+        - 如果此时**不存在**`order by`，**则窗口默认是整个组**
         - 示例（示例和图片来源：http://www.cnblogs.com/linjiqin/archive/2012/04/05/2433633.html）
+            - 在线测试地址: https://livesql.oracle.com/
             
             ```sql
-            -- 见图oracle-over-1：窗口默认为整个组
+            -- 见图oracle-over-1: sql无排序, over排序子句省略
             select deptno, empno, ename, sal, last_value(sal) over(partition by deptno) from emp;
-            -- 见图oracle-over-2：窗口默认为第一行到当前行
+            -- (一般不推荐使用, 实际显示值和常规思路预期的不一致)
+            -- 见图oracle-over-2: sql无排序, over排序子句有, 窗口省略
             select deptno, empno, ename, sal, last_value(sal) over(partition by deptno order by sal desc) from emp;
+            -- sql无排序, over()排序子句有, 窗口也有(窗口特意强调全组数据)
+            select deptno, empno, ename, sal,
+                last_value(sal) over(partition by deptno order by sal desc 
+                    rows between unbounded preceding and unbounded following) max_sal
+            from emp;
             ```
 
             - oracle-over-1
@@ -1220,9 +1281,9 @@ select *
         -- Keep测试一(基于主表group by)。参考下文[keep](#keep)
         -- Keep测试二(基于over的partition by)。参考下文[keep](#keep)
         ```
-##### keep [^6]
+##### keep
 
-- keep的用法不同于通过over关键字指定的分析函数，可以用于这样一种场合下：**取同一个分组下以某个字段排序后，对指定字段取最小或最大的那个值。**从这个前提出发，我们可以看到其实这个目标通过一般的row_number分析函数也可以实现，即指定rn=1。但是，该函数无法实现同时获取最大和最小值。或者说用first_value和last_value，结合row_number实现，但是该种方式需要多次使用分析函数，而且还需要套一层SQL。于是出现了keep
+- keep的用法不同于通过over关键字指定的分析函数，可以用于这样一种场合下：**取同一个分组下以某个字段排序后，对指定字段取最小或最大的那个值。**从这个前提出发，我们可以看到其实这个目标通过一般的row_number分析函数也可以实现，即指定rn=1。但是，该函数无法实现同时获取最大和最小值。或者说用first_value和last_value，结合row_number实现，但是该种方式需要多次使用分析函数，而且还需要套一层SQL。于是出现了keep [^6]
 - 语法 [^5]
 
     ```sql
@@ -1387,6 +1448,31 @@ select substr('17,20,23', regexp_instr('17,20,23', ',', 1, 2) + 1, length('17,20
 ```
 
 #### 案例
+
+##### 查找字表最新的一条记录
+
+```sql
+-- 基于 keep
+select v.customer_id, v.visit_type
+,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id
+,max(v.visit_tm) keep(dense_rank first order by v.visit_tm desc) as visit_tm
+-- ,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id
+from t_visit v
+where 1=1
+and v.customer_id = 358330
+group by v.customer_id, v.visit_type; -- 先分成了两组(最终只有两组的统计值，两行数据)
+
+
+-- 子表基于 row_number
+select c.id, s.score
+from t_class c
+left join (
+    select * from (
+        select row_number() over(partition by s.class_id order by s.score desc) rn, s.*
+        from t_student s
+    ) where rn = 1
+) s on s.class_id = c.id;
+```
 
 ##### 查找中文
 
@@ -1694,7 +1780,7 @@ select round(0.44775454545454544, 2) from dual; -- 0.45
 -- 一个数A，先除以B，再乘以B，最终得到的不一定是A
 select round(10.3 / 2, 1) from dual; -- 5.2
 select round(5.2 * 2, 1) from dual; -- 10.4
---直接保留两位小数
+--直接保留两位小数. 默认保留整数
 select trunc(4.757545489, 2) from dual; -- 4.74
 ```
 

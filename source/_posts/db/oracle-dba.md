@@ -8,6 +8,7 @@ tags: [oracle, dba]
 
 ## 简介
 
+- [在线演示环境](https://livesql.oracle.com/)
 - 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl 指配置的本地数据库服务名，remote_orcl 指配置的远程数据库服务名。以 11g 为例
 - 安装oracle 11.2g参考印象笔记(测试通过)
     - **需要注意数据文件目录(/u01/app/oracle/oradata)挂载的磁盘，建议将`/u01`目录挂载到单独的数据盘上**
@@ -691,7 +692,7 @@ drop tablespace tablespace_xxx;
 
 ### 清理存储空间
 
-- [定时清理数据库日志表](/_posts/db/sql-procedure.md#定时清理数据库日志表)
+- [定时清理数据库日志表](/_posts/db/sql-procedure.md#定时清理数据库业务日志表)
 - 清理说明
     - delete
         - 删除的表数据减少了，但是表空间占用量不会变。可使用move/shrink进行清理
@@ -915,7 +916,7 @@ alter database drop logfile group 1; -- 删除(系统最终至少保留两个文
 
 ### 定时清理数据库业务日志表
 
-- 参考[定时清理数据库业务日志表](/_posts/db/sql-procedure.md#定时清理数据库日志表)
+- 参考[定时清理数据库业务日志表](/_posts/db/sql-procedure.md#定时清理数据库业务日志表)
 
 ### 导入导出
 
@@ -1043,7 +1044,7 @@ imp demo/demo_pass file=/home/oracle/exp.dmp log=/home/oracle/imp.log full=y ign
 
 ##### expdp/impdp导出
 
-- expdp/impdp成对使用(不支持增量导出)。支持11.2/19c
+- expdp/impdp成对使用 **(不支持增量导出)**。支持11.2/19c
 - 使用参考：https://www.cnblogs.com/Jingkunliu/p/13705626.html
     - compression压缩说明(可不使用此参数，导出后再通过tar压缩)：https://blog.csdn.net/yifeng0504/article/details/77748719
 

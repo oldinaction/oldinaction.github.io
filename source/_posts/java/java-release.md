@@ -307,6 +307,8 @@ if (firstOpt.isPresent()) {
 ### Date/Time API(JSR 310)
 
 - 参考[java-base.md#时间](/_posts/java/java-base.md#时间)
+- 使用 LocalDateTime 替代 Date。JDK 中的 Date 的缺点：打印Date可读性差，SimpleDateFormat格式化时线程不安全等
+- LocalDate、LocalTime、LocalDateTime(本地日期时间,不含时区,只是说日期格式展示本地化)、Instant(无时区信息,瞬时实例)、ZonedDateTime(含时区信息) 为不可变对象，修改这些对象对象会返回一个副本，即生成并返回一个新对象
 
 ```java
 // Clock 类。可以替代System.currentTimeMillis()和TimeZone.getDefault()
@@ -328,6 +330,7 @@ LocalDateTime datetimeFromClock = LocalDateTime.now(clock);
 ZonedDateTime zonedDatetime = ZonedDateTime.now(); // 2014-04-12T11:47:01.017-04:00[America/New_York]
 ZonedDateTime zonedDatetimeFromClock = ZonedDateTime.now(clock); // 2014-04-12T15:47:01.017Z
 ZonedDateTime zonedDatetimeFromZone = ZonedDateTime.now(ZoneId.of("America/Los_Angeles")); // 2014-04-12T08:47:01.017-07:00[America/Los_Angeles]
+ZonedDateTime.of(localDateTime, ZoneId.of("America/Los_Angeles")); // 只是标记当前时区，传不同时区，时间值都是一样的，只是后面的时区不一样
 
 // Duration 类。持有的时间精确到秒和纳秒
 LocalDateTime from = LocalDateTime.of(2014, Month.APRIL, 16, 0, 0, 0);
@@ -340,6 +343,7 @@ System.out.println("Duration in hours: " + duration.toHours()); // Duration in h
 ### Nashorn JavaScript引擎
 
 - Java 8提供了新的Nashorn JavaScript引擎，使得我们可以在JVM上开发和运行JS应用。Nashorn JavaScript引擎是javax.script.ScriptEngine的另一个实现版本，这类Script引擎遵循相同的规则，允许Java和JavaScript交互使用
+- 参考下文[javax.script(js-java)](#javax.script(js-java))
 - Nashorn引擎命令行工具：`jjs`，可以接受js源码并执行，如`jjs func.js`
 
 ```java
@@ -458,6 +462,8 @@ public void test() {
 ```java
 // 进行Debug(js必须是文件才能在idea中进行调试): https://www.cnblogs.com/shirui/p/9430804.html
 
+// 数组说明: 不支持 arr.map 方法; 但是支持 arr.forEach 方法，如: var result = []; [1, 2, 3].forEach(function(item) { result.push(item * 2); });
+
 // JavaScript 中调用 Java 类参考：https://www.runoob.com/java/java8-nashorn-javascript.html
 // 调用Java方法也支持事物
 // JS代码
@@ -471,6 +477,13 @@ function calculate(amount, percentage) {
 function test() {}
 var result = calculate(568000000000000000023,13.9);
 print(result);
+
+// 返回数组. 默认 Nashorn 会将数组转换成下标模式的Map，此处通过 Java.to 进行转换(但是只支持转换一层结构，不支持深度转换)
+// 或者手动进行深度转换: https://blog.csdn.net/dongyan3595/article/details/125046180
+function test() {
+    // 实际返回 [{name: 'test', arr: {"0": 1, "1": 2}}]
+    return Java.to([{name: 'test', arr: [1, 2]}], 'java.util.List');
+}
 ```
 
 ## 未知

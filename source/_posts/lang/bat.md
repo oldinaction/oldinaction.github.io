@@ -274,6 +274,30 @@ popd
     - `-f` 强制结束该进程以及所有子进程
     - `/im` 指定要终止的进程的图像名，如`taskkill /F /IM notepad.exe`
 
+## 结合PowerShell
+
+- bat脚本(只能通过CMD运行)调用PowerShell脚本
+
+```bat
+@echo off
+powershell -ExecutionPolicy Bypass -File "path\to\your_script.ps1"
+pause
+```
+
+### PowerShell脚本
+
+- 简介
+    - 脚本以`.ps1`结尾；设置脚本默认powershell打开(可找到执行程序`%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe`进行设置)
+    - `PowerShell ISE` 是Windows自带的PS脚本编辑器
+- test.ps1
+
+```powershell
+# 单行注释用#表示，多行注释用<#……#>表示
+# 设置PowerShell窗口标题
+$Host.UI.RawUI.WindowTitle = "My Custom Title"
+java -jar test.jar
+```
+
 ## 结合VBS
 
 - 参考[vbs.md](/_posts/lang/vbs.md)

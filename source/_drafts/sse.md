@@ -138,11 +138,17 @@ public static void main(String[] args) throws Exception {
     Request request = new Request.Builder()
             .url("http://localhost:8080/api/sse/stream")
             .post(body) // POST请求
+            .addHeader("Accept", "text/event-stream")
             .build();
 
     // 生产可将OkHttpClient设置成Bean，扩展参数可参考文档
     // https://square.github.io/okhttp/5.x/okhttp/okhttp3/-ok-http-client/index.html
-    OkHttpClient client = new OkHttpClient.Builder().build();
+    OkHttpClient client = new OkHttpClient.Builder()
+        // 建立连接和读取数据超时时间
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.MINUTES)
+        .build();
+
     // 每次请求都需要创建Factory
     EventSource.Factory factory = EventSources.createFactory(client);
     // 创建事件, 返回数据会在eventSourceListener监听中显示

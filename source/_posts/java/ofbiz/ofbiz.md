@@ -162,6 +162,7 @@ tags: [ofbiz]
 
 #### 远程Debug
 
+- **归纳**: `Attach to remote JVM` - localhost:8092(`-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8092`) - Use module classpath选择整个项目
 - 启动本地项目和远程项目
     - Eclipse中，在ant窗口找到该项目的build目录，再执行start-debug命令
     - 直接运行tools文件夹中的startofbiz.bat或者startofbiz.sh（linux平台），运行前先修改startofbiz.bat中的`"%JAVA_HOME%\bin\java" -Xms128M -Xmx512M -XX:MaxPermSize=512m -jar ofbiz.jar` 为 `"%JAVA_HOME%\bin\java" -Xms128M -Xmx512M -XX:MaxPermSize=512m -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8091 -Dfile.encoding=UTF-8 -jar ofbiz.jar`
@@ -510,6 +511,11 @@ context.addConstraint(securityConstraint);
 
 ## 实体引擎
 
+- SQL执行器`SQLProcessor`
+- 数据库连接池实现类`ConnectionFactory`
+- 连接数据库`DBCPConnectionFactory`
+    - mds.getConnection()
+
 ### JavaAPIz
 
 ```java
@@ -759,7 +765,7 @@ public static int execSql(Delegator delegator, String sql) {
     </datasource>
 
     <!-- 将default下相关的几个datasource的check-on-start属性设置成false，可在启动时不对数据库表结构进行检查，从而加快启动速度 -->
-    <datasource name="localmysqlolap" check-on-start="false">
+    <datasource name="localmysqlolap" check-on-start="false" add-missing-on-start="false" check-pks-on-start="false">
         ...
     </datasource>
     ```
@@ -1515,6 +1521,7 @@ Screens
 - 不要把sevice当event用，service就应该是无状态的，只能从上下文获取数据，service中不能访问session 或 request
 - `\framework\entity\config\entityengine.xml`中的schema-name需要填写数据库用户名（不区分大小写）
 - entitymodel.xml
+    - **支持将手动创建的视图(create view xxx)映射成实体(entity), 并且也支持通过view-entity进行嵌套关联此类型视图实体**
     - view-entity 视图，一般只用于查询
 
         ```xml
@@ -1977,6 +1984,11 @@ public class ExternalLoginKeyRedisManager {
     }
 }
 ```
+
+### 注册到nacos
+
+- 参考[基于API注册实例](/_posts/arch/nacos.md#基于API注册实例)
+
 
 
 

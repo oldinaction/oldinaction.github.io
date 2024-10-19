@@ -184,6 +184,7 @@ tags: [java, conception]
     - 全球DDoS流量展示：https://cybermap.kaspersky.com/cn、https://threatmap.checkpoint.com/
 - `CSRF` 跨站点请求伪造(Cross—Site Request Forgery)。攻击者盗用了你的身份，以你的名义发送恶意请求，对服务器来说这个请求是完全合法的。常见的如第三方Cookie传递导致信息泄露，因此像银行类网站使用完建议退出，这样可清除Cookie
 - `XSS` 跨站脚本攻击是指恶意攻击者往Web页面里插入恶意Script代码，当用户浏览该页之时，嵌入其中Web里面的Script代码会被执行，从而达到恶意攻击用户的目的
+- `0day漏洞` 是指尚未公开的漏洞，而厂商对此还未进行修复
 
 ## 项目管理
 

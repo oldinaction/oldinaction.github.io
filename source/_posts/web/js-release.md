@@ -294,19 +294,47 @@ console.log('one')
 // two
 // three
 
-// ajax
-async fetch () {
-    await postRequest().then(res => {
+// ajax模拟
+// 111
+// 221
+// 222
+// {count: 1}
+let postRequest = () => {
+    return new Promise((resolve, reject) => {
+        resolve({count: 1})
+    })
+}
+// 为了在浏览器执行添加function关键字，如vue函数中无需
+async function fetch (type) {
+    if(type == 3) {
+        return
+    }
+    return await postRequest().then(res => {
         console.log(221)
         return res
-    }).then(res => {
+    }).then(async res => {
         console.log(222)
+        if (type == 1) {
+            return res
+        } else if (type == 2) {
+
+        }
     })
     console.log(333)
 }
 // 调用
-fetch()
+fetch(1).then(res => {
+    console.log(res) // {count: 1}
+})
 console.log(111)
+// 扩展说明
+// 下面两种情况都不会报错，只是res为undefined
+fetch(2).then(res => {
+    console.log(res) // undefined
+})
+fetch(3).then(res => {
+    console.log(res) // undefined
+})
 ```
 - [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
     - 说明
@@ -366,6 +394,7 @@ console.log(111)
         }
 
         // **方式三**：耗时3002。Promise.all
+        // 返回结果顺序和请求装入顺序一一对应。如可用于如字典翻译等场景，需要等业务数据和字典数据同时返回后进行数据处理
         async function timeTest3() {
             const timeoutPromise1 = timeoutPromise(3000);
             const timeoutPromise2 = timeoutPromise(3000);

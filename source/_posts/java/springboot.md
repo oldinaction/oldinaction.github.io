@@ -285,9 +285,9 @@ mybatis:
     - 拦截request的body数据
     - 拦截response的数据
 
-### 异步执行服务 [^8]
+### 异步执行服务
 
-- 启动类加注解`@EnableAsync`，服务类方法加注解`@Async`即可
+- 启动类加注解`@EnableAsync`，服务类方法加注解`@Async`即可 [^8]
 - 可额外通过实现`AsyncConfigurer`配置`Executor`，参考[http://blog.aezo.cn/2017/07/01/java/spring/](/_posts/java/spring.md)
 
 ### @Value给静态成员设值
@@ -298,9 +298,9 @@ mybatis:
 
 - 参考[spring.md#获取Bean](/_posts/java/spring.md#获取Bean)
 
-### 跨域资源共享(CORS) [^9]
+### 跨域资源共享(CORS)
 
-- 参考[springboot解决跨域](/_posts/arch/springboot-vue.md#springboot解决跨域)
+- 参考[springboot解决跨域](/_posts/arch/springboot-vue.md#springboot解决跨域) [^9]
 - 使用spring security时，需要同时在spring mvc 和 spring security中配置CORS
 
 ### 国际化
@@ -953,21 +953,51 @@ str3: "hello wor\
 
 ```bash
 # 默认前缀，也可以配置数据源的时候自定义注入参数，或多数据源的情况设置多个前缀
+# 参考：https://github.com/alibaba/druid/wiki/DruidDataSource%E9%85%8D%E7%BD%AE%E5%B1%9E%E6%80%A7%E5%88%97%E8%A1%A8
 # spring.datasource.druid.xxx
-
-spring.datasource.druid.initial-size=5 # 初始化连接数
-spring.datasource.druid.min-idle=5 # 最小连接数
-spring.datasource.druid.max-active=20 # 最大有效连接数
-
-# 用于校验连接情况，防止出现Connection reset异常
-spring.datasource.druid.validation-query=SELECT 1 # oracle: SELECT 1 FROM DUAL
-# 执行SQL超时时间，默认10s: https://github.com/alibaba/druid/issues/5039
-spring.datasource.druid.socket-timeout=10000
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    # 初始化连接数
+    nitialSize: 5
+    # 最小连接数
+    minIdle: 5
+    # 最大有效连接数
+    maxActive: 20
+    # 获取连接时最大等待时间，单位毫秒
+    maxWait: 60000
+    # 创建连接时的socket最大读超时，单位是毫秒，默认0表示永远等待(之前默认是10s)，配置成10000则表示db操作如果在10秒内未返回应答，将抛出异常
+    socketTimeout: 300000
+    # 用于校验连接情况，防止出现Connection reset异常
+    validationQuery: SELECT 1 FROM DUAL
+    druid:
+      # 开启web端监控
+      web-stat-filter:
+        enabled: true
+      stat-view-servlet:
+        # http://localhost:8800/druid/ admin/admin
+        enabled: true
+        login-username: admin
+        login-password: admin
+        allow: 192.168.1.100,192.168.2.0/24
 ```
 - 源码
     - supprot 为扩展包
         - `http.ResourceServlet` 抽象类包含了对登录、主页显示等请求的处理
         - `http.StatViewServlet` 为`ResourceServlet` 的子类，通过`DruidStatViewServletConfiguration`(druid-spring-boot-starter)注入到Spring容器，并设置Servlet的init-parameter，如设置loginUsername等
+- 监控中的区间分布8个数字说明
+
+```bash
+0 - 1 耗时0到1毫秒的次数
+1 - 10 耗时1到10毫秒的次数
+10 - 100 耗时10到100毫秒的次数
+100 - 1,000 耗时100到1000毫秒的次数
+1,000 - 10,000 耗时1到10秒的次数
+10,000 - 100,000 耗时10到100秒的次数
+100,000 - 1,000,000 耗时100到1000秒的次数
+1,000,000 - 耗时1000秒以上的次数
+```
 - druid内置SQL解析工具类
     - 遇到xmlparse函数会解析出错，如`xmlparse(content t.name || ';' wellformed)`，参考(此方法测试无效)：https://github.com/alibaba/druid/issues/4259
 
@@ -1014,9 +1044,9 @@ spring.datasource.druid.socket-timeout=10000
 		}
 		```
 
-### 使用H2数据库 [^1] [^2]
+### 使用H2数据库
 
-- h2简介：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库
+- h2简介：内存数据库（Embedded database或in-momery database）具有配置简单、启动速度快、尤其是其可测试性等优点，使其成为开发过程中非常有用的轻量级数据库。在spring中支持HSQL、H2和Derby三种数据库 [^1] [^2]
 - [官网：http://h2database.com/html/main.html](http://h2database.com/html/main.html)
 - springboot整合：[文章：《h2》](../db/h2.md)
 
@@ -1477,9 +1507,9 @@ public static String sha1(String str) throws NoSuchAlgorithmException, Unsupport
 
 - 尚未找到启动程序后再初始化数据源简单解决方案。目前可以使用运行时增加数据源的方法，但是必须启动项目的时候设置一个默认的数据源(可以不使用，但是需要能初始化，比如一个H2数据源)，然后启动后动态修改此默认数据源
 
-#### 多数据源 [^14]
+#### 多数据源
 
-- springboot v2.0.1配置文件中需要为`spring.datasource.xxx.jdbc-url`(之前为`spring.datasource.xxx.url`)
+- springboot v2.0.1配置文件中需要为`spring.datasource.xxx.jdbc-url`(之前为`spring.datasource.xxx.url`) [^14]
 - 配置
 
 ```yml
@@ -1817,7 +1847,9 @@ public class TestService {
 }
 ```
 
-#### 运行时增加数据源 [^16]
+#### 运行时增加数据源
+
+- 代码 [^16]
 
 ```java
 // ### 1 添加数据源
@@ -1942,6 +1974,8 @@ spring:
     properties.mail.smtp.ssl.enable: true
     properties.mail.smtp.ssl.required: true
     properties.mail.smtp.port: 465
+    # 防止outlook显示成0点(如果不设置有时候会变成GMT导致显示成0点, 其他客户端显示正常)
+    properties.mail.smtp.timezone: CST
 ```
 - 发送
 

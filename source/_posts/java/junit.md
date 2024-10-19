@@ -27,14 +27,18 @@ public class Example {
     public ErrorCollector collector = new ErrorCollector();
 
     @Test
-    public void example() {					
-        errorCollector.addError(new RuntimeException("error 1"));
+    public void example() {				
+        collector.addError(new RuntimeException("error 1"));
         System.out.println("==================================");
+
         // 如果测试值 myVal != true 则将错误添加到collector中
         boolean myVal = false;
+        // IsEqual.equalTo("xxx") IsNull.nullValue()
         collector.checkThat("error2", myVal, Is.is(true));
-        // 代码执行完，此处会统一抛出错误，提示2个异常
-    }		
+
+        // 代码执行完，此处会统一抛出错误，提示2个异常。但是如果是前面代码执行报错则不会打印测试结果
+        // 如果全部成功则不报错
+    }
 }
 ```
 

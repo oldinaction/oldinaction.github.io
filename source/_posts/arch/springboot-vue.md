@@ -773,6 +773,22 @@ server {
 ```
 - Vue首页加载慢问题，一般为`main.js`打包出来的体积太大，可以考虑减少main.js中的import包
 
+## 国际化/时区/币制
+
+- 如果是SaaS系统，这3个应该保存到用户配置信息中
+- 时区
+    - 时区网站: https://www.zeitverschiebung.net/cn/
+    - 修复服务器时区，参考[新服务器初始化](/_posts/linux/CentOS服务器使用说明.md#新服务器初始化)
+    - 修改数据库时区，参考[日期-时区相关](/_posts/db/sql-ext.md#日期)
+        - 方式一: 全部采用TIMESTAMP不含时区进行存储
+            - 此时，代码中可正常使用sysdate和new Date()，不用转换
+            - 然后，在代码中对接收前台时间数据需做处理，查询数据库也要进行转换后再返回前台
+            - 且sql中将时间转成to_char的时候需要转换时区
+        - 方式二: 使用TIMESTAMP WITH LOCAL TIME ZONE
+            - 此时，保存时数据库会自动将时间转成服务器时区，查询时数据库自动转成客户端session时区
+            - 然后，代码中new Date()需要做处理
+    - 代码层面处理
+
 ## 后端其他
 
 ### Bean名称冲突
@@ -864,7 +880,7 @@ location ^~ /my-app/ {
 ```
 - 浏览器访问`http://localhost/my-app/`
 
-### https
+### https路径
 
 - 浏览器使用的协议(http/https)必须和请求后台的协议一致，否则Chrome进行拦截掉了
 - 静态资源使用`//aezo.cn/xxx`，它会判断当前的页面协议是http还是https来决定资源请求url的协议，可用于处理网站使用的协议和网页中请求的外网资源不一致的问题
@@ -895,17 +911,11 @@ location ^~ /my-app/ {
 - 提供运维人员脚本生成config.js: https://blog.csdn.net/samberina/article/details/122110027
 - 后端为node时，将前端设置为服务端渲染：https://blog.csdn.net/samberina/article/details/122110253
 
-## 移动端其他
-
-### 常用图片尺寸
-
-- 微信小程序分享图: 750*1334 (9:16)
-
-## 前端常用插件
+### 前端常用插件
 
 - 参考[js-tools.md](/_posts/web/js-tools.md)
 
-## 前端常见文件
+### 前端常见文件
 
 ```json
 babel.config.js     // 参考[js-tools.md#babel](/_posts/web/js-tools.md#babel)
@@ -922,6 +932,17 @@ vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
 .prettierrc         // 代码格式化，同上
 .jsbeautifyrc       // 代码格式化，同上
 ```
+
+### 前端其他
+
+- 避免输入中文拼音时触发input事件
+    - 使用input + compositionstart + compositionend. 参考: https://blog.csdn.net/owo_ovo/article/details/136949288
+
+## 移动端其他
+
+### 常用图片尺寸
+
+- 微信小程序分享图: 750*1334 (9:16)
 
 ## 常用脚本
 

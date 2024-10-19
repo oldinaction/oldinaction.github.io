@@ -182,6 +182,7 @@
             <layout class="ch.qos.logback.classic.html.HTMLLayout">
                 <pattern>%p%d%msg%M%F{32}%L</pattern>
             </layout>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 

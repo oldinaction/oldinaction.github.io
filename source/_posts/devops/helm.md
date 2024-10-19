@@ -440,7 +440,7 @@ spec:
     - 进入pod查看nginx-ingress-controller的nginx.conf配置发现ssl_certificate和ssl_certificate_key都为`/etc/ingress-controller/ssl/default-fake-certificate.pem;`，这个只是一个占位为了让nginx不产生警告，实际nginx-ingress-controller是使用的动态ssl，通过lua脚本实现(对应参数ssl_certificate_by_lua_block)
     - 查看cert-manager容器日志，提示`server misbehaving`，通过busybox测试pod发现容器无法访问外网
     - 提示`dial tcp: lookup dashboard.k8s.aezo on 10.96.0.10:53: no such host`，将自定义域名的解析加入到corndns对应的configmap
-    - 清除谷歌证书缓存：访问`chrome://net-internals/#hsts`，在`Delete domain security policies`中输入域名删除证书，然后重新打开浏览器
+    - **清除谷歌证书缓存**：访问`chrome://net-internals/#hsts`，在`Delete domain security policies`中输入域名删除证书，然后重新打开浏览器
 
 ### ingress-nginx
 

@@ -25,7 +25,7 @@ tags: LB, HA
 
 - 查看nginx版本
     - `nginx -v` 简单查看
-    - `nginx -V` 查看安装时的配置信息
+    - `nginx -V` **查看安装时的配置信息，包含模块信息**
     - `2>&1 nginx -V | tr ' '  '\n'` 查看安装时的配置信息并美化
 - 安装 **(详细参考下文`基于编译安装tengine`)**
     - `yum install -y nginx` 基于源安装(傻瓜式安装). **有的服务器可能需要先安装`yum install -y epel-release`**
@@ -116,7 +116,8 @@ server {
 
 # http {} 模块下
 server {
-    # 监听的端口，注意要在服务器后台开启80端口外网访问权限。[Windows上80端口占用问题解决](/_posts/lang/C%23.md#IIS)
+    # 监听的端口，注意要在服务器后台开启80端口外网访问权限
+    # [Windows上80端口占用问题解决](/_posts/lang/C%23.md#IIS) Windows上80端口被占用一般为IIS
     listen   80;
     # 服务器的地址
     server_name www.aezo.cn;
@@ -612,11 +613,26 @@ http {
         location /nginxStatus {
             stub_status on;
             access_log on;
-            # 需要认证，conf/htpasswd文件的内容可以用apache提供的htpasswd工具来产生
-            # 配置：yum install httpd-tools -y；htpasswd -c -d conf/htpasswd admin
-            # 登录：浏览器会弹出登录框；或 wget --http-user=admin --http-passwd=123456 http://example.com/test；或 curl -u admin:123456 -O http://example.com/test
-            auth_basic "Hello Nginx"; # 提示语
-            auth_basic_user_file conf/htpasswd;
+
+            # satisfy指令主要在有多个访问控制机制（如访问权限限制和身份验证）时使用
+            # any(满足一个) | all(满足所有)
+            satisfy any;
+
+            # 通过白名单访问
+			allow 192.168.1.0/24;
+			allow 127.0.0.1;
+			deny  all;
+
+            # 通过基本身份验证访问
+            # .htpasswd 文件的内容可以用apache提供的htpasswd工具来产生 (windows和linux生成的密码不通用)
+            # Linux安装: yum install httpd-tools -y
+            # Linux生成admin账号密码(回车后会要求输入密码): htpasswd -c -d /etc/nginx/.htpasswd admin
+            # Windows安装: 下载Apache, 如: https://de.apachehaus.com/downloads/httpd-2.4.55-o111s-x64-vs17.zip
+            # Windows生成admin账号密码: htpasswd.exe -bc htpasswd.db <user> <pwd>
+            # 登录：浏览器会弹出登录框
+            # 或 wget --http-user=admin --http-passwd=123456 http://example.com/test 或 curl -u admin:123456 -O http://example.com/test
+            auth_basic "Restricted Access"; # 提示语(Chrome登录弹框不会显示，在响应头里面)
+            auth_basic_user_file /etc/nginx/.htpasswd;
         }
 
         # 伪静态：用户访问 http://aezo.cn/post1.html，实际访问的是 http://aezo.cn/index.php?p=1
@@ -1222,6 +1238,40 @@ server {
             </html>
             ```
         - memcached集群需要多台服务器时间一致(30s以内)
+
+### nginx-sticky-module-ng(cookie负载均衡)
+
+- Sticky就是基于cookie的一种负载均衡解决方案，它是通过基于cookie实现客户端与后端服务器的会话保持，在一定条件下可以保证同一个客户端访问的都是同一个后端服务器(要求浏览器必须支持cookie)
+- **粘性会话/会话保持**
+    - 负载均衡器
+        - 使用nginx自带cookie_jessionid
+        - 使用nginx模块sticky
+    - 客户端负载均衡
+        - 基于Ribbon，根据用户的某些标识（如用户 ID）来选择实例
+    - 在网关（如 Zuul、Spring Cloud Gateway）层面实现
+        - https://blog.csdn.net/scruffybear/article/details/132977281
+- 会话保持案例，参考: https://cloud.tencent.com/developer/article/2331129
+
+```bash
+upstream myserver {
+    # 详细参数: sticky [name=route] [domain=.foo.bar] [path=/] [expires=1h] [hash=index|md5|sha1] [no_fallback] [secure] [httponly];
+    # [name=route]　　　　　　　设置用来记录会话的cookie名称
+    # [domain=.foo.bar]　　　　设置cookie作用的域名
+    # [path=/]　　　　　　　　  设置cookie作用的URL路径，默认根目录
+    # [expires=1h] 　　　　　　 设置cookie的生存期，默认不设置，浏览器关闭即失效，需要是大于1秒的值
+    # [hash=index|md5|sha1]   设置cookie中服务器的标识是用明文还是使用md5值，默认使用md5
+    # [no_fallback]　　　　　　 设置该项，当sticky的后端机器挂了以后，nginx返回502 (Bad Gateway or Proxy Error) ，而不转发到其他服务器，不建议设置
+    # [secure]　　　　　　　　  设置启用安全的cookie，需要HTTPS支持
+    # [httponly]　　　　　　　  允许cookie不通过JS泄漏，没用过
+    sticky;
+
+    # 另外一种会话保持方式是指定为 cookie_jessionid(nginx自带的方式，无需额外安装模块，但是要求服务端需要返回cookie)
+    # hash $cookie_jsessionid;
+
+    server www.test.com:8001;
+    server www.test.com:8002;
+}
+```
 
 ### ngx-http-map-module(变量转换)
 

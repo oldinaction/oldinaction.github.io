@@ -113,8 +113,8 @@ Assert.notNull(a); // 是否不为NULL
 Assert.notEmpty(a); // 是否非空
 Assert.notBlank(a); // 是否非空白符
 Assert.assertEquals("value", val);
-// 不满足会抛出IllegalStateException异常
-Assert.state
+// 不满足会抛出 IllegalStateException 异常
+Assert.state(false);
 ```
 - 字段验证器
 
@@ -443,7 +443,6 @@ data.put("isPageBreak", true);
 template.render(data);
 ```
 
-
 ### Easypoi基于模板生成Excel
 
 - [Easypoi](https://gitee.com/wupaas/easypoi)、[文档(已关闭)](http://www.wupaas.com/open/easypoi.html)
@@ -456,24 +455,34 @@ template.render(data);
     - 测试demo运行不完整
     - excel转html不灵活，无法设置转出的页面样式，如宽度
     - html转excel不完善，仅支持table转换，其他html标签不支持，且有些样式会丢失
-- 使用
+- 使用(v4.2.0)
 
 ```java
-// 简答的列表循环
-// 列表模板格式如: {{$fe:dataList t.no t.name}}
+// ==> 简单的列表循环
+// 列表模板格式如: {{$fe:dataList t.one     t.two       t.three}}
 // 单独取值格式如: {{othDataMap.hello}}
-TemplateExportParams exportParams = new TemplateExportParams(tplPath, false);
+TemplateExportParams exportParams = new TemplateExportParams(tplPath, true);
 Map<String, Object> dataMap = new HashMap<>();
 dataMap.put("dataList", dataList);
 dataMap.put("othDataMap", othDataMap);
 Workbook workbook = ExcelExportUtil.exportExcel(exportParams, dataMap);
-ByteArrayOutputStream baos = new ByteArrayOutputStream();
+// 返回文件路径
+String filePath = DateUtil.format(new Date(), "/yyyy/MMdd/") + "导出数据.xlsx";
+String outFilePath = prefix + filePath;
+FileUtil.mkParentDirs(outFilePath);
+FileOutputStream fos = new FileOutputStream(outFilePath);
 try {
-    workbook.write(baos);
+    workbook.write(fos);
 } finally {
     workbook.close();
-    baos.close();
+    fos.close();
 }
+
+// ==> 导出图片
+// 宽度通过调节模板列宽度实现(如20cm)，此处200设置无效，高度可在此处设置
+// 每个单元格只能导出一张图片，如果需要导出多张图片，可设置字段成img1、img2、img3等每个占一列
+ImageEntity imageEntity = new ImageEntity(byte[] | imgUrl, 200, 2000);
+list.get(0).put("img1", imageEntity);
 ```
 - 说明
     - 常量在Excel中为`'常量值'`，由于可能存在转义，所有需要设置成`''常量值'`
@@ -909,18 +918,75 @@ System.out.println("evaluate = " + evaluate); // evaluate = 2
 
 - [ureport](https://github.com/youseries/ureport)、[ureport文档](https://www.w3cschool.cn/ureport/ureport-jaod2h8k.html)
 - 参考文档
-    - ureport2整合springboot参考：https://www.pianshen.com/article/72751541487/
+    - ureport2整合到springboot: https://www.cnblogs.com/Jimc/p/12101035.html
+    - ureport2数据源及自定义存储器(如数据库存储): https://www.cnblogs.com/Jimc/category/1621054.html
     - https://www.cnblogs.com/niceyoo/p/14311257.html
+- ureport2整合到springboot
+
+```xml
+<!-- 目前maven最新为2.2.9. gitee(https://gitee.com/youseries_admin/ureport)上有最新的2.3.0-SNAPSHOT, 但是需要自行编译打包 -->
+<dependency>
+    <groupId>com.bstek.ureport</groupId>
+    <artifactId>ureport2-console</artifactId>
+    <version>2.2.9</version>
+</dependency>
+```
+配置
+
+```java
+@Configuration
+// 使用 @ImportResource 导入bean配置
+// 说明: @ImportResource 会导致 @Value("${a:}") 的写法失效(无法使用:)，此时使用 @Value("${a}") 或者 SpringU.getEnv 代替
+@ImportResource("classpath:ureport-console-context.xml") // 也可以对 ureport-console-context.xml 进行扩展配置, 参考SqBiz
+public class UReportConfig {
+    @Value("${spring.profiles.active}")
+    private String profiles;
+
+    @Value("${ureport.fileStoreDir}") // 貌似打包后无法获取到yml中配置的值，获取的仍然是jar中xml的配置值 /WEB-INF/ureportfiles
+    private String fileStoreDir;
+
+    @Resource
+    private FileReportProvider fileReportProvider;
+
+    @PostConstruct
+    public void init() {
+        // 支持开发环境共享报表配置
+        String fileStoreDir = this.fileStoreDir;
+        if(profiles.contains("dev")) {
+            fileStoreDir = System.getProperty("user.dir") + "/data/ureport";
+        }
+        if(ValidU.isEmpty(fileStoreDir)) {
+            throw new IllegalStateException("请配置 ureport.fileStoreDir 参数");
+        }
+        FileUtil.mkdir(fileStoreDir);
+        fileReportProvider.setFileStoreDir(fileStoreDir);
+    }
+
+    /**
+     * 增加映射路径
+     */
+    @Bean
+    public ServletRegistrationBean<UReportServlet> registrationBean() {
+        // 配置servlet映射
+        ServletRegistrationBean<UReportServlet> bean = new ServletRegistrationBean<>(new UReportServlet());
+        // 此处值必须为"/ureport/*"(不包含context path) 的 url-pattern 映射，否则系统将无法运行
+        bean.addUrlMappings("/ureport/*");
+        return bean;
+    }
+}
+```
 - 存在问题
   - UReport2部分功能不可用，包括导出及多条件表达式SQL查询(错误信息会直接暴露)
-  - ureport2支持打印报表，不过存在bug，数据会显示不全，导出为Word文档同样存在问题，数据不全且当有合并单元格时数据会混乱展示
+  - Ureport2支持打印报表，不过存在bug，数据会显示不全，导出为Word文档同样存在问题，数据不全且当有合并单元格时数据会混乱展示
   - 不支持邮件发送
   - 本身不支持权限控制
 - 路径
-  - 访问路径 `http://localhost:8800/api/v1/module/ureport/ureport/designer`
-  - 预览路径 `http://localhost:8800/api/v1/module/ureport/ureport/preview?_u=file:test.ureport.xml`
+  - 设计器路径 `http://localhost:8800/api/ureport/designer`
+  - 预览路径 `http://localhost:8800/api/ureport/preview?_u=file:test.ureport.xml`
     - 注意需要带上`file:`，且文件名不要出现`#[]`等特殊字符串(`.`是可以的)
-    - 加参数`_i=1`表示分页预览第一页
+    - 参数`_u=file:xxx` 指定报表配置资源名
+    - 参数`_i=1` 表示分页预览第一页
+    - 参数`_t=0` 表示不显示导航条(顶部打印导出等按钮)
 - 数据源和数据集
     - 配置数据源和数据集
         - 每个报表需要配置各自的数据源和数据集

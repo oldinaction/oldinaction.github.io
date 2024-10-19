@@ -115,6 +115,7 @@ dotnet run # 在项目目录运行
 - IIS默认会占用80端口，如果nginx也需要使用80端口，则无法启动(如果nginx的server均没有80端口则可正常运行)
     - `netstat -ano | find "80"` 查看占用80端口的进程。如果是普通进程可直接kill，如果是System进程(PID=4)，可参看下述流程
     - 需要将IIS(程序中搜"Internet Information Services")的所有和80端口绑定的应用修改成其他端口
+        - 或将IIS自动启动关闭掉: 将服务中的IIS Admin Services‌(IIS 管理服务)和‌World Wide Web Publishing Service(‌World Wide Web 发布服务)设置为手动
     - 再检查是否安装Sqlserver，其Reporting Service也会占用80端口(参考：https://www.jianshu.com/p/4b07e23414c2)
         - 可直接关闭服务 SQL Server Reporting Services (MSSQLSERVER)，并设置成手动启动
         - 或者停止服务实例：程序中搜索"Reporting Services 配置管理器" - 连接(相应实例) - 停止
@@ -137,6 +138,19 @@ dotnet run # 在项目目录运行
     ```
 - 需要启动TNS服务，并在tnsnames.ora中配置上述数据源
 - 如果报错`The provider is not compatible with the version of Oracle client`需要确认`Oracle.DataAccess.dll`的版本是否和ODAC版本一致。右键`Oracle.DataAccess.dll`可查看其版本，如11.02.3，则需要`ODAC112030`版本（ODAC 4 112.3），参考[oracle-dba.md#ODAC和ODBC](/_posts/db/oracle-dba.md#ODAC和ODBC)
+
+## Web框架
+
+### NopCommerce
+
+- [官网](https://www.nopcommerce.com/)
+- 数据库配置(App_Data/Settings.txt)
+
+```bash
+# 数据库连接
+DataProvider: sqlserver
+DataConnectionString: Data Source=192.168.1.100,1433;Initial Catalog=demo;Persist Security Info=True;User ID=root;Password=root
+```
 
 ## 窗体应用(Winform)
 
@@ -163,7 +177,7 @@ static void Main(string[] args)
 }
 ```
 
-### 使用oracle数据库
+### 使用Oracle数据库
 
 ```c#
 static void Main(string[] args)

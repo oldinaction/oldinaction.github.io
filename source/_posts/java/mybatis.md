@@ -426,6 +426,9 @@ mybatis.config-location=classpath:mybatis-config.xml
                 <if test='strList != null and strList.size() > 0 and strList.contains("ban")'>
                     AND 'ban' = 'ban'
                 </if>
+
+                <bind usernameStr='"," + username + ","'>
+                <if test='str != null and str.contains(usernameStr)'></if>
 			</sql>
             <!-- 只支持property参数值(不支持外部传入参数)，且property的value属性值不支持EL表达式 -->
 			<sql id="someinclude">from <include refid="${include_target}"/></sql>

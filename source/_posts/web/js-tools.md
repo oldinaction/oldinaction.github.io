@@ -766,7 +766,12 @@ handleChange (value) {
 - table对应属性
 
 ```js
-"row"(当前选中或取消选中行), "checked"(操作完当前行后的选中状态), "items"(可视化区域所有行数据，表格的所有数据只能通过getData获取), "data"(可视化区域所有行数据), "records"(目前选中的所有行数据), "selection"(目前选中的所有行数据)
+"row"(当前选中或取消选中行),
+"checked"(操作完当前行后的选中状态),
+"items"(可视化区域所有行数据，表格的所有数据只能通过getData获取),
+"data"(可视化区域所有行数据),
+"records"(目前选中的所有行数据),
+"selection"(目前选中的所有行数据)
 ["$table", "$grid", "$event", "reserves", "indeterminates", "$seq", "seq", "rowid", "rowIndex", "$rowIndex", "column", "columnIndex", "$columnIndex", "_columnIndex", "fixed", "type", "isHidden", "level", "visibleData", "cell"]
 ```
 - column对应属性
@@ -777,8 +782,10 @@ handleChange (value) {
 - 多选 + 修改页面表格数据(仅修改页面数据)。选中事件方法和选中所有事件方法是两个方法
 
 ```js
+// tableSourceData
 // 获取当前表格的数据：完整的全量表体数据(树型不含子结构)、处理条件之后的全量表体数据、当前渲染中的表体数据、当前渲染中的表尾数据
 let { fullData, visibleData, tableData, footerData } = this.$refs.tableRef.getTableData() // 各种 rows
+this.$refs.tableRef.tableSourceData // 原始表格数据
 
 // 获取勾选行记录
 let checkboxRow = this.$refs.tableRef.getCheckboxRecords();
@@ -2268,8 +2275,12 @@ export default {
 
 ### 防抖和节流
 
-- 防抖debounce：先等待一段时间，直到没人调用了，才真正执行。如用于键入提示
-- 节流throttle：一开始执行一次，然后每到固定的时间才执行一次
+- 防抖debounce：某个函数在某段时间内，无论触发了多少次回调，都只执行最后一次
+- 节流throttle
+    - 首节流：第一次会马上执行，之后的操作不一定会执行。可以理解问第一次执行，最后一次不执行
+    - 尾节流：第一次不会马上执行，而是一段时间后在执行。可以理解为第一次不执行，最后一次执行
+    - 兼顾型节流：第一次会马上执行，最后一次也会执行
+    - 参考: https://blog.csdn.net/TomNumber/article/details/125411679
 - 基于lodash
     - 其提供的throttle和debounce仍会出现重复点击按钮，还是会多次执行，只不过多次执行有几秒的间隔
     - **下文自定义的throttle方法无此问题，在2s内重复点击只执行一次**
@@ -2292,53 +2303,32 @@ methods: {
 - 手动实现参考(异步)
 
 ```js
-// 防抖：一个等待时间周期里面的多次调用都会被忽略
-export const debounce = function(fn, wait = 500) {
-  let timer
-  let promise
+// 兼顾型节流
+export const throttle = function(fn, delay = 2000) {
+  let last = 0
+  let timer = null
 
-  return function(...args) {
-    if (timer) {
+  return function (...args) {
+    return new Promise(resolve => {
+      let now = Date.now()
+      let reming = delay - (now - last)
+
       clearTimeout(timer)
-      Promise.reject(new Error('操作过于频繁'))
-    }
-
-    promise = new Promise(resolve => {
-      timer = setTimeout(() => {
+      if (reming < 0) {
         resolve(fn.apply(this, args))
-        timer = null
-      }, wait)
+        last = now
+      } else {
+        timer = setTimeout(() => {
+          resolve(fn.apply(this, args))
+        }, reming)
+      }
     })
-
-    return promise
   }
 }
 
 // 使用
-async saveTemp(goBack) {}, // 可改成下面进行防抖
-saveTemp: debounce(async function(goBack) {}), // 如果原来是同步也会变成异步方法
-
-// 节流：一个等待时间周期里面的多次调用，只有其中一个会被执行(周期结束后的第一个)
-export const throttle = function(func, delay, immediate = false) {
-  let timer
-
-  return function(...args) {
-    return new Promise(resolve => {
-      if (immediate && !timer) {
-        timer = setTimeout(() => {
-          timer = null
-        }, delay)
-        resolve(func.apply(this, args))
-        return
-      }
-
-      timer = setTimeout(() => {
-        timer = null
-        resolve(Promise.reject(new Error('操作过于频繁')))
-      }, delay)
-    })
-  }
-}
+async saveTemp(goBack) {}, // 可改成下面进行节流
+saveTemp: throttle(async function(goBack) {}, ), // 如果原来是同步也会变成异步方法
 ```
 - 手动实现参考(同步)：https://www.jb51.net/article/212746.htm
 

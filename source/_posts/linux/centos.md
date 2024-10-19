@@ -168,7 +168,7 @@ sudo iw wlp5s0 scan | grep SSID
             - 6 重新启动(千万不要把initdefault 设置为6)
         - 修改默认运行级别
             - `systemctl set-default graphical.target`  将默认模式修改为图形界面模式
-            - `systemctl set-default multi-user.target` 将默认模式修改为命令行模式
+            - `systemctl set-default multi-user.target` **将默认模式修改为命令行模式**
         - 对无图像界面的服务器安装图像界面相关软件 `yum -y groupinstall "GNOME Desktop" "Graphical Administration Tools"`
     - *execute `/etc/rc.d/rc.local`*：执行`rc.local`脚本。可基于此文件配置(或者`/etc/rc.local`)，直接在里面添加某些启动命令。centos7以不推荐使用
     - *execute /bin/login*

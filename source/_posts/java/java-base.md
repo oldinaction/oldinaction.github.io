@@ -483,7 +483,7 @@ new File(System.getProperty("user.dir") + "/src/main/data.json")
 - GMT、**UTC**、CST [^1]
     - `GMT`：格林尼治平时(Greenwich Mean Time，GMT)是指位于英国伦敦郊区的皇家格林尼治天文台的标准时间。由于地球自转导致存在误差，因此格林尼治时间已经不再被作为标准时间使用。现在的标准时间，是由原子钟报时的协调世界时间(UTC)
         - 当 Timestamp 为 0，就表示时间(GMT)1970年1月1日0时0分0秒。中国使用北京时间，处于东 8 区，相应就是早上 8 点
-    - `UTC`：协调世界时间，又称世界标准时间或世界协调时间，简称`UTC(Universal Time Coordinated)`。是最主要的世界时间标准，其以原子时秒长为基础，在时刻上尽量接近于格林尼治标准时间
+    - `UTC`：协调世界时间，又称世界标准时间或世界协调时间，简称`UTC(Universal Time Coordinated)`。**以原子钟作为世界标准时间，计算机的时间原点 1970年1月1日 0点0分0秒**
     - `CST` China Standard Time 中国标准时间(北京时间)。在时区划分上，属东八区，比协调世界时早8小时，记为`UTC+8`(`CST=GMT+8`)
         - 但是CST的缩写还是其他几个时间的缩写：`Central Standard Time (USA) UT-6:00`、`Central Standard Time (Australia) UT+9:30`、`China Standard Time UT+8:00、Cuba Standard Time UT-4:00`
 - 时间字符串
@@ -503,11 +503,11 @@ new File(System.getProperty("user.dir") + "/src/main/data.json")
 // TimeZone.setDefault(TimeZone.getTimeZone("GMT")); // 先运行此行，再打印new Date(0)，则是 `Thu Jan 01 00:00:00 CST 1970`
 System.out.println(new Date(0)); // Thu Jan 01 08:00:00 CST 1970
 
-// (此代码上文没有执行TimeZone.setDefault)此方法无法获取美国洛杉矶时间。getInstance并没有将系统默认时区设置成传入的时区
+// 错误案例: (此行代码上文没有执行TimeZone.setDefault)此方法无法获取美国洛杉矶时间。getInstance并没有将系统默认时区设置成传入的时区
 System.out.println(Calendar.getInstance(TimeZone.getTimeZone("America/Los_Angeles")).getTime()); // Wed Nov 06 16:47:23 CST 2019
 
 // 获取美国洛杉矶时间
-TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles")); // 设置系统默认时区(不会真正修改操作系统默认时区)
+TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles")); // 设置JDK默认时区，对所有线程生效(不会真正修改操作系统默认时区)
 System.out.println(new Date()); // Wed Nov 06 00:00:00 PST 2000 (上海时间为 2000-11-6 16:00:00)
 
 // Java 8与时区(Asia/Shanghai)
@@ -517,7 +517,7 @@ System.out.println(LocalDateTime.now(ZoneId.of("America/Los_Angeles"))); // 2000
 // 1.UTC格式时间转java.util.Date
 // 当前时间 2000-01-01 10:00:00
 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())); // 2000-01-01 10:00:00
-// 其中 T代表后面跟着时间，Z(+0800)/z(CST)/X(+08)代表UTC时区
+// 其中T代表后面跟着时间，Z(+0800)/z(CST)/X(+08)代表UTC时区
 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())); // 2000-01-01T10:00:00+0800
 
 // SimpleDateFormat说明
@@ -526,12 +526,13 @@ SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 try {
     Date dateTmp = dateFormat.parse("1970-01-01 00:00:00");
-    // Thu Jan 01 08:00:00 CST 1970,Thu Jan 01 00:00:00 CST 1970
+    // Thu Jan 01 08:00:00 CST 1970,  Thu Jan 01 00:00:00 CST 1970
+    // 使用System.out.println来输出一个时间的时候，他会调用Date类的toString方法，而该方法会读取操作系统的默认时区来进行时间的转换
     System.out.println(dateTmp);
 } catch (ParseException e) {
     e.printStackTrace();
 }
-// 1970-01-01 00:00:00,1970-01-01 08:00:00
+// 1970-01-01 00:00:00,  1970-01-01 08:00:00
 String dateStrTmp = dateFormat.format(new Date(0));
 System.out.println(dateStrTmp);
 ```
@@ -542,6 +543,18 @@ LocalDate startTm = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth()); /
 LocalDate endTm = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()); // 获取本月结束
 // 字符串转LocalDate
 LocalDate startTm2 = LocalDate.parse((CharSequence) params.get("startTm"), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+```
+- 时区转换
+
+```java
+// 案例1: 将Asia/Shanghai获取的时间戳设置成Asia/Bangkok的时区，再将其转成Asia/Shanghai的时间戳 => 只有将Asia/Bangkok改成其他时区，就可以实现在Asia/Shanghai的服务器获取不同时区的时间
+Timestamp originalTimestamp = new Timestamp(System.currentTimeMillis()); // Asia/Shanghai 当前时间2020-01-01 10:20:00
+Instant instant = Instant.ofEpochMilli(originalTimestamp.getTime());
+LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Bangkok"));
+System.out.println("localDateTime = " + localDateTime); // 2020-01-01 09:20:00
+long timestamp = localDateTime.atZone(ZoneId.of("Asia/Shanghai")).toInstant().toEpochMilli();
+Timestamp timestamp1 = new Timestamp(timestamp);
+System.out.println("timestamp1 = " + timestamp1); // 2020-01-01 09:20:00
 ```
 
 ## 数字计算
@@ -698,6 +711,37 @@ public class ConnectionMySQL {
     - 基于JNA
         - https://www.mdnice.com/writing/9a66c7f4a37548a79aece51e0ffb50ba
 - 说明JDK的版本和DLL的版本要对应(和操作系统版本没有关系，主机只需要能运行JDK即可)，如JDK 64位只能调用64位的DLL
+
+## JAR/JVM
+
+**JAR相关**
+
+- `METE-INF/MANIFEST.MF`文件
+    - 命名继承自UNIX`.manifest`文件(清单文件)，.MF为Manifest File Format
+    - MANIFEST.MF 文件是 Java 打包工具（如 jar、war、ear 等）中存在的一个文件，用于描述打包文件的元信息
+        - 指定打包文件中的主类：Main-Class属性
+        - 存储打包文件的元信息：版本号、作者、描述信息等
+    - 在 Java 中，MANIFEST.MF 文件通常被 Java 虚拟机（JVM）或相关的工具(如Maven和Gradle等)读取和解析
+    - 不是所有的 JAR 文件都必须要包含 MANIFEST.MF 文件
+
+**JVM相关**
+
+- 扩展classpath
+    - `-Xbootclasspath`: 完全取代基本核心的Java class 搜索路径。不常用，否则要重新写所有Java核心class
+    - **`-Xbootclasspath/a`**: 后缀，在核心class搜索路径后面，常用
+    - `-Xbootclasspath/p`: 前缀，在核心class搜索路径前面，不常用，避免引起不必要的冲突
+    - 分隔符与classpath参数类似，unix使用`:`号，windows使用`;`号
+        - `java -Xbootclasspath/a:/home/test/thirdlib/module.jar -jar demo.jar` 基于jar配置测试成功
+        - `java -Xbootclasspath/a:/home/test/thirdlib/ -jar demo.jar`
+    - 参考：https://www.cnblogs.com/duanxz/archive/2013/12/19/3482311.html
+- 自定义JVM参数
+
+```java
+// 自定义JVM参数格式 -D<name>=<value>
+// 示例
+java -Dtest.name=aezocn -jar app.jar // 启动添加参数。值如果有空格可以使用""
+System.getProperty("test.name") // 程序中取值，无此参数则为null
+```
 
 ## 易错点
 

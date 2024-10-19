@@ -87,10 +87,10 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - 新建包文件夹，一定要一层一层的建，或者创建`cn/aezo`的文件夹，不能创建一个`cn.aezo`(不会自动生成两个文件夹)
 - for快捷键使用：`list.for`、`arr.for`. **可以在`File`-`Setting`-`Editor`-`General`-`Postfix Completion`中查看**
 
-### java web项目配置(springmvc) [^1]
+### 项目配置
 
-- 进入到Project Structure：`File - Project Structure`
-- 配置步骤
+- 进入到Project Structure：`File - Project Structure` [^1]
+- java-web(springmvc)配置步骤
     - `Project` 项目级别
         - 主要是project compiler output的位置(src的编译位置)：如`D:/myproject/classes`(使用默认即可)，为对应WEB-INF下的classes目录
     - `Modules` 模块级别，项目可能包含多个模块，不同的模块可设置对应的编译输入路径和依赖。一般项目就一个模块
@@ -112,14 +112,21 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
         - `web application exploded` 是以文件夹形式（War Exploded）发布项目，选择这个，发布项目时就会自动生成文件夹在指定的output directory
         - `web application archive` 是war包形式，每次都会重新打包全部的,将项目打成一个war包在指定位置
         - 如果是maven项目：选中Available Elements中的依赖，将需要的依赖加入到WEB-INF/lib中(右键，put into WEB-INF/lib. tomcat相关依赖无需加入，因为最终Artifacts会部署到tomcat容器)。否则像struts2会报错`java.lang.ClassNotFoundException: org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter`
-- `Run configuration`启动配置。如使用tomcat启动
-    - `+` - `tomcat server` - `local`
-    - `Application Server`: 本地tomcat路径
-    - `VM`：添加`-Dfile.encoding=UTF-8`防止出现乱码
-    - `JRE`填写jdk路径
-    - `Deployment`中将刚刚的war配置进入，可修改某个war包的根路径
-    - 在`Before launch`中加入Build这个war包
-- 打包：Build - Build Artifacts - xxx:war - build (在上述Output directory中可看到war包)
+    - `Run configuration`启动配置。如使用tomcat启动
+        - `+` - `tomcat server` - `local`
+        - `Application Server`: 本地tomcat路径
+        - `VM`：添加`-Dfile.encoding=UTF-8`防止出现乱码
+        - `JRE`填写jdk路径
+        - `Deployment`中将刚刚的war配置进入，可修改某个war包的根路径
+        - 在`Before launch`中加入Build这个war包
+    - 打包：Build - Build Artifacts - xxx:war - build (在上述Output directory中可看到war包等输出文件)
+- 普通SDK打包配置
+
+    ![打包配置](../../data/images/2024/idea/image.png)
+    - 创建一个JAR类型的Artifacts
+    - 将右侧可用的文件加入(Put into Output Root)到左侧的Output Layout里面(最终打包文件的结构)，如过不需要将依赖的第三方SDK打包进去，则不要放到左侧
+    - 选择打包的xxx.jar输出文件，创建(自动生成一个文件)或选择一个MANIFEST文件
+    - 执行打包: Build - Build Artifacts - xxx:jar - build
 - idea报错：Error：java不支持发行版本5的解决方法：https://www.cnblogs.com/wqy0314/p/11726107.html
     - File-Setting-Java Compiler
 
@@ -310,6 +317,11 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 | `<pre></pre>` | 可按格式显示文本，如显示代码块                           |                                                             |
 
 ## 常用技巧
+
+### 正则查找和替换
+
+- 查找如`to_char\(((?:(?!FROM).)*?)\,(.*?(?:yy\-|yy\/|mm\-|mm\/|hh24).*?)\)`查询所有同to_char格式化日期的SQL，但是不包含`to_char(FROM`
+    - 替换如`to_char(FROM_TZ(CAST($1 AS TIMESTAMP), 'Asia/Shanghai') AT TIME ZONE '"+ Util.getTimeZone() +"', $2)`
 
 ### Debug调试技巧
 
