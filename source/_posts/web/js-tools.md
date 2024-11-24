@@ -401,7 +401,12 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 ## Vue相关UI库
 
-### Element-UI
+### AntDesign
+
+- https://www.antdv.com/components/overview-cn
+- 蚂蚁开源，支持React/Vue/Angular等，支持移动端
+
+### ElementUI
 
 - 主题/配色
     - https://elementui.github.io/theme-preview/
@@ -451,300 +456,6 @@ console.log(pass)
 ```
 - z-index
     - 如果没有初始化，也没在use时给定z-index，则默认2000
-
-### iview
-
-- 参考[iview.md](/_posts/web/iview.md)
-
-### Avue
-
-- [官网](https://avuejs.com)
-- [内置函数(全局API，在vue组件中可直接使用this调用)](https://avuejs.com/doc/api)
-    - `validatenull` 校验是否为空(`null/''/0/[]/{}`)
-    - `findObject` 从数组中查找对象
-        - 如 `const saleNoObj = this.findObject(this.crudOptionData.column | this.formColumn, 'saleNo'); saleNoObj.disabled = true;` 找到对象属性配置后，并修改(动态修改属性需要有默认值，即此时必须提前设置disabled=null属性，否则vue无法动态监测新增的属性进行双向绑定)
-    - `vaildData` 验证表达式/属性
-        - 如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
-    - `$Print`
-    - `$Clipboard`
-    - `$Log` 控制台彩色日志
-    - `$NProgress`
-    - `$Screenshot`
-    - `deepClone` 对象/数组深拷贝
-    - `dataURLtoFile`
-    - `isJson`
-    - `setPx` 设置css像素
-    - `sortArrys`
-    - `findArray`
-    - `downFile`
-    - `loadScript` 加载js/css文件
-    - `watermark`
-    - `asyncValidator`
-- 内置指令
-    - `v-dialogdrag` 作用于dialog，可进行拖拽
-- 获取ref
-    - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
-    - 获取crud弹框表单中的element form引用：`this.$refs.crud.$refs.dialogForm.$refs.tableForm.$refs.form`
-
-#### 表格组件常用参数(option)
-
-```js
-{
-    searchShow: true, // 是否默认显示查询条件区域，设置为不显示时，也可通过表格工具栏手动点击显示
-    searchMenuSpan: 6, // 查询列默认占用宽度
-    searchLabelWidth: 115, // 查询列文字描述宽度
-    searchIcon: true, // 查询条件达到一定个数时，显示更多按钮进行隐藏
-    searchIndex: 3, // 和searchIcon结合使用，配置显示的个数
-
-    height: 'auto', // 表格高度自适应，可和calcHeight结合使用. 如果需要高度固定可使用具体数值，如: 270
-    maxHeight: '270', // 表格最大高度，如果不使用calcHeight，则可使用此参数显示滚动条
-    calcHeight: 90, // 表格自动计算高度，可手动条件以消除滚动条
-    border: true, // 实现边框
-
-    selection: true, // 列表可勾选
-    tip: false, // 不显示勾选提示，默认了为true显示
-    filterBtn: true, // 显示工具栏过滤按钮
-    menu: true,
-    viewBtn: true, // 弹框查看当前行数据。如果使用行内编辑，则必须设置成false
-    addBtn: true, // 弹框新增一行数据。**如果使用行内编辑，则必须设置成false**
-    cellBtn: true, // 开启可编辑表格
-    addRowBtn: true, // 可编辑表格新增一行
-    cancelBtn: true, // 可编辑时，显示取消按钮，默认true
-
-    highlightCurrentRow: false, // 高亮当前行
-   
-    dialogDrag: true, // 弹框支持拖拽
-    dialogTop: '2%', // 弹框顶部高度
-    dialogWidth: '85%', // 弹框宽度
-
-    tabs: true, // 字段分组时，每个组按照TAB横向显示，false则按照折叠菜单上下显示
-    span: 6, // 表单编辑时，每列占用宽度，默认12
-    labelWidth: 115, // 表单列文字描述宽度
-    column: [
-        {
-            label: '销售订单号', // 字段中文名
-            prop: 'saleNo', // 字段名
-            type: 'input', // 字段类型：影响表单编辑。input/select/radio/tree/...
-            
-            search: true, // 会在查询条件中显示
-            searchslot: true, // 开启当前列自定义search，在dom中还需增加`<template slot-scope="{disabled, size}" slot="saleNoSearch">`(以`xxxSearch`命名)
-            searchOrder: 10, // 搜索字段排序，越大越靠前
-
-            hide: true, // 列表中隐藏
-            slot: true, // 列表显示时自定义列，在dom中还需增加`<template slot="saleNo" slot-scope="scope">`
-            align: 'left', // 列表显示时，文字位置
-            format: 'yyyy-MM-dd HH:mm', // 列表显示和表单显示格式化
-            formatter: () => {}, // 格式化函数
-            width: 200, // 列宽度，如果需要出现横向滚动条则必须定义宽度的列宽度之和大于父box宽度
-            
-            formslot: true, // 表单插槽，需要有`<template slot="saleNoForm" slot-scope="{type,disabled}">`, type=add/edit
-            labelslot: true, // 需要 slot="saleNoLabel" 
-            errorslot: true, // 需要 slot="saleNoError" 
-            multiple: true, // 是否可多选
-            editDisplay: true, // 编辑时显示，默认true
-            span: 6, // 自定义当前列表单编辑时的占用宽度
-            tip: '表单编辑时，鼠标放到表单元素框上的提示语',
-            rules: [
-              {
-                required: true, // 表单编辑时的校验规则，必填
-                message: '请输入字典代码',
-                trigger: 'blur',
-              },
-            ],
-            change: ({ column, index, row, value }) => {}, // 表单编辑时，值发生变化事件
-            valueFormat: 'yyyy-MM-dd HH:mm:ss', // 实际值(提交到后台的值)格式化成字符串，一般用在 type='datetime'
-            value: 1, // 表单编辑时的默认值
-
-            searchFilterable: true, // 表格搜索是否可前台过滤，默认false
-            filterable: true, // 表单是否可前台过滤
-            remote: true, // 开启远程搜索，默认为false，此时dicUrl中{{key}}为用户输入的关键字
-            // 有了dictData和dicUrl，则列表显示默认也会自动进行翻译字典值，字典中无则显示实际值
-            dicData: [{
-              name: '自定义字典',
-              code: 1
-            }],
-            // 下拉时(表单编辑和查询条件)，字典资源路径，默认返回数组项为 lable/value 键值对才会自动匹配
-            // 修改URL后需要更新字段，this.$refs.[form | crud].updateDic('saleNo')
-            dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type&name={{key}}',
-            props: {
-              value: 'code', // 和 dicUrl 结合使用，用来指明后台返回数据结构中实际值的字段名
-              label: 'name',
-            },
-            dicMethod: 'post', // 默认请求方式为GET，此处设置为POST
-            dicQuery: {
-              a: 1 // 获取字典资源时的额外参数
-            },
-            // 格式化ajax获取的字段数据，参考 src/core/dic.js#sendDic
-            dicFormatter(res) {
-                const list = res.data
-                return list
-            },
-
-            // type=tree时
-            defaultExpandAll: false,
-            // 使用dic属性无效
-            // 使用 dicUrl 属性，但是每次会进行请求
-            // 使用 dicData属性。当直接写成 dicData: this.treeData 无法在弹框中显示树形数据；还需在获取到数据后修改此属性
-            dicData: this.treeData,
-            // 使用 lazy 和 treeLoad，即懒加载，会出现第一次无法选中
-            // lazy: true,
-            // treeLoad: (node, resolve) => {
-            //   if (node.isLeaf) {
-            //     return resolve([])
-            //   }
-            //   const parentId = (node.level === 0) ? '0' : node.data.id;
-            //   findDeptLazyTree({ parentId }).then(res => {
-            //     resolve(res.data.map(item => {
-            //       return {
-            //         ...item,
-            //         leaf: !item.hasChildren
-            //       }
-            //     }))
-            //   });
-            // },
-
-            // type=select时, 配置typeslot卡槽开启即可自定义下拉框的内容
-            typeslot: true, // 需要增加dom `<template slot="saleNoType" slot-scope="{item,value,label}">`
-            // typeformat配置回显的内容，但是你提交的值还是value并不会改变，无需插槽
-            typeformat(item, label, value) {
-                return `名:${item[label]}-值:${item[value]}`
-            },
-        },
-        {
-            labelWidth: 0, // 字段中文名宽度
-            label: '',
-            prop: 'saleOrderDetailVo',
-            span: 24, // 占一整行
-            hide: true, // 不显示在列表中
-            formslot: true, // 表单编辑自定义。此时定义slot="saleOrderDetailVoForm"即可自定义此列。可嵌套另外一个crud组件
-        }
-    ],
-    // 字段分组
-    group: [
-    ]
-}
-```
-
-#### 常见问题
-
-- 可编辑表格点击新增后还是弹框显示
-    - 可编辑表格需要设置`cellBtn=true`，需要编辑的字段需要设置`cell=true`，并且需要设置`addBtn=false`(这是普通表格的新增)和`addRowBtn=true`(可编辑表格的新增)
-- change事件进入两遍(Bug v2.8.26)，解决如下
-
-```js
-column: [
-  {
-    label: '商品',
-    prop: 'goodsId',
-    type: 'select',
-    change: ({ value, row }) => {
-        // avue change 时间会进入两次
-        if (value && value !== row.$goodsId) {
-            row.$goodsId = value
-            // ...
-        }
-    }
-  }
-]
-```
-
-#### 原理介绍
-
-- 目录结构
-
-```bash
-packages # 实际重写组件目录
-    core
-        common/porps.js # 通用 vue 属性，最终会被mixins
-        common/event.js # 通用事件，最终会被mixins
-        common/locale.js # 国际化，最终会被mixins
-        components/form/index.vue # 表单组件动态判断(临时)，最终会引入avue-form(如：element-ui/form)
-        components/form/index.vue
-    element-ui # 基于 element-ui 框架重写的组件目录
-        crud # avue-crud 组件
-            column.vue # 表格列组件：动态组件列 dynamic-column，其他组件列 el-table-column
-        form # avue-form 组件
-        upload # 文件上传组件
-    vant # 基于 vant 框架
-src
-```
-- packages/element-ui/upload/index.vue
-
-```html
-<template>
-  <!-- bem函数，基于组件名生成组件顶级class -->
-  <div :class="b()"
-       v-loading.lock="loading">
-    <el-upload :class="b({'list':listType=='picture-img','upload':disabled})"
-        ...
-    </el-upload>
-  </div>
-</template>
-
-<script>
-import create from "core/create"; // 创建组件方法，可基于此方法再次混入功能，也可修改给组件名增加前缀
-import props from "../../core/common/props.js"; // 混入 vue 通用属性
-import event from "../../core/common/event.js"; // 混入通用事件
-import locale from "../../core/common/locale"; // 混入国际化功能
-import upload from '../../core/common/upload' // 混入上传功能
-export default create({
-  name: "upload",
-  mixins: [props(), event(), upload(), locale],
-  data () {
-    return {
-      menu: false,
-    };
-  }
-});
-</script>
-```
-- 混入功能举例说明
-
-```js
-// packages/core/common/props.js
-watch: {
-    // 所有组件都有一个text属性，当text属性变化后调用 handleChange 方法（event.js，见下文），在 handleChange 中最后触发了 input 事件，从而监听到 value 属性变化，调用 initVal 进行实际值处理（如传入参数为逗号分割的字符串，可经过此初始化变成数组）
-    text: {
-        handler (n, o) {
-            this.handleChange(n)
-        }
-    },
-    value: {
-        handler (n, o) {
-            this.initVal();
-        }
-    }
-},
-
-// packages/core/common/event.js
-initVal () {
-    this.text = initVal({
-        type: this.type,
-        multiple: this.multiple,
-        dataType: this.dataType,
-        value: this.value,
-        separator: this.separator,
-        callback: (result) => {
-            this.stringMode = result;
-        }
-    });
-},
-handleChange (value) {
-    let result = value;
-    if (this.isString || this.isNumber || this.stringMode || this.listType === "picture-img") {
-        if (Array.isArray(value)) result = value.join(',')
-    }
-    if (typeof this.change === 'function' && this.column.cell !== true) {
-        this.change({ value: result, column: this.column });
-    }
-    this.$emit('input', result);
-    this.$emit('change', result);
-}
-```
-
-### ag-grid超强表格
-
-- [官网案例](https://www.ag-grid.com/example.php)、[整合vue案例](https://github.com/ag-grid/ag-grid-vue-example)
 
 ### vxe-table
 
@@ -1073,6 +784,305 @@ nodeToString ( node ) {
     return str;
 }
 ```
+
+### arco
+
+- https://arco.design/
+- 字节跳动开源，支持React和Vue，有对应移动端版本
+
+### iview
+
+- 参考[iview.md](/_posts/web/iview.md)
+
+### Avue
+
+- [官网](https://avuejs.com)
+- [内置函数(全局API，在vue组件中可直接使用this调用)](https://avuejs.com/doc/api)
+    - `validatenull` 校验是否为空(`null/''/0/[]/{}`)
+    - `findObject` 从数组中查找对象
+        - 如 `const saleNoObj = this.findObject(this.crudOptionData.column | this.formColumn, 'saleNo'); saleNoObj.disabled = true;` 找到对象属性配置后，并修改(动态修改属性需要有默认值，即此时必须提前设置disabled=null属性，否则vue无法动态监测新增的属性进行双向绑定)
+    - `vaildData` 验证表达式/属性
+        - 如`this.vaildData(this.permission.party_permission_add, false)` 默认根据第一个参数值进行判断，否则取第二个参数为默认值
+    - `$Print`
+    - `$Clipboard`
+    - `$Log` 控制台彩色日志
+    - `$NProgress`
+    - `$Screenshot`
+    - `deepClone` 对象/数组深拷贝
+    - `dataURLtoFile`
+    - `isJson`
+    - `setPx` 设置css像素
+    - `sortArrys`
+    - `findArray`
+    - `downFile`
+    - `loadScript` 加载js/css文件
+    - `watermark`
+    - `asyncValidator`
+- 内置指令
+    - `v-dialogdrag` 作用于dialog，可进行拖拽
+- 获取ref
+    - 在crud组件中`const avatarRef = this.$refs.crud.getPropRef('avatar')`可获取到表单的avatar图片上传组件元素ref，从而使用`avatarRef.$refs.temp.handleSuccess`进行调用(temp是由于中间动态判断了表单元素)
+    - 获取crud弹框表单中的element form引用：`this.$refs.crud.$refs.dialogForm.$refs.tableForm.$refs.form`
+
+#### 表格组件常用参数(option)
+
+```js
+{
+    searchShow: true, // 是否默认显示查询条件区域，设置为不显示时，也可通过表格工具栏手动点击显示
+    searchMenuSpan: 6, // 查询列默认占用宽度
+    searchLabelWidth: 115, // 查询列文字描述宽度
+    searchIcon: true, // 查询条件达到一定个数时，显示更多按钮进行隐藏
+    searchIndex: 3, // 和searchIcon结合使用，配置显示的个数
+
+    height: 'auto', // 表格高度自适应，可和calcHeight结合使用. 如果需要高度固定可使用具体数值，如: 270
+    maxHeight: '270', // 表格最大高度，如果不使用calcHeight，则可使用此参数显示滚动条
+    calcHeight: 90, // 表格自动计算高度，可手动条件以消除滚动条
+    border: true, // 实现边框
+
+    selection: true, // 列表可勾选
+    tip: false, // 不显示勾选提示，默认了为true显示
+    filterBtn: true, // 显示工具栏过滤按钮
+    menu: true,
+    viewBtn: true, // 弹框查看当前行数据。如果使用行内编辑，则必须设置成false
+    addBtn: true, // 弹框新增一行数据。**如果使用行内编辑，则必须设置成false**
+    cellBtn: true, // 开启可编辑表格
+    addRowBtn: true, // 可编辑表格新增一行
+    cancelBtn: true, // 可编辑时，显示取消按钮，默认true
+
+    highlightCurrentRow: false, // 高亮当前行
+   
+    dialogDrag: true, // 弹框支持拖拽
+    dialogTop: '2%', // 弹框顶部高度
+    dialogWidth: '85%', // 弹框宽度
+
+    tabs: true, // 字段分组时，每个组按照TAB横向显示，false则按照折叠菜单上下显示
+    span: 6, // 表单编辑时，每列占用宽度，默认12
+    labelWidth: 115, // 表单列文字描述宽度
+    column: [
+        {
+            label: '销售订单号', // 字段中文名
+            prop: 'saleNo', // 字段名
+            type: 'input', // 字段类型：影响表单编辑。input/select/radio/tree/...
+            
+            search: true, // 会在查询条件中显示
+            searchslot: true, // 开启当前列自定义search，在dom中还需增加`<template slot-scope="{disabled, size}" slot="saleNoSearch">`(以`xxxSearch`命名)
+            searchOrder: 10, // 搜索字段排序，越大越靠前
+
+            hide: true, // 列表中隐藏
+            slot: true, // 列表显示时自定义列，在dom中还需增加`<template slot="saleNo" slot-scope="scope">`
+            align: 'left', // 列表显示时，文字位置
+            format: 'yyyy-MM-dd HH:mm', // 列表显示和表单显示格式化
+            formatter: () => {}, // 格式化函数
+            width: 200, // 列宽度，如果需要出现横向滚动条则必须定义宽度的列宽度之和大于父box宽度
+            
+            formslot: true, // 表单插槽，需要有`<template slot="saleNoForm" slot-scope="{type,disabled}">`, type=add/edit
+            labelslot: true, // 需要 slot="saleNoLabel" 
+            errorslot: true, // 需要 slot="saleNoError" 
+            multiple: true, // 是否可多选
+            editDisplay: true, // 编辑时显示，默认true
+            span: 6, // 自定义当前列表单编辑时的占用宽度
+            tip: '表单编辑时，鼠标放到表单元素框上的提示语',
+            rules: [
+              {
+                required: true, // 表单编辑时的校验规则，必填
+                message: '请输入字典代码',
+                trigger: 'blur',
+              },
+            ],
+            change: ({ column, index, row, value }) => {}, // 表单编辑时，值发生变化事件
+            valueFormat: 'yyyy-MM-dd HH:mm:ss', // 实际值(提交到后台的值)格式化成字符串，一般用在 type='datetime'
+            value: 1, // 表单编辑时的默认值
+
+            searchFilterable: true, // 表格搜索是否可前台过滤，默认false
+            filterable: true, // 表单是否可前台过滤
+            remote: true, // 开启远程搜索，默认为false，此时dicUrl中{{key}}为用户输入的关键字
+            // 有了dictData和dicUrl，则列表显示默认也会自动进行翻译字典值，字典中无则显示实际值
+            dicData: [{
+              name: '自定义字典',
+              code: 1
+            }],
+            // 下拉时(表单编辑和查询条件)，字典资源路径，默认返回数组项为 lable/value 键值对才会自动匹配
+            // 修改URL后需要更新字段，this.$refs.[form | crud].updateDic('saleNo')
+            dicUrl: '/apps/system/dict/findForDict?parentCode=goods_sale_type&name={{key}}',
+            props: {
+              value: 'code', // 和 dicUrl 结合使用，用来指明后台返回数据结构中实际值的字段名
+              label: 'name',
+            },
+            dicMethod: 'post', // 默认请求方式为GET，此处设置为POST
+            dicQuery: {
+              a: 1 // 获取字典资源时的额外参数
+            },
+            // 格式化ajax获取的字段数据，参考 src/core/dic.js#sendDic
+            dicFormatter(res) {
+                const list = res.data
+                return list
+            },
+
+            // type=tree时
+            defaultExpandAll: false,
+            // 使用dic属性无效
+            // 使用 dicUrl 属性，但是每次会进行请求
+            // 使用 dicData属性。当直接写成 dicData: this.treeData 无法在弹框中显示树形数据；还需在获取到数据后修改此属性
+            dicData: this.treeData,
+            // 使用 lazy 和 treeLoad，即懒加载，会出现第一次无法选中
+            // lazy: true,
+            // treeLoad: (node, resolve) => {
+            //   if (node.isLeaf) {
+            //     return resolve([])
+            //   }
+            //   const parentId = (node.level === 0) ? '0' : node.data.id;
+            //   findDeptLazyTree({ parentId }).then(res => {
+            //     resolve(res.data.map(item => {
+            //       return {
+            //         ...item,
+            //         leaf: !item.hasChildren
+            //       }
+            //     }))
+            //   });
+            // },
+
+            // type=select时, 配置typeslot卡槽开启即可自定义下拉框的内容
+            typeslot: true, // 需要增加dom `<template slot="saleNoType" slot-scope="{item,value,label}">`
+            // typeformat配置回显的内容，但是你提交的值还是value并不会改变，无需插槽
+            typeformat(item, label, value) {
+                return `名:${item[label]}-值:${item[value]}`
+            },
+        },
+        {
+            labelWidth: 0, // 字段中文名宽度
+            label: '',
+            prop: 'saleOrderDetailVo',
+            span: 24, // 占一整行
+            hide: true, // 不显示在列表中
+            formslot: true, // 表单编辑自定义。此时定义slot="saleOrderDetailVoForm"即可自定义此列。可嵌套另外一个crud组件
+        }
+    ],
+    // 字段分组
+    group: [
+    ]
+}
+```
+
+#### 常见问题
+
+- 可编辑表格点击新增后还是弹框显示
+    - 可编辑表格需要设置`cellBtn=true`，需要编辑的字段需要设置`cell=true`，并且需要设置`addBtn=false`(这是普通表格的新增)和`addRowBtn=true`(可编辑表格的新增)
+- change事件进入两遍(Bug v2.8.26)，解决如下
+
+```js
+column: [
+  {
+    label: '商品',
+    prop: 'goodsId',
+    type: 'select',
+    change: ({ value, row }) => {
+        // avue change 时间会进入两次
+        if (value && value !== row.$goodsId) {
+            row.$goodsId = value
+            // ...
+        }
+    }
+  }
+]
+```
+
+#### 原理介绍
+
+- 目录结构
+
+```bash
+packages # 实际重写组件目录
+    core
+        common/porps.js # 通用 vue 属性，最终会被mixins
+        common/event.js # 通用事件，最终会被mixins
+        common/locale.js # 国际化，最终会被mixins
+        components/form/index.vue # 表单组件动态判断(临时)，最终会引入avue-form(如：element-ui/form)
+        components/form/index.vue
+    element-ui # 基于 element-ui 框架重写的组件目录
+        crud # avue-crud 组件
+            column.vue # 表格列组件：动态组件列 dynamic-column，其他组件列 el-table-column
+        form # avue-form 组件
+        upload # 文件上传组件
+    vant # 基于 vant 框架
+src
+```
+- packages/element-ui/upload/index.vue
+
+```html
+<template>
+  <!-- bem函数，基于组件名生成组件顶级class -->
+  <div :class="b()"
+       v-loading.lock="loading">
+    <el-upload :class="b({'list':listType=='picture-img','upload':disabled})"
+        ...
+    </el-upload>
+  </div>
+</template>
+
+<script>
+import create from "core/create"; // 创建组件方法，可基于此方法再次混入功能，也可修改给组件名增加前缀
+import props from "../../core/common/props.js"; // 混入 vue 通用属性
+import event from "../../core/common/event.js"; // 混入通用事件
+import locale from "../../core/common/locale"; // 混入国际化功能
+import upload from '../../core/common/upload' // 混入上传功能
+export default create({
+  name: "upload",
+  mixins: [props(), event(), upload(), locale],
+  data () {
+    return {
+      menu: false,
+    };
+  }
+});
+</script>
+```
+- 混入功能举例说明
+
+```js
+// packages/core/common/props.js
+watch: {
+    // 所有组件都有一个text属性，当text属性变化后调用 handleChange 方法（event.js，见下文），在 handleChange 中最后触发了 input 事件，从而监听到 value 属性变化，调用 initVal 进行实际值处理（如传入参数为逗号分割的字符串，可经过此初始化变成数组）
+    text: {
+        handler (n, o) {
+            this.handleChange(n)
+        }
+    },
+    value: {
+        handler (n, o) {
+            this.initVal();
+        }
+    }
+},
+
+// packages/core/common/event.js
+initVal () {
+    this.text = initVal({
+        type: this.type,
+        multiple: this.multiple,
+        dataType: this.dataType,
+        value: this.value,
+        separator: this.separator,
+        callback: (result) => {
+            this.stringMode = result;
+        }
+    });
+},
+handleChange (value) {
+    let result = value;
+    if (this.isString || this.isNumber || this.stringMode || this.listType === "picture-img") {
+        if (Array.isArray(value)) result = value.join(',')
+    }
+    if (typeof this.change === 'function' && this.column.cell !== true) {
+        this.change({ value: result, column: this.column });
+    }
+    this.$emit('input', result);
+    this.$emit('change', result);
+}
+```
+
+### ag-grid超强表格
+
+- [官网案例](https://www.ag-grid.com/example.php)、[整合vue案例](https://github.com/ag-grid/ag-grid-vue-example)
 
 ### MyUI
 

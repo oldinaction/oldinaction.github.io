@@ -73,15 +73,15 @@ tags: [system]
     - 右键查看文件属性–权限–勾选可执行，执行
 - Ubuntu16.04 笔记本合上盖子时不进入休眠
 
-    ```bash
-    sudo vim /etc/systemd/logind.conf
+```bash
+sudo vim /etc/systemd/logind.conf
 
-    # 修改如下
-    # HandleLidSwitch=suspend
-    HandleLidSwitch=ignore
+# 修改如下
+# HandleLidSwitch=suspend
+HandleLidSwitch=ignore
 
-    sudo systemctl restart systemd-logind
-    ```
+sudo systemctl restart systemd-logind
+```
 
 ### 安装程序
 

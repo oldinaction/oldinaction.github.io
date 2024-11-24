@@ -133,7 +133,7 @@ tags: [linux, shell]
     - `chkconfig --del nginx` 关闭指定的服务程序
     - `chkconfig nginx on` 设置nginx服务开机自启动（对于 on 和 off 开关，系统默认只对运行级345有效，但是 reset 可以对所有运行级有效）
     - 设置开机自启动
-        - 在`/etc/init.d`目录创建脚本文件，并设置成可执行`chmod +x my_script`
+        - 在`/etc/init.d`目录创建脚本文件，**并设置成可执行**`chmod +x my_script`
         
             ```bash
             # 自启动脚本的注释中必须有chkconfig、description两行注释(chkconfig会查看所有注释行)
@@ -1583,6 +1583,8 @@ done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
 - 参数
     - `-n` 静默模式，不再默认显示模式空间中的内容
 	- `-i` **直接修改原文件**(默认只输出结果。可以先不加此参数进行修改预览)
+        - 可创建备份`sed -i.bak 's/aa/bb/' filename`
+        - 在 macOS 中，sed -i 需要一个参数（即备份扩展名），如果不想创建备份，可以提供空字符串，如`sed -i '' 's/aa/bb/' filename`
 	- `-e script -e script` 可以同时执行多个脚本
 	- `-f` 如`sed -f /path/to/scripts file`
 	- `-r` 表示使用扩展正则表达式
@@ -1593,24 +1595,30 @@ done <<< "$(ps -ef | grep ofbiz.jar | grep -v grep)"
             - 默认只替换每行中第一次被模式匹配到的字符串；**其中/可为其他分割符，如`#`、`@`等，也可通过右斜杠转义分隔符**
             - `sed "s/foo/bar/g" test.md` 替换每一行中的"foo"都换成"bar"(加-i直接修改源文件)
             - `sed 's#/data#/data/harbor#g' docker-compose.yml` 修改所有"/data"为"/data/harbor"
+        - `a \string` 在指定的行后面追加新行，内容为string; `\n` 可以用于换行
+        - `i \string` 在指定的行前面添加新行，内容为string，`i\string`也可以; `\n` 可以用于换行
+            - `2i \hello` 在第二行插入一行(mac不支持)
+        - `d` 删除符合条件的行
+            - `2d` 删除第二行
+        - `r <file>` 将指定的文件的内容添加至符合条件的行处
+        - `w <file>` 将地址指定的范围内的行另存至指定的文件中
     - 后缀修饰符
         - `g` 全局查找
         - `i` 忽略字符大小写
         - `p` 显示符合条件的行
         - `d` 删除符合条件的行
-    - `a \string`: 在指定的行后面追加新行，内容为string
-		- `\n` 可以用于换行
-	- `i \string`: 在指定的行前面添加新行，内容为string
-	- `r <file>` 将指定的文件的内容添加至符合条件的行处
-	- `w <file>` 将地址指定的范围内的行另存至指定的文件中
 	- `&` 引用模式匹配整个串
 - 示例
 
 ```bash
+sed -i 's/aa/bb/' filename # 直接修改文件aa为bb
+sed -i '' 's/aa/bb/' filename # mac 在-i的后面需要加上''; 原本是 https\: 的需要转义成 https\\:, 而且必须使用单引号
+sed -i.bak 's/aa/bb/' filename # 修改前创建备份
+
 # 修改(未加-i参数不会真正修改数据)当前目录极其子目录下所有文件，将zhangsan改成lisi。grep -rl 递归显示文件名
-sed "s/zhangsan/lisi/g" `grep zhangsan -rl *`
+sed 's/zhangsan/lisi/g' `grep zhangsan -rl *`
 # (模拟)此时使用#避免对/的转义(将cdn路径 staticfile 替换成 bootcdn)
-sed "s#https://cdn.staticfile.org/#https://cdn.bootcdn.net/ajax/libs/#g" `grep 'https://cdn.staticfile.org/' -rl *`
+sed 's#https://cdn.staticfile.org/#https://cdn.bootcdn.net/ajax/libs/#g' `grep 'https://cdn.staticfile.org/' -rl *`
 # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
 sed -i '/^$/d' /home/smalle/test.txt
 # 删除/etc/grub.conf文件中行首的空白符
@@ -1619,6 +1627,10 @@ sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
 sed 's@\(id:\)[0-9]\(:initdefault:\)@\15\2@g' /etc/inittab
 # 删除/etc/inittab文件中的空白行(此时会返回修改后的数据，但是原始文件中的内容并不会被修改)
 sed '/^$/d' /etc/inittab
+
+# 1表示对第一行进行操作; 表示把第一行的开头(^)替换成hello world和换行符(相当于插入)
+sed -i '1s/^/hello world\n/' filename
+sed -i '1i \hello world' filename # 在第一行插入一行(会自动换行), mac不支持
 
 # s表示替换，\1表示用第一个括号里面的内容替换整个字符串。sed支持*，不支持?、+，不能用\d之类，正则支持有限
 echo here365test | sed 's/.*ere\([0-9]*\).*/\1/g' # 365

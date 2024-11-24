@@ -442,7 +442,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
             - AbstractJackson2HttpMessageConverter **最终通过 ObjectMapper(可进行自定义映射规则)进行转换**
                 - MappingJackson2HttpMessageConverter 通过Jackson解析application/json格式数据
 
-### 流程 [^1]
+### 流程
+
+- 参考 [^1]
 
 ```java
 // 测试方法

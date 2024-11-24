@@ -1006,6 +1006,8 @@ this.$root.eventBus.$off('eventName')
     <!-- <template v-slot:content="{ item }"> -->
     <template #content="{ item }">
         {{ item }}
+        <!-- 此处文本建议使用span等标签包干，否则代码排版产生的换行最终会渲染到页面 -->
+        <span>{{ item }}</span>
     </template>
 
     <!-- v2.6之前(兼容) -->

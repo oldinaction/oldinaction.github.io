@@ -39,9 +39,9 @@ https://blog.csdn.net/runningtortoises/article/details/51425299
 
 按下空格即可快速预览文件，微软商店内的免费应用
 
-### Wox 快速启动 [^2]
+### Wox快速启动
 
-- https://github.com/Wox-launcher/Wox
+- https://github.com/Wox-launcher/Wox [^2]
 - 下载`Wox-1.3.524.exe`和`Everything-1.3.4.686.x64-Setup.exe`(Wox和Everything配合使用可快速检索文件)
 - `Alt+Space`启动
 - `Win+R`代替windows

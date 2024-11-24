@@ -6,7 +6,10 @@ categories: [java]
 tags: [spring, src]
 ---
 
-> 转载自：https://javadoop.com/post/spring-ioc
+## 简介
+
+- 参考: https://javadoop.com/post/spring-ioc
+- Spring扩展点参考: https://mp.weixin.qq.com/s/O0W6vCuqQfeAH0UB7elpeA
 
 ## 类关系
 

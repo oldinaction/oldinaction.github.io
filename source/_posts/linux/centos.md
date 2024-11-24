@@ -47,14 +47,14 @@ tags: [system]
     - 设置 - 区域语言 - 选择中文 - 重启 - 注销账户重新登录 - 登录后提示会修改家目录(为中文) - 勾选不用再提示 - 点击保持原名称
 - CentOS7设置笔记本合盖后程序仍可以运转
     
-    ```bash
-    # https://blog.csdn.net/m0_49400972/article/details/108861639
-    vi /etc/systemd/logind.conf
-    # 修改 HandleLidSwitch 盒盖行为
-    HandleLidSwitch=lock
-    # 重启配置
-    systemctl restart systemd-logind
-    ```
+```bash
+# https://blog.csdn.net/m0_49400972/article/details/108861639
+vi /etc/systemd/logind.conf
+# 修改 HandleLidSwitch 盒盖行为
+HandleLidSwitch=lock
+# 重启配置
+systemctl restart systemd-logind
+```
 - wifi无法连接
 
 ```bash

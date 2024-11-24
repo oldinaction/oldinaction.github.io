@@ -21,13 +21,9 @@ tags: LB, HA
 
     ![nginx-arch](/data/images/arch/nginx-arch.png)
 
-## nginx使用
+## nginx安装
 
-- 查看nginx版本
-    - `nginx -v` 简单查看
-    - `nginx -V` **查看安装时的配置信息，包含模块信息**
-    - `2>&1 nginx -V | tr ' '  '\n'` 查看安装时的配置信息并美化
-- 安装 **(详细参考下文`基于编译安装tengine`)**
+- 安装
     - `yum install -y nginx` 基于源安装(傻瓜式安装). **有的服务器可能需要先安装`yum install -y epel-release`**
         - 默认可执行文件路径`/usr/sbin/nginx`(已加入到系统服务); 配置文件路径`/etc/nginx/nginx.conf`
         - 安装时提示"No package nginx available."。问题原因：nginx位于第三方的yum源里面，而不在centos官方yum源里面，解决办法为安装epel(Extra Packages for Enterprise Linux)
@@ -44,6 +40,61 @@ tags: LB, HA
         rm -rf /var/log/nginx
         rm -rf /usr/share/nginx
         ```
+- 编译安装: **(详细参考下文`基于编译安装tengine`)**
+
+```bash
+## 参考: https://blog.csdn.net/L66666xiaoliu/article/details/138197698
+## 下载 [https://nginx.org/download/nginx-1.26.2.tar.gz](https://nginx.org/en/download.html)
+# 解压
+tar -zxvf nginx-1.26.2.tar.gz -C /opt
+cd /opt/nginx-1.26.2
+## 编译安装(之后添加模块可重新执行编译安装)
+# 编译
+./configure --prefix=/usr/local/nginx \
+--group=nginx \
+--user=nginx \
+--sbin-path=/usr/local/nginx/sbin/nginx \
+--conf-path=/etc/nginx/nginx.conf \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--http-client-body-temp-path=/usr/local/nginx/client_body_tmp \
+--http-proxy-temp-path=/usr/local/nginx/proxy_tmp \
+--pid-path=/var/run/nginx.pid \
+--lock-path=/var/lock/nginx \
+--with-http_stub_status_module \
+--with-http_ssl_module \
+--with-http_gzip_static_module \
+--with-pcre \
+--with-http_realip_module \
+--with-stream
+# 安装
+make && make install
+
+## 添加服务
+cat > /usr/lib/systemd/system/nginx.service << EOF
+[Unit]
+Description=nginx
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/nginx/sbin/nginx -c /etc/nginx/nginx.conf
+ExecStop=/usr/local/nginx/sbin/nginx -s stop
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl status nginx
+```
+
+## nginx使用
+
+- 查看nginx版本
+    - `nginx -v` 简单查看
+    - `nginx -V` **查看安装时的配置信息，包含模块信息**
+    - `2>&1 nginx -V | tr ' '  '\n'` 查看安装时的配置信息并美化
 - 启动
     - `systemctl start nginx` 启动
     - 进入到`nginx`执行文件目录，运行`sudo ./nginx`
@@ -403,6 +454,15 @@ http {
     # 定义日志格式，log_forma上下文只能为http。main为默认日志格式名称(可定义多个)。$remote_addr等都是nginx内置变量，值为空时默认用`-`代替。可以定义多个log_format
     # 参考：http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_log_module.html
     # 内置变量参考：http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_core_module.html#variables
+    
+    ## ======== main日志样例 START (后面3条http_user_agent明细不是浏览器的情况，一般为爬虫或者攻击者)
+    # 222.61.14.125 - - [31/Oct/2020:11:50:18 +0800] "GET /favicon.ico HTTP/1.1" 404 0 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3314.0 Safari/537.36 SE 2.X MetaSr 1.0" "-"
+    # 222.61.14.125 - - [31/Oct/2020:11:56:29 +0800] "POST /demo/test HTTP/1.1" 200 10 "https://example.com/demo/index" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" "-"
+    # 180.159.47.17 - - [31/Oct/2020:12:00:33 +0800] "POST /demo/test HTTP/1.1" 200 287 "-" "python-requests/2.32.3" "-"
+    # 128.14.129.10 - - [31/Oct/2020:11:50:01 +0800] "POST /demo/test HTTP/1.1" 404 0 "-" "Custom-AsyncHttpClient" "-"
+    # 128.14.129.10 - - [31/Oct/2020:11:50:01 +0800] "POST /demo/test HTTP/1.1" 404 0 "-" "-" "-"
+    ## ======== main日志样例 EDN
+    
     # log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
     #                   '$status $body_bytes_sent "$http_referer" '
     #                   '"$http_user_agent" "$http_x_forwarded_for"';
@@ -415,6 +475,7 @@ http {
     # 默认配置。使用main格式进行输出访问日志
     # access_log  /var/log/nginx/access.log  main;
     # ***按照天对access.log进行分割***(否则时间长了日志文件会很大)
+    # map只能定义在http模块中
     map $time_iso8601 $logdate {
 		'~^(?<ymd>\d{4}-\d{2}-\d{2})' $ymd;
 		default                       'date-not-found';
@@ -514,7 +575,7 @@ http {
 
         # 如果在一个server中同时监听了两个端口，则需要判断
         listen 443;
-        if ( $scheme = http ){
+        if ($scheme = http) {
             return 301 https://$server_name$request_uri;
         }
     }
@@ -589,6 +650,20 @@ http {
             #proxy_temp_file_write_size 64k; #设定缓存文件夹大小，大于这个值，将从upstream服务器传
         }
 
+        # 伪静态：用户访问 http://aezo.cn/post1.html，实际访问的是 http://aezo.cn/index.php?p=1
+        location / {
+            root   D:/wamp/www/aezo;
+            index  index.php index.html index.htm;
+            # try_files $uri $uri/ /index.php?$args;
+            # 重定向：第一个参数路径匹配成功后跳转到第二个参数路径
+            # 第3个参数为. last: 继续向下匹配规则; break: 停止向下匹配; redirect: 返回302临时重定向; permanent: 返回301永久重定向
+            rewrite ^(.*)/post(\d+)\.html$ $1/index.php?p=$2 last;
+        }
+        # 临时将网站地址全部重定向二维码图片连接地址(重定向后地址栏路径会改变)
+        location / {
+            rewrite .* https://example.com/qrcode.jpg redirect;
+        }
+
         #本地动静分离反向代理配置
         #所有jsp的页面均交由tomcat处理
         location ~ .(jsp|jspx|do)?$ {
@@ -607,6 +682,12 @@ http {
                 expires 1h; 
                 break;
             }
+        }
+
+        # 自定义变量. 不能用于server_name及root等属性值
+        location /myvar {
+            set $foo hello;
+            echo "foo: $foo";
         }
 
         #设定查看Nginx状态的地址
@@ -635,32 +716,12 @@ http {
             auth_basic_user_file /etc/nginx/.htpasswd;
         }
 
-        # 伪静态：用户访问 http://aezo.cn/post1.html，实际访问的是 http://aezo.cn/index.php?p=1
-        location / {
-            root   D:/wamp/www/aezo;
-            index  index.php index.html index.htm;
-            # try_files $uri $uri/ /index.php?$args;
-            # 重定向：第一个参数路径匹配成功后跳转到第二个参数路径
-            # 第3个参数为. last: 继续向下匹配规则; break: 停止向下匹配; redirect: 返回302临时重定向; permanent: 返回301永久重定向
-            rewrite ^(.*)/post(\d+)\.html$ $1/index.php?p=$2 last;
-        }
-        # 临时将网站地址全部重定向二维码图片连接地址(重定向后地址栏路径会改变)
-        location / {
-            rewrite .* https://example.com/qrcode.jpg redirect;
-        }
-
         # 防盗链
         location ~* \.(gif|jpg|jpeg|png|bmp|swf)$ {
             valid_referers none blocked www.aezo.cn blog.aezo.cn;
             if ($invalid_referer) {
                 rewrite ^/ http://$host/logo.png;
             }
-        }
-
-        # 自定义变量. 不能用于server_name及root等属性值
-        location /myvar {
-            set $foo hello;
-            echo "foo: $foo";
         }
         
         ## php配置参考[php.md#安装](/_posts/lang/php.md#安装)
@@ -753,28 +814,25 @@ server {
 
 ```bash
 http {
-    # http响应头不显示nginx版本，单还是会显示“nginx”(去掉此文字相对麻烦)
+    ## http响应头不显示nginx版本(隐藏版本)，但还是会显示“nginx”(去掉此文字相对麻烦)
     server_tokens  off;
 
-    # cve: Http头Hostname攻击
+    ## 开启 HTTPS
+    # 将 HTTP 强制重定向到 HTTPS
     server {
-        listen 443 ssl http2 default_server; # default_server 对于没有找到server_name的请求默认进入到此server
-        server_name _; # _ 也可写成 __ 等，相当于localhost
-        ssl on;
-        ssl_certificate "/etc/nginx/my_nginx.cer";
-        ssl_certificate_key "/etc/nginx/my_nginx.pem";
-        ssl_session_cache shared:SSL:1m;
-        ssl_session_timeout 10m;
-        ssl_ciphers HIGH:!aNULL:!MD5:!3DES;
-        ssl_protocols TLSv1.2;
-        ssl_prefer_server_ciphers on;
+        listen 80;
+        server_name test.aezo.cn;
 
-        location / {
+        ## 防爬(防攻击)
+        if ($http_user_agent ~* (python|HttpClient)) {
             return 403;
         }
-    }
+        if ($http_user_agent = "-") {
+            return 403;
+        }
 
-    # 开启 HTTPS
+        return 301 https://$host$request_uri;
+    }
     server {
         listen 443 ssl;
         server_name test.aezo.cn;
@@ -831,17 +889,28 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         }
     }
-    # 将 HTTP 强制重定向到 HTTPS
-    server {
-        listen 80;
-        server_name test.aezo.cn;
 
-        return 301 https://$host$request_uri;
+    ## cve: Http头Hostname攻击
+    server {
+        listen 443 ssl http2 default_server; # default_server 对于没有找到server_name的请求默认进入到此server
+        server_name _; # _ 也可写成 __ 等，相当于localhost
+        ssl on;
+        ssl_certificate "/etc/nginx/my_nginx.cer";
+        ssl_certificate_key "/etc/nginx/my_nginx.pem";
+        ssl_session_cache shared:SSL:1m;
+        ssl_session_timeout 10m;
+        ssl_ciphers HIGH:!aNULL:!MD5:!3DES;
+        ssl_protocols TLSv1.2;
+        ssl_prefer_server_ciphers on;
+
+        location / {
+            return 403;
+        }
     }
 }
 ```
 
-## 字段说明
+## 语法说明
 
 ### server_name和listen
 
@@ -856,8 +925,9 @@ http {
 ### location匹配规则
 
 - 语法规则： `location [=|^~|~|~*|!~|!~*] /uri/ { … }` [^1] [^2]
-    - `=` 开头表示精确匹配
-    - `^~` 开头表示uri以某个常规字符串开头，理解为匹配url路径即可（如果路径匹配那么不测试正则表达式）。nginx不对url做编码，因此请求为`/res/20%/aa`，可以被规则`^~ /res/ /aa`匹配到（注意是空格）
+    - `=` 表示精确匹配
+    - `^~` 表示uri以某个常规字符串开头，理解为匹配url路径即可（如果路径匹配那么不测试正则表达式）
+        - nginx不对url做编码，因此请求为`/res/20%/aa`，可以被规则`^~ /res/ /aa`匹配到（注意是空格）
     - 正则匹配
         - `~` 区分大小写的正则匹配
         - `~*` 不区分大小写的正则匹配
@@ -934,6 +1004,43 @@ $http_referer #url跳转来源。https://www.baidu.com/
 $http_user_agent #用户终端浏览器等信息。Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; SV1; GTB7.0; .NET4.0C;
 $ssl_protocol #SSL协议版本。TLSv1
 $ssl_cipher #交换数据中的算法。RC4-SHA
+```
+
+### if语句
+
+```bash
+## 常见案例(if可以在server/location节点使用)
+if ($scheme = http) {
+	return 301 https://$server_name$request_uri;
+}
+# 正则匹配(~*)
+if ($request_filename ~* .*\.(?:htm|html)$) {
+	add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+}
+if (!-f $request_filename) {
+	proxy_pass http://127.0.0.1:8080;
+	break;
+}
+if ($http_user_agent ~* (python|HttpClient)) {
+    return 403;
+}
+
+## nginx不支持逻辑与和或，也不支持嵌套：解决方案如下
+# 伪代码(即不被nginx支持)
+if ($remote_addr ~ "^(12.34|56.78)" && $http_user_agent ~* "spider") {
+    return 403;
+}
+# 等效代码(被nginx支持)
+set $flag 0;
+if ($remote_addr ~ "^(12.34|56.78)") {
+    set $flag "${flag}1";
+}
+if ($http_user_agent ~* "spider") {
+    set $flag "${flag}2";
+}
+if ($flag = "012") {
+    return 403;
+}
 ```
 
 ## 模块说明
@@ -1475,7 +1582,7 @@ fi
         --http-fastcgi-temp-path=/var/tmp/nginx/fcgi/ \
         --http-uwsgi-temp-path=/var/tmp/nginx/uwsgi \
         --http-scgi-temp-path=/var/tmp/nginx/scgi \
-        --add-module=./ngx_cache_purge-2.3 ## --add-module=./ngx_cache_purge-2.3 # 添加清楚缓存模块
+        --add-module=./ngx_cache_purge-2.3 ## --add-module=./ngx_cache_purge-2.3 # 添加清除缓存模块
         ```
     - `make && make install`
 
@@ -1483,13 +1590,13 @@ fi
 
 - 方法一 [^3]
     - nginx安装一般会自动注册到服务中取，有些手动安装可能需要自己注册，以nginx手动注册成服务为例
-    - 方法：在 **`/usr/lib/systemd/system`**(或`/etc/systemd/system`) 路径下创建`755`的文件nginx.service：`sudo vim /usr/lib/systemd/system/nginx.service`，文件内容如下：
+    - 方法：在 **`/usr/lib/systemd/system`**(或`/etc/systemd/system`) 路径下创建`755`的文件nginx.service：`sudo vi /usr/lib/systemd/system/nginx.service`，文件内容如下：
     
         ```bash
         ## 服务的说明
         [Unit]
         # 描述服务
-        Description=nginx - high performance web server
+        Description=nginx
         # 依赖，当依赖的服务启动之后再启动自定义的服务
         After=network.target remote-fs.target nss-lookup.target
 
@@ -1501,12 +1608,12 @@ fi
         # PIDFile=/var/run/nginx.pid
         # 指定当前服务的环境参数文件。该文件内部的 KEY=VALUE 键值对，指定的KEY可当前变量在此文件中使用$KEY
         # EnvironmentFile=-/etc/sysconfig/xxx
-        # 为服务的具体运行命令(注意：启动、重启、停止命令全部要求使用绝对路径)
-        ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
-        # 重启命令
-        ExecReload=/usr/local/nginx/sbin/nginx -s reload
+        # 为服务的具体运行命令(注意：启动、重启、停止命令全部要求使用绝对路径) /usr/local/nginx/conf/nginx.conf
+        ExecStart=/usr/local/nginx/sbin/nginx -c /etc/nginx/nginx.conf
         # 停止命令
         ExecStop=/usr/local/nginx/sbin/nginx -s stop
+        # 重启命令(其他软件也适用)
+        ExecReload=/usr/local/nginx/sbin/nginx -s reload
         # 表示给服务分配独立的临时空间
         # PrivateTmp=True
 

@@ -154,7 +154,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
         - 修改了方法声明
 - `CamelCase` 使用`Alt + Shift + U`将字符串在下划线/中划线/大小驼峰中切换，可重复按快捷键进行切换
     - `String Manipulation` 字符串转换(包括下划线/中划线/驼峰等)。鼠标右键会有对应的选项，缺点：无快捷键
-- `CodeGlance` 显示代码地图
+- `CodeGlance Pro` 显示代码地图
 - `Alibaba Java Coding Guidelines` 阿里巴巴代码规范
 - `Translation` 翻译插件(https://github.com/YiiGuxing/TranslationPlugin)
 - `Maven Helper` 可显示冲突的maven依赖

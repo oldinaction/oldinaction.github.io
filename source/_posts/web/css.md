@@ -201,7 +201,7 @@ table tbody tr td:first-child+td+td {border: none;}
 }
 ```
 
-### 文字省略/换行/缩放
+### 文字省略/换行/缩放/删除线
 
 ```css
 /* 单行缩略（部分浏览器需要设置宽度） */
@@ -235,6 +235,9 @@ span {
     font-size: 12px; /* 谷歌浏览器最小字体 */
     transform: scale(0.75); /*缩小字体*/
 }
+
+<!-- 删除线 -->
+<view style="text-decoration: line-through;">这是有删除线的文本</view>
 ```
 
 ### 滚动条样式

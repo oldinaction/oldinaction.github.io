@@ -1002,6 +1002,9 @@ select substr('hello sql!', 2) from dual; --从第2个字符开始，截取到�
 select substr('hello sql!', 3, 6) from dual; --从第3个字符开始，截取6个字符。返回 'llo sq'
 select substr('hello sql!', -4, 3) from dual; --从倒数第4个字符开始，截取3个字符。返回 'sql'
 select substr('hello sql!', 1, length('hello sql!') - 1) from dual; -- 返回 'hello sql'
+
+-- 不足5位的前面补零
+select lpad(123, 5, '0') from dual; -- 00123
 ```
 
 #### with-as用法

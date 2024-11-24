@@ -125,6 +125,12 @@ tags: [ai]
 
 ## 字节
 
+- 火山引擎: https://volcengine.com/
+    - 豆包: https://www.volcengine.com/product/doubao
+    - 扣子: https://www.volcengine.com/product/coze-pro
+        - 零代码快速搭建个性化AI应用(插件丰富), 也支持API调用
+        - 基础版免费(豆包个人自建智能体就是基于扣子实现)
+
 ## 有道
 
 ### QAnything

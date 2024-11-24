@@ -6,6 +6,10 @@ categories: [java]
 tags: [spring, src]
 ---
 
+## 初始化
+
+- 参考[Spring IOC源码解析](/_posts/java/java-src/spring-src-ioc.md)
+
 ## 事物
 
 - 参考：https://www.cnblogs.com/dennyzhangdd/p/9602673.html

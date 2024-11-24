@@ -14,14 +14,15 @@ tags: [db, 信创]
 - 相关定义
     - OBD (OceanBase Deployer): OceanBase 部署工具，用于部署和管理 OceanBase 集群
     - OCP (OceanBase Cloud Platform): OceanBase 云平台，提供了基础的主机管理、OceanBase 集群和租户运维等能力
-    - ODC: OceanBase开发者中心，对数据库&表进行管理
+        - OCP Express: 提供基础的主机管理、OceanBase 集群和租户运维等能力
+    - ODC: OceanBase 开发者中心，对数据库&表进行管理
     - OMS: OceanBase 数据迁移，对数据进行快速迁移
 
 ## 启动/停止
 
 ```bash
 obd cluster list
-# 重启demo集群的所有服务
+# 重启demo集群的所有服务(myoceanbase), 预计2-3min
 obd cluster restart demo
 ```
 
@@ -55,20 +56,51 @@ obclient -h127.0.0.1 -P2883 -uroot -Doceanbase -A # 连接obproxy(通过 ODP 代
 
 # 支持Mysql客户端(需单独安装) / OBClient(默认安装) / ODC(OceanBase开发者中心,需单独部署,在web界面上操作) / JDBC链接如下
 jdbc:mysql://192.168.1.100:2881/test?serverTimezone=Asia/Shanghai&useUnicode=true&useSSL=false&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true
+# 其他客户端
+Navicat: 直接连接(使用的8.0驱动测试)
+DBeaver: 连接的时候Tenant需要填写一个租户名(如: sys)
 ```
 - **(推荐)通过 obd 白屏部署 OceanBase 集群**
 
 ```bash
-# 参考: https://www.oceanbase.com/docs/common-oceanbase-database-cn-1000000001052852
-# 支持在线部署和离线部署(提前下载 all-in-one 安装包)
+## 需要开放端口: 8680(obd web白屏界面) 2881|2882(observer, 数据库端口) 2883|2884(OBProxy) 8180(OCP Express, 管理端)
+
+## 参考: https://www.oceanbase.com/docs/common-oceanbase-database-cn-1000000001052852
+# 部署数据库 - 部署 OceanBase 社区版 - 本地部署 - 通过图形化界面部署 - 通过 obd 白屏部署 OceanBase 集群
+# 支持在线部署和离线部署(离线需提前下载 all-in-one 安装包)
+# v4.3.3 x86-el7: https://obbusiness-private.oss-cn-shanghai.aliyuncs.com/download-center/opensource/oceanbase-all-in-one/7/x86_64/oceanbase-all-in-one-4.3.3_20241014.el7.x86_64.tar.gz
+# v4.3.3 arm-el7: https://obbusiness-private.oss-cn-shanghai.aliyuncs.com/download-center/opensource/oceanbase-all-in-one/7/aarch64/oceanbase-all-in-one-4.3.3_20241014.el7.aarch64.tar.gz
 tar -xzf oceanbase-all-in-one-*.tar.gz -C /opt
 cd /opt/oceanbase-all-in-one/bin/
 ./install.sh
 source ~/.oceanbase-all-in-one/bin/env.sh
 
-# 启动白屏界面
-obd web
+## 启动白屏界面
 # 虽然是集群部署，但是也支持只设置一台服务器；安装完成后会显示链接信息
+obd web
+# 访问 http://127.0.0.1:8680
+    # 开启体验之旅 - OceanBase 及配套工具 - 勾选 OBProxy(也可全部勾选)
+    # OBServer 节点: 输入节点ip(如当前内网ip)
+    # 部署用户配置: 输入服务器SSH对应的用户登录信息
+    # 软件路径: 如/opt/oceanbase
+# 预检前可执行一下配置, 也可等预检报错再手动执行
+echo -e "* soft nofile 20000\n* hard nofile 20000" >> /etc/security/limits.d/nofile.conf
+echo -e "* soft nproc 120000\n* hard nproc 120000" >> /etc/security/limits.d/nproc.conf
+
+## 设置开机自动启动
+cat > /etc/init.d/oceanbase << EOF
+#!/bin/sh
+# chkconfig: 2345 50 50
+# description: 启动myoceanbase
+# processname: common-init
+
+su - root -c '/usr/bin/obd cluster start myoceanbase'
+EOF
+chmod +x /etc/init.d/oceanbase
+chkconfig --add /etc/init.d/oceanbase
+
+## 使用
+# 租户管理 - 选择 sys 租户 - 数据库管理 - 新建数据库. 或者通过Navicat连接root@sys(2881)然后创建数据库
 ```
 
 

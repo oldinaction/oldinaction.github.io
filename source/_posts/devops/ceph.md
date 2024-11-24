@@ -253,37 +253,37 @@ systemctl start ceph-fuse@/mnt/mycephfs # 可以使用-或者/
 ```
 - 创建不同用户和子目录来使用CephFS(上文`192.168.6.131:6789:/`使用的是根目录) [^5]
 
-    ```bash
-    ## mgr节点运行
-    # 创建用户(客户端)
-    ceph auth add client.aezo mon 'allow r' mgr 'allow r' osd 'allow rw pool=cephfs_data' mds 'allow rw path=/aezo'
-    # 获取用户秘钥(保存在当前运行目录，如：~)
-    ceph auth get-or-create client.aezo -o ceph.client.aezo.keyring
-    cat ceph.client.aezo.keyring
-    ceph auth get client.aezo # 获取用户权限
-    # 更新用户权限
-    # ceph auth caps client.aezo mon 'allow r' mgr 'allow r' osd 'allow rw pool=cephfs_data' mds 'allow rw path=/test'
-    # 约束用户只能在 myfs 存储池(上文创建)的/aezo目录读写
-    ceph fs authorize myfs client.aezo /aezo rw
+```bash
+## mgr节点运行
+# 创建用户(客户端)
+ceph auth add client.aezo mon 'allow r' mgr 'allow r' osd 'allow rw pool=cephfs_data' mds 'allow rw path=/aezo'
+# 获取用户秘钥(保存在当前运行目录，如：~)
+ceph auth get-or-create client.aezo -o ceph.client.aezo.keyring
+cat ceph.client.aezo.keyring
+ceph auth get client.aezo # 获取用户权限
+# 更新用户权限
+# ceph auth caps client.aezo mon 'allow r' mgr 'allow r' osd 'allow rw pool=cephfs_data' mds 'allow rw path=/test'
+# 约束用户只能在 myfs 存储池(上文创建)的/aezo目录读写
+ceph fs authorize myfs client.aezo /aezo rw
 
-    ## 客户端节点运行
-    scp root@192.168.6.131:~/ceph.client.aezo.keyring /etc/ceph/ceph.client.aezo.keyring
-    chmod 600 /etc/ceph/ceph.client.aezo.keyring
-    # 创建数据目录并挂载
-    mkdir /mnt/cephaezo
-    chmod 1777 /mnt/cephaezo
-    ceph-fuse -n client.aezo -m 192.168.6.131:6789 /mnt/cephaezo --keyring /etc/ceph/ceph.client.aezo.keyring -r /aezo # -r/--client_mountpoint指定子路径
-    # 设置开机启动。可和上文的/mnt/mycephfs同时成功挂载
-    echo "none /mnt/cephaezo fuse.ceph ceph.id=aezo,ceph.client_mountpoint=/aezo,defaults,_netdev 0 0" >> /etc/fstab # 上文是老板写法，这是新版本写法
-    vi /usr/lib/systemd/system/ceph-fuse@.service
-    systemctl enable ceph-fuse@\x2dn\x20client.aezo\x20\x2dr\x20-aezo\x20-mnt-cephaezo --now # --now立即启动。转义符(\x2d为-; \x20为空格; -为/)参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#自定义服务)
-    ```
-    - 常见错误
-        - 执行`ceph-fuse`时提示`failed to fetch mon config (--no-mon-config to skip)`
-            - 可能由于--keyring秘钥错误
-        - 执行`ceph-fuse`时提示`ceph-fuse[12595]: ceph mount failed with (2) No such file or directory`
-            - 本案例是因为`/aezo`目录没有创建。可在上文myfs绑定的客户端目录(/mnt/mycephfs)下创建aezo目录
-            - 貌似还可以使用`cephfs-shell`创建目录。关于cephfs-shell(目前处于alpha阶段)安装和使用可参考 https://docs.ceph.com/docs/master/cephfs/cephfs-shell/ 。其中cephfs-shell源码位于 https://raw.githubusercontent.com/ceph/ceph/v14.2.4/src/tools/cephfs/cephfs-shell
+## 客户端节点运行
+scp root@192.168.6.131:~/ceph.client.aezo.keyring /etc/ceph/ceph.client.aezo.keyring
+chmod 600 /etc/ceph/ceph.client.aezo.keyring
+# 创建数据目录并挂载
+mkdir /mnt/cephaezo
+chmod 1777 /mnt/cephaezo
+ceph-fuse -n client.aezo -m 192.168.6.131:6789 /mnt/cephaezo --keyring /etc/ceph/ceph.client.aezo.keyring -r /aezo # -r/--client_mountpoint指定子路径
+# 设置开机启动。可和上文的/mnt/mycephfs同时成功挂载
+echo "none /mnt/cephaezo fuse.ceph ceph.id=aezo,ceph.client_mountpoint=/aezo,defaults,_netdev 0 0" >> /etc/fstab # 上文是老板写法，这是新版本写法
+vi /usr/lib/systemd/system/ceph-fuse@.service
+systemctl enable ceph-fuse@\x2dn\x20client.aezo\x20\x2dr\x20-aezo\x20-mnt-cephaezo --now # --now立即启动。转义符(\x2d为-; \x20为空格; -为/)参考[http://blog.aezo.cn/2017/01/16/arch/nginx/](/_posts/arch/nginx.md#自定义服务)
+```
+- 常见错误
+    - 执行`ceph-fuse`时提示`failed to fetch mon config (--no-mon-config to skip)`
+        - 可能由于--keyring秘钥错误
+    - 执行`ceph-fuse`时提示`ceph-fuse[12595]: ceph mount failed with (2) No such file or directory`
+        - 本案例是因为`/aezo`目录没有创建。可在上文myfs绑定的客户端目录(/mnt/mycephfs)下创建aezo目录
+        - 貌似还可以使用`cephfs-shell`创建目录。关于cephfs-shell(目前处于alpha阶段)安装和使用可参考 https://docs.ceph.com/docs/master/cephfs/cephfs-shell/ 。其中cephfs-shell源码位于 https://raw.githubusercontent.com/ceph/ceph/v14.2.4/src/tools/cephfs/cephfs-shell
 - 也可将CephFS导出为NFS服务器、在Hadoop中使用
 
 ### 对象存储

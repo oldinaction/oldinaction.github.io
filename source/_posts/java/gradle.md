@@ -23,6 +23,7 @@ brew install gradle
 # 或者进行手动安装(下载xxx.bin.zip)
 # 和JDK版本的适配关系(否则只能使用gradle-wrapper) https://blog.csdn.net/Qhx20040819/article/details/131911031
 https://mirrors.cloud.tencent.com/gradle # https://gradle.org/releases/
+# 类似Maven配置GRADLE_HOME并将bin添加到Path
 ```
 
 ### gradle-wrapper
@@ -37,7 +38,9 @@ distributionPath=wrapper/dists
 zipStoreBase=GRADLE_USER_HOME
 zipStorePath=wrapper/dists
 # JDK1.8支持(gradle-6.5本地模式不支持JDK8)
-distributionUrl=https://mirrors.cloud.tencent.com/gradle/gradle-6.5-all.zip
+# distributionUrl=https://services.gradle.org/distributions/xxx 官网镜像
+# distributionUrl=https://mirrors.aliyun.com/macports/distfiles/gradle/xxx # 阿里
+distributionUrl=https://mirrors.cloud.tencent.com/gradle/gradle-6.5-all.zip # 腾讯
 ```
 
 ### 镜像
@@ -47,8 +50,8 @@ distributionUrl=https://mirrors.cloud.tencent.com/gradle/gradle-6.5-all.zip
 ```groovy
 allprojects{
     repositories {
-        def ALIYUN_REPOSITORY_URL = 'http://maven.aliyun.com/nexus/content/groups/public'
-        def ALIYUN_JCENTER_URL = 'http://maven.aliyun.com/nexus/content/repositories/jcenter' // 已废弃: 停止更新
+        def ALIYUN_REPOSITORY_URL = 'https://maven.aliyun.com/nexus/content/groups/public'
+        def ALIYUN_JCENTER_URL = 'https://maven.aliyun.com/nexus/content/repositories/jcenter' // 已废弃: 停止更新
         all { ArtifactRepository repo ->
             if(repo instanceof MavenArtifactRepository){
                 def url = repo.url.toString()
@@ -63,7 +66,7 @@ allprojects{
             }
         }
         maven {
-			url ALIYUN_REPOSITORY_URL
+            url ALIYUN_REPOSITORY_URL
             url ALIYUN_JCENTER_URL
         }
     }
@@ -114,6 +117,9 @@ gradle -h # 帮助
 
 # USAGE: gradle [option...] [task...]
 -q      # 安静模式，仅显示错误日志
+
+# 执行项目 gradlew 脚本中的 build 任务
+./gradlew build
 ```
 
 ## 脚本
@@ -366,6 +372,112 @@ uploadArchives {
 }
 ```
 
+## SpringBoot使用
+
+- SpringBoot和Gradle版本依赖对比: https://blog.csdn.net/weixin_72244810/article/details/134713656
+- 方式一: Maven项目转Gradle项目, 在项目目录执行`gradle init --info --type pom`, 参考: https://blog.csdn.net/l123lgx/article/details/128938675
+- 方式二: 手动创建, 项目结构如下
+
+```bash
+project
+    .gradle # gradle内部配置目录
+    build # gradle编译目录
+    gradle # gradle-wrapper
+        wrapper
+            gradle-wrapper.jar
+            gradle-wrapper.properties # 定义gradle版本
+    src
+        main
+            java
+                com
+                    example
+                        DemoApplication.java
+            resources
+                application.properties
+        test
+            java
+                com
+                    example
+                        DemoApplicationTests.java
+    build.gradle # gradle项目配置目录
+    gradlew # gradle wrapper脚本
+    gradlew.bat
+```
+
+- `build.gradle` v6.8.1
+
+```groovy
+// groovy支持 plugins {} 和 apply plugin 引入插件, 推荐第一种
+plugins {
+    id 'java' // 引入java插件
+    id 'org.springframework.boot' version '2.7.4' // 引入SpringBoot插件
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE' // 引入依赖管理插件(相当于可使用maven的dependencyManagement), 可选
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'my first demo'
+java.sourceCompatibility = JavaVersion.VERSION_1_8 // 目标JDK版本
+
+repositories {
+    mavenLocal() // 直接借用Maven本地的仓库来索取jar包
+    // maven {
+    //     allowInsecureProtocol = true // 允许 gradle 使用“不安全”的仓库并且不报警告信息
+    //     url = uri('http://xxxxx') // 仓库地址
+    // }
+    maven { url = uri('https://maven.aliyun.com/nexus/content/groups/public') }
+    maven { url = uri('https://repo.spring.io/plugins-release/') }
+    maven { url = uri('https://repo.maven.apache.org/maven2/') }
+    mavenCentral()
+}
+
+// 项目版本设置, 设置Map类型的变量
+ext {
+    set('springCloudVersion', "2021.0.4")
+    set('springCloudAlibabaVersion', "2021.0.4.0")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.14'
+    // implementation 'org.springframework.cloud:spring-cloud-starter' // 不需要写版本号，使用了dependencyManagement进行管理
+    // implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.14'
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+// 可选, 统一管理版本
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "com.alibaba.cloud:spring-cloud-alibaba-dependencies:${springCloudAlibabaVersion}"
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+```
+- 编译
+
+```bash
+# IDEA
+# build - jar只是打包项目代码为jar; build - build是打包fat jar
+gradle - Tasks - build - build
+
+# 命令行
+./gradlew build
+
+# 打包的jar在 build/libs 目录下
+```
+- 常见错误
+    - `Unsupported class file major version 61`
+        - 执行gradlw或gradlew对应的JDK版本不合适(比如v6.8.1不支持JDK17启动)
+        - 如果是命令行则需要修改环境变量JAVA_HOME
+        - 如果是idea则需要修改`File - Settings - Build, Execution, Deployment - Build Tools - Gradle - Gradle projects - Gradle JVM`
 
 
 

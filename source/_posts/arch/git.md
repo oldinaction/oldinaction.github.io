@@ -290,6 +290,7 @@ git rebase --continue
 ```bash
 # 参考: https://blog.csdn.net/icansoicrazy/article/details/128342811
 # git checkout --orphan 类似git init的状态创建新的非父分支，也就是创建一个无提交记录的分支; 之后删除master分支再重命名当前分支为master分支
+# gitlab需要设置下允许强制推送，如设置-仓库-受保护的分支-允许main分支强制推送
 # 重建Maven仓库(清除原来所有的git提交历史)
 git checkout --orphan latest_branch
 git add -A

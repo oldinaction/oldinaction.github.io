@@ -463,11 +463,35 @@ mybatis.config-location=classpath:mybatis-config.xml
             <select id="collectionSplit">
                 <!-- foreach collection支持执行函数 -->
                 <foreach collection="listStr.trim().split('\n')" item="item">
+                    
                     <bind name="listVal" value="item.trim().split('@')" />
-                    <!-- 此处直接使用#{listVal[0]}、#{listVal[1]}的方式取值会导致上面的foreach无效，每次都是取的最后一条记录的值，改成foreach则不会存在此问题 -->
+                    <!-- 
+                        1.此处直接使用#{listVal[0]}、#{listVal[1]}的方式取值会导致上面的foreach无效，每次都是取的最后一条记录的值，改成foreach则不会存在此问题
+                        2.部分情况也可以使用 ${itemVal}；由于无法精确知道数据类型，像字符串需要手动加上引号，也不推荐；使用foreach的时候split可考虑使用'@@@###@@@'等字符串分割从而组装成数组
+                    -->
                     <foreach collection="listVal" item="val">
                         #{val}
                     </foreach>
+
+                    <!-- 支持 instanceof 判断数据类型(如是整数直接trim就回报错) -->
+                    <bind name="itemVal" value="params.get(item)" />
+                    <choose>
+                        <when test="itemVal != null and itemVal instanceof String">
+                            <bind name="itemVal" value="itemVal.trim().split('@@@###@@@')" />
+                            <foreach collection="itemVal" item="val">
+                                #{val}
+                            </foreach>
+                        </when>
+                        <otherwise>
+                            <!-- 此处不能写成 #{itemVal} 否则如何后面有值为null的时候就会把前面的字段全部覆盖成null -->
+                            #{params.${item}}
+                        </otherwise>
+                    </choose>
+
+                    <!-- 支持调用静态方法或常量(有说还可以直接调用bean名称的，如: myBean@test(itemVal))，取值时只能用$，可考虑bind一下再使用# -->
+                    <if test='@cn.hutool.core.util.StrUtil@trim(itemVal) != ""'>
+                        '${@cn.hutool.core.util.StrUtil@reverse(itemVal)}'
+                    </if>
                 </foreach>
             </select>
 

@@ -348,7 +348,7 @@ alias unproxy="unset ALL_PROXY"
             app = await iterm2.async_get_app(connection)
             window = app.current_terminal_window
             # 执行命令(开启SOCKS隧道)
-            await window.async_create(connection, command='ssh -D 0.0.0.0:1088 root@8.12.12.149 "vmstat 30"')
+            await window.async_create(connection, command='ssh -D 0.0.0.0:1088 root@8.12.12.12 "vmstat 30"')
 
         iterm2.run_until_complete(main)
         ```
@@ -370,6 +370,32 @@ ln -s /opt/homebrew/Cellar/lrzsz/0.12.20_1/bin/lsz /usr/local/bin/sz
 # 参考：https://blog.csdn.net/weixin_42948074/article/details/120494608
 # 2.增加iterm2-zmodem脚本，并chmod +x设置可执行
 # 3.配置item2触发器
+```
+- 通过命令启动多个Items2窗口并执行不同命令
+
+```bash
+#!/bin/bash  
+
+# 使用mac的AppleScript脚本编辑器
+osascript -e '
+tell application "iTerm"
+    activate
+    set myWindow to (create window with default profile)
+    
+    -- 创建第一个标签页
+    tell myWindow
+        tell current session
+            write text "echo This is Tab 1"
+        end tell
+
+        -- 创建第二个标签页
+        create tab with default profile
+        tell current session 
+            write text "echo This is Tab 2"
+        end tell
+    end tell
+end tell
+'
 ```
 
 ### JAVA

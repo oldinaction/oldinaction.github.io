@@ -144,7 +144,7 @@ server {
     - 全局CORS配置，声明一个`WebMvcConfigurer`的bean
     - 基于`Filter`，声明一个`CorsFilter`的bean
 
-#### springboot解决跨域
+#### SpringBoot解决跨域
 
 - **使用了下列方法如果仍然出现跨域时**
     - 如果是使用Filter解决跨域，检查是否在进入此跨域Filter之前，请求已经返回，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
@@ -183,7 +183,8 @@ public Filter corsFilter() {
     // org.springframework.web.cors
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOrigin("*");
+    // config.addAllowedOrigin("*");
+    config.addAllowedOriginPattern("*");
     config.addAllowedHeader("*");
     config.addAllowedMethod("*");
     config.setAllowCredentials(true);
@@ -211,9 +212,9 @@ public WebMvcConfigurer corsConfigurer() {
 @CrossOrigin(origins = ["http://localhost:8080"])
 ```
 
-#### spring security的cors配置 [^3]
+#### SpringSecurity的cors配置
 
-- 开启cosr
+- 开启cors [^3]
 
     ```java
     protected void configure(HttpSecurity http) throws Exception {
@@ -251,7 +252,7 @@ public WebMvcConfigurer corsConfigurer() {
     https- http - not allowed https嵌套http不支持
     https- https - allowed
     https - https - insecure scripts - not allowed
-    https - https - inscure images - allowed but the browser will warn
+    https - https - insecure images - allowed but the browser will warn
     ```
 - iframe页面获取父页面地址
     - 如果iframe与父页面遵循同源策略(属于同一个域名)，可通过`parent.location`或`top.location`获取父页面url；如果不遵循同源策略，则无法获取

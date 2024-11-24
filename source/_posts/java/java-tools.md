@@ -330,11 +330,6 @@ Template template = engine.getTemplate("templates/email/velocity_test.vtl");
 String result = template.render(Dict.create().set("name", "Hutool"));
 ```
 
-## Sa-Token
-
-- 官网：https://sa-token.cc/
-- 默认将数据保存在内存中，分布式环境可设置成保存到Redis；和JWT集成支持Stateless无状态模式
-
 ## Spring工具类
 
 ```java
@@ -342,6 +337,35 @@ String result = template.render(Dict.create().set("name", "Hutool"));
 UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(url).build();
 uriComponents.getQueryParams().get("name"); // 返回List
 ```
+
+## commons-tools
+
+### commons-lang
+
+```java
+// 截取字符串. 直接 str.substring 时长度不足会报错
+StringUtils.substring(str, 0, 255);
+```
+
+### 集合(commons-collections)
+
+- commons-collections#commons-collections
+- Map处理
+
+```java
+// map取值减少强转
+String name = MapUtils.getString(map, "name");
+Integer age = MapUtils.getInteger(map, "age");
+
+// 数组转Map
+String[][] arr = {{"a", "1"}, {"b", "2"}};
+Map<String, String> retMap = MapUtils.putAll(new HashMap<>(), arr); // {"a": "1", "b": "2"}
+```
+
+## Sa-Token
+
+- 官网：https://sa-token.cc/
+- 默认将数据保存在内存中，分布式环境可设置成保存到Redis；和JWT集成支持Stateless无状态模式
 
 ## Excel/Word/Pdf操作
 
@@ -737,22 +761,33 @@ Map map = (Map) Yaml.load(yamlStr);
 
 ```java
 // 使用
-ObjectMapper objectMapper = new ObjectMapper();
+ObjectMapper objectMapper = new ObjectMapper(); // 一般使用单例
 String str = objectMapper.writeValueAsString(obj); // 序列化
 Map<String, Object> map = objectMapper.readValue(jsonStr, Map.class); // 反序列化，得到的Map为LinkedHashMap(有序)
 Class obj = objectMapper.readValue(jsonStr, clazz); // 反序列化
+User user = objectMapper.convertValue(userMap, User.class); // 将Map转为对象
+Map<String, Object> userMap = objectMapper.convertValue(user, Map.class); // 对象转map
 
-// 扩展配置-序列化
-// 配置参数参考：com.fasterxml.jackson.databind.SerializationFeature
-            // 忽略空对象
-objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            // 遇到空对象是否失败(默认true)
-            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-// INDENT_OUTPUT 是否缩放排列输出，默认false，有些场合为了便于排版阅读则需要对输出做缩放排列
 
-// 扩展配置-反序列化
-// 反序列化时忽略对象中不存在的json字段, 防止报错
-objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+private final static String DATE_FORMATTER = "yyyy-MM-dd";
+private final static String DATE_TIME_FORMATTER = "yyyy-MM-dd HH:mm:ss";
+@Bean
+public ObjectMapper objectMapper() {
+    return new Jackson2ObjectMapperBuilder()
+                .createXmlMapper(false)
+                // 设值序列化时的时间处理(如果设置了ObjectMapper的Bean但是又没设置时间，可能Springboot原来的对象的时间格式化会有问题)
+                .serializerByType(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DATE_FORMATTER)))
+                .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMATTER)))
+                .build()
+                // 扩展配置-序列化. 配置参数参考：com.fasterxml.jackson.databind.SerializationFeature
+                // INDENT_OUTPUT 是否缩放排列输出，默认false，有些场合为了便于排版阅读则需要对输出做缩放排列
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL) // 忽略空对象
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false) // 遇到空对象是否失败(默认true)
+                // 扩展配置-反序列化
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false) // 反序列化时忽略对象中不存在的json字段, 防止报错
+                .addMixIn(JSONNull.class, JSONNullMixIn.class);
+}
+
 
 // 模块
 // 定制化 Schema 序列化方式
@@ -804,9 +839,16 @@ objectMapper = new Jackson2ObjectMapperBuilder()
 - [文档](https://github.com/alibaba/fastjson/wiki/Quick-Start-CN)
     - [fastjson最佳实践](http://i.kimmking.cn/2017/06/06/json-best-practice/)
 - 自定义序列化之过滤器，参考上述文档，案例参考下文
-    - 可以在每次JSON.toJSONString的时候单独传入过滤器
+    - 可以在每次 JSON.toJSONString 的时候单独传入过滤器
 - 其他说明
     - 像fastjson、jackson等工具类，将对象转成json字符串时，如果继承了Map即可，则默认会忽略其他属性，仅会序列化Map的值，貌似可以显示指定
+- 示例
+
+```java
+JSON.toJSONString(obj); // 序列化
+JSON.parseObject(obj, Map.class); // 反序列化
+```
+
 - 全局配置(序列化/反序列化)案例
 
 ```java

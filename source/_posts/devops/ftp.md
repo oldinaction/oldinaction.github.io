@@ -16,7 +16,36 @@ tags: [server]
 
 ## FTP客户端
 
-- Centos下的ftp客户端(和window下的xftp类似)
+- xftp(仅支持Window)
+- WinSCP(仅支持Window)
+    - [官网](https://winscp.net/)
+    - [支持脚本化操作](https://winscp.net/eng/docs/scripting). 有时候Windows的ftp命令不行可考虑使用此脚本
+```bat
+@echo off
+set FTP_HOST=192.168.1.100
+set FTP_PORT=211
+set FTP_USER=administrator
+set FTP_PASSWORD=111111
+set FTP_REMOTE_PATH=/
+set LOCAL_PATH=D:\test\*
+set UPLOAD_PATH=D:\test\demo.txt
+set REMOTE_UPLOAD_PATH=/test
+
+REM 使用WinSCP软件连接FTP服务器，先"put" 命令上传指定路径文件后，再 "get" 命令,下载 FTP 服务器根目录的所有文件，同时将日志记录到指定文件中 
+(
+echo option batch abort
+echo option confirm off
+echo open ftp://%FTP_USER%:%FTP_PASSWORD%@%FTP_HOST%:%FTP_PORT%
+echo put %UPLOAD_PATH% %REMOTE_UPLOAD_PATH% 
+echo get %FTP_REMOTE_PATH%* %LOCAL_PATH%
+echo exit
+) | "C:\Program Files (x86)\WinSCP\WinSCP.com" /command /log=Z:\test\winscp.log
+
+pause
+```
+- FileZilla
+    - FileZilla Pro CLI版支持脚本化操作
+- **ftp命令**(windows自带, Centos参考下文)
 
 ```bash
 ## 安装ftp客户端
@@ -41,6 +70,17 @@ passive
 
 ## wget下载
 wget ftp://ip --ftp-user=user --ftp-password=passwd
+
+## windows
+ftp -s:ftp_commands.txt
+# ftp_commands.txt
+open 192.168.1.100 21
+demo_user
+demo_pass
+quote PASV
+binary
+put D:\test.txt
+bye
 ```
 
 ## FTP服务器
@@ -329,6 +369,7 @@ spec:
 - 说明
     - 如果注册了服务，可以关闭窗口，或最小化
 
+### Serv-U
 
 
 ---

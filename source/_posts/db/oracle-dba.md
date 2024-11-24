@@ -1105,16 +1105,31 @@ impdp \'\/ as sysdba\' attach=SYS_IMPORT_FULL_01 # attach到当前任务，如SY
 #### sql导出导入(sqlplus)
 
 - 导出查询结果
+    - 基于SPOLL
+    - 对于CLOB等字段比较麻烦
 
 ```sql
-set echo off;
-set heading off;
-set feedback off;
-spool /home/myout.sql
-select text from user_source;-- 查询所有的存储过程(运行时去掉此备注)
-spool off;
+-- 运行时去掉备注
+set echo off; -- 不显示执行的SQL命令
+set heading off; -- 去掉select结果的字段名，只显示数据
+set feedback off; -- 关闭“已选择XX行”的提示
+set termout off; -- 关闭屏幕上的SQL执行结果显示
+set trimspool on; -- 去除重定向（Spool）输出时每行的拖尾空格
+set pagesize 0; -- 输出每页行数，缺省为24，为了避免分页，可设定为0
+spool /home/myout.csv -- 指定导出文件，导出开始
+select name || ',' || text from user_source; -- 查询所有的存储过程(实际是把查询结果导出到文件, 此处逗号分割可用csv接收)
+spool off; -- 导出结束
+
+-- 如果要导出insert语句, select如: SELECT 'INSERT INTO table_name (column1, column2, ...) VALUES (' || column1 || ', ' || column2 || ', ...);' FROM table_name;
+-- 待优化: 还需考虑数据类型, 如字符串需要加引号, 日志转换等
+select 'select ''insert into T_TEST('
+|| LISTAGG(column_name, ',') WITHIN GROUP (ORDER BY column_id)
+|| ') values('' || '
+|| LISTAGG(column_name, ' || '','' || ') WITHIN GROUP (ORDER BY column_id)
+|| ' || '');'' from T_TEST'
+from dba_tab_columns where table_name = 'T_TEST';
 ```
-- 导入：`@/home/my.sql`，或者命令行运行`sqlplus root/root@127.0.0.1:1521/orcl @my.sql`
+- 导入：`@/home/imp.sql`，或者命令行运行`sqlplus root/root@127.0.0.1:1521/orcl @imp.sql`
 
 #### Oracle表结构与Mysql表结构转换
 

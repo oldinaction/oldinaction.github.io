@@ -273,6 +273,7 @@ popd
     - `-t` 结束该进程 
     - `-f` 强制结束该进程以及所有子进程
     - `/im` 指定要终止的进程的图像名，如`taskkill /F /IM notepad.exe`
+- `certutil -hashfile D:\test.txt MD5`(默认是SHA1) 计算文件的MD5值(linux是 md5sum)
 
 ## 结合PowerShell
 

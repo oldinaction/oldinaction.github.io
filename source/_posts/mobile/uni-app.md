@@ -56,6 +56,18 @@ tags: [H5, 小程序, App, mobile]
 - `manifest.json` 文件是应用的配置文件，用于指定应用的名称、图标、权限(如定位)等
 
     ```json
+    // 对应微信小程序的app.json
+    "mp-weixin" : {
+        "appid" : "wx111111111111111",
+        // 部分场景需要增加授权申明 参考: https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/authorize.html
+        // 部分涉及到用户隐私的授权(如麦克风获取、相册写入等权限), 还需要在小程序后台添加《用户隐私保护指引》且通过审核, 否则调用权限获取时报错 "fail appid privacy api banned"
+        // 否则用户拒绝后在设置中无法找到开启选项
+        "permission" : {
+            "scope.record" : {
+                "desc" : "你的麦克风将用于语音对话"
+            }
+        },
+    },
     // h5模式相关配置(非必须)
     "h5" : {
         // 项目发布在/test-demo1/端点下，只支持发行的时候(开发时运行无效)
@@ -398,17 +410,8 @@ uni.openEmbeddedMiniProgram({
     - 参考 https://www.jianshu.com/p/7969e4fb2d4e
     - Symbol模式需要引入js才能显示彩色，建议下载成png图片
 
-## 常见业务
+## API
 
-### web-view开发
-
-- 参考[weixin.md#web-view开发](/_posts/mobile/weixin.md#web-view开发)
-
-### 位置
-
-- 使用uni.chooseLocation()打开地图选择位置(无需操作dom)
-    - 参考：https://blog.csdn.net/Handsome_gir/article/details/129159563
-    - 需手动修改manifest.json源码，设置requiredPrivateInfos字段；并删除之前的编译文件重新编译
 
 ### 多媒体处理
 
@@ -445,6 +448,16 @@ uni.openEmbeddedMiniProgram({
 - 可结合后端调用如[ai-soft.md#阿里-语音识别](/_posts/arch/ai-soft.md#语音识别)
 
 ```js
+// manifest.json增加授权申明, 参考[文件结构](#文件结构)
+"mp-weixin" : {
+    // 对应微信小程序的app.json
+    "permission" : {
+        "scope.record" : {
+            "desc" : "你的麦克风将用于语音对话"
+        }
+    },
+}
+
 async sendAudioMsg() {
     let flag = await this.checkRecordAuth()
     if (!flag) return
@@ -486,7 +499,7 @@ checkRecordAuth() {
                             fail(err2) {
                                 // openSetting:fail can only be invoked by user TAP gesture.
                                 console.log(err2)
-                                that.$squni.toast('请在小程序右上角胶囊(···)的设置中开启麦克风权限')
+                                that.$squni.toast('请在右上角胶囊(···)的设置中开启麦克风权限')
                             }
                         })
                     }
@@ -530,9 +543,33 @@ audioBufferSource.onended = (res) => {
     // 解决方案: 记录audioBufferSource播放的位置，下次重新创建audioBufferSource，并结合start offset还原到原播放位置 (由于需要手动计时, 可能会有一点误差)
     // 并且在 webAudioContext.suspend() 的时候需要将原 audioBufferSource 清除(disconnect、stop、buffer = null、onended = null), 否则 webAudioContext.resume 的时候可能会出现语音重叠播放的情况
 }
+// 连接到播放节点并进行播放. IOS需要关闭静音模式
 audioBufferSource.connect(webAudioContext.destination)
 audioBufferSource.start() // 支持设置播放位置offset(如小音频文件3s, 可设置从1s处开始播放)
 ```
+
+### 位置
+
+- 使用uni.chooseLocation()打开地图选择位置(无需操作dom)
+    - 参考：https://blog.csdn.net/Handsome_gir/article/details/129159563
+    - 需手动修改manifest.json源码，设置requiredPrivateInfos字段；并删除之前的编译文件重新编译
+
+### 设备
+
+#### 振动
+
+```js
+// 短振. IOS需要开启声音与触感-系统触感反馈
+uni.vibrateShort({})
+// 长振
+uni.vibrateLong({})
+```
+
+## 常见业务
+
+### web-view开发
+
+- 参考[weixin.md#web-view开发](/_posts/mobile/weixin.md#web-view开发)
 
 ### 多环境编译问题
 
@@ -933,6 +970,29 @@ node wuWxapkg.js ../decrypt/dec.wxapkg
     <div>显示在上面</div>
     <span>显示在下面</span>
 </span>
+```
+- 固定底部按钮
+
+```html
+<view style="margin-bottom: 200rpx;">上方元素设置margin防止遮挡</view>
+<view class="flex flex-direction align-center margin-top-sm footer">
+    <view class="flex text-lg text-bold" style="line-height: 32rpx;">原价 <view style="text-decoration: line-through;">29.9</view></view>
+    <button class="bg-cyan shadow margin-top-sm" style="width: 100%;" @tap="gotoPay">9.9元（付费开通）</button>
+</view>
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 694rpx;
+    background: #FFFFFF;
+    padding: 16rpx 30rpx 16rpx 30rpx;
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: content-box;
+    border-top: 1rpx solid #efefef;
+    z-index: 999;
+}
 ```
 
 ### uView插件

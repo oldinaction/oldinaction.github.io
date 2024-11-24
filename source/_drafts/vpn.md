@@ -6,6 +6,10 @@ categories: extend
 tags: [linux, network]
 ---
 
+## 简介
+
+- [GFWList](https://github.com/gfwlist/gfwlist) 有完整的GFW域名列表
+
 ## centos7安装虚拟办公网络
 
 - 梯子推荐: https://9.234456.xyz/abc.html
@@ -240,6 +244,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         - 命令行`reboot`不会导致ip/密码等修改。删除vps重新创建不足1小时按1小时计费，重装系统正常计费(不同于删除vps)
     - 搬瓦工
 - **v2ray单独使用**(可不使用CDN，比直接使用SS等安全。测试Youtube的Connection Speed=7000左右，看1080P妥妥的)
+    - 教程文档参考 `https://www.v2ray.com/`
     - v2ray服务端(vps端): **推荐**基于[x-ui管理面板](https://github.com/vaxilu/x-ui)
     
         ```bash
@@ -330,7 +335,19 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
             - 配置好后浏览Pac文件会发现上面的配置已经更新
             - 如果不生效，可重启一下客户端
 
-## OpenClash
+## 网络代理客户端
+
+### Proxifier
+
+- 网络代理工具, Socks5客户端, 支持基于应用程序、基于域名IP等方式进行代理设置
+- 支持Windos、Mac
+
+### Sockscap
+
+- 网络代理工具, Socks5客户端, 支持基于应用程序、基于域名IP等方式进行代理设置
+- 仅支持Windows
+
+### OpenClash
 
 - Clash 和 V2Ray 都是网络代理工具
     - Clash 支持多种代理协议，如 Shadowsocks、Vmess、Trojan 等；Clash 的配置可能会相对复杂一些
@@ -338,6 +355,11 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
 - 使用教程
     - https://github.com/Aethersailor/Custom_OpenClash_Rules
     - https://blog.forecho.com/use-openclash.html
+
+### V2Ray
+
+- v2ray-core官方: https://github.com/v2fly/v2ray-core
+- 中文文档 https://www.v2ray.com/
 
 
 ---

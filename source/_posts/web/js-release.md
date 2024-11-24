@@ -194,7 +194,161 @@ if (defaultComponents === 'ivew') {
 ### Promise/async/await
 
 - uni-app使用场景参考：[uni-app.md#onLaunch等同步写法](/_posts/mobile/uni-app.md#onLaunch等同步写法)
-- Promise基本用法
+- [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
+    - 说明
+        - `async`：把它放在函数声明之前，使其成为 async function。**可单独使用，被标识的函数成为异步函数，返回Promise对象**
+        - `await`：只能在异步函数（async修饰）里面才起作用。**必须和async联用**
+        - **在forEach/map/reduce等函数中不能直接使用await调用其他函数(for和for...of中可以)，尽管在回调函数的参数上加async也不行**，见下列
+            - 原理应该是foreach内部封装了while，循环并行执行，而且并行执行数组的所有callback函数，不会等待里面的callback的返回
+            - forEach回调函数是异步(并行)执行的，但是必须等所有的回调执行完才会执行forEach后面的代码
+        - `return new Promise((resolve, reject) => {...})` 返回一个异步对象，此时await此对象时，不管内部是否为同步，只有当执行resolve函数后，await后面的代码才会执行。且resolve执行完成之后，此对象的函数体仍然会继续往后执行
+- async简单使用
+
+    ```js
+    // 1.async
+    async function hello() { return "Hello" }
+    // **等同于**
+    async function hello() { return new Promise((resolve, reject) => {resolve("Hello")}) }
+    hello() // 返回一个 Promise
+
+    // 2.async
+    let hello = async () => { return "Hello" }
+    hello().then((data) => console.log(data)).catch(err => console.log(err)) // 或者 hello().then(console.log)
+
+    // 必须在forEach回调函数参数处加async才可正常使用，for和for...of中可直接使用await
+    async test() {
+        arr.forEach(async (item, index) => {
+            await hello()
+        })
+    } 
+    ```
+- **async、await、Promise.all**
+
+    ```js
+    function timeoutPromise(interval) {
+        return new Promise((resolve, reject) => {
+            setTimeout(function(){
+                resolve("done");
+            }, interval);
+        });
+    };
+
+    // 方式一：耗时9004。简单async、await，下面3个函数要依次等待执行，但是 timeTest1 仍然是一个异步函数(返回了 Promise 对象)
+    async function timeTest1() {
+        await timeoutPromise(3000);
+        await timeoutPromise(3000);
+        await timeoutPromise(3000);
+    }
+
+    // 方式二：耗时3002。通过将 Promise 对象存储在变量中来同时开始3个timeoutPromise，然后同步等待结果
+    async function timeTest2() {
+        const timeoutPromise1 = timeoutPromise(3000);
+        const timeoutPromise2 = timeoutPromise(3000);
+        const timeoutPromise3 = timeoutPromise(3000);
+
+        await timeoutPromise1;
+        await timeoutPromise2;
+        await timeoutPromise3;
+    }
+
+    // **方式三**：耗时3002。Promise.all
+    // 返回结果顺序和请求装入顺序一一对应。如可用于如字典翻译等场景，需要等业务数据和字典数据同时返回后进行数据处理
+    async function timeTest3() {
+        const timeoutPromise1 = timeoutPromise(3000);
+        const timeoutPromise2 = timeoutPromise(3000);
+        const timeoutPromise3 = timeoutPromise(3000);
+
+        let values = await Promise.all([timeoutPromise1, timeoutPromise2, timeoutPromise3]);
+        console.log(values) // ["done", "done", "done"]
+    }
+
+    let startTime = Date.now();
+    timeTest1().then(() => {
+        let finishTime = Date.now();
+        let timeTaken = finishTime - startTime;
+        alert("Time taken in milliseconds: " + timeTaken);
+    })
+    ```
+- **async、forEach/map不建议联用**
+
+    ```js
+    var test = {
+        main: () => {
+            // 普通for，结果为顺序执行，耗时较长。start-1 -> return-1 -> end-1 -> ... -> over
+            test.run()
+        },
+        main2: () => {
+            // 存在异步，耗时较短。start-1 -> 顺序 -> start-10 -> return-1 -> end-1 -> 顺序 -> over
+            test.run2()
+        },
+        main3: () => {
+            // 存在异步，耗时较短。start-1 -> 顺序 -> start-10 -> return-1 -> end-1 -> 顺序 -> over
+            test.run3()
+        },
+        run: async () => {
+            for (let index = 0; index < 10; index++) {
+                console.log('start-' + index)
+                await test.timeoutPromise(index * 10).then(data => {
+                    console.log('return-' + index)
+                })
+                console.log('end-' + index)
+            }
+            console.log('over')
+        },
+        run2: () => {
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(async (index) => {
+                console.log('start-' + index)
+                await test.timeoutPromise(index * 10).then(data => {
+                    console.log('return-' + index)
+                })
+                console.log('end-' + index)
+            })
+            console.log('over')
+        },
+        run3: async () => {
+            // 此处去掉 Promise.all 或者换成 map 结果都一样
+            await Promise.all([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(async (index) => {
+                console.log('start-' + index)
+                await test.timeoutPromise(index * 10).then(data => {
+                    console.log('return-' + index)
+                })
+                console.log('end-' + index)	
+            }))
+            console.log('over')
+        },
+        timeoutPromise: (interval) => {
+            return new Promise((resolve, reject) => {
+                setTimeout(function(){
+                    resolve("done");
+                }, interval);
+            });
+        }
+    }
+    ```
+- axios返回Promise
+
+```js
+function res() {
+    // 返回Promise
+    return this.axios.post("http://localhost/test", {})
+            .then(response => {
+                const res = response.data
+                const status = res.status
+
+                // 返回数据
+                return {status, res}
+            });
+}
+
+function test() {
+    res().then(data => {
+        // data为上面返回的数据
+        console.log(data.status)
+        console.log(data.res)
+    })
+}
+```
+- **Promise案例**
 
 ```js
 // ==============================基本用法1
@@ -234,7 +388,7 @@ let promiseRet = new Promise(function (resolve, reject) {
 promiseRet.then(data => {
     console.log('1:', data);
     return data
-}).then(async data => { // 此处加async不会影响后面的then
+}).then(async data => { // **此处加async不会影响后面的then**
     await new Promise((resolve, reject) => {
          setTimeout(function () {
             console.log('2:', data);
@@ -335,160 +489,6 @@ fetch(2).then(res => {
 fetch(3).then(res => {
     console.log(res) // undefined
 })
-```
-- [async、await](https://developer.mozilla.org/zh-CN/docs/learn/JavaScript/%E5%BC%82%E6%AD%A5/Async_await)
-    - 说明
-        - `async`：把它放在函数声明之前，使其成为 async function。**可单独使用，被标识的函数成为异步函数，返回Promise对象**
-        - `await`：只能在异步函数（async修饰）里面才起作用。**必须和async联用**
-        - **在forEach/map/reduce等函数中不能直接使用await调用其他函数(for和for...of中可以)，尽管在回调函数的参数上加async也不行**，见下列
-            - 原理应该是foreach内部封装了while，循环并行执行，而且并行执行数组的所有callback函数，不会等待里面的callback的返回
-            - forEach回调函数是异步(并行)执行的，但是必须等所有的回调执行完才会执行forEach后面的代码
-        - `return new Promise((resolve, reject) => {...})` 返回一个异步对象，此时await此对象时，不管内部是否为同步，只有当执行resolve函数后，await后面的代码才会执行。且resolve执行完成之后，此对象的函数体仍然会继续往后执行
-    - async简单使用
-
-        ```js
-        // 1.async
-        async function hello() { return "Hello" }
-        // 等同于
-        // async function hello() { return new Promise((resolve, reject) => {resolve("Hello")}) }
-        hello() // 返回一个 Promise
-
-        // 2.async
-        let hello = async () => { return "Hello" }
-        hello().then((data) => console.log(data)).catch(err => console.log(err)) // 或者 hello().then(console.log)
-
-        // 必须在forEach回调函数参数处加async才可正常使用，for和for...of中可直接使用await
-        async test() {
-            arr.forEach(async (item, index) => {
-                await hello()
-            })
-        } 
-        ```
-    - async、await、Promise.all
-
-        ```js
-        function timeoutPromise(interval) {
-            return new Promise((resolve, reject) => {
-                setTimeout(function(){
-                    resolve("done");
-                }, interval);
-            });
-        };
-
-        // 方式一：耗时9004。简单async、await，下面3个函数要依次等待执行，但是 timeTest1 仍然是一个异步函数(返回了 Promise 对象)
-        async function timeTest1() {
-            await timeoutPromise(3000);
-            await timeoutPromise(3000);
-            await timeoutPromise(3000);
-        }
-
-        // 方式二：耗时3002。通过将 Promise 对象存储在变量中来同时开始3个timeoutPromise，然后同步等待结果
-        async function timeTest2() {
-            const timeoutPromise1 = timeoutPromise(3000);
-            const timeoutPromise2 = timeoutPromise(3000);
-            const timeoutPromise3 = timeoutPromise(3000);
-
-            await timeoutPromise1;
-            await timeoutPromise2;
-            await timeoutPromise3;
-        }
-
-        // **方式三**：耗时3002。Promise.all
-        // 返回结果顺序和请求装入顺序一一对应。如可用于如字典翻译等场景，需要等业务数据和字典数据同时返回后进行数据处理
-        async function timeTest3() {
-            const timeoutPromise1 = timeoutPromise(3000);
-            const timeoutPromise2 = timeoutPromise(3000);
-            const timeoutPromise3 = timeoutPromise(3000);
-
-            let values = await Promise.all([timeoutPromise1, timeoutPromise2, timeoutPromise3]);
-            console.log(values) // ["done", "done", "done"]
-        }
-
-        let startTime = Date.now();
-        timeTest1().then(() => {
-            let finishTime = Date.now();
-            let timeTaken = finishTime - startTime;
-            alert("Time taken in milliseconds: " + timeTaken);
-        })
-        ```
-    - async、forEach/map不建议联用
-
-        ```js
-        var test = {
-            main: () => {
-                // 普通for，结果为顺序执行，耗时较长。start-1 -> return-1 -> end-1 -> ... -> over
-                test.run()
-            },
-            main2: () => {
-                // 存在异步，耗时较短。start-1 -> 顺序 -> start-10 -> return-1 -> end-1 -> 顺序 -> over
-                test.run2()
-            },
-            main3: () => {
-                // 存在异步，耗时较短。start-1 -> 顺序 -> start-10 -> return-1 -> end-1 -> 顺序 -> over
-                test.run3()
-            },
-            run: async () => {
-                for (let index = 0; index < 10; index++) {
-                    console.log('start-' + index)
-                    await test.timeoutPromise(index * 10).then(data => {
-                        console.log('return-' + index)
-                    })
-                    console.log('end-' + index)
-                }
-                console.log('over')
-            },
-            run2: () => {
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(async (index) => {
-                    console.log('start-' + index)
-                    await test.timeoutPromise(index * 10).then(data => {
-                        console.log('return-' + index)
-                    })
-                    console.log('end-' + index)
-                })
-                console.log('over')
-            },
-            run3: async () => {
-                // 此处去掉 Promise.all 或者换成 map 结果都一样
-                await Promise.all([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(async (index) => {
-                    console.log('start-' + index)
-                    await test.timeoutPromise(index * 10).then(data => {
-                        console.log('return-' + index)
-                    })
-                    console.log('end-' + index)	
-                }))
-                console.log('over')
-            },
-            timeoutPromise: (interval) => {
-                return new Promise((resolve, reject) => {
-                    setTimeout(function(){
-                        resolve("done");
-                    }, interval);
-                });
-            }
-        }
-        ```
-- axios返回Promise
-
-```js
-function res() {
-    // 返回Promise
-    return this.axios.post("http://localhost/test", {})
-            .then(response => {
-                const res = response.data
-                const status = res.status
-
-                // 返回数据
-                return {status, res}
-            });
-}
-
-function test() {
-    res().then(data => {
-        // data为上面返回的数据
-        console.log(data.status)
-        console.log(data.res)
-    })
-}
 ```
 
 ### 扩展运算符(...)
@@ -1346,7 +1346,9 @@ else window.onload = createIframe;
     - onMouseUp：在松开鼠标的时候触发，只要弹起的时候在你所要执行的区域上，就会触发。
     - 即onClick的作用=onMouseDown（按下触发）+onMouseUp（弹起触发）
 
-### clientHeight、offsetHeight、scrollHeight区别
+### clientHeight/offsetHeight/scrollHeight区别
+
+![clientHeight/clientWidth](../../data/images/2024/js-release/image.png)
 
 - 整个窗口大小
     - window.innerHeight 是DOM视口的大小，包括滚动条
@@ -1355,14 +1357,14 @@ else window.onload = createIframe;
 - innerHeight问题
     - 在不支持window.innerHeight的浏览器中，可以读取documentElement和body的高度，它们的大小和window.innerHeight大小非常接近
     - 如果页面被嵌入到iframe中，上面的都拿不到高度，可使用`window.screen.heigh`拿到高度
-    - `var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || window.screen.heigh;`
+    - `const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || window.screen.heigh;`
 - [滚动高度](https://blog.csdn.net/shibazijiang/article/details/103894498)
     - clientHeight 内部可视区域大小，不含滚动条的高度
     - offsetHeight 整个可视区域大小，包括border和scrollbar在内
     - scrollHeight 元素内容的高度，包括溢出部分
     - scrollTop 元素内容向上滚动了多少像素，如果没有滚动则为0
-    - 对应的横向属性为：clientWidth, offsetWidth, scrollWidth, scrollLeft
-    - 判断滚动条是否见底：scrollHeight === clientHeight + scrollTop
+    - 对应的横向属性为: clientWidth, offsetWidth, scrollWidth, scrollLeft
+    - 判断滚动条是否见底: scrollHeight === clientHeight + scrollTop
 - https://www.jianshu.com/p/e874ae203a60
 
 ## 兼容性
