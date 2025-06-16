@@ -55,6 +55,10 @@ slmgr /skms kms.03k.org
 slmgr /ato
 ```
 
+### 永久关闭Windows自动更新
+
+- https://blog.csdn.net/lihuiyun184291/article/details/125260468
+
 ## 常用命令
 
 - `ipconfig` 查看ip地址
@@ -117,17 +121,38 @@ slmgr /ato
     - 管理员模式执行 `nginx-service.exe install` 进行nginx服务注册
     - `nginx-service.exe uninstall` 卸载nginx服务
 
-### 任务计划(定时任务)
+### 任务计划程序(定时任务)
 
 - 运行栏输入`taskschd.msc`打开`计划任务工具/程序`
 - 如创建开机启动任务
     - 任务计划程序库 - 选择用户 - 创建任务
-        - 常规：任务名称`start-outlook`，描述`开机启动outlook`
+        - 常规：任务名称`start-outlook`，描述`开机启动outlook`；勾选"不管用户是否登录都要运行"，可选"使用最高权限运行"
         - 触发器：新建 - 开始任务"启动时" - 确定
         - 操作：新建 - 启动程序 - 选择程序或脚本(如果安装了bash.exe，也可以执行sh脚本)
     - 运行exe程序的最好写成bat脚本运行。如nginx.exe写到bat脚本中去运行，然后任务中运行此脚本
 - 创建定时任务
     - 打开任务计划程序程序后 - 创建基本任务 - 设置运行频率和脚本即可
+- 更新任务时提示`一个或多个指定的参数无效`: 常规 - 安全选项 - 更改用户或组 - 高级 - 立即查找 - 选择当前管理员用户名后“确定”
+
+### 共享文件夹
+
+- 右键点击文件夹 - 共享 - 添加共享用户(选择 Everyone 表示允许局域网内的所有用户访问) - 设置共享权限
+- 启用网络发现和文件共享: 控制面板 - 网络和 Internet
+    - 设置网络为专用网络(当然其他网络也行)
+    - 高级网络设置 - 高级共享设置 - 设置专用网络开启网络发现和共享 - 修改所有网络(关闭密码保护的共享)
+
+### 远程桌面
+
+- Win+R运行`mstsc`打开远程桌面
+    - `mstsc -admin` 以管理模式进入远程桌面，可以解决`由于没有远程桌面授权服务器可以提供许可证`问题(或者修改目标服务器的注册表)
+
+### 关闭安全中心通知
+
+- Win+R运行`gpedit.msc` - “计算机配置”→“管理模板”→“Windows 组件”→“Windows 安全中心” - 通知 - 隐藏所有通知 - 改成“已启用”
+
+### 文件管理器不显示边框
+
+- Win+R运行`systempropertiesadvanced.exe`，性能设置 - 勾选"在窗口下显示阴影"
 
 ## bat脚本
 
@@ -150,9 +175,14 @@ slmgr /ato
 
 ## 软件下载推荐
 
-- `Navicat` Navicat 15破解教程：https://www.cnblogs.com/poloyy/p/12231357.html
+- `Navicat`
+    - Navicat Premium 17破解: 安装后, 下载破解证书winmm.dll到安装路径, 管理员身份执行navicat.bat, 参考: https://blog.csdn.net/weixin_44491016/article/details/144092393
+    - Navicat 15破解教程: https://www.cnblogs.com/poloyy/p/12231357.html
     - 使用手册: https://www.navicat.com.cn/support/online-manual
-    - 快捷键: https://www.navicat.com.cn/manual/online_manual/cn/navicat_16/mac_manual/#/hot_keys
+    - **快捷键**: https://www.navicat.com.cn/manual/online_manual/cn/navicat_16/mac_manual/#/hot_keys
+        - `Ctrl + N` 新开查询窗口
+        - `Ctrl + R` 执行
+        - `Ctrl + /` 注释
         - `Ctrl + D` 从数据视图进入设计视图
 - `Visio` 流程图。[Microsoft visio pro 2019 32位/64位](https://www.jb51.net/softs/634165.html#downintro2)
 - `DBeaver` 数据库连接工具(开源免费，支持数据库丰富)
@@ -174,15 +204,18 @@ slmgr /ato
 ### ssh服务器
 
 - Cygwin
+- [OpenSSH](https://www.openssh.com/): Windows 10以上自带，也可自行安装. 包含了 ssh, scp, sftp; sshd, sftp-server, ssh-agent; ssh-add, ssh-keysign, ssh-keyscan, ssh-keygen 命令
+    - 基于zip包安装
+    - https://blog.csdn.net/nl9788/article/details/131653284
+- WSL: Windows 子系统 for Linux, Windows 10以上自带
+- [freeSSHd and freeFTPd](http://www.freesshd.com/)
+- MobaXterm包含的ssh服务器
 - [PowerShell Server](https://www.nsoftware.com/powershell/server/)，部分命令语法和cmd不同，详细查看
     - Service - Run as a Windows Service 作为服务运行则可自动启动(默认为普通程序运行)
     - Server Setting 设置端口和欢迎语
     - SFTP：尽管不勾选也是开启SFTP的，保险起见可勾选。修改SFTP根目录
     - Authentication 认证信息，默认是基于windows密码认证；可增加基于秘钥认证，勾选Enable Public Key，选择File Based Public Key Authentication对应保存公钥的认证文件authentication_keys(文件名无所谓，但是需要一行一个公钥)
     - Other：Write log to File记录日志到文件，Text Encoding为UTF-8(防止中文件名乱码)
-- [freeSSHd and freeFTPd](http://www.freesshd.com/)
-- MobaXterm包含的ssh服务器
-- openssh
 
 ### Cygwin
 
@@ -198,8 +231,9 @@ slmgr /ato
         - View：Category基于目录展示包、Picked自定安装的包、UpToDate可更新的包；Search可查询包；Best默认的包版本
         - 列表展示：Package包名、Current当前安装的版本(未安装为空)、New中Skip表示跳过安装(如需要可下拉选择一个最稳当的版本进行安装)、Bin下载可执行文件、Src下载源码
         - 一般基于Category查看包，无特殊要求可直接下一步
-            - 默认情况下gcc并不会被安装，为了使我们安装的Cygwin能够编译程序，我们需要安装gcc编译器，一般在Devel分目录下。选择安装`binutils`、`gcc-core`(编译C)、`gcc-g++`(编译c++)、`gdb`(GNU Debugger，可选择和gcc-core同一个大版本)、`mingw64-x86_64-gcc-core`(可选择和gcc-core同一个大版本)、`mingw64-x86_64-gcc-g++`
-            - Web子目录中勾选`wget`(当使用apt-cgy时需使用)
+            - Devel子目录: 默认情况下gcc并不会被安装，为了使我们安装的Cygwin能够编译程序，我们需要安装gcc编译器。选择安装`binutils`、`gcc-core`(编译C)、`gcc-g++`(编译c++)、`gdb`(GNU Debugger，可选择和gcc-core同一个大版本)、`mingw64-x86_64-gcc-core`(可选择和gcc-core同一个大版本)、`mingw64-x86_64-gcc-g++`
+            - Web子目录: 勾选`wget`(当使用apt-cgy时需使用)
+            - Net子目录: openssh
 - 更新包/新增包
     - 重新执行安装包`setup-x86_64.exe`，下一步到选择新包，执行安装。不会丢失之前的数据
 - 卸载
@@ -220,10 +254,23 @@ slmgr /ato
 > 可通过重新执行安装包`setup-x86_64.exe`，或执行`apt-cyg install openssh`进行安装(openssh为再界面上看到的包名)。查看包名：http://mirrors.aliyun.com/cygwin/x86_64/release/
 
 - openssh(sshd服务器) [^3]
-    - `apt-cyg install openssh` 安装
-    - `ssh-host-config` 配置(会在windows上安装sshd服务；需要创建一个windows用户，根据提示创建后如：`User 'cyg_server' has been created with password 'root'.`)
-    - `cygrunsrv -S sshd` 启动sshd服务(使用`cyg_server`用户运行的此服务)，启动的为`%CYGWIN_HOME%/usr/sbin/sshd.exe`
-    - 连接服务器`ssh 192.168.1.1`，有可能需要在客户端先执行一次`ssh-keygen -f "/home/smalle/.ssh/known_hosts" -R "192.168.1.1"`
+    - 安装Cygwin和openssh都无需重启服务器
+
+```bash
+# 安装. 或重新执行安装包`setup-x86_64.exe`找到Net目录
+apt-cyg install openssh
+
+# 管理员运行Cygwin64 Terminal, 然后执行命令进行配置: 基本都输入yes, 遇到`Enter the value of CYGWIN for thedaemon: []`直接回车即可
+# (新版本貌似不需要, 直接使用Administrator登录即可)需要创建一个windows用户，根据提示创建后如：`User 'cyg_server' has been created with password 'root'.`
+# 安装成功后，会在windows上安装sshd服务，服务名称为: CYGWIN cygsshd
+ssh-host-config
+
+# 启动sshd服务(使用`cyg_server`用户运行的此服务)，启动的为`%CYGWIN_HOME%/usr/sbin/sshd.exe`
+cygrunsrv -S sshd
+
+# 连接服务器, 有可能需要在客户端先执行一次`ssh-keygen -f "/home/smalle/.ssh/known_hosts" -R "192.168.1.1"`
+ssh Administrator@192.168.1.1
+```
     - 常见问题
         - 执行`ping`等命令返回乱码：如果是Cgywin客户端，则设置文本-编码为zh_CN/GBK；如果是xshell连接的，则设置xshell的编码为GBK
         - ls显示颜色：在`~/.bashrc`文件中加入`alias ls='ls --color --show-control-chars'`
@@ -236,28 +283,19 @@ slmgr /ato
 - 最小化隐藏任务栏：右键图标 - 最小化隐藏
 - Outlook可和Foxmail互导联系人
 
-### Wireshark抓包
-
-- 如果是公网抓包，一般需要选择监听类似以太网的网卡
-- 常用表达式
-    - `ip.src == 192.168.1.100 && ip.dst == 114.114.114.114` 监听本机发送给114.114.114.114的包
-    - `(ip.src == 192.168.1.100 && ip.dst == 114.114.114.114) || (ip.src == 114.114.114.114 && ip.dst == 192.168.1.100)` 监听本机发送和收到的114.114.114.114的包
-    - `ip.src == 192.168.1.100 && tcp.dstport == 80` 监听本机发送给服务器80端口的包
-- 表达式字典
-    - 点击表达式输入框右侧的"表达式"按钮可显示所有支持的表达式（已经分好类）
-    - 常用的如`IPv4`、`HTTP2`、`TCP`、`UDP`、`ICMP`等。如搜索IPv4或ip.src和定位到相关表达式，右侧会显示此表达式支持的关系类型(==、!=、in、contains等)
-
 ### 其他软件
 
 - SpaceSniffer v1.1.2 空间占用检查
 - [spacedesk](https://spacedesk.net/) 分屏软件(Windows和ipad分屏)
+- [PilotEdit](https://www.pilotedit.com/) 大文件查看搜索编辑(10G免费)
 
 ## 服务器相关
 
 - 添加可登录用户
     - 控制面板 - 用户账户 - 管理其他账户 - 添加账户(标准用户)
+    - Win11等可使用`netplwiz`添加本地用户（默认是添加网络用户）
     - 设置标准用户可进行远程登录(默认只能管理员远程登录)
-        - 控制面板 - 系统和安全 - 允许远程访问 - 选择用户 - 添加 - 输入对象名称后点击检查 - 确定即可
+        - 控制面板 - 系统和安全 - 允许远程访问(系统属性-远程) - 选择用户 - 添加 - 输入对象名称后点击检查 - 确定即可
 - 设置服务器可同时有多个远程桌面连接
     - https://blog.csdn.net/zhang0000dehai/article/details/124748863
     - 切换会话: 退出重新连接；或者任务管理器 - 用户 - 右键连接(可能需要输入密码)
@@ -266,6 +304,8 @@ slmgr /ato
 
 ### 软件安装
 
+- Java
+    - `JAVA_HOME=D:\soft\jdk1.8.0_202` `CLASSPATH=.;%JAVA_HOME%\lib\dt.jar;%JAVA_HOME%\lib\tools.jar;` `Path=;%JAVA_HOME%\bin`
 - [Mysql镜像](https://mirrors.aliyun.com/mysql/MySQLInstaller/)
     - [mysql-installer-community-5.7.38.0.msi](http://mirrors.aliyun.com/mysql/MySQLInstaller/mysql-installer-community-5.7.38.0.msi)
     - [mysql-installer-community-8.0.29.0.msi](http://mirrors.aliyun.com/mysql/MySQLInstaller/mysql-installer-community-8.0.29.0.msi)

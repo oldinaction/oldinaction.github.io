@@ -208,36 +208,34 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 
 - 查看数据库sql运行占用CPU时间较长的会话信息，并kill此会话
 
-    ```sql
-    -- 获取每次消耗cpu > 3s的sql; cpu_time为微秒; executions执行次数，peer_secondes_cpu_time每次耗时(s); client_identifier为客户端id(java可全局动态更新成当前用户)
-    select sid, serial#, 'alter system kill session '''|| sid ||', '|| serial# ||''';' kill_sql, client_identifier
-        ,v$sql.sql_id sql_id, sql_text, to_char(sql_fulltext) sql_fulltext
-        ,to_char(xmlagg(xmlparse(content (name || '=' || value_string || '(' || position || ',' || datatype_string || ')') || ' # ' wellformed) order by position).getclobval()) sql_params
-        ,executions, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time
-		,round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
-    from v$sql
-    join v$session on v$sql.sql_id = v$session.sql_id
-    left join v$sql_bind_capture on v$sql.sql_id = v$sql_bind_capture.sql_id
-    where executions > 0 and cpu_time/executions/1000000 > 3 /* 每次执行消耗cpu>3s的 */
-    group by sid, serial#, client_identifier, v$sql.sql_id, sql_text, to_char(sql_fulltext)
-        ,executions, cpu_time, elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
-    order by peer_secondes_cpu_time desc;
+```sql
+-- 获取每次消耗cpu > 3s的sql; last_call_et为当前会话执行时间; cpu_time为占用cpu微秒数; executions执行次数; client_identifier为客户端id(java可全局动态更新成当前用户)
+select ss.sid, ss.serial#, 'alter system kill session '''|| ss.sid ||', '|| ss.serial# ||''';' kill_sql
+    ,ss.last_call_et, round(s.cpu_time/s.executions/1000000, 2) peer_cpu_sec, s.executions
+    ,to_char(s.sql_fulltext) sql_fulltext
+    ,to_char(xmlagg(xmlparse(content (sbc.name || '=' || sbc.value_string || '(' || sbc.position || ',' || sbc.datatype_string || ')') || ' # ' wellformed) order by sbc.position).getclobval()) sql_params
+    ,ss.client_identifier, s.sql_id, round(s.elapsed_time/s.executions/1000000, 2) peer_elapsed_sec, s.last_load_time, s.optimizer_mode, s.disk_reads, s.buffer_gets
+from v$sql s
+join v$session ss on s.sql_id = ss.sql_id
+left join v$sql_bind_capture sbc on s.sql_id = sbc.sql_id
+where s.executions > 0
+and (
+    (ss.status = 'ACTIVE' AND ss.last_call_et > 6)  /* 当前执行耗时>6s且仍在执行的 */
+    or s.cpu_time/s.executions/1000000 > 3          /* 每次执行消耗cpu>3s的 */
+)
+group by ss.sid, ss.serial#, ss.client_identifier, ss.last_call_et
+        ,to_char(s.sql_fulltext),s.executions, s.cpu_time
+        ,s.sql_id, s.elapsed_time, s.last_load_time, s.disk_reads, s.optimizer_mode, s.buffer_gets
+order by peer_cpu_sec desc;
 
-    -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
-    -- 从根源上解决问题需要对对应的sql_fulltext进行sql优化
-    alter system kill session 'sid, serial#';
-    -- 如果kill不掉可直接杀掉系统线程
-    select spid, osuser, s.program from v$session s,v$process p where s.paddr=p.addr and s.sid=429;
-    kill -9 <spid>
-    -- orakill <sid> <thread> -- windows命令, 如: orakill orcl 12345 (sid为服务名)
-
-    -- 获取cpu总消耗时间过长的sql(大于20s)
-    select sid, serial#, cpu_time, executions, round(cpu_time/executions/1000000, 2) peer_secondes, sql_text, sql_fulltext
-    from v$sql
-    join v$session on v$sql.sql_id = v$session.sql_id
-    where executions > 0 and cpu_time > 20
-    order by round(cpu_time/executions/1000000, 2) desc;
-    ```
+-- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解
+-- 从根源上解决问题需要对对应的sql_fulltext进行sql优化
+alter system kill session 'sid, serial#';
+-- 如果kill不掉可直接杀掉系统线程(oracle实例的线程)
+select spid, osuser, s.program from v$session s,v$process p where s.paddr=p.addr and s.sid=429;
+kill -9 <spid>
+-- orakill <sid> <thread> -- windows命令, 如: orakill orcl 12345 (sid为服务名)
+```
 - 查看服务器CPU占用高较高的进程运行的sql语句(v$sqltext中的sql语句是被分割存储)，运行下列sql后输入进程pid
     - `top`查看占用CPU较高的进程，Commad中可以看到连接数据的命令信息，如`oracleorcl (LOCAL=NO)`为OFBiz的连接信息
 
@@ -254,62 +252,83 @@ https://blog.csdn.net/Aviciie/article/details/79281080
         )
     order by piece asc
     ```
-- 查看占用CPU时间较长、每次每秒耗时较长的10条sql语句
+- **其他异常问题**
 
-    ```sql
-    -- 查询耗时sql
-    select *
-    from (
-        select sql_id, sql_text, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
-        from v$sql 
-        where executions > 0 and PARSING_SCHEMA_NAME='OFBIZ'
-        -- and last_load_time > to_char(sysdate-12/24, 'YYYY-MM-DD/HH24:MI:SS') -- 统计过去12小时到当前时间执行的sql性能情况
-        -- order by cpu_time desc -- 占用CPU时间较长
-        order by cpu_time/executions desc -- 每次每秒耗时较长
-    )
-    where rownum <= 10
-    order by rownum asc
-    
-    -- 根据sql_id查询详细的sql语句(sql_fulltext)
-    select sql_id, sql_text, sql_fulltext, round(cpu_time/executions/1000000, 2) peer_secondes_cpu_time, round(elapsed_time/executions/1000000, 2) peer_secondes_elapsed_time, last_load_time, disk_reads, optimizer_mode, buffer_gets
-    from v$sql
-    where sql_id = '6dwr4tmjt1txc'
-    ```
+```sql
+-- 查询被锁表的信息（多刷新几次，应用可能会临时锁表）
+select s.sid, s.serial#, l.*, o.*, s.* FROM gv$locked_object l, dba_objects o, gv$session s
+    where l.object_id = o.object_id and l.session_id = s.sid;
+-- 关闭锁表的连接：alter system kill session '200, 50791';
+alter system kill session '某个sid, 某个serial#';
+
+
+--查看系统当前会话的连接数
+select count(*) from v$session;
+--查看当前系统允许的进程连接数 500
+select value from v$parameter where name = 'processes';
+-- 会话详情
+select * from v$session a,v$process b where a.PADDR=b.ADDR and a.USERNAME = 'TEST';
+
+
+-- 查看表空间情况
+select a.tablespace_name "表空间名",
+    a.bytes / 1024 / 1024 "表空间大小(m)", -- 此文件对应空间不够则会自动递增，一直增加到最大文件大小 32G
+    (a.bytes - nvl(b.bytes, 0)) / 1024 / 1024 "已使用空间(m)",
+    case when b.bytes is null then 0 else b.bytes / 1024 / 1024 end "空闲空间(m)",
+    case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
+    a.file_name "全路径的数据文件名称",
+    autoextensible "表空间自动扩展",
+    increment_by "自增块(默认1blocks=8k)",
+    a.online_status "表空间文件状态"
+from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes, online_status
+        from dba_data_files
+    group by tablespace_name, file_name, autoextensible, increment_by, online_status) a
+left join
+    (select tablespace_name, sum(bytes) bytes, max(bytes) largest
+        from dba_free_space
+    group by tablespace_name) b
+on a.tablespace_name = b.tablespace_name;
+
+-- 查看oracle临时表空间
+select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
+from dba_temp_files
+group by tablespace_name, file_name, autoextensible, increment_by;
+```
 - 常用查询
 
-    ```sql
-    -- 列出数据库里每张表的记录条数
-    select t.table_name,t.num_rows from user_tables t ORDER BY NUM_ROWS DESC;
-    -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
-    select segment_name, sum(bytes)/1024/1024 as "mb" from user_extents group by segment_name order by sum(bytes) desc;
-    -- 查看表空间大小参考[oracle-dba.md#表空间不足](/_posts/db/oracle-dba.md#表空间不足)
+```sql
+-- 列出数据库里每张表的记录条数
+select t.table_name,t.num_rows from user_tables t ORDER BY NUM_ROWS DESC;
+-- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
+select segment_name, sum(bytes)/1024/1024 as "mb" from user_extents group by segment_name order by sum(bytes) desc;
+-- 查看表空间大小参考[oracle-dba.md#表空间不足](/_posts/db/oracle-dba.md#表空间不足)
 
-    -- 列出消耗磁盘读取最多的5个sql
-    select b.username username,
-        a.disk_reads reads,
-        a.executions exec,
-        a.disk_reads / decode(a.executions, 0, 1, a.executions) peer_exec_reads,
-        a.sql_text,
-        a.sql_fulltext
-    from v$sqlarea a, dba_users b
-    where a.parsing_user_id = b.user_id
-    and a.disk_reads > 100000
-    order by a.disk_reads / decode(a.executions, 0, 1, a.executions) desc;
+-- 列出消耗磁盘读取最多的5个sql
+select b.username username,
+    a.disk_reads reads,
+    a.executions exec,
+    a.disk_reads / decode(a.executions, 0, 1, a.executions) peer_exec_reads,
+    a.sql_text,
+    a.sql_fulltext
+from v$sqlarea a, dba_users b
+where a.parsing_user_id = b.user_id
+and a.disk_reads > 100000
+order by a.disk_reads / decode(a.executions, 0, 1, a.executions) desc;
 
-    -- 列出使用频率最高的5个sql
-    select sql_text, sql_fulltext, executions
-    from (select sql_text, sql_fulltext, executions,
-                rank() over(order by executions desc) exec_rank
-            from v$sql)
-    where exec_rank <= 5;
+-- 列出使用频率最高的5个sql
+select sql_text, sql_fulltext, executions
+from (select sql_text, sql_fulltext, executions,
+            rank() over(order by executions desc) exec_rank
+        from v$sql)
+where exec_rank <= 5;
 
-    -- 列出需要大量缓冲读取（逻辑读）操作的5个sql
-    select buffer_gets, sql_text, sql_fulltext
-    from (select sql_text, sql_fulltext, buffer_gets,
-                dense_rank() over(order by buffer_gets desc) buffer_gets_rank
-            from v$sql)
-    where buffer_gets_rank <= 5;
-    ```
+-- 列出需要大量缓冲读取（逻辑读）操作的5个sql
+select buffer_gets, sql_text, sql_fulltext
+from (select sql_text, sql_fulltext, buffer_gets,
+            dense_rank() over(order by buffer_gets desc) buffer_gets_rank
+        from v$sql)
+where buffer_gets_rank <= 5;
+```
 
 ### Mysql
 

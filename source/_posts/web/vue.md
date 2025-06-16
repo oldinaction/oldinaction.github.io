@@ -25,65 +25,116 @@ tags: vue
 
 ### 语法
 
-- [v-model](https://cn.vuejs.org/guide/components/v-model.html)
+- [**v-model**](https://cn.vuejs.org/guide/components/v-model.html)
     - 单个属性建议使用`modelValue`(固定props值)，此时直接`v-model="data"`即可
-    - 多个属性可定时如`myModel`(取值props.myModel)，此时需使用`v-model:myModel="data"`(只有modelValue才能进行省略)
-- watch
-    - [Vue3中watch的最佳实践](https://juejin.cn/post/6980987158710452231)
+    - 多个属性可定义如`myModel`(取值props.myModel)，此时需使用`v-model:myModel="data"`(只有modelValue才能进行省略)
+- **defineProps** 和 **withDefaults**
 
-    ```js
-    <script setup>
-    import { watch, ref, reactive } from 'vue'
-    // ==> 侦听一个 getter
-    const person = reactive({name: '小松菜奈'})
-    watch(
-        () => person.name, 
-        (n, o) => {
-            console.log(n, o)
-        },
-        {immediate:true}
-    )
-    person.name = '有村架纯'
+```html
+<!-- 1.简单使用. TS模式需要定义类型 -->
+<script setup>
+    // 使用 `<script setup>` 语法时，defineProps 和 withDefaults 这类编译器宏不需要显式导入
+    // import { defineProps, withDefaults } from "vue";
+    
+    const defines = defineProps(["width", "height"]);
+    console.log(defines); 
+</script>
+<script setup lang="ts">
+    const props = defineProps<{
+        message: string
+        count?: number
+        isActive?: boolean
+    }>()
+</script>
 
-    // ==> 直接侦听ref，及停止侦听
-    const ageRef = ref(16)
-    const stopAgeWatcher = watch(ageRef, (n, o) => {
-        console.log(n, o)
-        if (value > 18) {
-            stopAgeWatcher() // 当ageRef大于18，停止侦听
-        }
-    })
-
-    const changeAge = () => {
-        ageRef.value += 1
+<!-- 2.复杂使用: defineProps定义参数及类型, withDefaults设置默认值 -->
+<script setup lang="ts">
+    interface User {
+        id: number
+        name: string
     }
 
-    // ==> 监听多个数据源
-    // 如果你在同一个函数里同时改变这些被侦听的来源，侦听器只会执行一次
-    // 如果用 nextTick 将两次修改隔开，侦听器会执行两次
-    const name = ref('小松菜奈')
-    const age = ref(25)
-
-    watch([name, age], ([name, age], [prevName, prevAge]) => {
-        console.log('newName', name, 'oldName', prevName)
-        console.log('newAge', age, 'oldAge', prevAge)
+    const props = defineProps<User>()
+    
+    const props = withDefaults(defineProps<{
+        message: string
+        count?: number // ? 表示可选
+        isActive?: boolean
+        list?: Array<string>
+        user?: User
+        users?: User[]
+        callback?: (id: number) => void // 函数类型
+        size?: 'small' | 'medium' | 'large' // 联合类型
+    }>(), {
+        count: 0,
+        list: () => ['default', 'value'], // 对象/数组类型的默认值必须通过工厂函数返回
+        user: () => ({ id: 0, name: 'Guest' }),
+        callback: () => console.log('Default callback'),
+        size: 'small'
     })
+</script>
+```
+- **watch**
+    - [Vue3中watch的最佳实践](https://juejin.cn/post/6980987158710452231)
 
-    // ==> 侦听引用对象（数组Array或对象Object）
-    const arrayRef = ref([1, 2, 3, 4])
-    const objReactive = reactive({name: 'test'})
-
-    // ref deep, getter形式，新旧值不一样
-    const arrayRefDeepGetterWatch = watch(() => [...arrayRef.value], (n, o) => {
+```html
+<script setup>
+import { watch, ref, reactive } from 'vue'
+// ==> 1.侦听一个 getter
+const person = reactive({name: '测试A'})
+watch(
+    () => person.name, 
+    (n, o) => {
         console.log(n, o)
-    }, {deep: true})
+    },
+    {immediate:true}
+)
+person.name = '测试B'
 
-    // reactive，deep，(修改name)新旧值不一样
-    const arrayReactiveGetterWatch = watch(() => objReactive, (n, o) => {
-        console.log(n, o)
-    }, {deep: true})
-    </script>
-    ```
+// ==> 2.直接侦听ref，及停止侦听
+const ageRef = ref(16)
+const stopAgeWatcher = watch(ageRef, (n, o) => {
+    console.log(n, o)
+    if (value > 18) {
+        stopAgeWatcher() // 当ageRef大于18，停止侦听
+    }
+})
+
+const changeAge = () => {
+    ageRef.value += 1
+}
+
+// ==> 3.监听多个数据源
+// 如果你在同一个函数里同时改变这些被侦听的来源，侦听器只会执行一次
+// 如果用 nextTick 将两次修改隔开，侦听器会执行两次
+const name = ref('测试A')
+const age = ref(25)
+
+watch([name, age], ([name, age], [prevName, prevAge]) => {
+    console.log('newName', name, 'oldName', prevName)
+    console.log('newAge', age, 'oldAge', prevAge)
+})
+
+// ==> 4.侦听引用对象（数组Array或对象Object）
+const arrayRef = ref([1, 2, 3, 4])
+const objReactive = reactive({name: 'test'})
+
+// ref deep, getter形式，新旧值不一样
+const arrayRefDeepGetterWatch = watch(() => [...arrayRef.value], (n, o) => {
+    console.log(n, o)
+}, {deep: true})
+
+// reactive，deep，(修改name)新旧值不一样
+const arrayReactiveGetterWatch = watch(() => objReactive, (n, o) => {
+    console.log(n, o)
+}, {deep: true})
+</script>
+```
+- **unref**
+    - 自动判断类型：unref 可以处理响应式引用和非引用类型的值。如果传入一个 ref，它会返回 .value 的值；如果传入一个普通值，则直接返回该值
+    - 在 Vue 3 中，ref 是用于创建响应式数据的基本工具。使用 ref 创建的响应式对象需要在访问其值时使用 .value 属性
+
+## Vue2说明
 
 ### 约定俗成
 
@@ -298,7 +349,7 @@ created(): {
         ```
     - Vue.set和Vue.delete的作用
         - `Vue.set` 向响应式对象中添加一个 property，并可确保这个新 property 同样是响应式的. eg: Vue.set(this.dictMap, key, list)
-        - **也可使用如`this.$set(row, '_editLoading', true)`，常用于表格单行按钮loading效果**
+        - **也可使用如`this.$set(row, '_editLoading', true)`，常用于表格单行按钮loading效果** (uni-app在dom中直接操作不生效, 在函数中操作可生效)
     - Vue3.X新版本开始将采用ES6的Proxy来进行双向绑定。可解决上述问题(可以直接监听对象而非属性，可以直接监听数组下标的变化)
 - **vue无法检测数组的元素变化(包括元素的添加或删除)；可以检测子对象的属性值变化，但是无法检测未在data中定义的属性或子属性的变化**
     - 解决上述数组和未定义属性不响应的方法：**`this.user = JSON.parse(JSON.stringify(this.user));`**(部分场景可使用`this.user = Object.assign({}, this.user);`)
@@ -570,8 +621,10 @@ export default {
     - UI操作
         - 初始化渲染，如果要加快首屏渲染，建议用v-if
         - 频次选择，如果是频繁切换使用，建议使用v-show
+- v-if和v-for不要作用于同一个标签，由于v-for的优先级高于v-if，所以会在每次迭代时执行 v-if的判断。部分情况可使用`<template v-if="list.length > 0">...v-for...</template>`代替
 - `v-key`使用
-    - v-for需要配合v-key使用，且不能使用index作为key
+    - v-for需要配合v-key使用，且尽量不要使用index作为key(Math.random和index效果一致)，可使用唯一ID
+    - **另外index/index+id等模式可能会导致缓存，将`:key="index+id"`改成`:key="getKey(id, index)", getKey(id, index) {return id + index}`(不能使用表达式，但是可以使用方法)**
 - computed 和 watch 区分使用场景
     - 需要进行数值计算，并且依赖于其它数据时，应该使用 computed，因为可以利用 computed 的缓存特性，避免每次获取值时，都要重新计算
     - 需要在数据变化时执行异步或开销较大的操作时，应该使用 watch，使用 watch 选项允许我们执行异步操作(访问一个 API)，限制我们执行该操作的频率
@@ -1524,7 +1577,7 @@ export default {
 <!-- Vue2支持 -->
 <template>
 	<div class="box" :style="{'--heightline': heightLine + 'px'}">
-        <!-- 变量名必须以--开头，且不要使用驼峰变量(uniapp会不起作用)，此处背景图的url必须写到上面 -->
+        <!-- 变量名必须以--开头，且不要使用驼峰变量(uniapp会不起作用)，此处背景图的url()必须写到上面; 且对 page {} 样式无效 -->
         <div class="login-bg" :style="{'--maloginbg': 'url(' + maLoginBg + ')'}"></div>
     </div>
 </template>
@@ -2146,7 +2199,7 @@ columns: [{
 render() {
     return (
       <div class='wrapper'>
-        <ul>
+        <ul style="max-height: 600px; overflow: auto;">
           {
             this.items.map(item => (
               <li>{ item.name }</li>
@@ -3230,6 +3283,10 @@ module.exports = {
         - **技术类官网(基于react)**，如果lowcode-engine，官网有很多模板可供选择
         - 以Markdown/MDX内容驱动. [MDX](https://mdxjs.com/)、[MDX中文](https://www.mdxjs.cn/)
 
+## Vue与SEO
+
+- 基于prerender-spa-plugin插件将route页面静态化，更好的是基于[nuxtjs](https://nuxt.com/)(基于Vue)将页面和渲染的内容同时静态化
+- 参考: https://www.cnblogs.com/wl-blog/p/16464355.html
 
 ## 插件收集
 

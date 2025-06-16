@@ -8,9 +8,9 @@ tags: [git]
 
 ## gitlab介绍
 
-- [Gitlab 官方文档](https://docs.gitlab.com/omnibus/README.html)
-    - 如[centos7安装](https://about.gitlab.com/downloads/#centos7)
+- [Gitlab 官方文档](https://docs.gitlab.com/)
 - [Gitlab 中文文档](https://www.bookstack.cn/read/gitlab-doc-zh/README.md)
+- Gitlab有CE社区免费版和EE企业收费版
 - GitLab 可充当 Maven、Npm、Pypi、Docker 等存储库
 
 ### 常用命令
@@ -18,11 +18,56 @@ tags: [git]
 - `sudo gitlab-ctl restart` 重新启动
 - `sudo gitlab-ctl reconfigure` 重新配置（运行中的项目，重新配置后，数据也不会丢失）
 
-## 备份与恢复 [^1]
+## 安装
+
+- CE社区版Linux安装包镜像: https://mirror.tuna.tsinghua.edu.cn/gitlab-ce/
+    - CE社区版安装参考: https://blog.51cto.com/u_16213672/10409442
+- CE社区版Docker镜像: https://hub.docker.com/r/gitlab/gitlab-ce/tags EE企业版镜像: https://hub.docker.com/r/gitlab/gitlab-ee/tags
+    - Docker安装CE版参考: https://blog.csdn.net/weixin_42286658/article/details/144768578
+- Docker安装CE版
+
+```bash
+# 安装Docker: 参考[docker.md](/_posts/devops/docker.md#安装)
+
+# 拉取镜像
+docker pull gitlab/gitlab-ce
+
+mkdir -p /home/gitlab/etc #安装程序目录
+mkdir -p /home/gitlab/opt #数据目录
+mkdir -p /home/gitlab/log #日志目录
+
+# 启动容器
+# 8180端口: gitlab管理页面端口; 8122端口: SSH端口，拉代码时的端口
+# Window的路径可以为`-v D:\gitlab\etc:/etc/gitlab`
+docker run -itd -p 8180:80 -p 8122:22 -v /home/gitlab/etc:/etc/gitlab -v /home/gitlab/log:/var/log/gitlab -v /home/gitlab/opt:/var/opt/gitlab --restart always --privileged=true --name gitlab gitlab/gitlab-ce
+
+# 修改配置
+vi /home/gitlab/etc/gitlab.rb
+# 取消external_url注释，地址为宿主机地址，不需要设置端口；并设置ssh主机IP和端口
+external_url 'http://192.168.1.100'
+gitlab_rails['gitlab_ssh_host'] = '192.168.1.100'
+gitlab_rails['gitlab_shell_ssh_port'] = 8122
+
+# 修改root密码
+docker exec -it gitlab /bin/bash # 进入容器内部
+gitlab-rails console -e production # 进入gitlab控制台
+user = User.where(id:1).first # 查询id为1的用户，id为1的用户是超级管理员
+user.password='root123456' # 修改密码为root123456
+user.save! # 保存
+exit # 退出(需要执行两次)
+
+# 重载服务
+docker exec -t gitlab gitlab-ctl reconfigure
+docker exec -t gitlab gitlab-ctl restart
+
+# 访问 http://192.168.1.100:8180
+```
+
+## 备份与恢复
 
 ### 备份
 
-- 新建备份目录
+- 新建备份目录 [^1]
 
 ```bash
 mkdir -p /data/backup/gitlab
@@ -69,7 +114,7 @@ gitlab-rake gitlab:check SANITIZE=true
     - 主要是gitlab做了rack_attack防止攻击，针对某个IP并发过大，就会限制那个IP的访问，解决办法就是把宿主机IP加入到白名单当中。
     - 去掉配置注释 `vi /etc/gitlab/gitlab.rb`
 
-        ```
+        ```js
         gitlab_rails['rack_attack_git_basic_auth'] = {
             'enabled' => true,
             'ip_whitelist' => ["127.0.0.1","10.10.10.10"],

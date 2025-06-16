@@ -51,7 +51,7 @@ select convert(datetime, '2000-01-01', 20); -- 字符串转日期 2000-01-01 00:
 ```sql
 -- mysql
 -- quarter:季，week:周，day:天，hour:小时，minute:分钟，second:秒，microsecond:毫秒
-date_add('1970-01-01', interval -7 day ); -- 对应时间-7天. 不能直接 `now()-7`
+date_add('1970-01-01', interval -7 day); -- 对应时间-7天. 不能直接 `now()-7`
 date_sub(now(), interval 1 week); -- 该时间-1周 
 -- 2000-01-01、2000-01-01 00:00:00、2000-01-01 23:59:59
 select CURDATE(), DATE_FORMAT(CURDATE(),'%Y-%m-%d %H:%i:%s'), DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 1 DAY),INTERVAL 1 SECOND);
@@ -79,13 +79,17 @@ from dual;
 
 -- sqlserver
 select 
-    GETDATE(), -- 获取当前时间(带时间) 2000-01-01 08:11:12.000
-    GETUTCDATE(), -- 当前UTC时间 2000-01-01 00:11:12.000
-    DATEDIFF(hour, GETUTCDATE(), GETDATE()), -- 获取当前时间-当前UTC时间的相差小时 8
-    dateadd(DD,-10,getdate()), -- 当前时间减10天
-    DATEADD(hour, DATEDIFF(hour, GETUTCDATE(), GETDATE()), GETUTCDATE()); -- 对UTC时间增加时区差 2000-01-01 08:11:12.000
-select DATEADD(DAY, 0, DATEDIFF(DAY, 0, GETDATE())); -- 2000-01-01 00:00:00.000
-select CAST(CAST(GETDATE() as date) as varchar(10)) + ' 00:00:00'; -- 2000-01-01 00:00:00.000
+    getdate(), -- 获取当前时间(带时间) 2000-01-01 08:11:12.000
+    getutcdate(), -- 当前utc时间 2000-01-01 00:11:12.000
+    datediff(hour, getutcdate(), getdate()), -- 获取当前时间-当前utc时间的相差小时 8
+    dateadd(dd, -10, getdate()), -- 当前时间减10天. dd/mm
+    dateadd(day, -10, getdate()), -- 当前时间减10天
+    dateadd(hour, datediff(hour, getutcdate(), getdate()), getutcdate()), -- 对utc时间增加时区差 2000-01-01 08:11:12.000
+	dateadd(day, 1 - day(getdate()), convert(date, getdate())), -- 当前月份第一天 2000-01-01
+	eomonth(getdate()) -- 当前月份最后一天 2000-01-31
+    ;
+select dateadd(day, 0, datediff(day, 0, getdate())); -- 2000-01-01 00:00:00.000
+select cast(cast(getdate() as date) as varchar(10)) + ' 00:00:00'; -- 2000-01-01 00:00:00.000
 ```
 
 #### 时区相关
@@ -144,8 +148,20 @@ FROM t_test t where t.id = 1;
 ```sql
 -- mysql
 select 1;
+select 1 from dual;
 -- oracle
 select 1 from dual;
+-- sqlserver
+select 1;
+```
+- 查询前几条
+
+```sql
+-- mysql
+select * from t_test order by id desc limit 10;
+
+-- sqlserver
+select top 10 * from t_test order by id desc;
 ```
 - 关键字转义
 
@@ -156,19 +172,20 @@ select * from [Order]; -- sqlserver
 - 空值
 
 ```sql
--- oracle null包含了空字符串('' == null)
+-- oracle: null包含了空字符串('' == null)
 select * from users where last_name is null;
 select * from users where last_name is not null;
-nvl(counts, 0)
+nvl(counts, 0); -- null则设置默认值
 
--- mysql null不包含空字符串('' != null)
+-- mysql: null不包含空字符串('' != null)
 select * from users where (last_name is null or last_name = '');
 select * from users where last_name is not null and last_name != '';
 -- 终极判断: (case when #{name} is null then #{default} else if(#{name}='', #{default}, #{name}) end)
 select ifnull(null, 1), ifnull('', 1), if(''='', 1, 0); -- 1 '' 1
 
--- sqlserver
-isnull(counts, 0)
+-- sqlserver: null不包含空字符串('' != null), 判断同mysql
+isnull(counts, 0); -- null则设置默认值
+-- 不支持 if(''='', 1, 0) 这种判断，需使用case when
 ```
 - 空值排序
 
@@ -217,7 +234,42 @@ select decode(t.sex, 1, '男', 0, '女', '未知') from t_user;
 -- mysql
 select if(t.sex = 1, '男', if(t.sex = 0, '女', '未知')) from t_user; -- if函数只支持3个参数
 select case when ... end from t_user;
+```
 
+- uuid
+
+```sql
+-- sqlserver 32位
+select lower(replace(newid(), '-', '')), newid(); -- 6b1e0f1b7e0f4fab9e783f1617619ea5	1E9EC626-B8DE-461D-A8DF-FB903E354C43
+```
+
+### 读锁问题
+
+- A事物(基于ID)更新表test暂未提交，此时B事物读取test表
+    - Mysql: B事物可正常执行读取
+    - SqlServer: B事物会阻塞，直到A事物提交或回滚释放锁(A事物持有test的IX锁，B事物持有IS锁)
+
+```java
+// 下面的伪代码会导致 SqlServer 项目卡死 => 进而可能连接池升高
+@Transactional(rollbackFor = Exception.class)
+public void update(User user) {
+	userMapper.save(user);
+	
+	FutureTask<User> futureTask = new FutureTask<>(() -> {
+		return userMapper.selectByUsername(user.getUsername());
+	});
+	new Thread(futureTask).start();
+	
+	try {
+		User othUser = futureTask.get();
+		if (othUser == null) {
+			throw new RuntimeException("执行失败");
+		}
+	} catch (InterruptedException | ExecutionException e) {
+		log.error("执行出错");
+		throw new RuntimeException(e);
+	}
+}
 ```
 
 ### 复制表数据
@@ -226,6 +278,31 @@ select case when ... end from t_user;
     - create table ... as select
 - 复制表数据
     - insert into ... select
+
+### 更新数据
+
+```sql
+-- mysql
+-- 1.Navicat中可直接修改select出来的单表数据, 然后点击确认进行更新
+-- 2.update默认直接提交了, 没有类似PL/SQL的手动Commit按钮; 
+-- **每次打开新的窗口手动设置** `show variables like 'autocommit';`和`set autocommit = 0;`关闭自动提交, 然后手动执行`commit;`或`rollback;`语句才会提交或回滚
+update t_test set name = 'test' where id = 1; -- 不能带表别名
+
+-- oracle: PL/SQL必须手动Commit进行提交
+-- 1.PL/SQL中直接编辑: 有索引则是行级锁, 否则是表锁; 此时可在PL/SQL编辑器中直接编辑数据, 然后手动Commit
+select * from t_test where id = 1 for update;
+-- 2.可以带表别名, 会显示预计更新行数, 手动Commit才会生效
+update t_test set name = 'test' where id = 1;
+
+-- sqlserver
+-- SSMS中默认是自动提交, 可修改配置Query Execution - SQL Server - ANSI - 勾选SET_IMPLICIT_TRANSACTIONS, 之后需手动执行`commit;`或`rollback;`语句才会提交或回滚
+-- 1.SSMS中直接编辑, 默认是自动提交, 如果需要手动提交可参考上文设置
+-- 2.update默认直接提交了, 没有类似PL/SQL的手动Commit按钮; SSMS中操作可参考上文设置, Navicat中无法配置
+-- 2.1.通过 `begin transaction;` `commit transaction;` `rollback transaction;` 实现(如果update了一直不提交会导致锁表)
+update t_test set name = 'test' where id = 1; -- 不能带表别名
+-- 3.不支持for update更新
+-- 4.Navicat中无法修改select出来的单表数据, 但是单独打开一张表可进行编辑(打开后可进行简单筛选)
+```
 
 ### 关联表进行数据更新
 
@@ -293,6 +370,42 @@ where t.customer_region = '500000'
             and v.valid_status = 1)
 ```
 
+### merge into同步表
+
+- 场景
+    - 数据同步‌：将临时表或外部数据源同步至主表
+    - ‌批量初始化‌：避免重复插入已有数据，仅更新或补充新记录
+
+```sql
+-- 语法
+merge into 目标表
+using 源表/子查询
+on (匹配条件)
+when matched then 更新/删除操作
+when not matched then 插入操作;
+
+-- 案例, 参考: https://blog.csdn.net/m0_48355265/article/details/147316230
+merge into employees e
+using (
+    select
+        te.employee_id,
+        te.name,
+        te.email,
+        te.salary
+    from temp_employees te
+) te
+on (e.employee_id = te.employee_id and e.valid = 1)
+when matched then
+    update set
+        e.email = te.email,
+        e.salary = te.salary
+    where e.salary <> te.salary or e.email <> te.email
+        -- and e.employee_id = te.employee_id
+when not matched then
+    insert (employee_id, name, email, salary)
+    values (te.employee_id, te.name, te.email, te.salary);
+```
+
 ### 更新前几行数据
 
 ```sql
@@ -334,8 +447,8 @@ where t.table_name = '表名' and t.column_name not in ('id');
 select listagg( atc.column_name,',') within group ( order by atc.column_name ) cols
 from all_tab_columns atc
 left join all_synonyms s on (atc.owner = s.table_owner and atc.table_name = s.table_name)
-where s.owner = 'SAMIS45_SHSD_WEB' and atc.table_name = 'BILL_CNTR'
-and atc.column_name not in ('BILL_NO');
+where s.owner = 'DEMO' and atc.table_name = 'T_TEST'
+and atc.column_name not in ('ID');
 
 
 -- sqlserver
@@ -579,15 +692,19 @@ select t.stu_no, t.course_name, t.course_score from
 
 ### 常见问题
 
-- 查询空格问题。如：`select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`和`ABC  `都可以查询到数据库中`ABC`的数据
-	- 使用like：`select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
-	- 使用关键字 binary：`select * from test t where t.name = binary'ABC';`
-	- 使用length：`select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
-- **字段值不区分大小写问题(oracle默认区分大小写，sqlserver也不区分大小写)**
+- **查询空格问题。**如：`select * from test t where t.name = 'ABC';`和`select * from test t where t.name = 'ABC  ';`(后面有空格)结果一致，`ABC`和`ABC  `都可以查询到数据库中`ABC`的数据，区分方法
+	- 使用like: `select * from test t where t.name like 'ABC';`(不要加%，**使用`mybatis-plus`插件可开启字符串like查询**)
+	- 使用关键字 binary: `select * from test t where t.name = binary'ABC';`
+	- 使用length: `select * from test t where t.name = 'ABC' and length(t.name) = length('ABC');`
+- **字段值不区分大小写问题(oracle默认区分大小写, sqlserver默认不区分大小写)**
 	- 如果字段为`utf8_general_ci`存储时，可以在字段前加`binary`强行要求此字段进行二进制查询，即区分大小写。如`select * from `t_test` where binary username = 'aezocn'`
 	- **设置字段排序规则为`utf8_bin`/`utf8mb4_bin`**(`utf8_general_ci`中`ci`表示case insensitive，即不区分大小写)。设置成`utf8_bin`只是说字段值中每一个字符用二进制数据存储，区分大小写，显示和查询并不是二进制。设置成bin之后`select * from user t where name = 'Test';`区分大小写
+    - utf8mb4_unicode_ci 和 utf8mb4_general_ci 和 utf8mb4_bin 的区别
+        - utf8mb4_unicode_ci: 基于Unicode排序，支持所有语言，但速度相对慢
+        - utf8mb4_general_ci: 没有实现 Unicode 排序规则，在遇到某些特殊语言或者字符集，排序结果可能不一致（在绝大多数情况下，这些特殊字符的顺序并不需要那么精确）
+        - utf8mb4_bin: 如果需要存储大小写或重音符号敏感的数据，或加密数据或需要按二进制方式比较的场景，使用 utf8mb4_bin 排序规则
 - `null`判断问题
-	- 判空需要使用`is null`或者`is not null`
+	- 判空需要使用`is null`(不包含空字符串)或者`is not null`(包含空字符串)
 	- `select * from t_test where username = 'smalle' and create_tm > '2000-01-01'` 直接使用 =、> 等字符比较，包含了此字段不为空的含义 
 	- `select * from t_test where (username is not null or username != '')` 这样判断才能确保username不为空白字符串(**oracle的`''`和`null`相同，判断is not null即可**)
 - `null`排序问题
@@ -680,6 +797,25 @@ id                  parent_id           depth   path
 1676832879327350785	1676823255891087361	2	    一级权限2 >  二级权限23
 1676823277630164993	0	                1	    一级权限3
 1676833272383967233	1676823277630164993	2	    一级权限3 >  二级权限31
+
+-- 递归向下查询4级
+WITH RECURSIVE cte AS (
+    SELECT 
+        id, 
+        parent_id, 
+        1 AS level 
+    FROM system_menu 
+    WHERE id = 1 -- 替换为指定ID
+    UNION ALL
+    SELECT 
+        c.id, 
+        c.parent_id, 
+        cte.level + 1 AS level
+    FROM system_menu c
+    INNER JOIN cte ON c.parent_id = cte.id
+    WHERE cte.level < 4  -- 限制递归深度为4级
+)
+SELECT * FROM cte;
 ```
 
 ### 自定义变量
@@ -766,7 +902,7 @@ select val->>"$.hello" from test; -- Hi, "aezo"
 select json_unquote(val->"$.hello"), json_unquote(val->"$.hobby[0]") from test; -- Hi, "aezo"
 select json_length('[1,2,{"a":3}]'); -- 3 获取数组长度，不计算嵌套的长度
 
--- (推荐)搜索. json_extract类似->
+-- (推荐)搜索. json_extract类似->, 字段为NULL也不会报错, 只是返回NULL(如果是空字符串则会报错)
 select json_unquote(json_extract(val, '$.*')) from test; -- 将所有一级key对应的值放入到数组中：[{"t1": "v1", "t2": [1, true, false]}, "smalle", "Hi, \"AEZO\"", [{"item": {"name": "book", "weight": 5}}, "game"]]
 select json_unquote(json_extract(val, '$.name')) from test; -- smalle
 select json_unquote(json_extract(val, '$.hobby[0].item')) from test; -- {"name": "book", "weight": 5}
@@ -1165,7 +1301,21 @@ prior t.id = t.parent_id
 
 ##### over
 
-- **Mysql也支持**
+- **Mysql 8.0及以上也支持, 5.7不支持**
+
+    ```sql
+    -- 根据账号获取最新的用户访问ip
+    select t1.username, 
+        (
+            select t2.ip 
+            from t_user_ip t2 
+            where t2.username = t1.username
+            order by t2.create_time desc 
+            limit 1
+        ) as ip
+    from t_user_ip t1
+    group by t1.username;
+    ```
 - 分析函数和聚合函数的不同之处是什么：普通的聚合函数用**group by分组，每个分组返回一个统计值**，而分析函数采用**partition by分组，并且每组每行都可以返回一个统计值** [^1]
 - 开窗函数`over()`，跟在分析函数之后，包含三个分析子句。形式如：`over(partition by xxx order by yyy rows between aaa and bbb)` [^2] 
     - 子句类型
@@ -1384,7 +1534,7 @@ group by sb.bill_no
       ![oracle-keep-4](/data/images/db/oracle-keep-4.png)
   - 扩展测试
     - 测试1：如上述sql注释，在主查询的where处加`and c.customer_name_cn = 'XXX有限公司'`，这样查询理论上只有一条此数据。加上次条件后写法1的分页需要 10s，写法2的分页只需 0.09s
-    - 测试2：此时查询主表(t_customer)数据条数28.9w,，曾测试查询主表只有2条数据(额外关联了几张较小的字段表)。写法1分页查询耗时 20s，写法2耗时 0.1s
+    - 测试2：此时查询主表(t_customer)数据条数28.9w，曾测试查询主表只有2条数据(额外关联了几张较小的字段表)。写法1分页查询耗时 20s，写法2耗时 0.1s
   - 关于子查询 [^7]
     - 标准子查询：子查询先于主查询独立执行，返回明确结果供主查询使用。一般常见于where字句，且子查询返回一行/多上固定值(子查询中未使用主查询字段)
     - 相关子查询：子查询不能提前运行以得到明确结果。一般常见于select字句、where字句(子查询中使用了主查询字段，如常用的exists)
@@ -1789,7 +1939,15 @@ select trunc(4.757545489, 2) from dual; -- 4.74
 
 ## SqlServer
 
-- CET和表变量
+### 字符串处理
+
+```sql
+-- STUFF(ori_str, start, length, add_str): 将ori_str从start位置删除length个字符，然后将add_str拼接在后面
+select stuff('hello', 1, 1, '') as 删除字符列; -- ello
+select stuff('hello', 3, 2, 'aa') as 替换字符列; -- heaao
+```
+
+### with和表变量
 
 ```sql
 -- 方式一

@@ -152,7 +152,7 @@ Ubuntu安装方式分为两种：物理安装和虚拟安装。
 
 - 首先下载好ubuntu64位镜像文件`ubuntu-16.04.1-desktop-amd64.iso`（进入[http://releases.ubuntu.com/16.04/](http://releases.ubuntu.com/16.04/)，找到`64-bit PC (AMD64) desktop image`）
 - MD5校验：防止下载文件损坏（找到上述网址中的`MD5SUMS`文件，即可看到`17643c29e3c4609818f26becf76d29a3 *ubuntu-16.04.1-desktop-amd64.iso`）
-- 下载安装`UltraISO`，无需注册可以一直试用
+- 下载安装[UltraISO](https://ultraiso.net/)，无需注册可以一直试用
 - **打开`UltraISO` -> 文件 -> 打开 -> 选择ubuntu的iso镜像文件 => 启动 -> 写入硬盘映像(硬盘驱动器选择U盘，写入方式USB-HDD+) -> 写入(几分钟)。**此时U盘已经刻录好系统
 - 将硬盘(需要安装Ubuntu的机器)腾出一个未使用的空间，大小自己定义
 - Bios启动 -> 进入到刻录的U盘系统 -> `Install Ubuntu`（或者选择使用而不安装，进入之后还是可以安装） -> 点击桌面的`安装Ubuntu 16.04.1 LTS`进行安装 -> 前面一直下一步，到安装类型选择"其他选项"（可以自己创建调整分区）

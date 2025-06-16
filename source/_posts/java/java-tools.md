@@ -347,7 +347,7 @@ uriComponents.getQueryParams().get("name"); // 返回List
 StringUtils.substring(str, 0, 255);
 ```
 
-### 集合(commons-collections)
+### commons-collections集合
 
 - commons-collections#commons-collections
 - Map处理
@@ -355,7 +355,7 @@ StringUtils.substring(str, 0, 255);
 ```java
 // map取值减少强转
 String name = MapUtils.getString(map, "name");
-Integer age = MapUtils.getInteger(map, "age");
+Integer age = MapUtils.getInteger(map, "age", 18); // 提供默认值
 
 // 数组转Map
 String[][] arr = {{"a", "1"}, {"b", "2"}};
@@ -368,6 +368,8 @@ Map<String, String> retMap = MapUtils.putAll(new HashMap<>(), arr); // {"a": "1"
 - 默认将数据保存在内存中，分布式环境可设置成保存到Redis；和JWT集成支持Stateless无状态模式
 
 ## Excel/Word/Pdf操作
+
+- 可使用`Adobe Acrobat`创建PDF表单，代码中进行表单数据填充
 
 ### poi
 
@@ -421,9 +423,12 @@ xwpfRun.setColor("ed4014"); // hex值
 - **基于模板操作Word**
 - 技巧
     - 区块支持内嵌子区块(原代码貌似会有问题，修复一下NumberingContinue.java即可)
-    - 对于图片引用，WPS无法修改文字，可将图片文件名改成对于模板变量在拖到WPS，如`{{itemImage}}.png`
     - 对于部分排版场景可考虑无边框表格，循环渲染更方便
     - 貌似如果`builder.useSpringEL();`开启SpringEL，则都必须使用这种模式，则不支持自带的表格`{{井号table}}`(实际是#table，由于hexo编译会报错，改成"井号table")等写法
+    - 如果插入了形状(艺术字)，且需要在艺术字前面加一个标题并水平对齐：可将标题也插入成形状(文本框)
+- WPS说明
+    - 对于图片引用，WPS无法修改文字，可将图片文件名改成对于模板变量在拖到WPS，如`{{itemImage}}.png`
+    - 对应图表，"可选文字"对应的标签配置在`图表设置 - 文本选项 - 文本框 - 可选文字 - 标题`
 - 表格行循环和表格列循环
 
 ```java
@@ -466,6 +471,8 @@ XWPFTemplate template = XWPFTemplate.compile("src/test/resources/poitl/tpl/templ
 data.put("isPageBreak", true);
 template.render(data);
 ```
+
+![Cntr+Enter进行换行(非上文isPageBreak方式)](../../data/images/2024/java-tools/image-2.png)
 
 ### Easypoi基于模板生成Excel
 
@@ -779,6 +786,7 @@ public ObjectMapper objectMapper() {
                 .serializerByType(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DATE_FORMATTER)))
                 .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMATTER)))
                 .build()
+                // .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")) // 设置全局日期格式化
                 // 扩展配置-序列化. 配置参数参考：com.fasterxml.jackson.databind.SerializationFeature
                 // INDENT_OUTPUT 是否缩放排列输出，默认false，有些场合为了便于排版阅读则需要对输出做缩放排列
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL) // 忽略空对象

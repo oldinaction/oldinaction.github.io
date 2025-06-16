@@ -857,6 +857,7 @@ curl -O https://arthas.aliyun.com/arthas-boot.jar
 ## 启动
 # 如果有多个线程可输入序号仅选择，然后回车
 java -jar arthas-boot.jar
+stop # 退出当前arthas会话(之后才可切换到其他进程会话)
 
 ## 常用命令如下
 # 打开帮助
@@ -868,10 +869,11 @@ thread
 thread -n 3 # 展示当前最忙的N各线程
 # **观察系统情况**，会定时刷新ID/Memory/Runtime几个分类属性
 dashboard
-# (慎用)相当于使用jmap导出堆信息，**也会影响线上程序**
+# **(慎用)**相当于使用jmap导出堆信息，**也会影响线上程序**
 heapdump
 # 查找class
 sc
+
 # [观测方法](https://arthas.aliyun.com/doc/watch.html)
 # 能观察到的范围为：返回值、抛出异常、入参，通过编写 OGNL 表达式进行对应变量的查看
 watch
@@ -879,6 +881,17 @@ watch
 jad
 # 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
 redefine
+
+## vmtool(利用JVMTI接口，实现查询内存对象，强制 GC 等功能)
+# 获取对象. --limit: 限制返回值数量, 防止对jvm造成压力
+vmtool --action getInstances --className java.lang.String --limit 10
+# -x: 指定返回结果展开层数, 默认展开1层
+vmtool --action getInstances --className org.apache.tomcat.jdbc.pool.ConnectionPool -x 2
+# 执行表达式. 查看所有bean
+vmtool --action getInstances --className org.springframework.context.ApplicationContext --express 'instances[0].getBeanDefinitionNames()'
+# 查看数据库连接池配置. 其中参数this.dbTypeName的值参考DbType.oracle的常量值，即具体使用的数据库是哪款
+vmtool --action getInstances --className com.alibaba.druid.pool.DruidDataSource --express 'instances.{? #this.dbTypeName=="oracle"}.{#this}'
+
 
 # 没有包含的功能
 # jmap -histo

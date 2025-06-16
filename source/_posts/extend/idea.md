@@ -19,8 +19,20 @@ tags: [IDE]
 
 ## jetbrains相关编辑器破解
 
-- [大神博客](https://zhile.io/)
+- 2024.3.1.1 PyCharm破解
+
+```bash
+## 参考: https://www.iotword.com/26770.html
+# 安装PyCharm专业版(Professional)
+# 下载破解工具 ja-netfilter-all.zip 解压后执行 scripts/install-all-users.vbs(或install.sh)，成功后会弹框提示Done
+ja-netfilter-all.zip
+# 重新打开PyCharm，此时显示已经激活
+# 如果未集合可输入以下注册码试试
+EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb290ZXIiLCJhc3NpZ25lZU5hbWUiOiIiLCJhc3NpZ25lZUVtYWlsIjoiIiwibGljZW5zZVJlc3RyaWN0aW9uIjoiIiwiY2hlY2tDb25jdXJyZW50VXNlIjpmYWxzZSwicHJvZHVjdHMiOlt7ImNvZGUiOiJQU0kiLCJmYWxsYmFja0RhdGUiOiIyMDI1LTA4LTAxIiwicGFpZFVwVG8iOiIyMDI1LTA4LTAxIiwiZXh0ZW5kZWQiOnRydWV9LHsiY29kZSI6IlBDIiwiZmFsbGJhY2tEYXRlIjoiMjAyNS0wOC0wMSIsInBhaWRVcFRvIjoiMjAyNS0wOC0wMSIsImV4dGVuZGVkIjpmYWxzZX0seyJjb2RlIjoiUFBDIiwiZmFsbGJhY2tEYXRlIjoiMjAyNS0wOC0wMSIsInBhaWRVcFRvIjoiMjAyNS0wOC0wMSIsImV4dGVuZGVkIjp0cnVlfSx7ImNvZGUiOiJQV1MiLCJmYWxsYmFja0RhdGUiOiIyMDI1LTA4LTAxIiwicGFpZFVwVG8iOiIyMDI1LTA4LTAxIiwiZXh0ZW5kZWQiOnRydWV9LHsiY29kZSI6IlBDV01QIiwiZmFsbGJhY2tEYXRlIjoiMjAyNS0wOC0wMSIsInBhaWRVcFRvIjoiMjAyNS0wOC0wMSIsImV4dGVuZGVkIjp0cnVlfV0sIm1ldGFkYXRhIjoiMDEyMDIyMDkwMlBTQU4wMDAwMDUiLCJoYXNoIjoiVFJJQUw6MzUzOTQ0NTE3IiwiZ3JhY2VQZXJpb2REYXlzIjo3LCJhdXRvUHJvbG9uZ2F0ZWQiOmZhbHNlLCJpc0F1dG9Qcm9sb25nYXRlZCI6ZmFsc2V9-FT9l1nyyF9EyNmlelrLP9rGtugZ6sEs3CkYIKqGgSi608LIamge623nLLjI8f6O4EdbCfjJcPXLxklUe1O/5ASO3JnbPFUBYUEebCWZPgPfIdjw7hfA1PsGUdw1SBvh4BEWCMVVJWVtc9ktE+gQ8ldugYjXs0s34xaWjjfolJn2V4f4lnnCv0pikF7Ig/Bsyd/8bsySBJ54Uy9dkEsBUFJzqYSfR7Z/xsrACGFgq96ZsifnAnnOvfGbRX8Q8IIu0zDbNh7smxOwrz2odmL72UaU51A5YaOcPSXRM9uyqCnSp/ENLzkQa/B9RNO+VA7kCsj3MlJWJp5Sotn5spyV+gA==-MIIETDCCAjSgAwIBAgIBDTANBgkqhkiG9w0BAQsFADAYMRYwFAYDVQQDDA1KZXRQcm9maWxlIENBMB4XDTIwMTAxOTA5MDU1M1oXDTIyMTAyMTA5MDU1M1owHzEdMBsGA1UEAwwUcHJvZDJ5LWZyb20tMjAyMDEwMTkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCUlaUFc1wf+CfY9wzFWEL2euKQ5nswqb57V8QZG7d7RoR6rwYUIXseTOAFq210oMEe++LCjzKDuqwDfsyhgDNTgZBPAaC4vUU2oy+XR+Fq8nBixWIsH668HeOnRK6RRhsr0rJzRB95aZ3EAPzBuQ2qPaNGm17pAX0Rd6MPRgjp75IWwI9eA6aMEdPQEVN7uyOtM5zSsjoj79Lbu1fjShOnQZuJcsV8tqnayeFkNzv2LTOlofU/Tbx502Ro073gGjoeRzNvrynAP03pL486P3KCAyiNPhDs2z8/COMrxRlZW5mfzo0xsK0dQGNH3UoG/9RVwHG4eS8LFpMTR9oetHZBAgMBAAGjgZkwgZYwCQYDVR0TBAIwADAdBgNVHQ4EFgQUJNoRIpb1hUHAk0foMSNM9MCEAv8wSAYDVR0jBEEwP4AUo562SGdCEjZBvW3gubSgUouX8bOhHKQaMBgxFjAUBgNVBAMMDUpldFByb2ZpbGUgQ0GCCQDSbLGDsoN54TATBgNVHSUEDDAKBggrBgEFBQcDATALBgNVHQ8EBAMCBaAwDQYJKoZIhvcNAQELBQADggIBABqRoNGxAQct9dQUFK8xqhiZaYPd30TlmCmSAaGJ0eBpvkVeqA2jGYhAQRqFiAlFC63JKvWvRZO1iRuWCEfUMkdqQ9VQPXziE/BlsOIgrL6RlJfuFcEZ8TK3syIfIGQZNCxYhLLUuet2HE6LJYPQ5c0jH4kDooRpcVZ4rBxNwddpctUO2te9UU5/FjhioZQsPvd92qOTsV+8Cyl2fvNhNKD1Uu9ff5AkVIQn4JU23ozdB/R5oUlebwaTE6WZNBs+TA/qPj+5/we9NH71WRB0hqUoLI2AKKyiPw++FtN4Su1vsdDlrAzDj9ILjpjJKA1ImuVcG329/WTYIKysZ1CWK3zATg9BeCUPAV1pQy8ToXOq+RSYen6winZ2OO93eyHv2Iw5kbn1dqfBw1BuTE29V2FJKicJSu8iEOpfoafwJISXmz1wnnWL3V/0NxTulfWsXugOoLfv0ZIBP1xH9kmf22jjQ2JiHhQZP7ZDsreRrOeIQ/c4yR8IQvMLfC0WKQqrHu5ZzXTH4NO3CwGWSlTY74kE91zXB5mwWAx1jig+UXYc2w4RkVhy0//lOmVya/PEepuuTTI4+UJwC7qbVlh5zfhj8oTNUXgN0AOc+Q0/WFPl1aw5VV/VrO8FCoB15lFVlpKaQ1Yh+DVU8ke+rt9Th0BCHXe0uZOEmH0nOnH/0onD
+```
+
 - 2021.3 使用 https://zhile.io/2021/11/29/ja-netfilter-javaagent-lib.html
+    - [大神博客](https://zhile.io/)
 
 ```bash
 # 参考 https://www.cnblogs.com/yanglang/p/16818245.html
@@ -90,6 +102,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 ### 项目配置
 
 - 进入到Project Structure：`File - Project Structure` [^1]
+- **修改项目名称(IDEA中显示的名称)**: Project Settings - Project - Project name
 - java-web(springmvc)配置步骤
     - `Project` 项目级别
         - 主要是project compiler output的位置(src的编译位置)：如`D:/myproject/classes`(使用默认即可)，为对应WEB-INF下的classes目录
@@ -245,23 +258,8 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
     - `Ctrl + Y` 删除行
     - `Ctrl shift +` 展开所有方法
     - `Ctrl shift -` 收缩所有方法
-- 批量选择
-    - `Alt + Shift + 左键` 跨行需要每行单点，可以让光标在多个位置出现
-    - `Ctrl + Alt + Shift + 鼠标拖选` 可选择多个矩形
-    - `Alt + Shift + Insert` 然后按住鼠标左键拖动选中多行，此时可选择空白区域。开启鼠标插入选择模式(鼠标右键 - 选中columu select module进行开启)
-    - vscode相关
-        - `Alt + 左键` 跨行需要每行单点
-        - `Alt + Shift + 鼠标拖动` 可选择多个矩形(或移动上下键)
-        - `Ctrl + Alt + Up/Down` 选中/取消当前行的多行编辑 
-        - `Ctrl + Shift + L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标
-        - 选中多行后，可结合`Ctrl + 左右键`进行跨单词移动光标
-        - 选中多行复制后，并再新的地方选择多行，然后粘贴即可粘贴多行
-- 特殊场景
-    - SQL控制台界面
-        - `Ctrl + Enter` 执行SQL
-        - `Ctrl + Alt + E` 查看最近执行SQL
-        - `Ctrl + F12` 查看列定义；选择某一列再点击时，会跳到指定列定义
 - 常用快捷键
+    - `两次Shift` **全局查找**
     - `Ctrl + N` 跳转到类
     - `Ctrl + Shift + F9` 热部署
     - `Ctrl + Shift + F/R` 全局查找/替换(jar包只有下载了源码才可检索)。搜狗输入法快捷键简繁体切换可能会占用`Ctrl+Shift+F`
@@ -272,6 +270,23 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - Mac
     - `Cmd + Shift + U` 大小写转换
     - `Alt + Shift + U` 驼峰下划线转换(基于插件)
+- 批量选择
+    - `Alt + Shift + 左键` 跨行需要每行单点，可以让光标在多个位置出现
+    - `Alt + 鼠标拖选` **可选择单个矩形**
+        - 先`Alt + 鼠标拖选` 选择一个矩形，再(增加)按住`Cntr + Shift` 选择多个矩形
+    - `Alt + Shift + Insert` 然后按住鼠标左键拖动选中多行，此时可选择空白区域。开启鼠标插入选择模式(鼠标右键 - 选中columu select module进行开启)
+    - **VsCode相关(IDEA快捷键)**
+        - `Alt + 左键` 跨行需要每行单点
+        - `Alt + Shift + 鼠标拖动` **可选择矩形(或移动上下键)，多个矩形暂未验证**
+        - `Ctrl + Alt + Up/Down` 选中/取消当前行的多行编辑 
+        - `Ctrl + Shift + L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标
+        - 选中多行后，可结合`Ctrl + 左右键`进行跨单词移动光标
+        - 选中多行复制后，并再新的地方选择多行，然后粘贴即可粘贴多行
+- 特殊场景
+    - SQL控制台界面
+        - `Ctrl + Enter` 执行SQL (Navicate为`Cntr + R`)
+        - `Ctrl + Alt + E` 查看最近执行SQL
+        - `Ctrl + F12` 查看列定义；选择某一列再点击时，会跳到指定列定义
 - 快捷键图片
 
 ![idea-keys](/data/images/2016/09/idea-keys.png)
@@ -322,6 +337,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 
 - 查找如`to_char\(((?:(?!FROM).)*?)\,(.*?(?:yy\-|yy\/|mm\-|mm\/|hh24).*?)\)`查询所有同to_char格式化日期的SQL，但是不包含`to_char(FROM`
     - 替换如`to_char(FROM_TZ(CAST($1 AS TIMESTAMP), 'Asia/Shanghai') AT TIME ZONE '"+ Util.getTimeZone() +"', $2)`
+- VsCode正则`@comp\/(.*?)(?<!\.vue)'$`替换为`@comp/$1.vue'`将非.vue结尾的加上.vue (伪案例: 这样替换可能会导致@comp/Demo/index.vue写成@/comp/Demo时被替换错误)
 
 ### Debug调试技巧
 
@@ -372,6 +388,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 
 - **设置git的Local Changes窗口显示**
     - File –> Settings –> Version Control –> commit -> 取消勾选 Use non-modal commit interface -> apply
+    - 新版本(2025)设置: File –> Settings –> Advanced Settings -> 搜索commit - 勾选 Use modal commit interface for Git
 - 在一个项目中管理多个git
     - setting - Version Control - 编辑Directory
 - 暂存功能(Shelve搁置)。类似[git stash](/_posts/arch/git.md#暂存工作区)

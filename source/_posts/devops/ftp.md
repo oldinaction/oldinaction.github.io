@@ -363,9 +363,14 @@ spec:
 ### FileZilla
 
 - [官网](https://filezilla-project.org/index.php)
+- 支持Windows/Linux/Mac等, Pro版本才支持XFTP
 - 配置
-    - 被动模式设置相应端口: Protocols Setting - passive mode - Use custom port rang - 设置端口范围(被开放对应端口防火墙)
-    - 配置用户: Rights management - Users - 添加用户 - User is enable勾选，设置密码(之后查看密码会显示成空白)，Mount points增加跟路径(/映射到D:/ftproot/test)，Permission去掉Writeable directory struct(禁止修改目录结构)
+    - Server listeners - Protocol - **选择`Explicit FTP over TLS and insecure plain FTP`**(TLS为可选, 新版本的默认配置是`Require explicit FTP over TLS`必须TLS)
+    - 被动模式设置相应端口: Protocols Setting - FTP and FTP over TLS - Passive Mode - Use custom port rang - 设置端口范围(被开放对应端口防火墙)
+    - 配置用户
+        - Rights management - Users - 添加用户 - User is enable勾选，设置密码(之后查看密码会显示成空白)
+        - Mount points增加跟路径(/ 映射到 D:\ftproot\test)
+        - **Permission去掉Writeable directory struct(禁止修改目录结构)**
 - 说明
     - 如果注册了服务，可以关闭窗口，或最小化
 

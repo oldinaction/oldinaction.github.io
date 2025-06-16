@@ -337,6 +337,7 @@ public class BaseController {
 ```java
 // ## 条件判断
 @Conditional({MyWindowsCondition.class}) // 必须符合所有的条件才会注入此Bean(可以注解在类或方法上)
+// @MyWindowsConditionOnCustomProperty("true")
 @Bean("myBean3")
 public MyBean myBean3() {
     return new MyBean();
@@ -366,8 +367,23 @@ public class MyWindowsCondition implements Condition {
             return true;
         }
 
+        // (可选)自定义参数注解时
+        Map<String, Object> attributes = metadata.getAnnotationAttributes(MyWindowsConditionOnCustomProperty.class.getName());
+        if (attributes != null) {
+            String expectedValue = (String) attributes.get("value");
+        }
+
         return false;
     }
+}
+
+// 自定义参数注解时
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(MyWindowsCondition.class)
+public @interface MyWindowsConditionOnCustomProperty {
+    String value();
 }
 ```
 
@@ -1106,6 +1122,15 @@ public class Application {}
         public void fixTimeException() {
             System.out.println("在指定时间执行：" + dateFormat.format(new Date()));
         }
+
+        @MyWindowsConditionOnCustomProperty("true") // 参考上文自定义Condition
+        @Component
+        class Job1 {
+            @Scheduled(fixedRate = 1000)
+            public void test() {
+                System.out.println("自定义条件下的定时任务正在执行...");
+            }
+        }
     }
     ```
 - cron配置说明 [^1]
@@ -1307,13 +1332,13 @@ transactionManager.rollback(transactionStatus);
         - 读操作不加S锁
         - 该级别不能防止脏读、不可重复读、幻读。因此很少使用该隔离级别
         - 比如，事务1修改一行，事务2在事务1提交之前读取了这一行。如果事务1回滚，事务2就读取了一行没有提交的数据（读取数据不需要加S锁，这样就不会跟被修改的数据上的X锁冲突）
-	- `READ_COMMITTED`
+	- `READ_COMMITTED` **读已提交**
         - 该隔离级别表示一个事务只能读取另一个事务已经提交的数据
         - 读操作需要加S锁，但是在语句执行完以后释放S锁
         - 该级别可以防止脏读，可能会出现不可重复读、幻读。这也是大多数情况下的推荐值
         - Sql Server、Oracle默认为此级别
         - 比如，事务1读取了一行，事务2修改或者删除这一行并且提交。如果事务1想再一次读取这一行，它将获得修改后的数据或者发现这一样已经被删除，因此事务的第二次读取结果与第一次读取结果不同，因此也叫不可重复读
-	- `REPEATABLE_READ`
+	- `REPEATABLE_READ` **可重复读**
         - 该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略
         - 读操作需要加S锁，语句执行完并不会释放S锁，必须等待事务执行完毕以后才释放S锁
         - 该级别可以防止脏读、不可重复读，可能出现幻读

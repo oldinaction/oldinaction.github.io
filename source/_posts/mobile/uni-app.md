@@ -349,7 +349,7 @@ uni.openEmbeddedMiniProgram({
 
 - [easycom](https://uniapp.dcloud.net.cn/collocation/pages.html#easycom)
 - [uni_modules](https://uniapp.dcloud.net.cn/plugin/uni_modules.html)
-- 只要组件安装在项目根目录或uni_modules的components目录下，并符合components/组件名称/组件名称.vue或uni_modules/插件ID/components/组件名称/组件名称.vue目录结构。就可以不用引用(import)、注册，直接在页面中使用
+- 只要组件安装在项目根目录下的uni_modules或components目录下，并符合`components/组件名称/组件名称.vue`或`uni_modules/组件名称/组件名称.vue`或`uni_modules/插件ID/components/组件名称/组件名称.vue`目录结构。就可以不用引用(import)、注册，直接在页面中使用
 
 ### vue/nvue/uvue文件
 
@@ -412,18 +412,10 @@ uni.openEmbeddedMiniProgram({
 
 ## API
 
-
 ### 多媒体处理
 
 - base64和图片互转: https://blog.csdn.net/qq_43299315/article/details/106657815
 - 图片路径转base64: https://blog.csdn.net/qq_39410252/article/details/130249332
-- 图片上传`uni.uploadFile`
-    - uni.uploadFile提交到后台需要使用路径模式(微信小程序为http://tmp/..., App如_doc/...)
-    - 不能使用base64或App本地路径file:///storage/emulated/0/...
-- 拍照与照片选择
-    - APP照片选择返回路径如：file:///storage/emulated/0/Android/data/io.dcloud.HBuilder/apps/HBuilder/doc/uniapp_temp/compressed/1701010324957_1701007865482.png
-    - APP拍照返回路径如：_doc/uniapp_temp_1701010313392/camera/1701010368878.jpg
-    - 如果将以上路径传到hybrid(APP嵌入的手机本地H5项目)中，则拍照的这种路径无法读取到图片，可使用plus接口获取绝对路径`url = plus.io.convertLocalFileSystemURL('_doc/') + url.substring(4)`
 - 图片涂鸦
     - 参考thd-photo-edit：基于H5实现图片编辑，并web-view嵌入到app中
         - APP拍照需进行路径转换，参考上文
@@ -435,10 +427,57 @@ uni.openEmbeddedMiniProgram({
 - 自定义相机
     - 小程序比较好实现，插件较多，App比较难实现(原生或livepush)
     - App基于livepush，插件如(可行)：https://ext.dcloud.net.cn/plugin?id=4892
-- 分享文件到微信(uniapp自带的分享只能分享文字、图片、视频等，不支持文件)
+- App分享文件到微信(uniapp自带的分享只能分享文字、图片、视频等，不支持文件)
     - 参考原生插件：https://ext.dcloud.net.cn/plugin?id=2307
     - 下载原生插件 - 放到项目的`nativeplugins`目录 - 本地调试需要先用HbuilderX生成一个自定义基座(包含了该原生插件)，也可直接使用云打包出APK
     - 原生插件使用参考：https://nativesupport.dcloud.net.cn/NativePlugin/
+
+#### 拍照与照片选择
+
+- APP照片选择返回路径如：file:///storage/emulated/0/Android/data/io.dcloud.HBuilder/apps/HBuilder/doc/uniapp_temp/compressed/1701010324957_1701007865482.png
+- APP拍照返回路径如：_doc/uniapp_temp_1701010313392/camera/1701010368878.jpg
+- 如果将以上路径传到hybrid(APP嵌入的手机本地H5项目)中，则拍照的这种路径无法读取到图片，可使用plus接口获取绝对路径`url = plus.io.convertLocalFileSystemURL('_doc/') + url.substring(4)`
+- [chooseimage](https://uniapp.dcloud.net.cn/api/media/image.html#chooseimage)
+
+```js
+uni.chooseImage({
+    count: 9, // 默认9
+    sizeType: ['compressed'], // original compressed
+    sourceType: ['camera'], // camera album
+    success: (res) => {
+        let tempFilePaths = res.tempFilePaths.map(x => ({ url: x }))
+    }
+});
+```
+
+#### 文件上传(小程序文件选择)
+
+- `uni.uploadFile` 文件上传到服务器(本质是做了一个POST请求到后台)。**小程序只能从聊天列表中选择文件进行上传，参考下文**
+    - uni.uploadFile 提交到后台需要使用路径模式(微信小程序为http://tmp/..., App如_doc/...)
+    - 不能使用base64或App本地路径 file:///storage/emulated/0/...
+- `uni.chooseFile` 只支持H5文件选择
+- `wx.chooseMessageFile` 只支持微信和QQ文件选择
+
+```js
+wx.chooseMessageFile({
+    count: 10,
+    type: 'file', // 默认all包含图片
+    success: (res) => {
+        /**
+         * {
+         *  errMsg: 'chooseMessageFile:ok', 
+         *  tempFiles: [{
+         *      name: '测试.docx', 
+         *      path: 'http://tmp/jx68w6IX2lTod77e05411a81fce9e7a9086b2352e6e9.xlsx', 
+         *      size: 8619, 
+         *      time: 1690364448, 
+         *      type: 'file'
+         *  }]
+         * }
+         */
+    }
+})
+```
 
 #### 语音处理
 
@@ -516,6 +555,7 @@ checkRecordAuth() {
 **语音(合成)播放**
 
 - 案例参考: `aezo-chat-gpt(sqt-qingxingyigou)/index.vue`
+- 可结合后端调用如[ai-soft.md#阿里-语音合成](/_posts/arch/ai-soft.md#语音合成)
 - 由于小程序无法实现流式播放，可将后端多个ByteBuffer合成为几个大的ByteBuffer传到小程序端，从而小程序端进行多个ByteBuffer依次播放来实现
 
 ```js
@@ -543,9 +583,23 @@ audioBufferSource.onended = (res) => {
     // 解决方案: 记录audioBufferSource播放的位置，下次重新创建audioBufferSource，并结合start offset还原到原播放位置 (由于需要手动计时, 可能会有一点误差)
     // 并且在 webAudioContext.suspend() 的时候需要将原 audioBufferSource 清除(disconnect、stop、buffer = null、onended = null), 否则 webAudioContext.resume 的时候可能会出现语音重叠播放的情况
 }
-// 连接到播放节点并进行播放. IOS需要关闭静音模式
+// 连接到播放节点并进行播放. IOS需要关闭静音模式(解决方式参考下文)
 audioBufferSource.connect(webAudioContext.destination)
 audioBufferSource.start() // 支持设置播放位置offset(如小音频文件3s, 可设置从1s处开始播放)
+```
+- 解决(微信小程序)ISO需要关闭静音模式问题
+
+```js
+const that = this
+wx.setInnerAudioOption({
+    obeyMuteSwitch: false,
+    success: function (res) {
+        console.log('开启静音模式下播放音乐的功能', res)
+    },
+    fail: function (err) {
+        // that.$squni.toast('请先关闭手机静音')
+    }
+})
 ```
 
 ### 位置
@@ -587,7 +641,7 @@ uni.vibrateLong({})
     - 必须使用button组件，样式比较丑，可参考
 
     ```html
-    <button class="cu-btn cuIcon sm" open-type="contact">
+    <button class="cu-btn cuIcon sm feedback" open-type="contact">
         <view class="cuIcon-service text-green button-icon"></view>
         <text>联系客服</text>
     </button>
@@ -647,6 +701,49 @@ uni.vibrateLong({})
     ```
 - 案例: [在小程序中加入企业微信群聊](/_posts/mobile/weixin.md#客户联系)
 
+### 分包
+
+- [pages.json配置subpackages分包和preloadRule预加载分包](https://uniapp.dcloud.net.cn/collocation/pages.html#subpackages)
+- 微信小程序跨分包组件调用及JS调用: https://blog.csdn.net/wsln_123456/article/details/115405677
+
+### uni-app和原生小程序混合开发或转换
+
+- [老项目(原生小程序/原生App)引入uni-app](https://uniapp.dcloud.net.cn/hybrid.html)
+- [其他项目转uni-app](https://uniapp.dcloud.net.cn/translate.html)
+- 老项目引入uni-app实践(uni-app以分包嵌入到微信原生小程序)
+    - 将uni-app发行 - 发行为混合分包 - 输入分包名称如`sub-demo`
+    - 在原生小程序的app.json中增加分包配置
+
+    ```json
+    // pages, 全局usingComponents, permission等配置可参考项目运行到微信小程序编辑器中的app.json(将里面需要的配置复制过来进行部分修改)
+    "subpackages": [
+        {
+            "root": "sub-demo",
+            "name": "sub-demo",
+            "pages": [
+                "pages/main/index",
+                "pages/main/history/index"
+            ],
+            // 是否为独立分包: 独立分包可以独立于主包和其他分包运行，从独立分包中的页面进入小程序时，不需要下载主包。此时主包不存在，App 也不存在，调用 getApp() 获取到的是 undefined
+            "independent": false
+        }
+    ],
+    // 全局组件 (在uni-app项目的main.js中使用 Vue.component 注册到全局的组件会自动生成到app.json, 需要复制到原生小程序的app.json并增加分包路径前缀)
+    // 这种配置原生小程序控制台会报错, 但是不影响使用. 如果是使用 easycom 模式的组件是无需此步骤的
+    "usingComponents": {
+        "cu-custom": "/sub-demo/uni_modules/colorui/components/cu-custom"
+    },
+    // 复制其他如权限等配置
+    "permission": {}
+    ```
+    - uni-app项目开发说明
+        - 由于发行分包后，uni-app项目的app.json不会生成，因此page.json中的globalStyle不会生成，为了减少对原生小程序的影响，可将globalStyle中的属性写到每个page的style中，如`"navigationStyle": "custom"`自定义顶部
+        - 发行混合分包后，App.vue中的onLaunch会在首次进入分包时触发，此时(第一次)不会触发onShow(正常的uni-app项目第一次onShow也会触发)，之后onShow和onHide可正常触发
+        - 开发时需要将资源(图片，css，js等)的绝对路径调整为相对路径，使用如`../static/logo.png`或`@/common/config.js`的模式
+        - 页面的绝对路径调整为相对路径，或者使用如this.$squni.navigateTo的自定义跳转方法(自动增加/sub-demo的分包前缀)
+        - 页面如果没有自定义样式，也最好增加一下如`<style lang="scss">page {}</style>`带css内容的style标签，这样才会生成页面wxss文件并且引入项目全局样式`common/main.wxss`
+        - `<button class="cu-btn text-blue">` 原生button标签配合colorui类时样式无法生效，改成view标签即可(但是像必须使用原生button标签的场景可能会存在样式问题)
+
 ### 其他
 
 - uni.setStorageSync 和 uni.getStorageSync 可直接操作对象(无需序列化成字符串)，但是修改后的对象需要重新持久化才能保存
@@ -683,12 +780,24 @@ uni.vibrateLong({})
 - 小程序分享及分享后无法返回的问题
     - 无法返回问题: https://www.crmeb.com/ask/thread/11593.html
         - 如果使用ColorUI，需修改`cu-custom`导航组件的返回事件
+    - 分享时获取循环中的数据
+        
+        ```html
+        <button open-type="share" :data-id="item.id">分享</button>
+
+        onShareAppMessage(event) {
+            const id = event.target.dataset.id;
+        }
+        ```
 - 敏感词检测：https://zhuanlan.zhihu.com/p/363463142?utm_id=0
 - App本地日志记录
     - 基于Java自定义类 https://blog.csdn.net/nicepainkiller/article/details/106315343
     - 基于插件 https://blog.csdn.net/Linxi_001/article/details/130265639
 
 ## 常见问题
+
+- Hbuilder启动小程序时报错`Error: Fail to open IDE`
+    - 检查启动的小程序AppId, 已经登录的微信号是否有权限访问
 
 ### 兼容性问题
 

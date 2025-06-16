@@ -17,9 +17,10 @@ tags: [template]
 - 转义字符`${r"..."}`: 如：`${r"${foo}"}`、`${r"C:\foo\bar"}`
 - `js_string` 用于JavaScript转义，转换`'`、`"`、换行等特殊字符。如：`alert("${errorMessage?js_string}");`
 - `${(unsafeStr)!?html}` 防止XSS攻击
+- `<#noautoesc>${html}</#noautoesc>` 直接渲染HTML代码(v2.3.24以前为`<#noescape>${html}</#noescape>`)
 - v2.3.22中
     - 出现含有`/`字符的变量无法正常显示，会显示成`&#47;`，47为`/`的[ASCII码](https://www.runoob.com/w3cnote/ascii.html)
-        - 可已尝试使用`${StringUtil.wrapString(mystr)}`
+        - 可以尝试使用`${StringUtil.wrapString(mystr)}` 或使用 `${mystr?replace("&#47;", "/")}`
     - 还遇到过`=`字符无法使用split函数分割的问题，可以使用`${mystr?split("&#61;")}`试试
 
 ### 变量
@@ -65,6 +66,9 @@ ${(appVersion)!}
 <#else>
     ...
 </#if>
+
+<#if arr?? && arr?size gt 0 && list?size gt 0>...</#if>
+
 
 <!-- list -->
 <#list myList?if_exists as item>

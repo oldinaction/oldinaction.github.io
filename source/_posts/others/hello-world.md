@@ -51,6 +51,13 @@ tags: [others]
 
 <p>详细内容......</p>
 </details>
+
+<!-- 默认展开收缩块 -->
+<details open>
+    <summary>思考过程</summary>
+    <blockquote>DeepSeek在思考...</blockquote>
+</details>
+我是DeepSeek
 ```
 
 ### 列表

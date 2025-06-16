@@ -96,7 +96,7 @@ tags: [linux, shell]
         - `runuser -l testuser -c "nohup bash $APP_HOME/start.sh > /dev/null 2>&1 &"` 以testuser用户执行命令
 - 设置环境变量
     - `/etc/profile` 记录系统环境变量，在此文件末尾加入`export JAVA_HOME=/usr/java/jdk1.8` 将`JAVA_HOME`设置成所有用户可访问
-    - `/home/smalle/.bash_profile` 每个用户登录的环境变量(/home/smalle为用户家目录)
+    - `/home/test/.bash_profile` 每个用户登录的环境变量(/home/test为用户家目录)
         - `.bash_profile` 登录后的环境变量
         - `.bashrc` 登录后自动运行(类似rc.local)
     - `echo $JAVA_HOME` 查看其值
@@ -181,17 +181,20 @@ tags: [linux, shell]
 ### 磁盘
 
 - `df -h` 查看磁盘使用情况、分区、挂载点(**只会显示成功挂载的分区，新磁盘需要进行分区和挂载**)
-    - `df -h /home/smalle` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
+    - `df -h /home/test` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `df -Th` 查询文件系统格式
-- `du -sh /home/smalle` **查看某个目录的每个子目录的文件大小**
+- `du -sh /home/test` **查看某个目录的每个子目录的文件大小**
     - `du` 它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
     - 参数说明
         - `-a` 所有文件，包括目录和普通文件，默认只统计目录
+        - `-s` 仅显示汇总大小（不递归列出每个子目录）
         - `-h` 显示人类可读的文件大小
         - `-m` 已MB大小为单位
+        - `-c` 最后显示汇总数
+    - `du -shc 2020* | sort -h` **查看当前目录以2020开头的目录大小**
+    - `du -hc *2020* | tail -n 1` 统计当前目录文件名包含2020的文件大小(显示最后一行相当于显示最后的总计)
     - `du -ahm --max-depth=1 | sort -nr | head -10` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**(查看大目录)
-    - `du -hsx * | sort -rh | head -10` 查看最大的10个文件
-    - `du -sh * | sort -h` 查看当前目录每个子目录的大小
+    - `du -shx * | sort -rh | head -10` 查看最大的10个文件 (sort -h升序, -rh降序)
     - `find . -type f -size +500M  -print0 | xargs -0 du -hm | sort -nr` 查看大于500M的前10个文件(查看大文件)
 - `lsblk` **树形显示磁盘即分区**
     - `fdisk -l` 查看磁盘设备
@@ -223,7 +226,8 @@ tags: [linux, shell]
     - `-r` 递归复制整个目录
     - `-i` 指定登录目标服务器的秘钥文件，如`scp -i /private_file test.txt root@node02:/home/dir`
     - 复制文件/文件夹(需加-r属性)到远程服务器
-        - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(本地和远程目录要么都以/结尾，要么都不要/)。**需要提前创建目标目录的父目录**
+        - `scp -r /home/test root@192.168.1.1:/home/dir` 将本地linux系统的/home/test文件或目录(及其子目录)复制到远程的home目录下(本地和远程目录要么都以/结尾，要么都不要/)。**需要提前创建目标目录及: `mkdir -p /home/dir/test`**
+        - mac如果存在子目录复制貌似有点问题
     - 从远程服务器传输文件到本地
         - `scp -r root@192.168.1.1:/opt/soft/test /opt/soft/` 下载远程 /opt/soft/test 文件或目录(及其子目录)到本地的 /opt/soft/ 目录来
         - `scp -r root@192.168.1.1:/home/test/2018* .` 将远程目录的2018开头的文件夹及其子文件复制到本地当前目录(备份)
@@ -258,7 +262,7 @@ tags: [linux, shell]
     - `echo $PATH` 打印环境变量
 - `stat <file>` **查看文件的详细信息**
 - `file <fileName>` 查看文件属性，如文件编码
-- `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/smalle/test.txt`返回test.txt
+- `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/test/test.txt`返回test.txt
 - `wc <file>` 统计指定文本文件的行数、字数、字节数 
     - `wc -l <file>` 查看行数
 - [lsof](https://www.netadmintools.com/html/lsof.man.html) 列出打开文件(lists openfiles), linux一切皆文件
@@ -319,6 +323,7 @@ lsof -i :22
 # -n --dry-run: 模拟运行结果
 # 支持远程文件或目录如: root@192.168.1.100:/etc
 rsync -avr --force --delete --exclude='node_modules' ../web .
+rsync -avz -e "ssh -i $ssh_file" /local/path/ user@host:/remote/path/  
 ```
 - lrzsz上传下载文件，小型文件可通过此工具完成。需要安装`yum install lrzsz`
     - `rz` 跳出窗口进行上传
@@ -739,8 +744,8 @@ d
     - `N` 向上查询
 - **查找替换** `s`
     - `<row1>,<row2>s@<pattern>@<string>@gi` 从第row1行到第row2行根据pattern匹配到后全局(g)忽略大小写(i)并替换成string
-    - ，`%`全文(`<row1>,<row2>`用`%`代替)
-    - `:.,$s/#//` 将当期行到最后一行的#替换为空
+    - `%`全文(`<row1>,<row2>`用`%`代替)
+    - `:.,$s/ab/cd/` 将当期行到最后一行的ab替换为cd (:为命令提示符)
 - 撤销
     - `u` **撤销上一步操作**
     - `Ctrl+r` **恢复上一步被撤销的操作**
@@ -765,9 +770,11 @@ d
 
 ## 权限系统
 
-### 用户管理 [^6]
+### 用户管理
 
-- `useradd test` 新建test用户(默认在/home目录新建test对应的家目录test)
+- 创建用户 `useradd test` 新建test用户(默认在/home目录新建test对应的家目录test, 还需手动修改密码) [^6]
+    - `useradd -M test` 只添加用户(不创建宿主目录)
+        - 之后登录用户会显示成`-bash-4.2$`, 可手动将`/etc/skel/.bashrc`和`cp /etc/skel/.bash_profile`复制到当前用户宿主目录重新登录即可
     - `useradd -d /home/aezo -m aezo` 添加用户(和设置宿主目录)
     - `usermod -d /home/home_dir -U aezo` 修改用户宿主目录
     - `useradd -r -g mysql mysql`
@@ -776,7 +783,7 @@ d
         - `-r` 表示mysql用户是一个系统用户，不能登录
         - 同理还可以创建如nginx、www等
     - 修改用户名
-
+    
         ```bash
         # 将old修改为new
         sudo pkill -9 -u old # 关闭旧用户session
@@ -785,36 +792,59 @@ d
         sudo groupmod -n new old # 修改用户组
         # 其他配置文件中保存的用户名和用户目录并不会被修改
         ```
-- `passwd aezo` 修改密码
-    - centos7忘记root用户密码找回可在启动时设置进入`sysroot/bin/sh`进行修改，参考：https://blog.51cto.com/scorpions/2059912
+    - 修改密码
+        - `passwd aezo` 设置/修改密码
+        - centos7忘记root用户密码找回可在启动时设置进入`sysroot/bin/sh`进行修改，参考：https://blog.51cto.com/scorpions/2059912
+- 删除用户 `userdel -rf aezo`(会删除对应的家目录)
+- 用户组(一个用户可以属于多个组，但是只能有一个默认组)
+    - `cat /etc/group` 查看组
+    - `groupadd aezocn` **新建组**
+    - `groupdel aezocn` 删除组
+    - `groups` 查看当前登录用户所属组
+        - `groups test` 查看test用户所属组，如返回`test : test root`表示test属于test和root组，默认组为test
+    - `usermod -g test test` 修改用户test的默认组为test
+    - `usermod -G wheel test` 将用户test加入到组wheel，并去除之前的非默认组
+    - `usermod -a -G wheel test` **保留之前的非默认组**
+    - `gpasswd -d test wheel` 将test从wheel组移除
+- 查看用户
+    - `cat /etc/passwd` 查看用户
+        - 如`test(账号名称):x(密码):1000(账号UID):1000(账号GID):aezocn(用户说明):/home/test(家目录):/bin/bash(shell环境)`
+    - `id test` 查看test用户信息。
+        - 如`uid=1000(test) gid=1000(test) groups=1000(test),10(wheel)` gid表示用户默认组，groups表示用户属于test、wheel两个组
+    - `who` 显示当前登录用户
+    - `w` 查看当前登录用户操作信息
+    - `whoami` 查看当前登录用户名
+    - `last`/`last test` 查看用户登录历史
 - 添加用户sudo权限
     - 使用sudo执行的命令都是基于root启动，创建的文件也是所属root
 
-    ```bash
-    # 添加写权限
-    chmod u+w /etc/sudoers
-    vi /etc/sudoers
+```bash
+# 添加写权限
+chmod u+w /etc/sudoers
+vi /etc/sudoers
 
-    # (位置说明)文件内容修改
-    root	ALL=(ALL) 	ALL
-    # 新加的sudo用户
-    # smalle  ALL=(ALL)   ALL
-    # (加这一行)设置执行sudo不需要输入密码(否则sudo输入密码，有效期只有5分钟)。
-    smalle  ALL=(ALL)   NOPASSWD: ALL
-    # (需要去掉此行的注释)只要是wheel组不需要密码
-    %wheel  ALL=(ALL)       NOPASSWD: ALL
+# (位置说明)文件内容修改
+root	ALL=(ALL) 	ALL
 
-    # 恢复文件只读
-    chmod u-w /etc/sudoers
-    ```
+# 新加的sudo用户
+test  ALL=(ALL)   ALL
+
+# (加这一行)设置执行sudo不需要输入密码(否则sudo输入密码，有效期只有5分钟)，不推荐
+# test  ALL=(ALL)   NOPASSWD: ALL
+# (需要去掉此行的注释)只要是wheel组不需要密码
+# %wheel  ALL=(ALL)       NOPASSWD: ALL
+
+# 恢复文件只读
+chmod u-w /etc/sudoers
+```
 - `su test` 切换到test用户，但是当前目录和shell环境不会改变
     - **`su - test`** 变更帐号为test，并改变工作目录至test的家目录，且shell环境也变成test用户的
-    - `su - smalle -c 'ls'` 切换到smalle用户环境，且执行ls命令(就算当前登录的是smalle，此时也需要输入密码)
+    - `su - test -c 'ls'` 切换到test用户环境，且执行ls命令(就算当前登录的是test，此时也需要输入密码)
     - 设置su命令不需要密码
-
+    
         ```bash
-        # 将smalle加入到组wheel(一个用户可以属于多个组)
-        usermod -G wheel smalle
+        # 将test加入到组wheel(一个用户可以属于多个组). 注意: wheel组是一个特殊的用户组，一旦用户被添加到wheel组，他们就可以使用sudo命令来执行需要root权限的命令
+        usermod -G wheel test
 
         # 修改配置
         vi /etc/pam.d/su
@@ -823,28 +853,8 @@ d
         auth       sufficient pam_wheel.so trust use_uid
 
         # 测试
-        su - smalle -c 'ls'
+        su - test -c 'ls'
         ```
-- `userdel -rf aezo` 删除用户(会删除对应的家目录)
-- 用户组(一个用户可以属于多个组，但是只能有一个默认组)
-    - `cat /etc/group` 查看组
-    - `groupadd aezocn` **新建组**
-    - `groupdel aezocn` 删除组
-    - `groups` 查看当前登录用户所属组
-        - `groups smalle` 查看smalle用户所属组，如返回`smalle : test root`表示smalle属于test和root组，默认组为test
-    - `usermod -g test smalle` 修改用户smalle的默认组为test
-    - `usermod -G wheel smalle` 将用户smalle加入到组wheel，并去除之前的非默认组
-    - `usermod -a -G wheel smalle` **保留之前的非默认组**
-    - `gpasswd -d smalle test` 将smalle从test组移除
-- 查看用户
-    - `cat /etc/passwd` 查看用户
-        - 如`smalle(账号名称):x(密码):1000(账号UID):1000(账号GID):aezocn(用户说明):/home/smalle(家目录):/bin/bash(shell环境)`
-    - `id smalle` 查看smalle用户信息。
-        - 如`uid=1000(smalle) gid=1000(smalle) groups=1000(smalle),10(wheel)` gid表示用户默认组，groups表示用户属于smalle、wheel两个组
-    - `who` 显示当前登录用户
-    - `w` 查看当前登录用户操作信息
-    - `whoami` 查看当前登录用户名
-    - `last`/`last smalle` 查看用户登录历史
 
 ### 文件权限
 
@@ -914,12 +924,15 @@ d
 
 ### SSH客户端连接服务器（秘钥认证）
 
-- SSH连接
+- **SSH连接**
     - **`ssh-keygen` 生成秘钥对**。可以在服务器、客户端、开发机上生成
-    - **将公钥 `id_rsa.pub` 内容追加到服务器的 `~/.ssh/authorized_keys` 文件中**。如登录服务器root账号则是`/root/.ssh/authorized_keys`，如登录aezo账号则是`/home/aezo/.ssh/authorized_keys`
-    - **将私钥 `id_rsa` 保存在客户端的`~/.ssh/`目录**
+    - **将公钥 `id_rsa.pub` 内容追加到服务器的 `~/.ssh/authorized_keys` 文件中** (服务器无需保存id_rsa.pub和id_rsa公私钥文件)
+        - `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys` 追加内容。如果没有authorized_keys文件可手动创建，**但是必须保证文件权限必须是600**
+        - 如登录服务器root账号则是`/root/.ssh/authorized_keys`，如登录aezo账号则是`/home/aezo/.ssh/authorized_keys`
+    - **将私钥 `id_rsa` 保存在客户端的`~/.ssh/`目录，且设置文件权限为0600**
+        - `chmod 0600 id_rsa` 设置权限。如果是644的权限则报错: `It is required that your private key files are NOT accessible by others. This private key will be ignored.`
 - `ssh-keygen` 命令生成秘钥对
-    - 运行 `ssh-keygen` 命令后再按三次回车会看到`RSA`，生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/smalle/.ssh/`。包含文件
+    - 运行 `ssh-keygen` 命令后再按三次回车会看到`RSA`，生成的秘钥文件默认路径为家目录下的`.ssh`，如`/home/test/.ssh/`。包含文件
         - `id_rsa` 密钥，保存在客户端。**客户端在通过ssh登录时，默认查找 id_rsa 文件，那么如果想让此客户端登录多个服务器，一般需要将此秘钥对应的公钥保存在多个服务器上，因此还需保管好相应公钥备用**
         - `id_rsa.pub` 公钥，保存服务端。
         - `known_hosts`(此机器作为客户端进行ssh连接时，认证过的服务器信息) 3 个文件。如：此客户端ip为`192.168.1.2`
@@ -928,7 +941,7 @@ d
 - **公钥保存到服务器**
     - **`ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.1`** 输入192.168.1.1密码，则会自动将公钥保存在服务器的`/root/.ssh/authorized_keys`文件中去此时。需要保证192.168.1.1服务器的root用户没有被禁用
     - 手动追加到authorized_keys文件中，`cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys`
-    - **注意`authorized_keys`权限必须是600**。如果没有此文件，上述两种方式会自动创建，其中ssh-copy-id创建的是600，而通过cat追加创建的可能不是600权限导致无法使用
+    - 注意`authorized_keys`权限必须是600。如果没有此文件，上述两种方式会自动创建，其中ssh-copy-id创建的是600，而通过cat追加创建的可能不是600权限导致无法使用
 - **秘钥保存在客户端**
     - 如果是为了让客户端root用户登录服务器，则将公钥放入到/root/.ssh目录；如果提供给其他用户登录，可将公钥放在对应的家目录，如/home/aezo/.ssh/下
     - `.ssh`目录不存在可手动新建（可通过`ll -al`查看） [^5]
@@ -980,18 +993,27 @@ d
     - `cat /var/log/secure`查看登录日志
 - **当支持证书登录后，可修改ssh配置禁用密码登录** [^7]
 
+```bash
+vi /etc/ssh/sshd_config
+
+## 修改文件内容
+Port 222 # 修改原22端口为222端口
+# (可选)是否允许root用户登陆(no不允许)，**如果要基于root证书登录则还是需要设置为yes**
+PermitRootLogin no
+# 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录。在没有生成好Key，并且成功使用之前，不要设置为no)
+PasswordAuthentication no
+
+# 使配置生效
+systemctl restart sshd
+```
+- 服务器链接报错`sign_and_send_pubkey: no mutual signature supported`，或者ssj及git连接报错`Permission denied (publickey,gssapi-keyex,gssapi-with-mic)`
+    - 可增加ssh参数: ssh -o PubkeyAcceptedAlgorithms=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa root@100.100.10.10 (如果是Royal则添加到Advanced - SSH - SSH Options)
+    - 也可以修改客户端的 SSH 配置文件 ~/.ssh/config
+    
     ```bash
-    vi /etc/ssh/sshd_config
-
-    ## 修改文件内容
-    Port 222 # 修改原22端口为222端口
-    # (可选)是否允许root用户登陆(no不允许)，**如果要基于root证书登录则还是需要设置为yes**
-    PermitRootLogin no
-    # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录。在没有生成好Key，并且成功使用之前，不要设置为no)
-    PasswordAuthentication no
-
-    # 使配置生效
-    systemctl restart sshd
+    Host 100.100.10.10
+        PubkeyAcceptedAlgorithms +ssh-rsa
+        HostKeyAlgorithms +ssh-rsa
     ```
 
 ## corn定时任务
@@ -1012,7 +1034,7 @@ d
 crontab -u root -e
 
 # 2.加入每分钟执行脚本配置(对应用户必须有执行此脚本权限，且此脚本文件有+x可执行属性)
-# 01 * * * * /home/smalle/script/test.sh
+# 01 * * * * /home/test/script/test.sh
 
 # 3.重新加载
 systemctl reload crond
@@ -1032,13 +1054,13 @@ cat /var/spool/mail/root
     crontab -l # 查看当前用户定时器
     sudo crontab -l # 查看root用户
     crontab -e # 编辑当前用户定时器
-    sudo crontab -e # 编辑root用户定时器，加入`00 02 * * * /home/smalle/script/backup_mysql.sh`
+    sudo crontab -e # 编辑root用户定时器，加入`00 02 * * * /home/test/script/backup_mysql.sh`
 	systemctl restart crond # 重启crond服务
     ```
 - 配置举例(需要将此配置加入到crontab)
     - `30 2 1 * * /sbin/reboot` 表示每月第一天的第2个小时的第30分钟，执行命令/sbin/reboot(重启)
-    - `00 02 * * * /home/smalle/script/backup_mysql.sh` 每天执行mysql备份脚本。脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份(mysqldump))
-    - `*/3 * * * * /home/smalle/script/test.sh` 每3分钟执行一次脚本
+    - `00 02 * * * /home/test/script/backup_mysql.sh` 每天执行mysql备份脚本。脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份(mysqldump))
+    - `*/3 * * * * /home/test/script/test.sh` 每3分钟执行一次脚本
 
 - 配置说明如下
 
@@ -1620,7 +1642,7 @@ sed 's/zhangsan/lisi/g' `grep zhangsan -rl *`
 # (模拟)此时使用#避免对/的转义(将cdn路径 staticfile 替换成 bootcdn)
 sed 's#https://cdn.staticfile.org/#https://cdn.bootcdn.net/ajax/libs/#g' `grep 'https://cdn.staticfile.org/' -rl *`
 # 加上参数`-i`会直接修改原文件(去掉文件中所有空行)
-sed -i '/^$/d' /home/smalle/test.txt
+sed -i '/^$/d' /home/test/test.txt
 # 删除/etc/grub.conf文件中行首的空白符
 sed -r 's@^[[:space:]]+@@g' /etc/grub.conf
 # 替换/etc/inittab文件中"id:3:initdefault:"一行中的数字为5
@@ -1860,7 +1882,7 @@ find . -mtime +15 | wc -l # 统计15天前修改过的文件的个数
 find ./ -mtime +10 -a -mtime -20 -type f # 搜索出最近10到20天内修改过的文件
 find ./ -mtime +30 -name "*.gz" | xargs ls -lh # 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
 find . -type f -size +500M  -print0 | xargs -0 du -hm | sort -nr # 查看大于500M的前10个文件(查看大文件)
-find /home/smalle/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/smalle/s_*/in/* -type f
+find /home/test/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/test/s_*/in/* -type f
 
 find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf # 删除30天之前的gz压缩文件
 

@@ -17,6 +17,7 @@ tags: LB, HA
     - [官网](http://tengine.taobao.org/)
     - [中文文档](http://tengine.taobao.org/nginx_docs/cn/docs/)
     - [Nginx开发从入门到精通](http://tengine.taobao.org/book/)
+- nginx日志分析goaccess: https://goaccess.io/ 对linux友好
 - nginx在整体架构中的作用
 
     ![nginx-arch](/data/images/arch/nginx-arch.png)
@@ -307,27 +308,27 @@ server {
     }
 
     ## proxy_pass详解
-        # 访问 http://192.168.1.1/api/test.html 以下不同的配置代理结果不一致. （多站点配置参考下文）
-        # 如果访问 http://192.168.1.1/api 则无法进入到下面代理，必须访问 http://192.168.1.1/api/
-        # location /api/ 不能写成 location /api (此时 http://192.168.1.1/api/xxx 无法代理)
+        # 访问 http://192.168.1.1/proxy/test.html 以下不同的配置代理结果不一致. （多站点配置参考下文）
+        # 如果访问 http://192.168.1.1/proxy 则无法进入到下面代理，必须访问 http://192.168.1.1/proxy/
+        # location /proxy/ 不能写成 location /proxy (此时 http://192.168.1.1/proxy/xxx 无法代理)
     # 第一种代理到URL：http://127.0.0.1/test.html
-    location /api/ {
+    location /proxy/ {
         proxy_pass http://127.0.0.1/;
         break;
     }
-    # 第二种代理到URL：http://127.0.0.1/api/test.html
-    location /api/ {
+    # 第二种代理到URL：http://127.0.0.1/proxy/test.html
+    location /proxy/ {
         # 后台api和前台暴露到同一域下常用方式
         proxy_pass http://127.0.0.1;
         break;
     }
     # 第三种代理到URL：http://127.0.0.1/pre/test.html
-    location /api/ {
+    location /proxy/ {
         proxy_pass http://127.0.0.1/pre/;
         break;
     }
     # 第四种代理到URL：http://127.0.0.1/pretest.html
-    location /api/ {
+    location /proxy/ {
         proxy_pass http://127.0.0.1/pre;
         break;
     }
@@ -492,7 +493,7 @@ http {
     #autoindex on; #开启目录列表访问，合适下载服务器，默认关闭。
     #tcp_nopush on; #防止网络阻塞
     #tcp_nodelay on; #防止网络阻塞
-    keepalive_timeout 65; #长连接超时时间，单位是秒
+    keepalive_timeout 60; #长连接超时时间，单位是秒
 
     # 防止域名太长报错。nginx: [emerg] could not build server_names_hash, you should increase server_nam
     server_names_hash_bucket_size 64; # 上升值
@@ -561,6 +562,18 @@ http {
         server 192.168.80.122:80 weight=2;
         server 192.168.80.123:80 weight=3;
     }
+
+    # 禁止通过IP访问80端口(将此server写在最上面即可)
+    server {
+        listen   80;
+		listen 443 ssl;
+		server_name example.com;
+		
+		ssl_certificate C:/example.com.pem;
+		ssl_certificate_key C:/example.com.key;
+		
+		return 403;
+	}
 
     # 强制跳转HTTPS, 参考: https://www.cnblogs.com/willLin/p/11928382.html. 此时80端口和443端口分开监听
     server {

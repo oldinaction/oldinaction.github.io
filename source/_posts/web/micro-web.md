@@ -28,7 +28,14 @@ tags: [vue]
     - [飞冰icestark](#飞冰icestark)
     - [Alfa](https://github.com/aliyun/alibabacloud-alfa)
 
-## qiankun
+## Wujie
+
+- [腾讯](https://github.com/Tencent/wujie)
+- 特点
+  - 基于 WebComponent 容器 + iframe 沙箱，子应用运行在 iframe 中，利用 Shadow DOM 实现 CSS 隔离，JS 天然隔离于 iframe 上下文
+  - 适合追求低接入成本，适用于快速迭代和混合技术栈的项目
+
+## Qiankun
 
 - [蚂蚁金服qiankun(乾坤)](https://github.com/umijs/qiankun)
 - 基于[single-spa](https://github.com/single-spa/single-spa)实现

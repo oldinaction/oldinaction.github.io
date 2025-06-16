@@ -16,7 +16,7 @@ tags: [mysql, dba]
 - `XtraBackup` 是由 [percona](https://www.percona.com/) 开源的免费数据库热备份软件，它能对 InnoDB 数据库和 XtraDB 存储引擎的数据库非阻塞地备份。对于较大数据的数据库可以选择`Percona-XtraBackup`备份工具，可进行全量、增量、单表备份和还原，percona早起提供的工具是 innobackupex
     - xtrabackup：支持innodb存储引擎表，xtradb存储引擎表。支持innodb的物理热备份，支持完全备份，增量备份，而且速度非常快
     - innobackupex：支持innodb存储引擎表、xtradb存储引擎表、myisam存储引擎表
-- `mariadb10.3.x`及以上的版本用 Percona XtraBackup 工具会有问题，此时可以使用`mariabackup`，它是 MariaDB 提供的一个开源工具
+- `mariadb 10.3.x`及以上的版本用 Percona XtraBackup 工具会有问题，此时可以使用`mariabackup`，它是 MariaDB 提供的一个开源工具
 
 ## Mysql相关语法
 
@@ -238,27 +238,46 @@ start slave;
 
 ## 案例
 
+### 数据物理备份脚本
+
+```bash
+db_user="test"
+db_passwd="Test123!"
+db_name="demo"
+backup_dir="/data/backup/mysql"
+time="$(date +"%Y%m%d%H%M%S")"
+
+innobackupex --defaults-file=/etc/my.cnf --user=$db_user --password=$db_passwd --kill-long-queries-timeout=10 --ftwrl-wait-timeout=20 --compress --compress-threads=4 $backup_dir
+
+find $backup_dir -name "2*" -type d -mtime +3 -exec rm -rf {} \; > /dev/null 2>&1
+```
+
 ### 历史数据归档
+
+- 方法一: 复制表结构一样的备份表，将需要备份的数据复制到备份表，并通过存储过程等方式删除原表中的历史数据
+- 方法二: 复制表结构一样的临时表，将最新数据复制到临时表，然后重命名为新的表（原来的表即成为备份表）
 
 ```sql
 -- 说明
 -- 执行中rt_test_tmp是不会有数据的，但是可通过事物状态查看执行情况(trx_mysql_thread_id 进程ID, trx_rows_modified 已经影响的行数)
 select * from information_schema.innodb_trx;
--- 可同时执行多张表的数据备份，但要保证innodb_buffer_pool_size相对较大(1G内存，测试过4张)，否则容易报错：https://www.cnblogs.com/qianslup/p/12071445.html
+-- 可同时执行多张表的数据备份，但要保证 innodb_buffer_pool_size 相对较大(1G内存，测试过4张)，否则容易报错：https://www.cnblogs.com/qianslup/p/12071445.html
 show variables like "%_buffer_pool_size%";
 set global innodb_buffer_pool_size=1073741824; -- 1G = 1024*1024*1024 = 1073741824 (默认134217728=128M), 设置完成后需要新开会话窗口
 set global innodb_buffer_pool_size=134217728; -- 处理完成后重置成原配置
 
--- 总数据条数 11443852, 大小 2299888KB, 17个字段, 9个索引
+-- 总数据条数 1144W, 大小 2,299,888KB, 17个字段, 9个索引
 -- 查询 7 天的数据(select *)耗时 90s (没走索引的情况，如果查询设置强制索引只需要 3s)
-select count(1) from rt_test force index(idx_update_tm) where update_tm >= '2022-01-01'; -- 2289714
+select count(1) from rt_test force index(idx_update_tm) where update_tm >= '2022-01-01'; -- 228W条
 
 -- 创建热数据临时表(之后会重命名为新的rt_test表), 会复制字段、默认值、索引(mysql不同表的索引可重名)等
 create table rt_test_tmp like rt_test;
 
--- 复制今年的数据到临时表 (可考虑暂时停止数据写入). 2289714 条数据耗时 1072.781s
--- 尽量暂停数据写入；或先插入一批，再rename前停止写入并将增量的数据插入临时表，此时需要考虑防止 rt_test 全表扫描导致表锁 (rt_test_tmp为表锁；rt_test为扫描一行就锁一行，如果不走索引，相当于全表扫描，等同于表锁；此时强制使用索引防止索引不生效)
+-- 复制今年的数据到临时表 (可考虑暂时停止数据写入). 228W 条数据耗时 1072.781s
+-- **尽量暂停数据写入**；或先插入一批，再rename前停止写入并将增量的数据插入临时表，此时需要考虑防止 rt_test 全表扫描导致表锁 (rt_test_tmp为表锁；rt_test为扫描一行就锁一行，如果不走索引，相当于全表扫描，等同于表锁；此时强制使用索引防止索引不生效)
 insert into rt_test_tmp select * from rt_test force index(idx_update_tm) where update_tm >= '2022-01-01';
+-- 执行中 rt_test_tmp 是不会有数据的，但是可通过事物状态查看执行情况(trx_mysql_thread_id 进程ID, trx_rows_modified 已经影响的行数)
+-- select * from information_schema.innodb_trx;
 
 -- 数据表切换(原子性, 执行速度非常快)
 rename table rt_test to rt_test_2021, rt_test_tmp to rt_test;

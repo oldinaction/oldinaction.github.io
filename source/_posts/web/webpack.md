@@ -48,7 +48,7 @@ module.exports = {
 
 - 将代码分解成chunk，并称之为模块。在解析模块的过程中涉及到对不同的语言(es6/ts/commonjs/css/less等)进行解析，以下为解析规则的相关配置
 - [module配置文档](https://www.webpackjs.com/configuration/module/)
-- [webpack-chain](http://npm.taobao.org/package/webpack-chain) 链式配置
+- [webpack-chain](http://npmmirror.com/package/webpack-chain) 链式配置
 
 ```js
 module.exports = {
@@ -201,7 +201,7 @@ module.exports = {
 
 ## 生态
 
-- [webpack-chain](http://npm.taobao.org/package/webpack-chain) 链式配置
+- [webpack-chain](http://npmmirror.com/package/webpack-chain) 链式配置
     - https://www.jianshu.com/p/2dd631158344
     - `console.log(config.toString())` 打印配置
     - 如果修改需要merge可使用`npm install --save-dev webpack-merge`，然后`const { merge } = require('webpack-merge');`

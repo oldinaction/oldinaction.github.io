@@ -34,12 +34,19 @@ tags: [test]
 
 ### 移动端测试
 
-- [夜神安卓模拟器(支持Mac/Windows)](https://www.yeshen.com/)
-
 #### UI自动化测试
 
-- 业界UI测试工具发展迅速，目前有Robotium、Appium、Espresso、UIAutomator、Calabash等等，其中在Android中应用最广泛的当属UIAutomator、Robotium、Appium
-- [Airtest(网易)](https://airtest.doc.io.netease.com/)、autojs
+- Auto.js与Appium的比较
+    - Auto.js支持移动端独立运行，Appium不支持(设备必须和服务端连接, Airtest也不支持)
+    - Auto.js只支持安卓设备，Appium支持多平台多设备(适用于群控项目)
+- [Airtest(网易)](https://airtest-new.nie.netease.com/) 是一个开源跨平台的、基于图像识别的UI自动化测试框架，适用于游戏和App，支持平台有Windows、Android和iOS
+    - 自带IDE可通过录制功能迅速生成代码(也可进行截图微调)，支持IDE中显示图片或代码，比较适合游戏自动化
+    - 图像识别基于Airtest框架，UI控件搜索基于Poco框架，结合Python语法
+    - 支持IDE和命令行运行脚本，快速生成测试报告
+    - 支持控制多台设备进行切换
+
+    ![Airtest](../../data/images/2024/soft-test/image.png)
+- 业界UI测试工具发展迅速，目前有Robotium、Appium、Espresso、UIAutomator、Calabash、[Tasker(收费)](https://tasker.joaoapps.com/)等等，其中在Android中应用最广泛的当属UIAutomator、Robotium、Appium
 
 |                    | UIAutomator | Robotium    | Appium           |
 | ------------------ | ----------- | ----------- | ---------------- |
@@ -164,55 +171,9 @@ Percentage of the requests served within a certain time (ms)
 
 ## CodeceptJS
 
-## appium移动端自动化测试框架
+## Appium移动端自动化测试框架
 
-- 介绍
-  - 官网：http://appium.io/
-  - Appium 的核心一个是暴露 REST API 的 WEB 服务器。它接受来自客户端的连接，监听命令并在移动设备（支持Android，iOS，H5）上执行，答复 HTTP 响应来描述执行结果
-- 安装
-  - 需要安装Java JDK 、Android SDK
-  - appium服务端安装：`npm install -g appium`（v1.18.0，需要node > 10），安装成功后可执行`appium`查看（或者基于Appium Desktop启动）
-  - [Appium Desktop](https://github.com/appium/appium-desktop) 服务器图形管理工具安装（可选）
-  - 客户端：如通过python在写测试脚本的时候可以使用库`pip install Appium-Python-Client`
-
-### 简单案例参考
-
-- 参考：https://blog.csdn.net/u013314786/article/details/105768650
-- 安装[夜神模拟器 v6.6.1.2](https://www.yeshen.com/)
-  - 查看设备
-    - `adb connect 127.0.0.1:62001`
-    - `adb devices`
-    - 需要保证模拟器版本和Android SDK的adb.exe版本一直，可将模拟器的adb.exe覆盖掉Android SDK的
-  - 在模拟器上安装测试[apk](https://github.com/lixk/apptest/blob/master/%E6%B5%8B%E8%AF%95apk/com.youdao.calculator-2.0.0.apk)
-- 基础信息获取
-
-    ```bash
-    # 获取模拟器或手机的Android内核版本号，或者直接在手机或模拟器上查看
-    adb shell getprop ro.build.version.release # 5.1.1
-    # 获取deviceName设备名称。如果是真机，在'设置->关于手机->设备名称'里查看，或者`adb devices -l`中model的值；如果是模拟器，夜神模拟器为`127.0.0.1:62001`
-    # （%ANDROID_HOME%/platform-tools下运行）获取appPackage名（package: name=的值）和appActivity（launchable activity name=的值）
-    aapt dump badging D:/apk/com.youdao.calculator-2.0.0.apk # com.youdao.calculator 和 com.youdao.calculator.activities.MainActivity
-    ```
-- 启动Appium Desktop
-  - 启动服务器 - 显示`Appium REST http interface listener started on 0.0.0.0:4723`则启动成功
-- 查看元素标识（id/xpath）
-  - Appium Desktop - File - New Session Window
-  - 自动设定 - 所需功能 - JSON Representation（复制下列代码） - 保存 - 启动会话（会连接到模拟器并显示出app界面）
-
-    ```json
-    // platformName定义为 Android | IOS
-    {
-        "platformName": "Android",
-        "platformVersion": "5.1.1",
-        "deviceName": "127.0.0.1:62001",
-        "appPackage": "com.youdao.calculator",
-        "appActivity": "com.youdao.calculator.activities.MainActivity",
-        "resetKeyboard": true,
-        "unicodeKeyboard": true
-    }
-    ```
-- 测试脚本参考[github](https://github.com/oldinaction/smpython/tree/master/D03TestAppium/test_appium)
-  - 启动测试脚本也会连接模拟器，然后生成测试报告
+- 参考[Appium](/_posts/arch/soft-test/appium.md)
 
 ## OpenSTF移动设备共享平台
 

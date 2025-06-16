@@ -14,6 +14,11 @@ tags: [doc, api, springboot]
 - **TODO**: Swagger2Markup它主要是用来将Swagger自动生成的文档转换成几种流行的格式以便离线使用，格式：AsciiDoc、HTML、Markdown、Confluence。参考：https://blog.csdn.net/zhangpan1244/article/details/102968113
 - Swagger文档转Word 文档，参考：https://www.cnblogs.com/jmcui/p/8298823.html
 
+## 使用Editor预览YML/JSON文档
+
+- 官方Editor页面: https://editor.swagger.io/ https://editor-next.swagger.io/
+- 也可私有部署Editor: https://swagger.io/tools/swagger-editor/
+
 ## springboot中使用
 
 - 添加依赖

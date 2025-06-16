@@ -14,6 +14,8 @@ tags: [build]
 
 ## 安装和命令
 
+- jar包下载的位置: `/Users/你的用户名/.gradle/caches/modules-2/files-2.1`
+
 ### 安装
 
 ```bash
@@ -39,8 +41,7 @@ zipStoreBase=GRADLE_USER_HOME
 zipStorePath=wrapper/dists
 # JDK1.8支持(gradle-6.5本地模式不支持JDK8)
 # distributionUrl=https://services.gradle.org/distributions/xxx 官网镜像
-# distributionUrl=https://mirrors.aliyun.com/macports/distfiles/gradle/xxx # 阿里
-distributionUrl=https://mirrors.cloud.tencent.com/gradle/gradle-6.5-all.zip # 腾讯
+distributionUrl=https://mirrors.aliyun.com/macports/distfiles/gradle/gradle-6.5-all.zip # 阿里
 ```
 
 ### 镜像
@@ -80,14 +81,20 @@ buildscript {
     repositories {
         // gradle内置中心仓库
         // google()
-        // jcenter()
+        // jcenter() // 已经废弃
         // mavenCentral()
         // mavenLocal()
 
+        // 依赖部分github/gitee上的包时
+        maven { url 'https://jitpack.io' }
+
         // 使用镜像
+        maven { url 'https://maven.aliyun.com/repository/central' } // 中央仓库
         maven { url 'https://maven.aliyun.com/repository/google' } // Android项目需要
         maven { url 'https://maven.aliyun.com/repository/jcenter' } // 已经不再更新
-        maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
+        // maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        // maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
     }
     // 依赖写法
     dependencies {
@@ -105,6 +112,16 @@ allprojects {
         maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
     }
 }
+```
+
+### gradle.properties
+
+```bash
+# 配置代理
+systemProp.http.proxyHost=proxy.example.com
+systemProp.http.proxyPort=8080
+systemProp.https.proxyHost=proxy.example.com
+systemProp.https.proxyPort=8080
 ```
 
 ### 命令

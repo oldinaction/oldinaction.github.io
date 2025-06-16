@@ -6,9 +6,24 @@ categories: devops
 tags: [jenkins]
 ---
 
+# Jpom
+
+- [gitee开源](https://gitee.com/dromara/Jpom)
+- 资产管理
+    - 机器管理中新增的节点是需要先安装jpom-agent再进行添加，或逻辑节点中快速安装是直接安装jpom-agent并自动添加，这两种模式添加的机器可以理解为目标服务器。项目在分发的时候可以分发到上述节点，而基于在线构建模式可以通过SSH服务器进行产物分发和项目启动
+- 在线构建
+    - 构建方式: 基于docker安装的jpom-server则只支持容器构建，基于其他方式安装的可支持本地构建(运行本地mvn等命令打包好后把产物通过SSH等方式分发到目标服务器)
+    - 构建流程: 构建命令是运行在jpom-server服务器，环境变量在发布操作中也可使用
+    - 发布操作(SSH)
+        - 发布目录不允许使用环境变量，会自动把打包后的产物通过SSH发送到此目录
+        - 发布前和发布后两个shell是两个独立的脚本，变量不能直接传递，可为构建项目单独设置环境变量
+        - 如果是cygwin ssh，则直接使用ls/dir命令不会报错，但也不会打印数据；而pwd打印的是`/home/Administrator`而不是当前的实际目录
+
+# Jenkins
+
 ## 简介
 
-- [jenkins](https://jenkins.io/zh/)
+- [jenkins](https://www.jenkins.io/zh/)
 - Jenkins CI，用Jenkins来进行持续集成，需要自己架设服务器
 - Travis CI是在线托管的CI服务，用Travis来进行持续集成，不需要自己搭服务器，使用方便，对开源项目是免费的，支持多数主流语言
     - https://travis-ci.org/ 非盈利的，为GitHub上Public的repository提供免费服务；对应的也有收费服务
@@ -32,13 +47,17 @@ docker run \
   -d \
   -p 2081:8080 \
   -p 50080:50000 \
+  # 也可使用本地目录
   -v jenkins-data:/var/jenkins_home \
-  # 映射主机的docker到容器里面，这样在容器里面就可以使用主机安装的 docker了(可以在Jenkins容器里操作宿主机的其他容器)
+  # 映射主机的docker到容器里面，这样在容器里面就可以使用主机安装的 docker了(可以在Jenkins容器里操作宿主机的其他容器). Windows也是这个路径
   -v /var/run/docker.sock:/var/run/docker.sock \
   # jenkins/jenkins:2.181则必须再挂载此命令；jenkinsci/blueocean无需
-  -v /usr/bin/docker:/usr/bin/docker:ro \
-  # 映射本地maven仓库(通过jenkins安装maven会使用到)
+  # -v /usr/bin/docker:/usr/bin/docker:ro \
+  # 映射本地maven仓库(通过jenkins安装maven会使用到). Windows如: -v D:/data/.m2:/root/.m2
   -v /root/.m2:/root/.m2 \
+  -v /root/.gradle:/root/.gradle \
+  -v /root/.npm:/root/.npm \
+  -v /root/.yarn:/root/.yarn \
   --name jenkins \
   --restart=always \
   #jenkins/jenkins:2.181
@@ -76,19 +95,17 @@ volumes:
     external: true
 ```
 
-- 激活：秘钥位置为/var/jenkins_home/secrets/initialAdminPassword，实际存储位置为/data/docker/volumes/jenkins-data/\_data/secrets/initialAdminPassword(其中/data/docker 为 docker 默认存储路径，jenkins-data 为容器卷名)
 - jenkinsci/blueocean 容器中时区为 UTC 无法修改问题(jenkins 程序时区正常)，可在`docker-compose.yaml`所在目录创建`Dockerfile`文件用于重新构建镜像
+    - `docker-compose up -d --build` 重新编译
 
-  ```bash
-  FROM jenkinsci/blueocean:1.18.1
-  # 使用root用户安装tzdata
-  USER root
-  RUN /bin/sh -c apk --no-cache add tzdata
-  # 切回jenkins用户
-  USER jenkins
-  ```
-
-  - `docker-compose up -d --build` 重新编译
+```bash
+FROM jenkinsci/blueocean:1.18.1
+# 使用root用户安装tzdata
+USER root
+RUN /bin/sh -c apk --no-cache add tzdata
+# 切回jenkins用户
+USER jenkins
+```
 
 #### k8s-helm 启动
 
@@ -109,6 +126,33 @@ volumes:
   - 打包时会生成 war/node(war/node/yarn)、war/node_modules，并打包静态资源文件
 - Run/Debug 中添加 tomcat 配置，Deployment 选择 jenkins-war:war
 - debug 启动 tomcat。也可在远程启动 debug 监听 `mvnDebug jenkins-dev:run` 默认监听端口 8000，可通过 remote debug 进行远程调试
+
+### 安装完成后进行配置
+
+- 修改插件镜像地址（修改完最好重启一下）
+
+```bash
+# 进入容器
+
+# 其中 2.346.3 改成对应的jenkins版本, 否则可能有些插件要求高版本jenkins导致插件安装失败
+# https://mirrors.huaweicloud.com/jenkins/updates/update-center.json
+cd /var/jenkins_home
+sed -i 's#https://updates.jenkins.io/update-center.json#https://mirrors.huaweicloud.com/jenkins/updates/dynamic-stable-2.346.3/update-center.json#g' hudson.model.UpdateCenter.xml
+
+cd /var/jenkins_home/updates
+# 替换插件源地址
+sed -i 's#https://updates.jenkins.io/download#https://mirrors.huaweicloud.com/jenkins#g' default.json
+# 替换谷歌地址
+sed -i 's#http://www.google.com#http://www.baidu.com#g' default.json
+```
+- 访问 http://localhost:2081
+- 输入admin账号密码进行激活
+    - 秘钥位置为/var/jenkins_home/secrets/initialAdminPassword，也可在容器控制台日志中查看
+    - 实际存储位置为/data/docker/volumes/jenkins-data/\_data/secrets/initialAdminPassword(其中/data/docker 为 docker 默认存储路径，jenkins-data 为容器卷名)
+- 选择安装推荐插件
+- 创建第一个管理员用户: 可以创建用户，也可以点击"admin账户继续"(先不创建，直接使用admin账户)
+- 插件安装，如界面汉化，参考下文[插件管理](#插件管理)
+- 其他配置，参考下文【系统管理(Manage Jenkins)】
 
 ### 项目文件说明
 
@@ -905,7 +949,7 @@ pipeline {
                                         }
                                         sh """
                                         cd ${packageJsonDir}
-                                        # npm i mirror-config-china --registry=https://registry.npm.taobao.org # electron等应用可能需要
+                                        # npm i mirror-config-china --registry=https://registry.npmmirror.com # electron等应用可能需要
                                         npm install --registry=${G_NPM_REGISTRY}
                                         ${context.npmBuildCommand}
                                         """
@@ -994,6 +1038,9 @@ pipeline {
 
 #### 其他插件推荐
 
+- Deploy to container   　 用于部署war程序到tomcat中
+- git parameter　　　　　　　选择指定分支进行构建的功能
+
 ##### Publish over SSH(执行远程命令)
 
 - [src](https://github.com/jenkinsci/publish-over-ssh-plugin)、[wiki](https://wiki.jenkins.io/display/JENKINS/Publish+Over+SSH+Plugin)
@@ -1014,12 +1061,6 @@ sshPublisher(publishers: [sshPublisherDesc(configName: 'node1', transfers: [
     )
 ])])
 ```
-
-##### GitLab
-
-- [wiki](https://github.com/jenkinsci/gitlab-plugin)
-- 允许 GitLab 触发 Jenkins 构建并在 GitLab UI 中显示结果
-- gitlab 触发 webhook 时，会设置一些变量到环境中，如：gitlabTargetRepoHttpUrl、gitlabSourceBranch、gitlabTargetBranch、gitlabMergeRequestTitle、gitlabActionType。详见：https://github.com/jenkinsci/gitlab-plugin#defined-variables
 
 ##### Maven Integration
 
@@ -1083,6 +1124,37 @@ sshPublisher(publishers: [sshPublisherDesc(configName: 'node1', transfers: [
                 - Recipient List：收件人(除了 Send To 中的收件人，此处可额外定义收件人)。如：`a@example.com,cc:b@example.com,bcc:c@example.com`(CC 抄送，BCC 密件抄送)
                 - Content Type：HTML (text/html)
                 - Attach Build Log：Attach Build Log
+
+##### Config File Provider
+
+- 配置管理 - Managed files
+- 如配置全局 maven 的 setting.xml
+
+  - Add a new Config - Global Maven settings.xml - 修改 maven 镜像为阿里云镜像
+  - 会生成一个全局 ID，可在 Pipeline 中使用
+
+    ```groovy
+    configFileProvider([configFile(fileId: "15263da5-15d5-4bb5-abb7-5dd604def581", targetLocation: "settings.xml")]) {
+        sh "mvn clean install -Dmaven.test.skip=true --settings settings.xml"
+    }
+    ```
+
+##### Pipeline Utility Steps
+
+- 功能：提取/创建 Zip 文件、生成(yaml)文件、读取 maven 项目的 pom.xml 文件(参数)、读取 properties 文件参数、从工作区中的文件中读取 JSON、在工作区中查找文件
+- Pipeline 模式下使用
+
+  ```groovy
+  // 读取 pom.xml 文件
+  pom = readMavenPom file: "./pom.xml"
+  echo "${pom.artifactId}:${pom.version}"
+  ```
+
+##### GitLab
+
+- [wiki](https://github.com/jenkinsci/gitlab-plugin)
+- 允许 GitLab 触发 Jenkins 构建并在 GitLab UI 中显示结果
+- gitlab 触发 webhook 时，会设置一些变量到环境中，如：gitlabTargetRepoHttpUrl、gitlabSourceBranch、gitlabTargetBranch、gitlabMergeRequestTitle、gitlabActionType。详见：https://github.com/jenkinsci/gitlab-plugin#defined-variables
 
 ##### Kubernetes(连接k8s创建jenkins-agent)
 
@@ -1191,31 +1263,6 @@ withKubeConfig([credentialsId: "xxxx-xxxx-xxxx-xxxx", serverUrl: "https://kubern
     sh "kubectl get nodes"
 }
 ```
-
-##### Config File Provider
-
-- 配置管理 - Managed files
-- 如配置全局 maven 的 setting.xml
-
-  - Add a new Config - Global Maven settings.xml - 修改 maven 镜像为阿里云镜像
-  - 会生成一个全局 ID，可在 Pipeline 中使用
-
-    ```groovy
-    configFileProvider([configFile(fileId: "15263da5-15d5-4bb5-abb7-5dd604def581", targetLocation: "settings.xml")]) {
-        sh "mvn clean install -Dmaven.test.skip=true --settings settings.xml"
-    }
-    ```
-
-##### Pipeline Utility Steps
-
-- 功能：提取/创建 Zip 文件、生成(yaml)文件、读取 maven 项目的 pom.xml 文件(参数)、读取 properties 文件参数、从工作区中的文件中读取 JSON、在工作区中查找文件
-- Pipeline 模式下使用
-
-  ```groovy
-  // 读取 pom.xml 文件
-  pom = readMavenPom file: "./pom.xml"
-  echo "${pom.artifactId}:${pom.version}"
-  ```
 
 ### 节点管理(Manage Nodes)
 

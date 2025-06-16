@@ -12,6 +12,7 @@ tags: [H5, App, 小程序, mobile]
 
 ## 小程序开发
 
+- [微信小程序官方Github示例](https://github.com/wechat-miniprogram/miniprogram-demo)
 - [申请小程序测试号](https://mp.weixin.qq.com/wxamp/sandbox) 测试账号只能本地开发，不能发布到演示版
 - [小程序类目及相关资质](https://developers.weixin.qq.com/miniprogram/product/material/)
     - [商家自营](https://developers.weixin.qq.com/miniprogram/product/material/#%E5%95%86%E5%AE%B6%E8%87%AA%E8%90%A5)
@@ -88,7 +89,8 @@ tags: [H5, App, 小程序, mobile]
 
 ### web-view开发
 
-- [web-view](https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html)组件(类似iframe，小程序本身是不能使用iframe标签的)
+- [web-view官方文档](https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html)组件(类似iframe，小程序本身是不能使用iframe标签的)
+- web-view网页中支持部分JSSDK接口: 图像、音频、位置等信息，参考官方文档
 
 #### web-view限制
 
@@ -113,69 +115,68 @@ tags: [H5, App, 小程序, mobile]
         - 小程序起始页，直接嵌入整个H5页面，此时点击H5页面的按钮无法成功跳转第三方小程序？(也不会自动提示确认)
     - 对于在界面识别二维码跳转到第三方，因为识别二维码图片后，会从底部弹出一个确认框(对图片执行保存操作，还是跳转此二维码对应的小程序)，此时用户点击确认框后不会再出现"即将跳转至xxx小程序"的确认框
 
-#### web-view使用
+#### web-view和小程序通信
 
-- 小程序和web-view通信
-    - 参考：
-        - https://uniapp.dcloud.net.cn/component/web-view.html#postmessage
-        - https://juejin.cn/post/6844903919710109703
-    - 可通过小程序web-view标签的url将小程序参数传递给H5页面，从而进行用户验证等操作
-    - H5传递消息给小程序需要使用 postMessage。不能直接调用windows.postMessage，而是需要使用微信JS-SDK提供的postMessage函数；如果是uni-app开发，可引入uni.webview库在中间做桥接，从而调用微信的postMessage函数
-    - 示例(小程序和H5都是基于uni-app开发). 参考：https://uniapp.dcloud.io/component/web-view
+- 参考：
+    - https://uniapp.dcloud.net.cn/component/web-view.html#postmessage
+    - https://juejin.cn/post/6844903919710109703
+- 可通过小程序web-view标签的url将小程序参数传递给H5页面，从而进行用户验证等操作
+- H5传递消息给小程序需要使用 postMessage。不能直接调用windows.postMessage，而是需要使用微信JS-SDK提供的postMessage函数；如果是uni-app开发，可引入uni.webview库在中间做桥接，从而调用微信的postMessage函数
+- 示例(小程序和H5都是基于uni-app开发). 参考：https://uniapp.dcloud.io/component/web-view
 
-        ```html
-        <!-- 小程序 -->
-        <!-- 通过url向h5传递参数 -->
-        <web-view src="http://192.168.1.10:8080/#/?token=123" @message="onMessage"></web-view>
-        <script>
-            methods: {
-                onMessage(data) {
-                    // {"data": [{"action": "message..."}]}
-                    console.log(data);
-                }
-            }
-        </script>
+```html
+<!-- 小程序 -->
+<!-- 通过url向h5传递参数 -->
+<web-view src="http://192.168.1.10:8080/#/?token=123" @message="onMessage"></web-view>
+<script>
+    methods: {
+        onMessage(data) {
+            // {"data": [{"action": "message..."}]}
+            console.log(data);
+        }
+    }
+</script>
 
-        <!-- 注意：
-            1.******如果是h5也是用uni开发，则下文引入uni.webview库容易导致和默认uni对象冲突。******解决：修改下列js文件中的3处uni为uniWebview，再使用uniWebview调用。参考：https://github.com/oldinaction/smweb/blob/master/uni-app/uni.webview.1.5.2.js
-            2.jweixin-1.4.0.js和uni.webview.1.5.2.js也支持直接import按需导入
-            3.如果此处web-view所在项目非小程序，如uni-app写的H5项目需要通过web-view引入另外一个H5，则不需要引入jweixin，也可实现postMessag(通过window.postMessag)；如果是小程序中使用web-view，则在H5中引入jweixin库后，可直接使用wx.miniProgram.postMessage，不用额外引入uni-webview库
-        -->
-        <!-- H5-基于模板引入库，参考：https://uniapp.dcloud.io/collocation/manifest?id=h5-template。并在模板中引入下列js -->
-        <script type="text/javascript">
-            // 判断环境是否为小程序，如果是则需要引入小程序的JS-SDK。其他类型小程序完整判断参考官方文档
-            var userAgent = navigator.userAgent;
-            if (/miniProgram/i.test(userAgent) && /micromessenger/i.test(userAgent)) {
-                // 微信小程序 JS-SDK 如果不需要兼容微信小程序，则无需引用此 JS 文件。
-                document.write('<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.4.0.js"><\/script>');
-            }
-        </script>
-        <!-- uni 的 SDK，小程序可无需此库，但是需要使用 wx.miniProgram.postMessage 进行调用 -->
-        <script type="text/javascript" src="https://js.cdn.aliyun.dcloud.net.cn/dev/uni-app/uni.webview.1.5.2.js"></script>
+<!-- 注意：
+    1.******如果是h5也是用uni开发，则下文引入uni.webview库容易导致和默认uni对象冲突。******解决：修改下列js文件中的3处uni为uniWebview，再使用uniWebview调用。参考：https://github.com/oldinaction/smweb/blob/master/uni-app/uni.webview.1.5.2.js
+    2.jweixin-1.4.0.js和uni.webview.1.5.2.js也支持直接import按需导入
+    3.如果此处web-view所在项目非小程序，如uni-app写的H5项目需要通过web-view引入另外一个H5，则不需要引入jweixin，也可实现postMessag(通过window.postMessag)；如果是小程序中使用web-view，则在H5中引入jweixin库后，可直接使用wx.miniProgram.postMessage，不用额外引入uni-webview库
+-->
+<!-- H5-基于模板引入库，参考：https://uniapp.dcloud.io/collocation/manifest?id=h5-template。并在模板中引入下列js -->
+<script type="text/javascript">
+    // 判断环境是否为小程序，如果是则需要引入小程序的JS-SDK。其他类型小程序完整判断参考官方文档
+    var userAgent = navigator.userAgent;
+    if (/miniProgram/i.test(userAgent) && /micromessenger/i.test(userAgent)) {
+        // 微信小程序 JS-SDK 如果不需要兼容微信小程序，则无需引用此 JS 文件。
+        document.write('<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.4.0.js"><\/script>');
+    }
+</script>
+<!-- uni 的 SDK，小程序可无需此库，但是需要使用 wx.miniProgram.postMessage 进行调用 -->
+<script type="text/javascript" src="https://js.cdn.aliyun.dcloud.net.cn/dev/uni-app/uni.webview.1.5.2.js"></script>
 
-        <!-- H5-使用 -->
-        <script>
-            // 注意:
-            // 1.调试H5需要打开小程序编辑器，进入H5页面后右键，编辑器上方会出现一个调试按钮，点击后进入小程序(H5页面会再次刷新)
-            // 2.***向小程序传递参数后，小程序端不会立即收到消息，需要在点击返回(到小程序页面)、分享、重定向(原页面被销毁)等情况才会真正发送给小程序***；当点击返回小程序原页面，或通过navigateTo跳转到小程序原始页面(可经过多次点击跳转亦可)，或redirectTo跳转到小程序页面(原页面销毁)也会收到消息
-            // uniWebview.postMessag(uniWebview为上文修改过的uni.webview.js)最终是通过调用jweixin#miniProgram.postMessage，最终jweixin库通过调用WeixinJSBridge(由容器提供，如小程序编辑器或微信客户端)实现通信
+<!-- H5-使用 -->
+<script>
+    // 注意:
+    // 1.调试H5需要打开小程序编辑器，进入H5页面后右键，编辑器上方会出现一个调试按钮，点击后进入小程序(H5页面会再次刷新)
+    // 2.***向小程序传递参数后，小程序端不会立即收到消息，需要在点击返回(到小程序页面)、分享、重定向(原页面被销毁)等情况才会真正发送给小程序***；当点击返回小程序原页面，或通过navigateTo跳转到小程序原始页面(可经过多次点击跳转亦可)，或redirectTo跳转到小程序页面(原页面销毁)也会收到消息
+    // uniWebview.postMessag(uniWebview为上文修改过的uni.webview.js)最终是通过调用jweixin#miniProgram.postMessage，最终jweixin库通过调用WeixinJSBridge(由容器提供，如小程序编辑器或微信客户端)实现通信
 
-            // 向小程序传递参数(uniWebview为上文修改过的uni.webview.js)
-            uniWebview.postMessage({
-                data: {
-                    action: 'message...'
-                }
-            });
-            // 可直接在H5中跳转到小程序的page页面
-            uniWebview.navigateTo({
-                url: '/pages/product/list'  
-            });
-            // 切换到菜单页
-            uniWebview.switchTab(...)
-            // 重定向
-            uniWebview.redirectTo(...)
-        </script>
-        ```
+    // 向小程序传递参数(uniWebview为上文修改过的uni.webview.js)
+    uniWebview.postMessage({
+        data: {
+            action: 'message...'
+        }
+    });
+    // 可直接在H5中跳转到小程序的page页面
+    uniWebview.navigateTo({
+        url: '/pages/product/list'  
+    });
+    // 切换到菜单页
+    uniWebview.switchTab(...)
+    // 重定向
+    uniWebview.redirectTo(...)
+</script>
+```
 
 ### 开放能力
 

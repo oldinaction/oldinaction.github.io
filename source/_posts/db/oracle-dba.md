@@ -12,6 +12,7 @@ tags: [oracle, dba]
 - 注：本文中 aezo/aezo 一般指用户名/密码，local_orcl 指配置的本地数据库服务名，remote_orcl 指配置的远程数据库服务名。以 11g 为例
 - 安装oracle 11.2g参考印象笔记(测试通过)
     - **需要注意数据文件目录(/u01/app/oracle/oradata)挂载的磁盘，建议将`/u01`目录挂载到单独的数据盘上**
+- [Oracle线上异常处理](/_posts/devops/Java应用CPU和内存异常分析.md#Oracle)
 
 ### Oracle相关名词和原理
 
@@ -116,6 +117,8 @@ startup pfile=<FILENAME>
 #### 执行脚本
 
 - plsql 打开命令行窗口，执行 sql 文件：**`start D:\sql\my.sql`** 或 `@ D:/sql/my.sql`（部分语句需要执行`commit`提交，建议 start）
+    - `ALTER SESSION SET CURRENT_SCHEMA = SCOTT;` 切换 schema
+    - sqlplus 执行 PL/SQL 语句或执行SQL文件时，在输入完语句后回车一行输入`/`(或者出现了数字行也可输入/再回车)
 - bat 脚本(data.bat)：`sqlplus user/password@serverip/database @"%cd%\data.sql"` (data.sql 和 data.bat 同级，此处只能用@)
 - 后台运行脚本 `nohup bash run.sh > run.log 2>&1 &`
 
@@ -193,6 +196,7 @@ alter system kill session '某个sid, 某个serial#';
 - 进行索引操作建议在无其他链接的情况下，或无响应写操作的情况下，数据量越大创建索引越耗时
 - Oracle 在创建时会做相应操作，因此创建后就会看到效果，无需重启服务
 - 索引是全局唯一的
+- 索引Hint: 参考[Oracle-Hint](/_posts/db/sql-optimization.md#oracle-hint)
 - 创建索引语法
 
   ```sql
@@ -207,26 +211,26 @@ alter system kill session '某个sid, 某个serial#';
   [NOSORT];                                    --表示创建索引时不进行排序，默认不适用，如果数据已经是按照该索引顺序排列的可以使用
   ```
 
-- create、rebuild 对大表进行索引操作时切记加上`online`参数，此时 DDL 与 DML 语句可以并行运行，防止阻塞. [^11]
+- **create、rebuild 对大表进行索引操作时切记加上`online`参数，此时 DDL 与 DML 语句可以并行运行，防止阻塞(online则不会锁表，仍然可执行DML语句).** [^11]
 
 ```sql
 -- 创建索引
-create index index_in_out_regist_id on ycross_storage(in_out_regist_id) online;
+create index index_test_id on t_test(id) online;
 -- 重命名索引
-alter index index_in_out_regist_id rename to in_out_regist_id_index online;
+alter index index_test_id rename to index_test_id2 online;
 -- 重建索引
-alter index index_in_out_regist_id rebuild online;
+alter index index_test_id rebuild online;
 -- 删除索引
-drop index index_in_out_regist_id online;
+drop index index_test_id online;
 -- 查看索引
-select * from all_indexes where table_name='ycross_storage';
+select * from all_indexes where table_name='t_test';
 
 -- 1.分析索引
-analyze index index_in_out_regist_id validate structure;
+analyze index index_test_id validate structure;
 -- 2.查看索引分析结果
 select height,DEL_LF_ROWS/LF_ROWS from index_stats;
 -- 3.查询出来的 height>=4 或者 DEL_LF_ROWS/LF_ROWS>0.2 的场合, 该索引考虑重建
-alter index index_in_out_regist_id rebuild online;
+alter index index_test_id rebuild online;
 ```
 
 ### 用户相关
@@ -351,9 +355,9 @@ select 'grant all on ' || TABLE_OWNER || '.' || TABLE_NAME || ' to PUBLIC;' from
 - 同一DB，USER1使用USER2的表创建视图，容易报无权限（尽管将USER1设置成功了DBA，且将相关表设置了别名）
     - 解决办法：通过USER2执行`GRANT SELECT ANY TABLE TO USER1;`之后再创建视图
 
-### sqlplus 使用技巧
+### sqlplus使用技巧
 
-- sqlplus 执行 PL/SQL 语句，再输入完语句后回车一行输入`/`
+- **sqlplus 执行 PL/SQL 语句或执行SQL文件时，在输入完语句后回车一行输入`/`**(或者出现了数字行也可输入/再回车)
 - `set line 1000;` **可适当调整没行显示的宽度(适当美化)**
   - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
   - `set linesize 10000;` -- 设置整行长度，linesize 说明 https://blog.csdn.net/u012127798/article/details/34146143
@@ -712,16 +716,18 @@ drop tablespace tablespace_xxx;
 
 ```sql
 -- 将2000年前的数据移到备份表(此处额外创建了一个备份用户方便数据归档：之后只需要备份demo用户下的数据)
--- 此处需要确保create_time为真实时间，防止出现复制数据但是create_time没有变的情况导致删除了最近新复制出来的数据
-create table demobak.t_table_bak as select * from demo.t_table t where t.create_time < to_date('2000-01-01', 'yyyy-mm-dd');
+-- 此处需要确保create_time为真实时间，防止出现业务上进行复制数据但是create_time没有变的情况导致删除了最近新复制出来的数据
+create table demobak.t_table_bak as select * from demo.t_table t where t.create_time < to_date('2000-01-01', 'yyyy-mm-dd'); -- 新表没有字段备注、索引、触发器等
 
 -- 时间案例：总记录900w 待删除记录600w 耗时20m(备份耗时6s)
+-- 时间案例：总记录760w 待删除记录450w 耗时10m
+-- 时间案例：总记录240w 待删除记录134w 耗时8m(备份耗时20s)
 -- 时间案例：总记录100w 待删除记录70w 耗时50s
 declare
      cursor del_cur is
-        -- t_table需改成被备份表, 及备份条件需修改
+        -- t_table需改成被备份表, 及备份条件需修改 (rowid为oracle内置字段)
         select t.rowid row_id from t_table t
-        where t.create_time < to_date('2021-01-01', 'yyyy-mm-dd')
+        where t.create_time < to_date('2000-01-01', 'yyyy-mm-dd')
         order by t.rowid;
 begin
      for v_cusor in del_cur loop
@@ -739,7 +745,7 @@ end;
 -- 重建索引(包括主键索引)
 alter index IDX_NAME1 rebuild online;
 
--- 可考虑是否收缩降低水位
+-- 可考虑是否shrink收缩降低水位(参考下文)
 ```
 
 #### truncate清理
@@ -807,7 +813,7 @@ order by nvl(bytes, 0) desc;
 - 特点
     - 可以起到清理存储碎片的功能，类似的如move
     - **只有在HWM调整(cascade)阶段会锁表(只能查询)**，数据重组(compact)阶段可正常增删改
-    - 实质上构造一个新表(在内部表现为一系列的DML操作,即将副本插入新位置，删除原来位置的记录)，**因此会产生大量的REDO日志**(`select log_mode from v$database;` 归档模式下一定要注意磁盘空间，非归档模式则无需考虑)
+    - 实质上构造一个新表(在内部表现为一系列的DML操作,即将副本插入新位置，删除原来位置的记录)，**因此会产生大量的REDO日志**(`select log_mode from v$database;` 归档模式下一定要注意磁盘空间，NOARCHIVELOG非归档模式则无需考虑)
     - 索引不会损坏，会随着一起收缩
     - lob字段不会级联shrink，需要单独处理
     - **可降低dba_extents表占用空间、dba_tables表水位线、dba_data_files表空间占用统计值**
@@ -820,8 +826,18 @@ order by nvl(bytes, 0) desc;
 - 案例
 
 ```sql
--- 基本语法
-alter table table_name_xxx shrink space [ <null> | cascade | compact  ];
+-- (可选)需先执行重新统计后，再查看dba_extents表占用空间、dba_tables表水位线、dba_data_files表空间占用才会准确
+exec dbms_stats.gather_table_stats(ownname=>'owner_xxx',tabname=> 'table_name_xxx'); -- command窗口执行(会卡一会)
+-- 统计表的水位线
+select table_name,
+        round(((blocks) * 8 / 1024), 2) "高水位空间M",
+        round((num_rows * avg_row_len / 1024 /1024), 2) "真实使用空间M",
+        round((blocks * 10 / 100) *8 /1024, 2) "预留空间(pctfree)M",
+        round((blocks) * 8 / 1024 - (num_rows * avg_row_len / 1024 / 1024) - blocks * 8 * 10 / 100 / 1024, 2) "浪费空间M"
+    from dba_tables -- user_tables
+    where temporary = 'N' and owner = 'owner_xxx' and table_name = 'table_name_xxx';
+
+-- 基本语法: alter table table_name_xxx shrink space [ <null> | cascade | compact  ];
 
 -- shrink必须开启对象的row movement功能（shrink index 不需要）
 -- 但是要注意，该语句会造成引用table_name的对象（如存储过程、包、试图等）变为无效，~执行完最好由utlrp.sql来编译无效对象~
@@ -836,9 +852,6 @@ alter table index_name_xxx modify lob(lob_column_xxx) (shrink space);
 
 -- 迁移完后关闭行移动
 alter table table_name_xxx disable row movement;
-
--- (可选)需先执行重新统计后，再查看dba_extents表占用空间、dba_tables表水位线、dba_data_files表空间占用才会准确
-exec dbms_stats.gather_table_stats(ownname=>'owner_xxx',tabname=> 'table_name_xxx'); -- command窗口执行(会卡一会)
 ```
 
 #### move清理
@@ -896,7 +909,7 @@ drop tablespace undotbs1 including contents and datafiles;
 lsof | grep deleted
 ```
 
-### 清理数据库日志表
+### 清理数据库日志
 
 - 清理listener.log日志，参考[日常维护](#日常维护)
 - 清理trace日志，参考[日志文件](#日志文件)
@@ -933,7 +946,7 @@ alter database drop logfile group 1; -- 删除(系统最终至少保留两个文
 
 # 耗时22min导出16G tar压缩后只有2.5G耗时几分钟
 exp sys/manager@orcl file=exp_test_2023101001.dmp log=exp_test_2023101001.log owner=test grants=y direct=y recordlength=65535
-# 耗时40min导出16G (加不加compress=y是一样的)
+# 耗时40min导出16G (加不加compress=y是一样的; 建议加, 有时不加tar包打包还是很大)
 exp sys/manager@orcl file=exp_test_2023101002.dmp log=exp_test_2023101002.log owner=test grants=y buffer=409600000
 ```
 
@@ -991,15 +1004,15 @@ export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
     # direct=y: 使用直接路径(默认是n传统路径)，可提供2-3倍的导出速度。限制：(1)不支持QUERY查询方式 (2)不支持表空间传输模式(即TRANSPORT_TABLESPACES=Y参数不被支持)，支持的是FULL,OWNER,TABLES导出方式 (3) 如果exp版本小于8.1.5，不能使用exp导入有lob字段的表，本案例为11.2
     # recordlength=65535: 最大为64K(direct=y才能使用)
     # tablespaces 如果用户有多个表空间，指定导出某个表空间的数据
-exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000
-# exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y direct=y recordlength=65535 # 使用直接路径导出
-# nohup exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott grants=y buffer=10240000 > /dev/null 2>&1 & # 后台执行导出
+exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott compress=y grants=y buffer=10240000
+# exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott compress=y grants=y direct=y recordlength=65535 # 使用直接路径导出
+# nohup exp demo/demo_pass@orcl file=/home/oracle/exp.dmp log=/home/oracle/exp.log owner=scott compress=y grants=y buffer=10240000 > /dev/null 2>&1 & # 后台执行导出
 md5sum exp.dmp
 tar -zcvf exp.tar.gz exp.*
 
 ## 表模式：导出 scott 的 emp,dept 表（导出其他用户表时，demo用户需要有相关权限）
 # 常见错误(EXP-00011)：原因为 11g 默认创建一个表时不分配 segment，只有在插入数据时才会产生。 [^3]
-exp demo/demo_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables=scott.emp,scott.dept grants=y
+exp demo/demo_pass file=/home/oracle/exp.dmp log=/home/oracle/exp.log tables=scott.emp,scott.dept compress=y grants=y
 # exp scott/tiger file=/home/oracle/exp.dmp tables=emp
 # 导出表部分数据
 exp scott/tiger file=/home/oracle/exp.dmp tables=emp query=\" where ename like '%AR%'\"
@@ -1314,7 +1327,7 @@ ORA-00214: control file '/u01/app/oracle/oradata/orcl/control01.ctl' version
         - 触发器
 
         ```sql
-        CREATE OR REPLACE TRIGGER SAMIS45_SHSD.tub_ship_log
+        CREATE OR REPLACE TRIGGER tub_ship_log
             BEFORE UPDATE OF ETA_TIM,REMARK_TXT
             ON ship
             FOR EACH ROW
@@ -1554,7 +1567,7 @@ SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE,
 ## PL/SQL安装和使用
 
 - **PL/SQL绿色版安装**
-    - 直接解压，修改Oracle64/tnsnames.ora文件，然后点击qidong.bat即可。无需配置任何环境变量或oci.dll路径
+    - 直接解压，修改Oracle64/tnsnames.ora文件，然后点击qidong.bat即可（如果是本地数据库则直接启动exe文件）。无需配置任何环境变量或oci.dll路径
     - 修改配置项
         - 配置 - User Interface - Fonts - Browser/Grid/Main Font(Segoe UI,常规,小五); Editor(Courier New,常规,10)
         - 配置 - User Interface - Appearance - Language(选择英文), Switch to Menu(菜单以下拉菜单方式显示)

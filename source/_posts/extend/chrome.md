@@ -16,6 +16,7 @@ tags: [plugins, debug]
     - 火狐 `Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0`
     - IE `Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; rv:11.0) like Gecko`
 - 谷歌已于2016年4月15日停止支持WindowsXP、WindowsVista，对应最后版本`v49.0.2623.112`
+- **禁止浏览器自动更新**: https://www.cnblogs.com/interdrp/p/18444409 windows关闭2个自动更新服务即可
 
 ## chrome插件收集
 
@@ -182,6 +183,7 @@ console.group("站点信息");console.log("Name: Hello World");console.log("Auth
 ## chrome命令
 
 - [chrome命令参数](https://peter.sh/experiments/chromium-command-line-switches/)
+
 - chrome://浏览器命令
     - chrome://about 查看所有列表，常见如下
     - chrome://version 显示当前版本
@@ -195,7 +197,7 @@ console.group("站点信息");console.log("Name: Hello World");console.log("Auth
     - chrome://history 直接访问 Chrome 浏览器访问的历史记录
     - chrome://apps 访问 Chrome 浏览器中安装的应用的界面，可以对应用进行删除管理
     - chrome://bookmarks 直接访问 Chrome 浏览器中我们收藏的标签
-    - chrome://dns 显示浏览器预抓取的主机名列表，让用户随时了解 DNS 状态
+    - chrome://net-internals/#dns 查看并清除DNS缓存
     - chrome://devices 查看连接电脑的设备，比如传统打印机中，可设置添加打印机到 Google 云打印的入口
 
 ## chrome插件开发

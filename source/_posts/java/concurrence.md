@@ -68,6 +68,7 @@ tags: [concurrence]
         - 当前线程让出CPU一小会调度其他线程，并进入等待队列等待CPU的下次调度，也可能存在让出CPU之后仍然调度的是此线程
     - `join()`
         - CPU执行A线程一段时间，当在A线程的代码中遇到b.join()，此时CPU会到B线程中去执行，等B执行完后再回到A线程继续执行。感觉像把B线程加入到A线程；类似于方法调用，只不过方法调用是同一个线程
+        - join死锁风险：如果两个线程相互等待对方执行完毕，就会发生死锁
 - 线程的6种状态： Thread.State.NEW、RUNNABLE、TERMINATED、TIMED_WAITING、WAITING、BLOCKED
 
     ![thread-state](/data/images/java/thread-state.png)
@@ -237,6 +238,62 @@ public class T02_DLC_Singleton {
 }
 ```
 </details>
+
+#### 简单案例
+
+```java
+// join 使用
+public static void main(String[] args) throws InterruptedException {
+    Thread thread1 = new Thread(() -> {
+        try {
+            Thread.sleep(2000);
+            System.out.println("Thread 1 completed.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    });
+
+    Thread thread2 = new Thread(() -> {
+        try {
+            Thread.sleep(3000);
+            System.out.println("Thread 2 completed.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    });
+
+    thread1.start();
+    thread2.start();
+
+    // 等待 thread1 执行完毕
+    thread1.join();
+    System.out.println("Thread 1 joined.");
+
+    // 等待 thread2 执行完毕
+    thread2.join();
+    System.out.println("Thread 2 joined.");
+
+    System.out.println("All completed");
+}
+
+// 获取多线程返回值: 使用Callable接口和Future接口
+public static void main(String[] args) throws Exception {
+    FutureTask<Integer> futureTask = new FutureTask(new MyCallable());
+    // FutureTask<Integer> futureTask = new FutureTask(() -> { return 10; });
+
+    new Thread(futureTask).start();
+
+    // 阻塞等待执行完成
+    Integer integer = futureTask.get();
+}
+class MyCallable implements Callable<Integer> {
+    @Override
+    public Integer call() throws Exception {
+        Thread.sleep(1000);
+        return 10;
+    }
+}
+```
 
 ### JUC(java.util.concurrent)同步工具
 

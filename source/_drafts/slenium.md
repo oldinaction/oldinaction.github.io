@@ -92,26 +92,28 @@ driver.quit()
 //*[@class='a']/preceding-sibling::* # 选择 class 为 a 的元素的所有前置兄弟节点
 ```
 
-## 元素操作
+## API
 
-- 查找元素
+### 查找元素
 
 ```py
 # 查找一个元素，如果有多个取第一个
-ele = self.driver.find_element(By.XPATH, '//*[@id="login"]')
-self.driver.find_element(By.XPATH, '//*[contains(@class, "class1")]//*[contains(@class, "class1-2-1")]') # 类似CSS的 ".class1 .class1-2-1"
-# 查找当前元素后面的一个元素
-tr.find_next()
+ele = driver.find_element(By.XPATH, '//*[@id="login"]')
+driver.find_element(By.XPATH, '//*[contains(@class, "class1")]//*[contains(@class, "class1-2-1")]') # 类似CSS的 ".class1 .class1-2-1"
+driver.find_element(By.XPATH, '//*[contains(@class, "class1") and contains(@class, "class2")]')
 
 # 查找元素集合
-trs = self.driver.find_elements(By.XPATH, '//*[contains(@class, ".tr")]')
+trs = driver.find_elements(By.XPATH, '//*[contains(@class, "tr")]')
 # 查找当前元素的所有td子元素
 tr.find_all('td')
+# 查找当前元素后面的一个元素，后面的第二个元素为 'following-sibling::*[2]'
+tr.find_element(By.XPATH, 'following-sibling::*[1]')
 
 # 串联查找，根据父元素查找子元素
-trs[0].find_elements(By.XPATH, 'td')
+trs[0].find_elements(By.XPATH, 'td') # 或 './/td'
 ```
-- 取元素值
+
+### 取元素值
 
 ```py
 # 去文本, 一般写成 ele.text.strip() 较好
@@ -119,17 +121,70 @@ ele.text
 # 获取属性值
 ele.get_attribute('href')
 ```
-- 给元素赋值
+
+### 给元素赋值
 
 ```py
 # input输入框
 ele.send_keys('ABC123') # 输入值
 ele.clear() # 清空输入框
 ```
-- 其他
+
+### 多标签页操作
+
+```py
+# click()到 target=_blank 的链接打开新标签页
+driver.find_element(By.XPATH, '//*[@id="new_site"]').click()
+driver.switch_to.window(driver.window_handles[-1]) # 切换到最后一个标签页
+# handles = driver.window_handles
+# for handle in handles:
+#     if driver.current_window_handle != handle:
+#         driver.switch_to.window(handle) # 切换到新打开的标签页
+
+# 清除 target=_blank 防止打开新标签页
+js = 'document.getElementById("setf").target="";'
+driver.execute_script(js)
+driver.find_element(By.XPATH, '//*[@id="new_site"]').click()
+
+# 执行脚本打开新标签页
+driver.execute_script("window.open('https://www.baidu.com')")
+driver.switch_to.window(driver.window_handles[1]) # 切换到新打开的标签页(标签下标)
+driver.close() # 关闭当前标签页
+driver.switch_to.window(driver.window_handles[0]) # 切回到第一个标签页
+```
+
+### 操作iframe
+
+```py
+# 通过id获取iframe
+iframe = driver.find_element(By.XPATH, '//*[@id="myiframe"]')
+# 通过其他方式获取的iframe对象传入无法切换，只支持以下方式
+    # driver.switch_to.frame('frame_name') # id/name模式
+    # driver.switch_to.frame(1) # 下标模式
+    # driver.switch_to.frame(driver.find_elements(By.TAG_NAME, "iframe")[0]) 
+driver.switch_to.frame(iframe)
+
+# 在iframe中进行操作，比如点击按钮
+driver.find_element(By.XPATH, '//*[@id="mybtn"]').click()
+ 
+# 切换回主文档
+driver.switch_to.default_content()
+```
+
+### 其他
 
 ```py
 ele.click() # 点击元素
+
+# 隐式等待: 到了一定的时间发现元素还没有加载，则继续等待我们指定的时间，如果超过了我们指定的时间还没有加载就会抛出异常，如果没有需要等待的时候就已经加载完毕就会立即执行
+driver.get('https://www.baidu.com')
+driver.implicitly_wait(100)
+driver.find_element(By.XPATH, '//*[@id="mybtn"]')
+# 显式等待: 指定一个等待条件，并且指定一个最长等待时间，会在这个时间内进行判断是否满足等待条件，如果成立就会立即返回，如果不成立，就会一直等待，直到等待你指定的最长等待时间，如果还是不满足，就会抛出异常，如果满足了就会正常返回
+wait = WebDriverWait(driver, 10)
+wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'next')))
+# 强制等待1s
+time.sleep(1)
 ```
 
 ## 扩展功能
@@ -145,7 +200,7 @@ ele.click() # 点击元素
 # 找到可执行文件位置，如"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 chrome://version
 # 命令行启动浏览器，并开启调试模式，也可通过python的`os.popen`执行命令; --user-data-dir会自动创建
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=9528 --user-data-dir="/tmp/selenium"
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=9528 --user-data-dir="/tmp/webdriver"
 ```
 - 代码
 
@@ -155,7 +210,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 if __name__ == '__main__':
-    os.system(r'"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=9528 --user-data-dir="/tmp/selenium"')
+    os.system(r'"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=9528 --user-data-dir="/tmp/webdriver"')
 	
 	# 保证浏览器已经打开
     input('输入空格继续程序...')
@@ -163,16 +218,29 @@ if __name__ == '__main__':
     options = Options()
     # 此方法必须先通过命令行参数启动浏览器(启动前先关闭之前打开的浏览器，开发时不能开两个浏览器窗口)
     # 通过debuggerAddress进行附着进程，否则会重新启动一个浏览器实例
-    options.add_experimental_option("debuggerAddress", "127.0.0.1:9528")
+    # options.add_experimental_option("debuggerAddress", "127.0.0.1:9528")
+    options.debugger_address = '127.0.0.1:9500'
+    # （建议调试时设置成后台运行模式）如果没有开启后台允许则实际会打开一个新的实例，但是操作仍然在debugger的实例上
+    options.add_argument("--headless")
     browser = webdriver.Chrome(options=options)
 
     print(browser.title)
+```
+- 多会话
+
+```py
+driver1 = webdriver.Chrome() # 创建第一个会话
+driver2 = webdriver.Chrome() # 创建第二个会话
+
+driver1.get("https://www.baidu.com")
+driver2.get("https://www.github.com")
 ```
 
 ### Selenium获取Network数据
 
 - 参考：https://blog.csdn.net/weixin_45081575/article/details/126551260
 - [Chrome DevTools Protocol (CDP)文档](https://chromedevtools.github.io/devtools-protocol/)
+    - [Network状态类型](https://chromedevtools.github.io/devtools-protocol/tot/Network/)
 - [Selenium CDP API](https://www.selenium.dev/zh-cn/documentation/webdriver/bidirectional/chrome_devtools/)
 - 代码
 
@@ -196,14 +264,20 @@ if __name__ == '__main__':
 
     performance_log = browser.get_log('performance')  # 获取名称为 performance 的日志
     for packet in performance_log:
+        # packet.get('message') 案例参考下文performance_log案例
         message = json.loads(packet.get('message')).get('message')  # 获取message的数据
         if message.get('method') != 'Network.responseReceived':  # 如果method 不是 responseReceived 类型就不往下执行
             continue
-        packet_type = message.get('params').get('response').get('mimeType')  # 获取该请求返回的type
+        
+        # 获取该请求 url
+        url = message.get('params').get('response').get('url')
+
+        # 获取该请求返回的type
+        packet_type = message.get('params').get('response').get('mimeType')
         if packet_type not in ['application/json']:  # 过滤type
             continue
+        
         requestId = message.get('params').get('requestId')  # 唯一的请求标识符。相当于该请求的身份证
-        url = message.get('params').get('response').get('url')  # 获取 该请求  url
         resp = browser.execute_cdp_cmd('Network.getResponseBody', {'requestId': requestId})  # selenium调用 cdp
         print(f'type: {packet_type} url: {url}, response: {resp}')
 ```
@@ -216,13 +290,19 @@ if __name__ == '__main__':
 
 ```py
 import undetected_chromedriver as uc
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver import ChromeOptions
+# webdriver-manager 自动下载chromedriver地址为: https://chromedriver.storage.googleapis.com 可调整检查更新周期，此处选择国内镜像模块
+# webdrivermanager_cn 会自动根据本地浏览器获取对应webdriver版本，没有则走镜像下载
+from webdrivermanager_cn.chrome import ChromeDriverManagerAliMirror
 
+# os.environ['WDM_LOG'] = 'true' # 开启webdrivermanager_cn日志
 options = ChromeOptions()
 options.set_capability('goog:loggingPrefs', {'performance': 'ALL'}) # (可选)记录performance日志
-self.driver = uc.Chrome(executable_path=ChromeDriverManager().install(), options=options)
-self.hb56_performance = Hb56Performance(self.driver)
-self.driver.get("https://www.baidu.com/")
+# undetected_chromedriver v3.5.5 会优先使用driver_executable_path中的chromedriver, 没有则每次重新自动下载(如: https://storage.googleapis.com/chrome-for-testing-public/133.0.6943.53/win32/chromedriver-win32.zip)
+driver = uc.Chrome(
+    driver_executable_path=ChromeDriverManagerAliMirror().install(),
+    options=options)
+driver.get("https://www.baidu.com/")
 ```
 - 使用stealth.min.js文件防止selenium被检测
     - [Selenium 最强反反爬方案来了](https://blog.csdn.net/wuShiJingZuo/article/details/115987011)
@@ -236,3 +316,133 @@ self.driver.get("https://www.baidu.com/")
 
     ![字体分析](/data/images/extend/%E5%AD%97%E4%BD%93%E5%88%86%E6%9E%90.jpg)
 
+## 附件
+
+### performance_log案例
+
+```js
+{
+	"message": {
+		"method": "Network.requestWillBeSent",
+		"params": {
+			"documentURL": "http://example.com:1080/login",
+			"frameId": "DD8A913B348826B959ECED0C74DE9C80",
+			"hasUserGesture": false,
+			"initiator": {
+				"stack": {
+					"callFrames": [
+						{
+							"columnNumber": 12449,
+							"functionName": "",
+							"lineNumber": 77,
+							"scriptId": "8",
+							"url": "http://example.com:1080/js/chunk-vendors.055424a8.js"
+						},
+						{
+							"columnNumber": 10882,
+							"functionName": "e.exports",
+							"lineNumber": 77,
+							"scriptId": "8",
+							"url": "http://example.com:1080/js/chunk-vendors.055424a8.js"
+						},
+						{
+							"columnNumber": 70190,
+							"functionName": "e.exports",
+							"lineNumber": 34,
+							"scriptId": "8",
+							"url": "http://example.com:1080/js/chunk-vendors.055424a8.js"
+						}
+					]
+				},
+				"type": "script"
+			},
+			"loaderId": "CE19D66FD043F9E06D79E432F8BE1B9A",
+			"redirectHasExtraInfo": false,
+			"request": {
+				"headers": {
+					"Accept": "application/json, text/plain, */*",
+					"Referer": "http://example.com:1080/",
+					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+					"token": ""
+				},
+				"initialPriority": "High",
+				"isSameSite": true,
+				"method": "GET",
+				"mixedContentType": "none",
+				"referrerPolicy": "strict-origin-when-cross-origin",
+				"url": "http://example.com:8080/api/test"
+			},
+			"requestId": "8740.227",
+			"timestamp": 70392.391445,
+			"type": "XHR",
+			"wallTime": 1736996230.50371
+		}
+	},
+	"webview": "DD8A913B348826B959ECED0C74DE9C80"
+}
+
+{
+	"message": {
+		"method": "Network.responseReceived",
+		"params": {
+			"frameId": "DD8A913B348826B959ECED0C74DE9C80",
+			"hasExtraInfo": true,
+			"loaderId": "CE19D66FD043F9E06D79E432F8BE1B9A",
+			"requestId": "8740.227",
+			"response": {
+				"alternateProtocolUsage": "unspecifiedReason",
+				"charset": "",
+				"connectionId": 82670,
+				"connectionReused": false,
+				"encodedDataLength": 346,
+				"fromDiskCache": false,
+				"fromPrefetchCache": false,
+				"fromServiceWorker": false,
+				"headers": {
+					"Access-Control-Allow-Credentials": "true",
+					"Access-Control-Allow-Origin": "http://example.com:1080",
+					"Connection": "keep-alive",
+					"Content-Type": "application/json",
+					"Date": "Thu, 16 Jan 2025 02:57:10 GMT",
+					"Keep-Alive": "timeout=60",
+					"Transfer-Encoding": "chunked",
+					"Vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
+				},
+				"mimeType": "application/json",
+				"protocol": "http/1.1",
+				"remoteIPAddress": "47.101.164.35",
+				"remotePort": 8080,
+				"responseTime": 1.736996230970237e+12,
+				"securityState": "insecure",
+				"status": 200,
+				"statusText": "",
+				"timing": {
+					"connectEnd": 314.235,
+					"connectStart": 122.966,
+					"dnsEnd": 122.966,
+					"dnsStart": 0.82,
+					"proxyEnd": -1,
+					"proxyStart": -1,
+					"pushEnd": 0,
+					"pushStart": 0,
+					"receiveHeadersEnd": 466.651,
+					"receiveHeadersStart": 466.142,
+					"requestTime": 70392.392037,
+					"sendEnd": 314.462,
+					"sendStart": 314.336,
+					"sslEnd": -1,
+					"sslStart": -1,
+					"workerFetchStart": -1,
+					"workerReady": -1,
+					"workerRespondWithSettled": -1,
+					"workerStart": -1
+				},
+				"url": "http://example.com:8080/api/test"
+			},
+			"timestamp": 70392.859474,
+			"type": "XHR"
+		}
+	},
+	"webview": "DD8A913B348826B959ECED0C74DE9C80"
+}
+```

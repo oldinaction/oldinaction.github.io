@@ -13,6 +13,7 @@ tags: [system]
 - Mac软件下载
     - https://macwk.cn/
     - https://www.macapp.so/ 收费
+    - https://www.zhiniw.com/
     - https://xclient.info/
     - https://www.mfpud.com/
     - https://iosmacapps.com/ 老外
@@ -22,6 +23,12 @@ tags: [system]
     - ~~ https://www.macwk.com/ ~~ 应用闪退问题解决如下
         - https://www.macwk.com/article/apple-silicon-m1-application-crash-repair
         - https://www.macwk.com/article/macos-beta-damage
+
+## 小技巧
+
+- Mac M1 下安装如果遇到已损坏的问题，可执行类似如下命令修复，然后在设置安全里仍要打开
+    - `sudo xattr -d com.apple.quarantine /Applications/rubick.app` 修复 rubick.app
+    - `sudo xattr -r -d com.apple.quarantine /Applications/Navicat\ Premium.app` 修复 Navicat
 
 ## M1模拟x86环境
 
@@ -347,15 +354,37 @@ alias unproxy="unset ALL_PROXY"
         async def main(connection):
             app = await iterm2.async_get_app(connection)
             window = app.current_terminal_window
-            # 执行命令(开启SOCKS隧道)
-            await window.async_create(connection, command='ssh -D 0.0.0.0:1088 root@8.12.12.12 "vmstat 30"')
-
+            # 执行命令(开启SOCKS隧道). sshpass下载: https://sourceforge.net/projects/sshpass
+            await window.async_create(connection, command="/opt/soft/sshpass-1.05/sshpass -p 'Hello123' ssh -fN -D 0.0.0.0:1088 root@8.12.12.12 -p 11000")
+            
         iterm2.run_until_complete(main)
         ```
         - 使用
             - 启动此脚本
             - 设置Proxifier Rules
-            - 访问目标网址，如: https://cip.cc
+            - 查看当前IP地址: https://cip.cc
+    - 结合开机自动启动脚本(参考下文LaunchAgents)
+
+        ```bash
+        #!/bin/bash
+
+        # 要检测的端口号
+        PORT=1088
+
+        # 要执行的命令
+        COMMAND="echo \"\$(date \"+%Y-%m-%d %H:%M:%S\") Port $PORT is not listening, starting service...\" && sh /path/to/your/start_service_script.sh"
+
+        while true; do
+            # 检查端口是否在监听
+            if ! lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null ; then
+                # 端口未监听，执行命令
+                eval $COMMAND
+            fi
+            # 等待 5 分钟（300 秒）
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Port $PORT is listening"
+            sleep 300
+        done
+        ```
 - 基于lrzsz进行文件上传和下载
 
 ```bash
@@ -470,7 +499,7 @@ nvm install 16.8.0
 rm -rf ~/.nvm
 ```
 - 安装vue-cli，使用root账号安装`npm install -g @vue/cli`
-    - 部分使用sudo仍然安装失败，可使用如`sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npm.taobao.org`
+    - 部分使用sudo仍然安装失败，可使用如`sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npmmirror.com`
 - 常见问题
     - 在npm install进行包依赖安装是，部分包需要依赖autoreconf命令，从而提示`/bin/sh: autoreconf: command not found`。此时可通过`brew install autoconf automake libtool`先手动安装autoreconf，并将`PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"`添加到`~/.zshrc`
 
@@ -564,6 +593,48 @@ https://github.com/google/android-emulator-m1-preview/releases/tag/0.3
 ```
 
 ## 相关技巧
+
+### 设置脚本开机执行(LaunchAgents)
+
+```bash
+touch ~/Library/LaunchAgents/com.example.testscript.plist
+# 加载服务
+launchctl load ~/Library/LaunchAgents/com.example.testscript.plist
+# 停止和卸载服务
+launchctl unload ~/Library/LaunchAgents/com.example.testscript.plist
+```
+- plist模板(修改Label的值, ProgramArguments的脚本路径, 日志文件路径)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 标签名，唯一标识 -->
+    <key>Label</key>
+    <string>com.example.testscript</string>
+
+    <!-- 要执行的程序或脚本的路径 -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/path/to/your/test_script.sh</string>
+    </array>
+
+    <!-- 在用户登录时启动 -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- 重定向标准输出和错误输出到日志文件 -->
+    <key>StandardOutPath</key>
+    <string>/tmp/test_script.stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/test_script.stderr.log</string>
+</dict>
+</plist>
+```
+
 
 ### 更换App图标
 

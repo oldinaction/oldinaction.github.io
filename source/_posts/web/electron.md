@@ -67,7 +67,7 @@ electron-builder
 # 1.添加依赖
 # 安装相关镜像
 # 包含了 npm config set ELECTRON_MIRROR https://npmmirror.com/mirrors/electron/ # 打包时会下载electron压缩包，此时设置镜像进行加速
-npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+npm i -g mirror-config-china --registry=https://registry.npmmirror.com
 npm install electron@23.3.9 -S
 npm install electron-builder -D # node 8.x 需要安装 20.44.4以下版本
 

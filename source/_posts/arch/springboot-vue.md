@@ -147,11 +147,29 @@ server {
 #### SpringBoot解决跨域
 
 - **使用了下列方法如果仍然出现跨域时**
-    - 如果是使用Filter解决跨域，检查是否在进入此跨域Filter之前，请求已经返回，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
-    - 如果请求参数出现错误(如GET请求URL中包含`[]`等特殊字符)，状态码返回400等情况(如果出现跨域，OPTIONS请求返回的应该是403)，此时都还进入到Cros处理环节，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
+    - 如果是使用Filter解决跨域，**检查是否在进入此跨域Filter之前，请求已经返回**，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
+    - **如果请求参数出现错误或者请求的路径不存在**，此时都还未进入到Cros处理环节，从而没有将`Access-Control-Allow-Origin`字段加入到请求头中，导致前台浏览器报错跨域
+        - 如GET请求URL中包含`[]`等特殊字符，状态码返回400等情况(如果出现跨域，OPTIONS请求返回的应该是403)
 
 ```java
-// 法一
+// 法一：基于 CorsFilter(控制过滤器的级别最高, 防止其他Filter已经返回了此请求)
+@Order(Ordered.HIGHEST_PRECEDENCE)
+@Bean
+public Filter corsFilter() {
+    // org.springframework.web.cors
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    CorsConfiguration config = new CorsConfiguration();
+    // config.addAllowedOrigin("*");
+    config.addAllowedOriginPattern("*");
+    config.addAllowedHeader("*");
+    config.addAllowedMethod("*");
+    config.setAllowCredentials(true);
+    source.registerCorsConfiguration("/**", config);
+    // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
+    return new CorsFilter(source);
+}
+
+// 法二
 @Bean
 public FilterRegistrationBean<?> filterRegistrationBean() {
     CorsConfiguration configuration = new CorsConfiguration();
@@ -175,23 +193,6 @@ public FilterRegistrationBean<?> filterRegistrationBean() {
 // public CorsConfigurationSource corsConfigurationSource() {
 //     return new UrlBasedCorsConfigurationSource;
 // }
-
-// 法二：基于 CorsFilter(控制过滤器的级别最高, 防止其他Filter已经返回了此请求)
-@Order(Ordered.HIGHEST_PRECEDENCE)
-@Bean
-public Filter corsFilter() {
-    // org.springframework.web.cors
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    CorsConfiguration config = new CorsConfiguration();
-    // config.addAllowedOrigin("*");
-    config.addAllowedOriginPattern("*");
-    config.addAllowedHeader("*");
-    config.addAllowedMethod("*");
-    config.setAllowCredentials(true);
-    source.registerCorsConfiguration("/**", config);
-    // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
-    return new CorsFilter(source);
-}
 
 // 法三(不推荐): 可能会被shiro等框架拦截；如果还实现了WebMvcConfigurer.addInterceptors方法，则也可能会失效
 @Bean
@@ -282,6 +283,7 @@ function getParentUrl() {
 
 ## Http请求及响应
 
+- [springboot请求参数字段映射](/_posts/java/springboot.md#请求参数字段映射)
 - spring-security登录只能接受`x-www-form-urlencoded`(简单键值对)类型的数据，`form-data`(表单类型，可以含有文件)类型的请求获取不到参数值
 - 重定向问题：`server.tomcat.use-relative-redirects=true` 对于复杂的网络环境，如前置网关可能会导致前端重定向到内网地址，此时设置此参数，从而sendRedirect重定向时写入的Header Location响应头为相对路径
 - axios和qs使用参考[js-tools.md#axios](/_posts/web/js-tools.md#axios)
@@ -673,9 +675,9 @@ submitForm (row) {
 
 ## 性能优化
 
-### 用户浏览器缓存问题 [^5]
+### 用户浏览器缓存问题
 
-- 浏览器缓存包括强制缓存、协商缓存
+- 浏览器缓存包括强制缓存、协商缓存 [^5]
 - 浏览器在请求某一资源时，会先获取该资源缓存的header信息，判断是否命中强缓存(`Cache-control`和`expires`信息)
     - 若命中直接从缓存中获取资源信息，包括缓存header信息。本次请求根本就不会与服务器进行通信(显示`200 OK (from disk/memory cache)`)
     - 若没有命中强缓存
@@ -914,25 +916,8 @@ location ^~ /my-app/ {
 
 ### 前端常用插件
 
+- 参考[node-dev-tools.md](/_posts/web/node-dev-tools.md)
 - 参考[js-tools.md](/_posts/web/js-tools.md)
-
-### 前端常见文件
-
-```json
-babel.config.js     // 参考[js-tools.md#babel](/_posts/web/js-tools.md#babel)
-.babelrc
-.env.dev            // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)。vue-cli环境变量配置文件
-.env.test
-.postcssrc.js
-tsconfig.json       // 参考[typescript.md#tsconfig.json](/_posts/web/typescript.md#tsconfig.json)
-jsconfig.json       // https://www.jianshu.com/p/b0ec870ddfdf 、 https://www.cnblogs.com/leslie1943/p/13493829.html
-vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
-.eslintrc.js        // 参考[js-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
-.eslintignore       // 参考[js-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
-.editorconfig       // 跨编辑器和IDE，保持一致的简单代码风格，就近原则（源码文件参考最近的此文件配置）。参考[js-tools.md#.editorconfig格式化](/_posts/web/node-dev-tools.md#.prettierrc/.jsbeautifyrc/.editorconfig格式化)，下同
-.prettierrc         // 代码格式化，同上
-.jsbeautifyrc       // 代码格式化，同上
-```
 
 ### 前端其他
 
@@ -996,8 +981,12 @@ COMMENTBLOCK
 - Chrome和Firefox查看请求结果时preview和response显示数据不一致问题 [^6]
     - 原因可能是因为数据为Long型，返回给浏览器以后，浏览器转换数据格式的时候出现问题。解决方案：在返回数据之前就将数据转换为字符串
 - Chrome 84默认启用了SameSite=Lax属性 [^11] [^12]
-    - SameSite 可取值：Strict（所有情况都不发送Cookies给第三方）、Lax（少部分情况发送）、None（发送，但是需要为HTTPS访问）
-    - 如果A网页嵌入B网页时，用户打开A网页。如A与B属于同一域名，则B网站可在（前后端）对Cookies进行操作，也可传递Cookies给B；如果不是，则认为B网站为第三方页面，只对其开发部分情况（如a标签跳转、get类型的form提交）的Cookies传递
+    - SameSite 可取值: Strict (所有情况都不发送Cookies给第三方)、Lax (少部分情况发送)、None (发送，但是必须设置Secure属性，即需要为HTTPS访问)
+    - 如果A网页嵌入B网页时，用户打开A网页。如A与B属于同一域名，则B网站可在（前后端）对Cookies进行操作，也可传递(B网页下的)Cookies给B后端；如果不是，则认为B网站为第三方页面，此时只对其开放部分情况（如a标签跳转、get类型的form提交）的Cookies传递
+    - Cookies参数说明
+        - HttpOnly 只能通过HTTP访问Cookie, 如果设置成true后则无法通过 JavaScript 等客户端脚本读取和传递
+        - Secure 只能通过Https访问
+        - SameSite 如上文
 
 ## 设计
 

@@ -243,8 +243,11 @@ bool('') # False
 #### None/False
 
 - None 和 False [^4]
-    - `None`：是python中的一个特殊的常量，表示一个空的对象(NoneType)，空值是python中的一个特殊值。数据为空并不代表是空对象，例如`[]`、`''`等都不是None。None和任何对象比较返回值都是False，除了自己
-    - `False`：在python中 `None`, `False`, `空字符串""`, `0`, `空列表[]`, `空字典{}`, `空元组()`都相当于`False`，即`not None == not False == not '' == not 0 == not [] == not {} == not ()`
+    - `None`：是python中的一个特殊的常量，表示一个空的对象(NoneType)，空值是python中的一个特殊值。数据为空并不代表是空对象
+        - `[]`、`''`等都不是None
+        - None和任何对象比较返回值都是False，除了自己
+    - `False`：在python中 `None`, `False`, `空字符串""`, `0`, `空列表[]`, `空字典{}`, `空元组()`都相当于`False`
+        - 即`not None == not False == not '' == not 0 == not [] == not {} == not ()`
     - 自定义类型还包含以下规则 [^5]
         - 如果定义了`__nonzero__()`方法，会调用这个方法，并按照返回值判断这个对象等价于True还是False
         - 如果没有定义__nonzero__方法但定义了`__len__`方法，会调用__len__方法，当返回0时为False，否则为True(这样就跟内置类型为空时对应False相同了)
@@ -397,7 +400,7 @@ print(type(my_tuple)) # <type 'str'>
 map = {'name': 'smalle', "age": 18} # 定义
 print(map) # {'name': 'smalle', "age": 18}
 
-# 取值(字典取值不能通过 . 获取)
+# 取值(***字典取值不能通过 . 获取***)
 map['name'] # smalle
 map['pass'] # 返回一个Keyvalue 错误类型
 map.get('name')  # smalle
@@ -412,7 +415,11 @@ len(map)  # 计算元素个数
 map.get('name', b'') # 取值，map.get(key, default=None)。返回指定键的值，如果值不在字典中返回default值
 map.pop('name', '-NA-')  # 删除元素。删除字典给定键 key 所对应的值，返回值为被删除的值，如果给的键不存在，否则返回默认值-NA-(可选，否则不存在对应key则会报错)
 'name' in map # 判断key是否存在。返回 True/False
+
+# 拷贝/合并
 dict1.update(dict2)  # 把字典dict2的键/值对更新(合并)到dict1里
+dict2 = dict1.copy() # 浅拷贝
+dict2 = copy.deepcopy(dict1) # 基于copy模块的深拷贝
 
 # 循环
 for key in map:
@@ -422,11 +429,15 @@ for key in map:
 for key, value in map.items():
     print(key, value)
 
+# 逆序循环(3.6之后字典有顺序)
+for key, value in reversed(list(map.items())):
+
 ## 防止取值报错的两种方式
 if a.get('age'):
     print a['age']
 if 'age' in a.keys(): # a.has_key('age')
     print a['age']
+
 ```
 
 #### JSON转换
@@ -474,6 +485,10 @@ elif age > 18:
     print "old"
 else:
     print "error"
+
+if data is None: data = {}
+
+num = 1 if param > 10 else 0
 ```
 
 #### for
@@ -584,13 +599,27 @@ for n in range(10):
 - `*args` 和 `**kwargs`：主要将不定数量的参数传递给一个函数。两者都是python中的可变参数
     - `*args`表示任何多个无名参数，它本质是一个tuple
     - `**kwargs`表示关键字参数，它本质上是一个dict
-    - 如果同时使用`*args`和*`*kwargs`时，必须`*args`参数列要在`**kwargs`前。调用如`MyObj(**{'name': 'smalle'})`为kwargs的传入
-    - 其实并不是必须写成`*args`和`**kwargs`，**`*`和`**`才是必须的**。也可以写成`*ar`和`**k`。而写成`*args`和`**kwargs`只是一个通俗的命名约定
+    - 如果同时使用`*args`和`**kwargs`时，必须`*args`参数列要在`**kwargs`前。调用如`MyObj(**{'name': 'smalle'})`为kwargs的传入
+    - 其实并不是必须写成`*args`和`**kwargs`，**`*`和`**`才是必须的**。也可以写成`*ar`和`**kw`。而写成`*args`和`**kwargs`只是一个通俗的命名约定
+    - `*args`和`**kwargs`可无限次地向下传递。如调用inner_func(*args, **kwargs)
 - 访问级别(python中无public、protected、private等关键字)
     - `public` 方法和属性命名不以下划线开头
     - `protected` 方法和属性命名以下划线(`_`)开头
     - `private` 方法和属性命名以双下划线(`__`)开头
         - 访问私有方法或属性：`myobj._MyObj__func()`，如果使用`myobj.__func()`则不行
+- 案例
+
+```py
+# 定义
+def get_vals():
+    # 等同于 return (1, 2, 3)
+    return 1,2,3
+
+# 调用
+res = get_vals() # (1, 2, 3)
+a, b, c = get_vals()
+_, b, _ = get_vals() # 取第二个值，或者使用索引获取
+```
 
 ### 面向对象
 
@@ -632,7 +661,17 @@ if __name__ == "__main__":
     t.prt()  # 调用对象方法
 ```
 
-### 流/文件
+### 文件/流
+
+- 文件描述符
+    - `r` 读取模式
+    - `w` 写入。如果文件存在则直接覆盖掉
+    - `a` 追加
+    - `t` 文本模式
+    - `b` 二进制模式
+    - `x` 模式在文件写入时，如果文件存在就报错。多个模式可使用如 `wb` 或 `w+b`
+- 创建临时文件和文件夹相关库[tempfile](#tempfile)
+- 输入输出
 
 ```py
 ## 获取控制台输入 [^3]
@@ -645,17 +684,6 @@ i = input('请确认是否继续操作？[y/n]:')
     if (i != 'n'):
         return
 ```
-
-#### 文件
-
-- 文件描述符
-    - `r` 读取模式
-    - `w` 写入。如果文件存在则直接覆盖掉
-    - `a` 追加
-    - `t` 文本模式
-    - `b` 二进制模式
-    - `x` 模式在文件写入时，如果文件存在就报错。多个模式可使用如 `wb` 或 `w+b`
-- 创建临时文件和文件夹相关库[tempfile](#tempfile)
 - 增删改查文件
 
 ```py
@@ -691,8 +719,23 @@ os.mkdir(path) # 创建一级文件夹
 os.rename("oldname","newname")
 # 移动文件（目录）,需提前创建目录
 shutil.move(src_file_path, dest_file_path) # import shutil # 内置模块
+
+# 复制文件
+shutil.copy2(source_path, dest_path) # 完整复制; 如果目标文件已存在会直接覆盖
+shutil.copyfile # 仅复制文件的内容，不复制文件的元数据（如权限、时间戳等）; 如果目标文件已存在会报错
 # 复制文件. oldfile只能是文件夹，newfile可以是文件，也可以是目标目录
 os.copy("old_file_dir", "new_file")
+# 复制整个目录(必须指明目标目录名)
+shutil.copytree(src_dir, dst_dir)
+# dirs_exist_ok=True: 复制整个目录(允许dst_dir存在，默认存在dst_dir会报错)
+shutil.copytree(src_dir, dst_dir, dirs_exist_ok=True)
+
+# 删除文件
+os.remove(file_path) # 文件不存在则会报错
+
+# 删除目录
+shutil.rmtree(directory_path) # 可以递归删除
+os.rmdir(directory_path) # 仅当目录为空时，该操作才会成功，否则会引发 OSError 异常
 ```
 - 文件路径处理、文件是否存在判断(os.path)
 
@@ -701,7 +744,7 @@ import os
 import sys
 
 
-# 获取项目目录
+# 获取项目目录(如果被pyinstall等打包成exe则此路径可能会变化)
 PROJECT_DIR = os.path.dirname(sys.argv[0])
 
 ## 路径处理
@@ -753,7 +796,7 @@ pyfiles = [name for name in os.listdir('somedir')
 ```py
 # data: 会放到url参数中，java中使用`@RequestParam String curNode`接收
 # json: 第三个参数json会放到body中
-resp = requests.post('http://localhost:7102/clawAdapter/getJob', data={'curNode': '1'})
+resp = requests.post('http://localhost:7102/clawAdapter/getJob', data={'curNode': '1'}, json={}, headers={})
 json.loads(resp.text) # {"status": "success", "data": []}
 ```
 
@@ -846,6 +889,8 @@ def test_log():
     logger.error('error级别，一般用来打印一些错误信息')
     logger.critical('critical级别，一般用来打印一些致命的错误信息，等级最高')
     
+    # 只会打印异常的错误信息
+    logger.error('执行出错: %s', e)
     # 打印堆栈信息
     logger.error(e, exc_info=True, stack_info=True)
     logger.error(f"执行出错:{str(e)}", exc_info=True, stack_info=True)
@@ -885,7 +930,7 @@ obj['key'] # 对象只能通过属性来访问，不能通过下标访问
 # 1
 print id(a) # 返回变量a的地址
 print len(a) # 获取变量a的长度
-print "smalle ".strip() # 去除空格
+print "smalle ".strip() # 去除空格和换行
 print "10".isdigit() == True # 判断是为整数
 print ord('1') # 返回ascii码，此时为49
 
@@ -900,15 +945,57 @@ num = random.randrange(10) # 获取0-9的随机整数(不包含10)
 
 ### 内置模块
 
-#### os
+#### os/sys
 
 ```py
+## os
 import os
 
 # 获取环境变量的值(django应用设置环境变量后需要重启idea)
 os.getenv('ENV_PORT', 21)
 os.environ.get('ENV_PORT')
 os.environ['ENV_PORT']
+
+# 执行系统命令. 或者使用 subprocess 包(参考下文)
+os.system('ls')
+
+
+## sys
+# 退出主程序
+sys.exit()
+```
+
+#### subprocess
+
+- `subprocess.run`: 是阻塞式，适用于简单的命令执行
+- `subprocess.Popen`
+    - 默认非阻塞式，显式调用 wait() 或 communicate() 来阻塞等待执行
+    - 底层接口更灵活，返回值：是一个Popen对象，Popen对象的stdin、stdout和stderr是三个文件句柄，可以像文件那样进行读写操作
+
+```py
+import subprocess
+
+def run_command(command):
+    # 创建启动信息对象
+    startupinfo = subprocess.STARTUPINFO()
+    # 设置标志以隐藏窗口
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    try:
+        # 执行命令并捕获输出
+        result = subprocess.run(command, startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0:
+            print("命令执行成功")
+            print(result.stdout)
+        else:
+            print("命令执行失败")
+            print(result.stderr)
+    except Exception as e:
+        print(f"发生错误: {e}")
+
+if __name__ == "__main__":
+    # 示例命令
+    command = ["python", "--version"]
+    run_command(command)
 ```
 
 #### time
@@ -924,6 +1011,24 @@ print (time.time())                       #原始时间数据，1499825149.25789
 print (int(time.time()))                  #秒级时间戳，1499825149
 print (int(round(time.time() * 1000)))    #毫秒级时间戳，1499825149257
 print (int(round(time.time() * 1000000))) #微秒级时间戳，1499825149257892
+```
+
+#### csv
+
+```py
+# 还可使用pandas和numpy第三方库
+import csv
+
+with open('data.csv', 'r') as file:
+    reader = csv.reader(file)
+    # 遍历每一行数据
+    # for index, row in enumerate(reader):
+    for row in reader:
+        # 处理每一行数据
+        # ['1', '2']
+        # ['3\n', '4']
+        # ['5', '6']
+        print(row)
 ```
 
 #### tempfile
@@ -975,7 +1080,7 @@ gettempdir()
 ```py
 import base64
 
-b4 = str(base64.b64encode('hello world'.encode('utf-8')), 'utf-8'))
+b4 = str(base64.b64encode('hello world'.encode('utf-8')), 'utf-8')
 str(base64.b64decode(b4), "utf-8")
 ```
 
@@ -1146,6 +1251,7 @@ friends = schedule.get_jobs('friend')
 
 # 使用单独线程执行(每次会重新打开一个线程执行，因此有可能存在多个线程在执行此任务)
 def run_threaded(job_func):
+    # 支持回调. 如: threading.Thread(target=self.do_init_biz, args=(self.on_init_biz_finished,)) 参考下文Tkinter
     job_thread = threading.Thread(target=job_func)
     job_thread.start()
 
@@ -1201,7 +1307,12 @@ push_data_tt.cancel()
 
 #### OCR图像识别
 
+- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 文字识别库
+- [RapidOCR-json](https://github.com/hiroi-sora/RapidOCR-json) **文字识别库, 体积小(大约90M), 可用于验证码(成功率略低于muggle_ocr)**
+- [PaddleOCR-json](https://github.com/hiroi-sora/PaddleOCR-json) 文字识别库, 体积大
+- [opencv](https://github.com/opencv/opencv) 图像识别
 - `muggle_ocr` 验证码识别
+    - **离线安装时通过pyinstall打包会有问题**，而且体积较大900M的样子(包含了tensorflow模块)
     - 离线安装包(官方已经删除了这个包，无法通过pip安装): https://github.com/simonliu009/muggle-ocr
         - 下载后离线安装`pip install muggle-ocr-1.0.3.tar.gz`
     - 源代码参考: https://github.com/litongjava/muggle_ocr
@@ -1281,6 +1392,160 @@ exit # 退出交互界面
 process.close(force=True)
 ```
 
+#### GUI模块
+
+- Tkinter: 为Python自带, 功能少易用(写小工具够用)
+- [PyQt](https://www.riverbankcomputing.com/software/pyqt/intro) 强大, 商用付费
+- PySide6 类似PyQt, 但可闭源商用
+- wxPython
+- [PySimpleGUI](https://docs.pysimplegui.com/en/latest/)
+
+##### Tkinter
+
+- [官网教程](https://docs.python.org/zh-cn/3.13/library/tkinter.html)
+- 教程参考: https://www.pytk.net/tkinter.html 也支持简单的在线拖拽设计
+- 美化扩展包: [ttkbootstrap](https://ttkbootstrap.readthedocs.io/en/latest/zh/)
+- 语法说明
+
+```py
+import tkinter as tk
+import tkinter.ttk as ttk
+
+# 初始化根窗口
+root = tk.Tk()
+root.title('小工具')
+root.geometry('800x500+100+60')
+root.iconbitmap('./assets/logo.ico') # 托盘和窗口图标
+# 设置窗口UI布局...
+# 展现窗口(一般再最后执行)
+root.mainloop()
+
+# tkinter.ttk 是对 tkinter 中默认UI组件进行美化的(基于不同的平台win/mac进行美化, 否则默认的 tkinter 巨丑)
+# 像 Button 等常用组件ttk中都进行了封装(但是和 tkinter 的api可能不一样)
+button1 = tk.Button(root, text='按钮较丑', command=start)
+button2 = ttk.Button(root, text='按钮美化', command=stop)
+```
+- 日志输出案例(滚动, 多线程)
+
+```py
+import logging
+import threading
+import time
+import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter import scrolledtext
+
+import demo
+from common import logger
+
+
+class App:
+        def __init__(self, root):
+        self.root = root
+        self.log_widget = None
+        self.demo = None
+        self.init_win()
+        logger.addHandler(TextLogHandler(self.log_widget))
+        self.init_biz()
+
+    def start(self):
+        logger.info('执行启动...')
+        if not self.demo:
+            logger.error('程序尚未准备就绪, 请稍后再试')
+            return
+        # 创建新的线程来执行操作, 并设置守护线程, 这样在主线程退出时会自动结束这个线程
+        thread = threading.Thread(target=self.demo.run)
+        thread.daemon = True
+        thread.start()
+
+    def stop(self):
+        logger.warn('执行暂停...')
+        pass
+
+    def init_biz(self):
+        thread = threading.Thread(target=self.do_init_biz, args=(self.on_init_biz_finished,))
+        thread.daemon = True
+        thread.start()
+
+    def do_init_biz(self, callback=None):
+        self.demo = demo.init()
+        if callback: callback()
+    
+    def on_init_biz_finished(self):
+        self.start()
+
+    def init_win(self):
+        self.root.title('小工具')
+        self.root.geometry('800x500+100+60')
+
+        # 定义按钮相关组件
+        frm_btn = ttk.Frame(self.root)
+        frm_btn.pack()
+        button1 = ttk.Button(frm_btn, text='启动', command=self.start)
+        button1.pack(side='left', padx=20, pady=20, ipadx=20, ipady=10)
+        # button2 = ttk.Button(frm_btn, text='暂停', command=self.stop)
+        # button2.pack(side='left', padx=20, pady=20, ipadx=20, ipady=10)
+        button3 = ttk.Button(frm_btn, text='退出', command=self.root.quit)
+        button3.pack(side='left', padx=20, pady=20, ipadx=20, ipady=10)
+
+        # 定义Label组件
+        frm_log_title = ttk.Frame(self.root)
+        frm_log_title.pack(anchor='w')
+        l1 = ttk.Label(frm_log_title, text='程序运行日志：')
+        l1.pack(side='left', padx=1, pady=1, ipadx=1, ipady=1)
+
+        # 定义滚动文本组件
+        frm_log = ttk.Frame(self.root)
+        frm_log.pack(anchor='w')
+        self.log_widget = scrolledtext.ScrolledText(frm_log, width=200, height=300, bg='#cfdccf', font=('宋体', 10))
+        self.log_widget.pack(fill='both', side='left', expand=True)
+
+    # 控制台输出函数
+    def terminal_log(self, msg):
+        date_time = time.strftime('[%Y-%m-%d %H:%M:%S]')
+        self.log_widget.insert('end', f'{date_time}  {msg}\n')
+        self.log_widget.see(tk.END)
+        self.log_widget.update()
+
+    def log_clean(self):
+        # 清除text文本框原来文字
+        self.log_widget.delete(1.0, tk.END)
+
+
+class TextLogHandler(logging.Handler):
+    """
+    # 也可定义标准输出
+    class StdoutRedirector(object):
+        def __init__(self, log_widget):
+            self.log_widget = log_widget
+
+        def write(self, text):
+            # 参考 emit
+
+        def flush(self):
+            pass
+
+    # 使用
+    sys.stdout = StdoutRedirector(st)
+    print('这个消息可以输出到界面')
+    """
+    def __init__(self, log_widget):
+        logging.Handler.__init__(self)
+        self.log_widget = log_widget
+
+    def emit(self, info):
+        # 日志对象参考 LogRecord
+        self.log_widget.insert(tk.END, f'{info.asctime} [{info.levelname}]: {info.message}\n')  # 在末尾追加文字
+        self.log_widget.see(tk.END)  # 光标一直追加到文件末尾
+        self.log_widget.update()  # 一直更新输出
+
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
+```
+
 #### 其他扩展
 
 - pytorch (AI相关)
@@ -1339,6 +1604,108 @@ python3 /opt/myproject/main.py
 source /home/smalle/venv/bin/activate
 nohup python3 /home/smalle/pyproject/automonitor/manage.py runserver 0.0.0.0:10000 > console.log 2>&1 &
 ```
+
+### 打包(exe/app)
+
+- 参考: https://juejin.cn/post/7167787660537233444
+- 基于pyinstaller
+    - GPL, 支持跨平台打包成windows、linux、mac发行版
+- 基于cx_Freeze
+    - MIT, 支持跨平台打包成windows、linux、mac发行版
+
+#### 基于pyinstaller
+
+- [pyinstaller官网](https://pyinstaller.org/)
+    - 会将Python执行环境打包进去，打包后压缩一下小的几M的样子; 在虚拟环境执行可减少无用包
+    - 爬虫项目打包后1.2G(主要是验证码识别的tensorflow模块占用800M), 压缩单文件exe约350M的样子
+
+```bash
+# ***如果是虚拟环境，则需要在虚拟环境安装***(如果在全局安装，则可能打包报错: 如爬虫项目打包后报错 No module named 'requests')
+pip3 install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple
+pyinstaller -h
+# -F: --onefile 打包成一个exe文件(可直接运行)
+# -w: --windowed 用于创建无控制台窗口的可执行文件，适用于 GUI 程序; 不设置时，启动exe后会有一个命令行窗口(会实时显示日志等输出)
+    # 有时候设置了仍然会有控制台窗口闪现，可能为子进程调用(像 subprocess 默认会打开一个新的命令窗口, 解决参考下文 subprocess.STARTF_USESHOWWINDOW), 一些日志输出或者调试信息, 第三方库原因
+# -n 程序名称: 打包后程序的名称 默认为python脚本的文件名
+# -i 图标(图片)地址: 程序文件的图标
+# –-add-data '打包前地址;打包后地址': 打包资源文件(代码中可通过sys._MEIPASS获取)
+    # 如`D:/tool.exe;.` 把tool.exe打包到资源文件根目录
+    # 如`D:/data;./data` 把D盘data目录下所有文件打包到资源文件的data目录下
+# --collect-data my_mod 自动收集模块下的静态资源文件
+    # 如`--collect-data airtest --collect-data poco` 自动收集 airtest 下的 adb.exe 等资源文件及报表静态文件，及 poco 包下的 apk 文件
+# –clean: 打包前清理临时文件
+# –distpath 路径: 打包后的文件放在哪里(默认当前文件夹dist目录)
+
+
+# 直接打包exe (会自动生成 build目录、dist目录、spec文件). dist目录结构为: _internal、main.exe
+pyinstaller main.py
+# 设置程序名(也可以是中文)和程序图标
+pyinstaller -n my_demo --icon=path/to/icon.ico main.py
+# 或基于spec文件打包(如修改了上述自动生成的spec文件后重新打包)
+pyinstaller main.spec
+
+## 设置hook, 如部分配置只允许开发期间修改，打包时必须为固定值无法修改
+pyinstaller --runtime-hook=runtime_hook.py main.py
+```
+- spec文件说明
+
+```bash
+a = Analysis(['main.py'],
+            # 资源文件(py文件会自动基于引用进行识别, 资源文件则需要手动添加). 元素格式为 (源文件路径, 打包后文件路径)
+            # 目标文件路径"."代表上文的dist/_internal目录，而exe运行后项目的根目录一般指exe所在目录，因此项目中如果使用了读取当前目录文件则可能存在问题(但是像生成./log/文件目录正常)
+            # 对应参数: --add-data=path/to/datafile;.
+            datas=[('./cfg.ini', '.'), (r'C:\cfg.ini', './scrapy')],
+            # 未被自动检测到但需要包含的 Python 模块列表
+            hiddenimports=[],
+            # 自定义的钩子文件的路径列表，用于修改 PyInstaller 的默认行为
+            hookspath=[],
+            # 运行时钩子; 对应参数: --runtime-hook=runtime_hook.py
+            runtime_hooks=['runtime_hook.py'],
+            # 排除的模块列表，不希望包含在打包中的模块
+            excludes=[])
+
+pyz = PYZ(a.pure)
+
+exe = EXE(pyz,
+         a.scripts,
+         a.binaries,
+         a.zipfiles,
+         a.datas,
+         [],
+         # 可执行文件的名称
+         name='my_demo',
+         # 可执行文件图标. -i icon.ico 或者 --icon=icon.ico
+         icon=['res\\logo.ico'],)
+```
+- runtime_hook.py案例
+
+```bash
+## 案例1
+import demo.api
+# 而在 demo.api 中正常读取配置文件中配置的 'API_HOST' 属性到常量 API_HOST, 此处相当于打包后进行了hook修改
+demo.api.API_HOST = 'http://example.com/api'
+
+## 案例2: 将 airtest 的 adb 资源复制到打包根目录，此处重写默认的 adb 路径读取位置 (默认最终是从资源目录的airtest目录读取，从程序退出时，adb不会自动关闭，从而导致 _MEIPASS 临时目录无法自动清除。因此此处使用自定义外置路径)
+import airtest.core.android.constant
+# 直接重写 DEFAULT_ADB_PATH = {...} 无效(具体原因不知) 
+airtest.core.android.constant.DEFAULT_ADB_PATH['Windows'] = os.path.join('./', "adb", "windows", "adb.exe")
+```
+- `sys._MEIPASS`
+    - 用 pyinstaller 打包生成的 exe 文件，在运行时动态生成依赖文件，sys._MEIPASS 就是这些依赖文件所在文件夹的路径
+    - 通常为 `C:\Windows\Temp\_MEIxxxx` 或 C`:\Users\用户名\AppData\Local\Temp\_MEIxxxx`
+    - 仅在 exe 运行时有效(正常退出exe会自动删除此临时文件夹)，IDE运行时报错
+    - 使用 subprocess 运行命令时，可使用此参数获取文件路径
+
+```py
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+```
+- 打包后执行py脚本
+    - 如执行 airtest_demo.py 脚本，可将此脚本单独打包成 airtest_demo.exe 然后在主程序中执行
+    - 如果只是需要执行某 py 脚本中的方法，可将此脚本的方法导入到主程序中进行执行
+    - 使用目标机python环境执行(可能存在包缺失问题?)
 
 ## 工具
 

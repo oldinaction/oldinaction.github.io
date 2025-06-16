@@ -8,6 +8,7 @@ tags: [H5, 小程序, mobile]
 
 ## 简介
 
+- [支付宝开放平台](https://open.alipay.com/)
 - 支付宝支付、小程序对应后台SDK均为一个，如`com.alipay.sdk:alipay-sdk-java:4.39.52.ALL`，参考：https://opendocs.alipay.com/open/02np94
 
 ## 支付宝支付
@@ -130,7 +131,7 @@ location = / {
 ```java
 @RequestMapping(value="/short/alipay" , method = RequestMethod.GET)
 public String alipay() {
-    String shortLink = 'https://ur.alipay.com/_27lcRxpqdGXPHADfTz1oRZ';
+    String shortLink = 'https://ur.alipay.com/_27lcRxpqdGXPHADfTz21RZ';
     return "redirect:" + shortLink;
 }
 ```

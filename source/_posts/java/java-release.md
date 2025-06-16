@@ -291,7 +291,7 @@ Map<String, List<Product>> prodMap= prodList.stream().collect(Collectors.groupin
 Map<String, List<Product>> prodMap = prodList.stream().collect(Collectors.groupingBy(item -> item.getCategory() + "_" + item.getName()));
 // 求和: {"零食": 7, "啤酒": 8}
 // IntSummaryStatistics{count, sum, min, max}为某个分类的统计信息; 其他如Collectors.summarizingDouble(如果统计金额还需再进行手动取整)
-Map<String, IntSummaryStatistics> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingInt(Product::getNum)));
+Map<String, IntSummaryStatistics> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingInt(Product::getNum))); // Collectors.summingInt(x -> 1) 相当于进行计数
 
 // ifPresent判断是否存在
 Optional<User> firstOpt= list.stream().filter(a -> "admin".equals(a.getUserName())).findFirst();
@@ -475,12 +475,15 @@ function calculate(amount, percentage) {
     return result.toPlainString();
 }
 function test() {}
-var result = calculate(568000000000000000023,13.9);
+var result = calculate(568000000000000000023, 13.9);
 print(result);
 
 // 返回数组. 默认 Nashorn 会将数组转换成下标模式的Map，此处通过 Java.to 进行转换(但是只支持转换一层结构，不支持深度转换)
 // 或者手动进行深度转换: https://blog.csdn.net/dongyan3595/article/details/125046180
 function test() {
+    // 支持JS的JSON函数
+    var obj = JSON.parse(str);
+    print(obj.name, obj.map, obj); // 此时obj.map, obj打印都是显示[object Object]
     // 实际返回 [{name: 'test', arr: {"0": 1, "1": 2}}]
     return Java.to([{name: 'test', arr: [1, 2]}], 'java.util.List');
 }

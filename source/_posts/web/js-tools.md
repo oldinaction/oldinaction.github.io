@@ -1995,10 +1995,14 @@ body.addEventListener("click", record);
 
 ### mockjs模拟数据
 
+- [官网](https://github.com/nuysoft/Mock)
 - 语法`Mock.mock(rurl, rtype, function(options))`
     - rurl：拦截的请求地址，支持正则。不使用正则是为完全不配，如`/user/getMenu`无法匹配`http://localhost/user/getMenu`，也无法匹配参数`/user/getMenu?type=0`
     - rtype：请求类型，get/post等
     - 回调函数，需要返回最终结果(相当于模拟后台请求返回)。options(url: 包括请求传参数、type: GET/POST等、body: body体参数)
+- 模拟图片基于: https://dummyimage.com/
+    - https://dummyimage.com/100x200
+    - https://dummyimage.com/600x400/cccccc/000000.png&text=Hello
 - 示例
 
 ```js
@@ -2280,6 +2284,10 @@ export default {
 
 - 使用JS将Table数据导出到Excel里(第二种)：https://blog.csdn.net/qq_35340913/article/details/102590714
 - js将表格html-table导出为CSV文件并下载(存在逗号转义问题)：https://blog.csdn.net/djk8888/article/details/120848912
+
+## 工具包记录
+
+- [driver.js](https://driverjs.cn/) 可用于产品导览(下一步,下一步)、亮点、上下文帮助等
 
 ## 工具函数
 

@@ -1317,7 +1317,7 @@ style.remove()
 document.getElementById('my-style').remove()
 ```
 
-### 动态创建iframe(异步加载，加快主站相应速度)
+### 动态创建iframe(异步加载，加快主站响应速度)
 
 ```js
 function createIframe() {

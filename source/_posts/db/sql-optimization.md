@@ -8,9 +8,25 @@ tags: [oracle, dba, sql]
 
 ## 总结
 
+- 关于日期类型的问题
+
+```sql
+-- oracle遇到过：通过to_date转换比直接传入 cn.hutool.core.date.DateTime extends java.util.Date 要快
+and t.create_tm > to_date(#{query.createTmStr}, 'yyyy-mm-dd hh24:mi:ss') -- 优于 and t.create_tm > #{query.createTm}
+
+-- mysql: 传入字符串也会触发索引(貌似数据量大加上时间区间大的时候会失效？要转船日期)
+and t.create_tm > '2000-01-01' and t.create_tm < '2000-01-31'
+```
+- join索引表前移
+
+```sql
+-- oracle遇到过: b表上有索引，此处应该将b前移(如果被left join打断就会走不了索引)
+select * from a join b left join c where b.create_tm > '2000-01-01';
+-- select * from a left join c join b where b.create_tm > '2000-01-01'; -- 查询效率低
+```
 - 比如统计用户的点击情况，根据用户年龄分两种情况，年龄小于 10 岁或大于 50 岁的一次点击算作 2，其他年龄段的一次点击算作 1(实际情况可能更复杂)。如果在 where 条件中使用 or 可能会导致查询很慢，此时可以考虑查询出所有用户、年龄类别、点击次数，再在外层套一层查询通过 case when 进行合计
 
-## Mysql 调优
+## Mysql调优
 
 - 参考：https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/Mysql%E8%B0%83%E4%BC%98.xmind
 - mysql 架构：客户端 -> 服务端(连接器 - 分析器 - 优化器 - 执行器) -> 存储引擎
@@ -118,18 +134,7 @@ tags: [oracle, dba, sql]
         - index：该联接类型与 ALL 相同，除了只有索引树被扫描。这通常比 ALL 快，因为索引文件通常比数据文件小。这个类型通常的作用是告诉我们查询是否使用索引进行排序操作 **(order by BILL_NO)**
         - ALL：最慢的一种方式，即全表扫描
     - possible_keys：指出 MySQL 能使用哪个索引在该表中找到行
-    - **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 force index、use index 或者 ignore index. 如下
-
-        ```sql
-        -- 指定索引/强制索引
-        -- 如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引; 使用Hint提示
-        select * from user use index(idx_name_sex) where id > 10000;
-        -- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
-        select *
-        from t_user u force index(idx_create_time)
-        join t_class c on c.id = u.cid
-        where u.create_time > '2000-01-01';
-        ```
+    - **key**：显示 MySQL 实际决定使用的键（索引）。如果没有选择索引，键是 NULL。要想强制 MySQL 使用或忽视 possible_keys 列中的索引，在查询中使用 force index、use index 或者 ignore index. 参考下文[SQL-Hint](#SQL-Hint)
     - key_len：显示 MySQL 决定使用的键长度。如果键是 NULL，则长度为 NULL。使用的索引的长度，在不损失精确性的情况下，长度越短越好
     - ref：显示使用哪个列或常数与 key 一起从表中选择行
     - rows：显示 MySQL 认为它执行查询时必须检查的行数。注意这是一个预估值
@@ -142,11 +147,11 @@ tags: [oracle, dba, sql]
         - Using index condition：这是 MySQL 5.6 出来的新特性，叫做"索引条件推送"。简单说一点就是 MySQL 原来在索引上是不能执行如 like 这样的操作的，但是现在可以了，这样减少了不必要的 IO 操作，但是只能用在二级索引上。如：查询列不完全被索引覆盖，但 where 条件中是一个前导列的范围或查询条件完全可以使用到索引(包括所有范围查找)
         - Using where：使用了 WHERE 从句来限制哪些行将与下一张表匹配或者是返回给用户
 
-### schema 与数据类型优化
+### schema与数据类型优化
 
 > https://dev.mysql.com/doc/refman/5.7/en/optimizing-database-structure.html
 
-#### schema 优化
+#### schema优化
 
 - [数据类型的优化](#数据类型的优化)
 - 合理使用范式和反范式
@@ -182,7 +187,6 @@ tags: [oracle, dba, sql]
     - `select INET_ATON(4294967295)` 将整型转换成 ip
 - 尽量避免 null (通常情况下 null 的列改为 not null 带来的性能提升比较小，所有没有必要将所有的表的 schema 进行修改，但是应该尽量避免设计成可为 null 的列)
 - 数据类型选择，参考[mysql 数据类型](/_posts/db/sql-base.md#数据库基本)
-
     - 整型：尽量使用满足需求的最小数据类型
     - 字符和字符串类型 [^6]
         - varchar 根据实际内容长度保存数据
@@ -381,7 +385,7 @@ tags: [oracle, dba, sql]
 
 #### 优化小细节
 
-- 禁止使用 select \*
+- 禁止使用 `select *`
 - 当使用索引列进行查询的时候尽量不要使用表达式，把计算放到业务层而不是数据库层
 - 尽量使用主键查询，而不是其他索引，因为主键查询不会触发回表查询?
 - 使用前缀索引(非最左匹配)
@@ -393,12 +397,13 @@ tags: [oracle, dba, sql]
 
         ```sql
         select
-            count(distinct left(city,3))/count(*) as sel3, -- 0.0239. 使用前3列作为索引时，不同的值占所有值的比率
+            count(distinct left(city,3))/count(*) as sel3, -- 0.0239. 使用前3列作为索引时，不同的值占所有值的比率 (250w条数据0.023即可作为索引)
             count(distinct left(city,4))/count(*) as sel4, -- 0.0293
             count(distinct left(city,5))/count(*) as sel5, -- 0.0305
             count(distinct left(city,6))/count(*) as sel6, -- 0.0309
             count(distinct left(city,7))/count(*) as sel7, -- 0.0310
-            count(distinct left(city,8))/count(*) as sel8  -- 0.0310
+            count(distinct left(city,8))/count(*) as sel8, -- 0.0310
+            count(distinct city)/count(*) as sel9          -- 0.0310
         from citydemo;
 
         -- 可以看到当前缀长度到达7之后，再增加前缀长度，选择性提升的幅度已经很小了，因此可将前7位创建为索引
@@ -438,7 +443,7 @@ tags: [oracle, dba, sql]
     - `explain select * from user where age = '18';` 不会使用索引
 - 更新十分频繁、数据区分度不高的字段上不宜建立索引
     - 更新会变更 B+树，更新频繁的字段建立索引会大大降低数据库性能
-    - 类似于性别、有效状态这类区分不大的属性，建立索引是没有意义的，不能有效的过滤数据。一般区分度在 80%以上的时候就可以建立索引，区分度可以使用 `count(distinct(列名))/count(*)` 来计算
+    - 类似于性别、有效状态这类区分不大的属性，建立索引是没有意义的，不能有效的过滤数据。一般区分度在 80%以上的时候就可以建立索引，区分度可以使用 **`count(distinct(列名))/count(*)`** 来计算。(250w条数据区分度在0.023添加索引也有效)
 - 创建索引的列最好不允许为 null
 - 当需要进行表连接的时候，最好不要超过三张表
     - **mysql 的 join 算法**：Simple Nested-Loop Join(简单嵌套循环连接)、Index Nested-Loop Join(索引嵌套循环连接)、Block Nested-Loop Join(缓存块嵌套循环连接) [^7]
@@ -720,7 +725,7 @@ tags: [oracle, dba, sql]
         - `Threads_created` 代表最近一次服务启动，已创建现成的数量，如果该值比较大，那么服务器会一直再创建线程
         - `Threads_running` 代表当前激活的线程数
 - [Innodb 存储引擎参数](https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html)
-    - **`innodb_buffer_pool_size`** 该参数指定大小的内存来缓冲数据和索引，默认值 128MB，最大可以设置为物理内存的 80%
+    - **`innodb_buffer_pool_size`** 该参数指定来缓冲数据和索引的内存大小，默认值 128MB，最大可以设置为物理内存的 80%
     - **`innodb_flush_log_at_trx_commit`** 主要控制 innodb 将 log buffer 中的数据写入日志文件并 flush 磁盘的时间点，值分别为`0`，`1`，`2`，默认是 1。详细参考[sql-base.md#InnoDB 日志(Redo/Undo)](</_posts/db/sql-base.md#InnoDB日志(Redo/Undo)>)
     - **`innodb_log_buffer_size`** 写日志文件到磁盘的缓冲区大小，以 M 为单位，默认 8M
     - **`innodb_log_file_size`** 日志组中每个日志文件大小，以 M 为单位，默认 48M
@@ -731,7 +736,7 @@ tags: [oracle, dba, sql]
     - `innodb_file_per_table` 此参数确定为每张表分配一个新的文件，否则数据文件都保存在`ibdata1`文件中
     - `innodb_thread_concurrency` 设置 innodb 线程的并发数，默认为 0 表示不受限制，如果要设置建议跟服务器的 cpu 核心数一致或者是 cpu 核心数的两倍
 
-### Mysql 集群
+### Mysql集群
 
 #### 主从复制
 
@@ -739,7 +744,23 @@ tags: [oracle, dba, sql]
 
 #### 分库分表
 
-### SQL 写法优化
+### SQL-Hint
+
+- Oracle参考下文[Oracle-Hint](#Oracle-Hint)
+- Mysql写法
+
+```sql
+-- 指定索引/强制索引
+-- 如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引; 使用Hint提示
+select * from user use index(idx_name_sex) where id > 10000;
+-- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
+select *
+from t_user u force index(idx_create_time)
+join t_class c on c.id = u.cid
+where u.create_time > '2000-01-01';
+```
+
+### SQL写法优化
 
 - 判断是否存在
 
@@ -753,9 +774,12 @@ select 1 from table where a = 1 and b = 2 limit 1;
 
 > 如无特殊说明，此文测试环境均为 Oracle 11.2g
 
-### SQL 优化
+### Oracle-SQL优化
 
-- exists 和 in 的查询效率。如：select \* from A where id in(select id from B) - in()适合 B 表比 A 表数据小的情况 - exists()适合 B 表比 A 表数据大的情况 - 当 A 表数据与 B 表数据一样大时，in 与 exists 效率差不多，但是使用 in 时索引不会生效
+- exists 和 in 的查询效率。如: `select * from A where id in (select id from B)`
+    - in()适合 B 表比 A 表数据小的情况
+    - exists()适合 B 表比 A 表数据大的情况
+    - 当 A 表数据与 B 表数据一样大时，in 与 exists 效率差不多，但是使用 in 时索引不会生效
 - 两张大表写 join 查询比写 exists 快
 
 ```sql
@@ -796,7 +820,30 @@ from t_a a
 join t_b b on b.pid = a.id and b.cid = 1
 ```
 
-### 批量更新优化
+### Oracle-Hint
+
+- 索引Hint
+    - 提示INDEX: 指导优化器，使用某个索引来访问相关表; 提示NO_INDEX: 则正好相反，其指导优化器避免使用相应的索引
+    - 可以指定索引名称，也可以指定索引所在的列; 当指定了多个索引，或者指定列上有多个索引可用时，会选择COST最低的使用
+    - **当有别名时，必须用别名;** 但不要加入表的属主（SCHEMA）名，哪怕在SQL中明确写了属主，提示中也不能写
+
+```sql
+-- Hint可生效
+select /*+ index(t_test idx_test_obj_id) */ * from t_test where obj_id > 0;
+select /*+ index(t_test (obj_id)) */ * from t_test where obj_id > 0;
+select /*+ index(t idx_test_obj_id) */ * from t_test t where t.obj_id > 0;
+select /*+ index(t idx_test_tm) index(t idx_test_code) */ * from t_test t where t.obj_id > 0; -- 多个索引
+
+-- 错误1：SQL中指定了表的别名，但HINT中，却引用了表的名称，而非别名，会导致提示无效
+select /*+ index(t_test idx_test_obj_id) */ * from t_test t where t.obj_id > 0;
+-- 改正
+select /*+ index(t idx_test_obj_id) */ * from t_test t where t.obj_id > 0;
+
+-- 错误2：为表名指定属主（SCHEMA)名，会导致提示无效 => hint 中去掉 demo.
+select /*+ index(demo.t_test idx_test_obj_id) */ * from demo.t_test where obj_id > 0;
+```
+
+### Oracle批量更新优化
 
 > https://www.cnblogs.com/Marydon20170307/p/10097243.html
 
@@ -852,9 +899,9 @@ begin
 end;
 ```
 
-### Oracle 执行计划(Explain Plan) [^1]
+### Oracle执行计划(Explain Plan)
 
-- 在 **PL/SQL** 的`Explain plan window`中执行并查看
+- 在 **PL/SQL** 的`Explain plan window`中执行并查看 [^1]
 - sqlplus 下执行
     - `explain plan for select * from emp;` 创建执行计划
     - `select * from table(dbms_xplan.display);` 查看执行计划

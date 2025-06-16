@@ -41,6 +41,15 @@ tags: [ai]
 
 - [Hugging Face](http://www.huggingface.co): 目前已经共享了超100,000个预训练模型，10,000个数据集，变成了机器学习界的github
     - https://zhuanlan.zhihu.com/p/535100411
+- [Ollama](https://github.com/ollama/ollama) 可在本地机器上便捷部署和运行开源大模型
+
+```bash
+# 安装完直接运行ollama命令即可。支持的模型: https://ollama.com/library
+# 安装并启动 llama3.2 模型
+ollama run llama3.2
+# 安装并启动 deepseek-r1 模型, 1.5b参数量(1.1GB)
+ollama run deepseek-r1:1.5b
+```
 - [Gitpod](https://www.gitpod.io/): Gitpod是一个基于云的集成开发环境（IDE），它为开发人员提供了一个完全在线的编码环境
 
 ## 案例
@@ -58,6 +67,8 @@ tags: [ai]
 - 官方提供的GPT Token收费计算器: https://platform.openai.com/tokenizer
 
 ## 百度
+
+- 飞桨(百度) https://aistudio.baidu.com/index
 
 ### 千帆大模型
 
@@ -97,9 +108,26 @@ tags: [ai]
 
 ## 阿里
 
+- Alink实验室 https://alinklab.cn/index.html
+
+### 百炼
+
+- [控制台](https://bailian.console.aliyun.com/)
+- [文档](https://help.aliyun.com/zh/model-studio)
+    - [应用调用](https://help.aliyun.com/zh/model-studio/user-guide/application-calling)
+
+### 魔搭社区
+
+- https://modelscope.cn
+    - 阿里云ModelScope社区 https://developer.aliyun.com/modelscope
+    - 阿里云ModelScope在线体验模型测试 https://developer.aliyun.com/article/1023556
+
 ### 语音识别
 
+- [百炼语音识别](https://help.aliyun.com/zh/model-studio/user-guide/automatic-speech-recognition)
+    - 模型赠送免费额度
 - [一句话识别](https://help.aliyun.com/zh/isi/developer-reference/short-sentence-recognition/)
+  - 准备阶段: 创建子账户，授权AliyunNLSFullAccess，并生成accessKeyId 和 accessKeySecret；在[智能语音交互控制台](https://nls-portal.console.aliyun.com/applist)创建应用，并获取项目Appkey
   - 阿里云官方提供的小程序SDK是将 accessKeyId 和 accessKeySecret 放在小程序代码里面(是否存在一定的数据泄露风险???)
   - 可基于小程序录音并将录音文件回传然后解析识别
     - 参考: https://help.aliyun.com/zh/isi/developer-reference/sdk-for-java 官方案例中是接收到消息后进行异步返回的，可通过Websocket等方式返回
@@ -107,7 +135,10 @@ tags: [ai]
 
 ### 语音合成
 
-- [语音合成CosyVoice大模型](https://help.aliyun.com/zh/model-studio/developer-reference/quick-start-cosyvoice)
+- [百炼语音合成](https://help.aliyun.com/zh/model-studio/user-guide/text-to-speech)
+    - CosyVoice大模型(参考下文): 流式输入输出, 支持声音复克
+    - Sambert大模型: 不支持流式输入, 支持多种国外音色
+- [语音合成CosyVoice大模型(百炼)](https://help.aliyun.com/zh/model-studio/developer-reference/quick-start-cosyvoice)
   - 可实现全双工流式合成：多次输入合成文本，多次返回合成音频
   - 官方案例中有将LLM生成的文本通过扬声器实时播放（全双工流式合成）
   - 案例参考: `aezo-chat-gpt(sqt-qingxingyigou)/QanythingEventSourceListener.java`
@@ -123,11 +154,15 @@ tags: [ai]
     }
     ```
 
+### 实时语音/视频
+
+- [智能媒体服务-AI实时互动](https://help.aliyun.com/zh/ims/user-guide/ai-real-time-interactive-overview)
+
 ## 字节
 
 - 火山引擎: https://volcengine.com/
     - 豆包: https://www.volcengine.com/product/doubao
-    - 扣子: https://www.volcengine.com/product/coze-pro
+    - [扣子](https://www.coze.cn/): https://www.volcengine.com/product/coze-pro
         - 零代码快速搭建个性化AI应用(插件丰富), 也支持API调用
         - 基础版免费(豆包个人自建智能体就是基于扣子实现)
 

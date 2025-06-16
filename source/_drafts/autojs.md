@@ -11,9 +11,13 @@ tags: [android,js]
 - Auto.js
     - 不需要Root权限的JavaScript自动化软件
     - 通过在安卓手机上安装对应APP，即可使用脚本通过安卓手机的无障碍API进行自动化控制
-- [github](https://github.com/hyb1996/Auto.js)，安卓商店叫AutoJsPro(部分功能收费)
-- [Autox.js](https://github.com/kkevsekk1/AutoX) Auto.js v4.1之后闭源，此版本为基于4.1之后的第三方开源版
-    - [AutoX文档](http://doc.autoxjs.com/#/)
+- [github](https://github.com/hyb1996/Auto.js)，安卓商店叫AutoJsPro(部分功能收费)，Auto.js v4.1之后停止维护
+- 社区二开项目
+    - [AutoJs6](https://github.com/SuperMonster003/AutoJs6)、[AutoJs6文档](https://docs.autojs6.com/)
+    - (2503停止维护) [Autox.js](https://github.com/kkevsekk1/AutoX) Auto.js v4.1之后闭源，此版本为基于4.1之后的第三方开源版，[AutoX文档](http://doc.autoxjs.com/#/)
+    - [robot](https://github.com/yooge/robot)、[文档](https://yooge.github.io/robot-docs)
+        - uni-app ColorUI写UI，将AutoJS封装成APK底座实现调用AutoJS，支持代码加密
+        - 测试运行报错
 - [autojs案例](https://blog.csdn.net/snailuncle2/article/details/115278704)
     - [autojs各种签到脚本](https://github.com/bjc5233/autojs)
 - 相关文章

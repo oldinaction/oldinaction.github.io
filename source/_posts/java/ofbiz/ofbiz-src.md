@@ -17,6 +17,7 @@ tags: [ofbiz, uml, src]
 - 校验登录 extensionCheckLogin
 - view 渲染
 - screen 渲染
+    - 菜单渲染参考: ModelMenu、HtmlMenuRenderer
 
 <embed width="1000" height="800" src="/data/pdf/OFBiz-UML.pdf" internalinstanceid="7">
 

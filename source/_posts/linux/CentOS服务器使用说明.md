@@ -378,8 +378,10 @@ wget http://download.bt.cn/install/bt-uninstall.sh && sh bt-uninstall.sh
         - 面板SSL - 开启 - 自签名。常见问题参考下文
         - 绑定域名，绑定后只能通过域名访问
     - 软件商店
-        - 进程守护管理器：可启动守护进程
+        - Linux工具箱：可创建SWAP空间
         - 七牛云存储：可配置数据库和网站到七牛云；在七牛云个人信息找到授权Key，存储空间aezo，加速域名cdn70.aezo.cn，设置为私有空间
+        - 进程守护管理器：可启动守护进程
+        - 宝塔WebHook：访问面板url执行脚本
         - Mysql8安装需要至少3700M内存(正常4G的内存机器可能无法安装)
     - 计划任务
         - 备份网站和数据到七牛云并本地保存；续签Let's Encrypt证书为自动加的
@@ -431,7 +433,7 @@ rm /www/server/panel/config/letsencrypt.json
 /www/server/panel/pyenv/bin/python3 -u /www/server/panel/class/acme_v2.py --renew=1
 ```
 
-### 安装jdk
+### JDK安装
 
 #### 下载/上传jdk文件
 
@@ -472,12 +474,6 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 ```
 - 运行命令 `. /etc/profile` 使profile立即生效(注意 . 和 / 之间有空格)
 - `java -version` 打印版本号
-
-### 安装maven
-
-### ftp服务器安装
-
-参考：[http://blog.aezo.cn/2019/03/19/arch/ftp/](/_posts/devops/ftp.md#FTP服务器)
 
 ### mysql安装
 
@@ -597,7 +593,7 @@ wget http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
 rpm -ivh mysql57-community-release-el7-8.noarch.rpm
 # 检查mysql源是否安装成功
 yum repolist enabled | grep "mysql.*-community.*"
-# 默认为按照mysql 8.0；安装mysql服务端和客户端(速度较慢)。`yum install mysql`仅仅安装了客户端
+# 默认为按照mysql 8.0 ?；安装mysql服务端和客户端(速度较慢)。`yum install mysql`仅仅安装了客户端
 yum -y install mysql-server
 # 修改配置文件
 vi /etc/my.ini
@@ -648,8 +644,8 @@ datadir=/home/data/mysql
 # socket=/home/data/mysql/mysql.sock
 socket=/var/lib/mysql/mysql.sock
 # pid文件，默认为 %datadir%/aezocn-1.pid
-#pid-file = /home/data/mysql/mysql.pid
-# 服务错误日志文件，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
+# pid-file = /home/data/mysql/mysql.pid
+# 服务错误日志文件(手动安装必须配置)，默认为 %datadir%/aezocn-1.err，其中aezocn-1为服务名
 log_error=/home/data/mysql/mysqld_error.log
 # 慢SQL日志
 slow_query_log_file=/home/data/mysql/slow.log
@@ -690,9 +686,25 @@ groupdel mysql
     - 报错`cd: /usr/local/mysql: No such file or directory`。建议检查是否修改了`/etc/init.d/mysqld`文件中的basedir和datadir。[^6]
     - 重新启动服务会报错`ERROR! The server quit without updating PID file .`。同上
 
-### 安装oracle客户端 [^4]
+### nginx安装
 
-- 下载`rpm`(地址：http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html，此地址为64位包下载)
+参考[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md) (nginx同理)
+
+### tomcat安装
+
+- `tar -zxvf apache-tomcat-7.0.61.tar.gz` 解压
+- `./opt/apache-tomcat-7.0.61/bin/startup.sh` 运行(需要先安装好JDK)
+- 访问http://192.168.6.133:8080/
+
+### 安装maven
+
+### ftp服务器安装
+
+参考：[http://blog.aezo.cn/2019/03/19/arch/ftp/](/_posts/devops/ftp.md#FTP服务器)
+
+### oracle客户端安装
+
+- 下载`rpm`(地址：http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html，此地址为64位包下载) [^4]
 - 如安装`oracle11.2.0.4客户端`，下载`oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm`和`oracle-instantclient11.2-sqlplus-11.2.0.4.0-1.x86_64.rpm`，并上传到服务器
 - 安装运行 `rpm -ivh oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm`、`rpm -ivh oracle-instantclient11.2-sqlplus-11.2.0.4.0-1.x86_64.rpm`
 - 环境变量配置`vi ~/.bash_profile`
@@ -708,16 +720,6 @@ groupdel mysql
     - 配置了环境变量仍然不生效，报错`bash: sqlplus: command not found`。解决办法创建符号链接：`ln -s $ORACLE_HOME/bin/sqlplus /usr/bin`
 - 配置TNS，在`/usr/lib/oracle/11.2/client64/network/admin/tnsnames.ora`中加入TNS配置(可能需要自行创建`network/admin/tnsnames.ora`的目录和文件)
     - `sqlplus smalle/smalle@my_dbtest`
-
-### tomcat安装
-
-- `tar -zxvf apache-tomcat-7.0.61.tar.gz` 解压
-- `./opt/apache-tomcat-7.0.61/bin/startup.sh` 运行(需要先安装好JDK)
-- 访问http://192.168.6.133:8080/
-
-### nginx安装
-
-参考[《nginx.md》(基于编译安装tengine)](/_posts/arch/nginx.md) (nginx同理)
 
 ### python3安装
 

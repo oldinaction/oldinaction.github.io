@@ -1022,8 +1022,8 @@ APP_JAR="app-0.0.1-SNAPSHOT.jar"
 SPRING_PROFILES="--spring.profiles.active=test"
 # SpringBoot分离Lib时需要，未分包则直接注释即可
 DLOADER_PATH="-Dloader.path=./lib"
-#执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号; 如果不是root账号，则下面的执行命令都需要加上sudo，否则执行命令的时候会提示输入密码
-RUNNING_USER=root
+#执行程序启动所使用的系统用户，考虑到安全，推荐不使用root帐号; 如果不是root账号，则执行命令`su -`命令时候会提示输入密码; 因此下文而是直接执行命令, 且运行此脚本时建议使用非root账号运行
+# RUNNING_USER=test
 # 内存溢出后dump文件存放位置，需要先创建此文件夹
 JVM_LOG_PATH="/home/"
 # 查找到此APP的grep字符串(基于APP_JAR的基础上继续查找，可用于多实例启动)
@@ -1076,11 +1076,12 @@ start() {
         echo -n "[info] Starting $APP_HOME/$APP_JAR ..."
         if [ $1 -eq 1 ]; then
           # nohup java -jar /home/test-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod > test-$(date +%Y_%m_%d).log 2>&1 &
-          JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
+          # JAVA_CMD="( cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 & )"
+          cd $APP_HOME && nohup $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS > /dev/null 2>&1 &
         else
-          JAVA_CMD="( cd $APP_HOME && $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS )"
+          cd $APP_HOME && $JAVA $VM_ARGS -jar $APP_JAR $JAR_ARGS
         fi
-        su - $RUNNING_USER -c "$JAVA_CMD"
+        # su - $RUNNING_USER -c "$JAVA_CMD"
         checkpid
         if [ $psid -ne 0 ]; then
             echo "[info] OK (pid=$psid)"
@@ -1100,7 +1101,8 @@ stop() {
         # echo -n 表示打印字符后，不换行
         echo -n "[info] Stopping $APP_HOME/$APP_JAR ...(pid=$psid) "
         # 使用kill -s 9 pid命令进行强制杀死进程
-        su - $RUNNING_USER -c "kill -s 9 $psid"
+        # su - $RUNNING_USER -c "kill -s 9 $psid"
+        kill -s 9 $psid
         # 执行kill命令行紧接其后，马上查看上一句命令的返回值: $? 。在shell编程中，"$?" 表示上一句命令或者一个函数的返回值
         if [ $? -eq 0 ]; then
             echo "[info] OK"
@@ -1205,22 +1207,40 @@ days=3
 date=`date +%Y_%m_%d`
 echo "Starting bakup..."
 for user in "${db_bak_users[@]}"; do
-  bakdata=$user"_"$date.dmp
-  baklog=$user"_"$date.log
-  bakfile=$user"_"$date.tar.gz
-  mkdir -p $bakdir/$user
-  echo "Bakup file path $bakdir/$user/$bakdata"
-  # 执行备份命令(用户模式)
-  exp $db_user/$db_pass@$db_sid grants=y owner=$user file=$bakdir/$user/$bakdata log=$bakdir/$user/$baklog
-  echo "Bakup completed, file: $bakdir/$user/$bakdata"
-  tar -zcvf $bakdir/$user/$bakfile $bakdir/$user/$bakdata $bakdir/$user/$baklog
-  # 删除备份文件和日志文件
-  find $bakdir/$user -type f -name "*.log" -exec rm {} \;
-  find $bakdir/$user -type f -name "*.dmp" -exec rm {} \;
-  # 删除n天前的备份
-  echo "Delete $bakdir/$user bakup before $days days..."
-  find $bakdir/$user -type f -name "*.tar.gz" -mtime +$days -exec rm -rf {} \;
-  echo "Backup completed $user"
+    bakdata=$user"_"$date.dmp
+    baklog=$user"_"$date.log
+    bakfile=$user"_"$date.tar.gz
+    mkdir -p $bakdir/$user
+    echo "Bakup file path $bakdir/$user/$bakdata"
+    # 执行备份命令(用户模式)
+    exp $db_user/$db_pass@$db_sid compress=y grants=y owner=$user file=$bakdir/$user/$bakdata log=$bakdir/$user/$baklog
+    echo "Bakup completed, file: $bakdir/$user/$bakdata"
+    tar -zcvf $bakdir/$user/$bakfile $bakdir/$user/$bakdata $bakdir/$user/$baklog
+    # 删除备份文件和日志文件
+    find $bakdir/$user -type f -name "*.dmp" -exec rm {} \;
+    find $bakdir/$user -type f -name "*.log" -exec rm {} \;
+    # 删除n天前的备份
+    echo "Delete $bakdir/$user bakup before $days days..."
+    find $bakdir/$user -type f -name "*.tar.gz" -mtime +$days -exec rm -rf {} \;
+    echo "Backup completed $user"
+
+    # 使用 ftp 命令进行文件上传
+    FTP_SERVER="ftp.example.com"
+    FTP_PORT="211"
+    FTP_USER="your_username"
+    FTP_PASS="your_password"
+    REMOTE_DIR="/temp/"
+    LOCAL_FILE1="$bakdir/$user/$bakfile"
+    LOCAL_FILE2="$bakdir/$user/$baklog"
+    ftp -n $FTP_SERVER $FTP_PORT << EOF
+user $FTP_USER $FTP_PASS
+binary
+cd $REMOTE_DIR
+put $LOCAL_FILE1 $bakfile
+put $LOCAL_FILE2 $baklog
+quit
+EOF
+
 done
 echo "Bakup completed all !!!"
 ```

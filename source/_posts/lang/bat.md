@@ -281,22 +281,63 @@ popd
 
 ```bat
 @echo off
+powershell -File "path\to\your_script.ps1"
+:: -ExecutionPolicy Bypass 完全跳过所有执行策略限制，不阻止任何脚本运行
 powershell -ExecutionPolicy Bypass -File "path\to\your_script.ps1"
 pause
 ```
 
 ### PowerShell脚本
 
+- [文档](https://learn.microsoft.com/zh-cn/powershell/)
+    - PowerShell(内置)模块: https://learn.microsoft.com/zh-cn/powershell/module/
+    - PowerShell(第三方)库: https://www.powershellgallery.com/
 - 简介
     - 脚本以`.ps1`结尾；设置脚本默认powershell打开(可找到执行程序`%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe`进行设置)
     - `PowerShell ISE` 是Windows自带的PS脚本编辑器
+    - 打开powershell命令行窗口，执行`$PSVersionTable.PSVersion.ToString()` 打印powershell版本
+- 编码问题
+    - ps1脚本编码最好是ANSI或者UTF-8-BOM格式，如果是UTF-8不带BOM的需要使用powershell 7+以上版本，否则脚本中的中文可能解析有问题
+    - 文件读写编码问题参考下文
 - test.ps1
 
 ```powershell
 # 单行注释用#表示，多行注释用<#……#>表示
 # 设置PowerShell窗口标题
 $Host.UI.RawUI.WindowTitle = "My Custom Title"
+
+# Write-Host参考 Cmdlet - Microsoft.PowerShell.Utility: https://learn.microsoft.com/zh-cn/powershell/module/microsoft.powershell.utility/write-host
+$name = "Test"
+Write-Host "直接输出到控制台, 支持格式化. $name"
+"直接表达式输出(隐式输出): $(Get-Date)" # 直接表达式输出(隐式输出): 05/26/2020 20:17:16
+
 java -jar test.jar
+```
+- 文件读写编码问题(防止UTF-8文件格式被改写)
+
+```powershell
+# -Recurse 递归处理所有XML文件
+Get-ChildItem -Path "D:\test\hot-deploy\" -File -Recurse -Filter "*.xml" | ForEach-Object {
+    # $_ 为 ForEach-Object 循环中的当前对象
+    $filePath = $_.FullName
+    # Get-Content/Set-Content 只能支持UTF-8带BOM格式；UTF-8无BOM格式可使用.NET的StreamWriter类
+    # $content = Get-Content -Path $filePath -Raw -Encoding UTF8
+    # Set-Content -Path $filePath -Value $newContent -Encoding UTF8 # pwsh 6+ 可使用 -Encoding utf8NoBOM
+	$content = [System.IO.File]::ReadAllText($filePath, [System.Text.Encoding]::UTF8)
+
+    # 使用正则表达式检查是否存在匹配项
+    if ($content -match "<secure>true</secure>") {
+        $newContent = $content -replace "<secure>true</secure>", "<secure>false</secure>"
+
+		# 仅在内容确实发生变化时写入文件
+        if ($newContent -ne $content) {
+            # [System.Text.UTF8Encoding]::new($false) # pwsh 5.1+
+            # New-Object System.Text.UTF8Encoding $false # 传统的New-Object模式
+			[System.IO.File]::WriteAllText($filePath, $newContent, (New-Object System.Text.UTF8Encoding $false))
+            Write-Host "已修改: $filePath" -ForegroundColor Green
+        }
+    }
+}
 ```
 
 ## 结合VBS
@@ -387,7 +428,7 @@ rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目�
 set MY_PROJECT_HOME=%~p0
 cd %MY_PROJECT_HOME%
 rem set JAVA_HOME=D:/software/jdk8
-"%JAVA_HOME%\bin\java" -DLog4j2.formatMsgNoLookups=true -jar my.jar
+"%JAVA_HOME%\bin\java" -Dfile.encoding=UTF-8 -jar my.jar --spring.profiles.active=test
 @pause
 ```
 - 停止进程(此脚本停止java等进程不是很友好，netstat查询出的端口可能很多)
@@ -709,28 +750,58 @@ set BACKUPDATE=%BACKUPDATE: =0%
 if not exist %BACKUP_DIR% mkdir %BACKUP_DIR%
 
 :: 备份
-exp %USER%/%PASSWORD%@%DATABASE% file=%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.dmp owner=(%BACK_USER%) log=%backup_dir%/backup_%BACK_USER%_%BACKUPDATE%.log compress=y grants=y
+exp %USER%/%PASSWORD%@%DATABASE% file=%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.dmp owner=(%BACK_USER%) log=%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.log compress=y grants=y
 "C:/software/7-Zip/7z.exe" a "%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.dmp.zip" "%BACKUP_DIR%/backup_%BACK_USER%_%BACKUPDATE%.dmp"
 del /F "%BACKUP_DIR%\backup_%BACK_USER%_%BACKUPDATE%.dmp"
 
-exp %USER%/%PASSWORD%@%DATABASE% file=%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.dmp owner=(%BACK_USER2%) log=%backup_dir%/backup_%BACK_USER2%_%BACKUPDATE%.log compress=y grants=y
+exp %USER%/%PASSWORD%@%DATABASE% file=%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.dmp owner=(%BACK_USER2%) log=%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.log compress=y grants=y
 "C:/software/7-Zip/7z.exe" a "%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.dmp.zip" "%BACKUP_DIR%/backup_%BACK_USER2%_%BACKUPDATE%.dmp"
 del /F "%BACKUP_DIR%\backup_%BACK_USER2%_%BACKUPDATE%.dmp"
 
 :: 删除超过7天的备份文件
-forfiles /p "%BACKUP_DIR%" /s /m *.dmp.zip /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\oracle_delete_backup_%date:~0,4%.log
-forfiles /p "%BACKUP_DIR%" /s /m backup_*.log /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %backup_dir%\oracle_delete_backup_%date:~0,4%.log
+forfiles /p "%BACKUP_DIR%" /s /m *.dmp.zip /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %BACKUP_DIR%\oracle_delete_backup_%date:~0,4%.log
+forfiles /p "%BACKUP_DIR%" /s /m backup_*.log /d -7 /c "cmd /c del @path && echo %BACKUPDATE% delete @file success!" > %BACKUP_DIR%\oracle_delete_backup_%date:~0,4%.log
 
-:: 备份到远程。需要提前将在远程 192.168.1.100 下将backup文件夹设置成共享(设置后如果在其他机器查询不到可先通过运行打开 \\192.168.1.100 进行刷新一下)
+:: 备份到远程(法1): 需要提前将在远程 192.168.1.100 下将backup文件夹设置成共享(设置后如果在其他机器查询不到可先通过运行打开 \\192.168.1.100 进行刷新一下)
 set daystr=%BACKUPDATE:~6,2%
 set /a num=%daystr%
 set /a num = num %% 3
 :: 注意分割符要使用\, echo f防止出现文件和目录的提示, /y存在文件则覆盖
 echo f | xcopy "%BACKUP_DIR%\backup_%BACK_USER%_%BACKUPDATE%.dmp.zip" "\\192.168.1.100\backup\oracle\backup_%BACK_USER%_%num%.dmp.zip" /s/y
-echo f | xcopy "%backup_dir%\backup_%BACK_USER%_%BACKUPDATE%.log" "\\192.168.1.100\backup\oracle\backup_%BACK_USER%_%num%.log" /s/y
-:: 通过账号密码连接远程共享文件夹进行传输
+echo f | xcopy "%BACKUP_DIR%\backup_%BACK_USER%_%BACKUPDATE%.log" "\\192.168.1.100\backup\oracle\backup_%BACK_USER%_%num%.log" /s/y
+
+:: 备份到远程(法2): 通过账号密码连接远程共享文件夹进行传输
 :: net use \\192.168.1.100\backup "MyPassword123" /user:"Administrator"
 :: echo f | xcopy "D:\backup\oracle\*.dmp.zip" "\\192.168.1.100\backup" /s/y
+
+:: 备份到远程(法3): 备份到FTP(需下载WinSCP)
+(
+echo option batch abort
+echo option confirm off
+echo open ftp://test:pass123@192.168.1.100:21
+echo put %BACKUP_DIR%\backup_%BACK_USER%_%BACKUPDATE%.dmp.zip /
+echo put %BACKUP_DIR%\backup_%BACK_USER%_%BACKUPDATE%.log /
+echo exit
+) | "C:\software\WinSCP\WinSCP.com" /command /log=%BACKUP_DIR%\winscp_%date:~0,4%.log
+
+
+@echo on
+```
+- 远程启动定时进行数据转移备份到其他目录
+
+```bat
+@echo off
+
+set SOURCE_DIR=D:\ftp-root\test\
+set TARGET_DIR=E:\backup\test\
+
+:: 将FTP目录文件转移到备份磁盘
+echo f | xcopy "%SOURCE_DIR%*" "%TARGET_DIR%" /s/y
+
+:: 删除FTP目录文件
+del /s /q "%SOURCE_DIR%*.*"
+:: 删除超过3天的备份文件
+forfiles /p %TARGET_DIR% /d -3 /c "cmd /c del /f /q /a @path && rd /s /q @path"
 
 @echo on
 ```

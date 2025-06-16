@@ -137,23 +137,49 @@ public class WebServiceConfig {
 
 ### 客户端
 
-- 生成客户端代码
-    - 进入目录`D:\java\apache-cxf-3.1.8\bin`
-    - 运行`wsdl2java -p cn.aezo.springboot.webservice.cxf.client.cxf -d D:\gitwork\springboot\webservice\src\main\java -encoding utf-8 -client http://localhost:8080/services/user?wsdl`
-    - cxf(wsdl2java) 和 jdk(wsimport)都可生成，且调用方式一致
+- 方式一: 生成客户端代码
+
+```bash
+## cxf(wsdl2java) 和 jdk(wsimport)都可生成，且调用方式一致
+# jdk: -p指定包名
+wsimport -s . -p com.example.service http://example.com/service?wsdl
+
+# cxf
+cd D:\java\apache-cxf-3.1.8\bin
+wsdl2java -p cn.aezo.springboot.webservice.cxf.client.cxf -d D:\gitwork\springboot\webservice\src\main\java -encoding utf-8 -client http://localhost:8080/services/user?wsdl
+```
 - 调用
 
 ```java
-cn.aezo.springboot.webservice.cxf.client.cxf.UserServiceWeb ss =
-        // new cn.aezo.springboot.webservice.cxf.client.cxf.UserServiceWeb(); // 此时也可以调用成功
-        new cn.aezo.springboot.webservice.cxf.client.cxf.UserServiceWeb(
-            new URL("http://localhost:8080/services/user?wsdl"), // wsdlURL
-            new QName("http://service.cxf.webservice.springboot.aezo.cn/", "UserServiceWeb") // SERVICE_NAME
-        );
-cn.aezo.springboot.webservice.cxf.client.cxf.UserService port = ss.getUserServiceImplPort();
+// 注意: 如基于wsimport生成类进行调用时，实际请求的服务地址是根据wsdl的地址读取xml文件的地址，因此对于有代理或白名单的场景需要自定义服务端点地址(不读取wsdl中的原地址)
+// cn.aezo.springboot.webservice.cxf.client.cxf
+// 创建服务客户端
+    // new UserServiceWeb(
+    //     new URL("http://localhost:8080/services/user?wsdl"), // wsdlURL
+    //     new QName("http://service.cxf.webservice.springboot.aezo.cn/", "UserServiceWeb") // SERVICE_NAME
+    // );
+UserServiceWeb service = new UserServiceWeb();
+UserService port = service.getUserServiceImplPort();
+
+// 调用 Web 服务方法
 String username = port.getName("1");
 System.out.println("====================>username = " + username); // id-1
 ```
+- 方式二: 直接调用
+
+```java
+Service service = new Service(); // org.apache.axis.client.Service
+Call call = (Call) service.createCall();
+call.setTargetEndpointAddress("http://localhost:8080/services/user"); // 不需要?wsdl
+AxisProperties.setProperty("axis.socketSecureFactory", "org.apache.axis.components.net.SunFakeTrustSocketFactory");// 跳过https证书校验
+call.setOperationName("UserServiceWeb2");// WSDL里面描述的接口名称
+call.addParameter("username", org.apache.axis.encoding.XMLType.XSD_DATE, javax.xml.rpc.ParameterMode.IN);// 接口的参数
+call.addParameter("password", org.apache.axis.encoding.XMLType.XSD_DATE, javax.xml.rpc.ParameterMode.IN);// 接口的参数
+call.setReturnType(org.apache.axis.encoding.XMLType.XSD_STRING);// 设置返回类型
+call.setUseSOAPAction(true);
+Object ret = call.invoke(new Object[] { eirbarcode, eirepEirId });
+```
+
 
 ## OFBiz使用webservice
 

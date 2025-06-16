@@ -357,6 +357,8 @@ mvn wrapper:wrapper -Dmaven=3.6.3
 
 ## maven实战
 
+- 设置.m2路径位置: 修改settings.xml文件，增加`<localRepository>D:/data/.m2/repository</localRepository>`
+
 ### maven镜像修改
 
 - 在~/.m2目录下的settings.xml文件中，（如果该文件不存在，则需要从maven/conf目录下拷贝一份），找到`<mirrors>`标签，添加如下子标签(windows/linux均可)

@@ -27,7 +27,7 @@ source /etc/profile
 node -v
 
 # 安装v10
-wget https://npm.taobao.org/mirrors/node/v10.23.0/node-v10.23.0-linux-x64.tar.gz
+wget https://npmmirror.com/mirrors/node/v10.23.0/node-v10.23.0-linux-x64.tar.gz
 tar -zxvf node-v10.23.0-linux-x64.tar.gz -C /opt
 ln -s /opt/node-v10.23.0-linux-x64/bin/node /usr/local/bin/
 ln -s /opt/node-v10.23.0-linux-x64/bin/npm /usr/local/bin/

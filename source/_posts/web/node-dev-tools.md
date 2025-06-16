@@ -12,11 +12,11 @@ tags: [node, tools]
 
 ```bash
 # 设置镜像
-npm config set registry https://registry.npm.taobao.org/
+npm config set registry https://registry.npmmirror.com/
 # electron-mirror、node-sass等组件需要单独设置镜像
-npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+npm i -g mirror-config-china --registry=https://registry.npmmirror.com
 # mac下安装报无权限解决方法
-# sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npm.taobao.org
+# sudo npm install --unsafe-perm=true --allow-root -g mirror-config-china --registry=https://registry.npmmirror.com
 ```
 
 ## nvm Node版本管理工具
@@ -36,21 +36,22 @@ npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
 - 使用
 
 ```bash
+export NVM_NODEJS_ORG_MIRROR=https://npmmirror.com/mirrors/node
 # 查看可用LTS node版本
 nvm ls-remote --lts
 # 安装指定版本Node：nvm install <version> [arch]
-nvm install 16.20.0
+nvm install 16.20.2
 # 查看本地安装的Node版本，*号代表当前使用版本
 # MAC M1 安装失败，需要切换成x86模式才能安装成功，参考[mac.md#M1模拟x86环境](/_posts/linux/mac.md#M1模拟x86环境)
 nvm ls
 # 使用某个Node版本。切换不同版本之后，之前版本安装的全局包不会丢失(存放在nvm安装目录对应的node版本文件夹下)，但是也不能再当前版本中使用
-nvm use v16.20.0
+nvm use v16.20.2
 # 设置系统默认版本
-nvm alias default v16.20.0
+nvm alias default v16.20.2
 
 ## 常用版本
 # vue2使用 lts/dubnium -> v10.24.1 (npm v6.14.12)
-# vue3使用 lts/gallium -> v16.20.0 (npm v8.19.4)
+# vue3使用 lts/gallium -> v16.20.2 (npm v8.19.4)
 ```
 - 基于目录自动切换node版本
     - 使用avn工具: https://segmentfault.com/a/1190000040908989
@@ -71,21 +72,21 @@ nvm alias default v16.20.0
 ```bash
 # 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载。具体[参考下文mirror-config-china](#mirror-config-china)
 npm get registry # 查看镜像
-npm config set registry https://registry.npm.taobao.org/ # 设置为淘宝镜像
+npm config set registry https://registry.npmmirror.com/ # 设置为淘宝镜像
 npm config set registry https://registry.npmjs.org/ # 设置为官方镜像
 npm config list # 查看配置
 
 # 查看全局npm包未知
 npm root -g
 ```
-- 或者安装[cnpm](http://npm.taobao.org/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npm.taobao.org`
+- 或者安装[cnpm](http://npmmirror.com/)镜像(淘宝镜像下载较快)：`npm install -g cnpm --registry=https://registry.npmmirror.com`
     - `cnpm install <pkg>` 安装模块
 
 ### .npmrc文件
 
 - `.npmrc` 可以理解成npm running cnfiguration，即npm运行时配置文件
 - .npmrc 配置文件的优先级
-    - 临时配置(如`npm --registry=https://registry.npm.taobao.org [npm命令]`)
+    - 临时配置(如`npm --registry=https://registry.npmmirror.com [npm命令]`)
     - 项目配置文件: /project/.npmrc
     - 用户配置文件: ~/.npmrc (可通过`npm config get userconfig`获取)
     - 全局配置文件: $PREFIX/etc/npmrc (可通过`npm config get prefix`获取全局文件路径)
@@ -94,7 +95,7 @@ npm root -g
 
 ```bash
 # 以@test开头的包从 registry=https://npm.xx.com 这里下载，其余全去淘宝镜像下载
-registry=https://registry.npm.taobao.org
+registry=https://registry.npmmirror.com
 @test:registry=https://npm.xx.com
 # 设置 SASS 镜像源，效果与 SASS_BINARY_SITE=https://registry.npmmirror.com/-/binary/node-sass npm install node-sass 相同
 sass_binary_site=https://registry.npmmirror.com/-/binary/node-sass
@@ -108,11 +109,13 @@ _auth=${CORP_NEXUS_NPM_PASSWORD}
 
 ```bash
 # 增加或删除某个配置
-npm config set registry https://registry.npm.taobao.org
+# npm config set registry https://registry.npmmirror.com
+npm config set registry https://registry.npmmirror.com
 npm config delete registry
 
 # 设置全局配置文件
-npm config set registry https://registry.npm.taobao.org -g
+# npm config set registry https://registry.npmmirror.com -g
+npm config set registry https://registry.npmmirror.com -g
 ```
 
 ### 查看包/安装包/启动项目
@@ -188,7 +191,7 @@ npm uninstall -g <pkg>
 npm init
 # 基于`package.json`安装依赖
 npm install
-# npm install --registry=https://registry.npm.taobao.org
+# npm install --registry=https://registry.npmmirror.com
 # npm --registry=https://registry.npmjs.org install @aezocn/report-table@1.0.5-release.1 -S
 # cnpm install
 
@@ -269,6 +272,7 @@ npm version minor # v4.1.0
 ### 其他特性
 
 - npm link 本地库文件关联
+    - 参考[vue.md#打包与导入](/_posts/web/vue.md#打包与导入)
     - 其他如npm link引用本地模块的方法参考：https://blog.csdn.net/zhangxin09/article/details/119344515
 
 ```bash
@@ -414,12 +418,12 @@ rm -rf node_modules/mymod npm install
 - 类似于`npm`，基于`package.json`进行包管理
 - 设置镜像
     
-    ```bash
-    yarn get registry # 查看镜像
-    yarn config set registry https://registry.npm.taobao.org/ # 设置为淘宝镜像
-    yarn config set registry https://registry.npmjs.org/ # 设置为官方镜像
-    yarn config list # 查看配置
-    ```
+```bash
+yarn config get registry # 查看镜像
+yarn config set registry https://registry.npmmirror.com/ # 设置为淘宝镜像
+# yarn config set registry https://registry.npmjs.org/ # 设置为官方镜像
+yarn config list # 查看配置
+```
 - 使用
 
 ```bash
@@ -448,7 +452,7 @@ yarn upgrade [package]@[tag]
 yarn remove [package]
 
 # 安装项目的全部依赖
-yarn 或 yarn install
+yarn # 或 yarn install
 
 # 运行package.json里面的脚本
 yarn run dev
@@ -487,7 +491,7 @@ pnpm-workspace.yaml
 - 设置npm镜像为taobao镜像
 
     ```bash
-    npm set registry https://registry.npm.taobao.org/
+    npm set registry https://registry.npmmirror.com/
     npm config ls # 查看配置
     ```
 - nrm使用
@@ -506,14 +510,18 @@ nrm test npm # 测试源
 ## mirror-config-china
 
 - 大部分组件通过npm设置为淘宝镜像即可加速，但是像electron-mirror、node-sass等组件需要额外设置镜像地址配置到`~/.npmrc`才能成功下载，此插件将常用组件的镜像地址全部加入到了上述文件夹
+- 250214貌似有问题: 生成的仍然是npm.taobao.org域名(目前已经改成了npmmirror.com)
 
 ```bash
 # https://www.npmjs.com/package/mirror-config-china
 # 安装
-npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
+npm i -g mirror-config-china --registry=https://registry.npmmirror.com
 # 检查是否安装成功。会往用户配置文件(~/.npmrc)中写入electron-mirror、node-sass等组件的镜像源为淘宝镜像
 npm config list
 # 之后使用 npm install 安装即可
+
+# 为项目生成(镜像)配置文件(写入到.npmrc中)
+mirror-config-china --registry=https://registry.npmmirror.com
 ```
 
 ## npx Node包执行工具
@@ -641,9 +649,10 @@ lerna exec -- <command> [..args]
         - `babel-runtime` 可以按照需求引入。缺点：覆盖不全。一般在写库的时候使用。建议不要直接使用babel-runtime，因为transform-runtime依赖babel-runtime，大部分情况下都可以用`transform-runtime`预设来达成目的
 - [core-js](https://github.com/zloirock/core-js) 是 babel-polyfill、babel-runtime 的核心包，他们都只是对 core-js 和 regenerator 进行的封装。core-js 通过各种奇技淫巧，用 ES3 实现了大部分的 ES2017 原生标准库，同时还要严格遵循规范。支持IE6+
     - core-js 组织结构非常清晰，高度的模块化。比如 `core-js/es6` 里包含了 es6 里所有的特性。而如果只想实现 promise 可以单独引入 `core-js/features/promise`
-- babel配置文件可为 `.babelrc` 或 `babel.config.js`(v7.8.0)。以`babel.config.js`为例
+- babel配置文件可为 `.babelrc` 或 `babel.config.js`(v7.8.0)
 
     ```js
+    // babel.config.js
     module.exports = {
         presets: ['@vue/cli-plugin-babel/preset'],
         plugins: [
@@ -654,6 +663,14 @@ lerna exec -- <command> [..args]
             // 基于vue的预设
             // "@vue/app",
         ]
+    }
+
+    // .babelrc
+    {
+        "presets": [
+            "@vue/app"
+        ],
+        "ignore": ["**/report-table.umd.min.js"]
     }
     ```
 - `@babel/cli` 在命令行中使用babel命令对js文件进行转换。如`babel entry.js --out-file out.js`进行语法转换
@@ -701,6 +718,13 @@ npm install --save @babel/polyfill
 - [rollupjs](https://cn.rollupjs.org/)
 
 ### Vite
+
+- Vite 与 Next.js
+    - Vite 是构建工具，Next.js 是应用框架。Vite 可以作为 Next.js 的构建工具，提供更快的开发体验。不过目前 Next.js 默认使用的是 Webpack 进行构建，但也有社区插件支持使用 Vite
+    - Next.js基于React框架
+- React 与 Vue: 它们都是用于构建用户界面的框架，但设计理念和语法有所不同
+- Vite 与 React、Vue
+    - Vite 可以与 React 和 Vue 很好地集成，为它们提供快速的开发环境。Vite 官方提供了针对 React 和 Vue 的模板，方便开发者快速搭建项目
 
 ### patch-package手动npm包打补丁
 
@@ -762,29 +786,37 @@ module.exports = {
   root: true,
   extends: ['plugin:vue/essential', '@vue/standard'],
   rules: {
-    // allow async-await
-    'generator-star-spacing': 'off',
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'vue/no-parsing-error': [2, {
-      'x-invalid-end-tag': false
-    }],
-    // v-if和v-for可一起使用
-    'vue/no-use-v-if-with-v-for': 'off',
     'no-undef': 'off',
     'camelcase': 'off',
-    // function函数名和()见增加空格
+    // 允许未使用的变量
+    'no-unused-vars': 'off',
+    // 不强制使用 ===
+    'eqeqeq': 'off',
+    // 'eqeqeq': ['error', 'smart'],
+    // 允许对象中出现结尾逗号(默认不允许)
+    "comma-dangle": 'off',
+    // function函数名和()间必须增加空格
     // 'space-before-function-paren': ['error', {
     //     'anonymous': 'always',
     //     'named': 'always',
     //     'asyncArrow': 'always'
     // }],
-    // 如果function函数名和()见增加空格会和Prettier冲突
+    // 如果function函数名和()间增加空格会和Prettier冲突, 此处关闭空格校验
     'space-before-function-paren': 0,
-    // 不强制使用 ===
-    'eqeqeq': ['error', 'smart'],
     // A && B换行时，符号在行头。https://eslint.org/docs/rules/operator-linebreak
     'operator-linebreak': ['error', 'before'],
+    // allow async-await
+    'generator-star-spacing': 'off',
+
+    // 允许未使用的变量
+    'vue/no-unused-vars': 'off',
+    // v-if和v-for可一起使用
+    'vue/no-use-v-if-with-v-for': 'off',
+    'vue/no-parsing-error': [2, {
+      'x-invalid-end-tag': false
+    }],
   },
   parserOptions: {
     parser: 'babel-eslint'
@@ -802,6 +834,7 @@ module.exports = {
 /test/unit/coverage/
 /node_modules/*
 /dist*
+**/report-table.umd.min.js
 
 src/components
 ```
@@ -884,6 +917,49 @@ trim_trailing_whitespace = false
 
 [Makefile]
 indent_style = tab
+```
+
+## 前端常见文件
+
+```json
+babel.config.js     // 参考[js-tools.md#babel](/_posts/web/js-tools.md#babel)
+.babelrc
+.env.dev            // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)。vue-cli环境变量配置文件
+.env.test
+.postcssrc.js
+tsconfig.json       // 参考[typescript.md#tsconfig.json](/_posts/web/typescript.md#tsconfig.json)
+jsconfig.json       // 解决vue文件点击后跳转(TS项目可使用tsconfig.json). https://www.cnblogs.com/leslie1943/p/13493829.html
+vue.config.js       // 参考[vue.md#vue-cli](/_posts/web/vue.md#vue-cli)
+.eslintrc.js        // 参考[js-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
+.eslintignore       // 参考[js-tools.md#eslint格式化](/_posts/web/node-dev-tools.md#eslint格式化)
+.editorconfig       // 跨编辑器和IDE，保持一致的简单代码风格，就近原则（源码文件参考最近的此文件配置）。参考[js-tools.md#.editorconfig格式化](/_posts/web/node-dev-tools.md#.prettierrc/.jsbeautifyrc/.editorconfig格式化)，下同
+.prettierrc         // 代码格式化，同上
+.jsbeautifyrc       // 代码格式化，同上
+```
+
+### jsconfig.json文件跳转配置
+
+- 使用WebStorm完美解决所有问题
+- 解决vscode下vue文件点击后跳转(TS项目可使用tsconfig.json)
+    - 部分写法仍然不能跳转，如`./module/Demo` 此时可安装`别名路径跳转`插件解决
+    - 而`@views/test/Test`仍然不支持，可写成`@/views/test/Test`或`@views/test/Test.vue`
+    - 但是`@comp/mod/Dmoe`则不支持(@comp对应src/components)
+        - 需改写成@/comp，且vue.config.js和jsconfig.json里面都设置好`@/comp`对应`src/components` 貌似有点问题
+        - `@comp/mod/Dmoe.vue` 可配置jsconfig属性`"@comp/*": ["src/components/*"]`进行跳转
+    - 文件必须带.vue后缀(如`import Demo from './module/Demo.vue'`)，html标签和import变量才能直接进入组件，否则只能点击from后面的链接进入组件
+
+```js
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      // "@/comp/*": ["src/components/*"],
+    }
+  },
+  "exclude": ["node_modules", "dist"],
+  "include": ["src/**/*"]
+}
 ```
 
 ## 在线工具

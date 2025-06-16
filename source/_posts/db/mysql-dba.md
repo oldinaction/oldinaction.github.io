@@ -183,7 +183,10 @@ order by data_length desc, index_length desc;
 
 ```sql
 -- ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引
-alter table d_user add index idx_name (name); -- 默认NORMAL BTREE
+-- alter table d_user add index idx_name (name); -- 默认NORMAL BTREE
+-- 在线添加索引. 在线DDL: algorithm=inplace, lock=none 表示直接在原表上面执行DDL, 并且不加锁
+    -- 300W耗时80s
+alter table d_user add index idx_name (name, age), algorithm=inplace, lock=none;
 alter table d_user add unique (card_no);
 alter table d_user add primary key (id);
 
@@ -249,7 +252,8 @@ show processlist; # 查看是否有执行慢的sql
 # trx_mysql_thread_id 事务线程 ID
 # trx_tables_locked 当前执行 SQL 的行锁数量
 # trx_rows_modified 已经影响的行数
-select * from information_schema.innodb_trx; # 查看当前运行的所有事务，应该会发现有一个事物开始时间很早，但是一直存在此表中（因为还未提交）
+select * from information_schema.innodb_trx; # 事物信息.查看当前运行的所有事务，应该会发现有一个事物开始时间很早，但是一直存在此表中（因为还未提交）
+select * from information_schema.innodb_locks; # 锁表信息
 kill <trx_mysql_thread_id> # 可临时杀掉卡死的这个事物线程，从而释放锁
 
 show variables like 'innodb_lock_wait_timeout'; # 查看锁等待超时时间（默认为50s）
@@ -266,6 +270,15 @@ set global innodb_lock_wait_timeout=100; # 设置超时时间（global的修改�
 - 降低死锁
     - 选择合理的事务大小，小事务发生锁冲突的概率一般也更小
     - 在不同线程中去访问一组DB的数据表时，尽量约定以相同的顺序进行访问；对于同一个单表而言，尽可能以固定的顺序存取表中的行
+
+### 在线添加字段
+
+- 参考: https://www.jb51.net/database/314343aj7.htm
+
+```sql
+-- 在线DDL: algorithm=inplace, lock=default 表示直接在原表上面执行DDL, 并且使用默认的锁机制
+alter table test add col int, algorithm=inplace, lock=default;
+```
 
 ### 其他
 
@@ -334,6 +347,7 @@ table_definition_cache = 100
 table_open_cache = 100
 # 5.5新增参数(性能优化引擎)，5.6以后默认是开启的; 这个功能在 cpu 资源比较充足的情况下，是可以考虑开启
 performance_schema = off
+# 该参数指定来缓冲数据和索引的内存大小，默认值 128MB，最大可以设置为物理内存的 80%
 innodb_buffer_pool_size = 2M
 ```
 

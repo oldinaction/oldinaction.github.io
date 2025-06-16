@@ -21,6 +21,9 @@ http://www.codebaoku.com/jdk/jdk-index.html
 # 将当前目录下所有目录/文件及子目录打包成jar
 jar cvf demo.jar *
 jar cvf demo.war *
+
+## 修改jar中的class文件
+# 先解压缩 - 目录如(cn、META-INF) - 替换class文件 - 重新压缩 - 选中(cn、META-INF)所有文件进行压缩 - 修改后缀为.jar(尽管包含.DS_Store等文件也无所谓) 
 ```
 
 ## 运算/控制语句

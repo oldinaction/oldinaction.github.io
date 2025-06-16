@@ -241,10 +241,10 @@ mybatis:
     ```
 - `System.getproperty("java.io.tmpdir")`可获取操作系统缓存的临时目录。不同操作系统的缓存临时目录不一样，Linux：`/tmp`，Windows如：`C:\Users\smalle\AppData\Local\Temp\`
 
-### 随应用启动而运行
+### 随应用启动和停止
 
-- 实现`CommandLineRunner`接口
-- 读取resources目录下配置文件
+- 随应用启动运行方法: 实现`CommandLineRunner`接口
+    - 读取resources目录下配置文件
 
 	```java
 	@Component
@@ -275,6 +275,9 @@ mybatis:
 		}
 	}
 	```
+- 随应用停止运行方法
+    - 实现`DisposableBean`接口
+    - 使用 `@PreDestroy` 注解
 
 ### 拦截器
 
@@ -478,8 +481,9 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
 
 ### 请求参数字段映射
 
+- [HTTP请求协议及参数接收](/_posts/java/java-http.md#请求协议)
 - 注意点
-    - 原理参考：[spring-mvc-src.md#MVC请求参数解析](/_posts/java/spring-mvc-src.md#MVC请求参数解析)
+    - 原理参考：[spring-mvc-src.md#MVC请求参数解析](/_posts/java/java-src/spring-mvc-src.md#MVC请求参数解析)
     - **LocalDateTime 等类型日期时间格式转换** [^19] [^20]
         - Controller 接受参数加注解如 `@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date`。不适合参数通过 @RequestBody 修饰
         - Bean字段增加注解`@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。适用于 @RequestBody 接收(如 application/json 请求类型)；且适用于@RequestParam、直接通过Bean类型接收等方式(如 multipart/form-data 请求类型)
@@ -935,10 +939,34 @@ str3: "hello wor\
    }
 	```
 
-### 数据库连接池(Druid)
+### 数据库连接池
+
+- 数据库连接池技术有：DBCP、tomcat-jdbc、C3P0、HikariCP、Druid等
+
+#### Tomcat-JDBC
+
+- SpringBoot 1.x默认使用Tomcat JDBC
+    - `spring-boot-starter-jdbc` 中会引入`tomcat-jdbc`依赖
+- 配置
+
+```bash
+spring.datasource.tomcat.initial-size=5 # 默认10
+spring.datasource.tomcat.min-idle=5 # 默认10
+spring.datasource.tomcat.max-active=100 # 默认10
+spring.datasource.tomcat.max-wait=60000 # 默认30000
+spring.datasource.tomcat.validationQuery="SELECT 1 FROM DUAL"
+```
+- 参考`org.apache.tomcat.jdbc.pool.ConnectionPool`
+    - borrowConnection 获取连接
+
+#### HikariCP
+
+- SpringBoot 2.x默认使用HikariCP
+
+#### Druid
 
 - [Druid](https://github.com/alibaba/druid)
-- 使用参考：https://programtip.com/zh/art-70468
+- 使用参考：https://blog.csdn.net/weixin_43724911/article/details/147566522
 - 依赖
 
     ```xml
@@ -959,19 +987,59 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: oracle.jdbc.driver.OracleDriver
-    # 初始化连接数
-    nitialSize: 5
-    # 最小连接数
-    minIdle: 5
-    # 最大有效连接数
-    maxActive: 20
-    # 获取连接时最大等待时间，单位毫秒
-    maxWait: 60000
-    # 创建连接时的socket最大读超时，单位是毫秒，默认0表示永远等待(之前默认是10s)，配置成10000则表示db操作如果在10秒内未返回应答，将抛出异常
-    socketTimeout: 300000
-    # 用于校验连接情况，防止出现Connection reset异常
-    validationQuery: SELECT 1 FROM DUAL
+    # 也可以写在 spring.datasource.druid 节点下
+    url:
+    username:
+    password:
     druid:
+        # 初始化连接大小. 默认0
+        initialSize: 5
+        # 最小空闲连接数. 默认0
+        minIdle: 5
+        # 最大连接数. 默认8
+        maxActive: 20
+        # 获取连接时最大等待时间，单位毫秒. 超时后报错, 默认-1表示一直等待
+        maxWait: 60000
+        # 用于校验连接情况，防止出现Connection reset异常
+        validationQuery: SELECT 1 FROM DUAL
+
+        # ------------------------
+        # v1.2.23 增加keepAlive机制，应用层实现连接保活
+        # 连接池中的minIdle数量以内的连接，空闲时间超过minEvictableIdleTimeMillis，则会执行keepAlive操作。实际项目中建议配置成true (默认false)
+        keepAlive: true
+        # 默认 120000
+        # keepAliveBetweenTimeMillis: 120000
+
+        # 每timeBetweenEvictionRunsMillis毫秒(默认60000)检查一次连接池中空闲的连接，把空闲时间超过minEvictableIdleTimeMillis毫秒的连接断开，直到连接池中的连接数到minIdle为止
+        # timeBetweenEvictionRunsMillis: 60000
+        # 连接保持空闲而不被驱逐的最小时间，默认 1800000ms
+        minEvictableIdleTimeMillis: 300000
+
+        # 是否回收泄露的连接，默认false不开启。建议只在测试环境设置未开启，利用测试环境发现业务代码中未正常关闭连接的情况
+        removeAbandoned: true
+        # 开启回收泄露连接的最大超时，默认300秒，表示连接被借出超过5分钟后，且removeAbandoned开启的情况下，强制关闭该泄露连接
+        # removeAbandonedTimeoutMillis: 300000
+
+        # 创建连接时的socket连接最大等待超时，单位是毫秒，默认0表示永远等待
+        connectTimeout: 60000
+        # 创建连接时的socket最大读超时，单位是毫秒，默认0表示永远等待(如果是0则代码中会默认改成10s)，实际默认为10000表示db操作如果在10秒内未返回应答，将抛出异常如: The last packet successfully received from the server was 10,072 milliseconds ago. The last packet sent successfully to the server was 10,077 milliseconds ago.
+        # 只配置socketTimeout不配置connectTimeout(或为0)则无效(即需要同时配置)，配置了druid的connectTimeout和socketTimeout会覆盖如mysql的url中的connectTimeout和socketTimeout参数(url中也需要同时配置)
+        # 
+        socketTimeout: 300000
+
+        # 获取连接时检测(默认false). 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能，其实一般情况下都可以开启，只有性能要求极其高且连接使用很频繁的情况下才有必要禁用
+        testOnBorrow: true
+        # 连接放回连接池时检测(默认false). 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能，这个一般不需要开启
+        # testOnReturn: false
+        # 空闲时检测(默认true). 申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。建议配置为true，不影响性能，并且保证安全性
+        # testWhileIdle: true
+
+        # 是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。**在mysql下建议关闭**
+        poolPreparedStatements: false
+        # 要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发修改为true. 默认值10
+        maxOpenPreparedStatements: 20
+        # ------------------------
+
       # 开启web端监控
       web-stat-filter:
         enabled: true
@@ -2024,6 +2092,48 @@ mailSender.send(mimeMessage);
 - 修改maven配置重新打包(没有lib目录)
 
 ```xml
+<!-- 案例1 -->
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <configuration>
+        <mainClass>org.jeecg.JeecgSystemApplication</mainClass>
+        <layout>ZIP</layout>
+        <executable>true</executable>
+        <includeSystemScope>true</includeSystemScope>
+        <jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>
+        <!-- 可将需要打包的依赖添加进去，之后每次会把此依赖打包到jar中(如果无需则指定nothing即可)；必须要此节点，否则默认会包含全部-->
+        <includes>
+            <!-- 多模块的，可将子模块添加进来；并且从启动前从lib中移除掉 -->
+            <include>
+                <groupId>nothing</groupId>
+                <artifactId>nothing</artifactId>
+            </include>
+        </includes>
+    </configuration>
+</plugin>
+<!-- 可选, 将依赖单独打包到lib目录 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>copy</id>
+            <phase>package</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+                <outputDirectory>
+                    ${project.build.directory}/lib
+                </outputDirectory>
+                <excludeScope>provided</excludeScope>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+<!-- 案例2 -->
 <plugin>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -2148,7 +2258,7 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 ## 常见错误
 
 - `nested exception is java.lang.IllegalArgumentException: Could not resolve placeholder 'crm.tempFolder' in value "${crm.tempFolder}"`
-	- 原因分析：一般由于存在多个`application`配置文件，然后并没有指定。则使用默认配置，运行时出现`No active profile set, falling back to default profiles: default`，从而缺少部分配置。实践时发现application.properties中已经配置了`spring.profiles.active=dev`，再idea中通过main方法启动时不报错，但是通过maven打包是测试不通过
+	- 原因分析：一般由于存在多个`application`配置文件，然后并没有指定。则使用默认配置，运行时出现`No active profile set, falling back to default profiles: default`，从而缺少部分配置。实践时发现application.properties中已经配置了`spring.profiles.active=dev`，在idea中通过main方法启动时不报错，但是通过maven打包时测试不通过
 	- 解决办法参考
 		- [《maven.md#结合springboot》](/_posts/arch/maven.md#结合springboot)。实际中主要是没有将`src/main/resources`目录添加到maven的resource中
 		- 或者在每种环境配置文件中都定义`crm.tempFolder`参数值

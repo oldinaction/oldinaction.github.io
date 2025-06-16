@@ -417,12 +417,12 @@ mybatis.config-location=classpath:mybatis-config.xml
                 <if test='${field} != null and ${field} != ""'>
                     and remark = #{${field}}
                 </if>
-                
-                <!-- 零散片段. 此处在test语句中使用OGNL表达式`params.${item}`会报错，只能通过get方法动态获取属性值 -->
+
+                <!-- 零散片段(伪代码: 此环境没有params). 此处在test语句中使用OGNL表达式`params.${item}`会报错，只能通过get方法动态获取属性值 -->
                 <if test="params.get(item) != null">
                     and ${item} = #{params.${item}}
                 </if>
-
+                
                 <if test='strList != null and strList.size() > 0 and strList.contains("ban")'>
                     AND 'ban' = 'ban'
                 </if>
@@ -482,6 +482,7 @@ mybatis.config-location=classpath:mybatis-config.xml
                                 #{val}
                             </foreach>
                         </when>
+                        <when test="条件2">SQL片段2</when>
                         <otherwise>
                             <!-- 此处不能写成 #{itemVal} 否则如何后面有值为null的时候就会把前面的字段全部覆盖成null -->
                             #{params.${item}}
@@ -583,12 +584,12 @@ mybatis.config-location=classpath:mybatis-config.xml
 
 	<!--此处Classes类中仍然需要保存一个Teacher teacher的引用和一个List<Student> students的引用-->
     <resultMap type="cn.aezo.demo.Classes" id="ClassResultMap">
-		<!--一个 ID 结果;标记结果作为 ID 可以帮助提高整体效能。association、collection中都最好加上 -->
         <id property="id" column="c_id"/>
 		<!--注入到字段或 JavaBean 属性的普通结果-->
         <result property="name" column="c_name"/>
+        <result property="sex" column="sex"/>
 		<!-- 
-		association字面意思关联，这里只专门做一对一关联； 
+		association 字面意思关联，这里只专门做一对一关联
 			1.property表示是cn.aezo.demo.Classes中的属性(setter)名称； 
 			2.javaType表示该属性是什么类型对象 
 			3.columnPrefix="out_/in_" 字段前缀。如查询主表(Ycross_Storage)中关联某一张表(如Ycross_In_Out_Regist)关联了两次，但是表Ycross_In_Out_Regist的映射只有一个(property和column的对应关系只有一套)。可以再取出Ycross_In_Out_Regist中的字段的时候通过`as out_xxx`对某字段进行别名处理。此时映射的时候会将字段的名称去掉columnPrefix前缀去找对应的property
@@ -600,6 +601,7 @@ mybatis.config-location=classpath:mybatis-config.xml
             <result property="name" column="t_name"/>
         </association>
         <!-- 
+        collection 这里只专门做一对多关联
 			1.ofType指定students集合中的对象类型。这样查询出来的集合条数和数据出来的一致(子表导致主表查询的条数增多) 
 			2.javaType="ArrayList"可以省略
 		-->
@@ -609,16 +611,17 @@ mybatis.config-location=classpath:mybatis-config.xml
         </collection>
 
 		<!-- 
-		此时返回的集合是主表的条数，然后基于每一条再重新查询数据获取子表数据并放入到Classes对象的students中。
+		方案二(注意第4条)：此时返回的集合是主表的条数，然后基于每一条再重新查询数据获取子表数据并放入到Classes对象的students中。
 			1.select指查询Student的接口. 如果为当前mapper文件则可省略命名空间(namespace)直接写成 getStudent。(select和column只有在嵌套查询的时候才用得到)
 			2.column是传入到getStudent查询中的参数，id是传入参数名称，s_id获取获取字段值的字段名(就是先从主表查询的结果中获取s_id字段的值，传入到id中，发起getStudent子查询)。如果一个参数也可以直接写成column="s_id" (getStudent的接口中也声明接受一个此类型的参数即可)
 			3.columnPrefix="xx_"同上
-			4.会产生1+N问题。主表有多少此就会发起多少次查询，无法根据条件判断是否需要发起子查询。导出报表最好不要使用
+			4.会产生1+N问题。主表有多少条就会发起多少次查询，无法根据条件判断是否需要发起子查询；导出报表最好不要使用，列表分页可相对环境；可使用上文join后自动映射代替；更推荐主表查询出id，再在java中in查询子表再组装到java对象(1次主查询+1次子查询)，对于id较多情况可进行分组循环查询
 		-->
 		<collection 
 			property="students" 
-			ofType="cn.aezo.demo.Student" 
-			column="{id = s_id, name = s_name}" 
+			ofType="cn.aezo.demo.Student"
+            javaType="java.util.ArrayList"
+			column="{id = s_id, name=s_name}" 
 			select="cn.aezo.demo.Student.getStudent">
 		</collection>
     </resultMap>
@@ -646,12 +649,24 @@ mybatis.config-location=classpath:mybatis-config.xml
     </select>
     ```
 
-## mybatis常见问题
+## $与#的区别及SQL注入问题
 
 - `#` 和 `$` 区别
-    - `#` 创建的是一个prepared statement语句, `$` 符创建的是一个inlined statement语句
+    - `#` 创建的是一个prepared statement语句，`$` 符创建的是一个inlined statement语句
     - `#{}`是实现的是PrepareStatement，`${}`实现的是普通Statement。使用`$`时，如字符串值就需要手动增加单引号，如果需要实现动态字段，则需要使用`$`；`#`则会自动给字符串值增加单引号
     - 字段使用变量代替时需要使用 `$`；foreach.separator 参数如需使用变量，需用 `#`
+- SQL注入问题
+    - **对于`${}`场景，永远不直接接受用户输入，或者严格控制用户输入的字符串(如枚举)**
+
+```sql
+/* 如果用户传入的username为 `validuser' or 1=1 -- ` 此时就会返回所有的用户信息 */
+<select id="queryByUserName" resultMap="userResultMap" parameterType="String">
+    select * from db_user where user_name = '${username}'
+</select>
+```
+
+## mybatis常见问题
+
 - **关于`<`、`>`转义字符**(在annotation中需要转义，在xml的sql语句中则不需要转义)
 	- `<` 转成 `&lt;`，`>=` 转成 `&gt;=`等
 	- 使用**CDATA** `<![CDATA[ when min(starttime) <= '12:00' and max(endtime) <= '12:00' ]]>`
@@ -682,6 +697,7 @@ mybatis.config-location=classpath:mybatis-config.xml
 	```xml
     <!-- （1）xml方式 -->
 	<!-- <if test='dataSourceList != null and dataSourceList.size() >= 1'> -->
+
     <!-- （2）@Select方式 -->
 	<if test='submitTm != null and submitTm.length >= 1'>
         <foreach collection="submitTm" index="i" item="item">

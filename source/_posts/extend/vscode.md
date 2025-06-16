@@ -119,6 +119,15 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
 	```
 - `Bracket Pair Colorizer 2` 代码括号对应颜色标识
 - `GitLens` Git管理面板
+    - 破解: 修改 `/Users/xxx/.vscode/extensions/eamodio.gitlens-16.3.3/dist/webviews/graph.js`
+
+    ```js
+    // 将原本的改成下文
+    ,m().createElement(rv,{className:"graph-app__gate",appearance:"alert",featureWithArticleIfNeeded:"the Commit Graph",source:{source:"graph",detail:"gate"},state:nt?.state,visible:!it},m().createElement("p",{slot:"feature"},m().createElement("a",{href:"https://help.gitkraken.com/gitlens/gitlens-features/#commit-graph-pro"},"Commit Graph"),m().createElement(qb,{source:{source:"graph",detail:"badge"},subscription:nt})," ","— easily visualize your repository and keep track of all work in progress. Use the rich commit search to find a specific commit, message, author, a changed file or files, or even a specific code change."))
+
+    // 修改后
+    ,m().createElement(Fc,{className:"graph-app__gate",featurePreview:Ve,featurePreviewCommandLink:Ve?Rs(ds.PlusContinueFeaturePreview,o.webviewId,o.webviewInstanceId,{feature:Ve.feature}):void 0,appearance:"alert",featureWithArticleIfNeeded:"the Commit Graph",source:{source:"graph",detail:"gate"},state:Ue?.state,webroot:o.webroot,visible:!Fe},m().createElement("p",{slot:"feature"},m().createElement("a",{href:"https://help.gitkraken.com/gitlens/gitlens-features/#commit-graph-pro"},"Commit Graph"),m().createElement(Ic,{source:{source:"graph",detail:"badge"},subscription:Ue})," ","— easily visualize your repository and keep track of all work in progress. Use the rich commit search to find a specific commit, message, author, a changed file or files, or even a specific code change."))
+    ```
 - `c/c++` 高亮及提示c/c++代码(运行还需安装MinGW/gcc编译器)
 - `code-runner` 运行代码, 如c(还需按照c/c++插件)
 

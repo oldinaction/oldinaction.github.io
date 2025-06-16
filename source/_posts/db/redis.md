@@ -19,6 +19,7 @@ tags: redis
 - [常见的缓存memcached、redis比较参考](/_posts/arch/分布式架构原理及选型方案.md#缓存)
 - redis windows客户端(64x，官网不提供window安装包)：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
 - redis客户端连接管理软件
+    - Navicat Premium 17支持redis
     - (推荐)[AnotherRedisDesktopManager](https://github.com/qishibo/AnotherRedisDesktopManager/releases/tag/v1.5.9)
     - [RedisDesktopManager](https://github.com/RedisInsight/RedisDesktopManager/releases/tag/0.9.3)
 - java操作redis(客户端jar)
@@ -31,8 +32,10 @@ tags: redis
 ## 安装Redis服务
 
 - Windows
-    - 下载redis windows客户端（3.2.100）：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
-    - 直接启动解压目录下的：`redis-server.exe`服务程序；`redis-cli.exe`客户端程序，即可在客户端使用命令行进行新增和查看数据（默认没有设置密码）
+    - 方式一: 下载[Redis-7.4.2-Windows-x64-cygwin-with-Service.zip](https://github.com/redis-windows/redis-windows/releases)
+        - 执行`install_redis_service.bat`安装到服务；默认没有设置密码，可修改redis.conf设置requirepass参数
+    - 方式二: 下载redis windows客户端（3.2.100）：[https://github.com/MSOpenTech/redis](https://github.com/MSOpenTech/redis)
+        - 直接启动解压目录下的：`redis-server.exe`服务程序；`redis-cli.exe`客户端程序，即可在客户端使用命令行进行新增和查看数据（默认没有设置密码）
     - **设置密码**
         - 修改`redis.windows.conf`，将`# requirepass foobared` 改成 `requirepass your_password`(行前不能有空格)
         - cmd进入到redis解压目录，运行`redis-server redis.windows.conf`，之后登录则需要密码

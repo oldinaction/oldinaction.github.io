@@ -328,7 +328,20 @@ git push -f --set-upstream origin master
 - 参考 https://zhuanlan.zhihu.com/p/391712989
 
 ```bash
-# 指定当前 fork 将要同步的上游远程仓库地址(upstream只是一个别名，可使用其他代替)
+## 基于某个上游版本进行开发
+# 先拉取上游代码
+# 修改config配置的origin地址如下
+vi .git/config
+# 将origin改成up-origin (包括fetch属性中的值)
+[remote "up-origin"]
+	url = git@gitee.com:test/demo.git
+	fetch = +refs/heads/*:refs/remotes/up-origin/*
+# 增加自己的origin地址
+git remote add origin git@github.com:test/demo.git
+git push -u origin master
+
+
+## 指定当前 fork 将要同步的上游远程仓库地址(upstream只是一个别名，可使用其他代替)
 git remote add upstream https://github.com/ORIGINAL_OWNER/ORIGINAL_REPOSITORY.git
 # 拉取上游代码，然后将上游代码分支upstream/master合并到本地master分支
 git fetch upstream
@@ -459,7 +472,7 @@ config.php:     #表示忽略当前路径的 config.php 文件
 	- cache 凭证保存在内存中，默认15分钟有效，过期运行git命令则需要重新登录
 	- store 以明文形式保存在home目录磁盘。/home/xxx/.gitconfig(清除或修改)
 	- osxkeychain mac系统专属，加密后存放在磁盘
-- 常见问题`remote: Repository not found`，重新安装`credential-manager`
+- 常见问题`remote: Repository not found`，Windows重新安装`credential-manager`
 	- `git credential-manager uninstall`
 	- `git credential-manager install`
 
@@ -539,6 +552,37 @@ git log --graph --pretty=oneline --abbrev-commit
 # 删除已合并分支
 git branch -d develop/test
 ```
+- 其他操作
+
+```bash
+## 完全丢弃本地修改，重置为远程分支的最新状态
+# 取消当前的合并/变基操作
+git merge --abort  # 如果是合并冲突
+git rebase --abort  # 如果是变基冲突
+
+# 重置当前分支到远程分支
+git reset --hard origin/main
+
+## 丢弃特定文件的本地修改，恢复为远程版本
+git checkout origin/main -- app.js
+
+## 选择远程分支的版本（丢弃本地修改）
+# 对所有冲突文件，选择远程分支的版本
+git checkout --theirs -- .
+# 或者只对特定文件
+git checkout --theirs -- <文件名>
+git add .
+git commit -m "Resolve conflicts by using remote version"
+
+## 选择本地分支的版本（丢弃远程修改）
+git checkout --ours -- .
+# 或者只对特定文件
+git checkout --ours -- <文件名>
+
+## 清理未跟踪文件（如果有）
+git clean -n # 查看未跟踪文件列表
+git clean -fd # 强制删除所有未跟踪文件（危险操作！）
+```
 
 ### 暂存工作区
 
@@ -607,7 +651,7 @@ git push
 
 ### 批量修改已提交记录的用户名和邮箱
 
-- 建议先备份仓库, 且对应分支没有被保护
+- 建议先备份仓库, **且对应分支没有被保护**
 - 步骤如下
 
 ```bash
@@ -643,8 +687,31 @@ git update-ref -d refs/original/refs/heads/master
 
 ### Git通过命令行使用多个账户登录GitHub
 
-- 使用~/.ssh/config文件解决
+- 使用`~/.ssh/config`文件解决
     - https://zhuanlan.zhihu.com/p/521768041 无需设置ssh-agent
+
+```bash
+# 会生成 id_rsa.github.test 和 id_rsa.github.test.pub 文件
+ssh-keygen -f ~/.ssh/id_rsa.github.test -C test@qq.com
+# 将生成的公钥内容设置到github账户后台
+
+# 编辑config文件
+vi ~/.ssh/config
+# 内容如下
+Host github.com
+   HostName github.com
+   User git
+   IdentityFile ~/.ssh/id_rsa
+
+Host test.github.com
+   HostName github.com
+   # github账号
+   User my_test
+   IdentityFile ~/.ssh/id_rsa.github.test
+
+# 修改仓库地址
+git remote set-url origin git@test.github.com:my_test/my_demo.git
+```
 
 ## gitflow工作流
 

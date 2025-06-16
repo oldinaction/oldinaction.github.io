@@ -59,6 +59,12 @@ str.match(/<.+?>/); // <div style="font-color:red;">
 // 匹配不包含www的cnblog网站
 "www.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // null
 "images2018.cnblogs.com".match(/^((?!www).*)\.cnblogs\.com/) // images2018.cnblogs.com、images2018
+
+// 负向后瞻(?<!): 结尾不包含.vue'
+"'@comp/test/Demo'".match(/@comp\/(.*)(?<!\.vue)'$/) // @comp/test/Demo'
+"'@comp/test/Demo.vue'".match(/@comp\/(.*)(?<!\.vue)'$/) // null
+// 错误写法. 此为负向前瞻: 它只检查 @comp/ 后面的内容是否紧跟 .vue，而不是检查整个字符串是否以 .vue 结尾，".*?"贪婪匹配会尽可能少地匹配字符，导致负向前瞻无法正确判断结尾
+"'@comp/test/Demo.vue'".match(/@comp\/(.*)(?!\.vue)'$/) // @comp/test/Demo.vue'
 ```
 - 多选分支
 
@@ -141,7 +147,7 @@ title: '{{ $1 }}}'
 ```bash
 ## 或
 [jpg|png] # 代表匹配 j 或 p 或 g 或 p 或 n 或 g 中的任意一个字符
-(jpg|png) # 代表匹配 jpg 或 png
+(jpg|png|hello word) # 代表匹配 jpg 或 png 或 hello word (hello无法匹配; hello word hi可以匹配, 前后加上^$就可精确匹配)
 
 ## 反斜杠 \
 # 在匹配 . 或 { 或 [ 或 ( 或 ? 或 $ 或 ^ 或 * 这些特殊字符时，需要在前面加上 \\，比如匹配 . 时，Java 中要写为 \\.，但对于正则表达式来说就是 \.
@@ -278,6 +284,7 @@ if(matcher.find()) {
     - 例如 'Windows (?!95|98|NT|2000)' 能匹配 "Windows 3.1" 中的 "Windows"，但不能匹配 "Windows 2000" 中的 "Windows"
 - 正向后瞻 `(?<=pattern)string`
 - 反向后瞻 `(?<!pattern)string`
+    - 如JS正则 `"'@comp/test/Demo.vue'".match(/@comp\/(.*)(?<!\.vue)'$/)` 不匹配".vue'"结尾的，此处返回null
 - 案例
 
 ```java

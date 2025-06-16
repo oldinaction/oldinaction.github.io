@@ -8,7 +8,10 @@ tags: [linux, network]
 
 ## 简介
 
-- [GFWList](https://github.com/gfwlist/gfwlist) 有完整的GFW域名列表
+- 查看当前IP地址: https://cip.cc, 查看多场景IP: https://ip100.info (命令如: `curl cip.cc`)
+- 镜像网站
+    - 镜像合集1: https://github.com/runningcheese/MirrorSite
+    - github: https://kkgithub.com/ 貌似下载会有点问题
 
 ## centos7安装虚拟办公网络
 
@@ -136,7 +139,7 @@ ipsec verify
 ```bash
 # 在C上运行ssh命令
 ssh -Nf -L 2121:2.2.2.2:21 3.3.3.3
-    # -N 告诉SSH客户端，这个连接不需要执行任何命令，仅仅做端口转发
+    # -N 告诉SSH客户端，这个连接不需要执行任何命令，仅仅做端口转发。-fN很重要，部分文章说需要使用 "vmstat 30" 来防止连接断开，这种方式可能会导致产生大量连接
     # -f 告诉SSH客户端在后台运行
     # -L 做本地映射端口，被冒号分割的三个部分含义分别是：A端口号、需要访问的目标机器B的IP地址、需要访问的目标机器B的某端口；最后一个参数是用来建立隧道的中间机器C的IP地址
     # -R X:Y:Z 就是把内部的Y机器的Z端口映射到远程机器的X端口上(Y机器和中间机C处于同一内网，此处填写Y对应的内网)
@@ -157,15 +160,16 @@ ssh -Nf -R 2222:192.168.1.200:22 3.3.3.3
 # 访问本地机器A的2222端口，就能连接目标机B的22端口了
 ssh -p 2222 localhost
 
+# (不推荐)这种方式可能会导致产生大量连接
 # vmstat 30会定期打印数据，防止某些路由器把长时间没有通信的连接断开；-b 0.0.0.0为绑定本机的2222端口，此时提供本机A所有局域网的其他机器访问A:2222端口
-ssh -b 0.0.0.0 -R 2222:192.168.1.200:22 3.3.3.3 "vmstat 30"
+# ssh -b 0.0.0.0 -R 2222:192.168.1.200:22 3.3.3.3 "vmstat 30"
 ```
 - 通过SSH隧道建立SOCKS服务器(一台中间机映射一次即可访问指定网络所有服务器的资源。**建议**)
 
 ```bash
 # 在本机A(linux)上运行，连接中间机器C(可FQ)。则本机浏览网页时，只需要在浏览器中设置SOCKS代理(或者通过SocksCap启动目标程序)则可FQ
 # 不静默运行，且定时执行命令，防止程序退出
-ssh -D 0.0.0.0:1080 root@8.12.12.149 "vmstat 30"
+ssh -fN -D 0.0.0.0:1080 root@8.12.12.149
 
 # 常用此方式将C(192.167.1.27)作为跳板机访问生成安全网络：在C(网段1)上挂"虚拟办公网络"则可访问生产网络(网段2)，此时又在C上启动SOCKS代理，则其他机器配置此SOCKS代理即可访同C一样访问生产网络(直接访问网段2的地址即可)
 # 直接在中间机C上运行此命令，**使用中间机器test用户登录自身ssh**(中间机器需要开启sshd服务)开启隧道
@@ -175,7 +179,10 @@ ssh -Nf -D 0.0.0.0:1080 test@192.167.1.27
 
 # -i 使用私钥登录，起到加密作用
 # 在请求发起60秒钟后未收到响应则超时，120秒内无数据通过则发送一个请求避免断开，-o添加ssh参数(覆盖sshd_conf)
-sudo ssh -i /home/smalle/.ssh/warehouse.pem -oConnectTimeout=60 -oServerAliveInterval=120 -o 'GatewayPorts yes' -D 0.0.0.0:3386 ec2-user@52.56.100.100 "vmstat 30"
+sudo ssh -i /home/smalle/.ssh/warehouse.pem -oConnectTimeout=60 -oServerAliveInterval=120 -o 'GatewayPorts yes' -fN -D 0.0.0.0:3386 ec2-user@52.56.100.100
+
+# item2脚本用秘钥貌似不行，可同brew install sshpass安装sshpass，然后使用如下命令
+# /opt/soft/sshpass-1.05/sshpass -p "123456" ssh -fN -D 0.0.0.0:1088 root@52.56.100.100 -p 29617
 ```
     - SSH建立的SOCKS服务器使用的是SOCKS5协议
     - 配置SOCKS：IE/Chrome/Firefox/xshell等都可配置SOCKS5
@@ -193,9 +200,9 @@ sudo ssh -i /home/smalle/.ssh/warehouse.pem -oConnectTimeout=60 -oServerAliveInt
         - 修改`/etc/ssh/sshd_config`中配置为`AllowTcpForwarding yes`
         - 修改`cat /etc/sysctl.conf`中配置为`net.ipv4.ip_forward = 1`
 
-### SOCKS5安全问题(Shadowsocks使用) [^7]
+### SOCKS5安全问题(Shadowsocks使用)
 
-- SOCKS5只是对数据做中转传输，无法起到加密的作用，不太安全
+- SOCKS5只是对数据做中转传输，无法起到加密的作用，不太安全 [^7]
 - 安全的 socks 代理不应向防火墙公开以下信息：任何表明它被用作代理的特征、任何真实传输的数据
 - 在HTTP/HTTPS的世界里，TCP/IP数据包的源和目标是公开的，解决恶意攻击可以利用强加密算法的 SOCKS5 协议
 - 可以把SOCKS5拆分成两部分，socks5-local和socks5-remote：客户端通过SOCKS5协议向本地代理发送请求，本地代理通过HTTP协议发送加密后的请求数据，因为 HTTP 协议没有明显的特征，并且远程代理服务器尚未被识别为代理，因此请求可以穿透防火墙
@@ -248,6 +255,15 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
     - v2ray服务端(vps端): **推荐**基于[x-ui管理面板](https://github.com/vaxilu/x-ui)
     
         ```bash
+        #### 方式一
+        ## **基于x-ui安装**(web控制面板 v1.4.2)。支持多用户多协议，支持账号流量统计。[github](https://github.com/vaxilu/x-ui)
+        # 更新安装都是此命令，升级不会造成数据丢失
+        bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
+        x-ui # 查看命令
+        systemctl daemon-reload && systemctl enable x-ui && systemctl restart x-ui
+        # http://<服务器IP>:54321 默认用户名密码 admin/admin
+
+        #### 方式二
         ### 安装
         sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config
         systemctl stop firewalld && systemctl disable firewalld
@@ -257,13 +273,6 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
         # 也可使用x-ui，基于web管理v2ray服务(不可同时使用)
         bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
         systemctl enable v2ray && systemctl start v2ray && systemctl status v2ray
-
-        ## **基于x-ui安装**(web控制面板 v1.4.2)。支持多用户多协议，支持账号流量统计。[github](https://github.com/vaxilu/x-ui)
-        # 更新安装都是此命令，升级不会造成数据丢失
-        bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
-        x-ui # 查看命令
-        systemctl daemon-reload && systemctl enable x-ui && systemctl restart x-ui
-        # http://<服务器IP>:54321 默认用户名密码 admin/admin
         ```
     - v2ray客户端
         - 以windows为例，[如v2rayN v2.41下载地址](https://github.com/2dust/v2rayN/releases/download/2.41/v2rayN-Core.zip)。其他参考下文
@@ -318,6 +327,7 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
     - [V2RayN (Windows)](https://github.com/2dust/v2rayN/releases)
     - [v2rayW (Windows)](https://github.com/Cenmrev/V2RayW/releases)
     - [V2RayU (macOS)](https://github.com/yanue/V2rayU/releases)
+        - 241201: v4.2.5突然不能用，退回到v4.2.2可用
     - [v2rayX (macOS)](https://github.com/Cenmrev/V2RayX/releases)
     - Shadowrocket (iOS, $2.99)
     - i2Ray (iOS, $3.99)
@@ -360,6 +370,36 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
 
 - v2ray-core官方: https://github.com/v2fly/v2ray-core
 - 中文文档 https://www.v2ray.com/
+- [V2RayU (macOS)](https://github.com/yanue/V2rayU/releases)
+
+### clash-verge-rev
+
+- https://github.com/clash-verge-rev/clash-verge-rev
+- 文档: https://www.clashverge.dev/
+- 配置文件字段规则: https://wiki.metacubex.one/config/
+
+## PAC自动代理文件格式
+
+- 利用PAC我们可以对某些特定站点或移动到特定的网络时选择特定的代理服务器来浏览网页
+    - 常见的浏览器（Firefox，IE，Safari）都实现了对PAC支持，参考: https://zhuanlan.zhihu.com/p/148499709
+- 语法说明参考: https://blog.csdn.net/yjz0065/article/details/5653705
+- 还可结合GFW清单进行配置，GFW参考[gfwlist](https://github.com/gfwlist/gfwlist), [gfwlist2pac](https://github.com/itcook/gfwlist2pac)
+- 简单案例
+
+```js
+function FindProxyForURL(url, host) {
+    if (
+        shExpMatch(url,"*.youtube.com*") ||
+        shExpMatch(url,"*.google.com*")
+    ) {
+        return "SOCKS localhost:1080";
+    }
+
+    return "DIRECT";
+}
+```
+
+
 
 
 ---

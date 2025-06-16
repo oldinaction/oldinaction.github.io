@@ -6,6 +6,11 @@ categories: devops
 tags: [docker, arch]
 ---
 
+## 镜像
+
+- 华为开源镜像站: https://mirrors.huaweicloud.com/
+- 清华大学开源软件镜像站: https://mirror.tuna.tsinghua.edu.cn/
+
 ## Docker介绍
 
 - 支持Linux、Windows、Mac等系统
@@ -17,45 +22,49 @@ tags: [docker, arch]
 - 本文基于docker版本`Server Version: 1.13.1`
 - 国内镜像
 
-    ```bash
-    ## 设置镜像，docker-compose拉取镜像时可生效
-    vi /etc/docker/daemon.json # 加入下文配置
-    {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}
-    # 重启
-    sudo systemctl daemon-reload
-	sudo systemctl restart docker
+```bash
+## 设置镜像，docker-compose拉取镜像时可生效
+vi /etc/docker/daemon.json # 加入下文配置 (windows在用户目录下.docker/daemon.json)
+{"registry-mirrors": ["https://registry.cn-hangzhou.aliyuncs.com"]}
+# 重启
+sudo systemctl daemon-reload
+sudo systemctl restart docker
 
-    ## docker.io镜像加速。参考：https://juejin.im/post/5cd2cf01f265da0374189441
-    # 中科大 `docker.mirrors.ustc.edu.cn`；网易 `hub-mirror.c.163.com`；阿里云私有加速器(只有部分镜像) `bzyep49h.mirror.aliyuncs.com`
-    docker pull xxx:yyy "可替换为" docker pull docker.mirrors.ustc.edu.cn/library/xxx:yyy
-    docker pull xxx/yyy:zz "可替换为" docker pull docker.mirrors.ustc.edu.cn/xxx/yyy:zz
-    # Azure中国镜像 `dockerhub.azk8s.cn`
+## docker.io镜像加速。参考：https://juejin.im/post/5cd2cf01f265da0374189441
+# 阿里云 registry.cn-hangzhou.aliyuncs.com 阿里云私有加速器(只有部分镜像) bzyep49h.mirror.aliyuncs.com
+# 华为 swr.cn-north-4.myhuaweicloud.com
+# 网易 hub-mirror.c.163.com
+docker pull xxx:yyy "可替换为" docker pull registry.cn-hangzhou.aliyuncs.com/library/xxx:yyy
+docker pull xxx/yyy:zz "可替换为" docker pull registry.cn-hangzhou.aliyuncs.com/xxx/yyy:zz
+# Azure中国镜像 `dockerhub.azk8s.cn`
 
-    ## gcr.io镜像加速
-    # 中科大 `gcr.mirrors.ustc.edu.cn`
-    docker pull gcr.io/xxx/yyy:zzz "可替换为" docker pull gcr.mirrors.ustc.edu.cn/xxx/yyy:zzz
-    # Azure中国镜像 `gcr.azk8s.cn`
+## gcr.io镜像加速
+# 中科大 `gcr.mirrors.ustc.edu.cn`
+docker pull gcr.io/xxx/yyy:zzz "可替换为" docker pull gcr.mirrors.ustc.edu.cn/xxx/yyy:zzz
+# Azure中国镜像 `gcr.azk8s.cn`
 
-    ## k8s.gcr.io镜像加速。k8s.gcr.io等价于gcr.io/google-containers
-    # 中科大 `gcr.mirrors.ustc.edu.cn/google-containers`
-    docker pull k8s.gcr.io/xxx:yyy "可替换为" docker pull gcr.mirrors.ustc.edu.cn/google-containers/xxx:yyy
-    # Azure中国镜像 `gcr.azk8s.cn/google-containers`
-    # 阿里云 `registry.aliyuncs.com/google_containers`
+## k8s.gcr.io镜像加速。k8s.gcr.io等价于gcr.io/google-containers
+# 中科大 `gcr.mirrors.ustc.edu.cn/google-containers`
+docker pull k8s.gcr.io/xxx:yyy "可替换为" docker pull gcr.mirrors.ustc.edu.cn/google-containers/xxx:yyy
+# Azure中国镜像 `gcr.azk8s.cn/google-containers`
+# 阿里云 `registry.aliyuncs.com/google_containers`
 
-    ## quay.io镜像加速
-    # 中科大 `quay.mirrors.ustc.edu.cn`
-    # Azure中国镜像 `quay.azk8s.cn`
-    # 七牛镜像 `quay-mirror.qiniu.com`
-    docker pull quay.io/xxx/yyy:zzz "可替换为" docker pull quay.mirrors.ustc.edu.cn/xxx/yyy:zzz
-    ```
+## quay.io镜像加速
+# 中科大 `quay.mirrors.ustc.edu.cn`
+# Azure中国镜像 `quay.azk8s.cn`
+# 七牛镜像 `quay-mirror.qiniu.com`
+docker pull quay.io/xxx/yyy:zzz "可替换为" docker pull quay.mirrors.ustc.edu.cn/xxx/yyy:zzz
+```
+- 目前docker必须登录才能拉取镜像
 
 ## 安装
 
 - Windows
-    - Windows 10直接使用windows安装包 https://hub.docker.com/editions/community/docker-ce-desktop-windows
+    - 方案一: **Windows 10直接使用Docker Desktop Installer安装包** https://hub.docker.com/editions/community/docker-ce-desktop-windows
+        - 基于WSL实现，安装可能报错`wsl update failed: update failed: updating wsl`，由于执行了`wsl.exe --update`更新失败导致，重新启动几下触发wsl更新
         - 执行docker命令时提示`docker for windows could not read CA certificate`，解决https://blog.csdn.net/qq_35852248/article/details/80925154
         - 使用的网卡为`Hyper-V`，会导致VMware和DockerToolbox无法运行。可在控制面板 - 程序和功能 - 关闭windows的Hyper-V功能
-    - 通过安装`DockerToolbox`，[安装文档和下载地址](https://docs.docker.com/toolbox/toolbox_install_windows/)
+    - 方案二: 通过安装`DockerToolbox`，[安装文档和下载地址](https://docs.docker.com/toolbox/toolbox_install_windows/)
         - 安装完成后桌面快捷方式：`Docker Quickstart Terminal`、`kitematic`、`Oracle VM VirtualBox`
             - `Docker Quickstart Terminal` 可快速启动docker虚拟机，并进入到bash命令行
             - `kitematic`是docker推出的GUI界面工具(启动后，会后台运行docker，即自动运行docker虚拟机)
@@ -65,7 +74,7 @@ tags: [docker, arch]
         - 运行`Docker Quickstart Terminal`，提示找不到`bash.exe`，可以浏览选择git中包含的bash(或者右键修改此快捷方式启动参数。目标：`"D:\software\Git\bin\bash.exe" --login -i "D:\software\Docker Toolbox\start.sh"`)。第一次启动较慢，启动成功会显示docker的图标
         - 如果DockerToolbox运行出错`Looks like something went wrong in step ´Checking status on default..`，可以单独更新安装`VirtualBox`
         - xshell连接docker虚拟机：[http://blog.aezo.cn/2017/06/24/extend/vmware/](/posts/extend/vmware.md#Oracle-VM-VirtualBox)
-    - 或者安装[Boot2Docker](https://github.com/boot2docker/windows-installer)
+    - 方案三: 安装[Boot2Docker](https://github.com/boot2docker/windows-installer)
     - 如果设置了C盘搬家到D盘，容易出现磁盘占满问题。可将虚拟机的disk.vmdk直接移动到D盘，步骤如下
         - 复制`C:\Users\smalle\.docker\machine\machines\default\disk.vmdk`到`D:/data/docker/disk.vmdk`
         - 进入VirtualBox(4.0.4以上)安装目录，执行`VBoxManage internalcommands sethduuid D:/data/docker/vdisk.vmdk`重设磁盘UUID
@@ -73,23 +82,25 @@ tags: [docker, arch]
     - windows命令行运行docker命令提示无此命令，可将`D:\software\Docker Toolbox`加入到Path中
 - linux
 
-    ```bash
-    yum install docker # 安装
+```bash
+yum install docker # 安装
 
-    # 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存
-    vi /etc/docker/daemon.json
-    {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"], "graph": "/data/docker", "dns" : ["114.114.114.114", "8.8.8.8"]}
-    # 重启
-    sudo systemctl daemon-reload && sudo systemctl restart docker
-    ```
-    - ubuntu安装
-        
-        ```bash
-        sudo apt-get install docker.io
-        sudo gpasswd -a ${USER} docker # 把当前用户加入到docker组
-        cat /etc/group | grep ^docker # 查看是否添加成功
-        ```
-    - 启动 `systemctl start docker`
+# 启动
+systemctl start docker
+
+# 数据文件默认保存在`/var/lib/docker`下，建议先进行修改，修改后此目录可不用保存
+vi /etc/docker/daemon.json
+{"registry-mirrors": ["https://registry.cn-hangzhou.aliyuncs.com"], "graph": "/data/docker", "dns" : ["114.114.114.114", "8.8.8.8"]}
+# 重启
+sudo systemctl daemon-reload && sudo systemctl restart docker
+```
+- ubuntu安装
+
+```bash
+sudo apt-get install docker.io
+sudo gpasswd -a ${USER} docker # 把当前用户加入到docker组
+cat /etc/group | grep ^docker # 查看是否添加成功
+```
 
 ## 命令
 

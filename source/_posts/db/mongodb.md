@@ -12,7 +12,7 @@ tags: [db, mongodb]
 - 官网：[https://www.mongodb.com](https://www.mongodb.com)
 - MongoDB 存储的是 BSON 结构，类似的文档型数据库 `RethinkDB` 是一个主要用来存储 JSON 结构的
 - 客户端工具
-    - Navicate
+    - Navicat
     - Robo 3T(后来要收费)：下载地址 `https://robomongo.org/download` (`Download portable version for Windows 64-bit`为免安装版)
 
 ## mongodb安装运行
