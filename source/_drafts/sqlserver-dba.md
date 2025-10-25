@@ -77,6 +77,10 @@ Microsoft SQL Server 2019 (RTM) - 15.0.2000.5 (X64)
 
 ## 管理员
 
+### 慢SQL/数据库CPU飙高问题
+
+参考：[http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/](/_posts/devops/Java应用CPU和内存异常分析.md#SqlServer)
+
 ### 连接数
 
 ```sql

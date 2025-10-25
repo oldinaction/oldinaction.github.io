@@ -12,128 +12,6 @@ tags: vue
     - https://juejin.cn/post/6844903476661583880
 - vue异常代码开发环境正常报错，编译之后不报错且页面卡死问题。参考: https://github.com/PanJiaChen/vue-element-admin/issues/2212
 
-## Vue3
-
-- 选项式和组合式：选项时为类似Vue2的JSON模式，组合式为类似React的函数式模式(使我们可以使用函数而不是声明选项的方式书写 Vue 组件)
-- Vue3中没有了`$parent`和`$children`
-    - 可通过`getCurrentInstance()`获取当前组件，`findComponentUpward()`向上查找父组件，和`findComponentsDownward()`向下查找子组件。参考：https://juejin.cn/post/7117808675716071460
-- 文章
-    - Vue3结合JSX
-        - [babel-plugin-jsx](https://github.com/vuejs/babel-plugin-jsx)
-        - 插槽和v-model使用：https://blog.csdn.net/cookcyq__/article/details/131440253
-    - [Vue2 与 Vue3 如何创建响应式数据](https://zhuanlan.zhihu.com/p/357434039)
-
-### 语法
-
-- [**v-model**](https://cn.vuejs.org/guide/components/v-model.html)
-    - 单个属性建议使用`modelValue`(固定props值)，此时直接`v-model="data"`即可
-    - 多个属性可定义如`myModel`(取值props.myModel)，此时需使用`v-model:myModel="data"`(只有modelValue才能进行省略)
-- **defineProps** 和 **withDefaults**
-
-```html
-<!-- 1.简单使用. TS模式需要定义类型 -->
-<script setup>
-    // 使用 `<script setup>` 语法时，defineProps 和 withDefaults 这类编译器宏不需要显式导入
-    // import { defineProps, withDefaults } from "vue";
-    
-    const defines = defineProps(["width", "height"]);
-    console.log(defines); 
-</script>
-<script setup lang="ts">
-    const props = defineProps<{
-        message: string
-        count?: number
-        isActive?: boolean
-    }>()
-</script>
-
-<!-- 2.复杂使用: defineProps定义参数及类型, withDefaults设置默认值 -->
-<script setup lang="ts">
-    interface User {
-        id: number
-        name: string
-    }
-
-    const props = defineProps<User>()
-    
-    const props = withDefaults(defineProps<{
-        message: string
-        count?: number // ? 表示可选
-        isActive?: boolean
-        list?: Array<string>
-        user?: User
-        users?: User[]
-        callback?: (id: number) => void // 函数类型
-        size?: 'small' | 'medium' | 'large' // 联合类型
-    }>(), {
-        count: 0,
-        list: () => ['default', 'value'], // 对象/数组类型的默认值必须通过工厂函数返回
-        user: () => ({ id: 0, name: 'Guest' }),
-        callback: () => console.log('Default callback'),
-        size: 'small'
-    })
-</script>
-```
-- **watch**
-    - [Vue3中watch的最佳实践](https://juejin.cn/post/6980987158710452231)
-
-```html
-<script setup>
-import { watch, ref, reactive } from 'vue'
-// ==> 1.侦听一个 getter
-const person = reactive({name: '测试A'})
-watch(
-    () => person.name, 
-    (n, o) => {
-        console.log(n, o)
-    },
-    {immediate:true}
-)
-person.name = '测试B'
-
-// ==> 2.直接侦听ref，及停止侦听
-const ageRef = ref(16)
-const stopAgeWatcher = watch(ageRef, (n, o) => {
-    console.log(n, o)
-    if (value > 18) {
-        stopAgeWatcher() // 当ageRef大于18，停止侦听
-    }
-})
-
-const changeAge = () => {
-    ageRef.value += 1
-}
-
-// ==> 3.监听多个数据源
-// 如果你在同一个函数里同时改变这些被侦听的来源，侦听器只会执行一次
-// 如果用 nextTick 将两次修改隔开，侦听器会执行两次
-const name = ref('测试A')
-const age = ref(25)
-
-watch([name, age], ([name, age], [prevName, prevAge]) => {
-    console.log('newName', name, 'oldName', prevName)
-    console.log('newAge', age, 'oldAge', prevAge)
-})
-
-// ==> 4.侦听引用对象（数组Array或对象Object）
-const arrayRef = ref([1, 2, 3, 4])
-const objReactive = reactive({name: 'test'})
-
-// ref deep, getter形式，新旧值不一样
-const arrayRefDeepGetterWatch = watch(() => [...arrayRef.value], (n, o) => {
-    console.log(n, o)
-}, {deep: true})
-
-// reactive，deep，(修改name)新旧值不一样
-const arrayReactiveGetterWatch = watch(() => objReactive, (n, o) => {
-    console.log(n, o)
-}, {deep: true})
-</script>
-```
-- **unref**
-    - 自动判断类型：unref 可以处理响应式引用和非引用类型的值。如果传入一个 ref，它会返回 .value 的值；如果传入一个普通值，则直接返回该值
-    - 在 Vue 3 中，ref 是用于创建响应式数据的基本工具。使用 ref 创建的响应式对象需要在访问其值时使用 .value 属性
-
 ## Vue2说明
 
 ### 约定俗成
@@ -240,6 +118,123 @@ export default {
 - 浏览器地址栏刷新/回车/F5
     - 所有页面组件重新创建，重头调用`beforeCreate`；且在某页面刷新时，该页面的`beforeDestroy`等钩子不会被执行
 
+### 静态文件中使用VUE
+
+- 简单使用
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vue 2 in Static HTML</title>
+    
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+    
+  <!-- 引入Vue 2, debugger 可使用 vue.js -->
+  <!-- 
+    // 需要编译器: 引入 vue.min.js (完整版)
+    new Vue({
+      template: '<div>{{ hi }}</div>'
+    })
+    
+    // 不需要编译器: 可引入 vue.runtime.min.js 或 vue.min.js
+    new Vue({
+      render (h) {
+        return h('div', this.hi)
+      }
+    })
+  -->
+  <script src="https://unpkg.com/vue@2.7.16/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+</head>
+<body>
+  <!-- Vue应用容器 -->
+  <div id="app">
+    <h1>{{ message }}</h1>
+    <button v-on:click="reverseMessage">反转消息</button>
+
+    <el-button @click="reverseMessage">Button</el-button>
+  </div>
+
+  <script>
+    // 创建Vue实例
+    new Vue({
+      el: '#app',
+      data: {
+        message: 'Hello Vue 2 in Static HTML!'
+      },
+      methods: {
+        reverseMessage: function() {
+          this.message = this.message.split('').reverse().join('');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+```
+- 模块化开发
+  - 使用 ES 模块语法，支持组件化
+  - 仍需浏览器支持原生 ES 模块
+  - 无法使用单文件组件（.vue）的完整功能
+
+```html
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vue 2 in Static HTML (Module)</title>
+  <script src="https://unpkg.com/vue@2.7.16/dist/vue.min.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    // 导入组件（假设components.js在同一目录）
+    import MyComponent from './components.js';
+    
+    // 创建Vue实例
+    new Vue({
+      el: '#app',
+      components: {
+        'my-component': MyComponent
+      },
+      template: `
+        <div>
+          <h1>模块化Vue 2应用</h1>
+          <my-component />
+        </div>
+      `
+    });
+  </script>
+</body>
+</html>
+
+<script>
+// components.js
+export default {
+    template: `
+        <div>
+          <p>{{ counter }}</p>
+          <button v-on:click="increment">+1</button>
+        </div>
+      `,
+    data: function() {
+        return {
+            counter: 0
+        }
+    },
+    methods: {
+        increment: function() {
+            this.counter++;
+        }
+    }
+}
+</script>
+```
+
 ### 后端模板中使用VUE
 
 - 主页面
@@ -267,7 +262,19 @@ export default {
 - 组件页面
 
 ```html
-<!-- 模板的一部分 my-widget.ftl -->
+<!-- 模板的一部分 common/resource.ftl -->
+<script src="https://unpkg.com/vue@2.7.16/dist/vue.runtime.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            name: 'Hello Vue!'
+        }
+    })
+</script>
+
+
+<!-- 模板的一部分 components/my-widget.ftl -->
 <script type="text/x-template" id="widget">
     <div>content</div>
 </script>
@@ -1067,6 +1074,67 @@ this.$root.eventBus.$off('eventName')
     <!-- <template slot="content" slot-scope="slotProps"> -->
     <div slot="content"></div>
 </comp>
+```
+- **基于js传入slot**
+
+```html
+<script>
+// SlotWrap.js 工具
+export default {
+  name: 'SlotWrap',
+  props: {
+    wrap: {
+      type: String,
+      default: 'span'
+    },
+    wrapProp: {
+      type: Object,
+      default: () => {}
+    },
+    slotRender: null,
+    slotProp: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  render (h) {
+    let content = ''
+    if (this.slotRender) {
+      content = this.slotRender(h, this.slotProp)
+    }
+    let wrapProp = JSON.parse(JSON.stringify(this.wrapProp || {}))
+    return h(this.wrap, wrapProp, [content])
+  }
+}
+</script>
+
+<!-- (定义slot)组件comp.vue -->
+<SlotWrap v-bind="mySlot" :slotProp="{ row: rowData }"/>
+<script>
+    import SlotWrap from './SlotWrap'
+    export default {
+        components: { SlotWrap }
+    }
+</script>
+
+<!-- (使用slot)组件调用者 -->
+<comp :mySlot="mySlot"></comp>
+<script>
+export default {
+    data () {
+        return {
+            mySlot: {
+                wrap: 'span',
+                wrapProp: {},
+                slotRender: (h, slotProp) => {
+                    const { row } = slotProp
+                    return h('p', [row.id])
+                }
+            }
+        }
+    }
+}
+</script>
 ```
 
 ### 动态组件/异步组件
@@ -1892,8 +1960,9 @@ export default {
     })
     ```
 
-## 开发组件库
+## 自己开发组件库
 
+- vue3通过vite打包参考: https://cloud.tencent.com/developer/article/1908336
 - 说明
     - 当基于element-ui等进行二次开发时
         - 在案例入口文件中可以引入element-ui(案例不打包到库文件中)，可将element-ui加到dependences和externals(对应public/index.html需引入element-ui的CDN文件)中，这样打包案例时体积会减少
@@ -1972,6 +2041,8 @@ export default {
         - 参考https://segmentfault.com/a/1190000038827540，[demo](https://github.com/Zack921/zui-demo)
     - 通过webpack打包
         - 参考https://www.cnblogs.com/zdf-xue/articles/13062357.html
+    - **vue3通过vite打包**
+        - 参考: https://cloud.tencent.com/developer/article/1908336
 - 主应用导入本地环境组件库
     - 参考：https://qastack.cn/programming/8088795/installing-a-local-module-using-npm
     - `npm install /path/to/component/project/dir`此时会在package.json中创建对应的依赖，值为`file:..`的相对路径
@@ -2109,6 +2180,12 @@ const install = function (Vue) {
 export default install
 ```
 
+### 使用远程组件
+
+- 参考
+  - https://github.com/oldinaction/smweb/tree/master/vuejs/Vue3-remote-components
+  - https://gitee.com/sqbiz/wplugin-tinymce-vue/blob/master/src/utils/loadScript.js
+
 ### 相关问题
 
 - 部分插件引用的模块用到了PostCSS，当`npm link`后，在主项目中启动后报错`Error: No PostCSS Config found`
@@ -2243,6 +2320,18 @@ return (
             title: '鼠标悬停标题'
         }
     }}>{ msg }</span>
+)
+return (
+    <a
+        onClick={() => {
+            
+        }}
+        style={{
+            color: record.flag == 1 ? 'red' : ''
+        }}
+    >
+        {{ text }}
+    </a>
 )
 ```
 
@@ -2917,6 +3006,7 @@ export default user
     computed: {
         message: {
             get () {
+                // return this.$store.state.user.name // 基于模块
                 return this.$store.state.message
             },
             set (value) {
@@ -3272,7 +3362,7 @@ module.exports = {
         - Vue 的文档一直使用此框架，Hexo 最大的问题在于他的主题系统太过于静态以及过度地依赖纯字符串，二vuepress可以使用vue来处理布局和交互
     - GitBook
         - GitBook 最大的问题在于当文件很多时，每次编辑后的重新加载时间长得令人无法忍受
-    - ​docz​
+    - docz
     - [docsite](https://github.com/txd-team/docsite) 阿里开源(React), 对SEO友好
 - 静态站点
     - [GatsbyJS](https://www.gatsbyjs.com/): 基于React

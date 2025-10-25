@@ -23,10 +23,19 @@ tags: [android, app]
         - 把`%ANDROID_HOME%\platform-tools;%ANDROID_HOME%\tools`添加到Path环境变量中
         - 命令行输入`adb`测试是否安装成功
 - AVD(模拟器)
-- Mac建议使用AS自带模拟器(字体看不清)；通过braw安装模拟器字体很清晰，但是可能部分应用无法安装，参考[mac.md#安卓模拟器](/_posts/linux/mac.md#安卓模拟器)
-- [安卓模拟器](https://blog.csdn.net/csdnxia/article/details/120656206)
-    - [夜神安卓模拟器(支持Mac/Windows)](https://www.yeshen.com/)
-    - [网易MUMU](https://mumu.163.com/)
+    - 可使用AS自带模拟器(需先创建一个模拟器)
+        - 让模拟器单独一个窗口(防止字体看不清): AS设置 - Tools - Emulator - 去掉 Luanch in the Runing Devices tool window 勾选
+        - 让模拟器单独启动(不启动AS), Mac可通过自动脚本完成(执行 shell 脚本, 并保存为 App)
+
+            ```bash
+            cd /Users/xxx/Library/Android/sdk/emulator
+            # 可先通过 ./emulator -list-avds 查看模拟器名称
+            ./emulator -avd Pixel_7a_API_34_extension_level_7_arm64-v8a
+            ```
+    - [安卓模拟器](https://blog.csdn.net/csdnxia/article/details/120656206)
+        - [夜神安卓模拟器(支持Windows, Mac免费但需要关闭SIP较麻烦)](https://www.yeshen.com/)
+        - [网易MUMU(支持Windows, Mac收费)](https://mumu.163.com/)
+    - Mac还可通过braw安装模拟器字体很清晰，但是可能部分应用无法安装，参考[mac.md#安卓模拟器](/_posts/linux/mac.md#安卓模拟器)
 
 ## Android Studio项目示例
 

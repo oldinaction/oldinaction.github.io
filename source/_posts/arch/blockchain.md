@@ -100,10 +100,29 @@ categories: [arch]
 
 ## 虚拟货币
 
+- [虚拟货币行情](https://www.coingecko.com/zh)
+- 加密钱包(安全度: 冷钱包 > 热钱包 > 交易所托管钱包)
+    ![blk-wallet](../../data/images/2024/blockchain/blk-wallet.png)
+
+    - 交易所托管钱包: 资产由平台托管(密钥为交易所系统提供的)
+        - 中心化交易所（CEX，主流，支持支付宝/微信/银行卡等）: 如 Binance (币安), OKX(欧易), Bitget, Coinbase
+        - 去中心化交易所（DEX）: 如 Uniswap (以太坊), PancakeSwap (BSC), 虽属于 “交易工具”，但资产由用户热钱包托管
+    - 热钱包(一个App, 需防钓鱼、病毒): 下载一个比特币钱包应用，注册登录之后，系统就会为你生成一对密钥：一个私钥，一个公钥。这个私钥就像是你账户的唯一密码(重要)，而公钥则用来接收比特币。每次你想发起一笔交易时，钱包会通过网络连接到比特币区块链，获取最新的账本信息，并使用你的私钥对这笔交易进行签名
+        - 手机 APP 钱包（主流）: MetaMask, Trust Wallet, Coinbase Wallet, Exodus Wallet
+        - 网页钱包: 如 MetaMask 网页版（需谨慎辨别官网，防钓鱼）
+    - 冷钱包(一个App+保险柜, 记住密钥, 不要暴露在网上)
+        - 硬件冷钱包（主流）: 如 Onekey(开源, 国内发货不用过海关开箱), Trezor, Ledger Nano S，私钥存储在硬件设备中，仅在设备内运算，不联网
+        - 纸钱包：将私钥（或助记词）手写 / 打印在纸上，完全物理隔离（需防丢失、损坏）
+- 最大的几个交易所
+    - [币安](https://www.binance.us), [国内(暂停服务,只能提现; 大陆和美国IP无法交易, 可使用台湾IP)](https://www.binance.com)
+        - 现货交易: 0.08%-0.1%的手续费
+    - [欧易(OKX)](https://www.okx.com/zh-hans)
+
 ### 门罗币(XMR)
 
-- [官网](https://web.getmonero.org/zh-cn/)、[Web端钱包](https://wallet.mymonero.com)
-- [申请门罗钱包](https://mp.weixin.qq.com/s/yxuO51VanFnVfRTCOJFvBA)
+- [官网](https://www.getmonero.org/zh-cn/index.html)
+- ~~[Web端钱包(2026停运)](https://wallet.mymonero.com)~~ 也可下载客户端
+    - [申请门罗钱包](https://mp.weixin.qq.com/s/yxuO51VanFnVfRTCOJFvBA)
 - 挖矿收益计算: https://www.babaofan.com/miner/
 - 矿池
     - https://minexmr.com/ 最小提现0.004XMR

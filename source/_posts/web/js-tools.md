@@ -40,6 +40,20 @@ const c = _.merge({}, a, b);
 // c = {a: 1, b: {b1: 22, b2: 23}, c: [{c1: 33, c2: 34}, {c1: 35}]}
 console.log(a, b, c);
 ```
+- cloneDeepWith 深度拷贝
+
+```js
+// const newObj = JSON.parse(JSON.stringify(obj));
+const newObj = _.cloneDeepWith(obj)
+
+// 深度拷贝一般会丢失函数, 可自定义拷贝逻辑, 或者使用其他第三方库如: flatted(会先将函数字符串化, 之后再解析成函数) 等
+// 自定义拷贝函数：保留函数类型
+const newObj = _.cloneDeepWith(obj, (value) => {
+    // 直接返回函数，不进行序列化
+    if (typeof value === 'function') return value;
+    // 其他类型使用默认拷贝逻辑
+})
+```
 - groupBy
 
 ```js
@@ -55,8 +69,18 @@ const arr = [
     { status: 3, opp: 5, ad: "55" }
 ]
 
+// lodash表达式序列化后
+/*
+{
+    "1": [{"status":1,"opp":2,"ad":"11"}, {"status":1,"opp":2,"ad":"22"}, {"status":1,"opp":3,"ad":"33"}],
+    "2": [{"status":2,"opp":4,"ad":"44"}],
+    "3": [{"status":3,"opp":5,"ad":"55"}]
+}
+*/
+const r = _(arr).groupBy("status").value()
+
 const r = _(arr) // 转成lodash表达式
-    .groupBy("status") // lodash表达式序列化后 {"1":[{"status":1,"opp":2,"ad":"11"},{"status":1,"opp":2,"ad":"22"},{"status":1,"opp":3,"ad":"33"}],"2":[{"status":2,"opp":4,"ad":"44"}],"3":[{"status":3,"opp":5,"ad":"55"}]}
+    .groupBy("status")
     .values() // lodash表达式序列化后 [[{"status":1,"opp":2,"ad":"11"},{"status":1,"opp":2,"ad":"22"},{"status":1,"opp":3,"ad":"33"}],[{"status":2,"opp":4,"ad":"44"}],[{"status":3,"opp":5,"ad":"55"}]]
     .map(it => _(it)
         .groupBy("opp")

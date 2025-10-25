@@ -38,7 +38,7 @@ tags: [springboot, vue]
 ### http/https
 
 - http进行访问无限制
-- https进行访问时，不能使用http，包括请求后台/获取静态资源/iframe-src
+- https进行访问时，不能使用http，包括请求后台/加载静态资源/iframe-src
     - 主页面为http访问，主页面嵌入的iframe页面src为https(ip和端口同主页面)，在iframe嵌入的系统内通过`window.parent.frames['iframe-id']`获取时，会产生跨域(因为iframe为主页面元素，在嵌入的系统内通过`window.location.href`获取的是浏览器地址)
 
 ### 同源政策
@@ -152,6 +152,8 @@ server {
         - 如GET请求URL中包含`[]`等特殊字符，状态码返回400等情况(如果出现跨域，OPTIONS请求返回的应该是403)
 
 ```java
+优先级?: WebMvcConfigurer > CorsFilter
+
 // 法一：基于 CorsFilter(控制过滤器的级别最高, 防止其他Filter已经返回了此请求)
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Bean
@@ -160,9 +162,10 @@ public Filter corsFilter() {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
     // config.addAllowedOrigin("*");
-    config.addAllowedOriginPattern("*");
+    config.addAllowedOriginPattern("*"); // 匹配所有域名，但仍需配合 allowCredentials(true)
     config.addAllowedHeader("*");
     config.addAllowedMethod("*");
+    // allowedOrigins("*") 会和 allowCredentials(true) 冲突。当允许携带凭证（如 Cookie、HTTP 认证）时，Access-Control-Allow-Origin 不能使用通配符 *，必须指定具体的域名，可使用 CorsFilter addAllowedOriginPattern 代替
     config.setAllowCredentials(true);
     source.registerCorsConfiguration("/**", config);
     // org.springframework.web.filter.CorsFilter extends OncePerRequestFilter
@@ -177,6 +180,7 @@ public FilterRegistrationBean<?> filterRegistrationBean() {
     configuration.setAllowedMethods(Arrays.asList("*")); // GET, POST, HEAD, OPTIONS
     configuration.setAllowedHeaders(Arrays.asList("*"));
     // 接受cookie. 当前端设置了携带cookie，则需要后端配合加入下列代码(前端代码如: axios.defaults.withCredentials = true;)
+    // allowedOrigins("*") 会和 allowCredentials(true) 冲突。当允许携带凭证（如 Cookie、HTTP 认证）时，Access-Control-Allow-Origin 不能使用通配符 *，必须指定具体的域名，可使用 CorsFilter addAllowedOriginPattern 代替
     configuration.setAllowCredentials(true); 
     // 设置可被客户端缓存时间(s)，可不设置
     configuration.setMaxAge(3600L);
@@ -204,6 +208,7 @@ public WebMvcConfigurer corsConfigurer() {
                     .allowedHeaders("*")
                     .allowedMethods("*")
                     .allowedOrigins("*")
+                    // allowedOrigins("*") 会和 allowCredentials(true) 冲突。当允许携带凭证（如 Cookie、HTTP 认证）时，Access-Control-Allow-Origin 不能使用通配符 *，必须指定具体的域名，可使用 CorsFilter addAllowedOriginPattern 代替
                     .allowCredentials(true);
         }
     };
@@ -724,6 +729,18 @@ submitForm (row) {
     - vue-cli里的默认配置，css和js的名字都加了哈希值，所以新版本css、js和就旧版本的名字是不同的，只要index.html不被缓存，则css、js不会有缓存问题
 
     ```bash
+    # 推荐
+    location / {
+      root   /www/dist;
+      index  index.html index.htm;
+	  try_files $uri $uri/ /index.html;
+      
+      # 禁止缓存index.html文件
+      if ($request_filename ~* .*\.(?:htm|html)$) {
+        add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+      }
+    }
+    
     # nginx 配置，让index.html不缓存。此处的路径不一定要是index.html，只要某路径A返回的是index.html文件，则此处匹配A路径即可
     location = /index.html {
         #- nginx的expires指令：`expires [time|epoch|max|off(默认)]`。可以控制 HTTP 应答中的Expires和Cache-Control的值
@@ -791,6 +808,7 @@ server {
             - 此时，保存时数据库会自动将时间转成服务器时区，查询时数据库自动转成客户端session时区
             - 然后，代码中new Date()需要做处理
     - 代码层面处理
+      - Java时间说明: [java-base.md#时间](/_posts/java/java-base.md#时间)
 
 ## 后端其他
 

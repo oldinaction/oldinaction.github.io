@@ -1057,8 +1057,14 @@ select distinct ypyn.plan_yard_num_id, ypyn.plan_id, ypyn.bcc_cont_id, ypyn.cont
 ## SQL Server
 
 ```sql
-SET SHOWPLAN_ALL ON; -- 开启执行计划展示，开启后再运行sql语句
+SET SHOWPLAN_ALL ON; -- 开启执行计划展示
+GO -- 或者不要 GO 就分别运行此 3 条 SQL 语句
+
+select * from user; -- 在 Navicate 的第二个结果中
+GO
+
 SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
+GO
 ```
 
 ## 快速生成百万测试数据

@@ -79,7 +79,7 @@ tags: [spring, mvc]
 - `@Bean`
     - 注解配置类中的方法，表示当前方法的返回值是一个Bean，Bean的名称(id)默认是方法名
     - `@Bean("newBeanName")` 自定义Bean名称
-    - Springboot项目，将`@Bean`加入在test的代码中时无法注入
+    - SpringBoot项目，将`@Bean`加入在test的代码中时无法注入?
 
 #### @Import给容器导入一个组件
 
@@ -97,8 +97,20 @@ public class MyImportSelector implements ImportSelector {
     // AnnotationMetadata可获取当前注解@Import类的所有注解信息
     @Override
     public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        // 返回需要的导入的Bean类全名（可以不用是真实类名）
+        // 1.返回需要的导入的Bean类全名（可以不用是真实类名）
         return new String[] {"cn.aezo.smjava.javaee.spring5.bean.demo2.MyImportSelectorBean", MyImportSelectorBean.class.getName()};
+        
+        // 2.使用 ClassPathScanningCandidateComponentProvider 扫描包, 批量导入
+        // 参数 false: 表示不使用默认的过滤器。默认过滤器会自动包含被 @Component、@Repository、@Service、@Controller 注解的类，设为 false 后需手动添加过滤器
+        ClassPathScanningCandidateComponentProvider scanner = 
+            new ClassPathScanningCandidateComponentProvider(false);
+        // 手动添加过滤器
+        scanner.addIncludeFilter(new AssignableTypeFilter(AutoConfiguration.class));
+        
+        Set<BeanDefinition> candidates = scanner.findCandidateComponents("com.example");
+        return candidates.stream()
+                .map(bd -> bd.getBeanClassName())
+                .toArray(String[]::new);
     }
 }
 
@@ -150,7 +162,7 @@ public class AppConfig {}
 @Documented
 @Inherited
 @Import({MyImportSelector.class})
-public@interface EnableMyImportSelector {
+public @interface EnableMyImportSelector {
 }
 
 // 使用
@@ -202,16 +214,24 @@ public class App {
 }
 ```
 
-#### 基于Springboot的EnableAutoConfiguration
+#### 基于SpringBoot的EnableAutoConfiguration
 
-- 第三方类(不在ComponentScan的扫描范围)
+- 针对第三方类(不在ComponentScan的扫描范围)
 
 ```java
 @Component
 public class ThdClass {}
 
-// 在 META-INF/spring.factories 增加自动配置类
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.aezo.test.thd.ThdClass
+// ===> SpringBoot2: 在 META-INF/spring.factories 增加自动配置类
+// 支持#注释, 排序方式通过 @AutoConfigureBefore(before=TestService.class, beforeName="cn.aezo.demo.TestService")/After 等注解, 全量加载并过滤
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+cn.aezo.test.thd.ThdClass,\
+cn.aezo.test.thd.ThdClass2
+
+// ===> SpringBoot3: 写入到 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports 中(改成 @AutoConfiguration 注解, 貌似不支持 spring.factories)
+// 支持#注释, 排序方式与文件中的顺序一致, 按需加载(性能优化)
+cn.aezo.test.thd.ThdClass
+cn.aezo.test.thd.ThdClass2
 ```
 
 ### 自动装配(取出Bean赋值给当前类属性)
@@ -284,15 +304,17 @@ public class BaseController {
 ### 条件注解@Conditional
 
 - 根据满足某一特定条件来创建某个特定的Bean. 如某个Bean创建后才会创建另一个Bean(Spring 4.x)
+  - bean定义期间生效; @Lazy是初始化期间生效, 晚初始化
 - 类似的如`@Profile("dev")`标识仅在开发环境才会注入此Bean
 - 内置条件
     - `@ConditionalOnProperty` 要求配置属性匹配条件
         - `havingValue` 表示对应参数值。注解中如果省略此属性，则此参数为false时，条件结果才为false
         - `matchIfMissing` 表示缺少该配置属性时是否可以加载。如果为true，即表示没有该配置属性时也会正常加载；反之则不会生效
         - eg：@ConditionalOnProperty(value = {"feign.compression.response.enabled"}, matchIfMissing = false) 、@ConditionalOnProperty(name = "zuul.use-filter", havingValue = "true", matchIfMissing = false)
-    - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在beanFactory中不存在时返回true，各类型间是or的关系(不填参数则表示没有@Bean返回的对象类型时生效)
+    - `@ConditionalOnMissingBean` 当给定的类型/类名/注解在 beanFactory 中不存在时返回true，各类型间是or的关系(不填参数则表示没有@Bean返回的对象类型时生效)
         - **只能对@Bean生效，如直接注解在@Bean的方法上，或注解在含有@Bean方法的类上；对@Service等类不生效，需要设置成@Bean模式**
-
+        - 还和 Bean 的注册顺序有关, 如果加了@ConditionalOnMissingBea的注解优先级比较高导致先注册了, 那么就相当于注册失效. 参考[加载优先级](#加载优先级)
+        
         ```java
         // eg：@ConditionalOnMissingBean(type = {"okhttp3.OkHttpClient"})
 
@@ -305,7 +327,7 @@ public class BaseController {
         public @interface ConditionalOnMissingBean {
             // 需要检查的 bean 的 class 类型。如: @ConditionalOnMissingBean(value = MyService.class)
             Class<?>[] value() default {}; 
-            // 需要检查的 bean 的 class 类型名称。默认。@ConditionalOnMissingBean(type = "MyService") == @ConditionalOnMissingBean
+            // 需要检查的 bean 的 class 类型名称，默认。@ConditionalOnMissingBean(type = "MyService") == @ConditionalOnMissingBean
             String[] type() default {};
             // 识别匹配 bean 时，可以被忽略的 bean 的 class 类型
             Class<?>[] ignored() default {};
@@ -315,7 +337,7 @@ public class BaseController {
             Class<? extends Annotation>[] annotation() default {};
             // 需要检查的 bean 的 name。如: @ConditionalOnMissingBean(name = "myService")
             String[] name() default {};
-            // 搜索容器层级:当前容器/父容器/所有(默认)
+            // 搜索容器层级: 当前容器/父容器/所有(默认)
             SearchStrategy search() default SearchStrategy.ALL;
         }
         ```
@@ -728,18 +750,28 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 
 ### 加载优先级
 
+- 可通过自定义 BeanDefinitionRegistryPostProcessor 控制顺序
+- BeanPostProcessor 扩展优先于其他Bean被实例化，参考[ApplicationContext:SpringU](#ApplicationContext)
+- 用户自定义配置类 和 自动配置类 的加载机制不同
+    - 自动配置类: 通过 META-INF/spring.factories#EnableAutoConfiguration 或 @ImportAutoConfiguration 加载的类, SpringBoot3还可使用 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports 加载bean
+        - 自动装配的类之间的顺序可以使用 @Order，Order接口，@AutoConfigureBefore，@AutoConfigureAfter，AutoConfigureOrder 改变注册顺序
+    - 用户自定义配置类: 通过 @Component/@Configuration/@Service 等注解直接标注的类
+        - 通常通过 @ComponentScan 注解扫描包路径发现
+        - 用户自定义配置类之间的顺序是按照文件的目录结构从上到下排序，并且无法干预，上述 @Order 等无法改变注册顺序，仅影响 Bean 的初始化顺序
+    - **用户自定义配置类 在 自动配置类 的前面进行注册**
+    - @Import 导入的类属于用户自定义配置类(尽管导入的类是@AutoConfiguration注解), 除非使用 @ImportAutoConfiguration 导入bean才属于自动配置类
 - 同一个类中加载顺序
     - Constructor > @Autowired/@Value > @PostConstruct > @Bean/@Component/setApplicationContext等
+    - 同一个类中 @Bean 前面的方法先加载
 - @DependsOn控制顺序
     - `@DepondensOn("springU")` 如在@PostConstuct方法中使用SpringU等工具类会报空指针。因为@PostConstuct修饰的方法在Spring容器启动时会先于该工具类的setApplicationContext()方法运行。解决方法参考下文 BeanPostProcessor
     - 控制 bean 之间的实例顺序，需要注意的是 bean 的初始化方法调用顺序无法保证
-- BeanPostProcessor 扩展优先于其他Bean，参考[ApplicationContext:SpringU](#ApplicationContext)
-- `@Lazy` 和@Autowired结合使用，当两个Bean发生循环依赖时，可将其中一个Bean的注入设置成懒加载
-- SpringBoot下可使用`@AutoConfigureAfter`、`@AutoConfigureBefore`、`@AutoConfigureOrder` 控制自动配置类加载优先级
+- SpringBoot下可使用`@AutoConfigureAfter`、`@AutoConfigureBefore`、`@AutoConfigureOrder` 控制自动配置类加载优先级. 或如 `@AutoConfiguration(before = MybatisPlusAutoConfiguration.class)`
     - `自定义配置类`: 使用@Configuration等注解的类
-    - `自动配置类`: META-INF下/spring.factories文件中定义的配置类; 此文件一般用于第三方包，也可用于主项目
+    - `自动配置类`: META-INF/spring.factories 文件中定义的配置类; 此文件一般用于第三方包，也可用于主项目
     - SpringBoot会优先加载自定义配置类，再加载自动配置类
     - 上述3个注解只有在自动配置类下才会生效；如果一个配置类是通过@Configuration扫描加载，那么上述3个注解将无效
+- `@Lazy` 影响 Bean 的初始化, 不影响注册. 和@Autowired结合使用，当两个Bean发生循环依赖时，可将其中一个Bean的注入设置成懒加载
 
 ## AOP
 
@@ -824,10 +856,11 @@ public class MyBean3 implements InitializingBean, DisposableBean {
 
         @Around("pointcut()")
         public Object around(ProceedingJoinPoint pjp) throws Throwable {
-            Object[] args = pjp.getArgs(); // 获取被切入方法参数值
+            Object[] args = pjp.getArgs(); // 获取被切入方法参数值, 可对传入参数进行修改
 
             this.printLog("execution方法执行前");
-            Object retObj = pjp.proceed();
+            // Object retObj = pjp.proceed();
+            Object retObj = pjp.proceed(args);
             this.printLog("execution方法执行后");
 
             return retObj;
@@ -1024,12 +1057,13 @@ public class SpringUBeanPostProcessor extends InstantiationAwareBeanPostProcesso
                     "AutowiredAnnotationBeanPostProcessor requires a ConfigurableListableBeanFactory: " + beanFactory);
         }
         this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
-        // 实现InstantiationAwareBeanPostProcessor接口的类会优先于 Bean 被实例
+        // 实现 InstantiationAwareBeanPostProcessor 接口的类会优先于 Bean 被实例
         // 手动触发 bean 的实例
         beanFactory.getBean(SpringU.class);
     }
 }
 
+// 或者基于EnableAutoConfiguration等实现自动装配(参考上文), 就不需要创建EnableSqU和添加到启动类上了
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
@@ -1083,10 +1117,14 @@ public class Application {}
         }
 
         @Async
+        @Transactional(propagation = Propagation.REQUIRES_NEW) // 开启新的事务
         public void executeAsyncTaskPlus(Integer i) {
             System.out.println("i+1 = " + (i+1));
         }
     }
+  
+    // 调用异步方法
+    asyncTaskService.executeAsyncTask(1);
     ```
 
 ## 计划任务@Scheduled
@@ -1999,8 +2037,13 @@ public class CustomerWebMvcConfig implements WebMvcConfigurer {
     public void configurePathMatch(PathMatchConfigurer configurer) {
         // setUseSuffixPatternMatch: 是否启用后缀模式匹配，如 /user 是否匹配 /user.*，默认真即匹配。如果需要完全匹配 /user、/user.html，则设置成false
         // setUseTrailingSlashMatch: 是否自动后缀路径模式匹配，如 /user 是否匹配 /user/，默认真即匹配
-        configurer.setUseSuffixPatternMatch(true)
-                .setUseTrailingSlashMatch(true);
+        configurer.setUseSuffixPatternMatch(false)
+                .setUseTrailingSlashMatch(false);
+        
+        // 如yudao基于包名正则匹配定义不同的路径前缀
+        AntPathMatcher antPathMatcher = new AntPathMatcher(".");
+        configurer.addPathPrefix("/admin-api", clazz -> clazz.isAnnotationPresent(RestController.class)
+                && antPathMatcher.match("**.controller.admin.**", clazz.getPackage().getName()));
     }
 
     // 往InterceptorRegistry中注册。或者继承 WebMvcConfigurerAdapter减少不必要接口的实现（Spring5已经废弃，因为 JDK8提供了默认接口）
@@ -2026,8 +2069,8 @@ public class CustomerWebMvcConfig implements WebMvcConfigurer {
 
 - annotation
     - `@Import` 导入Bean，具体见上文
-    - `@ImportResource`
-    - `ImportSelector`
+    - `@ImportResource` 导入资源
+    - `ImportSelector` 导入 Bean 时, 指定需要导入哪些 Bean
     - `DeferredImportSelector`
     - `ImportBeanDefinitionRegistrar`
 

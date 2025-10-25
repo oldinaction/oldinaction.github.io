@@ -15,6 +15,9 @@ tags: test
     - Selenium Grid：能并行的运行测试，也就是说，不同的测试可以同时跑在不同的远程机器上
 - [官方Doc](https://docs.seleniumhq.org/docs/)、[github](https://github.com/SeleniumHQ/selenium)
 - [Chrome DevTools Protocol (CDP)文档](https://chromedevtools.github.io/devtools-protocol/)
+- 相关项目
+    - spider-flow可视化 https://gitee.com/ssssssss-team/spider-flow
+    - SeleniumBase 基于Selenium封装
 - 本文基于python3 + selenium 4.9.0
 
 ## 安装

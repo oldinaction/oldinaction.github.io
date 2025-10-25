@@ -31,6 +31,8 @@ tags: [linux, shell]
         - [openSUSE](https://www.opensuse.org/) 开源
     - [Arch Linux](https://www.archlinux.org/) 开源
     - `Alibaba Cloud Linux 3` 是阿里云官方Linux操作系统的第三代发行版，选择Linux kernel 5.10 LTS作为内核，选择阿里云提供的GCC 10.2、binutils 2.35、glibc 2.32的编译器，完全兼容CentOS 8、RHEL 8软件生态
+    - 国产化
+        - UnionTech OS Server 统信. 版本如: release 20
 - [阿里云Linux体验馆](https://developer.aliyun.com/adc/expo/linux)
 
 ### 基础操作
@@ -183,6 +185,7 @@ tags: [linux, shell]
 - `df -h` 查看磁盘使用情况、分区、挂载点(**只会显示成功挂载的分区，新磁盘需要进行分区和挂载**)
     - `df -h /home/test` 查询目录使用情况、分区、挂载点（一般/dev/vda1为系统挂载点，重装系统数据无法保留；/dev/vab或/dev/mapper/centos-root等用来存储数据）
     - `df -Th` 查询文件系统格式
+- `df -i` **查看磁盘Inodes使用情况**，如果Inodes对应IFree不足，尽管有磁盘空间也无法创建文件。如果小文件非常多，可能会出现此问题，可将历史文件压缩并删除原文件(Inodes和磁盘空间成正比, 只能通过扩充磁盘来扩充)
 - `du -sh /home/test` **查看某个目录的每个子目录的文件大小**
     - `du` 它的数据是基于文件获取，可以跨多个分区操作。`df`它的数据基于分区元数据，只能针对整个分区
     - 参数说明
@@ -191,7 +194,7 @@ tags: [linux, shell]
         - `-h` 显示人类可读的文件大小
         - `-m` 已MB大小为单位
         - `-c` 最后显示汇总数
-    - `du -shc 2020* | sort -h` **查看当前目录以2020开头的目录大小**
+    - `du -shc 2020* | sort -h` **查看当前目录以2020开头的目录大小, 并从小到大排列**
     - `du -hc *2020* | tail -n 1` 统计当前目录文件名包含2020的文件大小(显示最后一行相当于显示最后的总计)
     - `du -ahm --max-depth=1 | sort -nr | head -10` **查看当前目录以及一级子目录磁盘使用情况。二级子目录可改成2，并按从大倒小排列**(查看大目录)
     - `du -shx * | sort -rh | head -10` 查看最大的10个文件 (sort -h升序, -rh降序)
@@ -265,6 +268,7 @@ tags: [linux, shell]
 - `basename <file>` 返回一个字符串参数的基本文件名称。如：`basename /home/test/test.txt`返回test.txt
 - `wc <file>` 统计指定文本文件的行数、字数、字节数 
     - `wc -l <file>` 查看行数
+    - `ll | wc -l` 查看文件数(需-1)
 - [lsof](https://www.netadmintools.com/html/lsof.man.html) 列出打开文件(lists openfiles), linux一切皆文件
 
 ```bash
@@ -550,6 +554,15 @@ echo 0 > /proc/sys/vm/drop_caches
 swapon -s # 查看swap状态
 swapoff /tmp/swap # 卸载swap分区(释放)
 swapon /tmp/swap # 重新挂载swap分区
+
+## 有Swap空间，但是使用量为0
+# 查看swappiness参数（0-100, 默认60, 0表示几乎不使用Swap空间, 100表示优先使用Swap, 不推荐100）
+cat /proc/sys/vm/swappiness
+# 临时修改swappiness（立即生效，重启后失效）
+sysctl vm.swappiness=30  # 设置为30（推荐值，平衡性能与内存压力）
+# 永久修改（添加到配置文件）
+echo "vm.swappiness=30" >> /etc/sysctl.conf
+sysctl -p  # 应用配置
 ```
 
 ### 压缩包(推荐tar) [^1]
@@ -558,29 +571,29 @@ swapon /tmp/swap # 重新挂载swap分区
 
 - 解压：**`tar -zxvf archive.tar.gz -C /tmp`** 解压tar包，将gzip压缩包释放到/tmp目录下(tar不存在乱码问题)
     - `tar -xvf archive.tar` 表示解压到当前目录
-- 压缩：**`tar -zcvf aezocn.tar.gz file1 file2 *.jpg dir1`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
+- 压缩：**`tar -zcvf aezocn.tar.gz file1 *.jpg dir1 dir2000*`** 将此目录所有jpg文件和dir1目录打包成aezocn.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为aezocn.tar.gz(体积会小很多：1/10). windows可使用7-zip
 - 参数说明
     - 独立命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个
-        - **`-x`**：解压
+        - **`-x`**: 解压
         - **`-c`**: 建立压缩档案
-        - `-t`：查看 tarfile 里面的文件
-        - `-r`：向压缩归档文件末尾追加文件
-        - `-u`：更新原压缩包中的文件
+        - `-t`: 查看 tarfile 里面的文件
+        - `-r`: 向压缩归档文件末尾追加文件
+        - `-u`: 更新原压缩包中的文件
     - 必须
-        - **`-f`**：使用档案名字，**切记这个参数一般放在后面，后面只能接档案名**
+        - **`-f`**: 使用档案名字，**切记这个参数一般放在后面，后面只能接档案名**
     - 解/压缩类型(可选)
-        - `-z`：有gzip属性的(archive.tar.gz)，**文件必须是以.gz/.gzip结尾**
-        - `-J`：有xz属性的(archive.tar.xz)
-        - `-j`：有bz2属性的(archive.tar.bz2)
-        - `-Z`：有compress属性的(archive.tar.Z)
+        - `-z`: 有gzip属性的(archive.tar.gz)，**文件必须是以.gz/.gzip结尾**
+        - `-J`: 有xz属性的(archive.tar.xz)
+        - `-j`: 有bz2属性的(archive.tar.bz2)
+        - `-Z`: 有compress属性的(archive.tar.Z)
     - 其他可选
-        - **`-v`**：显示所有过程
+        - **`-v`** 显示所有过程
         - **`-C`** 解压到指定目录(默认是当前目录)
-        - **`-P`** 可以使用绝对路径来压缩。*nix系统中，使用tar对文件打包时，一般不建议使用绝对路径
-            - `tar -zcvPf /home/test/demo.tar.gz /home/test/demo` 生成的压缩包包含绝对路径
+        - **`-P`** 可以使用绝对路径来压缩
+            - `tar -zcvPf /home/test/demo.tar.gz /home/test/demo` **生成的压缩包包含绝对路径(一般不用)**
             - `tar -zxcPf /home/test/demo.tar.gz` 解压也要带上`-P`，从而解压出文件/home/test/demo，否则解压出文件`~/home/test/demo`(在当前目录再创建原根目录)
         - `-p` 使用原文件的原来属性（属性不会依据使用者而变）
-        - `-O`：将文件解开到标准输出    
+        - `-O` 将文件解开到标准输出
 
 #### gz/gzip
 
@@ -998,7 +1011,7 @@ vi /etc/ssh/sshd_config
 
 ## 修改文件内容
 Port 222 # 修改原22端口为222端口
-# (可选)是否允许root用户登陆(no不允许)，**如果要基于root证书登录则还是需要设置为yes**
+# (可选)是否允许root用户登陆(no不允许, 但是可以通过su切换/sudo su切换)，**如果要基于root证书登录则还是需要设置为yes**
 PermitRootLogin no
 # 是否允许使用用户名密码登录(no不允许，此时只能使用证书登录。在没有生成好Key，并且成功使用之前，不要设置为no)
 PasswordAuthentication no
@@ -1399,6 +1412,7 @@ vm.dirty_writeback_centisecs = 500
 
 ### 磁盘
 
+- [NFS挂载参考](/_posts/linux/CentOS服务器使用说明.md#NFS)
 - linux分区命名(/dev/xxyN)
     - linux将所有的硬件也看作是文件，全部在`/dev`目录
         - `/dev/cdrom` 光驱
@@ -1883,11 +1897,13 @@ find ./ -mtime +10 -a -mtime -20 -type f # 搜索出最近10到20天内修改过
 find ./ -mtime +30 -name "*.gz" | xargs ls -lh # 查询当前目录或子目录(./可省略)中30天之前的gz压缩包文件
 find . -type f -size +500M  -print0 | xargs -0 du -hm | sort -nr # 查看大于500M的前10个文件(查看大文件)
 find /home/test/s_*/in -maxdepth 1 -type f # 查询s_开头目录下，in目录的文件（不包含in的子目录）。或者 find /home/test/s_*/in/* -type f
+find path_a path_b -name "2020*" -o -name "2021*" # 查找两个目录下2020或2021开头的文件/目录
+find . -regex '.*/\(2021\|2022\).*' # 查找2021或2022的文件或子目录(如: ./2021/01/file.txt ./data/2022_logs.zip)
 
 find ./ -mtime +30 -name "*.gz" | [sudo] xargs rm -rf # 删除30天之前的gz压缩文件
 
-find path_A -name '*AAA*' -exec mv -t path_B {} + # 批量移动，下同
-find path_A -name "*AAA*" -print0 | xargs -0 -I {} mv {} path_B
+find path_a -name '*AAA*' -exec mv -t path_B {} + # 批量移动，下同
+find path_a -name "*AAA*" -print0 | xargs -0 -I {} mv {} path_B
 
 find . -type d -exec chmod 755 {} \; # 修改当前目录及其子目录为775
 find . -type f -exec chmod 644 {} \; # 修改当前目录及其子目录的所有文件为644

@@ -465,7 +465,16 @@ yarn link [xxx]
 
 - [pnpm](https://pnpm.io/)
 - performant npm，意味"高性能的 npm"，pnpm由npm/yarn衍生而来
-- 速度快、节约磁盘空间、支持monorepo、安全性高
+- 特点
+    - 严格依赖隔离: 阻止隐式依赖、解决版本冲突
+        - npm会自动安装依赖的依赖, 而pnpm则只能安装和使用package.json里面声明的依赖
+        - 两个包A/B同时依赖不同版本的C, npm无法兼容(一般选择新的), pnpm支持兼容 
+        - 参考: https://article.juejin.cn/post/7520964915349667875
+    - 全局缓存 + 硬链接: 安装速度快、磁盘节省、多个项目共享依赖
+    - 严格锁定依赖版本: CI和本地一致
+    - 支持monorepo
+- 版本要求
+  - pnpm5(node10支持), pnpm6(node12+), pnpm7(node14+), pnpm8(node16+),
 
 ```bash
 # 安装
@@ -746,6 +755,13 @@ npm install --save @babel/polyfill
         - Comment: 注释
     - 案例参考(不用打包，提交npm安装即可)：https://github.com/postcss/postcss-focus
     - 初始化一个插件`npx postcss-plugin-boilerplate --npm postcss-mytest`
+
+### plop模板代码生成
+
+- 参考: [vue-element-admin工程](https://github.com/PanJiaChen/vue-element-admin)
+  - 在项目根目录创建 plopfile.js
+  - 创建 plop-templates 模板文件
+  - 命令行执行如 `npx plop component` 基于 component 模板文件生成组件
 
 ## 格式规范化
 

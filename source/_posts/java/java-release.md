@@ -10,7 +10,26 @@ tags: [jdk]
 
 - [Java SE Specifications各版本规范](https://docs.oracle.com/javase/specs/index.html)
 
-## JDK9新特性 [^3]
+## JDK16新特性
+
+- instanceof 增强语法
+
+```java
+// 以前
+if (beanFactory instanceof BeanDefinitionRegistry) {
+    BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+    // 使用 registry
+}
+
+// 现在
+if (beanFactory instanceof BeanDefinitionRegistry registry) {
+    // 使用 registry
+}
+```
+
+## JDK9新特性
+
+- 参考 [^3]
 
 ### 模块系统(Jigsaw)
 
@@ -93,7 +112,9 @@ public class T1_VarHandle {
 }
 ```
 
-## JDK8新特性 [^1]
+## JDK8新特性
+
+- 参考 [^1]
 
 ### Lambda表达式
 
@@ -260,6 +281,9 @@ myGoods.stream()
         .forEach(dbNo -> {
             System.out.println("dbNo = " + dbNo);
         });
+        
+// 将所有value增加5（仅演示，实际修改需注意Map的可变性）
+map.forEach((key, value) -> map.put(key, value + 5));
 
 List<Integer> nos = students
                     .stream()
@@ -292,6 +316,10 @@ Map<String, List<Product>> prodMap = prodList.stream().collect(Collectors.groupi
 // 求和: {"零食": 7, "啤酒": 8}
 // IntSummaryStatistics{count, sum, min, max}为某个分类的统计信息; 其他如Collectors.summarizingDouble(如果统计金额还需再进行手动取整)
 Map<String, IntSummaryStatistics> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingInt(Product::getNum))); // Collectors.summingInt(x -> 1) 相当于进行计数
+
+// 结合 Collectors.toMap 相当于 CollUtil.fieldValueAsMap
+Map<String, String> idNameMap = userList.stream()
+					.collect(Collectors.toMap(item -> item.getId(), item -> item.getName()));
 
 // ifPresent判断是否存在
 Optional<User> firstOpt= list.stream().filter(a -> "admin".equals(a.getUserName())).findFirst();
@@ -465,8 +493,7 @@ public void test() {
 // 数组说明: 不支持 arr.map 方法; 但是支持 arr.forEach 方法，如: var result = []; [1, 2, 3].forEach(function(item) { result.push(item * 2); });
 
 // JavaScript 中调用 Java 类参考：https://www.runoob.com/java/java8-nashorn-javascript.html
-// 调用Java方法也支持事物
-// JS代码
+// 调用Java方法也支持事物. JS代码如下
 var BigDecimal = Java.type('java.math.BigDecimal');
 function calculate(amount, percentage) {
     // 如果返回的是一个新的类对象，不用声明，直接使用其方法即可
@@ -474,7 +501,11 @@ function calculate(amount, percentage) {
     new BigDecimal(percentage)).divide(new BigDecimal("100"), 2, BigDecimal.ROUND_HALF_EVEN);
     return result.toPlainString();
 }
-function test() {}
+function test() {
+    var SpringU = Java.type('cn.aezo.test.SpringU');
+    var jdbcTemplate = SpringU.getBean("jdbcTemplate");
+    jdbcTemplate.update("INSERT INTO T_LOG(ID, OPER_COD, OPER_DTE, OPER_TXT) VALUES (SEQ_T_LOG.NEXTVAL, 'test', sysdate, ?)", 'hello');
+}
 var result = calculate(568000000000000000023, 13.9);
 print(result);
 
@@ -487,6 +518,17 @@ function test() {
     // 实际返回 [{name: 'test', arr: {"0": 1, "1": 2}}]
     return Java.to([{name: 'test', arr: [1, 2]}], 'java.util.List');
 }
+
+// 正则表达式
+var str = 'hi, hello world;';
+// 直接使用//作为正则表达式
+/hello\s+world/.test(str); // true
+// 使用字符串参数作为正则表达式需要转义一下\
+new RegExp('hello\\s+world').test(str); // true, 在JS控制台也可正常执行
+// 直接打印会去掉转义符. 此处如果直接定义字符串则需要增加转义符; 如果pattern这个值使用数据库读取的, 则数据库需要配置成"hello\s+world", 即无需转义符
+var pattern = 'hello\\s+world';
+print(pattern); // hello\s+world
+new RegExp(pattern).test(str); // true
 ```
 
 ## 未知

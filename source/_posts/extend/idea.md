@@ -404,6 +404,10 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - 项目之前正常，突然有一天打开通过maven可以正常编译，但是项目中的类在idea中引入失败(报红，像找不到这个类一样)
     - 多清理缓存重启几次
     - https://cloud.tencent.com/developer/article/1706964
+- **Run Configuration配置实现多模块打包时，子模块自动更新成最新包**
+    - 添加一个 Maven 运行配置
+    - 选择项目目录, Command line填写`package`(不需要 mvn)
+    - Before launch 增加两个 Run Maven Goal, Command line 分别填写 clean 和 install
 
 ### JDK及Maven版本
 

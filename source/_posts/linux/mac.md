@@ -555,6 +555,8 @@ jenv global 1.8
 
 ### 安卓模拟器
 
+- 推荐使用 AS 内置模拟器，参考[android.md](/_posts/mobile/android.md#安装)
+
 ```bash
 # 参考: https://ov-vo.cn/573.html
 # 安装ADB
@@ -569,8 +571,9 @@ https://github.com/google/android-emulator-m1-preview/releases/tag/0.3
 打开设置窗口 - Settings- 取消勾选Use detected ADB location
 点击后面的文件夹图标找到ADB文件路径(Cmd+Shift+G前往opt目录) /opt/homebrew/Caskroom/android-platform-tools/33.0.1.../platform-tools/adb
 # 修改虚拟机基本设置(可选)
-编辑/applications/android \ emulator.app/cottents/macos/Pixel_5_API_31/config.ini 配置文件
-默认分配 4CPU 4GBRAM 5GB用户空间 分辨率2340*1080 DPI400，可按需修改
+# 默认分配 4CPU 4GBRAM 5GB用户空间 分辨率2340*1080 DPI400
+# **可按需修改** disk.dataPartition.size 磁盘文件大小 (打开之后再修改就无效了)
+vi "/Applications/Android Emulator.app/Contents/MacOS/api30-gphone-arm64-v8a/config.ini"
 # 可直接将豌豆荚下载好拖拽到模拟器进行安装
 ```
 
@@ -635,10 +638,24 @@ launchctl unload ~/Library/LaunchAgents/com.example.testscript.plist
 </plist>
 ```
 
+### 将脚本包装成App
+
+- 打开"脚本编辑器" - 左下角新建文稿
+- 写入脚本内容(AppleScript)
+
+```bash
+tell application "Terminal"
+	activate -- 激活终端应用
+	do script "/Users/user/Documents/.cursor-free-vip/CursorFreeVIP_1.11.03_mac_arm64" -- 执行命令
+end tell
+```
+- 保存脚本 - 选择保存为"应用程序", 最终会保存为"xxx.app"(如果保存位置不对, 可导出到如应用程序文件夹), 打开文件简介可将图片复制上去进行更换App图标
+- 之后仍然可以通过"脚本编辑器"打开此文件进行编辑
 
 ### 更换App图标
 
 - App图标为icns格式，可将[png转icns图片](https://www.aconvert.com/cn/image/png-to-icns)；如: 大小300x300px, 边框留24px透明空白背景
+    - 也可以直接使用其他图片复制过去即可，**SVG 格式效果最好**（PNG 格式也会比较丑），SVG图片库: https://www.iconarchive.com/
 - 右键App程序 - 简介 - 将icns图片复制粘贴到左上角的图标处
 
 ### 微信双开

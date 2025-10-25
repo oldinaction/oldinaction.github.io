@@ -22,6 +22,11 @@ tags: [ai]
     - ChatGPT: 问答模式
     - [claude](https://claude.ai)
         - 支持附件
+- AI编程
+    - Claude: 收费
+    - Cursor: IDE, 需要国外手机号, 收费
+    - Trea: IDE, 字节
+    - Kimi K2
 - AI绘图
     - [Midjourney](https://www.midjourney.com/): ai绘图（新用户有25次的免费使用额度）
         - Discord使用地址: https://discord.com/invite/midjourney
@@ -65,46 +70,6 @@ ollama run deepseek-r1:1.5b
     - GPT-4: 8K context版 $0.03/1K 问题tokens，$0.06/1K 回答tokens；32K context版 $0.06/1K 问题tokens，$0.12/1K 回答tokens
 - ChatGPT: WEB端访问免费；升级Plus，每月$20，速度和回复质量有所提高
 - 官方提供的GPT Token收费计算器: https://platform.openai.com/tokenizer
-
-## 百度
-
-- 飞桨(百度) https://aistudio.baidu.com/index
-
-### 千帆大模型
-
-> https://www.yuque.com/aezo/emoai/ri3rzvdhdgqk9fae?singleDoc
-
-首先介绍一下百度AI相关产品矩阵，如下图百度力推的千帆大模型超级工厂，他包含
-
-- 千帆大模型平台：其中大模型开发就是自己训练一个大模型，这种比较有技术含量，少部分企业才会用到；大模型调用则包含百度开放的文心大模型(即文心一言，ERNIE 4.0和ERNIE 3.5为模型版本分类，对标ChatGPT)，还包括一些第三方模型供调用
-- 千帆AppBuilder：是提供开发者基于文心大模型可以快速开发出一个AI应用，创建的应用可以集成一些官方的组件（如天气查询、快递查询等），也可以集成自定义组件（通过画布拖拽，自行编排组件逻辑，如调用企业内部API或调用大模型接口），另外还可导入知识库供大模型使用(支持txt/pdf/doc/url等模式)。通过AppBuilder创建的应用官方提供一个访问链接供普通用户使用（界面是通用的AI聊天界面），开发者也可以通过SDK调用创建的AI应用从而集成到实际的业务系统中。这部分会在后续文章中做详细说明
-- 千帆AI原生应用商店：就是百度自己开发的AI应用。如超级助理，下载浏览器插件即可使用，支持划词翻译、网页解读、OCR识别等功能
-
-创建应用：进入 https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application 创建，可勾选启用的模型，如ERNIE-3.5-8K、ERNIE-4.0-8K、Yi-34B-Chat(免费)等
-
-- [模型类型说明](https://console.bce.baidu.com/qianfan/modelcenter/model/buildIn/list)
-    - ERNIE(百度): ERNIE-3.5、ERNIE-4.0
-    - Yi(零一万物, 李开复): Yi-34B-Chat(免费)
-    - Meta-Llama(Meta AI, Facebook)
-- [模型计费说明](https://console.bce.baidu.com/qianfan/chargemanage/list)
-    - ERNIE-4.0-8K: 输入：¥0.03元/千tokens, 输出：¥0.09元/千tokens
-    - ERNIE-3.5-128K: 0.0008+0.002
-    - ERNIE-Speed-128K(免费, 需开通, 每分钟请求Token数RPM=500)
-    - Yi-34B-Chat(免费, 无需开通)
-- [模型推理说明](https://console.bce.baidu.com/qianfan/ais/console/onlineService): 展示了模型服务名称和API地址，以及调用频率限制
-    - 超过频率限制报错如: `Open api daily request limit reached` 同一个AppKey/Secret对于不同的模型有各自的调用频率限制, 不互相影响(如A模型超过调用量, 仍然可以调用B模型)
-
-### 千帆AppBuilder
-
-> https://www.yuque.com/aezo/emoai/hvmavirgbxdf7p24?singleDoc
-
-千帆AppBuilder是提供开发者基于文心大模型可以快速开发出一个AI应用
-
-创建的应用可以集成一些官方的组件（如天气查询、快递查询等），也可以集成自定义组件（通过画布拖拽，自行编排组件逻辑，如调用企业内部API或调用大模型接口）
-
-另外还可导入知识库供大模型使用(支持txt/pdf/doc/url等模式)
-
-通过AppBuilder创建的应用官方提供一个访问链接供普通用户使用（界面是通用的AI聊天界面），开发者也可以通过SDK调用创建的AI应用从而集成到实际的业务系统中
 
 ## 阿里
 
@@ -165,6 +130,48 @@ ollama run deepseek-r1:1.5b
     - [扣子](https://www.coze.cn/): https://www.volcengine.com/product/coze-pro
         - 零代码快速搭建个性化AI应用(插件丰富), 也支持API调用
         - 基础版免费(豆包个人自建智能体就是基于扣子实现)
+
+## Kimi
+
+## 百度
+
+- 飞桨(百度) https://aistudio.baidu.com/index
+
+### 千帆大模型
+
+> https://www.yuque.com/aezo/emoai/ri3rzvdhdgqk9fae?singleDoc
+
+首先介绍一下百度AI相关产品矩阵，如下图百度力推的千帆大模型超级工厂，他包含
+
+- 千帆大模型平台：其中大模型开发就是自己训练一个大模型，这种比较有技术含量，少部分企业才会用到；大模型调用则包含百度开放的文心大模型(即文心一言，ERNIE 4.0和ERNIE 3.5为模型版本分类，对标ChatGPT)，还包括一些第三方模型供调用
+- 千帆AppBuilder：是提供开发者基于文心大模型可以快速开发出一个AI应用，创建的应用可以集成一些官方的组件（如天气查询、快递查询等），也可以集成自定义组件（通过画布拖拽，自行编排组件逻辑，如调用企业内部API或调用大模型接口），另外还可导入知识库供大模型使用(支持txt/pdf/doc/url等模式)。通过AppBuilder创建的应用官方提供一个访问链接供普通用户使用（界面是通用的AI聊天界面），开发者也可以通过SDK调用创建的AI应用从而集成到实际的业务系统中。这部分会在后续文章中做详细说明
+- 千帆AI原生应用商店：就是百度自己开发的AI应用。如超级助理，下载浏览器插件即可使用，支持划词翻译、网页解读、OCR识别等功能
+
+创建应用：进入 https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application 创建，可勾选启用的模型，如ERNIE-3.5-8K、ERNIE-4.0-8K、Yi-34B-Chat(免费)等
+
+- [模型类型说明](https://console.bce.baidu.com/qianfan/modelcenter/model/buildIn/list)
+    - ERNIE(百度): ERNIE-3.5、ERNIE-4.0
+    - Yi(零一万物, 李开复): Yi-34B-Chat(免费)
+    - Meta-Llama(Meta AI, Facebook)
+- [模型计费说明](https://console.bce.baidu.com/qianfan/chargemanage/list)
+    - ERNIE-4.0-8K: 输入：¥0.03元/千tokens, 输出：¥0.09元/千tokens
+    - ERNIE-3.5-128K: 0.0008+0.002
+    - ERNIE-Speed-128K(免费, 需开通, 每分钟请求Token数RPM=500)
+    - Yi-34B-Chat(免费, 无需开通)
+- [模型推理说明](https://console.bce.baidu.com/qianfan/ais/console/onlineService): 展示了模型服务名称和API地址，以及调用频率限制
+    - 超过频率限制报错如: `Open api daily request limit reached` 同一个AppKey/Secret对于不同的模型有各自的调用频率限制, 不互相影响(如A模型超过调用量, 仍然可以调用B模型)
+
+### 千帆AppBuilder
+
+> https://www.yuque.com/aezo/emoai/hvmavirgbxdf7p24?singleDoc
+
+千帆AppBuilder是提供开发者基于文心大模型可以快速开发出一个AI应用
+
+创建的应用可以集成一些官方的组件（如天气查询、快递查询等），也可以集成自定义组件（通过画布拖拽，自行编排组件逻辑，如调用企业内部API或调用大模型接口）
+
+另外还可导入知识库供大模型使用(支持txt/pdf/doc/url等模式)
+
+通过AppBuilder创建的应用官方提供一个访问链接供普通用户使用（界面是通用的AI聊天界面），开发者也可以通过SDK调用创建的AI应用从而集成到实际的业务系统中
 
 ## 有道
 

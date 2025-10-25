@@ -67,6 +67,8 @@ tags: [plugins, debug]
 
 ## 调试技巧
 
+- Chrome浏览器本身控制缓存机制: 参考[nginx.md#结合浏览器缓存](/_posts/arch/nginx.md#结合浏览器缓存)
+
 ### F12开发者工具
 
 - `ctrl + shift + i`/`F12` 打开开发者工具
@@ -197,8 +199,24 @@ console.group("站点信息");console.log("Name: Hello World");console.log("Auth
     - chrome://history 直接访问 Chrome 浏览器访问的历史记录
     - chrome://apps 访问 Chrome 浏览器中安装的应用的界面，可以对应用进行删除管理
     - chrome://bookmarks 直接访问 Chrome 浏览器中我们收藏的标签
-    - chrome://net-internals/#dns 查看并清除DNS缓存
+    - chrome://net-internals/#dns 查看并清除DNS缓存 (不一定能清理干净)
+
+        ```bash
+        # Mac电脑查询 DNS 解析 (基于当前网络配置的 DNS 服务器查询)
+        dig baidu.com
+        # 基于公共 DNS 服务器查询
+        dig @8.8.8.8 baidu.com
+        
+        # 清理Mac的 DNS 缓存
+        sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+        # 清理无效时可考虑修改当前网络 DNS 配置为公共 DNS 服务器, 再解析后配置回来
+        ```
     - chrome://devices 查看连接电脑的设备，比如传统打印机中，可设置添加打印机到 Google 云打印的入口
+
+## 常见问题
+
+- 浏览器打开后白屏: 可尝试关闭图形加速
+  - 命令行执行`open -a "Google Chrome" --args --disable-gpu-vsync`打开临时浏览器，然后访问 `chrome://settings/system` 关闭即可
 
 ## chrome插件开发
 

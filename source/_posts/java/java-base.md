@@ -497,10 +497,29 @@ new File(System.getProperty("user.dir") + "/src/main/data.json")
             - UTC时间 2000-01-01T16:00:00.000Z 等同于本地时间（东八区） 2000-01-02 00:00:00
     - `RFC-2822` 格式
         - 如：`Thu Jan 01 1970 00:00:00 GMT+0800`、`Thu Jan 01 1970 00:00:00 GMT+0800 (CST)`
-- `Date`记录的是1970至今的毫秒数，不保存时区信息(因为时间戳和时区没有关系)
+- Java相关类
+
+| 类型              | 所属包         | 包含信息                | 时区特性             | 线程安全性 | 设计缺陷 / 优势                                      | 典型使用场景                               |
+|-----------------|-------------|---------------------|------------------|-------|------------------------------------------------|--------------------------------------|
+| `Date`          | `java.util` | 日期 + 时间（精确到毫秒）      | 隐含时区（依赖系统默认）     | 不安全   | 设计古老，API 混乱（如`getYear()`返回值偏移 1900），本质是时间戳的包装类 | 历史代码兼容，需与旧 API 交互时使用                 |
+| `Timestamp`     | `java.sql`  | 日期 + 时间（精确到纳秒）      | 隐含时区（依赖 JDBC 驱动） | 不安全   | 继承`Date`，多了纳秒精度，主要用于数据库交互，仍存在`Date`的设计问题       | 数据库`TIMESTAMP`类型的映射（如 JDBC 操作）       |
+| `LocalDate`     | `java.time` | 仅日期（年 - 月 - 日）      | 无时区              | 安全    | 纯日期类型（日历日期），无时间信息，需结合上下文时区理解（如 "本地时间"）         | 生日、节假日、日程表等纯日期场景                     |
+| `LocalTime`     | `java.time` | 仅时间（时 - 分 - 秒 - 纳秒） | 无时区              | 安全    | 纯时间类型，无日期信息，适合表示每天重复的时间点                       | 闹钟时间、班次时间（如 "每天 9:00 上班"）。           |
+| `LocalDateTime` | `java.time` | 日期 + 时间             | 无时区              | 安全    | 包含完整日期和时间，但无时区                                 | 不跨时区的本地事件（如 "会议时间：2024-08-16 15:30"） |
+| `ZonedDateTime` | `java.time` | 日期 + 时间 + 时区        | 有时区（含`ZoneId`）   | 安全    | 包含完整时区信息，可精确定位全球唯一时刻，支持时区转换                    | 跨时区场景（如国际航班时间、全球会议调度）、需要精确时间戳的场景     |
+- 前端展示时的 “日期偏移”
+  - 前端若将 LocalDate 序列化的字符串（"2024-08-16"）和 LocalDateTime 误当成带时区的日期（如 new Date("2024-08-16")）处理，会默认结合本地时区（如 UTC+8）转换为时间戳，导致日期偏移
+  - 可用日期库解析为本地日期, 如 moment("2024-08-16").format("YYYY-MM-DD")
 - 时间转换
 
 ```java
+// LocalDateTime → Timestamp
+Timestamp timestamp = Timestamp.valueOf(localDateTime); // 默认使用系统时区
+Timestamp timestamp = Timestamp.from(
+    localDateTime.atZone(ZoneId.of("Asia/Shanghai")) // 绑定上海时区
+                 .toInstant() // 转为 UTC 时间戳
+);
+
 // https://docs.oracle.com/javase/9/docs/api/java/text/SimpleDateFormat.html
 // 使用System.out.println来输出一个时间的时候，他会调用Date类的toString方法，而该方法会读取操作系统的默认时区来进行时间的转换
 // TimeZone.setDefault(TimeZone.getTimeZone("GMT")); // 先运行此行，再打印new Date(0)，则是 `Thu Jan 01 00:00:00 CST 1970`
@@ -525,7 +544,7 @@ new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date())); // 2000-01-0
 
 // SimpleDateFormat说明
 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-// 打印结果分别为: 设置为GMT,不设置为GMT
+// 打印结果分别为: 设置为GMT,不设置为GMT(为JVM默认时区)
 dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 try {
     Date dateTmp = dateFormat.parse("1970-01-01 00:00:00");

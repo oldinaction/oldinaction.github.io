@@ -418,10 +418,11 @@ echo off
     - 此时配置文件应和jar包位于同一目录
     - 如果`set MY_PROJECT_HOME=%~p0..\`则表示设置bat文件所在目录的的上级目录为项目根目录
     - 如果不是系统默认jdk，可将`%JAVA_HOME%`换成对应的路径
+    - **为了防止误点击导致出现选定从而进程暂停，可在命令行窗口 - 属性 - 去掉"快速编辑模式"勾选**
 
 ```bat
 chcp 65001
-title=cmd窗口的标题
+title=cmd窗口的标题: app-demo 8080
 @echo off
 rem 我的注释：`%~d0`挂载项目到第一个驱动器，并设置当前目录为项目根目录
 %~d0
@@ -462,6 +463,7 @@ taskkill /f /im java-test.exe
         java -jar my.jar
         ```
     - 使用`RunHiddenConsole.exe`。需要将其加入到PATH或放在bat的同级目录，如下示例。[RunHiddenConsole下载地址](http://redmine.lighttpd.net/attachments/download/660/RunHiddenConsole.zip)
+        - 关闭时如果关掉了 php-cgi.exe 仍然提示目录被占用，可基于CPU中关联的句柄搜索对于目录，从而找到占用进程
         
         ```bat
         :: 启动脚本 start_php_cgi.bat(直接执行php-cgi.exe默认监听端口是9000)

@@ -329,249 +329,268 @@ mybatis.config-location=classpath:mybatis-config.xml
             IPage<Map> queryByProjectId(Page page, @Param("param") Map<String,Object> param);
 		}
 		```
-	- Dao实现(映射文件): UserMapper.xml(放在resources/mapper目录下)
+- Dao实现(映射文件): UserMapper.xml(放在resources/mapper目录下)
 
-		```xml
-		<?xml version="1.0" encoding="UTF-8" ?>
-		<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-		<!--http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#-->
-		<!--sql映射文件: 
-			namespace必须为实现接口名；每个sql是一个statement 
-			使用include关键字调用其他xml文件的sql时，则需要在refid前加上该文件的命名空间
-		-->
-		<mapper namespace="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml">
-			<!-- 
-				1.resultMap结果集映射定义(用来描述如何从数据库结果集中来加载对象). 
-				2.resultType 与 resultMap 不能并用. 
-				3.type也可以为java.util.HashMap,则返回结果中放的是Map
-				4.子标签有先后顺序。(constructor?,id*,result*,association*,collection*, discriminator?)
-			-->
-			<resultMap id="UserInfoResultMap" type="cn.aezo.springboot.mybatis.model.UserInfo">
-				<!--设置mybatis.configuration.map-underscore-to-camel-case=true则会自动对格式进行转换, 无需下面转换-->
-				<!--<result column="group_id" property="groupId" jdbcType="BIGINT"/>-->
-				<!--<result column="nick_name" property="nickName" jdbcType="VARCHAR"/>-->
-                <result column="desc" property="desc" jdbcType="BLOB"/><!-- BLOB/CLOB 类型必须转换 -->
-			</resultMap>
+    ```xml
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    <!--http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#-->
+    <!--sql映射文件: 
+        namespace必须为实现接口名；每个sql是一个statement 
+        使用include关键字调用其他xml文件的sql时，则需要在refid前加上该文件的命名空间
+    -->
+    <mapper namespace="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml">
+        <!-- 
+            1.resultMap结果集映射定义(用来描述如何从数据库结果集中来加载对象). 
+            2.resultType 与 resultMap 不能并用. 
+            3.type也可以为java.util.HashMap,则返回结果中放的是Map
+            4.子标签有先后顺序。(constructor?,id*,result*,association*,collection*, discriminator?)
+        -->
+        <resultMap id="UserInfoResultMap" type="cn.aezo.springboot.mybatis.model.UserInfo">
+            <!--设置mybatis.configuration.map-underscore-to-camel-case=true则会自动对格式进行转换, 无需下面转换-->
+            <!--<result column="group_id" property="groupId" jdbcType="BIGINT"/>-->
+            <!--<result column="nick_name" property="nickName" jdbcType="VARCHAR"/>-->
+            <result column="desc" property="desc" jdbcType="BLOB"/><!-- BLOB/CLOB 类型必须转换 -->
+        </resultMap>
 
-			<!--sql:可被其他语句引用的可重用语句块. id:唯一的标识符，可被其它语句引用-->
-			<sql id="UserInfoColumns">id, group_id, nick_name, hobby</sql>
-			<sql id="userColumns">${alias}.id, ${alias}.username, ${alias}.password</sql><!-- alias不能通过bind在此sql内部设值 -->
+        <!--sql:可被其他语句引用的可重用语句块. id:唯一的标识符，可被其它语句引用-->
+        <sql id="UserInfoColumns">id, group_id, nick_name, hobby</sql>
+        <sql id="userColumns">${alias}.id, ${alias}.username, ${alias}.password</sql><!-- alias不能通过bind在此sql内部设值 -->
 
-			<!-- 
-                id对应接口的方法名
-                resultType (类全称或别名, 如内置别名map) 与 resultMap(自定义数据库字段与实体字段转换关系map) 不能并用
-                statementType: STATEMENT(statement)、PREPARED(preparedstatement, 默认)、CALLABLE(callablestatement)
-                resultSetType: FORWARD_ONLY(游标向前滑动)，SCROLL_SENSITIVE(滚动敏感)，SCROLL_INSENSITIVE(不区分大小写的滚动)
-            -->
-			<select id="findAll" resultMap="UserInfoResultMap">
-				select
-				<!-- 如果引用在同一命名空间则可省略命名空间。但是 findAll 如果被其他命名空间引用则容易找到不 UserInfoColumns。因此建议一直加上命名空间 -->
-				<include refid="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml.UserInfoColumns"/>,
-				<include refid="userColumns">
-                    <property name="alias" value="t1"/>
-                </include>
-				from user_info
-				where 1=1
-                <!-- 注意：如误写成了 `test='name = "smalle"'` 则会把smalle赋值给name字段，可能会覆盖原始参数；常见的为 `test='name == "smalle"'` -->
-				<if test='name != null and name != ""'>
-					<!-- 
-                        1.bind 相当于自定义变量。元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变(但是可能存在sql注入问题)
-                        2.案例(还可以同foreach等一起使用)
-                        <bind name="index" value="1+1" />
-                        <bind name="index" value="index+2" />
-                        select ${index} "结果index=4" from dual;
-                    -->
-					<!-- 
-                        _parameter 为传入的User对象。如果传入参数为Map，则为 _parameter.get('name')
-                        _parameter 为 DynamicContext 中的属性，类似的还有 _databaseId=oracle|mysql
-                    -->
-					<bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
-                    <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> 
-                    <!-- 定义了参数名 @Param("userInfo") -->
-					and upper(name) like #{nameUpper} <!-- 不能写成 #{nameUpper.toUpperCase()} -->
-				</if>
-                and hobby in
-                <!-- index默认从0开始；separator也可使用变量，但是只能使用#，不能使用$，也可以省略此属性 -->
-                <foreach item="item" index="index" collection="hobbyList" separator="," open="(" close=")">
-                    #{item.hobby, jdbcType=VARCHAR}
-                </foreach>
-                <if test="birthdate != null">
-                    <![CDATA[ and DATE_FORMAT(birthdate, '%Y/%m/%d') >= DATE_FORMAT(#{birthdate}, '%Y/%m/%d') ]]>
-                </if>
-			</select>
-
-            <update id="update">
-                <!-- 不使用bind直接把变量写到where里面mysql执行报错 -->
-                <bind name="id" value="check_item_sql.get(0).id" />
-                update sys_user_behavior set total = total + 1, create_time = now() where id = #{id}
-            </update>
-
-			<!-- property参数使用 -->
-			<sql id="sometable">
-				${prefix}Table where 1=1
-                <!-- 此时 #{username} 可以拿到selectMain的上下文 -->
-                <if test='username != null and username != ""'>
-                    and username = #{username}
-                </if>
-                <!-- 此时 #{${field}} 可以拿到selectMain上下文中nickName的值 -->
-                <if test='${field} != null and ${field} != ""'>
-                    and remark = #{${field}}
-                </if>
-
-                <!-- 零散片段(伪代码: 此环境没有params). 此处在test语句中使用OGNL表达式`params.${item}`会报错，只能通过get方法动态获取属性值 -->
-                <if test="params.get(item) != null">
-                    and ${item} = #{params.${item}}
-                </if>
-                
-                <if test='strList != null and strList.size() > 0 and strList.contains("ban")'>
-                    AND 'ban' = 'ban'
-                </if>
-
-                <bind usernameStr='"," + username + ","'>
-                <if test='str != null and str.contains(usernameStr)'></if>
-			</sql>
-            <!-- 只支持property参数值(不支持外部传入参数)，且property的value属性值不支持EL表达式 -->
-			<sql id="someinclude">from <include refid="${include_target}"/></sql>
-            <!-- 返回 List<Map> 对象 -->
-			<select id="selectMain" resultType="map">
-				select *
-				<include refid="someinclude">
-					<property name="include_target" value="sometable"/>
-					<property name="prefix" value="Some"/>
-                    <property name="field" value="nickName"/>
-				</include>
-			</select>
-
-			<!--
-				1.parameterType传入参数类型(可选，不填则可以通过 TypeHandler 推导出类型). 
-					1.1 使用typeAliases进行类型别名映射后可写成resultType="userInfo"(自动扫描包mybatis.type-aliases-package, 默认该包下的类名首字母小写为别名).
-					1.2 传入parameterType="java.util.HashMap"(可省略)，也可使用 #{myKey} 获取传入参数map中的值
-				2.如果返回结果使用resultType="cn.aezo.springboot.mybatis.model.UserInfo", 则nickName，groupId则为null(数据库中下划线对应实体驼峰转换失败，解决办法：设置mybatis.configuration.map-underscore-to-camel-case=true). 此处使用resultMap指明字段对应关系
-			-->
-			<select id="getOne" parameterType="java.lang.Long" resultType="userInfo">
-				select
-				<include refid="UserInfoColumns"/>
-				from user_info
-				where id = #{id}
-			</select>
-
-            <!-- 动态order by。此处传入orderBy参数即可，注意需要使用$(此时用#会报错) -->
-            <select id="findList">
-				select name from user_info order by ${orderBy}
-			</select>
-
-            <select id="collectionSplit">
-                <!-- foreach collection支持执行函数 -->
-                <foreach collection="listStr.trim().split('\n')" item="item">
-                    
-                    <bind name="listVal" value="item.trim().split('@')" />
-                    <!-- 
-                        1.此处直接使用#{listVal[0]}、#{listVal[1]}的方式取值会导致上面的foreach无效，每次都是取的最后一条记录的值，改成foreach则不会存在此问题
-                        2.部分情况也可以使用 ${itemVal}；由于无法精确知道数据类型，像字符串需要手动加上引号，也不推荐；使用foreach的时候split可考虑使用'@@@###@@@'等字符串分割从而组装成数组
-                    -->
-                    <foreach collection="listVal" item="val">
-                        #{val}
-                    </foreach>
-
-                    <!-- 支持 instanceof 判断数据类型(如是整数直接trim就回报错) -->
-                    <bind name="itemVal" value="params.get(item)" />
-                    <choose>
-                        <when test="itemVal != null and itemVal instanceof String">
-                            <bind name="itemVal" value="itemVal.trim().split('@@@###@@@')" />
-                            <foreach collection="itemVal" item="val">
-                                #{val}
-                            </foreach>
-                        </when>
-                        <when test="条件2">SQL片段2</when>
-                        <otherwise>
-                            <!-- 此处不能写成 #{itemVal} 否则如何后面有值为null的时候就会把前面的字段全部覆盖成null -->
-                            #{params.${item}}
-                        </otherwise>
-                    </choose>
-
-                    <!-- 支持调用静态方法或常量(有说还可以直接调用bean名称的，如: myBean@test(itemVal))，取值时只能用$，可考虑bind一下再使用# -->
-                    <if test='@cn.hutool.core.util.StrUtil@trim(itemVal) != ""'>
-                        '${@cn.hutool.core.util.StrUtil@reverse(itemVal)}'
-                    </if>
-                </foreach>
-            </select>
-
-			<!-- insert/update返回主键(默认返回修改的数据执行状态/影响行数)
-			1.定义方式
-				方式一：基于JDBC(Mysql/SqlServer都适用，Oracle不适用)
-					keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)。
-				方式二：基于方言，每个数据库提供的内部函数(order表示执行selectKey和insert的先后顺序，默认AFTER)
-					1.Mysql: <selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>
-					2.SqlServer: <selectKey resultType="java.lang.Long" order="AFTER" keyProperty="id">SELECT IDENT_CURRENT('my_table')</selectKey>
-					3.Oracle: <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval as id from dual</selectKey> 需要先创建好序列SEQ_MY_TABLE
-			2.获取方式：userMapper.insert(userInfo); userInfo.getUserId();
-			 -->
-			<insert id="insert" parameterType="cn.aezo.springboot.mybatis.model.UserInfo" keyProperty="userId" useGeneratedKeys="true">
+        <!-- 
+            id对应接口的方法名
+            resultType (类全称或别名, 如内置别名map) 与 resultMap(自定义数据库字段与实体字段转换关系map) 不能并用
+            statementType: STATEMENT(statement)、PREPARED(preparedstatement, 默认)、CALLABLE(callablestatement)
+            resultSetType: FORWARD_ONLY(游标向前滑动)，SCROLL_SENSITIVE(滚动敏感)，SCROLL_INSENSITIVE(不区分大小写的滚动)
+        -->
+        <select id="findAll" resultMap="UserInfoResultMap">
+            select
+            <!-- 如果引用在同一命名空间则可省略命名空间。但是 findAll 如果被其他命名空间引用则容易找到不 UserInfoColumns。因此建议一直加上命名空间 -->
+            <include refid="cn.aezo.springboot.mybatis.mapperxml.UserMapperXml.UserInfoColumns"/>,
+            <include refid="userColumns">
+                <property name="alias" value="t1"/>
+            </include>
+            from user_info
+            where 1=1
+            <!-- 注意：如误写成了 `test='name = "smalle"'` 则会把smalle赋值给name字段，可能会覆盖原始参数；常见的为 `test='name == "smalle"'` -->
+            <if test='name != null and name != ""'>
                 <!-- 
-                    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval as id from dual</selectKey>
+                    1.bind 相当于自定义变量。元素可以从 OGNL 表达式中创建一个变量并将其绑定到上下文；如果在foreach里面使用bind，#使用变量时值永远是最后一个，如果使用$则可动态让变量值改变(但是可能存在sql注入问题)
+                    2.案例(还可以同foreach等一起使用)
+                    <bind name="index" value="1+1" />
+                    <bind name="index" value="index+2" />
+                    select ${index} "结果index=4" from dual;
                 -->
-				insert into user_info
-                <!-- trim 可以在自己包含的内容前加上某些前缀，也可以在其后加上某些后缀 -->
-                <trim prefix="(" suffix=")">
-                    nick_name, group_id, hobby
-                </trim> 
-                values (#{nickName}, #{groupId}, #{hobby})
-			</insert>
+                <!-- 
+                    _parameter 为传入的User对象。如果传入参数为Map，则为 _parameter.get('name')
+                    _parameter 为 DynamicContext 中的属性，类似的还有 _databaseId=oracle|mysql
+                -->
+                <bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
+                <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> 
+                <!-- 定义了参数名 @Param("userInfo") -->
+                and upper(name) like #{nameUpper} <!-- 不能写成 #{nameUpper.toUpperCase()} -->
+            </if>
+            and hobby in
+            <!-- index默认从0开始；separator也可使用变量，但是只能使用#，不能使用$，也可以省略此属性 -->
+            <foreach item="item" index="index" collection="hobbyList" separator="," open="(" close=")">
+                #{item.hobby, jdbcType=VARCHAR}
+            </foreach>
+            <if test="birthdate != null">
+                <![CDATA[ and DATE_FORMAT(birthdate, '%Y/%m/%d') >= DATE_FORMAT(#{birthdate}, '%Y/%m/%d') ]]>
+            </if>
+        </select>
 
+        <update id="update">
+            <!-- 不使用bind直接把变量写到where里面mysql执行报错 -->
+            <bind name="id" value="check_item_sql.get(0).id" />
+            update sys_user_behavior set total = total + 1, create_time = now() where id = #{id}
+        </update>
+
+        <!-- property参数使用 -->
+        <sql id="some_table">
+            ${prefix}Table where 1=1
+            <!-- 此时 #{username} 可以拿到selectMain的上下文 -->
+            <if test='username != null and username != ""'>
+                and username = #{username}
+            </if>
+            <!-- 此时 #{${field}} 可以拿到selectMain上下文中nickName的值 -->
+            <!-- 发现 mybatis 2.0.4 版本下使用 field 会报错: BindingException: Parameter 'field' not found. 
+                 直接 test='field == "nickName"' 也是报此错, 具体解决参考下文 bind-param
+            -->
+            <if test='${field} != null and ${field} != ""'>
+                and remark = #{${field}}
+            </if>
+
+            <!-- 零散片段(伪代码: 此环境没有params). 此处在test语句中使用OGNL表达式`params.${item}`会报错，只能通过get方法动态获取属性值 -->
+            <if test="params.get(item) != null">
+                and ${item} = #{params.${item}}
+            </if>
+                
+            <if test='strList != null and strList.size() > 0 and strList.contains("ban")'>
+                AND 'ban' = 'ban'
+            </if>
+
+            <bind usernameStr='"," + username + ","'/>
+            <if test='str != null and str.contains(usernameStr)'></if>
+        </sql>
+        <!-- 只支持property参数值(不支持外部传入参数)，且property的value属性值不支持EL表达式 -->
+        <sql id="some_include">from <include refid="${include_target}"/></sql>
+        <!-- 返回 List<Map> 对象 -->
+        <select id="selectMain" resultType="map">
+            select *
+            <include refid="some_include">
+                <property name="include_target" value="some_table"/>
+                <property name="prefix" value="Some"/>
+                <property name="field" value="nickName"/>
+            </include>
+        </select>
+
+        <!--
+            1.parameterType传入参数类型(可选，不填则可以通过 TypeHandler 推导出类型). 
+                1.1 使用typeAliases进行类型别名映射后可写成resultType="userInfo"(自动扫描包mybatis.type-aliases-package, 默认该包下的类名首字母小写为别名).
+                1.2 传入parameterType="java.util.HashMap"(可省略)，也可使用 #{myKey} 获取传入参数map中的值
+            2.如果返回结果使用resultType="cn.aezo.springboot.mybatis.model.UserInfo", 则nickName，groupId则为null(数据库中下划线对应实体驼峰转换失败，解决办法：设置mybatis.configuration.map-underscore-to-camel-case=true). 此处使用resultMap指明字段对应关系
+        -->
+        <select id="getOne" parameterType="java.lang.Long" resultType="userInfo">
+            select
+            <include refid="UserInfoColumns"/>
+            from user_info
+            where id = #{id}
+        </select>
+
+        <!-- 动态order by。此处传入orderBy参数即可，注意需要使用$(此时用#会报错) -->
+        <select id="findList">
+            select name from user_info order by ${orderBy}
+        </select>
+
+        <select id="collectionSplit">
+            <!-- foreach collection支持执行函数 -->
+            <foreach collection="listStr.trim().split('\n')" item="item">
+                    
+                <bind name="listVal" value="item.trim().split('@')" />
+                <!-- 
+                    1.此处直接使用#{listVal[0]}、#{listVal[1]}的方式取值会导致上面的foreach无效，每次都是取的最后一条记录的值，改成foreach则不会存在此问题
+                    2.部分情况也可以使用 ${itemVal}；由于无法精确知道数据类型，像字符串需要手动加上引号，也不推荐；使用foreach的时候split可考虑使用'@@@###@@@'等字符串分割从而组装成数组
+                -->
+                <foreach collection="listVal" item="val">
+                    #{val}
+                </foreach>
+
+                <!-- 支持 instanceof 判断数据类型(如是整数直接trim就回报错) -->
+                <bind name="itemVal" value="params.get(item)" />
+                <choose>
+                    <when test="itemVal != null and itemVal instanceof String">
+                        <bind name="itemVal" value="itemVal.trim().split('@@@###@@@')" />
+                        <foreach collection="itemVal" item="val">
+                            #{val}
+                        </foreach>
+                    </when>
+                    <when test="条件2">SQL片段2</when>
+                    <otherwise>
+                        <!-- 此处不能写成 #{itemVal} 否则如何后面有值为null的时候就会把前面的字段全部覆盖成null -->
+                        #{params.${item}}
+                    </otherwise>
+                </choose>
+
+                <!-- 支持调用静态方法或常量(有说还可以直接调用bean名称的，如: myBean@test(itemVal))，取值时只能用$，可考虑bind一下再使用# -->
+                <if test='@cn.hutool.core.util.StrUtil@trim(itemVal) != ""'>
+                    '${@cn.hutool.core.util.StrUtil@reverse(itemVal)}'
+                </if>
+            </foreach>
+        </select>
+
+        <!-- insert/update返回主键(默认返回修改的数据执行状态/影响行数)
+        1.定义方式
+            方式一：基于JDBC(Mysql/SqlServer都适用，Oracle不适用)
+                keyProperty(主键对应Model的属性名)和useGeneratedKeys(是否使用JDBC来获取内部自增主键，默认false)联合使用返回自增的主键(可用于insert和update语句)。
+            方式二：基于方言，每个数据库提供的内部函数(order表示执行selectKey和insert的先后顺序，默认AFTER)
+                1.Mysql: <selectKey keyProperty="id" resultType="long">select LAST_INSERT_ID()</selectKey>
+                2.SqlServer: <selectKey resultType="java.lang.Long" order="AFTER" keyProperty="id">SELECT IDENT_CURRENT('my_table')</selectKey>
+                3.Oracle: <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval as id from dual</selectKey> 需要先创建好序列SEQ_MY_TABLE
+        2.获取方式：userMapper.insert(userInfo); userInfo.getUserId();
+         -->
+        <insert id="insert" parameterType="cn.aezo.springboot.mybatis.model.UserInfo" keyProperty="userId" useGeneratedKeys="true">
             <!-- 
-                Mybatis一次执行多条sql，一个标签多个Insert、update、delete操作
-                还需要在数据库连接配置中加入 allowMultiQueries=true
-             -->
-            <insert id="addPurchase" parameterType="com.zhao.vo.PurchaseVoOne">
-                insert into t_goods (goods_name) values (#{goodsName});
-                insert into t_supplier (supplier_name) values (#{supplierName});
-            </insert>
+                <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">select SEQ_MY_TABLE.nextval as id from dual</selectKey>
+            -->
+            insert into user_info
+            <!-- trim 可以在自己包含的内容前加上某些前缀，也可以在其后加上某些后缀 -->
+            <trim prefix="(" suffix=")">
+                nick_name, group_id, hobby
+            </trim> 
+            values (#{nickName}, #{groupId}, #{hobby})
+        </insert>
 
-			<update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
-				update user_info set
-				<!--动态sql, 标签：if、choose (when, otherwise)、trim (where, set)、foreach-->
-				<if test="nickName != null">nick_name = #{nickName},</if>
-				hobby = #{hobby}
-				where id = #{id}
-			</update>
-            <update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
-				update user_info
-                <!-- set 在更新操作的时候，在包含的语句前输出一个set。注意后面的单引号  -->
-                <set>
-				    <if test="nickName != null">nick_name = #{nickName},</if>
-				    <if test="hobby != null">hobby = #{hobby},</if>
-                </set>
-				where id = #{id}
-			</update>
+        <!-- 
+            Mybatis一次执行多条sql，一个标签多个Insert、update、delete操作
+            还需要在数据库连接配置中加入 allowMultiQueries=true
+         -->
+        <insert id="addPurchase" parameterType="com.zhao.vo.PurchaseVoOne">
+            insert into t_goods (goods_name) values (#{goodsName});
+            insert into t_supplier (supplier_name) values (#{supplierName});
+        </insert>
 
-			<delete id="delete" parameterType="java.lang.Long">
-				delete from user_info where id = #{id}
-			</delete>
+        <update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
+            update user_info set
+            <!--动态sql, 标签：if、choose (when, otherwise)、trim (where, set)、foreach-->
+            <if test="nickName != null">nick_name = #{nickName},</if>
+            hobby = #{hobby}
+            where id = #{id}
+        </update>
+        <update id="update" parameterType="cn.aezo.springboot.mybatis.model.UserInfo">
+            update user_info
+            <!-- set 在更新操作的时候，在包含的语句前输出一个set。注意后面的单引号  -->
+            <set>
+                <if test="nickName != null">nick_name = #{nickName},</if>
+                <if test="hobby != null">hobby = #{hobby},</if>
+            </set>
+            where id = #{id}
+        </update>
 
-			<!-- 此时也可执行成功，但是如果传入参数为空，容易报错（java.sql.SQLException: 无效的列类型: 1111） -->
-			<delete id="delete2">
-				delete from user_info where id = #{id}
-			</delete>
+        <delete id="delete" parameterType="java.lang.Long">
+            delete from user_info where id = #{id}
+        </delete>
+
+        <!-- 此时也可执行成功，但是如果传入参数为空，容易报错（java.sql.SQLException: 无效的列类型: 1111） -->
+        <delete id="delete2">
+            delete from user_info where id = #{id}
+        </delete>
             
-            <!-- if else写法，和Boolean类型判断 -->
-            <choose>
-                <when test="boolField">
-                </when>
-                <otherwise>
-                </otherwise>
-            </choose>
-            <!-- null 认为是 false -->
-            <if test='boolField'></if>
-            <if test='!boolField'></if>
-            <if test='not boolField'></if>
-            <if test='boolField != null'></if><!-- 存在问题：true/false都满足 -->
+        <!-- if else写法，和Boolean类型判断 -->
+        <choose>
+            <when test="boolField">
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+        <!-- null 认为是 false -->
+        <if test='boolField'></if>
+        <if test='!boolField'></if>
+        <if test='not boolField'></if>
+        <if test='boolField != null'></if><!-- 存在问题：true/false都满足 -->
 
-            <!-- 执行DDL语句可使用update标签 -->
-            <update id="changeTriggerStatus">
-                ALTER TRIGGER T_TEST ENABLE
-            </update>
-		</mapper>
-		```
+        <!-- 支持批量执行SQL语句，并且支持事物(也支持Spring级别事物: 后面执行其他service报错会让此处回滚) -->
+        <update id="update">
+            begin
+                update t_user set sex=1 where id = #{id};
+                delete from t_user_log where user_id = #{id};
+            end;
+        </update>
+
+        <!-- 执行存储过程可使用update标签. SqlServer案例 -->
+        <!-- SqlServer存储过程中出错可能不会抛出到 mybatis 中, 可手动抛出一下, 参考 sql-procedure.md#SqlServer -->
+        <update id="changeBillCancel">
+            begin
+                EXEC ChangeUserInfo @userId=#{userId}, @sex = #{sex};
+            end;
+        </update>
+
+        <!-- 执行DDL语句可使用update标签 -->
+        <update id="changeTriggerStatus">
+            ALTER TRIGGER T_TEST ENABLE
+        </update>
+    </mapper>
+    ```
 
 - xml联表查询举例
 
@@ -615,7 +634,8 @@ mybatis.config-location=classpath:mybatis-config.xml
 			1.select指查询Student的接口. 如果为当前mapper文件则可省略命名空间(namespace)直接写成 getStudent。(select和column只有在嵌套查询的时候才用得到)
 			2.column是传入到getStudent查询中的参数，id是传入参数名称，s_id获取获取字段值的字段名(就是先从主表查询的结果中获取s_id字段的值，传入到id中，发起getStudent子查询)。如果一个参数也可以直接写成column="s_id" (getStudent的接口中也声明接受一个此类型的参数即可)
 			3.columnPrefix="xx_"同上
-			4.会产生1+N问题。主表有多少条就会发起多少次查询，无法根据条件判断是否需要发起子查询；导出报表最好不要使用，列表分页可相对环境；可使用上文join后自动映射代替；更推荐主表查询出id，再在java中in查询子表再组装到java对象(1次主查询+1次子查询)，对于id较多情况可进行分组循环查询
+			4.会产生1+N问题。主表有多少条就会发起多少次查询，无法根据条件判断是否需要发起子查询；导出报表最好不要使用，列表分页可相对缓解(只对分页进行子查询)；可使用上文join后自动映射代替；
+                更推荐主表查询出id，再在java中in查询子表再组装到java对象(1次主查询+1次子查询)，对于id较多情况可进行分组循环查询
 		-->
 		<collection 
 			property="students" 
@@ -648,6 +668,34 @@ mybatis.config-location=classpath:mybatis-config.xml
         select u.id, u.name from user u
     </select>
     ```
+- bind-param案例
+  - mapper接口 `List<Map<String, Object>> findList(@Param("id") String id, @Param("params") Map<String, Object> params);`
+
+```xml
+<sql id="selectSql">
+    select u.* from t_user u
+    <!-- 问题写法: 此时会报错 BindingException: Parameter 'type' not found. (接口参数中没有定义 type)  -->
+    <if test='type != null and type == "full"'>
+        join t_class c on c.id = u.class_id
+    </if>
+    
+    <!-- 正常写法(在java中动态传递 type 参数) -->
+    <if test='params.type != null and params.get("type") == "full"'>
+        join t_class c on c.id = u.class_id
+    </if>
+</sql>
+
+<select id="findList" resultType="java.util.Map">
+    <!-- 问题写法 -->
+    <include refid="selectSql">
+        <property name="type" value="full"/>
+    </include>
+
+    <!-- 正常写法(在java中动态传递 type 参数)-->
+    <include refid="selectSql"/>
+    where u.id = #{id}
+</select>
+```
 
 ## $与#的区别及SQL注入问题
 

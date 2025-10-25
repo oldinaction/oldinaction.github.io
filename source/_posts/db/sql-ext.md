@@ -20,7 +20,7 @@ tags: [sql, oracle, mysql]
 ### 数据类型转换
 
 - mysql：`cast()`和 `convert()` 可将一个类型转成另外一个类型
-    - 语法：cast(expr as type)、convert(expr, type)、convert(expr using transcoding_name)   
+    - 语法：cast(expr as type)、convert(expr, type)、convert(expr using transcoding_name)
 
 ```sql
 -- mysql、h2。可用类型：二进制 BINARY、字符型，可带参数 CHAR()、日期 DATE、TIME、DATETIME、浮点数 DECIMAL、整数 SIGNED、无符号整数 UNSIGNED
@@ -78,18 +78,22 @@ select to_date(to_char(sysdate + trunc(dbms_random.value(1,3)), 'yyyy-mm-dd')
 from dual;
 
 -- sqlserver
+select FORMAT(GETDATE(), 'yyyy-MM-dd HH:mm:ss'); -- 2020-09-17 15:30:45
 select 
     getdate(), -- 获取当前时间(带时间) 2000-01-01 08:11:12.000
     getutcdate(), -- 当前utc时间 2000-01-01 00:11:12.000
     datediff(hour, getutcdate(), getdate()), -- 获取当前时间-当前utc时间的相差小时 8
     dateadd(dd, -10, getdate()), -- 当前时间减10天. dd/mm
     dateadd(day, -10, getdate()), -- 当前时间减10天
+    dateadd(month, -2, getdate()), -- 当前时间减2个月
     dateadd(hour, datediff(hour, getutcdate(), getdate()), getutcdate()), -- 对utc时间增加时区差 2000-01-01 08:11:12.000
 	dateadd(day, 1 - day(getdate()), convert(date, getdate())), -- 当前月份第一天 2000-01-01
 	eomonth(getdate()) -- 当前月份最后一天 2000-01-31
     ;
 select dateadd(day, 0, datediff(day, 0, getdate())); -- 2000-01-01 00:00:00.000
 select cast(cast(getdate() as date) as varchar(10)) + ' 00:00:00'; -- 2000-01-01 00:00:00.000
+select DATEDIFF(day, '2024-01-01', '2024-01-05'), -- 差 4 天
+       DATEDIFF(day, '2024-01-01 23:00:00', '2024-01-02 01:00:00'); -- 差 1 天
 ```
 
 #### 时区相关
@@ -149,9 +153,9 @@ FROM t_test t where t.id = 1;
 -- mysql
 select 1;
 select 1 from dual;
--- oracle
+-- oracle. 必须dual
 select 1 from dual;
--- sqlserver
+-- sqlserver. 不支持dual
 select 1;
 ```
 - 查询前几条
@@ -162,6 +166,8 @@ select * from t_test order by id desc limit 10;
 
 -- sqlserver
 select top 10 * from t_test order by id desc;
+-- 排序后, 从行下标是 0 的开始, 取出前面的 1 条
+select * from t_test ORDER BY id desc OFFSET 0 ROWS FETCH FIRST 1 ROW ONLY;
 ```
 - 关键字转义
 
@@ -184,6 +190,7 @@ select * from users where last_name is not null and last_name != '';
 select ifnull(null, 1), ifnull('', 1), if(''='', 1, 0); -- 1 '' 1
 
 -- sqlserver: null不包含空字符串('' != null), 判断同mysql
+select * from users where (last_name is null or last_name = '');
 isnull(counts, 0); -- null则设置默认值
 -- 不支持 if(''='', 1, 0) 这种判断，需使用case when
 ```
@@ -247,15 +254,24 @@ select lower(replace(newid(), '-', '')), newid(); -- 6b1e0f1b7e0f4fab9e783f16176
 
 - A事物(基于ID)更新表test暂未提交，此时B事物读取test表
     - Mysql: B事物可正常执行读取
-    - SqlServer: B事物会阻塞，直到A事物提交或回滚释放锁(A事物持有test的IX锁，B事物持有IS锁)
+    - **SqlServer: B事物会阻塞，直到A事物提交或回滚释放锁**(A事物持有test的IX锁，B事物持有IS锁). 多线程可能存在问题
+- **SqlServer(多线程)死锁案例**
+    - SQL Server 默认隔离级别为 READ COMMITTED，子线程读取时需等待主线程事务提交
+    - 解决方案
+      - 移除异步逻辑，同步执行
+      - 若必须异步，使用无事务的独立服务
+      - 使用 Spring @Async 注解（使用新的事物）: 参考[spring.md#多线程@EnableAsync](/_posts/java/spring.md#多线程@EnableAsync)
+      - 利用事务同步管理器（精细控制）: TransactionSynchronizationManager.registerSynchronization
 
 ```java
 // 下面的伪代码会导致 SqlServer 项目卡死 => 进而可能连接池升高
 @Transactional(rollbackFor = Exception.class)
 public void update(User user) {
+    // 线程1: 更新 user 表
 	userMapper.save(user);
 	
 	FutureTask<User> futureTask = new FutureTask<>(() -> {
+        // 线程2: 读取 user 表
 		return userMapper.selectByUsername(user.getUsername());
 	});
 	new Thread(futureTask).start();
@@ -307,7 +323,7 @@ update t_test set name = 'test' where id = 1; -- 不能带表别名
 ### 关联表进行数据更新
 
 - **`update set from where`** 将一张表的数据同步到另外一张表
-    
+
 ```sql
 -- Oracle：如果a表和b表的字段相同，最好给两张表加别名. **注意where条件**，idea可能出警告
 -- 如果b表关联了c表则关联条件中不能使用a表字段，只能在where条件中使用a表字段
@@ -317,6 +333,13 @@ where exists (select 1 from test2 b where a.id = b.id);
 -- Mysql：update的表不能加别名，oracle可以加别名。当字段相同时直接使用表名做前缀
 update a, b set a1 = b1, a2 = b2, a3 = b3 where a.id = b.id;
 update a left join b on a0 = b0 set a1 = b1, a2 = b2, a3 = b3 where a.valid_status = 1;
+
+-- SqlServer
+update t
+set t.class_name = isnull(c.name, 'NA')
+from t_user t
+left join t_class c on c.id = t.class_id
+where t.status = 1;
 ```
 
 - 实例
@@ -621,8 +644,9 @@ stu_no  yuewen  shuxue  yingyu
     - 基于存储过程动态拼接SQL和视图 https://blog.csdn.net/Huay_Li/article/details/82924443
         - 查询每次新增临时查询ID和时间，再定时删掉老的数据；第一次查询创建几百个字段的视图(无实际意义的字段名)，并把列头以一行值的形式显示到结果中(第一行值充当列头)
 - 合并到一个字段
-    - 参考[wm_concat行转列](#wm_concat行转列)
-    - 参考[listagg within group行转列, 类似wm_concat](#listagg%20within%20group行转列)
+    - 参考Oracle [wm_concat行转列](#wm_concat行转列)
+      - SqlServer的 STRING_AGG, 用法一致
+    - 参考Oracle [listagg within group行转列, 类似wm_concat](#listagg%20within%20group行转列)
 
 #### mysql
 
@@ -684,9 +708,68 @@ select t.stu_no, t.course_name, t.course_score from
 ) t order by t.stu_no, case t.course_name when 'yuwen' then 1 when 'shuxue' then 2 when 'yingyu' then 3 end
 ```
 
-#### 拆分以逗号分隔的字符串为多行
+### 逗号分割数据翻译
+
+- sqlserver
+
+```sql
+-- 2016以上
+SELECT c.company_id, c.company_name,
+  c.company_nature AS nature_codes,  -- 原始编码
+  STRING_AGG(s.dict_label, ',') WITHIN GROUP (ORDER BY split.value) AS nature_names  -- 拼接名称
+FROM company c
+CROSS APPLY STRING_SPLIT(c.company_nature, ',') split
+LEFT JOIN sys_dict_item s ON split.value = s.dict_code AND s.dict_type = 'company_nature'
+WHERE c.company_nature IS NOT NULL AND c.company_nature != ''
+GROUP BY c.company_id, c.company_name, c.company_nature;
+
+
+-- 兼容低版本 SQL Server（2016 以下）: 若版本不支持 STRING_SPLIT 和 STRING_AGG
+-- 创建函数
+CREATE FUNCTION dbo.SplitString(
+  @str NVARCHAR(MAX), 
+  @delimiter CHAR(1)
+) RETURNS @result TABLE (value NVARCHAR(MAX))
+AS
+BEGIN
+  WHILE CHARINDEX(@delimiter, @str) > 0
+  BEGIN
+    INSERT INTO @result VALUES (SUBSTRING(@str, 1, CHARINDEX(@delimiter, @str) - 1));
+    SET @str = SUBSTRING(@str, CHARINDEX(@delimiter, @str) + 1, LEN(@str));
+  END
+  INSERT INTO @result VALUES (@str);
+  RETURN;
+END;
+
+-- 翻译
+SELECT 
+  c.company_id,
+  c.company_name,
+  c.company_nature AS nature_codes,
+  STUFF((
+    SELECT ',' + s.dict_label 
+    FROM dbo.SplitString(c.company_nature, ',') split
+    LEFT JOIN sys_dict_item s ON split.value = s.dict_code AND s.dict_type = 'company_nature'
+    FOR XML PATH(''), TYPE
+  ).value('.', 'NVARCHAR(MAX)'), 1, 1, '') AS nature_names
+FROM company c
+WHERE c.company_nature IS NOT NULL AND c.company_nature != ''
+GROUP BY c.company_id, c.company_name, c.company_nature;
+```
+
+### 拆分以逗号分隔的字符串为多行
 
 - oracle参考下文[正则表达式 regexp_substr](#正则表达式)
+
+### SQL语句记录
+
+```sql
+-- 查询和id=1性别一样的用户. 通过一条记录关联后过滤其他数据
+select t.*
+from user t
+join user t1 on t1.id = 1
+where t.sex = t1.sex
+```
 
 ## Mysql
 
@@ -701,8 +784,9 @@ select t.stu_no, t.course_name, t.course_score from
 	- **设置字段排序规则为`utf8_bin`/`utf8mb4_bin`**(`utf8_general_ci`中`ci`表示case insensitive，即不区分大小写)。设置成`utf8_bin`只是说字段值中每一个字符用二进制数据存储，区分大小写，显示和查询并不是二进制。设置成bin之后`select * from user t where name = 'Test';`区分大小写
     - utf8mb4_unicode_ci 和 utf8mb4_general_ci 和 utf8mb4_bin 的区别
         - utf8mb4_unicode_ci: 基于Unicode排序，支持所有语言，但速度相对慢
-        - utf8mb4_general_ci: 没有实现 Unicode 排序规则，在遇到某些特殊语言或者字符集，排序结果可能不一致（在绝大多数情况下，这些特殊字符的顺序并不需要那么精确）
-        - utf8mb4_bin: 如果需要存储大小写或重音符号敏感的数据，或加密数据或需要按二进制方式比较的场景，使用 utf8mb4_bin 排序规则
+            - 其比较逻辑更贴近人类对文字的理解: 忽略大小写，提升查询灵活性; 忽略部分重音符号，适配多语言场景(如会将 é 与 e、ñ 与 n 等视为等价)
+        - utf8mb4_general_ci: 没有实现 Unicode 排序规则，在遇到某些特殊语言或者字符集，排序结果可能不一致（在绝大多数情况下，这些特殊字符的顺序并不需要那么精确）。其他和 utf8mb4_unicode_ci 类似
+        - utf8mb4_bin: 如果需要存储大小写或重音符号敏感的数据，或加密数据或需要按二进制方式比较的场景，使用 utf8mb4_bin 排序规则。排序速度相对快，但对于部分不需要匹配大小写的场景需要通过lower转换影响性能
 - `null`判断问题
 	- 判空需要使用`is null`(不包含空字符串)或者`is not null`(包含空字符串)
 	- `select * from t_test where username = 'smalle' and create_tm > '2000-01-01'` 直接使用 =、> 等字符比较，包含了此字段不为空的含义 
@@ -1177,375 +1261,6 @@ ASSIGN(ID, ASSIGN_AMT) AS (
 select * from ASSIGN;
 ```
 
-#### 聚合函数(aggregate_function)
-
-- `min`、 `max`、`sum`、`avg`、`count`、`variance`、`stddev` 
-- `count(*)`、`count(1)`、`count(id)`、`count(name)` **统计行数，不能统计值的个数**。count(name)，如果有3行，但是name有值的只有2行时结果仍然为3
-
-##### wm_concat行转列
-
-- 为oracle内部函数，**12之后已经去掉了此函数**
-- 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
-- 案例
-    - `wm_concat(t.hobby)`
-    - `wm_concat(distinct t.hobby)` 支持去重
-    - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符(默认为英文逗号)
-- 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是LOB(CLOB)字段导致部分查询需要进行修改。参考：https://www.cnblogs.com/wsxdev/p/15416946.html
-    - 可使用to_char转换成varchar类型
-        - 虽然在wm_concat()函数外层包了一层to_char()函数，避免使用了LOB类型；但是由于wm_concat()函数的返回值类型LOB类型是不能进行group by、distinct以及union共存的，因此会偶发ORA-22922:错误。这里需要注意的是，是偶发，不是必然
-    - 也可在应用中处理clob直接返回到前台报错问题
-        - 可通过`clob.getSubString(1, (int) clob.length())`解决
-
-            ```java
-            // JDBC
-            Object object = resultSet.getObject(i);
-            if(object != null) {
-                if(object instanceof java.sql.Clob) {
-                    java.sql.Clob clob = (java.sql.Clob) object;
-                    object = clob.getSubString(1, (int) clob.length());
-                }
-            }
-
-            // Mybatis处理
-            // https://juejin.cn/s/mybatis%20clob%20to%20string
-            // https://blog.csdn.net/lizhengyu891231/article/details/132434605
-            ```
-        - 或者使用jackson转换器，参考：https://oomake.com/question/13622930、https://segmentfault.com/a/1190000040484998
-    - 也可使用[listagg within group行转列](#listagg-within-group行转列)解决返回值为LOB的问题(但是长度最大为4000)
-    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替(但不支持去重)。参考：https://www.cxybb.com/article/qq_28356739/88626952
-        - druid使用内置SQL解析工具类时，无法解析xmlagg函数，参考(测试无效)：https://github.com/alibaba/druid/issues/4259
-
-##### xmlagg行转列
-
-- 最大容量为4G，但是不支持去重
-
-```sql
--- 解决缓冲区问题：不使用to_char函数，在Java中需要用java.sql.Clob类，进行数据的接收与转换
-select
-    xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval() "my_col"
-from test;
-
-select
-    -- to_char有4000个字符缓存区限制（如果超过4000个字符则转成to_char失败）
-    to_char(xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval()) "my_col"
-from test;
-```
-
-##### listagg-within-group行转列
-
-- listagg最大容量为4000
-- mysql可使用group_concat
-
-```sql
--- 查询部门为20的员工列表
-select
-	t.deptno,
-    -- listagg 可理解为wm_concat；而 within group 表示对每一组的元素进行操作，此时是基于 t.ename 进行排序(即排序后再调用listagg)
-	listagg(t.ename, ',') within group (order by t.ename) names -- 返回 ADAMS,FORD,JONES 即将多行显示在一列中
-from scott.emp t
-where t.deptno = '20'
-group by t.deptno
-```
-
-#### 分析函数
-
-##### 常见分析函数
-
-- `min`、`max`、`sum`、`avg` **一般和over/keep函数联合使用** [^3]
-- `first_value(字段名)`、`last_value(字段名)` **和over函数联合使用**
-- `row_number()`、`dense_rank()`、`rank()`：为每条记录产生一个从1开始至n的自然数，n的值可能小于等于记录的总数(基于相应order by字段的值来判断)。这3个函数的唯一区别在于当碰到相同数据时的排名策略。**和over函数联合使用**
-    - `row_number` 当碰到相同数据时，排名按照记录集中记录的顺序依次递增(如：1-2-3-4-5-6)
-    - `dense_rank` 当碰到相同数据时，此时所有相同数据的排名都是一样的(如：1-2-3-3-3-4. **如果被排序字段的值相等则认为排名相同**)
-    - `rank` 当碰到相同的数据时，此时所有相同数据的排名是一样的，同时会在最后一条相同记录和下一条不同记录的排名之间空出排名(如：1-2-3-3-3-6)
-- `lag()`、`lead()` 求之前或之后的第N行。lag和lead函数可以在一次查询中取出同一字段的前n行的数据和后n行的值。这种操作可以使用对相同表的表连接来实现，不过使用lag和lead有更高的效率。**和over函数联合使用**
-    - lag(列名, 偏移的offset, 超出记录窗口时的默认值)
-- `rollup()`、`cube()` 排列组合分组。**和group by联合使用**
-    - `group by rollup(a, b, c)`：首先会对(a、b、c)进行group by，然后再对(a、b)进行group by，其后再对(a)进行group by，最后对全表进行汇总操作
-    - `group by cube(a, b, c)`：  首先会对(a、b、c)进行group by，然后依次是(a、b)，(a、c)，(a)，(b、c)，(b)，(c)，最后对全表进行汇总操作
-
-##### connect by 递归关联
-
-- mysql参考: [RECURSIVE递归](#RECURSIVE递归)
-- `start with connect by prior` 递归查询(如树形结构)
-
-```sql
-select t.id, t.pid
-connect_by_root(t.id) root_id, -- 显示根节点列. 写成 `connect_by_root t.id root_id` PL/SQL也是可以的，但是Durid解析的时候可能会报错
-connect_by_root(t.name) root_name -- 显示根节点名称 
-from my_table t 
-start with t.pid = 1 -- 基于此条件进行向下查询(省略则表示基于全表为根节点向下查询，可能会有重复数据)
--- connect by nocycle -- 递归条件(递归查询不支持环形。此处nocycle表示忽略环，如果确认结构中无环形则可省略。有环形则必须加，否则报错); connect_by_iscycle 在有循环结构的查询中使用。
-prior t.id = t.pid -- 增加递归条件，或者 add prior。也可自递归，如 t.id = t.id
--- add prior level <= regexp_count(t.names, '[^,]+') -- level为当前递归层级(顶层为1)，此条件无实际意义，仅为了展示其语法功能
-where t.valid_status = 1 -- 将递归获取到的数据再次过滤
--- order siblings by id desc -- siblings 保留树状结构，对兄弟节点进行排序
-
--- 三级权限
-select
-connect_by_root (t.id) "一级权限id"
-,case when level = 1 then connect_by_root (t.permission_name) end "一级权限名称"
-,case when level = 2 then t.id when level = 3 then prior t.id end "二级权限id"
-,case when level = 2 then t.permission_name end "二级权限名称"
-,case when level = 3 then t.id end "三级权限id"
-,case when level = 3 then t.permission_name end "三级权限名称"
-,level "层次"
-,sys_connect_by_path(id, '->') "层次结构"
-,decode(connect_by_isleaf, 1, '是', '否') "是否子孙节点"
-,opm.OPERATOR_ID "用户拥有此权限"
-from s_operator_permission t
-left join s_operator_permission_mapper opm on opm.permission_id = t.id and opm.operator_id = 1 -- 用户ID=1的权限映射
-start with t.parent_id = 0
-connect by nocycle
-prior t.id = t.parent_id
-```
-
-##### over
-
-- **Mysql 8.0及以上也支持, 5.7不支持**
-
-    ```sql
-    -- 根据账号获取最新的用户访问ip
-    select t1.username, 
-        (
-            select t2.ip 
-            from t_user_ip t2 
-            where t2.username = t1.username
-            order by t2.create_time desc 
-            limit 1
-        ) as ip
-    from t_user_ip t1
-    group by t1.username;
-    ```
-- 分析函数和聚合函数的不同之处是什么：普通的聚合函数用**group by分组，每个分组返回一个统计值**，而分析函数采用**partition by分组，并且每组每行都可以返回一个统计值** [^1]
-- 开窗函数`over()`，跟在分析函数之后，包含三个分析子句。形式如：`over(partition by xxx order by yyy rows between aaa and bbb)` [^2] 
-    - 子句类型
-        - 分组子句(partition by)
-        - 排序子句(order by)
-        - 窗口子句(rows)：窗口子句包含rows、range和滑动窗口
-            - 窗口子句不能单独出现，必须有`order by`子句时才能出现
-            - 取值说明
-                - `unbounded preceding` 第一行
-                - `current row` 当前行
-                - `unbounded following` 最后一行
-    - 省略分组字句：则把全部记录当成一个组
-        - 如果此时存在`order by`，则窗口默认(省略窗口时)为当前组的第一行到当前行(unbounded preceding and current row)
-        - 如果此时不存在`order by`，则窗口默认为整个组(unbounded preceding and unbounded following)
-    - 省略窗口字句
-        - 如果此时**存在**`order by`，**则窗口默认是当前组的第一行到当前行**(不是整个组,是全量数据)
-            - 出现`order by`子句的时候，不一定要有窗口子句(窗口子句不能单独出现，必须有`order by`子句时才能出现)
-        - 如果此时**不存在**`order by`，**则窗口默认是整个组**
-        - 示例（示例和图片来源：http://www.cnblogs.com/linjiqin/archive/2012/04/05/2433633.html）
-            - 在线测试地址: https://livesql.oracle.com/
-            
-            ```sql
-            -- 见图oracle-over-1: sql无排序, over排序子句省略
-            select deptno, empno, ename, sal, last_value(sal) over(partition by deptno) from emp;
-            -- (一般不推荐使用, 实际显示值和常规思路预期的不一致)
-            -- 见图oracle-over-2: sql无排序, over排序子句有, 窗口省略
-            select deptno, empno, ename, sal, last_value(sal) over(partition by deptno order by sal desc) from emp;
-            -- sql无排序, over()排序子句有, 窗口也有(窗口特意强调全组数据)
-            select deptno, empno, ename, sal,
-                last_value(sal) over(partition by deptno order by sal desc 
-                    rows between unbounded preceding and unbounded following) max_sal
-            from emp;
-            ```
-
-            - oracle-over-1
-              
-              ![oracle-over-1](/data/images/db/oracle-over-1.png)
-            
-            - oracle-over-2
-            
-              ![oracle-over-2](/data/images/db/oracle-over-2.png)
-
-    - 两个`order by`的执行时机
-        - 两者一致：如果sql语句中的order by满足分析函数分析时要求的排序，那么sql语句中的排序将先执行，分析函数在分析时就不必再排序
-        - 两者不一致：如果sql语句中的order by不满足分析函数分析时要求的排序，那么sql语句中的排序将最后在分析函数分析结束后执行排序
-- 使用示例
-
-```sql
--- 查询有移动任务的场存，并获取每个场存需要移动的次数和最早一次移动计划的id
-select *
-  from (
-    select ys.id
-        ,count(yvmp.venue_move_plan_id) over(partition by ys.id) as total
-        ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm ASC rows between unbounded preceding and unbounded following) as first_id
-    from ycross_storage ys -- 场存表
-    left join yyard_venue_move_plan yvmp -- 移动表
-        on yvmp.storage_id = ys.id and yvmp.yes_status = 0
-  ) t
- group by t.id, t.total, t.first_id
-```
-
-###### over使用误区
-
-- 主表行数并不会减少(普通的聚合函数用group by分组，**每个分组返回一个统计值**，而分析函数采用partition by分组，并且**每组每行都可以返回一个统计值**
-    - 查询每个客户每种拜访类型最近的一次拜访
-
-        ```sql
-        -- ========= 原始数据
-        -- 原始拜访表数据(部分)
-        select v.id, v.visit_type, v.customer_id, v.comments, v.visit_tm
-        from t_visit v 
-        where v.result is not null and v.valid_status = 1 
-        and v.customer_id = 358330
-        order by v.visit_type, v.id desc;
-        -- 结果
-        #   
-        1	93179	BS	358330	BS-3	2018/9/20
-        2	93165	BS	358330	BS-2	2018/9/21
-        3	93164	BS	358330	BS-1	2018/9/21
-        4	93252	IS	358330	IS-2	2018/10/8
-        5	27094	IS	358330	IS-1	2017/11/9
-
-        -- ========= 统计语句
-        -- *********错误sql一*********。(和group by混淆)
-        select
-        row_number() over(partition by v.customer_id, v.visit_type order by v.id desc) as rn
-        -- *********错误sql一*********
-        ,first_value(v.id) over(partition by v.customer_id, v.visit_type order by v.id desc) as id -- 只取一个ID也是重复的
-        ,first_value(v.customer_id) over(partition by v.customer_id, v.visit_type order by v.id desc) as customer_id
-        ,first_value(v.visit_type) over(partition by v.customer_id, v.visit_type order by v.id desc) as visit_type
-        ,first_value(v.comments) over(partition by v.customer_id, v.visit_type order by v.id desc) as comments
-        ,first_value(v.visit_tm) over(partition by v.customer_id, v.visit_type order by v.id desc) as visit_tm
-        from t_visit v
-        where v.valid_status = 1 and v.result is not null 
-        and v.customer_id = 358330;
-        -- 结果
-        #   RN
-        1	1	93179	358330	BS	BS-3	2018/9/20
-        2	2	93179	358330	BS	BS-3	2018/9/20
-        3	3	93179	358330	BS	BS-3	2018/9/20
-        4	1	93252	358330	IS	IS-2	2018/10/8
-        5	2	93252	358330	IS	IS-2	2018/10/8
-        
-        -- *********错误sql二*********。此时报max(v.id)中的id不是group by字句（使用keep的话也会有这个错）
-        select
-        max(v.id) over(partition by v.customer_id, v.visit_type order by v.id desc) as id -- max(v.id)：ORA-00979 not a group by expression
-        -- *********错误sql一*********
-        from t_visit v
-        where v.valid_status = 1 and v.result is not null 
-        and v.customer_id = 358330
-        group by v.customer_id, v.visit_type
-
-        -- 可再次group by；或者使用row_number()再加子查询rn=1获取最大最小值
-
-        -- =============== 使用 Keep ===============
-        -- Keep测试一(基于主表group by)。参考下文[keep](#keep)
-        -- Keep测试二(基于over的partition by)。参考下文[keep](#keep)
-        ```
-##### keep
-
-- keep的用法不同于通过over关键字指定的分析函数，可以用于这样一种场合下：**取同一个分组下以某个字段排序后，对指定字段取最小或最大的那个值。**从这个前提出发，我们可以看到其实这个目标通过一般的row_number分析函数也可以实现，即指定rn=1。但是，该函数无法实现同时获取最大和最小值。或者说用first_value和last_value，结合row_number实现，但是该种方式需要多次使用分析函数，而且还需要套一层SQL。于是出现了keep [^6]
-- 语法 [^5]
-
-    ```sql
-    aggregate_function -- 聚合函数
-    KEEP (
-        DENSE_RANK { FIRST | LAST } 
-        ORDER BY expr [ DESC | ASC ] [ NULLS { FIRST | LAST } ] [, expr [ DESC | ASC ] [ NULLS { FIRST | LAST } ]]...
-    ) 
-    [ OVER ( [query_partition_clause] ) ]
-    ```
-    - 最前是聚合函数，可以是min、max、avg、sum
-    - `dense_rank first`，`dense_rank last`为keep函数的保留属性
-        - dense_rank first 表示取分组-排序结果集中第一个(dense_rank值排第一的。可能有几行数据排序值一样，此时再可配合min/max等聚合函数取值)
-        - dense_rank last 同理，为最后一个
-- **Keep测试一(基于主表group by，如取最大最小值)**，场景参考上文[over使用误区](#over使用误区)
-
-```sql
--- *****Keep测试一(基于主表group by)*****：如查分组中最新的数据(非分组字段通过keep获取，如果同最近的ID再次管理表则效率低一些)
-select
-v.customer_id, v.visit_type
--- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2. 因为存在两个拜访时间2018/9/21一样，因此排序值都为1，当遇到不同排序值+1)，并取第一排序集(1-1的两条记录)中v.id最大的
-,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id
-,max(v.visit_tm) keep(dense_rank first order by v.visit_tm desc) as visit_tm
-,max(v.comments) keep(dense_rank first order by v.visit_tm desc) as comments
--- 排序值为 1-2-3
-,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id
-from t_visit v
-where v.valid_status = 1 and v.result is not null 
-and v.customer_id = 358330
-group by v.customer_id, v.visit_type; -- 先分成了两组(最终只有两组的统计值，两行数据)
--- 结果(注意第一行数据)
-#
-1	358330	BS	93165	2018/9/21	BS-2	2018/9/20
-2	358330	IS	93252	2018/10/8	IS-2	2018/10/8
-
--- 案例：查询每个提单CN1101的发送情况：可在max和keep语句中使用case when进行分组后数据过滤
-select sb.bill_no
-    -- max中不能省略case when过滤：否则可能其他提单也会显示成了最大的一个eh.id对应的值，因为每一组bill_no都对应了所有的子表数据，此时加case when可进行过滤
-    ,max(case when eh.edi_code = 'CN1101' and ell.bill_nbr is not null then eh.send_method else -1 end)
-    -- keep中不能省略case when过滤：否则取到的第一组永远是最大的一个eh.id，可能是其他提单发送的
-    keep(dense_rank first order by case when eh.edi_code = 'CN1101' and ell.bill_nbr is not null then eh.id else -1 end desc) as edi_send_method
-FROM ship_bill sb
-    -- 一个提单可能存在CN1101、IFCTST两种EDI，且此时是基于船号进行关联，从而可能会关联到其他提单的发送记录
-    -- 此处不能使用join，否则业务上可能漏掉了提单
-LEFT JOIN s_edi_head eh ON eh.business_no = sb.ship_no and eh.valid_status = 1 and eh.edi_code in ('CN1101', 'IFCTST')
-    -- 一个报文中包含的提单
-LEFT JOIN edi_log_bill ell ON ell.edi_id = eh.id and sb.bill_nbr = ell.bill_nbr
-WHERE sb.ship_no = 55265 
-group by sb.bill_no
-```
-- Keep测试二(基于over的partition by)，场景参考上文[over使用误区](#over使用误区)
-
-  ```sql
-  -- 查询每个客户的默认地址：t_customer数据条数 28.9w, t_customer_address数据条数 36.8w。(注：此测试实际场景为两张表除了主键，无其他外键和索引)
-  select tmp_page.*, rownum row_id from ( -- 分页
-    select t.* from ( -- 写法 2(推荐)
-      select c.customer_name_cn
-        --,ca.address -- 写法 1
-        ,max(ca.address) keep(dense_rank first order by decode(ca.address_type, 'Default', 1, 2)) over(partition by c.id) as address -- 写法 2
-      from t_customer c
-      left join t_customer_address ca on ca.valid_status = 1 and c.id = ca.customer_id -- 写法 2
-      /*  -- 写法 1
-      -- 也曾尝试把子查询视图管理再主查询where之后（将主查询包裹一层再和此子查询关联），没有任何改观
-      left join (select ca.customer_id,
-                  -- 需要根据客户地址类型排序，是导致子查询效率低的重要原因
-                  max(ca.address) keep(dense_rank first order by decode(ca.address_type, 'Default', 1, 2)) as address
-                from t_customer_address ca
-                -- 写法1优化：通过查询主表(条件过滤之后会很少)在子查询内部过滤，主查询条件如果很多则所有的条件都需要写两遍，烦杂
-                --join t_customer c on c.id = ca.customer_id and c.valid_status = 1
-                where ca.valid_status = 1
-                group by ca.customer_id) ca 
-          on ca.customer_id = c.id
-      */
-      where c.valid_status = 1 -- and c.customer_name_cn = 'XXX有限公司' -- 只有一条此数据。加上次条件后写法1的分页需要 10s，写法2的分页只需 0.09s 
-    ) t group by t.customer_name_cn, t.address -- 写法 2（去重。此处必须套一层select去重。在里面加group by，语法层面ca.address、ca.address_type、ca.id都需要在group by字句中，则起不到去重效果）
-  ) tmp_page where rownum <= 20 -- 分页
-  ```
-
-  - 写法 1
-    - 不使用分页执行计划。耗时 **3.5s** (PL/SQL自动分页显示20行) 
-      
-      ![oracle-keep-1](/data/images/db/oracle-keep-1.png)
-
-    - 使用分页执行计划。耗时 **4.2s** (为什么分页导致效率变低？？？)
-
-      ![oracle-keep-2](/data/images/db/oracle-keep-2.png)
-
-  - 写法 2
-    - 不使用分页执行计划。耗时 **0.8s** (PL/SQL自动分页显示20行) 
-      
-      ![oracle-keep-3](/data/images/db/oracle-keep-3.png)
-
-    - 使用分页执行计划。耗时 **0.7s**
-
-      ![oracle-keep-4](/data/images/db/oracle-keep-4.png)
-  - 扩展测试
-    - 测试1：如上述sql注释，在主查询的where处加`and c.customer_name_cn = 'XXX有限公司'`，这样查询理论上只有一条此数据。加上次条件后写法1的分页需要 10s，写法2的分页只需 0.09s
-    - 测试2：此时查询主表(t_customer)数据条数28.9w，曾测试查询主表只有2条数据(额外关联了几张较小的字段表)。写法1分页查询耗时 20s，写法2耗时 0.1s
-  - 关于子查询 [^7]
-    - 标准子查询：子查询先于主查询独立执行，返回明确结果供主查询使用。一般常见于where字句，且子查询返回一行/多上固定值(子查询中未使用主查询字段)
-    - 相关子查询：子查询不能提前运行以得到明确结果。一般常见于select字句、where字句(子查询中使用了主查询字段，如常用的exists)
-    - 此案例写法1使用子查询，不管子查询写在何处都需要子查询先返回一个视图，再供主查询调用。从而在获取子查询时必须全表扫描并排序
-  - **keep和over联用，即可以查询子表最值，关联子表导致数据重复仍需group by去重**
-
-##### rollup、cube、grouping 小计、合计
-
-- 结合group by获取小计、合计值
-https://www.cnblogs.com/mumulin99/p/9837522.html
-
 #### 正则表达式
 
 - 参考：https://www.cnblogs.com/qmfsun/p/4467904.html
@@ -1661,6 +1376,380 @@ GROUP BY
 	uit.username,
     uit.hobby_id;
 ```
+
+### 聚合函数(aggregate_function)
+
+- `min`、 `max`、`sum`、`avg`、`count`、`variance`、`stddev`
+- `count(*)`、`count(1)`、`count(id)`、`count(name)` **统计行数，不能统计值的个数**。count(name)，如果有3行，但是name有值的只有2行时结果仍然为3
+
+#### wm_concat行转列
+
+- 为oracle内部函数，**12之后已经去掉了此函数**
+- 行转列，会把多行转成1行(默认用`,`分割，select的其他字段需要是group by字段)
+- 案例
+    - `wm_concat(t.hobby)`
+    - `wm_concat(distinct t.hobby)` 支持去重
+    - `select replace(to_char(wm_concat(name)), ',', '|') from test;`替换分割符(默认为英文逗号)
+- 自从oracle **`11.2.0.3`** 开始`wm_concat`返回的是LOB(CLOB)字段导致部分查询需要进行修改。参考：https://www.cnblogs.com/wsxdev/p/15416946.html
+    - 可使用to_char转换成varchar类型
+        - 虽然在wm_concat()函数外层包了一层to_char()函数，避免使用了LOB类型；但是由于wm_concat()函数的返回值类型LOB类型是不能进行group by、distinct以及union共存的，因此会偶发ORA-22922:错误。这里需要注意的是，是偶发，不是必然
+    - 也可在应用中处理clob直接返回到前台报错问题
+        - 可通过`clob.getSubString(1, (int) clob.length())`解决
+
+            ```java
+            // JDBC
+            Object object = resultSet.getObject(i);
+            if(object != null) {
+                if(object instanceof java.sql.Clob) {
+                    java.sql.Clob clob = (java.sql.Clob) object;
+                    object = clob.getSubString(1, (int) clob.length());
+                }
+            }
+
+            // Mybatis处理
+            // https://juejin.cn/s/mybatis%20clob%20to%20string
+            // https://blog.csdn.net/lizhengyu891231/article/details/132434605
+            ```
+        - 或者使用jackson转换器，参考：https://oomake.com/question/13622930、https://segmentfault.com/a/1190000040484998
+    - 也可使用[listagg within group行转列](#listagg-within-group行转列)解决返回值为LOB的问题(但是长度最大为4000)
+    - 如果长度超过4000个字符，使用to_char会报错缓冲区不足，可以使用 [xmlagg](#xmlagg行转列) 函数代替(但不支持去重)。参考：https://www.cxybb.com/article/qq_28356739/88626952
+        - druid使用内置SQL解析工具类时，无法解析xmlagg函数，参考(测试无效)：https://github.com/alibaba/druid/issues/4259
+
+#### xmlagg行转列
+
+- 最大容量为4G，但是不支持去重
+
+```sql
+-- 解决缓冲区问题：不使用to_char函数，在Java中需要用java.sql.Clob类，进行数据的接收与转换
+select
+    xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval() "my_col"
+from test;
+
+select
+    -- to_char有4000个字符缓存区限制（如果超过4000个字符则转成to_char失败）
+    to_char(xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval()) "my_col"
+    -- (推荐)解决 to_char 超过 4000个字符报错问题
+    DBMS_LOB.SUBSTR(xmlagg(xmlparse(content 合并字段 || ',' wellformed) order by 排序字段).getclobval(), 32767, 1) "my_col"
+from test;
+```
+
+#### listagg-within-group行转列
+
+- listagg最大容量为4000
+- mysql可使用group_concat
+
+```sql
+-- 查询部门为20的员工列表
+select
+	t.deptno,
+    -- listagg 可理解为wm_concat；而 within group 表示对每一组的元素进行操作，此时是基于 t.ename 进行排序(即排序后再调用listagg)
+	listagg(t.ename, ',') within group (order by t.ename) names -- 返回 ADAMS,FORD,JONES 即将多行显示在一列中
+from scott.emp t
+where t.deptno = '20'
+group by t.deptno
+```
+
+### 分析函数
+
+#### 常见分析函数
+
+- `min`、`max`、`sum`、`avg` **一般和over/keep函数联合使用** [^3]
+- `first_value(字段名)`、`last_value(字段名)` **和over函数联合使用**
+- `row_number()`、`dense_rank()`、`rank()`：为每条记录产生一个从1开始至n的自然数，n的值可能小于等于记录的总数(基于相应order by字段的值来判断)。这3个函数的唯一区别在于当碰到相同数据时的排名策略。**和over函数联合使用**
+    - `row_number` 当碰到相同数据时，排名按照记录集中记录的顺序依次递增(如：1-2-3-4-5-6)
+    - `dense_rank` 当碰到相同数据时，此时所有相同数据的排名都是一样的(如：1-2-3-3-3-4. **如果被排序字段的值相等则认为排名相同**)
+    - `rank` 当碰到相同的数据时，此时所有相同数据的排名是一样的，同时会在最后一条相同记录和下一条不同记录的排名之间空出排名(如：1-2-3-3-3-6)
+- `lag()`、`lead()` 求之前或之后的第N行。lag和lead函数可以在一次查询中取出同一字段的前n行的数据和后n行的值。这种操作可以使用对相同表的表连接来实现，不过使用lag和lead有更高的效率。**和over函数联合使用**
+    - lag(列名, 偏移的offset, 超出记录窗口时的默认值)
+- `rollup()`、`cube()` 排列组合分组。**和group by联合使用**
+    - `group by rollup(a, b, c)`：首先会对(a、b、c)进行group by，然后再对(a、b)进行group by，其后再对(a)进行group by，最后对全表进行汇总操作
+    - `group by cube(a, b, c)`：  首先会对(a、b、c)进行group by，然后依次是(a、b)，(a、c)，(a)，(b、c)，(b)，(c)，最后对全表进行汇总操作
+
+#### connect by 递归关联
+
+- mysql参考: [RECURSIVE递归](#RECURSIVE递归)
+- `start with connect by prior` 递归查询(如树形结构)
+
+```sql
+select t.id, t.pid
+connect_by_root(t.id) root_id, -- 显示根节点列. 写成 `connect_by_root t.id root_id` PL/SQL也是可以的，但是Durid解析的时候可能会报错
+connect_by_root(t.name) root_name -- 显示根节点名称 
+from my_table t 
+start with t.pid = 1 -- 基于此条件进行向下查询(省略则表示基于全表为根节点向下查询，可能会有重复数据)
+-- connect by nocycle -- 递归条件(递归查询不支持环形。此处nocycle表示忽略环，如果确认结构中无环形则可省略。有环形则必须加，否则报错); connect_by_iscycle 在有循环结构的查询中使用。
+prior t.id = t.pid -- 增加递归条件，或者 add prior。也可自递归，如 t.id = t.id
+-- add prior level <= regexp_count(t.names, '[^,]+') -- level为当前递归层级(顶层为1)，此条件无实际意义，仅为了展示其语法功能
+where t.valid_status = 1 -- 将递归获取到的数据再次过滤
+-- order siblings by id desc -- siblings 保留树状结构，对兄弟节点进行排序
+
+-- 三级权限
+select
+connect_by_root (t.id) "一级权限id"
+,case when level = 1 then connect_by_root (t.permission_name) end "一级权限名称"
+,case when level = 2 then t.id when level = 3 then prior t.id end "二级权限id"
+,case when level = 2 then t.permission_name end "二级权限名称"
+,case when level = 3 then t.id end "三级权限id"
+,case when level = 3 then t.permission_name end "三级权限名称"
+,level "层次"
+,sys_connect_by_path(id, '->') "层次结构"
+,decode(connect_by_isleaf, 1, '是', '否') "是否子孙节点"
+,opm.OPERATOR_ID "用户拥有此权限"
+from s_operator_permission t
+left join s_operator_permission_mapper opm on opm.permission_id = t.id and opm.operator_id = 1 -- 用户ID=1的权限映射
+start with t.parent_id = 0
+connect by nocycle
+prior t.id = t.parent_id
+```
+
+#### over
+
+- **Mysql 8.0及以上也支持, 5.7不支持**
+
+    ```sql
+    -- 根据账号获取最新的用户访问ip
+    select t1.username, 
+        (
+            select t2.ip 
+            from t_user_ip t2 
+            where t2.username = t1.username
+            order by t2.create_time desc 
+            limit 1
+        ) as ip
+    from t_user_ip t1
+    group by t1.username;
+    ```
+- 分析函数和聚合函数的不同之处是什么：普通的聚合函数用**group by分组，每个分组返回一个统计值**，而分析函数采用**partition by分组，并且每组每行都可以返回一个统计值** [^1]
+  - 开窗函数只能在SELECT和ORDER BY中使用
+- 开窗函数`over()`，跟在分析函数之后，包含三个分析子句。形式如：`over(partition by xxx order by yyy rows between aaa and bbb)` [^2]
+    - 子句类型
+        - 分组子句(partition by)
+        - 排序子句(order by)
+        - 窗口子句(rows)：窗口子句包含rows、range和滑动窗口
+            - 窗口子句不能单独出现，必须有`order by`子句时才能出现
+            - 取值说明
+                - `unbounded preceding` 第一行
+                - `current row` 当前行
+                - `unbounded following` 最后一行
+    - 省略分组字句：则把全部记录当成一个组
+        - 如果此时存在`order by`，则窗口默认(省略窗口时)为当前组的第一行到当前行(unbounded preceding and current row)
+        - 如果此时不存在`order by`，则窗口默认为整个组(unbounded preceding and unbounded following)
+    - 省略窗口字句
+        - 如果此时**存在**`order by`，**则窗口默认是当前组的第一行到当前行**(不是整个组,是全量数据)
+            - 出现`order by`子句的时候，不一定要有窗口子句(窗口子句不能单独出现，必须有`order by`子句时才能出现)
+        - 如果此时**不存在**`order by`，**则窗口默认是整个组**
+        - 示例（示例和图片来源：http://www.cnblogs.com/linjiqin/archive/2012/04/05/2433633.html）
+            - 在线测试地址: https://livesql.oracle.com/
+
+            ```sql
+            -- 见图oracle-over-1: sql无排序, over排序子句省略
+            select deptno, empno, ename, sal, last_value(sal) over(partition by deptno) from emp;
+            
+            -- (一般不推荐使用, 实际显示值和常规思路预期的不一致)
+            -- 见图oracle-over-2: sql无排序, over排序子句有, 窗口省略
+            select deptno, empno, ename, sal, last_value(sal) over(partition by deptno order by sal desc) from emp;
+            
+            -- sql无排序, over()排序子句有, 窗口也有(窗口特意强调全组数据)
+            select deptno, empno, ename, sal,
+                last_value(sal) over(partition by deptno order by sal desc 
+                    rows between unbounded preceding and unbounded following) max_sal
+            from emp;
+            ```
+
+            - oracle-over-1
+
+              ![oracle-over-1](/data/images/db/oracle-over-1.png)
+
+            - oracle-over-2
+
+              ![oracle-over-2](/data/images/db/oracle-over-2.png)
+
+    - 两个`order by`的执行时机
+        - 两者一致：如果sql语句中的order by满足分析函数分析时要求的排序，那么sql语句中的排序将先执行，分析函数在分析时就不必再排序
+        - 两者不一致：如果sql语句中的order by不满足分析函数分析时要求的排序，那么sql语句中的排序将最后在分析函数分析结束后执行排序
+- 使用示例
+
+```sql
+-- 查询有移动任务的场存，并获取每个场存需要移动的次数和最早一次移动计划的id
+select *
+from (
+    select ys.id
+        ,count(yvmp.venue_move_plan_id) over(partition by ys.id) as total
+        ,first_value(yvmp.venue_move_plan_id) over(partition by yvmp.storage_id order by yvmp.input_tm ASC rows between unbounded preceding and unbounded following) as first_id
+    from ycross_storage ys -- 场存表
+    left join yyard_venue_move_plan yvmp -- 移动表
+        on yvmp.storage_id = ys.id and yvmp.yes_status = 0
+) t
+group by t.id, t.total, t.first_id
+```
+
+##### over使用误区
+
+- 主表行数并不会减少(普通的聚合函数用group by分组，**每个分组返回一个统计值**，而分析函数采用partition by分组，并且**每组每行都可以返回一个统计值**
+    - 查询每个客户每种拜访类型最近的一次拜访
+
+        ```sql
+        -- ========= 原始数据
+        -- 原始拜访表数据(部分)
+        select v.id, v.visit_type, v.customer_id, v.comments, v.visit_tm
+        from t_visit v 
+        where v.result is not null and v.valid_status = 1 
+        and v.customer_id = 358330
+        order by v.visit_type, v.id desc;
+        -- 结果
+        #   
+        1	93179	BS	358330	BS-3	2018/9/20
+        2	93165	BS	358330	BS-2	2018/9/21
+        3	93164	BS	358330	BS-1	2018/9/21
+        4	93252	IS	358330	IS-2	2018/10/8
+        5	27094	IS	358330	IS-1	2017/11/9
+
+        -- ========= 统计语句
+        -- *********错误sql一*********。(和group by混淆)
+        select
+        row_number() over(partition by v.customer_id, v.visit_type order by v.id desc) as rn
+        -- *********错误sql一*********
+        ,first_value(v.id) over(partition by v.customer_id, v.visit_type order by v.id desc) as id -- 只取一个ID也是重复的
+        ,first_value(v.customer_id) over(partition by v.customer_id, v.visit_type order by v.id desc) as customer_id
+        ,first_value(v.visit_type) over(partition by v.customer_id, v.visit_type order by v.id desc) as visit_type
+        ,first_value(v.comments) over(partition by v.customer_id, v.visit_type order by v.id desc) as comments
+        ,first_value(v.visit_tm) over(partition by v.customer_id, v.visit_type order by v.id desc) as visit_tm
+        from t_visit v
+        where v.valid_status = 1 and v.result is not null 
+        and v.customer_id = 358330;
+        -- 结果
+        #   RN
+        1	1	93179	358330	BS	BS-3	2018/9/20
+        2	2	93179	358330	BS	BS-3	2018/9/20
+        3	3	93179	358330	BS	BS-3	2018/9/20
+        4	1	93252	358330	IS	IS-2	2018/10/8
+        5	2	93252	358330	IS	IS-2	2018/10/8
+        
+        -- *********错误sql二*********。此时报max(v.id)中的id不是group by字句（使用keep的话也会有这个错）
+        select
+        max(v.id) over(partition by v.customer_id, v.visit_type order by v.id desc) as id -- max(v.id)：ORA-00979 not a group by expression
+        -- *********错误sql一*********
+        from t_visit v
+        where v.valid_status = 1 and v.result is not null 
+        and v.customer_id = 358330
+        group by v.customer_id, v.visit_type
+
+        -- 可再次group by；或者使用row_number()再加子查询rn=1获取最大最小值
+
+        -- =============== 使用 Keep ===============
+        -- Keep测试一(基于主表group by)。参考下文[keep](#keep)
+        -- Keep测试二(基于over的partition by)。参考下文[keep](#keep)
+        ```
+#### keep
+
+- keep的用法不同于通过over关键字指定的分析函数，可以用于这样一种场合下：**取同一个分组下以某个字段排序后，对指定字段取最小或最大的那个值。**从这个前提出发，我们可以看到其实这个目标通过一般的row_number分析函数也可以实现，即指定rn=1。但是，该函数无法实现同时获取最大和最小值。或者说用first_value和last_value，结合row_number实现，但是该种方式需要多次使用分析函数，而且还需要套一层SQL。于是出现了keep [^6]
+- 语法 [^5]
+
+    ```sql
+    aggregate_function -- 聚合函数
+    KEEP (
+        DENSE_RANK { FIRST | LAST } 
+        ORDER BY expr [ DESC | ASC ] [ NULLS { FIRST | LAST } ] [, expr [ DESC | ASC ] [ NULLS { FIRST | LAST } ]]...
+    ) 
+    [ OVER ( [query_partition_clause] ) ]
+    ```
+    - 最前是聚合函数，可以是min、max、avg、sum
+    - `dense_rank first`，`dense_rank last`为keep函数的保留属性
+        - dense_rank first 表示取分组-排序结果集中第一个(dense_rank值排第一的。可能有几行数据排序值一样，此时再可配合min/max等聚合函数取值)
+        - dense_rank last 同理，为最后一个
+- **Keep测试一(基于主表group by，如取最大最小值)**，场景参考上文[over使用误区](#over使用误区)
+
+```sql
+-- *****Keep测试一(基于主表group by)*****：如查分组中最新的数据(非分组字段通过keep获取，如果同最近的ID再次管理表则效率低一些)
+select
+v.customer_id, v.visit_type
+-- 在每一组中按照v.visit_tm排序计数(BS那一组排序值为 1-1-2. 因为存在两个拜访时间2018/9/21一样，因此排序值都为1，当遇到不同排序值+1)，并取第一排序集(1-1的两条记录)中v.id最大的
+,max(v.id) keep(dense_rank first order by v.visit_tm desc) as id
+,max(v.visit_tm) keep(dense_rank first order by v.visit_tm desc) as visit_tm
+,max(v.comments) keep(dense_rank first order by v.visit_tm desc) as comments
+-- 排序值为 1-2-3
+,max(v.visit_tm) keep(dense_rank first order by v.id desc) as visit_tm_id
+from t_visit v
+where v.valid_status = 1 and v.result is not null 
+and v.customer_id = 358330
+group by v.customer_id, v.visit_type; -- 先分成了两组(最终只有两组的统计值，两行数据)
+-- 结果(注意第一行数据)
+#
+1	358330	BS	93165	2018/9/21	BS-2	2018/9/20
+2	358330	IS	93252	2018/10/8	IS-2	2018/10/8
+
+-- 案例：查询每个提单CN1101的发送情况：可在max和keep语句中使用case when进行分组后数据过滤
+select sb.bill_no
+    -- max中不能省略case when过滤：否则可能其他提单也会显示成了最大的一个eh.id对应的值，因为每一组bill_no都对应了所有的子表数据，此时加case when可进行过滤
+    ,max(case when eh.edi_code = 'CN1101' and ell.bill_nbr is not null then eh.send_method else -1 end)
+    -- keep中不能省略case when过滤：否则取到的第一组永远是最大的一个eh.id，可能是其他提单发送的
+    keep(dense_rank first order by case when eh.edi_code = 'CN1101' and ell.bill_nbr is not null then eh.id else -1 end desc) as edi_send_method
+FROM ship_bill sb
+    -- 一个提单可能存在CN1101、IFCTST两种EDI，且此时是基于船号进行关联，从而可能会关联到其他提单的发送记录
+    -- 此处不能使用join，否则业务上可能漏掉了提单
+LEFT JOIN s_edi_head eh ON eh.business_no = sb.ship_no and eh.valid_status = 1 and eh.edi_code in ('CN1101', 'IFCTST')
+    -- 一个报文中包含的提单
+LEFT JOIN edi_log_bill ell ON ell.edi_id = eh.id and sb.bill_nbr = ell.bill_nbr
+WHERE sb.ship_no = 55265 
+group by sb.bill_no
+```
+- Keep测试二(基于over的partition by)，场景参考上文[over使用误区](#over使用误区)
+
+  ```sql
+  -- 查询每个客户的默认地址：t_customer数据条数 28.9w, t_customer_address数据条数 36.8w。(注：此测试实际场景为两张表除了主键，无其他外键和索引)
+  select tmp_page.*, rownum row_id from ( -- 分页
+    select t.* from ( -- 写法 2(推荐)
+      select c.customer_name_cn
+        --,ca.address -- 写法 1
+        ,max(ca.address) keep(dense_rank first order by decode(ca.address_type, 'Default', 1, 2)) over(partition by c.id) as address -- 写法 2
+      from t_customer c
+      left join t_customer_address ca on ca.valid_status = 1 and c.id = ca.customer_id -- 写法 2
+      /*  -- 写法 1
+      -- 也曾尝试把子查询视图管理再主查询where之后（将主查询包裹一层再和此子查询关联），没有任何改观
+      left join (select ca.customer_id,
+                  -- 需要根据客户地址类型排序，是导致子查询效率低的重要原因
+                  max(ca.address) keep(dense_rank first order by decode(ca.address_type, 'Default', 1, 2)) as address
+                from t_customer_address ca
+                -- 写法1优化：通过查询主表(条件过滤之后会很少)在子查询内部过滤，主查询条件如果很多则所有的条件都需要写两遍，烦杂
+                --join t_customer c on c.id = ca.customer_id and c.valid_status = 1
+                where ca.valid_status = 1
+                group by ca.customer_id) ca 
+          on ca.customer_id = c.id
+      */
+      where c.valid_status = 1 -- and c.customer_name_cn = 'XXX有限公司' -- 只有一条此数据。加上次条件后写法1的分页需要 10s，写法2的分页只需 0.09s 
+    ) t group by t.customer_name_cn, t.address -- 写法 2（去重。此处必须套一层select去重。在里面加group by，语法层面ca.address、ca.address_type、ca.id都需要在group by字句中，则起不到去重效果）
+  ) tmp_page where rownum <= 20 -- 分页
+  ```
+
+    - 写法 1
+        - 不使用分页执行计划。耗时 **3.5s** (PL/SQL自动分页显示20行)
+
+          ![oracle-keep-1](/data/images/db/oracle-keep-1.png)
+
+        - 使用分页执行计划。耗时 **4.2s** (为什么分页导致效率变低？？？)
+
+          ![oracle-keep-2](/data/images/db/oracle-keep-2.png)
+
+    - 写法 2
+        - 不使用分页执行计划。耗时 **0.8s** (PL/SQL自动分页显示20行)
+
+          ![oracle-keep-3](/data/images/db/oracle-keep-3.png)
+
+        - 使用分页执行计划。耗时 **0.7s**
+
+          ![oracle-keep-4](/data/images/db/oracle-keep-4.png)
+    - 扩展测试
+        - 测试1：如上述sql注释，在主查询的where处加`and c.customer_name_cn = 'XXX有限公司'`，这样查询理论上只有一条此数据。加上次条件后写法1的分页需要 10s，写法2的分页只需 0.09s
+        - 测试2：此时查询主表(t_customer)数据条数28.9w，曾测试查询主表只有2条数据(额外关联了几张较小的字段表)。写法1分页查询耗时 20s，写法2耗时 0.1s
+    - 关于子查询 [^7]
+        - 标准子查询：子查询先于主查询独立执行，返回明确结果供主查询使用。一般常见于where字句，且子查询返回一行/多上固定值(子查询中未使用主查询字段)
+        - 相关子查询：子查询不能提前运行以得到明确结果。一般常见于select字句、where字句(子查询中使用了主查询字段，如常用的exists)
+        - 此案例写法1使用子查询，不管子查询写在何处都需要子查询先返回一个视图，再供主查询调用。从而在获取子查询时必须全表扫描并排序
+    - **keep和over联用，即可以查询子表最值，关联子表导致数据重复仍需group by去重**
+
+#### rollup、cube、grouping 小计、合计
+
+- 结合group by获取小计、合计值
+  https://www.cnblogs.com/mumulin99/p/9837522.html
 
 ### 自定义函数
 
@@ -1943,8 +2032,11 @@ select trunc(4.757545489, 2) from dual; -- 4.74
 
 ```sql
 -- STUFF(ori_str, start, length, add_str): 将ori_str从start位置删除length个字符，然后将add_str拼接在后面
-select stuff('hello', 1, 1, '') as 删除字符列; -- ello
-select stuff('hello', 3, 2, 'aa') as 替换字符列; -- heaao
+select stuff('hello', 1, 1, '') "删除字符列"; -- ello
+select stuff('hello', 3, 2, 'aa') "替换字符列"; -- heaao
+
+-- 还支持 LEFT/RIGHT
+SELECT SUBSTRING('HelloWorld', 5, 2) "截取字符串"; -- Wo
 ```
 
 ### with和表变量

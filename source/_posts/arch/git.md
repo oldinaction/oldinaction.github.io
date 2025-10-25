@@ -10,20 +10,29 @@ tags: [git]
 
 - [官网](https://git-scm.com/)
 - [git命令学习地址](https://learngitbranching.js.org/?locale=zh_CN)
+- github镜像
+
+```bash
+# 镜像站
+- https://kkgithub.com/ 貌似下载会有点问题
+- https://ghproxy.link/ 下载加速站(支持release)
+
+# 将`github.com`域名改成`github1s.com`，会将仓库通过在线VsCode打开(需要github授权)
+# 将`github.com`域名改成`github.dev`，或者按`。`键，会将仓库通过在线VsCode打开(可以和本地插件同步)
+
+# 单文件下载(不能下载release文件), sourcegraph支持代码笔记 (可安装对应谷歌插件)
+# 原文件下载地址 https://raw.githubusercontent.com/teddysun/across/master/l2tp.sh
+# 使用sourcegraph下载地址 https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
+
+# gitclone.com 加速
+git clone https://gitclone.com/github.com/tendermint/tendermint.git
+```
 - 安装
 	- windows：官网下载对应安装包
 	- Centos：`yum -y install git`
 	- Ubuntu：`sudo apt-get install git`
     - 客户端界面
-        - []()
         - [SmartGit V21.2.4](https://www.syntevo.com/smartgit/download/archive/) 
-- github镜像
-
-```bash
-# 单文件下载
-# 原文件下载地址 https://raw.githubusercontent.com/teddysun/across/master/l2tp.sh
-# 使用sourcegraph下载地址 https://sourcegraph.com/github.com/teddysun/across/-/raw/l2tp.sh
-```
 
 ## git入门
 
@@ -729,17 +738,18 @@ git commit -m <type>[optional scope]: <description>
 
 ## 常用的type类别. type用于表明我们这次提交的改动类型，是新增了功能？还是修改了测试代码？又或者是更新了文档？总结以下 11 种类型：
 • feat: 新增功能
-• fix: bug 修复
-• docs: 文档更新
+• fix: bug修复
+• up: ～功能优化～
 • refactor: 重构代码(既没有新增功能，也没有修复 bug)
-• style: 不影响程序逻辑的代码修改(修改空白字符，补全缺失的分号等)
-• test: 新增测试用例或是更新现有测试
-• revert: 回滚某个更早之前的提交
-• chore: 不属于以上类型的其他类型(日常事务)
 • perf: 性能优化
+• cve: CVE漏洞修复
+• oth: 不影响程序逻辑的代码修改(修改空白字符，补全缺失的分号等)
+• docs: 文档更新
+• chore: 不属于以上类型的其他类型(日常事务)
+• test: 新增测试用例或是更新现有测试
 • build: 主要目的是修改项目构建系统(例如 glup，webpack，rollup 的配置等)的提交
 • ci: 主要目的是修改项目继续集成流程(例如 Travis，Jenkins，GitLab CI，Circle等)的提交
-• cve: CVE漏洞修复
+• revert: 回滚某个更早之前的提交
 
 # 例如
 git commit -m 'feat: 增加 xxx 功能'
@@ -748,9 +758,6 @@ git commit -m 'fix: 修复 xxx 功能'
 
 ## Github使用
 
-- 镜像站
-    - https://hub.連接.台灣
-    - https://hub.fastgit.org/
 - emoji语法: https://gist.github.com/rxaviers/7360908
 - 对于私有项目，通过https访问时不能通过密码验证，可通过[github-cli](https://cli.github.com/manual/)验证
 

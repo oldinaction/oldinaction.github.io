@@ -670,6 +670,29 @@ public class LocalDateTimeUtils {
 }
 ```
 
+### 响应结果序列化
+
+```yml
+# 全局日期格式化。仅对 java.util.Date、java.sql.Timestamp、java.sql.Date 等传统日期类型生效，对 Java 8+ 新增的时间类型（LocalDateTime、LocalDate 等）不直接生效
+spring.jackson.date-format=yyyy/MM/dd HH:mm:ss.SSS
+spring.jackson.time-zone=GMT+8
+```
+
+```java
+// 自定义 ObjectMapper: 此写法会忽略 spring.jackson 配置
+@Bean
+public ObjectMapper objectMapper() {
+    return new ObjectMapper();
+}
+
+// 通过 Jackson2ObjectMapperBuilder 构建，继承全局配置，即继承 spring.jackson 配置
+@Bean
+public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
+    return builder.build();
+}
+```
+
+
 ### 文件上传下载配置
 
 - 参考[文件上传下载案例](/_posts/arch/springboot-vue.md#文件上传案例)
@@ -1400,6 +1423,13 @@ public static String sha1(String str) throws NoSuchAlgorithmException, Unsupport
 
 ## 视图展示
 
+- 直接显示纯静态文件(默认配置)
+  - 将纯静态文件 index.html 放到 src/main/resources/static 目录下
+  - 直接访问 http://localhost:8080/index.html 即可
+  - 如果此时还自定义了context-path, 则可能如 http://localhost:8080/api/index.html
+- 直接显示纯静态文件(自定义了部分配置spring.mvc.static-path-pattern 或 spring.resources.static-locations). 参考[java-http.md#文件上传下载](/_posts/java/java-http.md#文件上传下载)
+- 基于 @Controller 显示模板文件, 参考下文thymeleaf模板引擎
+
 ### thymeleaf模板引擎
 
 - 引入依赖
@@ -1438,23 +1468,23 @@ public static String sha1(String str) throws NoSuchAlgorithmException, Unsupport
     #	suffix: .html
 	```
 - 示例
-	- Controller：类的注解必须是`@Controller`
-
-		```java
-		@Controller // 此时不能是@RestController
-		public class ThymeleafController {
-
-			// 页面显示resources/templates/hello.html的内容
-			@RequestMapping("/hello")
-			public String hello(Map<String, Object> model) {
-				// 无需注入参数值时，则方法可不接收model参数
-				model.put("hello", "UserController.thymeleaf");
-
-				// return "/hello"; // 加上/后，打成jar包路径找不到。可以去掉/或者使用return new ModelAndView("hello");
-				return "hello"; // 不能加后缀名
-			}
-		}
-		```
+    - Controller：类的注解必须是`@Controller`
+    
+    ```java
+    @Controller // 此时不能是@RestController
+    public class ViewController {
+        // 页面显示resources/templates/hello.html的内容
+        @RequestMapping("/hello")
+        public String hello(Map<String, Object> model) {
+            // 无需注入参数值时，则方法可不接收model参数
+            // 对于 thymeleaf 等模板引擎，可注入参数
+            // model.put("hello", "UserController.thymeleaf");
+    
+            // return "/hello"; // 加上/后，打成jar包路径找不到。可以去掉/或者使用return new ModelAndView("hello");
+            return "hello"; // 不能加后缀名
+        }
+    }
+    ```
 	- hello.html文件
 
 		```html
@@ -2109,6 +2139,13 @@ mailSender.send(mimeMessage);
                 <groupId>nothing</groupId>
                 <artifactId>nothing</artifactId>
             </include>
+
+            <!-- 加入子模块(jar类型模块): 会打包到 jar/BOOT-INF/lib 下, jad 直接打开可能看不到(显示 null)
+            <include>
+                <groupId>cn.aezo.demo</groupId>
+                <artifactId>core</artifactId>
+            </include>
+            -->
         </includes>
     </configuration>
 </plugin>
@@ -2266,7 +2303,7 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
     - **可能对应jar包冲突或引入改jar包的依赖版本不匹配**
     - 使用springboot，一般会将其设置为parent，假设parent(springboot)的pom中配置了A-1.0.0.jar的版本；当项目中引入B.jar，如果他依赖A-2.0.0.jar，那么实际引入的版本会是A-1.0.0.jar，从而可能出现上述问题。此时必须手动引入A-2.0.0.jar(且要保证不冲突)，并排除B.jar对A.jar的依赖
 
-## springboot 2.0.1 改动及相关问题
+## SpringBoot 2.0.1 改动及相关问题
 
 - jpa
 
@@ -2290,6 +2327,28 @@ User user = this.userRepositroy.findById(id).get();
 |  org.springframework.boot.autoconfigure.jdbc.DataSourceInitializerInvoker
 └─────┘
 ```
+
+## SpringBoot3
+
+- SpringBoot3 要求 JDK17 及以上
+- javax.annotation.Resource 注解不存在问题
+  - 在JDK9及以上版本中，由于JavaEE（javax相关包）从JDK中分离，且禁止社区使用 javax 这个名字（JavaEE 的最后一个版本也是 8）
+  - JDK9及以上 + SpringBoot3/Spring6.0以下版本，需手动导入javax.annotation包
+  
+    ```xml
+    <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>1.3.2</version>
+    </dependency>
+    ```
+  - JDK9及以上 + SpringBoot3/Spring6.0及以上版本（Spring也弃用了javax，换成了jakarta: Jakarta EE）
+    - 导入javax的依赖也无法解决，此时需要改代码 javax 为 jakarta，如:
+    - javax.annotation 改为 jakarta.annotation
+    - javax.servlet 改为 jakarta.servlet
+    - javax.validation 改为 jakarta.validation, 并且引入 `org.springframework.boot:spring-boot-starter-validation` 的依赖
+    - javax.sql, javax.script 仍然还在JDK中的
+- 没有 RestTemplateBuilder Bean: 通过 WebClient 代替 RestTemplate, 或使用 SimpleClientHttpRequestFactory 组装, 参考[RestTemplate](/_posts/java/java-http.md#RestTemplate)
 
 
 

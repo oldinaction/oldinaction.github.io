@@ -196,7 +196,7 @@ Spring的两种代理方式：JDK动态代理和CGLIB动态代理
 - Spring的`BeanFactory`和`FactoryBean`区别 https://www.cnblogs.com/aspirant/p/9082858.html
 
 
-- 数据库悲观锁/乐观锁，hibernate/mybatis对其实现
+- 数据库悲观锁/乐观锁, hibernate/mybatis对其实现
 https://www.cnblogs.com/lr393993507/p/5909804.html
 https://chenzhou123520.iteye.com/blog/1860954
 https://chenzhou123520.iteye.com/blog/1863407

@@ -10,7 +10,7 @@ tags: [C, C++, C#]
 
 - 2018年新版C/C++学习路线图 https://www.itcast.cn/news/20180514/17184715961.shtml
     - 缺失部分可参考黑马程序员 http://yun.itheima.com/map/25.html
-- 尚学堂C++入门
+- 尚学堂C++入门 day08?
     - 视频 https://edu.aliyun.com/course/477?spm=5176.8764728.aliyun-edu-course-tab.1.77b05bdehgZfhF&previewAs=guest&redirectStatus=0
     - 笔记 https://github.com/0voice/cpp_new_features/blob/main/C%2B%2B%20%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B%EF%BC%8841%E8%AF%BE%E6%97%B6%EF%BC%89%20-%20%E9%98%BF%E9%87%8C%E4%BA%91%E5%A4%A7%E5%AD%A6.md
 - C++参考手册 https://c-cpp.com/cpp

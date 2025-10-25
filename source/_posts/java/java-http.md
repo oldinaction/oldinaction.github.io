@@ -25,14 +25,15 @@ server.context-path=/myapp
     - https://www.hangge.com/blog/cache/detail_2484.html (GET请求示例)
 - 常见请求方式
 
-| request-method | Content-Type                        | postman               | springboot                                                                                       | 说明                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| -------------- | ----------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| post           | `application/json`                  | row-json              | (String userIdUrlParam, @RequestBody User user)                                                  | `String userIdUrlParam`可以接受 url 中的参数，使用了`@RequestBody`可以接受 body 中的参数(最终转成 User/Map/List 对象，**如`@RequestBody List<Map<String, Object>> items`**，此时 body 中的数据不能直接通过 String 等接受)，而 idea 的 http 文件中 url 参数拼在地址上无法获取(请求机制不同)                                                                                                                                                             |
-| (x)post        | `application/json`                  | row-json              | (@RequestParam username)                                                                         | 如果前台为 application/json + {username: smale}或者 application/json + username=smalle 均报 400；此时需要 application/x-www-form-urlencoded + username=smalle 才可请求成功                                                                                                                                                                                                                                                                             |
-| post           | `application/x-www-form-urlencoded` | x-www-form-urlencoded | (String name, User user, @RequestBody body)                                                      | `String name`可以接受 url 中的参数，postmant 的 x-www-form-urlencoded 中的参数会和 url 中参数合并后注入到 springboot 的参数中；`@RequestBody`会接受 url 整体的数据，(由于 Content-Type)此时不会转换，body 接受的参数如`name=hello&name=test&pass=1234`。**对于 application/x-www-form-urlencoded 类型的数据，可无需 @RequestBody 接受参数**                                                                                                            |
-| post           | `multipart/form-data`               | form-data             | (HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello) | 参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括 axios 等插件)需要使用 new FormData()进行数据传输；此时参数映射到 User 对象，如果字段为 null 则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是 Map 则无法映射，可通过传入JSON字符串再反序列化**；表单数据都保存在 http 的正文部分，各个表单项之间用 boundary 隔开，用 request.getParameter 是取不到数据的，这时需要通过 request.getInputStream 来取数据 |
-| get            | -                                   | -                     | (User user, Page page)                                                                           | 前台传输参数为{username: 'smalle', pageSize: 10}时，可正确分别映射到两个对象；如果此时为 post 请求则无法映射；get 请求时，请求参数会拼接到 url 上，Google 浏览器 URL 最大长度限制为 8182 个字符，中文是以 urlencode 后的编码形式进行传递，如果浏览器的编码为 UTF8 的话，一个汉字最终编码后的字符长度为 9 个字符(中=%E4%B8%AD)。如果用 Map 接受，则数字类型的值也会映射成字符串                                                                      |
-| all            | 如`application/x-www-form-urlencoded` | all                   | (Map<String, Object> param)                                                                           | 前台传输参数为?age=&count=10000时，得到的字段数据类型均为字符串。(必须)加@RequestParam注解才能获取到Map(值也全部是字符串)；除了url上的参数，form-data的时候可将其值也放到map中(x-www-form-urlencoded中的不会放到map)                                                                |
+| request-method | Content-Type                          | postman               | springboot                                                                                       | 说明                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------- |---------------------------------------| --------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| post           | `application/json`                    | row-json              | (@RequestBody List<Map<String, Object>> items)                                                   | 使用了`@RequestBody`可以接受 body 中的参数(最终转成 User/Map/List 对象                                                                                                                                                        |
+| post           | `application/json`                    | row-json              | (String userIdUrlParam, @RequestBody User user)                                                  | `String userIdUrlParam`可以接受 url 中的参数，此时 body 中的数据不能直接通过 String 等接受)，而 idea 的 http 文件中 url 参数拼在地址上无法获取(请求机制不同)；对于同时支持 GET/POST 方法的情况，可使用 @RequestBody **(required = false)** Map<String, Object> data 来适配 GET 请求没有请求体的情况                                                                                                                                                             |
+| (x)post        | `application/json`                    | row-json              | (@RequestParam username)                                                                         | 如果前台为 application/json + {username: smale}或者 application/json + username=smalle 均报 400；此时需要 application/x-www-form-urlencoded + username=smalle 才可请求成功                                                                                                                                                                                                                                                                            |
+| post           | `application/x-www-form-urlencoded`   | x-www-form-urlencoded | (String name, User user, @RequestBody body)                                                      | `String name`可以接受 url 中的参数，postmant 的 x-www-form-urlencoded 中的参数会和 url 中参数合并后注入到 springboot 的参数中；`@RequestBody`会接受 url 整体的数据，(由于 Content-Type)此时不会转换，body 接受的参数如`name=hello&name=test&pass=1234`。**对于 application/x-www-form-urlencoded 类型的数据，可无需 @RequestBody 接受参数**                                                                                                           |
+| post           | `multipart/form-data`                 | form-data             | (HttpServletRequest request, MultipartFile file, User user, @RequestParam("hello") String hello) | 参考[文件上传下载](#文件上传下载)，文件上传必须使用此类型(包含参数)；javascript XHR(包括 axios 等插件)需要使用 new FormData()进行数据传输；此时参数映射到 User 对象，如果字段为 null 则会转换成'null'进行映射，如果改字段为数值类型，会导致字符串转数值出错；**如果接受参数是 Map 则无法映射，可通过传入JSON字符串再反序列化**；表单数据都保存在 http 的正文部分，各个表单项之间用 boundary 隔开，用 request.getParameter 是取不到数据的，这时需要通过 request.getInputStream 来取数据 |
+| get            | -                                     | -                     | (User user, Page page)                                                                           | 前台传输参数为{username: 'smalle', pageSize: 10}时，可正确分别映射到两个对象；如果此时为 post 请求则无法映射；get 请求时，请求参数会拼接到 url 上，Google 浏览器 URL 最大长度限制为 8182 个字符，中文是以 urlencode 后的编码形式进行传递，如果浏览器的编码为 UTF8 的话，一个汉字最终编码后的字符长度为 9 个字符(中=%E4%B8%AD)。如果用 Map 接受，则数字类型的值也会映射成字符串                                                                     |
+| all            | 如`application/x-www-form-urlencoded` | all                   | (Map<String, Object> param)                                                                      | 前台传输参数为?age=&count=10000时，得到的字段数据类型均为字符串。(必须)加@RequestParam注解才能获取到Map(值也全部是字符串)；除了url上的参数，form-data的时候可将其值也放到map中(x-www-form-urlencoded中的不会放到map)                                                                |
 
 - content-type传入"MIME类型"(多用途因特网邮件扩展 Multipurpose Internet Mail Extensions)只是一个描述，决定文件的打开方式
 	- 请求的header中加入content-type标明数据MIME类型。如POST时，application/json表示数据存放在body中，且数据格式为json
@@ -237,6 +238,43 @@ HttpEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, reques
 - **增加超时机制**、自定义拦截器、忽略证书、处理中文乱码
 
 ```java
+// Spring Boot 3.0+ 推荐使用 WebClient 替代 RestTemplate
+@Bean
+public WebClient webClient() {
+    return WebClient.builder().build();
+}
+
+@Autowired
+private WebClient webClient;
+
+public void fetchData() {
+    String result = webClient.get()
+        .uri("https://api.example.com/data")
+        .retrieve()
+        .bodyToMono(String.class)
+        .block();
+}
+
+// ------ RestTemplateBuilder 可能无法注入, 使用
+@Bean
+public RestTemplate restTemplateForReportTableJob() {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory(); // 可做成Bean, 参考下文
+    factory.setConnectTimeout(1000 * 60 * 5);
+    factory.setReadTimeout(1000 * 60 * 5);
+    RestTemplate restTemplate = new RestTemplate(factory);
+    restTemplate.getMessageConverters().add(getMappingJackson2HttpMessageConverter());
+    //restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+    return restTemplate;
+}
+private MappingJackson2HttpMessageConverter getMappingJackson2HttpMessageConverter() {
+    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+    List<MediaType> mediaTypes = new ArrayList<>();
+    mediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
+    converter.setSupportedMediaTypes(mediaTypes);
+    return converter;
+}
+
+// ------
 // 如果不设置 RestTemplate 相关属性，则无需手动引入
 @Bean // spirngboot > 1.4 无需其他依赖
 public RestTemplate customRestTemplate(RestTemplateBuilder restTemplateBuilder) {
@@ -442,12 +480,14 @@ spring:
       max-request-size: 50MB
   mvc:
     # 静态资源映射，通过后台访问文件的路径(一般需要排除对此路径的权限验证)。相当于一个映射，映射的本地路径为 spring.resources.static-locations
-    # 实际访问还需要增加servlet.context路径(/api)，如访问 /api/static/test/test.js -> test/test.js(此时test目录会自动识别属于哪个目录)
-    static-path-pattern: /static/** # 此路径尽量不要和classpath目录下文件夹重名
+    # 默认值为 /files/** 或 /** (取决于版本), 如果定义了其他则只有此路径才会到对应静态目录去寻找文件
+    # 实际访问还需要增加servlet.context路径(/api)，如访问 /api/files/test/test.js -> test/test.js(此时test目录会自动识别属于哪个目录)
+    static-path-pattern: /files/** # 此路径尽量不要和classpath目录下文件夹重名
   resources:
-    # 默认为：classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
+    # 默认为: classpath:/META-INF/resources/,classpath:/resources/,classpath:/public/,classpath:/static/
     # 后台可访问的本地文件路径. **最终的URL路径不需要携带此前缀，即应该保存各目录下的顶级子目录不会重复。如果重复了，static-locations值中排在前面的优先**
-    static-locations: classpath:/META-INF/resources/,classpath:/resources/,file:/data/app
+    # 如果只配置成了 file:/data, 则 classpath:/static/ 路径下的就会失效
+    static-locations: file:/data/app,classpath:/META-INF/resources/,classpath:/resources/
 ```
 - 使用JavaBean进行静态文件映射
 
@@ -488,10 +528,108 @@ public MultipartConfigElement multipartConfigElement() {
         }).then(response => {})
         ```
 
+## Apache-HttpClient
 
+- maven
 
+```xml
+<dependency>
+    <groupId>org.apache.httpcomponents.client5</groupId>
+    <artifactId>httpclient5</artifactId>
+    <version>5.3</version>
+</dependency>
+```
 
+```java
+public static void main(String[] args) {
+    // 发送GET请求
+    String getResponse = sendGetRequest("https://api.example.com/data");
+    System.out.println("GET响应: " + getResponse);
+    
+    // 发送POST请求
+    String jsonBody = "{\"name\":\"test\",\"value\":\"example\"}";
+    String postResponse = sendPostRequest("https://api.example.com/submit", jsonBody);
+    System.out.println("POST响应: " + postResponse);
+}
 
+// 发送GET请求
+private static String sendGetRequest(String url) {
+    try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("Content-Type", "application/json");
+        
+        try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+            return EntityUtils.toString(response.getEntity());
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+
+// 发送POST请求
+private static String sendPostRequest(String url, String jsonBody) {
+    try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setHeader("Content-Type", "application/json");
+        
+        // 设置请求体
+        StringEntity entity = new StringEntity(jsonBody);
+        httpPost.setEntity(entity);
+        
+        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+            return EntityUtils.toString(response.getEntity());
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+```
+
+## Java自带HttpURLConnection
+
+```java
+public static void main(String[] args) {
+    String urlString = "https://api.example.com/data";
+    
+    try {
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        
+        // 设置请求方法
+        connection.setRequestMethod("GET");
+        
+        // 设置请求头
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("User-Agent", "Java HTTP Client");
+        
+        // 获取响应码
+        int responseCode = connection.getResponseCode();
+        System.out.println("响应码: " + responseCode);
+        
+        // 读取响应内容
+        BufferedReader in = new BufferedReader(
+            new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+        
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        
+        // 打印响应结果
+        System.out.println("响应内容: " + response.toString());
+        
+        // 关闭连接
+        connection.disconnect();
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
 
 
 

@@ -360,6 +360,8 @@ spec:
       hostNetwork: true
 ```
 
+### ProFTPD
+
 ### FileZilla
 
 - [官网](https://filezilla-project.org/index.php)
@@ -376,6 +378,12 @@ spec:
 
 ### Serv-U
 
+
+## FTP集群
+
+- https://www.cnblogs.com/navysummer/p/15912620.html
+- https://www.iteye.com/blog/jdkleo-2106210
+- https://www.51cto.com/article/240150.html
 
 ---
 

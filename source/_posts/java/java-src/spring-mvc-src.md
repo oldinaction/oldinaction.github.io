@@ -441,6 +441,8 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
         - GenericHttpMessageConverter 接口
             - AbstractJackson2HttpMessageConverter **最终通过 ObjectMapper(可进行自定义映射规则)进行转换**
                 - MappingJackson2HttpMessageConverter 通过Jackson解析application/json格式数据
+                - readInternal 请求时调用，将字符串反序列化成对象
+                - writeInternal 响应时调用，将数据序列化成字符串
 
 ### 流程
 

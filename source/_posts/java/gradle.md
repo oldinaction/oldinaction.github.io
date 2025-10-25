@@ -116,12 +116,19 @@ allprojects {
 
 ### gradle.properties
 
+- Gradle 会从 3 个层级 读取代理配置
+    - HTTP_PROXY、HTTPS_PROXY 环境变量
+    - ~/.gradle/gradle.properties 配置文件, 如下
+    - 代理工具 / Android Studio (Preferences → Appearance & Behavior → System Settings → HTTP Proxy, 可能会自动生成到 gradle.properties 中，当去掉代理时，gradle.properties 可能没有去掉)
+- 查看是否使用了代理
+    - 进入项目根目录执行 `gradle info --debug`, 如果有 `[org.apache.http.impl.execchain.RetryExec] I/O exception (org.apache.http.NoHttpResponseException) caught when processing request to {tls}->http://127.0.0.1:1088->https://plugins.gradle.org:443: The target server failed to respond` 类似报错则说明走代理下载包失败
+
 ```bash
 # 配置代理
 systemProp.http.proxyHost=proxy.example.com
-systemProp.http.proxyPort=8080
+systemProp.http.proxyPort=1088
 systemProp.https.proxyHost=proxy.example.com
-systemProp.https.proxyPort=8080
+systemProp.https.proxyPort=1088
 ```
 
 ### 命令

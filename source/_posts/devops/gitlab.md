@@ -24,7 +24,7 @@ tags: [git]
     - CE社区版安装参考: https://blog.51cto.com/u_16213672/10409442
 - CE社区版Docker镜像: https://hub.docker.com/r/gitlab/gitlab-ce/tags EE企业版镜像: https://hub.docker.com/r/gitlab/gitlab-ee/tags
     - Docker安装CE版参考: https://blog.csdn.net/weixin_42286658/article/details/144768578
-- Docker安装CE版
+- **Docker安装CE版**
 
 ```bash
 # 安装Docker: 参考[docker.md](/_posts/devops/docker.md#安装)

@@ -1245,7 +1245,7 @@ delete from C##YSS.USER_LOGIN_SECURITY_GROUP t where t.USER_LOGIN_ID in (select 
         base-permission="OFBTOOLS,ORDERMGR"
         mount-point="/ordermgr"/>
     ```
-    - 见其中的"base-permission"属性。可以看到它包含了两个权限值——OFBTOOLS、ORDERMGR，这也意味着你必须同时拥有这两个权限（OFBTOOLS_VIEW和ORDERMGR_VIEW）才能访问该组件。而通常一个Component也会同时包含权限“OFBTOOLS”以及权限“COMPONNENT-NAME_VIEW”，这样配置的目的是OFBTOOLS用于对web app的访问进行控制，而COMPONNENT-NAME_VIEW用于控制浏览web app的信息
+    - 见其中的"base-permission"属性。可以看到它包含了两个权限值: OFBTOOLS, ORDERMGR，这也意味着你必须同时拥有这两个权限(OFBTOOLS_VIEW 和 ORDERMGR_VIEW, ORDERMGR_ADMIN本质包含了ORDERMGR_VIEW)才能访问该组件
 - request(controller.xml)级别
     - 这里有两个重要的参数，所有component的webapp目录下controller.xml中的每个request（`<request-map>`）标签有一个security（`<security>`）标签，包含了两个属性
         - https：定义是否对该请求应用SSL加密
@@ -1268,6 +1268,19 @@ delete from C##YSS.USER_LOGIN_SECURITY_GROUP t where t.USER_LOGIN_ID in (select 
             ...将此component菜单显示出来
         </#if>
         ```
+- 菜单级别
+
+    ```xml
+    <menu-item name="test" title="测试">
+        <condition>
+            <!-- 基于action的写法好处: TEST_ADMIN 权限包含了 TEST_VIEW 权限 -->
+            <if-has-permission permission="TEST" action="_VIEW"/>
+            <!-- 省略action: 必须有 TEST_VIEW 权限 -->
+            <if-has-permission permission="TEST_VIEW" />
+        </condition>
+        <link target="test"/>
+    </menu-item>
+    ```
 - screen级别
     - 在每个component下的widget文件夹下的screen配置文件中，section节点下的condition子节点，存在一个名为if-has-permission的节点，它有两个属性：
         - permission：标识位于哪个component
@@ -1585,6 +1598,8 @@ Screens
 
 - 同样的代码部分机器出现启动成功但是页面无法显示。出现场景：使用ofbiz-13.07，windows安装jdk1.8，访问地址是可以进入到event，如果渲染的视图中包含ftl或者多个汉字则无法显示(很简短的一段html代码可正常显示)，通过curl可以返回html代码，火狐浏览器提示编码格式不正确，此时降低jdk版本为jdk1.7(ofbiz-13.07官方提交jdk1.7)可正常访问.(部分机器jdk1.8也可正常运行)
 - `Couldn't create server socket(/127.0.0.1:10523)` 原因是服务已经启动，再点击start就提示端口占用。解决办法：先stop一下，再start
+- 报错`Incompatible class: com.alibaba.fastjson.JSONArray`
+    - OFBiz对请求参数做了安全校验，只允许常见的类型。如果request.setAttribute设置进去了一些特殊的类型，然后 request-redirect 重定向到页面时会就会包此问题 (request-redirect-noparam也无法清除Attribute里面的参数)
 
 ### 类加载顺序调试
 

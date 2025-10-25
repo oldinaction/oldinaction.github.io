@@ -191,6 +191,9 @@ yum repolist
 
 #### rpm安装(软件包管理器)
 
+- **支持上传rpm包文件, 进行离线安装**
+    - 有.rpm文件即可进行离线安装，常用rpm包下载地址 https://vault.centos.org/ https://rpmfind.net/
+    - 如: https://vault.centos.org/8.5.2111/BaseOS/x86_64/os/Packages/nfs-utils-2.3.3-46.el8.x86_64.rpm
 - `rpm`格式文件安装(redhat package manage。有依赖关系，安装和卸载也有先后顺序)
 - rpm包的命名规范：`name-version-release.os.arch.rpm`
     - os：即说明RPM包支持的操作系统版本。如el6(即rhel6)、centos6、el5、suse11
@@ -904,13 +907,12 @@ ntpq -p
 
 ### NFS
 
-> http://linux.vbird.org/linux_server/0330nfs.php
-
 ```bash
 ## 服务端
 # 安装nfs
+# 或者上传rpm包进行离线安装: https://vault.centos.org/8.5.2111/BaseOS/x86_64/os/Packages/nfs-utils-2.3.3-46.el8.x86_64.rpm
 yum install -y nfs-utils
-# 启动nfs服务。启动后NFS的服务状态为`Active: active (exited)`是正常的
+# 启动nfs服务。启动后NFS的服务状态为`Active: active (exited)`是正常的. RH8为nfs-server
 systemctl enable nfs --now && systemctl status nfs
 
 # 创建两个目录(v1,v2)并设置为任何人可读写
@@ -925,12 +927,15 @@ exportfs -arv
 # 查看配置
 showmount -e
 
-## 在其他机器测试挂载nfs存储卷
-# mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
+## (客户机)在其他机器测试挂载nfs存储卷
+mount -t nfs 192.168.6.10:/data/volumes/v1 /mnt
 # mount -t nfs 192.168.6.10:/data/volumes/v1/subpath /mnt # 挂载子路径，需要提前创建好子路径
 # 挂载windows共享文件夹
 # mount -t cifs -o username=administrator,password=mypass //192.168.1.100/sharedir /sd100 # 临时挂载(需要先创建/sd100目录)
 # //192.168.1.100/sharedir /sd100 cifs username=administrator,password=mypass 0 0 # 加入到 /etc/fstab 并 mount -a 进行永久生效
+
+# 客户机卸载
+umount /mnt
 
 ## 使客户端永久生效
 # 法一：加入到/etc/fstab

@@ -1176,7 +1176,7 @@ exit $?
 
 ### 备份Mysql
 
-脚本具体参考：[http://blog.aezo.cn/2016/10/12/db/mysql-dba/](/_posts/db/mysql-dba.md#linux脚本备份(mysqldump))
+脚本具体参考：[mysql-backup-recover.md](/_posts/db/mysql/mysql-backup-recover.md)
 
 ### 备份Oracle
 
@@ -1329,13 +1329,71 @@ echo "===============END $(date +'%y/%m/%d %H:%M:%S')==================" >> $LOG
 
 ### 压缩历史日志
 
+- 备份2020-2022开头的文件或文件夹到his-2022,2022.tar.gz文件中. 删除原文件可手动操作
+    - 为了占用资源少，使用了pigz（需提前安装）
+    - `nohup tar -I pigz -xf /test/demo.tar.gz -C /test/ > /dev/null 2>&1 &` tar使用pigz解压(默认使用gzip, pigz在多核系统速度更快)
+
 ```bash
-# 备份2019开头的文件或文件夹到his-2019.tar.gz文件中，并删除原文件
-HIS_YEAR=2019
-for dir in test1/log test2/log ; do 
-  tar -zcvf /home/smalle/demo/$dir/his-$HIS_YEAR.tar.gz /home/smalle/demo/$dir/$HIS_YEAR*
-  # rm -rf /home/smalle/demo/$dir/$HIS_YEAR*
+#!/bin/bash
+
+YEARS=(2020 2021 2022)  # 添加年份数组
+BASE_DIR="/data/test"
+ARCHIVE_BASE="/data/archive"
+BACKUP_DIRS=("demo1/a1" "demo1/a2" "demo2/a1")
+MAX_THREADS=$(nproc)  # 获取CPU核心数
+
+for year in "${YEARS[@]}"; do  # 添加年份循环
+  for dir in "${BACKUP_DIRS[@]}"; do
+    src_dir="$BASE_DIR/$dir"
+    archive="$ARCHIVE_BASE/$dir/his-$year-$(date +%Y%m%d_%H%M%S).tar.gz"
+    mkdir -p "$ARCHIVE_BASE/$dir"
+
+    # 检查源目录是否存在
+    if [ ! -d "$src_dir" ]; then
+      echo "$(date +%Y%m%d_%H%M%S) ERROR: Source directory $src_dir not found" >&2
+      continue
+    fi
+
+    # 进入目录处理相对路径
+    cd "$src_dir" || continue
+
+    # 1. 使用find获取所有匹配项（文件和目录）
+    # 2. 通过xargs分块处理避免内存溢出
+    # 3. 使用pigz多线程压缩
+    echo "$(date +%Y%m%d_%H%M%S) Starting $year backup for $src_dir..."
+
+    # tar 增加 --remove-files 参数则表示删除原文件. 可能会出现压缩出错或文件不完整导致文件被删除, 不推荐此参数
+    # tar -I "/usr/bin/pigz -p 4" 可能会报错找不到pigz程序
+    find . -maxdepth 1 -name "${year}*" -print0 | \
+      nice -n 19 ionice -c 3 \
+      tar --null --files-from - -cf - | \
+      /usr/bin/pigz -p ${MAX_THREADS:-2} > "$archive"
+
+    # 验证压缩包完整性
+    if [ -f "$archive" ]; then
+      # 检查压缩包是否包含文件
+      if gzip -dc "$archive" | tar -t >/dev/null 2>&1; then
+        echo "$(date +%Y%m%d_%H%M%S) $year Backup successful: $archive ($(du -h "$archive" | cut -f1))"
+		# 没有文件也进这个分支, 空的压缩包
+		# echo "$(date +%Y%m%d_%H%M%S) Archive contains $(gzip -dc "$archive" | tar -t | wc -l) items"
+        
+        # 删除原文件(未测试)
+        # find . -maxdepth 1 -name "${year}*" -print0 | nice -n 19 ionice -c 3 xargs -0r rm -rf
+        # echo "$(date +%Y%m%d_%H%M%S) $year Removed completed"
+      else
+        echo "$(date +%Y%m%d_%H%M%S) ERROR: Archive is empty or corrupted for $dir (year=$year)" >&2
+        echo "$(date +%Y%m%d_%H%M%S) Removing invalid archive..."
+        rm -f "$archive"
+      fi
+    else
+      echo "$(date +%Y%m%d_%H%M%S) WARNING: No files found matching ${year}* in $dir"
+    fi
+
+    # 返回原始目录
+    cd - >/dev/null
+  done
 done
+echo "$(date +%Y%m%d_%H%M%S) Completed!"
 ```
 
 ### 生成随机数和字符串

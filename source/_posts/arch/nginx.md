@@ -17,6 +17,10 @@ tags: LB, HA
     - [官网](http://tengine.taobao.org/)
     - [中文文档](http://tengine.taobao.org/nginx_docs/cn/docs/)
     - [Nginx开发从入门到精通](http://tengine.taobao.org/book/)
+- [OpenResty](https://github.com/openresty/openresty): 定位为动态应用平台 + 全功能网关, OpenResty = Nginx + Lua, 配置和 Nginx 一致
+    - 原生 Lua 脚本，支持热加载
+    - 内置库直连 Redis/MySQL/Kafka
+    - 典型场景: 动态 API 网关、边缘计算、WAF
 - nginx日志分析goaccess: https://goaccess.io/ 对linux友好
 - nginx在整体架构中的作用
 
@@ -565,7 +569,7 @@ http {
 
     # 禁止通过IP访问80端口(将此server写在最上面即可)
     server {
-        listen   80;
+        listen 80;
 		listen 443 ssl;
 		server_name example.com;
 		
@@ -575,7 +579,7 @@ http {
 		return 403;
 	}
 
-    # 强制跳转HTTPS, 参考: https://www.cnblogs.com/willLin/p/11928382.html. 此时80端口和443端口分开监听
+    # 强制跳转HTTPS(HTTP 转 HTTPS), 参考: https://www.cnblogs.com/willLin/p/11928382.html. 此时80端口和443端口分开监听
     server {
         listen 80;
         #填写绑定证书的域名
@@ -1112,15 +1116,25 @@ location / {
         - `public` 客户端和代理服务器都可缓存
         - `must-revalidate` 告诉浏览器/缓存服务器；在本地文件过期之前可以使用本地文件；本地文件一旦过期需要去源服务器进行有效性校验；如果有缓存服务器且该资源未过有效期则命中缓存服务器并返回200；如果过期且源服务器未发生更改；则校验后返回304
 - 协商缓存相关参数
-    - Etag/If-None-Match
-    - Last-Modified/If-Modified-Since
+    - Etag / If-None-Match
+    - Last-Modified / If-Modified-Since
+    - 协商缓存执行流程
+        - (不检查强缓存是否过期，直接向服务器发起请求)
+        - 请求头会携带 Cache-Control: max-age=0 或 If-Modified-Since/If-None-Match
+        - 服务器判断资源是否更新：未更新, 则返回 304 Not Modified，浏览器用本地缓存; 已更新, 则返回 200 OK 和新资源
 - 其他参数
     - Pragma(Http1.0) 它用来向后兼容只支持 HTTP/1.0 协议的缓存服务器，那时候 HTTP/1.1 协议中的 Cache-Control 还没有出来
 - 判断请求是否使用了浏览器缓存：F12 - Network - 观察Size和Status列
     - Size为(memory cache)和(disk cache)，此时Status为200：表示使用了浏览器缓存或磁盘缓存(当关闭浏览器后重新打开，那默认会到本地磁盘上获取此数据)
     - Size有值，Status为304：表示通过max-age判断文件已经超过了设置的缓存时间，但是服务端返回此文件未被更新，则返回304，数据仍然从本地缓存读取
-- Chrome浏览器本身控制缓存机制。参考：https://blog.csdn.net/andy_csdn007/article/details/115210818
-    - `Ctrl + Shift + R` / `Ctrl + F5` 强制刷新不走缓存
+- 浏览器刷新模式
+    - 地址栏直接回车: 优先使用 强缓存（本地缓存未过期时，如 Cache-Control: max-age 未到，完全不发请求到服务器；本地过期则发送请求）
+    - 左侧刷新按钮: 跳过强缓存，走协商缓存
+    - Ctrl + F5 等强制刷新
+        - 不使用任何本地缓存，请求头会携带 Cache-Control: no-cache 和 Pragma: no-cache
+        - 服务器会直接返回最新资源（无论缓存是否有效），返回 200 OK 并携带新内容
+- Chrome浏览器本身控制缓存机制. 参考：https://blog.csdn.net/andy_csdn007/article/details/115210818
+    - `Ctrl + Shift + R` / **`Ctrl + F5` 强制刷新不走缓存**
     - `Ctrl + Shift + Delete` 弹出删除缓存和Cookie的确认框
     - F12 - Network - Disable cache 关闭缓存
     - F12 - Setting - Network - Disable cache(当打开F12时关闭缓存)
@@ -1256,7 +1270,7 @@ location / {
     proxy_pass http://127.0.0.1:8080;
 }
 ```
-- 负载均衡`upstream`([ngx_http_upstream_module](http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_upstream_module.html))
+- 负载均衡`upstream`([ngx_http_upstream_module](http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_upstream_module.html))，实现简单的故障转移(Failover)
 
 ```bash
 # 参考：https://www.cnblogs.com/kevingrace/p/8185218.html
@@ -1265,9 +1279,8 @@ upstream backend {
     # 负载均衡方式: rr(默认，轮询模式)、ip_hash、fair(按后端服务器的响应时间来分配请求，响应时间短的优先分配)、url_hash(和ip_hash算法类似，是对每个请求按url的hash结果分配，比较适用于后端为缓存服务器)
     # ip_hash;
 
-    # weight标识转发给此server的权重，默认是1
-    server backend1.example.com       weight=5;
-    server backend2.example.com:8080;
+    server backend1.example.com       weight=5; # weight标识转发给此server的权重，默认是1
+    server backend2.example.com:8080  max_fails=3 fail_timeout=30s; # 如果一个服务器在 fail_timeout(默认10s) 时间内失败次数超过 max_fails，Nginx 会认为该服务器不可用，并将流量转发到其他健康的服务器
     server unix:/tmp/backend3;
 
     # 标记为备用服务器。当主服务器不可用以后，请求会被传给这些服务器

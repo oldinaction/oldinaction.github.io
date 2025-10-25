@@ -1058,6 +1058,29 @@ end;
 
 ## SQLServer
 
+- 手动抛出异常
+
+```sql
+-- SQL Server 2012+ 推荐使用 THROW
+CREATE PROCEDURE [dbo].[test_proc]
+    @param INT
+AS
+BEGIN
+    BEGIN TRY
+        -- 业务逻辑，若出错进入CATCH
+        IF @param < 0
+            RAISERROR('参数不能为负数', 16, 1); -- 16为错误级别（必须≥11才会被视为异常）
+        
+        -- 如果不手动抛出异常，可能会出现 3 个更新操作，前两个执行成功，最后执行失败时不会抛出异常(并且最终前2个也不会回滚)
+    END TRY
+    BEGIN CATCH
+        -- 重新抛出错误，确保MyBatis能捕获
+        THROW; -- 或使用 RAISERROR(ERROR_MESSAGE(), ERROR_SEVERITY(), ERROR_STATE())
+    END CATCH
+END
+```
+- 分页查询
+
 ```sql
  --分页查询
 ALTER proc [dbo].[SP_Test]

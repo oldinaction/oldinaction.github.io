@@ -8,10 +8,12 @@ tags: [mysql, dba]
 
 ## 简介
 
-- [mycat](http://www.mycat.org.cn/)：不仅仅可以用作读写分离、以及分表分库、容灾备份，而且可以用于多租户应用开发、云平台基础设施
-    - https://blog.csdn.net/liuerchong/article/details/107887804
-- pt-osc(Online Schema Change) 对于大表进行DDL操作工具
 - MySQL 中间件汇总比较：https://zhuanlan.zhihu.com/p/490261031
+    - [mycat](http://www.mycat.org.cn/)：不仅仅可以用作读写分离、以及分表分库、容灾备份，而且可以用于多租户应用开发、云平台基础设施
+        - https://blog.csdn.net/liuerchong/article/details/107887804
+- 相关工具
+    - pt-osc(Online Schema Change) 对于大表进行DDL操作工具
+    - drawdb: 开源在线表结构绘制 https://www.drawdb.app/editor
 
 ## Mysql安装与配置
 
@@ -205,7 +207,7 @@ show keys from d_user;
 
 -- force index、use index 或者 ignore index
 -- 指定索引。如果优化器认为全表扫描更快，会使用全表扫描，而非指定的索引
-select * from user use index(idx_name_sex) where id > 10000;
+select * from user use index(idx_name_sex) where id > 10000;
 -- 强制指定索引。即使优化器认为全表扫描更快，也不会使用全表扫描，而是用指定的索引
 select *
 from t_user u force index(idx_create_time)

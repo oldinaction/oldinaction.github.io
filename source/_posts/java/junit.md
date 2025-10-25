@@ -8,6 +8,23 @@ tags: test
 
 ## 使用
 
+- IDEA右键测试包, 一件运行包下的所有 Tests
+
+### 断言
+
+| 方法                                       | 说明                  | 示例                                                                                                              |
+|------------------------------------------|---------------------|-----------------------------------------------------------------------------------------------------------------|
+| `assertEquals(expected, actual)`         | 判断两个值相等             | `Assertions.assertEquals(2, 1 + 1)`                                                                             |
+| `assertNotEquals(unexpected, actual)`    | 判断两个值不相等            | `Assertions.assertNotEquals(3, 1 + 1)`                                                                          |
+| `assertTrue(condition)`                  | 判断条件为 `true`        | `Assertions.assertTrue(list.isEmpty())`                                                                         |
+| `assertFalse(condition)`                 | 判断条件为 `false`       | `Assertions.assertFalse(list.isEmpty())`                                                                        |
+| `assertNull(actual)`                     | 判断对象为 `null`        | `Assertions.assertNull(user)`                                                                                   |
+| `assertNotNull(actual)`                  | 判断对象不为 `null`       | `Assertions.assertNotNull(user)`                                                                                |
+| `assertSame(expected, actual)`           | 判断两个对象引用相同（地址相等）    | `Assertions.assertSame(list1, list2)`                                                                           |
+| `assertNotSame(unexpected, actual)`      | 判断两个对象引用不同          | `Assertions.assertNotSame(list1, list2)`                                                                        |
+| `assertThrows(expectedType, executable)` | 判断执行代码抛出指定异常        | `Assertions.assertThrows(IllegalArgumentException.class, () -> { throw new IllegalArgumentException(); })`      |
+| `assertAll(executables)`                 | 批量断言（所有断言都执行，失败时汇总） | `Assertions.assertAll("用户信息", () -> assertEquals("张三", user.getName()), () -> assertEquals(20, user.getAge()))` |
+
 ### @Rule
 
 - `@Rule`是JUnit4.7加入的新特性，有点类似于拦截器，用于在测试方法执行前后添加额外的处理。实际上是@Before，@After的另一种实现
@@ -42,7 +59,56 @@ public class Example {
 }
 ```
 
-## Springboot测试
+### Before/After钩子
+
+```java
+import org.junit.jupiter.api.*;
+
+public class ResourceManagementTest {
+    // 静态资源（所有测试共享）
+    private static DatabaseConnection sharedDbConnection;
+    
+    // 实例资源（每个测试独立）
+    private File tempFile;
+
+    // 在当前类的所有测试开始前执行一次（必须是 static 方法）
+    // SpringBoot 可在类上添加注解 @TestInstance(TestInstance.Lifecycle.PER_CLASS) 此时可以去掉 static 从而可以获取 bean (SpringBoot3貌似有点问题)
+    @BeforeAll
+    public static void setUpAll() {
+        sharedDbConnection = new DatabaseConnection("jdbc:mysql://localhost/test");
+        sharedDbConnection.connect();
+    }
+
+    // 在每个测试方法开始前执行
+    @BeforeEach
+    public void setUpEach() {
+        // 或者 Resource resource = new ClassPathResource("test.txt")
+        tempFile = new File(System.getProperty("user.dir") + "/src/test/resources/test.txt");
+        tempFile.createNewFile(); // 初始化临时文件
+    }
+
+    // 在每个测试方法结束后执行
+    @AfterEach
+    public void tearDownEach() {
+        tempFile.delete(); // 清理临时文件
+    }
+
+    // 在所有测试结束后执行一次（必须是 static 方法）
+    @AfterAll
+    public static void tearDownAll() {
+        sharedDbConnection.disconnect();
+    }
+
+    @Test
+    public void testExample() {
+        // 使用初始化的资源进行测试
+        Assertions.assertTrue(tempFile.exists());
+        // ...
+    }
+}
+```
+
+## SpringBoot测试
 
 - 测试环境使用单独的配置文件
     - 可使用`@ActiveProfiles("test")`激活application-test.yml的配置文件
@@ -55,9 +121,12 @@ public class Example {
 @SpringBootTest
 // @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) // websocket环境需要，否则报错：javax.websocket.server.ServerContainer not available
 //@ActiveProfiles(value = {"dev", "dev-local"}) // 可设置配置文件（如果文件在外部可在测试类配置中增加环境变量，如spring.config.additional-location=/Users/smalle/data/project/aezo-chat-gpt/）
-public class DynamicAddTests {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS) // @BeforeAll方法可以去掉 static 从而可以获取 bean (SpringBoot3貌似有点问题)
+public class DynamicAddTests extends BaseLoginTest {
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+	private DataSource dataSource;
 
     @Test
     public void login(){
@@ -77,6 +146,53 @@ public class DynamicAddTests {
             e.printStackTrace();
         }
     }
+    
+    @BeforeAll
+    public void init() throws Exception {
+        log.info("init start...");
+        executeSqlFile("sql/init.sql");
+        log.info("init end...");
+    }
+    
+    public void executeSqlFile(String sqlFilePath) throws SQLException {
+		try (Connection connection = dataSource.getConnection()) {
+			// 执行 SQL 文件
+			ScriptUtils.executeSqlScript(connection, new ClassPathResource(sqlFilePath));
+		}
+	}
+}
+```
+- 基于登录: 如有些服务需要登录才能访问
+
+```java
+@Slf4j
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MyApplication.class)
+public class BaseLoginTest {
+    // shiro 登录案例
+	@Resource
+	private org.apache.shiro.mgt.SecurityManager securityManager;
+	
+	@Autowired
+	private WebApplicationContext webApplicationContext;
+
+	private MockMvc mockMvc;
+
+	@BeforeEach
+	public void setUp() throws Exception {
+	    // org.apache.shiro.SecurityUtils
+        SecurityUtils.setSecurityManager(securityManager);
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+
+		// 直接基于账号生成Token
+		String tokenStr = JwtUtil.sign("admin", "随便");
+		log.info("token={}", tokenStr);
+        
+        // 传入 Token 进行用户信息获取
+		final JwtToken token = new JwtToken(tokenStr);
+		final org.apache.shiro.subject.Subject subject = SecurityUtils.getSubject();
+		subject.login(token);
+	}
 }
 ```
 

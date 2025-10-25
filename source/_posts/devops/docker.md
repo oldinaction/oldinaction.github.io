@@ -56,6 +56,8 @@ docker pull k8s.gcr.io/xxx:yyy "可替换为" docker pull gcr.mirrors.ustc.edu.c
 docker pull quay.io/xxx/yyy:zzz "可替换为" docker pull quay.mirrors.ustc.edu.cn/xxx/yyy:zzz
 ```
 - 目前docker必须登录才能拉取镜像
+- 清理docker
+    - mac本地测试环境想要完全重置docker虚拟磁盘文件，可删除 /Users/demo/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw (注意会删除所有数据；重新打开docker会自动构建此文件)
 
 ## 安装
 
@@ -64,6 +66,7 @@ docker pull quay.io/xxx/yyy:zzz "可替换为" docker pull quay.mirrors.ustc.edu
         - 基于WSL实现，安装可能报错`wsl update failed: update failed: updating wsl`，由于执行了`wsl.exe --update`更新失败导致，重新启动几下触发wsl更新
         - 执行docker命令时提示`docker for windows could not read CA certificate`，解决https://blog.csdn.net/qq_35852248/article/details/80925154
         - 使用的网卡为`Hyper-V`，会导致VMware和DockerToolbox无法运行。可在控制面板 - 程序和功能 - 关闭windows的Hyper-V功能
+        - Docker Desktop打不开问题: 基于 WSL 安装的一般会后台运行，此时需要先关闭后台才能成功打开
     - 方案二: 通过安装`DockerToolbox`，[安装文档和下载地址](https://docs.docker.com/toolbox/toolbox_install_windows/)
         - 安装完成后桌面快捷方式：`Docker Quickstart Terminal`、`kitematic`、`Oracle VM VirtualBox`
             - `Docker Quickstart Terminal` 可快速启动docker虚拟机，并进入到bash命令行

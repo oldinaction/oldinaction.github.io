@@ -52,8 +52,11 @@ tags: [oracle, dba]
 - 监听程序(重启数据库可不用重启监听程序)
 
 ```bash
-## 启动监听程序(shell命令行运行即可)
-lsnrctl start
+## 重新启动监听程序(shell命令行运行即可), 或者重启Windows服务如: OracleOraDb11g_home1TNSListener
+# 重启(关闭)监听不会导致原来的连接失效, 只是新的连接暂时无法连上
+lsnrctl stop
+lsnrctl start # 启动后会自动执行 lsnrctl status
+
 # 查看服务状态(见下图"lsnrctl-status显示图片")。如：Instance "orcl", status READY, has 1 handler(s) for this service...
 lsnrctl status
 ```
@@ -100,6 +103,171 @@ startup
 startup pfile=<FILENAME>
 ```
 
+## 常见错误
+
+### 数据库服务器CPU飙高
+
+- 参考[数据库服务器故障](/_posts/devops/Java应用CPU和内存异常分析.md#数据库服务器故障)
+
+### 数据库无法连接
+
+- 查看数据库连接设置
+
+```sql
+-- 查看当前数据库建立的会话情况
+select sid,serial#,username,program,machine,status from v$session;
+-- 查询数据库允许的最大连接数，一般如300
+select value from v$parameter where name = 'processes';
+```
+- 查看应用连接池设置的大小
+- 查看监听状态, 报TNS-12541一般是监听服务有问题
+    - 检查 1521 端口连通情况是否正常，服务是否正常
+    - 检查如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件是否过大(达到 4G 会出问题)，可直接重新创建一个此日志文件，或修改listener.ora进行自动分割(参考[Oracle安装](#Oracle安装))
+        - lsnrctl status 卡死, lsnrctl start 卡死在"正在连接到"
+        - 如实例 tnsping 突然高达 1w 多毫秒
+        - `netstat -ano | findstr 1521` 显示很多 FIN_WAIT_2 CLOSE_WAIT 的状态
+
+```bash
+## 重新启动监听程序(shell命令行运行即可), 或者重启Windows服务如: OracleOraDb11g_home1TNSListener
+# 重启(关闭)监听不会导致原来的连接失效, 只是新的连接暂时无法连上
+lsnrctl stop
+lsnrctl start # 启动后会自动执行 lsnrctl status
+```
+
+### 表空间不足
+
+- 报错`ORA-01653: unable to extend table` [^7]
+    - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
+    - 开启表空间自动扩展，每次递增 50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
+    - 为 USERS 表空间新增 1G 的数据文件 **`alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`**
+        - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
+            - **`alter database datafile '/home/oracle/data/users0.dbf' autoextend on next 50m;`**
+        - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
+        - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
+    - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
+
+    ```sql
+    -- 查看表空间
+    -- 如果表空间不足，此sql语句可能无法显示出来该表空间，可单独查询其中的a表空间
+    select a.tablespace_name "表空间名",
+        a.bytes / 1024 / 1024 "表空间大小(m)", -- 此文件对应空间不够则会自动递增，一直增加到最大文件大小 32G
+        (a.bytes - nvl(b.bytes, 0)) / 1024 / 1024 "已使用空间(m)",
+        case when b.bytes is null then 0 else b.bytes / 1024 / 1024 end "空闲空间(m)",
+        case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
+        a.file_name "全路径的数据文件名称",
+        autoextensible "表空间自动扩展",
+        increment_by "自增块(默认1blocks=8k)",
+        a.online_status "表空间文件状态"
+    from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes, online_status
+            from dba_data_files
+        group by tablespace_name, file_name, autoextensible, increment_by, online_status) a
+    left join
+        (select tablespace_name, sum(bytes) bytes, max(bytes) largest
+            from dba_free_space
+        group by tablespace_name) b
+    on a.tablespace_name = b.tablespace_name;
+
+    -- 查看oracle临时表空间
+    select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
+    from dba_temp_files
+    group by tablespace_name, file_name, autoextensible, increment_by;
+
+    -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
+    select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB" 
+        from user_extents 
+        group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
+    -- dba
+    select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB"
+        from dba_extents where owner = 'SMALLE' 
+        group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
+    -- 上面结果返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过下面语句查看属于哪张表
+    select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';
+    -- 查看所有LOB块信息
+    select * from dba_lobs where segment_name in 
+        (select segment_name from user_extents group by segment_name having segment_name like 'SYS_LOB%');
+
+    -- 列出数据库里每张表的记录条数
+    select t.table_name,t.num_rows from user_tables t order by num_rows desc;
+
+    -- 查看表占用的空间情况(浪费的空间可通过shrink或move等方式清理，清理后表空间统计值会变小)
+    -- 如果对表做了数据清理，需要先重新统计下表信息，再查看表占用空间。或者通过存储过程批量更新：https://deepinout.com/oracle/oracle-questions/321_oracle_oracle_manually_update_statistics_on_all_tables.html
+    exec dbms_stats.gather_table_stats(ownname=>'SCOTT', tabname=> 'MY_TABLE_XX'); -- command窗口执行(会卡一会)
+    -- select table_name,last_analyzed from dba_tables where owner = 'SCOTT'; -- 查看上次一次统计时间
+    -- 查看表占用的空间情况(查看高水位线)
+    select table_name,
+        round(((blocks) * 8 / 1024), 2) "高水位空间M",
+        round((num_rows * avg_row_len / 1024 /1024), 2) "真实使用空间M",
+        round((blocks * 10 / 100) *8 /1024, 2) "预留空间(pctfree)M",
+        round((blocks) * 8 / 1024 - (num_rows * avg_row_len / 1024 / 1024) - blocks * 8 * 10 / 100 / 1024, 2) "浪费空间M"
+    from dba_tables -- user_tables
+    where temporary = 'N'
+    and owner = 'MY_OWNER_XXX'
+    -- and table_name = 'MY_TABLE_XXX'
+    order by 5 desc; -- 按照第5个字段排序
+    ```
+- 报错`ORA-01654:unable to extend index`，解决步骤 [^8]
+  - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经 32G(表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
+    - 解决方案：通过上述方法增加数据文件解决
+  - 情况二表空间未满：查询的表空间剩余 400M，且该索引的 next_extent=700MB，即给该索引分配空间时不足
+    - 解决方案：重建该索引`alter index index_name_xxx rebuild tablespace tablespace_name_xxx storage(initial 256K next 256K pctincrease 0)`(还未测试)
+
+### No more data to read from socket
+
+- 方向
+    - 是否连接不足，参考[数据库无法连接](#数据库无法连接)
+    - 是否连接失效
+        - 一般由数据库连接池管理，问题不大；但是如果重启了数据库，应用的连接池创建的连接就回失效
+        - 分布式数据库中间件，比如 cobar 会定时的将空闲链接异常关闭，客户端会出现半开的空闲链接
+    - 是否为内存不足导致
+    - 是否为网络原因，路由交换机重启等
+- 查询数据库发现报错`ORA-03137`
+    - 参考文章
+        - [oracle 11.2.0.1告警日志报错ORA-03137与绑定变量窥探BUG](https://developer.aliyun.com/article/314732)
+        - [一次关闭绑定变量窥探_optim_peek_user_binds导致的存储过程缓慢故障](https://blog.csdn.net/su377486/article/details/106784943)
+        - http://www.oracleops-support.com/2017/12/troubleshooting-ora-3137.html
+        - http://blog.chinaunix.net/uid-116213-id-81735.html
+    - 临时解决
+        - 客户端报错`No more data to read from socket`，数据库发现报错`ORA-03137`，且在产生大量incident日志文件；但是此问题是最近才偶尔出现此问题，一般不会是客户端连接池问题，初步诊断为数据库问题，暂时不好升级Oracle和关闭_optim_peek_user_binds参数
+        - 选择先升级ojdbc.jar驱动程序为11.2.0.2，并优化此SQL语句
+            - JDBC 下载地址: https://www.oracle.com/database/technologies/appdev/jdbc-drivers-archive.html
+            - JDBC 11.2下载地址: https://www.oracle.com/jp/technical-resources/articles/features/jdbc/jdbc.html
+
+```bash
+Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_20306.trc
+ORA-03137: TTC protocol internal error : [12333] [23] [115] [101] [] [] [] []
+
+========= Dump for incident 136947 (ORA 3137 [12333]) ========
+
+*** 2023-06-25 10:05:00.301
+dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
+----- Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
+SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
+
+
+
+Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_888.trc
+ORA-03137: TTC protocol internal error : [12333] [23] [115] [101] [] [] [] []
+
+========= Dump for incident 137083 (ORA 3137 [12333]) ========
+
+*** 2023-06-25 10:02:00.541
+dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
+----- Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
+SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
+
+
+
+Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_26687.trc
+ORA-03137: TTC protocol internal error : [3120] [] [] [] [] [] [] []
+
+========= Dump for incident 137131 (ORA 3137 [3120]) ========
+
+*** 2023-06-25 10:06:27.571
+dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
+----- Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
+SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
+```
+
 ## 常用操作
 
 - sql 命令行中执行 bash 命令加`!`，如`!ls`查看目录
@@ -113,6 +281,18 @@ startup pfile=<FILENAME>
   - `sqlplus /nolog`
   - `connect aezo/aezo@192.168.1.1:1521/orcl;`，或者使用配置好的服务名连接`conn aezo/aezo@remote_orcl`
 - pl/slq 管理员登录：用户名密码留空，Connect as 选择 SYSDBA 则默认以 sys 登录。登录远程只需要在 tnsnames.ora 进行网络配置即可
+
+#### 常用文件路径
+
+```txt
+监听配置文件: C:\software\oracle\product\11.2.0\dbhome_1\NETWORK\ADMIN\listener.ora
+PLSQL TNS配置: C:\software\oracle\product\11.2.0\dbhome_1\NETWORK\ADMIN\tnsnames.ora
+
+监听日志: C:\software\oracle\diag\tnslsnr\iZkfy11io8che2Z\listener\alert\log.xml
+监听跟踪日志: C:\software\oracle\diag\tnslsnr\iZkfy11io8che2Z\listener\trace\listener.log 日志文件到达4G会导致数据库无法创建新的连接
+Trace日志: C:\software\oracle\diag\rdbms\orcl\orcl\trace
+Alter日志: C:\software\oracle\diag\rdbms\orcl\orcl\alert
+```
 
 #### 执行脚本
 
@@ -132,6 +312,20 @@ EOF
 # run.sql
 call p_customer_exists_sync();
 ```
+
+#### sqlplus使用技巧
+
+- **sqlplus 执行 PL/SQL 语句或执行SQL文件时，在输入完语句后回车一行输入`/`**(或者出现了数字行也可输入/再回车)
+- `set line 1000;` **可适当调整没行显示的宽度(适当美化)**
+  - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
+  - `set linesize 10000;` -- 设置整行长度，linesize 说明 https://blog.csdn.net/u012127798/article/details/34146143
+  - `col username for a20` -- 设置username这个字段的列宽为20个字符
+- `set serverout on;` 开启输出
+  - 否则执行`begin dbms_output.put_line('hello world!'); end;` 无法输出
+- `set autotrace on` 后面运行的 sql 会自动进跟踪统计
+- 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`，或者按住Shift进行删除   
+- `show errors;` 查看编译错误
+- 导入sql文件等，创建存储过程需要输入`/`进行执行；如果文件中有多个存储过程应该在文件的每个存储过程结束后增加`/`
 
 ### 数据库相关
 
@@ -355,27 +549,13 @@ select 'grant all on ' || TABLE_OWNER || '.' || TABLE_NAME || ' to PUBLIC;' from
 - 同一DB，USER1使用USER2的表创建视图，容易报无权限（尽管将USER1设置成功了DBA，且将相关表设置了别名）
     - 解决办法：通过USER2执行`GRANT SELECT ANY TABLE TO USER1;`之后再创建视图
 
-### sqlplus使用技巧
-
-- **sqlplus 执行 PL/SQL 语句或执行SQL文件时，在输入完语句后回车一行输入`/`**(或者出现了数字行也可输入/再回车)
-- `set line 1000;` **可适当调整没行显示的宽度(适当美化)**
-  - 永久修改显示行跨度，修改`glogin.sql`文件，如`/usr/lib/oracle/11.2/client64/lib/glogin.sql`，末尾添加`set line 1000;`
-  - `set linesize 10000;` -- 设置整行长度，linesize 说明 https://blog.csdn.net/u012127798/article/details/34146143
-  - `col username for a20` -- 设置username这个字段的列宽为20个字符
-- `set serverout on;` 开启输出
-  - 否则执行`begin dbms_output.put_line('hello world!'); end;` 无法输出
-- `set autotrace on` 后面运行的 sql 会自动进跟踪统计
-- 删除字符变成`^H`解决办法：添加`stty erase ^H`到`~/.bash_profile`，或者按住Shift进行删除   
-- `show errors;` 查看编译错误
-- 导入sql文件等，创建存储过程需要输入`/`进行执行；如果文件中有多个存储过程应该在文件的每个存储过程结束后增加`/`
-
 ### 查询相关
 
 - 系统
   - 查看服务是否启动：`tnsping local_orcl` cmd 直接运行
     - 远程查看(cmd 运行)：`tnsping 192.168.1.1:1521/orcl`、或者`tnsping remote_orcl`(其中 remote_orcl 已经在本地建立好了监听映射，如配置在 tnsnames.ora)
     - 如果能够 ping 通，则说明客户端能解析 listener 的机器名，而且 lister 也已经启动，但是并不能说明数据库已经打开，而且 tsnping 的过程与真正客户端连接的过程也不一致。但是如果不能用 tnsping 通，则肯定连接不到数据库
-    - **实例 tnsping 突然高达 1w 多毫秒**，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件. [^10]
+    - **实例 tnsping 突然高达 1w 多毫秒**，如`listener.log`(/u01/oracle/diag/tnslsnr/oracle/listener)日志文件过大，可重新创建一个此日志文件，或修改listener.ora进行自动分割(参考[Oracle安装](#Oracle安装)). [^10]
   - 查看表空间数据文件位置：`select file_name, tablespace_name from dba_data_files;`
   - 查询数据库字符集 
     - 查看oracle服务端编码：select * from sys.nls_database_parameters;
@@ -1404,158 +1584,6 @@ select USER#, NAME, PTIME from user$ where NAME in (select username from dba_use
         - 从而得知日志目录为：`g:\app\administrator\diag`
         - 然后在此目录查找`tnslsnr/主机名/listener/trace/listener.log`文件
 
-## 常见错误
-
-### 数据库服务器CPU飙高
-
-- 参考[数据库服务器故障](/_posts/devops/Java应用CPU和内存异常分析.md#数据库服务器故障)
-
-### 表空间不足
-
-- 报错`ORA-01653: unable to extend table` [^7]
-    - 重设(不是基于原大小增加)表空间文件大小：`alter database datafile '数据库文件路径' resize 2000M;` (表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
-    - 开启表空间自动扩展，每次递增 50M `alter database datafile '/home/oracle/data/users01.dbf' autoextend on next 50m;`
-    - 为 USERS 表空间新增 1G 的数据文件 **`alter tablespace users add datafile '/home/oracle/data/users02.dbf' size 1024m;`**
-        - 此时增加的数据文件还需要再次运行上述自动扩展语句从而达到自动扩展
-            - **`alter database datafile '/home/oracle/data/users0.dbf' autoextend on next 50m;`**
-        - 此处定义的 1G 会立即占用物理磁盘的 1G 空间，当开启自动扩展后，最多可扩展到 32G
-        - 增加完数据文件后，数据会自动迁移，最终达到相同表空间的数据文件可用空间大概一致
-    - 增加数据文件和表空间大小可适当重启数据库。查看表空间状态
-
-    ```sql
-    -- 查看表空间
-    -- 如果表空间不足，此sql语句可能无法显示出来该表空间，可单独查询其中的a表空间
-    select a.tablespace_name "表空间名",
-        a.bytes / 1024 / 1024 "表空间大小(m)", -- 此文件对应空间不够则会自动递增，一直增加到最大文件大小 32G
-        (a.bytes - nvl(b.bytes, 0)) / 1024 / 1024 "已使用空间(m)",
-        case when b.bytes is null then 0 else b.bytes / 1024 / 1024 end "空闲空间(m)",
-        case when b.bytes is null then 0 else round(((a.bytes - b.bytes) / a.bytes) * 100, 2) end "使用比",
-        a.file_name "全路径的数据文件名称",
-        autoextensible "表空间自动扩展",
-        increment_by "自增块(默认1blocks=8k)",
-        a.online_status "表空间文件状态"
-    from (select tablespace_name, file_name, autoextensible, increment_by, sum(bytes) bytes, online_status
-            from dba_data_files
-        group by tablespace_name, file_name, autoextensible, increment_by, online_status) a
-    left join
-        (select tablespace_name, sum(bytes) bytes, max(bytes) largest
-            from dba_free_space
-        group by tablespace_name) b
-    on a.tablespace_name = b.tablespace_name;
-
-    -- 查看oracle临时表空间
-    select tablespace_name "表空间名", file_name "全路径的数据文件名称", sum(bytes) / 1024 / 1024 "表空间大小(m)", autoextensible "表空间自动扩展", increment_by "自增块(默认1blocks=8k)"
-    from dba_temp_files
-    group by tablespace_name, file_name, autoextensible, increment_by;
-
-    -- 列出数据库里每张表分配的物理空间(基本就是每张表使用的物理空间)
-    select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB" 
-        from user_extents 
-        group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
-    -- dba
-    select segment_name, segment_type, tablespace_name, sum(bytes)/1024/1024/1024 as "GB"
-        from dba_extents where owner = 'SMALLE' 
-        group by segment_name, segment_type, tablespace_name order by sum(bytes) desc;
-    -- 上面结果返回中如果存在SYS_LOBxxx的数据(oracle会将[C/B]LOB类型字段单独存储)，则可通过下面语句查看属于哪张表
-    select * from dba_lobs where segment_name like 'SYS_LOB0000109849C00008$$';
-    -- 查看所有LOB块信息
-    select * from dba_lobs where segment_name in 
-        (select segment_name from user_extents group by segment_name having segment_name like 'SYS_LOB%');
-
-    -- 列出数据库里每张表的记录条数
-    select t.table_name,t.num_rows from user_tables t order by num_rows desc;
-
-    -- 查看表占用的空间情况(浪费的空间可通过shrink或move等方式清理，清理后表空间统计值会变小)
-    -- 如果对表做了数据清理，需要先重新统计下表信息，再查看表占用空间。或者通过存储过程批量更新：https://deepinout.com/oracle/oracle-questions/321_oracle_oracle_manually_update_statistics_on_all_tables.html
-    exec dbms_stats.gather_table_stats(ownname=>'SCOTT', tabname=> 'MY_TABLE_XX'); -- command窗口执行(会卡一会)
-    -- select table_name,last_analyzed from dba_tables where owner = 'SCOTT'; -- 查看上次一次统计时间
-    -- 查看表占用的空间情况(查看高水位线)
-    select table_name,
-        round(((blocks) * 8 / 1024), 2) "高水位空间M",
-        round((num_rows * avg_row_len / 1024 /1024), 2) "真实使用空间M",
-        round((blocks * 10 / 100) *8 /1024, 2) "预留空间(pctfree)M",
-        round((blocks) * 8 / 1024 - (num_rows * avg_row_len / 1024 / 1024) - blocks * 8 * 10 / 100 / 1024, 2) "浪费空间M"
-    from dba_tables -- user_tables
-    where temporary = 'N'
-    and owner = 'MY_OWNER_XXX'
-    -- and table_name = 'MY_TABLE_XXX'
-    order by 5 desc; -- 按照第5个字段排序
-    ```
-- 报错`ORA-01654:unable to extend index`，解决步骤 [^8]
-  - 情况一表空间已满：通过查看表空间`USERS`对应的数据文件`users01.dbf`文件大小已经 32G(表空间单文件默认最大为 32G=32768M，与 db_blok_size 大小有关，默认 db_blok_size=8K，在初始化表空间后不能再次修改)
-    - 解决方案：通过上述方法增加数据文件解决
-  - 情况二表空间未满：查询的表空间剩余 400M，且该索引的 next_extent=700MB，即给该索引分配空间时不足
-    - 解决方案：重建该索引`alter index index_name_xxx rebuild tablespace tablespace_name_xxx storage(initial 256K next 256K pctincrease 0)`(还未测试)
-
-### 数据库无法连接
-
-- 查看数据库连接设置
-
-```sql
--- 查看当前数据库建立的会话情况
-select sid,serial#,username,program,machine,status from v$session;
--- 查询数据库允许的最大连接数，一般如300
-select value from v$parameter where name = 'processes';
-```
-- 查看应用连接池设置的大小
-
-### No more data to read from socket
-
-- 方向
-    - 是否连接不足，参考[数据库无法连接](#数据库无法连接)
-    - 是否连接失效
-        - 一般由数据库连接池管理，问题不大；但是如果重启了数据库，应用的连接池创建的连接就回失效
-        - 分布式数据库中间件，比如 cobar 会定时的将空闲链接异常关闭，客户端会出现半开的空闲链接
-    - 是否为内存不足导致
-    - 是否为网络原因，路由交换机重启等
-- 查询数据库发现报错`ORA-03137`
-    - 参考文章
-        - [oracle 11.2.0.1告警日志报错ORA-03137与绑定变量窥探BUG](https://developer.aliyun.com/article/314732)
-        - [一次关闭绑定变量窥探_optim_peek_user_binds导致的存储过程缓慢故障](https://blog.csdn.net/su377486/article/details/106784943)
-        - http://www.oracleops-support.com/2017/12/troubleshooting-ora-3137.html
-        - http://blog.chinaunix.net/uid-116213-id-81735.html
-    - 临时解决
-        - 客户端报错`No more data to read from socket`，数据库发现报错`ORA-03137`，且在产生大量incident日志文件；但是此问题是最近才偶尔出现此问题，一般不会是客户端连接池问题，初步诊断为数据库问题，暂时不好升级Oracle和关闭_optim_peek_user_binds参数
-        - 选择先升级ojdbc.jar驱动程序为11.2.0.2，并优化此SQL语句
-            - JDBC 下载地址: https://www.oracle.com/database/technologies/appdev/jdbc-drivers-archive.html
-            - JDBC 11.2下载地址: https://www.oracle.com/jp/technical-resources/articles/features/jdbc/jdbc.html
-
-```bash
-Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_20306.trc
-ORA-03137: TTC protocol internal error : [12333] [23] [115] [101] [] [] [] []
-
-========= Dump for incident 136947 (ORA 3137 [12333]) ========
-
-*** 2023-06-25 10:05:00.301
-dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
------ Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
-SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
-
-
-
-Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_888.trc
-ORA-03137: TTC protocol internal error : [12333] [23] [115] [101] [] [] [] []
-
-========= Dump for incident 137083 (ORA 3137 [12333]) ========
-
-*** 2023-06-25 10:02:00.541
-dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
------ Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
-SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
-
-
-
-Dump continued from file: /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_26687.trc
-ORA-03137: TTC protocol internal error : [3120] [] [] [] [] [] [] []
-
-========= Dump for incident 137131 (ORA 3137 [3120]) ========
-
-*** 2023-06-25 10:06:27.571
-dbkedDefDump(): Starting incident default dumps (flags=0x2, level=3, mask=0x0)
------ Current SQL Statement for this session (sql_id=03745jpg6vak1) -----
-SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE, INVOKE_TYPE, INPUTER, INPUT_TM, UPDATER, UPDATE_TM FROM MY_TEST WHERE ((SERVICE_NAME IN (:1 ) AND YES_STATUS = :2 )) ORDER BY INPUT_TM ASC
-```
-
 ## Oracle安装
 
 - 数据库安装包：[oracle](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html)
@@ -1563,6 +1591,37 @@ SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE,
 - oracle目录
     - Oracle基目录为`D:/java/oracle`，基目录只是把不同版本的oracle放在一起
     - ORACLE_HOME 为`D:/java/oracle/product/11.2.0/dbhome_1`，`%ORACLE_HOME%/bin`中为一些可执行程序（如：导入 imp.exe、导出 exp.exe）
+- listener.ora 案例
+    - 直接修改如 C:\software\oracle\product\11.2.0\dbhome_1\network\admin\listener.ora 或者通过Windows的Net Manager进行可视化修改, 修改后重启监听
+
+```bash
+# listener.ora Network Configuration File: C:\software\oracle\product\11.2.0\dbhome_1\network\admin\listener.ora
+# Generated by Oracle configuration tools.
+
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (SID_NAME = orcl)
+      (ORACLE_HOME = C:\software\oracle\product\11.2.0\dbhome_1)
+      (ENVS = "EXTPROC_DLLS=ONLY:C:\software\oracle\product\11.2.0\dbhome_1\bin\oraclr11.dll")
+    )
+  )
+  
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = iZkfy11io8che2Z)(PORT = 1521))
+    )
+  )
+
+ADR_BASE_LISTENER = C:\software\oracle
+
+# 防止 listener.log 日志文件到达4G
+LOG_FILE_SIZE_LISTENER = 10485760  # 单个日志文件大小限制（单位：字节，这里设为10MB）
+LOG_ARCHIVE_START_LISTENER = ON  # 启用自动归档（分割）
+LOG_ARCHIVE_MAX_LISTENER = 100  # 保留的归档文件数量（超过则覆盖旧文件）
+```
+- tnsnames.ora 配置参考下文
 
 ## PL/SQL安装和使用
 
@@ -1652,6 +1711,10 @@ SELECT ID, SERVICE_NAME, NODE_NAME, PARAMETER, YES_STATUS, ERROR_MSG, SEND_TYPE,
     - 背景：项目使用oracle 19c，引入ojdbc8，服务器部署了oracle 11g服务，之前使用ojdbc6的项目能正常启动，使用ojdbc8则报错
     - 解决：在项目启动脚本前增加`set TNS_ADMIN=`去掉服务器原来的TNS_ADMIN环境变量
     - 原因：ojdbc8中会优先取读取`oracle.net.tns_admin`属性（对应的是TNS_ADMIN环境变量）
+- 执行SQL时, Oracle内部会自动增加列`__Oracle_JDBC_internal_ROWID__`导致报错
+    - 可修改 ResultSet.TYPE_SCROLL_SENSITIVE 为 ResultSet.TYPE_SCROLL_INSENSITIVE
+    - (可能还需)修改 ResultSet.CONCUR_UPDATABLE 为 ResultSet.CONCUR_READ_ONLY ?
+    - 或者使用 TYPE_FORWARD_ONLY ?, 或者升级JDBC 驱动 ?
 
 
 

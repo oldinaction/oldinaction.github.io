@@ -79,7 +79,7 @@ List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String
 ```
 
 - 分组
-    - **暂未找到基于字段值分组成数组的方法，可参考MiscU.groupByMapKey和MiscU.groupByBeanKey**
+    - **暂未找到基于字段值分组成数组的方法，可参考MiscU.groupByMapKey和MiscU.groupByBeanKey，或使用 JDK8 的Collectors.groupingBy**
 
 ```java
 // 但是被分组的集合只能是对象集合，不能是Map集合，可使用 MiscU.fieldValueMap 代替
@@ -214,6 +214,12 @@ File file = new ClassPathResource("templates").getFile(); // 在当前类所在�
 // File file = ResourceUtils.getFile("classpath:templates"); // org.springframework.util. 如果是maven多模块，可能获取失败
 File file = new File(FileU.class.getClassLoader().getResource("templates")); // 也可传入 cn/test 等路径
 
+Resource resource = new ClassPathResource("static/config.json");
+File file = resource.getFile(); // JAR 环境下会抛异常
+try (InputStream is = resource.getInputStream()) {
+    // JAR 环境正常: 处理输入流（如解析 JSON、读取文本等）
+}
+
 ResourceUtil.getResource("templates"); // 返回 URL
 
 // 如果路径不存在则创建路径
@@ -330,6 +336,10 @@ Template template = engine.getTemplate("templates/email/velocity_test.vtl");
 String result = template.render(Dict.create().set("name", "Hutool"));
 ```
 
+### JDK版本
+
+- JDK17: JakartaServletUtil 替代 ServletUtil
+
 ## Spring工具类
 
 ```java
@@ -361,11 +371,44 @@ Integer age = MapUtils.getInteger(map, "age", 18); // 提供默认值
 String[][] arr = {{"a", "1"}, {"b", "2"}};
 Map<String, String> retMap = MapUtils.putAll(new HashMap<>(), arr); // {"a": "1", "b": "2"}
 ```
+- 集合处理
+
+```java
+// 判断是否包含1条
+CollectionUtils.containsAny(list1, list2);
+
+// 返回交集
+CollectionUtils.intersection(list1, list2); // [1, 2] + [1, 3] => [1]
+
+// 返回对称差集
+CollectionUtils.disjunction(list1, list2); // [1, 2] + [1, 3] => [2, 3]
+```
+
+## Guava
+
+- 集合
+
+```java
+// 快速组装 Map
+Map map = ImmutableMap.of("k1", v1, "k2", v2);
+```
 
 ## Sa-Token
 
 - 官网：https://sa-token.cc/
 - 默认将数据保存在内存中，分布式环境可设置成保存到Redis；和JWT集成支持Stateless无状态模式
+- 说明
+
+```java
+// 获取当前会话账号id, 并转化为`String`类型
+StpUtil.getLoginIdAsString();
+
+// 获取当前会话是否已经登录。如果 Header 中 Token 为空字符会抛出异常: Token String must be not blank!
+boolean isLogin = StpUtil.isLogin();
+
+// 获取当前会话账号id, 如果未登录，则返回 null。如果 Header 中 Token 为空字符会抛出异常: Token String must be not blank!
+Object loginId = StpUtil.getLoginIdDefaultNull();
+```
 
 ## Excel/Word/Pdf操作
 
@@ -786,13 +829,17 @@ public ObjectMapper objectMapper() {
                 .serializerByType(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DATE_FORMATTER)))
                 .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMATTER)))
                 .build()
-                // .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")) // 设置全局日期格式化
+                // 设置全局日期格式化
+                // .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
                 // 扩展配置-序列化. 配置参数参考：com.fasterxml.jackson.databind.SerializationFeature
                 // INDENT_OUTPUT 是否缩放排列输出，默认false，有些场合为了便于排版阅读则需要对输出做缩放排列
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL) // 忽略空对象
-                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false) // 遇到空对象是否失败(默认true)
+                // 忽略空对象
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                // 遇到空对象是否失败(默认true)
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                 // 扩展配置-反序列化
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false) // 反序列化时忽略对象中不存在的json字段, 防止报错
+                // 反序列化时忽略对象中不存在的json字段, 防止报错
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .addMixIn(JSONNull.class, JSONNullMixIn.class);
 }
 

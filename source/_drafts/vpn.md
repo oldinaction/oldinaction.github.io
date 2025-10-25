@@ -10,8 +10,15 @@ tags: [linux, network]
 
 - 查看当前IP地址: https://cip.cc, 查看多场景IP: https://ip100.info (命令如: `curl cip.cc`)
 - 镜像网站
-    - 镜像合集1: https://github.com/runningcheese/MirrorSite
-    - github: https://kkgithub.com/ 貌似下载会有点问题
+    - 镜像合集(Google/Github等): https://github.com/runningcheese/MirrorSite
+    - Github加速参考: [git.md](/_posts/arch/git.md#git简介)
+- VPN推荐
+    - [流量光机场](https://llg01.com/#/register?code=5sxpi60O) 20/年(60G/月)
+    - [超实惠加速](https://cshjc.shop) 42元/年(120G/月), 34元不限时(?)
+    - [狗狗加速](https://down.dginv.click/#/register?code=qIwiCU0A) 15.8/月
+- VPN参考
+    - https://github.com/029danio/fly
+    - 免费推荐? https://hifreevpn.net/zh-hans
 
 ## centos7安装虚拟办公网络
 

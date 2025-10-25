@@ -11,11 +11,26 @@ tags: js
 - [MDN-JS文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects)
 - [rollup的在线repl查看各种模块写法](https://rollupjs.org/repl/)
 
-## ES6(ES2015)
+## JS语法规范
 
-### CommonJS/AMD/CMD/UMD/ESModule区别
+- CommonJS/AMD/CMD/UMD/ESModule区别
+    - [JavaScript模块化说明](https://www.jianshu.com/p/da2ac9ad2960) [^8]
+    - 对比图
 
-- [JavaScript模块化说明](https://www.jianshu.com/p/da2ac9ad2960) [^8]
+    | 特性               | ESM (`"type": "module"`)          | CommonJS (package.json默认)       |
+    |--------------------|-----------------------------------|----------------------------------|
+    | **导入语法**       | `import`                          | `require`                        |
+    | **导出语法**       | `export`                          | `exports` / `module.exports`     |
+    | **路径解析**       | 必须写扩展名（如 `import './a.js'`） | 可省略扩展名（如 `require('./a')`） |
+    | **动态导入**       | 支持 `await import()`             | 不支持（需使用 `async/await` 包装） |
+    | **全局变量**       | 无 `__dirname`、`__filename`      | 有 `__dirname`、`__filename`     |
+    | **JSON 导入**      | 默认禁止，需配置 `{ "type": "json" }` | 直接 `require('./data.json')` |
+    - Node对ESModule的支持
+        - Node.js 14.x+：支持 "type": "module"，但有部分限制
+        - Node.js 16.x+：ESM 支持更完善（如 --experimental-json-modules 标志不再需要）
+        - Node.js 18.x+：推荐版本，ESM 支持完全稳定
+    - NodeJS 中 CommonJS 和 ESModule 混用说明：https://zhuanlan.zhihu.com/p/494658959
+        - type=module模式下: 一般如果是Vue3 + TS项目，对于少量.js文件只要改后缀为.cjs即可兼容
 - **`CommonJS`**
     - 定义的模块分为：module模块标识、exports模块定义、require模块引用。**Node里面的模块系统遵循的是CommonJS规范**
         - `exports` 返回的是模块函数，`module.exports` 返回的是模块对象本身，返回的是一个类。**注意不是export**
@@ -111,9 +126,10 @@ tags: js
         import { age } from './foo'
         import * as foo from './foo' // foo.age
         ```
-- NodeJS 中 CommonJS 和 ESModule 混用说明：https://zhuanlan.zhihu.com/p/494658959
 
-#### import/export 
+## ES6(ES2015)
+
+### import/export 
 
 - ES6特性，[参考文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/import)
 - 案例
@@ -875,6 +891,7 @@ let list = Array.from(new Set(['A', 'C', 'B', 'A'])).sort()
 - 其他方法
     - `some` 测试数组中是否至少有一个元素满足条件(传入的测试函数)
         - `[3, 4, 1].some(x => x > 2)` 返回true
+    - `flat(Infinity)` 展开所有层级
 
 #### 示例
 
@@ -915,6 +932,11 @@ arr.splice(1, 0, 'sec'); // [], arr=[1, 'sec', 2, 3]. 在数组的第二个元�
 
 // 数组去重
 Array.from(new Set(['1', '2', '1'])); // ['1', '2']
+
+// 展开所有层级: 空项会被移除, 非数组元素不处理
+// flat(1)：（默认）仅展开一层嵌套
+const mixedArr = [1, {a: 2}, [3, [4, , 6]]];
+console.log(mixedArr.flat(Infinity)); // [1, {a: 2}, 3, 4, 6]
 ```
 
 ### Function

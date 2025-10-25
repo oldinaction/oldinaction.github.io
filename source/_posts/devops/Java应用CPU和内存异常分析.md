@@ -213,7 +213,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 select ss.sid, ss.serial#, 'alter system kill session '''|| ss.sid ||', '|| ss.serial# ||''';' kill_sql
     ,ss.last_call_et, round(s.cpu_time/s.executions/1000000, 2) peer_cpu_sec, s.executions
     ,to_char(s.sql_fulltext) sql_fulltext
-    ,to_char(xmlagg(xmlparse(content (sbc.name || '=' || sbc.value_string || '(' || sbc.position || ',' || sbc.datatype_string || ')') || ' # ' wellformed) order by sbc.position).getclobval()) sql_params
+    ,DBMS_LOB.SUBSTR(xmlagg(xmlparse(content (sbc.name || '=' || sbc.value_string || '(' || sbc.position || ',' || sbc.datatype_string || ')') || ' # ' wellformed) order by sbc.position).getclobval(), 32767, 1) sql_params
     ,ss.client_identifier, s.sql_id, round(s.elapsed_time/s.executions/1000000, 2) peer_elapsed_sec, s.last_load_time, s.optimizer_mode, s.disk_reads, s.buffer_gets
 from v$sql s
 join v$session ss on s.sql_id = ss.sql_id
@@ -365,10 +365,28 @@ where buffer_gets_rank <= 5;
 	- 查询到上述情况线程ID进行查杀
 - `show open tables where in_use > 0;` 查看正在使用的表(锁表)
 
-### Sqlserver
+### SqlServer
 
 ```sql
--- 查看sql耗时情况，根据平均耗时降序排列
+-- 查看运行中的sql，根据耗时降序排列
+SELECT DISTINCT
+    er.session_id AS pid,
+    er.status AS status,
+    er.command AS command,
+    sp.hostname AS hostname,
+    DB_NAME(sp.dbid) AS db_name,
+    sp.program_name AS program_name,
+    er.cpu_time AS cpu_time,
+    er.total_elapsed_time AS cost_time,
+    SUBSTRING(qt.TEXT, (er.statement_start_offset/2)+1, ((CASE er.statement_end_offset WHEN -1 THEN DATALENGTH(qt.TEXT) ELSE er.statement_end_offset END - er.statement_start_offset)/2)+1) AS query_sql
+FROM sys.sysprocesses AS sp LEFT JOIN sys.dm_exec_requests AS er ON sp.spid = er.session_id
+    CROSS APPLY sys.dm_exec_sql_text(er.sql_handle) AS qt
+WHERE 1 = CASE WHEN er.status IN ('RUNNABLE', 'SUSPENDED', 'RUNNING') THEN 1 WHEN er.status = 'SLEEPING' AND sp.open_tran  > 0 THEN 1 ELSE 0 END
+AND er.command = 'SELECT'
+ORDER BY er.total_elapsed_time DESC;
+
+
+-- 查看历史sql耗时情况，根据平均耗时降序排列
 SELECT creation_time  N'语句编译时间'
         ,last_execution_time  N'上次执行时间'
         ,total_physical_reads N'物理读取总次数'
@@ -392,23 +410,6 @@ where SUBSTRING(st.text, (qs.statement_start_offset/2) + 1,
           ELSE qs.statement_end_offset END
             - qs.statement_start_offset)/2) + 1) not like '%fetch%'
 ORDER BY  total_elapsed_time / execution_count DESC;
-
--- 查看运行中的sql，根据耗时降序排列
-SELECT DISTINCT
-    SUBSTRING(qt.TEXT, (er.statement_start_offset/2)+1, ((CASE er.statement_end_offset WHEN -1 THEN DATALENGTH(qt.TEXT) ELSE er.statement_end_offset END - er.statement_start_offset)/2)+1) AS query_sql,
-    er.session_id AS pid,
-    er.status AS status,
-    er.command AS command,
-    sp.hostname AS hostname,
-    DB_NAME(sp.dbid) AS db_name,
-    sp.program_name AS program_name,
-    er.cpu_time AS cpu_time,
-    er.total_elapsed_time AS cost_time
-FROM sys.sysprocesses AS sp LEFT JOIN sys.dm_exec_requests AS er ON sp.spid = er.session_id
-CROSS APPLY sys.dm_exec_sql_text(er.sql_handle) AS qt
-WHERE 1 = CASE WHEN er.status IN ('RUNNABLE', 'SUSPENDED', 'RUNNING') THEN 1 WHEN er.status = 'SLEEPING' AND sp.open_tran  > 0 THEN 1 ELSE 0 END
-AND er.command = 'SELECT'
-ORDER BY er.total_elapsed_time DESC;
 
 -- kill pid 杀掉对应查询session
 kill <pid>

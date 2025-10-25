@@ -1062,6 +1062,12 @@ node wuWxapkg.js ../decrypt/dec.wxapkg
     - align- 中线对齐
 
 ```html
+<!--
+左右元素顶格，中间元素居中	justify-content: space-between
+元素间距相等，整体居中	justify-content: center + gap: 20px
+元素及两侧留白均相等	justify-content: space-around 或 padding + gap
+-->
+
 <!-- 水平居中 -->
 <span class="flex justify-center">
     <div>
@@ -1069,7 +1075,7 @@ node wuWxapkg.js ../decrypt/dec.wxapkg
     </div>
 </span>
 
-<!-- 左右两边浮动，并中线对齐 -->
+<!-- 左右两边浮动，并中线对齐. 如果没有两边对齐, 可以检查下父元素是否有 style="width: 100%;" -->
 <span class="flex justify-between align-center">
     <div>显示在左边</div>   <span>显示在右边</span>
 </span>
@@ -1106,7 +1112,24 @@ node wuWxapkg.js ../decrypt/dec.wxapkg
 
 ### uView插件
 
- - [uView](https://www.uviewui.com/)
+- [uView](https://www.uviewui.com/)
+- 安装
+    - 通过 https://ext.dcloud.net.cn/plugin?id=1593 导入插件到项目 (uni_modules/uview-ui)
+    - 代码配置
+
+    ```js
+    // main.js
+    import uView from '@/uni_modules/uview-ui'
+    Vue.use(uView)
+
+    // App.vue 注意 lang="scss"
+    <style lang="scss">
+        @import "@/uni_modules/uview-ui/index.scss";
+    </style>
+
+    // 根目录创建 uni.scss (必须是这个文件名)
+    @import '@/uni_modules/uview-ui/theme.scss';
+    ```
 - u-cell-item使用slot时标题无法增加空格(使用padding解决)
 
 ```html
@@ -1117,6 +1140,11 @@ node wuWxapkg.js ../decrypt/dec.wxapkg
     </u-cell-item>
 </u-cell-group>
 ```
+
+### 图鸟
+
+- [图鸟UI(vue2)](https://gitee.com/bruce_qiq/tuniao-ui): [文档](https://vue2.tuniaokj.com/)
+- [图鸟UI(vue3)](https://github.com/tuniaoTech/tuniaoui-rc-vue3-uniapp): [文档](https://vue3.tuniaokj.com/)
 
 ## 插件
 

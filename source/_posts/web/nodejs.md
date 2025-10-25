@@ -51,8 +51,28 @@ sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node-waf /usr/bin/node-waf
     // NPM版本规范参考[版本命名规范](/_posts/others/tech-conception.md#项目管理)
     // 通过npm自动递增版本参考[基于package.json说明](/_posts/web/node-dev-tools.md#npm-包管理工具)
     "version": "1.0.0",
-    // 如果导出了多个模块，可以在引入的时候写全路径，如`import ReportTable from 'report-table'`引入默认模块，而通过类似`import ReportTableDemo from 'report-table/lib-demo/report-table-demo.umd.min.js`引入另外一个模块
-    "main": "./lib/report-table.umd.min.js",
+
+    // 不设置type则默认使用 CommonJS 语法; module 表示启用 ES 模块语法. 具体参考: [js-release.md#JS语法规范](/_posts/web/js-release.md#JS语法规范)
+    // "type": "module",
+
+    // 自己开发组件库参考: [vue.md#自己开发组件库](/_posts/web/vue.md#自己开发组件库)
+    // 声明传统的 CommonJS 入口. 如`import ReportTable from 'report-table'`引入默认模块
+    // 如果导出了多个模块，可以在引入的时候写全路径，如 `import ReportTableDemo from 'report-table/lib-demo/report-table-demo.umd.min.js`引入另外一个模块
+    "main": "lib/report-table.umd.min.js",
+    // ES 模块入口（已被 exports 替代）
+    "module": "lib/report-table.es.js",
+    // 定义不同环境下的文件入口. 如果同时存在 exports 和 main，则 exports 优先
+    "exports": {
+        ".": {
+            "browser": "./lib/app-demo.umd.js",  // 浏览器环境使用 UMD
+            "import": "./lib/app-demo.es.js",    // ESM 环境使用 ESM
+            "require": "./lib/app-demo.cjs.js",  // CommonJS 环境使用 CJS
+            "default": "./lib/app-demo.umd.js"   // 默认使用 UMD
+        }
+    },
+
+    // typescript类型文件入口
+    "typings": "types/index.d.ts",
 
     // 依赖和对应版本, 对于源码中引用到的包且定义在dependencies中的就会编译到最终产物
     "dependencies": {
@@ -118,8 +138,6 @@ sudo ln -s /opt/node-v10.23.0-linux-x64/bin/node-waf /usr/bin/node-waf
         "lib",
         "types"
     ],
-    // typescript类型文件入口
-    "typings": "types/index.d.ts",
 }
 ```
 

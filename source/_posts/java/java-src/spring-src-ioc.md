@@ -11,33 +11,16 @@ tags: [spring, src]
 - 参考: https://javadoop.com/post/spring-ioc
 - Spring扩展点参考: https://mp.weixin.qq.com/s/O0W6vCuqQfeAH0UB7elpeA
 
-## 类关系
-
-- 类关系图 [^1]
-
-    ![spring-ioc](/data/images/java/spring-src-ioc.png)
-    - ApplicationContext 继承了 ListableBeanFactory，这个 Listable 的意思就是，通过这个接口，我们可以获取多个 Bean。最顶层 BeanFactory 接口的方法都是获取单个 Bean 的
-    - ApplicationContext 继承了 HierarchicalBeanFactory, Hierarchical 单词本身(分层的)已经能说明问题了，也就是说我们可以在应用中起多个 BeanFactory，然后可以将各个 BeanFactory 设置为父子关系
-    - AutowireCapableBeanFactory 这个名字中的 Autowire，它就是用来自动装配 Bean 用的，但是仔细看上图，ApplicationContext 并没有继承它，但是使用组合可以获取它，从 ApplicationContext 接口定义中的最后一个方法 getAutowireCapableBeanFactory() 可说明
-    - ConfigurableListableBeanFactory 也是一个特殊的接口，看图，特殊之处在于它继承了第二层所有的三个接口，而 ApplicationContext 没有
-- **AnnotationConfigApplicationContext**
-    - 实现接口: ApplicationContext - ListableBeanFactory - BeanFactory
-    - 继承自: DefaultListableBeanFactory
-    - AnnotationConfigRegistry
-    - BeanDefinitionRegistry
-- **DefaultListableBeanFactory**
-    - 实现接口: BeanFactory、BeanDefinitionRegistry
-    - 子类: AnnotationConfigApplicationContext
-- BeanDefinition 描述了一个Bean实例的属性值，构造函数参数值
-
 ## 基于ClassPathXmlApplicationContext执行流程
+
+- **AbstractApplicationContext** 实现了 ApplicationContext 接口，实现 refresh() 方法，这个方法是整个 Spring 框架的入口
 
 ### 测试入口代码
 
 ```java
 public class AppXml {
     public static void main(String[] args) {
-        // 创建AnnotationConfigApplicationContext
+        // 创建 org.springframework.context.support.ClassPathXmlApplicationContext | org.springframework.context.annotation.AnnotationConfigApplicationContext
         ApplicationContext ac = new ClassPathXmlApplicationContext("classpath:spring5/beans.xml");
         MyService myService = ac.getBean("myService", MyService.class);
         myService.doService();
@@ -45,7 +28,7 @@ public class AppXml {
 }
 ```
 
-### AnnotationConfigApplicationContext创建
+### ClassPathXmlApplicationContext创建
 
 ```java
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
@@ -53,27 +36,27 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 
     // 如果已经有 ApplicationContext 并需要配置成父子关系，那么调用这个构造方法
     public ClassPathXmlApplicationContext(ApplicationContext parent) {
-		super(parent);
-	}
+        super(parent);
+    }
 
     // 上文main方法调用函数
     public ClassPathXmlApplicationContext(String configLocation) throws BeansException {
-		this(new String[] {configLocation}, true, null);
-	}
+        this(new String[] {configLocation}, true, null);
+    }
 
     public ClassPathXmlApplicationContext(
 			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
 			throws BeansException {
-		super(parent);
+        super(parent);
         // 根据提供的路径，处理成配置文件数组(以分号、逗号、空格、tab、换行符分割)
-		setConfigLocations(configLocations);
-		if (refresh) {
+        setConfigLocations(configLocations);
+        if (refresh) {
             // ***************
             // 核心方法
             // 为什么取名不是init：因为 ApplicationContext 建立起来以后，其实我们是可以通过调用 refresh() 这个方法重建的，refresh() 会将原来的 ApplicationContext 销毁，然后再重新执行一次初始化操作
-			refresh();
-		}
-	}
+            refresh();
+        }
+    }
 }
 ```
 
@@ -231,7 +214,7 @@ protected final void refreshBeanFactory() throws BeansException {
     }
     try {
         // ***************
-        // 1.初始化一个 DefaultListableBeanFactory，为什么用这个：从上文类图可知，DefaultListableBeanFactory通吃两路父类接口
+        // 1.初始化一个 DefaultListableBeanFactory，为什么用这个：从下文类图可知，DefaultListableBeanFactory通吃两路父类接口
         // 2.ApplicationContext 继承自 BeanFactory，但是它不应该被理解为 BeanFactory 的实现类，
         // 而是说其内部持有一个实例化的 BeanFactory（DefaultListableBeanFactory）,
         // 以后所有的 BeanFactory 相关的操作其实是委托给这个实例来处理的
@@ -1695,7 +1678,7 @@ protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 
 ## 说明
 
-### id 和 name
+### id和name
 
 - 每个 Bean 在 Spring 容器中都有一个唯一的名字（beanName）和 0 个或多个别名（aliases）。获取Bean `beanFactory.getBean("beanName or alias");`
 
@@ -1713,7 +1696,22 @@ protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 <bean id="messageService" class="com.javadoop.example.MessageServiceImpl">
 ```
 
-### BeanDefinition 接口定义说明
+### BeanFactory
+
+- BeanFactory 是 Bean 容器
+- 类关系图 [^1]
+
+  ![spring-ioc](/data/images/java/spring-src-ioc.png)
+  - ApplicationContext 继承了 ListableBeanFactory，这个 Listable 的意思就是，通过这个接口，我们可以获取多个 Bean。最顶层 BeanFactory 接口的方法都是获取单个 Bean 的
+  - ApplicationContext 继承了 HierarchicalBeanFactory, Hierarchical 单词本身(分层的)已经能说明问题了，也就是说我们可以在应用中起多个 BeanFactory，然后可以将各个 BeanFactory 设置为父子关系
+  - AutowireCapableBeanFactory 这个名字中的 Autowire，它就是用来自动装配 Bean 用的，但是仔细看上图，ApplicationContext 并没有继承它，但是使用组合可以获取它，从 ApplicationContext 接口定义中的最后一个方法 getAutowireCapableBeanFactory() 可说明
+  - ConfigurableListableBeanFactory 也是一个特殊的接口，看图，特殊之处在于它继承了第二层所有的三个接口，而 ApplicationContext 没有
+    - 实现类 DefaultListableBeanFactory: 且实现了 BeanDefinitionRegistry (可用于注册 BeanDefinition)
+  - **AbstractApplicationContext** 实现了 ApplicationContext 接口，实现 refresh() 方法，这个方法是整个 Spring 框架的入口
+    - Spring4: AnnotationConfigApplicationContext - GenericApplicationContext - AbstractApplicationContext
+    - SpringBoot3(Spring6): AnnotationConfigServletWebServerApplicationContext - ServletWebServerApplicationContext - GenericWebApplicationContext - GenericApplicationContext - AbstractApplicationContext
+
+### BeanDefinition接口定义说明
 
 - BeanFactory 是 Bean 容器，那么 Bean 又是什么呢？
     - 这里的 BeanDefinition 就是我们所说的 Spring 的 Bean，我们自己定义的各个 Bean 其实会转换成一个个 BeanDefinition 存在于 Spring 的 BeanFactory 中
@@ -1806,14 +1804,13 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 ### BeanFactoryPostProcessor和BeanPostProcessor
 
 - BeanFactoryPostProcessor
-    - **在spring的bean定义文件加载之后，Bean创建之前**，添加处理逻辑，如修改bean的定义属性
+    - **在bean定义文件加载(注册)之后，Bean创建之前**，添加处理逻辑，如修改bean的定义属性
         - 也就是说，Spring允许BeanFactoryPostProcessor在容器实例化任何其它bean之前读取配置元数据，并可以根据需要进行修改，例如可以把bean的scope从singleton改为prototype，也可以把property的值给修改掉
-    - 可以同时配置多个BeanFactoryPostProcessor，并通过设置'order'属性来控制各个BeanFactoryPostProcessor的执行次序
+    - 可以同时配置多个BeanFactoryPostProcessor，并通过设置order属性来控制各个BeanFactoryPostProcessor的执行次序
 - BeanPostProcessor
-    - **在spring容器实例化bean之后，在执行bean的初始化方法前后**，添加处理逻辑
+    - **在bean实例化之后，且在执行bean的初始化方法前后**，添加处理逻辑
 
-
-### 工厂模式生成 Bean
+### 工厂模式生成Bean
 
 - 请读者注意 `factory-bean` 和 `FactoryBean` 的区别。这节说的是前者，是说静态工厂或实例工厂，而后者是 Spring 中的特殊接口，代表一类特殊的 Bean
 - 设计模式里，工厂方法模式分静态工厂和实例工厂
@@ -1903,7 +1900,7 @@ public class StringToDateConverter implements Converter<String, Date> {
 }
 ```
 
-### Bean 继承
+### Bean继承
 
 ```xml
 <!-- parent bean 设置了 abstract="true" 所以它不会被实例化，child bean 继承了 parent bean 的两个属性，但是对 name 属性进行了覆写 -->
