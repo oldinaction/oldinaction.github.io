@@ -133,17 +133,26 @@ npm install --save-dev cross-env
 }
 ```
 
-### dayjs时间操作
+### dayjs,moment时间操作
 
-- [dayjs](https://github.com/iamkun/dayjs)，相对 moment 体积更小、[官方文档](https://dayjs.gitee.io/docs/zh-CN/installation/installation)
+- [dayjs](https://github.com/iamkun/dayjs)、[官方文档](https://dayjs.gitee.io/docs/zh-CN/installation/installation)
+- dayjs 相对 moment 体积更小
 - 安装`npm i dayjs -S`
-- 举例
+- dayjs举例
 
 ```js
 import dayjs from 'dayjs'
 
 dayjs().format('YYYY-MM-DD HH:mm:ss'); // 2020-01-02
 dayjs('2020-01-01').add(1, 'day').format('YYYY-MM-DD'); // 2020-01-02
+```
+- moment举例
+
+```js
+import moment from 'moment'
+
+// 上一个月 - 当天
+this.rangDate = [moment().add(-1, 'months').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')]
 ```
 
 ### 数学计算
@@ -429,6 +438,7 @@ console.log(this.$qs.stringify(this.mainInfo, {allowDots: true}))
 
 - https://www.antdv.com/components/overview-cn
 - 蚂蚁开源，支持React/Vue/Angular等，支持移动端
+- 表单项文本和表单元素在一行: a-form 或 a-form-model 增加 `layout="horizontal" :labelCol="{span: 4}" :wrapperCol="{span: 20}"`, a-form-item 和 a-form-model-item 也可自己定义 label 和 wrapper(表单元素) 占的比例
 
 ### ElementUI
 
@@ -1402,6 +1412,8 @@ export default {
         - 如果不希望thead重复出现，可将表头行写到tbody中
         - 当table分页后，没一页会自动出现一个分页横线，暂未找到简单方法去掉。可通过增加`<tfoot></tfoot>`(里面不要有数据，否则可能会出现tfoot边框无法去掉，有时候也不管用)，来占位，并设置小page边距
         - 当有多个小table时，需要自动判断一页显示的table个数。如vue，先渲染出页面，再计算每个table的高度，当超过一定高度，则增加一个`<div style="page-break-after: always"></div>`使其自动分页
+    - 预览正常，实际打印不全
+        - 自定义≥10mm 的边距，避开打印机物理不可打印区
 - 基于[lodop](http://www.lodop.net/index.html)打印控件
 - 基于[hiprint](http://hiprint.io/)插件
     - 特点：基于Jquery；可视化配置模板(数据基于字段名自动填充)，自动分页打印；可免费使用

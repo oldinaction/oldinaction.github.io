@@ -25,6 +25,9 @@ tags: [App, dart, mobile]
     - 类型安全：由于Dart是类型安全的语言，支持静态类型检测
 - `Dart`的设计目标应该是同时借鉴了Java和JavaScript。Dart在静态语法方面和Java非常相似，如类型定义、函数声明、泛型等，而在动态特性方面又和JavaScript很像，如函数式特性、异步支持等
 - 其他如 React-Native、Weex和uni-app
+- UI库
+    - [腾讯TDesign](https://tdesign.tencent.com/flutter/overview)
+    - [贝壳找房bruno](https://bruno.ke.com/)
 
 ## 安装及运行
 
@@ -84,6 +87,9 @@ brew install cocoapods
 pod setup
 # 再次执行检查发现xcode已适配
 flutter doctor
+
+# Flutter 3.24.5 对应的 Android 构建工具链默认适配的 AGP 版本通常为 8.2.x 或 8.3.x（可在项目 android/build.gradle 中查看 com.android.tools.build:gradle 版本）。根据 Android 官方文档，AGP 8.0+ 要求 JDK 17 作为最低版本
+# flutter config --jdk-dir "/Library/Java/JavaVirtualMachines/jdk-17.0.1.jdk/Contents/Home"
 ```
 
 ### 运行(vscode)
@@ -115,8 +121,20 @@ flutter doctor
             ]
         }
         ```
+### 目录结构
 
-### flutter 命令
+```bash
+lib # 为项目 dart 代码夹
+android/ios/macos/windows/linux/web # 为不同平台的基础文件夹
+    android # android 项目文件夹(可用 android studio 打开)
+        app # android 项目的主要代码文件夹
+    ios/Runner.xcworkspace # ios 项目 workspace 文件(可用 xcode 打开)
+build # 编译的临时文件夹
+pubspec.yaml # 依赖的库配置
+analysis_options.yaml # 代码语法校验(可注释掉)
+```
+
+### Flutter命令
 
 ```bash
 flutter -h
@@ -124,26 +142,453 @@ flutter --version # Flutter 3.24.5, Dart 3.5.4
 # 检查flutter环境
 flutter doctor
 
+# **创建项目**. 会在当前目录创建 demo_01 子目录, 要求不能有中划线等字符
+# flutter create demo_01
+# 项目目录名是 myapp，但包名是 com.example.demo
+flutter create --org com.example --project-name myapp demo
+# flutter create --org com.example myapp # 包名是 com.example.myapp
+
 ## 项目根目录执行
 # 根据 pubspec.yaml 获取依赖包
 flutter packages get
-# 运行项目。r/R 重新加载(热加载)
+# 运行项目。命令行命令: h 帮助, r/R 热加载(静默/重启), v 打开浏览器开发工具, s 保存屏幕截图到根目录
 flutter run
-flutter run -d emulator-5554
+flutter run -d emulator-5554 # 运行到指定设备; 或者 vscode 安装插件后选择设备然后打开 main.dart 点击右上角 debug 运行
+flutter run -v # 查看详细日志
+# 运行时指定入口文件(默认 main.dart)
+flutter run -d "iPhone 16 Pro" --target=lib/test.dart --verbose
+
+# 分析项目代码, 检查是否有错误或警告
+flutter analyze 
+
+# 打包
+flutter build apk
+flutter build ios --release # 需要开发者证书
+flutter build ios --release --no-codesign # (无需开发者证书, 具体参考下文)该命令会将Flutter项目打包成iOS的release版本，并不会进行签名(会生成 Runner.app)
+```
+- 清空项目依赖缓存
+
+```bash
+flutter clean  # 清理 Flutter 项目缓存
+rm -rf ios/Pods ios/Podfile.lock ios/Runner.xcworkspace/xcshareddata  # 删除旧 Pod 依赖和共享配置
+flutter pub get  # 重新拉取 Flutter 依赖
+# cd ios && pod install --repo-update
+# cd .. && flutter build ios --config-only
 ```
 
-## Flutter语法
+### 基础配置
+
+- 应用的 App ID（也叫包名 / Bundle ID）
+    - Android: `android/app/build.gradle` android.defaultConfig.applicationId 和 android.namespace
+    - IOS: 通过 xcode 修改, General - Identity - Bundle Identitier
+- 应用名称
+    - Android: `android/app/src/main/AndroidManifest.xml` 中 application 标签的 android:label 属性
+    - IOS: `ios/Runner/Info.plist` 中 CFBundleName 键对应的值 (CFBundleDisplayName也可改下)
+- 应用Logo
+    - Android: `android/app/src/main/res/mipmap-xxx/ic_launcher.png`
+        - `for file in ./android/app/src/main/res/mipmap-*/ic_launcher.png; do cp ./assets/images/logo.png "$file"; done` 批量替换文件
+    - IOS: `ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-*.png`
+        - 不能直接用一张文件替换, 图片大小需要符合每个图标尺寸的要求
+    - **图标尺寸自动生成**: https://icon.wuruihong.com/
+        - iconfont下载的 png 图标, 默认是 200px, PS 画布放到到 250px, 再通过此工具生成白色背景的图标
+
+### 打包安装
+
+- **IOS打包(针对没有开发者账号的情况)**
+    - 通过 Xcode 的 Personal Team 功能 **(只用通过 USB 连接手机使用，断开就打不开了；理论上是可以在 3 台设备上安装 7 天)**
+        - 使用 xcode 打开 ios/Runner.xcworkspace
+        - Xcode - Settings - Accounts - Add Apple ID - 登录自己的 AppId(普通 Id 即可) - 增加一个证书
+        - 运行时选择这个 AppId 对应的 Personal Team即可
+        - 编译运行到手机
+            - 第一次可能需要在手机设置 - 通用 - VPN 与设备管理 - 信任开发者账号
+            - 信任之后需要重新编译运行一次(不成功的话多运行几次即可)
+            - 第一次需要通过 xcode 设置开发者账号，之后可直接通过 vscode 运行到手机
+        - 个人免费团队（Personal Team）：仅限开发测试，不支持部分高级权限（如 Sign in with Apple、推送通知（APNs）、应用内购买等）。如果包含，测试可以在 xcode 配置中临时去掉
+    - 需通过 TrollStore 安装
+        - `flutter build ios --release --no-codesign` 打包生成 `Runner.app`(本质是一个文件夹)
+        - 打包成 IPA 文件进行安装. 参考: https://cloud.tencent.com/developer/article/1394918
+            - 创建一个 Playload 文件夹，将 Runner.app 放到 Playload 文件夹中
+            - 将 Playload 文件夹压缩成 Playload.zip (注意不能把.DS_Store也压缩进去: 选择文件夹 - 服务 - 使用 Keka 压缩)
+            - 将 Playload.zip 改成 xxx.ipa
+            - 再通过`TrollStore`等安装ipa，参考[酷玩手机.md#ios](/_posts/mobile/酷玩手机.md#ios)
+        - 使用轻松签安装
+            - 将 Runner.app 压缩成 Runner.zip
+            - 放到本地服务器, 手机浏览器下载此文件，在手机文件 - 我的iPhone - 下载中找到文件(点击一下压缩文件可进行解压)
+            - 使用`轻松签` - 导入此文件进行安装
+
+## Flutter语法/Dart语法
+
+### 基本语法
+
+- 注释
+    - `flutter pub global activate dartdoc` 安装 dartdoc 插件
+    - `dartdoc` 在项目根目录执行，生成文档
+
+```dart
+///（单行文档注释）或 /** ... */（多行）
+
+/// 记录Firestore查询操作
+/// [collectionName] 集合名称
+/// [query] 查询对象
+/// [snapshot] 查询结果快照
+void logQuery({
+    required String collectionName,
+    required Query query,
+    required QuerySnapshot snapshot,
+    String? operationName,
+}) {
+    
+}
+```
+
+### 变量
+
+- 变量定义
+
+```dart
+final version = 1; // 常量, 会自动推断类型, 不能重新赋值(也可使用late延迟初始化)
+var name = ''; // var 会自动推断类型
+dynamic dym = "hello"; // 动态数据类型
+String name = null;
+List list = [];
+List<Widget> list2 = [];
+Map<String, dynamic> map = {name: 'test', age: 18};
+
+// late: 延迟初始化变量: 仅在变量首次使用时初始化‌; 空安全迁移‌: 在声明不可为空的变量时，确保后续会进行赋值操作
+late String title;
+late final String title2; // 直接写成 final String title2; 会报错, final 变量必须在声明时初始化, 使用 late 则可延迟初始化
+```
+- 变量类型
+
+```dart
+dynamic value = "hello";
+
+// is 类型判断: int,double,String,List,Map,Null,MyClass
+if (value is String) {} // true
+if (value is! double) {} // true. is! 否定判断
+
+// runtimeType 属性获取类型名称
+print(value.runtimeType); // String. 返回为 Type 类型
+print(value.runtimeType.toString()); // String
+
+// as 运算符（类型转换 + 校验）
+String str = value as String; // 转换失败的话会报错 CastError
+```
+
+### 集合/对象
+
+- list
+
+```dart
+List<String> list = ['123', 'ABC'];
+list.add('456');
+list.remove('ABC');
+
+List<Widget> images = urls.map((url) => Image.network(url)).toList();
+
+list = List.generate(10, (index) {
+    return 'id_$index';
+}).toList();
+
+_filteredList = _originalList
+    .where((item) => item.toLowerCase().contains(keyword))
+    .toList();
+
+// 转成 Map 进行遍历
+list.asMap().entries.map((entry) {
+    int index = entry.key;
+    String value = entry.value;
+})
+
+Iterable.generate(10, (index) => 'id_$index').toList();
+```
+- 数组解构(不支持 Map 解构)
+
+```dart
+List<dynamic> info = ['test', 18, null];
+final [name, ageStr] = info;
+final [name, ageStr, email as String?] = info;
+final [name, ...] = info;
+final [name, ...arr] = info; // name: test, arr: [18]
+// 不支持 final {name, age} = infoMap;
+```
+
+### 流程控制
+
+- if语句
+
+```dart
+// 强制断言 subtitle 非空（! 是「空断言运算符」）；若 subtitle 为 null，直接抛出空指针异常，否则返回布尔值
+if (obj.subtitle!.isNotEmpty) {}
+// ?.「空安全访问」：若 subtitle 为 null，则 ?. 右侧不执行，返回 null
+// ??「空合并运算符」：若左侧为 null，则返回右侧的 false
+if (obj.subtitle?.isNotEmpty ?? false) {}
+```
+
+### 方法
+
+- 方法定义
+    - 同一个类中, 方法名不能相同
+
+```dart
+// 同步函数
+void test () {}
+String test (String name) {} // name 参数为必填项, 且必须返回非空字符串
+String? test (String? name) {} // name 参数为可空项, 且可返回 null
+
+// 异步函数
+Future<String?> test (Future<XFile?> Function(String?)? onPickImage) async {} // String?表示函数参数可空, XFile?表示函数返回可空, Function(...)?表示此函数参数onPickImage可为空
+
+// 可选参数: 用 {} 包裹, 可指定默认值
+void test (int a, int? b, {int c = 0, int? d = 0}) {} // c 不能传 null, 不传则默认 0; d 可传 null, 不传则默认 0
+test(1, 2, c: 3); // 调用. 不支持传入扩展map参数, 如果需要可将扩展参数定义成对象
+```
+- 注解
+
+```dart
+@Deprecated('Dev only')
+void test() {}
+```
+- 并行调用异步方法
+
+```dart
+// 并行上传 + 解构赋值提取结果
+final [compressedPath, thumbnailPath] = await Future.wait([
+  uploadLocalImage(compressedFile, remotePath),
+  uploadLocalImage(thumbnailFile, remotePath)
+]) as List<String?>;
+```
+- 同步转异步
+    - Future.value 适用于无耗时的同步方法 (仅适配异步接口)
+    - compute/Isolate 适用于CPU密集型/耗时同步方法 (不阻塞 UI 线程)
+- 同步及异步案例
+
+```dart
+import 'package:flutter/foundation.dart'; // compute
+
+// 原始同步方法
+int syncMethod(int input) {
+  return input + 1;
+}
+
+// 包装为异步方法（立即完成，无阻塞）
+Future<int> asyncWrapMethod(int input) {
+  // 适用于无耗时的同步方法
+  return Future.value(syncMethod(input));
+  // 适用于CPU密集型/耗时同步方法 (不阻塞 UI 线程), 自动创建 Isolate 执行同步方法
+  return compute(syncMethod, input);
+}
+
+// 使用方式
+void test() async {
+  int result = await asyncWrapMethod(1);
+  print(result); // 输出：2
+}
+
+// 模拟延迟
+Future<String> asyncWrapMethodWithDelay(int input) {
+  // 延迟 1 秒后执行同步方法
+  return Future.delayed(const Duration(seconds: 1), () => syncMethod(input));
+}
+
+
+/// 案例: 删除笔记类型（带确认弹窗 + 结果提示，返回 Future 表示删除操作完成）
+Future<void> deleteNoteTypeWithToast(String typeId) {
+  // Completer 用于手动控制 Future 的完成/失败
+  final completer = Completer<void>();
+
+  CustomDialogs.showConfirmDialog(
+    content: "确定删除该类型吗？",
+    onConfirm: () async {
+      try {
+        await deleteNoteType(typeId);
+        completer.complete(); // 标记 Future 完成
+      } catch (e) {
+        completer.completeError(e); // 标记 Future 失败
+      }
+    },
+    // 可选：用户取消弹窗时，标记 Future 为取消状态
+    onCancel: () {
+      completer.complete(); // 或 completer.completeError(CancelException());
+    },
+  );
+
+  return completer.future;
+}
+```
+- 异常
+    - `throw e;` 不保留原始堆栈，重置为当前 throw e; 所在位置
+    - `rethrow;` 保留原始堆栈，向上传递异常
+    - 打印异常堆栈信息
+
+```dart
+void calculateDivision(int a, int b) {
+  if (b == 0) {
+    // 原始异常抛出位置：这里是堆栈信息的起点
+    throw ArgumentError("除数不能为 0");
+  }
+  print("计算结果：${a / b}");
+}
+
+Future<void> testThrowE() async {
+  try {
+    calculateDivision(10, 0); // 调用底层方法，触发异常
+  } catch (e) {
+    // 方式 1
+    // 这里是 throw e; 的位置，堆栈会被重置到此处
+    print("=== 捕获异常，执行 throw e; ===");
+    throw e; // 重新抛出异常，堆栈信息从这里开始
+
+    // 方式 2
+    print("=== 捕获异常，执行 rethrow; ===");
+    rethrow; // 向上传递异常，保留原始堆栈信息
+  }
+}
+
+// 打印异常堆栈信息
+try {} catch (e) { _logger.e('run error', error: e); } // 堆栈信息不全
+try {} catch (e, stackTrace) { _logger.e('run error', error: e, stackTrace: stackTrace); } // 完整堆栈信息
+```
+
+### 类
+
+- 混入
+    - 类支持多混入, 和单继承
+    - Mixin与继承的优先级(同名方法覆盖规则): 后引入的Mixin > 先引入的Mixin > 父类
+    - 基于 on 关键字, 可以限制 Mixin 只能被特定类混入
+
+```dart
+// ===== 案例 1
+mixin MixinA {
+  void sayHello() {
+    print('MixinA：Hello');
+  }
+}
+
+class ParentClass {
+  void sayHello() {
+    print('ParentClass：Hello');
+  }
+}
+
+// 继承ParentClass，同时引入MixinA，MixinX
+class ChildClass extends ParentClass with MixinA, MixinX {}
+
+void main() {
+  final child = ChildClass();
+  child.sayHello(); // 输出：MixinA：Hello
+}
+
+// ===== 案例 2: 
+mixin CalcMixin on BaseCalc {}
+class ChildClass extends BaseCalc with CalcMixin {}
+// class ChildClass with CalcMixin {} // 报错
+```
+
+### 封装
+
+- 静态方法调用封装
+
+```dart
+class CalcManager {
+  // 1. 定义：方法的回调类型（匹配 calc(num) 的签名）
+  typedef CalcCallback = Future<void> Function(int num);
+
+  // 2. 统一管理所有表的建表回调（核心：新增表仅需在此添加一行）
+  static final List<CalcCallback> _allCalcCallbacks = [
+    CatCalcService.calc,   // 直接传入静态方法作为回调
+    DogCalcService.calc
+  ];
+
+  // 3. 封装：批量执行所有计算操作
+  Future<void> calcAll(int num) async {
+    // 循环遍历所有计算回调，执行计算逻辑
+    for (final calcCallback in _allCalcCallbacks) {
+      await calcCallback(num); // 调用对应的静态 calc 方法
+    }
+  }
+}
+```
+
+## Flutter基础
+
+### 常用配置
+
+- 环境变量
+
+```bash
+# --dart-define: 向 Dart 代码注入环境变量
+flutter run --dart-define=ENV=dev --dart-define=API_URL="https://api.example.com?name=test"
+
+# 代码中读取
+final env = String.fromEnvironment('ENV');
+final apiUrl = bool.fromEnvironment('API_URL');
+```
+- 环境类型
+
+```dart
+import 'package:flutter/foundation.dart'; // 必须导入
+
+void judgeEnv() {
+  if (kDebugMode) {
+    print("当前是【开发环境】（debug）");
+  } else if (kProfileMode) {
+    print("当前是【性能测试/分析环境】（profile）");
+  } else if (kReleaseMode) {
+    print("当前是【生产环境】（release）");
+  } else {
+    // 其他环境(无)
+  }
+}
+```
+
+### 存储
+
+- 获取应用数据目录
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // IOS模拟器下应用路径: ~/Library/Developer/CoreSimulator/Devices/[设备UUID]/data/Containers/Data/Application/[App UUID]/ 子目录说明: 
+  // Documents/ 持久化数据
+  // Library/Caches/ 缓存
+  // Library/Preferences/ 配置文件(.plist)
+
+  // 1. 获取应用文档目录（持久化）
+  final documentsDir = await getApplicationDocumentsDirectory();
+  print('Documents 路径: ${documentsDir.path}');
+
+  // 2. 获取缓存目录
+  final cacheDir = await getTemporaryDirectory();
+  print('缓存路径: ${cacheDir.path}');
+
+  // 3. SharedPreferences 示例（无需关心具体路径）
+  // final prefs = await SharedPreferences.getInstance();
+  // await prefs.setString('user_name', 'test');
+}
+```
 
 ### 路由
 
 - 参考: main17
 
 ```java
+// Navigator 为 Flutter 原生路由, 也可基于 GetX 框架进行路由管理
 // 普通的路由跳转
 Navigator.push(context, MaterialPageRoute(builder: (context) => const HomePage()));
 Navigator.push(context, MaterialPageRoute(builder: (context) => const UserPage(title: '个人中心')));
 // 普通的路由跳转: 返回上一页
 Navigator.pop(context);
+
+// 跳转 - 返回 - 获取参数
+String? result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditPage()));
+Navigator.pop(context, '123'); // 返回上一页并传递参数
+// result: '123'
+
 // 返回到根路由, 并清空路由栈
 Navigator.of(context).pushAndRemoveUntil(
     MaterialPageRoute(builder: (BuildContext context) {
@@ -299,41 +744,10 @@ animationController.reset();
 animationController.reverse();
 ```
 
-## Dart语法
-
-### 变量定义
-
-```dart
-List list = [];
-List<Widget> list2 = [];
-var list3 = []; // var 会自动推断类型
-
-// late: 延迟初始化变量: 仅在变量首次使用时初始化‌; 空安全迁移‌: 在声明不可为空的变量时，确保后续会进行赋值操作
-late String title;
-```
-
-### 对象类型
-
-- list
-
-```dart
-list = List.generate(10, (index) {
-    return index;
-}).toList();
-```
-
-### 流程控制
-
 ## Flutter基础案例
 
-### 目录结构&入口文件
+### 入口文件
 
-- 目录结构
-    - android/ios/macos/windows/linux/web 为不同平台的基础文件夹
-    - lib 为项目 dart 代码夹
-    - build 编译的临时文件夹
-    - analysis_options.yaml 代码语法校验(可注释掉)
-    - pubspec.yaml 依赖的库配置
 - main01: lib/main.dart 入口文件
 
 ```dart
@@ -501,6 +915,11 @@ class MyText extends StatelessWidget {
 
 ### Paddiing,SizedBox,AspectRatio组件
 
+- EdgeInsetsGeometry, EdgeInsets, EdgeInsetsDirectional 处理内外边距
+    - EdgeInsetsGeometry 抽象类, 支持有方向和无方向, 如动画插值
+        - EdgeInsetsGeometry.lerp(EdgeInsets.zero, EdgeInsets.symmetric(horizontal: 16, vertical: 8), 0.5,) // 从 zero 插值到 水平16、垂直8 的内边距，动画进度/权重0.5 → 结果：horizontal=8，vertical=4
+    - EdgeInsets 为EdgeInsetsGeometry的实现类, 仅支持无方向
+        - EdgeInsets.zero, EdgeInsets.all(10), EdgeInsets.fromLTRB(0, 10, 0, 0), EdgeInsets.symmetric(horizontal: 16, vertical: 8), EdgeInsets.only(left: 10, bottom: 5)
 - Paddiing组件
 
 ```dart
@@ -531,6 +950,7 @@ Widget build(BuildContext context) {
 
 ### Image图片使用
 
+- `for file in ./ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon-*.png; do cp ./assets/images/logo.png "$file"; done && echo "已用logo.png替换所有AppIcon图标文件"` 批量替换文件
 - main05
 
 ```dart
@@ -653,6 +1073,7 @@ class MyLocalImg extends StatelessWidget {
       ),
       // images/a.jpeg 需要在 pubspec.yaml 中配置在 flutter.assets 下的数组
       /**
+        # 最少需定义到目录和子目录，如 images/ 或 images/a/
         assets:
           # 一个图片要放3个地方, 2.0x是放大 2 倍, 3.0x 是放大 3 倍, 使用的时候直接使用 images/a.jpeg, 会自动根据设备分辨率选择
           - images/a.jpeg
@@ -2467,9 +2888,236 @@ InkWell(
 )
 ```
 
-## Dart案例
+## Flutter进阶案例
+
+### 整合GetX
+
+- [GetX](https://github.com/jonataslaw/getx)
+- 双向绑定
+
+```dart
+class TestController extends GetxController {
+    // 状态管理: obs普通变量, Rxn对象
+    final isEditMode = false.obs;
+    final str = 'hi'.obs;
+    final arr = [].obs;
+    final date = Rxn<DateTime>();
+    final String test1 = 'hello'; // 之后不能再进行赋值
+    String test2 = 'hello'; // 赋值之后, 界面无法动态刷新
+
+    // GetxController 生命周期: 初始化
+    @override
+    void onInit() {
+        super.onInit();
+        final model = Get.arguments as TestModel?;
+        if (model != null) {
+            // 基于.value进行重新赋值, 界面可以动态刷新
+            isEditMode.value = true;
+            str.value = model.str;
+        }
+    }
+}
+```
+- 依赖注入
+
+```dart
+// 将实例注册到 GetX 的依赖管理器（GetInstance） 中，后续通过 Get.find<T>() 获取实例
+// Get.put 立即同步创建实例. 如简单的工具类、核心服务类
+final syncService1 = Get.put(SyncService1()); // 直接创建实例
+Get.put(SyncService1(), tag: "sync1"); // 指定标签（区分同类型不同实例）
+Get.put(SyncService1(), permanent: true); // 设置为永久实例（默认页面销毁时会自动移除，permanent: true 则常驻内存）
+
+// Get.putAsync 立即异步创建实例. 如实例初始化需要网络请求、读取本地文件、初始化 Firebase 等
+final syncService2 = await Get.putAsync<SyncService2>(() async {
+  // 异步操作：比如初始化Firebase、读取配置文件
+  await Firebase.initializeApp();
+  // 异步操作完成后，返回实例
+  return SyncService2();
+}, permanent: true);
 
 
+// Get.lazyPut 懒加载同步创建实例. 调用时不会立即创建实例，而是等到第一次调用 Get.find<T>() 时才创建实例，是性能优化的常用方法
+Get.lazyPut<SyncService3>(() => SyncService3()); // 返回 void
+Get.lazyPut<SyncService3>(
+  () => SyncService3(),
+  tag: "sync3",
+  fenix: true, // 销毁策略：实例被销毁后，再次find时会重新创建（默认false，销毁后无法再获取）
+);
 
+
+// 获取实例
+final service = Get.find<SyncService1>();
+final service1 = Get.find<SyncService1>(tag: "sync1"); // 基于标签
+// 获取时 await, 针对 putAsync
+final service2 = await Get.find<SyncService2>();
+
+
+// 移除指定类型实例
+Get.delete<SyncService>();
+Get.delete<SyncService>(tag: "sync1");
+Get.reset(); // 移除所有实例
+```
+- 路由
+
+```dart
+// 进入页面
+final result = await Get.to(...);
+final result = await Get.toNamed(Routes.addPet, arguments: pet);
+// 获取参数
+class PetController extends GetxController {
+    @override
+    void onInit() {
+        super.onInit();
+        if (Get.arguments != null && Get.arguments is PetModel) {
+            initForEdit(Get.arguments as PetModel);
+        }
+    }
+}
+// 返回并携带参数传递给上述页面
+Get.back(result: '123');
+
+// 保留当前页面，跳转到新页面（可返回）
+Get.toNamed('/home');
+// 关闭当前页面，跳转到新页面（仅无法返回当前页）
+Get.offNamed('/home');
+// 清空路由栈后，跳转到目标页. eg: 登录成功跳首页，无法再返回登录页
+Get.offAllNamed('/home');
+
+// 底部弹框, 基于 Get.back(result: xxx); 返回并携带参数
+final result = await Get.bottomSheet(InkWell(
+    onTap: () {
+        Get.back(result: true); // 关闭 BottomSheet 并返回 true
+    },
+    child: const Text('确认删除'),
+));
+```
+- 常见问题: Get.back 无法关闭页面
+
+```dart
+// ***错误***
+// final result = await Get.bottomSheet(...)
+ToastUtils.showSuccess(...);
+Get.back(result: true); // 误把 Toast 对应的 Snackbar（若 Toast 基于 Snackbar 实现）当成关闭目标，导致 BottomSheet 没关闭
+
+// ***正确: 先返回再提示***
+// final result = await Get.bottomSheet(...)
+Get.back(result: true); // Closes the sheet
+ToastUtils.showSuccess(...); // 将提示信息挂载在父页面，防止 Toast 闪现
+```
+
+### 整合Firebase
+
+- firebase使用参考: [firebase.md](/_posts/service/firebase.md)
+- firebase: 可实现谷歌等第三方登录, 作为数据库, 作为文件存储
+- 依赖
+
+```bash
+# firebase各模块版本需要兼容. Flutter 3.24.5
+firebase_core: ^3.4.1
+firebase_auth: ^5.2.0
+cloud_firestore: ^5.6.0
+firebase_storage: ^12.3.0
+
+# 谷歌登录
+google_sign_in: ^6.2.1
+```
+- 基础配置
+    - firebase配置: lib/firebase_options.dart
+    - main.dart 中初始化 `Firebase.initializeApp`
+- 第三方登录
+    - 进入firebase项目 - 构建 - Authentication - 登录方法 - 启用Google登录 - 下载 GoogleService-Info.plist 文件放到 ios 目录(安卓可下载类似文件)
+    - 核心代码
+
+    ```dart
+    import 'package:google_sign_in/google_sign_in.dart';
+    import 'package:firebase_auth/firebase_auth.dart';
+
+    // 全局
+    final GoogleSignIn _googleSignIn = GoogleSignIn();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+
+    // 获取谷歌用户
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+    // firebase获取谷歌用户认证信息
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+    );
+    // 登录firebase
+    final UserCredential userCredential = await _auth.signInWithCredential(credential);
+    // 打印firebase登录用户信息
+    print(userCredential.user);
+    ```
+- 数据库读写
+    - 进入firebase项目 - 构建 - Firestore Database - 创建数据库(开始可以以测试环境模式创建)
+    - 代码案例
+
+    ```dart
+    import 'package:cloud_firestore/cloud_firestore.dart';
+
+    // 全局
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    
+    // 新增或更新用户数据(会自动创建 users 文档集)
+    String userId = '100000';
+    _firestore.collection('users').doc(userId).update({
+        'name': '张三',
+        'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // 查询
+    final docSnapshot = await _firestore.collection('users').doc(userId).get();
+    if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        return data;
+    }
+    ```
+
+### 整合Cloudflare-R2存储
+
+- 直接在 Flutter 中使用 R2 存在安全问题(不应将 R2 的 API 密钥直接嵌入到 Flutter 应用中)
+    - 参考: Flutter 结合 Cloudflare Workers 上传图片至 R2 存储: https://blog.51cto.com/u_16638093/14104660
+
+## Flutter相关依赖库
+
+- flutter_screenutil v5.9.0 屏幕适配/响应式缩放
+    - 屏幕适配, 如宽高及字体大小可使用 100.w, 100.h, 10.sp 等
+    - 物理像素 = 逻辑像素 * 设备像素比
+    - 如默认的字体尺寸 8.0 为逻辑像素（dp/pt），设计稿基于 375dp 宽度的手机，8.0dp 显示正常；平板（如 768dp 宽度）上，8.0dp 会显得极小
+- shared_preferences v2.5.3 本地存储
+    - 不同环境缓存机制不一
+        - Android: XML文件(基于android.content.SharedPreferences)
+        - iOS/macOS: plist(XML)文件(基于NSUserDefaults)
+        - Windows: 注册表
+        - Web: localStorage
+    - 核心通信方式是MethodChannel，所有操作异步且基于内存缓存，读写性能高
+    - 适合存储少量配置信息，存储复杂数据/大量数据/数据加密可采用 Hive(Dart实现的键值对存储)、SQFlite(结构化存储, Flutter下的SQLite插件) 本地存储方案
+    - 使用
+
+    ```dart
+    import 'package:shared_preferences/shared_preferences.dart';
+
+    // 存储数据. 对象数据读写需手动序列化/反序列化
+    Future<void> saveUserInfo() async {
+        // 获取SharedPreferences实例（底层会初始化原生缓存）
+        final prefs = await SharedPreferences.getInstance();
+        // 异步写入（先更缓存，再异步写文件）
+        await prefs.setString('token', 'abc123456');
+        await prefs.setInt('age', 25);
+        await prefs.setBool('isLogin', true);
+    }
+
+    // 读取数据
+    Future<void> getUserInfo() async {
+        final prefs = await SharedPreferences.getInstance();
+        // 从内存缓存读取，无需读文件
+        final token = prefs.getString('token');
+        final age = prefs.getInt('age') ?? 0;
+        final isLogin = prefs.getBool('isLogin') ?? false;
+        print('token: $token, age: $age, isLogin: $isLogin');
+    }
+    ````
 
 

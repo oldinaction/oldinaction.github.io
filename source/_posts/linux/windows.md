@@ -80,11 +80,11 @@ slmgr /ato
 
 - 自启动的程序可在任务管理器-启动列查看
 - 基于创建bat脚本
-    - 法一：参考下文`任务计划`(**成功**)
-    - 法二：**将bat脚本的快捷方式放到启动目录**
-        - 全局启动目录
+    - 法一：参考下文`任务计划`(**成功, 推荐, 不会显示脚本 CMD 窗口**)
+    - 法二：将bat脚本的快捷方式放到启动目录
+        - 全局启动目录(**需要任意用户登录后才启动，会显示脚本 CMD 窗口**)
             - 对应目录 `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`(.../「开始」菜单/程序/启动)
-        - 用户启动目录(**需要用户登录进去才开始自动重启**)
+        - 用户启动目录(**需要该用户登录后才启动**)
             - Win+R - `shell:startup` 打开对应目录
             - 或手动打开 `C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
     - 法三：基于bat和vb
@@ -168,6 +168,7 @@ slmgr /ato
 
 ### 远程桌面
 
+- 开启远程桌面: Win10 - 设置 - 系统 - 远程桌面 - 开启
 - Win+R运行`mstsc`打开远程桌面
     - `mstsc -admin` 以管理模式进入远程桌面，可以解决`由于没有远程桌面授权服务器可以提供许可证`问题(或者修改目标服务器的注册表)
 

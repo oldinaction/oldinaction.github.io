@@ -72,6 +72,8 @@ https://blog.csdn.net/runningtortoises/article/details/51425299
 
 ## 奇技淫巧
 
+- [OpenSpeedy](https://github.com/game1024/Speedy) 百度网盘加速, 参考: https://zhuanlan.zhihu.com/p/678619290
+
 ### alist加速百度下载
 
 - go语言编写，其实是一个聚合网盘程序，但是内置功能可以实现百度网盘下载加速功能

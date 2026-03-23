@@ -8,6 +8,7 @@ tags: [mysql, dba]
 
 ## 数据备份/恢复
 
+- [AI: MySQL表中删除大量废数据的最优方案及避坑指南](https://www.doubao.com/doc/LUdmfkU6rdxYMpc1scVcgyQGnFd)
 - 参考[MySQL的数据备份与恢复](https://cloud.tencent.com/developer/article/1894635)
 - `mysqldump` 是一款 mysql **逻辑备份**的工具(备份文件为SQL文件，CLOB字段需要设置参数转为二进制)，它将数据库里面的对象(表)导出作为 SQL 脚本文件
     - 对于导出几个 G 的数据库，还是不错的；一旦数据量达到几十上百 G，无论是对原库的压力还是导出的性能都存在问题 [^1]

@@ -2,7 +2,7 @@
 layout: "post"
 title: "Keepalived"
 date: "2018-03-03 17:24"
-categories: [arch]
+categories: [devops]
 tags: [keepalived]
 ---
 

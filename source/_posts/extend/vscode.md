@@ -24,15 +24,22 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
 - 其他
     - `Ctrl+K Ctrl+S` `文件-首选项-键盘快捷方式` 可查看快捷键
     - `Alt+Shift+A` 注释/取消注释
+    - 批量选择: 参考[idea.md#快捷键](/_posts/extend/idea.md#快捷键)
     - 自定义
         - `Ctrl+Shift+U` 转大写
         - `Ctrl+Shift+Y` 转小写
 
-## 插件推荐
+## 插件
+
+- 支持按工作区禁用插件: 右键插件 - 禁用(工作区)
+- 支持插件推荐: 右键插件 - 添加到工作区建议, 会在项目根目录生成 `.vscode/extensions.json` 文件, 如`{"recommendations": ["ms-vscode.vscode-typescript-tslint-plugin"]}` 里面为扩展 ID
+
+### 插件推荐
 
 > 可参考：[https://github.com/varHarrie/YmxvZw/issues/10](https://github.com/varHarrie/YmxvZw/issues/10)
 
-- `Atom One Dark Theme` 类似Atom的黑色主题. 安装后重启：`文件-首选项-颜色主题`
+- `One Dark Pro` 推荐其 Mix 模式
+    - `Atom One Dark Theme` 类似Atom的黑色主题. 安装后重启：`文件-首选项-颜色主题`
 - `IntelliJ IDEA Keybindings` IDEA快捷键配置
 - `VSCode Browser Sync` 可开启一个静态服务器，并实时渲染。启动方式
 	- `Ctrl+Shift+P` 打开命令数据框
@@ -119,6 +126,7 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
 	```
 - `Bracket Pair Colorizer 2` 代码括号对应颜色标识
 - `GitLens` Git管理面板
+    - 设置 - Gitlens › Hovers: Enabled 去掉勾选 (关闭鼠标移到到代码上的变更提示)
     - 破解: 修改 `/Users/xxx/.vscode/extensions/eamodio.gitlens-16.3.3/dist/webviews/graph.js`
 
     ```js
@@ -128,7 +136,6 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
     // 修改后
     ,m().createElement(Fc,{className:"graph-app__gate",featurePreview:Ve,featurePreviewCommandLink:Ve?Rs(ds.PlusContinueFeaturePreview,o.webviewId,o.webviewInstanceId,{feature:Ve.feature}):void 0,appearance:"alert",featureWithArticleIfNeeded:"the Commit Graph",source:{source:"graph",detail:"gate"},state:Ue?.state,webroot:o.webroot,visible:!Fe},m().createElement("p",{slot:"feature"},m().createElement("a",{href:"https://help.gitkraken.com/gitlens/gitlens-features/#commit-graph-pro"},"Commit Graph"),m().createElement(Ic,{source:{source:"graph",detail:"badge"},subscription:Ue})," ","— easily visualize your repository and keep track of all work in progress. Use the rich commit search to find a specific commit, message, author, a changed file or files, or even a specific code change."))
     ```
-- `c/c++` 高亮及提示c/c++代码(运行还需安装MinGW/gcc编译器)
 - `code-runner` 运行代码, 如c(还需按照c/c++插件)
 
     ```json
@@ -141,15 +148,19 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
         }
     }
     ```
+- Java
+    - Mybatis Helper 文件跳转,日志解析
 - `Flutter` Flutter开发插件
 - `php debug`
     - php安装扩展xdebug
     - vscode安装扩展php-debug(xdebug的adapter)
     - https://www.cnblogs.com/studyskill/p/6873588.html
     - https://sriharibalgam.wordpress.com/2017/08/23/installing-xdebug-for-xampp-with-php-5-x-7-x/
+- `c/c++` 高亮及提示c/c++代码(运行还需安装MinGW/gcc编译器)
 
-## 用户配置
+## 用户配置和工作区配置
 
+- 支持用户配置(全局: ~/.vscode/settings.json)和工作区配置(当前项目: .vscode/settings.json)
 - 打开文件空格个数发生变化异常：去勾选User Settings -> Text Editor -> Detect Indentation
 - json文件配置(新版本打开设置后在右上角点击打开json配置按钮)
 
@@ -272,6 +283,33 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
       ],
       // 配置终端可以是外部终端或者内部集成终端，默认值internalConsole
       "console": "integratedTerminal", // 此时可以正常打印运行是日志
+    }
+  ]
+}
+```
+
+## 任务(tasks.json)
+
+- 基于`.vscode/tasks.json`实现，参考[官方文档](https://code.visualstudio.com/docs/editor/tasks)
+    - Tasks 用于执行任意终端命令（编译、运行、打包、格式化等），无调试能力
+    - Luanch 专门用于代码调试
+- 案例：hexo博客发布
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "hexo deploy",
+      "type": "shell",
+      "command": "hexo",
+      "args": [
+        "deploy"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }

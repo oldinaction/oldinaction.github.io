@@ -2,7 +2,7 @@
 layout: "post"
 title: "LVS"
 date: "2018-03-04 17:45"
-categories: arch
+categories: devops
 tags: [LB, HA]
 ---
 

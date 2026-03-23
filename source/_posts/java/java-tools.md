@@ -74,6 +74,9 @@ List<String> oldCodes = new ArrayList<>();
 List<String> newCodes = new ArrayList<>(Arrays.asList(menuIds)); // 类型为 ArrayList。如果 List<String> newCodes = Arrays.asList(menuIds); // 类型为 Array$ArrayList
 List<String> codes = CollUtil.subtractToList(newCodes, oldCodes); // 返回新对象。此时两个对象类型必须一致，如其中一个为Array$ArrayList，则会报错
 
+// 交集
+Collection<String> intersectionList = CollUtil.intersection(list1, list2);
+
 // 去重、去空字符串(此时传入集合元素必须是字符串，如果去NULL则元素可为任意对象)
 List<String> list = CollUtil.distinct(CollUtil.removeBlank(Convert.toList(String.class, this.row))); // 对Excel中读取的数据进行处理
 ```
@@ -91,8 +94,12 @@ Map<Long, Person> feeRuleMap = CollUtil.fieldValueMap(personList, "id");
 ```java
 // ==> List转成数组
 List<String> oldCodes = new ArrayList<>();
-Object[] objArr = oldCodes.toArray;
+Object[] objArr = oldCodes.toArray();
 String[] strArr = Convert.toStrArray(list.toArray); // 将list转成 String[]
+
+// => 数组转成List
+List<String> strList = new ArrayList<>(Arrays.asList(strArray));
+List<String> list = Convert.toList(String.class, strArray);
 
 // ==> List中元素类型转换
 Long id = Convert.toLong(params.get("id"));
@@ -130,6 +137,9 @@ Validator.validateChinese("我是一段zhongwen", "内容中包含非中文");
 ### 字符串
 
 ```java
+// 分割字符串
+List<String> list = StrUtil.splitTrim(" a, b, c ", ",");
+
 // （成对）剥掉前后字符
 StrUtil.strip("'abc'", "'"); // abc
 StrUtil.strip("[abc]", "[", "]"); // abc
@@ -517,7 +527,13 @@ template.render(data);
 
 ![Cntr+Enter进行换行(非上文isPageBreak方式)](../../data/images/2024/java-tools/image-2.png)
 
-### Easypoi基于模板生成Excel
+### 基于模板生成Excel
+
+#### jxls
+
+- https://jxls.sourceforge.net/
+
+#### Easypoi
 
 - [Easypoi](https://gitee.com/wupaas/easypoi)、[文档(已关闭)](http://www.wupaas.com/open/easypoi.html)
 - 优点
@@ -738,6 +754,11 @@ public class AsposeU {
     - 使用 javassist 修改 aspose-cells-21.11.jar 源码
     - License#setLicense 最终会进入 `this.a` 方法，而此方法大部分都是校验逻辑，如果通过都会进入`zblc.a`方法，因此修改`this.a` 方法即可
 - 破解之后还是正常导入License，只是破解之后就不会校验License正确性，从而不会生成水印
+
+### 文档在线预览
+
+- 基于[kkFileView](https://github.com/kekingcn/kkFileView)自己部署服务
+- 调用微软服务: `https://view.officeapps.live.com/op/view.aspx?src=` 后面接文件url(进行url字段编码)
 
 ## 数据库
 

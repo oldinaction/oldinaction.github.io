@@ -864,21 +864,32 @@ stop # 退出当前arthas会话(之后才可切换到其他进程会话)
 help
 # 观察jvm信息，类似jinfo
 jvm
+
 # **定位线程问题，类似jstack**
-thread
-thread -n 3 # 展示当前最忙的N各线程
+# ID (JVM 的 thread ID)
+# NAME (如: http-nio-8080-exec-966, pool-1-thread-1)
+# STATE (RUNNABLE 运行中, BLOCKED 阻塞, WAITING 等待, TIMED_WAITING 超时等待)
+thread # **只会列举部分线程**
+thread -all | grep '-2' # 列举所有线程
+thread -n 3 # 展示当前最忙的N各线程(占用 CPU 最高的)
+thread 47 # 显示 TID=47 的线程调用堆栈
+
 # **观察系统情况**，会定时刷新ID/Memory/Runtime几个分类属性
 dashboard
+
 # **(慎用)**相当于使用jmap导出堆信息，**也会影响线上程序**
 heapdump
+
 # 查找class
 sc
 
 # [观测方法](https://arthas.aliyun.com/doc/watch.html)
 # 能观察到的范围为：返回值、抛出异常、入参，通过编写 OGNL 表达式进行对应变量的查看
 watch
+
 # 反编译。主要用于：动态代理生成类的问题定位、第三方的类、版本问题(确定自己最新提交的版本是不是被使用)
 jad
+
 # 热替换。目前有些限制条件：只能改方法实现，不能改方法名，不能改属性
 redefine
 

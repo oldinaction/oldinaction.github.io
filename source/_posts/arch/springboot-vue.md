@@ -944,6 +944,16 @@ location ^~ /my-app/ {
 
 ## 移动端其他
 
+### H5打包成APP
+
+- **将 H5 打包成手机应用**
+    - PWA模式(本质还是 H5 网页): vue 项目基于如 vite-plugin-pwa 改造代码，打包后会有一个 manifest.webmanifest 文件，浏览器读取到此文件后就弹出安装提示从而安装到手机(客户端可以缓存网页)
+    - Capacitor: 将网页快速打包成安卓或IOS(测试环境安装到手机仍然只有 7 天有效期)
+- IOS 的 WebClip书签模式: [ios.md#WebClip书签模式](/_posts/mobile/ios.md#WebClip书签模式)
+- uni-app 项目 HTML5+或plus: 参考[uni-app.md#APP](/_posts/mobile/uni-app.md#APP)
+- **图标尺寸自动生成**: https://icon.wuruihong.com/
+    - iconfont下载的 png 图标, 默认是 200px, PS 画布放到到 250px, 再通过此工具生成白色背景的图标
+
 ### 常用图片尺寸
 
 - 微信小程序分享图: 750*1334 (9:16)

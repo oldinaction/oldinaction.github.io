@@ -12,10 +12,10 @@ tags: [spring, src]
 
     ![springmvc-flow](/data/images/java/springmvc-flow.png)
     - 用户请求发送到**前端控制器DispatcherServlet**
-    - 前端控制器DispatcherServlet接收到请求后，DispatcherServlet会使用HandlerMapping来处理，**HandlerMapping会查找到具体进行处理请求的Handler对象**
-    - HandlerMapping找到对应的Handler之后，返回一个**Handler执行链**，在这个执行链中包括了拦截器和处理请求的Handler
-    - DispatcherServlet接收到执行链之后，会**调用Handler适配器**去执行Handler
-    - Handler适配器执行完成**Handler（也就是我们写的Controller）**之后会得到一个ModelAndView，并返回给DispatcherServlet
+    - 前端控制器 DispatcherServlet 接收到请求后, DispatcherServlet 会使用HandlerMapping来处理，**HandlerMapping 会查找到具体进行处理请求的Handler对象**
+    - HandlerMapping找到对应的Handler之后，返回一个**Handler执行链**，在这个执行链中包括了拦截器和处理请求的 Handler
+    - DispatcherServlet 接收到执行链之后，会**调用Handler适配器**去执行 Handler
+    - Handler适配器执行完成**Handler（也就是我们写的Controller）**之后会得到一个ModelAndView，并返回给 DispatcherServlet
     - DispatcherServlet接收到Handler适配器返回的ModelAndView之后，会根据其中的视图名**调用视图解析器**
     - 视图解析器根据逻辑视图名解析成一个**真正的View视图**，并返回给DispatcherServlet
     - DispatcherServlet接收到视图之后，会根据上面的ModelAndView中的model来进行视图中数据的填充，也就是所谓的**视图渲染**

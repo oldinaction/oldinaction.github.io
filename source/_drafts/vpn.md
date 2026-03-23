@@ -13,8 +13,9 @@ tags: [linux, network]
     - 镜像合集(Google/Github等): https://github.com/runningcheese/MirrorSite
     - Github加速参考: [git.md](/_posts/arch/git.md#git简介)
 - VPN推荐
-    - [流量光机场](https://llg01.com/#/register?code=5sxpi60O) 20/年(60G/月)
-    - [超实惠加速](https://cshjc.shop) 42元/年(120G/月), 34元不限时(?)
+    - [**CloudFlare羊毛**](https://github.com/cmliu/edgetunnel)
+    - [超实惠加速](https://cshjc.net/web/#/login?code=B6LQUvnH) 42元/年(120G/月), 51元666G不限时
+    - [流量光机场](https://llg01.com/#/register?code=5sxpi60O) 40/年(60G/月)
     - [狗狗加速](https://down.dginv.click/#/register?code=qIwiCU0A) 15.8/月
 - VPN参考
     - https://github.com/029danio/fly
@@ -146,7 +147,7 @@ ipsec verify
 ```bash
 # 在C上运行ssh命令
 ssh -Nf -L 2121:2.2.2.2:21 3.3.3.3
-    # -N 告诉SSH客户端，这个连接不需要执行任何命令，仅仅做端口转发。-fN很重要，部分文章说需要使用 "vmstat 30" 来防止连接断开，这种方式可能会导致产生大量连接
+    # -N 告诉SSH客户端，这个连接不需要执行任何命令，仅仅做端口转发。-fN很重要
     # -f 告诉SSH客户端在后台运行
     # -L 做本地映射端口，被冒号分割的三个部分含义分别是：A端口号、需要访问的目标机器B的IP地址、需要访问的目标机器B的某端口；最后一个参数是用来建立隧道的中间机器C的IP地址
     # -R X:Y:Z 就是把内部的Y机器的Z端口映射到远程机器的X端口上(Y机器和中间机C处于同一内网，此处填写Y对应的内网)
@@ -157,15 +158,19 @@ ssh -Nf -L 2121:2.2.2.2:21 3.3.3.3
 # 访问本地机器A的2121端口，就能连接目标机B的21端口了。此时需要把本地端口2121映射到外网2.2.2.2
 ftp localhost:2121
 ```
-- 建立远程SSH隧道：可从外网访问到内网资源(远程办公)
+- 建立远程SSH隧道: 可从外网访问到内网资源(远程办公)
     
 ```bash
 # 在C上运行ssh命令，把和C处于统一网络的B(192.168.1.200)映射出去，也可以为C自身
-# -R：远程机器A使用的端口（2222）、需要映射的内部机器B的IP地址、需要映射的内部机器B的端口(22)
+# -R: 远程机器A使用的端口（2222）、需要映射的内部机器B的IP地址、需要映射的内部机器B的端口(22)
 ssh -Nf -R 2222:192.168.1.200:22 3.3.3.3
 
 # 访问本地机器A的2222端口，就能连接目标机B的22端口了
 ssh -p 2222 localhost
+
+# 推荐: 后台运行通道
+# /opt/soft/sshpass-1.05/sshpass -p "test" ssh -fN -C -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -D 0.0.0.0:1088 root@192.168.1.200 -p 20000
+ssh -fN -C -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -D 0.0.0.0:1088 root@192.168.1.200 -p 20000
 
 # (不推荐)这种方式可能会导致产生大量连接
 # vmstat 30会定期打印数据，防止某些路由器把长时间没有通信的连接断开；-b 0.0.0.0为绑定本机的2222端口，此时提供本机A所有局域网的其他机器访问A:2222端口
@@ -384,6 +389,44 @@ sudo sslocal -s 100.100.100.100 -p 10010 -k Hello1234! -d start
 - https://github.com/clash-verge-rev/clash-verge-rev
 - 文档: https://www.clashverge.dev/
 - 配置文件字段规则: https://wiki.metacubex.one/config/
+- 自定义配置案例
+
+```bash
+# 订阅 - 新建配置 - 类型 Local - 保存后右键编辑文件
+mixed-port: 7890
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: '127.0.0.1:9090'
+proxies:
+- name: vmess节点
+  type: vmess
+  server: 100.100.100.100
+  port: 29282
+  uuid: 951c77e1-3a0d-4367-a0f6-399e9fea5f2a
+  alterId: 0
+  cipher: auto
+  tls: false
+  udp: false
+  skip-cert-verify: true
+  network: ws
+  ws-opts:
+    path: /ws
+- name: socks5节点1
+  type: socks5
+  server: 127.0.0.1
+  port: 1088
+- name: socks5节点2
+  type: socks5
+  server: 100.100.100.100
+  port: 52451
+  username: rcr5IY1234
+  password: r2rw92235j
+proxy-groups:
+  - { name: 🚀 节点选择, type: select, proxies: [♻️ 自动选择, 🔯 故障转移, 'vmess节点', 'socks5节点1', 'socks5节点2'] }
+  - { name: ♻️ 自动选择, type: url-test, proxies: ['vmess节点', 'socks5节点1', 'socks5节点2'], url: 'http://www.gstatic.com/generate_204', interval: 86400 }
+  - { name: 🔯 故障转移, type: fallback, proxies: ['vmess节点', 'socks5节点1', 'socks5节点2'], url: 'http://www.gstatic.com/generate_204', interval: 7200 }
+```
 
 ## PAC自动代理文件格式
 

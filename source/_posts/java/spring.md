@@ -1079,6 +1079,402 @@ public @interface EnableSqU {
 public class Application {}
 ```
 
+## 事物支持
+
+### 事物
+
+- 在Spring中，事务有两种实现方式
+    - 编程式事务管理：使用TransactionTemplate可实现更细粒度的事务控制
+    - 申明式事务管理：基于Spring AOP实现。常用
+- Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的
+    - **事物生命周期是从AOP调用的目标方法开始的，到该方法执行完成事物环境即消失**
+        - 不一定非要有接口实现，普通Bean只要通过AOP调用即可
+    - **`@Transactional`注解只能被应用到 public 可见度的方法上或注解到类上**，注解到类上则该类的所有public方法再进行AOP调用时都存在事物
+    - **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
+        - `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(声明上throws出来的)捕获异常Exception时也回滚
+        - `@Transactional(noRollbackFor=RuntimeException.class)` 指定不回滚
+    - **一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)**，具体见下文事物传播行为
+    - 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
+- **常见问题**
+    - **自调用导致`@Transactional`失效问题**
+        - 同一个类中的方法相互调用，发起方法无`@Transactional`，则被调用的方法`@Transactional`无效 [^3]
+        - 原因：由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，**自调用时不存在代理对象的调用，这时不会产生注解@Transactional配置的参数**，因此无效
+        - **通过`SpringU.getBean(UserService.class);`解决**(不需要设置exposeProxy属性)
+        - 通过AopContext解决
+            - 上述方案及其他方案参考：https://blog.csdn.net/u012528360/article/details/70336319
+    - 捕获嵌套事物异常导致报错`Transaction rolled back because it has been marked as rollback-only`(事务已经被标记为回滚，无法提交)
+        - 解决方案见下文，参考：https://blog.csdn.net/f641385712/article/details/80445912
+    - 服务内部捕获异常Exception/RuntimeException，统一返回错误结果对象，如自定义`Result`，此时无法回滚事物，解决方案如下
+        - **`TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();`** 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)。**Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用**
+        - 或者手动抛出RuntimeException
+        - 或者基于自定义注解统一回滚
+- 手动回滚方式(前提是当前有事物)
+
+```java
+// 回滚整个方法
+TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+
+// 回滚指定的一段操作
+// 设置回滚点
+Object savePoint = TransactionAspectSupport.currentTransactionStatus().createSavepoint();
+// 回滚到回滚点
+TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savePoint);
+```
+- 完全手动管理事物
+
+```java
+@Autowired
+private PlatformTransactionManager transactionManager;
+
+// 新发起一个事务
+DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+// 获得事务状态
+TransactionStatus transactionStatus = transactionManager.getTransaction(def);
+// 手动提交事务
+transactionManager.commit(transactionStatus);
+// 手动回滚事物
+transactionManager.rollback(transactionStatus);
+```
+- 原理参考
+    - https://www.jianshu.com/p/acf84a4ed3a3
+
+### 隔离级别
+
+- **隔离级别** `@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读 [^2]
+	- `DEFAULT`
+        - 这是默认值，表示使用底层数据库的默认隔离级别。**对大部分数据库而言，通常这值就是`READ_COMMITTED`；然而mysql的默认值是`REPEATABLE_READ`**
+	- `READ_UNCOMMITTED`
+        - 该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据
+        - 读操作不加S锁
+        - 该级别不能防止脏读、不可重复读、幻读。因此很少使用该隔离级别
+        - 比如，事务1修改一行，事务2在事务1提交之前读取了这一行。如果事务1回滚，事务2就读取了一行没有提交的数据（读取数据不需要加S锁，这样就不会跟被修改的数据上的X锁冲突）
+	- `READ_COMMITTED` **读已提交**
+        - 该隔离级别表示一个事务只能读取另一个事务已经提交的数据
+        - 读操作需要加S锁，但是在语句执行完以后释放S锁
+        - 该级别可以防止脏读，可能会出现不可重复读、幻读。这也是大多数情况下的推荐值
+        - Sql Server、Oracle默认为此级别
+        - 比如，事务1读取了一行，事务2修改或者删除这一行并且提交。如果事务1想再一次读取这一行，它将获得修改后的数据或者发现这一样已经被删除，因此事务的第二次读取结果与第一次读取结果不同，因此也叫不可重复读
+	- `REPEATABLE_READ` **可重复读**
+        - 该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略
+        - 读操作需要加S锁，语句执行完并不会释放S锁，必须等待事务执行完毕以后才释放S锁
+        - 该级别可以防止脏读、不可重复读，可能出现幻读
+        - MySQL默认为此级别
+        - 比如，事务1读取了一行，事务2想修改或者删除这一行并且提交，但是因为事务1尚未提交，数据行中有事务1的锁，事务2无法进行更新操作，因此事务2阻塞。如果这时候事务1想再一次读取这一行，它读取结果与第一次读取结果相同，因此叫可重复读
+	- `SERIALIZABLE`
+        - 所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰
+        - 会在Repeatable Read级别的基础上，添加一个范围锁
+        - 该级别可以防止脏读、不可重复读、幻读。但是这将严重影响程序的性能，通常情况下也不会用到该级别
+- 幻读
+    - 一般出现在事务不是独立执行时发生，如使用REQUIRES_NEW时容易出现(业务逻辑导致)
+    - 如：事务A首先根据条件索引得到10条数据，然后事务B改变了数据库一条数据，导致也符合事务A当时的搜索条件，这样事务A再次搜索发现有9条(B删除了一条)或11条数据(B新增了一条)，就产生了幻读
+- 数据真正入库
+    - 入库事务有spring事务，数据库事务，只有当这两个事务都结束，才代表数据真正可查
+
+### 传播行为
+
+- **传播行为** `@Transactional(propagation = Propagation.REQUIRED)`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
+	- `REQUIRED`：这是默认值，如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务
+	- `REQUIRES_NEW`：创建一个新的事务，如果当前存在事务，则把当前事务挂起
+	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行
+	- `NOT_SUPPORTED`：以非事务方式运行，如果当前存在事务，则把当前事务挂起
+	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
+	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常
+	- `NESTED`：(适合总分总结构) 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED
+- **REQUIRES_NEW 和 NESTED的区别**
+    - `REQUIRES_NEW` 执行到B时，A事物被挂起，B会新开了一个事务进行执行。B发生异常后，B中的修改都会回滚，然后外部事物继续执行；B正常执行提交后，则数据已经持久化了，可能产生脏读，且A如果之后失败回滚时，B是不会回滚的
+    - `NESTED` 执行到B时，会创建一个savePoint，如果B中执行失败，会将数据回滚到这个savePoint，A可以继续提交；如果B正常执行，此时B中的修改并不会立即提交，而是在A提交时一并提交，如果A失败，则A和B都会回滚(适合总分总结构)
+    - 示例(https://www.jianshu.com/p/339d59f1ecd9)
+
+    ```java
+    /*
+    NESTED
+        (1) B、C为A的子事务，可以读取A未提交的数据。但是REQUIRES_NEW却不行，除非B、C的隔离级别是Read Uncommitted
+        (2) 如果A事务在B/C执行完后，还有更改数据库的操作，如果更改失败，那么B/C是要回滚的，但是REQUIRES_NEW则B/C不会回滚，B/C事务已提交
+        (3) A与B/C方法中，可以修改同一条数据。但是对于REQUIRES_NEW会造成死锁
+    REQUIRES_NEW
+        (1) B/C作为内部事务，提交后可以被修改，这会造成A的脏读(A读取了金额为100, 然后java代码中+10, 之后B把金额改成0并提交, A最后把计算的金额110进行保存, 从而脏读. 按照顺序此时A应该重新读取B提交的数据则为0, 再进行加10操作)
+    */
+    @Transactional
+    A.service() {
+        insert();
+        try {
+            // PROPAGATION_NESTED
+            B.service();
+        } catch(Exception e) {
+            // PROPAGATION_NESTED
+            C.service()；
+        }
+        update();
+    }
+    ```
+
+### 事物示例
+
+```java
+// 1.## 在Test测试程序中，通过此Controller相关Bean调用该方法时，正常回滚
+// Controller1.java
+@Transactional
+@RequestMapping("/addTest")
+public Result addTest() {
+    User user1 = new User();
+    user1.setId("1");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+    // userService.save(user1); // 同样会回滚
+    System.out.println("user1.getId() = " + user1.getId());
+
+    // 此处报错，会出现回滚
+    Long.valueOf("abc");
+    return null;
+}
+// Test.java(下同)
+@Test
+public void contextLoads() {
+    controller1.addTest();
+}
+
+// 2.## 通过此Controller相关Bean调用该方法时，不会出现回滚(浏览器直接访问也不会回滚)
+// Controller1.java
+@Transactional
+// @Transactional(rollbackFor=Exception.class) // 加此注解可正常回滚(浏览器访问也会回滚)
+@RequestMapping("/addTest")
+public Result addTest() throws Exception {
+    User user1 = new User();
+    user1.setId("1");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+    System.out.println("user1.getId() = " + user1.getId());
+
+    // Long.valueOf("abc"); // 属于RuntimeException
+    if(1 == 1) {
+        // 此处报错，不会出现回滚
+        throw new Exception("..."); // 属于Exception
+    }
+
+    return null;
+}
+
+// 3.## 在Test测试程序中通过此Controller相关Bean调用该方法和浏览器直接访问，都无法正常回滚
+// Controller1.java
+@RequestMapping("/addTest")
+public Result addTest() {
+    // Spring的@Transactional自我调用问题：同一个类中的方法相互调用，发起方法无`@Transactional`，被调用的方法`@Transactional`无效
+    return addTestTransactional();
+}
+@Transactional
+public Result addTestTransactional() {
+    // 此时没有事物环境(由于是直接调用)
+    User user1 = new User();
+    user1.setId("2");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+    System.out.println("user1.getId() = " + user1.getId());
+
+    try {
+        Long.valueOf("abc");
+    } catch (Exception e) {
+        e.printStackTrace();
+        // 因为没有事物环境，此时手动回滚不会生效，并且会报：org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope。*****Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用****
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+    }
+
+    // 此处报错，也不会回滚
+    Long.valueOf("abc");
+
+    return null;
+}
+
+// 4.## ***事物生命周期是从AOP调用开始的***
+// Controller1.java
+@RequestMapping("/addTest")
+public Result addTest() {
+    User user1 = new User();
+    user1.setId("1");
+    user1.setUsername("user1");
+    userMapper.insert(user1);
+
+    try {
+        // 此处没有事物环境
+        controller2.addTestTransactional(); // 此时为AOP调用，在调用方法里面才存在事物环境
+        // 此处也没有事物环境
+    } catch (Exception e) {
+        e.printStackTrace();
+        // 由于此处没有事物环境，因此执行会报错。上面user1也不会正常回滚
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+    }
+    return null;
+}
+// Controller2.java
+@Transactional
+public Result addTestTransactional() {
+    // 此时有事物环境
+    User user2 = new User();
+    user2.setId("2");
+    user2.setUsername("user2");
+    userMapper.insert(user2);
+    System.out.println("user2.getId() = " + user2.getId());
+
+    // 此处报错，会回滚user2(user1不会回滚)
+    Long.valueOf("abc");
+    return null;
+}
+
+// ## 5.NESTED
+bean.run(); // 开启事物
+
+@Transactional(rollbackFor = Exception.class)
+@Override
+public Result run() {
+    // ======>A
+    Long a = Long.valueOf("1");
+    // Long a = Long.valueOf("a"); // 此处报错则直接回滚
+
+    // ======>B
+    for (Map<String, Object> item : list) {
+        MyBean bean = SpirngU.getBean(MyBean.class);
+        // 开启内部事物
+        // bean.runItem(item); // 当前item回滚，B之前的数据也会回滚(由于此处异常直接往外抛出了)
+        try {
+            bean.runItem(item); // 当前item回滚，B之前的数据不会回滚
+        } catch(Exception e) {
+            log.error("", e);
+        }
+    }
+
+    // ======>C
+    Long c = Long.valueOf("1");
+    // Long c = Long.valueOf("c"); // 此处报错则会全部回滚(A、B、C)
+}
+
+@Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+@Override
+public Result runItem(Map<String, Object> item) {
+    throw new RuntimeException();
+}
+```
+
+### 自调用导致@Transactional失效问题
+
+```java
+// 假设UserController调用UserService
+userService.run();
+System.out.println(AopContext.currentProxy()); // IllegalStateException 此处没有AOP上下文
+
+public class UserServiceImpl implements UserService {
+    @Override
+    public void run() {
+        for(params : list) {
+            try {
+                // this.updateByMap(params); // 无法实现事物
+
+                // 法一(简单)
+                SpringU.getBean(UserService.class).updateByMap(params); // 可实现事物，即可保证list里面的部分条目可提交成功
+
+                // 法二
+                // springboot启动项增加注解：@EnableAspectJAutoProxy(exposeProxy = true)开启AOP切面，且支持proxy
+                UserService userService = (UserService) AopContext.currentProxy();
+                userService.updateByMap(params); // 可实现事物
+            } catch (Exception e) {
+                // 此处catch无所谓的
+                System.out.println("error...");
+            }
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateByMap(params) {
+        if(params.get("name") == null) {
+            throw new RuntimeException("invalid");
+        }
+        jdbcTemplate.update("update t_user set sex = 1 where name = ?", params.get("name"));
+    }
+}
+```
+
+### 捕获嵌套事物异常导致报错
+
+```java
+Class ServiceA {
+    @Resource(name = "serviceB")
+    private ServiceB b;
+    
+    @Transactional
+    public void a() {
+        try {
+            b.b();
+            // 此处editById对应AOP执行完成，由于报错已经将事物标记为回滚状态
+            // 且此嵌套事物用的是一个事物，因此addPerson尚未执行完，事物还不会提交，需等addPerson执行完之后再提交
+        } catch (Exception ignore) {
+        }
+        // 返回后报错：Transaction rolled back because it has been marked as rollback-only
+        // 当addPerson执行完之后，AOP结束，Spring会提交事物
+        // 而上文将editById异常捕获掉了，Spring未发现异常因此会提交事物，而上文editById已经将事物标记为回滚状态，从而报错
+    }
+}
+
+Class ServiceB {
+    @Transactional
+    public void b() {
+        throw new RuntimeException();
+    }
+}
+```
+- 解决方案如下
+    - 业务允许情况下减少嵌套事物出现，如去掉某一个方法中的@Transactional
+    - 如果希望内层事务抛出异常时中断程序执行，直接在外层事务的catch代码块中抛出e(这样整个事物也不会提交，即a中的不会保存)
+        - 在catch语句中增加`TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();`语句，手动回滚。此时a中是否能保存成功？
+    - 将嵌套事物开启成新事物，如editById注解成@Transactional(propagation = Propagation.REQUIRES_NEW)
+    - 如果希望内层事务回滚，但不影响外层事务提交，需要将内层事务的传播方式指定为PROPAGATION_NESTED
+        - 注：PROPAGATION_NESTED基于数据库savepoint实现的嵌套事务，外层事务的提交和回滚能够控制嵌内层事务，而内层事务报错时，可以返回原始savepoint，外层事务可以继续提交
+
+### 在事物中提前关闭了连接
+
+```java
+@Transactional(rollbackFor = Exception.class)
+@Override
+public void test() {
+    this.runSql(...);
+    jdbcTemplate.update(...); // 此处会报错：SQL state [null]; error code [0];
+}
+
+public List<Map<String, Object>> runSql(String sql, Map<String, Object> parameters) {
+    SqlSession sqlSession = sqlSessionFactory.openSession(); // org.apache.ibatis.session.SqlSession
+    Connection connection = sqlSession.getConnection();
+    ResultSet rs = null;
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        setParameters(ps, boundSql, parameters, configuration);
+        rs = ps.executeQuery();
+        return resultSetToList(rs);
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    } finally {
+        // rs可以关闭
+        if(rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //不能直接关闭连接，如果存在事物则有问题。此处只释放连接
+        //try {
+        //    connection.close();
+        //} catch (SQLException e) {
+        //    e.printStackTrace();
+        //}
+        DataSource dataSource = SpringUtil.getBean(DataSource.class);
+        DataSourceUtils.releaseConnection(connection, dataSource);
+
+        // sqlSession也可以关闭
+        sqlSession.close();
+    }
+}
+```
+
 ## 多线程@EnableAsync
 
 - Spring通过任务执行器(TaskExecutor)来实现多线程和并发编程。使用`ThreadPoolTaskExecutor`可实现一个基于线程池的TaskExecutor。
@@ -1300,399 +1696,51 @@ public class JobManager {
 }
 ```
 
-## 事物支持
+## 缓存@EnableCaching
 
-### 事物
+- 使用
+    - 开启缓存功能: 启动类上添加 `@EnableCaching` 注解，激活缓存机制
+    - 默认使用 ConcurrentHashMap 作为本地缓存；若用 Redis 等分布式缓存则需引入如`spring-boot-starter-data-redis`
+- 相关注解
+    - `@Cacheable` 用于方法返回结果的缓存；有则直接返回缓存值，无则执行方法并将结果存入缓存；**依赖 AOP 机制(有反射调用才会生效)**
+    - `@CachePut` 数据更新时进行更新缓存
+    - `@CacheEvict` 数据删除时进行缓存清除
+- 搭配 redis 配置
 
-- 在Spring中，事务有两种实现方式
-    - 编程式事务管理：使用TransactionTemplate可实现更细粒度的事务控制
-    - 申明式事务管理：基于Spring AOP实现。常用
-- Spring事务管理是基于接口代理或动态字节码技术，通过AOP实施事务增强的
-    - **事物生命周期是从AOP调用的目标方法开始的，到该方法执行完成事物环境即消失**
-        - 不一定非要有接口实现，普通Bean只要通过AOP调用即可
-    - **`@Transactional`注解只能被应用到 public 可见度的方法上或注解到类上**，注解到类上则该类的所有public方法再进行AOP调用时都存在事物
-    - **默认遇到运行期异常(RuntimeException)会回滚，遇到捕获异常(Exception)时不回滚** 
-        - `@Transactional(rollbackFor=Exception.class)` 指定回滚，遇到(声明上throws出来的)捕获异常Exception时也回滚
-        - `@Transactional(noRollbackFor=RuntimeException.class)` 指定不回滚
-    - **一个带事物的方法调用了另外一个事物方法，第二个方法的事物默认无效(Propagation.REQUIRED)**，具体见下文事物传播行为
-    - 如果事物比较复杂，如当涉及到多个数据源，可使用`@Transactional(value="transactionManagerPrimary")`定义个事物管理器transactionManagerPrimary
-- **常见问题**
-    - **自调用导致`@Transactional`失效问题**
-        - 同一个类中的方法相互调用，发起方法无`@Transactional`，则被调用的方法`@Transactional`无效 [^3]
-        - 原因：由于@Transactional的实现原理是AOP，AOP的实现原理是动态代理，**自调用时不存在代理对象的调用，这时不会产生注解@Transactional配置的参数**，因此无效
-        - **通过`SpringU.getBean(UserService.class);`解决**(不需要设置exposeProxy属性)
-        - 通过AopContext解决
-            - 上述方案及其他方案参考：https://blog.csdn.net/u012528360/article/details/70336319
-    - 捕获嵌套事物异常导致报错`Transaction rolled back because it has been marked as rollback-only`(事务已经被标记为回滚，无法提交)
-        - 解决方案见下文，参考：https://blog.csdn.net/f641385712/article/details/80445912
-    - 服务内部捕获异常Exception/RuntimeException，统一返回错误结果对象，如自定义`Result`，此时无法回滚事物，解决方案如下
-        - **`TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();`** 程序内部手动回滚(手动回滚必须当前执行环境有Transactional配置，而不是执行此语句的方法有`@Transactional`注解就可以回滚，具体见下文示例)。**Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用**
-        - 或者手动抛出RuntimeException
-        - 或者基于自定义注解统一回滚
-- 手动回滚方式(前提是当前有事物)
-
-```java
-// 回滚整个方法
-TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-
-// 回滚指定的一段操作
-// 设置回滚点
-Object savePoint = TransactionAspectSupport.currentTransactionStatus().createSavepoint();
-// 回滚到回滚点
-TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savePoint);
+```yml
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    password: 123456
+  cache:
+    redis:
+      time-to-live: 3600000  # 缓存默认过期时间（1小时，单位毫秒）
+      key-prefix: "app_cache:" # 缓存键前缀（避免与其他应用冲突）
+      cache-null-values: false # 不缓存 null 值
 ```
-- 完全手动管理事物
+- 语法说明
 
 ```java
-@Autowired
-private PlatformTransactionManager transactionManager;
-
-// 新发起一个事务
-DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-// 获得事务状态
-TransactionStatus transactionStatus = transactionManager.getTransaction(def);
-// 手动提交事务
-transactionManager.commit(transactionStatus);
-// 手动回滚事物
-transactionManager.rollback(transactionStatus);
+@Cacheable(
+    value = "cacheName",          // 必选：缓存名称（缓存的分组/命名空间，可多个）
+    // #paramName：引用方法入参；#root.methodName：引用方法名；#root.args[0]：引用第一个入参
+    key = "#paramName",           // 可选：缓存键（SpEL 表达式，自定义缓存标识）
+    keyGenerator = "myKeyGenerator", // 可选：自定义键生成器（与 key 二选一）
+    condition = "#id > 0",        // 可选：缓存条件（满足则缓存，SpEL 表达式）
+    unless = "#result == null",   // 可选：排除条件（满足则不缓存，SpEL 表达式）
+    cacheManager = "myCacheManager", // 可选：指定缓存管理器（多缓存源时用）
+    // 同步缓存(解决并发缓存穿透): sync = true => 多个线程同时调用该方法时，仅一个线程执行方法，其余线程等待缓存结果，避免高并发下重复查询数据库
+    sync = false                  // 可选：是否同步缓存（默认 false，并发场景建议 true）
+)
 ```
-- 原理参考
-    - https://www.jianshu.com/p/acf84a4ed3a3
-
-### 隔离级别
-
-- **隔离级别** `@Transactional(isolation = Isolation.DEFAULT)`：`org.springframework.transaction.annotation.Isolation`枚举类中定义了五个表示隔离级别的值。脏读取、重复读、幻读 [^2]
-	- `DEFAULT`
-        - 这是默认值，表示使用底层数据库的默认隔离级别。**对大部分数据库而言，通常这值就是`READ_COMMITTED`；然而mysql的默认值是`REPEATABLE_READ`**
-	- `READ_UNCOMMITTED`
-        - 该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据
-        - 读操作不加S锁
-        - 该级别不能防止脏读、不可重复读、幻读。因此很少使用该隔离级别
-        - 比如，事务1修改一行，事务2在事务1提交之前读取了这一行。如果事务1回滚，事务2就读取了一行没有提交的数据（读取数据不需要加S锁，这样就不会跟被修改的数据上的X锁冲突）
-	- `READ_COMMITTED` **读已提交**
-        - 该隔离级别表示一个事务只能读取另一个事务已经提交的数据
-        - 读操作需要加S锁，但是在语句执行完以后释放S锁
-        - 该级别可以防止脏读，可能会出现不可重复读、幻读。这也是大多数情况下的推荐值
-        - Sql Server、Oracle默认为此级别
-        - 比如，事务1读取了一行，事务2修改或者删除这一行并且提交。如果事务1想再一次读取这一行，它将获得修改后的数据或者发现这一样已经被删除，因此事务的第二次读取结果与第一次读取结果不同，因此也叫不可重复读
-	- `REPEATABLE_READ` **可重复读**
-        - 该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略
-        - 读操作需要加S锁，语句执行完并不会释放S锁，必须等待事务执行完毕以后才释放S锁
-        - 该级别可以防止脏读、不可重复读，可能出现幻读
-        - MySQL默认为此级别
-        - 比如，事务1读取了一行，事务2想修改或者删除这一行并且提交，但是因为事务1尚未提交，数据行中有事务1的锁，事务2无法进行更新操作，因此事务2阻塞。如果这时候事务1想再一次读取这一行，它读取结果与第一次读取结果相同，因此叫可重复读
-	- `SERIALIZABLE`
-        - 所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰
-        - 会在Repeatable Read级别的基础上，添加一个范围锁
-        - 该级别可以防止脏读、不可重复读、幻读。但是这将严重影响程序的性能，通常情况下也不会用到该级别
-- 幻读
-    - 一般出现在事务不是独立执行时发生，如使用REQUIRES_NEW时容易出现(业务逻辑导致)
-    - 如：事务A首先根据条件索引得到10条数据，然后事务B改变了数据库一条数据，导致也符合事务A当时的搜索条件，这样事务A再次搜索发现有9条(B删除了一条)或11条数据(B新增了一条)，就产生了幻读
-- 数据真正入库
-    - 入库事务有spring事务，数据库事务，只有当这两个事务都结束，才代表数据真正可查
-
-### 传播行为
-
-- **传播行为** `@Transactional(propagation = Propagation.REQUIRED)`：所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。`org.springframework.transaction.annotation.Propagation`枚举类中定义了6个表示传播行为的枚举值
-	- `REQUIRED`：这是默认值，如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务
-	- `REQUIRES_NEW`：创建一个新的事务，如果当前存在事务，则把当前事务挂起
-	- `SUPPORTS`：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行
-	- `NOT_SUPPORTED`：以非事务方式运行，如果当前存在事务，则把当前事务挂起
-	- `MANDATORY`：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
-	- `NEVER`：以非事务方式运行，如果当前存在事务，则抛出异常
-	- `NESTED`：(适合总分总结构) 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于REQUIRED
-- **REQUIRES_NEW 和 NESTED的区别**
-    - `REQUIRES_NEW` 执行到B时，A事物被挂起，B会新开了一个事务进行执行。B发生异常后，B中的修改都会回滚，然后外部事物继续执行；B正常执行提交后，则数据已经持久化了，可能产生脏读，且A如果之后失败回滚时，B是不会回滚的
-    - `NESTED` 执行到B时，会创建一个savePoint，如果B中执行失败，会将数据回滚到这个savePoint，A可以继续提交；如果B正常执行，此时B中的修改并不会立即提交，而是在A提交时一并提交，如果A失败，则A和B都会回滚(适合总分总结构)
-    - 示例(https://www.jianshu.com/p/339d59f1ecd9)
-
-    ```java
-    /*
-    NESTED
-        (1) B、C为A的子事务，可以读取A未提交的数据。但是REQUIRES_NEW却不行，除非B、C的隔离级别是Read Uncommitted
-        (2) 如果A事务在B/C执行完后，还有更改数据库的操作，如果更改失败，那么B/C是要回滚的，但是REQUIRES_NEW则B/C不会回滚，B/C事务已提交
-        (3) A与B/C方法中，可以修改同一条数据。但是对于REQUIRES_NEW会造成死锁
-    REQUIRES_NEW
-        (1) B/C作为内部事务，提交后可以被修改，这会造成A的脏读(A读取了金额为100, 然后java代码中+10, 之后B把金额改成0并提交, A最后把计算的金额110进行保存, 从而脏读. 按照顺序此时A应该重新读取B提交的数据则为0, 再进行加10操作)
-    */
-    @Transactional
-    A.service() {
-        insert();
-        try {
-            // PROPAGATION_NESTED
-            B.service();
-        } catch(Exception e) {
-            // PROPAGATION_NESTED
-            C.service()；
-        }
-        update();
-    }
-    ```
-
-### 事物示例
+- 案例
 
 ```java
-// 1.## 在Test测试程序中，通过此Controller相关Bean调用该方法时，正常回滚
-// Controller1.java
-@Transactional
-@RequestMapping("/addTest")
-public Result addTest() {
-    User user1 = new User();
-    user1.setId("1");
-    user1.setUsername("user1");
-    userMapper.insert(user1);
-    // userService.save(user1); // 同样会回滚
-    System.out.println("user1.getId() = " + user1.getId());
-
-    // 此处报错，会出现回滚
-    Long.valueOf("abc");
-    return null;
-}
-// Test.java(下同)
-@Test
-public void contextLoads() {
-    controller1.addTest();
-}
-
-// 2.## 通过此Controller相关Bean调用该方法时，不会出现回滚(浏览器直接访问也不会回滚)
-// Controller1.java
-@Transactional
-// @Transactional(rollbackFor=Exception.class) // 加此注解可正常回滚(浏览器访问也会回滚)
-@RequestMapping("/addTest")
-public Result addTest() throws Exception {
-    User user1 = new User();
-    user1.setId("1");
-    user1.setUsername("user1");
-    userMapper.insert(user1);
-    System.out.println("user1.getId() = " + user1.getId());
-
-    // Long.valueOf("abc"); // 属于RuntimeException
-    if(1 == 1) {
-        // 此处报错，不会出现回滚
-        throw new Exception("..."); // 属于Exception
-    }
-
-    return null;
-}
-
-// 3.## 在Test测试程序中通过此Controller相关Bean调用该方法和浏览器直接访问，都无法正常回滚
-// Controller1.java
-@RequestMapping("/addTest")
-public Result addTest() {
-    // Spring的@Transactional自我调用问题：同一个类中的方法相互调用，发起方法无`@Transactional`，被调用的方法`@Transactional`无效
-    return addTestTransactional();
-}
-@Transactional
-public Result addTestTransactional() {
-    // 此时没有事物环境(由于是直接调用)
-    User user1 = new User();
-    user1.setId("2");
-    user1.setUsername("user1");
-    userMapper.insert(user1);
-    System.out.println("user1.getId() = " + user1.getId());
-
-    try {
-        Long.valueOf("abc");
-    } catch (Exception e) {
-        e.printStackTrace();
-        // 因为没有事物环境，此时手动回滚不会生效，并且会报：org.springframework.transaction.NoTransactionException: No transaction aspect-managed TransactionStatus in scope。*****Debug过程中，发现有问题，可通过执行此语句进行手动回滚。调试时很好用****
-        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-    }
-
-    // 此处报错，也不会回滚
-    Long.valueOf("abc");
-
-    return null;
-}
-
-// 4.## 事物生命周期是从AOP调用开始的
-// Controller1.java
-@RequestMapping("/addTest")
-public Result addTest() {
-    User user1 = new User();
-    user1.setId("1");
-    user1.setUsername("user1");
-    userMapper.insert(user1);
-
-    try {
-        // 此处没有事物环境
-        controller2.addTestTransactional(); // 此时为AOP调用，在调用方法里面才存在事物环境
-        // 此处也没有事物环境
-    } catch (Exception e) {
-        e.printStackTrace();
-        // 由于此处没有事物环境，因此执行会报错。上面user1也不会正常回滚
-        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-    }
-    return null;
-}
-// Controller2.java
-@Transactional
-public Result addTestTransactional() {
-    // 此时有事物环境
-    User user2 = new User();
-    user2.setId("2");
-    user2.setUsername("user2");
-    userMapper.insert(user2);
-    System.out.println("user2.getId() = " + user2.getId());
-
-    // 此处报错，会回滚user2(user1不会回滚)
-    Long.valueOf("abc");
-    return null;
-}
-
-// ## 5.NESTED
-bean.run(); // 开启事物
-
-@Transactional(rollbackFor = Exception.class)
-@Override
-public Result run() {
-    // ======>A
-    Long a = Long.valueOf("1");
-    // Long a = Long.valueOf("a"); // 此处报错则直接回滚
-
-    // ======>B
-    for (Map<String, Object> item : list) {
-        MyBean bean = SpirngU.getBean(MyBean.class);
-        // 开启内部事物
-        // bean.runItem(item); // 当前item回滚，B之前的数据也会回滚(由于此处异常直接往外抛出了)
-        try {
-            bean.runItem(item); // 当前item回滚，B之前的数据不会回滚
-        } catch(Exception e) {
-            log.error("", e);
-        }
-    }
-
-    // ======>C
-    Long c = Long.valueOf("1");
-    // Long c = Long.valueOf("c"); // 此处报错则会全部回滚(A、B、C)
-}
-
-@Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-@Override
-public Result runItem(Map<String, Object> item) {
-    throw new RuntimeException();
-}
-```
-
-### 自调用导致@Transactional失效问题
-
-```java
-// 假设UserController调用UserService
-userService.run();
-System.out.println(AopContext.currentProxy()); // IllegalStateException 此处没有AOP上下文
-
-public class UserServiceImpl implements UserService {
-    @Override
-    public void run() {
-        for(params : list) {
-            try {
-                // this.updateByMap(params); // 无法实现事物
-
-                // 法一(简单)
-                SpringU.getBean(UserService.class).updateByMap(params); // 可实现事物，即可保证list里面的部分条目可提交成功
-
-                // 法二
-                // springboot启动项增加注解：@EnableAspectJAutoProxy(exposeProxy = true)开启AOP切面，且支持proxy
-                UserService userService = (UserService) AopContext.currentProxy();
-                userService.updateByMap(params); // 可实现事物
-            } catch (Exception e) {
-                // 此处catch无所谓的
-                System.out.println("error...");
-            }
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void updateByMap(params) {
-        if(params.get("name") == null) {
-            throw new RuntimeException("invalid");
-        }
-        jdbcTemplate.update("update t_user set sex = 1 where name = ?", params.get("name"));
-    }
-}
-```
-
-### 捕获嵌套事物异常导致报错
-
-```java
-Class ServiceA {
-    @Resource(name = "serviceB")
-    private ServiceB b;
-    
-    @Transactional
-    public void a() {
-        try {
-            b.b();
-            // 此处editById对应AOP执行完成，由于报错已经将事物标记为回滚状态
-            // 且此嵌套事物用的是一个事物，因此addPerson尚未执行完，事物还不会提交，需等addPerson执行完之后再提交
-        } catch (Exception ignore) {
-        }
-        // 返回后报错：Transaction rolled back because it has been marked as rollback-only
-        // 当addPerson执行完之后，AOP结束，Spring会提交事物
-        // 而上文将editById异常捕获掉了，Spring未发现异常因此会提交事物，而上文editById已经将事物标记为回滚状态，从而报错
-    }
-}
-
-Class ServiceB {
-    @Transactional
-    public void b() {
-        throw new RuntimeException();
-    }
-}
-```
-- 解决方案如下
-    - 业务允许情况下减少嵌套事物出现，如去掉某一个方法中的@Transactional
-    - 如果希望内层事务抛出异常时中断程序执行，直接在外层事务的catch代码块中抛出e(这样整个事物也不会提交，即a中的不会保存)
-        - 在catch语句中增加`TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();`语句，手动回滚。此时a中是否能保存成功？
-    - 将嵌套事物开启成新事物，如editById注解成@Transactional(propagation = Propagation.REQUIRES_NEW)
-    - 如果希望内层事务回滚，但不影响外层事务提交，需要将内层事务的传播方式指定为PROPAGATION_NESTED
-        - 注：PROPAGATION_NESTED基于数据库savepoint实现的嵌套事务，外层事务的提交和回滚能够控制嵌内层事务，而内层事务报错时，可以返回原始savepoint，外层事务可以继续提交
-
-### 在事物中提前关闭了连接
-
-```java
-@Transactional(rollbackFor = Exception.class)
-@Override
-public void test() {
-    this.runSql(...);
-    jdbcTemplate.update(...); // 此处会报错：SQL state [null]; error code [0];
-}
-
-public List<Map<String, Object>> runSql(String sql, Map<String, Object> parameters) {
-    SqlSession sqlSession = sqlSessionFactory.openSession(); // org.apache.ibatis.session.SqlSession
-    Connection connection = sqlSession.getConnection();
-    ResultSet rs = null;
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        setParameters(ps, boundSql, parameters, configuration);
-        rs = ps.executeQuery();
-        return resultSetToList(rs);
-    } catch (Exception e) {
-        throw new RuntimeException(e);
-    } finally {
-        // rs可以关闭
-        if(rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //不能直接关闭连接，如果存在事物则有问题。此处只释放连接
-        //try {
-        //    connection.close();
-        //} catch (SQLException e) {
-        //    e.printStackTrace();
-        //}
-        DataSource dataSource = SpringUtil.getBean(DataSource.class);
-        DataSourceUtils.releaseConnection(connection, dataSource);
-
-        // sqlSession也可以关闭
-        sqlSession.close();
-    }
+// 对应的 redis 缓存键如: app_cache:orderCache::100001_online
+@Cacheable(value = "orderCache", key = "#userId + '_' + #type", condition = "#userId > 10000")
+public Order getOrder(Long userId, String type) {
+    return new Order(1L, userId, type);
 }
 ```
 

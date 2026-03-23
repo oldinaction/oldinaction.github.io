@@ -28,6 +28,54 @@ tags: [concurrence]
     - **并发**的关键是你有处理多个任务的能力，**不一定要同时**
     - **并行**的关键是你有**同时**处理多个任务的能力
 
+## 并发指标
+
+- 文章
+    - http://www.kegel.com/c10k.html
+    - https://tallate.github.io/9d02e43e.html
+    - https://github.com/xiaojiaqi/10billionhongbaos/wiki/%E6%89%9B%E4%BD%8F100%E4%BA%BF%E6%AC%A1%E8%AF%B7%E6%B1%82%EF%BC%9F%E6%88%91%E4%BB%AC%E6%9D%A5%E8%AF%95%E4%B8%80%E8%AF%95
+    - http://www.ideawu.net/blog/archives/740.html
+- 概念
+    - QPS 每秒完成查询次数
+    - TPS一般会比QPS少好几个数量级，常见QPS有到亿的但TPS只到万，真是情况还要看系统复杂度来衡量
+    - RT（Response-time），响应时间
+        - 单线程QPS公式：QPS = 1000ms/RT = 1s/RT
+        - 对同一个系统而言，支持的线程数越多，QPS越高。假设一个RT是80ms,则可以很容易的计算出QPS,QPS = 1000/80 = 12.5
+    - 固态硬盘SSD（Solid State Disk）：取和写入高达 1000MB/秒
+    - mysql单机TPS 1w+
+    - nginx单机QPS 10W+
+    - 1h = 3600s, 1s = 1000ms, 1d = 86400s
+- **AI结论**
+    - 日活DAU(总用户 → 日活): 普通 App 转化率：5%～15%
+    - 同时在线并发(日活 → 同时在线并发): 移动端并发在线 = 日活 × 1% ~ 3%
+    - 接口 QPS(同时在线并发 → 接口 QPS): QPS ≈ 在线人数 × 0.05 ~ 0.2
+    - QPS结论: 100W注册用户 * 10% * 2% * 10% = 注册用户 / 10000 * 2 = 200 QPS
+    - 服务器结论(场景: 100 万用户、峰值几千并发)
+        - 应用服务器：4 核 8G × 2 台 (强于单机8C16G)
+        - 数据库：4 核 8G 独享 SSD (无需外网, 应用内网直连, 运维可把应用机做跳板机登录)
+        - 对象存储(OSS)：对象存储不走服务器带宽
+        - 带宽: 5M(推荐 10 M)
+            - 接口流量很小, 按人均每天 1MB, 日接口流量 ≈ 100 GB / 天 ≈ 峰值 8M 带宽
+        - 可选: 2 核 4G Nginx 入口服务器
+        - 可选: 2 核 4G Redis 缓存服务器(初期可放在数据库服务器, 分配 2G 给 Redis)
+    - 价格说明(年): 2000x2(4C8G) + 400(100G SSD云盘) + 1200(5M带宽) + 500(OSS + CDN)
+        - 每人每天看图片：30 张（压缩后平均 200KB）=> 30 张 × 200KB × 10 万日活 = 570 GB / 天图片流量
+        - OSS 存储：100GB ≈ 10 元 / 月, CDN 流量：1TB ≈ 20~30 元 / 月 => 对象存储 + CDN：约 40 元 / 月
+- 观点一：https://my.oschina.net/u/1000241/blog/3065185
+  - 比如微博每天1亿多pv的系统一般也就 1500 QPS，5000 QPS峰值
+  - 有说
+    - 2C 4G机器单机一般1000 QPS
+    - 8C 8G机器单机可承受7000 QPS
+  - 具体多少QPS跟业务强相关，只读接口读缓存，将压力给到缓存单机3000+没问题，写请求1000+也正常，复杂些可能也就几百+QPS
+- 按二八定律来看，如果每天 80% 的访问集中在 20% 的时间里，这 20% 时间就叫做峰值时间 (也有按照80%的请求发生在一天的40%的时间内进行计算)
+  - 公式：( 总PV数 * 80% ) / ( 每天秒数 * 20% = 17280 ) = 峰值时间每秒请求数(QPS)
+  - 机器：峰值时间每秒QPS / 单台机器的QPS = 需要的机器
+  - 每天100w PV 的在单台机器上，这台机器需要多少QPS？ ( 1000000 * 0.8 ) / (86400 * 0.2) = 58 (QPS)
+  - 如果一台机器的QPS是20，需要几台机器来支持？ 58 / 20 ~= 3
+- QPS统计
+  - 统计access.log
+  - 在接口中用AtomicLong记录
+
 ## 多线程与高并发
 
 > https://github.com/bjmashibing/JUC
@@ -607,6 +655,96 @@ LockSupport.unpark(thread); // 将thread线程解除阻塞。unpark可以基于p
     - 执行tl1.set时，会将数据对象保存到obj1，且value1指向此对象。**由于ThreadLocal.ThreadLocalMap的Entry对象继承了WeakReference，且将Key保存在此虚引用对象中，因此会有一个虚引用key1也指向此ThreadLocal**(上文源码中`map.set(this, value);`)
     - 如果key1为强引用，当tl1 = null时，则仍然有一个强引用key1指向该ThreadLocal对象，从而导致ThreadLocal无法被回收；如果此线程结束，则threadLocals指向的Map被回收，此时ThreadLocal也被回收；但是有一些线程是守护线程，或者执行时间很长的线程，则很难回收ThreadLocal对象，从而导致内存泄露(指有块内存永远无法被回收；不同于OOM内存溢出，OOM指内存不足)；**因此key1需要使用虚引用**
     - 当key1为虚引用时，tl1 = null，从而ThreadLocal对象被回收，此时key1也会变为null，那么value1指向的对象将无法被访问到，从而产生内存泄露（非内存溢出）。**因此使用完ThreadLocal需要执行tl1.remove()清理**；另外，ThreadLocal中expungeStaleEntry(threadLocal调用get/set/remove触发)方法会自动将key为null的value也设置为null，且将该Entry设置为null，方便下次GC，一定程度解决了内存泄漏的问题
+- 案例
+
+```java
+public class ThreadLocalData {
+    private static final ThreadLocal<Map<String, Object>> CONTEXT_THREAD_LOCAL =
+            ThreadLocal.withInitial(ConcurrentHashMap::new);
+    
+    private ThreadLocalData() {}
+
+    /**
+     * 存入数据（线程安全）
+     * @param key 键（非空）
+     * @param val 值（可空）
+     */
+    public static void put(String key, Object val) {
+        if (key == null) {
+            throw new IllegalArgumentException("key 不能为 null");
+        }
+        // 无需手动 init()：ThreadLocal.withInitial() 会自动初始化 ConcurrentHashMap
+        CONTEXT_THREAD_LOCAL.get().put(key, val);
+    }
+
+    /**
+     * 获取数据（线程隔离）
+     * @param key 键
+     * @return 对应值（无则返回 null）
+     */
+    public static Object get(String key) {
+        if (key == null) {
+            return null;
+        }
+        // 未初始化时返回 null，避免 NPE
+        Map<String, Object> context = CONTEXT_THREAD_LOCAL.get();
+        return context == null ? null : context.get(key);
+    }
+
+    /**
+     * 获取不可修改的 Map（防止外部篡改，增强封装性）
+     * @return 不可修改的 Map 副本
+     */
+    public static Map<String, Object> getContext() {
+        Map<String, Object> context = CONTEXT_THREAD_LOCAL.get();
+        if (context == null) {
+            return Collections.emptyMap();
+        }
+        // 返回不可修改的包装类，禁止外部修改
+        return Collections.unmodifiableMap(context);
+    }
+
+    /**
+     * 移除指定键（新增常用方法）
+     * @param key 键
+     */
+    public static void removeKey(String key) {
+        if (key == null) {
+            return;
+        }
+        Map<String, Object> context = CONTEXT_THREAD_LOCAL.get();
+        if (context != null) {
+            context.remove(key);
+        }
+    }
+
+    /**
+     * 清空当前线程的 ThreadLocal 数据（修复内存泄漏核心）
+     * 注意：必须在业务结束后调用（如 try-finally 中）
+     */
+    public static void clear() {
+        // 先获取再判断，避免 NPE（关键修复）
+        Map<String, Object> context = CONTEXT_THREAD_LOCAL.get();
+        if (context != null) {
+            context.clear(); // 清空 Map，释放对象引用
+        }
+        CONTEXT_THREAD_LOCAL.remove(); // 移除 ThreadLocal 本身，彻底避免内存泄漏
+    }
+
+    /**
+     * 判断是否包含指定键（新增常用方法）
+     * @param key 键
+     * @return true=包含
+     */
+    public static boolean containsKey(String key) {
+        if (key == null) {
+            return false;
+        }
+        Map<String, Object> context = CONTEXT_THREAD_LOCAL.get();
+        return context != null && context.containsKey(key);
+    }
+}
+```
 
 ### 容器
 
@@ -1166,38 +1304,6 @@ public class MyEvent {
 
 - `FileLock` 使用FileLock可以给文件加锁，在多线程和多进程(多个JVM)的情况下均有效 [^12]
 - `AtomicInteger` 原子计数
-
-## 并发指标
-
-- 文章
-    - http://www.kegel.com/c10k.html
-    - https://tallate.github.io/9d02e43e.html
-    - https://github.com/xiaojiaqi/10billionhongbaos/wiki/%E6%89%9B%E4%BD%8F100%E4%BA%BF%E6%AC%A1%E8%AF%B7%E6%B1%82%EF%BC%9F%E6%88%91%E4%BB%AC%E6%9D%A5%E8%AF%95%E4%B8%80%E8%AF%95
-    - http://www.ideawu.net/blog/archives/740.html
-- QPS 每秒完成查询次数
-- 1h = 3600s, 1s = 1000ms, 1d = 86400s
-- 观点一：https://my.oschina.net/u/1000241/blog/3065185
-  - 比如微博每天1亿多pv的系统一般也就 1500 QPS，5000 QPS峰值
-  - 有说
-    - 2C 4G机器单机一般1000 QPS
-    - 8C 8G机器单机可承受7000 QPS
-  - 具体多少QPS跟业务强相关，只读接口读缓存，将压力给到缓存单机3000+没问题，写请求1000+也正常，复杂些可能也就几百+QPS
-- TPS一般会比QPS少好几个数量级，常见QPS有到亿的但TPS只到万，真是情况还要看系统复杂度来衡量
-- 固态硬盘SSD（Solid State Disk）：取和写入高达 1000MB/秒
-- mysql单机TPS 1w+
-- nginx单机QPS 10W+
-
-- 按二八定律来看，如果每天 80% 的访问集中在 20% 的时间里，这 20% 时间就叫做峰值时间 (也有按照80%的请求发生在一天的40%的时间内进行计算)
-  - 公式：( 总PV数 * 80% ) / ( 每天秒数 * 20% = 17280 ) = 峰值时间每秒请求数(QPS)
-  - 机器：峰值时间每秒QPS / 单台机器的QPS = 需要的机器
-  - 每天100w PV 的在单台机器上，这台机器需要多少QPS？ ( 1000000 * 0.8 ) / (86400 * 0.2) = 58 (QPS)
-  - 如果一台机器的QPS是20，需要几台机器来支持？ 58 / 20 ~= 3
-- RT（Response-time），响应时间
-    - 单线程QPS公式：QPS = 1000ms/RT = 1s/RT
-    - 对同一个系统而言，支持的线程数越多，QPS越高。假设一个RT是80ms,则可以很容易的计算出QPS,QPS = 1000/80 = 12.5
-- QPS统计
-  - 统计access.log
-  - 在接口中用AtomicLong记录
 
 ## 常用类
 

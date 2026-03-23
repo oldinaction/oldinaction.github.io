@@ -1707,6 +1707,93 @@ def resource_path(relative_path):
     - 如果只是需要执行某 py 脚本中的方法，可将此脚本的方法导入到主程序中进行执行
     - 使用目标机python环境执行(可能存在包缺失问题?)
 
+## WEB开发
+
+- WEB框架
+    - Flask: Python Web 微框架. 负责处理业务逻辑、路由、请求 / 响应等核心功能，但仅内置开发级服务器（性能 / 安全性差）
+    - Django: Web 全栈框架
+- WEB服务器
+    - Gunicorn: 纯 Python 实现的 WSGI 服务器（WSGI 是 Python Web 应用与服务器的通信标准），轻量易配置，适合中小规模部署
+    - uWSGI: C 语言实现的高性能 WSGI/uwsgi 服务器（支持更多协议），性能更强、功能更丰富，适合高并发场景
+- Werkzeug: WSGI 工具库，提供了开发 Web 应用程序所需的工具和功能，如请求解析、响应封装、会话管理等
+- 生产环境中只需选 Gunicorn 或 uWSGI 配合 Nginx 即可
+
+### Flask+Gunicorn 部署
+
+- app.py
+
+```py
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "Hello Flask + Gunicorn!"
+
+# 生产环境无需 app.run()，由 Gunicorn 接管
+if __name__ == '__main__':
+    app.run(debug=False)  # 开发环境仅用于测试
+```
+- 安装与运行
+
+```bash
+# 安装
+pip install flask gunicorn
+
+# 基础启动（命令行）
+# -w 4：4个工作进程（建议 CPU核心数*2+1）
+# -b：绑定地址+端口
+# app:app：第一个app是文件名(模块名)，第二个是Flask实例名
+gunicorn -w 4 -b 0.0.0.0:8000 app:app
+
+# 生产级启动（配置文件方式，推荐）
+# 新建 gunicorn_config.py
+bind = "127.0.0.1:8000"
+workers = 4
+worker_class = "sync"
+daemon = True  # 后台运行
+accesslog = "./access.log"  # 访问日志
+errorlog = "./error.log"    # 错误日志
+loglevel = "info"
+
+# 启动
+gunicorn -c gunicorn_config.py app:app
+```
+- nginx
+
+```bash
+server {
+    listen 80;
+    server_name your_domain.com;  # 替换为服务器IP/域名
+
+    # 静态文件转发（Flask 静态文件目录）
+    location /static/ {
+        alias /path/to/your_flask_app/static/;
+        expires 30d;  # 缓存静态文件
+    }
+
+    # 动态请求转发给 Gunicorn
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
+- 访问 `http://localhost:8000` 即可查看应用程序
+- 宝塔启动说明
+    - 配置好虚拟环境后
+    - 如果命令行启动，则直接运行 `python3 start_gunicorn.py` 即可，且 start_gunicorn.py 脚本中启动如下
+
+    ```py
+    # gunicorn_path = os.path.join("venv", "bin", "gunicorn") # 不要增加前面的venv
+    gunicorn_path = os.path.join("gunicorn")
+    subprocess.run([gunicorn_path, "--config", "gunicorn_conf.py"])
+    ```
+    - 如果使用gunicorn模式启动，则入口文件应该填写 Flask 实例化的文件名如 app.py，应用名称则为该文件中实例化的名称如 app
+
 ## 工具
 
 ### Jupyter

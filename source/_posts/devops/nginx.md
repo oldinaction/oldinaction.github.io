@@ -2,7 +2,7 @@
 layout: "post"
 title: "Nginx"
 date: "2017-01-16 16:54"
-categories: arch
+categories: devops
 tags: LB, HA
 ---
 

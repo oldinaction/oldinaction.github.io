@@ -18,7 +18,31 @@ tags: [git]
 - `sudo gitlab-ctl restart` 重新启动
 - `sudo gitlab-ctl reconfigure` 重新配置（运行中的项目，重新配置后，数据也不会丢失）
 
-## 安装
+## gitlab代替方案
+
+- gitlab windows 必须基于 WSL，且登录需要科学上网，小项目可使用代替方案
+
+### gogs
+
+- https://gogs.io/
+- windows 可直接安装
+
+```bash
+# 下载如  gogs_v0.14.2_windows_amd64_mws.zip 文件并解压
+# windows需要安装 git, 并配置环境变量(建议直接将 git.exe 设置到环境变量中)
+
+# 在 Linux 中生产 SSH 密钥，将文件放到安装目录的 data/ssh 目录下
+ssh-keygen -t ecdsa -f gogs.ecdsa -N ""
+ssh-keygen -t rsa -b 4096 -f gogs.rsa -N ""
+ssh-keygen -t ed25519 -f gogs.ed25519 -N ""
+
+# 使用 PS 运行服务
+# 第一次访问会提示初始化安装(生产配置到 custom/conf/app.ini)
+# 初始化: 数据库可选择 sqllite3, 并选择使用内置 SSH, 如果没有设置管理员信息则第一个注册用户为管理员
+./gogs.exe web
+```
+
+## gitlab安装
 
 - CE社区版Linux安装包镜像: https://mirror.tuna.tsinghua.edu.cn/gitlab-ce/
     - CE社区版安装参考: https://blog.51cto.com/u_16213672/10409442

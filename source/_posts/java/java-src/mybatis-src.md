@@ -64,6 +64,7 @@ List list = sqlSession.selectList("cn.aezo.TestMapper.select");
         - 在 **MybatisPlusAutoConfiguration**#sqlSessionFactory 中定义的 **MybatisSqlSessionFactoryBean**
         - 且包含了@ConditionalOnMissingBean，即优先使用自定义的
         - 如果使用mybatis-plus, 则无需引入mybatis-spring-boot-starter; 如果引入两个，得看new SqlSessionFactory是谁的，从而决定执行MapperProxy还是MybatisMapperProxy代理对象
+- MyBatis 执行流程：SqlSession → Executor → StatementHandler → ParameterHandler → ResultSetHandler，全程复用同一个 SqlSession 和 Connection，且 MappedStatement 与 Configuration 完全绑定
 
 ## mybatis
 

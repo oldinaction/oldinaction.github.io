@@ -2,7 +2,7 @@
 layout: "post"
 title: "CAT"
 date: "2019-06-28 12:58"
-categories: devops
+categories: arch
 tags: [monitor]
 ---
 

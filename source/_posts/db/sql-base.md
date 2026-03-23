@@ -10,6 +10,9 @@ tags: [mysql, oracle, sql]
 
 - 下文未做特殊说明的语句都是基于Mysql的语法
 - [mysql练习题](https://github.com/bjmashibing/InternetArchitect/blob/master/13mysql%E8%B0%83%E4%BC%98/mysql%E7%BB%83%E4%B9%A0%E9%A2%98.md)
+- 导出数据库结构信息(表和字段信息)工具
+    - Navicat: 右键 - 数据字典 - 导出(导出的为 PDF 格式)
+    - [EasyDataBaseExport](https://gitee.com/lzy549876/EasyDataBaseExport/tree/main) jar包直接运行/或安装IDEA插件, 支持多种格式导出
 
 ## 设计表
 
@@ -257,8 +260,8 @@ exec p(0, 0);
 - Oracle数据结构
     - `char`		定长字符串；存取时效率高，空间可能会浪费
     - `varchar2`	变长字符串，大小可达4Kb(4096个字节)；存取时效率高；varchar2支持世界所有的文字，varchar不支持
-        - `varchar2(10)` 代表可以保存 10个字节 data_length:10, char_length:10, char_used:B 代表 byte字节
-        - `varchar2(10 char)` 代表可以保存 10个字符 data_length:40, char_length:10, char_used:C 代表char 字符
+        - `varchar2(10)` 代表可以保存 10个字节（如一个汉字可能多个字节）
+        - `varchar2(10 char)` 代表可以保存 10个字符（如一个汉字就是一个字符）
     - `long`		变长字符串，大小可达到2G
     - `number`		数字；number(5, 2)表示此数字有5位，其中小数含有2位
     - `date`		日期(插入时，sysdate即表示系统当前时间；select时默认展示年月日，要想展示时分秒则需要to_char转换)
@@ -468,6 +471,11 @@ create table t_test as
 - `truncate table emp2;` oracle清空表数据，适用于表中含有大量数据
 
 ### 查询
+
+- Oracle说明(11.2g)
+    - SQL 总长度不能超过65536(64K)
+    - IN 里面字符串不能超过4000
+    - to_char 不能超过 4000
 
 #### 书写顺序
 

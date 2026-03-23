@@ -1488,6 +1488,12 @@ List<User> userList = userService.list(new LambdaQueryWrapper<User>()
         return wrapper.in(User::getHobby, MiscU.toList('games', 'book')).or().eq(ShipBill::getAge, 18)
     })
     .select(User::getUsername));
+
+// ========= exists 用法
+List<User> list = userService.list(new LambdaQueryWrapper<User>()
+					.eq(User::getClassId, classId)
+					.exists("select 1 from t_test where t_test.user_id = t_user.id and t_test.type = {0}", 1) // t_user 为 User 对象对应的表
+					.orderByDesc(User::getCreateTime);
 ```
 
 #### 分页
@@ -1540,15 +1546,19 @@ IPage<Users> findList(Page<?> page, @Param("ctx") Map<String, Object> context);
 ```java
 // mysql
 new LambdaQueryWrapper<Subscribe>()
-.eq(Subscribe::getFlowStatus, flowStatus)
-.last("limit 100");
+    .eq(Subscribe::getFlowStatus, flowStatus)
+    .last("limit 100");
 
 // oracle
 new LambdaQueryWrapper<Subscribe>()
-.eq(Subscribe::getFlowStatus, flowStatus)
-.apply("rownum < {0}", 100);
+    .eq(Subscribe::getFlowStatus, flowStatus)
+    .apply("rownum < {0}", 100);
 
-// sqlserver手动写sql
+// sqlserver
+new LambdaQueryWrapper<Subscribe>()
+    .eq(Subscribe::getFlowStatus, flowStatus)
+    .orderByDesc(Subscribe::getCreateTime)
+    .last("OFFSET 0 ROWS FETCH FIRST 100 ROW ONLY");
 ```
 
 #### Oracle序列
@@ -1576,19 +1586,20 @@ public OracleKeyGenerator oracleKeyGenerator() {
 
 #### NULL空值处理
 
-- mybatis-plus默认策略为`NOT_NULL`：在执行updateById(user)，如果user对象的属性为NULL，则不会更新(空字符串会更新)；也可以修改策略
-- 如果需要进行NULL更新，则可通过设置字段策略或者通过UpdateWrapper进行（推荐）
+- mybatis-plus默认策略为`NOT_NULL`：在执行updateById(user)，如果user对象的属性为NULL，则不会更新(空字符串会更新)。解决方案如下：
+- 通过UpdateWrapper进行更新（推荐）
 
 ```java
-// https://baomidou.com/guide/faq.html#%E6%8F%92%E5%85%A5%E6%88%96%E6%9B%B4%E6%96%B0%E7%9A%84%E5%AD%97%E6%AE%B5%E6%9C%89-%E7%A9%BA%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%88%96%E8%80%85-null
-mapper.update(
+// UpdateWrapper<User> wrapper = new UpdateWrapper<>();
+LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+userMapper.update(
    new User().setName("mp").setAge(3),
-   Wrappers.<User>lambdaUpdate()
-           .set(User::getEmail, null) //把email设置成null
+   wrapper.set(User::getEmail, null) //把email设置成null
            .eq(User::getId, 2)
 );
+
 //也可以参考下面这种写法
-mapper.update(
+userMapper.update(
     null,
     Wrappers.<User>lambdaUpdate()
        .set(User::getAge, 3)
@@ -1596,6 +1607,29 @@ mapper.update(
        .set(User::getEmail, null) //把email设置成null
        .eq(User::getId, 2)
 );
+
+// 也可直接指定 SQL
+wrapper.eq("id", 1L)
+       .setSql("remark = null");
+userMapper.update(null, wrapper);
+```
+- 设置字段更新策略
+
+```java
+// 允许该字段更新为 null (忽略 NULL 判断)
+@TableField(updateStrategy = FieldStrategy.IGNORED)
+private String email;
+```
+- 也可以全局配置
+
+```yml
+mybatis-plus:
+  global-config:
+    db-config:
+      # 全局更新策略：忽略 null 判断（允许更新为 null）
+      update-strategy: ignored
+      # 可选：插入策略（默认 not_null，如需插入 null 可设为 ignored）
+      insert-strategy: not_null
 ```
 
 #### 乐观锁插件
@@ -1664,6 +1698,271 @@ public LogicSqlInjector logicSqlInjector () {
     - Mybatis-Plus整合多数据源: https://juejin.cn/post/7020066406012026893
 - 字段为mysql关键字处理
     - 如字段value在mysql中是关键字，不能直接使用，可在字段上加注解`@TableField(value = "`value`")`
+
+## 其他
+
+### SqlServer-cursor导致查询慢问题
+
+- 关于服务器端游标和客户端游标
+    - 服务器端游标每次获取 fetchSize(非分页大小, 可能是分页的部分数据) 数据之后重新调用服务器获取数据；而客户端游标一次性(如分页的一整页数据)加载数据到内存，后续对结果集的操作（如遍历、滚动）无需再与数据库交互
+    - 游标类型定义(AI)
+
+    ```java
+    // 1.客户端游标
+    Statement stmt = conn.createStatement(
+        ResultSet.TYPE_SCROLL_INSENSITIVE,  // 可滚动、对数据库变化不敏感
+        ResultSet.CONCUR_READ_ONLY           // 只读结果集（客户端游标默认）
+    );
+    // 强制启用客户端游标（SQL Server 驱动特有属性）
+    ((SQLServerStatement) stmt).setResponseBuffering("full");  // 一次性加载所有数据到客户端
+    // SQL Server 驱动中，fetchSize=0 表示客户端游标
+    stmt.setFetchSize(0);
+
+    // 2.服务端游标
+    Statement stmt = conn.createStatement(
+        ResultSet.TYPE_SCROLL_SENSITIVE,  // 可滚动、对数据库变化敏感
+        ResultSet.CONCUR_READ_ONLY          // 只读模式（默认）
+    );
+    // 设置 fetchSize（关键！非零值启用服务器端游标，每次获取100行）
+    stmt.setFetchSize(100);
+
+    // 3.通过连接 URL 或 Statement 属性显式启用服务器端游标. selectMethod 默认为 direct (客户端游标)
+    url: jdbc:sqlserver://localhost:1433;databaseName=test;selectMethod=cursor;
+    ```
+- 增加 selectMethod=cursor 时, 遇到了大 SQL 执行慢的问题，但是数据库直接执行，或者使用 JdbcTemplate 执行 SQL 时都很快。堆栈显示如
+    - 通过 `SQLServerResultSet$CursorFetchCommand` 说明使用了服务端游标，而 JdbcTemplate 直接执行没有调用次方法
+    - 解决方案: 改成 direct 模式
+
+    ```bash
+    "http-nio-8080-exec-4" #110 daemon prio=5 os_prio=31 tid=0x00007f98c0a6a800 nid=0xea03 runnable [0x000000031032c000]
+    java.lang.Thread.State: RUNNABLE
+        at java.net.SocketInputStream.socketRead0(Native Method)
+        at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+        at java.net.SocketInputStream.read(SocketInputStream.java:171)
+        at java.net.SocketInputStream.read(SocketInputStream.java:141)
+        at com.microsoft.sqlserver.jdbc.TDSChannel.read(IOBuffer.java:1782)
+        at com.microsoft.sqlserver.jdbc.TDSReader.readPacket(IOBuffer.java:4838)
+        - locked <0x000000076decaaf0> (a com.microsoft.sqlserver.jdbc.TDSReader)
+        at com.microsoft.sqlserver.jdbc.TDSCommand.startResponse(IOBuffer.java:6154)
+        at com.microsoft.sqlserver.jdbc.SQLServerResultSet$CursorFetchCommand.doExecute(SQLServerResultSet.java:4903)
+        at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+        at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1715)
+        - locked <0x00000006c2478890> (a java.lang.Object)
+    ```
+- 不加 selectMethod=cursor 时 quartz & sqlserver 报错: "只有 DECLARE CURSOR 才允许使用 FOR UPDATE 子句"
+    - 方法 1: 增加 selectMethod=cursor
+    - 方法 2: 在 quartz.properties 中添加 org.quartz.jobStore.selectWithLockSQL=SELECT * FROM {0}LOCKS UPDLOCK WHERE LOCK_NAME = ?   
+
+### 手动执行Mybatis
+
+```java
+@Slf4j
+@Intercepts({
+        @Signature(
+                type = Executor.class,
+                method = "query",
+                args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}
+        )
+})
+public class QueryAdaptInterceptor implements Interceptor {
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        if("true".equals(ThreadLocalData.get("QueryAdapt"))) {
+            // 1. 获取拦截参数（MappedStatement、参数对象等）
+            Object[] args = invocation.getArgs();
+            MappedStatement ms = (MappedStatement) args[0];
+            Object parameter = args[1];
+            BoundSql boundSql = ms.getBoundSql(parameter);
+            Configuration configuration = ms.getConfiguration();
+
+            System.out.println("boundSql = " + boundSql + ", parameter=" + parameter);
+            Object ret = runSql(invocation, configuration, boundSql, parameter, true);
+
+            return ret;
+        } else {
+            return invocation.proceed();
+        }
+    }
+
+    @Override
+    public Object plugin(Object target) {
+        return Interceptor.super.plugin(target);
+    }
+
+    @Override
+    public void setProperties(Properties properties) {
+        Interceptor.super.setProperties(properties);
+    }
+
+    public Object runSql(Invocation invocation, Configuration configuration, BoundSql boundSql,
+                                            Object parameters, boolean yesLinkMap) {
+        Object[] args = invocation.getArgs();
+        MappedStatement mappedStatement = (MappedStatement) args[0];
+        RowBounds rowBounds = (RowBounds) args[2];
+        ParameterHandler parameterHandler = configuration.newParameterHandler(mappedStatement, parameters, boundSql);
+        Executor executor = (Executor) invocation.getTarget();
+        ResultSetHandler resultSetHandler = configuration.newResultSetHandler(executor, mappedStatement, rowBounds, parameterHandler, Executor.NO_RESULT_HANDLER, boundSql);
+
+        String sql = boundSql.getSql();
+        if(Validator.isEmpty(sql)) {
+            return null;
+        }
+
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        List<Object> paramInfo = null;
+
+        // 打印返回类型（应是 Mapper 接口定义的实体类）
+        ResultMap resultMap = mappedStatement.getResultMaps().get(0);
+        log.info("Mapper 返回类型：{}", resultMap.getType().getName());
+        // 打印字段映射（确认列名和字段名对应）
+        for (ResultMapping mapping : resultMap.getResultMappings()) {
+            log.info("列名：{} → 字段名：{}", mapping.getColumn(), mapping.getProperty());
+        }
+
+        try {
+            // 关键：通过原生 Executor 获取 Connection，而非手动创建 SqlSession
+            Connection connection = executor.getTransaction().getConnection();
+            ps = connection.prepareStatement(sql);
+            paramInfo = setParameters(ps, boundSql, parameters, configuration);
+
+            long mark = System.currentTimeMillis();
+            // 无需手动获取 rs，直接将 ps 传给 ResultSetHandler
+            ps.execute();
+            List objects = resultSetHandler.handleResultSets(ps);
+            log.trace("parse result time: {}s", (System.currentTimeMillis() - mark) / 1000);
+
+            return objects;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 只关闭手动创建的 ps 和 rs，Connection 由 Executor 管理
+            if(rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    // 参考 MybatisDefaultParameterHandler.setParameters
+    public List<Object> setParameters(PreparedStatement ps, BoundSql boundSql, Object parameterObject, Configuration configuration) {
+        // 记录参数用于日志打印: 0(Long), 500(Long)
+        List<Object> paramInfo = new ArrayList<>();
+        // ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
+        List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+        if (parameterMappings != null) {
+            int parameterCount = parameterMappings.size();
+            try {
+                // 2024年01月19日14:20:27 smalle 如select中有参数，但是执行分页count的时候会去掉select中的语句，导致ps和boundSql的参数不一致
+                parameterCount = ps.getParameterMetaData().getParameterCount();
+            } catch (SQLException e) {
+            }
+            int start = parameterMappings.size() - parameterCount;
+            for (int i = start; i < parameterMappings.size(); i++) {
+                int indexNo = i - start + 1;
+                ParameterMapping parameterMapping = parameterMappings.get(i);
+                if (parameterMapping.getMode() != ParameterMode.OUT) {
+                    Object value;
+                    String propertyName = parameterMapping.getProperty();
+                    if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
+                        value = boundSql.getAdditionalParameter(propertyName);
+                    } else if (parameterObject == null) {
+                        value = null;
+                        // } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
+                    } else if (configuration.getTypeHandlerRegistry().hasTypeHandler(parameterObject.getClass())) {
+                        value = parameterObject;
+                    } else {
+                        MetaObject metaObject = configuration.newMetaObject(parameterObject);
+                        value = metaObject.getValue(propertyName);
+                    }
+                    TypeHandler typeHandler = parameterMapping.getTypeHandler();
+                    JdbcType jdbcType = parameterMapping.getJdbcType();
+                    if (value == null && jdbcType == null) {
+                        jdbcType = configuration.getJdbcTypeForNull();
+                    }
+                    try {
+                        typeHandler.setParameter(ps, indexNo, value, jdbcType);
+                        addParamInfo(paramInfo, value, parameterMapping);
+                    } catch (TypeException | SQLException e) {
+                        throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);
+                    }
+                }
+            }
+        }
+        return paramInfo;
+    }
+
+    private void addParamInfo(List<Object> paramInfo, Object value, ParameterMapping parameterMapping) {
+        if(value == null) {
+            paramInfo.add(value);
+        } else {
+            String paramType = null;
+            try {
+                String javaType = null;
+                if(parameterMapping.getJavaType() != null) {
+                    javaType = parameterMapping.getJavaType().toString();
+                    if(javaType.lastIndexOf(".") >= 0) {
+                        paramType = javaType.substring(javaType.lastIndexOf(".") + 1);
+                    }
+                    // long
+                    if(!javaType.startsWith("class")) {
+                        paramType = StrUtil.upperFirst(javaType);
+                    }
+                }
+                if("class java.lang.Object".equals(javaType)) {
+                    paramType = value.getClass().getSimpleName();
+                }
+            } catch (Exception e) {
+                log.error("", e);
+            }
+            paramInfo.add(value + "(" + paramType + ")");
+        }
+    }
+
+    /**
+     * 模拟Mybatis日志打印
+     */
+    public static void logSql(String sql, List<Object> paramInfo, List<Map<String, Object>> result, Map<String, Object> parameters) {
+        try {
+            if(Validator.isEmpty(sql)) {
+                log.warn("\n==> Preparing: {}", sql);
+                return;
+            }
+            log.debug("\n==>  Preparing: {}", sql.replaceAll("\n", " "));
+            if(paramInfo == null) {
+                paramInfo = new ArrayList<>();
+            }
+            String paramInfoStr = CollUtil.join(paramInfo, ", ");
+            log.debug("\n==> Parameters: {}", paramInfoStr);
+            log.trace("\n==> FullParams: {}", parameters);
+            log.debug("\n<==      Total: {}", result != null ? result.size() : null);
+            if(log.isTraceEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                if(result != null) {
+                    for (Map<String, Object> item : result) {
+                        sb.append("\n<==        Row: ");
+                        sb.append(item);
+                    }
+                }
+                log.trace(sb.toString());
+            }
+        } catch (Exception e) {
+            log.error("记录SQL运行日志出错", e);
+        }
+    }
+}
+```
 
 
 

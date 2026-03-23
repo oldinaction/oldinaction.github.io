@@ -86,6 +86,7 @@ categories: [arch]
     - 微软开源区块链平台项目
 - [Bitcoinj](https://github.com/bitcoinj/bitcoinj)
     - Bitcoinj是最流行的比特币协议的Java实现
+- [长安链](https://chainmaker.org.cn/community) 国内开源，应用项目中可使用此链
 
 ## 区块链架构
 
@@ -117,6 +118,30 @@ categories: [arch]
     - [币安](https://www.binance.us), [国内(暂停服务,只能提现; 大陆和美国IP无法交易, 可使用台湾IP)](https://www.binance.com)
         - 现货交易: 0.08%-0.1%的手续费
     - [欧易(OKX)](https://www.okx.com/zh-hans)
+- 加密虚拟卡(U卡, Unioncash Card): 允许用户将虚拟货币（如USDT、USDC）转换为法定货币（人民币、美元等）进行日常消费或取现
+    - [SafePal](https://safepal.com/) 的 Fait24: 无年费, 支持大陆身份证KYC认证; 真实欧洲银行账户（含IBAN），支持国际转账
+    - Bybit Card: 无年费, 支持大陆身份证KYC认证, 支持绑定支付宝?
+    - Bitget优享支付卡
+    - Infini Card: 无需KYC即可开卡
+    - BinPay
+
+### 比特币(BTC)
+
+- BTC: 全称Bitcoin, 是比特币主网的原生加密资产
+
+### 以太坊(ETH)
+
+- ETH: 全称Ethereum, 是以太坊主网的原生加密资产
+- ETH, ERC20, ETH(Arbitrum)说明
+    - ETH: 以太坊主网的原生加密资产；以太坊主网是完全去中心化网络
+    - ERC20: 是以太坊 15 年提出的代币标准，规定了代币发行、转账、余额查询等基础接口规则；多数基于以太坊的代币（如 USDT 等）均遵循 ERC-20 标准发行
+    - ETH(Arbitrum): 类似的如 ETH(Cyber) 等
+        - 并非新代币，而是以太坊主网 ETH 经 Arbitrum 官方桥跨链后，在 Arbitrum One 网络生成的对应资产，类似 “封装版 ETH”。原理是用户跨链时，主网 ETH 会被锁定在智能合约中，Arbitrum 网络同步铸造等量 ETH；提现时，Arbitrum 上的 ETH 会被销毁，主网被锁定的 ETH 则会释放。其价值与主网 ETH 锚定，且由主网真实 ETH 背书。
+        - Arbitrum是一个 Layer-2 解决方案，它允许用户在以太坊主网上进行快速、低成本的交易，而无需支付高昂的手续费
+        - 存在一定半中心化属性
+- EVM地址
+    - 是适配以太坊虚拟机（EVM）的区块链网络中用于标识账户身份的唯一标识符，就像区块链生态里的 “数字账户号”，42个十六进制字符串(0x开头)
+    - 如币安钱包中的 BAB Smart Chain, Ethereum, Arbitrum One 等网络地址都是一样的，因此转账的钱包地址也是一样的
 
 ### 门罗币(XMR)
 
@@ -160,6 +185,41 @@ categories: [arch]
     - Centos下CPU加入MinerGate矿池教程 https://www.bobobk.com/973.html
         - centos7上编译CPUMiner-Multi并在minergate矿池中挖矿，不过由于是cpu，效率较低，1核的速度只有大约20 H/s的速度
 
+## 区块链软件
+
+### 币安
+
+- 币安全球版官网: https://www.binance.com/, 币安US版官网: https://www.binance.us/
+    - US版受美国金融监管，美国 IP 只能访问 US 版本地址
+    - 两个版本账号不互通，价格也有差异
+- 交易所和钱包是两个不同概念
+    - 可以把交易所理解成股票交易所，交易所账户地址(资产钱包地址)就是股票账号
+    - 钱包类似支付宝账户
+    - 交易所账户地址和钱包账户地址不一样，但是都是区块链上的一个网络地址
+- 钱包地址说明
+    - 钱包中的 BAB Smart Chain, Ethereum, Arbitrum One 等网络地址(账户地址)都是一样的，因此转账的钱包地址也是一样的，**但是转账时一定要选择正确的网络**，这样收到的资产才会在对应的网络上
+    - 上述地址均为 EVM 地址(总共几十个都是这个地址)，但是想 Bitcoin 和 Solana 就和上面的地址不同，其中 Bitcoin 根据网络又分为几种(Taproot比较新, 转账费率低)
+    - 转账是如果地址选择不正常可能会导致资产丢失
+- 钱包发送/接收
+    - 发送-到钱包地址: 只能将相同链上的相同币种转到对方账户，如果需要转ETH(Arbitrum One)，则需要保证自己钱包里面有这个资产
+    - 接收-通过钱包地址: 选择网络，将钱包地址提供给对方即可，此时 ETH(ETH) 和 ETH(Arbitrum One)的地址是一样的，让对方选择了正确的网络和币种进行转账即可
+- 钱包交易(主要是自己的不同链上的钱包进行转换)
+    - 兑换: 需先选择网络 **(只能在相同链上转账)**，再选择兑换的资产(币种)，如转账是两个资产的大图标标识资产内部，右角标标识网络类型(链类型)
+    - 跨链桥: 主要针对网络不同的情况，如将 ETH(右角标) 链上的 ETH(大图标) 转到 Arbitrum One(右角标) 链上的 ETH(大图标) 则需要此方式
+- API
+    - API地址: https://api.binance.com 或 https://api.binance.us (美国的IP只能访问 US 地址的)
+    - 支持申请交易类 API KEY
+    - 公共API
+        - 查询 BTCUSDT 15分钟K线数据: https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=10 interval取值: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M
+        - 查询所有交易对24小时价格变化: https://api.binance.com/api/v3/ticker/24hr
+
+### OKX
+
+- API文档: https://www.okx.com/docs-v5/zh
+    - 公共API
+        - 查询 BTC-USDT 15分钟K线数据: https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=15m&limit=10 返回数据日期最新的在上面，和币安相反
+    - 美国IP可以访问
+
 ## Web3.0
 
 ![web3.0与web2.0应用对比](/data/images/arch/web3.0-web2.0.png)
@@ -175,7 +235,7 @@ categories: [arch]
     - 一旦使用HTTP协议每次需要从中心化的服务器下载完整的文件(网页,视频,图片等),速度慢,效率低。如果改用P2P的方式下载,可以节省近60%的带宽. P2P将文件分割为小的块,从多个服务器同时下载,速度非常快.
     - 还有一种就是web文件经常被删除。我们可能在上网的过程中会遇到，收藏某个网页，在使用的时候浏览器网页会显示404。IPFS提供了文件的历史版本回溯功能(就像git版本控制工具一样),可以很容易的查看文件的历史版本,数据可以得到永久保存
 
-## 挖坑程序入侵案例
+## 挖矿程序入侵案例
 
 ### 基于apache-php-linux环境的ShowDoc应用
 

@@ -270,7 +270,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 - Mac
     - `Cmd + Shift + U` 大小写转换
     - `Alt + Shift + U` 驼峰下划线转换(基于插件)
-- 批量选择
+- **批量选择**
     - `Alt + Shift + 左键` 跨行需要每行单点，可以让光标在多个位置出现
     - `Alt + 鼠标拖选` **可选择单个矩形**
         - 先`Alt + 鼠标拖选` 选择一个矩形，再(增加)按住`Cntr + Shift` 选择多个矩形
@@ -278,10 +278,13 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
     - **VsCode相关(IDEA快捷键)**
         - `Alt + 左键` 跨行需要每行单点
         - `Alt + Shift + 鼠标拖动` **可选择矩形(或移动上下键)，多个矩形暂未验证**
+            - 列选择模式(不按键盘也会选择多行), 误开启时可关闭: Ctrl+Shift+P → Toggle Column Selection Mode → 关闭
         - `Ctrl + Alt + Up/Down` 选中/取消当前行的多行编辑 
         - `Ctrl + Shift + L` 选择所有找到的查找匹配项，此时所有的匹配项都有光标
         - 选中多行后，可结合`Ctrl + 左右键`进行跨单词移动光标
         - 选中多行复制后，并再新的地方选择多行，然后粘贴即可粘贴多行
+    - Notepad Next
+        - `Alt + 鼠标拖动` 批量选择(也支持矩形选择)
 - 特殊场景
     - SQL控制台界面
         - `Ctrl + Enter` 执行SQL (Navicate为`Cntr + R`)

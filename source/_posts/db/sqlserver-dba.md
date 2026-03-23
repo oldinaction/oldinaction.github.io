@@ -70,10 +70,63 @@ Microsoft SQL Server 2019 (RTM) - 15.0.2000.5 (X64)
 - 连接使用
     - 服务器名称: 填写服务器电脑名称即可
 
+### Maven依赖
+
+```xml
+<dependency>
+    <groupId>com.microsoft.sqlserver</groupId>
+    <artifactId>mssql-jdbc</artifactId>
+    <version>7.4.1.jre8</version>
+</dependency>
+```
+
 ## 常用操作
 
 - 创建数据库
     - 排序规则如`Chinese_PRC_90_CI_AS`, 恢复模式`FULL`, 兼容级别`100`
+
+### 索引
+
+```sql
+-- NONCLUSTERED 创建非聚集索引, CLUSTERED 创建聚集索引(一个表只能有一个聚集索引)
+CREATE NONCLUSTERED INDEX idx_name ON table_name (column1, column2, ...);
+
+-- 在线模式创建
+CREATE NONCLUSTERED INDEX IX_UserInfo_Phone
+ON dbo.UserInfo(Phone ASC) -- 索引列: Phone（升序）
+INCLUDE (UserName, Email) -- 可选: 包含列，查询时无需回表取数据
+WITH (
+    ONLINE = ON, -- 关键: 启用在线模式
+    MAXDOP = 2, -- 可选: 限制并行度（避免占用过多资源）
+    DATA_COMPRESSION = PAGE -- 启用页级压缩（节省存储空间）
+);
+```
+
+### 用户/权限
+
+- 创建只读用户
+
+```sql
+-- 创建SQL登录名
+CREATE LOGIN readonly_user 
+WITH PASSWORD = 'Hello123!',  -- 密码需符合SQL Server复杂度要求
+     DEFAULT_DATABASE = YourDatabaseName, -- 默认登录的数据库（替换为你的库名）
+     CHECK_EXPIRATION = OFF,               -- 关闭密码过期
+     CHECK_POLICY = ON;                    -- 启用密码策略（建议开启）
+GO
+
+
+-- 创建数据库用户（关联第一步的登录名）
+USE YourDatabaseName; -- 切换到目标数据库
+GO
+
+CREATE USER readonly_user FOR LOGIN readonly_user;
+GO
+
+-- 使用内置只读角色, 可对整个数据库赋予只读权限
+ALTER ROLE db_datareader ADD MEMBER readonly_user;
+GO
+```
 
 ## 管理员
 

@@ -1066,6 +1066,10 @@ GO
 SET SHOWPLAN_ALL OFF; -- 关闭执行计划展示
 GO
 ```
+- 或者通过 MSSQL 管理工具查看执行计划
+    - 在执行按钮的右边有一个"显示估计的执行计划"
+    - 执行计划说明: https://www.cnblogs.com/Ceri/p/17744898.html
+    - 执行计划图标含义: https://blog.csdn.net/TimChen44/article/details/117901370
 
 ## 快速生成百万测试数据
 

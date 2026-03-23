@@ -2,7 +2,7 @@
 layout: "post"
 title: "Git"
 date: "2016-04-16 12:40"
-categories: arch
+categories: devops
 tags: [git]
 ---
 
@@ -166,6 +166,7 @@ git push osc v-1/func-1:v-1/func-1 --set-upstream
 - 跟踪/关联分支 `git branch --set-upstream-to=<remotesBranchName> <localBranchName>` 
 	- 必须先要有此本地分支。之后可以使用`git push/pull`直接对相应分支进行操作
 	- `git branch -vv` 查看分支的关联关系
+    - `git branch --unset-upstream` 解除当前分支与远程跟踪分支的关联
 - 删除分支
 	- `git branch -d 分支名` 删除此分支（只能删除除当前分支以外的分支；如果当前分支有一次提交，则需要将此分支合并到主分支之后再进行删除）
 	- 删除远程分支：`git branch -r -d origin/branch-name`或者`git push origin :branch-name`
@@ -385,6 +386,10 @@ git fetch upstream
 - `.gitignore` 文件创建和设置
 	- git根目录运行命令：`touch .gitignore`
 	- 使用 vi 编辑器进行文件配置
+— 排除文件: 永久忽略某些文件，但不想把规则写在项目的 .gitignore，语法完全一样
+    - 某个项目排除文件 `.git/info/exclude`
+    - 全局排除（所有 Git 仓库生效）
+        - `touch ~/.gitignore_global && git config --global core.excludesfile ~/.gitignore_global`
 - 配置语法 [^6]
 
 ```bash
@@ -608,6 +613,24 @@ git stash apply stash@{index}
 git stash list
 # 清空Git暂存栈
 git stash clear
+```
+
+### 工作树
+
+- git worktree：只保留一个 .git 仓库，为不同分支创建独立的工作目录，既节省空间，又能同时在多个分支开发
+    - 同一个分支不能被多个工作树检出
+    - 每个工作树的未提交修改是独立的，不会互相干扰
+    - 删除工作树必须用 git worktree remove，不要直接删目录（否则会残留缓存文件）
+- 使用
+
+```bash
+# ../feature-branch 新工作目录的路径（在核心仓库同级）
+# feature → 要检出的分支（如果存在，可不用加 -b 参数创建分支）
+git worktree add ../feature-branch -b feature
+# 查看当前所有工作树
+git worktree list
+# 删除工作树(不能直接删除目录)
+git worktree remove ../feature-branch
 ```
 
 ### 处理Linux/Unix/MacOS文件格式的EOL

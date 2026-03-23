@@ -24,12 +24,6 @@ tags: [system]
         - https://www.macwk.com/article/apple-silicon-m1-application-crash-repair
         - https://www.macwk.com/article/macos-beta-damage
 
-## 小技巧
-
-- Mac M1 下安装如果遇到已损坏的问题，可执行类似如下命令修复，然后在设置安全里仍要打开
-    - `sudo xattr -d com.apple.quarantine /Applications/rubick.app` 修复 rubick.app
-    - `sudo xattr -r -d com.apple.quarantine /Applications/Navicat\ Premium.app` 修复 Navicat
-
 ## M1模拟x86环境
 
 - Mac M1(默认只能执行arm结构)执行x86(Intel)程序，可基于Rosetta，参考下文安装多版本brew
@@ -66,16 +60,25 @@ alias mbrew="/opt/homebrew/bin/brew"
 ## 快捷键
 
 ```bash
-cmd+c # 复制
-cmd+v # 粘贴
-cmd+opt+c # 复制文件夹绝对路径
-cmd+opt+v # 剪贴(相当于剪切文件，需先复制)
+Cmd+c # 复制
+Cmd+v # 粘贴
+Cmd+Alt(Opt)+c # 复制文件夹绝对路径
+Cmd+Alt+v # 剪贴(相当于剪切文件，需先复制)
 
-cmd+shift+. # 在 Finder 中显示隐藏文件
-cmd+shift+g # 在 Finder 中前往目标目录，打开后不能Cmd+v粘贴，需要右键粘贴
+# 上: 打开/关闭调度中心; 下: 显示当前 App 的所有窗口; 左右: 切换虚拟桌面
+Ctrl+上下左右箭头
+Cmd+Tab # 切换应用
+# Cmd+Shift+Tab # 切换应用(反向)
+
+# 其他
+Cmd+Shift+5 # 呼出截图 / 录屏工具栏
+
+# 在 Finder 中
+Cmd+Shift+. # 显示隐藏文件
+Cmd+Shift+g # 前往目标目录，打开后不能Cmd+v粘贴，需要右键粘贴
 
 # 组合按键
-delete: cmd+删除键
+delete: Cmd+删除键
 insert: ESC -> i # 按一下ESC键，随后 i 代表
 replace: ESC -> r
 home: fn＋左
@@ -102,6 +105,8 @@ alias ls='ls -G'
 alias vi='vim'
 alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
 ```
+- 桌面和扩展配置: 设置-桌面与程序坞
+    - 调度中心 - 勾选使窗口按应用程序成组
 
 ## 常用软件安装
 
@@ -596,6 +601,13 @@ vi "/Applications/Android Emulator.app/Contents/MacOS/api30-gphone-arm64-v8a/con
 ```
 
 ## 相关技巧
+
+### 小技巧
+
+- 复制文件路径: 右键文件 - 按住Alt - 复制
+- Mac M1 下安装如果遇到已损坏的问题，可执行类似如下命令修复，然后在设置安全里仍要打开
+    - `sudo xattr -d com.apple.quarantine /Applications/rubick.app` 修复 rubick.app
+    - `sudo xattr -r -d com.apple.quarantine /Applications/Navicat\ Premium.app` 修复 Navicat
 
 ### 设置脚本开机执行(LaunchAgents)
 

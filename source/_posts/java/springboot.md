@@ -418,6 +418,13 @@ public class GlobalExceptionHandlerController extends BasicErrorController {
         String localMessage = getLocalMessage(errorType);
         String exceptionMessage = e.getMessage();
         StackTraceElement[] stackTrace = e.getStackTrace();
+
+        // 方式 1：Spring 5.1+ 推荐（支持多 profile 校验）
+        // environment.acceptsProfiles("prod"); // Environment
+        // environment.acceptsProfiles(Profiles.of("prod"));
+
+        String[] actives = SpringU.getBean(Environment.class).getActiveProfiles();
+        if(Arrays.stream(actives).anyMatch(x -> x.contains("prod"))) {}
 		
 		// 正式环境则不显示错误堆栈信息
         String[] actives = env.getActiveProfiles();

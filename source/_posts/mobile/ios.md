@@ -44,6 +44,7 @@ tags: [ios, app]
 
 ## WebClip书签模式
 
+- 参考[springboot-vue.md#移动端其他](/_posts/arch/springboot-vue.md#移动端其他)
 - 将H5网页链接保存至桌面，基于苹果的WebClip功能
 - 此模式有两种方式
     - 通过配置生成`.mobileconfig`文件，然后将此文件分发给用户下载，用户同下载的文件到设置中进行安装即可
@@ -68,3 +69,42 @@ tags: [ios, app]
 - 安卓机H5全屏问题
     - 不支持将网页全屏展示，可下载UC浏览器，然后访问网页，设置全屏模式(对所有网页访问生效)
     - 或者使用js控制全屏(必须用户点击触发，且系统返回会退出全屏，IOS不支持)，参考：https://www.cnblogs.com/yangzhou33/p/9300329.html
+
+## CocoaPods依赖管理器
+
+- CocoaPods是 Swift 和 Objective-C Cocoa 项目的依赖管理器，它拥有超过 98000 个库
+- 项目基于 Podfile 文件进行依赖管理, 本质为 ruby 写的脚本文件
+- 参考
+    - https://blog.csdn.net/m0_73093743/article/details/149753305
+- CocoaPods安装
+
+```bash
+## 更新 ruby 源
+# gem 指Ruby语言的包管理工具，用于安装和管理Ruby库
+gem sources -l
+gem sources --remove https://rubygems.org/
+gem source -a https://gems.ruby-china.com/
+gem sources -l
+
+## 更新 gem 和 安装 cocoaPods
+sudo gem updates —system
+sudo gem install -n /usr/local/bin cocoapods
+
+## 设置 cocoaPods 仓库 (默认会自动增加 `pod repo add trunk https://cdn.cocoapods.org/`)
+# https://mirrors.tuna.tsinghua.edu.cn/help/CocoaPods/
+cd ~/.cocoapods/repos
+pod repo remove master
+git clone https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git master
+# 在自己工程的podFile第一行加上
+source 'https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git'
+
+## cocoaPods 命令使用
+# 初始化 Podfile 文件
+pod init
+# 查找某个依赖库的信息
+pod search AFNetworking
+# 基于Podfile, 安装依赖
+pod install
+```
+
+## 相关工具

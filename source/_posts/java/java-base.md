@@ -8,9 +8,13 @@ categories: [java]
 ## 安装
 
 ```bash
-# JDK 下载镜像网站
+# Oracle JDK 下载
+https://www.oracle.com/cn/java/technologies/downloads/
+# JDK 6-13 镜像
 https://repo.huaweicloud.com/java/jdk/
-http://www.codebaoku.com/jdk/jdk-index.html
+
+export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home"
+export CLASS_PATH="$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:."
 ```
 
 ## 命令

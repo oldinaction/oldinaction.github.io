@@ -213,6 +213,7 @@ https://blog.csdn.net/Aviciie/article/details/79281080
 select ss.sid, ss.serial#, 'alter system kill session '''|| ss.sid ||', '|| ss.serial# ||''';' kill_sql
     ,ss.last_call_et, round(s.cpu_time/s.executions/1000000, 2) peer_cpu_sec, s.executions
     ,to_char(s.sql_fulltext) sql_fulltext
+    -- ,DBMS_LOB.SUBSTR(s.sql_fulltext, 3900, 1) sql_fulltext_preview -- SQL超过 4000 to_char 会报错, 此处截断进行预览
     ,DBMS_LOB.SUBSTR(xmlagg(xmlparse(content (sbc.name || '=' || sbc.value_string || '(' || sbc.position || ',' || sbc.datatype_string || ')') || ' # ' wellformed) order by sbc.position).getclobval(), 32767, 1) sql_params
     ,ss.client_identifier, s.sql_id, round(s.elapsed_time/s.executions/1000000, 2) peer_elapsed_sec, s.last_load_time, s.optimizer_mode, s.disk_reads, s.buffer_gets
 from v$sql s
@@ -224,8 +225,9 @@ and (
     or s.cpu_time/s.executions/1000000 > 3          /* 每次执行消耗cpu>3s的 */
 )
 group by ss.sid, ss.serial#, ss.client_identifier, ss.last_call_et
-        ,to_char(s.sql_fulltext),s.executions, s.cpu_time
-        ,s.sql_id, s.elapsed_time, s.last_load_time, s.disk_reads, s.optimizer_mode, s.buffer_gets
+        ,to_char(s.sql_fulltext)
+        -- ,DBMS_LOB.SUBSTR(s.sql_fulltext, 3900, 1) -- SQL超过 4000 to_char 会报错, 此处截断进行预览
+        ,s.executions, s.cpu_time, s.sql_id, s.elapsed_time, s.last_load_time, s.disk_reads, s.optimizer_mode, s.buffer_gets
 order by peer_cpu_sec desc;
 
 -- kill相应会话（此时可能sql已经运行完成，或者timeout了，但是会话还在），此时CPU会得到一定缓解

@@ -29,18 +29,20 @@ tags: [plugins, debug]
 - 插件网站
     - https://www.crxsoso.com/
 - 必备
-    - `谷歌访问助手`
     - `AdBlock` 广告拦截
+    - `沉浸式翻译`
     - `Tampermonkey` 油猴脚本。相关脚本：https://greasyfork.org/zh-CN/scripts
     - `IDM Integration Module` IDM下载
     - `OneTab`
     - `WeTab` 标签管理
-    - `有道词典Chrome划词插件`
+    - `Downloads Overwrite Already Existing Files` 重名文件下载提示是否覆盖(默认是创建一个带序号的文件)，文件另存为
     - `JSONView` 将Http请求获取的json字符串格式化(可收缩)
     - `Vue.js devtools` Vue.js调试工具
     - `Console Importer` 在调试模式中快速导入js库到当前页面
-    - `URLRedirector` 网页资源代理插件。如将网页中的js资源代理成本地的某个js，可用于js库开发调试(如lowcode-engine)，支持路径通配符
+    - `Redirector`
+        - ~~`URLRedirector`~~ (新版本不支持) 网页资源代理插件。如将网页中的js资源代理成本地的某个js，可用于js库开发调试(如lowcode-engine)，支持路径通配符
     - `ModHeader` 修改请求响应头；也有Redirect Urls功能，但是没URLRedirector好用
+    - `谷歌访问助手`
 - 推荐
     - `Evernote Web Clipper` 印象笔记·剪藏
     - `新浪微博图床`
@@ -50,7 +52,6 @@ tags: [plugins, debug]
     - `Axure RP Extension for Chrome` Axure设计
     - `Set Character Encoding` 解决chrome查看源码乱码问题
     - `OCR - Image Reader` 图片识别
-    - `Downloads Overwrite Already Existing Files` 重名文件下载提示是否覆盖(默认是创建一个带序号的文件)，文件另存为
 - Github相关
     - `SourceGraph` 基于目录显示文件，类之间的跳转，代码搜索等功能
     - `Octotree` 展现源码目录
@@ -59,8 +60,8 @@ tags: [plugins, debug]
     - `GitZip` 下载文件夹：双击文件空白区域选中，点击页面右下角下载图标
     - `Awesome Autocomplete for GitHub` github实时搜索
     - `OctoLinker` 实现类名点击跳转
-    - `GitHub Hovercard` 鼠标停留在 GitHub 网站的用户头像或者仓库链接地址上时，会自动弹出一个悬浮框，带你提前预览基本信息
-    - `Remu` 收藏项目管理，项目备注/标签管理
+    - ~~`GitHub Hovercard`~~ 鼠标停留在 GitHub 网站的用户头像或者仓库链接地址上时，会自动弹出一个悬浮框，带你提前预览基本信息
+    - ~~`Remu`~~ 收藏项目管理，项目备注/标签管理
 - 其他
     - `Super Dark Mode` 网页暗黑模式切换(部分网页不是完全兼容)
     - `Talend API Tester` POST测试工具
@@ -81,6 +82,7 @@ tags: [plugins, debug]
     - `NetWork` 网络显示面板：记录所有请求加载(XHR/JS/CSS/Img等)
         - `Initiator` 可查看此执行此请求的运行栈(如：某按钮被点击 - 发起XHR请求)
         - 点击某个请求可查看请求头(Headers)、响应结果等
+        - More filters 隐藏插件请求
     - `Application` 查看网址的Cookies、Storage等
     - `更多按钮`
         - `Search all files` 基于此url地址请求的所有静态文件进行查询。多用于js函数搜索

@@ -657,14 +657,14 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
         - 假设用户给予授权，认证服务器将用户导向客户端事先指定的"重定向URI"（redirection URI），同时附上一个授权码
         - 客户端收到授权码，附上早先的"重定向URI"，向认证服务器申请令牌。这一步是在客户端的后台的服务器上完成的，对用户不可见
         - 认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access token）和更新令牌（refresh token）
-    - 简化模式(implicit)：不常用
+    - 客户端模式(client credentials)：client模式，没有用户的概念，直接与认证服务器交互，用配置中的客户端信息去申请access_token，客户端有自己的client_id,client_secret对应于用户的username,password，而客户端也拥有自己的authorities，当采取client模式认证时，对应的权限也就是客户端自己的authorities
+        - 客户端向认证服务器进行身份认证，并要求一个访问令牌
+        - 认证服务器确认无误后，向客户端提供访问令牌
     - 密码模式(resource owner password credentials)：在这种模式中，用户必须把自己的密码(认证服务器的用户)给客户端，但是客户端不得储存密码。这通常用在用户对客户端高度信任的情况下，比如客户端是操作系统的一部分。在认证时客户端需要使用用户提供的用户名、密码，以及客户端的client_id,client_secret向认证服务器请求。此时返回的access_token所包含的权限是用户本身的权限，而不是客户端的权限
         - 用户向客户端提供用户名和密码
         - 客户端将用户名和密码发给认证服务器，向后者请求令牌
         - 认证服务器确认无误后，向客户端提供访问令牌
-    - 客户端模式(client credentials)：client模式，没有用户的概念，直接与认证服务器交互，用配置中的客户端信息去申请access_token，客户端有自己的client_id,client_secret对应于用户的username,password，而客户端也拥有自己的authorities，当采取client模式认证时，对应的权限也就是客户端自己的authorities
-        - 客户端向认证服务器进行身份认证，并要求一个访问令牌
-        - 认证服务器确认无误后，向客户端提供访问令牌
+        - 简化模式(implicit)：不常用
 - 相关角色划分
     - 资源(如：用户信息)
     - 资源所有者(最终用户，拥有个人用户信息的人)

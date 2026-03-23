@@ -97,6 +97,8 @@ export default {
     - beforeRouteEnter的next所对应的周期
     - nextTick所对应的周期
     - `<keep-alive>` 组件 `activated` 和 `deactivated`
+        - 父组件 activated 执行 -> 子组件 activated 执行; 且为异步执行
+        - 子组件 deactivated 执行 -> 父组件 deactivated 执行
 - 钩子执行顺序
     - 路由勾子 (beforeEach、beforeRouteEnter、afterEach)
     - App根组件 (beforeCreate、created、beforeMount)
@@ -363,7 +365,7 @@ created(): {
     - **对于v-for，最好定义key值(且不能使用index作为key)**，否则容易出现无法选择/无法修改该select的值
         - 如结合select的option循环时，只需要当前select的option的key值唯一，无需整个页面的key值保证唯一性
         - 大多数情况下不建议使用index作为key。当第一条记录被删除后，第二条记录的key的索引号会从1变为0，这样导致oldVNode和newNNode两者的key相同。而key相同时，Virtual DOM diff算法会认为它们是相同的VNode，那么旧的VNode指向的Vue实例(如果VNode是一个组件)会被复用，导致显示出错 [^3]
-- provide和inject无法实时响应解决办法
+- provide 和 inject 无法实时响应解决办法
     - https://www.jianshu.com/p/2f210939cc4e
     - provide 和 inject 绑定并不是可响应的，这是刻意为之的。然而，如果你传入了一个可监听的对象，那么其对象的属性还是可响应的
     - `provide: {obj, name}` name如果是字符串类型(或者通过computed返回的字符串类型)，则无法进行响应传递，可考虑放到obj对象中
@@ -932,6 +934,81 @@ props: {
 }
 ```
 
+#### provide和inject使用
+
+- Vue 的 provide 和 inject 是 跨层级组件通信方案（非父子直接通信）
+    - 核心作用是：父组件（或祖先组件）通过 provide 提供数据 / 方法，任意子孙组件（无论层级多深）通过 inject 直接获取，无需手动逐层传递 props（解决 “prop 透传” 问题）
+    - 非响应式：默认情况下，provide 的数据变化不会触发 inject 组件更新（需手动处理响应式）
+- 案例
+
+```html
+<!-- Grandpa.vue -->
+<template>
+  <div>爷爷组件：{{ message }}</div>
+  <Father />
+</template>
+
+<script>
+import Father from './Father.vue';
+export default {
+  components: { Father },
+  data() {
+    return {
+      message: '来自爷爷的问候',
+      userInfo: { name: '张三', age: 60 }
+    };
+  },
+  // 提供数据（可以是基本类型、对象、方法）
+  provide() {
+    return {
+      // 提供基本类型
+      grandpaMessage: this.message,
+      // 提供对象
+      grandpaUser: this.userInfo,
+      // 提供方法（让子孙组件调用）
+      grandpaSayHello: () => {
+        alert('爷爷说：你好！');
+      }
+    };
+  }
+};
+</script>
+
+
+<!-- Father.vue -->
+<template>
+  <div>父组件：</div>
+  <Grandson />
+</template>
+
+<script>
+import Grandson from './Grandson.vue';
+export default {
+  components: { Grandson },
+  // 也可 inject 获取到爷爷组件提供的方法
+};
+</script>
+
+
+<!-- Grandson.vue -->
+<template>
+  <div>孙子组件：</div>
+  <div>获取爷爷的消息：{{ grandpaMessage }}</div>
+  <div>获取爷爷的信息：{{ grandpaUser.name }}</div>
+  <button @click="grandpaSayHello">调用爷爷的方法</button>
+</template>
+
+<script>
+export default {
+  // 注入祖先提供的数据（key 必须与 provide 一致）
+  inject: ['grandpaMessage', 'grandpaUser', 'grandpaSayHello'],
+  mounted() {
+    console.log(this.grandpaMessage); // 输出：来自爷爷的问候
+  }
+};
+</script>
+```
+
 #### 示例
 
 ```html
@@ -1271,7 +1348,7 @@ export default {
 
     ```html
     <!-- 缓存路由 -->
-    <!-- 逗号分隔字符串 -->
+    <!-- 主要匹配组件名称, 逗号分隔字符串 -->
     <keep-alive include="a,b">
         <component :is="view"></component>
     </keep-alive>

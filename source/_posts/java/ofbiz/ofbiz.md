@@ -1505,6 +1505,11 @@ Screens
 <#if "${(requestParameters.checkBoxId)!}" != "">
 	<#assign checkBoxGv = delegator.findOne("MyDemo", {"id": Static["java.lang.Long"].valueOf(requestParameters.checkBoxId)}, false)?if_exists>
 </#if>
+
+<!-- 时间比较-->
+<#assign notTime = Static["org.ofbiz.base.util.UtilDateTime"].nowTimestamp() />
+<#assign fiveDaysAgo = Static["org.ofbiz.base.util.UtilDateTime"].addDaysToTimestamp(notTime, -(5 + 1/60/24))/>
+<#if fiveDaysAgo &gt; item.RECORD_TIM_STR?datetime("yyyy-MM-dd HH:mm")>显示</#if>
 ```
 
 ## 其他
