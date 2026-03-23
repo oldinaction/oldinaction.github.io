@@ -1,0 +1,316 @@
+<!doctype html><html class="theme-next mist use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css"><meta name="keywords" content="ai,"><link rel="alternate" href="/atom.xml" title="月星墙的博客" type="application/atom+xml"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1"><meta name="description" content="介绍 AI中的Token: https://zhuanlan.zhihu.com/p/612954797 在自然语言处理(NLP)中，token是指一组相关的字符序列，例如一个单词或一个标点符号，还可以是比词更高级别的语言单位，例如短语或句子 在英语中“一个 token 通常对应大约 4 个字符”，而1个汉字大致是2~2.5个token。1000 tokens大概是750单词 gpt-3.5-tu"><meta name="keywords" content="ai"><meta property="og:type" content="article"><meta property="og:title" content="AI相关软件"><meta property="og:url" content="http://blog.aezo.cn/2023/02/08/ai/ai-soft/index.html"><meta property="og:site_name" content="月星墙的博客"><meta property="og:description" content="介绍 AI中的Token: https://zhuanlan.zhihu.com/p/612954797 在自然语言处理(NLP)中，token是指一组相关的字符序列，例如一个单词或一个标点符号，还可以是比词更高级别的语言单位，例如短语或句子 在英语中“一个 token 通常对应大约 4 个字符”，而1个汉字大致是2~2.5个token。1000 tokens大概是750单词 gpt-3.5-tu"><meta property="og:locale" content="zh-Hans"><meta property="og:updated_time" content="2026-03-18T11:51:06.055Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="AI相关软件"><meta name="twitter:description" content="介绍 AI中的Token: https://zhuanlan.zhihu.com/p/612954797 在自然语言处理(NLP)中，token是指一组相关的字符序列，例如一个单词或一个标点符号，还可以是比词更高级别的语言单位，例如短语或句子 在英语中“一个 token 通常对应大约 4 个字符”，而1个汉字大致是2~2.5个token。1000 tokens大概是750单词 gpt-3.5-tu"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Mist",sidebar:{position:"right",display:"post",offset:12,offset_float:0,b2t:!1,scrollpercent:!1},fancybox:!0,motion:!0,duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"BWD6R9FA4K",apiKey:"3330f3cbaa099dfc30395de5f5b20151",indexName:"blog",hits:{per_page:10},labels:{input_placeholder:"请输入关键字",hits_empty:"我们没有找到任何搜索结果: ${query}",hits_stats:"找到约${hits}条结果（用时${time}ms）"}}}</script><link rel="canonical" href="http://blog.aezo.cn/2023/02/08/ai/ai-soft/"><title>AI相关软件 | 月星墙的博客</title><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?085f9cd91ef2ad985f791c677472f0d1";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-right page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">月星墙的博客</span><span class="logo-line-after"><i></i></span></a></div><h1 class="site-subtitle" itemprop="description">Better Code, Better Life</h1></div><div class="site-nav-toggle"> <button><span class="btn-bar"></span><span class="btn-bar"></span><span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br> 首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br> 分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br> 关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br> 归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br> 标签</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br> 站点地图</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br> 搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i></span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"> <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2023/02/08/ai/ai-soft/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="smalle"><meta itemprop="description" content=""><meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="月星墙的博客"></span><header class="post-header"><h2 class="post-title" itemprop="name headline">AI相关软件</h2><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i></span> <span class="post-meta-item-text">发表于</span> <time title="创建于" itemprop="dateCreated datePublished" datetime="2023-02-08T20:18:00+08:00">2023-02-08</time></span> <span class="post-category"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i></span> <span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/ai/" itemprop="url" rel="index"><span itemprop="name">ai</span></a></span></span></div></header><div class="post-body" itemprop="articleBody"><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul><li>AI中的Token: <a href="https://zhuanlan.zhihu.com/p/612954797" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/612954797</a><ul><li>在自然语言处理(NLP)中，token是指一组相关的字符序列，例如一个单词或一个标点符号，还可以是比词更高级别的语言单位，例如短语或句子</li><li>在英语中“一个 token 通常对应大约 4 个字符”，而1个汉字大致是2~2.5个token。1000 tokens大概是750单词</li><li>gpt-3.5-turbo收费方式: $0.002 per 1k tokens<ul><li>1000 tokens大概是750单词，大概2美元可以问100万个token，相当于750000个单词。75万个单词需要15块钱人民币</li><li>根据大家的经验，基本问清楚1个问题就要耗费100~200个token，算起来其实不少的，尤其在连续会话中，为了保持对话的连续性，必须每次都要回传历史消息，并且输入都要算 token 数算钱的</li><li>官方提供的Token收费计算器: <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener">https://platform.openai.com/tokenizer</a></li></ul></li></ul></li></ul><h2 id="网址收集"><a href="#网址收集" class="headerlink" title="网址收集"></a>网址收集</h2><h3 id="AI导航"><a href="#AI导航" class="headerlink" title="AI导航"></a>AI导航</h3><ul><li><a href="https://www.toolify.ai/" target="_blank" rel="noopener">toolify</a></li><li><a href="https://ai-bot.cn/" target="_blank" rel="noopener">https://ai-bot.cn/</a> AI工具集</li><li><a href="https://www.aigc.cn/" target="_blank" rel="noopener">https://www.aigc.cn/</a> AIGC导航</li><li><a href="https://www.ailookme.com/" target="_blank" rel="noopener">https://www.ailookme.com/</a> AI工具箱</li><li><a href="https://www.8nav.com/" target="_blank" rel="noopener">https://www.8nav.com/</a> AI导航</li><li><a href="https://www.meoai.net/" target="_blank" rel="noopener">https://www.meoai.net/</a> MEOAI</li><li><a href="https://www.ai-dh.com/" target="_blank" rel="noopener">https://www.ai-dh.com/</a> AI导航</li><li><a href="https://www.aiopenminds.com" target="_blank" rel="noopener">https://www.aiopenminds.com</a> AI导航</li></ul><h3 id="AI聊天"><a href="#AI聊天" class="headerlink" title="AI聊天"></a>AI聊天</h3><ul><li>ChatGPT: 问答模式</li><li><a href="https://gemini.google.com/" target="_blank" rel="noopener">Gemini3</a>: <a href="https://aistudio.google.com/" target="_blank" rel="noopener">对话</a></li><li><a href="https://claude.ai" target="_blank" rel="noopener">claude</a> 支持附件</li><li><a href="https://yiyan.baidu.com/" target="_blank" rel="noopener">https://yiyan.baidu.com/</a> 文心一言</li></ul><h3 id="AI编程"><a href="#AI编程" class="headerlink" title="AI编程"></a>AI编程</h3><ul><li>参考<a href="/_posts/ai/ai-coding.md">ai-coding.md</a></li></ul><h3 id="AI绘图"><a href="#AI绘图" class="headerlink" title="AI绘图"></a>AI绘图</h3><ul><li><a href="https://stability.ai/" target="_blank" rel="noopener">SD(Stablediffusion)</a>: 开源免费，对应UI框架如<ul><li><a href="https://github.com/comfyanonymous/ComfyUI" target="_blank" rel="noopener">ComfyUI</a> 节点可自定义, 自由度高, 哩布哩布在线版包含</li><li><a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui" target="_blank" rel="noopener">WebUI:stable-diffusion-webui</a> 哩布哩布在线版包含<ul><li><a href="https://www.bilibili.com/opus/897873624905547794" target="_blank" rel="noopener">AI绘世(汉化版)</a></li></ul></li></ul></li><li>国内<ul><li>即梦, 豆包</li><li>通义, 腾讯元宝, 可图, 秒画, 可灵</li><li><a href="https://www.douhuiai.com/" target="_blank" rel="noopener">豆绘AI</a></li></ul></li><li>国外<ul><li><a href="https://labs.google/fx/tools/image-fx" target="_blank" rel="noopener">ImageFx(Google)</a></li><li>Nano banana(Google)</li><li>dalle2</li><li><a href="https://www.midjourney.com/" target="_blank" rel="noopener">Midjourney</a>: ai绘图（新用户有25次的免费使用额度）<ul><li>Discord使用地址: <a href="https://discord.com/invite/midjourney" target="_blank" rel="noopener">https://discord.com/invite/midjourney</a></li></ul></li></ul></li><li>常用网站<ul><li><a href="https://www.liblib.art/" target="_blank" rel="noopener">哩布哩布AI</a> 国内较权威. 支持模型下载, 在线生图, 作品灵感</li><li><a href="https://civitai.com/" target="_blank" rel="noopener">civitai</a> 国外FQ, 模型下载, 灵感分析<ul><li>DreamShaper, majic麦吉: 生图质量较高, 范围广泛</li><li>PrimeMix: 二次元模型</li><li>ArchitectureRealMix: 建筑类模型</li></ul></li><li><a href="https://novelai.dev/" target="_blank" rel="noopener">https://novelai.dev/</a> AI绘世提供, 解析SD图片获取提示词, 提示词超时</li><li><a href="https://promlib.com/" target="_blank" rel="noopener">https://promlib.com/</a> 提示词标签及效果展示</li></ul></li></ul><h4 id="绘画模型"><a href="#绘画模型" class="headerlink" title="绘画模型"></a>绘画模型</h4><ul><li>基础模型<ul><li>SD系列<ul><li>SD 1.5 入门级</li><li>SD 3.5</li><li>SDXL(Stable Diffusion XL): 针对高质量图像生成设计的进阶模型, 对硬件要求更高</li><li>Pony: 基于 SDXL</li></ul></li><li>Flux: 由Stability AI前核心成员开发, 非 SD 系列, 需要 24GB 以上显存才能流畅运行<ul><li>Flux 1.0(F.1)</li></ul></li></ul></li><li>SD模型说明<ul><li>模型文件常见后缀<ul><li>.safetensors: 安全的模型文件格式, 可以防止模型被修改或损坏</li><li>.ckpt: 检查点文件, 包含模型的参数和状态, 可以用于恢复训练或继续生成</li><li>.pt: PyTorch 模型文件, 包含模型的结构和参数, 可以用于在 PyTorch 中加载和使用</li></ul></li><li>SD模型(目录models/Stable-diffusion)</li><li>LoRA(目录models/Lora)<ul><li>常用模型: <a href="https://civitai.com/models/11333/anything-v5" target="_blank" rel="noopener">https://civitai.com/models/11333/anything-v5</a></li></ul></li><li>Embeddings(目录embeddings)</li></ul></li></ul><h4 id="SD使用"><a href="#SD使用" class="headerlink" title="SD使用"></a>SD使用</h4><ul><li>WebUI界面<ul><li>Stable Diffusion 模型: anything-v5</li><li>外挂 VAE 模型: 解码</li><li>工具栏<ul><li>文生图</li><li>图生图: 仍然需要提示词, 进行描述; 常用语高清修复</li></ul></li><li>提示词: 只支持英文及标点<ul><li>扩展模型(内嵌词/Embedding): 如从 <a href="https://civitai.com/models" target="_blank" rel="noopener">https://civitai.com/models</a> 中筛选 Embedding 模型, 然后找到想要的风格, 下载模型文件放到 SD 安装目录下的 <code>embeddings</code> 文件夹中, 使用时直接导入到提示词输入框即可</li><li>其他常用提示词标签, 如人物, 服饰, 场景特征等. 类似 <a href="https://tags.novelai.dev/" target="_blank" rel="noopener">https://tags.novelai.dev/</a></li></ul></li><li>反向词: 类似提示词, 但作用是拒绝生成某些内容</li><li>生成<ul><li>采样方法: 一般使用 DPM++ 系列, 带 SDE 的每次生成具有动态性, 不带 SDE 的每次生成结果趋于稳定</li><li>迭代步数: 一般 20-30 步, 越高越详细, 但也会越慢</li><li>高分辨率修复: 使图片变的更清晰<ul><li>高分迭代步数一般是 0, 重绘幅度一般 0.5 以下, 放大倍数一般 2-4 倍, 放大算法如R-ESRGAN 4x+(真人) 和 R-ESRGAN 4x+ Anime6B(二次元)</li></ul></li><li>Refiner: 选择模型和切换时机. 比如切换时机为0.8, 则当图片生成到 20*0.8 步时使用此处定义的模型进行继续渲染(之前使用顶部定义的 SD 模型渲染)</li><li>宽度高度: 一般 512x512, 可以根据需要调整, 但必须是 8 的倍数</li><li>提示词引导系数(CFG): 越小提示词权重越低, 生成的自由发挥空间更大; 一般是 5-10</li><li>随机种子: 生成的每一张图都有各自的随机种子<ul><li>循环图标表示上一张的随机种子，比如上一张人物可以，背景不行，可以使用上一张的随机种子，再重新描述下背景进行生成</li><li>如果将种子值设置成一样，并将提示词设置成一样，那么就可以在不同电脑上生成相同图片</li></ul></li><li>After Detailer: 对生成的图片进行后处理, 如去噪, 去模糊等</li><li>ControlNet: 精准出图, 参考 <a href="https://zhuanlan.zhihu.com/p/619721909" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/619721909</a><ul><li>勾选启用</li><li>控制类型<ul><li>SoftEdge(柔滑边缘): 预处理器如: HED保留细节多但是边缘准确度差, PiDi合理保留主体忽略一些细节</li><li>Lineart(线稿上色)</li><li>Openpose(人物姿态): 可基于参考图的人物姿态生成到结果图; 预处理器如: dw_openpose_full</li><li>Depth(深度,空间关系)</li><li>Tile(分块)</li><li>IPAdapter: 常用于人脸替换, 材质迁移, 风格迁移; 预处理器如: ip-adapter-face_id_plus</li><li>多个ControlNet单元组合使用: 建筑常用: SoftEdge+Depth, 人物常用: SoftEdge+Openpose+Depth+IPAdapter</li></ul></li><li>勾选预览, 点击预处理器旁边的爆炸图标进行预览</li></ul></li></ul></li><li>重绘幅度: 比如基于绿茶饮料瓶生成女孩, 此时重绘幅度可以调整大一些</li></ul></li><li>图生图案例<ul><li>局部重绘: 将需要修改的部分标记一下, 并增加想要提示词(进行局部修改, 整体不会变)</li><li>涂鸦: 在图片上涂鸦后, 增加提示词进行重绘(可能和传入的图片有较大差异)</li></ul></li><li>高清分辨率<ul><li>一阶段高分辨率修复: 勾选高分辨率修复, 随机种子选择上一张生成的(点击循环图标), 重新生图</li><li>二阶段重绘尺寸: 点击生成图下方的照片图标进行图生图, 修改重绘尺寸倍数为2, 设置上一张生成的随机种子, 重新生图</li><li>三阶段模型放大: 点击生成图下方的三角尺图标进行后期处理, 勾选图像放大, 放单算法如R-ESRGAN 4x+, 宽高设置成 1024, 缩放比例 4</li></ul></li></ul><h4 id="绘图工具"><a href="#绘图工具" class="headerlink" title="绘图工具"></a>绘图工具</h4><ul><li><a href="https://www.remove.bg/zh/" target="_blank" rel="noopener">https://www.remove.bg/zh/</a> 去除背景（包括水印）</li><li>工具类<ul><li><a href="https://prompthero.com" target="_blank" rel="noopener">https://prompthero.com</a> 搜集的都是ai生成的图片，可查看图片关键词</li><li><a href="https://replicate.com/pharmapsychotic/clip-interrogator" target="_blank" rel="noopener">https://replicate.com/pharmapsychotic/clip-interrogator</a> 可分析图片的关键字</li></ul></li></ul><h3 id="AI视频"><a href="#AI视频" class="headerlink" title="AI视频"></a>AI视频</h3><h4 id="视频工具"><a href="#视频工具" class="headerlink" title="视频工具"></a>视频工具</h4><ul><li><a href="https://supawork.ai/zh" target="_blank" rel="noopener">https://supawork.ai/zh</a> 去除视频背景（包括水印），支持API</li><li>Clipchamp: 视频剪辑工具，可自动根据文字生成旁边语音和字幕</li></ul><h4 id="虚拟数字人"><a href="#虚拟数字人" class="headerlink" title="虚拟数字人"></a>虚拟数字人</h4><ul><li><a href="https://www.cutout.pro/zh-CN/photo-animer-gif-emoji/upload" target="_blank" rel="noopener">https://www.cutout.pro/zh-CN/photo-animer-gif-emoji/upload</a> 图片生成动图(素人无法生成)</li><li><a href="https://www.d-id.com/pricing/" target="_blank" rel="noopener">https://www.d-id.com/pricing/</a> 可以生成五官动</li><li><a href="https://convert.leiapix.com/" target="_blank" rel="noopener">https://convert.leiapix.com/</a> 只能身体很奇怪的晃动</li></ul><h3 id="AI音频"><a href="#AI音频" class="headerlink" title="AI音频"></a>AI音频</h3><ul><li><a href="https://ttsmaker.com/zh-cn" target="_blank" rel="noopener">https://ttsmaker.com/zh-cn</a> 文字转语音，多种语言和角色，api接口商业免费</li><li>aiva.ai 自动生成背景音乐</li><li>开源<ul><li><a href="https://github.com/Soul-AILab/SoulX-Podcast" target="_blank" rel="noopener">https://github.com/Soul-AILab/SoulX-Podcast</a></li></ul></li></ul><h3 id="AI文案"><a href="#AI文案" class="headerlink" title="AI文案"></a>AI文案</h3><ul><li><a href="https://zhiwen.xfyun.cn/" target="_blank" rel="noopener">讯飞智文</a> 免费使用，支持基于文本/PDF等文件一键生成Word、PPT文档，并对单页文档进行AI聊天式调整</li><li><a href="https://kimi.moonshot.cn/" target="_blank" rel="noopener">Kimi.ai</a> 支持在线网页、多文件多格式上传，进行文案归纳总结，可支持200万字的文案总结</li></ul><h3 id="AI工具"><a href="#AI工具" class="headerlink" title="AI工具"></a>AI工具</h3><h3 id="AI聚合-API汇集"><a href="#AI聚合-API汇集" class="headerlink" title="AI聚合(API汇集)"></a>AI聚合(API汇集)</h3><ul><li><a href="https://302.ai/" target="_blank" rel="noopener">https://302.ai/</a> AI聚合</li></ul><h2 id="提示词"><a href="#提示词" class="headerlink" title="提示词"></a>提示词</h2><h3 id="图片生成提示词"><a href="#图片生成提示词" class="headerlink" title="图片生成提示词"></a>图片生成提示词</h3><ul><li>常用提示词</li></ul><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">--ar 9:16 <span class="comment"># 手机竖屏比例</span></span><br><span class="line"></span><br><span class="line">depth of field <span class="comment"># 景深(远处的背景, 着重近处的人物; 背景虚化)</span></span><br></pre></td></tr></table></figure><ul><li>提示词书写<ul><li>人物主体特征: 服饰穿搭, 发型颜色, 五官特点, 面部表情, 肢体动作</li><li>场景特征: 室内室外, 大小场景, 小细节</li><li>环境光照: 白天黑夜, 光效环境, 特点时间, 场景填空</li><li>补充画幅视角: 人物比例, 视角镜头, 镜头类型, 观察视角</li></ul></li><li>画风关键词<ul><li>插画风: lllustration, painting</li><li>真实系: photorealistic</li><li>二次元: CG, anime, comic</li><li>3D风格: 3D render, CGI</li></ul></li><li>画质提示词: <code>(masterpiece:1.2),best quality,ultra-detailed,4k,8k</code> 杰作,最佳质量,超级细节化,4k,8k</li><li>权重分配<ul><li>套括号: <code>()</code> 权重x1.1, <code>{}</code> 权重x1.05, <code>[]</code> 权重x0.9<ul><li>如果是<code>(((xxx)))</code>就是 1.1^3=1.331</li><li>安全范围在 1 上下 0.5</li></ul></li><li>前面的权重更高, 顺序: 画质/画风 - 主体 - 环境/场景/构图 - LoRA(模型的轻量微调)</li></ul></li><li>提示词融合<ul><li>非融合 <code>1girl,cat</code> 女孩身上有一只猫</li><li>融合: 使用 AND 或 _ <code>1girl AND cat</code> 或 <code>1girl_cat</code> 可能是一个猫娘, AND必须大写</li><li>提示词混合: <code>white/yellow flower</code> 生成白黄混合的花</li><li>提示词迁移: <code>[white/red/yellow] flower</code> 先生成白花, 再生成红花, 再生成黄花. 其中/可替换成|</li><li>分时间融合: <code>{forest:1girl:0.3}</code> 前 30% 的迭代步数生成森林, 后 70% 生成人物</li></ul></li><li>负面提示词<ul><li><code>(worst quality:2),(low quality:2),(normal qualty:2),lowres,normal qualty,((monochrome)),((grayscale)),blurry</code> (正常质量:2)，(低质量:2)，(正常质量:2)，低质量，正常质量，((单色))，((灰度))，模糊</li><li><code>skin spots,acnes,skin blemishes,age spot,(ugly:1.331),(duplicate: 1.331),(morbid:1.21),(mutilated:1.21),(tranny:1.331),mutated hands,(poory drawn hands:1.5),(bad anatomy:1.21),(bad proportions:1.331),extra limbs,(disfigured:1.331),(missing arms:.1.331),(extra legs:1.331),(fused fingers:1.61051),(too many fingers:1.61051),(unclear eyes:1.331),lowers,bad hands,missing fingers,extra digit,bad hands,(((extra arms and legs))),(easynagetive1.3)</code> 皮肤斑点，痤疮，皮肤瑕疵，老年斑，(丑陋:1.331)，(重复:1.331)，(病态:1.21)，(残缺:1.21)，(变形:1.331)，变异的手，(画得不好的手:1.5)，(解剖不良:1.21)，(比例不良:1.331)，多余的四肢，(毁容:1.331)，(缺胳膊:1.331)，(多余的腿:1.331)，(融合的手指:1.61051)，(过多的手指:1.61051)，(不清晰的眼睛:1.331)，低，手坏了，少了手指，多了手指，手坏了，多了胳膊和腿</li><li><code>ng_deepnegative_vl_75t</code> SD负面提示词模型</li></ul></li></ul><h3 id="视频生成提示词"><a href="#视频生成提示词" class="headerlink" title="视频生成提示词"></a>视频生成提示词</h3><ul><li>你是一个 AI 短视频博主，创作的内容特别厉害，现在要你构思一个短视频，视频时长 33s，以 vlog 形式记录一个人普通但平凡的一天，虽然平凡，但很幸福，要求贴合现实生活。创作内容需要包含以下几个方面：分镜时间，分镜脚本（脚本能通过 AI 画出来），分镜脚本包括人物、场景、动作、画面、镜头、环境、氛围等，创作内容还要包括分镜文案</li></ul><h2 id="基础设施"><a href="#基础设施" class="headerlink" title="基础设施"></a>基础设施</h2><h3 id="开发资源"><a href="#开发资源" class="headerlink" title="开发资源"></a>开发资源</h3><ul><li><a href="http://www.huggingface.co" target="_blank" rel="noopener">Hugging Face</a>: 目前已经共享了超100,000个预训练模型，10,000个数据集，变成了机器学习界的github<ul><li>镜像站: <a href="https://hf-mirror.com/" target="_blank" rel="noopener">https://hf-mirror.com/</a></li><li><a href="https://zhuanlan.zhihu.com/p/535100411" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/535100411</a></li></ul></li><li><a href="https://github.com/ollama/ollama" target="_blank" rel="noopener">Ollama</a> 可在本地机器上便捷部署和运行开源大模型</li></ul><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装完直接运行ollama命令即可。支持的模型: https://ollama.com/library</span></span><br><span class="line"><span class="comment"># 安装并启动 llama3.2 模型</span></span><br><span class="line">ollama run llama3.2</span><br><span class="line"><span class="comment"># 安装并启动 deepseek-r1 模型, 1.5b参数量(1.1GB)</span></span><br><span class="line">ollama run deepseek-r1:1.5b</span><br></pre></td></tr></table></figure><ul><li><a href="https://www.gitpod.io/" target="_blank" rel="noopener">Gitpod</a>: Gitpod是一个基于云的集成开发环境（IDE），它为开发人员提供了一个完全在线的编码环境</li></ul><h3 id="社区"><a href="#社区" class="headerlink" title="社区"></a>社区</h3><ul><li><a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener">阿里云百炼</a></li><li><a href="https://modelscope.cn" target="_blank" rel="noopener">魔搭社区(阿里巴巴)</a><ul><li>阿里云ModelScope社区 <a href="https://developer.aliyun.com/modelscope" target="_blank" rel="noopener">https://developer.aliyun.com/modelscope</a></li><li>阿里云ModelScope在线体验模型测试 <a href="https://developer.aliyun.com/article/1023556" target="_blank" rel="noopener">https://developer.aliyun.com/article/1023556</a></li></ul></li><li><a href="https://alinklab.cn/index.html" target="_blank" rel="noopener">Alink实验室(阿里巴巴)</a></li><li><a href="https://aistudio.baidu.com/index" target="_blank" rel="noopener">飞桨(百度)</a></li><li><a href="https://cloud.baidu.com/qianfandev" target="_blank" rel="noopener">千帆社区(百度)</a></li></ul><h2 id="OpenAI"><a href="#OpenAI" class="headerlink" title="OpenAI"></a>OpenAI</h2><ul><li><a href="https://openai.com/pricing" target="_blank" rel="noopener">API价格</a>，应该时旗下API不同类型按照token计费，最终进行统一扣款<ul><li>仅支持银行卡绑定付费</li><li>API调用: 每月免费$18.00</li><li>Chat gpt-3.5-turbo: $0.002 per 1k tokens</li><li>GPT-4: 8K context版 $0.03/1K 问题tokens，$0.06/1K 回答tokens；32K context版 $0.06/1K 问题tokens，$0.12/1K 回答tokens</li></ul></li><li>ChatGPT: WEB端访问免费；升级Plus，每月$20，速度和回复质量有所提高</li><li>官方提供的GPT Token收费计算器: <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener">https://platform.openai.com/tokenizer</a></li></ul><h2 id="阿里"><a href="#阿里" class="headerlink" title="阿里"></a>阿里</h2><ul><li>Alink实验室 <a href="https://alinklab.cn/index.html" target="_blank" rel="noopener">https://alinklab.cn/index.html</a></li></ul><h3 id="百炼"><a href="#百炼" class="headerlink" title="百炼"></a>百炼</h3><ul><li><a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener">控制台</a></li><li><a href="https://help.aliyun.com/zh/model-studio" target="_blank" rel="noopener">文档</a><ul><li><a href="https://help.aliyun.com/zh/model-studio/user-guide/application-calling" target="_blank" rel="noopener">应用调用</a></li></ul></li></ul><h3 id="魔搭社区"><a href="#魔搭社区" class="headerlink" title="魔搭社区"></a>魔搭社区</h3><ul><li><a href="https://modelscope.cn" target="_blank" rel="noopener">https://modelscope.cn</a><ul><li>阿里云ModelScope社区 <a href="https://developer.aliyun.com/modelscope" target="_blank" rel="noopener">https://developer.aliyun.com/modelscope</a></li><li>阿里云ModelScope在线体验模型测试 <a href="https://developer.aliyun.com/article/1023556" target="_blank" rel="noopener">https://developer.aliyun.com/article/1023556</a></li></ul></li></ul><h3 id="语音识别"><a href="#语音识别" class="headerlink" title="语音识别"></a>语音识别</h3><ul><li><a href="https://help.aliyun.com/zh/model-studio/user-guide/automatic-speech-recognition" target="_blank" rel="noopener">百炼语音识别</a><ul><li>模型赠送免费额度</li></ul></li><li><a href="https://help.aliyun.com/zh/isi/developer-reference/short-sentence-recognition/" target="_blank" rel="noopener">一句话识别</a><ul><li>准备阶段: 创建子账户，授权AliyunNLSFullAccess，并生成accessKeyId 和 accessKeySecret；在<a href="https://nls-portal.console.aliyun.com/applist" target="_blank" rel="noopener">智能语音交互控制台</a>创建应用，并获取项目Appkey</li><li>阿里云官方提供的小程序SDK是将 accessKeyId 和 accessKeySecret 放在小程序代码里面(是否存在一定的数据泄露风险???)</li><li>可基于小程序录音并将录音文件回传然后解析识别<ul><li>参考: <a href="https://help.aliyun.com/zh/isi/developer-reference/sdk-for-java" target="_blank" rel="noopener">https://help.aliyun.com/zh/isi/developer-reference/sdk-for-java</a> 官方案例中是接收到消息后进行异步返回的，可通过Websocket等方式返回</li><li>案例参考: <code>aezo-chat-gpt(sqt-qingxingyigou)/AliAudioService.java#audioRecognizer</code></li></ul></li></ul></li></ul><h3 id="语音合成"><a href="#语音合成" class="headerlink" title="语音合成"></a>语音合成</h3><ul><li><a href="https://help.aliyun.com/zh/model-studio/user-guide/text-to-speech" target="_blank" rel="noopener">百炼语音合成</a><ul><li>CosyVoice大模型(参考下文): 流式输入输出, 支持声音复克</li><li>Sambert大模型: 不支持流式输入, 支持多种国外音色</li></ul></li><li><p><a href="https://help.aliyun.com/zh/model-studio/developer-reference/quick-start-cosyvoice" target="_blank" rel="noopener">语音合成CosyVoice大模型(百炼)</a></p><ul><li>可实现全双工流式合成：多次输入合成文本，多次返回合成音频</li><li>官方案例中有将LLM生成的文本通过扬声器实时播放（全双工流式合成）</li><li>案例参考: <code>aezo-chat-gpt(sqt-qingxingyigou)/QanythingEventSourceListener.java</code></li><li><p>可将流式合成的语音数据(ByteBuffer)返回到小程序等前端从而实现全双工流式合成效果（由于小程序无法实现流式播放，可将后端多个ByteBuffer合成为几个大的ByteBuffer传到小程序端，从而小程序端进行多个ByteBuffer依次播放来实现），参考<a href="/_posts/mobile/uni-app.md#语音处理">uni-app.md#语音处理</a></p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> ByteBuffer <span class="title">mergeByteBuffers</span><span class="params">(ByteBuffer buffer1, ByteBuffer buffer2)</span> </span>&#123;</span><br><span class="line">    ByteBuffer mergedBuffer = ByteBuffer.allocate(buffer1.remaining() + buffer2.remaining());</span><br><span class="line">    mergedBuffer.put(buffer1);</span><br><span class="line">    mergedBuffer.put(buffer2);</span><br><span class="line">    mergedBuffer.flip();</span><br><span class="line">    <span class="keyword">return</span> mergedBuffer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li></ul></li></ul><h3 id="实时语音-视频"><a href="#实时语音-视频" class="headerlink" title="实时语音/视频"></a>实时语音/视频</h3><ul><li><a href="https://help.aliyun.com/zh/ims/user-guide/ai-real-time-interactive-overview" target="_blank" rel="noopener">智能媒体服务-AI实时互动</a></li></ul><h2 id="字节"><a href="#字节" class="headerlink" title="字节"></a>字节</h2><ul><li>火山引擎: <a href="https://volcengine.com/" target="_blank" rel="noopener">https://volcengine.com/</a><ul><li><a href="https://console.volcengine.com/ark/" target="_blank" rel="noopener">火山方舟</a></li><li><a href="https://www.coze.cn/" target="_blank" rel="noopener">扣子</a>: <a href="https://www.volcengine.com/product/coze-pro" target="_blank" rel="noopener">https://www.volcengine.com/product/coze-pro</a><ul><li>零代码快速搭建个性化AI应用(插件丰富), 也支持API调用</li><li>基础版免费(豆包个人自建智能体就是基于扣子实现)</li></ul></li><li><a href="https://www.volcengine.com/product/doubao" target="_blank" rel="noopener">豆包</a></li></ul></li></ul><h2 id="智谱"><a href="#智谱" class="headerlink" title="智谱"></a>智谱</h2><ul><li><a href="https://z.ai/" target="_blank" rel="noopener">Z.ai官网</a></li><li><a href="https://bigmodel.cn/" target="_blank" rel="noopener">智谱开放平台</a></li></ul><h2 id="Kimi"><a href="#Kimi" class="headerlink" title="Kimi"></a>Kimi</h2><h2 id="百度"><a href="#百度" class="headerlink" title="百度"></a>百度</h2><ul><li>飞桨(百度) <a href="https://aistudio.baidu.com/index" target="_blank" rel="noopener">https://aistudio.baidu.com/index</a></li></ul><h3 id="千帆大模型"><a href="#千帆大模型" class="headerlink" title="千帆大模型"></a>千帆大模型</h3><blockquote><p><a href="https://www.yuque.com/aezo/emoai/ri3rzvdhdgqk9fae?singleDoc" target="_blank" rel="noopener">https://www.yuque.com/aezo/emoai/ri3rzvdhdgqk9fae?singleDoc</a></p></blockquote><p>首先介绍一下百度AI相关产品矩阵，如下图百度力推的千帆大模型超级工厂，他包含</p><ul><li>千帆大模型平台：其中大模型开发就是自己训练一个大模型，这种比较有技术含量，少部分企业才会用到；大模型调用则包含百度开放的文心大模型(即文心一言，ERNIE 4.0和ERNIE 3.5为模型版本分类，对标ChatGPT)，还包括一些第三方模型供调用</li><li>千帆AppBuilder：是提供开发者基于文心大模型可以快速开发出一个AI应用，创建的应用可以集成一些官方的组件（如天气查询、快递查询等），也可以集成自定义组件（通过画布拖拽，自行编排组件逻辑，如调用企业内部API或调用大模型接口），另外还可导入知识库供大模型使用(支持txt/pdf/doc/url等模式)。通过AppBuilder创建的应用官方提供一个访问链接供普通用户使用（界面是通用的AI聊天界面），开发者也可以通过SDK调用创建的AI应用从而集成到实际的业务系统中。这部分会在后续文章中做详细说明</li><li>千帆AI原生应用商店：就是百度自己开发的AI应用。如超级助理，下载浏览器插件即可使用，支持划词翻译、网页解读、OCR识别等功能</li></ul><p>创建应用：进入 <a href="https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application" target="_blank" rel="noopener">https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application</a> 创建，可勾选启用的模型，如ERNIE-3.5-8K、ERNIE-4.0-8K、Yi-34B-Chat(免费)等</p><ul><li><a href="https://console.bce.baidu.com/qianfan/modelcenter/model/buildIn/list" target="_blank" rel="noopener">模型类型说明</a><ul><li>ERNIE(百度): ERNIE-3.5、ERNIE-4.0</li><li>Yi(零一万物, 李开复): Yi-34B-Chat(免费)</li><li>Meta-Llama(Meta AI, Facebook)</li></ul></li><li><a href="https://console.bce.baidu.com/qianfan/chargemanage/list" target="_blank" rel="noopener">模型计费说明</a><ul><li>ERNIE-4.0-8K: 输入：¥0.03元/千tokens, 输出：¥0.09元/千tokens</li><li>ERNIE-3.5-128K: 0.0008+0.002</li><li>ERNIE-Speed-128K(免费, 需开通, 每分钟请求Token数RPM=500)</li><li>Yi-34B-Chat(免费, 无需开通)</li></ul></li><li><a href="https://console.bce.baidu.com/qianfan/ais/console/onlineService" target="_blank" rel="noopener">模型推理说明</a>: 展示了模型服务名称和API地址，以及调用频率限制<ul><li>超过频率限制报错如: <code>Open api daily request limit reached</code> 同一个AppKey/Secret对于不同的模型有各自的调用频率限制, 不互相影响(如A模型超过调用量, 仍然可以调用B模型)</li></ul></li></ul><h3 id="千帆AppBuilder"><a href="#千帆AppBuilder" class="headerlink" title="千帆AppBuilder"></a>千帆AppBuilder</h3><blockquote><p><a href="https://www.yuque.com/aezo/emoai/hvmavirgbxdf7p24?singleDoc" target="_blank" rel="noopener">https://www.yuque.com/aezo/emoai/hvmavirgbxdf7p24?singleDoc</a></p></blockquote><p>千帆AppBuilder是提供开发者基于文心大模型可以快速开发出一个AI应用</p><p>创建的应用可以集成一些官方的组件（如天气查询、快递查询等），也可以集成自定义组件（通过画布拖拽，自行编排组件逻辑，如调用企业内部API或调用大模型接口）</p><p>另外还可导入知识库供大模型使用(支持txt/pdf/doc/url等模式)</p><p>通过AppBuilder创建的应用官方提供一个访问链接供普通用户使用（界面是通用的AI聊天界面），开发者也可以通过SDK调用创建的AI应用从而集成到实际的业务系统中</p><h2 id="有道"><a href="#有道" class="headerlink" title="有道"></a>有道</h2><h3 id="QAnything"><a href="#QAnything" class="headerlink" title="QAnything"></a>QAnything</h3><ul><li>官网: <a href="https://ai.youdao.com/saas/qanything" target="_blank" rel="noopener">https://ai.youdao.com/saas/qanything</a></li><li>API文档: <a href="https://ai.youdao.com/qanything/docs/intro/api-intro" target="_blank" rel="noopener">https://ai.youdao.com/qanything/docs/intro/api-intro</a></li><li>特点: 支持知识库<ul><li>API响应速度略慢</li></ul></li><li>免费版: 文件存储空间5G, 训练语料字数200万字, AI积分500万</li></ul><h2 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h2><h3 id="AI编程流程"><a href="#AI编程流程" class="headerlink" title="AI编程流程"></a>AI编程流程</h3><ul><li>参考<ul><li>Trea流程案例 <a href="https://github.com/oldinaction/demo-flutter/blob/main/flutter_demo_dot_dot_dot/AI.md" target="_blank" rel="noopener">https://github.com/oldinaction/demo-flutter/blob/main/flutter_demo_dot_dot_dot/AI.md</a></li></ul></li><li>Trea流程<ul><li>生成需求文档 README.md</li><li>生成开发规则文档 RULES.md (或者直接在 trea 中设置: <code>.trea/rules/project_rules.md</code>)</li><li>生成原型图<ul><li>在Trae/豆包中生成APP原型图html代码</li><li>或者通过 v0.app 基于图片生成原型代码并下载</li></ul></li><li>在Trae中通过Builder模式进行开发<ul><li><code>目前我们已经有一个产品需求文档 #README.md，以及一个你必须遵循的规则 #RULES.md，同时我将上传给你一张APP的原型图，请你根据这个原型图和需求进行开发。</code></li></ul></li></ul></li></ul><h3 id="视频制作"><a href="#视频制作" class="headerlink" title="视频制作"></a>视频制作</h3><ul><li><a href="https://www.bilibili.com/video/BV1wW4y1G7a3" target="_blank" rel="noopener">基于ChatGPT + Midjourney + Clipchamp创作视频</a></li></ul></div><div></div><div></div><div><ul class="post-copyright"><li class="post-copyright-author"> <strong>本文作者：</strong> smalle</li><li class="post-copyright-link"> <strong>本文链接：</strong> <a href="http://blog.aezo.cn/2023/02/08/ai/ai-soft/" title="AI相关软件">http://blog.aezo.cn/2023/02/08/ai/ai-soft/</a></li><li class="post-copyright-license"> <strong>版权声明：</strong> 本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！</li></ul></div><footer class="post-footer"><div class="post-tags"> <a href="/tags/ai/" rel="tag"># ai</a></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/2023/02/08/ai/ai-coding/" rel="next" title="AI编程"><i class="fa fa-chevron-left"></i> AI编程</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"> <a href="/2023/05/11/lang/php/wordpress/" rel="prev" title="Wordpress">Wordpress<i class="fa fa-chevron-right"></i></a></div></div></footer></article><div class="post-spread"><div> <a target="_blank" href="https://github.com/oldinaction/ChatGPT-MP"><img class="nofancybox" style="width:300px;margin:0 auto" src="https://cdn7.aezo.cn/one/chat/chat-gpt-open-banner.jpg" alt="ChatGPT开源小程序" title="ChatGPT开源小程序"></a></div></div></div></div><div class="comments" id="comments"></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span><span class="sidebar-toggle-line sidebar-toggle-line-middle"></span><span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap"> 文章目录</li><li class="sidebar-nav-overview" data-target="site-overview"> 站点概览</li></ul><section class="site-overview sidebar-panel"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"> <img class="site-author-image" itemprop="image" src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400" alt="smalle"><p class="site-author-name" itemprop="name">smalle</p><p class="site-description motion-element" itemprop="description"></p></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"> <a href="/archives/"><span class="site-state-item-count">171</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"> <a href="/categories/index.html"><span class="site-state-item-count">15</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"> <a href="/tags/index.html"><span class="site-state-item-count">155</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="feed-link motion-element"><a href="/atom.xml" rel="alternate"><i class="fa fa-rss"></i> RSS</a></div><div class="links-of-author motion-element"></div><div> 欢迎关注公众号：阿壹族 <img class="nofancybox" style="width:120px;margin:0 auto" src="https://cdn7.aezo.cn/common/qrcode/ayz_qrcode.jpg" alt="欢迎关注公众号：阿壹族" title="欢迎关注公众号：阿壹族"></div></section><section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网址收集"><span class="nav-number">2.</span> <span class="nav-text">网址收集</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AI导航"><span class="nav-number">2.1.</span> <span class="nav-text">AI导航</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI聊天"><span class="nav-number">2.2.</span> <span class="nav-text">AI聊天</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI编程"><span class="nav-number">2.3.</span> <span class="nav-text">AI编程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI绘图"><span class="nav-number">2.4.</span> <span class="nav-text">AI绘图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#绘画模型"><span class="nav-number">2.4.1.</span> <span class="nav-text">绘画模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SD使用"><span class="nav-number">2.4.2.</span> <span class="nav-text">SD使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#绘图工具"><span class="nav-number">2.4.3.</span> <span class="nav-text">绘图工具</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI视频"><span class="nav-number">2.5.</span> <span class="nav-text">AI视频</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#视频工具"><span class="nav-number">2.5.1.</span> <span class="nav-text">视频工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟数字人"><span class="nav-number">2.5.2.</span> <span class="nav-text">虚拟数字人</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI音频"><span class="nav-number">2.6.</span> <span class="nav-text">AI音频</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI文案"><span class="nav-number">2.7.</span> <span class="nav-text">AI文案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI工具"><span class="nav-number">2.8.</span> <span class="nav-text">AI工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AI聚合-API汇集"><span class="nav-number">2.9.</span> <span class="nav-text">AI聚合(API汇集)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提示词"><span class="nav-number">3.</span> <span class="nav-text">提示词</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#图片生成提示词"><span class="nav-number">3.1.</span> <span class="nav-text">图片生成提示词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#视频生成提示词"><span class="nav-number">3.2.</span> <span class="nav-text">视频生成提示词</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基础设施"><span class="nav-number">4.</span> <span class="nav-text">基础设施</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开发资源"><span class="nav-number">4.1.</span> <span class="nav-text">开发资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#社区"><span class="nav-number">4.2.</span> <span class="nav-text">社区</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OpenAI"><span class="nav-number">5.</span> <span class="nav-text">OpenAI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阿里"><span class="nav-number">6.</span> <span class="nav-text">阿里</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#百炼"><span class="nav-number">6.1.</span> <span class="nav-text">百炼</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#魔搭社区"><span class="nav-number">6.2.</span> <span class="nav-text">魔搭社区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#语音识别"><span class="nav-number">6.3.</span> <span class="nav-text">语音识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#语音合成"><span class="nav-number">6.4.</span> <span class="nav-text">语音合成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实时语音-视频"><span class="nav-number">6.5.</span> <span class="nav-text">实时语音/视频</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字节"><span class="nav-number">7.</span> <span class="nav-text">字节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#智谱"><span class="nav-number">8.</span> <span class="nav-text">智谱</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kimi"><span class="nav-number">9.</span> <span class="nav-text">Kimi</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#百度"><span class="nav-number">10.</span> <span class="nav-text">百度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#千帆大模型"><span class="nav-number">10.1.</span> <span class="nav-text">千帆大模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#千帆AppBuilder"><span class="nav-number">10.2.</span> <span class="nav-text">千帆AppBuilder</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有道"><span class="nav-number">11.</span> <span class="nav-text">有道</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#QAnything"><span class="nav-number">11.1.</span> <span class="nav-text">QAnything</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#案例"><span class="nav-number">12.</span> <span class="nav-text">案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AI编程流程"><span class="nav-number">12.1.</span> <span class="nav-text">AI编程流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#视频制作"><span class="nav-number">12.2.</span> <span class="nav-text">视频制作</span></a></li></ol></li></ol></div></div></section></div></aside></div></main><footer id="footer" class="footer"><div class="footer-inner"><div class="copyright"> &copy; 2016 - <span itemprop="copyrightYear">2026</span><span class="with-love"><i class="fa fa-heart"></i></span> <span class="author" itemprop="copyrightHolder">smalle</span>&nbsp;&nbsp;&nbsp;&nbsp;<div class="powered-by"> 由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div><div class="powered-by"> 主题 - <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div><div class="theme-info"> <a class="theme-link" target="_blank" href="https://tongji.baidu.com/main/overview/10000542408/overview/index?siteId=18991897">站长统计</a></div></div><div class="ad"> <span style="font-weight:700">AD&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="theme-info"> <a target="_blank" href="https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=oby5nolb">阿里云大礼包</a></div></div><div class="aezocn"> <span style="font-weight:700">&copy;AEZO.CN&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="powered-by"> <a target="_blank" href="https://shengqitech.aezo.cn/">圣骑科技</a></div><div class="powered-by"> <a target="_blank" href="https://cdn7.aezo.cn/common/qrcode/one_qrcode.jpg">【One能抽屉】小程序</a></div><div class="theme-info"> <a target="_blank" href="http://shop.aezo.cn/">杂货铺(省钱小助手)</a></div></div><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?085f9cd91ef2ad985f791c677472f0d1";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i></div></div><script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script><script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script><script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script><script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script><script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script><script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script><script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.1"></script></body></html>

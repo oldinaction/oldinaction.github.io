@@ -1,0 +1,316 @@
+<!doctype html><html class="theme-next mist use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css"><meta name="keywords" content="dba,"><link rel="alternate" href="/atom.xml" title="月星墙的博客" type="application/atom+xml"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1"><meta name="description" content="安装版本介绍 SQL Server数据库版本参考: https://blog.csdn.net/duanbeibei/article/details/128268149 查看已安装的版本SELECT @@VERSION;   123456-- 产品版本(常见如:2012,2016,2019,2022): 15.0.2000.5, 产品级别: RTM, 版本: Enterprise Edition("><meta name="keywords" content="dba"><meta property="og:type" content="article"><meta property="og:title" content="SQLServer"><meta property="og:url" content="http://blog.aezo.cn/2025/04/16/db/sqlserver-dba/index.html"><meta property="og:site_name" content="月星墙的博客"><meta property="og:description" content="安装版本介绍 SQL Server数据库版本参考: https://blog.csdn.net/duanbeibei/article/details/128268149 查看已安装的版本SELECT @@VERSION;   123456-- 产品版本(常见如:2012,2016,2019,2022): 15.0.2000.5, 产品级别: RTM, 版本: Enterprise Edition("><meta property="og:locale" content="zh-Hans"><meta property="og:image" content="http://blog.aezo.cn/2025/04/16/db/data/images/2024/sqlserver-dba/image.png"><meta property="og:updated_time" content="2026-03-02T05:27:33.477Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="SQLServer"><meta name="twitter:description" content="安装版本介绍 SQL Server数据库版本参考: https://blog.csdn.net/duanbeibei/article/details/128268149 查看已安装的版本SELECT @@VERSION;   123456-- 产品版本(常见如:2012,2016,2019,2022): 15.0.2000.5, 产品级别: RTM, 版本: Enterprise Edition("><meta name="twitter:image" content="http://blog.aezo.cn/2025/04/16/db/data/images/2024/sqlserver-dba/image.png"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Mist",sidebar:{position:"right",display:"post",offset:12,offset_float:0,b2t:!1,scrollpercent:!1},fancybox:!0,motion:!0,duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"BWD6R9FA4K",apiKey:"3330f3cbaa099dfc30395de5f5b20151",indexName:"blog",hits:{per_page:10},labels:{input_placeholder:"请输入关键字",hits_empty:"我们没有找到任何搜索结果: ${query}",hits_stats:"找到约${hits}条结果（用时${time}ms）"}}}</script><link rel="canonical" href="http://blog.aezo.cn/2025/04/16/db/sqlserver-dba/"><title>SQLServer | 月星墙的博客</title><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?085f9cd91ef2ad985f791c677472f0d1";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-right page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">月星墙的博客</span><span class="logo-line-after"><i></i></span></a></div><h1 class="site-subtitle" itemprop="description">Better Code, Better Life</h1></div><div class="site-nav-toggle"> <button><span class="btn-bar"></span><span class="btn-bar"></span><span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br> 首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br> 分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br> 关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br> 归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br> 标签</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br> 站点地图</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br> 搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i></span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"> <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2025/04/16/db/sqlserver-dba/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="smalle"><meta itemprop="description" content=""><meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="月星墙的博客"></span><header class="post-header"><h2 class="post-title" itemprop="name headline">SQLServer</h2><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i></span> <span class="post-meta-item-text">发表于</span> <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-04-16T20:00:00+08:00">2025-04-16</time></span> <span class="post-category"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i></span> <span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/db/" itemprop="url" rel="index"><span itemprop="name">db</span></a></span></span></div></header><div class="post-body" itemprop="articleBody"><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="版本介绍"><a href="#版本介绍" class="headerlink" title="版本介绍"></a>版本介绍</h3><ul><li>SQL Server数据库版本参考: <a href="https://blog.csdn.net/duanbeibei/article/details/128268149" target="_blank" rel="noopener">https://blog.csdn.net/duanbeibei/article/details/128268149</a></li><li>查看已安装的版本<code>SELECT @@VERSION;</code></li></ul><p><img src="../data/images/2024/sqlserver-dba/image.png" alt="sqlserver-version"></p><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 产品版本(常见如:2012,2016,2019,2022): 15.0.2000.5, 产品级别: RTM, 版本: Enterprise Edition(企业版本), 64位</span></span><br><span class="line"><span class="comment">-- v10=2008, v12=2014, v13=2016, v14=2017, v15=2019</span></span><br><span class="line">Microsoft SQL Server 2019 (RTM) - 15.0.2000.5 (X64) </span><br><span class="line">    Sep 24 2019 13:48:23 </span><br><span class="line">    Copyright (C) 2019 Microsoft Corporation</span><br><span class="line">    Enterprise Edition (64-bit) on Windows Server 2019 Datacenter 10.0 &lt;X64&gt; (Build 17763: )</span><br></pre></td></tr></table></figure><ul><li>版本类型<ul><li>企业版 Enterprise Edition</li><li>评估版 Evaluation Edition</li><li>开发者版 Developer Edition</li><li>标准版 Standard Edition</li><li>体验版 Express Edition</li><li>数据中心版 Data Center Edition</li></ul></li><li>版本限制<ul><li>32位程序最多只能使用4GB内存</li><li>企业版无限制(需购买证书)，评估版包含180天许可(功能同企业版)，开发版不能用于生产环境(功能同企业版)，体验版最多使用10GB磁盘空间<ul><li>通过虚拟机技术实现评估版本长期有效: <a href="https://blog.51cto.com/u_16175438/11941783" target="_blank" rel="noopener">https://blog.51cto.com/u_16175438/11941783</a></li></ul></li></ul></li><li>许可类型限制<ul><li>基于服务器+客户端访问许可证(CAL)的许可: 最多使用20核CPU</li><li>基于内核的服务器许可: CPU使用无限制<ul><li>版本描述中包含<code>Core-based Licensing</code>的即是，其他为CAL许可</li><li>CAL许可的网上有升级步骤</li></ul></li></ul></li></ul><h3 id="SQL-Server-2019安装"><a href="#SQL-Server-2019安装" class="headerlink" title="SQL Server 2019安装"></a>SQL Server 2019安装</h3><ul><li>SQL Server 2019介绍<ul><li><a href="https://learn.microsoft.com/zh-cn/sql/sql-server/editions-and-components-of-sql-server-2019" target="_blank" rel="noopener">https://learn.microsoft.com/zh-cn/sql/sql-server/editions-and-components-of-sql-server-2019</a></li><li><a href="https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2019" target="_blank" rel="noopener">https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2019</a></li></ul></li><li>2019下载安装包: <a href="https://www.cnblogs.com/mq0036/p/13500880.html" target="_blank" rel="noopener">https://www.cnblogs.com/mq0036/p/13500880.html</a></li><li>2019安装参考: <a href="https://www.jb51.net/database/3270133ua.htm" target="_blank" rel="noopener">https://www.jb51.net/database/3270133ua.htm</a></li><li>安装</li></ul><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载安装包, 如: cn_sql_server_2019_enterprise_x64_dvd_2bfe815a.iso</span></span><br><span class="line"><span class="comment"># 右键 - 打开方式 - Windows资源管理器, 或者直接以zip包的模式进行解压</span></span><br><span class="line"><span class="comment"># 管理员方式运行 setup.exe</span></span><br><span class="line"><span class="comment"># 选择: 安装 - 全新SQL Server独立安装或向现有安装添加功能</span></span><br><span class="line"><span class="comment"># 选择: Developer版本, 具体参考上文</span></span><br><span class="line"><span class="comment"># 勾选: 数据库引擎服务、SQL Server复制、全文和语义提取搜索、Data Quality Services、Analysis Services、SQL 客户端连接SDK</span></span><br><span class="line"><span class="comment"># 选择: 身份验证模式 - 混合模式 - 输入sa账号密码如sa123456 - 添加当前用户</span></span><br><span class="line">    <span class="comment"># 如果有"SQLserver 和windows 身份验证模式"则勾选，没有则需要通过SSMS之后进行设置</span></span><br><span class="line"><span class="comment"># 安装成功后会注册一个服务 MSSQLSERVER</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 之后可在应用中搜索"SQL Server 2019 配置管理器"，打开后设置运行IP连接: SQL Server网络配置 - MSSQLSERVER的协议 - TCP/IP - 右键启用 - 重启服务 - Navicat即可使用`127.0.0.1,1433`进行连接</span></span><br><span class="line"><span class="comment"># 之后可在应用中搜索"SQL Server 2019 安装中心"，打开后可重新进入安装页面进行后续安装修改</span></span><br></pre></td></tr></table></figure><h3 id="SSMS安装-SQL-Server-Management-Studio"><a href="#SSMS安装-SQL-Server-Management-Studio" class="headerlink" title="SSMS安装(SQL Server Management Studio)"></a>SSMS安装(SQL Server Management Studio)</h3><ul><li>SSMS是SQL Server客户端；简单的增删改查也可使用Navicat等</li><li>连接使用<ul><li>服务器名称: 填写服务器电脑名称即可</li></ul></li></ul><h3 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a>Maven依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.microsoft.sqlserver<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mssql-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>7.4.1.jre8<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure><h2 id="常用操作"><a href="#常用操作" class="headerlink" title="常用操作"></a>常用操作</h2><ul><li>创建数据库<ul><li>排序规则如<code>Chinese_PRC_90_CI_AS</code>, 恢复模式<code>FULL</code>, 兼容级别<code>100</code></li></ul></li></ul><h3 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- NONCLUSTERED 创建非聚集索引, CLUSTERED 创建聚集索引(一个表只能有一个聚集索引)</span></span><br><span class="line"><span class="keyword">CREATE</span> NONCLUSTERED <span class="keyword">INDEX</span> idx_name <span class="keyword">ON</span> table_name (column1, column2, ...);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 在线模式创建</span></span><br><span class="line"><span class="keyword">CREATE</span> NONCLUSTERED <span class="keyword">INDEX</span> IX_UserInfo_Phone</span><br><span class="line"><span class="keyword">ON</span> dbo.UserInfo(Phone <span class="keyword">ASC</span>) <span class="comment">-- 索引列: Phone（升序）</span></span><br><span class="line"><span class="keyword">INCLUDE</span> (UserName, Email) <span class="comment">-- 可选: 包含列，查询时无需回表取数据</span></span><br><span class="line"><span class="keyword">WITH</span> (</span><br><span class="line">    <span class="keyword">ONLINE</span> = <span class="keyword">ON</span>, <span class="comment">-- 关键: 启用在线模式</span></span><br><span class="line">    MAXDOP = <span class="number">2</span>, <span class="comment">-- 可选: 限制并行度（避免占用过多资源）</span></span><br><span class="line">    DATA_COMPRESSION = PAGE <span class="comment">-- 启用页级压缩（节省存储空间）</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure><h3 id="用户-权限"><a href="#用户-权限" class="headerlink" title="用户/权限"></a>用户/权限</h3><ul><li>创建只读用户</li></ul><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建SQL登录名</span></span><br><span class="line"><span class="keyword">CREATE</span> LOGIN readonly_user </span><br><span class="line"><span class="keyword">WITH</span> <span class="keyword">PASSWORD</span> = <span class="string">'Hello123!'</span>,  <span class="comment">-- 密码需符合SQL Server复杂度要求</span></span><br><span class="line">     DEFAULT_DATABASE = YourDatabaseName, <span class="comment">-- 默认登录的数据库（替换为你的库名）</span></span><br><span class="line">     CHECK_EXPIRATION = <span class="keyword">OFF</span>,               <span class="comment">-- 关闭密码过期</span></span><br><span class="line">     CHECK_POLICY = <span class="keyword">ON</span>;                    <span class="comment">-- 启用密码策略（建议开启）</span></span><br><span class="line">GO</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 创建数据库用户（关联第一步的登录名）</span></span><br><span class="line"><span class="keyword">USE</span> YourDatabaseName; <span class="comment">-- 切换到目标数据库</span></span><br><span class="line">GO</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> readonly_user <span class="keyword">FOR</span> LOGIN readonly_user;</span><br><span class="line">GO</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 使用内置只读角色, 可对整个数据库赋予只读权限</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">ROLE</span> db_datareader <span class="keyword">ADD</span> <span class="keyword">MEMBER</span> readonly_user;</span><br><span class="line">GO</span><br></pre></td></tr></table></figure><h2 id="管理员"><a href="#管理员" class="headerlink" title="管理员"></a>管理员</h2><h3 id="慢SQL-数据库CPU飙高问题"><a href="#慢SQL-数据库CPU飙高问题" class="headerlink" title="慢SQL/数据库CPU飙高问题"></a>慢SQL/数据库CPU飙高问题</h3><p>参考：<a href="/_posts/devops/Java应用CPU和内存异常分析.md#SqlServer">http://blog.aezo.cn/2018/03/13/java/Java%E5%BA%94%E7%94%A8CPU%E5%92%8C%E5%86%85%E5%AD%98%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/</a></p><h3 id="连接数"><a href="#连接数" class="headerlink" title="连接数"></a>连接数</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 获取当前连接数</span></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> sys.dm_exec_sessions </span><br><span class="line">    <span class="keyword">WHERE</span> is_user_process = <span class="number">1</span> <span class="comment">-- 仅统计用户进程</span></span><br><span class="line">    <span class="keyword">and</span> program_name = <span class="string">'Microsoft JDBC Driver for SQL Server'</span>; <span class="comment">-- Java链接</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看允许的客户端(如一个Java实例)最大连接数, 为0则表示不限制(可为服务器最大连接数)</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">name</span>, <span class="keyword">value</span>, value_in_use <span class="keyword">from</span>  sys.configurations <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">'user connections'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 设置最大连接数</span></span><br><span class="line">exec sp_configure 'user connections', 500; <span class="comment">-- 设置为 500</span></span><br><span class="line">reconfigure;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看SqlServer允许的最大连接数, 默认 32767</span></span><br><span class="line"><span class="keyword">SELECT</span> @@MAX_CONNECTIONS;</span><br></pre></td></tr></table></figure><h3 id="锁相关"><a href="#锁相关" class="headerlink" title="锁相关"></a>锁相关</h3><ul><li>参考<ul><li><a href="https://www.cnblogs.com/michaelshen/p/17079650.html" target="_blank" rel="noopener">https://www.cnblogs.com/michaelshen/p/17079650.html</a></li></ul></li></ul><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 查看锁表</span></span><br><span class="line"><span class="keyword">select</span> request_session_id <span class="string">"锁表进程"</span>, OBJECT_NAME(resource_associated_entity_id) <span class="string">"表名"</span> </span><br><span class="line"><span class="keyword">from</span> sys.dm_tran_locks <span class="keyword">where</span> resource_type = <span class="string">'OBJECT'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 解锁(不能在原来上锁的窗口操作，需重开一个窗口)</span></span><br><span class="line"><span class="keyword">kill</span> <span class="number">57</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- SQL Server在执行查询语句时会锁表，在锁表期间禁止增删改操作</span></span><br><span class="line"><span class="comment">-- 进行行级锁(需要有索引?)</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> dbo.t_table <span class="keyword">with</span>(rowlock) <span class="keyword">where</span> <span class="keyword">id</span> = <span class="number">1</span>;</span><br><span class="line"><span class="comment">-- 不加锁, 可能出现脏数据</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> dbo.t_table <span class="keyword">with</span>(nolock) <span class="keyword">where</span> <span class="keyword">id</span> = <span class="number">1</span>;</span><br></pre></td></tr></table></figure><ul><li>transaction 手动事物</li></ul><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 当前会话开启 transaction</span></span><br><span class="line"><span class="keyword">begin</span> <span class="keyword">transaction</span>;</span><br><span class="line"><span class="comment">-- with (rowlock)</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> sys_company t <span class="keyword">where</span> t.full_name <span class="keyword">is</span> <span class="literal">null</span>;</span><br><span class="line"><span class="comment">-- 执行update前不会进行锁表</span></span><br><span class="line"><span class="keyword">update</span> sys_company <span class="keyword">set</span> valid = <span class="string">'0'</span> <span class="keyword">where</span> full_name <span class="keyword">is</span> <span class="literal">null</span>;</span><br><span class="line"><span class="comment">-- 如果执行了update, 一直不提交则会锁表; 此时基于普通字段无法查询, 基于id还是可以查询</span></span><br><span class="line"><span class="keyword">commit</span> <span class="keyword">transaction</span>;</span><br><span class="line"><span class="keyword">rollback</span> <span class="keyword">transaction</span>;</span><br></pre></td></tr></table></figure><h2 id="备份与恢复"><a href="#备份与恢复" class="headerlink" title="备份与恢复"></a>备份与恢复</h2><ul><li>参考: <a href="https://www.cnblogs.com/pandora2050/p/18285689" target="_blank" rel="noopener">https://www.cnblogs.com/pandora2050/p/18285689</a></li></ul><h3 id="SSMS备份与恢复"><a href="#SSMS备份与恢复" class="headerlink" title="SSMS备份与恢复"></a>SSMS备份与恢复</h3><ul><li>备份: 数据库 - 选择需要备份的数据库名称 - 右键”任务” - 备份 - 备份类型(完整)</li><li>还原: 数据库 - 右键”还原数据库” - 常规 - 确定即可<ul><li>常规<ul><li>源选择”设备 - 文件 - 添加BAK备份文件”</li><li>目标选择已有数据库(会进行覆盖)或输入新的数据库名</li></ul></li><li>选项: 可能需要勾选”覆盖现有数据库”</li></ul></li></ul></div><div></div><div></div><div><ul class="post-copyright"><li class="post-copyright-author"> <strong>本文作者：</strong> smalle</li><li class="post-copyright-link"> <strong>本文链接：</strong> <a href="http://blog.aezo.cn/2025/04/16/db/sqlserver-dba/" title="SQLServer">http://blog.aezo.cn/2025/04/16/db/sqlserver-dba/</a></li><li class="post-copyright-license"> <strong>版权声明：</strong> 本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！</li></ul></div><footer class="post-footer"><div class="post-tags"> <a href="/tags/dba/" rel="tag"># dba</a></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/2024/06/03/mobile/alipay/" rel="next" title="支付宝开发"><i class="fa fa-chevron-left"></i> 支付宝开发</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"></div></div></footer></article><div class="post-spread"><div> <a target="_blank" href="https://github.com/oldinaction/ChatGPT-MP"><img class="nofancybox" style="width:300px;margin:0 auto" src="https://cdn7.aezo.cn/one/chat/chat-gpt-open-banner.jpg" alt="ChatGPT开源小程序" title="ChatGPT开源小程序"></a></div></div></div></div><div class="comments" id="comments"></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span><span class="sidebar-toggle-line sidebar-toggle-line-middle"></span><span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap"> 文章目录</li><li class="sidebar-nav-overview" data-target="site-overview"> 站点概览</li></ul><section class="site-overview sidebar-panel"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"> <img class="site-author-image" itemprop="image" src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400" alt="smalle"><p class="site-author-name" itemprop="name">smalle</p><p class="site-description motion-element" itemprop="description"></p></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"> <a href="/archives/"><span class="site-state-item-count">171</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"> <a href="/categories/index.html"><span class="site-state-item-count">15</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"> <a href="/tags/index.html"><span class="site-state-item-count">155</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="feed-link motion-element"><a href="/atom.xml" rel="alternate"><i class="fa fa-rss"></i> RSS</a></div><div class="links-of-author motion-element"></div><div> 欢迎关注公众号：阿壹族 <img class="nofancybox" style="width:120px;margin:0 auto" src="https://cdn7.aezo.cn/common/qrcode/ayz_qrcode.jpg" alt="欢迎关注公众号：阿壹族" title="欢迎关注公众号：阿壹族"></div></section><section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装"><span class="nav-number">1.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#版本介绍"><span class="nav-number">1.1.</span> <span class="nav-text">版本介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SQL-Server-2019安装"><span class="nav-number">1.2.</span> <span class="nav-text">SQL Server 2019安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSMS安装-SQL-Server-Management-Studio"><span class="nav-number">1.3.</span> <span class="nav-text">SSMS安装(SQL Server Management Studio)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Maven依赖"><span class="nav-number">1.4.</span> <span class="nav-text">Maven依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用操作"><span class="nav-number">2.</span> <span class="nav-text">常用操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#索引"><span class="nav-number">2.1.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户-权限"><span class="nav-number">2.2.</span> <span class="nav-text">用户/权限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理员"><span class="nav-number">3.</span> <span class="nav-text">管理员</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#慢SQL-数据库CPU飙高问题"><span class="nav-number">3.1.</span> <span class="nav-text">慢SQL/数据库CPU飙高问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#连接数"><span class="nav-number">3.2.</span> <span class="nav-text">连接数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锁相关"><span class="nav-number">3.3.</span> <span class="nav-text">锁相关</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#备份与恢复"><span class="nav-number">4.</span> <span class="nav-text">备份与恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SSMS备份与恢复"><span class="nav-number">4.1.</span> <span class="nav-text">SSMS备份与恢复</span></a></li></ol></li></ol></div></div></section></div></aside></div></main><footer id="footer" class="footer"><div class="footer-inner"><div class="copyright"> &copy; 2016 - <span itemprop="copyrightYear">2026</span><span class="with-love"><i class="fa fa-heart"></i></span> <span class="author" itemprop="copyrightHolder">smalle</span>&nbsp;&nbsp;&nbsp;&nbsp;<div class="powered-by"> 由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div><div class="powered-by"> 主题 - <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div><div class="theme-info"> <a class="theme-link" target="_blank" href="https://tongji.baidu.com/main/overview/10000542408/overview/index?siteId=18991897">站长统计</a></div></div><div class="ad"> <span style="font-weight:700">AD&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="theme-info"> <a target="_blank" href="https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=oby5nolb">阿里云大礼包</a></div></div><div class="aezocn"> <span style="font-weight:700">&copy;AEZO.CN&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="powered-by"> <a target="_blank" href="https://shengqitech.aezo.cn/">圣骑科技</a></div><div class="powered-by"> <a target="_blank" href="https://cdn7.aezo.cn/common/qrcode/one_qrcode.jpg">【One能抽屉】小程序</a></div><div class="theme-info"> <a target="_blank" href="http://shop.aezo.cn/">杂货铺(省钱小助手)</a></div></div><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?085f9cd91ef2ad985f791c677472f0d1";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i></div></div><script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script><script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script><script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script><script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script><script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script><script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script><script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.1"></script></body></html>
