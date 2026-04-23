@@ -832,7 +832,7 @@ join t_b b on b.pid = a.id and b.cid = 1
 select /*+ index(t_test idx_test_obj_id) */ * from t_test where obj_id > 0;
 select /*+ index(t_test (obj_id)) */ * from t_test where obj_id > 0;
 select /*+ index(t idx_test_obj_id) */ * from t_test t where t.obj_id > 0;
-select /*+ index(t idx_test_tm) index(t idx_test_code) */ * from t_test t where t.obj_id > 0; -- 多个索引
+select /*+ index(t idx_test_tm idx_test_code) index(t1 idx_test_tm2) */ * from t_test t where t.obj_id > 0; -- 多个索引，按顺序优先级使用
 
 -- 错误1：SQL中指定了表的别名，但HINT中，却引用了表的名称，而非别名，会导致提示无效
 select /*+ index(t_test idx_test_obj_id) */ * from t_test t where t.obj_id > 0;
@@ -1054,7 +1054,7 @@ select distinct ypyn.plan_yard_num_id, ypyn.plan_id, ypyn.bcc_cont_id, ypyn.cont
 
     ![oracle-explain-yard7](/data/images/db/oracle-explain-yard7.png)
 
-## SQL Server
+## SQLServer
 
 ```sql
 SET SHOWPLAN_ALL ON; -- 开启执行计划展示

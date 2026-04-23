@@ -152,9 +152,28 @@ reconfigure;
 -- 查看SqlServer允许的最大连接数, 默认 32767
 SELECT @@MAX_CONNECTIONS;
 ```
+- 查看当前会话
+
+```sql
+SELECT 
+    spid        AS session_id,
+    kpid        AS 线程ID,
+    login_time  AS 登录时间,
+    last_batch  AS 最后执行时间,
+    hostname    AS 客户端主机名,
+    program_name AS 应用程序,
+    loginame    AS 登录名,
+    db_name(dbid) AS 数据库名,
+    status      AS 状态,
+    cmd         AS 当前执行命令
+FROM sys.sysprocesses
+WHERE spid > 50  -- 过滤掉系统进程
+ORDER BY spid;
+```
 
 ### 锁相关
 
+- [sql-ext.md#锁问题](/_posts/db/sql-ext.md#锁问题)
 - 参考
     - https://www.cnblogs.com/michaelshen/p/17079650.html
 
@@ -166,7 +185,7 @@ from sys.dm_tran_locks where resource_type = 'OBJECT';
 -- 解锁(不能在原来上锁的窗口操作，需重开一个窗口)
 kill 57;
 
--- SQL Server在执行查询语句时会锁表，在锁表期间禁止增删改操作
+-- SQL Server默认在执行查询语句时会锁表，在锁表期间禁止增删改操作
 -- 进行行级锁(需要有索引?)
 select id from dbo.t_table with(rowlock) where id = 1;
 -- 不加锁, 可能出现脏数据
@@ -199,4 +218,49 @@ rollback transaction;
         - 源选择"设备 - 文件 - 添加BAK备份文件"
         - 目标选择已有数据库(会进行覆盖)或输入新的数据库名
     - 选项: 可能需要勾选"覆盖现有数据库"
+
+### 历史数据清理
+
+- 查看数据库恢复模式 `SELECT name, recovery_model_desc FROM sys.databases;`
+    - SIMPLE: 简单模式. 日志自动回收, CHECKPOINT 后日志空间就会重用, 删大量数据日志不会暴涨, 不能时间点恢复(只能恢复到CHECKPOINT时间)
+    - FULL: 完整模式. 日志不会自动回收, 必须手动备份日志进行释放, 大批量删除会日志爆炸, 可时间点恢复
+    - BULK_LOGGED: 极少用
+- 大量历史数据清理(FULL模式)
+    - 最快、日志最少
+    - TRUNCATE 会重置自增 ID、会触发表级锁、不能有外键引用
+    - 业务高峰期慎用，最好低峰操作
+
+```sql
+-- 1.保留最近N条/某时间后
+SELECT * INTO tmp_t_demo
+FROM t_demo
+WHERE create_time >= '2026-03-30';
+
+-- 2.清空全表（极轻日志）
+TRUNCATE TABLE t_demo;
+
+-- 3.写回
+INSERT t_demo SELECT * FROM tmp_t_demo;
+
+-- 清理
+DROP TABLE tmp_t_demo;
+```
+- ~大量历史数据清理(SIMPLE模式)~
+    - 分批 DELETE（业务会卡? 这张表无法增删改查）
+
+```sql
+SET NOCOUNT ON;
+WHILE 1=1
+BEGIN
+  DELETE TOP(1000) 
+  FROM t_demo 
+  WHERE create_time < '2000-01-01';
+
+  IF @@ROWCOUNT=0 BREAK;
+  -- SIMPLE模式：加 checkpoint 帮日志尽快回收
+  CHECKPOINT;
+END
+```
+
+
 

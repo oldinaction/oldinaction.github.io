@@ -70,6 +70,12 @@ https://blog.csdn.net/runningtortoises/article/details/51425299
 - 代替xshell、xftp客户端，用作web服务器、ssh服务器
 - 保持ssh连接：settings - ssh - 勾选ssh keepalive
 
+## 独立开发
+
+- [Dicebear随机头像方案](https://www.dicebear.com/)
+- Google SMTP配置
+    - 开启 IMAP - 获取16位应用专用密码(开启谷歌 2 步验证 - 找到应用专用密码, 或访问 https://security.google.com/settings/security/apppasswords 设置)
+
 ## 奇技淫巧
 
 - [OpenSpeedy](https://github.com/game1024/Speedy) 百度网盘加速, 参考: https://zhuanlan.zhihu.com/p/678619290

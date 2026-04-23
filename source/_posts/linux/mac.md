@@ -608,8 +608,12 @@ vi "/Applications/Android Emulator.app/Contents/MacOS/api30-gphone-arm64-v8a/con
 - Mac M1 下安装如果遇到已损坏的问题，可执行类似如下命令修复，然后在设置安全里仍要打开
     - `sudo xattr -d com.apple.quarantine /Applications/rubick.app` 修复 rubick.app
     - `sudo xattr -r -d com.apple.quarantine /Applications/Navicat\ Premium.app` 修复 Navicat
+- MAC信任浏览器网站证书
+    - 浏览器证书详情 - 导出证书
+    - `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /path/你的证书.crt` 导入到系统
+    - 在`钥匙串访问.app`中信任词证书
 
-### 设置脚本开机执行(LaunchAgents)
+### 设置脚本开机执行/自动启动(LaunchAgents)
 
 ```bash
 touch ~/Library/LaunchAgents/com.example.testscript.plist
@@ -666,13 +670,13 @@ end tell
 
 ### 更换App图标
 
-- App图标为icns格式，可将[png转icns图片](https://www.aconvert.com/cn/image/png-to-icns)；如: 大小300x300px, 边框留24px透明空白背景
-    - 也可以直接使用其他图片复制过去即可，**SVG 格式效果最好**（PNG 格式也会比较丑），SVG图片库: https://www.iconarchive.com/
+- App可以直接使用图片复制过去即可，如: 大小300x300px, **边框留24px透明空白背景**
+    - SVG图片库: https://www.iconarchive.com/
 - 右键App程序 - 简介 - 将icns图片复制粘贴到左上角的图标处
 
 ### 微信双开
 
-- 参考: https://github.com/CLOUDUH/dual-wechat
+- ~参考~: https://github.com/CLOUDUH/dual-wechat
     - 运行`nohup /Applications/WeChat.app/Contents/MacOS/WeChat > /dev/null 2>&1 &`即可(只支持双开)
     - 或者将上面的命令封装成自动脚本
         - 自动操作 - (新建)应用程序 - (搜索)运行Shell脚本 - 再脚本中填入上述命令 - 保存自动操作文稿(app到应用程序目录)

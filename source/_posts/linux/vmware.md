@@ -153,10 +153,12 @@ tags: [vmware, linux, centos]
 
 ## Oracle VM VirtualBox
 
-- 类似VMware的虚拟机。windows使用docker时，进行DockerToolbox安装则会安装此虚拟机
-- 使用xshell连接：虚拟机设置 - 网络 - 网卡1 - 高级 - 端口转发 - 主机ip为本机ip地址(或127.0.0.1)，主机端口为虚拟机映射出来的端口(对应虚拟机的22端口) [^2]
-- `右边Ctrl`可以切换虚拟机命令行鼠标状态
-- 安装DockerToolbox运行的虚拟机默认用户为`docker/tcuser`
+- 类似VMware的虚拟机，但是相对比较轻量
+- 老板版Windows使用docker时，进行DockerToolbox安装则会安装此虚拟机(新版本使用 WSL)
+    - 安装DockerToolbox运行的虚拟机默认用户为`docker/tcuser`
+- **虚拟机设置两张网卡**: 1 张 Nat 网络(用于虚拟机连接外网), 1 张 Host Only 网络(用于宿主机访问虚拟机)
+    - 使用xshell连接：虚拟机设置 - 网络 - 网卡1 - 高级 - 端口转发 - 主机ip为本机ip地址(或127.0.0.1)，主机端口为虚拟机映射出来的端口(对应虚拟机的22端口) [^2]
+- `右边Ctrl`可以切换虚拟机命令行鼠标状态 (Mac右边 Ctrl 可能无效, 可设置主机键为右边 Alt)
 
 ## Parallels Desktop
 

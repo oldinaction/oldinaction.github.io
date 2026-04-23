@@ -3444,7 +3444,7 @@ module.exports = {
 - 静态站点
     - [GatsbyJS](https://www.gatsbyjs.com/): 基于React
     - Next.js: 基于React的
-    - [Nuxt.js](https://nuxt.com.cn/): 基于Vue.js, 相比Vuepress更偏Web应用
+    - [Nuxt.js](https://nuxt.com.cn/): 基于Vue.js, 相比Vuepress更偏Web应用, 可进行 SEO 优化
     - Gridsome: 基于Vue.js, 支持GraphQL
     - [docusaurus](https://docusaurus.io/)
         - **技术类官网(基于react)**，如果lowcode-engine，官网有很多模板可供选择

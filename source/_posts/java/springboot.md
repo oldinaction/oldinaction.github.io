@@ -1070,15 +1070,20 @@ spring:
         maxOpenPreparedStatements: 20
         # ------------------------
 
-      # 开启web端监控
-      web-stat-filter:
-        enabled: true
-      stat-view-servlet:
-        # http://localhost:8800/druid/ admin/admin
-        enabled: true
-        login-username: admin
-        login-password: admin
-        allow: 192.168.1.100,192.168.2.0/24
+        # 开启web端监控
+        web-stat-filter:
+            enabled: true
+        stat-view-servlet:
+            # http://localhost:8800/druid/ admin/admin
+            enabled: true
+            login-username: admin
+            login-password: admin
+            allow: 192.168.1.100,192.168.2.0/24
+        # 配置监控统计拦截的filters，去掉后监控界面sql无法统计; 'wall'用于防火墙
+        # wall,stat则统计的 SQL 时间不含防火墙过滤器处理时间; stat,wall则统计的 SQL 时间包含防火墙滤器处理时间
+        filters: stat,slf4j
+        # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+        connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
 ```
 - 源码
     - supprot 为扩展包

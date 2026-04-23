@@ -127,14 +127,36 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
 - `Bracket Pair Colorizer 2` 代码括号对应颜色标识
 - `GitLens` Git管理面板
     - 设置 - Gitlens › Hovers: Enabled 去掉勾选 (关闭鼠标移到到代码上的变更提示)
-    - 破解: 修改 `/Users/xxx/.vscode/extensions/eamodio.gitlens-16.3.3/dist/webviews/graph.js`
+    - 破解: 修改 `/Users/xxx/.vscode/extensions/eamodio.gitlens-16.3.3/dist/webviews/graph.js`、
+        - 可通过卸载旁边的下拉 - 安装特定版本
 
     ```js
+    // 版本 17.0.2 参考: https://blog.csdn.net/u014796292/article/details/148178003 删掉下文
+    ,W().createElement(ld,{className:"graph-app__gate",featurePreview:eZ,featurePreviewCommandLink:eZ?iT("gitlens.plus.continueFeaturePreview",r.webviewId,r.webviewInstanceId,{feature:eZ.feature}):void 0,appearance:"alert",featureWithArticleIfNeeded:"the Commit Graph",source:{source:"graph",detail:"gate"},state:eU?.state,webroot:r.webroot,visible:!eW},W().createElement("p",{slot:"feature"},W().createElement("a",{href:"https://help.gitkraken.com/gitlens/gitlens-features/#commit-graph-pro"},"Commit Graph"),W().createElement(lr,{source:{source:"graph",detail:"badge"},subscription:eU})," ","— easily visualize your repository and keep track of all work in progress. Use the rich commit search to find a specific commit, message, author, a changed file or files, or even a specific code change."))
+
+    // 版本 16.3.3 参考
     // 将原本的改成下文
     ,m().createElement(rv,{className:"graph-app__gate",appearance:"alert",featureWithArticleIfNeeded:"the Commit Graph",source:{source:"graph",detail:"gate"},state:nt?.state,visible:!it},m().createElement("p",{slot:"feature"},m().createElement("a",{href:"https://help.gitkraken.com/gitlens/gitlens-features/#commit-graph-pro"},"Commit Graph"),m().createElement(qb,{source:{source:"graph",detail:"badge"},subscription:nt})," ","— easily visualize your repository and keep track of all work in progress. Use the rich commit search to find a specific commit, message, author, a changed file or files, or even a specific code change."))
 
     // 修改后
     ,m().createElement(Fc,{className:"graph-app__gate",featurePreview:Ve,featurePreviewCommandLink:Ve?Rs(ds.PlusContinueFeaturePreview,o.webviewId,o.webviewInstanceId,{feature:Ve.feature}):void 0,appearance:"alert",featureWithArticleIfNeeded:"the Commit Graph",source:{source:"graph",detail:"gate"},state:Ue?.state,webroot:o.webroot,visible:!Fe},m().createElement("p",{slot:"feature"},m().createElement("a",{href:"https://help.gitkraken.com/gitlens/gitlens-features/#commit-graph-pro"},"Commit Graph"),m().createElement(Ic,{source:{source:"graph",detail:"badge"},subscription:Ue})," ","— easily visualize your repository and keep track of all work in progress. Use the rich commit search to find a specific commit, message, author, a changed file or files, or even a specific code change."))
+    ```
+    - 关闭头像配置
+
+    ```json
+    "gitlens.blame.avatars": false,
+    "gitlens.graph.avatars": false,
+    "gitlens.views.commits.avatars": false,
+    "gitlens.views.commitDetails.avatars": false,
+    "gitlens.views.repositories.avatars": false,
+    "gitlens.views.fileHistory.avatars": false,
+    "gitlens.views.lineHistory.avatars": false,
+    "gitlens.views.branches.avatars": false,
+    "gitlens.views.remotes.avatars": false,
+    "gitlens.views.tags.avatars": false,
+    "gitlens.views.worktrees.avatars": false,
+    "gitlens.views.contributors.avatars": false,
+    "gitlens.views.searchAndCompare.avatars": false,
     ```
 - `code-runner` 运行代码, 如c(还需按照c/c++插件)
 
@@ -149,7 +171,21 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
     }
     ```
 - Java
-    - Mybatis Helper 文件跳转,日志解析
+    - Debug - Hot Code Replace => never 关闭热更新
+    - 项目配置
+
+    ```json
+    // 解决警告文件夹颜色变色问题(此处将警告色设置成解决普通文件夹颜色)
+    // 不能完全设置前景色, 否则 Git 文件变更颜色不明显
+    // (如果禁用警告变色，那编译报错也不会变色)
+    "workbench.colorCustomizations": {
+        "list.warningForeground": "#a8aa94",
+        "list.errorForeground": "#ca7273"
+    },
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable",
+    "java.compile.nullAnalysis.mode": "automatic"
+    ```
+- MyBatis Boost 文件跳转,日志解析
 - `Flutter` Flutter开发插件
 - `php debug`
     - php安装扩展xdebug
@@ -287,6 +323,10 @@ https://vscode.cdn.azure.cn/stable/83bd43bc519d15e50c4272c6cf5c1479df196a4d/VSCo
   ]
 }
 ```
+- 读取环境变量
+    - 项目根目录新建 `.env.local` 文件，值如`app.id=1234567890`
+    - launch.json 中增加环境变量配置 `"envFile": "${workspaceFolder}/.env.local"`
+    - java可以直接映射到此环境变量
 
 ## 任务(tasks.json)
 

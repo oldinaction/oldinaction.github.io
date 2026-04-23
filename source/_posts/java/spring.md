@@ -1858,7 +1858,7 @@ public AuthUserInfoHandlerMapping mySimpleUrlHandlerMapping(AuthManager authMana
 ### 拦截器
 
 - Filter 与 Interceptor 区别
-    - **Filter作用在 DispatcherServlet 调用前，Interceptor作用在调用后**
+    - Filter 作用在 DispatcherServlet 调用前，Interceptor作用在调用后，**因此 Filter 比 Interceptor 先执行**
     - Filter 由 Servlet 标准定义，要求 Filter 需要在 Servlet 被调用之前调用，作用顾名思义，就是用来过滤请求。**在 Spring Web 应用中，DispatcherServlet 就是唯一默认的 Servlet 实现**
     - Interceptor 由 Spring 自己定义，由 DispatcherServlet 调用，可以定义在 Handler 调用前后的行为。这里的 Handler ，在多数情况下，就是我们的 Controller 中对应的方法
         - 参考 **DispatcherServlet#doDispatch -> mappedHandler.applyPreHandle -> interceptor.preHandle**(只有URL匹配到了对应的Handler，才会调用preHandle方法)

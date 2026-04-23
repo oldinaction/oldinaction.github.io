@@ -15,7 +15,7 @@ tags: [google]
 - [价格](https://firebase.google.com/pricing)
 - Firebase代替开源方案
     - 参考: https://www.nocobase.com/cn/blog/open-source-firebase-alternatives
-    - Supabase
+    - [Supabase](https://supabase.com/)
 
 ## 基础使用
 

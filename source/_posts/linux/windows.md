@@ -86,7 +86,7 @@ slmgr /ato
             - 对应目录 `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`(.../「开始」菜单/程序/启动)
         - 用户启动目录(**需要该用户登录后才启动**)
             - Win+R - `shell:startup` 打开对应目录
-            - 或手动打开 `C:\Users\smalle\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
+            - 或手动打开 `C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
     - 法三：基于bat和vb
 
         ```bash
@@ -222,7 +222,7 @@ slmgr /ato
 
 ### ssh客户端(不好用)
 
-> **使用cmder即可**
+> **使用MobaXterm 或 cmder即可**
 
 - 下载openssh: [https://github.com/PowerShell/Win32-OpenSSH](https://github.com/PowerShell/Win32-OpenSSH)
 - 解压后将其根目录设置到Path中即可在cmd命令中使用ssh命令连接linux服务器

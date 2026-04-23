@@ -389,10 +389,16 @@ adb devices
 # 连接成功(设备状态显示成devices)才能执行shell命令
 
 # 进入设备命令行
-# 目录说明. App安装目录(没有root无法进入): /data/user/0/包名  App数据目录: /storage/emulated/0/Android/data/包名
 adb shell
 # 进入设备 emulator-5555 系统命令行(linux命令行)
 adb -s emulator-5555 shell
+# 进入应用命令行
+# 目录说明: 
+# App安装目录(没有root无法进入, 参考下文 run-as 命令): /data/user/0/包名
+# App数据目录(有些数据也在安装目录): /storage/emulated/0/Android/data/包名
+run-as your.package.name
+# 拷贝数据到电脑
+adb exec-out run-as your.package.name cat app_flutter/test.db > test.db
 
 # 设备上执行ls命令
 adb shell ls
@@ -425,6 +431,24 @@ adb tcpip 5555
 # 配对并连接
 adb pair ip:port
 adb connect ip:port
+```
+- adb 查看日志
+
+```bash
+# 实时查看所有(应用)日志
+adb logcat
+# 查看最近日志(不实时滚动)
+adb logcat -d # adb logcat -d | tail -100
+# 只看你的应用日志
+adb logcat --pid=$(adb shell pidof -s cn.aezo.demo)
+# 只看Error日志. V/D/I/W/E/F
+adb logcat *:E
+# 按 TAG 过滤
+adb logcat -s "OkHttp"
+# 清空旧日志
+adb logcat -c
+# 保存日志
+adb logcat > log.txt
 ```
 
 ### sdkmanager

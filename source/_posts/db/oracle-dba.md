@@ -1477,6 +1477,7 @@ ORA-00214: control file '/u01/app/oracle/oradata/orcl/control01.ctl' version
         - 还有一思路是通过AOP监听getConnection()方法的执行，进行注入参数(测试了下AOP进不去)
 
         ```java
+        // ============ 默认方式
         @Bean
         public DataSource dataSource(DataSourceProperties properties) {
             return new IdentifierDataSource(properties.initializeDataSourceBuilder().build());
@@ -1501,6 +1502,50 @@ ORA-00214: control file '/u01/app/oracle/oradata/orcl/control01.ctl' version
                     log.error("设置用户会话信息出错", e);
                 }
                 return connection;
+            }
+        }
+
+        // =========== 基于 druid 方式
+        @Bean(name = "druidDataSource", initMethod = "init", destroyMethod = "close")
+        @ConfigurationProperties("spring.datasource.druid")
+        public DruidDataSource druidDataSource(DataSourceProperties properties) {
+            return properties.initializeDataSourceBuilder().type(DruidDataSource.class).build();
+        }
+
+        @Primary
+        @Bean
+        public DataSource dataSource(@Qualifier("druidDataSource") DruidDataSource druidDataSource) {
+            return new IdentifierDataSource(druidDataSource);
+        }
+
+        public static String SET_IDENTIFIER_SQL = "{ call DBMS_SESSION.SET_IDENTIFIER(?) }";
+
+        public static class IdentifierDataSource extends DelegatingDataSource {
+            public IdentifierDataSource(DataSource delegate) {
+                super(delegate);
+            }
+
+            @Override
+            public Connection getConnection() throws SQLException {
+                Connection connection = super.getConnection();
+                applyIdentifier(connection);
+                return connection;
+            }
+
+            @Override
+            public Connection getConnection(String username, String password) throws SQLException {
+                Connection connection = super.getConnection(username, password);
+                applyIdentifier(connection);
+                return connection;
+            }
+
+            private void applyIdentifier(Connection connection) {
+                try (CallableStatement cs = connection.prepareCall(SET_IDENTIFIER_SQL)) {
+                    cs.setString(1, ShiroUtils.getOperNam() == null ? "" : ShiroUtils.getOperNam());
+                    cs.execute();
+                } catch (Exception e) {
+                    log.error("设置用户会话信息出错", e);
+                }
             }
         }
         ```

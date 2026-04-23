@@ -127,6 +127,7 @@ public class DefaultSqlSession implements SqlSession {
         try {
             // configuration见下文 Configuration 类，如果集成了 mybatis-plus 则包装一层 MybatisConfiguration
             MappedStatement ms = configuration.getMappedStatement(statement);
+            // 执行
             return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
         } catch (Exception e) {
             throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

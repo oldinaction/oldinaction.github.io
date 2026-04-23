@@ -19,6 +19,9 @@ tags: [IDE]
 
 ## jetbrains相关编辑器破解
 
+- 2026.1 破解
+    - 参考：https://javaxuexizhe.cn/article/idea-pojie-20261
+    - 下载破解包解压 - 放到 Applications 目录 - 执行 sh /Applications/pojie2099/install.sh 显示成功即可(windows 运行 install.vbs) - 再进入Activation_Code目录获取激活码激活即可 (激活完后貌似不能删除pojie2099)
 - 2024.3.1.1 PyCharm破解
 
 ```bash
@@ -152,6 +155,7 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
     - Project浏览Tab - 设置 - Hide Empty Middle Packages
 - 管理书签
     - Cmd + F3即可调整书签排序(自动排序只能基于助记符+文件+行排序，或者手动排序)
+- 不同的多个项目在IDEA中基于 TAB 显示：Mac - 桌面与程序坞 - 窗口 - 打开文稿时首选标签页 - 始终
 
 ## 插件使用
 
@@ -183,19 +187,21 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
         - base package=cn.aezo.share.rtadmin.app
         - annotation=Mybatis-Plus3, options=Comment,Lombox,Model, template=mybatis-plus3
         - 修改entity代码，增加id配置:`@TableId(value = "id", type = IdType.ASSIGN_ID)`
+- MyBatis Log EasyPlus 打印 mybatis 日志(需要打开其日志窗口才会自动打印到该窗口)
 - `MyBatisCodeHelperPro (Marketplace Edition)` 实体/表双向生成(支持实体生成建表语句)
     - 破解: https://cnblogs.com/equals/p/15391453.html
     - [使用说明](https://gejun123456.github.io/MyBatisCodeHelper-Pro/)
+    - 支持生成Mybatis执行日志(自动拼接参数)
+        - 类似插件: `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板。破解版地址: https://github.com/Link-Kou/intellij-mybaitslog
     - 支持实体生成建表语句
     - (只支持mybatis)支持基于表生成实体/Mapper/服务等
         - 类似插件: `MybatisX`、`Free MyBatis plugin` 可自动识别mapper实现(mybatis标识)，集成了MyBatis Generator GUI
-    - 支持生成Mybatis执行日志(自动拼接参数)
-        - 类似插件: `MyBatis Log Plugin` 将mybatis日志中的?转换为真实值。在Tools菜单中可打开对应面板。破解版地址: https://github.com/Link-Kou/intellij-mybaitslog
     - 支持预执行SQL(基于Mapper XML执行，弹框输入参数执行)
 - `Grep Console` 日志过滤
     - 高亮: 如表达式`Expression=.*Demo.*`则表示显示有Demo字样的那些行
     - 日志窗口 - 右键 - Grep: 基于当前日志进行过滤(只显示符合条件的日志，如输入Demo则只匹配有Demo字样的行)
 - `Java Bytecode Decompiler` 查看class反编译代码
+- `Ant` 新版本需要手动安装 ant 插件才能使用 Ant
 
 ### 部分场景
 
@@ -334,13 +340,47 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 | @version      | 指定类的版本                                           | @version info                                                |
 | `<pre></pre>` | 可按格式显示文本，如显示代码块                           |                                                             |
 
+## 模块使用
+
+### Git
+
+- **设置git的Local Changes窗口显示**
+    - 新版本(2025)设置: File –> Settings –> Advanced Settings -> 搜索commit - 勾选 Use modal commit interface for Git
+        - 老版本: File –> Settings –> Version Control –> commit -> 取消勾选 Use non-modal commit interface -> apply
+- 在一个项目中管理多个git
+    - setting - Version Control - 编辑Directory
+- 暂存功能(Shelve搁置)。类似[git stash](/_posts/arch/git.md#暂存工作区)
+    - Local Changes - 右键 - Shelve Changes - 命名一下此搁置 ==> 此变更会被暂存(暂存不会产生commit记录，主分支会被还原成未修改的状态)
+    - Shelf - 右键 - UnShelve ==> 还原此暂存到主分支
+
+### Database
+
+- 给不同环境的数据库设置背景颜色: 选择数据库右键 - Tools - Set Color
+
 ## 常用技巧
+
+### 使用.http文件的快捷请求脚本
+
+- https://www.cnblogs.com/crazymakercircle/p/14317222.html
+- 支持环境变量，如创建`http-client.env.json`
 
 ### 正则查找和替换
 
 - 查找如`to_char\(((?:(?!FROM).)*?)\,(.*?(?:yy\-|yy\/|mm\-|mm\/|hh24).*?)\)`查询所有同to_char格式化日期的SQL，但是不包含`to_char(FROM`
     - 替换如`to_char(FROM_TZ(CAST($1 AS TIMESTAMP), 'Asia/Shanghai') AT TIME ZONE '"+ Util.getTimeZone() +"', $2)`
 - VsCode正则`@comp\/(.*?)(?<!\.vue)'$`替换为`@comp/$1.vue'`将非.vue结尾的加上.vue (伪案例: 这样替换可能会导致@comp/Demo/index.vue写成@/comp/Demo时被替换错误)
+
+### 开启Run DashBoard配置
+
+- 当项目存在多个可执行模块时，Run DashBoard配置会自动跳出，如果不跳出可以手动配置，在项目的`.idea/workspace.xml`中找到`<component name="RunDashboard">`节点，在此节点中加入下列配置
+
+```xml
+<option name="configurationTypes">
+    <set>
+        <option value="SpringBootApplicationConfigurationType" />
+    </set>
+</option>
+```
 
 ### Debug调试技巧
 
@@ -369,34 +409,6 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
     - 先下载对应源码到某目录，如dir
     - 点击项目管理视图 - Libraries - 点击相关依赖 - 选择Sources - Add添加源码文件 - 选择刚刚目录下的源码(如果源码为maven结构，则选择改源码的src目录)
     - 点击该依赖类 - 编辑 - idea提示此文件不为本项目文件，是否需要修改 - 选择是即可
-
-### 开启Run DashBoard配置
-
-- 当项目存在多个可执行模块时，Run DashBoard配置会自动跳出，如果不跳出可以手动配置，在项目的`.idea/workspace.xml`中找到`<component name="RunDashboard">`节点，在此节点中加入下列配置
-
-```xml
-<option name="configurationTypes">
-    <set>
-        <option value="SpringBootApplicationConfigurationType" />
-    </set>
-</option>
-```
-
-### 使用.http文件的快捷请求脚本
-
-- https://www.cnblogs.com/crazymakercircle/p/14317222.html
-- 支持环境变量，如创建`http-client.env.json`
-
-### Git
-
-- **设置git的Local Changes窗口显示**
-    - File –> Settings –> Version Control –> commit -> 取消勾选 Use non-modal commit interface -> apply
-    - 新版本(2025)设置: File –> Settings –> Advanced Settings -> 搜索commit - 勾选 Use modal commit interface for Git
-- 在一个项目中管理多个git
-    - setting - Version Control - 编辑Directory
-- 暂存功能(Shelve搁置)。类似[git stash](/_posts/arch/git.md#暂存工作区)
-    - Local Changes - 右键 - Shelve Changes - 命名一下此搁置 ==> 此变更会被暂存(暂存不会产生commit记录，主分支会被还原成未修改的状态)
-    - Shelf - 右键 - UnShelve ==> 还原此暂存到主分支
 
 ### Maven
 

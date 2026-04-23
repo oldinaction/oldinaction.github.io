@@ -369,8 +369,14 @@ where buffer_gets_rank <= 5;
 
 ### SqlServer
 
+- 查询执行计划[sql-optimization.md#SQLServer](/_posts/db/sql-optimization.md#SQLServer)
+- 查询慢SQL
+
 ```sql
--- 查看运行中的sql，根据耗时降序排列
+-- kill pid 杀掉对应查询session
+kill <pid>
+
+-- 1.查看运行中的sql (dm_exec_requests)，根据耗时降序排列
 SELECT DISTINCT
     er.session_id AS pid,
     er.status AS status,
@@ -380,41 +386,98 @@ SELECT DISTINCT
     sp.program_name AS program_name,
     er.cpu_time AS cpu_time,
     er.total_elapsed_time AS cost_time,
+    er.blocking_session_id AS blocking_pid, -- 如果不为 0, 说明慢不一定是 SQL 本身，而可能是阻塞。这类情况要继续查锁等待和阻塞链
     SUBSTRING(qt.TEXT, (er.statement_start_offset/2)+1, ((CASE er.statement_end_offset WHEN -1 THEN DATALENGTH(qt.TEXT) ELSE er.statement_end_offset END - er.statement_start_offset)/2)+1) AS query_sql
-FROM sys.sysprocesses AS sp LEFT JOIN sys.dm_exec_requests AS er ON sp.spid = er.session_id
-    CROSS APPLY sys.dm_exec_sql_text(er.sql_handle) AS qt
+FROM sys.sysprocesses AS sp 
+LEFT JOIN sys.dm_exec_requests AS er ON sp.spid = er.session_id
+CROSS APPLY sys.dm_exec_sql_text(er.sql_handle) AS qt
 WHERE 1 = CASE WHEN er.status IN ('RUNNABLE', 'SUSPENDED', 'RUNNING') THEN 1 WHEN er.status = 'SLEEPING' AND sp.open_tran  > 0 THEN 1 ELSE 0 END
-AND er.command = 'SELECT'
 ORDER BY er.total_elapsed_time DESC;
 
 
--- 查看历史sql耗时情况，根据平均耗时降序排列
-SELECT creation_time  N'语句编译时间'
-        ,last_execution_time  N'上次执行时间'
-        ,total_physical_reads N'物理读取总次数'
-        ,total_logical_reads/execution_count N'每次逻辑读次数'
-        ,total_logical_reads  N'逻辑读取总次数'
-        ,total_logical_writes N'逻辑写入总次数'
-        ,execution_count  N'执行次数'
-        ,total_worker_time/1000 N'所用的CPU总时间ms'
-        ,total_elapsed_time/1000  N'总花费时间ms'
-        ,(total_elapsed_time / execution_count)/1000  N'平均时间ms'
-        ,SUBSTRING(st.text, (qs.statement_start_offset/2) + 1,
-         ((CASE statement_end_offset
-          WHEN -1 THEN DATALENGTH(st.text)
-          ELSE qs.statement_end_offset END
-            - qs.statement_start_offset)/2) + 1) N'执行语句'
-FROM sys.dm_exec_query_stats AS qs
+-- 2.查看历史sql (dm_exec_query_stats) 耗时情况，根据平均耗时降序排列
+-- 这个只能看到还在计划缓存里的 SQL，服务重启、计划被清掉后数据就没了；而 Query Store 会更稳定
+SELECT TOP 20
+    last_execution_time N'上次执行时间',
+    (total_elapsed_time/execution_count)/1000/1000 N'平均时间s',
+    max_elapsed_time/1000/1000 N'最大耗时s',
+    execution_count N'执行次数',
+    SUBSTRING(st.text, (qs.statement_start_offset/2) + 1, ((CASE statement_end_offset WHEN -1 THEN DATALENGTH(st.text) ELSE qs.statement_end_offset END - qs.statement_start_offset)/2) + 1) N'执行语句',
+    creation_time N'语句编译时间',
+    total_elapsed_time/1000/1000 N'总花费时间s',
+    total_worker_time/1000/1000 N'所用的CPU总时间s',
+    total_physical_reads N'物理读取总次数',
+    total_logical_reads/execution_count N'每次逻辑读次数',
+    total_logical_reads N'逻辑读取总次数',
+    total_logical_writes N'逻辑写入总次数'
+FROM sys.dm_exec_query_stats AS qs 
 CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) st
-where SUBSTRING(st.text, (qs.statement_start_offset/2) + 1,
-         ((CASE statement_end_offset
-          WHEN -1 THEN DATALENGTH(st.text)
-          ELSE qs.statement_end_offset END
-            - qs.statement_start_offset)/2) + 1) not like '%fetch%'
-ORDER BY  total_elapsed_time / execution_count DESC;
+-- where last_execution_time > '2000-01-01'
+ORDER BY total_elapsed_time / execution_count DESC; -- max_elapsed_time
 
--- kill pid 杀掉对应查询session
-kill <pid>
+
+-- 3.Query Store 会自动保存查询、执行计划和运行时统计信息，适合查“最近哪些 SQL 变慢了”“是不是执行计划变了”
+-- 业务低峰期设置好即可(永久生效; 日志空间默认是100MB, 超过会自动清理)
+ALTER DATABASE Your_DB_XXX SET QUERY_STORE = ON;
+ALTER DATABASE Your_DB_XXX SET QUERY_STORE (
+    OPERATION_MODE = READ_WRITE
+);
+-- 基于 Query Store 查最近 1 小时最慢的查询
+SELECT TOP 20
+    qsq.query_id,
+    qsp.plan_id,
+    rs.avg_duration / 1000.0 AS avg_duration_ms,
+    rs.max_duration / 1000.0 AS max_duration_ms,
+    rs.avg_cpu_time / 1000.0 AS avg_cpu_ms,
+    rs.avg_logical_io_reads,
+    qt.query_sql_text
+FROM sys.query_store_query_text qt
+JOIN sys.query_store_query qsq
+    ON qt.query_text_id = qsq.query_text_id
+JOIN sys.query_store_plan qsp
+    ON qsq.query_id = qsp.query_id
+JOIN sys.query_store_runtime_stats rs
+    ON qsp.plan_id = rs.plan_id
+JOIN sys.query_store_runtime_stats_interval rsi
+    ON rs.runtime_stats_interval_id = rsi.runtime_stats_interval_id
+WHERE rsi.start_time >= DATEADD(HOUR, -1, SYSUTCDATETIME())
+ORDER BY rs.avg_duration DESC;
+
+
+-- 4.补充抓包：Extended Events
+IF EXISTS (SELECT * FROM sys.server_event_sessions WHERE name='TrackSlowQueries')
+  DROP EVENT SESSION TrackSlowQueries ON SERVER;
+GO
+CREATE EVENT SESSION [TrackSlowQueries]
+ON SERVER
+ADD EVENT sqlserver.rpc_completed(
+    ACTION(sqlserver.sql_text, sqlserver.client_app_name, sqlserver.username)
+    WHERE (duration > 3000000)   -- 微秒，3 秒
+),
+ADD EVENT sqlserver.sql_batch_completed(
+    ACTION(sqlserver.sql_text, sqlserver.client_app_name, sqlserver.username)
+    WHERE (duration > 3000000)   -- 微秒，3 秒
+)
+ADD TARGET package0.event_file(
+    SET filename = N'C:\XE\TrackSlowQueries.xel', -- 抓包文件存储径
+        max_file_size = 100,
+        max_rollover_files = 5
+);
+GO
+ALTER EVENT SESSION [TrackSlowQueries] ON SERVER STATE = START;
+-- 之后可以下面语句查询
+SELECT
+  DATEADD(HOUR, 8,event_data.value('(event/@timestamp)[1]','datetime2')) AS start_time_local,
+  event_data.value('(event/@name)[1]','varchar(50)') AS event_type,
+  event_data.value('(event/data[@name="duration"]/value)[1]','bigint')/1000 AS duration_ms,
+  event_data.value('(event/action[@name="sql_text"]/value)[1]','nvarchar(max)') AS sql_text,
+  event_data.value('(event/action[@name="database_name"]/value)[1]','nvarchar(128)') AS db_name,
+  event_data.value('(event/action[@name="username"]/value)[1]','nvarchar(128)') AS username
+FROM (
+  SELECT CONVERT(xml, event_data) AS event_data
+  FROM sys.fn_xe_file_target_read_file('C:\XE\TrackSlowQueries*.xel',NULL,NULL,NULL)
+) AS x
+ORDER BY duration_ms DESC;
 ```
 
 ## JVM调优实践及相关案例

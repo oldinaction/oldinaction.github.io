@@ -135,15 +135,19 @@ git config --global color.ui true
 
 ```bash
 git remote add origin git@github.com:test1/test1.git # 推送到github
-git remote add osc git@git.oschina.net:test2/test2.git # 推送到oschina
+git remote add oschina git@git.oschina.net:test2/test2.git # 推送到oschina
 
 git add .
 git commit -m 'First commit'
 
+# git push <远程仓库名> <本地当前分支>:<远程目标分支>
 git push origin master # 推送到github。默认远程，可简写为 git push
-git push osc master # 推送到oschina
-# 将本地的 v-1/func-1 分支推送到 osc 远程的 v-1/func-1 分支
-git push osc v-1/func-1:v-1/func-1 --set-upstream
+git push oschina develop:master # 将本地的 develop 分支推送到 oschina 远程的 master 分支
+# 将本地的 v-1/func-1 分支推送到 oschina 远程的 v-1/func-1 分支, 并建立关联
+git push -u oschina v-1/func-1:v-1/func-1
+
+# 合并 oschina 远程的 develop 分支到当前分支
+git merge oschina/develop
 ```
 
 ### 分支
@@ -224,6 +228,14 @@ git rebase develop # 不要在公共分支(develop)上使用rebase
 # 解决冲突后
 git rebase --continue # 或 git rebase --skip
 git push origin feat --force
+```
+- cherry-pick 合并指定提交到当前分支
+
+```bash
+# git cherry-pick <commit-hash>
+# 将 feature-branch 上的 9f8bdef 提交的更改合并到当前的 main 分支中
+git checkout main
+git cherry-pick 9f8bdef
 ```
 
 ### 丢弃/暂存/撤销/重置
@@ -381,16 +393,27 @@ git fetch upstream
 - 注意事项
 	- git不监控文件权限属性变化
 
-### gitignore
+### 忽略文件(.gitignore)
 
-- `.gitignore` 文件创建和设置
+- 法一: `.gitignore` 文件创建和设置
 	- git根目录运行命令：`touch .gitignore`
 	- 使用 vi 编辑器进行文件配置
-— 排除文件: 永久忽略某些文件，但不想把规则写在项目的 .gitignore，语法完全一样
+- 法二: 排除文件: 永久忽略某些文件，但不想把规则写在项目的 .gitignore，语法完全一样
     - 某个项目排除文件 `.git/info/exclude`
     - 全局排除（所有 Git 仓库生效）
         - `touch ~/.gitignore_global && git config --global core.excludesfile ~/.gitignore_global`
-- 配置语法 [^6]
+- 法三: 跳过工作区变更（文件仍在仓库，本地修改忽略）
+
+```bash
+# 如 .env.local 模板文件，提交到仓库后之后不想在本地修改后变更 (更好的方法是使用 .env.local.example 然后忽略 .env.local 文件)
+# 忽略文件 .env.local
+git update-index --skip-worktree .env.local
+# 取消忽略文件
+git update-index --no-skip-worktree .env.local
+# 查看所有跳过工作区变更的文件
+git ls-files -v | grep '^S'
+```
+- .gitignore配置语法 [^6]
 
 ```bash
 #               表示此为注释,将被Git忽略

@@ -1698,8 +1698,88 @@ public LogicSqlInjector logicSqlInjector () {
     - Mybatis-Plus整合多数据源: https://juejin.cn/post/7020066406012026893
 - 字段为mysql关键字处理
     - 如字段value在mysql中是关键字，不能直接使用，可在字段上加注解`@TableField(value = "`value`")`
+- sqlserver字段类型为 date(datetime2?) 时，设值为 NULL 报错: `uncategorized SQLException; SQL state [S0003]; error code [257]; 不允许从数据类型 varbinary 到 date 的隐式转换。请使用 CONVERT 函数来运行此查询。`
+    - 参考: https://www.cnblogs.com/montaro/p/18912737
 
 ## 其他
+
+### PreparedStatement导致查询慢问题(SqlServer)
+
+- 场景: 执行大 SQL 时, 发现执行时间很慢, 但是数据库直接执行, 或者使用 JdbcTemplate 执行 SQL 时都很快
+    - 本身不是PreparedStatement的问题, 直接执行的时候是字面量 SQL, 而 PreparedStatement 是参数化执行, 两种方式执行最终数据库选择的执行计划可能不一致  
+- 可能原因(本质还是要优化SQL)
+    - 比如执行计划中包含`StatementOptmEarlyAbortReason="TimeOut"`，说明优化器没来得及把更好的计划搜完，就提前停了，这种情况下，参数化执行更容易拿到“不够好但能用”的计划导致查询较慢
+    - 是否有隐式转换，比如SqlServer中 NVARCHAR 和 VARCHAR 不同
+        - `VARCHAR` 非 Unicode（占 1 个字节/字符）. `WHERE name = '中文'` 默认是使用 VARCHAR 类型
+        - `NVARCHAR` 是 Unicode（占 2 个字节/字符）. `WHERE name = N'中文'` 或 `WHERE name = #{name,jdbcType=NVARCHAR}` 则是使用 NVARCHAR 类型(如果不要前面的 N 会出现隐式转换)
+    - 比如复杂的 OR LIKE(左右) 等可先基于 LIKE 查出 ID，再基于 ID IN 查询
+- 排查方法
+    - 一般是卡在数据读取的地方, 可以找到该地方断点看看, 如果这里慢可以考虑优化 SQL(说明服务器执行慢)
+    - 可 Thread.dumpStack(); 打印堆栈丢给 AI 排查
+
+    ```java
+    "http-nio-8080-exec-3@13889" daemon prio=5 tid=0x7f nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at java.net.SocketInputStream.socketRead0(SocketInputStream.java:-1)
+	  at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	  at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	  at java.net.SocketInputStream.read(SocketInputStream.java:141)
+	  at com.microsoft.sqlserver.jdbc.TDSChannel.read(IOBuffer.java:1782)
+	  at com.microsoft.sqlserver.jdbc.TDSReader.readPacket(IOBuffer.java:4838)
+	  - locked <0x4ef6> (a com.microsoft.sqlserver.jdbc.TDSReader)
+	  at com.microsoft.sqlserver.jdbc.TDSCommand.startResponse(IOBuffer.java:6150)
+	  at com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement.doExecutePreparedStatement(SQLServerPreparedStatement.java:402)
+	  at com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement$PrepStmtExecCmd.doExecute(SQLServerPreparedStatement.java:350)
+	  at com.microsoft.sqlserver.jdbc.TDSCommand.execute(IOBuffer.java:5696)
+	  at com.microsoft.sqlserver.jdbc.SQLServerConnection.executeCommand(SQLServerConnection.java:1715)
+	  - locked <0x4f34> (a java.lang.Object)
+	  at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeCommand(SQLServerStatement.java:180)
+	  at com.microsoft.sqlserver.jdbc.SQLServerStatement.executeStatement(SQLServerStatement.java:155)
+	  at com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement.execute(SQLServerPreparedStatement.java:332)
+	  at com.alibaba.druid.filter.FilterChainImpl.preparedStatement_execute(FilterChainImpl.java:3461)
+	  at com.alibaba.druid.filter.FilterEventAdapter.preparedStatement_execute(FilterEventAdapter.java:440)
+	  at com.alibaba.druid.filter.FilterChainImpl.preparedStatement_execute(FilterChainImpl.java:3459)
+	  at com.alibaba.druid.filter.FilterEventAdapter.preparedStatement_execute(FilterEventAdapter.java:440)
+	  at com.alibaba.druid.filter.FilterChainImpl.preparedStatement_execute(FilterChainImpl.java:3459)
+	  at com.alibaba.druid.proxy.jdbc.PreparedStatementProxyImpl.execute(PreparedStatementProxyImpl.java:167)
+	  at com.alibaba.druid.pool.DruidPooledPreparedStatement.execute(DruidPooledPreparedStatement.java:497)
+	  at org.apache.ibatis.executor.statement.PreparedStatementHandler.query(PreparedStatementHandler.java:64)
+	  at org.apache.ibatis.executor.statement.RoutingStatementHandler.query(RoutingStatementHandler.java:79)
+	  at sun.reflect.GeneratedMethodAccessor233.invoke(Unknown Source:-1)
+	  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	  at java.lang.reflect.Method.invoke(Method.java:498)
+	  at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:64)
+	  at com.sun.proxy.$Proxy633.query(Unknown Source:-1)
+	  at org.apache.ibatis.executor.SimpleExecutor.doQuery(SimpleExecutor.java:63)
+	  at org.apache.ibatis.executor.BaseExecutor.queryFromDatabase(BaseExecutor.java:325)
+	  at org.apache.ibatis.executor.BaseExecutor.query(BaseExecutor.java:156)
+	  at org.apache.ibatis.executor.CachingExecutor.query(CachingExecutor.java:109)
+	  at sun.reflect.GeneratedMethodAccessor230.invoke(Unknown Source:-1)
+	  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	  at java.lang.reflect.Method.invoke(Method.java:498)
+	  at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:64)
+	  at com.sun.proxy.$Proxy632.query(Unknown Source:-1)
+	  at com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor.intercept(MybatisPlusInterceptor.java:81)
+	  at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:62)
+	  at com.sun.proxy.$Proxy632.query(Unknown Source:-1)
+	  at sun.reflect.GeneratedMethodAccessor228.invoke(Unknown Source:-1)
+	  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	  at java.lang.reflect.Method.invoke(Method.java:498)
+	  at org.apache.ibatis.plugin.Invocation.proceed(Invocation.java:49)
+	  at org.jeecg.config.mybatis.PermInterceptor.intercept(PermInterceptor.java:36)
+	  at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:62)
+	  at com.sun.proxy.$Proxy632.query(Unknown Source:-1)
+	  at org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:151)
+	  at org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:145)
+	  at org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:140)
+	  at sun.reflect.GeneratedMethodAccessor234.invoke(Unknown Source:-1)
+	  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	  at java.lang.reflect.Method.invoke(Method.java:498)
+	  at org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:427)
+	  at com.sun.proxy.$Proxy150.selectList(Unknown Source:-1)
+	  at org.mybatis.spring.SqlSessionTemplate.selectList(SqlSessionTemplate.java:224)
+      ......
+    ```
 
 ### SqlServer-cursor导致查询慢问题
 

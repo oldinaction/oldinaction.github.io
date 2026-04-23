@@ -62,7 +62,7 @@ usermod -a -G www sq
 ```
 - 设置用户umask值为0022(包括root用户)：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#文件权限)
 - 证书登录、禁用root(内部集群一般不建议，因为经常需要ssh远程登录)及密码登录、修改ssh的22端口：[linux系统：http://blog.aezo.cn/2016/07/21/linux/linux/](/_posts/linux/linux.md#ssh)
-- 修改hostname：`hostnamectl --static set-hostname aezocn` 修改主机名并重启
+- 修改hostname：`hostnamectl --static set-hostname node01` 修改主机名并重启
 - [更换镜像，见下文](#镜像管理)
 - 内核升级(Centos7 默认使用内核版本为`3.10`，目前内核长期支持版为`4.4`)
 - `yum update -y` 更新软件版本和内核次版本。初始化机器可执行，生成环境不建议重复更新内核版本
@@ -810,6 +810,17 @@ echo "zabbix test mail" | mail -s "zabbix" test@163.com
     - `date -s "2019-04-07 10:00:00"` 设置时间
     - `hwclock -w` 将时间写入bios固件避免重启失效
 
+#### chronyd同步(推荐)
+
+```bash
+yum install -y chrony
+systemctl enable --now chronyd && systemctl restart chronyd
+# 可选, 配置国内 NTP 服务器
+# vi /etc/chrony.conf
+# 立即同步
+chronyc makestep
+```
+
 #### NTP网络时间同步
 
 - NTP(Network Time Protocol)
@@ -962,6 +973,15 @@ umount /mnt
     - `jq .subjects[0].casts[0] douban.json`
     - `curl -s https://douban.uieee.com/v2/movie/top250?count=1 | jq .subjects[0].casts[0]`
 
+## Rocky使用说明
+
+- 常用软件安装
+
+```bash
+yum install -y net-tools
+yum install -y tar
+yum install -y wget
+```
 
 
 

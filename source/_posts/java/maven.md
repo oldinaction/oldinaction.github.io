@@ -373,14 +373,14 @@ mvn wrapper:wrapper -Dmaven=3.6.3
     <mirror>
         <id>nexus-aliyun</id>
         <name>Nexus aliyun</name>
-        <url>http://maven.aliyun.com/nexus/content/groups/public/</url> 
+        <url>https://maven.aliyun.com/repository/public</url> 
         <mirrorOf>central</mirrorOf> 
     </mirror>
 	```
 - 证书问题导致，下载jar包时只返回一个更新文件，且里面报错`unable to find valid certification path to requested target`。需按照下列方式修改jdk证书 [^4]
 
 ```bash
-# 浏览器访问 https://maven.aliyun.com/nexus/content/groups/public/，查看证书 - 下载证书(复制到文件，Base64) - 如d:D://aliyun.cer
+# 浏览器访问 https://maven.aliyun.com/repository/public，查看证书 - 下载证书(复制到文件，Base64) - 如d:D://aliyun.cer
 # 进入jdk目录 jdk1.8.0_111\jre\lib\security 执行命令
 keytool -import -alias aliyun -keystore cacerts -file D://aliyun.cer
 # 输入密码 changeit
@@ -395,7 +395,7 @@ keytool -list -keystore cacerts -alias aliyun
 <repositories>
     <repository>
         <id>aliyun-repos</id>
-        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+        <url>https://maven.aliyun.com/repository/public</url>
         <snapshots>
             <enabled>false</enabled>
         </snapshots>
@@ -405,7 +405,7 @@ keytool -list -keystore cacerts -alias aliyun
 <pluginRepositories>
     <pluginRepository>
         <id>aliyun-plugin</id>
-        <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+        <url>https://maven.aliyun.com/repository/public</url>
         <snapshots>
             <enabled>false</enabled>
         </snapshots>
@@ -1102,7 +1102,7 @@ public class BizMojo extends AbstractMojo {
         <!-- 如果使用github仓库，可在前面加一个阿里云仓库；否则所有的包会先检查一下github仓库，没有再走本地镜像 -->
         <repository>
 			<id>aliyun-repos</id>
-			<url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+			<url>https://maven.aliyun.com/repository/public</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -1190,7 +1190,7 @@ services:
     - Snapshots 发布版本内容（即自己公司发行的jar的快照版本）
     - Public 以上三个仓库的小组
 - 设置maven-central代理位置
-    - Repositories - Central - Configuration - Remote Storage Location填写阿里云镜像 http://maven.aliyun.com/nexus/content/groups/public/ (默认为maven官网仓库https://repo1.maven.org/maven2/)
+    - Repositories - Central - Configuration - Remote Storage Location填写阿里云镜像 https://maven.aliyun.com/repository/public (默认为maven官网仓库https://repo1.maven.org/maven2/)
 - 允许Releases仓库重复提交
     - Repositories - Releases - Configuration - Deployment Policy 选择 Allow Redeploy (理论上每次发布都会修改版本，因此应该设置禁止重复推送)
 - 禁止匿名用户访问

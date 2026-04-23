@@ -21,6 +21,19 @@ tags: [linux, network]
     - https://github.com/029danio/fly
     - 免费推荐? https://hifreevpn.net/zh-hans
 
+## 代理环境变量设置
+
+```bash
+# unset http_proxy && unset https_proxy && unset all_proxy && unset HTTP_PROXY && unset HTTPS_PROXY && unset ALL_PROXY
+# wget https://www.google.com
+export all_proxy=socks5://username:password@host:port # username:password@可以省略, 密码必须为 URL encode
+export http_proxy=http://username:password@host:port
+export https_proxy=$http_proxy
+export ALL_PROXY=$all_proxy
+export HTTP_PROXY=$http_proxy
+export HTTPS_PROXY=$http_proxy
+```
+
 ## centos7安装虚拟办公网络
 
 - 梯子推荐: https://9.234456.xyz/abc.html
@@ -168,7 +181,7 @@ ssh -Nf -R 2222:192.168.1.200:22 3.3.3.3
 # 访问本地机器A的2222端口，就能连接目标机B的22端口了
 ssh -p 2222 localhost
 
-# 推荐: 后台运行通道
+# ********推荐********: 后台运行通道
 # /opt/soft/sshpass-1.05/sshpass -p "test" ssh -fN -C -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -D 0.0.0.0:1088 root@192.168.1.200 -p 20000
 ssh -fN -C -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -D 0.0.0.0:1088 root@192.168.1.200 -p 20000
 
@@ -181,7 +194,7 @@ ssh -fN -C -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -D 0.0.0.0:1088 ro
 ```bash
 # 在本机A(linux)上运行，连接中间机器C(可FQ)。则本机浏览网页时，只需要在浏览器中设置SOCKS代理(或者通过SocksCap启动目标程序)则可FQ
 # 不静默运行，且定时执行命令，防止程序退出
-ssh -fN -D 0.0.0.0:1080 root@8.12.12.149
+ssh -fN -D 0.0.0.0:1080 root@8.12.10.100
 
 # 常用此方式将C(192.167.1.27)作为跳板机访问生成安全网络：在C(网段1)上挂"虚拟办公网络"则可访问生产网络(网段2)，此时又在C上启动SOCKS代理，则其他机器配置此SOCKS代理即可访同C一样访问生产网络(直接访问网段2的地址即可)
 # 直接在中间机C上运行此命令，**使用中间机器test用户登录自身ssh**(中间机器需要开启sshd服务)开启隧道
@@ -433,7 +446,8 @@ proxy-groups:
 - 利用PAC我们可以对某些特定站点或移动到特定的网络时选择特定的代理服务器来浏览网页
     - 常见的浏览器（Firefox，IE，Safari）都实现了对PAC支持，参考: https://zhuanlan.zhihu.com/p/148499709
 - 语法说明参考: https://blog.csdn.net/yjz0065/article/details/5653705
-- 还可结合GFW清单进行配置，GFW参考[gfwlist](https://github.com/gfwlist/gfwlist), [gfwlist2pac](https://github.com/itcook/gfwlist2pac)
+- 还可结合GFW清单进行配置，GFW参考[gfwlist](https://github.com/gfwlist/gfwlist)
+    - [pac.js](/data/src/linux/pac.js)
 - 简单案例
 
 ```js

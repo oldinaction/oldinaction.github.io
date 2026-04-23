@@ -23,7 +23,8 @@ tags: [linux, shell]
         - `RHEL` (Redhat Enterprise Linux)
         - `Fedora Core` (由原来的Redhat桌面版本发展而来，免费版本)
         - [CentOS](https://www.centos.org/) (RHEL的社区克隆版本，免费)
-        - [Rocky Linux](https://rockylinux.org/) CentOS替代方案，开源免费，兼容RHEL
+        - [Rocky Linux](https://rockylinux.org/) **CentOS替代方案，开源免费，兼容RHEL**
+            - [镜像下载地址](https://download.rockylinux.org/pub/rocky/9/isos/x86_64/)
     - `Debian系列` 使用`apt-get / dpkg`包管理方式
         - [Debian](https://www.debian.org/)、[Man Docs](https://manpages.debian.org/)
         - [Ubuntu](https://cn.ubuntu.com/)
@@ -939,9 +940,12 @@ chmod u-w /etc/sudoers
 
 - **SSH连接**
     - **`ssh-keygen` 生成秘钥对**。可以在服务器、客户端、开发机上生成
+        - 新版本的 OpenSSH(如8.7) 已经默认不支持 RSA 算法密钥对(不安全), 可以考虑使用 ed25519 密钥对连接服务器老版本的 OpenSSH(如6.6.1)
+        - 生成 ed25519 密钥对: `ssh-keygen -t ed25519 -a 100` 会生成 `id_ed25519` 和 `id_ed25519.pub` 两个文件
     - **将公钥 `id_rsa.pub` 内容追加到服务器的 `~/.ssh/authorized_keys` 文件中** (服务器无需保存id_rsa.pub和id_rsa公私钥文件)
         - `cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys` 追加内容。如果没有authorized_keys文件可手动创建，**但是必须保证文件权限必须是600**
         - 如登录服务器root账号则是`/root/.ssh/authorized_keys`，如登录aezo账号则是`/home/aezo/.ssh/authorized_keys`
+        - id_rsa.pub 公钥最后的名称复制到服务器后可以进行修改不影响登录
     - **将私钥 `id_rsa` 保存在客户端的`~/.ssh/`目录，且设置文件权限为0600**
         - `chmod 0600 id_rsa` 设置权限。如果是644的权限则报错: `It is required that your private key files are NOT accessible by others. This private key will be ignored.`
 - `ssh-keygen` 命令生成秘钥对

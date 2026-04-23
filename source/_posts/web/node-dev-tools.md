@@ -12,7 +12,7 @@ tags: [node, tools]
 
 ```bash
 # 设置镜像
-npm config set registry https://registry.npmmirror.com/
+npm config set registry https://registry.npmmirror.com
 # electron-mirror、node-sass等组件需要单独设置镜像
 npm i -g mirror-config-china --registry=https://registry.npmmirror.com
 # mac下安装报无权限解决方法

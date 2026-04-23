@@ -266,11 +266,24 @@ select case when ... end from t_user;
 select lower(replace(newid(), '-', '')), newid(); -- 6b1e0f1b7e0f4fab9e783f1617619ea5	1E9EC626-B8DE-461D-A8DF-FB903E354C43
 ```
 
-### 读锁问题
+### 锁问题
 
 - A事物(基于ID)更新表test暂未提交，此时B事物读取test表
     - Mysql: B事物可正常执行读取
     - **SqlServer: B事物会阻塞，直到A事物提交或回滚释放锁**(A事物持有test的IX锁，B事物持有IS锁). 多线程可能存在问题
+- "(默认情况下)，SqlServer写会阻塞读，而 Oracle/Mysql 不会出现？"
+    - SQL Server 默认是 READ COMMITTED，基于锁的读已提交，更偏“锁读”
+    - MySQL InnoDB 默认更偏“快照读”
+    - Oracle 强 MVCC 风格（读取旧版本）
+- SQL Server 能不能做到像 MySQL/Oracle 那样的快照读？可以
+
+    ```sql
+    -- 把数据库的 READ COMMITTED 从“锁读”改成“版本读”
+    -- 业务低峰期执行, 可能看着一直在运行中其实已经执行成功了
+    ALTER DATABASE 你的库名 SET READ_COMMITTED_SNAPSHOT ON;
+    -- 查看
+    SELECT name, is_read_committed_snapshot_on FROM sys.databases WHERE name = '你的库名';
+    ```
 - **SqlServer(多线程)死锁案例**
     - SQL Server 默认隔离级别为 READ COMMITTED，子线程读取时需等待主线程事务提交
     - 解决方案
@@ -293,6 +306,7 @@ public void update(User user) {
 	new Thread(futureTask).start();
 	
 	try {
+        // 线程 1 在等线程 2 执行完，线程 2 在等线程 1 提交事务，导致死锁
 		User othUser = futureTask.get();
 		if (othUser == null) {
 			throw new RuntimeException("执行失败");

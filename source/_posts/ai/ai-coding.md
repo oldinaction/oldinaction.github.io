@@ -6,6 +6,30 @@ categories: ai
 tags: [ai]
 ---
 
+## TODO
+
+- 技能
+    - 技能和 Agent 交互?
+
+    ```bash
+    Agent分析
+    ↓
+    Skill A 启动 → suspend（状态1）
+    ↓
+    Agent (<-> 用户) 多轮交互
+    ↓
+    Skill A resume（状态1）→ 继续执行 → suspend（状态2）
+    ↓
+    Agent 再交互
+    ↓
+    Skill A resume（状态2）
+    ↓
+    最终处理 → finish
+    ```
+
+## Vibe-Coding
+
+- [easy-vibe](https://datawhalechina.github.io/easy-vibe/zh-cn/)
 
 ## AI编程工具
 
@@ -87,7 +111,8 @@ npx skills-installer install @anthropics/claude-code/frontend-design --client cl
 - [Claude Code 官方文档](https://code.claude.com/docs/zh-CN/overview)
     - 命令行安装参考下文
     - [WEB版使用](https://claude.ai/)
-    - 桌面端: https://code.claude.com/docs/en/desktop-quickstart
+    - 第三方CC-GUI(类似 Codex 界面): https://github.com/zhukunpenglinyutong/desktop-cc-gui
+    - 官方桌面端(不推荐): https://code.claude.com/docs/en/desktop-quickstart
 - Claude Code 实践
     - [Claude Code Terminal工作流](https://mp.weixin.qq.com/s/x9wUAM6QI1Ogv2B0biawbg)
     - [Claude Code 完全指南](https://www.cnblogs.com/knqiufan/p/19449849)
@@ -95,8 +120,6 @@ npx skills-installer install @anthropics/claude-code/frontend-design --client cl
     - [Claude Code命令行底部增加状态栏](https://github.com/Wangnov/claude-code-statusline-pro)
 - 相关工具
     - [cc-switch](https://github.com/farion1231/cc-switch) 切换不同模型
-    - [everything-claude-code](https://github.com/affaan-m/everything-claude-code) 一套可复用的 Claude Code 工程开发工作流组件库
-    - [OpenSpec](https://github.com/studyzy/OpenSpec-cn) 面向 AI 辅助工作流的规范驱动开发技术白皮书
 
 #### 命令行安装
 
@@ -104,8 +127,10 @@ npx skills-installer install @anthropics/claude-code/frontend-design --client cl
 
 ```bash
 # 使用 npm 全局安装 Claude Code. 依赖 Node.js 18+
-# 或者 mac安装: curl -fsSL https://claude.ai/install.sh | bash    windows ps安装: irm https://claude.ai/install.ps1 | iex
+# 或者 mac安装: `curl -fsSL https://claude.ai/install.sh | bash`
+# windows ps安装: `irm https://claude.ai/install.ps1 | iex`
 npm install -g @anthropic-ai/claude-code
+npm update -g @anthropic-ai/claude-code
 
 # (推荐) 使用 cc-switch 工具切换不同模型. 切换模型后 ~/.claude/settings.json 文件也会被此插件接管. 可设置通用配置和每个模型自己的配置
 # 设置: 勾选"跳过 Claude Code 初次安装确认"
@@ -251,6 +276,11 @@ claude mcp remove chrome-devtools # 移除已安装的 MCP 服务器
 
 #### 钩子
 
+### Codex
+
+- `AGENTS.md` 和 `~/.agents`
+- `~/.codex` 为 Codex App 的配置目录，项目目录也可放置(如`~/.codex/skills`只对该项目生效)
+
 ### Trea
 
 - 项目开发基础模块: 登录登基础页面, 统一日志, 统一提示, 统一异常, 多语言, 日期, 币制, 主题
@@ -277,9 +307,26 @@ claude mcp remove chrome-devtools # 移除已安装的 MCP 服务器
         - 官方提供的 MCP 只能基于 Figma 桌面端的 Dev Mode MCP Server 功能实现(需要 Figma Pro 账户)
         - 可使用 https://github.com/GLips/Figma-Context-MCP 进行自定义
 
-## OpenClaw小龙虾
+## HarnessEngineering驾驭工程
 
-- [官网](https://openclaw.ai/), [github](https://github.com/openclaw/openclaw)
+- [superpowers](https://github.com/obra/superpowers)
+    - [superpowers-zh](https://github.com/jnMetaCode/superpowers-zh)
+
+    ```bash
+    # 进入项目目录执行后安装到项目目录. 需要提前创建好 .claude / .codex / .trae 等文件夹
+    npx superpowers-zh
+    ```
+- [Get-Shit-Done](https://github.com/gsd-build/get-shit-done)
+- [everything-claude-code](https://github.com/affaan-m/everything-claude-code) 一套可复用的 Claude Code 工程开发工作流组件库
+- [OpenSpec](https://github.com/studyzy/OpenSpec-cn) 面向 AI 辅助工作流的规范驱动开发技术白皮书
+
+## Claw
+
+### HermesAgent‌
+
+### OpenClaw小龙虾
+
+- [官网](https://openclaw.ai/), [文档](https://docs.openclaw.ai/zh-CN), [github](https://github.com/openclaw/openclaw)
 - [ClawHub](https://clawhub.ai/) OpenClaw 的官方技能注册平台
     - 技能推荐: https://github.com/VoltAgent/awesome-openclaw-skills
 - 安装及命令
@@ -288,33 +335,42 @@ claude mcp remove chrome-devtools # 移除已安装的 MCP 服务器
     - 模型选择
         - 使用 Qwen 进行页面认证后有一定的免费额度
         - 使用自定义模型配置阿里百炼API, 参考: https://help.aliyun.com/zh/model-studio/openclaw
-    - 消息渠道-飞书: https://docs.openclaw.ai/zh-CN/channels/feishu
-        - [安装飞书openclaw/feishu插件报错spawn EINVAL](https://developer.huawei.com/consumer/cn/blog/topic/03207503902722227) 解决后可以把全局openclaw包下的extensions/feishu文件夹删掉
-        - 配置飞书渠道
-            - 创建飞书应用 - 添加机器人能力 - 权限管理中添加`im:*`和`contact:contact.base:readonly` - 发布飞书应用 - 在OpenClaw中配置此 Channel 的 App ID/Secret - 重启Gateway - 飞书后台配置事件订阅 - 订阅方式: 使用长连接接收事件 - 添加事件: `im.message.receive_v1` - 重新发布飞书应用 (顺序很重要)
-        - 如果是首次私聊飞书机器人，可能会回复一个配对码。此时需要在服务器上执行 `openclaw pairing approve feishu <配对码>` 完成授权
-            - 没有测试成功，可以将模式改为allowlist私聊白名单，如`"channels": { "feishu": { "dmPolicy": "allowlist", "allowFrom": ["ou_1a4bfd418ae7bf556b42589d28e05586"] } }`
-        - 私聊定时任务没测通过，群组的定时任务可以
 
 ```bash
-# 安装openclaw
+# 或者使用curl安装: curl -fsSL https://openclaw.ai/install.sh | bash
+# NodeJS 安装: https://nodejs.org/en/download
+# 安装/更新openclaw
 npm install -g openclaw@latest
-# 初始化openclaw
+# 初始化openclaw (之后会随电脑自动启动)
 # 配置文件在 ~/.openclaw/openclaw.json
 # 自己安装的插件在 ~/.openclaw/extensions/ 目录
 # 工作空间在 ~/.openclaw/workspace/ 目录
 openclaw onboard --install-daemon
 # 启动网关
-openclaw gateway --port 18789 --verbose
+openclaw gateway run
+openclaw gateway restart # 重启网关
 
 ## 其他命令
-# 查看状态
-openclaw status
-# 查看日志
-openclaw logs --follow
+openclaw status # 查看状态
+openclaw logs --follow # 查看日志
 openclaw tui # 打开命令行UI对话界面
 ```
-- 创建多个 Agent
+- 内网访问/宿主机访问: https://blog.csdn.net/weixin_43248394/article/details/159504854
+- 不支持代理访问(web_fetch), 参考: https://github.com/openclaw/openclaw/issues/27597
+    - 基于安全考虑，OpenClaw 不支持 SSRF 访问 (不允许直接访问内网, 否则可能读取到内网敏感信息)
+
+### 消息渠道
+
+- 微信: 微信插件
+- 飞书: https://docs.openclaw.ai/zh-CN/channels/feishu
+    - [安装飞书openclaw/feishu插件报错spawn EINVAL](https://developer.huawei.com/consumer/cn/blog/topic/03207503902722227) 解决后可以把全局openclaw包下的extensions/feishu文件夹删掉
+    - 配置飞书渠道
+        - 创建飞书应用 - 添加机器人能力 - 权限管理中添加`im:*`和`contact:contact.base:readonly` - 发布飞书应用 - 在OpenClaw中配置此 Channel 的 App ID/Secret - 重启Gateway - 飞书后台配置事件订阅 - 订阅方式: 使用长连接接收事件 - 添加事件: `im.message.receive_v1` - 重新发布飞书应用 (顺序很重要)
+    - 如果是首次私聊飞书机器人，可能会回复一个配对码。此时需要在服务器上执行 `openclaw pairing approve feishu <配对码>` 完成授权
+        - 没有测试成功，可以将模式改为allowlist私聊白名单，如`"channels": { "feishu": { "dmPolicy": "allowlist", "allowFrom": ["ou_1a4bfd418ae7bf556b42589d28e05586"] } }`
+    - 私聊定时任务没测通过，群组的定时任务可以
+
+### 创建多个 Agent
 
 ```bash
 # 查看所有 Agent. 默认的为 main
@@ -361,6 +417,13 @@ openclaw agents add operation --workspace ~/.openclaw/workspace-operation
   ]
 }
 ```
+
+### 搜索
+
+- 搜索方案
+    - [Tavily](https://app.tavily.com/): 免费额度, 日常够用
+    - DuckDuckGo: 免费, 科学上网
+    - SearXNG: 自建开源聚合搜索引擎(可Docker部署), 隐私高, 免费, 科学上网
 
 
 

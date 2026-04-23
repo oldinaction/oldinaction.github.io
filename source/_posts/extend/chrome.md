@@ -42,6 +42,7 @@ tags: [plugins, debug]
     - `Redirector`
         - ~~`URLRedirector`~~ (新版本不支持) 网页资源代理插件。如将网页中的js资源代理成本地的某个js，可用于js库开发调试(如lowcode-engine)，支持路径通配符
     - `ModHeader` 修改请求响应头；也有Redirect Urls功能，但是没URLRedirector好用
+    - Environment Marker 根据 URL 区分开发/生产环境，在页面增加颜色边框等标识
     - `谷歌访问助手`
 - 推荐
     - `Evernote Web Clipper` 印象笔记·剪藏

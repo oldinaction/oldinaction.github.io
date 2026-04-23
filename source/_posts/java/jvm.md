@@ -1139,8 +1139,8 @@ APP_HOME="$( cd -P "$( dirname "$0" )" && pwd )"/..
 # -Dfile.encoding=UTF-8防止命令行乱码。如果是Windows设置了此参数仍然乱码，可先在命令行执行`CHCP 65001`
 MEMIF="-Xms1G -Xmx1G -Dfile.encoding=UTF-8"
 
-GC_LOG="-Xloggc:/var/log/app-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause"
 OOME="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/jvmlogs/ -XX:+CrashOnOutOfMemoryError"
+GC_LOG="-Xloggc:/var/log/app-gc-%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause"
 
 # automatic IP address for linux（内网地址）
 IPADDR=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'`
@@ -1154,11 +1154,20 @@ JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=33333 -D
 
 DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
 
-# VMARGS="$MEMIF $GC_LOG $OOME $RMIIF $JMX $DEBUG"
-VMARGS="$GC_LOG $OOME"
+# VMARGS="$MEMIF $OOME $GC_LOG $RMIIF $JMX $DEBUG"
+VMARGS="$MEMIF $OOME $GC_LOG"
 ( cd "$APP_HOME" && java $VMARGS -jar xxx.jar --spring.profiles.active=prod )
 ```
+- bat简单案例
 
+```bat
+set MEMIF=-Xms1G -Xmx1G -Dfile.encoding=UTF-8
+set OOME=-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=D:/project/logs/jvm/ -XX:+CrashOnOutOfMemoryError
+set GC_LOG=-Xloggc:D:/project/logs/jvm/app-gc-%%t.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=20M -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCCause
+set VMARGS=%MEMIF% %OOME% %GC_LOG%
+
+java %VMARGS% -jar -Dloader.path=D:/project/lib D:/project/demo.jar --spring.profiles.active=prod
+```
 
 
 ---
