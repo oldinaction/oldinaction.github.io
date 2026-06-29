@@ -173,6 +173,8 @@ Commands:
         # 如容器异常退出可通过此命令查询，`docker logs <container_id | container_name>`
         # 或者`docker inspect <container_id | container_name>`获取 LogPath 位置。登录docker宿主机查了对应路径下的日志
 		# 或者 docker start my_container sleep 1h # 表示让容器启动进入睡眠，然后exec进入容器查看原因
+        # docker logs -f --tail 100 nexus # 查看nexus容器最近100行日志, 并实时追踪
+        # docker logs --since 10m nexus # 查看nexus容器最近10分钟的日志
     port      Lookup the public-facing port which is NAT-ed to PRIVATE_PORT # 查看映射端口对应的容器内部源端口
     pause     Pause all processes within a container        # 暂停容器
     ps        List containers                               # 列出容器列表

@@ -255,11 +255,21 @@ git checkout HEAD <file>
 - 暂存和恢复暂存
 
 ```bash
-# 把所有没有提交的修改暂存到stash里面
+# stash 为 git 自带; shelf 为 idea 功能
+# 把所有没有提交的修改暂存到stash里面（比如有紧急Bug需要修复）
 git stash
+git stash save '本次暂存的标识名字' # 在 IDEA Commit 中操作默认读取的上一次提交内容作为暂存的备注
 # 恢复暂存的修改到本地空间
+# pop恢复后，暂存区域会删除当前暂存记录；apply恢复后不会删除暂存区记录
 git stash pop
+git stash pop stash@{index} # index为暂存的索引(可通过 git stash list 查看索引)，需要保留{}
+git stash apply stash@{index}
+# 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
+git stash list
+# 清空Git暂存栈
+git stash clear
 ```
+
 - 撤销和重置
     - `revert` 是放弃指定提交的修改，但是会生成一次新的提交，需要填写提交注释，以前的历史记录都在
     - `reset` 是指将HEAD指针指到指定提交，历史记录中不会出现放弃的提交记录
@@ -621,39 +631,22 @@ git clean -n # 查看未跟踪文件列表
 git clean -fd # 强制删除所有未跟踪文件（危险操作！）
 ```
 
-### 暂存工作区
-
-```bash
-# 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中（比如有紧急Bug需要修复）
-git stash
-git stash save '本次暂存的标识名字'
-# 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容
-# pop恢复后，暂存区域会删除当前暂存记录；apply恢复后不会删除暂存区记录
-git stash pop
-git stash pop stash@{index} # index为暂存的索引(可通过git stash list查看索引)，需要保留{}
-git stash apply stash@{index}
-# 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复
-git stash list
-# 清空Git暂存栈
-git stash clear
-```
-
 ### 工作树
 
-- git worktree：只保留一个 .git 仓库，为不同分支创建独立的工作目录，既节省空间，又能同时在多个分支开发
+- git worktree: 只保留一个 .git 仓库，为不同分支创建独立的工作目录，既节省空间，又能同时在多个分支开发
     - 同一个分支不能被多个工作树检出
     - 每个工作树的未提交修改是独立的，不会互相干扰
     - 删除工作树必须用 git worktree remove，不要直接删目录（否则会残留缓存文件）
 - 使用
 
 ```bash
-# ../feature-branch 新工作目录的路径（在核心仓库同级）
+# .worktrees/feature-branch 新工作目录的路径（在核心仓库同级）
 # feature → 要检出的分支（如果存在，可不用加 -b 参数创建分支）
-git worktree add ../feature-branch -b feature
+git worktree add .worktrees/feature-branch -b feature
 # 查看当前所有工作树
 git worktree list
 # 删除工作树(不能直接删除目录)
-git worktree remove ../feature-branch
+git worktree remove .worktrees/feature-branch
 ```
 
 ### 处理Linux/Unix/MacOS文件格式的EOL

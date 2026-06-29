@@ -227,6 +227,7 @@ npm run build
 # 发布. 或者基于lerna publish发布
 # npm不支持发布私有包，即需要设置`"private": false`
 # 如果package.json#name以`@xxx/`开头(npm scope特性)，则默认会按照私有包发布，可以增加参数`--access public`，或在package.json中增加`publishConfig: {"access": "public"}`(适用于lerna)。此时会推送到npm对应xxx组织下
+# 也可参考: 基于GitHub-Packages创建npm私有库
 npm publish
 # 切回taobao源
 nrm use taobao

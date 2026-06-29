@@ -398,7 +398,7 @@ ORDER BY er.total_elapsed_time DESC;
 -- 2.查看历史sql (dm_exec_query_stats) 耗时情况，根据平均耗时降序排列
 -- 这个只能看到还在计划缓存里的 SQL，服务重启、计划被清掉后数据就没了；而 Query Store 会更稳定
 SELECT TOP 20
-    last_execution_time N'上次执行时间',
+    last_execution_time N'上次执行时间', -- 非最大耗时对应的时间点
     (total_elapsed_time/execution_count)/1000/1000 N'平均时间s',
     max_elapsed_time/1000/1000 N'最大耗时s',
     execution_count N'执行次数',
@@ -417,7 +417,7 @@ ORDER BY total_elapsed_time / execution_count DESC; -- max_elapsed_time
 
 
 -- 3.Query Store 会自动保存查询、执行计划和运行时统计信息，适合查“最近哪些 SQL 变慢了”“是不是执行计划变了”
--- 业务低峰期设置好即可(永久生效; 日志空间默认是100MB, 超过会自动清理)
+-- (慎用，貌似执行很慢)业务低峰期设置好即可(永久生效; 日志空间默认是100MB, 超过会自动清理)
 ALTER DATABASE Your_DB_XXX SET QUERY_STORE = ON;
 ALTER DATABASE Your_DB_XXX SET QUERY_STORE (
     OPERATION_MODE = READ_WRITE
@@ -444,7 +444,7 @@ WHERE rsi.start_time >= DATEADD(HOUR, -1, SYSUTCDATETIME())
 ORDER BY rs.avg_duration DESC;
 
 
--- 4.补充抓包：Extended Events
+-- 4.补充抓包(执行速度很快)：Extended Events (文件最大 100M, 最多 5 个文件)
 IF EXISTS (SELECT * FROM sys.server_event_sessions WHERE name='TrackSlowQueries')
   DROP EVENT SESSION TrackSlowQueries ON SERVER;
 GO
@@ -452,32 +452,36 @@ CREATE EVENT SESSION [TrackSlowQueries]
 ON SERVER
 ADD EVENT sqlserver.rpc_completed(
     ACTION(sqlserver.sql_text, sqlserver.client_app_name, sqlserver.username)
-    WHERE (duration > 3000000)   -- 微秒，3 秒
+    WHERE (duration > 2000000)   -- 微秒，2 秒
 ),
 ADD EVENT sqlserver.sql_batch_completed(
     ACTION(sqlserver.sql_text, sqlserver.client_app_name, sqlserver.username)
-    WHERE (duration > 3000000)   -- 微秒，3 秒
+    WHERE (duration > 2000000)   -- 微秒，2 秒
 )
 ADD TARGET package0.event_file(
-    SET filename = N'C:\XE\TrackSlowQueries.xel', -- 抓包文件存储径
+    SET filename = N'D:\XE\TrackSlowQueries.xel', -- 抓包文件存储径(需先创建文件夹)
         max_file_size = 100,
         max_rollover_files = 5
 );
 GO
 ALTER EVENT SESSION [TrackSlowQueries] ON SERVER STATE = START;
 -- 之后可以下面语句查询
-SELECT
-  DATEADD(HOUR, 8,event_data.value('(event/@timestamp)[1]','datetime2')) AS start_time_local,
-  event_data.value('(event/@name)[1]','varchar(50)') AS event_type,
-  event_data.value('(event/data[@name="duration"]/value)[1]','bigint')/1000 AS duration_ms,
-  event_data.value('(event/action[@name="sql_text"]/value)[1]','nvarchar(max)') AS sql_text,
-  event_data.value('(event/action[@name="database_name"]/value)[1]','nvarchar(128)') AS db_name,
-  event_data.value('(event/action[@name="username"]/value)[1]','nvarchar(128)') AS username
-FROM (
-  SELECT CONVERT(xml, event_data) AS event_data
-  FROM sys.fn_xe_file_target_read_file('C:\XE\TrackSlowQueries*.xel',NULL,NULL,NULL)
-) AS x
-ORDER BY duration_ms DESC;
+select * from (
+	SELECT
+	  DATEADD(HOUR, 8,event_data.value('(event/@timestamp)[1]','datetime2')) AS start_time_local,
+	  event_data.value('(event/@name)[1]','varchar(50)') AS event_type,
+	  event_data.value('(event/data[@name="duration"]/value)[1]','bigint')/1000 / 1000 AS duration_s,
+	  event_data.value('(event/action[@name="sql_text"]/value)[1]','nvarchar(max)') AS sql_text,
+	  event_data.value('(event/action[@name="database_name"]/value)[1]','nvarchar(128)') AS db_name,
+	  event_data.value('(event/action[@name="username"]/value)[1]','nvarchar(128)') AS username
+	FROM (
+	  SELECT CONVERT(xml, event_data) AS event_data
+	  FROM sys.fn_xe_file_target_read_file('D:\XE\TrackSlowQueries*.xel',NULL,NULL,NULL)
+	) AS x
+) t
+where t.username = 'sa' and t.duration_s > 10
+order by t.start_time_local desc
+-- ORDER BY t.duration_s DESC;
 ```
 
 ## JVM调优实践及相关案例

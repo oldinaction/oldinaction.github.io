@@ -59,6 +59,15 @@ slmgr /ato
 
 - https://blog.csdn.net/lihuiyun184291/article/details/125260468
 
+### 创建新用户并添加到管理员组
+
+```bash
+# 创建新用户
+net user 新用户名 新密码 /add
+# 添加到管理员组
+net localgroup administrators 新用户名 /add
+```
+
 ## 常用命令
 
 - `ipconfig` 查看ip地址

@@ -383,7 +383,7 @@ public class LoginActivity extends extends Activity {
 - 命令（位于`%ANDROID_HOME%/platform-tools/`）
 
 ```bash
-# 打开开发者模式：USB线连接手机和电脑，并且在开发者选项当中，开启USB调试
+# 打开开发者模式：USB线连接手机和电脑，并且在开发者选项当中，开启USB调试; 选择 USB 配置为 MTP(多媒体传输)
 # 列举设备(会显示设备编号如：emulator-5555)
 adb devices
 # 连接成功(设备状态显示成devices)才能执行shell命令

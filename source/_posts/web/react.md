@@ -6,11 +6,13 @@ categories: [web]
 tags: react
 ---
 
-## 组件
+## React基础
+
+### 组件
 
 - 组件支持类组件和函数式组件，更推荐函数式
 
-## Hooks
+### Hooks
 
 - 参考：https://juejin.cn/post/7041551402048421901
 - 常用
@@ -167,3 +169,51 @@ function App() {
     );
 }
 ```
+
+## Next.js
+
+- Next.js 基于 React 框架
+    - SEO友好
+    - 前后端一体化框架
+
+        | 部分                | 作用     |
+        | ----------------- | ------ |
+        | React             | 前端 UI  |
+        | Node Runtime      | 后端运行   |
+        | Route Handlers    | 后端 API |
+        | Server Components | 服务端渲染  |
+        | Middleware        | 网关中间件  |
+
+    - 支持以下模式
+    
+        | 模式  | 含义                      |
+        | --- | ----------------------- |
+        | CSR | 浏览器渲染                   |
+        | SSR | 请求时渲染                   |
+        | SSG | 构建时渲染(Static Site Generation)                   |
+        | ISR | 静态页面定时更新                |
+        | RSC | React Server Components |
+
+- 前后端一体化框架
+    - Next.js 一般 build 出来的产物无法直接在 nginx 中运行，需要使用 node 运行(当然也支持构建纯静态文件)
+    - 一般可部署到 Vercel 中
+
+```bash
+# .env 文件说明: 
+# 默认环境变量只在服务端可用，要暴露给浏览器必须加 NEXT_PUBLIC_
+
+# 构建
+# 构建项目, 生成 .next 文件夹
+npm run build # next build
+# 在服务器通过 node 运行
+npm run start # next start
+```
+- 页面说明
+
+```js
+"use client"; // 第一行增加此标识，表示所有代码都在客户端运行(CSR渲染, 爬虫只能拿到 Loading, SEO 不好)
+```
+
+
+
+

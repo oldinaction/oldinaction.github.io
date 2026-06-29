@@ -31,7 +31,7 @@ tags: [ai]
 
 - [easy-vibe](https://datawhalechina.github.io/easy-vibe/zh-cn/)
 
-## AI编程工具
+## AI编程工具介绍
 
 - 端到端模式
     - [Claude Code](https://claude.com/product/claude-code) 常用终端(也支持桌面), 系统级Agent
@@ -110,9 +110,9 @@ npx skills-installer install @anthropics/claude-code/frontend-design --client cl
 
 - [Claude Code 官方文档](https://code.claude.com/docs/zh-CN/overview)
     - 命令行安装参考下文
+    - 官方桌面端(可配合 cc-switch 切换模型使用): https://code.claude.com/docs/en/desktop-quickstart
     - [WEB版使用](https://claude.ai/)
     - 第三方CC-GUI(类似 Codex 界面): https://github.com/zhukunpenglinyutong/desktop-cc-gui
-    - 官方桌面端(不推荐): https://code.claude.com/docs/en/desktop-quickstart
 - Claude Code 实践
     - [Claude Code Terminal工作流](https://mp.weixin.qq.com/s/x9wUAM6QI1Ogv2B0biawbg)
     - [Claude Code 完全指南](https://www.cnblogs.com/knqiufan/p/19449849)
@@ -126,17 +126,13 @@ npx skills-installer install @anthropics/claude-code/frontend-design --client cl
 - 参考: https://docs.bigmodel.cn/cn/coding-plan/tool/claude
 
 ```bash
-# 使用 npm 全局安装 Claude Code. 依赖 Node.js 18+
-# 或者 mac安装: `curl -fsSL https://claude.ai/install.sh | bash`
-# windows ps安装: `irm https://claude.ai/install.ps1 | iex`
-npm install -g @anthropic-ai/claude-code
-npm update -g @anthropic-ai/claude-code
+# mac安装. windows ps安装: `irm https://claude.ai/install.ps1 | iex`
+# (不推荐) 或使用 npm 全局安装 Claude Code, 依赖 Node.js 18+. npm install -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 
 # (推荐) 使用 cc-switch 工具切换不同模型. 切换模型后 ~/.claude/settings.json 文件也会被此插件接管. 可设置通用配置和每个模型自己的配置
 # 设置: 勾选"跳过 Claude Code 初次安装确认"
 https://github.com/farion1231/cc-switch
-# (忽略) 使用智谱 GLM 模型: 基于智谱提供的工具 @z_ai/coding-helper 进行配置智谱 API-KEY. 参考: https://docs.bigmodel.cn/cn/coding-plan/tool/claude
-# npx @z_ai/coding-helper
 
 # 验证安装是否成功. 2.1.7 (Claude Code)
 # claude update # 更新到最新版本
@@ -243,13 +239,24 @@ claude mcp remove chrome-devtools # 移除已安装的 MCP 服务器
 
 #### CLAUDE.md文件
 
-- 大小 10K - 20K
+- 当前对话提示 > Instructions for Claude(貌似没生效) > `demo/CLAUDE.md` > `CLAUDE.md` > `~/.claude/CLAUDE.md` 
 - 实用技巧与误区
+    - 建议大小 10K - 20K
     - 应该很短：只在 Claude 容易出错的地方加说明，别想着写完整手册
     - 别用 @ 引用文档：正确做法是推销这个文件，告诉它为什么和何时该读。例如：遇到复杂用法或 FooBarError 错误时，参考 path/to/docs.md 的高级故障排除
     - 别只说禁止：不要写纯否定约束，比如永远不要用某个标志。智能体真需要这个标志时就傻了。永远提供替代方案
     - 把 CLAUDE.md 当倒逼函数：对于复杂的工作应该写个简洁的 Bash 包装脚本，提供清晰的 API，然后只给包装脚本写文档
-- `AGENTS.md` 可以同步维护一个 AGENTS.md 文件，兼容工程师可能用的其他 AI IDE
+- `~/.claude/CLAUDE.md` 全局配置文件案例
+
+```markdown
+# Global Rules
+
+- 始终使用简体中文回答用户。
+	- 思考、计划、总结、标题归纳、任务说明、变更说明全部使用简体中文。
+	- 不要使用英文作为会话标题、摘要标题、TODO 标题，除非是代码、命令、文件名、类名、方法名、日志原文或专有名词。
+	- 如果用户没有明确要求英文，默认所有自然语言输出为中文。
+- 如果项目中只有 AGENTS.md 没有 CLAUDE.md 文件，则将 AGENTS.md 当成 CLAUDE.md 规范文件
+```
 
 #### 实践技巧
 
@@ -280,6 +287,8 @@ claude mcp remove chrome-devtools # 移除已安装的 MCP 服务器
 
 - `AGENTS.md` 和 `~/.agents`
 - `~/.codex` 为 Codex App 的配置目录，项目目录也可放置(如`~/.codex/skills`只对该项目生效)
+- Codex CLI
+    - 使用`$`展示和使用技能, 或者使用`/skills`列举后选择技能
 
 ### Trea
 
@@ -292,6 +301,13 @@ claude mcp remove chrome-devtools # 移除已安装的 MCP 服务器
     - Agent: 默认模式; 适合日常开发任务、快速解决问题
     - Plan(对话前加`/plan`触发): 先制定计划, 确认后执行; 适合复杂任务
     - Spec(对话前加`/spec`触发): 先制定详细的规格(spec.md、tasks.md、checklist.md), 再确认(可多轮对话反复修改此 spec 文件), 后执行(按上述规范文件执行); 适合大型功能开发
+- SOP
+
+```bash
+# Codex: 你写好规格文档和开发计划我会丢给 Trae 开发. 你还需要写好验证事项, 比如功能是否完整/功能是否正确/页面是否美观/是否遵循项目代码开发原则等
+# Trae: 这是产品需求：xxx.md 这是实现计划：xxx.md 请严格按照需求和实现计划完成开发 (基于 worktree 修改)
+# DeepSeek: 这是产品需求：xxx.md 这是实现计划：xxx.md 当前开发已经完成，但尚未提交。请作为代码 Reviewer 和 QA 进行严格验收
+```
 
 ### Antigravity
 
@@ -309,20 +325,124 @@ claude mcp remove chrome-devtools # 移除已安装的 MCP 服务器
 
 ## HarnessEngineering驾驭工程
 
-- [superpowers](https://github.com/obra/superpowers)
-    - [superpowers-zh](https://github.com/jnMetaCode/superpowers-zh)
-
-    ```bash
-    # 进入项目目录执行后安装到项目目录. 需要提前创建好 .claude / .codex / .trae 等文件夹
-    npx superpowers-zh
-    ```
-- [Get-Shit-Done](https://github.com/gsd-build/get-shit-done)
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) 面向 AI 辅助工作流的规范驱动开发技术白皮书
+    - [openspec-cn](https://github.com/studyzy/OpenSpec-cn)
+- [superpowers](https://github.com/obra/superpowers): 执行层、工作流、TDD、代码质量
+    - [superpowers-zh](https://github.com/jnMetaCode/superpowers-zh)    
+- [gstack](https://github.com/garrytan/gstack): 管理层、角色团队、全流程、产品交付
+    - 内置 browser
+- [Get-Shit-Done](https://github.com/gsd-build/get-shit-done): 中间层、上下文、Spec 驱动、防腐烂
 - [everything-claude-code](https://github.com/affaan-m/everything-claude-code) 一套可复用的 Claude Code 工程开发工作流组件库
-- [OpenSpec](https://github.com/studyzy/OpenSpec-cn) 面向 AI 辅助工作流的规范驱动开发技术白皮书
+
+### superpowers-zh
+
+- 技能基本都是 MD 文件(非常少的脚本文件)
+- 安装
+
+```bash
+## 下载到本地
+git clone https://github.com/jnMetaCode/superpowers-zh.git ~/.superpowers-zh/
+
+## 安装到目录(用户 .claude 目录或项目 .claude 目录)
+# 进入项目目录执行后安装到项目目录. 需要提前创建好 .claude / .codex / .trae 等文件夹
+# npx superpowers-zh
+mkdir -p .codex/skills/ && ln -s ~/.superpowers-zh/skills/* .codex/skills/
+```
+
+- 技能说明
+
+| Skill | 说明 | 触发条件 |
+|-------|------|---------|
+| **using-superpowers** | 指南 | 在开始任何对话时使用——确立如何查找和使用技能，要求在任何响应（包括澄清性问题）之前调用 Skill 工具 |
+| **brainstorming** | **头脑风暴** | 在任何创造性工作之前必须使用此技能——创建功能、构建组件、添加功能或修改行为。在实现之前先探索用户意图、需求和设计。 |
+| **writing-plans** | 编写实现计划 | 当你有规格说明或需求用于多步骤任务时使用，在动手写代码之前 |
+| **executing-plans** | 执行实现计划 | 当你有一份书面实现计划需要在单独的会话中执行，并设有审查检查点时使用 |
+| **test-driven-development** | **TDD(测试驱动)** | 在实现任何功能或修复 bug 时使用，在编写实现代码之前 |
+| **systematic-debugging** | 系统化调试方法 | 遇到任何 bug、测试失败或异常行为时使用，在提出修复方案之前执行 |
+| requesting-code-review | 请求代码审查 | 完成任务、实现重要功能或合并前使用，用于验证工作成果是否符合要求 |
+| receiving-code-review | 处理代码审查反馈 | 收到代码审查反馈后、实施建议之前使用，尤其当反馈不明确或技术上有疑问时——需要技术严谨性和验证，而非敷衍附和或盲目执行 |
+| verification-before-completion | 完成前验证检查 | 在宣称工作完成、已修复或测试通过之前使用，在提交或创建 PR 之前——必须运行验证命令并确认输出后才能声称成功；始终用证据支撑断言 |
+| finishing-a-development-branch | 开发分支收尾决策 | 当实现完成、所有测试通过、需要决定如何集成工作时使用——通过提供合并、PR 或清理等结构化选项来引导开发工作的收尾 |
+| subagent-driven-development | 子代理驱动开发模式 | 当在当前会话中执行包含独立任务的实现计划时使用 |
+| dispatching-parallel-agents | 并行代理任务调度 | 当面对 2 个以上可以独立进行、无共享状态或顺序依赖的任务时使用 |
+| using-git-worktrees | Git 工作树隔离管理 | 当需要开始与当前工作区隔离的功能开发或执行实现计划之前使用——创建具有智能目录选择和安全验证的隔离 git 工作树 |
+| workflow-runner | YAML 工作流执行引擎 | 在 Claude Code / OpenClaw / Cursor 中直接运行 agency-orchestrator YAML 工作流——无需 API key，使用当前会话的 LLM 作为执行引擎。当用户提供 .yaml 工作流文件或要求多角色协作完成任务时触发。 |
+| writing-skills | 技能编写与验证 | 当创建新技能、编辑现有技能或在部署前验证技能是否有效时使用 |
+| mcp-builder | MCP 服务器构建方法论 | MCP 服务器构建方法论 — 系统化构建生产级 MCP 工具，让 AI 助手连接外部能力 |
+| chinese-code-review | 中文代码审查规范 | 中文代码审查规范——在保持专业严谨的同时，用符合国内团队文化的方式给出有效反馈 |
+| chinese-commit-conventions | 中文提交规范 | 中文 Git 提交规范 — 适配国内团队的 commit message 规范和 changelog 自动化 |
+| chinese-documentation | 中文文档写作规范 | 中文技术文档写作规范——排版、术语、结构一步到位，告别机翻味 |
+| chinese-git-workflow | 中文 Git 工作流规范 | 适配国内 Git 平台和团队习惯的工作流规范——Gitee、Coding、极狐 GitLab 全覆盖 |
+
+### gstack
+
+- 技能 MD 文件里面包含一些脚本案例, 有些技能比如 browse 还包含了很多 TS 脚本
+- 安装(需先安装 bun)
+
+```bash
+## claude code 安装
+# 个人安装
+# ./setup --prefix # 基于前缀安装, 如果加了则技能名称如 /gstack-browse
+git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup
+# 项目安装
+cp -Rf ~/.claude/skills/gstack .claude/skills/gstack && rm -rf .claude/skills/gstack/.git && cd .claude/skills/gstack && ./setup
+```
+- [技能](https://github.com/garrytan/gstack#the-sprint)
+    - 产品规划
+        - `/office-hours` **YC合伙人模式**: 提需求后，他会追问用户是谁, 核心价值是什么等等
+        - `/plan-ceo-review` **创始人模式**：重新思考问题，寻找10星级产品
+    - 技术设计
+        - `/plan-eng-review` **工程经理模式**：锁定架构、数据流、图表、边缘情况, 生成 DESIGN.md 文件
+        - `/plan-design-review` **设计师模式**：视觉一致性、用户体验
+    - 开发阶段
+        - `/autoplan` 自动计划模式：根据用户需求，自动生成实现计划
+        - `/careful` 谨慎模式：关注细节，避免错误
+    - 代码质量
+        - `/review` 资深工程师模式：偏执代码审查，发现生产级bug
+        - `/cso` 安全审计模式：检查代码是否符合安全规范
+    - 浏览器自动化
+        - `/browse` **QA工程师模式**：浏览器自动化，为AI提供眼睛
+        - `/qa` QA负责人模式：系统化测试，健康评分，回归检测
+    - 发布上线
+        - `/ship` 发布工程师模式：检查代码，跑测试，生成提交信息
+        - `/land-and-deploy` 相当于 Release Engineer
+    - 文档
+        - `/document-generate` 生成项目文档
+        - `/document-release` 技术文档模式：自动更新项目文档
+    - 其他
+        - `/retro` 工程经理模式：团队感知回顾，数据驱动分析
+        - `/setup-browser-cookies` 会话管理器：从真实浏览器导入cookie
+        - `/qa-only` QA报告模式：纯粹bug报告，无代码更改
+- browse 原理
+    - 底层就是 Playwright，但接口面向 agent 重新封装了，核心架构（3 层）
+    - 节点定位：基于无障碍树（AT），不是 DOM 树，参考源码: snapshot.ts
+
+```txt
+┌─────────────────────────────────────────────────┐
+│ Layer 3: Agent CLI                              │  ← agent / 人 调用
+│   $B click @e3                                  │
+│   $B fill @e2 "test"                            │
+└──────────────┬──────────────────────────────────┘
+               │ HTTP POST /command
+┌──────────────▼──────────────────────────────────┐
+│ Layer 2: Daemon (Bun + Playwright)              │  ← 长跑进程
+│   - 维护 BrowserContext / Page                  │
+│   - 维护 Map<"@e3", Playwright.Locator>         │
+│   - 命令路由：click/fill/snapshot/...           │
+└──────────────┬──────────────────────────────────┘
+               │ Playwright API (CDP under the hood)
+┌──────────────▼──────────────────────────────────┐
+│ Layer 1: Chromium                               │
+│   - 真实页面，真实事件                            │
+└─────────────────────────────────────────────────┘
+```
+
 
 ## Claw
 
 ### HermesAgent‌
+
+- [github](https://github.com/NousResearch/hermes-agent)
 
 ### OpenClaw小龙虾
 
@@ -359,7 +479,7 @@ openclaw tui # 打开命令行UI对话界面
 - 不支持代理访问(web_fetch), 参考: https://github.com/openclaw/openclaw/issues/27597
     - 基于安全考虑，OpenClaw 不支持 SSRF 访问 (不允许直接访问内网, 否则可能读取到内网敏感信息)
 
-### 消息渠道
+#### 消息渠道
 
 - 微信: 微信插件
 - 飞书: https://docs.openclaw.ai/zh-CN/channels/feishu
@@ -370,7 +490,7 @@ openclaw tui # 打开命令行UI对话界面
         - 没有测试成功，可以将模式改为allowlist私聊白名单，如`"channels": { "feishu": { "dmPolicy": "allowlist", "allowFrom": ["ou_1a4bfd418ae7bf556b42589d28e05586"] } }`
     - 私聊定时任务没测通过，群组的定时任务可以
 
-### 创建多个 Agent
+#### 创建多个 Agent
 
 ```bash
 # 查看所有 Agent. 默认的为 main
@@ -418,12 +538,9 @@ openclaw agents add operation --workspace ~/.openclaw/workspace-operation
 }
 ```
 
-### 搜索
+#### 搜索
 
 - 搜索方案
     - [Tavily](https://app.tavily.com/): 免费额度, 日常够用
     - DuckDuckGo: 免费, 科学上网
     - SearXNG: 自建开源聚合搜索引擎(可Docker部署), 隐私高, 免费, 科学上网
-
-
-

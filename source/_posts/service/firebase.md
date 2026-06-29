@@ -6,7 +6,38 @@ categories: [service]
 tags: [google]
 ---
 
-## 简介
+## Supabase
+
+- Supabase 几个 key 的区别
+
+| Key              | 权限级别    | 是否可公开 | 用途    |
+| ---------------- | ------- | ----- | ----- |
+| publishable key  | 低权限     | 可以公开  | 前端客户端 |
+| anon key         | 低权限（旧名） | 可以公开  | 前端客户端 |
+| service_role key | 超级权限    | 绝不能公开 | 服务端管理 |
+
+- 数据库保活程序(防止不活跃数据库被回收)
+
+```sql
+create table if not exists public.supabase_keepalive (
+    id bigint generated always as identity primary key,
+    created_at timestamptz default now()
+);
+comment on table supabase_keepalive is '应用保持活动记录表';
+
+-- 开启 pg_cron 扩展
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+SELECT cron.schedule(
+    'supabase-auto-keepalive',
+    '0 0 * * *',
+    $$
+    INSERT INTO supabase_keepalive DEFAULT VALUES;
+    $$
+);
+```
+
+## Firebase简介
 
 - Firebase是google提供的快速构件应用的云服务。简单的可以说通过引入Firebase，你可以通过api去构建实时性的应用
 - [官网](https://firebase.google.com/)

@@ -8,6 +8,14 @@ tags: [test]
 
 ## 简介
 
+### 测试概念
+
+- 单元测试 - 集成测试 - E2E
+    - 单元测试：测试代码的最小单元，如函数、方法等
+    - 集成测试：测试多个组件之间的交互: Controller - Service - Mapper - Database
+    - E2E(End-to-End 端到端测试)测试：测试整个系统的功能，包括用户界面、模拟真实用户操作等
+- 烟雾测试(Smoke Test): 对系统最核心、最关键的功能做一次快速验证，确认系统基本可用。先做烟雾测试，再进行详细测试
+
 ### Web端UI自动化测试
 
 - 常见UI自动化测试框架
@@ -153,6 +161,13 @@ Percentage of the requests served within a certain time (ms)
 ### 其他框架
 
 - 移动App兼容性测试工具Spider
+
+## playwright
+
+```bash
+# 安装. 包括下载 Chromium / Firefox / WebKit 浏览器包
+PLAYWRIGHT_DOWNLOAD_HOST=https://playwright.azureedge.net.cn npx playwright install
+```
 
 ## Selenium
 

@@ -682,6 +682,17 @@ end tell
         - 自动操作 - (新建)应用程序 - (搜索)运行Shell脚本 - 再脚本中填入上述命令 - 保存自动操作文稿(app到应用程序目录)
         - 可修改自动操作图标: 参考上更换App图标（但是双击脚本启动的双开微信应用图标还是原来的）
 
+### 内置密码管理功能
+
+```bash
+# 添加密码
+security add-generic-password -a "$USER" -s "OPENAI_API_KEY" -w "你的_api_key"
+# 使用密码
+export OPENAI_API_KEY="$(security find-generic-password -a "$USER" -s OPENAI_API_KEY -w)" && codex
+# 删除密码
+security delete-generic-password -a "$USER" -s "OPENAI_API_KEY"
+```
+
 ## 相关限制
 
 - 不支持修改`/etc/profile`等配置，可修改`~/.zprofile`或`~/.bash_profile`代替。类似的文件`.zshrc`

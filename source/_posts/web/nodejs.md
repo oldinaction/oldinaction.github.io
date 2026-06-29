@@ -6,6 +6,14 @@ categories: lang
 tags: [nodejs]
 ---
 
+## 简介
+
+- Bun 是一个现代 JavaScript/TypeScript 运行时
+    - 可以理解为是 Node.js 的替代品 + npm 的替代品 + 打包工具 + 测试框架的集合体
+    - Bun 用 Zig 编写，不是 C++
+    - 速度快, 原生支持 TypeScript
+    - 老项目可能存在兼容性问题, 如 Electron 项目
+
 ## 安装使用
 
 ### 安装

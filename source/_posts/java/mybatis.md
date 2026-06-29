@@ -386,6 +386,8 @@ mybatis.config-location=classpath:mybatis-config.xml
                     _parameter 为 DynamicContext 中的属性，类似的还有 _databaseId=oracle|mysql
                 -->
                 <bind name="nameUpper" value="'%' + _parameter.getName().toUpperCase() + '%'" />
+                <!-- 可以调用静态方法, 返回的对象可直接使用, 如: idMatch.ids -->
+                <bind name="idMatch" value="@cn.demo.LikeSearchIdUtil@resolveIds(cardNo)" />
                 <!-- <bind name="nameUpper" value="'%' + _parameter.userInfo.get('name').toUpperCase() + '%'" /> --> 
                 <!-- 定义了参数名 @Param("userInfo") -->
                 and upper(name) like #{nameUpper} <!-- 不能写成 #{nameUpper.toUpperCase()} -->
@@ -413,7 +415,7 @@ mybatis.config-location=classpath:mybatis-config.xml
             <if test='username != null and username != ""'>
                 and username = #{username}
             </if>
-            <!-- 此时 #{${field}} 可以拿到selectMain上下文中nickName的值 -->
+            <!-- 此时 #{${field}} 可以拿到selectMain上下文中nickName的值；貌似 test 中 ${field} 会报错 -->
             <!-- 发现 mybatis 2.0.4 版本下使用 field 会报错: BindingException: Parameter 'field' not found. 
                  直接 test='field == "nickName"' 也是报此错, 具体解决参考下文 bind-param
             -->

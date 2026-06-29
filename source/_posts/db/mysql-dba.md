@@ -40,6 +40,7 @@ tags: [mysql, dba]
 - 大小写敏感问题
     - mysql 在 windows 系统下安装好后，默认是对表名大小写不敏感的。但是在 linux 下，一些系统需要手动设置
     - linux设置：打开并修改`/etc/my.cnf`在`[mysqld]`节点下，加入一行： `lower_case_table_names=1`(表名大小写：0 是大小写敏感，1 是大小写不敏感)。重启 mysql 服务`systemctl restart mysqld`
+    - 字符串比较：默认不区分大小写
 - mysql 服务器编码问题
     - 保存到数据库编码错误：1.编辑器编码(复制的代码要注意原始代码格式) 2.数据库/表/字段编码 3.服务器编码
     - 查看服务器编码`show variables like '%char%';`，如果`character_set_server=latin1`就说明有问题(曾经因为这个问题遇到这么个场景：此数据库下大部分表可以正常插入中文，但是有一张表的一个字段死活插入乱码，当尝试修改 java 代码中此 sql 语句的另外几个传入参数并连续插入两次可以正常插入，不产生乱码。此情景简直可以怀疑人生，最终修改 character_set_server 后一切正常)

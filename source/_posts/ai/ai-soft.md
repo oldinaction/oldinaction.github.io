@@ -15,8 +15,33 @@ tags: [ai]
         - 1000 tokens大概是750单词，大概2美元可以问100万个token，相当于750000个单词。75万个单词需要15块钱人民币
         - 根据大家的经验，基本问清楚1个问题就要耗费100~200个token，算起来其实不少的，尤其在连续会话中，为了保持对话的连续性，必须每次都要回传历史消息，并且输入都要算 token 数算钱的
         - 官方提供的Token收费计算器: https://platform.openai.com/tokenizer
+- 百万Token = 1M 字节 = 1000K 字节; 万亿参数 = 1T 字节; 671B参数(B=10亿) = 6710亿
+
+## Token套餐
+
+- Codex平均消耗: 3000万Token/天(250个请求), 2亿/周, 8亿/月
+- GPT(输入/输出/缓存命中)
+    - Codex: $20/每月, $100/每月
+    - **5.5: $5/百万Token, $30/百万Token, $0.5/百万Token**
+    - 5.4: $2.5/百万Token
+    - 5: $1.25/百万Token
+- Claude
+    - Opus4.7/4.8: $5/百万Token
+- DeepSeek(输入/输出/缓存命中)
+    - **v4-pro: ¥3/百万Token, ¥6/百万Token, ¥0.025/百万Token**
+    - v4-flash: ¥1/百万Token, ¥2/百万Token, ¥0.02/百万Token
+- 火山方舟
+    - CodingPlan(AgentPlan): 9.9/月, 48/月
+- WorkBuddy
+    - **免费: 每月 500 积分**
+    - 个人专业版: 58/月, 2000 积分
 
 ## 网址收集
+
+### AI模型排行
+
+- [cocoloop](https://top.cocoloop.cn/)
+- [llm_benchmark](https://llm2014.github.io/llm_benchmark/)
 
 ### AI导航
 
@@ -51,6 +76,7 @@ tags: [ai]
     - 通义, 腾讯元宝, 可图, 秒画, 可灵
     - [豆绘AI](https://www.douhuiai.com/)
 - 国外
+    - GPT-image2
     - [ImageFx(Google)](https://labs.google/fx/tools/image-fx)
     - Nano banana(Google)
     - dalle2

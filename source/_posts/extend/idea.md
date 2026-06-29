@@ -345,8 +345,12 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 ### Git
 
 - **设置git的Local Changes窗口显示**
-    - 新版本(2025)设置: File –> Settings –> Advanced Settings -> 搜索commit - 勾选 Use modal commit interface for Git
-        - 老版本: File –> Settings –> Version Control –> commit -> 取消勾选 Use non-modal commit interface -> apply
+    - 新版本(2025): File –> Settings –> Advanced Settings -> 搜索commit - 勾选 Use modal commit interface for Git
+    - ~~老版本: File –> Settings –> Version Control –> commit -> 取消勾选 Use non-modal commit interface -> apply~~
+- 区分工作区和暂存区(类似 vscode, idea 默认是弱工作区)
+    - Git - 勾选 Enable staging area (开启后 Local Changes 窗口只能单独显示, 没法显示在 git 界面)
+- 默认不要显示最近一次提交文案到 commit 输入框内
+    - setting - Version Control - Commit - 勾选 Clear initial commit message
 - 在一个项目中管理多个git
     - setting - Version Control - 编辑Directory
 - 暂存功能(Shelve搁置)。类似[git stash](/_posts/arch/git.md#暂存工作区)
@@ -359,10 +363,12 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
 
 ## 常用技巧
 
-### 使用.http文件的快捷请求脚本
+### 查找文件内容
 
-- https://www.cnblogs.com/crazymakercircle/p/14317222.html
-- 支持环境变量，如创建`http-client.env.json`
+- 查找时过滤掉 .worktrees 目录
+    - 右键 .worktrees → Mark Directory As → Excluded
+    - Ctrl+Shift+F - File mask: `!*.worktrees/*`
+    - 通过 Scope (貌似正则有点问题)
 
 ### 正则查找和替换
 
@@ -446,6 +452,11 @@ EUWT4EE9X2-eyJsaWNlbnNlSWQiOiJFVVdUNEVFOVgyIiwibGljZW5zZWVOYW1lIjoic2lnbnVwIHNjb
         - 执行mvn命令的jdk版本参考上文说明
         - 对应bytecode版本读取: java.version/maven.compiler.source/maven.compiler.target等参数
         - maven项目会读取build节点配置(如build.resources配置)
+
+### 使用.http文件的快捷请求脚本
+
+- https://www.cnblogs.com/crazymakercircle/p/14317222.html
+- 支持环境变量，如创建`http-client.env.json`
 
 ## IDEA开发PHP程序
 

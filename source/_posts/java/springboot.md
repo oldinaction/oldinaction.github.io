@@ -238,6 +238,9 @@ mybatis:
     
     ```xml
     <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
+
+    <!-- 不支持 ～ 符号, 可以使用 ${user.home} 代替, springboot yml|properties 中也需要使用 ${user.home} 代替 -->
+    <property name="LOG_FILE" value="${user.home}/logs/demo"/>
     ```
 - `System.getproperty("java.io.tmpdir")`可获取操作系统缓存的临时目录。不同操作系统的缓存临时目录不一样，Linux：`/tmp`，Windows如：`C:\Users\smalle\AppData\Local\Temp\`
 
@@ -1091,15 +1094,25 @@ spring:
         - `http.StatViewServlet` 为`ResourceServlet` 的子类，通过`DruidStatViewServletConfiguration`(druid-spring-boot-starter)注入到Spring容器，并设置Servlet的init-parameter，如设置loginUsername等
 - 监控中的区间分布8个数字说明
 
+| 位置      | 耗时范围     | 数值   |
+| ---       | ---------- | ---    |
+| 第1格     | 0~1ms      | 0        |
+| 第2格     | 1~10ms     | 1        |
+| 第3格     | 10~100ms   | 10       |
+| 第4格     | 100ms~1s   | 100     |
+| **第5格** | 1s~10s     | 1000    |
+| 第6格     | 10s~100s   | 1,0000   |
+| 第7格     | 100s~1000s | 10,0000  |
+| 第8格     | >1000s     | >10,0000 |
+
+
 ```bash
-0 - 1 耗时0到1毫秒的次数
-1 - 10 耗时1到10毫秒的次数
-10 - 100 耗时10到100毫秒的次数
-100 - 1,000 耗时100到1000毫秒的次数
-1,000 - 10,000 耗时1到10秒的次数
-10,000 - 100,000 耗时10到100秒的次数
-100,000 - 1,000,000 耗时100到1000秒的次数
-1,000,000 - 耗时1000秒以上的次数
+# URL监控: 执行时间区间分布: 8 个
+# SQL监控:
+    # 执行时间分布: 8 个
+    # 执行+RS时分布: 8 个 (SQL执行时间 + ResultSet读取时间)
+    # 读取行分布: 6 个 (读取的行数)
+    # 更新行分布: 6 个 (更新的行数)
 ```
 - druid内置SQL解析工具类
     - 遇到xmlparse函数会解析出错，如`xmlparse(content t.name || ';' wellformed)`，参考(此方法测试无效)：https://github.com/alibaba/druid/issues/4259

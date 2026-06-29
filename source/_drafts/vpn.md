@@ -435,6 +435,7 @@ proxies:
   port: 52451
   username: rcr5IY1234
   password: r2rw92235j
+# http://www.gstatic.com/generate_204 是谷歌提供的最轻量网络心跳包，返回204状态码(No Content)则说明网络正常
 proxy-groups:
   - { name: 🚀 节点选择, type: select, proxies: [♻️ 自动选择, 🔯 故障转移, 'vmess节点', 'socks5节点1', 'socks5节点2'] }
   - { name: ♻️ 自动选择, type: url-test, proxies: ['vmess节点', 'socks5节点1', 'socks5节点2'], url: 'http://www.gstatic.com/generate_204', interval: 86400 }
