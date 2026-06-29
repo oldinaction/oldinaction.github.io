@@ -1,0 +1,316 @@
+<!doctype html><html class="theme-next mist use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css"><meta name="keywords" content="react,"><link rel="alternate" href="/atom.xml" title="月星墙的博客" type="application/atom+xml"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1"><meta name="description" content="React基础组件 组件支持类组件和函数式组件，更推荐函数式  Hooks 参考：https://juejin.cn/post/7041551402048421901 常用 useState 绑定变量 useReducer 基于类型绑定变量 useContext 绑定上下文 useEffect 副作用，类似vue watch useLayoutEffect useRef 绑定dom forward"><meta name="keywords" content="react"><meta property="og:type" content="article"><meta property="og:title" content="React"><meta property="og:url" content="http://blog.aezo.cn/2023/12/14/web/react/index.html"><meta property="og:site_name" content="月星墙的博客"><meta property="og:description" content="React基础组件 组件支持类组件和函数式组件，更推荐函数式  Hooks 参考：https://juejin.cn/post/7041551402048421901 常用 useState 绑定变量 useReducer 基于类型绑定变量 useContext 绑定上下文 useEffect 副作用，类似vue watch useLayoutEffect useRef 绑定dom forward"><meta property="og:locale" content="zh-Hans"><meta property="og:updated_time" content="2026-05-27T12:52:16.316Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="React"><meta name="twitter:description" content="React基础组件 组件支持类组件和函数式组件，更推荐函数式  Hooks 参考：https://juejin.cn/post/7041551402048421901 常用 useState 绑定变量 useReducer 基于类型绑定变量 useContext 绑定上下文 useEffect 副作用，类似vue watch useLayoutEffect useRef 绑定dom forward"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Mist",sidebar:{position:"right",display:"post",offset:12,offset_float:0,b2t:!1,scrollpercent:!1},fancybox:!0,motion:!0,duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"BWD6R9FA4K",apiKey:"3330f3cbaa099dfc30395de5f5b20151",indexName:"blog",hits:{per_page:10},labels:{input_placeholder:"请输入关键字",hits_empty:"我们没有找到任何搜索结果: ${query}",hits_stats:"找到约${hits}条结果（用时${time}ms）"}}}</script><link rel="canonical" href="http://blog.aezo.cn/2023/12/14/web/react/"><title>React | 月星墙的博客</title><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?085f9cd91ef2ad985f791c677472f0d1";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-right page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">月星墙的博客</span><span class="logo-line-after"><i></i></span></a></div><h1 class="site-subtitle" itemprop="description">Better Code, Better Life</h1></div><div class="site-nav-toggle"> <button><span class="btn-bar"></span><span class="btn-bar"></span><span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br> 首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br> 分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br> 关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br> 归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br> 标签</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br> 站点地图</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br> 搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i></span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"> <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><link itemprop="mainEntityOfPage" href="http://blog.aezo.cn/2023/12/14/web/react/"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="smalle"><meta itemprop="description" content=""><meta itemprop="image" content="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="月星墙的博客"></span><header class="post-header"><h2 class="post-title" itemprop="name headline">React</h2><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i></span> <span class="post-meta-item-text">发表于</span> <time title="创建于" itemprop="dateCreated datePublished" datetime="2023-12-14T17:14:00+08:00">2023-12-14</time></span> <span class="post-category"><span class="post-meta-divider">|</span><span class="post-meta-item-icon"><i class="fa fa-folder-o"></i></span> <span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a></span></span></div></header><div class="post-body" itemprop="articleBody"><h2 id="React基础"><a href="#React基础" class="headerlink" title="React基础"></a>React基础</h2><h3 id="组件"><a href="#组件" class="headerlink" title="组件"></a>组件</h3><ul><li>组件支持类组件和函数式组件，更推荐函数式</li></ul><h3 id="Hooks"><a href="#Hooks" class="headerlink" title="Hooks"></a>Hooks</h3><ul><li>参考：<a href="https://juejin.cn/post/7041551402048421901" target="_blank" rel="noopener">https://juejin.cn/post/7041551402048421901</a></li><li>常用<ul><li>useState 绑定变量</li><li>useReducer 基于类型绑定变量</li><li>useContext 绑定上下文</li><li>useEffect 副作用，类似vue watch</li><li>useLayoutEffect</li><li>useRef 绑定dom<ul><li>forwardRef</li></ul></li><li>useImperativeHandle 子组件中保留函数给父组件调用</li><li>useMemo 一般用于缓存数据</li><li>useCallback 一般用于缓存函数</li></ul></li><li>举例</li></ul><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useState &#125; <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ==&gt; useState</span></span><br><span class="line"><span class="comment">// 默认组件属性和dom显示不是双向绑定的，通过useState进行双向绑定</span></span><br><span class="line"><span class="keyword">const</span> [count, setCount] = useState(count);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// ==&gt; useReducer</span></span><br><span class="line"><span class="comment">// useReducer 作为 useState 的代替方案，在某些场景下使用更加适合，例如 state 逻辑较复杂且包含多个子值，或者下一个 state 依赖于之前的 state 等</span></span><br><span class="line"><span class="keyword">const</span> initialState = &#123; <span class="attr">count</span>: <span class="number">0</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">reducer</span>(<span class="params">state, action</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 根据不同类型进行判断某个状态的处理方式</span></span><br><span class="line">  <span class="keyword">switch</span> (action.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">'increment'</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123;<span class="attr">count</span>: state.count + <span class="number">1</span>&#125;;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">'decrement'</span>:</span><br><span class="line">      <span class="keyword">return</span> &#123;<span class="attr">count</span>: state.count - <span class="number">1</span>&#125;;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">Counter</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// dispatch类似setState，只不过需要传入一个类型对象</span></span><br><span class="line">  <span class="keyword">const</span> [state, dispatch] = useReducer(reducer, initialState);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;&gt;</span><br><span class="line">      &lt;p&gt;Count: &#123;state.count&#125;&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">      &lt;button onClick=&#123;() =&gt; dispatch(&#123;type: 'decrement'&#125;)&#125;&gt;-&lt;/</span>button&gt;</span><br><span class="line">      &lt;button onClick=&#123;() =&gt; dispatch(&#123;<span class="attr">type</span>: <span class="string">'increment'</span>&#125;)&#125;&gt;+<span class="xml"><span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line">    &lt;<span class="regexp">/&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ ==&gt; useContext</span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 默认父子组件传值需要一层层传递（同级组件可使用App进行传递），可使用useContext避免层层传递问题</span></span><br><span class="line"><span class="regexp">export function Sub() &#123;</span></span><br><span class="line"><span class="regexp">    /</span><span class="regexp">/ 获取Context值</span></span><br><span class="line"><span class="regexp">    const count = useContext(LevelContext); /</span><span class="regexp">/ 1</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 初始化一个Context</span></span><br><span class="line"><span class="regexp">const ThemeContext = createContext(0);</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default function Main(props) &#123;</span></span><br><span class="line"><span class="regexp">  const count = useContext(LevelContext); /</span><span class="regexp">/ 0</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">  return (</span></span><br><span class="line"><span class="regexp">    /</span><span class="regexp">/ 使用 Provider 将当前 props.value 传递给内部组件</span></span><br><span class="line"><span class="regexp">    &lt;ThemeContext.Provider value=&#123; count + 1 &#125;&gt;</span></span><br><span class="line"><span class="regexp">      &lt;Sub /</span>&gt;</span><br><span class="line">    &lt;<span class="regexp">/ThemeContext.Provider&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ ==&gt; useEffect</span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 类似vue watch</span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 通常情况下，组件卸载时需要清除 effect 创建的副作用操作，useEffect Hook 函数可以返回一个清除函数，清除函数会在组件卸载前执行。组件在多次渲染中都会在执行下一个 effect 之前，执行该函数进行清除上一个 effect</span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 默认情况下，effect 会在每一次组件渲染完成后执行。useEffect 可以接收第二个参数，它是 effect 所依赖的值数组，这样就只有当数组值发生变化才会重新创建订阅</span></span><br><span class="line"><span class="regexp">useEffect(() =&gt; &#123;</span></span><br><span class="line"><span class="regexp">    document.title = `You clicked $&#123;count&#125; times`;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">    /</span><span class="regexp">/ 返回一个清除函数，在组件卸载前和下一个effect执行前执行</span></span><br><span class="line"><span class="regexp">    return () =&gt; &#123;</span></span><br><span class="line"><span class="regexp">      console.log('destroy effect');</span></span><br><span class="line"><span class="regexp">      clearInterval(timer); /</span><span class="regexp">/ 如清除一些定时</span></span><br><span class="line"><span class="regexp">    &#125;;</span></span><br><span class="line"><span class="regexp">&#125;, [count]); /</span><span class="regexp">/ 仅在 count 更改时更新</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ ==&gt; useRef/</span>forwardRef/useImperativeHandle</span><br><span class="line"><span class="comment">// 默认情况，父组件无法直接调用子组件属性和方法。可使用useRef进行将子组件引用传递给父组件，从而完成调用</span></span><br><span class="line"><span class="comment">// useRef 用于返回一个可变的 ref 对象，其 .current 属性被初始化为useRef传入的参数</span></span><br><span class="line"><span class="keyword">import</span> &#123; useRef, forwardRef, useImperativeHandle &#125; <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过 forwardRef 向父组件传递暴露的 ref. 接收一个(子组件)函数参数</span></span><br><span class="line"><span class="comment">// props为传入子组件的参数，第二个参数为父组件的 ref 实例值(inputRef)</span></span><br><span class="line"><span class="keyword">const</span> ForwardInput = forwardRef(<span class="function"><span class="keyword">function</span> (<span class="params">props, ref</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> inputRef = useRef();</span><br><span class="line">  <span class="comment">// 自定义暴露给父组件的 ref 实例值</span></span><br><span class="line">  useImperativeHandle(ref, () =&gt; (&#123;</span><br><span class="line">    focus: <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      inputRef.current.focus();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;));</span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">ref</span>=<span class="string">&#123;inputRef&#125;</span> <span class="attr">type</span>=<span class="string">"text"</span> &#123;<span class="attr">...props</span>&#125; /&gt;</span>;</span></span><br><span class="line"><span class="xml">&#125;);</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">export default function Counter() &#123;</span></span><br><span class="line"><span class="xml">  const inputRef = useRef();</span></span><br><span class="line"><span class="xml">  </span></span><br><span class="line"><span class="xml">  const onInputFocus = () =&gt; &#123;</span></span><br><span class="line"><span class="xml">    // 默认再父组件中是无法访问到子组件的函数的，需在子组件中使用useImperativeHandle进行暴露</span></span><br><span class="line"><span class="xml">    inputRef.current.focus();</span></span><br><span class="line"><span class="xml">  &#125;;</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">  return (</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;&gt;</span></span></span><br><span class="line"><span class="xml">      &#123;/* react支持一个ref属性，该属性可以添加到任何的组件上。该ref属性可接收一个回调函数，这个回调函数在组件挂载或者卸载的时候被调用，传入参数是DOM本身 */&#125;</span></span><br><span class="line"><span class="xml">      &#123;/* 如果不是子组件，只是普通html dom也可使用ref操作dom */&#125;</span></span><br><span class="line">      &#123;/* &lt;input ref=&#123;inputRef&#125; type="text" /&gt; */&#125;</span><br><span class="line">      &lt;ForwardInput ref=&#123;inputRef&#125; /&gt;</span><br><span class="line">      &lt;button onClick=&#123;onInputFocus&#125;&gt;Input focus&lt;/button&gt;</span><br><span class="line">    &lt;/&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">// 性能优化（useCallback &amp; useMemo）</span><br><span class="line">// useCallback(fn, deps) 相当于 useMemo(() =&gt; fn, deps)</span><br><span class="line">// 默认情况下函数式组件，如果某个绑定属性改变就会触发组件重新渲染，此时里面的函数也会重新创建；useCallback 用于创建返回一个回调函数，该回调函数只会在某个依赖项发生改变时才会更新</span><br><span class="line">import &#123; memo, useCallback &#125; from 'react'</span><br><span class="line"></span><br><span class="line">// memo将组件转换成一个记忆组件，只有props值没有改变，则组件不会重新渲染</span><br><span class="line">const Button = memo(function (&#123; onClick &#125;) &#123;</span><br><span class="line">    console.log('Button渲染了')</span><br><span class="line">    return &lt;button onClick=&#123;onClick&#125;&gt;Click me&lt;/button&gt;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">function App() &#123;</span><br><span class="line">    const [count, setCount] = useState(count);</span><br><span class="line"></span><br><span class="line">    // 此时点击会导致count变化，从而重新渲染此组件，那么默认函数就会重新创建</span><br><span class="line">    // 此处使用useCallback则不会重新创建函数，从而传递到Button组件的props就不会改成，从而子组件不会重新渲染</span><br><span class="line">    const onClick = useCallback(() =&gt; &#123;</span><br><span class="line">        setCount(count + 1)</span><br><span class="line">    &#125;, []) // 类似useEffect，第二个参数决定是否重新渲染</span><br><span class="line"></span><br><span class="line">    return (</span><br><span class="line">        &lt;&gt;</span><br><span class="line">            &lt;p&gt;Count: &#123;state.count&#125;&lt;/p&gt;</span><br><span class="line">            &lt;Button onClick=&#123;onClick&#125; /&gt;</span><br><span class="line">        &lt;/&gt;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="Next-js"><a href="#Next-js" class="headerlink" title="Next.js"></a>Next.js</h2><ul><li><p>Next.js 基于 React 框架</p><ul><li>SEO友好</li><li><p>前后端一体化框架</p><p> | 部分 | 作用 |<br> | —————– | —— |<br> | React | 前端 UI |<br> | Node Runtime | 后端运行 |<br> | Route Handlers | 后端 API |<br> | Server Components | 服务端渲染 |<br> | Middleware | 网关中间件 |</p></li><li><p>支持以下模式</p><p> | 模式 | 含义 |<br> | — | ———————– |<br> | CSR | 浏览器渲染 |<br> | SSR | 请求时渲染 |<br> | SSG | 构建时渲染(Static Site Generation) |<br> | ISR | 静态页面定时更新 |<br> | RSC | React Server Components |</p></li></ul></li><li><p>前后端一体化框架</p><ul><li>Next.js 一般 build 出来的产物无法直接在 nginx 中运行，需要使用 node 运行(当然也支持构建纯静态文件)</li><li>一般可部署到 Vercel 中</li></ul></li></ul><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .env 文件说明: </span></span><br><span class="line"><span class="comment"># 默认环境变量只在服务端可用，要暴露给浏览器必须加 NEXT_PUBLIC_</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 构建</span></span><br><span class="line"><span class="comment"># 构建项目, 生成 .next 文件夹</span></span><br><span class="line">npm run build <span class="comment"># next build</span></span><br><span class="line"><span class="comment"># 在服务器通过 node 运行</span></span><br><span class="line">npm run start <span class="comment"># next start</span></span><br></pre></td></tr></table></figure><ul><li>页面说明</li></ul><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"use client"</span>; <span class="comment">// 第一行增加此标识，表示所有代码都在客户端运行(CSR渲染, 爬虫只能拿到 Loading, SEO 不好)</span></span><br></pre></td></tr></table></figure></div><div></div><div></div><div><ul class="post-copyright"><li class="post-copyright-author"> <strong>本文作者：</strong> smalle</li><li class="post-copyright-link"> <strong>本文链接：</strong> <a href="http://blog.aezo.cn/2023/12/14/web/react/" title="React">http://blog.aezo.cn/2023/12/14/web/react/</a></li><li class="post-copyright-license"> <strong>版权声明：</strong> 本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！</li></ul></div><footer class="post-footer"><div class="post-tags"> <a href="/tags/react/" rel="tag"># react</a></div><div class="post-nav"><div class="post-nav-next post-nav-item"><a href="/2023/09/02/mobile/小程序开发框架/" rel="next" title="小程序开发框架"><i class="fa fa-chevron-left"></i> 小程序开发框架</a></div><span class="post-nav-divider"></span><div class="post-nav-prev post-nav-item"> <a href="/2024/06/03/mobile/alipay/" rel="prev" title="支付宝开发">支付宝开发<i class="fa fa-chevron-right"></i></a></div></div></footer></article><div class="post-spread"><div> <a target="_blank" href="https://github.com/oldinaction/ChatGPT-MP"><img class="nofancybox" style="width:300px;margin:0 auto" src="https://cdn7.aezo.cn/one/chat/chat-gpt-open-banner.jpg" alt="ChatGPT开源小程序" title="ChatGPT开源小程序"></a></div></div></div></div><div class="comments" id="comments"></div></div><div class="sidebar-toggle"><div class="sidebar-toggle-line-wrap"><span class="sidebar-toggle-line sidebar-toggle-line-first"></span><span class="sidebar-toggle-line sidebar-toggle-line-middle"></span><span class="sidebar-toggle-line sidebar-toggle-line-last"></span></div></div><aside id="sidebar" class="sidebar"><div class="sidebar-inner"><ul class="sidebar-nav motion-element"><li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap"> 文章目录</li><li class="sidebar-nav-overview" data-target="site-overview"> 站点概览</li></ul><section class="site-overview sidebar-panel"><div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person"> <img class="site-author-image" itemprop="image" src="https://avatars0.githubusercontent.com/u/15698218?v=3&u=ce740bf0b67ff0d74990ba6fc644d6e92f572dcb&s=400" alt="smalle"><p class="site-author-name" itemprop="name">smalle</p><p class="site-description motion-element" itemprop="description"></p></div><nav class="site-state motion-element"><div class="site-state-item site-state-posts"> <a href="/archives/"><span class="site-state-item-count">173</span> <span class="site-state-item-name">日志</span></a></div><div class="site-state-item site-state-categories"> <a href="/categories/index.html"><span class="site-state-item-count">15</span> <span class="site-state-item-name">分类</span></a></div><div class="site-state-item site-state-tags"> <a href="/tags/index.html"><span class="site-state-item-count">155</span> <span class="site-state-item-name">标签</span></a></div></nav><div class="feed-link motion-element"><a href="/atom.xml" rel="alternate"><i class="fa fa-rss"></i> RSS</a></div><div class="links-of-author motion-element"></div><div> 欢迎关注公众号：阿壹族 <img class="nofancybox" style="width:120px;margin:0 auto" src="https://cdn7.aezo.cn/common/qrcode/ayz_qrcode.jpg" alt="欢迎关注公众号：阿壹族" title="欢迎关注公众号：阿壹族"></div></section><section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active"><div class="post-toc"><div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#React基础"><span class="nav-number">1.</span> <span class="nav-text">React基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#组件"><span class="nav-number">1.1.</span> <span class="nav-text">组件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hooks"><span class="nav-number">1.2.</span> <span class="nav-text">Hooks</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Next-js"><span class="nav-number">2.</span> <span class="nav-text">Next.js</span></a></li></ol></div></div></section></div></aside></div></main><footer id="footer" class="footer"><div class="footer-inner"><div class="copyright"> &copy; 2016 - <span itemprop="copyrightYear">2026</span><span class="with-love"><i class="fa fa-heart"></i></span> <span class="author" itemprop="copyrightHolder">smalle</span>&nbsp;&nbsp;&nbsp;&nbsp;<div class="powered-by"> 由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div><div class="powered-by"> 主题 - <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div><div class="theme-info"> <a class="theme-link" target="_blank" href="https://tongji.baidu.com/main/overview/10000542408/overview/index?siteId=18991897">站长统计</a></div></div><div class="ad"> <span style="font-weight:700">AD&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="theme-info"> <a target="_blank" href="https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=oby5nolb">阿里云大礼包</a></div></div><div class="aezocn"> <span style="font-weight:700">&copy;AEZO.CN&nbsp;&nbsp;&nbsp;&nbsp;</span><div class="powered-by"> <a target="_blank" href="https://shengqitech.aezo.cn/">圣骑科技</a></div><div class="powered-by"> <a target="_blank" href="https://cdn7.aezo.cn/common/qrcode/one_qrcode.jpg">【One能抽屉】小程序</a></div><div class="theme-info"> <a target="_blank" href="http://shop.aezo.cn/">杂货铺(省钱小助手)</a></div></div><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?085f9cd91ef2ad985f791c677472f0d1";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></div></footer><div class="back-to-top"><i class="fa fa-arrow-up"></i></div></div><script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script><script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script><script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script><script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script><script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script><script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script><script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script><script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script><script>!function(){var t=document.createElement("script"),e=window.location.protocol.split(":")[0];t.src="https"===e?"https://zz.bdstatic.com/linksubmit/push.js":"http://push.zhanzhang.baidu.com/push.js";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}()</script><script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.1"></script><script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.1"></script></body></html>
